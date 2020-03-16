@@ -16,6 +16,7 @@ star.cons{
   smList:all x ~~ equality[x] |: (cons[x],cons[x]) => boolean.
   smList(.nil,.nil) => .true.
   smList(cons(x,xr),cons(y,yr)) => x==y && smList(xr,yr).
+  smList(_,_) default => .false.
 
   public implementation all x ~~ hash[x] |: hash[cons[x]] => {
     hash(L) => cHash(L,0).
@@ -56,7 +57,7 @@ star.cons{
   public implementation all e ~~ sizeable[cons[e]] => {
     size(L) => consLength(L,0).
     isEmpty(.nil) => .true.
-    isEMpty(_) default => .false.
+    isEmpty(_) default => .false.
   }
 
   consLength:all e ~~ (cons[e],integer) => integer.
@@ -78,6 +79,7 @@ star.cons{
   public implementation all x ~~ reversible[cons[x]] => {
     reverse(L) => rev(L,.nil).
 
+    private rev:(cons[x],cons[x])=>cons[x].
     rev(.nil,R) => R.
     rev(cons(E,L),R) => rev(L,cons(E,R)).
   }
@@ -93,7 +95,7 @@ star.cons{
   public implementation mapping[cons] => {
     (L//F) => mapOverList(L,F).
 
-    mapOverList:all e,f ~~ (cons[e],(e)=>f)=>cons[f].
+    private mapOverList:all e,f ~~ (cons[e],(e)=>f)=>cons[f].
     mapOverList(.nil,_) => .nil.
     mapOverList(cons(H,T),F) => cons(F(H),mapOverList(T,F)).
   }

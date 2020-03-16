@@ -45,6 +45,9 @@ star.compiler.wff{
 
   public isConstructorType:(ast) => option[(locn,ast,ast)].
   isConstructorType(A) => isBinary(A,"<=>").
+
+  public isFunctionType:(ast) => option[(locn,ast,ast)].
+  isFunctionType(A) => isBinary(A,"=>").
     
   public deComma:(ast) => list[ast].
   deComma(Trm) => let{
@@ -142,6 +145,13 @@ star.compiler.wff{
   algebraicFace(A,Rp) where (Lc,_,_) ^= isRoundTerm(A) => either(brTuple(Lc,[])).
   algebraicFace(A,Rp) where (Lc,_) ^= isEnum(A) => either(brTuple(Lc,[])).
   algebraicFace(A,Rp) where (Lc,_,Els) ^= isBrTerm(A) => either(brTuple(Lc,Els)).
+  algebraicFace(A,Rp) where (_,I) ^= isPrivate(A) => algebraicFace(I,Rp).
+  algebraicFace(A,Rp) where (_,I) ^= isPublic(A) => algebraicFace(I,Rp).
+  algebraicFace(A,Rp) where (_,_,I) ^= isXQuantified(A) => algebraicFace(I,Rp).
+  algebraicFace(A,Rp) where (_,_,I) ^= isQuantified(A) => algebraicFace(I,Rp).
+  algebraicFace(A,Rp) where (_,_,I) ^= isConstrained(A) => algebraicFace(I,Rp).
+  algebraicFace(A,Rp) where (Lc,_,_) ^= isEquation(A) => either(brTuple(Lc,[])).
+  algebraicFace(A,Rp) where (Lc,_,_) ^= isConstructorType(A) => either(brTuple(Lc,[])).
 
   combineFaces(F1,F2,Rp) where (_,[]) ^= isBrTuple(F1) => either(F2).
   combineFaces(F1,F2,Rp) where (_,[]) ^= isBrTuple(F2) => either(F1).

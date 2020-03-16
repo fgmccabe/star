@@ -95,7 +95,9 @@ is equivalent to:
 @example
 cons of [1,..cons of [2,..cons of []]]
 @end example
-However, we are not permitted to use both of @code{,..} and @code{..,}
+where @code{cons of []} is actually just @code{.nil}.
+
+We are not permitted to use both of @code{,..} and @code{..,}
 in the same expression:
 @example
 [F..,2,3,..B]
@@ -175,7 +177,7 @@ For example, the sequence expression:
 @end example
 is transformed into
 @example
-_cons(1,_cons(2,_cons(3,_nil())))
+_cons(1,_cons(2,_cons(3,_nil)))
 @end example
 If a sequence expression has an explicit type marker on it, then its
 translation is slightly different -- to allow the type checker to make
@@ -259,7 +261,6 @@ describe below does not have a natural notion of decomposing (because
 ordering within a @code{map} is not preserved); even though it does
 have a natural form of describing actual @code{map} collections.
 @end quotation
-
 
 @node Notation and contracts
 @subsection Notation and contracts

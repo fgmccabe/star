@@ -69,7 +69,7 @@ star.collection{
   public implementation mapping[list] => {
     (L//F) => mapOverList(L,F,0,_list_size(L)).
 
-    mapOverList:all e,f ~~ (list[e],(e)=>f,integer,integer)=>list[f].
+    private mapOverList:all e,f ~~ (list[e],(e)=>f,integer,integer)=>list[f].
     mapOverList(_,_,Lx,Lx)=>_list_nil(Lx).
     mapOverList(L,F,Ix,Lx) => _list_prepend(mapOverList(L,F,Ix+1,Lx),F(_list_nth(L,Ix))).
   }
@@ -115,7 +115,7 @@ star.collection{
   public implementation all e ~~ search[list[e]->>e] => {
     search(L,F) => searchList(L,F).
 
-    searchList([],_) => .none.
+    private searchList([],_) => .none.
     searchList([E,..L],F) where F(E) => some(E).
     searchList([_,..L],F) => searchList(L,F).
   }
@@ -145,6 +145,7 @@ star.collection{
     _put(L,ix,v) => _list_replace(L,ix,v).
 
     _remove(L,ix) => _list_remove(L,ix).
+    _empty = _list_nil(0).
   }
 
   public interleave: all t ~~ (list[t],t) => list[t].

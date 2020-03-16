@@ -4,7 +4,7 @@ star.compiler.dependencies{
   import star.compiler.ast.
   import star.compiler.errors.
   import star.compiler.location.
-  import star.compiler.keywords.
+  import star.compiler.operators.
   import star.compiler.meta.
   import star.compiler.wff.
   import star.compiler.misc.
@@ -162,7 +162,6 @@ star.compiler.dependencies{
   }
   collectThetaRefs([defnSpec(Defines,Lc,Stmts),..Defs],AllRefs,Annots,S,Rp) => do{
     Refs <- collectStmtsRefs(Stmts,AllRefs,Annots,[],Rp);
---    logMsg("refs in $(Defines) are $(Refs)");
     collectThetaRefs(Defs,AllRefs,Annots,[definition(Defines,Lc,Refs,Stmts),..S],Rp)
   }.
 
@@ -391,6 +390,10 @@ star.compiler.dependencies{
     Rf1 <- collectTermRefs(L,All,Rf,Rp);
     collectTermRefs(R,All,Rf1,Rp)
   }
+  collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isComma(T) => do{
+    Rf1 <- collectTermRefs(L,All,Rf,Rp);
+    collectTermRefs(R,All,Rf1,Rp)
+  }
   collectTermRefs(_,_,Rf,_) default => either(Rf).
 
   collectDoRefs:(ast,list[defnSp],list[defnSp],reports) => either[reports,list[defnSp]].
@@ -482,7 +485,7 @@ star.compiler.dependencies{
     R1 <- collectTypeRefs(L,All,SoFar,Rp);
     collectTypeRefs(R,All,R1,Rp)
   }
-  collectTypeRefs(T,All,SoFar,Rp) where (_,L,R) ^= isBinary(T,",") => do{
+  collectTypeRefs(T,All,SoFar,Rp) where (_,L,R) ^= isComma(T) => do{
     R1 <- collectTypeRefs(L,All,SoFar,Rp);
     collectTypeRefs(R,All,R1,Rp)
   }

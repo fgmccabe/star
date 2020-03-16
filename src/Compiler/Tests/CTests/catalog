@@ -4,7 +4,12 @@
     "test.fl" : "fl.star",
     "test.ar" : "ar.star",
     "test.c" : "c.star",
+    "test.l" : "l.star",
+    "test.l2" : "l2.star",
     "test.ls" : "ls.star",
+    "test.lst" : "lst.star",
+    "test.cns" : "cns.star",
+    "test.t1" : "t1.star",
     "star.boot" : "boot.star"
   },
   "version": "1.0.0",

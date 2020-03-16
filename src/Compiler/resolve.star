@@ -130,10 +130,11 @@ star.compiler.resolve{
     valis (Stx,whr(Lc,OT,OC))
   }
   overloadTerm(over(Lc,T,Tp,Cx),Dict,St,Rp) => do{
+--    logMsg("overloading $(T)\:$(Tp)");
     (St1,[A,..Args]) <- resolveContracts(Lc,Cx,[],Dict,St,Rp);
     if mtd(_,Nm,MTp) .= T then{
       if _eof(Args) then
-	valis (St1,dot(Lc,A,Nm,MTp))
+	valis (St1,dot(Lc,A,Nm,Tp))
       else
       valis (St1,apply(Lc,dot(Lc,A,Nm,MTp),tple(Lc,Args),Tp))
     }

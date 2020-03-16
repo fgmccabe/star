@@ -75,8 +75,8 @@ star.compiler.freevars{
       Excl1 .= extendExcl(Ptn,Excl,Fv) =>
     freeVarsInTerm(Ptn,Excl1,freeVarsInTerm(Exp,Excl1,Fv)).
   freeVarsInEqn(eqn(_,Ptn,some(Wh),Exp),Excl,Fv) where
-      Excl1 .= extendExcl(Wh,extendExcl(Ptn,Excl,Fv),Fv) =>
-    freeVarsInTerm(Wh,Excl1,freeVarsInTerm(Ptn,Excl1,freeVarsInTerm(Exp,Excl1,Fv))).
+      (Excl1,FvC) .= freeVarsInCond(Wh,ptnVars(Ptn,Excl,Fv),Fv) =>
+    freeVarsInTerm(Ptn,Excl1,freeVarsInTerm(Exp,Excl1,FvC)).
 
   public freeVarsInGroup:(list[canonDef],set[crVar],set[crVar])=>set[crVar].
   freeVarsInGroup(Defs,Excl,Fv) => let{
@@ -124,13 +124,24 @@ star.compiler.freevars{
   exclDfs(Defs,Excl,Fv) => foldRight((D,Ex)=>exclDf(D,Ex,Fv),Excl,Defs).
 
   exclDf(varDef(Lc,Nm,_,_,_,Tp),Excl,Fv) => _addMem(crId(Nm,Tp),Excl).
---  exclDf(varDef(Lc,Nm,_,lambda(_,_,_),_,Tp),Excl,Fv) => _addMem(crId(Nm,Tp),Excl).
---  exclDf(cnsDef(_,Nm,_,Tp),Excl,Fv) => _addMem(crId(Nm,Tp),Excl).
   exclDf(implDef(_,_,Nm,_,_,Tp),Excl,Fv) => _addMem(crId(Nm,Tp),Excl).
   exclDf(_,Excl,_) => Excl.
 
   public goalVars:(locn,canon)=>list[canon].
-  goalVars(Lc,Cond) => ((ptnVars(Cond,[],[])::list[crVar])//(crId(Nm,Tp))=>vr(Lc,Nm,Tp)).
+  goalVars(Lc,Cond) => ((glVars(Cond,[])::list[crVar])//(crId(Nm,Tp))=>vr(Lc,Nm,Tp)).
+
+  glVars:(canon,set[crVar]) => set[crVar].
+  glVars(whr(_,E,C),Vrs) =>
+    glVars(C,glVars(E,Vrs)).
+  glVars(cond(_,T,L,R),Vrs) => glVars(L,glVars(T,Vrs))/\ glVars(R,Vrs).
+  glVars(tple(_,Els),Vrs) =>
+    foldRight((E,F)=>glVars(E,F),Vrs,Els).
+  glVars(match(_,P,S),Vrs) => ptnVars(P,Vrs,[]).
+  glVars(conj(Lc,L,R),Vrs) => glVars(R,glVars(L,Vrs)).
+  glVars(disj(Lc,L,R),Vrs) => glVars(L,Vrs)/\glVars(R,Vrs).
+  glVars(neg(Lc,R),Vrs) => Vrs.
+  glVars(_,Vrs) default => Vrs.
+  
 
   ptnVars:(canon,set[crVar],set[crVar]) => set[crVar].
   ptnVars(vr(Lc,Nm,Tp),Excl,Fv) where crId(Nm,Tp) in Excl => Excl.
@@ -145,7 +156,7 @@ star.compiler.freevars{
   ptnVars(over(_,V,_,_),Excl,Fv) => ptnVars(V,Excl,Fv).
   ptnVars(act(_,A),Excl,Fv) => Excl.
   ptnVars(whr(_,E,C),Excl,Fv) =>
-    ptnVars(C,ptnVars(E,Excl,Fv),Fv).
+    glVars(C,ptnVars(E,Excl,Fv)).
   ptnVars(cond(_,T,L,R),Excl,Fv) => ptnVars(L,ptnVars(T,Excl,Fv),Fv)/\
     ptnVars(R,Excl,Fv).
   ptnVars(abstraction(_,B,C,_),Excl,Fv) => Excl.

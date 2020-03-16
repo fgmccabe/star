@@ -156,8 +156,12 @@ star.compiler.core{
     tpOf(crTplOff(_,_,_,Tp)) => Tp.
     tpOf(crLtt(_,_,_,E)) => tpOf(E).
     tpOf(crCase(_,_,_,_,Tp)) => Tp.
+    tpOf(crCnd(_,_,L,_)) => tpOf(L).
     tpOf(crWhere(_,T,_)) => tpOf(T).
     tpOf(crMatch(_,_,_)) => boolType.
+    tpOf(crCnj(_,_,_)) => boolType.
+    tpOf(crDsj(_,_,_)) => boolType.
+    tpOf(crNeg(_,_)) => boolType.
     tpOf(crAbort(_,_,Tp)) => Tp.
   } in {
     typeOf = tpOf
@@ -209,7 +213,7 @@ star.compiler.core{
   rewriteTerm(crCnd(Lc,T,L,R),M) =>
     crCnd(Lc,rewriteTerm(T,M),rewriteTerm(L,M),rewriteTerm(R,M)).
   rewriteTerm(crLtt(Lc,V,D,E),M) where M1 .= dropVar(M,V) =>
-    crLtt(Lc,V,rewriteTerm(D,M1),rewriteTerm(E,M1)).
+    crLtt(Lc,V,rewriteTerm(D,M),rewriteTerm(E,M1)).
   rewriteTerm(crCase(Lc,Sel,Cases,Deflt,Tp),M) =>
     crCase(Lc,rewriteTerm(Sel,M),Cases//(C)=>rewriteCase(C,M),rewriteTerm(Deflt,M),Tp).
   rewriteTerm(crAbort(Lc,Nm,Tp),_)=>crAbort(Lc,Nm,Tp).
