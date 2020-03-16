@@ -254,7 +254,6 @@ star.compiler.checker{
     either[reports,(list[canonDef],dict)].
   checkGroup(Specs,Env,Outer,Path,Rp) => do{
     (Defs,GEnv) <- checkDefs(Specs,[],Env,Outer,Path,Rp);
---    (RDefs,REnv) <- overloadGroup(Defs,Env,Rp);
     valis (Defs,Env)
   }
 
@@ -270,11 +269,11 @@ star.compiler.checker{
   checkDefn(defnSpec(varSp(Nm),Lc,Stmts),Env,Outer,Path,Rp) where
       vrEntry(_,_,Tp) ^= isVar(Nm,Env) && areEquations(Stmts) =>
     checkFunction(Nm,Tp,Lc,Stmts,Env,Outer,Path,Rp).
-  checkDefn(defnSpec(varSp(Nm),Lc,[Stmt]),Env,_,Path,Rp) where
+  checkDefn(defnSpec(varSp(Nm),Lc,[Stmt]),Env,Outer,Path,Rp) where
       vrEntry(_,_,Tp) ^= isVar(Nm,Env) => do{
 	(Q,ETp) .= evidence(Tp,Env);
 	(Cx,VarTp) .= deConstrain(ETp);
-	Es .= declareConstraints(Lc,Cx,declareTypeVars(Q,Env));
+	Es .= declareConstraints(Lc,Cx,declareTypeVars(Q,Outer));
 	if (_,Lhs,R) ^= isDefn(Stmt) then{
 	  Val <- typeOfExp(R,VarTp,Es,Path,Rp);
 	  FullNm .= qualifiedName(Path,.valMark,Nm);
@@ -364,7 +363,7 @@ star.compiler.checker{
       if sameType(ConTp,Cn,Env) then {
 --	logMsg("implementation constraints $(Cx)");
 	Es .= declareConstraints(Lc,Cx,declareTypeVars(BV,Outer));
---	logMsg("check implementation body $(B) against $(ConFaceTp)");
+	logMsg("check implementation body $(B) against $(ConFaceTp)");
 	Impl <- typeOfExp(B,ConFaceTp,Es,Path,Rp);
 	FullNm .= implementationName(ConTp);
 --	logMsg("full name of implementation of $(ConTp) is $(FullNm)");
@@ -898,7 +897,7 @@ star.compiler.checker{
       } else
 	throw reportError(Rp,"field $(Fld)\:$(FldTp) not consistent with expected type: $(Tp)",Lc)
     } else
-      throw reportError(Rp,"field $(Fld) is not present in $(Rc)",Lc)
+    throw reportError(Rp,"field $(Fld) is not present in $(Rc)\:$(typeOf(Rc))",Lc)
   }
 
   typeOfLambda:(locn,ast,ast,tipe,dict,string,reports) => either[reports,canon].
