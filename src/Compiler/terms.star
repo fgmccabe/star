@@ -398,6 +398,7 @@ star.compiler.terms{
 
   encodeQuoted([],D,Ts) => [Ts..,D].
   encodeQuoted([D,..Cs],D,Ts) => encodeQuoted(Cs,D,[Ts..,0c\\,D]).
+  encodeQuoted([0c\\,..Cs],D,Ts) => encodeQuoted(Cs,D,[Ts..,0c\\,0c\\]).
   encodeQuoted([C,..Cs],D,Ts) => encodeQuoted(Cs,D,[Ts..,C]).
 
   encodeNat:(integer,list[integer]) => list[integer].

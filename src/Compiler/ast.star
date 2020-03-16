@@ -103,7 +103,7 @@ star.compiler.ast{
   isBinary(_,_) default => .none.
 
   public ternary:(locn,string,ast,ast,ast) => ast.
-  ternary(Lc,Op,L,M,R) where Lc.=mergeLoc(locOf(L),locOf(R)) =>
+  ternary(Lc,Op,L,M,R) =>
     app(Lc,nme(Lc,Op),tpl(Lc,"()",[L,M,R])).
 
   public isTernary:(ast,string) => option[(locn,ast,ast,ast)].

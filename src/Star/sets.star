@@ -29,6 +29,7 @@ star.sets{
   }
 
   public implementation all e ~~ display[e] |: display[set[e]] => let{
+    dispEntry:(list[ss],e,())=>list[ss].
     dispEntry([],K,_) => [disp(K)].
     dispEntry(L,K,_) default => [disp(K),ss(","),..L].
   } in {.
