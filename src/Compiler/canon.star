@@ -255,21 +255,21 @@ star.compiler.canon{
 
   showDef:(canonDef,string)=>ss.
   showDef(varDef(_,Nm,FullNm,lambda(_,Rls,_),_,Tp),Sp) => showRls(Nm,Rls,Sp).
-  showDef(varDef(_,Nm,FullNm,V,_,Tp),Sp) => ssSeq([ss("Var: "),ss(FullNm),ss(" ["),ss(Nm),ss("] = "),showCanon(V,Sp)]).
-  showDef(typeDef(_,Nm,T,_),Sp) => ssSeq([ss("Type: "),ss(Nm),ss("~>"),disp(T)]).
-  showDef(conDef(_,_,Nm,Tp),Sp) => ssSeq([ss("Contract: "),ss(Nm),ss("::="),disp(Tp)]).
-  showDef(cnsDef(_,_,Nm,Tp),Sp) => ssSeq([ss("Constructor: "),ss(Nm),ss(":"),disp(Tp)]).
+  showDef(varDef(_,Nm,FullNm,V,_,Tp),Sp) => ssSeq([ss(Sp),ss("Var: "),ss(Nm),ss(" ["),ss(FullNm),ss("] = "),showCanon(V,Sp)]).
+  showDef(typeDef(_,Nm,T,_),Sp) => ssSeq([ss(Sp),ss("Type: "),ss(Nm),ss("~>"),disp(T)]).
+  showDef(conDef(_,_,Nm,Tp),Sp) => ssSeq([ss(Sp),ss("Contract: "),ss(Nm),ss("::="),disp(Tp)]).
+  showDef(cnsDef(_,_,Nm,Tp),Sp) => ssSeq([ss(Sp),ss("Constructor: "),ss(Nm),ss(":"),disp(Tp)]).
   showDef(implDef(_,Nm,FullNm,Exp,_,Tp),Sp) =>
-    ssSeq([ss("Implementation: "),ss(FullNm),ss(" ["),ss(Nm),ss("] = "),showCanon(Exp,Sp)]).
+    ssSeq([ss(Sp),ss("Implementation: "),ss(FullNm),ss(" ["),ss(Nm),ss("] = "),showCanon(Exp,Sp)]).
 
   showRls:(string,list[equation],string) => ss.
   showRls(Nm,Rls,Sp) => ssSeq(interleave(Rls//(Rl)=>showRl(Nm,Rl,Sp),ss(".\n"))).
 
   showRl:(string,equation,string) => ss.
   showRl(Nm,eqn(_,Ptn,.none,Val),Sp) => ssSeq([
-      ss(Nm),showCanon(Ptn,Sp),ss(" => "),showCanon(Val,Sp)]).
+      ss(Sp),ss(Nm),showCanon(Ptn,Sp),ss(" => "),showCanon(Val,Sp)]).
   showRl(Nm,eqn(_,Ptn,some(C),Val),Sp) => ssSeq([
-      ss(Nm),ss("["),showCanon(Ptn,Sp),ss("] where "),showCanon(C,Sp),ss(" => "),showCanon(Val,Sp)]).
+      ss(Sp),ss(Nm),showCanon(Ptn,Sp),ss(" where "),showCanon(C,Sp),ss(" => "),showCanon(Val,Sp)]).
 
   public implementation display[canon] => {.
     disp(C) => showCanon(C,"")

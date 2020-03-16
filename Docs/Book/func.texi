@@ -219,7 +219,8 @@ itself but in an outer scope.
 
 @table @emph
 @item Literal Pattern
-A literal pattern -- such as a numeric literal or a string literal -- only matches the identical number or string.
+A literal pattern -- such as a numeric literal or a string literal --
+only matches the identical number or string.
 @end table
 
 Clearly, a literal match amounts to a comparison of two values: the
@@ -556,17 +557,17 @@ introduce two other forms of data: @emph{enumerated symbols} and
 representing symbolic alternatives. The classic example of an
 enumerated type is @code{daysOfWeek}:
 @example
-daysOfWeek ::= monday
-             | tuesday
-             | wednesday
-             | thursday
-             | friday
-             | saturday
-             | sunday.
+daysOfWeek ::= .monday
+             | .tuesday
+             | .wednesday
+             | .thursday
+             | .friday
+             | .saturday
+             | .sunday.
 @end example
 Another example is the standard @code{boolean} type which is defined:
 @example
-boolean ::= true | false.
+boolean ::= .true | .false.
 @end example
 Unlike enumerated symbols in some languages, there is no numeric value
 associated with an enumeration symbol: an enumerated symbol `stands
@@ -574,25 +575,25 @@ for' itself only. The reason for this will become clear in our next
 type definition which mixes enumerated symbols with constructor
 functions:
 @example
-sTree ::= sEmpty | sNode(sTree,string,sTree)
+sTree ::= .sEmpty | sNode(sTree,string,sTree)
 @end example
-In addition to mixing the enumerated symbol (@code{sEmpty}) with the
+In addition to mixing the enumerated symbol (@code{.sEmpty}) with the
 @code{sNode} constructor, this type is @emph{recursive}: in fact, this
 is a classic binary tree type where the labels of the non-empty nodes
 are strings. (We shall see shortly how to generalize this).
 
 Whenever you have a recursive type, its definition must always include
 one or more cases that are not recursive and which can form the base
-case(s). In that sense, an enumerated symbol like @code{sEmpty} plays
+case(s). In that sense, an enumerated symbol like @code{.sEmpty} plays
 a similar role that null does in other languages; except that
-@code{sEmpty} is only associated with the sTree type.
+@code{.sEmpty} is only associated with the sTree type.
 
 We can use @code{sTree} to construct binary trees of string value; for
 example:
 @example
-sNode(sNode(sEmpty,"alpha",sEmpty),
+sNode(sNode(.sEmpty,"alpha",.sEmpty),
       "beta",
-      sNode(sEmpty,"gamma",sEmpty))
+      sNode(.sEmpty,"gamma",.sEmpty))
 @end example
 denotes the tree in:
 
@@ -611,7 +612,7 @@ Just as we can define @code{sTree} values, so we can also define
 functions over @code{sTree}s. For example, the @code{check} function
 returns @code{true} if a given tree contains a particular search term:
 @example
-check(sEmpty,_) => false.
+check(.sEmpty,_) => .false.
 check(sNode(L,Lb,R),S) => Lb==S || check(L,S) || check(R,S).
 @end example
 Here we see several new aspects of @Star{} syntax:
@@ -633,12 +634,12 @@ is no special requirement to order function definitions in a program.
 We can use @code{sTest} to check for the occurrence of particular
 strings:
 @example
-T = sNode(sNode(sEmpty,"alpha",sEmpty),
+T .= sNode(sNode(.sEmpty,"alpha",.sEmpty),
           "beta",
-          sNode(sEmpty,"gamma",sEmpty)).
+          sNode(.sEmpty,"gamma",.sEmpty));
 
-show check(T,"alpha").          -- results in true
-show check(T,"delta").          -- results in false
+show check(T,"alpha");          -- results in true
+show check(T,"delta");          -- results in false
 @end example
 
 @node Functions as values
@@ -659,7 +660,7 @@ node -- rather than just looking for a particular string.
 We will first of all define our @code{fTest} function itself:
 @example
 fTest:(sTree,(string)=>boolean)=>boolean.
-fTest(sEmpty,_) => false.
+fTest(.sEmpty,_) => .false.
 fTest(sNode(L,Lb,R),F) => F(Lb) || fTest(L,F) || fTest(R,F).
 @end example
 The substantial change here is that, rather than passing a string to
@@ -705,7 +706,8 @@ expression? The conventional name for this value is @emph{closure}:
 
 @table @emph
 @item Closure
-A closure is a structure that is the value of a function expression and which may be applied to arguments.
+A closure is a structure that is the value of a function expression
+and which may be applied to arguments.
 @end table
 
 It is important to note that, as a programmer, you will never `see' a
@@ -799,7 +801,7 @@ the type definition of @code{sTree} itself. It too is unnecessarily
 restrictive: why not allow trees of any type? We can, using the type
 definition for @code{tree}:
 @example
-all t ~~ tree[t] ::= tEmpty | tNode(tree[t],t,tree[t]).
+all t ~~ tree[t] ::= .tEmpty | tNode(tree[t],t,tree[t]).
 @end example
 Like the original @code{sTree} type definition, this statement
 introduces a new type: @code{tree[t]} which can be read as @emph{tree
@@ -851,26 +853,34 @@ kinds of quantifiers: the @emph{universal} quantifier all and the
 The types of the two constructors introduced in the @code{tree} type
 definition are similarly quantified:
 @example
-tEmpty:all t ~~ tree[t].
+tEmpty:all t ~~ ()<=>tree[t].
 
 tNode:all t ~~ (tree[t],t,tree[t)]<=>tree[t].
 @end example
-The type @code{tree[t]} on the right hand side of @code{tEmpty}'s type
+The type @code{tree[t]} on the right hand side of @code{.tEmpty}'s type
 annotation raises a couple of interesting points:
 
 @enumerate
 @item
 This looks like a type annotation with no associated definition. The
-fact that the @code{tEmpty} symbol was originally introduced in a type
+fact that the @code{.tEmpty} symbol was originally introduced in a type
 definition is enough of a signal for the compiler to avoid looking for
 a definition for the name.
 
 @item
-The type of a literal @code{tEmpty} expression -- assuming that no
+The type of @code{tEmpty} also takes the form of a constructor type --
+using the @code{<=>} operator.
+
+There is a subtle difference between the type of @code{tEmpty} vs
+@code{.tEmpty}. The latter actually denotes the application of the
+@code{tEmpty} constructor -- as though it had been written @code{tEmpty()}.
+
+@item
+The type of a literal @code{.tEmpty} expression -- assuming that no
 further information is available -- will be of the form
 @code{tree[t34]} where @code{t34} is a `new' type variable not
 occurring anywhere else in the program. In effect, the type of
-@code{tEmpty} is tree of @emph{some type} @code{t34} where we don't
+@code{.tEmpty} is tree of @emph{some type} @code{t34} where we don't
 know anything more about @code{t34}.
 @end enumerate
 
@@ -882,7 +892,7 @@ fTest:@footnote{This time too, we must use an explicit type
 annotation.}
 @example
 test:all t ~~ (tree[t],(t)=>boolean)=>boolean.
-test(tEmpty,_) => false.
+test(.tEmpty,_) => .false.
 test(tNode(L,Lb,R),F) => F(Lb) || test(L,F) || test(R,F).
 @end example
 and our original string check function becomes:
@@ -911,7 +921,7 @@ can see this by looking at another example: a function that counts
 elements in the tree:
 @example
 count:all t ~~ (tree[t]) => integer.
-count(tEmpty) => 0.
+count(.tEmpty) => 0.
 count(tNode(L,_,R)) => count(L)+count(R)+1
 @end example
 This code is very similar, but not identical, to the @code{test}
@@ -950,7 +960,7 @@ Using this, we can write a @code{tVisit} function that implements tree
 walking as:
 @example
 tVisit:all a,t ~~ (tree[t],(a,t)=>a,a)=>a.
-tVisit(tEmpty,_,A) => A.
+tVisit(.tEmpty,_,A) => A.
 tVisit(tNode(L,Lb,R),F,A) => tVisit(R,F,F(tVisit(L,F,A),Lb)).
 @end example
 Just as the accumulating function acquires a new `state' parameter, so
@@ -961,7 +971,7 @@ The second rewrite equation for @code{tVisit} is a bit dense so let us
 open it out and look more closely. A more expanded way of writing the
 @code{tVisit} function would be:
 @example
-tVisit(tEmpty,_,A) => A.
+tVisit(.tEmpty,_,A) => A.
 tVisit(tNode(L,Lb,R),F,A) => let@{
   A1 = tVisit(L,F,A).
   A2 = F(A1,Lb).
@@ -980,7 +990,7 @@ knows to apply functions to labels in the tree.
 Given @code{tVisit}, we can implement our original @code{check} and
 @code{count} functions as one-liners:
 @example
-check(T,S) => tVisit(T,(A,X)=>(A || X==S),false).
+check(T,S) => tVisit(T,(A,X)=>(A || X==S),.false).
 count(T) => tVisit(T,(A,X)=>A+1,0).
 @end example
 The lambda that is embedded in the definition of check bears a little
@@ -1115,7 +1125,7 @@ of the first argument is fixed to @code{tree[t]} whereas in
 Given this contract, we can re-implement our two @code{check} and
 @code{count} functions even more succinctly:
 @example
-check(T,S) => visit(T, (A,X)=>A || X==S,false)
+check(T,S) => visit(T, (A,X)=>A || X==S,.false)
 count(T) => visit(T, (A,X)=>A+1,0)
 @end example
 These functions will apply to @emph{any} type that satisfies -- or
@@ -1304,7 +1314,7 @@ Normal pattern matching can be used to access a value wrapped in a
 the condition:
 @example
 isMarriedTo(P,J) where some(JJ).=P.spouse => J==JJ.
-isMarriedTo(_,_) default => false.
+isMarriedTo(_,_) default => .false.
 @end example
 The important detail here is that all access to a @code{option}
 wrapped value is gated by some form of pattern matching and that,
@@ -1330,7 +1340,7 @@ the @code{.=} with the @code{some} match. Using this, the
 @code{isMarriedTo} function becomes:
 @example
 isMarriedTo(P,J) where JJ^=P.spouse => J==JJ.
-isMarriedTo(_,_) default => false.
+isMarriedTo(_,_) default => .false.
 @end example
 The meaning of @code{^=} is similar to the pattern match condition
 @code{.=}; except that the pattern is assumed to be for a @code{some}
@@ -1499,7 +1509,7 @@ quantified types. For example, such a complete type inference system
 would infer from these equations:
 
 @example
-conc(nil,x)=>x.
+conc(.nil,x)=>x.
 conc(cons(h,tl),x) => cons(h,conc(tl,x))
 @end example
 the generalized type for @code{conc}:
@@ -1528,7 +1538,7 @@ this policy would require the @code{conc} program above to be written:
 
 @example
 conc:all t ~~ (cons[t],cons[t])=>cons[t].
-conc(nil,x:list[t])=>x.
+conc(.nil,x:list[t])=>x.
 conc(cons(h:t,tl:list[t]),x:list[t]) => cons(h,conc(t,x))
 @end example
 The design of @Star{} strikes a balance between useability and rigor:

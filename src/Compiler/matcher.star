@@ -19,7 +19,7 @@ star.compiler.matcher{
     NVrs .= genVars(funTypeArg(Tp));
     Trpls .= makeTriples(Eqns);
     Error .= genRaise(Lc,funTypeRes(Tp));
-    logMsg("function triples: $(Trpls)");
+--    logMsg("function triples: $(Trpls)");
     Reslt .= matchTriples(Lc,NVrs,Trpls,Error);
     (NArgs,NReslt) .= pullVarLets(NVrs,Reslt);
     valis fnDef(Lc,Nm,Tp,NArgs,NReslt)
@@ -40,11 +40,11 @@ star.compiler.matcher{
   matchTriples:(locn,list[crVar],list[triple],crExp) => crExp.
   matchTriples(_,[],Trpls,Deflt) => conditionalize(Trpls,Deflt).
   matchTriples(Lc,Vrs,Trpls,Deflt) => valof action{
-    logMsg("matching triples $(Trpls), default = $(Deflt)");
+--    logMsg("matching triples $(Trpls), default = $(Deflt)");
     Parts .= partitionTriples(Trpls);
-    logMsg("partitioned $(Parts)");
+--    logMsg("partitioned $(Parts)");
     Segs .= matchSegments(Parts,Vrs,Lc,Deflt);
-    logMsg("segments = $(Segs)");
+--    logMsg("segments = $(Segs)");
     valis Segs
   }.
 
@@ -116,9 +116,9 @@ star.compiler.matcher{
       logMsg("replace $(Vr) with $(V) in $(Args) - $(Gl) and $(Exp)");
       Mp .= [Vr->crVar(VLc,V)];
       NArgs .= rewriteTerms(Args,Mp);
-      logMsg("Nargs = $(NArgs)");
+--      logMsg("Nargs = $(NArgs)");
       NGl .= fmap((T)=>rewriteTerm(T,Mp),Gl);
-      logMsg("NGl = $(NGl)");
+--      logMsg("NGl = $(NGl)");
       NExp .= rewriteTerm(Exp,Mp);
       logMsg("NExp = $(NExp)");
       valis (NArgs, (CLc,B,NGl,NExp),Ix)

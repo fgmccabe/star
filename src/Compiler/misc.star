@@ -78,5 +78,11 @@ star.compiler.misc{
   sieve([C,..I]) => [C,..sieve(filterDups(C,I))].
 
   filterDups:(integer,list[integer])=>list[integer].
-  filterDups(C,I) => (I^/(X)=>\+ X%C==0). 
+  filterDups(C,I) => (I^/(X)=>\+ X%C==0).
+
+  public trace:all x ~~ display[x] |: (string,x)=>x.
+  trace(M,X) => valof action{
+    logMsg("#(M) - $(X)");
+    valis X
+  }
 }

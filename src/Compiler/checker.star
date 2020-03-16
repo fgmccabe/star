@@ -29,7 +29,7 @@ star.compiler.checker{
     if (Lc,Pk,Els) ^= isBrTerm(P) && either(Pkg) .= pkgeName(Pk) then{
       (Imports,Stmts) <- collectImports(Els,[],[],Rp);
       (PkgEnv,AllImports,PkgVars) <- importAll(Imports,Repo,Base,[],[],Rp);
-      logMsg("imports found $(AllImports), package vars = $(PkgVars)");
+--      logMsg("imports found $(AllImports), package vars = $(PkgVars)");
 --      logMsg("pkg env after imports $(PkgEnv)");
       
       PkgNm .= packageName(Pkg);
@@ -50,7 +50,7 @@ star.compiler.checker{
 	    (conSp(Nm), .pUblic) in Vis];
 --      logMsg("exported contracts: $(Contracts)");
       Fields .= exportedFields(Defs,Vis,.pUblic);
-      logMsg("exported fields: $(Fields)");
+--      logMsg("exported fields: $(Fields)");
       Impls .= [ implSpec(some(ILc),INm,FllNm,ITp) |
 	  DD in Defs &&
 	      implDef(ILc,INm,FllNm,_,_,ITp) in DD &&
@@ -107,7 +107,8 @@ star.compiler.checker{
 
   lookInGroup:(list[canonDef],string,list[list[canonDef]])=>option[canon].
   lookInGroup([],Nm,Gps) => findDefn(Gps,Nm).
-  lookInGroup([varDef(Lc,Nm,FullNm,Val,Cx,Tp),..Gp],Nm,_) => some(vr(Lc,FullNm,Tp)).
+  lookInGroup([varDef(Lc,Nm,FullNm,lambda(_,_,_),Cx,Tp),..Gp],Nm,_) => some(vr(Lc,FullNm,Tp)).
+  lookInGroup([varDef(Lc,Nm,FullNm,_,Cx,Tp),..Gp],Nm,_) => some(vr(Lc,Nm,Tp)).
   lookInGroup([cnsDef(Lc,Nm,FullNm,Tp),..Gp],Nm,_) => some(enm(Lc,FullNm,Tp)).
   lookInGroup([implDef(Lc,Nm,FullNm,Val,Cx,Tp),..Gp],FullNm,_) => some(vr(Lc,FullNm,Tp)).
   lookInGroup([_,..Gp],Nm,Gps) => lookInGroup(Gp,Nm,Gps).
@@ -117,6 +118,7 @@ star.compiler.checker{
   thetaEnv(Lc,Pth,Els,Face,Env,Rp,DefViz) => do{
     (Vis,Opens,Annots,Gps) <- dependencies(Els,Rp);
     Base .= pushFace(Face,Lc,Env);
+    logMsg("theta groups: $(Gps)");
     (Defs,ThEnv) <- checkGroups(Gps,[],Face,Annots,Base,Pth,Rp);
 
 --    logMsg("Defs: $(Defs)");
@@ -518,7 +520,7 @@ star.compiler.checker{
 	valis Gl
       }.
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,T,L,R) ^= isConditional(A) => do{
-    logMsg("conditional expression: $(A) against $(Tp)");
+--    logMsg("conditional expression: $(A) against $(Tp)");
     (Tst,E0) <- checkCond(T,Env,Path,Rp);
     Thn <- typeOfExp(L,Tp,E0,Path,Rp);
     Els <- typeOfExp(R,Tp,Env,Path,Rp);
@@ -773,7 +775,7 @@ star.compiler.checker{
 
   checkDo:(ast,tipe,dict,string,reports) => either[reports,canon].
   checkDo(Stmts,Tp,Env,Path,Rp) => do{
-    logMsg("process do $(Stmts)");
+--    logMsg("process do $(Stmts)");
     VlTp .= newTypeVar("_e");
     ErTp .= newTypeVar("_e");
     Lc .= locOf(Stmts);
@@ -935,7 +937,7 @@ star.compiler.checker{
 
   checkAbstraction:(locn,ast,ast,tipe,dict,string,reports) => either[reports,canon].
   checkAbstraction(Lc,B,C,Tp,Env,Path,Rp) => do{
-    logMsg("checking abstraction $(B) | $(C)");
+--    logMsg("checking abstraction $(B) | $(C)");
     (Cond,E0) <- checkGoal(C,Env,Path,Rp);
     (_,StTp,ElTp) <- pickupContract(locOf(Cond),Env,"sequence",Rp);
     checkType(B,Tp,StTp,Env,Rp);

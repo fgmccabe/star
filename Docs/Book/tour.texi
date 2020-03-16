@@ -226,45 +226,45 @@ The @emph{catalog} and @emph{repository} system explored in Chapter 7
 that supports the language ensures a proper connection between files
 and packages.
 
-@node Worksheets
-@subsection Worksheets
+@c @node Worksheets
+@c @subsection Worksheets
 
-The other main kind of compilation unit is the
-@emph{worksheet}. Worksheets are a modern replacement for the
-REPL@footnote{Read-Eval-Print-Loop} that you see in many functional
-programming languages.
+@c The other main kind of compilation unit is the
+@c @emph{worksheet}. Worksheets are a modern replacement for the
+@c REPL@footnote{Read-Eval-Print-Loop} that you see in many functional
+@c programming languages.
 
-We say a @emph{modern} replacement for REPLs because worksheets fit
-much better in the typical environment of an IDE.
+@c We say a @emph{modern} replacement for REPLs because worksheets fit
+@c much better in the typical environment of an IDE.
 
-A worksheet can be used to implement the infamous hello world example
-in just a few lines:
+@c A worksheet can be used to implement the infamous hello world example
+@c in just a few lines:
 
-@example
-worksheet@{
-  show "hello world".
-@}
-@end example
+@c @example
+@c worksheet@{
+@c   show "hello world".
+@c @}
+@c @end example
 
-We can also use a worksheet to display the results of using and
-testing our fact function:
+@c We can also use a worksheet to display the results of using and
+@c testing our fact function:
 
-@example
-worksheet@{
-  import sample.factorial.
-  show "fact(10) is $(fact(10))".
-  assert fact(5) == 120.
-@}
-@end example
+@c @example
+@c worksheet@{
+@c   import sample.factorial.
+@c   show "fact(10) is $(fact(10))".
+@c   assert fact(5) == 120.
+@c @}
+@c @end example
 
-Worksheets are like a combination of a module and the transcript of a
-session. In an IDE, the ideal mode of displaying a worksheet is via an
-interactive editor that responds to edit changes by recomputing the
-transcript and displaying the results in-line.
+@c Worksheets are like a combination of a module and the transcript of a
+@c session. In an IDE, the ideal mode of displaying a worksheet is via an
+@c interactive editor that responds to edit changes by recomputing the
+@c transcript and displaying the results in-line.
 
-The key features of a worksheet that we will use are the ability to
-import packages, define elements, show the results of computations and
-define assertions.
+@c The key features of a worksheet that we will use are the ability to
+@c import packages, define elements, show the results of computations and
+@c define assertions.
 
 @node String interpolation
 @subsection String interpolation
@@ -339,7 +339,7 @@ values that belong to the type. For example, we might introduce a
 Person type with the type definition:
 
 @example
-Person ::= noOne
+Person ::= .noOne
          | someOne@{
              name : string.
              dob : date.
@@ -349,8 +349,14 @@ Person ::= noOne
 This statement tells us that there are two kinds of @code{Person}: a
 @code{someOne} who has a @code{name} and date of birth (@code{dob})
 associated with them; and a distinguished individual we identify as
-@code{noOne}. The no-one individual @emph{does not} have a name or
+@code{.noOne}. The no-one individual @emph{does not} have a name or
 date of birth.
+
+@quotation
+Note that the @code{.noOne} symbol has a period in front of it. This
+is used to distinguish enumerated symbols from other variables.
+@end quotation
+
 
 @quotation
 Notice how the type annotation statement we saw for declaring the type
@@ -505,7 +511,7 @@ you will use both in some combination.
 
 @node Optional values
 @subsection Optional values
-Notice that we identified a special case of @code{noOne} in our
+Notice that we identified a special case of @code{.noOne} in our
 @code{Person} type. One reason for including this in a type is to be
 able to cope with non-existent people. However, this approach is not
 always the most effective one when modeling situations where a
@@ -537,7 +543,7 @@ Person ::= someOne@{
 @}
 @end example
 
-Here we have done two things: we have eliminated the @code{noOne} case
+Here we have done two things: we have eliminated the @code{.noOne} case
 for @code{Person} and we have marked the @code{spouse} as being both
 read-write and @code{option}al.
 
@@ -638,7 +644,8 @@ we have had to fix on the type of the number being totaled;
 @item
 we had to know about Java’s boxed v.s. unboxed types; and
 @item
-we had to construct an explicit loop, with the result that we sequentialized the process of adding up the numbers.
+we had to construct an explicit loop, with the result that we
+sequentialized the process of adding up the numbers.
 @end itemize
 
 We can also write an equivalent loop in @Star{}:
@@ -648,11 +655,11 @@ total = valof action@{
   tot := 0;
   for ix in L do
     tot := tot+ix;
-  return tot
+  valis tot
 @}
 @end example
 
-The valof/return combination is a neat way of segueing from the `world
+The valof/valis combination is a neat way of segueing from the `world
 of expressions' into the `world of actions'.
 
 This program is essentially equivalent to the Java loop; although
@@ -843,11 +850,14 @@ not @emph{polymorphic} types.}
 @subsection Implementing contracts
 
 Defining a contract is a big step, but it is not generally sufficient
-to produce working programs. If we had a @code{worksheet} containing
+to produce working programs. If we had a package containing
 only:
 
 @example
-worksheet@{
+some.pkg@{
+  import star.
+  import star.script.
+  
   contract all t ~~ four[t] ::= @{
     plus : (t,t)=>t.
     sub : (t,t)=>t.
@@ -858,7 +868,9 @@ worksheet@{
   double : all t ~~ four[t] |: (t)=>t.
   double(X) => plus(X,X).
 
-  show double(2)
+  main()=> action@{
+    show double(2)
+  @}
 @}
 @end example
 
@@ -876,7 +888,10 @@ This error message is effectively warning us that we have defined the
 program is not complete. However, if we do supply an implementation of
 four over @code{integer}s:
 @example
-worksheet@{
+some.pkg@{
+  import star.
+  import star.script.
+  
   contract all t ~~ four[t] ::= @{
     plus : (t,t)=>t.
     sub : (t,t)=>t.
@@ -894,7 +909,9 @@ worksheet@{
     div(x,y) => x/y.
   @}
 
-  show double(2)
+  main()=> action@{
+    show double(2)
+  @}
 @}
 @end example
 
@@ -1027,7 +1044,7 @@ AA = do@{
       Fx := Fx! * Cx!;
       Cx := Cx! + 1
     @};
-    return Fx!
+    valis Fx!
   @}
 @end example
 

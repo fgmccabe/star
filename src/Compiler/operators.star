@@ -81,7 +81,6 @@ star.compiler.operators{
   oper("val") => [prefixOp(900,899)].
   oper("try") => [prefixOp(1200,1199)].
   oper("exists") => [prefixOp(1010,1009)].
-  oper("<=") => [infixOp(949,950,949)].
   oper("if") => [prefixOp(1175,1174)].
   oper("background") => [prefixOp(950,949)].
   oper(":") => [infixOp(1249,1250,1249)].
@@ -133,9 +132,7 @@ star.compiler.operators{
   oper("type") => [prefixOp(1251,1250)].
   oper("implementation") => [prefixOp(1260,1259)].
   oper("|") => [infixOp(1248,1248,1247)].
-  oper(".~") => [infixOp(499,500,499)].
   oper(".#.") => [infixOp(600,600,599)].
-  oper("~") => [infixOp(489,499,489)].
   oper("^//") => [infixOp(800,800,799)].
   oper("||") => [infixOp(919,920,920)].
   oper("else") => [infixOp(1199,1200,1200)].
@@ -167,7 +164,7 @@ star.compiler.operators{
   isRightBracket(S) => bkt(_,_,S,_) ^= isBracket(S).
 
   public follows:(string,integer) => option[string].
-    follows("",0c%) => some("%").
+  follows("",0c%) => some("%").
   follows("",0c&) => some("&").
   follows("",0c() => some("(").
   follows("",0c)) => some(")").
@@ -289,7 +286,6 @@ star.compiler.operators{
   final(".&.") => .true.  /* bitwise and */
   final(".|.") => .true.  /* bitwise or */
   final(".}") => .true.  /* non-recursive braces */
-  final(".~") => .true.  /* grammar parse */
   final(".~.") => .true.  /* bitwise 1's complement */
   final(".<<.") => .true.  /* shift left */
   final(".^.") => .true.  /* bitwise xor */
@@ -309,7 +305,6 @@ star.compiler.operators{
   final("|:") => .true.  /* constrained type */
   final("||") => .true.  /* disjunction */
   final("}") => .true.  /* braces */
-  final("~") => .true.  /* grammar remainder */
   final("~~") => .true.  /* quantifier */
   final("~>") => .true.  /* type function */
   final("[") => .true.  /* square brackets */
@@ -334,7 +329,6 @@ star.compiler.operators{
   final("<$") => .true.  /* constant replace */
   final("<-") => .true.  /* variable bind */
   final("<<-") => .true.  /* record replacement */
-  final("<=") => .true.  /* pattern arrow */
   final("<=>") => .true.  /* constructor arrow */
   final("=") => .true.  /* definition */
   final("=<") => .true.  /* less than or equal */
@@ -353,4 +347,71 @@ star.compiler.operators{
   final("•") => .true.  /* function composition */
   final("#") => .true.  /* Macro statement marker */
   final(_) default => .false.
+
+  public keyword:(string) => boolean.
+  keyword("all") => .true.
+  keyword("^=") => .true.
+  keyword("&&") => .true.
+  keyword("..,") => .true.
+  keyword("~>") => .true.
+  keyword("throw") => .true.
+  keyword("do") => .true.
+  keyword("do") => .true.
+  keyword("import") => .true.
+  keyword("catch") => .true.
+  keyword("of") => .true.
+  keyword("valis") => .true.
+  keyword(",..") => .true.
+  keyword("for") => .true.
+  keyword("then") => .true.
+  keyword("->>") => .true.
+  keyword("default") => .true.
+  keyword("#") => .true.
+  keyword("#") => .true.
+  keyword("<-") => .true.
+  keyword("\\+") => .true.
+  keyword("<<-") => .true.
+  keyword("*>") => .true.
+  keyword(",") => .true.
+  keyword("contract") => .true.
+  keyword(".") => .true.
+  keyword(".") => .true.
+  keyword("val") => .true.
+  keyword("try") => .true.
+  keyword("exists") => .true.
+  keyword("if") => .true.
+  keyword(":") => .true.
+  keyword(";") => .true.
+  keyword(".=") => .true.
+  keyword("=") => .true.
+  keyword("|:") => .true.
+  keyword("?") => .true.
+  keyword("@") => .true.
+  keyword("@") => .true.
+  keyword("in") => .true.
+  keyword("^|") => .true.
+  keyword("open") => .true.
+  keyword("~~") => .true.
+  keyword("public") => .true.
+  keyword("ref") => .true.
+  keyword("where") => .true.
+  keyword("!.") => .true.
+  keyword("case") => .true.
+  keyword("=>") => .true.
+  keyword("^") => .true.
+  keyword("^") => .true.
+  keyword("<=>") => .true.
+  keyword("valof") => .true.
+  keyword("while") => .true.
+  keyword("private") => .true.
+  keyword("::") => .true.
+  keyword("^.") => .true.
+  keyword("<~") => .true.
+  keyword("type") => .true.
+  keyword("implementation") => .true.
+  keyword("|") => .true.
+  keyword("||") => .true.
+  keyword("else") => .true.
+  keyword("::=") => .true.
+  keyword(_) default => .false.
 }
