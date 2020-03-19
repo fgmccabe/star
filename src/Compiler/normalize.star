@@ -128,9 +128,12 @@ star.compiler.normalize{
 --      logMsg("theta var is $(ThV)");
       L .= collectLabelVars(freeVars,ThV,0,[]);
 --      logMsg("new label vars $(L)");
-    
+
+      frVars <- seqmap((crId(Nm,Tp))=>liftVarExp(Lc,Nm,Tp,Outer,Rp),freeVars);
+      logMsg("freeterm = $(frVars)");
       M .= [lyr(FullNm,L,some(ThV)),..Outer];
-      valis (M,some(ThV),freeVars//(V)=>crVar(Lc,V))
+      valis (M,some(ThV),frVars)
+--      valis (M,some(ThV),freeVars//(V)=>crVar(Lc,V))
     }
   }
 
