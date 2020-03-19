@@ -303,7 +303,7 @@ showCanonTerm(abstraction(_,Bound,Guard,G,_,_),Dp,O,Ox) :-
   appStr("} using ",O4,O5),
   showCanonTerm(G,Dp,O5,Ox).
 showCanonTerm(neg(_,R),Dp,O,Ox) :-
-  appStr("\\+",O,O1),
+  appStr("!",O,O1),
   showCanonTerm(R,Dp,O1,Ox).
 showCanonTerm(doTerm(_,Body,_,_,_),Dp,O,Ox) :-
   appStr("do ",O,O1),

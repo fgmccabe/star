@@ -17,6 +17,6 @@ test.g{
 
   main:()=>action[(),()].
   main()=>do{
-    assert isTerm(txt,0cf)=.some(_)
+    assert some(_).=isTerm(txt,0cf)
   }
 }

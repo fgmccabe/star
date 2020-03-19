@@ -12,6 +12,8 @@
 static EscapeRec escapes[256];
 static int topEsc = 0;
 
+static integer escCount[256];
+
 static int installEscape(char *name, char *sig, libFun fun);
 
 #undef escape
@@ -52,7 +54,7 @@ int32 lookupEscape(char *name) {
 }
 
 escapePo getEscape(int32 escNo) {
-  assert(escNo>=0 && escNo < topEsc);
+  assert(escNo >= 0 && escNo < topEsc);
   return &escapes[escNo];
 }
 
@@ -82,3 +84,24 @@ ReturnStatus rtnStatus(processPo p, retCode ret, char *msg) {
       return rtnStatus(p, Error, "cannot handle return");
   }
 }
+
+#ifdef TRACESTATS
+
+void recordEscape(integer escNo) {
+  assert(escNo >= 0 && escNo < NumberOf(escCount));
+
+  escCount[escNo]++;
+}
+
+static void dumpEsc(escapePo esc, ioPo out, integer escNo) {
+  if (escCount[escNo] > 0)
+    outMsg(out, "%s:%d\n", esc->name, escCount[escNo]);
+}
+
+void dumpEscapes(ioPo out) {
+  outMsg(out, "escapes executed\n");
+  for (integer ix = 0; ix < NumberOf(escCount); ix++)
+    dumpEsc(&escapes[ix], out, ix);
+}
+
+#endif

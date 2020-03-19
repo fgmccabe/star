@@ -122,16 +122,16 @@ star.compiler{
 --      logMsg("repo is $(Repo)");
       for (pkgImp(Lc,_,P),Imps) in Pks do{
 --	logMsg("$(P) ok? $(pkgOk(Repo,P))");
-	if \+ (pkgOk(Repo,P) && pkgImp(_,_,I) in Imps *> pkgOk(Repo,I)) then{
+	if ! (pkgOk(Repo,P) && pkgImp(_,_,I) in Imps *> pkgOk(Repo,I)) then{
 	  logMsg("Process package $(P)");
 	  if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
 --	  logMsg("source uri: $(SrcUri), CPkg=$(CPkg)");
 	    Ast <- parseSrc(SrcUri,CPkg,Rp)::action[reports,ast];
 --	  logMsg("Ast of $(P) is $(Ast)");
-	    (PkgSpec,PkgFun) <- checkPkg(Repp!,CPkg,Ast,stdDict,Rp) :: action[reports,(pkgSpec,canonDef)];
+	    (PkgSpec,PkgFun) <- checkPkg(Repp!!,CPkg,Ast,stdDict,Rp) :: action[reports,(pkgSpec,canonDef)];
 	    logMsg("normalizing $(PkgFun)");
 	    NormDefs <- normalize(PkgSpec,PkgFun,Rp)::action[reports,list[crDefn]];
-	    Repp := addSpec(PkgSpec,Repp!);
+	    Repp := addSpec(PkgSpec,Repp!!);
 	    logMsg("Normalized package $(P)");
 	    logMsg(dispCrProg(NormDefs)::string);
 	    Ins <- compCrProg(NormDefs,importVars(PkgSpec),Opts,Rp) :: action[reports,list[codeSegment]];
@@ -141,7 +141,7 @@ star.compiler{
 		mkTpl(pkgImports(PkgSpec)//(pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
 		mkTpl(Ins//assem)]);
 --	    logMsg("generated code $(encodeTerm(Code)::string)");
-	    Repp := addSource(addPackage(Repp!,P,encodeTerm(strg(encodeTerm(Code)::string))::string),P,
+	    Repp := addSource(addPackage(Repp!!,P,encodeTerm(strg(encodeTerm(Code)::string))::string),P,
 	      SrcUri::string)
 	  }
 	  else

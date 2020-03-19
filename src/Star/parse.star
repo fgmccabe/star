@@ -76,6 +76,7 @@ star.parse{
   } in parser((S)=>first(parse(p++q,S))).
 
   public implementation all t ~~ monadZero[parser[t]] => {
+--  zed:all e,t ~~ parser[e,t].
     zed = parser((_)=>[]).
   }
 

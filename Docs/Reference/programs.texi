@@ -851,7 +851,7 @@ public implementation all x ~~ comp[x],equality[x] |: comp[cons[x]] => let@{
   consLess(cons(H1,T1),cons(H2,T2)) where H1==H2 => consLess(T1,T2).
   consLess(_,_) default => false.
 
-  consGe(L1,L2) => \+ consLess(L2,L1).
+  consGe(L1,L2) => ! consLess(L2,L1).
 @} in @{. (<) = consLess. (>=) = consGe .@}
 @end example
 @end float

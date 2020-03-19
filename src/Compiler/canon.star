@@ -230,7 +230,7 @@ star.compiler.canon{
   showCanon(conj(_,L,R),Sp) => ssSeq([showCanon(L,Sp),ss(" && "),showCanon(R,Sp)]).
   showCanon(disj(_,L,R),Sp) => ssSeq([ss("("),showCanon(L,Sp),ss(" || "),showCanon(R,Sp),ss(")")]).
   showCanon(implies(_,L,R),Sp) => ssSeq([ss("("),showCanon(L,Sp),ss(" *> "),showCanon(R,Sp),ss(")")]).
-  showCanon(neg(_,R),Sp) => ssSeq([ss(" \\+ "),showCanon(R,Sp)]).
+  showCanon(neg(_,R),Sp) => ssSeq([ss(" ! "),showCanon(R,Sp)]).
   showCanon(cond(_,T,L,R),Sp) =>
     ssSeq([ss("("),showCanon(T,Sp),ss("?"),showCanon(L,Sp),ss(" | "),showCanon(R,Sp),ss(")")]).
   showCanon(apply(_,L,R,_),Sp) => ssSeq([showCanon(L,Sp),showCanon(R,Sp)]).
@@ -334,6 +334,6 @@ star.compiler.canon{
     mergeGl(.none,C) => C.
     mergeGl(C,.none) => C.
     mergeGl(some(A),some(B)) => some(conj(locOf(A),A,B)).
-
   } in splitPttrn(P).
+
 }

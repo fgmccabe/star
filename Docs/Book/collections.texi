@@ -465,7 +465,7 @@ always assuming that the type of @code{D} permits assignment.
 
 Similarly, the expression:
 @example
-D[\+"gamma"]
+D[!"gamma"]
 @end example
 which denotes the map @code{D} where the value associated with the key
 @code{"gamma"} has been removed.

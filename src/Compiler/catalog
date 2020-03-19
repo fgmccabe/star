@@ -6,6 +6,7 @@
     "star.compiler.catalog": "catalog.star",
     "star.compiler": "driver.star",
     "star.compiler.canon": "canon.star",
+    "star.compiler.canondeps": "canondeps.star",
     "star.compiler.checker": "checker.star",
     "star.compiler.core" : "core.star",
     "star.compiler.dependencies" : "dependencies.star",

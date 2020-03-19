@@ -13,7 +13,7 @@ star.combo{
   } in aa.
 
   public iter:all A,B,C ~~ (A,(A)=>option[(A,B)],(B,C)=>C,C) => option[(A,C)].
-  iter(S,St,F,Ix) where St(S)=.some((S1,D)) => iter(S1,St,F,F(D,Ix)).
+  iter(S,St,F,Ix) where (S1,D)^=St(S) => iter(S1,St,F,F(D,Ix)).
   iter(S,_,_,Ix) => some((S,Ix)).
 
   public term:all c ~~ ((c)=>boolean)=>(list[c]) => option[(list[c],c)].

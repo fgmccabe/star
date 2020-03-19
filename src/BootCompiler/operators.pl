@@ -40,7 +40,7 @@
   operator(".+.", [prefixOp(700, 699)]).
   operator("<$", [infixOp(719, 720, 720)]).
   operator("then", [infixOp(1179, 1180, 1179)]).
-  operator("!", [infixOp(99, 100, 99), postfixOp(99, 100)]).
+  operator("!", [prefixOp(905, 904)]).
   operator("->>", [infixOp(1199, 1200, 1199)]).
   operator("=!=", [infixOp(899, 900, 899)]).
   operator("default", [postfixOp(939, 940)]).
@@ -48,7 +48,6 @@
   operator("%", [infixOp(700, 700, 699)]).
   operator("<-", [infixOp(904, 905, 904)]).
   operator(".>>>.", [infixOp(600, 600, 599)]).
-  operator("\\+", [prefixOp(905, 904)]).
   operator("<<-", [infixOp(974, 975, 974)]).
   operator("*", [postfixOp(699, 700), infixOp(700, 700, 699)]).
   operator("+", [postfixOp(699, 700), infixOp(720, 720, 719)]).
@@ -83,14 +82,13 @@
   operator("open", [prefixOp(900, 899)]).
   operator("~~", [infixOp(1239, 1240, 1240)]).
   operator("assert", [prefixOp(1240, 1239)]).
-  operator("!!", [prefixOp(900, 899)]).
+  operator("!!", [postfixOp(99, 100)]).
   operator(".^.", [infixOp(720, 720, 719)]).
   operator("//", [infixOp(960, 960, 959)]).
   operator("public", [prefixOp(1700, 1699)]).
   operator("ref", [prefixOp(900, 899)]).
   operator(".~.", [prefixOp(650, 649)]).
   operator("where", [infixOp(910, 911, 910)]).
-  operator("!.", [infixOp(99, 100, 99)]).
   operator("=<", [infixOp(899, 900, 899)]).
   operator("case", [prefixOp(901, 900)]).
   operator("==", [infixOp(899, 900, 899)]).
@@ -199,7 +197,6 @@
   follows('|','|','||').
   follows('~','~','~~').
   follows('~','>','~>').
-  follows('\\','+','\\+').
   follows('\\','/','\\/').
   follows('^','.','^.').
   follows('^','/','^/').
@@ -226,7 +223,6 @@
   follows('>','=','>=').
   follows('>','>','>>').
   follows('>>','=','>>=').
-  follows('!','.','!.').
   follows('!','!','!!').
 
 
@@ -273,7 +269,6 @@
   final('~>',"~>").	 /* type function */
   final('[',"[").	 /* square brackets */
   final('\\',"\\").	 /* difference */
-  final('\\+',"\\+").	 /* logical negation */
   final('\\/',"\\/").	 /* union */
   final(']',"]").	 /* square brackets */
   final('^',"^").	 /* Optional propagation */
@@ -305,9 +300,8 @@
   final('>>=',">>=").	 /* monadic bind */
   final('?',"?").	 /* conditional operator */
   final('@',"@").	 /* meta annotation */
-  final('!',"!").	 /* pick up a value from a ref cell */
-  final('!.',"!.").	 /* pick up a value from a ref record */
-  final('!!',"!!").	 /* cell value */
+  final('!',"!").	 /* logical negation */
+  final('!!',"!!").	 /* pick up value from a ref cell */
   final('•',"•").	 /* function composition */
   final('#',"#").	 /* Macro statement marker */
 
@@ -327,12 +321,12 @@
   keyword(",..").
   keyword("for").
   keyword("then").
+  keyword("!").
   keyword("->>").
   keyword("default").
   keyword("#").
   keyword("#").
   keyword("<-").
-  keyword("\\+").
   keyword("<<-").
   keyword("*>").
   keyword(",").
@@ -358,7 +352,6 @@
   keyword("public").
   keyword("ref").
   keyword("where").
-  keyword("!.").
   keyword("case").
   keyword("=>").
   keyword("^").

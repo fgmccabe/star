@@ -140,7 +140,7 @@ star.compiler.normalize{
   codeGroup([])=>.false.
   
   liftLetExp:(locn,list[canonDef],canon,nameMap,list[crDefn],reports) => either[reports,crFlow].
-  liftLetExp(Lc,Defs,Bnd,Map,Ex,Rp) where \+ codeGroup(Defs) => liftExp(Bnd,Map,Ex,Rp).
+  liftLetExp(Lc,Defs,Bnd,Map,Ex,Rp) where !codeGroup(Defs) => liftExp(Bnd,Map,Ex,Rp).
   liftLetExp(Lc,Defs,Bnd,Map,Ex,Rp) => do{
     logMsg("group $(Defs)");
     (GMap,GrpVr,GrpFree) <- groupMap(Lc,Defs,layerName(Map),Map,Rp);

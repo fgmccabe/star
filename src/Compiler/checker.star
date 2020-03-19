@@ -7,6 +7,7 @@ star.compiler.checker{
   import star.compiler.action.
   import star.compiler.ast.
   import star.compiler.canon.
+  import star.compiler.canondeps.
   import star.compiler.dependencies.
   import star.compiler.dict.
   import star.compiler.errors.
@@ -68,7 +69,7 @@ star.compiler.checker{
 
   makePkgTheta:(locn,string,tipe,dict,list[list[canonDef]],reports)=>either[reports,canon].
   makePkgTheta(Lc,Nm,Tp,Env,Defs,Rp) =>
-    mkRecord(Lc,Nm,Tp,Env,Defs,Tp,Rp).
+    mkRecord(Lc,Nm,Tp,Env,sortDefs(flatten(Defs)),Tp,Rp).
 
   exportedFields:(list[list[canonDef]],list[(defnSp,visibility)],visibility) => list[(string,tipe)].
   exportedFields(Defs,Vis,DVz) =>
@@ -118,7 +119,7 @@ star.compiler.checker{
   thetaEnv(Lc,Pth,Els,Face,Env,Rp,DefViz) => do{
     (Vis,Opens,Annots,Gps) <- dependencies(Els,Rp);
     Base .= pushFace(Face,Lc,Env);
-    logMsg("theta groups: $(Gps)");
+--    logMsg("theta groups: $(Gps)");
     (Defs,ThEnv) <- checkGroups(Gps,[],Face,Annots,Base,Pth,Rp);
 
 --    logMsg("Defs: $(Defs)");
@@ -231,8 +232,10 @@ star.compiler.checker{
 
   parseAnnotation:(string,locn,list[ast],tipe,list[(string,ast)],dict,reports) =>
     either[reports,tipe].
-  parseAnnotation(Nm,_,_,_,Annots,Env,Rp) where (Nm,T) in Annots =>
-    parseType([],T,Env,Rp).
+  parseAnnotation(Nm,_,_,_,Annots,Env,Rp) where (Nm,T) in Annots => do{
+--    logMsg("parsing annotation $(Nm)\:$(T) in $(Env)");
+    parseType([],T,Env,Rp)
+  }.
   parseAnnotation(Nm,_,_,faceType(Vrs,_),_,_,_) where (Nm,Tp) in Vrs => either(Tp).
   parseAnnotation(Nm,_,_,_,_,Env,Rp) where vrEntry(_,_,Tp) ^= isVar(Nm,Env) => either(Tp).
   parseAnnotation(Nm,Lc,Stmts,Fields,Annots,Env,Rp) =>
@@ -304,9 +307,12 @@ star.compiler.checker{
     either[reports,(canonDef,dict)].
   checkFunction(Nm,Tp,Lc,Stmts,Env,Outer,Path,Rp) => do{
     (Q,ETp) .= evidence(Tp,Env);
+--    logMsg("check function $(Nm)\:$(Tp) -- $(Q)~~$(ETp)");
     (Cx,ProgramTp) .= deConstrain(ETp);
     Es .= declareConstraints(Lc,Cx,declareTypeVars(Q,Env));
-    (Rls,Dflt) <- processEqns(Stmts,deRef(ProgramTp),[],[],Es,Outer,Path,Rp);
+--    logMsg("env for equations: $(Es)");
+    (Rls,Dflt) <- processEqns(Stmts,deRef(ProgramTp),[],[],Es,
+      declareConstraints(Lc,Cx,declareTypeVars(Q,Outer)),Path,Rp);
     FullNm .= qualifiedName(Path,.valMark,Nm);
     valis (varDef(Lc,Nm,FullNm,
 	lambda(Lc,Rls++Dflt,Tp),Cx,Tp),declareVar(Nm,FullNm,some(Lc),Tp,Env))
@@ -363,7 +369,7 @@ star.compiler.checker{
       if sameType(ConTp,Cn,Env) then {
 --	logMsg("implementation constraints $(Cx)");
 	Es .= declareConstraints(Lc,Cx,declareTypeVars(BV,Outer));
-	logMsg("check implementation body $(B) against $(ConFaceTp)");
+--	logMsg("check implementation body $(B) against $(ConFaceTp)");
 	Impl <- typeOfExp(B,ConFaceTp,Es,Path,Rp);
 	FullNm .= implementationName(ConTp);
 --	logMsg("full name of implementation of $(ConTp) is $(FullNm)");
@@ -413,7 +419,7 @@ star.compiler.checker{
     SqPtn .= macroSquarePtn(Lc,Els);
     typeOfPtn(SqPtn,Tp,Env,Path,Rp)
   }.
-  typeOfPtn(A,Tp,Env,Path,Rp) where (_,[El]) ^= isTuple(A) && \+ _ ^= isTuple(El) =>
+  typeOfPtn(A,Tp,Env,Path,Rp) where (_,[El]) ^= isTuple(A) && ! _ ^= isTuple(El) =>
     typeOfPtn(El,Tp,Env,Path,Rp).
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isTuple(A) => do{
     Tvs .= genTpVars(Els);
@@ -501,8 +507,21 @@ star.compiler.checker{
       }.
   typeOfExp(A,Tp,Env,Path,Rp) where
       (Lc,R,F) ^= isFieldAcc(A) && (_,Fld) ^= isName(F) => do{
-	Rc <- typeOfExp(R,newTypeVar("_r"),Env,Path,Rp);
-	typeOfField(Lc,Rc,Fld,Tp,Env,Path,Rp)
+--	logMsg("field access $(Lc)");
+	FldTp .= newTypeVar(Fld);
+	TV .= newTVFieldConstraint(Fld,FldTp);
+	Rc <- typeOfExp(R,TV,Env,Path,Rp);
+--	logMsg("record type $(Rc)\:$(showType(TV,.true,0))");
+
+        (_,VrTp) .= freshen(FldTp,Env);
+        (MTp,Term) <- manageConstraints(VrTp,[],Lc,dot(Lc,Rc,Fld,VrTp),Env,Rp);
+--	logMsg("constraint managed type $(MTp)");
+        if sameType(Tp,MTp,Env) then{
+--	  logMsg("$(Tp) field type ok");
+	  valis Term
+	}
+	else
+  	throw reportError(Rp,"field $(Fld)\:$(FldTp) not consistent with expected type: $(Tp)",Lc)
       }.
   typeOfExp(A,Tp,Env,Path,Rp) where
       _ ^= isConjunct(A) &&
@@ -577,7 +596,7 @@ star.compiler.checker{
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,C,Ix) ^= isIndex(A) =>
     ((_,K,V) ^= isBinary(Ix,"->") ?
 	typeOfExp(ternary(Lc,"_put",C,K,V),Tp,Env,Path,Rp) ||
-	(_,N) ^= isUnary(Ix,"\\+") ?
+	(_,N) ^= isNegation(Ix) ?
 	  typeOfExp(binary(Lc,"_remove",C,N),Tp,Env,Path,Rp) ||
 	  typeOfExp(binary(Lc,"_index",C,Ix),Tp,Env,Path,Rp)).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,S,F,T) ^= isSlice(A) =>
@@ -601,9 +620,9 @@ star.compiler.checker{
     checkDo(Stmts,Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Exp) ^= isValof(A) =>
     typeOfExp(unary(Lc,"_perform",Exp),Tp,Env,Path,Rp).
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isSqTuple(A) && \+ _ ^= isAbstraction(A) =>
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isSqTuple(A) && ! _ ^= isAbstraction(A) =>
     typeOfExp(macroSquareExp(Lc,Els),Tp,Env,Path,Rp).
-  typeOfExp(A,Tp,Env,Path,Rp) where (_,[El]) ^= isTuple(A) && \+ _ ^= isTuple(El) =>
+  typeOfExp(A,Tp,Env,Path,Rp) where (_,[El]) ^= isTuple(A) && ! _ ^= isTuple(El) =>
     typeOfExp(El,Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isTuple(A) => do{
     Tvs .= genTpVars(Els);
@@ -615,8 +634,16 @@ star.compiler.checker{
     checkAbstraction(Lc,B,C,Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where hasPromotion(A) =>
     typeOfExp(promoteOption(A),Tp,Env,Path,Rp).
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Ar,R) ^= isEquation(A) =>
-    typeOfLambda(Lc,Ar,R,Tp,Env,Path,Rp).
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Ar,R) ^= isEquation(A) => do{
+--    logMsg("check lambda $(A)");
+    At .= newTypeVar("_A");
+    Rt .= newTypeVar("_R");
+    (As,E0) <- typeOfArgPtn(Ar,At,Env,Path,Rp);
+    Rep <- typeOfExp(R,Rt,E0,Path,Rp);
+--    logMsg("lambda return: $(Rep)\:$(typeOf(Rep))");
+    checkType(A,fnType(At,Rt),Tp,Env,Rp);
+    valis lambda(Lc,[eqn(Lc,As,.none,Rep)],Tp)
+  }
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Els) ^= isTheta(A) => do{
     (Q,ETp) .= evidence(Tp,Env);
     FaceTp .= faceOfType(Tp,Env);
@@ -626,7 +653,8 @@ star.compiler.checker{
     (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,Path,Els,Face,Base,Rp,.deFault);
     if sameType(ThetaTp,Tp,Env) then{
 --      logMsg("building record from theta, $(ThEnv)");
-      mkRecord(Lc,Path,faceOfType(Tp,ThEnv),ThEnv,Defs,reConstrainType(Cx,ThetaTp),Rp)
+      mkRecord(Lc,Path,faceOfType(Tp,ThEnv),ThEnv,sortDefs(flatten(Defs)),
+	reConstrainType(Cx,ThetaTp),Rp)
     }
     else
     throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Tp)",Lc)
@@ -652,7 +680,7 @@ star.compiler.checker{
     faceType(UpFlds,_) .= faceOfType(UpTp,Env);
     for (F,TU) in UpFlds do{
       if (F,TR) in RecFlds then{
-	if \+sameType(TU,TR,Env) then
+	if !sameType(TU,TR,Env) then
 	  throw reportError(Rp,"replacement for field $(F)\:$(TU) not consistent with record field $(TR)",Lc)
       } else
       throw reportError(Rp,"replacement for field $(F)\:$(TU) does not exist in record $(Rec)",Lc)
@@ -660,7 +688,7 @@ star.compiler.checker{
     valis update(Lc,Rec,Update)
   }
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,I) ^= isUnary(A,"-") =>
-    typeOfExp(binary(Lc,"-",lit(Lc,intgr(0)),I),Tp,Env,Path,Rp).
+    typeOfExp(unary(Lc,"__minus",I),Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els,Bnd) ^= isLetDef(A) => do{
 --    logMsg("checking let exp");
 
@@ -671,7 +699,10 @@ star.compiler.checker{
 --    logMsg("let env groups $(Defs)");
 --    logMsg("sub env is $(BndEnv)");
     El <- typeOfExp(Bnd,Tp,BndEnv,Path,Rp);
-    valis foldRight((Gp,I)=>letExp(Lc,Gp,I),El,Defs)
+
+    Sorted .= sortDefs(flatten(Defs));
+    
+    valis foldRight((Gp,I)=>letExp(Lc,Gp,I),El,Sorted)
   }
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Op,Args) ^= isRoundTerm(A) =>
     typeOfRoundTerm(Lc,Op,Args,Tp,Env,Path,Rp).
@@ -825,7 +856,7 @@ star.compiler.checker{
     Et .= newTypeVar("P");
     if (LLc,Coll,[Arg]) ^= isSquareTerm(L) then {
       Lhs <- typeOfExp(Coll,refType(Et),Env,Path,Rp);
-      Rhs <- typeOfExp(ternary(LLc,"_put",unary(LLc,"!",Coll),Arg,R),Et,Env,Path,Rp);
+      Rhs <- typeOfExp(ternary(LLc,"_put",unary(LLc,"!!",Coll),Arg,R),Et,Env,Path,Rp);
       valis (assignDo(Lc,Lhs,Rhs,StTp,ErTp),Env)
     } else{
       Lhs <- typeOfExp(L,refType(Et),Env,Path,Rp);
@@ -898,16 +929,6 @@ star.compiler.checker{
 	throw reportError(Rp,"field $(Fld)\:$(FldTp) not consistent with expected type: $(Tp)",Lc)
     } else
     throw reportError(Rp,"field $(Fld) is not present in $(Rc)\:$(typeOf(Rc))",Lc)
-  }
-
-  typeOfLambda:(locn,ast,ast,tipe,dict,string,reports) => either[reports,canon].
-  typeOfLambda(Lc,A,R,Tp,Env,Path,Rp) => do{
-    At .= newTypeVar("_A");
-    Rt .= newTypeVar("_R");
-    (As,E0) <- typeOfArgPtn(A,At,Env,Path,Rp);
-    Rep <- typeOfExp(R,Rt,E0,Path,Rp);
-    checkType(A,fnType(At,Rt),Tp,Env,Rp);
-    valis lambda(Lc,[eqn(Lc,As,.none,Rep)],Tp)
   }
 
   checkType:(ast,tipe,tipe,dict,reports) => either[reports,()].

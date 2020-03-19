@@ -225,7 +225,7 @@ A negation is satisfied iff the operand is @emph{not} satisfied.
 @float BNF,negationConditionFig
 @caption{Negation Condition}
 @display
-@anchored{NegatedCondition}::= @code{'\+'} @refer{Condition}
+@anchored{NegatedCondition}::= @code{'!'} @refer{Condition}
 @end display
 @end float
 

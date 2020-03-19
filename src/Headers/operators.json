@@ -561,7 +561,7 @@
 	"keyword": true
     },
     {
-	"prefixOp": "\\+",
+	"prefixOp": "!",
 	"priorities": [905, 904],
 	"desc": "logical negation",
 	"keyword": true
@@ -651,27 +651,9 @@
 	"keyword": true
     },
     {
-	"postfixOp": "!",
+	"postfixOp": "!!",
 	"priorities": [99, 100],
-	"desc": "pick up a value from a ref cell",
-	"keyword": false
-    },
-    {
-	"infixOp": "!",
-	"priorities": [99, 100, 99],
-	"desc": "pick up a value from a ref cell",
-	"keyword": false
-    },
-    {
-	"infixOp": "!.",
-	"priorities": [99, 100, 99],
-	"desc": "pick up a value from a ref record",
-	"keyword": true
-    },
-    {
-	"prefixOp": "!!",
-	"priorities": [900, 899],
-	"desc": "cell value",
+	"desc": "pick up value from a ref cell",
 	"keyword": false
     },
     {

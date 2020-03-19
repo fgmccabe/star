@@ -47,7 +47,7 @@ star.compiler.dict{
   undeclareVar(_,[]) => [].
   undeclareVar(Nm,[scope(Tps,Vrs,Cns,Imps),..Ev]) =>
     (_ ^= Vrs[Nm] ?
-	[scope(Tps,Vrs[\+Nm],Cns,Imps),..Ev] ||
+	[scope(Tps,Vrs[!Nm],Cns,Imps),..Ev] ||
 	[scope(Tps,Vrs,Cns,Imps),..undeclareVar(Nm,Ev)]).
 
   public declareConstructor:(string,string,option[locn],tipe,dict) => dict.
@@ -175,7 +175,7 @@ star.compiler.dict{
   }.
   applyConstraint(Con,Cons) where typeConstraint(A).=Con => valof do{
     AA := deRef(A);
-    while tpExp(Op,Arg) .= AA! do{
+    while tpExp(Op,Arg) .= AA!! do{
       _ <- addConstraint(Arg,Con);
       AA := deRef(Op)
     };

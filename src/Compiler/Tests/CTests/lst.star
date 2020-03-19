@@ -4,10 +4,10 @@ test.lst{
 
   public implementation all x ~~ stream[list[x] ->> x] => {
     _eof(X) => _list_empty(X).
-    _hdtl(X) where \+_list_empty(X) => some((_list_nth(X,0),_list_back(X,1))).
+    _hdtl(X) where !_list_empty(X) => some((_list_nth(X,0),_list_back(X,1))).
     _hdtl(_) => .none.
 
-    _back(X) where \+_list_empty(X) && Last .=_list_size(X)-1 => some((_list_front(X,Last),_list_nth(X,Last))).
+    _back(X) where !_list_empty(X) && Last .=_list_size(X)-1 => some((_list_front(X,Last),_list_nth(X,Last))).
     _back(_) => .none.
   }
 

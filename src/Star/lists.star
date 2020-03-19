@@ -29,10 +29,10 @@ star.lists{
   -- stream & sequence contract implementations
   public implementation all x ~~ stream[list[x] ->> x] => {
     _eof(X) => _list_empty(X).
-    _hdtl(X) where \+_list_empty(X) => some((_list_nth(X,0),_list_back(X,1))).
+    _hdtl(X) where !_list_empty(X) => some((_list_nth(X,0),_list_back(X,1))).
     _hdtl(_) => .none.
 
-    _back(X) where \+_list_empty(X) && Last .=_list_size(X)-1 => some((_list_front(X,Last),_list_nth(X,Last))).
+    _back(X) where !_list_empty(X) && Last .=_list_size(X)-1 => some((_list_front(X,Last),_list_nth(X,Last))).
     _back(_) => .none.
   }
 
@@ -86,10 +86,10 @@ star.lists{
   contains(_,_) default => .false.
 
   public implementation all x ~~ head[list[x]->>x] => {
-    head(X) where \+_list_empty(X) => some(_list_nth(X,0)).
+    head(X) where !_list_empty(X) => some(_list_nth(X,0)).
     head(_) => .none.
 
-    tail(X) where \+_list_empty(X) => some(_list_back(X,1)).
+    tail(X) where !_list_empty(X) => some(_list_back(X,1)).
     tail(_) => .none.
   }
 

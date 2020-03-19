@@ -66,11 +66,8 @@
 @tab non-associative infix
 @tab 1180
 @item @code{!}
-@tab non-associative infix
-@tab 100
-@item @code{!}
-@tab non-associative postfix
-@tab 100
+@tab non-associative prefix
+@tab 905
 @item @code{->>}
 @tab non-associative infix
 @tab 1200
@@ -95,9 +92,6 @@
 @item @code{.>>>.}
 @tab left associative infix
 @tab 600
-@item @code{\\+}
-@tab non-associative prefix
-@tab 905
 @item @code{<<-}
 @tab non-associative infix
 @tab 975
@@ -216,8 +210,8 @@
 @tab non-associative prefix
 @tab 1240
 @item @code{!!}
-@tab non-associative prefix
-@tab 900
+@tab non-associative postfix
+@tab 100
 @item @code{.^.}
 @tab left associative infix
 @tab 720
@@ -236,9 +230,6 @@
 @item @code{where}
 @tab non-associative infix
 @tab 911
-@item @code{!.}
-@tab non-associative infix
-@tab 100
 @item @code{=<}
 @tab non-associative infix
 @tab 900

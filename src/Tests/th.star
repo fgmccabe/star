@@ -14,20 +14,20 @@ test.th{
   Thk:thunk[(),integer].
   Thk = do{
     XX := 2;
-    valis XX!
+    valis XX!!
   }
 
   Thl:thunk[(),integer].
   Thl = do{
     assign(XX,3);
-    valis XX!
+    valis XX!!
   }
   
   X := 0.
 
   Th = thunk(()=> valof action {
       logMsg("called Th");
-      X := X!+2;
+      X := X!!+2;
       valis 34
     }).
 
@@ -42,7 +42,7 @@ test.th{
 
   TTh = delaied(()=>valof action {
     logMsg("called TTh");
-    X := X!+3;
+    X := X!!+3;
     valis 42
     }).
 
@@ -54,10 +54,10 @@ test.th{
 
     assert Th()==34;
     assert Th()==34;
-    assert (X!)==2;
+    assert (X!!)==2;
 
     assert fawce(TTh) == 42;
     assert fawce(TTh) == 42;
-    assert (X!) == 5
+    assert (X!!) == 5
   }
 }

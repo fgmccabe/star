@@ -32,6 +32,7 @@ star.compiler.misc{
   localName(QNm,M) where Ix.=_str_find(QNm,markerString(M),0) &&
       Ix>=0 && MX .= _str_len(markerString(M)) =>
     _sub_str(QNm,Ix+MX,_str_len(QNm)-Ix-MX).
+  localName(Nm,_) default => Nm.
 
   public packageVar:(pkg)=>string.
   packageVar(pkg(P,_)) => qualifiedName(P,.pkgMark,"").
@@ -78,7 +79,7 @@ star.compiler.misc{
   sieve([C,..I]) => [C,..sieve(filterDups(C,I))].
 
   filterDups:(integer,list[integer])=>list[integer].
-  filterDups(C,I) => (I^/(X)=>\+ X%C==0).
+  filterDups(C,I) => (I^/(X)=>X%C=!=0).
 
   public trace:all x ~~ display[x] |: (string,x)=>x.
   trace(M,X) => valof action{

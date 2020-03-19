@@ -21,25 +21,25 @@ test.compose{
   digitVal(_) => .none.
 
   decimal:(list[integer]) => option[(list[integer],integer)].
-  decimal(S) where digit(S)=.some((S1,D)) => moreDecimal(S1,D).
+  decimal(S) where (S1,D)^=digit(S) => moreDecimal(S1,D).
   decimal(_) => .none.
 
   moreDecimal:(list[integer],integer) => option[(list[integer],integer)].
-  moreDecimal(S,D) where digit(S)=.some((S1,D1)) =>
+  moreDecimal(S,D) where (S1,D1)^=digit(S) =>
     moreDecimal(S1,D*10+D1).
   moreDecimal(S,D) => some((S,D)).
 
 
   dec:(list[integer]) => option[(list[integer],integer)].
-  dec(S) where digit(S)=.some((S1,D)) => iter(S1,digit,(Dg,Nm)=>Nm*10+Dg,D).
+  dec(S) where (S1,D)^=digit(S) => iter(S1,digit,(Dg,Nm)=>Nm*10+Dg,D).
   dec(_) => .none.
 
   main:()=>action[(),()].
   main()=>do{
     assert decimal("123"::list[integer])==some(([],123));
-    assert dec("1234"::list[integer])=.some(([],1234));
+    assert ([],1234)^=dec("1234"::list[integer]);
 
-    assert dec("123 "::list[integer])=.some(([0c ],123));
+    assert ([0c ],123)^=dec("123 "::list[integer]);
 
     show "dec(123) = $(dec("123 "::list[integer]))"
   }

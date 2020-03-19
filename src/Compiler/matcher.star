@@ -113,14 +113,14 @@ star.compiler.matcher{
   applyVar(V,Trpls) => let{
     applyToTriple:(triple)=>triple.
     applyToTriple(([crVar(VLc,crId(Vr,_)),..Args],(CLc,B,Gl,Exp),Ix)) => valof action{
-      logMsg("replace $(Vr) with $(V) in $(Args) - $(Gl) and $(Exp)");
+--      logMsg("replace $(Vr) with $(V) in $(Args) where $(Gl) => $(Exp)");
       Mp .= [Vr->crVar(VLc,V)];
       NArgs .= rewriteTerms(Args,Mp);
 --      logMsg("Nargs = $(NArgs)");
       NGl .= fmap((T)=>rewriteTerm(T,Mp),Gl);
 --      logMsg("NGl = $(NGl)");
       NExp .= rewriteTerm(Exp,Mp);
-      logMsg("NExp = $(NExp)");
+--      logMsg("NExp = $(NExp)");
       valis (NArgs, (CLc,B,NGl,NExp),Ix)
     }
     applyToTriple(([crWhere(Lc,crVar(VLc,crId(Vr,_)),Cond),..Args],(CLc,B,Gl,Exp),Ix)) => valof action{

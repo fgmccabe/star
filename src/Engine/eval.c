@@ -147,6 +147,11 @@ retCode run(processPo P) {
 
       case Escape: {     /* call escape */
         int32 escNo = collectI32(PC); /* escape number */
+
+#ifdef TRACEEXEC
+        recordEscape(escNo);
+#endif
+
         escapePo esc = getEscape(escNo);
         saveRegisters(P, SP + esc->arity);
         assert(H->topRoot == 0);
