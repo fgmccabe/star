@@ -1189,7 +1189,7 @@ insPo disass(ioPo out, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
 
   normalPo lits = codeLits(mtd);
   if (lits != Null)
-    outMsg(out, "%,*T [%d] ", displayDepth, nthArg(codeLits(mtd), 0),offset);
+    outMsg(out, "%,*T [%d] ", displayDepth, nthArg(codeLits(mtd), 0), offset);
   else
     outMsg(out, "\?\? [%d] ", offset);
 
@@ -1272,6 +1272,13 @@ void dumpInsCount() {
 }
 
 void dumpInsStats() {
+  outMsg(debugOutChnnl,"instructions executed\n");
+
 #include "instructions.h"
+
+#ifdef TRACESTATS
+  dumpEscapes(debugOutChnnl);
+#endif
+
 }
 

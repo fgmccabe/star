@@ -85,7 +85,7 @@ star.compiler.core{
   dspExp(crDsj(_,L,R),Off) => ssSeq([ss("("),dspExp(L,Off),ss("||"),dspExp(R,Off),ss(")")]).
   dspExp(crCnd(_,T,L,R),Off) where Off2 .= Off++"  " =>
     ssSeq([ss("("),dspExp(T,Off),ss("? "),dspExp(L,Off2),ss(" ||\n"),ss(Off2),dspExp(R,Off2),ss(")")]).
-  dspExp(crNeg(_,R),Off) => ssSeq([ss("\\+"),dspExp(R,Off)]).
+  dspExp(crNeg(_,R),Off) => ssSeq([ss("!"),dspExp(R,Off)]).
   dspExp(crAbort(_,Msg,_),Off) => ssSeq([ss("abort "),disp(Msg)]).
 
   dspCases(Cs,Off) => let{
@@ -231,7 +231,7 @@ star.compiler.core{
     vrDef(Lc,V,rewriteTerm(Val,M)).
 
   dropVar:(map[string,crExp],crVar)=>map[string,crExp].
-  dropVar(M,crId(Nm,_)) => M[\+Nm].
+  dropVar(M,crId(Nm,_)) => M[!Nm].
 
   rewriteVar:(locn,crVar,map[string,crExp])=>crExp.
   rewriteVar(_,crId(Nm,_),M) where T^=M[Nm] => T.

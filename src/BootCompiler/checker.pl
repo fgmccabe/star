@@ -747,7 +747,7 @@ typeOfIndex(Lc,Mp,Arg,Tp,Env,Ev,Exp,Path) :-
   ternary(Lc,"_put",Mp,Ky,Vl,Term),
   typeOfExp(Term,Tp,Env,Ev,Exp,Path).
 typeOfIndex(Lc,Mp,Arg,Tp,Env,Ev,Exp,Path) :-
-  isUnary(Arg,_,"\\+",Ky),!,
+  isNegation(Arg,_,Ky),!,
   binary(Lc,"_remove",Mp,Ky,Term),
   typeOfExp(Term,Tp,Env,Ev,Exp,Path).
 typeOfIndex(Lc,Mp,Arg,Tp,Env,Ev,Exp,Path) :-
@@ -906,7 +906,7 @@ checkAction(Term,Env,Ev,Contract,ExTp,ValTp,ErTp,Act,Path) :-
 
 checkAction(Term,Env,Ev,_,ExTp,ValTp,ErTp,Act,Path) :-
   isSplice(Term,Lc,S,F,T,R),!,
-  unary(Lc,"!",S,Src),
+  unary(Lc,"!!",S,Src),
   nary(Lc,"_splice",[S,F,T,R],Rep),
   checkAssignment(Lc,Src,Rep,Env,Ev,ExTp,ValTp,ErTp,Act,Path).
 checkAction(Term,Env,Ev,_,ExTp,ValTp,ErTp,Act,Path) :-
@@ -967,7 +967,7 @@ checkAction(Term,Env,Env,_,_,_,_,noDo(Lc),_) :-
 
 checkAssignment(Lc,L,R,Env,Ev,ExTp,ValTp,ErTp,simpleDo(Lc,Exp,ExTp),Path) :-
   (isIndexTerm(L,LLc,C,I) ->
-     unary(LLc,"!",C,CC),
+     unary(LLc,"!!",C,CC),
     ternary(LLc,"_put",CC,I,R,Repl),
     binary(Lc,":=",C,Repl,Term);
    binary(Lc,":=",L,R,Term)),

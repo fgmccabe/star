@@ -549,7 +549,7 @@ star.compiler.dependencies{
     collectTypeRefs(T,All,R,Rp).
   collectFaceType(_,All,R,_) => either(R).
 
-  collectName(Sp,All,SoFar) where Sp in All && \+ Sp in SoFar => [Sp,..SoFar].
+  collectName(Sp,All,SoFar) where Sp in All && !Sp in SoFar => [Sp,..SoFar].
   collectName(_,_,SoFar) default => SoFar.
 
   filterOut:(list[defnSp],list[ast]) => list[defnSp].

@@ -473,8 +473,8 @@ star.compiler.gencode{
     d := .none.
     cc:Cont.
     cc=ccont((Ctx,Cde,Stk,Rp) => do{
---	logMsg("enter once, $(d!)");
-	if (Lbl,EStk,LStk)^=d! then{
+--	logMsg("enter once, $(d!!)");
+	if (Lbl,EStk,LStk)^=d!! then{
 --	  logMsg("reuse $(Lc)\:$(Lbl), merge stacks $(EStk) and $(Stk), return $(LStk)");
 	  XStk <- mergeStack(Lc,EStk,Stk,Rp);
 	  valis (Ctx,[Cde..,iJmp(Lbl)],LStk)

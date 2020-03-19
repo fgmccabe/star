@@ -75,10 +75,10 @@ star.compiler.grapher{
       Imps := ([]:list[importSpec]);
       for St in Els do{
 	if Imp ^= isImport(St) then{
-	  Imps := [Imps! ..,Imp]
+	  Imps := [Imps!! ..,Imp]
 	}
       };
-      valis Imps!
+      valis Imps!!
     } else
     throw reportError(Rp,"not a valid package $(Term)",locOf(Term))
   }

@@ -5,6 +5,7 @@ star.compiler.unify{
   import star.compiler.dict.
   import star.compiler.errors.
   import star.compiler.freshen.
+  import star.compiler.misc.
   import star.compiler.types.
 
   public sameType:(tipe,tipe,dict) => boolean.
@@ -66,7 +67,7 @@ star.compiler.unify{
     updateEnv(kFun(K,_),T,Env) => declareType(K,.none,T,faceType([],[]),Env).
 
     varBinding(T1,T2,_) where isIdenticalVar(T1,T2) => .true.
-    varBinding(T1,T2,Env) where \+ occursIn(T1,T2) => 
+    varBinding(T1,T2,Env) where ! occursIn(T1,T2) => 
       bind(T1,T2,Env).
     varBinding(_,_,_) default => valof resetBindings.
 
@@ -76,7 +77,7 @@ star.compiler.unify{
     resets := [].
 
     resetBindings = action{
-      for R in resets! do{
+      for R in resets!! do{
 	if resetVar(BndVr) .= R then {
 	  resetBinding(BndVr)
 	} else if resetConstraint(CxV,Cx) .= R then {
@@ -87,12 +88,12 @@ star.compiler.unify{
     }
 
     addVarBinding(TV) => action{
-      resets := [resetVar(TV),..resets!];
+      resets := [resetVar(TV),..resets!!];
       valis ()
     }
 
     addVarConstraints(V) => action{
-      resets := [resetConstraint(V,constraintsOf(V)),..resets!];
+      resets := [resetConstraint(V,constraintsOf(V)),..resets!!];
       valis ()
     }
 
@@ -155,9 +156,10 @@ star.compiler.unify{
 	valis .true
       }
     }
-    checkConstraint(fieldConstraint(T,F),Env) where
-	Face .= faceOfType(T,Env) => do { valis subFace(deRef(F),deRef(Face),Env)}.
-    checkConstraint(_,_) default => do{ valis .false}.
+    checkConstraint(fieldConstraint(T,F),Env) => do{
+      Face .= faceOfType(T,Env);
+      valis subFace(deRef(F),deRef(Face),Env)
+    }.
 
     mergeConstraints:(list[constraint],list[constraint],dict) =>
       option[list[constraint]].
@@ -180,31 +182,31 @@ star.compiler.unify{
   } in (sm(deRef(Tp1),deRef(Tp2),Envir) ? .true || valof resetBindings).
 
 
-  tpName:(tipe)=>option[string].
-  tpName(kFun(Nm,_)) => some(Nm).
-  tpName(tVar(_,Nm)) => some(Nm).
-  tpName(tFun(_,_,Nm)) => some(Nm).
-  tpName(nomnal(Nm)) => some(Nm).
-  tpName(tpFun(Nm,_)) => some(Nm).
-  tpName(tpExp(O,_)) => tpName(O).
-  tpName(_) => .none.
-
-
   subFace(faceType(E1,T1),faceType(E2,T2),Env) => let{.
     subF(Ts1,Ts2) =>
       (Nm,Tp1) in Ts1 *> ((Nm,Tp2) in Ts2 && sameType(Tp1,Tp2,Env)).
   .} in (subF(E1,E2) && subF(T1,T2)).
 
   public faceOfType:(tipe,dict) => tipe.
-  faceOfType(T,Env) => let{
-    fcTp(T) where Nm^=tpName(T) && (_,_,Rl) ^= findType(Env,Nm) &&
-      (_,typeExists(Lhs,Rhs)) .= freshen(Rl,Env) &&
-	sameType(Lhs,T,Env) => fcTp(deRef(Rhs)).
-    fcTp(faceType(Flds,Tps)) => faceType(Flds,Tps).
-    fcTp(_) default => faceType([],[]).
-  } in fcTp(deRef(T)).
+  faceOfType(T,_) where faceType(_,_).=deRef(T) => T.
+  faceOfType(T,Env) => valof action{
+    if (_,_,Rl) ^= findType(Env,localName(tpName(T),.typeMark)) then{
+      FRl .= freshen(Rl,Env);
+      if (_,typeExists(Lhs,Rhs)) .= FRl && sameType(Lhs,T,Env) then
+	valis fcTp(deRef(Rhs))
+      else if(_,typeLambda(Lhs,Rhs)) .= FRl && sameType(Lhs,T,Env) then
+	valis fcTp(deRef(Rhs))
+      else
+      valis faceType([],[])
+    } else{
+      valis faceType([],[])
+    }
+  }.
+  
+  fcTp(faceType(Flds,Tps)) => faceType(Flds,Tps).
+  fcTp(_) default => faceType([],[]).
 
-  occursIn(TV,Tp) where \+ isIdenticalVar(TV,Tp) =>
+  occursIn(TV,Tp) where !isIdenticalVar(TV,Tp) =>
       occIn(vrNm(TV),deRef(Tp)).
 
   occIn(Id,tVar(_,Nm)) => Id==Nm.

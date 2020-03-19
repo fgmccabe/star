@@ -39,14 +39,14 @@ star.compiler.types{
   isIdent(_,_) default => .false.
 
   public isUnbound:(tipe) => boolean.
-  isUnbound(tVar(B,_)) => ((T^=B.binding!) ? isUnbound(T) || .true).
-  isUnbound(tFun(B,_,_)) => ((T^=B.binding!) ? isUnbound(T) || .true).
+  isUnbound(tVar(B,_)) => ((T^=B.binding!!) ? isUnbound(T) || .true).
+  isUnbound(tFun(B,_,_)) => ((T^=B.binding!!) ? isUnbound(T) || .true).
   isUnbound(_) default => .false.
 
   public isUnboundFVar:(tipe) => option[integer].
-  isUnboundFVar(tVar(B,_)) => ((T^=B.binding!) ? isUnboundFVar(T) || .none).
+  isUnboundFVar(tVar(B,_)) => ((T^=B.binding!!) ? isUnboundFVar(T) || .none).
   isUnboundFVar(tFun(B,Ar,_)) =>
-    ((T^=B.binding!) ? isUnboundFVar(T) || some(Ar)).
+    ((T^=B.binding!!) ? isUnboundFVar(T) || some(Ar)).
   isUnboundFVar(_) default => .none.
 
   public setBinding:(tipe,tipe) => action[(),()].
@@ -54,7 +54,7 @@ star.compiler.types{
   setBinding(tFun(B,_,_),T) => bnd(B,T).
 
   bnd:(tv,tipe) => action[(),()].
-  bnd(B,T) where B.binding! == .none => do {
+  bnd(B,T) where B.binding!! == .none => do {
     B.binding := some(T)
   }
   bnd(_,_) default => done(()).
@@ -70,8 +70,8 @@ star.compiler.types{
   public constraintsOf:(tipe) => list[constraint].
   constraintsOf(Tp) => conOf(deRef(Tp)).
 
-  conOf(tVar(T,_)) => T.constraints! .
-  conOf(tFun(T,_,_)) => T.constraints! .
+  conOf(tVar(T,_)) => T.constraints!! .
+  conOf(tFun(T,_,_)) => T.constraints!! .
   conOf(_) default => [].
 
   public setConstraints:(tipe,list[constraint]) => action[(),()].
@@ -90,17 +90,17 @@ star.compiler.types{
 
   addCon:(tipe,constraint) => either[(),()].
   addCon(tVar(V,_),C) => do{
-    V.constraints := [C,..V.constraints!];
+    V.constraints := [C,..V.constraints!!];
     valis ()
   }
   addCon(tFun(V,_,_),C) => do{
-    V.constraints := [C,..V.constraints!];
+    V.constraints := [C,..V.constraints!!];
     valis ()
   }
 
   public deRef:(tipe) => tipe.
-  deRef(tVar(B,_)) where T^=B.binding! => deRef(T).
-  deRef(tFun(B,_,_)) where T^=B.binding! => deRef(T).
+  deRef(tVar(B,_)) where T^=B.binding!! => deRef(T).
+  deRef(tFun(B,_,_)) where T^=B.binding!! => deRef(T).
   deRef(Tp) default => Tp.
 
   public newTypeVar:(string) => tipe.
@@ -108,6 +108,14 @@ star.compiler.types{
 
   public newTypeFun:(string,integer) => tipe.
   newTypeFun(Pre,Ax) => tFun(tv{binding := .none. constraints := []. },Ax,genSym(Pre)).
+
+  public newTVFieldConstraint:(string,tipe) => tipe.
+  newTVFieldConstraint(Nm,FldTp)  => valof action{
+    TV .= tv{binding := .none. constraints := []};
+    V .= tVar(TV,genSym("_"));
+    TV.constraints := [fieldConstraint(V,faceType([(Nm,FldTp)],[]))];
+    valis V
+  }
 
   public mkTypeExp:(tipe,list[tipe])=>tipe.
   mkTypeExp(Tp,[]) => Tp.
@@ -164,7 +172,7 @@ star.compiler.types{
   .}
 
   public implementation display[tipe] => {.
-    disp(T) => showType(T,.false,10000)
+    disp(T) => showType(T,.true,10000)
   .}
 
   public implementation display[constraint] => {
@@ -177,7 +185,7 @@ star.compiler.types{
   shTipe:(tipe,boolean,integer) => ss.
   shTipe(kFun(Nm,Ar),_,_) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
   shTipe(tVar(V,Nm),.false,Dp) => ssSeq([ss("%"),ss(Nm)]).
-  shTipe(tVar(V,Nm),.true,Dp) => ssSeq([showAllConstraints(V.constraints!,Dp),ss("%"),ss(Nm)]).
+  shTipe(tVar(V,Nm),.true,Dp) => ssSeq([showAllConstraints(V.constraints!!,Dp),ss("%"),ss(Nm)]).
   shTipe(tFun(_,Ar,Nm),_,_) => ssSeq([ss("%"),ss(Nm),ss("/"),disp(Ar)]).
   shTipe(nomnal(Nm),_,_) => ss(Nm).
   shTipe(tpFun(Nm,Ar),_,_) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
@@ -291,7 +299,8 @@ star.compiler.types{
     tName(typeLambda(_,T)) => tName(deRef(T)).
     tName(tupleType(A)) => "!()$(size(A))".
     tName(funDeps(T,_)) => tName(T).
-  } in tName(Tp).
+    tName(faceType(Fs,Ts)) => "{}".
+  } in tName(deRef(Tp)).
 
   public implementationName:(tipe) => string.
   implementationName(Tp) => let{

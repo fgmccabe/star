@@ -50,7 +50,7 @@ genCall(T,void,Cl) :-
   genParser(L,LL),
   unary(Lc,"_star",LL,Cl).
 genCall(T,void,Cl) :-
-  isUnary(T,Lc,"\\+",A),!,
+  isNegation(T,Lc,A),!,
   genParser(A,LL),
   unary(Lc,"_neg",LL,Cl).
 genCall(T,void,Cl) :-

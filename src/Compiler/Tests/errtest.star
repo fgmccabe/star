@@ -8,7 +8,7 @@ test.comp.err{
 
   r1 = reportError(r,"This is a test",locn(pkg("foo",defltVersion),0,0,0)).
 
-  assert errorFree(r) && \+ errorFree(r1).
+  assert errorFree(r) && ! errorFree(r1).
 
   show disp(r1)::string.
 }

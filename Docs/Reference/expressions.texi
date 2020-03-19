@@ -1091,7 +1091,7 @@ _apnd(@dots{}_apnd(_apnd(_nil,@var{E@sub{1}})@var{E@sub{2}})@dots{},@var{E@sub{n
 @caption{Index Expressions}
 @display
 @anchored{IndexExpression} ::= @refer{Expression} @code{'['} @refer{Expression} @code{']'}
- | @refer{Expression} @code{'['} @code{\+} @refer{Expression} @code{']'}
+ | @refer{Expression} @code{'['} @code{!} @refer{Expression} @code{']'}
  | @refer{Expression} @code{'['} @refer{Expression} @code{->} @refer{Expression} @code{']'}
 @end display
 @end float
@@ -1146,7 +1146,7 @@ The original collection is generally @emph{not} updated by the call to @code{_pu
 Removing an element is denoted using the variant:
 
 @example
-@var{C}[\+@var{K}]
+@var{C}[!@var{K}]
 @end example
 
 which denotes the collection @code{@var{C}} with the element @code{@var{K}} removed.

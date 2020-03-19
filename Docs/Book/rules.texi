@@ -154,7 +154,7 @@ of @Star{}'s queries are similar in power to those of SQL.
 @end quotation
 
 The available connectives include the usual favorites: @code{&&},
-@code{||}, and @code{\+}. We may also see the need for some less
+@code{||}, and @code{!}. We may also see the need for some less
 familiar connectives: @code{implies} and @code{otherwise}.
 
 @quotation
@@ -318,7 +318,7 @@ The condition takes the form of a boolean combination of
 expression, a @emph{match} condition, or a @emph{search}
 condition. Various types of boolean combinations are supported; the
 most common being conjunction (@code{&&}), disjunction (@code{||}) and
-negation (@code{\+}).
+negation (@code{!}).
 
 We have already seen match conditions; for example:
 @example

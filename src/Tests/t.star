@@ -11,6 +11,6 @@ test.t{
 
   main:() => action[(),()].
   main() => do{
-    assert t =. pair(K,V) && K==3
+    assert pair(K,V).=t && K==3
   }
 }

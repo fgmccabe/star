@@ -57,7 +57,7 @@ star.compiler.operators{
   oper(".+.") => [prefixOp(700,699)].
   oper("<$") => [infixOp(719,720,720)].
   oper("then") => [infixOp(1179,1180,1179)].
-  oper("!") => [infixOp(99,100,99), postfixOp(99,100)].
+  oper("!") => [prefixOp(905,904)].
   oper("->>") => [infixOp(1199,1200,1199)].
   oper("=!=") => [infixOp(899,900,899)].
   oper("default") => [postfixOp(939,940)].
@@ -65,7 +65,6 @@ star.compiler.operators{
   oper("%") => [infixOp(700,700,699)].
   oper("<-") => [infixOp(904,905,904)].
   oper(".>>>.") => [infixOp(600,600,599)].
-  oper("\\+") => [prefixOp(905,904)].
   oper("<<-") => [infixOp(974,975,974)].
   oper("*") => [postfixOp(699,700), infixOp(700,700,699)].
   oper("+") => [postfixOp(699,700), infixOp(720,720,719)].
@@ -100,14 +99,13 @@ star.compiler.operators{
   oper("open") => [prefixOp(900,899)].
   oper("~~") => [infixOp(1239,1240,1240)].
   oper("assert") => [prefixOp(1240,1239)].
-  oper("!!") => [prefixOp(900,899)].
+  oper("!!") => [postfixOp(99,100)].
   oper(".^.") => [infixOp(720,720,719)].
   oper("//") => [infixOp(960,960,959)].
   oper("public") => [prefixOp(1700,1699)].
   oper("ref") => [prefixOp(900,899)].
   oper(".~.") => [prefixOp(650,649)].
   oper("where") => [infixOp(910,911,910)].
-  oper("!.") => [infixOp(99,100,99)].
   oper("=<") => [infixOp(899,900,899)].
   oper("case") => [prefixOp(901,900)].
   oper("==") => [infixOp(899,900,899)].
@@ -234,7 +232,6 @@ star.compiler.operators{
   follows("|",0c|) => some("||").
   follows("~",0c~) => some("~~").
   follows("~",0c>) => some("~>").
-  follows("\\",0c+) => some("\\+").
   follows("\\",0c/) => some("\\/").
   follows("^",0c.) => some("^.").
   follows("^",0c/) => some("^/").
@@ -261,7 +258,6 @@ star.compiler.operators{
   follows(">",0c=) => some(">=").
   follows(">",0c>) => some(">>").
   follows(">>",0c=) => some(">>=").
-  follows("!",0c.) => some("!.").
   follows("!",0c!) => some("!!").
   follows(_,_) default => .none.
 
@@ -309,7 +305,6 @@ star.compiler.operators{
   final("~>") => .true.  /* type function */
   final("[") => .true.  /* square brackets */
   final("\\") => .true.  /* difference */
-  final("\\+") => .true.  /* logical negation */
   final("\\/") => .true.  /* union */
   final("]") => .true.  /* square brackets */
   final("^") => .true.  /* Optional propagation */
@@ -341,9 +336,8 @@ star.compiler.operators{
   final(">>=") => .true.  /* monadic bind */
   final("?") => .true.  /* conditional operator */
   final("@") => .true.  /* meta annotation */
-  final("!") => .true.  /* pick up a value from a ref cell */
-  final("!.") => .true.  /* pick up a value from a ref record */
-  final("!!") => .true.  /* cell value */
+  final("!") => .true.  /* logical negation */
+  final("!!") => .true.  /* pick up value from a ref cell */
   final("•") => .true.  /* function composition */
   final("#") => .true.  /* Macro statement marker */
   final(_) default => .false.
@@ -364,12 +358,12 @@ star.compiler.operators{
   keyword(",..") => .true.
   keyword("for") => .true.
   keyword("then") => .true.
+  keyword("!") => .true.
   keyword("->>") => .true.
   keyword("default") => .true.
   keyword("#") => .true.
   keyword("#") => .true.
   keyword("<-") => .true.
-  keyword("\\+") => .true.
   keyword("<<-") => .true.
   keyword("*>") => .true.
   keyword(",") => .true.
@@ -395,7 +389,6 @@ star.compiler.operators{
   keyword("public") => .true.
   keyword("ref") => .true.
   keyword("where") => .true.
-  keyword("!.") => .true.
   keyword("case") => .true.
   keyword("=>") => .true.
   keyword("^") => .true.

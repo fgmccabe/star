@@ -65,7 +65,7 @@ star.compiler.ast{
   isLit(_) default => .false.
 
   public isName:(ast) => option[(locn,string)].
-  isName(nme(Lc,Id)) where \+ keyword(Id) => some((Lc,Id)).
+  isName(nme(Lc,Id)) where ! keyword(Id) => some((Lc,Id)).
   isName(tpl(_,"()",[nme(Lc,Id)])) => some((Lc,Id)).
   isName(_) default => .none.
 

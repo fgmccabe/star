@@ -179,7 +179,7 @@ star.compiler.wff{
 
   public isDisjunct(A) => isBinary(A,"||").
 
-  public isNegation(A) => isUnary(A,"\\+").
+  public isNegation(A) => isUnary(A,"!").
 
   public isConditional(A) where
       (Lc,Tst,Rhs) ^= isBinary(A,"?") &&
@@ -198,7 +198,7 @@ star.compiler.wff{
   public enum(Lc,Nm) => unary(Lc,".",nme(Lc,Nm)).
 
   public
-  isSearch(A) where (Lc,P,G) ^= isBinary(A,"in") && \+ app(_,nme(_,"let"),Body) .= P => some((Lc,P,G)).
+  isSearch(A) where (Lc,P,G) ^= isBinary(A,"in") && ! app(_,nme(_,"let"),Body) .= P => some((Lc,P,G)).
   isSearch(_) default => .none.
 
   buildConstructors:(ast,
@@ -334,9 +334,9 @@ star.compiler.wff{
   isCoerce(A) => isBinary(A,"::").
 
   public isIndex:(ast) => option[(locn,ast,ast)].
-  isIndex(A) where (Lc,Op,[Ix]) ^= isSquareTerm(A) && \+ _^=isBinary(Ix,":") => some((Lc,Op,Ix)).
-  isIndex(A) where (Lc,L,R) ^= isBinary(A,"!") && (_,[Ix]) ^= isSqTuple(R) =>
-    some((Lc,unary(Lc,"!",L),Ix)).
+  isIndex(A) where (Lc,Op,[Ix]) ^= isSquareTerm(A) && ! _^=isBinary(Ix,":") => some((Lc,Op,Ix)).
+  isIndex(A) where (Lc,L,R) ^= isBinary(A,"!!") && (_,[Ix]) ^= isSqTuple(R) =>
+    some((Lc,unary(Lc,"!!",L),Ix)).
   isIndex(_) default => .none.
 
   public isSlice:(ast) => option[(locn,ast,ast,ast)].
@@ -593,7 +593,7 @@ star.compiler.wff{
   isAbstraction(_) default => .none.
 
   public isTheta:(ast) => option[(locn,list[ast])].
-  isTheta(A) where (Lc,Els) ^= isBrTuple(A) && \+ _ ^= isAbstraction(A) =>
+  isTheta(A) where (Lc,Els) ^= isBrTuple(A) && ! _ ^= isAbstraction(A) =>
     some((Lc,Els)).
   isTheta(_) default => .none.
 

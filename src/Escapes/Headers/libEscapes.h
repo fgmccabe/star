@@ -21,4 +21,9 @@ escapePo getEscape(int32 escNo);
 
 extern ReturnStatus rtnStatus(processPo p, retCode ret, char *msg);
 
+#ifdef TRACESTATS
+void recordEscape(integer escNo);
+void dumpEscapes(ioPo out);
+#endif
+
 #endif

@@ -343,7 +343,7 @@ isDisjunct(Trm,Lc,L,R) :-
   isBinary(Trm,Lc,"||",L,R).
 
 isNegation(Trm,Lc,L) :-
-  isUnary(Trm,Lc,"\\+",L).
+  isUnary(Trm,Lc,"!",L).
 
 isForall(Trm,Lc,L,R) :-
   isBinary(Trm,Lc,"*>",L,R).
@@ -366,31 +366,26 @@ isFieldAcc(Trm,Lc,Rc,Fld) :-
   isBinary(Trm,Lc,".",Rc,F),
   isIden(F,Fld),!.
 isFieldAcc(Trm,Lc,Rc,Fld) :-
-  isBinary(Trm,Lc,"!.",L,F),
+  isBinary(Trm,Lc,"!!.",L,F),
   isIden(F,Fld),!,
-  unary(Lc,"!",L,Rc).
+  unary(Lc,"!!",L,Rc).
 
 isRepl(Trm,Lc,Lft,Rep) :-
   isBinary(Trm,Lc,"<<-",Lft,Rep).
 
 isVarRef(Trm,Lc,In) :-
-  isUnary(Trm,Lc,"!",In).
+  isUnary(Trm,Lc,"!!",In).
 
 isIndexTerm(Trm,Lc,Lhs,Rhs) :-
   isSquareTerm(Trm,Lc,Lhs,[Rhs]),
-  \+isBinary(Rhs,_,":",_,_),!.
-isIndexTerm(Trm,Lc,Lhs,Rhs) :-
-  isBinary(Trm,Lc,"!",L,R),
-  unary(Lc,"!",L,Lhs),
-  isSquareTuple(R,_,[Rhs]),
   \+isBinary(Rhs,_,":",_,_),!.
 
 isSlice(Trm,Lc,Lhs,Frm,To) :-
   isSquareTerm(Trm,Lc,Lhs,[Rhs]),
   isBinary(Rhs,_,":",Frm,To),!.
 isSlice(Trm,Lc,Lhs,F,T) :-
-  isBinary(Trm,Lc,"!",L,R),
-  unary(Lc,"!",L,Lhs),
+  isBinary(Trm,Lc,"!!",L,R),
+  unary(Lc,"!!",L,Lhs),
   isSquareTuple(R,_,[X]),
   isBinary(X,_,":",F,T),!.
 

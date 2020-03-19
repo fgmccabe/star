@@ -74,6 +74,14 @@ star.compiler.meta{
     S1 == S2 => eql(S1,S2)
   }
 
+  public implementation hash[defnSp] => {.
+    hash(varSp(Nm)) => hash(Nm)*37+hash("var").
+    hash(cnsSp(Nm)) => hash(Nm)*37+hash("cns").
+    hash(tpSp(Nm)) => hash(Nm)*37+hash("tp").
+    hash(conSp(Nm)) => hash(Nm)*37+hash("con").
+    hash(implSp(Nm)) => hash(Nm)*37+hash("impl").
+  .}
+
   public implementation display[defnSpec] => let{
     dispSpec(defnSpec(Sp,Lc,Els)) =>
       ssSeq([disp(Sp),ss("@"),disp(Lc),disp(Els)])

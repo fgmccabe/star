@@ -53,7 +53,7 @@ star.compiler.opg{
 
   legalRight:(tk,integer) => boolean.
   legalRight(idTok(Op),Pr) where (PPr,_) ^= isPrefixOp(Op) => PPr=<Pr.
-  legalRight(idTok(Op),_) => \+ isOperator(Op).
+  legalRight(idTok(Op),_) => ! isOperator(Op).
   legalRight(idQTok(_),_) => .true.
   legalRight(intTok(_),_) => .true.
   legalRight(fltTok(_),_) => .true.
@@ -80,7 +80,7 @@ star.compiler.opg{
   term00:(cons[token],reports) => (ast,cons[token],reports,needsTerm).
   term00([tok(Lc,idTok(Nm)),..Toks],Rpt) where
     [tok(_,rgtTok(_)),.._].=Toks => (nme(Lc,Nm),Toks,Rpt,.needOne).
-  term00([tok(Lc,idTok(Nm)),..Toks],Rpt) where \+isOperator(Nm) => (nme(Lc,Nm),Toks,Rpt,.needOne).
+  term00([tok(Lc,idTok(Nm)),..Toks],Rpt) where !isOperator(Nm) => (nme(Lc,Nm),Toks,Rpt,.needOne).
   term00([tok(Lc,idQTok(Nm)),..Toks],Rpt) => (nme(Lc,Nm),Toks,Rpt,.needOne).
   term00([tok(Lc,lftTok(Lbl)),tok(Lc1,rgtTok(Lbl)),..Toks],Rpt) => (tpl(mergeLoc(Lc,Lc1),Lbl,[]),Toks,Rpt,.needOne).
   term00([tok(Lc,lftTok(Lbl)),..Toks],Rpt) where

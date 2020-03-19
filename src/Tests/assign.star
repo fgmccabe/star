@@ -7,7 +7,7 @@ test.assign{
   alpha := 23.
 
   checkInc:()=>boolean.
-  checkInc() where _ .= valof action {alpha := alpha!+1} => alpha!==24.
+  checkInc() where _ .= valof action {alpha := alpha!!+1} => alpha!!==24.
 
   rec : (integer)=>person.
   rec(A) => let{
@@ -26,16 +26,16 @@ test.assign{
   main() => do{
     assert valof action {
       fred.name := "fred";
-      return fred.name!
+      return fred.name!!
     } == "fred";
 
-    show fred.name!;
+    show fred.name!!;
     
     show peter.name;
 
-    assert alpha!==23;
+    assert alpha!!==23;
 
-    show alpha!;
+    show alpha!!;
 
     assert checkInc();
 

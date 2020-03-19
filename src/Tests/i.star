@@ -20,6 +20,6 @@ test.i{
   ihL: all k,v ~~ (integer,cons[(k,v)]) <=> mp[k,v].
 
   foo = ihL(3,([("al",2)]:cons[_])).
-  ef = ihE.
+  ef = .ihE.
 
 }

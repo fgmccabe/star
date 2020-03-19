@@ -13,16 +13,16 @@ test.di{
   Fc(I) => action{
 	Fx := 1;
 	for E in I do {
-	  Fx := Fx!*E
+	  Fx := Fx!! * E
 	};
-	valis Fx!
+	valis Fx!!
       }
 
   FX:(cons[integer]) => action[(),integer].
   FX(I) => action{
     Fx := 1;
-    _iter(I,do {valis ()}, (Ix,_) => do { Fx:=Fx!*Ix});
-    valis Fx!
+    _iter(I,do {valis ()}, (Ix,_) => do { Fx:=Fx!!*Ix});
+    valis Fx!!
   }
 
   main:()=>action[(),()].

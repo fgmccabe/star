@@ -552,7 +552,7 @@ collectIndexRefs([A],All,R,Refs) :-
   collectTermRefs(Ky,All,R,R0),
   collectTermRefs(Vl,All,R0,Refs).
 collectIndexRefs([A],All,R,Refs) :-
-  isUnary(A,_,"\\+",Ky),!,
+  isNegation(A,_,Ky),!,
   collectTermRefs(Ky,All,R,Refs).
 collectIndexRefs(A,All,R,Refs) :-
   collectTermListRefs(A,All,R,Refs).
