@@ -21,6 +21,15 @@ test.ms{
   LL : list[integer].
   LL = [1,2,3,0,5].
 
+  sq:(float)=>option[float].
+  sq(X) where X>0.0 => some(sqrt(X)).
+  sq(_) default => .none.
+
+  sqr:(float)=>either[string,float].
+  sqr(X) where X>0.0 => either(sqrt(X)).
+  sqr(_) default => other("negative").
+  
+
   main:() => action[(),()].
   main() => do{
     show "$(mapOver(doubleOrQuits,KK))";
@@ -29,6 +38,13 @@ test.ms{
 
     assert [2,4,6,8,10] ^= mapOver(doubleOrQuits,KK);
 
-    assert mapOver(doubleOrQuits,LL)==.none
+    assert mapOver(doubleOrQuits,LL)==.none;
+
+    show disp(strmap(sq,([1.0,2.0,3.0,4.0]:list[float])));
+
+    show disp(strmap(sq,([1.0,2.0,-3.0]:cons[float])));
+
+    show disp(seqmap(sqr,([1.0,2.0,3.0,4.0]:list[float])));
+    show disp(seqmap(sqr,([1.0,-2.0,3.0,4.0]:list[float])))
   }
 }

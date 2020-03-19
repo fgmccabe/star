@@ -89,7 +89,7 @@ retCode gcCollect(heapPo H, long amount) {
 #ifdef TRACEMEM
   gcCount++;
   if (traceMemory)
-    outMsg(logFile, "starting gc: %d (%d instructions)\n%_", gcCount, pcCount);
+    outMsg(logFile, "starting gc: %d (%ld instructions)\n%_", gcCount, pcCount);
 #endif
 
 #ifdef TRACEMEM
@@ -290,7 +290,7 @@ void verifyProc(processPo P, heapPo H) {
 }
 
 void dumpGcStats() {
-  logMsg(logFile, "%d allocations, %d words, %d gc collections, %d heap grows",
+  logMsg(logFile, "%ld allocations, %ld words, %d gc collections, %d heap grows",
          numAllocated, totalAllocated, gcCount, gcGrow);
 }
 
