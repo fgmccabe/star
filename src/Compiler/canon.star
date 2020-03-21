@@ -72,7 +72,7 @@ star.compiler.canon{
     typeOf(lambda(_,_,Tp)) => Tp.
     typeOf(letExp(_,_,E)) => typeOf(E).
     typeOf(apply(_,_,_,Tp)) => Tp.
-    typeof(tple(_,Els)) => tupleType(Els//typeOf).
+    typeOf(tple(_,Els)) => tupleType(Els//typeOf).
     typeOf(record(_,_,_,Tp)) => Tp.
     typeOf(dot(_,_,_,Tp)) => Tp.
     typeOf(abstraction(_,_,_,Tp)) => Tp.

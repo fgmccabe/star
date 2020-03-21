@@ -7,7 +7,6 @@ star.compiler.term.repo{
   import star.resources.
   import star.compiler.terms.
   
-
   public termRepo ::= repo(uri,manifest).
 
   public openRepository:(uri) => termRepo.
@@ -18,7 +17,7 @@ star.compiler.term.repo{
   openRepository(Root) => repo(Root,man([])).
 
   public implementation repo[termRepo] => {
-    hasSignature(repo(_,Man),Pkg) => locateInManifest(Man,Pkg,"signature").
+    pkgSignature(repo(_,Man),Pkg) => locateInManifest(Man,Pkg,"signature").
 
     hasCode(repo(Root,Man),Pkg) where
 	U ^= locateInManifest(Man,Pkg,"code") &&

@@ -69,7 +69,7 @@ star.compiler.checker{
 
   makePkgTheta:(locn,string,tipe,dict,list[list[canonDef]],reports)=>either[reports,canon].
   makePkgTheta(Lc,Nm,Tp,Env,Defs,Rp) =>
-    mkRecord(Lc,Nm,Tp,Env,sortDefs(flatten(Defs)),Tp,Rp).
+    mkRecord(Lc,Nm,deRef(Tp),Env,sortDefs(flatten(Defs)),Tp,Rp).
 
   exportedFields:(list[list[canonDef]],list[(defnSp,visibility)],visibility) => list[(string,tipe)].
   exportedFields(Defs,Vis,DVz) =>
@@ -118,8 +118,10 @@ star.compiler.checker{
     either[reports,(list[list[canonDef]],dict,tipe)].
   thetaEnv(Lc,Pth,Els,Face,Env,Rp,DefViz) => do{
     (Vis,Opens,Annots,Gps) <- dependencies(Els,Rp);
+--    logMsg("pushing face $(Face)");
     Base .= pushFace(Face,Lc,Env);
 --    logMsg("theta groups: $(Gps)");
+--    logMsg("base env $(Base)");
     (Defs,ThEnv) <- checkGroups(Gps,[],Face,Annots,Base,Pth,Rp);
 
 --    logMsg("Defs: $(Defs)");
@@ -137,8 +139,6 @@ star.compiler.checker{
     (Vis,Opens,Annots,G) <- recordDefs(Els,Rp);
 --    logMsg("annotations: $(Annots)");
     TmpEnv <- parseAnnotations(G,Face,Annots,Env,Rp);
-    
---    Base .= pushFace(Face,Lc,Env);
     
     (Defs,Ev) <- checkGroup(G,TmpEnv,Env,Pth,Rp);
 --    logMsg("env after record $(Ev)");
@@ -216,6 +216,7 @@ star.compiler.checker{
   checkGroups([G,..Gs],Gx,Face,Annots,Env,Path,Rp) => do{
 --    logMsg("check group $(G)");
     TmpEnv <- parseAnnotations(G,Face,Annots,Env,Rp);
+--    logMsg("group env $(head(TmpEnv))");
     (Gp,Ev) <- checkGroup(G,TmpEnv,TmpEnv,Path,Rp);
 --    logMsg("env after group $(Ev)");
     checkGroups(Gs,[Gx..,Gp],Face,Annots,Ev,Path,Rp)
@@ -456,11 +457,12 @@ star.compiler.checker{
   
   typeOfExp:(ast,tipe,dict,string,reports) => either[reports,canon].
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) => do{
+--    logMsg("check $(Id) has type $(Tp)");
     if vrEntry(_,Mk,VTp) ^= isVar(Id,Env) then{
---    logMsg("raw type of $(Nm) is $(VTp)");
       (_,VrTp) .= freshen(VTp,Env);
+--      logMsg("freshened type of $(Id) is $(VrTp)");
       (MTp,Term) <- manageConstraints(VrTp,[],Lc,Mk(Lc,VrTp),Env,Rp);
---    logMsg("check var $(Nm)\:$(MTp) against $(Tp)");
+--      logMsg("check var $(Id)\:$(MTp) against $(Tp)");
       if sameType(Tp,MTp,Env) then {
 	valis Term
       } else
@@ -647,13 +649,14 @@ star.compiler.checker{
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Els) ^= isTheta(A) => do{
     (Q,ETp) .= evidence(Tp,Env);
     FaceTp .= faceOfType(Tp,Env);
+--    logMsg("checking theta record, expected type $(Tp), face $(FaceTp)");
     (Cx,Face) .= deConstrain(FaceTp);
     Base .= declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
     Path .= genNewName(Pth,"θ");
     (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,Path,Els,Face,Base,Rp,.deFault);
-    if sameType(ThetaTp,Tp,Env) then{
+    if sameType(ThetaTp,ETp,Env) then{
 --      logMsg("building record from theta, $(ThEnv)");
-      mkRecord(Lc,Path,faceOfType(Tp,ThEnv),ThEnv,sortDefs(flatten(Defs)),
+      mkRecord(Lc,Path,deRef(faceOfType(Tp,ThEnv)),ThEnv,sortDefs(flatten(Defs)),
 	reConstrainType(Cx,ThetaTp),Rp)
     }
     else
@@ -667,7 +670,7 @@ star.compiler.checker{
     Path .= genNewName(Pth,"θ");
     (Defs,ThEnv,ThetaTp) <- recordEnv(Lc,Path,Els,Face,Base,Rp,.deFault);
     if sameType(ThetaTp,Tp,Env) then{
-      mkRecord(Lc,Path,faceOfType(Tp,ThEnv),ThEnv,[Defs],reConstrainType(Cx,ThetaTp),Rp)
+      mkRecord(Lc,Path,deRef(faceOfType(Tp,ThEnv)),ThEnv,[Defs],reConstrainType(Cx,ThetaTp),Rp)
     }
     else
     throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Tp)",Lc)
@@ -692,8 +695,7 @@ star.compiler.checker{
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els,Bnd) ^= isLetDef(A) => do{
 --    logMsg("checking let exp");
 
-    (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,genNewName(Path,"Γ"),Els,faceType([],[]),Env,Rp,
-      .priVate);
+    (Defs,ThEnv,ThetaTp)<-thetaEnv(Lc,genNewName(Path,"Γ"),Els,faceType([],[]),Env,Rp,.priVate);
     
     BndEnv .= pushFace(ThetaTp,Lc,Env);
 --    logMsg("let env groups $(Defs)");
@@ -799,6 +801,7 @@ star.compiler.checker{
     valis (serch(Lc,Ptn,Gen,Iterator),Ev)
   }
   checkGoal(A,Env,Path,Rp) where (_,BoolTp,_) ^= findType(Env,"boolean") => do{
+--    logMsg("try bool exp conde $(A)");
     Exp <- typeOfExp(A,BoolTp,Env,Path,Rp);
     valis (Exp,Env)
   }
@@ -831,7 +834,7 @@ star.compiler.checker{
   }
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,L,R) ^= isBind(A) => do{
     E .= newTypeVar("P");
-    HT .= tpExp(StTp,E); -- bound terms must be in the same monad
+    HT .= mkTypeExp(StTp,[ErTp,E]); -- bound terms must be in the same monad
     Exp <- typeOfExp(R,HT,Env,Path,Rp);
     (Ptn,Ev) <- typeOfPtn(L,E,Env,Path,Rp);
     valis (bindDo(Lc,Ptn,Exp,E,StTp,ErTp),Ev)
@@ -886,8 +889,9 @@ star.compiler.checker{
     valis (forDo(Lc,Cond,Body,StTp,ErTp),Env)
   }
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,B,C) ^= isTryCatch(A) => do{
-    (Body,_) <- checkAction(B,Env,StTp,ElTp,ErTp,Path,Rp);
-    Hndlr <- checkCatch(C,Env,StTp,ElTp,ErTp,Path,Rp);
+    BErrTp .= newTypeVar("_");
+    (Body,_) <- checkAction(B,Env,StTp,ElTp,BErrTp,Path,Rp);
+    Hndlr <- checkCatch(C,Env,StTp,ElTp,BErrTp,ErTp,Path,Rp);
     valis (tryCatchDo(Lc,Body,Hndlr,StTp,ElTp,ErTp),Env)
   }
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,E) ^= isThrow(A) => do{
@@ -902,18 +906,18 @@ star.compiler.checker{
     checkAction(S,Env,StTp,ElTp,ErTp,Path,Rp).
 
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) => do{
-    Exp <- typeOfExp(A,tpExp(StTp,ElTp),Env,Path,Rp);
+    Exp <- typeOfExp(A,mkTypeExp(StTp,[ErTp,ElTp]),Env,Path,Rp);
     valis (simpleDo(locOf(A),Exp,StTp),Env)
   }
 
-  checkCatch:(ast,dict,tipe,tipe,tipe,string,reports) => either[reports,canon].
-  checkCatch(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,Stmts) ^= isBrTuple(A) => do{
-    HT .= funType([ErTp],tpExp(StTp,ElTp));
+  checkCatch:(ast,dict,tipe,tipe,tipe,tipe,string,reports) => either[reports,canon].
+  checkCatch(A,Env,StTp,ElTp,BErrTp,ErTp,Path,Rp) where (Lc,Stmts) ^= isBrTuple(A) => do{
+    HT .= funType([BErrTp],mkTypeExp(StTp,[ErTp,ElTp]));
     (H,_) <- checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp);
     valis lambda(Lc,[eqn(Lc,tple(Lc,[vr(Lc,genSym("_"),ErTp)]),.none,act(locOf(A),H))],HT)
   }
-  checkCatch(A,Env,StTp,ElTp,ErTp,Path,Rp) => do{
-    HT .= funType([ErTp],tpExp(StTp,ElTp));
+  checkCatch(A,Env,StTp,ElTp,BErrTp,ErTp,Path,Rp) => do{
+    HT .= funType([ErTp],mkTypeExp(StTp,[ErTp,ElTp]));
     typeOfExp(A,HT,Env,Path,Rp)
   }
 
@@ -941,8 +945,7 @@ star.compiler.checker{
     mergeScopes([scope(T1,V1,C1,I1),..Rst],
       [scope(_,V2,_,_),.._]) =>
       [scope(T1,mergeVDefs(V1,V2),C1,I1),..Rst].
-    mergeVDefs(V1,V2) => {Nm->E1|Nm->E1 in V1 && Nm->E2 in V2 &&
-	  sameDesc(E1,E2)}.
+    mergeVDefs(V1,V2) => {Nm->E1|Nm->E1 in V1 && E2^=V2[Nm] && sameDesc(E1,E2)}.
     sameDesc(vrEntry(_,_,T1),vrEntry(_,_,T2)) => sameType(T1,T2,Env)
   } in mergeScopes(D1,D2).
 

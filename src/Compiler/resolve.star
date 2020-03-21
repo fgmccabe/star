@@ -313,7 +313,7 @@ star.compiler.resolve{
 	throw reportError(Rp,"implementation $(ITp) not consistent with $(Tp)",Lc)
       }
     } else{
-      throw reportError(Rp,"cannot find an implementation for $(Tp) in $(Dict)",Lc)
+      throw reportError(Rp,"cannot find an implementation for $(Tp)",Lc)
     }
   }
 }
