@@ -49,10 +49,10 @@ star.treelist{
   public implementation all e ~~ display[e] |: display[tl[e]] => let{
     dispTl(tlEmpty) => ss("").
     dispTl(tlLeaf(E)) => disp(E).
-    dispTl(tlRed(L,_,R)) => ssPr(dispTl(L),ssPr(ss(","),dispTl(R))).
-    dispTl(tlBlack(L,_,R)) => ssPr(dispTl(L),ssPr(ss(","),dispTl(R))).
+    dispTl(tlRed(L,_,R)) => ssSeq([dispTl(L),ss(","),dispTl(R)]).
+    dispTl(tlBlack(L,_,R)) => ssSeq([dispTl(L),ss(","),dispTl(R)]).
   } in {.
-    disp(L) => ssPr(ss("["),ssPr(dispTl(L),ss("]"))).
+    disp(L) => ssSeq([ss("["),dispTl(L),ss("]")]).
   .}
 
   public implementation all e ~~ sequence[tl[e]->>e] => {

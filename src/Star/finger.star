@@ -256,61 +256,34 @@ star.finger{
   }
 
   dumpTree:all e ~~ (fingerTree[e],(e)=>ss) => ss.
-  dumpTree(.eTree,_) => sc(0x03d5).
+  dumpTree(.eTree,_) => ss("\u03d5;").
   dumpTree(single(x),d) => d(x).
-  dumpTree(deep(Lft,Md,Rgt),d) => ssPr(ss("<"),
-    ssPr(dumpDigits(Lft,d),
-      ssPr(ss(":"),
-	ssPr(dumpTree(Md,(N)=>dumpNode(N,d)),
-	  ssPr(ss(":"),
-	    ssPr(dumpDigits(Rgt,d),ss(">"))))))).
+  dumpTree(deep(Lft,Md,Rgt),d) => ssSeq([ss("<"),
+      dumpDigits(Lft,d),
+      ss(":"),
+      dumpTree(Md,(N)=>dumpNode(N,d)),
+      ss(":"),
+      dumpDigits(Rgt,d),ss(">")]).
 
   dumpDigits:all e ~~ (digit[e],(e)=>ss) => ss.
-  dumpDigits(one(x),d) => ssPr(ss("{1"),ssPr(d(x),ss("1}"))).
-  dumpDigits(two(x,y),d) => ssPr(ss("{2"),
-    ssPr(d(x),
-      ssPr(ss(","),
-	ssPr(d(y),
-	  ss("2}"))))).
-  dumpDigits(three(x,y,z),d) => ssPr(ss("{3"),
-    ssPr(d(x),
-      ssPr(ss(","),
-	ssPr(d(y),
-	  ssPr(ss(","),
-	    ssPr(d(z),
-	      ss("3}"))))))).
-  dumpDigits(four(x,y,z,u),d) => ssPr(ss("{4"),
-    ssPr(d(x),
-      ssPr(ss(","),
-	ssPr(d(y),
-	  ssPr(ss(","),
-	    ssPr(d(z),
-	      ssPr(ss(","),
-		ssPr(d(u),
-		  ss("4}"))))))))).
+  dumpDigits(one(x),d) => ssSeq([ss("{1"),d(x),ss("1}")]).
+  dumpDigits(two(x,y),d) => ssSeq([ss("{2"), d(x), ss(","), d(y), ss("2}")]).
+  dumpDigits(three(x,y,z),d) => ssSeq([ss("{3"), d(x), ss(","), d(y), ss(","), d(z), ss("3}")]).
+  dumpDigits(four(x,y,z,u),d) =>
+    ssSeq([ss("{4"), d(x), ss(","), d(y), ss(","), d(z), ss(","), d(u), ss("4}")]).
 
   dumpNode:all e ~~ (node[e],(e)=>ss) => ss.
-  dumpNode(node2(x,y),d) => ssPr(ss("(2"),
-    ssPr(d(x),
-      ssPr(ss(","),
-	ssPr(d(y),
-	  ss("2)"))))).
-  dumpNode(node3(x,y,z),d) => ssPr(ss("(3"),
-    ssPr(d(x),
-      ssPr(ss(","),
-	ssPr(d(y),
-	  ssPr(ss(","),
-	    ssPr(d(z),
-	      ss("3)"))))))).
+  dumpNode(node2(x,y),d) => ssSeq([ss("(2"), d(x), ss(","), d(y), ss("2)")]).
+  dumpNode(node3(x,y,z),d) => ssSeq([ss("(3"), d(x), ss(","), d(y), ss(","), d(z), ss("3)")]).
 
   public implementation all e ~~ display[e] |: display[fingerTree[e]] => {.
-    disp(T) => ssPr(ss("["),ssPr(reform(dispTree(T,(x,L)=>cons(disp(x),L),.nil)),ss("]"))).
+    disp(T) => ssSeq([ss("["),reform(dispTree(T,(x,L)=>cons(disp(x),L),.nil)),ss("]")]).
   .}
 
   reform:(cons[ss]) => ss.
   reform(.nil) => ss("").
   reform(cons(x,.nil)) => x.
-  reform(cons(x,y)) => ssPr(x,ssPr(ss(","),reform(y))).
+  reform(cons(x,y)) => ssSeq([x,ss(","),reform(y)]).
 
   dispTree:all e ~~ (fingerTree[e],(e,cons[ss])=>cons[ss],cons[ss]) => cons[ss].
   dispTree(.eTree,_,L) => L.

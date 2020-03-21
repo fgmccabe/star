@@ -125,23 +125,14 @@ star.skew{
   public implementation all e ~~ display[e] |: dump[sk[e]] => let{
     dumpList:all a ~~ display[a] |: (rlist[a]) => ss.
     dumpList(.nil) => ss("").
-    dumpList(cons((w,x),ts)) =>
-      ssPr(ss("($(w)"),
-	ssPr(dumpTree(x),
-	  ssPr(dumpList(ts),
-	    ss(")")))).
+    dumpList(cons((w,x),ts)) => ssSeq([ss("($(w)"), dumpTree(x), dumpList(ts), ss(")")]).
 
     dumpTree:all a ~~ display[a] |: (tree[a]) => ss.
-    dumpTree(leaf(x)) => ssPr(ss("ƒ("), ssPr(disp(x),ss(")"))).
+    dumpTree(leaf(x)) => ssSeq([ss("ƒ("),disp(x),ss(")")]).
     dumpTree(node(w,t1,t2)) =>
-      ssPr(ss("{"),
-	ssPr(disp(w),
-	  ssPr(dumpTree(t1),
-	    ssPr(ss("-"),
-	      ssPr(dumpTree(t2),
-		ss("}")))))).
+      ssSeq([ss("{"), disp(w), dumpTree(t1), ss("-"), dumpTree(t2), ss("}")]).
   } in {
-    dump(rl(ts)) => ssPr(ss("sk["),ssPr(dumpList(ts),ss("]"))).
+    dump(rl(ts)) => ssSeq([ss("sk["),dumpList(ts),ss("]")]).
   }
 
   public implementation all e ~~ display[e] |: display[sk[e]] => let{
@@ -156,9 +147,9 @@ star.skew{
     rollup:(cons[ss]) => ss.
     rollup(.nil) => ss("").
     rollup(cons(S,.nil)) => S.
-    rollup(cons(S,R)) => ssPr(S,ssPr(ss(","),rollup(R))).
+    rollup(cons(S,R)) => ssSeq([S,ss(","),rollup(R)]).
   } in {
-    disp(rl(L)) => ssPr(ss("["),ssPr(rollup(dispList(L,.nil)),ss("]"))).
+    disp(rl(L)) => ssSeq([ss("["),rollup(dispList(L,.nil)),ss("]")]).
   }
 
   public implementation all e ~~ equality[e] |: equality[sk[e]] => let{

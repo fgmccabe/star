@@ -157,13 +157,9 @@ star.cons{
   public implementation all e ~~ display[e] |: display[cons[e]] => let{
     consDisp(.nil) => ss("").
     consDisp(cons(X,.nil)) => disp(X).
-    consDisp(cons(X,R)) =>
-      ssPr(disp(X),
-	ssPr(ss(","),
-	  consDisp(R))).
+    consDisp(cons(X,R)) => ssSeq([disp(X), ss(","), consDisp(R)]).
   } in {
-    disp(L) => ssPr(ss("["),
-      ssPr(consDisp(L),ss("]"))).
+    disp(L) => ssSeq([ss("["), consDisp(L),ss("]")]).
   }
 
   public multicat : all e ~~ (cons[cons[e]]) => cons[e].
