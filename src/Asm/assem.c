@@ -595,7 +595,7 @@ static logical sameStruct(constPo a1, char *sig, void *con) {
 }
 
 static int32 findConstant(mtdPo mtd, char *sig, void *con) {
-  consPo consts = mtd->constants;
+  listPo consts = mtd->constants;
   int32 count = 0;
   while (consts != nilList) {
     constPo cn = (constPo) head(consts);

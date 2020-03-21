@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.7)
 project(bootlib)
 
+set(REPO_DIR "${CMAKE_BINARY_DIR}/.star-repo/")
+
 add_custom_target(boot ALL)
 add_dependencies(boot sbc sasm)
-
-set(REPO_DIR "${CMAKE_BINARY_DIR}/.star-repo/")
 
 file(MAKE_DIRECTORY ${REPO_DIR})
 set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES "${REPO_DIR}")

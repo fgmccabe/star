@@ -18,6 +18,7 @@ set(HEADER_FILES
         Headers/array.h Headers/arrayP.h
         Headers/cell.h Headers/cellP.h
         Headers/code.h Headers/codeP.h
+        Headers/cons.h
         Headers/engine.h
         Headers/decode.h
         ../Infra/Headers/encoding.h Headers/decodeP.h
@@ -39,12 +40,12 @@ set(HEADER_FILES
         Headers/struct.h Headers/structP.h
         Headers/thr.h Headers/thrP.h
         Headers/repoP.h Headers/repo.h
-        Headers/verify.h Headers/verifyP.h Headers/srcMap.h Headers/srcMapP.h Headers/debugP.h Headers/capability.h Headers/capabilityP.h Headers/memo.h Headers/memoP.h Headers/asm.h Headers/codegen.h)
+        Headers/verify.h Headers/verifyP.h Headers/srcMap.h Headers/srcMapP.h Headers/debugP.h Headers/capability.h Headers/capabilityP.h Headers/memo.h Headers/memoP.h Headers/asm.h Headers/codegen.h Headers/consP.h)
 
 set(SOURCE_FILES
         decode.c debug.c eval.c engine.c engineOptions.c gc.c globals.c heap.c load.c main.c
         ${HEADER_FILES} code.c term.c labels.c arith.c repo.c
-        str.c array.c lockvar.c cell.c iochnl.c thr.c bkpoint.c verify.c srcMap.c capability.c memo.c boot.c)
+        str.c array.c lockvar.c cell.c iochnl.c thr.c bkpoint.c verify.c srcMap.c capability.c memo.c boot.c cons.c)
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})
 
