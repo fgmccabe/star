@@ -142,17 +142,14 @@ test.ralist{
   }
   
   public implementation all e ~~ display[e] |: dump[ra[e]] => {
-    dump(ra(ts)) => ssPr(ss("ra["),ssPr(dumpList(ts),ss("]"))).
+    dump(ra(ts)) => ssSeq([ss("ra["),dumpList(ts),ss("]")]).
 
     dumpList(.nil) => ss("").
-    dumpList(cons(.zer,ts)) => ssPr(ss("."),dumpList(ts)).
-    dumpList(cons(one(t),ts)) => ssPr(dumpTree(t),dumpList(ts)).
+    dumpList(cons(.zer,ts)) => ssSeq([ss("."),dumpList(ts)]).
+    dumpList(cons(one(t),ts)) => ssSeq([dumpTree(t),dumpList(ts)]).
 
     dumpTree(leaf(x)) => disp(x).
-    dumpTree(node(w,t1,t2)) => ssPr(ss("{"),
-      ssPr(disp(w),
-	ssPr(dumpTree(t1),
-	  ssPr(dumpTree(t2),ss("}"))))).
+    dumpTree(node(w,t1,t2)) => ssSeq([ss("{"), disp(w), dumpTree(t1), dumpTree(t2),ss("}")]).
   }
 
   public implementation all e ~~ display[e] |: display[ra[e]] => let{
@@ -160,13 +157,12 @@ test.ralist{
     dispList(.nil) => ss("").
     dispList(cons(.zer,ts))=>dispList(ts).
     dispList(cons(one(t),ts)) =>
-      ssPr(dispTree(t),
-	dispList(ts)).
+      ssSeq([dispTree(t), dispList(ts)]).
 
     dispTree:(tree[e]) => ss.
-    dispTree(leaf(x)) => ssPr(disp(x),ss(",")).
-    dispTree(node(_,t1,t2)) => ssPr(dispTree(t1),dispTree(t2)).
+    dispTree(leaf(x)) => ssSeq([disp(x),ss(",")]).
+    dispTree(node(_,t1,t2)) => ssSeq([dispTree(t1),dispTree(t2)]).
   } in {
-    disp(ra(ts)) => ssPr(ss("["), ssPr(dispList(ts), ss("]"))).
+    disp(ra(ts)) => ssSeq([ss("["), dispList(ts), ss("]")]).
   }
 }

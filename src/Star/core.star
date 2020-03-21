@@ -57,8 +57,10 @@ star.core {
     _nil:S.
   }
 
+  public cns[x] ::= .nl | cns(x,cns[x]).
+
   -- Structured string.
-  public ss ::= ss(string) | sc(integer) | ssPr(ss,ss) | ssSeq(list[ss]).
+  public ss ::= ss(string) | ssSeq(list[ss]).
 
   -- Displayable contract
   public contract all t ~~ display[t] ::= {
