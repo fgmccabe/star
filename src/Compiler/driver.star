@@ -128,7 +128,6 @@ star.compiler{
 --	  logMsg("source uri: $(SrcUri), CPkg=$(CPkg)");
 	    Ast <- parseSrc(SrcUri,CPkg,Rp)::action[reports,ast];
 --	  logMsg("Ast of $(P) is $(Ast)");
-	    logMsg("checking $(P)");
 	    (PkgSpec,PkgFun) <- checkPkg(Repp!!,CPkg,Ast,stdDict,Rp) :: action[reports,(pkgSpec,canonDef)];
 	    logMsg("normalizing $(PkgFun)");
 	    NormDefs <- normalize(PkgSpec,PkgFun,Rp)::action[reports,list[crDefn]];

@@ -608,12 +608,12 @@ static void showStarIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
       break;
   }
 
-  outMsg(out, "[Out..,disp(Pc),ss(\":\"),ss(\"%P\")", mnem);
+  outMsg(out, "[ssSeq([disp(Pc),ss(\":\"),ss(\"%P\")", mnem);
 
   switch (A1) {
     case nOp:                             // No operand
     case tOs:
-      outMsg(out, ",ss(\"\\n\")]).\n");
+      outMsg(out, ",ss(\"\\n\")]),..Out]).\n");
       break;
     case lne:
     case lit:
@@ -625,10 +625,10 @@ static void showStarIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
     case lcs:
     case glb:
     case off:
-      outMsg(out, ",ss(\" \"),disp(XX),ss(\"\\n\")]).\n");
+      outMsg(out, ",ss(\" \"),disp(XX),ss(\"\\n\")]),..Out]).\n");
       break;
     case Es:
-      outMsg(out, ",ss(\" \"),ss(XX),ss(\"\\n\")]).\n");
+      outMsg(out, ",ss(\" \"),ss(XX),ss(\"\\n\")]),..Out]).\n");
       break;
   }
 }
