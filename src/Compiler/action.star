@@ -22,7 +22,7 @@ star.compiler.action{
     other(reportError(Rp,"return $(A) must be last action",Lc)).
   genAction(bindDo(Lc,Ptn,Gen,ExTp,VlTp,ErTp),Contract,.none,_,Rp) =>
     other(reportError(Rp,"$(Ptn) <- $(Gen) may not be last action",Lc)).
-  genAction(bindDo(Lc,Ptn,Gen,ExTp,VlTp,ErTp),Contract,some(Cont),_,Rp) => do{
+  genAction(bindDo(Lc,Ptn,Gen,VlTp,ExTp,ErTp),Contract,some(Cont),_,Rp) => do{
     ConTp .= typeOf(Cont);
     PtnTp .= typeOf(Ptn);
     GenTp .= typeOf(Gen);
@@ -217,7 +217,6 @@ star.compiler.action{
     (SeqContract,StTp,ElTp) <- pickupContract(Lc,Env,"sequence",Rp);
     (_,ActionTp,_) ^= findType(Env,"action");
     ErTp .= newTypeVar("_");
-    logMsg("execution type $(ExTp)");
     SeqConstraint .= typeConstraint(funDeps(mkTypeExp(SeqContract,[StTp]),[ElTp]));
     if sameType(ActionTp,ExTp,Env) then{
       Zed <- genReturn(Lc,over(Lc,mtd(Lc,"_nil",StTp),StTp,[SeqConstraint]),ExTp,StTp,ErTp,ExContract,Rp);

@@ -43,7 +43,7 @@ star.compiler.impawt{
   }
 
   public importPkg:all r ~~ repo[r] |: (pkg,locn,r,reports) => either[reports,pkgSpec].
-  importPkg(Pkg,Lc,Repo,Rp) where Sig ^= hasSignature(Repo,Pkg) => either (valof pickupPkgSpec(Sig,Lc,Rp)).
+  importPkg(Pkg,Lc,Repo,Rp) where Sig ^= pkgSignature(Repo,Pkg) => either (valof pickupPkgSpec(Sig,Lc,Rp)).
   importPkg(Pkg,Lc,_,Rp) default => other(reportError(Rp,"cannot import $(Pkg)",Lc)).
 
   pickupPkgSpec:(string,locn,reports) => either[(),pkgSpec].

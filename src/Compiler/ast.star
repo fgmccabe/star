@@ -154,8 +154,7 @@ star.compiler.ast{
   isBrApply(_) default => .none.
 
   public isRoundTerm:(ast) => option[(locn,ast,list[ast])].
-  isRoundTerm(app(Lc,Op,tpl(_,"()",A))) where
-      (_,Id) ^= isName(Op) => some((Lc,Op,A)).
+  isRoundTerm(app(Lc,Op,tpl(_,"()",A))) where !_^=isKeyword(Op) => some((Lc,Op,A)).
   isRoundTerm(_) default => .none.
 
   public roundTerm:(locn,ast,list[ast]) => ast.

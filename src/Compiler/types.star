@@ -416,6 +416,8 @@ star.compiler.types{
   public isRefType(Tp) => tpExp(Op,_) .= deRef(Tp) &&
       tpFun("star.core*ref",1).=deRef(Op).
 
+  public isLambdaRule(Tp) where (_,T).=deQuant(Tp) => typeLambda(_,_).=deRef(T).
+
   public deQuant:(tipe) => (list[tipe],tipe).
   deQuant(T) => let{
     deQ(allType(V,I),Qs) => deQ(I,[Qs..,V]).
