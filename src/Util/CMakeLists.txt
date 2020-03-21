@@ -22,7 +22,7 @@ set(PUBLIC_HEADERS
         Headers/io.h Headers/file.h Headers/formio.h
         Headers/hash.h Headers/hosts.h Headers/integer.h
         Headers/ioTcp.h Headers/iterate.h Headers/ixTree.h Headers/jsonEvent.h
-        Headers/cons.h Headers/lockable.h Headers/logical.h
+        Headers/list.h Headers/lockable.h Headers/logical.h
         Headers/managed.h Headers/object.h
         Headers/pair.h
         Headers/pool.h Headers/retcode.h Headers/pipe.h
@@ -37,7 +37,7 @@ set(HEADER_FILES
         Headers/ioP.h Headers/fileP.h Headers/formioP.h
         Headers/hostsP.h
         Headers/iosockP.h Headers/ixTreeP.h
-        Headers/consP.h Headers/lockableP.h
+        Headers/listP.h Headers/lockableP.h
         Headers/managedP.h Headers/objectP.h
         Headers/pairP.h
         Headers/pipeP.h
@@ -59,7 +59,7 @@ set(SOURCE_FILES
         hosts.c
         io.c
         ixTree.c
-        cons.c
+        list.c
         formexts.c
         locked.c
         managed.c

@@ -6,7 +6,6 @@
 #include "stringBuffer.h"
 #include "encoding.h"
 #include "assemP.h"
-#include <assert.h>
 
 static retCode encodeIns(ioPo out, assemInsPo ins);
 
@@ -89,7 +88,7 @@ retCode encodeMethod(ioPo out, mtdPo mtd) {
   }
 
   tryRet(encodeTpl(out, poolCount(mtd)));
-  for (consPo con = mtd->constants; con != nilList; con = tail(con)) {
+  for (listPo con = mtd->constants; con != nilList; con = tail(con)) {
     tryRet(encodeConstant(out, (constPo) head(con)));
   }
 
@@ -100,7 +99,7 @@ retCode encodeMethod(ioPo out, mtdPo mtd) {
 
   tryRet(encodeTpl(out, lineCount(mtd))); /* Number of line records */
   if (mtd->lines != Null)
-    for (consPo lne = mtd->lines; lne != nilList; lne = tail(lne)) {
+    for (listPo lne = mtd->lines; lne != nilList; lne = tail(lne)) {
       tryRet(encodeLine(out, O_LINE(head(lne))));
     }
 

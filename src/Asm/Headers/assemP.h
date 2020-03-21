@@ -4,8 +4,8 @@
 #include <ooio.h>
 #include "assem.h"
 #include "opcodes.h"
-#include "cons.h"
 #include "objectP.h"
+#include "list.h"
 #include "pkgP.h"
 
 typedef struct _fixup_ *fixupPo;
@@ -111,12 +111,12 @@ typedef struct _assem_method_ {
   hashPo labels;      /* All the labels in this code */
   assemInsPo first;      /* Instructions */
   assemInsPo last;      /* Last instruction */
-  consPo constants;      /* list of constant records */
+  listPo constants;      /* list of constant records */
   int32 sig;        /* Signature of this method */
   int32 lclSig;         /* Signature of the local vars */
   hashPo locals;      /* Local variables */
   hashPo frames;      /* Active frames in the method */
-  consPo lines;       // Line number table
+  listPo lines;       // Line number table
 } AssemMethod;
 
 typedef struct _local_data_ {

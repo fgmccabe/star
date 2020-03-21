@@ -19,7 +19,7 @@
 
 #include "ixTree.h"
 #include "objectP.h"
-#include "cons.h"
+#include "list.h"
 #include "pair.h"
 
 #include <stdarg.h>
@@ -45,7 +45,7 @@ typedef struct {
 } IxTreeNodeObjectPartRec;
 
 typedef struct {
-  consPo leafs;                      // All the entries with this hash value
+  listPo leafs;                      // All the entries with this hash value
 } IxLeafNodeObjectPartRec;
 
 typedef struct _ixtree_leaf_class {

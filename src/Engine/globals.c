@@ -87,6 +87,7 @@ void initGlobals() {
   okEnum = (termPo) declareEnum("star.core#ok");
   failEnum = (termPo) declareEnum("star.core#fail");
   eofEnum = (termPo) declareEnum("star.core#eof");
+
   errorLbl = declareLbl("star.core#error", 2);
 
   unitEnum = (termPo) allocateTpl(currHeap, 0);
@@ -121,7 +122,7 @@ globalPo globalVar(const char *nm, termPo provider) {
     glb->hash = tst.hash;
     glb->varNo = numGlbVars - 1;
     hashPut(globals, glb, glb);
-  } else if(provider!=Null && glb->provider==Null){
+  } else if (provider != Null && glb->provider == Null) {
     glb->provider = provider;
   }
   return glb;
@@ -185,7 +186,7 @@ static void markGlobal(globalPo glb, gcSupportPo G) {
 void markGlobals(gcSupportPo G) {
   for (int32 ix = 0; ix < numGlbVars; ix++)
     markGlobal(&glbVars[ix], G);
-  unitEnum =  markPtr(G, (ptrPo) &unitEnum);
+  unitEnum = markPtr(G, (ptrPo) &unitEnum);
 }
 
 retCode glbDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {

@@ -10,6 +10,7 @@
 #include <iochnnlP.h>
 #include <arrayP.h>
 #include <memoP.h>
+#include <consP.h>
 #include "capabilityP.h"
 #include "manifest.h"
 #include "clock.h"
@@ -47,6 +48,7 @@ int main(int argc, char **argv) {
   initStr();
   initLbls();
   initGlobals();
+  initCons();
   initCell();
   initMemo();
   initCode();
