@@ -82,12 +82,12 @@ star.compiler.assem{
   .}
 
   public implementation display[assemOp] => {.
-    disp(Op) => ssSeq(showMnem([Op],0,[])).
+    disp(Op) => ssSeq(reverse(showMnem([Op],0,[]))).
   .}
 
   showMnem:(list[assemOp],integer,list[ss]) => list[ss].
   showMnem([],_,Out) => Out.
-  showMnem([iLbl(al(Lb)),..Ins],Pc,Out) => showMnem(Ins,Pc,[Out..,ss(Lb),ss(":\n")]).
-  showMnem([iLocal(Nm,Frm,End,_Off),..Ins],Pc,Out) => showMnem(Ins,Pc,[Out..,ss(Nm),ss("::"),disp(Frm),ss("-"),disp(End),ss("\n")]).
+  showMnem([iLbl(al(Lb)),..Ins],Pc,Out) => showMnem(Ins,Pc,[ssSeq([ss(Lb),ss(":\n")]),..Out]).
+  showMnem([iLocal(Nm,Frm,End,_Off),..Ins],Pc,Out) => showMnem(Ins,Pc,[ssSeq([ss(Nm),ss("::"),disp(Frm),ss("-"),disp(End),ss("\n")]),..Out]).
 #(Show)
 }
