@@ -13,6 +13,8 @@
 #include <array.h>
 #include <tpl.h>
 #include <manifest.h>
+#include <cons.h>
+#include <consP.h>
 #include "pkgops.h"
 
 ReturnStatus g__pkg_is_present(processPo P, ptrPo tos) {
@@ -42,7 +44,7 @@ ReturnStatus g__pkg_is_present(processPo P, ptrPo tos) {
 
 typedef struct {
   heapPo H;
-  listPo *list;
+  termPo *list;
 } pickupStruct;
 
 static retCode pickupImport(packagePo p, char *errorMsg, long msgLen, void *cl) {
@@ -56,7 +58,7 @@ static retCode pickupImport(packagePo p, char *errorMsg, long msgLen, void *cl) 
     gcAddRoot(pk->H, (ptrPo) &vr);
 
     normalPo pr = allocatePair(pk->H, (termPo) pkg, (termPo) vr);
-    *(pk->list) = appendToList(pk->H, *pk->list, (termPo) pr);
+    *(pk->list) = (termPo) allocateCons(pk->H, (termPo) pr, *(pk->list));
     gcReleaseRoot(pk->H, root);
   }
   return Ok;
@@ -72,8 +74,8 @@ ReturnStatus g__install_pkg(processPo P, ptrPo tos) {
   char errMsg[MAXLINE];
   heapPo H = processHeap(P);
 
-  listPo imports = allocateList(H, 0);
-  int root = gcAddRoot(H, (ptrPo) &imports);
+  termPo imports = (termPo) nilEnum;
+  int root = gcAddRoot(H, &imports);
 
   pickupStruct Cl = {.list=&imports, .H=H};
 
@@ -136,7 +138,7 @@ ReturnStatus g__locate_in_manifest(processPo P, ptrPo tos) {
   if (ret == Ok) {
     ret = manifestCompatibleResource(pkg, version, kind, rsrc, NumberOf(rsrc));
 
-    if (ret!=Ok) {
+    if (ret != Ok) {
       return (ReturnStatus) {.ret=Error, .result= voidEnum};
     } else {
       return (ReturnStatus) {.ret=Ok,

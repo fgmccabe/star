@@ -4,21 +4,21 @@ test.q0{
 
   -- Test simple query expressions
 
-  parent:list[(string,string)].
+  parent:cons[(string,string)].
   parent = [("a","ab"),("b","ab"),("a","c"),("c","aa"),("ab","abc"),
             ("de","abc"),("d","de"),("e","de"),
             ("f","a"),("g","f")].
 
-  gp : list[(string,string)].
+  gp : cons[(string,string)].
   gp = { (X,Y) | (X,Z) in parent && (Z,Y) in parent}.
 
   pp = [X|(X,"ab") in parent || (X,D) in parent && "de".=D].
 
   -- A different example, filtering positive numbers
-  someInts : list[integer].
+  someInts : cons[integer].
   someInts = [0,2,-1,-10,4,6,7,-3].
 
-  pos : list[integer].
+  pos : cons[integer].
   pos = { X | X in someInts && X>0 }.
 
   main:() => action[(),()].

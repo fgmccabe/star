@@ -76,7 +76,7 @@ static inline int32 collect32(insPo pc) {
 }
 
 #define collectI32(pc) (collI32(pc))
-#define collI32(pc) hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<16)|lo32)
+#define collI32(pc) hi32 = (uint32)(uint16)(*(pc)++), lo32 = *(pc)++, ((hi32<<16)|lo32)
 
 ReturnStatus g__ins_debug(processPo P, ptrPo a) {
   insDebugging = tracing = True;
@@ -1170,7 +1170,7 @@ void showTopOfStack(ioPo out, methodPo mtd, integer cnt, framePo fp, ptrPo sp) {
 
     outMsg(out, ")\n%_");
   } else
-    outStr(out, "tos");
+    outStr(out, " <tos>");
 }
 
 void showStack(ioPo out, processPo p, methodPo mtd, integer vr, framePo fp, ptrPo sp) {
@@ -1182,10 +1182,20 @@ void showStack(ioPo out, processPo p, methodPo mtd, integer vr, framePo fp, ptrP
     outMsg(out, "invalid stack offset: %d", vr);
 }
 
+static void showPcOffset(ioPo out, insPo base, insPo *pc) {
+  uint32 hi32 = (uint32) (*pc)[0];
+  uint32 lo32 = (uint32) (*pc)[1];
+  (*pc)+=2;
+  int32 delta = (hi32 << 16u) | lo32;
+
+  outMsg(out, " PC[%d(%+d)]", (*pc - base) + delta, delta);
+}
+
 insPo disass(ioPo out, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
   int32 hi32, lo32;
 
-  integer offset = (integer) (pc - entryPoint(mtd));
+  insPo entry = entryPoint(mtd);
+  integer offset = (integer) (pc - entry);
 
   normalPo lits = codeLits(mtd);
   if (lits != Null)
@@ -1203,7 +1213,7 @@ insPo disass(ioPo out, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
 #define show_arg showArg(out,collectI32(pc),mtd,fp,sp)
 #define show_lcl showLcl(out,collectI32(pc),mtd,fp,sp)
 #define show_lcs outMsg(out," l[%d]",collectI32(pc))
-#define show_off outMsg(out," PC[%d]",collectI32(pc))
+#define show_off showPcOffset(out,entry,&pc)
 #define show_sym showConstant(out,mtd,collectI32(pc))
 #define show_Es outMsg(out, " %s", getEscape(collectI32(pc))->name)
 #define show_lit showConstant(out,mtd,collectI32(pc))
@@ -1272,7 +1282,7 @@ void dumpInsCount() {
 }
 
 void dumpInsStats() {
-  outMsg(debugOutChnnl,"instructions executed\n");
+  outMsg(debugOutChnnl, "instructions executed\n");
 
 #include "instructions.h"
 

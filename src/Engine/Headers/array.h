@@ -8,49 +8,49 @@
 #include "term.h"
 #include "heap.h"
 
-typedef struct _list_slice_ *listPo;
+typedef struct _list_slice_ *arrayPo;
 
 extern clssPo listClass;
 
-extern listPo C_LIST(termPo t);
+extern arrayPo C_ARRAY(termPo t);
 
 typedef enum{
   safeAlloc,
   fastAlloc
 } allocSafety;
 
-extern listPo allocateList(heapPo H, integer length);
+extern arrayPo allocateArray(heapPo H, integer length);
 
-extern listPo createList(heapPo H, integer capacity);
+extern arrayPo createArray(heapPo H, integer capacity);
 
-extern termPo sliceList(heapPo H, listPo list, integer from, integer to);
+extern termPo sliceArray(heapPo H, arrayPo list, integer from, integer to);
 
-extern listPo spliceList(heapPo H, listPo list, integer from, integer to, listPo rep);
+extern arrayPo spliceArray(heapPo H, arrayPo list, integer from, integer to, arrayPo rep);
 
-extern listPo appendToList(heapPo H, listPo list, termPo el);
+extern arrayPo appendToArray(heapPo H, arrayPo list, termPo el);
 
-extern listPo concatList(heapPo H, listPo l1, listPo l2);
+extern arrayPo concatArray(heapPo H, arrayPo l1, arrayPo l2);
 
-extern listPo flattenList(heapPo H, listPo l);
+extern arrayPo flattenArray(heapPo H, arrayPo l);
 
-extern listPo reverseList(heapPo H, listPo l1);
+extern arrayPo reverseArray(heapPo H, arrayPo l1);
 
-extern listPo insertListEl(heapPo H, listPo list, integer px, termPo vl);
+extern arrayPo insertArrayEl(heapPo H, arrayPo list, integer px, termPo vl);
 
-extern listPo replaceListEl(heapPo H, listPo list, integer px, termPo vl);
+extern arrayPo replaceArrayEl(heapPo H, arrayPo list, integer px, termPo vl);
 
-extern listPo removeListEl(heapPo H, listPo list, integer px);
+extern arrayPo removeArrayEl(heapPo H, arrayPo list, integer px);
 
 // Use with caution!
 
-extern listPo prependToList(heapPo H, listPo list, termPo el);
+extern arrayPo prependToArray(heapPo H, arrayPo list, termPo el);
 
-typedef retCode (*listProc)(termPo el, integer ix, void *cl);
+typedef retCode (*arrayProc)(termPo el, integer ix, void *cl);
 
-extern retCode processList(listPo list, listProc p, void *cl);
+extern retCode processArray(arrayPo list, arrayProc p, void *cl);
 
-extern integer listSize(listPo list);
-extern termPo nthEl(listPo list, integer ix);
-extern void setNthEl(listPo list, integer ix, termPo el);
+extern integer arraySize(arrayPo list);
+extern termPo nthEl(arrayPo list, integer ix);
+extern void setNthEl(arrayPo list, integer ix, termPo el);
 
 #endif //STAR_ARRAY_H

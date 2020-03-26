@@ -13,14 +13,14 @@ star.compiler.types{
       nomnal(string) |
       tpFun(string,integer) |
       tpExp(tipe,tipe) |
-      tupleType(list[tipe]) |
+      tupleType(cons[tipe]) |
       allType(tipe,tipe) |
       existType(tipe,tipe) |
-      faceType(list[(string,tipe)],list[(string,tipe)]) |
+      faceType(cons[(string,tipe)],cons[(string,tipe)]) |
       typeLambda(tipe,tipe) |
       typeExists(tipe,tipe) |
       constrainedType(tipe,constraint) |
-      funDeps(tipe,list[tipe]).
+      funDeps(tipe,cons[tipe]).
 
   public constraint ::=
     typeConstraint(tipe) |
@@ -28,7 +28,7 @@ star.compiler.types{
 
   tv ::= tv{
     binding : ref option[tipe].
-    constraints : ref list[constraint].
+    constraints : ref cons[constraint].
   }
 
   public isIdenticalVar:(tipe,tipe) => boolean.
@@ -67,14 +67,14 @@ star.compiler.types{
     B.binding := .none
   }
 
-  public constraintsOf:(tipe) => list[constraint].
+  public constraintsOf:(tipe) => cons[constraint].
   constraintsOf(Tp) => conOf(deRef(Tp)).
 
   conOf(tVar(T,_)) => T.constraints!! .
   conOf(tFun(T,_,_)) => T.constraints!! .
   conOf(_) default => [].
 
-  public setConstraints:(tipe,list[constraint]) => action[(),()].
+  public setConstraints:(tipe,cons[constraint]) => action[(),()].
   setConstraints(tVar(V,_),Cx) => do{
     V.constraints := Cx;
     valis ()
@@ -97,6 +97,7 @@ star.compiler.types{
     V.constraints := [C,..V.constraints!!];
     valis ()
   }
+  addCon(_,_) => either(()).
 
   public deRef:(tipe) => tipe.
   deRef(tVar(B,_)) where T^=B.binding!! => deRef(T).
@@ -117,7 +118,7 @@ star.compiler.types{
     valis V
   }
 
-  public mkTypeExp:(tipe,list[tipe])=>tipe.
+  public mkTypeExp:(tipe,cons[tipe])=>tipe.
   mkTypeExp(Tp,[]) => Tp.
   mkTypeExp(Tp,[A,..L]) => mkTypeExp(tpExp(Tp,A),L).
 
@@ -125,10 +126,10 @@ star.compiler.types{
     T1==T2 => eqType(T1,T2,[]).
   }
   
-  eqType:(tipe,tipe,list[(tipe,tipe)]) => boolean.
+  eqType:(tipe,tipe,cons[(tipe,tipe)]) => boolean.
   eqType(T1,T2,L) => identType(deRef(T1),deRef(T2),L).
 
-  identType:(tipe,tipe,list[(tipe,tipe)]) => boolean.
+  identType:(tipe,tipe,cons[(tipe,tipe)]) => boolean.
   identType(kFun(N1,A1),kFun(N2,A2),_) => N1==N2 && A1==A2.
   identType(tVar(_,N1),tVar(_,N2),_) => N1==N2.
   identType(tFun(_,A1,N1),tFun(_,A2,N2),_) => N1==N2 && A1==A2.
@@ -205,7 +206,7 @@ star.compiler.types{
   shTipe(constrainedType(T,C),Sh,Dp) =>
     ssSeq([showConstraint(C,Dp),ss("|:"),showType(T,Sh,Dp)]).
   shTipe(funDeps(Tp,Deps),Sh,Dp) =>
-    shTpExp(deRef(Tp),"->>",ssSeq([showEls(Deps,Sh,Dp-1,"")..,ss("]")]),Sh,Dp-1).
+    shTpExp(deRef(Tp),"->>",ssSeq([ssSeq(showEls(Deps,Sh,Dp-1,"")),ss("]")]),Sh,Dp-1).
   
   showTypes(_,_,0) => ss("...").
   showTypes(E,Sh,Dp) => ssSeq(showEls(E,Sh,Dp-1,"")).
@@ -213,12 +214,12 @@ star.compiler.types{
   showEls([],_,_,_) => [].
   showEls([T,..Tps],Sh,Dp,Sep) => [ss(Sep),showType(T,Sh,Dp),..showEls(Tps,Sh,Dp,", ")].
 
-  showTypeEls:(list[(string,tipe)],list[(string,tipe)],boolean,integer) => ss.
+  showTypeEls:(cons[(string,tipe)],cons[(string,tipe)],boolean,integer) => ss.
   showTypeEls(Els,Tps,Sh,Dp) =>
-    ssSeq(interleave([ssSeq([ss(Nm),ss(":"),showType(Tp,Sh,Dp)]) | (Nm,Tp) in Els] ++
-               [ssSeq([ss(Nm),ss("~>"),showType(Tp,Sh,Dp)]) | (Nm,Tp) in Tps],ss(". "))).
+    ssSeq(interleave({ssSeq([ss(Nm),ss(":"),showType(Tp,Sh,Dp)]) | (Nm,Tp) in Els} ++
+	{ssSeq([ss(Nm),ss("~>"),showType(Tp,Sh,Dp)]) | (Nm,Tp) in Tps},ss(". "))).
 
-  showTpExp:(tipe,list[tipe],boolean,integer) => ss.
+  showTpExp:(tipe,cons[tipe],boolean,integer) => ss.
   showTpExp(tpFun("=>",2),[A,R],Sh,Dp) =>
     ssSeq([shTipe(deRef(A),Sh,Dp-1),ss("=>"),shTipe(deRef(R),Sh,Dp-1)]).
   showTpExp(tpFun("<=>",2),[A,R],Sh,Dp) =>
@@ -304,7 +305,7 @@ star.compiler.types{
 
   public implementationName:(tipe) => string.
   implementationName(Tp) => let{
-    surfaceName:(tipe,list[string])=>list[string].
+    surfaceName:(tipe,cons[string])=>cons[string].
     surfaceName(nomnal(Nm),R) => [Nm,"!",..R].
     surfaceName(tpExp(O,A),R) => surfaceName(deRef(O),surfaceNm(deRef(A),R)).
     surfaceName(kFun(Nm,_),R) => [Nm,..R].
@@ -377,7 +378,7 @@ star.compiler.types{
   funTypeRes(allType(_,Tp)) => funTypeRes(deRef(Tp)).
   funTypeRes(constrainedType(T,_))=>funTypeRes(T).
 
-  public tplTypes:(tipe)=>list[tipe].
+  public tplTypes:(tipe)=>cons[tipe].
   tplTypes(tupleType(Els))=>Els.
 
   public isFunType:(tipe) => option[(tipe,tipe)].
@@ -410,7 +411,7 @@ star.compiler.types{
   public fltType = nomnal("star.core*float").
   public strType = nomnal("star.core*string").
   public boolType = nomnal("star.core*boolean").
-  public lstType(Tp) => tpExp(tpFun("star.core*list",1),Tp).
+  public lstType(Tp) => tpExp(tpFun("star.core*cons",1),Tp).
   public refType(Tp) => tpExp(tpFun("star.core*ref",1),Tp).
 
   public isRefType(Tp) => tpExp(Op,_) .= deRef(Tp) &&
@@ -418,27 +419,27 @@ star.compiler.types{
 
   public isLambdaRule(Tp) where (_,T).=deQuant(Tp) => typeLambda(_,_).=deRef(T).
 
-  public deQuant:(tipe) => (list[tipe],tipe).
+  public deQuant:(tipe) => (cons[tipe],tipe).
   deQuant(T) => let{
-    deQ(allType(V,I),Qs) => deQ(I,[Qs..,V]).
-    deQ(Tp,Qs) => (Qs,Tp).
+    deQ(allType(V,I),Qs) => deQ(I,[V,..Qs]).
+    deQ(Tp,Qs) => (reverse(Qs),Tp).
   } in deQ(T,[]).
 
-  public reQuant:(list[tipe],tipe) => tipe.
+  public reQuant:(cons[tipe],tipe) => tipe.
   reQuant([],Tp) => Tp.
   reQuant([Q,..Qs],Tp) => allType(Q,reQuant(Qs,Tp)).
 
-  public reXQuant:(list[tipe],tipe) => tipe.
+  public reXQuant:(cons[tipe],tipe) => tipe.
   reXQuant([],Tp) => Tp.
   reXQuant([Q,..Qs],Tp) => existType(Q,reXQuant(Qs,Tp)).
 
-  public deConstrain:(tipe) => (list[constraint],tipe).
+  public deConstrain:(tipe) => (cons[constraint],tipe).
   deConstrain(T) => let{
-    deC(constrainedType(I,V),Qs) => deC(I,[Qs..,V]).
-    deC(Tp,Qs) => (Qs,Tp).
+    deC(constrainedType(I,V),Qs) => deC(I,[V,..Qs]).
+    deC(Tp,Qs) => (reverse(Qs),Tp).
   } in deC(T,[]).
 
-  public reConstrainType:(list[constraint],tipe) => tipe.
+  public reConstrainType:(cons[constraint],tipe) => tipe.
   reConstrainType([],Tp) => Tp.
   reConstrainType([Q,..Qs],Tp) => constrainedType(reConstrainType(Qs,Tp),Q).
 

@@ -38,7 +38,7 @@ extern PackageRec microBootPkge;
 extern char CWD[MAXFILELEN];
 extern char repoDir[MAXFILELEN];
 
-int getStarOptions(int argc, char **argv);
+int getEngineOptions(int argc, char **argv);
 char *defltCWD();
 
 #endif

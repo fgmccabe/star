@@ -81,7 +81,7 @@ star.compiler.freshen{
   frshn(typeExists(H,T),Env,F,G) => typeExists(rewrite(H,Env,F,G),rewrite(T,Env,F,G)).
   frshn(constrainedType(T,C),Env,F,G) => constrainedType(rewrite(T,Env,F,G),frshnConstraint(C,Env,F,G)).
 
-  frshnList:(list[tipe],dict,(tipe,dict)=>(tipe,dict),(tipe,dict)=>(tipe,dict)) => list[tipe].
+  frshnList:(cons[tipe],dict,(tipe,dict)=>(tipe,dict),(tipe,dict)=>(tipe,dict)) => cons[tipe].
   frshnList(As,Env,F,G) => (As//(E)=>frshn(deRef(E),Env,F,G)).
 
   rewrite(Tp,Env,F,G) => frshn(deRef(Tp),Env,F,G).

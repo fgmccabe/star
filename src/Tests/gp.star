@@ -5,40 +5,40 @@ test.gp{
 
   -- Various ways of doing grandparents
 
-  parent:list[(string,string)].
+  parent:cons[(string,string)].
   parent = [("a","ab"),("b","ab"),("a","c"),("c","aa"),("ab","abc"),
             ("de","abc"),("d","de"),("e","de"),
             ("f","a"),("g","f")].
 
   -- First a hacky way (i.e. direct recursive) way of finding grandparents
-  findPs:(list[(string,string)],string,list[string]) => list[string].
+  findPs:(cons[(string,string)],string,cons[string]) => cons[string].
   findPs([],_,Cs) => Cs.
   findPs([(P,C),..Ps],C,Cs) => findPs(Ps,C,addP(P,Cs)).
   findPs([_,..Ps],C,Cs) => findPs(Ps,C,Cs).
 
-  addP:(string,list[string]) => list[string].
+  addP:(string,cons[string]) => cons[string].
   addP(P,[]) => [P].
   addP(P,[P,..X]) => [P,..X].
   addP(P,[O,..X]) => [O,..addP(P,X)].
 
-  findGs:(list[string],list[string]) => list[string].
+  findGs:(cons[string],cons[string]) => cons[string].
   findGs([],S) => S.
   findGs([P,..Ps],S) => findGs(Ps,findPs(parent,P,S)).
 
-  gp0:(string) => list[string].
+  gp0:(string) => cons[string].
   gp0(GC) => findGs(findPs(parent,GC,[]),[]).
 
   -- Using fold over lists
-  fPs:(list[(string,string)],string,list[string]) => list[string].
+  fPs:(cons[(string,string)],string,cons[string]) => cons[string].
   fPs(Ps,Ch,S) => foldRight(let{
     rightPr((P,Ch),So) => addP(P,So).
     rightPr(_,So) => So.
   } in rightPr,S,Ps).
 
-  fGps:(list[string],list[string]) => list[string].
+  fGps:(cons[string],cons[string]) => cons[string].
   fGps(Ps,S) => foldRight((P,So)=>fPs(parent,P,So),S,Ps).
 
-  gpF:(string) => list[string].
+  gpF:(string) => cons[string].
   gpF(GC) => fGps(fPs(parent,GC,[]),[]).
 
 
@@ -51,12 +51,12 @@ test.gp{
   -- As though translated from the query rule:
   -- gc(X) given (Y) <- parent(X,Z) && parent(Z,Y).
 
-  qC2:(string) => list[string].
+  qC2:(string) => cons[string].
   qC2(Y) => { X | (X,Z) in parent && (Z,Y) in parent }.
 
   -- By changing the order of the calls, it is more efficient
 
-  qC3:(string)=>list[string].
+  qC3:(string)=>cons[string].
   qC3(Y) => { X | (Z,Y) in parent && (X,Z) in parent }.
 
   main:()=>action[(),()].

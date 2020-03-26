@@ -12,8 +12,8 @@ star.compiler.resolve{
   import star.compiler.freshen.
   import star.compiler.unify.
 
-  public overloadEnvironment:(list[list[canonDef]],dict,reports) =>
-    either[reports,list[list[canonDef]]].
+  public overloadEnvironment:(cons[cons[canonDef]],dict,reports) =>
+    either[reports,cons[cons[canonDef]]].
   overloadEnvironment(Gps,Dict,Rp) => do{
 --    logMsg("resolving definitions in $(Gps)\nenvironment $(Dict)");
     TDict .= declareImplementations(Gps,Dict);
@@ -25,7 +25,7 @@ star.compiler.resolve{
   declareImplementations([Gp,..Gps],Dict) =>
     declareImplementations(Gps,declareImplementationsInGroup(Gp,Dict)).
 
-  declareImplementationsInGroup:(list[canonDef],dict) => dict.
+  declareImplementationsInGroup:(cons[canonDef],dict) => dict.
   declareImplementationsInGroup([],Dict) => Dict.
   declareImplementationsInGroup([implDef(Lc,_,FullNm,_,_,Tp),..Gp],Dict) =>
     declareImplementationsInGroup(Gp,
@@ -33,27 +33,27 @@ star.compiler.resolve{
 	declareImplementation(FullNm,Tp,Dict))).
   declareImplementationsInGroup([_,..Gp],Dict) => declareImplementationsInGroup(Gp,Dict).
 
-  overloadGroups:(list[list[canonDef]],list[list[canonDef]],dict,reports) =>
-    either[reports,list[list[canonDef]]].
-  overloadGroups([],Gps,_,_) => either(Gps).
+  overloadGroups:(cons[cons[canonDef]],cons[cons[canonDef]],dict,reports) =>
+    either[reports,cons[cons[canonDef]]].
+  overloadGroups([],Gps,_,_) => either(reverse(Gps)).
   overloadGroups([Gp,..Gps],RG,Dict,Rp) => do{
     RGp <- overloadDefs(Dict,Gp,[],Rp);
-    overloadGroups(Gps,[RG..,RGp],Dict,Rp)
+    overloadGroups(Gps,[RGp,..RG],Dict,Rp)
   }
 
-  public overloadGroup:(list[canonDef],dict,reports)=>either[reports,(list[canonDef],dict)].
+  public overloadGroup:(cons[canonDef],dict,reports)=>either[reports,(cons[canonDef],dict)].
   overloadGroup(Dfs,Dict,Rp) => do{
     TDict .= declareImplementationsInGroup(Dfs,Dict);
     RDefs <- overloadDefs(TDict,Dfs,[],Rp);
     valis (RDefs,TDict)
   }
 
-  overloadDefs:(dict,list[canonDef],list[canonDef],reports) =>
-    either[reports,list[canonDef]].
-  overloadDefs(Dict,[],Dfx,Rp) => either(Dfx).
+  overloadDefs:(dict,cons[canonDef],cons[canonDef],reports) =>
+    either[reports,cons[canonDef]].
+  overloadDefs(Dict,[],Dfx,Rp) => either(reverse(Dfx)).
   overloadDefs(Dict,[D,..Defs],Dfx,Rp) => do{
     DD <- overloadDef(Dict,D,Rp);
-    overloadDefs(Dict,Defs,[Dfx..,DD],Rp)
+    overloadDefs(Dict,Defs,[DD,..Dfx],Rp)
   }
 
   overloadDef:(dict,canonDef,reports)=>either[reports,canonDef].
@@ -90,10 +90,10 @@ star.compiler.resolve{
     valis implDef(Lc,Nm,FullNm,lambda(Lc,[eqn(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp)
   }
 
-  defineCVars:(locn,list[tipe],list[canon],dict) => (list[canon],dict).
-  defineCVars(_,[],Vrs,D) => (Vrs,D).
+  defineCVars:(locn,cons[tipe],cons[canon],dict) => (cons[canon],dict).
+  defineCVars(_,[],Vrs,D) => (reverse(Vrs),D).
   defineCVars(Lc,[T,..Tps],Vrs,D) where TpNm .= implementationName(T) =>
-    defineCVars(Lc,Tps,[Vrs..,vr(Lc,TpNm,T)],declareVar(TpNm,TpNm,some(Lc),T,D)).
+    defineCVars(Lc,Tps,[vr(Lc,TpNm,T),..Vrs],declareVar(TpNm,TpNm,some(Lc),T,D)).
 
   resolveState ::= .inactive | .resolved | active(locn,string).
 
@@ -209,29 +209,29 @@ star.compiler.resolve{
     valis (Stx,update(Lc,OT,OC))
   }
 
-  overloadRules([],Els,Dict,St,_) => either((St,Els)).
+  overloadRules([],Els,Dict,St,_) => either((St,reverse(Els))).
   overloadRules([eqn(Lc,Ptn,.none,Exp),..Ts],Els,Dict,St,Rp) => do{
     (St1,RPtn) <- overloadTerm(Ptn,Dict,St,Rp);
     (St2,RExp) <- overloadTerm(Exp,Dict,St1,Rp);
-    overloadRules(Ts,[Els..,eqn(Lc,RPtn,.none,RExp)],Dict,St2,Rp)
+    overloadRules(Ts,[eqn(Lc,RPtn,.none,RExp),..Els],Dict,St2,Rp)
   }
   overloadRules([eqn(Lc,Ptn,some(Wh),Exp),..Ts],Els,Dict,St,Rp) => do{
     (St1,RPtn) <- overloadTerm(Ptn,Dict,St,Rp);
     (St2,RExp) <- overloadTerm(Exp,Dict,St1,Rp);
     (Stx,RWh) <- overloadTerm(Wh,Dict,St2,Rp);
-    overloadRules(Ts,[Els..,eqn(Lc,RPtn,some(RWh),RExp)],Dict,Stx,Rp)
+    overloadRules(Ts,[eqn(Lc,RPtn,some(RWh),RExp),..Els],Dict,Stx,Rp)
   }
 
-  overloadTerms([],Els,Dict,St,_) => either((St,Els)).
+  overloadTerms([],Els,Dict,St,_) => either((St,reverse(Els))).
   overloadTerms([T,..Ts],Els,Dict,St,Rp) => do{
     (St1,RT) <- overloadTerm(T,Dict,St,Rp);
-    overloadTerms(Ts,[Els..,RT],Dict,St1,Rp)
+    overloadTerms(Ts,[RT,..Els],Dict,St1,Rp)
   }
 
-  overloadFields([],Els,Dict,St,_) => either((St,Els)).
+  overloadFields([],Els,Dict,St,_) => either((St,reverse(Els))).
   overloadFields([(N,T),..Ts],Els,Dict,St,Rp) => do{
     (St1,RT) <- overloadTerm(T,Dict,St,Rp);
-    overloadFields(Ts,[Els..,(N,RT)],Dict,St1,Rp)
+    overloadFields(Ts,[(N,RT),..Els],Dict,St1,Rp)
   }
 
   overloadAction(noDo(Lc),Dict,St,Rp) => either((St,noDo(Lc))).
@@ -288,12 +288,12 @@ star.compiler.resolve{
     valis (St1,simpleDo(Lc,RT,T1))
   }
     
-  resolveContracts:(locn,list[constraint],list[canon],dict,resolveState,reports) =>
-    either[reports,(resolveState,list[canon])].
-  resolveContracts(_,[],Cx,_,St,Rp) => either((St,Cx)).
+  resolveContracts:(locn,cons[constraint],cons[canon],dict,resolveState,reports) =>
+    either[reports,(resolveState,cons[canon])].
+  resolveContracts(_,[],Cx,_,St,Rp) => either((St,reverse(Cx))).
   resolveContracts(Lc,[typeConstraint(C),..Cx],Vs,Dict,St,Rp) => do{
     (St0,A) <- resolveContract(Lc,C,Dict,St,Rp);
-    resolveContracts(Lc,Cx,[Vs..,A],Dict,St0,Rp)
+    resolveContracts(Lc,Cx,[A,..Vs],Dict,St0,Rp)
   }
   
   resolveContract:(locn,tipe,dict,resolveState,reports) => either[reports,(resolveState,canon)].

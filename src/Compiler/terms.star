@@ -7,12 +7,12 @@ star.compiler.terms{
   import star.compiler.types.
 
   public termLbl ::= tLbl(string,integer) |
-    tRec(string,list[(string,tipe)]).
+    tRec(string,cons[(string,tipe)]).
 
   public term ::= intgr(integer)
     | flot(float)
     | strg(string)
-    | term(termLbl,list[term])
+    | term(termLbl,cons[term])
     | enum(termLbl).
 
   public implementation display[termLbl] => {.
@@ -33,7 +33,7 @@ star.compiler.terms{
     dispT(intgr(Ix)) => disp(Ix).
     dispT(flot(Dx)) => disp(Dx).
     dispT(strg(Sx)) => disp(Sx).
-    dispT(term(tLbl(T,_),Args)) where isTupleLbl(T) => ssSeq([ss("‹"),ssSeq(dispTs(Args)),ss("›")]).
+    Dispt(term(tLbl(T,_),Args)) where isTupleLbl(T) => ssSeq([ss("‹"),ssSeq(dispTs(Args)),ss("›")]).
 
     dispT(term(tLbl(Op,_),Args)) => ssSeq([disp(Op),ss("‹"),ssSeq(dispTs(Args)),ss("›")]).
 
@@ -46,7 +46,7 @@ star.compiler.terms{
     dispFs([(F,_),..Fs],[A,..As],Sep) =>
       [ss(Sep),ss(F),ss("="),disp(A),..dispFs(Fs,As,",")].
 
-    isTupleLbl(T) where [0c(,0c),.._] .= T::list[integer] => .true.
+    isTupleLbl(T) where [0c(,0c),.._] .= T::cons[integer] => .true.
     isTupleLbl(_) default => .false.
   } in {.
     disp(T) => dispT(T)
@@ -84,20 +84,20 @@ star.compiler.terms{
     X==Y => eq(X,Y).
   .}
 
-  public mkTpl:(list[term]) => term.
+  public mkTpl:(cons[term]) => term.
   mkTpl(A) where L.=size(A) => term(tLbl(tplLbl(L),L),A).
 
   public tplLbl:(integer)=>string.
   tplLbl(Ar) => "()$(Ar)".
 
   public isTplLbl:(string)=>boolean.
-  isTplLbl(Nm) where [0c(,0c),..Ds].=(Nm::list[integer]) => .true.
+  isTplLbl(Nm) where [0c(,0c),..Ds].=(Nm::cons[integer]) => .true.
   isTplLbl(_) default => .false.
 
-  public mkLst:(list[term]) => term.
+  public mkLst:(cons[term]) => term.
   mkLst(Els) => term(tLbl("[]",size(Els)),Els).
 
-  public mkCons:(string,list[term])=>term.
+  public mkCons:(string,cons[term])=>term.
   mkCons(Nm,Args) => term(tLbl(Nm,size(Args)),Args).
 
   public isScalar:(term)=>boolean.
@@ -111,41 +111,46 @@ star.compiler.terms{
     _coerce(T) => _implode(encodeTerm(T)).
   }
 
-  public encodeTerm:(term)=>list[integer].
-  encodeTerm(T) => encodeT(T,[]).
+  public encodeTerm:(term)=>cons[integer].
+  encodeTerm(T) => encodeT(T).
 
-  encodeT:(term,list[integer])=>list[integer].
-  encodeT(intgr(Ix),Cs) => encodeInt(Ix,[Cs..,0cx]).
-  encodeT(flot(Dx),Cs) => encodeText(Dx::string,[Cs..,0cd]).
-  encodeT(strg(Tx),Cs) => encodeText(Tx,[Cs..,0cs]).
-  encodeT(enum(tLbl(Nm,0)),Cs) => encodeText(Nm,[Cs..,0ce]).
-  encodeT(enum(Sym),Cs) => encodeL(Sym,Cs).
-  encodeT(term(tLbl("[]",Ar),Els),Cs) => encodeTerms(Els,encodeNat(Ar,[Cs..,0cl])).
-  encodeT(term(Op,Args),Cs) =>
-    encodeTerms(Args,encodeL(Op,encodeNat(size(Args),[Cs..,0cn]))).
+  encodeT:(term)=>cons[integer].
+  encodeT(intgr(Ix)) => [0cx,..encodeInt(Ix)].
+  encodeT(flot(Dx)) => [0cd,..encodeText(Dx::string)].
+  encodeT(strg(Tx)) => [0cs,..encodeText(Tx)].
+  encodeT(enum(tLbl(Nm,0))) => [0ce,..encodeText(Nm)].
+  encodeT(enum(Sym)) => encodeL(Sym).
+  encodeT(term(tLbl("[]",Ar),Els)) => [0cl,..encodeNat(Ar)]++encodeTerms(Els).
+  encodeT(term(Op,Args)) =>
+    [0cn,..encodeNat(size(Args))]++encodeL(Op)++encodeTerms(Args).
 
   public encodeLbl:(termLbl)=>string.
-  encodeLbl(Lb)=>encodeL(Lb,[])::string.
+  encodeLbl(Lb)=>encodeL(Lb)::string.
   
-  encodeL:(termLbl,list[integer])=>list[integer].
-  encodeL(tLbl(Nm,Ar),Cs) => encodeText(Nm,encodeNat(Ar,[Cs..,0co])).
-  encodeL(tRec(Nm,Flds),Cs) =>
-    encodeT(mkLst(ixRight((Ix,(FNm,Tp),Fs)=>[Fs..,mkField(FNm,Ix,Tp)],[],Flds)), encodeText(Nm,[Cs..,0cO])).
+  encodeL:(termLbl)=>cons[integer].
+  encodeL(tLbl(Nm,Ar)) => [0co,..encodeNat(Ar)]++encodeText(Nm).
+  encodeL(tRec(Nm,Flds)) =>
+    [0cO,..encodeText(Nm)]++encodeNat(size(Flds))++encodeLblFields(Flds,0).
+
+  encodeLblFields([],_) => [].
+  encodeLblFields([(Nm,Tp),..Fs],Ix) =>
+    encodeT(mkField(Nm,Ix,Tp))++encodeLblFields(Fs,Ix+1).
 
   mkField:(string,integer,tipe)=>term.
-  mkField(Nm,Ix,Tp)=>mkTpl([enum(tLbl("."++Nm,0)),strg(encodeSignature(Tp)),intgr(Ix),intgr(1)]).
+  mkField(Nm,Ix,Tp)=>
+    mkTpl([enum(tLbl("."++Nm,0)),strg(encodeSignature(Tp)),intgr(Ix),intgr(1)]).
 
-  encodeTerms([],Cs) => Cs.
-  encodeTerms([T,..Ts],Cs) => encodeTerms(Ts,encodeT(T,Cs)).
+  encodeTerms([]) => [].
+  encodeTerms([T,..Ts]) => encodeT(T)++encodeTerms(Ts).
 
   public implementation coercion[string,term] => {.
     _coerce(S) => valof do{
-      (T,_) <- decodeTerm(S::list[integer]);
+      (T,_) <- decodeTerm(S::cons[integer]);
       valis T
     }
   .}
   
-  public decodeTerm:(list[integer])=>either[(),(term,list[integer])].
+  public decodeTerm:(cons[integer])=>either[(),(term,cons[integer])].
   decodeTerm([0cx,..Ls]) => do{
     (Ix,L0) <- decodeInt(Ls);
     valis (intgr(Ix),L0)
@@ -178,14 +183,14 @@ star.compiler.terms{
     valis (mkLst(Els),Lx)
   }
 
-  decodeTerms:(list[integer],integer,list[term]) => either[(),(list[term],list[integer])].
-  decodeTerms(L,0,Args) => either((Args,L)).
+  decodeTerms:(cons[integer],integer,cons[term]) => either[(),(cons[term],cons[integer])].
+  decodeTerms(L,0,Args) => either((reverse(Args),L)).
   decodeTerms(L,Ix,Args) => do{
     (Arg,L0) <- decodeTerm(L);
-    decodeTerms(L0,Ix-1,[Args..,Arg])
+    decodeTerms(L0,Ix-1,[Arg,..Args])
   }
 
-  decodeLabel:(list[integer])=>either[(),(termLbl,list[integer])].
+  decodeLabel:(cons[integer])=>either[(),(termLbl,cons[integer])].
   decodeLabel([0co,..Ls]) => do{
     (Ar,L0) <- decodeNat(Ls,0);
     (Nm,Lx) <- decodeText(L0);
@@ -197,32 +202,35 @@ star.compiler.terms{
     valis (tRec(Nm,Fs),Lx)
   }
     
-  decodeInt:(list[integer])=>either[(),(integer,list[integer])].
+  decodeInt:(cons[integer])=>either[(),(integer,cons[integer])].
   decodeInt([0c-,..L]) => do{
     (Px,Lx) <- decodeNat(L,0);
     valis (-Px,Lx)
   }
   decodeInt(L) default => decodeNat(L,0).
   
-  decodeNat:(list[integer],integer) => either[(),(integer,list[integer])].
+  decodeNat:(cons[integer],integer) => either[(),(integer,cons[integer])].
   decodeNat([Cx,..Ls],Ix) where isDigit(Cx) => decodeNat(Ls,Ix*10+digitVal(Cx)).
   decodeNat(Ls,Ix) default => either((Ix,Ls)).
 
-  decodeText:(list[integer]) => either[(),(string,list[integer])].
-  decodeText([C,..L]) => collectQuoted(L,[],C).
+  decodeText:(cons[integer]) => either[(),(string,cons[integer])].
+  decodeText([C,..L]) => do{
+    (Q,Cs) <- collectQuoted(L,[],C);
+    valis (reverse(Q)::string,Cs)
+  }
 
-  collectQuoted:(list[integer],list[integer],integer) => either[(),(string,list[integer])].
-  collectQuoted([S,..Lx],SoF,S) => either((SoF::string,Lx)).
-  collectQuoted([0c\\,X,..L],SoF,S) => collectQuoted(L,[SoF..,X],S).
-  collectQuoted([X,..L],SoF,S) => collectQuoted(L,[SoF..,X],S).
+  collectQuoted:(cons[integer],cons[integer],integer) => either[(),(cons[integer],cons[integer])].
+  collectQuoted([S,..Lx],SoF,S) => either((SoF,Lx)).
+  collectQuoted([0c\\,X,..L],SoF,S) => collectQuoted(L,[X,..SoF],S).
+  collectQuoted([X,..L],SoF,S) => collectQuoted(L,[X,..SoF],S).
 
   public decodeSignature:(string) => either[(),tipe].
   decodeSignature(St) => do{
-    (Tp,_) <- decodeType(St::list[integer]);
+    (Tp,_) <- decodeType(St::cons[integer]);
     valis Tp
   }
 
-  decodeType:(list[integer]) => either[(),(tipe,list[integer])].
+  decodeType:(cons[integer]) => either[(),(tipe,cons[integer])].
   decodeType([0ci,..Ts]) => either((nomnal("star.core*integer"),Ts)).
   decodeType([0cf,..Ts]) => either((nomnal("star.core*float"),Ts)).
   decodeType([0cS,..Ts]) => either((nomnal("star.core*string"),Ts)).
@@ -260,7 +268,7 @@ star.compiler.terms{
     valis (refType(ElTp),T0)
   }
   decodeType([0x28,..Ts]) => do {	-- 0x28 == (
-    (Tps,T0) <- decodeTypes(Ts,[]);
+    (Tps,T0) <- decodeTypes(Ts);
     valis (tupleType(Tps),T0)
   }
   decodeType([0c:,..Ts]) => do{
@@ -304,19 +312,20 @@ star.compiler.terms{
     valis (typeLambda(A,R),T1)
   }
 
-  decodeTypes([0x29,..Ts],Tps) => either((Tps,Ts)). -- 0x29 == )
-  decodeTypes(Ts,Tps) => do{
+  decodeTypes([0x29,..Ts]) => either(([],Ts)). -- 0x29 == )
+  decodeTypes(Ts) => do{
     (ElTp,T0) <- decodeType(Ts);
-    decodeTypes(T0,[Tps..,ElTp])
+    (Tps,T1) <- decodeTypes(T0);
+    valis ([ElTp,..Tps],T1)
   }
 
   decodeFields([0x7b,..Ts]) => decodeFlds(Ts,[]). -- 0x7b == {
 
-  decodeFlds([0x7d,..Ts],Flds) => either((Flds,Ts)). -- 0x7d == }
+  decodeFlds([0x7d,..Ts],Flds) => either((reverse(Flds),Ts)). -- 0x7d == }
   decodeFlds(Ts,Flds) => do{
     (Nm,T0) <- decodeText(Ts);
     (Tp,T1) <- decodeType(T0);
-    decodeFlds(T1,[Flds..,(Nm,Tp)])
+    decodeFlds(T1,[(Nm,Tp),..Flds])
   }
   decodeConstraint([0cc,..T]) => do{
     (Con,T1) <- decodeType(T);
@@ -327,88 +336,87 @@ star.compiler.terms{
     (FT,T1) <- decodeType(T0);
     valis (fieldConstraint(BT,FT),T1)
   }
-  
 
   public encodeSignature:(tipe) => string.
-  encodeSignature(Tp) => encodeType(deRef(Tp),[])::string.
+  encodeSignature(Tp) => encodeType(deRef(Tp))::string.
 
-  encodeType:(tipe,list[integer]) => list[integer].
-  encodeType(nomnal("star.core*integer"),Ts) => [Ts..,0ci].
-  encodeType(nomnal("star.core*float"),Ts) => [Ts..,0cf].
-  encodeType(nomnal("star.core*string"),Ts) => [Ts..,0cS].
-  encodeType(nomnal("star.core*boolean"),Ts) => [Ts..,0cl].
-  encodeType(nomnal(Nm),Ts) => encodeText(Nm,[Ts..,0ct]).
-  encodeType(kFun(Nm,Ar),Ts) => encodeText(Nm,encodeNat(Ar,[Ts..,0cK])).
-  encodeType(tpFun(Nm,Ar),Ts) => encodeText(Nm,encodeNat(Ar,[Ts..,0cz])).
-  encodeType(tpExp(tpFun("star.core*list",1),El),Ts) =>
-    encodeType(deRef(El),[Ts..,0cL]).
-  encodeType(tpExp(tpFun("star.core*ref",1),El),Ts) =>
-    encodeType(deRef(El),[Ts..,0cr]).
-  encodeType(tpExp(tpExp(tpFun("=>",2),A),R),Ts) =>
-    encodeType(deRef(R),encodeType(deRef(A),[Ts..,0cF])).
-  encodeType(tpExp(tpExp(tpFun("<=>",2),A),R),Ts) =>
-    encodeType(deRef(R),encodeType(deRef(A),[Ts..,0cC])).
-  encodeType(tpExp(Op,A),Ts) =>
-    encodeType(deRef(A),encodeType(deRef(Op),[Ts..,0cU])).
-  encodeType(tupleType(Els),Ts) =>
-    encodeTypes(Els,[Ts..,0c(]).
-  encodeType(allType(V,T),Ts) =>
-    encodeType(deRef(T),encodeType(deRef(V),[Ts..,0c:])).
-  encodeType(existType(V,T),Ts) =>
-    encodeType(deRef(T),encodeType(deRef(V),[Ts..,0ce])).
-  encodeType(constrainedType(T,C),Ts) =>
-    encodeConstraint(C,encodeType(deRef(T),[Ts..,0c|])).
-  encodeType(funDeps(V,Ds),Ts) =>
-    encodeType(tupleType(Ds),encodeType(deRef(V),[Ts..,0cd])).
-  encodeType(faceType(Flds,Tps),Ts) =>
-    encodeFields(Tps,encodeFields(Flds,[Ts..,0cI])).
-  encodeType(typeExists(H,I),Ts) =>
-    encodeType(deRef(I),encodeType(deRef(H),[Ts..,0cY])).
-  encodeType(typeLambda(Hd,I),Ts) =>
-    encodeType(deRef(I),encodeType(deRef(Hd),[Ts..,0cy])).
+  encodeType:(tipe) => cons[integer].
+  encodeType(V) where isUnbound(V) => [0c_].
+  encodeType(nomnal("star.core*integer")) => [0ci].
+  encodeType(nomnal("star.core*float")) => [0cf].
+  encodeType(nomnal("star.core*string")) => [0cS].
+  encodeType(nomnal("star.core*boolean")) => [0cl].
+  encodeType(nomnal(Nm)) => [0ct,..encodeText(Nm)].
+  encodeType(kFun(Nm,Ar)) => [0cK,..encodeNat(Ar)]++encodeText(Nm).
+  encodeType(tpFun(Nm,Ar)) => [0cz,..encodeNat(Ar)]++encodeText(Nm).
+  encodeType(tpExp(tpFun("star.core*cons",1),El)) =>
+    [0cL,..encodeType(deRef(El))].
+  encodeType(tpExp(tpFun("star.core*ref",1),El)) =>
+    [0cr,..encodeType(deRef(El))].
+  encodeType(tpExp(tpExp(tpFun("=>",2),A),R)) =>
+    [0cF,..encodeType(deRef(A))]++encodeType(deRef(R)).
+  encodeType(tpExp(tpExp(tpFun("<=>",2),A),R)) =>
+    [0cC,..encodeType(deRef(A))]++encodeType(deRef(R)).
+  encodeType(tpExp(Op,A)) =>
+    [0cU,..encodeType(deRef(Op))]++encodeType(deRef(A)).
+  encodeType(tupleType(Els)) =>
+    [0c\(,..encodeTypes(Els)].
+  encodeType(allType(V,T)) =>
+    [0c:,..encodeType(deRef(V))]++encodeType(deRef(T)).
+  encodeType(existType(V,T)) =>
+    [0ce,..encodeType(deRef(V))]++encodeType(deRef(T)).
+  encodeType(constrainedType(T,C)) =>
+    [0c|,..encodeType(deRef(T))]++encodeConstraint(C).
+  encodeType(funDeps(V,Ds)) =>
+    [0cd,..encodeType(deRef(V))]++encodeType(tupleType(Ds)).
+  encodeType(faceType(Flds,Tps)) =>
+    [0cI,..encodeFields(Flds)]++encodeFields(Tps).
+  encodeType(typeExists(H,I)) =>
+    [0cY,..encodeType(deRef(H))]++encodeType(deRef(I)).
+  encodeType(typeLambda(Hd,I)) =>
+    [0cy,..encodeType(deRef(Hd))]++encodeType(deRef(I)).
 
-  encodeTypes:(list[tipe],list[integer])=>list[integer].
-  encodeTypes([],Ts) => [Ts..,0x29].
-  encodeTypes([T,..Tps],Ts) =>
-    encodeTypes(Tps,encodeType(deRef(T),Ts)).
+  encodeTypes:(cons[tipe])=>cons[integer].
+  encodeTypes([]) => [0x29].
+  encodeTypes([T,..Tps]) =>
+    encodeType(deRef(T))++encodeTypes(Tps).
+
+  encodeFields:(cons[(string,tipe)])=>cons[integer].
+  encodeFields(Flds) => [0x7b,..encodeFlds(Flds)]. -- 0x7b == {
   
-  encodeFields:(list[(string,tipe)],list[integer])=>list[integer].
-  encodeFields(Flds,Ts) => encodeFlds(Flds,[Ts..,0x7b]). -- 0x7b == {
-  
-  encodeFlds:(list[(string,tipe)],list[integer])=>list[integer].
-  encodeFlds([],Ts) => [Ts..,0x7d].	-- 0x7d == }
-  encodeFlds([(Nm,T),..Tps],Ts) =>
-    encodeFlds(Tps,encodeType(deRef(T),encodeText(Nm,Ts))).
+  encodeFlds:(cons[(string,tipe)])=>cons[integer].
+  encodeFlds([]) => [0x7d].	-- 0x7d == }
+  encodeFlds([(Nm,T),..Tps]) =>
+    encodeText(Nm)++encodeType(deRef(T))++encodeFlds(Tps).
 
-  encodeConstraint(typeConstraint(T),Ts) =>
-    encodeType(deRef(T),[Ts..,0cc]).
-  encodeConstraint(fieldConstraint(V,T),Ts) =>
-    encodeType(deRef(T),encodeType(deRef(V),[Ts..,0ca])).
+  encodeConstraint(typeConstraint(T)) =>
+    [0cc,..encodeType(deRef(T))].
+  encodeConstraint(fieldConstraint(V,T)) =>
+    [0ca,..encodeType(deRef(V))]++encodeType(deRef(T)).
   
-
-  encodeText:(string,list[integer]) => list[integer].
-  encodeText(Txt,Ts) where Chrs .= Txt::list[integer] &&
+  encodeText:(string) => cons[integer].
+  encodeText(Txt) where Chrs .= Txt::cons[integer] &&
       D.=findDelim(Chrs,[0c|,0c/,0c%]) =>
-    encodeQuoted(Chrs,D,[Ts..,D]).
+    [D,..encodeQuoted(Chrs,D)].
 
-  findDelim:(list[integer],list[integer])=>integer.
+  findDelim:(cons[integer],cons[integer])=>integer.
   findDelim(Chrs,[]) => 0x22. -- == "
   findDelim(Chrs,[D,..Ds]) where D in Chrs => findDelim(Chrs,Ds).
   findDelim(Chrs,[D,.._]) => D.
 
-  encodeQuoted([],D,Ts) => [Ts..,D].
-  encodeQuoted([D,..Cs],D,Ts) => encodeQuoted(Cs,D,[Ts..,0c\\,D]).
-  encodeQuoted([0c\\,..Cs],D,Ts) => encodeQuoted(Cs,D,[Ts..,0c\\,0c\\]).
-  encodeQuoted([C,..Cs],D,Ts) => encodeQuoted(Cs,D,[Ts..,C]).
+  encodeQuoted([],D) => [D].
+  encodeQuoted([D,..Cs],D) => [0c\\,D,..encodeQuoted(Cs,D)].
+  encodeQuoted([0c\\,..Cs],D) => [0c\\,0c\\,..encodeQuoted(Cs,D)].
+  encodeQuoted([C,..Cs],D) => [C,..encodeQuoted(Cs,D)].
 
-  encodeNat:(integer,list[integer]) => list[integer].
-  encodeNat(Dx,Ts) where Dx>=0 && Dx=<9 =>
-    [Ts..,Dx+0c0].
-  encodeNat(Dx,Ts) => [encodeNat(Dx/10,Ts)..,(Dx%10)+0c0].
+  encodeNat:(integer) => cons[integer].
+  encodeNat(Dx) where Dx>=0 && Dx=<9 =>
+    [Dx+0c0].
+  encodeNat(Dx) => encodeNat(Dx/10)++[(Dx%10)+0c0].
 
-  encodeInt:(integer,list[integer])=>list[integer].
-  encodeInt(Ix,Ts) where Ix<0 => encodeNat(-Ix,[Ts..,0c-]).
-  encodeInt(Ix,Ts) => encodeNat(Ix,Ts).
+  encodeInt:(integer)=>cons[integer].
+  encodeInt(Ix) where Ix<0 => [0c-,..encodeNat(-Ix)].
+  encodeInt(Ix) => encodeNat(Ix).
 
   public implementation coercion[locn,term]=>{
     _coerce(locn(Pkg,Line,Col,Off,Ln))=>mkTpl([strg(Pkg),intgr(Line),intgr(Col),intgr(Off),intgr(Ln)]).

@@ -3,7 +3,6 @@ star.ideal{
   import star.arith.
   import star.bits.
   import star.cons.
-  import star.lists.
   import star.coerce.
   import star.collection.
   import star.iterable.
@@ -139,40 +138,17 @@ star.ideal{
   }
 
   public implementation all k,v ~~ display[k],display[v] |: display[map[k,v]] => let{
-    dispTree:(map[k,v],list[ss])=>list[ss].
+    dispTree:(map[k,v],cons[ss])=>cons[ss].
     dispTree(.ihNil,SS) => SS.
     dispTree(ihLeaf(_,Els),SS) => dispEls(Els,SS).
     dispTree(ihNode(A1,A2,A3,A4),SS) => dispTree(A1,dispTree(A2,dispTree(A3,dispTree(A4,SS)))).
 
-    dispEls:(cons[keyval[k,v]],list[ss])=>list[ss].
+    dispEls:(cons[keyval[k,v]],cons[ss])=>cons[ss].
     dispEls(.nil,SS)=>SS.
-    dispEls(cons(K->V,T),SS) => dispEls(T,[SS..,ssSeq([disp(K),ss("->"),disp(V)])]).
+    dispEls(cons(K->V,T),SS) => dispEls(T,[ssSeq([disp(K),ss("->"),disp(V)]),..SS]).
   } in {
     disp(Tr) => ssSeq([ss("["),ssSeq(interleave(dispTree(Tr,[]),ss(", "))),ss("]")]).
   }
-
-  public implementation all k,v ~~ dump[k],dump[v] |: dump[map[k,v]] => let{
-    dispTree:all k,v ~~ dump[k],dump[v] |: (map[k,v],integer) => ss.
-    dispTree(.ihNil,Dp) => ssSeq([spaces(Dp)..,ss("ε"),ss("\n")]).
-    dispTree(ihLeaf(H,Els),Dp) => ssSeq([spaces(Dp)..,disp(H),ss(":"),dispEls(Els),ss("\n")]).
-    dispTree(ihNode(A1,A2,A3,A4),Dp) =>
-      ssSeq([spaces(Dp)..,ss("@"),disp(Dp),ss("\n"),
-	  dispTree(A1,Dp),dispTree(A2,Dp),dispTree(A3,Dp),dispTree(A4,Dp)]).
-
-    dispEls:all k,v ~~ dump[k],dump[v] |: (cons[keyval[k,v]]) => ss.
-    dispEls(.nil) => ss(".").
-    dispEls(cons(K->V,T)) => ssSeq([dump(K),ss("->"),dump(V),dispMoreEls(T)]).
-
-    dispMoreEls:all k,v ~~ dump[k],dump[v] |: (cons[keyval[k,v]]) => ss.
-    dispMoreEls(.nil) => ss(".").
-    dispMoreEls(cons(K->V,T)) => ssSeq([ss(","),dump(K),ss("->"),dump(V),dispMoreEls(T)]).
-
-    spaces:(integer) => list[ss].
-    spaces(0) => [].
-    spaces(X) => [ss(" "),..spaces(X-1)].
-  } in {.
-    dump(T) => dispTree(T,0).
-  .}
 
   public implementation all k,v ~~ equality[k],hash[k] |: indexed[map[k,v]->>k,v] => {
     _index(Tr,Ky) => findIdeal(Tr,Ky).
@@ -181,17 +157,17 @@ star.ideal{
     _empty = .ihNil.
   }
 
-  public implementation all k,v ~~ equality[k],hash[k] |: coercion[list[(k,v)],map[k,v]] => {
+  public implementation all k,v ~~ equality[k],hash[k] |: coercion[cons[(k,v)],map[k,v]] => {
     _coerce(L) => foldRight(((K,V),M)=>insertIdeal(M,K,V),.ihNil,L).
   }
 
-  public implementation all k,v ~~ coercion[map[k,v],list[keyval[k,v]]] => let{
+  public implementation all k,v ~~ coercion[map[k,v],cons[keyval[k,v]]] => let{
     pairs(.ihNil,L) => L.
     pairs(ihLeaf(_,Els),L) => consPairs(Els,L).
     pairs(ihNode(A1,A2,A3,A4),L) => pairs(A4,pairs(A3,pairs(A2,pairs(A1,L)))).
 
     consPairs(.nil,L) => L.
-    consPairs(cons(Pr,T),L) => consPairs(T,[L..,Pr]).
+    consPairs(cons(Pr,T),L) => consPairs(T,[Pr,..L]).
   } in {
     _coerce(Tr) => pairs(Tr,[])
   }
@@ -266,7 +242,6 @@ star.ideal{
   public implementation all k,v ~~ hash[k], equality[k] |: sequence[map[k,v] ->> keyval[k,v]] => {
     _nil = .ihNil.
     _cons(K->V,Tr) => insertIdeal(Tr,K,V).
-    _apnd(Tr,K->V) => insertIdeal(Tr,K,V).
   }
 
   public implementation all k ~~ hash[k],equality[k] |: functor[map[k]] => let{
@@ -301,8 +276,5 @@ star.ideal{
     _eof(_) default => .false.
 
     _hdtl(Tr) => hdtl(Tr).
-
-    _back(Tr) where (H,T)^=hdtl(Tr) => some((T,H)).
-    _back(_) default => .none.
   .}
 }

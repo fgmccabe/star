@@ -22,7 +22,6 @@
     "star.io": "io.star",
     "star.iterable": "iterable.star",
     "star.json": "json.star",
-    "star.lists": "lists.star",
     "star.location" : "location.star",
     "star.repo.manifest": "manifest.star",
     "star.monad": "monad.star",

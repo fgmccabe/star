@@ -8,7 +8,7 @@ star.repo.manifest{
 
   public manifest ::= man(map[string,pEntry]).
 
-  public pEntry ::= pEntry(string,list[(version,mInfo)]).
+  public pEntry ::= pEntry(string,cons[(version,mInfo)]).
 
   public mInfo ::= mInfo(version,map[string,string]).
 
@@ -22,7 +22,7 @@ star.repo.manifest{
   jsonEntry:(string,json) => pEntry.
   jsonEntry(P,jColl(Vs)) => pEntry(P,ixRight(pickEntry,[],Vs)).
 
-  pickEntry:(string,json,list[(version,mInfo)]) => list[(version,mInfo)].
+  pickEntry:(string,json,cons[(version,mInfo)]) => cons[(version,mInfo)].
   pickEntry(V,E,M) => [(V::version,jsonInfo(V,E)),..M].
 
   jsonInfo:(string,json) => mInfo.
@@ -38,7 +38,7 @@ star.repo.manifest{
   toJson:(manifest)=>json.
   toJson(man(Ps)) => jColl(ixRight((K,pEntry(P,Vs),M) => M[K->jColl(mkVersions(Vs))],[],Ps)).
 
-  mkVersions:(list[(version,mInfo)]) => map[string,json].
+  mkVersions:(cons[(version,mInfo)]) => map[string,json].
   mkVersions(Vs) => foldLeft((M,(V,mInfo(_,I)))=>M[V::string->mkEntry(I)],[],Vs).
 
   mkEntry:(map[string,string]) => json.
@@ -64,7 +64,7 @@ star.repo.manifest{
       pEntry(Pk,Vs) ^= M[P] => man(M[P->pEntry(Pk,updateVersion(Vs,V,K,R))]).
   addToManifest(man(M),pkg(P,V),K,R) => man(M[P->pEntry(P,[(V,mInfo(V,[K->R]))])]).
 
-  updateVersion:(list[(version,mInfo)],version,string,string) => list[(version,mInfo)].
+  updateVersion:(cons[(version,mInfo)],version,string,string) => cons[(version,mInfo)].
   updateVersion([],V,K,R) => [(V,mInfo(V,[K->R]))].
   updateVersion([(V,mInfo(V,Info)),..Vs],V,K,R) => [(V,mInfo(V,Info[K->R])),..Vs].
   updateVersion([Vi,..Vs],V,K,R) => [Vi,..updateVersion(Vs,V,K,R)].

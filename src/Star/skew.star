@@ -122,19 +122,6 @@ star.skew{
     C <$ L => fmp((_)=>C,L).
   .}
   
-  public implementation all e ~~ display[e] |: dump[sk[e]] => let{
-    dumpList:all a ~~ display[a] |: (rlist[a]) => ss.
-    dumpList(.nil) => ss("").
-    dumpList(cons((w,x),ts)) => ssSeq([ss("($(w)"), dumpTree(x), dumpList(ts), ss(")")]).
-
-    dumpTree:all a ~~ display[a] |: (tree[a]) => ss.
-    dumpTree(leaf(x)) => ssSeq([ss("ƒ("),disp(x),ss(")")]).
-    dumpTree(node(w,t1,t2)) =>
-      ssSeq([ss("{"), disp(w), dumpTree(t1), ss("-"), dumpTree(t2), ss("}")]).
-  } in {
-    dump(rl(ts)) => ssSeq([ss("sk["),dumpList(ts),ss("]")]).
-  }
-
   public implementation all e ~~ display[e] |: display[sk[e]] => let{
     dispList:all a ~~ display[a] |: (rlist[a],cons[ss]) => cons[ss].
     dispList(.nil,L) => L.

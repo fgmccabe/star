@@ -20,16 +20,16 @@ test.qs{
   pm = [X| (X,Y) in parent && "ab".=Y].
 
   -- A different example, filtering positive numbers
-  someInts : list[integer].
+  someInts : cons[integer].
   someInts = [0,2,-1,-10,4,6,7,-3].
 
-  pos : list[integer].
+  pos : cons[integer].
   pos = { X | X in someInts && X>0 }.
   
   fact(0)=>1.
   fact(N) where N>0 => fact(N-1)*N.
 
-  ff:list[integer].
+  ff:cons[integer].
   ff = { fact(X) | X in someInts && X>=0}
  
   main:() => action[(),()].

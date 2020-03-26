@@ -7,8 +7,8 @@ star.compiler.assem{
   import star.compiler.terms.
   import star.compiler.types.
 
-  public codeSegment ::= method(termLbl,tipe,list[assemOp]) |
-    global(termLbl,tipe,list[assemOp]) |
+  public codeSegment ::= method(termLbl,tipe,cons[assemOp]) |
+    global(termLbl,tipe,cons[assemOp]) |
     struct(termLbl,tipe,tipe).
 
   public assemOp ::=
@@ -35,9 +35,9 @@ star.compiler.assem{
   assem(struct(Lbl,Tp,Flds)) =>
     term(tLbl("struct",3),[enum(Lbl),strg(encodeSignature(Tp)),strg(encodeSignature(Flds))]).
 
-  mnem:(list[assemOp],map[string,integer],map[term,integer],map[term,integer],set[term],integer,integer,list[term]) =>
-    (list[term],map[term,integer],map[term,integer],integer,list[term]).
-  mnem([],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => (Code,Lts,Lns,MxLcl,[Lcl|Lcl in Lcs]).
+  private mnem:(cons[assemOp],map[string,integer],map[term,integer],map[term,integer],set[term],integer,integer,cons[term]) =>
+    (cons[term],map[term,integer],map[term,integer],integer,cons[term]).
+  mnem([],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => (reverse(Code),Lts,Lns,MxLcl,{Lcl|Lcl in Lcs}).
   mnem([iLbl(_),..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code).
   mnem([iLocal(Nm,Frm,End,Off),..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) where
     F ^= Lbls[Frm] &&
@@ -46,7 +46,7 @@ star.compiler.assem{
   mnem([iLine(Lc),..Ins],Lbs,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem([idLine(Lc),..Ins],Lbs,Lts,Lns[mkTpl([Lc,intgr(Pc)])->Pc],Lcs,Pc,MxLcl,Code).
 #(Mnem)
 
-  genLblTbl:(list[assemOp],integer,map[string,integer]) => map[string,integer].
+  genLblTbl:(cons[assemOp],integer,map[string,integer]) => map[string,integer].
   genLblTbl([],_,Lbls) => Lbls.
   genLblTbl([iLbl(al(Lbl)),..Ins],Pc,Lbls) =>
     genLblTbl(Ins,Pc,Lbls[Lbl->Pc]).
@@ -60,10 +60,10 @@ star.compiler.assem{
   findLit(Lts,T) where O .= size(Lts) => (Lts[T->O],O).
 
   litTbl:(map[term,integer]) => term.
-  litTbl(Lts) => mkTpl(sort(Lts::list[keyval[term,integer]],((T1->Ix1), (T2->Ix2)) => Ix1<Ix2)//(K->_)=>K).
+  litTbl(Lts) => mkTpl(sort(Lts::cons[keyval[term,integer]],((T1->Ix1), (T2->Ix2)) => Ix1<Ix2)//(K->_)=>K).
 
-  sortLines:(map[term,integer]) => list[term].
-  sortLines(Lns) => (sort(Lns::list[keyval[term,integer]],compLine)//(K->_)=>K).
+  sortLines:(map[term,integer]) => cons[term].
+  sortLines(Lns) => (sort(Lns::cons[keyval[term,integer]],compLine)//(K->_)=>K).
 
   compLine:(keyval[term,integer],keyval[term,integer])=>boolean.
   compLine(T1->P1,T2->P2) => P1<P2.
@@ -73,8 +73,8 @@ star.compiler.assem{
   .}
 
   public implementation display[codeSegment] => {.
-    disp(method(Nm,Sig,Ins)) => ssSeq([disp(Nm),ss(":"),disp(Sig),ss("\n"),..showMnem(Ins,0,[])]).
-    disp(global(Nm,Sig,Ins)) => ssSeq([ss("global "),disp(Nm),ss(":"),disp(Sig),ss("\n"),..showMnem(Ins,0,[])]).
+    disp(method(Nm,Sig,Ins)) => ssSeq([disp(Nm),ss(":"),disp(Sig),ss("\n"),..reverse(showMnem(Ins,0,[]))]).
+    disp(global(Nm,Sig,Ins)) => ssSeq([ss("global "),disp(Nm),ss(":"),disp(Sig),ss("\n"),..reverse(showMnem(Ins,0,[]))]).
   .}
 
   implementation display[assemLbl] => {.
@@ -85,7 +85,7 @@ star.compiler.assem{
     disp(Op) => ssSeq(reverse(showMnem([Op],0,[]))).
   .}
 
-  showMnem:(list[assemOp],integer,list[ss]) => list[ss].
+  showMnem:(cons[assemOp],integer,cons[ss]) => cons[ss].
   showMnem([],_,Out) => Out.
   showMnem([iLbl(al(Lb)),..Ins],Pc,Out) => showMnem(Ins,Pc,[ssSeq([ss(Lb),ss(":\n")]),..Out]).
   showMnem([iLocal(Nm,Frm,End,_Off),..Ins],Pc,Out) => showMnem(Ins,Pc,[ssSeq([ss(Nm),ss("::"),disp(Frm),ss("-"),disp(End),ss("\n")]),..Out]).

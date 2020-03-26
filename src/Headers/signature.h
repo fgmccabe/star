@@ -24,7 +24,8 @@ typedef enum {
   refSig = 'r', /* A reference type */
   tpfnSig = 'z', /* A type function */
 
-  lstSig = 'L', /* List */
+  lstSig = 'L', // Cons list
+  arySig = 'A', /* Array */
   tpeExpSig = 'U',                       /* polymorphic user type */
 
   tplSig = '(', /* Tuple - followed by element types followed by ) */

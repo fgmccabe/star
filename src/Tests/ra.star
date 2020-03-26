@@ -8,8 +8,6 @@ test.ra{
 
   main:() => action[(),()].
   main() => do{
-    show dump(T);
-
     show disp(T[0]);
     show disp(T[1]);
     show disp(T[2]);
@@ -22,14 +20,14 @@ test.ra{
     show disp(T[9]);
     show disp(T[10]);
 
-    show dump(SS);
-    show dump(rev(SS));
+    show disp(SS);
+    show disp(rev(SS));
 
-    show dump(T++SS);
+    show disp(T++SS);
 
-    show dump(SS++T);
+    show disp(SS++T);
 
-    show dump(SS^/((Nm)=>size(Nm)<5));
+    show disp(SS^/((Nm)=>size(Nm)<5));
 
     show disp(SS)
   }

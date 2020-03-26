@@ -36,7 +36,7 @@ test.fm{
 
     C .= 0c\u22a6; ;
 
-    show "Unicode: $(([C]:list[integer])::string)/$(C):XXXXX;";
+    show "Unicode: $(([C]:cons[integer])::string)/$(C):XXXXX;";
 
     bar .= "bar";
     show "Foo#(bar)"

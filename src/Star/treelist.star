@@ -57,7 +57,6 @@ star.treelist{
 
   public implementation all e ~~ sequence[tl[e]->>e] => {
     _cons(E,S) => rebalance(tlLeaf(E),S).
-    _apnd(S,E) => rebalance(S,tlLeaf(E)).
     _nil = tlEmpty
   }
 
@@ -70,15 +69,9 @@ star.treelist{
     hdtl(tlLeaf(E)) => some((E,tlEmpty)).
     hdtl(tlRed(L,_,R)) where (E,Lr)^=hdtl(L) => some((E,rebalance(Lr,R))).
     hdtl(tlEmpty) => .none.
-
-    back:(tl[e]) => option[(tl[e],e)].
-    back(tlEmpty) => .none.
-    back(tlLeaf(E))=>some((tlEmpty,E)).
-    back(tlRed(L,_,R)) where (Rr,E) ^= back(R) => some((rebalance(L,Rr),E)).
   } in {.
     _eof = eof.
     _hdtl = hdtl.
-    _back = back
   .}
 
 

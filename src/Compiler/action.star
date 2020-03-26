@@ -49,6 +49,7 @@ star.compiler.action{
   }
   genAction(tryCatchDo(Lc,Body,Hndlr,ExTp,ValTp,ErTp),Contract,Cont,Path,Rp) => do{
     HndlrTp .= typeOf(Hndlr);
+    logMsg("catch handler $(Hndlr)\:($(HndlrTp)");
     ConTp .= mkTypeExp(ExTp,[ErTp,ValTp]);
     BdyExp <- genAction(Body,Contract,.none,Path,Rp);
     BType .= typeOf(BdyExp);

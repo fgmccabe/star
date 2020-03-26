@@ -19,42 +19,42 @@
 #include "object.h"
 #include "iterate.h"
 
-typedef struct _list_record_ *listPo;
+typedef struct _list_record_ *arrayPo;
 
-extern void *head(listPo list);
-extern listPo tail(listPo list);
+extern void *head(arrayPo list);
+extern arrayPo tail(arrayPo list);
 
-extern listPo cons(objectPo head, listPo tail);
-extern listPo tack(objectPo head, listPo list);
+extern arrayPo cons(objectPo head, arrayPo tail);
+extern arrayPo tack(objectPo head, arrayPo list);
 
-extern objectPo listNthElement(listPo list, int64 ix);
+extern objectPo listNthElement(arrayPo list, int64 ix);
 
-extern long listCount(listPo list);
+extern long listCount(arrayPo list);
 
-extern listPo nilList;
+extern arrayPo nilList;
 
 typedef retCode (*listFun)(objectPo data,void *cl);
 
-extern retCode processCons(listPo list, listFun fun, void *cl);
+extern retCode processCons(arrayPo list, listFun fun, void *cl);
 
 typedef logical (*listTest)(objectPo data,void *cl);
-extern void* findInList(listPo list, listTest test, void *cl);
+extern void* findInList(arrayPo list, listTest test, void *cl);
 
-extern listPo removeElements(listPo l, listTest test, void *cl);
-extern listPo filter(listPo l, listTest test, void *cl);
+extern arrayPo removeElements(arrayPo l, listTest test, void *cl);
+extern arrayPo filter(arrayPo l, listTest test, void *cl);
 
 typedef void *(*folder)(objectPo value, void *state);
 
-extern void* listFold(listPo l, folder f, void *state);
+extern void* listFold(arrayPo l, folder f, void *state);
 
-extern listPo sortCons(listPo l, objCompare compare, void *cl);
+extern arrayPo sortCons(arrayPo l, objCompare compare, void *cl);
 
-extern void releaseList(listPo l);
+extern void releaseList(arrayPo l);
 
 extern classPo listClass;
 
 #ifdef VERIFY_OBJECT
-#define O_LIST(c) ((listPo)(checkCast((c),listClass)))
+#define O_LIST(c) ((arrayPo)(checkCast((c),listClass)))
 #else
 #define O_LIST(c) ((consPo)(c))
 #endif

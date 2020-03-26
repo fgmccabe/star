@@ -9,8 +9,10 @@
 #include "heap.h"
 #include "termP.h"
 
-extern normalPo allocateCons(heapPo H, termPo lhs, termPo rhs);
+normalPo allocateCons(heapPo H, termPo lhs, termPo rhs);
 
+void updateConsHead(termPo cns,termPo h);
+void updateConsTail(termPo cns,termPo t);
 void initCons();
 
 #endif //STAR_CONSP_H

@@ -7,6 +7,4 @@
 
 void init_args(char **argv, int argc, int start);
 
-termPo __command_line(heapPo H);
-
 #endif //STAR_ARGS_H_H

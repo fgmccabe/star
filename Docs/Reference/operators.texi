@@ -14,9 +14,6 @@
 @item @code{pure}
 @tab non-associative prefix
 @tab 300
-@item @code{..,}
-@tab right associative infix
-@tab 1000
 @item @code{~>}
 @tab non-associative infix
 @tab 1231

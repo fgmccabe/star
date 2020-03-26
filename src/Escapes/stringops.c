@@ -11,6 +11,7 @@
 #include <globals.h>
 #include "stringops.h"
 #include "arithmetic.h"
+#include "consP.h"
 
 ReturnStatus g__str_eq(processPo p, ptrPo tos) {
   stringPo Arg1 = C_STR(tos[0]);
@@ -156,28 +157,34 @@ ReturnStatus g__explode(processPo p, ptrPo tos) {
   integer chCount = countCodePoints(str, 0, len);
 
   heapPo H = processHeap(p);
-  listPo list = allocateList(H, chCount);
+  termPo list = (termPo) nilEnum;
+  termPo el = voidEnum;
   int root = gcAddRoot(H, (ptrPo) &list);
+  gcAddRoot(H, &el);
 
-  integer pos = 0;
-  for (integer ix = 0; ix < chCount; ix++) {
-    assert(pos < len);
-    codePoint cp = nextCodePoint(str, &pos, len);
-    termPo el = (termPo) allocateInteger(H, (integer) cp);
-    setNthEl(list, ix, el);
+  while (chCount > 0) {
+    codePoint cp;
+    retCode ret = prevPoint(str, &chCount, &cp);
+    if (ret == Ok) {
+      el = (termPo) allocateInteger(H, (integer) cp);
+      list = (termPo) allocateCons(H, el, list);
+    }
   }
 
   gcReleaseRoot(H, root);
+
   return (ReturnStatus) {.ret=Ok, .result=(termPo) list};
 }
 
 ReturnStatus g__implode(processPo p, ptrPo tos) {
-  listPo list = C_LIST(tos[0]);
+  termPo list = tos[0];
 
   bufferPo strb = newStringBuffer();
 
-  for (integer ix = 0; ix < listSize(list); ix++) {
-    outChar(O_IO(strb), (codePoint) integerVal(nthEl(list, ix)));
+  while (isCons(list)) {
+    normalPo pr = C_TERM(list);
+    outChar(O_IO(strb), (codePoint) integerVal(consHead(pr)));
+    list = consTail(pr);
   }
 
   integer oLen;
@@ -387,16 +394,14 @@ ReturnStatus g__str_start(processPo p, ptrPo tos) {
     .result=(uniIsPrefix(lhs, llen, rhs, rlen) ? trueEnum : falseEnum)};
 }
 
+static retCode flatten(bufferPo str, normalPo ss);
+
 ReturnStatus g__str_multicat(processPo p, ptrPo tos) {
-  listPo list = C_LIST(tos[0]);
+  normalPo list = C_TERM(tos[0]);
 
   bufferPo strb = newStringBuffer();
 
-  for (integer ix = 0; ix < listSize(list); ix++) {
-    integer elen;
-    const char *elTxt = stringVal(nthEl(list, ix), &elen);
-    outText(O_IO(strb), elTxt, elen);
-  }
+  retCode ret = flatten(strb, list);
 
   integer oLen;
   const char *buff = getTextFromBuffer(strb, &oLen);
@@ -407,7 +412,7 @@ ReturnStatus g__str_multicat(processPo p, ptrPo tos) {
   return rt;
 }
 
-static retCode flatten(bufferPo str, normalPo ss) {
+retCode flatten(bufferPo str, normalPo ss) {
   integer cx = termArity(ss);
   retCode ret = Ok;
 

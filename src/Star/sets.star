@@ -4,7 +4,7 @@ star.sets{
   import star.collection.
   import star.ideal.
   import star.iterable.
-  import star.lists.
+  import star.cons.
 
   public all e ~~ set[e] ::= set(map[e,()]).
 
@@ -12,7 +12,6 @@ star.sets{
     _nil = set([]).
 
     _cons(E,set(M)) => set(M[E->()]).
-    _apnd(set(M),E) => set(M[E->()]).
   .}
 
   public implementation all e ~~ equality[e], hash[e] |: membership[set[e] ->> e] => {
@@ -29,7 +28,7 @@ star.sets{
   }
 
   public implementation all e ~~ display[e] |: display[set[e]] => let{
-    dispEntry:(list[ss],e,())=>list[ss].
+    dispEntry:(cons[ss],e,())=>cons[ss].
     dispEntry([],K,_) => [disp(K)].
     dispEntry(L,K,_) default => [disp(K),ss(","),..L].
   } in {.
@@ -51,7 +50,7 @@ star.sets{
     foldLeft(F,A,set(S)) => ixLeft((X,K,_)=>F(X,K),A,S).
   }
 
-  public implementation all e ~~ coercion[set[e],list[e]] => {
-    _coerce(set(M)) => ixRight((K,_,X)=>[X..,K],[],M)
+  public implementation all e ~~ coercion[set[e],cons[e]] => {
+    _coerce(set(M)) => ixRight((K,_,X)=>[K,..X],[],M)
   }
 }

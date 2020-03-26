@@ -45,7 +45,7 @@ star.compiler.meta{
 
   public importSpec ::= pkgImp(locn,visibility,pkg).
 
-  public defnSpec ::= defnSpec(defnSp,locn,list[ast]).
+  public defnSpec ::= defnSpec(defnSp,locn,cons[ast]).
 
   public defnSp ::= varSp(string)
     | cnsSp(string)

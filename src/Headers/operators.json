@@ -147,12 +147,6 @@
 	"keyword": true
     },
     {
-	"infixOp": "..,",
-	"priorities": [999, 1000, 1000],
-	"desc": "list cons",
-	"keyword": true
-    },
-    {
 	"infixOp": "=",
 	"priorities": [974, 975, 974],
 	"desc": "definition",
@@ -688,5 +682,12 @@
 	"right":".}",
 	"priority" : 2000,
 	"desc":"non-recursive braces"
-    }
+    },
+	{
+		"bracket": "(||)",
+		"left":"(|",
+		"right":"|)",
+		"priority" : 2000,
+		"desc":"banana brackets"
+	}
 ]

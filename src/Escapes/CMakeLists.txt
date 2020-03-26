@@ -33,6 +33,6 @@ set(SOURCE_FILES
         libEscapes.c
         clock.c
         system.c arithmetic.c unicode.c assigns.c
-        ioops.c locks.c fileops.c netfile.c stringops.c datentime.c threds.c lblops.c turm.c pkgops.c listops.c )
+        ioops.c locks.c fileops.c netfile.c stringops.c datentime.c threds.c lblops.c turm.c pkgops.c)
 
 add_library(escapes STATIC ${SOURCE_FILES})

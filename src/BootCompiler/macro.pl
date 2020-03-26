@@ -66,7 +66,7 @@ synthesize_main(Lc,Ts,As,[MainTp,Main|As]) :-
   roundTerm(Lc,name(Lc,"main"),Cs,Rhs),
   unary(Lc,"valof",Rhs,MnCall),
   eqn(Lc,Lhs,MnCall,Main),
-  squareTerm(Lc,name(Lc,"list"),[name(Lc,"string")],T1),
+  squareTerm(Lc,name(Lc,"cons"),[name(Lc,"string")],T1),
   roundTuple(Lc,[T1],T3),
   roundTuple(Lc,[],Unit),
   binary(Lc,"=>",T3,Unit,TU),

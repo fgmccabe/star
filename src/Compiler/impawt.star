@@ -13,8 +13,8 @@ star.compiler.impawt{
   import star.compiler.terms.
   import star.compiler.types.
 
-  public importAll:all r ~~ repo[r],display[r]|:(list[importSpec],r,dict,list[importSpec],
-    list[(string,tipe)],reports) => either[reports,(dict,list[importSpec],list[(string,tipe)])].
+  public importAll:all r ~~ repo[r],display[r]|:(cons[importSpec],r,dict,cons[importSpec],
+    cons[(string,tipe)],reports) => either[reports,(dict,cons[importSpec],cons[(string,tipe)])].
   importAll([],_,Env,Imported,Sigs,_) => either((Env,Imported,Sigs)).
   importAll([pkgImp(Lc,Viz,Pkg),..Imports],Repo,Env,Imported,Sigs,Rp) => do{
 --    logMsg("import $(Pkg)");
@@ -34,7 +34,8 @@ star.compiler.impawt{
 	E2 .= foldRight((implSpec(ILc,ConNm,FullNm,Tp),EE)=>
 	    declareVr(FullNm,some(Lc),Tp,(LL,TT)=>dot(Lc,vr(Lc,PkgVar,Tp),FullNm,TT),
 	      declareImplementation(FullNm,Tp,EE)),E1,Impls);
-	importAll(Imports++PkgImps,Repo,E2,[Imported..,pkgImp(Lc,Viz,Pkg)],[Sigs..,(PkgVar,Sig)],Rp)
+	importAll(Imports++PkgImps,Repo,E2,[pkgImp(Lc,Viz,Pkg),..Imported],
+	  [(PkgVar,Sig),..Sigs],Rp)
       }
       catch {
 	throw reportError(Rp,"cannot import $(Pkg)",Lc)
@@ -49,7 +50,7 @@ star.compiler.impawt{
   pickupPkgSpec:(string,locn,reports) => either[(),pkgSpec].
   pickupPkgSpec(Txt,Lc,Rp) => do{
     (term(_,[Pk,term(_,Imps),strg(FTps),term(_,ConSigs),
-	  term(_,ImplSigs)]),R) <- decodeTerm(Txt::list[integer]);
+	  term(_,ImplSigs)]),R) <- decodeTerm(Txt::cons[integer]);
     Pkg <- pickupPkg(Pk);
     Imports <- pickupImports(Imps,Lc);
     Fce <- decodeSignature(FTps);
@@ -75,33 +76,33 @@ star.compiler.impawt{
   pickupViz(strg("transitive")) => some(.transItive).
   pickupVis(_) default => .none.
 
-  pickupImports:(list[term],locn) => either[(),list[importSpec]].
+  pickupImports:(cons[term],locn) => either[(),cons[importSpec]].
   pickupImports(Trms,Lc) => let{
     pickupImps([],Imx) => either(Imx).
     pickupImps([term(_,[V,P]),..Imps],Imx) where
 	Vz ^= pickupViz(V) => do{
 	  Pkg <- pickupPkg(P);
-	  pickupImps(Imps,[Imx..,pkgImp(Lc,Vz,Pkg)])
+	  pickupImps(Imps,[pkgImp(Lc,Vz,Pkg),..Imx])
 	}.
   } in pickupImps(Trms,[]).
 
-  pickupConstructors:(list[term],list[string]) => either[(),list[string]].
+  pickupConstructors:(cons[term],cons[string]) => either[(),cons[string]].
   pickupConstructors([],Cs) => either(Cs).
-  pickupConstructors([strg(Nm),..Ls],Cs) => pickupConstructors(Ls,[Cs..,Nm]).
+  pickupConstructors([strg(Nm),..Ls],Cs) => pickupConstructors(Ls,[Nm,..Cs]).
   pickupConstructors(_,_) default => other(()).
 
-  pickupContracts:(list[term],locn,list[canonDef]) => either[(),list[canonDef]].
+  pickupContracts:(cons[term],locn,cons[canonDef]) => either[(),cons[canonDef]].
   pickupContracts([],_,Cons) => either(Cons).
   pickupContracts([term(_,[strg(Nm),strg(CnNm),strg(Sig)]),..Ts],Lc,Cons) => do{
     Tp <- decodeSignature(Sig);
-    pickupContracts(Ts,Lc,[Cons..,conDef(Lc,Nm,CnNm,Tp)])
+    pickupContracts(Ts,Lc,[conDef(Lc,Nm,CnNm,Tp),..Cons])
   }
 
-  pickupImplementations:(list[term],list[implSpec]) => either[(),list[implSpec]].
+  pickupImplementations:(cons[term],cons[implSpec]) => either[(),cons[implSpec]].
   pickupImplementations([],Imps) => either(Imps).
   pickupImplementations([term(_,[strg(ConNm),strg(FullNm),strg(Sig)]),..Is],Imps) => do{
     Spec <- decodeSignature(Sig);
-    pickupImplementations(Is,[Imps..,implSpec(.none,ConNm,FullNm,Spec)])
+    pickupImplementations(Is,[implSpec(.none,ConNm,FullNm,Spec),..Imps])
   }
   pickupImplementations(_,_) default => other(()).
 
@@ -131,7 +132,7 @@ star.compiler.impawt{
       term(tLbl("contract",3),[strg(Nm),strg(FullNm),Tp::term]).
   .}
   
-  implementation all e ~~ coercion[e,term] |: coercion[list[e],term] => {.
+  implementation all e ~~ coercion[e,term] |: coercion[cons[e],term] => {.
     _coerce(L)=>mkTpl(L//(e)=>e::term)
   .}
 

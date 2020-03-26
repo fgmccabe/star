@@ -131,7 +131,7 @@ ReturnStatus g__inbytes(processPo p, ptrPo tos) {
     char *text = getTextFromBuffer(buffer, &length);
 
     heapPo H = processHeap(p);
-    listPo lst = allocateList(H, length);
+    arrayPo lst = allocateArray(H, length);
     int root = gcAddRoot(H, (ptrPo) &lst);
 
     for (long ix = 0; ix < length; ix++) {
@@ -277,10 +277,10 @@ ReturnStatus g__outbytes(processPo p, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
   ioPo io = ioChannel(C_IO(Arg1));
-  listPo data = C_LIST(Arg2);
+  arrayPo data = C_ARRAY(Arg2);
   retCode ret = Ok;
 
-  for (integer ix = 0; ret == Ok && ix < listSize(data); ix++) {
+  for (integer ix = 0; ret == Ok && ix < arraySize(data); ix++) {
     byte b = (byte) integerVal(nthEl(data, ix));
     ret = outByte(io, b);
   }

@@ -5,7 +5,7 @@ star.compiler.errors{
   public reportMsg ::= errorMsg(locn,string)
                        | warnMsg(locn,string).
 
-  public reports ::= reports(list[reportMsg]).
+  public reports ::= reports(cons[reportMsg]).
 
   public implementation display[reports] => {.
     disp(reports(M)) => ssSeq([ssSeq(M//disp),ss("\n"),disp(countErrors(M)),ss(" errors, "),
@@ -20,21 +20,21 @@ star.compiler.errors{
   public errorFree:(reports)=>boolean.
   errorFree(reports(Ms)) => countErrors(Ms)==0.
 
-  public countErrors:(list[reportMsg])=>integer.
+  public countErrors:(cons[reportMsg])=>integer.
   countErrors(Ms) => foldLeft(countError,0,Ms).
 
   countError(Ix,errorMsg(_,_))=>Ix+1.
   countError(Ix,_) default => Ix.
 
-  public countWarnings:(list[reportMsg])=>integer.
+  public countWarnings:(cons[reportMsg])=>integer.
   countWarnings(Ms) => foldLeft(countWarning,0,Ms).
 
   countWarning(Ix,warnMsg(_,_))=>Ix+1.
   countWarning(Ix,_) default => Ix.
 
   public reportError:(reports,string,locn) => reports.
-  reportError(reports(Ms),Msg,Lc) => reports([Ms..,errorMsg(Lc,Msg)]).
+  reportError(reports(Ms),Msg,Lc) => reports([errorMsg(Lc,Msg),..Ms]).
 
   public reportWarning:(reports,string,locn) => reports.
-  reportWarning(reports(Ms),Msg,Lc) => reports([Ms..,warnMsg(Lc,Msg)]).
+  reportWarning(reports(Ms),Msg,Lc) => reports([warnMsg(Lc,Msg),..Ms]).
 }

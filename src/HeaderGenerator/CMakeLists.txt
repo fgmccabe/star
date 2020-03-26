@@ -11,9 +11,13 @@ set(ESC_SOURCE_FILES genescapes.c ../Headers/escapes.h ../Headers/intrinsics.h .
 add_executable(genesc ${ESC_SOURCE_FILES})
 target_link_libraries(genesc ooio)
 
-set(ASM_SOURCE_FILES platemnem.c)
+set(ASM_SOURCE_FILES plmnem.c)
 add_executable(plmnem ${ASM_SOURCE_FILES})
 target_link_libraries(plmnem ooio infra)
+
+set(STAR_ASM_SOURCE_FILES starmnem.c)
+add_executable(starmnem ${STAR_ASM_SOURCE_FILES})
+target_link_libraries(starmnem ooio infra)
 
 set(INTRINSIC_SOURCE_FILES plateinstrinsic.c)
 add_executable(intrinsic ${INTRINSIC_SOURCE_FILES})
@@ -70,6 +74,6 @@ add_custom_target(star.intrinsics DEPENDS intrinsic
 
 add_custom_target(generate ALL DEPENDS operators star.operators star.escapes star.intrinsics
         COMMAND genesc -p ${ESCAPES_PL}
-        COMMAND plmnem -t ${CMAKE_CURRENT_SOURCE_DIR}/assem.pl.plate -p ${ASM_PL}
-        COMMAND plmnem -t ${CMAKE_CURRENT_SOURCE_DIR}/assem.star.plate -s ${ASM_ST}
+        COMMAND plmnem -t ${CMAKE_CURRENT_SOURCE_DIR}/assem.pl.plate ${ASM_PL}
+        COMMAND starmnem -t ${CMAKE_CURRENT_SOURCE_DIR}/assem.star.plate ${ASM_ST}
         )

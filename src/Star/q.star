@@ -3,6 +3,7 @@ star.q{
   import star.cons.
   import star.arith.
   import star.collection.
+  import star.coerce.
 
   public all e ~~ qc[e] ::= qc(cons[e],cons[e]).
 
@@ -28,17 +29,10 @@ star.q{
     _hdtl(qc(cons(H,T),B)) => some((H,qc(T,B))).
     _hdtl(qc(.nil,.nil)) => .none.
     _hdtl(qc(.nil,B)) => _hdtl(qc(reverse(B),.nil)).
-
-    _back(qc(F,cons(H,T))) => some((qc(F,T),H)).
-    _back(qc(.nil,.nil)) => .none.
-    _back(qc(F,.nil)) => _back(qc(.nil,reverse(F))).
   }
 
   public implementation all x ~~ sequence[qc[x] ->> x] => {
     _cons(E,qc(F,B)) => qc(cons(E,F),B).
-
-    _apnd(qc(F,B),E) => qc(F,cons(E,B)).
-
     _nil = qc(.nil,.nil).
   }
 
@@ -65,5 +59,13 @@ star.q{
     private foldRightR(F,U,.nil) => U.
     foldRightR(F,U,cons(H,T)) => F(foldRightR(F,U,T),H).
   }
+
+  public implementation all e ~~ coercion[cons[e],qc[e]] => {.
+    _coerce(L) => qc(L,.nil).
+  .}
+
+  public implementation all e ~~ coercion[qc[e],cons[e]] => {.
+    _coerce(qc(F,B)) => F++reverse(B).
+  .}
 
 }

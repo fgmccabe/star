@@ -1,7 +1,7 @@
 star.tuples{
   import star.core.
   import star.arith.
-  import star.lists.
+  import star.cons.
   import star.coerce.
 
   -- Some basic stuff for tuples

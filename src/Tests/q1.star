@@ -10,13 +10,13 @@ test.q1{
     _ == _ default => .false.
   .}
 
-  parent:list[(string,string)].
+  parent:cons[(string,string)].
   parent = [("a","ab"),("b","ab"),("a","c"),("c","aa"),("ab","abc"),
             ("de","abc"),("d","de"),("e","de"),
     ("f","a"),("g","f")].
 
 
-  status : list[(string,visibility)].
+  status : cons[(string,visibility)].
   status = [("a",.pUblic),("b",.priVate),("c",.priVate),("d",.pUblic)].
 
 --  fp(P) => [X|(P,X) in parent && (P,.pUblic) in status].

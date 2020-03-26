@@ -91,12 +91,12 @@ star.compiler.dict{
       (MC,typeExists(CT,faceType(Methods,[]))) .= deConstrain(MI) =>
     formMethods(Methods,some(Lc),MQ,MC,CT,Dict).
 
-  formMethods:(list[(string,tipe)],option[locn],list[tipe],list[constraint],tipe,dict) => dict.
+  formMethods:(cons[(string,tipe)],option[locn],cons[tipe],cons[constraint],tipe,dict) => dict.
   formMethods([],_,_,_,_,Dict) => Dict.
   formMethods([(Nm,Tp),..Mtds],Lc,Q,Cx,Con,Dict) => valof action{
 --    logMsg("raw method type of $(Nm) is $(Tp), constraints: $(Cx)");
     (MQ,MI) .= deQuant(Tp);
-    MT .= reQuant(Q++MQ,reConstrainType([Cx..,typeConstraint(Con)],MI));
+    MT .= reQuant(Q++MQ,reConstrainType([typeConstraint(Con),..Cx],MI));
 --    logMsg("actual method type $(MT)");
     valis formMethods(Mtds,Lc,Q,Cx,Con,declareMethod(Nm,Lc,MT,Dict))
   }
@@ -135,12 +135,12 @@ star.compiler.dict{
   pushFace(Tp,Lc,Env) =>
     pushSig(deRef(Tp),Lc,(Id)=>(L,T)=>vr(L,Id,T),Env).
   
-  pushFlds:(list[(string,tipe)],locn,(string)=>(locn,tipe)=>canon,dict) => dict.
+  pushFlds:(cons[(string,tipe)],locn,(string)=>(locn,tipe)=>canon,dict) => dict.
   pushFlds([],Lc,_,Env) => Env.
   pushFlds([(Nm,Tp),..Vrs],Lc,Mkr,Env)  =>
     pushFlds(Vrs,Lc,Mkr,declareVr(Nm,some(Lc),Tp,Mkr(Nm),Env)).
 
-  pushTypes:(list[(string,tipe)],locn,dict) => dict.
+  pushTypes:(cons[(string,tipe)],locn,dict) => dict.
   pushTypes([],Lc,Env) => Env.
   pushTypes([(Nm,Tp),..Tps],Lc,Env) =>
     pushTypes(Tps,Lc,declareType(Nm,some(Lc),typeKey(Tp),Tp,Env)).
@@ -150,7 +150,7 @@ star.compiler.dict{
   declareTypeVars([(Nm,Tp),..Q],Env) =>
     declareTypeVars(Q,declareType(Nm,.none,Tp,Tp,Env)).
 
-  public declareConstraints:(locn,list[constraint],dict) => dict.
+  public declareConstraints:(locn,cons[constraint],dict) => dict.
   declareConstraints(_,[],E) => E.
   declareConstraints(Lc,[typeConstraint(Con),..Cx],Env) where ConNm.=implementationName(Con) =>
     declareConstraints(Lc,Cx,
@@ -159,7 +159,7 @@ star.compiler.dict{
   declareConstraints(Lc,[_,..Cx],Env) =>
     declareConstraints(Lc,Cx,Env).
 
-  public manageConstraints:(tipe,list[constraint],locn,canon,dict,reports) =>
+  public manageConstraints:(tipe,cons[constraint],locn,canon,dict,reports) =>
     either[reports,(tipe,canon)].
   manageConstraints(constrainedType(Tp,Con),Cons,Lc,Term,Env,Rp)
       where C0 .= applyConstraint(Con,Cons) =>
@@ -168,7 +168,7 @@ star.compiler.dict{
   manageConstraints(Tp,Cons,Lc,Term,Env,Rp) =>
     either((Tp,over(Lc,Term,Tp,Cons))).
 
-  applyConstraint:(constraint,list[constraint]) => list[constraint].
+  applyConstraint:(constraint,cons[constraint]) => cons[constraint].
   applyConstraint(fieldConstraint(T,F),Cons) => valof do{
     _ <- addConstraint(T,fieldConstraint(T,F));
     valis Cons
@@ -179,7 +179,7 @@ star.compiler.dict{
       _ <- addConstraint(Arg,Con);
       AA := deRef(Op)
     };
-    valis [Cons..,Con]
+    valis [Con,..Cons]
   }
 
   emptyFace = faceType([],[]).
@@ -191,7 +191,7 @@ star.compiler.dict{
       declareType("float",.none,fltType,typeExists(fltType,emptyFace),
 	declareType("boolean",.none,boolType,typeExists(boolType,emptyFace),
 	  declareType("string",.none,strType,typeExists(strType,emptyFace),
-	    declareType("list",.none,tpFun("star.core*list",1),
+	    declareType("cons",.none,tpFun("star.core*cons",1),
 	      allType(nomnal("e"),
 		typeExists(lstType(nomnal("e")),faceType([],[]))),
 	      [scope([],[],[],[])]))))).

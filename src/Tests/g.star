@@ -2,18 +2,18 @@ test.g{
   import star.
   import star.script.
 
-  all c ~~ parseState[c] ::= parseState(list[c],option[()=>parseState[c]]).
+  all c ~~ parseState[c] ::= parseState(cons[c],option[()=>parseState[c]]).
 
-  term:all c ~~ (list[c]) => option[(c,list[c])].
+  term:all c ~~ (cons[c]) => option[(c,cons[c])].
   term([])=>.none.
   term([C,..L]) => some((C,L)).
 
-  isTerm:all c ~~ equality[c] |:(list[c],c) => option[list[c]].
+  isTerm:all c ~~ equality[c] |:(cons[c],c) => option[cons[c]].
   isTerm([C,..L],C) => some(L).
   isTerm(_,_) => .none.
 
-  txt:list[integer].
-  txt = "fred"::list[integer].
+  txt:cons[integer].
+  txt = "fred"::cons[integer].
 
   main:()=>action[(),()].
   main()=>do{

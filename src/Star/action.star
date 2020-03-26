@@ -32,22 +32,23 @@ star.action{
     _raise(S) => err(S).
   }
 
-  public strmap:all x,y,m/1,s/1 ~~ monad[m],stream[s[x]->>x],sequence[s[y]->>y] |:
+  public strmap:all x,y,m/1,s/1 ~~ monad[m],stream[s[x]->>x],
+  sequence[s[y]->>y],reversible[s[y]] |:
     ((x)=>m[y],s[x]) => m[s[y]].
   strmap(F,S) => let{
     mmm:(s[x],s[y]) => m[s[y]].
-    mmm([],So) => return So.
+    mmm([],So) => return reverse(So).
     mmm([E,..Es],So) =>
-      F(E) >>= (X)=>mmm(Es,[So..,X]).
+      F(E) >>= (X)=>mmm(Es,[X,..So]).
   } in mmm(S,[]).
 
-  public seqmap:all x,y,e,m/2,s/1 ~~ execution[m],stream[s[x]->>x],sequence[s[y]->>y] |:
+  public seqmap:all x,y,e,m/2,s/1 ~~ execution[m],stream[s[x]->>x],sequence[s[y]->>y],reversible[s[y]] |:
     ((x)=>m[e,y],s[x]) => m[e,s[y]].
   seqmap(F,S) => let{
     mmm:(s[x],s[y]) => m[e,s[y]].
-    mmm([],So) => _valis(So).
+    mmm([],So) => _valis(reverse(So)).
     mmm([E,..Es],So) =>
-      _sequence(F(E),(X)=>mmm(Es,[So..,X])).
+      _sequence(F(E),(X)=>mmm(Es,[X,..So])).
   } in mmm(S,[]).
 
 

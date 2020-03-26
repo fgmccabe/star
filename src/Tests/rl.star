@@ -8,7 +8,7 @@ test.rl{
 
   main:() => action[(),()].
   main() => do{
-    show dump(T);
+    show disp(T);
 
     show disp(T[0]);
     show disp(T[1]);
@@ -22,16 +22,13 @@ test.rl{
     show disp(T[9]);
     show disp(T[10]);
 
-    show dump(SS);
+    show disp(rev(SS));
 
-    show disp(SS);
-    show dump(rev(SS));
+    show disp(T++SS);
 
-    show dump(T++SS);
+    show disp(SS++T);
 
-    show dump(SS++T);
-
-    show dump(SS^/((Nm)=>size(Nm)<5));
+    show disp(SS^/((Nm)=>size(Nm)<5));
 
     assert rev(rev(SS))==SS;
 

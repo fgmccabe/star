@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
 
   initLogfile("-");
 
-  if ((narg = getStarOptions(argc, argv)) < 0) {
+  if ((narg = getEngineOptions(argc, argv)) < 0) {
     exit(1);
   }
   initHistory(".star");

@@ -59,7 +59,7 @@ star.compiler{
 	showCode=Opts.showCode}.
   }
 
-  public _main:(list[string])=>().
+  public _main:(cons[string])=>().
   _main(Args) => valof action{
     RI^=parseUri("file:"++_repo());
     WI^=parseUri("file:"++_cwd());
@@ -77,7 +77,7 @@ star.compiler{
     valis Repo
   }
 
-  handleCmds:(either[string,(compilerOptions,list[string])])=>action[(),()].
+  handleCmds:(either[string,(compilerOptions,cons[string])])=>action[(),()].
   handleCmds(either((Opts,Args))) => do{
     Repo <- openupRepo(Opts.repo,Opts.cwd);
     if CatUri ^= parseUri("catalog") && CatU ^= resolveUri(Opts.cwd,CatUri) &&
@@ -87,7 +87,7 @@ star.compiler{
 	    ErRp .= reports([]);	
 	    try{
 	      Sorted <- makeGraph(extractPkgSpec(P),Repo,Cat,ErRp)
-	      ::action[reports,list[(importSpec,list[importSpec])]];
+	      ::action[reports,cons[(importSpec,cons[importSpec])]];
 --	      logMsg("package groups $(Sorted)");
 	      processPkgs(Sorted,Repo,Cat,Opts,ErRp)
 	    } catch (Er) => action{
@@ -115,7 +115,7 @@ star.compiler{
 
   importVars(pkgSpec(_,_,_,_,_,Vars))=>Vars.
 
-  processPkgs:(list[(importSpec,list[importSpec])],termRepo,catalog,compilerOptions,reports) => action[reports,()].
+  processPkgs:(cons[(importSpec,cons[importSpec])],termRepo,catalog,compilerOptions,reports) => action[reports,()].
   processPkgs(Pks,Repo,Cat,Opts,Rp) => do{
     Repp := Repo;
     try{
@@ -130,11 +130,11 @@ star.compiler{
 --	  logMsg("Ast of $(P) is $(Ast)");
 	    (PkgSpec,PkgFun) <- checkPkg(Repp!!,CPkg,Ast,stdDict,Rp) :: action[reports,(pkgSpec,canonDef)];
 	    logMsg("normalizing $(PkgFun)");
-	    NormDefs <- normalize(PkgSpec,PkgFun,Rp)::action[reports,list[crDefn]];
+	    NormDefs <- normalize(PkgSpec,PkgFun,Rp)::action[reports,cons[crDefn]];
 	    Repp := addSpec(PkgSpec,Repp!!);
 	    logMsg("Normalized package $(P)");
 	    logMsg(dispCrProg(NormDefs)::string);
-	    Ins <- compCrProg(NormDefs,importVars(PkgSpec),Opts,Rp) :: action[reports,list[codeSegment]];
+	    Ins <- compCrProg(NormDefs,importVars(PkgSpec),Opts,Rp) :: action[reports,cons[codeSegment]];
 --	    if Opts.showCode then
 	      logMsg("Generated instructions $(Ins)");
 	    Code .= mkTpl([pkgTerm(CPkg),strg(encodeSignature(typeOf(PkgSpec))),

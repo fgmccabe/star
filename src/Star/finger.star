@@ -4,7 +4,6 @@ star.finger{
   import star.cons.
   import star.arith.
   import star.coerce.
-  import star.lists.
   import star.monad.
   import star.iterable.
 
@@ -57,14 +56,14 @@ star.finger{
     rdl(z,four(u,v,w,x)) => F(F(F(F(z,x),u),v),w).
   } in rdl.
 
-  implementation all e ~~coercion[digit[e],list[e]] => {
+  implementation all e ~~coercion[digit[e],cons[e]] => {
     _coerce(one(x)) => [x].
     _coerce(two(x,y)) => [x,y].
     _coerce(three(x,y,z)) => [x,y,z].
     _coerce(four(x,y,z,u)) => [x,y,z,u].
   }
 
-  implementation all e ~~ coercion[node[e],list[e]] => {
+  implementation all e ~~ coercion[node[e],cons[e]] => {
     _coerce(node2(l,r)) => [l,r].
     _coerce(node3(l,m,r)) => [l,m,r].
   }
@@ -134,15 +133,15 @@ star.finger{
   liftAppend:all e,f ~~ reduce[f->>e] |: (fingerTree[e],f)=>fingerTree[e].
   liftAppend = reducel(append).
 
-  app3:all a ~~ (fingerTree[a],list[a],fingerTree[a]) => fingerTree[a].
+  app3:all a ~~ (fingerTree[a],cons[a],fingerTree[a]) => fingerTree[a].
   app3(.eTree,ts,xs) => liftPrepend(ts,xs).
   app3(xs,ts,.eTree) => liftAppend(xs,ts).
   app3(single(x),ts,xs) => prepend(x,liftPrepend(ts,xs)).
   app3(xs,ts,single(x)) => append(liftAppend(xs,ts),x).
   app3(deep(pr1,m1,sf1),ts,deep(pr2,m2,sf2)) =>
-    deep(pr1,app3(m1,nodes(sf1::list[a]++ts++pr2::list[a]),m2),sf2).
+    deep(pr1,app3(m1,nodes(sf1::cons[a]++ts++pr2::cons[a]),m2),sf2).
 
-  nodes:all e ~~ (list[e]) => list[node[e]].
+  nodes:all e ~~ (cons[e]) => cons[node[e]].
   nodes([a,b]) => [node2(a,b)].
   nodes([a,b,c]) => [node3(a,b,c)].
   nodes([a,b,c,d]) => [node2(a,b),node2(c,d)].
@@ -154,7 +153,6 @@ star.finger{
 
   public implementation all e ~~ sequence[fingerTree[e]->>e] => {
     _cons(e,t) => prepend(e,t).
-    _apnd(t,e) => append(t,e).
     _nil = .eTree.
   }
 
@@ -172,7 +170,7 @@ star.finger{
       _sequence(St,(SS)=>iterOverFinger(tl,Fn(El,SS),Fn)).
   }
 
-  -- Implement display & dump
+  -- Implement display
 
   all s/1,a ~~ viewL[s,a] ::= .nill | consl(a,s[a]).
 
@@ -246,35 +244,7 @@ star.finger{
 
     _hdtl(T) where consl(h,t) .= viewl(T) => some((h,t)).
     _hdtl(_) => .none.
-
-    _back(T) where consr(l,f) .= viewr(T) => some((f,l)).
-    _back(_) => .none.
   }
-
-  public implementation all e ~~ display[e] |: dump[fingerTree[e]] => {
-    dump(T) => dumpTree(T,disp).
-  }
-
-  dumpTree:all e ~~ (fingerTree[e],(e)=>ss) => ss.
-  dumpTree(.eTree,_) => ss("\u03d5;").
-  dumpTree(single(x),d) => d(x).
-  dumpTree(deep(Lft,Md,Rgt),d) => ssSeq([ss("<"),
-      dumpDigits(Lft,d),
-      ss(":"),
-      dumpTree(Md,(N)=>dumpNode(N,d)),
-      ss(":"),
-      dumpDigits(Rgt,d),ss(">")]).
-
-  dumpDigits:all e ~~ (digit[e],(e)=>ss) => ss.
-  dumpDigits(one(x),d) => ssSeq([ss("{1"),d(x),ss("1}")]).
-  dumpDigits(two(x,y),d) => ssSeq([ss("{2"), d(x), ss(","), d(y), ss("2}")]).
-  dumpDigits(three(x,y,z),d) => ssSeq([ss("{3"), d(x), ss(","), d(y), ss(","), d(z), ss("3}")]).
-  dumpDigits(four(x,y,z,u),d) =>
-    ssSeq([ss("{4"), d(x), ss(","), d(y), ss(","), d(z), ss(","), d(u), ss("4}")]).
-
-  dumpNode:all e ~~ (node[e],(e)=>ss) => ss.
-  dumpNode(node2(x,y),d) => ssSeq([ss("(2"), d(x), ss(","), d(y), ss("2)")]).
-  dumpNode(node3(x,y,z),d) => ssSeq([ss("(3"), d(x), ss(","), d(y), ss(","), d(z), ss("3)")]).
 
   public implementation all e ~~ display[e] |: display[fingerTree[e]] => {.
     disp(T) => ssSeq([ss("["),reform(dispTree(T,(x,L)=>cons(disp(x),L),.nil)),ss("]")]).

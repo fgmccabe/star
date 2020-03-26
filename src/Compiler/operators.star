@@ -15,7 +15,7 @@ star.compiler.operators{
   public isInfixOp:(string) => option[(integer,integer,integer)].
   isInfixOp(Nm) => pickInfix(oper(Nm)).
 
-  pickInfix:(list[operator]) => option[(integer,integer,integer)].
+  pickInfix:(cons[operator]) => option[(integer,integer,integer)].
   pickInfix([]) => .none.
   pickInfix([infixOp(Lf,Pr,Rg),.._]) => some((Lf,Pr,Rg)).
   pickInfix([_,..L]) => pickInfix(L).
@@ -23,7 +23,7 @@ star.compiler.operators{
   public isPrefixOp:(string) => option[(integer,integer)].
   isPrefixOp(Nm) => pickPrefix(oper(Nm)).
 
-  pickPrefix:(list[operator]) => option[(integer,integer)].
+  pickPrefix:(cons[operator]) => option[(integer,integer)].
   pickPrefix([]) => .none.
   pickPrefix([prefixOp(Pr,Rg),.._]) => some((Pr,Rg)).
   pickPrefix([_,..L]) => pickPrefix(L).
@@ -31,17 +31,16 @@ star.compiler.operators{
   public isPostfixOp:(string) => option[(integer,integer)].
   isPostfixOp(Nm) => pickPostfix(oper(Nm)).
 
-  pickPostfix:(list[operator]) => option[(integer,integer)].
+  pickPostfix:(cons[operator]) => option[(integer,integer)].
   pickPostfix([]) => .none.
   pickPostfix([postfixOp(Pr,Rg),.._]) => some((Pr,Rg)).
   pickPostfix([_,..L]) => pickPrefix(L).
 
-  oper:(string)=>list[operator].
+  oper:(string)=>cons[operator].
   oper("all") => [prefixOp(1010,1009)].
   oper("^=") => [infixOp(899,900,899)].
   oper("&&") => [infixOp(910,910,909)].
   oper("pure") => [prefixOp(300,299)].
-  oper("..,") => [infixOp(999,1000,1000)].
   oper("~>") => [infixOp(1230,1231,1230)].
   oper("throw") => [prefixOp(930,929)].
   oper(".|.") => [infixOp(720,720,719)].
@@ -153,6 +152,9 @@ star.compiler.operators{
   isBracket("{") => some(bkt("{","{}","}",2000)).
   isBracket("}") => some(bkt("{","{}","}",2000)).
   isBracket("{}") => some(bkt("{","{}","}",2000)).
+  isBracket("(|") => some(bkt("(|","(||)","|)",2000)).
+  isBracket("|)") => some(bkt("(|","(||)","|)",2000)).
+  isBracket("(||)") => some(bkt("(|","(||)","|)",2000)).
   isBracket(_) default => .none.
 
   public isLeftBracket:(string) => boolean.
@@ -191,6 +193,7 @@ star.compiler.operators{
   follows("",0c•) => some("•").
   follows("",0c#) => some("#").
   follows("&",0c&) => some("&&").
+  follows("(",0c|) => some("(|").
   follows("*",0c*) => some("**").
   follows("*",0c>) => some("*>").
   follows("+",0c+) => some("++").
@@ -209,7 +212,6 @@ star.compiler.operators{
   follows(".",0c+) => some(".+").
   follows(".",0c=) => some(".=").
   follows(".",0c>) => some(".>").
-  follows(".",0c.) => some("..").
   follows(".",0c ) => some(". ").
   follows(".#",0c.) => some(".#.").
   follows(".&",0c.) => some(".&.").
@@ -223,13 +225,13 @@ star.compiler.operators{
   follows(".>>",0c.) => some(".>>.").
   follows(".>>",0c>) => some(".>>>").
   follows(".>>>",0c.) => some(".>>>.").
-  follows("..",0c,) => some("..,").
   follows("/",0c\\) => some("/\\").
   follows("/",0c/) => some("//").
   follows("//",0c/) => some("///").
   follows("{",0c.) => some("{.").
   follows("|",0c:) => some("|:").
   follows("|",0c|) => some("||").
+  follows("|",0c)) => some("|)").
   follows("~",0c~) => some("~~").
   follows("~",0c>) => some("~>").
   follows("\\",0c/) => some("\\/").
@@ -265,6 +267,7 @@ star.compiler.operators{
   final("%") => .true.  /* modulo */
   final("&&") => .true.  /* conjunction */
   final("(") => .true.  /* parentheses */
+  final("(|") => .true.  /* banana brackets */
   final(")") => .true.  /* parentheses */
   final("*") => .true.  /* zero or more repetitions */
   final("**") => .true.  /* exponentiation */
@@ -289,7 +292,6 @@ star.compiler.operators{
   final(".=") => .true.  /* pattern match */
   final(".>>.") => .true.  /* logical shift right */
   final(".>>>.") => .true.  /* arithmetic shift right */
-  final("..,") => .true.  /* list cons */
   final(". ") => .true.  /* statement terminator */
   final("/") => .true.  /* division */
   final("/\\") => .true.  /* intersection */
@@ -300,6 +302,7 @@ star.compiler.operators{
   final("|") => .true.  /* type union, conditional, and abstraction */
   final("|:") => .true.  /* constrained type */
   final("||") => .true.  /* disjunction */
+  final("|)") => .true.  /* banana brackets */
   final("}") => .true.  /* braces */
   final("~~") => .true.  /* quantifier */
   final("~>") => .true.  /* type function */
@@ -346,7 +349,6 @@ star.compiler.operators{
   keyword("all") => .true.
   keyword("^=") => .true.
   keyword("&&") => .true.
-  keyword("..,") => .true.
   keyword("~>") => .true.
   keyword("throw") => .true.
   keyword("do") => .true.
