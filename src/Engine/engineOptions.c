@@ -359,7 +359,7 @@ Option options[] = {
   {'s', "stack",         hasArgument, STAR_INIT_STACK,    setStackSize,      Null, "-s|--stack <size>"},
   {'S', "max-stack",     hasArgument, STAR_MAX_STACK,     setMaxStackSize,   Null, "-S|--max-stack <size>"},};
 
-int getStarOptions(int argc, char **argv) {
+int getEngineOptions(int argc, char **argv) {
   splitFirstArg(argc, argv, &argc, &argv);
   return processOptions(copyright, argc, argv, options, NumberOf(options));
 }

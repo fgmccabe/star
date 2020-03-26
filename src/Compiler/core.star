@@ -12,12 +12,12 @@ star.compiler.core{
     | crFlot(locn,float)
     | crStrg(locn,string)
     | crLbl(locn,string,tipe)
-    | crTerm(locn,string,list[crExp],tipe)
-    | crCall(locn,string,list[crExp],tipe)
-    | crECall(locn,string,list[crExp],tipe)
-    | crIntrinsic(locn,assemOp,list[crExp],tipe)
-    | crOCall(locn,crExp,list[crExp],tipe)
-    | crRecord(locn,string,list[(string,crExp)],tipe)
+    | crTerm(locn,string,cons[crExp],tipe)
+    | crCall(locn,string,cons[crExp],tipe)
+    | crECall(locn,string,cons[crExp],tipe)
+    | crIntrinsic(locn,assemOp,cons[crExp],tipe)
+    | crOCall(locn,crExp,cons[crExp],tipe)
+    | crRecord(locn,string,cons[(string,crExp)],tipe)
     | crDot(locn,crExp,string,tipe)
     | crTplOff(locn,crExp,integer,tipe)
     | crCnj(locn,crExp,crExp)
@@ -25,7 +25,7 @@ star.compiler.core{
     | crNeg(locn,crExp)
     | crCnd(locn,crExp,crExp,crExp)
     | crLtt(locn,crVar,crExp,crExp)
-    | crCase(locn,crExp,list[crCase],crExp,tipe)
+    | crCase(locn,crExp,cons[crCase],crExp,tipe)
     | crAbort(locn,string,tipe)
     | crWhere(locn,crExp,crExp)
     | crMatch(locn,crExp,crExp).
@@ -34,11 +34,11 @@ star.compiler.core{
 
   public crCase ~> (locn,crExp,crExp).
 
-  public crDefn ::= fnDef(locn,string,tipe,list[crVar],crExp) |
+  public crDefn ::= fnDef(locn,string,tipe,cons[crVar],crExp) |
     vrDef(locn,crVar,crExp) |
-    rcDef(locn,string,tipe,list[(string,tipe,integer)]).
+    rcDef(locn,string,tipe,cons[(string,tipe,integer)]).
 
-  public dispCrProg:(list[crDefn])=>ss.
+  public dispCrProg:(cons[crDefn])=>ss.
   dispCrProg(Defs) => ssSeq(interleave(Defs//disp,ss(".\n"))).
 
   public implementation display[crDefn] => {.
@@ -103,7 +103,7 @@ star.compiler.core{
   isTplOp(crLbl(_,Nm,_)) => isTplLbl(Nm).
   isTplOp(_) default => .false.
 
-  public mkCrTpl:(list[crExp],locn) => crExp.
+  public mkCrTpl:(cons[crExp],locn) => crExp.
   mkCrTpl(Args,Lc) => let{
     TpTp = tupleType(Args//typeOf).
     Ar = size(Args)
@@ -115,6 +115,49 @@ star.compiler.core{
 
   public implementation hash[crVar] => {.
     hash(crId(N,T)) => hash(N).
+  .}
+
+  public implementation equality[crExp] => let{
+    eqTerm(crVar(_,V1),crVar(_,V2)) => V1==V2.
+    eqTerm(crInt(_,N1),crInt(_,N2)) => N1==N2.
+    eqTerm(crFlot(_,N1),crFlot(_,N2)) => N1==N2.
+    eqTerm(crStrg(_,S1),crStrg(_,S2)) => S1==S2.
+    eqTerm(crLbl(_,S1,_),crLbl(_,S2,_)) => S1==S2.
+    eqTerm(crTerm(_,S1,A1,_),crTerm(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
+    eqTerm(crCall(_,S1,A1,_),crCall(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
+    eqTerm(crECall(_,S1,A1,_),crECall(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
+--    eqTerm(crIntrinsic(_,S1,A1,_),crIntrinsic(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
+    eqTerm(crOCall(_,S1,A1,_),crOCall(_,S2,A2,_)) => eqTerm(S1,S2) && eqs(A1,A2).
+    eqTerm(crRecord(_,S1,F1,_),crRecord(_,S2,F2,_)) => S1==S2 && eqFs(F1,F2).
+    eqTerm(crDot(_,R1,F1,_),crDot(_,R2,F2,_)) => eqTerm(R1,R2) && F1==F2.
+    eqTerm(crTplOff(_,R1,F1,_),crTplOff(_,R2,F2,_)) => eqTerm(R1,R2) && F1==F2.
+    eqTerm(crCnj(_,L1,R1),crCnj(_,L2,R2)) => eqTerm(L1,L2) && eqTerm(R1,R2).
+    eqTerm(crDsj(_,L1,R1),crDsj(_,L2,R2)) => eqTerm(L1,L2) && eqTerm(R1,R2).
+    eqTerm(crNeg(_,R1),crNeg(_,R2)) => eqTerm(R1,R2).
+    eqTerm(crCnd(_,T1,L1,R1),crCnd(_,T2,L2,R2)) =>
+      eqTerm(T1,T2) && eqTerm(L1,L2) && eqTerm(R1,R2).
+    eqTerm(crLtt(_,T1,L1,R1),crLtt(_,T2,L2,R2)) =>
+      T1==T2 && eqTerm(L1,L2) && eqTerm(R1,R2).
+    eqTerm(crCase(_,S1,C1,D1,_),crCase(_,S2,C2,D2,_)) =>
+      eqTerm(S1,S2) && eqCs(C1,C2) && eqTerm(D1,D2).
+    eqTerm(crAbort(_,V1,_),crAbort(_,V2,_)) => V1==V2.
+    eqTerm(crWhere(_,E1,C1),crWhere(_,E2,C2)) => eqTerm(E1,E2) && eqTerm(C1,C2).
+    eqTerm(crMatch(_,P1,E1),crMatch(_,P2,E2)) => eqTerm(E1,E2) && eqTerm(P1,P2).
+    eqTerm(_,_) default => .false.
+
+    eqs([],[]) => .true.
+    eqs([E1,..S1],[E2,..S2]) => eqTerm(E1,E2) && eqs(S1,S2).
+    eqs(_,_) default => .false.
+
+    eqFs([],[]) => .true.
+    eqFs([(N1,E1),..S1],[(N2,E2),..S2]) => N1==N2 && eqTerm(E1,E2) && eqFs(S1,S2).
+    eqFs(_,_) default => .false.
+
+    eqCs([],[]) => .true.
+    eqCs([(_,N1,E1),..S1],[(_,N2,E2),..S2]) => N1==N2 && eqTerm(E1,E2) && eqCs(S1,S2).
+    eqCs(_,_) default => .false.
+  } in {.
+    X == Y => eqTerm(X,Y)
   .}
 
   public implementation hasLoc[crExp] => {
@@ -222,7 +265,7 @@ star.compiler.core{
   rewriteTerm(crMatch(Lc,P,E),M) =>
     crMatch(Lc,rewriteTerm(P,M),rewriteTerm(E,M)).
 
-  public rewriteTerms:(list[crExp],map[string,crExp])=>list[crExp].
+  public rewriteTerms:(cons[crExp],map[string,crExp])=>cons[crExp].
   rewriteTerms(Els,Mp) => (Els//(E)=>rewriteTerm(E,Mp)).
 
   rewriteDef(fnDef(Lc,Nm,Tp,Args,Val),M) =>

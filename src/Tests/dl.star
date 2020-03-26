@@ -5,7 +5,7 @@ test.dl{
 
   -- Test iteration constructs
 
-  SS : (integer,list[integer]) => action[(),boolean].
+  SS : (integer,cons[integer]) => action[(),boolean].
   SS(Ix,Lx) => do {
     if Ix in Lx then
       return .true
@@ -14,12 +14,12 @@ test.dl{
     }
 
 
-  ST : (integer,list[integer]) => action[(),boolean].
+  ST : (integer,cons[integer]) => action[(),boolean].
   ST(Ix,Lx) => do {
     valis Ix in Lx
   }
 
-  SM:(integer,list[integer]) => boolean.
+  SM:(integer,cons[integer]) => boolean.
   SM(X,L) => X in L.
 
   FF:(integer)=>action[(),integer].

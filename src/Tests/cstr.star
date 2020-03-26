@@ -2,7 +2,7 @@ test.cstream{
   import star.
   import star.script.
 
-  aa = ([0]:list[_]).
+  aa = ([0]:cons[_]).
 
   bb = disp(aa).
 
@@ -12,6 +12,6 @@ test.cstream{
   main()=>do{
     show cc::string;
 
-    show disp([0]:list[_])::string
+    show disp([0]:cons[_])::string
   }
 }

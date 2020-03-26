@@ -1,12 +1,12 @@
 star.parse{
   import star.
 
-  public all e,s ~~ parser[s,e] ::= parser((s)=>list[(e,s)]).
+  public all e,s ~~ parser[s,e] ::= parser((s)=>cons[(e,s)]).
 
-  public parse:all e,s ~~ (parser[s,e],s) => list[(e,s)].
+  public parse:all e,s ~~ (parser[s,e],s) => cons[(e,s)].
   parse(parser(P),S) => P(S).
 
-  pick:all s,t ~~ stream[s->>t] |: (s) => list[(t,s)].
+  pick:all s,t ~~ stream[s->>t] |: (s) => cons[(t,s)].
   pick([C,..L]) => [(C,L)].
   pick([]) => [].
 
@@ -34,7 +34,7 @@ star.parse{
   public _tk:all s,t ~~ stream[s->>t], equality[t]|:(t)=>parser[s,t].
   _tk(Chr) => _sat((Ch)=>Ch==Chr).
 
-  public _literal:all s,t ~~ stream[s->>t], equality[t] |: (list[t]) => parser[s,()].
+  public _literal:all s,t ~~ stream[s->>t], equality[t] |: (cons[t]) => parser[s,()].
   _literal([]) => return ().
   _literal([Cx,..L]) => _tk(Cx) >>= (_) => _literal(L).
 
@@ -50,20 +50,21 @@ star.parse{
     ng([_,.._],S) => [].
     } in parser((S)=>ng(parse(P,S),S)).
 
-  public _str:(string) => parser[list[integer],()].
-  _str(S) => _literal(S::list[integer]).
+  public _str:(string) => parser[cons[integer],()].
+  _str(S) => _literal(S::cons[integer]).
 
-  public _pKy:all k ~~ (string,k)=>parser[list[integer],k].
+  public _pKy:all k ~~ (string,k)=>parser[cons[integer],k].
   _pKy(K,V) => let{
     prs([]) => return V.
     prs([Cx,..L]) => _tk(Cx) >>= (_) => prs(L).
-  } in prs(K::list[integer]).
-
-  public implementation all t ~~ monad[parser[t]] => {
+  } in prs(K::cons[integer]).
+ 
+  public implementation all t ~~ monad[parser[t]] => {.
     return a => parser((S)=>[(a,S)]).
 
-    (P >>= F) => parser((S)=>flatten(parse(P,S)//(((a,S1))=>parse(F(a),S1)))).
-  }
+    (P >>= F) => parser((S)=>multicat(parse(P,S)//(((a,S1))=>parse(F(a),S1)))).
+
+  .}
 
   public implementation all e,t ~~ concat[parser[t,e]] => {.
     P1 ++ P2 => parser((S)=>parse(P1,S)++parse(P2,S)).
@@ -83,17 +84,17 @@ star.parse{
   public _opt:all e,t ~~ (parser[t,e]) => parser[t,e].
   _opt(P) => P +++ zed.
 
-  public _star:all e,t ~~ (parser[t,e]) => parser[t,list[e]].
+  public _star:all e,t ~~ (parser[t,e]) => parser[t,cons[e]].
   _star(P) => _plus(P) ++ (return []).
 
-  public _plus:all e,t ~~ (parser[t,e]) => parser[t,list[e]].
+  public _plus:all e,t ~~ (parser[t,e]) => parser[t,cons[e]].
   _plus(P) =>
     P >>= (A)=> _star(P) >>= (As) => (return [A,..As]).
 
-  public sepby:all a,b,t ~~ (parser[t,a],parser[t,b])=>parser[t,list[a]].
+  public sepby:all a,b,t ~~ (parser[t,a],parser[t,b])=>parser[t,cons[a]].
   sepby(P,Sep) => sepby1(P,Sep) ++ (return []).
 
-  public sepby1:all a,b,t ~~ (parser[t,a],parser[t,b])=>parser[t,list[a]].
+  public sepby1:all a,b,t ~~ (parser[t,a],parser[t,b])=>parser[t,cons[a]].
   sepby1(P,Sep) => P >>= (A) => _star(Sep>>=(_)=>P) >>= (AS) => return [A,..AS].
 
   public chainl:all e,t ~~ (parser[t,e],parser[t,(e,e)=>e],e)=>parser[t,e].
@@ -116,28 +117,48 @@ star.parse{
     prs(A) => (P >>= (O) => prs(Op(O,A))) ++ (return A)
   } in (P>>=(Z) => prs(Z)).
 
-  public spaces:parser[list[integer],()].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  public spaces:parser[cons[integer],()].
   spaces = _star(_sat(isSpace)) >>= (_) => return ().
 
-  public space:parser[list[integer],()].
+  public space:parser[cons[integer],()].
   space = _sat(isSpace) >>= (_) => return ().
 
-  public skip:all e ~~ (parser[list[integer],e])=>parser[list[integer],e].
+  public skip:all e ~~ (parser[cons[integer],e])=>parser[cons[integer],e].
   skip(P) => spaces >>= (_) => P.
 
-  public digit:parser[list[integer],integer].
+  public digit:parser[cons[integer],integer].
   digit = _sat(isDigit).
 
-  numeral:parser[list[integer],integer].
+  numeral:parser[cons[integer],integer].
   numeral = digit >>= (D) => return digitVal(D).
 
-  public natural:parser[list[integer],integer].
+  public natural:parser[cons[integer],integer].
   natural = _pplus(numeral,(d,s)=>s*10+d).
 
-  public decimal:parser[list[integer],integer].
+  public decimal:parser[cons[integer],integer].
   decimal = (_tk(0c-) >>= (_) => natural >>= (N) => return -N) ++ natural.
 
-  public real:parser[list[integer],float].
+  public real:parser[cons[integer],float].
   real = (natural >>= (M) =>
 	    ((_tk(0c.) >>= (_) =>
 		fraction(M::float,0.1) >>= (F) =>
@@ -145,12 +166,12 @@ star.parse{
   (_tk(0c-) >>= (_) =>
      real >>= (N) => return -N).
 
-  fraction:(float,float) => parser[list[integer],float].
+  fraction:(float,float) => parser[cons[integer],float].
   fraction(SoFar,Scale) =>
     (numeral >>= (D) => fraction(SoFar+Scale*(D::float),Scale*0.1)) +++
     (return SoFar).
 
-  exponent:parser[list[integer],float].
+  exponent:parser[cons[integer],float].
   exponent = (_tk(0ce) >>= (_) =>
 		decimal >>= (E) => return 10.0**(E::float)) +++ (return 1.0).
 }

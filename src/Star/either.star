@@ -1,7 +1,7 @@
 star.either{
   import star.core.
   import star.arith.
-  import star.lists.
+  import star.cons.
   import star.monad.
 
   -- Either or values

@@ -1,18 +1,10 @@
 star.display{
   import star.core.
   import star.coerce.
-  import star.lists.
+  import star.cons.
   import star.strings.
 
   public implementation coercion[ss,string] => {
-    _coerce(S) => _str_multicat(unravel(S,[])).
+    _coerce(S) => _str_flatten(S).
   }
-
-  unravel:(ss,list[string])=>list[string].
-  unravel(ss(S),Rest) => [S,..Rest].
-  unravel(ssSeq(L),Rest) => unravelList(L,Rest).
-
-  unravelList:(list[ss],list[string]) => list[string].
-  unravelList([],R) => R.
-  unravelList([S,..L],R) => unravel(S,unravelList(L,R)).
 }

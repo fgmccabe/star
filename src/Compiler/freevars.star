@@ -78,7 +78,7 @@ star.compiler.freevars{
       (Excl1,FvC) .= freeVarsInCond(Wh,ptnVars(Ptn,Excl,Fv),Fv) =>
     freeVarsInTerm(Ptn,Excl1,freeVarsInTerm(Exp,Excl1,FvC)).
 
-  public freeVarsInGroup:(list[canonDef],set[crVar],set[crVar])=>set[crVar].
+  public freeVarsInGroup:(cons[canonDef],set[crVar],set[crVar])=>set[crVar].
   freeVarsInGroup(Defs,Excl,Fv) => let{
     Excl1 = exclDfs(Defs,Excl,Fv)
   } in foldRight((D,F)=>freeVarsInDef(D,Excl1,F),Fv,Defs).
@@ -87,7 +87,7 @@ star.compiler.freevars{
     freeVarsInTerm(E,Excl,Fv).
   freeVarsInDef(_,_,Fv) default => Fv.
 
-  freeVarsInDefs:(list[canonDef],set[crVar],set[crVar])=>set[crVar].
+  freeVarsInDefs:(cons[canonDef],set[crVar],set[crVar])=>set[crVar].
   freeVarsInDefs(Defs,Excl,Fv)=>foldRight((D,F)=>freeVarsInDef(D,Excl,F),Fv,Defs).
 
   freeVarsInAction(noDo(_),_,Fv) => Fv.
@@ -120,15 +120,15 @@ star.compiler.freevars{
   extendExcl:(canon,set[crVar],set[crVar]) => set[crVar].
   extendExcl(P,Excl,Fv) => ptnVars(P,Excl,Fv).
 
-  exclDfs:(list[canonDef],set[crVar],set[crVar])=>set[crVar].
+  exclDfs:(cons[canonDef],set[crVar],set[crVar])=>set[crVar].
   exclDfs(Defs,Excl,Fv) => foldRight((D,Ex)=>exclDf(D,Ex,Fv),Excl,Defs).
 
   exclDf(varDef(Lc,Nm,_,_,_,Tp),Excl,Fv) => _addMem(crId(Nm,Tp),Excl).
   exclDf(implDef(_,_,Nm,_,_,Tp),Excl,Fv) => _addMem(crId(Nm,Tp),Excl).
   exclDf(_,Excl,_) => Excl.
 
-  public goalVars:(locn,canon)=>list[canon].
-  goalVars(Lc,Cond) => ((glVars(Cond,[])::list[crVar])//(crId(Nm,Tp))=>vr(Lc,Nm,Tp)).
+  public goalVars:(locn,canon)=>cons[canon].
+  goalVars(Lc,Cond) => ((glVars(Cond,[])::cons[crVar])//(crId(Nm,Tp))=>vr(Lc,Nm,Tp)).
 
   glVars:(canon,set[crVar]) => set[crVar].
   glVars(whr(_,E,C),Vrs) =>

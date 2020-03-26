@@ -11,6 +11,9 @@
 #include <tpl.h>
 #include <array.h>
 #include <hosts.h>
+#include <cons.h>
+#include <globals.h>
+#include <consP.h>
 #include "netfile.h"
 
 ReturnStatus g__listen(processPo P, ptrPo tos) {
@@ -27,7 +30,7 @@ ReturnStatus g__listen(processPo P, ptrPo tos) {
     return liberror(P, "_listen", eNOPERM);
   else {
     return (ReturnStatus) {.ret=Ok,
-              .result =(termPo) allocateIOChnnl(processHeap(P), listen)};
+      .result =(termPo) allocateIOChnnl(processHeap(P), listen)};
   }
 }
 
@@ -131,7 +134,7 @@ ReturnStatus g__connect(processPo P, ptrPo tos) {
       return (ReturnStatus) {.ret=Ok, .result =(termPo) reslt};
     }
     default:
-      logMsg(logFile, "Failed to establish connection: %S", host,hLen);
+      logMsg(logFile, "Failed to establish connection: %S", host, hLen);
       return liberror(P, "_connect", eCONNECT);
   }
 }
@@ -146,13 +149,14 @@ ReturnStatus g__hosttoip(processPo P, ptrPo tos) {
 
   copyString2Buff(C_STR(Arg1), host, NumberOf(host));
 
-  listPo ipList = createList(H, 8);
-  int root = gcAddRoot(H, (ptrPo) &ipList);
+  termPo ipList = (termPo) nilEnum;
+  termPo el = voidEnum;
+  int root = gcAddRoot(H, &ipList);
+  gcAddRoot(H, &el);
 
   for (int i = 0; getNthHostIP(host, (unsigned) i, ip, NumberOf(ip)) != NULL; i++) {
-    stringPo el = allocateCString(H, ip);
-
-    ipList = appendToList(H, ipList, (termPo) el);
+    el = (termPo) allocateCString(H, ip);
+    ipList = (termPo) allocateCons(H, el, ipList);
   }
 
   gcReleaseRoot(H, root);

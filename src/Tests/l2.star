@@ -11,7 +11,7 @@ test.l2{
     disp = dTree
   .}
 
-  splits:(tree[(integer,string)]) => (tree[integer],list[string]).
+  splits:(tree[(integer,string)]) => (tree[integer],cons[string]).
   splits(T) => let{
     spl(.empty) => (.empty,[]).
     spl(node(L,(X,S),R)) => valof action{

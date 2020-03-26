@@ -10,7 +10,7 @@ test.mastermind{
 
   score ::= score{white:integer. black:integer}.
 
-  score:(list[color],list[color])=>score.
+  score:(cons[color],cons[color])=>score.
   score(Secret,Guess) => let{
     blacks([],[],Cnt,SoFar) => (Cnt,SoFar).
     blacks([C,..Ss],[C,..Gs],Cnt,SoFar) =>

@@ -43,11 +43,11 @@ star.strings{
     reverse(L) => _str_reverse(L).
   }
 
-  public implementation coercion[string,list[integer]] => {
+  public implementation coercion[string,cons[integer]] => {
     _coerce(S) => _explode(S).
   }
 
-  public implementation coercion[list[integer],string] => {
+  public implementation coercion[cons[integer],string] => {
     _coerce(L) => _implode(L).
   }
 
@@ -61,15 +61,10 @@ star.strings{
     _eof(S) => S=="".
     _hdtl(S) default => some(_str_hdtl(S)).
     _hdtl("") => .none.
-
-    _back("") => .none.
-    _back(S) => some(_str_back(S)).
   .}
 
   public implementation sequence[string->>integer] => {.
     _cons(C,S) => _str_cons(C,S).
-
-    _apnd(S,C) => _str_apnd(S,C).
     _nil = "".
   .}
 
@@ -103,5 +98,4 @@ star.strings{
 
   public isAlphaNum:(integer) => boolean.
   isAlphaNum(Ch) => (_isLetterChar(Ch) || _isNdChar(Ch)).
-
 }

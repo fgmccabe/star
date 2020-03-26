@@ -105,7 +105,6 @@ test.ralist{
   public implementation all e ~~ sequence[ra[e]->>e] => {.
     _nil = ra(.nil).
     _cons(E,ra(L)) => ra(consTree(leaf(E),L)).
-    _apnd(ra(L),E) => ra(consTree(leaf(E),L)).
   .}
 
   public implementation all e ~~ head[ra[e]->>e] => {.
@@ -141,17 +140,6 @@ test.ralist{
     } in foldDRight(ff,[],L)
   }
   
-  public implementation all e ~~ display[e] |: dump[ra[e]] => {
-    dump(ra(ts)) => ssSeq([ss("ra["),dumpList(ts),ss("]")]).
-
-    dumpList(.nil) => ss("").
-    dumpList(cons(.zer,ts)) => ssSeq([ss("."),dumpList(ts)]).
-    dumpList(cons(one(t),ts)) => ssSeq([dumpTree(t),dumpList(ts)]).
-
-    dumpTree(leaf(x)) => disp(x).
-    dumpTree(node(w,t1,t2)) => ssSeq([ss("{"), disp(w), dumpTree(t1), dumpTree(t2),ss("}")]).
-  }
-
   public implementation all e ~~ display[e] |: display[ra[e]] => let{
     dispList:(cons[digit[e]])=>ss.
     dispList(.nil) => ss("").

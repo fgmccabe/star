@@ -17,19 +17,19 @@ star.compiler.grapher{
   import star.compiler.term.repo.
   import star.compiler.wff.
 
-  public makeGraph:(importSpec,termRepo,catalog,reports) => either[reports,list[(importSpec,list[importSpec])]].
+  public makeGraph:(importSpec,termRepo,catalog,reports) => either[reports,cons[(importSpec,cons[importSpec])]].
   makeGraph(Imp,Repo,Cat,Rp) => do{
     Defs <- scanPkgs([Imp],Repo,Cat,[],Rp);
     Gps .= topsort(Defs);
-    valis flatten(Gps)
+    valis multicat(Gps)
   }
 
-  implementation depends[(importSpec,list[importSpec])->>importSpec] => {
+  implementation depends[(importSpec,cons[importSpec])->>importSpec] => {
     defined((pkgImp(_,_,P),_),pkgImp(_,_,Q)) => compatiblePkg(P,Q).
     references((_,R)) => R
   }
 
-  scanPkgs:(list[importSpec],termRepo,catalog,list[(importSpec,list[importSpec])],reports)=>either[reports,list[(importSpec,list[importSpec])]].
+  scanPkgs:(cons[importSpec],termRepo,catalog,cons[(importSpec,cons[importSpec])],reports)=>either[reports,cons[(importSpec,cons[importSpec])]].
   scanPkgs([],_,_,SoFar,_) => either(SoFar).
   scanPkgs([P,..Pkgs],Repo,Cat,SoFar,Rp) where pkgImp(Lc,Vz,Pkg) .=P => do{
 --    logMsg("scanning $(P)");
@@ -42,7 +42,7 @@ star.compiler.grapher{
 	try{
 	  pkgSpec(_,Imps,_,_,_,_) <- importPkg(Pkg,Lc,Repo,Rp);
 	  try{
-	    scanPkgs(Pkgs++Imps,Repo,Cat,[SoFar..,(P,Imps)],Rp)
+	    scanPkgs(Pkgs++Imps,Repo,Cat,[(P,Imps),..SoFar],Rp)
 	  } catch {
 	    throw reportError(Rp,"cannot graph $(Pkg)",Lc) -- This is kind of ugly.
 	  }
@@ -55,27 +55,27 @@ star.compiler.grapher{
     scanCat(Lc,Vz,Pkg,Pkgs,Repo,Cat,SoFar,Rp)
   }
 
-  scanCat:(locn,visibility,pkg,list[importSpec],termRepo,catalog,list[(importSpec,list[importSpec])],reports) =>
-    either[reports,list[(importSpec,list[importSpec])]].
+  scanCat:(locn,visibility,pkg,cons[importSpec],termRepo,catalog,cons[(importSpec,cons[importSpec])],reports) =>
+    either[reports,cons[(importSpec,cons[importSpec])]].
   scanCat(Lc,Vz,Pkg,Pkgs,Repo,Cat,SoFar,Rp) => do{
     if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(Pkg)) then{
       if compatiblePkg(CPkg,Pkg) then{
 	Ast <- parseSrc(SrcUri,CPkg,Rp);
 	SubImps <- scanForImports(Ast,Rp);
-	scanPkgs(Pkgs++SubImps,Repo,Cat,[SoFar..,(pkgImp(Lc,Vz,CPkg),SubImps)],Rp)
+	scanPkgs(Pkgs++SubImps,Repo,Cat,[(pkgImp(Lc,Vz,CPkg),SubImps),..SoFar],Rp)
       } else
       throw reportError(Rp,"package in catalog $(CPkg) not compatible with requested package $(Pkg)",Lc)
     } else
     throw reportError(Rp,"package $(Pkg) not in catalog $(Cat)",Lc)
   }
 
-  scanForImports:(ast,reports) => either[reports,list[importSpec]].
+  scanForImports:(ast,reports) => either[reports,cons[importSpec]].
   scanForImports(Term,Rp) => do{
     if (Lc,_,Els) ^= isBrTerm(Term) then {
-      Imps := ([]:list[importSpec]);
+      Imps := ([]:cons[importSpec]);
       for St in Els do{
 	if Imp ^= isImport(St) then{
-	  Imps := [Imps!! ..,Imp]
+	  Imps := [Imp,..Imps!!]
 	}
       };
       valis Imps!!

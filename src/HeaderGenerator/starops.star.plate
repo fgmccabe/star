@@ -15,7 +15,7 @@ star.compiler.operators{
   public isInfixOp:(string) => option[(integer,integer,integer)].
   isInfixOp(Nm) => pickInfix(oper(Nm)).
 
-  pickInfix:(list[operator]) => option[(integer,integer,integer)].
+  pickInfix:(cons[operator]) => option[(integer,integer,integer)].
   pickInfix([]) => .none.
   pickInfix([infixOp(Lf,Pr,Rg),.._]) => some((Lf,Pr,Rg)).
   pickInfix([_,..L]) => pickInfix(L).
@@ -23,7 +23,7 @@ star.compiler.operators{
   public isPrefixOp:(string) => option[(integer,integer)].
   isPrefixOp(Nm) => pickPrefix(oper(Nm)).
 
-  pickPrefix:(list[operator]) => option[(integer,integer)].
+  pickPrefix:(cons[operator]) => option[(integer,integer)].
   pickPrefix([]) => .none.
   pickPrefix([prefixOp(Pr,Rg),.._]) => some((Pr,Rg)).
   pickPrefix([_,..L]) => pickPrefix(L).
@@ -31,12 +31,12 @@ star.compiler.operators{
   public isPostfixOp:(string) => option[(integer,integer)].
   isPostfixOp(Nm) => pickPostfix(oper(Nm)).
 
-  pickPostfix:(list[operator]) => option[(integer,integer)].
+  pickPostfix:(cons[operator]) => option[(integer,integer)].
   pickPostfix([]) => .none.
   pickPostfix([postfixOp(Pr,Rg),.._]) => some((Pr,Rg)).
   pickPostfix([_,..L]) => pickPrefix(L).
 
-  oper:(string)=>list[operator].
+  oper:(string)=>cons[operator].
 #(Operators)  oper(_) default => [].
 
   public isBracket:(string) => option[bracket].

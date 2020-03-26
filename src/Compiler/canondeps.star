@@ -7,11 +7,11 @@ star.compiler.canondeps{
   import star.topsort.
   import star.compiler.meta.
 
-  public sortDefs:(list[canonDef])=>list[list[canonDef]].
+  public sortDefs:(cons[canonDef])=>cons[cons[canonDef]].
   sortDefs(Defs) => valof action{
     Defined .= foldRight((D,S)=>_addMem(definedName(D),S),[],Defs);
 --    logMsg("defined entries $(Defined)");
-    AllRefs .= foldRight((D,A) => [A..,findRefs(D,D,Defined)],([]:list[defSpec]),Defs);
+    AllRefs .= foldRight((D,A) => [findRefs(D,D,Defined),..A],([]:cons[defSpec]),Defs);
 --    logMsg("all refs $(AllRefs)");
 
     Sorted .= topsort(AllRefs);
@@ -26,7 +26,7 @@ star.compiler.canondeps{
   definedName(cnsDef(_,Nm,_,_))=>varSp(Nm).
   definedName(implDef(_,_,Nm,_,_,_))=>varSp(Nm).
 
-  defSpec ::= defSpec(defnSp,list[defnSp],canonDef).
+  defSpec ::= defSpec(defnSp,cons[defnSp],canonDef).
 
   implementation depends[defSpec->>defnSp] => {
     references(defSpec(_,Refs,_)) => Refs.
@@ -46,5 +46,5 @@ star.compiler.canondeps{
 
   freeRefs(Val,All) => let{
     Free = freeVarsInTerm(Val,[],[]).
-  } in [varSp(Nm) | crId(Nm,_) in Free && varSp(Nm) in All].
+  } in {varSp(Nm) | crId(Nm,_) in Free && varSp(Nm) in All}.
 }

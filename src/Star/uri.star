@@ -7,7 +7,7 @@ star.uri{
 
   public uri ::= absUri(string,rsrcName,query) | relUri(rsrcName,query).
   public rsrcName ::= netRsrc(authority,resourcePath) | localRsrc(resourcePath).
-  public resourcePath ::= absPath(list[string]) | relPath(list[string]).
+  public resourcePath ::= absPath(cons[string]) | relPath(cons[string]).
 
   public authority ::= server(option[userInfo],host).
 
@@ -18,56 +18,56 @@ star.uri{
   public query ::= qry(string) | .noQ.
 
   public parseUri:(string) => option[uri].
-  parseUri(S) => first(parse(uriParse,S::list[integer])).
+  parseUri(S) => first(parse(uriParse,S::cons[integer])).
 
   first([])=>.none.
   first([(E,_),.._])=>some(E).
 
-  public uriParse:parser[list[integer],uri].
+  public uriParse:parser[cons[integer],uri].
   uriParse = absoluteUri +++ relativeUri.
 
-  absoluteUri:parser[list[integer],uri].
+  absoluteUri:parser[cons[integer],uri].
   absoluteUri = scheme >>= (Scheme) =>
     hierPart >>= (Hier) =>
       query >>= (Query) => return absUri(Scheme,Hier,Query).
   
-  scheme:parser[list[integer],string].
+  scheme:parser[cons[integer],string].
   scheme = _sat(isAlphaNum) >>= (A) => _star(alphaStar) >>= (Rest) => _tk(0c:) >>= (_) => return ([A,..Rest]::string).
 
-  hierPart:parser[list[integer],rsrcName].
+  hierPart:parser[cons[integer],rsrcName].
   hierPart = netPath +++ absoluteRsrc.
 
-  netPath:parser[list[integer],rsrcName].
+  netPath:parser[cons[integer],rsrcName].
   netPath = _str("//") >>= (_) =>
     authority >>= (A) =>
       (absolutePath +++ relativePath) >>= (P) => return netRsrc(A,P).
 
-  authority:parser[list[integer],authority].
+  authority:parser[cons[integer],authority].
   authority = (userInfo >>= (U) => _tk(0c@) >>= (_) => hostNamePort >>= (H) => return server(some(U),H)) +++
   (hostNamePort >>= (H) => return server(.none,H)).
 
-  userInfo:parser[list[integer],userInfo].
+  userInfo:parser[cons[integer],userInfo].
   userInfo = _star(userStar) >>= (U) => return user(U::string).
 
-  relativeUri:parser[list[integer],uri].
+  relativeUri:parser[cons[integer],uri].
   relativeUri = (netPath+++absoluteRsrc+++relativeRsrc) >>= (P) => query >>= (Q)=>return relUri(P,Q).
 
-  absoluteRsrc:parser[list[integer],rsrcName].
+  absoluteRsrc:parser[cons[integer],rsrcName].
   absoluteRsrc = absolutePath >>= (P)=> return localRsrc(P).
 
-  absolutePath:parser[list[integer],resourcePath].
+  absolutePath:parser[cons[integer],resourcePath].
   absolutePath = _tk(0c/) >>= (_) => sepby(segment,_tk(0c/)) >>= (S) => return absPath(S).
 
-  relativeRsrc:parser[list[integer],rsrcName].
+  relativeRsrc:parser[cons[integer],rsrcName].
   relativeRsrc = relativePath >>= (P) => return localRsrc(P).
 
-  relativePath:parser[list[integer],resourcePath].
+  relativePath:parser[cons[integer],resourcePath].
   relativePath = sepby(segment,_tk(0c/)) >>= (S) => return relPath(S).
 
-  segment:parser[list[integer],string].
+  segment:parser[cons[integer],string].
   segment=_star(segChr) >>= (Chrs) => return (Chrs::string).
 
-  segChr:parser[list[integer],integer].
+  segChr:parser[cons[integer],integer].
   segChr = _sat(isSegChr).
 
   isSegChr:(integer)=>boolean.
@@ -82,10 +82,10 @@ star.uri{
   isSegChr(0c;) => .true. -- This is a hack to merge parameters with the segment
   isSegChr(Ch) => isUnreserved(Ch).
 
-  query:parser[list[integer],query].
+  query:parser[cons[integer],query].
   query = (_tk(0c?) >>= (_) => _star(_sat(isUric)) >>= (QQ)=> return qry(QQ::string)) +++ (return .noQ).
 
-  userStar:parser[list[integer],integer].
+  userStar:parser[cons[integer],integer].
   userStar = _sat(userCh).
 
   userCh:(integer) => boolean.
@@ -98,26 +98,26 @@ star.uri{
   userCh(0c+) => .true.
   userCh(Ch) => isUnreserved(Ch).
 
-  hostNamePort:parser[list[integer],host].
+  hostNamePort:parser[cons[integer],host].
   hostNamePort = hostName >>= (H) =>
     ((_tk(0c:) >>= (_) => port >>= (P) => return hostPort(H,P)) +++ (return host(H))).
 
-  hostName:parser[list[integer],string].
+  hostName:parser[cons[integer],string].
   hostName = _star(alphaDash) >>= (H)=> return (H::string).
 
-  alphaStar:parser[list[integer],integer].
+  alphaStar:parser[cons[integer],integer].
   alphaStar = _sat(isAlphaStar).
 
   isAlphaStar:(integer)=>boolean.
   isAlphaStar(Ch) => (isAlphaNum(Ch) || isPlus(Ch) || isMinus(Ch) || isDot(Ch)).
 
-  alphaDash:parser[list[integer],integer].
+  alphaDash:parser[cons[integer],integer].
   alphaDash = _sat(isAlphaDash).
 
   isAlphaDash:(integer)=>boolean.
   isAlphaDash(Ch) => (isAlphaNum(Ch) || isMinus(Ch) || isDot(Ch)).
 
-  port:parser[list[integer],string].
+  port:parser[cons[integer],string].
   port = _plus(_sat(isDigit)) >>= (P)=>return (P::string).
 
   isMinus:(integer)=>boolean.
@@ -213,12 +213,12 @@ star.uri{
   resolvePath(localRsrc(_),localRsrc(absPath(P))) => some(localRsrc(absPath(P))).
   resolvePath(localRsrc(absPath(B)),localRsrc(relPath(P))) where Dr ^= drop(reverse(B)) => some(localRsrc(absPath(edit(P,Dr)))).
 
-  edit: (list[string],list[string]) => list[string].
+  edit: (cons[string],cons[string]) => cons[string].
   edit([".",..Segs],R) => edit(Segs,R).
   edit(["..",..Segs],[_,..R]) => edit(Segs,R).
   edit(Segs,R) => reverse(R)++Segs.
 
-  drop:all t ~~ (list[t])=>option[list[t]].
+  drop:all t ~~ (cons[t])=>option[cons[t]].
   drop([_,..L])=>some(L).
   drop(_) default => .none.
 
@@ -250,7 +250,7 @@ star.uri{
   dispPath(absPath(Segs)) => ssSeq([ss("/"),..dispSegs(Segs)]).
   dispPath(relPath(Segs)) => ssSeq(dispSegs(Segs)).
 
-  dispSegs:(list[string]) => list[ss].
+  dispSegs:(cons[string]) => cons[ss].
   dispSegs([]) => [].
   dispSegs([S]) => [ss(S)].
   dispSegs([S,..M]) => [ss(S),ss("/"),..dispSegs(M)].
@@ -268,17 +268,17 @@ star.uri{
     _coerce(S) where U^=parseUri(S) => U
   .}
 
-  public editUriPath:(uri,(list[string])=>option[list[string]])=>option[uri].
+  public editUriPath:(uri,(cons[string])=>option[cons[string]])=>option[uri].
   editUriPath(absUri(Scheme,ResNam,Qury),F) where NRes^=editUriResource(ResNam,F) => some(absUri(Scheme,NRes,Qury)).
   editUriPath(relUri(ResNam,Qury),F) where NRes^=editUriResource(ResNam,F) => some(relUri(NRes,Qury)).
   editUriPath(_,_) default => .none.
 
-  editUriResource:(rsrcName,(list[string])=>option[list[string]])=>option[rsrcName].
+  editUriResource:(rsrcName,(cons[string])=>option[cons[string]])=>option[rsrcName].
   editUriResource(netRsrc(Auth,Path),F) where NPath^=editPath(Path,F) => some(netRsrc(Auth,NPath)).
   editUriResource(localRsrc(Path),F) where NPath^=editPath(Path,F) => some(localRsrc(NPath)).
   editUriResource(_,_) default => .none.
 
-  editPath:(resourcePath,(list[string])=>option[list[string]])=>option[resourcePath].
+  editPath:(resourcePath,(cons[string])=>option[cons[string]])=>option[resourcePath].
   editPath(absPath(Els),F) where NEls^=F(Els) => some(absPath(NEls)).
   editPath(relPath(Els),F) where NEls^=F(Els) => some(relPath(NEls)).
   editPath(_,_) default => .none.

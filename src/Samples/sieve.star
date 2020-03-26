@@ -7,7 +7,7 @@ sample.sieve{
     cascade:((integer)=>boolean,integer) => ((integer)=>boolean).
     cascade(F,K) => (X)=>(F(X) && X%K=!=0).
 
-    step(X,(P,F)) where F(X) => ([P..,X],cascade(F,X)).
+    step(X,(P,F)) where F(X) => ([X,..P],cascade(F,X)).
     step(_,(P,F)) => (P,F).
 
     sieve:(range[integer])=>list[integer].

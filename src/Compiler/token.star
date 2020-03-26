@@ -24,8 +24,8 @@ star.compiler.token{
     disp(rgtTok(Id)) => ssSeq([ss(Id),ss(">")]).
   .}
 
-  dispSegments:(cons[stringSegment]) => list[ss].
-  dispSegments(Segs) => (Segs//disp) :: list[ss].
+  dispSegments:(cons[stringSegment]) => cons[ss].
+  dispSegments(Segs) => (Segs//disp).
 
   implementation display[stringSegment] => {.
     disp(segment(_,S)) => ss(S).

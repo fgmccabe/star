@@ -31,7 +31,7 @@ retCode parseContent(char *path) {
       char buff[MAXFILELEN], outFn[MAXFILELEN];
       char *codeName = manifestOutPath(&pkg->pkg, "co", buff, NumberOf(buff));
       char *outPath = repoRsrcPath(codeName, outFn, NumberOf(outFn));
-      ioPo out = openOutFile(outPath, rawEncoding);
+      ioPo out = newOutFile(outPath, rawEncoding);
       tryRet(encodePkg(out, pkg));
 
       tryRet(closeFile(out));

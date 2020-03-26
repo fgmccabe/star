@@ -7,13 +7,13 @@ star.compiler.canon{
   import star.compiler.terms.
   import star.compiler.types.
 
-  public pkgSpec::=pkgSpec(pkg,list[importSpec],tipe,list[canonDef],list[implSpec],list[(string,tipe)]).
+  public pkgSpec::=pkgSpec(pkg,cons[importSpec],tipe,cons[canonDef],cons[implSpec],cons[(string,tipe)]).
 
   public implSpec ::= implSpec(option[locn],string,string,tipe).
 
   public canon ::= vr(locn,string,tipe) |
     mtd(locn,string,tipe) |
-    over(locn,canon,tipe,list[constraint]) |
+    over(locn,canon,tipe,cons[constraint]) |
     intr(locn,integer) |
     flt(locn,float) |
     strng(locn,string) |
@@ -23,7 +23,7 @@ star.compiler.canon{
     abstraction(locn,canon,canon,tipe) |
     act(locn,canonAction) | 
     serch(locn,canon,canon,canon) |
-    csexp(locn,canon,list[equation],tipe) |
+    csexp(locn,canon,cons[equation],tipe) |
     match(locn,canon,canon) |
     conj(locn,canon,canon) |
     disj(locn,canon,canon) |
@@ -31,10 +31,10 @@ star.compiler.canon{
     neg(locn,canon) |
     cond(locn,canon,canon,canon) |
     apply(locn,canon,canon,tipe) |
-    tple(locn,list[canon]) |
-    lambda(locn,list[equation],tipe) |
-    letExp(locn,list[canonDef],canon) |
-    record(locn,string,list[(string,canon)],tipe) |
+    tple(locn,cons[canon]) |
+    lambda(locn,cons[equation],tipe) |
+    letExp(locn,cons[canonDef],canon) |
+    record(locn,string,cons[(string,canon)],tipe) |
     update(locn,canon,canon).
 
   public equation ::= eqn(locn,canon,option[canon],canon).
@@ -54,11 +54,11 @@ star.compiler.canon{
     simpleDo(locn,canon,tipe) |
     performDo(locn,canon,tipe,tipe,tipe).
     
-  public canonDef ::= varDef(locn,string,string,canon,list[constraint],tipe) |
+  public canonDef ::= varDef(locn,string,string,canon,cons[constraint],tipe) |
     typeDef(locn,string,tipe,tipe) |
     conDef(locn,string,string,tipe) |
     cnsDef(locn,string,string,tipe) |
-    implDef(locn,string,string,canon,list[constraint],tipe).
+    implDef(locn,string,string,canon,cons[constraint],tipe).
 
   public implementation hasType[canon] => {
     typeOf(vr(_,_,T)) => T.
@@ -219,7 +219,7 @@ star.compiler.canon{
   showCanon(intr(_,Lt),_) => disp(Lt).
   showCanon(flt(_,Lt),_) => disp(Lt).
   showCanon(strng(_,Lt),_) => disp(Lt).
-  showCanon(enm(_,Nm,Tp),_) => ssSeq([ss("."),ss(Nm),ss(":"),disp(Tp)]).
+  showCanon(enm(_,Nm,Tp),_) => ssSeq([ss("."),ss(Nm)]).
   showCanon(whr(_,E,C),Sp) => ssSeq([showCanon(E,Sp),ss(" where "),showCanon(C,Sp)]).
   showCanon(dot(_,R,F,_),Sp) => ssSeq([showCanon(R,Sp),ss("."),ss(F)]).
   showCanon(abstraction(_,Exp,Gen,_),Sp) =>
@@ -250,7 +250,7 @@ star.compiler.canon{
 
   showField((Nm,Val),Sp) => ssSeq([ss(Nm),ss(" = "),showCanon(Val,Sp)]).
 
-  showGroup:(list[canonDef],string) => ss.
+  showGroup:(cons[canonDef],string) => ss.
   showGroup(G,Sp) => ssSeq(interleave(G//(D)=>showDef(D,Sp),ss(".\n"++Sp))).
 
   showDef:(canonDef,string)=>ss.
@@ -262,7 +262,7 @@ star.compiler.canon{
   showDef(implDef(_,Nm,FullNm,Exp,_,Tp),Sp) =>
     ssSeq([ss(Sp),ss("Implementation: "),ss(FullNm),ss(" ["),ss(Nm),ss("] = "),showCanon(Exp,Sp)]).
 
-  showRls:(string,list[equation],string) => ss.
+  showRls:(string,cons[equation],string) => ss.
   showRls(Nm,Rls,Sp) => ssSeq(interleave(Rls//(Rl)=>showRl(Nm,Rl,Sp),ss(".\n"))).
 
   showRl:(string,equation,string) => ss.
@@ -308,7 +308,7 @@ star.compiler.canon{
   isIterableGoal(serch(_,_,_,_)) => .true.
   isIterableGoal(_) default => .false.
 
-  public pkgImports:(pkgSpec)=>list[importSpec].
+  public pkgImports:(pkgSpec)=>cons[importSpec].
   pkgImports(pkgSpec(Pkg,Imports,Face,Cons,Impls,PkgVrs)) => Imports.
 
   public splitPtn:(canon) => (canon,option[canon]).
@@ -328,8 +328,8 @@ star.compiler.canon{
     }
     splitPttrn(Pt) => (Pt,.none).
 
-    splitPttrns(Els) => foldRight(((E,C),(SEls,SCond))=>
-	([SEls..,E],mergeGl(C,SCond)),([],.none),Els//splitPttrn).
+    splitPttrns(Els) => foldLeft(((SEls,SCond),(E,C))=>
+	([E,..SEls],mergeGl(C,SCond)),([],.none),Els//splitPttrn).
 
     mergeGl(.none,C) => C.
     mergeGl(C,.none) => C.

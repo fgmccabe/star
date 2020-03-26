@@ -1,6 +1,7 @@
 star.compiler.ast{
   import star.
   import star.compiler.location.
+  import star.compiler.misc.
   import star.compiler.operators.
   import star.compiler.terms.
 
@@ -8,7 +9,7 @@ star.compiler.ast{
     nme(locn,string)
       | qnm(locn,string)
       | lit(locn,term)
-      | tpl(locn,string,list[ast])
+      | tpl(locn,string,cons[ast])
       | app(locn,ast,ast).
 
   public implementation equality[ast] => {.
@@ -22,6 +23,10 @@ star.compiler.ast{
 
   public implementation display[ast] => {.
     disp(A) => dispAst(A,2000).
+  .}
+
+  public implementation coercion[ast,string] => {.
+    _coerce(A) => "$(A)".
   .}
 
   public dispAst:(ast,integer) => ss.
@@ -72,6 +77,9 @@ star.compiler.ast{
   public isKeyword:(ast) => option[(locn,string)].
   isKeyword(nme(Lc,Id)) where keyword(Id) => some((Lc,Id)).
   isKeyword(_) default => .none.
+
+  public genName:(locn,string) => ast.
+  genName(Lc,Pr) => nme(Lc,genSym(Pr)).
   
   public isInt:(ast) => option[(locn,integer)].
   isInt(lit(Lc,intgr(Ix))) => some((Lc,Ix)).
@@ -110,54 +118,69 @@ star.compiler.ast{
   isTernary(app(Lc,nme(_,Op),tpl(_,"()",[L,M,R])),Op) => some((Lc,L,M,R)).
   isTernary(_,_) default => .none.
 
-  public isSquareTerm:(ast) => option[(locn,ast,list[ast])].
+  public isSquareTerm:(ast) => option[(locn,ast,cons[ast])].
   isSquareTerm(app(Lc,Op,tpl(_,"[]",A))) => some((Lc,Op,A)).
   isSquareTerm(_) default => .none.
 
-  public isSquareApply:(ast) => option[(locn,string,list[ast])].
+  public isSquareApply:(ast) => option[(locn,string,cons[ast])].
   isSquareApply(app(Lc,Op,tpl(_,"[]",A))) where
       (_,Id) ^= isName(Op) => some((Lc,Id,A)).
   isSquareApply(_) default => .none.
+
+  public squareTerm:(locn,ast,cons[ast])=>ast.
+  squareTerm(Lc,Op,Args) => app(Lc,Op,tpl(Lc,"[]",Args)).
   
-  public isTuple:(ast) => option[(locn,list[ast])].
+  public isTuple:(ast) => option[(locn,cons[ast])].
   isTuple(tpl(Lc,"()",A)) => some((Lc,A)).
   isTuple(_) => .none.
 
-  public rndTuple:(locn,list[ast]) => ast.
+  public rndTuple:(locn,cons[ast]) => ast.
   rndTuple(Lc,Els) => tpl(Lc,"()",Els).
 
-  public isSqTuple:(ast) => option[(locn,list[ast])].
+  public isSqTuple:(ast) => option[(locn,cons[ast])].
   isSqTuple(tpl(Lc,"[]",A)) => some((Lc,A)).
   isSqTuple(_) => .none.
 
-  public sqTuple:(locn,list[ast]) => ast.
+  public sqTuple:(locn,cons[ast]) => ast.
   sqTuple(Lc,Els) => tpl(Lc,"[]",Els).
 
-  public isBrTuple:(ast) => option[(locn,list[ast])].
+  public isBrTuple:(ast) => option[(locn,cons[ast])].
   isBrTuple(tpl(Lc,"{}",A)) => some((Lc,A)).
   isBrTuple(_) => .none.
 
-  public brTuple:(locn,list[ast]) => ast.
+  public brTuple:(locn,cons[ast]) => ast.
   brTuple(Lc,Els) => tpl(Lc,"{}",Els).
 
-  public isQBrTuple:(ast) => option[(locn,list[ast])].
+  public isQBrTuple:(ast) => option[(locn,cons[ast])].
   isQBrTuple(tpl(Lc,"{..}",A)) => some((Lc,A)).
   isQBrTuple(_) => .none.
 
-  public isBrTerm:(ast) => option[(locn,ast,list[ast])].
+  public isBrTerm:(ast) => option[(locn,ast,cons[ast])].
   isBrTerm(app(Lc,Op,tpl(_,"{}",A))) => some((Lc,Op,A)).
   isBrTerm(_) default => .none.
 
-  public isBrApply:(ast) => option[(locn,string,list[ast])].
+  public isBrApply:(ast) => option[(locn,string,cons[ast])].
   isBrApply(app(Lc,Op,tpl(_,"{}",A))) where
       (_,Id) ^= isName(Op) => some((Lc,Id,A)).
   isBrApply(_) default => .none.
 
-  public isRoundTerm:(ast) => option[(locn,ast,list[ast])].
+  public isRoundTerm:(ast) => option[(locn,ast,cons[ast])].
   isRoundTerm(app(Lc,Op,tpl(_,"()",A))) where !_^=isKeyword(Op) => some((Lc,Op,A)).
   isRoundTerm(_) default => .none.
 
-  public roundTerm:(locn,ast,list[ast]) => ast.
+  public roundTerm:(locn,ast,cons[ast]) => ast.
   roundTerm(Lc,Op,Els) => app(Lc,Op,tpl(Lc,"()",Els)).
+
+  public braceTerm:(locn,ast,cons[ast]) => ast.
+  braceTerm(Lc,Op,Els) => app(Lc,Op,tpl(Lc,"{}",Els)).
+
+  public implementation coercion[locn,ast]=>{
+    _coerce(Lc where locn(Pkg,Line,Col,Off,Ln).=Lc)=>
+      roundTerm(Lc,nme(Lc,"locn"),[lit(Lc,strg(Pkg)),
+	  lit(Lc,intgr(Line)),
+	  lit(Lc,intgr(Col)),
+	  lit(Lc,intgr(Off)),
+	  lit(Lc,intgr(Ln))]).
+  }
 
 }

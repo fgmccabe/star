@@ -8,12 +8,8 @@ test.fn{
 
   main:()=>action[(),()].
   main()=>do{
-    show dump(S);
-
     assert "one"^=head(S);
     assert "ten"^=last(S);
-
-    show dump(lead(S));
 
     show disp(S);
     show disp(lead(S));

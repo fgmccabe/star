@@ -1,13 +1,9 @@
 star.cons{
   import star.core.
   import star.arith.
-  import star.collection.
   import star.iterable.
   import star.monad.
-  import star.lists.
   import star.coerce.
-
-  public all t ~~ cons[t] ::= .nil | cons(t,cons[t]).
 
   public implementation all x ~~ equality[x] |: equality[cons[x]] => {.
     L1 == L2 => smList(L1,L2).
@@ -39,18 +35,13 @@ star.cons{
   public implementation all x ~~ stream[cons[x] ->> x] => {
     _eof(.nil) => .true.
     _eof(cons(_,_)) => .false.
-
+    
     _hdtl(cons(H,T)) => some((H,T)).
     _hdtl(.nil) => .none.
-
-    _back(.nil) => .none.
-    _back(X) => some(last(X)).
   }
 
   public implementation all x ~~ sequence[cons[x] ->> x] => {
     _cons(E,S) => cons(E,S).
-    _apnd(S,E) => concat(S,cons(E,.nil)).
-
     _nil = .nil.
   }
 
@@ -76,6 +67,10 @@ star.cons{
   concat(.nil,Y) => Y.
   concat(cons(E,X),Y) => cons(E,concat(X,Y)).
 
+  public multicat : all e ~~ (cons[cons[e]]) => cons[e].
+  multicat(.nil) => .nil.
+  multicat(cons(H,T)) => concat(H,multicat(T)).
+
   public implementation all x ~~ reversible[cons[x]] => {
     reverse(L) => rev(L,.nil).
 
@@ -92,34 +87,13 @@ star.cons{
     tail(.nil) => .none.
   }
 
-  public implementation mapping[cons] => {
-    (L//F) => mapOverList(L,F).
-
-    private mapOverList:all e,f ~~ (cons[e],(e)=>f)=>cons[f].
-    mapOverList(.nil,_) => .nil.
-    mapOverList(cons(H,T),F) => cons(F(H),mapOverList(T,F)).
-  }
-
-  public implementation all e ~~ folding[cons[e]->>e] => {
-    foldRight(F,U,.nil) => U.
-    foldRight(F,U,cons(H,T)) => F(H,foldRight(F,U,T)).
-
-    foldLeft(F,U,.nil) => U.
-    foldLeft(F,U,cons(H,T)) => foldLeft(F,F(U,H),T).
-  }
-
-  public implementation all e ~~ reduce[cons[e]->>e] => {
-    reducer(F) => (L,U) => foldRight(F,U,L).
-    reducel(F) => (U,L) => foldLeft(F,U,L).
-  }
-
   -- Implement iteration of executions over a cons list
   public implementation all t ~~ iter[cons[t]->>t] => {
     _iter(.nil,St,_) => St.
     _iter(cons(H,T),St,Fn) => _sequence(St,(SS)=>_iter(T,Fn(H,SS),Fn)).
   }
 
-  -- Implement indexed access
+/*  -- Implement indexed access
   public implementation all t ~~ indexed[cons[t]->>integer,t] => let{
     indexCons:(cons[t],integer)=>option[t].
     indexCons(.nil,_) => .none.
@@ -145,15 +119,7 @@ star.cons{
 
     _empty = .nil.
   }
-
-  public implementation all e ~~ display[e] |: dump[cons[e]] => let{
-    consDump:all e ~~ display[e] |: (cons[e]) => ss.
-    consDump(.nil) => ss(".").
-    consDump(cons(E,T)) => ssSeq([disp(E),ss(": "),consDump(T)]).
-  } in {
-    dump(L) => consDump(L).
-  }
-
+*/
   public implementation all e ~~ display[e] |: display[cons[e]] => let{
     consDisp(.nil) => ss("").
     consDisp(cons(X,.nil)) => disp(X).
@@ -161,10 +127,6 @@ star.cons{
   } in {
     disp(L) => ssSeq([ss("["), consDisp(L),ss("]")]).
   }
-
-  public multicat : all e ~~ (cons[cons[e]]) => cons[e].
-  multicat(.nil) => .nil.
-  multicat(cons(H,T)) => concat(H,multicat(T)).
 
   public implementation functor[cons] => let{
     fm:all a,b ~~ ((a)=>b,cons[a])=>cons[b].
@@ -178,12 +140,5 @@ star.cons{
   public implementation monad[cons] => {
     (return X) => cons(X,.nil).
     (XS >>= F) => multicat(fmap(F,XS)).
-  }
-
-  public implementation all e ~~ coercion[cons[e],list[e]] => let{
-    mkList(.nil) => [].
-    mkList(cons(H,T)) => [H,..mkList(T)].
-  } in {.
-    _coerce = mkList
-  .}
+  }  
 }

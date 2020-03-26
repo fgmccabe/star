@@ -88,7 +88,7 @@ retCode encodeMethod(ioPo out, mtdPo mtd) {
   }
 
   tryRet(encodeTpl(out, poolCount(mtd)));
-  for (listPo con = mtd->constants; con != nilList; con = tail(con)) {
+  for (arrayPo con = mtd->constants; con != nilList; con = tail(con)) {
     tryRet(encodeConstant(out, (constPo) head(con)));
   }
 
@@ -99,7 +99,7 @@ retCode encodeMethod(ioPo out, mtdPo mtd) {
 
   tryRet(encodeTpl(out, lineCount(mtd))); /* Number of line records */
   if (mtd->lines != Null)
-    for (listPo lne = mtd->lines; lne != nilList; lne = tail(lne)) {
+    for (arrayPo lne = mtd->lines; lne != nilList; lne = tail(lne)) {
       tryRet(encodeLine(out, O_LINE(head(lne))));
     }
 

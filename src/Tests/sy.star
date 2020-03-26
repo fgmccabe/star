@@ -4,7 +4,7 @@ test.sy{
 
   -- Test of syntax of star
 
-  CX : (list[integer],integer) => action[(),integer].
+  CX : (cons[integer],integer) => action[(),integer].
   CX(Is,Lm) => do{
     Cx := 0;
     

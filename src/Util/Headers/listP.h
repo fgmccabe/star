@@ -21,7 +21,7 @@
 
 typedef struct {
   objectPo head;
-  listPo tail;
+  arrayPo tail;
 } ConsObjectRec;
 
 typedef struct _list_record_ {

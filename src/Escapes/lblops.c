@@ -6,6 +6,7 @@
 #include <array.h>
 #include <assert.h>
 #include <globals.h>
+#include <cons.h>
 #include "lblops.h"
 #include "engineP.h"
 
@@ -18,7 +19,7 @@ ReturnStatus g__definedLbl(processPo P, ptrPo tos) {
 
   labelPo lbl = findLbl(label, arity);
   return (ReturnStatus) {.ret=Ok,
-            .result = findLbl(label, arity) != Null ? trueEnum : falseEnum};
+    .result = findLbl(label, arity) != Null ? trueEnum : falseEnum};
 }
 
 static inline ptrPo checkStack(processPo P, ptrPo SP) {
@@ -30,9 +31,17 @@ static inline void push(processPo P, termPo t) {
   *checkStack(P, --P->sp) = t;
 }
 
+static void pushArgs(processPo P, termPo args) {
+  if (isCons(args)) {
+    normalPo const p = C_TERM(args);
+    pushArgs(P, consTail(p));
+    push(P, consHead(p));
+  }
+}
+
 ReturnStatus g__callLbl(processPo P, ptrPo tos) {
   integer arity = integerVal(tos[1]);
-  listPo args = C_LIST(tos[2]);
+  termPo args = tos[2];
 
   char label[MAX_SYMB_LEN];
   copyString2Buff(C_STR(tos[0]), label, NumberOf(label));
@@ -40,14 +49,13 @@ ReturnStatus g__callLbl(processPo P, ptrPo tos) {
   ReturnStatus ret = {.ret=Error, .result = voidEnum};
 
   labelPo lbl = findLbl(label, arity);
-  if (lbl != Null || listSize(args) != arity) {
+  if (lbl != Null || consLength(args) != arity) {
     methodPo prog = labelCode(lbl); // Which program do we want?
 
     if (prog == Null) {
       return ret;
     } else {
-      for (int ax = 1; ax <= arity; ax++)
-        push(P, nthEl(args, arity - ax));
+      pushArgs(P, args);
 
       push(P, (termPo) P->prog);
       push(P, (termPo) P->pc);       // Set up for a return

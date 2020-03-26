@@ -9,9 +9,9 @@ star.compiler.dependencies{
   import star.compiler.wff.
   import star.compiler.misc.
 
-  public dependencies:(list[ast],reports) =>
+  public dependencies:(cons[ast],reports) =>
     either[reports,
-      (list[(defnSp,visibility)],list[ast],list[(string,ast)],list[list[defnSpec]])].
+      (cons[(defnSp,visibility)],cons[ast],cons[(string,ast)],cons[cons[defnSpec]])].
   dependencies(Dfs,Rp) => do{
     (Defs,Pb,As,Opn) <- collectDefinitions(Dfs,Rp);
     AllRefs .= (Defs//((defnSpec(Nm,_,_))=>Nm));
@@ -22,15 +22,15 @@ star.compiler.dependencies{
     valis (Pb,Opn,As,Groups)
   }
 
-  public recordDefs:(list[ast],reports) =>
+  public recordDefs:(cons[ast],reports) =>
     either[reports,
-      (list[(defnSp,visibility)],list[ast],list[(string,ast)],list[defnSpec])].
+      (cons[(defnSp,visibility)],cons[ast],cons[(string,ast)],cons[defnSpec])].
   recordDefs(Dfs,Rp) => do{
     (Defs,Pb,As,Opn) <- collectDefinitions(Dfs,Rp);
     valis (Pb,Opn,As,Defs)
   }
 
-  definitionSpec ::= definition(defnSp,locn,list[defnSp],list[ast]).
+  definitionSpec ::= definition(defnSp,locn,cons[defnSp],cons[ast]).
 
   implementation depends[definitionSpec->>defnSp] => {
     references(definition(_,_,Refs,_)) => Refs.
@@ -41,13 +41,13 @@ star.compiler.dependencies{
     disp(definition(Sp,Lc,Refs,_)) => ssSeq([disp(Sp),ss("->"),disp(Refs)]).
   .}
 
-  collectDefinitions:(list[ast],
-    reports) => either[reports,(list[defnSpec],list[(defnSp,visibility)],
-      list[(string,ast)],list[ast])].
+  collectDefinitions:(cons[ast],
+    reports) => either[reports,(cons[defnSpec],cons[(defnSp,visibility)],
+      cons[(string,ast)],cons[ast])].
   collectDefinitions(Stmts,Rp) => collectDefs(Stmts,[],[],[],[],Rp).
 
-  collectDefs:(list[ast],list[defnSpec],list[(defnSp,visibility)],list[(string,ast)],list[ast],reports) => either[reports,(list[defnSpec],list[(defnSp,visibility)],
-      list[(string,ast)],list[ast])].
+  collectDefs:(cons[ast],cons[defnSpec],cons[(defnSp,visibility)],cons[(string,ast)],cons[ast],reports) => either[reports,(cons[defnSpec],cons[(defnSp,visibility)],
+      cons[(string,ast)],cons[ast])].
   
   collectDefs([],Defs,Pb,As,Opn,Rp) => either((Defs,Pb,As,Opn)).
   collectDefs([A,..Ss],Defs,Pb,As,Opn,Rp) where _ ^= isAnnotation(A) =>
@@ -58,14 +58,14 @@ star.compiler.dependencies{
   }
     
   collectDefinition:(ast,
-    list[ast],
-    list[defnSpec],
-    list[(defnSp,visibility)],
-    list[(string,ast)],
-    list[ast],
+    cons[ast],
+    cons[defnSpec],
+    cons[(defnSp,visibility)],
+    cons[(string,ast)],
+    cons[ast],
     visibility,
-    reports) => either[reports,(list[ast],list[defnSpec],
-      list[(defnSp,visibility)],list[(string,ast)],list[ast])].
+    reports) => either[reports,(cons[ast],cons[defnSpec],
+      cons[(defnSp,visibility)],cons[(string,ast)],cons[ast])].
 
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,_,Rp) where
       (_,Ai) ^= isPublic(A) =>
@@ -133,18 +133,18 @@ star.compiler.dependencies{
   collectDefinition(A,_,_,_,_,_,_,Rp) =>
     other(reportError(Rp,"cannot understand definition $(A)",locOf(A))).
 
-  publishName:(defnSp,visibility,list[(defnSp,visibility)])=>
-    list[(defnSp,visibility)].
+  publishName:(defnSp,visibility,cons[(defnSp,visibility)])=>
+    cons[(defnSp,visibility)].
   publishName(Nm,_,Pb) where (Nm,_) in Pb => Pb.
   publishName(Nm,Vz,Pb) => [(Nm,Vz),..Pb].
 
-  collectDefines:(list[ast],string,list[ast]) => (list[ast],list[ast]).
+  collectDefines:(cons[ast],string,cons[ast]) => (cons[ast],cons[ast]).
   collectDefines([St,..Ss],Nm,Dfs) where
-      (_,Nm) ^= ruleName(St) => collectDefines(Ss,Nm,[Dfs..,St]).
-  collectDefines(Ss,Nm,Dfs) default => (Ss,Dfs).
+      (_,Nm) ^= ruleName(St) => collectDefines(Ss,Nm,[St,..Dfs]).
+  collectDefines(Ss,Nm,Dfs) default => (Ss,reverse(Dfs)).
 	
-  generateAnnotations:(list[ast],list[ast],list[ast],list[(string,ast)]) =>
-    list[(string,ast)].
+  generateAnnotations:(cons[ast],cons[ast],cons[ast],cons[(string,ast)]) =>
+    cons[(string,ast)].
   generateAnnotations([],_,_,As) => As.
   generateAnnotations([A,..Ss],Qs,Cs,As) where
       (_,V,T) ^= isTypeAnnotation(A) && (_,Id) ^= isName(V) =>
@@ -152,9 +152,9 @@ star.compiler.dependencies{
   generateAnnotations([A,..Ss],Qs,Cs,As) =>
     generateAnnotations(Ss,Qs,Cs,As).
 
-  collectThetaRefs:(list[defnSpec],list[defnSp],list[(string,ast)],
-    list[definitionSpec],reports) =>
-    either[reports,list[definitionSpec]].
+  collectThetaRefs:(cons[defnSpec],cons[defnSp],cons[(string,ast)],
+    cons[definitionSpec],reports) =>
+    either[reports,cons[definitionSpec]].
   collectThetaRefs([],_,_,DSpecs,_) => either(DSpecs).
   collectThetaRefs([defnSpec(cnsSp(Nm),Lc,[Def]),..Defs],AllRefs,Annots,S,Rp) => do{
     Refs <- collectTypeRefs(Def,AllRefs,[],Rp);
@@ -165,18 +165,18 @@ star.compiler.dependencies{
     collectThetaRefs(Defs,AllRefs,Annots,[definition(Defines,Lc,Refs,Stmts),..S],Rp)
   }.
 
-  collectEnvRefs:(list[ast],list[defnSp],list[(string,ast)],list[defnSp],reports) =>
-    either[reports,list[defnSp]].
+  collectEnvRefs:(cons[ast],cons[defnSp],cons[(string,ast)],cons[defnSp],reports) =>
+    either[reports,cons[defnSp]].
   collectEnvRefs(Defs,All,Annots,Rf,Rp) =>
     collectStmtsRefs(Defs,locallyDefined(Defs,All),Annots,Rf,Rp).
 
-  locallyDefined:(list[ast],list[defnSp]) => list[defnSp].
+  locallyDefined:(cons[ast],cons[defnSp]) => cons[defnSp].
   locallyDefined([],All) => All.
   locallyDefined([St,..Stmts],All) =>
     locallyDefined(Stmts,removeLocalDef(St,All)).
 
   removeLocalDef(St,All) where (_,Id) ^= ruleName(St) =>
-    subtract(varSp(Id),All).
+    _delMem(varSp(Id),All).
 
   collectStmtsRefs([],_,_,Rf,_) => either(Rf).
   collectStmtsRefs([St,..Sts],All,Annots,Rf,Rp) => do{
@@ -184,8 +184,8 @@ star.compiler.dependencies{
     collectStmtsRefs(Sts,All,Annots,Rf0,Rp)
   }
 
-  collectStmtRefs:(ast,list[defnSp],list[(string,ast)],list[defnSp],reports) =>
-    either[reports,list[defnSp]].
+  collectStmtRefs:(ast,cons[defnSp],cons[(string,ast)],cons[defnSp],reports) =>
+    either[reports,cons[defnSp]].
   collectStmtRefs(A,All,Annots,Rf,Rp) where (_,_,Tp) ^= isTypeAnnotation(A) =>
     collectTypeRefs(Tp,All,Rf,Rp).
   collectStmtRefs(A,All,Annots,Rf,Rp) where (_,I) ^= isPublic(A) =>
@@ -263,7 +263,7 @@ star.compiler.dependencies{
 	either(Rf)).
   collectAnnotRefs(H,_,_,_,Rp) => other(reportError(Rp,"not a head: $(H)",locOf(H))).
 
-  collectCondRefs:(ast,list[defnSp],list[defnSp],reports) => either[reports,list[defnSp]].
+  collectCondRefs:(ast,cons[defnSp],cons[defnSp],reports) => either[reports,cons[defnSp]].
   collectCondRefs(A,All,Rf,Rp) where (_,L,R) ^= isConjunct(A) => do{
     Rf1 <- collectCondRefs(L,All,Rf,Rp);
     collectCondRefs(R,All,Rf1,Rp)
@@ -283,7 +283,7 @@ star.compiler.dependencies{
     collectCondRefs(C,All,Rf,Rp).
   collectCondRefs(E,All,Rf,Rp) => collectTermRefs(E,All,Rf,Rp).
     
-  collectTermRefs:(ast,list[defnSp],list[defnSp],reports) => either[reports,list[defnSp]].
+  collectTermRefs:(ast,cons[defnSp],cons[defnSp],reports) => either[reports,cons[defnSp]].
   collectTermRefs(V,All,Rf,Rp) where (_,Id) ^= isName(V) =>
     either(collectName(varSp(Id),All,Rf)).
   collectTermRefs(T,All,Rf,Rp) where (_,Id) ^= isEnumSymb(T) =>
@@ -305,10 +305,6 @@ star.compiler.dependencies{
   collectTermRefs(T,All,Rf,Rp) where (_,Args) ^= isSqTuple(T) => 
     collectTermListRefs(Args,All,Rf,Rp).
   collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isCons(T) => do{
-    Rf1 <- collectTermRefs(L,All,Rf,Rp);
-    collectTermRefs(R,All,Rf1,Rp)
-  }
-  collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isLCons(T) => do{
     Rf1 <- collectTermRefs(L,All,Rf,Rp);
     collectTermRefs(R,All,Rf1,Rp)
   }
@@ -396,7 +392,7 @@ star.compiler.dependencies{
   }
   collectTermRefs(_,_,Rf,_) default => either(Rf).
 
-  collectDoRefs:(ast,list[defnSp],list[defnSp],reports) => either[reports,list[defnSp]].
+  collectDoRefs:(ast,cons[defnSp],cons[defnSp],reports) => either[reports,cons[defnSp]].
   collectDoRefs(A,All,Rf,Rp) where (_,L,R) ^= isActionSeq(A) => do{
     Rf1 <- collectDoRefs(L,All,Rf,Rp);
     collectDoRefs(R,All,Rf1,Rp)
@@ -454,15 +450,15 @@ star.compiler.dependencies{
   collectCaseRefs(Cse,_,_,Rp) =>
     other(reportError(Rp,"invalid case in case expression $(Cse)",locOf(Cse))).
     
-  collectTermListRefs:(list[ast],list[defnSp],list[defnSp],reports) =>
-    either[reports,list[defnSp]].
+  collectTermListRefs:(cons[ast],cons[defnSp],cons[defnSp],reports) =>
+    either[reports,cons[defnSp]].
   collectTermListRefs([],_,R,_) => either(R).
   collectTermListRefs([T,..Ts],All,Rf,Rp) => do {
     R1 <- collectTermRefs(T,All,Rf,Rp);
     collectTermListRefs(Ts,All,R1,Rp)
   }
 
-  collectTypeRefs:(ast,list[defnSp],list[defnSp],reports) => either[reports,list[defnSp]].
+  collectTypeRefs:(ast,cons[defnSp],cons[defnSp],reports) => either[reports,cons[defnSp]].
   collectTypeRefs(V,All,SoFar,Rp) where (_,Id) ^= isName(V) =>
     either(collectName(tpSp(Id),All,SoFar)).
   collectTypeRefs(T,All,SoFar,Rp) where (_,Op,Els) ^= isSquareTerm(T) => do{
@@ -522,15 +518,15 @@ star.compiler.dependencies{
   collectTypeRefs(T,_,_,Rp) default =>
     other(reportError(Rp,"cannot fathom type $(T)",locOf(T))).
   
-  collectTypeList:(list[ast],list[defnSp],list[defnSp],reports) => either[reports,list[defnSp]].
+  collectTypeList:(cons[ast],cons[defnSp],cons[defnSp],reports) => either[reports,cons[defnSp]].
   collectTypeList([],_,R,_) => either(R).
   collectTypeList([T,..Ts],All,Rf,Rp) => do {
     R1 <- collectTypeRefs(T,All,Rf,Rp);
     collectTypeList(Ts,All,R1,Rp)
   }
 
-  collectConstraintRefs:(list[ast],list[defnSp],list[defnSp],reports) =>
-    either[reports,list[defnSp]].
+  collectConstraintRefs:(cons[ast],cons[defnSp],cons[defnSp],reports) =>
+    either[reports,cons[defnSp]].
   collectConstraintRefs([],_,R,_) => either(R).
   collectConstraintRefs([T,..Ts],All,Rf,Rp) => do {
     R1 <- collectTypeRefs(T,All,Rf,Rp);
@@ -552,7 +548,7 @@ star.compiler.dependencies{
   collectName(Sp,All,SoFar) where Sp in All && !Sp in SoFar => [Sp,..SoFar].
   collectName(_,_,SoFar) default => SoFar.
 
-  filterOut:(list[defnSp],list[ast]) => list[defnSp].
+  filterOut:(cons[defnSp],cons[ast]) => cons[defnSp].
   filterOut([],_) => [].
   filterOut([tpSp(Nm),..As],Q) where V in Q && (_,Nm)^=isName(V) =>
     filterOut(As,Q).

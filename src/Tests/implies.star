@@ -2,10 +2,10 @@ test.implies{
   import star.
   import star.script.
 
-  pars : list[(string,string)].
+  pars : cons[(string,string)].
   pars = [("a","b"),("c","b"),("b","d"),("e","d"),("f","e")].
 
-  ms : list[string].
+  ms : cons[string].
   ms = ["b","a"].
 
   onlySons(P) => (P,S) in pars *> S in ms.

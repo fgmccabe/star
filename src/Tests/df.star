@@ -2,7 +2,7 @@ test.df{
   import star.
   import star.script.
   
-  CX : (list[integer],integer) => action[(),integer].
+  CX : (cons[integer],integer) => action[(),integer].
   CX(Is,Lm) => do{
     Cx := 0;
 
@@ -18,7 +18,7 @@ test.df{
 
   CC = CX(IS,4).
     
-  TX : (list[integer],integer) => action[integer,integer].
+  TX : (cons[integer],integer) => action[integer,integer].
   TX(Is,Lm) => do{
       Cx := 0;
       

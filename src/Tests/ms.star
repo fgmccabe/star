@@ -2,12 +2,12 @@ test.ms{
   import star.
   import star.script.
   
-  mapOver:all s/1,m/1,a,b ~~ stream[s[a]->>a],sequence[s[b]->>b],monad[m] |:
+  mapOver:all s/1,m/1,a,b ~~ stream[s[a]->>a],sequence[s[b]->>b],monad[m],reversible[s[b]] |:
     ((a)=>m[b],s[a])=>m[s[b]].
   mapOver(F,S)=>let{
-    mpOver([],Sf)=> return Sf.
+    mpOver([],Sf)=> return reverse(Sf).
     mpOver([E,..Es],Sf) =>
-      F(E) >>= (E1)=>mpOver(Es,[Sf..,E1]).
+      F(E) >>= (E1)=>mpOver(Es,[E1,..Sf]).
   } in mpOver(S,[]).
 
 
@@ -15,10 +15,10 @@ test.ms{
   doubleOrQuits(X) where X>0 => some(X+X).
   doubleOrQuits(_) => .none.
 
-  KK : list[integer].
+  KK : cons[integer].
   KK = [1,2,3,4,5].
 
-  LL : list[integer].
+  LL : cons[integer].
   LL = [1,2,3,0,5].
 
   sq:(float)=>option[float].
@@ -40,11 +40,11 @@ test.ms{
 
     assert mapOver(doubleOrQuits,LL)==.none;
 
-    show disp(strmap(sq,([1.0,2.0,3.0,4.0]:list[float])));
+    show disp(strmap(sq,([1.0,2.0,3.0,4.0]:cons[float])));
 
     show disp(strmap(sq,([1.0,2.0,-3.0]:cons[float])));
 
-    show disp(seqmap(sqr,([1.0,2.0,3.0,4.0]:list[float])));
-    show disp(seqmap(sqr,([1.0,-2.0,3.0,4.0]:list[float])))
+    show disp(seqmap(sqr,([1.0,2.0,3.0,4.0]:cons[float])));
+    show disp(seqmap(sqr,([1.0,-2.0,3.0,4.0]:cons[float])))
   }
 }

@@ -5,6 +5,6 @@ test.s{
 
   main:() => action[(),()].
   main() => do{
-    assert sort(([2,1,4,1,-1]:list[integer]),(<)) == [-1,1,1,2,4]
+    assert sort(([2,1,4,1,-1]:cons[integer]),(<)) == [-1,1,1,2,4]
   }
 }

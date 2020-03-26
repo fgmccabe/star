@@ -1,7 +1,7 @@
 star.collection{
   import star.core.
   import star.option.
-  import star.lists.
+  import star.cons.
   import star.arith.
 
   public contract all c,e ~~ folding[c->>e] ::= {
@@ -66,53 +66,47 @@ star.collection{
     _update:(r,(t)=>option[t]) => r.
   }
 
-  public implementation mapping[list] => {
-    (L//F) => mapOverList(L,F,0,_list_size(L)).
+  public interleave: all c,t ~~ stream[c->>t],sequence[c->>t] |: (c,t) => c.
+  interleave([],_) => [].
+  interleave([F,..R],I) => let{
+    inter([]) => [].
+    inter([E,..L]) => [I,E,..inter(L)].
+  } in [F,..inter(R)].
 
-    private mapOverList:all e,f ~~ (list[e],(e)=>f,integer,integer)=>list[f].
-    mapOverList(_,_,Lx,Lx)=>_list_nil(Lx).
-    mapOverList(L,F,Ix,Lx) => _list_prepend(mapOverList(L,F,Ix+1,Lx),F(_list_nth(L,Ix))).
+  public implementation mapping[cons] => {
+    (L//F) => mapOverList(L,F).
+
+    private mapOverList:all e,f ~~ (cons[e],(e)=>f)=>cons[f].
+    mapOverList(.nil,_) => .nil.
+    mapOverList(cons(H,T),F) => cons(F(H),mapOverList(T,F)).
   }
 
-  public implementation all e ~~ reduce[list[e]->>e] => {
-    reducer(F) => let{
-      rdr([],z) => z.
-      rdr([x,..l],z) => F(x,rdr(l,z)).
-    } in rdr.
-    reducel(F) => let{
-      rdl(z,[]) => z.
-      rdl(z,[x,..l]) => F(rdl(z,l),x).
-    } in rdl.
+  public implementation all e ~~ folding[cons[e]->>e] => {
+    foldRight(F,U,.nil) => U.
+    foldRight(F,U,cons(H,T)) => F(H,foldRight(F,U,T)).
+
+    foldLeft(F,U,.nil) => U.
+    foldLeft(F,U,cons(H,T)) => foldLeft(F,F(U,H),T).
   }
 
-  public implementation all e ~~ folding[list[e]->>e] => {
-    foldRight(F,Z,L) => let{
-      Mx = size(L).
-      fdr(Ix) where Ix>=Mx => Z.
-      fdr(Ix) => F(_list_nth(L,Ix),fdr(Ix+1)).
-    } in fdr(0).
-    foldLeft(F,Z,L) => let{
-      Mx = size(L).
-      fdl(Ix,I) where Ix>=Mx => I.
-      fdl(Ix,I) => fdl(Ix+1,F(I,_list_nth(L,Ix))).
-    } in fdl(0,Z).
+  public implementation all e ~~ reduce[cons[e]->>e] => {
+    reducer(F) => (L,U) => foldRight(F,U,L).
+    reducel(F) => (U,L) => foldLeft(F,U,L).
   }
 
-  public implementation all e ~~ ixfold[list[e] ->> integer,e] => {
+  public implementation all e ~~ ixfold[cons[e] ->> integer,e] => {.
     ixRight(F,Z,L) => let{
-      Mx = size(L).
-      fdr(Ix) where Ix>=Mx => Z.
-      fdr(Ix) => F(Ix,_list_nth(L,Ix),fdr(Ix+1)).
-    } in fdr(0).
+      fdr(.nil,_) => Z.
+      fdr(cons(H,T),Ix) => F(Ix,H,fdr(T,Ix+1)).
+    } in fdr(L,0).
 
     ixLeft(F,Z,L) => let{
-      Mx = size(L).
-      fdl(Ix,I) where Ix>=Mx => I.
-      fdl(Ix,I) => fdl(Ix+1,F(I,Ix,_list_nth(L,Ix))).
-    } in fdl(0,Z).
-  }
+      fdl(.nil,Ix,Ac) => Ac.
+      fdl(cons(H,T),Ix,Ac) => fdl(T,Ix+1,F(Ac,Ix,H)).
+    } in fdl(L,0,Z).
+  .}
 
-  public implementation all e ~~ search[list[e]->>e] => {
+  public implementation all e ~~ search[cons[e]->>e] => {
     search(L,F) => searchList(L,F).
 
     private searchList([],_) => .none.
@@ -120,46 +114,31 @@ star.collection{
     searchList([_,..L],F) => searchList(L,F).
   }
 
-  public implementation all e ~~ equality[e], hash[e] |: membership[list[e]->>e] => {
-    empty = [].
-    _addMem(k,L) where _ ^= search(L,(e)=>e==k) => L.
-    _addMem(k,L) => [L..,k].
-    _delMem(k,[]) => [].
-    _delMem(k,[k,..L]) => L.
-    _delMem(k,[e,..L]) => [e,.._delMem(k,L)].
-    _contains(L,k) => _ ^= search(L,(e)=>e==k).
+  public implementation all t ~~ filter[cons[t]->>t] => let{
+    filter([],F) => [].
+    filter([E,..Es],F) where F(E) => [E,..filter(Es,F)].
+    filter([_,..Es],F) => filter(Es,F).
+  } in {
+    (LL ^/ F) => filter(LL,F)
   }
 
-  public iota: (integer,integer)=>list[integer].
+  public implementation all e ~~ equality[e] |: membership[cons[e]->>e] => let{
+    _mem(K,cons(K,_)) => .true.
+    _mem(K,cons(_,L)) => _mem(K,L).
+    _mem(_,.nil) => .false.
+
+    _rem(_,.nil) => .nil.
+    _rem(K,cons(K,L)) => L.
+    _rem(K,cons(E,L)) => cons(E,_rem(K,L)).
+  } in {.
+    empty = .nil.
+    _addMem(E,L) => cons(E,L).
+    _delMem(E,L) => _rem(E,L).
+    _contains(L,E) => _mem(E,L)
+  .}
+
+  public iota: all c ~~ sequence[c->>integer] |: (integer,integer)=>c.
   iota(Mx,Mx) => [].
   iota(Ix,Mx) where Ix<Mx => [Ix,..iota(Ix+1,Mx)].
 
-  listPairs:all e ~~ (list[e],integer,integer)=>list[(integer,e)].
-  listPairs(_,Mx,Mx) => [].
-  listPairs(M,Ix,Mx) where Ix<Mx => [(Ix,_list_nth(M,Ix)),..listPairs(M,Ix+1,Mx)].
-
-  public implementation all e ~~ indexed[list[e] ->> integer,e] => {
-    _index(L,ix) where ix>=0 && ix<_list_size(L) => some(_list_nth(L,ix)).
-    _index(_,_) default => .none.
-
-    _put(L,ix,v) => _list_replace(L,ix,v).
-
-    _remove(L,ix) => _list_remove(L,ix).
-    _empty = _list_nil(0).
-  }
-
-  public interleave: all t ~~ (list[t],t) => list[t].
-  interleave([],_) => [].
-  interleave([F,..R],I) => let{
-    inter([]) => [].
-    inter([E,..L]) => [I,E,..inter(L)].
-  } in [F,..inter(R)].
-
-  public implementation all e ~~ filter[list[e]->>e] => let{
-    filter([],F,L) => L.
-    filter([E,..Es],F,L) where F(E) => filter(Es,F,[L..,E]).
-    filter([_,..Es],F,L) => filter(Es,F,L).
-  } in {
-    (LL ^/ F) => filter(LL,F,[])
-  }
 }

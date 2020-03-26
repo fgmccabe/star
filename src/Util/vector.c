@@ -95,6 +95,13 @@ vectorPo vector(int count, ...) {
   return v;
 }
 
+vectorPo duplicateVector(vectorPo src) {
+  vectorPo tgt = vector(0);
+  for (integer ix = 0; ix < vectLength(src); ix++)
+    pushVectEl(tgt, getVectEl(src, ix));
+  return tgt;
+}
+
 objectPo getVectEl(vectorPo v, integer ix) {
   assert(ix >= 0 && ix < v->vect.count && ix < v->vect.size);
   return v->vect.data[ix];
@@ -102,6 +109,7 @@ objectPo getVectEl(vectorPo v, integer ix) {
 
 retCode addVectEl(vectorPo v, integer off, objectPo el) {
   assert(off >= 0 && el != Null);
+//  incReference(el);
 
   if (v->vect.count == v->vect.size) {
     integer nSize = ((v->vect.size + 1) * 3) / 2;
@@ -132,6 +140,9 @@ objectPo replaceVectEl(vectorPo v, integer off, objectPo el) {
   objectPo old = v->vect.data[off];
   v->vect.data[off] = el;
 
+//  decReference(old);
+//  incReference(el);
+
   return old;
 }
 
@@ -142,7 +153,16 @@ retCode appendVectEl(vectorPo v, objectPo el) {
     v->vect.size = nSize;
   }
   v->vect.data[v->vect.count++] = el;
+  incReference(el);
   return Ok;
+}
+
+retCode procVector(vectorPo v, vectorProc proc, void *cl) {
+  retCode ret = Ok;
+  for (integer ix = 0; ret == Ok && ix < v->vect.count; ix++) {
+    ret = proc(v->vect.data[ix], ix, cl);
+  }
+  return ret;
 }
 
 retCode pushVectEl(vectorPo v, objectPo el) {
@@ -151,6 +171,10 @@ retCode pushVectEl(vectorPo v, objectPo el) {
 
 objectPo popVectEl(vectorPo v) {
   return removeVectEl(v, v->vect.count - 1);
+}
+
+objectPo pullVectEl(vectorPo v){
+  return removeVectEl(v,0);
 }
 
 objectPo removeVectEl(vectorPo v, integer off) {
@@ -167,6 +191,6 @@ integer vectLength(vectorPo v) {
   return v->vect.count;
 }
 
-logical vectIsEmpty(vectorPo v){
-  return (logical)(v->vect.count==0);
+logical vectIsEmpty(vectorPo v) {
+  return (logical) (v->vect.count == 0);
 }

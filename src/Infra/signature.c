@@ -53,7 +53,7 @@ logical validSig(char *sig, integer *start, integer end) {
     case tpeSig:
       return skipId(sig, start, end);
     case refSig:
-      return validSig(sig,start,end);
+      return validSig(sig, start, end);
     case kfnSig:
       return (logical) (skipId(sig, start, end) && skipInt(sig, start, end));
     case tplSig: {
@@ -68,10 +68,11 @@ logical validSig(char *sig, integer *start, integer end) {
     }
     case tpeExpSig:
       return (logical) (skipId(sig, start, end) && validSig(sig, start, end));
+    case arySig:
     case lstSig:
       return validSig(sig, start, end);
     case faceSig: {
-      if(sig[(*start)++]!='{')
+      if (sig[(*start)++] != '{')
         return False;
       while (*start < end && sig[*start] != '}')
         if (!skipId(sig, start, end) || !validSig(sig, start, end))
@@ -201,7 +202,7 @@ retCode skipSig(char *sig, integer *start, integer end) {
         else
           return Error;
       case refSig:
-        return skipSig(sig,start,end);
+        return skipSig(sig, start, end);
       case kfnSig:
         if (skipId(sig, start, end) && skipInt(sig, start, end))
           return Ok;
@@ -212,6 +213,7 @@ retCode skipSig(char *sig, integer *start, integer end) {
           return skipSig(sig, start, end);
         else
           return Error;
+      case arySig:
       case lstSig:
         return skipSig(sig, start, end);
       case tplSig: {
@@ -357,9 +359,9 @@ retCode showSignature(ioPo out, char *sig, integer *start, integer end) {
     case tpeSig:
       return showSigId(out, sig, start, end);
     case refSig:
-      tryRet(outStr(out,"ref("));
-      tryRet(showSignature(out,sig,start,end));
-      return outStr(out,")");
+      tryRet(outStr(out, "ref("));
+      tryRet(showSignature(out, sig, start, end));
+      return outStr(out, ")");
     case tpeExpSig:
       tryRet(showSigId(out, sig, start, end));
       tryRet(outStr(out, "["));
@@ -370,7 +372,11 @@ retCode showSignature(ioPo out, char *sig, integer *start, integer end) {
         return outStr(out, "]");
       }
     case lstSig:
-      tryRet(outStr(out, "list["));
+      tryRet(outStr(out, "cons["));
+      tryRet(showSignature(out, sig, start, end));
+      return outStr(out, "]");
+    case arySig:
+      tryRet(outStr(out, "array["));
       tryRet(showSignature(out, sig, start, end));
       return outStr(out, "]");
     case tplSig: {

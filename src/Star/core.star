@@ -47,20 +47,18 @@ star.core {
   public contract all S,E ~~ stream[S ->> E] ::= {
     _eof:(S) => boolean.
     _hdtl:(S) => option[(E,S)].
-    _back:(S) => option[(S,E)].
   }
 
   -- The sequence contract
   public contract all S,E ~~ sequence[S->>E] ::= {
     _cons:(E,S) => S.
-    _apnd:(S,E) => S.
     _nil:S.
   }
 
-  public cns[x] ::= .nl | cns(x,cns[x]).
+  public all t ~~ cons[t] ::= .nil | cons(t,cons[t]).
 
   -- Structured string.
-  public ss ::= ss(string) | ssSeq(list[ss]).
+  public ss ::= ss(string) | ssSeq(cons[ss]).
 
   -- Displayable contract
   public contract all t ~~ display[t] ::= {
@@ -72,16 +70,17 @@ star.core {
     frmt:(t,string) => ss.
   }
 
-  public contract all t ~~ dump[t] ::= {
-    dump:(t)=>ss.
-  }
-
   public implementation display[ss] => {
     disp(X) => X
   }
 
   public contract all k ~~ concat[k] ::= {
     (++) : (k,k)=>k.
+  }
+
+  public contract all c,e ~~ glue[c->>e] ::= {
+    prepend:(e,c) => c.
+    append:(c,e) => c.
   }
 
   public contract all t ~~ reversible[t] ::= {

@@ -43,24 +43,15 @@ star.compiler.misc{
   public packageName:(pkg)=>string.
   packageName(pkg(P,_))=>P.
 
-  public pickFailures:all e,x ~~ (list[either[e,x]])=>either[e,list[x]].
+  public pickFailures:all e,x ~~ (cons[either[e,x]])=>either[e,cons[x]].
   pickFailures(Ls) => let{
-    pick:all e,x ~~ (list[either[e,x]],list[x])=>either[e,list[x]].
-    pick([],L) => either(L).
-    pick([either(X),..Els],L) => pick(Els,[L..,X]).
+    pick:all e,x ~~ (cons[either[e,x]],cons[x])=>either[e,cons[x]].
+    pick([],L) => either(reverse(L)).
+    pick([either(X),..Els],L) => pick(Els,[X,..L]).
     pick([other(E),.._],_) => other(E).
   } in pick(Ls,[]).
 
-  public mapOver:all s/1,m/1,a,b ~~ stream[s[a]->>a],sequence[s[b]->>b],monad[m] |:
-    ((a)=>m[b],s[a])=>m[s[b]].
-  mapOver(F,S)=>let{
-    mpOver([],Sf)=> return Sf.
-    mpOver([E,..Es],Sf) =>
-      F(E) >>= (E1)=>mpOver(Es,[Sf..,E1]).
-  } in mpOver(S,[]).
-
-
-  somePrimes:list[integer].
+  somePrimes:cons[integer].
   somePrimes = [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,
     101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,
     197,199,211,223,227,229,233,239,241,251,257,263,269,271,277,281,283,293,307,
@@ -74,11 +65,11 @@ star.compiler.misc{
   public nextPrime:(integer)=>integer.
   nextPrime(X) where Nxt ^= head(somePrimes^/(P)=>P>X) =>Nxt.
 
-  sieve:(list[integer]) => list[integer].
+  sieve:(cons[integer]) => cons[integer].
   sieve([]) => [].
   sieve([C,..I]) => [C,..sieve(filterDups(C,I))].
 
-  filterDups:(integer,list[integer])=>list[integer].
+  filterDups:(integer,cons[integer])=>cons[integer].
   filterDups(C,I) => (I^/(X)=>X%C=!=0).
 
   public trace:all x ~~ display[x] |: (string,x)=>x.

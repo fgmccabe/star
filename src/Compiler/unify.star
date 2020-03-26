@@ -71,9 +71,9 @@ star.compiler.unify{
       bind(T1,T2,Env).
     varBinding(_,_,_) default => valof resetBindings.
 
-    reset ::= resetVar(tipe) | resetConstraint(tipe,list[constraint]).
+    reset ::= resetVar(tipe) | resetConstraint(tipe,cons[constraint]).
 
-    resets : ref list[reset].
+    resets : ref cons[reset].
     resets := [].
 
     resetBindings = action{
@@ -134,7 +134,7 @@ star.compiler.unify{
     }
     bind(_,_,_) default => .false.
 
-    checkConstraints:(list[constraint],dict) => action[(),boolean].
+    checkConstraints:(cons[constraint],dict) => action[(),boolean].
     checkConstraints([],_) => do{ valis .true }.
     checkConstraints([C,..Rest],Env) => do{
       Lhs <- checkConstraint(C,Env);
@@ -161,19 +161,19 @@ star.compiler.unify{
       valis subFace(deRef(F),deRef(Face),Env)
     }.
 
-    mergeConstraints:(list[constraint],list[constraint],dict) =>
-      option[list[constraint]].
+    mergeConstraints:(cons[constraint],cons[constraint],dict) =>
+      option[cons[constraint]].
     mergeConstraints(Cl,Cr,Env) => mergeCons(Cl,Cr,Cr,Env).
 
-    mergeCons:(list[constraint],list[constraint],list[constraint],dict) =>
-      option[list[constraint]].
+    mergeCons:(cons[constraint],cons[constraint],cons[constraint],dict) =>
+      option[cons[constraint]].
     mergeCons([],_,Cx,_) => some(Cx).
     mergeCons([C,..Cx],Cy,Sx,Env) where S1^=mergeConstraint(C,Cy,Sx,Env) =>
       mergeCons(Cx,Cy,S1,Env).
     mergeCons(_,_,_,_) default => .none.
 
-    mergeConstraint:(constraint,list[constraint],list[constraint],dict) =>
-      option[list[constraint]].
+    mergeConstraint:(constraint,cons[constraint],cons[constraint],dict) =>
+      option[cons[constraint]].
     mergeConstraint(C,[],Cs,_) => some([C,..Cs]).
     mergeConstraint(typeConstraint(Tp),[typeConstraint(Tp1),.._],Cs,Env) =>
       (same(Tp,Tp1,Env) ? some(Cs) || .none).

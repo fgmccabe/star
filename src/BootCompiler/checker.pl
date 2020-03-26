@@ -617,7 +617,7 @@ typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
   checkAbstraction(Term,Lc,B,G,Tp,Env,Exp,Path).
 typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
   isListAbstraction(Term,Lc,B,G),!,
-  findType("list",Lc,Env,LTp),
+  findType("cons",Lc,Env,LTp),
   newTypeVar("_El",ElTp),
   checkType(Term,tpExp(LTp,ElTp),Tp,Env),
   checkAbstraction(Term,Lc,B,G,Tp,Env,Exp,Path).
@@ -1097,7 +1097,7 @@ typeOfPtns([A|As],[ETp|ElTypes],Env,Ev,_,[Term|Els],Path) :-
   locOfAst(A,Lc),
   typeOfPtns(As,ElTypes,E0,Ev,Lc,Els,Path).
 
-% Analyse a list term to try to disambiguate maps from lists.
+% Analyse a square tuple term to try to disambiguate maps from others.
 
 squareTupleExp(Lc,Els,Tp,Env,Ev,Exp,Path) :-
   macroListEntries(Lc,Els,Trm,nilGen,consGen,appndGen),
@@ -1166,7 +1166,7 @@ isListSequence([E|_]) :-
   \+isBinary(E,_,"->",_,_).
 
 isListType(Tp,Env) :-
-  isType("list",Env,tpDef(_,LstTp,_)),!,
+  isType("array",Env,tpDef(_,LstTp,_)),!,
   deRef(Tp,tpExp(LsOp,_)),
   moveQuants(LstTp,_,tpExp(LstOp,_)),
   deRef(LsOp,LstOp).
@@ -1189,23 +1189,12 @@ genTailTest(Lc,L,R,Trm) :-
 
 macroListEntries(Lc,[],Trm,End,_,_) :-
   call(End,Lc,Trm).
-macroListEntries(_,[Cns],Trm,_,_,Tail) :-
-  isLConsTerm(Cns,_,H,T),
-  macroLListEntries(T,H,Trm,Tail).
 macroListEntries(_,[Cns],Trm,_,Hed,_) :-
   isConsTerm(Cns,Lc,H,T),
   call(Hed,Lc,H,T,Trm).
 macroListEntries(Lc,[E|L],Trm,End,Hed,Tail) :-
   macroListEntries(Lc,L,Tr,End,Hed,Tail),
   call(Hed,Lc,E,Tr,Trm).
-
-macroLListEntries(T,S,Trm,Tail) :-
-  isBinary(T,Lc,",",H,Tl),!,
-  call(Tail,Lc,S,H,TT),
-  macroLListEntries(Tl,TT,Trm,Tail).
-macroLListEntries(T,S,Trm,Tail) :-
-  locOfAst(T,Lc),
-  call(Tail,Lc,S,T,Trm).
 
 checkType(_,Actual,Expected,Env) :-
   sameType(Actual,Expected,Env).

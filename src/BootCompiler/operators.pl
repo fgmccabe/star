@@ -24,7 +24,6 @@
   operator("^=", [infixOp(899, 900, 899)]).
   operator("&&", [infixOp(910, 910, 909)]).
   operator("pure", [prefixOp(300, 299)]).
-  operator("..,", [infixOp(999, 1000, 1000)]).
   operator("~>", [infixOp(1230, 1231, 1230)]).
   operator("throw", [prefixOp(930, 929)]).
   operator(".|.", [infixOp(720, 720, 719)]).
@@ -126,6 +125,7 @@
   bracket("[]", "[", "]", 2000).
   bracket("()", "(", ")", 2000).
   bracket("{}", "{", "}", 2000).
+  bracket("(||)", "(|", "|)", 2000).
 
   follows('','%','%').
   follows('','&','&').
@@ -156,6 +156,7 @@
   follows('','•','•').
   follows('','#','#').
   follows('&','&','&&').
+  follows('(','|','(|').
   follows('*','*','**').
   follows('*','>','*>').
   follows('+','+','++').
@@ -174,7 +175,6 @@
   follows('.','+','.+').
   follows('.','=','.=').
   follows('.','>','.>').
-  follows('.','.','..').
   follows('.',' ','. ').
   follows('.#','.','.#.').
   follows('.&','.','.&.').
@@ -188,13 +188,13 @@
   follows('.>>','.','.>>.').
   follows('.>>','>','.>>>').
   follows('.>>>','.','.>>>.').
-  follows('..',',','..,').
   follows('/','\\','/\\').
   follows('/','/','//').
   follows('//','/','///').
   follows('{','.','{.').
   follows('|',':','|:').
   follows('|','|','||').
+  follows('|',')','|)').
   follows('~','~','~~').
   follows('~','>','~>').
   follows('\\','/','\\/').
@@ -229,6 +229,7 @@
   final('%',"%").	 /* modulo */
   final('&&',"&&").	 /* conjunction */
   final('(',"(").	 /* parentheses */
+  final('(|',"(|").	 /* banana brackets */
   final(')',")").	 /* parentheses */
   final('*',"*").	 /* zero or more repetitions */
   final('**',"**").	 /* exponentiation */
@@ -253,7 +254,6 @@
   final('.=',".=").	 /* pattern match */
   final('.>>.',".>>.").	 /* logical shift right */
   final('.>>>.',".>>>.").	 /* arithmetic shift right */
-  final('..,',"..,").	 /* list cons */
   final('. ',". ").	 /* statement terminator */
   final('/',"/").	 /* division */
   final('/\\',"/\\").	 /* intersection */
@@ -264,6 +264,7 @@
   final('|',"|").	 /* type union, conditional, and abstraction */
   final('|:',"|:").	 /* constrained type */
   final('||',"||").	 /* disjunction */
+  final('|)',"|)").	 /* banana brackets */
   final('}',"}").	 /* braces */
   final('~~',"~~").	 /* quantifier */
   final('~>',"~>").	 /* type function */
@@ -309,7 +310,6 @@
   keyword("all").
   keyword("^=").
   keyword("&&").
-  keyword("..,").
   keyword("~>").
   keyword("throw").
   keyword("do").

@@ -223,7 +223,12 @@ static char *dumpStarSig(char *sig, ioPo out) {
       outStr(out, ")");
       break;
     case lstSig:
-      outStr(out, "lstType(");
+      outStr(out, "tpExp(tpFun(\"star.core*cons\",1),");
+      sig = dumpStarSig(sig, out);
+      outStr(out, ")");
+      break;
+    case arySig:
+      outStr(out, "tpExp(tpFun(\"star.core*array\",1),");
       sig = dumpStarSig(sig, out);
       outStr(out, ")");
       break;
@@ -385,7 +390,15 @@ static char *dumpPrologSig(char *sig, ioPo out) {
     case lstSig:
       outStr(out, "tpExp(");
       outStr(out, "tpFun(");
-      dumpStr("star.core*list", out);
+      dumpStr("star.core*cons", out);
+      outStr(out, ",1),");
+      sig = dumpPrologSig(sig, out);
+      outStr(out, ")");
+      break;
+    case arySig:
+      outStr(out, "tpExp(");
+      outStr(out, "tpFun(");
+      dumpStr("star.core*array", out);
       outStr(out, ",1),");
       sig = dumpPrologSig(sig, out);
       outStr(out, ")");

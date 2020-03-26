@@ -14,6 +14,9 @@
 #include <dirent.h>
 #include <string.h>
 #include <array.h>
+#include <cons.h>
+#include <globals.h>
+#include <consP.h>
 #include "fileops.h"
 #include "tpl.h"
 
@@ -199,16 +202,18 @@ ReturnStatus g__ls(processPo P, ptrPo tos) {
     }
   } else {
     heapPo H = processHeap(P);
-    listPo list = allocateList(H, 8);
-    int root = gcAddRoot(H, (ptrPo) &list);
+    termPo list = (termPo) nilEnum;
+    termPo name = (termPo) voidEnum;
+    int root = gcAddRoot(H, &list);
+    gcAddRoot(H, &name);
 
     struct dirent *ent;
 
     while ((ent = readdir(directory)) != NULL) {
       /* skip special entries "." and ".." */
       if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0) {
-        termPo name = (termPo) allocateString(H, ent->d_name, uniStrLen(ent->d_name));
-        list = appendToList(H, list, name);
+        name = (termPo) allocateString(H, ent->d_name, uniStrLen(ent->d_name));
+        list = (termPo) allocateCons(H, name, list);
       }
     }
     closedir(directory);              /* Close the directory stream */

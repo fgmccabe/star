@@ -14,7 +14,7 @@ test.dq{
   gp(parents) => { (X,Y) | (X,Z) in parents && (Z,Y) in parents}.
 
   /* gp written by hand as iter query */
-  Gx : action[(),list[(string,string)]].
+  Gx : action[(),cons[(string,string)]].
   Gx = _iter(Ps,do{return _nil},
         ((Gp,Pr),Cx)=> let{
           sF((Pr,Gc),St)=> do { return _cons((Gp,Gc),St) }

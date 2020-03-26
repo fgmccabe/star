@@ -21,6 +21,7 @@
 #include <sys/wait.h>
 #include "engine.h"
 #include "arith.h"
+#include "consP.h"
 
 
 // Number of nano seconds
@@ -77,23 +78,19 @@ void init_args(char **argv, int argc, int start) {
   argcnt = argc - start;
 }
 
-termPo __command_line(heapPo H) {
-  listPo line = allocateList(H, argcnt);
-  int root = gcAddRoot(H, (ptrPo) &line);
-
-  for (integer ix = 0; ix < argcnt; ix++) {
-    stringPo arg = allocateString(H, argsv[ix], uniStrLen(argsv[ix]));
-    setNthEl(line, ix, (termPo) arg);
-  }
-
-  gcReleaseRoot(H, root);
-  return (termPo) line;
-}
-
 ReturnStatus g__command_line(processPo p, ptrPo tos) {
   heapPo H = processHeap(p);
-  termPo line = __command_line(H);
-  return (ReturnStatus) {.ret=Ok, .result=line};
+  termPo list = (termPo) nilEnum;
+  termPo el = (termPo) voidEnum;
+  int root = gcAddRoot(H, &list);
+  gcAddRoot(H, &el);
+
+  for (integer ix = argcnt - 1; ix >= 0; ix--) {
+    el = (termPo) allocateString(H, argsv[ix], uniStrLen(argsv[ix]));
+    list = (termPo) allocateCons(H, el, list);
+  }
+  gcReleaseRoot(H, root);
+  return (ReturnStatus) {.ret=Ok, .result=list};
 }
 
 extern char **environ;
@@ -107,12 +104,14 @@ integer countEnviron() {
 ReturnStatus g__envir(processPo P, ptrPo tos) {
   integer cnt = countEnviron();
   heapPo H = processHeap(P);
-  listPo list = allocateList(H, cnt);
+  termPo list = (termPo) nilEnum;
   int root = gcAddRoot(H, (ptrPo) &list);
   termPo ky = voidEnum;
   termPo vl = voidEnum;
+  termPo pair = voidEnum;
   gcAddRoot(H, &ky);
   gcAddRoot(H, &vl);
+  gcAddRoot(H, &pair);
 
   switchProcessState(P, in_exclusion);
 
@@ -127,8 +126,8 @@ ReturnStatus g__envir(processPo P, ptrPo tos) {
       ky = (termPo) allocateCString(H, envPair);
       vl = voidEnum;
     }
-    normalPo pair = allocatePair(H, ky, vl);
-    setNthEl(list, ix, (termPo) pair);
+    pair = (termPo) allocatePair(H, ky, vl);
+    list = (termPo) allocateCons(H, pair, list);
   }
   gcReleaseRoot(NULL, root);
   setProcessRunnable(P);
@@ -146,7 +145,7 @@ ReturnStatus g__getenv(processPo P, ptrPo tos) {
 
   if (val != NULL) {
     return (ReturnStatus) {.ret=Ok,
-              .result=(termPo) allocateCString(processHeap(P), val)};
+      .result=(termPo) allocateCString(processHeap(P), val)};
   } else {
     return (ReturnStatus) {.ret=Ok, .result=Arg2};
   }
@@ -177,7 +176,7 @@ ReturnStatus g__repo(processPo p, ptrPo tos) {
 
 ReturnStatus g__getlogin(processPo P, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok,
-            .result=(termPo) allocateCString(processHeap(P), getlogin())};
+    .result=(termPo) allocateCString(processHeap(P), getlogin())};
 }
 
 ReturnStatus g__shell(processPo P, ptrPo tos) {
@@ -190,11 +189,11 @@ ReturnStatus g__shell(processPo P, ptrPo tos) {
 
   copyString2Buff(C_STR(Arg1), cmd, NumberOf(cmd));
 
-  listPo args = C_LIST(Arg2);
-  listPo env = C_LIST(Arg3);
+  termPo args = Arg2;
+  termPo env = Arg3;
 
-  integer argCnt = listSize(args);
-  integer envCnt = listSize(env);
+  integer argCnt = consLength(args);
+  integer envCnt = consLength(env);
 
   if (access((char *) cmd, F_OK | R_OK | X_OK) != 0) {
     setProcessRunnable(P);
@@ -204,22 +203,23 @@ ReturnStatus g__shell(processPo P, ptrPo tos) {
     return liberror(P, "__shell", eNOPERM);
   } else {
     char **argv = (char **) calloc((size_t) (argCnt + 2), sizeof(char *));
-    char **envp = (char **) calloc((size_t) (listSize(env) + 1), sizeof(char *));
+    char **envp = (char **) calloc((size_t) (envCnt + 1), sizeof(char *));
     int pid;
 
     argv[0] = cmd;
 
     for (integer ix = 0; ix < argCnt; ix++) {
       char arg[MAXFILELEN];
-      copyString2Buff(C_STR(nthEl(args, ix)), arg, NumberOf(arg));
+      copyString2Buff(C_STR(consHead(C_TERM(args))), arg, NumberOf(arg));
+      args = consTail(C_TERM(args));
       argv[ix + 1] = strdup(arg);
     }
 
     argv[argCnt + 1] = NULL;
 
     for (integer ix = 0; ix < envCnt; ix++) {
-      normalPo pair = C_TERM(nthEl(env, ix));
-
+      normalPo pair = C_TERM(consHead(C_TERM(env)));
+      env = consTail(C_TERM(env));
       bufferPo lineBf = newStringBuffer();
 
       integer klen, vlen;
@@ -272,7 +272,7 @@ ReturnStatus g__shell(processPo P, ptrPo tos) {
           }
         } else if (WIFEXITED(childStatus)) { /* exited normally */
           return (ReturnStatus) {.ret=Ok,
-                    .result = (termPo) allocateInteger(processHeap(P), WEXITSTATUS(childStatus))};
+            .result = (termPo) allocateInteger(processHeap(P), WEXITSTATUS(childStatus))};
         } else if (WIFSIGNALED(childStatus))
           return liberror(P, "__shell", eINTRUPT);
       } while (True);
@@ -291,13 +291,13 @@ ReturnStatus g__popen(processPo P, ptrPo tos) {
 
   copyString2Buff(C_STR(Arg1), cmd, NumberOf(cmd));
 
-  listPo args = C_LIST(Arg2);
-  listPo env = C_LIST(Arg3);
+  termPo args = Arg2;
+  termPo env = Arg3;
 
-  integer argCnt = listSize(args);
-  integer envCnt = listSize(env);
+  integer argCnt = consLength(args);
+  integer envCnt = consLength(env);
 
-  if (access((char *) cmd, F_OK | R_OK | X_OK) != 0) {
+  if (access((char *) cmd, ((unsigned) F_OK) | ((unsigned) R_OK) | ((unsigned) X_OK)) != 0) {
     setProcessRunnable(P);
     return liberror(P, "__shell", eNOTFND);
   } else if (!isExecutableFile(cmd)) {
@@ -305,35 +305,35 @@ ReturnStatus g__popen(processPo P, ptrPo tos) {
     return liberror(P, "__shell", eNOPERM);
   } else {
     char **argv = (char **) calloc((size_t) (argCnt + 2), sizeof(char *));
-    char **envp = (char **) calloc((size_t) (listSize(env) + 1), sizeof(char *));
+    char **envp = (char **) calloc((size_t) (envCnt + 1), sizeof(char *));
     int pid;
 
     argv[0] = cmd;
-
     for (integer ix = 0; ix < argCnt; ix++) {
       char arg[MAXFILELEN];
-      copyString2Buff(C_STR(nthEl(args, ix)), arg, NumberOf(arg));
+      copyString2Buff(C_STR(consHead(C_TERM(args))), arg, NumberOf(arg));
       argv[ix + 1] = strdup(arg);
+      args = consTail(C_TERM(args));
     }
 
     argv[argCnt + 1] = NULL;
-
+    bufferPo lineBf = newStringBuffer();
     for (integer ix = 0; ix < envCnt; ix++) {
-      normalPo pair = C_TERM(nthEl(env, ix));
-
-      bufferPo lineBf = newStringBuffer();
+      normalPo pair = C_TERM(consHead(C_TERM(env)));
+      env = consTail(C_TERM(env));
 
       integer klen, vlen;
       const char *key = stringVal(nthArg(pair, 0), &klen);
       const char *val = stringVal(nthArg(pair, 1), &vlen);
 
+      rewindBuffer(lineBf);
       outMsg(O_IO(lineBf), "%S = %S", key, klen, val, vlen);
 
       integer lineLen;
       const char *line = getTextFromBuffer(lineBf, &lineLen);
       envp[ix] = strndup(line, (size_t) lineLen);
-      closeFile(O_IO(lineBf));
     }
+    closeFile(O_IO(lineBf));
 
     envp[envCnt] = NULL;
 

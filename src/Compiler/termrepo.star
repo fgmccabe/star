@@ -101,9 +101,9 @@ star.compiler.term.repo{
   termEntry(term(_,[strg(P),term(_,Els)]),Map) => 
     Map[P->pEntry(P,foldRight(termVersion,[],Els))].
 
-  termVersion:(term,list[(version,mInfo)])=>list[(version,mInfo)].
+  termVersion:(term,cons[(version,mInfo)])=>cons[(version,mInfo)].
   termVersion(term(_,[strg(V),term(_,Es)]),Vs) where Vr.=V::version =>
-    [Vs..,(Vr,mInfo(Vr,foldRight(termInfo,[],Es)))].
+    [(Vr,mInfo(Vr,foldRight(termInfo,[],Es))),..Vs].
 
   termInfo:(term,map[string,string])=>map[string,string].
   termInfo(term(tLbl(Ky,1),[strg(V)]),Is) => Is[Ky->V].
@@ -113,15 +113,16 @@ star.compiler.term.repo{
   .}
 
   infoTerm:(mInfo)=>term.
-  infoTerm(mInfo(_,Els)) => mkLst(ixRight((Ky,Vl,Mp)=>[Mp..,mkCons(Ky,[strg(Vl)])],[],Els)).
+  infoTerm(mInfo(_,Els)) => mkLst(ixRight((Ky,Vl,Mp)=>[mkCons(Ky,[strg(Vl)]),..Mp],[],Els)).
 
   versionTerm:(pEntry)=>term.
   versionTerm(pEntry(Pk,Vs)) => mkLst(
 	foldRight(((V,Is),Es)=>
-	[Es..,mkTpl([strg(V::string),infoTerm(Is)])],[],Vs)).
+	[mkTpl([strg(V::string),infoTerm(Is)]),..Es],[],Vs)).
 
   manTerm:(manifest)=>term.
-  manTerm(man(Ps))=>mkLst(ixRight((Pk,Vr,Ms)=>[Ms..,mkTpl([strg(Pk),versionTerm(Vr)])],[],Ps)).
+  manTerm(man(Ps))=>mkLst(ixRight((Pk,Vr,Ms)=>
+	[mkTpl([strg(Pk),versionTerm(Vr)]),..Ms],[],Ps)).
 
   implementation coercion[manifest,term] => {.
     _coerce(M)=>manTerm(M).

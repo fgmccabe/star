@@ -14,18 +14,23 @@
 
 typedef struct _vector_record_ *vectorPo;
 
-extern objectPo getVectEl(vectorPo v, integer ix);
-extern retCode addVectEl(vectorPo v, integer off, objectPo el);
-extern objectPo replaceVectEl(vectorPo v, integer off, objectPo el);
-extern retCode appendVectEl(vectorPo v, objectPo el);
-extern objectPo removeVectEl(vectorPo v, integer off);
-extern integer vectLength(vectorPo v);
-extern logical vectIsEmpty(vectorPo v);
+objectPo getVectEl(vectorPo v, integer ix);
+retCode addVectEl(vectorPo v, integer off, objectPo el);
+objectPo replaceVectEl(vectorPo v, integer off, objectPo el);
+retCode appendVectEl(vectorPo v, objectPo el);
+objectPo removeVectEl(vectorPo v, integer off);
+integer vectLength(vectorPo v);
+logical vectIsEmpty(vectorPo v);
 
-extern retCode pushVectEl(vectorPo v,objectPo el);
-extern objectPo popVectEl(vectorPo v);
+retCode pushVectEl(vectorPo v, objectPo el);
+objectPo popVectEl(vectorPo v);
+objectPo pullVectEl(vectorPo v);
 
-extern vectorPo vector(int count, ...);
+typedef retCode (*vectorProc)(objectPo entry, integer ix, void *cl);
+retCode procVector(vectorPo v, vectorProc proc, void *cl);
+
+vectorPo vector(int count, ...);
+vectorPo duplicateVector(vectorPo src);
 
 extern classPo vectorClass;
 

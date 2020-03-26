@@ -11,7 +11,7 @@
 #include <ctype.h>
 
 enum {
-    genProlog, genStar
+  genProlog, genStar
 } genMode = genProlog;
 char *prefix = NULL;
 
@@ -104,15 +104,15 @@ static char *dumpSig(char *sig, bufferPo out) {
       dumpStdType("star.core*boolean", out);
       break;
     case kvrSig:
-      if(genMode==genProlog){
+      if (genMode == genProlog) {
         outStr(O_IO(out), "kVar(");
         sig = dName(sig, out);
         outStr(O_IO(out), ")");
-      } else{
+      } else {
         outStr(O_IO(out), "nomnal(");
         sig = dName(sig, out);
         outStr(O_IO(out), ")");
-      }        
+      }
       break;
     case kfnSig: {
       outStr(O_IO(out), "kFun(");
@@ -223,7 +223,15 @@ static char *dumpSig(char *sig, bufferPo out) {
     case lstSig:
       outStr(O_IO(out), "tpExp(");
       outStr(O_IO(out), "tpFun(");
-      dumpStr("star.core*list", out);
+      dumpStr("star.core*cons", out);
+      outStr(O_IO(out), ",1),");
+      sig = dumpSig(sig, out);
+      outStr(O_IO(out), ")");
+      break;
+    case arySig:
+      outStr(O_IO(out), "tpExp(");
+      outStr(O_IO(out), "tpFun(");
+      dumpStr("star.core*array", out);
       outStr(O_IO(out), ",1),");
       sig = dumpSig(sig, out);
       outStr(O_IO(out), ")");
@@ -421,7 +429,7 @@ static void starIsEscape(FILE *out) {
 
 #include "escapes.h"
 
-  fprintf(out,"  isEscape(_) default => .false.\n");
+  fprintf(out, "  isEscape(_) default => .false.\n");
 
   closeFile(O_IO(buffer));
 }

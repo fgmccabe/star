@@ -28,20 +28,21 @@ star.boot{
   }
 
   public __boot:()=>().
-  __boot() where _ .= _callLbl("star.boot@init",0,_list_nil(0)) =>
+  __boot() where _ .= _callLbl("star.boot@init",0,.nil) =>
     valof do{
       try{
 --	logMsg("starting boot");
 	Opts .= processOptions(_command_line(),
 	  [repoOption,wdOption],bootOptions("file:"++_repo(),"file:"++_cwd()));
         (Top,Args) <- handleCmdLineOpts(Opts);
+	logMsg("Args $(Args)");
         invokeMain(Top,Args)
       } catch (E) => logMsg(E)
     }
   __boot() default => ().
 
-  handleCmdLineOpts:(either[string,(bootOptions,list[string])])=>
-    action[string,(string,list[string])].
+  handleCmdLineOpts:(either[string,(bootOptions,cons[string])])=>
+    action[string,(string,cons[string])].
   handleCmdLineOpts(either((bootOptions(RepoDir,Cwd),[Top,..Args]))) where
       CW ^= parseUri(Cwd) &&
       RU ^= parseUri(RepoDir) &&
@@ -59,13 +60,13 @@ star.boot{
     initialize(Pkg)
   }
 
-  importPkgs:(list[pkg],list[pkg],repository)=>action[string,()].
+  importPkgs:(cons[pkg],cons[pkg],repository)=>action[string,()].
   importPkgs([],Ld,_) => do {valis ()}.
   importPkgs([P,..L],Ld,R) where SubImp ^= importPkg(P,R,Ld) => importPkgs(SubImp++L,[P,..Ld],R).
   importPkgs(_,_,_) default => err("Could not load $(_command_line())").
 
-  importPkg:(pkg,repository,list[pkg])=>option[list[pkg]].
-  importPkg(P,_,Ld) where contains(P,Ld) => some([]).
+  importPkg:(pkg,repository,cons[pkg])=>option[cons[pkg]].
+  importPkg(P,_,Ld) where _contains(Ld,P) => some([]).
   importPkg(P,R,Ld) where
     Code ^= R.hasCode(P) &&
     Imps .= _install_pkg(Code) => some(Imps//(((Pk,V))=>pkg(Pk,V::version))).
@@ -80,7 +81,7 @@ star.boot{
       throw "No init for $(P)"
   }
 
-  invokeMain:(string,list[string]) => action[string,()].
+  invokeMain:(string,cons[string]) => action[string,()].
   invokeMain(Top,Args) => do {
     Pred .= Top++"#_main";
     if _definedLbl(Pred,1) then {

@@ -118,14 +118,14 @@ star.compiler.opg{
     termArgs((binary(mergeLoc(locOf(Left),Lcx),".",Left,nme(Lcx,Fld)),Toks,Rpt,.needOne)).
   termArgs((Left,Toks,Rpt,Needs)) => (Left,0,Toks,Rpt,Needs).
 
-  terms:(cons[token],tk,reports,list[ast]) => (list[ast],reports,cons[token]).
-  terms([tok(Lc,Tk),..Toks],Tk,Rpt,SoFar) => (SoFar,Rpt,[tok(Lc,Tk),..Toks]).
+  terms:(cons[token],tk,reports,cons[ast]) => (cons[ast],reports,cons[token]).
+  terms([tok(Lc,Tk),..Toks],Tk,Rpt,SoFar) => (reverse(SoFar),Rpt,[tok(Lc,Tk),..Toks]).
   terms(Toks,Term,Rpt,SoFar) where
     (El,Rpt1,Toks1) .= astParse(Toks,Rpt) =>
-      terms(Toks1,Term,Rpt1,[SoFar..,El]).
+    terms(Toks1,Term,Rpt1,[El,..SoFar]).
   terms(Toks,_,Rpt,SoFar) => (SoFar,Rpt,Toks).
 
-  deComma:(ast)=>list[ast].
+  deComma:(ast)=>cons[ast].
   deComma(Trm) where (_,Lhs,Rhs) ^= isBinary(Trm,",") => [Lhs,..deComma(Rhs)].
   deComma(Trm) => [Trm].
 
@@ -135,10 +135,10 @@ star.compiler.opg{
   handleInterpolation(Segments,Rp,Lc) where
     (Segs,Rpx) .= stringSegments(Segments,Rp,[]) => (binary(Lc,"::",unary(Lc,"ssSeq",tpl(Lc,"[]",Segs)),nme(Lc,"string")),Rpx).
 
-  stringSegments:(cons[stringSegment],reports,list[ast]) => (list[ast],reports).
-  stringSegments([],Rp,SoFar) => (SoFar,Rp).
+  stringSegments:(cons[stringSegment],reports,cons[ast]) => (cons[ast],reports).
+  stringSegments([],Rp,SoFar) => (reverse(SoFar),Rp).
   stringSegments([Seg,..More],Rp,SoFar) where
-    (Sg,Rp1).=stringSegment(Seg,Rp) => stringSegments(More,Rp1,[SoFar..,Sg]).
+      (Sg,Rp1).=stringSegment(Seg,Rp) => stringSegments(More,Rp1,[Sg,..SoFar]).
 
   stringSegment:(stringSegment,reports) => (ast,reports).
   stringSegment(segment(Lc,Str),Rp) => (unary(Lc,"ss",lit(Lc,strg(Str))),Rp).

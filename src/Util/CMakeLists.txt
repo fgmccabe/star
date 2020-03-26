@@ -48,7 +48,7 @@ set(HEADER_FILES
         Headers/vectorP.h
         Headers/integerP.h
         Headers/strngP.h
-        )
+        Headers/topSortP.h)
 
 set(SOURCE_FILES
         class.c
@@ -87,7 +87,7 @@ set(SOURCE_FILES
 
         ${PUBLIC_HEADERS}
         ${HEADER_FILES}
-        vector.c integer.c strng.c editline.c)
+        vector.c integer.c strng.c editline.c topSort.c Headers/topSort.h)
 
 add_library(ooio STATIC ${SOURCE_FILES})
 target_link_libraries(ooio pthread m)

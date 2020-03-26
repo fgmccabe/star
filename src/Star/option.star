@@ -2,7 +2,7 @@ star.option{
   import star.core.
   import star.coerce.
   import star.arith.
-  import star.lists.
+  import star.cons.
   import star.strings.
   import star.monad.
 
@@ -14,14 +14,6 @@ star.option{
   private dispOptional:all x ~~ display[x] |: (option[x]) => ss.
   dispOptional(.none) => ss("none").
   dispOptional(some(X)) => ssSeq([ss("some("),disp(X),ss(")")]).
-
-  public implementation all x ~~ dump[x] |: dump[option[x]] => {
-    dump(O) => dumpOptional(O).
-  }
-
-  private dumpOptional:all x ~~ dump[x] |: (option[x]) => ss.
-  dumpOptional(.none) => ss("none").
-  dumpOptional(some(X)) => ssSeq([ss("some("),dump(X),ss(")")]).
 
   public implementation all x ~~ equality[x] |: equality[option[x]] => {
     X == Y => optionEqual(X,Y).

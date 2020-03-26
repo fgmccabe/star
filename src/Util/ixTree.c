@@ -145,8 +145,8 @@ static logical leafEquality(objectPo o1, objectPo o2) {
   leafPo l2 = O_LEAF(o2);
 
   if (ixSize((treePo) l1) == ixSize((treePo) l2)) {
-    for (listPo ll1 = l1->leaf.leafs; ll1 != nilList; ll1 = tail(ll1)) {
-      for (listPo ll2 = l2->leaf.leafs; ll2 != nilList; ll2 = tail(ll2)) {
+    for (arrayPo ll1 = l1->leaf.leafs; ll1 != nilList; ll1 = tail(ll1)) {
+      for (arrayPo ll2 = l2->leaf.leafs; ll2 != nilList; ll2 = tail(ll2)) {
         if (equals(head(ll1), head(ll2)))
           goto leafLoop;
       }
@@ -161,7 +161,7 @@ static logical leafEquality(objectPo o1, objectPo o2) {
 
 static objectPo findInLeaf(treePo tree, objectPo key, integer hash) {
   leafPo l = O_LEAF(tree);
-  for (listPo ll = l->leaf.leafs; ll != nilList; ll = tail(ll)) {
+  for (arrayPo ll = l->leaf.leafs; ll != nilList; ll = tail(ll)) {
     pairPo p = O_PAIR(head(ll));
     if (equals(lhs(p), key))
       return rhs(p);
@@ -178,7 +178,7 @@ static logical testLeafs(objectPo o, void *cl) {
 
 static treePo deleteFromLeaf(treePo tree, objectPo key, integer hash) {
   leafPo l = O_LEAF(tree);
-  listPo d = filter(l->leaf.leafs, testLeafs, key);
+  arrayPo d = filter(l->leaf.leafs, testLeafs, key);
 
   return (treePo) newObject(leafClass, d, hash);
 }
@@ -215,9 +215,9 @@ static treePo mergeWithLeaf(treePo t1, treePo t2) {
     leafPo l2 = O_LEAF(t2);
 
     if (l1->tree.mask == l2->tree.mask) {
-      listPo nl = l2->leaf.leafs;
-      for (listPo ll1 = l1->leaf.leafs; ll1 != nilList; ll1 = tail(ll1)) {
-        for (listPo ll2 = l2->leaf.leafs; ll2 != nilList; ll2 = tail(ll2)) {
+      arrayPo nl = l2->leaf.leafs;
+      for (arrayPo ll1 = l1->leaf.leafs; ll1 != nilList; ll1 = tail(ll1)) {
+        for (arrayPo ll2 = l2->leaf.leafs; ll2 != nilList; ll2 = tail(ll2)) {
           if (equals(lhs(head(ll1)), lhs(head(ll2))))
             goto nextLL1;
         }
@@ -289,7 +289,7 @@ int32 leafSize(treePo t) {
 }
 
 void *leafFold(treePo t, ixFolder f, void *state) {
-  listPo l = O_LEAF(t)->leaf.leafs;
+  arrayPo l = O_LEAF(t)->leaf.leafs;
   while (l != nilList) {
     pairPo h = O_PAIR(head(l));
     state = f(lhs(h), rhs(h), state);

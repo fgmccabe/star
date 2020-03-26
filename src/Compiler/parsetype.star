@@ -107,7 +107,7 @@ star.compiler.typeparse{
   }
   parseType(Q,T,Env,Rp) where (Lc,A) ^= isBrTuple(T) => do{
     (Flds,Tps) <- parseTypeFields(Q,A,[],[],Env,Rp);
-    valis faceType(Flds::list[(string,tipe)],Tps::list[(string,tipe)])
+    valis faceType(Flds,Tps)
   }
   parseType(Q,T,Env,Rp) where (Lc,Lhs,Rhs) ^= isTypeLambda(T) => do{
     A <- parseArgType(Q,Lhs,Env,Rp);
@@ -130,8 +130,8 @@ star.compiler.typeparse{
   parseArgType(Q,A,Env,Rp) =>
     parseType(Q,A,Env,Rp).
     
-  parseTypeArgs:(locn,tipes,list[ast],dict,reports) =>
-    either[reports,(list[tipe],list[tipe])].
+  parseTypeArgs:(locn,tipes,cons[ast],dict,reports) =>
+    either[reports,(cons[tipe],cons[tipe])].
   parseTypeArgs(_,Q,[XX],Env,Rp) where (As,Ds)^=isDepends(XX) => do{
     Lhs <- parseTypes(Q,As,Env,Rp);
     Rhs <- parseTypes(Q,Ds,Env,Rp);
@@ -144,7 +144,7 @@ star.compiler.typeparse{
   parseTypeArgs(Lc,_,As,Env,Rp) =>
     other(reportError(Rp,"cannot parse argument types $(As)",Lc)).
 
-  parseTypeFields:(tipes,list[ast],tipes,tipes,dict,reports) =>
+  parseTypeFields:(tipes,cons[ast],tipes,tipes,dict,reports) =>
     either[reports,(tipes,tipes)].
   parseTypeFields(Q,[],Flds,Tps,_,_) => either((Flds,Tps)).
   parseTypeFields(Q,[A,..L],Flds,Tps,Env,Rp) where _ ^= isAnnotation(A) =>
@@ -185,7 +185,7 @@ star.compiler.typeparse{
   parseTypeName(_,Lc,Nm,Env,Rp) =>
     other(reportError(Rp,"type $(Nm) not declared",Lc)).
 
-  public parseBoundTpVars:(list[ast],reports)=>either[reports,tipes].
+  public parseBoundTpVars:(cons[ast],reports)=>either[reports,tipes].
   parseBoundTpVars([],_) => either([]).
   parseBoundTpVars([V,..R],Rp) => do{
     L <- parseBoundTpVars(R,Rp);
@@ -201,7 +201,7 @@ star.compiler.typeparse{
   parseBoundTpVar(O,Rp) default =>
     other(reportError(Rp,"invalid bound type variable $(O)",locOf(O))).
 
-  public parseConstraints:(list[ast],tipes,dict,reports)=>either[reports,list[constraint]].
+  public parseConstraints:(cons[ast],tipes,dict,reports)=>either[reports,cons[constraint]].
   parseConstraints([],_,_,_) => either([]).
   parseConstraints([A,..As],Q,Env,Rp) => do{
     Cn <- parseConstraint(A,Q,Env,Rp);
@@ -254,7 +254,7 @@ star.compiler.typeparse{
 	throw reportError(Rp,"contract $(Op) not defined",locOf(Op))
   }
 
-  parseTypes:(tipes,list[ast],dict,reports) => either[reports,list[tipe]].
+  parseTypes:(tipes,cons[ast],dict,reports) => either[reports,cons[tipe]].
   parseTypes(_,[],_,_) => either([]).
   parseTypes(Q,[T,..L],Env,Rp) => do{
     Tl <- parseType(Q,T,Env,Rp);
@@ -313,10 +313,10 @@ star.compiler.typeparse{
 	}
       }.
 
-  parseHeadArgs:(tipes,list[ast],list[tipe],dict,reports) => either[reports,list[tipe]].
-  parseHeadArgs(Q,[],ArgTps,_,_) => either(ArgTps).
+  parseHeadArgs:(tipes,cons[ast],cons[tipe],dict,reports) => either[reports,cons[tipe]].
+  parseHeadArgs(Q,[],ArgTps,_,_) => either(reverse(ArgTps)).
   parseHeadArgs(Q,[A,..As],Args,Env,Rp) where (_,Nm) ^= isName(A) =>
-    parseHeadArgs(Q,As,[Args..,nomnal(Nm)],Env,Rp).
+    parseHeadArgs(Q,As,[nomnal(Nm),..Args],Env,Rp).
   parseHeadArgs(Q,[A,.._],_,_,Rp) => other(reportError(Rp,"invalid argument in type: $(A)",locOf(A))).
       
   public parseConstructor(Nm,St,Env,Path,Rp) => do{
@@ -336,7 +336,7 @@ star.compiler.typeparse{
       (_,Id) ^= isName(Op) => do{
 	BV <- parseBoundTpVars(Q,Rp);
 	(Flds,Tps) <- parseTypeFields(BV,Els,[],[],Env,Rp);
-	Face .= faceType(Flds::list[(string,tipe)],Tps::list[(string,tipe)]);
+	Face .= faceType(Flds,Tps);
 	Con <- parseTypeHead(BV,T,Env,Path,Rp);
 	valis reQuant(BV,typeExists(Con,Face))
       }

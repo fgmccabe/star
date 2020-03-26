@@ -9,11 +9,11 @@ star.compiler.lexer{
   -- The Star compiler lexer
   public allTokens:(tokenState) => cons[token].
   allTokens(St) => let{
-    allToks(Strm,SoFr) where (Nx,Tk)^=nextToken(Strm) => allToks(Nx,[SoFr..,Tk]).
-    allToks(Strm,SoFr) default => [SoFr..,endTok(makeLoc(Strm,Strm))].
-  } in allToks(St,[]).
+    allToks(Strm,SoFr) where (Nx,Tk)^=nextToken(Strm) => allToks(Nx,[Tk,..SoFr]).
+    allToks(Strm,SoFr) default => [endTok(makeLoc(Strm,Strm)),..SoFr].
+  } in reverse(allToks(St,[])).
 
-  public initSt:(locn,list[integer])=>tokenState.
+  public initSt:(locn,cons[integer])=>tokenState.
   initSt(locn(P,Line,Col,Start,_),Txt) => tokenState(P,Line,Col,Start,Txt).
 
   public nextToken:(tokenState) => option[(tokenState,token)].
@@ -57,29 +57,30 @@ star.compiler.lexer{
 
   isIdentifierStart(Ch) => (Ch==0c_ || isLetter(Ch)).
 
-  readIden:(tokenState,tokenState,list[integer]) => option[(tokenState,token)].
+  readIden:(tokenState,tokenState,cons[integer]) => option[(tokenState,token)].
   readIden(St,St0,SoF) where (Nx,Chr) ^= nextChr(St) && (isIdentifierStart(Chr) || _isNdChar(Chr)) =>
-    readIden(Nx,St0,[SoF..,Chr]).
-  readIden(St,St0,SoF) default => some((St,tok(makeLoc(St0,St),idTok(SoF::string)))).
+    readIden(Nx,St0,[Chr,..SoF]).
+  readIden(St,St0,SoF) default => some((St,tok(makeLoc(St0,St),idTok(reverse(SoF)::string)))).
 
-  readQuoted:(tokenState,integer,list[integer]) => option[(tokenState,string)].
-  readQuoted(St,Qt,Chrs) where (Nx,Qt) ^= nextChr(St) => some((Nx,Chrs::string)).
-  readQuoted(St,Qt,Chrs) where (Nx,Ch) ^= charRef(St) => readQuoted(Nx,Qt,[Chrs..,Ch]).
+  readQuoted:(tokenState,integer,cons[integer]) => option[(tokenState,string)].
+  readQuoted(St,Qt,Chrs) where (Nx,Qt) ^= nextChr(St) => some((Nx,reverse(Chrs)::string)).
+  readQuoted(St,Qt,Chrs) where (Nx,Ch) ^= charRef(St) =>
+    readQuoted(Nx,Qt,[Ch,..Chrs]).
   readQuoted(_,_,_) => .none.
 
   readString:(tokenState,cons[stringSegment]) => option[(tokenState,cons[stringSegment])].
-  readString(St,SoFar) where (Nx,0c\") ^= nextChr(St) => some((Nx,SoFar)).
+  readString(St,SoFar) where (Nx,0c\") ^= nextChr(St) => some((Nx,reverse(SoFar))).
   readString(St,SoFar) where
     (Nx,0c$) ^= nextChr(St) &&
     (_,0c() ^= nextChr(Nx) &&
-    (St1,Inter) ^= interpolation(Nx) => readString(St1,[SoFar..,Inter]).
+      (St1,Inter) ^= interpolation(Nx) => readString(St1,[Inter,..SoFar]).
   readString(St,SoFar) where (St1,Seg) ^= readStr(St,[]) =>
-    readString(St1,[SoFar..,segment(makeLoc(St,St1),Seg)]).
+    readString(St1,[segment(makeLoc(St,St1),Seg),..SoFar]).
 
-  readStr:(tokenState,list[integer]) => option[(tokenState,string)].
+  readStr:(tokenState,cons[integer]) => option[(tokenState,string)].
   readStr(St,Chrs) where  0c\" ^= hedChar(St) => some((St,Chrs::string)).
-  readStr(St,Chrs) where Nx ^= lookingAt(St,[0c$,0c(]) => some((St,Chrs::string)).
-  readStr(St,Chrs) where (Nx,Ch) ^= charRef(St) => readStr(Nx,[Chrs..,Ch]).
+  readStr(St,Chrs) where Nx ^= lookingAt(St,[0c$,0c(]) => some((St,reverse(Chrs)::string)).
+  readStr(St,Chrs) where (Nx,Ch) ^= charRef(St) => readStr(Nx,[Ch,..Chrs]).
   readStr(_,_) => .none.
 
   interpolation:(tokenState) => option[(tokenState,stringSegment)].
@@ -89,32 +90,33 @@ star.compiler.lexer{
       (St3,Format) ^= readFormat(St2) =>
         some((St3,interpolate(makeLoc(St,St3),allTokens(interSt(St1,Inter)),Format))).
 
-  bracketCount:(tokenState,tokenState,integer,list[integer],list[integer]) => option[(tokenState,string)].
+  bracketCount:(tokenState,tokenState,integer,cons[integer],cons[integer]) => option[(tokenState,string)].
   bracketCount(_,St1,Cl,[Cl,..Stk],Chrs) where (St2,Ch)^=nextChr(St1) =>
-    bracketCount(St1,St2,Ch,Stk,[Chrs..,Cl]).
+    bracketCount(St1,St2,Ch,Stk,[Cl,..Chrs]).
   bracketCount(_,St1,0c(,Stk,Chrs) where (St2,Ch)^=nextChr(St1) =>
-    bracketCount(St1,St2,Ch,[0c),..Stk],[Chrs..,0c(]).
+    bracketCount(St1,St2,Ch,[0c),..Stk],[0c\(,..Chrs]).
   bracketCount(_,St1,0c{,Stk,Chrs) where (St2,Ch)^=nextChr(St1) =>
-    bracketCount(St1,St2,Ch,[0c},..Stk],[Chrs..,0c{]).
+    bracketCount(St1,St2,Ch,[0c},..Stk],[0c\{,..Chrs]).
   bracketCount(_,St1,0c[,Stk,Chrs) where (St2,Ch)^=nextChr(St1) =>
-    bracketCount(St1,St2,Ch,[0c],..Stk],[Chrs..,0c[]).
-  bracketCount(St,_,_,[],Chrs) => some((St,Chrs::string)).
+    bracketCount(St1,St2,Ch,[0c],..Stk],[0c\[,..Chrs]).
+  bracketCount(St,_,_,[],Chrs) => some((St,reverse(Chrs)::string)).
   bracketCount(_,St1,C,Stk,Chrs) where (St2,Ch) ^= nextChr(St1) =>
-    bracketCount(St1,St2,Ch,Stk,[Chrs..,C]).
+    bracketCount(St1,St2,Ch,Stk,[C,..Chrs]).
 
   readFormat(St) where (St1,0c:) ^= nextChr(St) => readUntil(St1,0c;,[]).
   readFormat(St) => some((St,"")).
 
-  readUntil:(tokenState,integer,list[integer]) => option[(tokenState,string)].
-  readUntil(St,Qt,Chrs) where (Nx,Qt) ^= nextChr(St) => some((Nx,Chrs::string)).
-  readUntil(St,Qt,Chrs) where (Nx,Ch) ^= charRef(St) => readUntil(Nx,Qt,[Chrs..,Ch]).
+  readUntil:(tokenState,integer,cons[integer]) => option[(tokenState,string)].
+  readUntil(St,Qt,Chrs) where (Nx,Qt) ^= nextChr(St) => some((Nx,reverse(Chrs)::string)).
+  readUntil(St,Qt,Chrs) where (Nx,Ch) ^= charRef(St) => readUntil(Nx,Qt,[Ch,..Chrs]).
   readUntil(_,_,_) => .none.
 
-  stringBlob:(tokenState,tokenState,list[integer]) => option[(tokenState,token)].
+  stringBlob:(tokenState,tokenState,cons[integer]) => option[(tokenState,token)].
   stringBlob(St,St0,Sf) where St1 ^= lookingAt(St,[0c\",0c\",0c\"]) &&
     Lc .= makeLoc(St0,St1) =>
-    some((St1,tok(Lc,strTok([segment(Lc,Sf::string)])))).
-  stringBlob(St,St0,Sf) where (St1,Nx) ^= nextChr(St) => stringBlob(St1,St0,[Sf..,Nx]).
+    some((St1,tok(Lc,strTok([segment(Lc,reverse(Sf)::string)])))).
+  stringBlob(St,St0,Sf) where (St1,Nx) ^= nextChr(St) =>
+    stringBlob(St1,St0,[Nx,..Sf]).
 
   charRef(St) where Nx ^= lookingAt(St,[0c\\]) && (Nxt,Ch) ^= nextChr(Nx) => backslashRef(Nxt,Ch).
   charRef(St) => nextChr(St).
@@ -163,17 +165,17 @@ star.compiler.lexer{
   readExponent(St,St0,Mn) => some((St,tok(makeLoc(St0,St),fltTok(Mn)))).
 
   -- We define a tracking state to allow us to collect locations
-  public tokenState ::= tokenState(string,integer,integer,integer,list[integer]).
+  public tokenState ::= tokenState(string,integer,integer,integer,cons[integer]).
 
   atEof:(tokenState) => boolean.
   atEof(tokenState(_,_,_,_,Str)) => _eof(Str).
 
   nextChr:(tokenState) => option[(tokenState,integer)].
-  nextChr(St) where tokenState(_,_,_,_,Txt).=St && Ch^=Txt[0] => some((nxtSt(St),Ch)).
+  nextChr(St) where tokenState(_,_,_,_,Txt).=St && Ch^=head(Txt) => some((nxtSt(St),Ch)).
   nextChr(_) default => .none.
 
   hedChar:(tokenState) => option[integer].
-  hedChar(tokenState(_,_,_,_,Txt)) where size(Txt)>0 => Txt[0].
+  hedChar(tokenState(_,_,_,_,Txt)) where size(Txt)>0 => head(Txt).
   hedChar(_) default => .none.
 
   preChar:(tokenState,integer) => tokenState.
@@ -181,7 +183,7 @@ star.compiler.lexer{
     tokenState(Pkg,Line,Col-1,Off-1,[Chr,..Txt]).
 
   interSt:(tokenState,string) => tokenState.
-  interSt(tokenState(P,Ln,Cl,Off,_),Txt) => tokenState(P,Ln,Cl,Off,Txt::list[integer]).
+  interSt(tokenState(P,Ln,Cl,Off,_),Txt) => tokenState(P,Ln,Cl,Off,Txt::cons[integer]).
 
   nxtSt:(tokenState) => tokenState.
   nxtSt(tokenState(Pk,Line,Col,Off,[0c\n,..Txt])) =>
@@ -189,7 +191,7 @@ star.compiler.lexer{
   nxtSt(tokenState(Pk,Line,Col,Off,[_,..Txt])) =>
     tokenState(Pk,Line,Col+1,Off+1,Txt).
 
-  lookingAt:(tokenState,list[integer]) => option[tokenState].
+  lookingAt:(tokenState,cons[integer]) => option[tokenState].
   lookingAt(St,[]) => some(St).
   lookingAt(St,[Ch,..Nxt]) where Ch^=hedChar(St) => lookingAt(nxtSt(St),Nxt).
   lookingAt(_,_) default => .none.

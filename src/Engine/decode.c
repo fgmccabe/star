@@ -325,7 +325,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
 
       if (res == Ok) {
         int root = gcAddRoot(H, &lbl);
-        listPo lst = allocateList(H, count);
+        arrayPo lst = allocateArray(H, count);
         *tgt = (termPo) (lst);
 
         termPo el = voidEnum;
@@ -334,7 +334,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
         for (integer i = 0; res == Ok && i < count; i++) {
           res = decode(in, S, H, &el, tmpBuffer); /* read each element of term */
           if (res == Ok)
-            lst = appendToList(H, lst, el);
+            lst = appendToArray(H, lst, el);
         }
 
         gcReleaseRoot(H, root);

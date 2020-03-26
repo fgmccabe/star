@@ -8,7 +8,7 @@ test.qd{
   isName(nme(L,S)) => some((L,S)).
   isName(_) default => .none.
   
-  filterOut:(list[string],list[ast]) => list[string].
+  filterOut:(cons[string],cons[ast]) => cons[string].
   filterOut([],_) => [].
   filterOut([Nm,..As],Q) where (V where (_,Nm)^=isName(V)) in Q =>
     filterOut(As,Q).

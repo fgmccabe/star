@@ -13,6 +13,9 @@ termPo consTail(normalPo p);
 extern labelPo nilEnum;
 extern labelPo consCons;
 
-integer consLength(normalPo p);
+integer consLength(termPo p);
+
+logical isCons(termPo t);
+logical isConsNil(termPo t);
 
 #endif //STAR_LIST_H
