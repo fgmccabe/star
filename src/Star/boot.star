@@ -28,8 +28,7 @@ star.boot{
   }
 
   public __boot:()=>().
-  __boot() where _ .= _callLbl("star.boot@init",0,.nil) =>
-    valof do{
+  __boot() => valof do{
       try{
 --	logMsg("starting boot");
 	Opts .= processOptions(_command_line(),
@@ -56,8 +55,7 @@ star.boot{
 
   setupPkg:(repository,pkg) => action[string,()].
   setupPkg(Repo,Pkg) => do{
-    importPkgs([Pkg],[],Repo);
-    initialize(Pkg)
+    importPkgs([Pkg],[],Repo)
   }
 
   importPkgs:(cons[pkg],cons[pkg],repository)=>action[string,()].
@@ -71,15 +69,6 @@ star.boot{
     Code ^= R.hasCode(P) &&
     Imps .= _install_pkg(Code) => some(Imps//(((Pk,V))=>pkg(Pk,V::version))).
   importPkg(_,_,_) default => .none.
-
-  initialize:(pkg) => action[string,()].
-  initialize(pkg(P,_)) => do{
-    Pred .= P++"@init";
-    if _definedLbl(Pred,0) then {
-      valis _callLbl(Pred,0,[])
-    } else
-      throw "No init for $(P)"
-  }
 
   invokeMain:(string,cons[string]) => action[string,()].
   invokeMain(Top,Args) => do {

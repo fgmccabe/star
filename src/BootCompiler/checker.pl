@@ -755,13 +755,6 @@ pickupContract(Lc,Env,Nm,StTp,DpTps,Op) :-
    newTypeVar("_St",StTp),
    DpTps=[]).
 
-pickupIxContract(Lc,Env,Nm,StTp,DpTps,Op) :-
-  (getContract(Nm,Env,conDef(_,_,Con)) ->
-   freshen(Con,Env,_,contractExists(conTract(Op,[StTp],DpTps),_));
-   reportError("%s contract not defined",[Nm],Lc),
-   newTypeVar("_St",StTp),
-   DpTps=[]).
-
 checkGoal(G,Env,Ev,Goal,Path) :-
   locOfAst(G,Lc),
   findType("boolean",Lc,Env,LogicalTp),
@@ -825,15 +818,15 @@ genPut(Lc,Gen,Key,Value,StTp,Contract,ExTp,ErTp,unlifted(St),Exp) :-
   Next  = apply(Lc,Gen,tple(Lc,[St,Key,Value]),StTp),
   genReturn(Lc,Next,ExTp,StTp,ErTp,Contract,Exp).
 
-genSeq(Lc,Contract,ExStTp,ErTp,St,Init,Reslt,Exp) :-
+genSeq(Lc,Contract,ExecTp,ErTp,St,Init,Reslt,Exp) :-
   typeOfCanon(St,ATp),
-  mkTypeExp(ExStTp,[ErTp,ATp],MdTp),
+  mkTypeExp(ExecTp,[ErTp,ATp],MdTp),
   LTp = funType(tupleType([ATp]),MdTp),
   Lam = lambda(Lc,equation(Lc,tple(Lc,[St]),
 			   enm(Lc,"true",type("star.core*boolean")),Reslt),LTp),
   Gen = over(Lc,mtd(Lc,"_sequence",funType(tupleType([MdTp,LTp]),MdTp)),
-	     true,[conTract(Contract,[ExStTp],[])]),
-  genRtn(Lc,ExStTp,LTp,ErTp,Contract,Init,Initial),
+	     true,[conTract(Contract,[ExecTp],[])]),
+  genRtn(Lc,ExecTp,LTp,ErTp,Contract,Init,Initial),
   Exp = apply(Lc,Gen,tple(Lc,[Initial,Lam]),MdTp).
 
 genTpVars([],[]).

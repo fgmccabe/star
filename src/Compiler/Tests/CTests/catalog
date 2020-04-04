@@ -11,7 +11,7 @@
     "test.cns" : "cns.star",
     "test.p" : "p.star",
     "test.t1" : "t1.star",
-    "star.boot" : "boot.star"
+    "test.boot" : "bt.star"
   },
   "version": "1.0.0",
   "default": "../catalog"
