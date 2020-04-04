@@ -9,23 +9,23 @@ test.nm{
 
   main:() => action[(),()].
   main() => do{
-    show disp(first(parse(real,"34.56e10"::cons[integer])));
+    show disp(first(parse(real(),"34.56e10"::cons[integer])));
 
-    assert 34.56e10 ^= first(parse(real,"34.56e10"::cons[integer]));
+    assert 34.56e10 ^= first(parse(real(),"34.56e10"::cons[integer]));
 
-    show disp(first(parse(real,"34.56"::cons[integer])));
+    show disp(first(parse(real(),"34.56"::cons[integer])));
 
-    show disp(first(parse(real,"34.56e-45"::cons[integer])));
-    show disp(first(parse(real,"34"::cons[integer])));
-    show disp(first(parse(real,"-34"::cons[integer])));
+    show disp(first(parse(real(),"34.56e-45"::cons[integer])));
+    show disp(first(parse(real(),"34"::cons[integer])));
+    show disp(first(parse(real(),"-34"::cons[integer])));
 
-    show disp(optInt(^first(parse(real,"-34"::cons[integer]))));
+    show disp(optInt(^first(parse(real(),"-34"::cons[integer]))));
     
-    assert -34 ^= optInt(^first(parse(real,"-34"::cons[integer])));
+    assert -34 ^= optInt(^first(parse(real(),"-34"::cons[integer])));
 
-    assert XX ^= optInt(^first(parse(real,"-34"::cons[integer]))) && XX==-34;
+    assert XX ^= optInt(^first(parse(real(),"-34"::cons[integer]))) && XX==-34;
 
-    assert XX ^= optInt(^first(parse(real,"-34"::cons[integer]))) && -XX==34;
+    assert XX ^= optInt(^first(parse(real(),"-34"::cons[integer]))) && -XX==34;
 
     show disp(first(parse(decimal,"-34"::cons[integer])))
   }
