@@ -327,6 +327,10 @@ star.compiler.dependencies{
     Rf1 <- collectTermRefs(L,All,Rf,Rp);
     collectTermRefs(R,All,Rf1,Rp)
   }
+  collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isSearch(T) => do{
+    Rf1 <- collectTermRefs(L,All,Rf,Rp);
+    collectTermRefs(R,All,Rf1,Rp)
+  }
   collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isIndex(T) => do{
     Rf1 <- collectTermRefs(L,All,Rf,Rp);
     collectTermRefs(R,All,Rf1,Rp)

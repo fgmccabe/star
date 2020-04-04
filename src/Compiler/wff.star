@@ -12,6 +12,12 @@ star.compiler.wff{
   public genName:(locn,string) => ast.
   genName(Lc,V) => nme(Lc,genSym(V)).
 
+  public isLitAst:(ast) => boolean.
+  isLitAst(int(_,_)) => .true.
+  isLitAst(num(_,_)) => .true.
+  isLitAst(str(_,_)) => .true.
+  isLitAst(_) default => .false.
+
   public isQuantified:(ast)=>option[(locn,cons[ast],ast)].
   isQuantified(T) where
       (Lc,Lh,B)^=isBinary(T,"~~") && (_,V)^=isUnary(Lh,"all") =>
@@ -652,4 +658,16 @@ star.compiler.wff{
   synthesizeCoercions([],_,Vs,Cs) => (reverse(Vs),reverse(Cs)).
   synthesizeCoercions([T,..Ts],Lc,Vs,Cs) where Nm .= genName(Lc,"X") =>
     synthesizeCoercions(Ts,Lc,[Nm,..Vs],[binary(Lc,"::",Nm,T),..Cs]).
+
+  public reconstructDisp:(ast)=>ast.
+  reconstructDisp(C) where (Lc,Ex,Tp) ^= isCoerce(C) && (_,"string") ^= isName(Tp) => let{
+    flat:(ast,cons[string])=>cons[string].
+    flat(SS,So) where (_,Tx) ^= isUnary(SS,"ss") && (_,Txt) ^= isStr(Tx) => [Txt,..So].
+    flat(E,So) where (_,Sq) ^= isUnary(E,"ssSeq") && (_,L) ^= isSqTuple(Sq) => fltList(L,So).
+    flat(E,So) where (_,D) ^= isUnary(E,"disp") => ["\$",D::string,..So].
+
+    fltList(L,So) => foldRight((E,X)=>flat(E,X),So,L).
+    
+  } in str(Lc,_str_multicat(flat(Ex,[]))).
+  reconstructDisp(A) where Lc.=locOf(A) => str(Lc,A::string).
 }

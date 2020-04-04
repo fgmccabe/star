@@ -115,7 +115,7 @@ star.compiler.checker{
 
   lookInGroup:(cons[canonDef],string,cons[cons[canonDef]])=>option[canon].
   lookInGroup([],Nm,Gps) => findDefn(Gps,Nm).
-  lookInGroup([varDef(Lc,Nm,FullNm,lambda(_,_,_),Cx,Tp),..Gp],Nm,_) => some(vr(Lc,Nm,Tp)).
+  lookInGroup([varDef(Lc,Nm,FullNm,lambda(_,_),Cx,Tp),..Gp],Nm,_) => some(vr(Lc,Nm,Tp)).
   lookInGroup([varDef(_,Nm,_,vr(Lc,ONm,Tp),_,_),..Gp],Nm,_) => some(vr(Lc,ONm,Tp)).
   lookInGroup([varDef(Lc,Nm,FullNm,_,Cx,Tp),..Gp],Nm,_) => some(vr(Lc,Nm,Tp)).
   lookInGroup([cnsDef(Lc,Nm,FullNm,Tp),..Gp],Nm,_) => some(enm(Lc,FullNm,Tp)).
@@ -221,7 +221,7 @@ star.compiler.checker{
     either[reports,(cons[cons[canonDef]],dict)].
   checkGroups([],Gps,_,_,Env,_,Rp) => either((reverse(Gps),Env)).
   checkGroups([G,..Gs],Gx,Face,Annots,Env,Path,Rp) => do{
-    logMsg("check group $(G)");
+--    logMsg("check group $(G)");
     TmpEnv <- parseAnnotations(G,Face,Annots,Env,Rp);
 --    logMsg("group env $(head(TmpEnv))");
     (Gp,Ev) <- checkGroup(G,TmpEnv,TmpEnv,Path,Rp);
@@ -324,9 +324,9 @@ star.compiler.checker{
     Rls <- processEqns(Stmts,deRef(ProgramTp),[],.none,Es,
       declareConstraints(Lc,Cx,declareTypeVars(Q,Outer)),Path,Rp);
     FullNm .= qualifiedName(Path,.valMark,Nm);
-    logMsg("checked equations $(Rls)");
+--    logMsg("checked equations $(Rls)");
     valis (varDef(Lc,Nm,FullNm,
-	lambda(Lc,Rls,Tp),Cx,Tp),declareVar(Nm,FullNm,some(Lc),Tp,Env))
+	lambda(Rls,Tp),Cx,Tp),declareVar(Nm,FullNm,some(Lc),Tp,Env))
   }.
 
   processEqns:(cons[ast],tipe,cons[equation],option[equation],dict,dict,string,reports) =>
@@ -411,7 +411,7 @@ star.compiler.checker{
     Enm <- typeOfExp(A,Tp,Env,Path,Rp);
     valis (Enm,Env)
   }
-  typeOfPtn(A,Tp,Env,Path,Rp) where isLit(A) => do{
+  typeOfPtn(A,Tp,Env,Path,Rp) where isLitAst(A) => do{
     Exp <- typeOfExp(A,Tp,Env,Path,Rp);
     valis (Exp,Env)
   }
@@ -661,7 +661,7 @@ star.compiler.checker{
     Rep <- typeOfExp(R,Rt,E0,Path,Rp);
 --    logMsg("lambda return: $(Rep)\:$(typeOf(Rep))");
     checkType(A,fnType(At,Rt),Tp,Env,Rp);
-    valis lambda(Lc,[eqn(Lc,As,.none,Rep)],Tp)
+    valis lambda([eqn(Lc,As,.none,Rep)],Tp)
   }
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Els) ^= isTheta(A) => do{
     (Q,ETp) .= evidence(Tp,Env);
@@ -946,7 +946,7 @@ becomes
 --    logMsg("building integrity $(A)");
     Unit .= tpl(Lc,"()",[]);
     Lam .= equation(Lc,Unit,C);
-    Assert .= ternary(Lc,"assrt",Lam,lit(Lc,strg(C::string)),Lc::ast);
+    Assert .= ternary(Lc,"assrt",Lam,str(Lc,C::string),Lc::ast);
     B .= brTuple(Lc,[Assert]);
 --    logMsg("catch body $(B)");
     Err .= genName(Lc,"E");
@@ -965,10 +965,11 @@ becomes
 */
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,E) ^= isShow(A) => do{
     Lam .= equation(Lc,tpl(Lc,"()",[]),E);
-    ShwMsg .= ternary(Lc,"shwMsg",Lam,lit(Lc,strg(E::string)),Lc::ast);
+
+    ShwMsg .= ternary(Lc,"shwMsg",Lam,reconstructDisp(E),Lc::ast);
+    logMsg("show  $(ShwMsg)");
     checkAction(ShwMsg,Env,StTp,ElTp,ErTp,Path,Rp)
   }
-  
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) => do{
     Exp <- typeOfExp(A,mkTypeExp(StTp,[ErTp,ElTp]),Env,Path,Rp);
     valis (simpleDo(locOf(A),Exp,StTp),Env)
@@ -978,7 +979,7 @@ becomes
   checkCatch(A,Env,StTp,ElTp,BErrTp,ErTp,Path,Rp) where (Lc,Stmts) ^= isBrTuple(A) => do{
     HT .= funType([BErrTp],mkTypeExp(StTp,[ErTp,ElTp]));
     (H,_) <- checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp);
-    valis lambda(Lc,[eqn(Lc,tple(Lc,[vr(Lc,genSym("_"),ErTp)]),.none,act(locOf(A),H))],HT)
+    valis lambda([eqn(Lc,tple(Lc,[vr(Lc,genSym("_"),ErTp)]),.none,act(locOf(A),H))],HT)
   }
   checkCatch(A,Env,StTp,ElTp,BErrTp,ErTp,Path,Rp) => do{
     HT .= funType([BErrTp],mkTypeExp(StTp,[ErTp,ElTp]));
@@ -1024,17 +1025,17 @@ becomes
 
   checkAbstraction:(locn,ast,ast,tipe,dict,string,reports) => either[reports,canon].
   checkAbstraction(Lc,B,C,Tp,Env,Path,Rp) => do{
---    logMsg("checking abstraction $(B) | $(C)");
+    logMsg("checking abstraction $(B) | $(C) expected type $(Tp)");
     (Cond,E0) <- checkGoal(C,Env,Path,Rp);
-    (_,StTp,ElTp) <- pickupContract(locOf(Cond),Env,"sequence",Rp);
+    (_,StTp,ElTp) <- pickupSequenceContract(locOf(Cond),Env,Rp);
     checkType(B,Tp,StTp,Env,Rp);
     Bnd <- typeOfExp(B,ElTp,E0,Path,Rp);
-    genAbstraction(Lc,Bnd,Cond,Env,Path,Rp)
+    genAbstraction(Lc,Tp,Bnd,Cond,Env,Path,Rp)
   }
 
   processIterable:(canon,string,dict,reports)=>either[reports,canon].
   processIterable(Cond,Path,Env,Rp) where isIterableGoal(Cond) => do {
-    (Contract,_,_) <- pickupContract(locOf(Cond),Env,"execution",Rp);
+    (Contract,_) <- pickupExecutionContract(locOf(Cond),Env,Rp);
     genIterableGoal(Cond,Contract,Path,Rp)
   }
   processIterable(apply(Lc,Op,Arg,Tp),Path,Env,Rp) => do{
