@@ -106,8 +106,6 @@ overloadTerm(theta(Lc,Path,Anon,Defs,Sig),Dict,St,St,theta(Lc,Path,Anon,RDefs,Si
   overload(Defs,Dict,_RDict,RDefs).
 overloadTerm(record(Lc,Path,Anon,Defs,Sig),Dict,St,St,record(Lc,Path,Anon,RDefs,Sig)) :-
   overload(Defs,Dict,_RDict,RDefs).
-overloadTerm(varRef(Lc,Inn),Dict,St,Stx,varRef(Lc,Inn1)) :-
-  overloadTerm(Inn,Dict,St,Stx,Inn1).
 overloadTerm(cell(Lc,Inn),Dict,St,Stx,cell(Lc,Inn1)) :-
   overloadTerm(Inn,Dict,St,Stx,Inn1).
 overloadTerm(assign(Lc,Lhs,Rhs),Dict,St,Stx,assign(Lc,L1,R1)) :-

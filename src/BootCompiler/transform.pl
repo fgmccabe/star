@@ -458,8 +458,6 @@ liftExp(dot(Lc,Rec,Fld,_),dte(Lc,Rc,Lbl),Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftExp(dot(Lc,Rec,Fld,_),ocall(Lc,Rc,[Lbl]),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(Rec,Rc,Q,Qx,Map,Opts,Ex,Exx),
   makeDotLbl(Fld,Lbl).
-liftExp(varRef(Lc,In),ecll(Lc,"_get",[CellV]),Q,Qx,Map,Opts,Ex,Exx) :- !,
-  liftExp(In,CellV,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(cell(Lc,In),ecll(Lc,"_cell",[CellV]),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(In,CellV,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(assign(Lc,Vr,Vl),ecll(Lc,"_assign",[VVr,Val]),Q,Qx,Map,Opts,Ex,Exx) :-
@@ -571,6 +569,8 @@ liftCase(equation(Lc,P,Cond,Value),(Lc,[Ptn],Test,Rep),Q,Qx,Map,Opts,Ex,Exx) :-
 
 liftLambda(lambda(Lc,Eqn,Tp),Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
   lambdaMap(lambda(Lc,Eqn,Tp),Q,Map,LclName,Closure,LMap),
+%  reportMsg("lift lambda %s",[lambda(Lc,Eqn,Tp)],Lc),
+%  dispMap("lambda map",LMap),
   transformEqn(Eqn,LMap,LMap,Opts,LclName,Rls,[],Ex,Exx),
   is_member((_,Args,_,_),Rls),!,
   length(Args,Ar),
@@ -637,6 +637,7 @@ liftTheta(Theta,ThVr,Fx,ThCond,Q,Map,ThMap,Opts,Ex,Exx) :-
   Theta=theta(Lc,_Path,_Anon,Defs,_Sig),!,
   genVar("_ThV",ThVr),
   thetaMap(Theta,ThVr,Q,Map,Opts,ThMap,FreeTerm),
+%  dispMap("theta map",ThMap),
   transformThetaDefs(ThMap,ThMap,Opts,Defs,FreeTerm,Fx,mtch(Lc,ThVr,Fx),ThCond,Ex,Exx).
 %  (is_member(showTrCode,Opts) -> dispTerm(Fx);true).
 liftTheta(Theta,ThVr,Fx,ThCond,Q,Map,ThMap,Opts,Ex,Exx) :-
@@ -837,8 +838,7 @@ programAccess(moduleCons(Prog,Closure,Arity),Prog,Closure,Arity).
 programAccess(localFun(Prog,_,Closure,Arity,_),Prog,Closure,Arity).
 programAccess(localVar(Prog,Closure,_),Prog,Closure,1).
 
-makeDotLbl(Nm,enum(Dot)) :-
-  localName("",".",Nm,Dot).
+makeDotLbl(Nm,enum(Nm)).
 
 mkUnit(U) :-
   mkTpl([],U).

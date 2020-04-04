@@ -11,7 +11,6 @@
 :- use_module(operators).
 :- use_module(types).
 :- use_module(location).
-:- use_module(uri).
 
 isCanon(prog(_,_,_,_,_,_,_,_)).
 isCanon(v(_,_,_)).
@@ -34,7 +33,6 @@ isCanon(implies(_,_,_)).
 isCanon(cond(_,_,_,_,_)).
 isCanon(match(_,_,_)).
 isCanon(neg(_,_)).
-isCanon(varRef(_,_)).
 isCanon(assign(_,_,_)).
 isCanon(cell(_,_)).
 isCanon(lambda(_,_,_)).
@@ -110,8 +108,6 @@ typeOfCanon(letExp(_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(apply(_,_,_,Tp),Tp) :-!.
 typeOfCanon(tple(_,Els),tupleType(Tps)) :-!,
   map(Els,canon:typeOfCanon,Tps).
-typeOfCanon(varRef(_,Inn),Tp) :-
-  typeOfCanon(Inn,refType(Tp)).
 typeOfCanon(assign(_,_,Vl),Tp) :-
   typeOfCanon(Vl,Tp).
 typeOfCanon(cell(_,Vl),refType(Tp)) :-
@@ -141,7 +137,6 @@ locOfCanon(letExp(Lc,_,_),Lc) :- !.
 locOfCanon(case(Lc,_,_,_),Lc) :- !.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
 locOfCanon(tple(Lc,_),Lc) :-!.
-locOfCanon(varRef(Lc,_),Lc) :-!.
 locOfCanon(lambda(Lc,_,_),Lc) :-!.
 locOfCanon(doTerm(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(seqDo(Lc,_,_),Lc) :-!.
@@ -231,9 +226,6 @@ showCanonTerm(record(_,Path,_,Defs,_),Dp,O,Ox) :-
   appNwln(Dp2,O2,O3),
   showDefs(Defs,Dp2,O3,O5),
   appStr(".}",O5,Ox).
-showCanonTerm(varRef(_,Inn),Dp,O,Ox) :-
-  showCanonTerm(Inn,Dp,O,O1),
-  appStr("!",O1,Ox).
 showCanonTerm(assign(_,Vr,Vl),Dp,O,Ox) :-
   showCanonTerm(Vr,Dp,O,O1),
   appStr(":=",O1,O2),

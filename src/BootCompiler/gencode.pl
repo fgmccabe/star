@@ -585,7 +585,6 @@ compField((Nm1,_),(Nm2,_)) :-
 genFields([],_,[]).
 genFields([(Nm,Tp)|Fields],Ix,[Fld|Out]) :-
   encType(Tp,Sig),
-  string_concat(".",Nm,DotNm),
-  mkTpl([lbl(DotNm,0),strg(Sig),intgr(Ix),intgr(1)],Fld),
+  mkTpl([lbl(Nm,0),strg(Sig)],Fld),
   Ix1 is Ix+1,
   genFields(Fields,Ix1,Out).
