@@ -23,9 +23,9 @@ char bootVer[MAX_SYMB_LEN] = "*";
 
 logical useMicroBoot = False;
 PackageRec microBootPkge = {.packageName="__star.boot", .version="*"};
-PackageRec bootPkge = {.packageName="star.boot", .version="*"};
+PackageRec bootPkge = {.packageName="star.bboot", .version="*"};
 
-char bootEntry[MAX_SYMB_LEN] = "star.boot#__boot";  // entry point
+char bootEntry[MAX_SYMB_LEN] = "star.bboot#__boot";  // entry point
 
 static retCode displayVersion(char *option, logical enable, void *cl) {
   return outMsg(logFile, "star - %s", version);
@@ -223,10 +223,12 @@ static retCode debugOption(char *option, logical enable, void *cl) {
       case 'b': // switch microboot capability
         if (useMicroBoot) {
           useMicroBoot = False;
-          strMsg(bootEntry, NumberOf(bootEntry), "star.boot#__boot");
+          strMsg(bootEntry, NumberOf(bootEntry), "star.bboot#__boot");
+          strMsg(bootPkge.packageName,NumberOf(bootPkge.packageName),"star.bboot");
         } else {
           useMicroBoot = True;
           strMsg(bootEntry, NumberOf(bootEntry), "__star_boot");
+          strMsg(bootPkge.packageName,NumberOf(bootPkge.packageName),"star.boot");
         }
         continue;
 

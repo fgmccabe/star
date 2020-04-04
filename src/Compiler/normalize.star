@@ -78,7 +78,7 @@ star.compiler.normalize{
     freeVars .=
       foldRight((crId(Nm,Tp),So) => (_ ^= lookup(Outer,Nm,isModule) ? So || _addMem(crId(Nm,Tp),So)),[],
 	freeVarsInGroup(Grp,[],[])::cons[crVar]);
-    logMsg("raw free vars $(freeVars)");
+    logMsg("group free vars $(freeVars)");
 
     if isEmpty(freeVars) then {
       logMsg("no theta var for group $(Grp)");
