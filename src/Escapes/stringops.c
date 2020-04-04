@@ -5,7 +5,6 @@
 #include <strP.h>
 #include <arithP.h>
 #include <stringBuffer.h>
-#include <array.h>
 #include <assert.h>
 #include <tpl.h>
 #include <globals.h>
@@ -154,7 +153,6 @@ ReturnStatus g__explode(processPo p, ptrPo tos) {
   termPo Arg1 = tos[0];
   integer len;
   const char *str = stringVal(Arg1, &len);
-  integer chCount = countCodePoints(str, 0, len);
 
   heapPo H = processHeap(p);
   termPo list = (termPo) nilEnum;
@@ -162,9 +160,10 @@ ReturnStatus g__explode(processPo p, ptrPo tos) {
   int root = gcAddRoot(H, (ptrPo) &list);
   gcAddRoot(H, &el);
 
-  while (chCount > 0) {
+  integer pos = len;
+  while (pos > 0) {
     codePoint cp;
-    retCode ret = prevPoint(str, &chCount, &cp);
+    retCode ret = prevPoint(str, &pos, &cp);
     if (ret == Ok) {
       el = (termPo) allocateInteger(H, (integer) cp);
       list = (termPo) allocateCons(H, el, list);
@@ -173,7 +172,21 @@ ReturnStatus g__explode(processPo p, ptrPo tos) {
 
   gcReleaseRoot(H, root);
 
+  assert(consLength(list) == countCodePoints(str, 0, len));
+
   return (ReturnStatus) {.ret=Ok, .result=(termPo) list};
+}
+
+void dS(termPo w) {
+  termPo s = w;
+
+  while(isCons(s)){
+    integer cp = integerVal(consHead(C_TERM(s)));
+    outChar(logFile,cp);
+    s = consTail(C_TERM(s));
+  }
+  outStr(logFile,"\n");
+  flushOut();
 }
 
 ReturnStatus g__implode(processPo p, ptrPo tos) {

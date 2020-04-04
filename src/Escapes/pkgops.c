@@ -10,7 +10,6 @@
 #include <stringBuffer.h>
 #include <codeP.h>
 #include <errorCodes.h>
-#include <array.h>
 #include <tpl.h>
 #include <manifest.h>
 #include <cons.h>

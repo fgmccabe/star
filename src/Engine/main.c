@@ -8,9 +8,9 @@
 #include <labelsP.h>
 #include <cellP.h>
 #include <iochnnlP.h>
-#include <arrayP.h>
 #include <memoP.h>
 #include <consP.h>
+#include <formexts.h>
 #include "capabilityP.h"
 #include "manifest.h"
 #include "clock.h"
@@ -20,6 +20,7 @@
 #include "strP.h"
 #include "debug.h"
 #include "editline.h"
+#include "jit.h"
 
 #include "stringBufferP.h"
 
@@ -44,6 +45,7 @@ int main(int argc, char **argv) {
   }
   initHistory(".star");
   initHeap(initHeapSize);
+  initJit();
   initArith();
   initStr();
   initLbls();
@@ -54,7 +56,6 @@ int main(int argc, char **argv) {
   initCode();
   initLocks();
   initTerm();
-  initLists();
   initCapability();
   initIoChnnl();
   initThr();
@@ -71,6 +72,7 @@ int main(int argc, char **argv) {
   installMsgProc('P', dispPkgNm);
   installMsgProc('B', showStringBuffer);
   installMsgProc('A', showLabel);
+  installMsgProc('Q', genQuotedStr);
 
   /* IMPORTANT -- Keep the order of these set up calls */
 

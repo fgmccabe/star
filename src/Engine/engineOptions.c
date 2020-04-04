@@ -5,10 +5,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "cmdOptions.h"
 #include "version.h"      /* Version ID for the Star system */
 
+#include "cmdOptions.h"
 #include "engineOptions.h"
+#include "streamDecode.h"
 #include "heapP.h"
 #include "manifestP.h"
 #include "verifyP.h"
@@ -196,6 +197,17 @@ static retCode debugOption(char *option, logical enable, void *cl) {
       logMsg(logFile,"package tracing not enabled");
       return -1;
 #endif
+
+      case 'Q':    /* trace decoding operations  */
+#ifdef TRACEPKG
+        if (traceDecode < detailedTracing)
+          traceDecode++;
+        continue;
+#else
+      logMsg(logFile,"decode tracing not enabled");
+      return -1;
+#endif
+
       case 'F':   // Show file name instead of package
         showPkgFile = True;
         continue;
@@ -250,6 +262,9 @@ static retCode debugOptHelp(ioPo out, char opt, char *usage, void *cl) {
                      #endif
                      #ifdef TRACECAPABILITY
                      "C|"
+                     #endif
+                     #ifdef TRACEDECODE
+                     "Q|"
                      #endif
                      #ifdef TRACEPKG
                      "P"

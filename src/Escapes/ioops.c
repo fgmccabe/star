@@ -7,7 +7,6 @@
 #include <assigns.h>
 #include <arith.h>
 #include <stringBuffer.h>
-#include <array.h>
 #include <arithP.h>
 #include <errorCodes.h>
 #include "ioops.h"
@@ -106,51 +105,51 @@ ReturnStatus g__inbyte(processPo p, ptrPo tos) {
     return rt;
   }
 }
-
-ReturnStatus g__inbytes(processPo p, ptrPo tos) {
-  termPo Arg1 = tos[0];
-  termPo Arg2 = tos[1];
-  ioPo io = ioChannel(C_IO(Arg1));
-  integer limit = integerVal(Arg2);
-
-  bufferPo buffer = newStringBuffer();
-  byte bf[MAXLINE];
-
-  retCode ret = Ok;
-
-  while (limit-- > 0 && ret == Ok) {
-    integer cnt;
-    ret = inBytes(io, bf, NumberOf(bf), &cnt);
-
-    if (ret == Ok)
-      ret = outBytes(O_IO(buffer), bf, cnt, &cnt);
-  }
-
-  if (ret == Ok) {
-    integer length;
-    char *text = getTextFromBuffer(buffer, &length);
-
-    heapPo H = processHeap(p);
-    arrayPo lst = allocateArray(H, length);
-    int root = gcAddRoot(H, (ptrPo) &lst);
-
-    for (long ix = 0; ix < length; ix++) {
-      byte b = (byte) text[ix];
-      termPo bt = (termPo) allocateInteger(H, (integer) b);
-      setNthEl(lst, ix, bt);
-    }
-
-    closeFile(O_IO(buffer));
-    gcReleaseRoot(H, root);
-
-    ReturnStatus rt = {.ret=Ok, .result=(termPo) lst};
-    return rt;
-  } else {
-    closeFile(O_IO(buffer));
-    ReturnStatus rt = {.ret=ret, .result=voidEnum};
-    return rt;
-  }
-}
+//
+//ReturnStatus g__inbytes(processPo p, ptrPo tos) {
+//  termPo Arg1 = tos[0];
+//  termPo Arg2 = tos[1];
+//  ioPo io = ioChannel(C_IO(Arg1));
+//  integer limit = integerVal(Arg2);
+//
+//  bufferPo buffer = newStringBuffer();
+//  byte bf[MAXLINE];
+//
+//  retCode ret = Ok;
+//
+//  while (limit-- > 0 && ret == Ok) {
+//    integer cnt;
+//    ret = inBytes(io, bf, NumberOf(bf), &cnt);
+//
+//    if (ret == Ok)
+//      ret = outBytes(O_IO(buffer), bf, cnt, &cnt);
+//  }
+//
+//  if (ret == Ok) {
+//    integer length;
+//    char *text = getTextFromBuffer(buffer, &length);
+//
+//    heapPo H = processHeap(p);
+//    arrayPo lst = allocateArray(H, length);
+//    int root = gcAddRoot(H, (ptrPo) &lst);
+//
+//    for (long ix = 0; ix < length; ix++) {
+//      byte b = (byte) text[ix];
+//      termPo bt = (termPo) allocateInteger(H, (integer) b);
+//      setNthEl(lst, ix, bt);
+//    }
+//
+//    closeFile(O_IO(buffer));
+//    gcReleaseRoot(H, root);
+//
+//    ReturnStatus rt = {.ret=Ok, .result=(termPo) lst};
+//    return rt;
+//  } else {
+//    closeFile(O_IO(buffer));
+//    ReturnStatus rt = {.ret=ret, .result=voidEnum};
+//    return rt;
+//  }
+//}
 
 ReturnStatus g__intext(processPo p, ptrPo tos) {
   termPo Arg1 = tos[0];
@@ -272,21 +271,21 @@ ReturnStatus g__outbyte(processPo p, ptrPo tos) {
 
   return rtnStatus(p, outByte(io, (byte) cp), "outbyte");
 }
-
-ReturnStatus g__outbytes(processPo p, ptrPo tos) {
-  termPo Arg1 = tos[0];
-  termPo Arg2 = tos[1];
-  ioPo io = ioChannel(C_IO(Arg1));
-  arrayPo data = C_ARRAY(Arg2);
-  retCode ret = Ok;
-
-  for (integer ix = 0; ret == Ok && ix < arraySize(data); ix++) {
-    byte b = (byte) integerVal(nthEl(data, ix));
-    ret = outByte(io, b);
-  }
-
-  return rtnStatus(p, ret, "outbytes");
-}
+//
+//ReturnStatus g__outbytes(processPo p, ptrPo tos) {
+//  termPo Arg1 = tos[0];
+//  termPo Arg2 = tos[1];
+//  ioPo io = ioChannel(C_IO(Arg1));
+//  arrayPo data = C_ARRAY(Arg2);
+//  retCode ret = Ok;
+//
+//  for (integer ix = 0; ret == Ok && ix < arraySize(data); ix++) {
+//    byte b = (byte) integerVal(nthEl(data, ix));
+//    ret = outByte(io, b);
+//  }
+//
+//  return rtnStatus(p, ret, "outbytes");
+//}
 
 ReturnStatus g__outtext(processPo p, ptrPo tos) {
   termPo Arg1 = tos[0];

@@ -238,6 +238,18 @@ char *getTextFromBuffer(bufferPo s, integer *len) {
   return s->buffer.buffer;
 }
 
+retCode readTextFromBuffer(bufferPo b,char *tgt,integer len){
+  if(len<=b->buffer.size)
+    return Error;
+  else{
+    for(integer ix=0;ix<b->buffer.size;ix++){
+      tgt[ix] = b->buffer.buffer[ix];
+    }
+    tgt[b->buffer.size] = '\0';
+    return Ok;
+  }
+}
+
 logical isTrivialBuffer(bufferPo b) {
   return uniIsTrivial(b->buffer.buffer, b->buffer.size);
 }
@@ -299,6 +311,11 @@ retCode appendToBuffer(bufferPo b, char *text, integer txtLen) {
     b->buffer.buffer[b->buffer.size++] = text[ix];
 
   return Ok;
+}
+
+retCode appendCodePointToBuffer(bufferPo b, codePoint ch){
+  ensureSpace(b,5);
+  return appendCodePoint(b->buffer.buffer,&b->buffer.out_pos,b->buffer.bufferSize,ch);
 }
 
 retCode twizzleBuffer(bufferPo b, integer pos) {

@@ -11,7 +11,7 @@
 long initHeapSize = 200 * 1024;   /* How much memory to give the heap */
 long maxHeapSize = 1024 * 1024 * 1024; // Maximum heap size 1G cells
 long initStackSize = 1024;        /* How big is the stack */
-long maxStackSize = 100 * 1024;     /* 100K cells is max stack size */
+long maxStackSize = 1024 * 1024;     /* 1M cells is default max stack size */
 
 logical traceMemory = False;      /* memory tracing */
 logical validateMemory = False;   // Validate heap after every allocation

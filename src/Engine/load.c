@@ -257,6 +257,7 @@ retCode decodeTplCount(ioPo in, integer *count, char *errMsg, integer msgLen) {
 
 static char *funcPreamble = "n7o7\1()7\1";
 static char *structPreamble = "n3o3\1()3\1";
+static char *fieldPreamble = "n2o2\1()2\1";
 static char *globalPreamble = "n7o7\1global\1";
 static char *methodPreamble = "n7o7\1method\1";
 
@@ -570,17 +571,10 @@ retCode loadStruct(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgS
           ret = decodeLbl(in, lblName, NumberOf(lblName), &arity,
                           errorMsg, msgSize);
           if (ret == Ok) {
-            labelPo field = declareLbl(lblName, arity);
+            labelPo field = declareLbl(lblName, 0);
             ret = skipEncoded(in, errorMsg, msgSize); // Field signature
-            if (ret == Ok) {
-              integer offset, size;
-              ret = decodeInteger(in, &offset);
-              if (ret == Ok) {
-                ret = decodeInteger(in, &size);
-                if (ret == Ok)
-                  setFieldTblEntry(fieldTbl, field, offset, size);
-              }
-            }
+            if (ret == Ok)
+              setFieldTblEntry(fieldTbl, field, ix);
           }
         }
       }

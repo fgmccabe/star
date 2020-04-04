@@ -16,15 +16,12 @@
 typedef struct _field_bucket_ {
   labelPo lbl;
   integer offset; // offset in bytes of field
-  integer size;   // Size in bytes of field
 } FieldBucket, *fieldPo;
 
 typedef struct _field_table_ {
   integer size;
   struct _field_bucket_ entries[ZEROARRAYSIZE];
 } FieldTable, *fieldTblPo;
-
-extern char *fieldPreamble;
 
 typedef struct _program_label_ {
   clssPo clss;                // == labelClass
@@ -41,8 +38,8 @@ extern void initLbls();
 void markLabels(gcSupportPo G);
 
 void declareFields(labelPo lbl, fieldTblPo tbl);
-extern fieldTblPo newFieldTable(integer count);
-extern void clearFieldTable(labelPo lbl);
-extern void destroyFieldTable(fieldTblPo tbl);
-extern void setFieldTblEntry(fieldTblPo tbl, labelPo field, integer offset, integer size);
+fieldTblPo newFieldTable(integer count);
+void clearFieldTable(labelPo lbl);
+void destroyFieldTable(fieldTblPo tbl);
+void setFieldTblEntry(fieldTblPo tbl, labelPo field, integer offset);
 #endif //STAR_LABELSP_H

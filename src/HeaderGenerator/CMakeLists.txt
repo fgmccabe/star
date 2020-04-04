@@ -23,10 +23,6 @@ set(INTRINSIC_SOURCE_FILES plateinstrinsic.c)
 add_executable(intrinsic ${INTRINSIC_SOURCE_FILES})
 target_link_libraries(intrinsic ooio infra)
 
-set(OPCODES_FILES opcodes.c)
-add_executable(opcodes ${OPCODES_FILES})
-target_link_libraries(opcodes ooio)
-
 set(JIT_HEDDER_SOURCE_FILES jithedder.c)
 add_executable(jithedder ${JIT_HEDDER_SOURCE_FILES})
 target_link_libraries(jithedder ooio)

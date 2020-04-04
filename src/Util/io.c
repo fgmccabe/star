@@ -630,9 +630,9 @@ static logical testChar(char mark, char ch, char *special) {
     return (logical) (mark == ch);
 }
 
-retCode isLookingAt(ioPo f, char *prefix) {
+retCode isLookingAt(ioPo f, const char *prefix) {
   char special = '\0';
-  char *mark = prefix;
+  char *mark = (char *) prefix;
   retCode ret = Ok;
   byte ch = 0;
 

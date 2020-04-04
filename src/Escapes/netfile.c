@@ -9,7 +9,6 @@
 #include <str.h>
 #include <arithP.h>
 #include <tpl.h>
-#include <array.h>
 #include <hosts.h>
 #include <cons.h>
 #include <globals.h>

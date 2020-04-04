@@ -3,23 +3,11 @@
 //
 
 #include "streamDecode.h"
-#include "heap.h"
-#include "strP.h"
-#include "arithP.h"
-#include <arrayP.h>
-#include <array.h>
 #include <hash.h>
 #include <unistd.h>
-#include "globalsP.h"
 #include "verifyP.h"
-#include "codeP.h"
-#include "libEscapes.h"
 #include "manifest.h"
-#include "decodeP.h"             /* pick up the term encoding definitions */
-#include <globals.h>
-#include "engine.h"
 #include "pkgP.h"
-#include <stdlib.h>
 #include "streamDecodeP.h"
 #include "signature.h"
 
@@ -92,7 +80,8 @@ retCode decodeText(ioPo in, bufferPo buffer) {
     while (ret == Ok && (ret = inChar(in, &ch)) == Ok && ch != delim) {
       if (ch == '\\')
         ret = inChar(in, &ch);
-      outChar(O_IO(buffer), ch);
+      if (ret == Ok)
+        ret = outChar(O_IO(buffer), ch);
     }
     return ret;
   }
@@ -191,53 +180,37 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
       }
       return res;
     }
-    case recTrm: {
+    case recLbl: {
       clearBuffer(buff);
       res = decodeText(in, buff);
 
       if (res == Ok) {
-        integer arity;
+        integer lblLen;
+        char *Nm = getTextFromBuffer(buff, &lblLen);
+        FieldRec tbl[MAX_SYMB_LEN];
+        integer arity = 0;
 
-        res = inChar(in, &ch);
+        while (res == Ok && isLookingAt(in, (char *) "}") != Ok && arity < NumberOf(tbl)) {
+          res = decodeText(in, buff);
 
-        if (res != Ok)
-          return res;
-        else if (ch != lstTrm)
-          return Fail;
+          if (res == Ok) {
+            res = readTextFromBuffer(buff, tbl[arity].field, NumberOf(tbl[arity].field));
 
-        if ((res = decInt(in, &arity)) != Ok) /* How many elements in the list */
-          return res;
+            if (res == Ok) {
+              res = skipSignature(in); // Field signature
 
-        if (res == Ok) {
-          integer lblLen;
-          char *Nm = getTextFromBuffer(buff, &lblLen);
-
-          FieldRec fields[arity];
-
-          for (integer ix = 0; res == Ok && ix < arity; ix++) {
-            char fieldName[MAX_SYMB_LEN];
-            integer fieldArity;
-            char *fieldPreamble = "n4o4\1()4\1";
-
-            if (isLookingAt(in, fieldPreamble) == Ok) {
-
-              res = decodeLbl(in, fields[ix].field, NumberOf(fields[ix].field), &fieldArity, errorMsg, msgLen);
-              if (res == Ok) {
-                res = skipEncoded(in, errorMsg, msgLen); // Field signature
-                if (res == Ok) {
-                  integer offset, size;
-                  res = decodeInteger(in, &fields[ix].offset);
-                  if (res == Ok) {
-                    res = decodeInteger(in, &fields[ix].size);
-                  }
-                }
-              }
+              if (res == Ok)
+                res = decodeInteger(in, &tbl[arity].offset);
+              if (res == Ok)
+                arity++;
             }
           }
-
-          if (res == Ok)
-            res = cb->decRecLbl(Nm, arity, fields, cl);
         }
+
+        if (isLookingAt(in, "}") == Ok) {
+          return cb->decRecLbl(Nm, arity, tbl, cl);
+        } else
+          return Fail;
       }
       return res;
     }
@@ -303,6 +276,7 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
     default:
       return Error;
   }
+
 }
 
 static retCode skipFlag(void *cl) {
@@ -333,7 +307,7 @@ static retCode skipRecLbl(char *sx, integer ar, FieldRec fields[], void *cl) {
   return Ok;
 }
 
-static retCode skipLst(integer ix, void *cl) {
+static retCode skipLst(integer arity, void *cl) {
   return Ok;
 }
 

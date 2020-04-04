@@ -193,7 +193,7 @@ retCode glbDisp(ioPo out, termPo t, integer precision, integer depth, logical al
   globalPo glb = C_GLOB(t);
 
   if (getGlobal(glb) != Null)
-    return outMsg(out, "global: %s=%t", glb->name, glb->content);
+    return outMsg(out, "global: %s=%,*T", glb->name, depth, glb->content);
   else
     return outMsg(out, "global: %s (undef)", glb->name);
 }

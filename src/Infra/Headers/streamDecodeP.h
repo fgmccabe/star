@@ -15,8 +15,8 @@ extern retCode decodeString(ioPo in, char *buffer, integer buffLen);
 
 typedef struct {
   char field[MAX_SYMB_LEN];
+  integer arity;
   integer offset;
-  integer size;
 } FieldRec;
 
 typedef retCode (*intProc)(integer ix, void *cl);

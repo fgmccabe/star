@@ -7,13 +7,11 @@
 #include <sys/stat.h>
 #include <arithP.h>
 #include <errorCodes.h>
-#include <escodes.h>
 #include <iochnnlP.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <dirent.h>
 #include <string.h>
-#include <array.h>
 #include <cons.h>
 #include <globals.h>
 #include <consP.h>
