@@ -1,4 +1,4 @@
-star.boot{
+test.boot{
   -- special boot for testing in this directory
   import star.
   
