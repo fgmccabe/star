@@ -14,6 +14,7 @@ star.compiler.grapher{
   import star.compiler.location.
   import star.compiler.meta.
   import star.compiler.parser.
+  import star.compiler.token.
   import star.compiler.term.repo.
   import star.compiler.wff.
 
@@ -60,7 +61,9 @@ star.compiler.grapher{
   scanCat(Lc,Vz,Pkg,Pkgs,Repo,Cat,SoFar,Rp) => do{
     if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(Pkg)) then{
       if compatiblePkg(CPkg,Pkg) then{
+--	logMsg("parse $(Pkg)");
 	Ast <- parseSrc(SrcUri,CPkg,Rp);
+--	logMsg("parsed $(Pkg)");
 	SubImps <- scanForImports(Ast,Rp);
 	scanPkgs(Pkgs++SubImps,Repo,Cat,[(pkgImp(Lc,Vz,CPkg),SubImps),..SoFar],Rp)
       } else
@@ -85,5 +88,19 @@ star.compiler.grapher{
 
   consistentVersion(.defltVersion,_) => .true.
   consistentVersion(_,.defltVersion) => .true.
-  consistentVersion(vers(V1),vers(V2)) => V1==V2.  
+  consistentVersion(vers(V1),vers(V2)) => V1==V2.
+
+  scanToks:(cons[token])=>cons[string].
+  scanToks([]) => [].
+  scanToks([tok(_,idTok("import")),..Tks]) => scanPkg(Tks,[]).
+  scanToks([_,..Tks]) => scanToks(Tks).
+
+  scanPkg:(cons[token],cons[string])=>cons[string].
+  scanPkg([],[]) => [].
+  scanPkg([],So) => [pkgNme(reverse(So))].
+  scanPkg([tok(_,idTok(". ")),..Tks],So) => [pkgNme(reverse(So)),..scanToks(Tks)].
+  scanPkg([tok(_,idTok(Seg)),..Tks],So) => scanPkg(Tks,[Seg,..So]).
+
+  pkgNme(Strs) => _str_multicat(Strs).
+
 }

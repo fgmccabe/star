@@ -640,10 +640,11 @@ star.compiler.wff{
   synthesizeMain(Lc,Tp,Defs) where (_,Lhs,Rhs) ^= isFunctionType(Tp) && (_,ElTps)^=isTuple(Lhs) => valof action{
     (Vs,Cs) .= synthesizeCoercions(ElTps,Lc,[],[]);
     Arg .= sqTuple(Lc,([V,..Vrs].=Vs ? [reComma(Vrs,V)] || []));
-    Lhs .= roundTerm(Lc,nme(Lc,"_main"),[Arg]);
-    Rhs .= roundTerm(Lc,nme(Lc,"main"),Cs);
-    Main .= equation(Lc,Lhs,unary(Lc,"valof",Rhs));
-    Annot .= binary(Lc,":",nme(Lc,"main"),equation(Lc,rndTuple(Lc,[squareTerm(Lc,nme(Lc,"cons"),[nme(Lc,"string")])]),rndTuple(Lc,[])));
+    MLhs .= roundTerm(Lc,nme(Lc,"_main"),[Arg]);
+    MRhs .= roundTerm(Lc,nme(Lc,"main"),Cs);
+    Main .= equation(Lc,MLhs,unary(Lc,"valof",MRhs));
+    Annot .= binary(Lc,":",nme(Lc,"_main"),equation(Lc,rndTuple(Lc,[squareTerm(Lc,nme(Lc,"cons"),[nme(Lc,"string")])]),rndTuple(Lc,[])));
+    logMsg("synthesized main: $(Annot)\n$(Main)");
     valis [Annot,Main,..Defs].
   }
 

@@ -30,7 +30,9 @@ star.compiler.term.repo{
   flushRepo(repo(Root,Man)) => valof action{
     MU ^= parseUri("manifest");
     RepoUri ^= resolveUri(Root,MU);
+--    logMsg("flushing manifest");
     () .= flushManifest(RepoUri,Man);
+--    logMsg("done");
     valis repo(Root,Man)
   }
   

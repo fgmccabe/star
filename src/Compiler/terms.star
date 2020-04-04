@@ -2,6 +2,7 @@ star.compiler.terms{
   import star.
 
   import star.pkg.
+  import star.sort.
 
   import star.compiler.location.
   import star.compiler.types.
@@ -130,11 +131,7 @@ star.compiler.terms{
   encodeL:(termLbl)=>cons[integer].
   encodeL(tLbl(Nm,Ar)) => [0co,..encodeNat(Ar)]++encodeText(Nm).
   encodeL(tRec(Nm,Flds)) =>
-    [0cO,..encodeText(Nm)]++encodeNat(size(Flds))++encodeLblFields(Flds,0).
-
-  encodeLblFields([],_) => [].
-  encodeLblFields([(Nm,Tp),..Fs],Ix) =>
-    encodeT(mkField(Nm,Ix,Tp))++encodeLblFields(Fs,Ix+1).
+    [0cO,..encodeText(Nm)]++encodeFldTypes(Flds).
 
   mkField:(string,integer,tipe)=>term.
   mkField(Nm,Ix,Tp)=>
@@ -145,7 +142,10 @@ star.compiler.terms{
 
   public implementation coercion[string,term] => {.
     _coerce(S) => valof do{
+      L.=S::cons[integer];
+--      logMsg("Sig = $(S)");
       (T,_) <- decodeTerm(S::cons[integer]);
+--      logMsg("decoded term $(T)");
       valis T
     }
   .}
@@ -198,7 +198,7 @@ star.compiler.terms{
   }
   decodeLabel([0cO,..Ls]) => do{
     (Nm,L0) <- decodeText(Ls);
-    (faceType(Fs,_),Lx)<-decodeType(L0);
+    (Fs,Lx) <- decodeFields(L0);
     valis (tRec(Nm,Fs),Lx)
   }
     
@@ -370,7 +370,7 @@ star.compiler.terms{
   encodeType(funDeps(V,Ds)) =>
     [0cd,..encodeType(deRef(V))]++encodeType(tupleType(Ds)).
   encodeType(faceType(Flds,Tps)) =>
-    [0cI,..encodeFields(Flds)]++encodeFields(Tps).
+    [0cI,..encodeFldTypes(Flds)]++encodeFldTypes(Tps).
   encodeType(typeExists(H,I)) =>
     [0cY,..encodeType(deRef(H))]++encodeType(deRef(I)).
   encodeType(typeLambda(Hd,I)) =>
@@ -381,8 +381,8 @@ star.compiler.terms{
   encodeTypes([T,..Tps]) =>
     encodeType(deRef(T))++encodeTypes(Tps).
 
-  encodeFields:(cons[(string,tipe)])=>cons[integer].
-  encodeFields(Flds) => [0x7b,..encodeFlds(Flds)]. -- 0x7b == {
+  encodeFldTypes:(cons[(string,tipe)])=>cons[integer].
+  encodeFldTypes(Flds) => [0x7b,..encodeFlds(sort(Flds,((N1,_),(N2,_))=>N1<N2))]. -- 0x7b == {
   
   encodeFlds:(cons[(string,tipe)])=>cons[integer].
   encodeFlds([]) => [0x7d].	-- 0x7d == }
@@ -397,17 +397,17 @@ star.compiler.terms{
   encodeText:(string) => cons[integer].
   encodeText(Txt) where Chrs .= Txt::cons[integer] &&
       D.=findDelim(Chrs,[0c|,0c/,0c%]) =>
-    [D,..encodeQuoted(Chrs,D)].
+    [D,..encodeQuoted(Chrs,D,[])].
 
   findDelim:(cons[integer],cons[integer])=>integer.
   findDelim(Chrs,[]) => 0x22. -- == "
   findDelim(Chrs,[D,..Ds]) where D in Chrs => findDelim(Chrs,Ds).
   findDelim(Chrs,[D,.._]) => D.
 
-  encodeQuoted([],D) => [D].
-  encodeQuoted([D,..Cs],D) => [0c\\,D,..encodeQuoted(Cs,D)].
-  encodeQuoted([0c\\,..Cs],D) => [0c\\,0c\\,..encodeQuoted(Cs,D)].
-  encodeQuoted([C,..Cs],D) => [C,..encodeQuoted(Cs,D)].
+  encodeQuoted([],D,Chrs) => reverse([D,..Chrs]).
+  encodeQuoted([D,..Cs],D,Chrs) => encodeQuoted(Cs,D,[D,0c\\,..Chrs]).
+  encodeQuoted([0c\\,..Cs],D,Chrs) => encodeQuoted(Cs,D,[0c\\,0c\\,..Chrs]).
+  encodeQuoted([C,..Cs],D,Chrs) => encodeQuoted(Cs,D,[C,..Chrs]).
 
   encodeNat:(integer) => cons[integer].
   encodeNat(Dx) where Dx>=0 && Dx=<9 =>

@@ -126,9 +126,9 @@ star.compiler.dependencies{
       }.
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
       (Lc,Nm) ^= ruleName(A) => do{
-	(Ss,Dfs) .= collectDefines(Stmts,Nm,[]);
+	(Ss,Dfs) .= collectDefines(Stmts,Nm,[A]);
 	Sp .= varSp(Nm);
-	valis (Ss,[defnSpec(Sp,Lc,[A,..Dfs]),..Defs],publishName(Sp,Vz,Pb),As,Opn)
+	valis (Ss,[defnSpec(Sp,Lc,reverse(Dfs)),..Defs],publishName(Sp,Vz,Pb),As,Opn)
       }.
   collectDefinition(A,_,_,_,_,_,_,Rp) =>
     other(reportError(Rp,"cannot understand definition $(A)",locOf(A))).
@@ -141,7 +141,7 @@ star.compiler.dependencies{
   collectDefines:(cons[ast],string,cons[ast]) => (cons[ast],cons[ast]).
   collectDefines([St,..Ss],Nm,Dfs) where
       (_,Nm) ^= ruleName(St) => collectDefines(Ss,Nm,[St,..Dfs]).
-  collectDefines(Ss,Nm,Dfs) default => (Ss,reverse(Dfs)).
+  collectDefines(Ss,Nm,Dfs) default => (Ss,Dfs).
 	
   generateAnnotations:(cons[ast],cons[ast],cons[ast],cons[(string,ast)]) =>
     cons[(string,ast)].
@@ -223,14 +223,13 @@ star.compiler.dependencies{
       }.
   collectStmtRefs(A,All,Annots,Rf,Rp) where
       (_,Tp,Els) ^= isContractStmt(A) => do{
-	Rf0 <- collectTypeRefs(Tp,All,Rf,Rp);
+	Rf0 <- collectContractRefs(Tp,All,Rf,Rp);
 	collectFaceTypes(Els,All,Rf0,Rp)
       }.
   collectStmtRefs(A,All,Annots,Rf,Rp) where
       (_,Q,Cx,Tp,Exp) ^= isImplementationStmt(A) => do{
 	A0 .= filterOut(All,Q);
-	Rf0 <- collectConstraintRefs(Cx,A0,Rf,Rp);
-	Rf1 <- collectTypeRefs(Tp,A0,Rf0,Rp);
+	Rf1 <- collectConstraintRefs([Tp,..Cx],A0,Rf,Rp);
 	collectTermRefs(Exp,A0,Rf1,Rp)
       }.
   collectStmtRefs(A,All,Annots,Rf,Rp) where
@@ -528,10 +527,26 @@ star.compiler.dependencies{
   collectConstraintRefs:(cons[ast],cons[defnSp],cons[defnSp],reports) =>
     either[reports,cons[defnSp]].
   collectConstraintRefs([],_,R,_) => either(R).
+  collectConstraintRefs([T,..Ts],All,Rf,Rp) where _ ^= isSquareTerm(T) => do {
+    R1 <- collectContractRefs(T,All,Rf,Rp);
+    collectConstraintRefs(Ts,All,R1,Rp)
+  }
   collectConstraintRefs([T,..Ts],All,Rf,Rp) => do {
     R1 <- collectTypeRefs(T,All,Rf,Rp);
     collectConstraintRefs(Ts,All,R1,Rp)
   }
+
+  collectContractRefs:(ast,cons[defnSp],cons[defnSp],reports) =>
+    either[reports,cons[defnSp]].
+  collectContractRefs(T,All,Rf,Rp) where (_,Op,Args) ^= isSquareTerm(T) => do {
+    (_,Id) ^= isName(Op);
+    R0 .= collectName(conSp(Id),All,Rf);
+    collectTypeList(Args,All,R0,Rp)
+  }
+  collectContractRefs(T,All,Rf,Rp) where (_,Q,I) ^= isQuantified(T) =>
+    collectContractRefs(I,filterOut(All,Q),Rf,Rp).
+  collectContractRefs(T,All,Rf,Rp) where (_,Q,I) ^= isXQuantified(T) =>
+    collectContractRefs(I,filterOut(All,Q),Rf,Rp).
 
   collectFaceTypes([],_,R,_) => either(R).
   collectFaceTypes([D,..Ds],All,R,Rp) => do{

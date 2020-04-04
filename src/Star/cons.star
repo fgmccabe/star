@@ -92,8 +92,8 @@ star.cons{
     _iter(.nil,St,_) => St.
     _iter(cons(H,T),St,Fn) => _sequence(St,(SS)=>_iter(T,Fn(H,SS),Fn)).
   }
-
-/*  -- Implement indexed access
+/*
+  -- Implement indexed access
   public implementation all t ~~ indexed[cons[t]->>integer,t] => let{
     indexCons:(cons[t],integer)=>option[t].
     indexCons(.nil,_) => .none.
@@ -120,6 +120,7 @@ star.cons{
     _empty = .nil.
   }
 */
+
   public implementation all e ~~ display[e] |: display[cons[e]] => let{
     consDisp(.nil) => ss("").
     consDisp(cons(X,.nil)) => disp(X).

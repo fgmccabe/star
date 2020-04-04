@@ -15,10 +15,13 @@ star.compiler.parser{
   public parseSrc:(uri,pkg,reports) => either[reports,ast].
   parseSrc(U,P,Rp) => do{
     if Txt ^= getResource(U) then{
---      logMsg("input text $(Txt::cons[integer])");
-      Toks .= allTokens(initSt(pkgLoc(P),Txt::cons[integer]));
+--      logMsg("parse $(U)");
+      Chrs .= Txt::cons[integer];
+--      logMsg("got chars");
+      Toks .= allTokens(initSt(pkgLoc(P),Chrs));
 --      logMsg("input tokens are $(Toks)");
       (Trm,Rp1,_) .= astParse(Toks,Rp);
+--      logMsg("input term $(Trm)");
       if errorFree(Rp1) then
 	valis Trm
       else
@@ -34,4 +37,13 @@ star.compiler.parser{
         (some(Trm),Rptx) ||
         (.none, reportError(Rpt,"Could not successfully parse",Lc))).
 
+  public tokenizeSrc:(uri,pkg,reports) => either[reports,cons[token]].
+  tokenizeSrc(U,P,Rp) => do{
+    if Txt ^= getResource(U) then{
+--      logMsg("parse $(U)");
+      valis allTokens(initSt(pkgLoc(P),Txt::cons[integer]))
+--      logMsg("input tokens are $(Toks)");
+    } else
+    throw reportError(Rp,"Cannot locate $(P) in $(U)",pkgLoc(P))
+  }
 }

@@ -6,6 +6,7 @@ star.compiler.opg{
   import star.compiler.errors.
   import star.compiler.lexer.
   import star.compiler.location.
+  import star.compiler.misc.
   import star.compiler.terms.
   import star.compiler.token.
   import star.pkg.
@@ -23,8 +24,8 @@ star.compiler.opg{
   termLeft:(cons[token],reports,integer) => (ast,integer,cons[token],reports,needsTerm).
   termLeft([tok(Lc,idTok(Id)),tok(Lc1,rgtTok(Par)),..Toks],Rpt,_) => (nme(Lc,Id),0,[tok(Lc1,rgtTok(Par)),..Toks],Rpt,.needOne).
   termLeft([tok(Lc,idTok(Op)),..Toks],Rpt,Priority) where
-    (PPr,PRgt)^=isPrefixOp(Op) && PPr=<Priority &&
-    (Arg,_,RToks,Rpt1,Needs) .= term(Toks,Rpt,PRgt) =>
+      (PPr,PRgt)^=isPrefixOp(Op) && PPr=<Priority &&
+      (Arg,_,RToks,Rpt1,Needs) .= term(Toks,Rpt,PRgt) =>
     (unary(mergeLoc(Lc,locOf(Arg)),Op,Arg),PPr,RToks,Rpt1,Needs).
   termLeft([endTok(Lc),..Toks],Rpt,_) => (nme(Lc,"_eof"),0,[endTok(Lc),..Toks],reportError(Rpt,"end of file on input",Lc),.noNeed).
   
@@ -35,7 +36,7 @@ star.compiler.opg{
     (ILft,IPr,IRgt) ^= isInfixOp(Op) && IPr=<Priority && ILft>=LeftPriority &&
     (PLft,PPr) ^= isPostfixOp(Op) && PPr=<Priority && PLft>=LeftPriority &&
     legalNextRight(Toks,IRgt) && -- Use infix
-    (Rhs,RPriority,RToks,Rpt1,Needs) .= term(Toks,Rpt,IRgt) =>
+      (Rhs,RPriority,RToks,Rpt1,Needs) .= term(Toks,Rpt,IRgt) =>
       termRight((binary(mergeLoc(locOf(Lhs),locOf(Rhs)),Op,Lhs,Rhs),RPriority,RToks,Rpt1,Needs),Priority).
   termRight((Lhs,LeftPriority,[tok(Lc,idTok(Op)),..Toks],Rpt,LeftNeed),Priority) where
     (ILft,IPr,IRgt) ^= isInfixOp(Op) && IPr=<Priority && ILft>=LeftPriority &&
@@ -43,8 +44,10 @@ star.compiler.opg{
     (Rhs,RPriority,RToks,Rpt1,Needs) .= term(Toks,Rpt,IRgt) =>
       termRight((binary(mergeLoc(locOf(Lhs),locOf(Rhs)),Op,Lhs,Rhs),RPriority,RToks,Rpt1,Needs),Priority).
   termRight((Lhs,LeftPriority,[tok(Lc,idTok(Op)),..Toks],Rpt,LeftNeed),Priority) where
-    (PLft,PPr) ^= isPostfixOp(Op) && PPr=<Priority && PLft>=LeftPriority =>
-      termRight((unary(mergeLoc(locOf(Lhs),Lc),Op,Lhs),PPr,Toks,Rpt,.needOne),Priority).
+      (PLft,PPr) ^= isPostfixOp(Op) &&
+      PPr=<Priority && PLft>=LeftPriority &&
+      !legalNextRight(Toks,PPr) =>
+    termRight((unary(mergeLoc(locOf(Lhs),Lc),Op,Lhs),PPr,Toks,Rpt,.needOne),Priority).
   termRight(Left,_) => Left.
 
   legalNextRight:(cons[token],integer) => boolean.
@@ -52,6 +55,7 @@ star.compiler.opg{
   legalNextRight([],_) => .false.
 
   legalRight:(tk,integer) => boolean.
+  legalRight(idTok(". "),_) => .false.
   legalRight(idTok(Op),Pr) where (PPr,_) ^= isPrefixOp(Op) => PPr=<Pr.
   legalRight(idTok(Op),_) => ! isOperator(Op).
   legalRight(idQTok(_),_) => .true.

@@ -22,29 +22,29 @@ star.compiler.ast{
   .}
 
   public implementation display[ast] => {.
-    disp(A) => dispAst(A,2000).
+    disp(A) => dispAst(A,2000,"").
   .}
 
   public implementation coercion[ast,string] => {.
     _coerce(A) => "$(A)".
   .}
 
-  public dispAst:(ast,integer) => ss.
-  dispAst(lit(_,Lt),_) => disp(Lt).
-  dispAst(nme(_,Id),_) => dispId(Id).
-  dispAst(qnm(_,Id),_) => ssSeq([ss("'"),ss(Id),ss("'")]).
-  dispAst(tpl(_,"{}",Els),_) =>
-    ssSeq([ss("{"),ssSeq(interleave(Els//((E)=>dispAst(E,2000)),ss(". "))),ss("}")]).
-  dispAst(tpl(_,"()",[nme(_,Id)]),_) => ssSeq([ss("("),ss(Id),ss(")")]).
-  dispAst(tpl(_,Bk,Els),_) where bkt(Lft,_,Rgt,Inn)^=isBracket(Bk) =>
-    ssSeq([ss(Lft),ssSeq(interleave(Els//((E)=>dispAst(E,Inn)),ss(","))),ss(Rgt)]).
-  dispAst(app(_,nme(_,Op),tpl(_,"()",[L,R])),Pr) where (Lf,P,Rg)^=isInfixOp(Op) =>
-    ssSeq([leftPar(P,Pr),dispAst(L,Lf),ss(" "),ss(Op),ss(" "),dispAst(R,Rg),rightPar(P,Pr)]).
-  dispAst(app(_,nme(_,Op),tpl(_,"()",[R])),Pr) where (P,Rg)^=isPrefixOp(Op) =>
-    ssSeq([leftPar(P,Pr),ss(Op),ss(" "),dispAst(R,Rg),rightPar(P,Pr)]).
-  dispAst(app(_,nme(_,Op),tpl(_,"()",[R])),Pr) where (P,Rg)^=isPostfixOp(Op) =>
-    ssSeq([leftPar(P,Pr),dispAst(R,Rg),ss(" "),ss(Op),rightPar(P,Pr)]).
-  dispAst(app(_,Op,A),_) => ssSeq([dispAst(Op,0),dispAst(A,0)]).
+  public dispAst:(ast,integer,string) => ss.
+  dispAst(lit(_,Lt),_,_) => disp(Lt).
+  dispAst(nme(_,Id),_,_) => dispId(Id).
+  dispAst(qnm(_,Id),_,_) => ssSeq([ss("'"),ss(Id),ss("'")]).
+  dispAst(tpl(_,"{}",Els),_,Sp) =>
+    ssSeq([ss("{\n"),ss(Sp),ssSeq(interleave(Els//((E)=>dispAst(E,2000,Sp++"  ")),ss(".\n"++Sp))),ss("\n"++Sp),ss("}")]).
+  dispAst(tpl(_,"()",[nme(_,Id)]),_,_) => ssSeq([ss("("),ss(Id),ss(")")]).
+  dispAst(tpl(_,Bk,Els),_,Sp) where bkt(Lft,_,Rgt,Inn)^=isBracket(Bk) =>
+    ssSeq([ss(Lft),ssSeq(interleave(Els//((E)=>dispAst(E,Inn,Sp)),ss(","))),ss(Rgt)]).
+  dispAst(app(_,nme(_,Op),tpl(_,"()",[L,R])),Pr,Sp) where (Lf,P,Rg)^=isInfixOp(Op)=>
+    ssSeq([leftPar(P,Pr),dispAst(L,Lf,Sp),ss(" "),ss(Op),ss(" "),dispAst(R,Rg,Sp),rightPar(P,Pr)]).
+  dispAst(app(_,nme(_,Op),tpl(_,"()",[R])),Pr,Sp) where (P,Rg)^=isPrefixOp(Op) =>
+    ssSeq([leftPar(P,Pr),ss(Op),ss(" "),dispAst(R,Rg,Sp),rightPar(P,Pr)]).
+  dispAst(app(_,nme(_,Op),tpl(_,"()",[R])),Pr,Sp) where (P,Rg)^=isPostfixOp(Op) =>
+    ssSeq([leftPar(P,Pr),dispAst(R,Rg,Sp),ss(" "),ss(Op),rightPar(P,Pr)]).
+  dispAst(app(_,Op,A),_,Sp) => ssSeq([dispAst(Op,0,Sp),dispAst(A,0,Sp++"  ")]).
 
   dispId:(string) => ss.
   dispId(S) where isOperator(S) => ssSeq([ss("("),ss(S),ss(")")]).
