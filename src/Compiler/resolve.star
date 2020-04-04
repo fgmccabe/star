@@ -73,7 +73,7 @@ star.compiler.resolve{
     (Qx,Qt) .= deQuant(Tp);
     (_,ITp) .= deConstrain(Qt);
     CTp .= reQuant(Qx,funType(Cx,ITp));
-    valis varDef(Lc,Nm,FullNm,lambda(Lc,[eqn(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp)
+    valis varDef(Lc,Nm,FullNm,lambda([eqn(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp)
   }
 
   overloadImplDef(Dict,Lc,Nm,FullNm,Val,[],Tp,Rp) => do{
@@ -87,7 +87,7 @@ star.compiler.resolve{
     (Qx,Qt) .= deQuant(Tp);
     (_,ITp) .= deConstrain(Qt);
     CTp .= reQuant(Qx,funType(Cx,ITp));
-    valis implDef(Lc,Nm,FullNm,lambda(Lc,[eqn(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp)
+    valis implDef(Lc,Nm,FullNm,lambda([eqn(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp)
   }
 
   defineCVars:(locn,cons[tipe],cons[canon],dict) => (cons[canon],dict).
@@ -186,9 +186,9 @@ star.compiler.resolve{
     (St3,RRhs) <- overloadTerm(Rhs,Dict,St2,Rp);
     valis (St3,cond(Lc,RTst,RLhs,RRhs))
   }
-  overloadTerm(lambda(Lc,Rls,Tp),Dict,St,Rp) => do{
+  overloadTerm(lambda(Rls,Tp),Dict,St,Rp) => do{
     (Stx,RRls) <- overloadRules(Rls,[],Dict,St,Rp);
-    valis (Stx,lambda(Lc,RRls,Tp))
+    valis (Stx,lambda(RRls,Tp))
   }
   overloadTerm(letExp(Lc,Gp,Rhs),Dict,St,Rp) => do{
     (RDfs,RDct) <- overloadGroup(Gp,Dict,Rp);

@@ -3,19 +3,22 @@ star.compiler.ast{
   import star.compiler.location.
   import star.compiler.misc.
   import star.compiler.operators.
-  import star.compiler.terms.
 
   public ast ::=
     nme(locn,string)
       | qnm(locn,string)
-      | lit(locn,term)
+      | int(locn,integer)
+      | num(locn,float)
+      | str(locn,string)
       | tpl(locn,string,cons[ast])
       | app(locn,ast,ast).
 
   public implementation equality[ast] => {.
     nme(_,I1) == nme(_,I2) => I1==I2.
     qnm(_,I1) == qnm(_,I2) => I1==I2.
-    lit(_,L1) == lit(_,L2) => L1==L2.
+    int(_,L1) == int(_,L2) => L1==L2.
+    num(_,L1) == num(_,L2) => L1==L2.
+    str(_,L1) == str(_,L2) => L1==L2.
     tpl(_,K1,E1) == tpl(_,K2,E2) => K1==K2 && E1==E2.
     app(_,O1,A1) == app(_,O2,A2) => O1==O2 && A1==A2.
     _ == _ default => .false.
@@ -30,7 +33,9 @@ star.compiler.ast{
   .}
 
   public dispAst:(ast,integer,string) => ss.
-  dispAst(lit(_,Lt),_,_) => disp(Lt).
+  dispAst(int(_,Ix),_,_) => disp(Ix).
+  dispAst(num(_,Dx),_,_) => disp(Dx).
+  dispAst(str(_,Sx),_,_) => disp(Sx).
   dispAst(nme(_,Id),_,_) => dispId(Id).
   dispAst(qnm(_,Id),_,_) => ssSeq([ss("'"),ss(Id),ss("'")]).
   dispAst(tpl(_,"{}",Els),_,Sp) =>
@@ -60,14 +65,12 @@ star.compiler.ast{
 
   public implementation hasLoc[ast] => {.
     locOf(nme(Lc,_)) => Lc.
-    locOf(lit(Lc,_)) => Lc.
+    locOf(int(Lc,_)) => Lc.
+    locOf(num(Lc,_)) => Lc.
+    locOf(str(Lc,_)) => Lc.
     locOf(tpl(Lc,_,_)) => Lc.
     locOf(app(Lc,_,_)) => Lc.
   .}
-
-  public isLit:(ast) => boolean.
-  isLit(lit(_,_)) => .true.
-  isLit(_) default => .false.
 
   public isName:(ast) => option[(locn,string)].
   isName(nme(Lc,Id)) where ! keyword(Id) => some((Lc,Id)).
@@ -82,15 +85,15 @@ star.compiler.ast{
   genName(Lc,Pr) => nme(Lc,genSym(Pr)).
   
   public isInt:(ast) => option[(locn,integer)].
-  isInt(lit(Lc,intgr(Ix))) => some((Lc,Ix)).
+  isInt(int(Lc,Ix)) => some((Lc,Ix)).
   isInt(_) default => .none.
 
   public isFlt:(ast) => option[(locn,float)].
-  isFlt(lit(Lc,flot(Dx))) => some((Lc,Dx)).
+  isFlt(num(Lc,Dx)) => some((Lc,Dx)).
   isFlt(_) default => .none.
 
   public isStr:(ast) => option[(locn,string)].
-  isStr(lit(Lc,strg(Sx))) => some((Lc,Sx)).
+  isStr(str(Lc,Sx)) => some((Lc,Sx)).
   isStr(_) default => .none.
 
   public zeroary:(locn,string)=>ast.
@@ -176,11 +179,8 @@ star.compiler.ast{
 
   public implementation coercion[locn,ast]=>{
     _coerce(Lc where locn(Pkg,Line,Col,Off,Ln).=Lc)=>
-      roundTerm(Lc,nme(Lc,"locn"),[lit(Lc,strg(Pkg)),
-	  lit(Lc,intgr(Line)),
-	  lit(Lc,intgr(Col)),
-	  lit(Lc,intgr(Off)),
-	  lit(Lc,intgr(Ln))]).
+      roundTerm(Lc,nme(Lc,"locn"),[str(Lc,Pkg),
+	  int(Lc,Line), int(Lc,Col), int(Lc,Off), int(Lc,Ln)]).
   }
 
 }

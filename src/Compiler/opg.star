@@ -7,7 +7,6 @@ star.compiler.opg{
   import star.compiler.lexer.
   import star.compiler.location.
   import star.compiler.misc.
-  import star.compiler.terms.
   import star.compiler.token.
   import star.pkg.
 
@@ -66,8 +65,8 @@ star.compiler.opg{
   legalRight(_,_) default => .false.
 
   term0:(cons[token],reports) => (ast,integer,cons[token],reports,needsTerm).
-  term0([tok(Lc,intTok(Ix)),..Toks],Rpt) => (lit(Lc,intgr(Ix)),0,Toks,Rpt,.needOne).
-  term0([tok(Lc,fltTok(Dx)),..Toks],Rpt) => (lit(Lc,flot(Dx)),0,Toks,Rpt,.needOne).
+  term0([tok(Lc,intTok(Ix)),..Toks],Rpt) => (int(Lc,Ix),0,Toks,Rpt,.needOne).
+  term0([tok(Lc,fltTok(Dx)),..Toks],Rpt) => (num(Lc,Dx),0,Toks,Rpt,.needOne).
   term0([tok(Lc,strTok(Sx)),..Toks],Rpt) where (Term,Rptx).=handleInterpolation(Sx,Rpt,Lc) => (Term,0,Toks,Rptx,.needOne).
   term0([tok(Lc,lftTok("{}")),tok(Lc1,rgtTok("{}")),..Toks],Rpt) => (tpl(mergeLoc(Lc,Lc1),"{}",[]),0,Toks,Rpt,.noNeed).
   term0([tok(Lc,lftTok("{}")),..Toks],Rpt) where
@@ -134,8 +133,8 @@ star.compiler.opg{
   deComma(Trm) => [Trm].
 
   handleInterpolation:(cons[stringSegment],reports,locn) => (ast,reports).
-  handleInterpolation([segment(Lc,Str)],Rpt,_) => (lit(Lc,strg(Str)),Rpt).
-  handleInterpolation([],Rpt,Lc) => (lit(Lc,strg("")),Rpt).
+  handleInterpolation([segment(Lc,Str)],Rpt,_) => (str(Lc,Str),Rpt).
+  handleInterpolation([],Rpt,Lc) => (str(Lc,""),Rpt).
   handleInterpolation(Segments,Rp,Lc) where
     (Segs,Rpx) .= stringSegments(Segments,Rp,[]) => (binary(Lc,"::",unary(Lc,"ssSeq",tpl(Lc,"[]",Segs)),nme(Lc,"string")),Rpx).
 
@@ -145,13 +144,13 @@ star.compiler.opg{
       (Sg,Rp1).=stringSegment(Seg,Rp) => stringSegments(More,Rp1,[Sg,..SoFar]).
 
   stringSegment:(stringSegment,reports) => (ast,reports).
-  stringSegment(segment(Lc,Str),Rp) => (unary(Lc,"ss",lit(Lc,strg(Str))),Rp).
+  stringSegment(segment(Lc,Str),Rp) => (unary(Lc,"ss",str(Lc,Str)),Rp).
   stringSegment(interpolate(Lc,Toks,""),Rpt) where
     (A,Rpt1,_) .= astParse(Toks,Rpt) =>
       (unary(Lc,"disp",A),Rpt1).
   stringSegment(interpolate(Lc,Toks,Frmt),Rpt) where
     (A,Rpt1,_) .= astParse(Toks,Rpt) =>
-      (binary(Lc,"frmt",A,lit(Lc,strg(Frmt))),Rpt1).
+      (binary(Lc,"frmt",A,str(Lc,Frmt)),Rpt1).
 
   checkToken:(tk,reports,cons[token]) => (locn,reports,cons[token]).
   checkToken(Tk,Rpt,[tok(Lc,Tk),..Toks]) => (Lc,Rpt,Toks).

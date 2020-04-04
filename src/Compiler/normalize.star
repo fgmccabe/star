@@ -191,7 +191,7 @@ star.compiler.normalize{
   }
 
   isFunctions:(cons[canonDef])=>boolean.
-  isFunctions(Defs) => varDef(_,_,_,Vl,_,_) in Defs *> lambda(_,_,_).=Vl.
+  isFunctions(Defs) => varDef(_,_,_,Vl,_,_) in Defs *> lambda(_,_).=Vl.
 
   transformGroup:(cons[canonDef],nameMap,cons[crDefn],cons[(crVar,crExp)],reports) => either[reports,(cons[(crVar,crExp)],cons[crDefn],nameMap)].
   transformGroup([],Map,D,Vs,_) => either((Vs,D,Map)).
@@ -203,7 +203,7 @@ star.compiler.normalize{
 
   transformDef:(canonDef,nameMap,cons[crDefn],cons[(crVar,crExp)],reports) =>
     either[reports,(cons[(crVar,crExp)],cons[crDefn])].
-  transformDef(varDef(Lc,Nm,FullNm,lambda(_,Eqns,Tp),_,_),Map,Ex,Vs,Rp) => do{
+  transformDef(varDef(Lc,Nm,FullNm,lambda(Eqns,Tp),_,_),Map,Ex,Vs,Rp) => do{
     logMsg("transform function $(FullNm) - $(Eqns)");
 --    logMsg("function map $(Map)");
     Extra .= extraVars(Map);
@@ -370,7 +370,8 @@ star.compiler.normalize{
     liftLetExp(Lc,Grp,Bnd,Map,Ex,Rp).
   liftExp(letRec(Lc,Grp,Bnd),Map,Ex,Rp) => 
     liftLetRec(Lc,Grp,Bnd,Map,Ex,Rp).
-  liftExp(Lam where lambda(Lc,Eqns,Tp).=Lam,Map,Ex,Rp) => do{
+  liftExp(Lam where lambda(Eqns,Tp).=Lam,Map,Ex,Rp) => do{
+    Lc .= locOf(Lam);
     logMsg("transform lambda $(Lam)");
     (LMap,ClV,CloArgs) <- lambdaMap(Lam,Map,Rp);
     logMsg("lambda map $(head(LMap))");
@@ -526,11 +527,11 @@ star.compiler.normalize{
   extendTplType(Es,[V,..Vs]) => [typeOf(V),..extendTplType(Es,Vs)].
 
   collectMtd:(canonDef,option[crVar],map[string,nameMapEntry])=>map[string,nameMapEntry].
-  collectMtd(varDef(Lc,Nm,FullNm,lambda(_,_,_),_,Tp),some(ThVr),LL) =>
+  collectMtd(varDef(Lc,Nm,FullNm,lambda(_,_),_,Tp),some(ThVr),LL) =>
     LL[Nm->localFun(closureNm(FullNm),Tp,ThVr)].
   collectMtd(varDef(Lc,Nm,FullNm,Val,Cx,Tp),some(ThVr),LL) =>
     LL[Nm->localVar(crId(Nm,Tp))].
-  collectMtd(varDef(Lc,Nm,FullNm,lambda(_,_,_),_,Tp),.none,LL) =>
+  collectMtd(varDef(Lc,Nm,FullNm,lambda(_,_),_,Tp),.none,LL) =>
     LL[Nm->moduleVar(FullNm,closureNm(FullNm),funType([],Tp))].
   collectMtd(varDef(Lc,Nm,FullNm,Val,Cx,Tp),.none,LL) =>
     LL[Nm->localVar(crId(Nm,Tp))].

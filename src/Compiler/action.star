@@ -27,7 +27,7 @@ star.compiler.action{
     PtnTp .= typeOf(Ptn);
     GenTp .= typeOf(Gen);
     LamTp .= funType([PtnTp],ConTp);
-    Lam .= lambda(Lc,[eqn(Lc,tple(Lc,[Ptn]),.none,Cont)],LamTp);
+    Lam .= lambda([eqn(Lc,tple(Lc,[Ptn]),.none,Cont)],LamTp);
     SeqTp .= funType([GenTp,LamTp],ConTp);
     Seqn .= over(Lc,mtd(Lc,"_sequence",SeqTp),SeqTp,[typeConstraint(mkTypeExp(Contract,[ExTp]))]);
     valis apply(Lc,Seqn,tple(Lc,[Gen,Lam]),ConTp)
@@ -39,7 +39,7 @@ star.compiler.action{
     PtnTp .= typeOf(Ptn);
     GenTp .= typeOf(Gen);
     LamTp .= funType([PtnTp],ConTp);
-    Lam .= lambda(Lc,[eqn(Lc,tple(Lc,[Ptn]),.none,Cont)],LamTp);
+    Lam .= lambda([eqn(Lc,tple(Lc,[Ptn]),.none,Cont)],LamTp);
     valis apply(Lc,Lam,tple(Lc,[Gen]),ConTp)
   }
   genAction(delayDo(Lc,Actn,ExTp,ValTp,ErTp),Contract,Cont,Path,Rp) => do{
@@ -49,7 +49,7 @@ star.compiler.action{
   }
   genAction(tryCatchDo(Lc,Body,Hndlr,ExTp,ValTp,ErTp),Contract,Cont,Path,Rp) => do{
     HndlrTp .= typeOf(Hndlr);
-    logMsg("catch handler $(Hndlr)\:($(HndlrTp)");
+--    logMsg("catch handler $(Hndlr)\:($(HndlrTp)");
     ConTp .= mkTypeExp(ExTp,[ErTp,ValTp]);
     BdyExp <- genAction(Body,Contract,.none,Path,Rp);
     BType .= typeOf(BdyExp);
@@ -97,7 +97,7 @@ star.compiler.action{
     FnCall .= apply(Lc,vr(Lc,Fn,FnTp),tple(Lc,[]),LpTp);
     Then <- genAction(seqnDo(Lc,Bdy,simpleDo(Lc,FnCall,StTp)),
       Contract,.none,ThPath,Rp);
-    FF .= varDef(Lc,Fn,LclName,lambda(Lc,[eqn(Lc,tple(Lc,[]),.none,cond(Lc,Tst,Then,Cont))],FnTp),[],FnTp);
+    FF .= varDef(Lc,Fn,LclName,lambda([eqn(Lc,tple(Lc,[]),.none,cond(Lc,Tst,Then,Cont))],FnTp),[],FnTp);
     valis letExp(Lc,[FF],FnCall)
   }
     /*
@@ -106,23 +106,23 @@ star.compiler.action{
   
   <iterator>( do{return ()}, (Lcls,St) => do {A; return St})
 */
-  genAction(forDo(Lc,Tst,Body,StTp,ErTp),Contract,Cont,Path,Rp) => do{
+  genAction(forDo(Lc,Tst,Body,ActTp,ErTp),Contract,Cont,Path,Rp) => do{
     Unit .= tple(Lc,[]);
     UnitTp .= tupleType([]);
-    Zed <- genReturn(Lc,Unit,StTp,UnitTp,ErTp,Contract,Rp);
+    Zed <- genReturn(Lc,Unit,ActTp,UnitTp,ErTp,Contract,Rp);
     IterBody <- genAction(Body,Contract,some(Zed),Path,Rp);
     ForLoop <- genCondition(Tst,Path,
-      genRtn(Lc,StTp,UnitTp,ErTp,Contract,Rp),
-      genSeq(Lc,StTp,UnitTp,ErTp,Contract,Rp),
-      genForBody(Lc,StTp,UnitTp,ErTp,Contract,Rp,IterBody),
+      genRtn(Lc,ActTp,UnitTp,ErTp,Contract,Rp),
+      genSeq(Lc,ActTp,Contract,ErTp,Rp),
+      genForBody(Lc,ActTp,UnitTp,ErTp,Contract,Rp,IterBody),
       unlifted(Unit),Rp);
-    valis combineActs(Lc,ForLoop,Cont,Contract,StTp)
+    valis combineActs(Lc,ForLoop,Cont,Contract,ActTp)
   }
   genAction(Act,_,_,_,Rp) =>
     other(reportError(Rp,"cannot handle action $(Act)",locOf(Act))).
 
-  genForBody(Lc,StTp,VlTp,ErTp,Contract,Rp,IterBody) => let{
-    f(E) => combineActs(Lc,IterBody,some(genRtn(Lc,StTp,VlTp,ErTp,Contract,Rp)(E)),Contract,StTp).
+  genForBody(Lc,ActTp,VlTp,ErTp,Contract,Rp,IterBody) => let{
+    f(E) => combineActs(Lc,IterBody,some(genRtn(Lc,ActTp,VlTp,ErTp,Contract,Rp)(E)),Contract,ActTp).
   } in f.
 
   public genReturn:(locn,canon,tipe,tipe,tipe,tipe,reports) => either[reports,canon].
@@ -135,10 +135,10 @@ star.compiler.action{
   }
 
   public genRtn:(locn,tipe,tipe,tipe,tipe,reports) => canonLift.
-  genRtn(Lc,StTp,VlTp,ErTp,Contract,Rp) => let{
+  genRtn(Lc,ActTp,VlTp,ErTp,Contract,Rp) => let{
     f(lifted(Exp))=>Exp.
     f(unlifted(Exp)) =>
-      valof genReturn(Lc,Exp,StTp,VlTp,ErTp,Contract,Rp).
+      valof genReturn(Lc,Exp,ActTp,VlTp,ErTp,Contract,Rp).
   } in f.
 
   genVl:(locn,canon,tipe,tipe,tipe,reports) => (lifted)=>canon.
@@ -147,32 +147,32 @@ star.compiler.action{
   } in f.
 
   public genPerform:(locn,canon,tipe,tipe,tipe) => canon.
-  genPerform(Lc,A,Tp,ExTp,Contract) => let{
+  genPerform(Lc,A,ExTp,VLTp,Contract) => let{
     MdTp = typeOf(A).
-    Gen = over(Lc,mtd(Lc,"_perform",funType([MdTp],Tp)),funType([MdTp],Tp),[typeConstraint(mkTypeExp(Contract,[ExTp]))])
+    Gen = over(Lc,mtd(Lc,"_perform",funType([MdTp],VLTp)),funType([MdTp],VLTp),[typeConstraint(mkTypeExp(Contract,[ExTp]))])
   } in apply(Lc,Gen,tple(Lc,[A]),MdTp).
 
   combineActs:(locn,canon,option[canon],tipe,tipe)=>canon.
   combineActs(_,A1,.none,_,_) => A1.
-  combineActs(Lc,A1,some(A2),Contract,StTp) => let{.
+  combineActs(Lc,A1,some(A2),Contract,ActTp) => let{.
     A1Tp = typeOf(A1).
     Anon = anonVar(Lc,A1Tp).
     ConTp = typeOf(A2).
     LamTp = funType([A1Tp],ConTp).
-    Lam = lambda(Lc,[eqn(Lc,tple(Lc,[Anon]),.none,A2)],LamTp).
+    Lam = lambda([eqn(Lc,tple(Lc,[Anon]),.none,A2)],LamTp).
     SeqTp = funType([A1Tp,LamTp],ConTp).
-    Gen = over(Lc,mtd(Lc,"_sequence",SeqTp),SeqTp,[typeConstraint(mkTypeExp(Contract,[StTp]))]).
+    Gen = over(Lc,mtd(Lc,"_sequence",SeqTp),SeqTp,[typeConstraint(mkTypeExp(Contract,[ActTp]))]).
   .} in apply(Lc,Gen,tple(Lc,[A1,Lam]),ConTp).
 
-  genSeq(Lc,StTp,VlTp,ErTp,Contract,Rp) => let{
+  genSeq(Lc,ExTp,Contract,ErTp,Rp) => let{
     genSq(St,Init,Reslt) => let{.
       ATp = typeOf(St).
-      MdTp = mkTypeExp(StTp,[ErTp,ATp]).
+      MdTp = mkTypeExp(ExTp,[ErTp,ATp]).
       LamTp = funType([ATp],MdTp).
-      Lam = lambda(Lc,[eqn(Lc,tple(Lc,[St]),.none,Reslt)],LamTp).
+      Lam = lambda([eqn(Lc,tple(Lc,[St]),.none,Reslt)],LamTp).
       SeqTp = funType([MdTp,LamTp],MdTp).
-      Gen = over(Lc,mtd(Lc,"_sequence",SeqTp),SeqTp,[typeConstraint(mkTypeExp(Contract,[StTp]))]).
-      Initial = genRtn(Lc,StTp,VlTp,ErTp,Contract,Rp)(Init).
+      Gen = over(Lc,mtd(Lc,"_sequence",SeqTp),SeqTp,[typeConstraint(mkTypeExp(Contract,[ExTp]))]).
+      Initial = genRtn(Lc,ExTp,LamTp,ErTp,Contract,Rp)(Init).
     .} in apply(Lc,Gen,tple(Lc,[Initial,Lam]),MdTp)
   } in genSq.
   
@@ -205,58 +205,59 @@ star.compiler.action{
       tple(Lc,[apply(Lc,vr(Lc,"some",funType([VTtp],OptTp)),
 	    tple(Lc,[VTpl]),OptTp)]),MTp);
     Seq <- genCondition(Cond,Path,genRtn(Lc,EitherTp,OptTp,UnitTp,Contract,Rp),
-      genSeq(Lc,EitherTp,OptTp,UnitTp,Contract,Rp),
+      genSeq(Lc,EitherTp,Contract,UnitTp,Rp),
       genVl(Lc,Ptn,EitherTp,UnitTp,Contract,Rp),
       lifted(Zed),Rp);
     Gl .= genPerform(Lc,Seq,MTp,EitherTp,Contract);
     valis match(Lc,Ptn,Gl)
   }
 
-  public genAbstraction:(locn,canon,canon,dict,string,reports) => either[reports,canon].
-  genAbstraction(Lc,Bnd,Cond,Env,Path,Rp) => do{
-    (ExContract,ExTp,VlTp) <- pickupContract(Lc,Env,"execution",Rp);
-    (SeqContract,StTp,ElTp) <- pickupContract(Lc,Env,"sequence",Rp);
+  public genAbstraction:(locn,tipe,canon,canon,dict,string,reports) => either[reports,canon].
+  genAbstraction(Lc,Tp,Bnd,Cond,Env,Path,Rp) => do{
+    (ExContract,ExTp) <- pickupExecutionContract(Lc,Env,Rp);
+    (SeqContract,SeqTp,ElTp) <- pickupSequenceContract(Lc,Env,Rp);
+    logMsg("Sequence contract: $(SeqContract), sequence type $(SeqTp) ->> $(ElTp)");
     (_,ActionTp,_) ^= findType(Env,"action");
     ErTp .= newTypeVar("_");
-    SeqConstraint .= typeConstraint(funDeps(mkTypeExp(SeqContract,[StTp]),[ElTp]));
-    if sameType(ActionTp,ExTp,Env) then{
-      Zed <- genReturn(Lc,over(Lc,mtd(Lc,"_nil",StTp),StTp,[SeqConstraint]),ExTp,StTp,ErTp,ExContract,Rp);
-      Gen .= over(Lc,mtd(Lc,"_cons",funType([ElTp,StTp],StTp)),funType([ElTp,StTp],StTp),
+    SeqConstraint .= typeConstraint(funDeps(mkTypeExp(SeqContract,[SeqTp]),[ElTp]));
+    if sameType(ActionTp,ExTp,Env) && sameType(SeqTp,Tp,Env) then{
+      Zed <- genReturn(Lc,over(Lc,mtd(Lc,"_nil",SeqTp),SeqTp,[SeqConstraint]),ExTp,SeqTp,ErTp,ExContract,Rp);
+      Gen .= over(Lc,mtd(Lc,"_cons",funType([ElTp,SeqTp],SeqTp)),funType([ElTp,SeqTp],SeqTp),
 	[SeqConstraint]);
-      Seq <- genCondition(Cond,Path,genRtn(Lc,ExTp,StTp,ErTp,ExContract,Rp),
-	genSeq(Lc,StTp,ExTp,ErTp,ExContract,Rp),
-	genEl(Lc,Gen,Bnd,StTp,ExContract,ExTp,ErTp,Rp),
+      Seq <- genCondition(Cond,Path,genRtn(Lc,ExTp,SeqTp,ErTp,ExContract,Rp),
+	genSeq(Lc,ExTp,ExContract,ErTp,Rp),
+	genEl(Lc,Gen,Bnd,SeqTp,ExTp,ErTp,ExContract,Rp),
 	lifted(Zed),Rp);
-      valis genPerform(Lc,Seq,StTp,ExTp,ExContract)
+      valis genPerform(Lc,Seq,ExTp,SeqTp,ExContract)
     }
     else
     throw reportError(Rp,"action type $(ActionTp) not consistent with sequence contract",Lc)
   }
 
-  genEl(Lc,Gen,Bnd,StTp,ExTp,ErTp,ExContract,Rp) => let{
-    f(unlifted(Strm)) => valof genReturn(Lc,apply(Lc,Gen,tple(Lc,[Bnd,Strm]),StTp),
-      ExTp,StTp,ErTp,ExContract,Rp).
+  genEl(Lc,Gen,Bnd,StrmTp,ExTp,ErTp,ExContract,Rp) => let{
+    f(unlifted(Strm)) => valof genReturn(Lc,apply(Lc,Gen,tple(Lc,[Bnd,Strm]),StrmTp),
+      ExTp,StrmTp,ErTp,ExContract,Rp).
   } in f.
       
     
-  public pickupContract:(locn,dict,string,reports) => either[reports,(tipe,tipe,tipe)].
-  pickupContract(Lc,Env,Nm,Rp) => do{
-    if Con ^= findContract(Env,Nm) then{
-      (_,typeExists(funDeps(tpExp(Op,StTp),[ErTp]),_)) .=
+  public pickupExecutionContract:(locn,dict,reports) => either[reports,(tipe,tipe)].
+  pickupExecutionContract(Lc,Env,Rp) => do{
+    if Con ^= findContract(Env,"execution") then{
+      (_,typeExists(tpExp(Op,ActTp),_)) .=
 	freshen(Con,Env);
-      valis (Op,StTp,ErTp)
+      valis (Op,ActTp)
     } else
-    throw reportError(Rp,"$(Nm) contract not defined",Lc)
+    throw reportError(Rp,"execution contract not defined",Lc)
   }
 
-  public pickupIxContract:(locn,dict,string,reports) => either[reports,(tipe,tipe,tipe,tipe)].
-  pickupIxContract(Lc,Env,Nm,Rp) => do{
-    if Con ^= findContract(Env,Nm) then{
-      (_,typeExists(funDeps(tpExp(Op,IxTp),[KyTp,VlTp]),_)) .=
+  public pickupSequenceContract:(locn,dict,reports) => either[reports,(tipe,tipe,tipe)].
+  pickupSequenceContract(Lc,Env,Rp) => do{
+    if Con ^= findContract(Env,"sequence") then{
+      (_,typeExists(funDeps(tpExp(Op,SqTp),[ElTp]),_)) .=
 	freshen(Con,Env);
-      valis (Op,IxTp,KyTp,VlTp)
+      valis (Op,SqTp,ElTp)
     } else
-      throw reportError(Rp,"$(Nm) contract not defined",Lc)
+      throw reportError(Rp,"sequence contract not defined",Lc)
   }
 
   anonVar(Lc,Tp) => genVar(Lc,"_",Tp).
@@ -267,6 +268,11 @@ star.compiler.action{
   public lifted ::= lifted(canon) | unlifted(canon).
 
   canonLift ~> (lifted)=>canon.
+
+  public implementation display[lifted] => {.
+    disp(lifted(C)) => ssSeq([ss("lifted "),disp(C)]).
+    disp(unlifted(C)) => ssSeq([ss("not lifted "),disp(C)]).
+  .}
 
   /*
   * Ptn in Src
@@ -281,6 +287,7 @@ star.compiler.action{
   public genCondition:(canon,string,canonLift,(canon,lifted,canon)=>canon,canonLift,lifted,reports) =>
     either[reports,canon].
   genCondition(serch(Lc,Ptn,Src,Iterator),Path,Lift,_Seq,Succ,Initial,Rp) => do{
+    logMsg("generate search $(serch(Lc,Ptn,Src,Iterator)) Init=$(Initial)");
     PtnTp .= typeOf(Ptn);
     logMsg("ptn in search has type $(PtnTp)");
     Anon .= anonVar(Lc,PtnTp);
@@ -295,19 +302,21 @@ star.compiler.action{
     MdlTp .= typeOf(AddToFront);
     sFTp .= funType([PtnTp,ResltTp],MdlTp);
     -- entangle iterator type with monad
+    logMsg("MdlTp = $(MdlTp)");
     _ .= sameType(funType([SrcTp,MdlTp,sFTp],MdlTp),ItrTp,[]);
     logMsg("local fun type: $(sFTp)");
     sF .= genSym("f");
     ThPath .= genNewName(Path,"Γ");
     LclName .= packageVarName(ThPath,sF);
 
-    FF.=varDef(Lc,sF,LclName,lambda(Lc,[
+    FF.=varDef(Lc,sF,LclName,lambda([
 	  eqn(Lc,tple(Lc,[Pttrn,St]),PtnCond,AddToFront),
 	  eqn(Lc,tple(Lc,[Anon,St]),.none,Dflt)
 	],sFTp),[],sFTp);
 
     Let .= letExp(Lc,[FF],vr(Lc,sF,sFTp));
     Init .= Lift(Initial);
+    logMsg("search is $(apply(Lc,Iterator,tple(Lc,[Src,Init,Let]),MdlTp))");
     valis apply(Lc,Iterator,tple(Lc,[Src,Init,Let]),MdlTp)
   }
   genCondition(conj(_Lc,A,B),Path,Lift,Seq,Succ,Initial,Rp) =>
@@ -329,8 +338,8 @@ star.compiler.action{
     genCondition(neg(Lc,conj(Lc,A,neg(Lc,B))),Path,Lift,Seq,Succ,Initial,Rp).
   genCondition(Other,Path,Lift,Seq,Succ,Initial,Rp) => do{
     AddToSucc .= Succ(Initial);
-    StTp .= newTypeVar("_");
-    St .= anonVar(locOf(Other),StTp);
+    ActTp .= newTypeVar("_");
+    St .= anonVar(locOf(Other),ActTp);
     Tp .= typeOf(AddToSucc);
     Init .= Lift(Initial);
     valis Seq(St,Initial,cond(locOf(Other),Other,AddToSucc,Init))
