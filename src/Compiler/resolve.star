@@ -195,6 +195,11 @@ star.compiler.resolve{
     (St2,RRhs) <- overloadTerm(Rhs,RDct,St,Rp);
     valis (St2,letExp(Lc,RDfs,RRhs))
   }
+  overloadTerm(letRec(Lc,Gp,Rhs),Dict,St,Rp) => do{
+    (RDfs,RDct) <- overloadGroup(Gp,Dict,Rp);
+    (St2,RRhs) <- overloadTerm(Rhs,RDct,St,Rp);
+    valis (St2,letRec(Lc,RDfs,RRhs))
+  }
   overloadTerm(act(Lc,Act),Dict,St,Rp) => do{
     (St1,RAct) <- overloadAction(Act,Dict,St,Rp);
     valis (St1,act(Lc,RAct))

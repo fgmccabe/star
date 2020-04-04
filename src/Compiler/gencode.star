@@ -135,6 +135,11 @@ star.compiler.gencode{
     (Ctx1,Cd1,_)<-compExp(Val,Opts,stoCont(V),Ctx,Cde,Stk,Rp);
     compExp(Exp,Opts,Cont,Ctx1,Cd1,Stk,Rp)
   }
+  compExp(crLtRec(Lc,V,Val,Exp),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
+--    logMsg("compile $(crLtRc(Lc,V,Val,Exp)), stack = $(Stk)");
+    (Ctx1,Cd1,_)<-compExp(Val,Opts,stoCont(V),Ctx,Cde,Stk,Rp);
+    compExp(Exp,Opts,Cont,Ctx1,Cd1,Stk,Rp)
+  }
   compExp(crCase(Lc,Exp,Cases,Deflt,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
     compCase(Lc,Exp,Cases,Deflt,Tp,Opts,Cont,Ctx,Cde,Stk,Rp).
   compExp(crAbort(Lc,Msg,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>

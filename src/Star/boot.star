@@ -35,7 +35,7 @@ star.boot{
 	Opts .= processOptions(_command_line(),
 	  [repoOption,wdOption],bootOptions("file:"++_repo(),"file:"++_cwd()));
         (Top,Args) <- handleCmdLineOpts(Opts);
-	logMsg("Args $(Args)");
+--	logMsg("Args $(Args)");
         invokeMain(Top,Args)
       } catch (E) => logMsg(E)
     }

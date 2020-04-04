@@ -48,6 +48,9 @@ star.compiler.freevars{
     foldRight((Rl,F)=>freeVarsInEqn(Rl,Excl,F),Fv,Eqns).
   freeVarsInTerm(letExp(_,D,E),Excl,Fv) => let{
     XX = exclDfs(D,Excl,Fv)
+  } in freeVarsInTerm(E,XX,freeVarsInDefs(D,Excl,Fv)).
+  freeVarsInTerm(letRec(_,D,E),Excl,Fv) => let{
+    XX = exclDfs(D,Excl,Fv)
   } in freeVarsInTerm(E,XX,freeVarsInDefs(D,XX,Fv)).
   freeVarsInTerm(record(Lc,Pth,Fields,Tp),Excl,Fv) =>
     foldRight(((_,V),F)=>freeVarsInTerm(V,Excl,F),Fv,Fields).
@@ -85,6 +88,8 @@ star.compiler.freevars{
 
   freeVarsInDef(varDef(_,_,_,E,_,_),Excl,Fv) =>
     freeVarsInTerm(E,Excl,Fv).
+  freeVarsInDef(implDef(_,_,_,Val,_,_),Excl,Fv) =>
+    freeVarsInTerm(Val,Excl,Fv).
   freeVarsInDef(_,_,Fv) default => Fv.
 
   freeVarsInDefs:(cons[canonDef],set[crVar],set[crVar])=>set[crVar].
@@ -172,5 +177,6 @@ star.compiler.freevars{
   ptnVars(neg(Lc,R),Excl,Fv) => Excl.
   ptnVars(lambda(_,Eqns,_),Excl,Fv) => Excl.
   ptnVars(letExp(_,B,E),Excl,Fv) => Excl.
+  ptnVars(letRec(_,B,E),Excl,Fv) => Excl.
   ptnVars(record(Lc,Pth,Defs,Tp),Excl,Fv) => foldRight(((_,P),F)=>ptnVars(P,Excl,F),Fv,Defs).
 }

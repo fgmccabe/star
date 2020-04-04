@@ -227,6 +227,8 @@ star.compiler.matcher{
   pullVarLets:(cons[crVar],crExp)=>(cons[crVar],crExp).
   pullVarLets(Vrs,crLtt(Lc,V,crVar(_,A),Exp)) =>
     pullVarLets(Vrs//replaceWith(A,V),Exp).
+  pullVarLets(Vrs,crLtRec(Lc,V,crVar(_,A),Exp)) =>
+    pullVarLets(Vrs//replaceWith(A,V),Exp).
   pullVarLets(Vrs,Exp) => (Vrs,Exp).
 
   replaceWith:(crVar,crVar) => (crVar)=>crVar.

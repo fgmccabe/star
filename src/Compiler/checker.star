@@ -69,7 +69,7 @@ star.compiler.checker{
 
   makePkgTheta:(locn,string,tipe,dict,cons[cons[canonDef]],reports)=>either[reports,canon].
   makePkgTheta(Lc,Nm,Tp,Env,Defs,Rp) =>
-    mkRecord(Lc,Nm,deRef(Tp),Env,sortDefs(multicat(Defs)),Tp,Rp).
+    mkTheta(Lc,Nm,deRef(Tp),Env,sortDefs(multicat(Defs)),Tp,Rp).
 
   exportedFields:(cons[cons[canonDef]],cons[(defnSp,visibility)],visibility) => cons[(string,tipe)].
   exportedFields(Defs,Vis,DVz) =>
@@ -93,6 +93,13 @@ star.compiler.checker{
     valis foldRight((Gp,I)=>letExp(Lc,Gp,I),record(Lc,Lbl,Rc,Tp),Defs)
   }
 
+  mkTheta:(locn,string,tipe,dict,cons[cons[canonDef]],tipe,reports) => either[reports,canon].
+  mkTheta(Lc,Lbl,faceType(Flds,Tps),Env,Defs,Tp,Rp) => do{
+--    logMsg("making record from $(Defs)\:$(faceType(Flds,Tps))");
+    Rc <- findDefs(Lc,Flds,[],Defs,Rp);
+    valis foldRight((Gp,I)=>letRec(Lc,Gp,I),record(Lc,Lbl,Rc,Tp),Defs)
+  }
+
   findDefs:(locn,cons[(string,tipe)],cons[(string,canon)],cons[cons[canonDef]],reports) =>
     either[reports,cons[(string,canon)]].
   findDefs(_,[],Flds,_,_) => either(Flds).
@@ -108,7 +115,8 @@ star.compiler.checker{
 
   lookInGroup:(cons[canonDef],string,cons[cons[canonDef]])=>option[canon].
   lookInGroup([],Nm,Gps) => findDefn(Gps,Nm).
-  lookInGroup([varDef(Lc,Nm,FullNm,lambda(_,_,_),Cx,Tp),..Gp],Nm,_) => some(vr(Lc,FullNm,Tp)).
+  lookInGroup([varDef(Lc,Nm,FullNm,lambda(_,_,_),Cx,Tp),..Gp],Nm,_) => some(vr(Lc,Nm,Tp)).
+  lookInGroup([varDef(_,Nm,_,vr(Lc,ONm,Tp),_,_),..Gp],Nm,_) => some(vr(Lc,ONm,Tp)).
   lookInGroup([varDef(Lc,Nm,FullNm,_,Cx,Tp),..Gp],Nm,_) => some(vr(Lc,Nm,Tp)).
   lookInGroup([cnsDef(Lc,Nm,FullNm,Tp),..Gp],Nm,_) => some(enm(Lc,FullNm,Tp)).
   lookInGroup([implDef(Lc,Nm,FullNm,Val,Cx,Tp),..Gp],FullNm,_) => some(vr(Lc,FullNm,Tp)).
@@ -208,13 +216,12 @@ star.compiler.checker{
   }
   checkTypeDefn(_,Env,_,_) default => either(Env).
   
-
   checkGroups:(cons[cons[defnSpec]],cons[cons[canonDef]],
     tipe,cons[(string,ast)],dict,string,reports) =>
     either[reports,(cons[cons[canonDef]],dict)].
   checkGroups([],Gps,_,_,Env,_,Rp) => either((reverse(Gps),Env)).
   checkGroups([G,..Gs],Gx,Face,Annots,Env,Path,Rp) => do{
---    logMsg("check group $(G)");
+    logMsg("check group $(G)");
     TmpEnv <- parseAnnotations(G,Face,Annots,Env,Rp);
 --    logMsg("group env $(head(TmpEnv))");
     (Gp,Ev) <- checkGroup(G,TmpEnv,TmpEnv,Path,Rp);
@@ -234,7 +241,7 @@ star.compiler.checker{
   parseAnnotation:(string,locn,cons[ast],tipe,cons[(string,ast)],dict,reports) =>
     either[reports,tipe].
   parseAnnotation(Nm,_,_,_,Annots,Env,Rp) where (Nm,T) in Annots => do{
---    logMsg("parsing annotation $(Nm)\:$(T) in $(Env)");
+--    logMsg("parsing annotation $(Nm)\:$(T)");
     parseType([],T,Env,Rp)
   }.
   parseAnnotation(Nm,_,_,faceType(Vrs,_),_,_,_) where (Nm,Tp) in Vrs => either(Tp).
@@ -257,6 +264,7 @@ star.compiler.checker{
   checkGroup:(cons[defnSpec],dict,dict,string,reports) =>
     either[reports,(cons[canonDef],dict)].
   checkGroup(Specs,Env,Outer,Path,Rp) => do{
+--    logMsg("check defs $(Specs)");
     (Defs,GEnv) <- checkDefs(Specs,[],Env,Outer,Path,Rp);
     valis (Defs,Env)
   }
@@ -276,6 +284,7 @@ star.compiler.checker{
   checkDefn(defnSpec(varSp(Nm),Lc,[Stmt]),Env,Outer,Path,Rp) where
       vrEntry(_,_,Tp) ^= isVar(Nm,Env) => do{
 	(Q,ETp) .= evidence(Tp,Env);
+--	logMsg("given type of $(Nm) is $(ETp)");
 	(Cx,VarTp) .= deConstrain(ETp);
 	Es .= declareConstraints(Lc,Cx,declareTypeVars(Q,Outer));
 	if (_,Lhs,R) ^= isDefn(Stmt) then{
@@ -312,24 +321,26 @@ star.compiler.checker{
     (Cx,ProgramTp) .= deConstrain(ETp);
     Es .= declareConstraints(Lc,Cx,declareTypeVars(Q,Env));
 --    logMsg("env for equations: $(Es)");
-    (Rls,Dflt) <- processEqns(Stmts,deRef(ProgramTp),[],[],Es,
+    Rls <- processEqns(Stmts,deRef(ProgramTp),[],.none,Es,
       declareConstraints(Lc,Cx,declareTypeVars(Q,Outer)),Path,Rp);
     FullNm .= qualifiedName(Path,.valMark,Nm);
+    logMsg("checked equations $(Rls)");
     valis (varDef(Lc,Nm,FullNm,
-	lambda(Lc,Rls++Dflt,Tp),Cx,Tp),declareVar(Nm,FullNm,some(Lc),Tp,Env))
+	lambda(Lc,Rls,Tp),Cx,Tp),declareVar(Nm,FullNm,some(Lc),Tp,Env))
   }.
 
-  processEqns:(cons[ast],tipe,cons[equation],cons[equation],dict,dict,string,reports) =>
-    either[reports,(cons[equation],cons[equation])].
-  processEqns([],_,Rls,Deflt,_,_,_,_) => either((reverse(Rls),Deflt)).
+  processEqns:(cons[ast],tipe,cons[equation],option[equation],dict,dict,string,reports) =>
+    either[reports,cons[equation]].
+  processEqns([],_,Rls,.none,_,_,_,_) => either(reverse(Rls)).
+  processEqns([],_,Rls,some(Dflt),_,_,_,_) => either(reverse([Dflt,..Rls])).
   processEqns([St,..Ss],ProgramType,Rls,Deflt,Env,Outer,Path,Rp) => do{
     (Rl,IsDeflt) <- processEqn(St,ProgramType,Env,Outer,Path,Rp);
     if IsDeflt then{
-      if [DRl,.._] .= Deflt then{
+      if DRl ^= Deflt then{
 	throw reportError(Rp,"cannot have more than one default, other one at $(locOf(DRl))",
 	  locOf(Rl))
       } else{
-	processEqns(Ss,ProgramType,Rls,[Rl],Env,Outer,Path,Rp)
+	processEqns(Ss,ProgramType,Rls,some(Rl),Env,Outer,Path,Rp)
       }
     }
     else{
@@ -662,7 +673,7 @@ star.compiler.checker{
     (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,Path,Els,Face,Base,Rp,.deFault);
     if sameType(ThetaTp,ETp,Env) then{
 --      logMsg("building record from theta, $(ThEnv)");
-      mkRecord(Lc,Path,deRef(faceOfType(Tp,ThEnv)),ThEnv,sortDefs(multicat(Defs)),
+      mkTheta(Lc,Path,deRef(faceOfType(Tp,ThEnv)),ThEnv,sortDefs(multicat(Defs)),
 	reConstrainType(Cx,ThetaTp),Rp)
     }
     else
@@ -709,6 +720,16 @@ star.compiler.checker{
     El <- typeOfExp(Bnd,Tp,BndEnv,Path,Rp);
 
     Sorted .= sortDefs(multicat(Defs));
+    
+    valis foldRight((Gp,I)=>letRec(Lc,Gp,I),El,Sorted)
+  }
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els,Bnd) ^= isQLetDef(A) => do{
+    (Defs,ThEnv,ThetaTp)<-recordEnv(Lc,genNewName(Path,"Γ"),Els,faceType([],[]),Env,Rp,.priVate);
+    
+    BndEnv .= pushFace(ThetaTp,Lc,Env);
+    El <- typeOfExp(Bnd,Tp,BndEnv,Path,Rp);
+
+    Sorted .= sortDefs(Defs);
     
     valis foldRight((Gp,I)=>letExp(Lc,Gp,I),El,Sorted)
   }
@@ -922,19 +943,19 @@ becomes
   }
 */
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,C) ^= isIntegrity(A) => do{
-    logMsg("building integrity $(A)");
+--    logMsg("building integrity $(A)");
     Unit .= tpl(Lc,"()",[]);
     Lam .= equation(Lc,Unit,C);
     Assert .= ternary(Lc,"assrt",Lam,lit(Lc,strg(C::string)),Lc::ast);
     B .= brTuple(Lc,[Assert]);
-    logMsg("catch body $(B)");
+--    logMsg("catch body $(B)");
     Err .= genName(Lc,"E");
     Log .= unary(Lc,"logMsg",Err);
     Thrw .= unary(Lc,"throw",Unit);
     CtBdy .= braceTerm(Lc,nme(Lc,"action"),[binary(Lc,";",Log,Thrw)]);
     ELam .= equation(Lc,tpl(Lc,"()",[Err]),CtBdy);
     ReWorkd .= unary(Lc,"try",binary(Lc,"catch",B,ELam));
-    logMsg("full assert $(ReWorkd)");
+--    logMsg("full assert $(ReWorkd)");
     checkAction(ReWorkd,Env,StTp,ElTp,ErTp,Path,Rp)
   }
 /*

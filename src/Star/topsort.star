@@ -12,7 +12,7 @@ star.topsort{
 
     stTuple ~> (cons[d],cons[defEntry],cons[cons[d]],integer).
 
-    analyseDefs([],Grps) => reverse(Grps).
+    analyseDefs([],Grps) => Grps.
     analyseDefs([Def,..Dfs],Grps) where (NDefs,_,NGrps,_).=analyseDef(Def,[],Dfs,Grps) =>
       analyseDefs(NDefs,NGrps).
 
@@ -50,5 +50,5 @@ star.topsort{
     popGroup:(cons[defEntry],integer,cons[d]) => (cons[defEntry],cons[d]).
     popGroup([E,..Stk],Low,SoFar) where E.stackPt>=Low => popGroup(Stk,Low,[E.df,..SoFar]).
     popGroup(Stk,_,Grp) => (Stk,Grp)
-  } in analyseDefs(Defs,[]).
+  } in reverse(analyseDefs(Defs,[])).
 }

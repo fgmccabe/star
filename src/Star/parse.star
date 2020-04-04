@@ -63,7 +63,6 @@ star.parse{
     return a => parser((S)=>[(a,S)]).
 
     (P >>= F) => parser((S)=>multicat(parse(P,S)//(((a,S1))=>parse(F(a),S1)))).
-
   .}
 
   public implementation all e,t ~~ concat[parser[t,e]] => {.
@@ -158,13 +157,13 @@ star.parse{
   public decimal:parser[cons[integer],integer].
   decimal = (_tk(0c-) >>= (_) => natural >>= (N) => return -N) ++ natural.
 
-  public real:parser[cons[integer],float].
-  real = (natural >>= (M) =>
+  public real:()=>parser[cons[integer],float].
+  real() => (natural >>= (M) =>
 	    ((_tk(0c.) >>= (_) =>
 		fraction(M::float,0.1) >>= (F) =>
 		exponent >>= (E) => return F*E) +++ (return M::float))) +++
   (_tk(0c-) >>= (_) =>
-     real >>= (N) => return -N).
+      real() >>= (N) => return -N).
 
   fraction:(float,float) => parser[cons[integer],float].
   fraction(SoFar,Scale) =>

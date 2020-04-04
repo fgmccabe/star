@@ -4,7 +4,7 @@ package __star.boot :: "I{'__star_boot'F()()}"
 
 __star_boot/0 :: "F()()":"()"
      ldg star.boot#
-     get .__boot / 0
+     get __boot / 0
      ocall 1
      frame 0
 --     frame "()"

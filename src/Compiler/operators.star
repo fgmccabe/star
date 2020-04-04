@@ -163,35 +163,38 @@ star.compiler.operators{
   public isRightBracket:(string) => boolean.
   isRightBracket(S) => bkt(_,_,S,_) ^= isBracket(S).
 
+  public first:(integer) => option[string].
+  first(0c%) => some("%").
+  first(0c&) => some("&").
+  first(0c() => some("(").
+  first(0c)) => some(")").
+  first(0c*) => some("*").
+  first(0c+) => some("+").
+  first(0c,) => some(",").
+  first(0c-) => some("-").
+  first(0c.) => some(".").
+  first(0c/) => some("/").
+  first(0c{) => some("{").
+  first(0c|) => some("|").
+  first(0c}) => some("}").
+  first(0c~) => some("~").
+  first(0c[) => some("[").
+  first(0c\\) => some("\\").
+  first(0c]) => some("]").
+  first(0c^) => some("^").
+  first(0c:) => some(":").
+  first(0c;) => some(";").
+  first(0c<) => some("<").
+  first(0c=) => some("=").
+  first(0c>) => some(">").
+  first(0c?) => some("?").
+  first(0c@) => some("@").
+  first(0c!) => some("!").
+  first(0c•) => some("•").
+  first(0c#) => some("#").
+  first(_) default => .none.
+
   public follows:(string,integer) => option[string].
-  follows("",0c%) => some("%").
-  follows("",0c&) => some("&").
-  follows("",0c() => some("(").
-  follows("",0c)) => some(")").
-  follows("",0c*) => some("*").
-  follows("",0c+) => some("+").
-  follows("",0c,) => some(",").
-  follows("",0c-) => some("-").
-  follows("",0c.) => some(".").
-  follows("",0c/) => some("/").
-  follows("",0c{) => some("{").
-  follows("",0c|) => some("|").
-  follows("",0c}) => some("}").
-  follows("",0c~) => some("~").
-  follows("",0c[) => some("[").
-  follows("",0c\\) => some("\\").
-  follows("",0c]) => some("]").
-  follows("",0c^) => some("^").
-  follows("",0c:) => some(":").
-  follows("",0c;) => some(";").
-  follows("",0c<) => some("<").
-  follows("",0c=) => some("=").
-  follows("",0c>) => some(">").
-  follows("",0c?) => some("?").
-  follows("",0c@) => some("@").
-  follows("",0c!) => some("!").
-  follows("",0c•) => some("•").
-  follows("",0c#) => some("#").
   follows("&",0c&) => some("&&").
   follows("(",0c|) => some("(|").
   follows("*",0c*) => some("**").

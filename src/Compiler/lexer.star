@@ -3,6 +3,7 @@ star.compiler.lexer{
   import star.compiler.operators.
   import star.compiler.errors.
   import star.compiler.location.
+  import star.compiler.misc.
   import star.compiler.token.
   import star.pkg.
 
@@ -32,16 +33,23 @@ star.compiler.lexer{
       some((Nxt,tok(makeLoc(St0,Nxt),intTok(Hx)))).
     numericTok(_,_) default => readNumber(St0).
   } in numericTok(Ch,Nx).
-  nxxTok(NCh,_,St0) where isDigit(NCh) => readNumber(St0).
+  nxxTok(0c1,_,St0) => readNumber(St0).
+  nxxTok(0c2,_,St0) => readNumber(St0).
+  nxxTok(0c3,_,St0) => readNumber(St0).
+  nxxTok(0c4,_,St0) => readNumber(St0).
+  nxxTok(0c5,_,St0) => readNumber(St0).
+  nxxTok(0c6,_,St0) => readNumber(St0).
+  nxxTok(0c7,_,St0) => readNumber(St0).
+  nxxTok(0c8,_,St0) => readNumber(St0).
+  nxxTok(0c9,_,St0) => readNumber(St0).
   nxxTok(0c',St,St0) where (Nxt,Id) ^= readQuoted(St,0c',[]) =>
     some((Nxt,tok(makeLoc(St0,Nxt),idQTok(Id)))).
-  nxxTok(0c",St,St0) where Nx ^= lookingAt(St,[0c",0c"]) =>
-    stringBlob(Nx,St0,[]).
-  nxxTok(0c",St,St0) where (Nxt,Str) ^= readString(St,[]) =>
+  nxxTok(0c\",St,St0) where Nx ^= lookingAt(St,[0c\",0c\"]) => stringBlob(Nx,St0,[]).
+  nxxTok(0c\",St,St0) where (Nxt,Str) ^= readString(St,[]) =>
     some((Nxt,tok(makeLoc(St0,Nxt),strTok(Str)))).
   nxxTok(0c.,St,St0) where (Nx,0c\n) ^= nextChr(St) =>
     some((Nx,tok(makeLoc(St0,Nx),idTok(". ")))).
-  nxxTok(Chr,St,St0) where Ld ^= follows("",Chr) => let{
+  nxxTok(Chr,St,St0) where Ld ^= first(Chr) => let{
     graphFollow(Strm,SoF,Deflt) where (Nx,Ch) ^= nextChr(Strm) && SoF1 ^= follows(SoF,Ch) =>
       graphFollow(Nx,SoF1,finalist(SoF1,Nx,Deflt)).
     graphFollow(Strm,Id,Deflt) default => Deflt.
@@ -78,7 +86,7 @@ star.compiler.lexer{
     readString(St1,[segment(makeLoc(St,St1),Seg),..SoFar]).
 
   readStr:(tokenState,cons[integer]) => option[(tokenState,string)].
-  readStr(St,Chrs) where  0c\" ^= hedChar(St) => some((St,Chrs::string)).
+  readStr(St,Chrs) where  0c\" ^= hedChar(St) => some((St,reverse(Chrs)::string)).
   readStr(St,Chrs) where Nx ^= lookingAt(St,[0c$,0c(]) => some((St,reverse(Chrs)::string)).
   readStr(St,Chrs) where (Nx,Ch) ^= charRef(St) => readStr(Nx,[Ch,..Chrs]).
   readStr(_,_) => .none.
@@ -171,12 +179,11 @@ star.compiler.lexer{
   atEof(tokenState(_,_,_,_,Str)) => _eof(Str).
 
   nextChr:(tokenState) => option[(tokenState,integer)].
-  nextChr(St) where tokenState(_,_,_,_,Txt).=St && Ch^=head(Txt) => some((nxtSt(St),Ch)).
+  nextChr(St) where tokenState(_,_,_,_,cons(Ch,_)).=St  => some((nxtSt(St),Ch)).
   nextChr(_) default => .none.
 
   hedChar:(tokenState) => option[integer].
-  hedChar(tokenState(_,_,_,_,Txt)) where size(Txt)>0 => head(Txt).
-  hedChar(_) default => .none.
+  hedChar(tokenState(_,_,_,_,Txt)) => head(Txt).
 
   preChar:(tokenState,integer) => tokenState.
   preChar(tokenState(Pkg,Line,Col,Off,Txt),Chr) =>
@@ -186,9 +193,9 @@ star.compiler.lexer{
   interSt(tokenState(P,Ln,Cl,Off,_),Txt) => tokenState(P,Ln,Cl,Off,Txt::cons[integer]).
 
   nxtSt:(tokenState) => tokenState.
-  nxtSt(tokenState(Pk,Line,Col,Off,[0c\n,..Txt])) =>
+  nxtSt(tokenState(Pk,Line,Col,Off,cons(0c\n,Txt))) =>
     tokenState(Pk,Line+1,1,Off+1,Txt).
-  nxtSt(tokenState(Pk,Line,Col,Off,[_,..Txt])) =>
+  nxtSt(tokenState(Pk,Line,Col,Off,cons(_,Txt))) =>
     tokenState(Pk,Line,Col+1,Off+1,Txt).
 
   lookingAt:(tokenState,cons[integer]) => option[tokenState].

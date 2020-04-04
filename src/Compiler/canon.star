@@ -34,6 +34,7 @@ star.compiler.canon{
     tple(locn,cons[canon]) |
     lambda(locn,cons[equation],tipe) |
     letExp(locn,cons[canonDef],canon) |
+    letRec(locn,cons[canonDef],canon) |
     record(locn,string,cons[(string,canon)],tipe) |
     update(locn,canon,canon).
 
@@ -71,6 +72,7 @@ star.compiler.canon{
     typeOf(csexp(_,_,_,Tp)) => Tp.
     typeOf(lambda(_,_,Tp)) => Tp.
     typeOf(letExp(_,_,E)) => typeOf(E).
+    typeOf(letRec(_,_,E)) => typeOf(E).
     typeOf(apply(_,_,_,Tp)) => Tp.
     typeOf(tple(_,Els)) => tupleType(Els//typeOf).
     typeOf(record(_,_,_,Tp)) => Tp.
@@ -110,6 +112,7 @@ star.compiler.canon{
     locOf(tple(Lc,_)) => Lc.
     locOf(lambda(Lc,_,_)) => Lc.
     locOf(letExp(Lc,_,_)) => Lc.
+    locOf(letRec(Lc,_,_)) => Lc.
     locOf(record(Lc,_,_,_)) => Lc.
     locOf(update(Lc,_,_)) => Lc.
   .}
@@ -237,8 +240,10 @@ star.compiler.canon{
   showCanon(tple(_,Els),Sp) =>
     ssSeq([ss("("),ssSeq(interleave(Els//(El)=>showCanon(El,Sp),ss(","))),ss(")")]).
   showCanon(lambda(_,Rls,Tp),Sp) => ssSeq([ss("("),showRls("λ",Rls,Sp++"  "),ss(")")]).
-  showCanon(letExp(_,Defs,Ep),Sp) =>
-    ssSeq([ss("let "),ss("{\n"),showGroup(Defs,Sp++"  "),ss("}"),ss(" in\n"),ss(Sp),showCanon(Ep,Sp++"  ")]).
+  showCanon(letExp(_,Defs,Ep),Sp) where Sp2.=Sp++"  " =>
+    ssSeq([ss("let "),ss("{\n"),ss(Sp2),showGroup(Defs,Sp2),ss("\n"),ss(Sp),ss("}"),ss(" in "),showCanon(Ep,Sp2)]).
+  showCanon(letRec(_,Defs,Ep),Sp) where Sp2.=Sp++"  " =>
+    ssSeq([ss("letrec "),ss("{\n"),ss(Sp2),showGroup(Defs,Sp2),ss("\n"),ss(Sp),ss("}"),ss(" in "),showCanon(Ep,Sp2)]).
   showCanon(record(_,_,Fields,_),Sp) =>
     ssSeq([ss("{."),showFields(Fields,Sp++"  "),ss(".}")]).
   showCanon(update(_,L,R),Sp) => ssSeq([showCanon(L,Sp),ss(" <<- "),showCanon(R,Sp)]).
@@ -255,21 +260,21 @@ star.compiler.canon{
 
   showDef:(canonDef,string)=>ss.
   showDef(varDef(_,Nm,FullNm,lambda(_,Rls,_),_,Tp),Sp) => showRls(Nm,Rls,Sp).
-  showDef(varDef(_,Nm,FullNm,V,_,Tp),Sp) => ssSeq([ss(Sp),ss("Var: "),ss(Nm),ss(" ["),ss(FullNm),ss("] = "),showCanon(V,Sp)]).
-  showDef(typeDef(_,Nm,T,_),Sp) => ssSeq([ss(Sp),ss("Type: "),ss(Nm),ss("~>"),disp(T)]).
-  showDef(conDef(_,_,Nm,Tp),Sp) => ssSeq([ss(Sp),ss("Contract: "),ss(Nm),ss("::="),disp(Tp)]).
-  showDef(cnsDef(_,_,Nm,Tp),Sp) => ssSeq([ss(Sp),ss("Constructor: "),ss(Nm),ss(":"),disp(Tp)]).
+  showDef(varDef(_,Nm,FullNm,V,_,Tp),Sp) => ssSeq([ss("Var: "),ss(Nm),ss(" ["),ss(FullNm),ss("] = "),showCanon(V,Sp)]).
+  showDef(typeDef(_,Nm,T,_),Sp) => ssSeq([ss("Type: "),ss(Nm),ss("~>"),disp(T)]).
+  showDef(conDef(_,_,Nm,Tp),Sp) => ssSeq([ss("Contract: "),ss(Nm),ss("::="),disp(Tp)]).
+  showDef(cnsDef(_,_,Nm,Tp),Sp) => ssSeq([ss("Constructor: "),ss(Nm),ss(":"),disp(Tp)]).
   showDef(implDef(_,Nm,FullNm,Exp,_,Tp),Sp) =>
-    ssSeq([ss(Sp),ss("Implementation: "),ss(FullNm),ss(" ["),ss(Nm),ss("] = "),showCanon(Exp,Sp)]).
+    ssSeq([ss("Implementation: "),ss(FullNm),ss(" ["),ss(Nm),ss("] = "),showCanon(Exp,Sp)]).
 
   showRls:(string,cons[equation],string) => ss.
-  showRls(Nm,Rls,Sp) => ssSeq(interleave(Rls//(Rl)=>showRl(Nm,Rl,Sp),ss(".\n"))).
+  showRls(Nm,Rls,Sp) => ssSeq(interleave(Rls//(Rl)=>showRl(Nm,Rl,Sp),ss(".\n"++Sp))).
 
   showRl:(string,equation,string) => ss.
   showRl(Nm,eqn(_,Ptn,.none,Val),Sp) => ssSeq([
-      ss(Sp),ss(Nm),showCanon(Ptn,Sp),ss(" => "),showCanon(Val,Sp)]).
+      ss(Nm),showCanon(Ptn,Sp),ss(" => "),showCanon(Val,Sp)]).
   showRl(Nm,eqn(_,Ptn,some(C),Val),Sp) => ssSeq([
-      ss(Sp),ss(Nm),showCanon(Ptn,Sp),ss(" where "),showCanon(C,Sp),ss(" => "),showCanon(Val,Sp)]).
+      ss(Nm),showCanon(Ptn,Sp),ss(" where "),showCanon(C,Sp),ss(" => "),showCanon(Val,Sp)]).
 
   public implementation display[canon] => {.
     disp(C) => showCanon(C,"")
