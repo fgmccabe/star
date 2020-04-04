@@ -352,12 +352,6 @@ checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,record(Lc,ThPath,true,Defs,faceType([],[])
   pushScope(Env,ThEnv),
   recordEnv(ThPath,Lc,Els,faceType([],[]),ThEnv,OEnv,Defs,_Public),
   typeOfExp(Ex,Tp,OEnv,_,Bound,Path).
-checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,Inner,Bound),Path):-
-  newTypeVar("_",ThTp),
-  typeOfExp(Th,ThTp,Env,_,Inner,Path),
-  faceOfType(ThTp,Env,Face),
-  pushFace(Face,Lc,Env,EnvI),
-  typeOfExp(Ex,Tp,EnvI,_,Bound,Path).
 
 splitHead(tuple(_,"()",[A]),Nm,Args,IsDeflt) :-!,
   splitHd(A,Nm,Args,IsDeflt).
