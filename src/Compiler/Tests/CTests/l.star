@@ -3,7 +3,6 @@ test.l{
   import test.ar.
   import test.cns.
 
-
   reducer:all x,y ~~ ((x,y)=>y)=>(cons[x],y)=>y.
   reducer(F) => let{
     rdr(.nil,z) => z.

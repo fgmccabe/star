@@ -14,6 +14,7 @@
     "test.comp.reschk" : "reschk.star",
     "test.comp.parsetype" : "tp.star",
     "test.comp.repo" : "rep.star",
+    "test.comp.trchk" : "trchk.star",
     "test.comp.unify": "unifytest.star"
   },
   "version": "1.0.0",

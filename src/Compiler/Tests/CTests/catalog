@@ -9,6 +9,7 @@
     "test.ls" : "ls.star",
     "test.lst" : "lst.star",
     "test.cns" : "cns.star",
+    "test.p" : "p.star",
     "test.t1" : "t1.star",
     "star.boot" : "boot.star"
   },
