@@ -76,7 +76,7 @@ typedef struct {
   logical alt;
 } FieldInfoRec;
 
-static retCode showField(labelPo fldLbl, integer offset, integer size, void *cl) {
+static retCode showField(labelPo fldLbl, integer offset, void *cl) {
   FieldInfoRec *info = (FieldInfoRec *) cl;
   tryRet(outMsg(info->out, "%T = ", fldLbl));
   return dispTerm(info->out, nthArg(info->trm, offset), info->precision, info->depth, info->alt);
@@ -93,7 +93,7 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
     if (isRecordLabel(lbl)) {
       FieldInfoRec Info = {.out = out, .depth=depth, .precision=precision, .alt=alt, .trm=nml};
       integer arity = labelArity(lbl);
-      retCode ret = showLabel(out, lbl, depth, precision, alt);
+      retCode ret = outMsg(out,"%Q",labelName(lbl));
       char *sep = "";
       if (ret == Ok)
         ret = outStr(out, "{ ");

@@ -17,7 +17,7 @@ retCode encodeStr(ioPo out, char *str, integer len) {
   return encodeTxt(out, str, len);
 }
 
-static codePoint findDelim(char *str, integer srcLen, char *choices, codePoint deflt) {
+codePoint findDelim(char *str, integer srcLen, char *choices, codePoint deflt) {
   integer chPos = 0;
   integer choiceLen = uniStrLen(choices);
 

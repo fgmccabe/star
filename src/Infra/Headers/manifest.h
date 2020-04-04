@@ -15,7 +15,6 @@ typedef struct _manifest_resource_ *manifestRsrcPo;
 typedef retCode (*manifestProc)(char *name, void *cl);
 
 manifestEntryPo manifestEntry(char *package);
-integer countVersions(manifestEntryPo entry);
 
 retCode procVersions(manifestEntryPo entry,manifestProc,void *cl);
 

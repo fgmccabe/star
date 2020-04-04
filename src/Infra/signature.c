@@ -68,7 +68,6 @@ logical validSig(char *sig, integer *start, integer end) {
     }
     case tpeExpSig:
       return (logical) (skipId(sig, start, end) && validSig(sig, start, end));
-    case arySig:
     case lstSig:
       return validSig(sig, start, end);
     case faceSig: {
@@ -185,6 +184,8 @@ retCode tupleArity(char *sig, integer *arity) {
   return tplArity(sig, arity, &pos, end);
 }
 
+static retCode skipConstrnt(char *sig, integer *start, integer end);
+
 retCode skipSig(char *sig, integer *start, integer end) {
   if ((*start) < end) {
     switch (sig[(*start)++]) {
@@ -213,7 +214,6 @@ retCode skipSig(char *sig, integer *start, integer end) {
           return skipSig(sig, start, end);
         else
           return Error;
-      case arySig:
       case lstSig:
         return skipSig(sig, start, end);
       case tplSig: {
@@ -251,7 +251,7 @@ retCode skipSig(char *sig, integer *start, integer end) {
       case constrainedSig:
         tryRet(skipSig(sig, start, end));
 
-        return skipConstraint(sig, start, end);
+        return skipConstrnt(sig, start, end);
       default:
         return Error;      /* Not a valid signature */
     }
@@ -259,12 +259,12 @@ retCode skipSig(char *sig, integer *start, integer end) {
     return Error;
 }
 
-retCode skipConstraint(char *sig, integer *start, integer end) {
+retCode skipConstrnt(char *sig, integer *start, integer end) {
   if (*start < end) {
     switch (sig[(*start)++]) {
       case univCon:
         tryRet(skipSig(sig, start, end));
-        return skipConstraint(sig, start, end);
+        return skipConstrnt(sig, start, end);
       case contractCon:
         if (skipId(sig, start, end)) {
           tryRet(skipSig(sig, start, end));
@@ -277,13 +277,152 @@ retCode skipConstraint(char *sig, integer *start, integer end) {
         } else
           return Error;
       case constrainedCon:
-        tryRet(skipConstraint(sig, start, end));
-        return skipConstraint(sig, start, end);
+        tryRet(skipConstrnt(sig, start, end));
+        return skipConstrnt(sig, start, end);
       default:
         return Error;
     }
   } else
     return Error;
+}
+
+retCode skipIdentifier(ioPo in) {
+  codePoint quote;
+  retCode ret = inChar(in, &quote);
+
+  if (ret == Ok) {
+    codePoint ch;
+    ret = inChar(in, &ch);
+
+    while (ret == Ok && ch != quote) {
+      if (ch == '\\') {
+        ret = inChar(in, &ch);
+      }
+      if (ret == Ok)
+        ret = inChar(in, &ch);
+    }
+  }
+  return ret;
+}
+
+static retCode skipInteger(ioPo in) {
+  codePoint ch;
+  retCode ret = inChar(in, &ch);
+
+  while (ret == Ok && isNdChar(ch))
+    ret = inChar(in, &ch);
+  if (ret == Ok)
+    unGetChar(in, ch);
+
+  return ret;
+}
+
+static retCode skipFields(ioPo in) {
+  retCode ret = isLookingAt(in, "{");
+  while (ret == Ok && isLookingAt(in, "}") != Ok) {
+    ret = skipIdentifier(in);
+    if (ret == Ok)
+      ret = skipSignature(in);
+  }
+  return ret;
+}
+
+static retCode skipConstraint(ioPo in) {
+  codePoint ch;
+  retCode ret = inChar(in, &ch);
+
+  if (ret == Ok) {
+    switch (ch) {
+      case univCon:
+        ret = skipSignature(in);
+        if (ret == Ok)
+          ret = skipConstraint(in);
+        return ret;
+      case contractCon:
+        return skipSignature(in);
+      case implementsCon:
+        ret = skipSignature(in);
+        if (ret == Ok)
+          ret = skipSignature(in);
+        return ret;
+      case constrainedCon:
+        ret = skipConstraint(in);
+        if (ret == Ok)
+          ret = skipConstraint(in);
+        return ret;
+      default:
+        return Error;
+    }
+  }
+  return ret;
+}
+
+retCode skipSignature(ioPo in) {
+  codePoint ch;
+  retCode ret = inChar(in, &ch);
+
+  if (ret == Ok) {
+    switch (ch) {
+      case voidSig:
+      case thisSig:
+      case intSig:
+      case fltSig:
+      case logSig:
+      case strSig:
+        return Ok;
+      case kvrSig:
+      case tpeSig:
+        return skipIdentifier(in);
+      case refSig:
+        return skipSignature(in);
+      case kfnSig:
+      case tpfnSig:
+        ret = skipInteger(in);
+        if (ret == Ok)
+          ret = skipIdentifier(in);
+
+        return ret;
+      case tpeExpSig:
+        ret = skipSignature(in);
+        if (ret == Ok)
+          ret = skipSignature(in);
+        return ret;
+      case lstSig:
+        return skipSignature(in);
+      case tplSig: {
+        while (ret == Ok && isLookingAt(in, ")") != Ok)
+          ret = skipSignature(in);
+        return ret;
+      }
+      case faceSig: {
+        ret = skipFields(in);
+        if (ret == Ok)
+          ret = skipFields(in);
+        return ret;
+      }
+      case funSig:        /* Function signature */
+      case conSig:        /* Type constructor */
+      case xstSig:        /* Existential quantifier */
+      case allSig:        /* Universal quantifier */
+      case tpruleSig:
+      case tplambdaSig:
+      case funDep:{
+        ret = skipSignature(in);
+        if (ret == Ok)
+          ret = skipSignature(in);
+        return ret;
+      }
+      case constrainedSig:
+        ret = skipSignature(in);
+        if (ret == Ok)
+          ret = skipConstraint(in);
+
+        return ret;
+      default:
+        return Error;
+    }
+  }
+  return ret;
 }
 
 retCode showSig(ioPo out, char *sig) {
@@ -373,10 +512,6 @@ retCode showSignature(ioPo out, char *sig, integer *start, integer end) {
       }
     case lstSig:
       tryRet(outStr(out, "cons["));
-      tryRet(showSignature(out, sig, start, end));
-      return outStr(out, "]");
-    case arySig:
-      tryRet(outStr(out, "array["));
       tryRet(showSignature(out, sig, start, end));
       return outStr(out, "]");
     case tplSig: {

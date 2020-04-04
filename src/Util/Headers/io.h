@@ -44,7 +44,7 @@ retCode inByte(ioPo f, byte *ch);      /* read a single byte -- with status */
 retCode inBytes(ioPo f, byte *buffer, integer len, integer *actual); /* read a block of bytes */
 retCode putBackByte(ioPo f, byte b);
 
-retCode isLookingAt(ioPo f, char *prefix);    /* Is prefix the first thing in the file? */
+retCode isLookingAt(ioPo f, const char *prefix);    /* Is prefix the first thing in the file? */
 
 retCode inChar(ioPo f, codePoint *ch);     /* read a character */
 retCode unGetChar(ioPo f, codePoint ch);   /* put a single character back */

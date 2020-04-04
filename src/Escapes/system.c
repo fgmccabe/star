@@ -4,7 +4,6 @@
 #include <sys/time.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <array.h>
 #include <str.h>
 #include <string.h>
 #include <globals.h>

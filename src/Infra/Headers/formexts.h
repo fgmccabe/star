@@ -8,5 +8,6 @@
 #include "formio.h"
 
 retCode genQuotedStr(ioPo f, void *data, long depth, long precision, logical alt);
+logical needQuoting(char *str, integer len);
 
 #endif //STAR_FORMEXTS_H

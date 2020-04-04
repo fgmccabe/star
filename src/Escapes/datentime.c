@@ -5,7 +5,6 @@
 #include <arith.h>
 #include <math.h>
 #include <stringBuffer.h>
-#include <array.h>
 #include <str.h>
 #include <arithP.h>
 #include <tpl.h>

@@ -10,4 +10,8 @@
 retCode skipEncoded(ioPo in, char *errorMsg, long msgLen);
 retCode decodeLbl(ioPo in, char *nm, long nmLen, integer *arity, char *errorMsg, integer msgLen);
 
+#ifdef TRACEDECODE
+extern tracingLevel traceDecode;
+#endif
+
 #endif //STAR_STREAMDECODE_H

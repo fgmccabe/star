@@ -23,11 +23,10 @@ integer labelArity(labelPo lbl);
 char *labelName(labelPo lbl);
 logical isLabel(labelPo lbl, char *nm, integer arity);
 integer fieldIndex(labelPo lbl, labelPo field);
-integer fieldSize(labelPo lbl,labelPo field);
 logical isRecordLabel(labelPo lbl);
 logical sameLabel(labelPo l1, labelPo l2);
 
-typedef retCode (*fieldProc)(labelPo lbl, integer offset, integer size, void *cl);
+typedef retCode (*fieldProc)(labelPo lbl, integer offset, void *cl);
 extern retCode applyFieldProc(labelPo lbl, integer ix, fieldProc p, void *cl);
 
 labelPo objLabel(labelPo lbl, integer arity);

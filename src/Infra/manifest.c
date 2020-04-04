@@ -8,7 +8,6 @@
 #include <decodeP.h>
 #include "manifestP.h"
 #include "engineOptions.h"
-#include "fileops.h"
 
 // Use the stream decoder to parse a manifest file and build up a manifest structure
 typedef enum {

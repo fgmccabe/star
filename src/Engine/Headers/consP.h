@@ -15,4 +15,6 @@ void updateConsHead(termPo cns,termPo h);
 void updateConsTail(termPo cns,termPo t);
 void initCons();
 
+#define CONS_CELLCOUNT NormalCellCount(2)
+
 #endif //STAR_CONSP_H

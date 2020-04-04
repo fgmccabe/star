@@ -33,8 +33,6 @@ SpecialClass LabelClass = {
 
 clssPo labelClass = (clssPo) &LabelClass;
 
-char *fieldPreamble = "n4o4\1()4\1";
-
 void initLbls() {
   LabelClass.clss = specialClass;
   labels = NewHash(1024, (hashFun) labelHash, (compFun) labelCmp, (destFun) labelDel);
@@ -218,9 +216,10 @@ char *labelName(labelPo lbl) {
   return lbl->name;
 }
 
-logical isLabel(labelPo lbl, char *nm, integer arity){
-  return uniCmp(lbl->name,nm)==same && lbl->arity==arity;
+logical isLabel(labelPo lbl, char *nm, integer arity) {
+  return uniCmp(lbl->name, nm) == same && lbl->arity == arity;
 }
+
 labelPo tplLabel(integer arity) {
   char txt[MAX_SYMB_LEN];
 
@@ -285,11 +284,10 @@ fieldTblPo newFieldTable(integer count) {
   return tbl;
 }
 
-void setFieldTblEntry(fieldTblPo tbl, labelPo field, integer offset, integer size) {
+void setFieldTblEntry(fieldTblPo tbl, labelPo field, integer offset) {
   assert(offset >= 0 && offset < tbl->size);
   tbl->entries[offset].lbl = field;
   tbl->entries[offset].offset = offset;
-  tbl->entries[offset].size = size;
 }
 
 void destroyFieldTable(fieldTblPo tbl) {
@@ -305,7 +303,7 @@ void clearFieldTable(labelPo lbl) {
 retCode applyFieldProc(labelPo lbl, integer ix, fieldProc p, void *cl) {
   assert(ix >= 0 && ix < lbl->fields->size);
   fieldPo fld = &lbl->fields->entries[ix];
-  return p(fld->lbl, fld->offset, fld->size, cl);
+  return p(fld->lbl, fld->offset, cl);
 }
 
 retCode showFields(ioPo out, fieldTblPo tbl) {
@@ -317,7 +315,7 @@ retCode showFields(ioPo out, fieldTblPo tbl) {
     ret = outMsg(out, "{ ");
     for (integer ix = 0; ret == Ok && ix < tbl->size; ix++) {
       fieldPo fld = &tbl->entries[ix];
-      ret = outMsg(out, "%s%d(%d): %A", sep, fld->offset, fld->size, fld->lbl);
+      ret = outMsg(out, "%s%d: %A", sep, fld->offset, fld->lbl);
       sep = "; ";
     }
     if (ret == Ok)
@@ -325,3 +323,4 @@ retCode showFields(ioPo out, fieldTblPo tbl) {
   }
   return ret;
 }
+

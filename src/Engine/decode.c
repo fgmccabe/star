@@ -3,8 +3,8 @@
 #include <hash.h>
 #include "decodeP.h"
 #include <globals.h>
-#include <array.h>
-#include <arrayP.h>
+#include <cons.h>
+#include <consP.h>
 #include "arithP.h"
 #include "strP.h"
 #include "heap.h"
@@ -12,13 +12,15 @@
 #include "labelsP.h"
 #include "streamDecode.h"
 
+#ifdef TRACEDECODE
+tracingLevel traceDecode = noTracing;
+#endif
+
 /*
  * Decode a structure from an input stream
  */
 
 static retCode estimate(ioPo in, integer *amnt);
-static retCode decodeRecLbl(ioPo in, encodePo S, termPo *tgt, bufferPo tmpBuffer, char *errorMsg, integer msgSize);
-static retCode decodeListCount(ioPo in, integer *count, char *errorMsg, integer msgSize);
 
 retCode decodeTerm(ioPo in, heapPo H, termPo *tgt, char *errorMsg, long msgSize) {
   EncodeSupport support = {errorMsg, msgSize, H};
@@ -178,7 +180,7 @@ static retCode endEstimateCns(void *cl) {
 static retCode estimateLst(integer count, void *cl) {
   Estimation *info = (Estimation *) cl;
 
-  info->amnt += ListCellCount + BaseCellCount(count);
+  info->amnt += count * CONS_CELLCOUNT;
   return Ok;
 }
 
@@ -220,6 +222,7 @@ retCode estimate(ioPo in, integer *amnt) {
  Warning: caller assumes responsibility for ensuring that tgt is a valid root
  */
 
+static retCode decodeList(ioPo in, encodePo S, integer count, heapPo H, termPo *tgt, bufferPo tmpBuffer);
 
 retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
   codePoint ch;
@@ -227,7 +230,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
 
   if (res == Eof)
     return Eof;
-  switch (ch) {
+  switch ((starDecodeKey) ch) {
     case vodTrm: {
       *tgt = (termPo) voidEnum;
       return Ok;
@@ -265,7 +268,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
       }
       return res;
     }
-    case recTrm: {
+    case recLbl: {
       return decodeRecLbl(in, S, tgt, tmpBuffer, S->errorMsg, S->msgSize);
     }
     case strTrm: {
@@ -287,8 +290,10 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
         return res;
 
       if (res == Ok) {
-        if (labelArity(C_LBL(lbl)) != arity)
+        if (labelArity(C_LBL(lbl)) != arity) {
+          strMsg(S->errorMsg, S->msgSize, "invalid label arity: expecting %d", arity);
           res = Error;
+        }
       }
 
       if (res == Ok) {
@@ -317,28 +322,13 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
     }
 
     case lstTrm: {
-      termPo lbl;
       integer count;
 
       if ((res = decInt(in, &count)) != Ok) /* How many elements in the list */
         return res;
 
-      if (res == Ok) {
-        int root = gcAddRoot(H, &lbl);
-        arrayPo lst = allocateArray(H, count);
-        *tgt = (termPo) (lst);
-
-        termPo el = voidEnum;
-        gcAddRoot(H, &el);
-
-        for (integer i = 0; res == Ok && i < count; i++) {
-          res = decode(in, S, H, &el, tmpBuffer); /* read each element of term */
-          if (res == Ok)
-            lst = appendToArray(H, lst, el);
-        }
-
-        gcReleaseRoot(H, root);
-      }
+      if (res == Ok)
+        res = decodeList(in, S, count, H, tgt, tmpBuffer);
 
       return res;
     }
@@ -347,6 +337,25 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
       strMsg(S->errorMsg, S->msgSize, "invalid encoding");
       return Error;
     }
+  }
+}
+
+retCode decodeList(ioPo in, encodePo S, integer count, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
+  if (count == 0) {
+    *tgt = (termPo) nilEnum;
+    return Ok;
+  } else {
+    retCode res = decodeList(in, S, count - 1, H, tgt, tmpBuffer);
+
+    if (res == Ok) {
+      termPo el;
+      int root = gcAddRoot(H, &el);
+      res = decode(in, S, H, &el, tmpBuffer); /* read each element of term */
+      if (res == Ok)
+        *tgt = (termPo) allocateCons(H, el, *tgt);
+      gcReleaseRoot(H, root);
+    }
+    return res;
   }
 }
 
@@ -369,12 +378,9 @@ retCode decodeTplCount(ioPo in, integer *count, char *errorMsg, integer msgSize)
     return Fail;
 }
 
-retCode decodeListCount(ioPo in, integer *count, char *errorMsg, integer msgSize) {
-  if (isLookingAt(in, "l") == Ok) {
-    return decInt(in, count);
-  } else
-    return Fail;
-}
+static retCode
+decodeRecordFieldTypes(ioPo in, encodePo S, integer count, fieldTblPo *tgt, bufferPo tmpBuffer, char *errorMsg,
+                       integer msgSize);
 
 retCode decodeRecLbl(ioPo in, encodePo S, termPo *tgt, bufferPo tmpBuffer, char *errorMsg, integer msgSize) {
   char lblName[MAX_SYMB_LEN];
@@ -383,47 +389,66 @@ retCode decodeRecLbl(ioPo in, encodePo S, termPo *tgt, bufferPo tmpBuffer, char 
   retCode ret = decodeText(in, pkgB);
 
   if (ret == Ok) {
-    integer arity;
-    ret = decodeListCount(in, &arity, errorMsg, msgSize);
+    integer lblLen;
+    char *Nm = getTextFromBuffer(pkgB, &lblLen);
 
-    if (ret == Ok) {
-      integer lblLen;
-      char *Nm = getTextFromBuffer(pkgB, &lblLen);
-      labelPo lbl = declareLbl(Nm, arity);
+#ifdef TRACEDECODE
+    if (traceDecode >= detailedTracing)
+      outMsg(logFile, "decoding record label %s\n%_", lblName);
+#endif
 
-      fieldTblPo fieldTbl = newFieldTable(arity);
-      declareFields(lbl, fieldTbl);
+    if ((ret = isLookingAt(in, "{")) == Ok) {
+      fieldTblPo tbl = Null;
 
-      for (integer ix = 0; ret == Ok && ix < arity; ix++) {
-        if (isLookingAt(in, fieldPreamble) == Ok) {
-          char fieldName[MAX_SYMB_LEN];
-          integer fieldArity;
-          ret = decodeLbl(in, fieldName, NumberOf(fieldName), &fieldArity, errorMsg, msgSize);
-          if (ret == Ok) {
-            labelPo field = declareLbl(fieldName, fieldArity);
-            ret = skipEncoded(in, errorMsg, msgSize); // Field signature
-            if (ret == Ok) {
-              integer offset, size;
-              ret = decodeInteger(in, &offset);
-              if (ret == Ok) {
-                ret = decodeInteger(in, &size);
-                if (ret == Ok)
-                  setFieldTblEntry(fieldTbl, field, offset, size);
-              }
-            }
-          }
-        } else
-          ret = Fail;
-      }
-      if (ret != Ok) {
-        clearFieldTable(lbl);
-        *tgt = Null;
-      } else
+      ret = decodeRecordFieldTypes(in, S, 0, &tbl, tmpBuffer, errorMsg, msgSize);
+
+      if (ret == Ok && tbl != Null) {
+        labelPo lbl = declareLbl(Nm, tbl->size);
+        declareFields(lbl, tbl);
+
         *tgt = (termPo) lbl;
+      }
     }
   }
   closeFile(O_IO(pkgB));
 
 //  outMsg(logFile, "%#T\n", *tgt);
   return ret;
+}
+
+retCode
+decodeRecordFieldTypes(ioPo in, encodePo S, integer count, fieldTblPo *tgt, bufferPo tmpBuffer, char *errorMsg,
+                       integer msgSize) {
+  if (isLookingAt(in, "}") == Ok) {
+    *tgt = newFieldTable(count);
+#ifdef TRACEDECODE
+    if (traceDecode >= detailedTracing)
+      outMsg(logFile, "%d fields in record\n%_", count);
+#endif
+    return Ok;
+  } else {
+    char fieldName[MAX_SYMB_LEN];
+
+    bufferPo pkgB = fixedStringBuffer(fieldName, NumberOf(fieldName));
+    retCode ret = decodeText(O_IO(in), pkgB);
+    outByte(O_IO(pkgB), 0);
+    closeFile(O_IO(pkgB));
+
+    if (ret == Ok) {
+      labelPo field = declareLbl(fieldName, 0);
+
+#ifdef TRACEDECODE
+      if (traceDecode >= detailedTracing)
+        outMsg(logFile, "record field %s\n%_", fieldName);
+#endif
+
+      ret = skipSignature(in); // Field signature
+      if (ret == Ok) {
+        ret = decodeRecordFieldTypes(in, S, count + 1, tgt, tmpBuffer, errorMsg, msgSize);
+        if (ret == Ok)
+          setFieldTblEntry(*tgt, field, count);
+      }
+    }
+    return ret;
+  }
 }

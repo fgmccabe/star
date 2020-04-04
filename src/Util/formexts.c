@@ -44,11 +44,11 @@ static retCode quoteChar(ioPo f, codePoint ch) {
       if (ch < ' ') {
         ret = outChar(f, '\\');
         if (ret == Ok)
-          ret = outChar(f, ((ch >> 6u) & 3u) | (unsigned)'0');
+          ret = outChar(f, ((ch >> 6u) & 3u) | (unsigned) '0');
         if (ret == Ok)
-          ret = outChar(f, ((ch >> 3u) & 7u) | (unsigned)'0');
+          ret = outChar(f, ((ch >> 3u) & 7u) | (unsigned) '0');
         if (ret == Ok)
-          ret = outChar(f, (ch & 7u) | (unsigned)'0');
+          ret = outChar(f, (ch & 7u) | (unsigned) '0');
       } else
         ret = outChar(f, ch);
   }
@@ -66,4 +66,36 @@ retCode genQuotedStr(ioPo f, void *data, long depth, long precision, logical alt
     ret = quoteChar(f, cp);
   }
   return ret;
+}
+
+static logical needsQuote(codePoint ch) {
+  switch (ch) {
+    case '\a':
+    case '\b':
+    case '\x7f':
+    case '\x1b':
+    case '\f':
+    case '\n':
+    case '\r':
+    case '\t':
+    case '\v':
+    case '\\':
+    case '\"':
+      return True;
+    default:
+      if (ch < ' ' || ch>=128)
+        return True;
+      else
+        return False;
+  }
+}
+
+logical needQuoting(char *str, integer len) {
+  integer pos = 0;
+  while (pos < len) {
+    codePoint ch = nextCodePoint(str, &pos, len);
+    if (needsQuote(ch))
+      return True;
+  }
+  return False;
 }

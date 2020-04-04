@@ -111,7 +111,8 @@ int getOptions(int argc, char **argv) {
 }
 
 typedef struct {
-  ioPo out;
+  ioPo first;
+  ioPo follow;
   char *sep;
   char last[MAXLINE];
 } FollowCl;
@@ -121,10 +122,13 @@ static void dumpFollows(char *prefix, codePoint last, void *V, void *cl) {
 
   switch (genMode) {
     case genProlog:
-      outMsg(c->out, "  follows('%P','%#c','%P%#c').\n", prefix, last, prefix, last);
+      outMsg(c->follow, "  follows('%P','%#c','%P%#c').\n", prefix, last, prefix, last);
       break;
     case genStar:
-      outMsg(c->out, "  follows(\"%P\",0c%#c) => some(\"%P%#c\").\n", prefix, last, prefix, last);
+      if (uniCmp(prefix, "") == same)
+        outMsg(c->first, "  first(0c%#c) => some(\"%P%#c\").\n", last, prefix, last);
+      else
+        outMsg(c->follow, "  follows(\"%P\",0c%#c) => some(\"%P%#c\").\n", prefix, last, prefix, last);
       break;
     case genTexi:
     default:
@@ -133,7 +137,7 @@ static void dumpFollows(char *prefix, codePoint last, void *V, void *cl) {
 }
 
 static void genFollows(ioPo out) {
-  FollowCl cl = {out, "", "##"};
+  FollowCl cl = {out, out, "", "##"};
   processTrie(tokenTrie, dumpFollows, &cl, True);
   outMsg(out, "%s", cl.sep);
 }
@@ -225,8 +229,20 @@ int main(int argc, char **argv) {
     // dumpTrie(tokenTrie,Stdout());
 
     bufferPo followBuff = newStringBuffer();
-    genFollows(O_IO(followBuff));
-    hashPut(vars, "Follows", getTextFromBuffer(followBuff, &len));
+    switch (genMode) {
+      case genStar: {
+        bufferPo firstBuff = newStringBuffer();
+        FollowCl cl = {O_IO(firstBuff), O_IO(followBuff), "", "##"};
+        processTrie(tokenTrie, dumpFollows, &cl, True);
+        outMsg(out, "%s", cl.sep);
+        hashPut(vars, "Follows", getTextFromBuffer(followBuff, &len));
+        hashPut(vars, "First", getTextFromBuffer(firstBuff, &len));
+        break;
+      }
+      default:
+        genFollows(O_IO(followBuff));
+        hashPut(vars, "Follows", getTextFromBuffer(followBuff, &len));
+    }
 
     bufferPo finalBuff = newStringBuffer();
     genFinal(O_IO(finalBuff));

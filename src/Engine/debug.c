@@ -1130,14 +1130,10 @@ retCode showLcl(ioPo out, integer vr, methodPo mtd, framePo fp, ptrPo sp) {
 
 retCode showGlb(ioPo out, globalPo glb, framePo fp, ptrPo sp) {
   if (fp != Null && sp != Null) {
-    if (glb != Null) {
-      termPo val = getGlobal(glb);
-      if (val != Null)
-        return outMsg(out, " %s = %,*T", globalVarName(glb), displayDepth, val);
-      else
-        return outMsg(out, " %s", globalVarName(glb));
-    } else
-      return outMsg(out, "unknown global");
+    if (glb != Null)
+      return outMsg(out, " %,*T", displayDepth, glb);
+    else
+      return outMsg(out, " unknown global");
   } else
     return outMsg(out, " %s", globalVarName(glb));
 }
@@ -1185,7 +1181,7 @@ void showStack(ioPo out, processPo p, methodPo mtd, integer vr, framePo fp, ptrP
 static void showPcOffset(ioPo out, insPo base, insPo *pc) {
   uint32 hi32 = (uint32) (*pc)[0];
   uint32 lo32 = (uint32) (*pc)[1];
-  (*pc)+=2;
+  (*pc) += 2;
   int32 delta = (hi32 << 16u) | lo32;
 
   outMsg(out, " PC[%d(%+d)]", (*pc - base) + delta, delta);

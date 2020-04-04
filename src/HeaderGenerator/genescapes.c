@@ -228,14 +228,6 @@ static char *dumpSig(char *sig, bufferPo out) {
       sig = dumpSig(sig, out);
       outStr(O_IO(out), ")");
       break;
-    case arySig:
-      outStr(O_IO(out), "tpExp(");
-      outStr(O_IO(out), "tpFun(");
-      dumpStr("star.core*array", out);
-      outStr(O_IO(out), ",1),");
-      sig = dumpSig(sig, out);
-      outStr(O_IO(out), ")");
-      break;
     case allSig:
       outStr(O_IO(out), "allType(");
       sig = dumpSig(sig, out);

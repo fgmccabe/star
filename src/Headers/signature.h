@@ -25,7 +25,6 @@ typedef enum {
   tpfnSig = 'z', /* A type function */
 
   lstSig = 'L', // Cons list
-  arySig = 'A', /* Array */
   tpeExpSig = 'U',                       /* polymorphic user type */
 
   tplSig = '(', /* Tuple - followed by element types followed by ) */
@@ -33,6 +32,8 @@ typedef enum {
 
   allSig = ':', /* universally quantified formula */
   xstSig = 'E', /* existentially quantified formula */
+
+  funDep = 'd', // Function dependency
 
   constrainedSig = '|',                /* A constrained type */
 
@@ -59,17 +60,16 @@ typedef enum {
   dtaTrm = 'n',         // Constructor data value
   lstTrm = 'l',
   lblTrm = 'o',         // A structure label identifier
-  recTrm = 'O',         // A record structure label
+  recLbl = 'O',         // A record structure label
   enuTrm = 'e',         // An enumerated symbol
-} cafeTermSig;
+} starDecodeKey;
 
-extern logical validSignature(char *s);
-extern retCode
-funSigArity(char *sig, integer *arity);
-extern retCode tupleArity(char *sig, integer *arity);
-extern retCode skipSig(char *sig, integer *start, integer end);
-extern retCode skipConstraint(char *sig, integer *start, integer end);
-extern retCode showSignature(ioPo out, char *sig, integer *start, integer end);
-extern retCode showConstraint(ioPo out, char *sig, integer *start, integer end);
-extern retCode showSig(ioPo out, char *sig);
+logical validSignature(char *s);
+retCode funSigArity(char *sig, integer *arity);
+retCode tupleArity(char *sig, integer *arity);
+retCode skipSig(char *sig, integer *start, integer end);
+retCode showSignature(ioPo out, char *sig, integer *start, integer end);
+retCode showConstraint(ioPo out, char *sig, integer *start, integer end);
+retCode showSig(ioPo out, char *sig);
+retCode skipSignature(ioPo in);
 #endif

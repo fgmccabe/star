@@ -10,6 +10,5 @@
 
 #include "engine.h"
 #include "libEscapes.h"
-#include "array.h"
 
 #endif //STAR_LISTOPS_H

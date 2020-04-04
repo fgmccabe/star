@@ -7,6 +7,7 @@
 #include "heap.h"
 #include "opcodes.h"
 #include "pkg.h"
+#include <jit.h>
 
 typedef uint16 insWord, *insPo;
 
@@ -15,8 +16,6 @@ typedef struct _method_ *methodPo;
 void initCode();
 
 extern methodPo C_MTD(termPo t);
-
-typedef void (*jitCode)();
 
 extern normalPo codeLits(methodPo mtd);
 extern integer codeLitCount(methodPo mtd);

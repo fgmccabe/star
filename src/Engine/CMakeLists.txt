@@ -3,7 +3,7 @@ project(star)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c99 -fsanitize=address -fsanitize=leak")
 
-include_directories("Headers" "../Headers" "../Util/Headers" "../Escapes/Headers" "../Infra/Headers")
+include_directories("Headers" "../Headers" "../Util/Headers" "../Escapes/Headers" "../Infra/Headers" "../Jit/Headers")
 
 set(HEADER_FILES
         ../Headers/version.h
@@ -13,9 +13,9 @@ set(HEADER_FILES
         ../Util/Headers/cmdOptions.h
         ../Escapes/Headers/libEscapes.h
         ../Util/Headers/integer.h
+        ../Jit/Headers/jit.h
         Headers/args.h
         Headers/bkpoint.h
-        Headers/array.h Headers/arrayP.h
         Headers/cell.h Headers/cellP.h
         Headers/code.h Headers/codeP.h
         Headers/cons.h
@@ -45,10 +45,10 @@ set(HEADER_FILES
 set(SOURCE_FILES
         decode.c debug.c eval.c engine.c engineOptions.c gc.c globals.c heap.c load.c main.c
         ${HEADER_FILES} code.c term.c labels.c arith.c repo.c
-        str.c array.c lockvar.c cell.c iochnl.c thr.c bkpoint.c verify.c srcMap.c capability.c memo.c boot.c cons.c)
+        str.c lockvar.c cell.c iochnl.c thr.c bkpoint.c verify.c srcMap.c capability.c memo.c boot.c cons.c)
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})
 
-target_link_libraries(star escapes infra ooio m pthread)
+target_link_libraries(star escapes infra ooio jit m pthread)
 
 install(TARGETS star DESTINATION bin)
