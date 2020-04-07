@@ -9,6 +9,7 @@
 #include <stringBuffer.h>
 #include <arithP.h>
 #include <errorCodes.h>
+#include <cons.h>
 #include "ioops.h"
 #include "globals.h"
 
@@ -271,21 +272,22 @@ ReturnStatus g__outbyte(processPo p, ptrPo tos) {
 
   return rtnStatus(p, outByte(io, (byte) cp), "outbyte");
 }
-//
-//ReturnStatus g__outbytes(processPo p, ptrPo tos) {
-//  termPo Arg1 = tos[0];
-//  termPo Arg2 = tos[1];
-//  ioPo io = ioChannel(C_IO(Arg1));
-//  arrayPo data = C_ARRAY(Arg2);
-//  retCode ret = Ok;
-//
-//  for (integer ix = 0; ret == Ok && ix < arraySize(data); ix++) {
-//    byte b = (byte) integerVal(nthEl(data, ix));
-//    ret = outByte(io, b);
-//  }
-//
-//  return rtnStatus(p, ret, "outbytes");
-//}
+
+ReturnStatus g__outbytes(processPo p, ptrPo tos) {
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
+  ioPo io = ioChannel(C_IO(Arg1));
+  termPo data = Arg2;
+  retCode ret = Ok;
+
+  while(ret==Ok && isCons(data)){
+    byte b = (byte)integerVal(consHead(C_TERM(data)));
+    ret = outByte(io,b);
+    data = consTail(C_TERM(data));
+  }
+
+  return rtnStatus(p, ret, "outbytes");
+}
 
 ReturnStatus g__outtext(processPo p, ptrPo tos) {
   termPo Arg1 = tos[0];

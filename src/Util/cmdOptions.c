@@ -183,6 +183,7 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
       }
     }
   }
+
   return ix;
 
   failOptions:

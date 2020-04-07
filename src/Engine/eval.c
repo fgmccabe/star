@@ -113,7 +113,8 @@ retCode run(processPo P) {
 
       case OCall: {        /* Call tos a1 .. an -->   */
         int arity = collectI32(PC);
-        normalPo nProg = C_TERM(SP[0]);
+        normalPo nProg = C_TERM(pop());
+        push(nthArg(nProg, 0));                     // Put the free term back on the stack
 
         push(PROG);
         push(PC);       /* build up the frame. */
@@ -229,7 +230,8 @@ retCode run(processPo P) {
 
       case OTail: {       /* Tail call */
         int arity = collectI32(PC);
-        normalPo nProg = C_TERM(SP[0]);
+        normalPo nProg = C_TERM(pop());
+        push(nthArg(nProg, 0));                     // Put the free term back on the stack
 
         // Pick up existing frame
         framePo oldFp = FP->fp;

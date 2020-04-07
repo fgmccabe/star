@@ -29,28 +29,27 @@ typedef enum {
   dead
 } ProcessState;
 
-
 typedef struct _return_code_ {
   retCode ret;
   termPo result;
 } ReturnStatus;
 
-extern processPo newProcess(methodPo mtd);
-extern void setupProcess(processPo P,methodPo mtd);
-extern void switchProcessState(processPo p, ProcessState state);
-extern void setProcessRunnable(processPo p);
-extern ProcessState processState(processPo p);
-extern integer processNo(processPo p);
+processPo newProcess(methodPo mtd, char *rootWd);
+void setupProcess(processPo P, methodPo mtd);
+void switchProcessState(processPo p, ProcessState state);
+void setProcessRunnable(processPo p);
+ProcessState processState(processPo p);
+integer processNo(processPo p);
 
 typedef retCode (*procProc)(processPo p, void *cl);
 retCode processProcesses(procProc p, void *cl);
 processPo getProcessOfThread(void);
 
-extern heapPo processHeap(processPo p);
+heapPo processHeap(processPo p);
 
-extern char *processWd(processPo p);
-extern retCode setProcessWd(processPo p, char *wd, integer len);
+char *processWd(processPo p);
+retCode setProcessWd(processPo p, char *wd, integer len);
 
-extern ReturnStatus liberror(processPo P, char *name, termPo code);
-
+ReturnStatus liberror(processPo P, char *name, termPo code);
+termPo commandLine(heapPo H);
 #endif

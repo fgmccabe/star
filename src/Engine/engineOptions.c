@@ -19,13 +19,10 @@
 
 char CWD[MAXFILELEN] = "";
 char rootCap[MAXFILELEN] = "/";
-char bootVer[MAX_SYMB_LEN] = "*";
 
-logical useMicroBoot = False;
-PackageRec microBootPkge = {.packageName="__star.boot", .version="*"};
 PackageRec bootPkge = {.packageName="star.bboot", .version="*"};
-
 char bootEntry[MAX_SYMB_LEN] = "star.bboot#__boot";  // entry point
+static logical bootSet = False;
 
 static retCode displayVersion(char *option, logical enable, void *cl) {
   return outMsg(logFile, "star - %s", version);
@@ -220,18 +217,6 @@ static retCode debugOption(char *option, logical enable, void *cl) {
         traceCapability = True;
         continue;
 
-      case 'b': // switch microboot capability
-        if (useMicroBoot) {
-          useMicroBoot = False;
-          strMsg(bootEntry, NumberOf(bootEntry), "star.bboot#__boot");
-          strMsg(bootPkge.packageName,NumberOf(bootPkge.packageName),"star.bboot");
-        } else {
-          useMicroBoot = True;
-          strMsg(bootEntry, NumberOf(bootEntry), "__star_boot");
-          strMsg(bootPkge.packageName,NumberOf(bootPkge.packageName),"star.boot");
-        }
-        continue;
-
       default:;
     }
   }
@@ -304,7 +289,7 @@ static retCode setDebuggerPort(char *option, logical enable, void *cl) {
   return Ok;
 }
 
-static retCode setMainEntry(char *option, logical enable, void *cl) {
+static retCode setBootEntry(char *option, logical enable, void *cl) {
   uniCpy(bootEntry, NumberOf(bootEntry), option);
   return Ok;
 }
@@ -320,7 +305,8 @@ static retCode setRootCapability(char *option, logical enable, void *cl) {
 }
 
 static retCode setBootPkg(char *option, logical enable, void *cl) {
-  uniCpy(&bootPkge.packageName[0], NumberOf(bootPkge.packageName), option);
+  tryRet(parsePkg(option, uniStrLen(option), &bootPkge));
+  strMsg(bootEntry, NumberOf(bootEntry), "%s#_boot", bootPkge.packageName);
   return Ok;
 }
 
@@ -365,11 +351,11 @@ Option options[] = {
   {'G', "debugger-port", hasArgument, STAR_DEBUGGER_PORT, setDebuggerPort,   Null, "-G|--debugger-port"},
   {'v', "version",       noArgument,  Null,               displayVersion,    Null, "-v|--version"},
   {'b', "boot-pkg",      hasArgument, STAR_BOOT,          setBootPkg,        Null, "-b|--boot-pkg <pkg>"},
-  {'m', "main",          hasArgument, STAR_MAIN,          setMainEntry,      Null, "-m|--main <entry>"},
+  {'m', "main",          hasArgument, STAR_MAIN,          setBootEntry,      Null, "-m|--main <entry>"},
   {'L', "logFile",       hasArgument, STAR_LOGFILE,       setLogFile,        Null, "-L|--logFile <path>"},
   {'r', "repository",    hasArgument, STAR_REPO,          setRepoDir,        Null, "-r|--repository <path>"},
   {'w', "set-wd",        hasArgument, STAR_WD,            setWD,             Null, "-w|--set-wd <dir>"},
-  {'W', "set-root-cap",  hasArgument, STAR_WD,            setRootCapability, Null, "-W|--set-root-cap <dir>"},
+  {'W', "set-root-cap",  hasArgument, STAR_ROOT_WD,       setRootCapability, Null, "-W|--set-root-cap <dir>"},
   {'V', "verify",        noArgument,  STAR_VERIFY,        setVerify,         Null, "-V|--verify code"},
   {'h', "heap",          hasArgument, STAR_INIT_HEAP,     setHeapSize,       Null, "-h|--heap <size>"},
   {'H', "max-heap",      hasArgument, STAR_MAX_HEAP,      setMaxHeapSize,    Null, "-H|--max-heap <size>"},
@@ -378,6 +364,12 @@ Option options[] = {
 
 int getEngineOptions(int argc, char **argv) {
   splitFirstArg(argc, argv, &argc, &argv);
-  return processOptions(copyright, argc, argv, options, NumberOf(options));
+  int narg = processOptions(copyright, argc, argv, options, NumberOf(options));
+
+  if (narg < argc && !bootSet) {
+    setBootPkg(argv[narg], True, Null);
+    return narg + 1;
+  } else
+    return narg;
 }
 

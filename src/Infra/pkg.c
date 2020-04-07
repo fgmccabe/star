@@ -43,3 +43,14 @@ retCode dispPkgNm(ioPo f, void *data, long depth, long precision, logical alt){
   else
     return outMsg(f,"%s:%s",pkg->packageName,pkg->version);
 }
+
+retCode parsePkg(char *text,integer len,packagePo p){
+  integer colonP = uniIndexOf(text,len,0,':');
+  if(colonP>0){
+    tryRet(uniNCpy(p->packageName,NumberOf(p->packageName),text,colonP));
+    return uniNCpy(p->version,NumberOf(p->version),&text[colonP+1],len-colonP-1);
+  } else{
+    uniCpy(p->version,NumberOf(p->version),"*");
+    return uniNCpy(p->packageName,NumberOf(p->packageName),text,len);
+  }
+}
