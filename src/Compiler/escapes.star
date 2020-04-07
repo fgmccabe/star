@@ -104,6 +104,7 @@ star.comp.escapes{
   escapeType("_intext") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle"),nomnal("star.core*string")])),nomnal("star.core*string"))).
   escapeType("_outchar") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle"),nomnal("star.core*integer")])),nomnal("star.core*sysResult"))).
   escapeType("_outbyte") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle"),nomnal("star.core*integer")])),nomnal("star.core*sysResult"))).
+  escapeType("_outbytes") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle"),tpExp(tpFun("star.core*cons",1),nomnal("star.core*integer"))])),nomnal("star.core*sysResult"))).
   escapeType("_outtext") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle"),nomnal("star.core*string")])),nomnal("star.core*sysResult"))).
   escapeType("_stdfile") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),nomnal("star.file*fileHandle"))).
   escapeType("_fposition") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle")])),nomnal("star.core*integer"))).
@@ -315,6 +316,7 @@ star.comp.escapes{
   isEscape("_intext") => .true.
   isEscape("_outchar") => .true.
   isEscape("_outbyte") => .true.
+  isEscape("_outbytes") => .true.
   isEscape("_outtext") => .true.
   isEscape("_stdfile") => .true.
   isEscape("_fposition") => .true.

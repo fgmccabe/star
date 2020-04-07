@@ -51,12 +51,13 @@ star.compiler.gencode{
     disp(glbFun(Off,Tpe)) =>ssSeq([ss("fun "),disp(Off),ss(":"),disp(Tpe)]).
   .}
 
-  public compCrProg:(cons[crDefn],cons[(string,tipe)],compilerOptions,reports)=>
+  public compCrProg:(pkg,cons[crDefn],cons[(string,tipe)],compilerOptions,reports)=>
     either[reports,cons[codeSegment]].
-  compCrProg(Defs,Globals,Opts,Rp) => do{
+  compCrProg(Pkg,Defs,Globals,Opts,Rp) => do{
 --    logMsg("globals $(Globals)");
-    compDefs(Defs,localFuns(Defs,foldRight(((Pkg,Tp),G)=>G[Pkg->glbVar(Pkg,Tp)],[],Globals)),
-      Opts,[],Rp)
+    logMsg("Defs $(Defs)");
+    compDefs(Defs,localFuns(Defs,foldRight(((Pk,Tp),G)=>G[Pk->glbVar(Pk,Tp)],[],Globals)),
+      Opts,genBoot(Pkg,Defs),Rp)
   }.
 
   localFuns:(cons[crDefn],map[string,srcLoc])=>map[string,srcLoc].
@@ -596,5 +597,17 @@ star.compiler.gencode{
   trimStack:all x, e ~~ stream[x->>e],sizeable[x] |: (option[x],integer)=>option[x].
   trimStack(some(L),N) =>some(drop(L,size(L)-N)).
   trimStack(.none,_) => .none.
+
+  genBoot:(pkg,cons[crDefn])=>cons[codeSegment].
+  genBoot(P,Defs) where Mn .= qualifiedName(pkgName(P),.valMark,"_main") && fnDef(_,Mn,_,_,_) in Defs => 
+    [method(tLbl(qualifiedName(pkgName(P),.pkgMark,"_boot"),0),funType([],unitTp),[
+	  iLdG(packageVar(P)),
+	  iGet(tLbl("__main",0)),
+          iEscape("_command_line"),
+	  iOCall(2),
+	  iFrame(intgr(0)),
+	  .iHalt])].
+
+  genBoot(_,_) default => [].
 }
 

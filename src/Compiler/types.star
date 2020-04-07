@@ -351,7 +351,6 @@ star.compiler.types{
   mkTypeExp(Op,[T,..Rest]) => mkTypeExp(tpExp(Op,T),Rest).
 
   public funType(A,B) => fnType(tupleType(A),B).
-
   public fnType(A,B) => tpExp(tpExp(tpFun("=>",2),A),B).
   public consType(A,B) => tpExp(tpExp(tpFun("<=>",2),A),B).
   public enumType(A) => tpExp(tpExp(tpFun("<=>",2),tupleType([])),A).
@@ -407,6 +406,7 @@ star.compiler.types{
   ntEnumTp(constrainedType(T,C))=>constrainedType(netEnumType(T),C).
   ntEnumTp(T) where ET ^= isEnumType(T) => ET.
   
+  public unitTp = tupleType([]).
   public intType = nomnal("star.core*integer").
   public fltType = nomnal("star.core*float").
   public strType = nomnal("star.core*string").

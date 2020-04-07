@@ -134,7 +134,7 @@ star.compiler{
 	    Repp := addSpec(PkgSpec,Repp!!);
 	    logMsg("Normalized package $(P)");
 	    logMsg(dispCrProg(NormDefs)::string);
-	    Ins <- compCrProg(NormDefs,importVars(PkgSpec),Opts,Rp) :: action[reports,cons[codeSegment]];
+	    Ins <- compCrProg(P,NormDefs,importVars(PkgSpec),Opts,Rp) :: action[reports,cons[codeSegment]];
 --	    if Opts.showCode then
 	      logMsg("Generated instructions $(Ins)");
 	    Code .= mkTpl([pkgTerm(CPkg),strg(encodeSignature(typeOf(PkgSpec))),
