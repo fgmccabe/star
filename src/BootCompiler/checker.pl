@@ -724,7 +724,6 @@ typeOfSearch(Lc,L,R,Tp,Env,Ev,search(Lc,Ptn,Src,Iterator),Path) :-
 
 typeOfLambda(Term,Tp,Env,lambda(Lc,equation(Lc,Args,Cond,Exp),Tp),Path) :-
 %  reportMsg("expected type of lambda %s = %s",[Term,Tp]),
-%  dispEnv(Env,1),
   isEquation(Term,Lc,H,C,R),
   newTypeVar("_A",AT),
   typeOfArgPtn(H,AT,Env,E1,Args,Path),
@@ -801,14 +800,11 @@ checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
   Gen = over(Lc,mtd(Lc,"_cons",
 		    funType(tupleType([ElTp,StTp]),StTp)),
 	     true,[conTract(Op,[StTp],[ElTp])]),
-%  reportMsg("Result type: %s, Gen:%s",[Tp,Gen]),
-%  reportMsg("Action type: %s, monad: %s",[ExTp,Contract]),
   genCondition(Cond,Path,checker:genRtn(Lc,ExTp,StTp,ErTp,Contract),
 	       checker:genSeq(Lc,Contract,ExTp,ErTp),
 	       checker:genEl(Lc,Gen,Bnd,StTp,Contract,ExTp,ErTp),
 	       lifted(Zed),ACond),
   genPerform(Lc,ACond,Tp,ActionTp,Contract,Abstr).
-%  reportMsg("abstraction %s ->\n%s",[Term,Abstr]).
 
 genEl(Lc,Gen,Bnd,StTp,Contract,ExTp,ErTp,unlifted(St),Exp) :-
   Next  = apply(Lc,Gen,tple(Lc,[Bnd,St]),StTp),
@@ -835,7 +831,6 @@ genTpVars([_|I],[Tp|More]) :-
   genTpVars(I,More).
 
 checkDo(Lc,B,Env,Ev,Tp,EE,Path) :-
-%  reportMsg("do type %s",[Tp]),
   newTypeVar("_x",ValTp),
   newTypeVar("_er",ErTp),
   (getContract("execution",Env,conDef(_,_,Con)) ->

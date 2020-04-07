@@ -21,8 +21,6 @@ test.c {
   fper:(string)=>person[string].
   fper(W) => someOne{name = W. spouse= .none}.
 
-
-
   fct:(integer)=>integer.
   fct(0)=>1.
   fct(N) => _int_times(N,fct(_int_minus(N,1))).

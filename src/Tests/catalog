@@ -1,8 +1,6 @@
 {
   "content": {
-    "star.core0" : "core0.star",
     "test.a": "a.star",
-    "test.aa": "aa.star",
     "test.assign": "assign.star",
     "test.bench" : "bench.star",
     "test.cons": "constest.star",
@@ -19,7 +17,6 @@
     "test.dl": "dl.star",
     "test.di": "di.star",
     "test.dq": "dq.star",
-    "test.e": "e.star",
     "test.f": "f.star",
     "test.fg": "fg.star",
     "test.fi": "fi.star",
@@ -27,7 +24,6 @@
     "test.fm": "fm.star",
     "test.fmt": "fmt.star",
     "test.fn": "fn.star",
-    "test.fact": "fact.star",
     "test.g": "g.star",
     "test.gp": "gp.star",
     "test.i": "i.star",
@@ -41,7 +37,6 @@
     "test.mm": "mm.star",
     "test.ms" : "ms.star",
     "test.nm": "nm.star",
-    "test.o": "o.star",
     "test.pk": "pk.star",
     "test.p": "p.star",
     "test.p0": "p0.star",
@@ -53,8 +48,6 @@
     "test.qs": "qs.star",
     "test.qx": "qx.star",
     "test.ra" : "ra.star",
-    "test.record": "record.star",
-    "test.ralist" : "ralist.star",
     "test.rl" : "rl.star",
     "test.s": "s.star",
     "test.sl": "sl.star",
@@ -68,5 +61,6 @@
     "test.u": "u.star"
   },
   "version": "1.0.0",
-  "default": "../Star/catalog"
+  "default": "../Star/catalog",
+  "subcatalogs" : ["Lib/catalog"]
 }

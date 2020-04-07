@@ -92,6 +92,7 @@ markActive(_,Lc,Msg,active(Lc,Msg)).
 markResolved(inactive,resolved).
 markResolved(St,St).
 
+%overloadTerm(T,_,active(Lc,Msg),active(Lc,Msg),T) :- !.
 overloadTerm(void,_,St,St,void).
 overloadTerm(v(Lc,Nm,Tp),_,St,St,v(Lc,Nm,Tp)).
 overloadTerm(intLit(Ix,Tp),_,St,St,intLit(Ix,Tp)).
@@ -111,9 +112,8 @@ overloadTerm(cell(Lc,Inn),Dict,St,Stx,cell(Lc,Inn1)) :-
 overloadTerm(assign(Lc,Lhs,Rhs),Dict,St,Stx,assign(Lc,L1,R1)) :-
   overloadTerm(Lhs,Dict,St,St1,L1),
   overloadTerm(Rhs,Dict,St1,Stx,R1).
-overloadTerm(letExp(Lc,Env,Bound),Dict,St,Stx,letExp(Lc,REnv,RBound)) :-
-  overloadTerm(Env,Dict,St,St0,REnv),
-  overloadTerm(Bound,Dict,St0,Stx,RBound).
+overloadTerm(letExp(Lc,Env,Bound),Dict,St,Stx,RLet) :-
+  overloadLetExp(Lc,Env,Bound,Dict,St,Stx,RLet).
 overloadTerm(where(Lc,Trm,Cond),Dict,St,Stx,where(Lc,RTrm,RCond)) :-
   overloadTerm(Trm,Dict,St,St0,RTrm),
   overloadTerm(Cond,Dict,St0,Stx,RCond).
@@ -158,9 +158,9 @@ overloadTerm(apply(Lc,Op,Args,Tp),Dict,St,Stx,apply(Lc,ROp,RArgs,Tp)) :-
   overloadTerm(Args,Dict,St0,Stx,RArgs).
 overloadTerm(over(Lc,T,IsFn,Cx),Dict,St,Stx,Over) :-
   ( resolveContracts(Lc,Cx,Dict,St,St0,DTerms) ->
-      overloadRef(Lc,T,DTerms,[],OverOp,NArgs),
-      overApply(Lc,OverOp,NArgs,IsFn,Over),
-      markResolved(St0,Stx);
+    overloadRef(Lc,T,DTerms,[],OverOp,NArgs),
+    overApply(Lc,OverOp,NArgs,IsFn,Over),
+    markResolved(St0,Stx);
       genMsg("cannot find implementation for contracts %s",[Cx],Msg),
       markActive(St,Lc,Msg,Stx),
       Over = over(Lc,T,IsFn,Cx)).
@@ -171,6 +171,11 @@ overloadTerm(lambda(Lc,Eqn,Tp),Dict,St,Stx,lambda(Lc,OEqn,Tp)) :-
   overloadRule(Eqn,Dict,St,Stx,OEqn).
 overloadTerm(doTerm(Lc,Body,ElTp,ErTp,Con),Dict,St,Stx,doTerm(Lc,RBody,ElTp,ErTp,Con)) :-
   overloadAction(Body,Dict,St,Stx,RBody).
+
+overloadLetExp(Lc,Env,Bound,Dict,St,Stx,letExp(Lc,REnv,RBound)) :-
+  overloadTerm(Env,Dict,St,St0,REnv),
+  overloadTerm(Bound,Dict,St0,Stx,RBound).
+
 
 overloadCases(Cses,Dict,St,Stx,RCases) :-
   overloadLst(Cses,resolve:overloadRule,Dict,St,Stx,RCases).

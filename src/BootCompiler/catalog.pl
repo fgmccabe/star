@@ -9,10 +9,13 @@
 
 locateCatalog(Uri,Cat) :-
   resolveURI(Uri,relUri(rel(["catalog"]),noQuery),CatURI),
+  readCatalog(CatURI,Cat).
+
+readCatalog(CatURI,Cat) :-
   locateResource(CatURI,Chars),!,
   (parseJsonCat(Chars,CatURI,Cat) ->
      true ;
-     reportError("cannot parse catalog at %s",[Uri]),
+     writef("cannot parse catalog at %t\n",[CatURI]),
      abort).
 
 resolveCatalog(cat(Cat),Nm,Uri,V) :-
@@ -21,6 +24,10 @@ resolveCatalog(cat(Cat),Nm,Uri,V) :-
   is_member(entry(Nm,U),Map),!,
   resolveURI(Base,U,Uri),
   resolveVersion(Nm,Cat,V).
+resolveCatalog(cat(Cat),Nm,Uri,V) :-
+  is_member(subcatalogs(L),Cat),
+  is_member(Sub,L),
+  resolveCatalog(Sub,Nm,Uri,V),!.
 resolveCatalog(cat(Cat),Nm,Uri,V) :-
   is_member(default(Deflt),Cat),!,
   is_member(base(Base),Cat),
@@ -38,24 +45,34 @@ catalogVersion(_,defltVersion).
 
 parseJsonCat(Chrs,U,Cat):-
   phrase(parseJson(J),Chrs),
-  jsonCatalog(J,C),
+  jsonCatalog(J,U,C),
   defaultBase(C,U,Cat).
 
-jsonCatalog(jColl(L),cat(S)) :-
-  jsonStmts(L,S),!.
+jsonCatalog(jColl(L),U,cat(S)) :-
+  jsonStmts(L,U,S),!.
 
-jsonStmts([],[]).
-jsonStmts([S|L],[C|CL]) :-
-  jsonStmt(S,C),
-  jsonStmts(L,CL).
+jsonStmts([],_,[]).
+jsonStmts([S|L],U,[C|CL]) :-
+  jsonStmt(S,U,C),
+  jsonStmts(L,U,CL).
 
-jsonStmt(("content",jColl(C)),entries(JC)) :-
+jsonStmt(("content",jColl(C)),_,entries(JC)) :-
   jsonEntries(C,JC).
-jsonStmt(("base",jTxt(B)),base(U)) :-
+jsonStmt(("base",jTxt(B)),_,base(U)) :-
   parseURI(B,U).
-jsonStmt(("version",jTxt(V)),ver(V)).
-jsonStmt(("default",jTxt(D)),default(U)) :-
-  parseURI(D,U).
+jsonStmt(("version",jTxt(V)),_,ver(V)).
+jsonStmt(("default",jTxt(T)),_,default(U)) :-
+  parseURI(T,U).
+jsonStmt(("subcatalogs",jSeq(L)),U,subcatalogs(LU)) :-
+  map(L,catalog:parseSubCatalog(U),LU).
+
+parseSubCatalog(U,jTxt(S),Sub) :-
+  parseURI(S,SU),
+  resolveURI(U,SU,CatURI),
+  readCatalog(CatURI,Sub).
+
+parseJURI(jTxt(U),PU) :-
+  parseURI(U,PU).
 
 jsonEntries([],[]).
 jsonEntries([(Pk,jTxt(U))|C],[entry(pkg(Pk,defltVersion),Url)|JC]) :-
