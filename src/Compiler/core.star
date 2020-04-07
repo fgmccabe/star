@@ -3,6 +3,7 @@ star.compiler.core{
 
   import star.compiler.assem.
   import star.compiler.location.
+  import star.compiler.misc.
   import star.compiler.terms.
   import star.compiler.types.
   import star.pkg.
@@ -115,7 +116,7 @@ star.compiler.core{
   } in crTerm(Lc,tplLbl(Ar), Args, TpTp).
 
   public implementation equality[crVar] => {.
-    crId(N1,T1) == crId(N2,T2) => N1==N2 && T1==T2.
+    crId(N1,T1) == crId(N2,T2) => N1==N2.
   .}
 
   public implementation hash[crVar] => {.
