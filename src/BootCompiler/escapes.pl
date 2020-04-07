@@ -101,6 +101,7 @@ escapeType("_inline",funType(tupleType([type("star.file*fileHandle")]),type("sta
 escapeType("_intext",funType(tupleType([type("star.file*fileHandle"),type("star.core*string")]),type("star.core*string"))).
 escapeType("_outchar",funType(tupleType([type("star.file*fileHandle"),type("star.core*integer")]),type("star.core*sysResult"))).
 escapeType("_outbyte",funType(tupleType([type("star.file*fileHandle"),type("star.core*integer")]),type("star.core*sysResult"))).
+escapeType("_outbytes",funType(tupleType([type("star.file*fileHandle"),tpExp(tpFun("star.core*cons",1),type("star.core*integer"))]),type("star.core*sysResult"))).
 escapeType("_outtext",funType(tupleType([type("star.file*fileHandle"),type("star.core*string")]),type("star.core*sysResult"))).
 escapeType("_stdfile",funType(tupleType([type("star.core*integer")]),type("star.file*fileHandle"))).
 escapeType("_fposition",funType(tupleType([type("star.file*fileHandle")]),type("star.core*integer"))).
@@ -309,6 +310,7 @@ isEscape("_inline").
 isEscape("_intext").
 isEscape("_outchar").
 isEscape("_outbyte").
+isEscape("_outbytes").
 isEscape("_outtext").
 isEscape("_stdfile").
 isEscape("_fposition").

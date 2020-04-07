@@ -16,7 +16,8 @@ genCode(mdule(Pkg,Imports,Face,_Enums,Defs,_Contracts,_Impls),Opts,Text) :-
   initDict(D),
   genImports(Imports,ImpTpl,D,D0),
   defineGlobals(Defs,D0,D1),
-  genDefs(Defs,Opts,D1,C,[]),
+  genBoot(Defs,Pkg,BootCde),
+  genDefs(Defs,Opts,D1,C,BootCde),
   mkTpl(C,Cdes),
   mkTpl([PT,strg(Sig),ImpTpl,Cdes],Tp),
   encode(Tp,Txt),
@@ -588,3 +589,32 @@ genFields([(Nm,Tp)|Fields],Ix,[Fld|Out]) :-
   mkTpl([lbl(Nm,0),strg(Sig)],Fld),
   Ix1 is Ix+1,
   genFields(Fields,Ix1,Out).
+
+genBoot(Defs,pkg(Pkg,_),[BootCde]) :-
+  localName(Pkg,"#","_main",MainNm),
+  localName(Pkg,"@","init",InitNm),
+  localName(Pkg,"#","_boot",BootNm),
+  InitLbl = lbl(InitNm,0),
+  MainLbl = lbl(MainNm,1),
+  BootLbl = lbl(BootNm,0),
+  is_member(fnDef(_,MainLbl,_,_,_),Defs),!,
+  encType(funType(tupleType([]),tupleType([])),Sig),
+  BootMtd = method(BootLbl,Sig,0,
+		   [iCall(InitLbl),
+		    iFrame(intgr(0)),
+		    iEscape("_command_line"),
+		    iCall(MainLbl),
+		    iFrame(intgr(0)),
+		    iHalt]),
+  assem(BootMtd,BootCde).
+genBoot(_,_,[]).
+
+  
+
+  
+  
+
+
+
+
+

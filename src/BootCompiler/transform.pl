@@ -208,6 +208,9 @@ transformFunction(Lc,Nm,LclName,Tp,Eqns,Map,OMap,Opts,[Fun|Ex],Exx) :-
   transformEquations(Map,OMap,Opts,LclPrg,Eqns,Rules,[],Ex,Ex0),
   closureEntry(Map,Lc,Nm,Tp,Ex0,Exx),
   functionMatcher(Lc,Ar,LclPrg,ATp,Rules,Fun).
+%  dispRuleSet(Fun),
+%  liftExp(v(Lc,Nm,Tp),Vr,[],_,Map,Opts,Exx,_).
+%  dispTerm(Vr).
 
 extendFunTp(Tp,[],Tp):-!.
 extendFunTp(funType(tupleType(Els),Rt),Extra,funType(tupleType(NEls),Rt)) :-
@@ -333,17 +336,21 @@ transformThetaDef(cnsDef(Lc,Nm,cons(_,_,_),Tp),Map,_,Opts,Fx,Fx,Ix,Ix,D,Dx) :-
 transformThetaDef(typeDef(_,_,_,_),_,_,_,Fx,Fx,Ix,Ix,Dx,Dx).
 transformThetaDef(conDef(_,_,_),_,_,_,Fx,Fx,Ix,Ix,Dx,Dx).
 
-closureEntry(Map,Lc,Name,Tp,[fnDef(Lc,lbl(Closure,ArX),TTp,
-  [ctpl(lbl(Closure,ExA),Extra)|Args],cll(Lc,lbl(Prog,ArXX),XArgs))|L],L) :-
+closureEntry(Map,Lc,Name,Tp,[ClEntry|L],L) :-
   lookupVarName(Map,Name,Reslt),
   programAccess(Reslt,Prog,Closure,Arity),
-  extraVars(Map,Extra),
   genVars(Arity,Args),
-  length(Extra,ExA),
-  ArX is Arity+1,
-  concat(Extra,Args,XArgs),
-  length(XArgs,ArXX),
-  extendFunTp(Tp,[_],TTp).
+  extraVars(Map,Extra),
+  extendFunTp(Tp,[_],TTp),
+  Ar is Arity+1,
+  (Extra = [] ->
+   genVar("_",FrVr),
+   ClEntry = fnDef(Lc,lbl(Closure,Ar),TTp,[FrVr|Args],cll(Lc,lbl(Prog,Arity),Args)) ;
+   concat(Extra,Args,XArgs),
+   length(XArgs,ArXX),
+   ClEntry = fnDef(Lc,lbl(Closure,Ar),TTp,XArgs,cll(Lc,lbl(Prog,ArXX),XArgs))).
+%  length(Extra,ExA),
+%  dispRuleSet(ClEntry).
 
 liftPtns([],[],Q,Q,_,_,Ex,Ex) :-!.
 liftPtns([P|More],[A|Args],Q,Qx,Map,Opts,Ex,Exx) :-
@@ -430,9 +437,6 @@ liftExps([P|More],[A|Args],Extra,Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(P,A,Q,Q0,Map,Opts,Ex,Ex0),
   liftExps(More,Args,Extra,Q0,Qx,Map,Opts,Ex0,Exx).
 
-liftExp(v(_,"this",_),ThVr,Q,Qx,Map,_,Ex,Ex) :-
-  thisVar(Map,ThVr),!,
-  merge([ThVr],Q,Qx).
 liftExp(v(Lc,Nm,_),Vr,Q,Qx,Map,_Opts,Ex,Ex) :-
   trVarExp(Lc,Nm,Vr,Q,Qx,Map).
 liftExp(enm(Lc,Nm,_),Vr,Q,Qx,Map,_Opts,Ex,Ex) :- !,
@@ -518,7 +522,8 @@ implementVarExp(moduleCons(C,_,Ar),_,_,Cns,_,Q,Q) :-
   trCons(C,Ar,Cns).
 implementVarExp(notInMap,_,Nm,idnt(Nm),_,Q,Qx) :-
   merge([idnt(Nm)],Q,Qx).
-implementVarExp(moduleFun(_,Closure,_),_,_,ctpl(lbl(Closure,0),[]),_,Q,Q).
+implementVarExp(moduleFun(_,Closure,_),_,_,ctpl(lbl(Closure,1),[Unit]),_,Q,Q) :-
+  mkTpl([],Unit).
 implementVarExp(localFun(_Fn,_,Closure,_,ThVr),Lc,_,ctpl(lbl(Closure,1),[Vr]),Map,Q,Qx) :-
   liftVar(Lc,ThVr,Map,Vr,Q,Qx).
 implementVarExp(_Other,Lc,Nm,idnt(Nm),_,Q,Q) :-
@@ -717,7 +722,7 @@ recordMap(Theta,ThVr,Q,Map,_Opts,[lyr(LclName,Lx,FreeTerm,ThVr)|Map],[lyr(LclNam
   makeFreeTerm(CellVars,Lc,ThFree,Map,FreeTerm).
 
 lambdaMap(Lam,Q,Map,LclName,ctpl(lbl(LclName,1),[FreeTerm]),
-    [lyr(LclName,Lx,FreeTerm,ctpl(lbl(LclName,1),[ThVr]))|Map]) :-
+    [lyr(LclName,Lx,FreeTerm,ThVr)|Map]) :-
   findFreeVars(Lam,Map,Q,LmFree),
   lambdaLbl(Map,"λ",LclName),
   genVar("_ΛV",ThVr),
@@ -786,9 +791,6 @@ isVar(idnt(_)).
 
 thetaLbl(theta(_,Path,_,_,_),_Map,Path).
 thetaLbl(record(_,Path,_,_,_),_Map,Path).
-
-makeLblTerm(Nm,[],enum(Nm)) :- !.
-makeLblTerm(Nm,Extra,ctpl(lbl(Nm,Ar),Extra)) :- length(Extra,Ar).
 
 makeMtdMap(theta(_,_,_,Defs,_),OuterNm,ThVr,L,Lx) :-
   collectMtds(Defs,OuterNm,ThVr,L,Lx).

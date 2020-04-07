@@ -1,0 +1,15 @@
+{
+  "content": {
+    "star.core0" : "core0.star",
+    "test.aa": "aa.star",
+    "test.disp" : "disp.star",
+    "test.e": "e.star",
+    "test.fact": "fact.star",
+    "test.fog": "fog.star",
+    "test.o": "o.star",
+    "test.ralist" : "ralist.star",
+    "test.record": "record.star"
+  },
+ "version": "1.0.0",
+  "default": "../../Star/catalog"
+}  

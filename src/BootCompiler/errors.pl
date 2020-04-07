@@ -76,6 +76,9 @@ showTrm(T,O) :-
   isCanon(T),!,
   showCanonTerm(T,0,O,[]).
 showTrm(T,O) :-
+  isCanonDef(T),!,
+  showDef(0,T,O,[]).
+showTrm(T,O) :-
   isLocation(T),
   showLocation(T,O,[]).
 showTrm(P,O) :-

@@ -1,6 +1,6 @@
 test.fg{
   import star.
-  import test.f.
+  import test.fact.
 
   _main:(cons[string])=>().
   _main([F,.._]) where Fn.=F::integer => valof action{

@@ -1,8 +1,8 @@
-:- module(canon,[dispCanonTerm/1,dispProg/1,dispDefs/1,
+:- module(canon,[dispCanonTerm/1,dispProg/1,dispDefs/1,showDef/4,
 		 showCanonTerm/4,showPkg/3,showImports/3,showContracts/3,
 		 showImpls/3,
 		 typeOfCanon/2,splitPtn/3,locOfCanon/2,mergeGl/4,
-		 isCanon/1,isSimpleCanon/1,isAssertion/1,isShow/1,isPkg/1,
+		 isCanonDef/1,isCanon/1,isSimpleCanon/1,isAssertion/1,isShow/1,isPkg/1,
 		 ruleArity/2,
 		 isGoal/1,isIterableGoal/1,
 		 anonVar/3]).
@@ -11,6 +11,13 @@
 :- use_module(operators).
 :- use_module(types).
 :- use_module(location).
+
+isCanonDef(funDef(_,_,_,_,_,_)).
+isCanonDef(varDef(_,_,_,_,_,_)).
+isCanonDef(cnsDef(_,_,_,_)).
+isCanonDef(typeDef(_,_,_,_)).
+isCanonDef(conDef(_,_,_)).
+isCanonDef(implDef(_,_,_,_)).
 
 isCanon(prog(_,_,_,_,_,_,_,_)).
 isCanon(v(_,_,_)).

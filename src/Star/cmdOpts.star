@@ -22,8 +22,8 @@ star.cmdOpts{
 processOption:all o ~~ (string,cons[string],cons[optionsProcessor[o]],o) =>
   either[string,(o,cons[string])].
   processOption(A,L,Specs,SoFar) where
-      O ^= search(Specs,(e)=>(e.shortForm==A|| _ ^=search(e.alternatives,(o)=>o==A))) =>
-    checkOption(L,O.shortForm,O.validator,O.setOption,Specs,SoFar).
+      O ^= search(Specs,(e)=>(e.shortForm==A|| _ ^=search(e.alternatives,(o)=>o==A))) => 
+	checkOption(L,O.shortForm,O.validator,O.setOption,Specs,SoFar).
   processOption(A,L,_,SoFar) => either((SoFar,[A,..L])).
 
   checkOption:all o ~~ (cons[string],string,option[(string)=>boolean],(string,o) => o,cons[optionsProcessor[o]],o) =>
