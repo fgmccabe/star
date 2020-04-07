@@ -85,13 +85,8 @@ int main(int argc, char **argv) {
 
   char errMsg[MAXLINE];
 
-  if (useMicroBoot && loadPackage(&microBootPkge, errMsg, NumberOf(errMsg), Null) != Ok) {
-    logMsg(logFile, "Could not load micro boot pkg %s: %s", pkgName(&microBootPkge), errMsg);
-    exit(99);
-  }
-
   if (loadPackage(&bootPkge, errMsg, NumberOf(errMsg), Null) != Ok) {
-    logMsg(logFile, "Could not load boot pkg %s/%s: %s", pkgName(&bootPkge), bootVer, errMsg);
+    logMsg(logFile, "Could not load boot pkg %s: %s", pkgName(&bootPkge), errMsg);
     exit(99);
   }
 

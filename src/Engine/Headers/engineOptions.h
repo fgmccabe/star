@@ -31,10 +31,7 @@
 extern char *copyright;
 
 extern char bootEntry[MAX_SYMB_LEN];
-extern char bootVer[MAX_SYMB_LEN];
-extern logical useMicroBoot;
 extern PackageRec bootPkge;
-extern PackageRec microBootPkge;
 
 extern char CWD[MAXFILELEN];
 extern char repoDir[MAXFILELEN];

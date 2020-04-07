@@ -19,4 +19,6 @@ logical compatiblVersion(char *rqVer, char *ver);
 
 logical compatiblePkg(packagePo p1,packagePo p2);
 
+retCode parsePkg(char *text,integer len,packagePo p);
+
 #endif

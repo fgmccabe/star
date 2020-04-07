@@ -14,7 +14,6 @@
 #include "debugP.h"
 
 logical runStats = False;         // Count instructions etc.
-
 static poolPo prPool;     /* pool of processes */
 
 hashPo prTble;
@@ -48,7 +47,7 @@ retCode bootstrap(char *entry, char *rootWd) {
   methodPo mainMtd = labelCode(umain);
 
   if (mainMtd != Null) {
-    processPo p = newProcess(mainMtd);
+    processPo p = newProcess(mainMtd, rootWd);
     retCode ret = run(p);
     ps_kill(p);
     return ret;
@@ -58,7 +57,7 @@ retCode bootstrap(char *entry, char *rootWd) {
   }
 }
 
-processPo newProcess(methodPo mtd) {
+processPo newProcess(methodPo mtd, char *rootWd) {
   processPo P = (processPo) allocPool(prPool);
 
   P->prog = mtd;
@@ -78,9 +77,9 @@ processPo newProcess(methodPo mtd) {
 
   P->tracing = tracing;
 
-  uniNCpy(P->wd, NumberOf(P->wd), CWD, NumberOf(CWD));
-
   P->fp = (framePo) P->stackLimit;
+
+  setProcessWd(P,rootWd,uniStrLen(rootWd));
 
   // cap the stack with a halting stop.
 

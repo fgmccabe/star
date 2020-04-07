@@ -73,5 +73,6 @@ void verifyProc(processPo P, heapPo H);
 retCode extendStack(processPo p, integer sfactor);
 
 extern logical runStats;
+extern logical useMainPkg;
 
 #endif //STAR_ENGINEP_H
