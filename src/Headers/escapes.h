@@ -90,7 +90,7 @@ escape(_bnot,"F(i)i","bitwise negate number")
 
 escape(_cell,":k't'F(k't')rk't'","create a reference cell")
 escape(_get,":k't'F(rk't')k't'","access contents of reference cell")
-escape(_assign,":k't'F(rk't'k't')k't'","update contents of reference cell")
+escape(_assign,":k't'F(rk't'k't')()","update contents of reference cell")
 
 escape(_overwrite,":k't'F(k't'k't')k't'","overwrite a structure with new structure")
 
