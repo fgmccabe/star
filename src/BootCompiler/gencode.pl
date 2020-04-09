@@ -484,7 +484,7 @@ compCond(E,Lc,Succ,Fail,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
 compCase(T,Lc,Cases,Deflt,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(D,Nxt,D1),
   splitCont(Cont,OC),
-  compTerm(T,Lc,contCont(Nxt),Opts,D1,D2,End,C,[iLbl(Nxt),iCase(Mx),iJmp(Dflt)|T0],Stk,Stk0),
+  compTerm(T,Lc,contCont(Nxt),Opts,D1,D2,End,C,[iLbl(Nxt),iCase(Mx)|T0],Stk,Stk0),
   genLbl(D2,Dflt,D3),
   genCaseTable(Cases,Mx,Table),
   compCases(Table,0,Mx,OC,contCont(Dflt),Dflt,Opts,D3,D4,End,T0,Tx,Tx,[iLbl(Dflt),iRst(Stk)|C1],Stk0),
@@ -494,6 +494,7 @@ genCaseTable(Cases,P,Table) :-
   length(Cases,L),
   nextPrime(L,P),
   caseHashes(Cases,P,Hs),
+%  reportMsg("case hashes %s",[Hs]),
   sortCases(Hs,Table).
 
 caseHashes([],_,[]).
@@ -505,7 +506,8 @@ caseHash(T,Mx,Hx) :-
   isLiteral(T),
   termHash(T,Hs),
   Hx is Hs mod Mx.
-%  reportMsg("raw hash of %s is %s, mod is %s",[T,Hs,Hx]).
+%  reportMsg("raw hash of %s is %s, mod %s is %s",[T,Hs,Mx,Hx]).
+
 caseHash(ctpl(O,_),Mx,Hx) :-
   caseHash(O,Mx,Hx).
 caseHash(whr(_,P,_),Mx,Hx) :-

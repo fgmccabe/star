@@ -93,7 +93,7 @@ retCode run(processPo P) {
 
         if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
           saveRegisters(P, SP);
-          if (extendStack(P, 2) != Ok) {
+          if (extendStack(P, 2, stackDelta(PROG)) != Ok) {
             logMsg(logFile, "cannot extend stack");
             bail();
           }
@@ -128,7 +128,7 @@ retCode run(processPo P) {
 
         if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
           saveRegisters(P, SP);
-          if (extendStack(P, 2) != Ok) {
+          if (extendStack(P, 2, 0) != Ok) {
             logMsg(logFile, "cannot extend stack");
             bail();
           }
@@ -217,7 +217,7 @@ retCode run(processPo P) {
 
         if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
           saveRegisters(P, SP);
-          if (extendStack(P, 2) != Ok) {
+          if (extendStack(P, 2, 0) != Ok) {
             logMsg(logFile, "cannot extend stack");
             bail();
           }
@@ -266,7 +266,7 @@ retCode run(processPo P) {
 
         if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
           saveRegisters(P, SP);
-          if (extendStack(P, 2) != Ok) {
+          if (extendStack(P, 2, 0) != Ok) {
             logMsg(logFile, "cannot extend stack");
             bail();
           }
@@ -374,7 +374,7 @@ retCode run(processPo P) {
 
           if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
             saveRegisters(P, SP);
-            if (extendStack(P, 2) != Ok) {
+            if (extendStack(P, 2, 0) != Ok) {
               logMsg(logFile, "cannot extend stack");
               bail();
             }
@@ -708,7 +708,7 @@ retCode run(processPo P) {
       case Case: {      /* case instruction */
         int32 mx = collectI32(PC);
         termPo tos = top();
-        integer hx = hashTermLbl(tos) % mx + 1;
+        integer hx = hashTermLbl(tos) % mx;
 
         PC = (insPo) ((void *) PC + (sizeof(insWord) * 3) * hx);
         continue;
