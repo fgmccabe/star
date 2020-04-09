@@ -296,12 +296,12 @@ void dumpGcStats() {
 
 retCode extendHeap(heapPo H, integer factor, integer hmin) {
   gcGrow++;
+  integer newSize = (integer) ((H->outerLimit - H->base) * factor + hmin);
+
 #ifdef TRACEMEM
   if (traceMemory)
-    outMsg(logFile, "extending heap by: %d+%d\n%_", factor, hmin);
+    outMsg(logFile, "extending heap by: %ld+%ld to %ld\n%_", factor, hmin, newSize);
 #endif
-
-  integer newSize = (integer) ((H->outerLimit - H->base) * factor + hmin);
 
   if (newSize > maxHeapSize)
     return Error;

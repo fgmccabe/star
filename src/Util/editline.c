@@ -451,7 +451,7 @@ void addLineToHistory(bufferPo lineBuff) {
   integer len;
   char *line = getTextFromBuffer(lineBuff, &len);
 
-  while (len > 0 && (line[len - 1] == '\r' || line[len - 1] == '\n'))
+  while (len > 0 && (line[len - 1] == '\r' || line[len - 1] == '\n' || line[len - 1] == 0))
     len--;
 
   if (len > 1) {

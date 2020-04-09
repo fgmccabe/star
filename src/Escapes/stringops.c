@@ -151,41 +151,47 @@ ReturnStatus g__stringOf(processPo p, ptrPo tos) {
 
 ReturnStatus g__explode(processPo p, ptrPo tos) {
   termPo Arg1 = tos[0];
-  integer len;
-  const char *str = stringVal(Arg1, &len);
+  stringPo str = C_STR(tos[0]);
+  integer len = stringLength(str);
+  char buffer[len+1];
 
-  heapPo H = processHeap(p);
-  termPo list = (termPo) nilEnum;
-  termPo el = voidEnum;
-  int root = gcAddRoot(H, (ptrPo) &list);
-  gcAddRoot(H, &el);
+  retCode ret = copyString2Buff(str, buffer, len+1);
+  if (ret == Ok) {
+    heapPo H = processHeap(p);
+    termPo list = (termPo) nilEnum;
+    termPo el = voidEnum;
+    int root = gcAddRoot(H, (ptrPo) &list);
+    gcAddRoot(H, &el);
 
-  integer pos = len;
-  while (pos > 0) {
-    codePoint cp;
-    retCode ret = prevPoint(str, &pos, &cp);
-    if (ret == Ok) {
-      el = (termPo) allocateInteger(H, (integer) cp);
-      list = (termPo) allocateCons(H, el, list);
+    integer pos = len;
+    while (ret == Ok && pos > 0) {
+      codePoint cp;
+      ret = prevPoint(buffer, &pos, &cp);
+      if (ret == Ok) {
+        el = (termPo) allocateInteger(H, (integer) cp);
+        list = (termPo) allocateCons(H, el, list);
+      }
     }
+
+    gcReleaseRoot(H, root);
+
+    assert(consLength(list) == countCodePoints(buffer, 0, len));
+
+    return (ReturnStatus) {.ret=Ok, .result=(termPo) list};
+  } else {
+    return (ReturnStatus) {.ret=ret, .result=(termPo) voidEnum};
   }
-
-  gcReleaseRoot(H, root);
-
-  assert(consLength(list) == countCodePoints(str, 0, len));
-
-  return (ReturnStatus) {.ret=Ok, .result=(termPo) list};
 }
 
 void dS(termPo w) {
   termPo s = w;
 
-  while(isCons(s)){
+  while (isCons(s)) {
     integer cp = integerVal(consHead(C_TERM(s)));
-    outChar(logFile,cp);
+    outChar(logFile, cp);
     s = consTail(C_TERM(s));
   }
-  outStr(logFile,"\n");
+  outStr(logFile, "\n");
   flushOut();
 }
 

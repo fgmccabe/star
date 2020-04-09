@@ -70,7 +70,7 @@ void displayProcess(processPo p);
 
 void verifyProc(processPo P, heapPo H);
 
-retCode extendStack(processPo p, integer sfactor);
+retCode extendStack(processPo p, integer sfactor, integer fixed);
 
 extern logical runStats;
 extern logical useMainPkg;
