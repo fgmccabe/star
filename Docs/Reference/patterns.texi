@@ -336,7 +336,7 @@ contract (see @ref{streamContractProg}) to match sequences of values.
 @display
 @anchored{SequencePattern} ::= @code{'['} @refer{PtnSequence} @code{']'}
 
-@anchored{PtnSequence} ::= @refer{Pattern}[@code{'..,'}@refer{Pattern}]@code{','} @dots{} @code{','} @refer{Pattern}[@code{',..'}@refer{Pattern}
+@anchored{PtnSequence} ::= @refer{Pattern}@code{','} @dots{} @code{','} @refer{Pattern}[@code{',..'}@refer{Pattern}
 @end display
 @end float
 
@@ -357,6 +357,6 @@ is equivalent to the pattern:
 Str where (@var{Ptn@sub{1}},X1) ^= _hdtl(Str) &&
     @dots{}
     (@var{Ptn@sub{n}},Xn) ^= _hdtl(Xn-1) &&
-    Xn == _nil
+    _eof(Xn)
 @end example
 
