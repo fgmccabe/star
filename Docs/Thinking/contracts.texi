@@ -60,9 +60,10 @@ The solution is simple, if a little strange: we declared in the
 @code{arith} contract two non-function entries: @code{zero} and
 @code{one}.  By explicitly identifying zero and one as elements of the
 arith contract we can use them in lieu of 0 and 1 respectively without
-committing to integers.@footnote{There is some Mathematical
-justification for this: the @code{arith} contract defines a @emph{Field} which
-requires zero elements for the two operators (@code{+} and @code{*}).}
+committing to integers.@footnote{There is some limited Mathematical
+justification for this: the @code{arith} contract defines a
+@emph{Field} which requires zero elements for the two operators
+(@code{+} and @code{*}).}
 
 Using these, we can write a much more paradigmatic version of the
 factorial function:

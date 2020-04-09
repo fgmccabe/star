@@ -1056,14 +1056,14 @@ notation.
 @display
 @anchored{SequenceExpression} ::= @code{'['} @refer{ExpSequence} @code{']'}
 
-@anchored{ExpSequence} ::= @refer{Expression}[@code{'..,'}@refer{Expression}]@code{','} @dots{} @code{','} @refer{Expression}[@code{',..'}@refer{Expression}
+@anchored{ExpSequence} ::= @refer{Expression}@code{','} @dots{} @code{','} @refer{Expression}[@code{',..'}@refer{Expression}
 @end display
 @end float
 
 I.e., a sequence expression consists of a sequence of
-@refer{Expression}s separated by commas. In addition, either -- but
-not both -- the tail or the front of the sequence may be denoted by an
-expression. Otherwise the sequence is nil-terminated.
+@refer{Expression}s separated by commas. In addition, the tail of the
+sequence may be denoted by an expression. Otherwise the sequence is
+nil-terminated.
 
 Sequence expressions are interpreted in terms of the @code{stream} contract.
 
@@ -1077,12 +1077,11 @@ is equivalent to the expression:
 _cons(@var{E@sub{1}}, @dots{} , _cons(@var{E@sub{n}},_nil) @dots{} )
 @end example
 
-This sequence is constructed from the back. Conversely, a sequence may
-be front loaded and be defined by appending elements to a front
-expression:
-@example
-_apnd(@dots{}_apnd(_apnd(_nil,@var{E@sub{1}})@var{E@sub{2}})@dots{},@var{E@sub{n}})
-@end example
+where @code{_cons} and @code{_nil} are elements of the @code{sequence} contract.
+
+@quotation
+There is a corresponding contract for sequence terms as patterns.
+@end quotation
 
 @node Index Expression
 @subsection Index Expression

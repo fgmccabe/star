@@ -52,13 +52,13 @@ grandparent-grandchild pairs -- given information about parent-child
 relationships. For example, suppose that we had a list of pairs - each
 pair indicating a parent and child:
 @example
-parents:list[(string,string)].
+parents:cons[(string,string)].
 parents = [("john","peter), ("peter","jane"), @dots{} ].
 @end example
 and that we wanted to construct a result list -- also of pairs --
 along the lines of:
 @example
-GC:list[(string,string)].
+GC:cons[(string,string)].
 GC = [("john","jane"),@dots{}].
 @end example
 Computing the list of grandparent/grandchildren pairs involves
@@ -163,7 +163,7 @@ with a condition; for example, we can define a query capturing the
 situation that a manager earns more than his/her members by requiring
 that anyone who works for the manager earns less than they do:
 @example
-(X,M) in worksFor implies X.salary=<M.salary.
+(X,M) in worksFor *> X.salary=<M.salary.
 @end example
 @end quotation
 

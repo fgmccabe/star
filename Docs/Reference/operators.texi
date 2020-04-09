@@ -196,7 +196,7 @@
 @tab 900
 @item @code{^|}
 @tab right associative infix
-@tab 1249
+@tab 920
 @item @code{open}
 @tab non-associative prefix
 @tab 900
