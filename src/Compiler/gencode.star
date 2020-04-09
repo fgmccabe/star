@@ -95,6 +95,8 @@ star.compiler.gencode{
   compExp:(crExp,compilerOptions,Cont,codeCtx,multi[assemOp],option[cons[tipe]],reports) =>
     either[reports,(codeCtx,multi[assemOp],option[cons[tipe]])].
   compExp(Exp,_,_,_,_,.none,Rp) => other(reportError(Rp,"dead code",locOf(Exp))).
+  compExp(Exp,_,Cont,Ctx,Cde,some(Stk),Rp) where Const^=Exp::option[term] =>
+    Cont.C(Ctx,Cde++[iLdC(Const)],some([typeOf(Exp),..Stk]),Rp).
   compExp(crInt(Lc,Ix),_,Cont,Ctx,Cde,some(Stk),Rp) =>
     Cont.C(Ctx,Cde++[iLdC(intgr(Ix))],some([intType,..Stk]),Rp).
   compExp(crFlot(Lc,Dx),_,Cont,Ctx,Cde,some(Stk),Rp) =>
@@ -183,15 +185,15 @@ star.compiler.gencode{
     (sortCases(caseHashes(Cases,Mx)),Mx).
 
   caseHashes:(cons[crCase],integer)=>cons[(locn,crExp,integer,crExp)].
-  caseHashes(Cases,Mx) => (Cases//((Lc,Pt,Ex))=>(Lc,Pt,caseHash(Pt,Mx),Ex)).
+  caseHashes(Cases,Mx) => (Cases//((Lc,Pt,Ex))=>(Lc,Pt,caseHash(Pt)%Mx,Ex)).
 
-  caseHash:(crExp,integer)=>integer.
-  caseHash(crVar(_,_),_) => 0.
-  caseHash(crInt(_,Ix),Mx) => Ix%Mx.
-  caseHash(crFlot(_,Dx),Mx) => hash(Dx)%Mx.
-  caseHash(crStrg(_,Sx),Mx) => hash(Sx)%Mx.
-  caseHash(crLbl(_,Nm,Tp),Mx) => (arity(Tp)*37+hash(Nm))%Mx.
-  caseHash(crTerm(_,Nm,Args,_),Mx) => (size(Args)*37+hash(Nm))%Mx.
+  caseHash:(crExp)=>integer.
+  caseHash(crVar(_,_)) => 0.
+  caseHash(crInt(_,Ix)) => Ix.
+  caseHash(crFlot(_,Dx)) => hash(Dx).
+  caseHash(crStrg(_,Sx)) => hash(Sx).
+  caseHash(crLbl(_,Nm,Tp)) => arity(Tp)*37+hash(Nm).
+  caseHash(crTerm(_,Nm,Args,_)) => size(Args)*37+hash(Nm).
 
   sortCases(Cases) => mergeDuplicates(sort(Cases,((_,_,H1,_),(_,_,H2,_))=>H1<H2)).
 
@@ -601,9 +603,9 @@ star.compiler.gencode{
   genBoot:(pkg,cons[crDefn])=>cons[codeSegment].
   genBoot(P,Defs) where Mn .= qualifiedName(pkgName(P),.valMark,"_main") && fnDef(_,Mn,_,_,_) in Defs => 
     [method(tLbl(qualifiedName(pkgName(P),.pkgMark,"_boot"),0),funType([],unitTp),[
-	  iLdG(packageVar(P)),
-	  iGet(tLbl("__main",0)),
           iEscape("_command_line"),
+	  iLdG(packageVar(P)),
+	  iGet(tLbl("_main",0)),
 	  iOCall(2),
 	  iFrame(intgr(0)),
 	  .iHalt])].

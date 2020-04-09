@@ -77,11 +77,15 @@ star.compiler.lexer{
   readQuoted(_,_,_) => .none.
 
   readString:(tokenState,cons[stringSegment]) => option[(tokenState,cons[stringSegment])].
-  readString(St,SoFar) where (Nx,0c\") ^= nextChr(St) => some((Nx,reverse(SoFar))).
+readString(St,SoFar) where (Nx,0c\") ^= nextChr(St) => some((Nx,reverse(SoFar))).
   readString(St,SoFar) where
     (Nx,0c$) ^= nextChr(St) &&
     (_,0c() ^= nextChr(Nx) &&
-      (St1,Inter) ^= interpolation(Nx) => readString(St1,[Inter,..SoFar]).
+    (St1,Inter) ^= interpolation(Nx) => readString(St1,[Inter,..SoFar]).
+  readString(St,SoFar) where
+    (Nx,0c#) ^= nextChr(St) &&
+    (_,0c\() ^= nextChr(Nx) &&
+    (St1,Inter) ^= coercion(Nx) => readString(St1,[Inter,..SoFar]).
   readString(St,SoFar) where (St1,Seg) ^= readStr(St,[]) =>
     readString(St1,[segment(makeLoc(St,St1),Seg),..SoFar]).
 
@@ -96,7 +100,13 @@ star.compiler.lexer{
       (St1,Chr) ^= nextChr(St) &&
       (St2,Inter) ^= bracketCount(St,St1,Chr,[],[]) &&
       (St3,Format) ^= readFormat(St2) =>
-        some((St3,interpolate(makeLoc(St,St3),allTokens(interSt(St1,Inter)),Format))).
+    some((St3,interpolate(makeLoc(St,St3),allTokens(interSt(St1,Inter)),Format))).
+
+  coercion:(tokenState) => option[(tokenState,stringSegment)].
+  coercion(St) where
+      (St1,Chr) ^= nextChr(St) &&
+      (St2,Inter) ^= bracketCount(St,St1,Chr,[],[]) =>
+  some((St2,coerce(makeLoc(St,St2),allTokens(interSt(St1,Inter))))).
 
   bracketCount:(tokenState,tokenState,integer,cons[integer],cons[integer]) => option[(tokenState,string)].
   bracketCount(_,St1,Cl,[Cl,..Stk],Chrs) where (St2,Ch)^=nextChr(St1) =>

@@ -5,6 +5,7 @@ star.compiler.term.repo{
   import star.repo.manifest.
   import star.uri.
   import star.resources.
+  import star.compiler.misc.
   import star.compiler.terms.
   
   public termRepo ::= repo(uri,manifest).
@@ -26,14 +27,11 @@ star.compiler.term.repo{
     hasCode(_,_) default => .none.
   }
 
-  flushRepo:(termRepo)=>termRepo.
+  public flushRepo:(termRepo)=>().
   flushRepo(repo(Root,Man)) => valof action{
     MU ^= parseUri("manifest");
     RepoUri ^= resolveUri(Root,MU);
---    logMsg("flushing manifest");
-    () .= flushManifest(RepoUri,Man);
---    logMsg("done");
-    valis repo(Root,Man)
+    valis flushManifest(RepoUri,Man)
   }
   
   public addToRepo:(termRepo,pkg,string,string) => termRepo.
@@ -85,7 +83,7 @@ star.compiler.term.repo{
   addPackage(Repo,Pkg,Text) => addToRepo(Repo,Pkg,"code",Text).
 
   public addSource:(termRepo,pkg,string) => termRepo.
-  addSource(repo(Root,Man),Pkg,Nm) => flushRepo(repo(Root,addToManifest(Man,Pkg,"source",Nm))).
+  addSource(repo(Root,Man),Pkg,Nm) => repo(Root,addToManifest(Man,Pkg,"source",Nm)).
 
   extensionMapping:(string) => string.
   extensionMapping("source") => ".star".

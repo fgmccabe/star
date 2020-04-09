@@ -84,7 +84,10 @@ star.compiler.wff{
   isTypeExists(A) => isBinary(A,"<~").
 
   public isTypeAnnotation:(ast)=>option[(locn,ast,ast)].
-  isTypeAnnotation(A)=>isBinary(A,":").
+  isTypeAnnotation(A) where Ptn ^= isBinary(A,":") => some(Ptn).
+  isTypeAnnotation(A) where (_,I) ^= isPublic(A) => isTypeAnnotation(I).
+  isTypeAnnotation(A) where (_,I) ^= isPrivate(A) => isTypeAnnotation(I).
+  isTypeAnnotation(_) default => .none.
 
   public typeAnnotation:(locn,ast,ast)=>ast.
   typeAnnotation(Lc,V,T) => binary(Lc,":",V,T).
@@ -332,9 +335,6 @@ star.compiler.wff{
 
   public isShow:(ast) => option[(locn,ast)].
   isShow(A) => isUnary(A,"show").
-
-  public isTypeAnnotation:(ast) => option[(locn,ast,ast)].
-  isTypeAnnotation(A) => isBinary(A,":").
 
   public isCoerce:(ast) => option[(locn,ast,ast)].
   isCoerce(A) => isBinary(A,"::").
@@ -650,8 +650,8 @@ star.compiler.wff{
     MRhs .= roundTerm(Lc,nme(Lc,"main"),Cs);
     Main .= equation(Lc,MLhs,unary(Lc,"valof",MRhs));
     Annot .= binary(Lc,":",nme(Lc,"_main"),equation(Lc,rndTuple(Lc,[squareTerm(Lc,nme(Lc,"cons"),[nme(Lc,"string")])]),rndTuple(Lc,[])));
-    logMsg("synthesized main: $(Annot)\n$(Main)");
-    valis [Annot,Main,..Defs].
+    logMsg(" main: $(Annot)\n$(Main)");
+    valis [unary(Lc,"public",Annot),Main,..Defs].
   }
 
   synthesizeCoercions:(cons[ast],locn,cons[ast],cons[ast])=> (cons[ast],cons[ast]).
