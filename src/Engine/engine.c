@@ -79,7 +79,7 @@ processPo newProcess(methodPo mtd, char *rootWd) {
 
   P->fp = (framePo) P->stackLimit;
 
-  setProcessWd(P,rootWd,uniStrLen(rootWd));
+  setProcessWd(P, rootWd, uniStrLen(rootWd));
 
   // cap the stack with a halting stop.
 
@@ -150,8 +150,8 @@ static ptrPo localVar(framePo fp, int64 off) {
   return &(((ptrPo) fp)[-off]);
 }
 
-retCode extendStack(processPo p, integer sfactor) {
-  integer stackSize = (integer) ((p->stackLimit - p->stackBase) * sfactor);
+retCode extendStack(processPo p, integer sfactor, integer fixed) {
+  integer stackSize = (integer) ((p->stackLimit - p->stackBase) * sfactor + fixed);
 
 #ifdef TRACEMEM
   if (traceMemory) {

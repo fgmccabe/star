@@ -336,6 +336,8 @@ retCode inLine(ioPo f, bufferPo buffer, char *term) {
       ret = inChar(f, &ch);
 
       if (ret == Ok) {
+        if(ch==0)
+          return Error;
         ret = outChar(O_IO(buffer), ch);
 
         if (uniIndexOf(term, tlen, 0, ch) >= 0)  /* have we found a terminating byte? */

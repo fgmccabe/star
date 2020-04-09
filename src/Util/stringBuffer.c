@@ -296,7 +296,7 @@ retCode insertIntoBuffer(bufferPo b, codePoint ch) {
   return Ok;
 }
 
-retCode appendIntoBuffer(bufferPo b, char *text, integer txtLen) {
+retCode appendIntoBuffer(bufferPo b, const char *text, integer txtLen) {
   ensureSpace(b, txtLen);
   for (integer ix = 0; ix < txtLen; ix++)
     b->buffer.buffer[b->buffer.out_pos++] = text[ix];
@@ -305,7 +305,7 @@ retCode appendIntoBuffer(bufferPo b, char *text, integer txtLen) {
   return Ok;
 }
 
-retCode appendToBuffer(bufferPo b, char *text, integer txtLen) {
+retCode appendToBuffer(bufferPo b, const char *text, integer txtLen) {
   ensureSpace(b, txtLen);
   for (integer ix = 0; ix < txtLen; ix++)
     b->buffer.buffer[b->buffer.size++] = text[ix];

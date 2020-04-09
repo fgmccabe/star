@@ -290,12 +290,34 @@ comparison uniCmp(const char *s1, const char *s2) {
     pos++;
   }
 
-  if (s1[pos] < s2[pos] || s1[pos] == 0)
+  if ((unsigned)s1[pos] < (unsigned)s2[pos] || s1[pos] == 0)
     return smaller;
   else
     return bigger;
 }
 
+comparison unicodeCmp(const char *s1, integer l1,const char *s2,integer l2) {
+  integer p1 = 0, p2=0;
+  assert(s1 != NULL && s2 != NULL);
+
+  while(p1<l1 && p2<l2){
+    codePoint ch1 = nextCodePoint(s1,&p1,l1);
+    codePoint ch2 = nextCodePoint(s2,&p2,l2);
+
+    if(ch1==ch2)
+      continue;
+    else if(ch1<ch2)
+      return smaller;
+    else
+      return bigger;
+  }
+  if(p1==l1 && p2==l2)
+    return same;
+  else if(p1<l1)
+    return bigger;
+  else
+    return smaller;
+}
 comparison uniNCmp(const char *s1, integer l1, const char *s2, integer l2) {
   integer sz = minimum(l1, l2);
 

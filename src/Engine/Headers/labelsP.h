@@ -29,6 +29,7 @@ typedef struct _program_label_ {
   integer hash;               // Hash code for the label
   methodPo mtd;               // Optimization - is a method defined for this label?
   char *name;                 // LblRecord name
+  integer len;                // How long is the label name
   fieldTblPo fields;          // Spec of the fields of this term
 } LblRecord;
 

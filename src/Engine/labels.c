@@ -40,13 +40,14 @@ void initLbls() {
 }
 
 labelPo declareLbl(const char *name, integer arity) {
-  LblRecord tst = {.name=(char *) name, .arity=arity, .hash=hash64(arity * 37 + uniHash(name))};
+  LblRecord tst = {.name=(char *) name, .len = uniStrLen(name), .arity=arity, .hash=hash64(arity * 37 + uniHash(name))};
   labelPo lbl = hashGet(labels, &tst);
 
   if (lbl == Null) {
     lbl = (labelPo) allocPool(labelPool);
     lbl->arity = arity;
     lbl->name = uniDuplicate(name);
+    lbl->len = uniStrLen(name);
     lbl->mtd = Null;
     lbl->clss = labelClass;
     lbl->hash = tst.hash;
@@ -61,7 +62,7 @@ labelPo declareEnum(const char *name) {
 }
 
 labelPo findLbl(const char *name, integer arity) {
-  LblRecord tst = {.name=(char *) name, .arity=arity, .hash=hash64(arity * 37 + uniHash(name))};
+  LblRecord tst = {.name=(char *) name, .len = uniStrLen(name), .arity=arity, .hash=hash64(arity * 37 + uniHash(name))};
   return hashGet(labels, &tst);
 }
 
@@ -82,7 +83,7 @@ integer labelHash(labelPo lbl) {
 }
 
 comparison labelCmp(labelPo lb1, labelPo lb2) {
-  comparison comp = uniCmp(lb1->name, lb2->name);
+  comparison comp = unicodeCmp(lb1->name, lb1->len, lb2->name, lb2->len);
 
   if (comp == same) {
     if (lb1->arity < lb2->arity)
