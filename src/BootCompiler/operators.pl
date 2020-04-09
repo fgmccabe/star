@@ -77,7 +77,7 @@
   operator("?", [infixOp(919, 920, 920)]).
   operator("@", [prefixOp(400, 399), infixOp(399, 400, 400)]).
   operator("in", [infixOp(899, 900, 900)]).
-  operator("^|", [infixOp(1248, 1249, 1249)]).
+  operator("^|", [infixOp(919, 920, 920)]).
   operator("open", [prefixOp(900, 899)]).
   operator("~~", [infixOp(1239, 1240, 1240)]).
   operator("assert", [prefixOp(1240, 1239)]).
@@ -346,7 +346,6 @@
   keyword("@").
   keyword("@").
   keyword("in").
-  keyword("^|").
   keyword("open").
   keyword("~~").
   keyword("public").

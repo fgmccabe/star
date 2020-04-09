@@ -13,9 +13,9 @@
     },
     {
 	"infixOp": "^|",
-	"priorities": [1248, 1249, 1249],
+	"priorities": [919, 920, 920],
 	"desc": "option or-else operator",
-	"keyword": true
+	"keyword": false
     },
     {
 	"infixOp": ":",
