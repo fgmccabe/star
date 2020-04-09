@@ -551,7 +551,6 @@ star.compiler.checker{
 	valis Gl
       }.
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,T,L,R) ^= isConditional(A) => do{
---    logMsg("conditional expression: $(A) against $(Tp)");
     (Tst,E0) <- checkCond(T,Env,Path,Rp);
     Thn <- typeOfExp(L,Tp,E0,Path,Rp);
     Els <- typeOfExp(R,Tp,Env,Path,Rp);
@@ -827,8 +826,9 @@ star.compiler.checker{
     Gen <- typeOfExp(R,SrTp,Env,Path,Rp);
     valis (serch(Lc,Ptn,Gen,Iterator),Ev)
   }
+  checkGoal(A,Env,Path,Rp) where (_,[Inner]) ^= isTuple(A) =>
+    checkGoal(Inner,Env,Path,Rp).
   checkGoal(A,Env,Path,Rp) where (_,BoolTp,_) ^= findType(Env,"boolean") => do{
---    logMsg("try bool exp conde $(A)");
     Exp <- typeOfExp(A,BoolTp,Env,Path,Rp);
     valis (Exp,Env)
   }
@@ -929,7 +929,7 @@ star.compiler.checker{
     Rtn <- typeOfExp(E,ElTp,Env,Path,Rp);
     valis (returnDo(Lc,Rtn,StTp,ElTp,ErTp),Env)
   }
-  checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,[S]) ^= isBrTuple(A) => 
+  checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,[S]) ^= isBrTuple(A) =>
     checkAction(S,Env,StTp,ElTp,ErTp,Path,Rp).
 
   /*
@@ -967,7 +967,7 @@ becomes
     Lam .= equation(Lc,tpl(Lc,"()",[]),E);
 
     ShwMsg .= ternary(Lc,"shwMsg",Lam,reconstructDisp(E),Lc::ast);
-    logMsg("show  $(ShwMsg)");
+--    logMsg("show  $(ShwMsg)");
     checkAction(ShwMsg,Env,StTp,ElTp,ErTp,Path,Rp)
   }
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) => do{
@@ -1025,7 +1025,7 @@ becomes
 
   checkAbstraction:(locn,ast,ast,tipe,dict,string,reports) => either[reports,canon].
   checkAbstraction(Lc,B,C,Tp,Env,Path,Rp) => do{
-    logMsg("checking abstraction $(B) | $(C) expected type $(Tp)");
+--    logMsg("checking abstraction $(B) | $(C) expected type $(Tp)");
     (Cond,E0) <- checkGoal(C,Env,Path,Rp);
     (_,StTp,ElTp) <- pickupSequenceContract(locOf(Cond),Env,Rp);
     checkType(B,Tp,StTp,Env,Rp);

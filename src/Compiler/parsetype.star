@@ -92,7 +92,7 @@ star.compiler.typeparse{
   }
   parseType(Q,T,Env,Rp) where (Lc,Rhs) ^= isUnary(T,"ref") => do{
     R <- parseType(Q,Rhs,Env,Rp);
-    valis tpExp(tpFun("ref",1),R)
+    valis tpExp(tpFun("star.core*ref",1),R)
   }
   parseType(Q,T,Env,Rp) where (Lc,[A]) ^= isTuple(T) => do{
     if (_,As) ^= isTuple(A) then{

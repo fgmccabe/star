@@ -225,7 +225,7 @@ star.compiler.types{
   showTpExp(tpFun("<=>",2),[A,R],Sh,Dp) =>
     ssSeq([shTipe(deRef(A),Sh,Dp-1),ss("<=>"),shTipe(deRef(R),Sh,Dp-1)]).
   showTpExp(tpFun("ref",1),[R],Sh,Dp) =>
-    ssSeq([ss("ref"),shTipe(deRef(R),Sh,Dp-1)]).
+    ssSeq([ss("ref "),shTipe(deRef(R),Sh,Dp-1)]).
   showTpExp(tpFun(Nm,Ar),A,Sh,Dp) where size(A)==Ar =>
     ssSeq([ss(Nm),ss("["),ssSeq(showEls(A,Sh,Dp-1,"")),ss("]")]).    
   showTpExp(tpExp(O,A),R,Sh,Dp) =>

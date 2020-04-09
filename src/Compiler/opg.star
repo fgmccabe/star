@@ -146,11 +146,14 @@ star.compiler.opg{
   stringSegment:(stringSegment,reports) => (ast,reports).
   stringSegment(segment(Lc,Str),Rp) => (unary(Lc,"ss",str(Lc,Str)),Rp).
   stringSegment(interpolate(Lc,Toks,""),Rpt) where
-    (A,Rpt1,_) .= astParse(Toks,Rpt) =>
-      (unary(Lc,"disp",A),Rpt1).
+      (A,Rpt1,_) .= astParse(Toks,Rpt) =>
+    (unary(Lc,"disp",A),Rpt1).
   stringSegment(interpolate(Lc,Toks,Frmt),Rpt) where
-    (A,Rpt1,_) .= astParse(Toks,Rpt) =>
-      (binary(Lc,"frmt",A,str(Lc,Frmt)),Rpt1).
+      (A,Rpt1,_) .= astParse(Toks,Rpt) =>
+    (binary(Lc,"frmt",A,str(Lc,Frmt)),Rpt1).
+  stringSegment(coerce(Lc,Toks),Rp) where 
+      (A,Rpt1,_) .= astParse(Toks,Rp) =>
+    (unary(Lc,"ss",binary(Lc,"::",A,nme(Lc,"string"))),Rp).
 
   checkToken:(tk,reports,cons[token]) => (locn,reports,cons[token]).
   checkToken(Tk,Rpt,[tok(Lc,Tk),..Toks]) => (Lc,Rpt,Toks).

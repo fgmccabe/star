@@ -109,8 +109,8 @@ star.compiler.core{
   isTplOp(crLbl(_,Nm,_)) => isTplLbl(Nm).
   isTplOp(_) default => .false.
 
-  public mkCrTpl:(cons[crExp],locn) => crExp.
-  mkCrTpl(Args,Lc) => let{
+  public mkCrTpl:(locn,cons[crExp]) => crExp.
+  mkCrTpl(Lc,Args) => let{
     TpTp = tupleType(Args//typeOf).
     Ar = size(Args)
   } in crTerm(Lc,tplLbl(Ar), Args, TpTp).
@@ -232,9 +232,20 @@ star.compiler.core{
     disp(crId(Nm,_)) => ssSeq([ss("%"),ss(Nm)]).
   .}
 
+  public implementation coercion[crExp,option[term]] => {
+    _coerce(crInt(_,Ix)) => some(intgr(Ix)).
+    _coerce(crFlot(_,Dx)) => some(flot(Dx)).
+    _coerce(crStrg(_,Sx)) => some(strg(Sx)).
+    _coerce(crInt(_,Ix)) => some(intgr(Ix)).
+    _coerce(crLbl(_,Nm,_)) => some(enum(tLbl(Nm,0))).
+    _coerce(crTerm(_,Nm,[],_)) => some(term(tLbl(Nm,0),[])).
+--    _coerce(crTerm(_,Nm,Args,_)) => some(term(tLbl(Nm,size(Args)),fmap(_coerce,Args))).
+    _coerce(_) default => .none.
+  }
+
   public implementation coercion[locn,crExp] => {.
     _coerce(Lc) where locn(Nm,Line,Col,Off,Len).=Lc =>
-      mkCrTpl([crStrg(Lc,Nm),crInt(Lc,Line),crInt(Lc,Col),crInt(Lc,Off),crInt(Lc,Len)],Lc)
+      mkCrTpl(Lc,[crStrg(Lc,Nm),crInt(Lc,Line),crInt(Lc,Col),crInt(Lc,Off),crInt(Lc,Len)])
   .}
 
   public rewriteTerm:(crExp,map[string,crExp])=>crExp.
@@ -311,5 +322,13 @@ star.compiler.core{
   isCrCond(crWhere(_,L,_)) => isCrCond(L).
   isCrCond(crMatch(_,_,_))=>.true.
   isCrCond(_) default => .false.
+
+  public isGround:(crExp) => boolean.
+  isGround(crInt(_,_)) => .true.
+  isGround(crFlot(_,_)) => .true.
+  isGround(crStrg(_,_)) => .true.
+  isGround(crLbl(_,_,_)) => .true.
+  isGround(crTerm(_,_,Els,_)) => E in Els *> isGround(E).
+  isGround(_) default => .false.
 
 }

@@ -143,9 +143,7 @@ star.compiler.terms{
   public implementation coercion[string,term] => {.
     _coerce(S) => valof do{
       L.=S::cons[integer];
---      logMsg("Sig = $(S)");
       (T,_) <- decodeTerm(S::cons[integer]);
---      logMsg("decoded term $(T)");
       valis T
     }
   .}
