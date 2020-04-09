@@ -27,7 +27,7 @@ ReturnStatus g__assign(processPo p, ptrPo tos) {
 
   setCell(Cell, Content);
 
-  return (ReturnStatus){.ret=Ok, .result=(termPo) Content};
+  return (ReturnStatus){.ret=Ok, .result=unitEnum};
 }
 
 ReturnStatus g__overwrite(processPo p, ptrPo tos) {

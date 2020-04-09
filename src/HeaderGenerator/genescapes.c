@@ -147,7 +147,7 @@ static char *dumpSig(char *sig, bufferPo out) {
     case refSig: {
       switch (genMode) {
         case genStar:
-          outStr(O_IO(out), "tpExp(tpFun(\"ref\",1),");
+          outStr(O_IO(out), "tpExp(tpFun(\"star.core*ref\",1),");
           sig = dumpSig(sig, out);
           outStr(O_IO(out), ")");
           break;
