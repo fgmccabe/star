@@ -24,6 +24,7 @@
     "test.fm": "fm.star",
     "test.fmt": "fmt.star",
     "test.fn": "fn.star",
+    "test.func": "func.star",
     "test.g": "g.star",
     "test.gp": "gp.star",
     "test.i": "i.star",

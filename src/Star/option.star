@@ -60,4 +60,8 @@ star.option{
   public deflt:all a~~(option[a],()=>a)=>a.
   deflt(some(X),_) => X.
   deflt(.none,F) => F().
+
+  public (^|):all a~~(option[a],()=>option[a])=>option[a].
+  .none ^| F => F().
+  some(E) ^| _ => some(E).
 }

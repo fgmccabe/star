@@ -59,8 +59,7 @@ star.action{
 
   public (:=):all a,m/2,e ~~ execution[m] |: (ref a,a) => m[e,()].
   (:=)(L,V) => do{
-    _ .= _assign(L,V);
-    valis ()
+    valis _assign(L,V)
   }
 
   public (!!):all a ~~ (ref a)=>a.
