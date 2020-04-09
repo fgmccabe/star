@@ -94,7 +94,7 @@ star.compiler.operators{
   oper("?") => [infixOp(919,920,920)].
   oper("@") => [prefixOp(400,399), infixOp(399,400,400)].
   oper("in") => [infixOp(899,900,900)].
-  oper("^|") => [infixOp(1248,1249,1249)].
+  oper("^|") => [infixOp(919,920,920)].
   oper("open") => [prefixOp(900,899)].
   oper("~~") => [infixOp(1239,1240,1240)].
   oper("assert") => [prefixOp(1240,1239)].
@@ -388,7 +388,6 @@ star.compiler.operators{
   keyword("@") => .true.
   keyword("@") => .true.
   keyword("in") => .true.
-  keyword("^|") => .true.
   keyword("open") => .true.
   keyword("~~") => .true.
   keyword("public") => .true.
