@@ -14,12 +14,19 @@ star.compiler.catalog{
 
   public parseCat:(json,uri) => option[catalog].
   parseCat(jColl(M),U) => some(catalog{
-    parent=M["default"]>>=(jTxt(Ut))=>parseUri(Ut)>>=(PU)=>loadCatalog(^resolveUri(U,PU)).
-    vers=M["version"] >>= (jTxt(V)) => some(V::version).
-    base=U.
-    entries=deflt(M["content"]>>=(jColl(C))=>some(C///((_,jTxt(E))=>E)),()=>[]).
+      parent=M["default"]>>=(jTxt(Ut))=>parseUri(Ut)>>=(PU)=>loadCatalog(^resolveUri(U,PU)).
+      vers=M["version"] >>= (jTxt(V)) => some(V::version).
+      base=U.
+      entries=deflt(M["content"]>>=(jColl(C))=>some(C///((_,jTxt(E))=>E)),()=>[]).
   }).
   parseCat(_,_) => .none.
+
+  parseSubCats:(uri,cons[json],cons[catalog]) => option[cons[catalog]].
+  parseSubCats(_,[],So) => some(So).
+  parseSubCats(U,[jTxt(CU),..Cs],So) => valof action{
+    SC ^= (parseUri(CU) >>= (PU)=>loadCatalog(^resolveUri(U,PU)));
+    valis parseSubCats(U,Cs,[SC,..So])
+  }
 
   public loadCatalog:(uri)=>option[catalog].
   loadCatalog(U) => getResource(U) >>=(Txt)=>parseJson(Txt)>>=(J)=>parseCat(J,U).
@@ -37,15 +44,15 @@ star.compiler.catalog{
   public implementation display[catalog] => let{
     dispCat:(catalog)=>ss.
     dispCat(Cat) => ssSeq([
-      ss("catalog:\n"),
-      ss("content: "),
-      disp(Cat.entries),
-      ss("\nversion: "),
-      disp(Cat.vers),
-      ss("\nparent: "),
-      disp(Cat.parent),
-      ss("\nbase: "),
-      disp(Cat.base)
+	ss("catalog:\n"),
+	ss("content: "),
+	disp(Cat.entries),
+	ss("\nversion: "),
+	disp(Cat.vers),
+	ss("\nparent: "),
+	disp(Cat.parent),
+	ss("\nbase: "),
+	disp(Cat.base)
     ])
    } in {
     disp(Cat) => dispCat(Cat)
