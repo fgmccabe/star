@@ -36,8 +36,24 @@ static logical skipInt(const char *sig, integer *start, integer end) {
     codePoint cp = (codePoint) sig[*start];
     if (isNdChar(cp))
       (*start)++;
+    else
+      break;
   }
   return (logical) (*start <= end);
+}
+
+static integer decodeArity(const char *sig, integer *start, integer end) {
+  integer arity = 0;
+
+  while (*start < end) {
+    codePoint cp = (codePoint) sig[*start];
+    if (isNdChar(cp)) {
+      arity = arity * 10 + digitValue(cp);
+      (*start)++;
+    } else
+      break;
+  }
+  return arity;
 }
 
 logical validSig(char *sig, integer *start, integer end) {
@@ -54,8 +70,9 @@ logical validSig(char *sig, integer *start, integer end) {
       return skipId(sig, start, end);
     case refSig:
       return validSig(sig, start, end);
+    case tpfnSig:
     case kfnSig:
-      return (logical) (skipId(sig, start, end) && skipInt(sig, start, end));
+      return (logical) (skipInt(sig, start, end) && skipId(sig, start, end));
     case tplSig: {
       while (*start < end && sig[*start] != ')')
         if (!validSig(sig, start, end))
@@ -66,8 +83,12 @@ logical validSig(char *sig, integer *start, integer end) {
       } else
         return False;
     }
-    case tpeExpSig:
-      return (logical) (skipId(sig, start, end) && validSig(sig, start, end));
+    case tpeExpSig: {
+      if (validSig(sig, start, end))
+        return validSig(sig, start, end);
+      else
+        return False;
+    }
     case lstSig:
       return validSig(sig, start, end);
     case faceSig: {
@@ -205,15 +226,14 @@ retCode skipSig(char *sig, integer *start, integer end) {
       case refSig:
         return skipSig(sig, start, end);
       case kfnSig:
-        if (skipId(sig, start, end) && skipInt(sig, start, end))
+      case tpfnSig:
+        if (skipInt(sig, start, end) && skipId(sig, start, end))
           return Ok;
         else
           return Error;
       case tpeExpSig:
-        if (skipId(sig, start, end))
-          return skipSig(sig, start, end);
-        else
-          return Error;
+        tryRet(skipSig(sig, start, end));
+        return skipSig(sig, start, end);
       case lstSig:
         return skipSig(sig, start, end);
       case tplSig: {
@@ -357,6 +377,25 @@ static retCode skipConstraint(ioPo in) {
   return ret;
 }
 
+static retCode readInt(ioPo in, integer *ix) {
+  integer arity = 0;
+  retCode ret = Ok;
+  while (ret == Ok) {
+    codePoint cp;
+    ret = inChar(in, &cp);
+    if (ret == Ok) {
+      if (isNdChar(cp)) {
+        arity = arity * 10 + digitValue(cp);
+      } else {
+        ret = unGetChar(in, cp);
+        break;
+      }
+    }
+  }
+  *ix = arity;
+  return ret;
+}
+
 retCode skipSignature(ioPo in) {
   codePoint ch;
   retCode ret = inChar(in, &ch);
@@ -375,18 +414,20 @@ retCode skipSignature(ioPo in) {
         return skipIdentifier(in);
       case refSig:
         return skipSignature(in);
-      case kfnSig:
       case tpfnSig:
+      case kfnSig:
         ret = skipInteger(in);
         if (ret == Ok)
           ret = skipIdentifier(in);
-
         return ret;
-      case tpeExpSig:
+      case tpeExpSig: {
         ret = skipSignature(in);
         if (ret == Ok)
-          ret = skipSignature(in);
-        return ret;
+          return skipSignature(in);
+        else
+          return ret;
+      }
+
       case lstSig:
         return skipSignature(in);
       case tplSig: {
@@ -406,7 +447,7 @@ retCode skipSignature(ioPo in) {
       case allSig:        /* Universal quantifier */
       case tpruleSig:
       case tplambdaSig:
-      case funDep:{
+      case funDep: {
         ret = skipSignature(in);
         if (ret == Ok)
           ret = skipSignature(in);
@@ -491,10 +532,13 @@ retCode showSignature(ioPo out, char *sig, integer *start, integer end) {
     case kvrSig:
       tryRet(showSigId(out, sig, start, end));
       return outStr(out, "%");
-    case kfnSig:
+    case tpfnSig:
+    case kfnSig: {
+      integer arity = decodeArity(sig, start, end);
       tryRet(showSigId(out, sig, start, end));
       tryRet(outStr(out, "/"));
-      return showSigInt(out, sig, start, end);
+      return outInt(out, arity);
+    }
     case tpeSig:
       return showSigId(out, sig, start, end);
     case refSig:
@@ -502,14 +546,10 @@ retCode showSignature(ioPo out, char *sig, integer *start, integer end) {
       tryRet(showSignature(out, sig, start, end));
       return outStr(out, ")");
     case tpeExpSig:
-      tryRet(showSigId(out, sig, start, end));
+      tryRet(showSignature(out, sig, start, end));
       tryRet(outStr(out, "["));
-      if (sig[(*start)++] != '(')
-        return Error;
-      else {
-        tryRet(showSigTplEls(out, sig, start, end));
-        return outStr(out, "]");
-      }
+      tryRet(showSignature(out, sig, start, end));
+      return outStr(out, "]");
     case lstSig:
       tryRet(outStr(out, "cons["));
       tryRet(showSignature(out, sig, start, end));

@@ -140,8 +140,7 @@ star.compiler{
 	    Code .= mkTpl([pkgTerm(CPkg),strg(encodeSignature(typeOf(PkgSpec))),
 		mkTpl(pkgImports(PkgSpec)//(pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
 		mkTpl(Ins//assem)]);
---	    logMsg("generated code $(encodeTerm(Code)::string)");
-	    Repp := addSource(addPackage(Repp!!,P,encodeTerm(strg(encodeTerm(Code)::string))::string),P,
+	    Repp := addSource(addPackage(Repp!!,P,encodeTerm(strg(Code::string))::string),P,
 	      SrcUri::string)
 	  }
 	  else

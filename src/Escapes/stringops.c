@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <tpl.h>
 #include <globals.h>
+#include <lblops.h>
 #include "stringops.h"
 #include "arithmetic.h"
 #include "consP.h"
@@ -153,9 +154,9 @@ ReturnStatus g__explode(processPo p, ptrPo tos) {
   termPo Arg1 = tos[0];
   stringPo str = C_STR(tos[0]);
   integer len = stringLength(str);
-  char buffer[len+1];
+  char buffer[len + 1];
 
-  retCode ret = copyString2Buff(str, buffer, len+1);
+  retCode ret = copyString2Buff(str, buffer, len + 1);
   if (ret == Ok) {
     heapPo H = processHeap(p);
     termPo list = (termPo) nilEnum;
@@ -195,25 +196,43 @@ void dS(termPo w) {
   flushOut();
 }
 
-ReturnStatus g__implode(processPo p, ptrPo tos) {
-  termPo list = tos[0];
+static retCode implode(bufferPo str, termPo t) {
+  if (isInteger(t))
+    return outChar(O_IO(str), integerVal(t));
+  else if (isNormalPo(t)) {
+    normalPo n = C_TERM(t);
+    integer cx = termArity(n);
+    retCode ret = Ok;
 
+    for (integer ix = 0; ret == Ok && ix < cx; ix++) {
+      termPo arg = nthArg(n, ix);
+      ret = implode(str, arg);
+    }
+    return ret;
+  } else if (isLabelPo(t))
+    return Ok;
+  else
+    return Error;
+}
+
+ReturnStatus g__implode(processPo p, ptrPo tos) {
   bufferPo strb = newStringBuffer();
 
-  while (isCons(list)) {
-    normalPo pr = C_TERM(list);
-    outChar(O_IO(strb), (codePoint) integerVal(consHead(pr)));
-    list = consTail(pr);
+  retCode ret = implode(strb, tos[0]);
+
+  if (ret == Ok) {
+    integer oLen;
+    const char *buff = getTextFromBuffer(strb, &oLen);
+
+    termPo result = (termPo) allocateString(processHeap(p), buff, oLen);
+
+    closeFile(O_IO(strb));
+
+    return (ReturnStatus) {.ret=Ok, .result=result};
+  } else {
+    closeFile(O_IO(strb));
+    return (ReturnStatus) {.ret=Ok, .result=voidEnum};
   }
-
-  integer oLen;
-  const char *buff = getTextFromBuffer(strb, &oLen);
-
-  termPo result = (termPo) allocateString(processHeap(p), buff, oLen);
-
-  closeFile(O_IO(strb));
-
-  return (ReturnStatus) {.ret=Ok, .result=result};
 }
 
 ReturnStatus g__str_find(processPo p, ptrPo tos) {
@@ -425,7 +444,7 @@ ReturnStatus g__str_multicat(processPo p, ptrPo tos) {
   integer oLen;
   const char *buff = getTextFromBuffer(strb, &oLen);
 
-  ReturnStatus rt = {.ret=Ok,
+  ReturnStatus rt = {.ret=ret,
     .result=(termPo) allocateString(processHeap(p), buff, oLen)};
   closeFile(O_IO(strb));
   return rt;

@@ -68,7 +68,7 @@ isPublic(St,Lc,I) :-
   isUnary(St,Lc,"public",I).
 
 isTypeAnnotation(St,Lc,V,T) :-
-  isBinary(St,Lc,":",V,T).
+  isBinary(St,Lc,":",V,T),!.
 
 isAlgebraicTypeStmt(Stmt,Lc,Q,Cx,Head,Body) :-
   isBinary(Stmt,Lc,"::=",Lhs,Body),

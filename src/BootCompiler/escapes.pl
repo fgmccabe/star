@@ -180,7 +180,7 @@ escapeType("_str_len",funType(tupleType([type("star.core*string")]),type("star.c
 escapeType("_str_gen",funType(tupleType([type("star.core*string")]),type("star.core*string"))).
 escapeType("_stringOf",allType(kVar("t"),funType(tupleType([kVar("t"),type("star.core*integer")]),type("star.core*string")))).
 escapeType("_explode",funType(tupleType([type("star.core*string")]),tpExp(tpFun("star.core*cons",1),type("star.core*integer")))).
-escapeType("_implode",funType(tupleType([tpExp(tpFun("star.core*cons",1),type("star.core*integer"))]),type("star.core*string"))).
+escapeType("_implode",allType(kFun("m",1),funType(tupleType([tpExp(kFun("m",1),type("star.core*integer"))]),type("star.core*string")))).
 escapeType("_str_find",funType(tupleType([type("star.core*string"),type("star.core*string"),type("star.core*integer")]),type("star.core*integer"))).
 escapeType("_sub_str",funType(tupleType([type("star.core*string"),type("star.core*integer"),type("star.core*integer")]),type("star.core*string"))).
 escapeType("_str_split",funType(tupleType([type("star.core*string"),type("star.core*integer")]),tupleType([type("star.core*string"),type("star.core*string")]))).

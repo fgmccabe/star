@@ -119,6 +119,10 @@ labelPo C_LBL(termPo t) {
   return (labelPo) t;
 }
 
+logical isLabelPo(termPo t) {
+  return hasClass(t, labelClass);
+}
+
 static retCode markLabel(void *n, void *r, void *c) {
   labelPo lbl = (labelPo) r;
   gcSupportPo G = (gcSupportPo) c;
