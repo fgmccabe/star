@@ -219,23 +219,30 @@ readStr(St,St1,[]) :- nextSt(St,St1,'\n'), !,
 readStr(St,NxSt,[Ch|Seg]) :- charRef(St,St1,Ch), readStr(St1,NxSt,Seg).
 
 interpolation(St,NxSt,interpolate(Text,Fmt,Lc)) :-
-  bracketCount(St,St1,[],Text),
+  bracketCount(St,St1,Text),
   readFormat(St1,NxSt,FmtChars),
   string_chars(Fmt,FmtChars),
   makeLoc(St,NxSt,Lc).
 
 coercion(St,NxSt,coerce(Text,Lc)) :-
-  bracketCount(St,NxSt,[],Text),
+  bracketCount(St,NxSt,Text),
   makeLoc(St,NxSt,Lc).
   
-bracketCount(St,NxSt,Stk,Chrs) :- nextSt(St,St1,Ch), bracketCount(St,St1,NxSt,Ch,Stk,Chrs).
+bracketCount(St,NxSt,Chrs) :-
+  nextSt(St,St1,Ch), bracketCount(St,St1,NxSt,Ch,[],Chrs).
 
-bracketCount(_,St1,NxSt,Cl,[Cl|Stk],[Cl|Chrs]) :- nextSt(St1,St2,Ch), bracketCount(St1,St2,NxSt,Ch,Stk,Chrs).
-bracketCount(_,St1,NxSt,'(',Stk,['('|Chrs]) :- nextSt(St1,St2,Ch), bracketCount(St1,St2,NxSt,Ch,[')'|Stk],Chrs).
-bracketCount(_,St1,NxSt,'[',Stk,['['|Chrs]) :- nextSt(St1,St2,Ch), bracketCount(St1,St2,NxSt,Ch,[']'|Stk],Chrs).
-bracketCount(_,St1,NxSt,'{',Stk,['{'|Chrs]) :- nextSt(St1,St2,Ch), bracketCount(St1,St2,NxSt,Ch,['}'|Stk],Chrs).
+bracketCount(_,St,St,Cl,[Cl],[Cl]).
+bracketCount(_,St1,NxSt,Cl,[Cl|Stk],[Cl|Chrs]) :-
+  nextSt(St1,St2,Ch), bracketCount(St1,St2,NxSt,Ch,Stk,Chrs).
+bracketCount(_,St1,NxSt,'(',Stk,['('|Chrs]) :-
+  nextSt(St1,St2,Ch), bracketCount(St1,St2,NxSt,Ch,[')'|Stk],Chrs).
+bracketCount(_,St1,NxSt,'[',Stk,['['|Chrs]) :-
+  nextSt(St1,St2,Ch), bracketCount(St1,St2,NxSt,Ch,[']'|Stk],Chrs).
+bracketCount(_,St1,NxSt,'{',Stk,['{'|Chrs]) :-
+  nextSt(St1,St2,Ch), bracketCount(St1,St2,NxSt,Ch,['}'|Stk],Chrs).
 bracketCount(St,_,St,_,[],[]). /* stop if the bracket stack is empty */
-bracketCount(_,St1,NxSt,Ch,Stk,[Ch|Chrs]) :- nextSt(St1,St2,Chr), bracketCount(St1,St2,NxSt,Chr,Stk,Chrs).
+bracketCount(_,St1,NxSt,Ch,Stk,[Ch|Chrs]) :-
+  nextSt(St1,St2,Chr), bracketCount(St1,St2,NxSt,Chr,Stk,Chrs).
 
 readFormat(St,NxSt,Chrs) :- nextSt(St,St1,':'), readUntil(St1,NxSt,';',Chrs).
 readFormat(St,St,[]) :- \+ hedChar(St,':').

@@ -109,6 +109,7 @@ readString(St,SoFar) where (Nx,0c\") ^= nextChr(St) => some((Nx,reverse(SoFar)))
   some((St2,coerce(makeLoc(St,St2),allTokens(interSt(St1,Inter))))).
 
   bracketCount:(tokenState,tokenState,integer,cons[integer],cons[integer]) => option[(tokenState,string)].
+  bracketCount(_,St1,Cl,[Cl],Chrs) => some((St1,reverse([Cl,..Chrs])::string)).
   bracketCount(_,St1,Cl,[Cl,..Stk],Chrs) where (St2,Ch)^=nextChr(St1) =>
     bracketCount(St1,St2,Ch,Stk,[Cl,..Chrs]).
   bracketCount(_,St1,0c(,Stk,Chrs) where (St2,Ch)^=nextChr(St1) =>
