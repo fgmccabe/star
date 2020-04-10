@@ -5,6 +5,7 @@ star.compiler.terms{
   import star.sort.
 
   import star.compiler.location.
+  import star.compiler.multi.
   import star.compiler.types.
 
   public termLbl ::= tLbl(string,integer) |
@@ -109,13 +110,10 @@ star.compiler.terms{
   isScalar(_) default => .false.
 
   public implementation coercion[term,string] => {
-    _coerce(T) => _implode(encodeTerm(T)).
+    _coerce(T) => _implode(encodeT(T)).
   }
 
-  public encodeTerm:(term)=>cons[integer].
-  encodeTerm(T) => encodeT(T).
-
-  encodeT:(term)=>cons[integer].
+  encodeT:(term)=>multi[integer].
   encodeT(intgr(Ix)) => [0cx,..encodeInt(Ix)].
   encodeT(flot(Dx)) => [0cd,..encodeText(Dx::string)].
   encodeT(strg(Tx)) => [0cs,..encodeText(Tx)].
@@ -125,17 +123,11 @@ star.compiler.terms{
   encodeT(term(Op,Args)) =>
     [0cn,..encodeNat(size(Args))]++encodeL(Op)++encodeTerms(Args).
 
-  public encodeLbl:(termLbl)=>string.
-  encodeLbl(Lb)=>encodeL(Lb)::string.
-  
-  encodeL:(termLbl)=>cons[integer].
+
+  encodeL:(termLbl)=>multi[integer].
   encodeL(tLbl(Nm,Ar)) => [0co,..encodeNat(Ar)]++encodeText(Nm).
   encodeL(tRec(Nm,Flds)) =>
     [0cO,..encodeText(Nm)]++encodeFldTypes(Flds).
-
-  mkField:(string,integer,tipe)=>term.
-  mkField(Nm,Ix,Tp)=>
-    mkTpl([enum(tLbl("."++Nm,0)),strg(encodeSignature(Tp)),intgr(Ix),intgr(1)]).
 
   encodeTerms([]) => [].
   encodeTerms([T,..Ts]) => encodeT(T)++encodeTerms(Ts).
@@ -233,6 +225,10 @@ star.compiler.terms{
   decodeType([0cf,..Ts]) => either((nomnal("star.core*float"),Ts)).
   decodeType([0cS,..Ts]) => either((nomnal("star.core*string"),Ts)).
   decodeType([0cl,..Ts]) => either((nomnal("star.core*boolean"),Ts)).
+  decodeType([0ck,..Ts]) => do {
+    (Nm,T1) <- decodeText(Ts);
+    valis (nomnal(Nm),T1)
+  }
   decodeType([0cK,..Ts]) => do {
     (Ar,T0) <- decodeNat(Ts,0);
     (Nm,T1) <- decodeText(T0);
@@ -338,7 +334,7 @@ star.compiler.terms{
   public encodeSignature:(tipe) => string.
   encodeSignature(Tp) => encodeType(deRef(Tp))::string.
 
-  encodeType:(tipe) => cons[integer].
+  encodeType:(tipe) => multi[integer].
   encodeType(V) where isUnbound(V) => [0c_].
   encodeType(nomnal("star.core*integer")) => [0ci].
   encodeType(nomnal("star.core*float")) => [0cf].
@@ -374,15 +370,15 @@ star.compiler.terms{
   encodeType(typeLambda(Hd,I)) =>
     [0cy,..encodeType(deRef(Hd))]++encodeType(deRef(I)).
 
-  encodeTypes:(cons[tipe])=>cons[integer].
+  encodeTypes:(cons[tipe])=>multi[integer].
   encodeTypes([]) => [0x29].
   encodeTypes([T,..Tps]) =>
     encodeType(deRef(T))++encodeTypes(Tps).
 
-  encodeFldTypes:(cons[(string,tipe)])=>cons[integer].
+  encodeFldTypes:(cons[(string,tipe)])=>multi[integer].
   encodeFldTypes(Flds) => [0x7b,..encodeFlds(sort(Flds,((N1,_),(N2,_))=>N1<N2))]. -- 0x7b == {
   
-  encodeFlds:(cons[(string,tipe)])=>cons[integer].
+  encodeFlds:(cons[(string,tipe)])=>multi[integer].
   encodeFlds([]) => [0x7d].	-- 0x7d == }
   encodeFlds([(Nm,T),..Tps]) =>
     encodeText(Nm)++encodeType(deRef(T))++encodeFlds(Tps).
@@ -392,27 +388,27 @@ star.compiler.terms{
   encodeConstraint(fieldConstraint(V,T)) =>
     [0ca,..encodeType(deRef(V))]++encodeType(deRef(T)).
   
-  encodeText:(string) => cons[integer].
+  encodeText:(string) => multi[integer].
   encodeText(Txt) where Chrs .= Txt::cons[integer] &&
       D.=findDelim(Chrs,[0c|,0c/,0c%]) =>
-    [D,..encodeQuoted(Chrs,D,[])].
+    [D,..encodeQuoted(Chrs,D)].
 
   findDelim:(cons[integer],cons[integer])=>integer.
   findDelim(Chrs,[]) => 0x22. -- == "
   findDelim(Chrs,[D,..Ds]) where D in Chrs => findDelim(Chrs,Ds).
   findDelim(Chrs,[D,.._]) => D.
 
-  encodeQuoted([],D,Chrs) => reverse([D,..Chrs]).
-  encodeQuoted([D,..Cs],D,Chrs) => encodeQuoted(Cs,D,[D,0c\\,..Chrs]).
-  encodeQuoted([0c\\,..Cs],D,Chrs) => encodeQuoted(Cs,D,[0c\\,0c\\,..Chrs]).
-  encodeQuoted([C,..Cs],D,Chrs) => encodeQuoted(Cs,D,[C,..Chrs]).
+  encodeQuoted([],D) => [].
+  encodeQuoted([D,..Cs],D) => [0c\\,D,..encodeQuoted(Cs,D)].
+  encodeQuoted([0c\\,..Cs],D) => [0c\\,0c\\,..encodeQuoted(Cs,D)].
+  encodeQuoted([C,..Cs],D) => [C,..encodeQuoted(Cs,D)].
 
-  encodeNat:(integer) => cons[integer].
+  encodeNat:(integer) => multi[integer].
   encodeNat(Dx) where Dx>=0 && Dx=<9 =>
     [Dx+0c0].
   encodeNat(Dx) => encodeNat(Dx/10)++[(Dx%10)+0c0].
 
-  encodeInt:(integer)=>cons[integer].
+  encodeInt:(integer)=>multi[integer].
   encodeInt(Ix) where Ix<0 => [0c-,..encodeNat(-Ix)].
   encodeInt(Ix) => encodeNat(Ix).
 

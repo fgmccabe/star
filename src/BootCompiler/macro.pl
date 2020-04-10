@@ -52,7 +52,8 @@ build_main(As,Bs) :-
 build_main(A,A).
 
 look_for_signature([St|_],Nm,Lc,Ms) :-
-  isTypeAnnotation(St,Lc,V,T),
+  (isTypeAnnotation(St,Lc,V,T) ;
+   (isPublic(St,_,I),isTypeAnnotation(I,Lc,V,T))),
   isIden(V,_,Nm),
   isFunType(T,_,L,_),
   isTuple(L,_,Ms),!.

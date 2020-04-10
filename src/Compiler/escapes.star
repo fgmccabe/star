@@ -183,7 +183,7 @@ star.comp.escapes{
   escapeType("_str_gen") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string")])),nomnal("star.core*string"))).
   escapeType("_stringOf") => some(allType(nomnal("t"),tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("t"),nomnal("star.core*integer")])),nomnal("star.core*string")))).
   escapeType("_explode") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string")])),tpExp(tpFun("star.core*cons",1),nomnal("star.core*integer")))).
-  escapeType("_implode") => some(tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpFun("star.core*cons",1),nomnal("star.core*integer"))])),nomnal("star.core*string"))).
+  escapeType("_implode") => some(allType(kFun("m",1),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(kFun("m",1),nomnal("star.core*integer"))])),nomnal("star.core*string")))).
   escapeType("_str_find") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),nomnal("star.core*string"),nomnal("star.core*integer")])),nomnal("star.core*integer"))).
   escapeType("_sub_str") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*string"))).
   escapeType("_str_split") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),nomnal("star.core*integer")])),tupleType([nomnal("star.core*string"),nomnal("star.core*string")]))).

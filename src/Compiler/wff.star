@@ -85,8 +85,6 @@ star.compiler.wff{
 
   public isTypeAnnotation:(ast)=>option[(locn,ast,ast)].
   isTypeAnnotation(A) where Ptn ^= isBinary(A,":") => some(Ptn).
-  isTypeAnnotation(A) where (_,I) ^= isPublic(A) => isTypeAnnotation(I).
-  isTypeAnnotation(A) where (_,I) ^= isPrivate(A) => isTypeAnnotation(I).
   isTypeAnnotation(_) default => .none.
 
   public typeAnnotation:(locn,ast,ast)=>ast.
@@ -646,7 +644,12 @@ star.compiler.wff{
   buildMain(Els) default => Els.
 
   lookForSignature:(cons[ast],string)=>cons[(locn,ast)].
-  lookForSignature(Els,Nm) => [(Lc,Tp) | El in Els && (Lc,N,Tp)^=isTypeAnnotation(El) && (_,Nm)^=isName(N)].
+  lookForSignature(Els,Nm) => [(Lc,Tp) | El in Els && (Lc,N,Tp)^=isTypeAnnot(El) && (_,Nm)^=isName(N)].
+
+  isTypeAnnot(A) where Ptn ^= isBinary(A,":") => some(Ptn).
+  isTypeAnnot(_) default => .none.
+  isTypeAnnot(A) where (_,I) ^= isPublic(A) => isTypeAnnot(I).
+  isTypeAnnot(A) where (_,I) ^= isPrivate(A) => isTypeAnnot(I).
 
   synthesizeMain:(locn,ast,cons[ast])=>cons[ast].
   synthesizeMain(Lc,Tp,Defs) where (_,Lhs,Rhs) ^= isFunctionType(Tp) && (_,ElTps)^=isTuple(Lhs) => valof action{
