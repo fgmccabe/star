@@ -167,6 +167,15 @@ star.compiler.ast{
       (_,Id) ^= isName(Op) => some((Lc,Id,A)).
   isBrApply(_) default => .none.
 
+  public isQBrTerm:(ast) => option[(locn,ast,cons[ast])].
+  isQBrTerm(app(Lc,Op,tpl(_,"{..}",A))) => some((Lc,Op,A)).
+  isQBrTerm(_) default => .none.
+
+  public isQBrApply:(ast) => option[(locn,string,cons[ast])].
+  isQBrApply(app(Lc,Op,tpl(_,"{..}",A))) where
+      (_,Id) ^= isName(Op) => some((Lc,Id,A)).
+  isQBrApply(_) default => .none.
+
   public isRoundTerm:(ast) => option[(locn,ast,cons[ast])].
   isRoundTerm(app(Lc,Op,tpl(_,"()",A))) where !_^=isKeyword(Op) => some((Lc,Op,A)).
   isRoundTerm(_) default => .none.

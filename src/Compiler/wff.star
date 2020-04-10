@@ -611,6 +611,12 @@ star.compiler.wff{
   public isRecord:(ast) => option[(locn,cons[ast])].
   isRecord(A) => isQBrTuple(A).
 
+  public isLabeledTheta:(ast) => option[(locn,ast,cons[ast])].
+  isLabeledTheta(A) => isBrTerm(A).
+
+  public isLabeledRecord:(ast) => option[(locn,ast,cons[ast])].
+  isLabeledRecord(A) => isQBrTerm(A).
+
   public isRecordUpdate:(ast) => option[(locn,ast,ast)].
   isRecordUpdate(A) => isBinary(A,"<<-").
 

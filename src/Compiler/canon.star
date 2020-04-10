@@ -44,7 +44,6 @@ star.compiler.canon{
     seqnDo(locn,canonAction,canonAction) |
     bindDo(locn,canon,canon,tipe,tipe,tipe) |
     varDo(locn,canon,canon) |
-    assignDo(locn,canon,canon,tipe,tipe) |
     delayDo(locn,canonAction,tipe,tipe,tipe) |
     ifThenElseDo(locn,canon,canonAction,canonAction,tipe,tipe,tipe) |
     whileDo(locn,canon,canonAction,tipe,tipe) |
@@ -126,7 +125,6 @@ star.compiler.canon{
     locOf(seqnDo(Lc,_,_)) => Lc.
     locOf(bindDo(Lc,_,_,_,_,_)) => Lc.
     locOf(varDo(Lc,_,_)) => Lc.
-    locOf(assignDo(Lc,_,_,_,_)) => Lc.
     locOf(delayDo(Lc,_,_,_,_)) => Lc.
     locOf(ifThenElseDo(Lc,_,_,_,_,_,_)) => Lc.
     locOf(whileDo(Lc,_,_,_,_)) => Lc.
@@ -149,8 +147,6 @@ star.compiler.canon{
     ssSeq([showCanon(Ptn,Sp),ss("<-"),showCanon(Exp,Sp)]).
   dispAction(varDo(Lc,Ptn,Exp),Sp) =>
     ssSeq([showCanon(Ptn,Sp),ss(".="),showCanon(Exp,Sp)]).
-  dispAction(assignDo(Lc,L,R,_,_),Sp) =>
-    ssSeq([showCanon(L,Sp),ss(":="),showCanon(R,Sp)]).
   dispAction(delayDo(_,Act,_,_,_),Sp) => ssSeq([ss("delay "),dispAction(Act,Sp++"  ")]).
   dispAction(ifThenElseDo(Lc,Ts,Th,El,_,_,_),Sp) =>
     ssSeq([ss("if"),showCanon(Ts,Sp),ss("then"),

@@ -120,8 +120,8 @@ star.compiler.dependencies{
 	}.
   collectDefinition(A,Ss,Defs,Pb,As,Opn,Vz,Rp) where
       (Lc,Nm,Rhs) ^= isAssignment(A) && (LLc,Id) ^= isName(Nm) => do{
-	Sp .= varSp(Id); -- map X:=E to X=!!E
-	valis (Ss,[defnSpec(Sp,Lc,[binary(Lc,"=",Nm,unary(Lc,"!!",Rhs))]),..Defs],
+	Sp .= varSp(Id); -- map X:=E to X=_cell(E)
+	valis (Ss,[defnSpec(Sp,Lc,[binary(Lc,"=",Nm,unary(Lc,"_cell",Rhs))]),..Defs],
 	  publishName(Sp,Vz,Pb),As,Opn)
       }.
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
