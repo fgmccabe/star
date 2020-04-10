@@ -126,9 +126,9 @@ star.compiler.checker{
     either[reports,(cons[cons[canonDef]],dict,tipe)].
   thetaEnv(Lc,Pth,Els,Face,Env,Rp,DefViz) => do{
     (Vis,Opens,Annots,Gps) <- dependencies(Els,Rp);
---    logMsg("pushing face $(Face)");
+    logMsg("pushing face $(Face)");
     Base .= pushFace(Face,Lc,Env);
---    logMsg("theta groups: $(Gps)");
+    logMsg("theta groups: $(Gps)");
 --    logMsg("base env $(Base)");
     (Defs,ThEnv) <- checkGroups(Gps,[],Face,Annots,Base,Pth,Rp);
 
@@ -221,7 +221,7 @@ star.compiler.checker{
     either[reports,(cons[cons[canonDef]],dict)].
   checkGroups([],Gps,_,_,Env,_,Rp) => either((reverse(Gps),Env)).
   checkGroups([G,..Gs],Gx,Face,Annots,Env,Path,Rp) => do{
---    logMsg("check group $(G)");
+    logMsg("check group $(G)");
     TmpEnv <- parseAnnotations(G,Face,Annots,Env,Rp);
 --    logMsg("group env $(head(TmpEnv))");
     (Gp,Ev) <- checkGroup(G,TmpEnv,TmpEnv,Path,Rp);
@@ -691,6 +691,41 @@ star.compiler.checker{
     else
     throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Tp)",Lc)
   }
+  typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Op,Els) ^= isLabeledTheta(A) && (_,Nm)^=isName(Op) => do{
+    logMsg("checking theta term $(Op){$(Els)} against $(Tp)");
+ 
+    FceTp .= newTypeVar("_");
+    ConTp .= consType(FceTp,Tp);
+    Fun <- typeOfExp(Op,ConTp,Env,Pth,Rp);
+    logMsg("type of $(Op) |- $(ConTp)");
+
+    logMsg("checking theta record, expected type $(Tp), face $(FceTp)");
+    (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,Nm,Els,deRef(FceTp),Env,Rp,.deFault);
+    if sameType(ThetaTp,FceTp,Env) then{
+--      logMsg("building record from theta, $(ThEnv)");
+      mkTheta(Lc,Nm,deRef(faceOfType(Tp,ThEnv)),ThEnv,sortDefs(multicat(Defs)),
+	Tp,Rp)
+    }
+    else
+    throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Op)\:$(ConTp) ",Lc)
+  }
+  typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Op,Els) ^= isLabeledRecord(A) && (_,Nm)^=isName(Op) => do{
+    logMsg("checking record term $(Op)\{.$(Els).} against $(Tp)");
+ 
+    FceTp .= newTypeVar("_");
+    ConTp .= consType(FceTp,Tp);
+    Fun <- typeOfExp(Op,ConTp,Env,Pth,Rp);
+    logMsg("type of $(Op) |- $(ConTp)");
+
+    logMsg("checking theta record, expected type $(Tp), face $(FceTp)");
+    (Defs,ThEnv,ThetaTp) <- recordEnv(Lc,Nm,Els,deRef(FceTp),Env,Rp,.deFault);
+    if sameType(ThetaTp,FceTp,Env) then{
+      logMsg("building record from theta, $(ThEnv)");
+      mkRecord(Lc,Nm,deRef(faceOfType(Tp,ThEnv)),ThEnv,sortDefs(Defs),Tp,Rp)
+    }
+    else
+    throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Op)\:$(ConTp) ",Lc)
+  }
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Rc,Upd) ^= isRecordUpdate(A) => do{
     Rec <- typeOfExp(Rc,Tp,Env,Pth,Rp);
     UpTp .= newTypeVar("_");
@@ -884,14 +919,14 @@ star.compiler.checker{
     checkAction(binary(Lc,".=",unary(Lc,"some",L),R),Env,StTp,ElTp,ErTp,Path,Rp).
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,L,R) ^= isAssignment(A) => do{
     Et .= newTypeVar("P");
-    if (LLc,Coll,[Arg]) ^= isSquareTerm(L) then {
-      Lhs <- typeOfExp(Coll,refType(Et),Env,Path,Rp);
-      Rhs <- typeOfExp(ternary(LLc,"_put",unary(LLc,"!!",Coll),Arg,R),Et,Env,Path,Rp);
-      valis (assignDo(Lc,Lhs,Rhs,StTp,ErTp),Env)
+    MdlTp .= mkTypeExp(StTp,[ErTp,unitTp]);
+    if (LLc,Coll,Idx) ^= isIndex(L) then {
+      Repl .= ternary(LLc,"_put",unary(LLc,"!!",Coll),Idx,R);
+      Assignment <- typeOfExp(binary(Lc,":=",Coll,Repl),MdlTp,Env,Path,Rp);
+      valis (simpleDo(Lc,Assignment,StTp),Env)
     } else{
-      Lhs <- typeOfExp(L,refType(Et),Env,Path,Rp);
-      Rhs <- typeOfExp(R,Et,Env,Path,Rp);
-      valis (assignDo(Lc,Lhs,Rhs,StTp,ErTp),Env)
+      Assignment <- typeOfExp(A,MdlTp,Env,Path,Rp);
+      valis (simpleDo(Lc,Assignment,StTp),Env)
     }
   }
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,T,L,R) ^= isIfThenElse(A) => do{
@@ -1021,7 +1056,10 @@ becomes
   genArgTps(A) where (_,Ar,_) ^= isWhere(A) =>
     genArgTps(Ar).
   genArgTps(A) where (_,Els) ^= isTuple(A) =>
-    genTpVars(Els).
+      genTpVars(Els).
+
+  genFieldTps:(cons[ast],reports)=>either[reports,(cons[(string,tipe)],cons[(string,tipe)])].  
+--  genFieldTps(Els,Rp) => seqmap((El)=> (Lc,In) ^= isType
 
   checkAbstraction:(locn,ast,ast,tipe,dict,string,reports) => either[reports,canon].
   checkAbstraction(Lc,B,C,Tp,Env,Path,Rp) => do{

@@ -118,12 +118,6 @@ star.compiler.action{
       unlifted(Unit),Rp);
     valis combineActs(Lc,ForLoop,Cont,Contract,ActTp)
   }
-  genAction(assignDo(Lc,LV,RV,ActTp,ErTp),Contract,Cont,Path,Rp) => do{
-    AssignTp .= allType(nomnal("t"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpFun("star.core*ref",1),nomnal("t")),nomnal("t")])),nomnal("t")));
-    Assignment .= apply(Lc,vr(Lc,"_assign",AssignTp),tple(Lc,[LV,RV]),unitTp);
-    valis combineActs(Lc,Assignment,Cont,Contract,ActTp)
-  }
-    
   genAction(Act,_,_,_,Rp) =>
     other(reportError(Rp,"cannot handle action $(Act)",locOf(Act))).
 
