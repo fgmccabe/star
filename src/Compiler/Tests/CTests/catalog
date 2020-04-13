@@ -12,7 +12,9 @@
     "test.p" : "p.star",
     "test.qx" : "qx.star",
     "test.r" : "r.star",
+    "test.serch" : "srch.star",
     "test.t1" : "t1.star",
+    "test.tms" : "tms.star",
     "test.boot" : "bt.star"
   },
   "version": "1.0.0",

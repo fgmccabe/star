@@ -146,10 +146,10 @@ star.compiler.action{
     f(_)=> valof genReturn(Lc,Ptn,EitherTp,typeOf(Ptn),ErTp,Contract,Rp)
   } in f.
 
-  public genPerform:(locn,canon,tipe,tipe,tipe) => canon.
-  genPerform(Lc,A,ExTp,VLTp,Contract) => let{
+  genPerform:(locn,canon,tipe,tipe,tipe) => canon.
+  genPerform(Lc,A,Tp,ExTp,Contract) => let{
     MdTp = typeOf(A).
-    Gen = over(Lc,mtd(Lc,"_perform",funType([MdTp],VLTp)),funType([MdTp],VLTp),[typeConstraint(mkTypeExp(Contract,[ExTp]))])
+    Gen = over(Lc,mtd(Lc,"_perform",funType([MdTp],Tp)),funType([MdTp],Tp),[typeConstraint(mkTypeExp(Contract,[ExTp]))])
   } in apply(Lc,Gen,tple(Lc,[A]),MdTp).
 
   combineActs:(locn,canon,option[canon],tipe,tipe)=>canon.
@@ -198,16 +198,17 @@ star.compiler.action{
     OptTp .= mkTypeExp(OptionTp,[VTtp]);
     MTp .= mkTypeExp(EitherTp,[UnitTp,OptTp]);
     EitherFunTp .= funType([OptTp],MTp);
-    Unit .= apply(Lc,vr(Lc,"either",EitherFunTp),
-      tple(Lc,[vr(Lc,"none",OptTp)]),MTp);
+    Unit .= apply(Lc,enm(Lc,"star.either#either",EitherFunTp),
+      tple(Lc,[enm(Lc,"star.core#none",OptTp)]),MTp);
     Zed <- genReturn(Lc,Unit,EitherTp,OptTp,UnitTp,Contract,Rp);
-    Ptn .= apply(Lc,vr(Lc,"either",funType([OptTp],MTp)),
-      tple(Lc,[apply(Lc,vr(Lc,"some",funType([VTtp],OptTp)),
+    Ptn .= apply(Lc,enm(Lc,"star.either#either",funType([OptTp],MTp)),
+      tple(Lc,[apply(Lc,enm(Lc,"star.core#some",funType([VTtp],OptTp)),
 	    tple(Lc,[VTpl]),OptTp)]),MTp);
     Seq <- genCondition(Cond,Path,genRtn(Lc,EitherTp,OptTp,UnitTp,Contract,Rp),
       genSeq(Lc,EitherTp,Contract,UnitTp,Rp),
       genVl(Lc,Ptn,EitherTp,UnitTp,Contract,Rp),
       lifted(Zed),Rp);
+--    logMsg("generate perform: $(Cond), Seq=$(Seq), MTp=$(MTp), Either=$(EitherTp), Contract=$(Contract)");
     Gl .= genPerform(Lc,Seq,MTp,EitherTp,Contract);
     valis match(Lc,Ptn,Gl)
   }
@@ -216,7 +217,7 @@ star.compiler.action{
   genAbstraction(Lc,Tp,Bnd,Cond,Env,Path,Rp) => do{
     (ExContract,ExTp) <- pickupExecutionContract(Lc,Env,Rp);
     (SeqContract,SeqTp,ElTp) <- pickupSequenceContract(Lc,Env,Rp);
-    logMsg("Sequence contract: $(SeqContract), sequence type $(SeqTp) ->> $(ElTp)");
+--    logMsg("Sequence contract: $(SeqContract), sequence type $(SeqTp) ->> $(ElTp)");
     (_,ActionTp,_) ^= findType(Env,"action");
     ErTp .= newTypeVar("_");
     SeqConstraint .= typeConstraint(funDeps(mkTypeExp(SeqContract,[SeqTp]),[ElTp]));
@@ -228,7 +229,7 @@ star.compiler.action{
 	genSeq(Lc,ExTp,ExContract,ErTp,Rp),
 	genEl(Lc,Gen,Bnd,SeqTp,ExTp,ErTp,ExContract,Rp),
 	lifted(Zed),Rp);
-      valis genPerform(Lc,Seq,ExTp,SeqTp,ExContract)
+      valis genPerform(Lc,Seq,Tp,ActionTp,ExContract)
     }
     else
     throw reportError(Rp,"action type $(ActionTp) not consistent with sequence contract",Lc)
@@ -260,6 +261,15 @@ star.compiler.action{
       throw reportError(Rp,"sequence contract not defined",Lc)
   }
 
+  public pickupIterContract:(locn,dict,reports) => either[reports,(tipe,tipe,tipe)].
+  pickupIterContract(Lc,Env,Rp) => do{
+    if Con ^= findContract(Env,"iter") then{
+      (_,typeExists(funDeps(tpExp(Op,SqTp),[ElTp]),_)) .= freshen(Con,Env);
+      valis (Op,SqTp,ElTp)
+    } else
+      throw reportError(Rp,"iter contract not defined",Lc)
+  }
+  
   anonVar(Lc,Tp) => genVar(Lc,"_",Tp).
   genVar(Lc,Nm,Tp) => vr(Lc,genSym(Nm),Tp).
 
@@ -287,12 +297,12 @@ star.compiler.action{
   public genCondition:(canon,string,canonLift,(canon,lifted,canon)=>canon,canonLift,lifted,reports) =>
     either[reports,canon].
   genCondition(serch(Lc,Ptn,Src,Iterator),Path,Lift,_Seq,Succ,Initial,Rp) => do{
-    logMsg("generate search $(serch(Lc,Ptn,Src,Iterator)) Init=$(Initial)");
+--    logMsg("generate search $(serch(Lc,Ptn,Src,Iterator)) Lc=$(Lc)");
     PtnTp .= typeOf(Ptn);
-    logMsg("ptn in search has type $(PtnTp)");
+--    logMsg("ptn in search has type $(PtnTp)");
     Anon .= anonVar(Lc,PtnTp);
     ItrTp .= typeOf(Iterator);
-    logMsg("iterator has type $(ItrTp)");
+--    logMsg("iterator has type $(ItrTp)");
     SrcTp .= typeOf(Src);
     ResltTp .= newTypeVar("_strm");
     St .= genVar(Lc,"_st",ResltTp);
@@ -302,9 +312,9 @@ star.compiler.action{
     MdlTp .= typeOf(AddToFront);
     sFTp .= funType([PtnTp,ResltTp],MdlTp);
     -- entangle iterator type with monad
-    logMsg("MdlTp = $(MdlTp)");
+--    logMsg("MdlTp = $(MdlTp)");
     _ .= sameType(funType([SrcTp,MdlTp,sFTp],MdlTp),ItrTp,[]);
-    logMsg("local fun type: $(sFTp)");
+--    logMsg("local fun type: $(sFTp)");
     sF .= genSym("f");
     ThPath .= genNewName(Path,"Γ");
     LclName .= packageVarName(ThPath,sF);
@@ -316,7 +326,7 @@ star.compiler.action{
 
     Let .= letExp(Lc,[FF],vr(Lc,sF,sFTp));
     Init .= Lift(Initial);
-    logMsg("search is $(apply(Lc,Iterator,tple(Lc,[Src,Init,Let]),MdlTp))");
+--    logMsg("search is $(apply(Lc,Iterator,tple(Lc,[Src,Init,Let]),MdlTp))");
     valis apply(Lc,Iterator,tple(Lc,[Src,Init,Let]),MdlTp)
   }
   genCondition(conj(_Lc,A,B),Path,Lift,Seq,Succ,Initial,Rp) =>

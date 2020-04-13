@@ -182,15 +182,20 @@ star.compiler.canon{
   public implementation equality[canon] => let{
     eq(vr(_,N1,T1),vr(_,N2,T2)) => N1==N2 && T1==T2.
     eq(mtd(_,N1,T1),mtd(_,N2,T2)) => N1==N2 && T1==T2.
-    eq(over(_,N1,T1,C1),over(_,N2,T2,C2)) => N1==N2 && T1==T2 && C1==C2.
+    eq(over(_,N1,T1,C1),over(_,N2,T2,C2)) => eq(N1,N2) && T1==T2 && C1==C2.
     eq(intr(_,L1),intr(_,L2)) => L1==L2.
     eq(flt(_,L1),flt(_,L2)) => L1==L2.
     eq(strng(_,L1),strng(_,L2)) => L1==L2.
     eq(enm(_,N1,T1),enm(_,N2,T2)) => N1==N2 && T1==T2.
+    eq(tple(_,L1),tple(_,L2)) => eqList(L1,L2).
     eq(apply(_,O1,A1,T1),apply(_,O2,A2,T2)) => eq(O1,O2) && eq(A1,A2) && T1==T2.
     eq(whr(_,T1,C1),whr(_,T2,C2)) => eq(T1,T2) && eq(C1,C2).
     eq(dot(_,T1,F1,_),dot(_,T2,F2,_)) => eq(T1,T2) && F1==F2.
-    eq(abstraction(_,P1,C1,T1),abstraction(_,P2,C2,T2)) => eq(P1,P2) && eq(C1,C2) && T1==T2
+    eq(abstraction(_,P1,C1,T1),abstraction(_,P2,C2,T2)) => eq(P1,P2) && eq(C1,C2) && T1==T2.
+
+    eqList([],[]) => .true.
+    eqList([E1,..L1],[E2,..L2]) => eq(E1,E2) && eqList(L1,L2).
+    eqList(_,_) default => .false.
   } in {
     T1==T2 => eq(T1,T2)
   }
@@ -198,7 +203,7 @@ star.compiler.canon{
   public implementation hash[canon] => let{
     hsh(vr(_,N1,_)) => hash(N1).
     hsh(mtd(_,N1,_)) => hash(N1).
-    hsh(over(_,N1,T1,C1)) => hash(N1)*37+hash(T1).
+    hsh(over(_,N1,T1,C1)) => hsh(N1)*37+hash(T1).
     hsh(intr(_,Ix)) => hash(Ix).
     hsh(flt(_,Dx)) => hash(Dx).
     hsh(strng(_,Sx)) => hash(Sx).
@@ -223,7 +228,9 @@ star.compiler.canon{
   showCanon(dot(_,R,F,_),Sp) => ssSeq([showCanon(R,Sp),ss("."),ss(F)]).
   showCanon(abstraction(_,Exp,Gen,_),Sp) =>
     ssSeq([ss("["),showCanon(Exp,Sp),ss(" | "),showCanon(Gen,Sp),ss("]")]).
-  showCanon(serch(_,Ptn,Gen,It),Sp) => ssSeq([showCanon(Ptn,Sp),ss(" in "),showCanon(Gen,Sp),ss(" use "),disp(It)]).
+  showCanon(serch(_,Ptn,Gen,It),Sp) =>
+    ssSeq([showCanon(Ptn,Sp),ss(" in "),showCanon(Gen,Sp),ss(" use "),showCanon(It,Sp),
+	ss(":"),disp(typeOf(It))]).
   showCanon(csexp(_,Exp,Cs,_),Sp) => ssSeq([ss("case"),showCanon(Exp,Sp),ss(" in "),showCases(Cs,Sp)]).
   showCanon(match(_,Ptn,Gen),Sp) => ssSeq([showCanon(Ptn,Sp),ss(" .= "),showCanon(Gen,Sp)]).
   showCanon(conj(_,L,R),Sp) => ssSeq([showCanon(L,Sp),ss(" && "),showCanon(R,Sp)]).
@@ -308,6 +315,12 @@ star.compiler.canon{
   isIterableGoal(neg(_,R)) => isIterableGoal(R).
   isIterableGoal(serch(_,_,_,_)) => .true.
   isIterableGoal(_) default => .false.
+
+  public isFunDef:(canon)=>boolean.
+  isFunDef(lambda(_,_)) => .true.
+  isFunDef(letExp(_,_,Exp)) => isFunDef(Exp).
+  isFunDef(letRec(_,_,Exp)) => isFunDef(Exp).
+  isFunDef(_) default => .false.
 
   public pkgImports:(pkgSpec)=>cons[importSpec].
   pkgImports(pkgSpec(Pkg,Imports,Face,Cons,Impls,PkgVrs)) => Imports.

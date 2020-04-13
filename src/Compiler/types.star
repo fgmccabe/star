@@ -31,6 +31,22 @@ star.compiler.types{
     constraints : ref cons[constraint].
   }
 
+  hasKind:(tipe)=>integer.
+  hasKind(kFun(_,Ar)) => Ar.
+  hasKind(tVar(_,_)) => 0.
+  hasKind(tFun(_,Ar,_)) => Ar.
+  hasKind(nomnal(_)) => 0.
+  hasKind(tpFun(_,Ar)) => Ar.
+  hasKind(tpExp(Op,_)) => hasKind(Op)-1.
+  hasKind(tupleType(_)) => 0.
+  hasKind(allType(_,T)) => hasKind(T).
+  hasKind(existType(_,T)) => hasKind(T).
+  hasKind(faceType(_,_)) => 0.
+  hasKind(typeLambda(_,_)) => 0.
+  hasKind(typeExists(_,_)) => 0.
+  hasKind(constrainedType(T,_)) => hasKind(T).
+  hasKind(funDeps(T,_)) => hasKind(T).
+
   public isIdenticalVar:(tipe,tipe) => boolean.
   isIdenticalVar(T1,T2) => isIdent(deRef(T1),deRef(T2)).
 
@@ -50,8 +66,8 @@ star.compiler.types{
   isUnboundFVar(_) default => .none.
 
   public setBinding:(tipe,tipe) => action[(),()].
-  setBinding(tVar(B,_),T) => bnd(B,T).
-  setBinding(tFun(B,_,_),T) => bnd(B,T).
+  setBinding(tVar(B,_),T) where 0==hasKind(T) => bnd(B,T).
+  setBinding(tFun(B,Ar,_),T) where hasKind(T)==Ar => bnd(B,T).
 
   bnd:(tv,tipe) => action[(),()].
   bnd(B,T) where B.binding!! == .none => do {

@@ -49,6 +49,8 @@ star.compiler.lexer{
     some((Nxt,tok(makeLoc(St0,Nxt),strTok(Str)))).
   nxxTok(0c.,St,St0) where (Nx,0c\n) ^= nextChr(St) =>
     some((Nx,tok(makeLoc(St0,Nx),idTok(". ")))).
+  nxxTok(0c.,St,St0) where (Nx,0c\t) ^= nextChr(St) =>
+    some((Nx,tok(makeLoc(St0,Nx),idTok(". ")))).
   nxxTok(Chr,St,St0) where Ld ^= first(Chr) => let{
     graphFollow(Strm,SoF,Deflt) where (Nx,Ch) ^= nextChr(Strm) && SoF1 ^= follows(SoF,Ch) =>
       graphFollow(Nx,SoF1,finalist(SoF1,Nx,Deflt)).

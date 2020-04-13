@@ -124,6 +124,10 @@ star.compiler.dict{
   declareImplementation(ImplNm,Con,[scope(Tps,Vrs,Cns,Imps),..Env]) =>
     [scope(Tps,Vrs,Cns,Imps[ImplNm->typeConstraint(Con)]),..Env].
 
+  public undeclareImplementation:(string,dict) => dict.
+  undeclareImplementation(Nm,[scope(Tps,Vrs,Cns,Imps),..Env]) =>
+    [scope(Tps,Vrs,Cns,Imps[!Nm]),..Env].
+
   public pushScope:(dict)=>dict.
   pushScope(Env) => [scope([],[],[],[]),..Env].
 
@@ -133,7 +137,7 @@ star.compiler.dict{
   
   public pushFace:(tipe,locn,dict) => dict.
   pushFace(Tp,Lc,Env) =>
-    pushSig(deRef(Tp),Lc,(Id)=>(L,T)=>vr(L,Id,T),Env).
+    pushSig(deRef(Tp),Lc,(Id)=>(L,T)=>(_^=isConsType(T) ? enm(L,Id,T)||vr(L,Id,T)),Env).
   
   pushFlds:(cons[(string,tipe)],locn,(string)=>(locn,tipe)=>canon,dict) => dict.
   pushFlds([],Lc,_,Env) => Env.
