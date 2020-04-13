@@ -15,7 +15,7 @@ star.compiler.resolve{
   public overloadEnvironment:(cons[cons[canonDef]],dict,reports) =>
     either[reports,cons[cons[canonDef]]].
   overloadEnvironment(Gps,Dict,Rp) => do{
---    logMsg("resolving definitions in $(Gps)\nenvironment $(Dict)");
+    logMsg("resolving definitions in $(Gps)");
     TDict .= declareImplementations(Gps,Dict);
 --    logMsg("resolution dict = $(TDict)");
     overloadGroups(Gps,[],TDict,Rp)
@@ -37,14 +37,16 @@ star.compiler.resolve{
     either[reports,cons[cons[canonDef]]].
   overloadGroups([],Gps,_,_) => either(reverse(Gps)).
   overloadGroups([Gp,..Gps],RG,Dict,Rp) => do{
-    RGp <- overloadDefs(Dict,Gp,[],Rp);
-    overloadGroups(Gps,[RGp,..RG],Dict,Rp)
+--    logMsg("overload group $(Gp)");
+--    logMsg("dict is $(Dict)");
+    (RGp,GDict) <- overloadGroup(Gp,Dict,Rp);
+    overloadGroups(Gps,[RGp,..RG],GDict,Rp)
   }
 
   public overloadGroup:(cons[canonDef],dict,reports)=>either[reports,(cons[canonDef],dict)].
   overloadGroup(Dfs,Dict,Rp) => do{
+    RDefs <- overloadDefs(Dict,Dfs,[],Rp);
     TDict .= declareImplementationsInGroup(Dfs,Dict);
-    RDefs <- overloadDefs(TDict,Dfs,[],Rp);
     valis (RDefs,TDict)
   }
 
@@ -77,7 +79,8 @@ star.compiler.resolve{
   }
 
   overloadImplDef(Dict,Lc,Nm,FullNm,Val,[],Tp,Rp) => do{
-    RVal <- resolveTerm(Val,Dict,Rp);
+    IDict .= undeclareVar(FullNm,Dict);
+    RVal <- resolveTerm(Val,IDict,Rp);
     valis implDef(Lc,Nm,FullNm,RVal,[],Tp)
   }
   overloadImplDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp,Rp) => do{

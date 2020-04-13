@@ -116,26 +116,6 @@ star.parse{
     prs(A) => (P >>= (O) => prs(Op(O,A))) ++ (return A)
   } in (P>>=(Z) => prs(Z)).
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   public spaces:parser[cons[integer],()].
   spaces = _star(_sat(isSpace)) >>= (_) => return ().
 

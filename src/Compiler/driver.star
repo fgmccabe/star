@@ -140,8 +140,10 @@ star.compiler{
 	    Code .= mkTpl([pkgTerm(CPkg),strg(encodeSignature(typeOf(PkgSpec))),
 		mkTpl(pkgImports(PkgSpec)//(pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
 		mkTpl(Ins//assem)]);
-	    Repp := addSource(addPackage(Repp!!,P,encodeTerm(strg(Code::string))::string),P,
-	      SrcUri::string)
+	    Bytes .= (strg(Code::string)::string);
+	    Repp := addSource(addPackage(Repp!!,P,Bytes),P,SrcUri::string);
+	    _ .= flushRepo(Repp!!)
+--	    logMsg("done")
 	  }
 	  else
 	  throw reportError(Rp,"cannot locate source of $(P)",Lc)
@@ -150,6 +152,7 @@ star.compiler{
       valis flushRepo(Repp!!)
     }catch (Erp) => do{
       logMsg("Errors $(Erp)");
+      _ .= flushRepo(Repp!!);
       throw Erp
     }
   }

@@ -13,15 +13,21 @@ star.compiler.ast{
       | tpl(locn,string,cons[ast])
       | app(locn,ast,ast).
 
-  public implementation equality[ast] => {.
-    nme(_,I1) == nme(_,I2) => I1==I2.
-    qnm(_,I1) == qnm(_,I2) => I1==I2.
-    int(_,L1) == int(_,L2) => L1==L2.
-    num(_,L1) == num(_,L2) => L1==L2.
-    str(_,L1) == str(_,L2) => L1==L2.
-    tpl(_,K1,E1) == tpl(_,K2,E2) => K1==K2 && E1==E2.
-    app(_,O1,A1) == app(_,O2,A2) => O1==O2 && A1==A2.
-    _ == _ default => .false.
+  public implementation equality[ast] => let{
+    eq(nme(_,I1),nme(_,I2)) => I1==I2.
+    eq(qnm(_,I1),qnm(_,I2)) => I1==I2.
+    eq(int(_,L1),int(_,L2)) => L1==L2.
+    eq(num(_,L1),num(_,L2)) => L1==L2.
+    eq(str(_,L1),str(_,L2)) => L1==L2.
+    eq(tpl(_,K1,E1),tpl(_,K2,E2)) => K1==K2 && eqList(E1,E2).
+    eq(app(_,O1,A1),app(_,O2,A2)) => eq(O1,O2) && eq(A1,A2).
+    eq(_,_) default => .false.
+
+    eqList([],[]) => .true.
+    eqList([E1,..L1],[E2,..L2]) => eq(E1,E2) && eqList(L1,L2).
+    eqList(_,_) default => .false.
+  } in {.
+    X == Y => eq(X,Y)
   .}
 
   public implementation display[ast] => {.

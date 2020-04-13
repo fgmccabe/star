@@ -59,9 +59,9 @@ star.compiler.checker{
 --      logMsg("exported implementations $(Impls)");
       Types .= exportedTypes(Defs,Vis,.pUblic);
 --      logMsg("exported types: $(Types)");
-      RDefs <- overloadEnvironment(Defs,ThEnv,Rp);
+      RDefs <- overloadEnvironment(Defs,PkgEnv,Rp);
       PkgType .= faceType(Fields,Types);
-      PkgTheta <- makePkgTheta(Lc,PkgNm,PkgType,ThEnv,RDefs,Rp);
+      PkgTheta <- makePkgTheta(Lc,PkgNm,PkgType,ThEnv,sortDefs(multicat(RDefs)),Rp);
       valis (pkgSpec(Pkge,Imports,PkgType,Contracts,Impls,PkgVars),varDef(Lc,packageVar(Pkg),PkgNm,PkgTheta,[],PkgType))
     } else
     throw reportError(Rp,"invalid package structure",locOf(P))
@@ -69,7 +69,7 @@ star.compiler.checker{
 
   makePkgTheta:(locn,string,tipe,dict,cons[cons[canonDef]],reports)=>either[reports,canon].
   makePkgTheta(Lc,Nm,Tp,Env,Defs,Rp) =>
-    mkTheta(Lc,Nm,deRef(Tp),Env,sortDefs(multicat(Defs)),Tp,Rp).
+    mkTheta(Lc,Nm,deRef(Tp),Env,Defs,Tp,Rp).
 
   exportedFields:(cons[cons[canonDef]],cons[(defnSp,visibility)],visibility) => cons[(string,tipe)].
   exportedFields(Defs,Vis,DVz) =>
@@ -126,9 +126,9 @@ star.compiler.checker{
     either[reports,(cons[cons[canonDef]],dict,tipe)].
   thetaEnv(Lc,Pth,Els,Face,Env,Rp,DefViz) => do{
     (Vis,Opens,Annots,Gps) <- dependencies(Els,Rp);
-    logMsg("pushing face $(Face)");
+--    logMsg("pushing face $(Face)");
     Base .= pushFace(Face,Lc,Env);
-    logMsg("theta groups: $(Gps)");
+--    logMsg("theta groups: $(Gps)");
 --    logMsg("base env $(Base)");
     (Defs,ThEnv) <- checkGroups(Gps,[],Face,Annots,Base,Pth,Rp);
 
@@ -221,7 +221,7 @@ star.compiler.checker{
     either[reports,(cons[cons[canonDef]],dict)].
   checkGroups([],Gps,_,_,Env,_,Rp) => either((reverse(Gps),Env)).
   checkGroups([G,..Gs],Gx,Face,Annots,Env,Path,Rp) => do{
-    logMsg("check group $(G)");
+--    logMsg("check group $(G)");
     TmpEnv <- parseAnnotations(G,Face,Annots,Env,Rp);
 --    logMsg("group env $(head(TmpEnv))");
     (Gp,Ev) <- checkGroup(G,TmpEnv,TmpEnv,Path,Rp);
@@ -692,14 +692,14 @@ star.compiler.checker{
     throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Tp)",Lc)
   }
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Op,Els) ^= isLabeledTheta(A) && (_,Nm)^=isName(Op) => do{
-    logMsg("checking theta term $(Op){$(Els)} against $(Tp)");
+--    logMsg("checking theta term $(Op){$(Els)} against $(Tp)");
  
     FceTp .= newTypeVar("_");
     ConTp .= consType(FceTp,Tp);
     Fun <- typeOfExp(Op,ConTp,Env,Pth,Rp);
-    logMsg("type of $(Op) |- $(ConTp)");
+--    logMsg("type of $(Op) |- $(ConTp)");
 
-    logMsg("checking theta record, expected type $(Tp), face $(FceTp)");
+--    logMsg("checking theta record, expected type $(Tp), face $(FceTp)");
     (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,Nm,Els,deRef(FceTp),Env,Rp,.deFault);
     if sameType(ThetaTp,FceTp,Env) then{
 --      logMsg("building record from theta, $(ThEnv)");
@@ -710,17 +710,16 @@ star.compiler.checker{
     throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Op)\:$(ConTp) ",Lc)
   }
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Op,Els) ^= isLabeledRecord(A) && (_,Nm)^=isName(Op) => do{
-    logMsg("checking record term $(Op)\{.$(Els).} against $(Tp)");
+--    logMsg("checking record term $(Op)\{.$(Els).} against $(Tp)");
  
     FceTp .= newTypeVar("_");
     ConTp .= consType(FceTp,Tp);
     Fun <- typeOfExp(Op,ConTp,Env,Pth,Rp);
-    logMsg("type of $(Op) |- $(ConTp)");
-
-    logMsg("checking theta record, expected type $(Tp), face $(FceTp)");
+--    logMsg("type of $(Op) |- $(ConTp)");
+--    logMsg("checking theta record, expected type $(Tp), face $(FceTp)");
     (Defs,ThEnv,ThetaTp) <- recordEnv(Lc,Nm,Els,deRef(FceTp),Env,Rp,.deFault);
     if sameType(ThetaTp,FceTp,Env) then{
-      logMsg("building record from theta, $(ThEnv)");
+--      logMsg("building record from theta, $(ThEnv)");
       mkRecord(Lc,Nm,deRef(faceOfType(Tp,ThEnv)),ThEnv,sortDefs(Defs),Tp,Rp)
     }
     else
@@ -808,6 +807,7 @@ star.compiler.checker{
   checkCond(A,Env,Path,Rp) => do{
     (Gl,NE) <- checkGoal(A,Env,Path,Rp);
     if isIterableGoal(Gl) then{
+--      logMsg("iterable goal $(Gl)");
       Cond <- processIterable(Gl,Path,NE,Rp);
       valis (Cond,NE)
     }
@@ -849,16 +849,17 @@ star.compiler.checker{
     valis (match(Lc,Ptn,Val),Ev)
   }
   checkGoal(A,Env,Path,Rp) where (Lc,L,R) ^= isSearch(A) => do{
-    MTp .= newTypeFun("M",1);
-    StTp .= newTypeVar("X");
-    SrTp .= newTypeVar("Sr");
+    StrTp .= newTypeVar("Str");
     ElTp .= newTypeVar("El");
-    MdTp .= tpExp(MTp,StTp);
-    ActionTp .= funType([ElTp,StTp],MdTp);
-    IterTp .= funType([SrTp,MdTp,ActionTp],MdTp);
+    MTp .= newTypeFun("M",2);
+    XTp .= newTypeVar("X");
+    ErTp .= newTypeVar("Er");
+    MdTp .= mkTypeExp(MTp,[ErTp,XTp]);
+    ActionTp .= funType([ElTp,XTp],MdTp);
+    IterTp .= funType([StrTp,MdTp,ActionTp],MdTp);
     Iterator <- typeOfExp(nme(Lc,"_iter"),IterTp,Env,Path,Rp);
     (Ptn,Ev) <- typeOfPtn(L,ElTp,Env,Path,Rp);
-    Gen <- typeOfExp(R,SrTp,Env,Path,Rp);
+    Gen <- typeOfExp(R,StrTp,Env,Path,Rp);
     valis (serch(Lc,Ptn,Gen,Iterator),Ev)
   }
   checkGoal(A,Env,Path,Rp) where (_,[Inner]) ^= isTuple(A) =>

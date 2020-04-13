@@ -71,37 +71,36 @@ star.compiler.normalize{
   groupMap:(locn,cons[canonDef],string,nameMap,reports) => either[reports,(nameMap,option[crExp],crExp)].
   groupMap(Lc,Grp,Prefix,Outer,Rp) => do{
     logMsg("making map for group $(Grp)");
---    logMsg("outer map $(Outer)");
+    logMsg("outer map $(Outer)");
     rawGrpFree .= freeVarsInGroup(Grp,[],[])::cons[crVar];
---    logMsg("raw group free $(rawGrpFree)");
+    logMsg("raw group free $(rawGrpFree)");
     freeVars .=
       foldRight((crId(Nm,Tp),So) => (_ ^= lookup(Outer,Nm,isModule) ? So || _addMem(crId(Nm,Tp),So)),[],
-	freeVarsInGroup(Grp,[],[])::cons[crVar]);
---    logMsg("group free vars $(freeVars)");
+	rawGrpFree);
+    logMsg("group free vars $(freeVars)");
 
     if isEmpty(freeVars) then {
---      logMsg("no theta var for group $(Grp)");
       M .= [lyr("",foldRight((D,LL)=>collectMtd(D,.none,LL),[],Grp)),..Outer];
---      logMsg("group map $(M)");
+      logMsg("new group map $(head(M))");
       valis (M,.none,crTpl(Lc,[]))
     } else if [FrVr].=freeVars then {
---      logMsg("single free $(FrVr)");
       ThVr <- liftVarExp(Lc,crName(FrVr),typeOf(FrVr),Outer,Rp);
       L .= [crName(FrVr)->localVar(FrVr)]; -- protect against looking up more
       M .= [lyr("",foldRight((D,LL)=>collectMtd(D,some(crVar(Lc,FrVr)),LL),L,Grp)),..Outer];
---      logMsg("group map $(M)\nfree var $(ThVr)");
+      logMsg("new group map $(head(M))\nfree var $(ThVr)");
       valis (M,some(crVar(Lc,FrVr)),ThVr)
     }
     else {
       ThV .= genVar("_ThVr",tupleType(freeVars//typeOf));
---      logMsg("theta var is $(ThV)");
+      logMsg("theta var is $(ThV)");
       ThVr .= some(crVar(Lc,ThV));
       L .= collectLabelVars(freeVars,ThV,0,[]);
     
       M .= [lyr(Prefix,foldRight((D,LL)=>collectMtd(D,ThVr,LL),L,Grp)),..Outer];
+      logMsg("new group map $(head(M))\nfree var $(ThVr)");
 
       freeArgs <- seqmap((crId(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer,Rp),freeVars);
---      logMsg("group map $(M)\nfree args $(freeArgs)\:$(typeOf(crTpl(Lc,freeArgs)))");
+--      logMsg("free args $(freeArgs)\:$(typeOf(crTpl(Lc,freeArgs)))");
       valis (M,ThVr,crTpl(Lc,freeArgs))
     }
   }
@@ -146,9 +145,9 @@ star.compiler.normalize{
   liftLetExp:(locn,cons[canonDef],canon,nameMap,cons[crDefn],reports) => either[reports,crFlow].
   liftLetExp(Lc,Defs,Bnd,Map,Ex,Rp) where !codeGroup(Defs) => liftExp(Bnd,Map,Ex,Rp).
   liftLetExp(Lc,Defs,Bnd,Map,Ex,Rp) => do{
-    logMsg("let $(Defs)");
+    logMsg("let $(Lc)");
     (GMap,GrpVr,GrpFree) <- groupMap(Lc,Defs,layerName(Map),Map,Rp);
---    logMsg("group map $(GMap)");
+    logMsg("group map $(GMap)");
     logMsg("free term $(GrpVr) = $(GrpFree)");
     (Vs,Ex1,BMap) <- transformGroup(Defs,GMap,GrpVr,Ex,[],Rp);
     logMsg("let Vs=$(Vs)");
@@ -169,25 +168,25 @@ star.compiler.normalize{
   liftLetRec:(locn,cons[canonDef],canon,nameMap,cons[crDefn],reports) => either[reports,crFlow].
   liftLetRec(Lc,Defs,Bnd,Map,Ex,Rp) where !codeGroup(Defs) => liftExp(Bnd,Map,Ex,Rp).
   liftLetRec(Lc,Defs,Bnd,Map,Ex,Rp) => do{
-    logMsg("let rec $(Defs)");
+    logMsg("let rec at $(Lc)");
     (GMap,GrpVr,GrpFree) <- groupMap(Lc,Defs,layerName(Map),Map,Rp);
---    logMsg("group map $(GMap)");
+    logMsg("group map $(GMap)");
     logMsg("free term $(GrpVr) = $(GrpFree)");
 
     (Vs,Ex1,BMap) <- transformGroup(Defs,GMap,GrpVr,Ex,[],Rp);
 
     logMsg("Vs = $(Vs)");
-    logMsg("preview of bound $(foldRight(((Vr,Vl),X)=>
-	    (crVar(_,VV).=Vl && VV==Vr ? X || crLtRec(locOf(Vl),Vr,Vl,X)),crStrg(Lc,"%%"),Vs))");
+--    logMsg("preview of bound $(foldRight(((Vr,Vl),X)=>
+--	    (crVar(_,VV).=Vl && VV==Vr ? X || crLtRec(locOf(Vl),Vr,Vl,X)),crStrg(Lc,"%%"),Vs))");
 
-    logMsg("lifting bound exp $(Bnd)");
+--    logMsg("lifting bound exp $(Bnd)");
     (BndTrm,Ex2) <- liftExp(Bnd,BMap,Ex1,Rp);
 
     Bound .= foldRight(((Vr,Vl),X)=>
 	(crVar(_,VV).=Vl && VV==Vr ? X || crLtRec(locOf(Vl),Vr,Vl,X)),BndTrm,Vs);
 
-    logMsg("Bound let rec for $(Defs) = $(Bound)");
-    logMsg("let rec Vs=$(Vs)");
+--    logMsg("Bound let rec for $(Defs) = $(Bound)");
+--    logMsg("let rec Vs=$(Vs)");
 
     if crVar(_,GrpThVr) ^= GrpVr && !(crVar(_,GrpThVr).=GrpFree) then
       valis (crLtRec(Lc,GrpThVr,GrpFree,Bound),Ex2)
@@ -196,7 +195,7 @@ star.compiler.normalize{
   }
 
   isFunctions:(cons[canonDef])=>boolean.
-  isFunctions(Defs) => varDef(_,_,_,Vl,_,_) in Defs *> lambda(_,_).=Vl.
+  isFunctions(Defs) => varDef(_,_,_,Vl,_,_) in Defs *> isFunDef(Vl).
 
   transformGroup:(cons[canonDef],nameMap,option[crExp],cons[crDefn],cons[(crVar,crExp)],reports) => either[reports,(cons[(crVar,crExp)],cons[crDefn],nameMap)].
   transformGroup([],Map,_,D,Vs,_) => either((Vs,D,Map)).
@@ -247,6 +246,7 @@ star.compiler.normalize{
     (Vl,Exx) <- liftExp(Val,Map,Ex,Rp);
     Vr .= crId(Nm,Tp);
 --    logMsg("var $(Nm)\[$(FullNm)] lifts to $(Vl)");
+
     valis ([(Vr,Vl),..Vs],Exx)
   }
   transformDef(implDef(Lc,_,FullNm,Val,Cx,Tp),Map,Extra,Ex,Vs,Rp) =>
@@ -400,9 +400,9 @@ star.compiler.normalize{
     either[reports,(cons[(string,crExp)],cons[crDefn])].
   liftFields([],_,Ex,_) => either(([],Ex)).
   liftFields([(N,P),..Ps],Map,Ex,Rp) => do{
-    logMsg("lift field $(N) = $(P)");
+--    logMsg("lift field $(N) = $(P)");
     (A,Ex1) <- liftExp(P,Map,Ex,Rp);
-    logMsg("field exp $(A)");
+--    logMsg("field exp $(A)");
     (As,Exx) <- liftFields(Ps,Map,Ex1,Rp);
     valis ([(N,A),..As],Exx)
   }
@@ -519,11 +519,11 @@ star.compiler.normalize{
   extendTplType(Es,some(E)) => [typeOf(E),..Es].
 
   collectMtd:(canonDef,option[crExp],map[string,nameMapEntry])=>map[string,nameMapEntry].
-  collectMtd(varDef(Lc,Nm,FullNm,lambda(_,_),_,Tp),some(ThVr),LL) =>
+  collectMtd(varDef(Lc,Nm,FullNm,Val,_,Tp),some(ThVr),LL) where isFunDef(Val) =>
     LL[Nm->localFun(closureNm(FullNm),Tp,ThVr)].
   collectMtd(varDef(Lc,Nm,FullNm,Val,Cx,Tp),some(ThVr),LL) =>
     LL[Nm->localVar(crId(Nm,Tp))].
-  collectMtd(varDef(Lc,Nm,FullNm,lambda(_,_),_,Tp),.none,LL) =>
+  collectMtd(varDef(Lc,Nm,FullNm,Val,_,Tp),.none,LL) where isFunDef(Val) =>
     LL[Nm->moduleFun(FullNm,crTerm(Lc,closureNm(FullNm),[mkCrTpl(Lc,[])],funType([],Tp)),funType([],Tp))].
   collectMtd(varDef(Lc,Nm,FullNm,Val,Cx,Tp),.none,LL) =>
     LL[Nm->localVar(crId(Nm,Tp))].
