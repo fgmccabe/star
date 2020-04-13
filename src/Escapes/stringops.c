@@ -8,7 +8,6 @@
 #include <assert.h>
 #include <tpl.h>
 #include <globals.h>
-#include <lblops.h>
 #include "stringops.h"
 #include "arithmetic.h"
 #include "consP.h"
@@ -196,43 +195,25 @@ void dS(termPo w) {
   flushOut();
 }
 
-static retCode implode(bufferPo str, termPo t) {
-  if (isInteger(t))
-    return outChar(O_IO(str), integerVal(t));
-  else if (isNormalPo(t)) {
-    normalPo n = C_TERM(t);
-    integer cx = termArity(n);
-    retCode ret = Ok;
-
-    for (integer ix = 0; ret == Ok && ix < cx; ix++) {
-      termPo arg = nthArg(n, ix);
-      ret = implode(str, arg);
-    }
-    return ret;
-  } else if (isLabelPo(t))
-    return Ok;
-  else
-    return Error;
-}
-
 ReturnStatus g__implode(processPo p, ptrPo tos) {
+  termPo list = tos[0];
+
   bufferPo strb = newStringBuffer();
 
-  retCode ret = implode(strb, tos[0]);
-
-  if (ret == Ok) {
-    integer oLen;
-    const char *buff = getTextFromBuffer(strb, &oLen);
-
-    termPo result = (termPo) allocateString(processHeap(p), buff, oLen);
-
-    closeFile(O_IO(strb));
-
-    return (ReturnStatus) {.ret=Ok, .result=result};
-  } else {
-    closeFile(O_IO(strb));
-    return (ReturnStatus) {.ret=Ok, .result=voidEnum};
+  while (isCons(list)) {
+    normalPo pr = C_TERM(list);
+    outChar(O_IO(strb), (codePoint) integerVal(consHead(pr)));
+    list = consTail(pr);
   }
+
+  integer oLen;
+  const char *buff = getTextFromBuffer(strb, &oLen);
+
+  termPo result = (termPo) allocateString(processHeap(p), buff, oLen);
+
+  closeFile(O_IO(strb));
+
+  return (ReturnStatus) {.ret=Ok, .result=result};
 }
 
 ReturnStatus g__str_find(processPo p, ptrPo tos) {

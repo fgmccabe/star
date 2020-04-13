@@ -251,7 +251,7 @@ escape(_str_gen,"F(S)S","Generate a unique string")
 escape(_stringOf,":k't'F(k't'i)S","Display a general term")
 
 escape(_explode,"F(S)Li","convert string to list of code points")
-escape(_implode,":K1'm'F(UK1'm'i)S","convert list of code points to string")
+escape(_implode,"F(Li)S","convert list of code points to string")
 
 escape(_str_find,"F(SSi)i","find a substring in string")
 escape(_sub_str,"F(Sii)S","extract a substring")
