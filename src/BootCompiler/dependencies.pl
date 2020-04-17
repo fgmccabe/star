@@ -8,10 +8,10 @@
 :- use_module(wff).
 
 dependencies(Dfs,Groups,Annots) :-
-  allRefs(Dfs,[],AllRefs),
-  collectThetaRefs(Dfs,AllRefs,Annots,Defs),
+  allRefs(Dfs,[],ARefs),
+  collectThetaRefs(Dfs,ARefs,Annots,Defs),
   topsort(Defs,Groups,misc:same).
-  %showGroups(Groups).
+%  showGroups(Groups).
 
 collectDefinitions([St|Stmts],Defs,P,A) :-
   collectDefinition(St,Stmts,S0,Defs,D0,P,P0,A,A0,dependencies:nop),
@@ -290,9 +290,21 @@ typeName(Tp,Nm) :- isTuple(Tp,_,A),
   length(A,Ar),
   swritef(Nm,"()%d",[Ar]).
 
+allRefs([(con(N),_,[St])|Defs],SoFar,AllRefs) :-
+  conRefs(con(N),St,SoFar,Rf0),
+  allRefs(Defs,Rf0,AllRefs).
 allRefs([(N,_,_)|Defs],SoFar,AllRefs) :-
   allRefs(Defs,[N|SoFar],AllRefs).
 allRefs([],SoFar,SoFar).
+
+conRefs(N,St,R,Rfs) :-
+  isContractStmt(St,_,_,_,_,Els),
+  rfold(Els,dependencies:conRef(N),R,Rfs).
+
+conRef(N,St,Rfs,[(var(Nm),N)|Rfs]) :-
+  isTypeAnnotation(St,_,V,_),!,
+  isIden(V,Nm).
+conRef(_,_,Rfs,Rfs).
 
 collectThetaRefs([],_,_,[]).
 collectThetaRefs([(cns(Nm),Lc,[Def])|Defs],AllRefs,Annots,[(cns(Nm),Refs,Lc,[Def])|Dfns]) :-
@@ -307,8 +319,9 @@ collectStmtRefs([St|Stmts],All,Annots,R,Refs) :-
   collStmtRefs(St,All,Annots,R,R0),!,
   collectStmtRefs(Stmts,All,Annots,R0,Refs).
 
-collStmtRefs(St,_,_,R,R) :-
-  isTypeAnnotation(St,_,_,_),!.
+collStmtRefs(St,All,_,R,Rfs) :-
+  isTypeAnnotation(St,_,_,Tp),!,
+  collectTypeRefs(Tp,All,R,Rfs).
 collStmtRefs(St,All,Annots,R,Rx) :-
   isPublic(St,_,I),!,
   collStmtRefs(I,All,Annots,R,Rx).
@@ -432,6 +445,14 @@ removeLocalDef(St,All,Rest) :-
   subtract(Nm,All,Rest).
 removeLocalDef(_,All,All).
 
+collectNmRef(N,_All,Rfs,Rfs) :-
+  is_member(N,Rfs),!.
+collectNmRef(N,All,Rfs,[N|Rfs]) :-
+  is_member(N,All),!.
+collectNmRef(N,All,Rfs,[M|Rfs]) :-
+  is_member((N,M),All),!.
+collectNmRef(_,_,Rfs,Rfs).
+
 collectCondRefs(C,A,R0,Refs) :-
   isConjunct(C,_,L,R),
   collectCondRefs(L,A,R0,R1),
@@ -458,19 +479,14 @@ collectTermRefs(E,A,R0,Refs) :-
   isTypeAnnotation(E,_,L,R),
   collectTermRefs(L,A,R0,R1),
   collectTypeRefs(R,A,R1,Refs).
-collectTermRefs(V,A,Refs,[var(Nm)|Refs]) :-
+collectTermRefs(V,A,Rfs,Refs) :-
   isName(V,Nm),
-  is_member(var(Nm),A),
-  \+is_member(var(Nm),Refs).
-collectTermRefs(V,A,Refs,[cns(Nm)|Refs]) :-
-  isName(V,Nm),
-  is_member(cns(Nm),A),
-  \+is_member(cns(Nm),Refs).
-collectTermRefs(T,A,Refs,[cns(Nm)|Refs]) :-
-  isEnum(T,_,I),
+  collectNmRef(var(Nm),A,Rfs,Rf0),
+  collectNmRef(cns(Nm),A,Rf0,Refs).
+collectTermRefs(T,A,Rfs,Refs) :-
+  isEnum(T,_,I),!,
   isName(I,Nm),
-  is_member(cns(Nm),A),
-  \+is_member(cns(Nm),Refs).
+  collectNmRef(cns(Nm),A,Rfs,Refs).
 collectTermRefs(T,A,R,Rx) :-
   isLetDef(T,_,B,Ex),!,
   collectLetRefs(B,Ex,A,R,Rx).
