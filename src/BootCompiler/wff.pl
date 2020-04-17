@@ -2,7 +2,8 @@
 	      isQuantified/3,isXQuantified/3,reUQuant/3,reXQuant/3,
 	      isConstrained/3,reConstrain/3,
 	      isContractStmt/6,isImplementationStmt/6,
-	      isTypeExistsStmt/6,isTypeFunStmt/6,isTypeAnnotation/4,
+	      isTypeExistsStmt/6,isTypeFunStmt/6,
+	      isTypeAnnotation/4,typeAnnotation/4,
 	      isTypeLambda/4,
 	      isValType/3,isFunType/4,isEnum/3,enum/3,
 	      isImport/3, findImport/3,isPrivate/3,isPublic/3,
@@ -69,6 +70,9 @@ isPublic(St,Lc,I) :-
 
 isTypeAnnotation(St,Lc,V,T) :-
   isBinary(St,Lc,":",V,T),!.
+
+typeAnnotation(Lc,V,T,St) :-
+  binary(Lc,":",V,T,St).
 
 isAlgebraicTypeStmt(Stmt,Lc,Q,Cx,Head,Body) :-
   isBinary(Stmt,Lc,"::=",Lhs,Body),
