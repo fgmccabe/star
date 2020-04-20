@@ -838,7 +838,6 @@ checkDo(Lc,B,Env,Ev,Tp,EE,Path) :-
    freshen(Con,Env,_,contractExists(conTract(Contract,[ExTp],[]),_)),
    mkTypeExp(ExTp,[ErTp,ValTp],MTp),
    checkType(B,Tp,MTp,Env);
-%   reportMsg("execution type %s",[MTp]);
    reportError("execution contract not defined",[],Lc),
    newTypeVar("_t",ExTp)),
   checkAction(B,Env,Ev,Contract,ExTp,ValTp,ErTp,Body,Path),!,
