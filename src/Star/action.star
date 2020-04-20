@@ -65,10 +65,6 @@ star.action{
   public (!!):all a ~~ (ref a)=>a.
   (!!)(V) => _get(V).
 
-/*  public (!!):all a ~~ (a)=>ref a.
-  !! E => _cell(E).
-*/
-
   public logMsg:all m/2,e ~~ execution[m] |: (string)=>m[e,()].
   logMsg(Msg) => do{
     _ .= _logmsg(Msg);

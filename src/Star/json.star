@@ -41,9 +41,9 @@ star.json{
     spces(C) => [ss(" "),..spces(C-1)].
   } in ssSeq([ss("\n"),..spces(X)]).
 
-  public implementation equality[json] => {
+  public implementation equality[json] => {.
     T1 == T2 => equalJson(T1,T2).
-  }
+  .}
 
   equalJson:(json,json)=>boolean.
   equalJson(.jTrue,.jTrue) => .true.

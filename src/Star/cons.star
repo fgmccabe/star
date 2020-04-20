@@ -5,14 +5,14 @@ star.cons{
   import star.monad.
   import star.coerce.
 
-  public implementation all x ~~ equality[x] |: equality[cons[x]] => {.
+  public implementation all x ~~ equality[x] |: equality[cons[x]] => let{
+    smList:all x ~~ equality[x] |: (cons[x],cons[x]) => boolean.
+    smList(.nil,.nil) => .true.
+    smList(cons(x,xr),cons(y,yr)) => x==y && smList(xr,yr).
+    smList(_,_) default => .false.
+  } in {.
     L1 == L2 => smList(L1,L2).
   .}
-
-  smList:all x ~~ equality[x] |: (cons[x],cons[x]) => boolean.
-  smList(.nil,.nil) => .true.
-  smList(cons(x,xr),cons(y,yr)) => x==y && smList(xr,yr).
-  smList(_,_) default => .false.
 
   public implementation all x ~~ hash[x] |: hash[cons[x]] => {
     hash(L) => cHash(L,0).
@@ -87,6 +87,10 @@ star.cons{
     tail(.nil) => .none.
   }
 
+  public zip: all e,f ~~ (cons[e],cons[f])=>cons[(e,f)].
+  zip([],[]) => [].
+  zip([E,..Es],[F,..Fs]) => [(E,F),..zip(Es,Fs)].
+
   -- Implement iteration of executions over a cons list
   public implementation all t ~~ iter[cons[t]->>t] => {
     _iter(.nil,St,_) => St.
@@ -141,5 +145,5 @@ star.cons{
   public implementation monad[cons] => {
     (return X) => cons(X,.nil).
     (XS >>= F) => multicat(fmap(F,XS)).
-  }  
+  }
 }
