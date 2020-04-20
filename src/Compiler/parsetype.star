@@ -278,9 +278,8 @@ star.compiler.typeparse{
     Q <- parseBoundTpVars(V,Rp);
     Tp <- parseTypeHead(Q,H,Env,Path,Rp);
     Cx <- parseConstraints(C,Q,Env,Rp);
-    Fce <- parseType(Q,B,Env,Rp);
-    
     Tmplte .= pickTypeTemplate(Tp);
+    Fce <- parseType(Q,B,declareType(Nm,some(Lc),Tmplte,typeExists(Tp,faceType([],[])),Env),Rp);
     TpRl .= reQuant(Q,reConstrainType(Cx,typeExists(Tp,Fce)));
     valis (typeDef(Lc,Nm,Tmplte,TpRl),declareType(Nm,some(Lc),Tmplte,TpRl,Env))
   }

@@ -13,14 +13,21 @@ star.compiler.dependencies{
     either[reports,
       (cons[(defnSp,visibility)],cons[ast],cons[(string,ast)],cons[cons[defnSpec]])].
   dependencies(Dfs,Rp) => do{
+--    logMsg("look for dependencies in $(Dfs)");
     (Defs,Pb,As,Opn) <- collectDefinitions(Dfs,Rp);
-    AllRefs .= (Defs//((defnSpec(Nm,_,_))=>Nm));
+    AllRefs .= foldLeft((M,D)=>collectRef(D,M),[],Defs);
     InitDefs <- collectThetaRefs(Defs,AllRefs,As,[],Rp);
-
-    Groups .= (topsort(InitDefs) // ((Gp)=>(Gp//((definition(Sp,Lc,_,Els))=>defnSpec(Sp,Lc,Els)))));
-    
+    Groups .= (topsort(InitDefs) // (Gp)=>(Gp//((definition(Sp,Lc,_,Els))=>defnSpec(Sp,Lc,Els))));
+--    logMsg("groups $(Groups)");
     valis (Pb,Opn,As,Groups)
   }
+
+  private collectRef:(defnSpec,map[defnSp,defnSp])=>map[defnSp,defnSp].
+  collectRef(defnSpec(conSp(Nm),_,[St]),M) where (_,_,Els) ^= isContractStmt(St) =>
+    foldLeft((MM,El) => ((_,N,_) ^= isTypeAnnotation(El) && (_,Id)^=isName(N) ?
+	  MM[varSp(Id)->conSp(Nm)] || MM),
+      M[conSp(Nm)->conSp(Nm)],Els).
+  collectRef(defnSpec(N,_,_),M) => M[N->N].
 
   public recordDefs:(cons[ast],reports) =>
     either[reports,
@@ -152,7 +159,7 @@ star.compiler.dependencies{
   generateAnnotations([A,..Ss],Qs,Cs,As) =>
     generateAnnotations(Ss,Qs,Cs,As).
 
-  collectThetaRefs:(cons[defnSpec],cons[defnSp],cons[(string,ast)],
+  collectThetaRefs:(cons[defnSpec],map[defnSp,defnSp],cons[(string,ast)],
     cons[definitionSpec],reports) =>
     either[reports,cons[definitionSpec]].
   collectThetaRefs([],_,_,DSpecs,_) => either(DSpecs).
@@ -165,18 +172,18 @@ star.compiler.dependencies{
     collectThetaRefs(Defs,AllRefs,Annots,[definition(Defines,Lc,Refs,Stmts),..S],Rp)
   }.
 
-  collectEnvRefs:(cons[ast],cons[defnSp],cons[(string,ast)],cons[defnSp],reports) =>
+  collectEnvRefs:(cons[ast],map[defnSp,defnSp],cons[(string,ast)],cons[defnSp],reports) =>
     either[reports,cons[defnSp]].
   collectEnvRefs(Defs,All,Annots,Rf,Rp) =>
     collectStmtsRefs(Defs,locallyDefined(Defs,All),Annots,Rf,Rp).
 
-  locallyDefined:(cons[ast],cons[defnSp]) => cons[defnSp].
+  locallyDefined:(cons[ast],map[defnSp,defnSp]) => map[defnSp,defnSp].
   locallyDefined([],All) => All.
   locallyDefined([St,..Stmts],All) =>
     locallyDefined(Stmts,removeLocalDef(St,All)).
 
   removeLocalDef(St,All) where (_,Id) ^= ruleName(St) =>
-    _delMem(varSp(Id),All).
+    All[!varSp(Id)].
 
   collectStmtsRefs([],_,_,Rf,_) => either(Rf).
   collectStmtsRefs([St,..Sts],All,Annots,Rf,Rp) => do{
@@ -184,7 +191,7 @@ star.compiler.dependencies{
     collectStmtsRefs(Sts,All,Annots,Rf0,Rp)
   }
 
-  collectStmtRefs:(ast,cons[defnSp],cons[(string,ast)],cons[defnSp],reports) =>
+  collectStmtRefs:(ast,map[defnSp,defnSp],cons[(string,ast)],cons[defnSp],reports) =>
     either[reports,cons[defnSp]].
   collectStmtRefs(A,All,Annots,Rf,Rp) where (_,_,Tp) ^= isTypeAnnotation(A) =>
     collectTypeRefs(Tp,All,Rf,Rp).
@@ -200,9 +207,9 @@ star.compiler.dependencies{
     Rf0 <- collectAnnotRefs(V,All,Annots,Rf,Rp);
     collectTermRefs(D,All,Rf0,Rp)
   }
-  collectStmtRefs(A,All,Annots,Rf,Rp) where (_,H,R) ^= isEquation(A) => do{
-    Rf0 <- collectAnnotRefs(H,All,Annots,Rf,Rp);
-    Rf1 <- collectHeadRefs(H,All,Rf0,Rp);
+  collectStmtRefs(A,All,Annots,Rf,Rp) where (_,some(Nm),_,H,C,R) ^= isEquation(A) => do{
+    Rf0 <- collectAnnotRefs(Nm,All,Annots,Rf,Rp);
+    Rf1 <- collectHeadRefs(H,C,All,Rf0,Rp);
     collectTermRefs(R,All,Rf1,Rp)
   }
   collectStmtRefs(A,All,Annots,Rf,Rp) where isConstructorStmt(A) =>
@@ -214,6 +221,13 @@ star.compiler.dependencies{
 	Rf1 <- collectTypeRefs(L,A0,Rf0,Rp);
 	collectTypeRefs(R,A0,Rf1,Rp)
       }.
+  collectStmtRefs(A,All,Annots,Rf,Rp) where
+      (_,Q,Cx,H,R) ^= isAlgebraicTypeStmt(A) => do{
+	A0 .= filterOut(All,Q);
+	Rf0 <- collectConstraintRefs(Cx,A0,Rf,Rp);
+	collectTypeRefs(R,A0,Rf0,Rp)
+      }
+
   collectStmtRefs(A,All,Annots,Rf,Rp) where
       (_,Q,Cx,L,R) ^= isTypeFunStmt(A) => do{
 	A0 .= filterOut(All,Q);
@@ -239,22 +253,12 @@ star.compiler.dependencies{
   collectStmtRefs(A,All,Annots,Rf,Rp) =>
     other(reportError(Rp,"cannot fathom definition $(A)",locOf(A))).
 
-  isConstructorStmt(A) where (_,_,I) ^= isQuantified(A) =>
-    isConstructorStmt(I).
-  isConstructorStmt(A) where (_,_,I) ^= isXQuantified(A) =>
-    isConstructorStmt(I).
-  isConstructorStmt(A) where (_,I) ^= isPrivate(A) =>
-    isConstructorStmt(I).
-  isConstructorStmt(A) where (_,I) ^= isPublic(A) =>
-    isConstructorStmt(I).
-  isConstructorStmt(A) => _ ^= isBinary(A,"<=>").
-
-  collectHeadRefs(Hd,All,Rf,Rp) where (_,H,C) ^= isWhere(Hd) => do{
+  collectHeadRefs(H,some(C),All,Rf,Rp) => do{
     Rf0 <- collectTermRefs(H,All,Rf,Rp);
     collectCondRefs(C,All,Rf0,Rp)
   }
-  collectHeadRefs(Hd,All,Rf,Rp) => 
-    collectTermRefs(Hd,All,Rf,Rp).
+  collectHeadRefs(H,.none,All,Rf,Rp) =>
+    collectTermRefs(H,All,Rf,Rp).
     
   collectAnnotRefs(H,All,Annots,Rf,Rp) where Id^=headName(H) =>
     ((Id,Tp) in Annots ?
@@ -262,12 +266,16 @@ star.compiler.dependencies{
 	either(Rf)).
   collectAnnotRefs(H,_,_,_,Rp) => other(reportError(Rp,"not a head: $(H)",locOf(H))).
 
-  collectCondRefs:(ast,cons[defnSp],cons[defnSp],reports) => either[reports,cons[defnSp]].
+  collectCondRefs:(ast,map[defnSp,defnSp],cons[defnSp],reports) => either[reports,cons[defnSp]].
   collectCondRefs(A,All,Rf,Rp) where (_,L,R) ^= isConjunct(A) => do{
     Rf1 <- collectCondRefs(L,All,Rf,Rp);
     collectCondRefs(R,All,Rf1,Rp)
   }
   collectCondRefs(A,All,Rf,Rp) where (_,L,R) ^= isDisjunct(A) => do{
+    Rf1 <- collectCondRefs(L,All,Rf,Rp);
+    collectCondRefs(R,All,Rf1,Rp)
+  }
+  collectCondRefs(A,All,Rf,Rp) where (_,L,R) ^= isImplies(A) => do{
     Rf1 <- collectCondRefs(L,All,Rf,Rp);
     collectCondRefs(R,All,Rf1,Rp)
   }
@@ -282,7 +290,7 @@ star.compiler.dependencies{
     collectCondRefs(C,All,Rf,Rp).
   collectCondRefs(E,All,Rf,Rp) => collectTermRefs(E,All,Rf,Rp).
     
-  collectTermRefs:(ast,cons[defnSp],cons[defnSp],reports) => either[reports,cons[defnSp]].
+  collectTermRefs:(ast,map[defnSp,defnSp],cons[defnSp],reports) => either[reports,cons[defnSp]].
   collectTermRefs(V,All,Rf,Rp) where (_,Id) ^= isName(V) =>
     either(collectName(varSp(Id),All,Rf)).
   collectTermRefs(T,All,Rf,Rp) where (_,Id) ^= isEnumSymb(T) =>
@@ -295,13 +303,17 @@ star.compiler.dependencies{
     Rf1 <- collectTermRefs(Bnd,All,Rf,Rp);
     collectStmtsRefs(Env,All,[],Rf1,Rp)
   }
+  collectTermRefs(T,All,Rf,Rp) where (_,Env,Bnd) ^= isQLetDef(T) => do{
+    Rf1 <- collectTermRefs(Bnd,All,Rf,Rp);
+    collectStmtsRefs(Env,All,[],Rf1,Rp)
+  }
+  collectTermRefs(T,All,Rf,Rp) where (_,I) ^= isRef(T) =>
+    collectTermRefs(I,All,Rf,Rp).
   collectTermRefs(T,All,Rf,Rp) where (_,Op,Args) ^= isRoundTerm(T) => do{
     Rf1 <- collectTermRefs(Op,All,Rf,Rp);
     collectTermListRefs(Args,All,Rf1,Rp)
   }
   collectTermRefs(T,All,Rf,Rp) where (_,Args) ^= isTuple(T) => 
-    collectTermListRefs(Args,All,Rf,Rp).
-  collectTermRefs(T,All,Rf,Rp) where (_,Args) ^= isSqTuple(T) => 
     collectTermListRefs(Args,All,Rf,Rp).
   collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isCons(T) => do{
     Rf1 <- collectTermRefs(L,All,Rf,Rp);
@@ -311,13 +323,19 @@ star.compiler.dependencies{
     Rf1 <- collectTermRefs(Bnd,All,Rf,Rp);
     collectCondRefs(Cond,All,Rf1,Rp)
   }
+  collectTermRefs(T,All,Rf,Rp) where (_,Bnd,Cond) ^= isListComprehension(T) => do{
+    Rf1 <- collectTermRefs(Bnd,All,Rf,Rp);
+    collectCondRefs(Cond,All,Rf1,Rp)
+  }
+  collectTermRefs(T,All,Rf,Rp) where (_,Args) ^= isSqTuple(T) => 
+    collectTermListRefs(Args,All,Rf,Rp).
   collectTermRefs(T,All,Rf,Rp) where (_,E,C) ^= isCaseExp(T) => do{
     Rf0 <- collectTermRefs(E,All,Rf,Rp);
     collectCasesRefs(C,All,Rf0,Rp)
   }
-  collectTermRefs(T,All,Rf,Rp) where (_,Sts) ^= isBrTuple(T) =>
+  collectTermRefs(T,All,Rf,Rp) where (_,Sts) ^= isTheta(T) =>
     collectStmtsRefs(Sts,All,[],Rf,Rp).
-  collectTermRefs(T,All,Rf,Rp) where (_,Sts) ^= isQBrTuple(T) =>
+  collectTermRefs(T,All,Rf,Rp) where (_,Sts) ^= isRecord(T) =>
     collectStmtsRefs(Sts,All,[],Rf,Rp).
   collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isMatch(T) => do{
     Rf1 <- collectTermRefs(L,All,Rf,Rp);
@@ -352,6 +370,10 @@ star.compiler.dependencies{
     Rf1 <- collectCondRefs(L,All,Rf,Rp);
     collectCondRefs(R,All,Rf1,Rp)
   }
+  collectTermRefs(A,All,Rf,Rp) where (_,L,R) ^= isImplies(A) => do{
+    Rf1 <- collectCondRefs(L,All,Rf,Rp);
+    collectCondRefs(R,All,Rf1,Rp)
+  }
   collectTermRefs(A,All,Rf,Rp) where (_,R) ^= isNegation(A) => 
     collectCondRefs(R,All,Rf,Rp).
   collectTermRefs(A,All,Rf,Rp) where (_,T,L,R) ^= isConditional(A) => do{
@@ -359,8 +381,8 @@ star.compiler.dependencies{
     Rf1 <- collectTermRefs(L,All,Rf0,Rp);
     collectTermRefs(R,All,Rf1,Rp)
   }
-  collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isEquation(T) => do{
-    Rf1 <- collectTermRefs(L,All,Rf,Rp);
+  collectTermRefs(T,All,Rf,Rp) where (_,_,L,C,R) ^= isLambda(T) => do{
+    Rf1 <- collectHeadRefs(L,C,All,Rf,Rp);
     collectTermRefs(R,All,Rf1,Rp)
   }
   collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isWhere(T) => do{
@@ -371,6 +393,8 @@ star.compiler.dependencies{
     Rf1 <- collectTermRefs(L,All,Rf,Rp);
     collectCondRefs(R,All,Rf1,Rp)
   }
+  collectTermRefs(T,All,Rf,Rp) where (_,L) ^= isPromotion(T) =>
+    collectTermRefs(L,All,Rf,Rp).
   collectTermRefs(T,All,Rf,Rp) where (_,L) ^= isDoTerm(T) =>
     collectDoRefs(L,All,Rf,Rp).
   collectTermRefs(T,All,Rf,Rp) where (_,L) ^= isActionTerm(T) =>
@@ -393,9 +417,22 @@ star.compiler.dependencies{
     Rf1 <- collectTermRefs(L,All,Rf,Rp);
     collectTermRefs(R,All,Rf1,Rp)
   }
-  collectTermRefs(_,_,Rf,_) default => either(Rf).
+  collectTermRefs(T,All,Rf,Rp) where (_,L,_) ^= isFieldAcc(T) => 
+    collectTermRefs(L,All,Rf,Rp).
+  collectTermRefs(T,All,Rf,Rp) where (_,L,Stmts) ^= isLabeledTheta(T) => do{
+    Rf1 <- collectStmtsRefs(Stmts,All,[],Rf,Rp);
+    collectTermRefs(L,All,Rf1,Rp)
+  }
+  collectTermRefs(T,All,Rf,Rp) where (_,L,Stmts) ^= isLabeledRecord(T) => do{
+    Rf1 <- collectStmtsRefs(Stmts,All,[],Rf,Rp);
+    collectTermRefs(L,All,Rf1,Rp)
+  }
+  collectTermRefs(int(_,_),_,Rf,_) => either(Rf).
+  collectTermRefs(str(_,_),_,Rf,_) => either(Rf).
+  collectTermRefs(num(_,_),_,Rf,_) => either(Rf).
+  collectTermRefs(T,_,_,Rp) => other(reportError(Rp,"cant parse $(T) for references",locOf(T))).
 
-  collectDoRefs:(ast,cons[defnSp],cons[defnSp],reports) => either[reports,cons[defnSp]].
+  collectDoRefs:(ast,map[defnSp,defnSp],cons[defnSp],reports) => either[reports,cons[defnSp]].
   collectDoRefs(A,All,Rf,Rp) where (_,L,R) ^= isActionSeq(A) => do{
     Rf1 <- collectDoRefs(L,All,Rf,Rp);
     collectDoRefs(R,All,Rf1,Rp)
@@ -418,7 +455,7 @@ star.compiler.dependencies{
     collectTermRefs(R,All,Rf,Rp).
   collectDoRefs(A,All,Rf,Rp) where (_,L,R) ^= isTryCatch(A) => do{
     Rf1 <- collectDoRefs(L,All,Rf,Rp);
-    collectTermRefs(R,All,Rf1,Rp)
+    collectCatchRefs(R,All,Rf1,Rp)
   }
   collectDoRefs(A,All,Rf,Rp) where (_,T,L,R) ^= isIfThenElse(A) => do{
     Rf0 <- collectTermRefs(T,All,Rf,Rp);
@@ -427,33 +464,37 @@ star.compiler.dependencies{
   }
   collectDoRefs(A,All,Rf,Rp) where (_,T,L) ^= isIfThen(A) => do{
     Rf0 <- collectCondRefs(T,All,Rf,Rp);
-    collectDoRefs(L,All,Rf,Rp)
+    collectDoRefs(L,All,Rf0,Rp)
   }
   collectDoRefs(A,All,Rf,Rp) where (_,T,L) ^= isWhileDo(A) => do{
     Rf0 <- collectCondRefs(T,All,Rf,Rp);
-    collectDoRefs(L,All,Rf,Rp)
+    collectDoRefs(L,All,Rf0,Rp)
   }
   collectDoRefs(A,All,Rf,Rp) where (_,T,L) ^= isForDo(A) => do{
     Rf0 <- collectCondRefs(T,All,Rf,Rp);
-    collectDoRefs(L,All,Rf,Rp)
+    collectDoRefs(L,All,Rf0,Rp)
   }
   collectDoRefs(A,All,Rf,Rp) where (_,[S]) ^= isBrTuple(A) =>
     collectDoRefs(S,All,Rf,Rp).
   collectDoRefs(A,All,Rf,Rp) => collectTermRefs(A,All,Rf,Rp).
+
+  collectCatchRefs(A,All,Rf,Rp) where (_,[St]) ^= isBrTuple(A) =>
+    collectDoRefs(St,All,Rf,Rp).
+  collectCatchRefs(A,All,Rf,Rp) => collectTermRefs(A,All,Rf,Rp).
   
   collectCasesRefs([],_,Rf,_) => either(Rf).
   collectCasesRefs([St,..Sts],All,Rf,Rp) => do{
     Rf0 <- collectCaseRefs(St,All,Rf,Rp);
     collectCasesRefs(Sts,All,Rf0,Rp)
   }
-  collectCaseRefs(Cse,All,Rf,Rp) where (_,Lhs,Rhs) ^= isEquation(Cse) => do{
-    Rf1 <- collectTermRefs(Lhs,All,Rf,Rp);
+  collectCaseRefs(Cse,All,Rf,Rp) where (_,_,A,C,Rhs) ^= isLambda(Cse) => do{
+    Rf1 <- collectHeadRefs(A,C,All,Rf,Rp);
     collectTermRefs(Rhs,All,Rf1,Rp)
   }
   collectCaseRefs(Cse,_,_,Rp) =>
     other(reportError(Rp,"invalid case in case expression $(Cse)",locOf(Cse))).
     
-  collectTermListRefs:(cons[ast],cons[defnSp],cons[defnSp],reports) =>
+  collectTermListRefs:(cons[ast],map[defnSp,defnSp],cons[defnSp],reports) =>
     either[reports,cons[defnSp]].
   collectTermListRefs([],_,R,_) => either(R).
   collectTermListRefs([T,..Ts],All,Rf,Rp) => do {
@@ -461,22 +502,18 @@ star.compiler.dependencies{
     collectTermListRefs(Ts,All,R1,Rp)
   }
 
-  collectTypeRefs:(ast,cons[defnSp],cons[defnSp],reports) => either[reports,cons[defnSp]].
+  collectTypeRefs:(ast,map[defnSp,defnSp],cons[defnSp],reports) => either[reports,cons[defnSp]].
   collectTypeRefs(V,All,SoFar,Rp) where (_,Id) ^= isName(V) =>
     either(collectName(tpSp(Id),All,SoFar)).
   collectTypeRefs(T,All,SoFar,Rp) where (_,Op,Els) ^= isSquareTerm(T) => do{
     R1 <- collectTypeRefs(Op,All,SoFar,Rp);
     collectTypeList(Els,All,R1,Rp)
   }
-  collectTypeRefs(T,All,SoFar,Rp) where (_,L,R) ^= isBinary(T,">") => do{
+  collectTypeRefs(T,All,SoFar,Rp) where (_,L,R) ^= isConstructorType(T) => do{
     R1 <- collectTypeRefs(L,All,SoFar,Rp);
     collectTypeRefs(R,All,R1,Rp)
   }
-  collectTypeRefs(T,All,SoFar,Rp) where (_,L,R) ^= isBinary(T,"<=>") => do{
-    R1 <- collectTypeRefs(L,All,SoFar,Rp);
-    collectTypeRefs(R,All,R1,Rp)
-  }
-  collectTypeRefs(T,All,SoFar,Rp) where (_,L,R) ^= isBinary(T,"=>") => do{
+  collectTypeRefs(T,All,SoFar,Rp) where (_,L,R) ^= isFunctionType(T) => do{
     R1 <- collectTypeRefs(L,All,SoFar,Rp);
     collectTypeRefs(R,All,R1,Rp)
   }
@@ -495,6 +532,10 @@ star.compiler.dependencies{
     collectTypeRefs(R,All,R1,Rp)
   }
   collectTypeRefs(T,All,SoFar,Rp) where (_,L,R) ^= isBinary(T,"<~") => do{
+    R1 <- collectTypeRefs(L,All,SoFar,Rp);
+    collectTypeRefs(R,All,R1,Rp)
+  }
+  collectTypeRefs(T,All,SoFar,Rp) where (_,L,R) ^= isBinary(T,"|") => do{
     R1 <- collectTypeRefs(L,All,SoFar,Rp);
     collectTypeRefs(R,All,R1,Rp)
   }
@@ -521,14 +562,14 @@ star.compiler.dependencies{
   collectTypeRefs(T,_,_,Rp) default =>
     other(reportError(Rp,"cannot fathom type $(T)",locOf(T))).
   
-  collectTypeList:(cons[ast],cons[defnSp],cons[defnSp],reports) => either[reports,cons[defnSp]].
+  collectTypeList:(cons[ast],map[defnSp,defnSp],cons[defnSp],reports) => either[reports,cons[defnSp]].
   collectTypeList([],_,R,_) => either(R).
   collectTypeList([T,..Ts],All,Rf,Rp) => do {
     R1 <- collectTypeRefs(T,All,Rf,Rp);
     collectTypeList(Ts,All,R1,Rp)
   }
 
-  collectConstraintRefs:(cons[ast],cons[defnSp],cons[defnSp],reports) =>
+  collectConstraintRefs:(cons[ast],map[defnSp,defnSp],cons[defnSp],reports) =>
     either[reports,cons[defnSp]].
   collectConstraintRefs([],_,R,_) => either(R).
   collectConstraintRefs([T,..Ts],All,Rf,Rp) where _ ^= isSquareTerm(T) => do {
@@ -540,7 +581,7 @@ star.compiler.dependencies{
     collectConstraintRefs(Ts,All,R1,Rp)
   }
 
-  collectContractRefs:(ast,cons[defnSp],cons[defnSp],reports) =>
+  collectContractRefs:(ast,map[defnSp,defnSp],cons[defnSp],reports) =>
     either[reports,cons[defnSp]].
   collectContractRefs(T,All,Rf,Rp) where (_,Op,Args) ^= isSquareTerm(T) => do {
     (_,Id) ^= isName(Op);
@@ -560,16 +601,18 @@ star.compiler.dependencies{
 
   collectFaceType(P,All,R,Rp) where (_,I) ^= isUnary(P,"type") =>
     collectFaceType(I,All,R,Rp).
-  collectFaceType(P,All,R,Rp) where (_,_,T) ^= isTypeAnnotation(P) =>
+  collectFaceType(P,All,R,Rp) where (_,L,T) ^= isTypeAnnotation(P) =>
     collectTypeRefs(T,All,R,Rp).
   collectFaceType(_,All,R,_) => either(R).
 
-  collectName(Sp,All,SoFar) where Sp in All && !Sp in SoFar => [Sp,..SoFar].
+  collectName:(defnSp,map[defnSp,defnSp],cons[defnSp])=>cons[defnSp].
+  collectName(Sp,All,SoFar) where Rf^=All[Sp] && !Sp in SoFar => [Sp,..SoFar].
   collectName(_,_,SoFar) default => SoFar.
 
-  filterOut:(cons[defnSp],cons[ast]) => cons[defnSp].
-  filterOut([],_) => [].
-  filterOut([tpSp(Nm),..As],Q) where V in Q && (_,Nm)^=isName(V) =>
-    filterOut(As,Q).
-  filterOut([Sp,..As],Q) => [Sp,..filterOut(As,Q)].
+  filterOut:(map[defnSp,defnSp],cons[ast]) => map[defnSp,defnSp].
+  filterOut(M,Q) => let{
+    qName(V) where (_,Id) ^= isName(V) => some(Id).
+    qName(V) where (_,L,_) ^= isBinary(V,"/") => qName(L).
+    qName(_) default => .none.
+  } in foldLeft((MM,V) where Id^=qName(V) => MM[!varSp(Id)],M,Q).
 }

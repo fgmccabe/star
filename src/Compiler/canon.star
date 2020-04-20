@@ -40,7 +40,7 @@ star.compiler.canon{
 
   public equation ::= eqn(locn,canon,option[canon],canon).
 
-  public canonAction ::= noDo(locn) |
+  public canonAction ::= noDo(locn,tipe,tipe) |
     seqnDo(locn,canonAction,canonAction) |
     bindDo(locn,canon,canon,tipe,tipe,tipe) |
     varDo(locn,canon,canon) |
@@ -121,7 +121,7 @@ star.compiler.canon{
   .}
 
   public implementation hasLoc[canonAction] => {.
-    locOf(noDo(Lc)) => Lc.
+    locOf(noDo(Lc,_,_)) => Lc.
     locOf(seqnDo(Lc,_,_)) => Lc.
     locOf(bindDo(Lc,_,_,_,_,_)) => Lc.
     locOf(varDo(Lc,_,_)) => Lc.
@@ -141,7 +141,7 @@ star.compiler.canon{
     disp(A) => ssSeq([ss("{"),dispAction(A,""),ss("}")]).
   .}
 
-  dispAction(noDo(Lc),_) => ss("{}").
+  dispAction(noDo(Lc,_,_),_) => ss("{}").
   dispAction(seqnDo(Lc,L,R),Sp) => ssSeq([dispAction(L,Sp),ss(";"),dispAction(R,Sp)]).
   dispAction(bindDo(Lc,Ptn,Exp,_,_,_),Sp) =>
     ssSeq([showCanon(Ptn,Sp),ss("<-"),showCanon(Exp,Sp)]).
@@ -149,12 +149,12 @@ star.compiler.canon{
     ssSeq([showCanon(Ptn,Sp),ss(".="),showCanon(Exp,Sp)]).
   dispAction(delayDo(_,Act,_,_,_),Sp) => ssSeq([ss("delay "),dispAction(Act,Sp++"  ")]).
   dispAction(ifThenElseDo(Lc,Ts,Th,El,_,_,_),Sp) =>
-    ssSeq([ss("if"),showCanon(Ts,Sp),ss("then"),
-	dispAction(Th,Sp++"  "),ss("else"),dispAction(El,Sp)]).
+    ssSeq([ss("if "),showCanon(Ts,Sp),ss(" then "),
+	dispAction(Th,Sp++"  "),ss(" else "),dispAction(El,Sp)]).
   dispAction(whileDo(Lc,Ts,Bd,_,_),Sp) =>
-    ssSeq([ss("while "),showCanon(Ts,Sp),ss("do"),dispAction(Bd,Sp++"  ")]).
+    ssSeq([ss("while "),showCanon(Ts,Sp),ss(" do "),dispAction(Bd,Sp++"  ")]).
   dispAction(forDo(Lc,Ts,Bd,_,_),Sp) =>
-    ssSeq([ss("for "),showCanon(Ts,Sp),ss("do"),dispAction(Bd,Sp++"  ")]).
+    ssSeq([ss("for "),showCanon(Ts,Sp),ss(" do "),dispAction(Bd,Sp++"  ")]).
   dispAction(tryCatchDo(Lc,Bdy,Catch,_,_,_),Sp) =>
     ssSeq([ss("try "),dispAction(Bdy,Sp++"  "),
 	ss(" catch "),showCanon(Catch,Sp)]).

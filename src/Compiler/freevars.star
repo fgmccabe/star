@@ -37,7 +37,7 @@ star.compiler.freevars{
   freeVarsInTerm(serch(_,P,S,I),Excl,Fv) where Excl1 .= extendExcl(P,Excl,Fv) =>
     freeVarsInTerm(S,Excl1,freeVarsInTerm(I,Excl1,freeVarsInTerm(P,Excl1,Fv))).
   freeVarsInTerm(match(_,P,S),Excl,Fv) where Excl1 .= extendExcl(P,Excl,Fv) =>
-    freeVarsInTerm(S,Excl,freeVarsInTerm(P,Excl1,Fv)).
+    freeVarsInTerm(S,Excl1,freeVarsInTerm(P,Excl1,Fv)).
   freeVarsInTerm(conj(Lc,L,R),Excl,Fv) where
       (_,Fv1) .= freeVarsInCond(conj(Lc,L,R),Excl,Fv) => Fv1.
   freeVarsInTerm(disj(Lc,L,R),Excl,Fv) where
@@ -48,7 +48,7 @@ star.compiler.freevars{
     foldRight((Rl,F)=>freeVarsInEqn(Rl,Excl,F),Fv,Eqns).
   freeVarsInTerm(letExp(_,D,E),Excl,Fv) => let{
     XX = exclDfs(D,Excl,Fv)
-  } in freeVarsInTerm(E,XX,freeVarsInDefs(D,Excl,Fv)).
+  } in freeVarsInTerm(E,XX,freeVarsInDefs(D,XX,Fv)).
   freeVarsInTerm(letRec(_,D,E),Excl,Fv) => let{
     XX = exclDfs(D,Excl,Fv)
   } in freeVarsInTerm(E,XX,freeVarsInDefs(D,XX,Fv)).
@@ -95,7 +95,7 @@ star.compiler.freevars{
   freeVarsInDefs:(cons[canonDef],set[crVar],set[crVar])=>set[crVar].
   freeVarsInDefs(Defs,Excl,Fv)=>foldRight((D,F)=>freeVarsInDef(D,Excl,F),Fv,Defs).
 
-  freeVarsInAction(noDo(_),_,Fv) => Fv.
+  freeVarsInAction(noDo(_,_,_),_,Fv) => Fv.
   freeVarsInAction(seqnDo(_,L,R),Excl,Fv) =>
     freeVarsInAction(R,Excl,freeVarsInAction(L,Excl,Fv)).
   freeVarsInAction(bindDo(_,L,R,_,_,_),Excl,Fv) where Excl1.=extendExcl(L,Excl,Fv) =>
@@ -141,6 +141,7 @@ star.compiler.freevars{
   glVars(cond(_,T,L,R),Vrs) => glVars(L,glVars(T,Vrs))/\ glVars(R,Vrs).
   glVars(tple(_,Els),Vrs) =>
     foldRight((E,F)=>glVars(E,F),Vrs,Els).
+  glVars(serch(_,P,S,_),Vrs) => ptnVars(P,Vrs,[]).
   glVars(match(_,P,S),Vrs) => ptnVars(P,Vrs,[]).
   glVars(conj(Lc,L,R),Vrs) => glVars(R,glVars(L,Vrs)).
   glVars(disj(Lc,L,R),Vrs) => glVars(L,Vrs)/\glVars(R,Vrs).

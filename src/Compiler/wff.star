@@ -9,9 +9,6 @@ star.compiler.wff{
   import star.compiler.location.
   import star.compiler.meta.
 
-  public genName:(locn,string) => ast.
-  genName(Lc,V) => nme(Lc,genSym(V)).
-
   public isLitAst:(ast) => boolean.
   isLitAst(int(_,_)) => .true.
   isLitAst(num(_,_)) => .true.
@@ -54,7 +51,17 @@ star.compiler.wff{
 
   public isFunctionType:(ast) => option[(locn,ast,ast)].
   isFunctionType(A) => isBinary(A,"=>").
-    
+
+  public isConstructorStmt(A) where (_,_,I) ^= isQuantified(A) =>
+    isConstructorStmt(I).
+  isConstructorStmt(A) where (_,_,I) ^= isXQuantified(A) =>
+    isConstructorStmt(I).
+  isConstructorStmt(A) where (_,I) ^= isPrivate(A) =>
+    isConstructorStmt(I).
+  isConstructorStmt(A) where (_,I) ^= isPublic(A) =>
+    isConstructorStmt(I).
+  isConstructorStmt(A) => _ ^= isBinary(A,"<=>").
+
   public deComma:(ast) => cons[ast].
   deComma(Trm) => let{
     deC(T,SoF) where (_,Lh,Rh)^=isBinary(T,",") =>
@@ -84,8 +91,7 @@ star.compiler.wff{
   isTypeExists(A) => isBinary(A,"<~").
 
   public isTypeAnnotation:(ast)=>option[(locn,ast,ast)].
-  isTypeAnnotation(A) where Ptn ^= isBinary(A,":") => some(Ptn).
-  isTypeAnnotation(_) default => .none.
+  isTypeAnnotation(A) => isBinary(A,":").
 
   public typeAnnotation:(locn,ast,ast)=>ast.
   typeAnnotation(Lc,V,T) => binary(Lc,":",V,T).
@@ -157,7 +163,7 @@ star.compiler.wff{
   algebraicFace(A,Rp) where (_,_,I) ^= isXQuantified(A) => algebraicFace(I,Rp).
   algebraicFace(A,Rp) where (_,_,I) ^= isQuantified(A) => algebraicFace(I,Rp).
   algebraicFace(A,Rp) where (_,_,I) ^= isConstrained(A) => algebraicFace(I,Rp).
-  algebraicFace(A,Rp) where (Lc,_,_) ^= isEquation(A) => either(brTuple(Lc,[])).
+  algebraicFace(A,Rp) where (Lc,_,_) ^= isFunctionType(A) => either(brTuple(Lc,[])).
   algebraicFace(A,Rp) where (Lc,_,_) ^= isConstructorType(A) => either(brTuple(Lc,[])).
 
   combineFaces(F1,F2,Rp) where (_,[]) ^= isBrTuple(F1) => either(F2).
@@ -182,12 +188,19 @@ star.compiler.wff{
       (_,Bnd,Body) ^= isBinary(T,"|") => some((Lc,Bnd,Body)).
   isComprehension(A) => .none.
 
+  public isListComprehension:(ast) => option[(locn,ast,ast)].
+  isListComprehension(A) where (Lc,[T]) ^= isSqTuple(A) &&
+      (_,Bnd,Body) ^= isBinary(T,"|") => some((Lc,Bnd,Body)).
+  isListComprehension(A) => .none.
+
   public isConjunct(A) => isBinary(A,"&&").
 
   public isDisjunct(A) => isBinary(A,"||").
 
   public isNegation(A) => isUnary(A,"!").
 
+  public isImplies(A) => isBinary(A,"*>").
+  
   public isConditional(A) where
       (Lc,Tst,Rhs) ^= isBinary(A,"?") &&
       (_,Th,El) ^= isBinary(Rhs,"||") => some((Lc,Tst,Th,El)).
@@ -230,7 +243,7 @@ star.compiler.wff{
 	    binary(Lc,"<=>",reXQuant(XQs,
 		reConstrain(XCx,brTuple(Lc,Els))),Tp))).
 	Sp = cnsSp(Nm).
-	Def = defnSpec(Sp,Lc,[Con]).
+	Def = trace("record constructor ",defnSpec(Sp,Lc,[Con])).
       } in either(([Def,..Defs],[(Sp,Vz),..Pb],[(Nm,Con),..As])).
   buildConstructors(A,Qs,Cx,Tp,Defs,Pb,As,Vz,Rp) where
       (Lc,Nm,XQs,XCx,Els) ^= isRoundCon(A) => let{
@@ -337,6 +350,12 @@ star.compiler.wff{
   public isCoerce:(ast) => option[(locn,ast,ast)].
   isCoerce(A) => isBinary(A,"::").
 
+  public isRef:(ast) => option[(locn,ast)].
+  isRef(A) => isUnary(A,"!!").
+
+  public refCell:(locn,ast) => ast.
+  refCell(Lc,I) => unary(Lc,"!!",I).
+
   public isIndex:(ast) => option[(locn,ast,ast)].
   isIndex(A) where (Lc,Op,[Ix]) ^= isSquareTerm(A) && ! _^=isBinary(Ix,":") => some((Lc,Op,Ix)).
   isIndex(A) where (Lc,L,R) ^= isBinary(A,"!!") && (_,[Ix]) ^= isSqTuple(R) =>
@@ -357,6 +376,9 @@ star.compiler.wff{
   hasPromotion(A) where (_,_,Els) ^= isRoundTerm(A) =>
     E in Els && (_,_) ^= isUnary(E,"^").
   hasPromotion(_) default => .false.
+
+  public isPromotion:(ast) => option[(locn,ast)].
+  isPromotion(A) => isUnary(A,"^").
 
   public promoteOption:(ast) => ast.
   promoteOption(A) where (Lc,Op,Els) ^= isRoundTerm(A) => valof action{
@@ -432,7 +454,7 @@ star.compiler.wff{
     cons[importSpec],
     cons[ast],
     reports) => either[reports,(cons[importSpec],cons[ast])].
-  collectImports([],Imp,Oth,Rp) => either((Imp,Oth)).
+  collectImports([],Imp,Oth,Rp) => either((Imp,reverse(Oth))).
   collectImports([A,..Ss],Imp,Oth,Rp) => do{
     if Spec ^= isImport(A) then{
       collectImports(Ss,[Spec,..Imp],Oth,Rp)
@@ -442,19 +464,8 @@ star.compiler.wff{
   }
 
   public ruleName:(ast) => option[(locn,string)].
-  ruleName(A) where
-      (Lc,Hd) ^= headOfRule(A) &&
-      Id ^= headName(Hd) => some((Lc,Id)).
+  ruleName(A) where (_,some(Nm),_,_,_,_) ^= isEquation(A) && (Lc,Id)^=isName(Nm) => some((Lc,Id)).
   ruleName(_) default => .none.
-
-  headOfRule:(ast) => option[(locn,ast)].
-  headOfRule(A) where
-      (Lc,Hd,_) ^= isDefn(A) => some((Lc,Hd)).
-  headOfRule(A) where
-      (Lc,Hd,_) ^= isAssignment(A) => some((Lc,Hd)).
-  headOfRule(A) where
-      (Lc,Hd,_) ^= isEquation(A) => some((Lc,Hd)).
-  headOfRule(_) default => .none.
 
   public headName:(ast) => option[string].
   headName(A) where
@@ -462,10 +473,8 @@ star.compiler.wff{
   headName(A) where
       (_,Id) ^= isName(A) => some(Id).
   headName(A) where
-      (_,D) ^= isDefault(A) =>
-    headName(D).
-  headName(A) where (_,H,_) ^= isWhere(A) =>
-    headName(H).
+      (_,D) ^= isDefault(A) => headName(D).
+  headName(A) where (_,H,_) ^= isWhere(A) => headName(H).
   headName(A) where (_,[E]) ^= isTuple(A) => headName(E).
   headName(_) default => .none.
 
@@ -475,8 +484,33 @@ star.compiler.wff{
   public isAssignment:(ast) => option[(locn,ast,ast)].
   isAssignment(A) => isBinary(A,":=").
 
-  public isEquation:(ast) => option[(locn,ast,ast)].
-  isEquation(A) => isBinary(A,"=>").
+  public isEquation:(ast) => option[(locn,option[ast],boolean,ast,option[ast],ast)].
+  isEquation(A) where (Lc,L,R) ^= isBinary(A,"=>") &&
+      (N,H,C,D) ^= splitHead(L,.none,.none,.false) => some((Lc,N,D,H,C,R)).
+  isEquation(_) default => .none.
+
+  splitHead:(ast,option[ast],option[ast],boolean) => option[(option[ast],ast,option[ast],boolean)].
+  splitHead(A,N,C,_) where (_,I) ^= isDefault(A) => splitHead(I,N,C,.true).
+  splitHead(A,_,C,D) where (Lc,Nm,As) ^= isRoundTerm(A) => some((some(Nm),rndTuple(Lc,As),C,D)).
+  splitHead(A,.none,C,D) where (_,[El]) ^= isTuple(A) => splitHd(El,.none,C,D).
+  splitHead(A,N,_,D) where (Lc,L,C) ^= isWhere(A) => splitHead(L,N,some(C),D).
+  splitHead(A,N,C,D) => some((N,A,C,D)).
+
+  splitHd:(ast,option[ast],option[ast],boolean) => option[(option[ast],ast,option[ast],boolean)].
+  splitHd(A,N,C,_) where (_,I) ^= isDefault(A) => splitHd(I,N,C,.true).
+  splitHd(A,_,C,D) where (Lc,Nm,As) ^= isRoundTerm(A) => some((some(Nm),rndTuple(Lc,As),C,D)).
+  splitHd(A,N,_,D) where (Lc,L,C) ^= isWhere(A) => splitHd(L,N,some(C),D).
+  splitHd(A,N,C,D) => some((N,A,C,D)).
+
+  public isLambda:(ast) => option[(locn,boolean,ast,option[ast],ast)].
+  isLambda(A) where (Lc,L,R) ^= isBinary(A,"=>") &&
+      (H,C,D) ^= splitLHead(L,.none,.false) => some((Lc,D,H,C,R)).
+  isLambda(_) default => .none.
+
+  splitLHead:(ast,option[ast],boolean) => option[(ast,option[ast],boolean)].
+  splitLHead(A,C,_) where (_,I) ^= isDefault(A) => splitLHead(I,C,.true).
+  splitLHead(A,_,D) where (Lc,L,C) ^= isWhere(A) => splitLHead(L,some(C),D).
+  splitLHead(A,C,D) => some((A,C,D)).
 
   public areEquations:(cons[ast]) => boolean.
   areEquations(L) => E in L *> _ ^= isEquation(E).
@@ -490,15 +524,6 @@ star.compiler.wff{
       (_,Els) ^= isBrTuple(Rhs) => some((Lc,Lhs,Els)).
   isCaseExp(_) => .none.
 
-  public splitHead:(ast) => option[(string,ast,option[ast],boolean)].
-  splitHead(A) where (_,[I]) ^= isTuple(A) => splitHd(I,.none,.false).
-  splitHead(A) => splitHd(A,.none,.false).
-
-  splitHd:(ast,option[ast],boolean) => option[(string,ast,option[ast],boolean)].
-  splitHd(A,C,_) where (_,I) ^= isDefault(A) => splitHd(I,C,.true).
-  splitHd(A,C,D) where (Lc,Nm,As) ^= isRoundTerm(A) && (_,Id) ^= isName(Nm) => some((Id,rndTuple(Lc,As),C,D)).
-  splitHd(A,C,D) where (Lc,Id) ^= isName(A) => some((Id,rndTuple(Lc,[]),C,D)).
-  splitHd(A,_,D) where (Lc,L,C) ^= isWhere(A) => splitHd(L,some(C),D).
   
   public isWhere:(ast) => option[(locn,ast,ast)].
   isWhere(A) => isBinary(A,"where").
@@ -659,7 +684,7 @@ star.compiler.wff{
     MRhs .= roundTerm(Lc,nme(Lc,"main"),Cs);
     Main .= equation(Lc,MLhs,unary(Lc,"valof",MRhs));
     Annot .= binary(Lc,":",nme(Lc,"_main"),equation(Lc,rndTuple(Lc,[squareTerm(Lc,nme(Lc,"cons"),[nme(Lc,"string")])]),rndTuple(Lc,[])));
-    logMsg(" main: $(Annot)\n$(Main)");
+--    logMsg(" main: $(Annot)\n$(Main)");
     valis [unary(Lc,"public",Annot),Main,..Defs].
   }
 

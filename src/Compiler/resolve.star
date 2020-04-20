@@ -15,7 +15,7 @@ star.compiler.resolve{
   public overloadEnvironment:(cons[cons[canonDef]],dict,reports) =>
     either[reports,cons[cons[canonDef]]].
   overloadEnvironment(Gps,Dict,Rp) => do{
-    logMsg("resolving definitions in $(Gps)");
+--    logMsg("resolving definitions in $(Gps)");
     TDict .= declareImplementations(Gps,Dict);
 --    logMsg("resolution dict = $(TDict)");
     overloadGroups(Gps,[],TDict,Rp)
@@ -45,29 +45,32 @@ star.compiler.resolve{
 
   public overloadGroup:(cons[canonDef],dict,reports)=>either[reports,(cons[canonDef],dict)].
   overloadGroup(Dfs,Dict,Rp) => do{
-    RDefs <- overloadDefs(Dict,Dfs,[],Rp);
     TDict .= declareImplementationsInGroup(Dfs,Dict);
-    valis (RDefs,TDict)
+    overloadDefs(TDict,Dfs,[],Rp)
   }
 
   overloadDefs:(dict,cons[canonDef],cons[canonDef],reports) =>
-    either[reports,cons[canonDef]].
-  overloadDefs(Dict,[],Dfx,Rp) => either(reverse(Dfx)).
+    either[reports,(cons[canonDef],dict)].
+  overloadDefs(Dict,[],Dfx,Rp) => either((reverse(Dfx),Dict)).
   overloadDefs(Dict,[D,..Defs],Dfx,Rp) => do{
-    DD <- overloadDef(Dict,D,Rp);
-    overloadDefs(Dict,Defs,[DD,..Dfx],Rp)
+    (DD,DDict) <- overloadDef(Dict,D,Rp);
+    overloadDefs(DDict,Defs,[DD,..Dfx],Rp)
   }
 
-  overloadDef:(dict,canonDef,reports)=>either[reports,canonDef].
+  overloadDef:(dict,canonDef,reports)=>either[reports,(canonDef,dict)].
   overloadDef(Dict,varDef(Lc,Nm,FullNm,Val,Cx,Tp),Rp) =>
     overloadVarDef(Dict,Lc,Nm,FullNm,Val,[CTp | typeConstraint(CTp) in Cx],Tp,Rp). 
   overloadDef(Dict,implDef(Lc,Nm,FullNm,Val,Cx,Tp),Rp) =>
     overloadImplDef(Dict,Lc,Nm,FullNm,Val,[CTp | typeConstraint(CTp) in Cx],Tp,Rp).
-  overloadDef(Dict,Def,Rp) default => either(Def).
+  overloadDef(Dict,typeDef(Lc,Nm,Tp,TpRl),Rp) => do{
+--    logMsg("found type definition $(typeDef(Lc,Nm,Tp,TpRl))");
+    valis (typeDef(Lc,Nm,Tp,TpRl),declareType(Nm,some(Lc),Tp,TpRl,Dict))
+  }
+  overloadDef(Dict,Def,Rp) default => either((Def,Dict)).
  
   overloadVarDef(Dict,Lc,Nm,FullNm,Val,[],Tp,Rp) => do{
     RVal <- resolveTerm(Val,Dict,Rp);
-    valis varDef(Lc,Nm,FullNm,RVal,[],Tp)
+    valis (varDef(Lc,Nm,FullNm,RVal,[],Tp),Dict)
   }
   overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp,Rp) => do{
     (Cvrs,CDict) .= defineCVars(Lc,Cx,[],Dict);
@@ -75,13 +78,13 @@ star.compiler.resolve{
     (Qx,Qt) .= deQuant(Tp);
     (_,ITp) .= deConstrain(Qt);
     CTp .= reQuant(Qx,funType(Cx,ITp));
-    valis varDef(Lc,Nm,FullNm,lambda([eqn(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp)
+    valis (varDef(Lc,Nm,FullNm,lambda([eqn(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp),Dict)
   }
 
   overloadImplDef(Dict,Lc,Nm,FullNm,Val,[],Tp,Rp) => do{
     IDict .= undeclareVar(FullNm,Dict);
     RVal <- resolveTerm(Val,IDict,Rp);
-    valis implDef(Lc,Nm,FullNm,RVal,[],Tp)
+    valis (implDef(Lc,Nm,FullNm,RVal,[],Tp),Dict)
   }
   overloadImplDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp,Rp) => do{
 --    logMsg("overloading implementation $(Nm)\:$(Val)");
@@ -90,7 +93,7 @@ star.compiler.resolve{
     (Qx,Qt) .= deQuant(Tp);
     (_,ITp) .= deConstrain(Qt);
     CTp .= reQuant(Qx,funType(Cx,ITp));
-    valis implDef(Lc,Nm,FullNm,lambda([eqn(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp)
+    valis (implDef(Lc,Nm,FullNm,lambda([eqn(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp),Dict)
   }
 
   defineCVars:(locn,cons[tipe],cons[canon],dict) => (cons[canon],dict).
@@ -194,12 +197,16 @@ star.compiler.resolve{
     valis (Stx,lambda(RRls,Tp))
   }
   overloadTerm(letExp(Lc,Gp,Rhs),Dict,St,Rp) => do{
+--    logMsg("overload let $(letRec(Lc,Gp,Rhs))");
     (RDfs,RDct) <- overloadGroup(Gp,Dict,Rp);
+--    logMsg("new dict $(RDct)");
     (St2,RRhs) <- overloadTerm(Rhs,RDct,St,Rp);
     valis (St2,letExp(Lc,RDfs,RRhs))
   }
   overloadTerm(letRec(Lc,Gp,Rhs),Dict,St,Rp) => do{
+--    logMsg("overload letrec $(letRec(Lc,Gp,Rhs))");
     (RDfs,RDct) <- overloadGroup(Gp,Dict,Rp);
+--    logMsg("new dict $(RDct)");
     (St2,RRhs) <- overloadTerm(Rhs,RDct,St,Rp);
     valis (St2,letRec(Lc,RDfs,RRhs))
   }
@@ -241,8 +248,7 @@ star.compiler.resolve{
     (St1,RT) <- overloadTerm(T,Dict,St,Rp);
     overloadFields(Ts,[(N,RT),..Els],Dict,St1,Rp)
   }
-
-  overloadAction(noDo(Lc),Dict,St,Rp) => either((St,noDo(Lc))).
+  overloadAction(noDo(Lc,ExTp,ErTp),Dict,St,Rp) => either((St,noDo(Lc,ExTp,ErTp))).
   overloadAction(seqnDo(Lc,A1,A2),Dict,St,Rp) => do{
     (St1,RA1) <- overloadAction(A1,Dict,St,Rp);
     (St2,RA2) <- overloadAction(A2,Dict,St1,Rp);

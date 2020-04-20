@@ -51,7 +51,7 @@ star.compiler.checker{
 	    (conSp(Nm), .pUblic) in Vis];
 --      logMsg("exported contracts: $(Contracts)");
       Fields .= exportedFields(Defs,Vis,.pUblic);
---      logMsg("exported fields: $(Fields)");
+--      logMsg("exported fields from $(P)\: $(Fields)");
       Impls .= [ implSpec(some(ILc),INm,FllNm,ITp) |
 	  DD in Defs &&
 	      implDef(ILc,INm,FllNm,_,_,ITp) in DD &&
@@ -130,7 +130,8 @@ star.compiler.checker{
     Base .= pushFace(Face,Lc,Env);
 --    logMsg("theta groups: $(Gps)");
 --    logMsg("base env $(Base)");
-    (Defs,ThEnv) <- checkGroups(Gps,[],Face,Annots,Base,Pth,Rp);
+    TEnv <- checkTypeGroups(Gps,Base,Pth,Rp);
+    (Defs,ThEnv) <- checkGroups(Gps,[],Face,Annots,TEnv,Pth,Rp);
 
 --    logMsg("Defs: $(Defs)");
     PubVrTps .= exportedFields(Defs,Vis,DefViz);
@@ -251,7 +252,7 @@ star.compiler.checker{
 
   guessStmtType([],Nm,Lc,Rp) => other(reportError(Rp,"$(Nm) not declared",Lc)).
   guessStmtType([St,.._],Nm,Lc,Rp) => do{
-    if (_,H,_) ^= isEquation(St) && (_,Args,_,_) ^= splitHead(H) then {
+    if (_,_,_,Args,_,_) ^= isEquation(St) then {
       valis funType(genArgTps(Args),newTypeVar("_R"))
     } else if (_,_,_) ^= isAssignment(St) then{
       valis refType(newTypeVar("R"))
@@ -317,14 +318,14 @@ star.compiler.checker{
     either[reports,(canonDef,dict)].
   checkFunction(Nm,Tp,Lc,Stmts,Env,Outer,Path,Rp) => do{
     (Q,ETp) .= evidence(Tp,Env);
---    logMsg("check function $(Nm)\:$(Tp) -- $(Q)~~$(ETp)");
+    logMsg("check function $(Nm)\:$(Tp)");
     (Cx,ProgramTp) .= deConstrain(ETp);
     Es .= declareConstraints(Lc,Cx,declareTypeVars(Q,Env));
---    logMsg("env for equations: $(Es)");
+    logMsg("env for equations: $(head(Es))");
     Rls <- processEqns(Stmts,deRef(ProgramTp),[],.none,Es,
       declareConstraints(Lc,Cx,declareTypeVars(Q,Outer)),Path,Rp);
     FullNm .= qualifiedName(Path,.valMark,Nm);
---    logMsg("checked equations $(Rls)");
+    logMsg("checked equations $(Rls), type $(Tp)");
     valis (varDef(Lc,Nm,FullNm,
 	lambda(Rls,Tp),Cx,Tp),declareVar(Nm,FullNm,some(Lc),Tp,Env))
   }.
@@ -349,7 +350,7 @@ star.compiler.checker{
   }
 
   processEqn(St,ProgramType,Env,Outer,Path,Rp) where
-      (Lc,H,R) ^= isEquation(St) && (_,Arg,Cnd,IsDeflt) ^= splitHead(H) => do{
+      (Lc,_,IsDeflt,Arg,Cnd,R) ^= isEquation(St) => do{
 	Ats .= genArgTps(Arg);
 	RTp .= newTypeVar("_R");
 	checkType(St,funType(Ats,RTp),ProgramType,Env,Rp);
@@ -357,7 +358,6 @@ star.compiler.checker{
 	if Wh^=Cnd then{
 	  (Cond,E1) <- checkCond(Wh,E0,Path,Rp);
 	  Rep <- typeOfExp(R,RTp,E1,Path,Rp);
-	  
 	  valis (eqn(Lc,Args,some(Cond),Rep),IsDeflt)
 	} else{
 	  Rep <- typeOfExp(R,RTp,E0,Path,Rp);
@@ -401,7 +401,7 @@ star.compiler.checker{
   typeOfPtn:(ast,tipe,dict,string,reports) => either[reports,(canon,dict)].
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,"_") ^= isName(A) =>
     either((vr(Lc,genSym("_"),Tp),Env)).
-  typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) && Spec ^= isVar(Id,Env) =>
+  typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) && _ ^= isVar(Id,Env) =>
     typeOfPtn(mkWhereEquality(A),Tp,Env,Path,Rp).
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) => do{
     Ev .= declareVar(Id,Id,some(Lc),Tp,Env);
@@ -443,7 +443,7 @@ star.compiler.checker{
     typeOfPtn(mkWherePtn(Lc,Pt,Ex),Tp,Env,Path,Rp).
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Op,Els) ^= isRoundTerm(A) => do{
     At .= newTypeVar("A");
---    logMsg("checking round patterm $(A) for $(consType(At,Tp))");
+--    logMsg("checking round pattern $(A) for $(consType(At,Tp))");
     Fun <- typeOfExp(Op,consType(At,Tp),Env,Path,Rp);
     (Args,Ev) <- typeOfArgPtn(rndTuple(Lc,Els),At,Env,Path,Rp);
     valis (apply(Lc,Fun,Args,Tp),Ev)
@@ -480,7 +480,7 @@ star.compiler.checker{
       throw reportError(Rp,"variable $(Id)\:$(VTp) not consistent with expected type: $(Tp)",Lc)
     }
     else
-    throw reportError(Rp,"variable $(Id) not defined. Expecting a $(Tp)",locOf(A)).
+    throw reportError(Rp,"variable $(Id) not defined in $(Env). Expecting a $(Tp)",locOf(A)).
   }
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Nm) ^= isEnumSymb(A) =>
     typeOfExp(zeroary(Lc,Nm),Tp,Env,Path,Rp).
@@ -564,6 +564,13 @@ star.compiler.checker{
 	valis Gl
       }.
   typeOfExp(A,Tp,Env,Path,Rp) where
+      _ ^= isImplies(A) &&
+      (_,BoolTp,_) ^= findType(Env,"boolean") => do{
+	checkType(A,BoolTp,Tp,Env,Rp);
+	(Gl,_) <- checkCond(A,Env,Path,Rp);
+	valis Gl
+      }.
+  typeOfExp(A,Tp,Env,Path,Rp) where
       _ ^= isMatch(A) &&
       (_,BoolTp,_) ^= findType(Env,"boolean") => do{
 	checkType(A,BoolTp,Tp,Env,Rp);
@@ -587,10 +594,17 @@ star.compiler.checker{
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,G,Cases) ^= isCaseExp(A) => let{
     ETp = newTypeVar("_e").
     
-    checkRle(E,RRp) where (Lc,H,R) ^= isEquation(E) => do{
+    checkRle(E,RRp) where (Lc,IsDeflt,H,C,R) ^= isLambda(E) => do{
       (Arg,E0) <- typeOfPtn(H,ETp,Env,Path,RRp);
-      Rep <- typeOfExp(R,Tp,E0,Path,RRp);
-      valis eqn(Lc,Arg,.none,Rep)
+      if Cnd ^= C then {
+	(Cond,CE) <- checkCond(Cnd,Env,Path,RRp);
+	Rep <- typeOfExp(R,Tp,CE,Path,RRp);
+	valis eqn(Lc,Arg,some(Cond),Rep)
+      }
+      else{
+	Rep <- typeOfExp(R,Tp,E0,Path,RRp);
+	valis eqn(Lc,Arg,.none,Rep)
+      }
     }
     checkRle(E,RRp) => other(reportError(RRp,"invalid case $(E)",locOf(E))).
 
@@ -613,6 +627,12 @@ star.compiler.checker{
 	  typeOfExp(binary(Lc,"_index",C,Ix),Tp,Env,Path,Rp)).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,S,F,T) ^= isSlice(A) =>
     typeOfExp(ternary(Lc,"_slice",S,F,T),Tp,Env,Path,Rp).
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,I) ^= isRef(A) => do{
+    RTp .= refType(Tp);
+    Acc <- typeOfExp(nme(Lc,"!!"),funType([RTp],Tp),Env,Path,Rp);
+    Cell <- typeOfExp(I,RTp,Env,Path,Rp);
+    valis apply(Lc,Acc,tple(Lc,[Cell]),Tp)
+  }
   typeOfExp(A,Tp,Env,Path,Rp) where
       (Lc,Stmts) ^= isActionTerm(A) &&
       (_,ActionTp,_) ^= findType(Env,"action") => do{
@@ -652,15 +672,24 @@ star.compiler.checker{
     checkAbstraction(Lc,B,C,Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where hasPromotion(A) =>
     typeOfExp(promoteOption(A),Tp,Env,Path,Rp).
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Ar,R) ^= isEquation(A) => do{
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,_,Ar,C,R) ^= isLambda(A) => do{
 --    logMsg("check lambda $(A)");
     At .= newTypeVar("_A");
     Rt .= newTypeVar("_R");
+--    logMsg("check lambda arg $(Ar)");
     (As,E0) <- typeOfArgPtn(Ar,At,Env,Path,Rp);
-    Rep <- typeOfExp(R,Rt,E0,Path,Rp);
+    if Cnd ^= C then {
+--      logMsg("check lambda cond $(Cnd)");
+      (Cond,E1) <- checkCond(Cnd,E0,Path,Rp);
+      Rep <- typeOfExp(R,Rt,E1,Path,Rp);
+      checkType(A,fnType(At,Rt),Tp,Env,Rp);
+      valis lambda([eqn(Lc,As,some(Cond),Rep)],Tp)
+    } else{
+      Rep <- typeOfExp(R,Rt,E0,Path,Rp);
+      checkType(A,fnType(At,Rt),Tp,Env,Rp);
 --    logMsg("lambda return: $(Rep)\:$(typeOf(Rep))");
-    checkType(A,fnType(At,Rt),Tp,Env,Rp);
-    valis lambda([eqn(Lc,As,.none,Rep)],Tp)
+      valis lambda([eqn(Lc,As,.none,Rep)],Tp)
+    }
   }
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Els) ^= isTheta(A) => do{
     (Q,ETp) .= evidence(Tp,Env);
@@ -830,6 +859,12 @@ star.compiler.checker{
     (Rhs,_) <- checkGoal(R,Env,Path,Rp);
     valis (neg(Lc,Rhs),Env)
   }.
+  checkGoal(A,Env,Path,Rp) where (Lc,L,R) ^= isImplies(A) => do{
+    (Lhs,E0) <- checkGoal(L,Env,Path,Rp);
+    (Rhs,E1) <- checkGoal(R,E0,Path,Rp);
+    valis (implies(Lc,Lhs,Rhs),Env)
+  }.
+  
   checkGoal(A,Env,Path,Rp) where (Lc,T,L,R) ^= isConditional(A) => do{
     (Tst,E0) <- checkGoal(T,Env,Path,Rp);
     (Thn,E1) <- checkGoal(L,E0,Path,Rp);
@@ -888,7 +923,8 @@ star.compiler.checker{
 
   checkAction:(ast,dict,tipe,tipe,tipe,string,reports) =>
     either[reports,(canonAction,dict)].
-  checkAction(A,Env,_,_,_,_,_) where (Lc,"nothing") ^= isName(A) => either((noDo(Lc),Env)).
+  checkAction(A,Env,StTp,ElTp,ErTp,_,_) where (Lc,"nothing") ^= isName(A) =>
+    either((noDo(Lc,StTp,ErTp),Env)).
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,L,R) ^= isActionSeq(A) => do{
     E .= newTypeVar("_e");
     (Fst,E0) <- checkAction(L,Env,StTp,E,ErTp,Path,Rp);
@@ -920,35 +956,42 @@ star.compiler.checker{
     checkAction(binary(Lc,".=",unary(Lc,"some",L),R),Env,StTp,ElTp,ErTp,Path,Rp).
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,L,R) ^= isAssignment(A) => do{
     Et .= newTypeVar("P");
+    if (_,Vr) ^= isName(L) && !_ ^=isVar(Vr,Env) then{
+      (Ptn,Env0) <- typeOfPtn(L,refType(Et),Env,Path,Rp);
+      Val <- typeOfExp(R,Et,Env,Path,Rp);
+      vrEntry(_,_,CellTp) ^= isVar("_cell",Env);
+      valis (varDo(Lc,Ptn,apply(Lc,vr(Lc,"_cell",CellTp),tple(Lc,[Val]),refType(Et))),Env0)
+    } else{
     MdlTp .= mkTypeExp(StTp,[ErTp,unitTp]);
     if (LLc,Coll,Idx) ^= isIndex(L) then {
-      Repl .= ternary(LLc,"_put",unary(LLc,"!!",Coll),Idx,R);
+      Repl .= ternary(LLc,"_put",refCell(LLc,Coll),Idx,R);
       Assignment <- typeOfExp(binary(Lc,":=",Coll,Repl),MdlTp,Env,Path,Rp);
       valis (simpleDo(Lc,Assignment,StTp),Env)
     } else{
       Assignment <- typeOfExp(A,MdlTp,Env,Path,Rp);
       valis (simpleDo(Lc,Assignment,StTp),Env)
+      }
     }
   }
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,T,L,R) ^= isIfThenElse(A) => do{
     (Cond,Ev0) <- checkCond(T,Env,Path,Rp);
-    (Th,E1) <- checkAction(L,Env,StTp,ElTp,ErTp,Path,Rp);
+    (Th,E1) <- checkAction(L,Ev0,StTp,ElTp,ErTp,Path,Rp);
     (El,E2) <- checkAction(R,Env,StTp,ElTp,ErTp,Path,Rp);
     valis (ifThenElseDo(Lc,Cond,Th,El,StTp,ElTp,ErTp),mergeDict(E1,E2,Env))
   }
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,T,L) ^= isIfThen(A) => do{
     (Cond,Ev0) <- checkCond(T,Env,Path,Rp);
-    (Th,E1) <- checkAction(L,Env,StTp,ElTp,ErTp,Path,Rp);
-    valis (ifThenElseDo(Lc,Cond,Th,noDo(Lc),StTp,ElTp,ErTp),Env)
+    (Th,E1) <- checkAction(L,Ev0,StTp,ElTp,ErTp,Path,Rp);
+    valis (ifThenElseDo(Lc,Cond,Th,noDo(Lc,StTp,ErTp),StTp,ElTp,ErTp),Env)
   }
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,T,B) ^= isWhileDo(A) => do{
     (Cond,Ev0) <- checkCond(T,Env,Path,Rp);
-    (Body,_) <- checkAction(B,Env,StTp,tupleType([]),ErTp,Path,Rp);
+    (Body,_) <- checkAction(B,Ev0,StTp,tupleType([]),ErTp,Path,Rp);
     valis (whileDo(Lc,Cond,Body,StTp,ErTp),Env)
   }
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,T,B) ^= isForDo(A) => do{
     (Cond,Ev0) <- checkCond(T,Env,Path,Rp);
-    (Body,_) <- checkAction(B,Env,StTp,tupleType([]),ErTp,Path,Rp);
+    (Body,_) <- checkAction(B,Ev0,StTp,tupleType([]),ErTp,Path,Rp);
     valis (forDo(Lc,Cond,Body,StTp,ErTp),Env)
   }
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,B,C) ^= isTryCatch(A) => do{
@@ -1013,9 +1056,8 @@ becomes
 
   checkCatch:(ast,dict,tipe,tipe,tipe,tipe,string,reports) => either[reports,canon].
   checkCatch(A,Env,StTp,ElTp,BErrTp,ErTp,Path,Rp) where (Lc,Stmts) ^= isBrTuple(A) => do{
-    HT .= funType([BErrTp],mkTypeExp(StTp,[ErTp,ElTp]));
-    (H,_) <- checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp);
-    valis lambda([eqn(Lc,tple(Lc,[vr(Lc,genSym("_"),ErTp)]),.none,act(locOf(A),H))],HT)
+    (H,_) <- checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp); 
+    valis act(locOf(H),H)
   }
   checkCatch(A,Env,StTp,ElTp,BErrTp,ErTp,Path,Rp) => do{
     HT .= funType([BErrTp],mkTypeExp(StTp,[ErTp,ElTp]));
