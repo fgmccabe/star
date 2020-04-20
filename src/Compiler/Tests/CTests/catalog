@@ -4,6 +4,7 @@
     "test.fl" : "fl.star",
     "test.ar" : "ar.star",
     "test.c" : "c.star",
+    "test.j" : "j.star",
     "test.l" : "l.star",
     "test.l2" : "l2.star",
     "test.ls" : "ls.star",
@@ -15,6 +16,7 @@
     "test.serch" : "srch.star",
     "test.t1" : "t1.star",
     "test.tms" : "tms.star",
+    "test.u" : "u.star",
     "test.boot" : "bt.star"
   },
   "version": "1.0.0",
