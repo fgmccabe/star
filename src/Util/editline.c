@@ -505,7 +505,7 @@ retCode initHistory(char *filename) {
 
 /* Save history in the history file. */
 void saveHistory() {
-  if (historyFileName != Null && history != Null) {
+  if (historyFileName != Null && history != Null && !vectIsEmpty(history)) {
     ioPo historyFile = newOutFile(historyFileName, utf8Encoding);
     for (integer ix = 0; ix < vectLength(history); ix++) {
       strgPo line = O_STRG(getVectEl(history, ix));
