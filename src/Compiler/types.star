@@ -13,6 +13,7 @@ star.compiler.types{
       nomnal(string) |
       tpFun(string,integer) |
       tpExp(tipe,tipe) |
+      funDep(tipe,tipe) |
       tupleType(cons[tipe]) |
       allType(tipe,tipe) |
       existType(tipe,tipe) |
@@ -38,6 +39,7 @@ star.compiler.types{
   hasKind(nomnal(_)) => 0.
   hasKind(tpFun(_,Ar)) => Ar.
   hasKind(tpExp(Op,_)) => hasKind(Op)-1.
+  hasKind(funDep(Op,_)) => hasKind(Op)-1.
   hasKind(tupleType(_)) => 0.
   hasKind(allType(_,T)) => hasKind(T).
   hasKind(existType(_,T)) => hasKind(T).
@@ -137,6 +139,10 @@ star.compiler.types{
   public mkTypeExp:(tipe,cons[tipe])=>tipe.
   mkTypeExp(Tp,[]) => Tp.
   mkTypeExp(Tp,[A,..L]) => mkTypeExp(tpExp(Tp,A),L).
+
+  public mkDepType:(tipe,cons[tipe],cons[tipe]) => tipe.
+  mkDepType(Tp,A,[]) => mkTypeExp(Tp,A).
+  mkDepType(Tp,A,[T,..Ts]) => mkDepType(funDep(Tp,T),A,Ts).
 
   public implementation equality[tipe] => {
     T1==T2 => eqType(T1,T2,[]).
@@ -369,6 +375,7 @@ star.compiler.types{
   public funType(A,B) => fnType(tupleType(A),B).
   public fnType(A,B) => tpExp(tpExp(tpFun("=>",2),A),B).
   public consType(A,B) => tpExp(tpExp(tpFun("<=>",2),A),B).
+  public cnsType(A,B) => tpExp(tpExp(tpFun("<=>",2),tupleType(A)),B).
   public enumType(A) => tpExp(tpExp(tpFun("<=>",2),tupleType([])),A).
 
   public funTypeArg(Tp) where

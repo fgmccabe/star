@@ -162,7 +162,7 @@ star.compiler.core{
     eqFs(_,_) default => .false.
 
     eqCs([],[]) => .true.
-    eqCs([(_,N1,E1),..S1],[(_,N2,E2),..S2]) => N1==N2 && eqTerm(E1,E2) && eqCs(S1,S2).
+    eqCs([(_,N1,E1),..S1],[(_,N2,E2),..S2]) => eqTerm(N1,N2) && eqTerm(E1,E2) && eqCs(S1,S2).
     eqCs(_,_) default => .false.
   } in {.
     X == Y => eqTerm(X,Y)

@@ -49,8 +49,7 @@ star.compiler.catalog{
 	disp(Cat.entries),
 	ss("\nversion: "),
 	disp(Cat.vers),
-	ss("\nparent: "),
-	disp(Cat.parent),
+	(Parent^=Cat.parent ? ssSeq([ss("\nparent: "),dispCat(Parent)]) || ss("")),
 	ss("\nbase: "),
 	disp(Cat.base)
     ])

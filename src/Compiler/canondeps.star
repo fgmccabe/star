@@ -15,7 +15,7 @@ star.compiler.canondeps{
 --    logMsg("all refs $(AllRefs)");
 
     Sorted .= topsort(AllRefs);
---    logMsg("groups: $(Sorted)");
+--    logMsg("canon groups: $(Sorted)");
     valis (Sorted // ((Gp)=>(Gp//((defSpec(_,_,Df))=>Df))))
   }
 

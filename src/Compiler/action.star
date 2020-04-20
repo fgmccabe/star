@@ -47,9 +47,24 @@ star.compiler.action{
     NAct <- genAction(Actn,Contract,Cont,Path,Rp);
     valis combineActs(Lc,RtnUnit,some(NAct),Contract,ExTp)
   }
+  genAction(tryCatchDo(Lc,Body,act(HLc,H),ExTp,ValTp,ErTp),Contract,Cont,Path,Rp) => do{
+    HndlrTp .= funType([ErTp],mkTypeExp(ExTp,[ErTp,ValTp]));
+    logMsg("catch handler $(H)\:($(HndlrTp)");
+    ConTp .= mkTypeExp(ExTp,[ErTp,ValTp]);
+    BdyExp <- genAction(Body,Contract,.none,Path,Rp);
+    HdlrExp <- genAction(H,Contract,.none,Path,Rp);
+    
+    LamType .= funType([typeOf(BdyExp),HndlrTp],ConTp);
+
+    Hndlr .= lambda([eqn(Lc,tple(Lc,[vr(Lc,genSym("_"),ErTp)]),.none,HdlrExp)],HndlrTp);
+    
+    HOver .= over(Lc,mtd(Lc,"_handle",LamType),LamType,[typeConstraint(mkTypeExp(Contract,[ExTp]))]);
+    HB .= apply(Lc,HOver,tple(Lc,[BdyExp,Hndlr]),ConTp);
+    valis combineActs(Lc,HB,Cont,Contract,ExTp)
+  }
   genAction(tryCatchDo(Lc,Body,Hndlr,ExTp,ValTp,ErTp),Contract,Cont,Path,Rp) => do{
     HndlrTp .= typeOf(Hndlr);
---    logMsg("catch handler $(Hndlr)\:($(HndlrTp)");
+    logMsg("catch handler $(Hndlr)\:($(HndlrTp)");
     ConTp .= mkTypeExp(ExTp,[ErTp,ValTp]);
     BdyExp <- genAction(Body,Contract,.none,Path,Rp);
     BType .= typeOf(BdyExp);
@@ -73,13 +88,13 @@ star.compiler.action{
   }
   genAction(ifThenElseDo(Lc,Tst,Th,El,ExTp,ValTp,ErTp),Contract,Cont,Path,Rp) => do{
     MdlTp .= mkTypeExp(ExTp,[ErTp,ValTp]);
-    Then <- genAction(Th,Contract,.none,Path,Rp);
-    Else <- genAction(El,Contract,.none,Path,Rp);
+    Then <- genAction(Th,Contract,Cont,Path,Rp);
+    Else <- genAction(El,Contract,Cont,Path,Rp);
     if isIterableGoal(Tst) then {
       ITst <- genIterableGoal(Tst,Contract,Path,Rp);
-      valis combineActs(Lc,cond(Lc,ITst,Then,Else),Cont,Contract,ExTp)
+      valis cond(Lc,ITst,Then,Else)
     } else{
-      valis combineActs(Lc,cond(Lc,Tst,Then,Else),Cont,Contract,ExTp)
+      valis cond(Lc,Tst,Then,Else)
     }
   }
   /* Construct a local iterator function:
@@ -118,6 +133,9 @@ star.compiler.action{
       unlifted(Unit),Rp);
     valis combineActs(Lc,ForLoop,Cont,Contract,ActTp)
   }
+  genAction(noDo(Lc,_,_),Contract,some(Exp),Path,Rp) => either(Exp).
+  genAction(noDo(Lc,ExTp,ErTp),Contract,.none,Path,Rp) =>
+    genReturn(Lc,tple(Lc,[]),ExTp,tupleType([]),ErTp,Contract,Rp).
   genAction(Act,_,_,_,Rp) =>
     other(reportError(Rp,"cannot handle action $(Act)",locOf(Act))).
 
@@ -154,27 +172,29 @@ star.compiler.action{
 
   combineActs:(locn,canon,option[canon],tipe,tipe)=>canon.
   combineActs(_,A1,.none,_,_) => A1.
-  combineActs(Lc,A1,some(A2),Contract,ActTp) => let{.
-    A1Tp = typeOf(A1).
-    Anon = anonVar(Lc,A1Tp).
-    ConTp = typeOf(A2).
-    LamTp = funType([A1Tp],ConTp).
-    Lam = lambda([eqn(Lc,tple(Lc,[Anon]),.none,A2)],LamTp).
-    SeqTp = funType([A1Tp,LamTp],ConTp).
-    Gen = over(Lc,mtd(Lc,"_sequence",SeqTp),SeqTp,[typeConstraint(mkTypeExp(Contract,[ActTp]))]).
-  .} in apply(Lc,Gen,tple(Lc,[A1,Lam]),ConTp).
+  combineActs(Lc,A1,some(A2),Contract,ActTp) => valof action{
+    A1Tp .= typeOf(A1);
+    Anon .= anonVar(Lc,A1Tp);
+    ConTp .= typeOf(A2);
+    LamTp .= funType([A1Tp],ConTp);
+    Lam .= lambda([eqn(Lc,tple(Lc,[Anon]),.none,A2)],LamTp);
+    SeqTp .= funType([A1Tp,LamTp],ConTp);
+    Gen .= over(Lc,mtd(Lc,"_sequence",SeqTp),SeqTp,[typeConstraint(mkTypeExp(Contract,[ActTp]))]);
+    valis apply(Lc,Gen,tple(Lc,[A1,Lam]),ConTp)
+  }
 
-  genSeq(Lc,ExTp,Contract,ErTp,Rp) => let{
-    genSq(St,Init,Reslt) => let{.
-      ATp = typeOf(St).
-      MdTp = mkTypeExp(ExTp,[ErTp,ATp]).
-      LamTp = funType([ATp],MdTp).
-      Lam = lambda([eqn(Lc,tple(Lc,[St]),.none,Reslt)],LamTp).
-      SeqTp = funType([MdTp,LamTp],MdTp).
-      Gen = over(Lc,mtd(Lc,"_sequence",SeqTp),SeqTp,[typeConstraint(mkTypeExp(Contract,[ExTp]))]).
-      Initial = genRtn(Lc,ExTp,LamTp,ErTp,Contract,Rp)(Init).
-    .} in apply(Lc,Gen,tple(Lc,[Initial,Lam]),MdTp)
-  } in genSq.
+  genSeq(Lc,ExTp,Contract,ErTp,Rp) => let{.
+    genSq(St,Init,Reslt) => valof action{
+      ATp .= typeOf(St);
+      MdTp .= mkTypeExp(ExTp,[ErTp,ATp]);
+      LamTp .= funType([ATp],MdTp);
+      Lam .= lambda([eqn(Lc,tple(Lc,[St]),.none,Reslt)],LamTp);
+      SeqTp .= funType([MdTp,LamTp],MdTp);
+      Gen .= over(Lc,mtd(Lc,"_sequence",SeqTp),SeqTp,[typeConstraint(mkTypeExp(Contract,[ExTp]))]);
+      Initial .= genRtn(Lc,ExTp,LamTp,ErTp,Contract,Rp)(Init);
+      valis apply(Lc,Gen,tple(Lc,[Initial,Lam]),MdTp)
+    }
+  .} in genSq.
   
 
   /*
@@ -189,10 +209,12 @@ star.compiler.action{
 
   public genIterableGoal:(canon,tipe,string,reports)=>either[reports,canon].
   genIterableGoal(Cond,Contract,Path,Rp) => do{
+--    logMsg("generate iterable goal $(Cond)");
     Lc .= locOf(Cond);
     EitherTp .= tpFun("star.either*either",2);
     OptionTp .= tpFun("star.core*option",1);
     VTpl .= tple(Lc,goalVars(Lc,Cond));
+--    logMsg("goal vars of $(Cond) are $(VTpl)");
     VTtp .= typeOf(VTpl);
     UnitTp .= tupleType([]);
     OptTp .= mkTypeExp(OptionTp,[VTtp]);
@@ -201,8 +223,8 @@ star.compiler.action{
     Unit .= apply(Lc,enm(Lc,"star.either#either",EitherFunTp),
       tple(Lc,[enm(Lc,"star.core#none",OptTp)]),MTp);
     Zed <- genReturn(Lc,Unit,EitherTp,OptTp,UnitTp,Contract,Rp);
-    Ptn .= apply(Lc,enm(Lc,"star.either#either",funType([OptTp],MTp)),
-      tple(Lc,[apply(Lc,enm(Lc,"star.core#some",funType([VTtp],OptTp)),
+    Ptn .= apply(Lc,enm(Lc,"star.either#either",cnsType([OptTp],MTp)),
+      tple(Lc,[apply(Lc,enm(Lc,"star.core#some",cnsType([VTtp],OptTp)),
 	    tple(Lc,[VTpl]),OptTp)]),MTp);
     Seq <- genCondition(Cond,Path,genRtn(Lc,EitherTp,OptTp,UnitTp,Contract,Rp),
       genSeq(Lc,EitherTp,Contract,UnitTp,Rp),
@@ -238,9 +260,9 @@ star.compiler.action{
   genEl(Lc,Gen,Bnd,StrmTp,ExTp,ErTp,ExContract,Rp) => let{
     f(unlifted(Strm)) => valof genReturn(Lc,apply(Lc,Gen,tple(Lc,[Bnd,Strm]),StrmTp),
       ExTp,StrmTp,ErTp,ExContract,Rp).
+    f(lifted(Strm)) => Strm.
   } in f.
       
-    
   public pickupExecutionContract:(locn,dict,reports) => either[reports,(tipe,tipe)].
   pickupExecutionContract(Lc,Env,Rp) => do{
     if Con ^= findContract(Env,"execution") then{
@@ -336,8 +358,8 @@ star.compiler.action{
     genCondition(B,Path,Lift,Seq,Succ,lifted(E1),Rp)
   }
   genCondition(neg(Lc,A),Path,Lift,Seq,Succ,Initial,Rp) => do{
-    Negated <- genCondition(A,Path,Lift,Seq,(_)=>Lift(unlifted(vr(Lc,"true",boolType))),
-      unlifted(vr(Lc,"false",boolType)),Rp);
+    Negated <- genCondition(A,Path,Lift,Seq,(_)=>Lift(unlifted(enm(Lc,"star.core#true",boolType))),
+      unlifted(enm(Lc,"star.core#false",boolType)),Rp);
     St .= anonVar(Lc,boolType);
     SuccCase .= Succ(Initial);
     FalseCase .= Lift(Initial);

@@ -77,10 +77,10 @@ star.compiler.unify{
     resets := [].
 
     resetBindings = action{
-      for R in resets!! do{
-	if resetVar(BndVr) .= R then {
+      for Rx in resets!! do{
+	if resetVar(BndVr) .= Rx then {
 	  resetBinding(BndVr)
-	} else if resetConstraint(CxV,Cx) .= R then {
+	} else if resetConstraint(CxV,Cx) .= Rx then {
 	  setConstraints(CxV,Cx)
 	}
       };
@@ -116,23 +116,6 @@ star.compiler.unify{
 	valis .false
       }
     }.
-
-    bind(V,T,Env) where isUnbound(T) =>
-      (MM ^= mergeConstraints(constraintsOf(V),constraintsOf(T),Env) ?
-	  valof action{
-	    addVarConstraints(T);
-	    setConstraints(T,MM);
-	    setBinding(V,T);
-	    return .true
-	  }
-	  || .false).
-    bind(V,T,Env) where isUnbound(T) &&  MM ^= mergeConstraints(constraintsOf(V),constraintsOf(T),Env) => valof action{
-      addVarConstraints(T);
-      setConstraints(T,MM);
-      setBinding(V,T);
-      return .true
-    }
-    bind(_,_,_) default => .false.
 
     checkConstraints:(cons[constraint],dict) => action[(),boolean].
     checkConstraints([],_) => do{ valis .true }.
@@ -178,9 +161,8 @@ star.compiler.unify{
     mergeConstraint(typeConstraint(Tp),[typeConstraint(Tp1),.._],Cs,Env) =>
       (same(Tp,Tp1,Env) ? some(Cs) || .none).
     -- TODO: handle merging implementsFace more gracefully
-    mergeConstraint(C,[_,..R],Cs,Env) => mergeConstraint(C,R,Cs,Env).
+    mergeConstraint(C,[_,..Rs],Cs,Env) => mergeConstraint(C,Rs,Cs,Env).
   } in (sm(deRef(Tp1),deRef(Tp2),Envir) ? .true || valof resetBindings).
-
 
   subFace(faceType(E1,T1),faceType(E2,T2),Env) => let{.
     subF(Ts1,Ts2) =>
@@ -216,8 +198,8 @@ star.compiler.unify{
   occIn(Id,allType(_,B)) => occIn(Id,deRef(B)).
   occIn(Id,existType(_,B)) => occIn(Id,deRef(B)).
   occIn(Id,faceType(Flds,Tps)) => occInPrs(Id,Flds) || occInPrs(Id,Tps).
-  occIn(Id,typeLambda(A,R)) => occIn(Id,deRef(A)) || occIn(Id,deRef(R)).
-  occIn(Id,typeExists(A,R)) => occIn(Id,deRef(A)) || occIn(Id,deRef(R)).
+  occIn(Id,typeLambda(A,Ra)) => occIn(Id,deRef(A)) || occIn(Id,deRef(Ra)).
+  occIn(Id,typeExists(A,Rb)) => occIn(Id,deRef(A)) || occIn(Id,deRef(Rb)).
   occIn(Id,constrainedType(T,_)) => occIn(Id,deRef(T)).
   occIn(_,_) default => .false.
 
