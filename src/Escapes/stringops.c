@@ -413,14 +413,12 @@ ReturnStatus g__str_start(processPo p, ptrPo tos) {
     .result=(uniIsPrefix(lhs, llen, rhs, rlen) ? trueEnum : falseEnum)};
 }
 
-static retCode flatten(bufferPo str, normalPo ss);
+static retCode flatten(bufferPo str, termPo t);
 
 ReturnStatus g__str_multicat(processPo p, ptrPo tos) {
-  normalPo list = C_TERM(tos[0]);
-
   bufferPo strb = newStringBuffer();
 
-  retCode ret = flatten(strb, list);
+  retCode ret = flatten(strb, tos[0]);
 
   integer oLen;
   const char *buff = getTextFromBuffer(strb, &oLen);
@@ -431,36 +429,43 @@ ReturnStatus g__str_multicat(processPo p, ptrPo tos) {
   return rt;
 }
 
-retCode flatten(bufferPo str, normalPo ss) {
-  integer cx = termArity(ss);
-  retCode ret = Ok;
-
-  for (integer ix = 0; ret == Ok && ix < cx; ix++) {
-    termPo arg = nthArg(ss, ix);
-    if (isString(arg)) {
-      integer len;
-      const char *elTxt = stringVal(arg, &len);
-      ret = outText(O_IO(str), elTxt, len);
-    } else if (isNormalPo(arg)) {
-      ret = flatten(str, C_TERM(arg));
-    } else if (isInteger(arg))
-      ret = outChar(O_IO(str), integerVal(arg));
-  }
-  return ret;
+retCode flatten(bufferPo str, termPo t) {
+  if (isCons(t)) {
+    retCode ret = Ok;
+    while (ret == Ok && isCons(t)) {
+      normalPo lst = C_TERM(t);
+      ret = flatten(str, consHead(lst));
+      t = consTail(lst);
+    }
+    return ret;
+  } else if (isNormalPo(t)) {
+    normalPo ss = C_TERM(t);
+    integer cx = termArity(ss);
+    retCode ret = Ok;
+    for (integer ix = 0; ret == Ok && ix < cx; ix++) {
+      ret = flatten(str, nthArg(ss, ix));
+    }
+    return ret;
+  } else if (isInteger(t)) {
+    return outChar(O_IO(str), integerVal(t));
+  } else if (isString(t)) {
+    integer len;
+    const char *elTxt = stringVal(t, &len);
+    return outText(O_IO(str), elTxt, len);
+  } else
+    return Ok;
 }
 
 ReturnStatus g__str_flatten(processPo p, ptrPo tos) {
-  normalPo ss = C_TERM(tos[0]);
   bufferPo str = newStringBuffer();
 
-  retCode ret = flatten(str, ss);
+  retCode ret = flatten(str, tos[0]);
 
   if (ret == Ok) {
     integer oLen;
     const char *buff = getTextFromBuffer(str, &oLen);
 
-    ReturnStatus rt = {.ret=Ok,
-      .result=(termPo) allocateString(processHeap(p), buff, oLen)};
+    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), buff, oLen)};
     closeFile(O_IO(str));
     return rt;
   } else {
