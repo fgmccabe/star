@@ -74,7 +74,7 @@ foldLeft(
  (SoFar,(X,Z)) => foldLeft(
    let @{
      acc((ZZ,Y),gp1) where Z==ZZ => [gp1..,(X,Y)].
-     acc(gp1,_) => gp1.
+     acc(_,gp1) => gp1.
    @} in acc,
    SoFar,parents),
    list of [],
