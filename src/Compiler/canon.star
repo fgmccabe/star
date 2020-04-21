@@ -217,7 +217,7 @@ star.compiler.canon{
   }
 
   showCanon:(canon,string)=>ss.
-  showCanon(vr(_,Nm,_),_) => ss(Nm).
+  showCanon(vr(_,Nm,Tp),_) => ssSeq([ss(Nm),ss(":"),disp(Tp)]).
   showCanon(mtd(_,Fld,_),_) => ssSeq([ss("µ"),ss(Fld)]).
   showCanon(over(_,V,_,Cx),Sp) => ssSeq([disp(Cx),ss("|:"),showCanon(V,Sp)]).
   showCanon(intr(_,Lt),_) => disp(Lt).
@@ -342,7 +342,7 @@ star.compiler.canon{
     }
     splitPttrn(Pt) => (Pt,.none).
 
-    splitPttrns(Els) => foldLeft(((SEls,SCond),(E,C))=>
+    splitPttrns(Els) => foldLeft(((E,C),(SEls,SCond))=>
 	([E,..SEls],mergeGl(C,SCond)),([],.none),Els//splitPttrn).
 
     mergeGl(.none,C) => C.

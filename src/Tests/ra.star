@@ -35,5 +35,5 @@ test.ra{
   SS = ["zero",..T].
 
   rev:all e ~~ (ra[e])=>ra[e].
-  rev(Tt) => foldLeft((So,E)=>[E,..So],[],Tt).
+  rev(Tt) => foldLeft((E,So)=>[E,..So],[],Tt).
 }

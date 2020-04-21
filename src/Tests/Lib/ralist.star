@@ -69,20 +69,18 @@ test.ralist{
 	cons(removeFromTree(Ix,t1),ts) ||
 	cons(one(t1),remove(Ix-sz,ts))).
 
-  
-
   public implementation all e ~~ folding[ra[e]->>e] => {.
     foldLeft(F,U,ra(Ds)) => foldDLeft(F,U,Ds).
     foldRight(F,U,ra(Ds)) => foldDRight(F,U,Ds).
   .}
 
-  foldDLeft:all e,x ~~ ((x,e)=>x,x,cons[digit[e]]) => x.
+  foldDLeft:all e,x ~~ ((e,x)=>x,x,cons[digit[e]]) => x.
   foldDLeft(_,X,.nil) => X.
   foldDLeft(F,X,cons(one(T),R)) => foldDLeft(F,foldTLeft(F,X,T),R).
   foldDLeft(F,X,cons(.zer,R)) => foldDLeft(F,X,R).
 
-  foldTLeft:all e,x ~~ ((x,e)=>x,x,tree[e]) => x.
-  foldTLeft(F,X,leaf(E)) => F(X,E).
+  foldTLeft:all e,x ~~ ((e,x)=>x,x,tree[e]) => x.
+  foldTLeft(F,X,leaf(E)) => F(E,X).
   foldTLeft(F,X,node(W,L,R)) => foldTLeft(F,foldTLeft(F,X,L),R).
 
   foldDRight:all e,x ~~ ((e,x)=>x,x,cons[digit[e]])=>x.
@@ -126,7 +124,7 @@ test.ralist{
   .}
 
   public implementation all e ~~ reversible[ra[e]] => {.
-    reverse(ra(L)) => foldDLeft((So,E)=>[E,..So],[],L).
+    reverse(ra(L)) => foldDLeft((E,So)=>[E,..So],[],L).
   .}
 
   public implementation all e ~~ concat[ra[e]] => {.

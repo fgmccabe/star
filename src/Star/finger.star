@@ -29,10 +29,10 @@ star.finger{
     rdr(node3(a,b,c),z) => F(a,F(b,F(c,z))).
   } in rdr.
 
-  reducelNode:all e,a ~~ ((a,e)=>a) => (a,node[e])=>a.
+  reducelNode:all e,a ~~ ((e,a)=>a) => (node[e],a)=>a.
   reducelNode(F) => let{
-    rdl(z,node2(b,a)) => F(F(z,b),a).
-    rdl(z,node3(c,b,a)) => F(F(F(z,c),b),a).
+    rdl(node2(b,a),z) => F(a,F(b,z)).
+    rdl(node3(c,b,a),z) => F(a,F(b,F(c,z))).
   } in rdl.
 
   implementation all e ~~ reduce[digit[e]->>e] => {
@@ -48,12 +48,12 @@ star.finger{
     rdr(four(u,v,w,x),z) => F(u,F(v,F(w,F(x,z)))).
   } in rdr.
 
-  reducelDigits:all e,a ~~ ((a,e)=>a) => (a,digit[e])=>a.
+  reducelDigits:all e,a ~~ ((e,a)=>a) => (digit[e],a)=>a.
   reducelDigits(F) => let{
-    rdl(z,one(u)) => F(z,u).
-    rdl(z,two(u,v)) => F(F(z,u),v).
-    rdl(z,three(u,v,w)) => F(F(F(z,u),v),w).
-    rdl(z,four(u,v,w,x)) => F(F(F(F(z,x),u),v),w).
+    rdl(one(u),z) => F(u,z).
+    rdl(two(u,v),z) => F(v,F(u,z)).
+    rdl(three(u,v,w),z) => F(w,F(v,F(u,z))).
+    rdl(four(u,v,w,x),z) => F(w,F(v,F(u,F(x,z)))).
   } in rdl.
 
   implementation all e ~~coercion[digit[e],cons[e]] => {
@@ -83,14 +83,14 @@ star.finger{
     } in F1(lft,F2(mid,F1(rgt,z)))
   } in rdr.
 
-  reducelTree:all e,a ~~ ((a,e)=>a) => (a,fingerTree[e])=>a.
+  reducelTree:all e,a ~~ ((e,a)=>a) => (fingerTree[e],a)=>a.
   reducelTree(F) => let{
-    rdl(z,.eTree) => z.
-    rdl(z,single(u)) => F(z,u).
-    rdl(z,deep(lft,mid,rgt)) => let{
+    rdl(.eTree,z) => z.
+    rdl(single(u),z) => F(u,z).
+    rdl(deep(lft,mid,rgt),z) => let{
       F1 = reducelDigits(F).
       F2 = reducelTree(reducelNode(F)).
-    } in F1(F2(F1(z,lft),mid),rgt).
+    } in F1(rgt,F2(mid,F1(lft,z))).
   } in rdl.
 
   implementation all e ~~ concat[digit[e]] => {
@@ -121,23 +121,23 @@ star.finger{
   prepend(a,deep(four(x,y,z,u),mid,r)) => deep(two(a,x),prepend(node3(y,z,u),mid),r).
   prepend(a,deep(l,mid,r)) => deep(one(a)++l,mid,r).
 
-  append:all e ~~ (fingerTree[e],e) => fingerTree[e].
-  append(.eTree,x) => single(x).
-  append(single(a),x) => deep(one(a),.eTree,one(x)).
-  append(deep(l,mid,four(a,b,c,d)),x) => deep(l,append(mid,node3(a,b,c)),two(d,x)).
-  append(deep(l,mid,r),x) => deep(l,mid,r++one(x)).
+  append:all e ~~ (e,fingerTree[e]) => fingerTree[e].
+  append(x,.eTree) => single(x).
+  append(x,single(a)) => deep(one(a),.eTree,one(x)).
+  append(x,deep(l,mid,four(a,b,c,d))) => deep(l,append(node3(a,b,c),mid),two(d,x)).
+  append(x,deep(l,mid,r)) => deep(l,mid,r++one(x)).
 
   liftPrepend:all e,f ~~ reduce[f->>e] |: (f,fingerTree[e]) => fingerTree[e].
   liftPrepend = reducer(prepend).
 
-  liftAppend:all e,f ~~ reduce[f->>e] |: (fingerTree[e],f)=>fingerTree[e].
+  liftAppend:all e,f ~~ reduce[f->>e] |: (f,fingerTree[e])=>fingerTree[e].
   liftAppend = reducel(append).
 
   app3:all a ~~ (fingerTree[a],cons[a],fingerTree[a]) => fingerTree[a].
   app3(.eTree,ts,xs) => liftPrepend(ts,xs).
-  app3(xs,ts,.eTree) => liftAppend(xs,ts).
+  app3(xs,ts,.eTree) => liftAppend(ts,xs).
   app3(single(x),ts,xs) => prepend(x,liftPrepend(ts,xs)).
-  app3(xs,ts,single(x)) => append(liftAppend(xs,ts),x).
+  app3(xs,ts,single(x)) => append(x,liftAppend(ts,xs)).
   app3(deep(pr1,m1,sf1),ts,deep(pr2,m2,sf2)) =>
     deep(pr1,app3(m1,nodes(sf1::cons[a]++ts++pr2::cons[a]),m2),sf2).
 

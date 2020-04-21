@@ -22,9 +22,9 @@ star.range{
     foldLeft(F,X,range(Fr,To,St)) => rangeLeft(F,X,Fr,To,St).
     foldRight(F,X,range(Fr,To,St)) => rangeRight(F,X,Fr,To,St).
 
-    rangeLeft:all x ~~ (((x,a)=>x),x,a,a,a) => x.
+    rangeLeft:all x ~~ (((a,x)=>x),x,a,a,a) => x.
     rangeLeft(F,Z,Fr,To,_) where Fr>=To => Z.
-    rangeLeft(F,Z,Fr,To,St) => rangeLeft(F,F(Z,To),Fr,To-St,St).
+    rangeLeft(F,Z,Fr,To,St) => rangeLeft(F,F(To,Z),Fr,To-St,St).
 
     rangeRight:all x ~~ (((a,x)=>x),x,a,a,a) => x.
     rangeRight(_,Z,Fr,To,_) where Fr>=To => Z.

@@ -33,7 +33,7 @@ star.compiler.freshen{
   freshQuants(T,B,Env) default => (T,B,Env).
 
   genSkolemFun(Nm,[]) => skolemFun(Nm,0).
-  genSkolemFun(Nm,Q) => foldLeft((S,(_,V))=>tpExp(S,V),skolemFun(Nm,size(Q)),Q).
+  genSkolemFun(Nm,Q) => foldLeft(((_,V),S)=>tpExp(S,V),skolemFun(Nm,size(Q)),Q).
 
   skolemFun:(string,integer) => tipe.
   skolemFun(Nm,0) => nomnal(genSym(Nm)).
@@ -57,7 +57,7 @@ star.compiler.freshen{
   skolemQuants(T,B,Env) default => (T,B,Env).
 
   genTypeFun(Nm,[]) => newTypeVar(Nm).
-  genTypeFun(Nm,Q) => foldLeft((S,(_,V))=>tpExp(S,V),newTypeFun(Nm,size(Q)),Q).
+  genTypeFun(Nm,Q) => foldLeft(((_,V),S)=>tpExp(S,V),newTypeFun(Nm,size(Q)),Q).
 
   frshn:(tipe,dict,(tipe,dict)=>(tipe,dict),(tipe,dict)=>(tipe,dict))=>tipe.
   frshn(nomnal(Nm),Env,_,_) where (_,Tp,_)^=findType(Env,Nm) => Tp.

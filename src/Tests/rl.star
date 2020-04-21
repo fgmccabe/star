@@ -45,5 +45,5 @@ test.rl{
   SS = ["zero",..T].
 
   rev:all e ~~ (sk[e])=>sk[e].
-  rev(Tt) => foldLeft((So,E)=>[E,..So],[],Tt).
+  rev(Tt) => foldLeft((E,So)=>[E,..So],[],Tt).
 }
