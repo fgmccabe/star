@@ -267,7 +267,8 @@ star.compiler.checker{
   checkGroup(Specs,Env,Outer,Path,Rp) => do{
 --    logMsg("check defs $(Specs)");
     (Defs,GEnv) <- checkDefs(Specs,[],Env,Outer,Path,Rp);
-    valis (Defs,Env)
+--    logMsg("after checks $(Defs)");    
+    valis (Defs,GEnv)
   }
 
   checkDefs:(cons[defnSpec],cons[canonDef],dict,dict,string,reports) =>
@@ -318,14 +319,14 @@ star.compiler.checker{
     either[reports,(canonDef,dict)].
   checkFunction(Nm,Tp,Lc,Stmts,Env,Outer,Path,Rp) => do{
     (Q,ETp) .= evidence(Tp,Env);
-    logMsg("check function $(Nm)\:$(Tp)");
     (Cx,ProgramTp) .= deConstrain(ETp);
+--    logMsg("check function $(Nm) ProgramTp=$(ProgramTp) Tp=$(Tp)");
     Es .= declareConstraints(Lc,Cx,declareTypeVars(Q,Env));
-    logMsg("env for equations: $(head(Es))");
+--    logMsg("env for equations: $(head(Es))");
     Rls <- processEqns(Stmts,deRef(ProgramTp),[],.none,Es,
       declareConstraints(Lc,Cx,declareTypeVars(Q,Outer)),Path,Rp);
     FullNm .= qualifiedName(Path,.valMark,Nm);
-    logMsg("checked equations $(Rls), type $(Tp)");
+--    logMsg("checked equations $(Rls), ProgramTp=$(ProgramTp), Tp=$(Tp)");
     valis (varDef(Lc,Nm,FullNm,
 	lambda(Rls,Tp),Cx,Tp),declareVar(Nm,FullNm,some(Lc),Tp,Env))
   }.
@@ -880,6 +881,7 @@ star.compiler.checker{
   checkGoal(A,Env,Path,Rp) where (Lc,L,R) ^= isOptionMatch(A) => do{
     PtnTp .= newTypeVar("_M");
     Val <- typeOfExp(R,PtnTp,Env,Path,Rp);
+    logMsg("type of match $(Val) is $(PtnTp)");
     (Ptn,Ev) <- typeOfPtn(unary(Lc,"some",L),PtnTp,Env,Path,Rp);
     valis (match(Lc,Ptn,Val),Ev)
   }

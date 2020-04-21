@@ -15,7 +15,7 @@ star.compiler.resolve{
   public overloadEnvironment:(cons[cons[canonDef]],dict,reports) =>
     either[reports,cons[cons[canonDef]]].
   overloadEnvironment(Gps,Dict,Rp) => do{
---    logMsg("resolving definitions in $(Gps)");
+    logMsg("resolving definitions in $(Gps)");
     TDict .= declareImplementations(Gps,Dict);
 --    logMsg("resolution dict = $(TDict)");
     overloadGroups(Gps,[],TDict,Rp)
