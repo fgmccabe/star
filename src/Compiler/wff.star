@@ -645,22 +645,20 @@ star.compiler.wff{
 
   public macroSquarePtn:(locn,cons[ast]) => ast.
   macroSquarePtn(Lc,Els) =>
-    macroListEntries(Lc,Els,(Lx)=>mkWhere(Lx,"_eof"),
-      (Lx,H,T) => mkWherePtn(Lx,tpl(Lx,"()",[H,T]),nme(Lx,"_hdtl")),
-      (Lx,L,R) => mkWherePtn(Lx,tpl(Lx,"()",[L,R]),nme(Lx,"_back"))).
+    trace("sq ptn ",macroListEntries(Lc,Els,(Lx)=>mkWhere(Lx,"_eof"),
+      (Lx,H,T) => mkWherePtn(Lx,tpl(Lx,"()",[H,T]),nme(Lx,"_hdtl")))).
 
   public macroSquareExp:(locn,cons[ast]) => ast.
   macroSquareExp(Lc,Els) =>
     macroListEntries(Lc,Els,(Lx)=>nme(Lx,"_nil"),
-      (Lx,H,T) => binary(Lx,"_cons",H,T),
-      (Lx,L,R) => binary(Lx,"_apnd",L,R)).
+      (Lx,H,T) => binary(Lx,"_cons",H,T)).
 
-  macroListEntries:(locn,cons[ast],(locn)=>ast,(locn,ast,ast)=>ast,(locn,ast,ast)=>ast) => ast.
-  macroListEntries(Lc,[],End,_,_) => End(Lc).
-  macroListEntries(_,[Cns],_,Hed,_) where (Lc,H,T) ^= isCons(Cns) =>
+  macroListEntries:(locn,cons[ast],(locn)=>ast,(locn,ast,ast)=>ast) => ast.
+  macroListEntries(Lc,[],End,_) => End(Lc).
+  macroListEntries(_,[Cns],_,Hed) where (Lc,H,T) ^= isCons(Cns) =>
     Hed(Lc,H,T).
-  macroListEntries(Lc,[El,..Rest],Eof,Hed,Tail) =>
-    Hed(Lc,El,macroListEntries(Lc,Rest,Eof,Hed,Tail)).
+  macroListEntries(Lc,[El,..Rest],Eof,Hed) =>
+    Hed(Lc,El,macroListEntries(Lc,Rest,Eof,Hed)).
 
   public buildMain:(cons[ast])=>cons[ast].
   buildMain(Els) where (Lc,Tp) ^= head(lookForSignature(Els,"main")) &&

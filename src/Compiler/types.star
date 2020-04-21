@@ -206,9 +206,11 @@ star.compiler.types{
   showType(T,Sh,Dp) => shTipe(deRef(T),Sh,Dp).
 
   shTipe:(tipe,boolean,integer) => ss.
+--  shTipe(tVar(B,Nm),ShCo,Dp) where T^=B.binding!! => ssSeq([ss("%"),ss(Nm),ss("->"),shTipe(T,ShCo,Dp)]).
   shTipe(kFun(Nm,Ar),_,_) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
   shTipe(tVar(V,Nm),.false,Dp) => ssSeq([ss("%"),ss(Nm)]).
   shTipe(tVar(V,Nm),.true,Dp) => ssSeq([showAllConstraints(V.constraints!!,Dp),ss("%"),ss(Nm)]).
+--  shTipe(tFun(B,Ar,Nm),ShCo,Dp) where T^=B.binding!! => ssSeq([ss("%"),ss(Nm),ss("->"),shTipe(T,ShCo,Dp)]).
   shTipe(tFun(_,Ar,Nm),_,_) => ssSeq([ss("%"),ss(Nm),ss("/"),disp(Ar)]).
   shTipe(nomnal(Nm),_,_) => ss(Nm).
   shTipe(tpFun(Nm,Ar),_,_) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
@@ -243,17 +245,17 @@ star.compiler.types{
 
   showTpExp:(tipe,cons[tipe],boolean,integer) => ss.
   showTpExp(tpFun("=>",2),[A,R],Sh,Dp) =>
-    ssSeq([shTipe(deRef(A),Sh,Dp-1),ss("=>"),shTipe(deRef(R),Sh,Dp-1)]).
+    ssSeq([showType(A,Sh,Dp-1),ss("=>"),showType(R,Sh,Dp-1)]).
   showTpExp(tpFun("<=>",2),[A,R],Sh,Dp) =>
-    ssSeq([shTipe(deRef(A),Sh,Dp-1),ss("<=>"),shTipe(deRef(R),Sh,Dp-1)]).
+    ssSeq([showType(A,Sh,Dp-1),ss("<=>"),showType(R,Sh,Dp-1)]).
   showTpExp(tpFun("ref",1),[R],Sh,Dp) =>
-    ssSeq([ss("ref "),shTipe(deRef(R),Sh,Dp-1)]).
+    ssSeq([ss("ref "),showType(R,Sh,Dp-1)]).
   showTpExp(tpFun(Nm,Ar),A,Sh,Dp) where size(A)==Ar =>
     ssSeq([ss(Nm),ss("["),ssSeq(showEls(A,Sh,Dp-1,"")),ss("]")]).    
   showTpExp(tpExp(O,A),R,Sh,Dp) =>
     showTpExp(deRef(O),[A,..R],Sh,Dp).
   showTpExp(Op,A,Sh,Dp) =>
-    ssSeq([shTipe(deRef(Op),Sh,Dp-1),ss("["),ssSeq(showEls(A,Sh,Dp-1,"")),ss("]")]).    
+    ssSeq([showType(Op,Sh,Dp-1),ss("["),ssSeq(showEls(A,Sh,Dp-1,"")),ss("]")]).    
 
   shTpExp:(tipe,string,ss,boolean,integer) => ss.
   shTpExp(tpExp(T,A),Sep,R,Sh,Dp) => shTpExp(deRef(T),",",ssSeq([showType(A,Sh,Dp),ss(Sep),R]),Sh,Dp).
@@ -297,9 +299,9 @@ star.compiler.types{
     hshCon(fieldConstraint(V,T)) =>
       (hash("<~")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
 
-    hshEls(H,Els) => foldLeft((Hx,El)=>Hx*37+hsh(deRef(El)),H,Els).
+    hshEls(H,Els) => foldLeft((El,Hx)=>Hx*37+hsh(deRef(El)),H,Els).
 
-    hshFields(H,Els) => foldLeft((Hx,(Nm,Tp))=>(Hx*37+hash(Nm))*37+hsh(deRef(Tp)),H,Els).
+    hshFields(H,Els) => foldLeft(((Nm,Tp),Hx)=>(Hx*37+hash(Nm))*37+hsh(deRef(Tp)),H,Els).
   } in {.
     hash(Tp) => hsh(deRef(Tp)).
   .}
