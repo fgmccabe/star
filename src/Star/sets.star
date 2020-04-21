@@ -22,15 +22,15 @@ star.sets{
   }
 
   public implementation all e ~~ equality[e], hash[e] |: setops[set[e]] => {
-    set(m1)\/set(m2) => set(ixLeft(((mm,k,_) => mm[k->()]),m2,m1)).
-    set(m1)/\set(m2) => set(ixLeft((mm,k,_) => (some(_).=m2[k]?mm[k->()]||mm),[],m1)).
-    set(m1)\set(m2) => set(ixLeft((mm,k,_) => (some(_).=m2[k]?mm||mm[k->()]),[],m1)).
+    set(m1)\/set(m2) => set(ixLeft(((k,_,mm) => mm[k->()]),m2,m1)).
+    set(m1)/\set(m2) => set(ixLeft((k,_,mm) => (some(_).=m2[k]?mm[k->()]||mm),[],m1)).
+    set(m1)\set(m2) => set(ixLeft((k,_,mm) => (some(_).=m2[k]?mm||mm[k->()]),[],m1)).
   }
 
   public implementation all e ~~ display[e] |: display[set[e]] => let{
-    dispEntry:(cons[ss],e,())=>cons[ss].
-    dispEntry([],K,_) => [disp(K)].
-    dispEntry(L,K,_) default => [disp(K),ss(","),..L].
+    dispEntry:(e,(),cons[ss])=>cons[ss].
+    dispEntry(K,_,[]) => [disp(K)].
+    dispEntry(K,_,L) default => [disp(K),ss(","),..L].
   } in {.
     disp(set(M)) => ssSeq([ss("{"),ssSeq(ixLeft(dispEntry,[],M)),ss("}")]).
   .}
@@ -47,7 +47,7 @@ star.sets{
 
   public implementation all e ~~ folding[set[e]->>e] => {
     foldRight(F,A,set(S)) => ixRight((K,_,X) => F(K,X),A,S).
-    foldLeft(F,A,set(S)) => ixLeft((X,K,_)=>F(X,K),A,S).
+    foldLeft(F,A,set(S)) => ixLeft((K,_,X)=>F(K,X),A,S).
   }
 
   public implementation all e ~~ coercion[set[e],cons[e]] => {

@@ -15,7 +15,7 @@ star.compiler.dependencies{
   dependencies(Dfs,Rp) => do{
 --    logMsg("look for dependencies in $(Dfs)");
     (Defs,Pb,As,Opn) <- collectDefinitions(Dfs,Rp);
-    AllRefs .= foldLeft((M,D)=>collectRef(D,M),[],Defs);
+    AllRefs .= foldLeft((D,M)=>collectRef(D,M),[],Defs);
     InitDefs <- collectThetaRefs(Defs,AllRefs,As,[],Rp);
     Groups .= (topsort(InitDefs) // (Gp)=>(Gp//((definition(Sp,Lc,_,Els))=>defnSpec(Sp,Lc,Els))));
 --    logMsg("groups $(Groups)");
@@ -24,7 +24,7 @@ star.compiler.dependencies{
 
   private collectRef:(defnSpec,map[defnSp,defnSp])=>map[defnSp,defnSp].
   collectRef(defnSpec(conSp(Nm),_,[St]),M) where (_,_,Els) ^= isContractStmt(St) =>
-    foldLeft((MM,El) => ((_,N,_) ^= isTypeAnnotation(El) && (_,Id)^=isName(N) ?
+    foldLeft((El,MM) => ((_,N,_) ^= isTypeAnnotation(El) && (_,Id)^=isName(N) ?
 	  MM[varSp(Id)->conSp(Nm)] || MM),
       M[conSp(Nm)->conSp(Nm)],Els).
   collectRef(defnSpec(N,_,_),M) => M[N->N].
@@ -614,5 +614,5 @@ star.compiler.dependencies{
     qName(V) where (_,Id) ^= isName(V) => some(Id).
     qName(V) where (_,L,_) ^= isBinary(V,"/") => qName(L).
     qName(_) default => .none.
-  } in foldLeft((MM,V) where Id^=qName(V) => MM[!varSp(Id)],M,Q).
+  } in foldLeft((V,MM) where Id^=qName(V) => MM[!varSp(Id)],M,Q).
 }

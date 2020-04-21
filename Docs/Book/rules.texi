@@ -73,7 +73,7 @@ such a search using two @code{foldLeft} operations:
 foldLeft(
  (SoFar,(X,Z)) => foldLeft(
    let @{
-     acc(gp1,(ZZ,Y)) where Z==ZZ => [gp1..,(X,Y)].
+     acc((ZZ,Y),gp1) where Z==ZZ => [gp1..,(X,Y)].
      acc(gp1,_) => gp1.
    @} in acc,
    SoFar,parents),

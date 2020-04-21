@@ -219,7 +219,7 @@ star.ideal{
     idealLeft(F,U,ihNode(A1,A2,A3,A4)) => idealLeft(F,idealLeft(F,idealLeft(F,idealLeft(F,U,A1),A2),A3),A4).
 
     consIxLeft(F,U,.nil) => U.
-    consIxLeft(F,U,cons(K->V,T)) => consIxLeft(F,F(U,K,V),T).
+    consIxLeft(F,U,cons(K->V,T)) => consIxLeft(F,F(K,V,U),T).
   } in {.
     ixRight = idealRight.
     ixLeft = idealLeft.

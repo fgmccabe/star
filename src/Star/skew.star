@@ -74,13 +74,13 @@ star.skew{
     _empty = rl(.nil).
   }
 
-  foldDLeft:all e,x ~~ ((x,e)=>x,x,rlist[e]) => x.
+  foldDLeft:all e,x ~~ ((e,x)=>x,x,rlist[e]) => x.
   foldDLeft(_,X,.nil) => X.
   foldDLeft(F,X,cons((_,T),R)) => foldDLeft(F,foldTLeft(F,X,T),R).
 
-  foldTLeft:all e,x ~~ ((x,e)=>x,x,tree[e]) => x.
-  foldTLeft(F,X,leaf(E)) => F(X,E).
-  foldTLeft(F,X,node(W,L,R)) => foldTLeft(F,foldTLeft(F,F(X,W),L),R).
+  foldTLeft:all e,x ~~ ((e,x)=>x,x,tree[e]) => x.
+  foldTLeft(F,X,leaf(E)) => F(E,X).
+  foldTLeft(F,X,node(W,L,R)) => foldTLeft(F,foldTLeft(F,F(W,X),L),R).
 
   foldDRight:all e,x ~~ ((e,x)=>x,x,rlist[e])=>x.
   foldDRight(_,X,.nil) => X.
@@ -96,7 +96,7 @@ star.skew{
   }
 
   public implementation all e ~~ reversible[sk[e]] => {
-    reverse(rl(L)) => rl(foldDLeft((So,E)=>cns(E,So),.nil,L)).
+    reverse(rl(L)) => rl(foldDLeft((E,So)=>cns(E,So),.nil,L)).
   }
 
   public implementation all e ~~ concat[sk[e]] => {

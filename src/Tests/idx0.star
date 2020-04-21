@@ -5,7 +5,7 @@ test.idx0{
   -- Basic test of ideal hash trees.
 
   zip:all e ~~ (cons[e],integer,integer,map[integer,e])=>map[integer,e].
-  zip(L,Ix,Inc,T0) => snd(foldLeft(((I,T),E)=>(I+Inc,T[I->E]),(Ix,T0),L)).
+  zip(L,Ix,Inc,T0) => snd(foldLeft((E,(I,T))=>(I+Inc,T[I->E]),(Ix,T0),L)).
 
   t0 : map[integer,string].
   t0 = [].
@@ -43,10 +43,10 @@ test.idx0{
   aa0 = zip(letters,0,1,[]).
 
   chek:all e ~~ (cons[e],integer,integer,(integer,e)=>boolean)=>boolean.
-  chek(L,Ix,Inc,F) => snd(foldLeft(((I,S),E)=>(I+Inc,S&&F(I,E)),(Ix,.true),L)).
+  chek(L,Ix,Inc,F) => snd(foldLeft((E,(I,S))=>(I+Inc,S&&F(I,E)),(Ix,.true),L)).
 
   unzip:all e ~~ (cons[e],integer,integer,map[integer,e])=>map[integer,e].
-  unzip(L,Ix,Inc,T0) => snd(foldLeft(((I,T),E)=>(I+Inc,T[!I]),(Ix,T0),L)).
+  unzip(L,Ix,Inc,T0) => snd(foldLeft((E,(I,T))=>(I+Inc,T[!I]),(Ix,T0),L)).
 
   main:()=>action[(),()].
   main()=>do{

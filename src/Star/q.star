@@ -54,10 +54,10 @@ star.q{
 
     foldLeft(F,U,qc(.nil,.nil)) => U.
     foldLeft(F,U,qc(.nil,B)) => foldRightR(F,U,B).
-    foldLeft(F,U,qc(cons(H,T),B)) => foldLeft(F,F(U,H),qc(T,B)).
+    foldLeft(F,U,qc(cons(H,T),B)) => foldLeft(F,F(H,U),qc(T,B)).
 
     private foldRightR(F,U,.nil) => U.
-    foldRightR(F,U,cons(H,T)) => F(foldRightR(F,U,T),H).
+    foldRightR(F,U,cons(H,T)) => F(H,foldRightR(F,U,T)).
   }
 
   public implementation all e ~~ coercion[cons[e],qc[e]] => {.

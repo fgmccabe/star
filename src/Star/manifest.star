@@ -39,7 +39,7 @@ star.repo.manifest{
   toJson(man(Ps)) => jColl(ixRight((K,pEntry(P,Vs),M) => M[K->jColl(mkVersions(Vs))],[],Ps)).
 
   mkVersions:(cons[(version,mInfo)]) => map[string,json].
-  mkVersions(Vs) => foldLeft((M,(V,mInfo(_,I)))=>M[V::string->mkEntry(I)],[],Vs).
+  mkVersions(Vs) => foldLeft(((V,mInfo(_,I)),M)=>M[V::string->mkEntry(I)],[],Vs).
 
   mkEntry:(map[string,string]) => json.
   mkEntry(M) => jColl(ixRight((K,T,MM)=>MM[K->jTxt(T)],[],M)).

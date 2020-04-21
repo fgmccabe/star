@@ -13,8 +13,8 @@ the recursions and iterations required to process collections.
 The collections architecture has four main components:
 @enumerate
 @item
-a range of standard collection types -- including array-like lists,
-cons lists, first-in first-out queues, and ideal hash trees;
+a range of standard collection types -- including cons lists, first-in
+first-out queues, and ideal hash trees;
 @item
 a range of standard functions -- mostly defined in contracts -- that
 define the core capabilities of functions over collections;
@@ -77,13 +77,7 @@ construct and traverse sequences. The sequence term:
 @end example
 denotes the sequence whose first two elements are @code{1} and
 @code{2} and whose remainder is denoted by the variable @code{X} --
-which must also be a sequence of the appropriate type. Similarly, the
-term:
-@example
-[F..,23]
-@end example
-denotes the sequence obtained by gluing @code{23} to the back of the
-sequence @code{F}.
+which must also be a sequence of the appropriate type.
 
 There is a strong relationship between the normal sequence notation
 and the partial sequence notation. In particular, the sequence
@@ -97,15 +91,6 @@ cons of [1,..cons of [2,..cons of []]]
 @end example
 where @code{cons of []} is actually just @code{.nil}.
 
-We are not permitted to use both of @code{,..} and @code{..,}
-in the same expression:
-@example
-[F..,2,3,..B]
-@end example
-is not permitted (since it amounts to a concatenation of two sequences
-which, in turn, implies a non-deterministic decomposition when used as
-a pattern).
-
 The major benefit of general sequence notation is that it allows us to
 construct programs involving collections that are independent of type
 @emph{and} to do so in a syntax which is concise.
@@ -118,10 +103,10 @@ concat:all c,e ~~ stream[c->>e], sequence[c->>e] |: (c,c)=>c.
 concat([],X) => X.
 concat([E,..X],Y) => [E,..concat(X,Y)].
 @end example
-This function will work equally well with @code{cons} lists, lists,
-strings, even your own collection types. All that is required is that
-there is an implementation of the @code{stream} and the
-@code{sequence} contracts for the actual type being concatenated.
+This function will work equally well with @code{cons} lists, strings,
+even your own collection types. All that is required is that there is
+an implementation of the @code{stream} and the @code{sequence}
+contracts for the actual type being concatenated.
 
 @quotation
 There are two contracts here: the @code{stream} contract is used when
@@ -144,7 +129,6 @@ The standard @code{stream} contract is
 contract stream[t->>e] ::= @{
   _eof:()=>boolean.   -- is stream empty
   _hdtl:(t)=>option[(e,t)]. -- match front of stream
-  _back:(t)=>option[(t,e)]. -- match back of stream
 @}
 @end example
 and the standard @code{sequence} contract is:
@@ -152,7 +136,6 @@ and the standard @code{sequence} contract is:
 contract stream[t->>e] ::= @{
   _nil:t.     -- empty stream
   _cons:(e,t)=>t. -- add to front
-  _apnd:(t,e)=>e. -- add to back
 @}
 @end example
 
@@ -164,12 +147,10 @@ The entries in the @code{sequence} contract should be fairly self-evident:
 @item
 @code{_cons} is a function that `glues' a new element to the front of
 the sequence; and
-@item
-@code{_apnd} appends elements to the *back* of the sequence.
 @end itemize
 
-The compiler uses these three functions to transform sequence
-expressions into function calls.
+The compiler uses these functions to transform sequence expressions
+into function calls.
 
 For example, the sequence expression:
 @example
@@ -994,7 +975,7 @@ type constraints:
 @example
 contract all c,e ~~ folding[c->>e] ::= @{
   foldRight:all x ~~ (((e,x)=>x),x,c) => x.
-  foldLeft:all x ~~ (((x,e)=>x),x,c) => x.
+  foldLeft:all x ~~ (((e,x)=>x),x,c) => x.
 @}
 @end example
 The @code{folding} contract uses quantifiers in two places: once in
@@ -1065,7 +1046,7 @@ cascaded filter function and the list of found primes. The main
 alteration is to the @code{step} function:
 @example
 step:((list[integer],(integer)=>boolean),integer) => (list[integer],(integer)=>boolean).
-step(X,(P,F)) where F(X) => ([P..,X],cascade(F,X)).
+step(X,(P,F)) where F(X) => ([X,..P],cascade(F,X)).
 step(_,(P,F)) => (P,F).
 @end example
 and the initial state has an empty list:
@@ -1102,7 +1083,7 @@ primes(Max) => let@{
   cascade:((integer)=>boolean,integer) => ((integer)=>boolean).
   cascade(F,K) => (X)=>(F(X) && X%K=!=0).
 
-  step(X,(P,F)) where F(X) => ([P..,X],cascade(F,X)).
+  step(X,(P,F)) where F(X) => ([X,..P],cascade(F,X)).
   step(_,(P,F)) => (P,F).
 
   sieve:(range[integer])=>list[integer].
@@ -1163,33 +1144,6 @@ linear in the length of the list.
 The main merit of the @code{cons} list is the sheer simplicity of its
 definition. Also, for small collections, its simple implementation may
 outweigh the advantages that more complex collections offer.
-
-@node The @code{list} type
-@subsection The @code{list} type
-
-@noindent
-The list type offers a different trade-off to the @code{cons} type:
-where the latter is optimal for ease of constructing and for
-traversing complete lists, the list type offers constant-time access
-to random elements within the array -- at the potential cost of more
-expensive construction of lists.
-
-Unlike the @code{cons} type, the @code{list} type does not have a
-straightforward definition as an algebraic type. Internally, a list
-structure consists of an array of locations with a `control pointer'
-giving the portion of the array block that represents a given list
-value. This is sometimes called a Copy on Write (COW) structure.
-
-The @code{list} type is optimized for random access and for shared
-storage -- recall that collection types are persistent: that means
-that different values can share some or all of their internal
-structure. The diagram below shows two list values that overlap in
-their elements and consequently share some of their structure.
-
-@float Figure,twoarrays
-@caption{Two lists Sharing Structure}
-@image{images/twoarrays}
-@end float
 
 @node The @code{map} type
 @subsection The @code{map} type

@@ -23,14 +23,14 @@ star.compiler.errors{
   public countErrors:(cons[reportMsg])=>integer.
   countErrors(Ms) => foldLeft(countError,0,Ms).
 
-  countError(Ix,errorMsg(_,_))=>Ix+1.
-  countError(Ix,_) default => Ix.
+  countError(errorMsg(_,_),Ix)=>Ix+1.
+  countError(_,Ix) default => Ix.
 
   public countWarnings:(cons[reportMsg])=>integer.
   countWarnings(Ms) => foldLeft(countWarning,0,Ms).
 
-  countWarning(Ix,warnMsg(_,_))=>Ix+1.
-  countWarning(Ix,_) default => Ix.
+  countWarning(warnMsg(_,_),Ix)=>Ix+1.
+  countWarning(_,Ix) default => Ix.
 
   public reportError:(reports,string,locn) => reports.
   reportError(reports(Ms),Msg,Lc) => reports([errorMsg(Lc,Msg),..Ms]).
