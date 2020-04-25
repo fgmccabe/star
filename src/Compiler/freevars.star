@@ -7,6 +7,7 @@ star.compiler.freevars{
   import star.compiler.core.
   import star.compiler.escapes.
   import star.compiler.intrinsics.
+  import star.compiler.misc.
   import star.compiler.types.
 
   public freeVarsInTerm:(canon,set[crVar],set[crVar]) => set[crVar].
@@ -23,6 +24,10 @@ star.compiler.freevars{
   freeVarsInTerm(mtd(_,_,_),_,Fv) => Fv.
   freeVarsInTerm(over(_,V,_,_),Excl,Fv) => freeVarsInTerm(V,Excl,Fv).
   freeVarsInTerm(act(_,A),Excl,Fv) => freeVarsInAction(A,Excl,Fv).
+  freeVarsInTerm(csexp(_,G,Cs,_),Excl,Fv) =>
+    foldLeft((Rl,F)=>freeVarsInEqn(Rl,Excl,F),
+      freeVarsInTerm(G,Excl,Fv),
+      Cs).
   freeVarsInTerm(whr(_,E,C),Excl,Fv) =>
     freeVarsInTerm(C,Excl,freeVarsInTerm(E,Excl,Fv)).
   freeVarsInTerm(cond(_,T,L,R),Excl,Fv) where (Excl1,Fv1) .= freeVarsInCond(T,Excl,Fv) =>
@@ -81,10 +86,10 @@ star.compiler.freevars{
       (Excl1,FvC) .= freeVarsInCond(Wh,ptnVars(Ptn,Excl,Fv),Fv) =>
     freeVarsInTerm(Ptn,Excl1,freeVarsInTerm(Exp,Excl1,FvC)).
 
-  public freeVarsInGroup:(cons[canonDef],set[crVar],set[crVar])=>set[crVar].
-  freeVarsInGroup(Defs,Excl,Fv) => let{
-    Excl1 = exclDfs(Defs,Excl,Fv)
-  } in foldRight((D,F)=>freeVarsInDef(D,Excl1,F),Fv,Defs).
+  public freeVarsInGroup:(cons[canonDef])=>set[crVar].
+  freeVarsInGroup(Defs) => let{
+    Excl1 = exclDfs(Defs,[],[])
+  } in foldLeft((D,F)=>freeVarsInDef(D,Excl1,F),[],Defs).
 
   freeVarsInDef(varDef(_,_,_,E,_,_),Excl,Fv) =>
     freeVarsInTerm(E,Excl,Fv).

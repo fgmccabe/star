@@ -79,7 +79,7 @@ star.compiler.lexer{
   readQuoted(_,_,_) => .none.
 
   readString:(tokenState,cons[stringSegment]) => option[(tokenState,cons[stringSegment])].
-readString(St,SoFar) where (Nx,0c\") ^= nextChr(St) => some((Nx,reverse(SoFar))).
+  readString(St,SoFar) where (Nx,0c\") ^= nextChr(St) => some((Nx,reverse(SoFar))).
   readString(St,SoFar) where
     (Nx,0c$) ^= nextChr(St) &&
     (_,0c() ^= nextChr(Nx) &&
@@ -87,13 +87,14 @@ readString(St,SoFar) where (Nx,0c\") ^= nextChr(St) => some((Nx,reverse(SoFar)))
   readString(St,SoFar) where
     (Nx,0c#) ^= nextChr(St) &&
     (_,0c\() ^= nextChr(Nx) &&
-    (St1,Inter) ^= coercion(Nx) => readString(St1,[Inter,..SoFar]).
+	  (St1,Inter) ^= coercion(Nx) => readString(St1,[Inter,..SoFar]).
   readString(St,SoFar) where (St1,Seg) ^= readStr(St,[]) =>
     readString(St1,[segment(makeLoc(St,St1),Seg),..SoFar]).
 
   readStr:(tokenState,cons[integer]) => option[(tokenState,string)].
   readStr(St,Chrs) where  0c\" ^= hedChar(St) => some((St,reverse(Chrs)::string)).
   readStr(St,Chrs) where Nx ^= lookingAt(St,[0c$,0c(]) => some((St,reverse(Chrs)::string)).
+  readStr(St,Chrs) where Nx ^= lookingAt(St,[0c#,0c(]) => some((St,reverse(Chrs)::string)).
   readStr(St,Chrs) where (Nx,Ch) ^= charRef(St) => readStr(Nx,[Ch,..Chrs]).
   readStr(_,_) => .none.
 
@@ -224,6 +225,7 @@ readString(St,SoFar) where (Nx,0c\") ^= nextChr(St) => some((Nx,reverse(SoFar)))
   skipToNx:(tokenState) => tokenState.
   skipToNx(St) where Ch ^= hedChar(St) && isNonPrint(Ch) => skipToNx(nxtSt(St)).
   skipToNx(St) where Nx ^= lookingAt(St,[0c-,0c-,0c ]) => skipToNx(lineComment(Nx)).
+  skipToNx(St) where Nx ^= lookingAt(St,[0c-,0c-,0c\n]) => skipToNx(Nx).
   skipToNx(St) where Nx ^= lookingAt(St,[0c-,0c-,0c\t]) => skipToNx(lineComment(Nx)).
   skipToNx(St) where Nx ^= lookingAt(St,[0c/,0c*]) => skipToNx(blockComment(Nx)).
   skipToNx(St) => St.

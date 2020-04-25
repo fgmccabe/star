@@ -1,5 +1,6 @@
 test.c1{
   import star.
+  import star.script.
 
 /*  checkGroups:(cons[cons[integer]],integer) => either[(),integer].
   checkGroups([],Ix) => either(Ix).
@@ -26,23 +27,8 @@ test.c1{
     B = cons(A,.nil).
   } in B.
 
-  
+  main:()=>action[(),()].
+  main()=>do{
+    assert .nil ^= head(fooBar())
+  }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

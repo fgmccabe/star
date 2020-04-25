@@ -14,6 +14,7 @@ star.compiler.checker{
   import star.compiler.freshen.
   import star.compiler.impawt.
   import star.compiler.location.
+  import star.compiler.macro.
   import star.compiler.meta.
   import star.compiler.misc.
   import star.compiler.resolve.
@@ -169,6 +170,7 @@ star.compiler.checker{
     checkTypeGroups(Gs,Ev,Path,Rp)
   }
 
+  checkTypeGroup:(cons[defnSpec],dict,string,reports) => either[reports,dict].
   checkTypeGroup([],Env,_,_) => either(Env).
   checkTypeGroup([T,..G],Env,Path,Rp) => do{
     Ev <- checkTypeDefn(T,Env,Path,Rp);
@@ -293,7 +295,7 @@ star.compiler.checker{
 	  Val <- typeOfExp(R,VarTp,Es,Path,Rp);
 	  FullNm .= qualifiedName(Path,.valMark,Nm);
 	  valis (varDef(Lc,Nm,FullNm,Val,Cx,Tp),
-	    declareVar(Nm,FullNm,some(Lc),Tp,Env))
+	    declareVar(Nm,Nm,some(Lc),Tp,Env))
 	}
 	else{
 	  throw reportError(Rp,"bad definition $(Stmt)",Lc)
@@ -328,7 +330,7 @@ star.compiler.checker{
     FullNm .= qualifiedName(Path,.valMark,Nm);
 --    logMsg("checked equations $(Rls), ProgramTp=$(ProgramTp), Tp=$(Tp)");
     valis (varDef(Lc,Nm,FullNm,
-	lambda(Rls,Tp),Cx,Tp),declareVar(Nm,FullNm,some(Lc),Tp,Env))
+	lambda(Rls,Tp),Cx,Tp),declareVar(Nm,Nm,some(Lc),Tp,Env))
   }.
 
   processEqns:(cons[ast],tipe,cons[equation],option[equation],dict,dict,string,reports) =>
@@ -595,19 +597,32 @@ star.compiler.checker{
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,G,Cases) ^= isCaseExp(A) => let{
     ETp = newTypeVar("_e").
     
-    checkRle(E,RRp) where (Lc,IsDeflt,H,C,R) ^= isLambda(E) => do{
+    checkRle(E,RRp) where (CLc,IsDeflt,H,C,R) ^= isLambda(E) => do{
       (Arg,E0) <- typeOfPtn(H,ETp,Env,Path,RRp);
       if Cnd ^= C then {
 	(Cond,CE) <- checkCond(Cnd,Env,Path,RRp);
 	Rep <- typeOfExp(R,Tp,CE,Path,RRp);
-	valis eqn(Lc,Arg,some(Cond),Rep)
+	(Ags,ACnd) .= pullWhere(Arg,some(Cond));
+	valis eqn(Lc,tple(Lc,[Ags]),ACnd,Rep)
       }
       else{
+	(Ags,ACnd) .= pullWhere(Arg,.none);
+	logMsg("Arg $(Arg) -> $(Ags) wh $(ACnd)");
 	Rep <- typeOfExp(R,Tp,E0,Path,RRp);
-	valis eqn(Lc,Arg,.none,Rep)
+	valis eqn(CLc,tple(Lc,[Ags]),ACnd,Rep)
       }
     }
     checkRle(E,RRp) => other(reportError(RRp,"invalid case $(E)",locOf(E))).
+
+    pullWhere:(canon,option[canon]) => (canon,option[canon]).
+    pullWhere(whr(WLc,Vl,Cn),Gl) where (Val,G1) .= pullWhere(Vl,Gl) =>
+      (Val,mergeGoal(WLc,some(Cn),G1)).
+    pullWhere(Exp,Gl) default => (Exp,Gl).
+
+    mergeGoal:(locn,option[canon],option[canon])=>option[canon].
+    mergeGoal(_,Gl,.none) => Gl.
+    mergeGoal(_,.none,Gl) => Gl.
+    mergeGoal(Lc,some(Gl),some(H)) => some(conj(Lc,Gl,H)).
 
     typeOfCases:(cons[ast],cons[equation],reports) => either[reports,cons[equation]].
     typeOfCases([],Els,_) => either(reverse(Els)).
@@ -635,12 +650,12 @@ star.compiler.checker{
     valis apply(Lc,Acc,tple(Lc,[Cell]),Tp)
   }
   typeOfExp(A,Tp,Env,Path,Rp) where
-      (Lc,Stmts) ^= isActionTerm(A) &&
+      (Lc,Actn) ^= isActionTerm(A) &&
       (_,ActionTp,_) ^= findType(Env,"action") => do{
 	ErTp .= newTypeVar("E");
 	XTp .= newTypeVar("X");
 	checkType(A,tpExp(tpExp(ActionTp,ErTp),XTp),Tp,Env,Rp);
-	checkDo(Stmts,Tp,Env,Path,Rp)
+	checkDo(Actn,Tp,Env,Path,Rp)
       }.
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Stmts) ^= isTaskTerm(A) &&
       (_,ActionTp,_) ^= findType(Env,"task") => do{
@@ -881,7 +896,6 @@ star.compiler.checker{
   checkGoal(A,Env,Path,Rp) where (Lc,L,R) ^= isOptionMatch(A) => do{
     PtnTp .= newTypeVar("_M");
     Val <- typeOfExp(R,PtnTp,Env,Path,Rp);
-    logMsg("type of match $(Val) is $(PtnTp)");
     (Ptn,Ev) <- typeOfPtn(unary(Lc,"some",L),PtnTp,Env,Path,Rp);
     valis (match(Lc,Ptn,Val),Ev)
   }
@@ -907,20 +921,27 @@ star.compiler.checker{
   }
 
   checkDo:(ast,tipe,dict,string,reports) => either[reports,canon].
-  checkDo(Stmts,Tp,Env,Path,Rp) => do{
+  checkDo(Actn,Tp,Env,Path,Rp) => do{
+    if isSimpleAction(Actn) then{
+      logMsg("using macro process to simplify $(Actn)");
+      Simple <- makeAction(Actn,.none,Rp);
+      logMsg("macroed action is $(Simple)");
+      typeOfExp(Simple,Tp,Env,Path,Rp)
+    } else {
 --    logMsg("process do $(Stmts)");
-    VlTp .= newTypeVar("_e");
-    ErTp .= newTypeVar("_e");
-    Lc .= locOf(Stmts);
-    if Con ^= findContract(Env,"execution") then{
-      (_,typeExists(tpExp(Op,StTp),_)) .= freshen(Con,Env);
-      if sameType(mkTypeExp(StTp,[ErTp,VlTp]),Tp,Env) then {
-	(Action,_) <- checkAction(Stmts,Env,StTp,VlTp,ErTp,Path,Rp);
-	genAction(Action,Op,.none,Path,Rp)
-      } else
+      VlTp .= newTypeVar("_e");
+      ErTp .= newTypeVar("_e");
+      Lc .= locOf(Actn);
+      if Con ^= findContract(Env,"execution") then{
+	(_,typeExists(tpExp(Op,StTp),_)) .= freshen(Con,Env);
+	if sameType(mkTypeExp(StTp,[ErTp,VlTp]),Tp,Env) then {
+	  (Action,_) <- checkAction(Actn,Env,StTp,VlTp,ErTp,Path,Rp);
+	  genAction(Action,Op,.none,Path,Rp)
+	} else
 	throw reportError(Rp,"$(tpExp(StTp,ErTp)) not consistent with expected type $(Tp)",Lc)
-    } else
+      } else
       throw reportError(Rp,"cannot find execution contract",Lc)
+    }
   }
 
   checkAction:(ast,dict,tipe,tipe,tipe,string,reports) =>
@@ -939,13 +960,6 @@ star.compiler.checker{
     Exp <- typeOfExp(R,HT,Env,Path,Rp);
     (Ptn,Ev) <- typeOfPtn(L,E,Env,Path,Rp);
     valis (bindDo(Lc,Ptn,Exp,E,StTp,ErTp),Ev)
-  }
-  checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,L,R) ^= isDefn(A) => do{
-    E .= newTypeVar("P");
-    (Ptn,Ev) <- typeOfPtn(L,E,Env,Path,Rp);
-    Exp <- typeOfExp(R,E,Env,Path,Rp);
-
-    valis (varDo(Lc,Ptn,Exp),Ev)
   }
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,L,R) ^= isMatch(A) => do{
     E .= newTypeVar("P");
@@ -1113,7 +1127,7 @@ becomes
     (_,StTp,ElTp) <- pickupSequenceContract(locOf(Cond),Env,Rp);
     checkType(B,Tp,StTp,Env,Rp);
     Bnd <- typeOfExp(B,ElTp,E0,Path,Rp);
-    genAbstraction(Lc,Tp,Bnd,Cond,Env,Path,Rp)
+    trace("generated abstraction @ $(Lc) ",genAbstraction(Lc,Tp,Bnd,Cond,Env,Path,Rp))
   }
 
   processIterable:(canon,string,dict,reports)=>either[reports,canon].
@@ -1172,7 +1186,4 @@ becomes
   processIterable(E,Path,Env,Rp) default => do{
     valis E
   }
-
-
-
 }

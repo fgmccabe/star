@@ -27,7 +27,7 @@ star.compiler.token{
   dispSegments:(cons[stringSegment]) => cons[ss].
   dispSegments(Segs) => (Segs//disp).
 
-  implementation display[stringSegment] => {.
+  public implementation display[stringSegment] => {.
     disp(segment(_,S)) => ss(S).
     disp(interpolate(_,S,"")) => ssSeq([ss("\$("),disp(S),ss(")")]).
     disp(interpolate(_,S,F)) => ssSeq([ss("\$("),disp(S),ss("):"),ss(F),ss(";")]).

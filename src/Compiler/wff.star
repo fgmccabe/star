@@ -69,7 +69,7 @@ star.compiler.wff{
     deC(T,SoF) => [T,..SoF].
   } in deC(Trm,[]).
 
-  reComma:(cons[ast],ast) => ast.
+  public reComma:(cons[ast],ast) => ast.
   reComma([],A) => A.
   reComma([A,..As],B) =>
     binary(locOf(A),",",B,reComma(As,A)).
@@ -642,64 +642,4 @@ star.compiler.wff{
 
   public isRecordUpdate:(ast) => option[(locn,ast,ast)].
   isRecordUpdate(A) => isBinary(A,"<<-").
-
-  public macroSquarePtn:(locn,cons[ast]) => ast.
-  macroSquarePtn(Lc,Els) =>
-    trace("sq ptn ",macroListEntries(Lc,Els,(Lx)=>mkWhere(Lx,"_eof"),
-      (Lx,H,T) => mkWherePtn(Lx,tpl(Lx,"()",[H,T]),nme(Lx,"_hdtl")))).
-
-  public macroSquareExp:(locn,cons[ast]) => ast.
-  macroSquareExp(Lc,Els) =>
-    macroListEntries(Lc,Els,(Lx)=>nme(Lx,"_nil"),
-      (Lx,H,T) => binary(Lx,"_cons",H,T)).
-
-  macroListEntries:(locn,cons[ast],(locn)=>ast,(locn,ast,ast)=>ast) => ast.
-  macroListEntries(Lc,[],End,_) => End(Lc).
-  macroListEntries(_,[Cns],_,Hed) where (Lc,H,T) ^= isCons(Cns) =>
-    Hed(Lc,H,T).
-  macroListEntries(Lc,[El,..Rest],Eof,Hed) =>
-    Hed(Lc,El,macroListEntries(Lc,Rest,Eof,Hed)).
-
-  public buildMain:(cons[ast])=>cons[ast].
-  buildMain(Els) where (Lc,Tp) ^= head(lookForSignature(Els,"main")) &&
-      !_^=head(lookForSignature(Els,"_main")) =>
-    synthesizeMain(Lc,Tp,Els).
-  buildMain(Els) default => Els.
-
-  lookForSignature:(cons[ast],string)=>cons[(locn,ast)].
-  lookForSignature(Els,Nm) => [(Lc,Tp) | El in Els && (Lc,N,Tp)^=isTypeAnnot(El) && (_,Nm)^=isName(N)].
-
-  isTypeAnnot(A) where Ptn ^= isBinary(A,":") => some(Ptn).
-  isTypeAnnot(_) default => .none.
-  isTypeAnnot(A) where (_,I) ^= isPublic(A) => isTypeAnnot(I).
-  isTypeAnnot(A) where (_,I) ^= isPrivate(A) => isTypeAnnot(I).
-
-  synthesizeMain:(locn,ast,cons[ast])=>cons[ast].
-  synthesizeMain(Lc,Tp,Defs) where (_,Lhs,Rhs) ^= isFunctionType(Tp) && (_,ElTps)^=isTuple(Lhs) => valof action{
-    (Vs,Cs) .= synthesizeCoercions(ElTps,Lc,[],[]);
-    Arg .= sqTuple(Lc,([V,..Vrs].=Vs ? [reComma(Vrs,V)] || []));
-    MLhs .= roundTerm(Lc,nme(Lc,"_main"),[Arg]);
-    MRhs .= roundTerm(Lc,nme(Lc,"main"),Cs);
-    Main .= equation(Lc,MLhs,unary(Lc,"valof",MRhs));
-    Annot .= binary(Lc,":",nme(Lc,"_main"),equation(Lc,rndTuple(Lc,[squareTerm(Lc,nme(Lc,"cons"),[nme(Lc,"string")])]),rndTuple(Lc,[])));
---    logMsg(" main: $(Annot)\n$(Main)");
-    valis [unary(Lc,"public",Annot),Main,..Defs].
-  }
-
-  synthesizeCoercions:(cons[ast],locn,cons[ast],cons[ast])=> (cons[ast],cons[ast]).
-  synthesizeCoercions([],_,Vs,Cs) => (reverse(Vs),reverse(Cs)).
-  synthesizeCoercions([T,..Ts],Lc,Vs,Cs) where Nm .= genName(Lc,"X") =>
-    synthesizeCoercions(Ts,Lc,[Nm,..Vs],[binary(Lc,"::",Nm,T),..Cs]).
-
-  public reconstructDisp:(ast)=>ast.
-  reconstructDisp(C) where (Lc,Ex,Tp) ^= isCoerce(C) && (_,"string") ^= isName(Tp) => let{
-    flat:(ast,cons[string])=>cons[string].
-    flat(SS,So) where (_,Tx) ^= isUnary(SS,"ss") && (_,Txt) ^= isStr(Tx) => [Txt,..So].
-    flat(E,So) where (_,Sq) ^= isUnary(E,"ssSeq") && (_,L) ^= isSqTuple(Sq) => fltList(L,So).
-    flat(E,So) where (_,D) ^= isUnary(E,"disp") => ["\$",D::string,..So].
-
-    fltList(L,So) => foldRight((E,X)=>flat(E,X),So,L).
-    
-  } in str(Lc,_str_multicat(flat(Ex,[]))).
-  reconstructDisp(A) where Lc.=locOf(A) => str(Lc,A::string).
 }
