@@ -45,15 +45,15 @@ star.cons{
     _nil = .nil.
   }
 
-  public implementation all e ~~ sizeable[cons[e]] => {
+  public implementation all e ~~ sizeable[cons[e]] => let{
+    consLength:all e ~~ (cons[e],integer) => integer.
+    consLength(.nil,Ln) => Ln.
+    consLength(cons(_,T),Ln) => consLength(T,Ln+1).
+  } in {.
     size(L) => consLength(L,0).
     isEmpty(.nil) => .true.
     isEmpty(_) default => .false.
-  }
-
-  consLength:all e ~~ (cons[e],integer) => integer.
-  consLength(.nil,Ln) => Ln.
-  consLength(cons(_,T),Ln) => consLength(T,Ln+1).
+  .}
 
   last:all e ~~ (cons[e]) => (cons[e],e).
   last(cons(X,.nil)) => (.nil,X).
@@ -86,6 +86,11 @@ star.cons{
     tail(cons(_,T)) => some(T).
     tail(.nil) => .none.
   }
+
+  public front:all e ~~ (cons[e],integer)=>cons[e].
+  front([],_) => [].
+  front(_,0) => [].
+  front([E,..Es],Ix) where Ix>0 => [E,..front(Es,Ix-1)].
 
   public zip: all e,f ~~ (cons[e],cons[f])=>cons[(e,f)].
   zip([],[]) => [].

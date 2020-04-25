@@ -19,6 +19,7 @@
     "star.compiler.grapher": "grapher.star",
     "star.compiler.impawt": "impawt.star",
     "star.compiler.intrinsics": "intrinsics.star",
+    "star.compiler.macro" : "macro.star",
     "star.compiler.meta" : "meta.star",
     "star.compiler.multi" : "multi.star",
     "star.compiler.opg": "opg.star",

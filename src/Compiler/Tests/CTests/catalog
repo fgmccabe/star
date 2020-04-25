@@ -5,6 +5,7 @@
     "test.ar" : "ar.star",
     "test.c" : "c.star",
     "test.c1" : "c1.star",
+    "test.co": "co.star",
     "test.j" : "j.star",
     "test.l" : "l.star",
     "test.l2" : "l2.star",

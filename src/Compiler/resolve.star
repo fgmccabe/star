@@ -15,7 +15,7 @@ star.compiler.resolve{
   public overloadEnvironment:(cons[cons[canonDef]],dict,reports) =>
     either[reports,cons[cons[canonDef]]].
   overloadEnvironment(Gps,Dict,Rp) => do{
-    logMsg("resolving definitions in $(Gps)");
+--    logMsg("resolving definitions in $(Gps)");
     TDict .= declareImplementations(Gps,Dict);
 --    logMsg("resolution dict = $(TDict)");
     overloadGroups(Gps,[],TDict,Rp)
@@ -210,6 +210,12 @@ star.compiler.resolve{
     (St2,RRhs) <- overloadTerm(Rhs,RDct,St,Rp);
     valis (St2,letRec(Lc,RDfs,RRhs))
   }
+  overloadTerm(csexp(Lc,Gov,Cases,Tp),Dict,St,Rp) => do{
+    (St1,RGov) <- overloadTerm(Gov,Dict,St,Rp);
+    (St2,RCases) <- overloadRules(Cases,[],Dict,St1,Rp);
+    valis (St2,csexp(Lc,RGov,RCases,Tp))
+  }
+
   overloadTerm(act(Lc,Act),Dict,St,Rp) => do{
     (St1,RAct) <- overloadAction(Act,Dict,St,Rp);
     valis (St1,act(Lc,RAct))

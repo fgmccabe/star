@@ -82,6 +82,7 @@ star.compiler{
     Repo <- openupRepo(Opts.repo,Opts.cwd);
     if CatUri ^= parseUri("catalog") && CatU ^= resolveUri(Opts.cwd,CatUri) &&
 	Cat ^= loadCatalog(CatU) then{
+--	  logMsg("catalog is $(Cat)");
 	  for P in Args do{
 --	    logMsg("look up $(P) in catalog $(Cat)");
 	    ErRp .= reports([]);	

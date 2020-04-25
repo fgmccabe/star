@@ -206,11 +206,9 @@ star.compiler.types{
   showType(T,Sh,Dp) => shTipe(deRef(T),Sh,Dp).
 
   shTipe:(tipe,boolean,integer) => ss.
---  shTipe(tVar(B,Nm),ShCo,Dp) where T^=B.binding!! => ssSeq([ss("%"),ss(Nm),ss("->"),shTipe(T,ShCo,Dp)]).
   shTipe(kFun(Nm,Ar),_,_) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
   shTipe(tVar(V,Nm),.false,Dp) => ssSeq([ss("%"),ss(Nm)]).
   shTipe(tVar(V,Nm),.true,Dp) => ssSeq([showAllConstraints(V.constraints!!,Dp),ss("%"),ss(Nm)]).
---  shTipe(tFun(B,Ar,Nm),ShCo,Dp) where T^=B.binding!! => ssSeq([ss("%"),ss(Nm),ss("->"),shTipe(T,ShCo,Dp)]).
   shTipe(tFun(_,Ar,Nm),_,_) => ssSeq([ss("%"),ss(Nm),ss("/"),disp(Ar)]).
   shTipe(nomnal(Nm),_,_) => ss(Nm).
   shTipe(tpFun(Nm,Ar),_,_) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
@@ -363,6 +361,10 @@ star.compiler.types{
 
   public implementation hasType[tipe] => {.
     typeOf = id
+  .}
+
+  public implementation all t ~~ hasType[t] |: hasType[cons[t]] => {.
+    typeOf(L) => tupleType(L//typeOf)
   .}
 
   public arity:(tipe)=>integer.
