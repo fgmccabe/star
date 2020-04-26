@@ -22,6 +22,12 @@ file(COPY ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/sc
   GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 
 add_custom_target(sc)
+add_dependencies(sc sbc)
+
+add_custom_command(TARGET sc
+  COMMAND "${CMAKE_CURRENT_BINARY_DIR}/../BootCompiler/sbc" "-w" "${CMAKE_CURRENT_SOURCE_DIR}/" "-r" "${REPO_DIR}" "star.compiler"
+  )
+
 
 
 

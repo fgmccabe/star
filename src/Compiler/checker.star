@@ -1145,7 +1145,8 @@ becomes
     valis dot(Lc,NRec,Fld,Tp)
   }
   processIterable(tple(Lc,Els),Path,Env,Rp) => do{
-    NEls <- _iter(Els,do{valis []},(El,Ot)=>either([valof processIterable(El,Path,Env,Rp),..Ot]));
+    NEls <- seqmap((El)=>processIterable(El,Path,Env,Rp),Els);
+--    NEls <- _iter(Els,do{valis []},(El,Ot)=>either([valof processIterable(El,Path,Env,Rp),..Ot]));
     valis tple(Lc,reverse(NEls))
   }
   processIterable(whr(Lc,E,C),Path,Env,Rp) => do{
