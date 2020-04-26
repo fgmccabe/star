@@ -24,6 +24,7 @@ caseMatcher(Lc,Bnd,Cases,Result) :-
 genRaise(Lc,error(Lc,"no matches")).
 
 matchTriples(_,[],Tps,Deflt,Reslt) :-
+%  reportMsg("conditionalize %s",[Deflt],Lc),
   conditionalize(Tps,Deflt,Reslt).
 matchTriples(Lc,Vrs,Tpls,Deflt,Reslt) :-
   partitionTriples(Tpls,Segments),
@@ -52,11 +53,13 @@ conditionalize([],Deflt,Deflt).
 conditionalize([(_,(Lc,Bnds,Test,Val),_)|M],Deflt,Repl) :-!,
   pullWhere(Val,enum("star.core#true"),Vl,C0),
   mergeGoal(Test,C0,Lc,TT),
+%  reportMsg("merged test %s goal = %s",[Test,TT],Lc),
   (TT=enum("star.core#true") ->
     applyBindings(Bnds,Lc,Vl,Repl);
     conditionalize(M,Deflt,Other),
     applyBindings(Bnds,Lc,Vl,TVl),
     Repl = cnd(Lc,TT,TVl,Other)
+%    reportMsg("conditionalized Repl=%s",[Repl],Lc)
   ).
 
 applyBindings(Bnds,Lc,Val,DVal) :-
@@ -113,9 +116,28 @@ matchScalars(Tpls,[V|Vrs],Lc,Deflt,CaseExp) :-
 mkCase(Lc,V,[(Lbl,Exp,Lc)],Deflt,cnd(Lc,mtch(Lc,Lbl,V),Exp,Deflt)) :-!.
 mkCase(Lc,V,Cases,Deflt,case(Lc,V,Cases,Deflt)).
 
+showCase((Lbl,Exp,Lc),C,Cx) :-
+  appStr("case ",C,C0),
+  showLocation(Lc,C0,C1),
+  showTerm(Lbl,0,C1,C2),
+  appStr("=>",C2,C3),
+  showTerm(Exp,0,C3,C4),
+  appStr("\n",C4,Cx).
+
+showCases([],Cx,Cx) :-!.
+showCases([Cs|Css],C,Cx) :-
+  showCase(Cs,C,C0),
+  showCases(Css,C0,Cx).
+
+dispCases(Css) :-
+  showCases(Css,Chrs,[]),
+  string_chars(Res,Chrs), write(Res).  
+
 matchConstructors(Lc,Tpls,[V|Vrs],Deflt,CaseExp) :-
+%  reportMsg("constructor case around %s,\ndefault %s",[V,Deflt],Lc),
   sort(Tpls,matcher:compareConstructorTriple,ST),
   formCases(ST,matcher:sameConstructorTriple,Lc,Vrs,Deflt,Cases),
+%  dispCases(Cases),
   mkCase(Lc,V,Cases,Deflt,CaseExp).
 
 formCases([],_,_,[],_,[]) :- !.

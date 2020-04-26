@@ -1,6 +1,6 @@
 :- module(canon,[dispCanonTerm/1,dispProg/1,dispDefs/1,showDef/4,
 		 showCanonTerm/4,showPkg/3,showImports/3,showContracts/3,
-		 showImpls/3,
+		 showImpls/3,showEqns/4,
 		 typeOfCanon/2,splitPtn/3,locOfCanon/2,mergeGl/4,
 		 isCanonDef/1,isCanon/1,isSimpleCanon/1,isAssertion/1,isShow/1,isPkg/1,
 		 ruleArity/2,
@@ -497,6 +497,9 @@ showDef(_,implDef(_,_,_,_),O,O).
 
 showRls(Nm,Rls,Dp,O,Ox) :-
   listShow(Rls,canon:showRule(Nm,Dp),misc:appMulti([misc:appStr("."),misc:appNwln(Dp)]),O,Ox).
+
+showEqns(Nm,Rls,C,Cx) :-
+  showRls(Nm,Rls,0,C,Cx).
 
 showRule(Nm,Dp,equation(_,Args,Cond,Value),O,Ox) :-!,
   appStr(Nm,O,O1),
