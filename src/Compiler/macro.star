@@ -78,7 +78,7 @@ star.compiler.macro{
   isSimpleAction(A) where (Lc,L,R) ^= isBind(A) => .true.
   isSimpleAction(A) where (Lc,L,R) ^= isMatch(A) => .true.
   isSimpleAction(A) where (Lc,L,R) ^= isOptionMatch(A) => .true.
-  isSimpleAction(A) where _ ^= isTryCatch(A) => .true.
+  isSimpleAction(A) where (_,B,H) ^= isTryCatch(A) => isSimpleAction(B) && ((_,[St])^=isBrTuple(H) ? isSimpleAction(St) || .true).
   isSimpleAction(A) where _ ^= isIntegrity(A) => .true.
   isSimpleAction(A) where _ ^= isShow(A) => .true.
   isSimpleAction(A) where _ ^= isRoundTerm(A) => .true.
@@ -122,6 +122,7 @@ star.compiler.macro{
     
     valis combine(binary(Lc,"_handle",NB,NH),Cont)
   }
+  
  
   /*
     assert C 
@@ -157,6 +158,18 @@ star.compiler.macro{
   makeAction(A,Cont,_) where _ ^= isRoundTerm(A) =>
     either(combine(A,Cont)).
 
+  makeIterableGoal:(ast,reports) => either[reports,ast].
+  makeIterableGoal(A,Rp) => do{
+    Lc .= locOf(A);
+    Vrs .= (goalVars(A) // (Nm)=>nme(Lc,Nm));
+    VTpl .= rndTuple(Lc,Vrs);
+    Unit .= enum(Lc,"none");
+    Zed .= unary(Lc,"_valis",Unit);
+    Ptn .= unary(Lc,"either",unary(Lc,"some",VTpl));
+    Seq <- makeCondition(A,(St)=>binary(Lc,"_cons",VTpl,Unit),(_)=>Unit,Rp);
+    valis match(Lc,Ptn,unary(Lc,"_perform",Seq))
+  }
+
   makeHandler(H,Rp) where (Lc,[St]) ^= isBrTuple(H) => do{
     NH <- makeAction(St,.none,Rp);
     valis equation(Lc,rndTuple(Lc,[nme(Lc,"_")]),NH)
@@ -170,5 +183,64 @@ star.compiler.macro{
   makeReturn(Lc,A,Rp) => either(unary(Lc,"_valis",A)).
 
   makeThrow(Lc,A,Rp) => either(unary(Lc,"_raise",A)).
+
+  /*
+  * Ptn in Src
+  * becomes
+  * let{.
+  *  sF(Ptn,St) => AddEl(X,St).
+  *  sF(_,St) default => do { return St}.
+  * .} in _iter(Src,Initial,sF)
+  *
+  * where AddEl, InitState are parameters to the conversion
+  */
+  makeCondition:(ast,(locn)=>ast,(locn)=>ast,reports) => either[reports,ast].
+  makeCondition(A,Succ,Zed,Rp) where (Lc,Ptn,Src) ^= isSearch(A) => do{
+    sF .= genName(Lc,"sF");
+    St .= genName(Lc,"St");
+
+    Eq1 .= equation(Lc,rndTuple(Lc,[Ptn,St]),Succ(Lc));
+    Eq2 .= equation(Lc,rndTuple(Lc,[nme(Lc,"_"),St]),unary(Lc,"_valis",St));
+    Bnd .= ternary(Lc,"_iter",Src,Zed(Lc),sF);
+    valis letDef(Lc,[Eq1,Eq2],Bnd)
+  }
+
+
+  goalVars:(ast)=>cons[string].
+  goalVars(Cond) => glVars(Cond,[],[])::cons[string].
+
+  glVars:(ast,set[string],set[string]) => set[string].
+  glVars(A,Excl,Vrs) where (_,L,R) ^= isWhere(A) =>
+    glVars(L,Excl,glVars(R,Excl,Vrs)).
+  glVars(A,Excl,Vrs) where (_,L,R) ^= isConjunct(A) =>
+    glVars(L,Excl,glVars(R,Excl,Vrs)).
+  glVars(A,Excl,Vrs) where (_,L,R) ^= isDisjunct(A) =>
+    glVars(L,Excl,Vrs)/\glVars(R,Excl,Vrs).
+  glVars(A,Excl,Vrs) where (_,T,L,R) ^= isConditional(A) =>
+    glVars(L,Excl,glVars(T,Excl,Vrs))/\glVars(R,Excl,Vrs).
+  glVars(A,Excl,Vrs) where (_,Els) ^= isTuple(A) =>
+    foldRight((E,F)=>glVars(E,Excl,F),Vrs,Els).
+  glVars(A,Excl,Vrs) where (_,P,C) ^= isSearch(A) => ptnVars(P,Excl,Vrs).
+  glVars(A,Excl,Vrs) where (_,P,C) ^= isMatch(A) => ptnVars(P,Excl,Vrs).
+  glVars(A,Excl,Vrs) where (_,P,C) ^= isOptionMatch(A) => ptnVars(P,Excl,Vrs).
+  glVars(_,_,Vrs) default => Vrs.
+
+  ptnVars:(ast,set[string],set[string]) => set[string].
+  ptnVars(A,Excl,Vrs) where (_,Nm) ^= isName(A) =>
+    (Nm in Excl ? Vrs || _addMem(Nm,Vrs)).
+  ptnVars(A,Excl,Vrs) where _ ^= isInt(A) => Vrs.
+  ptnVars(A,Excl,Vrs) where _ ^= isFlt(A) => Vrs.
+  ptnVars(A,Excl,Vrs) where _ ^= isStr(A) => Vrs.
+  ptnVars(A,Excl,Vrs) where _ ^= isStr(A) => Vrs.
+  ptnVars(A,Excl,Vrs) where _ ^= isEnum(A) => Vrs.
+  ptnVars(A,Excl,Vrs) where (_,L,R) ^= isWhere(A) =>
+    glVars(R,Excl,ptnVars(L,Excl,Vrs)).
+  ptnVars(A,Excl,Vrs) where (_,_,Els) ^= isRoundTerm(A) =>
+    foldRight((E,F)=>ptnVars(E,Excl,F),Vrs,Els).
+  ptnVars(A,Excl,Vrs) where (_,Els) ^= isTuple(A) =>
+    foldRight((E,F)=>ptnVars(E,Excl,F),Vrs,Els).
+  ptnVars(A,Excl,Vrs) where (_,Els) ^= isSqTuple(A) =>
+    foldRight((E,F)=>ptnVars(E,Excl,F),Vrs,Els).
+  ptnVars(_,_,Vrs) default => Vrs.
       
 }

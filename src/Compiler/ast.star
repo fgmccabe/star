@@ -71,6 +71,7 @@ star.compiler.ast{
 
   public implementation hasLoc[ast] => {.
     locOf(nme(Lc,_)) => Lc.
+    locOf(qnm(Lc,_)) => Lc.
     locOf(int(Lc,_)) => Lc.
     locOf(num(Lc,_)) => Lc.
     locOf(str(Lc,_)) => Lc.
@@ -80,6 +81,7 @@ star.compiler.ast{
 
   public isName:(ast) => option[(locn,string)].
   isName(nme(Lc,Id)) where ! keyword(Id) => some((Lc,Id)).
+  isName(qnm(Lc,Id)) => some((Lc,Id)).
   isName(tpl(_,"()",[nme(Lc,Id)])) => some((Lc,Id)).
   isName(_) default => .none.
 
@@ -163,6 +165,9 @@ star.compiler.ast{
   public isQBrTuple:(ast) => option[(locn,cons[ast])].
   isQBrTuple(tpl(Lc,"{..}",A)) => some((Lc,A)).
   isQBrTuple(_) => .none.
+
+  public qBrTuple:(locn,cons[ast]) => ast.
+  qBrTuple(Lc,Els) => tpl(Lc,"{..}",Els).
 
   public isBrTerm:(ast) => option[(locn,ast,cons[ast])].
   isBrTerm(app(Lc,Op,tpl(_,"{}",A))) => some((Lc,Op,A)).

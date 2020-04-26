@@ -182,6 +182,10 @@ star.compiler.wff{
       app(_,nme(_,"let"),Body) .= Lh &&
       (_,Els) ^= isQBrTuple(Body) => some((Lc,Els,Rh)).
   isQLetDef(_) default => .none.
+
+  public letDef:(locn,cons[ast],ast) => ast.
+  letDef(Lc,Els,Bnd) =>
+    binary(Lc,"in",unary(Lc,"let",qBrTuple(Lc,Els)),Bnd).
   
   public isComprehension:(ast) => option[(locn,ast,ast)].
   isComprehension(A) where (Lc,[T]) ^= isBrTuple(A) &&
@@ -207,6 +211,8 @@ star.compiler.wff{
   isConditional(_) => .none.
 
   public isMatch(A) => isBinary(A,".=").
+
+  public match(Lc,L,R) => binary(Lc,".=",L,R).
 
   public isOptionMatch(A) => isBinary(A,"^=").
 
