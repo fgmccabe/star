@@ -1,7 +1,7 @@
 :- module(lterms,[displayRules/1,
         dispRuleSet/1,substTerm/3,substTerms/3,rewriteTerm/3,
         genTplStruct/2,isLiteral/1,isGround/1,isCnd/1,mkTpl/2,isUnit/1,
-        termHash/2,dispTerm/1,showTerm/4,locTerm/2,idInTerm/2]).
+        termHash/2,dispTerm/1,showTerm/4,showArgs/4,locTerm/2,idInTerm/2]).
 
 :- use_module(misc).
 :- use_module(canon).

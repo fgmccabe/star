@@ -242,6 +242,7 @@ processStmt(St,Tp,Defs,Defx,Df,Dfx,Env,Path) :-
   checkEquation(Lc,Hd,Cond,Body,Tp,Defs,Defx,Df,Dfx,Env,Path).
 processStmt(St,ProgramType,Defs,Defx,Df,Dfx,E,Path) :-
   isEquation(St,Lc,L,Cond,R),!,
+%  reportMsg("check equation %s",[St],Lc),
   checkEquation(Lc,L,Cond,R,ProgramType,Defs,Defx,Df,Dfx,E,Path).
 processStmt(St,Tp,[Def|Defs],Defs,Df,Df,Env,Path) :-
   isDefn(St,Lc,L,R),
@@ -299,6 +300,7 @@ checkEquation(Lc,H,C,R,funType(AT,RT),Defs,Defsx,Df,Dfx,E,Path) :-
 %  typeOfExp(R,RT,E1,_E2,Exp,Path),
   processIterable(Env,Path,Exp,Reslt),
   Eqn = equation(Lc,Args,Cond,Reslt),
+%  reportMsg("equation %s",[Eqn],Lc),
   (IsDeflt=isDeflt -> Defs=Defsx, Df=[Eqn|Dfx]; Defs=[Eqn|Defsx],Df=Dfx).
 checkEquation(Lc,_,_,_,ProgramType,Defs,Defs,Df,Df,_,_) :-
   reportError("equation not consistent with expected type: %s",[ProgramType],Lc).

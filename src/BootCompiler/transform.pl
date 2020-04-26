@@ -205,12 +205,38 @@ transformFunction(Lc,Nm,LclName,Tp,Eqns,Map,OMap,Opts,[Fun|Ex],Exx) :-
   extraArity(Arity,Extra,Ar),
   LclPrg = lbl(LclName,Ar),
   extendFunTp(Tp,Extra,ATp),
+%  reportMsg("show eqns for %s",[Nm],Lc),
+%  dispEqns(Nm,Eqns),
   transformEquations(Map,OMap,Opts,LclPrg,Eqns,Rules,[],Ex,Ex0),
+%  reportMsg("show transformed rules for %s",[Nm],Lc),
+%  dispRules(Nm,Rules),
   closureEntry(Map,Lc,Nm,Tp,Ex0,Exx),
   functionMatcher(Lc,Ar,LclPrg,ATp,Rules,Fun).
 %  dispRuleSet(Fun),
 %  liftExp(v(Lc,Nm,Tp),Vr,[],_,Map,Opts,Exx,_).
 %  dispTerm(Vr).
+
+dispEqns(Nm,Eqs) :-
+  showEqns(Nm,Eqs,Chrs,[]),
+  string_chars(Res,Chrs), write(Res).  
+
+dispRules(Nm,Rls) :-
+  showRules(Nm,Rls,Chrs,[]),
+  string_chars(Res,Chrs), write(Res).  
+
+showRules(_,[],Cx,Cx).
+showRules(Nm,[Rl|Rls],C,Cx) :-
+  showRule(Nm,Rl,C,C0),
+  showRules(Nm,Rls,C0,Cx).
+
+showRule(Nm,(_,Args,Cnd,Val),C,Cx) :-
+  appStr(Nm,C,C0a),
+  showArgs(Args,0,C0a,C0),
+  appStr(" whr ",C0,C1),
+  showTerm(Cnd,0,C1,C2),
+  appStr(" => ",C2,C3),
+  showTerm(Val,0,C3,C4),
+  appStr("\n",C4,Cx).
 
 extendFunTp(Tp,[],Tp):-!.
 extendFunTp(funType(tupleType(Els),Rt),Extra,funType(tupleType(NEls),Rt)) :-
@@ -412,7 +438,7 @@ trPtnCallOp(Lc,Nm,Args,whr(Lc,X,mtch(Lc,X,ecll(Lc,Nm,Args))),Q,Qx,_,_,Ex,Ex) :-
   genVar("_X",X),
   merge([X],Q,Qx).
 trPtnCallOp(Lc,Nm,Args,Ptn,Q,Qx,Map,_,Ex,Ex) :-
-  lookupFunName(Map,Nm,Reslt),
+  lookupClassName(Map,Nm,Reslt),
   implementPtnCall(Reslt,Lc,Nm,Args,Ptn,Map,Q,Qx).
 
 implementPtnCall(localFun(Fn,_,_,Ar,ThVr),Lc,_,Args,whr(Lc,X,mtch(Lc,X,cll(Lc,lbl(Fn,A2),XArgs))),Map,Q,Qx) :-

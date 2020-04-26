@@ -153,9 +153,11 @@ compTerm(Lit,_,Cont,_,D,Dx,End,[iLdC(Lit)|C0],Cx,Stk,Stkx) :-
   isGround(Lit),!,
   Stk1 is Stk+1,
   call(Cont,D,Dx,End,C0,Cx,Stk1,Stkx).
-compTerm(idnt(Nm),_,Cont,_,D,Dx,End,C,Cx,Stk,Stkx) :-!,
-  isVar(Nm,V,D),
-  compVar(V,Cont,D,Dx,End,C,Cx,Stk,Stkx).
+compTerm(idnt(Nm),Lc,Cont,_,D,Dx,End,C,Cx,Stk,Stkx) :-!,
+  (isVar(Nm,V,D) -> 
+   compVar(V,Cont,D,Dx,End,C,Cx,Stk,Stkx) ;
+   reportError("cannot locate variable %s",[Nm],Lc),
+   abort).
 compTerm(ctpl(St,A),Lc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stk2) :-!,
   compTerms(A,Lc,bothCont(allocCont(St),Cont),Opts,D,Dx,End,C,Cx,Stk,Stk2).
 compTerm(intrinsic(Lc,Op,A),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-!,
