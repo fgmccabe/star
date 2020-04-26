@@ -55,7 +55,7 @@ star.compiler.gencode{
     either[reports,cons[codeSegment]].
   compCrProg(Pkg,Defs,Globals,Opts,Rp) => do{
 --    logMsg("globals $(Globals)");
-    logMsg("Defs $(Defs)");
+--    logMsg("Defs $(Defs)");
     compDefs(Defs,localFuns(Defs,foldRight(((Pk,Tp),G)=>G[Pk->glbVar(Pk,Tp)],[],Globals)),
       Opts,genBoot(Pkg,Defs),Rp)
   }.
@@ -77,7 +77,7 @@ star.compiler.gencode{
 
   compDefn:(crDefn,map[string,srcLoc],compilerOptions,reports) => either[reports,codeSegment].
   compDefn(fnDef(Lc,Nm,Tp,Args,Val),Glbs,Opts,Rp) => do{
-    logMsg("compile $(fnDef(Lc,Nm,Tp,Args,Val))");
+--    logMsg("compile $(fnDef(Lc,Nm,Tp,Args,Val))");
     Ctx .= emptyCtx(Lc,Glbs);
 --    logMsg("initial context: $(Ctx)");
     Ctxa .= argVars(Args,Ctx,0);
@@ -85,7 +85,7 @@ star.compiler.gencode{
     valis method(tLbl(Nm,size(Args)),Tp,peep(Code::cons[assemOp]))
   }
   compDefn(vrDef(Lc,crId(Nm,Tp),Val),Glbs,Opts,Rp) => do{
-    logMsg("compile global $(Nm)\:$(Tp) = $(Val))");
+--    logMsg("compile global $(Nm)\:$(Tp) = $(Val))");
     Ctx .= emptyCtx(Lc,Glbs);
 --    logMsg("initial context: $(Ctx)");
     (Ctxx,Code,Stk) <- compExp(Val,Opts,bothCont(stoGlb(Nm),retCont(Lc)),Ctx,[],some([]),Rp);

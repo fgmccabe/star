@@ -99,7 +99,7 @@ star.compiler.normalize{
 
   lambdaMap:(canon,nameMap,reports) => either[reports,(nameMap,crExp,crExp)].
   lambdaMap(Lam,Outer,Rp) => do{
-    logMsg("making map for lambda $(Lam)");
+--    logMsg("making map for lambda $(Lam)");
     freeVars .= freeVarsInTerm(Lam,[],[])::cons[crVar];
 --    logMsg("initial free $(freeVars)");
 
@@ -111,7 +111,7 @@ star.compiler.normalize{
       ThVr <- liftVarExp(Lc,crName(FrVr),typeOf(FrVr),Outer,Rp);
       L .= [crName(FrVr)->localVar(FrVr)]; -- protect against looking up more
       M .= [lyr(FullNm,L),..Outer];
-      logMsg("free var = $(ThVr)");
+--      logMsg("free var = $(ThVr)");
       valis (M,crVar(Lc,FrVr),ThVr)
     } else {
       ThV .= genVar("_ThVr",typeOf(freeVars));
@@ -120,7 +120,7 @@ star.compiler.normalize{
       L .= collectLabelVars(freeVars,ThV,0,[]);
 --      logMsg("new label vars $(L)");
 
-      logMsg("freeterm = $(crTpl(Lc,freeArgs))");
+--      logMsg("freeterm = $(crTpl(Lc,freeArgs))");
       M .= [lyr(FullNm,L),..Outer];
       valis (M,crVar(Lc,ThV),crTpl(Lc,freeArgs))
     }
@@ -136,8 +136,8 @@ star.compiler.normalize{
   liftLetExp(Lc,Defs,Bnd,Map,Ex,Rp) => do{
 --    logMsg("let $(Lc)");
     (GMap,GrpVr,GrpFree,IVs) <- groupMap(Lc,Defs,layerName(Map),Map,Rp);
-    logMsg("group map $(head(GMap))");
-    logMsg("free term $(GrpVr) = $(GrpFree)");
+--    logMsg("group map $(head(GMap))");
+--    logMsg("free term $(GrpVr) = $(GrpFree)");
     (Vs,Ex1,BMap) <- transformGroup(Defs,GMap,GrpVr,Ex,[],Rp);
 --    logMsg("let Vs=$(Vs)");
 
@@ -157,21 +157,21 @@ star.compiler.normalize{
   liftLetRec:(locn,cons[canonDef],canon,nameMap,cons[crDefn],reports) => either[reports,crFlow].
   liftLetRec(Lc,Defs,Bnd,Map,Ex,Rp) where !codeGroup(Defs) => liftExp(Bnd,Map,Ex,Rp).
   liftLetRec(Lc,Defs,Bnd,Map,Ex,Rp) => do{
-    logMsg("lift let rec $(Defs) in $(Bnd)");
+--    logMsg("lift let rec $(Defs) in $(Bnd)");
     (GMap,GrpVr,GrpFree,IVs) <- groupMap(Lc,Defs,layerName(Map),Map,Rp);
 --    logMsg("group map $(head(GMap))");
-    logMsg("free term $(GrpVr) = $(GrpFree)");
+--    logMsg("free term $(GrpVr) = $(GrpFree)");
 
     (Vs,Ex1,BMap) <- transformGroup(Defs,GMap,GrpVr,Ex,[],Rp);
 
-    logMsg("let rec Vs=$(Vs)");
+--    logMsg("let rec Vs=$(Vs)");
 
     (BndTrm,Ex2) <- liftExp(Bnd,BMap,Ex1,Rp);
 
     Bound .= foldRight(((Vr,Vl),X)=>
 	(crVar(_,VV).=Vl && VV==Vr ? X || crLtRec(locOf(Vl),Vr,Vl,X)),BndTrm,IVs++Vs);
 
-    logMsg("Bound let rec for $(Defs) = $(Bound)");
+--    logMsg("Bound let rec for $(Defs) = $(Bound)");
     valis (Bound,Ex2)
   }
 
@@ -189,15 +189,15 @@ star.compiler.normalize{
   transformDef:(canonDef,nameMap,option[crExp],cons[crDefn],cons[(crVar,crExp)],reports) =>
     either[reports,(cons[(crVar,crExp)],cons[crDefn])].
   transformDef(varDef(Lc,Nm,FullNm,lambda(Eqns,Tp),_,_),Map,Extra,Ex,Vs,Rp) => do{
-    logMsg("transform function $(Nm) - $(Eqns)");
+--    logMsg("transform function $(Nm) - $(Eqns)");
 --    logMsg("function map $(Map)");
-    logMsg("extra vars in function: $(Nm) are $(Extra)");
+--    logMsg("extra vars in function: $(Nm) are $(Extra)");
     ATp .= extendFunTp(deRef(Tp),Extra);
     (Eqs,Ex1) <- transformEquations(Eqns,Map,Extra,Ex,Rp);
-    logMsg("function equs $(Eqs)");
+--    logMsg("function equs $(Eqs)");
     Func .= functionMatcher(Lc,FullNm,ATp,Eqs);
-    logMsg("transformed function $(Func)");
-    logMsg("extra defs for $(FullNm)\: $(front(Ex1,size(Ex1)-size(Ex)))");
+--    logMsg("transformed function $(Func)");
+--    logMsg("extra defs for $(FullNm)\: $(front(Ex1,size(Ex1)-size(Ex)))");
 
     ClosureNm .= closureNm(FullNm);
     ClVar .= (crVar(_,Exv)^=Extra ? Exv || crId("_",unitTp));
@@ -234,7 +234,7 @@ star.compiler.normalize{
     valis ([(Vr,Vl),..Vs],Exx)
   }
   transformDef(implDef(Lc,_,FullNm,Val,Cx,Tp),Map,Extra,Ex,Vs,Rp) => do{
-    logMsg("transform implementation $(FullNm) = $(Val)");
+--    logMsg("transform implementation $(FullNm) = $(Val)");
     transformDef(varDef(Lc,FullNm,FullNm,Val,Cx,Tp),Map,Extra,Ex,Vs,Rp)
   }.
   transformDef(_,_,_,Ex,Vs,_) => either((Vs,Ex)).
@@ -358,16 +358,16 @@ star.compiler.normalize{
     liftLetRec(Lc,Grp,Bnd,Map,Ex,Rp).
   liftExp(Lam where lambda(Eqns,Tp).=Lam,Map,Ex,Rp) => do{
     Lc .= locOf(Lam);
-    logMsg("transform lambda $(Lam)");
+--    logMsg("transform lambda $(Lam)");
     (LMap,Extra,FreeTerm) <- lambdaMap(Lam,Map,Rp);
-    logMsg("lambda map $(head(LMap))");
-    logMsg("extra vars in lambda: $(Extra)");
+--    logMsg("lambda map $(head(LMap))");
+--    logMsg("extra vars in lambda: $(Extra)");
     ATp .= extendFunTp(deRef(Tp),some(Extra));
     FullNm .= layerName(LMap);
     (Eqs,Ex1) <- transformEquations(Eqns,LMap,some(Extra),Ex,Rp);
     LamFun .= functionMatcher(Lc,FullNm,ATp,Eqs);
-    logMsg("lifted lambda fun $(LamFun)");
-    logMsg("lambda closure $(crTerm(Lc,FullNm,[FreeTerm],ATp))");
+--    logMsg("lifted lambda fun $(LamFun)");
+--    logMsg("lambda closure $(crTerm(Lc,FullNm,[FreeTerm],ATp))");
     valis (crTerm(Lc,FullNm,[FreeTerm],ATp),[LamFun,..Ex1])
   }
   liftExp(csexp(Lc,Gov,Cses,Tp),Map,Ex,Rp) => do{

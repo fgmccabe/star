@@ -58,12 +58,52 @@ star.compiler{
 	showCore=Opts.showCore.
 	showCode=Opts.showCode}.
   }
+  traceCodeOption:optionsProcessor[compilerOptions].
+  traceCodeOption = {
+    shortForm = "-di".
+    alternatives = [].
+    usage = "-di -- show generated instructions".
+    validator = .none.
+    setOption(_,Opts) =>
+      compilerOptions{repo=Opts.repo.
+	cwd=Opts.cwd.
+	showCanon=Opts.showCanon.
+	showCore=Opts.showCore.
+	showCode=.true}.
+  }
+  traceNormOption:optionsProcessor[compilerOptions].
+  traceNormOption = {
+    shortForm = "-dT".
+    alternatives = [].
+    usage = "-dT -- show normalized code".
+    validator = .none.
+    setOption(_,Opts) =>
+      compilerOptions{repo=Opts.repo.
+	cwd=Opts.cwd.
+	showCanon=Opts.showCanon.
+	showCore=.true.
+	showCode=Opts.showCode}.
+  }
+  traceCheckOption:optionsProcessor[compilerOptions].
+  traceCheckOption = {
+    shortForm = "-dt".
+    alternatives = [].
+    usage = "-dt -- show type checkedcode".
+    validator = .none.
+    setOption(_,Opts) =>
+      compilerOptions{repo=Opts.repo.
+	cwd=Opts.cwd.
+	showCanon=.true.
+	showCore=Opts.showCore.
+	showCode=Opts.showCode}.
+  }
 
   public _main:(cons[string])=>().
   _main(Args) => valof action{
     RI^=parseUri("file:"++_repo());
     WI^=parseUri("file:"++_cwd());
-    handleCmds(processOptions(Args,[repoOption,wdOption],compilerOptions{repo=RI.
+    handleCmds(processOptions(Args,[repoOption,wdOption,traceCodeOption,
+	  traceNormOption,traceCheckOption],compilerOptions{repo=RI.
 	  cwd=WI.
 	  showCanon=.false.
 	  showCore=.false.
@@ -124,19 +164,23 @@ star.compiler{
       for (pkgImp(Lc,_,P),Imps) in Pks do{
 --	logMsg("$(P) ok? $(pkgOk(Repo,P))");
 	if ! (pkgOk(Repo,P) && pkgImp(_,_,I) in Imps *> pkgOk(Repo,I)) then{
-	  logMsg("Process package $(P)");
+	  logMsg("Compiling $(P)");
 	  if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
 --	  logMsg("source uri: $(SrcUri), CPkg=$(CPkg)");
 	    Ast <- parseSrc(SrcUri,CPkg,Rp)::action[reports,ast];
 --	  logMsg("Ast of $(P) is $(Ast)");
 	    (PkgSpec,PkgFun) <- checkPkg(Repp!!,CPkg,Ast,stdDict,Rp) :: action[reports,(pkgSpec,canonDef)];
-	    logMsg("normalizing $(PkgFun)");
+	    if Opts.showCanon then {
+	      logMsg("type checked $(PkgFun)")
+	    };
 	    NormDefs <- normalize(PkgSpec,PkgFun,Rp)::action[reports,cons[crDefn]];
 	    Repp := addSpec(PkgSpec,Repp!!);
-	    logMsg("Normalized package $(P)");
-	    logMsg(dispCrProg(NormDefs)::string);
+	    if Opts.showCore then {
+	      logMsg("Normalized package $(P)");
+	      logMsg(dispCrProg(NormDefs)::string)
+	    };
 	    Ins <- compCrProg(P,NormDefs,importVars(PkgSpec),Opts,Rp) :: action[reports,cons[codeSegment]];
---	    if Opts.showCode then
+	    if Opts.showCode then
 	      logMsg("Generated instructions $(Ins)");
 	    Code .= mkTpl([pkgTerm(CPkg),strg(encodeSignature(typeOf(PkgSpec))),
 		mkTpl(pkgImports(PkgSpec)//(pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
@@ -144,7 +188,6 @@ star.compiler{
 	    Bytes .= (strg(Code::string)::string);
 	    Repp := addSource(addPackage(Repp!!,P,Bytes),P,SrcUri::string);
 	    _ .= flushRepo(Repp!!)
---	    logMsg("done")
 	  }
 	  else
 	  throw reportError(Rp,"cannot locate source of $(P)",Lc)
