@@ -3,7 +3,8 @@ project(units)
 
 set(REPODIR "${CMAKE_BINARY_DIR}/.star-repo/")
 set(STAREXEC "${CMAKE_BINARY_DIR}/src/Engine/star")
-set(STARCOMPILER "${CMAKE_BINARY_DIR}/src/BootCompiler/sbc")
+set(STARBOOTCOMPILER "${CMAKE_BINARY_DIR}/src/BootCompiler/sbc")
+set(STARCOMPILER "${CMAKE_BINARY_DIR}/src/Compiler/sc")
 set(TESTDIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/runtests.in

@@ -5,7 +5,8 @@ import sys, getopt, os
 
 starExec = "@STAREXEC@"
 testDir = "@TESTDIR@/"
-sbc = "@STARCOMPILER@"
+sbc = "@STARBOOTCOMPILER@"
+sc = "@STARCOMPILER@"
 repoDir = "@REPODIR@"
 usage = "runtests.py -t <testpkg>"
 
@@ -17,8 +18,9 @@ def main(argv):
     pkgs = []
     compile_only = False
     ignore_failures = False
+    compiler=bootCompile
     try:
-        opts,args = getopt.getopt(argv,"dhct:",["test=","help","compile_only","tracing","all","ignore_failures","starexec=","sbc=","testdir=","repodir="])
+        opts,args = getopt.getopt(argv,"dhct:",["sc","test=","help","compile_only","tracing","all","ignore_failures","starexec=","sbc=","testdir=","repodir="])
     except getopt.GetopError:
         print usage
         sys.exit(2)
@@ -48,12 +50,14 @@ def main(argv):
             repoDir = arg
         elif opt=="--testdir":
             testDir = arg
-
+	elif opt=="--sc":
+	    compiler=mainCompile
+	
     print "Run tests on ",pkgs
     for pkg in pkgs:
         print "Testing:",pkg
 
-        return_code = bootCompile(pkg)
+        return_code = compiler(pkg)
         if return_code!=0:
             print "compiling ",pkg," failed"
             if not ignore_failures:
@@ -69,6 +73,12 @@ def bootCompile(Pkg):
     if tracing:
         print "compile:",sbc,"-r",repoDir, "-w", testDir, "-g", Pkg
     return subprocess.call([sbc, "-r",repoDir, "-w",testDir, "-g", Pkg])
+
+def mainCompile(Pkg):
+    "Compile a package using the main compiler"
+    if tracing:
+        print "compile:",sc,"-R",repoDir, "-W", testDir, Pkg
+    return subprocess.call([sc, "-R",repoDir, "-W",testDir, Pkg])
 
 def runPkg(Pkg):
     "Run a previously compiled package"
