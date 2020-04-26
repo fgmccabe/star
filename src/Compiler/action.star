@@ -82,10 +82,6 @@ star.compiler.action{
   genAction(simpleDo(Lc,Exp,ExTp),Contract,Cont,Path,Rp) => do{
     valis combineActs(Lc,Exp,Cont,Contract,ExTp)
   }
-  genAction(performDo(Lc,Exp,ExTp,VlTp,ErTp),Contract,Cont,Path,Rp) => do{
-    Perf <- genReturn(Lc,Exp,ExTp,VlTp,ErTp,Contract,Rp);
-    valis combineActs(Lc,Perf,Cont,Contract,ExTp)
-  }
   genAction(ifThenElseDo(Lc,Tst,Th,El,ExTp,ValTp,ErTp),Contract,Cont,Path,Rp) => do{
     MdlTp .= mkTypeExp(ExTp,[ErTp,ValTp]);
     Then <- genAction(Th,Contract,Cont,Path,Rp);

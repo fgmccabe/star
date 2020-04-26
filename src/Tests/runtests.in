@@ -52,7 +52,7 @@ def main(argv):
             testDir = arg
 	elif opt=="--sc":
 	    compiler=mainCompile
-	
+
     print "Run tests on ",pkgs
     for pkg in pkgs:
         print "Testing:",pkg

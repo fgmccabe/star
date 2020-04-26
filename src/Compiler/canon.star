@@ -51,8 +51,7 @@ star.compiler.canon{
     tryCatchDo(locn,canonAction,canon,tipe,tipe,tipe) |
     throwDo(locn,canon,tipe,tipe,tipe) |
     returnDo(locn,canon,tipe,tipe,tipe) |
-    simpleDo(locn,canon,tipe) |
-    performDo(locn,canon,tipe,tipe,tipe).
+    simpleDo(locn,canon,tipe).
     
   public canonDef ::= varDef(locn,string,string,canon,cons[constraint],tipe) |
     typeDef(locn,string,tipe,tipe) |
@@ -133,7 +132,6 @@ star.compiler.canon{
     locOf(throwDo(Lc,_,_,_,_)) => Lc.
     locOf(returnDo(Lc,_,_,_,_)) => Lc.
     locOf(simpleDo(Lc,_,_)) => Lc.
-    locOf(performDo(Lc,_,_,_,_)) => Lc.
   .}
 
 
@@ -161,7 +159,6 @@ star.compiler.canon{
   dispAction(throwDo(Lc,Exp,_,_,_),Sp) => ssSeq([ss("throw "),showCanon(Exp,Sp)]).
   dispAction(returnDo(Lc,Exp,_,_,_),Sp) => ssSeq([ss("return "),showCanon(Exp,Sp)]).
   dispAction(simpleDo(Lc,Exp,_),Sp) => ssSeq([ss("do "),showCanon(Exp,Sp)]).
-  dispAction(performDo(Lc,Act,_,_,_),Sp) => ssSeq([ss("perform "),showCanon(Act,Sp)]).
     
   public implementation display[pkgSpec] => {.
     disp(pkgSpec(Pkg,Imports,Face,Cons,Impls,PkgVrs)) =>

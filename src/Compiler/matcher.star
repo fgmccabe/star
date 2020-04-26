@@ -45,7 +45,7 @@ star.compiler.matcher{
   genRaise(Lc,Tp) => crAbort(Lc,"no matches",Tp).
 
   matchTriples:(locn,cons[crExp],cons[triple],crExp) => crExp.
-  matchTriples(_,[],Triples,Deflt) => trace("conditionalized ",conditionalize(trace("conditionalize ",Triples),Deflt)).
+  matchTriples(_,[],Triples,Deflt) => conditionalize(Triples,Deflt).
   matchTriples(Lc,Vrs,Triples,Deflt) => valof action{
 --    logMsg("matching triples $(Triples), default = $(Deflt)");
     Parts .= partitionTriples(Triples);
