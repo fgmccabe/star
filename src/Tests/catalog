@@ -11,6 +11,8 @@
     "test.compose": "compose.star",
     "test.cstream": "cstr.star",
     "test.d": "d.star",
+    "test.do1": "do1.star",
+    "test.do2": "do2.star",
     "test.dd": "dd.star",
     "test.df": "df.star",
     "test.dis" : "dis.star",

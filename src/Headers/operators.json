@@ -561,12 +561,6 @@
 	"keyword": true
     },
     {
-	"prefixOp": "ref",
-	"priorities": [900, 899],
-	"desc": "reference type",
-	"keyword": true
-    },
-    {
 	"prefixOp": "val",
 	"priorities": [900, 899],
 	"desc": "value type marker",
@@ -645,6 +639,12 @@
 	"keyword": true
     },
     {
+	"prefixOp": "ref",
+	"priorities": [100, 99],
+	"desc": "reference type/cell",
+	"keyword": true
+    },
+    {
 	"postfixOp": "!!",
 	"priorities": [99, 100],
 	"desc": "pick up value from a ref cell",
@@ -683,11 +683,11 @@
 	"priority" : 2000,
 	"desc":"non-recursive braces"
     },
-	{
-		"bracket": "(||)",
-		"left":"(|",
-		"right":"|)",
-		"priority" : 2000,
-		"desc":"banana brackets"
-	}
+    {
+	"bracket": "(||)",
+	"left":"(|",
+	"right":"|)",
+	"priority" : 2000,
+	"desc":"banana brackets"
+    }
 ]

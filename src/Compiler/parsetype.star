@@ -90,7 +90,7 @@ star.compiler.typeparse{
     R <- parseType(Q,Rhs,Env,Rp);
     valis consType(A,R)
   }
-  parseType(Q,T,Env,Rp) where (Lc,Rhs) ^= isUnary(T,"ref") => do{
+  parseType(Q,T,Env,Rp) where (Lc,Rhs) ^= isRef(T) => do{
     R <- parseType(Q,Rhs,Env,Rp);
     valis tpExp(tpFun("star.core*ref",1),R)
   }

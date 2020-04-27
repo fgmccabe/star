@@ -552,6 +552,9 @@ collectTermRefs(T,All,R0,Refs) :-
   collectTermRefs(L,All,R0,R1),
   collectCondRefs(C,All,R1,R2),
   collectTermRefs(R,All,R2,Refs).
+collectTermRefs(T,All,R,Refs) :-
+  isRef(T,_,A),!,
+  collectIndexRefs(A,All,R,Refs).
 collectTermRefs(_,_,Refs,Refs).
 
 collectTermListRefs([],_,Refs,Refs).

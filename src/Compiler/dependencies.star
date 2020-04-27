@@ -307,6 +307,8 @@ star.compiler.dependencies{
     Rf1 <- collectTermRefs(Bnd,All,Rf,Rp);
     collectStmtsRefs(Env,All,[],Rf1,Rp)
   }
+  collectTermRefs(T,All,Rf,Rp) where (_,I) ^= isCellRef(T) =>
+    collectTermRefs(I,All,Rf,Rp).
   collectTermRefs(T,All,Rf,Rp) where (_,I) ^= isRef(T) =>
     collectTermRefs(I,All,Rf,Rp).
   collectTermRefs(T,All,Rf,Rp) where (_,Op,Args) ^= isRoundTerm(T) => do{

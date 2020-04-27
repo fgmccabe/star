@@ -542,6 +542,10 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isCaseExp(Term,Lc,Bnd,Cases),
   checkCaseExp(Lc,Bnd,Cases,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
+  isRef(Term,Lc,I),
+  roundTerm(Lc,name(Lc,"_cell"),[I],R),
+  typeOfExp(R,Tp,Env,Ev,Exp,Path).
+typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isActionTerm(Term,Lc,Stmts),!,
   findType("action",Lc,Env,ActionTp),
   newTypeVar("E",ErTp),

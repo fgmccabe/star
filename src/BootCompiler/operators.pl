@@ -85,7 +85,7 @@
   operator(".^.", [infixOp(720, 720, 719)]).
   operator("//", [infixOp(960, 960, 959)]).
   operator("public", [prefixOp(1700, 1699)]).
-  operator("ref", [prefixOp(900, 899)]).
+  operator("ref", [prefixOp(100, 99)]).
   operator(".~.", [prefixOp(650, 649)]).
   operator("where", [infixOp(910, 911, 910)]).
   operator("=<", [infixOp(899, 900, 899)]).

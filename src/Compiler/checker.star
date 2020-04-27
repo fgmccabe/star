@@ -483,7 +483,7 @@ star.compiler.checker{
       throw reportError(Rp,"variable $(Id)\:$(VTp) not consistent with expected type: $(Tp)",Lc)
     }
     else
-    throw reportError(Rp,"variable $(Id) not defined in $(Env). Expecting a $(Tp)",locOf(A)).
+    throw reportError(Rp,"variable $(Id) not defined. Expecting a $(Tp)",locOf(A)).
   }
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Nm) ^= isEnumSymb(A) =>
     typeOfExp(zeroary(Lc,Nm),Tp,Env,Path,Rp).
@@ -643,12 +643,14 @@ star.compiler.checker{
 	  typeOfExp(binary(Lc,"_index",C,Ix),Tp,Env,Path,Rp)).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,S,F,T) ^= isSlice(A) =>
     typeOfExp(ternary(Lc,"_slice",S,F,T),Tp,Env,Path,Rp).
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,I) ^= isRef(A) => do{
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,I) ^= isCellRef(A) => do{
     RTp .= refType(Tp);
     Acc <- typeOfExp(nme(Lc,"!!"),funType([RTp],Tp),Env,Path,Rp);
     Cell <- typeOfExp(I,RTp,Env,Path,Rp);
     valis apply(Lc,Acc,tple(Lc,[Cell]),Tp)
   }
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,I) ^= isRef(A) =>
+    typeOfExp(roundTerm(Lc,nme(Lc,"_cell"),[I]),Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where
       (Lc,Actn) ^= isActionTerm(A) &&
       (_,ActionTp,_) ^= findType(Env,"action") => do{

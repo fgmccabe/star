@@ -488,13 +488,12 @@ re-assignable variable.
 It does not return a useful value (actually returns the empty tuple),
 and so it is not normally part of a bind operation.
 
-There is a special case of the @refer{AssignmentAction}: where the
-variable being assigned to is new (i.e., not otherwise in scope). Such
-an assignment is actually interpreted as establishing a local
-re-assignable variable; just like the @refer{DefnAction}. In this case,
-the scope of the defined variable extends from the beginning of the
-next action to the end of the enclosing @refer{BlockAction}.
+Variables that are assigned to must first have been introduced using a
+@refer{DefnAction} of the form:
 
+@example
+@var{V} .= ref @var{Initial}
+@end example
 
 @float BNF,assignctionFig
 @caption{Assignment Action}
