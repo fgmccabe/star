@@ -199,9 +199,13 @@ star.compiler.wff{
 
   public isConjunct(A) => isBinary(A,"&&").
 
+  public conjunction(Lc,L,R) => binary(Lc,"&&",L,R).
+
   public isDisjunct(A) => isBinary(A,"||").
 
   public isNegation(A) => isUnary(A,"!").
+
+  public negated(Lc,A) => unary(Lc,"!",A).
 
   public isImplies(A) => isBinary(A,"*>").
   
@@ -210,9 +214,13 @@ star.compiler.wff{
       (_,Th,El) ^= isBinary(Rhs,"||") => some((Lc,Tst,Th,El)).
   isConditional(_) => .none.
 
+  public conditional:(locn,ast,ast,ast) => ast.
+  conditional(Lc,T,Th,El) =>
+    binary(Lc,"||",binary(Lc,"?",T,Th),El).
+
   public isMatch(A) => isBinary(A,".=").
 
-  public match(Lc,L,R) => binary(Lc,".=",L,R).
+  public mkMatch(Lc,L,R) => binary(Lc,".=",L,R).
 
   public isOptionMatch(A) => isBinary(A,"^=").
 
@@ -357,7 +365,10 @@ star.compiler.wff{
   isCoerce(A) => isBinary(A,"::").
 
   public isRef:(ast) => option[(locn,ast)].
-  isRef(A) => isUnary(A,"!!").
+  isRef(A) => isUnary(A,"ref").
+  
+  public isCellRef:(ast) => option[(locn,ast)].
+  isCellRef(A) => isUnary(A,"!!").
 
   public refCell:(locn,ast) => ast.
   refCell(Lc,I) => unary(Lc,"!!",I).

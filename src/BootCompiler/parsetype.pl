@@ -57,7 +57,7 @@ parseType(F,Env,B,C0,Cx,consType(AT,RT)) :-
   parseArgType(L,Env,B,C0,C1,AT),!,
   parseType(R,Env,B,C1,Cx,RT).
 parseType(F,Env,B,C0,Cx,refType(Tp)) :-
-  isUnary(F,_,"ref",L),
+  isRef(F,_,L),
   parseType(L,Env,B,C0,Cx,Tp).
 parseType(F,Env,B,C,Cx,valType(Tp)) :-
   isValType(F,Lc,T),!,

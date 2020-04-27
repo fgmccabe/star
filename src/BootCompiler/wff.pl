@@ -11,7 +11,7 @@
 	      isLiteralInteger/3,isLiteralFloat/3,
 	      isIntegrity/3,isShow/3,isOpen/3,
 	      isConditional/5,conditional/5,isOfTerm/4,
-	      isEquation/5,isDefn/4,isAssignment/4,assignment/4,eqn/4,eqn/5,
+	      isEquation/5,isDefn/4,isAssignment/4,isRef/3,assignment/4,eqn/4,eqn/5,
 	      isCurriedRule/5,ruleHead/4,
 	      isWhere/4,isCoerce/4,coerce/4,
 	      isFieldAcc/4,isIndexTerm/4,isRepl/4,
@@ -305,6 +305,9 @@ isCaseExp(Trm,Lc,Exp,Cases) :-
 
 isAssignment(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,":=",Lhs,Rhs).
+
+isRef(Trm,Lc,Rhs) :-
+  isUnary(Trm,Lc,"ref",Rhs).
 
 assignment(Lc,Lhs,Rhs,Stmt) :-
   binary(Lc,":=",Lhs,Rhs,Stmt).

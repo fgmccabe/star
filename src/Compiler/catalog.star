@@ -52,7 +52,7 @@ star.compiler.catalog{
 
   findInSubs([],_) => .none.
   findInSubs([Cat,..Cats],Pkg) where R^=findInCat(Cat,Pkg) => some(R).
-  findInSubs([_,..Cats],Pkg) => findInSubs(trace("look for $(Pkg) in ",Cats),Pkg).
+  findInSubs([_,..Cats],Pkg) => findInSubs(Cats,Pkg).
 
   public implementation display[catalog] => let{
     dispCat:(catalog)=>ss.

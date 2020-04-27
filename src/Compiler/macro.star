@@ -78,12 +78,25 @@ star.compiler.macro{
   isSimpleAction(A) where (Lc,L,R) ^= isBind(A) => .true.
   isSimpleAction(A) where (Lc,L,R) ^= isMatch(A) => .true.
   isSimpleAction(A) where (Lc,L,R) ^= isOptionMatch(A) => .true.
-  isSimpleAction(A) where (_,B,H) ^= isTryCatch(A) => isSimpleAction(B) && ((_,[St])^=isBrTuple(H) ? isSimpleAction(St) || .true).
+  isSimpleAction(A) where (_,B,H) ^= isTryCatch(A) =>
+    isSimpleAction(B) && ((_,[St])^=isBrTuple(H) ? isSimpleAction(St) || .true).
   isSimpleAction(A) where _ ^= isIntegrity(A) => .true.
   isSimpleAction(A) where _ ^= isShow(A) => .true.
+  isSimpleAction(A) where (_,T,L,R) ^= isIfThenElse(A) =>
+    isSimpleAction(L) && isSimpleAction(R).
   isSimpleAction(A) where _ ^= isRoundTerm(A) => .true.
   isSimpleAction(_) default => .false.
 
+  isIterable:(ast) => boolean.
+  isIterable(A) where _ ^= isSearch(A) => .true.
+  isIterable(A) where (_,L,R) ^= isConjunct(A) =>
+    isIterable(L) || isIterable(R).
+  isIterable(A) where (_,L,R) ^= isDisjunct(A) =>
+    isIterable(L) || isIterable(R).
+  isIterable(A) where (_,L,R) ^= isImplies(A) =>
+    isIterable(L) || isIterable(R).
+  isIterable(_) default => .false.
+  
   public makeAction:(ast,option[(locn,ast)],reports) => either[reports,ast].
   makeAction(A,Cont,Rp) where (_,[St]) ^= isBrTuple(A) =>
     makeAction(St,Cont,Rp).
@@ -122,8 +135,6 @@ star.compiler.macro{
     
     valis combine(binary(Lc,"_handle",NB,NH),Cont)
   }
-  
- 
   /*
     assert C 
   becomes
@@ -155,19 +166,35 @@ star.compiler.macro{
 
     valis combine(ternary(Lc,"shwMsg",Lam,reconstructDisp(E),Lc::ast),Cont)
   }
+  makeAction(A,Cont,Rp) where (Lc,T,Th,El) ^= isIfThenElse(A) => do{
+    Then <- makeAction(Th,.none,Rp);
+    Else <- makeAction(El,.none,Rp);
+    if isIterable(T) then {
+      Itr <- makeIterableGoal(T,Rp);
+      valis combine(conditional(Lc,Itr,Then,Else),Cont)
+    } else{
+      valis combine(conditional(Lc,T,Then,Else),Cont)
+    }
+  }
   makeAction(A,Cont,_) where _ ^= isRoundTerm(A) =>
     either(combine(A,Cont)).
+
+  anon(Lc) => nme(Lc,"_").
 
   makeIterableGoal:(ast,reports) => either[reports,ast].
   makeIterableGoal(A,Rp) => do{
     Lc .= locOf(A);
     Vrs .= (goalVars(A) // (Nm)=>nme(Lc,Nm));
     VTpl .= rndTuple(Lc,Vrs);
-    Unit .= enum(Lc,"none");
+    Unit .= unary(Lc,"either",enum(Lc,"none"));
     Zed .= unary(Lc,"_valis",Unit);
     Ptn .= unary(Lc,"either",unary(Lc,"some",VTpl));
-    Seq <- makeCondition(A,(St)=>binary(Lc,"_cons",VTpl,Unit),(_)=>Unit,Rp);
-    valis match(Lc,Ptn,unary(Lc,"_perform",Seq))
+    Seq <- makeCondition(A,(lyfted(X))=>unary(Lc,"_valis",X),
+      (St,X,Rs) => binary(Lc,"_sequence",genRtn(X),
+	equation(Lc,rndTuple(Lc,[St]),Rs)),
+      (_)=>unary(Lc,"_valis",Ptn),
+      lyfted(Zed),Rp);
+    valis mkMatch(Lc,Ptn,unary(Lc,"_perform",Seq))
   }
 
   makeHandler(H,Rp) where (Lc,[St]) ^= isBrTuple(H) => do{
@@ -178,11 +205,16 @@ star.compiler.macro{
 
   combine(A,.none) => A.
   combine(A,some((Lc,Cont))) => 
-     binary(Lc,"_sequence",A,equation(Lc,rndTuple(Lc,[nme(Lc,"_")]),Cont)).
+    binary(Lc,"_sequence",A,equation(Lc,rndTuple(Lc,[anon(Lc)]),Cont)).
+
+  genRtn(lyfted(Exp)) => Exp.
+  genRtn(grounded(Exp)) => unary(locOf(Exp),"_valis",Exp).
 
   makeReturn(Lc,A,Rp) => either(unary(Lc,"_valis",A)).
 
   makeThrow(Lc,A,Rp) => either(unary(Lc,"_raise",A)).
+
+  lyfted[a] ::= lyfted(a) | grounded(a).
 
   /*
   * Ptn in Src
@@ -194,17 +226,45 @@ star.compiler.macro{
   *
   * where AddEl, InitState are parameters to the conversion
   */
-  makeCondition:(ast,(locn)=>ast,(locn)=>ast,reports) => either[reports,ast].
-  makeCondition(A,Succ,Zed,Rp) where (Lc,Ptn,Src) ^= isSearch(A) => do{
+  makeCondition:(ast,(lyfted[ast])=>ast,
+    (ast,lyfted[ast],ast)=>ast, (lyfted[ast])=>ast,
+    lyfted[ast],reports) => either[reports,ast].
+  makeCondition(A,Lift,Seq,Succ,Zed,Rp) where (Lc,Ptn,Src) ^= isSearch(A) => do{
     sF .= genName(Lc,"sF");
     St .= genName(Lc,"St");
 
-    Eq1 .= equation(Lc,rndTuple(Lc,[Ptn,St]),Succ(Lc));
-    Eq2 .= equation(Lc,rndTuple(Lc,[nme(Lc,"_"),St]),unary(Lc,"_valis",St));
-    Bnd .= ternary(Lc,"_iter",Src,Zed(Lc),sF);
-    valis letDef(Lc,[Eq1,Eq2],Bnd)
+    Eq1 .= equation(Lc,roundTerm(Lc,sF,[Ptn,St]),Succ(grounded(Ptn)));
+    Eq2 .= equation(Lc,roundTerm(Lc,sF,[anon(Lc),St]),Lift(grounded(St)));
+    
+    FF .= letDef(Lc,[Eq1,Eq2],sF);
+    valis ternary(Lc,"_iter",Src,Lift(Zed),sF)
+  }
+  makeCondition(A,Lift,Seq,Succ,Zed,Rp) where (Lc,L,R) ^= isConjunct(A) =>
+    makeCondition(A,Lift,Seq,(Lf) => valof makeCondition(R,Lift,Seq,Succ,Lf,Rp),Zed,Rp).
+  makeCondition(A,Lift,Seq,Succ,Zed,Rp) where (Lc,L,R) ^= isDisjunct(A) => do{
+    E1<-makeCondition(L,Lift,Seq,Succ,Zed,Rp);
+    makeCondition(R,Lift,Seq,Succ,lyfted(E1),Rp)
+  }
+  makeCondition(A,Lift,Seq,Succ,Zed,Rp) where (Lc,R) ^= isNegation(A) => do{
+    Negated <- makeCondition(A,Lift,Seq,(_)=>Lift(grounded(enum(Lc,"true"))),
+      grounded(enum(Lc,"false")),Rp);
+    St .= anon(Lc);
+    SuccCase .= Succ(Zed);
+    FalseCase .= Lift(Zed);
+    valis Seq(St,lyfted(Negated),conditional(Lc,St,FalseCase,SuccCase))
+  }
+  makeCondition(A,Lift,Seq,Succ,Zed,Rp) where (Lc,L,R) ^= isImplies(A) =>
+    makeCondition(negated(Lc,conjunction(Lc,L,negated(Lc,R))),Lift,Seq,Succ,Zed,Rp).
+  makeCondition(Other,Lift,Seq,Succ,Zed,Rp) => do{
+    Lc .= locOf(Other);
+    AddToSucc .= Succ(Zed);
+    St .= anon(Lc);
+    Init .= Lift(Zed);
+    valis Seq(St,Zed,conditional(Lc,Other,AddToSucc,Init))
   }
 
+    
+    
 
   goalVars:(ast)=>cons[string].
   goalVars(Cond) => glVars(Cond,[],[])::cons[string].
@@ -242,5 +302,4 @@ star.compiler.macro{
   ptnVars(A,Excl,Vrs) where (_,Els) ^= isSqTuple(A) =>
     foldRight((E,F)=>ptnVars(E,Excl,F),Vrs,Els).
   ptnVars(_,_,Vrs) default => Vrs.
-      
 }

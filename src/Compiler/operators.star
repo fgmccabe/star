@@ -102,7 +102,7 @@ star.compiler.operators{
   oper(".^.") => [infixOp(720,720,719)].
   oper("//") => [infixOp(960,960,959)].
   oper("public") => [prefixOp(1700,1699)].
-  oper("ref") => [prefixOp(900,899)].
+  oper("ref") => [prefixOp(100,99)].
   oper(".~.") => [prefixOp(650,649)].
   oper("where") => [infixOp(910,911,910)].
   oper("=<") => [infixOp(899,900,899)].
