@@ -2,6 +2,7 @@ star.compiler.typeparse{
   import star.
   
   import star.compiler.ast.
+  import star.compiler.ast.disp.
   import star.compiler.canon.
   import star.compiler.dict.
   import star.compiler.misc.

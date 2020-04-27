@@ -222,7 +222,8 @@
 	"infixOp": "*>",
 	"priorities": [904, 905, 904],
 	"desc": "for all",
-	"keyword": true
+	"keyword": true,
+	"ast" : "astImplies"
     },
     {
 	"infixOp": "->",
@@ -252,6 +253,12 @@
 	"infixOp": "^=",
 	"priorities": [899, 900, 899],
 	"desc": "optional decomposition match",
+	"keyword": true
+    },
+    {
+	"prefixOp": "ref",
+	"priorities": [899, 898],
+	"desc": "reference type/cell",
 	"keyword": true
     },
     {
@@ -636,12 +643,6 @@
 	"postfixOp": "default",
 	"priorities": [939, 940],
 	"desc": "default value marker",
-	"keyword": true
-    },
-    {
-	"prefixOp": "ref",
-	"priorities": [100, 99],
-	"desc": "reference type/cell",
 	"keyword": true
     },
     {

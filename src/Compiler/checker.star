@@ -6,6 +6,7 @@ star.compiler.checker{
 
   import star.compiler.action.
   import star.compiler.ast.
+  import star.compiler.ast.disp.
   import star.compiler.canon.
   import star.compiler.canondeps.
   import star.compiler.dependencies.
@@ -487,34 +488,26 @@ star.compiler.checker{
   }
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Nm) ^= isEnumSymb(A) =>
     typeOfExp(zeroary(Lc,Nm),Tp,Env,Path,Rp).
-  typeOfExp(A,Tp,Env,Path,Rp) where
-      (Lc,Ix) ^= isInt(A) &&
-      (_,IntTp,_) ^= findType(Env,"integer") => do{
-	checkType(A,IntTp,Tp,Env,Rp);
-	valis intr(Lc,Ix)
-      }
-  typeOfExp(A,Tp,Env,Path,Rp) where
-      (Lc,Dx) ^= isFlt(A) &&
-      (_,FltTp,_) ^= findType(Env,"float") => do{
-	checkType(A,FltTp,Tp,Env,Rp);
-	valis flt(Lc,Dx)
-      }.
-  typeOfExp(A,Tp,Env,Path,Rp) where
-      (Lc,Sx) ^= isStr(A) &&
-      (_,StrTp,_) ^= findType(Env,"string") => do{
-	checkType(A,StrTp,Tp,Env,Rp);
-	valis strng(Lc,Sx)
-      }.
-  typeOfExp(A,Tp,Env,Path,Rp) where
-      (Lc,E,T) ^= isTypeAnnotation(A) => do{
-	ETp <- parseType([],T,Env,Rp);
-	checkType(E,Tp,ETp,Env,Rp);
-	typeOfExp(E,Tp,Env,Path,Rp)
-      }.
-  typeOfExp(A,Tp,Env,Path,Rp) where
-      (Lc,E,T) ^= isCoerce(A) => do{
-	typeOfExp(binary(Lc,":",unary(Lc,"_coerce",E),T),Tp,Env,Path,Rp)
-      }.
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Ix) ^= isInt(A)  => do{
+    checkType(A,intType,Tp,Env,Rp);
+    valis intr(Lc,Ix)
+  }
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Dx) ^= isFlt(A) => do{
+    checkType(A,fltType,Tp,Env,Rp);
+    valis flt(Lc,Dx)
+  }.
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Sx) ^= isStr(A) => do{
+    checkType(A,strType,Tp,Env,Rp);
+    valis strng(Lc,Sx)
+  }.
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,E,T) ^= isTypeAnnotation(A) => do{
+    ETp <- parseType([],T,Env,Rp);
+    checkType(E,Tp,ETp,Env,Rp);
+    typeOfExp(E,Tp,Env,Path,Rp)
+  }.
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,E,T) ^= isCoerce(A) => do{
+    typeOfExp(binary(Lc,":",unary(Lc,"_coerce",E),T),Tp,Env,Path,Rp)
+  }.
   typeOfExp(A,Tp,Env,Path,Rp) where
       (Lc,E,C) ^= isWhere(A) => do{
 	(Cond,Ev0) <- checkCond(C,Env,Path,Rp);
@@ -539,61 +532,47 @@ star.compiler.checker{
 	else
   	throw reportError(Rp,"field $(Fld)\:$(FldTp) not consistent with expected type: $(Tp)",Lc)
       }.
-  typeOfExp(A,Tp,Env,Path,Rp) where
-      _ ^= isConjunct(A) &&
-      (_,BoolTp,_) ^= findType(Env,"boolean") => do{
-	checkType(A,BoolTp,Tp,Env,Rp);
-	(Gl,_) <- checkCond(A,Env,Path,Rp);
-	valis Gl
-      }.
-  typeOfExp(A,Tp,Env,Path,Rp) where
-      _ ^= isDisjunct(A) &&
-      (_,BoolTp,_) ^= findType(Env,"boolean") => do{
-	checkType(A,BoolTp,Tp,Env,Rp);
-	(Gl,_) <- checkCond(A,Env,Path,Rp);
-	valis Gl
-      }.
+  typeOfExp(A,Tp,Env,Path,Rp) where _ ^= isConjunct(A) => do{
+    checkType(A,boolType,Tp,Env,Rp);
+    (Gl,_) <- checkCond(A,Env,Path,Rp);
+    valis Gl
+  }.
+  typeOfExp(A,Tp,Env,Path,Rp) where _ ^= isDisjunct(A)  => do{
+    checkType(A,boolType,Tp,Env,Rp);
+    (Gl,_) <- checkCond(A,Env,Path,Rp);
+    valis Gl
+  }.
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,T,L,R) ^= isConditional(A) => do{
     (Tst,E0) <- checkCond(T,Env,Path,Rp);
     Thn <- typeOfExp(L,Tp,E0,Path,Rp);
     Els <- typeOfExp(R,Tp,Env,Path,Rp);
     valis cond(Lc,Tst,Thn,Els)
   }.
-  typeOfExp(A,Tp,Env,Path,Rp) where
-      _ ^= isNegation(A) &&
-      (_,BoolTp,_) ^= findType(Env,"boolean") => do{
-	checkType(A,BoolTp,Tp,Env,Rp);
-	(Gl,_) <- checkCond(A,Env,Path,Rp);
-	valis Gl
-      }.
-  typeOfExp(A,Tp,Env,Path,Rp) where
-      _ ^= isImplies(A) &&
-      (_,BoolTp,_) ^= findType(Env,"boolean") => do{
-	checkType(A,BoolTp,Tp,Env,Rp);
-	(Gl,_) <- checkCond(A,Env,Path,Rp);
-	valis Gl
-      }.
-  typeOfExp(A,Tp,Env,Path,Rp) where
-      _ ^= isMatch(A) &&
-      (_,BoolTp,_) ^= findType(Env,"boolean") => do{
-	checkType(A,BoolTp,Tp,Env,Rp);
-	(Gl,_) <- checkCond(A,Env,Path,Rp);
-	valis Gl
-      }.
-  typeOfExp(A,Tp,Env,Path,Rp) where
-      _ ^= isOptionMatch(A) &&
-      (_,BoolTp,_) ^= findType(Env,"boolean") => do{
-	checkType(A,BoolTp,Tp,Env,Rp);
-	(Gl,_) <- checkCond(A,Env,Path,Rp);
-	valis Gl
-      }.
-  typeOfExp(A,Tp,Env,Path,Rp) where
-      _ ^= isSearch(A) &&
-      (_,BoolTp,_) ^= findType(Env,"boolean") => do{
-	checkType(A,BoolTp,Tp,Env,Rp);
-	(Gl,_) <- checkCond(A,Env,Path,Rp);
-	valis Gl
-      }.
+  typeOfExp(A,Tp,Env,Path,Rp) where _ ^= isNegation(A)  => do{
+    checkType(A,boolType,Tp,Env,Rp);
+    (Gl,_) <- checkCond(A,Env,Path,Rp);
+    valis Gl
+  }.
+  typeOfExp(A,Tp,Env,Path,Rp) where _ ^= isImplies(A) => do{
+    checkType(A,boolType,Tp,Env,Rp);
+    (Gl,_) <- checkCond(A,Env,Path,Rp);
+    valis Gl
+  }.
+  typeOfExp(A,Tp,Env,Path,Rp) where _ ^= isMatch(A) => do{
+    checkType(A,boolType,Tp,Env,Rp);
+    (Gl,_) <- checkCond(A,Env,Path,Rp);
+    valis Gl
+  }.
+  typeOfExp(A,Tp,Env,Path,Rp) where _ ^= isOptionMatch(A) => do{
+    checkType(A,boolType,Tp,Env,Rp);
+    (Gl,_) <- checkCond(A,Env,Path,Rp);
+    valis Gl
+  }.
+  typeOfExp(A,Tp,Env,Path,Rp) where _ ^= isSearch(A) => do{
+    checkType(A,boolType,Tp,Env,Rp);
+    (Gl,_) <- checkCond(A,Env,Path,Rp);
+    valis Gl
+  }.
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,G,Cases) ^= isCaseExp(A) => let{
     ETp = newTypeVar("_e").
     
@@ -917,8 +896,8 @@ star.compiler.checker{
   }
   checkGoal(A,Env,Path,Rp) where (_,[Inner]) ^= isTuple(A) =>
     checkGoal(Inner,Env,Path,Rp).
-  checkGoal(A,Env,Path,Rp) where (_,BoolTp,_) ^= findType(Env,"boolean") => do{
-    Exp <- typeOfExp(A,BoolTp,Env,Path,Rp);
+  checkGoal(A,Env,Path,Rp) => do{
+    Exp <- typeOfExp(A,boolType,Env,Path,Rp);
     valis (Exp,Env)
   }
 

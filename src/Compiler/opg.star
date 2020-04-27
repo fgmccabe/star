@@ -23,31 +23,39 @@ star.compiler.opg{
   termLeft:(cons[token],reports,integer) => (ast,integer,cons[token],reports,needsTerm).
   termLeft([tok(Lc,idTok(Id)),tok(Lc1,rgtTok(Par)),..Toks],Rpt,_) => (nme(Lc,Id),0,[tok(Lc1,rgtTok(Par)),..Toks],Rpt,.needOne).
   termLeft([tok(Lc,idTok(Op)),..Toks],Rpt,Priority) where
-      (PPr,PRgt)^=isPrefixOp(Op) && PPr=<Priority &&
+      (PPr,PRgt,Gen)^=isPrefixOp(Op) && PPr=<Priority &&
       (Arg,_,RToks,Rpt1,Needs) .= term(Toks,Rpt,PRgt) =>
-    (unary(mergeLoc(Lc,locOf(Arg)),Op,Arg),PPr,RToks,Rpt1,Needs).
+    (genUnry(mergeLoc(Lc,locOf(Arg)),Op,Arg,Gen),PPr,RToks,Rpt1,Needs).
   termLeft([endTok(Lc),..Toks],Rpt,_) => (nme(Lc,"_eof"),0,[endTok(Lc),..Toks],reportError(Rpt,"end of file on input",Lc),.noNeed).
   
   termLeft(Toks,Rpt,_) => term0(Toks,Rpt).
 
   termRight:((ast,integer,cons[token],reports,needsTerm),integer) => (ast,integer,cons[token],reports,needsTerm).
   termRight((Lhs,LeftPriority,[tok(Lc,idTok(Op)),..Toks],Rpt,LeftNeed),Priority) where
-    (ILft,IPr,IRgt) ^= isInfixOp(Op) && IPr=<Priority && ILft>=LeftPriority &&
-    (PLft,PPr) ^= isPostfixOp(Op) && PPr=<Priority && PLft>=LeftPriority &&
+      (ILft,IPr,IRgt,IGen) ^= isInfixOp(Op) && IPr=<Priority && ILft>=LeftPriority &&
+      (PLft,PPr,_) ^= isPostfixOp(Op) && PPr=<Priority && PLft>=LeftPriority &&
     legalNextRight(Toks,IRgt) && -- Use infix
       (Rhs,RPriority,RToks,Rpt1,Needs) .= term(Toks,Rpt,IRgt) =>
-      termRight((binary(mergeLoc(locOf(Lhs),locOf(Rhs)),Op,Lhs,Rhs),RPriority,RToks,Rpt1,Needs),Priority).
+    termRight((genBnry(mergeLoc(locOf(Lhs),locOf(Rhs)),Op,Lhs,Rhs,IGen),RPriority,RToks,Rpt1,Needs),Priority).
   termRight((Lhs,LeftPriority,[tok(Lc,idTok(Op)),..Toks],Rpt,LeftNeed),Priority) where
-    (ILft,IPr,IRgt) ^= isInfixOp(Op) && IPr=<Priority && ILft>=LeftPriority &&
+      (ILft,IPr,IRgt,Gen) ^= isInfixOp(Op) && IPr=<Priority && ILft>=LeftPriority &&
     -- _ .= _logmsg("$(Op) is an infix operator") &&
     (Rhs,RPriority,RToks,Rpt1,Needs) .= term(Toks,Rpt,IRgt) =>
-      termRight((binary(mergeLoc(locOf(Lhs),locOf(Rhs)),Op,Lhs,Rhs),RPriority,RToks,Rpt1,Needs),Priority).
+    termRight((genBnry(mergeLoc(locOf(Lhs),locOf(Rhs)),Op,Lhs,Rhs,Gen),RPriority,RToks,Rpt1,Needs),Priority).
   termRight((Lhs,LeftPriority,[tok(Lc,idTok(Op)),..Toks],Rpt,LeftNeed),Priority) where
-      (PLft,PPr) ^= isPostfixOp(Op) &&
+      (PLft,PPr,Gen) ^= isPostfixOp(Op) &&
       PPr=<Priority && PLft>=LeftPriority &&
       !legalNextRight(Toks,PPr) =>
-    termRight((unary(mergeLoc(locOf(Lhs),Lc),Op,Lhs),PPr,Toks,Rpt,.needOne),Priority).
+    termRight((genUnry(mergeLoc(locOf(Lhs),Lc),Op,Lhs,Gen),PPr,Toks,Rpt,.needOne),Priority).
   termRight(Left,_) => Left.
+
+  genUnry:(locn,string,ast,astGenerator) => ast.
+  genUnry(Lc,_,A,genUnary(G)) => G(Lc,A).
+  genUnry(Lc,Nm,A,.noGen) => unary(Lc,Nm,A).
+
+  genBnry:(locn,string,ast,ast,astGenerator) => ast.
+  genBnry(Lc,_,A,B,genBinary(G)) => G(Lc,A,B).
+  genBnry(Lc,Nm,A,B,.noGen) => binary(Lc,Nm,A,B).
 
   legalNextRight:(cons[token],integer) => boolean.
   legalNextRight([tok(_,Tk),.._],Priority) => legalRight(Tk,Priority).
@@ -55,7 +63,7 @@ star.compiler.opg{
 
   legalRight:(tk,integer) => boolean.
   legalRight(idTok(". "),_) => .false.
-  legalRight(idTok(Op),Pr) where (PPr,_) ^= isPrefixOp(Op) => PPr=<Pr.
+  legalRight(idTok(Op),Pr) where (PPr,_,_) ^= isPrefixOp(Op) => PPr=<Pr.
   legalRight(idTok(Op),_) => ! isOperator(Op).
   legalRight(idQTok(_),_) => .true.
   legalRight(intTok(_),_) => .true.
