@@ -4,16 +4,71 @@ star.compiler.wff{
   import star.topsort.
 
   import star.compiler.ast.
+  import star.compiler.ast.disp.
   import star.compiler.errors.
   import star.compiler.misc.
   import star.compiler.location.
   import star.compiler.meta.
+  import star.compiler.operators.
 
+  public isName:(ast) => option[(locn,string)].
+  isName(nme(Lc,Id)) where ! keyword(Id) => some((Lc,Id)).
+  isName(qnm(Lc,Id)) => some((Lc,Id)).
+  isName(tpl(_,"()",[nme(Lc,Id)])) => some((Lc,Id)).
+  isName(_) default => .none.
+
+  public isKeyword:(ast) => option[(locn,string)].
+  isKeyword(nme(Lc,Id)) where keyword(Id) => some((Lc,Id)).
+  isKeyword(_) default => .none.
+  
   public isLitAst:(ast) => boolean.
   isLitAst(int(_,_)) => .true.
   isLitAst(num(_,_)) => .true.
   isLitAst(str(_,_)) => .true.
   isLitAst(_) default => .false.
+
+  public isSquareTerm:(ast) => option[(locn,ast,cons[ast])].
+  isSquareTerm(app(Lc,Op,tpl(_,"[]",A))) => some((Lc,Op,A)).
+  isSquareTerm(_) default => .none.
+
+  public squareTerm:(locn,ast,cons[ast])=>ast.
+  squareTerm(Lc,Op,Args) => app(Lc,Op,tpl(Lc,"[]",Args)).
+  
+  public isSquareApply:(ast) => option[(locn,string,cons[ast])].
+  isSquareApply(app(Lc,Op,tpl(_,"[]",A))) where
+      (_,Id) ^= isName(Op) => some((Lc,Id,A)).
+  isSquareApply(_) default => .none.
+
+  public qBrTuple:(locn,cons[ast]) => ast.
+  qBrTuple(Lc,Els) => tpl(Lc,"{..}",Els).
+
+  public isBrTerm:(ast) => option[(locn,ast,cons[ast])].
+  isBrTerm(app(Lc,Op,tpl(_,"{}",A))) => some((Lc,Op,A)).
+  isBrTerm(_) default => .none.
+
+  public isBrApply:(ast) => option[(locn,string,cons[ast])].
+  isBrApply(app(Lc,Op,tpl(_,"{}",A))) where
+      (_,Id) ^= isName(Op) => some((Lc,Id,A)).
+  isBrApply(_) default => .none.
+
+  public isQBrTerm:(ast) => option[(locn,ast,cons[ast])].
+  isQBrTerm(app(Lc,Op,tpl(_,"{..}",A))) => some((Lc,Op,A)).
+  isQBrTerm(_) default => .none.
+
+  public isQBrApply:(ast) => option[(locn,string,cons[ast])].
+  isQBrApply(app(Lc,Op,tpl(_,"{..}",A))) where
+      (_,Id) ^= isName(Op) => some((Lc,Id,A)).
+  isQBrApply(_) default => .none.
+
+  public isRoundTerm:(ast) => option[(locn,ast,cons[ast])].
+  isRoundTerm(app(Lc,Op,tpl(_,"()",A))) where !_^=isKeyword(Op) => some((Lc,Op,A)).
+  isRoundTerm(_) default => .none.
+
+  public roundTerm:(locn,ast,cons[ast]) => ast.
+  roundTerm(Lc,Op,Els) => app(Lc,Op,tpl(Lc,"()",Els)).
+
+  public braceTerm:(locn,ast,cons[ast]) => ast.
+  braceTerm(Lc,Op,Els) => app(Lc,Op,tpl(Lc,"{}",Els)).
 
   public isQuantified:(ast)=>option[(locn,cons[ast],ast)].
   isQuantified(T) where
@@ -207,7 +262,8 @@ star.compiler.wff{
 
   public negated(Lc,A) => unary(Lc,"!",A).
 
-  public isImplies(A) => isBinary(A,"*>").
+  public isImplies(astImplies(Lc,L,R)) => some((Lc,L,R)).
+  isImplies(_) default => .none.
   
   public isConditional(A) where
       (Lc,Tst,Rhs) ^= isBinary(A,"?") &&
@@ -216,7 +272,7 @@ star.compiler.wff{
 
   public conditional:(locn,ast,ast,ast) => ast.
   conditional(Lc,T,Th,El) =>
-    binary(Lc,"||",binary(Lc,"?",T,Th),El).
+    binary(Lc,"?",T,binary(Lc,"||",Th,El)).
 
   public isMatch(A) => isBinary(A,".=").
 
@@ -659,4 +715,10 @@ star.compiler.wff{
 
   public isRecordUpdate:(ast) => option[(locn,ast,ast)].
   isRecordUpdate(A) => isBinary(A,"<<-").
+
+  public implementation coercion[locn,ast]=>{
+    _coerce(Lc where locn(Pkg,Line,Col,Off,Ln).=Lc)=>
+      roundTerm(Lc,nme(Lc,"locn"),[str(Lc,Pkg),
+	  int(Lc,Line), int(Lc,Col), int(Lc,Off), int(Lc,Ln)]).
+  }
 }

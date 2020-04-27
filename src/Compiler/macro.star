@@ -2,6 +2,7 @@ star.compiler.macro{
   import star.
 
   import star.compiler.ast.
+  import star.compiler.ast.disp.
   import star.compiler.errors.
   import star.compiler.misc.
   import star.compiler.location.

@@ -3,6 +3,7 @@
     "star.compiler.action" : "action.star",
     "star.compiler.assem" : "assem.star",
     "star.compiler.ast": "ast.star",
+    "star.compiler.ast.disp": "astdisp.star",
     "star.compiler.catalog": "catalog.star",
     "star.compiler": "driver.star",
     "star.compiler.canon": "canon.star",

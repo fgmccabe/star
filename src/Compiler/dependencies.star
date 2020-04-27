@@ -2,6 +2,7 @@ star.compiler.dependencies{
   import star.
   import star.topsort.
   import star.compiler.ast.
+  import star.compiler.ast.disp.
   import star.compiler.errors.
   import star.compiler.location.
   import star.compiler.operators.

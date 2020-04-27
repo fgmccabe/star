@@ -43,6 +43,7 @@ typedef enum {
   initial,
   inDecl,
   inOper,
+  inAst,
   inToken,
   inPriorities,
   inDescription,
@@ -54,14 +55,15 @@ typedef enum {
   unknownState
 } ParseState;
 
-static char *stNames[] = {"initial", "inDecl", "inOper", "token", "priorities", "desc", "bracket", "left", "right",
-                          "priority", "keyword", "unknown"};
+static char *stNames[] = {"initial", "inDecl", "inOper", "ast", "token", "priorities", "desc", "bracket", "left",
+                          "right", "priority", "keyword", "unknown"};
 
 static OperatorStyle operatorMode(const char *name);
 static ParseState fromStName(const char *name);
 
 typedef struct {
-  char oper[1024]; // Package name
+  char oper[1024]; // Operator name
+  char ast[1024];
   OperatorStyle mode;
   int priorities[4];
   int numPriorities;
@@ -121,14 +123,14 @@ retCode endCollection(void *cl) {
       info->state = initial;
       switch (info->mode) {
         case infixOp:
-          genInfix(info->oper, info->priorities[0], info->priorities[1], info->priorities[2], info->isKeyword,
+          genInfix(info->oper, info->ast, info->priorities[0], info->priorities[1], info->priorities[2], info->isKeyword,
                    info->desc);
           return Ok;
         case prefixOp:
-          genPrefix(info->oper, info->priorities[0], info->priorities[1], info->isKeyword, info->desc);
+          genPrefix(info->oper, info->ast, info->priorities[0], info->priorities[1], info->isKeyword, info->desc);
           return Ok;
         case postfixOp:
-          genPostfix(info->oper, info->priorities[0], info->priorities[1], info->isKeyword, info->desc);
+          genPostfix(info->oper, info->ast, info->priorities[0], info->priorities[1], info->isKeyword, info->desc);
           return Ok;
         case brackets:
           genBracket(info->oper, info->priority, info->left, info->right, info->desc);
@@ -175,6 +177,9 @@ retCode startEntry(const char *name, void *cl) {
       switch (info->state) {
         case inOper:
           info->mode = operatorMode(name);
+          uniCpy(info->ast, NumberOf(info->ast), "");
+          return Ok;
+        case inAst:
           return Ok;
         case inPriorities:
           info->numPriorities = 0;
@@ -212,6 +217,7 @@ retCode endEntry(const char *name, void *cl) {
     case inPriorities:
     case inDescription:
     case inToken:
+    case inAst:
       info->state = inDecl;
       return Ok;
     case inLeft:
@@ -288,6 +294,9 @@ retCode txtEntry(const char *name, void *cl) {
       return Ok;
     case inBkt:
       uniCpy(info->oper, NumberOf(info->oper), name);
+      return Ok;
+    case inAst:
+      uniCpy(info->ast, NumberOf(info->ast), name);
       return Ok;
     default:
       return Error;

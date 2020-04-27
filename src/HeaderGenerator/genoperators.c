@@ -258,6 +258,7 @@ int main(int argc, char **argv) {
 
 typedef struct _operator_ {
   char name[MAXLINE];
+  char ast[MAXLINE];
   OperatorStyle style;
   int left, prior, right;
   logical isKeyword;
@@ -279,9 +280,10 @@ void genToken(char *op, char *cmt) {
     addToTrie(op, tk, tokenTrie);
 }
 
-static opPo genOper(char *op, OperatorStyle style, int left, int prior, int right, logical isKeyword) {
+static opPo genOper(char *op, char *ast, OperatorStyle style, int left, int prior, int right, logical isKeyword) {
   opPo oper = (opPo) malloc(sizeof(Operator));
   strcpy(oper->name, op);
+  strcpy(oper->ast, ast);
   oper->style = style;
   oper->left = left;
   oper->prior = prior;
@@ -296,18 +298,18 @@ static opPo genOper(char *op, OperatorStyle style, int left, int prior, int righ
   return oper;
 }
 
-void genInfix(char *op, int left, int prior, int right, logical isKeyword, char *cmt) {
-  opPo oper = genOper(op, infixOp, left, prior, right, isKeyword);
+void genInfix(char *op, char *ast, int left, int prior, int right, logical isKeyword, char *cmt) {
+  opPo oper = genOper(op, ast, infixOp, left, prior, right, isKeyword);
   genToken(oper->name, cmt);
 }
 
-void genPrefix(char *op, int prior, int right, logical isKeyword, char *cmt) {
-  opPo oper = genOper(op, prefixOp, 0, prior, right, isKeyword);
+void genPrefix(char *op, char *ast, int prior, int right, logical isKeyword, char *cmt) {
+  opPo oper = genOper(op, ast, prefixOp, 0, prior, right, isKeyword);
   genToken(oper->name, cmt);
 }
 
-void genPostfix(char *op, int left, int prior, logical isKeyword, char *cmt) {
-  opPo oper = genOper(op, postfixOp, left, prior, 0, isKeyword);
+void genPostfix(char *op, char *ast, int left, int prior, logical isKeyword, char *cmt) {
+  opPo oper = genOper(op, ast, postfixOp, left, prior, 0, isKeyword);
   genToken(oper->name, cmt);
 }
 
@@ -341,11 +343,21 @@ static retCode procOper(ioPo out, char *sep, opPo op) {
     case genStar:
       switch (op->style) {
         case prefixOp:
-          return outMsg(out, "%sprefixOp(%d,%d)", sep, op->prior, op->right);
+          if (uniStrLen(op->ast) > 0)
+            return outMsg(out, "%sprefixOp(%d,%d,genUnary((Lc,X)=>%P(Lc,X)))", sep, op->prior, op->right, op->ast);
+          else
+            return outMsg(out, "%sprefixOp(%d,%d,.noGen)", sep, op->prior, op->right);
         case infixOp:
-          return outMsg(out, "%sinfixOp(%d,%d,%d)", sep, op->left, op->prior, op->right);
+          if (uniStrLen(op->ast) > 0)
+            return outMsg(out, "%sinfixOp(%d,%d,%d,genBinary((Lc,X,Y)=>%P(Lc,X,Y)))", sep, op->left, op->prior, op->right,
+                          op->ast);
+          else
+            return outMsg(out, "%sinfixOp(%d,%d,%d,.noGen)", sep, op->left, op->prior, op->right);
         case postfixOp:
-          return outMsg(out, "%spostfixOp(%d,%d)", sep, op->left, op->prior);
+          if (uniStrLen(op->ast) > 0)
+            return outMsg(out, "%spostfixOp(%d,%d,genUnary((Lc,X)=>%P(Lc,X)))", sep, op->left, op->prior, op->ast);
+          else
+            return outMsg(out, "%spostfixOp(%d,%d,.noGen)", sep, op->left, op->prior);
         default:
           return Error;
       }

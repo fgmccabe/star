@@ -220,7 +220,7 @@
 @tab 1700
 @item @code{ref}
 @tab non-associative prefix
-@tab 100
+@tab 899
 @item @code{.~.}
 @tab non-associative prefix
 @tab 650

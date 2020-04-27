@@ -3,140 +3,147 @@
 star.compiler.operators{
   import star.
 
-  operator ::= prefixOp(integer,integer)
-             | infixOp(integer,integer,integer)
-             | postfixOp(integer,integer).
+  import star.compiler.ast.
+  import star.compiler.location.
+
+  public astGenerator ::= .noGen
+             | genUnary((locn,ast)=>ast)
+             | genBinary((locn,ast,ast)=>ast).
+
+  operator ::= prefixOp(integer,integer,astGenerator)
+             | infixOp(integer,integer,integer,astGenerator)
+             | postfixOp(integer,integer,astGenerator).
 
   public bracket ::= bkt(string,string,string,integer).
 
   public isOperator:(string)=>boolean.
   isOperator(Nm) => size(oper(Nm))>0.
 
-  public isInfixOp:(string) => option[(integer,integer,integer)].
+  public isInfixOp:(string) => option[(integer,integer,integer,astGenerator)].
   isInfixOp(Nm) => pickInfix(oper(Nm)).
 
-  pickInfix:(cons[operator]) => option[(integer,integer,integer)].
+  pickInfix:(cons[operator]) => option[(integer,integer,integer,astGenerator)].
   pickInfix([]) => .none.
-  pickInfix([infixOp(Lf,Pr,Rg),.._]) => some((Lf,Pr,Rg)).
+  pickInfix([infixOp(Lf,Pr,Rg,Gen),.._]) => some((Lf,Pr,Rg,Gen)).
   pickInfix([_,..L]) => pickInfix(L).
 
-  public isPrefixOp:(string) => option[(integer,integer)].
+  public isPrefixOp:(string) => option[(integer,integer,astGenerator)].
   isPrefixOp(Nm) => pickPrefix(oper(Nm)).
 
-  pickPrefix:(cons[operator]) => option[(integer,integer)].
+  pickPrefix:(cons[operator]) => option[(integer,integer,astGenerator)].
   pickPrefix([]) => .none.
-  pickPrefix([prefixOp(Pr,Rg),.._]) => some((Pr,Rg)).
+  pickPrefix([prefixOp(Pr,Rg,Gen),.._]) => some((Pr,Rg,Gen)).
   pickPrefix([_,..L]) => pickPrefix(L).
 
-  public isPostfixOp:(string) => option[(integer,integer)].
+  public isPostfixOp:(string) => option[(integer,integer,astGenerator)].
   isPostfixOp(Nm) => pickPostfix(oper(Nm)).
 
-  pickPostfix:(cons[operator]) => option[(integer,integer)].
+  pickPostfix:(cons[operator]) => option[(integer,integer,astGenerator)].
   pickPostfix([]) => .none.
-  pickPostfix([postfixOp(Pr,Rg),.._]) => some((Pr,Rg)).
+  pickPostfix([postfixOp(Pr,Rg,Gen),.._]) => some((Pr,Rg,Gen)).
   pickPostfix([_,..L]) => pickPrefix(L).
 
   oper:(string)=>cons[operator].
-  oper("all") => [prefixOp(1010,1009)].
-  oper("^=") => [infixOp(899,900,899)].
-  oper("&&") => [infixOp(910,910,909)].
-  oper("pure") => [prefixOp(300,299)].
-  oper("~>") => [infixOp(1230,1231,1230)].
-  oper("throw") => [prefixOp(930,929)].
-  oper(".|.") => [infixOp(720,720,719)].
-  oper("do") => [prefixOp(200,199), infixOp(1199,1200,1199)].
-  oper("import") => [prefixOp(900,899)].
-  oper("catch") => [infixOp(1198,1199,1198)].
-  oper("of") => [infixOp(399,400,399)].
-  oper("valis") => [prefixOp(930,929)].
-  oper(",..") => [infixOp(999,1000,999)].
-  oper("for") => [prefixOp(1175,1174)].
-  oper("**") => [infixOp(600,600,599)].
-  oper("->") => [infixOp(889,890,889)].
-  oper(".+.") => [prefixOp(700,699)].
-  oper("<$") => [infixOp(719,720,720)].
-  oper("then") => [infixOp(1179,1180,1179)].
-  oper("!") => [prefixOp(905,904)].
-  oper("->>") => [infixOp(1199,1200,1199)].
-  oper("=!=") => [infixOp(899,900,899)].
-  oper("default") => [postfixOp(939,940)].
-  oper("#") => [prefixOp(1750,1749), infixOp(759,760,759)].
-  oper("%") => [infixOp(700,700,699)].
-  oper("<-") => [infixOp(904,905,904)].
-  oper(".>>>.") => [infixOp(600,600,599)].
-  oper("<<-") => [infixOp(974,975,974)].
-  oper("*") => [postfixOp(699,700), infixOp(700,700,699)].
-  oper("+") => [postfixOp(699,700), infixOp(720,720,719)].
-  oper(".>>.") => [infixOp(600,600,599)].
-  oper("*>") => [infixOp(904,905,904)].
-  oper(",") => [infixOp(999,1000,1000)].
-  oper("contract") => [prefixOp(1260,1259)].
-  oper("\\/") => [infixOp(720,720,719)].
-  oper("-") => [prefixOp(300,299), infixOp(720,720,719)].
-  oper(".") => [prefixOp(10,9), infixOp(100,100,99)].
-  oper("/") => [infixOp(700,700,699)].
-  oper("<*>") => [infixOp(949,950,950)].
-  oper("val") => [prefixOp(900,899)].
-  oper("try") => [prefixOp(1200,1199)].
-  oper("exists") => [prefixOp(1010,1009)].
-  oper("if") => [prefixOp(1175,1174)].
-  oper("background") => [prefixOp(950,949)].
-  oper(":") => [infixOp(1249,1250,1249)].
-  oper(";") => [infixOp(1250,1251,1251)].
-  oper("<") => [infixOp(899,900,899)].
-  oper(".=") => [infixOp(899,900,899)].
-  oper("=") => [infixOp(974,975,974)].
-  oper("|:") => [infixOp(1234,1235,1234)].
-  oper("show") => [prefixOp(1240,1239)].
-  oper("++") => [infixOp(719,720,720)].
-  oper(">") => [infixOp(899,900,899)].
-  oper("return") => [prefixOp(930,929)].
-  oper("?") => [infixOp(919,920,920)].
-  oper("@") => [prefixOp(400,399), infixOp(399,400,400)].
-  oper("in") => [infixOp(899,900,900)].
-  oper("^|") => [infixOp(919,920,920)].
-  oper("open") => [prefixOp(900,899)].
-  oper("~~") => [infixOp(1239,1240,1240)].
-  oper("assert") => [prefixOp(1240,1239)].
-  oper("!!") => [postfixOp(99,100)].
-  oper(".^.") => [infixOp(720,720,719)].
-  oper("//") => [infixOp(960,960,959)].
-  oper("public") => [prefixOp(1700,1699)].
-  oper("ref") => [prefixOp(100,99)].
-  oper(".~.") => [prefixOp(650,649)].
-  oper("where") => [infixOp(910,911,910)].
-  oper("=<") => [infixOp(899,900,899)].
-  oper("case") => [prefixOp(901,900)].
-  oper("==") => [infixOp(899,900,899)].
-  oper("\\") => [infixOp(700,700,699)].
-  oper("=>") => [infixOp(949,950,950)].
-  oper("^") => [prefixOp(100,99), infixOp(99,100,99)].
-  oper("<=>") => [infixOp(949,950,949)].
-  oper("valof") => [prefixOp(300,299)].
-  oper("while") => [prefixOp(1175,1174)].
-  oper("private") => [prefixOp(1200,1199)].
-  oper("•") => [infixOp(450,450,449)].
-  oper(".&.") => [infixOp(700,700,699)].
-  oper("///") => [infixOp(960,960,959)].
-  oper("::") => [infixOp(399,400,399)].
-  oper("+++") => [infixOp(719,720,720)].
-  oper(":=") => [infixOp(974,975,974)].
-  oper(".<<.") => [infixOp(600,600,599)].
-  oper("^.") => [infixOp(450,450,449)].
-  oper(">>=") => [infixOp(949,950,950)].
-  oper("^/") => [infixOp(960,960,959)].
-  oper("<~") => [infixOp(1230,1231,1230)].
-  oper("type") => [prefixOp(1251,1250)].
-  oper("implementation") => [prefixOp(1260,1259)].
-  oper("|") => [infixOp(1248,1248,1247)].
-  oper(".#.") => [infixOp(600,600,599)].
-  oper("^//") => [infixOp(800,800,799)].
-  oper("||") => [infixOp(919,920,920)].
-  oper("else") => [infixOp(1199,1200,1200)].
-  oper("::=") => [infixOp(1249,1250,1249)].
-  oper("/\\") => [infixOp(700,700,699)].
-  oper(">=") => [infixOp(899,900,899)].
-  oper(">>") => [infixOp(949,950,950)].
+  oper("all") => [prefixOp(1010,1009,.noGen)].
+  oper("^=") => [infixOp(899,900,899,.noGen)].
+  oper("&&") => [infixOp(910,910,909,.noGen)].
+  oper("pure") => [prefixOp(300,299,.noGen)].
+  oper("~>") => [infixOp(1230,1231,1230,.noGen)].
+  oper("throw") => [prefixOp(930,929,.noGen)].
+  oper(".|.") => [infixOp(720,720,719,.noGen)].
+  oper("do") => [prefixOp(200,199,.noGen), infixOp(1199,1200,1199,.noGen)].
+  oper("import") => [prefixOp(900,899,.noGen)].
+  oper("catch") => [infixOp(1198,1199,1198,.noGen)].
+  oper("of") => [infixOp(399,400,399,.noGen)].
+  oper("valis") => [prefixOp(930,929,.noGen)].
+  oper(",..") => [infixOp(999,1000,999,.noGen)].
+  oper("for") => [prefixOp(1175,1174,.noGen)].
+  oper("**") => [infixOp(600,600,599,.noGen)].
+  oper("->") => [infixOp(889,890,889,.noGen)].
+  oper(".+.") => [prefixOp(700,699,.noGen)].
+  oper("<$") => [infixOp(719,720,720,.noGen)].
+  oper("then") => [infixOp(1179,1180,1179,.noGen)].
+  oper("!") => [prefixOp(905,904,.noGen)].
+  oper("->>") => [infixOp(1199,1200,1199,.noGen)].
+  oper("=!=") => [infixOp(899,900,899,.noGen)].
+  oper("default") => [postfixOp(939,940,.noGen)].
+  oper("#") => [prefixOp(1750,1749,.noGen), infixOp(759,760,759,.noGen)].
+  oper("%") => [infixOp(700,700,699,.noGen)].
+  oper("<-") => [infixOp(904,905,904,.noGen)].
+  oper(".>>>.") => [infixOp(600,600,599,.noGen)].
+  oper("<<-") => [infixOp(974,975,974,.noGen)].
+  oper("*") => [postfixOp(699,700,.noGen), infixOp(700,700,699,.noGen)].
+  oper("+") => [postfixOp(699,700,.noGen), infixOp(720,720,719,.noGen)].
+  oper(".>>.") => [infixOp(600,600,599,.noGen)].
+  oper("*>") => [infixOp(904,905,904,genBinary((Lc,X,Y)=>astImplies(Lc,X,Y)))].
+  oper(",") => [infixOp(999,1000,1000,.noGen)].
+  oper("contract") => [prefixOp(1260,1259,.noGen)].
+  oper("\\/") => [infixOp(720,720,719,.noGen)].
+  oper("-") => [prefixOp(300,299,.noGen), infixOp(720,720,719,.noGen)].
+  oper(".") => [prefixOp(10,9,.noGen), infixOp(100,100,99,.noGen)].
+  oper("/") => [infixOp(700,700,699,.noGen)].
+  oper("<*>") => [infixOp(949,950,950,.noGen)].
+  oper("val") => [prefixOp(900,899,.noGen)].
+  oper("try") => [prefixOp(1200,1199,.noGen)].
+  oper("exists") => [prefixOp(1010,1009,.noGen)].
+  oper("if") => [prefixOp(1175,1174,.noGen)].
+  oper("background") => [prefixOp(950,949,.noGen)].
+  oper(":") => [infixOp(1249,1250,1249,.noGen)].
+  oper(";") => [infixOp(1250,1251,1251,.noGen)].
+  oper("<") => [infixOp(899,900,899,.noGen)].
+  oper(".=") => [infixOp(899,900,899,.noGen)].
+  oper("=") => [infixOp(974,975,974,.noGen)].
+  oper("|:") => [infixOp(1234,1235,1234,.noGen)].
+  oper("show") => [prefixOp(1240,1239,.noGen)].
+  oper("++") => [infixOp(719,720,720,.noGen)].
+  oper(">") => [infixOp(899,900,899,.noGen)].
+  oper("return") => [prefixOp(930,929,.noGen)].
+  oper("?") => [infixOp(919,920,920,.noGen)].
+  oper("@") => [prefixOp(400,399,.noGen), infixOp(399,400,400,.noGen)].
+  oper("in") => [infixOp(899,900,900,.noGen)].
+  oper("^|") => [infixOp(919,920,920,.noGen)].
+  oper("open") => [prefixOp(900,899,.noGen)].
+  oper("~~") => [infixOp(1239,1240,1240,.noGen)].
+  oper("assert") => [prefixOp(1240,1239,.noGen)].
+  oper("!!") => [postfixOp(99,100,.noGen)].
+  oper(".^.") => [infixOp(720,720,719,.noGen)].
+  oper("//") => [infixOp(960,960,959,.noGen)].
+  oper("public") => [prefixOp(1700,1699,.noGen)].
+  oper("ref") => [prefixOp(899,898,.noGen)].
+  oper(".~.") => [prefixOp(650,649,.noGen)].
+  oper("where") => [infixOp(910,911,910,.noGen)].
+  oper("=<") => [infixOp(899,900,899,.noGen)].
+  oper("case") => [prefixOp(901,900,.noGen)].
+  oper("==") => [infixOp(899,900,899,.noGen)].
+  oper("\\") => [infixOp(700,700,699,.noGen)].
+  oper("=>") => [infixOp(949,950,950,.noGen)].
+  oper("^") => [prefixOp(100,99,.noGen), infixOp(99,100,99,.noGen)].
+  oper("<=>") => [infixOp(949,950,949,.noGen)].
+  oper("valof") => [prefixOp(300,299,.noGen)].
+  oper("while") => [prefixOp(1175,1174,.noGen)].
+  oper("private") => [prefixOp(1200,1199,.noGen)].
+  oper("•") => [infixOp(450,450,449,.noGen)].
+  oper(".&.") => [infixOp(700,700,699,.noGen)].
+  oper("///") => [infixOp(960,960,959,.noGen)].
+  oper("::") => [infixOp(399,400,399,.noGen)].
+  oper("+++") => [infixOp(719,720,720,.noGen)].
+  oper(":=") => [infixOp(974,975,974,.noGen)].
+  oper(".<<.") => [infixOp(600,600,599,.noGen)].
+  oper("^.") => [infixOp(450,450,449,.noGen)].
+  oper(">>=") => [infixOp(949,950,950,.noGen)].
+  oper("^/") => [infixOp(960,960,959,.noGen)].
+  oper("<~") => [infixOp(1230,1231,1230,.noGen)].
+  oper("type") => [prefixOp(1251,1250,.noGen)].
+  oper("implementation") => [prefixOp(1260,1259,.noGen)].
+  oper("|") => [infixOp(1248,1248,1247,.noGen)].
+  oper(".#.") => [infixOp(600,600,599,.noGen)].
+  oper("^//") => [infixOp(800,800,799,.noGen)].
+  oper("||") => [infixOp(919,920,920,.noGen)].
+  oper("else") => [infixOp(1199,1200,1200,.noGen)].
+  oper("::=") => [infixOp(1249,1250,1249,.noGen)].
+  oper("/\\") => [infixOp(700,700,699,.noGen)].
+  oper(">=") => [infixOp(899,900,899,.noGen)].
+  oper(">>") => [infixOp(949,950,950,.noGen)].
   oper(_) default => [].
 
   public isBracket:(string) => option[bracket].
