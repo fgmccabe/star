@@ -32,10 +32,21 @@ test.do2{
     valis Alpha!!
   }
 
+  doIf3(X) => action{
+    Alpha .= ref .false;
+
+    if 2 < X then{
+      Alpha := .true
+    };
+    valis Alpha!!
+  }
+  
+
   main:()=>action[(),()].
   main() => do{
     doFirst();
     assert valof doIf(4);
-    assert valof doIf2(4)
+    assert valof doIf2(4);
+    assert valof doIf3(4)
   }
 }
