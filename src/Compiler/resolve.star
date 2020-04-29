@@ -3,6 +3,7 @@ star.compiler.resolve{
 
   import star.compiler.canon.
   import star.compiler.dict.
+  import star.compiler.dict.mgt.
   import star.compiler.errors.
   import star.compiler.location.
   import star.compiler.meta.
@@ -29,7 +30,7 @@ star.compiler.resolve{
   declareImplementationsInGroup([],Dict) => Dict.
   declareImplementationsInGroup([implDef(Lc,_,FullNm,_,_,Tp),..Gp],Dict) =>
     declareImplementationsInGroup(Gp,
-      declareVr(FullNm,some(Lc),Tp,(LL,TT)=>vr(Lc,FullNm,Tp),
+       declareVar(FullNm,some(Lc),Tp,
 	declareImplementation(FullNm,Tp,Dict))).
   declareImplementationsInGroup([_,..Gp],Dict) => declareImplementationsInGroup(Gp,Dict).
 
@@ -59,9 +60,9 @@ star.compiler.resolve{
 
   overloadDef:(dict,canonDef,reports)=>either[reports,(canonDef,dict)].
   overloadDef(Dict,varDef(Lc,Nm,FullNm,Val,Cx,Tp),Rp) =>
-    overloadVarDef(Dict,Lc,Nm,FullNm,Val,[CTp | typeConstraint(CTp) in Cx],Tp,Rp). 
+    overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx//(typeConstraint(CTp))=>CTp,Tp,Rp). 
   overloadDef(Dict,implDef(Lc,Nm,FullNm,Val,Cx,Tp),Rp) =>
-    overloadImplDef(Dict,Lc,Nm,FullNm,Val,[CTp | typeConstraint(CTp) in Cx],Tp,Rp).
+    overloadImplDef(Dict,Lc,Nm,FullNm,Val,Cx//(typeConstraint(CTp))=>CTp,Tp,Rp).
   overloadDef(Dict,typeDef(Lc,Nm,Tp,TpRl),Rp) => do{
 --    logMsg("found type definition $(typeDef(Lc,Nm,Tp,TpRl))");
     valis (typeDef(Lc,Nm,Tp,TpRl),declareType(Nm,some(Lc),Tp,TpRl,Dict))
@@ -73,11 +74,13 @@ star.compiler.resolve{
     valis (varDef(Lc,Nm,FullNm,RVal,[],Tp),Dict)
   }
   overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp,Rp) => do{
+--    logMsg("overload var def for $(Nm) with constraints $(Cx)");
     (Cvrs,CDict) .= defineCVars(Lc,Cx,[],Dict);
     RVal <- resolveTerm(Val,CDict,Rp);
     (Qx,Qt) .= deQuant(Tp);
     (_,ITp) .= deConstrain(Qt);
     CTp .= reQuant(Qx,funType(Cx,ITp));
+--    logMsg("cvars $(Cvrs)");
     valis (varDef(Lc,Nm,FullNm,lambda([eqn(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp),Dict)
   }
 
@@ -87,8 +90,10 @@ star.compiler.resolve{
     valis (implDef(Lc,Nm,FullNm,RVal,[],Tp),Dict)
   }
   overloadImplDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp,Rp) => do{
---    logMsg("overloading implementation $(Nm)\:$(Val)");
+--    logMsg("overloading implementation $(Nm)");
+--    logMsg("Cx= $(Cx)");
     (Cvrs,CDict) .= defineCVars(Lc,Cx,[],Dict);
+--    logMsg("Cvars=$(Cvrs)");
     RVal <- resolveTerm(Val,CDict,Rp);
     (Qx,Qt) .= deQuant(Tp);
     (_,ITp) .= deConstrain(Qt);
@@ -99,7 +104,7 @@ star.compiler.resolve{
   defineCVars:(locn,cons[tipe],cons[canon],dict) => (cons[canon],dict).
   defineCVars(_,[],Vrs,D) => (reverse(Vrs),D).
   defineCVars(Lc,[T,..Tps],Vrs,D) where TpNm .= implementationName(T) =>
-    defineCVars(Lc,Tps,[vr(Lc,TpNm,T),..Vrs],declareVar(TpNm,TpNm,some(Lc),T,D)).
+    defineCVars(Lc,Tps,[vr(Lc,TpNm,T),..Vrs],declareVar(TpNm,some(Lc),T,D)).
 
   resolveState ::= .inactive | .resolved | active(locn,string).
 
@@ -135,10 +140,15 @@ star.compiler.resolve{
     (Stx,OC) <- overloadTerm(C,Dict,St1,Rp);
     valis (Stx,whr(Lc,OT,OC))
   }
+  overloadTerm(mtd(Lc,Nm,Con,Tp),Dict,St,Rp) => do{
+--    logMsg("overloading $(mtd(Lc,Nm,Con,Tp))");
+    (St1,A) <- resolveContract(Lc,Con,Dict,St,Rp);
+    valis (St1,dot(Lc,A,Nm,Tp))
+  }
   overloadTerm(over(Lc,T,Tp,Cx),Dict,St,Rp) => do{
---    logMsg("overloading $(T)\:$(Tp)");
+--    logMsg("overloading $(Cx) |: $(T)\:$(Tp)");
     (St1,[A,..Args]) <- resolveContracts(Lc,Cx,[],Dict,St,Rp);
-    if mtd(_,Nm,MTp) .= T then{
+    if mtd(_,Nm,_,MTp) .= T then{
       if _eof(Args) then
 	valis (St1,dot(Lc,A,Nm,Tp))
       else
@@ -320,17 +330,13 @@ star.compiler.resolve{
   resolveContract(Lc,Tp,Dict,St,Rp) => do{
     ImpNm .= implementationName(Tp);
 --    logMsg("looking for implementation $(Tp) - $(ImpNm)");
-    if vrEntry(_,Mk,VTp)^=isVar(ImpNm,Dict) then {
---      logMsg("we have implementation $(Mk(Lc,Tp)) for $(VTp)");
-      (_,VrTp) .= freshen(VTp,Dict);
-      
-      (ITp,Impl) <- manageConstraints(VrTp,[],Lc,Mk(Lc,Tp),Dict,Rp);
---      logMsg("deconstrained implementation $(ITp)");
-      if sameType(ITp,Tp,Dict) then {
---	logMsg("we found implementation $(Impl)\:$(ITp)");
+    if Impl^=findVar(Lc,ImpNm,Dict) then {
+--      logMsg("we have implementation $(Impl)\:$(typeOf(Impl))");
+      if sameType(typeOf(Impl),Tp,Dict) then {
+--	logMsg("we found implementation $(Impl)");
 	overloadTerm(Impl,Dict,markResolved(St),Rp)
       } else{
-	throw reportError(Rp,"implementation $(ITp) not consistent with $(Tp)",Lc)
+	throw reportError(Rp,"implementation $(typeOf(Impl)) not consistent with $(Tp)",Lc)
       }
     } else{
       throw reportError(Rp,"cannot find an implementation for $(Tp)",Lc)

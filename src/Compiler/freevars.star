@@ -21,7 +21,7 @@ star.compiler.freevars{
   freeVarsInTerm(strng(_,_),_,Fv) => Fv.
   freeVarsInTerm(enm(_,_,_),_,Fv) => Fv.
   freeVarsInTerm(dot(_,Rc,_,_),Excl,Fv) => freeVarsInTerm(Rc,Excl,Fv).
-  freeVarsInTerm(mtd(_,_,_),_,Fv) => Fv.
+  freeVarsInTerm(mtd(_,_,_,_),_,Fv) => Fv.
   freeVarsInTerm(over(_,V,_,_),Excl,Fv) => freeVarsInTerm(V,Excl,Fv).
   freeVarsInTerm(act(_,A),Excl,Fv) => freeVarsInAction(A,Excl,Fv).
   freeVarsInTerm(csexp(_,G,Cs,_),Excl,Fv) =>
@@ -163,7 +163,7 @@ star.compiler.freevars{
   ptnVars(strng(_,_),Excl,_) => Excl.
   ptnVars(enm(_,_,_),Excl,Fv) => Excl.
   ptnVars(dot(_,Rc,_,_),Excl,Fv) => Excl.
-  ptnVars(mtd(_,_,_),Excl,Fv) => Excl.
+  ptnVars(mtd(_,_,_,_),Excl,Fv) => Excl.
   ptnVars(over(_,V,_,_),Excl,Fv) => ptnVars(V,Excl,Fv).
   ptnVars(act(_,A),Excl,Fv) => Excl.
   ptnVars(whr(_,E,C),Excl,Fv) =>

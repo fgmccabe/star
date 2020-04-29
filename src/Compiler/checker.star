@@ -11,6 +11,7 @@ star.compiler.checker{
   import star.compiler.canondeps.
   import star.compiler.dependencies.
   import star.compiler.dict.
+  import star.compiler.dict.mgt.
   import star.compiler.errors.
   import star.compiler.freshen.
   import star.compiler.impawt.
@@ -205,7 +206,8 @@ star.compiler.checker{
 	  FullNm .= implementationName(ConTp);
 --	  logMsg("full name of implementation of $(ConTp) is $(FullNm)");
 	  ImplTp .= rebind(BV,reConstrainType(Cx,ConTp),Env);
-	  valis declareVr(FullNm,some(Lc),ImplTp,(LL,TT)=>vr(Lc,FullNm,ImplTp),
+--	  logMsg("implementation type is $(ImplTp)");
+	  valis declareVar(FullNm,some(Lc),ImplTp,
 	    declareImplementation(FullNm,ImplTp,Env))
 	}
 	else{
@@ -238,7 +240,7 @@ star.compiler.checker{
   parseAnnotations([defnSpec(varSp(Nm),Lc,Stmts),..Gs],Fields,Annots,Env,Rp) => do{
     Tp <- parseAnnotation(Nm,Lc,Stmts,Fields,Annots,Env,Rp);
 --    logMsg("found type of $(Nm)\:$(Tp)");
-    parseAnnotations(Gs,Fields,Annots,declareVar(Nm,Nm,some(Lc),Tp,Env),Rp)
+    parseAnnotations(Gs,Fields,Annots,declareVar(Nm,some(Lc),Tp,Env),Rp)
   }
   parseAnnotations([_,..Gs],Fields,Annots,Env,Rp) => parseAnnotations(Gs,Fields,Annots,Env,Rp).
 
@@ -249,7 +251,7 @@ star.compiler.checker{
     parseType([],T,Env,Rp)
   }.
   parseAnnotation(Nm,_,_,faceType(Vrs,_),_,_,_) where (Nm,Tp) in Vrs => either(Tp).
-  parseAnnotation(Nm,_,_,_,_,Env,Rp) where vrEntry(_,_,Tp) ^= isVar(Nm,Env) => either(Tp).
+  parseAnnotation(Nm,_,_,_,_,Env,Rp) where Tp ^= varType(Nm,Env) => either(Tp).
   parseAnnotation(Nm,Lc,Stmts,Fields,Annots,Env,Rp) =>
     guessStmtType(Stmts,Nm,Lc,Rp).
 
@@ -284,24 +286,23 @@ star.compiler.checker{
 
   checkDefn:(defnSpec,dict,dict,string,reports) => either[reports,(canonDef,dict)].
   checkDefn(defnSpec(varSp(Nm),Lc,Stmts),Env,Outer,Path,Rp) where
-      vrEntry(_,_,Tp) ^= isVar(Nm,Env) && areEquations(Stmts) =>
+      Tp ^= varType(Nm,Env) && areEquations(Stmts) =>
     checkFunction(Nm,Tp,Lc,Stmts,Env,Outer,Path,Rp).
-  checkDefn(defnSpec(varSp(Nm),Lc,[Stmt]),Env,Outer,Path,Rp) where
-      vrEntry(_,_,Tp) ^= isVar(Nm,Env) => do{
-	(Q,ETp) .= evidence(Tp,Env);
+  checkDefn(defnSpec(varSp(Nm),Lc,[Stmt]),Env,Outer,Path,Rp) where Tp ^= varType(Nm,Env) => do{
+    (Q,ETp) .= evidence(Tp,Env);
 --	logMsg("given type of $(Nm) is $(ETp)");
-	(Cx,VarTp) .= deConstrain(ETp);
-	Es .= declareConstraints(Lc,Cx,declareTypeVars(Q,Outer));
-	if (_,Lhs,R) ^= isDefn(Stmt) then{
-	  Val <- typeOfExp(R,VarTp,Es,Path,Rp);
-	  FullNm .= qualifiedName(Path,.valMark,Nm);
-	  valis (varDef(Lc,Nm,FullNm,Val,Cx,Tp),
-	    declareVar(Nm,Nm,some(Lc),Tp,Env))
-	}
-	else{
-	  throw reportError(Rp,"bad definition $(Stmt)",Lc)
-	}
-      }.
+    (Cx,VarTp) .= deConstrain(ETp);
+    Es .= declareConstraints(Lc,Cx,declareTypeVars(Q,Outer));
+    if (_,Lhs,R) ^= isDefn(Stmt) then{
+      Val <- typeOfExp(R,VarTp,Es,Path,Rp);
+      FullNm .= qualifiedName(Path,.valMark,Nm);
+      valis (varDef(Lc,Nm,FullNm,Val,Cx,Tp),
+	declareVar(Nm,some(Lc),Tp,Env))
+    }
+    else{
+      throw reportError(Rp,"bad definition $(Stmt)",Lc)
+    }
+  }.
   checkDefn(defnSpec(tpSp(TpNm),Lc,[St]),Env,_,Path,Rp) =>
     parseTypeDef(TpNm,St,Env,Path,Rp).
   checkDefn(defnSpec(cnsSp(CnNm),Lc,[St]),Env,_,Path,Rp) =>
@@ -331,7 +332,7 @@ star.compiler.checker{
     FullNm .= qualifiedName(Path,.valMark,Nm);
 --    logMsg("checked equations $(Rls), ProgramTp=$(ProgramTp), Tp=$(Tp)");
     valis (varDef(Lc,Nm,FullNm,
-	lambda(Rls,Tp),Cx,Tp),declareVar(Nm,Nm,some(Lc),Tp,Env))
+	lambda(Rls,Tp),Cx,Tp),declareVar(Nm,some(Lc),Tp,Env))
   }.
 
   processEqns:(cons[ast],tipe,cons[equation],option[equation],dict,dict,string,reports) =>
@@ -376,7 +377,7 @@ star.compiler.checker{
     BV <- parseBoundTpVars(Q,Rp);
     Cx <- parseConstraints(C,BV,Env,Rp);
     Cn <- parseContractConstraint(BV,H,Env,Rp);
---    logMsg("implemented contract $(BV) $(Cx) $(Cn)");
+--    logMsg("implemented contract $(Cx) |: $(Cn)");
     ConName .= localName(tpName(Cn),.typeMark);
     if Con ^= findContract(Env,ConName) then{
 --      logMsg("found contract $(Con)");
@@ -391,8 +392,8 @@ star.compiler.checker{
 --	logMsg("full name of implementation of $(ConTp) is $(FullNm)");
 	ImplTp .= rebind(BV,reConstrainType(Cx,ConTp),Es);
 --	logMsg("implementation is $(implDef(Lc,Nm,FullNm,Impl,Cx,ImplTp))");
-	valis (implDef(Lc,Nm,FullNm,Impl,Cx,ImplTp),
-	  declareImplementation(FullNm,ImplTp,Env))
+--	logMsg("implementation type of $(Nm) is $(ImplTp)");
+	valis (implDef(Lc,Nm,FullNm,Impl,Cx,ImplTp),declareImplementation(FullNm,ImplTp,Env))
       }
       else{
 	throw reportError(Rp,"implementation type $(Cn) not consistent with contract type $(ConTp)",Lc)
@@ -405,10 +406,10 @@ star.compiler.checker{
   typeOfPtn:(ast,tipe,dict,string,reports) => either[reports,(canon,dict)].
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,"_") ^= isName(A) =>
     either((vr(Lc,genSym("_"),Tp),Env)).
-  typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) && _ ^= isVar(Id,Env) =>
+  typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) && varDefined(Id,Env) =>
     typeOfPtn(mkWhereEquality(A),Tp,Env,Path,Rp).
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) => do{
-    Ev .= declareVar(Id,Id,some(Lc),Tp,Env);
+    Ev .= declareVar(Id,some(Lc),Tp,Env);
     valis (vr(Lc,Id,Tp),Ev)
   }
   typeOfPtn(A,Tp,Env,Path,Rp) where _ ^= isEnum(A) => do{
@@ -473,15 +474,12 @@ star.compiler.checker{
   typeOfExp:(ast,tipe,dict,string,reports) => either[reports,canon].
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) => do{
 --    logMsg("check $(Id) has type $(Tp)");
-    if vrEntry(_,Mk,VTp) ^= isVar(Id,Env) then{
-      (_,VrTp) .= freshen(VTp,Env);
---      logMsg("freshened type of $(Id) is $(VrTp)");
-      (MTp,Term) <- manageConstraints(VrTp,[],Lc,Mk(Lc,VrTp),Env,Rp);
---      logMsg("check var $(Id)\:$(MTp) against $(Tp)");
-      if sameType(Tp,MTp,Env) then {
-	valis Term
+    if Var ^= findVar(Lc,Id,Env) then{
+--      logMsg("check var $(Var)\:$(typeOf(Var))");
+      if sameType(Tp,typeOf(Var),Env) then {
+	valis Var
       } else
-      throw reportError(Rp,"variable $(Id)\:$(VTp) not consistent with expected type: $(Tp)",Lc)
+      throw reportError(Rp,"variable $(Id)\:$(typeOf(Var)) not consistent with expected type: $(Tp)",Lc)
     }
     else
     throw reportError(Rp,"variable $(Id) not defined. Expecting a $(Tp)",locOf(A)).
@@ -516,22 +514,20 @@ star.compiler.checker{
       }.
   typeOfExp(A,Tp,Env,Path,Rp) where
       (Lc,R,F) ^= isFieldAcc(A) && (_,Fld) ^= isName(F) => do{
---	logMsg("field access $(Lc)");
+--	logMsg("field access $(A)");
 	FldTp .= newTypeVar(Fld);
 	TV .= newTVFieldConstraint(Fld,FldTp);
 	Rc <- typeOfExp(R,TV,Env,Path,Rp);
 --	logMsg("record type $(Rc)\:$(showType(TV,.true,0))");
-
-        (_,VrTp) .= freshen(FldTp,Env);
-        (MTp,Term) <- manageConstraints(VrTp,[],Lc,dot(Lc,Rc,Fld,VrTp),Env,Rp);
---	logMsg("constraint managed type $(MTp)");
-        if sameType(Tp,MTp,Env) then{
+	Acc .= refreshVr(Lc,FldTp,Env,(T)=>dot(Lc,Rc,Fld,T));
+        if sameType(Tp,typeOf(Acc),Env) then{
 --	  logMsg("$(Tp) field type ok");
-	  valis Term
+	  valis Acc
 	}
 	else
   	throw reportError(Rp,"field $(Fld)\:$(FldTp) not consistent with expected type: $(Tp)",Lc)
-      }.
+      }
+
   typeOfExp(A,Tp,Env,Path,Rp) where _ ^= isConjunct(A) => do{
     checkType(A,boolType,Tp,Env,Rp);
     (Gl,_) <- checkCond(A,Env,Path,Rp);
@@ -586,7 +582,7 @@ star.compiler.checker{
       }
       else{
 	(Ags,ACnd) .= pullWhere(Arg,.none);
-	logMsg("Arg $(Arg) -> $(Ags) wh $(ACnd)");
+--	logMsg("Arg $(Arg) -> $(Ags) wh $(ACnd)");
 	Rep <- typeOfExp(R,Tp,E0,Path,RRp);
 	valis eqn(CLc,tple(Lc,[Ags]),ACnd,Rep)
       }
@@ -794,6 +790,7 @@ star.compiler.checker{
   }
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Op,Args) ^= isRoundTerm(A) =>
     typeOfRoundTerm(Lc,Op,Args,Tp,Env,Path,Rp).
+  typeOfExp(A,_,_,_,Rp) => other(reportError(Rp,"cannot type check $(A)",locOf(A))).
 
   typeOfExps:(cons[ast],cons[tipe],cons[canon],dict,string,reports) =>
     either[reports,cons[canon]].
@@ -953,11 +950,11 @@ star.compiler.checker{
     checkAction(binary(Lc,".=",unary(Lc,"some",L),R),Env,StTp,ElTp,ErTp,Path,Rp).
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,L,R) ^= isAssignment(A) => do{
     Et .= newTypeVar("P");
-    if (_,Vr) ^= isName(L) && !_ ^=isVar(Vr,Env) then{
+    if (_,Vr) ^= isName(L) && !varDefined(Vr,Env) then{
       (Ptn,Env0) <- typeOfPtn(L,refType(Et),Env,Path,Rp);
       Val <- typeOfExp(R,Et,Env,Path,Rp);
-      vrEntry(_,_,CellTp) ^= isVar("_cell",Env);
-      valis (varDo(Lc,Ptn,apply(Lc,vr(Lc,"_cell",CellTp),tple(Lc,[Val]),refType(Et))),Env0)
+      Cell ^= findVar(Lc,"_cell",Env);
+      valis (varDo(Lc,Ptn,apply(Lc,Cell,tple(Lc,[Val]),refType(Et))),Env0)
     } else{
     MdlTp .= mkTypeExp(StTp,[ErTp,unitTp]);
     if (LLc,Coll,Idx) ^= isIndex(L) then {
@@ -1065,14 +1062,16 @@ becomes
   typeOfField(Lc,Rc,Fld,Tp,Env,Path,Rp) => do{
     faceType(Flds,_) .= faceOfType(typeOf(Rc),Env);
     if (Fld,FldTp) in Flds then{
-      (_,VrTp) .= freshen(FldTp,Env);
-      (MTp,Term) <- manageConstraints(VrTp,[],Lc,dot(Lc,Rc,Fld,VrTp),Env,Rp);
-      if sameType(Tp,VrTp,Env) then {
-	valis Term
+--      logMsg("field access $(Rc).$(Fld)");
+      Acc .= refreshVr(Lc,FldTp,Env,(T)=>dot(Lc,Rc,Fld,T));
+      if sameType(Tp,typeOf(Acc),Env) then{
+--	logMsg("$(Tp) field type ok");
+	valis Acc
       } else
-	throw reportError(Rp,"field $(Fld)\:$(FldTp) not consistent with expected type: $(Tp)",Lc)
-    } else
-    throw reportError(Rp,"field $(Fld) is not present in $(Rc)\:$(typeOf(Rc))",Lc)
+      throw reportError(Rp,"field $(Fld)\:$(FldTp) not consistent with expected type: $(Tp)",Lc)
+    }
+    else
+    throw reportError(Rp,"field $(Fld) not present in $(typeOf(Rc))",Lc)
   }
 
   checkType:(ast,tipe,tipe,dict,reports) => either[reports,()].
@@ -1103,7 +1102,7 @@ becomes
 
   checkAbstraction:(locn,ast,ast,tipe,dict,string,reports) => either[reports,canon].
   checkAbstraction(Lc,B,C,Tp,Env,Path,Rp) => do{
---    logMsg("checking abstraction $(B) | $(C) expected type $(Tp)");
+    logMsg("checking abstraction $(B) | $(C) expected type $(Tp)");
     (Cond,E0) <- checkGoal(C,Env,Path,Rp);
     (_,StTp,ElTp) <- pickupSequenceContract(locOf(Cond),Env,Rp);
     checkType(B,Tp,StTp,Env,Rp);

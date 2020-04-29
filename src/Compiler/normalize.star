@@ -87,6 +87,7 @@ star.compiler.normalize{
 --      logMsg("theta var is $(ThV)");
       ThVr .= some(crVar(Lc,ThV));
       L .= collectLabelVars(freeVars,ThV,0,[]);
+--      logMsg("label vars $(L)");
     
       M .= [lyr(Prefix,foldRight((D,LL)=>collectMtd(D,ThVr,LL),L,Grp)),..Outer];
 --      logMsg("new group map $(head(M))");
@@ -118,9 +119,8 @@ star.compiler.normalize{
 --      logMsg("theta var is $(ThV)");
       freeArgs <- seqmap((crId(Nm,Tp))=>liftVarExp(Lc,Nm,Tp,Outer,Rp),freeVars);
       L .= collectLabelVars(freeVars,ThV,0,[]);
---      logMsg("new label vars $(L)");
-
---      logMsg("freeterm = $(crTpl(Lc,freeArgs))");
+--      logMsg("lambde label vars $(L)");
+--      logMsg("lambda freeterm = $(crTpl(Lc,freeArgs))");
       M .= [lyr(FullNm,L),..Outer];
       valis (M,crVar(Lc,ThV),crTpl(Lc,freeArgs))
     }
