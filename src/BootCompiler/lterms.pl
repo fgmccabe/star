@@ -345,7 +345,7 @@ isLiteral(lbl(_,_)).
 isGround(T) :- isLiteral(T),!.
 isGround(ctpl(S,A)) :-
   isGround(S),
-  forall(is_member(E,A), lterms:isGround(E)).
+  check_implies(is_member(E,A), lterms:isGround(E)).
 
 termHash(voyd,0).
 termHash(intgr(Ix),Ix).

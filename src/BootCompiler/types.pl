@@ -366,6 +366,6 @@ isFixedSizeType(Tp) :- deRef(Tp,T),!,isFxTp(T).
 isFxTp(type("star.core*integer")).
 isFxTp(type("star.core*float")).
 isFxTp(type("star.core*boolean")).
-isFxTp(tupleType(Els)) :- forall(misc:is_member(T,Els),types:isFixedSizeType(T)).
-isFxTp(faceType(Flds,_)) :- forall(misc:is_member((_,T),Flds),types:isFixedSizeType(T)).
+isFxTp(tupleType(Els)) :- check_implies(misc:is_member(T,Els),types:isFixedSizeType(T)).
+isFxTp(faceType(Flds,_)) :- check_implies(misc:is_member((_,T),Flds),types:isFixedSizeType(T)).
 

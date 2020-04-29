@@ -85,8 +85,8 @@ smFields(L1,[(F2,E2)|L2],Env) :- is_member((F2,E1),L1), sameType(E1,E2,Env), smF
 subFace(Tp1,Tp2,Env) :-
   deRef(Tp1,faceType(F1,T1)),
   deRef(Tp2,faceType(F2,T2)),
-  forall(is_member((Nm,Tp1),F1),(is_member((Nm,Tp2),F2),sameType(Tp1,Tp2,Env))),
-  forall(is_member((Nm,Tp1),T1),(is_member((Nm,Tp2),T2),sameType(Tp1,Tp2,Env))).
+  check_implies(is_member((Nm,Tp1),F1),(is_member((Nm,Tp2),F2),sameType(Tp1,Tp2,Env))),
+  check_implies(is_member((Nm,Tp1),T1),(is_member((Nm,Tp2),T2),sameType(Tp1,Tp2,Env))).
 
 isTypeFun(type(Nm),[],Env,Tp) :-
   isType(Nm,Env,tpDef(_,_,Rule)),

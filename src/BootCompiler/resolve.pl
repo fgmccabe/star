@@ -73,7 +73,10 @@ defineCVars(Lc,[implementsFace(_,_)|Cx],Dict,CVars,FDict) :-
   defineCVars(Lc,Cx,Dict,CVars,FDict).
 
 resolveTerm(Term,Dict,Resolved) :-
+%  locOfCanon(Term,Lc),
+%  reportMsg("resolving %s",[Term],Lc),
   overloadTerm(Term,Dict,inactive,St,RTerm),!,
+%  reportMsg("%s resolved %s",[Term,St]),
   resolveAgain(inactive,St,Term,RTerm,Dict,Resolved).
 
 % Somewhat complex logic to allow multiple iterations unless it will not help
@@ -171,6 +174,9 @@ overloadTerm(lambda(Lc,Eqn,Tp),Dict,St,Stx,lambda(Lc,OEqn,Tp)) :-
   overloadRule(Eqn,Dict,St,Stx,OEqn).
 overloadTerm(doTerm(Lc,Body,ElTp,ErTp,Con),Dict,St,Stx,doTerm(Lc,RBody,ElTp,ErTp,Con)) :-
   overloadAction(Body,Dict,St,Stx,RBody).
+overloadTerm(T,_,St,St,T) :-
+  locOfCanon(T,Lc),
+  reportError("invalid term to resolve %s",[T],Lc).
 
 overloadLetExp(Lc,Env,Bound,Dict,St,Stx,letExp(Lc,REnv,RBound)) :-
   overloadTerm(Env,Dict,St,St0,REnv),
