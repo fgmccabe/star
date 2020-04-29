@@ -29,7 +29,7 @@ star.compiler.action{
     LamTp .= funType([PtnTp],ConTp);
     Lam .= lambda([eqn(Lc,tple(Lc,[Ptn]),.none,Cont)],LamTp);
     SeqTp .= funType([GenTp,LamTp],ConTp);
-    Seqn .= over(Lc,mtd(Lc,"_sequence",SeqTp),SeqTp,[typeConstraint(mkTypeExp(Contract,[ExTp]))]);
+    Seqn .= mtd(Lc,"_sequence",mkTypeExp(Contract,[ExTp]),SeqTp);
     valis apply(Lc,Seqn,tple(Lc,[Gen,Lam]),ConTp)
   }
   genAction(varDo(Lc,Ptn,Gen),Contract,.none,_,Rp) =>
@@ -58,7 +58,7 @@ star.compiler.action{
 
     Hndlr .= lambda([eqn(Lc,tple(Lc,[vr(Lc,genSym("_"),ErTp)]),.none,HdlrExp)],HndlrTp);
     
-    HOver .= over(Lc,mtd(Lc,"_handle",LamType),LamType,[typeConstraint(mkTypeExp(Contract,[ExTp]))]);
+    HOver .= mtd(Lc,"_handle",mkTypeExp(Contract,[ExTp]),LamType);
     HB .= apply(Lc,HOver,tple(Lc,[BdyExp,Hndlr]),ConTp);
     valis combineActs(Lc,HB,Cont,Contract,ExTp)
   }
@@ -69,14 +69,14 @@ star.compiler.action{
     BdyExp <- genAction(Body,Contract,.none,Path,Rp);
     BType .= typeOf(BdyExp);
     LamType .= funType([BType,HndlrTp],ConTp);
-    H .= over(Lc,mtd(Lc,"_handle",LamType),LamType,[typeConstraint(mkTypeExp(Contract,[ExTp]))]);
+    H .= mtd(Lc,"_handle",mkTypeExp(Contract,[ExTp]),LamType);
     HB .= apply(Lc,H,tple(Lc,[BdyExp,Hndlr]),ConTp);
     valis combineActs(Lc,HB,Cont,Contract,ExTp)
   }
   genAction(throwDo(Lc,Exc,ExTp,VlTp,ErTp),Contract,Cont,Path,Rp) => do{
     MdlTp .= mkTypeExp(ExTp,[ErTp,VlTp]);
     ThrTp .= funType([ErTp],MdlTp);
-    Gen .= over(Lc,mtd(Lc,"_raise",ThrTp),ThrTp,[typeConstraint(mkTypeExp(Contract,[ExTp]))]);
+    Gen .= mtd(Lc,"_raise",mkTypeExp(Contract,[ExTp]),ThrTp);
     valis combineActs(Lc,apply(Lc,Gen,tple(Lc,[Exc]),MdlTp),Cont,Contract,ExTp)
   }
   genAction(simpleDo(Lc,Exp,ExTp),Contract,Cont,Path,Rp) => do{
@@ -143,8 +143,7 @@ star.compiler.action{
   genReturn(Lc,A,ExTp,VlTp,ErTp,Contract,Rp) => do{
     ActionTp .= mkTypeExp(ExTp,[ErTp,VlTp]);
     MtdTp .= funType([VlTp],ActionTp);
-    Gen .= over(Lc,mtd(Lc,"_valis",MtdTp),MtdTp,
-      [typeConstraint(mkTypeExp(Contract,[ExTp]))]);
+    Gen .= mtd(Lc,"_valis",mkTypeExp(Contract,[ExTp]),MtdTp);
     valis apply(Lc,Gen,tple(Lc,[A]),ActionTp)
   }
 
@@ -163,7 +162,7 @@ star.compiler.action{
   genPerform:(locn,canon,tipe,tipe,tipe) => canon.
   genPerform(Lc,A,Tp,ExTp,Contract) => let{
     MdTp = typeOf(A).
-    Gen = over(Lc,mtd(Lc,"_perform",funType([MdTp],Tp)),funType([MdTp],Tp),[typeConstraint(mkTypeExp(Contract,[ExTp]))])
+    Gen = mtd(Lc,"_perform",mkTypeExp(Contract,[ExTp]),funType([MdTp],Tp))
   } in apply(Lc,Gen,tple(Lc,[A]),MdTp).
 
   combineActs:(locn,canon,option[canon],tipe,tipe)=>canon.
@@ -175,7 +174,7 @@ star.compiler.action{
     LamTp .= funType([A1Tp],ConTp);
     Lam .= lambda([eqn(Lc,tple(Lc,[Anon]),.none,A2)],LamTp);
     SeqTp .= funType([A1Tp,LamTp],ConTp);
-    Gen .= over(Lc,mtd(Lc,"_sequence",SeqTp),SeqTp,[typeConstraint(mkTypeExp(Contract,[ActTp]))]);
+    Gen .= mtd(Lc,"_sequence",mkTypeExp(Contract,[ActTp]),SeqTp);
     valis apply(Lc,Gen,tple(Lc,[A1,Lam]),ConTp)
   }
 
@@ -186,7 +185,7 @@ star.compiler.action{
       LamTp .= funType([ATp],MdTp);
       Lam .= lambda([eqn(Lc,tple(Lc,[St]),.none,Reslt)],LamTp);
       SeqTp .= funType([MdTp,LamTp],MdTp);
-      Gen .= over(Lc,mtd(Lc,"_sequence",SeqTp),SeqTp,[typeConstraint(mkTypeExp(Contract,[ExTp]))]);
+      Gen .= mtd(Lc,"_sequence",mkTypeExp(Contract,[ExTp]),SeqTp);
       Initial .= genRtn(Lc,ExTp,LamTp,ErTp,Contract,Rp)(Init);
       valis apply(Lc,Gen,tple(Lc,[Initial,Lam]),MdTp)
     }
@@ -238,11 +237,11 @@ star.compiler.action{
 --    logMsg("Sequence contract: $(SeqContract), sequence type $(SeqTp) ->> $(ElTp)");
     (_,ActionTp,_) ^= findType(Env,"action");
     ErTp .= newTypeVar("_");
-    SeqConstraint .= typeConstraint(funDeps(mkTypeExp(SeqContract,[SeqTp]),[ElTp]));
+    SeqContract .= funDeps(mkTypeExp(SeqContract,[SeqTp]),[ElTp]);
+    SeqConstraint .= typeConstraint(SeqContract);
     if sameType(ActionTp,ExTp,Env) && sameType(SeqTp,Tp,Env) then{
-      Zed <- genReturn(Lc,over(Lc,mtd(Lc,"_nil",SeqTp),SeqTp,[SeqConstraint]),ExTp,SeqTp,ErTp,ExContract,Rp);
-      Gen .= over(Lc,mtd(Lc,"_cons",funType([ElTp,SeqTp],SeqTp)),funType([ElTp,SeqTp],SeqTp),
-	[SeqConstraint]);
+      Zed <- genReturn(Lc,mtd(Lc,"_nil",SeqContract,SeqTp),ExTp,SeqTp,ErTp,ExContract,Rp);
+      Gen .= mtd(Lc,"_cons",SeqContract,funType([ElTp,SeqTp],SeqTp));
       Seq <- genCondition(Cond,Path,genRtn(Lc,ExTp,SeqTp,ErTp,ExContract,Rp),
 	genSeq(Lc,ExTp,ExContract,ErTp,Rp),
 	genEl(Lc,Gen,Bnd,SeqTp,ExTp,ErTp,ExContract,Rp),

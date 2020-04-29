@@ -11,6 +11,10 @@ star.compiler.freshen{
     (Q,frshn(deRef(T),Ev,skolQ,freshQ)).
   freshen(Tp,_) default => ([],Tp).
 
+  public refresh:(cons[(string,tipe)],tipe,dict) => tipe.
+  refresh(Q,T,Env) => frshn(deRef(T),
+    foldLeft(((QNm,QTp),E)=>declareType(QNm,.none,QTp,faceType([],[]),E),Env,Q),skolQ,freshQ).
+
   freshQ:(tipe,dict) => (tipe,dict).
   freshQ(nomnal(V),Env) where NV.=newTypeVar(V) =>
     (NV,declareType(V,.none,NV,faceType([],[]),Env)).
@@ -90,26 +94,4 @@ star.compiler.freshen{
   frshnConstraint(fieldConstraint(T,I),Env,F,G) =>
     fieldConstraint(rewrite(T,Env,F,G),rewrite(I,Env,F,G)).
 
-  public rewriteType:(tipe,map[tipe,tipe])=>tipe.
-  rewriteType(Tp,Env) => rewr(deRef(Tp),Env).
-  
-  rewr(kFun(Nm,Ar),Env) where T^=Env[kFun(Nm,Ar)] => T.
-  rewr(nomnal(Nm),Env) where T^=Env[nomnal(Nm)] => T.
-  rewr(V,_) where isUnbound(V) => V.
-  rewr(kFun(Nm,Ar),Env) => kFun(Nm,Ar).
-  rewr(nomnal(Nm),Env) => nomnal(Nm).
-  rewr(tpFun(Nm,Ar),_) => tpFun(Nm,Ar).
-  rewr(tpExp(Op,A),Env) => tpExp(rewriteType(Op,Env),rewriteType(A,Env)).
-  rewr(tupleType(Els),Env) => tupleType(Els//(E)=>rewriteType(E,Env)).
-  rewr(allType(V,B),Env) => _ ^= Env[V] ? allType(V,B) || allType(V,rewriteType(B,Env)).
-  rewr(existType(V,B),Env) => _ ^= Env[V] ? existType(V,B) || existType(V,rewriteType(B,Env)).
-  rewr(faceType(Flds,Tps),Env) => faceType(Flds//((Nm,T))=>(Nm,rewriteType(T,Env)),
-    Tps//((Nm,T))=>(Nm,rewriteType(T,Env))).
-  rewr(typeLambda(A,R),_) => typeLambda(A,R). -- fix me
-  rewr(typeExists(A,R),_) => typeExists(A,R). -- me too
-  rewr(constrainedType(T,C),Env) => constrainedType(rewriteType(T,Env),rewriteCon(C,Env)).
-  rewr(funDeps(T,Tps),Env) => funDeps(rewriteType(T,Env),Tps//(E)=>rewriteType(E,Env)).
-
-  rewriteCon(typeConstraint(T),Env) => typeConstraint(rewriteType(T,Env)).
-  rewriteCon(fieldConstraint(F,T),Env) => fieldConstraint(rewriteType(F,Env),rewriteType(T,Env)).
 }

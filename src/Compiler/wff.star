@@ -70,6 +70,8 @@ star.compiler.wff{
   public braceTerm:(locn,ast,cons[ast]) => ast.
   braceTerm(Lc,Op,Els) => app(Lc,Op,tpl(Lc,"{}",Els)).
 
+  public qbraceTerm(Lc,Op,Els) => app(Lc,Op,tpl(Lc,"{..}",Els)).
+
   public isQuantified:(ast)=>option[(locn,cons[ast],ast)].
   isQuantified(T) where
       (Lc,Lh,B)^=isBinary(T,"~~") && (_,V)^=isUnary(Lh,"all") =>
@@ -79,7 +81,7 @@ star.compiler.wff{
   public reUQuant:(cons[ast],ast) => ast.
   reUQuant([],T) => T.
   reUQuant([Q,..Qs],T) where Lc .= locOf(T) =>
-    binary(Lc,"~~",unary(Lc,"all",reComma(Qs,Q)),T).
+    binary(Lc,"~~",unary(Lc,"all",reComma([Q,..Qs])),T).
 
   public isXQuantified:(ast)=>option[(locn,cons[ast],ast)].
   isXQuantified(T) where
@@ -90,7 +92,7 @@ star.compiler.wff{
   public reXQuant:(cons[ast],ast) => ast.
   reXQuant([],T) => T.
   reXQuant([Q,..Qs],T) where Lc .= locOf(T) =>
-    binary(Lc,"~~",unary(Lc,"exists",reComma(Qs,Q)),T).
+    binary(Lc,"~~",unary(Lc,"exists",reComma([Q,..Qs])),T).
 
   public isConstrained:(ast) => option[(locn,cons[ast],ast)].
   isConstrained(T) where
@@ -99,7 +101,7 @@ star.compiler.wff{
 
   public reConstrain:(cons[ast],ast) => ast.
   reConstrain([],T) => T.
-  reConstrain([C,..Cs],T) => binary(locOf(T),"|:",reComma(Cs,C),T).
+  reConstrain([C,..Cs],T) => binary(locOf(T),"|:",reComma([C,..Cs]),T).
 
   public isConstructorType:(ast) => option[(locn,ast,ast)].
   isConstructorType(A) => isBinary(A,"<=>").
@@ -120,14 +122,14 @@ star.compiler.wff{
   public deComma:(ast) => cons[ast].
   deComma(Trm) => let{
     deC(T,SoF) where (_,Lh,Rh)^=isBinary(T,",") =>
-      deC(Rh,deC(Lh,SoF)).
-    deC(T,SoF) => [T,..SoF].
+      deC(Rh,[Lh,..SoF]).
+    deC(T,SoF) => reverse([T,..SoF]).
   } in deC(Trm,[]).
 
-  public reComma:(cons[ast],ast) => ast.
-  reComma([],A) => A.
-  reComma([A,..As],B) =>
-    binary(locOf(A),",",B,reComma(As,A)).
+  public reComma:(cons[ast]) => ast.
+  reComma([A]) => A.
+  reComma([A,..As]) =>
+    binary(locOf(A),",",A,reComma(As)).
 
   public isDepends:(ast) => option[(cons[ast],cons[ast])].
   isDepends(T) where (_,Lh,Rh)^=isBinary(T,"->>") =>
@@ -232,6 +234,9 @@ star.compiler.wff{
       (_,Els) ^= isBrTuple(Body) => some((Lc,Els,Rh)).
   isLetDef(_) default => .none.
 
+  public mkLetDef(Lc,Els,Bnd) =>
+    binary(Lc,"in",braceTerm(Lc,nme(Lc,"let"),Els),Bnd).
+
   public isQLetDef:(ast) => option[(locn,cons[ast],ast)].
   isQLetDef(A) where (Lc,Lh,Rh) ^= isBinary(A,"in") &&
       app(_,nme(_,"let"),Body) .= Lh &&
@@ -240,7 +245,7 @@ star.compiler.wff{
 
   public letDef:(locn,cons[ast],ast) => ast.
   letDef(Lc,Els,Bnd) =>
-    binary(Lc,"in",unary(Lc,"let",qBrTuple(Lc,Els)),Bnd).
+    binary(Lc,"in",qbraceTerm(Lc,nme(Lc,"let"),Els),Bnd).
   
   public isComprehension:(ast) => option[(locn,ast,ast)].
   isComprehension(A) where (Lc,[T]) ^= isBrTuple(A) &&
@@ -313,7 +318,7 @@ star.compiler.wff{
 	    binary(Lc,"<=>",reXQuant(XQs,
 		reConstrain(XCx,brTuple(Lc,Els))),Tp))).
 	Sp = cnsSp(Nm).
-	Def = trace("record constructor ",defnSpec(Sp,Lc,[Con])).
+	Def = defnSpec(Sp,Lc,[Con]).
       } in either(([Def,..Defs],[(Sp,Vz),..Pb],[(Nm,Con),..As])).
   buildConstructors(A,Qs,Cx,Tp,Defs,Pb,As,Vz,Rp) where
       (Lc,Nm,XQs,XCx,Els) ^= isRoundCon(A) => let{
@@ -642,6 +647,8 @@ star.compiler.wff{
   public isActionSeq:(ast) => option[(locn,ast,ast)].
   isActionSeq(A) => isBinary(A,";").
 
+  public actionSeq(Lc,L,R) => binary(Lc,";",L,R).
+
   public isBind:(ast) => option[(locn,ast,ast)].
   isBind(A) => isBinary(A,"<-").
 
@@ -665,11 +672,17 @@ star.compiler.wff{
       (_, Ts) ^= isUnary(LL,"if") => some((Lc,Ts,Th,El)).
   isIfThenElse(_) default => .none.
 
+  public mkIfThenElse(Lc,T,Th,El) =>
+    binary(Lc,"else",binary(Lc,"then",unary(Lc,"if",T),Th),El).
+
   public isIfThen:(ast) => option[(locn,ast,ast)].
   isIfThen(A) where
       (Lc,LL,Th) ^= isBinary(A,"then") &&
       (_, Ts) ^= isUnary(LL,"if") => some((Lc,Ts,Th)).
   isIfThen(_) default => .none.
+
+  public mkIfThen(Lc,T,Th) =>
+    binary(Lc,"then",unary(Lc,"if",T),Th).
 
   public isWhileDo:(ast) => option[(locn,ast,ast)].
   isWhileDo(A) where

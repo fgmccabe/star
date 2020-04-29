@@ -6,6 +6,7 @@ star.compiler.impawt{
 
   import star.compiler.canon.
   import star.compiler.dict.
+  import star.compiler.dict.mgt.
   import star.compiler.errors.
   import star.compiler.location.
   import star.compiler.misc.
@@ -24,14 +25,14 @@ star.compiler.impawt{
       try{
 	pkgSpec(_,PkgImps,Sig,Cons,Impls,_) <- importPkg(Pkg,Lc,Repo,Rp);
 	
-	E0 .= pushSig(Sig,Lc,(I)=>(L,T)=>	
-	    (_ ^= isConsType(T) ?
-		enm(L,qualifiedName(pkgName(Pkg),.conMark,I),T) ||
-		dot(L,vr(Lc,PkgVar,Sig),I,T)),Env);
+	E0 .= pushSig(Sig,Lc,
+	  (Id,T,E) where (_,DQ).=deQuant(T)=> (_ ^= isConsType(DQ) ?
+	      declareConstructor(Id,qualifiedName(pkgName(Pkg),.conMark,Id),some(Lc),T,E) ||
+	      declareFldAccess(vr(Lc,PkgVar,Sig),Id,some(Lc),T,E)),Env);
 	E1 .= foldRight((conDef(_,CNm,CFNm,CTp),EE)=>
 	    declareContract(Lc,CNm,CTp,EE),E0,Cons);
 	E2 .= foldRight((implSpec(ILc,ConNm,FullNm,Tp),EE)=>
-	    declareVr(FullNm,some(Lc),Tp,(LL,TT)=>dot(Lc,vr(Lc,PkgVar,Tp),FullNm,TT),
+	    declareFldAccess(vr(Lc,PkgVar,Sig),FullNm,some(Lc),Tp,
 	      declareImplementation(FullNm,Tp,EE)),E1,Impls);
 	importAll(Imports++PkgImps,Repo,E2,[pkgImp(Lc,Viz,Pkg),..Imported],
 	  [(PkgVar,Sig),..Sigs],Rp)

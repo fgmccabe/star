@@ -55,7 +55,7 @@ star.compiler.macro{
   synthesizeMain:(locn,ast,cons[ast])=>cons[ast].
   synthesizeMain(Lc,Tp,Defs) where (_,Lhs,Rhs) ^= isFunctionType(Tp) && (_,ElTps)^=isTuple(Lhs) => valof action{
     (Vs,Cs) .= synthesizeCoercions(ElTps,Lc,[],[]);
-    Arg .= sqTuple(Lc,([V,..Vrs].=Vs ? [reComma(Vrs,V)] || []));
+    Arg .= sqTuple(Lc,Vs);
     MLhs .= roundTerm(Lc,nme(Lc,"_main"),[Arg]);
     MRhs .= roundTerm(Lc,nme(Lc,"main"),Cs);
     Main .= equation(Lc,MLhs,unary(Lc,"valof",MRhs));
@@ -85,6 +85,12 @@ star.compiler.macro{
   isSimpleAction(A) where _ ^= isShow(A) => .true.
   isSimpleAction(A) where (_,T,L,R) ^= isIfThenElse(A) =>
     isSimpleAction(L) && isSimpleAction(R).
+  isSimpleAction(A) where (_,T,L) ^= isIfThen(A) =>
+    isSimpleAction(L).
+  isSimpleAction(A) where (_,_,B) ^= isWhileDo(A) =>
+    isSimpleAction(B).
+  isSimpleAction(A) where (_,_,B) ^= isForDo(A) =>
+    isSimpleAction(B).
   isSimpleAction(A) where _ ^= isRoundTerm(A) => .true.
   isSimpleAction(_) default => .false.
 
@@ -106,7 +112,7 @@ star.compiler.macro{
     makeAction(L,some((Lc,RR)),Rp)
   }
   makeAction(A,.none,Rp) where (Lc,R) ^= isValis(A) =>
-    makeReturn(Lc,R,Rp).
+    either(makeReturn(Lc,R)).
   makeAction(A,some((_,CC)),Rp) where (Lc,R) ^= isValis(A) =>
     other(reportError(Rp,"$(A) must be the last action\n$(CC) follows valis",Lc)).
   makeAction(A,_,Rp) where (Lc,R) ^= isThrow(A) =>
@@ -177,6 +183,59 @@ star.compiler.macro{
       valis combine(conditional(Lc,T,Then,Else),Cont)
     }
   }
+  makeAction(A,Cont,Rp) where (Lc,T,Th) ^= isIfThen(A) => do{
+    Then <- makeAction(Th,.none,Rp);
+    Unit .= rndTuple(Lc,[]);
+    if isIterable(T) then {
+      Itr <- makeIterableGoal(T,Rp);
+      valis combine(conditional(Lc,Itr,Then,makeReturn(Lc,Unit)),Cont)
+    } else{
+      valis combine(conditional(Lc,T,Then,makeReturn(Lc,Unit)),Cont)
+    }
+  }
+  makeAction(A,Cont,Rp) where (Lc,"nothing") ^= isEnumSymb(A) => do{
+    if (_,CC) ^= Cont then
+      valis CC
+    else
+    valis makeReturn(Lc, rndTuple(Lc,[]))
+  }
+  makeAction(A,Cont,Rp) where (Lc,[]) ^= isBrTuple(A) => do{
+    if (_,CC) ^= Cont then
+      valis CC
+    else
+    valis makeReturn(Lc, rndTuple(Lc,[]))
+  }
+  /* Construct a local iterator function:
+   let{
+  loop() => do{ if C then { B; loop() }}
+   } in loop()
+  */
+  makeAction(A,Cont,Rp) where (Lc,Tst,Body) ^= isWhileDo(A) => do{
+    Unit .= rndTuple(Lc,[]);
+    FnCall .= zeroary(Lc,genSym("loop"));
+
+    Then <- makeAction(mkIfThen(Lc,Tst,actionSeq(Lc,Body,FnCall)),.none,Rp);
+    Lam .= equation(Lc,FnCall,Then);
+    valis combine(mkLetDef(Lc,[Lam],FnCall),Cont)
+  }
+    /*
+   for C do {A}
+  becomes:
+  
+  <iterator>( do{return ()}, (Lcls,St) => do {A; return ()})
+*/
+  makeAction(A,Cont,Rp) where (Lc,C,B) ^= isForDo(A) => do{
+    Unit .= rndTuple(Lc,[]);
+    Zed .= makeReturn(Lc,Unit);
+    IterBody <- makeAction(B,some((Lc,Zed)),Rp);
+    Loop <- makeCondition(C,genRtn,
+      (St,X,Rs) => binary(Lc,"_sequence",genRtn(X),
+	equation(Lc,rndTuple(Lc,[St]),Rs)),
+      (St)=>IterBody,
+      lyfted(Zed),Rp);
+    valis combine(Loop,Cont)
+  }
+    
   makeAction(A,Cont,_) where _ ^= isRoundTerm(A) =>
     either(combine(A,Cont)).
 
@@ -211,11 +270,13 @@ star.compiler.macro{
   genRtn(lyfted(Exp)) => Exp.
   genRtn(grounded(Exp)) => unary(locOf(Exp),"_valis",Exp).
 
-  makeReturn(Lc,A,Rp) => either(unary(Lc,"_valis",A)).
+  makeReturn(Lc,A) => unary(Lc,"_valis",A).
 
   makeThrow(Lc,A,Rp) => either(unary(Lc,"_raise",A)).
 
   lyfted[a] ::= lyfted(a) | grounded(a).
+
+  
 
   /*
   * Ptn in Src
@@ -238,7 +299,7 @@ star.compiler.macro{
     Eq2 .= equation(Lc,roundTerm(Lc,sF,[anon(Lc),St]),Lift(grounded(St)));
     
     FF .= letDef(Lc,[Eq1,Eq2],sF);
-    valis ternary(Lc,"_iter",Src,Lift(Zed),sF)
+    valis ternary(Lc,"_iter",Src,Lift(Zed),FF)
   }
   makeCondition(A,Lift,Seq,Succ,Zed,Rp) where (Lc,L,R) ^= isConjunct(A) =>
     makeCondition(A,Lift,Seq,(Lf) => valof makeCondition(R,Lift,Seq,Succ,Lf,Rp),Zed,Rp).
@@ -263,9 +324,6 @@ star.compiler.macro{
     Init .= Lift(Zed);
     valis Seq(St,Zed,conditional(Lc,Other,AddToSucc,Init))
   }
-
-    
-    
 
   goalVars:(ast)=>cons[string].
   goalVars(Cond) => glVars(Cond,[],[])::cons[string].

@@ -12,6 +12,7 @@
     "star.compiler.core" : "core.star",
     "star.compiler.dependencies" : "dependencies.star",
     "star.compiler.dict": "dict.star",
+    "star.compiler.dict.mgt": "dictmgt.star",
     "star.compiler.errors": "errors.star",
     "star.compiler.freevars": "freevars.star",
     "star.compiler.freshen": "freshen.star",

@@ -5,6 +5,7 @@ star.compiler.typeparse{
   import star.compiler.ast.disp.
   import star.compiler.canon.
   import star.compiler.dict.
+  import star.compiler.dict.mgt.
   import star.compiler.misc.
   import star.compiler.errors.
   import star.compiler.freshen.

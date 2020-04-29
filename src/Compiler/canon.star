@@ -12,7 +12,7 @@ star.compiler.canon{
   public implSpec ::= implSpec(option[locn],string,string,tipe).
 
   public canon ::= vr(locn,string,tipe) |
-    mtd(locn,string,tipe) |
+    mtd(locn,string,tipe,tipe) |
     over(locn,canon,tipe,cons[constraint]) |
     intr(locn,integer) |
     flt(locn,float) |
@@ -61,7 +61,7 @@ star.compiler.canon{
 
   public implementation hasType[canon] => {
     typeOf(vr(_,_,T)) => T.
-    typeOf(mtd(_,_,T)) => T.
+    typeOf(mtd(_,_,_,T)) => T.
     typeOf(over(_,_,Tp,_)) => Tp.
     typeOf(intr(_,_)) => intType.
     typeOf(flt(_,_)) => fltType.
@@ -88,7 +88,7 @@ star.compiler.canon{
 
   public implementation hasLoc[canon] => {.
     locOf(vr(Lc,_,_)) => Lc.
-    locOf(mtd(Lc,_,_)) => Lc.
+    locOf(mtd(Lc,_,_,_)) => Lc.
     locOf(over(Lc,_,_,_)) => Lc.
     locOf(intr(Lc,_)) => Lc.
     locOf(flt(Lc,_)) => Lc.
@@ -178,7 +178,7 @@ star.compiler.canon{
 
   public implementation equality[canon] => let{
     eq(vr(_,N1,T1),vr(_,N2,T2)) => N1==N2 && T1==T2.
-    eq(mtd(_,N1,T1),mtd(_,N2,T2)) => N1==N2 && T1==T2.
+    eq(mtd(_,N1,C1,T1),mtd(_,N2,C2,T2)) => N1==N2 && C1==C2 && T1==T2.
     eq(over(_,N1,T1,C1),over(_,N2,T2,C2)) => eq(N1,N2) && T1==T2 && C1==C2.
     eq(intr(_,L1),intr(_,L2)) => L1==L2.
     eq(flt(_,L1),flt(_,L2)) => L1==L2.
@@ -199,7 +199,7 @@ star.compiler.canon{
 
   public implementation hash[canon] => let{
     hsh(vr(_,N1,_)) => hash(N1).
-    hsh(mtd(_,N1,_)) => hash(N1).
+    hsh(mtd(_,N1,_,_)) => hash(N1).
     hsh(over(_,N1,T1,C1)) => hsh(N1)*37+hash(T1).
     hsh(intr(_,Ix)) => hash(Ix).
     hsh(flt(_,Dx)) => hash(Dx).
@@ -215,7 +215,7 @@ star.compiler.canon{
 
   showCanon:(canon,string)=>ss.
   showCanon(vr(_,Nm,Tp),_) => ssSeq([ss(Nm)/*,ss(":"),disp(Tp)*/]).
-  showCanon(mtd(_,Fld,_),_) => ssSeq([ss("µ"),ss(Fld)]).
+  showCanon(mtd(_,Fld,_,_),_) => ssSeq([ss("µ"),ss(Fld)]).
   showCanon(over(_,V,_,Cx),Sp) => ssSeq([disp(Cx),ss("|:"),showCanon(V,Sp)]).
   showCanon(intr(_,Lt),_) => disp(Lt).
   showCanon(flt(_,Lt),_) => disp(Lt).
