@@ -3,6 +3,8 @@ star.range{
   import star.arith.
   import star.collection.
   import star.cons.
+  import star.iterable.
+  import star.monad.
 
   public all a ~~ range[a]::=range(a,a,a).
 
@@ -12,8 +14,7 @@ star.range{
     _hdtl(_) default => .none.
   .}
 
-  public implementation all a ~~ arith[a],comp[a] |:
-    sequence[range[a]->>a] => {.
+  public implementation all a ~~ arith[a],comp[a] |: sequence[range[a]->>a] => {.
     _cons(F,range(_,T,S)) => range(F,T,S).
     _nil = range(zero,zero,one).
   .}
@@ -22,13 +23,19 @@ star.range{
     foldLeft(F,X,range(Fr,To,St)) => rangeLeft(F,X,Fr,To,St).
     foldRight(F,X,range(Fr,To,St)) => rangeRight(F,X,Fr,To,St).
 
-    rangeLeft:all x ~~ (((a,x)=>x),x,a,a,a) => x.
+    private rangeLeft:all x ~~ (((a,x)=>x),x,a,a,a) => x.
     rangeLeft(F,Z,Fr,To,_) where Fr>=To => Z.
     rangeLeft(F,Z,Fr,To,St) => rangeLeft(F,F(To,Z),Fr,To-St,St).
 
-    rangeRight:all x ~~ (((a,x)=>x),x,a,a,a) => x.
+    private rangeRight:all x ~~ (((a,x)=>x),x,a,a,a) => x.
     rangeRight(_,Z,Fr,To,_) where Fr>=To => Z.
     rangeRight(F,Z,Fr,To,St) => rangeRight(F,F(Fr,Z),Fr+St,To,St).
+  }
+
+  public implementation all a ~~ arith[a],equality[a] |: iter[range[a]->>a] => {
+    _iter(range(X,X,_),St,_) => St.
+    _iter(range(X,Y,S),St,Fn) =>
+      _sequence(St,(SS)=>_iter(range(X+S,Y,S),Fn(X,SS),Fn))
   }
 
   public implementation all a ~~ display[a] |: display[range[a]] => {.
