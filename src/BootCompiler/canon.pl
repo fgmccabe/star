@@ -307,6 +307,8 @@ showCanonTerm(neg(_,R),Dp,O,Ox) :-
 showCanonTerm(doTerm(_,Body,_,_,_),Dp,O,Ox) :-
   appStr("do ",O,O1),
   showCanonAction(Body,Dp,O1,Ox).
+showCanonTerm(noDo(_),_,O,Ox) :-
+  appStr("nothing",O,Ox).
 
 showTerms([],_,O,O).
 showTerms([T|More],Dp,O,Ox) :-

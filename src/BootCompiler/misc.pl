@@ -17,7 +17,10 @@
         interleave/3,concatStrings/2,
         sort/3,sortedMerge/4,
         nextPrime/2,sieve/2,
-        forall/2,verify/2,bin_nop/2]).
+	       check_implies/2,verify/2,bin_nop/2,
+	       clear_track/0,track/2]).
+
+:- use_module(errors).
 
 same(X,X).
 
@@ -104,7 +107,7 @@ filter([E|L],F,[E|M]) :-
 filter([_|L],F,M) :-
   filter(L,F,M).
 
-forall(X,Y) :-
+check_implies(X,Y) :-
   \+((call(X),\+call(Y))).
 
 concatStrings(L,S) :-
@@ -142,7 +145,7 @@ appIden(Nm,O,Ox) :-
     appStr(Nm,O,Ox);
     appQuoted(Nm,"'",O,Ox).
 
-isIdentifier(Nm) :- string_chars(Nm,Chrs), forall(is_member(Ch,Chrs),isAlphaNum(Ch)).
+isIdentifier(Nm) :- string_chars(Nm,Chrs), check_implies(is_member(Ch,Chrs),isAlphaNum(Ch)).
 
 isAlphaNum(Ch) :- char_type(Ch,alpha) ; char_type(Ch,alnum) ; Ch='_'.
 
@@ -336,3 +339,14 @@ verify(C,_) :-
 verify(C,M) :-
   writef("assertion %w failed: %w\n",[C,M]),
   abort.
+
+clear_track :-
+ retractall(trk(_)).
+
+track(Nm,Lc) :-
+  clause(trk(Nm),_),!,
+  reportMsg("already seen %s",[Nm],Lc),
+  abort.
+track(Nm,Lc) :-
+  reportMsg("track %s",[Nm],Lc),
+  assert(trk(Nm)).
