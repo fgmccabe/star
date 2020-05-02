@@ -251,7 +251,7 @@ star.compiler.macro{
 
   public makeIterableGoal:(ast,reports) => either[reports,ast].
   makeIterableGoal(A,Rp) => do{
-    logMsg("scrub iterability of $(A)");
+--    logMsg("scrub iterability of $(A)");
     Lc .= locOf(A);
     Vrs .= (goalVars(A) // (Nm)=>nme(Lc,Nm));
     VTpl .= rndTuple(Lc,Vrs);
@@ -262,7 +262,7 @@ star.compiler.macro{
       (_)=>unary(Lc,"_valis",Ptn),
       lyfted(Zed),Rp);
     Tpd .= binary(Lc,":",Seq,squareTerm(Lc,nme(Lc,"action"),[anon(Lc),anon(Lc)]));
-    valis trace("macrod ",mkMatch(Lc,Ptn,unary(Lc,"_perform",Tpd)))
+    valis mkMatch(Lc,Ptn,unary(Lc,"_perform",Tpd))
   }
 
   makeHandler(H,Rp) where (Lc,[St]) ^= isBrTuple(H) => do{
@@ -286,7 +286,7 @@ star.compiler.macro{
 
   public makeAbstraction:(locn,ast,ast,reports) => either[reports,ast].
   makeAbstraction(Lc,Bnd,Cond,Rp) => do{
-    logMsg("making abstraction $(Bnd) | $(Cond)");
+--    logMsg("making abstraction $(Bnd) | $(Cond)");
     Zed .= makeReturn(Lc,nme(Lc,"_nil"));
     Loop <- makeCondition(Cond,makeRtn,
       makeEl(Lc,Bnd),

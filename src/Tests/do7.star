@@ -15,6 +15,9 @@ test.do7{
   main:()=>action[(),()].
   main() => do{
     show parentOf("ab");
-    show parentOf("a")
+    show parentOf("a");
+
+    assert "a" ^= parentOf("ab");
+    assert "ab" ^= parentOf("abc")
   }
 }

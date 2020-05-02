@@ -151,18 +151,18 @@ star.compiler.resolve{
   }
   overloadTerm(whr(Lc,T,C),Dict,St) => do{
     (St1,OT) <- overloadTerm(T,Dict,St);
-    logMsg("normalize where $(C)");
+--    logMsg("normalize where $(C)");
     (Stx,OC) <- overloadTerm(C,Dict,St1);
-    logMsg("normalized where $(OC) : $(Stx)");
+--    logMsg("normalized where $(OC) : $(Stx)");
     valis (Stx,whr(Lc,OT,OC))
   }
   overloadTerm(mtd(Lc,Nm,Con,Tp),Dict,St) => do{
-    logMsg("overloading $(mtd(Lc,Nm,Con,Tp))");
+--    logMsg("overloading $(mtd(Lc,Nm,Con,Tp))");
     (St1,A) <- resolveContract(Lc,Con,Dict,St);
     valis (St1,dot(Lc,A,Nm,Tp))
   }
   overloadTerm(over(Lc,T,Tp,Cx),Dict,St) => do{
-    logMsg("overloading $(Cx) |: $(T)\:$(Tp)");
+--    logMsg("overloading $(Cx) |: $(T)\:$(Tp)");
     try{
       (St1,[A,..Args]) <- resolveContracts(Lc,Cx,[],Dict,St);
       if mtd(_,Nm,_,MTp) .= T then{
