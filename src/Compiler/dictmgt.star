@@ -88,7 +88,7 @@ star.compiler.dict.mgt{
   formMethods([(Nm,Tp),..Mtds],Lc,Q,Cx,Con,Dict) => valof action{
 --    logMsg("raw method type of $(Nm) is $(Tp), constraints: $(Con)");
     (MQ,MI) .= deQuant(Tp);
-    MT .= reQuant(Q++MQ,reConstrainType([typeConstraint(Con),..Cx],MI));
+    MT .= reQuant(Q++MQ,reConstrainType([contractConstraint(Con),..Cx],MI));
 --    logMsg("actual method type $(MT)");
     valis formMethods(Mtds,Lc,Q,Cx,Con,declareMethod(Nm,Lc,MT,Con,Dict))
   }
@@ -128,7 +128,7 @@ star.compiler.dict.mgt{
 
   public declareConstraints:(locn,cons[constraint],dict) => dict.
   declareConstraints(_,[],E) => E.
-  declareConstraints(Lc,[typeConstraint(Con),..Cx],Env) where ConNm.=implementationName(Con) =>
+  declareConstraints(Lc,[contractConstraint(Con),..Cx],Env) where ConNm.=implementationName(Con) =>
     declareConstraints(Lc,Cx,
       declareVar(ConNm,some(Lc),Con,
 	declareImplementation(implementationName(Con),Con,Env))).
@@ -147,7 +147,7 @@ star.compiler.dict.mgt{
     _ <- addConstraint(T,fieldConstraint(T,F));
     valis Cons
   }.
-  applyConstraint(Con,Cons) where typeConstraint(A).=Con => valof do{
+  applyConstraint(Con,Cons) where contractConstraint(A).=Con => valof do{
     AA := deRef(A);
     while tpExp(Op,Arg) .= AA!! do{
       _ <- addConstraint(Arg,Con);

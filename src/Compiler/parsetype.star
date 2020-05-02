@@ -218,7 +218,7 @@ star.compiler.typeparse{
   }
   parseConstraint(A,Q,Env,Rp) where (Lc,Op,Args) ^= isSquareTerm(A) => do{
     Tp<-parseContractConstraint(Q,A,Env,Rp);
-    valis typeConstraint(Tp)
+    valis contractConstraint(Tp)
   }
 
   public rebind:(tipes,tipe,dict)=>tipe.
@@ -250,7 +250,7 @@ star.compiler.typeparse{
   parseContractName:(ast,dict,reports)=>either[reports,constraint].
   parseContractName(Op,Env,Rp) where (_,Id) ^= isName(Op) => do{
     if Con ^= findContract(Env,Id) then {
-      valis typeConstraint(snd(freshen(Con,Env)))
+      valis contractConstraint(snd(freshen(Con,Env)))
     }
       else
 	throw reportError(Rp,"contract $(Op) not defined",locOf(Op))

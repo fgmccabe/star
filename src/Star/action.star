@@ -4,6 +4,8 @@ star.action{
   import star.monad.
   import star.option.
   import star.coerce.
+  import star.cons.
+  import star.display.
 
   public all a,e ~~ action[e,a] ::= done(a) | delay(()=>action[e,a]) | err(e).
 
@@ -70,4 +72,11 @@ star.action{
     _ .= _logmsg(Msg);
     valis ()
   }
+
+  public trace:all x ~~ display[x] |: (string,x)=>x.
+  trace(M,X) => valof action{
+    logMsg("#(M) - $(X)");
+    valis X
+  }
+  
 }

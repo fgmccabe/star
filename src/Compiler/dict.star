@@ -63,7 +63,7 @@ star.compiler.dict{
 
   public declareImplementation:(string,tipe,dict) => dict.
   declareImplementation(ImplNm,Con,[scope(Tps,Vrs,Cns,Imps),..Env]) =>
-    [scope(Tps,Vrs,Cns,Imps[ImplNm->typeConstraint(Con)]),..Env].
+    [scope(Tps,Vrs,Cns,Imps[ImplNm->contractConstraint(Con)]),..Env].
 
   public undeclareImplementation:(string,dict) => dict.
   undeclareImplementation(Nm,[scope(Tps,Vrs,Cns,Imps),..Env]) =>

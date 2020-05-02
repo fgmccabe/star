@@ -346,7 +346,7 @@ star.compiler.terms{
   }
   decodeConstraint([0cc,..T]) => do{
     (Con,T1) <- decodeType(T);
-    valis (typeConstraint(Con),T1)
+    valis (contractConstraint(Con),T1)
   }
   decodeConstraint([0ca,..T]) => do{
     (BT,T0) <- decodeType(T);
@@ -405,7 +405,7 @@ star.compiler.terms{
   encodeFlds([(Nm,T),..Tps],Chs) =>
     encodeFlds(Tps,encodeType(deRef(T),encodeText(Nm,Chs))).
 
-  encodeConstraint(typeConstraint(T),Chs) =>
+  encodeConstraint(contractConstraint(T),Chs) =>
     encodeType(deRef(T),[0cc,..Chs]).
   encodeConstraint(fieldConstraint(V,T),Chs) =>
     encodeType(deRef(T),encodeType(deRef(V),[0ca,..Chs])).

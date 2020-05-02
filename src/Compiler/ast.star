@@ -10,8 +10,7 @@ star.compiler.ast{
       | num(locn,float)
       | str(locn,string)
       | tpl(locn,string,cons[ast])
-      | app(locn,ast,ast)
-      | astImplies(locn,ast,ast).
+      | app(locn,ast,ast).
 
   public implementation equality[ast] => let{
     eq(nme(_,I1),nme(_,I2)) => I1==I2.
@@ -21,7 +20,6 @@ star.compiler.ast{
     eq(str(_,L1),str(_,L2)) => L1==L2.
     eq(tpl(_,K1,E1),tpl(_,K2,E2)) => K1==K2 && eqList(E1,E2).
     eq(app(_,O1,A1),app(_,O2,A2)) => eq(O1,O2) && eq(A1,A2).
-    eq(astImplies(_,O1,A1),astImplies(_,O2,A2)) => eq(O1,O2) && eq(A1,A2).
     eq(_,_) default => .false.
 
     eqList([],[]) => .true.

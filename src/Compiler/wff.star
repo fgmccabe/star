@@ -267,8 +267,7 @@ star.compiler.wff{
 
   public negated(Lc,A) => unary(Lc,"!",A).
 
-  public isImplies(astImplies(Lc,L,R)) => some((Lc,L,R)).
-  isImplies(_) default => .none.
+  public isImplies(A) => isBinary(A,"*>").
   
   public isConditional(A) where
       (Lc,Tst,Rhs) ^= isBinary(A,"?") &&
@@ -424,6 +423,8 @@ star.compiler.wff{
 
   public isCoerce:(ast) => option[(locn,ast,ast)].
   isCoerce(A) => isBinary(A,"::").
+
+  public mkCoercion(Lc,L,R) => binary(Lc,"::",L,R).
 
   public isRef:(ast) => option[(locn,ast)].
   isRef(A) => isUnary(A,"ref").

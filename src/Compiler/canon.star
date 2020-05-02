@@ -20,7 +20,6 @@ star.compiler.canon{
     enm(locn,string,tipe) |
     whr(locn,canon,canon) |
     dot(locn,canon,string,tipe) |
-    abstraction(locn,canon,canon,tipe) |
     act(locn,canonAction) | 
     serch(locn,canon,canon,canon) |
     csexp(locn,canon,cons[equation],tipe) |
@@ -75,7 +74,6 @@ star.compiler.canon{
     typeOf(tple(_,Els)) => tupleType(Els//typeOf).
     typeOf(record(_,_,_,Tp)) => Tp.
     typeOf(dot(_,_,_,Tp)) => Tp.
-    typeOf(abstraction(_,_,_,Tp)) => Tp.
     typeOf(whr(_,E,_)) => typeOf(E).
     typeOf(match(_,_,_)) => boolType.
     typeOf(conj(_,_,_)) => boolType.
@@ -96,7 +94,6 @@ star.compiler.canon{
     locOf(enm(Lc,_,_)) => Lc.
     locOf(whr(Lc,_,_)) => Lc.
     locOf(dot(Lc,_,_,_)) => Lc.
-    locOf(abstraction(Lc,_,_,_)) => Lc.
     locOf(act(Lc,_)) => Lc. 
     locOf(serch(Lc,_,_,_)) => Lc.
     locOf(csexp(Lc,_,_,_)) => Lc.
@@ -188,7 +185,6 @@ star.compiler.canon{
     eq(apply(_,O1,A1,T1),apply(_,O2,A2,T2)) => eq(O1,O2) && eq(A1,A2) && T1==T2.
     eq(whr(_,T1,C1),whr(_,T2,C2)) => eq(T1,T2) && eq(C1,C2).
     eq(dot(_,T1,F1,_),dot(_,T2,F2,_)) => eq(T1,T2) && F1==F2.
-    eq(abstraction(_,P1,C1,T1),abstraction(_,P2,C2,T2)) => eq(P1,P2) && eq(C1,C2) && T1==T2.
 
     eqList([],[]) => .true.
     eqList([E1,..L1],[E2,..L2]) => eq(E1,E2) && eqList(L1,L2).
@@ -208,7 +204,6 @@ star.compiler.canon{
     hsh(apply(_,O1,A1,T1)) => hsh(O1)*36+hsh(A1).
     hsh(whr(_,T1,C1)) => hsh(T1) *37+hsh(C1).
     hsh(dot(_,T1,F1,_)) => hsh(T1) *37+hash(F1).
-    hsh(abstraction(_,P1,C1,T1)) => hsh(P1)*37+hsh(C1).
   } in {
     hash(T1) => hsh(T1)
   }
@@ -223,8 +218,6 @@ star.compiler.canon{
   showCanon(enm(_,Nm,Tp),_) => ssSeq([ss("."),ss(Nm)]).
   showCanon(whr(_,E,C),Sp) => ssSeq([showCanon(E,Sp),ss(" where "),showCanon(C,Sp)]).
   showCanon(dot(_,R,F,_),Sp) => ssSeq([showCanon(R,Sp),ss("."),ss(F)]).
-  showCanon(abstraction(_,Exp,Gen,_),Sp) =>
-    ssSeq([ss("["),showCanon(Exp,Sp),ss(" | "),showCanon(Gen,Sp),ss("]")]).
   showCanon(serch(_,Ptn,Gen,It),Sp) =>
     ssSeq([showCanon(Ptn,Sp),ss(" in "),showCanon(Gen,Sp),ss(" use "),showCanon(It,Sp),
 	ss(":"),disp(typeOf(It))]).
