@@ -948,9 +948,9 @@ star.compiler.checker{
 
   checkAbstraction:(locn,ast,ast,tipe,dict,string,reports) => either[reports,canon].
   checkAbstraction(Lc,B,C,Tp,Env,Path,Rp) => do{
-    logMsg("checking abstraction [ $(B) | $(C) ] expected type $(Tp)");
+--    logMsg("checking abstraction [ $(B) | $(C) ] expected type $(Tp)");
     Test <- makeAbstraction(Lc,B,C,Rp);
-    logMsg("macrod abstraction $(Test)");
+--    logMsg("macrod abstraction $(Test)");
     typeOfExp(Test,Tp,Env,Path,Rp)
   }
 }
