@@ -282,7 +282,7 @@ static retCode editLine(bufferPo lineBuff) {
         case 0:                           // Linux and/or solaris sometimes does this
           continue;
         case EINTR:
-          //         return Interrupt;    // report an interrupt
+          return Interrupt;               // report an interrupt
         case EAGAIN:
           continue;
         default:
@@ -297,7 +297,7 @@ static retCode editLine(bufferPo lineBuff) {
         if (appendToBuffer(lineBuff, "\n", 1) != Ok)
           return Error;
 
-        addLineToHistory(l.lineBuff);
+        addLineToHistory(lineBuff);
         return Ok;
       case TAB: {
         if (completionCallback != Null) {
@@ -315,14 +315,14 @@ static retCode editLine(bufferPo lineBuff) {
         break;
       case CTRL_D:     /* ctrl-d, remove char at right of cursor, or if the
                             line is empty, act as end-of-file. */
-        if (bufferLength(l.lineBuff) > 0) {
+        if (bufferLength(lineBuff) > 0) {
           deleteRight(&l);
         } else {
           return Eof;
         }
         break;
       case CTRL_T:    /* ctrl-t, swaps current character with previous. */
-        twizzleBuffer(l.lineBuff, bufferOutPos(l.lineBuff));
+        twizzleBuffer(lineBuff, bufferOutPos(lineBuff));
         refreshLine(l.firstPos, lineBuff);
         break;
       case CTRL_B:     /* ctrl-b */
@@ -450,9 +450,6 @@ void addLineToHistory(bufferPo lineBuff) {
 
   integer len;
   char *line = getTextFromBuffer(lineBuff, &len);
-
-  while (len > 0 && (line[len - 1] == '\r' || line[len - 1] == '\n' || line[len - 1] == 0))
-    len--;
 
   if (len > 1) {
     if (vectLength(history) > 0) {
