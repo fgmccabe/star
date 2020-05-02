@@ -30,8 +30,6 @@ star.compiler.ast.display{
   dispAst(app(_,nme(_,Op),tpl(_,"()",[R])),Pr,Sp) where (P,Rg,_)^=isPostfixOp(Op) =>
     ssSeq([leftPar(P,Pr),dispAst(R,Rg,Sp),ss(" "),ss(Op),rightPar(P,Pr)]).
   dispAst(app(_,Op,A),_,Sp) => ssSeq([dispAst(Op,0,Sp),dispAst(A,0,Sp++"  ")]).
-  dispAst(astImplies(_,L,R),Pr,Sp) where (Lf,P,Rg,_)^=isInfixOp("*>")=>
-    ssSeq([leftPar(P,Pr),dispAst(L,Lf,Sp),ss(" *> "),dispAst(R,Rg,Sp),rightPar(P,Pr)]).
 
   dispId:(string) => ss.
   dispId(S) where isOperator(S) => ssSeq([ss("("),ss(S),ss(")")]).

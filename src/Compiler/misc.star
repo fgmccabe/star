@@ -71,10 +71,4 @@ star.compiler.misc{
 
   filterDups:(integer,cons[integer])=>cons[integer].
   filterDups(C,I) => (I^/(X)=>X%C=!=0).
-
-  public trace:all x ~~ display[x] |: (string,x)=>x.
-  trace(M,X) => valof action{
-    logMsg("#(M) - $(X)");
-    valis X
-  }
 }

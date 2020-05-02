@@ -60,9 +60,9 @@ star.compiler.resolve{
 
   overloadDef:(dict,canonDef,reports)=>either[reports,(canonDef,dict)].
   overloadDef(Dict,varDef(Lc,Nm,FullNm,Val,Cx,Tp),Rp) =>
-    overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx//(typeConstraint(CTp))=>CTp,Tp,Rp). 
+    overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx//(contractConstraint(CTp))=>CTp,Tp,Rp). 
   overloadDef(Dict,implDef(Lc,Nm,FullNm,Val,Cx,Tp),Rp) =>
-    overloadImplDef(Dict,Lc,Nm,FullNm,Val,Cx//(typeConstraint(CTp))=>CTp,Tp,Rp).
+    overloadImplDef(Dict,Lc,Nm,FullNm,Val,Cx//(contractConstraint(CTp))=>CTp,Tp,Rp).
   overloadDef(Dict,typeDef(Lc,Nm,Tp,TpRl),Rp) => do{
 --    logMsg("found type definition $(typeDef(Lc,Nm,Tp,TpRl))");
     valis (typeDef(Lc,Nm,Tp,TpRl),declareType(Nm,some(Lc),Tp,TpRl,Dict))
@@ -108,238 +108,272 @@ star.compiler.resolve{
 
   resolveState ::= .inactive | .resolved | active(locn,string).
 
+  implementation display[resolveState] => {.
+    disp(.inactive) => ss("inactive").
+    disp(.resolved) => ss("resolved").
+    disp(active(Lc,Msg)) => ssSeq([ss("active "),disp(Lc)])
+  .}
+
   markResolved(.inactive) => .resolved.
   markResolved(St) default => St.
 
   public resolveTerm(Term,Dict,Rp) => do{
-    (St,RTerm) <- overloadTerm(Term,Dict,.inactive,Rp);
-    resolveAgain(.inactive,St,RTerm,Dict,Rp)
+    try{
+      (St,RTerm) <- overloadTerm(Term,Dict,.inactive);
+--      logMsg("result of resolving $(Term) is $(RTerm)\:$(St)");
+      resolveAgain(.inactive,St,RTerm,Dict)
+    } catch ((Lc,Ms)) => do{
+      throw reportError(Rp,Ms,Lc)
+    }
   }
 
-  resolveAgain(_,.resolved,Term,Dict,Rp) => resolveTerm(Term,Dict,Rp).
-  resolveAgain(_,.inactive,Term,_,_) => either(Term).
-  resolveAgain(active(_,_),active(Lc,Msg),_,_,Rp) =>
-    other(reportError(Rp,Msg,Lc)).
-  resolveAgain(_,active(Lc,Msg),Term,Dict,Rp) => do{
-    (St,RTerm) <- overloadTerm(Term,Dict,.inactive,Rp);
-    resolveAgain(active(Lc,Msg),St,RTerm,Dict,Rp)
+  resolveAgain(_,.resolved,Term,Dict) => do{
+    (St,RTerm) <- overloadTerm(Term,Dict,.inactive);
+    resolveAgain(.inactive,St,RTerm,Dict)
+  }
+  resolveAgain(_,.inactive,Term,_) => either(Term).
+  resolveAgain(active(_,_),active(Lc,Msg),_,_) => other((Lc,Msg)).
+  resolveAgain(_,active(Lc,Msg),Term,Dict) => do{
+    (St,RTerm) <- overloadTerm(Term,Dict,.inactive);
+--    logMsg("try again to resolve $(Term)");
+    resolveAgain(active(Lc,Msg),St,RTerm,Dict)
   }
 
-  overloadTerm:(canon,dict,resolveState,reports) => either[reports,(resolveState,canon)].
-  overloadTerm(vr(Lc,Nm,Tp),_,St,Rp) => either((St,vr(Lc,Nm,Tp))).
-  overloadTerm(intr(Lc,Ix),_,St,Rp) => either((St,intr(Lc,Ix))).
-  overloadTerm(flt(Lc,Dx),_,St,Rp) => either((St,flt(Lc,Dx))).
-  overloadTerm(strng(Lc,Sx),_,St,Rp) => either((St,strng(Lc,Sx))).
-  overloadTerm(enm(Lc,FullNm,Tp),_,St,Rp) => either((St,enm(Lc,FullNm,Tp))).
-  overloadTerm(dot(Lc,Rc,Fld,Tp),Dict,St,Rp) => do{
-    (Stx,Rc1) <- overloadTerm(Rc,Dict,St,Rp);
+  overloadTerm:(canon,dict,resolveState) => either[(locn,string),(resolveState,canon)].
+  overloadTerm(vr(Lc,Nm,Tp),_,St) => either((St,vr(Lc,Nm,Tp))).
+  overloadTerm(intr(Lc,Ix),_,St) => either((St,intr(Lc,Ix))).
+  overloadTerm(flt(Lc,Dx),_,St) => either((St,flt(Lc,Dx))).
+  overloadTerm(strng(Lc,Sx),_,St) => either((St,strng(Lc,Sx))).
+  overloadTerm(enm(Lc,FullNm,Tp),_,St) => either((St,enm(Lc,FullNm,Tp))).
+  overloadTerm(dot(Lc,Rc,Fld,Tp),Dict,St) => do{
+    (Stx,Rc1) <- overloadTerm(Rc,Dict,St);
     valis (Stx,dot(Lc,Rc1,Fld,Tp))
   }
-  overloadTerm(whr(Lc,T,C),Dict,St,Rp) => do{
-    (St1,OT) <- overloadTerm(T,Dict,St,Rp);
-    (Stx,OC) <- overloadTerm(C,Dict,St1,Rp);
+  overloadTerm(whr(Lc,T,C),Dict,St) => do{
+    (St1,OT) <- overloadTerm(T,Dict,St);
+    logMsg("normalize where $(C)");
+    (Stx,OC) <- overloadTerm(C,Dict,St1);
+    logMsg("normalized where $(OC) : $(Stx)");
     valis (Stx,whr(Lc,OT,OC))
   }
-  overloadTerm(mtd(Lc,Nm,Con,Tp),Dict,St,Rp) => do{
---    logMsg("overloading $(mtd(Lc,Nm,Con,Tp))");
-    (St1,A) <- resolveContract(Lc,Con,Dict,St,Rp);
+  overloadTerm(mtd(Lc,Nm,Con,Tp),Dict,St) => do{
+    logMsg("overloading $(mtd(Lc,Nm,Con,Tp))");
+    (St1,A) <- resolveContract(Lc,Con,Dict,St);
     valis (St1,dot(Lc,A,Nm,Tp))
   }
-  overloadTerm(over(Lc,T,Tp,Cx),Dict,St,Rp) => do{
---    logMsg("overloading $(Cx) |: $(T)\:$(Tp)");
-    (St1,[A,..Args]) <- resolveContracts(Lc,Cx,[],Dict,St,Rp);
-    if mtd(_,Nm,_,MTp) .= T then{
-      if _eof(Args) then
-	valis (St1,dot(Lc,A,Nm,Tp))
+  overloadTerm(over(Lc,T,Tp,Cx),Dict,St) => do{
+    logMsg("overloading $(Cx) |: $(T)\:$(Tp)");
+    try{
+      (St1,[A,..Args]) <- resolveContracts(Lc,Cx,[],Dict,St);
+      if mtd(_,Nm,_,MTp) .= T then{
+	if _eof(Args) then
+	  valis (St1,dot(Lc,A,Nm,Tp))
+	else
+	valis (St1,apply(Lc,dot(Lc,A,Nm,MTp),tple(Lc,Args),Tp))
+      }
       else
-      valis (St1,apply(Lc,dot(Lc,A,Nm,MTp),tple(Lc,Args),Tp))
+      valis (St1,apply(Lc,T,tple(Lc,[A,..Args]),Tp))
+    } catch ((ELc,E)) => do{
+      valis (active(ELc,E),over(Lc,T,Tp,Cx))
     }
-    else
-    valis (St1,apply(Lc,T,tple(Lc,[A,..Args]),Tp))
   }
-  overloadTerm(apply(lc,Op,Arg,Tp),Dict,St,Rp) => do{
-    (St1,ROp) <- overloadTerm(Op,Dict,St,Rp);
-    (St2,RArgs) <- overloadTerm(Arg,Dict,St,Rp);
+  overloadTerm(apply(lc,Op,Arg,Tp),Dict,St) => do{
+    (St1,ROp) <- overloadTerm(Op,Dict,St);
+    (St2,RArgs) <- overloadTerm(Arg,Dict,St);
     valis (St2,apply(lc,ROp,RArgs,Tp))
   }
-  overloadTerm(tple(Lc,Els),Dict,St,Rp) => do{
-    (Stx,REls) <- overloadTerms(Els,[],Dict,St,Rp);
+  overloadTerm(tple(Lc,Els),Dict,St) => do{
+    (Stx,REls) <- overloadTerms(Els,[],Dict,St);
     valis (Stx,tple(Lc,REls))
   }
-  overloadTerm(abstraction(Lc,Exp,Cond,Tp),Dict,St,Rp) => do{
-    (St1,RExp) <- overloadTerm(Exp,Dict,St,Rp);
-    (St2,RCond) <- overloadTerm(Cond,Dict,St1,Rp);
-    valis (St2,abstraction(Lc,RExp,RCond,Tp))
-  }
-  overloadTerm(serch(Lc,Ptn,Src,Iter),Dict,St,Rp) => do{
-    (St1,RPtn) <- overloadTerm(Ptn,Dict,St,Rp);
-    (St2,RSrc) <- overloadTerm(Src,Dict,St1,Rp);
-    (St3,RIter) <- overloadTerm(Iter,Dict,St2,Rp);
+  overloadTerm(serch(Lc,Ptn,Src,Iter),Dict,St) => do{
+    (St1,RPtn) <- overloadTerm(Ptn,Dict,St);
+    (St2,RSrc) <- overloadTerm(Src,Dict,St1);
+    (St3,RIter) <- overloadTerm(Iter,Dict,St2);
     valis (St3,serch(Lc,RPtn,RSrc,RIter))
   }
-  overloadTerm(match(Lc,Ptn,Src),Dict,St,Rp) => do{
-    (St1,RPtn) <- overloadTerm(Ptn,Dict,St,Rp);
-    (St2,RSrc) <- overloadTerm(Src,Dict,St1,Rp);
+  overloadTerm(match(Lc,Ptn,Src),Dict,St) => do{
+    (St1,RPtn) <- overloadTerm(Ptn,Dict,St);
+    (St2,RSrc) <- overloadTerm(Src,Dict,St1);
     valis (St2,match(Lc,RPtn,RSrc))
   }
-  overloadTerm(conj(Lc,Lhs,Rhs),Dict,St,Rp) => do{
-    (St1,RLhs) <- overloadTerm(Lhs,Dict,St,Rp);
-    (St2,RRhs) <- overloadTerm(Rhs,Dict,St1,Rp);
+  overloadTerm(conj(Lc,Lhs,Rhs),Dict,St) => do{
+    (St1,RLhs) <- overloadTerm(Lhs,Dict,St);
+    (St2,RRhs) <- overloadTerm(Rhs,Dict,St1);
     valis (St2,conj(Lc,RLhs,RRhs))
   }
-  overloadTerm(disj(Lc,Lhs,Rhs),Dict,St,Rp) => do{
-    (St1,RLhs) <- overloadTerm(Lhs,Dict,St,Rp);
-    (St2,RRhs) <- overloadTerm(Rhs,Dict,St1,Rp);
+  overloadTerm(disj(Lc,Lhs,Rhs),Dict,St) => do{
+    (St1,RLhs) <- overloadTerm(Lhs,Dict,St);
+    (St2,RRhs) <- overloadTerm(Rhs,Dict,St1);
     valis (St2,disj(Lc,RLhs,RRhs))
   }
-  overloadTerm(neg(Lc,Rhs),Dict,St,Rp) => do{
-    (St2,RRhs) <- overloadTerm(Rhs,Dict,St,Rp);
+  overloadTerm(neg(Lc,Rhs),Dict,St) => do{
+    (St2,RRhs) <- overloadTerm(Rhs,Dict,St);
     valis (St2,neg(Lc,RRhs))
   }
-  overloadTerm(cond(Lc,Tst,Lhs,Rhs),Dict,St,Rp) => do{
-    (St1,RTst) <- overloadTerm(Tst,Dict,St,Rp);
-    (St2,RLhs) <- overloadTerm(Lhs,Dict,St1,Rp);
-    (St3,RRhs) <- overloadTerm(Rhs,Dict,St2,Rp);
+  overloadTerm(cond(Lc,Tst,Lhs,Rhs),Dict,St) => do{
+    (St1,RTst) <- overloadTerm(Tst,Dict,St);
+    (St2,RLhs) <- overloadTerm(Lhs,Dict,St1);
+    (St3,RRhs) <- overloadTerm(Rhs,Dict,St2);
     valis (St3,cond(Lc,RTst,RLhs,RRhs))
   }
-  overloadTerm(lambda(Rls,Tp),Dict,St,Rp) => do{
-    (Stx,RRls) <- overloadRules(Rls,[],Dict,St,Rp);
+  overloadTerm(lambda(Rls,Tp),Dict,St) => do{
+    (Stx,RRls) <- overloadRules(Rls,[],Dict,St);
     valis (Stx,lambda(RRls,Tp))
   }
-  overloadTerm(letExp(Lc,Gp,Rhs),Dict,St,Rp) => do{
+  overloadTerm(letExp(Lc,Gp,Rhs),Dict,St) => do{
+    try{
 --    logMsg("overload let $(letRec(Lc,Gp,Rhs))");
-    (RDfs,RDct) <- overloadGroup(Gp,Dict,Rp);
+      Rp .= reports([]);
+      (RDfs,RDct) <- overloadGroup(Gp,Dict,Rp);
 --    logMsg("new dict $(RDct)");
-    (St2,RRhs) <- overloadTerm(Rhs,RDct,St,Rp);
-    valis (St2,letExp(Lc,RDfs,RRhs))
+      (St2,RRhs) <- overTerm(Rhs,RDct,St,Rp);
+      valis (St2,letExp(Lc,RDfs,RRhs))
+    } catch(reports([errorMsg(Lc,Msg),.._])) => do{
+      valis (active(Lc,Msg),letExp(Lc,Gp,Rhs))
+    }
   }
-  overloadTerm(letRec(Lc,Gp,Rhs),Dict,St,Rp) => do{
+  overloadTerm(letRec(Lc,Gp,Rhs),Dict,St) => do{
+    try{
 --    logMsg("overload letrec $(letRec(Lc,Gp,Rhs))");
-    (RDfs,RDct) <- overloadGroup(Gp,Dict,Rp);
+      Rp .= reports([]);
+      (RDfs,RDct) <- overloadGroup(Gp,Dict,Rp);
 --    logMsg("new dict $(RDct)");
-    (St2,RRhs) <- overloadTerm(Rhs,RDct,St,Rp);
-    valis (St2,letRec(Lc,RDfs,RRhs))
+      (St2,RRhs) <- overTerm(Rhs,RDct,St,Rp);
+      valis (St2,letRec(Lc,RDfs,RRhs))
+    } catch (reports([errorMsg(Lc,Msg),.._])) => do{
+      valis (active(Lc,Msg),letRec(Lc,Gp,Rhs))
+    }
   }
-  overloadTerm(csexp(Lc,Gov,Cases,Tp),Dict,St,Rp) => do{
-    (St1,RGov) <- overloadTerm(Gov,Dict,St,Rp);
-    (St2,RCases) <- overloadRules(Cases,[],Dict,St1,Rp);
+  overloadTerm(csexp(Lc,Gov,Cases,Tp),Dict,St) => do{
+    (St1,RGov) <- overloadTerm(Gov,Dict,St);
+    (St2,RCases) <- overloadRules(Cases,[],Dict,St1);
     valis (St2,csexp(Lc,RGov,RCases,Tp))
   }
 
-  overloadTerm(act(Lc,Act),Dict,St,Rp) => do{
-    (St1,RAct) <- overloadAction(Act,Dict,St,Rp);
+  overloadTerm(act(Lc,Act),Dict,St) => do{
+    (St1,RAct) <- overloadAction(Act,Dict,St);
     valis (St1,act(Lc,RAct))
   }
-  overloadTerm(record(Lc,Nm,Fields,Tp),Dict,St,Rp) => do{
-    (Stx,RFields) <- overloadFields(Fields,[],Dict,St,Rp);
+  overloadTerm(record(Lc,Nm,Fields,Tp),Dict,St) => do{
+    (Stx,RFields) <- overloadFields(Fields,[],Dict,St);
     valis (St,record(Lc,Nm,RFields,Tp))
   }
-  overloadTerm(update(Lc,T,C),Dict,St,Rp) => do{
-    (St1,OT) <- overloadTerm(T,Dict,St,Rp);
-    (Stx,OC) <- overloadTerm(C,Dict,St1,Rp);
+  overloadTerm(update(Lc,T,C),Dict,St) => do{
+    (St1,OT) <- overloadTerm(T,Dict,St);
+    (Stx,OC) <- overloadTerm(C,Dict,St1);
     valis (Stx,update(Lc,OT,OC))
   }
 
-  overloadRules([],Els,Dict,St,_) => either((St,reverse(Els))).
-  overloadRules([eqn(Lc,Ptn,.none,Exp),..Ts],Els,Dict,St,Rp) => do{
-    (St1,RPtn) <- overloadTerm(Ptn,Dict,St,Rp);
-    (St2,RExp) <- overloadTerm(Exp,Dict,St1,Rp);
-    overloadRules(Ts,[eqn(Lc,RPtn,.none,RExp),..Els],Dict,St2,Rp)
-  }
-  overloadRules([eqn(Lc,Ptn,some(Wh),Exp),..Ts],Els,Dict,St,Rp) => do{
-    (St1,RPtn) <- overloadTerm(Ptn,Dict,St,Rp);
-    (St2,RExp) <- overloadTerm(Exp,Dict,St1,Rp);
-    (Stx,RWh) <- overloadTerm(Wh,Dict,St2,Rp);
-    overloadRules(Ts,[eqn(Lc,RPtn,some(RWh),RExp),..Els],Dict,Stx,Rp)
+  overTerm:(canon,dict,resolveState,reports) => either[reports,(resolveState,canon)].
+  overTerm(T,Dict,St,Rp) => do{
+    try{
+      overloadTerm(T,Dict,St)
+    } catch((Lc,Msg))=>do{
+      throw reportError(Rp,Msg,Lc)
+    }
   }
 
-  overloadTerms([],Els,Dict,St,_) => either((St,reverse(Els))).
-  overloadTerms([T,..Ts],Els,Dict,St,Rp) => do{
-    (St1,RT) <- overloadTerm(T,Dict,St,Rp);
-    overloadTerms(Ts,[RT,..Els],Dict,St1,Rp)
+  overloadRules([],Els,Dict,St) => either((St,reverse(Els))).
+  overloadRules([eqn(Lc,Ptn,.none,Exp),..Ts],Els,Dict,St) => do{
+    (St1,RPtn) <- overloadTerm(Ptn,Dict,St);
+    (St2,RExp) <- overloadTerm(Exp,Dict,St1);
+    overloadRules(Ts,[eqn(Lc,RPtn,.none,RExp),..Els],Dict,St2)
+  }
+  overloadRules([eqn(Lc,Ptn,some(Wh),Exp),..Ts],Els,Dict,St) => do{
+    (St1,RPtn) <- overloadTerm(Ptn,Dict,St);
+    (St2,RExp) <- overloadTerm(Exp,Dict,St1);
+    (Stx,RWh) <- overloadTerm(Wh,Dict,St2);
+    overloadRules(Ts,[eqn(Lc,RPtn,some(RWh),RExp),..Els],Dict,Stx)
+  }
+  
+  overloadTerms([],Els,Dict,St) => either((St,reverse(Els))).
+  overloadTerms([T,..Ts],Els,Dict,St) => do{
+    (St1,RT) <- overloadTerm(T,Dict,St);
+    overloadTerms(Ts,[RT,..Els],Dict,St1)
   }
 
-  overloadFields([],Els,Dict,St,_) => either((St,reverse(Els))).
-  overloadFields([(N,T),..Ts],Els,Dict,St,Rp) => do{
-    (St1,RT) <- overloadTerm(T,Dict,St,Rp);
-    overloadFields(Ts,[(N,RT),..Els],Dict,St1,Rp)
+  overloadFields([],Els,Dict,St) => either((St,reverse(Els))).
+  overloadFields([(N,T),..Ts],Els,Dict,St) => do{
+    (St1,RT) <- overloadTerm(T,Dict,St);
+    overloadFields(Ts,[(N,RT),..Els],Dict,St1)
   }
-  overloadAction(noDo(Lc,ExTp,ErTp),Dict,St,Rp) => either((St,noDo(Lc,ExTp,ErTp))).
-  overloadAction(seqnDo(Lc,A1,A2),Dict,St,Rp) => do{
-    (St1,RA1) <- overloadAction(A1,Dict,St,Rp);
-    (St2,RA2) <- overloadAction(A2,Dict,St1,Rp);
+  overloadAction(noDo(Lc,ExTp,ErTp),Dict,St) => either((St,noDo(Lc,ExTp,ErTp))).
+  overloadAction(seqnDo(Lc,A1,A2),Dict,St) => do{
+    (St1,RA1) <- overloadAction(A1,Dict,St);
+    (St2,RA2) <- overloadAction(A2,Dict,St1);
     valis (St2,seqnDo(Lc,RA1,RA2))
   }
-  overloadAction(bindDo(Lc,Lhs,Rhs,T1,T2,T3),Dict,St,Rp) => do{
-    (St1,RLhs) <- overloadTerm(Lhs,Dict,St,Rp);
-    (St2,RRhs) <- overloadTerm(Rhs,Dict,St1,Rp);
+  overloadAction(bindDo(Lc,Lhs,Rhs,T1,T2,T3),Dict,St) => do{
+    (St1,RLhs) <- overloadTerm(Lhs,Dict,St);
+    (St2,RRhs) <- overloadTerm(Rhs,Dict,St1);
     valis (St2,bindDo(Lc,RLhs,RRhs,T1,T2,T3))
   }
-  overloadAction(varDo(Lc,Lhs,Rhs),Dict,St,Rp) => do{
-    (St1,RLhs) <- overloadTerm(Lhs,Dict,St,Rp);
-    (St2,RRhs) <- overloadTerm(Rhs,Dict,St1,Rp);
+  overloadAction(varDo(Lc,Lhs,Rhs),Dict,St) => do{
+    (St1,RLhs) <- overloadTerm(Lhs,Dict,St);
+    (St2,RRhs) <- overloadTerm(Rhs,Dict,St1);
     valis (St2,varDo(Lc,RLhs,RRhs))
   }
-  overloadAction(delayDo(Lc,A1,T1,T2,T3),Dict,St,Rp) => do{
-    (St1,RA1) <- overloadAction(A1,Dict,St,Rp);
+  overloadAction(delayDo(Lc,A1,T1,T2,T3),Dict,St) => do{
+    (St1,RA1) <- overloadAction(A1,Dict,St);
     valis (St1,delayDo(Lc,RA1,T1,T2,T3))
   }
-  overloadAction(whileDo(Lc,T,A,T1,T2),Dict,St,Rp) => do{
-    (St1,RT) <- overloadTerm(T,Dict,St,Rp);
-    (St2,RA) <- overloadAction(A,Dict,St1,Rp);
+  overloadAction(whileDo(Lc,T,A,T1,T2),Dict,St) => do{
+    (St1,RT) <- overloadTerm(T,Dict,St);
+    (St2,RA) <- overloadAction(A,Dict,St1);
     valis (St2,whileDo(Lc,RT,RA,T1,T2))
   }
-  overloadAction(forDo(Lc,T,A,T1,T2),Dict,St,Rp) => do{
-    (St1,RT) <- overloadTerm(T,Dict,St,Rp);
-    (St2,RA) <- overloadAction(A,Dict,St1,Rp);
+  overloadAction(forDo(Lc,T,A,T1,T2),Dict,St) => do{
+    (St1,RT) <- overloadTerm(T,Dict,St);
+    (St2,RA) <- overloadAction(A,Dict,St1);
     valis (St2,forDo(Lc,RT,RA,T1,T2))
   }
-  overloadAction(ifThenElseDo(Lc,T,L,R,T1,T2,T3),Dict,St,Rp) => do{
-    (St1,RT) <- overloadTerm(T,Dict,St,Rp);
-    (St2,RL) <- overloadAction(L,Dict,St1,Rp);
-    (St3,RR) <- overloadAction(R,Dict,St2,Rp);
+  overloadAction(ifThenElseDo(Lc,T,L,R,T1,T2,T3),Dict,St) => do{
+    (St1,RT) <- overloadTerm(T,Dict,St);
+    (St2,RL) <- overloadAction(L,Dict,St1);
+    (St3,RR) <- overloadAction(R,Dict,St2);
     valis (St3,ifThenElseDo(Lc,RT,RL,RR,T1,T2,T3))
   }
-  overloadAction(tryCatchDo(Lc,A,C,T1,T2,T3),Dict,St,Rp) => do{
-    (St1,RA) <- overloadAction(A,Dict,St,Rp);
-    (St2,RC) <- overloadTerm(C,Dict,St1,Rp);
+  overloadAction(tryCatchDo(Lc,A,C,T1,T2,T3),Dict,St) => do{
+    (St1,RA) <- overloadAction(A,Dict,St);
+    (St2,RC) <- overloadTerm(C,Dict,St1);
     valis (St2,tryCatchDo(Lc,RA,RC,T1,T2,T3))
   }
-  overloadAction(throwDo(Lc,T,T1,T2,T3),Dict,St,Rp) => do{
-    (St1,RT) <- overloadTerm(T,Dict,St,Rp);
+  overloadAction(throwDo(Lc,T,T1,T2,T3),Dict,St) => do{
+    (St1,RT) <- overloadTerm(T,Dict,St);
     valis (St1,throwDo(Lc,RT,T1,T2,T3))
   }
-  overloadAction(returnDo(Lc,T,T1,T2,T3),Dict,St,Rp) => do{
-    (St1,RT) <- overloadTerm(T,Dict,St,Rp);
+  overloadAction(returnDo(Lc,T,T1,T2,T3),Dict,St) => do{
+    (St1,RT) <- overloadTerm(T,Dict,St);
     valis (St1,returnDo(Lc,RT,T1,T2,T3))
   }
-  overloadAction(simpleDo(Lc,T,T1),Dict,St,Rp) => do{
-    (St1,RT) <- overloadTerm(T,Dict,St,Rp);
+  overloadAction(simpleDo(Lc,T,T1),Dict,St) => do{
+    (St1,RT) <- overloadTerm(T,Dict,St);
     valis (St1,simpleDo(Lc,RT,T1))
   }
     
-  resolveContracts:(locn,cons[constraint],cons[canon],dict,resolveState,reports) =>
-    either[reports,(resolveState,cons[canon])].
-  resolveContracts(_,[],Cx,_,St,Rp) => either((St,reverse(Cx))).
-  resolveContracts(Lc,[typeConstraint(C),..Cx],Vs,Dict,St,Rp) => do{
-    (St0,A) <- resolveContract(Lc,C,Dict,St,Rp);
-    resolveContracts(Lc,Cx,[A,..Vs],Dict,St0,Rp)
+  resolveContracts:(locn,cons[constraint],cons[canon],dict,resolveState) =>
+      either[(locn,string),(resolveState,cons[canon])].
+  resolveContracts(_,[],Cx,_,St) => either((St,reverse(Cx))).
+  resolveContracts(Lc,[contractConstraint(C),..Cx],Vs,Dict,St) => do{
+    (St0,A) <- resolveContract(Lc,C,Dict,St);
+    resolveContracts(Lc,Cx,[A,..Vs],Dict,St0)
   }
   
-  resolveContract:(locn,tipe,dict,resolveState,reports) => either[reports,(resolveState,canon)].
-  resolveContract(Lc,Tp,Dict,St,Rp) => do{
+  resolveContract:(locn,tipe,dict,resolveState) => either[(locn,string),(resolveState,canon)].
+  resolveContract(Lc,Tp,Dict,St) => do{
     ImpNm .= implementationName(Tp);
 --    logMsg("looking for implementation $(Tp) - $(ImpNm)");
     if Impl^=findVar(Lc,ImpNm,Dict) then {
 --      logMsg("we have implementation $(Impl)\:$(typeOf(Impl))");
       if sameType(typeOf(Impl),Tp,Dict) then {
 --	logMsg("we found implementation $(Impl)");
-	overloadTerm(Impl,Dict,markResolved(St),Rp)
+	overloadTerm(Impl,Dict,markResolved(St))
       } else{
-	throw reportError(Rp,"implementation $(typeOf(Impl)) not consistent with $(Tp)",Lc)
+	  throw (Lc,"implementation $(typeOf(Impl)) not consistent with $(Tp)")
       }
     } else{
-      throw reportError(Rp,"cannot find an implementation for $(Tp)",Lc)
+	throw (Lc,"cannot find an implementation for $(Tp)")
     }
   }
 }

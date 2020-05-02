@@ -75,7 +75,7 @@ star.compiler.operators{
   oper("*") => [postfixOp(699,700,.noGen), infixOp(700,700,699,.noGen)].
   oper("+") => [postfixOp(699,700,.noGen), infixOp(720,720,719,.noGen)].
   oper(".>>.") => [infixOp(600,600,599,.noGen)].
-  oper("*>") => [infixOp(904,905,904,genBinary((Lc,X,Y)=>astImplies(Lc,X,Y)))].
+  oper("*>") => [infixOp(904,905,904,.noGen)].
   oper(",") => [infixOp(999,1000,1000,.noGen)].
   oper("contract") => [prefixOp(1260,1259,.noGen)].
   oper("\\/") => [infixOp(720,720,719,.noGen)].

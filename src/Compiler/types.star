@@ -24,7 +24,7 @@ star.compiler.types{
       funDeps(tipe,cons[tipe]).
 
   public constraint ::=
-    typeConstraint(tipe) |
+    contractConstraint(tipe) |
     fieldConstraint(tipe,tipe).
 
   tv ::= tv{
@@ -189,7 +189,7 @@ star.compiler.types{
   } in identPrs(sortByNm(L1),sortByNm(L2)).
 
   public implementation equality[constraint] => {.
-    typeConstraint(T1) == typeConstraint(T2) => T1==T2.
+    contractConstraint(T1) == contractConstraint(T2) => T1==T2.
     fieldConstraint(V1,T1) == fieldConstraint(V2,T2) => V1==V2 && T1==T2.
     _ == _ default => .false.
   .}
@@ -273,7 +273,7 @@ star.compiler.types{
 
   showBound(V,Dp) => showType(V,.false,Dp).
 
-  showConstraint(typeConstraint(Tp),Dp) => showType(Tp,.false,Dp).
+  showConstraint(contractConstraint(Tp),Dp) => showType(Tp,.false,Dp).
   showConstraint(fieldConstraint(Tp,Fc),Dp) =>
     ssSeq([showType(Tp,.false,Dp),ss("<~"),showType(Fc,.false,Dp)]).
 
@@ -293,7 +293,7 @@ star.compiler.types{
     hsh(constrainedType(T,C)) => (hash("|:")*37+hsh(deRef(T)))*37+hshCon(C).
     hsh(funDeps(T,D)) => hshEls(hsh(deRef(T)),D).
 
-    hshCon(typeConstraint(Tp)) => hsh(deRef(Tp)).
+    hshCon(contractConstraint(Tp)) => hsh(deRef(Tp)).
     hshCon(fieldConstraint(V,T)) =>
       (hash("<~")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
 
@@ -356,7 +356,7 @@ star.compiler.types{
   } in  _str_multicat(surfaceName(deRef(Tp),[])).
 
   public implementation hasType[constraint] => {.
-    typeOf(typeConstraint(Tp)) => Tp.
+    typeOf(contractConstraint(Tp)) => Tp.
   .}
 
   public implementation hasType[tipe] => {.

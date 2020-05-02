@@ -222,8 +222,7 @@
 	"infixOp": "*>",
 	"priorities": [904, 905, 904],
 	"desc": "for all",
-	"keyword": true,
-	"ast" : "astImplies"
+	"keyword": true
     },
     {
 	"infixOp": "->",

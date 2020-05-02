@@ -32,9 +32,6 @@ star.compiler.freevars{
     freeVarsInTerm(C,Excl,freeVarsInTerm(E,Excl,Fv)).
   freeVarsInTerm(cond(_,T,L,R),Excl,Fv) where (Excl1,Fv1) .= freeVarsInCond(T,Excl,Fv) =>
     freeVarsInTerm(L,Excl1,freeVarsInTerm(R,Excl,Fv1)).
-  freeVarsInTerm(abstraction(_,B,C,_),Excl,Fv) where
-      (Excl1,Fv1) .= freeVarsInCond(C,Excl,Fv) =>
-    freeVarsInTerm(B,Excl1,Fv1).
   freeVarsInTerm(apply(_,O,A,_),Excl,Fv) =>
     freeVarsInTerm(A,Excl,freeVarsInTerm(O,Excl,Fv)).
   freeVarsInTerm(tple(_,Els),Excl,Fv) =>
@@ -170,7 +167,6 @@ star.compiler.freevars{
     glVars(C,ptnVars(E,Excl,Fv)).
   ptnVars(cond(_,T,L,R),Excl,Fv) => ptnVars(L,ptnVars(T,Excl,Fv),Fv)/\
     ptnVars(R,Excl,Fv).
-  ptnVars(abstraction(_,B,C,_),Excl,Fv) => Excl.
   ptnVars(apply(_,O,A,_),Excl,Fv) =>
     ptnVars(A,Excl,Fv).
   ptnVars(tple(_,Els),Excl,Fv) =>

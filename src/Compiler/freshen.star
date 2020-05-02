@@ -90,7 +90,7 @@ star.compiler.freshen{
 
   rewrite(Tp,Env,F,G) => frshn(deRef(Tp),Env,F,G).
 
-  frshnConstraint(typeConstraint(Tp),Env,F,G) => typeConstraint(rewrite(Tp,Env,F,G)).
+  frshnConstraint(contractConstraint(Tp),Env,F,G) => contractConstraint(rewrite(Tp,Env,F,G)).
   frshnConstraint(fieldConstraint(T,I),Env,F,G) =>
     fieldConstraint(rewrite(T,Env,F,G),rewrite(I,Env,F,G)).
 

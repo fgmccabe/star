@@ -58,7 +58,7 @@ star.compiler.unify{
     cmpField:((string,tipe),(string,tipe))=>boolean.
     cmpField((F1,_),(F2,_)) => F1<F2.
 
-    sameConstraint(typeConstraint(T1),typeConstraint(T2),Env) => 
+    sameConstraint(contractConstraint(T1),contractConstraint(T2),Env) => 
       same(T1,T2,Env).
     sameConstraint(fieldConstraint(F1,T1),fieldConstraint(F2,T2),Env) =>
       same(F1,F2,Env) && same(T1,T2,Env).
@@ -129,7 +129,7 @@ star.compiler.unify{
     }
 
     checkConstraint:(constraint,dict) => action[(),boolean].
-    checkConstraint(typeConstraint(Tp),Env) => do {
+    checkConstraint(contractConstraint(Tp),Env) => do {
       INm.=implementationName(Tp);
       if Im ^= findImplementation(Env,INm) then{
         (_,FrTp) .= freshen(typeOf(Im),Env);
@@ -158,7 +158,7 @@ star.compiler.unify{
     mergeConstraint:(constraint,cons[constraint],cons[constraint],dict) =>
       option[cons[constraint]].
     mergeConstraint(C,[],Cs,_) => some([C,..Cs]).
-    mergeConstraint(typeConstraint(Tp),[typeConstraint(Tp1),.._],Cs,Env) =>
+    mergeConstraint(contractConstraint(Tp),[contractConstraint(Tp1),.._],Cs,Env) =>
       (same(Tp,Tp1,Env) ? some(Cs) || .none).
     -- TODO: handle merging implementsFace more gracefully
     mergeConstraint(C,[_,..Rs],Cs,Env) => mergeConstraint(C,Rs,Cs,Env).
@@ -228,7 +228,7 @@ star.compiler.unify{
   rewr(constrainedType(T,C),Env) => constrainedType(rewriteType(T,Env),rewriteCon(C,Env)).
   rewr(funDeps(T,Tps),Env) => funDeps(rewriteType(T,Env),Tps//(E)=>rewriteType(E,Env)).
 
-  rewriteCon(typeConstraint(T),Env) => typeConstraint(rewriteType(T,Env)).
+  rewriteCon(contractConstraint(T),Env) => contractConstraint(rewriteType(T,Env)).
   rewriteCon(fieldConstraint(F,T),Env) => fieldConstraint(rewriteType(F,Env),rewriteType(T,Env)).
   
 }

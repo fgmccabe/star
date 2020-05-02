@@ -4,7 +4,6 @@ star.compiler.checker{
   import star.pkg.
   import star.repo.
 
-  import star.compiler.action.
   import star.compiler.ast.
   import star.compiler.ast.disp.
   import star.compiler.canon.
@@ -828,14 +827,12 @@ star.compiler.checker{
 
   checkCond:(ast,dict,string,reports) => either[reports,(canon,dict)].
   checkCond(A,Env,Path,Rp) => do{
-    (Gl,NE) <- checkGoal(A,Env,Path,Rp);
-    if isIterableGoal(Gl) then{
---      logMsg("iterable goal $(Gl)");
-      Cond <- processIterable(Gl,Path,NE,Rp);
-      valis (Cond,NE)
+    if isIterable(A) then {
+      Itr <- makeIterableGoal(A,Rp);
+      checkGoal(Itr,Env,Path,Rp)
+    } else{
+      checkGoal(A,Env,Path,Rp)
     }
-    else
-    valis (Gl,NE)
   }
 
   checkGoal:(ast,dict,string,reports) => either[reports,(canon,dict)].
@@ -901,161 +898,13 @@ star.compiler.checker{
   checkDo:(ast,tipe,dict,string,reports) => either[reports,canon].
   checkDo(Actn,Tp,Env,Path,Rp) => do{
     if isSimpleAction(Actn) then{
-      logMsg("using macro process to simplify $(Actn)");
+--      logMsg("using macro process to simplify $(Actn)");
       Simple <- makeAction(Actn,.none,Rp);
-      logMsg("macroed action is $(Simple)");
+--      logMsg("macroed action is $(Simple)");
       typeOfExp(Simple,Tp,Env,Path,Rp)
     } else {
---    logMsg("process do $(Stmts)");
-      VlTp .= newTypeVar("_e");
-      ErTp .= newTypeVar("_e");
-      Lc .= locOf(Actn);
-      if Con ^= findContract(Env,"execution") then{
-	(_,typeExists(tpExp(Op,StTp),_)) .= freshen(Con,Env);
-	if sameType(mkTypeExp(StTp,[ErTp,VlTp]),Tp,Env) then {
-	  (Action,_) <- checkAction(Actn,Env,StTp,VlTp,ErTp,Path,Rp);
-	  genAction(Action,Op,.none,Path,Rp)
-	} else
-	throw reportError(Rp,"$(tpExp(StTp,ErTp)) not consistent with expected type $(Tp)",Lc)
-      } else
-      throw reportError(Rp,"cannot find execution contract",Lc)
+      throw reportError(Rp,"cannot process action $(Actn)",locOf(Actn))
     }
-  }
-
-  checkAction:(ast,dict,tipe,tipe,tipe,string,reports) =>
-    either[reports,(canonAction,dict)].
-  checkAction(A,Env,StTp,ElTp,ErTp,_,_) where (Lc,"nothing") ^= isName(A) =>
-    either((noDo(Lc,StTp,ErTp),Env)).
-  checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,L,R) ^= isActionSeq(A) => do{
-    E .= newTypeVar("_e");
-    (Fst,E0) <- checkAction(L,Env,StTp,E,ErTp,Path,Rp);
-    (Snd,E1) <- checkAction(R,E0,StTp,ElTp,ErTp,Path,Rp);
-    valis (seqnDo(Lc,Fst,Snd),E1)
-  }
-  checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,L,R) ^= isBind(A) => do{
-    E .= newTypeVar("P");
-    HT .= mkTypeExp(StTp,[ErTp,E]); -- bound terms must be in the same monad
-    Exp <- typeOfExp(R,HT,Env,Path,Rp);
-    (Ptn,Ev) <- typeOfPtn(L,E,Env,Path,Rp);
-    valis (bindDo(Lc,Ptn,Exp,E,StTp,ErTp),Ev)
-  }
-  checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,L,R) ^= isMatch(A) => do{
-    E .= newTypeVar("P");
-    (Ptn,Ev) <- typeOfPtn(L,E,Env,Path,Rp);
-    Exp <- typeOfExp(R,E,Env,Path,Rp);
-
-    valis (varDo(Lc,Ptn,Exp),Ev)
-  }
-  checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,L,R) ^= isOptionMatch(A) =>
-    checkAction(binary(Lc,".=",unary(Lc,"some",L),R),Env,StTp,ElTp,ErTp,Path,Rp).
-  checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,L,R) ^= isAssignment(A) => do{
-    Et .= newTypeVar("P");
-    if (_,Vr) ^= isName(L) && !varDefined(Vr,Env) then{
-      (Ptn,Env0) <- typeOfPtn(L,refType(Et),Env,Path,Rp);
-      Val <- typeOfExp(R,Et,Env,Path,Rp);
-      Cell ^= findVar(Lc,"_cell",Env);
-      valis (varDo(Lc,Ptn,apply(Lc,Cell,tple(Lc,[Val]),refType(Et))),Env0)
-    } else{
-    MdlTp .= mkTypeExp(StTp,[ErTp,unitTp]);
-    if (LLc,Coll,Idx) ^= isIndex(L) then {
-      Repl .= ternary(LLc,"_put",refCell(LLc,Coll),Idx,R);
-      Assignment <- typeOfExp(binary(Lc,":=",Coll,Repl),MdlTp,Env,Path,Rp);
-      valis (simpleDo(Lc,Assignment,StTp),Env)
-    } else{
-      Assignment <- typeOfExp(A,MdlTp,Env,Path,Rp);
-      valis (simpleDo(Lc,Assignment,StTp),Env)
-      }
-    }
-  }
-  checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,T,L,R) ^= isIfThenElse(A) => do{
-    (Cond,Ev0) <- checkCond(T,Env,Path,Rp);
-    (Th,E1) <- checkAction(L,Ev0,StTp,ElTp,ErTp,Path,Rp);
-    (El,E2) <- checkAction(R,Env,StTp,ElTp,ErTp,Path,Rp);
-    valis (ifThenElseDo(Lc,Cond,Th,El,StTp,ElTp,ErTp),mergeDict(E1,E2,Env))
-  }
-  checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,T,L) ^= isIfThen(A) => do{
-    (Cond,Ev0) <- checkCond(T,Env,Path,Rp);
-    (Th,E1) <- checkAction(L,Ev0,StTp,ElTp,ErTp,Path,Rp);
-    valis (ifThenElseDo(Lc,Cond,Th,noDo(Lc,StTp,ErTp),StTp,ElTp,ErTp),Env)
-  }
-  checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,T,B) ^= isWhileDo(A) => do{
-    (Cond,Ev0) <- checkCond(T,Env,Path,Rp);
-    (Body,_) <- checkAction(B,Ev0,StTp,tupleType([]),ErTp,Path,Rp);
-    valis (whileDo(Lc,Cond,Body,StTp,ErTp),Env)
-  }
-  checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,T,B) ^= isForDo(A) => do{
-    (Cond,Ev0) <- checkCond(T,Env,Path,Rp);
-    (Body,_) <- checkAction(B,Ev0,StTp,tupleType([]),ErTp,Path,Rp);
-    valis (forDo(Lc,Cond,Body,StTp,ErTp),Env)
-  }
-  checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,B,C) ^= isTryCatch(A) => do{
-    BErrTp .= newTypeVar("_");
-    (Body,_) <- checkAction(B,Env,StTp,ElTp,BErrTp,Path,Rp);
-    Hndlr <- checkCatch(C,Env,StTp,ElTp,BErrTp,ErTp,Path,Rp);
-    valis (tryCatchDo(Lc,Body,Hndlr,StTp,ElTp,ErTp),Env)
-  }
-  checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,E) ^= isThrow(A) => do{
-    Err <- typeOfExp(E,ErTp,Env,Path,Rp);
-    valis (throwDo(Lc,Err,StTp,ElTp,ErTp),Env)
-  }
-  checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,E) ^= isValis(A) => do{
-    Rtn <- typeOfExp(E,ElTp,Env,Path,Rp);
-    valis (returnDo(Lc,Rtn,StTp,ElTp,ErTp),Env)
-  }
-  checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,[S]) ^= isBrTuple(A) =>
-    checkAction(S,Env,StTp,ElTp,ErTp,Path,Rp).
-
-  /*
-    assert C 
-becomes
- try{
-   assrt(()=>C,"failed: C",Loc)
- } catch(Err) => action{
-   logMsg(Err)
-   throw ()
-  }
-*/
-  checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,C) ^= isIntegrity(A) => do{
---    logMsg("building integrity $(A)");
-    Unit .= tpl(Lc,"()",[]);
-    Lam .= equation(Lc,Unit,C);
-    Assert .= ternary(Lc,"assrt",Lam,str(Lc,C::string),Lc::ast);
-    B .= brTuple(Lc,[Assert]);
---    logMsg("catch body $(B)");
-    Err .= genName(Lc,"E");
-    Log .= unary(Lc,"logMsg",Err);
-    Thrw .= unary(Lc,"throw",Unit);
-    CtBdy .= braceTerm(Lc,nme(Lc,"action"),[binary(Lc,";",Log,Thrw)]);
-    ELam .= equation(Lc,tpl(Lc,"()",[Err]),CtBdy);
-    ReWorkd .= unary(Lc,"try",binary(Lc,"catch",B,ELam));
---    logMsg("full assert $(ReWorkd)");
-    checkAction(ReWorkd,Env,StTp,ElTp,ErTp,Path,Rp)
-  }
-/*
- show E 
-becomes
-  shwMsg(()=>E,"E",Lc)
-*/
-  checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,E) ^= isShow(A) => do{
-    Lam .= equation(Lc,tpl(Lc,"()",[]),E);
-
-    ShwMsg .= ternary(Lc,"shwMsg",Lam,reconstructDisp(E),Lc::ast);
---    logMsg("show  $(ShwMsg)");
-    checkAction(ShwMsg,Env,StTp,ElTp,ErTp,Path,Rp)
-  }
-  checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) => do{
-    Exp <- typeOfExp(A,mkTypeExp(StTp,[ErTp,ElTp]),Env,Path,Rp);
-    valis (simpleDo(locOf(A),Exp,StTp),Env)
-  }
-
-  checkCatch:(ast,dict,tipe,tipe,tipe,tipe,string,reports) => either[reports,canon].
-  checkCatch(A,Env,StTp,ElTp,BErrTp,ErTp,Path,Rp) where (Lc,Stmts) ^= isBrTuple(A) => do{
-    (H,_) <- checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp); 
-    valis act(locOf(H),H)
-  }
-  checkCatch(A,Env,StTp,ElTp,BErrTp,ErTp,Path,Rp) => do{
-    HT .= funType([BErrTp],mkTypeExp(StTp,[ErTp,ElTp]));
-    typeOfExp(A,HT,Env,Path,Rp)
   }
 
   typeOfField:(locn,canon,string,tipe,dict,string,reports) => either[reports,canon].
@@ -1097,74 +946,11 @@ becomes
   genArgTps(A) where (_,Els) ^= isTuple(A) =>
       genTpVars(Els).
 
-  genFieldTps:(cons[ast],reports)=>either[reports,(cons[(string,tipe)],cons[(string,tipe)])].  
---  genFieldTps(Els,Rp) => seqmap((El)=> (Lc,In) ^= isType
-
   checkAbstraction:(locn,ast,ast,tipe,dict,string,reports) => either[reports,canon].
   checkAbstraction(Lc,B,C,Tp,Env,Path,Rp) => do{
-    logMsg("checking abstraction $(B) | $(C) expected type $(Tp)");
-    (Cond,E0) <- checkGoal(C,Env,Path,Rp);
-    (_,StTp,ElTp) <- pickupSequenceContract(locOf(Cond),Env,Rp);
-    checkType(B,Tp,StTp,Env,Rp);
-    Bnd <- typeOfExp(B,ElTp,E0,Path,Rp);
-    trace("generated abstraction @ $(Lc) ",genAbstraction(Lc,Tp,Bnd,Cond,Env,Path,Rp))
-  }
-
-  processIterable:(canon,string,dict,reports)=>either[reports,canon].
-  processIterable(Cond,Path,Env,Rp) where isIterableGoal(Cond) => do {
-    (Contract,_) <- pickupExecutionContract(locOf(Cond),Env,Rp);
-    genIterableGoal(Cond,Contract,Path,Rp)
-  }
-  processIterable(apply(Lc,Op,Arg,Tp),Path,Env,Rp) => do{
-    NOp <- processIterable(Op,Path,Env,Rp);
-    NArg <- processIterable(Arg,Path,Env,Rp);
-    valis apply(Lc,NOp,NArg,Tp)
-  }
-  processIterable(dot(Lc,Rec,Fld,Tp),Path,Env,Rp) => do{
-    NRec <- processIterable(Rec,Path,Env,Rp);
-    valis dot(Lc,NRec,Fld,Tp)
-  }
-  processIterable(tple(Lc,Els),Path,Env,Rp) => do{
-    NEls <- seqmap((El)=>processIterable(El,Path,Env,Rp),Els);
---    NEls <- _iter(Els,do{valis []},(El,Ot)=>either([valof processIterable(El,Path,Env,Rp),..Ot]));
-    valis tple(Lc,reverse(NEls))
-  }
-  processIterable(whr(Lc,E,C),Path,Env,Rp) => do{
-    NE <- processIterable(E,Path,Env,Rp);
-    NC <- processIterable(C,Path,Env,Rp);
-    valis whr(Lc,NE,NC)
-  }
-  processIterable(conj(Lc,E,C),Path,Env,Rp) => do{
-    NE <- processIterable(E,Path,Env,Rp);
-    NC <- processIterable(C,Path,Env,Rp);
-    valis conj(Lc,NE,NC)
-  }
-  processIterable(disj(Lc,E,C),Path,Env,Rp) => do{
-    NE <- processIterable(E,Path,Env,Rp);
-    NC <- processIterable(C,Path,Env,Rp);
-    valis disj(Lc,NE,NC)
-  }
-  processIterable(implies(Lc,E,C),Path,Env,Rp) => do{
-    NE <- processIterable(E,Path,Env,Rp);
-    NC <- processIterable(C,Path,Env,Rp);
-    valis implies(Lc,NE,NC)
-  }
-  processIterable(cond(Lc,Ts,Th,El),Path,Env,Rp) => do{
-    NTs <- processIterable(Ts,Path,Env,Rp);
-    NTh <- processIterable(Th,Path,Env,Rp);
-    NEl <- processIterable(El,Path,Env,Rp);
-    valis cond(Lc,NTs,NTh,NEl)
-  }
-  processIterable(neg(Lc,C),Path,Env,Rp) => do{
-    NC <- processIterable(C,Path,Env,Rp);
-    valis neg(Lc,NC)
-  }
-  processIterable(match(Lc,E,C),Path,Env,Rp) => do{
-    NE <- processIterable(E,Path,Env,Rp);
-    NC <- processIterable(C,Path,Env,Rp);
-    valis match(Lc,NE,NC)
-  }
-  processIterable(E,Path,Env,Rp) default => do{
-    valis E
+    logMsg("checking abstraction [ $(B) | $(C) ] expected type $(Tp)");
+    Test <- makeAbstraction(Lc,B,C,Rp);
+    logMsg("macrod abstraction $(Test)");
+    typeOfExp(Test,Tp,Env,Path,Rp)
   }
 }
