@@ -17,7 +17,7 @@ test.do7{
     show parentOf("ab");
     show parentOf("a");
 
-    assert "a" ^= parentOf("ab");
-    assert "ab" ^= parentOf("abc")
+    assert ("a" ^= parentOf("ab") || "b" ^= parentOf("ab"));
+    assert ("ab" ^= parentOf("abc") || "de" ^= parentOf("abc"))
   }
 }
