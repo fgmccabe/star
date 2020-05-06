@@ -37,7 +37,8 @@ which means that we can call @code{factorial}. It is also, somewhat
 unusually for factorial, @emph{generic}: the factorial of any type can
 be computed -- provided that arithmetic has been implemented for it.
 
-Overall, the texture of Star is designed to enhance the readability of
+Although this is not the simplest type annotation; overall, the
+texture of Star is designed to enhance the readability of
 programs. Readability is important because many people have to be able
 to read programs; perhaps more than are involved in writing them. Even
 with an emphasis on readability, the power of the language is such
@@ -51,10 +52,10 @@ doubleMe:(integer)=>integer.
 doubleMe(x) => x + x.
 @end example
 
-Although not mandatory, in most cases we strongly favor a programming
-style where the type of functions and other top-level definitions are
-called out explicitly. Here is another function calling the
-just-defined @code{doubleMe}:
+Although mostly not mandatory, in most cases we strongly favor a
+programming style where the type of functions and other top-level
+definitions are called out explicitly. Here is another function
+calling the just-defined @code{doubleMe}:
 
 @example
 doubleUs:(integer,integer)=>integer.
@@ -65,6 +66,9 @@ A complete Star program that uses the @code{doubleMe} and
 @code{doubleUs} functions to print a result is:
 @example
 sample.first@{
+  import star.
+  import star.script.
+  
   doubleMe:(integer)=>integer.
   doubleMe(x) => x + x.
 
@@ -73,7 +77,7 @@ sample.first@{
 
   main:()=>action[(),()].
   main() => do @{
-    logMsg(info,"double trouble is $(doubleUs(3,4))")
+    show doubleUs(3,4)
   @}
 @}
 @end example
@@ -170,6 +174,21 @@ The @code{maximum} function is written in terms of a local function –
 @code{max} – and a call to that local function. The @code{let}
 expression is one of the foundations and cornerstones of functional
 programming.
+
+@quotation Note
+Notice that the type annotation for @code{maximum} has a special
+@code{arith} clause attached to it:
+@example
+maximum:all t ~~ arith[t] |: (list[t],t)=>t.
+@end example
+The clause @code{arith[t] |:} means that the type variable @code{t} is
+@emph{constrained} -- it must be a type that @emph{implements} the
+arithmetic contract -- @code{arith}.
+
+Type contracts like this one are fairly ubiquitous in Star; they
+represent similar functionality to type classes in Haskell or traits
+in some modern language like Rust or Go.
+@end quotation
 
 @node Defining Types
 @subsection Defining Types

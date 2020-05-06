@@ -12,12 +12,18 @@ test.do7{
   parentOf(X) where (Y,X) in parent => some(Y).
   parentOf(_) default => .none.
 
+  check(X) where (X,_) in parent => .true.
+  check(_) default => .false.
+  
   main:()=>action[(),()].
   main() => do{
     show parentOf("ab");
     show parentOf("a");
 
     assert ("a" ^= parentOf("ab") || "b" ^= parentOf("ab"));
-    assert ("ab" ^= parentOf("abc") || "de" ^= parentOf("abc"))
+    assert ("ab" ^= parentOf("abc") || "de" ^= parentOf("abc"));
+
+    assert check("a");
+    assert !check("z")
   }
 }

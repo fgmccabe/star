@@ -61,17 +61,17 @@ star.compiler.checker{
 --      logMsg("exported implementations $(Impls)");
       Types .= exportedTypes(Defs,Vis,.pUblic);
 --      logMsg("exported types: $(Types)");
-      RDefs <- overloadEnvironment(Defs,PkgEnv,Rp);
+      RDefs <- overloadEnvironment(reverse(Defs),PkgEnv,Rp);
       PkgType .= faceType(Fields,Types);
       PkgTheta <- makePkgTheta(Lc,PkgNm,PkgType,ThEnv,sortDefs(multicat(RDefs)),Rp);
-      valis (pkgSpec(Pkge,Imports,PkgType,Contracts,Impls,PkgVars),varDef(Lc,packageVar(Pkg),PkgNm,PkgTheta,[],PkgType))
+      valis (pkgSpec(Pkge,Imports,PkgType,Contracts,Impls,PkgVars),varDef(Lc,PkgNm,packageVar(Pkg),PkgTheta,[],PkgType))
     } else
     throw reportError(Rp,"invalid package structure",locOf(P))
   }
 
   makePkgTheta:(locn,string,tipe,dict,cons[cons[canonDef]],reports)=>either[reports,canon].
   makePkgTheta(Lc,Nm,Tp,Env,Defs,Rp) =>
-    mkTheta(Lc,Nm,deRef(Tp),Env,Defs,Tp,Rp).
+    mkTheta(Lc,some(Nm),deRef(Tp),Env,Defs,Tp,Rp).
 
   exportedFields:(cons[cons[canonDef]],cons[(defnSp,visibility)],visibility) => cons[(string,tipe)].
   exportedFields(Defs,Vis,DVz) =>
@@ -88,16 +88,17 @@ star.compiler.checker{
   exportedTypes(Defs,Vis,DVz) => [ (Nm,ExTp) |
       DD in Defs && typeDef(_,Nm,_,ExTp) in DD && (tpSp(Nm),V) in Vis && V>=DVz].
 
-  mkRecord:(locn,string,tipe,dict,cons[cons[canonDef]],tipe,reports) => either[reports,canon].
+  mkRecord:(locn,option[string],tipe,dict,cons[cons[canonDef]],tipe,reports) => either[reports,canon].
   mkRecord(Lc,Lbl,faceType(Flds,Tps),Env,Defs,Tp,Rp) => do{
 --    logMsg("making record from $(Defs)\:$(faceType(Flds,Tps))");
     Rc <- findDefs(Lc,Flds,[],Defs,Rp);
     valis foldRight((Gp,I)=>letExp(Lc,Gp,I),record(Lc,Lbl,Rc,Tp),Defs)
   }
 
-  mkTheta:(locn,string,tipe,dict,cons[cons[canonDef]],tipe,reports) => either[reports,canon].
+  mkTheta:(locn,option[string],tipe,dict,cons[cons[canonDef]],tipe,reports) =>
+    either[reports,canon].
   mkTheta(Lc,Lbl,faceType(Flds,Tps),Env,Defs,Tp,Rp) => do{
---    logMsg("making record from $(Defs)\:$(faceType(Flds,Tps))");
+--    logMsg("making theta record from $(Defs)\:$(faceType(Flds,Tps))");
     Rc <- findDefs(Lc,Flds,[],Defs,Rp);
     valis foldRight((Gp,I)=>letRec(Lc,Gp,I),record(Lc,Lbl,Rc,Tp),Defs)
   }
@@ -117,9 +118,9 @@ star.compiler.checker{
 
   lookInGroup:(cons[canonDef],string,cons[cons[canonDef]])=>option[canon].
   lookInGroup([],Nm,Gps) => findDefn(Gps,Nm).
-  lookInGroup([varDef(Lc,Nm,FullNm,lambda(_,_),Cx,Tp),..Gp],Nm,_) => some(vr(Lc,Nm,Tp)).
+  lookInGroup([varDef(Lc,Nm,_,lambda(_,_),Cx,Tp),..Gp],Nm,_) => some(vr(Lc,Nm,Tp)).
   lookInGroup([varDef(_,Nm,_,vr(Lc,ONm,Tp),_,_),..Gp],Nm,_) => some(vr(Lc,ONm,Tp)).
-  lookInGroup([varDef(Lc,Nm,FullNm,_,Cx,Tp),..Gp],Nm,_) => some(vr(Lc,Nm,Tp)).
+  lookInGroup([varDef(Lc,Nm,_,_,Cx,Tp),..Gp],Nm,_) => some(vr(Lc,Nm,Tp)).
   lookInGroup([cnsDef(Lc,Nm,FullNm,Tp),..Gp],Nm,_) => some(enm(Lc,FullNm,Tp)).
   lookInGroup([implDef(Lc,Nm,FullNm,Val,Cx,Tp),..Gp],FullNm,_) => some(vr(Lc,FullNm,Tp)).
   lookInGroup([_,..Gp],Nm,Gps) => lookInGroup(Gp,Nm,Gps).
@@ -693,7 +694,7 @@ star.compiler.checker{
     (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,Path,Els,Face,Base,Rp,.deFault);
     if sameType(ThetaTp,ETp,Env) then{
 --      logMsg("building record from theta, $(ThEnv)");
-      mkTheta(Lc,Path,deRef(faceOfType(Tp,ThEnv)),ThEnv,sortDefs(multicat(Defs)),
+      mkTheta(Lc,.none,deRef(faceOfType(Tp,ThEnv)),ThEnv,sortDefs(multicat(Defs)),
 	reConstrainType(Cx,ThetaTp),Rp)
     }
     else
@@ -707,7 +708,7 @@ star.compiler.checker{
     Path .= genNewName(Pth,"θ");
     (Defs,ThEnv,ThetaTp) <- recordEnv(Lc,Path,Els,Face,Base,Rp,.deFault);
     if sameType(ThetaTp,Tp,Env) then{
-      mkRecord(Lc,Path,deRef(faceOfType(Tp,ThEnv)),ThEnv,[Defs],reConstrainType(Cx,ThetaTp),Rp)
+      mkRecord(Lc,.none,deRef(faceOfType(Tp,ThEnv)),ThEnv,[Defs],reConstrainType(Cx,ThetaTp),Rp)
     }
     else
     throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Tp)",Lc)
@@ -721,10 +722,10 @@ star.compiler.checker{
 --    logMsg("type of $(Op) |- $(ConTp)");
 
 --    logMsg("checking theta record, expected type $(Tp), face $(FceTp)");
-    (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,Nm,Els,deRef(FceTp),Env,Rp,.deFault);
+    (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,genNewName(Pth,"θ"),Els,deRef(FceTp),Env,Rp,.deFault);
     if sameType(ThetaTp,FceTp,Env) then{
 --      logMsg("building record from theta, $(ThEnv)");
-      mkTheta(Lc,Nm,deRef(faceOfType(Tp,ThEnv)),ThEnv,sortDefs(multicat(Defs)),
+      mkTheta(Lc,some(Nm),deRef(faceOfType(Tp,ThEnv)),ThEnv,sortDefs(multicat(Defs)),
 	Tp,Rp)
     }
     else
@@ -738,10 +739,10 @@ star.compiler.checker{
     Fun <- typeOfExp(Op,ConTp,Env,Pth,Rp);
 --    logMsg("type of $(Op) |- $(ConTp)");
 --    logMsg("checking theta record, expected type $(Tp), face $(FceTp)");
-    (Defs,ThEnv,ThetaTp) <- recordEnv(Lc,Nm,Els,deRef(FceTp),Env,Rp,.deFault);
+    (Defs,ThEnv,ThetaTp) <- recordEnv(Lc,genNewName(Pth,"θ"),Els,deRef(FceTp),Env,Rp,.deFault);
     if sameType(ThetaTp,FceTp,Env) then{
 --      logMsg("building record from theta, $(ThEnv)");
-      mkRecord(Lc,Nm,deRef(faceOfType(Tp,ThEnv)),ThEnv,sortDefs(Defs),Tp,Rp)
+      mkRecord(Lc,some(Nm),deRef(faceOfType(Tp,ThEnv)),ThEnv,sortDefs(Defs),Tp,Rp)
     }
     else
     throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Op)\:$(ConTp) ",Lc)

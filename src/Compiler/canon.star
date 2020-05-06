@@ -20,7 +20,6 @@ star.compiler.canon{
     enm(locn,string,tipe) |
     whr(locn,canon,canon) |
     dot(locn,canon,string,tipe) |
-    act(locn,canonAction) | 
     serch(locn,canon,canon,canon) |
     csexp(locn,canon,cons[equation],tipe) |
     match(locn,canon,canon) |
@@ -34,24 +33,11 @@ star.compiler.canon{
     lambda(cons[equation],tipe) |
     letExp(locn,cons[canonDef],canon) |
     letRec(locn,cons[canonDef],canon) |
-    record(locn,string,cons[(string,canon)],tipe) |
+    record(locn,option[string],cons[(string,canon)],tipe) |
     update(locn,canon,canon).
 
   public equation ::= eqn(locn,canon,option[canon],canon).
 
-  public canonAction ::= noDo(locn,tipe,tipe) |
-    seqnDo(locn,canonAction,canonAction) |
-    bindDo(locn,canon,canon,tipe,tipe,tipe) |
-    varDo(locn,canon,canon) |
-    delayDo(locn,canonAction,tipe,tipe,tipe) |
-    ifThenElseDo(locn,canon,canonAction,canonAction,tipe,tipe,tipe) |
-    whileDo(locn,canon,canonAction,tipe,tipe) |
-    forDo(locn,canon,canonAction,tipe,tipe) |
-    tryCatchDo(locn,canonAction,canon,tipe,tipe,tipe) |
-    throwDo(locn,canon,tipe,tipe,tipe) |
-    returnDo(locn,canon,tipe,tipe,tipe) |
-    simpleDo(locn,canon,tipe).
-    
   public canonDef ::= varDef(locn,string,string,canon,cons[constraint],tipe) |
     typeDef(locn,string,tipe,tipe) |
     conDef(locn,string,string,tipe) |
@@ -94,7 +80,6 @@ star.compiler.canon{
     locOf(enm(Lc,_,_)) => Lc.
     locOf(whr(Lc,_,_)) => Lc.
     locOf(dot(Lc,_,_,_)) => Lc.
-    locOf(act(Lc,_)) => Lc. 
     locOf(serch(Lc,_,_,_)) => Lc.
     locOf(csexp(Lc,_,_,_)) => Lc.
     locOf(match(Lc,_,_)) => Lc.
@@ -116,47 +101,6 @@ star.compiler.canon{
     locOf(eqn(Lc,_,_,_)) => Lc.
   .}
 
-  public implementation hasLoc[canonAction] => {.
-    locOf(noDo(Lc,_,_)) => Lc.
-    locOf(seqnDo(Lc,_,_)) => Lc.
-    locOf(bindDo(Lc,_,_,_,_,_)) => Lc.
-    locOf(varDo(Lc,_,_)) => Lc.
-    locOf(delayDo(Lc,_,_,_,_)) => Lc.
-    locOf(ifThenElseDo(Lc,_,_,_,_,_,_)) => Lc.
-    locOf(whileDo(Lc,_,_,_,_)) => Lc.
-    locOf(forDo(Lc,_,_,_,_)) => Lc.
-    locOf(tryCatchDo(Lc,_,_,_,_,_)) => Lc.
-    locOf(throwDo(Lc,_,_,_,_)) => Lc.
-    locOf(returnDo(Lc,_,_,_,_)) => Lc.
-    locOf(simpleDo(Lc,_,_)) => Lc.
-  .}
-
-
-  public implementation display[canonAction] => {.
-    disp(A) => ssSeq([ss("{"),dispAction(A,""),ss("}")]).
-  .}
-
-  dispAction(noDo(Lc,_,_),_) => ss("{}").
-  dispAction(seqnDo(Lc,L,R),Sp) => ssSeq([dispAction(L,Sp),ss(";"),dispAction(R,Sp)]).
-  dispAction(bindDo(Lc,Ptn,Exp,_,_,_),Sp) =>
-    ssSeq([showCanon(Ptn,Sp),ss("<-"),showCanon(Exp,Sp)]).
-  dispAction(varDo(Lc,Ptn,Exp),Sp) =>
-    ssSeq([showCanon(Ptn,Sp),ss(".="),showCanon(Exp,Sp)]).
-  dispAction(delayDo(_,Act,_,_,_),Sp) => ssSeq([ss("delay "),dispAction(Act,Sp++"  ")]).
-  dispAction(ifThenElseDo(Lc,Ts,Th,El,_,_,_),Sp) =>
-    ssSeq([ss("if "),showCanon(Ts,Sp),ss(" then "),
-	dispAction(Th,Sp++"  "),ss(" else "),dispAction(El,Sp)]).
-  dispAction(whileDo(Lc,Ts,Bd,_,_),Sp) =>
-    ssSeq([ss("while "),showCanon(Ts,Sp),ss(" do "),dispAction(Bd,Sp++"  ")]).
-  dispAction(forDo(Lc,Ts,Bd,_,_),Sp) =>
-    ssSeq([ss("for "),showCanon(Ts,Sp),ss(" do "),dispAction(Bd,Sp++"  ")]).
-  dispAction(tryCatchDo(Lc,Bdy,Catch,_,_,_),Sp) =>
-    ssSeq([ss("try "),dispAction(Bdy,Sp++"  "),
-	ss(" catch "),showCanon(Catch,Sp)]).
-  dispAction(throwDo(Lc,Exp,_,_,_),Sp) => ssSeq([ss("throw "),showCanon(Exp,Sp)]).
-  dispAction(returnDo(Lc,Exp,_,_,_),Sp) => ssSeq([ss("return "),showCanon(Exp,Sp)]).
-  dispAction(simpleDo(Lc,Exp,_),Sp) => ssSeq([ss("do "),showCanon(Exp,Sp)]).
-    
   public implementation display[pkgSpec] => {.
     disp(pkgSpec(Pkg,Imports,Face,Cons,Impls,PkgVrs)) =>
       ss("Package: $(Pkg), imports=$(Imports), Signature=$(Face),Contracts=$(Cons),Implementations:$(Impls), pkg vars:$(PkgVrs)").
@@ -237,10 +181,11 @@ star.compiler.canon{
     ssSeq([ss("let "),ss("{\n"),ss(Sp2),showGroup(Defs,Sp2),ss("\n"),ss(Sp),ss("}"),ss(" in "),showCanon(Ep,Sp2)]).
   showCanon(letRec(_,Defs,Ep),Sp) where Sp2.=Sp++"  " =>
     ssSeq([ss("letrec "),ss("{\n"),ss(Sp2),showGroup(Defs,Sp2),ss("\n"),ss(Sp),ss("}"),ss(" in "),showCanon(Ep,Sp2)]).
-  showCanon(record(_,_,Fields,_),Sp) =>
+  showCanon(record(_,.none,Fields,_),Sp) =>
     ssSeq([ss("{."),showFields(Fields,Sp++"  "),ss(".}")]).
+  showCanon(record(_,some(Lbl),Fields,_),Sp) =>
+    ssSeq([ss(Lbl),ss("{."),showFields(Fields,Sp++"  "),ss(".}")]).
   showCanon(update(_,L,R),Sp) => ssSeq([showCanon(L,Sp),ss(" <<- "),showCanon(R,Sp)]).
-  showCanon(act(_,A),Sp) => ssSeq([ss("{"),dispAction(A,Sp),ss("}")]).
   
   showCases(Cs,Sp) => ssSeq([ss("{"),showRls("",Cs,Sp),ss("}")]).
 
@@ -297,14 +242,6 @@ star.compiler.canon{
   isGoal(neg(_,_)) => .true.
   isGoal(cond(_,_,L,R)) => isGoal(L) && isGoal(R).
   isGoal(_) default => .false.
-
-  public isIterableGoal:(canon)=>boolean.
-  isIterableGoal(conj(_,L,R)) => isIterableGoal(L)||isIterableGoal(R).
-  isIterableGoal(disj(_,L,R)) => isIterableGoal(L)||isIterableGoal(R).
-  isIterableGoal(implies(_,L,R)) => isIterableGoal(L)||isIterableGoal(R).
-  isIterableGoal(neg(_,R)) => isIterableGoal(R).
-  isIterableGoal(serch(_,_,_,_)) => .true.
-  isIterableGoal(_) default => .false.
 
   public isFunDef:(canon)=>boolean.
   isFunDef(lambda(_,_)) => .true.

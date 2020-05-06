@@ -662,6 +662,9 @@ star.compiler.wff{
   public isThrow:(ast) => option[(locn,ast)].
   isThrow(A) => isUnary(A,"throw").
 
+  public isPerform:(ast) => option[(locn,ast)].
+  isPerform(A) => isUnary(A,"perform").
+
   public isTryCatch:(ast) => option[(locn,ast,ast)].
   isTryCatch(A) where (Lc,I) ^= isUnary(A,"try") => isBinary(I,"catch").
   isTryCatch(_) default => .none.

@@ -67,6 +67,7 @@ star.compiler.matcher{
     partTriples(M,Ts,[Tr,..S]).
   partTriples(_,Ts,S) => (S,Ts).
 
+  tripleArgMode:(triple) => argMode.
   tripleArgMode(([A,.._],_,_)) => argMode(A).
 
   argMode ::= .inVars | .inScalars | .inConstructors.

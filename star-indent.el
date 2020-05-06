@@ -137,7 +137,7 @@
 	 '((";"      nil     0)
 	   ("catch"  nil     0)
 	   ("then"   nil     star-query-indent)
-	   ("else"   t       0)
+	   ("else"   nil     0)
 	   (":="     nil     star-arrow-indent)
 	   ("::="    nil     star-arrow-indent)
 	   ("="      nil     star-arrow-indent)

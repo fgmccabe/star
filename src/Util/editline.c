@@ -478,24 +478,24 @@ retCode initHistory(char *filename) {
   historyFileName = filename;
   history = vector(0);
 
-  atexit(saveHistory);
+  // atexit(saveHistory);
 
-  ioPo historyFile = openInFile(historyFileName, utf8Encoding);
-  if (historyFile != Null) {
-    bufferPo lineBuffer = newStringBuffer();
-
-    retCode ret = Ok;
-    while (ret == Ok && isFileAtEof(historyFile) != Eof) {
-      ret = inLine(historyFile, lineBuffer, "\n");
-      if (ret == Ok) {
-        if (!isTrivialBuffer(lineBuffer))
-          addLineToHistory(lineBuffer);
-      }
-    }
-    closeFile(historyFile);
-    closeFile(O_IO(lineBuffer));
-    return ret;
-  } else
+//  ioPo historyFile = openInFile(historyFileName, utf8Encoding);
+//  if (historyFile != Null) {
+//    bufferPo lineBuffer = newStringBuffer();
+//
+//    retCode ret = Ok;
+//    while (ret == Ok && isFileAtEof(historyFile) != Eof) {
+//      ret = inLine(historyFile, lineBuffer, "\n");
+//      if (ret == Ok) {
+//        if (!isTrivialBuffer(lineBuffer))
+//          addLineToHistory(lineBuffer);
+//      }
+//    }
+//    closeFile(historyFile);
+//    closeFile(O_IO(lineBuffer));
+//    return ret;
+//  } else
     return Ok;
 
 }

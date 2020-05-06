@@ -52,7 +52,7 @@ star.json{
   equalJson(jTxt(S1),jTxt(S2)) => S1==S2.
   equalJson(jNum(D1),jNum(D2)) => D1==D2.
   equalJson(jColl(C1),jColl(C2)) => C1==C2.
-  equalJson(jSeq(L1),jSeq(L2)) => L1==L2.
+  equalJson(jSeq(L1),jSeq(L2)) => (E1,E2) in zip(L1,L2) *> equalJson(E1,E2).
   equalJson(_,_) => .false.
 
   public implementation coercion[string,json] => {.
