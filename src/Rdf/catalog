@@ -1,6 +1,6 @@
 {
   "content": {
-    "rdr.types" : "types.star"
+    "rdf.graph" : "graph.star"
     },
   "version": "1.0.0",
   "default": "../Star/catalog"
