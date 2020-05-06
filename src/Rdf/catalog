@@ -1,0 +1,7 @@
+{
+  "content": {
+    "rdr.types" : "types.star"
+    },
+  "version": "1.0.0",
+  "default": "../Star/catalog"
+}
