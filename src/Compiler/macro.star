@@ -9,6 +9,119 @@ star.compiler.macro{
   import star.compiler.meta.
   import star.compiler.wff.
 
+
+  /*
+  * We generate auto implementations of fields declared for an algebraic type
+  * declaration
+  *
+  * RT ::= rc{F:FT..}
+  *
+  * becomes
+  *
+  * RT <~ {}
+  * auto_contract '$F'[RT->>FT] => {.
+  *  '$F'(rc(_,..,F,...,_)) => F
+  *.}
+  *
+  * where auto_contract is an implementation statement that automatically 
+  * induces a contract -- with the empty prefix
+  */
+
+  public makeAlgebraic:(locn,cons[ast],cons[ast],ast,ast,reports) =>
+    either[reports,cons[ast]].
+  makeAlgebraic(Lc,Q,Cx,H,R,Rp) => do{
+    Nm .= typeName(H);
+    Face <- algebraicFace(R,Rp);
+    TpExSt .= reUQuant(Q,reConstrain(Cx,binary(Lc,"<~",H,Face)));
+    logMsg("rebuild type $(TpExSt)");
+    Cons <- buildConstructors(R,Q,Cx,H,.deFault,Rp);
+    valis [TpExSt,..Cons]
+  }
+
+  algebraicFace:(ast,reports) => either[reports,ast].
+  algebraicFace(A,Rp) where (_,L,R) ^= isBinary(A,"|") => do{
+    Lhs <- algebraicFace(L,Rp);
+    Rhs <- algebraicFace(R,Rp);
+    combineFaces(Lhs,Rhs,Rp)
+  }
+  algebraicFace(A,Rp) where (Lc,_,_) ^= isRoundTerm(A) => either(brTuple(Lc,[])).
+  algebraicFace(A,Rp) where (Lc,_) ^= isEnum(A) => either(brTuple(Lc,[])).
+  algebraicFace(A,Rp) where (Lc,_,Els) ^= isBrTerm(A) => either(brTuple(Lc,Els)).
+  algebraicFace(A,Rp) where (_,I) ^= isPrivate(A) => algebraicFace(I,Rp).
+  algebraicFace(A,Rp) where (_,I) ^= isPublic(A) => algebraicFace(I,Rp).
+  algebraicFace(A,Rp) where (_,_,I) ^= isXQuantified(A) => algebraicFace(I,Rp).
+  algebraicFace(A,Rp) where (_,_,I) ^= isQuantified(A) => algebraicFace(I,Rp).
+  algebraicFace(A,Rp) default =>
+    other(reportError(Rp,"invalid case in algebraic type",locOf(A))).
+
+  combineFaces(F1,F2,Rp) where (_,[]) ^= isBrTuple(F1) => either(F2).
+  combineFaces(F1,F2,Rp) where (_,[]) ^= isBrTuple(F2) => either(F1).
+  combineFaces(F1,F2,Rp) => other(reportError(Rp,"only one record constructor allowed",
+      locOf(F1))).
+
+
+  buildConstructors:(ast,cons[ast],cons[ast],ast,visibility,reports)=>either[reports,cons[ast]].
+  buildConstructors(A,Qs,Cx,Tp,Vz,Rp) where
+      (Lc,L,R) ^= isBinary(A,"|") => do{
+	Dfs1 <- buildConstructors(L,Qs,Cx,Tp,Vz,Rp);
+	Dfs2 <- buildConstructors(R,Qs,Cx,Tp,Vz,Rp);
+	valis Dfs1++Dfs2
+      }.
+  buildConstructors(A,Qs,Cx,Tp,Vz,Rp) where
+      (Lc,Nm,XQs,XCx,Els) ^= isBraceCon(A) => let{
+	Con = reUQuant(Qs,
+	  reConstrain(Cx,
+	    binary(Lc,"<=>",reXQuant(XQs,
+		reConstrain(XCx,brTuple(Lc,Els))),Tp))).
+      } in either([reveal(Con,Vz)]).
+  buildConstructors(A,Qs,Cx,Tp,Vz,Rp) where
+      (Lc,Nm,XQs,XCx,Els) ^= isRoundCon(A) => let{
+	Con = reUQuant(Qs,
+	  reConstrain(Cx,
+	    binary(Lc,"<=>",rndTuple(Lc,Els),Tp))).
+      } in either([reveal(Con,Vz)]).
+  buildConstructors(A,Qs,Cx,Tp,Vz,Rp) where
+      (Lc,Nm) ^= isEnumSymb(A) => let{
+	Con = reUQuant(Qs,
+	  reConstrain(Cx,
+	    binary(Lc,"<=>",rndTuple(Lc,[]),Tp))).
+      } in either([reveal(Con,Vz)]).
+  buildConstructors(A,Qs,Cx,Tp,_,Rp) where
+      (_,I) ^= isPrivate(A) => 
+    buildConstructors(I,Qs,Cx,Tp,.priVate,Rp).
+  buildConstructors(A,Qs,Cx,Tp,_,Rp) where
+      (_,I) ^= isPublic(A) => 
+    buildConstructors(I,Qs,Cx,Tp,.pUblic,Rp).
+  buildConstructors(A,_,_,_,_,Rp) =>
+    other(reportError(Rp,"cannot fathom constructor $(A)",locOf(A))).
+
+  reveal(A,.priVate) => unary(locOf(A),"private",A).
+  reveal(A,.pUblic) => unary(locOf(A),"public",A).
+  reveal(A,_) default => A.
+
+  isBraceCon:(ast) => option[(locn,string,cons[ast],cons[ast],cons[ast])].
+  isBraceCon(A) => isCon(A,isBrTerm).
+
+  isRoundCon:(ast) => option[(locn,string,cons[ast],cons[ast],cons[ast])].
+  isRoundCon(A) => isCon(A,isRoundTerm).
+
+  isCon:(ast,(ast)=>option[(locn,ast,cons[ast])]) => option[(locn,string,cons[ast],cons[ast],cons[ast])].
+  isCon(A,P) where
+      (Lc,Nm,Els) ^= P(A) && (_,Id) ^= isName(Nm) => some((Lc,Id,[],[],Els)).
+  isCon(A,P) where
+      (Lc,Q,I) ^= isXQuantified(A) &&
+      (_,Nm,_,Cx,Els) ^= isCon(I,P) =>
+    some((Lc,Nm,Q,Cx,Els)).
+  isCon(A,P) where
+      (Lc,Cx,I) ^= isConstrained(A) &&
+      (_,Nm,Q,_,Els) ^= isCon(I,P) =>
+    some((Lc,Nm,Q,Cx,Els)).
+  isCon(_,_) default => .none.
+    
+
+
+
+  
   public macroSquarePtn:(locn,cons[ast]) => ast.
   macroSquarePtn(Lc,Els) =>
     macroListEntries(Lc,Els,(Lx)=>mkWhere(Lx,"_eof"),

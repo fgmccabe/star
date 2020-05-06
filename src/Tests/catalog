@@ -1,6 +1,7 @@
 {
   "content": {
     "test.a": "a.star",
+    "test.al": "al.star",
     "test.assign": "assign.star",
     "test.bench" : "bench.star",
     "test.cons": "constest.star",
