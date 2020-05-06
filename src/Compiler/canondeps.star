@@ -4,14 +4,16 @@ star.compiler.canondeps{
   import star.compiler.canon.
   import star.compiler.core.
   import star.compiler.freevars.
+  import star.compiler.types.
   import star.topsort.
-  import star.compiler.meta.
 
   public sortDefs:(cons[canonDef])=>cons[cons[canonDef]].
   sortDefs(Defs) => valof action{
+--    logMsg("dependency sort of $(Defs)");
     Defined .= foldRight((D,S)=>_addMem(definedName(D),S),[],Defs);
---    logMsg("defined entries $(Defined)");
-    AllRefs .= foldRight((D,A) => [findRefs(D,D,Defined),..A],([]:cons[defSpec]),Defs);
+    Q .= foldRight(pickVar,[],Defined);
+--    logMsg("defined entries Q=$(Q), $(Defined)");
+    AllRefs .= foldRight((D,A) => [findRefs(D,D,Q,Defined),..A],([]:cons[defSpec]),Defs);
 --    logMsg("all refs $(AllRefs)");
 
     Sorted .= topsort(AllRefs);
@@ -19,12 +21,33 @@ star.compiler.canondeps{
     valis (Sorted // ((Gp)=>(Gp//((defSpec(_,_,Df))=>Df))))
   }
 
+  defnSp ::= varSp(crVar) | tpSp(tipe).
+
+  implementation equality[defnSp] => {.
+    varSp(V1) == varSp(V2) => V1==V2.
+    tpSp(T1) == tpSp(T2) => T1==T2.
+    _ == _ default => .false.
+  .}
+
+  implementation hash[defnSp] => {.
+    hash(varSp(V1)) => hash(V1).
+    hash(tpSp(T1)) => hash(T1).
+  .}
+
+  implementation display[defnSp] => {.
+    disp(varSp(V)) => ssSeq([ss("var:"),disp(V)]).
+    disp(tpSp(T)) => ssSeq([ss("type:"),disp(T)]).
+  .}
+
+  pickVar(varSp(V),Q) => _addMem(V,Q).
+  pickVar(_,Q) => Q.
+    
   definedName:(canonDef)=>defnSp.
-  definedName(varDef(_,Nm,_,_,_,_))=>varSp(Nm).
-  definedName(typeDef(_,Nm,_,_))=>tpSp(Nm).
-  definedName(conDef(_,Nm,_,_))=>conSp(Nm).
-  definedName(cnsDef(_,Nm,_,_))=>varSp(Nm).
-  definedName(implDef(_,_,Nm,_,_,_))=>varSp(Nm).
+  definedName(varDef(_,Nm,_,_,_,Tp))=>varSp(crId(Nm,Tp)).
+  definedName(typeDef(_,Nm,_,_))=>tpSp(nomnal(Nm)).
+  definedName(conDef(_,Nm,_,_))=>tpSp(nomnal(Nm)).
+  definedName(cnsDef(_,Nm,_,Tp))=>varSp(crId(Nm,Tp)).
+  definedName(implDef(_,_,Nm,_,_,Tp))=>varSp(crId(Nm,Tp)).
 
   defSpec ::= defSpec(defnSp,cons[defnSp],canonDef).
 
@@ -37,14 +60,14 @@ star.compiler.canondeps{
     disp(defSpec(V,R,_)) => ssSeq([disp(V),ss(" -> "),disp(R),ss("\n")]).
   .}
   
-  findRefs:(canonDef,canonDef,set[defnSp])=>defSpec.
-  findRefs(varDef(_,Nm,_,Val,_,_),D,All) => defSpec(varSp(Nm),freeRefs(Val,All),D).
-  findRefs(typeDef(_,Nm,_,_),D,All) => defSpec(tpSp(Nm),[],D).
-  findRefs(conDef(_,Nm,_,_),D,All) => defSpec(conSp(Nm),[],D).
-  findRefs(cnsDef(_,Nm,_,_),D,All) => defSpec(cnsSp(Nm),[],D).
-  findRefs(implDef(_,_,Nm,Val,_,_),D,All) => defSpec(varSp(Nm),freeRefs(Val,All),D).
+  findRefs:(canonDef,canonDef,set[crVar],set[defnSp])=>defSpec.
+  findRefs(varDef(_,Nm,_,Val,_,Tp),D,Q,All) => defSpec(varSp(crId(Nm,Tp)),freeRefs(Val,Q,All),D).
+  findRefs(typeDef(_,Nm,_,_),D,_,All) => defSpec(tpSp(nomnal(Nm)),[],D).
+  findRefs(conDef(_,Nm,_,_),D,_,All) => defSpec(tpSp(nomnal(Nm)),[],D).
+  findRefs(cnsDef(_,Nm,_,Tp),D,Q,All) => defSpec(varSp(crId(Nm,Tp)),[],D).
+  findRefs(implDef(_,_,Nm,Val,_,Tp),D,Q,All) => defSpec(varSp(crId(Nm,Tp)),freeRefs(Val,Q,All),D).
 
-  freeRefs(Val,All) => let{
-    Free = freeVarsInTerm(Val,[],[]).
-  } in {varSp(Nm) | crId(Nm,_) in Free && varSp(Nm) in All}.
+  freeRefs(Val,Q,All) => let{
+    Free = freeVarsInTerm(Val,[],Q,[]).
+  } in {varSp(V) | V in Free}.
 }

@@ -41,6 +41,7 @@ star.compiler{
     setOption(R,Opts) where RU ^= parseUri(R) && NR^=resolveUri(Opts.cwd,RU) =>
       compilerOptions{repo=NR.
 	cwd=Opts.cwd.
+	showAst = Opts.showAst.
 	showCanon=Opts.showCanon.
 	showCore=Opts.showCore.
 	showCode=Opts.showCode}.
@@ -55,6 +56,21 @@ star.compiler{
     setOption(W,Opts) where RW ^= parseUri(W) && NW^=resolveUri(Opts.cwd,RW)=>
       compilerOptions{repo=Opts.repo.
 	cwd=NW.
+	showAst = Opts.showAst.
+	showCanon=Opts.showCanon.
+	showCore=Opts.showCore.
+	showCode=Opts.showCode}.
+  }
+  traceAstOption:optionsProcessor[compilerOptions].
+  traceAstOption = {
+    shortForm = "-dA".
+    alternatives = [].
+    usage = "-dA -- show ast".
+    validator = .none.
+    setOption(_,Opts) =>
+      compilerOptions{repo=Opts.repo.
+	cwd=Opts.cwd.
+	showAst = .true.
 	showCanon=Opts.showCanon.
 	showCore=Opts.showCore.
 	showCode=Opts.showCode}.
@@ -68,6 +84,7 @@ star.compiler{
     setOption(_,Opts) =>
       compilerOptions{repo=Opts.repo.
 	cwd=Opts.cwd.
+	showAst = Opts.showAst.
 	showCanon=Opts.showCanon.
 	showCore=Opts.showCore.
 	showCode=.true}.
@@ -81,6 +98,7 @@ star.compiler{
     setOption(_,Opts) =>
       compilerOptions{repo=Opts.repo.
 	cwd=Opts.cwd.
+	showAst = Opts.showAst.
 	showCanon=Opts.showCanon.
 	showCore=.true.
 	showCode=Opts.showCode}.
@@ -94,6 +112,7 @@ star.compiler{
     setOption(_,Opts) =>
       compilerOptions{repo=Opts.repo.
 	cwd=Opts.cwd.
+	showAst = Opts.showAst.
 	showCanon=.true.
 	showCore=Opts.showCore.
 	showCode=Opts.showCode}.
@@ -103,9 +122,11 @@ star.compiler{
   _main(Args) => valof action{
     RI^=parseUri("file:"++_repo());
     WI^=parseUri("file:"++_cwd());
-    handleCmds(processOptions(Args,[repoOption,wdOption,traceCodeOption,
+    handleCmds(processOptions(Args,[repoOption,wdOption,traceAstOption,
+	  traceCodeOption,
 	  traceNormOption,traceCheckOption],compilerOptions{repo=RI.
 	  cwd=WI.
+	  showAst = .false.
 	  showCanon=.false.
 	  showCore=.false.
 	  showCode=.false}))
@@ -159,17 +180,17 @@ star.compiler{
 
   processPkgs:(cons[(importSpec,cons[importSpec])],termRepo,catalog,compilerOptions,reports) => action[reports,()].
   processPkgs(Pks,Repo,Cat,Opts,Rp) => do{
-    Repp := Repo;
+    Repp .= ref Repo;
     try{
---      logMsg("repo is $(Repo)");
       for (pkgImp(Lc,_,P),Imps) in Pks do{
---	logMsg("$(P) ok? $(pkgOk(Repo,P))");
 	if ! (pkgOk(Repo,P) && pkgImp(_,_,I) in Imps *> pkgOk(Repo,I)) then{
 	  logMsg("Compiling $(P)");
 	  if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
 --	  logMsg("source uri: $(SrcUri), CPkg=$(CPkg)");
 	    Ast <- parseSrc(SrcUri,CPkg,Rp)::action[reports,ast];
---	  logMsg("Ast of $(P) is $(Ast)");
+	    if Opts.showAst then{
+	      logMsg("Ast of $(P) is $(Ast)")
+	    };
 	    (PkgSpec,PkgFun) <- checkPkg(Repp!!,CPkg,Ast,stdDict,Rp) :: action[reports,(pkgSpec,canonDef)];
 	    if Opts.showCanon then {
 	      logMsg("type checked $(PkgFun)")
@@ -187,8 +208,8 @@ star.compiler{
 		mkTpl(pkgImports(PkgSpec)//(pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
 		mkTpl(Ins//assem)]);
 	    Bytes .= (strg(Code::string)::string);
-	    Repp := addSource(addPackage(Repp!!,P,Bytes),P,SrcUri::string);
-	    _ .= flushRepo(Repp!!)
+	    Repp := addSource(addPackage(Repp!!,P,Bytes),P,SrcUri::string)
+--	    _ .= flushRepo(Repp!!)
 	  }
 	  else
 	  throw reportError(Rp,"cannot locate source of $(P)",Lc)

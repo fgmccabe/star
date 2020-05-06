@@ -60,7 +60,6 @@ star.compiler.macro{
     MRhs .= roundTerm(Lc,nme(Lc,"main"),Cs);
     Main .= equation(Lc,MLhs,unary(Lc,"valof",MRhs));
     Annot .= binary(Lc,":",nme(Lc,"_main"),equation(Lc,rndTuple(Lc,[squareTerm(Lc,nme(Lc,"cons"),[nme(Lc,"string")])]),rndTuple(Lc,[])));
---    logMsg(" _main: $(Annot)\n$(Main)");
     valis [unary(Lc,"public",Annot),Main,..Defs].
   }
 
@@ -75,6 +74,7 @@ star.compiler.macro{
     isSimpleAction(L) && isSimpleAction(R).
   isSimpleAction(A) where _ ^= isValis(A) => .true.
   isSimpleAction(A) where _ ^= isThrow(A) => .true.
+  isSimpleAction(A) where (_,I) ^= isPerform(A) => isSimpleAction(I).
   isSimpleAction(A) where (_,[St]) ^= isBrTuple(A) => isSimpleAction(St).
   isSimpleAction(A) where (Lc,L,R) ^= isBind(A) => .true.
   isSimpleAction(A) where (Lc,L,R) ^= isMatch(A) => .true.
@@ -98,10 +98,15 @@ star.compiler.macro{
   isIterable(A) where _ ^= isSearch(A) => .true.
   isIterable(A) where (_,L,R) ^= isConjunct(A) =>
     isIterable(L) || isIterable(R).
+  isIterable(A) where (_,T,L,R) ^= isConditional(A) =>
+    isIterable(T) || isIterable(L) || isIterable(R).
   isIterable(A) where (_,L,R) ^= isDisjunct(A) =>
     isIterable(L) || isIterable(R).
   isIterable(A) where (_,L,R) ^= isImplies(A) =>
     isIterable(L) || isIterable(R).
+  isIterable(A) where (_,R) ^= isNegation(A) =>
+    isIterable(R).
+  isIterable(A) where (_,[I]) ^= isTuple(A) => isIterable(I).
   isIterable(_) default => .false.
   
   public makeAction:(ast,option[(locn,ast)],reports) => either[reports,ast].
@@ -117,6 +122,10 @@ star.compiler.macro{
     other(reportError(Rp,"$(A) must be the last action\n$(CC) follows valis",Lc)).
   makeAction(A,_,Rp) where (Lc,R) ^= isThrow(A) =>
     makeThrow(Lc,R,Rp).
+  makeAction(A,Cont,Rp) where (Lc,I) ^= isPerform(A) => do{
+    Sub <- makeAction(I,.none,Rp);
+    valis combine(makePerform(Lc,Sub),Cont)
+  }
   makeAction(A,.none,Rp) where (Lc,L,R) ^= isBind(A) =>
     other(reportError(Rp,"$(A) may not be the last action",Lc)).
   makeAction(A,some((CLc,Cont)),Rp) where (Lc,L,R) ^= isBind(A) => do{
@@ -254,6 +263,7 @@ star.compiler.macro{
 --    logMsg("scrub iterability of $(A)");
     Lc .= locOf(A);
     Vrs .= (goalVars(A) // (Nm)=>nme(Lc,Nm));
+--    logMsg("goal vars $(Vrs)");
     VTpl .= rndTuple(Lc,Vrs);
     Unit .= unary(Lc,"either",enum(Lc,"none"));
     Zed .= unary(Lc,"_valis",Unit);
@@ -262,6 +272,7 @@ star.compiler.macro{
       (_)=>unary(Lc,"_valis",Ptn),
       lyfted(Zed),Rp);
     Tpd .= binary(Lc,":",Seq,squareTerm(Lc,nme(Lc,"action"),[anon(Lc),anon(Lc)]));
+--    logMsg("iterable goal now $(Tpd)");
     valis mkMatch(Lc,Ptn,unary(Lc,"_perform",Tpd))
   }
 
@@ -336,7 +347,7 @@ star.compiler.macro{
   makeCondition(A,Lift,Succ,Zed,Rp) where (Lc,R) ^= isNegation(A) => do{
     Negated <- makeCondition(R,Lift,(_)=>Lift(grounded(enum(Lc,"true"))),
       grounded(enum(Lc,"false")),Rp);
-    St .= anon(Lc);
+    St .= genName(Lc,"St");
     SuccCase .= Succ(Zed);
     FalseCase .= Lift(Zed);
     valis makeSequence(Lc,St,lyfted(Negated),conditional(Lc,St,FalseCase,SuccCase))
@@ -348,11 +359,20 @@ star.compiler.macro{
     AddToSucc .= Succ(Zed);
     St .= anon(Lc);
     Init .= Lift(Zed);
+    if Fun ^= isBoolLift(AddToSucc) then -- special case
+      valis Fun(Other)
+    else
     valis makeSequence(Lc,St,Zed,conditional(Lc,Other,AddToSucc,Init))
   }
 
+  isBoolLift(V) where (Lc,I) ^= isUnary(V,"_valis") =>
+    ((_,"true") ^= isEnumSymb(I) ?
+	some((X)=>unary(Lc,"_valis",X)) ||
+	.none).
+  isBoolLift(_) default => .none.
+
   goalVars:(ast)=>cons[string].
-  goalVars(Cond) => glVars(Cond,[],[])::cons[string].
+  goalVars(Cond) => glVars(Cond,["_"],[])::cons[string].
 
   glVars:(ast,set[string],set[string]) => set[string].
   glVars(A,Excl,Vrs) where (_,L,R) ^= isWhere(A) =>

@@ -874,13 +874,6 @@ checkAction(Term,Env,Ev,Contract,ExTp,ValTp,ErTp,Act,Path) :-
   unary(Lc,"some",P,OP),
   binary(Lc,".=",OP,Exp,Term2),
   checkAction(Term2,Env,Ev,Contract,ExTp,ValTp,ErTp,Act,Path).
-checkAction(Term,Env,Ev,_,ExTp,ValTp,ErTp,varDo(Lc,Lhs,cell(Lc,Rhs),ExTp,ValTp,ErTp),Path) :-
-  isAssignment(Term,Lc,L,R),
-  isIden(L,_,Vr),
-  \+isVar(Vr,Env,_),!,
-  newTypeVar("_V",PT),
-  typeOfPtn(L,refType(PT),Env,Ev,Lhs,Path),
-  typeOfExp(R,PT,Env,_,Rhs,Path).
 checkAction(Term,Env,Ev,Contract,ExTp,ValTp,ErTp,Act,Path) :-
   isIntegrity(Term,Lc,Cond),!,
   createIntegrityAction(Lc,Cond,IAc),

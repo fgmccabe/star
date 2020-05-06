@@ -148,14 +148,11 @@ star.compiler.dict.mgt{
     valis Cons
   }.
   applyConstraint(Con,Cons) where contractConstraint(A).=Con => valof do{
-    AA := deRef(A);
+    AA .= ref deRef(A);
     while tpExp(Op,Arg) .= AA!! do{
       _ <- addConstraint(Arg,Con);
       AA := deRef(Op)
     };
     valis [Con,..Cons]
   }
-
-
-
 }

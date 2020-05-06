@@ -76,7 +76,7 @@ star.compiler.grapher{
   scanForImports:(ast,reports) => either[reports,cons[importSpec]].
   scanForImports(Term,Rp) => do{
     if (Lc,_,Els) ^= isBrTerm(Term) then {
-      Imps := ([]:cons[importSpec]);
+      Imps .= ref ([]:cons[importSpec]);
       for St in Els do{
 	if Imp ^= isImport(St) then{
 	  Imps := [Imp,..Imps!!]

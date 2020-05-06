@@ -70,6 +70,7 @@ star.compiler.resolve{
   overloadDef(Dict,Def,Rp) default => either((Def,Dict)).
  
   overloadVarDef(Dict,Lc,Nm,FullNm,Val,[],Tp,Rp) => do{
+--    logMsg("overload var def for $(Nm)");
     RVal <- resolveTerm(Val,Dict,Rp);
     valis (varDef(Lc,Nm,FullNm,RVal,[],Tp),Dict)
   }
@@ -80,7 +81,6 @@ star.compiler.resolve{
     (Qx,Qt) .= deQuant(Tp);
     (_,ITp) .= deConstrain(Qt);
     CTp .= reQuant(Qx,funType(Cx,ITp));
---    logMsg("cvars $(Cvrs)");
     valis (varDef(Lc,Nm,FullNm,lambda([eqn(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp),Dict)
   }
 
@@ -150,8 +150,9 @@ star.compiler.resolve{
     valis (Stx,dot(Lc,Rc1,Fld,Tp))
   }
   overloadTerm(whr(Lc,T,C),Dict,St) => do{
+--    logMsg("normalize where term $(whr(Lc,T,C)), $(St)");
     (St1,OT) <- overloadTerm(T,Dict,St);
---    logMsg("normalize where $(C)");
+--    logMsg("normalize condition $(C), $(St1)");
     (Stx,OC) <- overloadTerm(C,Dict,St1);
 --    logMsg("normalized where $(OC) : $(Stx)");
     valis (Stx,whr(Lc,OT,OC))
@@ -162,9 +163,10 @@ star.compiler.resolve{
     valis (St1,dot(Lc,A,Nm,Tp))
   }
   overloadTerm(over(Lc,T,Tp,Cx),Dict,St) => do{
---    logMsg("overloading $(Cx) |: $(T)\:$(Tp)");
+--    logMsg("overloading $(over(Lc,T,Tp,Cx)) |: $(T)\:$(Tp)");
     try{
       (St1,[A,..Args]) <- resolveContracts(Lc,Cx,[],Dict,St);
+--      logMsg("after contracts resolved $(St1)");
       if mtd(_,Nm,_,MTp) .= T then{
 	if _eof(Args) then
 	  valis (St1,dot(Lc,A,Nm,Tp))
@@ -179,7 +181,7 @@ star.compiler.resolve{
   }
   overloadTerm(apply(lc,Op,Arg,Tp),Dict,St) => do{
     (St1,ROp) <- overloadTerm(Op,Dict,St);
-    (St2,RArgs) <- overloadTerm(Arg,Dict,St);
+    (St2,RArgs) <- overloadTerm(Arg,Dict,St1);
     valis (St2,apply(lc,ROp,RArgs,Tp))
   }
   overloadTerm(tple(Lc,Els),Dict,St) => do{
@@ -193,8 +195,11 @@ star.compiler.resolve{
     valis (St3,serch(Lc,RPtn,RSrc,RIter))
   }
   overloadTerm(match(Lc,Ptn,Src),Dict,St) => do{
+--    logMsg("normalize match $(match(Lc,Ptn,Src)), St=$(St)");
     (St1,RPtn) <- overloadTerm(Ptn,Dict,St);
+--    logMsg("match pattern $(RPtn)\:$(St1)");
     (St2,RSrc) <- overloadTerm(Src,Dict,St1);
+--    logMsg("match exp $(RSrc)\:$(St2)");
     valis (St2,match(Lc,RPtn,RSrc))
   }
   overloadTerm(conj(Lc,Lhs,Rhs),Dict,St) => do{
@@ -206,6 +211,11 @@ star.compiler.resolve{
     (St1,RLhs) <- overloadTerm(Lhs,Dict,St);
     (St2,RRhs) <- overloadTerm(Rhs,Dict,St1);
     valis (St2,disj(Lc,RLhs,RRhs))
+  }
+  overloadTerm(implies(Lc,Lhs,Rhs),Dict,St) => do{
+    (St1,RLhs) <- overloadTerm(Lhs,Dict,St);
+    (St2,RRhs) <- overloadTerm(Rhs,Dict,St1);
+    valis (St2,implies(Lc,RLhs,RRhs))
   }
   overloadTerm(neg(Lc,Rhs),Dict,St) => do{
     (St2,RRhs) <- overloadTerm(Rhs,Dict,St);
@@ -229,8 +239,8 @@ star.compiler.resolve{
 --    logMsg("new dict $(RDct)");
       (St2,RRhs) <- overTerm(Rhs,RDct,St,Rp);
       valis (St2,letExp(Lc,RDfs,RRhs))
-    } catch(reports([errorMsg(Lc,Msg),.._])) => do{
-      valis (active(Lc,Msg),letExp(Lc,Gp,Rhs))
+    } catch(reports([errorMsg(ELc,Msg),.._])) => do{
+      valis (active(ELc,Msg),letExp(Lc,Gp,Rhs))
     }
   }
   overloadTerm(letRec(Lc,Gp,Rhs),Dict,St) => do{
@@ -249,11 +259,6 @@ star.compiler.resolve{
     (St1,RGov) <- overloadTerm(Gov,Dict,St);
     (St2,RCases) <- overloadRules(Cases,[],Dict,St1);
     valis (St2,csexp(Lc,RGov,RCases,Tp))
-  }
-
-  overloadTerm(act(Lc,Act),Dict,St) => do{
-    (St1,RAct) <- overloadAction(Act,Dict,St);
-    valis (St1,act(Lc,RAct))
   }
   overloadTerm(record(Lc,Nm,Fields,Tp),Dict,St) => do{
     (Stx,RFields) <- overloadFields(Fields,[],Dict,St);
@@ -298,59 +303,6 @@ star.compiler.resolve{
     (St1,RT) <- overloadTerm(T,Dict,St);
     overloadFields(Ts,[(N,RT),..Els],Dict,St1)
   }
-  overloadAction(noDo(Lc,ExTp,ErTp),Dict,St) => either((St,noDo(Lc,ExTp,ErTp))).
-  overloadAction(seqnDo(Lc,A1,A2),Dict,St) => do{
-    (St1,RA1) <- overloadAction(A1,Dict,St);
-    (St2,RA2) <- overloadAction(A2,Dict,St1);
-    valis (St2,seqnDo(Lc,RA1,RA2))
-  }
-  overloadAction(bindDo(Lc,Lhs,Rhs,T1,T2,T3),Dict,St) => do{
-    (St1,RLhs) <- overloadTerm(Lhs,Dict,St);
-    (St2,RRhs) <- overloadTerm(Rhs,Dict,St1);
-    valis (St2,bindDo(Lc,RLhs,RRhs,T1,T2,T3))
-  }
-  overloadAction(varDo(Lc,Lhs,Rhs),Dict,St) => do{
-    (St1,RLhs) <- overloadTerm(Lhs,Dict,St);
-    (St2,RRhs) <- overloadTerm(Rhs,Dict,St1);
-    valis (St2,varDo(Lc,RLhs,RRhs))
-  }
-  overloadAction(delayDo(Lc,A1,T1,T2,T3),Dict,St) => do{
-    (St1,RA1) <- overloadAction(A1,Dict,St);
-    valis (St1,delayDo(Lc,RA1,T1,T2,T3))
-  }
-  overloadAction(whileDo(Lc,T,A,T1,T2),Dict,St) => do{
-    (St1,RT) <- overloadTerm(T,Dict,St);
-    (St2,RA) <- overloadAction(A,Dict,St1);
-    valis (St2,whileDo(Lc,RT,RA,T1,T2))
-  }
-  overloadAction(forDo(Lc,T,A,T1,T2),Dict,St) => do{
-    (St1,RT) <- overloadTerm(T,Dict,St);
-    (St2,RA) <- overloadAction(A,Dict,St1);
-    valis (St2,forDo(Lc,RT,RA,T1,T2))
-  }
-  overloadAction(ifThenElseDo(Lc,T,L,R,T1,T2,T3),Dict,St) => do{
-    (St1,RT) <- overloadTerm(T,Dict,St);
-    (St2,RL) <- overloadAction(L,Dict,St1);
-    (St3,RR) <- overloadAction(R,Dict,St2);
-    valis (St3,ifThenElseDo(Lc,RT,RL,RR,T1,T2,T3))
-  }
-  overloadAction(tryCatchDo(Lc,A,C,T1,T2,T3),Dict,St) => do{
-    (St1,RA) <- overloadAction(A,Dict,St);
-    (St2,RC) <- overloadTerm(C,Dict,St1);
-    valis (St2,tryCatchDo(Lc,RA,RC,T1,T2,T3))
-  }
-  overloadAction(throwDo(Lc,T,T1,T2,T3),Dict,St) => do{
-    (St1,RT) <- overloadTerm(T,Dict,St);
-    valis (St1,throwDo(Lc,RT,T1,T2,T3))
-  }
-  overloadAction(returnDo(Lc,T,T1,T2,T3),Dict,St) => do{
-    (St1,RT) <- overloadTerm(T,Dict,St);
-    valis (St1,returnDo(Lc,RT,T1,T2,T3))
-  }
-  overloadAction(simpleDo(Lc,T,T1),Dict,St) => do{
-    (St1,RT) <- overloadTerm(T,Dict,St);
-    valis (St1,simpleDo(Lc,RT,T1))
-  }
     
   resolveContracts:(locn,cons[constraint],cons[canon],dict,resolveState) =>
       either[(locn,string),(resolveState,cons[canon])].
@@ -367,7 +319,6 @@ star.compiler.resolve{
     if Impl^=findVar(Lc,ImpNm,Dict) then {
 --      logMsg("we have implementation $(Impl)\:$(typeOf(Impl))");
       if sameType(typeOf(Impl),Tp,Dict) then {
---	logMsg("we found implementation $(Impl)");
 	overloadTerm(Impl,Dict,markResolved(St))
       } else{
 	  throw (Lc,"implementation $(typeOf(Impl)) not consistent with $(Tp)")

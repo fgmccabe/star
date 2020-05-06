@@ -400,11 +400,11 @@ star.compiler.gencode{
     ccont((Ctx,Cde,OStk,Rp) => either((Ctx,Cde++[Op],some([Tp,..Stk])))).
 
   escCont:(string,integer,tipe,option[cons[tipe]])=>Cont.
-  escCont(Nm,Ar,Tp,some(Stk)) default => ccont((Ctx,Cde,OStk,Rp) => do{
+  escCont(Nm,Ar,Tp,some(Stk)) => ccont((Ctx,Cde,OStk,Rp) => do{
 --      logMsg("escape $(Nm) - stack left at $([Tp,..Stk])");
       valis (Ctx,Cde++[iEscape(Nm),iFrame(intgr(size(Stk)+1))],some([Tp,..Stk]))
     }).
-  escCont(Nm,Ar,Tp,.none) default => ccont((Ctx,Cde,OStk,Rp) => do{
+  escCont(Nm,Ar,Tp,.none) => ccont((Ctx,Cde,OStk,Rp) => do{
 --      logMsg("escape $(Nm) - stack left at $(OStk)");
       valis (Ctx,Cde++[iEscape(Nm),iFrame(intgr(0))],.none)
     }).
