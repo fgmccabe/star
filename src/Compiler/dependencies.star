@@ -6,6 +6,7 @@ star.compiler.dependencies{
   import star.compiler.errors.
   import star.compiler.location.
   import star.compiler.operators.
+  import star.compiler.macro.
   import star.compiler.meta.
   import star.compiler.wff.
   import star.compiler.misc.
@@ -118,6 +119,7 @@ star.compiler.dependencies{
     either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn)).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
       (Lc,Q,Cx,H,R) ^= isAlgebraicTypeStmt(A) => do{
+	_ <- makeAlgebraic(Lc,Q,Cx,H,R,Rp);
 	(Dfs1,Pb1,As1) <- reformAlgebraic(Lc,Q,Cx,H,R,Defs,Pb,As,Vz,Rp);
 	valis (Stmts,Dfs1,Pb1,As1,Opn)
       }.
