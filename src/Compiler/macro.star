@@ -1,5 +1,6 @@
 star.compiler.macro{
   import star.
+  import star.sort.
 
   import star.compiler.ast.
   import star.compiler.ast.disp.
@@ -9,6 +10,19 @@ star.compiler.macro{
   import star.compiler.meta.
   import star.compiler.wff.
 
+  public macroStmts:(cons[ast],reports)=>either[reports,cons[ast]].
+  macroStmts([],Rp)=>either([]).
+  macroStmts([S,..Ss],Rp) where (Lc,Vz,Q,Cx,H,R) ^= isAlgebraicTypeStmt(S,.deFault) => do{
+--    logMsg("algebraic type def $(S)");
+    Defs <- makeAlgebraic(Lc,Vz,Q,Cx,H,R,Rp);
+    Rest <- macroStmts(Ss,Rp);
+    valis Defs++Rest
+  }
+  macroStmts([S,..Ss],Rp) => do{
+    Rest <- macroStmts(Ss,Rp);
+    valis [S,..Rest]
+  }
+    
 
   /*
   * We generate auto implementations of fields declared for an algebraic type
@@ -27,26 +41,27 @@ star.compiler.macro{
   * induces a contract -- with the empty prefix
   */
 
-  public makeAlgebraic:(locn,cons[ast],cons[ast],ast,ast,reports) =>
+  makeAlgebraic:(locn,visibility,cons[ast],cons[ast],ast,ast,reports) =>
     either[reports,cons[ast]].
-  makeAlgebraic(Lc,Q,Cx,H,R,Rp) => do{
+  makeAlgebraic(Lc,Vz,Q,Cx,H,R,Rp) => do{
     Nm .= typeName(H);
     Face <- algebraicFace(R,Rp);
-    TpExSt .= reUQuant(Q,reConstrain(Cx,binary(Lc,"<~",H,Face)));
-    logMsg("rebuild type $(TpExSt)");
-    Cons <- buildConstructors(R,Q,Cx,H,.deFault,Rp);
+    TpExSt .= reveal(reUQuant(Q,reConstrain(Cx,binary(Lc,"<~",H,brTuple(Lc,sort(Face,compEls))))),Vz);
+    Cons <- buildConstructors(R,Q,Cx,H,Vz,Rp);
+--    Ixx .= buildConIndices(R,[]);
+--    logMsg("constructor indices $(Ixx)");
     valis [TpExSt,..Cons]
   }
 
-  algebraicFace:(ast,reports) => either[reports,ast].
+  algebraicFace:(ast,reports) => either[reports,cons[ast]].
   algebraicFace(A,Rp) where (_,L,R) ^= isBinary(A,"|") => do{
     Lhs <- algebraicFace(L,Rp);
     Rhs <- algebraicFace(R,Rp);
     combineFaces(Lhs,Rhs,Rp)
   }
-  algebraicFace(A,Rp) where (Lc,_,_) ^= isRoundTerm(A) => either(brTuple(Lc,[])).
-  algebraicFace(A,Rp) where (Lc,_) ^= isEnum(A) => either(brTuple(Lc,[])).
-  algebraicFace(A,Rp) where (Lc,_,Els) ^= isBrTerm(A) => either(brTuple(Lc,Els)).
+  algebraicFace(A,Rp) where (Lc,_,_) ^= isRoundTerm(A) => either([]).
+  algebraicFace(A,Rp) where (Lc,_) ^= isEnum(A) => either([]).
+  algebraicFace(A,Rp) where (Lc,_,Els) ^= isBrTerm(A) => either(Els).
   algebraicFace(A,Rp) where (_,I) ^= isPrivate(A) => algebraicFace(I,Rp).
   algebraicFace(A,Rp) where (_,I) ^= isPublic(A) => algebraicFace(I,Rp).
   algebraicFace(A,Rp) where (_,_,I) ^= isXQuantified(A) => algebraicFace(I,Rp).
@@ -54,11 +69,38 @@ star.compiler.macro{
   algebraicFace(A,Rp) default =>
     other(reportError(Rp,"invalid case in algebraic type",locOf(A))).
 
-  combineFaces(F1,F2,Rp) where (_,[]) ^= isBrTuple(F1) => either(F2).
-  combineFaces(F1,F2,Rp) where (_,[]) ^= isBrTuple(F2) => either(F1).
-  combineFaces(F1,F2,Rp) => other(reportError(Rp,"only one record constructor allowed",
-      locOf(F1))).
+  combineFaces([],F2,Rp) => either(F2).
+  combineFaces(F1,[],Rp) => either(F1).
+  combineFaces([F,..Fs],Gs,Rp) where (Lc,Id,Tp) ^= isTypeAnnot(F) => do{
+    G1 <- mergeField(Lc,Id,Tp,Gs,Rp);
+    Fs1 <- combineFaces(Fs,G1,Rp);
+    valis [F,..Fs1]
+  }
 
+  mergeField(_,_,_,[],_) => either([]).
+  mergeField(Lc,Id,Tp,[A,..As],Rp) => do{
+    if (Lc2,Id,Tp2) ^= isTypeAnnot(A) then {
+      if Tp==Tp2 then
+	valis As
+      else
+      throw reportError(Rp,"type associated with $(Id) at $(Lc) incompatible with $(Tp2)",Lc2)
+    } else{
+      A1 <- mergeField(Lc,Id,Tp,As,Rp);
+      valis [A,..A1]
+    }
+  }
+
+  buildConIndices:(ast,map[string,map[string,integer]]) => map[string,map[string,integer]].
+  buildConIndices(A,Ixx) where (Lc,L,R) ^= isBinary(A,"|") =>
+    buildConIndices(L,buildConIndices(R,Ixx)).
+  buildConIndices(A,Ixx) where (Lc,Nm,XQs,XCx,Els) ^= isBraceCon(A) =>
+    Ixx[Nm->fst(foldLeft((El,(Mp,Ix)) => buildConIx(El,Mp,Ix),([],0),
+	  sort(Els,compEls)))].
+  buildConIndices(_,Ixx) default => Ixx.
+
+  buildConIx:(ast,map[string,integer],integer)=>(map[string,integer],integer).
+  buildConIx(El,Mp,Ix) where (_,Id,_) ^= isTypeAnnot(El) => (Mp[Id->Ix],Ix+1).
+  buildConIx(_,Mp,Ix) default => (Mp,Ix).
 
   buildConstructors:(ast,cons[ast],cons[ast],ast,visibility,reports)=>either[reports,cons[ast]].
   buildConstructors(A,Qs,Cx,Tp,Vz,Rp) where
@@ -69,22 +111,22 @@ star.compiler.macro{
       }.
   buildConstructors(A,Qs,Cx,Tp,Vz,Rp) where
       (Lc,Nm,XQs,XCx,Els) ^= isBraceCon(A) => let{
-	Con = reUQuant(Qs,
+	Con = typeAnnotation(Lc,nme(Lc,Nm),reUQuant(Qs,
 	  reConstrain(Cx,
 	    binary(Lc,"<=>",reXQuant(XQs,
-		reConstrain(XCx,brTuple(Lc,Els))),Tp))).
+		  reConstrain(XCx,brTuple(Lc,sort(Els,compEls)))),Tp)))).
       } in either([reveal(Con,Vz)]).
   buildConstructors(A,Qs,Cx,Tp,Vz,Rp) where
       (Lc,Nm,XQs,XCx,Els) ^= isRoundCon(A) => let{
-	Con = reUQuant(Qs,
+	Con = typeAnnotation(Lc,nme(Lc,Nm),reUQuant(Qs,
 	  reConstrain(Cx,
-	    binary(Lc,"<=>",rndTuple(Lc,Els),Tp))).
+	      binary(Lc,"<=>",rndTuple(Lc,Els),Tp)))).
       } in either([reveal(Con,Vz)]).
   buildConstructors(A,Qs,Cx,Tp,Vz,Rp) where
       (Lc,Nm) ^= isEnumSymb(A) => let{
-	Con = reUQuant(Qs,
+	Con = typeAnnotation(Lc,nme(Lc,Nm),reUQuant(Qs,
 	  reConstrain(Cx,
-	    binary(Lc,"<=>",rndTuple(Lc,[]),Tp))).
+	      binary(Lc,"<=>",rndTuple(Lc,[]),Tp)))).
       } in either([reveal(Con,Vz)]).
   buildConstructors(A,Qs,Cx,Tp,_,Rp) where
       (_,I) ^= isPrivate(A) => 
@@ -94,6 +136,12 @@ star.compiler.macro{
     buildConstructors(I,Qs,Cx,Tp,.pUblic,Rp).
   buildConstructors(A,_,_,_,_,Rp) =>
     other(reportError(Rp,"cannot fathom constructor $(A)",locOf(A))).
+
+  compEls:(ast,ast)=>boolean.
+  compEls(A,B) where
+      (_,N1,_) ^= isTypeAnnot(A) &&
+      (_,N2,_) ^= isTypeAnnot(B) => N1<N2.
+  compEls(_,_) default => .false.
 
   reveal(A,.priVate) => unary(locOf(A),"private",A).
   reveal(A,.pUblic) => unary(locOf(A),"public",A).
@@ -158,9 +206,9 @@ star.compiler.macro{
   buildMain(Els) default => Els.
 
   lookForSignature:(cons[ast],string)=>cons[(locn,ast)].
-  lookForSignature(Els,Nm) => [(Lc,Tp) | El in Els && (Lc,N,Tp)^=isTypeAnnot(El) && (_,Nm)^=isName(N)].
+  lookForSignature(Els,Nm) => [(Lc,Tp) | El in Els && (Lc,Nm,Tp)^=isTypeAnnot(El)].
 
-  isTypeAnnot(A) where Ptn ^= isBinary(A,":") => some(Ptn).
+  isTypeAnnot(A) where (Lc,N,Tp) ^= isBinary(A,":") && (_,Id)^=isName(N) => some((Lc,Id,Tp)).
   isTypeAnnot(_) default => .none.
   isTypeAnnot(A) where (_,I) ^= isPublic(A) => isTypeAnnot(I).
   isTypeAnnot(A) where (_,I) ^= isPrivate(A) => isTypeAnnot(I).
