@@ -121,10 +121,34 @@ combineFaces(F0,F,F) :-
   isEmptyBrace(F0).
 combineFaces(F,F0,F) :-
   isEmptyBrace(F0).
-combineFaces(F0,F1,F0) :-
-  isBraceTuple(F0,Lc,_),
-  isBraceTuple(F1,_,_),
-  reportError("only one constructor may be a record ",[],Lc).
+combineFaces(F0,F1,F2) :-
+  isBraceTuple(F0,Lc,Els0),
+  isBraceTuple(F1,_,Els1),
+  mergeFields(Els0,Els1,Els),!,
+  braceTuple(Lc,Els,F2).
+
+mergeFields([],F,F).
+mergeFields(F,[],F).
+mergeFields([A|As],B,[A|Fs]) :-
+  mergeField(A,B,B1),
+  mergeFields(As,B1,Fs).
+
+mergeField(A,B,Bx) :-
+  isTypeAnnotation(A,_,N,Tp),
+  isIden(N,_,Nm),
+  checkFields(Nm,Tp,B,Bx),!.
+
+checkFields(_,_,[],[]).
+checkFields(Nm,Tp,[B|Bs],Bx) :-
+  isTypeAnnotation(B,_,N,Tp2),
+  (isIden(N,Lc,Nm) ->
+   Bs=Bx,
+   (sameTerm(Tp,Tp2);
+    reportError("type of field %s mismatch, %s!=%s",[Nm,Tp,Tp2],Lc));
+   Bx=[B|Bx1],
+   checkFields(Nm,Tp,Bs,Bx1)).
+checkFields(Nm,Tp,[B|Bs],[B|Bx]) :-
+  checkFields(Nm,Tp,Bs,Bx).
 
 buildConstructors(Body,Quants,Constraints,Nm,Tp,Lst,Lx,A,Ax,Export,P,Px) :-
   isBinary(Body,_,"|",L,R),
