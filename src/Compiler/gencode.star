@@ -36,7 +36,7 @@ star.compiler.gencode{
   ctxLbls(codeCtx(Vrs,Lc,Mx1,Lb1),codeCtx(_,_,Mx2,Lb2))=>codeCtx(Vrs,Lc,max(Mx1,Mx2),max(Lb1,Lb2)).
 
   implementation display[codeCtx] => {.
-    disp(codeCtx(Vrs,_,Depth,_)) => ssSeq([ss("dict"),disp(Vrs)]).
+    disp(codeCtx(Vrs,_,Depth,_)) => ssSeq([ss("depth"),disp(Depth)]).
   .}
 
   implementation sizeable[codeCtx] => {.
@@ -82,6 +82,7 @@ star.compiler.gencode{
 --    logMsg("initial context: $(Ctx)");
     Ctxa .= argVars(Args,Ctx,0);
     (Ctxx,Code,Stk) <- compExp(Val,Opts,retCont(Lc),Ctxa,[],some([]),Rp);
+--    logMsg("final context: $(Ctxx)");
     valis method(tLbl(Nm,size(Args)),Tp,peep(Code::cons[assemOp]))
   }
   compDefn(vrDef(Lc,crId(Nm,Tp),Val),Glbs,Opts,Rp) => do{
@@ -150,13 +151,14 @@ star.compiler.gencode{
 
   compExp(crCnd(Lc,T,L,R),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
 --    logMsg("compile conditional $(crCnd(Lc,T,L,R)), stack = $(Stk)");
-    compCond(T,Opts,expCont(L,Opts,Cont),expCont(R,Opts,Cont),Ctx,Cde,Stk,Rp)
+    CtxC .= ptnVars(T,Ctx);
+    compCond(T,Opts,expCont(L,Opts,Cont),expCont(R,Opts,Cont),CtxC,Cde,Stk,Rp)
   }
   compExp(C,Opts,Cont,Ctx,Cde,Stk,Rp) where isCrCond(C) => do{
     OS .= onceCont(locOf(C),Cont);
 --    logMsg("created once for $(locOf(C))");
-    compCond(C,Opts,bothCont(litCont(enum(tLbl("star.core$true",0)),boolType),OS),
-      bothCont(litCont(enum(tLbl("star.core$false",0)),boolType),OS),Ctx,Cde,Stk,Rp).
+    compCond(C,Opts,bothCont(litCont(enum(tLbl("star.core#true",0)),boolType),OS),
+      bothCont(litCont(enum(tLbl("star.core#false",0)),boolType),OS),Ctx,Cde,Stk,Rp).
   }
 
   -- Expressions are evaluated in reverse order
@@ -274,7 +276,8 @@ star.compiler.gencode{
 --    logMsg("compile conditional $(crCnd(Lc,T,L,R)), stack is $(Stk)");
     OS .= onceCont(Lc,Succ);
     OF .= onceCont(Lc,Fail);
-    compCond(T,Opts,condCont(L,Opts,OS,OF),condCont(R,Opts,OS,OF),Ctx,Cde,Stk,Rp)
+    CtxC .= ptnVars(T,Ctx);
+    compCond(T,Opts,condCont(L,Opts,OS,OF),condCont(R,Opts,OS,OF),CtxC,Cde,Stk,Rp)
   }
   compCond(crMatch(Lc,Ptn,Exp),Opts,Succ,Fail,Ctx,Cde,Stk,Rp) => do{
 --    logMsg("compile match $(crMatch(Lc,Ptn,Exp)), stack = $(Stk)");
@@ -556,7 +559,7 @@ star.compiler.gencode{
 
   ptnVars:(crExp,codeCtx) => codeCtx.
   ptnVars(crVar(_,crId(Nm,Tp)),codeCtx(Vars,CLc,Count,Lb)) where _ ^= Vars[Nm] => codeCtx(Vars,CLc,Count,Lb).
-  ptnVars(crVar(_,crId(Nm,Tp)),codeCtx(Vars,CLc,Count,Lb)) => codeCtx(Vars[Nm->lclVar(Count,Tp)],CLc,Count+1,Lb).
+  ptnVars(crVar(_,crId(Nm,Tp)),codeCtx(Vars,CLc,Count,Lb)) => codeCtx(Vars[Nm->lclVar(Count+1,Tp)],CLc,Count+1,Lb).
   ptnVars(crInt(_,_),Ctx) => Ctx.
   ptnVars(crFlot(_,_),Ctx) => Ctx.
   ptnVars(crStrg(_,_),Ctx) => Ctx.
@@ -589,7 +592,8 @@ star.compiler.gencode{
   mergeCtx(codeCtx(LV,_,_,Lb1),codeCtx(RV,_,_,Lb2),Base) => let{
     mergeVar:(string,srcLoc,codeCtx) => codeCtx.
     mergeVar(Nm,_,Vrs) where _ ^= locateVar(Nm,Base) => Vrs.
-    mergeVar(Nm,_,codeCtx(Vs,Lc,Count,_)) where lclVar(_,Tp) ^= RV[Nm] => codeCtx(Vs[Nm->lclVar(Count,Tp)],Lc,Count+1,max(Lb1,Lb2)).
+    mergeVar(Nm,_,codeCtx(Vs,Lc,Count,_)) where lclVar(_,Tp) ^= RV[Nm] => codeCtx(Vs[Nm->lclVar(Count+1,Tp)],Lc,Count+1,max(Lb1,Lb2)).
+    mergeVar(Nm,lclVar(_,Tp),codeCtx(Vs,Lc,Count,_)) => codeCtx(Vs[Nm->lclVar(Count+1,Tp)],Lc,Count+1,max(Lb1,Lb2)).
   } in ixRight(mergeVar,Base,LV).
 
   drop:all x,e ~~ stream[x->>e] |: (x,integer)=>x.
