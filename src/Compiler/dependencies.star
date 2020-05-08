@@ -86,11 +86,13 @@ star.compiler.dependencies{
       Spec ^= isOpen(A) => either((Stmts,Defs,Pb,As,[A,..Opn])).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
       (Lc,V,T) ^= isTypeAnnotation(A) => do{
+--	logMsg("examinine type annotation $(V) : $(T)");
 	-- special handling for private; because its priority is low
 	if (_,Vr) ^= isPrivate(V) then{
 	  collectDefinition(typeAnnotation(Lc,Vr,T),Stmts,Defs,Pb,As,Opn,.priVate,Rp)
 	} else if(ILc,Id) ^= isName(V) then{
-	  if _ ^= isConstructorType(T) then {
+--	  logMsg("name of variable $(Id)");
+	  if isConstructorStmt(T) then {
 	    valis (Stmts,[defnSpec(cnsSp(Id),Lc,[T]),..Defs],
 	      [(cnsSp(Id),Vz),..Pb],[(Id,T),..As],Opn)
 	  }
@@ -117,12 +119,6 @@ star.compiler.dependencies{
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
       (Lc,_,_,L,R) ^= isTypeFunStmt(A) && Sp .= tpSp(typeName(L)) =>
     either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn)).
-  collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
-      (Lc,Q,Cx,H,R) ^= isAlgebraicTypeStmt(A) => do{
-	_ <- makeAlgebraic(Lc,Q,Cx,H,R,Rp);
-	(Dfs1,Pb1,As1) <- reformAlgebraic(Lc,Q,Cx,H,R,Defs,Pb,As,Vz,Rp);
-	valis (Stmts,Dfs1,Pb1,As1,Opn)
-      }.
   collectDefinition(A,Ss,Defs,Pb,As,Opn,Vz,Rp) where
       (Lc,Nm,Rhs) ^= isDefn(A) && (_,Id) ^= isName(Nm) => do{
 	Sp .= varSp(Id);
@@ -225,7 +221,7 @@ star.compiler.dependencies{
 	collectTypeRefs(R,A0,Rf1,Rp)
       }.
   collectStmtRefs(A,All,Annots,Rf,Rp) where
-      (_,Q,Cx,H,R) ^= isAlgebraicTypeStmt(A) => do{
+      (_,_,Q,Cx,H,R) ^= isAlgebraicTypeStmt(A,.deFault) => do{
 	A0 .= filterOut(All,Q);
 	Rf0 <- collectConstraintRefs(Cx,A0,Rf,Rp);
 	collectTypeRefs(R,A0,Rf0,Rp)
