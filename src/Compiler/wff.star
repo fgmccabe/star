@@ -179,54 +179,23 @@ star.compiler.wff{
     some((Lc,Q,[],T,I)).
   isTypeFunStmt(A) default => .none.
 
-  public isAlgebraicTypeStmt:(ast) => option[(locn,cons[ast],cons[ast],ast,ast)].
-  isAlgebraicTypeStmt(A) where
+  public isAlgebraicTypeStmt:(ast,visibility) =>
+    option[(locn,visibility,cons[ast],cons[ast],ast,ast)].
+  isAlgebraicTypeStmt(A,Vz) where
       (Lc,Q,I) ^= isQuantified(A) &&
-      (_,_,Cx,L,R) ^= isAlgebraicTypeStmt(I) => some((Lc,Q,Cx,L,R)).
-  isAlgebraicTypeStmt(A) where
+      (_,Viz,_,Cx,L,R) ^= isAlgebraicTypeStmt(I,Vz) => some((Lc,Viz,Q,Cx,L,R)).
+  isAlgebraicTypeStmt(A,Vz) where
       (Lc,C,I) ^= isBinary(A,"|:") &&
-      (_,Q,_,L,R) ^= isAlgebraicTypeStmt(I) => some((Lc,Q,deComma(C),L,R)).
-  isAlgebraicTypeStmt(A) where
+      (_,Viz,Q,_,L,R) ^= isAlgebraicTypeStmt(I,Vz) => some((Lc,Viz,Q,deComma(C),L,R)).
+  isAlgebraicTypeStmt(A,Vz) where
       (Lc,H,I) ^= isBinary(A,"::=") &&
       (Q,T) .= getQuantifiers(H) =>
-    some((Lc,Q,[],T,I)).
-  isAlgebraicTypeStmt(A) default => .none.
-
-  public reformAlgebraic:(locn,cons[ast],cons[ast],ast,ast,
-    cons[defnSpec],
-    cons[(defnSp,visibility)],
-    cons[(string,ast)],visibility,reports) =>
-    either[reports,(cons[defnSpec],
-	cons[(defnSp,visibility)],cons[(string,ast)])].
-  reformAlgebraic(Lc,Q,Cx,H,R,Defs,Pb,As,Vz,Rp) => do{
-    Nm .= typeName(H);
-    Face <- algebraicFace(R,Rp);
-    ExTp .= reUQuant(Q,reConstrain(Cx,binary(Lc,"<~",H,Face)));
-    Spec .= tpSp(Nm);
-    buildConstructors(R,Q,Cx,H,[defnSpec(Spec,Lc,[ExTp]),..Defs],[(Spec,Vz),..Pb],As,Vz,Rp)
-  }
-
-  algebraicFace:(ast,reports) => either[reports,ast].
-  algebraicFace(A,Rp) where (_,L,R) ^= isBinary(A,"|") => do{
-    Lhs <- algebraicFace(L,Rp);
-    Rhs <- algebraicFace(R,Rp);
-    combineFaces(Lhs,Rhs,Rp)
-  }
-  algebraicFace(A,Rp) where (Lc,_,_) ^= isRoundTerm(A) => either(brTuple(Lc,[])).
-  algebraicFace(A,Rp) where (Lc,_) ^= isEnum(A) => either(brTuple(Lc,[])).
-  algebraicFace(A,Rp) where (Lc,_,Els) ^= isBrTerm(A) => either(brTuple(Lc,Els)).
-  algebraicFace(A,Rp) where (_,I) ^= isPrivate(A) => algebraicFace(I,Rp).
-  algebraicFace(A,Rp) where (_,I) ^= isPublic(A) => algebraicFace(I,Rp).
-  algebraicFace(A,Rp) where (_,_,I) ^= isXQuantified(A) => algebraicFace(I,Rp).
-  algebraicFace(A,Rp) where (_,_,I) ^= isQuantified(A) => algebraicFace(I,Rp).
-  algebraicFace(A,Rp) where (_,_,I) ^= isConstrained(A) => algebraicFace(I,Rp).
-  algebraicFace(A,Rp) where (Lc,_,_) ^= isFunctionType(A) => either(brTuple(Lc,[])).
-  algebraicFace(A,Rp) where (Lc,_,_) ^= isConstructorType(A) => either(brTuple(Lc,[])).
-
-  combineFaces(F1,F2,Rp) where (_,[]) ^= isBrTuple(F1) => either(F2).
-  combineFaces(F1,F2,Rp) where (_,[]) ^= isBrTuple(F2) => either(F1).
-  combineFaces(F1,F2,Rp) => other(reportError(Rp,"only one record constructor allowed",
-      locOf(F1))).
+    some((Lc,Vz,Q,[],T,I)).
+  isAlgebraicTypeStmt(A,Vz) where (_,I) ^= isPrivate(A) =>
+    isAlgebraicTypeStmt(I,.priVate).
+  isAlgebraicTypeStmt(A,Vz) where (_,I) ^= isPublic(A) =>
+    isAlgebraicTypeStmt(I,.pUblic).
+  isAlgebraicTypeStmt(A,_) default => .none.
 
   public isLetDef:(ast) => option[(locn,cons[ast],ast)].
   isLetDef(A) where (Lc,Lh,Rh) ^= isBinary(A,"in") &&
@@ -295,75 +264,6 @@ star.compiler.wff{
   isSearch(A) where (Lc,P,G) ^= isBinary(A,"in") && ! app(_,nme(_,"let"),Body) .= P => some((Lc,P,G)).
   isSearch(_) default => .none.
 
-  buildConstructors:(ast,
-    cons[ast],cons[ast],ast,
-    cons[defnSpec],
-    cons[(defnSp,visibility)],
-    cons[(string,ast)],
-    visibility,
-    reports
-  ) => either[reports,(cons[defnSpec],
-      cons[(defnSp,visibility)],cons[(string,ast)])].
-  buildConstructors(A,Qs,Cx,Tp,Defs,Pb,As,Vz,Rp) where
-      (Lc,L,R) ^= isBinary(A,"|") => do{
-	(Dfs1,Pb1,As1) <- buildConstructors(L,Qs,Cx,Tp,Defs,Pb,As,Vz,Rp);
-	(Dfs2,Pb2,As2) <- buildConstructors(R,Qs,Cx,Tp,Dfs1,Pb1,As1,Vz,Rp);
-	valis (Dfs2,Pb2,As2)
-      }.
-  buildConstructors(A,Qs,Cx,Tp,Defs,Pb,As,Vz,Rp) where
-      (Lc,Nm,XQs,XCx,Els) ^= isBraceCon(A) => let{
-	Con = reUQuant(Qs,
-	  reConstrain(Cx,
-	    binary(Lc,"<=>",reXQuant(XQs,
-		reConstrain(XCx,brTuple(Lc,Els))),Tp))).
-	Sp = cnsSp(Nm).
-	Def = defnSpec(Sp,Lc,[Con]).
-      } in either(([Def,..Defs],[(Sp,Vz),..Pb],[(Nm,Con),..As])).
-  buildConstructors(A,Qs,Cx,Tp,Defs,Pb,As,Vz,Rp) where
-      (Lc,Nm,XQs,XCx,Els) ^= isRoundCon(A) => let{
-	Con = reUQuant(Qs,
-	  reConstrain(Cx,
-	    binary(Lc,"<=>",rndTuple(Lc,Els),Tp))).
-	Sp = cnsSp(Nm).
-	Def = defnSpec(Sp,Lc,[Con]).
-      } in either(([Def,..Defs],[(Sp,Vz),..Pb],[(Nm,Con),..As])).
-  buildConstructors(A,Qs,Cx,Tp,Defs,Pb,As,Vz,Rp) where
-      (Lc,Nm) ^= isEnumSymb(A) => let{
-	Con = reUQuant(Qs,
-	  reConstrain(Cx,
-	    binary(Lc,"<=>",rndTuple(Lc,[]),Tp))).
-	Sp = cnsSp(Nm).
-	Def = defnSpec(Sp,Lc,[Con]).
-      } in either(([Def,..Defs],[(Sp,Vz),..Pb],[(Nm,Con),..As])).
-  buildConstructors(A,Qs,Cx,Tp,Defs,Pb,As,_,Rp) where
-      (_,I) ^= isPrivate(A) => 
-    buildConstructors(I,Qs,Cx,Tp,Defs,Pb,As,.priVate,Rp).
-  buildConstructors(A,Qs,Cx,Tp,Defs,Pb,As,_,Rp) where
-      (_,I) ^= isPublic(A) => 
-    buildConstructors(I,Qs,Cx,Tp,Defs,Pb,As,.pUblic,Rp).
-  buildConstructors(A,Qs,Cx,Tp,Defs,Pb,As,Vz,Rp) =>
-    other(reportError(Rp,"cannot fathom constructor $(A)",locOf(A))).
-    
-  isBraceCon:(ast) => option[(locn,string,cons[ast],cons[ast],cons[ast])].
-  isBraceCon(A) => isCon(A,isBrTerm).
-
-  isRoundCon:(ast) => option[(locn,string,cons[ast],cons[ast],cons[ast])].
-  isRoundCon(A) => isCon(A,isRoundTerm).
-
-  isCon:(ast,(ast)=>option[(locn,ast,cons[ast])]) => option[(locn,string,cons[ast],cons[ast],cons[ast])].
-  isCon(A,P) where
-      (Lc,Nm,Els) ^= P(A) && (_,Id) ^= isName(Nm) => some((Lc,Id,[],[],Els)).
-  isCon(A,P) where
-      (Lc,Q,I) ^= isXQuantified(A) &&
-      (_,Nm,_,Cx,Els) ^= isCon(I,P) =>
-    some((Lc,Nm,Q,Cx,Els)).
-  isCon(A,P) where
-      (Lc,Cx,I) ^= isConstrained(A) &&
-      (_,Nm,Q,_,Els) ^= isCon(I,P) =>
-    some((Lc,Nm,Q,Cx,Els)).
-  isCon(_,_) default => .none.
-    
-  
   getQuantifiers(T) where
       (_,Q,I) ^= isQuantified(T) => (Q,I).
   getQuantifiers(T) where

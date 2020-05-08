@@ -36,9 +36,12 @@ star.compiler.checker{
 --      logMsg("pkg env after imports $(PkgEnv)");
       
       PkgNm .= packageName(Pkg);
+      MStmts <- macroStmts(Stmts,Rp);
+--      logMsg("macrod statements $(MStmts)");
       -- We treat a package specially, buts its essentially a theta record
-      (Vis,Opens,Annots,Gps) <- dependencies(Stmts,Rp);
+      (Vis,Opens,Annots,Gps) <- dependencies(MStmts,Rp);
 --      logMsg("Package $(Pkg), groups: $(Gps)");
+--      logMsg("Annotations $(Annots)");
 
       TEnv <- checkTypeGroups(Gps,PkgEnv,PkgNm,Rp);
       
@@ -128,7 +131,8 @@ star.compiler.checker{
   thetaEnv:(locn,string,cons[ast],tipe,dict,reports,visibility) =>
     either[reports,(cons[cons[canonDef]],dict,tipe)].
   thetaEnv(Lc,Pth,Els,Face,Env,Rp,DefViz) => do{
-    (Vis,Opens,Annots,Gps) <- dependencies(Els,Rp);
+    Stmts <- macroStmts(Els,Rp);
+    (Vis,Opens,Annots,Gps) <- dependencies(Stmts,Rp);
 --    logMsg("pushing face $(Face)");
     Base .= pushFace(Face,Lc,Env);
 --    logMsg("theta groups: $(Gps)");
@@ -147,8 +151,8 @@ star.compiler.checker{
     either[reports,(cons[canonDef],dict,tipe)].
   recordEnv(Lc,Pth,Els,Face,Env,Rp,DefViz) => do{
 --    logMsg("check record $(Els)");
-
-    (Vis,Opens,Annots,G) <- recordDefs(Els,Rp);
+    Stmts <- macroStmts(Els,Rp);
+    (Vis,Opens,Annots,G) <- recordDefs(Stmts,Rp);
 --    logMsg("annotations: $(Annots)");
     TmpEnv <- parseAnnotations(G,Face,Annots,Env,Rp);
     
