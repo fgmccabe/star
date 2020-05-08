@@ -33,7 +33,7 @@ logical isNormalPo(termPo t) {
   return hasClass((termPo) t->clss, labelClass);
 }
 
-logical hasLabel(normalPo n,char *name,integer arity){
+logical hasLabel(normalPo n, char *name, integer arity) {
   return isLabel(n->lbl, name, arity);
 }
 
@@ -93,7 +93,8 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
     if (isRecordLabel(lbl)) {
       FieldInfoRec Info = {.out = out, .depth=depth, .precision=precision, .alt=alt, .trm=nml};
       integer arity = labelArity(lbl);
-      retCode ret = outMsg(out,"%Q",labelName(lbl));
+
+      retCode ret = outMsg(out, "%Q", labelName(lbl));
       char *sep = "";
       if (ret == Ok)
         ret = outStr(out, "{ ");

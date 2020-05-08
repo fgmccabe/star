@@ -478,26 +478,25 @@ retCode initHistory(char *filename) {
   historyFileName = filename;
   history = vector(0);
 
-  // atexit(saveHistory);
+   atexit(saveHistory);
 
-//  ioPo historyFile = openInFile(historyFileName, utf8Encoding);
-//  if (historyFile != Null) {
-//    bufferPo lineBuffer = newStringBuffer();
-//
-//    retCode ret = Ok;
-//    while (ret == Ok && isFileAtEof(historyFile) != Eof) {
-//      ret = inLine(historyFile, lineBuffer, "\n");
-//      if (ret == Ok) {
-//        if (!isTrivialBuffer(lineBuffer))
-//          addLineToHistory(lineBuffer);
-//      }
-//    }
-//    closeFile(historyFile);
-//    closeFile(O_IO(lineBuffer));
-//    return ret;
-//  } else
+  ioPo historyFile = openInFile(historyFileName, utf8Encoding);
+  if (historyFile != Null) {
+    bufferPo lineBuffer = newStringBuffer();
+
+    retCode ret = Ok;
+    while (ret == Ok && isFileAtEof(historyFile) != Eof) {
+      ret = inLine(historyFile, lineBuffer, "\n");
+      if (ret == Ok) {
+        if (!isTrivialBuffer(lineBuffer))
+          addLineToHistory(lineBuffer);
+      }
+    }
+    closeFile(historyFile);
+    closeFile(O_IO(lineBuffer));
+    return ret;
+  } else
     return Ok;
-
 }
 
 /* Save history in the history file. */
@@ -506,7 +505,7 @@ void saveHistory() {
     ioPo historyFile = newOutFile(historyFileName, utf8Encoding);
     for (integer ix = 0; ix < vectLength(history); ix++) {
       strgPo line = O_STRG(getVectEl(history, ix));
-      outMsg(historyFile, "%Q\n", line);
+      outMsg(historyFile, "%U\n", line);
     }
 
     closeFile(historyFile);

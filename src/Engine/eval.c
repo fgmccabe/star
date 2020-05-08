@@ -81,25 +81,26 @@ retCode run(processPo P) {
       }
       case Call: {
         termPo nProg = nthArg(LITS, collectI32(PC));
+        methodPo NPROG = labelCode(C_LBL(nProg));   // Which program do we want?
 
-        push(PROG);
-        PROG = labelCode(C_LBL(nProg));   // Which program do we want?
-        push(PC);       // Set up for a return
-        PC = entryPoint(PROG);
-        LITS = codeLits(PROG);
-
-        push(FP);
-        FP = (framePo) SP;     /* set the new frame pointer */
-
-        if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
+        if (SP - stackDelta(NPROG) <= (ptrPo) P->stackBase) {
           saveRegisters(P, SP);
-          if (extendStack(P, 2, stackDelta(PROG)) != Ok) {
+          if (extendStack(P, 2, stackDelta(NPROG)) != Ok) {
             logMsg(logFile, "cannot extend stack");
             bail();
           }
           restoreRegisters(P);
         }
         assert(SP - stackDelta(PROG) > (ptrPo) P->stackBase);
+
+        push(PROG);
+        PROG = NPROG;
+        push(PC);       // Set up for a return
+        PC = entryPoint(PROG);
+        LITS = codeLits(PROG);
+
+        push(FP);
+        FP = (framePo) SP;     /* set the new frame pointer */
 
         integer lclCnt = lclCount(PROG);  /* How many locals do we have */
         SP -= lclCnt;
@@ -128,7 +129,7 @@ retCode run(processPo P) {
 
         if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
           saveRegisters(P, SP);
-          if (extendStack(P, 2, 0) != Ok) {
+          if (extendStack(P, 2, stackDelta(PROG)) != Ok) {
             logMsg(logFile, "cannot extend stack");
             bail();
           }

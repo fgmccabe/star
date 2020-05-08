@@ -12,6 +12,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <stringBuffer.h>
+#include <assert.h>
 
 static retCode outString(ioPo f, char *str, integer len, long width, integer precision,
                          codePoint pad, logical leftPad);
@@ -339,7 +340,7 @@ formatDigits(logical isSigned, const char *digits, int64 precision, const char *
                 attachChar(out, pos, outLen, ' ');
               }
               break;
-            case '+':{
+            case '+': {
               if (isSigned) {
                 attachChar(out, pos, outLen, '-');
                 isSigned = False;
@@ -705,6 +706,7 @@ static void initMsgProcs(void) {
 
 void installMsgProc(codePoint key, fileMsgProc proc) {
   initMsgProcs();
+  assert(key>0 && key<NumberOf(procs) && procs[key] == Null);
   procs[(unsigned int) key] = proc;
 }
 
@@ -792,9 +794,9 @@ retCode __voutMsg(ioPo f, char *format, va_list args) {
             break;
         }
 
-        if (procs[fcp] != NULL) {
+        if (procs[fcp & 0xff] != NULL) {
           void *data = va_arg(args, void*); /* pick up a special value */
-          ret = procs[((unsigned int) fcp)&0xffu](f, data, depth, precision, alternate);
+          ret = procs[((unsigned int) fcp) & 0xffu](f, data, depth, precision, alternate);
         } else
           switch (fcp) {
             case '_':

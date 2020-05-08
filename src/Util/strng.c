@@ -43,7 +43,7 @@ void strgInit(objectPo o, va_list *args) {
   s->s.len = len;
   s->s.txt = uniDupl(txt, len);
 
-  installMsgProc('Q', showStrg);
+  installMsgProc('U', showStrg);
 }
 
 void strgDestroy(objectPo o) {

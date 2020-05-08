@@ -328,8 +328,7 @@ ReturnStatus g__isdir(processPo P, ptrPo tos) {
   retCode present = isDirectory(acFn);
   setProcessRunnable(P);
 
-  return (ReturnStatus) {.ret=Ok,
-    .result = present == Ok ? trueEnum : falseEnum};
+  return (ReturnStatus) {.ret=Ok, .result = present == Ok ? trueEnum : falseEnum};
 }
 
 /*

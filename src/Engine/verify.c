@@ -544,7 +544,7 @@ static retCode checkOperand(segPo seg, integer oPc, integer *pc, opAndSpec A, ch
         seg->seg.locals[lclVr].read = False;
         return Ok;
       } else {
-        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid local var number %d @ %d" RED_ESC_OFF, lclVr + 1, *pc);
+        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid local var target %d @ %d" RED_ESC_OFF, lclVr + 1, *pc);
         return Error;
       }
     }
