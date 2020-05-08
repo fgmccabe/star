@@ -131,15 +131,7 @@ static retCode markLabel(void *n, void *r, void *c) {
 
   if (lbl->mtd != Null)
     lbl->mtd = (methodPo) markPtr(G, (ptrPo) &lbl->mtd);
-
-  if (lbl->fields != Null) {
-    fieldTblPo fields = lbl->fields;
-    for (integer ix = 0; ix < fields->size; ix++) {
-      fieldPo fld = &fields->entries[ix];
-      if (fld->lbl != Null)
-        markLabel(Null, fld->lbl, c);
-    }
-  }
+  
   return Ok;
 }
 

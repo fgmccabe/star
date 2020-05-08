@@ -351,9 +351,13 @@ static DebugWaitFor dbgQuit(char *line, processPo p, termPo loc, insWord ins, vo
 
 static DebugWaitFor dbgTrace(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   p->tracing = True;
+  p->traceCount = cmdCount(line, 0);
 
   resetDeflt("n");
-  return nextBreak;
+  if (p->traceCount != 0)
+    return stepInto;
+  else
+    return nextBreak;
 }
 
 static DebugWaitFor dbgCont(char *line, processPo p, termPo loc, insWord ins, void *cl) {
@@ -711,12 +715,14 @@ static DebugWaitFor dbgDropFrame(char *line, processPo p, termPo loc, insWord in
 
 static logical shouldWeStopIns(processPo p, insWord ins) {
   if (focus == NULL || focus == p) {
+#ifdef TRACE_DBG
     if (debugDebugging) {
       outMsg(logFile, "debug: traceDepth=%d, traceCount=%d, tracing=%s, ins: ", p->traceDepth, p->traceCount,
              (p->tracing ? "yes" : "no"));
       disass(logFile, p->prog, p->pc, p->fp, p->sp);
       outMsg(logFile, "\n%_");
     }
+#endif
     switch (p->waitFor) {
       case stepInto:
         if (p->traceCount > 0)

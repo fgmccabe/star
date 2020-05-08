@@ -44,7 +44,7 @@ ReturnStatus g__str_lt(processPo p, ptrPo tos) {
       return (ReturnStatus) {.ret=Ok, .result=falseEnum};
     }
   }
-  if (li < llen) { // There is more on the right, so the left counts as being smaller
+  if (ri < rlen) { // There is more on the right, so the left counts as being smaller
     return (ReturnStatus) {.ret=Ok, .result=trueEnum};
   } else {
     return (ReturnStatus) {.ret=Ok, .result=falseEnum};
@@ -73,7 +73,7 @@ ReturnStatus g__str_ge(processPo p, ptrPo tos) {
       return (ReturnStatus) {.ret=Ok, .result=trueEnum};
     }
   }
-  if (ri <= rlen) { // There is more on the right, so it counts as being bigger
+  if (li <= llen) { // There is more on the left, so it counts as being bigger
     return (ReturnStatus) {.ret=Ok, .result=trueEnum};
   } else {
     return (ReturnStatus) {.ret=Ok, .result=falseEnum};
