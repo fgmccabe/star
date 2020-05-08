@@ -5,14 +5,6 @@ rdf.graph{
   public triple ::=  triple(concept,concept,concept).
   public graph <~ {}.
 
-  contract all t,e ~~ '$name'[t->>e] ::= {
-    '$name':(t)=>e
-  }
-
-  implementation '$name'[graph->>concept] => {.
-    '$name'(graph(_,Nm,_,_,_,_)) => Nm
-  .}
-
   graph:(
     integer,
     concept,

@@ -19,8 +19,9 @@ simple concept:
 @quotation Note
 A @emph{category} is a directed graph, whose nodes are called
 @emph{objects} and whose edges are called @emph{arrows} or
-@emph{morphisms}. There are two critical properties that a category
-must have:
+@emph{morphisms}.
+
+There are two critical properties that a category must have:
 @itemize
 @item
 An identity arrow for each object, and
@@ -30,10 +31,10 @@ arrows are associative (i.e., composable)
 @end quotation
 
 What, one may ask, has this to do with programming? Well, the
-definition of a category turns out to be one of the simplest
-structures that is composable; and that simplicity allows many actual
-architectural features to be viewed through the categorical (sic)
-lens.
+definition of a category turns out to be one of the (perhaps
+@emph{the}) simplest structures that is composable; and that
+simplicity allows many actual architectural features to be viewed
+through the categorical (sic) lens.
 
 In this chapter we look at two structures that are good for expressing
 compositions -- monads and executions. Monads are a familiar tool in
