@@ -96,6 +96,7 @@
   operator("^", [prefixOp(100, 99), infixOp(99, 100, 99)]).
   operator("<=>", [infixOp(949, 950, 949)]).
   operator("valof", [prefixOp(300, 299)]).
+  operator("until", [infixOp(1174, 1175, 1174)]).
   operator("while", [prefixOp(1175, 1174)]).
   operator("private", [prefixOp(1200, 1199)]).
   operator("•", [infixOp(450, 450, 449)]).
@@ -357,6 +358,7 @@
   keyword("^").
   keyword("<=>").
   keyword("valof").
+  keyword("until").
   keyword("while").
   keyword("private").
   keyword("::").

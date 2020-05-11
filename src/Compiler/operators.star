@@ -120,6 +120,7 @@ star.compiler.operators{
   oper("^") => [prefixOp(100,99,.noGen), infixOp(99,100,99,.noGen)].
   oper("<=>") => [infixOp(949,950,949,.noGen)].
   oper("valof") => [prefixOp(300,299,.noGen)].
+  oper("until") => [infixOp(1174,1175,1174,.noGen)].
   oper("while") => [prefixOp(1175,1174,.noGen)].
   oper("private") => [prefixOp(1200,1199,.noGen)].
   oper("•") => [infixOp(450,450,449,.noGen)].
@@ -406,6 +407,7 @@ star.compiler.operators{
   keyword("^") => .true.
   keyword("<=>") => .true.
   keyword("valof") => .true.
+  keyword("until") => .true.
   keyword("while") => .true.
   keyword("private") => .true.
   keyword("::") => .true.
