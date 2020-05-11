@@ -15,6 +15,7 @@
 #include "labelsP.h"
 #include "verifyP.h"
 #include "globalsP.h"
+#include "debug.h"
 
 tracingLevel tracePkg = noTracing;
 

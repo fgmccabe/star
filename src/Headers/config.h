@@ -4,9 +4,6 @@
 /* Enable tracing insDebugging code to be compiled */
 #define ALLTRACE /**/
 
-/* Define "+" prefix to make getopt posixly compliant (non-permuting) */
-#define GNU_GETOPT_NOPERMUTE ""
-
 /* Define to 1 if you have the `getdtablesize' function. */
 #define HAVE_GETDTABLESIZE 1
 

@@ -66,10 +66,6 @@ labelPo findLbl(const char *name, integer arity) {
   return hashGet(labels, &tst);
 }
 
-labelPo findLbls(const char *name) {
-  return Null;
-}
-
 void declareFields(labelPo lbl, fieldTblPo tbl) {
   lbl->fields = tbl;
 }
@@ -114,7 +110,7 @@ retCode labelDel(labelPo lbl, labelPo l) {
 }
 
 labelPo C_LBL(termPo t) {
-  assert(hasClass(t, labelClass));
+  assert(isLabelPo(t));
 
   return (labelPo) t;
 }
@@ -127,11 +123,9 @@ static retCode markLabel(void *n, void *r, void *c) {
   labelPo lbl = (labelPo) r;
   gcSupportPo G = (gcSupportPo) c;
 
-  // outMsg(logFile,"Marking label %T\n%_",lbl);
-
   if (lbl->mtd != Null)
     lbl->mtd = (methodPo) markPtr(G, (ptrPo) &lbl->mtd);
-  
+
   return Ok;
 }
 
@@ -320,4 +314,3 @@ retCode showFields(ioPo out, fieldTblPo tbl) {
   }
   return ret;
 }
-

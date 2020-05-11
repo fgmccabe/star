@@ -6,12 +6,7 @@
 #define STAR_DEBUG_H
 
 #include "engine.h"
-
-termPo getLbl(termPo lbl, int32 arity);
-
-DebugWaitFor insDebug(processPo p, insWord ins);
-DebugWaitFor lineDebug(processPo p, termPo line);
-DebugWaitFor enterDebug(processPo p);
+#include "code.h"
 
 retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt);
 
@@ -20,8 +15,6 @@ void countIns(insWord ins);
 void dumpInsCount();
 void dumpInsStats();
 
-void stackTrace(processPo p, ioPo out, logical showStack);
-void dumpStackTrace(processPo p, ioPo out);
 
 void showMethodCode(ioPo out, char *name, methodPo mtd);
 
