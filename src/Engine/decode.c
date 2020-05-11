@@ -11,6 +11,7 @@
 #include "signature.h"
 #include "labelsP.h"
 #include "streamDecode.h"
+#include "debug.h"
 
 #ifdef TRACEDECODE
 tracingLevel traceDecode = noTracing;

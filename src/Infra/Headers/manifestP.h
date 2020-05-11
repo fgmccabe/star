@@ -7,6 +7,7 @@
 
 #include "manifest.h"
 #include "starOptions.h"
+#include "debug.h"
 
 typedef struct _manifest_entry_ {
   char package[MAX_SYMB_LEN];

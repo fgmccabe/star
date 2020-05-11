@@ -36,4 +36,12 @@ extern logical showPkgFile;       // True if we show file instead of package dur
 extern logical showColors;
 extern logical interactive;      /* interactive instruction tracing option */
 
+termPo getLbl(termPo lbl, int32 arity);
+
+DebugWaitFor insDebug(processPo p, insWord ins);
+DebugWaitFor lineDebug(processPo p, termPo line);
+DebugWaitFor enterDebug(processPo p);
+
+void stackTrace(processPo p, ioPo out, logical showStack);
+void dumpStackTrace(processPo p, ioPo out);
 #endif //STAR_DEBUGP_H

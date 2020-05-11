@@ -7,6 +7,7 @@
 
 #include "pkg.h"
 #include "starOptions.h"
+//#include "debugP.h"
 
 typedef struct _package_record_ {
   char packageName[MAX_SYMB_LEN];

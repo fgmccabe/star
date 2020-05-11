@@ -22,6 +22,7 @@
 typedef retCode (*fileMsgProc)(ioPo f,void *data,long depth,long precision,logical alt);
 
 void installMsgProc(codePoint key, fileMsgProc proc);
+void reinstallMsgProc(codePoint key, fileMsgProc proc);
 retCode __voutMsg(ioPo f, char *fmt, va_list args);
 
 #endif

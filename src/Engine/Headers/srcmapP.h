@@ -5,7 +5,7 @@
 #ifndef STAR_SRCMAPP_H
 #define STAR_SRCMAPP_H
 
-#include "srcMap.h"
+#include "srcmap.h"
 
 typedef struct _map_entry_ {
   packagePo pkg;

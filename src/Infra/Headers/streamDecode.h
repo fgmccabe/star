@@ -6,6 +6,7 @@
 #define STAR_STREAMDECODE_H
 
 #include "encoding.h"
+#include "starOptions.h"
 
 retCode skipEncoded(ioPo in, char *errorMsg, long msgLen);
 retCode decodeLbl(ioPo in, char *nm, long nmLen, integer *arity, char *errorMsg, integer msgLen);

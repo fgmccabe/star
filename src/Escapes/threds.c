@@ -8,7 +8,7 @@
 #include <errno.h>
 #include "threds.h"
 #include <globals.h>
-#include "debug.h"
+#include "debugP.h"
 
 static const char *state_names[] = {"star.thread#quiescent",
                                     "star.thread#runnable",
@@ -122,8 +122,8 @@ ReturnStatus g__abort(processPo P, ptrPo tos) {
   termPo msg = tos[1];
 
   logMsg(logFile, "Abort %T at %L", msg, lc);
-  verifyProc(P,processHeap(P));
-  dumpStackTrace(P,logFile);
+  verifyProc(P, processHeap(P));
+  dumpStackTrace(P, logFile);
 
   return (ReturnStatus) {.ret=Error, .result=(termPo) voidEnum};
 }

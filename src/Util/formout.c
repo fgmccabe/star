@@ -706,7 +706,12 @@ static void initMsgProcs(void) {
 
 void installMsgProc(codePoint key, fileMsgProc proc) {
   initMsgProcs();
-  assert(key>0 && key<NumberOf(procs) && procs[key] == Null);
+  assert(key > 0 && key < NumberOf(procs) && procs[key] == Null);
+  procs[(unsigned int) key] = proc;
+}
+
+void reinstallMsgProc(codePoint key, fileMsgProc proc) {
+  assert(key > 0 && key < NumberOf(procs));
   procs[(unsigned int) key] = proc;
 }
 

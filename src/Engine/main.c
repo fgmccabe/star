@@ -76,7 +76,6 @@ int main(int argc, char **argv) {
 
   /* IMPORTANT -- Keep the order of these set up calls */
 
-  // Set up repository directory
   installEscapes();
   initEngine();
 

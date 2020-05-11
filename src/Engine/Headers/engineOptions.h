@@ -8,6 +8,7 @@
 #include <pkgP.h>
 #include "config.h"
 #include "starOptions.h"
+#include "pkgP.h"
 
 #ifdef ALLTRACE
 #define TRACEMEM
@@ -38,5 +39,6 @@ extern char repoDir[MAXFILELEN];
 
 int getEngineOptions(int argc, char **argv);
 char *defltCWD();
+
 
 #endif
