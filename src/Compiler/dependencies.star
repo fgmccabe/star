@@ -86,12 +86,7 @@ star.compiler.dependencies{
       Spec ^= isOpen(A) => either((Stmts,Defs,Pb,As,[A,..Opn])).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
       (Lc,V,T) ^= isTypeAnnotation(A) => do{
---	logMsg("examinine type annotation $(V) : $(T)");
-	-- special handling for private; because its priority is low
-	if (_,Vr) ^= isPrivate(V) then{
-	  collectDefinition(typeAnnotation(Lc,Vr,T),Stmts,Defs,Pb,As,Opn,.priVate,Rp)
-	} else if(ILc,Id) ^= isName(V) then{
---	  logMsg("name of variable $(Id)");
+	if(ILc,Id) ^= isName(V) then{
 	  if isConstructorStmt(T) then {
 	    valis (Stmts,[defnSpec(cnsSp(Id),Lc,[T]),..Defs],
 	      [(cnsSp(Id),Vz),..Pb],[(Id,T),..As],Opn)
@@ -153,8 +148,8 @@ star.compiler.dependencies{
     cons[(string,ast)].
   generateAnnotations([],_,_,As) => As.
   generateAnnotations([A,..Ss],Qs,Cs,As) where
-      (_,V,T) ^= isTypeAnnotation(A) && (_,Id) ^= isName(V) =>
-    generateAnnotations(Ss,Qs,Cs,[(Id,reUQuant(Qs,reConstrain(Cs,T))),..As]).
+      (Lc,V,T) ^= isTypeAnnotation(A) && (_,Id) ^= isName(V) =>
+    generateAnnotations(Ss,Qs,Cs,[(Id,reUQuant(Lc,Qs,reConstrain(Cs,T))),..As]).
   generateAnnotations([A,..Ss],Qs,Cs,As) =>
     generateAnnotations(Ss,Qs,Cs,As).
 
@@ -221,7 +216,7 @@ star.compiler.dependencies{
 	collectTypeRefs(R,A0,Rf1,Rp)
       }.
   collectStmtRefs(A,All,Annots,Rf,Rp) where
-      (_,_,Q,Cx,H,R) ^= isAlgebraicTypeStmt(A,.deFault) => do{
+      (_,_,Q,Cx,H,R) ^= isAlgebraicTypeStmt(A) => do{
 	A0 .= filterOut(All,Q);
 	Rf0 <- collectConstraintRefs(Cx,A0,Rf,Rp);
 	collectTypeRefs(R,A0,Rf0,Rp)
@@ -336,7 +331,7 @@ star.compiler.dependencies{
   }
   collectTermRefs(T,All,Rf,Rp) where (_,Sts) ^= isTheta(T) =>
     collectStmtsRefs(Sts,All,[],Rf,Rp).
-  collectTermRefs(T,All,Rf,Rp) where (_,Sts) ^= isRecord(T) =>
+  collectTermRefs(T,All,Rf,Rp) where (_,Sts) ^= isQTheta(T) =>
     collectStmtsRefs(Sts,All,[],Rf,Rp).
   collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isMatch(T) => do{
     Rf1 <- collectTermRefs(L,All,Rf,Rp);

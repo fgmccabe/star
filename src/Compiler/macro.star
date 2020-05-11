@@ -10,19 +10,544 @@ star.compiler.macro{
   import star.compiler.meta.
   import star.compiler.wff.
 
-  public macroStmts:(cons[ast],reports)=>either[reports,cons[ast]].
-  macroStmts([],Rp)=>either([]).
-  macroStmts([S,..Ss],Rp) where (Lc,Vz,Q,Cx,H,R) ^= isAlgebraicTypeStmt(S,.deFault) => do{
---    logMsg("algebraic type def $(S)");
-    Defs <- makeAlgebraic(Lc,Vz,Q,Cx,H,R,Rp);
-    Rest <- macroStmts(Ss,Rp);
-    valis Defs++Rest
+  macroContext ::= .package
+    | .statement
+    | .expression
+    | .actn
+    | .pattern
+    | .typeterm
+    | .constraint.
+
+  implementation equality[macroContext] => {.
+    .package == .package => .true.
+    .statement == .statement => .true.
+    .expression == .expression => .true.
+    .actn == .actn => .true.
+    .pattern == .pattern => .true.
+    .typeterm == .typeterm => .true.
+    .constraint == .constraint => .true.
+    _ == _ default => .false
+  .}
+
+  implementation display[macroContext] => {.
+    disp(.package) => ss("package").
+    disp(.statement) => ss("statement").
+    disp(.expression) => ss("expression").
+    disp(.actn) => ss("action").
+    disp(.pattern) => ss("pattern").
+    disp(.typeterm) => ss("type").
+    disp(.constraint) => ss("constraint").
+  .}
+
+  subContext(.statement)=>.expression.
+  subContext(C) default => C.
+
+  macroRule ~> (ast,macroContext,reports) => either[reports,macroState].
+
+  macroState ::= .inactive | active(ast).
+
+  implementation display[macroState] => {.
+    disp(.inactive) => ss("inactive").
+    disp(active(A)) => ssSeq([ss("active "),disp(A)]).
+  .}
+
+  macroKey:(ast)=>string.
+  macroKey(nme(_,Id)) => Id.
+  macroKey(qnm(_,Id)) => Id.
+  macroKey(int(_,_)) => "$integer".
+  macroKey(num(_,_)) => "$number".
+  macroKey(str(_,_)) => "$string".
+  macroKey(tpl(_,_,[tpl(Lc,Lb,I)])) => macroKey(tpl(Lc,Lb,I)).
+  macroKey(tpl(_,K,_)) => K.
+  macroKey(app(_,O,_)) => macroKey(O).
+
+  macros:map[string,cons[(macroContext,macroRule)]].
+  macros = [ "::=" -> [(.statement,macroAlgebraic)],
+    "[]" -> [(.pattern,makeSeqPtn),
+      (.expression,macroListComprehension),
+      (.expression,makeSeqExp)],
+    "{}" -> [(.expression,macroComprehension)],
+    "do" -> [(.expression,macroDo)],
+    "action" -> [(.expression,macroAction)],
+    "task" -> [(.expression,taskAction)]].
+
+  applyRules:(ast,macroContext,macroState,cons[(macroContext,macroRule)],reports) =>
+    either[reports,macroState].
+  applyRules(A,_,St,[],_) => either(St).
+  applyRules(A,Cxt,St,[(Cxt,R),..Rls],Rp) => do{
+--    logMsg("apply $(Cxt) rule to $(A)");
+    Rslt <- R(A,Cxt,Rp);
+--    logMsg("result is $(Rslt)");
+    if .inactive.=Rslt then
+      applyRules(A,Cxt,St,Rls,Rp)
+    else
+    valis Rslt
   }
-  macroStmts([S,..Ss],Rp) => do{
-    Rest <- macroStmts(Ss,Rp);
-    valis [S,..Rest]
+  applyRules(A,Cxt,St,[_,..Rls],Rp) => 
+    applyRules(A,Cxt,St,Rls,Rp).
+
+  macroAst:(ast,macroContext,(ast,reports)=>either[reports,ast],reports) => either[reports,ast].
+  macroAst(A,Cxt,Examine,Rp) where Rules^=macros[macroKey(A)] => do{
+--    logMsg("type $(Cxt) rules for $(A), key=$(macroKey(A))");
+    Rslt <- applyRules(A,Cxt,.inactive,Rules,Rp);
+--    logMsg("result of applying macros to $(A) $(Rslt)");
+
+    if active(T).=Rslt then
+      macroAst(T,Cxt,Examine,Rp)
+    else
+    Examine(A,Rp)
   }
-    
+  macroAst(A,_,Examine,Rp) default => Examine(A,Rp).
+
+  public macroPkg:(ast,reports) => either[reports,ast].
+  macroPkg(A,Rp) => macroAst(A,.package,examinePkg,Rp).
+
+  examinePkg(A,Rp) where (Lc,O,Els) ^= isBrTerm(A) => do{
+    Ss <- macroStmts(Els,Rp);
+    valis mkLabeledTheta(Lc,O,buildMain(Ss))
+  }
+
+  macroStmts:(cons[ast],reports)=>either[reports,cons[ast]].
+  macroStmts(Ss,Rp) => do{
+    SS <- seqmap((S)=>macroStmt(S,Rp),Ss);
+    valis reverse(flattenStmts(SS,[]))
+  }
+
+  flattenStmts([],So) => So.
+  flattenStmts([A,..As],So) where (_,Els) ^= isBrTuple(A) =>
+    flattenStmts(As,flattenStmts(Els,So)).
+  flattenStmts([A,..As],So) => flattenStmts(As,[A,..So]).
+
+  disThroughGroup(A,F) where (ELc,Els) ^= isBrTuple(A) =>
+    brTuple(ELc,Els//F).
+  disThroughGroup(A,F) default => F(A).
+
+  macroStmt:(ast,reports) => either[reports,ast].
+  macroStmt(A,Rp) => macroAst(A,.statement,examineStmt,Rp).
+
+  examineStmt:(ast,reports) => either[reports,ast].
+  examineStmt(A,Rp) where (Lc,L,Vz,R) ^= isTypeAnnot(A) => do{
+--    logMsg("$(Vz) type annotation for $(L) : $(R)");
+    RR <- macroType(R,Rp);
+    valis reveal(typeAnnotation(Lc,nme(Lc,L),RR),Vz)
+  }
+  examineStmt(A,Rp) where (Lc,R) ^= isPublic(A) => do{
+    RR <- macroStmt(R,Rp);
+    valis disThroughGroup(RR,(E)=>unary(Lc,"public",E))
+  }
+  examineStmt(A,Rp) where (Lc,R) ^= isPrivate(A) => do{
+    RR <- macroStmt(R,Rp);
+    valis disThroughGroup(RR,(E)=>unary(Lc,"private",E))
+  }
+  examineStmt(A,Rp) where _ ^= isImport(A) =>
+    either(A).
+  examineStmt(A,Rp) where _ ^= isOpen(A) =>
+    either(A).
+  examineStmt(A,Rp) where (Lc,L,R) ^= isDefn(A) => do{
+    LL <- macroPtn(L,Rp);
+    RR <- macroTerm(R,Rp);
+    valis mkDefn(Lc,LL,RR)
+  }
+  examineStmt(A,Rp) where (Lc,L,R) ^= isAssignment(A) => do{
+    LL <- macroPtn(L,Rp);
+    RR <- macroTerm(R,Rp);
+    valis mkAssignment(Lc,LL,RR)
+  }
+  examineStmt(A,Rp) where (Lc,Nm,Deflt,L,C,R) ^= isEquation(A) => do{
+--    logMsg("look at $(A)");
+    LL <- macroPtn(L,Rp);
+    CC <- macroOpt(C,macroCond,Rp);
+    RR <- macroTerm(R,Rp);
+    valis mkEquation(Lc,Nm,Deflt,LL,CC,RR)
+  }
+  examineStmt(A,Rp) where isConstructorStmt(A) =>
+    macroType(A,Rp).
+  examineStmt(A,Rp) where _ ^= isTypeExistsStmt(A) =>
+    macroType(A,Rp).
+  examineStmt(A,Rp) where _ ^= isTypeFunStmt(A) =>
+    macroType(A,Rp).
+  examineStmt(A,Rp) where (Lc,L,Els) ^= isContractStmt(A) => do{
+    LT <- macroType(L,Rp);
+    REls <- macroStmts(Els,Rp);
+    valis mkContractStmt(Lc,LT,REls)
+  }
+  examineStmt(A,Rp) where (Lc,Q,Cx,Tp,Exp) ^= isImplementationStmt(A) => do{
+    QQ <- seqmap((V)=>macroType(V,Rp),Q);
+    CCx <- seqmap((T)=>macroType(T,Rp),Cx);
+    TT <- macroType(Tp,Rp);
+    EE <- macroTerm(Exp,Rp);
+    valis mkImplementationStmt(Lc,QQ,CCx,TT,EE)
+  }
+  examineStmt(A,Rp) where _ ^= isAnnotation(A) =>
+    either(A).
+  examineStmt(A,Rp) where (Lc,Els) ^= isBrTuple(A) => do{
+    NEls <- macroStmts(Els,Rp);
+    valis brTuple(Lc,NEls)
+  }
+  examineStmt(A,Rp) => other(
+    reportError(Rp,"cannot figure out statement $(A), key=$(macroKey(A))",locOf(A))).
+
+  macroTerm(A,Rp) => macroAst(A,.expression,examineTerm,Rp).
+
+  examineTerm(A,_) where _ ^= isName(A) => either(A).
+  examineTerm(A,_) where _ ^= isEnum(A) => either(A).
+  examineTerm(A,Rp) where (Lc,L,R) ^= isTypeAnnotation(A) => do{
+    LL <- macroTerm(L,Rp);
+    RR <- macroType(R,Rp);
+    valis typeAnnotation(Lc,LL,RR)
+  }
+  examineTerm(A,Rp) where (Lc,L,R) ^= isCoerce(A) => do{
+    LL <- macroTerm(L,Rp);
+    RR <- macroType(R,Rp);
+    valis mkCoercion(Lc,LL,RR)
+  }
+  examineTerm(A,Rp) where (Lc,R) ^= isCellRef(A) => do{
+    RR <- macroTerm(R,Rp);
+    valis refCell(Lc,RR)
+  }
+  examineTerm(A,Rp) where (Lc,R) ^= isRef(A) => do{
+    RR <- macroTerm(R,Rp);
+    valis mkRef(Lc,RR)
+  }
+  examineTerm(A,Rp) where (Lc,D,B) ^= isLetDef(A) => do{
+    DD <- macroStmts(D,Rp);
+    BB <- macroTerm(B,Rp);
+    valis mkLetDef(Lc,DD,BB)
+  }
+  examineTerm(A,Rp) where (Lc,D,B) ^= isQLetDef(A) => do{
+    DD <- macroStmts(D,Rp);
+    BB <- macroTerm(B,Rp);
+    valis mkQLetDef(Lc,DD,BB)
+  }
+  examineTerm(A,Rp) where (Lc,S) ^= isTheta(A) => do{
+    SS <- macroStmts(S,Rp);
+    valis mkTheta(Lc,SS)
+  }
+  examineTerm(A,Rp) where (Lc,S) ^= isQTheta(A) => do{
+    SS <- macroStmts(S,Rp);
+    valis mkQTheta(Lc,SS)
+  }
+  examineTerm(A,Rp) where (Lc,Lb,S) ^= isLabeledTheta(A) => do{
+    SS <- macroStmts(S,Rp);
+    valis mkBrTerm(Lc,Lb,SS)
+  }
+  examineTerm(A,Rp) where (Lc,Lb,S) ^= isLabeledRecord(A) => do{
+    SS <- macroStmts(S,Rp);
+    valis mkQBrTerm(Lc,Lb,SS)
+  }
+  examineTerm(A,Rp) where (Lc,L,R) ^= isRecordUpdate(A) => do{
+    LL <- macroTerm(L,Rp);
+    RR <- macroTerm(R,Rp);
+    valis mkRecordUpdate(Lc,LL,RR)
+  }
+  examineTerm(A,Rp) where (Lc,O,Els) ^= isRoundTerm(A) => do{
+    OO <- macroTerm(O,Rp);
+    EE <- seqmap((E)=>macroTerm(E,Rp),Els);
+    valis roundTerm(Lc,OO,EE)
+  }
+  examineTerm(A,Rp) where (Lc,Els) ^= isTuple(A) => do{
+    EE <- seqmap((E)=>macroTerm(E,Rp),Els);
+    valis rndTuple(Lc,EE)
+  }
+  examineTerm(A,Rp) where (Lc,Els) ^= isSqTuple(A) => do{
+    EE <- seqmap((E)=>macroTerm(E,Rp),Els);
+    valis sqTuple(Lc,EE)
+  }
+  examineTerm(A,Rp) where (Lc,L,R) ^= isCons(A) => do{
+    LL <- macroTerm(L,Rp);
+    RR <- macroTerm(R,Rp);
+    valis mkCons(Lc,LL,RR)
+  }
+  examineTerm(A,Rp) where (Lc,L,R) ^= isComma(A) => do{
+    LL <- macroTerm(L,Rp);
+    RR <- macroTerm(R,Rp);
+    valis mkComma(Lc,LL,RR)
+  }
+  examineTerm(A,Rp) where (Lc,L,R) ^= isIndex(A) => do{
+    LL <- macroTerm(L,Rp);
+    RR <- macroTerm(R,Rp);
+    if (_,K,V) ^= isBinary(RR,"->") then
+      valis ternary(Lc,"_put",LL,K,V)
+    else if (_,K) ^= isUnary(RR,"!") then
+      valis binary(Lc,"_remove",LL,K)
+    else
+    valis binary(Lc,"_index",LL,RR)
+  }
+  examineTerm(A,Rp) where (Lc,L,F,R) ^= isSlice(A) => do{
+    LL <- macroTerm(L,Rp);
+    FF <- macroTerm(F,Rp);
+    RR <- macroTerm(R,Rp);
+    valis ternary(Lc,"_slice",LL,FF,RR)
+  }
+  examineTerm(A,Rp) where (Lc,L,R) ^= isMatch(A) => do{
+    LL <- macroPtn(L,Rp);
+    RR <- macroTerm(R,Rp);
+    valis mkMatch(Lc,LL,RR)
+  }
+  examineTerm(A,Rp) where (Lc,L,R) ^= isOptionMatch(A) => do{
+    LL <- macroPtn(L,Rp);
+    RR <- macroTerm(R,Rp);
+    valis mkMatch(Lc,unary(Lc,"some",LL),RR)
+  }
+  examineTerm(A,Rp) where (Lc,L,R) ^= isSearch(A) => do{
+    LL <- macroPtn(L,Rp);
+    RR <- macroTerm(R,Rp);
+    valis mkSearch(Lc,LL,RR)
+  }
+  examineTerm(A,Rp) where _ ^= isConjunct(A) =>
+    macroCond(A,Rp).
+  examineTerm(A,Rp) where _ ^= isDisjunct(A) =>
+    macroCond(A,Rp).
+  examineTerm(A,Rp) where _ ^= isImplies(A) => 
+    macroCond(A,Rp).
+  examineTerm(A,Rp) where _ ^= isNegation(A) => 
+    macroCond(A,Rp).
+  examineTerm(A,Rp) where (Lc,T,L,R) ^= isConditional(A) => do{
+    TT <- macroCond(T,Rp);
+    LL <- macroTerm(L,Rp);
+    RR <- macroTerm(R,Rp);
+    valis mkConditional(Lc,TT,LL,RR)
+  }
+  examineTerm(A,Rp) where (Lc,L,R) ^= isWhere(A) => do{
+    LL <- macroTerm(L,Rp);
+    RR <- macroCond(R,Rp);
+    valis mkWhere(Lc,LL,RR)
+  }
+  examineTerm(A,Rp) where (Lc,D,L,C,R) ^= isLambda(A) => do{
+    LL <- macroPtn(L,Rp);
+    RR <- macroTerm(R,Rp);
+    CC <- macroOpt(C,macroCond,Rp);
+    valis mkLambda(Lc,D,LL,CC,RR)
+  } 
+  examineTerm(A,Rp) where (Lc,R) ^= isPromotion(A) => do{
+    RR <- macroTerm(R,Rp);
+    valis mkPromotion(Lc,RR)
+  }
+  examineTerm(A,Rp) where (Lc,R) ^= isValof(A) => do{
+    RR <- macroTerm(R,Rp);
+    valis unary(Lc,"_perform",RR)
+  }
+  examineTerm(A,Rp) where (Lc,R,F) ^= isFieldAcc(A) => do{
+    RR <- macroTerm(R,Rp);
+    valis mkFieldAcc(Lc,RR,F)
+  }
+  examineTerm(A,Rp) where (Lc,E,Cs) ^= isCaseExp(A) => do{
+    EE <- macroTerm(E,Rp);
+    CC <- seqmap((C)=>macroLambda(C,Rp),Cs);
+    valis mkCaseExp(Lc,EE,CC)
+  }
+  examineTerm(A,Rp) where int(_,_) .= A => either(A).
+  examineTerm(A,Rp) where num(_,_) .= A => either(A).
+  examineTerm(A,Rp) where str(_,_) .= A => either(A).
+  examineTerm(A,Rp) default =>
+    other(reportError(Rp,"cannot figure out expression $(A), key=$(macroKey(A))",locOf(A))).
+
+  macroIterate:(ast,(ast,reports)=>either[reports,ast],reports) => either[reports,ast].
+  macroIterate(A,E,Rp) => do{
+    AA <- E(A,Rp);
+
+    if isIterable(AA) then{
+      Itr <- makeIterableGoal(AA,Rp);
+      valis Itr
+    } else
+    valis AA
+  }
+
+  hideCond:(ast) => ast.
+  hideCond(A) where (Lc,L,R) ^= isSearch(A) =>
+    binary(Lc,"@in",L,R).
+  hideCond(A) where (Lc,L,R) ^= isConjunct(A) =>
+    binary(Lc,"@&&",hideCond(L),hideCond(R)).
+  hideCond(A) where (Lc,L,R) ^= isDisjunct(A) =>
+    binary(Lc,"@||",hideCond(L),hideCond(R)).
+  hideCond(A) where (Lc,L,R) ^= isImplies(A) =>
+    binary(Lc,"@*>",hideCond(L),hideCond(R)).
+--  hideCond(A) where (Lc,T,L,R) ^= isConditional(A) =>
+--    ternary(Lc,"@?",hideCond(T),hideCond(L),hideCond(R)).
+  hideCond(A) where (Lc,R) ^= isNegation(A) =>
+    unary(Lc,"@!",hideCond(R)).
+  hideCond(A) where (Lc,[E]) ^= isTuple(A) => hideCond(E).
+  hideCond(A) default => A.
+
+  revealCond:(ast) => ast.
+  revealCond(A) where (Lc,L,R) ^= isBinary(A,"@in") =>
+    mkSearch(Lc,L,R).
+  revealCond(A) where (Lc,L,R) ^= isBinary(A,"@&&") =>
+    mkConjunct(Lc,revealCond(L),revealCond(R)).
+  revealCond(A) where (Lc,L,R) ^= isBinary(A,"@||") =>
+    mkDisjunct(Lc,revealCond(L),revealCond(R)).
+  revealCond(A) where (Lc,L,R) ^= isBinary(A,"@*>") =>
+    mkImplies(Lc,revealCond(L),revealCond(R)).
+  revealCond(A) where (Lc,T,L,R) ^= isTernary(A,"@?") =>
+    mkConditional(Lc,revealCond(T),revealCond(L),revealCond(R)).
+  revealCond(A) where (Lc,R) ^= isUnary(A,"@!") =>
+    negated(Lc,revealCond(R)).
+  revealCond(A) default => A.
+
+  macroCond:(ast,reports) => either[reports,ast].
+  macroCond(C,Rp) => do{
+    HC .= hideCond(C);
+    C1 <- macroTerm(HC,Rp);
+    CC .= revealCond(C1);
+
+    if isIterable(C) then {
+      Itr <- makeIterableGoal(CC,Rp);
+--      logMsg("iterable version $(Itr)");
+      valis Itr
+    } else{
+      valis CC
+    }
+  }
+
+  macroOpt:(option[ast],(ast,reports)=>either[reports,ast],reports) =>
+    either[reports,option[ast]].
+  macroOpt(.none,_,_) => either(.none).
+  macroOpt(some(A),E,Rp) => do{
+    MA <- E(A,Rp);
+    valis some(MA)
+  }
+
+  macroLambda(A,Rp) where (Lc,D,L,C,R) ^= isLambda(A) => do{
+    LL <- macroTerm(L,Rp);
+    RR <- macroTerm(R,Rp);
+    CC <- macroOpt(C,macroTerm,Rp);
+    valis mkLambda(Lc,D,LL,CC,RR)
+  }
+
+  macroPtn(A,Rp) => macroAst(A,.pattern,examinePtn,Rp).
+
+  examinePtn(A,_) where _ ^= isName(A) => either(A).
+  examinePtn(A,Rp) where int(_,_) .= A => either(A).
+  examinePtn(A,Rp) where num(_,_) .= A => either(A).
+  examinePtn(A,Rp) where str(_,_) .= A => either(A).
+  examinePtn(A,_) where _ ^= isName(A) => either(A).
+  examinePtn(A,_) where _ ^= isEnum(A) => either(A).
+  examinePtn(A,Rp) where (Lc,L,R) ^= isTypeAnnotation(A) => do{
+    LL <- macroPtn(L,Rp);
+    RR <- macroType(R,Rp);
+    valis typeAnnotation(Lc,LL,RR)
+  }
+  examinePtn(A,Rp) where (Lc,Lb,S) ^= isLabeledRecord(A) => do{
+    SS <- macroStmts(S,Rp);
+    valis mkQBrTerm(Lc,Lb,SS)
+  }
+  examinePtn(A,Rp) where (Lc,O,Els) ^= isRoundTerm(A) => do{
+    OO <- macroTerm(O,Rp);
+    EE <- seqmap((E)=>macroPtn(E,Rp),Els);
+    valis roundTerm(Lc,OO,EE)
+  }
+  examinePtn(A,Rp) where (Lc,Els) ^= isTuple(A) => do{
+    EE <- seqmap((E)=>macroPtn(E,Rp),Els);
+    valis rndTuple(Lc,EE)
+  }
+  examinePtn(A,Rp) where (Lc,Els) ^= isSqTuple(A) => do{
+    EE <- seqmap((E)=>macroPtn(E,Rp),Els);
+    valis sqTuple(Lc,EE)
+  }
+  examinePtn(A,Rp) where (Lc,L,R) ^= isCons(A) => do{
+    LL <- macroPtn(L,Rp);
+    RR <- macroPtn(R,Rp);
+    valis mkCons(Lc,LL,RR)
+  }
+  examinePtn(A,Rp) where (Lc,L,R) ^= isComma(A) => do{
+    LL <- macroPtn(L,Rp);
+    RR <- macroPtn(R,Rp);
+    valis mkComma(Lc,LL,RR)
+  }
+  examinePtn(A,Rp) where (Lc,L,R) ^= isWhere(A) => do{
+    LL <- macroPtn(L,Rp);
+    RR <- macroTerm(R,Rp);
+    valis mkWhere(Lc,LL,RR)
+  }
+  examinePtn(A,Rp) where (Lc,R) ^= isPromotion(A) => do{
+    RR <- macroPtn(R,Rp);
+    valis mkPromotion(Lc,RR)
+  }
+  examinePtn(A,Rp) default =>
+    other(reportError(Rp,"cannot figure out pattern $(A), key=$(macroKey(A))",locOf(A))).
+
+  macroType(A,Rp) => macroAst(A,.typeterm,examineType,Rp).
+
+  examineType(A,_) where _ ^= isName(A) => either(A).
+  examineType(A,Rp) where (Lc,Op,Els) ^= isSquareTerm(A) => do{
+    NEls <- seqmap((E)=>macroType(E,Rp),Els);
+    valis squareTerm(Lc,Op,NEls)
+  }
+  examineType(A,Rp) where (Lc,L,R) ^= isConstructorType(A) => do{
+    NL <- macroType(L,Rp);
+    NR <- macroType(R,Rp);
+    valis mkConstructorType(Lc,NL,NR)
+  }
+  examineType(A,Rp) where (Lc,L,R) ^= isFunctionType(A) => do{
+    NL <- macroType(L,Rp);
+    NR <- macroType(R,Rp);
+    valis mkFunctionType(Lc,NL,NR)
+  }
+  examineType(A,Rp) where (Lc,L,R) ^= isBinary(A,"->>") => do{
+    NL <- macroType(L,Rp);
+    NR <- macroType(R,Rp);
+    valis binary(Lc,"->>",NL,NR)
+  }
+  examineType(A,Rp) where (Lc,L,R) ^= isComma(A) => do{
+    NL <- macroType(L,Rp);
+    NR <- macroType(R,Rp);
+    valis binary(Lc,",",NL,NR)
+  }
+  examineType(A,Rp) where (Lc,R) ^= isRef(A) => do{
+    NR <- macroType(R,Rp);
+    valis mkRef(Lc,NR)
+  }
+  examineType(A,Rp) where (Lc,L,R) ^= isTypeLambda(A) => do{
+    NL <- macroType(L,Rp);
+    NR <- macroType(R,Rp);
+    valis mkTypeLambda(Lc,NL,NR)
+  }
+  examineType(A,Rp) where (Lc,L,R) ^= isTypeExists(A) => do{
+    NL <- macroType(L,Rp);
+    NR <- macroType(R,Rp);
+    valis mkTypeExists(Lc,NL,NR)
+  }
+  examineType(A,Rp) where (Lc,Q,T) ^= isQuantified(A) => do{
+    NT <- macroType(T,Rp);
+    valis reUQuant(Lc,Q,NT)
+  }
+  examineType(A,Rp) where (Lc,Q,T) ^= isXQuantified(A) => do{
+    NT <- macroType(T,Rp);
+    valis reXQuant(Lc,Q,NT)
+  }
+  examineType(A,Rp) where (Lc,C,T) ^= isConstrained(A) => do{
+    NC <- seqmap((X)=>macroConstraint(X,Rp),C);
+    NT <- macroType(T,Rp);
+    valis reConstrain(NC,NT)
+  }
+  examineType(A,Rp) where (Lc,Els) ^= isTuple(A) => do{
+    NC <- seqmap((X)=>macroType(X,Rp),Els);
+    valis rndTuple(Lc,NC)
+  }
+  examineType(A,Rp) where (Lc,Els) ^= isBrTuple(A) => do{
+    NC <- macroStmts(Els,Rp);
+    valis brTuple(Lc,NC)
+  }
+  examineType(A,Rp) default =>
+    other(reportError(Rp,"cannot figure out type expression $(A), key=$(macroKey(A))",locOf(A))).
+
+  macroConstraint(A,Rp) => macroAst(A,.constraint,examineConstraint,Rp).
+
+  examineConstraint(A,Rp) where (Lc,Op,Els) ^= isSquareTerm(A) => do{
+    NEls <- seqmap((E)=>macroType(E,Rp),Els);
+    valis squareTerm(Lc,Op,NEls)
+  }
+  examineType(A,Rp) where (Lc,L,R) ^= isTypeExists(A) => do{
+    NL <- macroType(L,Rp);
+    NR <- macroType(R,Rp);
+    valis mkTypeExists(Lc,NL,NR)
+  }
+
+  macroAlgebraic(St,.statement,Rp) where (Lc,Vz,Q,Cx,H,R) ^= isAlgebraicTypeStmt(St) => do{
+    Rslt <- makeAlgebraic(Lc,Vz,Q,Cx,H,R,Rp);
+    valis active(brTuple(Lc,Rslt))
+  }
+  macroAlgebraic(_,_,_) default => either(.inactive).
 
   /*
   * We generate auto implementations of fields declared for an algebraic type
@@ -46,7 +571,7 @@ star.compiler.macro{
   makeAlgebraic(Lc,Vz,Q,Cx,H,R,Rp) => do{
     Nm .= typeName(H);
     Face <- algebraicFace(R,Rp);
-    TpExSt .= reveal(reUQuant(Q,reConstrain(Cx,binary(Lc,"<~",H,brTuple(Lc,sort(Face,compEls))))),Vz);
+    TpExSt .= reveal(reUQuant(Lc,Q,reConstrain(Cx,binary(Lc,"<~",H,brTuple(Lc,sort(Face,compEls))))),Vz);
     Cons <- buildConstructors(R,Q,Cx,H,Vz,Rp);
 --    Ixx .= buildConIndices(R,[]);
 --    logMsg("constructor indices $(Ixx)");
@@ -71,7 +596,7 @@ star.compiler.macro{
 
   combineFaces([],F2,Rp) => either(F2).
   combineFaces(F1,[],Rp) => either(F1).
-  combineFaces([F,..Fs],Gs,Rp) where (Lc,Id,Tp) ^= isTypeAnnot(F) => do{
+  combineFaces([F,..Fs],Gs,Rp) where (Lc,Id,_,Tp) ^= isTypeAnnot(F) => do{
     G1 <- mergeField(Lc,Id,Tp,Gs,Rp);
     Fs1 <- combineFaces(Fs,G1,Rp);
     valis [F,..Fs1]
@@ -79,7 +604,7 @@ star.compiler.macro{
 
   mergeField(_,_,_,[],_) => either([]).
   mergeField(Lc,Id,Tp,[A,..As],Rp) => do{
-    if (Lc2,Id,Tp2) ^= isTypeAnnot(A) then {
+    if (Lc2,Id,_,Tp2) ^= isTypeAnnot(A) then {
       if Tp==Tp2 then
 	valis As
       else
@@ -99,7 +624,7 @@ star.compiler.macro{
   buildConIndices(_,Ixx) default => Ixx.
 
   buildConIx:(ast,map[string,integer],integer)=>(map[string,integer],integer).
-  buildConIx(El,Mp,Ix) where (_,Id,_) ^= isTypeAnnot(El) => (Mp[Id->Ix],Ix+1).
+  buildConIx(El,Mp,Ix) where (_,Id,_,_) ^= isTypeAnnot(El) => (Mp[Id->Ix],Ix+1).
   buildConIx(_,Mp,Ix) default => (Mp,Ix).
 
   buildConstructors:(ast,cons[ast],cons[ast],ast,visibility,reports)=>either[reports,cons[ast]].
@@ -111,20 +636,20 @@ star.compiler.macro{
       }.
   buildConstructors(A,Qs,Cx,Tp,Vz,Rp) where
       (Lc,Nm,XQs,XCx,Els) ^= isBraceCon(A) => let{
-	Con = typeAnnotation(Lc,nme(Lc,Nm),reUQuant(Qs,
+	Con = typeAnnotation(Lc,nme(Lc,Nm),reUQuant(Lc,Qs,
 	  reConstrain(Cx,
-	    binary(Lc,"<=>",reXQuant(XQs,
+	      binary(Lc,"<=>",reXQuant(Lc,XQs,
 		  reConstrain(XCx,brTuple(Lc,sort(Els,compEls)))),Tp)))).
       } in either([reveal(Con,Vz)]).
   buildConstructors(A,Qs,Cx,Tp,Vz,Rp) where
       (Lc,Nm,XQs,XCx,Els) ^= isRoundCon(A) => let{
-	Con = typeAnnotation(Lc,nme(Lc,Nm),reUQuant(Qs,
+	Con = typeAnnotation(Lc,nme(Lc,Nm),reUQuant(Lc,Qs,
 	  reConstrain(Cx,
 	      binary(Lc,"<=>",rndTuple(Lc,Els),Tp)))).
       } in either([reveal(Con,Vz)]).
   buildConstructors(A,Qs,Cx,Tp,Vz,Rp) where
       (Lc,Nm) ^= isEnumSymb(A) => let{
-	Con = typeAnnotation(Lc,nme(Lc,Nm),reUQuant(Qs,
+	Con = typeAnnotation(Lc,nme(Lc,Nm),reUQuant(Lc,Qs,
 	  reConstrain(Cx,
 	      binary(Lc,"<=>",rndTuple(Lc,[]),Tp)))).
       } in either([reveal(Con,Vz)]).
@@ -139,13 +664,20 @@ star.compiler.macro{
 
   compEls:(ast,ast)=>boolean.
   compEls(A,B) where
-      (_,N1,_) ^= isTypeAnnot(A) &&
-      (_,N2,_) ^= isTypeAnnot(B) => N1<N2.
+      (_,N1,_,_) ^= isTypeAnnot(A) &&
+      (_,N2,_,_) ^= isTypeAnnot(B) => N1<N2.
   compEls(_,_) default => .false.
 
   reveal(A,.priVate) => unary(locOf(A),"private",A).
   reveal(A,.pUblic) => unary(locOf(A),"public",A).
   reveal(A,_) default => A.
+
+  visibilityOf:(ast) => (ast,visibility).
+  visibilityOf(A) => visib(A,.deFault).
+
+  visib(A,_) where (_,I) ^= isPrivate(A) => visib(I,.priVate).
+  visib(A,_) where (_,I) ^= isPublic(A) => visib(I,.pUblic).
+  visib(A,Vz) default => (A,Vz).
 
   isBraceCon:(ast) => option[(locn,string,cons[ast],cons[ast],cons[ast])].
   isBraceCon(A) => isCon(A,isBrTerm).
@@ -166,13 +698,29 @@ star.compiler.macro{
     some((Lc,Nm,Q,Cx,Els)).
   isCon(_,_) default => .none.
     
+  makeSeqPtn(A,.pattern,Rp) where (Lc,Els) ^= isSqTuple(A) =>
+    either(active(macroSquarePtn(Lc,Els))).
+  makeSeqPtn(_,_,_) => either(.inactive).
 
+  makeSeqExp(A,.expression,Rp) where (Lc,Els) ^= isSqTuple(A) && !_^=isListComprehension(A)=>
+    either(active(macroSquareExp(Lc,Els))).
+  makeSeqExp(_,_,_) => either(.inactive).
 
+  macroListComprehension(A,.expression,Rp) where (Lc,B,C) ^= isListComprehension(A) => do{
+    Q <- makeAbstraction(Lc,B,C,Rp);
+    valis active(binary(Lc,":",Q,squareTerm(Lc,nme(Lc,"cons"),[anon(Lc)])))
+  }
+  macroListComprehension(_,_,_) => either(.inactive).
 
+  macroComprehension(A,.expression,Rp) where (Lc,B,C) ^= isComprehension(A) => do{
+    Q <- makeAbstraction(Lc,B,C,Rp);
+    valis active(Q)
+  }
+  macroComprehension(_,_,_) => either(.inactive).
   
   public macroSquarePtn:(locn,cons[ast]) => ast.
   macroSquarePtn(Lc,Els) =>
-    macroListEntries(Lc,Els,(Lx)=>mkWhere(Lx,"_eof"),
+    macroListEntries(Lc,Els,(Lx)=>mkWhereTest(Lx,"_eof"),
       (Lx,H,T) => mkWherePtn(Lx,tpl(Lx,"()",[H,T]),nme(Lx,"_hdtl"))).
 
   public macroSquareExp:(locn,cons[ast]) => ast.
@@ -186,6 +734,8 @@ star.compiler.macro{
     Hed(Lc,H,T).
   macroListEntries(Lc,[El,..Rest],Eof,Hed) =>
     Hed(Lc,El,macroListEntries(Lc,Rest,Eof,Hed)).
+
+  
 
   public reconstructDisp:(ast)=>ast.
   reconstructDisp(C) where (Lc,Ex,Tp) ^= isCoerce(C) && (_,"string") ^= isName(Tp) => let{
@@ -206,12 +756,11 @@ star.compiler.macro{
   buildMain(Els) default => Els.
 
   lookForSignature:(cons[ast],string)=>cons[(locn,ast)].
-  lookForSignature(Els,Nm) => [(Lc,Tp) | El in Els && (Lc,Nm,Tp)^=isTypeAnnot(El)].
+  lookForSignature(Els,Nm) => [(Lc,Tp) | El in Els && (Lc,Nm,Vz,Tp)^=isTypeAnnot(El)].
 
-  isTypeAnnot(A) where (Lc,N,Tp) ^= isBinary(A,":") && (_,Id)^=isName(N) => some((Lc,Id,Tp)).
+  isTypeAnnot(A) where (Lc,N,Tp) ^= isBinary(A,":") && (Nm,Vz) .= visibilityOf(N) && (_,Id)^=isName(Nm) =>
+    some((Lc,Id,Vz,Tp)).
   isTypeAnnot(_) default => .none.
-  isTypeAnnot(A) where (_,I) ^= isPublic(A) => isTypeAnnot(I).
-  isTypeAnnot(A) where (_,I) ^= isPrivate(A) => isTypeAnnot(I).
 
   synthesizeMain:(locn,ast,cons[ast])=>cons[ast].
   synthesizeMain(Lc,Tp,Defs) where (_,Lhs,Rhs) ^= isFunctionType(Tp) && (_,ElTps)^=isTuple(Lhs) => valof action{
@@ -259,8 +808,8 @@ star.compiler.macro{
   isIterable(A) where _ ^= isSearch(A) => .true.
   isIterable(A) where (_,L,R) ^= isConjunct(A) =>
     isIterable(L) || isIterable(R).
-  isIterable(A) where (_,T,L,R) ^= isConditional(A) =>
-    isIterable(T) || isIterable(L) || isIterable(R).
+--  isIterable(A) where (_,T,L,R) ^= isConditional(A) =>
+--    isIterable(L) || isIterable(R).
   isIterable(A) where (_,L,R) ^= isDisjunct(A) =>
     isIterable(L) || isIterable(R).
   isIterable(A) where (_,L,R) ^= isImplies(A) =>
@@ -269,6 +818,21 @@ star.compiler.macro{
     isIterable(R).
   isIterable(A) where (_,[I]) ^= isTuple(A) => isIterable(I).
   isIterable(_) default => .false.
+
+  macroAction(A,.expression,Rp) where (Lc,Act) ^= isActionTerm(A) => do{
+    AA <- makeAction(Act,.none,Rp);
+    valis active(typeAnnotation(Lc,AA,sqBinary(Lc,"action",anon(Lc),anon(Lc))))
+  }
+
+  taskAction(A,.expression,Rp) where (Lc,Act) ^= isTaskTerm(A) => do{
+    AA <- makeAction(Act,.none,Rp);
+    valis active(typeAnnotation(Lc,AA,sqBinary(Lc,"task",anon(Lc),anon(Lc))))
+  }
+
+  macroDo(A,.expression,Rp) where (Lc,Act) ^= isDoTerm(A) => do{
+    AA <- makeAction(Act,.none,Rp);
+    valis active(AA)
+  }
   
   public makeAction:(ast,option[(locn,ast)],reports) => either[reports,ast].
   makeAction(A,Cont,Rp) where (_,[St]) ^= isBrTuple(A) =>
@@ -348,9 +912,9 @@ star.compiler.macro{
     Else <- makeAction(El,.none,Rp);
     if isIterable(T) then {
       Itr <- makeIterableGoal(T,Rp);
-      valis combine(conditional(Lc,Itr,Then,Else),Cont)
+      valis combine(mkConditional(Lc,Itr,Then,Else),Cont)
     } else{
-      valis combine(conditional(Lc,T,Then,Else),Cont)
+      valis combine(mkConditional(Lc,T,Then,Else),Cont)
     }
   }
   makeAction(A,Cont,Rp) where (Lc,T,Th) ^= isIfThen(A) => do{
@@ -358,9 +922,9 @@ star.compiler.macro{
     Unit .= rndTuple(Lc,[]);
     if isIterable(T) then {
       Itr <- makeIterableGoal(T,Rp);
-      valis combine(conditional(Lc,Itr,Then,makeReturn(Lc,Unit)),Cont)
+      valis combine(mkConditional(Lc,Itr,Then,makeReturn(Lc,Unit)),Cont)
     } else{
-      valis combine(conditional(Lc,T,Then,makeReturn(Lc,Unit)),Cont)
+      valis combine(mkConditional(Lc,T,Then,makeReturn(Lc,Unit)),Cont)
     }
   }
   makeAction(A,Cont,Rp) where (Lc,"nothing") ^= isEnumSymb(A) => do{
@@ -407,8 +971,6 @@ star.compiler.macro{
   makeAction(A,Cont,_) where _ ^= isRoundTerm(A) =>
     either(combine(A,Cont)).
 
-  anon(Lc) => nme(Lc,"_").
-
   /*
   * An 'iterable' conditions become a match on the result of a search
   *
@@ -432,7 +994,7 @@ star.compiler.macro{
     Seq <- makeCondition(A,makeRtn,
       (_)=>unary(Lc,"_valis",Ptn),
       lyfted(Zed),Rp);
-    Tpd .= binary(Lc,":",Seq,squareTerm(Lc,nme(Lc,"action"),[anon(Lc),anon(Lc)]));
+    Tpd .= typeAnnotation(Lc,Seq,sqBinary(Lc,"action",anon(Lc),anon(Lc)));
 --    logMsg("iterable goal now $(Tpd)");
     valis mkMatch(Lc,Ptn,unary(Lc,"_perform",Tpd))
   }
@@ -463,7 +1025,8 @@ star.compiler.macro{
     Loop <- makeCondition(Cond,makeRtn,
       makeEl(Lc,Bnd),
       lyfted(Zed),Rp);
-    valis makePerform(Lc,typeAnnotation(Lc,Loop,squareTerm(Lc,nme(Lc,"action"),[rndTuple(Lc,[]),nme(Lc,"_")])))
+    valis makePerform(Lc,typeAnnotation(Lc,Loop,
+	sqBinary(Lc,"action",rndTuple(Lc,[]),anon(Lc))))
   }
 
   makePerform(Lc,Exp) => unary(Lc,"_perform",Exp).
@@ -482,21 +1045,21 @@ star.compiler.macro{
   * let{.
   *  sF(Ptn,St) => AddEl(X,St).
   *  sF(_,St) default => do { return St}.
-  * .} in _iter(Src,Initial,sF)
+  * .} in _iter(Src,Zed,sF)
   *
-  * where AddEl, InitState are parameters to the conversion
+  * where AddEl, Zez are parameters to the conversion
   */
   makeCondition:(ast,(lyfted[ast])=>ast,
     (lyfted[ast])=>ast,
     lyfted[ast],reports) => either[reports,ast].
   makeCondition(A,Lift,Succ,Zed,Rp) where (Lc,Ptn,Src) ^= isSearch(A) => do{
-    sF .= genName(Lc,"sF");
+    sF .= nme(Lc,"sF");
     St .= genName(Lc,"St");
 
     Eq1 .= equation(Lc,roundTerm(Lc,sF,[Ptn,St]),Succ(grounded(St)));
     Eq2 .= equation(Lc,roundTerm(Lc,sF,[anon(Lc),St]),Lift(grounded(St)));
     
-    FF .= letDef(Lc,[Eq1,Eq2],sF);
+    FF .= mkQLetDef(Lc,[Eq1,Eq2],sF);
     valis ternary(Lc,"_iter",Src,Lift(Zed),FF)
   }
   makeCondition(A,Lift,Succ,Zed,Rp) where (Lc,L,R) ^= isConjunct(A) =>
@@ -511,10 +1074,10 @@ star.compiler.macro{
     St .= genName(Lc,"St");
     SuccCase .= Succ(Zed);
     FalseCase .= Lift(Zed);
-    valis makeSequence(Lc,St,lyfted(Negated),conditional(Lc,St,FalseCase,SuccCase))
+    valis makeSequence(Lc,St,lyfted(Negated),mkConditional(Lc,St,FalseCase,SuccCase))
   }
   makeCondition(A,Lift,Succ,Zed,Rp) where (Lc,L,R) ^= isImplies(A) =>
-    makeCondition(negated(Lc,conjunction(Lc,L,negated(Lc,R))),Lift,Succ,Zed,Rp).
+    makeCondition(negated(Lc,mkConjunct(Lc,L,negated(Lc,R))),Lift,Succ,Zed,Rp).
   makeCondition(Other,Lift,Succ,Zed,Rp) => do{
     Lc .= locOf(Other);
     AddToSucc .= Succ(Zed);
@@ -523,7 +1086,7 @@ star.compiler.macro{
     if Fun ^= isBoolLift(AddToSucc) then -- special case
       valis Fun(Other)
     else
-    valis makeSequence(Lc,St,Zed,conditional(Lc,Other,AddToSucc,Init))
+    valis makeSequence(Lc,St,Zed,mkConditional(Lc,Other,AddToSucc,Init))
   }
 
   isBoolLift(V) where (Lc,I) ^= isUnary(V,"_valis") =>

@@ -172,7 +172,7 @@ star.compiler.canon{
   showCanon(implies(_,L,R),Sp) => ssSeq([ss("("),showCanon(L,Sp),ss(" *> "),showCanon(R,Sp),ss(")")]).
   showCanon(neg(_,R),Sp) => ssSeq([ss(" ! "),showCanon(R,Sp)]).
   showCanon(cond(_,T,L,R),Sp) =>
-    ssSeq([ss("("),showCanon(T,Sp),ss("?"),showCanon(L,Sp),ss(" | "),showCanon(R,Sp),ss(")")]).
+    ssSeq([ss("("),showCanon(T,Sp),ss("?"),showCanon(L,Sp),ss(" || "),showCanon(R,Sp),ss(")")]).
   showCanon(apply(_,L,R,_),Sp) => ssSeq([showCanon(L,Sp),showCanon(R,Sp)]).
   showCanon(tple(_,Els),Sp) =>
     ssSeq([ss("("),ssSeq(interleave(Els//(El)=>showCanon(El,Sp),ss(","))),ss(")")]).

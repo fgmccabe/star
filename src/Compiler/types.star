@@ -456,9 +456,9 @@ star.compiler.types{
   reQuant([],Tp) => Tp.
   reQuant([Q,..Qs],Tp) => allType(Q,reQuant(Qs,Tp)).
 
-  public reXQuant:(cons[tipe],tipe) => tipe.
-  reXQuant([],Tp) => Tp.
-  reXQuant([Q,..Qs],Tp) => existType(Q,reXQuant(Qs,Tp)).
+  public reQuantX:(cons[tipe],tipe) => tipe.
+  reQuantX([],Tp) => Tp.
+  reQuantX([Q,..Qs],Tp) => existType(Q,reQuantX(Qs,Tp)).
 
   public deConstrain:(tipe) => (cons[constraint],tipe).
   deConstrain(T) => let{
