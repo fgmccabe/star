@@ -913,6 +913,12 @@ checkAction(Term,Env,Env,Contract,ExTp,_,ErTp,whileDo(Lc,Ts,Bdy,ExTp,ErTp),Path)
   pushScope(Env,WEnv),
   typeOfExp(T,LogicalTp,WEnv,Et,Ts,Path),
   checkAction(B,Et,_,Contract,ExTp,tupleType([]),ErTp,Bdy,Path).
+checkAction(Term,Env,Env,Contract,ExTp,_,ErTp,untilDo(Lc,Ts,Bdy,ExTp,ErTp),Path) :-
+  isUntilDo(Term,Lc,B,T),!,
+  findType("boolean",Lc,Env,LogicalTp),
+  pushScope(Env,WEnv),
+  typeOfExp(T,LogicalTp,WEnv,Et,Ts,Path),
+  checkAction(B,Et,_,Contract,ExTp,tupleType([]),ErTp,Bdy,Path).
 checkAction(Term,Env,Env,Contract,ExTp,_,ErTp,forDo(Lc,Ts,Bdy,ExTp,ErTp),Path) :-
   isForDo(Term,Lc,T,B),!,
   findType("boolean",Lc,Env,LogicalTp),

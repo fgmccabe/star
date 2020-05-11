@@ -202,6 +202,9 @@ overloadAction(ifthenDo(Lc,Tst,Th,El,StTp,ErTp),Dict,St,Stx,ifthenDo(Lc,RTst,RTh
 overloadAction(whileDo(Lc,Tst,Body,StTp,ErTp),Dict,St,Stx,whileDo(Lc,RTst,RBody,StTp,ErTp)) :-
   overloadTerm(Tst,Dict,St,St1,RTst),
   overloadAction(Body,Dict,St1,Stx,RBody).
+overloadAction(untilDo(Lc,Tst,Body,StTp,ErTp),Dict,St,Stx,untilDo(Lc,RTst,RBody,StTp,ErTp)) :-
+  overloadTerm(Tst,Dict,St,St1,RTst),
+  overloadAction(Body,Dict,St1,Stx,RBody).
 overloadAction(forDo(Lc,Tst,Body,StTp,ErTp),Dict,St,Stx,forDo(Lc,RTst,RBody,StTp,ErTp)) :-
   overloadTerm(Tst,Dict,St,St1,RTst),
   overloadAction(Body,Dict,St1,Stx,RBody).

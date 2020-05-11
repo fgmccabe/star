@@ -48,6 +48,7 @@ isCanon(noDo(_)).
 isCanon(seqDo(_,_,_)).
 isCanon(ifThenDo(_,_,_,_,_,_,_)).
 isCanon(whileDo(_,_,_,_,_)).
+isCanon(untilDo(_,_,_,_,_)).
 isCanon(forDo(_,_,_,_,_)).
 isCanon(tryCatchDo(_,_,_,_,_,_)).
 isCanon(varDo(_,_,_,_,_,_)).
@@ -149,6 +150,7 @@ locOfCanon(doTerm(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(seqDo(Lc,_,_),Lc) :-!.
 locOfCanon(ifThenDo(Lc,_,_,_,_,_,_),Lc) :-!.
 locOfCanon(whileDo(Lc,_,_,_,_),Lc) :-!.
+locOfCanon(untilDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(forDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(tryCatchDo(Lc,_,_,_,_,_),Lc) :-!.
 locOfCanon(assign(Lc,_,_,_,_),Lc) :-!.
@@ -359,6 +361,12 @@ showCanonAction(whileDo(_,Tst,Bdy,_,_),Dp,O,Ox) :-
   showCanonTerm(Tst,Dp,O1,O2),
   appStr(" do ",O2,O3),
   showCanonAction(Bdy,Dp2,O3,Ox).
+showCanonAction(untilDo(_,Tst,Bdy,_,_),Dp,O,Ox) :-
+  appStr(" do ",O,O1),
+  Dp2 is Dp+2,
+  showCanonAction(Bdy,Dp2,O1,O2),
+  appStr(" until ",O2,O3),
+  showCanonTerm(Tst,Dp,O3,Ox).
 showCanonAction(forDo(_,Tst,Bdy,_,_),Dp,O,Ox) :-
   appStr("for ",O,O1),
   Dp2 is Dp+2,

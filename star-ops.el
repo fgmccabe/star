@@ -79,6 +79,7 @@
   ("^" ( (prefix 100 99) (infix 99 100 99)))
   ("<=>" ( (infix 949 950 949)))
   ("valof" ( (prefix 300 299)))
+  ("until" ( (infix 1174 1175 1174)))
   ("while" ( (prefix 1175 1174)))
   ("private" ( (prefix 1200 1199)))
   ("•" ( (infix 450 450 449)))

@@ -254,6 +254,9 @@
 @item @code{valof}
 @tab non-associative prefix
 @tab 300
+@item @code{until}
+@tab non-associative infix
+@tab 1175
 @item @code{while}
 @tab non-associative prefix
 @tab 1175

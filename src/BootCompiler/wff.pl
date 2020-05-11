@@ -23,7 +23,7 @@
 	      isCaseExp/4,
 	      isDoTerm/3,isDoTerm/2,isDoTerm/1,isTaskTerm/3,isActionTerm/3,isScriptTerm/3,
 	      isBind/4,isValof/3,isThrow/3,isReturn/3,isTryCatch/4,
-	      isIfThenElse/5,isIfThen/4,isWhileDo/4,isForDo/4,
+	      isIfThenElse/5,isIfThen/4,isWhileDo/4,isUntilDo/4,isForDo/4,
 	      isActionSeq/4,isActionSeq/3,
 	      isLetDef/4,mkLetDef/4,
 	      whereTerm/4,
@@ -490,6 +490,10 @@ isIfThen(A,Lc,Ts,Th) :-
 isWhileDo(A,Lc,Ts,Bd) :-
   isBinary(A,Lc,"do",LL,Bd),
   isUnary(LL,_,"while",Ts),!.
+
+isUntilDo(A,Lc,Bd,Ts) :-
+  isBinary(A,Lc,"until",B,Ts),
+  isUnary(B,Lc,"do",Bd),!.
 
 isForDo(A,Lc,Ts,Bd) :-
   isBinary(A,Lc,"do",LL,Bd),

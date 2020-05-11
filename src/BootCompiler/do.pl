@@ -106,6 +106,35 @@ genAction(whileDo(Lc,Ts,Body,StTp,ErTp),Contract,Cont,Exp,Path) :-
 	      theta(Lc,ThNm,true,[FF],faceType([],[])),
 	       apply(Lc,v(Lc,Fn,FnTp),tple(Lc,[]),LpTp)).
 
+/* Construct a local iterator function for do .. until .. :
+   let{
+     loop() => do{ B; if C then loop() else <Cont> }
+   } in loop()
+*/
+genAction(untilDo(Lc,Ts,Body,StTp,ErTp),Contract,Cont,Exp,Path) :-
+  packageVarName(Path,"loop",LclName),
+  genNewName(Path,"lp",ThPath),
+  genstr("loop",Fn),
+  genNewName(Path,"Γ",ThNm),
+  UnitTp = tupleType([]),
+  mkTypeExp(StTp,[ErTp,UnitTp],LpTp),
+  FnTp = funType(tupleType([]),LpTp),
+  genAction(seqDo(Lc,
+		  Body,
+		  ifThenDo(Lc,Ts,
+			   simpleDo(Lc,apply(Lc,v(Lc,Fn,FnTp),tple(Lc,[]),LpTp),StTp),
+			   Cont,
+			   StTp,UnitTp,ErTp)),
+	    Contract,noDo(Lc),Then,ThPath),
+  FF=funDef(Lc,Fn,LclName,FnTp,[],
+	    [equation(Lc,tple(Lc,[]),
+		      enm(Lc,"true",type("star.core*boolean")),
+		      Then)]),
+  Exp = letExp(Lc,
+	      theta(Lc,ThNm,true,[FF],faceType([],[])),
+	       apply(Lc,v(Lc,Fn,FnTp),tple(Lc,[]),LpTp)).
+
+
 
 /*
    for C do {A}

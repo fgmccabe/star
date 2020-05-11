@@ -99,6 +99,12 @@
 	"keyword": true
     },
     {
+	"infixOp" : "until",
+	"priorities" : [1174,1175,1174],
+	"desc": "do {..} until C",
+	"keyword": true
+    },
+    {
 	"prefixOp" : "for",
 	"priorities" : [ 1175,1174],
 	"desc": "for ... do {}",

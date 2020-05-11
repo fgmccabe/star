@@ -651,6 +651,10 @@ collectDoRefs(T,All,Rf,Rfx) :-
   collectTermRefs(Tt,All,Rf,Rf0),
   collectDoRefs(B,All,Rf0,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
+  isUntilDo(T,_,B,Tt),!,
+  collectTermRefs(Tt,All,Rf,Rf0),
+  collectDoRefs(B,All,Rf0,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
   isForDo(T,_,Tt,B),!,
   collectTermRefs(Tt,All,Rf,Rf0),
   collectDoRefs(B,All,Rf0,Rfx).
