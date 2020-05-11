@@ -28,18 +28,18 @@ star.compiler.checker{
   -- package level of type checker
 
   public checkPkg:all r ~~ repo[r],display[r]|:(r,pkg,ast,dict,reports) => either[reports,(pkgSpec,canonDef)].
-  checkPkg(Repo,Pkge,P,Base,Rp) => do{
+  checkPkg(Repo,Pkge,PP,Base,Rp) => do{
+    P <- macroPkg(PP,Rp);
+--    logMsg("macrod package:\n$(P)");
     if (Lc,Pk,Els) ^= isBrTerm(P) && either(Pkg) .= pkgeName(Pk) then{
-      (Imports,Stmts) <- collectImports(buildMain(Els),[],[],Rp);
+      (Imports,Stmts) <- collectImports(Els,[],[],Rp);
       (PkgEnv,AllImports,PkgVars) <- importAll(Imports,Repo,Base,[],[],Rp);
 --      logMsg("imports found $(AllImports), package vars = $(PkgVars)");
 --      logMsg("pkg env after imports $(PkgEnv)");
       
       PkgNm .= packageName(Pkg);
-      MStmts <- macroStmts(Stmts,Rp);
---      logMsg("macrod statements $(MStmts)");
       -- We treat a package specially, buts its essentially a theta record
-      (Vis,Opens,Annots,Gps) <- dependencies(MStmts,Rp);
+      (Vis,Opens,Annots,Gps) <- dependencies(Stmts,Rp);
 --      logMsg("Package $(Pkg), groups: $(Gps)");
 --      logMsg("Annotations $(Annots)");
 
@@ -74,7 +74,7 @@ star.compiler.checker{
 
   makePkgTheta:(locn,string,tipe,dict,cons[cons[canonDef]],reports)=>either[reports,canon].
   makePkgTheta(Lc,Nm,Tp,Env,Defs,Rp) =>
-    mkTheta(Lc,some(Nm),deRef(Tp),Env,Defs,Tp,Rp).
+    formTheta(Lc,some(Nm),deRef(Tp),Env,Defs,Tp,Rp).
 
   exportedFields:(cons[cons[canonDef]],cons[(defnSp,visibility)],visibility) => cons[(string,tipe)].
   exportedFields(Defs,Vis,DVz) =>
@@ -91,16 +91,16 @@ star.compiler.checker{
   exportedTypes(Defs,Vis,DVz) => [ (Nm,ExTp) |
       DD in Defs && typeDef(_,Nm,_,ExTp) in DD && (tpSp(Nm),V) in Vis && V>=DVz].
 
-  mkRecord:(locn,option[string],tipe,dict,cons[cons[canonDef]],tipe,reports) => either[reports,canon].
-  mkRecord(Lc,Lbl,faceType(Flds,Tps),Env,Defs,Tp,Rp) => do{
+  formRecordExp:(locn,option[string],tipe,dict,cons[cons[canonDef]],tipe,reports) => either[reports,canon].
+  formRecordExp(Lc,Lbl,faceType(Flds,Tps),Env,Defs,Tp,Rp) => do{
 --    logMsg("making record from $(Defs)\:$(faceType(Flds,Tps))");
     Rc <- findDefs(Lc,Flds,[],Defs,Rp);
     valis foldRight((Gp,I)=>letExp(Lc,Gp,I),record(Lc,Lbl,Rc,Tp),Defs)
   }
 
-  mkTheta:(locn,option[string],tipe,dict,cons[cons[canonDef]],tipe,reports) =>
+  formTheta:(locn,option[string],tipe,dict,cons[cons[canonDef]],tipe,reports) =>
     either[reports,canon].
-  mkTheta(Lc,Lbl,faceType(Flds,Tps),Env,Defs,Tp,Rp) => do{
+  formTheta(Lc,Lbl,faceType(Flds,Tps),Env,Defs,Tp,Rp) => do{
 --    logMsg("making theta record from $(Defs)\:$(faceType(Flds,Tps))");
     Rc <- findDefs(Lc,Flds,[],Defs,Rp);
     valis foldRight((Gp,I)=>letRec(Lc,Gp,I),record(Lc,Lbl,Rc,Tp),Defs)
@@ -130,8 +130,7 @@ star.compiler.checker{
 
   thetaEnv:(locn,string,cons[ast],tipe,dict,reports,visibility) =>
     either[reports,(cons[cons[canonDef]],dict,tipe)].
-  thetaEnv(Lc,Pth,Els,Face,Env,Rp,DefViz) => do{
-    Stmts <- macroStmts(Els,Rp);
+  thetaEnv(Lc,Pth,Stmts,Face,Env,Rp,DefViz) => do{
     (Vis,Opens,Annots,Gps) <- dependencies(Stmts,Rp);
 --    logMsg("pushing face $(Face)");
     Base .= pushFace(Face,Lc,Env);
@@ -151,8 +150,7 @@ star.compiler.checker{
     either[reports,(cons[canonDef],dict,tipe)].
   recordEnv(Lc,Pth,Els,Face,Env,Rp,DefViz) => do{
 --    logMsg("check record $(Els)");
-    Stmts <- macroStmts(Els,Rp);
-    (Vis,Opens,Annots,G) <- recordDefs(Stmts,Rp);
+    (Vis,Opens,Annots,G) <- recordDefs(Els,Rp);
 --    logMsg("annotations: $(Annots)");
     TmpEnv <- parseAnnotations(G,Face,Annots,Env,Rp);
     
@@ -649,13 +647,14 @@ star.compiler.checker{
     checkDo(Stmts,Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Exp) ^= isValof(A) =>
     typeOfExp(unary(Lc,"_perform",Exp),Tp,Env,Path,Rp).
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,B,C) ^= isListAbstraction(A) => do{
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,B,C) ^= isListComprehension(A) => do{
     (_,ListTp,_) ^= findType(Env,"cons");
     ElTp .= newTypeVar("E");
     checkType(A,mkTypeExp(ListTp,[ElTp]),Tp,Env,Rp);
     checkAbstraction(Lc,B,C,Tp,Env,Path,Rp)
   }
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isSqTuple(A) && ! _ ^= isListAbstraction(A) =>
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isSqTuple(A) &&
+      ! _ ^= isListComprehension(A) =>
     typeOfExp(macroSquareExp(Lc,Els),Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (_,[El]) ^= isTuple(A) && ! _ ^= isTuple(El) =>
     typeOfExp(El,Tp,Env,Path,Rp).
@@ -698,13 +697,13 @@ star.compiler.checker{
     (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,Path,Els,Face,Base,Rp,.deFault);
     if sameType(ThetaTp,ETp,Env) then{
 --      logMsg("building record from theta, $(ThEnv)");
-      mkTheta(Lc,.none,deRef(faceOfType(Tp,ThEnv)),ThEnv,sortDefs(multicat(Defs)),
+      formTheta(Lc,.none,deRef(faceOfType(Tp,ThEnv)),ThEnv,sortDefs(multicat(Defs)),
 	reConstrainType(Cx,ThetaTp),Rp)
     }
     else
     throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Tp)",Lc)
   }
-  typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Els) ^= isRecord(A) => do{
+  typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Els) ^= isQTheta(A) => do{
     (Q,ETp) .= evidence(Tp,Env);
     FaceTp .= faceOfType(Tp,Env);
     (Cx,Face) .= deConstrain(FaceTp);
@@ -712,7 +711,7 @@ star.compiler.checker{
     Path .= genNewName(Pth,"θ");
     (Defs,ThEnv,ThetaTp) <- recordEnv(Lc,Path,Els,Face,Base,Rp,.deFault);
     if sameType(ThetaTp,Tp,Env) then{
-      mkRecord(Lc,.none,deRef(faceOfType(Tp,ThEnv)),ThEnv,[Defs],reConstrainType(Cx,ThetaTp),Rp)
+      formRecordExp(Lc,.none,deRef(faceOfType(Tp,ThEnv)),ThEnv,[Defs],reConstrainType(Cx,ThetaTp),Rp)
     }
     else
     throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Tp)",Lc)
@@ -729,7 +728,7 @@ star.compiler.checker{
     (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,genNewName(Pth,"θ"),Els,deRef(FceTp),Env,Rp,.deFault);
     if sameType(ThetaTp,FceTp,Env) then{
 --      logMsg("building record from theta, $(ThEnv)");
-      mkTheta(Lc,some(Nm),deRef(faceOfType(Tp,ThEnv)),ThEnv,sortDefs(multicat(Defs)),
+      formTheta(Lc,some(Nm),deRef(faceOfType(Tp,ThEnv)),ThEnv,sortDefs(multicat(Defs)),
 	Tp,Rp)
     }
     else
@@ -746,7 +745,7 @@ star.compiler.checker{
     (Defs,ThEnv,ThetaTp) <- recordEnv(Lc,genNewName(Pth,"θ"),Els,deRef(FceTp),Env,Rp,.deFault);
     if sameType(ThetaTp,FceTp,Env) then{
 --      logMsg("building record from theta, $(ThEnv)");
-      mkRecord(Lc,some(Nm),deRef(faceOfType(Tp,ThEnv)),ThEnv,sortDefs(Defs),Tp,Rp)
+      formRecordExp(Lc,some(Nm),deRef(faceOfType(Tp,ThEnv)),ThEnv,sortDefs(Defs),Tp,Rp)
     }
     else
     throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Op)\:$(ConTp) ",Lc)

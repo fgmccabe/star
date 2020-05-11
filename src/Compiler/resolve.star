@@ -16,9 +16,7 @@ star.compiler.resolve{
   public overloadEnvironment:(cons[cons[canonDef]],dict,reports) =>
     either[reports,cons[cons[canonDef]]].
   overloadEnvironment(Gps,Dict,Rp) => do{
---    logMsg("resolving definitions in $(Gps)");
     TDict .= declareImplementations(Gps,Dict);
---    logMsg("resolution dict = $(TDict)");
     overloadGroups(Gps,[],TDict,Rp)
   }
 
@@ -38,8 +36,6 @@ star.compiler.resolve{
     either[reports,cons[cons[canonDef]]].
   overloadGroups([],Gps,_,_) => either(reverse(Gps)).
   overloadGroups([Gp,..Gps],RG,Dict,Rp) => do{
---    logMsg("overload group $(Gp)");
---    logMsg("dict is $(Dict)");
     (RGp,GDict) <- overloadGroup(Gp,Dict,Rp);
     overloadGroups(Gps,[RGp,..RG],GDict,Rp)
   }
@@ -64,18 +60,15 @@ star.compiler.resolve{
   overloadDef(Dict,implDef(Lc,Nm,FullNm,Val,Cx,Tp),Rp) =>
     overloadImplDef(Dict,Lc,Nm,FullNm,Val,Cx//(contractConstraint(CTp))=>CTp,Tp,Rp).
   overloadDef(Dict,typeDef(Lc,Nm,Tp,TpRl),Rp) => do{
---    logMsg("found type definition $(typeDef(Lc,Nm,Tp,TpRl))");
     valis (typeDef(Lc,Nm,Tp,TpRl),declareType(Nm,some(Lc),Tp,TpRl,Dict))
   }
   overloadDef(Dict,Def,Rp) default => either((Def,Dict)).
  
   overloadVarDef(Dict,Lc,Nm,FullNm,Val,[],Tp,Rp) => do{
---    logMsg("overload var def for $(Nm)");
     RVal <- resolveTerm(Val,Dict,Rp);
     valis (varDef(Lc,Nm,FullNm,RVal,[],Tp),Dict)
   }
   overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp,Rp) => do{
---    logMsg("overload var def for $(Nm) with constraints $(Cx)");
     (Cvrs,CDict) .= defineCVars(Lc,Cx,[],Dict);
     RVal <- resolveTerm(Val,CDict,Rp);
     (Qx,Qt) .= deQuant(Tp);

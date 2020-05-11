@@ -41,7 +41,9 @@ star.compiler.ast{
 
   public genName:(locn,string) => ast.
   genName(Lc,Pr) => nme(Lc,genSym(Pr)).
-  
+
+  public anon(Lc) => nme(Lc,"_").
+
   public isInt:(ast) => option[(locn,integer)].
   isInt(int(Lc,Ix)) => some((Lc,Ix)).
   isInt(_) default => .none.
@@ -60,12 +62,18 @@ star.compiler.ast{
   public unary:(locn,string,ast) => ast.
   unary(Lc,Op,Arg) => app(Lc,nme(Lc,Op),tpl(locOf(Arg),"()",[Arg])).
 
+  public sqUnary:(locn,string,ast) => ast.
+  sqUnary(Lc,Op,Arg) => app(Lc,nme(Lc,Op),tpl(locOf(Arg),"[]",[Arg])).
+
   public isUnary:(ast,string) => option[(locn,ast)].
   isUnary(app(Lc,nme(_,Op),tpl(_,"()",[A])),Op) => some((Lc,A)).
   isUnary(_,_) default => .none.
 
   public binary:(locn,string,ast,ast) => ast.
   binary(Lc,Op,L,R) => app(Lc,nme(Lc,Op),tpl(Lc,"()",[L,R])).
+
+  public sqBinary:(locn,string,ast,ast) => ast.
+  sqBinary(Lc,Op,L,R) => app(Lc,nme(Lc,Op),tpl(Lc,"[]",[L,R])).
 
   public isBinary:(ast,string) => option[(locn,ast,ast)].
   isBinary(app(Lc,nme(_,Op),tpl(_,"()",[L,R])),Op) => some((Lc,L,R)).
@@ -104,4 +112,5 @@ star.compiler.ast{
   isQBrTuple(tpl(Lc,"{..}",A)) => some((Lc,A)).
   isQBrTuple(_) => .none.
 
+  public qbrTuple(Lc,Els) => tpl(Lc,"{..}",Els).
 }

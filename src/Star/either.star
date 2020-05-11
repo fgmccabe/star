@@ -53,4 +53,9 @@ star.either{
     (either(F) <*> either(X)) => either(F(X)).
     (_ <*> other(E)) => other(E).
   }
+
+/*  public implementation all e ~~ injection[option,either[e]] => {.
+    _inject(some(X)) => either(X).
+  .}
+*/
 }
