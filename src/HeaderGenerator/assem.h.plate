@@ -1,9 +1,11 @@
 /*
  * Automatically generated. Do NOT edit
  */
+#ifndef _JIT_INS_H_
+#define _JIT_INS_H_
 
-#include "term.h"
 #include "codegen.h"
 
 #(JitHedder)
 
+#endif //_JIT_INS_H_

@@ -5,6 +5,6 @@
 #ifndef STAR_CODEGEN_H
 #define STAR_CODEGEN_H
 
-#include "opcodes.h"
+typedef struct CompileContext *compileContextPo ;
 
 #endif //STAR_CODEGEN_H

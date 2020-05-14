@@ -88,26 +88,35 @@ int main(int argc, char **argv) {
   }
 }
 
+static char *genArg(opAndSpec A);
+
 retCode genInsHedder(ioPo out, char *mnem, int op, opAndSpec A1, int delta, char *cmt) {
-  return outMsg(out, "extern retCode do%s();         // %s\n", mnem, cmt);
+  return outMsg(out, "retCode do%s(compileContextPo cxt%s);         // %s\n", mnem, genArg(A1), cmt);
 }
 
-static char *genArg(ioPo out, char *sep, opAndSpec A) {
+char *genArg(opAndSpec A) {
   switch (A) {
     case nOp:                             // No operand
     case tOs:
-      return sep;
+      return "";
     case lit:
     case sym:
     case lne:
     case glb:
+      return ", integer litNo";
     case Es:
+      return ", char *escName";
     case i32:
+      return ", integer cnt";
     case art:
+      return ", integer arity";
     case arg:
+      return ", integer argNo";
     case lcl:
     case lcs:
+      return ", integer lclNo";
     case off:
+      return ", integer pcDelta";
     default:
       printf("Problem in generating opcode type\n");
       exit(11);

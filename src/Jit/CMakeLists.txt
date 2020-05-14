@@ -7,6 +7,7 @@ include_directories("Headers" "../Headers" "../Util/Headers" "../Escapes/Headers
 
 set(HEADER_FILES
         Headers/jit.h Headers/jitP.h
+        Headers/x64Ops.h
         )
 
 set(SOURCE_FILES jitInfra.c)
