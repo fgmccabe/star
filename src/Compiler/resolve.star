@@ -2,6 +2,7 @@ star.compiler.resolve{
   import star.
 
   import star.compiler.canon.
+  import star.compiler.constraints.
   import star.compiler.dict.
   import star.compiler.dict.mgt.
   import star.compiler.errors.
@@ -17,6 +18,7 @@ star.compiler.resolve{
     either[reports,cons[cons[canonDef]]].
   overloadEnvironment(Gps,Dict,Rp) => do{
     TDict .= declareImplementations(Gps,Dict);
+    _ <- resolveConstraints(Gps,TDict,Rp);
     overloadGroups(Gps,[],TDict,Rp)
   }
 
@@ -50,7 +52,9 @@ star.compiler.resolve{
     either[reports,(cons[canonDef],dict)].
   overloadDefs(Dict,[],Dfx,Rp) => either((reverse(Dfx),Dict)).
   overloadDefs(Dict,[D,..Defs],Dfx,Rp) => do{
+--    logMsg("overload definition $(D)");
     (DD,DDict) <- overloadDef(Dict,D,Rp);
+--    logMsg("overloaded definition $(DD)");
     overloadDefs(DDict,Defs,[DD,..Dfx],Rp)
   }
 
