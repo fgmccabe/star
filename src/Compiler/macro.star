@@ -8,68 +8,20 @@ star.compiler.macro{
   import star.compiler.misc.
   import star.compiler.location.
   import star.compiler.meta.
+  import star.compiler.macro.infra.
   import star.compiler.wff.
-
-  macroContext ::= .package
-    | .statement
-    | .expression
-    | .actn
-    | .pattern
-    | .typeterm
-    | .constraint.
-
-  implementation equality[macroContext] => {.
-    .package == .package => .true.
-    .statement == .statement => .true.
-    .expression == .expression => .true.
-    .actn == .actn => .true.
-    .pattern == .pattern => .true.
-    .typeterm == .typeterm => .true.
-    .constraint == .constraint => .true.
-    _ == _ default => .false
-  .}
-
-  implementation display[macroContext] => {.
-    disp(.package) => ss("package").
-    disp(.statement) => ss("statement").
-    disp(.expression) => ss("expression").
-    disp(.actn) => ss("action").
-    disp(.pattern) => ss("pattern").
-    disp(.typeterm) => ss("type").
-    disp(.constraint) => ss("constraint").
-  .}
-
-  subContext(.statement)=>.expression.
-  subContext(C) default => C.
-
-  macroRule ~> (ast,macroContext,reports) => either[reports,macroState].
-
-  macroState ::= .inactive | active(ast).
-
-  implementation display[macroState] => {.
-    disp(.inactive) => ss("inactive").
-    disp(active(A)) => ssSeq([ss("active "),disp(A)]).
-  .}
-
-  macroKey:(ast)=>string.
-  macroKey(nme(_,Id)) => Id.
-  macroKey(qnm(_,Id)) => Id.
-  macroKey(int(_,_)) => "$integer".
-  macroKey(num(_,_)) => "$number".
-  macroKey(str(_,_)) => "$string".
-  macroKey(tpl(_,_,[tpl(Lc,Lb,I)])) => macroKey(tpl(Lc,Lb,I)).
-  macroKey(tpl(_,K,_)) => K.
-  macroKey(app(_,O,_)) => macroKey(O).
 
   macros:map[string,cons[(macroContext,macroRule)]].
   macros = [ "::=" -> [(.statement,macroAlgebraic)],
     "[]" -> [(.pattern,makeSeqPtn),
       (.expression,macroListComprehension),
       (.expression,makeSeqExp)],
+    "::" -> [(.expression,macroCoercion)],
     "{}" -> [(.expression,macroComprehension)],
     "do" -> [(.expression,macroDo)],
-    "action" -> [(.expression,macroAction)],
-    "task" -> [(.expression,taskAction)]].
+    "action" -> [(.expression,actionMacro)],
+    "task" -> [(.expression,taskAction)],
+    "__pkg__" -> [(.expression,pkgNameMacro)]].
 
   applyRules:(ast,macroContext,macroState,cons[(macroContext,macroRule)],reports) =>
     either[reports,macroState].
@@ -735,12 +687,15 @@ star.compiler.macro{
   macroListEntries(Lc,[El,..Rest],Eof,Hed) =>
     Hed(Lc,El,macroListEntries(Lc,Rest,Eof,Hed)).
 
+  macroCoercion(A,.expression,Rp) where (Lc,L,R) ^= isCoerce(A) =>
+    either(active(typeAnnotation(Lc,unary(Lc,"_coerce",L),R))).
+  macroCoercion(_,_,_) => either(.inactive).
   
-
   public reconstructDisp:(ast)=>ast.
   reconstructDisp(C) where (Lc,Ex,Tp) ^= isCoerce(C) && (_,"string") ^= isName(Tp) => let{
     flat:(ast,cons[string])=>cons[string].
     flat(SS,So) where (_,Tx) ^= isUnary(SS,"ss") && (_,Txt) ^= isStr(Tx) => [Txt,..So].
+    flat(SS,So) where (_,Tx) ^= isUnary(SS,"ss") => ["$(Tx)",..So].
     flat(E,So) where (_,Sq) ^= isUnary(E,"ssSeq") && (_,L) ^= isSqTuple(Sq) => fltList(L,So).
     flat(E,So) where (_,D) ^= isUnary(E,"disp") => ["\$",D::string,..So].
 
@@ -819,7 +774,7 @@ star.compiler.macro{
   isIterable(A) where (_,[I]) ^= isTuple(A) => isIterable(I).
   isIterable(_) default => .false.
 
-  macroAction(A,.expression,Rp) where (Lc,Act) ^= isActionTerm(A) => do{
+  actionMacro(A,.expression,Rp) where (Lc,Act) ^= isActionTerm(A) => do{
     AA <- makeAction(Act,.none,Rp);
     valis active(typeAnnotation(Lc,AA,sqBinary(Lc,"action",anon(Lc),anon(Lc))))
   }
@@ -1116,7 +1071,7 @@ star.compiler.macro{
 
   ptnVars:(ast,set[string],set[string]) => set[string].
   ptnVars(A,Excl,Vrs) where (_,Nm) ^= isName(A) =>
-    (Nm in Excl ? Vrs || _addMem(Nm,Vrs)).
+    (Nm in Excl ? Vrs || Vrs\+Nm).
   ptnVars(A,Excl,Vrs) where _ ^= isInt(A) => Vrs.
   ptnVars(A,Excl,Vrs) where _ ^= isFlt(A) => Vrs.
   ptnVars(A,Excl,Vrs) where _ ^= isStr(A) => Vrs.
@@ -1131,4 +1086,10 @@ star.compiler.macro{
   ptnVars(A,Excl,Vrs) where (_,Els) ^= isSqTuple(A) =>
     foldRight((E,F)=>ptnVars(E,Excl,F),Vrs,Els).
   ptnVars(_,_,Vrs) default => Vrs.
+
+  pkgNameMacro(A,.expression,Rp) where
+      (Lc,"__pkg__") ^= isName(A) && locn(Pkg,_,_,_,_).=Lc =>
+    either(active(str(Lc,Pkg))).
 }
+
+
