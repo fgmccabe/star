@@ -17,7 +17,7 @@ test.qs{
 
   pp = [X|(X,"ab") in parent || (X,"de") in parent].
 
-  pm = [X| (X,Y) in parent && "ab".=Y].
+  pm = [X | (X,Y) in parent && "ab".=Y] .
 
   -- A different example, filtering positive numbers
   someInts : cons[integer].

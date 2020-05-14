@@ -17,6 +17,8 @@ test.g{
 
   main:()=>action[(),()].
   main()=>do{
-    assert some(_).=isTerm(txt,0cf)
+    show txt;
+    assert some(_).=isTerm(txt,0cf);
+    assert .none.=isTerm(txt,0cr)
   }
 }

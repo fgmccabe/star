@@ -27,7 +27,7 @@ test.dq{
 
   main:()=>action[(),()].
   main()=>do{
-    show "parents: $(Ps)";
+    show Ps;
     show "grandparents: $(gp(Ps))";
 
     show "hand written Gx= $(valof Gx)";
