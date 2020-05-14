@@ -27,10 +27,12 @@ star.compiler.checker{
 
   -- package level of type checker
 
-  public checkPkg:all r ~~ repo[r],display[r]|:(r,pkg,ast,dict,reports) => either[reports,(pkgSpec,canonDef)].
-  checkPkg(Repo,Pkge,PP,Base,Rp) => do{
+  public checkPkg:all r ~~ repo[r],display[r]|:(r,pkg,ast,dict,compilerOptions,reports) => either[reports,(pkgSpec,canonDef)].
+  checkPkg(Repo,Pkge,PP,Base,Opts,Rp) => do{
     P <- macroPkg(PP,Rp);
---    logMsg("macrod package:\n$(P)");
+    if Opts.showMacro then{
+      logMsg("macrod package:\n$(P)")
+    };
     if (Lc,Pk,Els) ^= isBrTerm(P) && either(Pkg) .= pkgeName(Pk) then{
       (Imports,Stmts) <- collectImports(Els,[],[],Rp);
       (PkgEnv,AllImports,PkgVars) <- importAll(Imports,Repo,Base,[],[],Rp);
@@ -64,7 +66,8 @@ star.compiler.checker{
 --      logMsg("exported implementations $(Impls)");
       Types .= exportedTypes(Defs,Vis,.pUblic);
 --      logMsg("exported types: $(Types)");
-      RDefs <- overloadEnvironment(reverse(Defs),PkgEnv,Rp);
+--      logMsg("overload defs $(Defs)");
+      RDefs <- overloadEnvironment(Defs,PkgEnv,Rp);
       PkgType .= faceType(Fields,Types);
       PkgTheta <- makePkgTheta(Lc,PkgNm,PkgType,ThEnv,sortDefs(multicat(RDefs)),Rp);
       valis (pkgSpec(Pkge,Imports,PkgType,Contracts,Impls,PkgVars),varDef(Lc,PkgNm,packageVar(Pkg),PkgTheta,[],PkgType))
@@ -504,9 +507,6 @@ star.compiler.checker{
     ETp <- parseType([],T,Env,Rp);
     checkType(E,Tp,ETp,Env,Rp);
     typeOfExp(E,Tp,Env,Path,Rp)
-  }.
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,E,T) ^= isCoerce(A) => do{
-    typeOfExp(binary(Lc,":",unary(Lc,"_coerce",E),T),Tp,Env,Path,Rp)
   }.
   typeOfExp(A,Tp,Env,Path,Rp) where
       (Lc,E,C) ^= isWhere(A) => do{

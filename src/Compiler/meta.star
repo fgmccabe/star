@@ -102,6 +102,7 @@ star.compiler.meta{
       repo:uri.
       cwd:uri.
       showAst:boolean.
+      showMacro:boolean.
       showCanon:boolean.
       showCore:boolean.
       showCode:boolean.

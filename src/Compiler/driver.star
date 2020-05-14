@@ -42,6 +42,7 @@ star.compiler{
       compilerOptions{repo=NR.
 	cwd=Opts.cwd.
 	showAst = Opts.showAst.
+	showMacro=Opts.showMacro.
 	showCanon=Opts.showCanon.
 	showCore=Opts.showCore.
 	showCode=Opts.showCode}.
@@ -57,6 +58,7 @@ star.compiler{
       compilerOptions{repo=Opts.repo.
 	cwd=NW.
 	showAst = Opts.showAst.
+	showMacro=Opts.showMacro.
 	showCanon=Opts.showCanon.
 	showCore=Opts.showCore.
 	showCode=Opts.showCode}.
@@ -71,6 +73,22 @@ star.compiler{
       compilerOptions{repo=Opts.repo.
 	cwd=Opts.cwd.
 	showAst = .true.
+	showMacro=Opts.showMacro.
+	showCanon=Opts.showCanon.
+	showCore=Opts.showCore.
+	showCode=Opts.showCode}.
+  }
+  traceMacroOption:optionsProcessor[compilerOptions].
+  traceMacroOption = {
+    shortForm = "-dM".
+    alternatives = [].
+    usage = "-dM -- show macro".
+    validator = .none.
+    setOption(_,Opts) =>
+      compilerOptions{repo=Opts.repo.
+	cwd=Opts.cwd.
+	showAst = Opts.showAst.
+	showMacro=.true.
 	showCanon=Opts.showCanon.
 	showCore=Opts.showCore.
 	showCode=Opts.showCode}.
@@ -85,6 +103,7 @@ star.compiler{
       compilerOptions{repo=Opts.repo.
 	cwd=Opts.cwd.
 	showAst = Opts.showAst.
+	showMacro=Opts.showMacro.
 	showCanon=Opts.showCanon.
 	showCore=Opts.showCore.
 	showCode=.true}.
@@ -99,6 +118,7 @@ star.compiler{
       compilerOptions{repo=Opts.repo.
 	cwd=Opts.cwd.
 	showAst = Opts.showAst.
+	showMacro=Opts.showMacro.
 	showCanon=Opts.showCanon.
 	showCore=.true.
 	showCode=Opts.showCode}.
@@ -113,6 +133,7 @@ star.compiler{
       compilerOptions{repo=Opts.repo.
 	cwd=Opts.cwd.
 	showAst = Opts.showAst.
+	showMacro=Opts.showMacro.
 	showCanon=.true.
 	showCore=Opts.showCore.
 	showCode=Opts.showCode}.
@@ -123,10 +144,11 @@ star.compiler{
     RI^=parseUri("file:"++_repo());
     WI^=parseUri("file:"++_cwd());
     handleCmds(processOptions(Args,[repoOption,wdOption,traceAstOption,
-	  traceCodeOption,
+	  traceCodeOption,traceMacroOption,
 	  traceNormOption,traceCheckOption],compilerOptions{repo=RI.
 	  cwd=WI.
 	  showAst = .false.
+	  showMacro = .false.
 	  showCanon=.false.
 	  showCore=.false.
 	  showCode=.false}))
@@ -191,7 +213,7 @@ star.compiler{
 	    if Opts.showAst then{
 	      logMsg("Ast of $(P) is $(Ast)")
 	    };
-	    (PkgSpec,PkgFun) <- checkPkg(Repp!!,CPkg,Ast,stdDict,Rp) :: action[reports,(pkgSpec,canonDef)];
+	    (PkgSpec,PkgFun) <- checkPkg(Repp!!,CPkg,Ast,stdDict,Opts,Rp) :: action[reports,(pkgSpec,canonDef)];
 	    if Opts.showCanon then {
 	      logMsg("type checked $(PkgFun)")
 	    };

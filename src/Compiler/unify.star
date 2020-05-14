@@ -12,7 +12,6 @@ star.compiler.unify{
   sameType(Tp1,Tp2,Envir) => let{
     same(T1,T2,Env) => sm(deRef(T1),deRef(T2),Env).
     
-
     sm(kFun(Nm,Ar),kFun(Nm,Ar),_) => .true.
     sm(T1,T2,Env) where tVar(_,_) .= T1 => varBinding(T1,T2,Env).
     sm(T1,T2,Env) where tVar(_,_) .= T2 => varBinding(T2,T1,Env).
