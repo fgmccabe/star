@@ -10,7 +10,7 @@ star.compiler.canondeps{
   public sortDefs:(cons[canonDef])=>cons[cons[canonDef]].
   sortDefs(Defs) => valof action{
 --    logMsg("dependency sort of $(Defs)");
-    Defined .= foldRight((D,S)=>_addMem(definedName(D),S),[],Defs);
+    Defined .= foldRight((D,S)=>S\+definedName(D),[],Defs);
     Q .= foldRight(pickVar,[],Defined);
 --    logMsg("defined entries Q=$(Q), $(Defined)");
     AllRefs .= foldRight((D,A) => [findRefs(D,D,Q,Defined),..A],([]:cons[defSpec]),Defs);
@@ -39,7 +39,7 @@ star.compiler.canondeps{
     disp(tpSp(T)) => ssSeq([ss("type:"),disp(T)]).
   .}
 
-  pickVar(varSp(V),Q) => _addMem(V,Q).
+  pickVar(varSp(V),Q) => Q\+V.
   pickVar(_,Q) => Q.
     
   definedName:(canonDef)=>defnSp.

@@ -47,8 +47,10 @@
   operator("%", [infixOp(700, 700, 699)]).
   operator("<-", [infixOp(904, 905, 904)]).
   operator(".>>>.", [infixOp(600, 600, 599)]).
+  operator("\\+", [infixOp(700, 700, 699)]).
   operator("<<-", [infixOp(974, 975, 974)]).
   operator("*", [postfixOp(699, 700), infixOp(700, 700, 699)]).
+  operator("\\-", [infixOp(700, 700, 699)]).
   operator("+", [postfixOp(699, 700), infixOp(720, 720, 719)]).
   operator(".>>.", [infixOp(600, 600, 599)]).
   operator("*>", [infixOp(904, 905, 904)]).
@@ -198,6 +200,8 @@
   follows('|',')','|)').
   follows('~','~','~~').
   follows('~','>','~>').
+  follows('\\','+','\\+').
+  follows('\\','-','\\-').
   follows('\\','/','\\/').
   follows('^','.','^.').
   follows('^','/','^/').
@@ -271,6 +275,8 @@
   final('~>',"~>").	 /* type function */
   final('[',"[").	 /* square brackets */
   final('\\',"\\").	 /* difference */
+  final('\\+',"\\+").	 /* add element to set */
+  final('\\-',"\\-").	 /* remove element from set */
   final('\\/',"\\/").	 /* union */
   final(']',"]").	 /* square brackets */
   final('^',"^").	 /* Optional propagation */

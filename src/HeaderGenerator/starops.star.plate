@@ -6,41 +6,37 @@ star.compiler.operators{
   import star.compiler.ast.
   import star.compiler.location.
 
-  public astGenerator ::= .noGen
-             | genUnary((locn,ast)=>ast)
-             | genBinary((locn,ast,ast)=>ast).
-
-  operator ::= prefixOp(integer,integer,astGenerator)
-             | infixOp(integer,integer,integer,astGenerator)
-             | postfixOp(integer,integer,astGenerator).
+  operator ::= prefixOp(integer,integer)
+             | infixOp(integer,integer,integer)
+             | postfixOp(integer,integer).
 
   public bracket ::= bkt(string,string,string,integer).
 
   public isOperator:(string)=>boolean.
   isOperator(Nm) => size(oper(Nm))>0.
 
-  public isInfixOp:(string) => option[(integer,integer,integer,astGenerator)].
+  public isInfixOp:(string) => option[(integer,integer,integer)].
   isInfixOp(Nm) => pickInfix(oper(Nm)).
 
-  pickInfix:(cons[operator]) => option[(integer,integer,integer,astGenerator)].
+  pickInfix:(cons[operator]) => option[(integer,integer,integer)].
   pickInfix([]) => .none.
-  pickInfix([infixOp(Lf,Pr,Rg,Gen),.._]) => some((Lf,Pr,Rg,Gen)).
+  pickInfix([infixOp(Lf,Pr,Rg),.._]) => some((Lf,Pr,Rg)).
   pickInfix([_,..L]) => pickInfix(L).
 
-  public isPrefixOp:(string) => option[(integer,integer,astGenerator)].
+  public isPrefixOp:(string) => option[(integer,integer)].
   isPrefixOp(Nm) => pickPrefix(oper(Nm)).
 
-  pickPrefix:(cons[operator]) => option[(integer,integer,astGenerator)].
+  pickPrefix:(cons[operator]) => option[(integer,integer)].
   pickPrefix([]) => .none.
-  pickPrefix([prefixOp(Pr,Rg,Gen),.._]) => some((Pr,Rg,Gen)).
+  pickPrefix([prefixOp(Pr,Rg),.._]) => some((Pr,Rg)).
   pickPrefix([_,..L]) => pickPrefix(L).
 
-  public isPostfixOp:(string) => option[(integer,integer,astGenerator)].
+  public isPostfixOp:(string) => option[(integer,integer)].
   isPostfixOp(Nm) => pickPostfix(oper(Nm)).
 
-  pickPostfix:(cons[operator]) => option[(integer,integer,astGenerator)].
+  pickPostfix:(cons[operator]) => option[(integer,integer)].
   pickPostfix([]) => .none.
-  pickPostfix([postfixOp(Pr,Rg,Gen),.._]) => some((Pr,Rg,Gen)).
+  pickPostfix([postfixOp(Pr,Rg),.._]) => some((Pr,Rg)).
   pickPostfix([_,..L]) => pickPrefix(L).
 
   oper:(string)=>cons[operator].

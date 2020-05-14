@@ -417,6 +417,18 @@
 	"keyword": false
     },
     {
+	"infixOp": "\\+",
+	"priorities": [700, 700, 699],
+	"desc": "add element to set",
+	"keyword": false
+    },
+    {
+	"infixOp": "\\-",
+	"priorities": [700, 700, 699],
+	"desc": "remove element from set",
+	"keyword": false
+    },
+    {
 	"infixOp": ".&.",
 	"priorities": [700, 700, 699],
 	"desc": "bitwise and",

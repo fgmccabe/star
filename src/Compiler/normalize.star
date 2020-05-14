@@ -68,7 +68,8 @@ star.compiler.normalize{
     rawGrpFree .= freeVarsInGroup(Grp,Q)::cons[crVar];
 --    logMsg("raw group free $(rawGrpFree)");
     freeVars .=
-      foldRight((crId(Nm,Tp),So) => (_ ^= lookup(Outer,Nm,isModule) ? So || _addMem(crId(Nm,Tp),So)),[],
+      foldRight((crId(Nm,Tp),So) =>
+	  (_ ^= lookup(Outer,Nm,isModule) ? So || So\+crId(Nm,Tp)),[],
 	rawGrpFree);
 --    logMsg("group free vars $(freeVars)");
 
@@ -566,8 +567,8 @@ star.compiler.normalize{
   collectMtd(conDef(_,_,_,_),_,LL) => LL.
 
   collectQ:(canonDef,set[crVar]) => set[crVar].
-  collectQ(varDef(Lc,Nm,FullNm,Val,_,Tp),Q) => _addMem(crId(Nm,Tp),Q).
-  collectQ(implDef(Lc,_,FullNm,Val,_,Tp),Q) => _addMem(crId(FullNm,Tp),Q).
+  collectQ(varDef(Lc,Nm,FullNm,Val,_,Tp),Q) => Q\+crId(Nm,Tp).
+  collectQ(implDef(Lc,_,FullNm,Val,_,Tp),Q) => Q\+crId(FullNm,Tp).
   collectQ(cnsDef(_,Nm,FullNm,Tp),Q) => Q.
   collectQ(typeDef(_,_,_,_),Q) => Q.
   collectQ(conDef(_,_,_,_),Q) => Q.

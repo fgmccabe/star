@@ -16,8 +16,8 @@ star.sets{
 
   public implementation all e ~~ equality[e], hash[e] |: membership[set[e] ->> e] => {
     empty = _nil.
-    _addMem(e,s) => _cons(e,s).
-    _delMem(e,set(M)) => set(M[!e]).
+    set(M)\+e => set(M[e->()]).
+    set(M)\-e => set(M[!e]).
     _contains(set(M),e) => some(()).=_index(M,e).
   }
 
