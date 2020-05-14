@@ -343,21 +343,11 @@ static retCode procOper(ioPo out, char *sep, opPo op) {
     case genStar:
       switch (op->style) {
         case prefixOp:
-          if (uniStrLen(op->ast) > 0)
-            return outMsg(out, "%sprefixOp(%d,%d,genUnary((Lc,X)=>%P(Lc,X)))", sep, op->prior, op->right, op->ast);
-          else
-            return outMsg(out, "%sprefixOp(%d,%d,.noGen)", sep, op->prior, op->right);
+          return outMsg(out, "%sprefixOp(%d,%d)", sep, op->prior, op->right);
         case infixOp:
-          if (uniStrLen(op->ast) > 0)
-            return outMsg(out, "%sinfixOp(%d,%d,%d,genBinary((Lc,X,Y)=>%P(Lc,X,Y)))", sep, op->left, op->prior, op->right,
-                          op->ast);
-          else
-            return outMsg(out, "%sinfixOp(%d,%d,%d,.noGen)", sep, op->left, op->prior, op->right);
+          return outMsg(out, "%sinfixOp(%d,%d,%d)", sep, op->left, op->prior, op->right);
         case postfixOp:
-          if (uniStrLen(op->ast) > 0)
-            return outMsg(out, "%spostfixOp(%d,%d,genUnary((Lc,X)=>%P(Lc,X)))", sep, op->left, op->prior, op->ast);
-          else
-            return outMsg(out, "%spostfixOp(%d,%d,.noGen)", sep, op->left, op->prior);
+          return outMsg(out, "%spostfixOp(%d,%d)", sep, op->left, op->prior);
         default:
           return Error;
       }

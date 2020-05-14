@@ -15,7 +15,7 @@ star.compiler.freevars{
   freeVarsInTerm(vr(Lc,Nm,Tp),Excl,_,Fv) where crId(Nm,_) in Fv => Fv.
   freeVarsInTerm(vr(_,Nm,_),_,_,Fv) where isEscape(Nm) => Fv.
   freeVarsInTerm(vr(_,Nm,_),_,_,Fv) where _ ^= intrinsic(Nm) => Fv.
-  freeVarsInTerm(vr(Lc,Nm,Tp),_,Q,Fv) => (crId(Nm,_) in Q ? _addMem(crId(Nm,Tp),Fv) || Fv).
+  freeVarsInTerm(vr(Lc,Nm,Tp),_,Q,Fv) => (crId(Nm,_) in Q ? Fv\+crId(Nm,Tp) || Fv).
   freeVarsInTerm(intr(_,_),_,_,Fv) => Fv.
   freeVarsInTerm(flt(_,_),_,_,Fv) => Fv.
   freeVarsInTerm(strng(_,_),_,_,Fv) => Fv.
@@ -95,8 +95,8 @@ star.compiler.freevars{
   exclDfs:(cons[canonDef],set[crVar],set[crVar])=>set[crVar].
   exclDfs(Defs,Excl,Fv) => foldRight((D,Ex)=>exclDf(D,Ex,Fv),Excl,Defs).
 
-  exclDf(varDef(Lc,Nm,_,_,_,Tp),Excl,Fv) => _addMem(crId(Nm,Tp),Excl).
-  exclDf(implDef(_,_,Nm,_,_,Tp),Excl,Fv) => _addMem(crId(Nm,Tp),Excl).
+  exclDf(varDef(Lc,Nm,_,_,_,Tp),Excl,Fv) => Excl\+crId(Nm,Tp).
+  exclDf(implDef(_,_,Nm,_,_,Tp),Excl,Fv) => Excl\+crId(Nm,Tp).
   exclDf(_,Excl,_) => Excl.
 
   public goalVars:(locn,canon)=>cons[canon].
@@ -119,7 +119,7 @@ star.compiler.freevars{
   public ptnVars:(canon,set[crVar],set[crVar]) => set[crVar].
   ptnVars(vr(Lc,Nm,Tp),Excl,Fv) where crId(Nm,Tp) in Excl => Excl.
   ptnVars(vr(Lc,Nm,Tp),Excl,Fv) where crId(Nm,_) in Fv => Excl.
-  ptnVars(vr(Lc,Nm,Tp),Excl,Fv) => _addMem(crId(Nm,Tp),Excl).
+  ptnVars(vr(Lc,Nm,Tp),Excl,Fv) => Excl\+crId(Nm,Tp).
   ptnVars(intr(_,_),Excl,_) => Excl.
   ptnVars(flt(_,_),Excl,_) => Excl.
   ptnVars(strng(_,_),Excl,_) => Excl.

@@ -89,6 +89,9 @@
 @item @code{.>>>.}
 @tab left associative infix
 @tab 600
+@item @code{\\+}
+@tab left associative infix
+@tab 700
 @item @code{<<-}
 @tab non-associative infix
 @tab 975
@@ -96,6 +99,9 @@
 @tab non-associative postfix
 @tab 700
 @item @code{*}
+@tab left associative infix
+@tab 700
+@item @code{\\-}
 @tab left associative infix
 @tab 700
 @item @code{+}
