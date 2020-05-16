@@ -5,7 +5,7 @@ test.c {
   all t ~~ person[t] ::= someOne{
     name : t.
     spouse: option[person[t]].
-    spouse default = .none.
+--    spouse default = .none.
   }
     
   implementation all t ~~ equality[t] |: equality[person[t]] => {.
