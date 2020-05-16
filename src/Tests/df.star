@@ -4,8 +4,9 @@ test.df{
   
   CX : (cons[integer],integer) => action[(),integer].
   CX(Is,Lm) => do{
-    Cx := 0;
+    Cx .= ref 0;
 
+    logMsg("Cx=$(Cx!!), Is=$(Is)");
     for Ix in Is do{
       if Ix<Lm then
   	Cx := Cx!!+Ix
@@ -20,7 +21,7 @@ test.df{
     
   TX : (cons[integer],integer) => action[integer,integer].
   TX(Is,Lm) => do{
-      Cx := 0;
+      Cx .= ref 0;
       
       try{
 	VV <- _iter(Is,

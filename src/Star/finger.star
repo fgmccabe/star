@@ -162,7 +162,7 @@ star.finger{
     _iter:all x,m/2,er ~~ execution[m] |: (fingerTree[e],m[er,x],(e,x)=>m[er,x]) => m[er,x].
     _iter(Lst,St,Fn) => iterOverFinger(Lst,St,Fn).
 
-    iterOverFinger:all x,m/2,er ~~ execution[m] |:
+    private iterOverFinger:all x,m/2,er ~~ execution[m] |:
       (fingerTree[e],m[er,x],(e,x)=>m[er,x]) => m[er,x].
     iterOverFinger(.eTree,St,_) => St.
     iterOverFinger(Tr,St,Fn) where 

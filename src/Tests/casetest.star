@@ -1,4 +1,4 @@
-test.case{
+test.cse{
   import star.
   import star.script.
 
@@ -23,6 +23,6 @@ test.case{
   main()=>do{
     assert "TT" ^= sVal(foo("TT"));
 
-    show "$(sVal(foo("beta")))"
+    show sVal(foo("beta"))
   }
 }

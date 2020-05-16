@@ -23,26 +23,26 @@ test.p1{
   symb(S) => _str(S).
 
   -- Simple expression parser
-  expr : parser[cons[integer],integer].
-  expr = chainl1(term,addop).
+  expr : ()=>parser[cons[integer],integer].
+  expr() => chainl1(term(),addop()).
 
-  term: parser[cons[integer],integer].
-  term = chainl1(factor,mulop).
+  term: ()=>parser[cons[integer],integer].
+  term() => chainl1(factor(),mulop()).
 
-  factor:parser[cons[integer],integer].
-  factor = decimal +++ (symb("(") >>= (_) => expr >>= (F) => symb(")") >>= (_) => return F).
+  factor: ()=>parser[cons[integer],integer].
+  factor() => decimal() +++ (symb("(") >>= (_) => expr() >>= (F) => symb(")") >>= (_) => return F).
 
-  addop: parser[cons[integer],(integer,integer)=>integer].
-  addop = (symb("+") >>= (_) => return (+)) +++ (symb("-") >>= (_) => return (-)).
+  addop: ()=>parser[cons[integer],(integer,integer)=>integer].
+  addop() => (symb("+") >>= (_) => return (+)) +++ (symb("-") >>= (_) => return (-)).
 
-  mulop:parser[cons[integer],(integer,integer)=>integer].
-  mulop = (symb("*") >>= (_) => return (*)) +++ (symb("/") >>= (_) => return (/)).
+  mulop: ()=>parser[cons[integer],(integer,integer)=>integer].
+  mulop() => (symb("*") >>= (_) => return (*)) +++ (symb("/") >>= (_) => return (/)).
 
-  decimal:parser[cons[integer],integer].
-  decimal = skip(digit) >>= (D) => return (D-0c0).
+  decimal:()=>parser[cons[integer],integer].
+  decimal() => skip(digit()) >>= (D) => return (D-0c0).
 
-  digit:parser[cons[integer],integer].
-  digit = _sat(isDigit).
+  digit:()=>parser[cons[integer],integer].
+  digit() => _sat(isDigit).
 
   main:() => action[(),()].
   main() => do{
@@ -60,6 +60,6 @@ test.p1{
 
     assert listMem((([(),()]),[0cb]),parse(_star(_str("a")),"aab"::cons[integer]));
 
-    assert parse(expr,"(3+5*3)"::cons[integer]) == [(18,[])]
+    assert parse(expr(),"(3+5*3)"::cons[integer]) == [(18,[])]
   }
 }

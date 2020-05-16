@@ -11,7 +11,7 @@ test.di{
   Rx = _iter(Is,do { valis _nil}, (Ix,Cx)=>do {valis _cons(Ix,Cx)}).
   
   Fc(I) => action{
-	Fx := 1;
+	Fx .= ref 1;
 	for E in I do {
 	  Fx := Fx!! * E
 	};
@@ -20,7 +20,7 @@ test.di{
 
   FX:(cons[integer]) => action[(),integer].
   FX(I) => action{
-    Fx := 1;
+    Fx .= ref 1;
     _iter(I,do {valis ()}, (Ix,_) => do { Fx:=Fx!!*Ix});
     valis Fx!!
   }

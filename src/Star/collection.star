@@ -164,7 +164,23 @@ star.collection{
     _empty = .nil.
   }
 
+  public implementation all e ~~ equality[e] |: setops[cons[e]] => let{
+    merge(.nil,C) => C.
+    merge(cons(H,T),C) where _contains(C,H) => merge(T,C).
+    merge(cons(H,T),C) default => [H,..merge(T,C)].
 
+    intersect(.nil,C) => .nil.
+    intersect(cons(H,T),C) where _contains(C,H) => [H,..intersect(T,C)].
+    intersect(cons(H,T),C) default => intersect(T,C).
+
+    diff(.nil,C) => .nil.
+    diff(cons(H,T),C) where _contains(C,H) => diff(T,C).
+    diff(cons(H,T),C) default => [H,..diff(T,C)].
+  } in {.
+    L1 \/ L2 => merge(L1,L2).
+    L1 /\ L2 => intersect(L1,L2).
+    L1 \ L2 => diff(L1,L2)
+  .}
 
   public iota: all c ~~ sequence[c->>integer] |: (integer,integer)=>c.
   iota(Mx,Mx) => [].
