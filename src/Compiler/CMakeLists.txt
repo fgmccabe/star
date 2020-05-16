@@ -13,7 +13,7 @@ add_custom_command(TARGET compiler DEPENDS sbc star.escapes
 
 set(STAR ${CMAKE_BINARY_DIR}/src/engine/star)
 set(COMPILER_REPOSITORY ${REPO_DIR})
-set(STAR_COMPILER_FLAGS "-h256m -s2m -ds -p5")
+set(STAR_COMPILER_FLAGS "-h256m -s2m -p5")
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sc.in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/sc)
 file(COPY ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/sc
