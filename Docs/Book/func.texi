@@ -10,7 +10,7 @@ programmers can benefit by programming functionally.
 As for being difficult, a more accurate description would be that
 there is a deeper @emph{range of features} in functional programming
 than in most modern programming languages: so a perception of
-complexity can arise simply because there is more to say about
+complexity can arise simply because there is a lot more to say about
 functional programming languages. However, the simplest aspects of
 functional programming are very simple and the ramp need not be steep.
 
@@ -38,7 +38,7 @@ produce the same output for the same input.
 
 This is what people mean when they say that functional programs are
 @emph{declarative}.@footnote{The term declarative has a technical
-definition. But this captures much of the essence of declarativeness
+definition; but this captures much of the essence of declarativeness
 (sic).}
 
 @item
@@ -107,9 +107,11 @@ sign(0) => 0.
 sign(X) => 1.
 @end example
 
-Sometimes it is important to mark a particular equation as the
-@emph{default} case: i.e., an equation that should be used if none of the
-other cases apply:
+There is something somewhat unsatsifying about that third equation --
+it is not actually always true -- and it depends on the previous
+equations not applying for its meaning. We address this by using the
+concept of a @emph{default} case: i.e., an equation that should be
+used if none of the other cases apply:
 
 @example
 sign(X) where X<0 => -1.
@@ -257,8 +259,8 @@ of a pair of a pattern and a condition:
 @end example
 @end table
 
-Conditions are boolean-valued and a guard succeeds if both its pattern
-matches and if its condition is @emph{satisfied}.
+A guard succeeds if both its pattern matches and if its condition is
+@emph{satisfied}.
 
 @quotation
 Note that conditions @emph{may} bind variables. This is why we do not state
@@ -331,6 +333,14 @@ evaluated @emph{when needed}. Lazy evaluation has many potential
 benefits: it certainly enables some very elegant programming
 techniques.
 
+@quotation
+The modern name for lazy evaluation in functional programming
+languages is @emph{normal order evaluation}. This evaluation order
+amounts to evaluating all expressions in a strictly left-to-right
+order. Surprisingly, this amounts to a form of lazy evaluation because
+the function is evaluated before its arguments.
+@end quotation
+
 Essentially for the reasons noted above, @Star{} does not use lazy
 evaluation; however, as we shall see, there are features that allow us
 to recover some of the power of lazy evaluation.@footnote{Even
@@ -347,7 +357,7 @@ exception being any default equation which is always tried last.
 @node Another look at types
 @section Another look at types
 Organizing data is fundamental to any programming language. @Star{}'s
-data types are organized around the algebraic data type. 
+data types are organized around the algebraic data type.
 
 @node Quantifier types
 @subsection Quantifier types
@@ -424,7 +434,7 @@ applied to arguments of any given type. However, equality in a normal
 programming language is @emph{not} universal: not all values admit to
 being reliably tested for equality. A great example of such a
 limitation are functions -- equality between functions is not well
-defined.@footnote{Strictly, not decidable.}
+defined.@footnote{Strictly, equality of functions is not decidable.}
 
 To capture this, we need to be able to constrain the scope of the
 quantifier; specifically to those argument types that do admit
@@ -752,7 +762,7 @@ let@{
 @end example
 The region between the braces is a @emph{definition environment} and
 @emph{any} definition statement may be in such an environment. We can
-define check using a let expression:
+define check using a @code{let} expression:
 @example
 check(T,S) => fTest(T,
     let@{
@@ -789,17 +799,39 @@ In short, we would use a @code{let} expression when the function being
 defined is at all complex; and we would use a lambda when the function
 being defined is simple and small.
 
+@node Non-recursive Let Binding
+@subsubsection Non-recursive Let Binding
+
+@noindent
 Assembling functions in this way, either by using anonymous lambdas or
 by using @code{let} expressions, is one of the hallmarks of functional
 programming.
 
+@Star{} actually has @emph{two} forms of let expressions -- the one we
+have used so far allows function definitions to be recursive -- and
+mutually recursive.
+
+Sometimes, it is useful to have let expressions which are not
+recursive. For that we use a special form of brace notation:
+@example
+let@{.
+  isS = (X) => X==S
+.@} in isS
+@end example
+
+The extra periods signal that the definitions within the @emph{let
+environment} may not refer to each other. While that may seem to be
+inconvenient, in fact, there are scenarios when this is more
+convenient; we will see this more when we look more closely at
+contracts.
+
 @node Generic types
 @subsection Generic types
 
-What actually makes @code{fTest} more constrained than it could be is
-the type definition of @code{sTree} itself. It too is unnecessarily
-restrictive: why not allow trees of any type? We can, using the type
-definition for @code{tree}:
+What actually makes @code{fTest} above more constrained than it could
+be is the type definition of @code{sTree} itself. It too is
+unnecessarily restrictive: why not allow trees of any type? We can,
+using the type definition for @code{tree}:
 @example
 all t ~~ tree[t] ::= .tEmpty | tNode(tree[t],t,tree[t]).
 @end example
@@ -865,7 +897,7 @@ annotation raises a couple of interesting points:
 This looks like a type annotation with no associated definition. The
 fact that the @code{.tEmpty} symbol was originally introduced in a type
 definition is enough of a signal for the compiler to avoid looking for
-a definition for the name.
+an implementation for the name.
 
 @item
 The type of @code{tEmpty} also takes the form of a constructor type --
@@ -906,9 +938,10 @@ check:all t ~~ (tree[t],t)=>boolean
 I.e., @code{check} can be used to find any type of element in a tree
 -- providing that the types align of course.
 
-Actually, this is not the correct the type for check. This is because
-we do not, in general, know that the type can support equality. The
-precise type for check should take this into account:
+Actually, this is not the correct the type for @code{check}. This is
+because we do not, in general, know that the type can support
+equality. The precise type for @code{check} should take this into
+account:
 @example
 check:all t ~~ equality[t] |: (tree[t],t) => boolean
 @end example
@@ -916,7 +949,7 @@ check:all t ~~ equality[t] |: (tree[t],t) => boolean
 @node Going further
 @section Going further
 Although better than the original @code{sTest} program there is still
-one major sense in which the test program is not general enough. We
+one major sense in which the @code{test} program is not general enough. We
 can see this by looking at another example: a function that counts
 elements in the tree:
 @example
@@ -950,7 +983,7 @@ the labels in the tree we will need to slightly generalize the type of
 function that is passed to the visitor. Specifically, the type of
 function should look like:
 @example
-F : (a,t)=>a
+F : (t,a)=>a
 @end example
 where the @code{a} input represents accumulated state, @code{t}
 represents an element of the tree and the result is another
@@ -959,9 +992,9 @@ accumulation.
 Using this, we can write a @code{tVisit} function that implements tree
 walking as:
 @example
-tVisit:all a,t ~~ (tree[t],(a,t)=>a,a)=>a.
+tVisit:all a,t ~~ (tree[t],(t,a)=>a,a)=>a.
 tVisit(.tEmpty,_,A) => A.
-tVisit(tNode(L,Lb,R),F,A) => tVisit(R,F,F(tVisit(L,F,A),Lb)).
+tVisit(tNode(L,Lb,R),F,A) => tVisit(R,F,F(Lb,tVisit(L,F,A))).
 @end example
 Just as the accumulating function acquires a new `state' parameter, so
 the @code{tVisit} function also does. The @code{A} parameter in the
@@ -973,8 +1006,8 @@ open it out and look more closely. A more expanded way of writing the
 @example
 tVisit(.tEmpty,_,A) => A.
 tVisit(tNode(L,Lb,R),F,A) => let@{
-  A1 = tVisit(L,F,A).
-  A2 = F(A1,Lb).
+    A1 = tVisit(L,F,A).
+    A2 = F(Lb,A1).
   @} in tVisit(R,F,A2)
 @end example
 where @code{A1} and @code{A2} are two local variables that represent
@@ -990,13 +1023,13 @@ knows to apply functions to labels in the tree.
 Given @code{tVisit}, we can implement our original @code{check} and
 @code{count} functions as one-liners:
 @example
-check(T,S) => tVisit(T,(A,X)=>(A || X==S),.false).
-count(T) => tVisit(T,(A,X)=>A+1,0).
+check(T,S) => tVisit(T,(X,A)=>(A || X==S),.false).
+count(T) => tVisit(T,(X,A)=>A+1,0).
 @end example
 The lambda that is embedded in the definition of check bears a little
 closer scrutiny:
 @example
-(A,X)=>(A || X==S)
+(X,A)=>(A || X==S)
 @end example
 In this lambda, we return @code{A} -- if it is @code{true} -- or we
 return the result of the test @code{X==S}. This is a common pattern in
@@ -1030,7 +1063,7 @@ not put an explicit quantifier on the type of @code{F}. This is
 because the quantifier is actually put on the type of @code{tVisit}
 instead:
 @example
-tVisit:all a,t ~~ (tree[t],(a,t)=>a,a)=>a
+tVisit:all a,t ~~ (tree[t],(t,a)=>a,a)=>a
 @end example
 Just like regular variables, type variables have scope and points of
 introduction. Also like regular variables, a type variable may be
@@ -1058,7 +1091,7 @@ Let us start by defining a contract that encapsulates what it means to
 visit a collection:
 @example
 contract all c,t ~~ visitor[c->>t] ::= @{
-  visit:all a ~~ (c,(a,t)=>a,a)=>a
+  visit:all a ~~ (c,(t,a)=>a,a)=>a
 @}
 @end example
 This @code{visitor} contract defines a single function that embodies
@@ -1101,7 +1134,7 @@ form: whatever type @code{c} is, @code{t} must be based on it.
 
 The body of the contract contains a single type annotation:
 @example
-visit:all a ~~(c,(a,t)=>a,a)=>a
+visit:all a ~~(c,(t,a)=>a,a)=>a
 @end example
 This type annotation has three type variables: the types @code{c} and
 @code{t} come from the contract header and @code{a} is local to the
@@ -1116,7 +1149,7 @@ returns a new accumulation state.
 It is worth comparing the type of @code{visit} with the type of
 @code{tVisit}:
 @example
-tVisit:all t,a ~~(tree[t],(a,t)=>a,a)=>a
+tVisit:all t,a ~~(tree[t],(t,a)=>a,a)=>a
 @end example
 The most significant difference here is that in @code{tVisit} the type
 of the first argument is fixed to @code{tree[t]} whereas in
@@ -1125,8 +1158,8 @@ of the first argument is fixed to @code{tree[t]} whereas in
 Given this contract, we can re-implement our two @code{check} and
 @code{count} functions even more succinctly:
 @example
-check(T,S) => visit(T, (A,X)=>A || X==S,.false)
-count(T) => visit(T, (A,X)=>A+1,0)
+check(T,S) => visit(T, (X,A)=>A || X==S,.false)
+count(T) => visit(T, (X,A)=>A+1,0)
 @end example
 These functions will apply to @emph{any} type that satisfies -- or
 implements -- the @code{visitor} contract. This is made visible in the
@@ -1299,7 +1332,7 @@ differently than where it is not. Specifically, we do this via the
 
 The type definition of @code{option} is quite straightforward:
 @example
-all t ~~ option[t] ::= none | some(t).
+all t ~~ option[t] ::= .none | some(t).
 @end example
 where @code{none} is intended to denote the non-existence of a value
 and @code{some} denotes an actual value.
@@ -1490,7 +1523,7 @@ these constraints is sufficient for robustly type checking programs.
 
 A sharp-eyed reader will notice that @Star{}'s type system is
 different in nature to that found (say) in OO languages. In @Star{}'s
-type system, types are considered to be consistent if they are
+type system, types are considered to be consistent only if they are
 @emph{equal}. This is quite different to the notion of consistency in
 OO languages where an argument to a function is consistent if its type
 is a @emph{sub-type} of the expected type.
@@ -1502,6 +1535,8 @@ incorporate some of the same restrictions.
 
 @node Why is type inference restricted?
 @subsection Why is type inference restricted?
+
+@noindent
 We have stated a few times that the type system only infers types of
 variables that are @emph{not} quantified. In fact, it is fairly
 straightforward to build a type inference system that can infer
@@ -1573,8 +1608,11 @@ programmer's friend rather than as an obstacle to be `gotten around'.
 @section Are we there yet?
 
 The straightforward answer to this is no. There is a great deal more
-to functional programming than can be captured in a few
-pages. However, we have covered some of the key features of functional
+to functional programming than can be captured in a few pages. In
+particular, we have not touched on one of the foundations of modern
+functional programming -- @emph{Category Theory}.
+
+However, we have covered some of the key features of functional
 programming -- particularly as it applies to @Star{}. In subsequent
 chapters we will take a closer look at collections, at modular
 programming, at concurrency and even take a pot shot at Monads.
