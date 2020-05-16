@@ -173,10 +173,14 @@ star.compiler.unify{
   faceOfType(T,Env) => valof action{
     if (_,_,Rl) ^= findType(Env,localName(tpName(T),.typeMark)) then{
       (_,FRl) .= freshen(Rl,Env);
-      if typeExists(Lhs,Rhs) .= deRef(FRl) && sameType(Lhs,T,Env) then
-	valis fcTp(deRef(Rhs))
-      else if typeLambda(Lhs,Rhs) .= deRef(FRl) && sameType(Lhs,T,Env) then
-	valis fcTp(deRef(Rhs))
+      if typeExists(Lhs,Rhs) .= deRef(FRl) && sameType(Lhs,T,Env) then{
+	(_,RRhs) .= freshen(deRef(Rhs),Env);
+	valis fcTp(RRhs)
+      }
+      else if typeLambda(Lhs,Rhs) .= deRef(FRl) && sameType(Lhs,T,Env) then{
+	(_,RRhs) .= freshen(deRef(Rhs),Env);
+	valis fcTp(RRhs)
+      }
       else
       valis faceType([],[])
     } else{

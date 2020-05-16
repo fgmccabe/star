@@ -8,12 +8,12 @@ star.compiler.freshen{
 
   public freshen:(tipe,dict) => (cons[(string,tipe)],tipe).
   freshen(Tp,Env) where (T,Q,Ev) .= freshQuants(deRef(Tp),[],Env) =>
-    (Q,frshn(deRef(T),Ev,skolQ,freshQ)).
+    (Q,frshn(deRef(T),Ev)).
   freshen(Tp,_) default => ([],Tp).
 
   public refresh:(cons[(string,tipe)],tipe,dict) => tipe.
   refresh(Q,T,Env) => frshn(deRef(T),
-    foldLeft(((QNm,QTp),E)=>declareType(QNm,.none,QTp,faceType([],[]),E),Env,Q),skolQ,freshQ).
+    foldLeft(((QNm,QTp),E)=>declareType(QNm,.none,QTp,faceType([],[]),E),Env,Q)).
 
   freshQ:(tipe,dict) => (tipe,dict).
   freshQ(nomnal(V),Env) where NV.=newTypeVar(V) =>
@@ -26,6 +26,7 @@ star.compiler.freshen{
     (NV,declareType(V,.none,NV,faceType([],[]),Env)).
   skolQ(kFun(V,Ar),Env) where NV.=skolemFun(V,Ar) =>
     (NV,declareType(V,.none,NV,faceType([],[]),Env)).
+  skolQ(Tp,Env) => (Tp,Env).
 
   freshQuants:(tipe,cons[(string,tipe)],dict)=>(tipe,cons[(string,tipe)],dict).
   freshQuants(allType(nomnal(V),T),B,Env) where NV.=newTypeVar(V) =>
@@ -34,6 +35,8 @@ star.compiler.freshen{
     freshQuants(deRef(T),[(V,NV),..B],declareType(V,.none,NV,faceType([],[]),Env)).
   freshQuants(existType(nomnal(V),T),B,Env) where NV.=genSkolemFun(V,B) =>
     freshQuants(deRef(T),[(V,NV),..B],declareType(V,.none,NV,faceType([],[]),Env)).
+  freshQuants(existType(V,T),B,Env) =>
+    freshQuants(deRef(T),B,Env).
   freshQuants(T,B,Env) default => (T,B,Env).
 
   genSkolemFun(Nm,[]) => skolemFun(Nm,0).
@@ -45,7 +48,7 @@ star.compiler.freshen{
 
   public evidence:(tipe,dict) => (cons[(string,tipe)],tipe).
   evidence(Tp,Env) where (T,Q,Ev).=skolemQuants(deRef(Tp),[],Env) =>
-    (Q,frshn(deRef(T),Ev,freshQ,skolQ)).
+    (Q,frshn(deRef(T),Ev)).
   evidence(Tp,_) default => ([],Tp).
 
   skolemQuants(allType(nomnal(V),T),B,Env) where .none.=findType(Env,V) =>
@@ -63,35 +66,34 @@ star.compiler.freshen{
   genTypeFun(Nm,[]) => newTypeVar(Nm).
   genTypeFun(Nm,Q) => foldLeft(((_,V),S)=>tpExp(S,V),newTypeFun(Nm,size(Q)),Q).
 
-  frshn:(tipe,dict,(tipe,dict)=>(tipe,dict),(tipe,dict)=>(tipe,dict))=>tipe.
-  frshn(nomnal(Nm),Env,_,_) where (_,Tp,_)^=findType(Env,Nm) => Tp.
-  frshn(nomnal(Nm),_,_,_) => nomnal(Nm).
-  frshn(kFun(Nm,Ar),Env,_,_) where  (_,Tp,_)^=findType(Env,Nm) => Tp.
-  frshn(kFun(Nm,Ar),_,_,_) => kFun(Nm,Ar).
-  frshn(tVar(T,N),_,_,_) => tVar(T,N).
-  frshn(tFun(T,A,N),_,_,_) => tFun(T,A,N).
-  frshn(tpFun(N,A),_,_,_) => tpFun(N,A).
-  frshn(tpExp(O,A),Env,F,G) => tpExp(rewrite(O,Env,F,G),rewrite(A,Env,F,G)).
-  frshn(tupleType(Els),Env,F,G) => tupleType(frshnList(Els,Env,F,G)).
-  frshn(faceType(Els,Tps),Env,F,G) =>
-    faceType(Els//(((Nm,E))=>(Nm,rewrite(E,Env,F,G))),
-      Tps//(((Nm,E))=>(Nm,rewrite(E,Env,F,G)))).
-  frshn(funDeps(T,D),Env,F,G) => funDeps(rewrite(T,Env,F,G),
-    frshnList(D,Env,F,G)).
-  frshn(allType(K,T),Env,F,G) where (K1,E0).=F(K,Env) => allType(K1,frshn(T,E0,F,G)).
-  frshn(existType(K,T),Env,F,G) where (K1,E0) .= G(K,Env) =>
-    existType(K1,rewrite(T,Env,F,G)).
-  frshn(typeLambda(H,T),Env,F,G) => typeLambda(rewrite(H,Env,F,G),rewrite(T,Env,F,G)).
-  frshn(typeExists(H,T),Env,F,G) => typeExists(rewrite(H,Env,F,G),rewrite(T,Env,F,G)).
-  frshn(constrainedType(T,C),Env,F,G) => constrainedType(rewrite(T,Env,F,G),frshnConstraint(C,Env,F,G)).
+  frshn:(tipe,dict)=>tipe.
+  frshn(nomnal(Nm),Env) where (_,Tp,_)^=findType(Env,Nm) => Tp.
+  frshn(nomnal(Nm),_) => nomnal(Nm).
+  frshn(kFun(Nm,Ar),Env) where  (_,Tp,_)^=findType(Env,Nm) => Tp.
+  frshn(kFun(Nm,Ar),_) => kFun(Nm,Ar).
+  frshn(tVar(T,N),_) => tVar(T,N).
+  frshn(tFun(T,A,N),_) => tFun(T,A,N).
+  frshn(tpFun(N,A),_) => tpFun(N,A).
+  frshn(tpExp(O,A),Env) => tpExp(rewrite(O,Env),rewrite(A,Env)).
+  frshn(tupleType(Els),Env) => tupleType(frshnList(Els,Env)).
+  frshn(faceType(Els,Tps),Env) =>
+    faceType(Els//(((Nm,E))=>(Nm,rewrite(E,Env))),
+      Tps//(((Nm,E))=>(Nm,rewrite(E,Env)))).
+  frshn(funDeps(T,D),Env) => funDeps(rewrite(T,Env),
+    frshnList(D,Env)).
+  frshn(allType(K,T),Env) => allType(K,frshn(T,Env)).
+  frshn(existType(K,T),Env) => existType(K,rewrite(T,Env)).
+  frshn(typeLambda(H,T),Env) => typeLambda(rewrite(H,Env),rewrite(T,Env)).
+  frshn(typeExists(H,T),Env) => typeExists(rewrite(H,Env),rewrite(T,Env)).
+  frshn(constrainedType(T,C),Env) => constrainedType(rewrite(T,Env),frshnConstraint(C,Env)).
 
-  frshnList:(cons[tipe],dict,(tipe,dict)=>(tipe,dict),(tipe,dict)=>(tipe,dict)) => cons[tipe].
-  frshnList(As,Env,F,G) => (As//(E)=>frshn(deRef(E),Env,F,G)).
+  frshnList:(cons[tipe],dict) => cons[tipe].
+  frshnList(As,Env) => (As//(E)=>frshn(deRef(E),Env)).
 
-  rewrite(Tp,Env,F,G) => frshn(deRef(Tp),Env,F,G).
+  rewrite(Tp,Env) => frshn(deRef(Tp),Env).
 
-  frshnConstraint(contractConstraint(Tp),Env,F,G) => contractConstraint(rewrite(Tp,Env,F,G)).
-  frshnConstraint(fieldConstraint(T,I),Env,F,G) =>
-    fieldConstraint(rewrite(T,Env,F,G),rewrite(I,Env,F,G)).
+  frshnConstraint(contractConstraint(Tp),Env) => contractConstraint(rewrite(Tp,Env)).
+  frshnConstraint(fieldConstraint(T,I),Env) =>
+    fieldConstraint(rewrite(T,Env),rewrite(I,Env)).
 
 }

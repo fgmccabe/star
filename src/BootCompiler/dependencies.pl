@@ -78,6 +78,7 @@ reformAlgebraic(St,[(tpe(Nm),Lc,[TpRule])|Lst],Lx,A,Ax,Export,P,Px) :-
   isAlgebraicTypeStmt(St,Lc,Quants,Constraints,Head,Body),
   typeName(Head,Nm),
   algebraicFace(Body,Face),
+%  reportMsg("face of %s is %s, quants = %s",[TpRule,Face,Quants],Lc),
   binary(Lc,"<~",Head,Face,TRl),
   reConstrain(Constraints,TRl,CTrl),
   reUQuant(Quants,CTrl,TpRule),

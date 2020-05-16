@@ -90,9 +90,10 @@ star.compiler.checker{
   isVisible:(defnSp,cons[(defnSp,visibility)],visibility) => boolean.
   isVisible(Sp,Vis,DVz) => (Sp,V) in Vis && V >= DVz.
 
-  exportedTypes:(cons[cons[canonDef]],cons[(defnSp,visibility)],visibility) => cons[(string,tipe)].
+  exportedTypes:(cons[cons[canonDef]],cons[(defnSp,visibility)],visibility) =>
+    cons[(string,tipe)].
   exportedTypes(Defs,Vis,DVz) => [ (Nm,ExTp) |
-      DD in Defs && typeDef(_,Nm,_,ExTp) in DD && (tpSp(Nm),V) in Vis && V>=DVz].
+      DD in Defs && typeDef(_,Nm,_,typeLambda(_,ExTp)) in DD && (tpSp(Nm),V) in Vis && V>=DVz].
 
   formRecordExp:(locn,option[string],tipe,dict,cons[cons[canonDef]],tipe,reports) => either[reports,canon].
   formRecordExp(Lc,Lbl,faceType(Flds,Tps),Env,Defs,Tp,Rp) => do{
@@ -146,6 +147,7 @@ star.compiler.checker{
     PubVrTps .= exportedFields(Defs,Vis,DefViz);
     PubTps .= exportedTypes(Defs,Vis,DefViz);
 --    logMsg("exported fields $(PubVrTps)");
+--    logMsg("exported types $(PubTps)");
     valis (Defs,ThEnv,faceType(PubVrTps,PubTps))
   }
 
@@ -164,6 +166,7 @@ star.compiler.checker{
     PubVrTps .= exportedFields([Defs],Vis,DefViz);
     PubTps .= exportedTypes([Defs],Vis,DefViz);
 --    logMsg("exported fields $(PubVrTps)");
+--    logMsg("exported types $(PubTps)");
     valis (Defs,Ev,faceType(PubVrTps,PubTps))
   }
 
@@ -212,7 +215,7 @@ star.compiler.checker{
 --	  logMsg("full name of implementation of $(ConTp) is $(FullNm)");
 	  ImplTp .= rebind(BV,reConstrainType(Cx,ConTp),Env);
 --	  logMsg("implementation type is $(ImplTp)");
-	  valis declareVar(FullNm,some(Lc),ImplTp,
+	  valis declareVar(FullNm,some(Lc),ImplTp,.none,
 	    declareImplementation(FullNm,ImplTp,Env))
 	}
 	else{
@@ -245,7 +248,7 @@ star.compiler.checker{
   parseAnnotations([defnSpec(varSp(Nm),Lc,Stmts),..Gs],Fields,Annots,Env,Rp) => do{
     Tp <- parseAnnotation(Nm,Lc,Stmts,Fields,Annots,Env,Rp);
 --    logMsg("found type of $(Nm)\:$(Tp)");
-    parseAnnotations(Gs,Fields,Annots,declareVar(Nm,some(Lc),Tp,Env),Rp)
+    parseAnnotations(Gs,Fields,Annots,declareVar(Nm,some(Lc),Tp,some(faceOfType(Tp,Env)),Env),Rp)
   }
   parseAnnotations([_,..Gs],Fields,Annots,Env,Rp) => parseAnnotations(Gs,Fields,Annots,Env,Rp).
 
@@ -271,13 +274,16 @@ star.compiler.checker{
       valis newTypeVar("_D")
     }
   }
-      
+
+  allFunDefs:(cons[canonDef])=>boolean.
+  allFunDefs(Dfs) => D in Dfs *> varDef(_,_,_,lambda(_,_),_,_).=D.
+
+--  pickLc([D,.._]) => locOf(D).
+
   checkGroup:(cons[defnSpec],dict,dict,string,reports) =>
     either[reports,(cons[canonDef],dict)].
   checkGroup(Specs,Env,Outer,Path,Rp) => do{
---    logMsg("check defs $(Specs)");
     (Defs,GEnv) <- checkDefs(Specs,[],Env,Outer,Path,Rp);
---    logMsg("after checks $(Defs)");    
     valis (Defs,GEnv)
   }
 
@@ -302,7 +308,7 @@ star.compiler.checker{
       Val <- typeOfExp(R,VarTp,Es,Path,Rp);
       FullNm .= qualifiedName(Path,.valMark,Nm);
       valis (varDef(Lc,Nm,FullNm,Val,Cx,Tp),
-	declareVar(Nm,some(Lc),Tp,Env))
+	declareVar(Nm,some(Lc),Tp,some(faceOfType(Tp,Env)),Env))
     }
     else{
       throw reportError(Rp,"bad definition $(Stmt)",Lc)
@@ -337,7 +343,7 @@ star.compiler.checker{
     FullNm .= qualifiedName(Path,.valMark,Nm);
 --    logMsg("checked equations $(Rls), ProgramTp=$(ProgramTp), Tp=$(Tp)");
     valis (varDef(Lc,Nm,FullNm,
-	lambda(Rls,Tp),Cx,Tp),declareVar(Nm,some(Lc),Tp,Env))
+	lambda(Rls,Tp),Cx,Tp),declareVar(Nm,some(Lc),Tp,.none,Env))
   }.
 
   processEqns:(cons[ast],tipe,cons[equation],option[equation],dict,dict,string,reports) =>
@@ -414,7 +420,7 @@ star.compiler.checker{
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) && varDefined(Id,Env) =>
     typeOfPtn(mkWhereEquality(A),Tp,Env,Path,Rp).
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) => do{
-    Ev .= declareVar(Id,some(Lc),Tp,Env);
+    Ev .= declareVar(Id,some(Lc),Tp,some(faceOfType(Tp,Env)),Env);
     valis (vr(Lc,Id,Tp),Ev)
   }
   typeOfPtn(A,Tp,Env,Path,Rp) where _ ^= isEnum(A) => do{
@@ -517,17 +523,39 @@ star.compiler.checker{
   typeOfExp(A,Tp,Env,Path,Rp) where
       (Lc,R,F) ^= isFieldAcc(A) && (_,Fld) ^= isName(F) => do{
 --	logMsg("field access $(A)");
+	if (_,Id) ^= isName(R) then{
+	  if (Rc,RcFace) ^= findVarFace(Lc,Id,Env) &&
+	      faceType(Flds,_) .= RcFace then{
+		if (Fld,FTp) in Flds then{
+		  Acc .= refreshVr(Lc,FTp,Env,(T)=>dot(Lc,Rc,Fld,T));
+--		  logMsg("refreshed field type $(typeOf(Acc))");
+		  if sameType(Tp,typeOf(Acc),Env) then{
+--		    logMsg("$(Tp) field type ok");
+		    valis Acc
+		  }
+		  else
+		  throw reportError(Rp,"field $(Fld)\:$(FTp) not consistent with expected type: $(Tp)",Lc)
+		}
+		else
+		throw reportError(Rp,"$(Rc) does not have field $(Fld)",Lc)
+	      }
+	  else
+	  throw reportError(Rp,"$(R) does not have valid record type",Lc)
+	} else{
 	FldTp .= newTypeVar(Fld);
 	TV .= newTVFieldConstraint(Fld,FldTp);
+--	logMsg("check record $(R)");
 	Rc <- typeOfExp(R,TV,Env,Path,Rp);
 --	logMsg("record type $(Rc)\:$(showType(TV,.true,0))");
 	Acc .= refreshVr(Lc,FldTp,Env,(T)=>dot(Lc,Rc,Fld,T));
+--	logMsg("refreshed field type $(typeOf(Acc))");
         if sameType(Tp,typeOf(Acc),Env) then{
 --	  logMsg("$(Tp) field type ok");
 	  valis Acc
 	}
 	else
   	throw reportError(Rp,"field $(Fld)\:$(FldTp) not consistent with expected type: $(Tp)",Lc)
+	}
       }
 
   typeOfExp(A,Tp,Env,Path,Rp) where _ ^= isConjunct(A) => do{
@@ -689,7 +717,7 @@ star.compiler.checker{
   }
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Els) ^= isTheta(A) => do{
     (Q,ETp) .= evidence(Tp,Env);
-    FaceTp .= faceOfType(Tp,Env);
+    FaceTp .= faceOfType(ETp,Env);
 --    logMsg("checking theta record, expected type $(Tp), face $(FaceTp)");
     (Cx,Face) .= deConstrain(FaceTp);
     Base .= declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
@@ -705,7 +733,7 @@ star.compiler.checker{
   }
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Els) ^= isQTheta(A) => do{
     (Q,ETp) .= evidence(Tp,Env);
-    FaceTp .= faceOfType(Tp,Env);
+    FaceTp .= faceOfType(ETp,Env);
     (Cx,Face) .= deConstrain(FaceTp);
     Base .= declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
     Path .= genNewName(Pth,"θ");
@@ -714,7 +742,7 @@ star.compiler.checker{
       formRecordExp(Lc,.none,deRef(faceOfType(Tp,ThEnv)),ThEnv,[Defs],reConstrainType(Cx,ThetaTp),Rp)
     }
     else
-    throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Tp)",Lc)
+    throw reportError(Rp,"type of qtheta: $(ThetaTp)\nnot consistent with \n$(Tp)",Lc)
   }
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Op,Els) ^= isLabeledTheta(A) && (_,Nm)^=isName(Op) => do{
 --    logMsg("checking theta term $(Op){$(Els)} against $(Tp)");
@@ -724,12 +752,18 @@ star.compiler.checker{
     Fun <- typeOfExp(Op,ConTp,Env,Pth,Rp);
 --    logMsg("type of $(Op) |- $(ConTp)");
 
---    logMsg("checking theta record, expected type $(Tp), face $(FceTp)");
-    (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,genNewName(Pth,"θ"),Els,deRef(FceTp),Env,Rp,.deFault);
-    if sameType(ThetaTp,FceTp,Env) then{
+    (Q,ETp) .= evidence(FceTp,Env);
+    FaceTp .= faceOfType(ETp,Env);
+    (Cx,Face) .= deConstrain(FaceTp);
+    Base .= declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
+    
+--    logMsg("checking theta record, expected type $(Tp)");
+    (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,Rp,.deFault);
+--    logMsg("resulting theta type $(ThetaTp)");
+--    logMsg("check against expected face $(Face)");
+    if sameType(ThetaTp,Face,Env) then{
 --      logMsg("building record from theta, $(ThEnv)");
-      formTheta(Lc,some(Nm),deRef(faceOfType(Tp,ThEnv)),ThEnv,sortDefs(multicat(Defs)),
-	Tp,Rp)
+      formTheta(Lc,some(Nm),Face,ThEnv,sortDefs(multicat(Defs)),Tp,Rp)
     }
     else
     throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Op)\:$(ConTp) ",Lc)
@@ -741,11 +775,17 @@ star.compiler.checker{
     ConTp .= consType(FceTp,Tp);
     Fun <- typeOfExp(Op,ConTp,Env,Pth,Rp);
 --    logMsg("type of $(Op) |- $(ConTp)");
---    logMsg("checking theta record, expected type $(Tp), face $(FceTp)");
-    (Defs,ThEnv,ThetaTp) <- recordEnv(Lc,genNewName(Pth,"θ"),Els,deRef(FceTp),Env,Rp,.deFault);
-    if sameType(ThetaTp,FceTp,Env) then{
+
+    (Q,ETp) .= evidence(FceTp,Env);
+    FaceTp .= faceOfType(ETp,Env);
+    (Cx,Face) .= deConstrain(FaceTp);
+    Base .= declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
+    
+--    logMsg("checking theta record, expected type $(Tp), face $(Face)");
+    (Defs,ThEnv,ThetaTp) <- recordEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,Rp,.deFault);
+    if sameType(ThetaTp,Face,Env) then{
 --      logMsg("building record from theta, $(ThEnv)");
-      formRecordExp(Lc,some(Nm),deRef(faceOfType(Tp,ThEnv)),ThEnv,sortDefs(Defs),Tp,Rp)
+      formRecordExp(Lc,some(Nm),Face,ThEnv,sortDefs(Defs),Tp,Rp)
     }
     else
     throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Op)\:$(ConTp) ",Lc)
@@ -765,8 +805,6 @@ star.compiler.checker{
     };
     valis update(Lc,Rec,Update)
   }
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,I) ^= isUnary(A,"-") =>
-    typeOfExp(unary(Lc,"__minus",I),Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els,Bnd) ^= isLetDef(A) => do{
 --    logMsg("checking let exp");
 
@@ -911,35 +949,10 @@ star.compiler.checker{
     }
   }
 
-  typeOfField:(locn,canon,string,tipe,dict,string,reports) => either[reports,canon].
-  typeOfField(Lc,Rc,Fld,Tp,Env,Path,Rp) => do{
-    faceType(Flds,_) .= faceOfType(typeOf(Rc),Env);
-    if (Fld,FldTp) in Flds then{
---      logMsg("field access $(Rc).$(Fld)");
-      Acc .= refreshVr(Lc,FldTp,Env,(T)=>dot(Lc,Rc,Fld,T));
-      if sameType(Tp,typeOf(Acc),Env) then{
---	logMsg("$(Tp) field type ok");
-	valis Acc
-      } else
-      throw reportError(Rp,"field $(Fld)\:$(FldTp) not consistent with expected type: $(Tp)",Lc)
-    }
-    else
-    throw reportError(Rp,"field $(Fld) not present in $(typeOf(Rc))",Lc)
-  }
-
   checkType:(ast,tipe,tipe,dict,reports) => either[reports,()].
   checkType(_,Actual,Expected,Env,_) where sameType(Actual,Expected,Env) => either(()).
   checkType(A,ATp,ETp,_,Rp) => other(reportError(
       Rp,"$(A)\:$(ATp) not consistent with expected type $(ETp)",locOf(A))).
-
-  mergeDict:(dict,dict,dict) => dict.
-  mergeDict(D1,D2,Env) => let{
-    mergeScopes([scope(T1,V1,C1,I1),..Rst],
-      [scope(_,V2,_,_),.._]) =>
-      [scope(T1,mergeVDefs(V1,V2),C1,I1),..Rst].
-    mergeVDefs(V1,V2) => {Nm->E1|Nm->E1 in V1 && E2^=V2[Nm] && sameDesc(E1,E2)}.
-    sameDesc(vrEntry(_,_,T1),vrEntry(_,_,T2)) => sameType(T1,T2,Env)
-  } in mergeScopes(D1,D2).
 
   genTpVars:(cons[ast]) => cons[tipe].
   genTpVars(Els) => (Els//(_)=>newTypeVar("_v")).

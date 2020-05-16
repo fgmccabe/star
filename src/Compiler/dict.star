@@ -10,7 +10,7 @@ star.compiler.dict{
 
   public tpDef ::= tpVar(option[locn],tipe) | tpDefn(option[locn],string,tipe,tipe).
 
-  public vrEntry ::= vrEntry(option[locn],(locn,dict)=>canon,tipe).
+  public vrEntry ::= vrEntry(option[locn],(locn,dict)=>canon,tipe,option[tipe]).
 
   public scope ::= scope(map[string,tpDef],
     map[string,vrEntry],map[string,tipe],
@@ -26,8 +26,8 @@ star.compiler.dict{
   .}
 
   public implementation display[vrEntry] => let{
-    dd(vrEntry(some(Lc),Mk,Tp)) => ssSeq([disp(Mk(Lc,emptyDict)),ss("|="),disp(Tp)]).
-    dd(vrEntry(.none,_,Tp)) => disp(Tp).
+    dd(vrEntry(some(Lc),Mk,Tp,_)) => ssSeq([disp(Mk(Lc,emptyDict)),ss("|="),disp(Tp)]).
+    dd(vrEntry(.none,_,Tp,_)) => disp(Tp).
   } in {.
     disp(V) => dd(V)
   .}
@@ -40,7 +40,9 @@ star.compiler.dict{
   }
 
   public vrType:(vrEntry)=>tipe.
-  vrType(vrEntry(_,_,Tp))=>Tp.
+  vrType(vrEntry(_,_,Tp,_))=>Tp.
+
+  public vrFace(vrEntry(_,_,_,Fc))=>Fc.
   
   public declareType:(string,option[locn],tipe,tipe,dict) => dict.
   declareType(Nm,Lc,Tp,TpRl,[scope(Tps,Vrs,Cns,Imps),..Rest]) =>

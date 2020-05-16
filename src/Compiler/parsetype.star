@@ -26,6 +26,7 @@ star.compiler.typeparse{
   }
   parseType(Q,Tp,Env,Rp) where (Lc,V,BT) ^= isXQuantified(Tp) => do{
     BV <- parseBoundTpVars(V,Rp);
+--    logMsg("parse x type $(BT), Vrs=$(Q++BV)");
     In <- parseType(Q++BV,BT,Env,Rp);
     valis reQuantX(BV,In)
   }
@@ -121,7 +122,19 @@ star.compiler.typeparse{
     R <- parseType(Q,Rhs,Env,Rp);
     valis typeExists(A,R)
   }
-  -- TODO: field access of type
+  parseType(Q,T,Env,Rp) where (Lc,Lhs,Rhs) ^= isFieldAcc(T) => do{
+    if (_,Id) ^= isName(Lhs) && (_,Fld) ^= isName(Rhs) then{
+      if (_,RcType) ^= findVarFace(Lc,Id,Env) && faceType(_,Tps) .= RcType then{
+--	logMsg("check var $(RcType)");
+	if (Fld,Ftp) in Tps then
+	  valis Ftp
+	else
+	throw reportError(Rp,"Field $(Rhs) not defined in type $(RcType)",Lc)
+      } else
+      throw reportError(Rp,"variable $(Id) not defined",Lc)
+    } else
+    throw reportError(Rp,"type access to non-var $(Lhs) not supported",Lc)
+  }
   parseType(Q,T,Env,Rp) default =>
     other(reportError(Rp,"cannot parse type $(T)",locOf(T))).
 

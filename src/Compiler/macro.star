@@ -21,7 +21,9 @@ star.compiler.macro{
     "do" -> [(.expression,macroDo)],
     "action" -> [(.expression,actionMacro)],
     "task" -> [(.expression,taskAction)],
-    "__pkg__" -> [(.expression,pkgNameMacro)]].
+    "__pkg__" -> [(.expression,pkgNameMacro)],
+    "-" -> [(.expression, uMinusMacro),(.pattern, uMinusMacro)],
+    "^=" -> [(.expression, optionMatchMacro)]].
 
   applyRules:(ast,macroContext,macroState,cons[(macroContext,macroRule)],reports) =>
     either[reports,macroState].
@@ -82,6 +84,10 @@ star.compiler.macro{
 --    logMsg("$(Vz) type annotation for $(L) : $(R)");
     RR <- macroType(R,Rp);
     valis reveal(typeAnnotation(Lc,nme(Lc,L),RR),Vz)
+  }
+  examineStmt(A,Rp) where (Lc,V,T) ^= isTypeStatement(A) => do{
+    TT <- macroType(T,Rp);
+    valis mkTypeStatement(Lc,V,TT)
   }
   examineStmt(A,Rp) where (Lc,R) ^= isPublic(A) => do{
     RR <- macroStmt(R,Rp);
@@ -480,6 +486,11 @@ star.compiler.macro{
     NC <- macroStmts(Els,Rp);
     valis brTuple(Lc,NC)
   }
+  examineType(A,Rp) where (Lc,R,F) ^= isFieldAcc(A) => do{
+    RR <- macroTerm(R,Rp);
+    valis mkFieldAcc(Lc,RR,F)
+  }
+
   examineType(A,Rp) default =>
     other(reportError(Rp,"cannot figure out type expression $(A), key=$(macroKey(A))",locOf(A))).
 
@@ -522,28 +533,36 @@ star.compiler.macro{
     either[reports,cons[ast]].
   makeAlgebraic(Lc,Vz,Q,Cx,H,R,Rp) => do{
     Nm .= typeName(H);
-    Face <- algebraicFace(R,Rp);
-    TpExSt .= reveal(reUQuant(Lc,Q,reConstrain(Cx,binary(Lc,"<~",H,brTuple(Lc,sort(Face,compEls))))),Vz);
+    (Qs,Xs,Face) <- algebraicFace(R,Q,[],Rp);
+    TpExSt .= reveal(reUQuant(Lc,Qs,reConstrain(Cx,binary(Lc,"<~",H,reXQuant(Lc,Xs,brTuple(Lc,sort(Face,compEls)))))),Vz);
     Cons <- buildConstructors(R,Q,Cx,H,Vz,Rp);
---    Ixx .= buildConIndices(R,[]);
+    Ixx .= buildConIndices(R,[]);
 --    logMsg("constructor indices $(Ixx)");
     valis [TpExSt,..Cons]
   }
 
-  algebraicFace:(ast,reports) => either[reports,cons[ast]].
-  algebraicFace(A,Rp) where (_,L,R) ^= isBinary(A,"|") => do{
-    Lhs <- algebraicFace(L,Rp);
-    Rhs <- algebraicFace(R,Rp);
-    combineFaces(Lhs,Rhs,Rp)
+  algebraicFace:(ast,cons[ast],cons[ast],reports) =>
+    either[reports,(cons[ast],cons[ast],cons[ast])].
+  algebraicFace(A,Qs,Xs,Rp) where (_,L,R) ^= isBinary(A,"|") => do{
+    (Q1,X1,Lhs) <- algebraicFace(L,Qs,Xs,Rp);
+    (Qx,Xx,Rhs) <- algebraicFace(R,Q1,X1,Rp);
+    Fs <- combineFaces(Lhs,Rhs,Rp);
+    valis (Qx,Xx,Fs)
   }
-  algebraicFace(A,Rp) where (Lc,_,_) ^= isRoundTerm(A) => either([]).
-  algebraicFace(A,Rp) where (Lc,_) ^= isEnum(A) => either([]).
-  algebraicFace(A,Rp) where (Lc,_,Els) ^= isBrTerm(A) => either(Els).
-  algebraicFace(A,Rp) where (_,I) ^= isPrivate(A) => algebraicFace(I,Rp).
-  algebraicFace(A,Rp) where (_,I) ^= isPublic(A) => algebraicFace(I,Rp).
-  algebraicFace(A,Rp) where (_,_,I) ^= isXQuantified(A) => algebraicFace(I,Rp).
-  algebraicFace(A,Rp) where (_,_,I) ^= isQuantified(A) => algebraicFace(I,Rp).
-  algebraicFace(A,Rp) default =>
+  algebraicFace(A,Qs,Xs,Rp) where (Lc,_,_) ^= isRoundTerm(A) =>
+    either((Qs,Xs,[])).
+  algebraicFace(A,Qs,Xs,Rp) where (Lc,_) ^= isEnum(A) => either((Qs,Xs,[])).
+  algebraicFace(A,Qs,Xs,Rp) where (Lc,_,Els) ^= isBrTerm(A) =>
+    either((Qs,Xs,Els)).
+  algebraicFace(A,Qs,Xs,Rp) where (_,I) ^= isPrivate(A) =>
+    algebraicFace(I,Qs,Xs,Rp).
+  algebraicFace(A,Qs,Xs,Rp) where (_,I) ^= isPublic(A) =>
+    algebraicFace(I,Qs,Xs,Rp).
+  algebraicFace(A,Qs,Xs,Rp) where (_,X0,I) ^= isXQuantified(A) =>
+    algebraicFace(I,Qs,Xs\/X0,Rp).
+  algebraicFace(A,Qs,Xs,Rp) where (_,A0,I) ^= isQuantified(A) =>
+    algebraicFace(I,Qs\/A0,Xs,Rp).
+  algebraicFace(A,_,_,Rp) default =>
     other(reportError(Rp,"invalid case in algebraic type",locOf(A))).
 
   combineFaces([],F2,Rp) => either(F2).
@@ -775,18 +794,27 @@ star.compiler.macro{
   isIterable(_) default => .false.
 
   actionMacro(A,.expression,Rp) where (Lc,Act) ^= isActionTerm(A) => do{
-    AA <- makeAction(Act,.none,Rp);
+    AA <- delayedAction(Act,Rp);
     valis active(typeAnnotation(Lc,AA,sqBinary(Lc,"action",anon(Lc),anon(Lc))))
   }
 
   taskAction(A,.expression,Rp) where (Lc,Act) ^= isTaskTerm(A) => do{
-    AA <- makeAction(Act,.none,Rp);
+    AA <- delayedAction(Act,Rp);
     valis active(typeAnnotation(Lc,AA,sqBinary(Lc,"task",anon(Lc),anon(Lc))))
   }
 
   macroDo(A,.expression,Rp) where (Lc,Act) ^= isDoTerm(A) => do{
-    AA <- makeAction(Act,.none,Rp);
+    AA <- delayedAction(Act,Rp);
     valis active(AA)
+  }
+
+  delayedAction(A,Rp)  => do{
+    AA <- makeAction(A,.none,Rp);
+    Lc .= locOf(A);
+
+    Unit .= tpl(Lc,"()",[]);
+    Start .= makeReturn(Lc,Unit);
+    valis combine(Start,some((Lc,AA)))
   }
   
   public makeAction:(ast,option[(locn,ast)],reports) => either[reports,ast].
@@ -816,7 +844,7 @@ star.compiler.macro{
     other(reportError(Rp,"$(A) may not be the last action",Lc)).
   makeAction(A,some((CLc,Cont)),Rp) where (Lc,L,R) ^= isMatch(A) => do{
     Lam .= equation(Lc,rndTuple(Lc,[L]),Cont);
-    valis roundTerm(CLc,Lam,[R])
+    valis mkCaseExp(Lc,R,[Lam]) -- roundTerm(CLc,Lam,[R])
   }
   makeAction(A,.none,Rp) where (Lc,L,R) ^= isOptionMatch(A) =>
     other(reportError(Rp,"$(A) may not be the last action",Lc)).
@@ -1090,6 +1118,16 @@ star.compiler.macro{
   pkgNameMacro(A,.expression,Rp) where
       (Lc,"__pkg__") ^= isName(A) && locn(Pkg,_,_,_,_).=Lc =>
     either(active(str(Lc,Pkg))).
+
+  uMinusMacro(A,_,Rp) where (Lc,R) ^= isUnary(A,"-") =>
+    (int(_,Ix) .= R ?
+	either(active(int(Lc,-Ix))) ||
+	num(_,Dx) .= R ?
+	  either(active(num(Lc,-Dx))) ||
+	  either(active(unary(Lc,"__minus",R)))).
+  uMinusMacro(_,_,_) => either(.inactive).
+
+  optionMatchMacro(A,.expression,Rp) where (Lc,L,R) ^= isOptionMatch(A) =>
+    either(active(mkMatch(Lc,unary(Lc,"some",L),R))).
+  optionMatchMacro(_,_,_) default => either(.inactive).
 }
-
-
