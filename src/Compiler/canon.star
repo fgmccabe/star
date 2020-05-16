@@ -101,6 +101,14 @@ star.compiler.canon{
     locOf(eqn(Lc,_,_,_)) => Lc.
   .}
 
+  public implementation hasLoc[canonDef] => {.
+    locOf(varDef(Lc,_,_,_,_,_)) => Lc.
+    locOf(typeDef(Lc,_,_,_)) => Lc.
+    locOf(conDef(Lc,_,_,_)) => Lc.
+    locOf(cnsDef(Lc,_,_,_)) => Lc.
+    locOf(implDef(Lc,_,_,_,_,_)) => Lc.
+  .}
+
   public implementation display[pkgSpec] => {.
     disp(pkgSpec(Pkg,Imports,Face,Cons,Impls,PkgVrs)) =>
       ss("Package: $(Pkg), imports=$(Imports), Signature=$(Face),Contracts=$(Cons),Implementations:$(Impls), pkg vars:$(PkgVrs)").

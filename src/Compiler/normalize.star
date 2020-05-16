@@ -68,7 +68,7 @@ star.compiler.normalize{
     rawGrpFree .= freeVarsInGroup(Grp,Q)::cons[crVar];
 --    logMsg("raw group free $(rawGrpFree)");
     freeVars .=
-      foldRight((crId(Nm,Tp),So) =>
+      foldLeft((crId(Nm,Tp),So) =>
 	  (_ ^= lookup(Outer,Nm,isModule) ? So || So\+crId(Nm,Tp)),[],
 	rawGrpFree);
 --    logMsg("group free vars $(freeVars)");
@@ -108,7 +108,12 @@ star.compiler.normalize{
   lambdaMap(Lam,Outer,Q,Rp) => do{
 --    logMsg("making map for lambda $(Lam) within Q=$(Q)");
     LF .= freeVarsInTerm(Lam,[],Q,[]);
-    freeVars .= LF::cons[crVar];
+
+    freeVars .=
+      foldLeft((crId(Nm,Tp),So) =>
+	  (_ ^= lookup(Outer,Nm,isModule) ? So || So\+crId(Nm,Tp)),[],
+	LF);
+
 --    logMsg("free lambda vars $(freeVars)");
 
     Lc .= locOf(Lam);

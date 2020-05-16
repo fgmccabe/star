@@ -192,6 +192,13 @@ star.compiler.wff{
     some((Lc,Q,[],T,I)).
   isTypeFunStmt(A) default => .none.
 
+  public isTypeStatement:(ast) => option[(locn,ast,ast)].
+  isTypeStatement(A) where (Lc,R) ^= isUnary(A,"type") &&
+      (_,V,T) ^= isTypeAnnotation(R) => some((Lc,V,T)).
+  isTypeStatement(_) default => .none.
+
+  public mkTypeStatement(Lc,V,T) => unary(Lc,"type",typeAnnotation(Lc,V,T)).
+
   public isAlgebraicTypeStmt:(ast) => 
     option[(locn,visibility,cons[ast],cons[ast],ast,ast)].
   isAlgebraicTypeStmt(A) => isAlgebraic(A,.deFault).

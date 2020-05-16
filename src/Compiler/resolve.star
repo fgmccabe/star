@@ -117,8 +117,9 @@ star.compiler.resolve{
   public resolveTerm(Term,Dict,Rp) => do{
     try{
       (St,RTerm) <- overloadTerm(Term,Dict,.inactive);
+      valis RTerm
 --      logMsg("result of resolving $(Term) is $(RTerm)\:$(St)");
-      resolveAgain(.inactive,St,RTerm,Dict)
+--      resolveAgain(.inactive,St,RTerm,Dict)
     } catch ((Lc,Ms)) => do{
       throw reportError(Rp,Ms,Lc)
     }

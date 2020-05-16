@@ -239,8 +239,13 @@ star.compiler.core{
     _coerce(crInt(_,Ix)) => some(intgr(Ix)).
     _coerce(crLbl(_,Nm,_)) => some(enum(tLbl(Nm,0))).
     _coerce(crTerm(_,Nm,[],_)) => some(term(tLbl(Nm,0),[])).
---    _coerce(crTerm(_,Nm,Args,_)) => some(term(tLbl(Nm,size(Args)),fmap(_coerce,Args))).
+    _coerce(crTerm(_,Nm,Args,_)) where NArgs ^= mapArgs(Args,[]) =>
+      some(term(tLbl(Nm,size(Args)),NArgs)).
     _coerce(_) default => .none.
+
+    private mapArgs([],So) => some(reverse(So)).
+    mapArgs([A,..As],So) where NA^=_coerce(A) => mapArgs(As,[NA,..So]).
+    mapArgs(_,_) default => .none.
   }
 
   public implementation coercion[locn,crExp] => {.

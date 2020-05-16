@@ -216,9 +216,9 @@ star.compiler.types{
     showTpExp(deRef(O),[A],Sh,Dp).
   shTipe(tupleType(A),Sh,Dp) => ssSeq([ss("("),showTypes(A,Sh,Dp),ss(")")]).
   shTipe(allType(A,T),Sh,Dp) =>
-    ssSeq([ss("all "),showBound(A,Dp),..showMoreQuantified(T,Sh,Dp)]).
+    ssSeq([ss("all "),showBound(A,Dp),ssSeq(showMoreQuantified(T,Sh,Dp))]).
   shTipe(existType(A,T),Sh,Dp) =>
-    ssSeq([ss("exist "),showBound(A,Dp),..showMoreQuantified(T,Sh,Dp)]).
+    ssSeq([ss("exist "),showBound(A,Dp),ssSeq(showMoreQuantified(T,Sh,Dp))]).
   shTipe(faceType(Els,Tps),Sh,Dp) =>
     ssSeq([ss("{"),showTypeEls(Els,Tps,Sh,Dp),ss("}")]).
   shTipe(typeLambda(A,T),Sh,Dp) =>
@@ -239,7 +239,7 @@ star.compiler.types{
   showTypeEls:(cons[(string,tipe)],cons[(string,tipe)],boolean,integer) => ss.
   showTypeEls(Els,Tps,Sh,Dp) =>
     ssSeq(interleave({ssSeq([ss(Nm),ss(":"),showType(Tp,Sh,Dp)]) | (Nm,Tp) in Els} ++
-	{ssSeq([ss(Nm),ss("~>"),showType(Tp,Sh,Dp)]) | (Nm,Tp) in Tps},ss(". "))).
+	{ssSeq([ss("type "),ss(Nm),ss(":"),showType(Tp,Sh,Dp)]) | (Nm,Tp) in Tps},ss(". "))).
 
   showTpExp:(tipe,cons[tipe],boolean,integer) => ss.
   showTpExp(tpFun("=>",2),[A,R],Sh,Dp) =>

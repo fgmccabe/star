@@ -6,7 +6,6 @@ star.compiler.dependencies{
   import star.compiler.errors.
   import star.compiler.location.
   import star.compiler.operators.
-  import star.compiler.macro.
   import star.compiler.meta.
   import star.compiler.wff.
   import star.compiler.misc.
@@ -551,6 +550,8 @@ star.compiler.dependencies{
     R1 <- collectTermRefs(Op,All,SoFar,Rp);
     collectFaceTypes(Els,All,R1,Rp)
   }
+  collectTypeRefs(T,All,SoFar,Rp) where (_,Rc,_) ^= isFieldAcc(T) => 
+    collectTermRefs(Rc,All,SoFar,Rp).
   collectTypeRefs(T,All,SoFar,Rp) where (_,Op,Els) ^= isRoundTerm(T) => do{
     R1 <- collectTypeRefs(Op,All,SoFar,Rp);
     collectTypeList(Els,All,R1,Rp)
