@@ -20,7 +20,7 @@ def main(argv):
     ignore_failures = False
     compiler=bootCompile
     try:
-        opts,args = getopt.getopt(argv,"dhct:",["sc","test=","help","compile_only","tracing","all","ignore_failures","starexec=","sbc=","testdir=","repodir="])
+        opts,args = getopt.getopt(argv,"dhct:",["sc","test=","help","compile_only","tracing","all","ignore_failures","starexec=","sbc=","testdir=","repo="])
     except getopt.GetopError:
         print usage
         sys.exit(2)
