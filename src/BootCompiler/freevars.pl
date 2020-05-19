@@ -49,7 +49,10 @@ freeVars(record(_,_,_,Defs,_),Ex,Q,F,Fv) :-
 freeVars(letExp(_,Rc,Bnd),Ex,Q,F,Fv) :-
   freeVars(Rc,Ex,Q,F,F0),
   freeVars(Bnd,Ex,Q,F0,Fv).
-
+freeVars(case(_,Gov,Cses,_),Ex,Q,F,Fv) :-
+  freeVars(Gov,Ex,Q,F,F0),
+  freeVarsInRules(Cses,Ex,Q,F0,Fv).
+  
 definedVars(Defs,Q,Qx) :-
   varsInList(Defs,freevars:defVar,Q,Qx).
 

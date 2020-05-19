@@ -1,13 +1,41 @@
 :- module(lterms,[displayRules/1,
-        dispRuleSet/1,substTerm/3,substTerms/3,rewriteTerm/3,
-        genTplStruct/2,isLiteral/1,isGround/1,isCnd/1,mkTpl/2,isUnit/1,
-        termHash/2,dispTerm/1,showTerm/4,showArgs/4,locTerm/2,idInTerm/2]).
+		  dispRuleSet/1,substTerm/3,substTerms/3,rewriteTerm/3,
+		  genTplStruct/2,isLiteral/1,isGround/1,isCnd/1,mkTpl/2,
+		  isUnit/1,
+		  termHash/2,dispTerm/1,showTerm/4,showArgs/4,locTerm/2,
+		  idInTerm/2, isLTerm/1]).
 
 :- use_module(misc).
 :- use_module(canon).
 :- use_module(operators).
 :- use_module(location).
 :- use_module(types).
+
+isLTerm(idnt(_)) :- !.
+isLTerm(voyd) :- !.
+isLTerm(intgr(_)) :- !.
+isLTerm(float(_)) :- !.
+isLTerm(strg()) :- !.
+isLTerm(cll(_,_,_)) :- !.
+isLTerm(ocall(_,_,_)) :- !.
+isLTerm(ecll(_,_,_)) :- !.
+isLTerm(intrinsic(_,_,_)) :- !.
+isLTerm(dte(_,_,_)) :- !.
+isLTerm(ctpl(_,_)) :- !.
+isLTerm(enum(_)) :- !.
+isLTerm(lbl(_,_)) :- !.
+isLTerm(whr(_,_,_)) :- !.
+isLTerm(ltt(_,_,_,_)) :- !.
+isLTerm(varNames(_,_,_)) :- !.
+isLTerm(case(_,_,_,_)) :- !.
+isLTerm(seq(_,_,_)) :- !.
+isLTerm(cnj(_,_,_)) :- !.
+isLTerm(cnd(_,_,_,_)) :- !.
+isLTerm(dsj(_,_,_)) :- !.
+isLTerm(mtch(_,_,_)) :- !.
+isLTerm(ng(_,_)) :- !.
+isLTerm(error(_,_)) :- !.
+isLTerm(doAct(_,_)) :- !.
 
 showRules(mdule(Pkg,Imports,Types,_,Defs,Contracts,Impls),O,Ox) :-
   appStr("Package: ",O,O0),
