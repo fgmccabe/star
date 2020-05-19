@@ -124,6 +124,9 @@ static char *dumpSig(char *sig, bufferPo out) {
       outStr(O_IO(out), ")");
       break;
     }
+    case anySig:
+      outStr(O_IO(out),"_");
+      break;
     case voidSig:
       outStr(O_IO(out), "voidType");
       break;

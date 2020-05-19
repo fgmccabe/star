@@ -12,6 +12,7 @@
 
 /* Type signatures for Star types */
 typedef enum {
+  anySig = '_',  // underscore type
   voidSig = 'v', // Void type
   thisSig = 'h', // this type is a special type
   intSig = 'i', /* An integer */

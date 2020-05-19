@@ -58,6 +58,7 @@ static integer decodeArity(const char *sig, integer *start, integer end) {
 
 logical validSig(char *sig, integer *start, integer end) {
   switch (sig[(*start)++]) {
+    case anySig:
     case voidSig:
     case thisSig:
     case intSig:
@@ -210,6 +211,7 @@ static retCode skipConstrnt(char *sig, integer *start, integer end);
 retCode skipSig(char *sig, integer *start, integer end) {
   if ((*start) < end) {
     switch (sig[(*start)++]) {
+      case anySig:
       case voidSig:
       case thisSig:
       case intSig:
@@ -402,6 +404,7 @@ retCode skipSignature(ioPo in) {
 
   if (ret == Ok) {
     switch (ch) {
+      case anySig:
       case voidSig:
       case thisSig:
       case intSig:
@@ -517,6 +520,8 @@ static retCode showSigTplEls(ioPo out, char *sig, integer *start, integer end) {
 
 retCode showSignature(ioPo out, char *sig, integer *start, integer end) {
   switch (sig[(*start)++]) {
+    case anySig:
+      return outStr(out, "_");
     case voidSig:
       return outStr(out, "void");
     case thisSig:
