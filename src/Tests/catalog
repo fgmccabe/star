@@ -1,6 +1,8 @@
 {
   "content": {
     "test.a": "a.star",
+    "test.ar": "ar.star",
+    "test.as": "as.star",
     "test.al": "al.star",
     "test.assign": "assign.star",
     "test.bench" : "bench.star",
@@ -12,7 +14,6 @@
     "test.cmd": "cmd.star",
     "test.compose": "compose.star",
     "test.cstream": "cstr.star",
-    "test.d": "d.star",
     "test.do1": "do1.star",
     "test.do2": "do2.star",
     "test.do3": "do3.star",
@@ -38,6 +39,7 @@
     "test.fm": "fm.star",
     "test.fmt": "fmt.star",
     "test.fn": "fn.star",
+    "test.cfunc": "cfunc.star",
     "test.func": "func.star",
     "test.g": "g.star",
     "test.gp": "gp.star",

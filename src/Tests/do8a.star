@@ -8,4 +8,7 @@ test.do8a{
 
   logMsg:(string)=>().
   logMsg(_)=>().
+
+  public _main(_) =>
+    foo().
 }
