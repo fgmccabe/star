@@ -158,12 +158,12 @@ star.finger{
 
   -- Implement iter contract
 
-  public implementation all e ~~ iter[fingerTree[e]->>e] => {
-    _iter:all x,m/2,er ~~ execution[m] |: (fingerTree[e],m[er,x],(e,x)=>m[er,x]) => m[er,x].
+  public implementation all t ~~ iter[fingerTree[t]->>t] => {
+    _iter:all x,m/2,e ~~ execution[m] |: (fingerTree[t],m[e,x],(t,x)=>m[e,x]) => m[e,x].
     _iter(Lst,St,Fn) => iterOverFinger(Lst,St,Fn).
 
     private iterOverFinger:all x,m/2,er ~~ execution[m] |:
-      (fingerTree[e],m[er,x],(e,x)=>m[er,x]) => m[er,x].
+      (fingerTree[t],m[er,x],(t,x)=>m[er,x]) => m[er,x].
     iterOverFinger(.eTree,St,_) => St.
     iterOverFinger(Tr,St,Fn) where 
 	consl(El,tl) .= viewl(Tr) =>
