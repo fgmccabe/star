@@ -6,6 +6,7 @@
 :- use_module(types).
 :- use_module(canon).
 :- use_module(location).
+:- use_module(lterms).
 :- use_module(uri).
 
 :- initialization(startCount).
@@ -87,6 +88,9 @@ showTrm(P,O) :-
 showTrm(U,O) :-
   isUri(U),!,
   showUri(U,O,[]).
+showTrm(T,O) :-
+  isLTerm(T),!,
+  showTerm(T,0,O,[]).
 showTrm([],[]).
 showTrm([E|_],O) :-
   showTrm(E,O).

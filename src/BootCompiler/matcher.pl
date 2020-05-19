@@ -54,13 +54,15 @@ conditionalize([(_,(Lc,Bnds,Test,Val),_)|M],Deflt,Repl) :-!,
   pullWhere(Val,enum("star.core#true"),Vl,C0),
   mergeGoal(Test,C0,Lc,TT),
 %  reportMsg("merged test %s goal = %s",[Test,TT],Lc),
-  (TT=enum("star.core#true") ->
+  (mustSucceed(TT) ->
     applyBindings(Bnds,Lc,Vl,Repl);
     conditionalize(M,Deflt,Other),
     applyBindings(Bnds,Lc,Vl,TVl),
     Repl = cnd(Lc,TT,TVl,Other)
 %    reportMsg("conditionalized Repl=%s",[Repl],Lc)
   ).
+
+mustSucceed(enum("star.core#true")).
 
 applyBindings(Bnds,Lc,Val,DVal) :-
   filter(Bnds,matcher:filterBndVar(Val),VBnds),!,
@@ -225,18 +227,28 @@ matchVars(Lc,[V|Vrs],Triples,Deflt,Reslt) :-
   matchTriples(Lc,Vrs,NTriples,Deflt,Reslt).
 
 applyVar(_,[],[]).
-applyVar(V,[([idnt(XV)|Args],(Lc,Bnd,Cond,Vl),Ix)|Tpls],[(NArgs,(Lc,[(XV,V)|Bnd],NCond,NVl),Ix)|NTpls]) :-
-  Vrs = [(XV,V)],
+applyVar(idnt(V),[([idnt(XV)|Args],(Lc,Bnd,Cond,Vl),Ix)|Tpls],
+	 [(NArgs,(Lc,[(XV,idnt(V))|Bnd],NCond,NVl),Ix)|NTpls]) :-
+  Vrs = [(XV,idnt(V))],
   substTerm(Vrs,Vl,NVl),
   substTerms(Vrs,Args,NArgs),
   substTerm(Vrs,Cond,NCond),
-  applyVar(V,Tpls,NTpls).
-applyVar(V,[([whr(Lcw,idnt(XV),Cond)|Args],(Lc,Bnd,Test,Vl),Ix)|Tpls],
-      [(NArgs,(Lc,[(XV,V)|Bnd],NCnd,NVl),Ix)|NTpls]) :-
-  Vrs = [(XV,V)],
+  applyVar(idnt(V),Tpls,NTpls).
+applyVar(idnt(V),[([whr(Lcw,idnt(XV),Cond)|Args],(Lc,Bnd,Test,Vl),Ix)|Tpls],
+	 [(NArgs,(Lc,[(XV,idnt(V))|Bnd],NCnd,NVl),Ix)|NTpls]) :-
+  Vrs = [(XV,idnt(V))],
   substTerm(Vrs,Vl,NVl),
   substTerm(Vrs,Cond,NCond),
   substTerm(Vrs,Test,NTest),
   mergeGoal(NTest,NCond,Lcw,NCnd),
   substTerms(Vrs,Args,NArgs),
-  applyVar(V,Tpls,NTpls).
+  applyVar(idnt(V),Tpls,NTpls).
+applyVar(V,[([idnt(XV)|Args],(Lc,Bnd,Cond,Vl),Ix)|Tpls],
+	 [(Args,(Lc,Bnd,NCond,Vl),Ix)|NTpls]) :-
+  mergeGoal(mtch(Lc,idnt(XV),V),Cond,Lc,NCond),
+  applyVar(V,Tpls,NTpls),
+  reportMsg("var goal = %s",[NCond],Lc).
+applyVar(V,[([whr(Lcw,idnt(XV),Test)|Args],(Lc,Bnd,Cond,Vl),Ix)|Tpls],
+	 [(Args,(Lc,Bnd,NCond,Vl),Ix)|Tpls]) :-
+  mergeGoal(mtch(Lc,idnt(XV),V),Test,Lcw,G1),
+  mergeGoal(G1,Cond,Lc,NCond).
