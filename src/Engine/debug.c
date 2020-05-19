@@ -6,6 +6,7 @@
 #include <str.h>
 #include <ioTcp.h>
 #include <manifest.h>
+#include <termcap.h>
 
 #include "debugP.h"
 #include "arith.h"
@@ -116,7 +117,7 @@ static retCode showConstant(ioPo out, methodPo mtd, integer off) {
   return outMsg(out, " %,*T", displayDepth, nthArg(mtd->pool, off));
 }
 
-static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
+static logical shouldWeStop(processPo p, insWord ins, insPo pc, termPo arg) {
   if (focus == NULL || focus == p) {
     if (debugDebugging) {
       outMsg(logFile, "debug: traceDepth=%d, traceCount=%d, tracing=%s, ins: ", p->traceDepth, p->traceCount,
@@ -713,7 +714,7 @@ static DebugWaitFor dbgDropFrame(char *line, processPo p, termPo loc, insWord in
   return moreDebug;
 }
 
-static logical shouldWeStopIns(processPo p, insWord ins) {
+static logical shouldWeStopIns(processPo p, insWord ins, insPo pc) {
   if (focus == NULL || focus == p) {
 #ifdef TRACE_DBG
     if (debugDebugging) {
@@ -756,6 +757,19 @@ static logical shouldWeStopIns(processPo p, insWord ins) {
           default:
             return False;
         }
+      }
+      case LdG:{
+        int32 glbNo = collect32(pc);
+        globalPo glb = findGlobalVar(glbNo);
+
+        switch (p->waitFor) {
+          case stepOver: {
+            if (!glbIsSet(glb))
+              p->traceDepth++;
+          }
+          default:;
+        }
+        return False;
       }
       case Tail:
       case OTail:
@@ -819,7 +833,7 @@ DebugWaitFor insDebug(processPo p, insWord ins) {
   ptrPo sp = p->sp;
   insPo pc = p->pc;
 
-  logical stopping = shouldWeStopIns(p, ins);
+  logical stopping = shouldWeStopIns(p, ins, pc);
   if (p->tracing || stopping) {
     outMsg(debugOutChnnl, "[%d]: ", pcCount);
     disass(debugOutChnnl, mtd, pc, fp, sp);
@@ -1046,7 +1060,7 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
   ptrPo sp = p->sp;
   insPo pc = p->pc;
 
-  logical stopping = shouldWeStop(p, ins, ln);
+  logical stopping = shouldWeStop(p, ins, pc, ln);
 
 #ifdef TRACE_DBG
   if (debugDebugging) {
@@ -1136,9 +1150,12 @@ retCode showLcl(ioPo out, integer vr, methodPo mtd, framePo fp, ptrPo sp) {
 
 retCode showGlb(ioPo out, globalPo glb, framePo fp, ptrPo sp) {
   if (fp != Null && sp != Null) {
-    if (glb != Null)
-      return outMsg(out, " %,*T", displayDepth, glb);
-    else
+    if (glb != Null) {
+      if (getGlobal(glb) != Null)
+        return outMsg(out, " %s=%,*T", globalVarName(glb), displayDepth, getGlobal(glb));
+      else
+        return outMsg(out, " %s (undef)", globalVarName(glb));
+    } else
       return outMsg(out, " unknown global");
   } else
     return outMsg(out, " %s", globalVarName(glb));
@@ -1170,7 +1187,7 @@ void showTopOfStack(ioPo out, methodPo mtd, integer cnt, framePo fp, ptrPo sp) {
       sep = ", ";
     }
 
-    outMsg(out, ")\n%_");
+    outMsg(out, ")%_");
   } else
     outStr(out, " <tos>");
 }
@@ -1184,13 +1201,16 @@ void showStack(ioPo out, processPo p, methodPo mtd, integer vr, framePo fp, ptrP
     outMsg(out, "invalid stack offset: %d", vr);
 }
 
-static void showPcOffset(ioPo out, insPo base, insPo *pc) {
+static void showPcOffset(ioPo out, insPo base, insPo *pc, framePo fp, ptrPo sp) {
   uint32 hi32 = (uint32) (*pc)[0];
   uint32 lo32 = (uint32) (*pc)[1];
   (*pc) += 2;
   int32 delta = (hi32 << 16u) | lo32;
 
-  outMsg(out, " PC[%d(%+d)]", (*pc - base) + delta, delta);
+  if (sp != Null)
+    outMsg(out, " PC[%d(%+d)], tos = %,10T", (*pc - base) + delta, delta, sp[0]);
+  else
+    outMsg(out, " PC[%d(%+d)]", (*pc - base) + delta, delta);
 }
 
 insPo disass(ioPo out, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
@@ -1215,7 +1235,7 @@ insPo disass(ioPo out, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
 #define show_arg showArg(out,collectI32(pc),mtd,fp,sp)
 #define show_lcl showLcl(out,collectI32(pc),mtd,fp,sp)
 #define show_lcs outMsg(out," l[%d]",collectI32(pc))
-#define show_off showPcOffset(out,entry,&pc)
+#define show_off showPcOffset(out,entry,&pc,fp,sp)
 #define show_sym showConstant(out,mtd,collectI32(pc))
 #define show_Es outMsg(out, " %s", getEscape(collectI32(pc))->name)
 #define show_lit showConstant(out,mtd,collectI32(pc))
