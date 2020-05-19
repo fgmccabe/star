@@ -41,6 +41,7 @@ star.compiler.typeparse{
     else if (Nm,VTp) in Q then
       valis VTp
     else if (_,T,TpRl) ^= findType(Env,Nm) then{
+--      logMsg("look at type rule $(TpRl) for $(Nm)");
       if isLambdaRule(TpRl) then{
 	(_,typeLambda(_,Rhs)) .= freshen(TpRl,Env);
 	valis Rhs

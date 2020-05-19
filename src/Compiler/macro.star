@@ -13,6 +13,7 @@ star.compiler.macro{
 
   macros:map[string,cons[(macroContext,macroRule)]].
   macros = [ "::=" -> [(.statement,macroAlgebraic)],
+    ":=" -> [(.statement,macroAssignDef)],    
     "[]" -> [(.pattern,makeSeqPtn),
       (.expression,macroListComprehension),
       (.expression,makeSeqExp)],
@@ -21,6 +22,7 @@ star.compiler.macro{
     "do" -> [(.expression,macroDo)],
     "action" -> [(.expression,actionMacro)],
     "task" -> [(.expression,taskAction)],
+    "valof" -> [(.expression,performMacro)],
     "__pkg__" -> [(.expression,pkgNameMacro)],
     "-" -> [(.expression, uMinusMacro),(.pattern, uMinusMacro)],
     "^=" -> [(.expression, optionMatchMacro)]].
@@ -734,6 +736,9 @@ star.compiler.macro{
 
   isTypeAnnot(A) where (Lc,N,Tp) ^= isBinary(A,":") && (Nm,Vz) .= visibilityOf(N) && (_,Id)^=isName(Nm) =>
     some((Lc,Id,Vz,Tp)).
+  isTypeAnnot(A) where (Lc,I) ^= isPublic(A) &&
+      (_,N,Tp) ^= isBinary(I,":") &&
+      (_,Id) ^= isName(N) => some((Lc,Id,.pUblic,Tp)).
   isTypeAnnot(_) default => .none.
 
   synthesizeMain:(locn,ast,cons[ast])=>cons[ast].
@@ -742,7 +747,7 @@ star.compiler.macro{
     Arg .= sqTuple(Lc,Vs);
     MLhs .= roundTerm(Lc,nme(Lc,"_main"),[Arg]);
     MRhs .= roundTerm(Lc,nme(Lc,"main"),Cs);
-    Main .= equation(Lc,MLhs,unary(Lc,"valof",MRhs));
+    Main .= equation(Lc,MLhs,unary(Lc,"_perform",MRhs));
     Annot .= binary(Lc,":",nme(Lc,"_main"),equation(Lc,rndTuple(Lc,[squareTerm(Lc,nme(Lc,"cons"),[nme(Lc,"string")])]),rndTuple(Lc,[])));
     valis [unary(Lc,"public",Annot),Main,..Defs].
   }
@@ -816,6 +821,10 @@ star.compiler.macro{
     Start .= makeReturn(Lc,Unit);
     valis combine(Start,some((Lc,AA)))
   }
+
+  performMacro(A,.expression,Rp) where (Lc,E) ^= isValof(A) =>
+    either(active(unary(Lc,"_perform",E))).
+  peformMacro(A,_,_) default => either(.inactive).
   
   public makeAction:(ast,option[(locn,ast)],reports) => either[reports,ast].
   makeAction(A,Cont,Rp) where (_,[St]) ^= isBrTuple(A) =>
@@ -843,7 +852,8 @@ star.compiler.macro{
   makeAction(A,.none,Rp) where (Lc,L,R) ^= isMatch(A) =>
     other(reportError(Rp,"$(A) may not be the last action",Lc)).
   makeAction(A,some((CLc,Cont)),Rp) where (Lc,L,R) ^= isMatch(A) => do{
-    Lam .= equation(Lc,rndTuple(Lc,[L]),Cont);
+--    Lam .= equation(Lc,rndTuple(Lc,[L]),Cont);
+    Lam .= equation(Lc,L,Cont);
     valis mkCaseExp(Lc,R,[Lam]) -- roundTerm(CLc,Lam,[R])
   }
   makeAction(A,.none,Rp) where (Lc,L,R) ^= isOptionMatch(A) =>
@@ -1130,4 +1140,8 @@ star.compiler.macro{
   optionMatchMacro(A,.expression,Rp) where (Lc,L,R) ^= isOptionMatch(A) =>
     either(active(mkMatch(Lc,unary(Lc,"some",L),R))).
   optionMatchMacro(_,_,_) default => either(.inactive).
+
+  macroAssignDef(A,.statement,Rp) where (Lc,L,R) ^= isAssignment(A) =>
+    either(active(binary(Lc,"=",L,unary(Lc,"_cell",R)))).
+  macroAssignDef(_,_,_) default => either(.inactive).
 }

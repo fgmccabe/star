@@ -21,13 +21,14 @@ star.compiler.matcher{
     Error .= genRaise(Lc,funTypeRes(Tp));
 --    logMsg("function triples: $(Trpls)");
     Reslt .= matchTriples(Lc,NVrs,Trpls,Error);
---    (NArgs,NReslt) .= pullVarLets(NVrs,Reslt);
     valis fnDef(Lc,Nm,Tp,NVrs//(crVar(_,V))=>V,Reslt)
   }
 
   public caseMatcher:(locn,crExp,cons[(locn,cons[crExp],option[crExp],crExp)],tipe)=>crExp.
   caseMatcher(Lc,Gov,Cs,Tp) => valof action{
+--    logMsg("match cases $(Cs)\ngoverning expression $(Gov)");
     Trpls .= makeTriples(Cs);
+--    logMsg("case triples $(Trpls)");
     Error .= genRaise(Lc,Tp);
     valis matchTriples(Lc,[Gov],Trpls,Error)
   }
@@ -47,7 +48,7 @@ star.compiler.matcher{
   matchTriples:(locn,cons[crExp],cons[triple],crExp) => crExp.
   matchTriples(_,[],Triples,Deflt) => conditionalize(Triples,Deflt).
   matchTriples(Lc,Vrs,Triples,Deflt) => valof action{
---    logMsg("matching triples $(Triples), default = $(Deflt)");
+--    logMsg("matching triples, $(Vrs) --- $(Triples), default = $(Deflt)");
     Parts .= partitionTriples(Triples);
 --    logMsg("partitioned $(Parts)");
     Segs .= matchSegments(Parts,Vrs,Lc,Deflt);
@@ -118,38 +119,42 @@ star.compiler.matcher{
     matchTriples(Lc,Vrs,applyVar(V,Triples),Deflt).
 
   applyVar:(crExp,cons[triple]) => cons[triple].
-  applyVar(V,Triples) => let{
+  applyVar(V,Triples) where crVar(_,_).=V => let{
     applyToTriple:(triple)=>triple.
     applyToTriple(([crVar(VLc,crId(Vr,_)),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof action{
---      logMsg("replace $(Vr) with $(V) in $(Args) where $(Gl) => $(Exp)");
       Mp .= [Vr->V];
       NArgs .= rewriteTerms(Args,Mp);
---      logMsg("Nargs = $(NArgs)");
+      NAG .= fmap((T)=>rewriteTerm(T,Mp),AG);
       NGl .= fmap((T)=>rewriteTerm(T,Mp),Gl);
---      logMsg("NGl = $(NGl)");
       NExp .= rewriteTerm(Exp,Mp);
---      logMsg("Exp $(Exp) rewritten to $(NExp)");
       valis (NArgs, (CLc,B,AG,NGl,NExp),Ix)
     }
     applyToTriple(([crWhere(Lc,crVar(VLc,crId(Vr,_)),Cond),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof action{
       Mp .= [Vr->V];
       NArgs .= rewriteTerms(Args,Mp);
+      NAG .= fmap((T)=>rewriteTerm(T,Mp),AG);
       NCond .= rewriteTerm(Cond,Mp);
       NGl .= fmap((T)=>rewriteTerm(T,Mp),Gl);
       NExp .= rewriteTerm(Exp,Mp);
---      logMsg("Exp $(Exp) rewritten to $(NExp)");
-      valis (NArgs, (CLc,B,mergeGoal(VLc,AG,some(NCond)),Gl,NExp),Ix)
+      valis (NArgs, (CLc,B,mergeGoal(VLc,NAG,some(NCond)),Gl,NExp),Ix)
     }
   } in (Triples//applyToTriple).
+  applyVar(V,Triples) => let{
+    applyNonVar(([Vr,..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof action{
+      NCond .= crMatch(CLc,Vr,V);
+      valis (Args, (CLc,B,mergeGoal(CLc,some(NCond),AG),Gl,Exp),Ix)
+    }
+    applyNonVar(([crWhere(Lc,Vr,Cond),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof action{
+      VCond .= crMatch(Lc,Vr,V);
+      valis (Args, (CLc,B,mergeGoal(Lc,some(VCond),mergeGoal(Lc,some(Cond),AG)),Gl,Exp),Ix)
+    }
+  } in (Triples//applyNonVar).
 
   formCases:(cons[triple],(triple,triple)=>boolean,locn,cons[crExp],crExp)=> cons[crCase].
   formCases([],_,_,_,_) => [].
   formCases([Tr,..Triples],Eq,Lc,Vrs,Deflt) => valof action{
---    logMsg("form case based on $(Tr)");
     (Tx,More) .= pickMoreCases(Tr,Triples,Eq,[],[]);
---    logMsg("same case = $(Tx)");
     Case .= formCase(Tr,[Tr,..Tx],Lc,Vrs,Deflt);
---    logMsg("case $(Case)");
     valis [Case,..formCases(More,Eq,Lc,Vrs,Deflt)].
   }
 
@@ -189,21 +194,14 @@ star.compiler.matcher{
 
   conditionalize([],Deflt) => Deflt.
   conditionalize([(_,(Lc,Bnds,ArgCond,Test,Val),_),..Triples],Deflt) => valof action{
---    logMsg("conditionalize $(Bnds,ArgCond,Test,Val)");
     (Vl,Cnd) .= pullWhere(Val,Test);
     EqnCnd .= mergeGoal(Lc,ArgCond,Cnd);
---    logMsg("eq cnd $(EqnCnd)");
     if Tst ^= EqnCnd then
       valis applyBindings(Bnds,Lc,crCnd(Lc,Tst,Vl,conditionalize(Triples,Deflt)))
     else
     valis applyBindings(Bnds,Lc,Vl)
   }
 
-/*  conditionalize([(_,(Lc,Bnds,.none,Val),_),..Triples],Deflt) =>
-  conditionalize([(_,(Lc,Bnds,some(Wh),Val),_),..Triples],Deflt) =>
-    applyBindings(Bnds,Lc,crCnd(Lc,Wh,conditionalize(Triples,Val),Deflt)).
-  */
-  
   applyBindings([],_,Val) => Val.
 
   compareScalarTriple:(triple,triple) => boolean.

@@ -19,7 +19,6 @@ star.compiler.checker{
   import star.compiler.meta.
   import star.compiler.misc.
   import star.compiler.resolve.
-  import star.compiler.terms.
   import star.compiler.types.
   import star.compiler.typeparse.
   import star.compiler.unify.
@@ -93,7 +92,7 @@ star.compiler.checker{
   exportedTypes:(cons[cons[canonDef]],cons[(defnSp,visibility)],visibility) =>
     cons[(string,tipe)].
   exportedTypes(Defs,Vis,DVz) => [ (Nm,ExTp) |
-      DD in Defs && typeDef(_,Nm,_,typeLambda(_,ExTp)) in DD && (tpSp(Nm),V) in Vis && V>=DVz].
+      DD in Defs && typeDef(_,Nm,_,ExTp) in DD && (tpSp(Nm),V) in Vis && V>=DVz].
 
   formRecordExp:(locn,option[string],tipe,dict,cons[cons[canonDef]],tipe,reports) => either[reports,canon].
   formRecordExp(Lc,Lbl,faceType(Flds,Tps),Env,Defs,Tp,Rp) => do{
@@ -125,7 +124,7 @@ star.compiler.checker{
 
   lookInGroup:(cons[canonDef],string,cons[cons[canonDef]])=>option[canon].
   lookInGroup([],Nm,Gps) => findDefn(Gps,Nm).
-  lookInGroup([varDef(Lc,Nm,_,lambda(_,_),Cx,Tp),..Gp],Nm,_) => some(vr(Lc,Nm,Tp)).
+  lookInGroup([varDef(Lc,Nm,_,lambda(_,_,_),Cx,Tp),..Gp],Nm,_) => some(vr(Lc,Nm,Tp)).
   lookInGroup([varDef(_,Nm,_,vr(Lc,ONm,Tp),_,_),..Gp],Nm,_) => some(vr(Lc,ONm,Tp)).
   lookInGroup([varDef(Lc,Nm,_,_,Cx,Tp),..Gp],Nm,_) => some(vr(Lc,Nm,Tp)).
   lookInGroup([cnsDef(Lc,Nm,FullNm,Tp),..Gp],Nm,_) => some(enm(Lc,FullNm,Tp)).
@@ -276,7 +275,7 @@ star.compiler.checker{
   }
 
   allFunDefs:(cons[canonDef])=>boolean.
-  allFunDefs(Dfs) => D in Dfs *> varDef(_,_,_,lambda(_,_),_,_).=D.
+  allFunDefs(Dfs) => D in Dfs *> varDef(_,_,_,lambda(_,_,_),_,_).=D.
 
 --  pickLc([D,.._]) => locOf(D).
 
@@ -343,7 +342,7 @@ star.compiler.checker{
     FullNm .= qualifiedName(Path,.valMark,Nm);
 --    logMsg("checked equations $(Rls), ProgramTp=$(ProgramTp), Tp=$(Tp)");
     valis (varDef(Lc,Nm,FullNm,
-	lambda(Rls,Tp),Cx,Tp),declareVar(Nm,some(Lc),Tp,.none,Env))
+	lambda(FullNm,Rls,Tp),Cx,Tp),declareVar(Nm,some(Lc),Tp,.none,Env))
   }.
 
   processEqns:(cons[ast],tipe,cons[equation],option[equation],dict,dict,string,reports) =>
@@ -525,7 +524,7 @@ star.compiler.checker{
 --	logMsg("field access $(A)");
 	if (_,Id) ^= isName(R) then{
 	  if (Rc,RcFace) ^= findVarFace(Lc,Id,Env) &&
-	      faceType(Flds,_) .= RcFace then{
+	      faceType(Flds,_) .= deRef(RcFace) then{
 		if (Fld,FTp) in Flds then{
 		  Acc .= refreshVr(Lc,FTp,Env,(T)=>dot(Lc,Rc,Fld,T));
 --		  logMsg("refreshed field type $(typeOf(Acc))");
@@ -673,9 +672,10 @@ star.compiler.checker{
       }.
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Stmts) ^= isDoTerm(A)  => 
     checkDo(Stmts,Tp,Env,Path,Rp).
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Exp) ^= isValof(A) =>
-    typeOfExp(unary(Lc,"_perform",Exp),Tp,Env,Path,Rp).
+--  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Exp) ^= isValof(A) =>
+--    typeOfExp(unary(Lc,"_perform",Exp),Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,B,C) ^= isListComprehension(A) => do{
+    logMsg("list comprehension?");
     (_,ListTp,_) ^= findType(Env,"cons");
     ElTp .= newTypeVar("E");
     checkType(A,mkTypeExp(ListTp,[ElTp]),Tp,Env,Rp);
@@ -702,17 +702,18 @@ star.compiler.checker{
     Rt .= newTypeVar("_R");
 --    logMsg("check lambda arg $(Ar)");
     (As,E0) <- typeOfArgPtn(Ar,At,Env,Path,Rp);
+    LName .= genSym(Path++"λ");
     if Cnd ^= C then {
 --      logMsg("check lambda cond $(Cnd)");
       (Cond,E1) <- checkCond(Cnd,E0,Path,Rp);
       Rep <- typeOfExp(R,Rt,E1,Path,Rp);
       checkType(A,fnType(At,Rt),Tp,Env,Rp);
-      valis lambda([eqn(Lc,As,some(Cond),Rep)],Tp)
+      valis lambda(LName,[eqn(Lc,As,some(Cond),Rep)],Tp)
     } else{
       Rep <- typeOfExp(R,Rt,E0,Path,Rp);
       checkType(A,fnType(At,Rt),Tp,Env,Rp);
 --    logMsg("lambda return: $(Rep)\:$(typeOf(Rep))");
-      valis lambda([eqn(Lc,As,.none,Rep)],Tp)
+      valis lambda(LName,[eqn(Lc,As,.none,Rep)],Tp)
     }
   }
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Els) ^= isTheta(A) => do{
@@ -757,10 +758,10 @@ star.compiler.checker{
     (Cx,Face) .= deConstrain(FaceTp);
     Base .= declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
     
---    logMsg("checking theta record, expected type $(Tp)");
+    logMsg("checking theta record, expected type $(Face)");
     (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,Rp,.deFault);
---    logMsg("resulting theta type $(ThetaTp)");
---    logMsg("check against expected face $(Face)");
+    logMsg("resulting theta type $(ThetaTp)");
+    logMsg("check against expected face $(Face)");
     if sameType(ThetaTp,Face,Env) then{
 --      logMsg("building record from theta, $(ThEnv)");
       formTheta(Lc,some(Nm),Face,ThEnv,sortDefs(multicat(Defs)),Tp,Rp)
@@ -910,12 +911,13 @@ star.compiler.checker{
     (Ptn,Ev) <- typeOfPtn(L,PtnTp,Env,Path,Rp);
     valis (match(Lc,Ptn,Val),Ev)
   }
-  checkGoal(A,Env,Path,Rp) where (Lc,L,R) ^= isOptionMatch(A) => do{
+/*  checkGoal(A,Env,Path,Rp) where (Lc,L,R) ^= isOptionMatch(A) => do{
     PtnTp .= newTypeVar("_M");
     Val <- typeOfExp(R,PtnTp,Env,Path,Rp);
     (Ptn,Ev) <- typeOfPtn(unary(Lc,"some",L),PtnTp,Env,Path,Rp);
     valis (match(Lc,Ptn,Val),Ev)
   }
+*/
   checkGoal(A,Env,Path,Rp) where (Lc,L,R) ^= isSearch(A) => do{
     StrTp .= newTypeVar("Str");
     ElTp .= newTypeVar("El");

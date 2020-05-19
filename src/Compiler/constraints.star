@@ -54,7 +54,7 @@ star.compiler.constraints{
   extractTermConstraints(cond(Lc,Tst,Lhs,Rhs),Dict,Cnx) =>
     extractTermConstraints(Tst,Dict,extractTermConstraints(Lhs,Dict,
 	extractTermConstraints(Rhs,Dict,Cnx))).
-  extractTermConstraints(lambda(Rls,_),Dict,Cnx) =>
+  extractTermConstraints(lambda(_,Rls,_),Dict,Cnx) =>
     foldLeft((Eqn,Cs)=>extractEqnConstraints(Eqn,Dict,Cs),Cnx,Rls).
   extractTermConstraints(letExp(Lc,Gp,Rhs),Dict,Cnx) => valof action{
     DD .= declareImplementationsInGroup(Gp,Dict);
@@ -112,7 +112,7 @@ star.compiler.constraints{
   declareImplementationsInGroup([],Dict) => Dict.
   declareImplementationsInGroup([implDef(Lc,_,FullNm,_,_,Tp),..Gp],Dict) =>
     declareImplementationsInGroup(Gp,
-      declareVar(FullNm,some(Lc),Tp,
+      declareVar(FullNm,some(Lc),Tp,.none,
 	declareImplementation(FullNm,Tp,Dict))).
   declareImplementationsInGroup([typeDef(Lc,Nm,Tp,TpRl),..Gp],Dict) =>
     declareImplementationsInGroup(Gp,declareType(Nm,some(Lc),Tp,TpRl,Dict)).
@@ -122,7 +122,7 @@ star.compiler.constraints{
   defineCVars(_,[],D) => D.
   defineCVars(Lc,[contractConstraint(T),..Tps],D)
       where TpNm .= implementationName(T) =>
-    defineCVars(Lc,Tps,declareVar(TpNm,some(Lc),T,D)).
+    defineCVars(Lc,Tps,declareVar(TpNm,some(Lc),T,.none,D)).
     
   resolveConstraint:(cnsCheck,reports) =>
     either[reports,(option[cnsCheck],cons[cnsCheck])].

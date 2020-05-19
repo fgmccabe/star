@@ -30,7 +30,7 @@ star.compiler.resolve{
   declareImplementationsInGroup([],Dict) => Dict.
   declareImplementationsInGroup([implDef(Lc,_,FullNm,_,_,Tp),..Gp],Dict) =>
     declareImplementationsInGroup(Gp,
-       declareVar(FullNm,some(Lc),Tp,
+      declareVar(FullNm,some(Lc),Tp,.none,
 	declareImplementation(FullNm,Tp,Dict))).
   declareImplementationsInGroup([_,..Gp],Dict) => declareImplementationsInGroup(Gp,Dict).
 
@@ -78,7 +78,7 @@ star.compiler.resolve{
     (Qx,Qt) .= deQuant(Tp);
     (_,ITp) .= deConstrain(Qt);
     CTp .= reQuant(Qx,funType(Cx,ITp));
-    valis (varDef(Lc,Nm,FullNm,lambda([eqn(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp),Dict)
+    valis (varDef(Lc,Nm,FullNm,lambda(FullNm,[eqn(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp),Dict)
   }
 
   overloadImplDef(Dict,Lc,Nm,FullNm,Val,[],Tp,Rp) => do{
@@ -95,13 +95,13 @@ star.compiler.resolve{
     (Qx,Qt) .= deQuant(Tp);
     (_,ITp) .= deConstrain(Qt);
     CTp .= reQuant(Qx,funType(Cx,ITp));
-    valis (implDef(Lc,Nm,FullNm,lambda([eqn(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp),Dict)
+    valis (implDef(Lc,Nm,FullNm,lambda(FullNm,[eqn(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp),Dict)
   }
 
   defineCVars:(locn,cons[tipe],cons[canon],dict) => (cons[canon],dict).
   defineCVars(_,[],Vrs,D) => (reverse(Vrs),D).
   defineCVars(Lc,[T,..Tps],Vrs,D) where TpNm .= implementationName(T) =>
-    defineCVars(Lc,Tps,[vr(Lc,TpNm,T),..Vrs],declareVar(TpNm,some(Lc),T,D)).
+    defineCVars(Lc,Tps,[vr(Lc,TpNm,T),..Vrs],declareVar(TpNm,some(Lc),T,.none,D)).
 
   resolveState ::= .inactive | .resolved | active(locn,string).
 
@@ -225,9 +225,9 @@ star.compiler.resolve{
     (St3,RRhs) <- overloadTerm(Rhs,Dict,St2);
     valis (St3,cond(Lc,RTst,RLhs,RRhs))
   }
-  overloadTerm(lambda(Rls,Tp),Dict,St) => do{
+  overloadTerm(lambda(Nm,Rls,Tp),Dict,St) => do{
     (Stx,RRls) <- overloadRules(Rls,[],Dict,St);
-    valis (Stx,lambda(RRls,Tp))
+    valis (Stx,lambda(Nm,RRls,Tp))
   }
   overloadTerm(letExp(Lc,Gp,Rhs),Dict,St) => do{
     try{
