@@ -26,7 +26,7 @@ test.assign{
   main() => do{
     assert valof action {
       fred.name := "fred";
-      return fred.name!!
+      valis fred.name!!
     } == "fred";
 
     show fred.name!!;
