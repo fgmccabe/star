@@ -522,25 +522,6 @@ star.compiler.checker{
   typeOfExp(A,Tp,Env,Path,Rp) where
       (Lc,R,F) ^= isFieldAcc(A) && (_,Fld) ^= isName(F) => do{
 --	logMsg("field access $(A)");
-	if (_,Id) ^= isName(R) then{
-	  if (Rc,RcFace) ^= findVarFace(Lc,Id,Env) &&
-	      faceType(Flds,_) .= deRef(RcFace) then{
-		if (Fld,FTp) in Flds then{
-		  Acc .= refreshVr(Lc,FTp,Env,(T)=>dot(Lc,Rc,Fld,T));
---		  logMsg("refreshed field type $(typeOf(Acc))");
-		  if sameType(Tp,typeOf(Acc),Env) then{
---		    logMsg("$(Tp) field type ok");
-		    valis Acc
-		  }
-		  else
-		  throw reportError(Rp,"field $(Fld)\:$(FTp) not consistent with expected type: $(Tp)",Lc)
-		}
-		else
-		throw reportError(Rp,"$(Rc) does not have field $(Fld)",Lc)
-	      }
-	  else
-	  throw reportError(Rp,"$(R) does not have valid record type",Lc)
-	} else{
 	FldTp .= newTypeVar(Fld);
 	TV .= newTVFieldConstraint(Fld,FldTp);
 --	logMsg("check record $(R)");
@@ -548,13 +529,12 @@ star.compiler.checker{
 --	logMsg("record type $(Rc)\:$(showType(TV,.true,0))");
 	Acc .= refreshVr(Lc,FldTp,Env,(T)=>dot(Lc,Rc,Fld,T));
 --	logMsg("refreshed field type $(typeOf(Acc))");
-        if sameType(Tp,typeOf(Acc),Env) then{
+	if sameType(Tp,typeOf(Acc),Env) then{
 --	  logMsg("$(Tp) field type ok");
 	  valis Acc
 	}
 	else
-  	throw reportError(Rp,"field $(Fld)\:$(FldTp) not consistent with expected type: $(Tp)",Lc)
-	}
+	throw reportError(Rp,"field $(Fld)\:$(FldTp) not consistent with expected type: $(Tp)",Lc)
       }
 
   typeOfExp(A,Tp,Env,Path,Rp) where _ ^= isConjunct(A) => do{
@@ -758,10 +738,10 @@ star.compiler.checker{
     (Cx,Face) .= deConstrain(FaceTp);
     Base .= declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
     
-    logMsg("checking theta record, expected type $(Face)");
+--    logMsg("checking labeled theta, expected type $(Face)");
     (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,Rp,.deFault);
-    logMsg("resulting theta type $(ThetaTp)");
-    logMsg("check against expected face $(Face)");
+--    logMsg("resulting theta type $(ThetaTp)");
+--    logMsg("check against expected face $(Face)");
     if sameType(ThetaTp,Face,Env) then{
 --      logMsg("building record from theta, $(ThEnv)");
       formTheta(Lc,some(Nm),Face,ThEnv,sortDefs(multicat(Defs)),Tp,Rp)
