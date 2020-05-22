@@ -243,12 +243,3 @@ applyVar(idnt(V),[([whr(Lcw,idnt(XV),Cond)|Args],(Lc,Bnd,Test,Vl),Ix)|Tpls],
   mergeGoal(NTest,NCond,Lcw,NCnd),
   substTerms(Vrs,Args,NArgs),
   applyVar(idnt(V),Tpls,NTpls).
-applyVar(V,[([idnt(XV)|Args],(Lc,Bnd,Cond,Vl),Ix)|Tpls],
-	 [(Args,(Lc,Bnd,NCond,Vl),Ix)|NTpls]) :-
-  mergeGoal(mtch(Lc,idnt(XV),V),Cond,Lc,NCond),
-  applyVar(V,Tpls,NTpls),
-  reportMsg("var goal = %s",[NCond],Lc).
-applyVar(V,[([whr(Lcw,idnt(XV),Test)|Args],(Lc,Bnd,Cond,Vl),Ix)|Tpls],
-	 [(Args,(Lc,Bnd,NCond,Vl),Ix)|Tpls]) :-
-  mergeGoal(mtch(Lc,idnt(XV),V),Test,Lcw,G1),
-  mergeGoal(G1,Cond,Lc,NCond).
