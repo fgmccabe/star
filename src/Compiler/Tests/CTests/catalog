@@ -2,6 +2,7 @@
   "content": {
     "test.f": "f.star",
     "test.fl" : "fl.star",
+    "test.fr1" : "fr1.star",
     "test.ar" : "ar.star",
     "test.c" : "c.star",
     "test.c1" : "c1.star",
