@@ -101,6 +101,7 @@ star.compiler.meta{
     compilerOptions{
       repo:uri.
       cwd:uri.
+      graph:option[uri].
       showAst:boolean.
       showMacro:boolean.
       showCanon:boolean.
