@@ -164,7 +164,7 @@ If a sequence expression has an explicit type annotation on it, as in:
 [1,2]:cons[_]
 @end example
 then the annotation is all that is needed to force the compiler to
-treat the result as a concrete cons list. Type inference does the rest
+treat the result as a concrete @code{cons} list. Type inference does the rest
 of the hard work.@footnote{The type expression @code{_} is a special
 type that denotes an anonymous type: each occurrence of the type
 expression denotes a different unknown type. It is useful in
@@ -173,7 +173,7 @@ known.}
 
 @node Stream patterns
 @subsection Stream patterns
-The the @code{stream} contract is used in @emph{patterns} to match and
+The @code{stream} contract is used in @emph{patterns} to match and
 decompose sequences. For example, the signature for @code{hdtl} --
 which is used to decompose sequences into a head and tail -- is:
 @example
