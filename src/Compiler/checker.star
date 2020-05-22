@@ -416,7 +416,8 @@ star.compiler.checker{
   typeOfPtn:(ast,tipe,dict,string,reports) => either[reports,(canon,dict)].
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,"_") ^= isName(A) =>
     either((vr(Lc,genSym("_"),Tp),Env)).
-  typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) && varDefined(Id,Env) =>
+  typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) &&
+      varDefined(Id,Env) =>
     typeOfPtn(mkWhereEquality(A),Tp,Env,Path,Rp).
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) => do{
     Ev .= declareVar(Id,some(Lc),Tp,some(faceOfType(Tp,Env)),Env);
