@@ -9,7 +9,7 @@
 #include "bkpoint.h"
 #include "vector.h"
 
-typedef DebugWaitFor (*debugCmd)(char *line, processPo p, termPo loc, insWord ins, void *cl);
+typedef DebugWaitFor (*debugCmd)(char *line, processPo p, termPo loc, insWord ins, insPo pc, void *cl);
 
 typedef retCode (*completeCb)(bufferPo, integer cx);
 
