@@ -13,7 +13,6 @@
   ("do" ( (prefix 200 199) (infix 1199 1200 1199)))
   ("import" ( (prefix 900 899)))
   ("catch" ( (infix 1198 1199 1198)))
-  ("of" ( (infix 399 400 399)))
   ("valis" ( (prefix 930 929)))
   (",.." ( (infix 999 1000 999)))
   ("for" ( (prefix 1175 1174)))

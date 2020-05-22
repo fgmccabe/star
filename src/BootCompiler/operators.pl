@@ -30,7 +30,6 @@
   operator("do", [prefixOp(200, 199), infixOp(1199, 1200, 1199)]).
   operator("import", [prefixOp(900, 899)]).
   operator("catch", [infixOp(1198, 1199, 1198)]).
-  operator("of", [infixOp(399, 400, 399)]).
   operator("valis", [prefixOp(930, 929)]).
   operator(",..", [infixOp(999, 1000, 999)]).
   operator("for", [prefixOp(1175, 1174)]).
@@ -323,7 +322,6 @@
   keyword("do").
   keyword("import").
   keyword("catch").
-  keyword("of").
   keyword("valis").
   keyword(",..").
   keyword("for").

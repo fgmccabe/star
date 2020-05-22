@@ -501,12 +501,6 @@
 	"keyword": true
     },
     {
-	"infixOp": "of",
-	"priorities": [399, 400, 399],
-	"desc": "'of' term'",
-	"keyword": true
-    },
-    {
 	"infixOp": ".",
 	"priorities": [100, 100, 99],
 	"desc": "object access",

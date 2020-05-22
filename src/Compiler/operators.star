@@ -50,7 +50,6 @@ star.compiler.operators{
   oper("do") => [prefixOp(200,199), infixOp(1199,1200,1199)].
   oper("import") => [prefixOp(900,899)].
   oper("catch") => [infixOp(1198,1199,1198)].
-  oper("of") => [infixOp(399,400,399)].
   oper("valis") => [prefixOp(930,929)].
   oper(",..") => [infixOp(999,1000,999)].
   oper("for") => [prefixOp(1175,1174)].
@@ -368,7 +367,6 @@ star.compiler.operators{
   keyword("do") => .true.
   keyword("import") => .true.
   keyword("catch") => .true.
-  keyword("of") => .true.
   keyword("valis") => .true.
   keyword(",..") => .true.
   keyword("for") => .true.
