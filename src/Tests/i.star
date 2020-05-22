@@ -11,7 +11,9 @@ test.i{
   main:()=>action[(),()].
   main()=>do{
     assert 1^=kk["alpha"];
-    assert some(1).=_index(ll,"alpha")
+    assert some(1).=_index(ll,"alpha");
+    show kk[!"alpha"];
+    show kk["delta"->4]
   }
 
   public all k,v ~~ mp[k,v] <~ {}.
@@ -21,5 +23,4 @@ test.i{
 
   foo = ihL(3,([("al",2)]:cons[_])).
   ef = .ihE.
-
 }

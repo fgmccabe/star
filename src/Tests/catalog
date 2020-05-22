@@ -9,6 +9,7 @@
     "test.cons": "constest.star",
     "test.co": "co.star",
     "test.c": "c.star",
+    "test.cns": "cns.star",
     "test.cse": "casetest.star",
     "test.cc": "cc.star",
     "test.cmd": "cmd.star",
