@@ -226,7 +226,7 @@ star.ideal{
   .}
 
   public implementation all k,v ~~ iter[map[k,v]->>keyval[k,v]] => let{
-    iter:all k,v,m/2,e,x ~~ execution[m] |: (map[k,v],m[e,x],(keyval[k,v],x)=>m[e,x])=>m[e,x].
+    iter:all m/2,e,x ~~ execution[m] |: (map[k,v],m[e,x],(keyval[k,v],x)=>m[e,x])=>m[e,x].
     iter(.ihNil,St,_) => St.
     iter(ihLeaf(_,Els),St,Fn) => consIter(Els,St,Fn).
     iter(ihNode(A1,A2,A3,A4),St,Fn) =>

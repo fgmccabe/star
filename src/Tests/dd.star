@@ -4,18 +4,18 @@ test.dd{
   import star.script.
 
   ff:(integer)=>action[(),integer].
-  ff(X) => delay(()=>(return fact(X))).
+  ff(X) => delay(()=>(_valis(fact(X)))).
 
   AA : action[(),integer].
   AA = do{
-    return 34.
+    valis 34.
   }.
 
   XX : action[(),integer].
   XX = do{
     A <- ff(4);
     B <- ff(3);
-    return A*B.
+    valis A*B.
   }
 
   YY : action[(),integer].
@@ -28,14 +28,14 @@ test.dd{
     try {
       throw ()
     } catch {
-      return 10
+      valis 10
     }
   }
 
   UU : (integer)=>action[(),integer].
   UU = (U)=>do {
     if valof ZZ == U then
-      return 1
+      valis 1
     else
       valis valof YY
   }
