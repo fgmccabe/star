@@ -964,6 +964,9 @@ star.compiler.macro{
   makeAction(A,Cont,_) where _ ^= isRoundTerm(A) =>
     either(combine(A,Cont)).
 
+  makeAction(A,_,Rp) =>
+    other(reportError(Rp,"cannot figure out action $(A)",locOf(A))).
+
   /*
   * An 'iterable' conditions become a match on the result of a search
   *
