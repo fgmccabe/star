@@ -481,7 +481,11 @@ liftExp(apply(Lc,Op,tple(_,A),_),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftExp(case(Lc,Bnd,Cses,_),Result,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(Bnd,Bound,Q,Q0,Map,Opts,Ex,Ex0),
   liftCases(Cses,Cases,Q0,Qx,Map,Opts,Ex0,Exx),
-  caseMatcher(Lc,Bound,Cases,Result).
+  (idnt(_)=Bound ->
+   caseMatcher(Lc,Bound,Cases,Result) ;
+   genVar("_C",V),
+   caseMatcher(Lc,V,Cases,Res),
+   Result = ltt(Lc,V,Bound,Res)).
 liftExp(dot(Lc,Rec,Fld,_),dte(Lc,Rc,Lbl),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(Rec,Rc,Q,Qx,Map,Opts,Ex,Exx),
   makeDotLbl(Fld,Lbl).
