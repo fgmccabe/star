@@ -139,16 +139,6 @@ star.compiler.matcher{
       valis (NArgs, (CLc,B,mergeGoal(VLc,NAG,some(NCond)),Gl,NExp),Ix)
     }
   } in (Triples//applyToTriple).
-  applyVar(V,Triples) => let{
-    applyNonVar(([Vr,..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof action{
-      NCond .= crMatch(CLc,Vr,V);
-      valis (Args, (CLc,B,mergeGoal(CLc,some(NCond),AG),Gl,Exp),Ix)
-    }
-    applyNonVar(([crWhere(Lc,Vr,Cond),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof action{
-      VCond .= crMatch(Lc,Vr,V);
-      valis (Args, (CLc,B,mergeGoal(Lc,some(VCond),mergeGoal(Lc,some(Cond),AG)),Gl,Exp),Ix)
-    }
-  } in (Triples//applyNonVar).
 
   formCases:(cons[triple],(triple,triple)=>boolean,locn,cons[crExp],crExp)=> cons[crCase].
   formCases([],_,_,_,_) => [].
