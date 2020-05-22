@@ -200,6 +200,7 @@ star.compiler.core{
     tpOf(crStrg(_,_)) => strType.
     tpOf(crLbl(_,_,Tp)) => Tp.
     tpOf(crTerm(_,_,_,Tp)) => Tp.
+    tpOf(crRecord(_,_,_,Tp)) => Tp.
     tpOf(crIntrinsic(_,_,_,Tp)) => Tp.
     tpOf(crECall(_,_,_,Tp)) => Tp.
     tpOf(crOCall(_,_,_,Tp)) => Tp.
@@ -284,7 +285,7 @@ star.compiler.core{
   rewriteTerm(crLtt(Lc,V,D,E),M) where M1 .= dropVar(M,V) =>
     crLtt(Lc,V,rewriteTerm(D,M),rewriteTerm(E,M1)).
   rewriteTerm(crLtRec(Lc,V,D,E),M) where M1 .= dropVar(M,V) =>
-    crLtRec(Lc,V,rewriteTerm(D,M1),rewriteTerm(E,M1)).
+    crLtRec(Lc,V,rewriteTerm(D,M),rewriteTerm(E,M)).
   rewriteTerm(crCase(Lc,Sel,Cases,Deflt,Tp),M) =>
     crCase(Lc,rewriteTerm(Sel,M),Cases//(C)=>rewriteCase(C,M),rewriteTerm(Deflt,M),Tp).
   rewriteTerm(crAbort(Lc,Nm,Tp),_)=>crAbort(Lc,Nm,Tp).
