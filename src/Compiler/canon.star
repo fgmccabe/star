@@ -205,7 +205,8 @@ star.compiler.canon{
   showGroup(G,Sp) => ssSeq(interleave(G//(D)=>showDef(D,Sp),ss(".\n"++Sp))).
 
   showDef:(canonDef,string)=>ss.
-  showDef(varDef(_,_,_,lambda(Nm,Rls,_),_,Tp),Sp) => showRls(Nm,Rls,Sp).
+  showDef(varDef(_,Nm,FullNm,lambda(FullNm,Rls,_),_,Tp),Sp) =>
+    ssSeq([ss("Fun: "),ss(Nm),ss(" "),showRls(FullNm,Rls,Sp)]).
   showDef(varDef(_,Nm,FullNm,V,_,Tp),Sp) => ssSeq([ss("Var: "),ss(Nm),ss(" ["),ss(FullNm),ss("] = "),showCanon(V,Sp)]).
   showDef(typeDef(_,Nm,T,_),Sp) => ssSeq([ss("Type: "),ss(Nm),ss("~>"),disp(T)]).
   showDef(conDef(_,_,Nm,Tp),Sp) => ssSeq([ss("Contract: "),ss(Nm),ss("::="),disp(Tp)]).
