@@ -115,12 +115,18 @@ retCode run(processPo P) {
       case OCall: {        /* Call tos a1 .. an -->   */
         int arity = collectI32(PC);
         normalPo nProg = C_TERM(pop());
-        push(nthArg(nProg, 0));                     // Put the free term back on the stack
 
+        labelPo oLbl = termLbl(nProg);
+        methodPo NPROG = labelCode(objLabel(oLbl, arity));       /* set up for object call */
+        if (NPROG == Null) {
+          logMsg(logFile, "no definition for %s/%d", labelName(oLbl), arity);
+          bail();
+        }
+
+        push(nthArg(nProg, 0));                     // Put the free term back on the stack
         push(PROG);
         push(PC);       /* build up the frame. */
-        labelPo oLbl = termLbl(nProg);
-        PROG = labelCode(objLabel(oLbl, arity));       /* set up for object call */
+        PROG = NPROG;       /* set up for object call */
         PC = entryPoint(PROG);
         LITS = codeLits(PROG);
 
@@ -232,6 +238,14 @@ retCode run(processPo P) {
       case OTail: {       /* Tail call */
         int arity = collectI32(PC);
         normalPo nProg = C_TERM(pop());
+
+        labelPo oLbl = termLbl(nProg);
+        methodPo NPROG = labelCode(objLabel(oLbl, arity));       /* set up for object call */
+        if (NPROG == Null) {
+          logMsg(logFile, "no definition for %s/%d", labelName(oLbl), arity);
+          bail();
+        }
+
         push(nthArg(nProg, 0));                     // Put the free term back on the stack
 
         // Pick up existing frame
@@ -240,8 +254,7 @@ retCode run(processPo P) {
         methodPo oldPROG = FP->prog;
         integer oldArgCnt = argCount(PROG);
 
-        labelPo oLbl = termLbl(nProg);
-        PROG = labelCode(objLabel(oLbl, arity));       /* set up for object call */
+        PROG = NPROG;                               /* set up for object call */
 
         // slide new arguments over old frame
         integer argCnt = argCount(PROG);  /* prepare to slide arguments over caller */
