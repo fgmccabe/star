@@ -234,7 +234,7 @@ star.compiler.normalize{
 --    logMsg("free vars in function: $(Nm) are $(Extra)");
     ATp .= extendFunTp(deRef(Tp),Extra);
     (Eqs,Ex1) <- transformEquations(Eqns,Map,Q,Extra,Ex,Rp);
---    logMsg("function equs $(Eqs)");
+--    logMsg("transformed eqns $(Eqs)");
     Func .= functionMatcher(Lc,FullNm,ATp,Eqs);
 --    logMsg("transformed function $(Func)");
 --    logMsg("extra defs for $(FullNm)\: $(front(Ex1,size(Ex1)-size(Ex)))");
@@ -436,6 +436,7 @@ star.compiler.normalize{
 --    logMsg("extra vars in lambda: $(Extra)");
     ATp .= extendFunTp(deRef(Tp),some(Extra));
     (Eqs,Ex1) <- transformEquations(Eqns,LMap,Q,some(Extra),Ex,Rp);
+--    logMsg("lambda equations $(Eqs)");
     LamFun .= functionMatcher(Lc,FullNm,ATp,Eqs);
 --    logMsg("lifted lambda fun $(LamFun)");
 --    logMsg("lambda closure $(crTerm(Lc,FullNm,[FreeTerm],ATp))");
