@@ -104,4 +104,18 @@ star.compiler.grapher{
 
   pkgNme(Strs) => _str_multicat(Strs).
 
+  public makeDotGraph:(string,cons[(importSpec,cons[importSpec])])=>string.
+  makeDotGraph(Nm,Defs) =>
+    ssSeq([ss("digraph "),disp(Nm),ss(" {\n"),
+	ssSeq(interleave(Defs//((P,I))=>makePkgGraph(P,I),ss("\n"))),
+	ss("\n}")])::string.
+
+  makePkgGraph(pkgImp(Lc,Vz,Pkg),Imports) =>
+    ssSeq(interleave(Imports//(P)=>showImport(Pkg,P),ss("\n"))).
+
+  showImport(P,pkgImp(Lc,.pUblic,I)) => ssSeq([disp(pkgName(P)),
+      ss(" -> "),disp(pkgName(I)),ss(" [color=\"red\"]"),ss(";")]).
+  showImport(P,pkgImp(Lc,.transItive,I)) => ssSeq([disp(pkgName(P)),
+      ss(" -> "),disp(pkgName(I)),ss(" [style=dotted]"),ss(";")]).
+  showImport(P,pkgImp(Lc,Vz,I)) => ssSeq([disp(pkgName(P)),ss(" -> "),disp(pkgName(I)),ss(";")]).
 }

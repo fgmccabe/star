@@ -41,6 +41,7 @@ star.compiler{
     setOption(R,Opts) where RU ^= parseUri(R) && NR^=resolveUri(Opts.cwd,RU) =>
       compilerOptions{repo=NR.
 	cwd=Opts.cwd.
+	graph=Opts.graph.
 	showAst = Opts.showAst.
 	showMacro=Opts.showMacro.
 	showCanon=Opts.showCanon.
@@ -57,6 +58,7 @@ star.compiler{
     setOption(W,Opts) where RW ^= parseUri(W) && NW^=resolveUri(Opts.cwd,RW)=>
       compilerOptions{repo=Opts.repo.
 	cwd=NW.
+	graph=Opts.graph.
 	showAst = Opts.showAst.
 	showMacro=Opts.showMacro.
 	showCanon=Opts.showCanon.
@@ -72,6 +74,7 @@ star.compiler{
     setOption(_,Opts) =>
       compilerOptions{repo=Opts.repo.
 	cwd=Opts.cwd.
+	graph=Opts.graph.
 	showAst = .true.
 	showMacro=Opts.showMacro.
 	showCanon=Opts.showCanon.
@@ -87,6 +90,7 @@ star.compiler{
     setOption(_,Opts) =>
       compilerOptions{repo=Opts.repo.
 	cwd=Opts.cwd.
+	graph=Opts.graph.
 	showAst = Opts.showAst.
 	showMacro=.true.
 	showCanon=Opts.showCanon.
@@ -102,6 +106,7 @@ star.compiler{
     setOption(_,Opts) =>
       compilerOptions{repo=Opts.repo.
 	cwd=Opts.cwd.
+	graph=Opts.graph.
 	showAst = Opts.showAst.
 	showMacro=Opts.showMacro.
 	showCanon=Opts.showCanon.
@@ -117,6 +122,7 @@ star.compiler{
     setOption(_,Opts) =>
       compilerOptions{repo=Opts.repo.
 	cwd=Opts.cwd.
+	graph=Opts.graph.
 	showAst = Opts.showAst.
 	showMacro=Opts.showMacro.
 	showCanon=Opts.showCanon.
@@ -132,6 +138,23 @@ star.compiler{
     setOption(_,Opts) =>
       compilerOptions{repo=Opts.repo.
 	cwd=Opts.cwd.
+	graph=Opts.graph.
+	showAst = Opts.showAst.
+	showMacro=Opts.showMacro.
+	showCanon=.true.
+	showCore=Opts.showCore.
+	showCode=Opts.showCode}.
+  }
+  showPkgGraphOption:optionsProcessor[compilerOptions].
+  showPkgGraphOption = {
+    shortForm = "-I".
+    alternatives = ["--graph"].
+    usage = "-I file -- show package import dot graph".
+    validator = some((_)=>.true).
+    setOption(U,Opts) where RW ^= parseUri(U) && NW^=resolveUri(Opts.cwd,RW)=>
+      compilerOptions{repo=Opts.repo.
+	cwd=Opts.cwd.
+	graph=some(NW).
 	showAst = Opts.showAst.
 	showMacro=Opts.showMacro.
 	showCanon=.true.
@@ -141,12 +164,14 @@ star.compiler{
 
   public _main:(cons[string])=>().
   _main(Args) => valof action{
-    RI^=parseUri("file:"++_repo());
     WI^=parseUri("file:"++_cwd());
-    handleCmds(processOptions(Args,[repoOption,wdOption,traceAstOption,
+    RI^=parseUri("file:"++_repo());
+    handleCmds(processOptions(Args,[repoOption,wdOption,
+	  traceAstOption,
 	  traceCodeOption,traceMacroOption,
 	  traceNormOption,traceCheckOption],compilerOptions{repo=RI.
 	  cwd=WI.
+	  graph = .none.
 	  showAst = .false.
 	  showMacro = .false.
 	  showCanon=.false.
