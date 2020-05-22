@@ -40,7 +40,7 @@ in the collection. Star has a straightforward notation for expressing
 sequences of any underlying type; for example, a @code{cons} sequence of
 integers from 1 through 5 can be written:
 @example
-cons of [1, 2, 3, 4, 5]
+[1, 2, 3, 4, 5]:cons[_]
 @end example
 In situations where we do not know or do not wish to specify the
 collection type, we can write instead:
@@ -83,13 +83,12 @@ There is a strong relationship between the normal sequence notation
 and the partial sequence notation. In particular, the sequence
 expression
 @example
-cons of [1,2]
+[1,2]
 @end example
 is equivalent to:
 @example
-cons of [1,..cons of [2,..cons of []]]
+[1,..[2,..[]]]
 @end example
-where @code{cons of []} is actually just @code{.nil}.
 
 The major benefit of general sequence notation is that it allows us to
 construct programs involving collections that are independent of type
@@ -160,22 +159,17 @@ is transformed into
 @example
 _cons(1,_cons(2,_cons(3,_nil)))
 @end example
-If a sequence expression has an explicit type marker on it, then its
-translation is slightly different -- to allow the type checker to make
-use of the type information. For example,
+If a sequence expression has an explicit type annotation on it, as in:
 @example
-cons of [1,2]
+[1,2]:cons[_]
 @end example
-is translated as:
-@example
-_cons(1,_cons(2,_nil())):cons[_]
-@end example
-This annotation is all that is needed to force the compiler to treat
-the result as a concrete cons list. Type inference does the rest of
-the hard work.@footnote{The type expression @code{_} is a special type
-that denotes an anonymous type: each occurrence of the type expression
-denotes a different unknown type. It is useful in situations, like
-this one, where only some of the type information is known.}
+then the annotation is all that is needed to force the compiler to
+treat the result as a concrete cons list. Type inference does the rest
+of the hard work.@footnote{The type expression @code{_} is a special
+type that denotes an anonymous type: each occurrence of the type
+expression denotes a different unknown type. It is useful in
+situations, like this one, where only some of the type information is
+known.}
 
 @node Stream patterns
 @subsection Stream patterns
