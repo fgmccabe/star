@@ -90,7 +90,9 @@ star.compiler.opg{
     bkt(_,Lbl,_,Inner) ^= isBracket(Lbl) &&
     (Arg,_,Toks1,Rpt1,_) .= term(Toks,Rpt,Inner) &&
     (Lc2,Rpt2,Toks2) .= checkToken(rgtTok(Lbl),Rpt1,Toks1) =>
-      (tpl(mergeLoc(Lc,Lc2),Lbl,deComma(Arg)),Toks2,Rpt2,.needOne).
+    (tpl(mergeLoc(Lc,Lc2),Lbl,deComma(Arg)),Toks2,Rpt2,.needOne).
+  term00([Tk,..Toks],Rp) =>
+    term00(Toks,reportError(Rp,"problem with $(Tk)",locOf(Tk))).
 
   termArgs:((ast,cons[token],reports,needsTerm)) => (ast,integer,cons[token],reports,needsTerm).
   termArgs((Left,[tok(Lc,lftTok("()")),tok(Lcx,rgtTok("()")),..Toks],Rpt,_)) =>

@@ -75,15 +75,18 @@ star.compiler.freevars{
   freeVarsInEqn(eqn(_,Ptn,some(Wh),Exp),Excl,Q,Fv) =>
     freeVarsInTerm(Ptn,Excl,Q,freeVarsInTerm(Exp,Excl,Q,freeVarsInCond(Wh,Excl,Q,Fv))).
 
-  public freeVarsInGroup:(cons[canonDef],set[crVar])=>set[crVar].
-  freeVarsInGroup(Defs,Q) => let{
+  public freeVarsInLetRec:(cons[canonDef],canon,set[crVar])=>set[crVar].
+  freeVarsInLetRec(Defs,Bnd,Q) => let{
     Excl1 = exclDfs(Defs,[],[])
-  } in foldLeft((D,F)=>freeVarsInDef(D,Excl1,Q,F),[],Defs).
+  } in foldLeft((D,F)=>freeVarsInDef(D,Excl1,Q,F),
+    freeVarsInTerm(Bnd,Excl1,Q,[]),Defs).
 
-  public freeVarsInLetGroup:(cons[canonDef],set[crVar])=>set[crVar].
-  freeVarsInLetGroup(Defs,Q) =>
-    foldLeft((D,F)=>freeVarsInDef(D,[],Q,F),[],Defs).
+  public freeVarsInLetGroup:(cons[canonDef],canon,set[crVar])=>set[crVar].
+  freeVarsInLetGroup(Defs,Bnd,Q) =>let{
+    Excl1 = exclDfs(Defs,[],[])
+  } in foldLeft((D,F)=>freeVarsInDef(D,[],Q,F),freeVarsInTerm(Bnd,Excl1,Q,[]),Defs).
 
+  freeVarsInDef:(canonDef,set[crVar],set[crVar],set[crVar])=>set[crVar].
   freeVarsInDef(varDef(_,_,_,E,_,_),Excl,Q,Fv) =>
     freeVarsInTerm(E,Excl,Q,Fv).
   freeVarsInDef(implDef(_,_,_,Val,_,_),Excl,Q,Fv) =>
