@@ -6,7 +6,7 @@ test.dd{
   ff:(integer)=>action[(),integer].
   ff(X) => delay(()=>(_valis(fact(X)))).
 
-  AA : action[(),integer].
+/*  AA : action[(),integer].
   AA = do{
     valis 34.
   }.
@@ -18,6 +18,7 @@ test.dd{
     valis A*B.
   }
 
+*/
   YY : action[(),integer].
   YY = do{
     ff(4)
@@ -41,6 +42,7 @@ test.dd{
   }
 
   -- Test different error types across try-catch
+/*
   VV : action[(),integer].
   VV = do {
     try{
@@ -56,17 +58,19 @@ test.dd{
     }
   }
 
+  */
+
   main:()=>action[(),()].
   main()=>do{
-    show "AA=$(valof AA)";
-    show "XX=$(valof XX)";
-    show "YY=$(valof YY)";
+--    show "AA=$(valof AA)";
+--    show "XX=$(valof XX)";
+--    show "YY=$(valof YY)";
 
-    assert valof ZZ == 10;
+--    assert valof ZZ == 10;
 
     show "UU(10)=$(valof UU(10))";
-    show "UU(9) = $(valof UU(9))";
+    show "UU(9) = $(valof UU(9))"
 
-    assert valof VV == 10
+--    assert valof VV == 10
   }
 }

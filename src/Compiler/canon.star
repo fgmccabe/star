@@ -20,7 +20,6 @@ star.compiler.canon{
     enm(locn,string,tipe) |
     whr(locn,canon,canon) |
     dot(locn,canon,string,tipe) |
-    serch(locn,canon,canon,canon) |
     csexp(locn,canon,cons[equation],tipe) |
     match(locn,canon,canon) |
     conj(locn,canon,canon) |
@@ -65,7 +64,6 @@ star.compiler.canon{
     typeOf(conj(_,_,_)) => boolType.
     typeOf(disj(_,_,_)) => boolType.
     typeOf(implies(_,_,_)) => boolType.
-    typeOf(serch(_,_,_,_)) => boolType.
     typeOf(cond(_,_,L,_)) => typeOf(L).
     typeOf(update(_,R,_)) => typeOf(R).
   }
@@ -80,7 +78,6 @@ star.compiler.canon{
     locOf(enm(Lc,_,_)) => Lc.
     locOf(whr(Lc,_,_)) => Lc.
     locOf(dot(Lc,_,_,_)) => Lc.
-    locOf(serch(Lc,_,_,_)) => Lc.
     locOf(csexp(Lc,_,_,_)) => Lc.
     locOf(match(Lc,_,_)) => Lc.
     locOf(conj(Lc,_,_)) => Lc.
@@ -170,9 +167,6 @@ star.compiler.canon{
   showCanon(enm(_,Nm,Tp),_) => ssSeq([ss("."),ss(Nm)]).
   showCanon(whr(_,E,C),Sp) => ssSeq([showCanon(E,Sp),ss(" where "),showCanon(C,Sp)]).
   showCanon(dot(_,R,F,_),Sp) => ssSeq([showCanon(R,Sp),ss("."),ss(F)]).
-  showCanon(serch(_,Ptn,Gen,It),Sp) =>
-    ssSeq([showCanon(Ptn,Sp),ss(" in "),showCanon(Gen,Sp),ss(" use "),showCanon(It,Sp),
-	ss(":"),disp(typeOf(It))]).
   showCanon(csexp(_,Exp,Cs,_),Sp) => ssSeq([ss("case "),showCanon(Exp,Sp),ss(" in "),showCases(Cs,Sp)]).
   showCanon(match(_,Ptn,Gen),Sp) => ssSeq([showCanon(Ptn,Sp),ss(" .= "),showCanon(Gen,Sp)]).
   showCanon(conj(_,L,R),Sp) => ssSeq([showCanon(L,Sp),ss(" && "),showCanon(R,Sp)]).
@@ -205,8 +199,8 @@ star.compiler.canon{
   showGroup(G,Sp) => ssSeq(interleave(G//(D)=>showDef(D,Sp),ss(".\n"++Sp))).
 
   showDef:(canonDef,string)=>ss.
-  showDef(varDef(_,Nm,FullNm,lambda(FullNm,Rls,_),_,Tp),Sp) =>
-    ssSeq([ss("Fun: "),ss(Nm),ss(" "),showRls(FullNm,Rls,Sp)]).
+  showDef(varDef(_,Nm,FullNm,lambda(LamNm,Rls,_),_,Tp),Sp) =>
+    ssSeq([ss("Fun: "),ss(Nm),ss(" "),showRls(LamNm,Rls,Sp)]).
   showDef(varDef(_,Nm,FullNm,V,_,Tp),Sp) => ssSeq([ss("Var: "),ss(Nm),ss(" ["),ss(FullNm),ss("] = "),showCanon(V,Sp)]).
   showDef(typeDef(_,Nm,T,_),Sp) => ssSeq([ss("Type: "),ss(Nm),ss("~>"),disp(T)]).
   showDef(conDef(_,_,Nm,Tp),Sp) => ssSeq([ss("Contract: "),ss(Nm),ss("::="),disp(Tp)]).
@@ -244,7 +238,6 @@ star.compiler.canon{
   isGoal(enm(_,"star.core#false",nomnal("star.core*boolean"))) => .true.
   isGoal(whr(_,E,_)) => isGoal(E).
   isGoal(match(_,_,_)) => .true.
-  isGoal(serch(_,_,_,_)) => .true.
   isGoal(conj(_,_,_)) => .true.
   isGoal(disj(_,_,_)) => .true.
   isGoal(implies(_,_,_)) => .true.

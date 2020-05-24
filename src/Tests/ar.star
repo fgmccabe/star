@@ -1,10 +1,10 @@
 test.ar{
   import star.
---  import star.script.
+  import star.script.
 
   -- implement standard contracts for integers
   public implementation arith[integer] => {
-    X+Y => _int_plus(X,Y).
+    X+Y => trace("plus ",_int_plus(X,Y)).
     X-Y => _int_minus(X,Y).
     zero = 0.
     X*Y => _int_times(X,Y).
@@ -13,4 +13,9 @@ test.ar{
     one = 1.
     __minus(Ix) => _int_minus(0,Ix).
   }.
+
+  public main:()=>action[(),()].
+  main()=>do{
+    assert 2+3+zero==5
+  }
 }

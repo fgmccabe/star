@@ -32,7 +32,7 @@ test.rl{
 
     assert rev(rev(SS))==SS;
 
-    XX := SS;
+    XX .= ref SS;
 
     XX[5] := "alpha";
     logMsg("XX=$(XX!!)");

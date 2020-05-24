@@ -52,6 +52,8 @@ test.th{
 
     assert valof Thl == 3;
 
+    show Th();
+
     assert Th()==34;
     assert Th()==34;
     assert (X!!)==2;

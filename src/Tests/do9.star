@@ -1,11 +1,17 @@
 test.do9{
   import star.
+  import star.script.
 
   qName:(string) => integer.
-  qName(_) => 0.
+  qName(N) => size(N).
 
   t ::= f(integer).
 
   gen:(string,cons[t])=>cons[integer].
   gen(P,D) where MM .= qName(P) && f(MM) in D => [].
+
+  main:()=>action[(),()].
+  main()=>do{
+    show gen("one",[f(3),f(5)])
+  }
 }

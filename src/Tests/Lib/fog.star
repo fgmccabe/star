@@ -9,4 +9,7 @@ test.fog{
 
   public K:all a,b ~~ (a) => (b)=>a.
   K(C) => (_)=>C.
+
+  public fog:all a,b,c ~~ ((b)=>c,(a)=>b)=>(a)=>c.
+  fog = (•)
 }
