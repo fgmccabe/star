@@ -431,14 +431,20 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
 
             if (ret == Ok) {
               labelPo lbl = declareLbl(prgName, arity);
-              gcAddRoot(H, (ptrPo) &lbl);
 
-              methodPo mtd = defineMtd(H, ins, (integer) (pc - ins), lclCount, maxStack, lbl, C_TERM(pool),
-                                       C_TERM(locals),
-                                       C_TERM(lines));
-              if (enableVerify)
-                ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
-            }
+//              if(labelCode(lbl)!=Null){
+//                strMsg(errorMsg,msgSize,"attempt to redeclare method %A",lbl);
+//                ret = Error;
+//              }else {
+                gcAddRoot(H, (ptrPo) &lbl);
+
+                methodPo mtd = defineMtd(H, ins, (integer) (pc - ins), lclCount, maxStack, lbl, C_TERM(pool),
+                                         C_TERM(locals),
+                                         C_TERM(lines));
+                if (enableVerify)
+                  ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
+              }
+//            }
           }
         }
         closeFile(O_IO(tmpBuffer));
@@ -512,20 +518,25 @@ retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgS
 
             if (ret == Ok) {
               labelPo lbl = declareLbl(prgName, 0);
-              gcAddRoot(H, (ptrPo) &lbl);
+//              if(labelCode(lbl)!=Null){
+//                strMsg(errorMsg,msgSize,"attempt to redeclare method %A",lbl);
+//                ret = Error;
+//              }else {
+                gcAddRoot(H, (ptrPo) &lbl);
 
-              methodPo mtd = defineMtd(H, ins, (integer) (pc - ins), lclCount, maxStack, lbl, C_TERM(pool),
-                                       C_TERM(locals),
-                                       C_TERM(lines));
-              if (enableVerify)
-                ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
+                methodPo mtd = defineMtd(H, ins, (integer) (pc - ins), lclCount, maxStack, lbl, C_TERM(pool),
+                                         C_TERM(locals),
+                                         C_TERM(lines));
+                if (enableVerify)
+                  ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
 
-              if (ret == Ok) {
-                normalPo glbSym = allocateStruct(H, lbl); /* allocate a closure on the heap */
-                globalPo glb = globalVar(prgName, (termPo) glbSym);
-                if (glb == Null)
-                  ret = Fail;
-              }
+                if (ret == Ok) {
+                  normalPo glbSym = allocateStruct(H, lbl); /* allocate a closure on the heap */
+                  globalPo glb = globalVar(prgName, (termPo) glbSym);
+                  if (glb == Null)
+                    ret = Fail;
+                }
+//              }
             }
           }
         }
