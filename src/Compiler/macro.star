@@ -25,7 +25,8 @@ star.compiler.macro{
     "valof" -> [(.expression,performMacro)],
     "__pkg__" -> [(.expression,pkgNameMacro)],
     "-" -> [(.expression, uMinusMacro),(.pattern, uMinusMacro)],
-    "^=" -> [(.expression, optionMatchMacro)]].
+    "^=" -> [(.expression, optionMatchMacro)],
+    "^" -> [(.pattern, optionPtnMacro)]].
 
   applyRules:(ast,macroContext,macroState,cons[(macroContext,macroRule)],reports) =>
     either[reports,macroState].
@@ -719,6 +720,7 @@ star.compiler.macro{
     flat(SS,So) where (_,Tx) ^= isUnary(SS,"ss") => ["$(Tx)",..So].
     flat(E,So) where (_,Sq) ^= isUnary(E,"ssSeq") && (_,L) ^= isSqTuple(Sq) => fltList(L,So).
     flat(E,So) where (_,D) ^= isUnary(E,"disp") => ["\$",D::string,..So].
+    flat(E,So) default => [disp(E)::string,..So].
 
     fltList(L,So) => foldRight((E,X)=>flat(E,X),So,L).
     
@@ -744,8 +746,7 @@ star.compiler.macro{
   synthesizeMain:(locn,ast,cons[ast])=>cons[ast].
   synthesizeMain(Lc,Tp,Defs) where (_,Lhs,Rhs) ^= isFunctionType(Tp) && (_,ElTps)^=isTuple(Lhs) => valof action{
     (Vs,Cs) .= synthesizeCoercions(ElTps,Lc,[],[]);
-    Arg .= sqTuple(Lc,Vs);
-    MLhs .= roundTerm(Lc,nme(Lc,"_main"),[Arg]);
+    MLhs .= roundTerm(Lc,nme(Lc,"_main"),[enum(Lc,"nil")]);
     MRhs .= roundTerm(Lc,nme(Lc,"main"),Cs);
     Main .= equation(Lc,MLhs,unary(Lc,"_perform",MRhs));
     Annot .= binary(Lc,":",nme(Lc,"_main"),equation(Lc,rndTuple(Lc,[squareTerm(Lc,nme(Lc,"cons"),[nme(Lc,"string")])]),rndTuple(Lc,[])));
@@ -862,6 +863,11 @@ star.compiler.macro{
     Lam .= equation(Lc,rndTuple(Lc,[unary(Lc,"some",L)]),Cont);
     valis roundTerm(CLc,Lam,[R])
   }
+  makeAction(A,Cont,Rp) where (Lc,L,R) ^= isAssignment(A) &&
+      (LLc,LL,LR) ^= isIndex(L) =>
+    makeAction(binary(Lc,":=",LL,ternary(LLc,"_put",unary(LLc,"!!",LL),LR,R)),
+      Cont,Rp).
+  
   makeAction(A,Cont,Rp) where (Lc,B,H) ^= isTryCatch(A) => do{
 --    logMsg("macro try catch $(A)");
     NB <- makeAction(B,.none,Rp);
@@ -1143,6 +1149,11 @@ star.compiler.macro{
   optionMatchMacro(A,.expression,Rp) where (Lc,L,R) ^= isOptionMatch(A) =>
     either(active(mkMatch(Lc,unary(Lc,"some",L),R))).
   optionMatchMacro(_,_,_) default => either(.inactive).
+
+  optionPtnMacro(A,.pattern,Rp) where (Lc,L,R) ^= isOptionPtn(A) => do{
+    logMsg("making option pattern $(mkWherePtn(Lc,R,L))");
+    valis active(mkWherePtn(Lc,R,L))
+  }.
 
   macroAssignDef(A,.statement,Rp) where (Lc,L,R) ^= isAssignment(A) =>
     either(active(binary(Lc,"=",L,unary(Lc,"_cell",R)))).

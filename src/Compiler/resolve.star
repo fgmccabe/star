@@ -60,7 +60,7 @@ star.compiler.resolve{
 
   overloadDef:(dict,canonDef,reports)=>either[reports,(canonDef,dict)].
   overloadDef(Dict,varDef(Lc,Nm,FullNm,Val,Cx,Tp),Rp) =>
-    overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx//(contractConstraint(CTp))=>CTp,Tp,Rp). 
+    overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx//(contractConstraint(CTp))=>CTp,Tp,Rp).
   overloadDef(Dict,implDef(Lc,Nm,FullNm,Val,Cx,Tp),Rp) =>
     overloadImplDef(Dict,Lc,Nm,FullNm,Val,Cx//(contractConstraint(CTp))=>CTp,Tp,Rp).
   overloadDef(Dict,typeDef(Lc,Nm,Tp,TpRl),Rp) => do{
@@ -72,6 +72,8 @@ star.compiler.resolve{
     RVal <- resolveTerm(Val,Dict,Rp);
     valis (varDef(Lc,Nm,FullNm,RVal,[],Tp),Dict)
   }
+  overloadVarDef(Dict,Lc,Nm,FullNm,lambda(FullNm,Eqns,LTp),Cx,Tp,Rp) =>
+    overloadVarDef(Dict,Lc,Nm,FullNm,lambda(genSym(FullNm),Eqns,LTp),Cx,Tp,Rp).
   overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp,Rp) => do{
     (Cvrs,CDict) .= defineCVars(Lc,Cx,[],Dict);
     RVal <- resolveTerm(Val,CDict,Rp);
@@ -185,12 +187,6 @@ star.compiler.resolve{
   overloadTerm(tple(Lc,Els),Dict,St) => do{
     (Stx,REls) <- overloadTerms(Els,[],Dict,St);
     valis (Stx,tple(Lc,REls))
-  }
-  overloadTerm(serch(Lc,Ptn,Src,Iter),Dict,St) => do{
-    (St1,RPtn) <- overloadTerm(Ptn,Dict,St);
-    (St2,RSrc) <- overloadTerm(Src,Dict,St1);
-    (St3,RIter) <- overloadTerm(Iter,Dict,St2);
-    valis (St3,serch(Lc,RPtn,RSrc,RIter))
   }
   overloadTerm(match(Lc,Ptn,Src),Dict,St) => do{
 --    logMsg("normalize match $(match(Lc,Ptn,Src)), St=$(St)");

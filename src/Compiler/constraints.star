@@ -38,9 +38,6 @@ star.compiler.constraints{
     extractTermConstraints(Arg,Dict,extractTermConstraints(Op,Dict,Cnx)).
   extractTermConstraints(tple(Lc,Els),Dict,Cnx) =>
     foldLeft((Cn,Cx)=>extractTermConstraints(Cn,Dict,Cx),Cnx,Els).
-  extractTermConstraints(serch(Lc,Ptn,Src,Iter),Dict,Cnx) =>
-    extractTermConstraints(Ptn,Dict,extractTermConstraints(Src,Dict,
-	extractTermConstraints(Iter,Dict,Cnx))).
   extractTermConstraints(match(Lc,Ptn,Src),Dict,Cnx) =>
     extractTermConstraints(Ptn,Dict,extractTermConstraints(Src,Dict,Cnx)).
   extractTermConstraints(conj(Lc,Lhs,Rhs),Dict,Cnx) => 

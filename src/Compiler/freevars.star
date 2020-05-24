@@ -35,8 +35,6 @@ star.compiler.freevars{
     freeVarsInTerm(A,Excl,Q,freeVarsInTerm(O,Excl,Q,Fv)).
   freeVarsInTerm(tple(_,Els),Excl,Q,Fv) =>
     foldRight((E,F)=>freeVarsInTerm(E,Excl,Q,F),Fv,Els).
-  freeVarsInTerm(serch(_,P,S,I),Excl,Q,Fv) where Excl1 .= extendExcl(P,Excl,Fv) =>
-    freeVarsInTerm(S,Excl1,Q,freeVarsInTerm(I,Excl1,Q,freeVarsInTerm(P,Excl1,Q,Fv))).
   freeVarsInTerm(match(_,P,S),Excl,Q,Fv) where Excl1 .= extendExcl(P,Excl,Fv) =>
     freeVarsInTerm(S,Excl1,Q,freeVarsInTerm(P,Excl1,Q,Fv)).
   freeVarsInTerm(conj(Lc,L,R),Excl,Q,Fv) => freeVarsInCond(conj(Lc,L,R),Excl,Q,Fv).
@@ -57,8 +55,6 @@ star.compiler.freevars{
   freeVarsInCond:(canon,set[crVar],set[crVar],set[crVar]) => set[crVar].
   freeVarsInCond(cond(_,T,L,R),Excl,Q,Fv) =>
     freeVarsInCond(T,Excl,Q,freeVarsInTerm(L,Excl,Q,freeVarsInTerm(R,Excl,Q,Fv))).
-  freeVarsInCond(serch(_,P,S,I),Excl,Q,Fv) =>
-    freeVarsInTerm(P,Excl,Q,freeVarsInTerm(S,Excl,Q,freeVarsInTerm(I,Excl,Q,Fv))).
   freeVarsInCond(match(_,P,S),Excl,Q,Fv) =>
     freeVarsInTerm(P,Excl,Q,freeVarsInTerm(S,Excl,Q,Fv)).
   freeVarsInCond(conj(Lc,L,R),Excl,Q,Fv) =>
@@ -74,6 +70,11 @@ star.compiler.freevars{
     freeVarsInTerm(Ptn,Excl,Q,freeVarsInTerm(Exp,Excl,Q,Fv)).
   freeVarsInEqn(eqn(_,Ptn,some(Wh),Exp),Excl,Q,Fv) =>
     freeVarsInTerm(Ptn,Excl,Q,freeVarsInTerm(Exp,Excl,Q,freeVarsInCond(Wh,Excl,Q,Fv))).
+
+  public freeVarsInGroup:(cons[canonDef],set[crVar])=>set[crVar].
+  freeVarsInGroup(Defs,Q) => let{
+    Excl1 = exclDfs(Defs,[],[])
+  } in foldLeft((D,F)=>freeVarsInDef(D,Excl1,Q,F),[],Defs).
 
   public freeVarsInLetRec:(cons[canonDef],canon,set[crVar])=>set[crVar].
   freeVarsInLetRec(Defs,Bnd,Q) => let{
@@ -115,7 +116,6 @@ star.compiler.freevars{
   glVars(cond(_,T,L,R),Vrs) => glVars(L,glVars(T,Vrs))/\ glVars(R,Vrs).
   glVars(tple(_,Els),Vrs) =>
     foldRight((E,F)=>glVars(E,F),Vrs,Els).
-  glVars(serch(_,P,S,_),Vrs) => ptnVars(P,Vrs,[]).
   glVars(match(_,P,S),Vrs) => ptnVars(P,Vrs,[]).
   glVars(conj(Lc,L,R),Vrs) => glVars(R,glVars(L,Vrs)).
   glVars(disj(Lc,L,R),Vrs) => glVars(L,Vrs)/\glVars(R,Vrs).
@@ -142,7 +142,6 @@ star.compiler.freevars{
     ptnVars(A,Excl,Fv).
   ptnVars(tple(_,Els),Excl,Fv) =>
     foldRight((E,F)=>ptnVars(E,F,Fv),Excl,Els).
-  ptnVars(serch(_,P,S,I),Excl,Fv) => Excl.
   ptnVars(match(_,P,S),Excl,Fv) => 
     ptnVars(S,ptnVars(P,Excl,Fv),Fv).
   ptnVars(conj(Lc,L,R),Excl,Fv) => ptnVars(R,ptnVars(L,Excl,Fv),Fv).

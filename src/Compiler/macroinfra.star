@@ -53,7 +53,7 @@ star.compiler.macro.infra{
   macroKey(int(_,_)) => "$integer".
   macroKey(num(_,_)) => "$number".
   macroKey(str(_,_)) => "$string".
-  macroKey(tpl(_,_,[tpl(Lc,Lb,I)])) => macroKey(tpl(Lc,Lb,I)).
+  macroKey(tpl(_,"()",[tpl(Lc,Lb,I)])) => macroKey(tpl(Lc,Lb,I)).
   macroKey(tpl(_,K,_)) => K.
   macroKey(app(_,O,_)) => macroKey(O).
   

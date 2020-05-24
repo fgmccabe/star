@@ -3,7 +3,7 @@ star.skew{
   import star.iterable.
   import star.monad.
 
-  tree[a] ::= leaf(a) | node(a,tree[a],tree[a]).
+  tree[a] ::= .eTree | node(a,tree[a],tree[a]).
 
   all a ~~ rlist[a] ~> cons[(integer,tree[a])].
 
@@ -13,15 +13,14 @@ star.skew{
   cns(x,ts where cons((w1,t1),cons((w2,t2),rest)).=ts) =>
     (w1==w2 ?
 	cons((w1+w2+1,node(x,t1,t2)),rest) ||
-	cons((1,leaf(x)),ts)).
-  cns(x,ts) => cons((1,leaf(x)),ts).
+	cons((1,node(x,.eTree,.eTree)),ts)).
+  cns(x,ts) => cons((1,node(x,.eTree,.eTree)),ts).
 
   hed:all a ~~ (rlist[a]) => a.
-  hed(cons((1,leaf(x)),_)) => x.
   hed(cons((w,node(x,_,_)),_)) => x.
 
   tl:all a ~~ (rlist[a]) => rlist[a].
-  tl(cons((1,_),ts)) => ts.
+tl(cons((1,_),ts)) => ts.
   tl(cons((w,node(_,t1,t2)),ts)) => cons((w/2,t1),cons((w/2,t2),ts)).
 
   lookup:all a ~~ (integer,rlist[a]) => option[a].
@@ -30,7 +29,6 @@ star.skew{
   lookup(Ix,cons((w,_),ts)) => lookup(Ix-w,ts).
 
   lookupTree:all a ~~ (integer,integer,tree[a]) => option[a].
-  lookupTree(0,1,leaf(x)) => some(x).
   lookupTree(0,w,node(x,_,_)) => some(x).
   lookupTree(Ix,w,node(_,t1,t2)) where w2 .= w/2 =>
     (Ix=<w2 ?
@@ -39,19 +37,42 @@ star.skew{
   lookupTree(_,_,_) default => .none.
 
   update:all a ~~ (integer,rlist[a],a) => rlist[a].
-  update(_,.nil,V) => cons((1,leaf(V)),.nil). -- be slightly forgiving here
+  update(_,.nil,V) => cons((1,node(V,.eTree,.eTree)),.nil). -- be slightly forgiving here
   update(Ix,cons((w,T),rs),V) =>
     (Ix<w ?
 	cons((w,updateTree(Ix,w,V,T)),rs) ||
 	cons((w,T),update(Ix-w,rs,V))).
 
   updateTree:all a ~~ (integer,integer,a,tree[a]) => tree[a].
-  updateTree(0,1,v,leaf(_)) => leaf(v).
   updateTree(0,w,v,node(_,t1,t2)) => node(v,t1,t2).
   updateTree(Ix,w,v,node(x,t1,t2)) where w2 .= w/2 =>
     (Ix=<w2 ?
 	node(x,updateTree(Ix-1,w2,v,t1),t2) ||
 	node(x,t1,updateTree(Ix-1-w2,w2,v,t2))).
+
+  remove:all a ~~ (integer,rlist[a]) => rlist[a].
+  remove(_,.nil) => .nil. -- be slightly forgiving here
+  remove(Ix,cons((w,T),rs)) =>
+    (Ix<w ?
+	cons(removeTree(Ix,w,T),rs) ||
+	cons((w,T),remove(Ix-w,rs))).
+
+  removeTree:all a ~~ (integer,integer,tree[a]) => (integer,tree[a]).
+  removeTree(0,w,node(_,t1,t2)) => (w-1,mergeTree(t1,t2)).
+  removeTree(Ix,w,node(x,t1,t2)) where w2 .= w/2 =>
+    (Ix=<w2 ? valof action{
+	(_,NL) .= removeTree(Ix-1,w2,t1);
+	valis (w-1,node(x,NL,t2))
+      } ||
+      valof action{
+	(_,NR) .= removeTree(Ix-1-w2,w2,t2);
+	valis (w-1,node(x,t1,NR))
+      }).
+
+  mergeTree(.eTree,T) => T.
+  mergeTree(T,.eTree) => T.
+  mergeTree(node(v1,l1,r1),T2) =>
+    node(v1,l1,mergeTree(r1,T2)).
 
   public implementation all e ~~ head[sk[e]->>e] => {
     head(rl(.nil)) => .none.
@@ -71,6 +92,8 @@ star.skew{
 
     _put(rl(ts),Ix,V) => rl(update(Ix,ts,V)).
 
+    _remove(rl(ts),Ix) => rl(remove(Ix,ts)).
+
     _empty = rl(.nil).
   }
 
@@ -79,7 +102,7 @@ star.skew{
   foldDLeft(F,X,cons((_,T),R)) => foldDLeft(F,foldTLeft(F,X,T),R).
 
   foldTLeft:all e,x ~~ ((e,x)=>x,x,tree[e]) => x.
-  foldTLeft(F,X,leaf(E)) => F(E,X).
+  foldTLeft(F,X,.eTree) => X.
   foldTLeft(F,X,node(W,L,R)) => foldTLeft(F,foldTLeft(F,F(W,X),L),R).
 
   foldDRight:all e,x ~~ ((e,x)=>x,x,rlist[e])=>x.
@@ -87,7 +110,7 @@ star.skew{
   foldDRight(F,X,cons((_,T),R)) => foldTRight(F,foldDRight(F,X,R),T).
 
   foldTRight:all e,x ~~ ((e,x)=>x,x,tree[e])=>x.
-  foldTRight(F,A,leaf(E)) => F(E,A).
+  foldTRight(F,A,.eTree) => A.
   foldTRight(F,A,node(X,L,R)) => F(X,foldTRight(F,foldTRight(F,A,R),L)).
 
   public implementation all e ~~ folding[sk[e]->>e] => {
@@ -112,7 +135,7 @@ star.skew{
 
   public implementation functor[sk] => let{
     fm:all a,b ~~ ((a)=>b,tree[a])=>tree[b].
-    fm(F,leaf(X)) => leaf(F(X)).
+    fm(F,.eTree) => .eTree.
     fm(F,node(X,L,R)) => node(F(X),fm(F,L),fm(F,R)).
 
     fmp:all a,b ~~ ((a)=>b,sk[a])=>sk[b].
@@ -128,7 +151,7 @@ star.skew{
     dispList(cons((_,T),rs),L) => dispTree(T,dispList(rs,L)).
 
     dispTree:all a ~~ display[a] |: (tree[a],cons[ss]) => cons[ss].
-    dispTree(leaf(X),L) => cons(disp(X),L).
+    dispTree(.eTree,L) => L.
     dispTree(node(X,t1,t2),L) => cons(disp(X),dispTree(t1,dispTree(t2,L))).
 
     rollup:(cons[ss]) => ss.
@@ -145,7 +168,7 @@ star.skew{
       W1==W2 && equalTree(T1,T2) && equalList(L1,L2).
     equalList(_,_) default => .false.
 
-    equalTree(leaf(L1),leaf(L2)) => L1==L2.
+    equalTree(.eTree,.eTree) => .true.
     equalTree(node(X1,L1,R1),node(X2,L2,R2)) =>
       X1==X2 && equalTree(L1,L2) && equalTree(R1,R2).
     equalTree(_,_) default => .false.
@@ -159,7 +182,7 @@ star.skew{
 
     size(rl(L)) => countSizes(L,0).
 
-    countSizes(.nil,Sz) => Sz.
+    private countSizes(.nil,Sz) => Sz.
     countSizes(cons((W,_),L),Sz) => countSizes(L,Sz+W).
   }
 
@@ -170,7 +193,7 @@ star.skew{
       _sequence(iterTree(T,St,Fn),(SS)=>iterList(R,_valis(SS),Fn)).
 
     iterTree:all e,m/2,x ~~ execution[m] |: (tree[t],m[e,x],(t,x)=>m[e,x])=>m[e,x].
-    iterTree(leaf(E),St,Fn) => _sequence(St,(SS)=>Fn(E,SS)).
+    iterTree(.eTree,St,Fn) => St.
     iterTree(node(X,T1,T2),St,Fn) =>
       iterTree(T2,
 	iterTree(T1,

@@ -248,6 +248,7 @@ star.compiler.terms{
   decodeType([0cf,..Ts]) => either((nomnal("star.core*float"),Ts)).
   decodeType([0cS,..Ts]) => either((nomnal("star.core*string"),Ts)).
   decodeType([0cl,..Ts]) => either((nomnal("star.core*boolean"),Ts)).
+  decodeType([0c_,..Ts]) => either((newTypeVar("_"),Ts)).
   decodeType([0ck,..Ts]) => do {
     (Nm,T1) <- decodeText(Ts);
     valis (nomnal(Nm),T1)

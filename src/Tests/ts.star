@@ -24,7 +24,7 @@ test.ts{
     try{
       assert fact(3)==5
     } catch {
-      logMsg("something went wrong")
+      logMsg("fact(3)!=5")
     }
   }
 
@@ -36,7 +36,7 @@ test.ts{
     try{
       assert fact(3)==6;
       show fact(5);
-      assert fact(2)==fact(4)
+      assert !fact(2)==fact(4)
     } catch {
       logMsg("something went wrong")
     }
@@ -47,7 +47,7 @@ test.ts{
     try{
       assert fact(3)==6;
       show fact(5);
-      assert fact(2)==fact(4)
+      assert fact(2)=!=fact(4)
     } catch {
       logMsg("something went wrong")
     }

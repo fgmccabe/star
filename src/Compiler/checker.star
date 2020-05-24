@@ -443,10 +443,6 @@ star.compiler.checker{
 	(Cond,Ev1) <- checkCond(C,Ev0,Path,Rp);
 	valis (whr(Lc,Ptn,Cond),Ev1)
       }.
-  typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isSqTuple(A) => do{
-    SqPtn .= macroSquarePtn(Lc,Els);
-    typeOfPtn(SqPtn,Tp,Env,Path,Rp)
-  }.
   typeOfPtn(A,Tp,Env,Path,Rp) where (_,[El]) ^= isTuple(A) && ! _ ^= isTuple(El) =>
     typeOfPtn(El,Tp,Env,Path,Rp).
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isTuple(A) => do{
@@ -455,8 +451,6 @@ star.compiler.checker{
     (Ptns,Ev) <- typeOfPtns(Els,Tvs,[],Env,Path,Rp);
     valis (tple(Lc,Ptns),Ev)
   }
-  typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Pt,Ex) ^= isOptionPtn(A) =>
-    typeOfPtn(mkWherePtn(Lc,Pt,Ex),Tp,Env,Path,Rp).
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Op,Els) ^= isRoundTerm(A) => do{
     At .= newTypeVar("A");
 --    logMsg("checking round pattern $(A) for $(consType(At,Tp))");
@@ -620,12 +614,6 @@ star.compiler.checker{
     Gc <- typeOfCases(Cases,[],Rp);
     valis csexp(Lc,Gv,Gc,Tp)
   }
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,C,Ix) ^= isIndex(A) =>
-    ((_,K,V) ^= isBinary(Ix,"->") ?
-	typeOfExp(ternary(Lc,"_put",C,K,V),Tp,Env,Path,Rp) ||
-	(_,N) ^= isNegation(Ix) ?
-	  typeOfExp(binary(Lc,"_remove",C,N),Tp,Env,Path,Rp) ||
-	  typeOfExp(binary(Lc,"_index",C,Ix),Tp,Env,Path,Rp)).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,S,F,T) ^= isSlice(A) =>
     typeOfExp(ternary(Lc,"_slice",S,F,T),Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,I) ^= isCellRef(A) => do{
@@ -636,45 +624,15 @@ star.compiler.checker{
   }
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,I) ^= isRef(A) =>
     typeOfExp(roundTerm(Lc,nme(Lc,"_cell"),[I]),Tp,Env,Path,Rp).
-  typeOfExp(A,Tp,Env,Path,Rp) where
-      (Lc,Actn) ^= isActionTerm(A) &&
-      (_,ActionTp,_) ^= findType(Env,"action") => do{
-	ErTp .= newTypeVar("E");
-	XTp .= newTypeVar("X");
-	checkType(A,tpExp(tpExp(ActionTp,ErTp),XTp),Tp,Env,Rp);
-	checkDo(Actn,Tp,Env,Path,Rp)
-      }.
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Stmts) ^= isTaskTerm(A) &&
-      (_,ActionTp,_) ^= findType(Env,"task") => do{
-	ErTp .= newTypeVar("E");
-	XTp .= newTypeVar("X");
-	checkType(A,tpExp(tpExp(ActionTp,ErTp),XTp),Tp,Env,Rp);
-	checkDo(Stmts,Tp,Env,Path,Rp)
-      }.
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Stmts) ^= isDoTerm(A)  => 
-    checkDo(Stmts,Tp,Env,Path,Rp).
---  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Exp) ^= isValof(A) =>
---    typeOfExp(unary(Lc,"_perform",Exp),Tp,Env,Path,Rp).
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,B,C) ^= isListComprehension(A) => do{
-    logMsg("list comprehension?");
-    (_,ListTp,_) ^= findType(Env,"cons");
-    ElTp .= newTypeVar("E");
-    checkType(A,mkTypeExp(ListTp,[ElTp]),Tp,Env,Rp);
-    checkAbstraction(Lc,B,C,Tp,Env,Path,Rp)
-  }
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isSqTuple(A) &&
-      ! _ ^= isListComprehension(A) =>
-    typeOfExp(macroSquareExp(Lc,Els),Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (_,[El]) ^= isTuple(A) && ! _ ^= isTuple(El) =>
     typeOfExp(El,Tp,Env,Path,Rp).
+
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isTuple(A) => do{
     Tvs .= genTpVars(Els);
     checkType(A,tupleType(Tvs),Tp,Env,Rp);
     Ptns <- typeOfExps(Els,Tvs,[],Env,Path,Rp);
     valis tple(Lc,Ptns)
   }
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,B,C) ^= isAbstraction(A) =>
-    checkAbstraction(Lc,B,C,Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where hasPromotion(A) =>
     typeOfExp(promoteOption(A),Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,_,Ar,C,R) ^= isLambda(A) => do{
@@ -891,27 +849,6 @@ star.compiler.checker{
     Val <- typeOfExp(R,PtnTp,Env,Path,Rp);
     (Ptn,Ev) <- typeOfPtn(L,PtnTp,Env,Path,Rp);
     valis (match(Lc,Ptn,Val),Ev)
-  }
-/*  checkGoal(A,Env,Path,Rp) where (Lc,L,R) ^= isOptionMatch(A) => do{
-    PtnTp .= newTypeVar("_M");
-    Val <- typeOfExp(R,PtnTp,Env,Path,Rp);
-    (Ptn,Ev) <- typeOfPtn(unary(Lc,"some",L),PtnTp,Env,Path,Rp);
-    valis (match(Lc,Ptn,Val),Ev)
-  }
-*/
-  checkGoal(A,Env,Path,Rp) where (Lc,L,R) ^= isSearch(A) => do{
-    StrTp .= newTypeVar("Str");
-    ElTp .= newTypeVar("El");
-    MTp .= newTypeFun("M",2);
-    XTp .= newTypeVar("X");
-    ErTp .= newTypeVar("Er");
-    MdTp .= mkTypeExp(MTp,[ErTp,XTp]);
-    ActionTp .= funType([ElTp,XTp],MdTp);
-    IterTp .= funType([StrTp,MdTp,ActionTp],MdTp);
-    Iterator <- typeOfExp(nme(Lc,"_iter"),IterTp,Env,Path,Rp);
-    (Ptn,Ev) <- typeOfPtn(L,ElTp,Env,Path,Rp);
-    Gen <- typeOfExp(R,StrTp,Env,Path,Rp);
-    valis (serch(Lc,Ptn,Gen,Iterator),Ev)
   }
   checkGoal(A,Env,Path,Rp) where (_,[Inner]) ^= isTuple(A) =>
     checkGoal(Inner,Env,Path,Rp).
