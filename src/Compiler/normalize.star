@@ -69,7 +69,7 @@ star.compiler.normalize{
 --    logMsg("raw group free $(rawGrpFree)");
     freeVars .=
       foldLeft((crId(Nm,Tp),So) =>
-	  (_ ^= lookup(Outer,Nm,isModule) ? So || So\+crId(Nm,Tp)),[],
+	  (.true ^= lookup(Outer,Nm,isModule) ? So || So\+crId(Nm,Tp)),[],
 	rawGrpFree);
 --    logMsg("group free vars $(freeVars)");
 
@@ -81,13 +81,14 @@ star.compiler.normalize{
       M .= [lyr(foldRight((D,LL)=>collectMtd(D,.none,LL),[],Grp)),..Outer];
 --      logMsg("new group map $(head(M))");
       valis (M,GrpQ,.none,crTpl(Lc,[]),[])
-    } else if [FrVr].=freeVars then {
+/*    } else if [FrVr].=freeVars then {
       ThVr .= some(crVar(Lc,FrVr));
       FrTrm <- liftVarExp(Lc,crName(FrVr),typeOf(FrVr),Outer,Rp);
       L .= [crName(FrVr)->localVar(FrVr)]; -- protect against looking up more
       M .= [lyr(foldRight((D,LL)=>collectMtd(D,ThVr,LL),L,Grp)),..Outer];
 --      logMsg("new group map $(head(M))\nfree var $(ThVr)");
       valis (M,GrpQ,ThVr,FrTrm,[])
+*/
     }
     else {
       ThV .= genVar("_ThVr",typeOf(freeVars));
@@ -145,7 +146,7 @@ star.compiler.normalize{
   lambdaMap(Lam,Outer,Q,Rp) => do{
     LF .= freeVarsInTerm(Lam,[],Q,[]);
 
---    logMsg("raw free vars in lambda $(LF)");
+--    logMsg("$(Q) vars -> raw free vars in $(Lam) are $(LF)");
     
     freeVars .=
       foldLeft((crId(Nm,Tp),So) =>
@@ -206,7 +207,6 @@ star.compiler.normalize{
     (Vs,Ex1) <- transformGroup(Defs,GMap,GrpQ,GrpVr,Ex,[],Rp);
 
 --    logMsg("let rec Vs=$(Vs)");
-
     (BndTrm,Ex2) <- liftExp(Bnd,GMap,GrpQ,Ex1,Rp);
 
     Bound .= foldRight(((Vr,Vl),X)=>
@@ -519,7 +519,7 @@ star.compiler.normalize{
 
   liftVarExp:(locn,string,tipe,nameMap,reports) => either[reports,crExp].
   liftVarExp(Lc,Nm,Tp,Map,Rp) where Entry ^= lookupVarName(Map,Nm) => do{
---    logMsg("implement access to $(Nm) via $(Entry)");
+--    logMsg("implement access to $(Nm) via $(Entry)" );
     implementVarExp(Lc,Entry,Map,Tp,Rp)
   }.
   liftVarExp(Lc,Nm,Tp,Map,Rp) => do{

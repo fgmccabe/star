@@ -167,7 +167,7 @@ star.compiler{
     WI^=parseUri("file:"++_cwd());
     RI^=parseUri("file:"++_repo());
     handleCmds(processOptions(Args,[repoOption,wdOption,
-	  traceAstOption,
+	  traceAstOption,showPkgGraphOption,
 	  traceCodeOption,traceMacroOption,
 	  traceNormOption,traceCheckOption],compilerOptions{repo=RI.
 	  cwd=WI.
@@ -186,6 +186,11 @@ star.compiler{
     valis Repo
   }
 
+  private ignore(F) => action{
+    _ .= F();
+    valis ()
+  }
+
   handleCmds:(either[string,(compilerOptions,cons[string])])=>action[(),()].
   handleCmds(either((Opts,Args))) => do{
     Repo <- openupRepo(Opts.repo,Opts.cwd);
@@ -199,6 +204,10 @@ star.compiler{
 	      Sorted <- makeGraph(extractPkgSpec(P),Repo,Cat,ErRp)
 	      ::action[reports,cons[(importSpec,cons[importSpec])]];
 --	      logMsg("package groups $(Sorted)");
+	      if Grph ^= Opts.graph then {
+		ignore(()=>putResource(Grph,makeDotGraph(P,Sorted)))
+	      };
+	      
 	      processPkgs(Sorted,Repo,Cat,Opts,ErRp)
 	    } catch (Er) => action{
 	      logMsg("$(Er)");
