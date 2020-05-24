@@ -4,27 +4,17 @@ test.do10{
   pp ::= pp{
     ri : string.
     wi : string.
-    age : integer.
   }
 
-  repo:()=>string.
-  repo()=>"hi".
-
-  parse:(string)=>option[string].
-  parse(X) => some(X).
-  
-  handle:(pp)=>action[(),()].
-  handle(X) => do{
+  handle:(cons[string],pp)=>action[(),()].
+  handle(_,X) => do{
     logMsg(X.ri)
   }
 
-  fred()=>"erick".
-  john()=>"john".
-  
   public _main:(cons[string])=>().
-  _main(_) => valof action{
-    RI ^= parse("fred"++fred());
-    WI ^=  parse("file:"++john());
-    handle(pp{ ri=RI. wi=WI. age=10 })
+  _main(Args) => valof action{
+    RI ^= some("fred");
+    WI ^=  some("file:");
+    handle(Args,pp{ ri=RI. wi=WI. })
   }
 }

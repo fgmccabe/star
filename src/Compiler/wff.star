@@ -674,6 +674,9 @@ star.compiler.wff{
       (_, Ts) ^= isUnary(LL,"for") => some((Lc,Ts,Bd)).
   isForDo(_) default => .none.
 
+  public isIgnore:(ast) => option[(locn,ast)].
+  isIgnore(A) => isUnary(A,"ignore").
+
   public isCons:(ast) => option[(locn,ast,ast)].
   isCons(A) => isBinary(A,",..").
   
