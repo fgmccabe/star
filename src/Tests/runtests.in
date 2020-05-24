@@ -19,6 +19,8 @@ def main(argv):
     compile_only = False
     ignore_failures = False
     compiler=bootCompile
+    compile_failures = []
+    run_failures = []
     try:
         opts,args = getopt.getopt(argv,"dhct:",["sc","test=","help","compile_only","tracing","all","ignore_failures","starexec=","sbc=","testdir=","repo="])
     except getopt.GetopError:
@@ -62,11 +64,21 @@ def main(argv):
             print "compiling ",pkg," failed"
             if not ignore_failures:
                 sys.exit(1)
+	    else:
+		run_failures.append(pkg)
+		
         elif not compile_only:
             return_code = runPkg(pkg)
-            if return_code!=0 and not ignore_failures:
-                print "return code from running ",pkg," is ",return_code
-                sys.exit(return_code)
+            if return_code!=0:
+                if not ignore_failures:
+                    print "return code from running ",pkg," is ",return_code
+                    sys.exit(return_code)
+                else:
+                    run_failures.append(pkg)
+    if compile_failures != []:
+        print compile_failures, "tests failed to compile"
+    if run_failures != []:
+        print run_failures, "tests failed to complete"
 
 def bootCompile(Pkg):
     "Compile a package using the bootstrap compiler"
