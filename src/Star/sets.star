@@ -15,10 +15,9 @@ star.sets{
   .}
 
   public implementation all e ~~ equality[e], hash[e] |: membership[set[e] ->> e] => {
-    empty = _nil.
     set(M)\+e => set(M[e->()]).
     set(M)\-e => set(M[!e]).
-    _contains(set(M),e) => some(()).=_index(M,e).
+    e.<.set(M) => some(()).=_index(M,e).
   }
 
   public implementation all e ~~ equality[e], hash[e] |: setops[set[e]] => {

@@ -17,7 +17,7 @@ test.p1a{
   q = _tk(0c() >>= (_) => _tk(0c)) >>= (_) => return ().
 
   listMem:all e ~~ equality[e] |: (e,cons[e])=>boolean.
-  listMem(E,L) => _contains(L,E).
+  listMem(E,L) => E .<. L.
 
   symb:(string)=>parser[cons[integer],()].
   symb(S) => _str(S).

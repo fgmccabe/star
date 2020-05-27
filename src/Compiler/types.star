@@ -373,9 +373,6 @@ star.compiler.types{
   arity(Tp) where tupleType(A).=deRef(Tp) => size(A).
   arity(_) default => 0.
   
-  mkTypeExp(Tp,[]) => Tp.
-  mkTypeExp(Op,[T,..Rest]) => mkTypeExp(tpExp(Op,T),Rest).
-
   public funType(A,B) => fnType(tupleType(A),B).
   public fnType(A,B) => tpExp(tpExp(tpFun("=>",2),A),B).
   public consType(A,B) => tpExp(tpExp(tpFun("<=>",2),A),B).

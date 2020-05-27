@@ -432,10 +432,10 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
             if (ret == Ok) {
               labelPo lbl = declareLbl(prgName, arity);
 
-//              if(labelCode(lbl)!=Null){
-//                strMsg(errorMsg,msgSize,"attempt to redeclare method %A",lbl);
-//                ret = Error;
-//              }else {
+              if (labelCode(lbl) != Null) {
+                strMsg(errorMsg, msgSize, "attempt to redeclare method %A", lbl);
+                ret = Error;
+              } else {
                 gcAddRoot(H, (ptrPo) &lbl);
 
                 methodPo mtd = defineMtd(H, ins, (integer) (pc - ins), lclCount, maxStack, lbl, C_TERM(pool),
@@ -444,7 +444,7 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
                 if (enableVerify)
                   ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
               }
-//            }
+            }
           }
         }
         closeFile(O_IO(tmpBuffer));
@@ -518,10 +518,10 @@ retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgS
 
             if (ret == Ok) {
               labelPo lbl = declareLbl(prgName, 0);
-//              if(labelCode(lbl)!=Null){
-//                strMsg(errorMsg,msgSize,"attempt to redeclare method %A",lbl);
-//                ret = Error;
-//              }else {
+              if (labelCode(lbl) != Null) {
+                strMsg(errorMsg, msgSize, "attempt to redeclare method %A", lbl);
+                ret = Error;
+              } else {
                 gcAddRoot(H, (ptrPo) &lbl);
 
                 methodPo mtd = defineMtd(H, ins, (integer) (pc - ins), lclCount, maxStack, lbl, C_TERM(pool),
@@ -536,7 +536,7 @@ retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgS
                   if (glb == Null)
                     ret = Fail;
                 }
-//              }
+              }
             }
           }
         }

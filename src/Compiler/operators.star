@@ -41,6 +41,7 @@ star.compiler.operators{
 
   oper:(string)=>cons[operator].
   oper("all") => [prefixOp(1010,1009)].
+  oper(".<.") => [infixOp(699,700,699)].
   oper("^=") => [infixOp(899,900,899)].
   oper("&&") => [infixOp(910,910,909)].
   oper("pure") => [prefixOp(300,299)].
@@ -226,6 +227,7 @@ star.compiler.operators{
   follows(".|",0c.) => some(".|.").
   follows(".~",0c.) => some(".~.").
   follows(".<",0c<) => some(".<<").
+  follows(".<",0c.) => some(".<.").
   follows(".<<",0c.) => some(".<<.").
   follows(".^",0c.) => some(".^.").
   follows(".+",0c.) => some(".+.").
@@ -297,6 +299,7 @@ star.compiler.operators{
   final(".}") => .true.  /* non-recursive braces */
   final(".~.") => .true.  /* bitwise 1's complement */
   final(".<<.") => .true.  /* shift left */
+  final(".<.") => .true.  /* set membership */
   final(".^.") => .true.  /* bitwise xor */
   final(".+.") => .true.  /* count of number of bits */
   final(".=") => .true.  /* pattern match */

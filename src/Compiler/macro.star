@@ -3,7 +3,7 @@ star.compiler.macro{
   import star.sort.
 
   import star.compiler.ast.
-  import star.compiler.ast.disp.
+  import star.compiler.ast.display.
   import star.compiler.errors.
   import star.compiler.misc.
   import star.compiler.location.
@@ -503,7 +503,7 @@ star.compiler.macro{
     NEls <- seqmap((E)=>macroType(E,Rp),Els);
     valis squareTerm(Lc,Op,NEls)
   }
-  examineType(A,Rp) where (Lc,L,R) ^= isTypeExists(A) => do{
+  examineConstraint(A,Rp) where (Lc,L,R) ^= isTypeExists(A) => do{
     NL <- macroType(L,Rp);
     NR <- macroType(R,Rp);
     valis mkTypeExists(Lc,NL,NR)

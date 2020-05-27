@@ -5,7 +5,7 @@ star.compiler.checker{
   import star.repo.
 
   import star.compiler.ast.
-  import star.compiler.ast.disp.
+  import star.compiler.ast.display.
   import star.compiler.canon.
   import star.compiler.canondeps.
   import star.compiler.dependencies.
@@ -96,15 +96,21 @@ star.compiler.checker{
 
   formRecordExp:(locn,option[string],tipe,dict,cons[cons[canonDef]],tipe,reports) => either[reports,canon].
   formRecordExp(Lc,Lbl,faceType(Flds,Tps),Env,Defs,Tp,Rp) => do{
---    logMsg("making record from $(Defs)\:$(faceType(Flds,Tps))");
+    logMsg("making record from $(Defs)\:$(faceType(Flds,Tps))");
     Rc <- findDefs(Lc,Flds,[],Defs,Rp);
-    valis foldRight((Gp,I)=>letExp(Lc,Gp,I),record(Lc,Lbl,Rc,Tp),Defs)
+    valis foldRight((Gp,I)=>letExp(Lc,Gp^/keepDef,I),record(Lc,Lbl,Rc,Tp),Defs)
   }
 
+  keepDef(varDef(_,Nm,_,Val,_,_)) where isTrivial(Nm,Val) => .false.
+  keepDef(_) default => .true.
+  
+  isTrivial(Nm,vr(_,Nm,_)) => .true.
+  isTrivial(_,_) default => .false.
+  
   formTheta:(locn,option[string],tipe,dict,cons[cons[canonDef]],tipe,reports) =>
     either[reports,canon].
   formTheta(Lc,Lbl,faceType(Flds,Tps),Env,Defs,Tp,Rp) => do{
---    logMsg("making theta record from $(Defs)\:$(faceType(Flds,Tps))");
+    logMsg("making theta record from $(Defs)\:$(faceType(Flds,Tps))");
     Rc <- findDefs(Lc,Flds,[],Defs,Rp);
     valis foldRight((Gp,I)=>letRec(Lc,Gp,I),record(Lc,Lbl,Rc,Tp),Defs)
   }

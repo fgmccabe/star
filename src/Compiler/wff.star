@@ -4,7 +4,7 @@ star.compiler.wff{
   import star.topsort.
 
   import star.compiler.ast.
-  import star.compiler.ast.disp.
+  import star.compiler.ast.display.
   import star.compiler.errors.
   import star.compiler.misc.
   import star.compiler.location.

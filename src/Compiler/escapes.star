@@ -17,7 +17,8 @@ star.comp.escapes{
   escapeType("_int_mod") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*integer"))).
   escapeType("_int_hash") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),nomnal("star.core*integer"))).
   escapeType("_flt_plus") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float"),nomnal("star.core*float")])),nomnal("star.core*float"))).
-  escapeType("_flt_minus") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float"),nomnal("star.core*float")])),nomnal("star.core*float"))).
+  escapeType("_flt_minus") => some(tpExp(tpExp(tpFun("=>",2),
+	tupleType([nomnal("star.core*float"),nomnal("star.core*float")])),nomnal("star.core*float"))).
   escapeType("_flt_times") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float"),nomnal("star.core*float")])),nomnal("star.core*float"))).
   escapeType("_flt_div") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float"),nomnal("star.core*float")])),nomnal("star.core*float"))).
   escapeType("_flt_mod") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float"),nomnal("star.core*float")])),nomnal("star.core*float"))).
