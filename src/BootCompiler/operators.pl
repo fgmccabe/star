@@ -21,6 +21,7 @@
   is_in(X,[_|Y]) :- is_in(X,Y).
 
   operator("all", [prefixOp(1010, 1009)]).
+  operator(".<.", [infixOp(699, 700, 699)]).
   operator("^=", [infixOp(899, 900, 899)]).
   operator("&&", [infixOp(910, 910, 909)]).
   operator("pure", [prefixOp(300, 299)]).
@@ -183,6 +184,7 @@
   follows('.|','.','.|.').
   follows('.~','.','.~.').
   follows('.<','<','.<<').
+  follows('.<','.','.<.').
   follows('.<<','.','.<<.').
   follows('.^','.','.^.').
   follows('.+','.','.+.').
@@ -253,6 +255,7 @@
   final('.}',".}").	 /* non-recursive braces */
   final('.~.',".~.").	 /* bitwise 1's complement */
   final('.<<.',".<<.").	 /* shift left */
+  final('.<.',".<.").	 /* set membership */
   final('.^.',".^.").	 /* bitwise xor */
   final('.+.',".+.").	 /* count of number of bits */
   final('.=',".=").	 /* pattern match */

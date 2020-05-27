@@ -4,6 +4,7 @@
 
 (defconst star-ops
   '(  ("all" ( (prefix 1010 1009)))
+  (".<." ( (infix 699 700 699)))
   ("^=" ( (infix 899 900 899)))
   ("&&" ( (infix 910 910 909)))
   ("pure" ( (prefix 300 299)))

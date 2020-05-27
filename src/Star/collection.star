@@ -47,10 +47,9 @@ star.collection{
   }.
 
   public contract all k,e ~~ membership[k->>e] ::= {
-    empty: k.
     (\+):(k,e)=>k.
     (\-):(k,e)=>k.
-    _contains:(k,e)=>boolean.
+    (.<.):(e,k)=>boolean.
   }
 
   public contract all k ~~ setops[k] ::= {
@@ -131,10 +130,9 @@ star.collection{
     _rem(K,cons(K,L)) => L.
     _rem(K,cons(E,L)) => cons(E,_rem(K,L)).
   } in {.
-    empty = .nil.
     L\+E => cons(E,L).
     L\-E => _rem(E,L).
-    _contains(L,E) => _mem(E,L)
+    E .<. L => _mem(E,L)
   .}
 
     -- Implement indexed access
@@ -166,15 +164,15 @@ star.collection{
 
   public implementation all e ~~ equality[e] |: setops[cons[e]] => let{
     merge(.nil,C) => C.
-    merge(cons(H,T),C) where _contains(C,H) => merge(T,C).
+    merge(cons(H,T),C) where H.<.C => merge(T,C).
     merge(cons(H,T),C) default => [H,..merge(T,C)].
 
     intersect(.nil,C) => .nil.
-    intersect(cons(H,T),C) where _contains(C,H) => [H,..intersect(T,C)].
+    intersect(cons(H,T),C) where H.<.C => [H,..intersect(T,C)].
     intersect(cons(H,T),C) default => intersect(T,C).
 
     diff(.nil,C) => .nil.
-    diff(cons(H,T),C) where _contains(C,H) => diff(T,C).
+    diff(cons(H,T),C) where H.<.C => diff(T,C).
     diff(cons(H,T),C) default => [H,..diff(T,C)].
   } in {.
     L1 \/ L2 => merge(L1,L2).

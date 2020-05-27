@@ -5,7 +5,7 @@ star.compiler.meta{
   import star.pkg.
 
   import star.compiler.ast.
-  import star.compiler.ast.disp.
+  import star.compiler.ast.display.
   import star.compiler.location.
 
   public visibility ::= .priVate | .deFault | .pUblic | .transItive.

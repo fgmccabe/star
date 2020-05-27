@@ -132,15 +132,12 @@ star.compiler.gencode{
   compExp(crDot(Lc,Rc,Field,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
     compExp(Rc,Opts,bothCont(fldCont(Field,Tp),Cont),Ctx,Cde,Stk,Rp).
   compExp(crTplOff(Lc,Rc,Ix,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
---    logMsg("compile $(crTplOff(Lc,Rc,Ix,Tp)), stack is $(Stk)");
     compExp(Rc,Opts,bothCont(tplOffCont(Ix,Tp),Cont),Ctx,Cde,Stk,Rp)}
   compExp(crLtt(Lc,V,Val,Exp),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
---    logMsg("compile $(crLtt(Lc,V,Val,Exp)), stack = $(Stk)");
     (Ctx1,Cd1,_)<-compExp(Val,Opts,stoCont(V),Ctx,Cde,Stk,Rp);
     compExp(Exp,Opts,Cont,Ctx1,Cd1,Stk,Rp)
   }
   compExp(crLtRec(Lc,V,Val,Exp),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
---    logMsg("compile $(crLtRc(Lc,V,Val,Exp)), stack = $(Stk)");
     (Ctx1,Cd1,_)<-compExp(Val,Opts,stoCont(V),Ctx,Cde,Stk,Rp);
     compExp(Exp,Opts,Cont,Ctx1,Cd1,Stk,Rp)
   }
@@ -150,15 +147,19 @@ star.compiler.gencode{
     compExps([Lc::crExp,crStrg(Lc,Msg)],Opts,bothCont(escCont("_abort",2,Tp,.none),Cont),Ctx,Cde,Stk,Rp).
 
   compExp(crCnd(Lc,T,L,R),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
---    logMsg("compile conditional $(crCnd(Lc,T,L,R)), stack = $(Stk)");
     CtxC .= ptnVars(T,Ctx);
-    compCond(T,Opts,expCont(L,Opts,Cont),expCont(R,Opts,Cont),CtxC,Cde,Stk,Rp)
+    compCond(T,Opts,
+      resetCont(Stk,expCont(L,Opts,Cont)),
+      resetCont(Stk,expCont(R,Opts,Cont)),CtxC,Cde,Stk,Rp)
   }
   compExp(C,Opts,Cont,Ctx,Cde,Stk,Rp) where isCrCond(C) => do{
     OS .= onceCont(locOf(C),Cont);
 --    logMsg("created once for $(locOf(C))");
-    compCond(C,Opts,bothCont(litCont(enum(tLbl("star.core#true",0)),boolType),OS),
-      bothCont(litCont(enum(tLbl("star.core#false",0)),boolType),OS),Ctx,Cde,Stk,Rp).
+    compCond(C,Opts,bothCont(resetCont(Stk,
+	  litCont(enum(tLbl("star.core#true",0)),boolType)),OS),
+      bothCont(resetCont(Stk,
+	  litCont(enum(tLbl("star.core#false",0)),boolType)),OS),
+      Ctx,Cde,Stk,Rp).
   }
 
   -- Expressions are evaluated in reverse order
@@ -274,8 +275,8 @@ star.compiler.gencode{
   }.
   compCond(crCnd(Lc,T,L,R),Opts,Succ,Fail,Ctx,Cde,Stk,Rp) => do{
 --    logMsg("compile conditional $(crCnd(Lc,T,L,R)), stack is $(Stk)");
-    OS .= onceCont(Lc,Succ);
-    OF .= onceCont(Lc,Fail);
+    OS .= onceCont(Lc,resetCont(Stk,Succ));
+    OF .= onceCont(Lc,resetCont(Stk,Fail));
     CtxC .= ptnVars(T,Ctx);
     compCond(T,Opts,condCont(L,Opts,OS,OF),condCont(R,Opts,OS,OF),CtxC,Cde,Stk,Rp)
   }
@@ -304,10 +305,10 @@ star.compiler.gencode{
     (NLb,Ctx2) .= defineLbl(Ctx1);
     JCont .= jmpCont(FLb);
     (Ctx3,FlCode,_Stx3) <- Fail.C(Ctx2,[iLbl(FLb)],some(Stk),Rp);
-    RCont .= lblCont(FLb,resetCont(size(Stk),JCont));
+    RCont .= lblCont(FLb,resetCont(some(Stk),JCont));
 
     compPtns(Args,0,Opts,
-      resetCont(size(Stk),Succ),RCont,ctxLbls(Ctx,Ctx3),
+      resetCont(some(Stk),Succ),RCont,ctxLbls(Ctx,Ctx3),
       Cde++[.iDup,iLdC(enum(tLbl(Nm,size(Args)))),iCLbl(NLb)]++FlCode++[iLbl(NLb)],some([Tp,..Stk]),Rp)
   }
   compPtn(crWhere(Lc,Ptn,Cond),Opts,Succ,Fail,Ctx,Cde,Stk,Rp) =>
@@ -320,7 +321,7 @@ star.compiler.gencode{
   }
   compPtns([A,..As],Ix,Opts,Succ,Fail,Ctx,Cde,some(Stk),Rp) => do{
     (NLb,Ctx1) .= defineLbl(Ctx);
-    NCont .= jmpCont(NLb);
+    NCont .= resetCont(some(Stk),jmpCont(NLb));
     (Ctx2,Cde2,_) <- compPtn(A,Opts,NCont,Fail,Ctx1,Cde++[.iDup,iNth(Ix)],some([typeOf(A),..Stk]),Rp);
     compPtns(As,Ix+1,Opts,Succ,Fail,Ctx2,Cde2++[iLbl(NLb)],some(Stk),Rp)
   }
@@ -358,10 +359,10 @@ star.compiler.gencode{
   -- continuations
 
   ccont:((codeCtx,multi[assemOp],option[cons[tipe]],reports)=>either[reports,(codeCtx,multi[assemOp],option[cons[tipe]])])=>Cont.
-  ccont(C)=>cont{
+  ccont(C)=>cont{.
     C=C.
     L=.none.
-  }
+  .}
 
   retCont:(locn)=>Cont.
   retCont(Lc) => ccont((Ctx,Cde,Stk,Rp) => do{
@@ -390,10 +391,11 @@ star.compiler.gencode{
     L=.none.
   }.
 
-  resetCont:(integer,Cont)=>Cont.
-  resetCont(Dpth,C)=>ccont((Ctx,Cde,Stk,Rp)=>
+  resetCont:(option[cons[tipe]],Cont)=>Cont.
+  resetCont(.none,Cont) => Cont.
+  resetCont(some(SStk),C) where Dpth.=size(SStk) =>ccont((Ctx,Cde,Stk,Rp)=>
       C.C(Ctx,Cde++[iRst(Dpth)],trimStack(Stk,Dpth),Rp)).
-  
+
   allocCont:(termLbl,tipe,option[cons[tipe]])=>Cont.
   allocCont(Lbl,Tp,some(OStk)) =>
     ccont((Ctx,Cde,Stk,Rp)=>either((Ctx,Cde++[iAlloc(Lbl)],some([Tp,..OStk])))).

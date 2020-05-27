@@ -69,6 +69,7 @@
     "test.q2": "q2.star",
     "test.qx": "qx.star",
     "test.ra" : "ra.star",
+    "test.rc" : "rc.star",
     "test.rl" : "rl.star",
     "test.s": "s.star",
     "test.sl": "sl.star",

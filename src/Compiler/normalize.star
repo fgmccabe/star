@@ -414,7 +414,7 @@ star.compiler.normalize{
     valis (crCnd(Lc,LTs,LTh,LEl),Exx)
   }
   liftExp(record(Lc,some(Nm),Fields,Tp),Map,Q,Ex,Rp) => do{
---    logMsg("lift record $(record(Lc,some(Nm),Fields,Tp)) using map $(Map)");
+    logMsg("lift record $(record(Lc,some(Nm),Fields,Tp)) using map $(Map)");
     (LFields,Exx) <- liftFields(Fields,Map,Q,Ex,Rp);
     valis (crRecord(Lc,Nm,LFields,Tp),Exx)
   }

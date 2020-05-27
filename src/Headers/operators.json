@@ -429,6 +429,12 @@
 	"keyword": false
     },
     {
+	"infixOp": ".<.",
+	"priorities": [699, 700, 699],
+	"desc": "set membership",
+	"keyword": false
+    },
+    {
 	"infixOp": ".&.",
 	"priorities": [700, 700, 699],
 	"desc": "bitwise and",

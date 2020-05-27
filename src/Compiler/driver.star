@@ -9,7 +9,7 @@ star.compiler{
 
   import star.compiler.assem.
   import star.compiler.ast.
-  import star.compiler.ast.disp.
+  import star.compiler.ast.display.
   import star.compiler.canon.
   import star.compiler.catalog.
   import star.compiler.checker.

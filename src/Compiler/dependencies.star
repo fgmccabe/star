@@ -2,7 +2,7 @@ star.compiler.dependencies{
   import star.
   import star.topsort.
   import star.compiler.ast.
-  import star.compiler.ast.disp.
+  import star.compiler.ast.display.
   import star.compiler.errors.
   import star.compiler.location.
   import star.compiler.operators.
@@ -16,6 +16,7 @@ star.compiler.dependencies{
   dependencies(Dfs,Rp) => do{
 --    logMsg("look for dependencies in $(Dfs)");
     (Defs,Pb,As,Opn) <- collectDefinitions(Dfs,Rp);
+--    logMsg("definitions found: $(Defs)");
     AllRefs .= foldLeft((D,M)=>collectRef(D,M),[],Defs);
     InitDefs <- collectThetaRefs(Defs,AllRefs,As,[],Rp);
     Groups .= (topsort(InitDefs) // (Gp)=>(Gp//((definition(Sp,Lc,_,Els))=>defnSpec(Sp,Lc,Els))));
@@ -126,12 +127,21 @@ star.compiler.dependencies{
       }.
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
       (Lc,Nm) ^= ruleName(A) => do{
-	(Ss,Dfs) .= collectDefines(Stmts,Nm,[A]);
-	Sp .= varSp(Nm);
-	valis (Ss,[defnSpec(Sp,Lc,reverse(Dfs)),..Defs],publishName(Sp,Vz,Pb),As,Opn)
+	if DLc ^= isDefined(varSp(Nm),Defs) then
+	  throw reportError(Rp,"$(Nm) already defined at $(DLc)",Lc)
+	else{
+	  (Ss,Dfs) .= collectDefines(Stmts,Nm,[A]);
+	  Sp .= varSp(Nm);
+	  valis (Ss,[defnSpec(Sp,Lc,reverse(Dfs)),..Defs],publishName(Sp,Vz,Pb),As,Opn)
+	}
       }.
   collectDefinition(A,_,_,_,_,_,_,Rp) =>
     other(reportError(Rp,"cannot understand definition $(A)",locOf(A))).
+
+  isDefined:(defnSp,cons[defnSpec])=>option[locn].
+  isDefined(_,[]) => .none.
+  isDefined(Sp,[defnSpec(Sp,Lc,Sts),..Defs]) => some(Lc).
+  isDefined(Sp,[_,..Defs]) => isDefined(Sp,Defs).
 
   publishName:(defnSp,visibility,cons[(defnSp,visibility)])=>
     cons[(defnSp,visibility)].

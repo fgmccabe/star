@@ -66,7 +66,7 @@ star.bboot{
   importPkgs(_,_,_) default => err("Could not load $(_command_line())").
 
   importPkg:(pkg,repository,cons[pkg])=>option[cons[pkg]].
-  importPkg(P,_,Ld) where _contains(Ld,P) => some([]).
+  importPkg(P,_,Ld) where P .<. Ld => some([]).
   importPkg(P,R,Ld) where
     Code ^= R.hasCode(P) &&
     Imps .= _install_pkg(Code) => some(Imps//(((Pk,V))=>pkg(Pk,V::version))).
