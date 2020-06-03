@@ -250,7 +250,8 @@ packageVarName(Pkg,Nm,LclName) :-
 
 thetaName(Path,Nm,LclName) :-
   marker(value,Mrk),
-  localName(Path,Mrk,Nm,LclName).
+  genNewName(Path,"θ",ThPath),
+  localName(ThPath,Mrk,Nm,LclName).
 
 genNewName(Path,Prfx,Name) :-
   marker(value,Mrk),

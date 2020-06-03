@@ -72,9 +72,9 @@ inlineExp(search(Lc,L,R),Env,Max,Rep,Trg,Tx) :-!,
   applySearch(Lc,RL,RR,Env,Max,Reg,T1,Tx).
 inlineExp(lambda(Lc,Rle,Tp),Env,Max,lambda(Lc,RRle,Tp),Trg,Tx) :- !,
   inlineRule(Rle,Env,Max,RRle,Trg,Tx).
-inlineExp(theta(Lc,Path,Lbld,Defs,Tp),Env,Max,theta(Lc,Path,Lbld,RDefs,Tp),Trg,Tx) :-
+inlineExp(theta(Lc,Path,Defs,Tp),Env,Max,theta(Lc,Path,RDefs,Tp),Trg,Tx) :-
   inlineDefs(Defs,Env,Max,RDefs,Trg,Tx).
-inlineExp(record(Lc,Path,Lbld,Defs,Tp),Env,Max,record(Lc,Path,Lbld,RDefs,Tp),Trg,Tx) :-
+inlineExp(record(Lc,Path,Defs,Tp),Env,Max,record(Lc,Path,RDefs,Tp),Trg,Tx) :-
   inlineDefs(Defs,Env,Max,RDefs,Trg,Tx).
 inlineExp(letExp(Lc,Defs,Bound),Env,Max,letExp(Lc,RDefs,RBound),Trg,Tx) :-
   inlineExp(Defs,Env,Max,RDefs,Trg,T0),
@@ -142,7 +142,7 @@ rewriteTerm(enm(Lc,Rf,Tp),_,enm(Lc,Rf,Tp)).
 rewriteTerm(cons(Lc,Rf,Tp),_,cons(Lc,Rf,Tp)).
 rewriteTerm(tple(Lc,Args),Env,tple(Lc,RArgs)) :-
   rewriteTerms(Args,Env,RArgs).
-rewriteTerm(theta(Lc,Path,Anon,Defs,Sig),Env,theta(Lc,Path,Anon,RDefs,Sig)) :-
+rewriteTerm(theta(Lc,Path,Defs,Sig),Env,theta(Lc,Path,RDefs,Sig)) :-
   rewriteDefs(Defs,Env,RDefs).
 rewriteTerm(record(Lc,Path,Anon,Defs,Sig),Env,record(Lc,Path,Anon,RDefs,Sig)) :-
   rewriteDefs(Defs,Env,RDefs).

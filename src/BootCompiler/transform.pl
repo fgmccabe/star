@@ -512,12 +512,12 @@ liftExp(cond(Lc,T,L,R,_),cnd(Lc,LT,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
 liftExp(assertion(Lc,G),ecll(Lc,"_assert",[Gx,Lx]),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftGoal(G,Gx,Q,Qx,Map,Opts,Ex,Exx),
   locTerm(Lc,Lx).
-liftExp(theta(Lc,Path,Anon,Defs,Sig),ltt(Lc,ThVr,FrTrm,Recrd),Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftTheta(theta(Lc,Path,Anon,Defs,Sig),ThVr,FrTrm,_ThCond,Q,Map,ThMap,Opts,Ex,Ex1),
-  genRecord(Lc,Path,Anon,Defs,ThMap,Opts,Q,Qx,Recrd,Ex1,Exx).
-liftExp(record(Lc,Path,Anon,Defs,Sig),ltt(Lc,ThVr,FrTrm,Recrd),Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftTheta(record(Lc,Path,Anon,Defs,Sig),ThVr,FrTrm,_ThCond,Q,Map,ThMap,Opts,Ex,Ex1),
-  genRecord(Lc,Path,Anon,Defs,ThMap,Opts,Q,Qx,Recrd,Ex1,Exx).
+liftExp(theta(Lc,Path,Defs,Sig),ltt(Lc,ThVr,FrTrm,Recrd),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftTheta(theta(Lc,Path,Defs,Sig),ThVr,FrTrm,_ThCond,Q,Map,ThMap,Opts,Ex,Ex1),
+  genRecord(Lc,Path,Defs,ThMap,Opts,Q,Qx,Recrd,Ex1,Exx).
+liftExp(record(Lc,Path,Defs,Sig),ltt(Lc,ThVr,FrTrm,Recrd),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftTheta(record(Lc,Path,Defs,Sig),ThVr,FrTrm,_ThCond,Q,Map,ThMap,Opts,Ex,Ex1),
+  genRecord(Lc,Path,Defs,ThMap,Opts,Q,Qx,Recrd,Ex1,Exx).
 liftExp(letExp(Lc,Th,Bnd),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftLetExp(Lc,Th,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
   % dispTerm(Exp).
@@ -669,14 +669,14 @@ liftGl(G,Gx,Q,Qx,Map,Opts,Ex,Exx) :-
 /* A theta or record is converted to a structure containing free variables */
 
 liftTheta(Theta,ThVr,Fx,ThCond,Q,Map,ThMap,Opts,Ex,Exx) :-
-  Theta=theta(Lc,_Path,_Anon,Defs,_Sig),!,
+  Theta=theta(Lc,_Path,Defs,_Sig),!,
   genVar("_ThV",ThVr),
   thetaMap(Theta,ThVr,Q,Map,Opts,ThMap,FreeTerm),
 %  dispMap("theta map",ThMap),
   transformThetaDefs(ThMap,ThMap,Opts,Defs,FreeTerm,Fx,mtch(Lc,ThVr,Fx),ThCond,Ex,Exx).
 %  (is_member(showTrCode,Opts) -> dispTerm(Fx);true).
 liftTheta(Theta,ThVr,Fx,ThCond,Q,Map,ThMap,Opts,Ex,Exx) :-
-  Theta=record(Lc,_Path,_Anon,Defs,_Sig),
+  Theta=record(Lc,_Path,Defs,_Sig),
   genVar("_ThR",ThVr),
   recordMap(Theta,ThVr,Q,Map,Opts,ThMap,RMap,FreeTerm),
 %  (is_member(showTrCode,Opts) -> dispMap("Record map: ",RMap);true),
@@ -687,7 +687,7 @@ liftLetExp(Lc,Theta,Bnd,ltt(Lc,ThVr,FrTrm,Expr),Q,Qx,Map,Opts,Ex,Exx) :-
   liftTheta(Theta,ThVr,FrTrm,_ThCond,Q,Map,ThMap,Opts,Ex,Ex1),
   liftExp(Bnd,Expr,Q,Qx,ThMap,Opts,Ex1,Exx).
 
-genRecord(Lc,Path,Anon,Defs,Map,Opts,Q,Qx,Exp,Ex,Exx) :-
+genRecord(Lc,Path,Defs,Map,Opts,Q,Qx,Exp,Ex,Exx) :-
   pickVarDefs(Defs,Map,Opts,VTerms,Q,Qx,Ex,Ex1),
   sort(VTerms,transform:cmpName,Els),
   project1(Els,Args),
@@ -695,10 +695,8 @@ genRecord(Lc,Path,Anon,Defs,Map,Opts,Q,Qx,Exp,Ex,Exx) :-
   pickTypes(Defs,ElTps),
   sort(ElTps,transform:cmpName,STps),
   Tp =faceType(STps,[]),
-  (Anon ->
-   genConsAccessDef(Lc,Path,Tp,Map,Opts,Ex1,Exx),
-   Exp = ctpl(lbl(Path,Ar),Args);
-   trExpCallOp(Lc,v(Lc,Path,Tp),Args,Exp,Qx,_Qx,Map,Opts,Ex1,Exx)).
+  genConsAccessDef(Lc,Path,Tp,Map,Opts,Ex1,Exx),
+  Exp = ctpl(lbl(Path,Ar),Args).
 
 cmpName((N1,_),(N2,_)) :- str_lt(N1,N2).
 
@@ -734,7 +732,7 @@ liftEls([(_,P)|More],[A|Args],Extra,Q,Qx,Map,Opts,Ex,Exx) :-
 thetaMap(Theta,ThVr,Q,Map,_Opts,[lyr(LclName,Lx,FreeTerm,ThVr)|Map],FreeTerm) :-
   findFreeVars(Theta,Map,Q,ThFree),
   cellVars(Theta,CellVars),
-  thetaLbl(Theta,Map,LclName),
+  thetaLbl(Theta,LclName),
   concat(CellVars,ThFree,FreeVars),
   collectLabelVars(FreeVars,ThVr,0,[],L0),
   makeMtdMap(Theta,LclName,ThVr,L0,Lx),
@@ -744,7 +742,7 @@ thetaMap(Theta,ThVr,Q,Map,_Opts,[lyr(LclName,Lx,FreeTerm,ThVr)|Map],FreeTerm) :-
 recordMap(Theta,ThVr,Q,Map,_Opts,[lyr(LclName,Lx,FreeTerm,ThVr)|Map],[lyr(LclName,L0,FreeTerm,ThVr)|Map],FreeTerm) :-
   findFreeVars(Theta,Map,Q,ThFree),
   cellVars(Theta,CellVars),
-  thetaLbl(Theta,Map,LclName),
+  thetaLbl(Theta,LclName),
   concat(CellVars,ThFree,FreeVars),
   collectLabelVars(FreeVars,ThVr,0,[],L0),
   makeMtdMap(Theta,LclName,ThVr,L0,Lx),
@@ -776,9 +774,9 @@ freeLabelVars([idnt(Nm)|Lv],Map,Fr,LmFr) :-
 freeLabelVars([_|Lv],Map,Fr,LmFr) :-
   freeLabelVars(Lv,Map,Fr,LmFr).
 
-cellVars(theta(_Lc,_Path,_Anon,Defs,_Sig),CellVars) :-
+cellVars(theta(_Lc,_Path,Defs,_Sig),CellVars) :-
   rfold(Defs,transform:pickCellVar,[],CellVars).
-cellVars(record(_Lc,_Path,_Anon,Defs,_Sig),CellVars) :-
+cellVars(record(_Lc,_Path,Defs,_Sig),CellVars) :-
   rfold(Defs,transform:pickCellVar,[],CellVars).
 
 pickCellVar(varDef(_,Nm,_,_,Tp,_),F,Fv) :-
@@ -819,12 +817,12 @@ notVar(V) :- V\=idnt(_).
 
 isVar(idnt(_)).
 
-thetaLbl(theta(_,Path,_,_,_),_Map,Path).
-thetaLbl(record(_,Path,_,_,_),_Map,Path).
+thetaLbl(theta(_,Path,_,_),Path).
+thetaLbl(record(_,Path,_,_),Path).
 
-makeMtdMap(theta(_,_,_,Defs,_),OuterNm,ThVr,L,Lx) :-
+makeMtdMap(theta(_,_,Defs,_),OuterNm,ThVr,L,Lx) :-
   collectMtds(Defs,OuterNm,ThVr,L,Lx).
-makeMtdMap(record(_,_,_,Defs,_),OuterNm,ThVr,L,Lx) :-
+makeMtdMap(record(_,_,Defs,_),OuterNm,ThVr,L,Lx) :-
   collectMtds(Defs,OuterNm,ThVr,L,Lx).
 
 collectMtds([],_,_,List,List).
