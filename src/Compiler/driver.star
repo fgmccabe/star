@@ -203,7 +203,6 @@ star.compiler{
 	    try{
 	      Sorted <- makeGraph(extractPkgSpec(P),Repo,Cat,ErRp)
 	      ::action[reports,cons[(importSpec,cons[importSpec])]];
---	      logMsg("package groups $(Sorted)");
 	      if Grph ^= Opts.graph then {
 		ignore(()=>putResource(Grph,makeDotGraph(P,Sorted)))
 	      };
@@ -239,6 +238,7 @@ star.compiler{
     Repp .= ref Repo;
     try{
       for (pkgImp(Lc,_,P),Imps) in Pks do{
+--	logMsg("look at $(P), pkgOk = $(pkgOk(Repo,P))");
 	if ! (pkgOk(Repo,P) && pkgImp(_,_,I) in Imps *> pkgOk(Repo,I)) then{
 	  logMsg("Compiling $(P)");
 	  if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
@@ -264,7 +264,8 @@ star.compiler{
 		mkTpl(pkgImports(PkgSpec)//(pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
 		mkTpl(Ins//assem)]);
 	    Bytes .= (strg(Code::string)::string);
-	    Repp := addSource(addPackage(Repp!!,P,Bytes),P,SrcUri::string)
+	    Repp := addSource(addPackage(Repp!!,CPkg,Bytes),CPkg,SrcUri::string)
+--	    logMsg("manifest now $(Repp!!)")
 --	    _ .= flushRepo(Repp!!)
 	  }
 	  else

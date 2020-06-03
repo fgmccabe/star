@@ -140,14 +140,15 @@ star.compiler.matcher{
     }
   } in (Triples//applyToTriple).
 
+  -- we need to be careful to preserve the original order of equations
   formCases:(cons[triple],(triple,triple)=>boolean,locn,cons[crExp],crExp)=> cons[crCase].
   formCases([],_,_,_,_) => [].
   formCases([Tr,..Triples],Eq,Lc,Vrs,Deflt) => valof action{
+--    logMsg("case lead triple $(Tr)");
     (Tx,More) .= pickMoreCases(Tr,Triples,Eq,[],[]);
 --    logMsg("form case from $([Tr,..Tx])");
---    logMsg("other cases $(More)");
-    Case .= formCase(Tr,[Tr,..Tx],Lc,Vrs,Deflt);
-    valis [Case,..formCases(reverse(More),Eq,Lc,Vrs,Deflt)].
+    Case .= formCase(Tr,sort([Tr,..Tx],compareTriple),Lc,Vrs,Deflt);
+    valis [Case,..formCases(sort(More,compareTriple),Eq,Lc,Vrs,Deflt)].
   }
 
   formCase:(triple,cons[triple],locn,cons[crExp],crExp) => crCase.
@@ -186,7 +187,7 @@ star.compiler.matcher{
 
   conditionalize([],Deflt) => Deflt.
   conditionalize([(_,(Lc,Bnds,ArgCond,Test,Val),_),..Triples],Deflt) => valof action{
---    logMsg("conditionalize $(Lc)\:$(Bnds) $(ArgCond) $(Test)");
+--    logMsg("conditionalize $(Lc)\:$(Bnds) $(ArgCond) $(Test) -> $(Val)");
     (Vl,Cnd) .= pullWhere(Val,Test);
     EqnCnd .= mergeGoal(Lc,ArgCond,Cnd);
 --    logMsg("merged conditionalize goal $(EqnCnd)");
@@ -204,15 +205,16 @@ star.compiler.matcher{
   compareScalar(crInt(_,A),crInt(_,B)) => A=<B.
   compareScalar(crFlot(_,A),crFlot(_,B)) => A=<B.
   compareScalar(crStrg(_,A),crStrg(_,B)) => A=<B.
-  compareScalar(crLbl(_,A,_),crLbl(_,B,_)) => A=<B.
   compareScalar(_,_) default => .false.
 
   sameScalarTriple:(triple,triple) => boolean.
   sameScalarTriple(([crInt(_,A),.._],_,_),([crInt(_,B),.._],_,_)) => A==B.
   sameScalarTriple(([crFlot(_,A),.._],_,_),([crFlot(_,B),.._],_,_)) => A==B.
   sameScalarTriple(([crStrg(_,A),.._],_,_),([crStrg(_,B),.._],_,_)) => A==B.
-  sameScalarTriple(([crLbl(_,A,_),.._],_,_),([crLbl(_,B,_),.._],_,_)) => A==B.
   sameScalarTriple(_,_) default => .false.
+
+  compareTriple:(triple,triple) => boolean.
+  compareTriple((_,_,IxA),(_,_,IxB)) => IxA<IxB.
 
   compareConstructorTriple:(triple,triple) => boolean.
   compareConstructorTriple(([A,.._],_,IxA),([B,.._],_,IxB)) =>

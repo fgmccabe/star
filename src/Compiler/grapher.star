@@ -23,6 +23,7 @@ star.compiler.grapher{
   makeGraph(Imp,Repo,Cat,Rp) => do{
     Defs <- scanPkgs([Imp],Repo,Cat,[],Rp);
     Gps .= topsort(Defs);
+--    logMsg("pkg graph $(Gps)");
     valis multicat(Gps)
   }
 
