@@ -31,8 +31,8 @@ isCanon(dot(_,_,_,_)).
 isCanon(enm(_,_,_)).
 isCanon(cons(_,_,_)).
 isCanon(tple(_,_)).
-isCanon(theta(_,_,_,_,_)).
-isCanon(record(_,_,_,_,_)).
+isCanon(theta(_,_,_,_)).
+isCanon(record(_,_,_,_)).
 isCanon(where(_,_,_)).
 isCanon(conj(_,_,_)).
 isCanon(disj(_,_,_)).
@@ -53,10 +53,10 @@ isCanon(forDo(_,_,_,_,_)).
 isCanon(tryCatchDo(_,_,_,_,_,_)).
 isCanon(varDo(_,_,_,_,_,_)).
 isCanon(bindDo(_,_,_,_)).
-isCanon(returnDo(_,_,_,_)).
+isCanon(returnDo(_,_,_,_,_)).
 isCanon(throwDo(_,_,_,_,_)).
 isCanon(performDo(_,_,_,_,_)).
-isCanon(simpleDo(_,_,_)).
+isCanon(simpleDo(_,_,_,_)).
 isCanon(search(_,_,_,_)).
 
 isSimpleCanon(v(_,_,_)).
@@ -83,7 +83,7 @@ isAction(assign(_,_,_)).
 isAction(apply(_,_,_,_)).
 isAction(bindDo(_,_,_,_)).
 isAction(varDo(_,_,_,_,_,_)).
-isAction(returnDo(_,_,_,_)).
+isAction(returnDo(_,_,_,_,_)).
 isAction(throwDo(_,_,_,_,_)).
 isAction(performDo(_,_,_,_,_)).
 isAction(noDo(_)).
@@ -110,8 +110,8 @@ typeOfCanon(conj(_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(disj(_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(implies(_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(cond(_,_,_,_,Tp),Tp) :-!.
-typeOfCanon(theta(_,_,_,_,Tp),Tp) :-!.
-typeOfCanon(record(_,_,_,_,Tp),Tp) :-!.
+typeOfCanon(theta(_,_,_,Tp),Tp) :-!.
+typeOfCanon(record(_,_,_,Tp),Tp) :-!.
 typeOfCanon(letExp(_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(apply(_,_,_,Tp),Tp) :-!.
 typeOfCanon(tple(_,Els),tupleType(Tps)) :-!,
@@ -139,8 +139,8 @@ locOfCanon(disj(Lc,_,_),Lc) :-!.
 locOfCanon(neg(Lc,_),Lc) :-!.
 locOfCanon(implies(Lc,_,_),Lc) :-!.
 locOfCanon(cond(Lc,_,_,_,_),Lc) :-!.
-locOfCanon(theta(Lc,_,_,_,_),Lc) :-!.
-locOfCanon(record(Lc,_,_,_,_),Lc) :-!.
+locOfCanon(theta(Lc,_,_,_),Lc) :-!.
+locOfCanon(record(Lc,_,_,_),Lc) :-!.
 locOfCanon(letExp(Lc,_,_),Lc) :- !.
 locOfCanon(case(Lc,_,_,_),Lc) :- !.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
@@ -158,10 +158,10 @@ locOfCanon(apply(Lc,_,_,_),Lc) :-!.
 locOfCanon(delayDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(bindDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(varDo(Lc,_,_,_,_,_),Lc) :-!.
-locOfCanon(returnDo(Lc,_,_,_),Lc) :-!.
+locOfCanon(returnDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(throwDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(performDo(Lc,_,_,_,_),Lc) :-!.
-locOfCanon(simpleDo(Lc,_,_),Lc) :-!.
+locOfCanon(simpleDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(noDo(Lc),Lc) :-!.
 
 dispCanonTerm(Term) :-
@@ -221,14 +221,14 @@ showCanonTerm(case(_,Bound,Cases,_),Dp,O,Ox) :-
   appStr(" in {",O1,O2),
   showRls("",Cases,Dp,O2,O3),
   appStr("}",O3,Ox).
-showCanonTerm(theta(_,Path,_,Defs,_),Dp,O,Ox) :-
+showCanonTerm(theta(_,Path,Defs,_),Dp,O,Ox) :-
   appIden(Path,O,O1),
   appStr("{",O1,O2),
   Dp2 is Dp+2,
   appNwln(Dp2,O2,O3),
   showDefs(Defs,Dp2,O3,O5),
   appStr("}",O5,Ox).
-showCanonTerm(record(_,Path,_,Defs,_),Dp,O,Ox) :-
+showCanonTerm(record(_,Path,Defs,_),Dp,O,Ox) :-
   appIden(Path,O,O1),
   appStr("{.",O1,O2),
   Dp2 is Dp+2,
@@ -341,12 +341,6 @@ showCanonAction(varDo(_,Ptn,Exp,_,_,_),Dp,O,Ox) :-
   showCanonTerm(Ptn,Dp,O,O1),
   appStr(" .= ",O1,O2),
   showCanonTerm(Exp,Dp,O2,Ox).
-showCanonAction(ifThenDo(_,Tst,Th,noDo(_),_,_,_),Dp,O,Ox) :-
-  appStr("if ",O,O1),
-  Dp2 is Dp+2,
-  showCanonTerm(Tst,Dp,O1,O2),
-  appStr(" then ",O2,O3),
-  showCanonAction(Th,Dp2,O3,Ox).
 showCanonAction(ifThenDo(_,Tst,Th,El,_,_,_),Dp,O,Ox) :-
   appStr("if ",O,O1),
   Dp2 is Dp+2,
@@ -392,7 +386,7 @@ showCanonAction(performDo(_,Exp,_,_,_),Dp,O,Ox) :-
   appStr("perform ",O,O1),
   Dp2 is Dp+2,
   showCanonTerm(Exp,Dp2,O1,Ox).
-showCanonAction(simpleDo(_,Exp,_),Dp,O,Ox) :-
+showCanonAction(simpleDo(_,Exp,_,_),Dp,O,Ox) :-
   showCanonTerm(Exp,Dp,O,Ox).
 showCanonAction(noDo(_),_,O,Ox) :-
   appStr("nop",O,Ox).

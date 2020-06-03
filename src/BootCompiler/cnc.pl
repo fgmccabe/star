@@ -46,7 +46,7 @@ genCondition(search(Lc,Ptn,Src,Iterator),Path,Lift,_Seq,Succ,Initial,Exp) :-
     equation(Lc,tple(Lc,[Pttrn,St]),PtnCond,AddToFront),
     equation(Lc,tple(Lc,[Anon,St]),enm(Lc,"true",type("star.core*boolean")),Dflt)
   ]),
-  Let = letExp(Lc,theta(Lc,ThPath,true,[FF],faceType([],[])),v(Lc,Fn,FnTp)),
+  Let = letExp(Lc,theta(Lc,ThPath,[FF],faceType([],[])),v(Lc,Fn,FnTp)),
   call(Lift,Initial,Init),
   Exp = apply(Lc,Iterator,tple(Lc,[Src,Init,Let]),MdlTp).
 
@@ -138,8 +138,8 @@ analyseExp(show(_,Rhs),Df,Dfx,Rq,Rqx,Cand) :-
   analyseExp(Rhs,Df,Dfx,Rq,Rqx,Cand).
 analyseExp(lambda(_,Rle,_),Df,Dfx,Rq,Rqx,Cond) :-
   analyseRule(Rle,Df,Dfx,Rq,Rqx,Cond).
-analyseExp(theta(_Lc,_Path,_,_Defs,_Sig),Dfx,Dfx,Rqx,Rqx,_Cand).
-analyseExp(record(_Lc,_Path,_,_Defs,_Sig),Dfx,Dfx,Rqx,Rqx,_Cand).
+analyseExp(theta(_Lc,_Path,_Defs,_Sig),Dfx,Dfx,Rqx,Rqx,_Cand).
+analyseExp(record(_Lc,_Path,_Defs,_Sig),Dfx,Dfx,Rqx,Rqx,_Cand).
 analyseExp(letExp(_,Th,Exp),Df,Dfx,Rq,Rqx,Cand) :-
   analyseExp(Th,Df,Df0,Rq,Rq0,Cand),
   analyseExp(Exp,Df0,Dfx,Rq0,Rqx,Cand).

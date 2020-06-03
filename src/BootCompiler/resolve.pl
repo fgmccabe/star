@@ -106,9 +106,9 @@ overloadTerm(enm(Lc,Rf,Tp),_,St,St,enm(Lc,Rf,Tp)).
 overloadTerm(cons(Lc,Rf,Tp),_,St,St,cons(Lc,Rf,Tp)).
 overloadTerm(tple(Lc,Args),Dict,St,Stx,tple(Lc,RArgs)) :-
   overloadLst(Args,resolve:overloadTerm,Dict,St,Stx,RArgs).
-overloadTerm(theta(Lc,Path,Anon,Defs,Sig),Dict,St,St,theta(Lc,Path,Anon,RDefs,Sig)) :-
+overloadTerm(theta(Lc,Path,Defs,Sig),Dict,St,St,theta(Lc,Path,RDefs,Sig)) :-
   overload(Defs,Dict,_RDict,RDefs).
-overloadTerm(record(Lc,Path,Anon,Defs,Sig),Dict,St,St,record(Lc,Path,Anon,RDefs,Sig)) :-
+overloadTerm(record(Lc,Path,Defs,Sig),Dict,St,St,record(Lc,Path,RDefs,Sig)) :-
   overload(Defs,Dict,_RDict,RDefs).
 overloadTerm(cell(Lc,Inn),Dict,St,Stx,cell(Lc,Inn1)) :-
   overloadTerm(Inn,Dict,St,Stx,Inn1).
@@ -339,9 +339,9 @@ resolveHead(Hd,[],Hd).
 resolveHead(enm(Lc,Nm,Tp),CVars,apply(Lc,v(Lc,Nm,Tp),CVars)).
 resolveHead(apply(Lc,v(ALc,Nm,Tp),Args,Tpx),CVars,apply(Lc,v(ALc,Nm,Tp),OArgs,Tpx)) :-
   addExtra(CVars,Args,OArgs).
-resolveHead(record(Lc,Lbl,Anon,Defs,Sig),CVars,record(Lc,Lbl,Anon,RDefs,Sig)) :-
+resolveHead(record(Lc,Lbl,Defs,Sig),CVars,record(Lc,Lbl,RDefs,Sig)) :-
   addExtraDefs(CVars,Defs,RDefs).
-resolveHead(theta(Lc,Lbl,Anon,Defs,Sig),CVars,theta(Lc,Lbl,Anon,RDefs,Sig)) :-
+resolveHead(theta(Lc,Lbl,Defs,Sig),CVars,theta(Lc,Lbl,RDefs,Sig)) :-
   addExtraDefs(CVars,Defs,RDefs).
 
 addExtra(Extra,tple(Lc,Els),tple(Lc,EEls)) :-

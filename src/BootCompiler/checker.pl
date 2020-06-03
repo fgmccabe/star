@@ -343,13 +343,13 @@ checkRecordBody(Tp,Lc,Els,Env,OEnv,Defs,Types,Path) :-
   recordEnv(Path,Lc,Els,CFace,BaseEnv,OEnv,Defs,Public),
   computeExport(Defs,Face,Public,_,Types,[],[]),!.
 
-checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,theta(Lc,ThPath,true,Defs,faceType([],[])),Bound),Path):-
+checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,theta(Lc,ThPath,Defs,faceType([],[])),Bound),Path):-
   isBraceTuple(Th,_,Els),!,
   genNewName(Path,"Γ",ThPath),
   pushScope(Env,ThEnv),
   thetaEnv(ThPath,Lc,Els,faceType([],[]),ThEnv,OEnv,Defs,_Public),
   typeOfExp(Ex,Tp,OEnv,_,Bound,Path).
-checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,record(Lc,ThPath,true,Defs,faceType([],[])),Bound),Path):-
+checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,record(Lc,ThPath,Defs,faceType([],[])),Bound),Path):-
   isQBraceTuple(Th,_,Els),!,
   genNewName(Path,"Γ",ThPath),
   pushScope(Env,ThEnv),
@@ -567,19 +567,19 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isSquareTuple(Term,Lc,Els),
   \+isListAbstraction(Term,_,_,_), !,
   squareTupleExp(Lc,Els,Tp,Env,Ev,Exp,Path).
-typeOfExp(Term,Tp,Env,Env,theta(Lc,ThPath,true,Defs,Tp),Path) :-
+typeOfExp(Term,Tp,Env,Env,theta(Lc,ThPath,Defs,Tp),Path) :-
   isBraceTuple(Term,Lc,Els),
   \+isAbstraction(Term,_,_,_),
   genNewName(Path,"θ",ThPath),
   checkThetaBody(Tp,Lc,Els,Env,_,Defs,_Types,Face,ThPath),
   checkType(Term,Face,Tp,Env).
-typeOfExp(Term,Tp,Env,Env,record(Lc,ThPath,true,Defs,Tp),Path) :-
+typeOfExp(Term,Tp,Env,Env,record(Lc,ThPath,Defs,Tp),Path) :-
   isQBraceTuple(Term,Lc,Els),
   genNewName(Path,"ρ",ThPath),
   checkRecordBody(Tp,Lc,Els,Env,_,Defs,_Types,ThPath),
   compExport(Defs,[],[],Fields,Tps,_,_,misc:bin_nop),
   checkType(Term,faceType(Fields,Tps),Tp,Env).
-typeOfExp(Term,Tp,Env,Env,theta(Lc,Lbl,false,Defs,Tp),Path) :-
+typeOfExp(Term,Tp,Env,Env,theta(Lc,ThPath,Defs,Tp),Path) :-
   isBraceTerm(Term,Lc,F,Els),
   newTypeVar("F",FnTp),
   typeOfKnown(F,consType(FnTp,Tp),Env,E0,Fun,Path),
@@ -587,7 +587,7 @@ typeOfExp(Term,Tp,Env,Env,theta(Lc,Lbl,false,Defs,Tp),Path) :-
   thetaName(Path,Lbl,ThPath),
   deRef(FnTp,BTp),
   checkThetaBody(BTp,Lc,Els,E0,_,Defs,_Types,_,ThPath).
-typeOfExp(Term,Tp,Env,Env,record(Lc,Lbl,false,Defs,Tp),Path) :-
+typeOfExp(Term,Tp,Env,Env,record(Lc,ThPath,Defs,Tp),Path) :-
   isQBraceTerm(Term,Lc,F,Els),
   newTypeVar("R",FnTp),
   typeOfKnown(F,consType(FnTp,Tp),Env,E0,Fun,Path),
@@ -902,7 +902,7 @@ checkAction(Term,Env,Ev,Contract,ExTp,ValTp,ErTp,
   checkAction(E,Env,E2,Contract,ExTp,ValTp,ErTp,El,Path),
   mergeDict(E1,E2,Env,Ev).
 checkAction(Term,Env,Env,Contract,ExTp,ValTp,ErTp,
-	    ifThenDo(Lc,Ts,Th,noDo(Lc),ExTp,ValTp,ErTp),Path) :-
+	    ifThenDo(Lc,Ts,Th,returnDo(Lc,tple(Lc,[]),ExTp,tupleType([]),ErTp),ExTp,ValTp,ErTp),Path) :-
   isIfThen(Term,Lc,T,H),!,
   findType("boolean",Lc,Env,LogicalTp),
   typeOfExp(T,LogicalTp,Env,Et,Ts,Path),
@@ -944,7 +944,7 @@ checkAction(Term,Env,Env,_Contract,ExTp,ValTp,ErTp,
 checkAction(Term,Env,Ev,Contract,ExTp,ValTp,ErTp,Exp,Path) :-
   isBraceTuple(Term,_,[Stmt]),!,
   checkAction(Stmt,Env,Ev,Contract,ExTp,ValTp,ErTp,Exp,Path).
-checkAction(Term,Env,Ev,_,ExTp,ValTp,ErTp,simpleDo(Lc,Exp,ExTp),Path) :-
+checkAction(Term,Env,Ev,_,ExTp,ValTp,ErTp,simpleDo(Lc,Exp,ExTp,ErTp),Path) :-
   isRoundTerm(Term,Lc,_,_),!,
   mkTypeExp(ExTp,[ErTp,ValTp],MTp),
   typeOfExp(Term,MTp,Env,Ev,Exp,Path).
@@ -952,7 +952,8 @@ checkAction(Term,Env,Env,_,_,_,_,noDo(Lc),_) :-
   locOfAst(Term,Lc),
   reportError("invalid action: %s",[Term],Lc).
 
-checkAssignment(Lc,L,R,Env,Ev,ExTp,ValTp,ErTp,simpleDo(Lc,Exp,ExTp),Path) :-
+checkAssignment(Lc,L,R,Env,Ev,ExTp,ValTp,ErTp,simpleDo(Lc,Exp,ExTp,ErTp),
+		Path) :-
   (isIndexTerm(L,LLc,C,I) ->
      unary(LLc,"!!",C,CC),
     ternary(LLc,"_put",CC,I,R,Repl),

@@ -41,10 +41,10 @@ freeVars(abstraction(_,B,C,Z,G,_),Ex,Q,F,FV) :-
   freeVars(C,Ex1,Q,F0,F1),
   freevars(Z,Ex1,Q,F1,F2),
   freeVars(G,Ex1,Q,F2,FV).
-freeVars(theta(_,_,_,Defs,_),Ex,Q,F,Fv) :-
+freeVars(theta(_,_,Defs,_),Ex,Q,F,Fv) :-
   definedVars(Defs,Ex,Ex1),
   freeVarsInDefs(Defs,Ex1,Q,F,Fv).
-freeVars(record(_,_,_,Defs,_),Ex,Q,F,Fv) :-
+freeVars(record(_,_,Defs,_),Ex,Q,F,Fv) :-
   freeVarsInDefs(Defs,Ex,Q,F,Fv).
 freeVars(letExp(_,Rc,Bnd),Ex,Q,F,Fv) :-
   freeVars(Rc,Ex,Q,F,F0),
@@ -96,8 +96,8 @@ ptnVars(cons(_,_,_),_,Q,Q).
 ptnVars(where(_,Ptn,C),A,Q,Qx) :- ptnVars(Ptn,A,Q,Q0), ptnGoalVars(C,A,Q0,Qx).
 ptnVars(tple(_,Els),A,Q,Qx) :- ptnVarsInList(Els,A,Q,Qx).
 ptnVars(apply(_,_,Arg,_),A,Q,Qx) :- ptnVars(Arg,A,Q,Qx).
-ptnVars(theta(_,_,_,Defs,_),A,Q,Qx) :- ptnVarsInDefs(Defs,A,Q,Qx).
-ptnVars(record(_,_,_,Defs,_),A,Q,Qx) :- ptnVarsInDefs(Defs,A,Q,Qx).
+ptnVars(theta(_,_,Defs,_),A,Q,Qx) :- ptnVarsInDefs(Defs,A,Q,Qx).
+ptnVars(record(_,_,Defs,_),A,Q,Qx) :- ptnVarsInDefs(Defs,A,Q,Qx).
 ptnVars(dot(_,_,_,_),_,Q,Q).
 
 ptnVarsInList([],_,Q,Q).
