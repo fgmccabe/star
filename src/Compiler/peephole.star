@@ -19,6 +19,7 @@ star.compiler.peephole{
   peep([iJmp(Lb),iLbl(Lb),..Code]) => peep([iLbl(Lb),..Code]).
   peep([iCall(Lb),iFrame(_),.iRet,..Code]) => [iTail(Lb),..peep(Code)].
   peep([iOCall(Lb),iFrame(_),.iRet,..Code]) => [iOTail(Lb),..peep(Code)].
+  peep([iRst(_),iRst(D),..Code]) => peep([iRst(D),..Code]).
   peep([Ins,..Code]) => [Ins,..peep(Code)].
 
   copyPeep(0,Code) => peep(Code).

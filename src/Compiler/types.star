@@ -123,14 +123,14 @@ star.compiler.types{
   deRef(Tp) default => Tp.
 
   public newTypeVar:(string) => tipe.
-  newTypeVar(Pre) => tVar(tv{binding := .none. constraints := []. },genSym(Pre)).
+  newTypeVar(Pre) => tVar(tv{. binding := .none. constraints := []. .},genSym(Pre)).
 
   public newTypeFun:(string,integer) => tipe.
-  newTypeFun(Pre,Ax) => tFun(tv{binding := .none. constraints := []. },Ax,genSym(Pre)).
+  newTypeFun(Pre,Ax) => tFun(tv{. binding := .none. constraints := []. .},Ax,genSym(Pre)).
 
   public newTVFieldConstraint:(string,tipe) => tipe.
   newTVFieldConstraint(Nm,FldTp)  => valof action{
-    TV .= tv{binding := .none. constraints := []};
+    TV .= tv{.binding := .none. constraints := [].};
     V .= tVar(TV,genSym("_"));
     TV.constraints := [fieldConstraint(V,faceType([(Nm,FldTp)],[]))];
     valis V
