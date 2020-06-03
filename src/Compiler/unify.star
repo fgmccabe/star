@@ -8,8 +8,35 @@ star.compiler.unify{
   import star.compiler.misc.
   import star.compiler.types.
 
+  reset ::= resetVar(tipe) | resetConstraint(tipe,cons[constraint]).
+
   public sameType:(tipe,tipe,dict) => boolean.
-  sameType(Tp1,Tp2,Envir) => let{
+  sameType(Tp1,Tp2,Envir) => let{.
+    resets : ref cons[reset].
+    resets := [].
+
+    resetBindings = action{
+      for Rx in resets!! do{
+	if resetVar(BndVr) .= Rx then {
+	  resetBinding(BndVr)
+	} else if resetConstraint(CxV,Cx) .= Rx then {
+	  setConstraints(CxV,Cx)
+	}
+      };
+      valis .false
+    }
+
+    addVarBinding(TV) => action{
+      resets := [resetVar(TV),..resets!!];
+      valis ()
+    }
+
+    addVarConstraints(V) => action{
+      resets := [resetConstraint(V,constraintsOf(V)),..resets!!];
+      valis ()
+    }
+
+  .} in let{
     same(T1,T2,Env) => sm(deRef(T1),deRef(T2),Env).
     
     sm(kFun(Nm,Ar),kFun(Nm,Ar),_) => .true.
@@ -69,32 +96,6 @@ star.compiler.unify{
     varBinding(T1,T2,Env) where ! occursIn(T1,T2) => 
       bind(T1,T2,Env).
     varBinding(_,_,_) default => valof resetBindings.
-
-    reset ::= resetVar(tipe) | resetConstraint(tipe,cons[constraint]).
-
-    resets : ref cons[reset].
-    resets := [].
-
-    resetBindings = action{
-      for Rx in resets!! do{
-	if resetVar(BndVr) .= Rx then {
-	  resetBinding(BndVr)
-	} else if resetConstraint(CxV,Cx) .= Rx then {
-	  setConstraints(CxV,Cx)
-	}
-      };
-      valis .false
-    }
-
-    addVarBinding(TV) => action{
-      resets := [resetVar(TV),..resets!!];
-      valis ()
-    }
-
-    addVarConstraints(V) => action{
-      resets := [resetConstraint(V,constraintsOf(V)),..resets!!];
-      valis ()
-    }
 
     bind(V,T,Env) where isUnbound(T) => valof do{
       CV .= constraintsOf(V);
