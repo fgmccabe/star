@@ -272,10 +272,6 @@ star.compiler.assem{
     disp(global(Nm,Sig,Ins)) => ssSeq([ss("global "),disp(Nm),ss(":"),disp(Sig),ss("\n"),..reverse(showMnem(Ins,0,[]))]).
   .}
 
-  implementation display[assemLbl] => {.
-    disp(al(Nm)) => ss(Nm).
-  .}
-
   public implementation display[assemOp] => {.
     disp(Op) => ssSeq(reverse(showMnem([Op],0,[]))).
   .}

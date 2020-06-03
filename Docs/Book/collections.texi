@@ -14,7 +14,7 @@ The collections architecture has four main components:
 @enumerate
 @item
 a range of standard collection types -- including cons lists, first-in
-first-out queues, and ideal hash trees;
+first-out queues, ideal hash trees and sets;
 @item
 a range of standard functions -- mostly defined in contracts -- that
 define the core capabilities of functions over collections;
