@@ -216,7 +216,7 @@ star.finger{
     ( consr(L,F) .= viewr(Md) ?
 	deep(Lft,F,toDigit(L)) ||
 	toTree(Lft)).
-  deepL(some(L),Md,Rgt) => deep(L,Md,Rgt).
+  deepR(some(L),Md,Rgt) => deep(L,Md,Rgt).
 
   implementation all e ~~ back[digit[e]->>e] => {
     last(one(x)) => some(x).

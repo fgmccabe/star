@@ -96,6 +96,11 @@ star.cons{
   zip([],[]) => [].
   zip([E,..Es],[F,..Fs]) => [(E,F),..zip(Es,Fs)].
 
+  public unzip:all e,f ~~ (cons[(e,f)])=>(cons[e],cons[f]).
+  unzip([]) => ([],[]).
+  unzip([(A,B),..Ls]) where
+      (L,R) .= unzip(Ls) => ([A,..L],[B,..R]).
+
   -- Implement iteration of executions over a cons list
   public implementation all t ~~ iter[cons[t]->>t] => {
     _iter(.nil,St,_) => St.
