@@ -59,7 +59,7 @@ add_custom_target(star.operators DEPENDS ops ${OPERATORS_JSON}
 add_custom_target(star.escapes DEPENDS genesc ${ESCAPES_ST})
 
 add_custom_command(OUTPUT ${ESCAPES_ST} DEPENDS genesc
-        COMMAND genesc -s star.comp.escapes ${ESCAPES_ST}
+        COMMAND genesc -s star.compiler.escapes ${ESCAPES_ST}
         COMMENT "Creating star escapes"
         )
 
