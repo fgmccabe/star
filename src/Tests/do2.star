@@ -4,7 +4,7 @@ test.do2{
 
   -- Test action notation
 
-  doFirst() => do{
+/*  doFirst() => do{
     A .= ref 1;
 
     A := A!!+A!!;
@@ -31,7 +31,7 @@ test.do2{
     };
     valis Alpha!!
   }
-
+*/
   doIf3(X) => action{
     Alpha .= ref .false;
 
@@ -44,9 +44,9 @@ test.do2{
 
   main:()=>action[(),()].
   main() => do{
-    doFirst();
-    assert valof doIf(4);
-    assert valof doIf2(4);
+--    doFirst();
+--    assert valof doIf(4);
+--    assert valof doIf2(4);
     assert valof doIf3(4)
   }
 }

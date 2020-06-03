@@ -38,20 +38,28 @@ star.repo.manifest{
   toJson:(manifest)=>json.
   toJson(man(Ps)) => jColl(ixRight((K,pEntry(P,Vs),M) => M[K->jColl(mkVersions(Vs))],[],Ps)).
 
+  implementation coercion[pEntry,json] => {.
+    _coerce(pEntry(P,Vs)) => jColl([P->jColl(mkVersions(Vs))])
+  .}
+
+  public implementation display[manifest] => {.
+    disp(M) => disp(M::json).
+  .}
+
   mkVersions:(cons[(version,mInfo)]) => map[string,json].
   mkVersions(Vs) => foldLeft(((V,mInfo(_,I)),M)=>M[V::string->mkEntry(I)],[],Vs).
 
   mkEntry:(map[string,string]) => json.
   mkEntry(M) => jColl(ixRight((K,T,MM)=>MM[K->jTxt(T)],[],M)).
 
-  public implementation display[manifest] => {.
-    disp(M) => disp(M::json).
+  implementation display[pEntry] => {.
+    disp(P) => disp(P::json)
   .}
 
   public locateInManifest:(manifest,pkg,string) => option[string].
   locateInManifest(man(M),pkg(P,V),K) where
-    pEntry(_,Vs) ^= M[P] =>
-        hasCompatibleVersion(Vs,V,K).
+      pEntry(_,Vs) ^= M[P] =>
+    hasCompatibleVersion(Vs,V,K).
   locateInManifest(_,_,_) => .none.
 
   hasCompatibleVersion([],_,_) => .none.

@@ -1,7 +1,6 @@
 {
   "content": {
     "test.a": "a.star",
-    "test.ar": "ar.star",
     "test.as": "as.star",
     "test.al": "al.star",
     "test.assign": "assign.star",
@@ -52,6 +51,7 @@
     "test.l": "l.star",
     "test.l2" : "l2.star",
     "test.let": "letish.star",
+    "test.lt": "lt.star",
     "test.m": "m.star",
     "test.mm": "mm.star",
     "test.ms" : "ms.star",
@@ -61,6 +61,7 @@
     "test.p0": "p0.star",
     "test.p1": "p1.star",
     "test.p1a": "p1a.star",
+    "test.pr": "pr.star",
     "test.q0": "q0.star",
     "test.q1": "q1.star",
     "test.qd": "qd.star",
