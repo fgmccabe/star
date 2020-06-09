@@ -13,6 +13,7 @@
 #include "engineP.h"
 #include "debugP.h"
 #include <math.h>
+#include <memo.h>
 
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<(unsigned)16)|lo32))
 #define collectOff(pc) (hi32 = collectI32(pc), (pc)+(signed)hi32)
@@ -503,6 +504,71 @@ retCode run(processPo P) {
         continue;
       }
 
+      case AM: {
+        termPo cl = pop();
+        memoPo memo = memoVar(H, cl);
+        push(memo);
+        continue;
+      }
+
+      case LM: {
+        memoPo memo = C_MEMO(pop());
+
+        if (isMemoSet(memo)) {
+          termPo vr = getMemoContent(memo);
+          push(vr);     /* load contents of memo var */
+        } else {
+          termPo prov = getMemoProvider(memo);  // Set up an OCall to the provider
+
+          normalPo nProg = C_TERM(prov);
+
+          push(memo);     // Push the memo itself as argument to provider
+
+          push(PROG);
+          push(PC);       /* build up the frame. */
+          labelPo oLbl = termLbl(nProg);
+          PROG = labelCode(objLabel(oLbl, 1));       /* set up for object call */
+          PC = entryPoint(PROG);
+          LITS = codeLits(PROG);
+
+          push(FP);
+          FP = (framePo) SP;     /* set the new frame pointer */
+
+          if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
+            saveRegisters(P, SP);
+            if (extendStack(P, 2, 0) != Ok) {
+              logMsg(logFile, "cannot extend stack");
+              bail();
+            }
+            restoreRegisters(P);
+          }
+          assert(SP - stackDelta(PROG) > (ptrPo) P->stackBase);
+
+          integer lclCnt = lclCount(PROG);  /* How many locals do we have */
+          SP -= lclCnt;
+#ifdef TRACEEXEC
+          for (integer ix = 0; ix < lclCnt; ix++)
+            SP[ix] = voidEnum;
+#endif
+        }
+        continue;
+      }
+
+      case SM: {  // store tos into memo at tos-1
+        termPo tos = pop();
+        memoPo memo = C_MEMO(pop());
+        setMemoValue(memo, tos);
+        continue;
+      }
+
+      case TM: {
+        termPo tos = pop();
+        memoPo memo = C_MEMO(pop());
+        setMemoValue(memo, tos);
+        push(tos);
+        continue;
+      }
+
       case IAdd: {
         termPo Lhs = pop();
         termPo Rhs = pop();
@@ -740,7 +806,23 @@ retCode run(processPo P) {
         normalPo cl = allocateStruct(H, cd); /* allocate a closure on the heap */
         for (int ix = 0; ix < cd->arity; ix++)
           cl->args[ix] = pop();   /* fill in free variables by popping from stack */
-        push(cl);       /* put the closure back on the stack */
+        push(cl);       /* put the structure back on the stack */
+        continue;
+      }
+
+      case AlTpl: {      /* Allocate new tuple */
+        labelPo cd = C_LBL(nthArg(LITS, collectI32(PC)));
+        if (enoughRoom(H, cd) != Ok) {
+          saveRegisters(P, SP);
+          retCode ret = gcCollect(H, NormalCellCount(cd->arity));
+          if (ret != Ok)
+            return ret;
+          restoreRegisters(P);
+        }
+        normalPo cl = allocateStruct(H, cd); /* allocate a closure on the heap */
+        for (int ix = 0; ix < cd->arity; ix++)
+          cl->args[ix] = voidEnum;   /* fill in free variables with voids */
+        push(cl);       /* put the structure back on the stack */
         continue;
       }
 
