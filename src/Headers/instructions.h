@@ -42,6 +42,11 @@ instruction(StA,arg,-1,"store tos to args[xx]")
 instruction(StG,glb,-1,"store into a global variable")
 instruction(TG,glb,0,"copy into a global variable")
 
+instruction(AM,tOs,0,"allocate a memo")
+instruction(LM,tOs,0,"load contents of memo")
+instruction(SM,tOs,-2,"store into memo")
+instruction(TM,tOs,-1,"copy tos into memo")
+
 instruction(CLbl,off,-1,"T,Lbl --> test for a data term, branch if lbl")
 instruction(Nth,i32,0,"T --> el, pick up the nth element")
 instruction(StNth,i32,-2,"T el --> store in nth element")
@@ -82,7 +87,8 @@ instruction(FLt,tOs,-1,"L R --> L<R")
 instruction(FGe,tOs,-1,"L R --> L>=R")
 instruction(FCmp,off,-2,"L R --> branch if not same floating point")
 
-instruction(Alloc,sym,1,"new structure, code from constant pool")
+instruction(Alloc,sym,1,"new structure, elements from stack")
+instruction(AlTpl,sym,1,"new empty structure")
 
 instruction(Cmp,off,-1,"t1 t2 --> , branch to offset if not same literal")
 

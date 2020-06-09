@@ -4,6 +4,7 @@
 
 #include "memoP.h"
 #include <assert.h>
+#include <globals.h>
 
 static long memoSize(specialClassPo cl, termPo o);
 static termPo memoCopy(specialClassPo cl, termPo dst, termPo src);
@@ -34,10 +35,10 @@ memoPo C_MEMO(termPo t) {
   return (memoPo) t;
 }
 
-memoPo memoVar(heapPo H, termPo provider, termPo content) {
+memoPo memoVar(heapPo H, termPo provider) {
   memoPo memo = (memoPo) allocateObject(H, memoClass, MemoCellCount);
 
-  memo->content = content;
+  memo->content = voidEnum;
   memo->provider = provider;
   memo->clss = memoClass;
   return memo;
@@ -76,18 +77,18 @@ termPo memoScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 retCode memoDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   memoPo memo = C_MEMO(t);
 
-  if (memoIsSet(memo))
+  if (isMemoSet(memo))
     return outMsg(out, "[memo: %t]", memo->content);
   else
     return outMsg(out, "[memo (unset): %t]", memo->provider);
 }
 
-logical memoIsSet(memoPo memo) {
+logical isMemoSet(memoPo memo) {
   return (logical) (memo->content != Null);
 }
 
-retCode memoSetValue(memoPo memo, termPo value) {
-  if (memoIsSet(memo)) {
+retCode setMemoValue(memoPo memo, termPo value) {
+  if (isMemoSet(memo)) {
     if (sameTerm(memo->content, value))
       return Ok;
     else
@@ -98,10 +99,10 @@ retCode memoSetValue(memoPo memo, termPo value) {
   }
 }
 
-termPo memoGetContent(memoPo v) {
-  return v->content;
+termPo getMemoContent(memoPo memo) {
+  return memo->content;
 }
 
-termPo memoGetProvider(memoPo memo) {
+termPo getMemoProvider(memoPo memo) {
   return memo->provider;
 }

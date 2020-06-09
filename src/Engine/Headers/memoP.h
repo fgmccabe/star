@@ -9,7 +9,7 @@
 #include "termP.h"
 #include "heapP.h"
 
-typedef struct _memo_rec_ {
+typedef struct memo_rec_ {
   clssPo clss;                  // == memoClass
   integer hash;
   termPo content;               // Contents
