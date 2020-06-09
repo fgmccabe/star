@@ -441,7 +441,7 @@ trPtnCallOp(Lc,Nm,Args,Ptn,Q,Qx,Map,_,Ex,Ex) :-
   lookupClassName(Map,Nm,Reslt),
   implementPtnCall(Reslt,Lc,Nm,Args,Ptn,Map,Q,Qx).
 
-implementPtnCall(localFun(Fn,_,_,Ar,ThVr),Lc,_,Args,whr(Lc,X,mtch(Lc,X,cll(Lc,lbl(Fn,A2),XArgs))),Map,Q,Qx) :-
+implementPtnCall(localFun(Fn,_,Ar,ThVr),Lc,_,Args,whr(Lc,X,mtch(Lc,X,cll(Lc,lbl(Fn,A2),XArgs))),Map,Q,Qx) :-
   genVar("_X",X),
   liftVar(Lc,ThVr,Map,Vr,Q,Qx),
   concat(Args,[Vr],XArgs),
@@ -554,7 +554,7 @@ implementVarExp(notInMap,_,Nm,idnt(Nm),_,Q,Qx) :-
   merge([idnt(Nm)],Q,Qx).
 implementVarExp(moduleFun(_,Closure,_),_,_,ctpl(lbl(Closure,1),[Unit]),_,Q,Q) :-
   mkTpl([],Unit).
-implementVarExp(localFun(_Fn,_,Closure,_,ThVr),Lc,_,ctpl(lbl(Closure,1),[Vr]),Map,Q,Qx) :-
+implementVarExp(localFun(_Fn,Closure,_,ThVr),Lc,_,ctpl(lbl(Closure,1),[Vr]),Map,Q,Qx) :-
   liftVar(Lc,ThVr,Map,Vr,Q,Qx).
 implementVarExp(_Other,Lc,Nm,idnt(Nm),_,Q,Q) :-
   reportError("cannot handle %s in expression",[Nm],Lc).
@@ -583,7 +583,7 @@ mkBinds(Lc,[],[],Exp,perf(Lc,Exp)).
 mkBinds(Lc,[P|Ps],[A|As],Exp,Reslt) :-
   mkBinds(Lc,Ps,As,seq(Lc,varD(Lc,P,A),Exp),Reslt).
 
-implementFunCall(Lc,localFun(Fn,_,_,Ar,ThVr),_,Args,cll(Lc,lbl(Fn,Ar2),XArgs),Q,Qx,Map,_,Ex,Ex) :-
+implementFunCall(Lc,localFun(Fn,_,Ar,ThVr),_,Args,cll(Lc,lbl(Fn,Ar2),XArgs),Q,Qx,Map,_,Ex,Ex) :-
   liftVar(Lc,ThVr,Map,Vr,Q,Qx),
   concat([Vr],Args,XArgs),
   Ar2 is Ar+1.
@@ -831,8 +831,7 @@ collectMtds([Entry|Defs],OuterNm,ThVr,List,Lx) :-
   collectMtds(Defs,OuterNm,ThVr,L0,Lx).
 
 collectMtd(funDef(_Lc,Nm,LclName,Tp,_,_),OuterNm,ThV,List,
-      [(Nm,localFun(LclName,AccessName,ClosureName,Ar,ThV))|List]) :-
-  localName(OuterNm,"%",Nm,AccessName),
+      [(Nm,localFun(LclName,ClosureName,Ar,ThV))|List]) :-
   localName(OuterNm,"^",Nm,ClosureName),
   progTypeArity(Tp,Ar).
 collectMtd(varDef(_Lc,_Nm,_LclName,_,_Tp,_),_OuterNm,_ThV,List,List) :-!.
@@ -865,7 +864,7 @@ accessRule(_,Lc,Nm,LclName,ThV,(Lc,[ThV,DotName],enum("star.core#true"),cll(Lc,l
 
 programAccess(moduleFun(Prog,Closure,Arity),Prog,Closure,Arity).
 programAccess(moduleCons(Prog,Closure,Arity),Prog,Closure,Arity).
-programAccess(localFun(Prog,_,Closure,Arity,_),Prog,Closure,Arity).
+programAccess(localFun(Prog,Closure,Arity,_),Prog,Closure,Arity).
 programAccess(localVar(Prog,Closure,_),Prog,Closure,1).
 
 makeDotLbl(Nm,enum(Nm)).

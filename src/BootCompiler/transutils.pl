@@ -71,14 +71,14 @@ anyDef(_).
 lookupThetaVar(Map,Nm,V) :-
   lookup(Map,Nm,transutils:getThetaVar(V),R), R\=notInMap.
 
-getThetaVar(ThVr,localFun(_,_,_,_,ThVr)).
+getThetaVar(ThVr,localFun(_,_,_,ThVr)).
 getThetaVar(ThVr,localClass(_,_,_,_,ThVr)).
 % getThetaVar(ThVr,labelArg(_,_,ThVr)).
 
 lookupFunName(Map,Nm,V) :-
   lookup(Map,Nm,isFnDef,V).
 
-isFnDef(localFun(_,_,_,_,_)).
+isFnDef(localFun(_,_,_,_)).
 isFnDef(moduleFun(_,_,_)).
 isFnDef(localClass(_,_,_,_,_)).
 isFnDef(moduleCons(_,_,_)).
@@ -116,7 +116,7 @@ definedInDefs([_|Defs],Pr,Prx) :-
   definedInDefs(Defs,Pr,Prx).
 
 definedP(_Nm,moduleFun(_,_,_)).
-definedP(_Nm,localFun(_,_,_,_,_)).
+definedP(_Nm,localFun(_,_,_,_)).
 definedP(_Nm,moduleVar(_)).
 definedP(_Nm,localVar(_,_,_)).
 
@@ -220,14 +220,12 @@ showLayerDef((Nm,moduleFun(LclName,AccessName,Ar)),O,Ox) :-
   appStr(AccessName,O3,O4),
   appStr("/",O4,O7),
   appInt(Ar,O7,Ox).
-showLayerDef((Nm,localFun(LclName,AccessName,ClosureName,Ar,ThV)),O,Ox) :-
+showLayerDef((Nm,localFun(LclName,ClosureName,Ar,ThV)),O,Ox) :-
   appStr("Fun ",O,O0),
   appStr(Nm,O0,O0a),
   appStr("=",O0a,O1),
   appStr(LclName,O1,O2),
-  appStr("«",O2,O3),
-  appStr(AccessName,O3,O4),
-  appStr("»:[",O4,O5),
+  appStr("»:[",O2,O5),
   appStr(ClosureName,O5,O6),
   appStr("@",O6,O6a),
   showTerm(ThV,0,O6a,O6b),
