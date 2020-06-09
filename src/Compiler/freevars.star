@@ -73,7 +73,7 @@ star.compiler.freevars{
 
   public freeVarsInGroup:(cons[canonDef],set[crVar])=>set[crVar].
   freeVarsInGroup(Defs,Q) => let{
-    Excl1 = exclDfs(Defs,[],[])
+    Excl1 = exclDfs(Defs,[],[]).
   } in foldLeft((D,F)=>freeVarsInDef(D,Excl1,Q,F),[],Defs).
 
   public freeVarsInLetRec:(cons[canonDef],canon,set[crVar])=>set[crVar].

@@ -186,7 +186,7 @@ star.compiler.dependencies{
     locallyDefined(Stmts,removeLocalDef(St,All)).
 
   removeLocalDef(St,All) where (_,Id) ^= ruleName(St) =>
-    All[!varSp(Id)].
+    All[~varSp(Id)].
 
   collectStmtsRefs([],_,_,Rf,_) => either(Rf).
   collectStmtsRefs([St,..Sts],All,Annots,Rf,Rp) => do{
@@ -613,7 +613,7 @@ star.compiler.dependencies{
   collectFaceType(_,All,R,_) => either(R).
 
   collectName:(defnSp,map[defnSp,defnSp],cons[defnSp])=>cons[defnSp].
-  collectName(Sp,All,SoFar) where Rf^=All[Sp] && !Sp in SoFar => [Sp,..SoFar].
+  collectName(Sp,All,SoFar) where Rf^=All[Sp] && ~Sp in SoFar => [Sp,..SoFar].
   collectName(_,_,SoFar) default => SoFar.
 
   filterOut:(map[defnSp,defnSp],cons[ast]) => map[defnSp,defnSp].
@@ -621,5 +621,5 @@ star.compiler.dependencies{
     qName(V) where (_,Id) ^= isName(V) => some(Id).
     qName(V) where (_,L,_) ^= isBinary(V,"/") => qName(L).
     qName(_) default => .none.
-  } in foldLeft((V,MM) where Id^=qName(V) => MM[!varSp(Id)],M,Q).
+  } in foldLeft((V,MM) where Id^=qName(V) => MM[~varSp(Id)],M,Q).
 }

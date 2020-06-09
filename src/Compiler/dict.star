@@ -69,7 +69,7 @@ star.compiler.dict{
 
   public undeclareImplementation:(string,dict) => dict.
   undeclareImplementation(Nm,[scope(Tps,Vrs,Cns,Imps),..Env]) =>
-    [scope(Tps,Vrs,Cns,Imps[!Nm]),..Env].
+    [scope(Tps,Vrs,Cns,Imps[~Nm]),..Env].
 
   public pushScope:(dict)=>dict.
   pushScope(Env) => [scope([],[],[],[]),..Env].

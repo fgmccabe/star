@@ -93,7 +93,7 @@ star.compiler.unify{
     updateEnv(kFun(K,_),T,Env) => declareType(K,.none,T,faceType([],[]),Env).
 
     varBinding(T1,T2,_) where isIdenticalVar(T1,T2) => .true.
-    varBinding(T1,T2,Env) where ! occursIn(T1,T2) => 
+    varBinding(T1,T2,Env) where ~ occursIn(T1,T2) => 
       bind(T1,T2,Env).
     varBinding(_,_,_) default => valof resetBindings.
 
@@ -192,7 +192,7 @@ star.compiler.unify{
   fcTp(faceType(Flds,Tps)) => faceType(Flds,Tps).
   fcTp(_) default => faceType([],[]).
 
-  occursIn(TV,Tp) where !isIdenticalVar(TV,Tp) =>
+  occursIn(TV,Tp) where ~isIdenticalVar(TV,Tp) =>
       occIn(vrNm(TV),deRef(Tp)).
 
   occIn(Id,tVar(_,Nm)) => Id==Nm.

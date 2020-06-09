@@ -239,7 +239,7 @@ star.compiler{
     try{
       for (pkgImp(Lc,_,P),Imps) in Pks do{
 --	logMsg("look at $(P), pkgOk = $(pkgOk(Repo,P))");
-	if ! (pkgOk(Repo,P) && pkgImp(_,_,I) in Imps *> pkgOk(Repo,I)) then{
+	if ~ (pkgOk(Repo,P) && pkgImp(_,_,I) in Imps *> pkgOk(Repo,I)) then{
 	  logMsg("Compiling $(P)");
 	  if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
 --	  logMsg("source uri: $(SrcUri), CPkg=$(CPkg)");

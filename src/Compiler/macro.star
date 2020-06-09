@@ -229,7 +229,7 @@ star.compiler.macro{
     RR <- macroTerm(R,Rp);
     if (_,K,V) ^= isBinary(RR,"->") then
       valis ternary(Lc,"_put",LL,K,V)
-    else if (_,K) ^= isUnary(RR,"!") then
+    else if (_,K) ^= isNegation(RR) then
       valis binary(Lc,"_remove",LL,K)
     else
     valis binary(Lc,"_index",LL,RR)
@@ -676,7 +676,7 @@ star.compiler.macro{
     either(active(macroSquarePtn(Lc,Els))).
   makeSeqPtn(_,_,_) => either(.inactive).
 
-  makeSeqExp(A,.expression,Rp) where (Lc,Els) ^= isSqTuple(A) && !_^=isListComprehension(A)=>
+  makeSeqExp(A,.expression,Rp) where (Lc,Els) ^= isSqTuple(A) && ~_^=isListComprehension(A)=>
     either(active(macroSquareExp(Lc,Els))).
   makeSeqExp(_,_,_) => either(.inactive).
 
@@ -729,7 +729,7 @@ star.compiler.macro{
 
   public buildMain:(cons[ast])=>cons[ast].
   buildMain(Els) where (Lc,Tp) ^= head(lookForSignature(Els,"main")) &&
-      !_^=head(lookForSignature(Els,"_main")) =>
+      ~_^=head(lookForSignature(Els,"_main")) =>
     synthesizeMain(Lc,Tp,Els).
   buildMain(Els) default => Els.
 

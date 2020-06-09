@@ -14,6 +14,9 @@ star.compiler.core{
     | crStrg(locn,string)
     | crLbl(locn,string,tipe)
     | crTerm(locn,string,cons[crExp],tipe)
+    | crMemo(locn,crExp,tipe)
+    | crMemoGet(locn,crExp,tipe)
+    | crMemoSet(locn,crExp,crExp)
     | crCall(locn,string,cons[crExp],tipe)
     | crECall(locn,string,cons[crExp],tipe)
     | crIntrinsic(locn,assemOp,cons[crExp],tipe)
@@ -26,7 +29,7 @@ star.compiler.core{
     | crNeg(locn,crExp)
     | crCnd(locn,crExp,crExp,crExp)
     | crLtt(locn,crVar,crExp,crExp)
-    | crLtRec(locn,crVar,crExp,crExp)
+    | crLtRec(locn,crVar,cons[crExp],crExp)
     | crCase(locn,crExp,cons[crCase],crExp,tipe)
     | crAbort(locn,string,tipe)
     | crWhere(locn,crExp,crExp)
@@ -37,7 +40,7 @@ star.compiler.core{
   public crCase ~> (locn,crExp,crExp).
 
   public crDefn ::= fnDef(locn,string,tipe,cons[crVar],crExp) |
-    vrDef(locn,crVar,crExp) |
+    glbDef(locn,crVar,crExp) |
     rcDef(locn,string,tipe,cons[(string,tipe,integer)]).
 
   public dispCrProg:(cons[crDefn])=>ss.
@@ -53,7 +56,7 @@ star.compiler.core{
 	ss(Nm),ss("("),
 	ssSeq(interleave(Args//disp,ss(","))),ss(") => "),
 	dspExp(Rep,Off)]).
-  dspDef(vrDef(Lc,V,Rep),Off) =>
+  dspDef(glbDef(Lc,V,Rep),Off) =>
     ssSeq([ss("glb: "),disp(Lc),ss("\n"),
 	disp(V),/*ss(":"),disp(typeOf(V)),*/ss("="),
 	dspExp(Rep,Off)]).
@@ -76,13 +79,17 @@ star.compiler.core{
   dspExp(crCall(_,Op,As,_),Off) => ssSeq([ss(Op),ss("("),ssSeq(dsplyExps(As,Off)),ss(")")]).
   dspExp(crTerm(_,Op,As,_),Off) where isTplLbl(Op) => ssSeq([ss("‹"),ssSeq(dsplyExps(As,Off)),ss("›")]).
   dspExp(crTerm(_,Op,As,_),Off) => ssSeq([ss(Op),ss("‹"),ssSeq(dsplyExps(As,Off)),ss("›")]).
+  dspExp(crMemo(_,Gen,_),Off) => ssSeq([ss("memo‹"),dspExp(Gen,Off),ss("›")]).
+  dspExp(crMemoGet(_,Memo,_),Off) => ssSeq([ss("getmemo‹"),dspExp(Memo,Off),ss("›")]).
+  dspExp(crMemoSet(_,Memo,Vl),Off) => ssSeq([ss("setmemo‹"),dspExp(Memo,Off),ss(":="),
+      dspExp(Vl,Off),ss("›")]).
   dspExp(crDot(_,O,Ix,_),Off) => ssSeq([dspExp(O,Off),ss("."),disp(Ix)]).
   dspExp(crTplOff(_,O,Ix,_),Off) => ssSeq([dspExp(O,Off),ss("."),disp(Ix)]).
   dspExp(crRecord(_,Path,Fs,_),Off) => ssSeq([ss(Path),ss("{"),ssSeq(dsplyFlds(Fs,Off++"  ")),ss("}")]).
   dspExp(crLtt(_,V,D,I),Off) where Off2.=Off++"  " =>
     ssSeq([ss("let "),disp(V),ss(" = "),dspExp(D,Off2),ss(" in\n"),ss(Off2),dspExp(I,Off2)]).
   dspExp(crLtRec(_,V,D,I),Off) where Off2.=Off++"  " =>
-    ssSeq([ss("let rec "),disp(V),ss(" = "),dspExp(D,Off2),ss(" in\n"),ss(Off2),dspExp(I,Off2)]).
+    ssSeq([ss("let rec "),disp(V),ss(" = ["),ssSeq(dsplyExps(D,Off2)),ss("] in\n"),ss(Off2),dspExp(I,Off2)]).
   dspExp(crCase(_,E,Cs,Dflt,_),Off) where Off2.=Off++"  "=> ssSeq([ss("case "),
       dspExp(E,Off),ss(" in { "),ssSeq(dspCases(Cs,Off2)),ss("} else "),dspExp(Dflt,Off2)]).
   dspExp(crMatch(_,P,E),Off) => ssSeq([dspExp(P,Off),ss(".="),dspExp(E,Off)]).
@@ -91,7 +98,7 @@ star.compiler.core{
   dspExp(crDsj(_,L,R),Off) => ssSeq([ss("("),dspExp(L,Off),ss("||"),dspExp(R,Off),ss(")")]).
   dspExp(crCnd(_,T,L,R),Off) where Off2 .= Off++"  " =>
     ssSeq([ss("("),dspExp(T,Off),ss("? "),dspExp(L,Off2),ss(" ||\n"),ss(Off2),dspExp(R,Off2),ss(")")]).
-  dspExp(crNeg(_,R),Off) => ssSeq([ss("!"),dspExp(R,Off)]).
+  dspExp(crNeg(_,R),Off) => ssSeq([ss("~"),dspExp(R,Off)]).
   dspExp(crAbort(_,Msg,_),Off) => ssSeq([ss("abort "),disp(Msg)]).
 
   dspCases(Cs,Off) => let{
@@ -130,6 +137,7 @@ star.compiler.core{
     eqTerm(crStrg(_,S1),crStrg(_,S2)) => S1==S2.
     eqTerm(crLbl(_,S1,_),crLbl(_,S2,_)) => S1==S2.
     eqTerm(crTerm(_,S1,A1,_),crTerm(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
+    eqTerm(crMemo(_,G1,_),crMemo(_,G2,_)) => G1==G2.
     eqTerm(crCall(_,S1,A1,_),crCall(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
     eqTerm(crECall(_,S1,A1,_),crECall(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
 --    eqTerm(crIntrinsic(_,S1,A1,_),crIntrinsic(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
@@ -145,7 +153,7 @@ star.compiler.core{
     eqTerm(crLtt(_,T1,L1,R1),crLtt(_,T2,L2,R2)) =>
       T1==T2 && eqTerm(L1,L2) && eqTerm(R1,R2).
     eqTerm(crLtRec(_,T1,L1,R1),crLtRec(_,T2,L2,R2)) =>
-      T1==T2 && eqTerm(L1,L2) && eqTerm(R1,R2).
+      T1==T2 && eqs(L1,L2) && eqTerm(R1,R2).
     eqTerm(crCase(_,S1,C1,D1,_),crCase(_,S2,C2,D2,_)) =>
       eqTerm(S1,S2) && eqCs(C1,C2) && eqTerm(D1,D2).
     eqTerm(crAbort(_,V1,_),crAbort(_,V2,_)) => V1==V2.
@@ -177,6 +185,7 @@ star.compiler.core{
     locOf(crDot(Lc,_,_,_)) => Lc.
     locOf(crTplOff(Lc,_,_,_)) => Lc.
     locOf(crTerm(Lc,_,_,_)) => Lc.
+    locOf(crMemo(Lc,_,_)) => Lc.
     locOf(crWhere(Lc,_,_)) => Lc.
     locOf(crMatch(Lc,_,_)) => Lc.
     locOf(crLtt(Lc,_,_,_)) => Lc.
@@ -200,6 +209,9 @@ star.compiler.core{
     tpOf(crStrg(_,_)) => strType.
     tpOf(crLbl(_,_,Tp)) => Tp.
     tpOf(crTerm(_,_,_,Tp)) => Tp.
+    tpOf(crMemo(_,_,Tp)) => Tp.
+    tpOf(crMemoGet(_,_,Tp)) => Tp.
+    tpOf(crMemoSet(_,_,Vl)) => tpOf(Vl).
     tpOf(crRecord(_,_,_,Tp)) => Tp.
     tpOf(crIntrinsic(_,_,_,Tp)) => Tp.
     tpOf(crECall(_,_,_,Tp)) => Tp.
@@ -264,6 +276,12 @@ star.compiler.core{
   rewriteTerm(crTplOff(Lc,R,Ix,Tp),M) => crTplOff(Lc,rewriteTerm(R,M),Ix,Tp).
   rewriteTerm(crTerm(Lc,Op,Args,Tp),M) =>
     crTerm(Lc,Op,rewriteTerms(Args,M),Tp).
+  rewriteTerm(crMemo(Lc,Gen,Tp),M) =>
+    crMemo(Lc,rewriteTerm(Gen,M),Tp).
+  rewriteTerm(crMemoGet(Lc,Mem,Tp),M) =>
+    crMemoGet(Lc,rewriteTerm(Mem,M),Tp).
+  rewriteTerm(crMemoSet(Lc,Mem,Val),M) =>
+    crMemoSet(Lc,rewriteTerm(Mem,M),rewriteTerm(Val,M)).
   rewriteTerm(crRecord(Lc,Op,Flds,Tp),M) =>
     crRecord(Lc,Op,Flds//((F,T))=>(F,rewriteTerm(T,M)),Tp).
   rewriteTerm(crCall(Lc,Op,Args,Tp),M) =>
@@ -285,7 +303,7 @@ star.compiler.core{
   rewriteTerm(crLtt(Lc,V,D,E),M) where M1 .= dropVar(M,V) =>
     crLtt(Lc,V,rewriteTerm(D,M),rewriteTerm(E,M1)).
   rewriteTerm(crLtRec(Lc,V,D,E),M) where M1 .= dropVar(M,V) =>
-    crLtRec(Lc,V,rewriteTerm(D,M),rewriteTerm(E,M)).
+    crLtRec(Lc,V,rewriteTerms(D,M),rewriteTerm(E,M)).
   rewriteTerm(crCase(Lc,Sel,Cases,Deflt,Tp),M) =>
     crCase(Lc,rewriteTerm(Sel,M),Cases//(C)=>rewriteCase(C,M),rewriteTerm(Deflt,M),Tp).
   rewriteTerm(crAbort(Lc,Nm,Tp),_)=>crAbort(Lc,Nm,Tp).
@@ -299,11 +317,11 @@ star.compiler.core{
 
   rewriteDef(fnDef(Lc,Nm,Tp,Args,Val),M) =>
     fnDef(Lc,Nm,Tp,Args,rewriteTerm(Val,M)).
-  rewriteDef(vrDef(Lc,V,Val),M) =>
-    vrDef(Lc,V,rewriteTerm(Val,M)).
+  rewriteDef(glbDef(Lc,V,Val),M) =>
+    glbDef(Lc,V,rewriteTerm(Val,M)).
 
   dropVar:(map[string,crExp],crVar)=>map[string,crExp].
-  dropVar(M,crId(Nm,_)) => M[!Nm].
+  dropVar(M,crId(Nm,_)) => M[~Nm].
 
   rewriteVar:(locn,crVar,map[string,crExp])=>crExp.
   rewriteVar(_,crId(Nm,_),M) where T^=M[Nm] => T.
@@ -314,7 +332,7 @@ star.compiler.core{
 
   public implementation hasLoc[crDefn] => {
     locOf(fnDef(Lc,_,_,_,_)) => Lc.
-    locOf(vrDef(Lc,_,_)) => Lc.
+    locOf(glbDef(Lc,_,_)) => Lc.
   }
 
   public crName:(crVar) => string.
