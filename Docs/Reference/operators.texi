@@ -62,9 +62,6 @@
 @item @code{then}
 @tab non-associative infix
 @tab 1180
-@item @code{!}
-@tab non-associative prefix
-@tab 905
 @item @code{->>}
 @tab non-associative infix
 @tab 1200
@@ -314,6 +311,9 @@
 @item @code{.#.}
 @tab left associative infix
 @tab 600
+@item @code{~}
+@tab non-associative prefix
+@tab 905
 @item @code{^//}
 @tab left associative infix
 @tab 800

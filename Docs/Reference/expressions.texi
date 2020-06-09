@@ -65,7 +65,7 @@ variable itself. The primary reason for the latter may be to assign to
 the variable, or to permit a later assignment.
 
 An undecorated occurrence of a variable denotes access to the variable
-itself, whereas if the access is decorated with a @code{!} then that
+itself, whereas if the access is decorated with a @code{!!} then that
 refers to the variable's value. Thus, given a variable declaration:
 @example
 Cx := 0
@@ -78,7 +78,7 @@ Cx+3
 is not legal because @code{Cx} here does not refer to the variable's
 value. Instead use:
 @example
-Cx!+3
+Cx!!+3
 @end example
 
 @node Variable Assignment
@@ -1090,7 +1090,7 @@ There is a corresponding contract for sequence terms as patterns.
 @caption{Index Expressions}
 @display
 @anchored{IndexExpression} ::= @refer{Expression} @code{'['} @refer{Expression} @code{']'}
- | @refer{Expression} @code{'['} @code{!} @refer{Expression} @code{']'}
+ | @refer{Expression} @code{'['} @code{~} @refer{Expression} @code{']'}
  | @refer{Expression} @code{'['} @refer{Expression} @code{->} @refer{Expression} @code{']'}
 @end display
 @end float
@@ -1145,7 +1145,7 @@ The original collection is generally @emph{not} updated by the call to @code{_pu
 Removing an element is denoted using the variant:
 
 @example
-@var{C}[!@var{K}]
+@var{C}[~@var{K}]
 @end example
 
 which denotes the collection @code{@var{C}} with the element @code{@var{K}} removed.
@@ -1184,23 +1184,5 @@ _slice(@var{C},@var{F},@var{T})
 The result type of a slice expression is the same as the collection type that is being sliced.
 @end quotation
 
-For convenience, there is a variant of slice notation where the collection is
-the value of a re-assignable variable. An expression of the form:
-
-@example
-@var{C}![@var{F}:@var{T}]
-@end example
-
-is equivalent to the expression:
-
-@example
-(@var{C}!)[@var{F}:@var{T}]
-@end example
-
-which, in turn, is equivalent to
-
-@example
-_slice(@var{C}!,@var{F},@var{T})
-@end example
 
 

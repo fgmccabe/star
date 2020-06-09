@@ -67,10 +67,10 @@ star.ideal{
   reformTree:all k,v ~~ (map[k,v]) => map[k,v].
   reformTree(.ihNil) => .ihNil.
   reformTree(ihLeaf(_,.nil)) => .ihNil.
-  reformTree(ihNode(Tr,.ihNil,.ihNil,.ihNil)) where !ihNode(_,_,_,_).=Tr => Tr.
-  reformTree(ihNode(.ihNil,Tr,.ihNil,.ihNil)) where !ihNode(_,_,_,_).=Tr => Tr.
-  reformTree(ihNode(.ihNil,.ihNil,Tr,.ihNil)) where !ihNode(_,_,_,_).=Tr => Tr.
-  reformTree(ihNode(.ihNil,.ihNil,.ihNil,Tr)) where !ihNode(_,_,_,_).=Tr => Tr.
+  reformTree(ihNode(Tr,.ihNil,.ihNil,.ihNil)) where ~ihNode(_,_,_,_).=Tr => Tr.
+  reformTree(ihNode(.ihNil,Tr,.ihNil,.ihNil)) where ~ihNode(_,_,_,_).=Tr => Tr.
+  reformTree(ihNode(.ihNil,.ihNil,Tr,.ihNil)) where ~ihNode(_,_,_,_).=Tr => Tr.
+  reformTree(ihNode(.ihNil,.ihNil,.ihNil,Tr)) where ~ihNode(_,_,_,_).=Tr => Tr.
   reformTree(Tr) default => Tr.
 
   replaceIdeal: all k,v ~~ equality[k],hash[k] |: (map[k,v],k,v) => map[k,v].

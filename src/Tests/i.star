@@ -12,7 +12,7 @@ test.i{
   main()=>do{
     assert 1^=kk["alpha"];
     assert some(1).=_index(ll,"alpha");
-    show kk[!"alpha"];
+    show kk[~"alpha"];
     show kk["delta"->4]
   }
 

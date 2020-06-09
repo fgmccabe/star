@@ -455,10 +455,10 @@ D.dept := "my department"
 @node Accessing Reference Variables
 @subsubsection Accessing Reference Variables
 
-The value of a re-assignable variable is accessed using the @code{!}
+The value of a re-assignable variable is accessed using the @code{!!}
 operator. For example:
 @example
-D.dept!
+D.dept!!
 @end example
 will retrieve the actual department @var{D} is assigned to. The
 expression @code{D.dept} actually means something different -- it
@@ -1040,11 +1040,11 @@ expression can be used to compute factorial (somewhat laboriously):
 AA = do@{
     Cx := 1;
     Fx := 1;
-    while Cx!=<Lx do @{
-      Fx := Fx! * Cx!;
-      Cx := Cx! + 1
+    while Cx!!=<Lx do @{
+      Fx := Fx!! * Cx!!;
+      Cx := Cx!! + 1
     @};
-    valis Fx!
+    valis Fx!!
   @}
 @end example
 

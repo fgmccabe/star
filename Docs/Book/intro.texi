@@ -93,7 +93,7 @@ the language.
 
 @quotation
 Managing this evolution may be the hardest aspect of designing
-programming languages!
+programming languages.
 @end quotation
 
 @node Programming safely and effectively

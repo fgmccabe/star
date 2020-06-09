@@ -39,7 +39,6 @@
   operator(".+.", [prefixOp(700, 699)]).
   operator("<$", [infixOp(719, 720, 720)]).
   operator("then", [infixOp(1179, 1180, 1179)]).
-  operator("!", [prefixOp(905, 904)]).
   operator("->>", [infixOp(1199, 1200, 1199)]).
   operator("=!=", [infixOp(899, 900, 899)]).
   operator("default", [postfixOp(939, 940)]).
@@ -116,6 +115,7 @@
   operator("implementation", [prefixOp(1260, 1259)]).
   operator("|", [infixOp(1248, 1248, 1247)]).
   operator(".#.", [infixOp(600, 600, 599)]).
+  operator("~", [prefixOp(905, 904)]).
   operator("^//", [infixOp(800, 800, 799)]).
   operator("||", [infixOp(919, 920, 920)]).
   operator("else", [infixOp(1199, 1200, 1200)]).
@@ -273,6 +273,7 @@
   final('||',"||").	 /* disjunction */
   final('|)',"|)").	 /* banana brackets */
   final('}',"}").	 /* braces */
+  final('~',"~").	 /* logical negation */
   final('~~',"~~").	 /* quantifier */
   final('~>',"~>").	 /* type function */
   final('[',"[").	 /* square brackets */
@@ -310,7 +311,6 @@
   final('>>=',">>=").	 /* monadic bind */
   final('?',"?").	 /* conditional operator */
   final('@',"@").	 /* meta annotation */
-  final('!',"!").	 /* logical negation */
   final('!!',"!!").	 /* pick up value from a ref cell */
   final('•',"•").	 /* function composition */
   final('#',"#").	 /* Macro statement marker */
@@ -329,7 +329,6 @@
   keyword(",..").
   keyword("for").
   keyword("then").
-  keyword("!").
   keyword("->>").
   keyword("default").
   keyword("#").
@@ -374,6 +373,7 @@
   keyword("type").
   keyword("implementation").
   keyword("|").
+  keyword("~").
   keyword("||").
   keyword("else").
   keyword("::=").

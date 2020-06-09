@@ -46,7 +46,7 @@ test.idx0{
   chek(L,Ix,Inc,F) => snd(foldLeft((E,(I,S))=>(I+Inc,S&&F(I,E)),(Ix,.true),L)).
 
   unzip:all e ~~ (cons[e],integer,integer,map[integer,e])=>map[integer,e].
-  unzip(L,Ix,Inc,T0) => snd(foldLeft((E,(I,T))=>(I+Inc,T[!I]),(Ix,T0),L)).
+  unzip(L,Ix,Inc,T0) => snd(foldLeft((E,(I,T))=>(I+Inc,T[~I]),(Ix,T0),L)).
 
   main:()=>action[(),()].
   main()=>do{
@@ -77,9 +77,9 @@ test.idx0{
 
     assert chek(letters,0,1,(Ix,V)=>V^=aa0[Ix]);
 
-    show disp(u1[!12]);
+    show disp(u1[~12]);
 
-    show disp(u1[!12][8]);
+    show disp(u1[~12][8]);
 
     show disp(unzip(["a","b","c"],0,4,[]));
 

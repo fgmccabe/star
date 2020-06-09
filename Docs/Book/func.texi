@@ -465,7 +465,7 @@ If this seems a little circular, it is not. The @code{equality}
 contract is effectively saying that the @code{==} function must be
 defined for the type; and we constrain function (and other) types with
 the @code{equality} contract constraint when we need to ensure that
-@code{==} is defined!
+@code{==} is defined.
 
 We provide evidence for contracts through the @code{implementation}
 statement. This declares that a given type satisfies a contract by
@@ -1365,7 +1365,7 @@ of defining and binding the variable @code{JJ} to the matched spouse.
 
 @node Special syntax for @code{option}al values
 @subsection Special syntax for @code{option}al values
-Of course, the code above @emph{is} kind of clumsy! There is a range
+Of course, the code above @emph{is} kind of clumsy. There is a range
 of operators to make using @code{option} values more pleasant.
 
 The most important of these is the @code{^=} operator which combines
@@ -1508,7 +1508,7 @@ to infer that the type of @code{N} is indeed @code{integer} and not
 Of course, if there are multiple occurrences of @code{N} then each of
 those occurrences must also be consistent with integer; and if an
 occurrence is not consistent then the compiler will report an error --
-a given expression may only have one type!
+a given expression may only have one type.
 
 The bottom line is that types are based on a combination of
 unification for comparing types and a series of type rules that have

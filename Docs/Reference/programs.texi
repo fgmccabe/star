@@ -422,7 +422,7 @@ In particular, re-assignable variables have a distinguished type
 compared to single-valued variables -- they must be of @refer{ReferenceType}.
 
 In addition to the different type, there are two operators that are
-associated with re-assignable variables: @code{ref} and @code{!}
+associated with re-assignable variables: @code{ref} and @code{!!}
 (pronounced @emph{shriek}). The former is used in situations where a
 variable's name is intended to mean the variable itself -- rather than
 its value. The latter is the converse: where an expression denotes a
@@ -851,7 +851,7 @@ public implementation all x ~~ comp[x],equality[x] |: comp[cons[x]] => let@{
   consLess(cons(H1,T1),cons(H2,T2)) where H1==H2 => consLess(T1,T2).
   consLess(_,_) default => false.
 
-  consGe(L1,L2) => ! consLess(L2,L1).
+  consGe(L1,L2) => ~ consLess(L2,L1).
 @} in @{. (<) = consLess. (>=) = consGe .@}
 @end example
 @end float

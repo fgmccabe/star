@@ -153,9 +153,10 @@ features to make expressing queries easier; the fundamental semantics
 of @Star{}'s queries are similar in power to those of SQL.
 @end quotation
 
-The available connectives include the usual favorites: @code{&&},
-@code{||}, and @code{!}. We may also see the need for some less
-familiar connectives: @code{implies} and @code{otherwise}.
+The available connectives include the usual favorites: conjunction
+(@code{&&}), disjunction (@code{||}), and negation (@code{~}). We may
+also see the need for some less familiar connectives: @code{implies}
+and @code{otherwise}.
 
 @quotation
 An @code{implies} connective is a way of testing complete compliance
@@ -258,7 +259,7 @@ Logic. Datalog allows one to right rules (unlike pure SQL) but is not
 capable of handling arbitrary data structures. On the other hand, it
 may be that @emph{recursion} is something that we can do without -- as
 we have seen earlier, many well structured functional programs have no
-explicit recursion!
+explicit recursion.
 
 However, we must also be able to @emph{embed} our logic into our more
 regular programs. The key goal here is to maximize the benefit of
@@ -318,7 +319,7 @@ The condition takes the form of a boolean combination of
 expression, a @emph{match} condition, or a @emph{search}
 condition. Various types of boolean combinations are supported; the
 most common being conjunction (@code{&&}), disjunction (@code{||}) and
-negation (@code{!}).
+negation (@code{~}).
 
 We have already seen match conditions; for example:
 @example

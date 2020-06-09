@@ -10,7 +10,7 @@ test.implies{
 
 /*  onlySons(P) => (P,S) in pars *> S in ms.
 
-  hasD(P) => (P,S) in pars && ! S in ms.
+  hasD(P) => (P,S) in pars && ~ S in ms.
 
   foldOnlySons:(string)=>option[()].
   foldOnlySons(P) => foldRight(
@@ -53,7 +53,7 @@ test.implies{
     show disp(onlySons("a"));
     show disp(onlySons("f"));
 
-    assert !onlySons("f");
+    assert ~onlySons("f");
 */
 
     show disp([X | (X,_) in pars])
