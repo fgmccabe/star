@@ -59,7 +59,6 @@ star.compiler.operators{
   oper(".+.") => [prefixOp(700,699)].
   oper("<$") => [infixOp(719,720,720)].
   oper("then") => [infixOp(1179,1180,1179)].
-  oper("!") => [prefixOp(905,904)].
   oper("->>") => [infixOp(1199,1200,1199)].
   oper("=!=") => [infixOp(899,900,899)].
   oper("default") => [postfixOp(939,940)].
@@ -136,6 +135,7 @@ star.compiler.operators{
   oper("implementation") => [prefixOp(1260,1259)].
   oper("|") => [infixOp(1248,1248,1247)].
   oper(".#.") => [infixOp(600,600,599)].
+  oper("~") => [prefixOp(905,904)].
   oper("^//") => [infixOp(800,800,799)].
   oper("||") => [infixOp(919,920,920)].
   oper("else") => [infixOp(1199,1200,1200)].
@@ -317,6 +317,7 @@ star.compiler.operators{
   final("||") => .true.  /* disjunction */
   final("|)") => .true.  /* banana brackets */
   final("}") => .true.  /* braces */
+  final("~") => .true.  /* logical negation */
   final("~~") => .true.  /* quantifier */
   final("~>") => .true.  /* type function */
   final("[") => .true.  /* square brackets */
@@ -354,7 +355,6 @@ star.compiler.operators{
   final(">>=") => .true.  /* monadic bind */
   final("?") => .true.  /* conditional operator */
   final("@") => .true.  /* meta annotation */
-  final("!") => .true.  /* logical negation */
   final("!!") => .true.  /* pick up value from a ref cell */
   final("•") => .true.  /* function composition */
   final("#") => .true.  /* Macro statement marker */
@@ -374,7 +374,6 @@ star.compiler.operators{
   keyword(",..") => .true.
   keyword("for") => .true.
   keyword("then") => .true.
-  keyword("!") => .true.
   keyword("->>") => .true.
   keyword("default") => .true.
   keyword("#") => .true.
@@ -419,6 +418,7 @@ star.compiler.operators{
   keyword("type") => .true.
   keyword("implementation") => .true.
   keyword("|") => .true.
+  keyword("~") => .true.
   keyword("||") => .true.
   keyword("else") => .true.
   keyword("::=") => .true.

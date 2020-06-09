@@ -640,7 +640,8 @@ The analog of the `hello world' example in concurrent programming is probably th
 
 Four Dining Philosophers
 
-Of course, it is only a little eccentric that the philosophers eat with two forks rather than a knife and fork!
+Of course, it is only a little eccentric that the philosophers eat
+with two forks rather than a knife and fork.
 
 Being philosophers, they don't eat constantly: they spend some time talking too; which means that it is possible for them to @emph{share} the forks. Each philosopher has access to the two forks nearest him; each fork is shared by two philosophers; but a given fork can not be in use by more than one philosopher simultaneously.
 
@@ -964,7 +965,8 @@ The simple answer here is that this is a task-valued function, and the value of 
 
 task of E~t~
 
-so, apparently, we take the value of the task returned by the wait for and rewrap it back as a task!
+so, apparently, we take the value of the task returned by the wait for
+and rewrap it back as a task.
 
 In fact, this particular combination is a part of the overall task notation: instead of performing this unwrap and rewrap, the value returned by the wait for will be returned directly @emph{without necessarily waiting for the task to finish}. We can do this safely because the overall value of the sequence is also a task.
 

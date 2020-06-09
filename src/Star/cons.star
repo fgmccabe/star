@@ -28,7 +28,7 @@ star.cons{
     consLess(cons(H,T1),cons(H,T2)) => consLess(T1,T2).
     consLess(_,_) default => .false.
 
-    consGe(L1,L2) => !consLess(L2,L1).
+    consGe(L1,L2) => ~consLess(L2,L1).
   } in {. (<) = consLess. (>=) = consGe .}
 
   -- stream & sequence contracts

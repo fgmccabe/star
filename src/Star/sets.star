@@ -16,7 +16,7 @@ star.sets{
 
   public implementation all e ~~ equality[e], hash[e] |: membership[set[e] ->> e] => {
     set(M)\+e => set(M[e->()]).
-    set(M)\-e => set(M[!e]).
+    set(M)\-e => set(M[~e]).
     e.<.set(M) => some(()).=_index(M,e).
   }
 

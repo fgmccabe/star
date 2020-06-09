@@ -579,7 +579,7 @@
 	"keyword": true
     },
     {
-	"prefixOp": "!",
+	"prefixOp": "~",
 	"priorities": [905, 904],
 	"desc": "logical negation",
 	"keyword": true

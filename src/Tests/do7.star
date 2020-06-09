@@ -24,6 +24,6 @@ test.do7{
     assert ("ab" ^= parentOf("abc") || "de" ^= parentOf("abc"));
 
     assert check("a");
-    assert !check("z")
+    assert ~check("z")
   }
 }

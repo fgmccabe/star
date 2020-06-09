@@ -440,7 +440,7 @@ always assuming that the type of @code{D} permits assignment.
 
 Similarly, the expression:
 @example
-D[!"gamma"]
+D[~"gamma"]
 @end example
 which denotes the map @code{D} where the value associated with the key
 @code{"gamma"} has been removed.
@@ -937,7 +937,7 @@ average(C) is foldLeft((+),0,C)::float/size(C)::float
 
 @quotation
 This definition of the @code{average} function is about as close to a
-specification of average as is possible in a programming language!
+specification of average as is possible in a programming language.
 @end quotation
 
 @quotation Notice

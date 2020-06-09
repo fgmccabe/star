@@ -27,6 +27,6 @@ test.xx{
 
 --  show gimme(ineedOne(0).get).
 
---  assert !gimme(ineedOne(1).get).
+--  assert ~gimme(ineedOne(1).get).
 
 }

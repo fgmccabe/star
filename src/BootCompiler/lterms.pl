@@ -208,7 +208,7 @@ showTerm(mtch(_,L,R),Dp,O,Ox) :-
   appStr(" .= ",O1,O2),
   showTerm(R,Dp,O2,Ox).
 showTerm(ng(_,R),Dp,O,Ox) :-
-  appStr("!",O,O1),
+  appStr("~",O,O1),
   showTerm(R,Dp,O1,Ox).
 showTerm(error(_,Msg),_,O,Ox) :-
   appStr("error: ",O,O1),

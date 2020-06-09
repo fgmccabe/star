@@ -63,7 +63,7 @@ The type signature for @code{=!=} is:
 The @code{=!=} predicate has a standard definition that makes it
 equivalent to a negated equality:
 @example
-X =!= Y => ! X==Y
+X =!= Y => ~ X==Y
 @end example
 
 @node The @code{comp} contract

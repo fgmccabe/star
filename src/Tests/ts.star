@@ -36,7 +36,7 @@ test.ts{
     try{
       assert fact(3)==6;
       show fact(5);
-      assert !fact(2)==fact(4)
+      assert ~fact(2)==fact(4)
     } catch {
       logMsg("something went wrong")
     }

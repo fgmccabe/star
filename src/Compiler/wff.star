@@ -12,7 +12,7 @@ star.compiler.wff{
   import star.compiler.operators.
 
   public isName:(ast) => option[(locn,string)].
-  isName(nme(Lc,Id)) where ! keyword(Id) => some((Lc,Id)).
+  isName(nme(Lc,Id)) where ~ keyword(Id) => some((Lc,Id)).
   isName(qnm(Lc,Id)) => some((Lc,Id)).
   isName(tpl(_,"()",[nme(Lc,Id)])) => some((Lc,Id)).
   isName(_) default => .none.
@@ -65,7 +65,7 @@ star.compiler.wff{
   isQBrApply(_) default => .none.
 
   public isRoundTerm:(ast) => option[(locn,ast,cons[ast])].
-  isRoundTerm(app(Lc,Op,tpl(_,"()",A))) where !_^=isKeyword(Op) => some((Lc,Op,A)).
+  isRoundTerm(app(Lc,Op,tpl(_,"()",A))) where ~_^=isKeyword(Op) => some((Lc,Op,A)).
   isRoundTerm(_) default => .none.
 
   public roundTerm:(locn,ast,cons[ast]) => ast.
@@ -258,9 +258,9 @@ star.compiler.wff{
 
   public mkDisjunct(Lc,L,R) => binary(Lc,"||",L,R).
 
-  public isNegation(A) => isUnary(A,"!").
+  public isNegation(A) => isUnary(A,"~").
 
-  public negated(Lc,A) => unary(Lc,"!",A).
+  public negated(Lc,A) => unary(Lc,"~",A).
 
   public isImplies(A) => isBinary(A,"*>").
   
@@ -289,7 +289,7 @@ star.compiler.wff{
   public enum(Lc,Nm) => unary(Lc,".",nme(Lc,Nm)).
 
   public
-  isSearch(A) where (Lc,P,G) ^= isBinary(A,"in") && ! app(_,nme(_,"let"),Body) .= P => some((Lc,P,G)).
+  isSearch(A) where (Lc,P,G) ^= isBinary(A,"in") && ~ app(_,nme(_,"let"),Body) .= P => some((Lc,P,G)).
   isSearch(_) default => .none.
 
   public mkSearch(Lc,P,S) => binary(Lc,"in",P,S).
@@ -370,7 +370,7 @@ star.compiler.wff{
   refCell(Lc,I) => unary(Lc,"!!",I).
 
   public isIndex:(ast) => option[(locn,ast,ast)].
-  isIndex(A) where (Lc,Op,[Ix]) ^= isSquareTerm(A) && ! _^=isBinary(Ix,":") => some((Lc,Op,Ix)).
+  isIndex(A) where (Lc,Op,[Ix]) ^= isSquareTerm(A) && ~ _^=isBinary(Ix,":") => some((Lc,Op,Ix)).
   isIndex(A) where (Lc,L,R) ^= isBinary(A,"!!") && (_,[Ix]) ^= isSqTuple(R) =>
     some((Lc,unary(Lc,"!!",L),Ix)).
   isIndex(_) default => .none.
@@ -693,7 +693,7 @@ star.compiler.wff{
   isAbstraction(_) default => .none.
 
   public isTheta:(ast) => option[(locn,cons[ast])].
-  isTheta(A) where (Lc,Els) ^= isBrTuple(A) && ! _ ^= isAbstraction(A) =>
+  isTheta(A) where (Lc,Els) ^= isBrTuple(A) && ~ _ ^= isAbstraction(A) =>
     some((Lc,Els)).
   isTheta(_) default => .none.
 
