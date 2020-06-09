@@ -853,7 +853,6 @@ star.compiler.macro{
   makeAction(A,.none,Rp) where (Lc,L,R) ^= isMatch(A) =>
     other(reportError(Rp,"$(A) may not be the last action",Lc)).
   makeAction(A,some((CLc,Cont)),Rp) where (Lc,L,R) ^= isMatch(A) => do{
---    Lam .= equation(Lc,rndTuple(Lc,[L]),Cont);
     Lam .= equation(Lc,L,Cont);
     valis mkCaseExp(Lc,R,[Lam]) -- roundTerm(CLc,Lam,[R])
   }
