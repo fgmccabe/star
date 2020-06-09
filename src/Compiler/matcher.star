@@ -233,8 +233,6 @@ star.compiler.matcher{
   pullVarLets:(cons[crExp],crExp)=>(cons[crExp],crExp).
   pullVarLets(Vrs,crLtt(Lc,V,A,Exp)) =>
     pullVarLets(Vrs//replaceWith(A,crVar(Lc,V)),Exp).
-  pullVarLets(Vrs,crLtRec(Lc,V,A,Exp)) =>
-    pullVarLets(Vrs//replaceWith(A,crVar(Lc,V)),Exp).
   pullVarLets(Vrs,Exp) => (Vrs,Exp).
 
   replaceWith:(crExp,crExp) => (crExp)=>crExp.

@@ -58,7 +58,7 @@ star.compiler.dict.mgt{
   undeclareVar(_,[]) => [].
   undeclareVar(Nm,[scope(Tps,Vrs,Cns,Imps),..Ev]) =>
     (_ ^= Vrs[Nm] ?
-	[scope(Tps,Vrs[!Nm],Cns,Imps),..Ev] ||
+	[scope(Tps,Vrs[~Nm],Cns,Imps),..Ev] ||
 	[scope(Tps,Vrs,Cns,Imps),..undeclareVar(Nm,Ev)]).
 
   public declareConstructor:(string,string,option[locn],tipe,dict) => dict.

@@ -2,20 +2,29 @@ test.lt{
   import star.
   import star.script.
 
-  genInt:()=>integer.
-  genInt() => 10.
+  genInt:(integer)=>integer.
+  genInt(X) => X+10.
 
   ll(M) => let{
-    S = M.
+    S := genInt(M).
 
-    f(A,N) where N>=S => A.
-    f(A,N) => f(A*N,N+1)
-  } in f(1,1).
+    f(A) => (N) => (N>=S!! ?  A || f(A*N)(N+1)).
+  } in (f(1)(1),S!!).
 
+  contract all x ~~ zz[x] ::= {
+    pl: (x,x)=>x.
+    zero: x.
+  }.
+
+  implementation zz[integer] => {
+    pl(X,Y) => _int_plus(X,Y).
+    zero = 0.
+  }.
   
   main:()=>action[(),()].
   main()=>do{
-    show ll(genInt());
-    show ll(20)
+    show ll(1);
+    show ll(2);
+    show pl(zero,1)
   }
 }  

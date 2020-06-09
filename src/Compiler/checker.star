@@ -58,7 +58,8 @@ star.compiler.checker{
 	RDefs <- overloadEnvironment(Defs,PkgEnv,Rp);
 	PkgType .= faceType(Fields,Types);
 	PkgTheta <- makePkgTheta(Lc,PkgNm,PkgType,ThEnv,sortDefs(multicat(RDefs)),Rp);
-	valis (pkgSpec(Pkge,Imports,PkgType,Contracts,Impls,PkgVars),varDef(Lc,PkgNm,packageVar(Pkg),PkgTheta,[],PkgType))
+	valis (pkgSpec(Pkge,Imports,PkgType,Contracts,Impls,PkgVars),
+	  varDef(Lc,packageVar(Pkg),packageVar(Pkg),PkgTheta,[],PkgType))
       }
       else
       throw reportError(Rp,"package name $(Pkg) does not match expected $(Pkge)",locOf(P))
@@ -401,9 +402,9 @@ star.compiler.checker{
 	FullNm .= implementationName(ConTp);
 --	logMsg("full name of implementation of $(ConTp) is $(FullNm)");
 	ImplTp .= rebind(BV,reConstrainType(Cx,ConTp),Es);
---	logMsg("implementation is $(implDef(Lc,Nm,FullNm,Impl,Cx,ImplTp))");
 --	logMsg("implementation type of $(Nm) is $(ImplTp)");
-	valis (implDef(Lc,Nm,FullNm,Impl,Cx,ImplTp),declareImplementation(FullNm,ImplTp,Env))
+	valis (implDef(Lc,Nm,FullNm,Impl,Cx,ImplTp),
+	  declareImplementation(FullNm,ImplTp,Env))
       }
       else{
 	throw reportError(Rp,"implementation type $(Cn) not consistent with contract type $(ConTp)",Lc)
@@ -443,7 +444,7 @@ star.compiler.checker{
 	(Cond,Ev1) <- checkCond(C,Ev0,Path,Rp);
 	valis (whr(Lc,Ptn,Cond),Ev1)
       }.
-  typeOfPtn(A,Tp,Env,Path,Rp) where (_,[El]) ^= isTuple(A) && ! _ ^= isTuple(El) =>
+  typeOfPtn(A,Tp,Env,Path,Rp) where (_,[El]) ^= isTuple(A) && ~ _ ^= isTuple(El) =>
     typeOfPtn(El,Tp,Env,Path,Rp).
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isTuple(A) => do{
     Tvs .= genTpVars(Els);
@@ -574,7 +575,9 @@ star.compiler.checker{
     valis Gl
   }.
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,G,Cases) ^= isCaseExp(A) => let{
-    checkRle(E,ETp,RRp) where (CLc,IsDeflt,H,C,R) ^= isLambda(E) => do{
+    ETp = newTypeVar("_e").
+
+    checkRle(E,RRp) where (CLc,IsDeflt,H,C,R) ^= isLambda(E) => do{
       (Arg,E0) <- typeOfPtn(H,ETp,Env,Path,RRp);
       if Cnd ^= C then {
 	(Cond,CE) <- checkCond(Cnd,Env,Path,RRp);
@@ -588,7 +591,7 @@ star.compiler.checker{
 	valis eqn(CLc,tple(Lc,[Ags]),ACnd,Rep)
       }
     }
-    checkRle(E,_,RRp) => other(reportError(RRp,"invalid case $(E)",locOf(E))).
+    checkRle(E,RRp) => other(reportError(RRp,"invalid case $(E)",locOf(E))).
 
     pullWhere:(canon,option[canon]) => (canon,option[canon]).
     pullWhere(whr(WLc,Vl,Cn),Gl) where (Val,G1) .= pullWhere(Vl,Gl) =>
@@ -600,19 +603,17 @@ star.compiler.checker{
     mergeGoal(_,.none,Gl) => Gl.
     mergeGoal(Lc,some(Gl),some(H)) => some(conj(Lc,Gl,H)).
 
-    typeOfCases:(cons[ast],tipe,cons[equation],reports) => either[reports,cons[equation]].
-    typeOfCases([],PtnTp,Els,_) => either(reverse(Els)).
-    typeOfCases([Cs,..Ps],PtnTp,SoFar,RRp) => do{
+    typeOfCases:(cons[ast],cons[equation],reports) => either[reports,cons[equation]].
+    typeOfCases([],Els,_) => either(reverse(Els)).
+    typeOfCases([Cs,..Ps],SoFar,RRp) => do{
 --      logMsg("check rule $(Cs)");
-      Trm <- checkRle(Cs,PtnTp,Rp);
-      typeOfCases(Ps,PtnTp,[Trm,..SoFar],RRp)
+      Trm <- checkRle(Cs,Rp);
+      typeOfCases(Ps,[Trm,..SoFar],RRp)
     }
   } in do{
 --    logMsg("check case gov $(G) against $(ETp)");
-    ETp .= newTypeVar("_e");
-    
     Gv <- typeOfExp(G,ETp,Env,Path,Rp);
-    Gc <- typeOfCases(Cases,ETp,[],Rp);
+    Gc <- typeOfCases(Cases,[],Rp);
     valis csexp(Lc,Gv,Gc,Tp)
   }
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,S,F,T) ^= isSlice(A) =>
@@ -625,7 +626,7 @@ star.compiler.checker{
   }
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,I) ^= isRef(A) =>
     typeOfExp(roundTerm(Lc,nme(Lc,"_cell"),[I]),Tp,Env,Path,Rp).
-  typeOfExp(A,Tp,Env,Path,Rp) where (_,[El]) ^= isTuple(A) && ! _ ^= isTuple(El) =>
+  typeOfExp(A,Tp,Env,Path,Rp) where (_,[El]) ^= isTuple(A) && ~ _ ^= isTuple(El) =>
     typeOfExp(El,Tp,Env,Path,Rp).
 
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isTuple(A) => do{
@@ -739,7 +740,7 @@ star.compiler.checker{
     faceType(UpFlds,_) .= faceOfType(UpTp,Env);
     for (F,TU) in UpFlds do{
       if (F,TR) in RecFlds then{
-	if !sameType(TU,TR,Env) then
+	if ~sameType(TU,TR,Env) then
 	  throw reportError(Rp,"replacement for field $(F)\:$(TU) not consistent with record field $(TR)",Lc)
       } else
       throw reportError(Rp,"replacement for field $(F)\:$(TU) does not exist in record $(Rec)",Lc)

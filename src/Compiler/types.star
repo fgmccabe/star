@@ -378,6 +378,7 @@ star.compiler.types{
   public consType(A,B) => tpExp(tpExp(tpFun("<=>",2),A),B).
   public cnsType(A,B) => tpExp(tpExp(tpFun("<=>",2),tupleType(A)),B).
   public enumType(A) => tpExp(tpExp(tpFun("<=>",2),tupleType([])),A).
+  public memoType(A) => tpExp(tpFun("memo",1),A).
 
   public funTypeArg(Tp) where
       tpExp(O,_) .= deRef(Tp) &&

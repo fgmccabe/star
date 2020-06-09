@@ -65,7 +65,7 @@ star.compiler.gencode{
   localFuns(Defs,Vars) => foldRight(defFun,Vars,Defs).
 
   defFun(fnDef(Lc,Nm,Tp,_,_),Vrs) => Vrs[Nm->glbFun(Nm,Tp)].
-  defFun(vrDef(Lc,crId(Nm,Tp),_),Vrs) => Vrs[Nm->glbVar(Nm,Tp)].
+  defFun(glbDef(Lc,crId(Nm,Tp),_),Vrs) => Vrs[Nm->glbVar(Nm,Tp)].
   defFun(rcDef(_,_,_,_),Vrs) => Vrs.
   
   compDefs:(cons[crDefn],map[string,srcLoc],compilerOptions,cons[codeSegment],reports)=>
@@ -87,7 +87,7 @@ star.compiler.gencode{
 --    logMsg("final context: $(Ctxx)");
     valis method(tLbl(Nm,size(Args)),Tp,peep(Code::cons[assemOp]))
   }
-  compDefn(vrDef(Lc,crId(Nm,Tp),Val),Glbs,Opts,Rp) => do{
+  compDefn(glbDef(Lc,crId(Nm,Tp),Val),Glbs,Opts,Rp) => do{
     if Opts.showCode then
       logMsg("compile global $(Nm)\:$(Tp) = $(Val))");
     Ctx .= emptyCtx(Lc,Glbs);
@@ -119,6 +119,14 @@ star.compiler.gencode{
     compExps(Args,Opts,bothCont(allocCont(tLbl(Nm,size(Args)),Tp,Stk),Cont),Ctx,Cde,Stk,Rp).
   compExp(crIntrinsic(Lc,Op,Args,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
     compExps(Args,Opts,bothCont(asmCont(Op,size(Args),Tp,Stk),Cont),Ctx,Cde,Stk,Rp).
+  compExp(crMemo(Lc,Prv,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
+    compExp(Prv,Opts,bothCont(asmCont(.iAM,0,Tp,Stk),Cont),Ctx,Cde,Stk,Rp).
+  compExp(crMemoGet(Lc,Memo,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
+    compExp(Memo,Opts,bothCont(memoGetCont(Tp),Cont),Ctx,Cde,Stk,Rp).
+  compExp(crMemoSet(Lc,Memo,Vl),Opts,Cont,Ctx,Cde,Stk,Rp) =>
+    compExp(Memo,Opts,
+      expCont(Vl,Opts,
+	bothCont(asmCont(.iTM,0,typeOf(Vl),Stk),Cont)),Ctx,Cde,Stk,Rp).
   compExp(crECall(Lc,Nm,Args,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
     compExps(Args,Opts,bothCont(escCont(Nm,size(Args),Tp,Stk),Cont),Ctx,Cde,Stk,Rp).
   compExp(crCall(Lc,Nm,Args,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
@@ -142,10 +150,14 @@ star.compiler.gencode{
     compExp(Val,Opts,
       bothCont(stoLcl(V,Off),expCont(Exp,Opts,Cont)),Ctx0,Cde,Stk,Rp)
   }
-  compExp(crLtRec(Lc,V,Val,Exp),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
+  compExp(crLtRec(Lc,V,Vals,Exp),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
+--    logMsg("compiling let rec $(crLtRec(Lc,V,Vals,Exp))");
     (Off,Ctx0) .= defineLclVar(V,Ctx);
-    compExp(Val,Opts,
-      bothCont(stoLcl(V,Off),expCont(Exp,Opts,Cont)),Ctx0,Cde,Stk,Rp)
+    Ar .= size(Vals);
+    FrTp .= typeOf(Vals);
+
+    compFrTuple(Vals,Off,0,FrTp,Opts,expCont(Exp,Opts,Cont),Ctx0,
+      Cde++[iAlTpl(tLbl(tplLbl(Ar),Ar)),iStL(Off)],Stk,Rp)
   }
   compExp(crCase(Lc,Exp,Cases,Deflt,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
     compCase(Lc,Exp,Cases,Deflt,Tp,Opts,Cont,Ctx,Cde,Stk,Rp).
@@ -160,8 +172,6 @@ star.compiler.gencode{
       resetCont(Stk,expCont(L,Opts,OS)),
       resetCont(Stk,expCont(R,Opts,OS)),CtxC,Cde,Stk,Rp)
   }
-
-  
   compExp(C,Opts,Cont,Ctx,Cde,Stk,Rp) where isCrCond(C) => do{
     OS .= onceCont(locOf(C),Cont);
 --    logMsg("created once for $(locOf(C))");
@@ -170,6 +180,18 @@ star.compiler.gencode{
       bothCont(resetCont(Stk,
 	  litCont(enum(tLbl("star.core#false",0)),boolType)),OS),
       Ctx,Cde,Stk,Rp).
+  }
+
+  -- compute elements to go in free tuple
+  compFrTuple:(cons[crExp],integer,integer,tipe,compilerOptions,Cont,
+    codeCtx,multi[assemOp],option[cons[tipe]],reports) =>
+    either[reports,(codeCtx,multi[assemOp],option[cons[tipe]])].
+  compFrTuple([],_,_,_,Opts,Cont,Ctx,Cde,Stk,Rp) =>
+    Cont.C(Ctx,Cde,Stk,Rp).
+  compFrTuple([E,..Es],Off,Ix,FrTp,Opts,Cont,Ctx,Cde,Stk,Rp) => do{
+    (Nxt,Ctx1) .= defineLbl(Ctx);
+    (Ctx2,Cde1,some(CCstk)) <- compFrTuple(Es,Off,Ix+1,FrTp,Opts,jmpCont(Nxt),Ctx1,Cde,Stk,Rp);
+    compExp(E,Opts,bothCont(updateTplCont(Ix),Cont),Ctx2,Cde1++[iLbl(Nxt),iLdL(Off)],some([FrTp,..CCstk]),Rp)
   }
 
   -- Expressions are evaluated in reverse order
@@ -411,7 +433,9 @@ star.compiler.gencode{
 
   asmCont:(assemOp,integer,tipe,option[cons[tipe]])=>Cont.
   asmCont(Op,Ar,Tp,some(Stk)) =>
-    ccont(.true,(Ctx,Cde,OStk,Rp) => either((Ctx,Cde++[Op],some([Tp,..Stk])))).
+    ccont(.true,(Ctx,Cde,OStk,Rp) => either((Ctx,Cde++[Op],some([Tp,..drop(Stk,Ar)])))).
+  asmCont(Op,Ar,Tp,.none) =>
+    ccont(.true,(Ctx,Cde,some(Stk),Rp) => either((Ctx,Cde++[Op],some([Tp,..drop(Stk,Ar)])))).
 
   escCont:(string,integer,tipe,option[cons[tipe]])=>Cont.
   escCont(Nm,Ar,Tp,some(Stk)) =>
@@ -426,6 +450,12 @@ star.compiler.gencode{
   callCont(Nm,Ar,Tp,some(Stk)) =>
     ccont(.false,(Ctx,Cde,OStk,Rp) =>
 	either((Ctx,Cde++[iCall(tLbl(Nm,Ar)),iFrame(intgr(size(Stk)+1))],some([Tp,..Stk])))).
+
+  memoGetCont:(tipe)=>Cont.
+  memoGetCont(Tp) =>
+    ccont(.false,(Ctx,Cde,some([_,..Stk]),Rp) => do{
+      valis (Ctx,Cde++[.iLM,iFrame(intgr(size(Stk)-1))],some([Tp,..Stk]))
+    }).
 
   oclCont:(integer,tipe,option[cons[tipe]])=>Cont.
   oclCont(Ar,Tp,some(Stk)) =>
@@ -507,6 +537,11 @@ star.compiler.gencode{
       either((Ctx,Cde++[iStG(Nm)],some(Stk)))).
   updateCont(onStack(_))=>
     ccont(.true,(Ctx,Cde,Stk,Rp) => either((Ctx,Cde,Stk))).
+
+  updateTplCont:(integer)=>Cont.
+  updateTplCont(Ix) => ccont(.false,
+    (Ctx,Cde,some([_,_,..Stk]),Rp) =>
+      either((Ctx,Cde++[iStNth(Ix)],some(Stk)))).
 
   bothCont:(Cont,Cont)=>Cont.
   bothCont(F,G) => ccont(F.Simple&&G.Simple,(Ctx,Cde,Stk,Rp)=> do{
