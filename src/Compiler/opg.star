@@ -2,6 +2,7 @@ star.compiler.opg{
   import star.
 
   import star.compiler.ast.
+  import star.compiler.ast.display.
   import star.compiler.operators.
   import star.compiler.errors.
   import star.compiler.lexer.
@@ -21,7 +22,8 @@ star.compiler.opg{
   term(Toks,Rpt,Priority) => termRight(termLeft(Toks,Rpt,Priority),Priority).
 
   termLeft:(cons[token],reports,integer) => (ast,integer,cons[token],reports,needsTerm).
-  termLeft([tok(Lc,idTok(Id)),tok(Lc1,rgtTok(Par)),..Toks],Rpt,_) => (nme(Lc,Id),0,[tok(Lc1,rgtTok(Par)),..Toks],Rpt,.needOne).
+  termLeft([tok(Lc,idTok(Id)),tok(Lc1,rgtTok(Par)),..Toks],Rpt,_) =>
+    (nme(Lc,Id),0,[tok(Lc1,rgtTok(Par)),..Toks],Rpt,.needOne).
   termLeft([tok(Lc,idTok(Op)),..Toks],Rpt,Priority) where
       (PPr,PRgt)^=isPrefixOp(Op) && PPr=<Priority &&
       (Arg,_,RToks,Rpt1,Needs) .= term(Toks,Rpt,PRgt) =>
@@ -170,4 +172,9 @@ star.compiler.opg{
   checkTerminator(Rpt,[tok(Lc,rgtTok("{}")),..Toks],.needOne) => (Rpt,[tok(Lc,rgtTok("{}")),..Toks]).
   checkTerminator(Rpt,[tok(Lc,rgtTok("{..}")),..Toks],.needOne) => (Rpt,[tok(Lc,rgtTok("{..}")),..Toks]).
   checkTerminator(Rpt,[tok(Lc,T),..Toks],.needOne) default => (reportError(Rpt,"missing terminator",Lc),[tok(Lc,T),..Toks]).
+
+  implementation display[needsTerm] => {.
+    disp(.needOne) => ss("needs terminator").
+    disp(.noNeed) => ss("terminator optional").
+  .}
 }

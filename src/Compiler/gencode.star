@@ -85,7 +85,7 @@ star.compiler.gencode{
     Ctxa .= argVars(Args,Ctx,0);
     (Ctxx,Code,Stk) <- compExp(Val,Opts,retCont(Lc),Ctxa,[],some([]),Rp);
 --    logMsg("final context: $(Ctxx)");
-    valis method(tLbl(Nm,size(Args)),Tp,peep(Code::cons[assemOp]))
+    valis method(tLbl(Nm,size(Args)),Tp,peepOptimize(Code::cons[assemOp]))
   }
   compDefn(glbDef(Lc,crId(Nm,Tp),Val),Glbs,Opts,Rp) => do{
     if Opts.showCode then
@@ -93,7 +93,7 @@ star.compiler.gencode{
     Ctx .= emptyCtx(Lc,Glbs);
 --    logMsg("initial context: $(Ctx)");
     (Ctxx,Code,Stk) <- compExp(Val,Opts,bothCont(stoGlb(Nm),retCont(Lc)),Ctx,[],some([]),Rp);
-    valis global(tLbl(Nm,0),Tp,peep(Code::cons[assemOp]))
+    valis global(tLbl(Nm,0),Tp,peepOptimize(Code::cons[assemOp]))
   }
 
   compExp:(crExp,compilerOptions,Cont,codeCtx,multi[assemOp],option[cons[tipe]],reports) =>

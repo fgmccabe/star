@@ -13,7 +13,14 @@ star.compiler.peephole{
     al(L1) == al(L2) => L1==L2.
   .}
 
-  public peep:(cons[assemOp])=>cons[assemOp].
+  implementation hash[assemLbl] => {.
+    hash(al(L)) => hash(L).
+  .}
+
+  public peepOptimize:(cons[assemOp])=>cons[assemOp].
+  peepOptimize(Ins) => peep(Ins).
+
+  peep:(cons[assemOp])=>cons[assemOp].
   peep([]) => [].
   peep([iCase(Cx),..Code]) => [iCase(Cx),..copyPeep(Cx,Code)].
   peep([iJmp(Lb),iLbl(Lb),..Code]) => peep([iLbl(Lb),..Code]).
@@ -24,4 +31,28 @@ star.compiler.peephole{
 
   copyPeep(0,Code) => peep(Code).
   copyPeep(Cx,[iJmp(Lb),..Code]) => [iJmp(Lb),..copyPeep(Cx-1,Code)].
+
+  findAllLbls:(cons[assemOp],set[assemLbl]) => set[assemLbl].
+  findAllLbls([],Lbls) => Lbls.
+  findAllLbls([iJmp(Lb),..Ins],Lbls) => findAllLbls(Ins,Lbls\+Lb).
+  findAllLbls([iCLbl(Lb),..Ins],Lbls) => findAllLbls(Ins,Lbls\+Lb).
+  findAllLbls([iICmp(Lb),..Ins],Lbls) => findAllLbls(Ins,Lbls\+Lb).
+  findAllLbls([iFCmp(Lb),..Ins],Lbls) => findAllLbls(Ins,Lbls\+Lb).
+  findAllLbls([iCmp(Lb),..Ins],Lbls) => findAllLbls(Ins,Lbls\+Lb).
+  findAllLbls([iBf(Lb),..Ins],Lbls) => findAllLbls(Ins,Lbls\+Lb).
+  findAllLbls([iBt(Lb),..Ins],Lbls) => findAllLbls(Ins,Lbls\+Lb).
+  findAllLbls([iThrow(Lb),..Ins],Lbls) => findAllLbls(Ins,Lbls\+Lb).
+  findAllLbls([iUnwind(Lb),..Ins],Lbls) => findAllLbls(Ins,Lbls\+Lb).
+  findAllLbls([_,..Ins],Lbls) => findAllLbls(Ins,Lbls).
+
+  deleteUnusedLbls:(cons[assemOp],set[assemLbl]) => cons[assemOp].
+  deleteUnusedLbls([],_) => [].
+  deleteUnusedLbls([iLbl(Lb),..Ins],Lbls) =>
+    (Lb.<.Lbls ?
+	[iLbl(Lb),..deleteUnusedLbls(Ins,Lbls)] ||
+	deleteUnusedLbls(Ins,Lbls)).
+  deleteUnusedLbls([I,..Ins],Lbls) => [I,..deleteUnusedLbls(Ins,Lbls)].
+
+  cleanLbls:(cons[assemOp])=>cons[assemOp].
+  cleanLbls(Ins) => deleteUnusedLbls(Ins,findAllLbls(Ins,[])).
 }

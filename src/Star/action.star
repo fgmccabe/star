@@ -78,5 +78,10 @@ star.action{
     logMsg("#(M) - $(X)");
     valis X
   }
-  
+
+  public trc:all x ~~ (string,x)=>x.
+  trc(M,X) => valof action{
+    logMsg(M);
+    valis X
+  }
 }
