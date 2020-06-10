@@ -137,7 +137,7 @@ star.compiler.core{
     eqTerm(crStrg(_,S1),crStrg(_,S2)) => S1==S2.
     eqTerm(crLbl(_,S1,_),crLbl(_,S2,_)) => S1==S2.
     eqTerm(crTerm(_,S1,A1,_),crTerm(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
-    eqTerm(crMemo(_,G1,_),crMemo(_,G2,_)) => G1==G2.
+    eqTerm(crMemo(_,G1,_),crMemo(_,G2,_)) => eqTerm(G1,G2).
     eqTerm(crCall(_,S1,A1,_),crCall(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
     eqTerm(crECall(_,S1,A1,_),crECall(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
 --    eqTerm(crIntrinsic(_,S1,A1,_),crIntrinsic(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
