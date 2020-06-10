@@ -2,6 +2,7 @@
   "content": {
     "test.a": "a.star",
     "test.as": "as.star",
+    "test.as2": "as2.star",
     "test.al": "al.star",
     "test.assign": "assign.star",
     "test.bench" : "bench.star",
