@@ -4,6 +4,7 @@ star.compiler.assem{
   import star.sort.
 
   import star.compiler.location.
+  import star.compiler.multi.
   import star.compiler.terms.
   import star.compiler.types.
 
@@ -283,87 +284,87 @@ star.compiler.assem{
   .}
 
   public implementation display[codeSegment] => {.
-    disp(method(Nm,Sig,Ins)) => ssSeq([disp(Nm),ss(":"),disp(Sig),ss("\n"),..reverse(showMnem(Ins,0,[]))]).
-    disp(global(Nm,Sig,Ins)) => ssSeq([ss("global "),disp(Nm),ss(":"),disp(Sig),ss("\n"),..reverse(showMnem(Ins,0,[]))]).
+    disp(method(Nm,Sig,Ins)) => ssSeq([disp(Nm),ss(":"),disp(Sig),ss("\n"),..(showMnem(Ins,0)::cons[ss])]).
+    disp(global(Nm,Sig,Ins)) => ssSeq([ss("global "),disp(Nm),ss(":"),disp(Sig),ss("\n"),..(showMnem(Ins,0)::cons[ss])]).
   .}
 
   public implementation display[assemOp] => {.
-    disp(Op) => ssSeq(reverse(showMnem([Op],0,[]))).
+    disp(Op) => ssSeq(showMnem([Op],0)::cons[ss]).
   .}
 
-  showMnem:(cons[assemOp],integer,cons[ss]) => cons[ss].
-  showMnem([],_,Out) => Out.
-  showMnem([iLbl(al(Lb)),..Ins],Pc,Out) => showMnem(Ins,Pc,[ssSeq([ss(Lb),ss(":\n")]),..Out]).
-  showMnem([iLocal(Nm,Frm,End,_Off),..Ins],Pc,Out) => showMnem(Ins,Pc,[ssSeq([ss(Nm),ss("::"),disp(Frm),ss("-"),disp(End),ss("\n")]),..Out]).
-  showMnem([.iHalt,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("Halt"),ss("\n")]),..Out]).
-  showMnem([iCall(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("Call"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iOCall(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("OCall"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iEscape(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("Escape"),ss(" "),ss(XX),ss("\n")]),..Out]).
-  showMnem([iTail(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("Tail"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iOTail(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("OTail"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([.iRet,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("Ret"),ss("\n")]),..Out]).
-  showMnem([iJmp(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("Jmp"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([.iDrop,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("Drop"),ss("\n")]),..Out]).
-  showMnem([.iDup,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("Dup"),ss("\n")]),..Out]).
-  showMnem([iRst(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("Rst"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([.iLdV,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("LdV"),ss("\n")]),..Out]).
-  showMnem([iLdG(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("LdG"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iLdC(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("LdC"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iLdA(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("LdA"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iLdL(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("LdL"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iStL(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("StL"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iStV(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("StV"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iTL(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("TL"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iStA(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("StA"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iStG(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("StG"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iTG(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("TG"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([.iAM,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("AM"),ss("\n")]),..Out]).
-  showMnem([.iLM,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("LM"),ss("\n")]),..Out]).
-  showMnem([.iSM,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("SM"),ss("\n")]),..Out]).
-  showMnem([.iTM,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("TM"),ss("\n")]),..Out]).
-  showMnem([iCLbl(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("CLbl"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iNth(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("Nth"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iStNth(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("StNth"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iGet(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("Get"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iSet(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("Set"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iCase(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("Case"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([.iIAdd,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("IAdd"),ss("\n")]),..Out]).
-  showMnem([.iISub,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("ISub"),ss("\n")]),..Out]).
-  showMnem([.iIMul,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("IMul"),ss("\n")]),..Out]).
-  showMnem([.iIDiv,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("IDiv"),ss("\n")]),..Out]).
-  showMnem([.iIMod,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("IMod"),ss("\n")]),..Out]).
-  showMnem([.iIAbs,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("IAbs"),ss("\n")]),..Out]).
-  showMnem([.iIEq,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("IEq"),ss("\n")]),..Out]).
-  showMnem([.iILt,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("ILt"),ss("\n")]),..Out]).
-  showMnem([.iIGe,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("IGe"),ss("\n")]),..Out]).
-  showMnem([iICmp(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("ICmp"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([.iBAnd,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("BAnd"),ss("\n")]),..Out]).
-  showMnem([.iBOr,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("BOr"),ss("\n")]),..Out]).
-  showMnem([.iBXor,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("BXor"),ss("\n")]),..Out]).
-  showMnem([.iBLsl,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("BLsl"),ss("\n")]),..Out]).
-  showMnem([.iBLsr,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("BLsr"),ss("\n")]),..Out]).
-  showMnem([.iBAsr,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("BAsr"),ss("\n")]),..Out]).
-  showMnem([.iBNot,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("BNot"),ss("\n")]),..Out]).
-  showMnem([.iFAdd,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("FAdd"),ss("\n")]),..Out]).
-  showMnem([.iFSub,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("FSub"),ss("\n")]),..Out]).
-  showMnem([.iFMul,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("FMul"),ss("\n")]),..Out]).
-  showMnem([.iFDiv,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("FDiv"),ss("\n")]),..Out]).
-  showMnem([.iFMod,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("FMod"),ss("\n")]),..Out]).
-  showMnem([.iFAbs,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("FAbs"),ss("\n")]),..Out]).
-  showMnem([.iFEq,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("FEq"),ss("\n")]),..Out]).
-  showMnem([.iFLt,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("FLt"),ss("\n")]),..Out]).
-  showMnem([.iFGe,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("FGe"),ss("\n")]),..Out]).
-  showMnem([iFCmp(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("FCmp"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iAlloc(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("Alloc"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iAlTpl(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("AlTpl"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iCmp(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("Cmp"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iBf(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("Bf"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iBt(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("Bt"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iFrame(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("Frame"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iThrow(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("Throw"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([iUnwind(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("Unwind"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([idLine(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[ssSeq([disp(Pc),ss(":"),ss("dLine"),ss(" "),disp(XX),ss("\n")]),..Out]).
-  showMnem([.idBug,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("dBug"),ss("\n")]),..Out]).
-  showMnem([.idBreak,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[ssSeq([disp(Pc),ss(":"),ss("dBreak"),ss("\n")]),..Out]).
+  showMnem:(cons[assemOp],integer) => multi[ss].
+  showMnem([],_) => .null.
+  showMnem([iLbl(al(Lb)),..Ins],Pc) => single(ssSeq([ss(Lb),ss(":\n")]))++showMnem(Ins,Pc).
+  showMnem([iLocal(Nm,Frm,End,_Off),..Ins],Pc) => single(ssSeq([ss(Nm),ss("::"),disp(Frm),ss("-"),disp(End),ss("\n")]))++showMnem(Ins,Pc).
+  showMnem([.iHalt,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Halt"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([iCall(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Call"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iOCall(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("OCall"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iEscape(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Escape"),ss(" "),ss(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iTail(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Tail"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iOTail(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("OTail"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([.iRet,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Ret"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([iJmp(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Jmp"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([.iDrop,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Drop"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iDup,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Dup"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([iRst(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Rst"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([.iLdV,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("LdV"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([iLdG(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("LdG"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iLdC(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("LdC"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iLdA(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("LdA"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iLdL(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("LdL"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iStL(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("StL"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iStV(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("StV"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iTL(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("TL"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iStA(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("StA"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iStG(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("StG"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iTG(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("TG"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([.iAM,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("AM"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iLM,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("LM"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iSM,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("SM"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iTM,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("TM"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([iCLbl(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("CLbl"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iNth(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Nth"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iStNth(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("StNth"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iGet(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Get"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iSet(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Set"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iCase(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Case"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([.iIAdd,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("IAdd"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iISub,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("ISub"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iIMul,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("IMul"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iIDiv,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("IDiv"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iIMod,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("IMod"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iIAbs,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("IAbs"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iIEq,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("IEq"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iILt,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("ILt"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iIGe,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("IGe"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([iICmp(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("ICmp"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([.iBAnd,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("BAnd"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iBOr,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("BOr"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iBXor,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("BXor"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iBLsl,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("BLsl"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iBLsr,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("BLsr"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iBAsr,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("BAsr"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iBNot,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("BNot"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iFAdd,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("FAdd"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iFSub,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("FSub"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iFMul,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("FMul"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iFDiv,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("FDiv"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iFMod,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("FMod"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iFAbs,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("FAbs"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iFEq,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("FEq"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iFLt,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("FLt"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iFGe,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("FGe"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([iFCmp(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("FCmp"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iAlloc(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Alloc"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iAlTpl(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("AlTpl"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iCmp(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Cmp"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iBf(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Bf"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iBt(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Bt"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iFrame(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Frame"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iThrow(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Throw"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iUnwind(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Unwind"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([idLine(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("dLine"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([.idBug,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("dBug"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.idBreak,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("dBreak"),ss("\n")])) ++ showMnem(Ins,Pc+1).
 
 }
