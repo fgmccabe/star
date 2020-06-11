@@ -340,48 +340,50 @@ static void showStarIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
       exit(1);
   }
 
-  outMsg(out, ",..Ins],Pc,Out) => showMnem(Ins,");
+  outMsg(out, ",..Ins],Pc) => ");
+
+
+  outMsg(out, "single(ssSeq([disp(Pc),ss(\":\"),ss(\"%P\")", mnem);
+
   switch (A1) {
     case nOp:                             // No operand
     case tOs:
-      outMsg(out, "Pc+1,");
+      outMsg(out, ",ss(\"\\n\")])) ++ showMnem(Ins,");
       break;
+    case lne:
     case lit:
     case sym:
-    case lne:
     case i32:
     case art:
     case arg:
     case lcl:
     case lcs:
-    case Es:
     case glb:
     case off:
-      outMsg(out, "Pc+3,");
+      outMsg(out, ",ss(\" \"),disp(XX),ss(\"\\n\")])) ++ showMnem(Ins,");
+      break;
+    case Es:
+      outMsg(out, ",ss(\" \"),ss(XX),ss(\"\\n\")])) ++ showMnem(Ins,");
       break;
   }
 
-  outMsg(out, "[ssSeq([disp(Pc),ss(\":\"),ss(\"%P\")", mnem);
-
   switch (A1) {
     case nOp:                             // No operand
     case tOs:
-      outMsg(out, ",ss(\"\\n\")]),..Out]).\n");
+      outMsg(out, "Pc+1).\n");
       break;
-    case lne:
     case lit:
     case sym:
+    case lne:
     case i32:
     case art:
     case arg:
     case lcl:
     case lcs:
+    case Es:
     case glb:
     case off:
-      outMsg(out, ",ss(\" \"),disp(XX),ss(\"\\n\")]),..Out]).\n");
-      break;
-    case Es:
-      outMsg(out, ",ss(\" \"),ss(XX),ss(\"\\n\")]),..Out]).\n");
+      outMsg(out, "Pc+3).\n");
       break;
   }
 }
