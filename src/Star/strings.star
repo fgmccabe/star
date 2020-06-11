@@ -98,4 +98,7 @@ star.strings{
 
   public isAlphaNum:(integer) => boolean.
   isAlphaNum(Ch) => (_isLetterChar(Ch) || _isNdChar(Ch)).
+
+  public genSym:(string) => string.
+  genSym(Pre) => _str_gen(Pre).
 }

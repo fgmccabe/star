@@ -2,9 +2,6 @@ star.compiler.misc{
   import star.
   import star.pkg.
 
-  public genSym:(string) => string.
-  genSym(Pre) => _str_gen(Pre).
-
   public genNewName:(string,string) => string.
   genNewName(Path,Prefix) => qualifiedName(Path,.valMark,genSym(Prefix)).
 
