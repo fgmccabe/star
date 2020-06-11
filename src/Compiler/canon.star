@@ -206,7 +206,7 @@ star.compiler.canon{
   showDef(conDef(_,_,Nm,Tp),Sp) => ssSeq([ss("Contract: "),ss(Nm),ss("::="),disp(Tp)]).
   showDef(cnsDef(_,_,Nm,Tp),Sp) => ssSeq([ss("Constructor: "),ss(Nm),ss(":"),disp(Tp)]).
   showDef(implDef(_,Nm,FullNm,Exp,_,Tp),Sp) =>
-    ssSeq([ss("Implementation: "),ss(FullNm),ss(" ["),ss(Nm),ss("] = "),showCanon(Exp,Sp)]).
+    ssSeq([ss("Implementation: "),ss(Nm),ss(" ["),ss(FullNm),ss("] = "),showCanon(Exp,Sp)]).
 
   showRls:(string,cons[equation],string) => ss.
   showRls(Nm,Rls,Sp) => ssSeq(interleave(Rls//(Rl)=>showRl(Nm,Rl,Sp),ss(".\n"++Sp))).
