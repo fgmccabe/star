@@ -162,7 +162,6 @@ retCode hashPut(hashPo htbl, void *name, void *r) {
         if (htbl->destroy != Null)
           htbl->destroy(b->nme, b->r);
         b->nme = name;
-
         b->r = r;
 
         pthread_mutex_unlock(&htbl->mutex);

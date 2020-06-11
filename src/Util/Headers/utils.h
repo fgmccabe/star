@@ -46,7 +46,7 @@ static integer inline clamp(integer min, integer ix, integer max) {
     return ix;
 }
 
-extern char *genSym(char *prefix);
+extern char *genSym(const char *prefix, char *buffer, integer buffLen);
 
 extern integer nextPrime(integer min);
 

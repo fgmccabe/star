@@ -4,6 +4,7 @@ star.compiler.assem{
   import star.sort.
 
   import star.compiler.location.
+  import star.compiler.multi.
   import star.compiler.terms.
   import star.compiler.types.
 
@@ -73,17 +74,17 @@ star.compiler.assem{
   .}
 
   public implementation display[codeSegment] => {.
-    disp(method(Nm,Sig,Ins)) => ssSeq([disp(Nm),ss(":"),disp(Sig),ss("\n"),..reverse(showMnem(Ins,0,[]))]).
-    disp(global(Nm,Sig,Ins)) => ssSeq([ss("global "),disp(Nm),ss(":"),disp(Sig),ss("\n"),..reverse(showMnem(Ins,0,[]))]).
+    disp(method(Nm,Sig,Ins)) => ssSeq([disp(Nm),ss(":"),disp(Sig),ss("\n"),..(showMnem(Ins,0)::cons[ss])]).
+    disp(global(Nm,Sig,Ins)) => ssSeq([ss("global "),disp(Nm),ss(":"),disp(Sig),ss("\n"),..(showMnem(Ins,0)::cons[ss])]).
   .}
 
   public implementation display[assemOp] => {.
-    disp(Op) => ssSeq(reverse(showMnem([Op],0,[]))).
+    disp(Op) => ssSeq(showMnem([Op],0)::cons[ss]).
   .}
 
-  showMnem:(cons[assemOp],integer,cons[ss]) => cons[ss].
-  showMnem([],_,Out) => Out.
-  showMnem([iLbl(al(Lb)),..Ins],Pc,Out) => showMnem(Ins,Pc,[ssSeq([ss(Lb),ss(":\n")]),..Out]).
-  showMnem([iLocal(Nm,Frm,End,_Off),..Ins],Pc,Out) => showMnem(Ins,Pc,[ssSeq([ss(Nm),ss("::"),disp(Frm),ss("-"),disp(End),ss("\n")]),..Out]).
+  showMnem:(cons[assemOp],integer) => multi[ss].
+  showMnem([],_) => .null.
+  showMnem([iLbl(al(Lb)),..Ins],Pc) => single(ssSeq([ss(Lb),ss(":\n")]))++showMnem(Ins,Pc).
+  showMnem([iLocal(Nm,Frm,End,_Off),..Ins],Pc) => single(ssSeq([ss(Nm),ss("::"),disp(Frm),ss("-"),disp(End),ss("\n")]))++showMnem(Ins,Pc).
 #(Show)
 }

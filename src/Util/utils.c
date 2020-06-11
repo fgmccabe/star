@@ -16,18 +16,17 @@ void syserr(const char *msg) {
   exit(99);
 }
 
-char *genSym(char *prefix) {
+char *genSym(const char *prefix, char *buffer, integer buffLen) {
   static int count = 0;
-  static char buffer[MAXLINE];
 
-  strMsg(buffer, NumberOf(buffer), "%s%d", prefix, count++);
+  strMsg(buffer, buffLen, "%s%d", prefix, count++);
   return buffer;
 }
 
-retCode homeDir(char *user,char *buffer,integer bufLen){
+retCode homeDir(char *user, char *buffer, integer bufLen) {
   struct passwd *up = getpwnam(user);
-  if(up!=Null){
-    uniCpy(buffer,bufLen,up->pw_dir);
+  if (up != Null) {
+    uniCpy(buffer, bufLen, up->pw_dir);
     return Ok;
   }
   return Fail;
