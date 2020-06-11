@@ -103,8 +103,9 @@ star.compiler.freevars{
   exclDfs:(cons[canonDef],set[crVar],set[crVar])=>set[crVar].
   exclDfs(Defs,Excl,Fv) => foldRight((D,Ex)=>exclDf(D,Ex,Fv),Excl,Defs).
 
-  exclDf(varDef(Lc,Nm,_,Val,_,Tp),Excl,Fv) /*where isFunDef(Val) */=> Excl\+crId(Nm,Tp).
-  exclDf(implDef(_,_,Nm,_,_,Tp),Excl,Fv) => Excl\+crId(Nm,Tp).
+  exclDf(varDef(Lc,Nm,_,Val,_,Tp),Excl,Fv) where isFunDef(Val) => Excl\+crId(Nm,Tp).
+  exclDf(implDef(Lc,Nm,FullNm,Val,Cx,Tp),Excl,Fv) =>
+    exclDf(varDef(Lc,Nm,FullNm,Val,Cx,Tp),Excl,Fv).
   exclDf(_,Excl,_) => Excl.
 
   public goalVars:(locn,canon)=>cons[canon].
