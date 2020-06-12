@@ -144,12 +144,10 @@ star.compiler.gencode{
     compExp(Rc,Opts,bothCont(fldCont(Field,Tp),Cont),Ctx,Cde,Stk,Rp).
   compExp(crTplOff(Lc,Rc,Ix,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
     compExp(Rc,Opts,bothCont(tplOffCont(Ix,Tp),Cont),Ctx,Cde,Stk,Rp)}
-  compExp(crLtt(Lc,V,Val,Exp),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
---    logMsg("$(crLtt(Lc,V,Val,Exp)) at $(Lc)");
-    (Off,Ctx0) .= defineLclVar(V,Ctx);
+  compExp(crLtt(Lc,V,Val,Exp),Opts,Cont,Ctx,Cde,Stk,Rp) => 
     compExp(Val,Opts,
-      bothCont(stoLcl(V,Off),expCont(Exp,Opts,Cont)),Ctx0,Cde,Stk,Rp)
-  }
+      bothCont(stoCont(V),expCont(Exp,Opts,Cont)),Ctx,Cde,Stk,Rp).
+
   compExp(crLtRec(Lc,V,Vals,Exp),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
 --    logMsg("compiling let rec $(crLtRec(Lc,V,Vals,Exp))");
     (Off,Ctx0) .= defineLclVar(V,Ctx);
