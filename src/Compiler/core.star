@@ -52,7 +52,7 @@ star.compiler.core{
 
   dspDef:(crDefn,string) => ss.
   dspDef(fnDef(Lc,Nm,Tp,Args,Rep),Off) =>
-    ssSeq([ss("fun: "),disp(Lc),ss("\n"), -- ss(Nm),ss(":"),disp(Tp),ss("\n"),ss(Off),
+    ssSeq([ss("fun: "),disp(Lc),ss("\n"), 
 	ss(Nm),ss("("),
 	ssSeq(interleave(Args//disp,ss(","))),ss(") => "),
 	dspExp(Rep,Off)]).
