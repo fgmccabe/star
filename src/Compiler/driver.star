@@ -265,8 +265,6 @@ star.compiler{
 		mkTpl(Ins//assem)]);
 	    Bytes .= (strg(Code::string)::string);
 	    Repp := addSource(addPackage(Repp!!,CPkg,Bytes),CPkg,SrcUri::string)
---	    logMsg("manifest now $(Repp!!)")
---	    _ .= flushRepo(Repp!!)
 	  }
 	  else
 	  throw reportError(Rp,"cannot locate source of $(P)",Lc)
