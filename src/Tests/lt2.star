@@ -6,17 +6,17 @@ test.lt2{
     .jT | .jF  | jS(js).
 
   eqr = {.
-    eq = equalJs
+    eq = equalJ
   .}.
 
-  equalJs(.jT,.jT) => .true.
-  equalJs(.jF,.jF) => .true.
-  equalJs(jS(L1),jS(L2)) => execQ(L1,L2).
-  equalJs(_,_) default => .false.
+  equalJ(.jT,.jT) => .true.
+  equalJ(.jF,.jF) => .true.
+  equalJ(jS(L1),jS(L2)) => execQ(L1,L2).
+  equalJ(_,_) default => .false.
 
   execQ(L1,L2) => eqr.eq(L1,L2).
 
-  test() => equalJs(jS(.jT),jS(.jT)).
+  test() => equalJ(jS(.jT),jS(.jT)).
 
   main:()=>action[(),()].
   main() => do{

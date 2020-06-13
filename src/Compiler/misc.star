@@ -68,4 +68,9 @@ star.compiler.misc{
 
   filterDups:(integer,cons[integer])=>cons[integer].
   filterDups(C,I) => (I^/(X)=>X%C=!=0).
+
+  public drop:all e ~~ equality[e] |: (e,cons[e])=>cons[e].
+  drop(_,[]) => [].
+  drop(X,[X,..R]) => R.
+  drop(X,[E,..R]) => [E,..drop(X,R)].
 }
