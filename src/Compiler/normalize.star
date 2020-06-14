@@ -87,8 +87,11 @@ star.compiler.normalize{
 	rawGrpFree \ lVars);
 
 --    logMsg("simplifying $(ffreeVars)");
-    freeVars <- reduceFreeArgs(ffreeVars,ffreeVars,Outer,Rp);
---    logMsg("simplified free $(freeVars)");
+    varParents .= freeParents(ffreeVars,Outer);
+--    logMsg("parents $(varParents)");
+    freeVars <- reduceFreeArgs(varParents,Outer,Rp);
+--    freeVars <- reduceFreeArgs(ffreeVars,Outer,Rp);
+--    logMsg("simplified free $(freeVars)\:$(typeOf(freeVars))");
 
     freeArgs <- seqmap((crId(VNm,VTp))=>
 	liftVarExp(Lc,VNm,VTp,Outer,Rp),freeVars);
@@ -120,7 +123,7 @@ star.compiler.normalize{
       (cellArgs,Ex2) <- liftExps(cDefs,Outer,GrpQ,Ex1,Rp);
       GrpFree .= crTpl(Lc,freeArgs++cellArgs);
 
---      logMsg("free term $(ThV) = $(GrpFree)");
+--      logMsg("free term $(ThV) = $(GrpFree)\:$(typeOf(GrpFree))");
       (BndTrm,Exx) <- liftExp(Bnd,MM,GrpQ,Ex2,Rp);
 --      logMsg("Bound exp $(BndTrm)");
     
@@ -147,8 +150,10 @@ star.compiler.normalize{
 	rawGrpFree \ lVars);
 
 --    logMsg("simplifying $(ffreeVars)");
-    freeVars <- reduceFreeArgs(ffreeVars,ffreeVars,Outer,Rp);
---    logMsg("simplified $(freeVars)");
+    varParents .= freeParents(ffreeVars,Outer);
+    freeVars <- reduceFreeArgs(varParents,Outer,Rp);
+--    logMsg("simplified $(freeVars)\:$(typeOf(freeVars))");
+--    logMsg("letrec common $(subFree(freeVars,Outer))");
 
 --    logMsg("vars $(lVars)");
 
@@ -178,7 +183,7 @@ star.compiler.normalize{
       Ex1 <- transformGroup(GrpFns,M,GrpQ,ThVr,Ex,Rp);
       (cellArgs,Ex2) <- liftExps(vrDefs,M,GrpQ,Ex1,Rp);
 
---      logMsg("free term $(ThV) = $(crTpl(Lc,freeArgs++cellArgs))");
+--      logMsg("free term $(ThV) = $(crTpl(Lc,freeArgs++cellArgs))\:$(typeOf(freeArgs++cellArgs))");
       
 --      logMsg("transform bound exp $(Bnd)");
       (BndTrm,Exx) <- liftExp(Bnd,M,GrpQ,Ex2,Rp);
@@ -407,7 +412,9 @@ star.compiler.normalize{
 	[],
 	freeLabelVars(freeVarsInTerm(Lam,[],Q,[]),Map));
 
-    freeVars <- reduceFreeArgs(ffreeVars,ffreeVars,Map,Rp);
+
+    varParents .= freeParents(ffreeVars,Map);
+    freeVars <- reduceFreeArgs(varParents,Map,Rp);
 
 --    logMsg("lambda free vars $(freeVars), Q=$(Q)");
 
@@ -507,7 +514,6 @@ star.compiler.normalize{
     implementVarExp(Lc,Entry,Map,Tp,Rp)
   }.
   liftVarExp(Lc,Nm,Tp,Map,Rp) => do{
---    logMsg("default var $(Nm)");
     valis crVar(Lc,crId(Nm,Tp))
   }
 
@@ -624,21 +630,31 @@ star.compiler.normalize{
   isModule(_) default => .none.
 
   -- eliminate free variables that can be computed from other free vars
-  reduceFreeArgs:(cons[crVar],cons[crVar],nameMap,reports) =>
-    either[reports,cons[crVar]].
-  reduceFreeArgs([],FrVrs,Outer,Rp) => either(FrVrs).
-  reduceFreeArgs([FrV,..FrArgs],FrVrs,Outer,Rp) where
+  reduceFreeArgs:(cons[crVar],nameMap,reports) => either[reports,cons[crVar]].
+  reduceFreeArgs(FrVrs,Map,Rp) => let{
+    reduceArgs:(cons[crVar],cons[crVar]) => either[reports,cons[crVar]].
+    reduceArgs([],Frs) => either(Frs).
+    reduceArgs([FrV,..FrArgs],Frs) where
+	FrNm .= crName(FrV) &&
+	OTh ^= lookupThetaVar(Map,FrNm) &&
+	OTh .<. Frs =>
+      reduceArgs(FrArgs,drop(FrV,Frs)).
+    reduceArgs([_,..FrArgs],Frs) => reduceArgs(FrArgs,Frs).
+  } in reduceArgs(FrVrs,FrVrs).
+
+  freeParents:(cons[crVar],nameMap) => cons[crVar].
+  freeParents(Frs,Map) => foldLeft((F,Fs)=>Fs\+freeParent(F,Map),[],Frs).
+
+  freeParent(V,Map) where ThV ^= lookupThetaVar(Map,crName(V)) =>
+    freeParent(ThV,Map).
+  freeParent(V,_) default => V.
+
+  subFree:(cons[crVar],nameMap)=>cons[crVar].
+  subFree([FrV,..FrArgs],Outer) where
       FrNm .= crName(FrV) &&
-      labelArg(OTh,_) ^= lookupVarName(Outer,FrNm) &&
-      OTh .<. FrVrs =>
-    reduceFreeArgs(FrArgs,drop(FrV,FrVrs),Outer,Rp).
-  reduceFreeArgs([FrV,..FrArgs],FrVrs,Outer,Rp) where
-      FrNm .= crName(FrV) &&
-      localFun(_,_,OTh) ^= lookupVarName(Outer,FrNm) &&
-      OTh .<. FrVrs =>
-    reduceFreeArgs(FrArgs,drop(FrV,FrVrs),Outer,Rp).
-  reduceFreeArgs([_,..FrArgs],FrVrs,Outer,Rp) =>
-    reduceFreeArgs(FrArgs,FrVrs,Outer,Rp).
+      ThV ^= lookupThetaVar(Outer,FrNm) &&
+      (V in FrArgs *> ThV^=lookupThetaVar(Outer,crName(V))) => [ThV].
+  subFree(Fr,_) => Fr.
 
   lookup:all e ~~ (nameMap,string,(nameMapEntry)=>option[e])=>option[e].
   lookup([],_,_) => .none.
@@ -650,6 +666,15 @@ star.compiler.normalize{
   lookupVarName(Map,Nm) => lookup(Map,Nm,anyDef).
 
   anyDef(D) => some(D).
+
+  lookupThetaVar:(nameMap,string)=>option[crVar].
+  lookupThetaVar(Map,Nm) where E^=lookupVarName(Map,Nm) =>
+    case E in {
+      labelArg(ThV,_) => some(ThV).
+      localFun(_,_,ThV) => some(ThV).
+      _ default => .none
+    }.
+  lookupThetaVar(_,_) default => .none.
 
   genVar:(string,tipe) => crVar.
   genVar(Pr,Tp) => crId(genSym(Pr),Tp).
