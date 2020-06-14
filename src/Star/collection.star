@@ -130,6 +130,7 @@ star.collection{
     _rem(K,cons(K,L)) => L.
     _rem(K,cons(E,L)) => cons(E,_rem(K,L)).
   } in {.
+    L\+E where _mem(E,L) => L.
     L\+E => cons(E,L).
     L\-E => _rem(E,L).
     E .<. L => _mem(E,L)
