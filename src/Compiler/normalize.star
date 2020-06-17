@@ -17,8 +17,9 @@ star.compiler.normalize{
 
   nameMapEntry ::= moduleFun(crExp,string)
     | localFun(string,string,crVar)
-    | localVar(string,crExp,tipe)
+    | localVar(crExp)
     | moduleCons(string,tipe)
+    | localCons(string,tipe,crVar)
     | labelArg(crVar,integer)
     | globalVar(string,tipe).
 
@@ -35,9 +36,10 @@ star.compiler.normalize{
   implementation display[nameMapEntry] => {.
     disp(moduleFun(C,V)) => ssSeq([ss("module fun "),disp(V),ss(", closure "),disp(C)]).
     disp(moduleCons(Nm,Tp)) => ssSeq([ss("module cons "),ss(Nm)]).
+    disp(localCons(Nm,Tp,Vr)) => ssSeq([ss("local cons "),ss(Nm),ss("["),disp(Vr),ss("]")]).
     disp(localFun(Nm,ClNm,V)) => ssSeq([ss("local fun "),ss(Nm),ss(", closure "),disp(ClNm),
 	ss(" ThV "),disp(V)]).
-    disp(localVar(ClNm,Vr,_)) => ssSeq([ss("local var "),ss(ClNm),ss(" from "),disp(Vr)]).
+    disp(localVar(Vr)) => ssSeq([ss("local var "),disp(Vr)]).
     disp(labelArg(Base,Ix)) => ssSeq([ss("label arg "),disp(Base),ss("["),disp(Ix),ss("]")]).
     disp(globalVar(Nm,Tp)) => ssSeq([ss("global "),ss(Nm)]).
   .}
@@ -106,7 +108,20 @@ star.compiler.normalize{
       (BndTrm,Ex2) <- liftExp(Bnd,M,Q,Ex1,Rp);
 
       valis (BndTrm,Ex2)
-    } else {
+    } else if isEmpty(lVars) && size(freeVars)==1 then{
+      ThV ^= head(freeVars);
+      ThVr .= some(crVar(Lc,ThV));
+      L .= [crName(ThV)->localVar(crVar(Lc,ThV))];
+
+      M .= [lyr(L),..Outer];
+      MM .= [lyr(foldRight((D,LL)=>collectMtd(D,some(ThV),LL),L,Grp)),..Outer];
+--      logMsg("let map is $(head(M))");
+
+      GrpQ .= foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q,lVars),Grp);
+      Ex1 <- transformGroup(Grp,M,GrpQ,ThVr,Ex,Rp);
+      liftExp(Bnd,MM,GrpQ,Ex1,Rp)
+    }
+    else {
       ThV .= genVar("_ThVr",typeOf(freeVars++lVars));
       ThVr .= some(crVar(Lc,ThV));
       L .= collectLabelVars(freeVars++lVars,ThV,0,[]);
@@ -164,6 +179,17 @@ star.compiler.normalize{
       (BndTrm,Ex2) <- liftExp(Bnd,M,Q,Ex1,Rp);
       
       valis (BndTrm,Ex2)
+    } else if isEmpty(lVars) && size(freeVars)==1 then{
+      ThV ^= head(freeVars);
+      ThVr .= some(crVar(Lc,ThV));
+      L .= [crName(ThV)->localVar(crVar(Lc,ThV))];
+
+      MM .= [lyr(foldRight((D,LL)=>collectMtd(D,some(ThV),LL),L,Grp)),..Outer];
+--      logMsg("let map is $(head(M))");
+
+      GrpQ .= foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q,lVars),Grp);
+      Ex1 <- transformGroup(Grp,MM,GrpQ,ThVr,Ex,Rp);
+      liftExp(Bnd,MM,GrpQ,Ex1,Rp)
     } else{
       ThV .= genVar("_ThVr",typeOf(freeVars++lVars));
       ThVr .= some(crVar(Lc,ThV));
@@ -171,24 +197,26 @@ star.compiler.normalize{
       L .= collectLabelVars(freeVars++lVars,ThV,0,[]);
       M .= [lyr(foldRight((D,LL)=>collectMtd(D,some(ThV),LL),L,GrpFns)),..Outer];
 
---      logMsg("theta var $(ThV) ~ $(L)");
+--      logMsg("theta var $(ThV)\:$(typeOf(ThV)) ~ $(L)");
 
 --      logMsg("letrec map is $(head(M))");
 
       freeArgs <- seqmap(
 	(crId(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer,Rp),freeVars);
 --      logMsg("free vars lift to $(freeArgs)");
+--      logMsg("lift vars $(vrDefs)");
+      (cellArgs,Ex1) <- liftExps(vrDefs,M,Q,Ex,Rp);
+      GrpFree .= crTpl(Lc,freeArgs++cellArgs);
+      
+--      logMsg("free term $(ThV) = $(GrpFree)\:$(typeOf(GrpFree))");
 
       GrpQ .= foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q,lVars),Grp);
-      Ex1 <- transformGroup(GrpFns,M,GrpQ,ThVr,Ex,Rp);
-      (cellArgs,Ex2) <- liftExps(vrDefs,M,GrpQ,Ex1,Rp);
-
---      logMsg("free term $(ThV) = $(crTpl(Lc,freeArgs++cellArgs))\:$(typeOf(freeArgs++cellArgs))");
+      Ex2 <- transformGroup(GrpFns,M,GrpQ,ThVr,Ex1,Rp);
       
 --      logMsg("transform bound exp $(Bnd)");
       (BndTrm,Exx) <- liftExp(Bnd,M,GrpQ,Ex2,Rp);
 
-      valis (crLtRec(Lc,ThV,freeArgs++cellArgs,BndTrm),Exx)
+      valis (crLtRec(Lc,ThV,GrpFree,BndTrm),Exx)
     }
   }
 
@@ -336,12 +364,15 @@ star.compiler.normalize{
     implementPtnCall(Lc,Entry,Args,Tp,Map,Q,Ex,Rp).
 
   implementPtnCall(Lc,moduleCons(Nm,CTp),Args,Tp,_,_,Ex,_) => either((crTerm(Lc,Nm,Args,Tp),Ex)).
+  implementPtnCall(Lc,localCons(Nm,CTp,Vr),Args,Tp,_,_,Ex,_) => either((crTerm(Lc,Nm,[crVar(Lc,Vr),..Args],Tp),Ex)).
   
   trVarPtn(Lc,Nm,Tp,Map,Ex,Rp) => implementVarPtn(Lc,Nm,lookupVarName(Map,Nm),Tp,Map,Ex,Rp).
 
   implementVarPtn(Lc,Nm,.none,Tp,_,Ex,_) => either((crVar(Lc,crId(Nm,Tp)),Ex)).
   implementVarPtn(Lc,Nm,some(moduleCons(Enum,CTp)),Tp,_,Ex,_) where ETp^=isEnumType(CTp) =>
     either((crLbl(Lc,Enum,ETp),Ex)).
+  implementVarPtn(Lc,Nm,some(localCons(Enum,CTp,Vr)),Tp,_,Ex,_) =>
+    either((crTerm(Lc,Enum,[crVar(Lc,Vr)],Tp),Ex)).
   implementVarPtn(Lc,Nm,some(labelArg(Base,Ix)),Tp,Map,Ex,Rp) => do{
     V <- liftVarExp(Lc,crName(Base),typeOf(Base),Map,Rp);
     NN .= crVar(Lc,crId(Nm,Tp));
@@ -494,6 +525,10 @@ star.compiler.normalize{
     either((crCall(Lc,Fn,Args,Tp),Ex)).
   implementFunCall(Lc,moduleCons(Fn,FTp),_,Args,Tp,Map,Ex,Rp) =>
     either((crTerm(Lc,Fn,Args,Tp),Ex)).
+  implementFunCall(Lc,localCons(Fn,FTp,Vr),_,Args,Tp,Map,Ex,Rp) => do{
+    VV<-liftVarExp(Lc,crName(Vr),typeOf(Vr),Map,Rp);
+    valis (crTerm(Lc,Fn,[VV,..Args],Tp),Ex)
+  }
   implementFunCall(Lc,localFun(Nm,ClNm,Th),_,Args,Tp,Map,Ex,Rp) => do{
     V <- liftVarExp(Lc,crName(Th),Tp,Map,Rp);
     valis (crCall(Lc,Nm,[V,..Args],Tp),Ex)
@@ -502,8 +537,8 @@ star.compiler.normalize{
     V <- liftVarExp(Lc,crName(Base),typeOf(Base),Map,Rp);
     valis (crOCall(Lc,crTplOff(Lc,V,Ix,Tp),Args,Tp),Ex)
   }
-  implementFunCall(Lc,localVar(ClNm,ThVr,VTp),_,Args,Tp,Map,Ex,Rp) =>
-    either((crOCall(Lc,crCall(Lc,ClNm,[ThVr],VTp),Args,Tp),Ex)).
+  implementFunCall(Lc,localVar(Vr),_,Args,Tp,Map,Ex,Rp) =>
+    either((crOCall(Lc,Vr,Args,Tp),Ex)).
   implementFunCall(Lc,globalVar(Nm,GTp),_,Args,Tp,Map,Ex,Rp) =>
     either((crOCall(Lc,crVar(Lc,crId(Nm,GTp)),Args,Tp),Ex)).
   implementFunCall(Lc,V,Vr,Args,Tp,Map,Ex,Rp) =>
@@ -526,9 +561,12 @@ star.compiler.normalize{
     V <- liftVarExp(Lc,crName(Base),typeOf(Base),Map,Rp);
     valis(crTplOff(Lc,V,Ix,Tp))
   }.
-  implementVarExp(Lc,localVar(ClNm,ThVr,_),_,Tp,Rp) => either(crCall(Lc,ClNm,[ThVr],Tp)).
-  implementVarExp(Lc,moduleCons(Enum,CTp),_,Tp,Rp) =>
-    either(crLbl(Lc,Enum,Tp)).
+  implementVarExp(Lc,localVar(Vr),_,Tp,Rp) => either(Vr).
+  implementVarExp(Lc,moduleCons(Enum,CTp),_,Tp,Rp) => either(crLbl(Lc,Enum,Tp)).
+  implementVarExp(Lc,localCons(Enum,CTp,Vr),Map,Tp,Rp) => do{
+    V <- liftVarExp(Lc,crName(Vr),typeOf(Vr),Map,Rp);
+    valis crTerm(Lc,Enum,[V],Tp)
+  }
   implementVarExp(Lc,moduleFun(V,_),_,Tp,Rp) => either(V).
   implementVarExp(Lc,globalVar(Nm,GTp),_,Tp,Rp) => either(crVar(Lc,crId(Nm,GTp))).
   implementVarExp(Lc,E,_,_,Rp) => other(reportError(Rp,"cannot transform variable $(E)",Lc)).
@@ -593,10 +631,11 @@ star.compiler.normalize{
   collectMtd(varDef(Lc,Nm,FullNm,Val,_,Tp),.none,LL) =>
     LL[Nm->globalVar(FullNm,Tp)].
   collectMtd(varDef(Lc,Nm,FullNm,Val,_,Tp),some(ThVr),LL) =>
-    LL[Nm->localVar(FullNm,crVar(Lc,ThVr),Tp)].
+    LL[Nm->localVar(crVar(Lc,crId(FullNm,Tp)))].
   collectMtd(implDef(Lc,_,FullNm,Val,Cx,Tp),ThVr,LL) =>
     collectMtd(varDef(Lc,FullNm,FullNm,Val,Cx,Tp),ThVr,LL).
-  collectMtd(cnsDef(Lc,Nm,FullNm,Tp),ThVr,LL) => LL[Nm->moduleCons(FullNm,Tp)].
+  collectMtd(cnsDef(Lc,Nm,FullNm,Tp),.none,LL) => LL[Nm->moduleCons(FullNm,Tp)].
+  collectMtd(cnsDef(Lc,Nm,FullNm,Tp),some(ThVr),LL) => LL[Nm->localCons(FullNm,Tp,ThVr)].
   collectMtd(typeDef(_,_,_,_),_,LL) => LL.
   collectMtd(conDef(_,_,_,_),_,LL) => LL.
 
@@ -655,6 +694,8 @@ star.compiler.normalize{
       ThV ^= lookupThetaVar(Outer,FrNm) &&
       (V in FrArgs *> ThV^=lookupThetaVar(Outer,crName(V))) => [ThV].
   subFree(Fr,_) => Fr.
+
+  deRefFree:(crVar,nameMap) => nameMap.
 
   lookup:all e ~~ (nameMap,string,(nameMapEntry)=>option[e])=>option[e].
   lookup([],_,_) => .none.
