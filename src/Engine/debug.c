@@ -1149,7 +1149,7 @@ retCode showLcl(ioPo out, integer vr, methodPo mtd, framePo fp, ptrPo sp) {
   if (fp != Null && sp != Null) {
     ptrPo var = localVar(fp, vr);
     if (*var != Null)
-      return outMsg(out, " l[%d] = %,20T", vr, *var);
+      return outMsg(out, " l[%d] = %,*T", vr, displayDepth, *var);
     else
       return outMsg(out, " l[%d] (unset)", vr);
   } else
@@ -1171,7 +1171,7 @@ retCode showGlb(ioPo out, globalPo glb, framePo fp, ptrPo sp) {
 
 retCode showTos(ioPo out, framePo fp, ptrPo sp) {
   if (sp != Null)
-    return outMsg(out, " <tos> = %,10T", sp[0]);
+    return outMsg(out, " <tos> = %,*T", displayDepth, sp[0]);
   else
     return outMsg(out, " <tos>");
 }
@@ -1204,7 +1204,7 @@ void showStack(ioPo out, processPo p, methodPo mtd, integer vr, framePo fp, ptrP
   ptrPo stackTop = ((ptrPo) fp) - lclCount(mtd);
 
   if (vr >= 0 && vr < stackTop - sp)
-    outMsg(out, "SP[%d]=%,10T\n", vr, sp[vr]);
+    outMsg(out, "SP[%d]=%,*T\n", vr, displayDepth, sp[vr]);
   else
     outMsg(out, "invalid stack offset: %d", vr);
 }
@@ -1216,7 +1216,7 @@ static void showPcOffset(ioPo out, insPo base, insPo *pc, framePo fp, ptrPo sp) 
   int32 delta = (hi32 << 16u) | lo32;
 
   if (sp != Null)
-    outMsg(out, " PC[%d(%+d)], tos = %,10T", (*pc - base) + delta, delta, sp[0]);
+    outMsg(out, " PC[%d(%+d)], tos = %,*T", (*pc - base) + delta, delta, displayDepth, sp[0]);
   else
     outMsg(out, " PC[%d(%+d)]", (*pc - base) + delta, delta);
 }
