@@ -34,10 +34,11 @@ star.compiler.gencode{
   emptyCtx(Lc,Glbs) => codeCtx(Glbs,Lc,0,0).
 
   ctxLbls:(codeCtx,codeCtx)=>codeCtx.
-  ctxLbls(codeCtx(Vrs,Lc,Mx1,Lb1),codeCtx(_,_,Mx2,Lb2))=>codeCtx(Vrs,Lc,max(Mx1,Mx2),max(Lb1,Lb2)).
+  ctxLbls(codeCtx(Vrs,Lc,Mx1,Lb1),codeCtx(_,_,Mx2,Lb2))=>
+    codeCtx(Vrs,Lc,max(Mx1,Mx2),max(Lb1,Lb2)).
 
   implementation display[codeCtx] => {.
-    disp(codeCtx(Vrs,_,Depth,_)) => ssSeq([ss("depth "),disp(Depth),ss(" vars "),disp(Vrs)]).
+    disp(codeCtx(Vrs,_,Depth,Stk)) => ssSeq([ss("depth "),disp(Depth),ss(" stack "),disp(Stk)]).
   .}
 
   implementation sizeable[codeCtx] => {.
@@ -55,8 +56,6 @@ star.compiler.gencode{
   public compCrProg:(pkg,cons[crDefn],cons[(string,tipe)],compilerOptions,reports)=>
     either[reports,cons[codeSegment]].
   compCrProg(Pkg,Defs,Globals,Opts,Rp) => do{
---    logMsg("globals $(Globals)");
---    logMsg("Defs $(Defs)");
     compDefs(Defs,localFuns(Defs,foldRight(((Pk,Tp),G)=>G[Pk->glbVar(Pk,Tp)],[],Globals)),
       Opts,genBoot(Pkg,Defs),Rp)
   }.
@@ -148,14 +147,16 @@ star.compiler.gencode{
     compExp(Val,Opts,
       bothCont(stoCont(V),expCont(Exp,Opts,Cont)),Ctx,Cde,Stk,Rp).
 
-  compExp(crLtRec(Lc,V,Vals,Exp),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
---    logMsg("compiling let rec $(crLtRec(Lc,V,Vals,Exp))");
-    (Off,Ctx0) .= defineLclVar(V,Ctx);
-    Ar .= size(Vals);
-    FrTp .= typeOf(Vals);
-
-    compFrTuple(Vals,Off,0,FrTp,Opts,expCont(Exp,Opts,Cont),Ctx0,
-      Cde++[iAlTpl(tLbl(tplLbl(Ar),Ar)),iStL(Off)],Stk,Rp)
+  compExp(crLtRec(Lc,V,Vl,Exp),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
+--    logMsg("compiling let rec $(crLtRec(Lc,V,Vl,Exp))");
+    (Nxt,Ctx0) .= defineLbl(Ctx);
+    (Off,Ctxa) .= defineLclVar(V,Ctx0);
+    (Ctx1,Cde1,Stk1,FCont) <-
+    compFrTerm(Vl,[V],V,[],Opts,
+      bothCont(stoLcl(V,Off),jmpCont(Nxt)),Ctxa,Cde++[iStV(Off)],Stk,Rp);
+    (Ctx2,Cde2,Stk2) <- FCont.C(Ctx1,Cde1++[iLbl(Nxt)],Stk1,Rp);
+--    logMsg("free term code $(Cde2)");
+    compExp(Exp,Opts,Cont,Ctx2,Cde2,Stk,Rp)
   }
   compExp(crCase(Lc,Exp,Cases,Deflt,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
     compCase(Lc,Exp,Cases,Deflt,Tp,Opts,Cont,Ctx,Cde,Stk,Rp).
@@ -181,16 +182,97 @@ star.compiler.gencode{
   }
 
   -- compute elements to go in free tuple
-  compFrTuple:(cons[crExp],integer,integer,tipe,compilerOptions,Cont,
-    codeCtx,multi[assemOp],option[cons[tipe]],reports) =>
-    either[reports,(codeCtx,multi[assemOp],option[cons[tipe]])].
-  compFrTuple([],_,_,_,Opts,Cont,Ctx,Cde,Stk,Rp) =>
-    Cont.C(Ctx,Cde,Stk,Rp).
-  compFrTuple([E,..Es],Off,Ix,FrTp,Opts,Cont,Ctx,Cde,Stk,Rp) => do{
-    (Nxt,Ctx1) .= defineLbl(Ctx);
-    (Ctx2,Cde1,some(CCstk)) <- compFrTuple(Es,Off,Ix+1,FrTp,Opts,jmpCont(Nxt),Ctx1,Cde,Stk,Rp);
-    compExp(E,Opts,bothCont(updateTplCont(Ix),Cont),Ctx2,Cde1++[iLbl(Nxt),iLdL(Off)],some([FrTp,..CCstk]),Rp)
+  compFrTerm:(crExp,set[crVar],crVar,cons[integer],compilerOptions,Cont,codeCtx,
+    multi[assemOp],
+    option[cons[tipe]],reports) =>
+    either[reports,(codeCtx,multi[assemOp],option[cons[tipe]],Cont)].
+  compFrTerm(crVar(Lc,Vr),Roots,Base,Pth,Opts,Cont,Ctx,Cde,some(Stk),Rp) => do{
+    if Vr.<.Roots then {
+--      logMsg("set up fixup for $(Vr) in $(Base)$(Pth)");
+      FCont .= fixupCont(Base,Pth,Vr,[]);
+      (Ctx1,Cde1,Stk1) <- Cont.C(Ctx,Cde++[.iLdV],some([typeOf(Vr),..Stk]),Rp);
+      valis (Ctx1,Cde1,Stk1,FCont)
+    }
+    else{
+      (Ctxx,Cdex,Stkx) <- compExp(crVar(Lc,Vr),Opts,Cont,Ctx,Cde,some(Stk),Rp);
+      valis (Ctxx,Cdex,Stkx,nullCont)
+    }
   }
+  compFrTerm(crInt(Lc,Ix),_,_,_,_,Cont,Ctx,Cde,some(Stk),Rp) => do{
+    (Ctxx,Cdex,Stkx) <- Cont.C(Ctx,Cde++[iLdC(intgr(Ix))],some([intType,..Stk]),Rp);
+    valis (Ctxx,Cdex,Stkx,nullCont)
+  }
+  compFrTerm(crFlot(Lc,Dx),_,_,_,_,Cont,Ctx,Cde,some(Stk),Rp) => do{
+    (Ctxx,Cdex,Stkx) <- Cont.C(Ctx,Cde++[iLdC(flot(Dx))],some([fltType,..Stk]),Rp); 
+    valis (Ctxx,Cdex,Stkx,nullCont)
+  }
+  compFrTerm(crStrg(Lc,Sx),_,_,_,_,Cont,Ctx,Cde,some(Stk),Rp) => do{
+    (Ctxx,Cdex,Stkx) <- Cont.C(Ctx,Cde++[iLdC(strg(Sx))],some([strType,..Stk]),Rp);
+    valis (Ctxx,Cdex,Stkx,nullCont)
+  }
+  compFrTerm(crLbl(Lc,Nm,Tp),_,_,_,_,Cont,Ctx,Cde,some(Stk),Rp) => do{
+    (Ctxx,Cdex,Stkx) <- Cont.C(Ctx,Cde++[iLdC(enum(tLbl(Nm,0)))],some([Tp,..Stk]),Rp);
+    valis (Ctxx,Cdex,Stkx,nullCont)
+  }
+  compFrTerm(crTerm(Lc,Nm,Args,Tp),Roots,Base,Pth,Opts,Cont,Ctx,Cde,Stk,Rp) => 
+    compFrArgs(Args,Roots,Base,0,Pth,Opts,
+      bothCont(allocCont(tLbl(Nm,size(Args)),Tp,Stk),Cont),Ctx,Cde,Stk,Rp).
+  compFrTerm(crTplOff(Lc,Tpl,Ix,Tp),Roots,Base,Pth,Opts,Cont,Ctx,Cde,some(Stk),Rp) => do{
+--    logMsg("tpl offset $(crTplOff(Lc,Tpl,Ix,Tp)), Roots=$(Roots)");
+    (Rc,OffPth) .= offPath(Tpl,[Ix]);
+    if crVar(RLc,V).=Rc && V .<. Roots then{
+--      logMsg("set up fixup for $(crTplOff(Lc,Tpl,Ix,Tp)) in $(Base)$(Pth)");
+      FCont .= fixupCont(Base,Pth,V,OffPth);
+      (Ctx1,Cde1,Stk1) <- Cont.C(Ctx,Cde++[.iLdV],some([Tp,..Stk]),Rp);
+      valis (Ctx1,Cde1,Stk1,FCont)
+    }
+    else{
+      compFrTerm(Rc,Roots,Base,Pth,Opts,bothCont(followPathCont([Ix,..OffPth],Tp),Cont),Ctx,Cde,some(Stk),Rp)
+    }
+  }
+  compFrTerm(crLtt(Lc,V,Val,Exp),Roots,Base,Path,Opts,Cont,Ctx,Cde,Stk,Rp) => do{
+--    logMsg("let in free $(crLtt(Lc,V,Val,Exp))");
+    (Nxt,Ctx0) .= defineLbl(Ctx);
+    (Off,Ctxa) .= defineLclVar(V,Ctx0);
+    (Ctx1,Cde1,Stk1,FC1) <- compFrTerm(Val,Roots\+V,V,[],Opts,bothCont(stoLcl(V,Off),jmpCont(Nxt)),Ctxa,Cde++[iStV(Off)],Stk,Rp);
+--    logMsg("context after $(Val) = $(Ctx1)");
+--    logMsg("code $(Cde1)");
+    (Ctx2,Cde2,Stk2,FC2) <- compFrTerm(Exp,Roots,Base,Path,Opts,Cont,Ctx1,Cde1++[iLbl(Nxt)],Stk1,Rp);
+--    logMsg("context after exp = $(Ctx2)");
+    valis (Ctx2,Cde2,Stk2,bothCont(FC1,FC2))
+  }
+  compFrTerm(crLtRec(Lc,V,Val,Exp),Roots,Base,Path,Opts,Cont,Ctx,Cde,Stk,Rp) => do{
+--    logMsg("let rec in free $(crLtRec(Lc,V,Val,Exp))");
+    (Nxt,Ctx0) .= defineLbl(Ctx);
+    (Off,Ctxa) .= defineLclVar(V,Ctx0);
+    (Ctx1,Cde1,Stk1,FC1) <- compFrTerm(Val,Roots\+V,V,[],Opts,bothCont(stoLcl(V,Off),jmpCont(Nxt)),Ctxa,Cde++[iStV(Off)],Stk,Rp);
+    (Ctx2,Cde2,Stk2,FC2) <- compFrTerm(Exp,Roots,Base,Path,Opts,Cont,Ctx1,Cde1++[iLbl(Nxt)],Stk1,Rp);
+--    logMsg("context after exp = $(Ctx2)");
+    valis (Ctx2,Cde2,Stk2,bothCont(FC1,FC2))
+  }
+  compFrTerm(Exp,_,_,_,Opts,Cont,Ctx,Cde,Stk,Rp) => do{
+    (Ctx1,Cde1,Stk1) <- compExp(Exp,Opts,Cont,Ctx,Cde,Stk,Rp);
+    valis (Ctx1,Cde1,Stk1,nullCont)
+  }
+
+  offPath:(crExp,cons[integer])=>(crExp,cons[integer]).
+  offPath(crTplOff(_,Rc,Ix,_),Pth) => offPath(Rc,[Ix,..Pth]).
+  offPath(Exp,Pth) default => (Exp,Pth).
+
+  compFrArgs:(cons[crExp],set[crVar],crVar,integer,cons[integer],compilerOptions,Cont,
+    codeCtx,multi[assemOp],option[cons[tipe]],reports) =>
+    either[reports,(codeCtx,multi[assemOp],option[cons[tipe]],Cont)].
+
+  compFrArgs([],_,_,_,_,Opts,Cont,Ctx,Cde,Stk,Rp) => do{
+    (Ctxx,Cdex,Stkx) <- Cont.C(Ctx,Cde,Stk,Rp);
+    valis (Ctxx,Cdex,Stkx,nullCont)
+  }
+  compFrArgs([El,..Es],Roots,Base,Ix,Pth,Opts,Cont,Ctx,Cde,Stk,Rp)=> do{
+    (Nxt,Ctx0) .= defineLbl(Ctx);
+    (Ctx1,Cde1,Stk1,CF1) <- compFrArgs(Es,Roots,Base,Ix+1,Pth,Opts,jmpCont(Nxt),Ctx0,Cde,Stk,Rp);
+    (Ctx2,Cde2,Stk2,CF2) <- compFrTerm(El,Roots,Base,[Ix,..Pth],Opts,Cont,Ctx1,Cde1++[iLbl(Nxt)],Stk1,Rp);
+    valis (Ctx2,Cde2,Stk2,bothCont(CF1,CF2))
+  }.
 
   -- Expressions are evaluated in reverse order
   compExps:(cons[crExp],compilerOptions,Cont,codeCtx,multi[assemOp],option[cons[tipe]],reports) =>
@@ -273,7 +355,7 @@ star.compiler.gencode{
     (Ctx5,Cde2,Stk1)<-compPtn(Ptn,Opts,expCont(Exp,Opts,Succ),jmpCont(Fl),Ctx1,Cde++[iLdL(Off)],Stk,Rp);
     compMoreCase(More,Off,Succ,Fail,Opts,Ctx5,Cde2++[iLbl(Fl)],Stk,Rp)
   }
-    
+  
   compVar:(locn,string,srcLoc,compilerOptions,Cont,codeCtx,multi[assemOp],option[cons[tipe]],reports) =>
     either[reports,(codeCtx,multi[assemOp],option[cons[tipe]])].
   compVar(Lc,Nm,argVar(Off,Tp),Opts,Cont,Ctx,Cde,some(Stk),Rp) =>
@@ -394,6 +476,12 @@ star.compiler.gencode{
     Simple = S.
   .}
 
+  nullCont = cont{.
+    C(Ctx,Cde,Stk,Rp) => either((Ctx,Cde,Stk)).
+    L=.none.
+    Simple=.true
+  .}
+
   retCont:(locn)=>Cont.
   retCont(Lc) => ccont(.true,(Ctx,Cde,Stk,Rp) => do{
 --      logMsg("ret at $(Lc), Stack is $(Stk)");
@@ -438,8 +526,8 @@ star.compiler.gencode{
   escCont:(string,integer,tipe,option[cons[tipe]])=>Cont.
   escCont(Nm,Ar,Tp,some(Stk)) =>
     ccont(.false,(Ctx,Cde,OStk,Rp) => do{
-      valis (Ctx,Cde++[iEscape(Nm),iFrame(intgr(size(Stk)+1))],some([Tp,..Stk]))
-    }).
+	valis (Ctx,Cde++[iEscape(Nm),iFrame(intgr(size(Stk)+1))],some([Tp,..Stk]))
+      }).
   escCont(Nm,Ar,Tp,.none) => ccont(.true,(Ctx,Cde,OStk,Rp) => do{
       valis (Ctx,Cde++[iEscape(Nm),iFrame(intgr(0))],.none)
     }).
@@ -452,20 +540,20 @@ star.compiler.gencode{
   memoGetCont:(tipe)=>Cont.
   memoGetCont(Tp) =>
     ccont(.false,(Ctx,Cde,some([_,..Stk]),Rp) => do{
-      valis (Ctx,Cde++[.iLM,iFrame(intgr(size(Stk)-1))],some([Tp,..Stk]))
-    }).
+	valis (Ctx,Cde++[.iLM,iFrame(intgr(size(Stk)-1))],some([Tp,..Stk]))
+      }).
 
   oclCont:(integer,tipe,option[cons[tipe]])=>Cont.
   oclCont(Ar,Tp,some(Stk)) =>
     ccont(.false,(Ctx,Cde,SStk,Rp) => do{
-      valis (Ctx,Cde++[iOCall(Ar),iFrame(intgr(size(Stk)+1))],some([Tp,..Stk]))
-    }).
+	valis (Ctx,Cde++[iOCall(Ar),iFrame(intgr(size(Stk)+1))],some([Tp,..Stk]))
+      }).
 
   expCont:(crExp,compilerOptions,Cont)=>Cont.
   expCont(Exp,Opts,Cont) =>
     ccont(.false,(Ctx,Cde,Stk,Rp) => do{
 	compExp(Exp,Opts,Cont,Ctx,Cde,Stk,Rp)
-    }).
+      }).
 
   condCont:(crExp,compilerOptions,Cont,Cont)=>Cont.
   condCont(C,Opts,Succ,Fail)=>
@@ -477,14 +565,14 @@ star.compiler.gencode{
   ptnCont(Ptn,Opts,Succ,Fail)=>
     ccont(.false,(Ctx,Cde,Stk,Rp)=> do{
 --      logMsg("pattern cont $(Ptn), stack = $(Stk)");
-      compPtn(Ptn,Opts,Succ,Fail,Ctx,Cde,Stk,Rp)}).
+	compPtn(Ptn,Opts,Succ,Fail,Ctx,Cde,Stk,Rp)}).
 
   fldCont:(string,tipe)=>Cont.
   fldCont(Fld,Tp)=>
     ccont(.true,(Ctx,Cde,some([T,..Stk]),Rp) => do{
 --      logMsg("fldCont, current stack: $([T,..Stk]), new stack: $([Tp,..Stk])");
-      valis (Ctx,Cde++[iGet(tLbl(Fld,0))],some([Tp,..Stk]))
-    }).
+	valis (Ctx,Cde++[iGet(tLbl(Fld,0))],some([Tp,..Stk]))
+      }).
 
 --      either((Ctx,Cde++[iGet(tLbl(Fld,0))],[Tp,..Stk]))).
 
@@ -492,9 +580,29 @@ star.compiler.gencode{
   tplOffCont(Ix,Tp)=>
     ccont(.true,(Ctx,Cde,some([T,..Stk]),Rp) =>  do{
 --      logMsg("offCont, current stack: $([T,..Stk]), new stack: $([Tp,..Stk])");
-      valis (Ctx,Cde++[iNth(Ix)],some([Tp,..Stk]))
-    })
+	valis (Ctx,Cde++[iNth(Ix)],some([Tp,..Stk]))
+      }).
   -- either((Ctx,Cde++[iNth(Ix)],[Tp,..Stk]))).
+
+  fixupCont:(crVar,cons[integer],crVar,cons[integer]) => Cont.
+  fixupCont(Base,[Off,..Pth],Src,SrcPth) => ccont(.false,(Ctx,Cde,Stk,Rp)=>do{
+      BNm.=crName(Base);
+      lclVar(BLoc,_)^=locateVar(BNm,Ctx);
+      lclVar(SLoc,_)^=locateVar(crName(Src),Ctx);
+      Update.=[iLdL(BLoc),..followPath(Pth)]++[iLdL(SLoc),..followPath(SrcPth)]++[iStNth(Off)];
+      valis (Ctx,Cde++Update,Stk)
+    }).
+
+  followPathCont:(cons[integer],tipe) => Cont.
+  followPathCont(Path,Tp) => ccont(.false,
+    (Ctx,Cde,some([_,..Stk]),Rp) => do{
+      valis (Ctx,Cde++followPath(Path),some([Tp,..Stk]))
+    }).
+
+  -- path is first in first out
+  followPath:(cons[integer])=>multi[assemOp].
+  followPath([])=>[].
+  followPath([Off,..Pth]) => followPath(Pth)++[iNth(Off)].
 
   litCont:(term,tipe)=>Cont.
   litCont(T,Tp) =>
@@ -535,11 +643,6 @@ star.compiler.gencode{
       either((Ctx,Cde++[iStG(Nm)],some(Stk)))).
   updateCont(onStack(_))=>
     ccont(.true,(Ctx,Cde,Stk,Rp) => either((Ctx,Cde,Stk))).
-
-  updateTplCont:(integer)=>Cont.
-  updateTplCont(Ix) => ccont(.false,
-    (Ctx,Cde,some([_,_,..Stk]),Rp) =>
-      either((Ctx,Cde++[iStNth(Ix)],some(Stk)))).
 
   bothCont:(Cont,Cont)=>Cont.
   bothCont(F,G) => ccont(F.Simple&&G.Simple,(Ctx,Cde,Stk,Rp)=> do{
@@ -602,8 +705,11 @@ star.compiler.gencode{
   defineLbl(codeCtx(Vrs,Lc,Count,Lb))=>(al("L$(Lb)"),codeCtx(Vrs,Lc,Count,Lb+1)).
 
   changeLoc:(locn,compilerOptions,codeCtx)=>(multi[assemOp],codeCtx).
-  changeLoc(Lc,_,codeCtx(Vars,Lc0,Dp,Lb)) where Lc=!=Lc0 => ([iLine(Lc::term)],codeCtx(Vars,Lc,Dp,Lb)).
-  changeLoc(_,_,Ctx)=>([],Ctx).
+  changeLoc(Lc,_,codeCtx(Vars,Lc0,Dp,Lb)) where Lc=!=Lc0 =>
+    ([iLine(Lc::term)],codeCtx(Vars,Lc,Dp,Lb)).
+    changeLoc(_,_,Ctx)=>([],Ctx).
+
+    
 
   implementation hasLoc[codeCtx] => {
     locOf(codeCtx(_,Lc,_,_))=>Lc.
@@ -644,8 +750,10 @@ star.compiler.gencode{
   mergeCtx(codeCtx(LV,_,_,Lb1),codeCtx(RV,_,_,Lb2),Base) => let{
     mergeVar:(string,srcLoc,codeCtx) => codeCtx.
     mergeVar(Nm,_,Vrs) where _ ^= locateVar(Nm,Base) => Vrs.
-    mergeVar(Nm,_,codeCtx(Vs,Lc,Count,_)) where lclVar(_,Tp) ^= RV[Nm] => codeCtx(Vs[Nm->lclVar(Count+1,Tp)],Lc,Count+1,max(Lb1,Lb2)).
-    mergeVar(Nm,lclVar(_,Tp),codeCtx(Vs,Lc,Count,_)) => codeCtx(Vs[Nm->lclVar(Count+1,Tp)],Lc,Count+1,max(Lb1,Lb2)).
+    mergeVar(Nm,_,codeCtx(Vs,Lc,Count,_)) where lclVar(_,Tp) ^= RV[Nm] =>
+      codeCtx(Vs[Nm->lclVar(Count+1,Tp)],Lc,Count+1,max(Lb1,Lb2)).
+    mergeVar(Nm,lclVar(_,Tp),codeCtx(Vs,Lc,Count,_)) =>
+      codeCtx(Vs[Nm->lclVar(Count+1,Tp)],Lc,Count+1,max(Lb1,Lb2)).
   } in ixRight(mergeVar,Base,LV).
 
   drop:all x,e ~~ stream[x->>e] |: (x,integer)=>x.
