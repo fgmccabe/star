@@ -14,7 +14,7 @@ star.compiler.core{
     | crStrg(locn,string)
     | crLbl(locn,string,tipe)
     | crTerm(locn,string,cons[crExp],tipe)
-    | crMemo(locn,crExp,tipe)
+    | crMemo(locn,string,tipe)
     | crMemoGet(locn,crExp,tipe)
     | crMemoSet(locn,crExp,crExp)
     | crCall(locn,string,cons[crExp],tipe)
@@ -40,6 +40,7 @@ star.compiler.core{
   public crCase ~> (locn,crExp,crExp).
 
   public crDefn ::= fnDef(locn,string,tipe,cons[crVar],crExp) |
+    mmDef(locn,string,tipe,crVar,crExp) |
     glbDef(locn,crVar,crExp) |
     rcDef(locn,string,tipe,cons[(string,tipe,integer)]).
 
@@ -55,6 +56,12 @@ star.compiler.core{
     ssSeq([ss("fun: "),disp(Lc),ss("\n"), 
 	ss(Nm),ss("("),
 	ssSeq(interleave(Args//disp,ss(","))),ss(") => "),
+	dspExp(Rep,Off)]).
+  dspDef(mmDef(Lc,Nm,Tp,Arg,Rep),Off) =>
+    ssSeq([ss("memo: "),disp(Lc),ss("\n"),
+	ss(Nm),ss("("),
+	disp(Arg),
+	ss(") => "),
 	dspExp(Rep,Off)]).
   dspDef(glbDef(Lc,V,Rep),Off) =>
     ssSeq([ss("glb: "),disp(Lc),ss("\n"),
@@ -79,7 +86,7 @@ star.compiler.core{
   dspExp(crCall(_,Op,As,_),Off) => ssSeq([ss(Op),ss("("),ssSeq(dsplyExps(As,Off)),ss(")")]).
   dspExp(crTerm(_,Op,As,_),Off) where isTplLbl(Op) => ssSeq([ss("‹"),ssSeq(dsplyExps(As,Off)),ss("›")]).
   dspExp(crTerm(_,Op,As,_),Off) => ssSeq([ss(Op),ss("‹"),ssSeq(dsplyExps(As,Off)),ss("›")]).
-  dspExp(crMemo(_,Gen,_),Off) => ssSeq([ss("memo‹"),dspExp(Gen,Off),ss("›")]).
+  dspExp(crMemo(_,Nm,_),Off) => ssSeq([ss("memo‹"),ss(Nm),ss("›")]).
   dspExp(crMemoGet(_,Memo,_),Off) => ssSeq([ss("getmemo‹"),dspExp(Memo,Off),ss("›")]).
   dspExp(crMemoSet(_,Memo,Vl),Off) => ssSeq([ss("setmemo‹"),dspExp(Memo,Off),ss(":="),
       dspExp(Vl,Off),ss("›")]).
@@ -137,7 +144,7 @@ star.compiler.core{
     eqTerm(crStrg(_,S1),crStrg(_,S2)) => S1==S2.
     eqTerm(crLbl(_,S1,_),crLbl(_,S2,_)) => S1==S2.
     eqTerm(crTerm(_,S1,A1,_),crTerm(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
-    eqTerm(crMemo(_,G1,_),crMemo(_,G2,_)) => eqTerm(G1,G2).
+    eqTerm(crMemo(_,G1,_),crMemo(_,G2,_)) => G1==G2.
     eqTerm(crCall(_,S1,A1,_),crCall(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
     eqTerm(crECall(_,S1,A1,_),crECall(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
 --    eqTerm(crIntrinsic(_,S1,A1,_),crIntrinsic(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
@@ -276,8 +283,7 @@ star.compiler.core{
   rewriteTerm(crTplOff(Lc,R,Ix,Tp),M) => crTplOff(Lc,rewriteTerm(R,M),Ix,Tp).
   rewriteTerm(crTerm(Lc,Op,Args,Tp),M) =>
     crTerm(Lc,Op,rewriteTerms(Args,M),Tp).
-  rewriteTerm(crMemo(Lc,Gen,Tp),M) =>
-    crMemo(Lc,rewriteTerm(Gen,M),Tp).
+  rewriteTerm(crMemo(Lc,Gen,Tp),M) =>crMemo(Lc,Gen,Tp).
   rewriteTerm(crMemoGet(Lc,Mem,Tp),M) =>
     crMemoGet(Lc,rewriteTerm(Mem,M),Tp).
   rewriteTerm(crMemoSet(Lc,Mem,Val),M) =>
@@ -317,6 +323,8 @@ star.compiler.core{
 
   rewriteDef(fnDef(Lc,Nm,Tp,Args,Val),M) =>
     fnDef(Lc,Nm,Tp,Args,rewriteTerm(Val,M)).
+  rewriteDef(mmDef(Lc,Nm,Tp,Arg,Val),M) =>
+    mmDef(Lc,Nm,Tp,Arg,rewriteTerm(Val,M)).
   rewriteDef(glbDef(Lc,V,Val),M) =>
     glbDef(Lc,V,rewriteTerm(Val,M)).
 
@@ -332,6 +340,7 @@ star.compiler.core{
 
   public implementation hasLoc[crDefn] => {
     locOf(fnDef(Lc,_,_,_,_)) => Lc.
+    locOf(mmDef(Lc,_,_,_,_)) => Lc.
     locOf(glbDef(Lc,_,_)) => Lc.
   }
 

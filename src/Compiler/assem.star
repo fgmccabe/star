@@ -35,7 +35,7 @@ star.compiler.assem{
     iStA(integer) |
     iStG(string) |
     iTG(string) |
-    .iAM |
+    iAM(termLbl) |
     .iLM |
     .iSM |
     .iTM |
@@ -137,7 +137,7 @@ star.compiler.assem{
   mnem([iStA(V),..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,[intgr(V),intgr(19),..Code]).
   mnem([iStG(V),..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,[strg(V),intgr(20),..Code]).
   mnem([iTG(V),..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,[strg(V),intgr(21),..Code]).
-  mnem([.iAM,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[intgr(22),..Code]).
+  mnem([iAM(V),..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) where (Lt1,LtNo) .= findLit(Lts,enum(V)) => mnem(Ins,Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,[intgr(LtNo),intgr(22),..Code]).
   mnem([.iLM,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[intgr(23),..Code]).
   mnem([.iSM,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[intgr(24),..Code]).
   mnem([.iTM,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[intgr(25),..Code]).
@@ -216,7 +216,7 @@ star.compiler.assem{
   genLblTbl([iStA(_),..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([iStG(_),..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([iTG(_),..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+3,Lbls).
-  genLblTbl([.iAM,..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+1,Lbls).
+  genLblTbl([iAM(_),..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([.iLM,..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+1,Lbls).
   genLblTbl([.iSM,..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+1,Lbls).
   genLblTbl([.iTM,..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+1,Lbls).
@@ -318,7 +318,7 @@ star.compiler.assem{
   showMnem([iStA(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("StA"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
   showMnem([iStG(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("StG"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
   showMnem([iTG(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("TG"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
-  showMnem([.iAM,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("AM"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([iAM(XX),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("AM"),ss(" "),disp(XX),ss("\n")])) ++ showMnem(Ins,Pc+3).
   showMnem([.iLM,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("LM"),ss("\n")])) ++ showMnem(Ins,Pc+1).
   showMnem([.iSM,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("SM"),ss("\n")])) ++ showMnem(Ins,Pc+1).
   showMnem([.iTM,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("TM"),ss("\n")])) ++ showMnem(Ins,Pc+1).

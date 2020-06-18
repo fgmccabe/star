@@ -440,8 +440,14 @@ retCode run(processPo P) {
 
       case Nth: {
         int32 ix = collectI32(PC);  /* which element */
-        normalPo cl = C_TERM(pop());  /* which term? */
-        push(nthArg(cl, ix));
+        termPo t = pop();
+        if (isNormalPo(t)) {
+          normalPo cl = C_TERM(t);  /* which term? */
+          push(nthArg(cl, ix));
+        } else {
+          logMsg(logFile, "%T has no fields", t);
+          bail();
+        }
         continue;
       }
 
@@ -505,8 +511,8 @@ retCode run(processPo P) {
       }
 
       case AM: {
-        termPo cl = pop();
-        memoPo memo = memoVar(H, cl);
+        labelPo memoLbl = C_LBL(pop());
+        memoPo memo = memoVar(H, memoLbl);
         push(memo);
         continue;
       }
@@ -518,16 +524,12 @@ retCode run(processPo P) {
           termPo vr = getMemoContent(memo);
           push(vr);     /* load contents of memo var */
         } else {
-          termPo prov = getMemoProvider(memo);  // Set up an OCall to the provider
-
-          normalPo nProg = C_TERM(prov);
+          labelPo prov = getMemoProvider(memo);  // Set up an OCall to the provider
 
           push(memo);     // Push the memo itself as argument to provider
-
           push(PROG);
           push(PC);       /* build up the frame. */
-          labelPo oLbl = termLbl(nProg);
-          PROG = labelCode(objLabel(oLbl, 1));       /* set up for object call */
+          PROG = labelCode(prov);       /* set up for object call */
           PC = entryPoint(PROG);
           LITS = codeLits(PROG);
 
@@ -536,7 +538,7 @@ retCode run(processPo P) {
 
           if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
             saveRegisters(P, SP);
-            if (extendStack(P, 2, 0) != Ok) {
+            if (extendStack(P, 2, 1) != Ok) {
               logMsg(logFile, "cannot extend stack");
               bail();
             }

@@ -49,6 +49,7 @@ int32 lookupEscape(char *name) {
     if (uniCmp(name, escapes[ix].name) == same)
       return ix;
   }
+  logMsg(logFile,"cannot find escape %s",name);
   syserr("could not find escape");
   return -1;
 }

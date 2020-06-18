@@ -13,7 +13,7 @@ typedef struct memo_rec_ {
   clssPo clss;                  // == memoClass
   integer hash;
   termPo content;               // Contents
-  termPo provider;              // Function that implements the value
+  labelPo provider;              // Function that implements the value
 } MemoRecord;
 
 extern void initMemo();

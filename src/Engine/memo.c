@@ -35,7 +35,7 @@ memoPo C_MEMO(termPo t) {
   return (memoPo) t;
 }
 
-memoPo memoVar(heapPo H, termPo provider) {
+memoPo memoVar(heapPo H, labelPo provider) {
   memoPo memo = (memoPo) allocateObject(H, memoClass, MemoCellCount);
 
   memo->content = voidEnum;
@@ -103,6 +103,6 @@ termPo getMemoContent(memoPo memo) {
   return memo->content;
 }
 
-termPo getMemoProvider(memoPo memo) {
+labelPo getMemoProvider(memoPo memo) {
   return memo->provider;
 }
