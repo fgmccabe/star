@@ -3,9 +3,9 @@ test.lt3{
   import star.script.
 
   foo() => let{
-    X = genSym("x").
+    X := genSym("x").
 
-    test()=>X
+    test()=>X!!
   } in test.
 
 
