@@ -64,8 +64,10 @@ star.compiler.normalize{
     foldLeft((D,FF) => (V^=isVarDef(D) ? FF\+V || FF),
       [],Defs).
 
-  isVarDef(varDef(_,Nm,_,Vl,_,Tp)) where ~isFunDef(Vl) =>
+  isVarDef(varDef(_,Nm,_,Vl,_,Tp)) where isRefType(Tp) =>
     some((crId(Nm,Tp),Vl)).
+--  isVarDef(implDef(_,_,Nm,Vl,_,Tp)) where ~isFunDef(Vl) =>
+--    some((crId(Nm,Tp),Vl)).
   isVarDef(_) default => .none.
 
   liftLetExp:(locn,cons[canonDef],canon,nameMap,set[crVar],cons[crDefn],reports) =>
@@ -92,7 +94,6 @@ star.compiler.normalize{
     varParents .= freeParents(ffreeVars,Outer);
 --    logMsg("parents $(varParents)");
     freeVars <- reduceFreeArgs(varParents,Outer,Rp);
---    freeVars <- reduceFreeArgs(ffreeVars,Outer,Rp);
 --    logMsg("simplified free $(freeVars)\:$(typeOf(freeVars))");
 
     freeArgs <- seqmap((crId(VNm,VTp))=>
@@ -154,6 +155,7 @@ star.compiler.normalize{
     GrpFns .= (Grp^/(D)=>~_^=isVarDef(D));
     (lVars,vrDefs) .= unzip(varDefs(Grp));
 --    logMsg("lVars = $(lVars)");
+--    logMsg("vrDefs = $(vrDefs)");
     
     rawGrpFree .= freeLabelVars(freeVarsInTerm(letExp(Lc,Grp,Bnd),[],Q,[]),Outer)::cons[crVar];
 --    logMsg("raw free $(rawGrpFree)");
@@ -168,9 +170,6 @@ star.compiler.normalize{
     varParents .= freeParents(ffreeVars,Outer);
     freeVars <- reduceFreeArgs(varParents,Outer,Rp);
 --    logMsg("simplified $(freeVars)\:$(typeOf(freeVars))");
---    logMsg("letrec common $(subFree(freeVars,Outer))");
-
---    logMsg("vars $(lVars)");
 
     if isEmpty(lVars) && isEmpty(freeVars) then {
       M .= [lyr(foldRight((D,LL)=>collectMtd(D,.none,LL),[],GrpFns)),..Outer];
@@ -185,10 +184,10 @@ star.compiler.normalize{
       L .= [crName(ThV)->localVar(crVar(Lc,ThV))];
 
       MM .= [lyr(foldRight((D,LL)=>collectMtd(D,some(ThV),LL),L,Grp)),..Outer];
---      logMsg("let map is $(head(M))");
+--      logMsg("letrec map is $(head(MM))");
 
       GrpQ .= foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q,lVars),Grp);
-      Ex1 <- transformGroup(Grp,MM,GrpQ,ThVr,Ex,Rp);
+      Ex1 <- transformGroup(GrpFns,MM,GrpQ,ThVr,Ex,Rp);
       liftExp(Bnd,MM,GrpQ,Ex1,Rp)
     } else{
       ThV .= genVar("_ThVr",typeOf(freeVars++lVars));
@@ -279,7 +278,8 @@ star.compiler.normalize{
   transformDef(varDef(Lc,_,FullNm,Val,Cx,Tp),Map,Q,some(crVar(_,ThVr)),Ex,Rp) => do{
 --    logMsg("transform var $(FullNm) = $(Val) with $(ThVr)");
     (Vl,Defs) <- liftExp(Val,Map,Q,Ex,Rp);
-    valis [fnDef(Lc,FullNm,funType([typeOf(ThVr)],Tp),[ThVr],Vl),..Defs]
+    ClosureNm .= closureNm(FullNm);
+    valis [fnDef(Lc,ClosureNm,funType([typeOf(ThVr)],Tp),[ThVr],Vl),..Defs]
   }
   
   transformDef(implDef(Lc,_,FullNm,Val,Cx,Tp),Map,Q,Extra,Ex,Rp) => 
@@ -631,7 +631,8 @@ star.compiler.normalize{
   collectMtd(varDef(Lc,Nm,FullNm,Val,_,Tp),.none,LL) =>
     LL[Nm->globalVar(FullNm,Tp)].
   collectMtd(varDef(Lc,Nm,FullNm,Val,_,Tp),some(ThVr),LL) =>
-    LL[Nm->localVar(crVar(Lc,crId(FullNm,Tp)))].
+    LL[Nm->localVar(crCall(Lc,closureNm(FullNm),[crVar(Lc,ThVr)],Tp))].
+--    LL[Nm->localFun(FullNm,closureNm(FullNm),ThVr)].
   collectMtd(implDef(Lc,_,FullNm,Val,Cx,Tp),ThVr,LL) =>
     collectMtd(varDef(Lc,FullNm,FullNm,Val,Cx,Tp),ThVr,LL).
   collectMtd(cnsDef(Lc,Nm,FullNm,Tp),.none,LL) => LL[Nm->moduleCons(FullNm,Tp)].
