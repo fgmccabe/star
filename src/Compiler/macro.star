@@ -1150,7 +1150,7 @@ star.compiler.macro{
   optionMatchMacro(_,_,_) default => either(.inactive).
 
   optionPtnMacro(A,.pattern,Rp) where (Lc,L,R) ^= isOptionPtn(A) => do{
-    logMsg("making option pattern $(mkWherePtn(Lc,R,L))");
+--    logMsg("making option pattern $(mkWherePtn(Lc,R,L))");
     valis active(mkWherePtn(Lc,R,L))
   }.
 
