@@ -12,9 +12,10 @@ star.compiler.core{
     | crInt(locn,integer)
     | crFlot(locn,float)
     | crStrg(locn,string)
+    | crVoid(locn,tipe)
     | crLbl(locn,string,tipe)
     | crTerm(locn,string,cons[crExp],tipe)
-    | crMemo(locn,string,tipe)
+    | crMemo(locn,crExp,tipe)
     | crMemoGet(locn,crExp,tipe)
     | crMemoSet(locn,crExp,crExp)
     | crCall(locn,string,cons[crExp],tipe)
@@ -40,7 +41,7 @@ star.compiler.core{
   public crCase ~> (locn,crExp,crExp).
 
   public crDefn ::= fnDef(locn,string,tipe,cons[crVar],crExp) |
-    mmDef(locn,string,tipe,crVar,crExp) |
+    mmDef(locn,string,tipe,cons[crVar],crExp) |
     glbDef(locn,crVar,crExp) |
     rcDef(locn,string,tipe,cons[(string,tipe,integer)]).
 
@@ -57,10 +58,10 @@ star.compiler.core{
 	ss(Nm),ss("("),
 	ssSeq(interleave(Args//disp,ss(","))),ss(") => "),
 	dspExp(Rep,Off)]).
-  dspDef(mmDef(Lc,Nm,Tp,Arg,Rep),Off) =>
+  dspDef(mmDef(Lc,Nm,Tp,Args,Rep),Off) =>
     ssSeq([ss("memo: "),disp(Lc),ss("\n"),
 	ss(Nm),ss("("),
-	disp(Arg),
+	ssSeq(interleave(Args//disp,ss(","))),ss(") => "),
 	ss(") => "),
 	dspExp(Rep,Off)]).
   dspDef(glbDef(Lc,V,Rep),Off) =>
@@ -79,6 +80,7 @@ star.compiler.core{
   dspExp(crInt(_,Ix),_) => disp(Ix).
   dspExp(crFlot(_,Dx),_) => disp(Dx).
   dspExp(crStrg(_,Sx),_) => disp(Sx).
+  dspExp(crVoid(_,_),_) => ss("void").
   dspExp(crLbl(_,Lb,_),_) => ssSeq([ss("."),ss(Lb)]).
   dspExp(crECall(_,Op,As,_),Off) => ssSeq([ss(Op),ss("("),ssSeq(dsplyExps(As,Off)),ss(")")]).
   dspExp(crIntrinsic(_,Op,As,_),Off) => ssSeq([ss("intrinsic{"),disp(Op),ss("("),ssSeq(dsplyExps(As,Off)),ss(")}")]).
@@ -86,7 +88,7 @@ star.compiler.core{
   dspExp(crCall(_,Op,As,_),Off) => ssSeq([ss(Op),ss("("),ssSeq(dsplyExps(As,Off)),ss(")")]).
   dspExp(crTerm(_,Op,As,_),Off) where isTplLbl(Op) => ssSeq([ss("‹"),ssSeq(dsplyExps(As,Off)),ss("›")]).
   dspExp(crTerm(_,Op,As,_),Off) => ssSeq([ss(Op),ss("‹"),ssSeq(dsplyExps(As,Off)),ss("›")]).
-  dspExp(crMemo(_,Nm,_),Off) => ssSeq([ss("memo‹"),ss(Nm),ss("›")]).
+  dspExp(crMemo(_,Th,_),Off) => ssSeq([ss("memo‹"),dspExp(Th,Off),ss("›")]).
   dspExp(crMemoGet(_,Memo,_),Off) => ssSeq([ss("getmemo‹"),dspExp(Memo,Off),ss("›")]).
   dspExp(crMemoSet(_,Memo,Vl),Off) => ssSeq([ss("setmemo‹"),dspExp(Memo,Off),ss(":="),
       dspExp(Vl,Off),ss("›")]).
@@ -142,9 +144,10 @@ star.compiler.core{
     eqTerm(crInt(_,N1),crInt(_,N2)) => N1==N2.
     eqTerm(crFlot(_,N1),crFlot(_,N2)) => N1==N2.
     eqTerm(crStrg(_,S1),crStrg(_,S2)) => S1==S2.
+    eqTerm(crVoid(_,T1),crVoid(_,T2)) => T1==T2.
     eqTerm(crLbl(_,S1,_),crLbl(_,S2,_)) => S1==S2.
     eqTerm(crTerm(_,S1,A1,_),crTerm(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
-    eqTerm(crMemo(_,G1,_),crMemo(_,G2,_)) => G1==G2.
+    eqTerm(crMemo(_,V1,_),crMemo(_,V2,_)) => eqTerm(V1,V2).
     eqTerm(crCall(_,S1,A1,_),crCall(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
     eqTerm(crECall(_,S1,A1,_),crECall(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
 --    eqTerm(crIntrinsic(_,S1,A1,_),crIntrinsic(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
@@ -188,6 +191,7 @@ star.compiler.core{
     locOf(crInt(Lc,_)) => Lc.
     locOf(crFlot(Lc,_)) => Lc.
     locOf(crStrg(Lc,_)) => Lc.
+    locOf(crVoid(Lc,_)) => Lc.
     locOf(crLbl(Lc,_,_)) => Lc.
     locOf(crDot(Lc,_,_,_)) => Lc.
     locOf(crTplOff(Lc,_,_,_)) => Lc.
@@ -214,6 +218,7 @@ star.compiler.core{
     tpOf(crInt(_,_)) => intType.
     tpOf(crFlot(_,_)) => fltType.
     tpOf(crStrg(_,_)) => strType.
+    tpOf(crVoid(_,Tp)) => Tp.
     tpOf(crLbl(_,_,Tp)) => Tp.
     tpOf(crTerm(_,_,_,Tp)) => Tp.
     tpOf(crMemo(_,_,Tp)) => Tp.
@@ -256,6 +261,7 @@ star.compiler.core{
     _coerce(crInt(_,Ix)) => some(intgr(Ix)).
     _coerce(crFlot(_,Dx)) => some(flot(Dx)).
     _coerce(crStrg(_,Sx)) => some(strg(Sx)).
+    _coerce(crVoid(_,_)) => some(enum(tLbl("void",0))).
     _coerce(crInt(_,Ix)) => some(intgr(Ix)).
     _coerce(crLbl(_,Nm,_)) => some(enum(tLbl(Nm,0))).
     _coerce(crTerm(_,Nm,[],_)) => some(term(tLbl(Nm,0),[])).
@@ -273,70 +279,82 @@ star.compiler.core{
       mkCrTpl(Lc,[crStrg(Lc,Nm),crInt(Lc,Line),crInt(Lc,Col),crInt(Lc,Off),crInt(Lc,Len)])
   .}
 
+  public rwTerm:(crExp,(crExp)=>option[crExp])=>crExp.
+  rwTerm(T,Tst) where Rep^=Tst(T) => Rep.
+  rwTerm(crVar(Lc,V),_) => crVar(Lc,V).
+  rwTerm(crInt(Lc,Ix),_) => crInt(Lc,Ix).
+  rwTerm(crFlot(Lc,Dx),_) => crFlot(Lc,Dx).
+  rwTerm(crStrg(Lc,Sx),_) => crStrg(Lc,Sx).
+  rwTerm(crVoid(Lc,Tp),_) => crVoid(Lc,Tp).
+  rwTerm(crLbl(Lc,Sx,Tp),_) => crLbl(Lc,Sx,Tp).
+  rwTerm(crDot(Lc,R,Ix,Tp),Tst) => crDot(Lc,rwTerm(R,Tst),Ix,Tp).
+  rwTerm(crTplOff(Lc,R,Ix,Tp),Tst) => crTplOff(Lc,rwTerm(R,Tst),Ix,Tp).
+  rwTerm(crTerm(Lc,Op,Args,Tp),Tst) =>
+    crTerm(Lc,Op,rwTerms(Args,Tst),Tp).
+  rwTerm(crMemo(Lc,V,Tp),Tst) =>crMemo(Lc,rwTerm(V,Tst),Tp).
+  rwTerm(crMemoGet(Lc,Mem,Tp),Tst) =>
+    crMemoGet(Lc,rwTerm(Mem,Tst),Tp).
+  rwTerm(crMemoSet(Lc,Mem,Val),Tst) =>
+    crMemoSet(Lc,rwTerm(Mem,Tst),rwTerm(Val,Tst)).
+  rwTerm(crRecord(Lc,Op,Flds,Tp),Tst) =>
+    crRecord(Lc,Op,Flds//((F,T))=>(F,rwTerm(T,Tst)),Tp).
+  rwTerm(crCall(Lc,Op,Args,Tp),Tst) =>
+    crCall(Lc,Op,Args//(A)=>rwTerm(A,Tst),Tp).
+  rwTerm(crOCall(Lc,Op,Args,Tp),Tst) =>
+    crOCall(Lc,rwTerm(Op,Tst),Args//(A)=>rwTerm(A,Tst),Tp).
+  rwTerm(crIntrinsic(Lc,Op,Args,Tp),Tst) =>
+    crIntrinsic(Lc,Op,rwTerms(Args,Tst),Tp).
+  rwTerm(crECall(Lc,Op,Args,Tp),Tst) =>
+    crECall(Lc,Op,Args//(A)=>rwTerm(A,Tst),Tp).
+  rwTerm(crCnj(Lc,L,R),Tst) =>
+    crCnj(Lc,rwTerm(L,Tst),rwTerm(R,Tst)).
+  rwTerm(crDsj(Lc,L,R),Tst) =>
+    crDsj(Lc,rwTerm(L,Tst),rwTerm(R,Tst)).
+  rwTerm(crNeg(Lc,R),Tst) =>
+    crNeg(Lc,rwTerm(R,Tst)).
+  rwTerm(crCnd(Lc,T,L,R),Tst) =>
+    crCnd(Lc,rwTerm(T,Tst),rwTerm(L,Tst),rwTerm(R,Tst)).
+  rwTerm(crLtt(Lc,V,D,E),Tst) =>
+    crLtt(Lc,V,rwTerm(D,Tst),rwTerm(E,dropVar(crName(V),Tst))).
+  rwTerm(crLtRec(Lc,V,D,E),Tst) where M1 .= dropVar(crName(V),Tst) =>
+    crLtRec(Lc,V,rwTerm(D,M1),rwTerm(E,M1)).
+  rwTerm(crCase(Lc,Sel,Cases,Deflt,Tp),M) =>
+    crCase(Lc,rwTerm(Sel,M),Cases//(C)=>rwCase(C,M),rwTerm(Deflt,M),Tp).
+  rwTerm(crAbort(Lc,Nm,Tp),_)=>crAbort(Lc,Nm,Tp).
+  rwTerm(crWhere(Lc,T,C),M) =>
+    crWhere(Lc,rwTerm(T,M),rwTerm(C,M)).
+  rwTerm(crMatch(Lc,P,E),M) =>
+    crMatch(Lc,rwTerm(P,M),rwTerm(E,M)).
+
+  dropVar:(string,(crExp)=>option[crExp])=>(crExp)=>option[crExp].
+  dropVar(Nm,Tst) => let{.
+    test(crVar(_,crId(Nm,_))) => .none.
+    test(T) default => Tst(T)
+  .} in test.
+
+  public rwTerms:(cons[crExp],(crExp)=>option[crExp])=>cons[crExp].
+  rwTerms(Els,Tst) => (Els//(E)=>rwTerm(E,Tst)).
+
+  rwDef(fnDef(Lc,Nm,Tp,Args,Val),M) =>
+    fnDef(Lc,Nm,Tp,Args,rwTerm(Val,M)).
+  rwDef(mmDef(Lc,Nm,Tp,Args,Val),M) =>
+    mmDef(Lc,Nm,Tp,Args,rwTerm(Val,M)).
+  rwDef(glbDef(Lc,V,Val),M) =>
+    glbDef(Lc,V,rwTerm(Val,M)).
+
+  rwCase:(crCase,(crExp)=>option[crExp]) => crCase.
+  rwCase((Lc,Ptn,Rp),T) => (Lc,rwTerm(Ptn,T),rwTerm(Rp,T)).
+
   public rewriteTerm:(crExp,map[string,crExp])=>crExp.
-  rewriteTerm(crVar(Lc,V),M) => rewriteVar(Lc,V,M).
-  rewriteTerm(crInt(Lc,Ix),_) => crInt(Lc,Ix).
-  rewriteTerm(crFlot(Lc,Dx),_) => crFlot(Lc,Dx).
-  rewriteTerm(crStrg(Lc,Sx),_) => crStrg(Lc,Sx).
-  rewriteTerm(crLbl(Lc,Sx,Tp),_) => crLbl(Lc,Sx,Tp).
-  rewriteTerm(crDot(Lc,R,Ix,Tp),M) => crDot(Lc,rewriteTerm(R,M),Ix,Tp).
-  rewriteTerm(crTplOff(Lc,R,Ix,Tp),M) => crTplOff(Lc,rewriteTerm(R,M),Ix,Tp).
-  rewriteTerm(crTerm(Lc,Op,Args,Tp),M) =>
-    crTerm(Lc,Op,rewriteTerms(Args,M),Tp).
-  rewriteTerm(crMemo(Lc,Gen,Tp),M) =>crMemo(Lc,Gen,Tp).
-  rewriteTerm(crMemoGet(Lc,Mem,Tp),M) =>
-    crMemoGet(Lc,rewriteTerm(Mem,M),Tp).
-  rewriteTerm(crMemoSet(Lc,Mem,Val),M) =>
-    crMemoSet(Lc,rewriteTerm(Mem,M),rewriteTerm(Val,M)).
-  rewriteTerm(crRecord(Lc,Op,Flds,Tp),M) =>
-    crRecord(Lc,Op,Flds//((F,T))=>(F,rewriteTerm(T,M)),Tp).
-  rewriteTerm(crCall(Lc,Op,Args,Tp),M) =>
-    crCall(Lc,Op,Args//(A)=>rewriteTerm(A,M),Tp).
-  rewriteTerm(crOCall(Lc,Op,Args,Tp),M) =>
-    crOCall(Lc,rewriteTerm(Op,M),Args//(A)=>rewriteTerm(A,M),Tp).
-  rewriteTerm(crIntrinsic(Lc,Op,Args,Tp),M) =>
-    crIntrinsic(Lc,Op,rewriteTerms(Args,M),Tp).
-  rewriteTerm(crECall(Lc,Op,Args,Tp),M) =>
-    crECall(Lc,Op,Args//(A)=>rewriteTerm(A,M),Tp).
-  rewriteTerm(crCnj(Lc,L,R),M) =>
-    crCnj(Lc,rewriteTerm(L,M),rewriteTerm(R,M)).
-  rewriteTerm(crDsj(Lc,L,R),M) =>
-    crDsj(Lc,rewriteTerm(L,M),rewriteTerm(R,M)).
-  rewriteTerm(crNeg(Lc,R),M) =>
-    crNeg(Lc,rewriteTerm(R,M)).
-  rewriteTerm(crCnd(Lc,T,L,R),M) =>
-    crCnd(Lc,rewriteTerm(T,M),rewriteTerm(L,M),rewriteTerm(R,M)).
-  rewriteTerm(crLtt(Lc,V,D,E),M) where M1 .= dropVar(M,V) =>
-    crLtt(Lc,V,rewriteTerm(D,M),rewriteTerm(E,M1)).
-  rewriteTerm(crLtRec(Lc,V,D,E),M) where M1 .= dropVar(M,V) =>
-    crLtRec(Lc,V,rewriteTerm(D,M),rewriteTerm(E,M)).
-  rewriteTerm(crCase(Lc,Sel,Cases,Deflt,Tp),M) =>
-    crCase(Lc,rewriteTerm(Sel,M),Cases//(C)=>rewriteCase(C,M),rewriteTerm(Deflt,M),Tp).
-  rewriteTerm(crAbort(Lc,Nm,Tp),_)=>crAbort(Lc,Nm,Tp).
-  rewriteTerm(crWhere(Lc,T,C),M) =>
-    crWhere(Lc,rewriteTerm(T,M),rewriteTerm(C,M)).
-  rewriteTerm(crMatch(Lc,P,E),M) =>
-    crMatch(Lc,rewriteTerm(P,M),rewriteTerm(E,M)).
+  rewriteTerm(T,Map) => rwTerm(T,rwVar(Map)).
 
   public rewriteTerms:(cons[crExp],map[string,crExp])=>cons[crExp].
-  rewriteTerms(Els,Mp) => (Els//(E)=>rewriteTerm(E,Mp)).
+  rewriteTerms(T,Map) => rwTerms(T,rwVar(Map)).
 
-  rewriteDef(fnDef(Lc,Nm,Tp,Args,Val),M) =>
-    fnDef(Lc,Nm,Tp,Args,rewriteTerm(Val,M)).
-  rewriteDef(mmDef(Lc,Nm,Tp,Arg,Val),M) =>
-    mmDef(Lc,Nm,Tp,Arg,rewriteTerm(Val,M)).
-  rewriteDef(glbDef(Lc,V,Val),M) =>
-    glbDef(Lc,V,rewriteTerm(Val,M)).
-
-  dropVar:(map[string,crExp],crVar)=>map[string,crExp].
-  dropVar(M,crId(Nm,_)) => M[~Nm].
-
-  rewriteVar:(locn,crVar,map[string,crExp])=>crExp.
-  rewriteVar(_,crId(Nm,_),M) where T^=M[Nm] => T.
-  rewriteVar(Lc,V,_) => crVar(Lc,V).
-
-  rewriteCase:(crCase,map[string,crExp]) => crCase.
-  rewriteCase((Lc,Ptn,Rp),M) => (Lc,rewriteTerm(Ptn,M),rewriteTerm(Rp,M)).
+  rwVar(M) => let{
+    test(crVar(Lc,crId(Nm,Tp))) => M[Nm].
+    test(_) => .none.
+  } in test.
 
   public implementation hasLoc[crDefn] => {
     locOf(fnDef(Lc,_,_,_,_)) => Lc.
@@ -360,6 +378,7 @@ star.compiler.core{
   isGround(crInt(_,_)) => .true.
   isGround(crFlot(_,_)) => .true.
   isGround(crStrg(_,_)) => .true.
+  isGround(crVoid(_,_)) => .true.
   isGround(crLbl(_,_,_)) => .true.
   isGround(crTerm(_,_,Els,_)) => E in Els *> isGround(E).
   isGround(_) default => .false.
