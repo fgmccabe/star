@@ -16,6 +16,11 @@ void syserr(const char *msg) {
   exit(99);
 }
 
+void check_(const char *func, const char *srcFile, int line, char *frag, char *msg) {
+  logMsg(logFile, "assert %s failed (%s) at %s/%d in %s", frag, msg, srcFile, line, func);
+  syserr("assert failed");
+}
+
 char *genSym(const char *prefix, char *buffer, integer buffLen) {
   static int count = 0;
 

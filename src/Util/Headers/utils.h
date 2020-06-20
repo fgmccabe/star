@@ -51,7 +51,9 @@ extern char *genSym(const char *prefix, char *buffer, integer buffLen);
 extern integer nextPrime(integer min);
 
 extern void syserr(const char *msg);
+#define check(Tst, Msg) STMT_WRAP(if(!(Tst)){check_(__func__, __FILE__, __LINE__,#Tst,(Msg));})
+extern void check_(const char *func, const char *srcFile, int line, char *frag, char *msg);
 
-extern retCode homeDir(char *user,char *buffer,integer bufLen);
+extern retCode homeDir(char *user, char *buffer, integer bufLen);
 
 #endif

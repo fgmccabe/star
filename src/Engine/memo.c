@@ -35,7 +35,7 @@ memoPo C_MEMO(termPo t) {
   return (memoPo) t;
 }
 
-memoPo memoVar(heapPo H, labelPo provider) {
+memoPo memoVar(heapPo H, normalPo provider) {
   memoPo memo = (memoPo) allocateObject(H, memoClass, MemoCellCount);
 
   memo->content = voidEnum;
@@ -78,13 +78,13 @@ retCode memoDisp(ioPo out, termPo t, integer precision, integer depth, logical a
   memoPo memo = C_MEMO(t);
 
   if (isMemoSet(memo))
-    return outMsg(out, "[memo: %t]", memo->content);
+    return outMsg(out, "[memo: %,*T]", depth,memo->content);
   else
-    return outMsg(out, "[memo (unset): %t]", memo->provider);
+    return outMsg(out, "[memo provider: %,*T]", depth, memo->provider);
 }
 
 logical isMemoSet(memoPo memo) {
-  return (logical) (memo->content != Null);
+  return (logical) (memo->content != voidEnum);
 }
 
 retCode setMemoValue(memoPo memo, termPo value) {
@@ -103,6 +103,6 @@ termPo getMemoContent(memoPo memo) {
   return memo->content;
 }
 
-labelPo getMemoProvider(memoPo memo) {
+normalPo getMemoProvider(memoPo memo) {
   return memo->provider;
 }

@@ -14,6 +14,7 @@
 #include "debugP.h"
 #include <math.h>
 #include <memo.h>
+#include "utils.h"
 
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<(unsigned)16)|lo32))
 #define collectOff(pc) (hi32 = collectI32(pc), (pc)+(signed)hi32)
@@ -38,8 +39,6 @@ static inline ptrPo checkStack(processPo P, ptrPo SP) {
   dumpStackTrace(P, logFile);\
   return Error;\
   }
-
-#define check(Cond, Msg) { if(!(Cond)) { logMsg(logFile,(Msg)); bail(); } }
 
 /*
  * Execute program on a given process/thread structure
@@ -441,13 +440,11 @@ retCode run(processPo P) {
       case Nth: {
         int32 ix = collectI32(PC);  /* which element */
         termPo t = pop();
-        if (isNormalPo(t)) {
-          normalPo cl = C_TERM(t);  /* which term? */
-          push(nthArg(cl, ix));
-        } else {
-          logMsg(logFile, "%T has no fields", t);
-          bail();
-        }
+        check(isNormalPo(t), "tried to access non term");
+
+        normalPo cl = C_TERM(t);  /* which term? */
+        push(nthArg(cl, ix));
+
         continue;
       }
 
@@ -511,8 +508,8 @@ retCode run(processPo P) {
       }
 
       case AM: {
-        labelPo memoLbl = C_LBL(pop());
-        memoPo memo = memoVar(H, memoLbl);
+        normalPo prov = C_TERM(pop());
+        memoPo memo = memoVar(H, prov);
         push(memo);
         continue;
       }
@@ -524,12 +521,21 @@ retCode run(processPo P) {
           termPo vr = getMemoContent(memo);
           push(vr);     /* load contents of memo var */
         } else {
-          labelPo prov = getMemoProvider(memo);  // Set up an OCall to the provider
+          normalPo prov = getMemoProvider(memo);  // Set up an OCall to the provider
+
+          labelPo oLbl = termLbl(prov);
+          methodPo NPROG = labelCode(objLabel(oLbl, 2));       /* set up for object call */
+          if (NPROG == Null) {
+            logMsg(logFile, "no definition for %s/2", labelName(oLbl));
+            bail();
+          }
 
           push(memo);     // Push the memo itself as argument to provider
+          push(nthArg(prov, 0));                     // Put the free term back on the stack
+
           push(PROG);
           push(PC);       /* build up the frame. */
-          PROG = labelCode(prov);       /* set up for object call */
+          PROG = NPROG;           /* set up for object call */
           PC = entryPoint(PROG);
           LITS = codeLits(PROG);
 
