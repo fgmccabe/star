@@ -48,7 +48,7 @@ integer termArity(normalPo term) {
 }
 
 termPo nthArg(normalPo term, int64 ix) {
-  assert(ix >= 0 && ix < termArity(term));
+  check(ix >= 0 && ix < termArity(term),"out of bounds");
   return term->args[ix];
 }
 
