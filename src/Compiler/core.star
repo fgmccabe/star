@@ -15,9 +15,7 @@ star.compiler.core{
     | crVoid(locn,tipe)
     | crLbl(locn,string,tipe)
     | crTerm(locn,string,cons[crExp],tipe)
-    | crMemo(locn,crExp,tipe)
-    | crMemoGet(locn,crExp,tipe)
-    | crMemoSet(locn,crExp,crExp)
+    | crMemo(locn,tipe)
     | crCall(locn,string,cons[crExp],tipe)
     | crECall(locn,string,cons[crExp],tipe)
     | crIntrinsic(locn,assemOp,cons[crExp],tipe)
@@ -88,10 +86,7 @@ star.compiler.core{
   dspExp(crCall(_,Op,As,_),Off) => ssSeq([ss(Op),ss("("),ssSeq(dsplyExps(As,Off)),ss(")")]).
   dspExp(crTerm(_,Op,As,_),Off) where isTplLbl(Op) => ssSeq([ss("‹"),ssSeq(dsplyExps(As,Off)),ss("›")]).
   dspExp(crTerm(_,Op,As,_),Off) => ssSeq([ss(Op),ss("‹"),ssSeq(dsplyExps(As,Off)),ss("›")]).
-  dspExp(crMemo(_,Th,_),Off) => ssSeq([ss("memo‹"),dspExp(Th,Off),ss("›")]).
-  dspExp(crMemoGet(_,Memo,_),Off) => ssSeq([ss("getmemo‹"),dspExp(Memo,Off),ss("›")]).
-  dspExp(crMemoSet(_,Memo,Vl),Off) => ssSeq([ss("setmemo‹"),dspExp(Memo,Off),ss(":="),
-      dspExp(Vl,Off),ss("›")]).
+  dspExp(crMemo(_,_),Off) => ssSeq([ss("memo‹>")]).
   dspExp(crDot(_,O,Ix,_),Off) => ssSeq([dspExp(O,Off),ss("."),disp(Ix)]).
   dspExp(crTplOff(_,O,Ix,_),Off) => ssSeq([dspExp(O,Off),ss("."),disp(Ix)]).
   dspExp(crRecord(_,Path,Fs,_),Off) => ssSeq([ss(Path),ss("{"),ssSeq(dsplyFlds(Fs,Off++"  ")),ss("}")]).
@@ -147,7 +142,6 @@ star.compiler.core{
     eqTerm(crVoid(_,T1),crVoid(_,T2)) => T1==T2.
     eqTerm(crLbl(_,S1,_),crLbl(_,S2,_)) => S1==S2.
     eqTerm(crTerm(_,S1,A1,_),crTerm(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
-    eqTerm(crMemo(_,V1,_),crMemo(_,V2,_)) => eqTerm(V1,V2).
     eqTerm(crCall(_,S1,A1,_),crCall(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
     eqTerm(crECall(_,S1,A1,_),crECall(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
 --    eqTerm(crIntrinsic(_,S1,A1,_),crIntrinsic(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
@@ -196,7 +190,7 @@ star.compiler.core{
     locOf(crDot(Lc,_,_,_)) => Lc.
     locOf(crTplOff(Lc,_,_,_)) => Lc.
     locOf(crTerm(Lc,_,_,_)) => Lc.
-    locOf(crMemo(Lc,_,_)) => Lc.
+    locOf(crMemo(Lc,_)) => Lc.
     locOf(crWhere(Lc,_,_)) => Lc.
     locOf(crMatch(Lc,_,_)) => Lc.
     locOf(crLtt(Lc,_,_,_)) => Lc.
@@ -221,9 +215,7 @@ star.compiler.core{
     tpOf(crVoid(_,Tp)) => Tp.
     tpOf(crLbl(_,_,Tp)) => Tp.
     tpOf(crTerm(_,_,_,Tp)) => Tp.
-    tpOf(crMemo(_,_,Tp)) => Tp.
-    tpOf(crMemoGet(_,_,Tp)) => Tp.
-    tpOf(crMemoSet(_,_,Vl)) => tpOf(Vl).
+    tpOf(crMemo(_,Tp)) => Tp.
     tpOf(crRecord(_,_,_,Tp)) => Tp.
     tpOf(crIntrinsic(_,_,_,Tp)) => Tp.
     tpOf(crECall(_,_,_,Tp)) => Tp.
@@ -291,11 +283,7 @@ star.compiler.core{
   rwTerm(crTplOff(Lc,R,Ix,Tp),Tst) => crTplOff(Lc,rwTerm(R,Tst),Ix,Tp).
   rwTerm(crTerm(Lc,Op,Args,Tp),Tst) =>
     crTerm(Lc,Op,rwTerms(Args,Tst),Tp).
-  rwTerm(crMemo(Lc,V,Tp),Tst) =>crMemo(Lc,rwTerm(V,Tst),Tp).
-  rwTerm(crMemoGet(Lc,Mem,Tp),Tst) =>
-    crMemoGet(Lc,rwTerm(Mem,Tst),Tp).
-  rwTerm(crMemoSet(Lc,Mem,Val),Tst) =>
-    crMemoSet(Lc,rwTerm(Mem,Tst),rwTerm(Val,Tst)).
+  rwTerm(crMemo(Lc,Tp),Tst) =>crMemo(Lc,Tp).
   rwTerm(crRecord(Lc,Op,Flds,Tp),Tst) =>
     crRecord(Lc,Op,Flds//((F,T))=>(F,rwTerm(T,Tst)),Tp).
   rwTerm(crCall(Lc,Op,Args,Tp),Tst) =>

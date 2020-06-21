@@ -133,14 +133,8 @@ star.compiler.gencode{
     compExps(Args,Opts,bothCont(allocCont(tLbl(Nm,size(Args)),Tp,Stk),Cont),Ctx,Cde,Stk,Rp).
   compExp(crIntrinsic(Lc,Op,Args,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
     compExps(Args,Opts,bothCont(asmCont(Op,size(Args),Tp,Stk),Cont),Ctx,Cde,Stk,Rp).
-  compExp(crMemo(Lc,Prov,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
-    compExp(Prov,Opts,bothCont(memoCont(Lc),Cont),Ctx,Cde,Stk,Rp).
-  compExp(crMemoGet(Lc,Memo,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
-    compExp(Memo,Opts,bothCont(memoGetCont(Tp),Cont),Ctx,Cde,Stk,Rp).
-  compExp(crMemoSet(Lc,Memo,Vl),Opts,Cont,Ctx,Cde,Stk,Rp) =>
-    compExp(Memo,Opts,
-      expCont(Vl,Opts,
-	bothCont(asmCont(.iTM,0,typeOf(Vl),Stk),Cont)),Ctx,Cde,Stk,Rp).
+  compExp(crMemo(Lc,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
+    bothCont(memoCont(Lc),Cont).C(Ctx,Cde,Stk,Rp).
   compExp(crECall(Lc,Nm,Args,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
     compExps(Args,Opts,bothCont(escCont(Nm,size(Args),Tp,Stk),Cont),Ctx,Cde,Stk,Rp).
   compExp(crCall(Lc,Nm,Args,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
@@ -505,6 +499,7 @@ star.compiler.gencode{
   isLiteral(crFlot(_,Dx))=>some((flot(Dx),fltType)).
   isLiteral(crStrg(_,Sx))=>some((strg(Sx),strType)).
   isLiteral(crLbl(_,Nm,Tp))=>some((enum(tLbl(Nm,0)),Tp)).
+  isLiteral(crVoid(Lc,Tp)) => some((enum(tLbl("star.core#void",0)),Tp)).
   isLiteral(_) default => .none.
 
   -- continuations
@@ -589,12 +584,6 @@ star.compiler.gencode{
 	  throw reportError(Rp,"expecting a $(MTp) for memo value, not $(Tp)",Lc)
 	else
 	valis (Ctx,Cde++[.iTM],some([Tp,..Stk]))
-      }).
-
-  memoGetCont:(tipe)=>Cont.
-  memoGetCont(Tp) =>
-    ccont(.false,(Ctx,Cde,some([_,..Stk]),Rp) => do{
-	valis (Ctx,Cde++[.iLM,iFrame(intgr(size(Stk)-1))],some([Tp,..Stk]))
       }).
 
   oclCont:(integer,tipe,option[cons[tipe]])=>Cont.
