@@ -52,9 +52,7 @@ star.compiler.normalize{
   public normalize:(pkgSpec,canonDef,reports)=>either[reports,cons[crDefn]].
   normalize(PkgSpec,varDef(Lc,Nm,_,PkgVal,_,Tp),Rp) => do{
     Map .= pkgMap(PkgSpec);
---    logMsg("package map $(Map)");
     (Vl,Defs) <- liftExp(PkgVal,Map,[],[],Rp);
---    logMsg("transformed package: $(Vl)");
     valis [glbDef(Lc,crId(Nm,Tp),Vl),..Defs]
   }
 
@@ -164,7 +162,7 @@ star.compiler.normalize{
       ThV .= genVar("_ThVr",typeOf(freeVars++lVars));
       ThVr .= crVar(Lc,ThV);
 
-      L .= collectMemoVars(GrpVars,ThV,size(freeVars),collectLabelVars(freeVars,ThV,0,[]));
+      L .= collectVars(GrpVars,ThV,size(freeVars),collectLabelVars(freeVars,ThV,0,[]));
       M .= [lyr(foldRight((D,LL)=>collectMtd(D,some(ThV),LL),L,GrpFns)),..Outer];
 
 --      logMsg("theta var $(ThV)\:$(typeOf(ThV)) ~ $(L)");
@@ -181,10 +179,7 @@ star.compiler.normalize{
       GrpQ .= foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q,lVars),Grp);
       Ex2 <- transformGroup(Grp,M,M,GrpQ,some(ThVr),Ex,Rp);
       
---      logMsg("transform bound exp $(Bnd)");
       (BndTrm,Exx) <- liftExp(Bnd,M,GrpQ,Ex2,Rp);
---      logMsg("extra defs $(Exx)");
-
       valis (crLtRec(Lc,ThV,GrpFree,BndTrm),Exx)
     }
   }
@@ -225,12 +220,9 @@ star.compiler.normalize{
   transformDef:(canonDef,nameMap,nameMap,set[crVar],option[crExp],cons[crDefn],reports) =>
     either[reports,cons[crDefn]].
   transformDef(varDef(Lc,Nm,FullNm,lambda(_,Eqns,Tp),_,_),Map,Outer,Q,Extra,Ex,Rp) => do{
---    logMsg("transform function $(Nm) - $(Eqns)");
     ATp .= extendFunTp(deRef(Tp),Extra);
     (Eqs,Ex1) <- transformEquations(Eqns,Outer,Q,Extra,Ex,Rp);
---    logMsg("transformed eqns $(Nm) - $(Eqs)");
     Func .= functionMatcher(Lc,FullNm,ATp,Eqs);
---    logMsg("transformed function $(Nm) = $(Func)");
 
     ClosureNm .= closureNm(FullNm);
     ClVar .= (crVar(_,Exv)^=Extra ? Exv || crId("_",unitTp));
@@ -243,20 +235,16 @@ star.compiler.normalize{
       ClosEntry .=
 	fnDef(Lc,ClosureNm,ClosTp,ClArgs,
 	  crCall(Lc,FullNm,ClArgs//(V)=>crVar(Lc,V),funTypeRes(Tp)));
---      logMsg("closure entry for $(FullNm) : $(ClosEntry)");
       valis [Func,ClosEntry,..Ex1]
     } else {
       ClosEntry .=
 	fnDef(Lc,ClosureNm,ClosTp,
 	  ClArgs,crCall(Lc,FullNm,ClVars//(V)=>crVar(Lc,V),funTypeRes(Tp)));
 
---      logMsg("closure entry for $(FullNm) : $(ClosEntry)");
-      
       valis [Func,ClosEntry,..Ex1]
     }
   }
   transformDef(varDef(Lc,_,FullNm,Val,Cx,Tp),Map,Outer,Q,.none,Ex,Rp) => do{
---    logMsg("transform var $(FullNm) = $(Val)");
     (Vl,Defs) <- liftExp(Val,Outer,Q,Ex,Rp);
     valis [glbDef(Lc,crId(FullNm,Tp),Vl),..Defs]
   }
@@ -294,22 +282,16 @@ star.compiler.normalize{
   transformEquation:(equation,nameMap,set[crVar],option[crExp],cons[crDefn],reports) =>
     either[reports,((locn,cons[crExp],option[crExp],crExp),cons[crDefn])].
   transformEquation(eqn(Lc,tple(ALc,As),.none,Val),Map,Q,Extra,Ex,Rp) => do{
---    logMsg("transform $(eqn(Lc,tple(ALc,As),.none,Val))");
     EQ .= ptnVars(tple(ALc,As),Q,[]);
---    logMsg("EQ=$(EQ), Q=$(Q)");
     (Ptns,Ex1) <- liftPtns(As,Map,Q,Ex,Rp);
     (Rep,Exx) <- liftExp(Val,Map,EQ,Ex1,Rp);
     valis ((Lc,addExtra(Extra,Ptns),.none,Rep),Exx)
   }
   transformEquation(eqn(Lc,tple(ALc,As),some(Wh),Val),Map,Q,Extra,Ex,Rp) => do{
---    logMsg("transform $(eqn(Lc,tple(ALc,As),some(Wh),Val))");
     (Ptns,Ex1) <- liftPtns(As,Map,Q,Ex,Rp);
     EQ .= ptnVars(tple(Lc,As),Q,[]);
---    logMsg("EQ=$(EQ), Q=$(Q)");
     (Cond,Ex2) <- liftGoal(Wh,Map,EQ,Ex1,Rp);
-    EQ2 .= glVars(Wh,EQ);
---    logMsg("EQ2=$(EQ2)");
-    (Rep,Exx) <- liftExp(Val,Map,EQ2,Ex2,Rp);
+    (Rep,Exx) <- liftExp(Val,Map,glVars(Wh,EQ),Ex2,Rp);
 
     valis ((Lc,addExtra(Extra,Ptns),some(Cond),Rep),Exx)
   }
@@ -321,12 +303,8 @@ star.compiler.normalize{
   liftPtn(flt(Lc,Dx),Map,_,Ex,Rp) => either((crFlot(Lc,Dx),Ex)).
   liftPtn(strng(Lc,Sx),Map,_,Ex,Rp) => either((crStrg(Lc,Sx),Ex)).
   liftPtn(whr(Lc,Ptn,Cond),Map,Q,Ex,Rp) => do{
---    logMsg("where ptn $(whr(Lc,Ptn,Cond)), Q=$(Q)");
     (LPtn,Ex1) <- liftPtn(Ptn,Map,Q,Ex,Rp);
-    EQ .= ptnVars(Ptn,Q,[]);
---    logMsg("EQ=$(EQ)");
-    
-    (LCond,Exx) <- liftGoal(Cond,Map,EQ,Ex,Rp);
+    (LCond,Exx) <- liftGoal(Cond,Map,ptnVars(Ptn,Q,[]),Ex,Rp);
     valis (crWhere(Lc,LPtn,LCond),Exx)
   }
   liftPtn(tple(Lc,Els),Map,Q,Ex,Rp) => do{
@@ -408,21 +386,17 @@ star.compiler.normalize{
   }
   liftExp(E,Map,Q,Ex,Rp) where isGoal(E) => liftGoal(E,Map,Q,Ex,Rp).
   liftExp(cond(Lc,Ts,Th,El),Map,Q,Ex,Rp) => do{
---    logMsg("transform conditional exp $(cond(Lc,Ts,Th,El)), Q=$(Q)");
     (LTs,Ex1) <- liftGoal(Ts,Map,Q,Ex,Rp);
     Q1 .= glVars(Ts,Q);
---    logMsg("Q1=$(Q1)");
     (LTh,Ex2) <- liftExp(Th,Map,Q1,Ex1,Rp);
     (LEl,Exx) <- liftExp(El,Map,Q,Ex2,Rp);
     valis (crCnd(Lc,LTs,LTh,LEl),Exx)
   }
   liftExp(record(Lc,some(Nm),Fields,Tp),Map,Q,Ex,Rp) => do{
---    logMsg("lift record $(record(Lc,some(Nm),Fields,Tp)) using map $(Map)");
     (LFields,Exx) <- liftFields(Fields,Map,Q,Ex,Rp);
     valis (crRecord(Lc,Nm,LFields,Tp),Exx)
   }
   liftExp(record(Lc,.none,Fields,Tp),Map,Q,Ex,Rp) => do{
---    logMsg("lift record $(record(Lc,.none,Fields,Tp)), using map $(Map)");
     (LFields,Exx) <- liftFields(Fields,Map,Q,Ex,Rp);
     Path .= genSym("record");
     valis (crRecord(Lc,Path,LFields,Tp),Exx)
@@ -433,7 +407,6 @@ star.compiler.normalize{
     liftLetRec(Lc,Grp,Bnd,Map,Q,Ex,Rp).
   liftExp(Lam where lambda(FullNm,Eqns,Tp).=Lam,Map,Q,Ex,Rp) => do{
     Lc .= locOf(Lam);
---    logMsg("transform lambda $(Lam)");
 
     ffreeVars .=
       foldLeft((crId(Nm,VTp),So) =>
@@ -445,24 +418,15 @@ star.compiler.normalize{
     varParents .= freeParents(ffreeVars,Map);
     freeVars <- reduceFreeArgs(varParents,Map,Rp);
 
---    logMsg("lambda free vars $(freeVars), Q=$(Q)");
-
     ThV .= genVar("_ThVr",typeOf(freeVars));
     freeArgs <- seqmap((crId(Nm,VTp))=>liftVarExp(Lc,Nm,VTp,Map,Rp),freeVars);
     LMap .= [lyr(collectLabelVars(freeVars,ThV,0,[])),..Map];
 
     FreeTerm .= crTpl(Lc,freeArgs);
-
---    logMsg("lambda map $(LMap)");
---    logMsg("free lambda term $(ThV) = $(FreeTerm)");
     Extra .= some(crVar(Lc,ThV));
     ATp .= extendFunTp(deRef(Tp),Extra);
     (Eqs,Ex1) <- transformEquations(Eqns,LMap,Q,Extra,Ex,Rp);
---    logMsg("lambda equations $(Eqs)");
     LamFun .= functionMatcher(Lc,FullNm,ATp,Eqs);
-
---    logMsg("lambda closure $(crTerm(Lc,FullNm,[FreeTerm],ATp))");
---    logMsg("lambda function $(LamFun)");
     valis (crTerm(Lc,FullNm,[FreeTerm],ATp),[LamFun,..Ex1])
   }
   liftExp(csexp(Lc,Gov,Cses,Tp),Map,Q,Ex,Rp) => do{
@@ -547,10 +511,8 @@ star.compiler.normalize{
     other(reportError(Rp,"illegal variable $(Vr) - $(V)",Lc)).
 
   liftVarExp:(locn,string,tipe,nameMap,reports) => either[reports,crExp].
-  liftVarExp(Lc,Nm,Tp,Map,Rp) where Entry ^= lookupVarName(Map,Nm) => do{
---    logMsg("var $(Nm) entry $(Entry)");
-    implementVarExp(Lc,Entry,Map,Tp,Rp)
-  }.
+  liftVarExp(Lc,Nm,Tp,Map,Rp) where Entry ^= lookupVarName(Map,Nm) =>
+    implementVarExp(Lc,Entry,Map,Tp,Rp).
   liftVarExp(Lc,Nm,Tp,Map,Rp) => do{
     valis crVar(Lc,crId(Nm,Tp))
   }
@@ -670,13 +632,13 @@ star.compiler.normalize{
     }.
   labelVar(_,_,So) default => So.
 
-  collectMemoVars:(cons[canonDef],crVar,integer,map[string,nameMapEntry]) =>
+  collectVars:(cons[canonDef],crVar,integer,map[string,nameMapEntry]) =>
     map[string,nameMapEntry].
-  collectMemoVars([],_,_,LV) => LV.
-  collectMemoVars([varDef(Lc,Nm,FullNm,_,_,Tp),..Vrs],ThV,Ix,Entries) =>
-    collectMemoVars(Vrs,ThV,Ix+1,Entries[Nm->memoArg(varClosureNm(FullNm),ThV,Ix)]).
-  collectMemoVars([implDef(Lc,_,FullNm,_,_,Tp),..Vrs],ThV,Ix,Entries) =>
-    collectMemoVars(Vrs,ThV,Ix+1,Entries[FullNm->memoArg(varClosureNm(FullNm),ThV,Ix)]).
+  collectVars([],_,_,LV) => LV.
+  collectVars([varDef(Lc,Nm,FullNm,_,_,Tp),..Vrs],ThV,Ix,Entries) =>
+    collectVars(Vrs,ThV,Ix+1,Entries[Nm->memoArg(varClosureNm(FullNm),ThV,Ix)]).
+  collectVars([implDef(Lc,_,FullNm,_,_,Tp),..Vrs],ThV,Ix,Entries) =>
+    collectVars(Vrs,ThV,Ix+1,Entries[FullNm->memoArg(varClosureNm(FullNm),ThV,Ix)]).
 
   findMemoIx:(string,crVar,nameMap) => option[integer].
   findMemoIx(Nm,ThV,Map) => lookup(Map,Nm,isMemoVar(ThV)).
