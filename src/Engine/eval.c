@@ -437,6 +437,17 @@ retCode run(processPo P) {
         continue;
       }
 
+      case CV: {
+        termPo t = pop();
+        insPo exit = collectOff(PC);
+        assert(validPC(PROG, exit));
+
+        if (t == voidEnum) {
+          PC = exit;
+        }
+        continue;
+      }
+
       case Nth: {
         int32 ix = collectI32(PC);  /* which element */
         termPo t = pop();
@@ -515,49 +526,15 @@ retCode run(processPo P) {
       }
 
       case LM: {
+        insPo exit = collectOff(PC);
         memoPo memo = C_MEMO(pop());
 
         if (isMemoSet(memo)) {
           termPo vr = getMemoContent(memo);
           push(vr);     /* load contents of memo var */
         } else {
-          normalPo prov = getMemoProvider(memo);  // Set up an OCall to the provider
-
-          labelPo oLbl = termLbl(prov);
-          methodPo NPROG = labelCode(objLabel(oLbl, 2));       /* set up for object call */
-          if (NPROG == Null) {
-            logMsg(logFile, "no definition for %s/2", labelName(oLbl));
-            bail();
-          }
-
-          push(memo);     // Push the memo itself as argument to provider
-          push(nthArg(prov, 0));                     // Put the free term back on the stack
-
-          push(PROG);
-          push(PC);       /* build up the frame. */
-          PROG = NPROG;           /* set up for object call */
-          PC = entryPoint(PROG);
-          LITS = codeLits(PROG);
-
-          push(FP);
-          FP = (framePo) SP;     /* set the new frame pointer */
-
-          if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
-            saveRegisters(P, SP);
-            if (extendStack(P, 2, 1) != Ok) {
-              logMsg(logFile, "cannot extend stack");
-              bail();
-            }
-            restoreRegisters(P);
-          }
-          assert(SP - stackDelta(PROG) > (ptrPo) P->stackBase);
-
-          integer lclCnt = lclCount(PROG);  /* How many locals do we have */
-          SP -= lclCnt;
-#ifdef TRACEEXEC
-          for (integer ix = 0; ix < lclCnt; ix++)
-            SP[ix] = voidEnum;
-#endif
+          push(memo);
+          PC = exit;
         }
         continue;
       }

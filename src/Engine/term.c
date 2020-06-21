@@ -53,7 +53,7 @@ termPo nthArg(normalPo term, int64 ix) {
 }
 
 void setArg(normalPo term, int64 ix, termPo arg) {
-  assert(ix >= 0 && ix < termArity(term));
+  check(ix >= 0 && ix < termArity(term),"out of bounds");
   term->args[ix] = arg;
 }
 

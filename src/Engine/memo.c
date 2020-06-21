@@ -39,7 +39,6 @@ memoPo memoVar(heapPo H, normalPo provider) {
   memoPo memo = (memoPo) allocateObject(H, memoClass, MemoCellCount);
 
   memo->content = voidEnum;
-  memo->provider = provider;
   memo->clss = memoClass;
   return memo;
 }
@@ -68,9 +67,6 @@ termPo memoScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   if (memo->content != Null)
     helper((ptrPo) (&memo->content), c);
 
-  if (memo->provider != Null)
-    helper((ptrPo) (&memo->provider), c);
-
   return o + MemoCellCount;
 }
 
@@ -78,9 +74,9 @@ retCode memoDisp(ioPo out, termPo t, integer precision, integer depth, logical a
   memoPo memo = C_MEMO(t);
 
   if (isMemoSet(memo))
-    return outMsg(out, "[memo: %,*T]", depth,memo->content);
+    return outMsg(out, "[memo: 0x%x, %,*T]", memo, depth, memo->content);
   else
-    return outMsg(out, "[memo provider: %,*T]", depth, memo->provider);
+    return outMsg(out, "[memo 0x%x, unset]", memo);
 }
 
 logical isMemoSet(memoPo memo) {
@@ -103,6 +99,3 @@ termPo getMemoContent(memoPo memo) {
   return memo->content;
 }
 
-normalPo getMemoProvider(memoPo memo) {
-  return memo->provider;
-}
