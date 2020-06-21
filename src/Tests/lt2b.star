@@ -1,4 +1,4 @@
-test.lt2{
+test.lt2b{
   import star.
   import star.script.
 
