@@ -19,7 +19,6 @@ extern memoPo memoVar(heapPo H, normalPo provider);
 extern logical isMemoSet(memoPo memo);
 
 extern termPo getMemoContent(memoPo memo);
-extern normalPo getMemoProvider(memoPo memo);
 extern retCode setMemoValue(memoPo memo, termPo value);
 
 #endif //STAR_MEMO_H
