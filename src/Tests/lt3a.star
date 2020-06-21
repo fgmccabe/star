@@ -1,11 +1,11 @@
-test.lt3{
+test.lt3a{
   import star.
   import star.script.
 
   foo() => let{
-    X = genSym("x").
+    X := genSym("x").
 
-    test()=>X
+    test()=>X!!
   } in test.
 
 

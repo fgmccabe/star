@@ -118,6 +118,7 @@ retCode run(processPo P) {
 
         labelPo oLbl = termLbl(nProg);
         methodPo NPROG = labelCode(objLabel(oLbl, arity));       /* set up for object call */
+
         if (NPROG == Null) {
           logMsg(logFile, "no definition for %s/%d", labelName(oLbl), arity);
           bail();
