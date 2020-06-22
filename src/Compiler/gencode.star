@@ -147,6 +147,9 @@ star.compiler.gencode{
     compExp(Rc,Opts,bothCont(fldCont(Field,Tp),Cont),Ctx,Cde,Stk,Rp).
   compExp(crTplOff(Lc,Rc,Ix,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
     compExp(Rc,Opts,bothCont(tplOffCont(Ix,Tp),Cont),Ctx,Cde,Stk,Rp)}
+  compExp(crTplUpdate(Lc,Rc,Ix,E),Opts,Cont,Ctx,Cde,Stk,Rp) =>
+    compExp(Rc,Opts,
+      bothCont(dupCont,expCont(E,Opts,bothCont(tplUpdateCont(Ix),Cont))),Ctx,Cde,Stk,Rp).
   compExp(crLtt(Lc,V,Val,Exp),Opts,Cont,Ctx,Cde,Stk,Rp) => 
     compExp(Val,Opts,
       bothCont(stoCont(V),expCont(Exp,Opts,Cont)),Ctx,Cde,Stk,Rp).
@@ -419,6 +422,17 @@ star.compiler.gencode{
       compPtnVar(Lc,Vr,lclVar(Off,Tp),Opts,Succ,Ctx1,Cde,Stk,Rp)
     }
   }
+  compPtn(crVoid(Lc,Tp),Opts,Succ,Fail,Ctx,Cde,some([_,..Stk]),Rp) => do{
+    if Fl^=Succ.L then{
+      Fail.C(Ctx,Cde++[iCV(Fl)],some(Stk),Rp)
+    } else{
+      (Fl,Ctx1) .= defineLbl(Ctx);
+      (Ctx2,Cde2,Stk2) <- Fail.C(Ctx1,Cde++[iCV(Fl)],some(Stk),Rp);
+      (Ctx3,Cde3,Stk3) <- Succ.C(Ctx2,Cde2++[iLbl(Fl)],some(Stk),Rp);
+      Stkx <- mergeStack(Lc,Stk2,Stk2,Rp);
+      valis (Ctx3,Cde3,Stkx)
+    }
+  }
   compPtn(L,Opts,Succ,Fail,Ctx,Cde,some(Stk),Rp) where (T,Tp)^=isLiteral(L) =>
     ptnTest(locOf(L),Tp,Succ,Fail,Ctx,Cde++[iLdC(T)],some([Tp,..Stk]),Rp).
   compPtn(crTerm(Lc,Nm,Args,Tp),Opts,Succ,Fail,Ctx,Cde,some([_,..Stk]),Rp) => do{
@@ -518,6 +532,11 @@ star.compiler.gencode{
   genRst(Dpth,some(S)) where size(S)==Dpth => [].
   genRst(Dpth,_) => [iRst(Dpth)].
 
+  dupCont:Cont.
+  dupCont = ccont(.false,
+    (Ctx,Cde,some([Tp,..Stk]),Rp) =>
+      either((Ctx,Cde++[.iDup],some([Tp,Tp,..Stk])))).
+
   allocCont:(termLbl,tipe,option[cons[tipe]])=>Cont.
   allocCont(Lbl,Tp,some(OStk)) =>
     ccont(.true,(Ctx,Cde,Stk,Rp)=>either((Ctx,Cde++[iAlloc(Lbl)],some([Tp,..OStk])))).
@@ -588,6 +607,12 @@ star.compiler.gencode{
   tplOffCont(Ix,Tp)=>
     ccont(.true,(Ctx,Cde,some([T,..Stk]),Rp) =>  do{
 	valis (Ctx,Cde++[iNth(Ix)],some([Tp,..Stk]))
+      }).
+
+  tplUpdateCont:(integer)=>Cont.
+  tplUpdateCont(Ix)=>
+    ccont(.true,(Ctx,Cde,some([T,_,..Stk]),Rp) =>  do{
+	valis (Ctx,Cde++[iStNth(Ix)],some(Stk))
       }).
 
   fixupCont:(crVar,cons[either[integer,string]],crVar,cons[either[integer,string]]) => Cont.
@@ -728,6 +753,7 @@ star.compiler.gencode{
   ptnVars(crRecord(_,_,Els,_),Ctx) => foldRight(((_,El),X)=>ptnVars(El,X),Ctx,Els).
   ptnVars(crDot(_,_,_,_),Ctx) => Ctx.
   ptnVars(crTplOff(_,_,_,_),Ctx) => Ctx.
+  ptnVars(crTplUpdate(_,_,_,_),Ctx) => Ctx.
   ptnVars(crCnj(_,L,R),Ctx) => ptnVars(L,ptnVars(R,Ctx)).
   ptnVars(crDsj(_,L,R),Ctx) => mergeCtx(ptnVars(L,Ctx),ptnVars(R,Ctx),Ctx).
   ptnVars(crNeg(_,R),Ctx) => Ctx.

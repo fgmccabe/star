@@ -230,12 +230,9 @@ star.compiler.normalize{
   transformDef:(canonDef,nameMap,nameMap,set[crVar],option[crExp],cons[crDefn],reports) =>
     either[reports,cons[crDefn]].
   transformDef(varDef(Lc,Nm,FullNm,lambda(_,Eqns,Tp),_,_),Map,Outer,Q,Extra,Ex,Rp) => do{
---    logMsg("transform function $(FullNm) in $(head(Map))");
     ATp .= extendFunTp(deRef(Tp),Extra);
     (Eqs,Ex1) <- transformEquations(Eqns,Outer,Q,Extra,Ex,Rp);
---    logMsg("equations for $(FullNm) are $(Eqs)");
     Func .= functionMatcher(Lc,FullNm,ATp,Eqs);
---    logMsg("transformed function $(Func)");
 
     ClosureNm .= closureNm(FullNm);
     ClVar .= (crVar(_,Exv)^=Extra ? Exv || crId("_",unitTp));
@@ -248,13 +245,11 @@ star.compiler.normalize{
       ClosEntry .=
 	fnDef(Lc,ClosureNm,ClosTp,ClArgs,
 	  crCall(Lc,FullNm,ClArgs//(V)=>crVar(Lc,V),funTypeRes(Tp)));
---      logMsg("closure entry for $(FullNm) is $(ClosEntry)");
       valis [Func,ClosEntry,..Ex1]
     } else {
       ClosEntry .=
 	fnDef(Lc,ClosureNm,ClosTp,
 	  ClArgs,crCall(Lc,FullNm,ClVars//(V)=>crVar(Lc,V),funTypeRes(Tp)));
---      logMsg("closure entry for $(FullNm) is $(ClosEntry)");
       valis [Func,ClosEntry,..Ex1]
     }
   }
@@ -270,7 +265,7 @@ star.compiler.normalize{
     (Vl,Defs) <- liftExp(Val,Outer,Q,Ex,Rp);
 --    logMsg("transformed var $(Val) = $(Vl)");
     Body .= crTplOff(Lc,crCnd(Lc,crMatch(Lc,crVoid(Lc,Tp),crTplOff(Lc,V,ThIx,Tp)),
-      crECall(Lc,"_tuple_set_nth",[V,crInt(Lc,ThIx),Vl],typeOf(ThVr)),V),ThIx,Tp);
+	crTplUpdate(Lc,V,ThIx,Vl),V),ThIx,Tp);
     ClosureNm .= varClosureNm(FullNm);
 --    logMsg("closure name for $(FullNm) is $(ClosureNm)");
     ClosEntry .= fnDef(Lc,ClosureNm,funType([typeOf(ThVr)],Tp),[ThVr],Body);

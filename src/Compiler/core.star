@@ -23,6 +23,7 @@ star.compiler.core{
     | crRecord(locn,string,cons[(string,crExp)],tipe)
     | crDot(locn,crExp,string,tipe)
     | crTplOff(locn,crExp,integer,tipe)
+    | crTplUpdate(locn,crExp,integer,crExp)
     | crCnj(locn,crExp,crExp)
     | crDsj(locn,crExp,crExp)
     | crNeg(locn,crExp)
@@ -89,6 +90,8 @@ star.compiler.core{
   dspExp(crMemo(_,_),Off) => ssSeq([ss("memo‹>")]).
   dspExp(crDot(_,O,Ix,_),Off) => ssSeq([dspExp(O,Off),ss("."),disp(Ix)]).
   dspExp(crTplOff(_,O,Ix,_),Off) => ssSeq([dspExp(O,Off),ss("."),disp(Ix)]).
+  dspExp(crTplUpdate(_,O,Ix,E),Off) => ssSeq([dspExp(O,Off),ss("."),disp(Ix),
+      ss(":="),dspExp(E,Off)]).
   dspExp(crRecord(_,Path,Fs,_),Off) => ssSeq([ss(Path),ss("{"),ssSeq(dsplyFlds(Fs,Off++"  ")),ss("}")]).
   dspExp(crLtt(_,V,D,I),Off) where Off2.=Off++"  " =>
     ssSeq([ss("let "),disp(V),ss(" = "),dspExp(D,Off2),ss(" in\n"),ss(Off2),dspExp(I,Off2)]).
@@ -149,6 +152,7 @@ star.compiler.core{
     eqTerm(crRecord(_,S1,F1,_),crRecord(_,S2,F2,_)) => S1==S2 && eqFs(F1,F2).
     eqTerm(crDot(_,R1,F1,_),crDot(_,R2,F2,_)) => eqTerm(R1,R2) && F1==F2.
     eqTerm(crTplOff(_,R1,F1,_),crTplOff(_,R2,F2,_)) => eqTerm(R1,R2) && F1==F2.
+    eqTerm(crTplUpdate(_,R1,Ix,E1),crTplUpdate(_,R2,Ix,E2)) => eqTerm(R1,R2) && eqTerm(E1,E2).
     eqTerm(crCnj(_,L1,R1),crCnj(_,L2,R2)) => eqTerm(L1,L2) && eqTerm(R1,R2).
     eqTerm(crDsj(_,L1,R1),crDsj(_,L2,R2)) => eqTerm(L1,L2) && eqTerm(R1,R2).
     eqTerm(crNeg(_,R1),crNeg(_,R2)) => eqTerm(R1,R2).
@@ -189,6 +193,7 @@ star.compiler.core{
     locOf(crLbl(Lc,_,_)) => Lc.
     locOf(crDot(Lc,_,_,_)) => Lc.
     locOf(crTplOff(Lc,_,_,_)) => Lc.
+    locOf(crTplUpdate(Lc,_,_,_)) => Lc.
     locOf(crTerm(Lc,_,_,_)) => Lc.
     locOf(crMemo(Lc,_)) => Lc.
     locOf(crWhere(Lc,_,_)) => Lc.
@@ -223,6 +228,7 @@ star.compiler.core{
     tpOf(crCall(_,_,_,Tp)) => Tp.
     tpOf(crDot(_,_,_,Tp)) => Tp.
     tpOf(crTplOff(_,_,_,Tp)) => Tp.
+    tpOf(crTplUpdate(_,T,_,_)) => tpOf(T).
     tpOf(crLtt(_,_,_,E)) => tpOf(E).
     tpOf(crLtRec(_,_,_,E)) => tpOf(E).
     tpOf(crCase(_,_,_,_,Tp)) => Tp.
@@ -281,6 +287,7 @@ star.compiler.core{
   rwTerm(crLbl(Lc,Sx,Tp),_) => crLbl(Lc,Sx,Tp).
   rwTerm(crDot(Lc,R,Ix,Tp),Tst) => crDot(Lc,rwTerm(R,Tst),Ix,Tp).
   rwTerm(crTplOff(Lc,R,Ix,Tp),Tst) => crTplOff(Lc,rwTerm(R,Tst),Ix,Tp).
+  rwTerm(crTplUpdate(Lc,R,Ix,E),Tst) => crTplUpdate(Lc,rwTerm(R,Tst),Ix,rwTerm(E,Tst)).
   rwTerm(crTerm(Lc,Op,Args,Tp),Tst) =>
     crTerm(Lc,Op,rwTerms(Args,Tst),Tp).
   rwTerm(crMemo(Lc,Tp),Tst) =>crMemo(Lc,Tp).
