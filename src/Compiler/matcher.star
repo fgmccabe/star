@@ -127,7 +127,7 @@ star.compiler.matcher{
       NAG .= fmap((T)=>rewriteTerm(T,Mp),AG);
       NGl .= fmap((T)=>rewriteTerm(T,Mp),Gl);
       NExp .= rewriteTerm(Exp,Mp);
-      valis (NArgs, (CLc,B,AG,NGl,NExp),Ix)
+      valis (NArgs, (CLc,B,NAG,NGl,NExp),Ix)
     }
     applyToTriple(([crWhere(Lc,crVar(VLc,crId(Vr,_)),Cond),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof action{
       Mp .= [Vr->V];
@@ -136,7 +136,7 @@ star.compiler.matcher{
       NCond .= rewriteTerm(Cond,Mp);
       NGl .= fmap((T)=>rewriteTerm(T,Mp),Gl);
       NExp .= rewriteTerm(Exp,Mp);
-      valis (NArgs, (CLc,B,mergeGoal(VLc,NAG,some(NCond)),Gl,NExp),Ix)
+      valis (NArgs, (CLc,B,mergeGoal(VLc,NAG,some(NCond)),NGl,NExp),Ix)
     }
   } in (Triples//applyToTriple).
 
@@ -189,6 +189,7 @@ star.compiler.matcher{
   conditionalize([(_,(Lc,Bnds,ArgCond,Test,Val),_),..Triples],Deflt) => valof action{
 --    logMsg("conditionalize $(Lc)\:$(Bnds) $(ArgCond) $(Test) -> $(Val)");
     (Vl,Cnd) .= pullWhere(Val,Test);
+--    logMsg("pulled where $(Cnd)");
     EqnCnd .= mergeGoal(Lc,ArgCond,Cnd);
 --    logMsg("merged conditionalize goal $(EqnCnd)");
     if Tst ^= EqnCnd then
