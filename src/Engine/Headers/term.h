@@ -44,9 +44,9 @@ integer hashTermLbl(termPo t);
 integer termSize(normalPo t);
 
 integer termArity(normalPo term);
-ptrPo termArgs(normalPo term);
 
 termPo nthArg(normalPo term, integer ix);
+termPo nthElem(normalPo term, integer ix);
 void setArg(normalPo term, integer ix, termPo arg);
 
 termPo getField(normalPo term, labelPo field);

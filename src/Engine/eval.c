@@ -63,7 +63,6 @@ retCode run(processPo P) {
 #ifdef TRACEEXEC
     pcCount++;        /* increment total number of executed */
 
-    countIns(*PC);
     if (insDebugging) {
       saveRegisters(P, SP);
       insDebug(P, *PC);
@@ -80,7 +79,7 @@ retCode run(processPo P) {
         return Ok;
       }
       case Call: {
-        termPo nProg = nthArg(LITS, collectI32(PC));
+        termPo nProg = nthElem(LITS, collectI32(PC));
         methodPo NPROG = labelCode(C_LBL(nProg));   // Which program do we want?
 
         if (SP - stackDelta(NPROG) <= (ptrPo) P->stackBase) {
@@ -124,7 +123,7 @@ retCode run(processPo P) {
           bail();
         }
 
-        push(nthArg(nProg, 0));                     // Put the free term back on the stack
+        push(nthElem(nProg, 0));                     // Put the free term back on the stack
         push(PROG);
         push(PC);       /* build up the frame. */
         PROG = NPROG;       /* set up for object call */
@@ -180,7 +179,7 @@ retCode run(processPo P) {
       }
 
       case Tail: {       /* Tail call of explicit program */
-        termPo nProg = nthArg(LITS, collectI32(PC));
+        termPo nProg = nthElem(LITS, collectI32(PC));
 
         // Pick up existing frame
         framePo oldFp = FP->fp;
@@ -247,7 +246,7 @@ retCode run(processPo P) {
           bail();
         }
 
-        push(nthArg(nProg, 0));                     // Put the free term back on the stack
+        push(nthElem(nProg, 0));                     // Put the free term back on the stack
 
         // Pick up existing frame
         framePo oldFp = FP->fp;
@@ -345,7 +344,7 @@ retCode run(processPo P) {
       }
 
       case LdC:     /* load literal value from pool */
-        push(nthArg(LITS, collectI32(PC)));
+        push(nthElem(LITS, collectI32(PC)));
         continue;
 
       case LdA: {
@@ -411,7 +410,7 @@ retCode run(processPo P) {
       }
 
       case Get: {
-        labelPo lbl = C_LBL(nthArg(LITS, collectI32(PC)));
+        labelPo lbl = C_LBL(nthElem(LITS, collectI32(PC)));
         normalPo trm = C_TERM(pop());
         termPo el = getField(trm, lbl);
         if (el != Null)
@@ -527,15 +526,50 @@ retCode run(processPo P) {
       }
 
       case LM: {
-        insPo exit = collectOff(PC);
         memoPo memo = C_MEMO(pop());
 
         if (isMemoSet(memo)) {
           termPo vr = getMemoContent(memo);
           push(vr);     /* load contents of memo var */
         } else {
+          normalPo nProg = getMemoProvider(memo);
+
+          labelPo oLbl = termLbl(nProg);
+          methodPo NPROG = labelCode(objLabel(oLbl, 2));       /* set up for object call */
+
+          if (NPROG == Null) {
+            logMsg(logFile, "no definition for %s/%d", labelName(oLbl), 2);
+            bail();
+          }
+
           push(memo);
-          PC = exit;
+          push(nthElem(nProg, 0));                     // Put the free term back on the stack
+          push(PROG);
+          push(PC);       /* build up the frame. */
+          PROG = NPROG;       /* set up for object call */
+
+          PC = entryPoint(PROG);
+          LITS = codeLits(PROG);
+
+          push(FP);
+          FP = (framePo) SP;     /* set the new frame pointer */
+
+          if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
+            saveRegisters(P, SP);
+            if (extendStack(P, 2, 0) != Ok) {
+              logMsg(logFile, "cannot extend stack");
+              bail();
+            }
+            restoreRegisters(P);
+          }
+          assert(SP - stackDelta(PROG) > (ptrPo) P->stackBase);
+
+          integer lclCnt = lclCount(PROG);  /* How many locals do we have */
+          SP -= lclCnt;
+#ifdef TRACEEXEC
+          for (integer ix = 0; ix < lclCnt; ix++)
+            SP[ix] = voidEnum;
+#endif
         }
         continue;
       }
@@ -781,7 +815,7 @@ retCode run(processPo P) {
       }
 
       case Alloc: {      /* heap allocate term */
-        labelPo cd = C_LBL(nthArg(LITS, collectI32(PC)));
+        labelPo cd = C_LBL(nthElem(LITS, collectI32(PC)));
         if (enoughRoom(H, cd) != Ok) {
           saveRegisters(P, SP);
           retCode ret = gcCollect(H, NormalCellCount(cd->arity));
@@ -797,7 +831,7 @@ retCode run(processPo P) {
       }
 
       case AlTpl: {      /* Allocate new tuple */
-        labelPo cd = C_LBL(nthArg(LITS, collectI32(PC)));
+        labelPo cd = C_LBL(nthElem(LITS, collectI32(PC)));
         if (enoughRoom(H, cd) != Ok) {
           saveRegisters(P, SP);
           retCode ret = gcCollect(H, NormalCellCount(cd->arity));
@@ -844,7 +878,7 @@ retCode run(processPo P) {
       }
 
       case Frame: {
-        termPo frame = nthArg(LITS, collectI32(PC));
+        termPo frame = nthElem(LITS, collectI32(PC));
         // ignore frame entity for now
         continue;
       }
@@ -889,7 +923,7 @@ retCode run(processPo P) {
       }
 
       case dLine: {
-        termPo line = nthArg(LITS, collectI32(PC));
+        termPo line = nthElem(LITS, collectI32(PC));
 
 #ifdef TRACEEXEC
         if (lineDebugging) {

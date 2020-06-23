@@ -23,6 +23,8 @@ typedef struct _field_table_ {
   struct _field_bucket_ entries[ZEROARRAYSIZE];
 } FieldTable, *fieldTblPo;
 
+typedef struct labelTable_ *lblTablePo;
+
 typedef struct _program_label_ {
   clssPo clss;                // == labelClass
   integer arity;              // Arity of label
@@ -31,6 +33,7 @@ typedef struct _program_label_ {
   char *name;                 // LblRecord name
   integer len;                // How long is the label name
   fieldTblPo fields;          // Spec of the fields of this term
+  lblTablePo table;           // table of similar labels (different arities)
 } LblRecord;
 
 #define LabelCellCount CellCount(sizeof(LblRecord))

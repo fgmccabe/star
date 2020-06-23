@@ -1298,27 +1298,7 @@ retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bu
   return Fail;
 }
 
-static integer insCounts[illegalOp];
-
-void countIns(insWord ins) {
-  insCounts[ins]++;
-}
-
-#undef instruction
-#define instruction(Op, Arg, Dl, Cmt) outMsg(debugOutChnnl,#Op": %d\n",insCounts[Op]);
-
 void dumpInsCount() {
   logMsg(debugOutChnnl, "%ld instructions executed\n", pcCount);
-}
-
-void dumpInsStats() {
-  outMsg(debugOutChnnl, "instructions executed\n");
-
-#include "instructions.h"
-
-#ifdef TRACESTATS
-  dumpEscapes(debugOutChnnl);
-#endif
-
 }
 

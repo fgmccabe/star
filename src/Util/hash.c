@@ -364,7 +364,7 @@ integer ixHash(void *r) {
   return (integer) r;
 }
 
-comparison integerCmp(void *i1, void *i2){
+comparison ixCmp(void *i1, void *i2){
   integer ix1 = (integer)i1;
   integer ix2 = (integer)i2;
 

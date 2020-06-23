@@ -43,7 +43,7 @@ instruction(StG,glb,-1,"store into a global variable")
 instruction(TG,glb,0,"copy into a global variable")
 
 instruction(AM,tOs,1,"allocate a memo")
-instruction(LM,off,0,"load contents of memo")
+instruction(LM,tOs,0,"load contents of memo")
 instruction(SM,tOs,-2,"store into memo")
 instruction(TM,tOs,-1,"copy tos into memo")
 

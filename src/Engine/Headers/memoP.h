@@ -12,6 +12,7 @@
 typedef struct memo_rec_ {
   clssPo clss;                  // == memoClass
   integer hash;
+  normalPo provider;
   termPo content;               // Contents
 } MemoRecord;
 
