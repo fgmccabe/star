@@ -48,17 +48,17 @@ integer termArity(normalPo term) {
 }
 
 termPo nthArg(normalPo term, int64 ix) {
-  check(ix >= 0 && ix < termArity(term),"out of bounds");
+  check(ix >= 0 && ix < termArity(term), "out of bounds");
+  return term->args[ix];
+}
+
+termPo nthElem(normalPo term, integer ix) {
   return term->args[ix];
 }
 
 void setArg(normalPo term, int64 ix, termPo arg) {
-  check(ix >= 0 && ix < termArity(term),"out of bounds");
+  check(ix >= 0 && ix < termArity(term), "out of bounds");
   term->args[ix] = arg;
-}
-
-ptrPo termArgs(normalPo term) {
-  return &term->args[0];
 }
 
 retCode showTerm(ioPo f, void *data, long depth, long precision, logical alt) {

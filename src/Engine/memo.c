@@ -39,6 +39,7 @@ memoPo memoVar(heapPo H, normalPo provider) {
   memoPo memo = (memoPo) allocateObject(H, memoClass, MemoCellCount);
 
   memo->content = voidEnum;
+  memo->provider = provider;
   memo->clss = memoClass;
   return memo;
 }
@@ -64,8 +65,8 @@ termPo memoCopy(specialClassPo cl, termPo dst, termPo src) {
 termPo memoScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   memoPo memo = C_MEMO(o);
 
-  if (memo->content != Null)
-    helper((ptrPo) (&memo->content), c);
+  helper((ptrPo) (&memo->provider), c);
+  helper((ptrPo) (&memo->content), c);
 
   return o + MemoCellCount;
 }
@@ -93,6 +94,10 @@ retCode setMemoValue(memoPo memo, termPo value) {
     memo->content = value;
     return Ok;
   }
+}
+
+normalPo getMemoProvider(memoPo memo) {
+  return memo->provider;
 }
 
 termPo getMemoContent(memoPo memo) {
