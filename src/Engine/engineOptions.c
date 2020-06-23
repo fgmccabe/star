@@ -82,8 +82,8 @@ static retCode debugOption(char *option, logical enable, void *cl) {
         interactive = True;
         continue;
 #else
-      logMsg(logFile, "Instruction-level debugging not enabled\n");
-      return Error;
+        logMsg(logFile, "Instruction-level debugging not enabled\n");
+        return Error;
 #endif
 
       case 'D':    /*  instruction tracing */
@@ -93,8 +93,8 @@ static retCode debugOption(char *option, logical enable, void *cl) {
         interactive = False;
         continue;
 #else
-      logMsg(logFile, "Instruction-level tracing not enabled\n");
-      return Error;
+        logMsg(logFile, "Instruction-level tracing not enabled\n");
+        return Error;
 #endif
 
       case 'u':    /*  debug the debugger */
@@ -102,8 +102,8 @@ static retCode debugOption(char *option, logical enable, void *cl) {
         debugDebugging = True;
         continue;
 #else
-      logMsg(logFile, "Debugging tracing not enabled\n");
-      return Error;
+        logMsg(logFile, "Debugging tracing not enabled\n");
+        return Error;
 #endif
 
       case 'v':    /* turn on verify tracing */
@@ -111,8 +111,8 @@ static retCode debugOption(char *option, logical enable, void *cl) {
         traceVerify = True;
         continue;
 #else
-      logMsg(logFile, "code verification not enabled\n");
-      return Error;
+        logMsg(logFile, "code verification not enabled\n");
+        return Error;
 #endif
 
       case 'm':    /* trace memory allocations  */
@@ -122,8 +122,8 @@ static retCode debugOption(char *option, logical enable, void *cl) {
         atexit(dumpGcStats);
         continue;
 #else
-      logMsg(logFile,"memory tracing not enabled");
-            return -1;
+        logMsg(logFile,"memory tracing not enabled");
+              return -1;
 #endif
 
       case 'H':    /* validate heap after allocations  */
@@ -131,8 +131,8 @@ static retCode debugOption(char *option, logical enable, void *cl) {
         validateMemory = True;
         continue;
 #else
-      logMsg(logFile,"memory validation not enabled");
-      return -1;
+        logMsg(logFile,"memory validation not enabled");
+        return -1;
 #endif
 
       case 'l':    /* trace synch locks */
@@ -151,8 +151,8 @@ static retCode debugOption(char *option, logical enable, void *cl) {
         tracing = True;
         continue;
 #else
-      logMsg(logFile, "tracing not enabled");
-      return Error;
+        logMsg(logFile, "tracing not enabled");
+        return Error;
 #endif
 
       case 'g':    /* Internal symbolic debugging */
@@ -175,8 +175,8 @@ static retCode debugOption(char *option, logical enable, void *cl) {
         if (traceManifest < detailedTracing)
           traceManifest++;
 #else
-      logMsg(logFile, "Resource tracing not enabled\n");
-      return Error;
+        logMsg(logFile, "Resource tracing not enabled\n");
+        return Error;
 #endif
         continue;
 
@@ -186,8 +186,8 @@ static retCode debugOption(char *option, logical enable, void *cl) {
           tracePkg++;
         continue;
 #else
-      logMsg(logFile,"package tracing not enabled");
-      return -1;
+        logMsg(logFile,"package tracing not enabled");
+        return -1;
 #endif
 
       case 'Q':    /* trace decoding operations  */
@@ -196,8 +196,8 @@ static retCode debugOption(char *option, logical enable, void *cl) {
           traceDecode++;
         continue;
 #else
-      logMsg(logFile,"decode tracing not enabled");
-      return -1;
+        logMsg(logFile,"decode tracing not enabled");
+        return -1;
 #endif
 
       case 'F':   // Show file name instead of package
