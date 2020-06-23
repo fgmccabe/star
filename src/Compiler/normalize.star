@@ -259,17 +259,12 @@ star.compiler.normalize{
   }
   transformDef(varDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,some(V),Ex,Rp) => do{
     crVar(_,ThVr).=V;
---    logMsg("transform $(FullNm) in $(head(Map))");
     ThIx ^= findMemoIx(Nm,ThVr,Map);
---    logMsg("transform var $(FullNm) = $(Val) at $(ThVr)[$(ThIx)]");
     (Vl,Defs) <- liftExp(Val,Outer,Q,Ex,Rp);
---    logMsg("transformed var $(Val) = $(Vl)");
     Body .= crTplOff(Lc,crCnd(Lc,crMatch(Lc,crVoid(Lc,Tp),crTplOff(Lc,V,ThIx,Tp)),
 	crTplUpdate(Lc,V,ThIx,Vl),V),ThIx,Tp);
     ClosureNm .= varClosureNm(FullNm);
---    logMsg("closure name for $(FullNm) is $(ClosureNm)");
     ClosEntry .= fnDef(Lc,ClosureNm,funType([typeOf(ThVr)],Tp),[ThVr],Body);
---    logMsg("closure entry for $(FullNm) is $(ClosEntry)");
     valis [ClosEntry,..Defs]
   }
   transformDef(implDef(Lc,_,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex,Rp) => 
@@ -387,7 +382,28 @@ star.compiler.normalize{
     (LRc,Ex1) <- liftExp(Rc,Map,Q,Ex,Rp);
     valis (crDot(Lc,LRc,Fld,Tp),Ex1)
   }
-  liftExp(whr(_,E,enm(_,"star.core#true",nomnal("star.core*boolean"))),Map,Q,Ex,Rp) =>
+  liftExp(freeze(Lc,MemoNm,E),Map,Q,Ex,Rp) => do{
+    rawGrpFree .= freeLabelVars(freeVarsInTerm(E,[],Q,[]),Map)::cons[crVar];
+    freeVars <- reduceFreeArgs(freeParents(rawGrpFree,Map),Map,Rp);
+
+    freeArgs <- seqmap((crId(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Map,Rp),freeVars);
+    MemoFree .= crTpl(Lc,freeArgs);
+
+    FrV .= genVar("_MVr",typeOf(freeVars));
+    FrVr .= crVar(Lc,FrV);
+
+    L .= [lyr(some(FrV),collectLabelVars(freeVars,FrV,0,[])),..Map];
+    
+    (Vl,Ex1) <- liftExp(E,L,Q,Ex,Rp);
+
+    MM .= mmDef(Lc,MemoNm,memoType(typeOf(E)),[FrV],Vl);
+    valis (crMemo(Lc,crTerm(Lc,MemoNm,[MemoFree],typeOf(E))),[MM,..Ex1])
+  }
+  liftExp(thaw(Lc,E,Tp),Map,Q,Ex,Rp) => do{
+    (RE,Ex1) <- liftExp(E,Map,Q,Ex,Rp);
+    valis (crMemoFetch(Lc,RE,Tp),Ex1)
+  }
+  liftExp(whr(_,E,enm(_,"star.core#true",_)),Map,Q,Ex,Rp) =>
     liftExp(E,Map,Q,Ex,Rp).
   liftExp(whr(Lc,E,C),Map,Q,Ex,Rp) => do{
     (LE,Ex1) <- liftExp(E,Map,Q,Ex,Rp);

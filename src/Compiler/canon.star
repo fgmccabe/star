@@ -29,6 +29,8 @@ star.compiler.canon{
     cond(locn,canon,canon,canon) |
     apply(locn,canon,canon,tipe) |
     tple(locn,cons[canon]) |
+    freeze(locn,string,canon) |
+    thaw(locn,canon,tipe) |
     lambda(string,cons[equation],tipe) |
     letExp(locn,cons[canonDef],canon) |
     letRec(locn,cons[canonDef],canon) |
@@ -52,6 +54,8 @@ star.compiler.canon{
     typeOf(strng(_,_)) => strType.
     typeOf(enm(_,_,Tp)) => Tp.
     typeOf(csexp(_,_,_,Tp)) => Tp.
+    typeOf(freeze(_,_,E)) => memoType(typeOf(E)).
+    typeOf(thaw(_,_,Tp)) => Tp.
     typeOf(lambda(_,_,Tp)) => Tp.
     typeOf(letExp(_,_,E)) => typeOf(E).
     typeOf(letRec(_,_,E)) => typeOf(E).
@@ -87,6 +91,8 @@ star.compiler.canon{
     locOf(cond(Lc,_,_,_)) => Lc.
     locOf(apply(Lc,_,_,_)) => Lc.
     locOf(tple(Lc,_)) => Lc.
+    locOf(freeze(Lc,_,_)) => Lc.
+    locOf(thaw(Lc,_,_)) => Lc.
     locOf(lambda(_,[E,.._],_)) => locOf(E).
     locOf(letExp(Lc,_,_)) => Lc.
     locOf(letRec(Lc,_,_)) => Lc.
@@ -158,7 +164,7 @@ star.compiler.canon{
   }
 
   showCanon:(canon,string)=>ss.
-  showCanon(vr(_,Nm,Tp),_) => ssSeq([ss(Nm)/*,ss(":"),disp(Tp)*/]).
+  showCanon(vr(_,Nm,Tp),_) => ssSeq([ss(Nm)]).
   showCanon(mtd(_,Fld,_,_),_) => ssSeq([ss("µ"),ss(Fld)]).
   showCanon(over(_,V,_,Cx),Sp) => ssSeq([disp(Cx),ss("|:"),showCanon(V,Sp)]).
   showCanon(intr(_,Lt),_) => disp(Lt).
@@ -178,6 +184,8 @@ star.compiler.canon{
   showCanon(apply(_,L,R,_),Sp) => ssSeq([showCanon(L,Sp),showCanon(R,Sp)]).
   showCanon(tple(_,Els),Sp) =>
     ssSeq([ss("("),ssSeq(interleave(Els//(El)=>showCanon(El,Sp),ss(","))),ss(")")]).
+  showCanon(freeze(_,Nm,E),Sp) => ssSeq([ss("freeze "),ss(Nm),ss("."),showCanon(E,Sp)]).
+  showCanon(thaw(_,E,_),Sp) => ssSeq([ss("thaw "),showCanon(E,Sp)]).
   showCanon(lambda(Nm,Rls,Tp),Sp) => ssSeq([ss("("),showRls(Nm,Rls,Sp++"  "),ss(")")]).
   showCanon(letExp(_,Defs,Ep),Sp) where Sp2.=Sp++"  " =>
     ssSeq([ss("let "),ss("{\n"),ss(Sp2),showGroup(Defs,Sp2),ss("\n"),ss(Sp),ss("}"),ss(" in "),showCanon(Ep,Sp2)]).
