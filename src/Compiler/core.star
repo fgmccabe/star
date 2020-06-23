@@ -15,7 +15,8 @@ star.compiler.core{
     | crVoid(locn,tipe)
     | crLbl(locn,string,tipe)
     | crTerm(locn,string,cons[crExp],tipe)
-    | crMemo(locn,tipe)
+    | crMemo(locn,crExp)
+    | crMemoFetch(locn,crExp,tipe)
     | crCall(locn,string,cons[crExp],tipe)
     | crECall(locn,string,cons[crExp],tipe)
     | crIntrinsic(locn,assemOp,cons[crExp],tipe)
@@ -87,7 +88,8 @@ star.compiler.core{
   dspExp(crCall(_,Op,As,_),Off) => ssSeq([ss(Op),ss("("),ssSeq(dsplyExps(As,Off)),ss(")")]).
   dspExp(crTerm(_,Op,As,_),Off) where isTplLbl(Op) => ssSeq([ss("‹"),ssSeq(dsplyExps(As,Off)),ss("›")]).
   dspExp(crTerm(_,Op,As,_),Off) => ssSeq([ss(Op),ss("‹"),ssSeq(dsplyExps(As,Off)),ss("›")]).
-  dspExp(crMemo(_,_),Off) => ssSeq([ss("memo‹>")]).
+  dspExp(crMemo(_,Exp),Off) => ssSeq([ss("memo‹"),disp(Exp),ss("›")]).
+  dspExp(crMemoFetch(_,Exp,_),Off) => ssSeq([ss("memofetch‹"),disp(Exp),ss("›")]).
   dspExp(crDot(_,O,Ix,_),Off) => ssSeq([dspExp(O,Off),ss("."),disp(Ix)]).
   dspExp(crTplOff(_,O,Ix,_),Off) => ssSeq([dspExp(O,Off),ss("."),disp(Ix)]).
   dspExp(crTplUpdate(_,O,Ix,E),Off) => ssSeq([dspExp(O,Off),ss("."),disp(Ix),
@@ -196,6 +198,7 @@ star.compiler.core{
     locOf(crTplUpdate(Lc,_,_,_)) => Lc.
     locOf(crTerm(Lc,_,_,_)) => Lc.
     locOf(crMemo(Lc,_)) => Lc.
+    locOf(crMemoFetch(Lc,_,_)) => Lc.
     locOf(crWhere(Lc,_,_)) => Lc.
     locOf(crMatch(Lc,_,_)) => Lc.
     locOf(crLtt(Lc,_,_,_)) => Lc.
@@ -220,7 +223,8 @@ star.compiler.core{
     tpOf(crVoid(_,Tp)) => Tp.
     tpOf(crLbl(_,_,Tp)) => Tp.
     tpOf(crTerm(_,_,_,Tp)) => Tp.
-    tpOf(crMemo(_,Tp)) => Tp.
+    tpOf(crMemo(_,E)) => memoType(tpOf(E)).
+    tpOf(crMemoFetch(_,_,Tp)) => Tp.
     tpOf(crRecord(_,_,_,Tp)) => Tp.
     tpOf(crIntrinsic(_,_,_,Tp)) => Tp.
     tpOf(crECall(_,_,_,Tp)) => Tp.
@@ -290,7 +294,8 @@ star.compiler.core{
   rwTerm(crTplUpdate(Lc,R,Ix,E),Tst) => crTplUpdate(Lc,rwTerm(R,Tst),Ix,rwTerm(E,Tst)).
   rwTerm(crTerm(Lc,Op,Args,Tp),Tst) =>
     crTerm(Lc,Op,rwTerms(Args,Tst),Tp).
-  rwTerm(crMemo(Lc,Tp),Tst) =>crMemo(Lc,Tp).
+  rwTerm(crMemo(Lc,E),Tst) =>crMemo(Lc,rwTerm(E,Tst)).
+  rwTerm(crMemoFetch(Lc,E,Tp),Tst) =>crMemoFetch(Lc,rwTerm(E,Tst),Tp).
   rwTerm(crRecord(Lc,Op,Flds,Tp),Tst) =>
     crRecord(Lc,Op,Flds//((F,T))=>(F,rwTerm(T,Tst)),Tp).
   rwTerm(crCall(Lc,Op,Args,Tp),Tst) =>
