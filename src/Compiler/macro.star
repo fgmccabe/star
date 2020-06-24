@@ -864,7 +864,7 @@ star.compiler.macro{
   }
   makeAction(A,Cont,Rp) where (Lc,L,R) ^= isAssignment(A) &&
       (LLc,LL,LR) ^= isIndex(L) =>
-    makeAction(binary(Lc,":=",LL,ternary(LLc,"_put",unary(LLc,"!!",LL),LR,R)),
+    makeAction(binary(Lc,":=",LL,ternary(LLc,"_put",unary(LLc,"!",LL),LR,R)),
       Cont,Rp).
   
   makeAction(A,Cont,Rp) where (Lc,B,H) ^= isTryCatch(A) => do{

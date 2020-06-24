@@ -26,11 +26,11 @@ test.dl{
   FF(Lx)=> action{
     Cx .= ref 1;
     Fx .= ref 1;
-    while Cx!!=<Lx do {
-      Fx := Fx!! * Cx!!;
-      Cx := Cx!! + 1
+    while Cx!=<Lx do {
+      Fx := Fx! * Cx!;
+      Cx := Cx! + 1
     };
-    return Fx!!
+    return Fx!
   }
 
   II(Lx) =>
@@ -39,12 +39,12 @@ test.dl{
         ((Cx)=>
             let {
               loop:()=>action[(),integer].
-              loop() where Cx!! =< Lx =>
+              loop() where Cx! =< Lx =>
                 do{
-                  Cx := Cx!! + 1;
+                  Cx := Cx! + 1;
                   loop()
                 }
-              loop() => return Cx!!
+              loop() => return Cx!
             } in loop()
             )(_cell(1))).
 
@@ -56,13 +56,13 @@ test.dl{
           ((Fx) =>
             let {
               loop:()=>action[(),integer].
-              loop() where Cx!! =< Lx =>
+              loop() where Cx! =< Lx =>
                 do{
-                  Fx := Fx!! * Cx!!;
-                  Cx := Cx!! + 1;
+                  Fx := Fx! * Cx!;
+                  Cx := Cx! + 1;
                   loop()
                 }
-              loop() => return Fx!!
+              loop() => return Fx!
             } in loop()
             )
             (_cell(1))
@@ -75,11 +75,11 @@ test.dl{
       Cx .= ref 1;
       Fx .= ref 1;
 
-      while Cx!! =< Lx do{
-	Fx := Fx!! * Cx!!;
-	Cx := Cx!! + 1
+      while Cx! =< Lx do{
+	Fx := Fx! * Cx!;
+	Cx := Cx! + 1
       };
-      valis Fx!!
+      valis Fx!
     }
 
   main:()=>action[(),()].

@@ -16,7 +16,7 @@ star.compiler.unify{
     resets := [].
 
     resetBindings = action{
-      for Rx in resets!! do{
+      for Rx in resets! do{
 	if resetVar(BndVr) .= Rx then {
 	  resetBinding(BndVr)
 	} else if resetConstraint(CxV,Cx) .= Rx then {
@@ -27,12 +27,12 @@ star.compiler.unify{
     }
 
     addVarBinding(TV) => action{
-      resets := [resetVar(TV),..resets!!];
+      resets := [resetVar(TV),..resets!];
       valis ()
     }
 
     addVarConstraints(V) => action{
-      resets := [resetConstraint(V,constraintsOf(V)),..resets!!];
+      resets := [resetConstraint(V,constraintsOf(V)),..resets!];
       valis ()
     }
 

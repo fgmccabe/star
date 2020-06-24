@@ -10,10 +10,10 @@ test.sy{
     
     for Ix in Is do{
       if Ix<Lm then
-	Cx:=Cx!!+Ix
+	Cx:=Cx!+Ix
     };
     
-    return Cx!!
+    return Cx!
   }
 
   -- another line comment

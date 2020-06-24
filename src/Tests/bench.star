@@ -31,40 +31,40 @@ test.bench{
     logMsg("******* cons lists ******");
     timer := timer_start(Count, "Creating cons list");
     cn_list .= ref (iota(0,Count):cons[integer]);
-    timer_finish(timer!!);
+    timer_finish(timer!);
 
     logMsg("******* finger trees ******");
     timer := timer_start(Count, "Creating finger tree");
     fn_list .= ref fingeriota(0,Count);
-    timer_finish(timer!!);
---    logMsg("finger tree: $(fn_list!!)");
+    timer_finish(timer!);
+--    logMsg("finger tree: $(fn_list!)");
 
     logMsg("******* skew trees ******");
     timer := timer_start(Count, "Creating skew tree");
     sk_list .= ref (iota(0,Count):sk[integer]);
-    timer_finish(timer!!);
---    logMsg("finger tree: $(fn_list!!)");
+    timer_finish(timer!);
+--    logMsg("finger tree: $(fn_list!)");
 
     timer := timer_start(Count, "Accessing all elements in cons list");
-    for i in (cn_list!!) do {
+    for i in (cn_list!) do {
 --      logMsg("cons element: $(i)");
       ignore(some(i))
     };
-    timer_finish(timer!!);
+    timer_finish(timer!);
 
     timer := timer_start(Count, "Accessing all elements in finger list");
-    for i in (fn_list!!) do {
+    for i in (fn_list!) do {
       ignore(some(i))
 --      logMsg("finger element: $(i)")
     };
-    timer_finish(timer!!);
+    timer_finish(timer!);
 
     timer := timer_start(Count, "Accessing all elements in skew list");
-    for i in (sk_list!!) do {
+    for i in (sk_list!) do {
       ignore(some(i))
 --      logMsg("skew element: $(i)")
     };
-    timer_finish(timer!!);
+    timer_finish(timer!);
 
     if Count =< 100000 then {
       logMsg("start changing");
@@ -72,7 +72,7 @@ test.bench{
       for ix in idxes do {
         sk_list[ix] := ix + 4
       };
-      timer_finish(timer!!)
+      timer_finish(timer!)
       
     };
     valis ()

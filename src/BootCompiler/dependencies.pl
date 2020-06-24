@@ -579,7 +579,7 @@ collectTermRefs(T,All,R0,Refs) :-
   collectTermRefs(R,All,R2,Refs).
 collectTermRefs(T,All,R,Refs) :-
   isRef(T,_,A),!,
-  collectIndexRefs(A,All,R,Refs).
+  collectTermRefs(A,All,R,Refs).
 collectTermRefs(_,_,Refs,Refs).
 
 collectTermListRefs([],_,Refs,Refs).

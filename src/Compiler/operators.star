@@ -59,6 +59,7 @@ star.compiler.operators{
   oper(".+.") => [prefixOp(700,699)].
   oper("<$") => [infixOp(719,720,720)].
   oper("then") => [infixOp(1179,1180,1179)].
+  oper("!") => [postfixOp(99,100)].
   oper("->>") => [infixOp(1199,1200,1199)].
   oper("=!=") => [infixOp(899,900,899)].
   oper("default") => [postfixOp(939,940)].
@@ -84,6 +85,7 @@ star.compiler.operators{
   oper("try") => [prefixOp(1200,1199)].
   oper("exists") => [prefixOp(1010,1009)].
   oper("if") => [prefixOp(1175,1174)].
+  oper("$$") => [prefixOp(899,898)].
   oper("background") => [prefixOp(950,949)].
   oper(":") => [infixOp(1249,1250,1249)].
   oper(";") => [infixOp(1250,1251,1251)].
@@ -198,6 +200,7 @@ star.compiler.operators{
   first(0c!) => some("!").
   first(0c•) => some("•").
   first(0c#) => some("#").
+  first(0c$) => some("$").
   first(_) default => .none.
 
   public follows:(string,integer) => option[string].
@@ -273,6 +276,7 @@ star.compiler.operators{
   follows(">",0c>) => some(">>").
   follows(">>",0c=) => some(">>=").
   follows("!",0c!) => some("!!").
+  follows("$",0c$) => some("$$").
   follows(_,_) default => .none.
 
   public final:(string) => boolean.
@@ -355,9 +359,11 @@ star.compiler.operators{
   final(">>=") => .true.  /* monadic bind */
   final("?") => .true.  /* conditional operator */
   final("@") => .true.  /* meta annotation */
-  final("!!") => .true.  /* pick up value from a ref cell */
+  final("!") => .true.  /* pick up value from a ref cell */
+  final("!!") => .true.  /* pick up value from a memo */
   final("•") => .true.  /* function composition */
   final("#") => .true.  /* Macro statement marker */
+  final("$$") => .true.  /* wrap value in memo */
   final(_) default => .false.
 
   public keyword:(string) => boolean.

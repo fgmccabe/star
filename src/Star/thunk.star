@@ -29,7 +29,7 @@ star.thunk{
   thunk(F) => let{.
     memoX := .none.
   
-    ff() where V^=memoX!! => V.
+    ff() where V^=memoX! => V.
     ff() => valof action{
       V .= F();
       memoX := some(V);

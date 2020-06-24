@@ -64,8 +64,8 @@ star.action{
     valis _assign(L,V)
   }
 
-  public (!!):all a ~~ (ref a)=>a.
-  (!!)(V) => _get(V).
+  public (!):all a ~~ (ref a)=>a.
+  (!)(V) => _get(V).
 
   public logMsg:all m/2,e ~~ execution[m] |: (string)=>m[e,()].
   logMsg(Msg) => do{

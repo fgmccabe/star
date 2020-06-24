@@ -5,7 +5,7 @@ test.lt3a{
   foo() => let{
     X := genSym("x").
 
-    test()=>X!!
+    test()=>X!
   } in test.
 
 

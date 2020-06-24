@@ -11,7 +11,7 @@ test.r{
   .}
 
   implementation display[tv] => {.
-    disp(R) => ssSeq([ss("tv{ "),ss("bind ="),disp(R.bind!!),ss("}")])
+    disp(R) => ssSeq([ss("tv{ "),ss("bind ="),disp(R.bind!),ss("}")])
   .}
 
   setB:(tv,tp)=>action[(),()].

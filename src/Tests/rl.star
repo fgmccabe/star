@@ -35,9 +35,9 @@ test.rl{
     XX .= ref SS;
 
     XX[5] := "alpha";
-    logMsg("XX=$(XX!!)");
+    logMsg("XX=$(XX!)");
 
-    for El in (XX!!) do{
+    for El in (XX!) do{
       logMsg("El: $(El)")
     }
   }

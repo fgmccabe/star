@@ -7,9 +7,9 @@ test.do1{
   doFirst() => do{
     A .= ref 1;
 
-    A := A!!+A!!;
+    A := A!+A!;
 
-    assert A!!==2
+    assert A!==2
   }
 
   main:()=>action[(),()].

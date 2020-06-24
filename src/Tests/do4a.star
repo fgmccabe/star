@@ -11,11 +11,11 @@ test.do4a{
     ((Fx) => _sequence(_iter(range(1,X + 1,1),_valis(()),
 	  let{.
 	    sF(Ix,St) =>
-	      _sequence((Fx := Fx !! * Ix),
+	      _sequence((Fx := Fx ! * Ix),
 		(_) => _valis(())).
 	    sF(_,St) => _valis(St)
 	  .} in sF),
-	(_) => _valis(Fx !!)))(ref 1).
+	(_) => _valis(Fx !)))(ref 1).
 
   main:()=>action[(),()].
   main() => do{
