@@ -26,7 +26,6 @@ star.compiler.typeparse{
   }
   parseType(Q,Tp,Env,Rp) where (Lc,V,BT) ^= isXQuantified(Tp) => do{
     BV <- parseBoundTpVars(V,Rp);
---    logMsg("parse x type $(BT), Vrs=$(Q++BV)");
     In <- parseType(Q++BV,BT,Env,Rp);
     valis reQuantX(BV,In)
   }
@@ -41,7 +40,6 @@ star.compiler.typeparse{
     else if (Nm,VTp) in Q then
       valis VTp
     else if (_,T,TpRl) ^= findType(Env,Nm) then{
---      logMsg("look at type rule $(TpRl) for $(Nm)");
       if isLambdaRule(TpRl) then{
 	(_,typeLambda(_,Rhs)) .= freshen(TpRl,Env);
 	valis Rhs
@@ -55,9 +53,7 @@ star.compiler.typeparse{
   
   parseType(Q,Tp,Env,Rp) where (Lc,O,Args) ^= isSquareTerm(Tp) && (OLc,Nm)^=isName(O) => do{
     (Op,Rl) <- parseTypeName(Q,OLc,Nm,Env,Rp);
---    logMsg("type op $(Op) - $(Rl)");
     if (Qx,OOp) .= freshen(Op,Env) then {
---      logMsg("freshened op $(OOp)");
       if [A].=Args && (_,Lhs,Rhs)^=isBinary(A,"->>") then{
 	ArgTps <- parseTypes(Q,deComma(Lhs),Env,Rp);
 	DepTps <- parseTypes(Q,deComma(Rhs),Env,Rp);
@@ -65,19 +61,15 @@ star.compiler.typeparse{
       }
       else{
 	ArgTps <- parseTypes(Q,Args,Env,Rp);
---	logMsg("doing type fun $(OOp) agin $(ArgTps)");
 	Inn .= mkTypeExp(deRef(OOp),ArgTps);
 	if LmRl^=Rl then{
 	  (_,typeLambda(L,Rhs)) .= freshen(LmRl,Env);
---	  logMsg("freshened rule $(typeLambda(L,Rhs))");
 	  if sameType(L,Inn,Env) then{
---	    logMsg("type expression $(Inn)");
 	    valis rebind(Qx,Rhs,Env)
 	  }
 	  else
 	  throw reportError(Rp,"type rule for $(Nm) does not apply to $(Tp)",OLc)
 	} else{
---	logMsg("result $(Inn)");
 	  valis rebind(Qx,Inn,Env)
 	}
       }
@@ -126,7 +118,6 @@ star.compiler.typeparse{
   parseType(Q,T,Env,Rp) where (Lc,Lhs,Rhs) ^= isFieldAcc(T) => do{
     if (_,Id) ^= isName(Lhs) && (_,Fld) ^= isName(Rhs) then{
       if (_,RcType) ^= findVarFace(Lc,Id,Env) && faceType(_,Tps) .= RcType then{
---	logMsg("check var $(RcType)");
 	if (Fld,Ftp) in Tps then
 	  valis Ftp
 	else
@@ -193,7 +184,6 @@ star.compiler.typeparse{
   parseTypeName(_,_,"_",_,_) => either((newTypeVar("_"),.none)).
   parseTypeName(Q,_,Nm,_,_) where (Nm,Tp) in Q => either((Tp,.none)).
   parseTypeName(Q,_,Nm,Env,Rp) where (_,T,TpRl) ^= findType(Env,Nm) => do{
---    logMsg("is $(T) \: $(TpRl) a rule?");
     if isLambdaRule(TpRl) then 
       valis (T,some(TpRl))
     else
@@ -338,7 +328,6 @@ star.compiler.typeparse{
     Tp <- parseType([],St,Env,Rp);
     Lc .= locOf(St);
     FullNm .= qualifiedName(Path,.conMark,Nm);
---    logMsg("declaring $(Nm) as $(FullNm)\:$(Tp)");
     valis (cnsDef(Lc,Nm,FullNm,Tp),
       declareConstructor(Nm,FullNm,some(Lc),Tp,Env))
   }
