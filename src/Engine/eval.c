@@ -13,7 +13,6 @@
 #include "engineP.h"
 #include "debugP.h"
 #include <math.h>
-#include <memo.h>
 #include "utils.h"
 
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<(unsigned)16)|lo32))
@@ -515,77 +514,6 @@ retCode run(processPo P) {
         termPo val = pop();
         normalPo trm = C_TERM(pop());
         setField(trm, lbl, val);
-        continue;
-      }
-
-      case AM: {
-        normalPo prov = C_TERM(pop());
-        memoPo memo = memoVar(H, prov);
-        push(memo);
-        continue;
-      }
-
-      case LM: {
-        memoPo memo = C_MEMO(pop());
-
-        if (isMemoSet(memo)) {
-          termPo vr = getMemoContent(memo);
-          push(vr);     /* load contents of memo var */
-        } else {
-          normalPo nProg = getMemoProvider(memo);
-
-          labelPo oLbl = termLbl(nProg);
-          methodPo NPROG = labelCode(objLabel(oLbl, 2));       /* set up for object call */
-
-          if (NPROG == Null) {
-            logMsg(logFile, "no definition for %s/%d", labelName(oLbl), 2);
-            bail();
-          }
-
-          push(memo);
-          push(nthElem(nProg, 0));                     // Put the free term back on the stack
-          push(PROG);
-          push(PC);       /* build up the frame. */
-          PROG = NPROG;       /* set up for object call */
-
-          PC = entryPoint(PROG);
-          LITS = codeLits(PROG);
-
-          push(FP);
-          FP = (framePo) SP;     /* set the new frame pointer */
-
-          if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
-            saveRegisters(P, SP);
-            if (extendStack(P, 2, 0) != Ok) {
-              logMsg(logFile, "cannot extend stack");
-              bail();
-            }
-            restoreRegisters(P);
-          }
-          assert(SP - stackDelta(PROG) > (ptrPo) P->stackBase);
-
-          integer lclCnt = lclCount(PROG);  /* How many locals do we have */
-          SP -= lclCnt;
-#ifdef TRACEEXEC
-          for (integer ix = 0; ix < lclCnt; ix++)
-            SP[ix] = voidEnum;
-#endif
-        }
-        continue;
-      }
-
-      case SM: {  // store tos into memo at tos-1
-        termPo tos = pop();
-        memoPo memo = C_MEMO(pop());
-        setMemoValue(memo, tos);
-        continue;
-      }
-
-      case TM: {
-        termPo tos = pop();
-        memoPo memo = C_MEMO(pop());
-        setMemoValue(memo, tos);
-        push(tos);
         continue;
       }
 

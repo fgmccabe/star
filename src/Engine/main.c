@@ -8,7 +8,6 @@
 #include <labelsP.h>
 #include <cellP.h>
 #include <iochnnlP.h>
-#include <memoP.h>
 #include <consP.h>
 #include <formexts.h>
 #include "capabilityP.h"
@@ -52,7 +51,6 @@ int main(int argc, char **argv) {
   initGlobals();
   initCons();
   initCell();
-  initMemo();
   initCode();
   initLocks();
   initTerm();

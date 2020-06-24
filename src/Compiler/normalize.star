@@ -382,27 +382,6 @@ star.compiler.normalize{
     (LRc,Ex1) <- liftExp(Rc,Map,Q,Ex,Rp);
     valis (crDot(Lc,LRc,Fld,Tp),Ex1)
   }
-  liftExp(freeze(Lc,MemoNm,E),Map,Q,Ex,Rp) => do{
-    rawGrpFree .= freeLabelVars(freeVarsInTerm(E,[],Q,[]),Map)::cons[crVar];
-    freeVars <- reduceFreeArgs(freeParents(rawGrpFree,Map),Map,Rp);
-
-    freeArgs <- seqmap((crId(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Map,Rp),freeVars);
-    MemoFree .= crTpl(Lc,freeArgs);
-
-    FrV .= genVar("_MVr",typeOf(freeVars));
-    FrVr .= crVar(Lc,FrV);
-
-    L .= [lyr(some(FrV),collectLabelVars(freeVars,FrV,0,[])),..Map];
-    
-    (Vl,Ex1) <- liftExp(E,L,Q,Ex,Rp);
-
-    MM .= mmDef(Lc,MemoNm,memoType(typeOf(E)),[FrV],Vl);
-    valis (crMemo(Lc,crTerm(Lc,MemoNm,[MemoFree],typeOf(E))),[MM,..Ex1])
-  }
-  liftExp(thaw(Lc,E,Tp),Map,Q,Ex,Rp) => do{
-    (RE,Ex1) <- liftExp(E,Map,Q,Ex,Rp);
-    valis (crMemoFetch(Lc,RE,Tp),Ex1)
-  }
   liftExp(whr(_,E,enm(_,"star.core#true",_)),Map,Q,Ex,Rp) =>
     liftExp(E,Map,Q,Ex,Rp).
   liftExp(whr(Lc,E,C),Map,Q,Ex,Rp) => do{
