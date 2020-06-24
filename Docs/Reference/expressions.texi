@@ -65,7 +65,7 @@ variable itself. The primary reason for the latter may be to assign to
 the variable, or to permit a later assignment.
 
 An undecorated occurrence of a variable denotes access to the variable
-itself, whereas if the access is decorated with a @code{!!} then that
+itself, whereas if the access is decorated with a @code{!} then that
 refers to the variable's value. Thus, given a variable declaration:
 @example
 Cx := 0
@@ -78,7 +78,7 @@ Cx+3
 is not legal because @code{Cx} here does not refer to the variable's
 value. Instead use:
 @example
-Cx!!+3
+Cx!+3
 @end example
 
 @node Variable Assignment

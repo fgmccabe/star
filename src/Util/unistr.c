@@ -166,6 +166,19 @@ integer uniNStrLen(const char *s, integer max) {
   return count;
 }
 
+logical isUniIdentifier(char *str, integer len){
+  integer pos = 0;
+  while(pos<len){
+    codePoint ch;
+    if(nxtPoint(str,&pos,len,&ch)==Ok){
+      if(!isIdContinue(ch))
+        return False;
+    } else
+      return False;
+  }
+  return True;
+}
+
 integer uniByteLen(const char *s) {
   integer len = 0;
   char *p = (char *) s;
