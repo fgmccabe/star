@@ -39,7 +39,6 @@ star.compiler.core{
   public crCase ~> (locn,crExp,crExp).
 
   public crDefn ::= fnDef(locn,string,tipe,cons[crVar],crExp) |
-    mmDef(locn,string,tipe,cons[crVar],crExp) |
     glbDef(locn,crVar,crExp) |
     rcDef(locn,string,tipe,cons[(string,tipe,integer)]).
 
@@ -56,15 +55,9 @@ star.compiler.core{
 	ss(Nm),ss("("),
 	ssSeq(interleave(Args//disp,ss(","))),ss(") => "),
 	dspExp(Rep,Off)]).
-  dspDef(mmDef(Lc,Nm,Tp,Args,Rep),Off) =>
-    ssSeq([ss("memo: "),disp(Lc),ss("\n"),
-	ss(Nm),ss("("),
-	ssSeq(interleave(Args//disp,ss(","))),ss(") => "),
-	ss(") => "),
-	dspExp(Rep,Off)]).
   dspDef(glbDef(Lc,V,Rep),Off) =>
     ssSeq([ss("glb: "),disp(Lc),ss("\n"),
-	disp(V),/*ss(":"),disp(typeOf(V)),*/ss("="),
+	disp(V),ss("="),
 	dspExp(Rep,Off)]).
   dspDef(rcDef(Lc,Nm,Tp,Fields),Off) where Off2 .= Off++"  " =>
     ssSeq([ss("rec: "),disp(Lc),ss("\n"),
@@ -327,8 +320,6 @@ star.compiler.core{
 
   rwDef(fnDef(Lc,Nm,Tp,Args,Val),M) =>
     fnDef(Lc,Nm,Tp,Args,rwTerm(Val,M)).
-  rwDef(mmDef(Lc,Nm,Tp,Args,Val),M) =>
-    mmDef(Lc,Nm,Tp,Args,rwTerm(Val,M)).
   rwDef(glbDef(Lc,V,Val),M) =>
     glbDef(Lc,V,rwTerm(Val,M)).
 
@@ -348,7 +339,6 @@ star.compiler.core{
 
   public implementation hasLoc[crDefn] => {
     locOf(fnDef(Lc,_,_,_,_)) => Lc.
-    locOf(mmDef(Lc,_,_,_,_)) => Lc.
     locOf(glbDef(Lc,_,_)) => Lc.
   }
 
