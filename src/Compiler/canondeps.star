@@ -9,15 +9,10 @@ star.compiler.canondeps{
 
   public sortDefs:(cons[canonDef])=>cons[cons[canonDef]].
   sortDefs(Defs) => valof action{
---    logMsg("dependency sort of $(Defs)");
     Defined .= foldRight((D,S)=>S\+definedName(D),[],Defs);
     Q .= foldRight(pickVar,[],Defined);
---    logMsg("defined entries Q=$(Q), $(Defined)");
     AllRefs .= foldRight((D,A) => [findRefs(D,D,Q,Defined),..A],([]:cons[defSpec]),Defs);
---    logMsg("all refs $(AllRefs)");
-
     Sorted .= topsort(AllRefs);
---    logMsg("canon groups: $(Sorted)");
     valis (Sorted // ((Gp)=>(Gp//((defSpec(_,_,Df))=>Df))))
   }
 

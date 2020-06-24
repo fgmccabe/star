@@ -166,7 +166,7 @@ star.compiler.dict.mgt{
   }.
   applyConstraint(Con,Cons) where contractConstraint(A).=Con => valof do{
     AA .= ref deRef(A);
-    while tpExp(Op,Arg) .= AA!! do{
+    while tpExp(Op,Arg) .= AA! do{
       _ <- addConstraint(Arg,Con);
       AA := deRef(Op)
     };

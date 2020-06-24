@@ -373,9 +373,9 @@ isFieldAcc(Trm,Lc,Rc,Fld) :-
   isBinary(Trm,Lc,".",Rc,F),
   isIden(F,Fld),!.
 isFieldAcc(Trm,Lc,Rc,Fld) :-
-  isBinary(Trm,Lc,"!!.",L,F),
+  isBinary(Trm,Lc,"!.",L,F),
   isIden(F,Fld),!,
-  unary(Lc,"!!",L,Rc).
+  unary(Lc,"!",L,Rc).
 
 isRepl(Trm,Lc,Lft,Rep) :-
   isBinary(Trm,Lc,"<<-",Lft,Rep).
@@ -388,8 +388,8 @@ isSlice(Trm,Lc,Lhs,Frm,To) :-
   isSquareTerm(Trm,Lc,Lhs,[Rhs]),
   isBinary(Rhs,_,":",Frm,To),!.
 isSlice(Trm,Lc,Lhs,F,T) :-
-  isBinary(Trm,Lc,"!!",L,R),
-  unary(Lc,"!!",L,Lhs),
+  isBinary(Trm,Lc,"!",L,R),
+  unary(Lc,"!",L,Lhs),
   isSquareTuple(R,_,[X]),
   isBinary(X,_,":",F,T),!.
 

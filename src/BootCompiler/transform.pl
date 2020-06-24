@@ -571,11 +571,6 @@ trExpCallOp(Lc,enm(Lc0,Nm,Tp),Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   trExpCallOp(Lc,v(Lc0,Nm,Tp),Args,Exp,Q,Qx,Map,Opts,Ex,Exx).
 trExpCallOp(Lc,cons(Lc0,Nm,Tp),Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   trExpCallOp(Lc,v(Lc0,Nm,Tp),Args,Exp,Q,Qx,Map,Opts,Ex,Exx).
-trExpCallOp(_,lambda(Lc,equation(_,Ptns,_Cond,Exp),_),Args,doAct(Lc,Act),
-	    Q,Q,Map,Opts,Ex,Exx) :-
-  liftPtns(Ptns,LPtns,Q,Q0,Map,Opts,Ex,Ex0),
-  liftExp(Exp,LExp,Q0,_,Map,Opts,Ex0,Exx),
-  mkBinds(Lc,LPtns,Args,LExp,Act).
 trExpCallOp(Lc,Op,A,ocall(Lc,Rc,A),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(Op,Rc,Q,Qx,Map,Opts,Ex,Exx).
 

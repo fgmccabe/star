@@ -247,12 +247,12 @@ star.compiler{
 	    if Opts.showAst then{
 	      logMsg("Ast of $(P) is $(Ast)")
 	    };
-	    (PkgSpec,PkgFun) <- checkPkg(Repp!!,CPkg,Ast,stdDict,Opts,Rp) :: action[reports,(pkgSpec,canonDef)];
+	    (PkgSpec,PkgFun) <- checkPkg(Repp!,CPkg,Ast,stdDict,Opts,Rp) :: action[reports,(pkgSpec,canonDef)];
 	    if Opts.showCanon then {
 	      logMsg("type checked $(PkgFun)")
 	    };
 	    NormDefs <- normalize(PkgSpec,PkgFun,Rp)::action[reports,cons[crDefn]];
-	    Repp := addSpec(PkgSpec,Repp!!);
+	    Repp := addSpec(PkgSpec,Repp!);
 	    if Opts.showCore then {
 	      logMsg("Normalized package $(P)");
 	      logMsg(dispCrProg(NormDefs)::string)
@@ -264,16 +264,16 @@ star.compiler{
 		mkTpl(pkgImports(PkgSpec)//(pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
 		mkTpl(Ins//assem)]);
 	    Bytes .= (strg(Code::string)::string);
-	    Repp := addSource(addPackage(Repp!!,CPkg,Bytes),CPkg,SrcUri::string)
+	    Repp := addSource(addPackage(Repp!,CPkg,Bytes),CPkg,SrcUri::string)
 	  }
 	  else
 	  throw reportError(Rp,"cannot locate source of $(P)",Lc)
 	}
       };
-      valis flushRepo(Repp!!)
+      valis flushRepo(Repp!)
     }catch (Erp) => do{
       logMsg("Errors $(Erp)");
-      _ .= flushRepo(Repp!!);
+      _ .= flushRepo(Repp!);
       throw Erp
     }
   }

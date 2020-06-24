@@ -6,13 +6,13 @@ test.df{
   CX(Is,Lm) => do{
     Cx .= ref 0;
 
-    logMsg("Cx=$(Cx!!), Is=$(Is)");
+    logMsg("Cx=$(Cx!), Is=$(Is)");
     for Ix in Is do{
       if Ix<Lm then
-  	Cx := Cx!!+Ix
+  	Cx := Cx!+Ix
     };
 
-    return Cx!!
+    return Cx!
   }
   
   IS = [1,2,-3,5,-2,56,10,0].
@@ -27,11 +27,11 @@ test.df{
 	VV <- _iter(Is,
 		    do{valis ()}, (Ix,_) => action{
 			if Ix<Lm then{
-			    Cx:=Cx!!+Ix;
+			    Cx:=Cx!+Ix;
 			    throw -1
 			};
 			return ()});
-	return Cx!!
+	return Cx!
       } catch (E) => do{
 	  return E
       }

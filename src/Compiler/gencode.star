@@ -687,7 +687,7 @@ star.compiler.gencode{
   onceCont(Lc,C)=> let{.
     d := .none.
   .} in ccont(.false,(Ctx,Cde,Stk,Rp) => do{
-      if (Lbl,EStk,LStk)^=d!! then{
+      if (Lbl,EStk,LStk)^=d! then{
 	XStk <- mergeStack(Lc,EStk,Stk,Rp);
 	valis (Ctx,Cde++[iJmp(Lbl)],LStk)
       }

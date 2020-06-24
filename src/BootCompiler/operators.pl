@@ -39,6 +39,7 @@
   operator(".+.", [prefixOp(700, 699)]).
   operator("<$", [infixOp(719, 720, 720)]).
   operator("then", [infixOp(1179, 1180, 1179)]).
+  operator("!", [postfixOp(99, 100)]).
   operator("->>", [infixOp(1199, 1200, 1199)]).
   operator("=!=", [infixOp(899, 900, 899)]).
   operator("default", [postfixOp(939, 940)]).
@@ -64,6 +65,7 @@
   operator("try", [prefixOp(1200, 1199)]).
   operator("exists", [prefixOp(1010, 1009)]).
   operator("if", [prefixOp(1175, 1174)]).
+  operator("$$", [prefixOp(899, 898)]).
   operator("background", [prefixOp(950, 949)]).
   operator(":", [infixOp(1249, 1250, 1249)]).
   operator(";", [infixOp(1250, 1251, 1251)]).
@@ -158,6 +160,7 @@
   follows('','!','!').
   follows('','•','•').
   follows('','#','#').
+  follows('','$','$').
   follows('&','&','&&').
   follows('(','|','(|').
   follows('*','*','**').
@@ -230,6 +233,7 @@
   follows('>','>','>>').
   follows('>>','=','>>=').
   follows('!','!','!!').
+  follows('$','$','$$').
 
 
   final('%',"%").	 /* modulo */
@@ -311,9 +315,11 @@
   final('>>=',">>=").	 /* monadic bind */
   final('?',"?").	 /* conditional operator */
   final('@',"@").	 /* meta annotation */
-  final('!!',"!!").	 /* pick up value from a ref cell */
+  final('!',"!").	 /* pick up value from a ref cell */
+  final('!!',"!!").	 /* pick up value from a memo */
   final('•',"•").	 /* function composition */
   final('#',"#").	 /* Macro statement marker */
+  final('$$',"$$").	 /* wrap value in memo */
 
 
   keyword("all").

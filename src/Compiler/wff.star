@@ -364,15 +364,19 @@ star.compiler.wff{
   public mkRef(Lc,A) => unary(Lc,"ref",A).
   
   public isCellRef:(ast) => option[(locn,ast)].
-  isCellRef(A) => isUnary(A,"!!").
+  isCellRef(A) => isUnary(A,"!").
 
   public refCell:(locn,ast) => ast.
-  refCell(Lc,I) => unary(Lc,"!!",I).
+  refCell(Lc,I) => unary(Lc,"!",I).
+
+  public isMemo(A) => isUnary(A,"$$").
+
+  public isFetch(A) => isUnary(A,"!!").
 
   public isIndex:(ast) => option[(locn,ast,ast)].
   isIndex(A) where (Lc,Op,[Ix]) ^= isSquareTerm(A) && ~ _^=isBinary(Ix,":") => some((Lc,Op,Ix)).
-  isIndex(A) where (Lc,L,R) ^= isBinary(A,"!!") && (_,[Ix]) ^= isSqTuple(R) =>
-    some((Lc,unary(Lc,"!!",L),Ix)).
+  isIndex(A) where (Lc,L,R) ^= isBinary(A,"!") && (_,[Ix]) ^= isSqTuple(R) =>
+    some((Lc,unary(Lc,"!",L),Ix)).
   isIndex(_) default => .none.
 
   public isSlice:(ast) => option[(locn,ast,ast,ast)].

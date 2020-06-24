@@ -2,7 +2,6 @@ star.compiler.matcher{
   import star.
   import star.sort.
 
-  import star.compiler.canon.
   import star.compiler.core.
   import star.compiler.errors.
   import star.compiler.freevars.

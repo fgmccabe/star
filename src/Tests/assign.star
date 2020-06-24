@@ -21,20 +21,20 @@ test.assign{
   main() => do{
     assert valof action {
       fred.name := "fred";
-      valis fred.name!!
+      valis fred.name!
     } == "fred";
 
-    show fred.name!!;
+    show fred.name!;
     
     show peter.name;
 
     alpha .= ref 23;
 
-    checkInc .= (() where _ .= valof action {alpha := alpha!!+1} => alpha!!==24);
+    checkInc .= (() where _ .= valof action {alpha := alpha!+1} => alpha!==24);
 
-    assert alpha!!==23;
+    assert alpha!==23;
 
-    show alpha!!;
+    show alpha!;
 
     assert checkInc();
 

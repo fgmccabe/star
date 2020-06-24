@@ -9,11 +9,11 @@ test.do3{
     Cx .= ref 0;
     Rs .= ref "";
     
-    while Cx!! < Mx do{
-      Rs := Rs!! ++ S;
-      Cx := Cx!!+1
+    while Cx! < Mx do{
+      Rs := Rs! ++ S;
+      Cx := Cx!+1
     };
-    valis Rs!!
+    valis Rs!
   }
 
   main:()=>action[(),()].

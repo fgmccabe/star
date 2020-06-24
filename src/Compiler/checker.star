@@ -620,7 +620,7 @@ star.compiler.checker{
     typeOfExp(ternary(Lc,"_slice",S,F,T),Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,I) ^= isCellRef(A) => do{
     RTp .= refType(Tp);
-    Acc <- typeOfExp(nme(Lc,"!!"),funType([RTp],Tp),Env,Path,Rp);
+    Acc <- typeOfExp(nme(Lc,"!"),funType([RTp],Tp),Env,Path,Rp);
     Cell <- typeOfExp(I,RTp,Env,Path,Rp);
     valis apply(Lc,Acc,tple(Lc,[Cell]),Tp)
   }
@@ -638,14 +638,11 @@ star.compiler.checker{
   typeOfExp(A,Tp,Env,Path,Rp) where hasPromotion(A) =>
     typeOfExp(promoteOption(A),Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,_,Ar,C,R) ^= isLambda(A) => do{
---    logMsg("check lambda $(A)");
     At .= newTypeVar("_A");
     Rt .= newTypeVar("_R");
---    logMsg("check lambda arg $(Ar)");
     (As,E0) <- typeOfArgPtn(Ar,At,Env,Path,Rp);
     LName .= genSym(Path++"λ");
     if Cnd ^= C then {
---      logMsg("check lambda cond $(Cnd)");
       (Cond,E1) <- checkCond(Cnd,E0,Path,Rp);
       Rep <- typeOfExp(R,Rt,E1,Path,Rp);
       checkType(A,fnType(At,Rt),Tp,Env,Rp);
@@ -653,7 +650,6 @@ star.compiler.checker{
     } else{
       Rep <- typeOfExp(R,Rt,E0,Path,Rp);
       checkType(A,fnType(At,Rt),Tp,Env,Rp);
---    logMsg("lambda return: $(Rep)\:$(typeOf(Rep))");
       valis lambda(LName,[eqn(Lc,As,.none,Rep)],Tp)
     }
   }
@@ -711,22 +707,16 @@ star.compiler.checker{
     throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Op)\:$(ConTp) ",Lc)
   }
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Op,Els) ^= isLabeledRecord(A) && (_,Nm)^=isName(Op) => do{
---    logMsg("checking record term $(Op)\{.$(Els).} against $(Tp)");
- 
     FceTp .= newTypeVar("_");
     ConTp .= consType(FceTp,Tp);
     Fun <- typeOfExp(Op,ConTp,Env,Pth,Rp);
---    logMsg("type of $(Op) |- $(ConTp)");
-
     (Q,ETp) .= evidence(FceTp,Env);
     FaceTp .= faceOfType(ETp,Env);
     (Cx,Face) .= deConstrain(FaceTp);
     Base .= declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
     
---    logMsg("checking theta record, expected type $(Tp), face $(Face)");
     (Defs,ThEnv,ThetaTp) <- recordEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,Rp,.deFault);
     if sameType(ThetaTp,Face,Env) then{
---      logMsg("building record from theta, $(ThEnv)");
       formRecordExp(Lc,some(Nm),Face,ThEnv,sortDefs(Defs),Tp,Rp)
     }
     else
@@ -748,13 +738,9 @@ star.compiler.checker{
     valis update(Lc,Rec,Update)
   }
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els,Bnd) ^= isLetDef(A) => do{
---    logMsg("checking let exp");
-
     (Defs,ThEnv,ThetaTp)<-thetaEnv(Lc,genNewName(Path,"Γ"),Els,faceType([],[]),Env,Rp,.priVate);
     
     BndEnv .= pushFace(ThetaTp,Lc,Env);
---    logMsg("let env groups $(Defs)");
---    logMsg("sub env is $(BndEnv)");
     El <- typeOfExp(Bnd,Tp,BndEnv,Path,Rp);
 
     Sorted .= sortDefs(multicat(Defs));
