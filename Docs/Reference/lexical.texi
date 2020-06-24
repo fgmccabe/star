@@ -464,7 +464,7 @@ definition of Identifier as contained in the Unicode specification.
 @cindex indentifier, graphic
 @noindent
 The standard operators often have a graphic form -- such as @code{+},
-and @code{=<}. <<standardGraphicsTable>> contains a complete listing
+and @code{=<}. @ref{standardOperatorsTbl} contains a complete listing
 of all the standard graphic-form identifiers.
 
 @float BNF,graphicIdentifierFig

@@ -253,12 +253,14 @@ int main(int argc, char **argv) {
     flushOut();
     closeFile(out);
     exit(0);
-  }
+  } else
+    exit(1);
 }
 
 typedef struct _operator_ {
   char name[MAXLINE];
   char ast[MAXLINE];
+  char cmt[MAXLINE];
   OperatorStyle style;
   int left, prior, right;
   logical isKeyword;
@@ -280,10 +282,12 @@ void genToken(char *op, char *cmt) {
     addToTrie(op, tk, tokenTrie);
 }
 
-static opPo genOper(char *op, char *ast, OperatorStyle style, int left, int prior, int right, logical isKeyword) {
+static opPo
+genOper(char *op, char *ast, char *cmt, OperatorStyle style, int left, int prior, int right, logical isKeyword) {
   opPo oper = (opPo) malloc(sizeof(Operator));
   strcpy(oper->name, op);
   strcpy(oper->ast, ast);
+  strcpy(oper->cmt,cmt);
   oper->style = style;
   oper->left = left;
   oper->prior = prior;
@@ -299,17 +303,17 @@ static opPo genOper(char *op, char *ast, OperatorStyle style, int left, int prio
 }
 
 void genInfix(char *op, char *ast, int left, int prior, int right, logical isKeyword, char *cmt) {
-  opPo oper = genOper(op, ast, infixOp, left, prior, right, isKeyword);
+  opPo oper = genOper(op, ast, cmt, infixOp, left, prior, right, isKeyword);
   genToken(oper->name, cmt);
 }
 
 void genPrefix(char *op, char *ast, int prior, int right, logical isKeyword, char *cmt) {
-  opPo oper = genOper(op, ast, prefixOp, 0, prior, right, isKeyword);
+  opPo oper = genOper(op, ast, cmt, prefixOp, 0, prior, right, isKeyword);
   genToken(oper->name, cmt);
 }
 
 void genPostfix(char *op, char *ast, int left, int prior, logical isKeyword, char *cmt) {
-  opPo oper = genOper(op, ast, postfixOp, left, prior, 0, isKeyword);
+  opPo oper = genOper(op, ast, cmt, postfixOp, left, prior, 0, isKeyword);
   genToken(oper->name, cmt);
 }
 
@@ -406,18 +410,18 @@ static retCode procOperator(void *n, void *r, void *c) {
         switch (op->style) {
           case prefixOp: {
             char *type = (op->right == op->prior ? "associative" : "non-associative");
-            ret = outMsg(out, "@item @code{%I}\n@tab %s prefix\n@tab %d\n", nm, type, op->prior);
+            ret = outMsg(out, "@item @code{%I}\n@tab %s prefix\n@tab %d\n@tab %I\n", nm, type, op->prior,op->cmt);
             break;
           }
           case infixOp: {
             char *type = (op->right == op->prior ? "right associative" :
                           op->left == op->prior ? "left associative" : "non-associative");
-            ret = outMsg(out, "@item @code{%I}\n@tab %s infix\n@tab %d\n", nm, type, op->prior);
+            ret = outMsg(out, "@item @code{%I}\n@tab %s infix\n@tab %d\n@tab %I\n", nm, type, op->prior,op->cmt);
             break;
           }
           case postfixOp: {
             char *type = (op->left == op->prior ? "associative" : "non-associative");
-            ret = outMsg(out, "@item @code{%I}\n@tab %s postfix\n@tab %d\n", nm, type, op->prior);
+            ret = outMsg(out, "@item @code{%I}\n@tab %s postfix\n@tab %d\n@tab %I\n", nm, type, op->prior,op->cmt);
             break;
           }
           default:
@@ -456,7 +460,21 @@ static retCode procKey(ioPo out, char *sep, opPo op) {
         return outMsg(out, "%skeyword(\"%P\") => .true.\n", sep, op->name);
       else
         return Ok;
-    case genTexi:
+    case genTexi: {
+      static int col = 0;
+      char *tag = "tab";
+
+      if (op->isKeyword && isUniIdentifier(op->name,uniStrLen(op->name))) {
+        if (col % 3 == 0) {
+          col = 0;
+          tag = "item";
+        }
+        col++;
+        return outMsg(out, "@%s @code{%I}\n", tag, op->name);
+      }
+      else
+        return Ok;
+    }
     case genEmacs:
       return Ok;
     default:
@@ -552,6 +570,12 @@ static retCode quoteChar(ioPo f, codePoint ch) {
       break;
     case '@':
       ret = outStr(f, "@@");
+      break;
+    case '{':
+      ret = outStr(f, "@{");
+      break;
+    case '}':
+      ret = outStr(f, "@}");
       break;
     default:
       if (ch < ' ') {

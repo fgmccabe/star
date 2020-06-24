@@ -1,7 +1,15 @@
 @float Table,standardOperatorsTbl
 @caption{Standard Operators}
-@multitable {implementation}{non-associative prefix}{1010}
-@headitem Operator @tab Form @tab Priority
+@multitable {implementation}{non-associative prefix}{1010}{Apply optional function and match result}
+@headitem Operator @tab Form @tab Priority @tab Description
 #(Operators)
+@end multitable
+@end float
+
+@float Table,keywordsTbl
+@caption{Keywords}
+@multitable {implementation}{implementation}{implementation}
+@headitem Keyword @tab Keyword @tab Keyword
+#(Keywords)
 @end multitable
 @end float

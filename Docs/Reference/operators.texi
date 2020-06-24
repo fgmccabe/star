@@ -1,346 +1,495 @@
 @float Table,standardOperatorsTbl
 @caption{Standard Operators}
-@multitable {implementation}{non-associative prefix}{1010}
-@headitem Operator @tab Form @tab Priority
+@multitable {implementation}{non-associative prefix}{1010}{Apply optional function and match result}
+@headitem Operator @tab Form @tab Priority @tab Description
 @item @code{all}
 @tab non-associative prefix
 @tab 1010
+@tab universal quantifier
 @item @code{.<.}
 @tab non-associative infix
 @tab 700
+@tab set membership
 @item @code{^=}
 @tab non-associative infix
 @tab 900
+@tab optional decomposition match
 @item @code{&&}
 @tab left associative infix
 @tab 910
+@tab conjunction
 @item @code{pure}
 @tab non-associative prefix
 @tab 300
+@tab wrap value in applicative
 @item @code{~>}
 @tab non-associative infix
 @tab 1231
+@tab type function
 @item @code{throw}
 @tab non-associative prefix
 @tab 930
+@tab throw an exception
 @item @code{.|.}
 @tab left associative infix
 @tab 720
+@tab bitwise or
 @item @code{do}
 @tab non-associative prefix
 @tab 200
+@tab do @{@}
 @item @code{do}
 @tab non-associative infix
 @tab 1200
+@tab while T do @{@}
 @item @code{import}
 @tab non-associative prefix
 @tab 900
+@tab import module
 @item @code{catch}
 @tab non-associative infix
 @tab 1199
+@tab try @{...@} catch @{...@}
 @item @code{valis}
 @tab non-associative prefix
 @tab 930
+@tab wrap value in execution
 @item @code{,..}
 @tab non-associative infix
 @tab 1000
+@tab list cons
 @item @code{for}
 @tab non-associative prefix
 @tab 1175
+@tab for ... do @{@}
 @item @code{**}
 @tab left associative infix
 @tab 600
+@tab exponentiation
 @item @code{->}
 @tab non-associative infix
 @tab 890
+@tab map entry
 @item @code{.+.}
 @tab non-associative prefix
 @tab 700
+@tab count of number of bits
 @item @code{<$}
 @tab right associative infix
 @tab 720
+@tab constant replace
 @item @code{then}
 @tab non-associative infix
 @tab 1180
+@tab if ... then ... else
 @item @code{!}
 @tab non-associative postfix
 @tab 100
+@tab pick up value from a ref cell
 @item @code{->>}
 @tab non-associative infix
 @tab 1200
+@tab dependent type marker
 @item @code{=!=}
 @tab non-associative infix
 @tab 900
+@tab not equals
 @item @code{default}
 @tab non-associative postfix
 @tab 940
+@tab default value marker
 @item @code{#}
 @tab non-associative prefix
 @tab 1750
+@tab Macro statement marker
 @item @code{#}
 @tab non-associative infix
 @tab 760
+@tab package separator
 @item @code{%}
 @tab left associative infix
 @tab 700
+@tab modulo
 @item @code{<-}
 @tab non-associative infix
 @tab 905
+@tab variable bind
 @item @code{.>>>.}
 @tab left associative infix
 @tab 600
+@tab arithmetic shift right
 @item @code{\\+}
 @tab left associative infix
 @tab 700
+@tab add element to set
 @item @code{<<-}
 @tab non-associative infix
 @tab 975
+@tab record replacement
 @item @code{*}
 @tab non-associative postfix
 @tab 700
+@tab zero or more repetitions
 @item @code{*}
 @tab left associative infix
 @tab 700
+@tab multiplication
 @item @code{\\-}
 @tab left associative infix
 @tab 700
+@tab remove element from set
 @item @code{+}
 @tab non-associative postfix
 @tab 700
+@tab one or more repetitions
 @item @code{+}
 @tab left associative infix
 @tab 720
+@tab addition
 @item @code{.>>.}
 @tab left associative infix
 @tab 600
+@tab logical shift right
 @item @code{*>}
 @tab non-associative infix
 @tab 905
+@tab for all
 @item @code{,}
 @tab right associative infix
 @tab 1000
+@tab tupling operator
 @item @code{contract}
 @tab non-associative prefix
 @tab 1260
+@tab contract definition
 @item @code{\\/}
 @tab left associative infix
 @tab 720
+@tab union
 @item @code{-}
 @tab non-associative prefix
 @tab 300
+@tab arithmetic negation
 @item @code{-}
 @tab left associative infix
 @tab 720
+@tab subtraction
 @item @code{.}
 @tab non-associative prefix
 @tab 10
+@tab identify enumerator
 @item @code{.}
 @tab left associative infix
 @tab 100
+@tab object access
 @item @code{/}
 @tab left associative infix
 @tab 700
+@tab division
 @item @code{<*>}
 @tab right associative infix
 @tab 950
+@tab applicative splat
 @item @code{val}
 @tab non-associative prefix
 @tab 900
+@tab value type marker
 @item @code{try}
 @tab non-associative prefix
 @tab 1200
+@tab try @{...@} catch @{...@}
 @item @code{exists}
 @tab non-associative prefix
 @tab 1010
+@tab existential quantifier
 @item @code{if}
 @tab non-associative prefix
 @tab 1175
+@tab if ... then ... else
 @item @code{$$}
 @tab non-associative prefix
 @tab 899
+@tab wrap value in memo
 @item @code{background}
 @tab non-associative prefix
 @tab 950
+@tab task background
 @item @code{:}
 @tab non-associative infix
 @tab 1250
+@tab type annotation
 @item @code{;}
 @tab right associative infix
 @tab 1251
+@tab sequencing operator
 @item @code{<}
 @tab non-associative infix
 @tab 900
+@tab less than
 @item @code{.=}
 @tab non-associative infix
 @tab 900
+@tab pattern match
 @item @code{=}
 @tab non-associative infix
 @tab 975
+@tab definition
 @item @code{|:}
 @tab non-associative infix
 @tab 1235
+@tab constrained type
 @item @code{show}
 @tab non-associative prefix
 @tab 1240
+@tab display debug message
 @item @code{++}
 @tab right associative infix
 @tab 720
+@tab concatenate
 @item @code{>}
 @tab non-associative infix
 @tab 900
+@tab greater than
 @item @code{return}
 @tab non-associative prefix
 @tab 930
+@tab wrap value in monad
 @item @code{?}
 @tab right associative infix
 @tab 920
+@tab conditional operator
 @item @code{@@}
 @tab non-associative prefix
 @tab 400
+@tab meta annotation
 @item @code{@@}
 @tab right associative infix
 @tab 400
+@tab meta annotation
 @item @code{in}
 @tab right associative infix
 @tab 900
+@tab list membership
 @item @code{^|}
 @tab right associative infix
 @tab 920
+@tab option or-else operator
 @item @code{open}
 @tab non-associative prefix
 @tab 900
+@tab import object
 @item @code{~~}
 @tab right associative infix
 @tab 1240
+@tab quantifier
 @item @code{assert}
 @tab non-associative prefix
 @tab 1240
+@tab assert condition
 @item @code{!!}
 @tab non-associative postfix
 @tab 100
+@tab pick up value from a memo
 @item @code{.^.}
 @tab left associative infix
 @tab 720
+@tab bitwise xor
 @item @code{//}
 @tab left associative infix
 @tab 960
+@tab map over
 @item @code{public}
 @tab non-associative prefix
 @tab 1700
+@tab public program
 @item @code{ref}
 @tab non-associative prefix
 @tab 899
+@tab reference type/cell
 @item @code{.~.}
 @tab non-associative prefix
 @tab 650
+@tab bitwise 1's complement
 @item @code{where}
 @tab non-associative infix
 @tab 911
+@tab semantic guard
 @item @code{=<}
 @tab non-associative infix
 @tab 900
+@tab less than or equal
 @item @code{case}
 @tab non-associative prefix
 @tab 901
+@tab case expression
 @item @code{==}
 @tab non-associative infix
 @tab 900
+@tab equality predicate
 @item @code{\\}
 @tab left associative infix
 @tab 700
+@tab difference
 @item @code{=>}
 @tab right associative infix
 @tab 950
+@tab function arrow
 @item @code{^}
 @tab non-associative prefix
 @tab 100
+@tab Optional propagation
 @item @code{^}
 @tab non-associative infix
 @tab 100
+@tab Apply optional function and match result
 @item @code{<=>}
 @tab non-associative infix
 @tab 950
+@tab constructor arrow
 @item @code{valof}
 @tab non-associative prefix
 @tab 300
+@tab evaluate an action expression
 @item @code{until}
 @tab non-associative infix
 @tab 1175
+@tab do @{..@} until C
 @item @code{while}
 @tab non-associative prefix
 @tab 1175
+@tab while ... do @{@}
 @item @code{private}
 @tab non-associative prefix
 @tab 1200
+@tab private program
 @item @code{•}
 @tab left associative infix
 @tab 450
+@tab function composition
 @item @code{.&.}
 @tab left associative infix
 @tab 700
+@tab bitwise and
 @item @code{///}
 @tab left associative infix
 @tab 960
+@tab indexed map over
 @item @code{::}
 @tab non-associative infix
 @tab 400
+@tab type coercion
 @item @code{+++}
 @tab right associative infix
 @tab 720
+@tab choice
 @item @code{:=}
 @tab non-associative infix
 @tab 975
+@tab reassignable variable definition
 @item @code{.<<.}
 @tab left associative infix
 @tab 600
+@tab shift left
 @item @code{^.}
 @tab left associative infix
 @tab 450
+@tab optional object access
 @item @code{>>=}
 @tab right associative infix
 @tab 950
+@tab monadic bind
 @item @code{^/}
 @tab left associative infix
 @tab 960
+@tab filter
 @item @code{<~}
 @tab non-associative infix
 @tab 1231
+@tab type interface rule
 @item @code{type}
 @tab non-associative prefix
 @tab 1251
+@tab type marker
 @item @code{implementation}
 @tab non-associative prefix
 @tab 1260
+@tab contract implementation
 @item @code{|}
 @tab left associative infix
 @tab 1248
+@tab type union, conditional, and abstraction
 @item @code{.#.}
 @tab left associative infix
 @tab 600
+@tab test nth bit
 @item @code{~}
 @tab non-associative prefix
 @tab 905
+@tab logical negation
 @item @code{^//}
 @tab left associative infix
 @tab 800
+@tab filter map
 @item @code{||}
 @tab right associative infix
 @tab 920
+@tab disjunction
 @item @code{else}
 @tab right associative infix
 @tab 1200
+@tab if ... then ... else
 @item @code{::=}
 @tab non-associative infix
 @tab 1250
+@tab algebraic type definition
 @item @code{/\\}
 @tab left associative infix
 @tab 700
+@tab intersection
 @item @code{>=}
 @tab non-associative infix
 @tab 900
+@tab greater than or equal
 @item @code{>>}
 @tab right associative infix
 @tab 950
+@tab monadic bind
+
+@end multitable
+@end float
+
+@float Table,keywordsTbl
+@caption{Keywords}
+@multitable {implementation}{implementation}{implementation}
+@headitem Keyword @tab Keyword @tab Keyword
+@item @code{all}
+@tab @code{throw}
+@tab @code{do}
+@item @code{do}
+@tab @code{import}
+@tab @code{catch}
+@item @code{valis}
+@tab @code{for}
+@tab @code{then}
+@item @code{default}
+@tab @code{contract}
+@tab @code{val}
+@item @code{try}
+@tab @code{exists}
+@tab @code{if}
+@item @code{in}
+@tab @code{open}
+@tab @code{public}
+@item @code{ref}
+@tab @code{where}
+@tab @code{case}
+@item @code{valof}
+@tab @code{until}
+@tab @code{while}
+@item @code{private}
+@tab @code{type}
+@tab @code{implementation}
+@item @code{else}
 
 @end multitable
 @end float

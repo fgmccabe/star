@@ -580,7 +580,7 @@ those variables are in scope within the enclosed action.
 For example, the action:
 @example
 for (X,Y) in parent && (Y,Z) in parent do @{
-  gps := [(X,Z),..gps!!]
+  gps := [(X,Z),..gps!]
 @}
 @end example
 collects grandparents into the re-assignable variable @code{gps}.

@@ -75,6 +75,7 @@ logical isZsChar(codePoint ch);
 
 logical isIdStart(codePoint ch);
 logical isIdContinue(codePoint ch);
+logical isUniIdentifier(char *str, integer len);
 
 logical isLetterChar(codePoint ch);
 logical isSpaceChar(codePoint ch);
