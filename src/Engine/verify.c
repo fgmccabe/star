@@ -308,8 +308,7 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
       case Bt:
       case Cmp:
       case CLbl:
-      case CV:
-      case LM: {
+      case CV:{
         splitSeg(blocks, *pc);
         return Ok;
       }
@@ -375,8 +374,7 @@ retCode findTgts(vectorPo blocks, insPo code, integer *pc, integer to, char *err
       case Bt:
       case Cmp:
       case CLbl:
-      case CV:
-      case LM: {
+      case CV: {
         ret = checkDest(blocks, oPc, *pc, errorMsg, msgLen);
         break;
       }
@@ -640,8 +638,7 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A1, i
       case Bt:
       case Cmp:
       case CLbl:
-      case CV:
-      case LM: {
+      case CV:{
         segPo alt = findSeg(seg->seg.exits, *pc);
 
         if (alt == Null || alt->seg.pc != *pc) {

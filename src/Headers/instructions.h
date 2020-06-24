@@ -42,11 +42,6 @@ instruction(StA,arg,-1,"store tos to args[xx]")
 instruction(StG,glb,-1,"store into a global variable")
 instruction(TG,glb,0,"copy into a global variable")
 
-instruction(AM,tOs,1,"allocate a memo")
-instruction(LM,tOs,0,"load contents of memo")
-instruction(SM,tOs,-2,"store into memo")
-instruction(TM,tOs,-1,"copy tos into memo")
-
 instruction(CLbl,off,-1,"T,Lbl --> test for a data term, branch if lbl")
 instruction(CV,off,-1,"T --> test for void on the stack, branch if void")
 instruction(Nth,i32,0,"T --> el, pick up the nth element")
