@@ -64,7 +64,6 @@ star.compiler.gencode{
   localFuns(Defs,Vars) => foldRight(defFun,Vars,Defs).
 
   defFun(fnDef(Lc,Nm,Tp,_,_),Vrs) => Vrs[Nm->glbFun(Nm,Tp)].
-  defFun(mmDef(Lc,Nm,Tp,_,_),Vrs) => Vrs[Nm->glbFun(Nm,Tp)].
   defFun(glbDef(Lc,crId(Nm,Tp),_),Vrs) => Vrs[Nm->glbVar(Nm,Tp)].
   defFun(rcDef(_,_,_,_),Vrs) => Vrs.
   
@@ -84,16 +83,6 @@ star.compiler.gencode{
     Ctxa .= argVars(Args,Ctx,0);
     (Ctxx,Code,Stk) <- compExp(Val,Opts,retCont(Lc),Ctxa,[],some([]),Rp);
     valis method(tLbl(Nm,size(Args)),Tp,peepOptimize(Code::cons[assemOp]))
-  }
-  compDefn(mmDef(Lc,Nm,Tp,Args,Val),Glbs,Opts,Rp) => do{
-    if Opts.showCode then
-      logMsg("compile $(mmDef(Lc,Nm,Tp,Args,Val))");
-    Ctx .= emptyCtx(Lc,Glbs);
-    Ctxa .= argVars(Args,Ctx,0);
-    (Ctxx,Code,Stk) <- compExp(Val,Opts,
-      bothCont(memoSetCont(Lc,typeOf(Val)),retCont(Lc)),
-      Ctxa,[iLdA(0)],some([memoType(typeOf(Val))]),Rp);
-    valis method(tLbl(Nm,1),Tp,peepOptimize(Code::cons[assemOp]))
   }
   compDefn(glbDef(Lc,crId(Nm,Tp),Val),Glbs,Opts,Rp) => do{
     if Opts.showCode then
@@ -558,20 +547,6 @@ star.compiler.gencode{
   callCont(Nm,Ar,Tp,some(Stk)) =>
     ccont(.false,(Ctx,Cde,OStk,Rp) =>
 	either((Ctx,Cde++[iCall(tLbl(Nm,Ar)),iFrame(intgr(size(Stk)+1))],some([Tp,..Stk])))).
-
-  memoCont:(locn)=>Cont.
-  memoCont(Lc) => ccont(.false,
-    (Ctx,Cde,some([Tp,..Stk]),Rp) =>
-      either((Ctx,Cde++[.iAM],some([memoType(Tp),..Stk])))).
-
-  memoSetCont:(locn,tipe)=>Cont.
-  memoSetCont(Lc,MTp) =>
-    ccont(.false,(Ctx,Cde,some([Tp,_,..Stk]),Rp) => do{
-	if ~Tp==MTp then
-	  throw reportError(Rp,"expecting a $(MTp) for memo value, not $(Tp)",Lc)
-	else
-	valis (Ctx,Cde++[.iTM],some([Tp,..Stk]))
-      }).
 
   oclCont:(integer,tipe,option[cons[tipe]])=>Cont.
   oclCont(Ar,Tp,some(Stk)) =>
