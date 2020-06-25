@@ -3,4 +3,4 @@ project(Book)
 
 include(../makeinfo.cmake)
 
-add_info(book intro tour func collections rules ocean)
+add_info(book intro tour func collections rules ocean arewedone)

@@ -56,6 +56,8 @@ Star Reference} by F.G. McCabe.
 * Making choices::
 * Boiling the Ocean::
 
+* Are We Done Yet::
+
 * Concept index::
 * Function index::
 * List of Syntax Rules::
@@ -81,7 +83,7 @@ Star Reference} by F.G. McCabe.
 
 @c @include market.texi
 
-@c @include arewedone.texi
+@include arewedone.texi
 
 
 @node Concept index

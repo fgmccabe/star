@@ -46,6 +46,9 @@ In this module, we see the name of the module --
 @code{sample.factorial} -- an import statement and a function
 definition -- of the @code{fact} function.
 
+@node Compiling Factorial
+@subsection Compiling Factorial
+
 Source code can be in any form of textual container. There is, for
 example, no specific requirement that this @code{sample.factorial}
 package be in a file called @code{factorial.star}; although that may
@@ -54,6 +57,56 @@ system that maps package names to text entities -- specifically
 resources with a URI. The catalog system also serves as an anchor
 point in the version management of packages. We will cover this, and
 the related repository system for generated artifacts, in @refer{ocean}.
+
+In this case, we can create -- alongside the @code{factorial.star}
+file -- the @code{catalog} file which is a JSON-style file containing:
+
+@example
+@{
+  "content" : @{
+    "sample.factorial" : "factorial.star"
+   @},
+  "default" : "@emph{path to installation}"
+@}
+@end example
+
+The @Star{} compiler is called @code{sc}, and is invoked @emph{using
+the package name} of the file we want to compile:
+@example
+$ sc sample.factorial
+@end example
+There are several configurations options for compiling and running
+@Star{} programs; the most important is the repository. This is the
+directory where compiled code is deposited by the compiler and
+accessed by the run-time.
+
+If not explicitly given, the @Star{} compiler and run-time looks for a
+directory called @code{.star-repo}, either in the current directory or
+in a parent of the current directory -- all the way up to your home
+directory.@footnote{The search terminates at the home directory to
+avoid trying to access areas of the file system you do not own.}
+
+By convention, the name of the repository directory is called
+@code{.star-repo}; but any directory can be used.
+
+As we noted above, @code{sample.factorial} is not a complete
+executable package. To use it we need to import it into one that has a
+@code{main} function defined, say:
+
+@example
+sample.main@{
+  import star.
+  import star.script.
+  import sample.factorial.
+
+  main:(integer)=>action[(),()].
+  main(Ix) => do@{
+    logMsg("Factorial of $(Ix) is $(fact(Ix))")
+  @}
+@}
+@end example
+
+
 
 @node Texture
 @section Texture
@@ -84,7 +137,7 @@ would be obscure and/or is not common.
 For example, in the factorial module, we use braces for grouping; but
 we also use the @code{import} and the @code{where} keywords. The
 rationale here is that programmers have become used to seeing braces
-for grouping statements;@footnote{Those who remember Algol 60 will
+for grouping statements;@footnote{Those who remember Pascal@footnote{Or Algol 60} will
 understand that braces are not the only way of grouping statements.}
 whereas the import and where elements are somewhat rarer.
 
@@ -324,7 +377,7 @@ For example, the standard type @code{integer} is nominative --- its
 name gives no hint as to the representation, structure or kinds of
 values that are modeled by integer.@footnote{I.e., everything you
 thought you knew about integers may or may not apply to the values
-denoted by integer.} However, a nominative type often indicates some
+denoted by integer.} However, a nominative type often @emph{names} some
 actual entity being modeled -- in this case integer values. Two
 nominative types which have different names always denote distinct
 values, whereas two structural types that look the same are actually
@@ -336,7 +389,7 @@ identical.
 A nominative type is normally defined using an @emph{algebraic type
 definition}. This both introduces a type and defines all the legal
 values that belong to the type. For example, we might introduce a
-Person type with the type definition:
+@code{Person} type with the type definition:
 
 @example
 Person ::= .noOne
@@ -455,10 +508,10 @@ D.dept := "my department"
 @node Accessing Reference Variables
 @subsubsection Accessing Reference Variables
 
-The value of a re-assignable variable is accessed using the @code{!!}
+The value of a re-assignable variable is accessed using the @code{!}
 operator. For example:
 @example
-D.dept!!
+D.dept!
 @end example
 will retrieve the actual department @var{D} is assigned to. The
 expression @code{D.dept} actually means something different -- it
@@ -485,7 +538,8 @@ There are several forms of structural type, the tuple type is one of
 them; others include @emph{record types} and @emph{function types}.
 
 We shall see more of these as we introduce the rest of the
-language. However, it is worth pausing to ask the question @emph{Why}?
+language. However, it is worth pausing to ask the question @emph{Why
+do we have both structural and nominative types}?
 
 Briefly, nominative types help the programmer focus on what a value
 @emph{denotes}; whereas structural types tend to expose what a value
@@ -493,7 +547,8 @@ can @emph{do}.
 
 For example, the @code{employee} type clearly points to what an
 employee value is intended to denote (an employee!), but does not help
-if we want to know what an employee can do. On the other hand, the
+if we want to know what an employee can do. Nor does it expose what
+information we are using to model employees. On the other hand, the
 function type in the annotation:
 
 @example
@@ -517,7 +572,7 @@ able to cope with non-existent people. However, this approach is not
 always the most effective one when modeling situations where a
 variable or field may not have a value.
 
-Explicit null values, as found in Java and similar languages, cause a
+Explicit null values, as found in C++ and similar languages, cause a
 great number of problems: for example, null must have a special
 universal type; there are many scenarios where it is not possible for
 a variable to be null but the compiler must discover those for itself;
@@ -528,7 +583,7 @@ There is no direct equivalent of a global @emph{null} value. However,
 the standard @code{option} type allows the equivalent of selective
 nullability. Any variable that might not have a proper value can be
 marked with the option type rather than the underlying type. And you
-can use @code{none} in those cases to indicate the equivalent of no
+can use @code{.none} in those cases to indicate the equivalent of no
 value.
 
 So, for example, suppose that a @code{Person} might have a
@@ -553,7 +608,7 @@ Someone with no spouse would be written:
 freddy = someOne@{
   name = "Freddy".
   dob = today().
-  spouse := none
+  spouse := .none
 @}
 @end example
 
@@ -581,9 +636,9 @@ although such circular structures should be avoided where possible.
 @subsection The flavors of equality
 
 Equality in programming languages is typically a very subtle
-topic. The issues can range from the nature of floating point numbers,
-the difference between integers and long values and the multiple
-potential concepts of equality for objects.
+topic. The issues can range from the approximate nature of floating
+point numbers, the difference between integers and long values and the
+multiple potential concepts of equality for objects.
 
 Equality is always between values of the @emph{same type} and it is
 always @emph{semantic}. So, for example, an equality condition such
@@ -613,7 +668,7 @@ as a result of losing information. The intended effect of the coercion
 is to make explicit the nature of equality being relied on.
 
 The second principle is that equality is semantic. What that means is
-that the @code{==} symbol is the name of a boolean-valued
+that the @code{==} symbol is the name of a @code{boolean}-valued
 function. The precise type of @code{==} is quite interesting, we
 shall, however, leave it to later when we have covered some of the
 core type features around contracts.
@@ -652,7 +707,7 @@ We can also write an equivalent loop in @Star{}:
 
 @example
 total = valof action@{
-  tot := 0;
+  tot .= ref 0;
   for ix in L do
     tot := tot+ix;
   valis tot
@@ -661,6 +716,40 @@ total = valof action@{
 
 The valof/valis combination is a neat way of segueing from the `world
 of expressions' into the `world of actions'.
+
+Some special features of this notation may not be familiar:
+
+@itemize
+@item
+A reassignable variable is declared in an action sequence using the form:
+@example
+tot .= ref 0
+@end example
+This is doing two separate things: declaring the variable @code{tot} -- in the context of an action sequence -- and making it re-assignable -- using the expression @code{ref 0}.
+
+@item
+Semi-colons are using to separate actions -- and they are not
+optional: they denote a sequence of actions.
+
+@item
+The action @code{for ix in L do @dots{}} is an @emph{iterative} action
+that performs the action for every element of @code{L} that matches
+the pattern @code{ix}. I.e., it is entirely possible to use a more
+complex pattern here -- which would have the effect of filtering the
+source. For example, we could total up positive numbers in @code{L}
+using:
+
+@example
+for (ix where ix>0) in L do
+  tot := tot+ix
+@end example
+
+@item
+The value of the @code{action} expression is denoted by the action
+@code{valis tot}. This may appear anywhere in an action sequence --
+with the proviso that it always denotes the end of the action: no
+actions may logically follow the @code{valis}.
+@end itemize
 
 This program is essentially equivalent to the Java loop; although
 there are some subtleties about the nature of valof/valis that go
@@ -721,39 +810,39 @@ the problem at a more holistic level. This is one of the hallmarks of
 functional programming -- it is possible to eliminate many instances
 of explicit loops and recursions.
 
-@node A totalizer query
-@subsection A totalizer query
+@c @node A totalizer query
+@c @subsection A totalizer query
 
-While concise, expressions involving much use of @code{leftFold} (and
-the analogous @code{rightFold}) can be difficult to follow. An even
-clearer way of adding up numbers is to use a @emph{query expression}:
+@c While concise, expressions involving much use of @code{leftFold} (and
+@c the analogous @code{rightFold}) can be difficult to follow. An even
+@c clearer way of adding up numbers is to use a @emph{query expression}:
 
-@example
-total = @{fold X with (+) | X in L@}
-@end example
-This query expression frees us from most of the commitments we endured
-before: it can add up the elements of any kind of collection --- not
-just @code{cons} lists --- and it can add up floating point numbers
-just as easily as integers. Finally, we have not had to say exactly
-how the numbers should be added up: the language system is free to use
-a parallel algorithm for the computation should it be more optimal.
+@c @example
+@c total = @{fold X with (+) | X in L@}
+@c @end example
+@c This query expression frees us from most of the commitments we endured
+@c before: it can add up the elements of any kind of collection --- not
+@c just @code{cons} lists --- and it can add up floating point numbers
+@c just as easily as integers. Finally, we have not had to say exactly
+@c how the numbers should be added up: the language system is free to use
+@c a parallel algorithm for the computation should it be more optimal.
 
-The query expression is also very close to the natural specification:
+@c The query expression is also very close to the natural specification:
 
-@quotation
-Add up the numbers in L
-@end quotation
+@c @quotation
+@c Add up the numbers in L
+@c @end quotation
 
-Query expressions --- which are similar to but also more expressive
-than LINQ --- can be used to encapsulate a wide range of such
-computations.
+@c Query expressions --- which are similar to but also more expressive
+@c than LINQ --- can be used to encapsulate a wide range of such
+@c computations.
 
-@quotation
-Of course, SQL programmers have long had access to this kind of
-conciseness and declarative expressiveness. However, SQL is
-constrained by the fact that it is intended to represent queries and
-actions over a very particular form of data --- the relational table.
-@end quotation
+@c @quotation
+@c Of course, SQL programmers have long had access to this kind of
+@c conciseness and declarative expressiveness. However, SQL is
+@c constrained by the fact that it is intended to represent queries and
+@c actions over a very particular form of data --- the relational table.
+@c @end quotation
 
 @node The homunculus in the machine
 @subsection The homunculus in the machine
@@ -1040,11 +1129,11 @@ expression can be used to compute factorial (somewhat laboriously):
 AA = do@{
     Cx := 1;
     Fx := 1;
-    while Cx!!=<Lx do @{
-      Fx := Fx!! * Cx!!;
-      Cx := Cx!! + 1
+    while Cx!=<Lx do @{
+      Fx := Fx! * Cx!;
+      Cx := Cx! + 1
     @};
-    valis Fx!!
+    valis Fx!
   @}
 @end example
 
