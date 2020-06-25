@@ -32,9 +32,7 @@ star.compiler.macro{
     either[reports,macroState].
   applyRules(A,_,St,[],_) => either(St).
   applyRules(A,Cxt,St,[(Cxt,R),..Rls],Rp) => do{
---    logMsg("apply $(Cxt) rule to $(A)");
     Rslt <- R(A,Cxt,Rp);
---    logMsg("result is $(Rslt)");
     if .inactive.=Rslt then
       applyRules(A,Cxt,St,Rls,Rp)
     else
@@ -45,9 +43,7 @@ star.compiler.macro{
 
   macroAst:(ast,macroContext,(ast,reports)=>either[reports,ast],reports) => either[reports,ast].
   macroAst(A,Cxt,Examine,Rp) where Rules^=macros[macroKey(A)] => do{
---    logMsg("type $(Cxt) rules for $(A), key=$(macroKey(A))");
     Rslt <- applyRules(A,Cxt,.inactive,Rules,Rp);
---    logMsg("result of applying macros to $(A) $(Rslt)");
 
     if active(T).=Rslt then
       macroAst(T,Cxt,Examine,Rp)
@@ -84,7 +80,6 @@ star.compiler.macro{
 
   examineStmt:(ast,reports) => either[reports,ast].
   examineStmt(A,Rp) where (Lc,L,Vz,R) ^= isTypeAnnot(A) => do{
---    logMsg("$(Vz) type annotation for $(L) : $(R)");
     RR <- macroType(R,Rp);
     valis reveal(typeAnnotation(Lc,nme(Lc,L),RR),Vz)
   }
@@ -115,7 +110,6 @@ star.compiler.macro{
     valis mkAssignment(Lc,LL,RR)
   }
   examineStmt(A,Rp) where (Lc,Nm,Deflt,L,C,R) ^= isEquation(A) => do{
---    logMsg("look at $(A)");
     LL <- macroPtn(L,Rp);
     CC <- macroOpt(C,macroCond,Rp);
     RR <- macroTerm(R,Rp);
@@ -323,8 +317,6 @@ star.compiler.macro{
     binary(Lc,"@||",hideCond(L),hideCond(R)).
   hideCond(A) where (Lc,L,R) ^= isImplies(A) =>
     binary(Lc,"@*>",hideCond(L),hideCond(R)).
---  hideCond(A) where (Lc,T,L,R) ^= isConditional(A) =>
---    ternary(Lc,"@?",hideCond(T),hideCond(L),hideCond(R)).
   hideCond(A) where (Lc,R) ^= isNegation(A) =>
     unary(Lc,"@!",hideCond(R)).
   hideCond(A) where (Lc,[E]) ^= isTuple(A) => hideCond(E).
@@ -353,7 +345,6 @@ star.compiler.macro{
 
     if isIterable(C) then {
       Itr <- makeIterableGoal(CC,Rp);
---      logMsg("iterable version $(Itr)");
       valis Itr
     } else{
       valis CC
@@ -745,18 +736,19 @@ star.compiler.macro{
 
   synthesizeMain:(locn,ast,cons[ast])=>cons[ast].
   synthesizeMain(Lc,Tp,Defs) where (_,Lhs,Rhs) ^= isFunctionType(Tp) && (_,ElTps)^=isTuple(Lhs) => valof action{
-    (Vs,Cs) .= synthesizeCoercions(ElTps,Lc,[],[]);
-    MLhs .= roundTerm(Lc,nme(Lc,"_main"),[enum(Lc,"nil")]);
+    (Vs,Cs) .= synthesizeCoercions(ElTps,Lc);
+    MLhs .= roundTerm(Lc,nme(Lc,"_main"),[Vs]);
     MRhs .= roundTerm(Lc,nme(Lc,"main"),Cs);
     Main .= equation(Lc,MLhs,unary(Lc,"_perform",MRhs));
     Annot .= binary(Lc,":",nme(Lc,"_main"),equation(Lc,rndTuple(Lc,[squareTerm(Lc,nme(Lc,"cons"),[nme(Lc,"string")])]),rndTuple(Lc,[])));
     valis [unary(Lc,"public",Annot),Main,..Defs].
   }
 
-  synthesizeCoercions:(cons[ast],locn,cons[ast],cons[ast])=> (cons[ast],cons[ast]).
-  synthesizeCoercions([],_,Vs,Cs) => (reverse(Vs),reverse(Cs)).
-  synthesizeCoercions([T,..Ts],Lc,Vs,Cs) where Nm .= genName(Lc,"X") =>
-    synthesizeCoercions(Ts,Lc,[Nm,..Vs],[binary(Lc,"::",Nm,T),..Cs]).
+  synthesizeCoercions:(cons[ast],locn)=> (ast,cons[ast]).
+  synthesizeCoercions([],Lc) => (enum(Lc,"nil"),.nil).
+  synthesizeCoercions([T,..Ts],Lc) where Nm .= genName(Lc,"X") &&
+      (RV,RC) .= synthesizeCoercions(Ts,Lc) =>
+    (binary(Lc,"cons",Nm,RV),[binary(Lc,":",unary(Lc,"_coerce",Nm),T),..RC]).
 
   -- Temporary
   public isSimpleAction:(ast)=>boolean.
@@ -868,7 +860,6 @@ star.compiler.macro{
       Cont,Rp).
   
   makeAction(A,Cont,Rp) where (Lc,B,H) ^= isTryCatch(A) => do{
---    logMsg("macro try catch $(A)");
     NB <- makeAction(B,.none,Rp);
     NH <- makeHandler(H,Rp);
     
@@ -889,7 +880,6 @@ star.compiler.macro{
     Lam .= equation(Lc,Unit,C);
     Assert .= ternary(Lc,"assrt",Lam,str(Lc,C::string),Lc::ast);
     B .= brTuple(Lc,[Assert]);
---    logMsg("catch body $(B)");
     Err .= genName(Lc,"E");
     Thrw <- makeThrow(Lc,Unit,Rp);
     EH .= combine(unary(Lc,"logMsg",Err),some((Lc,Thrw)));
@@ -984,10 +974,8 @@ star.compiler.macro{
 
   public makeIterableGoal:(ast,reports) => either[reports,ast].
   makeIterableGoal(A,Rp) => do{
---    logMsg("scrub iterability of $(A)");
     Lc .= locOf(A);
     Vrs .= (goalVars(A) // (Nm)=>nme(Lc,Nm));
---    logMsg("goal vars $(Vrs)");
     VTpl .= rndTuple(Lc,Vrs);
     Unit .= unary(Lc,"either",enum(Lc,"none"));
     Zed .= unary(Lc,"_valis",Unit);
@@ -996,7 +984,6 @@ star.compiler.macro{
       (_)=>unary(Lc,"_valis",Ptn),
       lyfted(Zed),Rp);
     Tpd .= typeAnnotation(Lc,Seq,sqBinary(Lc,"action",anon(Lc),anon(Lc)));
---    logMsg("iterable goal now $(Tpd)");
     valis mkMatch(Lc,Ptn,unary(Lc,"_perform",Tpd))
   }
 
@@ -1021,7 +1008,6 @@ star.compiler.macro{
 
   public makeAbstraction:(locn,ast,ast,reports) => either[reports,ast].
   makeAbstraction(Lc,Bnd,Cond,Rp) => do{
---    logMsg("making abstraction $(Bnd) | $(Cond)");
     Zed .= makeReturn(Lc,nme(Lc,"_nil"));
     Loop <- makeCondition(Cond,makeRtn,
       makeEl(Lc,Bnd),
@@ -1150,7 +1136,6 @@ star.compiler.macro{
   optionMatchMacro(_,_,_) default => either(.inactive).
 
   optionPtnMacro(A,.pattern,Rp) where (Lc,L,R) ^= isOptionPtn(A) => do{
---    logMsg("making option pattern $(mkWherePtn(Lc,R,L))");
     valis active(mkWherePtn(Lc,R,L))
   }.
 

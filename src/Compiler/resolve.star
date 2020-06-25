@@ -84,10 +84,7 @@ star.compiler.resolve{
     valis (implDef(Lc,Nm,FullNm,RVal,[],Tp),Dict)
   }
   overloadImplDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp,Rp) => do{
---    logMsg("overloading implementation $(Nm)");
---    logMsg("Cx= $(Cx)");
     (Cvrs,CDict) .= defineCVars(Lc,Cx,[],Dict);
---    logMsg("Cvars=$(Cvrs)");
     RVal <- resolveTerm(Val,CDict,Rp);
     (Qx,Qt) .= deQuant(Tp);
     (_,ITp) .= deConstrain(Qt);
@@ -120,9 +117,7 @@ star.compiler.resolve{
     valis dot(Lc,A,Nm,Tp)
   }
   resolveTerm(over(Lc,T,Tp,Cx),Dict,Rp) => do{
---    logMsg("overloading $(over(Lc,T,Tp,Cx)) |: $(T)\:$(Tp)");
     [A,..Args] <- resolveContracts(Lc,Cx,[],Dict,Rp);
---      logMsg("after contracts resolved $(St1)");
     if mtd(_,Nm,_,MTp) .= T then{
       if _eof(Args) then
 	valis dot(Lc,A,Nm,Tp)
@@ -238,9 +233,7 @@ star.compiler.resolve{
   resolveContract:(locn,tipe,dict,reports) => either[reports,canon].
   resolveContract(Lc,Tp,Dict,Rp) => do{
     ImpNm .= implementationName(Tp);
---    logMsg("looking for implementation $(Tp) - $(ImpNm)");
     if Impl^=findVar(Lc,ImpNm,Dict) then {
---      logMsg("we have implementation $(Impl)\:$(typeOf(Impl))");
       if sameType(typeOf(Impl),Tp,Dict) then {
 	resolveTerm(Impl,Dict,Rp)
       } else{

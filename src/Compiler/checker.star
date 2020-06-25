@@ -160,21 +160,6 @@ star.compiler.checker{
     letGroup(Ds,[Defn,..So],Pth,Face,Annots,E0,Rp)
   }
 
-/*
-  recordEnv(Lc,Pth,Stmts,Face,Env,Rp,DefViz) => do{
-    (Vis,Opens,Annots,Gps) <- dependencies(Stmts,Rp);
-    TEnv <- checkTypeGroups(Gps,Env,Pth,Rp);
-
-    G .= multicat(Gps);
-    TmpEnv <- parseAnnotations(G,Face,Annots,TEnv,Rp);
-    (Defs,ThEnv) <- checkGroup(G,TmpEnv,Env,Pth,Rp);
-
-    PubVrTps .= exportedFields([Defs],Vis,DefViz);
-    PubTps .= exportedTypes([Defs],Vis,DefViz);
-    valis (Defs,ThEnv,faceType(PubVrTps,PubTps))
-  }
-*/
-  
   checkTypeGroups:(cons[cons[defnSpec]],dict,string,reports) =>
     either[reports,dict].
   checkTypeGroups([],Env,_,Rp) => either(Env).
@@ -455,9 +440,7 @@ star.compiler.checker{
   
   typeOfExp:(ast,tipe,dict,string,reports) => either[reports,canon].
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) => do{
---    logMsg("check $(Id) has type $(Tp)");
     if Var ^= findVar(Lc,Id,Env) then{
---      logMsg("check var $(Var)\:$(typeOf(Var))");
       if sameType(Tp,typeOf(Var),Env) then {
 	valis Var
       } else
@@ -800,16 +783,6 @@ star.compiler.checker{
     valis (Exp,Env)
   }
 
-  checkDo:(ast,tipe,dict,string,reports) => either[reports,canon].
-  checkDo(Actn,Tp,Env,Path,Rp) => do{
-    if isSimpleAction(Actn) then{
-      Simple <- makeAction(Actn,.none,Rp);
-      typeOfExp(Simple,Tp,Env,Path,Rp)
-    } else {
-      throw reportError(Rp,"cannot process action $(Actn)",locOf(Actn))
-    }
-  }
-
   checkType:(ast,tipe,tipe,dict,reports) => either[reports,()].
   checkType(_,Actual,Expected,Env,_) where sameType(Actual,Expected,Env) => either(()).
   checkType(A,ATp,ETp,_,Rp) => other(reportError(
@@ -823,12 +796,4 @@ star.compiler.checker{
     genArgTps(Ar).
   genArgTps(A) where (_,Els) ^= isTuple(A) =>
       genTpVars(Els).
-
-  checkAbstraction:(locn,ast,ast,tipe,dict,string,reports) => either[reports,canon].
-  checkAbstraction(Lc,B,C,Tp,Env,Path,Rp) => do{
---    logMsg("checking abstraction [ $(B) | $(C) ] expected type $(Tp)");
-    Test <- makeAbstraction(Lc,B,C,Rp);
---    logMsg("macrod abstraction $(Test)");
-    typeOfExp(Test,Tp,Env,Path,Rp)
-  }
 }

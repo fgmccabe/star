@@ -19,8 +19,7 @@ star.compiler.gencode{
   srcLoc ::= lclVar(integer,tipe) |
     argVar(integer,tipe) |
     glbVar(string,tipe) |
-    glbFun(string,tipe) |
-    onStack(tipe).
+    glbFun(string,tipe).
 
   Cont ::= cont{
     C:(codeCtx,multi[assemOp],option[cons[tipe]],reports)=>either[reports,(codeCtx,multi[assemOp],option[cons[tipe]])].
@@ -646,8 +645,6 @@ star.compiler.gencode{
   updateCont(glbVar(Nm,_))=>
     ccont(.true,(Ctx,Cde,some([_,..Stk]),Rp) =>
       either((Ctx,Cde++[iStG(Nm)],some(Stk)))).
-  updateCont(onStack(_))=>
-    ccont(.true,(Ctx,Cde,Stk,Rp) => either((Ctx,Cde,Stk))).
 
   bothCont:(Cont,Cont)=>Cont.
   bothCont(F,G) => ccont(F.Simple&&G.Simple,(Ctx,Cde,Stk,Rp)=> do{
@@ -703,8 +700,6 @@ star.compiler.gencode{
   changeLoc(Lc,_,codeCtx(Vars,Lc0,Dp,Lb)) where Lc=!=Lc0 =>
     ([iLine(Lc::term)],codeCtx(Vars,Lc,Dp,Lb)).
     changeLoc(_,_,Ctx)=>([],Ctx).
-
-    
 
   implementation hasLoc[codeCtx] => {
     locOf(codeCtx(_,Lc,_,_))=>Lc.
