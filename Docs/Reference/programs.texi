@@ -7,6 +7,45 @@ themselves, a key concept is the @refer{ThetaEnvironment}. This is
 where many programs, types etc. are defined. @refer{ThetaEnvironment}s
 are also first-class values -- showing up as @refer{AnonymousRecord}s.
 
+@node Sources and Catalogs
+@section Sources and Catalogs
+
+Star source code is managed by means of @emph{catalogs}. A catalog is
+a document that gives the mapping from a package name to the file that
+contains the source of that package.
+
+@quotation Note
+This separation is intended to avoid questions such as file name
+extensions, directory structures and so on. A catalog is able to
+collect together all the sources that are relevant to a project while
+not requiring that they are all physically co-located.
+@end quotation
+
+@node Structure of a Catalog
+@subsection Structure of a Catalog
+
+Catalogs are contained in json files@footnote{Subject to change}. The
+general structure of a catalog json file looks like:
+
+@example
+@{
+  "content" : @{
+    @emph{PkgName} : @emph{FileName},
+    @dots{}
+    @emph{PkgName} : @emph{FileName}
+  @},
+  "version" : @emph{Semantic Version String},
+  "default" : @emph{CatalogPath},
+  "subcatalogs" : [@emph{CatalogPath}, @dots{} @emph{CatalogPath}]
+@}
+@end example
+where @emph{PkgName} is a valid Star package name -- written as a string because it's JSON.
+
+@emph{FileName}s and @emph{CatalogPath}s are relative file names -- or URLs.
+
+
+
+
 @node Package Structure
 @section Package Structure
 

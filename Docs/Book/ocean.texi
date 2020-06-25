@@ -43,7 +43,7 @@ Let's start with a super simple source package:
 @example
 ss@{
   public double:(integer)=>integer.
-  double(X) is X*2.
+  double(X) => X*2.
 @}
 @end example
 This package structure is semantically equivalent to a variable
@@ -52,7 +52,7 @@ declaration:
 ss:@{double:(integer)=>integer@}.
 ss = let@{
   double:(integer)=>integer.
-  double(X) is X*2
+  double(X) => X*2
 @} in @{. double=double .@}
 @end example
 In effect, a package reduces to a variable declaration whose type is a
