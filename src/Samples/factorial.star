@@ -1,5 +1,7 @@
-sample.fact{
+sample.factorial{
   import star.
+
+  -- Our first Star program
 
   public fact:(integer)=>integer.
   fact(0)=>1.
