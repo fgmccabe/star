@@ -182,7 +182,6 @@ star.compiler{
   openupRepo:(uri,uri) => action[(), termRepo].
   openupRepo(RU,CU) where CRU ^= resolveUri(CU,RU) => do{
     Repo .= openRepository(CRU);
---    logMsg("repo: $(Repo)");
     valis Repo
   }
 
@@ -196,9 +195,7 @@ star.compiler{
     Repo <- openupRepo(Opts.repo,Opts.cwd);
     if CatUri ^= parseUri("catalog") && CatU ^= resolveUri(Opts.cwd,CatUri) &&
 	Cat ^= loadCatalog(CatU) then{
---	  logMsg("catalog is $(Cat)");
 	  for P in Args do{
---	    logMsg("look up $(P) in catalog $(Cat)");
 	    ErRp .= reports([]);	
 	    try{
 	      Sorted <- makeGraph(extractPkgSpec(P),Repo,Cat,ErRp)
@@ -238,11 +235,9 @@ star.compiler{
     Repp .= ref Repo;
     try{
       for (pkgImp(Lc,_,P),Imps) in Pks do{
---	logMsg("look at $(P), pkgOk = $(pkgOk(Repo,P))");
 	if ~ (pkgOk(Repo,P) && pkgImp(_,_,I) in Imps *> pkgOk(Repo,I)) then{
 	  logMsg("Compiling $(P)");
 	  if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
---	  logMsg("source uri: $(SrcUri), CPkg=$(CPkg)");
 	    Ast <- parseSrc(SrcUri,CPkg,Rp)::action[reports,ast];
 	    if Opts.showAst then{
 	      logMsg("Ast of $(P) is $(Ast)")
