@@ -106,8 +106,6 @@ sample.main@{
 @}
 @end example
 
-
-
 @node Texture
 @section Texture
 
@@ -260,7 +258,10 @@ fact(N where N>0) => N*fact(N-1).
 We did not because having the guard outside the arguments is neater.
 
 @quotation NOTE
-The fact function’s equations are not fully covering: there are no cases for fact for negative numbers. This means that the function is @emph{partial}; and if called with a negative number will result in a run-time exception.
+The @code{fact} function’s equations are not fully covering: there are
+no cases for @code{fact} for negative numbers. This means that the
+function is @emph{partial}; and if called with a negative number will
+result in a run-time trap.
 @end quotation
 
 @node Packages
@@ -725,7 +726,9 @@ A reassignable variable is declared in an action sequence using the form:
 @example
 tot .= ref 0
 @end example
-This is doing two separate things: declaring the variable @code{tot} -- in the context of an action sequence -- and making it re-assignable -- using the expression @code{ref 0}.
+This is doing two separate things: declaring the variable @code{tot}
+-- in the context of an action sequence -- and making it re-assignable
+-- using the expression @code{ref 0}.
 
 @item
 Semi-colons are using to separate actions -- and they are not
