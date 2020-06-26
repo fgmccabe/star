@@ -9,7 +9,6 @@ star.compiler.matcher{
   import star.compiler.types.
 
   import star.compiler.location.
-  import star.compiler.terms.
 
   triple ~> (cons[crExp],(locn,cons[(string,crVar)],option[crExp],option[crExp],crExp),integer).
 

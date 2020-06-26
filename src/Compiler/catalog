@@ -20,6 +20,7 @@
     "star.compiler.gencode": "gencode.star",
     "star.compiler.grapher": "grapher.star",
     "star.compiler.impawt": "impawt.star",
+    "star.compiler.inline": "inline.star",
     "star.compiler.intrinsics": "intrinsics.star",
     "star.compiler.macro" : "macro.star",
     "star.compiler.macro.infra" : "macroinfra.star",
