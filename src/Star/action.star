@@ -34,8 +34,7 @@ star.action{
     _raise(S) => err(S).
   }
 
-  public strmap:all x,y,m/1,s/1 ~~ monad[m],stream[s[x]->>x],
-  sequence[s[y]->>y],reversible[s[y]] |:
+  public strmap:all x,y,m/1,s/1 ~~ monad[m],stream[s[x]->>x], sequence[s[y]->>y],reversible[s[y]] |:
     ((x)=>m[y],s[x]) => m[s[y]].
   strmap(F,S) => let{
     mmm:(s[x],s[y]) => m[s[y]].
