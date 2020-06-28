@@ -74,6 +74,9 @@ showTrm(C,O) :-
   isConstraint(C),!,
   showConstraint(C,O,[]).
 showTrm(T,O) :-
+  isAction(T),!,
+  showCanonAction(T,0,O,[]).
+showTrm(T,O) :-
   isCanon(T),!,
   showCanonTerm(T,0,O,[]).
 showTrm(T,O) :-

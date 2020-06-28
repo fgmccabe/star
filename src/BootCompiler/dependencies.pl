@@ -621,6 +621,8 @@ collectDoRefs(T,All,Rf,Rfx) :-
 collectDoRefs(T,All,Rf,Rfx) :-
   isBraceTuple(T,_,[St]),!,
   collectDoRefs(St,All,Rf,Rfx).
+collectDoRefs(T,_,Rf,Rf) :-
+  isBraceTuple(T,_,[]),!.
 collectDoRefs(T,All,Rf,Rfx) :-
   isBind(T,_,bind(L),R),!,
   collectTermRefs(L,All,Rf,Rf0),
@@ -646,7 +648,6 @@ collectDoRefs(T,All,Rf,Rfx) :-
   isCaseExp(T,_,Exp,Cases),!,
   collectTermRefs(Exp,All,Rf,R0),
   collectCaseRefs(Cases,collectDoRefs,All,R0,Rfx).
-  
 collectDoRefs(T,All,Rf,Rfx) :-
   isWhileDo(T,_,Tt,B),!,
   collectTermRefs(Tt,All,Rf,Rf0),

@@ -884,7 +884,6 @@ checkAction(Term,Env,Ev,Contract,ExTp,ValTp,ErTp,Act,Path) :-
   createShowAction(Lc,Exp,IAc),
 %  display(IAc),
   checkAction(IAc,Env,Ev,Contract,ExTp,ValTp,ErTp,Act,Path).
-
 checkAction(Term,Env,Ev,_,ExTp,ValTp,ErTp,Act,Path) :-
   isSplice(Term,Lc,S,F,T,R),!,
   unary(Lc,"!",S,Src),
@@ -941,9 +940,18 @@ checkAction(Term,Env,Env,_Contract,ExTp,ValTp,ErTp,
   isReturn(Term,Lc,Ex),!,
   typeOfExp(Ex,ValTp,Env,_,Exp,Path),
   processIterable(Env,Path,Exp,Reslt).
+checkAction(Term,Env,Env,Contract,ExTp,ValTp,ErTp,caseDo(Lc,Gov,Cases,ExTp,ErTp),Path) :-
+  isCaseExp(Term,Lc,Gv,Cs),!,
+  newTypeVar("_G",GTp),
+  typeOfExp(Gv,GTp,Env,_,Gov,Path),
+  checkActionCases(Cs,GTp,Env,Contract,ExTp,ValTp,ErTp,Cases,Dflt,Dflt,[],Path).
+%  reportMsg("gen case %s",[caseDo(Lc,Gov,Cases,ExTp,ErTp)],Lc).
+
 checkAction(Term,Env,Ev,Contract,ExTp,ValTp,ErTp,Exp,Path) :-
   isBraceTuple(Term,_,[Stmt]),!,
   checkAction(Stmt,Env,Ev,Contract,ExTp,ValTp,ErTp,Exp,Path).
+checkAction(Term,Env,Env,_Contract,_ExTp,_ValTp,_ErTp,noDo(Lc),_Path) :-
+  isBraceTuple(Term,Lc,[]),!.
 checkAction(Term,Env,Ev,_,ExTp,ValTp,ErTp,simpleDo(Lc,Exp,ExTp,ErTp),Path) :-
   isRoundTerm(Term,Lc,_,_),!,
   mkTypeExp(ExTp,[ErTp,ValTp],MTp),
@@ -961,6 +969,23 @@ checkAssignment(Lc,L,R,Env,Ev,ExTp,ValTp,ErTp,simpleDo(Lc,Exp,ExTp,ErTp),
    binary(Lc,":=",L,R,Term)),
   mkTypeExp(ExTp,[ErTp,ValTp],MTp),
   typeOfExp(Term,MTp,Env,Ev,Exp,Path).
+
+checkActionCases([],_,_,_,_,_,_,Cases,Cases,Dfx,Dfx,_).
+checkActionCases([C|Ss],GTp,Env,Contract,ExTp,ValTp,ErTp,Cases,Cx,Df,Dfx,Path) :-
+  isEquation(C,Lc,L,Cond,R),!,
+  checkActionCase(Lc,L,Cond,R,GTp,Env,Contract,ExTp,ValTp,ErTp,Cases,C0,Df,Df0,Path),
+  checkActionCases(Ss,GTp,Env,Contract,ExTp,ValTp,ErTp,C0,Cx,Df0,Dfx,Path).
+
+checkActionCase(Lc,Lhs,C,R,GTp,Env,Contract,ExTp,ValTp,ErTp,Cases,Cases,Df,Dfx,Path) :-
+  isDefault(Lhs,_,DLhs),!,
+  checkActionCase(Lc,DLhs,C,R,GTp,Env,Contract,ExTp,ValTp,ErTp,Df,Dfx,_,_,Path).
+checkActionCase(Lc,H,C,R,GTp,Env,Contract,ExTp,ValTp,ErTp,[equation(Lc,Arg,Cond,Exp)|Eqns],Eqns,Dfx,Dfx,Path) :-
+  typeOfPtn(H,GTp,Env,E1,Arg,Path),
+  checkGoal(C,E1,E2,Cond,Path),
+  checkAction(R,E2,_,Contract,ExTp,ValTp,ErTp,Exp,Path).
+
+  
+
 
 /*
  assert C 

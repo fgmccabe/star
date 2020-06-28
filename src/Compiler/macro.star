@@ -286,7 +286,7 @@ star.compiler.macro{
     RR <- macroTerm(R,Rp);
     valis mkFieldAcc(Lc,RR,F)
   }
-  examineTerm(A,Rp) where (Lc,E,Cs) ^= isCaseExp(A) => do{
+  examineTerm(A,Rp) where (Lc,E,Cs) ^= isCase(A) => do{
     EE <- macroTerm(E,Rp);
     CC <- seqmap((C)=>macroLambda(C,Rp),Cs);
     valis mkCaseExp(Lc,EE,CC)
@@ -763,6 +763,8 @@ star.compiler.macro{
   isSimpleAction(A) where (Lc,L,R) ^= isOptionMatch(A) => .true.
   isSimpleAction(A) where (_,B,H) ^= isTryCatch(A) =>
     isSimpleAction(B) && ((_,[St])^=isBrTuple(H) ? isSimpleAction(St) || .true).
+  isSimpleAction(A) where (_,G,Cs) ^= isCase(A)  =>
+    (C in Cs *> ((_,_,_,_,R) ^= isLambda(C) && isSimpleAction(R))).
   isSimpleAction(A) where _ ^= isIntegrity(A) => .true.
   isSimpleAction(A) where _ ^= isShow(A) => .true.
   isSimpleAction(A) where (_,T,L,R) ^= isIfThenElse(A) =>
@@ -858,7 +860,6 @@ star.compiler.macro{
       (LLc,LL,LR) ^= isIndex(L) =>
     makeAction(binary(Lc,":=",LL,ternary(LLc,"_put",unary(LLc,"!",LL),LR,R)),
       Cont,Rp).
-  
   makeAction(A,Cont,Rp) where (Lc,B,H) ^= isTryCatch(A) => do{
     NB <- makeAction(B,.none,Rp);
     NH <- makeHandler(H,Rp);
@@ -954,6 +955,19 @@ star.compiler.macro{
       (St)=>IterBody,
       lyfted(Zed),Rp);
     valis combine(Loop,Cont)
+  }
+  makeAction(A,Cont,Rp) where (Lc,G,Cs) ^= isCase(A) => do{
+    Unit .= rndTuple(Lc,[]);
+    Zed .= makeReturn(Lc,Unit);
+    Cases <- seqmap((C) => do{
+	if (CLc,CD,CL,CC,CR) ^= isLambda(C) then{
+	  AR <- makeAction(CR,some((Lc,Zed)),Rp);
+	  valis mkLambda(CLc,CD,CL,CC,AR)
+	}
+	else
+	throw reportError(Rp,"invalid action case $(C)",locOf(C))
+      },Cs);
+    valis combine(mkCaseExp(Lc,G,Cases),Cont)
   }
 
   makeAction(A,Cont,_) where _ ^= isRoundTerm(A) =>

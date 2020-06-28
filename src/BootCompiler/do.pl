@@ -155,7 +155,21 @@ genAction(forDo(Lc,Tst,Body,StTp,ErTp),Contract,Cont,Exp,Path) :-
 	       do:genForBody(Lc,StTp,UnitTp,ErTp,Contract,IterBody),
 	       unlifted(Unit),ForLoop),
   combineActs(Lc,ForLoop,Cont,Contract,StTp,ErTp,Exp).
-genAction(noDo(_),_,Cont,Cont,_).
+genAction(noDo(_),_,Cont,Cont,_).  
+
+genAction(ifThenDo(Lc,Tst,Th,El,ExTp,ValTp,ErTp),Contract,Cont,Exp,Path) :-
+  mkTypeExp(ExTp,[ErTp,ValTp],MTp),
+  genAction(Th,Contract,noDo(Lc),Then,Path),
+  genAction(El,Contract,noDo(Lc),Else,Path),
+  combineActs(Lc,cond(Lc,Tst,Then,Else,MTp),Cont,Contract,ExTp,ErTp,Exp).
+genAction(caseDo(Lc,Gov,Cases,ExTp,ErTp),Contract,Cont,Exp,Path) :-
+%  reportMsg("gen case %s",[caseDo(Lc,Gov,Cases,ExTp,ErTp)],Lc),
+  mkTypeExp(ExTp,[ErTp,ExTp],Tp),
+  map(Cases,do:genCase(Contract,Cont,Path),Eqns),
+  combineActs(Lc,case(Lc,Gov,Eqns,Tp),Cont,Contract,ExTp,ErTp,Exp).
+
+genCase(Contract,Cont,Path,equation(Lc,Arg,Cond,Act),equation(Lc,Arg,Cond,Exp)) :-
+  genAction(Act,Contract,Cont,Exp,Path).
 
 genVl(Lc,Ptn,ExTp,ErTp,Contract,_,Exp) :-
   typeOfCanon(Ptn,VlTp),

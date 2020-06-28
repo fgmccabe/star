@@ -528,7 +528,7 @@ star.compiler.checker{
     (Gl,_) <- checkCond(A,Env,Path,Rp);
     valis Gl
   }.
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,G,Cases) ^= isCaseExp(A) &&
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,G,Cases) ^= isCase(A) &&
     ETp .= newTypeVar("_e") => let{
     checkRle(E,RRp) where (CLc,IsDeflt,H,C,R) ^= isLambda(E) => do{
       (Arg,E0) <- typeOfPtn(H,ETp,Env,Path,RRp);
