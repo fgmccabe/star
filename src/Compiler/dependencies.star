@@ -334,7 +334,7 @@ star.compiler.dependencies{
   }
   collectTermRefs(T,All,Rf,Rp) where (_,Args) ^= isSqTuple(T) => 
     collectTermListRefs(Args,All,Rf,Rp).
-  collectTermRefs(T,All,Rf,Rp) where (_,E,C) ^= isCaseExp(T) => do{
+  collectTermRefs(T,All,Rf,Rp) where (_,E,C) ^= isCase(T) => do{
     Rf0 <- collectTermRefs(E,All,Rf,Rp);
     collectCasesRefs(C,All,Rf0,Rp)
   }

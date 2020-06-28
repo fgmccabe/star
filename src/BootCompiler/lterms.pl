@@ -337,6 +337,7 @@ rewriteTerm(QTest,mtch(Lc,L,R),mtch(Lc,NL,NR)) :-
   rewriteTerm(QTest,R,NR).
 rewriteTerm(QTest,ng(Lc,R),ng(Lc,NR)) :-
   rewriteTerm(QTest,R,NR).
+rewriteTerm(_,error(Lc,Msg),error(Lc,Msg)) :-!.
 
 rewriteTerms(QTest,Els,NEls):-
   map(Els,lterms:rewriteTerm(QTest),NEls).

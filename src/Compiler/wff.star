@@ -569,11 +569,11 @@ star.compiler.wff{
   public equation:(locn,ast,ast)=>ast.
   equation(Lc,Hd,Rep) => binary(Lc,"=>",Hd,Rep).
 
-  public isCaseExp:(ast) => option[(locn,ast,cons[ast])].
-  isCaseExp(A) where (Lc,L) ^= isUnary(A,"case") &&
+  public isCase:(ast) => option[(locn,ast,cons[ast])].
+  isCase(A) where (Lc,L) ^= isUnary(A,"case") &&
       (_,Lhs,Rhs) ^= isBinary(L,"in") &&
       (_,Els) ^= isBrTuple(Rhs) => some((Lc,Lhs,Els)).
-  isCaseExp(_) => .none.
+  isCase(_) => .none.
 
   public mkCaseExp(Lc,E,C) =>
     unary(Lc,"case",binary(Lc,"in",E,brTuple(Lc,C))).

@@ -1,10 +1,10 @@
 :- module(canon,[dispCanonTerm/1,dispProg/1,dispDefs/1,showDef/4,
-		 showCanonTerm/4,showPkg/3,showImports/3,showContracts/3,
+		 showCanonTerm/4,showCanonAction/4,showPkg/3,showImports/3,showContracts/3,
 		 showImpls/3,showEqns/4,
 		 typeOfCanon/2,splitPtn/3,locOfCanon/2,mergeGl/4,
 		 isCanonDef/1,isCanon/1,isSimpleCanon/1,isAssertion/1,isShow/1,isPkg/1,
 		 ruleArity/2,
-		 isGoal/1,isIterableGoal/1,
+		 isGoal/1,isIterableGoal/1,isAction/1,
 		 anonVar/3]).
 
 :- use_module(misc).
@@ -51,6 +51,7 @@ isCanon(whileDo(_,_,_,_,_)).
 isCanon(untilDo(_,_,_,_,_)).
 isCanon(forDo(_,_,_,_,_)).
 isCanon(tryCatchDo(_,_,_,_,_,_)).
+isCanon(caseDo(_,_,_,_,_)).
 isCanon(varDo(_,_,_,_,_,_)).
 isCanon(bindDo(_,_,_,_)).
 isCanon(returnDo(_,_,_,_,_)).
@@ -78,6 +79,7 @@ isAction(seqDo(_,_,_)).
 isAction(ifThenDo(_,_,_,_,_,_,_)).
 isAction(whileDo(_,_,_,_,_)).
 isAction(forDo(_,_,_,_,_)).
+isAction(caseDo(_,_,_,_,_)).
 isAction(tryCatch(_,_,_,_,_)).
 isAction(assign(_,_,_)).
 isAction(apply(_,_,_,_)).
@@ -123,6 +125,7 @@ typeOfCanon(cell(_,Vl),refType(Tp)) :-
 typeOfCanon(lambda(_,_,Tp),Tp) :-!.
 typeOfCanon(over(_,T,_,_),Tp) :- typeOfCanon(T,Tp).
 typeOfCanon(mtd(_,_,Tp),Tp) :-!.
+typeOfCanon(case(_,_,_,Tp),Tp) :- !.
 
 locOfCanon(v(Lc,_,_),Lc) :- !.
 locOfCanon(dot(Lc,_,_,_),Lc) :- !.
@@ -152,6 +155,7 @@ locOfCanon(ifThenDo(Lc,_,_,_,_,_,_),Lc) :-!.
 locOfCanon(whileDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(untilDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(forDo(Lc,_,_,_,_),Lc) :-!.
+locOfCanon(caseDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(tryCatchDo(Lc,_,_,_,_,_),Lc) :-!.
 locOfCanon(assign(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
@@ -217,7 +221,8 @@ showCanonTerm(cons(_,Nm,_),_,O,Ox) :-
   appStr("%",O,O1),
   appStr(Nm,O1,Ox).
 showCanonTerm(case(_,Bound,Cases,_),Dp,O,Ox) :-
-  showCanonTerm(Bound,Dp,O,O1),
+  appStr("case ",O,O0),
+  showCanonTerm(Bound,Dp,O0,O1),
   appStr(" in {",O1,O2),
   showRls("",Cases,Dp,O2,O3),
   appStr("}",O3,Ox).
@@ -349,6 +354,14 @@ showCanonAction(ifThenDo(_,Tst,Th,El,_,_,_),Dp,O,Ox) :-
   showCanonAction(Th,Dp2,O3,O4),
   appStr(" else ",O4,O5),
   showCanonAction(El,Dp2,O5,Ox).
+showCanonAction(caseDo(_,Gov,Cses,_,_),Dp,O,Ox) :-
+  appStr("case ",O,O1),
+  Dp2 is Dp+2,
+  showCanonTerm(Gov,Dp,O1,O2),
+  appStr(" in {",O2,O3),
+  listShow(Cses,canon:showActionCase(Dp2),misc:appMulti([misc:appStr("."),
+							misc:appNwln(Dp2)]),O3,O4),
+  appStr("}",O4,Ox).
 showCanonAction(whileDo(_,Tst,Bdy,_,_),Dp,O,Ox) :-
   appStr("while ",O,O1),
   Dp2 is Dp+2,
@@ -398,6 +411,12 @@ showCanonActions(seqDo(_,A,B),Dp,O,Ox) :-
   showCanonActions(B,Dp,O3,Ox).
 showCanonActions(A,Dp,O,Ox) :-
   showCanonAction(A,Dp,O,Ox).
+
+showActionCase(Dp,equation(_,Args,Cond,Value),O,Ox) :-!,
+  showCanonTerm(Args,Dp,O,O2),
+  showGuard(Cond,Dp,O2,O5),
+  appStr(" => ",O5,O6),
+  showCanonAction(Value,Dp,O6,Ox).
 
 showImports(L,O,Ox) :-
   listShow(L,canon:showImport,misc:appNl,O,O1),
