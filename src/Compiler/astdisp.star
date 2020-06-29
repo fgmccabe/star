@@ -9,7 +9,7 @@ star.compiler.ast.display{
   .}
 
   public implementation coercion[ast,string] => {.
-    _coerce(A) => "$(A)".
+    _coerce(A) => some("$(A)").
   .}
 
   public dispAst:(ast,integer,string) => ss.

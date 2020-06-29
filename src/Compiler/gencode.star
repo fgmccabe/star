@@ -1,5 +1,6 @@
 star.compiler.gencode{
   import star.
+  import star.multi.
   import star.pkg.
   import star.sort.
 
@@ -9,8 +10,8 @@ star.compiler.gencode{
   import star.compiler.escapes.
   import star.compiler.meta.
   import star.compiler.misc.
-  import star.compiler.multi.
   import star.compiler.peephole.
+  import star.compiler.ltipe.
   import star.compiler.types.
 
   import star.compiler.location.
@@ -94,7 +95,7 @@ star.compiler.gencode{
   compExp:(crExp,compilerOptions,Cont,codeCtx,multi[assemOp],option[cons[tipe]],reports) =>
     either[reports,(codeCtx,multi[assemOp],option[cons[tipe]])].
   compExp(Exp,_,_,_,_,.none,Rp) => other(reportError(Rp,"dead code",locOf(Exp))).
-  compExp(Exp,_,Cont,Ctx,Cde,some(Stk),Rp) where Const^=Exp::option[term] =>
+  compExp(Exp,_,Cont,Ctx,Cde,some(Stk),Rp) where Const^=Exp:?term =>
     Cont.C(Ctx,Cde++[iLdC(Const)],some([typeOf(Exp),..Stk]),Rp).
   compExp(crInt(Lc,Ix),_,Cont,Ctx,Cde,some(Stk),Rp) =>
     Cont.C(Ctx,Cde++[iLdC(intgr(Ix))],some([intType,..Stk]),Rp).
@@ -697,7 +698,7 @@ star.compiler.gencode{
   defineLbl(codeCtx(Vrs,Lc,Count,Lb))=>(al("L$(Lb)"),codeCtx(Vrs,Lc,Count,Lb+1)).
 
   changeLoc:(locn,compilerOptions,codeCtx)=>(multi[assemOp],codeCtx).
-  changeLoc(Lc,_,codeCtx(Vars,Lc0,Dp,Lb)) where Lc=!=Lc0 =>
+  changeLoc(Lc,_,codeCtx(Vars,Lc0,Dp,Lb)) where Lc=~=Lc0 =>
     ([iLine(Lc::term)],codeCtx(Vars,Lc,Dp,Lb)).
     changeLoc(_,_,Ctx)=>([],Ctx).
 
@@ -767,5 +768,7 @@ star.compiler.gencode{
 	  .iHalt])].
 
   genBoot(_,_) default => [].
-}
 
+  frameSig:(cons[tipe])=>term.
+  frameSig(Tps) => strg((tupleType(Tps)::ltipe)::string).
+}

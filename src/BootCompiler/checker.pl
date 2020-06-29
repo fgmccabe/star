@@ -518,7 +518,14 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isCoerce(Term,Lc,L,R),!,
   unary(Lc,"_coerce",L,LT),
-  binary(Lc,":",LT,R,NT),
+  unary(Lc,"_optval",LT,OLT),
+  binary(Lc,":",OLT,R,NT),
+  typeOfExp(NT,Tp,Env,Ev,Exp,Path).
+typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
+  isOptCoerce(Term,Lc,L,R),!,
+  unary(Lc,"_coerce",L,LT),
+  sqUnary(Lc,"option",R,OR),
+  binary(Lc,":",LT,OR,NT),
   typeOfExp(NT,Tp,Env,Ev,Exp,Path).
 typeOfExp(P,Tp,Env,Ex,where(Lc,Ptn,Cond),Path) :-
   isWhere(P,Lc,L,C),!,
@@ -1177,12 +1184,6 @@ isMapType(Tp,Env) :-
 
 isListSequence([E|_]) :-
   \+isBinary(E,_,"->",_,_).
-
-isListType(Tp,Env) :-
-  isType("array",Env,tpDef(_,LstTp,_)),!,
-  deRef(Tp,tpExp(LsOp,_)),
-  moveQuants(LstTp,_,tpExp(LstOp,_)),
-  deRef(LsOp,LstOp).
 
 macroOfTerm(Lbl,Lc,Tpl,Trm) :-
   squareTerm(Lc,Lbl,[name(Lc,"_")],Tp),

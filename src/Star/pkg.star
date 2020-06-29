@@ -41,13 +41,13 @@ star.pkg{
   .}
 
   public implementation coercion[string,version] => {
-    _coerce("*") => .defltVersion.
-    _coerce(V) => vers(V).
+    _coerce("*") => some(.defltVersion).
+    _coerce(V) => some(vers(V)).
   }
 
   public implementation coercion[version,string] => {
-    _coerce(.defltVersion) => "*".
-    _coerce(vers(V)) => V.
+    _coerce(.defltVersion) => some("*").
+    _coerce(vers(V)) => some(V).
   }
 
   public compatiblePkg:(pkg,pkg)=>boolean.

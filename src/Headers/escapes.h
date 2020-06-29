@@ -13,6 +13,7 @@
 #define fileType "t'star.file*fileHandle'"
 #define udpType "t'star.io*udpHandle'"
 #define ssType "t'star.core*ss'"
+#define optionType(T) "Uz1'star.core*option'" T
 
 /* Define the standard escapes */
 escape(_exit,"F(i)()","terminate engine")
@@ -236,8 +237,8 @@ escape(_flt2str,"F(fiiil)S","format a floating as a string")
 escape(_int_format,"F(iS)S","format an integer using picture format")
 escape(_flt_format,"F(fS)S","format a floating point using picture format")
 
-escape(_str2flt,"F(S)f","parse a string as a float")
-escape(_str2int,"F(S)i","parse a string as an integer")
+escape(_str2flt,"F(S)" optionType("f"),"parse a string as a float")
+escape(_str2int,"F(S)" optionType("i"),"parse a string as an integer")
 
 escape(_str_eq,"F(SS)l","String equality")
 escape(_str_lt,"F(SS)l","String 1 is less than string 2")

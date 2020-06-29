@@ -165,9 +165,7 @@ stdDict(Base) :-
   declareType("string",tpDef(std,StrTp,StpEx),B,B0),
   declareType("integer",tpDef(std,IntTp,ITpEx),B0,B1),
   declareType("float",tpDef(std,FltTp,FtEx),B1,B2),
-  stdType("array",LstTp,LTp),
-  declareType("array",tpDef(std,LstTp,LTp),B2,B3),
-  B3=Base.
+  B2=Base.
 
 dispEnv(Env,Cx) :-
   processNames(Env,dict:showDictVarEntry,Cx,Chrs),

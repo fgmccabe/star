@@ -102,6 +102,7 @@ star.compiler.operators{
   oper("in") => [infixOp(899,900,900)].
   oper("^|") => [infixOp(919,920,920)].
   oper("open") => [prefixOp(900,899)].
+  oper("=~=") => [infixOp(899,900,899)].
   oper("~~") => [infixOp(1239,1240,1240)].
   oper("assert") => [prefixOp(1240,1239)].
   oper("!!") => [postfixOp(99,100)].
@@ -128,6 +129,7 @@ star.compiler.operators{
   oper("::") => [infixOp(399,400,399)].
   oper("+++") => [infixOp(719,720,720)].
   oper(":=") => [infixOp(974,975,974)].
+  oper(":?") => [infixOp(399,400,399)].
   oper(".<<.") => [infixOp(600,600,599)].
   oper("^.") => [infixOp(450,450,449)].
   oper(">>=") => [infixOp(949,950,950)].
@@ -255,6 +257,7 @@ star.compiler.operators{
   follows("^",0c=) => some("^=").
   follows("^",0c|) => some("^|").
   follows("^/",0c/) => some("^//").
+  follows(":",0c?) => some(":?").
   follows(":",0c:) => some("::").
   follows(":",0c=) => some(":=").
   follows("::",0c=) => some("::=").
@@ -267,10 +270,12 @@ star.compiler.operators{
   follows("<*",0c>) => some("<*>").
   follows("<<",0c-) => some("<<-").
   follows("<=",0c>) => some("<=>").
+  follows("=",0c~) => some("=~").
   follows("=",0c<) => some("=<").
   follows("=",0c!) => some("=!").
   follows("=",0c=) => some("==").
   follows("=",0c>) => some("=>").
+  follows("=~",0c=) => some("=~=").
   follows("=!",0c=) => some("=!=").
   follows(">",0c=) => some(">=").
   follows(">",0c>) => some(">>").
@@ -337,6 +342,7 @@ star.compiler.operators{
   final("^=") => .true.  /* optional decomposition match */
   final("^|") => .true.  /* option or-else operator */
   final(":") => .true.  /* type annotation */
+  final(":?") => .true.  /* fallable type coercion */
   final("::") => .true.  /* type coercion */
   final("::=") => .true.  /* algebraic type definition */
   final(":=") => .true.  /* reassignable variable definition */
@@ -349,6 +355,7 @@ star.compiler.operators{
   final("<<-") => .true.  /* record replacement */
   final("<=>") => .true.  /* constructor arrow */
   final("=") => .true.  /* definition */
+  final("=~=") => .true.  /* not equals */
   final("=<") => .true.  /* less than or equal */
   final("=!=") => .true.  /* not equals */
   final("==") => .true.  /* equality predicate */
@@ -419,6 +426,7 @@ star.compiler.operators{
   keyword("while") => .true.
   keyword("private") => .true.
   keyword("::") => .true.
+  keyword(":?") => .true.
   keyword("^.") => .true.
   keyword("<~") => .true.
   keyword("type") => .true.

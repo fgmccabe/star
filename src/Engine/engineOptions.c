@@ -54,7 +54,7 @@ static integer parseSize(char *text) {
       default:;
     }
   }
-  return parseInteger(text, (integer) (p - text)) * scale;
+  return parseInt(text, (integer) (p - text)) * scale;
 }
 
 char *defltCWD() {
@@ -272,7 +272,7 @@ static retCode symbolDebug(char *option, logical enable, void *cl) {
 }
 
 static retCode setDebuggerPort(char *option, logical enable, void *cl) {
-  debuggerPort = parseInteger(option, uniStrLen(option));
+  debuggerPort = parseInt(option, uniStrLen(option));
   if (debuggerPort <= 0)
     return Error;
   else {

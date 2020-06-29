@@ -5,7 +5,7 @@
       roundTerm/4,isRound/4,isRoundTerm/3,isRoundTerm/4,isTuple/2,isTuple/3,isRoundTuple/3,roundTuple/3,
       braceTerm/4,isBrace/4,isBraceTerm/4,isBraceTuple/3,braceTuple/3,isEmptyBrace/1,
       qbraceTerm/4,isQBrace/3,isQBraceTerm/4,isQBraceTuple/3,
-      squareTerm/4,isSquare/3,isSquare/4,isSquareTuple/3,isSquareTuple/2,isSquareTerm/3,isSquareTerm/4,
+      squareTerm/4,isSquare/3,isSquare/4,isSquareTuple/3,isSquareTuple/2,isSquareTerm/3,isSquareTerm/4,sqUnary/4,
       isName/2,isIden/1,isIden/2,isIden/3,genIden/2,genIden/3,isString/2,isString/3,isInteger/2,
       isConsTerm/4,
       sameTerm/2,
@@ -76,6 +76,8 @@ isQBraceTerm(app(Lc,Op,tuple(_,"{..}",A)),Lc,Op,A) :- \+isKeyOp(Op).
 isQBraceTuple(tuple(Lc,"{..}",L),Lc,L).
 
 squareTerm(Lc,Op,Els,app(Lc,Op,tuple(Lc,"[]",Els))).
+
+sqUnary(Lc,Nm,Arg,app(Lc,name(Lc,Nm),tuple(Lc,"[]",[Arg]))).
 
 isSquare(app(_,name(_,Op),tuple(_,"[]",L)),Op,L).
 

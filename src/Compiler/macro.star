@@ -18,6 +18,7 @@ star.compiler.macro{
       (.expression,macroListComprehension),
       (.expression,makeSeqExp)],
     "::" -> [(.expression,macroCoercion)],
+    ":?" -> [(.expression,macroCoercion)],
     "{}" -> [(.expression,macroComprehension)],
     "do" -> [(.expression,macroDo)],
     "action" -> [(.expression,actionMacro)],
@@ -701,7 +702,9 @@ star.compiler.macro{
     Hed(Lc,El,macroListEntries(Lc,Rest,Eof,Hed)).
 
   macroCoercion(A,.expression,Rp) where (Lc,L,R) ^= isCoerce(A) =>
-    either(active(typeAnnotation(Lc,unary(Lc,"_coerce",L),R))).
+    either(active(typeAnnotation(Lc,unary(Lc,"_optval",unary(Lc,"_coerce",L)),R))).
+  macroCoercion(A,.expression,Rp) where (Lc,L,R) ^= isOptCoerce(A) =>
+    either(active(typeAnnotation(Lc,unary(Lc,"_coerce",L),sqUnary(Lc,"option",R)))).
   macroCoercion(_,_,_) => either(.inactive).
   
   public reconstructDisp:(ast)=>ast.
@@ -748,7 +751,7 @@ star.compiler.macro{
   synthesizeCoercions([],Lc) => (enum(Lc,"nil"),.nil).
   synthesizeCoercions([T,..Ts],Lc) where Nm .= genName(Lc,"X") &&
       (RV,RC) .= synthesizeCoercions(Ts,Lc) =>
-    (binary(Lc,"cons",Nm,RV),[binary(Lc,":",unary(Lc,"_coerce",Nm),T),..RC]).
+    (binary(Lc,"cons",Nm,RV),[binary(Lc,":",unary(Lc,"_optval",unary(Lc,"_coerce",Nm)),T),..RC]).
 
   -- Temporary
   public isSimpleAction:(ast)=>boolean.

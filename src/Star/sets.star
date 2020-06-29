@@ -50,6 +50,6 @@ star.sets{
   }
 
   public implementation all e ~~ coercion[set[e],cons[e]] => {
-    _coerce(set(M)) => ixRight((K,_,X)=>[K,..X],[],M)
+    _coerce(set(M)) => some(ixRight((K,_,X)=>[K,..X],[],M)).
   }
 }

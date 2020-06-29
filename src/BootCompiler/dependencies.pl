@@ -504,6 +504,14 @@ collectTermRefs(E,A,R0,Refs) :-
   isTypeAnnotation(E,_,L,R),
   collectTermRefs(L,A,R0,R1),
   collectTypeRefs(R,A,R1,Refs).
+collectTermRefs(E,A,R0,Refs) :-
+  isCoerce(E,_,L,R),
+  collectTermRefs(L,A,R0,R1),
+  collectTypeRefs(R,A,R1,Refs).
+collectTermRefs(E,A,R0,Refs) :-
+  isOptCoerce(E,_,L,R),
+  collectTermRefs(L,A,R0,R1),
+  collectTypeRefs(R,A,R1,Refs).
 collectTermRefs(V,A,Rfs,Refs) :-
   isName(V,Nm),
   collectNmRef(var(Nm),A,Rfs,Rf0),

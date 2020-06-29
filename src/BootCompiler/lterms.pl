@@ -435,3 +435,5 @@ isCnd(cnj(_,_,_)).
 isCnd(dsj(_,_,_)).
 isCnd(mtch(_,_,_)).
 isCnd(ng(_,_)).
+
+

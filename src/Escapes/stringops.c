@@ -8,9 +8,9 @@
 #include <assert.h>
 #include <tpl.h>
 #include <globals.h>
-#include "stringops.h"
 #include "arithmetic.h"
 #include "consP.h"
+#include "option.h"
 
 ReturnStatus g__str_eq(processPo p, ptrPo tos) {
   stringPo Arg1 = C_STR(tos[0]);
@@ -28,8 +28,6 @@ ReturnStatus g__str_lt(processPo p, ptrPo tos) {
   integer llen, rlen;
   const char *lhs = stringVal(Arg1, &llen);
   const char *rhs = stringVal(Arg2, &rlen);
-
-  integer mlen = minimum(llen, rlen);
 
   integer li = 0;
   integer ri = 0;
@@ -57,8 +55,6 @@ ReturnStatus g__str_ge(processPo p, ptrPo tos) {
   integer llen, rlen;
   const char *lhs = stringVal(Arg1, &llen);
   const char *rhs = stringVal(Arg2, &rlen);
-
-  integer mlen = minimum(llen, rlen);
 
   integer li = 0;
   integer ri = 0;
@@ -105,19 +101,31 @@ ReturnStatus g__str2flt(processPo p, ptrPo tos) {
   integer len;
   const char *str = stringVal(tos[0], &len);
   double flt;
-  retCode ret = parseDouble(str, len, &flt);
+  heapPo H = processHeap(p);
 
-  return (ReturnStatus) {.ret=ret,
-    .result=(termPo) allocateFloat(processHeap(p), flt)};
+  switch (parseDouble(str, len, &flt)) {
+    case Ok:
+      return (ReturnStatus) {.ret=Ok,
+        .result=(termPo) wrapSome(H, (termPo) allocateFloat(H, flt))};
+    default:
+    case Error:
+      return (ReturnStatus) {.ret=Ok, .result = (termPo) noneEnum};
+  }
 }
 
 ReturnStatus g__str2int(processPo p, ptrPo tos) {
   integer len;
   const char *str = stringVal(tos[0], &len);
-  integer ix = parseInteger(str, len);
+  integer ix;
+  heapPo H = processHeap(p);
 
-  return (ReturnStatus) {.ret=Ok,
-    .result=(termPo) allocateInteger(processHeap(p), ix)};
+  switch (parseInteger(str, len, &ix)) {
+    case Ok:
+      return (ReturnStatus) {.ret=Ok,
+        .result=(termPo) wrapSome(H, (termPo) allocateInteger(processHeap(p), ix))};
+    default:
+      return (ReturnStatus) {.ret=Ok, .result = (termPo) noneEnum};
+  }
 }
 
 ReturnStatus g__str_gen(processPo p, ptrPo tos) {

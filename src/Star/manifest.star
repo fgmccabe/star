@@ -13,7 +13,7 @@ star.repo.manifest{
   public mInfo ::= mInfo(version,map[string,string]).
 
   public implementation coercion[json,manifest] => {
-    _coerce(J) => fromJson(J).
+    _coerce(J) => some(fromJson(J)).
   }
 
   fromJson:(json) => manifest.
@@ -32,14 +32,14 @@ star.repo.manifest{
   pickInfo(K,jTxt(V),M) => M[K->V].
 
   public implementation coercion[manifest,json] => {
-    _coerce(M) => toJson(M).
+    _coerce(M) => some(toJson(M)).
   }
 
   toJson:(manifest)=>json.
   toJson(man(Ps)) => jColl(ixRight((K,pEntry(P,Vs),M) => M[K->jColl(mkVersions(Vs))],[],Ps)).
 
   implementation coercion[pEntry,json] => {.
-    _coerce(pEntry(P,Vs)) => jColl([P->jColl(mkVersions(Vs))])
+    _coerce(pEntry(P,Vs)) => some(jColl([P->jColl(mkVersions(Vs))]))
   .}
 
   public implementation display[manifest] => {.

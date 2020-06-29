@@ -49,21 +49,21 @@ other program values.@footnote{Whether two expressions that denote
 functions of the same type denote the same function is, in general,
 not effectively decidable.}
 
-@node @code{=!=} -- not equals
-@subsection @code{=!=} -- not equals
+@node @code{=~=} -- not equals
+@subsection @code{=~=} -- not equals
 @anchor{notEqualsPredicate}
-@findex @code{=!=} predicate
+@findex @code{=~=} predicate
 @cindex inequality predicate
 
-The type signature for @code{=!=} is:
+The type signature for @code{=~=} is:
 @example
-(=!=) : all t ~~ equality[t] |: (t,t) => boolean
+(=~=) : all t ~~ equality[t] |: (t,t) => boolean
 @end example
 
-The @code{=!=} predicate has a standard definition that makes it
+The @code{=~=} predicate has a standard definition that makes it
 equivalent to a negated equality:
 @example
-X =!= Y => ~ X==Y
+X =~= Y => ~ X==Y
 @end example
 
 @node The @code{comp} contract

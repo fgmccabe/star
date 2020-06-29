@@ -9,7 +9,7 @@ star.location{
   .}
 
   public implementation coercion[locn,string] => {.
-    _coerce(Lc) => disp(Lc)::string
+    _coerce(Lc) => disp(Lc):?string
   .}
     
   public implementation equality[locn] => {.

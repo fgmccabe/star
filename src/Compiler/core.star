@@ -244,7 +244,7 @@ star.compiler.core{
     disp(crId(Nm,_)) => ssSeq([ss("%"),ss(Nm)]).
   .}
 
-  public implementation coercion[crExp,option[term]] => {
+  public implementation coercion[crExp,term] => {
     _coerce(crInt(_,Ix)) => some(intgr(Ix)).
     _coerce(crFlot(_,Dx)) => some(flot(Dx)).
     _coerce(crStrg(_,Sx)) => some(strg(Sx)).
@@ -263,7 +263,7 @@ star.compiler.core{
 
   public implementation coercion[locn,crExp] => {.
     _coerce(Lc) where locn(Nm,Line,Col,Off,Len).=Lc =>
-      mkCrTpl(Lc,[crStrg(Lc,Nm),crInt(Lc,Line),crInt(Lc,Col),crInt(Lc,Off),crInt(Lc,Len)])
+      some(mkCrTpl(Lc,[crStrg(Lc,Nm),crInt(Lc,Line),crInt(Lc,Col),crInt(Lc,Off),crInt(Lc,Len)]))
   .}
 
   public rwTerm:(crExp,(crExp)=>option[crExp])=>crExp.

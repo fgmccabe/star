@@ -109,7 +109,7 @@ star.compiler.term.repo{
   termInfo(term(tLbl(Ky,1),[strg(V)]),Is) => Is[Ky->V].
 
   implementation coercion[term,manifest] => {.
-    _coerce(T) => termManifest(T).
+    _coerce(T) => some(termManifest(T)).
   .}
 
   infoTerm:(mInfo)=>term.
@@ -125,7 +125,7 @@ star.compiler.term.repo{
 	[mkTpl([strg(Pk),versionTerm(Vr)]),..Ms],[],Ps)).
 
   implementation coercion[manifest,term] => {.
-    _coerce(M)=>manTerm(M).
+    _coerce(M)=>some(manTerm(M)).
   .}
 
   flushManifest(Url,Man) => putResource(Url,(Man::term)::string).

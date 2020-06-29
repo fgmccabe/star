@@ -1,4 +1,4 @@
-star.compiler.multi{
+star.multi{
   import star.
 
   -- Similar to the ss structure.
@@ -48,7 +48,7 @@ star.compiler.multi{
     multiFlatten(.nil,S) => S.
     multiFlatten(cons(H,T),S) => flatten(H,multiFlatten(T,S)).
   } in {.
-    _coerce(M) => flatten(M,.nil)
+    _coerce(M) => some(flatten(M,.nil))
   .}
 
   public implementation all e ~~ display[e] |: display[multi[e]] => {.

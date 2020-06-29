@@ -57,15 +57,15 @@ star.finger{
   } in rdl.
 
   implementation all e ~~coercion[digit[e],cons[e]] => {
-    _coerce(one(x)) => [x].
-    _coerce(two(x,y)) => [x,y].
-    _coerce(three(x,y,z)) => [x,y,z].
-    _coerce(four(x,y,z,u)) => [x,y,z,u].
+    _coerce(one(x)) => some([x]).
+    _coerce(two(x,y)) => some([x,y]).
+    _coerce(three(x,y,z)) => some([x,y,z]).
+    _coerce(four(x,y,z,u)) => some([x,y,z,u]).
   }
 
   implementation all e ~~ coercion[node[e],cons[e]] => {
-    _coerce(node2(l,r)) => [l,r].
-    _coerce(node3(l,m,r)) => [l,m,r].
+    _coerce(node2(l,r)) => some([l,r]).
+    _coerce(node3(l,m,r)) => some([l,m,r]).
   }
   
   implementation all e ~~ reduce[fingerTree[e]->>e] => {

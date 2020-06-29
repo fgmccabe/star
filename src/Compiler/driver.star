@@ -28,8 +28,8 @@ star.compiler{
   import star.compiler.types.
 
   implementation all e,k ~~ coercion[either[e,k],action[e,k]] => {
-    _coerce(either(X)) => done(X).
-    _coerce(other(Y)) => err(Y)
+    _coerce(either(X)) => some(done(X)).
+    _coerce(other(Y)) => some(err(Y))
   }
 
   repoOption:optionsProcessor[compilerOptions].

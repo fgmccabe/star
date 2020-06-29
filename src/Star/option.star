@@ -64,4 +64,7 @@ star.option{
   public (^|):all a~~(option[a],()=>option[a])=>option[a].
   .none ^| F => F().
   some(E) ^| _ => some(E).
+
+  public _optval:all a~~(option[a])=>a.
+  _optval(some(X)) => X.
 }
