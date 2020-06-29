@@ -82,6 +82,7 @@
   operator("in", [infixOp(899, 900, 900)]).
   operator("^|", [infixOp(919, 920, 920)]).
   operator("open", [prefixOp(900, 899)]).
+  operator("=~=", [infixOp(899, 900, 899)]).
   operator("~~", [infixOp(1239, 1240, 1240)]).
   operator("assert", [prefixOp(1240, 1239)]).
   operator("!!", [postfixOp(99, 100)]).
@@ -108,6 +109,7 @@
   operator("::", [infixOp(399, 400, 399)]).
   operator("+++", [infixOp(719, 720, 720)]).
   operator(":=", [infixOp(974, 975, 974)]).
+  operator(":?", [infixOp(399, 400, 399)]).
   operator(".<<.", [infixOp(600, 600, 599)]).
   operator("^.", [infixOp(450, 450, 449)]).
   operator(">>=", [infixOp(949, 950, 950)]).
@@ -212,6 +214,7 @@
   follows('^','=','^=').
   follows('^','|','^|').
   follows('^/','/','^//').
+  follows(':','?',':?').
   follows(':',':','::').
   follows(':','=',':=').
   follows('::','=','::=').
@@ -224,10 +227,12 @@
   follows('<*','>','<*>').
   follows('<<','-','<<-').
   follows('<=','>','<=>').
+  follows('=','~','=~').
   follows('=','<','=<').
   follows('=','!','=!').
   follows('=','=','==').
   follows('=','>','=>').
+  follows('=~','=','=~=').
   follows('=!','=','=!=').
   follows('>','=','>=').
   follows('>','>','>>').
@@ -293,6 +298,7 @@
   final('^=',"^=").	 /* optional decomposition match */
   final('^|',"^|").	 /* option or-else operator */
   final(':',":").	 /* type annotation */
+  final(':?',":?").	 /* fallable type coercion */
   final('::',"::").	 /* type coercion */
   final('::=',"::=").	 /* algebraic type definition */
   final(':=',":=").	 /* reassignable variable definition */
@@ -305,6 +311,7 @@
   final('<<-',"<<-").	 /* record replacement */
   final('<=>',"<=>").	 /* constructor arrow */
   final('=',"=").	 /* definition */
+  final('=~=',"=~=").	 /* not equals */
   final('=<',"=<").	 /* less than or equal */
   final('=!=',"=!=").	 /* not equals */
   final('==',"==").	 /* equality predicate */
@@ -374,6 +381,7 @@
   keyword("while").
   keyword("private").
   keyword("::").
+  keyword(":?").
   keyword("^.").
   keyword("<~").
   keyword("type").

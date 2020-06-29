@@ -1,12 +1,14 @@
 star.compiler.terms{
   import star.
 
+  import star.multi.
   import star.pkg.
   import star.sort.
 
   import star.compiler.location.
   import star.compiler.misc.
   import star.compiler.types.
+  import star.compiler.ltipe.
 
   public termLbl ::= tLbl(string,integer) |
     tRec(string,cons[(string,tipe)]).
@@ -112,7 +114,7 @@ star.compiler.terms{
   isScalar(_) default => .false.
 
   public implementation coercion[term,string] => {.
-    _coerce(T) => _implode(reverse(encodeT(T,[]))).
+    _coerce(T) => some(_implode(reverse(encodeT(T,[])))).
   .}
 
   -- Written in this way to maximize potential for tail recursion
@@ -138,80 +140,60 @@ star.compiler.terms{
   public implementation coercion[string,term] => {.
     _coerce(S) => valof do{
       L.=S::cons[integer];
---      logMsg("decoding $(S)");
       (T,_) <- decodeTerm(S::cons[integer]);
-      valis T
+      valis some(T)
     }
   .}
   
   public decodeTerm:(cons[integer])=>either[(),(term,cons[integer])].
   decodeTerm([0cx,..Ls]) => do{
---    logMsg("decoding int");
     (Ix,L0) <- decodeInt(Ls);
---    logMsg("int is $(Ix)");
     valis (intgr(Ix),L0)
   }.
   decodeTerm([0cd,..Ls]) => do{
---    logMsg("decoding float");
     (Txt,Lx) <- decodeText(Ls);
     valis (flot(Txt::float),Lx)
   }
   decodeTerm([0ce,..Ls]) => do{
---    logMsg("decoding enum");
     (Sym,Lx) <- decodeText(Ls);
---    logMsg("enum is $(enum(tLbl(Sym,0)))");
     valis (enum(tLbl(Sym,0)),Lx)
   }
   decodeTerm([0co,..Ls]) => do{
---    logMsg("decoding label");
     (Sym,Lx) <- decodeLabel([0co,..Ls]);
---    logMsg("label is $(enum(Sym))");
     valis (enum(Sym),Lx)
   }
   decodeTerm([0cs,..Ls]) => do{
---    logMsg("decoding string");
     (Txt,Lx) <- decodeText(Ls);
---    logMsg("string is $(Txt)");
     valis (strg(Txt),Lx)
   }
   decodeTerm([0cn,..Ls]) => do{
---    logMsg("decoding term");
     (Ax,L0) <- decodeNat(Ls,0);
     (Op,LL1) <- decodeLabel(L0);
     (Args,Lx) <- decodeTerms(LL1,Ax,[]);
---    logMsg("term is $(term(Op,Args))");
     valis (term(Op,Args),Lx)
   }
   decodeTerm([0cl,..Ls]) => do{
---    logMsg("decoding list");
     (Ax,L0) <- decodeNat(Ls,0);
---    logMsg("$(Ax) elements");
     (Els,Lx) <- decodeTerms(L0,Ax,[]);
---    logMsg("list is $(mkLst(Els))");
     valis (mkLst(Els),Lx)
   }
 
   decodeTerms:(cons[integer],integer,cons[term]) => either[(),(cons[term],cons[integer])].
   decodeTerms(L,0,Args) => either((reverse(Args),L)).
   decodeTerms(L,Ix,Args) => do{
---    logMsg("decode $(Ix) terms");
     (Arg,L0) <- decodeTerm(L);
     decodeTerms(L0,Ix-1,[Arg,..Args])
   }
 
   decodeLabel:(cons[integer])=>either[(),(termLbl,cons[integer])].
   decodeLabel([0co,..Ls]) => do{
---    logMsg("decoding label");
     (Ar,L0) <- decodeNat(Ls,0);
     (Nm,Lx) <- decodeText(L0);
---    logMsg("label is $(tLbl(Nm,Ar))");
     valis (tLbl(Nm,Ar),Lx)
   }
   decodeLabel([0cO,..Ls]) => do{
---    logMsg("decoding record lbl");
     (Nm,L0) <- decodeText(Ls);
     (Fs,Lx) <- decodeFields(L0);
---    logMsg("label is $(tRec(Nm,Fs))");
     valis (tRec(Nm,Fs),Lx)
   }
     
@@ -436,7 +418,7 @@ star.compiler.terms{
   encodeInt(Ix,Chs) => encodeNat(Ix,Chs).
 
   public implementation coercion[locn,term]=>{
-    _coerce(locn(Pkg,Line,Col,Off,Ln))=>mkTpl([strg(Pkg),intgr(Line),intgr(Col),intgr(Off),intgr(Ln)]).
+    _coerce(locn(Pkg,Line,Col,Off,Ln))=>some(mkTpl([strg(Pkg),intgr(Line),intgr(Col),intgr(Off),intgr(Ln)])).
   }
 
   public pkgTerm:(pkg)=>term.

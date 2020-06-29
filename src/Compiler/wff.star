@@ -358,6 +358,11 @@ star.compiler.wff{
 
   public mkCoercion(Lc,L,R) => binary(Lc,"::",L,R).
 
+  public isOptCoerce:(ast) => option[(locn,ast,ast)].
+  isOptCoerce(A) => isBinary(A,":?").
+
+  public mkOptCoercion(Lc,L,R) => binary(Lc,":?",L,R).
+
   public isRef:(ast) => option[(locn,ast)].
   isRef(A) => isUnary(A,"ref").
 
@@ -725,7 +730,7 @@ star.compiler.wff{
 
   public implementation coercion[locn,ast]=>{
     _coerce(Lc where locn(Pkg,Line,Col,Off,Ln).=Lc)=>
-      roundTerm(Lc,nme(Lc,"locn"),[str(Lc,Pkg),
-	  int(Lc,Line), int(Lc,Col), int(Lc,Off), int(Lc,Ln)]).
+      some(roundTerm(Lc,nme(Lc,"locn"),[str(Lc,Pkg),
+	    int(Lc,Line), int(Lc,Col), int(Lc,Off), int(Lc,Ln)])).
   }
 }

@@ -1,4 +1,4 @@
-:- module(encode,[encode/2,encodeTerm/3,encType/2,encodeType/3,encodeConstraint/3]).
+:- module(encode,[encode/2,encodeTerm/3,encType/2,encodeType/3,encLtp/2,encodeLtipe/3,encodeConstraint/3]).
 
 :- use_module(misc).
 :- use_module(base64).
@@ -80,7 +80,6 @@ encodeTp(T,C,Cx) :-
 encodeType(anonType,['_'|O],O).
 encodeType(voidType,['v'|O],O).
 encodeType(T,['_'|O],O) :- isUnbound(T).
-encodeType(tpExp(Tp,T),['A'|O],Ox) :- deRef(Tp,tpFun("star.core*array",1)),!,encodeTp(T,O,Ox).
 encodeType(type("star.core*boolean"),['l'|O],O).
 encodeType(type("star.core*integer"),['i'|O],O).
 encodeType(type("star.core*float"),['f'|O],O).
@@ -125,3 +124,19 @@ encodeConstraint(conTract(Nm,Args,Deps),['c'|O],Ox) :-
 encodeConstraint(implementsFace(V,Face),['a'|O],Ox) :-
   encodeTp(V,O,O1),
   encodeTp(Face,O1,Ox).
+
+encLtp(Tp,Sig) :-
+  encodeLtipe(Tp,Chrs,[]),
+  string_chars(Sig,Chrs).
+
+encodeLtipe(i64Tipe,['i'|O],O).
+encodeLtipe(f64Tipe,['f'|O],O).
+encodeLtipe(blTipe,['l'|O],O).
+encodeLtipe(ptrTipe,['p'|O],O).
+encodeLtipe(fnTipe(As,R),['F'|O],Ox) :-
+  encodeLtipe(tplType(As),O,O1),
+  encodeLtipe(R,O1,Ox).
+encodeLtipe(tplTipe(As),['('|O],Ox) :-
+  rfold(As,encode:encodeLtipe,O,[')'|Ox]).
+
+

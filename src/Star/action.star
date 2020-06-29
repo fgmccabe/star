@@ -54,8 +54,8 @@ star.action{
 
 
   public implementation all e ~~ coercion[option[e],action[(),e]] => {
-    _coerce(.none) => err(()).
-    _coerce(some(X)) => done(X).
+    _coerce(.none) => some(err(())).
+    _coerce(some(X)) => some(done(X)).
   }
 
   public (:=):all a,m/2,e ~~ execution[m] |: (ref a,a) => m[e,()].

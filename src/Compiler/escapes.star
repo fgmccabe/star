@@ -173,8 +173,8 @@ star.compiler.escapes{
   escapeType("_flt2str") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*boolean")])),nomnal("star.core*string"))).
   escapeType("_int_format") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*string")])),nomnal("star.core*string"))).
   escapeType("_flt_format") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float"),nomnal("star.core*string")])),nomnal("star.core*string"))).
-  escapeType("_str2flt") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string")])),nomnal("star.core*float"))).
-  escapeType("_str2int") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string")])),nomnal("star.core*integer"))).
+  escapeType("_str2flt") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string")])),tpExp(tpFun("star.core*option",1),nomnal("star.core*float")))).
+  escapeType("_str2int") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string")])),tpExp(tpFun("star.core*option",1),nomnal("star.core*integer")))).
   escapeType("_str_eq") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),nomnal("star.core*string")])),nomnal("star.core*boolean"))).
   escapeType("_str_lt") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),nomnal("star.core*string")])),nomnal("star.core*boolean"))).
   escapeType("_str_ge") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),nomnal("star.core*string")])),nomnal("star.core*boolean"))).

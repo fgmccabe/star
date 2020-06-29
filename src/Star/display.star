@@ -5,6 +5,6 @@ star.display{
   import star.strings.
 
   public implementation coercion[ss,string] => {
-    _coerce(S) => _str_flatten(S).
+    _coerce(S) => some(_str_flatten(S)).
   }
 }

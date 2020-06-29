@@ -30,7 +30,7 @@ star.json{
   dispSeq([e,..l],Sp,s) => [ss(s),dispJson(e,Sp),..dispSeq(l,Sp,",")].
 
   public implementation coercion[json,string] => {.
-    _coerce(J) => disp(J)::string.
+    _coerce(J) => disp(J):?string.
   .}
 
   break:(integer) => ss.
@@ -56,7 +56,7 @@ star.json{
   equalJson(_,_) => .false.
 
   public implementation coercion[string,json] => {.
-    _coerce(T) where (J,_)^=pJ(skpBlnks(T::cons[integer])) => J.
+    _coerce(T) => parseJson(T).
   .}
 
   public parseJson:(string)=>option[json].

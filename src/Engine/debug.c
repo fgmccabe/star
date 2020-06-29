@@ -95,7 +95,7 @@ static integer cmdCount(char *cmdLine, integer deflt) {
   if (uniStrLen(cmdLine) == 0)
     return deflt;
   else
-    return parseInteger(cmdLine, uniStrLen(cmdLine));
+    return parseInt(cmdLine, uniStrLen(cmdLine));
 }
 
 static processPo focus = NULL;

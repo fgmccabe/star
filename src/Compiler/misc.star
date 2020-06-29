@@ -67,7 +67,7 @@ star.compiler.misc{
   sieve([C,..I]) => [C,..sieve(filterDups(C,I))].
 
   filterDups:(integer,cons[integer])=>cons[integer].
-  filterDups(C,I) => (I^/(X)=>X%C=!=0).
+  filterDups(C,I) => (I^/(X)=>X%C=~=0).
 
   public drop:all e ~~ equality[e] |: (e,cons[e])=>cons[e].
   drop(_,[]) => [].

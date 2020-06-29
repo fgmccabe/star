@@ -10,6 +10,7 @@
 #include <iochnnlP.h>
 #include <consP.h>
 #include <formexts.h>
+#include <optionP.h>
 #include "capabilityP.h"
 #include "manifest.h"
 #include "clock.h"
@@ -44,12 +45,12 @@ int main(int argc, char **argv) {
   }
   initHistory(".star");
   initHeap(initHeapSize);
-  initJit();
   initArith();
   initStr();
   initLbls();
   initGlobals();
   initCons();
+  initOption();
   initCell();
   initCode();
   initLocks();

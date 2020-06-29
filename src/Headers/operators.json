@@ -403,6 +403,16 @@
     "keyword": false
   },
   {
+    "infixOp": "=~=",
+    "priorities": [
+      899,
+      900,
+      899
+    ],
+    "desc": "not equals",
+    "keyword": false
+  },
+  {
     "infixOp": ".=",
     "priorities": [
       899,
@@ -826,6 +836,16 @@
       399
     ],
     "desc": "type coercion",
+    "keyword": true
+  },
+  {
+    "infixOp": ":?",
+    "priorities": [
+      399,
+      400,
+      399
+    ],
+    "desc": "fallable type coercion",
     "keyword": true
   },
   {

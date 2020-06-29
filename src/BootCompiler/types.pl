@@ -1,5 +1,6 @@
 :- module(types,
 	  [isType/1,isConType/2,isFaceType/1,isConstraint/1,varConstraints/3,addConstraint/2,
+	   toLtipe/2,mkTplTipe/2,
 	   netEnumType/2,
 	   newTypeVar/2,skolemVar/2,newTypeFun/3,skolemFun/3,deRef/2,mkTpExp/3,
 	   progTypeArity/2,progArgTypes/2,isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
@@ -357,7 +358,6 @@ stdType("integer",type("star.core*integer"),typeExists(type("star.core*integer")
 stdType("float",type("star.core*float"),typeExists(type("star.core*float"),faceType([],[]))).
 stdType("boolean",type("star.core*boolean"),typeExists(type("star.core*boolean"),faceType([],[]))).
 stdType("string",type("star.core*string"),typeExists(type("star.core*string"),faceType([],[]))).
-stdType("array",tpFun("star.core*array",1),allType(kVar("e"),typeExists(tpExp(tpFun("star.core*array",1),kVar("e")),faceType([],[])))).
 stdType("package",type("star.pkg*pkg"),typeExists(type("star.pkg*pkg"),faceType([],[]))).
 stdType("version",type("star.pkg*version"),typeExists(type("star.pkg*version"),faceType([],[]))).
 
@@ -368,4 +368,26 @@ isFxTp(type("star.core*float")).
 isFxTp(type("star.core*boolean")).
 isFxTp(tupleType(Els)) :- check_implies(misc:is_member(T,Els),types:isFixedSizeType(T)).
 isFxTp(faceType(Flds,_)) :- check_implies(misc:is_member((_,T),Flds),types:isFixedSizeType(T)).
+
+toLtipe(Tp,LTp) :-
+  deRef(Tp,DTp),
+  toLtp(DTp,LTp).
+
+toLtp(type("star.core*integer"),i64Tipe) :- !.
+toLtp(type("star.core*float"),f64Tipe) :- !.
+toLtp(type("star.core*boolean"),blTipe) :- !.
+toLtp(funType(Args,Res),fnTipe(As,R)) :-
+  map(Args,types:toLtipe,As),
+  toLtipe(Res,R).
+toLtp(tupleType(Args),tplTipe(As)) :-
+  map(Args,types:toLtipe,As).
+toLtp(_,ptrTipe).
+
+mkTplTipe(Cnt,tplTipe(As)) :-
+  mkPtrs(Cnt,As),!.
+
+mkPtrs(0,[]).
+mkPtrs(I,[ptrTipe|As]) :-
+  I1 is I-1,
+  mkPtrs(I1,As).
 

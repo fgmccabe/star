@@ -999,6 +999,7 @@ analogously to the @refer{TypeAnnotation}s found in
 @caption{Type Coercion}
 @display
 @anchored{TypeCoercion} ::= @refer{Expression} @code{'::'} @refer{Type}
+  | @refer{Expression} @code{':?'} @refer{Type} 
 @end display
 @end float
 
@@ -1012,7 +1013,7 @@ Type coercion is supported by a special @code{coercion}
 
 @example
 all s,t ~~ contract coercion[s,t] ::= @{
-  _coerce:(s)=>t
+  _coerce:(s) => option[t]
 @}
 @end example
 
@@ -1023,13 +1024,28 @@ X :: integer
 @end example
 is equivalent to the expression: 
 @example
-(_coerce(X) : integer)
+(_optval(_coerce(X)) : integer)
 @end example
 which has the effect of declaring that the
 expression has type @code{integer} and the @code{_coerce} function is an
 overloaded function that references a type-specific implementation --
 based on the source type of @code{X} and @code{integer}.
 @end quotation
+
+The @code{:?} form of coercion expression is used in situations where
+the coercion may @emph{fail}. If the coercion fails then the value
+should be @code{.none}. For example, the coercions of @code{string}
+values to @code{integer} is not guaranteed -- it depends on whether
+the string denotes an integer or not:
+@example
+"fred" :? integer
+@end example
+has value @code{.none}; as does:
+@example
+"34ed" :? integer
+@end example
+The latter is @code{.none} because the coercion from strings to
+integers attempts to make the whole string an integer value.
 
 There are many standard coercions available.  However, it is also
 possible for a programmer to define their own type coercion by

@@ -261,11 +261,11 @@ star.uri{
   getUriPath(relUri(Pth,_)) => dispRsrc(Pth)::string.
 
   public implementation coercion[uri,string] => {.
-    _coerce(U) => disp(U)::string.
+    _coerce(U) => disp(U):?string.
   .}
 
   public implementation coercion[string,uri] => {.
-    _coerce(S) where U^=parseUri(S) => U
+    _coerce(S) => parseUri(S).
   .}
 
   public editUriPath:(uri,(cons[string])=>option[cons[string]])=>option[uri].

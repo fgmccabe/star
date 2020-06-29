@@ -158,7 +158,7 @@ star.ideal{
   }
 
   public implementation all k,v ~~ equality[k],hash[k] |: coercion[cons[(k,v)],map[k,v]] => {
-    _coerce(L) => foldRight(((K,V),M)=>insertIdeal(M,K,V),.ihNil,L).
+    _coerce(L) => some(foldRight(((K,V),M)=>insertIdeal(M,K,V),.ihNil,L)).
   }
 
   public implementation all k,v ~~ coercion[map[k,v],cons[keyval[k,v]]] => let{
@@ -169,7 +169,7 @@ star.ideal{
     consPairs(.nil,L) => L.
     consPairs(cons(Pr,T),L) => consPairs(T,[Pr,..L]).
   } in {
-    _coerce(Tr) => pairs(Tr,[])
+    _coerce(Tr) => some(pairs(Tr,[]))
   }
 
   idealFold:all k,v,u ~~ ((k,v,u)=>u,u,map[k,v]) => u.

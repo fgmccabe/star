@@ -278,6 +278,10 @@
 @tab non-associative prefix
 @tab 900
 @tab import object
+@item @code{=~=}
+@tab non-associative infix
+@tab 900
+@tab not equals
 @item @code{~~}
 @tab right associative infix
 @tab 1240
@@ -386,6 +390,10 @@
 @tab non-associative infix
 @tab 975
 @tab reassignable variable definition
+@item @code{:?}
+@tab non-associative infix
+@tab 400
+@tab fallable type coercion
 @item @code{.<<.}
 @tab left associative infix
 @tab 600

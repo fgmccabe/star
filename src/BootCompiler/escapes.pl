@@ -170,8 +170,8 @@ escapeType("_int2str",funType(tupleType([type("star.core*integer"),type("star.co
 escapeType("_flt2str",funType(tupleType([type("star.core*float"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer"),type("star.core*boolean")]),type("star.core*string"))).
 escapeType("_int_format",funType(tupleType([type("star.core*integer"),type("star.core*string")]),type("star.core*string"))).
 escapeType("_flt_format",funType(tupleType([type("star.core*float"),type("star.core*string")]),type("star.core*string"))).
-escapeType("_str2flt",funType(tupleType([type("star.core*string")]),type("star.core*float"))).
-escapeType("_str2int",funType(tupleType([type("star.core*string")]),type("star.core*integer"))).
+escapeType("_str2flt",funType(tupleType([type("star.core*string")]),tpExp(tpFun("star.core*option",1),type("star.core*float")))).
+escapeType("_str2int",funType(tupleType([type("star.core*string")]),tpExp(tpFun("star.core*option",1),type("star.core*integer")))).
 escapeType("_str_eq",funType(tupleType([type("star.core*string"),type("star.core*string")]),type("star.core*boolean"))).
 escapeType("_str_lt",funType(tupleType([type("star.core*string"),type("star.core*string")]),type("star.core*boolean"))).
 escapeType("_str_ge",funType(tupleType([type("star.core*string"),type("star.core*string")]),type("star.core*boolean"))).

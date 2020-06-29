@@ -13,7 +13,7 @@
 	      isConditional/5,conditional/5,isOfTerm/4,
 	      isEquation/5,isDefn/4,isAssignment/4,isRef/3,assignment/4,eqn/4,eqn/5,
 	      isCurriedRule/5,ruleHead/4,
-	      isWhere/4,isCoerce/4,coerce/4,
+	      isWhere/4,isCoerce/4,coerce/4,isOptCoerce/4,optCoerce/4,
 	      isFieldAcc/4,isIndexTerm/4,isRepl/4,
 	      isSlice/5,isSplice/6,
 	      isOptionPtn/4,isOptionMatch/4,optionMatch/4,
@@ -332,6 +332,10 @@ optionMatch(Lc,Ptn,Exp,Term) :-
 isCoerce(Trm,Lc,Lhs,Rhs) :-  isBinary(Trm,Lc,"::",Lhs,Rhs).
 
 coerce(Lc,Lhs,Rhs,Trm) :- binary(Lc,"::",Lhs,Rhs,Trm).
+
+isOptCoerce(Trm,Lc,Lhs,Rhs) :-  isBinary(Trm,Lc,":?",Lhs,Rhs).
+
+optCoerce(Lc,Lhs,Rhs,Trm) :- binary(Lc,":?",Lhs,Rhs,Trm).
 
 isLiteralInteger(integer(Lc,Ix),Lc,Ix) :-!.
 isLiteralInteger(I,Lc,Nx) :-

@@ -1,12 +1,14 @@
 star.compiler.assem{
   -- Automatically Generated Assembler -- Do NOT Edit
   import star.
+  import star.multi.
   import star.sort.
 
   import star.compiler.location.
-  import star.compiler.multi.
   import star.compiler.terms.
   import star.compiler.types.
+  import star.compiler.ltipe.
+
 
   public codeSegment ::= method(termLbl,tipe,cons[assemOp]) |
     global(termLbl,tipe,cons[assemOp]) |

@@ -272,7 +272,12 @@ bothCont(L,R,D,Dx,End,C,Cx,Stk,Stkx) :-
   call(L,D,D0,End,C,C0,Stk,Stk0),
   call(R,D0,Dx,End,C0,Cx,Stk0,Stkx).
 
-allocCont(Str,D,D,_,[iAlloc(Str),iFrame(intgr(Stk))|Cx],Cx,Stk,Stkx) :-
+frameIns(Stk,iFrame(strg(Sig))) :-
+  mkTplTipe(Stk,FrTp),
+  encLtp(FrTp,Sig).
+
+allocCont(Str,D,D,_,[iAlloc(Str),Frame|Cx],Cx,Stk,Stkx) :-
+  frameIns(Stk,Frame),
   popStack(Str,Stk,Stkx).
 
 resetCont(Lvl,D,D,_,Cx,Cx,Lvl,Lvl) :-!.
@@ -288,21 +293,24 @@ releaseCont(Nm,D,Dx,_,Cx,Cx,Stk,Stk) :-
 asmCont(IOp,Stk0,D,D,_,[IOp|Cx],Cx,_,Stkx) :-
   Stkx is Stk0+1.
 
-escCont(Nm,Stk0,D,D,_,[iEscape(Nm),iFrame(intgr(Stkx))|Cx],Cx,_Stk,Stkx) :-
-  Stkx is Stk0+1.
+escCont(Nm,Stk0,D,D,_,[iEscape(Nm),Frame|Cx],Cx,_Stk,Stkx) :-
+  Stkx is Stk0+1,
+  frameIns(Stkx,Frame).
 
 cllCont(Nm,_Stk0,retCont(_),Opts,Dx,Dx,_,C,Cx,_Stk,none) :-!,
   genDbg(Opts,C,[iTail(Nm)|Cx]).
 cllCont(Nm,Stk0,Cont,Opts,D,Dx,End,C,Cx,_Stk,Stkx) :-
-  genDbg(Opts,C,[iCall(Nm),iFrame(intgr(Stk1))|C0]),
+  genDbg(Opts,C,[iCall(Nm),Frame|C0]),
   Stk1 is Stk0+1,
+  frameIns(Stk1,Frame),
   call(Cont,D,Dx,End,C0,Cx,Stk1,Stkx).
 
 oclCont(Arity,_Stk0,retCont(_),Opts,Dx,Dx,_End,C,Cx,_,none) :-!,
   genDbg(Opts,C,[iOTail(Arity)|Cx]).
 oclCont(Arity,Stk0,Cont,Opts,D,Dx,End,C,Cx,_,Stkx) :-
-  genDbg(Opts,C,[iOCall(Arity),iFrame(intgr(Stk1))|C0]),
+  genDbg(Opts,C,[iOCall(Arity),Frame|C0]),
   Stk1 is Stk0+1,
+  frameIns(Stk1,Frame),
   call(Cont,D,Dx,End,C0,Cx,Stk1,Stkx).
 
 jmpCont(Lbl,D,D,_End,[iJmp(Lbl)|Cx],Cx,Stk,Stk).
@@ -603,12 +611,13 @@ genBoot(Defs,pkg(Pkg,_),[BootCde]) :-
   BootLbl = lbl(BootNm,0),
   is_member(fnDef(_,MainLbl,_,_,_),Defs),!,
   encType(funType(tupleType([]),tupleType([])),Sig),
+  frameIns(0,Frame),
   BootMtd = method(BootLbl,Sig,0,
 		   [iCall(InitLbl),
-		    iFrame(intgr(0)),
+		    Frame,
 		    iEscape("_command_line"),
 		    iCall(MainLbl),
-		    iFrame(intgr(0)),
+		    Frame,
 		    iHalt]),
   assem(BootMtd,BootCde).
 genBoot(_,_,[]).

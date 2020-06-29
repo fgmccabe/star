@@ -18,41 +18,54 @@ star.compiler.peephole{
   .}
 
   public peepOptimize:(cons[assemOp])=>cons[assemOp].
-  peepOptimize(Ins) => peep(Ins).
+--  peepOptimize(Ins) => cleanLbls(trace("drop unused code ",peep(Ins,findTgts(Ins,[])))).
+  peepOptimize(Ins) => peep(Ins,findTgts(Ins,[])).
 
-  peep:(cons[assemOp])=>cons[assemOp].
-  peep([]) => [].
-  peep([iCase(Cx),..Code]) => [iCase(Cx),..copyPeep(Cx,Code)].
-  peep([iJmp(Lb),iLbl(Lb),..Code]) => peep([iLbl(Lb),..Code]).
-  peep([iCall(Lb),iFrame(_),.iRet,..Code]) => [iTail(Lb),..peep(Code)].
-  peep([iOCall(Lb),iFrame(_),.iRet,..Code]) => [iOTail(Lb),..peep(Code)].
-  peep([iRst(_),iRst(D),..Code]) => peep([iRst(D),..Code]).
-  peep([Ins,..Code]) => [Ins,..peep(Code)].
+  -- Low-level optimizations.
+  peep:(cons[assemOp],map[assemLbl,cons[assemOp]])=>cons[assemOp].
+  peep([],_) => [].
+  peep([iCase(Cx),..Code],Map) => [iCase(Cx),..copyPeep(Cx,Code,Map)].
+  peep([iJmp(Lb),iLbl(Lb),..Code],Map) => peep([iLbl(Lb),..Code],Map).
+--  peep([iJmp(Lb),..Code],Map) where [iJmp(XLb),.._]^=Map[Lb] && ~XLb==Lb => peep([iJmp(XLb),..Code],Map).
+  peep([iCall(Lb),iFrame(_),.iRet,..Code],Map) => [iTail(Lb),..peep(Code,Map)].
+  peep([iOCall(Lb),iFrame(_),.iRet,..Code],Map) => [iOTail(Lb),..peep(Code,Map)].
+  peep([iRst(_),iRst(D),..Code],Map) => peep([iRst(D),..Code],Map).
+  peep([Ins,..Code],Map) => [Ins,..peep(Code,Map)].
 
-  copyPeep(0,Code) => peep(Code).
-  copyPeep(Cx,[iJmp(Lb),..Code]) => [iJmp(Lb),..copyPeep(Cx-1,Code)].
+  copyPeep(0,Code,Map) => peep(Code,Map).
+  copyPeep(Cx,[iJmp(Lb),..Code],Map) => [iJmp(Lb),..copyPeep(Cx-1,Code,Map)].
 
-  findAllLbls:(cons[assemOp],set[assemLbl]) => set[assemLbl].
-  findAllLbls([],Lbls) => Lbls.
-  findAllLbls([iJmp(Lb),..Ins],Lbls) => findAllLbls(Ins,Lbls\+Lb).
-  findAllLbls([iCLbl(Lb),..Ins],Lbls) => findAllLbls(Ins,Lbls\+Lb).
-  findAllLbls([iICmp(Lb),..Ins],Lbls) => findAllLbls(Ins,Lbls\+Lb).
-  findAllLbls([iFCmp(Lb),..Ins],Lbls) => findAllLbls(Ins,Lbls\+Lb).
-  findAllLbls([iCmp(Lb),..Ins],Lbls) => findAllLbls(Ins,Lbls\+Lb).
-  findAllLbls([iBf(Lb),..Ins],Lbls) => findAllLbls(Ins,Lbls\+Lb).
-  findAllLbls([iBt(Lb),..Ins],Lbls) => findAllLbls(Ins,Lbls\+Lb).
-  findAllLbls([iThrow(Lb),..Ins],Lbls) => findAllLbls(Ins,Lbls\+Lb).
-  findAllLbls([iUnwind(Lb),..Ins],Lbls) => findAllLbls(Ins,Lbls\+Lb).
-  findAllLbls([_,..Ins],Lbls) => findAllLbls(Ins,Lbls).
+  findTgts:(cons[assemOp],map[assemLbl,cons[assemOp]]) => map[assemLbl,cons[assemOp]].
+  findTgts([],M) => M.
+  findTgts([iLbl(Lb),..Ins],Tgts) => findTgts(Ins,Tgts[Lb->Ins]).
+  findTgts([I,..Ins],Tgts) => findTgts(Ins,Tgts).
+
+  findJumps:(cons[assemOp],set[assemLbl]) => set[assemLbl].
+  findJumps([],Lbls) => Lbls.
+  findJumps([iJmp(Lb),..Ins],Lbls) => findJumps(Ins,Lbls\+Lb).
+  findJumps([iCLbl(Lb),..Ins],Lbls) => findJumps(Ins,Lbls\+Lb).
+  findJumps([iICmp(Lb),..Ins],Lbls) => findJumps(Ins,Lbls\+Lb).
+  findJumps([iFCmp(Lb),..Ins],Lbls) => findJumps(Ins,Lbls\+Lb).
+  findJumps([iCmp(Lb),..Ins],Lbls) => findJumps(Ins,Lbls\+Lb).
+  findJumps([iBf(Lb),..Ins],Lbls) => findJumps(Ins,Lbls\+Lb).
+  findJumps([iBt(Lb),..Ins],Lbls) => findJumps(Ins,Lbls\+Lb).
+  findJumps([iCV(Lb),..Ins],Lbls) => findJumps(Ins,Lbls\+Lb).
+  findJumps([iThrow(Lb),..Ins],Lbls) => findJumps(Ins,Lbls\+Lb).
+  findJumps([iUnwind(Lb),..Ins],Lbls) => findJumps(Ins,Lbls\+Lb).
+  findJumps([_,..Ins],Lbls) => findJumps(Ins,Lbls).
 
   deleteUnusedLbls:(cons[assemOp],set[assemLbl]) => cons[assemOp].
   deleteUnusedLbls([],_) => [].
   deleteUnusedLbls([iLbl(Lb),..Ins],Lbls) =>
     (Lb.<.Lbls ?
 	[iLbl(Lb),..deleteUnusedLbls(Ins,Lbls)] ||
-	deleteUnusedLbls(Ins,Lbls)).
+	deleteUnusedLbls(trace("$(Lb) dropped ",dropUntilLbl(trace("drop $(Lb) ",Ins))),Lbls)).
   deleteUnusedLbls([I,..Ins],Lbls) => [I,..deleteUnusedLbls(Ins,Lbls)].
 
+  dropUntilLbl([]) => [].
+  dropUntilLbl([iLbl(L),..Ins]) => [iLbl(L),..Ins].
+  dropUntilLbl([_,..Ins]) => dropUntilLbl(Ins).
+
   cleanLbls:(cons[assemOp])=>cons[assemOp].
-  cleanLbls(Ins) => deleteUnusedLbls(Ins,findAllLbls(Ins,[])).
+  cleanLbls(Ins) => deleteUnusedLbls(Ins,findJumps(Ins,[])).
 }

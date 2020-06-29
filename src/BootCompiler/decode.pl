@@ -58,7 +58,6 @@ decodeType(kVar(Nm)) --> ['k'], decodeText(Nm).
 decodeType(kFun(Nm,Ar)) --> ['K'], typeLen(Ar), decodeText(Nm).
 decodeType(type(Nm)) --> ['t'], decodeText(Nm).
 decodeType(tpFun(Nm,Ar)) --> ['z'], typeLen(Ar), decodeText(Nm).
-decodeType(tpExp(tpFun("star.core*array",1),ElTp)) --> ['A'], decodeType(ElTp).
 decodeType(tpExp(Op,ArgType)) --> ['U'], decodeType(Op), decodeType(ArgType).
 decodeType(refType(Tp)) --> ['r'], decodeType(Tp).
 decodeType(allType(TV,Tp)) --> [':'], decodeType(TV), decodeType(Tp).

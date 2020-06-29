@@ -44,15 +44,15 @@ star.strings{
   }
 
   public implementation coercion[string,cons[integer]] => {
-    _coerce(S) => _explode(S).
+    _coerce(S) => some(_explode(S)).
   }
 
   public implementation coercion[cons[integer],string] => {
-    _coerce(L) => _implode(L).
+    _coerce(L) => some(_implode(L)).
   }
 
   public implementation coercion[string,string] => {
-    _coerce(S) => S.
+    _coerce(S) => some(S).
   }
 
   -- Stream and sequence contracts

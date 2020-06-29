@@ -5,7 +5,7 @@ star.script{
   public scriptMsg ::= scriptError(locn,string).
 
   public implementation coercion[scriptMsg,string] => {.
-    _coerce(scriptError(Lc,Msg)) => "Failed: #(Msg) at $(Lc)"
+    _coerce(scriptError(Lc,Msg)) => some("Failed: #(Msg) at $(Lc)")
   .}
 
   public assrt:all m/2,e ~~ execution[m], coercion[scriptMsg,e] |: (()=>boolean,string,locn) => m[e,()].
