@@ -38,7 +38,7 @@ star.resources{
 	  _file_present(P1) => some(RU).
       searchFor(C) where
 	  PU ^= resolveUri(C,P) &&
-	  P1 .= getUriPath(PU) && P1=!="/" =>
+	  P1 .= getUriPath(PU) && P1=~="/" =>
 	searchFor(PU).
       searchFor(_) default => .none
     } in searchFor(U).

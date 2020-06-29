@@ -7,7 +7,7 @@ test.ts{
   import test.fact.
 
   implementation all a,b ~~ coercion[a,string],coercion[b,string] |: coercion[(a,b),string] =>{.
-    _coerce((X,Y)) => "("++X::string++","++Y::string++")"
+    _coerce((X,Y)) => some("("++X::string++","++Y::string++")")
   .}
 
   testl2 = valof action{
@@ -47,7 +47,7 @@ test.ts{
     try{
       assert fact(3)==6;
       show fact(5);
-      assert fact(2)=!=fact(4)
+      assert fact(2)=~=fact(4)
     } catch {
       logMsg("something went wrong")
     }

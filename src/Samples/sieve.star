@@ -5,7 +5,7 @@ sample.sieve{
   primes:(integer) => list[integer].
   primes(Max) => let{
     cascade:((integer)=>boolean,integer) => ((integer)=>boolean).
-    cascade(F,K) => (X)=>(F(X) && X%K=!=0).
+    cascade(F,K) => (X)=>(F(X) && X%K=~=0).
 
     step(X,(P,F)) where F(X) => ([X,..P],cascade(F,X)).
     step(_,(P,F)) => (P,F).
