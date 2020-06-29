@@ -26,7 +26,7 @@
     "star.location" : "location.star",
     "star.repo.manifest": "manifest.star",
     "star.monad": "monad.star",
-    "star.option": "option.star",
+    "star.multi": "multi.star",
     "star.option": "option.star",
     "star.parse": "parse.star",
     "star.pkg": "pkg.star",
