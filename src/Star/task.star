@@ -38,18 +38,18 @@ star.task{
 	    taskFailure(E) => taskContinue(H(E))
 	  }).
 
-    doStep:all e,a,b,f ~~ (action[e,task[e,a]],task[e,a])=>option[a].
-    doStep(resume,A) => valof action{
+    doStep:all e,a,b,f ~~ ((task[e,a])=>(),task[e,a])=>option[a].
+    doStep(resume,_task(A)) => valof action{
       curr .= ref A;
       dun .= ref .false;
       res .= ref .none;
       while ~dun! do{
-	case (curr!)(A) in {
+	case (curr!)() in {
 	  taskDone(R) => {
 	    dun := .true;
 	    res := some(R)
 	  }
-	  taskContinue(C) => {
+	  taskContinue(_task(C)) => {
 	    curr := C
 	  }
 	  taskWait(Start,K) => {
@@ -58,8 +58,15 @@ star.task{
 	  }
 	}
       };
-      valis res
+      valis res!
     }
+
+    doWait:all e,a,b ~~ ((task[e,a])=>action[e,a],((a)=>action[e,a])=>action[e,a],
+      (a)=>task[e,b])=>action[e,a].
+    doWait(resume,start,k) =>
+      start((V)=>do{
+	  resume(k(v))
+	}).
   } in {
     _valis(X) => _task(()=>taskDone(X)).
     _sequence = taskStep.
