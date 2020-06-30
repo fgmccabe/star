@@ -11,7 +11,7 @@ labelPo someCons;
 
 void initOption() {
   noneEnum = declareLbl("star.core#none", 0);
-  someCons = declareLbl("star.core#cons", 2);
+  someCons = declareLbl("star.core#some", 1);
 }
 
 normalPo wrapSome(heapPo H, termPo lhs) {

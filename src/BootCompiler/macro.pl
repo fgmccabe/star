@@ -86,7 +86,7 @@ list_pttrn(Lc,[],Arg) :-
   isSquareTuple(Arg,Lc,[]),!.
 list_pttrn(Lc,Ts,Arg) :-
   reComma(Ts,As),
-  isSquareTuple(Arg,Lc,As).
+  isSquareTuple(Arg,Lc,[As]).
 
 synthesizeConDisplay(Dspr,ATp,T,[Eqn|Eqs],Eqs) :-
   isRoundTerm(T,Lc,Nm,ElTps),!,
