@@ -1,6 +1,5 @@
 sample.main{
   import star.
-  import star.script.
 
   import sample.factorial.
 

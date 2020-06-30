@@ -57,8 +57,8 @@ star.compiler.macro{
   macroPkg(A,Rp) => macroAst(A,.package,examinePkg,Rp).
 
   examinePkg(A,Rp) where (Lc,O,Els) ^= isBrTerm(A) => do{
-    Ss <- macroStmts(Els,Rp);
-    valis mkLabeledTheta(Lc,O,buildMain(Ss))
+    Ss <- macroStmts(buildMain(Els),Rp);
+    valis mkLabeledTheta(Lc,O,Ss)
   }
 
   macroStmts:(cons[ast],reports)=>either[reports,cons[ast]].
@@ -737,15 +737,72 @@ star.compiler.macro{
       (_,Id) ^= isName(N) => some((Lc,Id,.pUblic,Tp)).
   isTypeAnnot(_) default => .none.
 
+  /*
+  _main([A1,..,An]) => valof do{
+    if X1^=A1:?T1 then{
+      if X2^=A2:?T2 then {
+        ...
+        valis main(X1,..,Xn)
+      } else
+      logMsg("cannot coerce $(A2) to T2")
+    } else{
+      logMsg("Cannot coerce $(A1) to T1")
+    }
+  }
+*/
+
   synthesizeMain:(locn,ast,cons[ast])=>cons[ast].
   synthesizeMain(Lc,Tp,Defs) where (_,Lhs,Rhs) ^= isFunctionType(Tp) && (_,ElTps)^=isTuple(Lhs) => valof action{
-    (Vs,Cs) .= synthesizeCoercions(ElTps,Lc);
-    MLhs .= roundTerm(Lc,nme(Lc,"_main"),[Vs]);
-    MRhs .= roundTerm(Lc,nme(Lc,"main"),Cs);
-    Main .= equation(Lc,MLhs,unary(Lc,"_perform",MRhs));
+    (Action,As) <- synthCoercion(Lc,ElTps,[]);
+    
+--    (Vs,Cs) .= synthesizeCoercions(ElTps,Lc);
+    MLhs .= roundTerm(Lc,nme(Lc,"_main"),[mkConsPtn(Lc,As)]);
+    Valof .= unary(Lc,"valof",
+      unary(Lc,"do",brTuple(Lc,[Action])));
+    Main .= equation(Lc,MLhs,Valof);
     Annot .= binary(Lc,":",nme(Lc,"_main"),equation(Lc,rndTuple(Lc,[squareTerm(Lc,nme(Lc,"cons"),[nme(Lc,"string")])]),rndTuple(Lc,[])));
     valis [unary(Lc,"public",Annot),Main,..Defs].
   }
+
+/*
+  if X^=A:?T then {
+  valis main(X1,..,Xn)
+  } else
+  logMsg("cannot coerce $(A) to T")
+
+*/  
+  synthCoercion:(locn,cons[ast],cons[ast])=>action[(),(ast,cons[ast])].
+  synthCoercion(_,[Tp,..Ts],Xs)  => do{
+    Lc .= locOf(Tp);
+    X .= genName(Lc,"X");
+    A .= genName(Lc,"A");    
+    PRhs .= binary(Lc,":?",A,Tp);
+    Tst .= binary(Lc,"^=",X,PRhs); -- some(X).=_coerce(A):T
+    Emsg .= unary(Lc,"logMsg",
+      unary(Lc,"_optval",
+	unary(Lc,"_coerce",
+	  unary(Lc,"ssSeq",
+	    binary(Lc,"cons",
+	      mSS(Lc,"cannot coerce "),
+	      binary(Lc,"cons",
+		unary(Lc,"ss",A),
+		binary(Lc,"cons",
+		  mSS(Lc," to "),
+		  binary(Lc,"cons",
+		    mSS(Lc,disp(Tp)::string),
+		    enum(Lc,"nil")))))))));
+    (Inner,As) <- synthCoercion(Lc,Ts,[X,..Xs]);
+    valis (mkIfThenElse(Lc,Tst,Inner,Emsg),[A,..As])
+  }
+  synthCoercion(Lc,[],Xs) => do{
+    valis (roundTerm(Lc,nme(Lc,"main"),reverse(Xs)),[])
+  }
+
+  mSS(Lc,Txt) => unary(Lc,"ss",str(Lc,Txt)).
+
+  mkConsPtn:(locn,cons[ast]) => ast.
+  mkConsPtn(Lc,[]) => enum(Lc,"nil").
+  mkConsPtn(Lc,[E,..Es]) => binary(Lc,"cons",E,mkConsPtn(Lc,Es)).
 
   synthesizeCoercions:(cons[ast],locn)=> (ast,cons[ast]).
   synthesizeCoercions([],Lc) => (enum(Lc,"nil"),.nil).

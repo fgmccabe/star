@@ -95,7 +95,6 @@ executable package. To use it we need to import it into one that has a
 @example
 sample.main@{
   import star.
-  import star.script.
   import sample.factorial.
 
   main:(integer)=>action[(),()].
@@ -116,15 +115,25 @@ $
 If you are used to other programming languages, you might have spotted
 something a little unusual here: the type signature for @code{main}
 denotes a function that accepts an @code{integer} and returns an
-@code{action}. We will explore actions further in @ref{The `M' Word};
+@code{action}. We will explore actions further in @c@ref{The `M' Word};
 but I would like to point something else out here: @code{main} accepts
 an @code{integer} whereas the main program in most other programming
 languages looks like an array of string values.
 
 @Star{} takes the signature for @code{main} and makes sure that the
-command line arguments can be coerced to the appropriate types.
+command line arguments can be coerced to the appropriate types. If the
+actual argument is not coercible to the required type you will see an
+error message when you run the program:
+@example
+$ star sample.main fred
+cannot coerce fred to integer
+@end example
 
-
+@quotation Note:
+It is still possible to access all the command line arguments, like a
+traditional command line tool -- just define the function @code{_main}
+instead.
+@end quotation
 
 @node Texture
 @section Texture
