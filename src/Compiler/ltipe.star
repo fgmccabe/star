@@ -6,6 +6,18 @@ star.compiler.ltipe{
 
   public ltipe ::= .int64 | .flt64 | .bool | .ptr | funTipe(cons[ltipe],ltipe) | tplTipe(cons[ltipe]) .
 
+  public implementation display[ltipe] => let{
+    showTp:(ltipe) => ss.
+    showTp(.int64) => ss("int64").
+    showTp(.flt64) => ss("flt64").
+    showTp(.bool) => ss("bool").
+    showTp(.ptr) => ss("ptr").
+    showTp(funTipe(As,R)) => ssSeq([ss("("),showTp(tplTipe(As)),ss(")->"),showTp(R)]).
+    showTp(tplTipe(As)) => ssSeq([ss("("),ssSeq(interleave(As//showTp,ss(","))),ss(")")]).
+  } in {
+    disp = showTp
+  }
+
   public implementation coercion[ltipe,string] => {.
     _coerce(T) => (encLt(T)::cons[integer]):?string
   .}
@@ -33,4 +45,6 @@ star.compiler.ltipe{
   encLt(.ptr) => [0cp].
   encLt(funTipe(As,R)) => [0cF,..encLt(tplTipe(As))]++encLt(R).
   encLt(tplTipe(As)) => ([0c\(]++multi(As//encLt)++[0c\)]).
+
+
 }
