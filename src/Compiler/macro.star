@@ -785,7 +785,7 @@ star.compiler.macro{
 	    binary(Lc,"cons",
 	      mSS(Lc,"cannot coerce "),
 	      binary(Lc,"cons",
-		unary(Lc,"ss",A),
+		unary(Lc,"disp",A),
 		binary(Lc,"cons",
 		  mSS(Lc," to "),
 		  binary(Lc,"cons",
