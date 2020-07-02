@@ -21,6 +21,23 @@ expressed functionally, and that functional programming is often at
 least as efficient and sometimes more efficient than procedural
 programming.
 
+Functional programming is also @emph{new} in a way that may be
+surprising. As a paradigm, functional programming encourages a
+different approach to programming. In particular, for many functional
+programmers, the focus is on @emph{data transformation} rather than
+@emph{making recipies}.
+
+In recent years some extremeley impressive advances have been made on
+@emph{how to program}; in particular the use of monads and related
+concepts represent quite advanced programming
+techniques.@footnote{While we will explore monads, we will likely not
+touch on other more advanced topics in this book.}
+
+This leads to an emphasis on @emph{composition} and @emph{generality}
+-- often over optimization of individual elements. We trust the
+compiler's optimization strategies to pull the rabbit out of the hat
+when it comes to performance.
+
 In this chapter we will show how we can utilize @Star{} as a vehicle
 for functional programming. As a side-goal, we also hope to demystify
 some of the language and ideas found in functional programming.
@@ -37,7 +54,7 @@ mathematical view of functions is taken; i.e., functions always
 produce the same output for the same input.
 
 This is what people mean when they say that functional programs are
-@emph{declarative}.@footnote{The term declarative has a technical
+@emph{declarative}.@footnote{The term `declarative' has a technical
 definition; but this captures much of the essence of declarativeness
 (sic).}
 
@@ -53,10 +70,11 @@ say that functional programming languages are @emph{higher order}.
 
 It is worth asking why these two principles are so important. Although
 most early programmers were mathematicians; the extreme constraints
-imposed by early machines meant that one might not have seen much
-evidence of mathematical thinking in those early programs. However,
-almost by accident, programming and mathematics share some attributes:
-the importance of @emph{composition} and the power of
+imposed by early machines meant those early programs were far from
+functional in style.
+
+However, almost by accident, programming and mathematics share some
+attributes: the importance of @emph{composition} and the power of
 @emph{abstraction}. Functional programming is almost ideally placed to
 exploit both of these to the full.
 
@@ -107,7 +125,7 @@ sign(0) => 0.
 sign(X) => 1.
 @end example
 
-There is something somewhat unsatsifying about that third equation --
+There is something somewhat unsatisfying about that third equation --
 it is not actually always true -- and it depends on the previous
 equations not applying for its meaning. We address this by using the
 concept of a @emph{default} case: i.e., an equation that should be
