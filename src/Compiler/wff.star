@@ -4,7 +4,6 @@ star.compiler.wff{
   import star.topsort.
 
   import star.compiler.ast.
-  import star.compiler.ast.display.
   import star.compiler.errors.
   import star.compiler.misc.
   import star.compiler.location.
@@ -15,6 +14,7 @@ star.compiler.wff{
   isName(nme(Lc,Id)) where ~ keyword(Id) => some((Lc,Id)).
   isName(qnm(Lc,Id)) => some((Lc,Id)).
   isName(tpl(_,"()",[nme(Lc,Id)])) => some((Lc,Id)).
+  isName(tpl(_,"()",[qnm(Lc,Id)])) => some((Lc,Id)).
   isName(_) default => .none.
 
   public isKeyword:(ast) => option[(locn,string)].

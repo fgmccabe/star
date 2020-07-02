@@ -1,8 +1,8 @@
 {
   "content": {
+    "star.compiler.asm" : "asm.star",
     "star.compiler.assem" : "assem.star",
     "star.compiler.ast": "ast.star",
-    "star.compiler.ast.display": "astdisp.star",
     "star.compiler.catalog": "catalog.star",
     "star.compiler": "driver.star",
     "star.compiler.canon": "canon.star",

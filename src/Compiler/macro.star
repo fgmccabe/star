@@ -3,7 +3,6 @@ star.compiler.macro{
   import star.sort.
 
   import star.compiler.ast.
-  import star.compiler.ast.display.
   import star.compiler.errors.
   import star.compiler.misc.
   import star.compiler.location.
@@ -17,6 +16,7 @@ star.compiler.macro{
     "[]" -> [(.pattern,makeSeqPtn),
       (.expression,macroListComprehension),
       (.expression,makeSeqExp)],
+    "<||>" -> [(.expression,macroQuote)],
     "::" -> [(.expression,macroCoercion)],
     ":?" -> [(.expression,macroCoercion)],
     "{}" -> [(.expression,macroComprehension)],
@@ -531,10 +531,26 @@ star.compiler.macro{
     (Qs,Xs,Face) <- algebraicFace(R,Q,[],Rp);
     TpExSt .= reveal(reUQuant(Lc,Qs,reConstrain(Cx,binary(Lc,"<~",H,reXQuant(Lc,Xs,brTuple(Lc,sort(Face,compEls)))))),Vz);
     Cons <- buildConstructors(R,Q,Cx,H,Vz,Rp);
-    Ixx .= buildConIndices(R,[]);
---    logMsg("constructor indices $(Ixx)");
+--    Acc .= genAccessFuns(buildConIndices(R,[]),conArities(R,[]),Lc,Nm);
+--    logMsg("access functions for $(Nm) $(Acc)");
     valis [TpExSt,..Cons]
   }
+
+  genAccessFuns:(map[string,map[string,integer]],map[string,integer],locn,string) => cons[ast].
+  genAccessFuns(Ixx,Axx,Lc,Nm) => ixLeft((FNm,ConMap,Defs) =>
+      genAccessFn(FNm,Lc,ConMap,Nm,Axx)++Defs,[],Ixx).
+
+  genAccessFn:(string,locn,map[string,integer],string,map[string,integer]) => cons[ast].
+  genAccessFn(FldNm,Lc,ConMap,Nm,Axx) where FNm.=qualifiedName(Nm,.conMark,FldNm) =>
+    ixLeft((RcNm,Off,Eqs) where X.=nme(Lc,"X") =>
+	[equation(Lc,roundTerm(Lc,nme(Lc,FNm),[rcPtn(Lc,RcNm,Axx[RcNm],Off,X)]),X),..Eqs],[],ConMap).
+
+  rcPtn:(locn,string,option[integer],integer,ast) => ast.
+  rcPtn(Lc,RcNm,some(Ar),Off,V) => roundTerm(Lc,nme(Lc,RcNm),anonArgs(Lc,0,Ar,Off,V)).
+
+  anonArgs(_,Mx,Mx,_,_) => [].
+  anonArgs(Lc,Off,Mx,Off,V) => [V,..anonArgs(Lc,Off+1,Mx,Off,V)].
+  anonArgs(Lc,Ix,Mx,Off,V) => [anon(Lc),..anonArgs(Lc,Ix+1,Mx,Off,V)].
 
   algebraicFace:(ast,cons[ast],cons[ast],reports) =>
     either[reports,(cons[ast],cons[ast],cons[ast])].
@@ -581,17 +597,29 @@ star.compiler.macro{
     }
   }
 
+  conArities:(ast,map[string,integer]) => map[string,integer].
+  conArities(A,Axx) where (Lc,L,R) ^= isBinary(A,"|") =>
+    conArities(L,conArities(R,Axx)).
+  conArities(A,Axx) where (_,Nm,_,_,Els) ^= isBraceCon(A) =>
+    Axx[Nm->size(Els)].
+  conArities(_,Axx) default => Axx.
+
   buildConIndices:(ast,map[string,map[string,integer]]) => map[string,map[string,integer]].
   buildConIndices(A,Ixx) where (Lc,L,R) ^= isBinary(A,"|") =>
     buildConIndices(L,buildConIndices(R,Ixx)).
   buildConIndices(A,Ixx) where (Lc,Nm,XQs,XCx,Els) ^= isBraceCon(A) =>
-    Ixx[Nm->fst(foldLeft((El,(Mp,Ix)) => buildConIx(El,Mp,Ix),([],0),
-	  sort(Els,compEls)))].
+    buildConIx(Els,Nm,Ixx).
   buildConIndices(_,Ixx) default => Ixx.
 
-  buildConIx:(ast,map[string,integer],integer)=>(map[string,integer],integer).
-  buildConIx(El,Mp,Ix) where (_,Id,_,_) ^= isTypeAnnot(El) => (Mp[Id->Ix],Ix+1).
-  buildConIx(_,Mp,Ix) default => (Mp,Ix).
+  buildConIx:(cons[ast],string,map[string,map[string,integer]])=>map[string,map[string,integer]].
+  buildConIx(Els,Nm,Ixx) =>
+    fst(foldLeft((El,(Mp,Ix)) where
+	    (_,FNm,_,_) ^= isTypeAnnot(El) =>
+	  (Mp[FNm->recordIx(Mp[FNm],Nm,Ix)],Ix+1),(Ixx,0),sort(Els,compEls))).
+
+  recordIx:(option[map[string,integer]],string,integer) => map[string,integer].
+  recordIx(some(NIx),Rc,Off) => NIx[Rc->Off].
+  recordIx(.none,Rc,Off) => [Rc->Off].
 
   buildConstructors:(ast,cons[ast],cons[ast],ast,visibility,reports)=>either[reports,cons[ast]].
   buildConstructors(A,Qs,Cx,Tp,Vz,Rp) where
@@ -663,6 +691,8 @@ star.compiler.macro{
       (_,Nm,Q,_,Els) ^= isCon(I,P) =>
     some((Lc,Nm,Q,Cx,Els)).
   isCon(_,_) default => .none.
+
+
     
   makeSeqPtn(A,.pattern,Rp) where (Lc,Els) ^= isSqTuple(A) =>
     either(active(macroSquarePtn(Lc,Els))).
@@ -706,6 +736,22 @@ star.compiler.macro{
   macroCoercion(A,.expression,Rp) where (Lc,L,R) ^= isOptCoerce(A) =>
     either(active(typeAnnotation(Lc,unary(Lc,"_coerce",L),sqUnary(Lc,"option",R)))).
   macroCoercion(_,_,_) => either(.inactive).
+
+
+  macroQuote(A,.expression,Rp) where (Lc,Trm) ^= isQuoted(A) =>
+    either(active(quoteAst(A))).
+  macroQuote(_,_,_) => either(.inactive).
+
+  -- quoteAst creates an ast that checks to a quoted form of the ast itself
+  quoteAst(E) where (_,X) ^= isUnary(E,"?") => X.
+  quoteAst(nme(Lc,Nm)) => binary(Lc,"nme",Lc::ast,str(Lc,Nm)).
+  quoteAst(qnm(Lc,Nm)) => binary(Lc,"qnm",Lc::ast,str(Lc,Nm)).
+  quoteAst(int(Lc,Nx)) => binary(Lc,"int",Lc::ast,int(Lc,Nx)).
+  quoteAst(num(Lc,Nx)) => binary(Lc,"num",Lc::ast,num(Lc,Nx)).
+  quoteAst(str(Lc,Sx)) => binary(Lc,"str",Lc::ast,str(Lc,Sx)).
+  quoteAst(tpl(Lc,Nm,Els)) => ternary(Lc,"tpl",Lc::ast,str(Lc,Nm),tpl(Lc,"()",Els//quoteAst)).
+  quoteAst(app(Lc,Op,Arg)) => ternary(Lc,"app",Lc::ast,quoteAst(Op),quoteAst(Arg)).
+  
   
   public reconstructDisp:(ast)=>ast.
   reconstructDisp(C) where (Lc,Ex,Tp) ^= isCoerce(C) && (_,"string") ^= isName(Tp) => let{

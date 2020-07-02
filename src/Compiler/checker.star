@@ -5,7 +5,6 @@ star.compiler.checker{
   import star.repo.
 
   import star.compiler.ast.
-  import star.compiler.ast.display.
   import star.compiler.canon.
   import star.compiler.canondeps.
   import star.compiler.dependencies.
