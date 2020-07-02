@@ -1149,5 +1149,12 @@
     "right": "|)",
     "priority": 2000,
     "desc": "banana brackets"
+  },
+  {
+    "bracket": "<||>",
+    "left": "<|",
+    "right": "|>",
+    "priority": 2000,
+    "desc": "meta quote"
   }
 ]

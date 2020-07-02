@@ -128,6 +128,7 @@
   operator(">=", [infixOp(899, 900, 899)]).
   operator(">>", [infixOp(949, 950, 950)]).
 
+  bracket("<||>", "<|", "|>", 2000).
   bracket("{..}", "{.", ".}", 2000).
   bracket("[]", "[", "]", 2000).
   bracket("()", "(", ")", 2000).
@@ -203,6 +204,7 @@
   follows('{','.','{.').
   follows('|',':','|:').
   follows('|','|','||').
+  follows('|','>','|>').
   follows('|',')','|)').
   follows('~','~','~~').
   follows('~','>','~>').
@@ -223,6 +225,7 @@
   follows('<','$','<$').
   follows('<','-','<-').
   follows('<','<','<<').
+  follows('<','|','<|').
   follows('<','=','<=').
   follows('<*','>','<*>').
   follows('<<','-','<<-').
@@ -280,6 +283,7 @@
   final('|',"|").	 /* type union, conditional, and abstraction */
   final('|:',"|:").	 /* constrained type */
   final('||',"||").	 /* disjunction */
+  final('|>',"|>").	 /* meta quote */
   final('|)',"|)").	 /* banana brackets */
   final('}',"}").	 /* braces */
   final('~',"~").	 /* logical negation */
@@ -309,6 +313,7 @@
   final('<$',"<$").	 /* constant replace */
   final('<-',"<-").	 /* variable bind */
   final('<<-',"<<-").	 /* record replacement */
+  final('<|',"<|").	 /* meta quote */
   final('<=>',"<=>").	 /* constructor arrow */
   final('=',"=").	 /* definition */
   final('=~=',"=~=").	 /* not equals */
