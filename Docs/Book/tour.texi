@@ -115,10 +115,10 @@ $
 If you are used to other programming languages, you might have spotted
 something a little unusual here: the type signature for @code{main}
 denotes a function that accepts an @code{integer} and returns an
-@code{action}. We will explore actions further in @c@ref{The `M' Word};
-but I would like to point something else out here: @code{main} accepts
-an @code{integer} whereas the main program in most other programming
-languages looks like an array of string values.
+@code{action}. We will explore actions further in <The M Word>; but we should
+point something else out here: @code{main} accepts an @code{integer}
+whereas the main program in most other programming languages looks
+like an array of string values.
 
 @Star{} takes the signature for @code{main} and makes sure that the
 command line arguments can be coerced to the appropriate types. If the
@@ -126,10 +126,10 @@ actual argument is not coercible to the required type you will see an
 error message when you run the program:
 @example
 $ star sample.main fred
-cannot coerce fred to integer
+cannot coerce "fred" to integer
 @end example
 
-@quotation Note:
+@quotation Note
 It is still possible to access all the command line arguments, like a
 traditional command line tool -- just define the function @code{_main}
 instead.
@@ -164,16 +164,19 @@ would be obscure and/or is not common.
 For example, in the factorial module, we use braces for grouping; but
 we also use the @code{import} and the @code{where} keywords. The
 rationale here is that programmers have become used to seeing braces
-for grouping statements;@footnote{Those who remember Pascal@footnote{Or Algol 60} will
-understand that braces are not the only way of grouping statements.}
-whereas the import and where elements are somewhat rarer.
+for grouping statements;@footnote{Those who remember
+Pascal@footnote{Or Algol 60} will understand that braces are not the
+only way of grouping statements.}  whereas the import and where
+elements are somewhat rarer.
 
 Notice that every statement is terminated with a period. This is one
 of those places where a little redundancy can help when building large
 programs: the statement terminator is not technically necessary; but
 it helps to reduce the scope of error messages.@footnote{We use the
 period rather than the commonly used semi-colon because @Star{}
-statements are statements, not instructions to perform in sequence.}
+statements are statements, not instructions to perform in sequence. On
+the other hand, there @emph{are} actions; and they are separated by
+semi-colons.}
 
 @quotation NOTE
 The precise rule is slightly more nuanced: a period is required to
