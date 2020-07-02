@@ -5,10 +5,9 @@
  * Command line option flags
  */
 
-#include <pkgP.h>
 #include "config.h"
+#include "io.h"
 #include "starOptions.h"
-#include "pkgP.h"
 
 #ifdef ALLTRACE
 #define TRACEMEM
@@ -32,13 +31,10 @@
 extern char *copyright;
 
 extern char bootEntry[MAX_SYMB_LEN];
-extern PackageRec bootPkge;
-
 extern char CWD[MAXFILELEN];
 extern char repoDir[MAXFILELEN];
 
 int getEngineOptions(int argc, char **argv);
 char *defltCWD();
-
 
 #endif

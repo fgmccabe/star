@@ -23,6 +23,12 @@ static inline PackageRec makePkg(char *name,char *vers){
   return pkg;
 }
 
+extern packagePo loadedPackage(const char *package);
+extern char *loadedVersion(char *package);
+
+extern packagePo markLoaded(char *package, char *version);
+extern logical isLoadedPackage(packagePo pkg);
+
 extern retCode dispPkgNm(ioPo f, void *data, long depth, long precision, logical alt);
 
 extern tracingLevel tracePkg;

@@ -40,7 +40,7 @@ set(HEADER_FILES
         Headers/struct.h Headers/structP.h
         Headers/thr.h Headers/thrP.h
         Headers/repoP.h Headers/repo.h
-        Headers/verify.h Headers/verifyP.h Headers/srcmap.h Headers/srcmapP.h Headers/debugP.h Headers/capability.h Headers/capabilityP.h Headers/asm.h Headers/codegen.h Headers/consP.h Headers/option.h Headers/optionP.h)
+        Headers/verify.h Headers/verifyP.h Headers/srcmap.h Headers/srcmapP.h Headers/debugP.h Headers/capability.h Headers/capabilityP.h Headers/asm.h Headers/codegen.h Headers/consP.h Headers/option.h Headers/optionP.h Headers/starP.h)
 
 set(SOURCE_FILES
         decode.c debug.c eval.c engine.c engineOptions.c gc.c globals.c heap.c load.c main.c

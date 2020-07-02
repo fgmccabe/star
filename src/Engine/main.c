@@ -21,6 +21,7 @@
 #include "debug.h"
 #include "editline.h"
 #include "jit.h"
+#include "starP.h"
 
 #include "stringBufferP.h"
 

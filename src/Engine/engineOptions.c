@@ -15,7 +15,6 @@
 #include "verifyP.h"
 #include "debugP.h"
 #include "capabilityP.h"
-#include "engineP.h"
 
 char CWD[MAXFILELEN] = "";
 char rootCap[MAXFILELEN] = "/";

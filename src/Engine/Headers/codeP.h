@@ -9,10 +9,11 @@
 #include "termP.h"
 #include "pkgP.h"
 #include "heapP.h"
+#include "jit.h"
 
 #include <assert.h>
 
-typedef struct _method_ {
+typedef struct method_ {
   clssPo clss;         // == specialClass
   integer codeSize;     /* How big is the code block */
   jitCode jit;        /* Pointer to jit'ed code */
