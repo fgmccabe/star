@@ -7,7 +7,7 @@
 #include "utils.h"
 #include "codeP.h"
 #include "jitP.h"
-#include <jitOps.h>
+#include "jitOps.h"
 
 #undef instruction
 #define instruction(Op, A1, Dl, Cmt)    \

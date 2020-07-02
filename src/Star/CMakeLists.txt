@@ -7,7 +7,7 @@ add_custom_target(boot ALL)
 add_dependencies(boot sbc)
 
 file(MAKE_DIRECTORY ${TEMP_REPO})
-set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES "${TEMP_REPO}")
+set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES "${TEMP_REPO}/*")
 
 add_custom_command(TARGET boot
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler
