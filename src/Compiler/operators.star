@@ -150,6 +150,9 @@ star.compiler.operators{
   oper(_) default => [].
 
   public isBracket:(string) => option[bracket].
+  isBracket("<|") => some(bkt("<|","<||>","|>",2000)).
+  isBracket("|>") => some(bkt("<|","<||>","|>",2000)).
+  isBracket("<||>") => some(bkt("<|","<||>","|>",2000)).
   isBracket("{.") => some(bkt("{.","{..}",".}",2000)).
   isBracket(".}") => some(bkt("{.","{..}",".}",2000)).
   isBracket("{..}") => some(bkt("{.","{..}",".}",2000)).
@@ -246,6 +249,7 @@ star.compiler.operators{
   follows("{",0c.) => some("{.").
   follows("|",0c:) => some("|:").
   follows("|",0c|) => some("||").
+  follows("|",0c>) => some("|>").
   follows("|",0c)) => some("|)").
   follows("~",0c~) => some("~~").
   follows("~",0c>) => some("~>").
@@ -266,6 +270,7 @@ star.compiler.operators{
   follows("<",0c$) => some("<$").
   follows("<",0c-) => some("<-").
   follows("<",0c<) => some("<<").
+  follows("<",0c|) => some("<|").
   follows("<",0c=) => some("<=").
   follows("<*",0c>) => some("<*>").
   follows("<<",0c-) => some("<<-").
@@ -324,6 +329,7 @@ star.compiler.operators{
   final("|") => .true.  /* type union, conditional, and abstraction */
   final("|:") => .true.  /* constrained type */
   final("||") => .true.  /* disjunction */
+  final("|>") => .true.  /* meta quote */
   final("|)") => .true.  /* banana brackets */
   final("}") => .true.  /* braces */
   final("~") => .true.  /* logical negation */
@@ -353,6 +359,7 @@ star.compiler.operators{
   final("<$") => .true.  /* constant replace */
   final("<-") => .true.  /* variable bind */
   final("<<-") => .true.  /* record replacement */
+  final("<|") => .true.  /* meta quote */
   final("<=>") => .true.  /* constructor arrow */
   final("=") => .true.  /* definition */
   final("=~=") => .true.  /* not equals */
