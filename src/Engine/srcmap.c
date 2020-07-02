@@ -6,7 +6,7 @@
 #include <engineOptions.h>
 #include "srcmapP.h"
 #include "jsonEvent.h"
-#include "manifestP.h"
+#include "pkgP.h"
 
 static void initSrcMap();
 
