@@ -2,7 +2,6 @@ star.compiler.macro.infra{
   import star.
 
   import star.compiler.ast.
-  import star.compiler.ast.display.
   import star.compiler.errors.
   import star.compiler.misc.
   import star.compiler.location.
@@ -56,6 +55,4 @@ star.compiler.macro.infra{
   macroKey(tpl(_,"()",[tpl(Lc,Lb,I)])) => macroKey(tpl(Lc,Lb,I)).
   macroKey(tpl(_,K,_)) => K.
   macroKey(app(_,O,_)) => macroKey(O).
-  
-
 }

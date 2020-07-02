@@ -2,7 +2,6 @@ star.compiler.opg{
   import star.
 
   import star.compiler.ast.
-  import star.compiler.ast.display.
   import star.compiler.operators.
   import star.compiler.errors.
   import star.compiler.lexer.

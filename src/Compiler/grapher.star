@@ -7,7 +7,6 @@ star.compiler.grapher{
   import star.uri.
 
   import star.compiler.ast.
-  import star.compiler.ast.display.
   import star.compiler.canon.
   import star.compiler.catalog.
   import star.compiler.errors.

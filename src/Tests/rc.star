@@ -2,9 +2,8 @@ test.rc{
   import star.
   import star.script.
 
-  pp ::= pp{
-    C:integer.
-  }
+  pp[a] ::= pp{C:integer} |
+    pq{C:integer. A:a}.
 
   cont(C) => pp{.
     C=C
