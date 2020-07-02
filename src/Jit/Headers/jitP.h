@@ -7,9 +7,7 @@
 
 #include "jit.h"
 
-typedef struct _jit_compiler_ *jitCompPo;
-
-typedef struct _jit_label_ *jitLblPo;
+typedef struct jit_label_ *jitLblPo;
 
 typedef enum{
   RX,
@@ -20,10 +18,13 @@ typedef enum{
   SP
 } JitRegister;
 
-typedef struct _jit_compiler_ {
+typedef struct jit_compiler_ {
   void *codeBase;
   integer bufferLen;
   integer pc;
+  methodPo mtd;
 }JitCompiler;
+
+jitCompPo jitContext(methodPo mtd);
 
 #endif //STAR_JITP_H
