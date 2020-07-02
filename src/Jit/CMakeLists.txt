@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(jit)
 
+find_library(LIGHTNING "lightning" PATHS "/usr/local")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c99")
 
 string(TOUPPER "${CMAKE_HOST_SYSTEM_PROCESSOR}" JIT_ARCH)
@@ -11,14 +12,13 @@ include_directories("Headers"
         "../Escapes/Headers"
         "../Engine/Headers"
         "../Infra/Headers"
-        "${JIT_ARCH}/Headers")
-
-add_subdirectory(${JIT_ARCH})
+        "/usr/local/include/lightning")
 
 set(HEADER_FILES
-        Headers/jit.h Headers/jitP.h ${JIT_ARCH}/jitOps.h
+        Headers/jit.h Headers/jitP.h Headers/jitOps.h "lightning.h"
         )
 
 set(SOURCE_FILES jit.c jitInfra.c)
 
 add_library(jit STATIC ${SOURCE_FILES})
+target_link_libraries(jit lightning)
