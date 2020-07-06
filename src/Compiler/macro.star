@@ -531,26 +531,8 @@ star.compiler.macro{
     (Qs,Xs,Face) <- algebraicFace(R,Q,[],Rp);
     TpExSt .= reveal(reUQuant(Lc,Qs,reConstrain(Cx,binary(Lc,"<~",H,reXQuant(Lc,Xs,brTuple(Lc,sort(Face,compEls)))))),Vz);
     Cons <- buildConstructors(R,Q,Cx,H,Vz,Rp);
---    Acc .= genAccessFuns(buildConIndices(R,[]),conArities(R,[]),Lc,Nm);
---    logMsg("access functions for $(Nm) $(Acc)");
     valis [TpExSt,..Cons]
   }
-
-  genAccessFuns:(map[string,map[string,integer]],map[string,integer],locn,string) => cons[ast].
-  genAccessFuns(Ixx,Axx,Lc,Nm) => ixLeft((FNm,ConMap,Defs) =>
-      genAccessFn(FNm,Lc,ConMap,Nm,Axx)++Defs,[],Ixx).
-
-  genAccessFn:(string,locn,map[string,integer],string,map[string,integer]) => cons[ast].
-  genAccessFn(FldNm,Lc,ConMap,Nm,Axx) where FNm.=qualifiedName(Nm,.conMark,FldNm) =>
-    ixLeft((RcNm,Off,Eqs) where X.=nme(Lc,"X") =>
-	[equation(Lc,roundTerm(Lc,nme(Lc,FNm),[rcPtn(Lc,RcNm,Axx[RcNm],Off,X)]),X),..Eqs],[],ConMap).
-
-  rcPtn:(locn,string,option[integer],integer,ast) => ast.
-  rcPtn(Lc,RcNm,some(Ar),Off,V) => roundTerm(Lc,nme(Lc,RcNm),anonArgs(Lc,0,Ar,Off,V)).
-
-  anonArgs(_,Mx,Mx,_,_) => [].
-  anonArgs(Lc,Off,Mx,Off,V) => [V,..anonArgs(Lc,Off+1,Mx,Off,V)].
-  anonArgs(Lc,Ix,Mx,Off,V) => [anon(Lc),..anonArgs(Lc,Ix+1,Mx,Off,V)].
 
   algebraicFace:(ast,cons[ast],cons[ast],reports) =>
     either[reports,(cons[ast],cons[ast],cons[ast])].
@@ -692,8 +674,6 @@ star.compiler.macro{
     some((Lc,Nm,Q,Cx,Els)).
   isCon(_,_) default => .none.
 
-
-    
   makeSeqPtn(A,.pattern,Rp) where (Lc,Els) ^= isSqTuple(A) =>
     either(active(macroSquarePtn(Lc,Els))).
   makeSeqPtn(_,_,_) => either(.inactive).
