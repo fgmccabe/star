@@ -96,15 +96,48 @@ star.compiler.meta{
     disp(S) => dispSpc(S)
   .}
 
+  public optimizationLvl ::= .base | .inlining.
+
+  public implementation equality[optimizationLvl] => {.
+    .base == .base => .true.
+    .inlining == .inlining => .true.
+    _ == _ default => .false
+  .}
+
+  public implementation coercion[string,optimizationLvl] => {.
+    _coerce("base") => some(.base).
+    _coerce("inline") => some(.inlining).
+    _coerce("0") => some(.base).
+    _coerce("1") => some(.base).
+    _coerce(_) default => .none.
+  .}
+
+  public implementation display[optimizationLvl] => {.
+    disp(.base) => ss("base").
+    disp(.inlining) => ss("inlining")
+  .}
+
   public compilerOptions ::=
     compilerOptions{
       repo:uri.
       cwd:uri.
       graph:option[uri].
+      optimization:optimizationLvl.
       showAst:boolean.
       showMacro:boolean.
       showCanon:boolean.
       showCore:boolean.
       showCode:boolean.
     }.
+
+  public defltOptions(WI,RI) =>compilerOptions{repo=RI.
+    cwd=WI.
+    optimization = .base.
+    graph = .none.
+    showAst = .false.
+    showMacro = .false.
+    showCanon=.false.
+    showCore=.false.
+    showCode=.false
+  }
 }

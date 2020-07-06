@@ -18,7 +18,9 @@ star.compiler{
   import star.compiler.gencode.
   import star.compiler.grapher.
   import star.compiler.impawt.
+  import star.compiler.inline.
   import star.compiler.meta.
+  import star.compiler.misc.
   import star.compiler.parser.
   import star.compiler.location.
   import star.compiler.normalize.
@@ -41,6 +43,7 @@ star.compiler{
       compilerOptions{repo=NR.
 	cwd=Opts.cwd.
 	graph=Opts.graph.
+	optimization=Opts.optimization.
 	showAst = Opts.showAst.
 	showMacro=Opts.showMacro.
 	showCanon=Opts.showCanon.
@@ -58,12 +61,14 @@ star.compiler{
       compilerOptions{repo=Opts.repo.
 	cwd=NW.
 	graph=Opts.graph.
+	optimization=Opts.optimization.
 	showAst = Opts.showAst.
 	showMacro=Opts.showMacro.
 	showCanon=Opts.showCanon.
 	showCore=Opts.showCore.
 	showCode=Opts.showCode}.
   }
+
   traceAstOption:optionsProcessor[compilerOptions].
   traceAstOption = {
     shortForm = "-dA".
@@ -74,6 +79,7 @@ star.compiler{
       compilerOptions{repo=Opts.repo.
 	cwd=Opts.cwd.
 	graph=Opts.graph.
+	optimization=Opts.optimization.
 	showAst = .true.
 	showMacro=Opts.showMacro.
 	showCanon=Opts.showCanon.
@@ -90,6 +96,7 @@ star.compiler{
       compilerOptions{repo=Opts.repo.
 	cwd=Opts.cwd.
 	graph=Opts.graph.
+	optimization=Opts.optimization.
 	showAst = Opts.showAst.
 	showMacro=.true.
 	showCanon=Opts.showCanon.
@@ -106,6 +113,7 @@ star.compiler{
       compilerOptions{repo=Opts.repo.
 	cwd=Opts.cwd.
 	graph=Opts.graph.
+	optimization=Opts.optimization.
 	showAst = Opts.showAst.
 	showMacro=Opts.showMacro.
 	showCanon=Opts.showCanon.
@@ -122,6 +130,7 @@ star.compiler{
       compilerOptions{repo=Opts.repo.
 	cwd=Opts.cwd.
 	graph=Opts.graph.
+	optimization=Opts.optimization.
 	showAst = Opts.showAst.
 	showMacro=Opts.showMacro.
 	showCanon=Opts.showCanon.
@@ -138,9 +147,27 @@ star.compiler{
       compilerOptions{repo=Opts.repo.
 	cwd=Opts.cwd.
 	graph=Opts.graph.
+	optimization=Opts.optimization.
 	showAst = Opts.showAst.
 	showMacro=Opts.showMacro.
 	showCanon=.true.
+	showCore=Opts.showCore.
+	showCode=Opts.showCode}.
+  }
+  optimizeLevel:optionsProcessor[compilerOptions].
+  optimizeLevel = {
+    shortForm = "-O".
+    alternatives = ["--optimize"].
+    usage = "-O <Lvl> -- set optimization".
+    validator = some((O)=> _ ^= O:?optimizationLvl).
+    setOption(L,Opts) where Lvl^=L:?optimizationLvl =>
+      compilerOptions{repo=Opts.repo.
+	cwd=Opts.cwd.
+	graph=Opts.graph.
+	optimization = Lvl.
+	showAst = Opts.showAst.
+	showMacro=Opts.showMacro.
+	showCanon=Opts.showCanon.
 	showCore=Opts.showCore.
 	showCode=Opts.showCode}.
   }
@@ -154,6 +181,7 @@ star.compiler{
       compilerOptions{repo=Opts.repo.
 	cwd=Opts.cwd.
 	graph=some(NW).
+	optimization=Opts.optimization.
 	showAst = Opts.showAst.
 	showMacro=Opts.showMacro.
 	showCanon=.true.
@@ -166,16 +194,12 @@ star.compiler{
     WI^=parseUri("file:"++_cwd());
     RI^=parseUri("file:"++_repo());
     handleCmds(processOptions(Args,[repoOption,wdOption,
+	  optimizeLevel,
 	  traceAstOption,showPkgGraphOption,
 	  traceCodeOption,traceMacroOption,
-	  traceNormOption,traceCheckOption],compilerOptions{repo=RI.
-	  cwd=WI.
-	  graph = .none.
-	  showAst = .false.
-	  showMacro = .false.
-	  showCanon=.false.
-	  showCore=.false.
-	  showCode=.false}))
+	  traceNormOption,traceCheckOption],
+	defltOptions(WI,RI)
+      ))
   }.
 
   openupRepo:(uri,uri) => action[(), termRepo].
@@ -249,7 +273,11 @@ star.compiler{
 	    Repp := addSpec(PkgSpec,Repp!);
 	    if Opts.showCore then {
 	      logMsg("Normalized package $(P)");
-	      logMsg(dispCrProg(NormDefs)::string)
+	      logMsg(dispCrProg(NormDefs)::string);
+	      if Opts.optimization==.inlining then{
+		logMsg("inlining $(P)");
+		logMsg("Inlined: $(simplifyDefs(NormDefs))")
+	      }
 	    };
 	    Ins <- compCrProg(P,NormDefs,importVars(PkgSpec),Opts,Rp) :: action[reports,cons[codeSegment]];
 	    if Opts.showCode then
