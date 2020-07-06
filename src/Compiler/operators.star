@@ -3,9 +3,6 @@
 star.compiler.operators{
   import star.
 
-  import star.compiler.ast.
-  import star.compiler.location.
-
   operator ::= prefixOp(integer,integer)
              | infixOp(integer,integer,integer)
              | postfixOp(integer,integer).

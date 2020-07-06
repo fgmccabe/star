@@ -6,6 +6,7 @@ star.finger{
   import star.coerce.
   import star.monad.
   import star.iterable.
+  import star.option.
 
   -- 2-3 finger trees.
 

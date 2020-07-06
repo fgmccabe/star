@@ -126,13 +126,13 @@ tl(cons((1,_),ts)) => ts.
     rl(L)++rl(R) => rl(foldDRight((E,So)=>cns(E,So),R,L)).
   }
 
-  public implementation all e ~~ filter[sk[e]->>e] => {
+/*  public implementation all e ~~ filter[sk[e]->>e] => {
     (rl(L)^/F) => let{
       ff(E,So) where F(E) => [E,..So].
       ff(_,So) => So.
     } in foldDRight(ff,[],L)
   }
-
+*/
   public implementation functor[sk] => let{
     fm:all a,b ~~ ((a)=>b,tree[a])=>tree[b].
     fm(F,.eTree) => .eTree.
