@@ -1,6 +1,7 @@
 {
   "content": {
     "test.a": "a.star",
+    "test.ar": "ar.star",
     "test.as": "as.star",
     "test.as2": "as2.star",
     "test.al": "al.star",
@@ -8,8 +9,6 @@
     "test.bench" : "bench.star",
     "test.cons": "constest.star",
     "test.co": "co.star",
-    "test.co1": "co1.star",
-    "test.co2": "co2.star",
     "test.c": "c.star",
     "test.cns": "cns.star",
     "test.cse": "casetest.star",
@@ -34,7 +33,6 @@
     "test.dd": "dd.star",
     "test.df": "df.star",
     "test.dis" : "dis.star",
-    "test.dl": "dl.star",
     "test.di": "di.star",
     "test.dq": "dq.star",
     "test.f": "f.star",
@@ -44,7 +42,6 @@
     "test.fm": "fm.star",
     "test.fmt": "fmt.star",
     "test.fn": "fn.star",
-    "test.cfunc": "cfunc.star",
     "test.func": "func.star",
     "test.g": "g.star",
     "test.gp": "gp.star",
