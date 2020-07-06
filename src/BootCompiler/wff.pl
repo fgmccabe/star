@@ -14,7 +14,7 @@
 	      isEquation/5,isDefn/4,isAssignment/4,isRef/3,assignment/4,eqn/4,eqn/5,
 	      isCurriedRule/5,ruleHead/4,
 	      isWhere/4,isCoerce/4,coerce/4,isOptCoerce/4,optCoerce/4,
-	      isFieldAcc/4,isIndexTerm/4,isRepl/4,
+	      isFieldAcc/4,isIndexTerm/4,isRecordUpdate/4,
 	      isSlice/5,isSplice/6,
 	      isOptionPtn/4,isOptionMatch/4,optionMatch/4,
 	      isConjunct/4,isDisjunct/4,
@@ -381,7 +381,7 @@ isFieldAcc(Trm,Lc,Rc,Fld) :-
   isIden(F,Fld),!,
   unary(Lc,"!",L,Rc).
 
-isRepl(Trm,Lc,Lft,Rep) :-
+isRecordUpdate(Trm,Lc,Lft,Rep) :-
   isBinary(Trm,Lc,"<<-",Lft,Rep).
 
 isIndexTerm(Trm,Lc,Lhs,Rhs) :-
