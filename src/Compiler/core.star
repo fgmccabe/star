@@ -358,7 +358,6 @@ star.compiler.core{
   isGround(crInt(_,_)) => .true.
   isGround(crFlot(_,_)) => .true.
   isGround(crStrg(_,_)) => .true.
-  isGround(crVoid(_,_)) => .true.
   isGround(crLbl(_,_,_)) => .true.
   isGround(crTerm(_,_,Els,_)) => E in Els *> isGround(E).
   isGround(_) default => .false.
