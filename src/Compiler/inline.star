@@ -3,12 +3,25 @@ star.compiler.inline{
   import star.sort.
 
   import star.compiler.core.
-  import star.compiler.errors.
   import star.compiler.freevars.
   import star.compiler.misc.
   import star.compiler.types.
 
   import star.compiler.location.
+
+  public simplifyDefs:(cons[crDefn]) => cons[crDefn].
+  simplifyDefs(Dfs) where Prog .= foldLeft(pickupDefn,[],Dfs) => (Dfs//(D)=>simplifyDefn(D,Prog)).
+
+  pickupDefn:(crDefn,map[string,crDefn])=>map[string,crDefn].
+  pickupDefn(fnDef(Lc,Nm,Tp,Args,Val),Map) => Map[Nm->fnDef(Lc,Nm,Tp,Args,Val)].
+  pickupDefn(glbDef(Lc,Nm,Val),Map) => Map[crName(Nm)->glbDef(Lc,Nm,Val)].
+
+  simplifyDefn:(crDefn,map[string,crDefn])=>crDefn.
+  simplifyDefn(fnDef(Lc,Nm,Tp,Args,Val),Prog) =>
+    fnDef(Lc,Nm,Tp,Args,simplifyExp(Val,Prog,3)).
+  simplifyDefn(glbDef(Lc,Vr,Val),Prog) =>
+    glbDef(Lc,Vr,simplifyExp(Val,Prog,3)).
+  simplifyDef(D) default => D.
 
   -- There are three possibilities of a match ...
   match[e] ::= .noMatch | .insufficient | matching(e).
@@ -46,32 +59,78 @@ star.compiler.inline{
     }
   ptnMatchFields(_,_,_) default => .noMatch.
 
-  candidate:(crExp,crCase) => match[crExp].
-  candidate(E,(_,Ptn,Rep)) => case ptnMatch(E,Ptn,[]) in {
-    matching(Theta) => matching(rewriteTerm(Rep,Theta)).
-    .noMatch => .noMatch.
-    .insufficient => .insufficient
-  }
-
   simplifyExp:(crExp,map[string,crDefn],integer) => crExp.
-  simplifyExp(crCase(_,Gov,Cases,_,_),Prog,Depth) where 
-      matching(Exp) .= matchingCase(Gov,Cases,Prog,Depth) => Exp.
-  simplifyExp(crDot(_,crRecord(_,_,Flds,_),Fld,_),Prog,Depth) where (Fld,Exp) in Flds =>
-    simplifyExp(Exp,Prog,Depth).
+  simplifyExp(crCase(Lc,Gov,Cases,Deflt,Tp),Prog,Depth) =>
+    applyCase(Lc,simplifyExp(Gov,Prog,Depth),Cases,simplifyExp(Deflt,Prog,Depth),Tp,Prog,Depth).
+  simplifyExp(crDot(Lc,Rc,Fld,Tp),Prog,Depth) =>
+    applyDot(Lc,simplifyExp(Rc,Prog,Depth),Fld,Tp).
   simplifyExp(crTplOff(_,crTerm(_,_,Args,_),Ix,_),Prog,Depth) where Exp^=Args[Ix] =>
     simplifyExp(Exp,Prog,Depth).
-  simplifyExp(crCall(_,Fn,Args,_),Prog,Depth) where Depth>0 &&
-      fnDef(Lc,_,_,Vrs,Rep) ^= Prog[Fn] =>
-    simplifyExp(rewriteTerm(Rep,zip(Vrs//crName,Args)::map[string,crExp]),Prog,Depth-1).
-  simplifyExp(crCnj(_,crLbl(_,"star.core#true",_),R),Prog,Depth) =>
-    simplifyExp(R,Prog,Depth).
-  simplifyExp(crCnj(_,crLbl(Lc,"star.core#false",Tp),R),Prog,Depth) =>
-    crLbl(Lc,"star.core#false",Tp).
-  simplifyExp(crDsj(_,crLbl(_,"star.core#false",_),R),Prog,Depth) =>
-    simplifyExp(R,Prog,Depth).
-  simplifyExp(crCnj(_,crLbl(Lc,"star.core#true",Tp),R),Prog,Depth) =>
-    crLbl(Lc,"star.core#true",Tp).
+  simplifyExp(crCall(Lc,Fn,Args,Tp),Prog,Depth) where Depth>0 =>
+    inlineCall(Lc,Fn,Args//(A)=>simplifyExp(A,Prog,Depth),Tp,Prog,Depth).
+  simplifyExp(crECall(Lc,Fn,Args,Tp),Prog,Depth) where Depth>0 =>
+    inlineECall(Lc,Fn,Args//(A)=>simplifyExp(A,Prog,Depth),Tp,Depth).
+  simplifyExp(crIntrinsic(Lc,Fn,Args,Tp),Prog,Depth) =>
+    crIntrinsic(Lc,Fn,Args//(A)=>simplifyExp(A,Prog,Depth),Tp).
+  simplifyExp(crOCall(Lc,Op,Args,Tp),Prog,Depth) where Depth>0 =>
+    inlineOCall(Lc,simplifyExp(Op,Prog,Depth),Args//(A)=>simplifyExp(A,Prog,Depth),Tp,Prog,Depth).
+  simplifyExp(crTerm(Lc,Fn,Args,Tp),Prog,Depth) =>
+    crTerm(Lc,Fn,Args//(A)=>simplifyExp(A,Prog,Depth),Tp).
+  simplifyExp(crCnj(Lc,L,R),Prog,Depth) =>
+    applyCnj(Lc,simplifyExp(L,Prog,Depth),simplifyExp(R,Prog,Depth)).
+  simplifyExp(crDsj(Lc,L,R),Prog,Depth) =>
+    applyDsj(Lc,simplifyExp(L,Prog,Depth),simplifyExp(R,Prog,Depth)).
+  simplifyExp(crNeg(Lc,R),Prog,Depth) =>
+    applyNeg(Lc,simplifyExp(R,Prog,Depth)).
+  simplifyExp(crCnd(Lc,T,L,R),Prog,Depth) =>
+    applyCnd(Lc,simplifyExp(T,Prog,Depth),simplifyExp(L,Prog,Depth),simplifyExp(R,Prog,Depth)).
+  simplifyExp(crWhere(Lc,Ptn,Exp),Prog,Depth) =>
+    applyWhere(Lc,Ptn,simplifyExp(Exp,Prog,Depth)).
+  simplifyExp(crTplOff(Lc,E,Ix,Tp),Prog,Depth) =>
+    applyTplOff(Lc,simplifyExp(E,Prog,Depth),Ix,Tp).
+  simplifyExp(crTplUpdate(Lc,T,Ix,E),Prog,Depth) =>
+    applyTplUpdate(Lc,simplifyExp(T,Prog,Depth),Ix,simplifyExp(E,Prog,Depth)).
+  simplifyExp(crLtt(Lc,Vr,Bnd,Exp),Prog,Depth) =>
+    applyLtt(Lc,Vr,simplifyExp(Bnd,Prog,Depth),Exp,Prog,Depth).
+  simplifyExp(crMatch(Lc,Ptn,Exp),Prog,Depth) =>
+    applyMatch(Lc,Ptn,simplifyExp(Exp,Prog,Depth)).
   simplifyExp(Exp,_,_) default => Exp.
+
+  applyWhere(Lc,Ptn,crLbl(_,"star.core#true",_)) => Ptn.
+  applyWhere(Lc,Ptn,Exp) => crWhere(Lc,Ptn,Exp).
+
+  applyCnj(_,crLbl(_,"star.core#true",_),R) => R.
+  applyCnj(_,crLbl(Lc,"star.core#false",Tp),R) => crLbl(Lc,"star.core#false",Tp).
+  applyCnj(Lc,L,R) => crCnj(Lc,L,R).
+
+  applyDsj(_,crLbl(_,"star.core#false",_),R) => R.
+  applyDsj(_,crLbl(Lc,"star.core#true",Tp),R) => 
+    crLbl(Lc,"star.core#false",Tp).
+  applyDsj(Lc,L,R) => crDsj(Lc,L,R).
+
+  applyNeg(_,crLbl(Lc,"star.core#false",Tp)) => crLbl(Lc,"star.core#true",Tp).
+  applyNeg(_,crLbl(Lc,"star.core#true",Tp)) => crLbl(Lc,"star.core#false",Tp).
+  applyNeg(Lc,Inner) => crNeg(Lc,Inner).
+
+  applyCnd(_,crLbl(_,"star.core#false",_),L,R) => R.
+  applyCnd(_,crLbl(Lc,"star.core#true",Tp),L,_) => L.
+  applyCnd(Lc,T,L,R) => crCnd(Lc,T,L,R).
+
+  applyTplOff(_,crTerm(_,_,Els,_),Ix,Tp) where E^=Els[Ix] => E.
+  applyTplOff(Lc,T,Ix,Tp) default => crTplOff(Lc,T,Ix,Tp).
+  
+  applyTplUpdate(_,crTerm(Lc,Nm,Args,Tp),Ix,E) =>
+    crTerm(Lc,Nm,Args[Ix->E],Tp).
+  applyTplUpdate(Lc,T,Ix,E) =>
+    crTplUpdate(Lc,T,Ix,E).
+
+  applyMatch(Lc,Ptn,Exp) => crMatch(Lc,Ptn,Exp).
+
+  applyDot(_,crRecord(_,_,Flds,_),Fld,_) where (Fld,Exp) in Flds => Exp.
+  applyDot(Lc,Rc,Fld,Tp) => crDot(Lc,Rc,Fld,Tp).
+
+  applyCase(Lc,Gov,Cases,Deflt,Tp,Prog,Depth) where 
+      matching(Exp) .= matchingCase(Gov,Cases,Prog,Depth) => Exp.
 
   matchingCase:(crExp,cons[crCase],map[string,crDefn],integer) => match[crExp].
   matchingCase(_,[],_,_) => .noMatch.
@@ -80,4 +139,36 @@ star.compiler.inline{
     .noMatch => matchingCase(Gov,Cs,Prog,Depth).
     matching(Rep) => matching(simplifyExp(Rep,Prog,Depth))
   }
+
+  candidate:(crExp,crCase) => match[crExp].
+  candidate(E,(_,Ptn,Rep)) => case ptnMatch(E,Ptn,[]) in {
+    matching(Theta) => matching(rewriteTerm(Rep,Theta)).
+    .noMatch => .noMatch.
+    .insufficient => .insufficient
+  }
+
+  applyLtt(Lc,Vr,Bnd,Exp,Prog,Depth) where crVar(_,VV).=Bnd =>
+    simplifyExp(rewriteTerm(Exp,[crName(Vr)->Bnd]),Prog,Depth).
+  applyLtt(Lc,Vr,Bnd,Exp,Prog,Depth) =>
+    crLtt(Lc,Vr,Bnd,simplifyExp(Exp,Prog,Depth)).
+
+  inlineCall:(locn,string,cons[crExp],tipe,map[string,crDefn],integer) => crExp.
+  inlineCall(_,Nm,Args,_,Prog,Depth) where Depth>0 &&
+      fnDef(Lc,_,_,Vrs,Rep) ^= Prog[Nm] =>
+    simplifyExp(rewriteTerm(Rep,zip(Vrs//crName,Args)::map[string,crExp]),Prog[~Nm],Depth-1).
+  inlineCall(Lc,Nm,Args,Tp,_,_) default => crCall(Lc,Nm,Args,Tp).
+
+  inlineECall:(locn,string,cons[crExp],tipe,integer) => crExp.
+  inlineECall(Lc,Nm,Args,Tp,Depth) where Depth>0 && A in Args *> isGround(A) =>
+    rewriteECall(Lc,Nm,Args,Tp).
+  inlineECall(Lc,Nm,Args,Tp,_) default => crCall(Lc,Nm,Args,Tp).
+
+  inlineOCall(Lc,Op,Args,Tp,Prog,Depth) =>
+    crOCall(Lc,Op,Args,Tp).
+  
+  rewriteECall(Lc,"_int_plus",[crInt(_,A),crInt(_,B)],_) => crInt(Lc,A+B).
+  rewriteECall(Lc,"_int_minus",[crInt(_,A),crInt(_,B)],_) => crInt(Lc,A-B).
+  rewriteECall(Lc,"_int_times",[crInt(_,A),crInt(_,B)],_) => crInt(Lc,A*B).
+  rewriteECall(Lc,Op,Args,Tp) default => crECall(Lc,Op,Args,Tp).
+  
 }
