@@ -535,7 +535,7 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isFieldAcc(Term,Lc,Rc,Fld),!,
   recordAccessExp(Lc,Rc,Fld,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,replace(Lc,LExp,RExp),Path) :-
-  isRepl(Term,Lc,Lft,Rgt),!,
+  isRecordUpdate(Term,Lc,Lft,Rgt),!,
   typeOfExp(Lft,Tp,Env,Ev,LExp,Path),
   newTypeVar("_r",R),
   typeOfExp(Rgt,R,Env,_,RExp,Path).

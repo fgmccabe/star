@@ -100,7 +100,7 @@ processGroups([G|L],CPkgs,Repo,CWD,Opts) :-
   (length(G,1) ->
     processGroup(G,CPkgs,CP0,Repo,R0,CWD,Opts),!,
     processGroups(L,CP0,R0,CWD,Opts) ;
-    reportError("circular dependency in packages %s",G),
+    reportMsg("circular dependency in packages %s",[G]),!,
     fail).
 
 processGroup([],CP,CP,Repo,Repo,_,_).
