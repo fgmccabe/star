@@ -1044,10 +1044,10 @@ star.compiler.macro{
   }
   makeAction(A,Cont,Rp) where (Lc,G,Cs) ^= isCase(A) => do{
     Unit .= rndTuple(Lc,[]);
-    Zed .= makeReturn(Lc,Unit);
+    Zed .= (_^=Cont ? some((Lc,makeReturn(Lc,Unit))) || .none);
     Cases <- seqmap((C) => do{
 	if (CLc,CD,CL,CC,CR) ^= isLambda(C) then{
-	  AR <- makeAction(CR,some((Lc,Zed)),Rp);
+	  AR <- makeAction(CR,Zed,Rp);
 	  valis mkLambda(CLc,CD,CL,CC,AR)
 	}
 	else
@@ -1061,6 +1061,8 @@ star.compiler.macro{
 
   makeAction(A,_,Rp) =>
     other(reportError(Rp,"cannot figure out action $(A)",locOf(A))).
+
+  
 
   /*
   * An 'iterable' conditions become a match on the result of a search
