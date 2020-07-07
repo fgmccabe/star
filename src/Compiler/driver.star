@@ -270,16 +270,15 @@ star.compiler{
 	      logMsg("type checked $(PkgFun)")
 	    };
 	    NormDefs <- normalize(PkgSpec,PkgFun,Rp)::action[reports,cons[crDefn]];
+	    Inlined .= ( Opts.optimization==.inlining ? simplifyDefs(NormDefs) || NormDefs);
+
 	    Repp := addSpec(PkgSpec,Repp!);
 	    if Opts.showCore then {
 	      logMsg("Normalized package $(P)");
-	      logMsg(dispCrProg(NormDefs)::string);
-	      if Opts.optimization==.inlining then{
-		logMsg("inlining $(P)");
-		logMsg("Inlined: $(simplifyDefs(NormDefs))")
-	      }
+	      logMsg(dispCrProg(Inlined)::string)
 	    };
-	    Ins <- compCrProg(P,NormDefs,importVars(PkgSpec),Opts,Rp) :: action[reports,cons[codeSegment]];
+
+	    Ins <- compCrProg(P,Inlined,importVars(PkgSpec),Opts,Rp) :: action[reports,cons[codeSegment]];
 	    if Opts.showCode then
 	      logMsg("Generated instructions $(Ins)");
 	    Code .= mkTpl([pkgTerm(CPkg),strg(encodeSignature(typeOf(PkgSpec))),
