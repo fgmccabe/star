@@ -94,7 +94,7 @@ star.compiler.gencode{
 
   compExp:(crExp,compilerOptions,Cont,codeCtx,multi[assemOp],option[cons[tipe]],reports) =>
     either[reports,(codeCtx,multi[assemOp],option[cons[tipe]])].
-  compExp(Exp,_,_,_,_,.none,Rp) => other(reportError(Rp,"dead code",locOf(Exp))).
+  compExp(Exp,_,_,_,_,.none,Rp) => other(reportError(Rp,"$(Exp) is dead code",locOf(Exp))).
   compExp(Exp,_,Cont,Ctx,Cde,some(Stk),Rp) where Const^=Exp:?term =>
     Cont.C(Ctx,Cde++[iLdC(Const)],some([typeOf(Exp),..Stk]),Rp).
   compExp(crInt(Lc,Ix),_,Cont,Ctx,Cde,some(Stk),Rp) =>
@@ -298,6 +298,11 @@ star.compiler.gencode{
     (Ctx3,ECode,EStk) <- compExp(E,Opts,jmpCont(Nxt),Ctx2,Cde,some(Stk),Rp);
     (Table,Max) .= genCaseTable(Cases);
     (Ctx4,CCode,_) <- compCases(Table,0,Max,Cont,jmpCont(DLbl),DLbl,Opts,Ctx3,ECode++[iLbl(Nxt),iCase(Max)],EStk,Rp);
+    if crAbort(DLc,DMsg,DTp).=Deflt then{
+      (Ctx5,Cde5,_) <- compExps([DLc::crExp,crStrg(DLc,DMsg)],Opts,escCont("_abort",2,Tp,.none),Ctx4,
+	CCode++[iLbl(DLbl),iRst(size(Stk))],some(Stk),Rp);
+      valis (Ctx5,Cde5,some(Stk))
+    } else
     compExp(Deflt,Opts,Cont,Ctx4,CCode++[iLbl(DLbl),iRst(size(Stk))],some(Stk),Rp)
   }
 
