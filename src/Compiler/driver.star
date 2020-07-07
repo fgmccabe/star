@@ -48,7 +48,9 @@ star.compiler{
 	showMacro=Opts.showMacro.
 	showCanon=Opts.showCanon.
 	showCore=Opts.showCore.
-	showCode=Opts.showCode}.
+	showCode=Opts.showCode.
+	typeCheckOnly=Opts.typeCheckOnly
+      }.
   }
 
   wdOption:optionsProcessor[compilerOptions].
@@ -66,7 +68,27 @@ star.compiler{
 	showMacro=Opts.showMacro.
 	showCanon=Opts.showCanon.
 	showCore=Opts.showCore.
-	showCode=Opts.showCode}.
+	showCode=Opts.showCode.
+	typeCheckOnly=Opts.typeCheckOnly}.
+  }
+
+  typeCheckOnlyOption:optionsProcessor[compilerOptions].
+  typeCheckOnlyOption = {
+    shortForm = "-c".
+    alternatives = ["--compile-only"].
+    usage = "-c -- type check".
+    validator = .none.
+    setOption(_,Opts) =>
+      compilerOptions{repo=Opts.repo.
+	cwd=Opts.cwd.
+	graph=Opts.graph.
+	optimization=Opts.optimization.
+	showAst = Opts.showAst.
+	showMacro=Opts.showMacro.
+	showCanon=Opts.showCanon.
+	showCore=Opts.showCore.
+	showCode=Opts.showCode.
+	typeCheckOnly=.true}.
   }
 
   traceAstOption:optionsProcessor[compilerOptions].
@@ -84,7 +106,8 @@ star.compiler{
 	showMacro=Opts.showMacro.
 	showCanon=Opts.showCanon.
 	showCore=Opts.showCore.
-	showCode=Opts.showCode}.
+	showCode=Opts.showCode.
+	typeCheckOnly=Opts.typeCheckOnly}.
   }
   traceMacroOption:optionsProcessor[compilerOptions].
   traceMacroOption = {
@@ -101,7 +124,8 @@ star.compiler{
 	showMacro=.true.
 	showCanon=Opts.showCanon.
 	showCore=Opts.showCore.
-	showCode=Opts.showCode}.
+	showCode=Opts.showCode.
+	typeCheckOnly=Opts.typeCheckOnly}.
   }
   traceCodeOption:optionsProcessor[compilerOptions].
   traceCodeOption = {
@@ -118,7 +142,8 @@ star.compiler{
 	showMacro=Opts.showMacro.
 	showCanon=Opts.showCanon.
 	showCore=Opts.showCore.
-	showCode=.true}.
+	showCode=.true.
+	typeCheckOnly=Opts.typeCheckOnly}.
   }
   traceNormOption:optionsProcessor[compilerOptions].
   traceNormOption = {
@@ -135,7 +160,8 @@ star.compiler{
 	showMacro=Opts.showMacro.
 	showCanon=Opts.showCanon.
 	showCore=.true.
-	showCode=Opts.showCode}.
+	showCode=Opts.showCode.
+	typeCheckOnly=Opts.typeCheckOnly}.
   }
   traceCheckOption:optionsProcessor[compilerOptions].
   traceCheckOption = {
@@ -152,7 +178,8 @@ star.compiler{
 	showMacro=Opts.showMacro.
 	showCanon=.true.
 	showCore=Opts.showCore.
-	showCode=Opts.showCode}.
+	showCode=Opts.showCode.
+	typeCheckOnly=Opts.typeCheckOnly}.
   }
   optimizeLevel:optionsProcessor[compilerOptions].
   optimizeLevel = {
@@ -169,7 +196,8 @@ star.compiler{
 	showMacro=Opts.showMacro.
 	showCanon=Opts.showCanon.
 	showCore=Opts.showCore.
-	showCode=Opts.showCode}.
+	showCode=Opts.showCode.
+	typeCheckOnly=Opts.typeCheckOnly}.
   }
   showPkgGraphOption:optionsProcessor[compilerOptions].
   showPkgGraphOption = {
@@ -186,7 +214,8 @@ star.compiler{
 	showMacro=Opts.showMacro.
 	showCanon=.true.
 	showCore=Opts.showCore.
-	showCode=Opts.showCode}.
+	showCode=Opts.showCode.
+	typeCheckOnly=Opts.typeCheckOnly}.
   }
 
   public _main:(cons[string])=>().
@@ -195,6 +224,7 @@ star.compiler{
     RI^=parseUri("file:"++_repo());
     handleCmds(processOptions(Args,[repoOption,wdOption,
 	  optimizeLevel,
+	  typeCheckOnlyOption,
 	  traceAstOption,showPkgGraphOption,
 	  traceCodeOption,traceMacroOption,
 	  traceNormOption,traceCheckOption],
@@ -269,23 +299,26 @@ star.compiler{
 	    if Opts.showCanon then {
 	      logMsg("type checked $(PkgFun)")
 	    };
-	    NormDefs <- normalize(PkgSpec,PkgFun,Rp)::action[reports,cons[crDefn]];
-	    Inlined .= ( Opts.optimization==.inlining ? simplifyDefs(NormDefs) || NormDefs);
 
-	    Repp := addSpec(PkgSpec,Repp!);
-	    if Opts.showCore then {
-	      logMsg("Normalized package $(P)");
-	      logMsg(dispCrProg(Inlined)::string)
-	    };
+	    if ~Opts.typeCheckOnly then {
+	      NormDefs <- normalize(PkgSpec,PkgFun,Rp)::action[reports,cons[crDefn]];
+	      Inlined .= ( Opts.optimization==.inlining ? simplifyDefs(NormDefs) || NormDefs);
 
-	    Ins <- compCrProg(P,Inlined,importVars(PkgSpec),Opts,Rp) :: action[reports,cons[codeSegment]];
-	    if Opts.showCode then
-	      logMsg("Generated instructions $(Ins)");
-	    Code .= mkTpl([pkgTerm(CPkg),strg(encodeSignature(typeOf(PkgSpec))),
-		mkTpl(pkgImports(PkgSpec)//(pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
-		mkTpl(Ins//assem)]);
-	    Bytes .= (strg(Code::string)::string);
-	    Repp := addSource(addPackage(Repp!,CPkg,Bytes),CPkg,SrcUri::string)
+	      Repp := addSpec(PkgSpec,Repp!);
+	      if Opts.showCore then {
+		logMsg("Normalized package $(P)");
+		logMsg(dispCrProg(Inlined)::string)
+	      };
+
+	      Ins <- compCrProg(P,Inlined,importVars(PkgSpec),Opts,Rp) :: action[reports,cons[codeSegment]];
+	      if Opts.showCode then
+		logMsg("Generated instructions $(Ins)");
+	      Code .= mkTpl([pkgTerm(CPkg),strg(encodeSignature(typeOf(PkgSpec))),
+		  mkTpl(pkgImports(PkgSpec)//(pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
+		  mkTpl(Ins//assem)]);
+	      Bytes .= (strg(Code::string)::string);
+	      Repp := addSource(addPackage(Repp!,CPkg,Bytes),CPkg,SrcUri::string)
+	    }
 	  }
 	  else
 	  throw reportError(Rp,"cannot locate source of $(P)",Lc)
