@@ -162,7 +162,7 @@ star.compiler.constraints{
     cons[cnsCheck],integer,reports) => either[reports,cons[cnsCheck]].
   multiPass([],Done,_,_) => either(Done).
   multiPass(Cnx,_,0,Rp) =>
-    other(reportError(Rp,"constraints too complex",
+    other(reportError(Rp,"constraints too complex, remaining constraints $(Cnx)",
 	mergeLocs(Cnx//(check(Lc,_,_,_))=>Lc))).
   multiPass(Cns,Done,Ix,Rp) => do{
     (More,DD) <- solvePass(Cns,[],Done,Rp);
@@ -180,7 +180,7 @@ star.compiler.constraints{
 --    logMsg("all constraints $(Cnx)");
 
 --    logMsg("$(size(Cnx)) constraints to solve");
-    Done <- multiPass(Cnx,[],4,Rp);
+    Done <- multiPass(Cnx,[],8,Rp);
 --    logMsg("after 4 passes: Done=$(Done)");
     valis ()
   }
