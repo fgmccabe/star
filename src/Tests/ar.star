@@ -3,20 +3,19 @@ test.ar{
   import star.script.
 
   -- implement standard contracts for integers
-  public implementation arith[integer] => {
-    X+Y => _int_plus(X,Y).
-    X-Y => _int_minus(X,Y).
-    zero = 0.
-    X*Y => _int_times(X,Y).
-    X/Y => _int_div(X,Y).
-    X%Y => _int_mod(X,Y).
-    one = 1.
-    __minus(Ix) => _int_minus(0,Ix).
+  contract all a ~~ four[a] ::= {
+    plus:(a,a)=>a.
+    minus:(a,a)=>a.
+    times:(a,a)=>a.
+    div:(a,a)=>a.
+  }
+  
+  implementation four[integer] => {
+    plus(X,Y) => _int_plus(X,Y).
+    minus(X,Y) => _int_minus(X,Y).
+    times(X,Y) => _int_times(X,Y).
+    div(X,Y) => _int_div(X,Y).
   }.
-
-  plus(X,Y) => _int_plus(X,Y).
-  minus(X,Y) => _int_minus(X,Y).
-  times(X,Y) => _int_times(X,Y).
 
   ff(0)=>1.
   ff(N) => times(N,ff(minus(N,1))).
@@ -25,7 +24,7 @@ test.ar{
 
   public main:()=>action[(),()].
   main()=>do{
-    assert sample==6;
+    assert sample==5;
     show ff(5)
   }
 }
