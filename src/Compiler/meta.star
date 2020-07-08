@@ -129,6 +129,7 @@ star.compiler.meta{
       showCore:boolean.
       showCode:boolean.
       typeCheckOnly:boolean.
+      doStdin:boolean.
     }.
 
   public defltOptions(WI,RI) =>compilerOptions{repo=RI.
@@ -141,5 +142,6 @@ star.compiler.meta{
     showCore=.false.
     showCode=.false.
     typeCheckOnly=.false.
+    doStdin=.false.
   }
 }
