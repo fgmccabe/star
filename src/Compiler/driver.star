@@ -49,7 +49,8 @@ star.compiler{
 	showCanon=Opts.showCanon.
 	showCore=Opts.showCore.
 	showCode=Opts.showCode.
-	typeCheckOnly=Opts.typeCheckOnly
+	typeCheckOnly=Opts.typeCheckOnly.
+	doStdin=Opts.doStdin
       }.
   }
 
@@ -60,7 +61,7 @@ star.compiler{
     usage = "-W dir -- working directory".
     validator = some(isDir).
     setOption(W,Opts) where RW ^= parseUri(W) && NW^=resolveUri(Opts.cwd,RW)=>
-      compilerOptions{repo=Opts.repo.
+      compilerOptions{.repo=Opts.repo.
 	cwd=NW.
 	graph=Opts.graph.
 	optimization=Opts.optimization.
@@ -69,7 +70,9 @@ star.compiler{
 	showCanon=Opts.showCanon.
 	showCore=Opts.showCore.
 	showCode=Opts.showCode.
-	typeCheckOnly=Opts.typeCheckOnly}.
+	typeCheckOnly=Opts.typeCheckOnly.
+	doStdin=Opts.doStdin
+      .}.
   }
 
   typeCheckOnlyOption:optionsProcessor[compilerOptions].
@@ -88,8 +91,31 @@ star.compiler{
 	showCanon=Opts.showCanon.
 	showCore=Opts.showCore.
 	showCode=Opts.showCode.
-	typeCheckOnly=.true}.
+	typeCheckOnly=.true.
+	doStdin=Opts.doStdin}.
   }
+
+  stdinOption:optionsProcessor[compilerOptions].
+  stdinOption = {
+    shortForm = "".
+    alternatives = ["--stdin"].
+    usage = "--stdin -- compile standard input".
+    validator = .none.
+    setOption(_,Opts) =>
+      compilerOptions{repo=Opts.repo.
+	cwd=Opts.cwd.
+	graph=Opts.graph.
+	optimization=Opts.optimization.
+	showAst = Opts.showAst.
+	showMacro=Opts.showMacro.
+	showCanon=Opts.showCanon.
+	showCore=Opts.showCore.
+	showCode=Opts.showCode.
+	typeCheckOnly=Opts.typeCheckOnly.
+	doStdin=.true.
+      }.
+  }
+
 
   traceAstOption:optionsProcessor[compilerOptions].
   traceAstOption = {
@@ -107,7 +133,9 @@ star.compiler{
 	showCanon=Opts.showCanon.
 	showCore=Opts.showCore.
 	showCode=Opts.showCode.
-	typeCheckOnly=Opts.typeCheckOnly}.
+	typeCheckOnly=Opts.typeCheckOnly.
+	doStdin=Opts.doStdin
+      }.
   }
   traceMacroOption:optionsProcessor[compilerOptions].
   traceMacroOption = {
@@ -125,7 +153,9 @@ star.compiler{
 	showCanon=Opts.showCanon.
 	showCore=Opts.showCore.
 	showCode=Opts.showCode.
-	typeCheckOnly=Opts.typeCheckOnly}.
+	typeCheckOnly=Opts.typeCheckOnly.
+	doStdin=Opts.doStdin
+      }.
   }
   traceCodeOption:optionsProcessor[compilerOptions].
   traceCodeOption = {
@@ -143,7 +173,8 @@ star.compiler{
 	showCanon=Opts.showCanon.
 	showCore=Opts.showCore.
 	showCode=.true.
-	typeCheckOnly=Opts.typeCheckOnly}.
+	typeCheckOnly=Opts.typeCheckOnly.
+	doStdin=Opts.doStdin}.
   }
   traceNormOption:optionsProcessor[compilerOptions].
   traceNormOption = {
@@ -161,7 +192,8 @@ star.compiler{
 	showCanon=Opts.showCanon.
 	showCore=.true.
 	showCode=Opts.showCode.
-	typeCheckOnly=Opts.typeCheckOnly}.
+	typeCheckOnly=Opts.typeCheckOnly.
+	doStdin=Opts.doStdin}.
   }
   traceCheckOption:optionsProcessor[compilerOptions].
   traceCheckOption = {
@@ -179,7 +211,8 @@ star.compiler{
 	showCanon=.true.
 	showCore=Opts.showCore.
 	showCode=Opts.showCode.
-	typeCheckOnly=Opts.typeCheckOnly}.
+	typeCheckOnly=Opts.typeCheckOnly.
+	doStdin=Opts.doStdin}.
   }
   optimizeLevel:optionsProcessor[compilerOptions].
   optimizeLevel = {
@@ -197,7 +230,8 @@ star.compiler{
 	showCanon=Opts.showCanon.
 	showCore=Opts.showCore.
 	showCode=Opts.showCode.
-	typeCheckOnly=Opts.typeCheckOnly}.
+	typeCheckOnly=Opts.typeCheckOnly.
+	doStdin=Opts.doStdin}.
   }
   showPkgGraphOption:optionsProcessor[compilerOptions].
   showPkgGraphOption = {
@@ -215,7 +249,8 @@ star.compiler{
 	showCanon=.true.
 	showCore=Opts.showCore.
 	showCode=Opts.showCode.
-	typeCheckOnly=Opts.typeCheckOnly}.
+	typeCheckOnly=Opts.typeCheckOnly.
+	doStdin=Opts.doStdin}.
   }
 
   public _main:(cons[string])=>().
@@ -223,7 +258,7 @@ star.compiler{
     WI^=parseUri("file:"++_cwd());
     RI^=parseUri("file:"++_repo());
     handleCmds(processOptions(Args,[repoOption,wdOption,
-	  optimizeLevel,
+	  optimizeLevel,stdinOption,
 	  typeCheckOnlyOption,
 	  traceAstOption,showPkgGraphOption,
 	  traceCodeOption,traceMacroOption,
