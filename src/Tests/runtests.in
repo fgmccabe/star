@@ -18,11 +18,11 @@ def main(argv):
     pkgs = []
     compile_only = False
     ignore_failures = False
-    compiler=bootCompile
+    compiler=mainCompile
     compile_failures = []
     run_failures = []
     try:
-        opts,args = getopt.getopt(argv,"dhct:",["sc","test=","help","compile_only","tracing","all","ignore_failures","starexec=","sbc=","testdir=","repo="])
+        opts,args = getopt.getopt(argv,"dhct:",["sc","test=","help","compile_only","tracing","all","ignore_failures","starexec=","sbc","testdir=","repo="])
     except getopt.GetopError:
         print usage
         sys.exit(2)
@@ -47,7 +47,7 @@ def main(argv):
         elif opt=="--starexec":
             starExec = arg
         elif opt=="--sbc":
-            sbc = arg
+            compiler=bootCompile
 	elif opt=="--repo":
             repoDir = arg
         elif opt=="--testdir":
