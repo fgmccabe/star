@@ -28,4 +28,6 @@ static inline logical isCapability(termPo p) {
 
 extern capabilityPo allocateCapability(heapPo H, const char *path, integer pathLen, permission perms);
 
+extern permission stdPerms;
+
 #endif //STAR_CAPABILITY_H

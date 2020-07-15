@@ -10,6 +10,9 @@ set(TEMP_REPO "${CMAKE_BINARY_DIR}/.temp-repo")
 file(MAKE_DIRECTORY ${TEMP_REPO})
 set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES "${TEMP_REPO}")
 
+file(MAKE_DIRECTORY ${REPO_DIR})
+set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES "${REPO_DIR}/*")
+
 add_custom_command(TARGET compiler DEPENDS sbc star.escapes
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   COMMAND "${CMAKE_CURRENT_BINARY_DIR}/../BootCompiler/sbc" "-w" "${CMAKE_CURRENT_SOURCE_DIR}/" "-r" "${TEMP_REPO}" "star.compiler"
@@ -30,8 +33,12 @@ add_dependencies(sc sbc star)
 
 add_custom_command(TARGET sc
         COMMAND "${CMAKE_CURRENT_BINARY_DIR}/../BootCompiler/sbc" "-w" "${CMAKE_CURRENT_SOURCE_DIR}/" "-r" "${TEMP_REPO}/" "star.compiler"
-        COMMAND "${STAR}" "-r" "${TEMP_REPO}/" "star.compiler" "-R" "${REPO_DIR}/" "-W" "${CMAKE_CURRENT_SOURCE_DIR}/" "star.compiler"
-  )
+        COMMAND "${STAR}" "${STAR_COMPILER_FLAGS}" "-r" "${TEMP_REPO}/" "star.compiler" "-R" "${REPO_DIR}/" "-W" "${CMAKE_CURRENT_SOURCE_DIR}/" "star.compiler"
+	)
+
+# install(TARGETS sc DESTINATION bin)
+  
+	
 
 
 

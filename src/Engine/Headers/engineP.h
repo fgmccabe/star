@@ -14,6 +14,7 @@
 #include "heapP.h"
 #include "labelsP.h"
 #include "thr.h"
+#include "capability.h"
 
 typedef struct _processRec_ {
   insPo pc;           /* current program counter */
@@ -48,7 +49,7 @@ typedef struct _stack_frame_ {
 extern void initEngine();
 extern retCode run(processPo P);
 
-retCode bootstrap(char *entry, char *rootWd);
+retCode bootstrap(char *entry, char *rootWd, capabilityPo rootCap);
 
 extern pthread_key_t processKey;
 pthread_t ps_threadID(processPo p);

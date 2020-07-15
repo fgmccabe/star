@@ -12,7 +12,7 @@
 #undef instruction
 #define instruction(Op, A1, Dl, Cmt)    \
     case Op:          \
-      ret = jit_##Op##Instruction(code,&pc,A1,context); \
+      ret = jit_##Op(code,&pc,A1,context); \
       break;
 
 retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {

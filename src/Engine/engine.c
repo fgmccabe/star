@@ -13,7 +13,7 @@
 #include "globals.h"
 #include "debugP.h"
 
-logical runStats = False;         // Count instructions etc.
+// Count instructions etc.
 static poolPo prPool;     /* pool of processes */
 
 hashPo prTble;
@@ -42,12 +42,12 @@ void initEngine() {
   halt.clss = methodClass;
 }
 
-retCode bootstrap(char *entry, char *rootWd) {
+retCode bootstrap(char *entry, char *rootWd, capabilityPo rootCap) {
   labelPo umain = declareLbl(entry, 0);
   methodPo mainMtd = labelCode(umain);
 
   if (mainMtd != Null) {
-    processPo p = newProcess(mainMtd, rootWd);
+    processPo p = newProcess(mainMtd, rootCap);
     retCode ret = run(p);
     ps_kill(p);
     return ret;
@@ -57,7 +57,7 @@ retCode bootstrap(char *entry, char *rootWd) {
   }
 }
 
-processPo newProcess(methodPo mtd, char *rootWd) {
+processPo newProcess(methodPo mtd, char *rootWd, capabilityPo processCap) {
   processPo P = (processPo) allocPool(prPool);
 
   P->prog = mtd;
