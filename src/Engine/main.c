@@ -93,7 +93,9 @@ int main(int argc, char **argv) {
 
   setupSignals();
 
-  switch (bootstrap(bootEntry, rootWd)) {
+  capabilityPo rootCap = allocateCapability(currHeap,rootWd,uniStrLen(rootWd),stdPerms);
+
+  switch (bootstrap(bootEntry, rootWd, rootCap)) {
     case Ok:
       return EXIT_SUCCEED;          /* exit the runtime system cleanly */
     case Error:

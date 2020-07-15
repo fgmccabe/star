@@ -13,5 +13,6 @@ typedef retCode (*jitCode)();
 typedef struct jit_compiler_ *jitCompPo;
 
 void initJit();
+retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen);
 
 #endif //STAR_JIT_H

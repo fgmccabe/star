@@ -49,6 +49,6 @@ set(SOURCE_FILES
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})
 
-target_link_libraries(star escapes infra ooio m pthread)
+target_link_libraries(star escapes infra ooio m pthread jit)
 
 install(TARGETS star DESTINATION bin)

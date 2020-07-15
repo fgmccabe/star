@@ -11,7 +11,7 @@
 #undef instruction
 
 #define instruction(Op, A1, Dl, Cmt)    \
-retCode jit_##Op##Instruction(insPo code,integer *pc,opAndSpec OpAnd,jitCompPo context);
+retCode jit_##Op(insPo code,integer *pc,opAndSpec OpAnd,jitCompPo context);
 
 #include "instructions.h"
 
