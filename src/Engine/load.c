@@ -438,9 +438,9 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
               } else {
                 gcAddRoot(H, (ptrPo) &lbl);
 
-                methodPo mtd = defineMtd(H, ins, (integer) (pc - ins), lclCount, maxStack, lbl, C_TERM(pool),
-                                         C_TERM(locals),
-                                         C_TERM(lines));
+                methodPo mtd = defineMtd(H, ins, (integer) (pc - ins), lclCount, maxStack, lbl, C_NORMAL(pool),
+                                         C_NORMAL(locals),
+                                         C_NORMAL(lines));
                 if (enableVerify)
                   ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
               }
@@ -524,9 +524,9 @@ retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgS
               } else {
                 gcAddRoot(H, (ptrPo) &lbl);
 
-                methodPo mtd = defineMtd(H, ins, (integer) (pc - ins), lclCount, maxStack, lbl, C_TERM(pool),
-                                         C_TERM(locals),
-                                         C_TERM(lines));
+                methodPo mtd = defineMtd(H, ins, (integer) (pc - ins), lclCount, maxStack, lbl, C_NORMAL(pool),
+                                         C_NORMAL(locals),
+                                         C_NORMAL(lines));
                 if (enableVerify)
                   ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
 

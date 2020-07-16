@@ -25,7 +25,7 @@ typedef struct _field_table_ {
 
 typedef struct labelTable_ *lblTablePo;
 
-typedef struct _program_label_ {
+typedef struct program_label_ {
   clssPo clss;                // == labelClass
   integer arity;              // Arity of label
   integer hash;               // Hash code for the label

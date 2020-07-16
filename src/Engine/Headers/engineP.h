@@ -16,7 +16,7 @@
 #include "thr.h"
 #include "capability.h"
 
-typedef struct _processRec_ {
+typedef struct processRec_ {
   insPo pc;           /* current program counter */
   framePo fp;         /* current frame */
   methodPo prog;      /* current program */
@@ -39,7 +39,7 @@ typedef struct _processRec_ {
 #endif
 } ProcessRec;
 
-typedef struct _stack_frame_ {
+typedef struct stack_frame_ {
   framePo fp;
   insPo rtn;          /* The return address entry */
   methodPo prog;      /* stacked program */

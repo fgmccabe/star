@@ -281,9 +281,9 @@ ReturnStatus g__outbytes(processPo p, ptrPo tos) {
   retCode ret = Ok;
 
   while(ret==Ok && isCons(data)){
-    byte b = (byte)integerVal(consHead(C_TERM(data)));
+    byte b = (byte)integerVal(consHead(C_NORMAL(data)));
     ret = outByte(io,b);
-    data = consTail(C_TERM(data));
+    data = consTail(C_NORMAL(data));
   }
 
   return rtnStatus(p, ret, "outbytes");

@@ -10,6 +10,10 @@
 #include "code.h"
 #include "termP.h"
 
+typedef struct integer_term *intPo;
+
+extern intPo C_INT(termPo t);
+
 typedef struct integer_term {
   clssPo clss;                  // == integerClass
   integer ix;
@@ -17,7 +21,7 @@ typedef struct integer_term {
 
 #define IntegerCellCount CellCount(sizeof(IntegerRecord))
 
-extern intPo allocateInteger(heapPo H, integer ix);
+extern termPo allocateInteger(heapPo H, integer ix);
 
 typedef struct float_term {
   clssPo clss;                  // == floatClass
@@ -26,7 +30,7 @@ typedef struct float_term {
 
 #define FloatCellCount CellCount(sizeof(FloatRecord))
 
-extern fltPo allocateFloat(heapPo H, double dx);
+extern termPo allocateFloat(heapPo H, double dx);
 
 #define EPSILON ((double)1.0e-20)
 

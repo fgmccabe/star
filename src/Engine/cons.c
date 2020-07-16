@@ -26,7 +26,7 @@ normalPo allocateCons(heapPo H, termPo lhs, termPo rhs) {
 
 logical isCons(termPo t) {
   if (isNormalPo(t)) {
-    normalPo c = C_TERM(t);
+    normalPo c = C_NORMAL(t);
     return (logical) (c->lbl == consCons);
   } else
     return False;
@@ -48,20 +48,20 @@ termPo consTail(normalPo p) {
 
 void updateConsHead(termPo cns, termPo h) {
   assert(isCons((termPo) cns));
-  normalPo p = C_TERM(cns);
+  normalPo p = C_NORMAL(cns);
   setArg(p, 0, h);
 }
 
 void updateConsTail(termPo cns, termPo t) {
   assert(isCons((termPo) cns));
-  normalPo p = C_TERM(cns);
+  normalPo p = C_NORMAL(cns);
   setArg(p, 1, t);
 }
 
 integer consLength(termPo t) {
   integer ln = 0;
-  while (isNormalPo(t) && termLbl(C_TERM(t)) == consCons) {
-    t = nthArg(C_TERM(t), 1);
+  while (isNormalPo(t) && termLbl(C_NORMAL(t)) == consCons) {
+    t = nthArg(C_NORMAL(t), 1);
     ln++;
   }
   assert (t == (termPo) nilEnum);

@@ -8,7 +8,7 @@
 #include "turm.h"
 
 ReturnStatus g__tuple_nth(processPo P, ptrPo tos) {
-  normalPo tpl = C_TERM(tos[0]);
+  normalPo tpl = C_NORMAL(tos[0]);
   integer ix = integerVal(tos[1]);
 
   termPo el = nthArg(tpl, ix);
@@ -17,7 +17,7 @@ ReturnStatus g__tuple_nth(processPo P, ptrPo tos) {
 }
 
 ReturnStatus g__tuple_set_nth(processPo P, ptrPo tos) {
-  normalPo tpl = C_TERM(tos[0]);
+  normalPo tpl = C_NORMAL(tos[0]);
   integer ix = integerVal(tos[1]);
 
   assert(ix >= 0 && ix < termArity(tpl));

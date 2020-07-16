@@ -172,8 +172,8 @@ ReturnStatus g__iptohost(processPo P, ptrPo tos) {
   char *host = getHostname(ip);
 
   if (host != NULL) {
-    stringPo Host = allocateCString(H, host);
-    return (ReturnStatus) {.ret=Ok, .result =(termPo) Host};
+    termPo Host = allocateCString(H, host);
+    return (ReturnStatus) {.ret=Ok, .result =Host};
   } else
     return liberror(P, "_iptohost", eNOTFND);
 }

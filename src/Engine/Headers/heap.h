@@ -6,7 +6,7 @@
 #include "ooio.h"
 #include "term.h"
 
-typedef struct _heap_ *heapPo;
+typedef struct heap_ *heapPo;
 
 extern void initHeap(long heapSize);
 

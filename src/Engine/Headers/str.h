@@ -25,9 +25,9 @@ extern integer stringLength(stringPo str);
 
 extern integer stringHash(stringPo str);
 
-extern stringPo allocateString(heapPo H, const char *txt, long length);
+extern termPo allocateString(heapPo H, const char *txt, long length);
 
-extern stringPo allocateCString(heapPo H, const char *txt);
+extern termPo allocateCString(heapPo H, const char *txt);
 
 extern retCode copyString2Buff(stringPo str, char *buffer, integer buffLen);
 

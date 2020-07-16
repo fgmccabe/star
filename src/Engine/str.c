@@ -40,19 +40,19 @@ const char *stringVal(termPo t, integer *size) {
   return str->txt;
 }
 
-stringPo allocateString(heapPo H, const char *txt, long length) {
+termPo allocateString(heapPo H, const char *txt, long length) {
   stringPo str = (stringPo) allocateObject(H, stringClass, StringCellCount(length));
 
   str->clss = stringClass;
   str->hash = 0;
   str->length = length;
 
-  memmove(str->txt,txt,length*sizeof(char));
+  memmove(str->txt, txt, length * sizeof(char));
 
-  return str;
+  return (termPo) str;
 }
 
-stringPo allocateCString(heapPo H, const char *txt) {
+termPo allocateCString(heapPo H, const char *txt) {
   return allocateString(H, txt, uniStrLen(txt));
 }
 
@@ -65,7 +65,7 @@ termPo strCopy(specialClassPo cl, termPo dst, termPo src) {
   stringPo di = (stringPo) dst;
   *di = *si;
 
-  memcpy(di->txt,si->txt,si->length);
+  memcpy(di->txt, si->txt, si->length);
 
   return ((termPo) di) + StringCellCount(si->length);
 }
@@ -84,7 +84,7 @@ logical strCmp(specialClassPo cl, termPo o1, termPo o2) {
   return uniSame(tx1, l1, tx2, l2);
 }
 
-logical sameString(stringPo s1, stringPo s2){
+logical sameString(stringPo s1, stringPo s2) {
   return uniSame(s1->txt, s1->length, s2->txt, s2->length);
 }
 
@@ -158,7 +158,7 @@ integer stringHash(stringPo str) {
   return str->hash;
 }
 
-integer stringLength(stringPo str){
+integer stringLength(stringPo str) {
   return str->length;
 }
 

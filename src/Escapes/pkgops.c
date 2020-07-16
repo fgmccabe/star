@@ -50,13 +50,13 @@ static retCode pickupImport(packagePo p, char *errorMsg, long msgLen, void *cl) 
   pickupStruct *pk = (pickupStruct *) cl;
 
   if (!isLoadedPackage(p)) {
-    stringPo pkg = allocateCString(pk->H, p->packageName);
-    int root = gcAddRoot(pk->H, (ptrPo) &pkg);
+    termPo pkg = allocateCString(pk->H, p->packageName);
+    int root = gcAddRoot(pk->H, &pkg);
 
-    stringPo vr = allocateCString(pk->H, p->version);
-    gcAddRoot(pk->H, (ptrPo) &vr);
+    termPo vr = allocateCString(pk->H, p->version);
+    gcAddRoot(pk->H, &vr);
 
-    normalPo pr = allocatePair(pk->H, (termPo) pkg, (termPo) vr);
+    normalPo pr = allocatePair(pk->H, (termPo) pkg, vr);
     *(pk->list) = (termPo) allocateCons(pk->H, (termPo) pr, *(pk->list));
     gcReleaseRoot(pk->H, root);
   }

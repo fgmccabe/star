@@ -24,7 +24,7 @@ normalPo wrapSome(heapPo H, termPo lhs) {
 
 logical isSome(termPo t) {
   if (isNormalPo(t)) {
-    normalPo c = C_TERM(t);
+    normalPo c = C_NORMAL(t);
     return (logical) (termLbl(c) == someCons);
   } else
     return False;

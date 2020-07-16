@@ -112,7 +112,7 @@ retCode run(processPo P) {
 
       case OCall: {        /* Call tos a1 .. an -->   */
         int arity = collectI32(PC);
-        normalPo nProg = C_TERM(pop());
+        normalPo nProg = C_NORMAL(pop());
 
         labelPo oLbl = termLbl(nProg);
         methodPo NPROG = labelCode(objLabel(oLbl, arity));       /* set up for object call */
@@ -236,7 +236,7 @@ retCode run(processPo P) {
 
       case OTail: {       /* Tail call */
         int arity = collectI32(PC);
-        normalPo nProg = C_TERM(pop());
+        normalPo nProg = C_NORMAL(pop());
 
         labelPo oLbl = termLbl(nProg);
         methodPo NPROG = labelCode(objLabel(oLbl, arity));       /* set up for object call */
@@ -373,7 +373,7 @@ retCode run(processPo P) {
         } else if (glbHasProvider(glb)) {
           termPo prov = getProvider(glb);  // Set up an OCall to the provider
 
-          normalPo nProg = C_TERM(prov);
+          normalPo nProg = C_NORMAL(prov);
 
           push(PROG);
           push(PC);       /* build up the frame. */
@@ -410,7 +410,7 @@ retCode run(processPo P) {
 
       case Get: {
         labelPo lbl = C_LBL(nthElem(LITS, collectI32(PC)));
-        normalPo trm = C_TERM(pop());
+        normalPo trm = C_NORMAL(pop());
         termPo el = getField(trm, lbl);
         if (el != Null)
           push(el);
@@ -428,7 +428,7 @@ retCode run(processPo P) {
         assert(validPC(PROG, exit));
 
         if (isNormalPo(t)) {
-          normalPo cl = C_TERM(t);
+          normalPo cl = C_NORMAL(t);
           if (isALabel(l) && sameLabel(C_LBL(l), termLbl(cl)))
             PC = exit;
         } else if (sameTerm(t, l))
@@ -452,7 +452,7 @@ retCode run(processPo P) {
         termPo t = pop();
         check(isNormalPo(t), "tried to access non term");
 
-        normalPo cl = C_TERM(t);  /* which term? */
+        normalPo cl = C_NORMAL(t);  /* which term? */
         push(nthArg(cl, ix));
 
         continue;
@@ -488,7 +488,7 @@ retCode run(processPo P) {
       case StNth: {      /* store into a closure */
         int32 ix = collectI32(PC);
         termPo tos = pop();
-        normalPo cl = C_TERM(pop());
+        normalPo cl = C_NORMAL(pop());
         cl->args[ix] = tos;
         continue;
       }
@@ -512,7 +512,7 @@ retCode run(processPo P) {
       case Set: {
         labelPo lbl = C_LBL(nthArg(LITS, collectI32(PC)));
         termPo val = pop();
-        normalPo trm = C_TERM(pop());
+        normalPo trm = C_NORMAL(pop());
         setField(trm, lbl, val);
         continue;
       }

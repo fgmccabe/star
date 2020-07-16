@@ -212,16 +212,16 @@ ReturnStatus g__shell(processPo P, ptrPo tos) {
 
     for (integer ix = 0; ix < argCnt; ix++) {
       char arg[MAXFILELEN];
-      copyString2Buff(C_STR(consHead(C_TERM(args))), arg, NumberOf(arg));
-      args = consTail(C_TERM(args));
+      copyString2Buff(C_STR(consHead(C_NORMAL(args))), arg, NumberOf(arg));
+      args = consTail(C_NORMAL(args));
       argv[ix + 1] = strdup(arg);
     }
 
     argv[argCnt + 1] = NULL;
 
     for (integer ix = 0; ix < envCnt; ix++) {
-      normalPo pair = C_TERM(consHead(C_TERM(env)));
-      env = consTail(C_TERM(env));
+      normalPo pair = C_NORMAL(consHead(C_NORMAL(env)));
+      env = consTail(C_NORMAL(env));
       bufferPo lineBf = newStringBuffer();
 
       integer klen, vlen;
@@ -313,16 +313,16 @@ ReturnStatus g__popen(processPo P, ptrPo tos) {
     argv[0] = cmd;
     for (integer ix = 0; ix < argCnt; ix++) {
       char arg[MAXFILELEN];
-      copyString2Buff(C_STR(consHead(C_TERM(args))), arg, NumberOf(arg));
+      copyString2Buff(C_STR(consHead(C_NORMAL(args))), arg, NumberOf(arg));
       argv[ix + 1] = strdup(arg);
-      args = consTail(C_TERM(args));
+      args = consTail(C_NORMAL(args));
     }
 
     argv[argCnt + 1] = NULL;
     bufferPo lineBf = newStringBuffer();
     for (integer ix = 0; ix < envCnt; ix++) {
-      normalPo pair = C_TERM(consHead(C_TERM(env)));
-      env = consTail(C_TERM(env));
+      normalPo pair = C_NORMAL(consHead(C_NORMAL(env)));
+      env = consTail(C_NORMAL(env));
 
       integer klen, vlen;
       const char *key = stringVal(nthArg(pair, 0), &klen);

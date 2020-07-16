@@ -47,7 +47,7 @@ retCode bootstrap(char *entry, char *rootWd, capabilityPo rootCap) {
   methodPo mainMtd = labelCode(umain);
 
   if (mainMtd != Null) {
-    processPo p = newProcess(mainMtd, rootCap);
+    processPo p = newProcess(mainMtd, rootWd, rootCap);
     retCode ret = run(p);
     ps_kill(p);
     return ret;
@@ -221,7 +221,7 @@ retCode extendStack(processPo p, integer sfactor, integer fixed) {
 ReturnStatus liberror(processPo P, char *name, termPo code) {
   heapPo H = processHeap(P);
   int root = gcAddRoot(H, &code);
-  stringPo msg = allocateCString(H, name);
+  termPo msg = allocateCString(H, name);
   gcAddRoot(H, (ptrPo) &msg);
 
   normalPo err = allocateStruct(H, errorLbl);

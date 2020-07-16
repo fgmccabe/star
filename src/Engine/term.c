@@ -24,7 +24,7 @@ logical isSpecialClass(clssPo p) {
   return (logical) (p->clss == specialClass);
 }
 
-normalPo C_TERM(termPo t) {
+normalPo C_NORMAL(termPo t) {
   assert(isNormalPo(t));
   return (normalPo) t;
 }
@@ -88,7 +88,7 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
     specialClassPo spec = (specialClassPo) clss;
     return spec->dispFun(out, t, precision, depth, alt);
   } else if (isNormalPo(t)) {
-    normalPo nml = C_TERM(t);
+    normalPo nml = C_NORMAL(t);
     labelPo lbl = nml->lbl;
     if (isRecordLabel(lbl)) {
       FieldInfoRec Info = {.out = out, .depth=depth, .precision=precision, .alt=alt, .trm=nml};
@@ -139,8 +139,8 @@ logical sameTerm(termPo t1, termPo t2) {
   else if (isSpecialClass(c1)) {
     return ((specialClassPo) c1)->compFun((specialClassPo) c1, t1, t2);
   } else {
-    normalPo n1 = C_TERM(t1);
-    normalPo n2 = C_TERM(t2);
+    normalPo n1 = C_NORMAL(t1);
+    normalPo n2 = C_NORMAL(t2);
     labelPo lbl = n1->lbl;
     for (integer ix = 0; ix < labelArity(lbl); ix++) {
       if (!sameTerm(nthArg(n1, ix), nthArg(n2, ix)))
@@ -156,7 +156,7 @@ integer termHash(termPo t) {
   if (isSpecialClass(c))
     return ((specialClassPo) c)->hashFun((specialClassPo) c, t);
   else {
-    normalPo n1 = C_TERM(t);
+    normalPo n1 = C_NORMAL(t);
     labelPo lbl = n1->lbl;
     integer hash = termHash((termPo) lbl);
     for (integer ix = 0; ix < labelArity(lbl); ix++)
@@ -174,7 +174,7 @@ integer hashTermLbl(termPo t) {
   if (isSpecialClass(c))
     return ((specialClassPo) c)->hashFun((specialClassPo) c, t);
   else
-    return hashTermLbl((termPo) (C_TERM(t)->lbl));
+    return hashTermLbl((termPo) (C_NORMAL(t)->lbl));
 }
 
 integer termSize(normalPo t) {
