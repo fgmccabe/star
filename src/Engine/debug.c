@@ -1298,7 +1298,7 @@ retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bu
   return Fail;
 }
 
-void dumpStats() {
+void dumpInsStats() {
   logMsg(debugOutChnnl, "%ld instructions executed\n", pcCount);
 }
 
