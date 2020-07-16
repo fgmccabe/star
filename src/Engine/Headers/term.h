@@ -10,7 +10,7 @@
 
 typedef struct special_class *specialClassPo;
 
-typedef struct _program_label_ *labelPo;
+typedef struct program_label_ *labelPo;
 
 typedef struct normal_term *normalPo;
 
@@ -30,7 +30,7 @@ typedef struct class_record {
   clssPo clss; // == classClass
 } ClassRecord;
 
-normalPo C_TERM(termPo t);
+normalPo C_NORMAL(termPo t);
 
 logical isNormalPo(termPo t);
 

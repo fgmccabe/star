@@ -32,7 +32,7 @@ static inline void push(processPo P, termPo t) {
 
 static void pushArgs(processPo P, termPo args) {
   if (isCons(args)) {
-    normalPo const p = C_TERM(args);
+    normalPo const p = C_NORMAL(args);
     pushArgs(P, consTail(p));
     push(P, consHead(p));
   }

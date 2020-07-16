@@ -184,7 +184,7 @@ static logical shouldWeStop(processPo p, insWord ins, insPo pc, termPo arg) {
       }
 
       case dLine: {
-        breakPointPo bp = lineBreakPointHit(C_TERM(arg));
+        breakPointPo bp = lineBreakPointHit(C_NORMAL(arg));
         if (bp != Null) {
           p->waitFor = stepInto;
           p->tracing = True;
@@ -790,7 +790,7 @@ static logical shouldWeStopIns(processPo p, insWord ins, insPo pc) {
       case dLine: {
         termPo loc = findPcLocation(p->prog, insOffset(p->prog, p->pc));
 
-        breakPointPo bp = lineBreakPointHit(C_TERM(loc));
+        breakPointPo bp = lineBreakPointHit(C_NORMAL(loc));
         if (bp != Null) {
           p->waitFor = stepInto;
           p->tracing = True;
@@ -887,7 +887,7 @@ retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
   termPo ln = (termPo) data;
 
   if (isNormalPo(ln)) {
-    normalPo line = C_TERM(ln);
+    normalPo line = C_NORMAL(ln);
     char pkgNm[MAX_SYMB_LEN];
     copyString2Buff(C_STR(nthArg(line, 0)), pkgNm, NumberOf(pkgNm));
 
@@ -984,7 +984,7 @@ void showRet(ioPo out, methodPo mtd, insPo pc, termPo val, framePo fp, ptrPo sp)
 typedef void (*showCmd)(ioPo out, methodPo mtd, insPo pc, termPo trm, framePo fp, ptrPo sp);
 
 termPo getLbl(termPo lbl, int32 arity) {
-  labelPo oLbl = isNormalPo(lbl) ? termLbl(C_TERM(lbl)) : C_LBL(lbl);
+  labelPo oLbl = isNormalPo(lbl) ? termLbl(C_NORMAL(lbl)) : C_LBL(lbl);
   return (termPo) declareLbl(oLbl->name, arity);
 }
 
@@ -1283,7 +1283,7 @@ retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bu
   integer pcOffset = (integer) (pc - mtd->code);
 
   for (int32 ix = 0; ix < numLocals; ix++) {
-    normalPo vr = C_TERM(nthArg(locals, ix));
+    normalPo vr = C_NORMAL(nthArg(locals, ix));
     integer from = integerVal(nthArg(vr, 1));
     integer to = integerVal(nthArg(vr, 2));
 
@@ -1298,7 +1298,7 @@ retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bu
   return Fail;
 }
 
-void dumpInsCount() {
+void dumpStats() {
   logMsg(debugOutChnnl, "%ld instructions executed\n", pcCount);
 }
 

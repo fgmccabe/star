@@ -195,9 +195,9 @@ void dS(termPo w) {
   termPo s = w;
 
   while (isCons(s)) {
-    integer cp = integerVal(consHead(C_TERM(s)));
+    integer cp = integerVal(consHead(C_NORMAL(s)));
     outChar(logFile, cp);
-    s = consTail(C_TERM(s));
+    s = consTail(C_NORMAL(s));
   }
   outStr(logFile, "\n");
   flushOut();
@@ -209,7 +209,7 @@ ReturnStatus g__implode(processPo p, ptrPo tos) {
   bufferPo strb = newStringBuffer();
 
   while (isCons(list)) {
-    normalPo pr = C_TERM(list);
+    normalPo pr = C_NORMAL(list);
     outChar(O_IO(strb), (codePoint) integerVal(consHead(pr)));
     list = consTail(pr);
   }
@@ -268,13 +268,13 @@ ReturnStatus g__str_hdtl(processPo p, ptrPo tos) {
   retCode ret = nxtPoint(str, &offset, len, &ch);
 
   if (ret == Ok) {
-    intPo chCode = allocateInteger(H, ch);
-    int mark = gcAddRoot(H, (ptrPo) &chCode);
-    stringPo rest = allocateString(H, &str[offset], len - offset);
-    gcAddRoot(H, (ptrPo) &rest);
+    termPo chCode = allocateInteger(H, ch);
+    int mark = gcAddRoot(H, &chCode);
+    termPo rest = allocateString(H, &str[offset], len - offset);
+    gcAddRoot(H, &rest);
     normalPo pair = allocateTpl(H, 2);
-    setArg(pair, 0, (termPo) chCode);
-    setArg(pair, 1, (termPo) rest);
+    setArg(pair, 0, chCode);
+    setArg(pair, 1, rest);
     gcReleaseRoot(H, mark);
     return (ReturnStatus) {.ret=Ok, .result=(termPo) pair};
   } else {
@@ -323,13 +323,13 @@ ReturnStatus g__str_back(processPo p, ptrPo tos) {
   retCode ret = prevPoint(str, &offset, &ch);
 
   if (ret == Ok) {
-    intPo chCode = allocateInteger(H, ch);
+    termPo chCode = allocateInteger(H, ch);
     int mark = gcAddRoot(H, (ptrPo) &chCode);
-    stringPo rest = allocateString(H, str, offset);
-    gcAddRoot(H, (ptrPo) &rest);
+    termPo rest = allocateString(H, str, offset);
+    gcAddRoot(H, &rest);
     normalPo pair = allocateTpl(H, 2);
-    setArg(pair, 0, (termPo) rest);
-    setArg(pair, 1, (termPo) chCode);
+    setArg(pair, 0,  rest);
+    setArg(pair, 1, chCode);
     gcReleaseRoot(H, mark);
     return (ReturnStatus) {.ret=Ok, .result=(termPo) pair};
   } else {
@@ -441,13 +441,13 @@ retCode flatten(bufferPo str, termPo t) {
   if (isCons(t)) {
     retCode ret = Ok;
     while (ret == Ok && isCons(t)) {
-      normalPo lst = C_TERM(t);
+      normalPo lst = C_NORMAL(t);
       ret = flatten(str, consHead(lst));
       t = consTail(lst);
     }
     return ret;
   } else if (isNormalPo(t)) {
-    normalPo ss = C_TERM(t);
+    normalPo ss = C_NORMAL(t);
     integer cx = termArity(ss);
     retCode ret = Ok;
     for (integer ix = 0; ret == Ok && ix < cx; ix++) {

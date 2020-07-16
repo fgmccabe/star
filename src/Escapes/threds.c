@@ -36,7 +36,7 @@ void *forkThread(void *arg) {
 
 ReturnStatus g__fork(processPo P, ptrPo tos) {
   labelPo fn = C_LBL(tos[0]);
-  processPo np = newProcess(labelCode(fn), NULL);
+  processPo np = newProcess(labelCode(fn), P->wd, Null);
 
   threadPo thread = newThread(np);
 

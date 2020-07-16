@@ -10,8 +10,8 @@
 #include "heap.h"
 #include "capability.h"
 
-typedef struct _processRec_ *processPo;
-typedef struct _stack_frame_ *framePo;
+typedef struct processRec_ *processPo;
+typedef struct stack_frame_ *framePo;
 
 typedef enum {
   stepInto, stepOver, nextBreak, never, quitDbg, moreDebug
@@ -30,7 +30,7 @@ typedef enum {
   dead
 } ProcessState;
 
-typedef struct _return_code_ {
+typedef struct return_code_ {
   retCode ret;
   termPo result;
 } ReturnStatus;

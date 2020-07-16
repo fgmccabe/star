@@ -123,7 +123,7 @@ termPo findPcLocation(methodPo mtd, integer pc) {
 
   while (limit >= start) {
     integer mid = start + (limit - start) / 2;
-    normalPo midEntry = C_TERM(nthArg(lines, mid));
+    normalPo midEntry = C_NORMAL(nthArg(lines, mid));
     integer testPc = integerVal(nthArg(midEntry, 1));
     termPo testLoc = nthArg(midEntry, 0);
 

@@ -22,7 +22,7 @@
 #define DATE_LEN 9
 
 ReturnStatus g__date2time(processPo p, ptrPo tos) {
-  normalPo dte = C_TERM(tos[0]);
+  normalPo dte = C_NORMAL(tos[0]);
   struct tm now;
 
   now.tm_year = (int) (integerVal(nthArg(dte, DATE_YEAR)) - 1900); /* Extract the year */
@@ -41,11 +41,11 @@ ReturnStatus g__date2time(processPo p, ptrPo tos) {
   time_t when = mktime(&now);
 
   return (ReturnStatus) {.ret=Ok,
-            .result=(termPo) allocateFloat(processHeap(p), when + fraction)};
+    .result=(termPo) allocateFloat(processHeap(p), when + fraction)};
 }
 
 ReturnStatus g__utc2time(processPo p, ptrPo tos) {
-  normalPo dte = C_TERM(tos[0]);
+  normalPo dte = C_NORMAL(tos[0]);
   struct tm now;
 
   now.tm_year = (int) (integerVal(nthArg(dte, DATE_YEAR)) - 1900); /* Extract the year */
@@ -64,7 +64,7 @@ ReturnStatus g__utc2time(processPo p, ptrPo tos) {
   time_t when = timegm(&now);
 
   return (ReturnStatus) {.ret=Ok,
-            .result=(termPo) allocateFloat(processHeap(p), when + fraction)};
+    .result=(termPo) allocateFloat(processHeap(p), when + fraction)};
 }
 
 ReturnStatus g__time2date(processPo p, ptrPo tos) {
@@ -78,32 +78,32 @@ ReturnStatus g__time2date(processPo p, ptrPo tos) {
   double sec;
   double fraction = modf(floatVal(tos[0]), &sec);
 
-  intPo year = allocateInteger(H, now->tm_year + 1900);
-  setArg(dte, DATE_YEAR, (termPo) year);
+  termPo year = allocateInteger(H, now->tm_year + 1900);
+  setArg(dte, DATE_YEAR, year);
 
-  intPo mon = allocateInteger(H, now->tm_mon + 1);
-  setArg(dte, DATE_MON, (termPo) mon);
+  termPo mon = allocateInteger(H, now->tm_mon + 1);
+  setArg(dte, DATE_MON, mon);
 
-  intPo day = allocateInteger(H, now->tm_mday);
-  setArg(dte, DATE_DAY, (termPo) day);
+  termPo day = allocateInteger(H, now->tm_mday);
+  setArg(dte, DATE_DAY, day);
 
-  intPo dow = allocateInteger(H, now->tm_wday);
-  setArg(dte, DATE_DOW, (termPo) dow);
+  termPo dow = allocateInteger(H, now->tm_wday);
+  setArg(dte, DATE_DOW, dow);
 
-  intPo hr = allocateInteger(H, now->tm_hour);
-  setArg(dte, DATE_HOUR, (termPo) hr);
+  termPo hr = allocateInteger(H, now->tm_hour);
+  setArg(dte, DATE_HOUR, hr);
 
-  intPo min = allocateInteger(H, now->tm_min);
-  setArg(dte, DATE_MIN, (termPo) min);
+  termPo min = allocateInteger(H, now->tm_min);
+  setArg(dte, DATE_MIN, min);
 
-  fltPo sc = allocateFloat(H, now->tm_sec + fraction);
-  setArg(dte, DATE_SEC, (termPo) sc);
+  termPo sc = allocateFloat(H, now->tm_sec + fraction);
+  setArg(dte, DATE_SEC, sc);
 
-  intPo off = allocateInteger(H, now->tm_gmtoff);
-  setArg(dte, DATE_UTC, (termPo) off);
+  termPo off = allocateInteger(H, now->tm_gmtoff);
+  setArg(dte, DATE_UTC, off);
 
-  stringPo zone = allocateCString(H, now->tm_zone);
-  setArg(dte, DATE_ZONE, (termPo) zone);
+  termPo zone = allocateCString(H, now->tm_zone);
+  setArg(dte, DATE_ZONE, zone);
 
   gcReleaseRoot(H, root);
   return (ReturnStatus) {.ret=Ok, .result=(termPo) dte};
@@ -121,33 +121,33 @@ ReturnStatus g__time2utc(processPo p, ptrPo tos) {
   double sec;
   double fraction = modf(floatVal(tos[0]), &sec);
 
-  intPo year = allocateInteger(H, now->tm_year + 1900);
-  setArg(dte, DATE_YEAR, (termPo) year);
+  termPo year = allocateInteger(H, now->tm_year + 1900);
+  setArg(dte, DATE_YEAR, year);
 
-  intPo mon = allocateInteger(H, now->tm_mon + 1);
-  setArg(dte, DATE_MON, (termPo) mon);
+  termPo mon = allocateInteger(H, now->tm_mon + 1);
+  setArg(dte, DATE_MON, mon);
 
-  intPo day = allocateInteger(H, now->tm_mday);
-  setArg(dte, DATE_DAY, (termPo) day);
+  termPo day = allocateInteger(H, now->tm_mday);
+  setArg(dte, DATE_DAY, day);
 
-  intPo dow = allocateInteger(H, now->tm_wday);
-  setArg(dte, DATE_DOW, (termPo) dow);
+  termPo dow = allocateInteger(H, now->tm_wday);
+  setArg(dte, DATE_DOW, dow);
 
-  intPo hr = allocateInteger(H, now->tm_hour);
-  setArg(dte, DATE_HOUR, (termPo) hr);
+  termPo hr = allocateInteger(H, now->tm_hour);
+  setArg(dte, DATE_HOUR, hr);
 
-  intPo min = allocateInteger(H, now->tm_min);
-  setArg(dte, DATE_MIN, (termPo) min);
+  termPo min = allocateInteger(H, now->tm_min);
+  setArg(dte, DATE_MIN, min);
 
-  fltPo sc = allocateFloat(H, now->tm_sec + fraction);
-  setArg(dte, DATE_SEC, (termPo) sc);
+  termPo sc = allocateFloat(H, now->tm_sec + fraction);
+  setArg(dte, DATE_SEC, sc);
 
-  intPo off = allocateInteger(H, now->tm_gmtoff);
-  setArg(dte, DATE_UTC, (termPo) off);
+  termPo off = allocateInteger(H, now->tm_gmtoff);
+  setArg(dte, DATE_UTC, off);
 
-  stringPo zone = allocateCString(H, now->tm_zone);
-  setArg(dte, DATE_ZONE, (termPo) zone);
+  termPo zone = allocateCString(H, now->tm_zone);
+  setArg(dte, DATE_ZONE, zone);
 
   gcReleaseRoot(H, root);
-  return (ReturnStatus) {.ret=Ok, .result=(termPo) dte};
+  return (ReturnStatus) {.ret=Ok, .result= (termPo)dte};
 }

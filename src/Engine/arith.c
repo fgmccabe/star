@@ -50,10 +50,10 @@ void initArith() {
   FloatClass.clss = specialClass;
 }
 
-intPo allocateInteger(heapPo H, integer ix) {
+termPo allocateInteger(heapPo H, integer ix) {
   intPo t = (intPo) allocateObject(H, integerClass, CellCount(sizeof(IntegerRecord)));
   t->ix = ix;
-  return t;
+  return (termPo) t;
 }
 
 long intSize(specialClassPo cl, termPo o) {
@@ -79,7 +79,7 @@ logical intCmp(specialClassPo cl, termPo t1, termPo t2) {
 }
 
 integer intHash(specialClassPo cl, termPo o) {
-  return integerHash(C_INT(o));
+  return (C_INT(o))->ix;
 }
 
 static retCode intDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
@@ -88,23 +88,28 @@ static retCode intDisp(ioPo out, termPo t, integer precision, integer depth, log
 }
 
 extern intPo C_INT(termPo t) {
+#ifdef TRACEEXEC
   assert(hasClass(t, integerClass));
+#endif
   return (intPo) t;
 }
 
-int64 integerVal(termPo o) {
+integer integerVal(termPo o) {
   intPo ix = C_INT(o);
   return ix->ix;
 }
 
-integer integerHash(intPo ix) {
-  return ix->ix;
+typedef struct float_term *fltPo;
+
+extern fltPo C_FLT(termPo t) {
+  assert(hasClass(t, floatClass));
+  return (fltPo) t;
 }
 
-fltPo allocateFloat(heapPo H, double dx) {
+termPo allocateFloat(heapPo H, double dx) {
   fltPo t = (fltPo) allocateObject(H, floatClass, CellCount(sizeof(FloatRecord)));
   t->dx = dx;
-  return t;
+  return (termPo) t;
 }
 
 long fltSize(specialClassPo cl, termPo o) {
@@ -166,13 +171,10 @@ integer floatHash(double dx) {
   return c.i;
 }
 
-extern fltPo C_FLT(termPo t) {
-  assert(hasClass(t, floatClass));
-  return (fltPo) t;
-}
-
-const double floatVal(termPo o) {
+double floatVal(termPo o) {
   assert(isFloat(o));
   fltPo dx = (fltPo) o;
   return dx->dx;
 }
+
+

@@ -45,7 +45,7 @@ void initHeap(long heapSize) {
 
 retCode heapSummary(ioPo out, heapPo H) {
   return outMsg(out, ", H:0x%x(%s)%5.2g%%", H->curr, H->allocMode == lowerHalf ? "lower" : "upper",
-                (double)(H->curr - H->start) * 100.0 / (double)(H->limit - H->start));
+                (double) (H->curr - H->start) * 100.0 / (double) (H->limit - H->start));
 }
 
 int gcAddRoot(heapPo H, ptrPo addr) {
@@ -131,7 +131,7 @@ void verifyHeap(heapPo H) {
       specialClassPo sClass = (specialClassPo) clss;
       t = sClass->scanFun(sClass, verifyScanHelper, H, t);
     } else {
-      normalPo trm = C_TERM(t);
+      normalPo trm = C_NORMAL(t);
       labelPo lbl = C_LBL((termPo) clss);
       for (integer ix = 0; ix < labelArity(lbl); ix++) {
         validPtr(H, trm->args[ix]);

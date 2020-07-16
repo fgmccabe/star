@@ -173,7 +173,7 @@ termPo markPtr(gcSupportPo G, ptrPo p) {
         labelPo lbl = C_LBL((termPo) t->clss);
         integer size = NormalCellCount(lbl->arity);
         termPo nn = G->H->curr;
-        memcpy(nn, t, termSize(C_TERM(t)) * sizeof(termPo));
+        memcpy(nn, t, termSize(C_NORMAL(t)) * sizeof(termPo));
         G->H->curr += size;
         markMoved(t, nn);
         return nn;
@@ -213,7 +213,7 @@ termPo scanTerm(gcSupportPo G, termPo x) {
     specialClassPo sClass = (specialClassPo) classOf(x);
     return sClass->scanFun(sClass, markScanHelper, G, x);
   } else {
-    normalPo nml = C_TERM(x);
+    normalPo nml = C_NORMAL(x);
     integer arity = termArity(nml);
     for (integer ix = 0; ix < arity; ix++)
       nml->args[ix] = markPtr(G, &nml->args[ix]);

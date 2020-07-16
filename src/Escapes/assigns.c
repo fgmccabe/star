@@ -31,8 +31,8 @@ ReturnStatus g__assign(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__overwrite(processPo p, ptrPo tos) {
-  normalPo orig = C_TERM(tos[0]);
-  normalPo newval = C_TERM(tos[1]);
+  normalPo orig = C_NORMAL(tos[0]);
+  normalPo newval = C_NORMAL(tos[1]);
 
   if (termArity(orig) == termArity(newval)) {
     orig->lbl = newval->lbl;
