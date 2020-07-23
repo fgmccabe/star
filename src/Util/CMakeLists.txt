@@ -31,7 +31,7 @@ set(PUBLIC_HEADERS
         Headers/unistr.h Headers/utils.h
         Headers/jsonEvent.h Headers/udp.h Headers/ooio.h
         Headers/cmdOptions.h Headers/template.h Headers/pp.h Headers/ppP.h
-        Headers/strng.h Headers/editline.h)
+        Headers/strng.h Headers/editline.h Headers/array.h)
 
 set(HEADER_FILES
         Headers/ioP.h Headers/fileP.h Headers/formioP.h
@@ -48,7 +48,7 @@ set(HEADER_FILES
         Headers/vectorP.h
         Headers/integerP.h
         Headers/strngP.h
-        Headers/topSortP.h)
+        Headers/topSortP.h Headers/arrayP.h)
 
 set(SOURCE_FILES
         class.c
@@ -87,7 +87,7 @@ set(SOURCE_FILES
 
         ${PUBLIC_HEADERS}
         ${HEADER_FILES}
-        vector.c integer.c strng.c editline.c topSort.c Headers/topSort.h)
+        vector.c integer.c strng.c editline.c topSort.c Headers/topSort.h arrays.c)
 
 add_library(ooio STATIC ${SOURCE_FILES})
 target_link_libraries(ooio pthread m)
