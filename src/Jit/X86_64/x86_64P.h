@@ -4,13 +4,36 @@
 
 #ifndef STAR_X86_64P_H
 #define STAR_X86_64P_H
+
+
 #include "x86_64.h"
+#include "ooio.h"
+#include "array.h"
+
+typedef struct assem_lbl{
+  char nm[128];
+  arrayPo refs;
+  integer pc;
+} AssemLblRecord;
+
+typedef struct lbl_ref{
+  lblRefUpdater updater;
+  integer pc;
+} AssemLblRefRecord;
+
+typedef struct assem_ctx {
+  u8 *bytes;
+  u32 size;
+  u32 pc;
+  hashPo lbls;
+} AssemCtxRecord;
 
 void emitU8(x64CtxPo ctx, u8 byte);
 void emitU16(x64CtxPo ctx, u16 word);
 void emitU32(x64CtxPo ctx, u32 word);
 void emitU64(x64CtxPo ctx, u64 word);
-
+void updateU32(x64CtxPo ctx, integer pc, u32 word);
+u32 readCtxAtPc(x64CtxPo ctx, integer pc);
 
 #define REX_W    0x48
 #define REX_R    0x44
@@ -28,12 +51,7 @@ void emitU64(x64CtxPo ctx, u64 word);
 #define EX86_PREF_66    0x0400
 #define EX86_PREF_F2    0x0800
 #define EX86_PREF_F3    0x1000
-#define EX86_SSE2_OP1    0x2000
-#define EX86_SSE2_OP2    0x4000
-#define EX86_SSE2    (EX86_SSE2_OP1 | EX86_SSE2_OP2)
 
-#define OPERAND_PREFIX  0x66
-#define ADDRESS_PREFIX  0x67
 
 // Status flags masks
 #define CF              (0u)
@@ -101,6 +119,7 @@ void emitU64(x64CtxPo ctx, u64 word);
 #define MOV_r_rm  0x8b
 #define MOV_r_i32  0xb8u
 #define MOV_rm_r  0x89
+#define MOV_rm_imm 0xc7
 #define MOVSD_x_xm  0x10
 #define MOVSD_xm_x  0x11
 #define MOVSXD_r_rm  0x63
@@ -122,9 +141,11 @@ void emitU64(x64CtxPo ctx, u64 word);
 #define POP_rm    0x8f
 #define POPF    0x9d
 #define PREFETCH  0x18
-#define PUSH_i32  0x68
-#define PUSH_r    0x50
-#define PUSH_rm    (/* GROUP_FF */ 6 << 3)
+#define PUSH_i32  0x68u
+#define PUSH_r    0x50u
+#define PUSH_rm   0xffu
+#define PUSH_i8   0x6au
+#define PUSH_i32  0x68u
 #define PUSHF    0x9c
 #define RET_near  0xc3
 #define RET_i16    0xc2
@@ -164,10 +185,7 @@ void emitU64(x64CtxPo ctx, u64 word);
 #define MOD_REG    0xc0
 #define MOD_DISP8  0x40
 
-#define HALFWORD_MAX 0x7fffffffl
-#define HALFWORD_MIN -0x80000000l
-
-#define IS_HALFWORD(x)    ((x) <= HALFWORD_MAX && (x) >= HALFWORD_MIN)
-#define NOT_HALFWORD(x)    ((x) > HALFWORD_MAX || (x) < HALFWORD_MIN)
+#define MAX_I32 0x7fffffffl
+#define MIN_I32 -0x80000000l
 
 #endif //STAR_X86_64P_H
