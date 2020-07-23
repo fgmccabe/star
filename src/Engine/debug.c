@@ -29,7 +29,7 @@ static retCode showArg(ioPo out, integer arg, methodPo mtd, framePo fp, ptrPo sp
 static void showAllArgs(ioPo out, processPo p, methodPo mtd, framePo fp, ptrPo sp);
 static void showAllStack(ioPo out, processPo p, methodPo mtd, framePo fp, ptrPo sp);
 static void showStack(ioPo out, processPo p, methodPo mtd, integer vr, framePo fp, ptrPo sp);
-static void showStackCall(ioPo out, integer frameNo, methodPo mtd, insPo pc, framePo fp, integer displayDepth);
+static void showStackCall(ioPo out, integer frameNo, methodPo mtd, insPo pc, framePo fp, integer depth);
 static retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bufLen);
 static void stackSummary(ioPo out, processPo P, ptrPo sp);
 
@@ -509,7 +509,7 @@ static DebugWaitFor dbgShowStack(char *line, processPo p, termPo loc, insWord in
   return moreDebug;
 }
 
-void showStackCall(ioPo out, integer frameNo, methodPo mtd, insPo pc, framePo fp, integer displayDepth) {
+void showStackCall(ioPo out, integer frameNo, methodPo mtd, insPo pc, framePo fp, integer depth) {
   integer pcOffset = (integer) (pc - mtd->code);
 
   termPo locn = findPcLocation(mtd, pcOffset);
@@ -521,7 +521,7 @@ void showStackCall(ioPo out, integer frameNo, methodPo mtd, insPo pc, framePo fp
   integer count = argCount(mtd);
   char *sep = "";
   for (integer ix = 0; ix < count; ix++) {
-    outMsg(out, "%s%,*T", sep, displayDepth, fp->args[ix]);
+    outMsg(out, "%s%,*T", sep, depth, fp->args[ix]);
     sep = ", ";
   }
   outMsg(out, ")\n%_");
@@ -1109,7 +1109,7 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
 }
 
 void stackSummary(ioPo out, processPo P, ptrPo sp) {
-  outMsg(out, "sp: 0x%x, stack:%5.2g%%", sp, (sp - (ptrPo) P->stackBase) * 100.0 / (P->stackLimit - P->stackBase));
+  outMsg(out, "sp: 0x%x, stack:%5.2g%%", sp, (double)(sp - (ptrPo) P->stackBase) * 100.0 / (double)(P->stackLimit - P->stackBase));
 }
 
 void showAllArgs(ioPo out, processPo p, methodPo mtd, framePo fp, ptrPo sp) {
@@ -1298,7 +1298,7 @@ retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bu
   return Fail;
 }
 
-void dumpInsStats() {
+void dumpStats() {
   logMsg(debugOutChnnl, "%ld instructions executed\n", pcCount);
 }
 
