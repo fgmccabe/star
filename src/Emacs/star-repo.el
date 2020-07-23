@@ -86,7 +86,7 @@
      :buffer compile-buffer
      :command `(,star-compiler "--stdin" "-r" ,repo "-w" ,dir "--" ,pkg)
      :sentinel
-     (lambda (proc event)
+     (lambda (proc _event)
        (let ((proc-status (process-status proc))
 	     (proc-buffer (process-buffer proc)))
 	 (star-debug "process status %s from %s" proc-status proc)

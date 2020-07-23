@@ -96,8 +96,7 @@
 	(while (< pos max)
 	  (let ((pp (star-debug-parse text pos)))
 	    (if pp
-		(let ((cmd (1st pp))
-		      (file (2nd pp))
+		(let ((file (2nd pp))
 		      (start (3rd pp))
 		      (len (4th pp))
 		      (end (5th pp)))
