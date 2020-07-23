@@ -39,7 +39,8 @@ general structure of a catalog json file looks like:
   "subcatalogs" : [@emph{CatalogPath}, @dots{} @emph{CatalogPath}]
 @}
 @end example
-where @emph{PkgName} is a valid Star package name -- written as a string because it's JSON.
+where @emph{PkgName} is a valid Star package name -- written as a
+string because it's JSON.
 
 @emph{FileName}s and @emph{CatalogPath}s are relative file names -- or URLs.
 

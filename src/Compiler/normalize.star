@@ -190,7 +190,7 @@ star.compiler.normalize{
       Ex2 <- transformGroup(Grp,M,M,GrpQ,some(ThVr),Ex,Rp);
       
       (BndTrm,Exx) <- liftExp(Bnd,M,GrpQ,Ex2,Rp);
-      valis (crLtRec(Lc,ThV,GrpFree,BndTrm),Exx)
+      valis (crLtt(Lc,ThV,GrpFree,BndTrm),Exx)
     }
   }
 

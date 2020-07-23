@@ -85,6 +85,11 @@ star.compiler.ast{
 
   public anon(Lc) => nme(Lc,"_").
 
+  public isNme:(ast) => option[(locn,string)].
+  isNme(nme(Lc,Nm)) => some((Lc,Nm)).
+  isNme(qnm(Lc,Nm)) => some((Lc,Nm)).
+  isNme(_) default => .none.
+
   public isInt:(ast) => option[(locn,integer)].
   isInt(int(Lc,Ix)) => some((Lc,Ix)).
   isInt(_) default => .none.
