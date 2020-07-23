@@ -34,7 +34,7 @@ typedef struct bucket {
   bucketPo link;    /* Link in case of hash-crash */
 } BucketRec;
 
-typedef struct _hashtable_ {
+typedef struct hashtable_ {
   integer size; // The number of entries in the table
   integer entries; /* how many entries do we have? */
   bucketPo *table; /* The table of entries */
@@ -49,7 +49,7 @@ static void rehash(hashPo tbl);  // forward declarations */
 static poolPo bpool = NULL;
 
 /* Create a new table */
-hashPo NewHash(long size, hashFun hash, compFun compare, destFun dest) {
+hashPo newHash(long size, hashFun hash, compFun cmp, destFun dest) {
   long i;
   hashPo hp;
 
@@ -67,10 +67,10 @@ hashPo NewHash(long size, hashFun hash, compFun compare, destFun dest) {
     hp->hash = strhash;
   else
     hp->hash = hash;
-  if (compare == NULL)
+  if (cmp == NULL)
     hp->compare = strcomp;
   else
-    hp->compare = compare;
+    hp->compare = cmp;
   hp->destroy = dest;
 
   for (i = 0; i < size; i++)
@@ -104,25 +104,25 @@ static retCode delBuckets(hashPo ht, bucketPo *b) {
   return stat;
 }
 
-retCode DelHash(hashPo ht) {
+retCode eraseHash(hashPo hp) {
   retCode stat = Ok;
-  register bucketPo *pp = ht->table;
+  register bucketPo *pp = hp->table;
   register long i = 0;
-  register long size = ht->size;
+  register long size = hp->size;
 
-  pthread_mutex_lock(&ht->mutex);
+  pthread_mutex_lock(&hp->mutex);
 
   for (i = 0; stat == Ok && i < size; i++)
     if (pp[i] != NULL)
-      stat = delBuckets(ht, &pp[i]);
+      stat = delBuckets(hp, &pp[i]);
 
   if (stat != Ok)
     return stat;
 
-  pthread_mutex_unlock(&ht->mutex);
-  pthread_mutex_destroy(&ht->mutex);
-  free(ht->table);
-  free(ht);
+  pthread_mutex_unlock(&hp->mutex);
+  pthread_mutex_destroy(&hp->mutex);
+  free(hp->table);
+  free(hp);
 
   return Ok;
 }

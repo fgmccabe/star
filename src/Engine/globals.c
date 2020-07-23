@@ -61,7 +61,7 @@ clssPo globalClass = (clssPo) &GlobalClass;
 
 void initGlobals() {
   GlobalClass.clss = specialClass;
-  globals = NewHash(1024, (hashFun) globalHash, (compFun) globalCmp, (destFun) globalDel);
+  globals = newHash(1024, (hashFun) globalHash, (compFun) globalCmp, (destFun) globalDel);
 
   glbVars = (globalPo) malloc(sizeof(GlobalRecord) * 1024);
   glbVarTblSize = 1024;

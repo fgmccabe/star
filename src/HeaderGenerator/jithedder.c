@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
       out = Stdout();
 
     // Template variables
-    hashPo vars = NewHash(8, (hashFun) uniHash, (compFun) uniCmp, NULL);
+    hashPo vars = newHash(8, (hashFun) uniHash, (compFun) uniCmp, NULL);
     hashPut(vars, "Date", date);
 
     // Set up the assembler proper

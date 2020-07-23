@@ -71,8 +71,8 @@ static void initTries() {
   tokenTrie = emptyTrie();
 
   opPool = newPool(sizeof(TokenRecord), 128);
-  operators = NewHash(128, (hashFun) uniHash, (compFun) uniCmp, NULL);
-  bracketTbl = NewHash(128, (hashFun) uniHash, (compFun) uniCmp, NULL);
+  operators = newHash(128, (hashFun) uniHash, (compFun) uniCmp, NULL);
+  bracketTbl = newHash(128, (hashFun) uniHash, (compFun) uniCmp, NULL);
 }
 
 int getOptions(int argc, char **argv) {
@@ -210,7 +210,7 @@ int main(int argc, char **argv) {
     integer len;
     char *allOps = getTextFromBuffer(operBuff, &len);
 
-    hashPo vars = NewHash(8, (hashFun) uniHash, (compFun) uniCmp, NULL);
+    hashPo vars = newHash(8, (hashFun) uniHash, (compFun) uniCmp, NULL);
     hashPut(vars, "Operators", allOps);
 
     bufferPo bracketBuff = newStringBuffer();

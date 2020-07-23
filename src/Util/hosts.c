@@ -54,7 +54,7 @@ classPo hostClass = (classPo) &HostClass;
 static hostPo locateHost(const char *name);
 
 static void initHostClass(classPo class, classPo request) {
-  ((hostClassPo) request)->hostPart.hostTable = NewHash(MAXHOST, (hashFun) uniHash, (compFun) uniCmp, NULL);
+  ((hostClassPo) request)->hostPart.hostTable = newHash(MAXHOST, (hashFun) uniHash, (compFun) uniCmp, NULL);
 }
 
 static void retireHost(hostPo h) {
