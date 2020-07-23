@@ -25,7 +25,7 @@
 ;;  (star-debug "indent cache now %s" star-indent-cache)
 )  
 
-(defun star-after-change-function (from to &rest rest)
+(defun star-after-change-function (from _to &rest _rest)
   ;; The buffer has changed, we need to
   ;; remove any parse states that have been saved
   ;; past point 'from' in the buffer.
