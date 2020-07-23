@@ -306,7 +306,7 @@ retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen
 // d. The pc offset of the start of the validity range
 // e. The pc offset of the end of the validity range
 
-static void writeOperand(insPo *pc, uint32 val) {
+static void writeOperand(uint16 **pc, uint32 val) {
   int32 upper = (val >> (unsigned) 16) & (unsigned) 0xffff;
   int32 lower = (val & (unsigned) 0xffff);
 
@@ -314,7 +314,7 @@ static void writeOperand(insPo *pc, uint32 val) {
   *(*pc)++ = (uint16) lower;
 }
 
-static retCode writeIntOperand(ioPo in, insPo *pc, integer *ix) {
+static retCode writeIntOperand(ioPo in, uint16 **pc, integer *ix) {
   integer and;
   retCode ret = decodeInteger(in, &and);
   writeOperand(pc, (uint32) and);
@@ -322,7 +322,7 @@ static retCode writeIntOperand(ioPo in, insPo *pc, integer *ix) {
   return ret;
 }
 
-static retCode decodeIns(ioPo in, insPo *pc, integer *ix, integer *si, char *errorMsg, long msgSize) {
+static retCode decodeIns(ioPo in, uint16 **pc, integer *ix, integer *si, char *errorMsg, long msgSize) {
   integer op, and;
   char escNm[MAX_SYMB_LEN];
   retCode ret = decodeInteger(in, &op);
@@ -404,7 +404,7 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
 
     if (ret == Ok) {
       insPo ins = (insPo) malloc(sizeof(insWord) * insCount * 2);
-      insPo pc = ins;
+      uint16 *pc = (uint16 *) ins;
       for (integer ix = 0; ret == Ok && ix < insCount;) {
         integer stackInc = 0;
         ret = decodeIns(in, &pc, &ix, &stackInc, errorMsg, msgSize);
@@ -450,7 +450,7 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
         closeFile(O_IO(tmpBuffer));
         gcReleaseRoot(H, root);
       }
-      free(ins);
+      free((void *) ins);
     }
   }
 
@@ -491,7 +491,7 @@ retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgS
 
     if (ret == Ok) {
       insPo ins = (insPo) malloc(sizeof(insWord) * insCount * 2);
-      insPo pc = ins;
+      uint16 *pc = (uint16 *) ins;
       for (integer ix = 0; ret == Ok && ix < insCount;) {
         integer stackInc = 0;
         ret = decodeIns(in, &pc, &ix, &stackInc, errorMsg, msgSize);
@@ -543,7 +543,7 @@ retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgS
         closeFile(O_IO(tmpBuffer));
         gcReleaseRoot(H, root);
       }
-      free(ins);
+      free((void*)ins);
     }
   }
 

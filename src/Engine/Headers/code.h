@@ -8,7 +8,8 @@
 #include "opcodes.h"
 //#include "pkg.h"
 
-typedef uint16 insWord, *insPo;
+typedef uint16 insWord;
+typedef const insWord *insPo;
 
 typedef struct method_ *methodPo;
 
