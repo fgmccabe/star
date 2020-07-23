@@ -44,7 +44,7 @@ typedef struct labelTable_ {
 
 void initLbls() {
   LabelClass.clss = specialClass;
-  tables = NewHash(1024, (hashFun) uniHash, (compFun) uniCmp, (destFun) Null);
+  tables = newHash(1024, (hashFun) uniHash, (compFun) uniCmp, (destFun) Null);
 
   labelPool = newPool(sizeof(LblRecord), 1024);
   labelTablePool = newPool(sizeof(LabelTableRecord), 1024);
@@ -98,7 +98,7 @@ labelPo declareLbl(const char *name, integer arity) {
     return lbl;
   } else {
     if (tbl->otherEntries == Null) {
-      tbl->otherEntries = NewHash(32, ixHash, ixCmp, (destFun) Null);
+      tbl->otherEntries = newHash(32, ixHash, ixCmp, (destFun) Null);
     }
     labelPo lbl = (labelPo) hashGet(tbl->otherEntries, (void *) arity);
     if (lbl == Null) {

@@ -54,7 +54,7 @@ static void addToTr(char *key, integer pos, integer limit, void *value, triePo t
     trie->value = value;
   } else {
     if (trie->follows == NULL) {
-      trie->follows = NewHash(6, charHash, charComp, NULL);
+      trie->follows = newHash(6, charHash, charComp, NULL);
     }
     integer xp = pos;
     codePoint cp = nextCodePoint(key, &pos, limit);

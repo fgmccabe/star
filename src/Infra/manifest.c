@@ -93,7 +93,7 @@ void initManifest() {
   manifestPool = newPool(sizeof(ManifestEntryRecord), 128);
   versionPool = newPool(sizeof(ManifestVersionRecord), 128);
   rsrcPool = newPool(sizeof(ManifestRsrcRecord), 128);
-  manifest = NewHash(128, (hashFun) uniHash, (compFun) uniCmp, NULL);
+  manifest = newHash(128, (hashFun) uniHash, (compFun) uniCmp, NULL);
 }
 
 // Manage the manifest
@@ -101,7 +101,7 @@ void initManifest() {
 manifestEntryPo newManifestEntry(char *name) {
   manifestEntryPo entry = (manifestEntryPo) allocPool(manifestPool);
   uniCpy((char *) &entry->package, NumberOf(entry->package), name);
-  entry->versions = NewHash(1, (hashFun) uniHash, (compFun) uniCmp, NULL);
+  entry->versions = newHash(1, (hashFun) uniHash, (compFun) uniCmp, NULL);
   return entry;
 }
 
@@ -126,7 +126,7 @@ static void destRsrc(char *knd, manifestRsrcPo rsrc) {
 manifestVersionPo newVersion(manifestEntryPo entry, const char *version) {
   manifestVersionPo vEntry = (manifestVersionPo) allocPool(versionPool);
   uniCpy((char *) &vEntry->version, NumberOf(vEntry->version), version);
-  vEntry->resources = NewHash(3, (hashFun) uniHash, (compFun) uniCmp, (destFun) destRsrc);
+  vEntry->resources = newHash(3, (hashFun) uniHash, (compFun) uniCmp, (destFun) destRsrc);
   hashPut(entry->versions, &vEntry->version, vEntry);
 
   return vEntry;

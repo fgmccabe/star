@@ -37,7 +37,7 @@ static MethodRec halt = {
 
 void initEngine() {
   prPool = newPool(sizeof(ProcessRec), 32);
-  prTble = NewHash(16, processHash, sameProcess, Null);
+  prTble = newHash(16, processHash, sameProcess, Null);
   initLock(&processLock);
   halt.clss = methodClass;
 }

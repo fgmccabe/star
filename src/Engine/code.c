@@ -38,7 +38,7 @@ void initCode() {
   MethodClass.clss = specialClass;
 
   pkgPool = newPool(sizeof(PackageRec), 16);
-  packages = NewHash(16, (hashFun) pkHash, (compFun) compPk, (destFun) delPkg);
+  packages = newHash(16, (hashFun) pkHash, (compFun) compPk, (destFun) delPkg);
 }
 
 extern methodPo C_MTD(termPo t) {

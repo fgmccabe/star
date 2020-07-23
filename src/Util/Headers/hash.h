@@ -19,7 +19,7 @@
 #include "integer.h"
 
 /* Hash table interface */
-typedef struct _hashtable_ *hashPo;
+typedef struct hashtable_ *hashPo;
 
 typedef integer (*hashFun)(void *); /* Hashing function */
 typedef comparison (*compFun)(void *, void *); /* Comparison function */
@@ -27,8 +27,8 @@ typedef retCode (*destFun)(void *, void *); /* Destroy function */
 typedef retCode (*procFun)(void *n, void *r, void *c); /* Processing func */
 
 /* Build a new hash table */
-hashPo NewHash(long size,hashFun hash,compFun cmp,destFun dest);
-retCode DelHash(hashPo hp);
+hashPo newHash(long size, hashFun hash, compFun cmp, destFun dest);
+retCode eraseHash(hashPo hp);
 retCode ProcessTable(procFun pr,hashPo tbl,void *c);
 
 // Use these instead
