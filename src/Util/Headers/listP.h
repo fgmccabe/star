@@ -21,10 +21,10 @@
 
 typedef struct {
   objectPo head;
-  arrayPo tail;
+  listPo tail;
 } ConsObjectRec;
 
-typedef struct _list_record_ {
+typedef struct list_record_ {
   ObjectRec object;                     /* object level of the list structure */
   ConsObjectRec list;                   // List part of object
 } ConsRecord;

@@ -45,7 +45,7 @@ typedef struct {
 } IxTreeNodeObjectPartRec;
 
 typedef struct {
-  arrayPo leafs;                      // All the entries with this hash value
+  listPo leafs;                      // All the entries with this hash value
 } IxLeafNodeObjectPartRec;
 
 typedef struct _ixtree_leaf_class {
