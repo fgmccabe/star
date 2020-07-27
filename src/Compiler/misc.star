@@ -73,4 +73,11 @@ star.compiler.misc{
   drop(_,[]) => [].
   drop(X,[X,..R]) => R.
   drop(X,[E,..R]) => [E,..drop(X,R)].
+
+  public tplLbl:(integer)=>string.
+  tplLbl(Ar) => "()$(Ar)".
+
+  public isTplLbl:(string)=>boolean.
+  isTplLbl(Nm) where [0c(,0c),..Ds].=(Nm::cons[integer]) => .true.
+  isTplLbl(_) default => .false.
 }
