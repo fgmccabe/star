@@ -1,7 +1,7 @@
 /*
   Hash Table Functions
 
-  Copyright (c) 2016, 2017. Francis G. McCabe
+  Copyright (c) 2016, 2017 and beyond. Francis G. McCabe
 
   Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
   except in compliance with the License. You may obtain a copy of the License at
@@ -27,10 +27,8 @@
 typedef struct bucket *bucketPo;
 
 typedef struct bucket {
-  void *nme;
-  /* The symbol in the hash table */
-  void *r;
-  /* 'value' of the hashed record */
+  void *nme;        /* The symbol in the hash table */
+  void *r;          /* 'value' of the hashed record */
   bucketPo link;    /* Link in case of hash-crash */
 } BucketRec;
 

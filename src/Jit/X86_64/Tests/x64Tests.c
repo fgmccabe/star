@@ -1,12 +1,14 @@
 //
 // Created by Francis McCabe on 7/17/20.
 //
-#include "Tests/unitTests.h"
+#include "unitTests.h"
 #include "x86_64P.h"
+#include <stdlib.h>
+
+retCode checkResult(u8 *src, integer srcLen, x64CtxPo ctx);
 
 static retCode test_lea() {
-  AssemCtxRecord Ctx;
-  x64CtxPo ctx = setupCtx(&Ctx);
+  x64CtxPo ctx = createCtx();
 
   lea(R12, BS(RAX, 0x11223344), ctx);       // lea %r12,0x123344(%rax)
   lea(R10, IX(RAX, R10, 8, 0x34), ctx);    // lea %r10,0x34(rax,r10*8)
@@ -15,9 +17,21 @@ static retCode test_lea() {
   return checkResult(tgt, NumberOf(tgt), ctx);
 }
 
+static retCode test_lbl_lea() {
+  x64CtxPo ctx = createCtx();
+
+  x64LblPo l0 = defineLabel(ctx, "l0", 0);
+  x64LblPo l1 = defineLabel(ctx, "l1", -1);
+  lea(R12, LB(l1), ctx); // lea %r12,l1(%rip)
+  lea(R10, LB(l0), ctx); // lea %r10,l0(%rip)
+  setLabel(ctx, l1);
+  u8 tgt[] = {0x4c, 0x8d, 0x25, 0x07, 0x0, 0x0, 0x0,
+              0x4c, 0x8d, 0x15, 0xf2, 0xff, 0xff, 0xff};
+  return checkResult(tgt, NumberOf(tgt), ctx);
+}
+
 static retCode test_movrr() {
-  AssemCtxRecord Ctx;
-  x64CtxPo ctx = setupCtx(&Ctx);
+  x64CtxPo ctx = createCtx();
 
   mov(RG(RSI), RG(RAX), ctx);
   mov(RG(RAX), RG(RSI), ctx);
@@ -36,8 +50,7 @@ static retCode test_movrr() {
 }
 
 static retCode test_movri() {
-  AssemCtxRecord Ctx;
-  x64CtxPo ctx = setupCtx(&Ctx);
+  x64CtxPo ctx = createCtx();
 
   mov(RG(R12), IM(0x55), ctx);
   mov(RG(R12), IM(0x1122334455667788), ctx);
@@ -47,8 +60,7 @@ static retCode test_movri() {
 }
 
 static retCode test_movrm() {
-  AssemCtxRecord Ctx;
-  x64CtxPo ctx = setupCtx(&Ctx);
+  x64CtxPo ctx = createCtx();
 
   mov(RG(RAX), BS(RAX, 0x55), ctx);
   mov(RG(RAX), BS(RSI, 0), ctx);
@@ -58,8 +70,7 @@ static retCode test_movrm() {
 }
 
 static retCode test_movrx() {
-  AssemCtxRecord Ctx;
-  x64CtxPo ctx = setupCtx(&Ctx);
+  x64CtxPo ctx = createCtx();
 
   mov(RG(RAX), IX(RAX, R12, 4, 0x55), ctx);
   mov(RG(RAX), IX(RAX, RDX, 8, 0x55), ctx);
@@ -74,8 +85,7 @@ static retCode test_movrx() {
 }
 
 static retCode test_movmr() {
-  AssemCtxRecord Ctx;
-  x64CtxPo ctx = setupCtx(&Ctx);
+  x64CtxPo ctx = createCtx();
 
   mov(BS(RDX, 0x0), RG(R12), ctx); // mov (rdx),r12
   mov(BS(RDX, 0x55), RG(R12), ctx); // mov 0x55(rdx),r12
@@ -87,8 +97,7 @@ static retCode test_movmr() {
 }
 
 static retCode test_movmi() {
-  AssemCtxRecord Ctx;
-  x64CtxPo ctx = setupCtx(&Ctx);
+  x64CtxPo ctx = createCtx();
 
   mov(BS(R12, 0x22), IM(0x11), ctx);
   mov(BS(RAX, 0x55), IM(0x11223344), ctx);
@@ -98,8 +107,7 @@ static retCode test_movmi() {
 }
 
 static retCode test_movxr() {
-  AssemCtxRecord Ctx;
-  x64CtxPo ctx = setupCtx(&Ctx);
+  x64CtxPo ctx = createCtx();
 
   mov(IX(RAX, RDX, 8, 0x11223344), RG(RAX), ctx);
   mov(IX(R11, RDX, 8, 0x11223344), RG(RAX), ctx);
@@ -118,8 +126,7 @@ static retCode test_movxr() {
 }
 
 static retCode test_movxi() {
-  AssemCtxRecord Ctx;
-  x64CtxPo ctx = setupCtx(&Ctx);
+  x64CtxPo ctx = createCtx();
 
   mov(IX(R11, RDX, 8, 0x11223344), IM(0x55), ctx); // mov $0x55,0x11223344(r11,rdx*8)
   mov(IX(RAX, R11, 8, 0x11223344), IM(0x55), ctx); // mov $0x55,0x11223344(rax,rax*8)
@@ -130,8 +137,7 @@ static retCode test_movxi() {
 }
 
 static retCode test_popr() {
-  AssemCtxRecord Ctx;
-  x64CtxPo ctx = setupCtx(&Ctx);
+  x64CtxPo ctx = createCtx();
 
   pop(RG(RAX), ctx);
   pop(RG(RSI), ctx);
@@ -144,8 +150,7 @@ static retCode test_popr() {
 }
 
 static retCode test_popb() {
-  AssemCtxRecord Ctx;
-  x64CtxPo ctx = setupCtx(&Ctx);
+  x64CtxPo ctx = createCtx();
 
   pop(BS(RAX, 0x55), ctx);
   pop(BS(RAX, 0x11223344), ctx);
@@ -161,8 +166,7 @@ static retCode test_popb() {
 }
 
 static retCode test_popx() {
-  AssemCtxRecord Ctx;
-  x64CtxPo ctx = setupCtx(&Ctx);
+  x64CtxPo ctx = createCtx();
 
   pop(IX(RAX, RDX, 4, 0x55), ctx); // pop 0x55(rax,r10*4)
   pop(IX(RDX, RAX, 4, 0x11223344), ctx); // pop 0x11223344(rdx,rax*4)
@@ -180,8 +184,7 @@ static retCode test_popx() {
 }
 
 static retCode test_pushri() {
-  AssemCtxRecord Ctx;
-  x64CtxPo ctx = setupCtx(&Ctx);
+  x64CtxPo ctx = createCtx();
 
   push(RG(RAX), ctx);
   push(RG(RSI), ctx);
@@ -199,8 +202,7 @@ static retCode test_pushri() {
 }
 
 static retCode test_pushb() {
-  AssemCtxRecord Ctx;
-  x64CtxPo ctx = setupCtx(&Ctx);
+  x64CtxPo ctx = createCtx();
 
   push(BS(RAX, 0x55), ctx);
   push(BS(RAX, 0x11223344), ctx);
@@ -216,8 +218,7 @@ static retCode test_pushb() {
 }
 
 static retCode test_pushx() {
-  AssemCtxRecord Ctx;
-  x64CtxPo ctx = setupCtx(&Ctx);
+  x64CtxPo ctx = createCtx();
 
   push(IX(RAX, RDX, 4, 0x55), ctx);
   push(IX(RAX, RDX, 4, 0x11223344), ctx);
@@ -238,6 +239,7 @@ retCode all_tests() {
   tests_run = 0;
 
   tryRet(run_test(test_lea));
+  tryRet(run_test(test_lbl_lea));
   tryRet(run_test(test_movrr));
   tryRet(run_test(test_movri));
   tryRet(run_test(test_movrm));
@@ -254,4 +256,16 @@ retCode all_tests() {
   tryRet(run_test(test_pushx));
 
   return Ok;
+}
+
+retCode checkResult(u8 *src, integer srcLen, x64CtxPo ctx) {
+  retCode ret;
+  if (ctx->pc != srcLen) {
+    logMsg(logFile, "%d bytes expected, %d bytes generated", srcLen, ctx->pc);
+    logMsg(logFile, "actual bytes: %.*X", ctx->pc, ctx->bytes);
+    ret = Error;
+  } else
+    ret = cmpBytes(src, ctx->bytes, srcLen);
+  cleanupCtx(ctx);
+  return ret;
 }

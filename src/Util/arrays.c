@@ -25,6 +25,7 @@ arrayPo allocArray(int elSize, integer initial, logical growable) {
   ar->dataLength = elSize * initial;
   ar->count = 0;
   ar->growable = growable;
+  return ar;
 }
 
 arrayPo fixedArray(int elSize, integer initial, void *data) {
@@ -35,6 +36,7 @@ arrayPo fixedArray(int elSize, integer initial, void *data) {
   ar->dataLength = elSize * initial;
   ar->count = 0;
   ar->growable = False;
+  return ar;
 }
 
 retCode appendEntry(arrayPo ar, void *el) {
@@ -58,6 +60,10 @@ retCode appendEntry(arrayPo ar, void *el) {
   return Ok;
 }
 
+integer arrayCount(arrayPo ar) {
+  return ar->count;
+}
+
 void *nthEntry(arrayPo ar, integer ix) {
   assert(ix >= 0 && ix < ar->count);
   return ar->data + (ar->elSize * ix);
@@ -71,11 +77,11 @@ retCode dropEntry(arrayPo ar, integer ix) {
   return Ok;
 }
 
-retCode eraseArray(arrayPo ar) {
+arrayPo eraseArray(arrayPo ar) {
   if (ar->growable)
     free(ar->data);
   freePool(arrayPool, ar);
-  return Ok;
+  return Null;
 }
 
 retCode processArrayElements(arrayPo ar, arrayElProc proc, void *cl) {

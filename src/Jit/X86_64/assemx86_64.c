@@ -18,13 +18,25 @@ void initAssemX4() {
   }
 }
 
+static retCode clearLbl(char *lblNme, x64LblPo lbl);
+static retCode cleanupLabels(x64CtxPo ctx);
+
 x64CtxPo createCtx() {
   initAssemX4();
   x64CtxPo ctx = (x64CtxPo) allocPool(ctxPool);
   ctx->bytes = malloc(1024);
   ctx->size = 1024;
   ctx->pc = 0;
-  ctx->lbls = newHash(256, (hashFun) uniHash, (compFun) uniCmp, Null);
+  ctx->lbls = newHash(256, (hashFun) uniHash, (compFun) uniCmp, (destFun) clearLbl);
+  return ctx;
+}
+
+void *cleanupCtx(x64CtxPo ctx) {
+  cleanupLabels(ctx);
+  void *code = realloc(ctx->bytes, ctx->pc);
+  ctx->bytes = Null;
+  freePool(ctxPool, ctx);
+  return code;
 }
 
 x64LblPo findLabel(x64CtxPo ctx, char *lName) {
@@ -35,7 +47,37 @@ x64LblPo findLabel(x64CtxPo ctx, char *lName) {
     lbl->pc = -1;
     lbl->refs = Null;
   }
+  return lbl;
 }
+
+retCode clearLbl(char *lblNme, x64LblPo lbl) {
+  if (lbl->refs != Null) {
+    eraseArray(lbl->refs);
+  }
+  freePool(lblPool, lbl);
+  return Ok;
+}
+
+static retCode checkLbl(void *n, void *r, void *c) {
+  x64LblPo lbl = (x64LblPo) r;
+  if (lbl->pc >= 0) {
+    if (lbl->refs != Null)
+      return Error;
+    else
+      return Ok;
+  }
+  return Fail;  // undefined label
+}
+
+retCode cleanupLabels(x64CtxPo ctx) {
+  if (ctx->lbls != Null) {
+    eraseHash(ctx->lbls);
+    ctx->lbls = Null;
+  }
+  return Ok;
+}
+
+#define UNDEF_LBL_LANDING_PAD 0x11223344
 
 typedef struct {
   x64CtxPo ctx;
@@ -49,7 +91,7 @@ static retCode updateLblEntry(void *entry, integer ix, void *cl) {
   return Ok;
 }
 
-x64LblPo declareLabel(x64CtxPo ctx, char *lName, integer pc) {
+x64LblPo defineLabel(x64CtxPo ctx, char *lName, integer pc) {
   x64LblPo lbl = findLabel(ctx, lName);
   if (lbl == Null) {
     lbl = (x64LblPo) allocPool(lblPool);
@@ -58,12 +100,20 @@ x64LblPo declareLabel(x64CtxPo ctx, char *lName, integer pc) {
     lbl->refs = Null;
   } else {
     lbl->pc = pc;
-    ClInfo info = {.ctx=ctx, .lbl=lbl};
-    processArrayElements(lbl->refs, updateLblEntry, &info);
-    eraseArray(lbl->refs);
-    lbl->refs = Null;
+    if (pc >= 0 && lbl->refs != Null) {
+      ClInfo info = {.ctx=ctx, .lbl=lbl};
+      processArrayElements(lbl->refs, updateLblEntry, &info);
+      lbl->refs = eraseArray(lbl->refs);
+    }
   }
   return lbl;
+}
+
+void setLabel(x64CtxPo ctx, x64LblPo lbl) {
+  lbl->pc = ctx->pc;
+  ClInfo info = {.ctx=ctx, .lbl=lbl};
+  processArrayElements(lbl->refs, updateLblEntry, &info);
+  lbl->refs = eraseArray(lbl->refs);
 }
 
 retCode addLabelReference(x64CtxPo ctx, x64LblPo lbl, integer pc, lblRefUpdater updater) {
@@ -79,10 +129,6 @@ logical isLabelDefined(x64LblPo lbl) {
   return lbl->pc >= 0;
 }
 
-void eraseCtx(x64CtxPo ctx) {
-
-}
-
 static u8 encodeModRR(x64Reg dst, x64Reg src);
 static u8 encodeModRM(x64Reg fst, x64Reg snd, i64 disp);
 static void emitDisp(x64CtxPo ctx, i64 disp);
@@ -90,11 +136,12 @@ static u8 encodeSIB(x64Reg base, x64Reg index, u8 scale);
 static u8 encodeModRI(x64Reg dst);
 static u8 encodeRex(u8 rex, x64Reg dst, x64Reg index, x64Reg src);
 static u8 encodeBinOp(u8 opCode, x64Op dst, x64Op src, x64CtxPo ctx);
+static void emitLblRef(x64CtxPo ctx, x64LblPo tgt);
 static logical isByte(i64 x);
 static logical isI32(i64 x);
 
 static void labelDisp32(x64CtxPo ctx, x64LblPo lbl, integer pc) {
-  check(readCtxAtPc(ctx,pc)==0xffffffff,"bad label reference");
+  check(readCtxAtPc(ctx, pc) == UNDEF_LBL_LANDING_PAD, "bad label reference");
 
   integer delta = lbl->pc - (pc + 4);
   if (isI32(delta)) {
@@ -123,21 +170,9 @@ void lea_(x64Reg dst, x64Op src, x64CtxPo ctx) {
       x64LblPo tgt = src.op.lbl;
       emitU8(ctx, encodeRex(REX_W, dst, 0, 0x0));
       emitU8(ctx, LEA_r_m);
-      if (isLabelDefined(tgt)) {
-        integer delta = ctx->pc + 5 - tgt->pc;
-        if (isI32(delta))
-          emitU8(ctx, encodeModRM(dst, 0x5, delta));
-        else {
-          check(False, "label displacement too large");
-          return;
-        }
-        emitU32(ctx, delta);
-      } else {
-        addLabelReference(ctx, tgt, ctx->pc + 1, labelDisp32);
-        emitU8(ctx, encodeModRM(dst, 0x5, 0x11223344)); // force 4 bytes
-        emitU32(ctx, -1);
-        return;
-      }
+      emitU8(ctx, encodeModRM(dst, 0x5, 0));
+      emitLblRef(ctx, tgt);
+      return;
     }
     default:
       check(False, " source mode not permitted");
@@ -175,6 +210,9 @@ void mov_(x64Op dst, x64Op src, x64CtxPo ctx) {
             check(False, "immediate too large");
           }
           return;
+        case Labeled:
+          check(False, "Not permitted");
+          return;
       }
     case Reg:
       switch (src.mode) {
@@ -207,6 +245,14 @@ void mov_(x64Op dst, x64Op src, x64CtxPo ctx) {
           emitU8(ctx, encodeSIB(src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale));
           emitDisp(ctx, src.op.indexed.disp);
           return;
+        case Labeled: {
+          x64LblPo tgt = src.op.lbl;
+          emitU8(ctx, encodeRex(REX_W, dst.op.reg, 0, 0x0));
+          emitU8(ctx, MOV_r_rm);
+          emitU8(ctx, encodeModRM(dst.op.reg, 0x5, 0));
+          emitLblRef(ctx, tgt);
+          return;
+        }
       }
     case Imm:
       check(False, "cannot target immediate operand");
@@ -232,7 +278,13 @@ void mov_(x64Op dst, x64Op src, x64CtxPo ctx) {
           emitDisp(ctx, dst.op.indexed.disp);
           emitU32(ctx, src.op.imm);
           return;
+        case Labeled:
+          check(False, "Not permitted");
+          return;
       }
+    case Labeled:
+      check(False, "Not permitted");
+      return;
   }
 }
 
@@ -270,6 +322,9 @@ void push_(x64Op src, x64CtxPo ctx) {
       emitU8(ctx, encodeSIB(src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale));
       emitDisp(ctx, src.op.indexed.disp);
       return;
+    case Labeled:
+      check(False, "Not permitted");
+      return;
   }
 }
 
@@ -298,6 +353,20 @@ void pop_(x64Op dst, x64CtxPo ctx) {
       return;
     default:
       check(False, "not permitted");
+  }
+}
+
+void emitLblRef(x64CtxPo ctx, x64LblPo tgt) {
+  if (isLabelDefined(tgt)) {
+    integer delta = tgt->pc - (ctx->pc + 4);
+    if (!isI32(delta)){
+      check(False, "label displacement too large");
+      return;
+    }
+    emitU32(ctx, delta);
+  } else {
+    addLabelReference(ctx, tgt, ctx->pc, labelDisp32);
+    emitU32(ctx, UNDEF_LBL_LANDING_PAD);
   }
 }
 
@@ -388,9 +457,9 @@ void updateU32(x64CtxPo ctx, integer pc, u32 word) {
   ctx->bytes[pc] = (word >> 23u) & 0xffu;
 }
 
-u32 readCtxAtPc(x64CtxPo ctx, integer pc){
-  check(pc>=0 && pc<ctx->pc-4,"pc out of bounds");
-  return ctx->bytes[pc] | (ctx->bytes[pc+1]<<8u) | (ctx->bytes[pc+2]<<16u) | (ctx->bytes[pc+3]<<24u);
+u32 readCtxAtPc(x64CtxPo ctx, integer pc) {
+  check(pc >= 0 && pc < ctx->pc - 4, "pc out of bounds");
+  return ctx->bytes[pc] | (ctx->bytes[pc + 1] << 8u) | (ctx->bytes[pc + 2] << 16u) | (ctx->bytes[pc + 3] << 24u);
 }
 
 logical isByte(i64 x) {
