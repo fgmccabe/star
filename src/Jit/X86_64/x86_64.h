@@ -8,10 +8,11 @@ typedef struct assem_ctx *x64CtxPo;
 typedef struct assem_lbl *x64LblPo;
 
 x64CtxPo createCtx();
-void eraseCtx(x64CtxPo ctx);
+void *cleanupCtx(x64CtxPo ctx);
 
 x64LblPo findLabel(x64CtxPo ctx, char *lName);
-x64LblPo declareLabel(x64CtxPo ctx, char *lName, integer pc);
+x64LblPo defineLabel(x64CtxPo ctx, char *lName, integer pc);
+void setLabel(x64CtxPo ctx,x64LblPo lbl);
 logical isLabelDefined(x64LblPo lbl);
 
 typedef void (*lblRefUpdater)(x64CtxPo ctx, x64LblPo lbl, integer pc);
