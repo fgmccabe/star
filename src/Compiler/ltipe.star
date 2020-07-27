@@ -4,7 +4,12 @@ star.compiler.ltipe{
 
   import star.compiler.types.
 
-  public ltipe ::= .int64 | .flt64 | .bool | .ptr | funTipe(cons[ltipe],ltipe) | tplTipe(cons[ltipe]) .
+  public ltipe ::= .int64 |
+    .flt64 |
+    .bool |
+    .ptr |
+    funTipe(cons[ltipe],ltipe) |
+    tplTipe(cons[ltipe]).
 
   public implementation display[ltipe] => let{
     showTp:(ltipe) => ss.

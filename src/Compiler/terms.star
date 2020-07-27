@@ -93,13 +93,6 @@ star.compiler.terms{
   public mkTpl:(cons[term]) => term.
   mkTpl(A) where L.=size(A) => term(tLbl(tplLbl(L),L),A).
 
-  public tplLbl:(integer)=>string.
-  tplLbl(Ar) => "()$(Ar)".
-
-  public isTplLbl:(string)=>boolean.
-  isTplLbl(Nm) where [0c(,0c),..Ds].=(Nm::cons[integer]) => .true.
-  isTplLbl(_) default => .false.
-
   public mkLst:(cons[term]) => term.
   mkLst(Els) => term(tLbl("[]",size(Els)),Els).
 

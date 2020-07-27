@@ -1,7 +1,6 @@
 star.compiler.core{
   import star.
 
-  import star.compiler.assem.
   import star.compiler.location.
   import star.compiler.misc.
   import star.compiler.terms.
@@ -17,7 +16,6 @@ star.compiler.core{
     | crTerm(locn,string,cons[crExp],tipe)
     | crCall(locn,string,cons[crExp],tipe)
     | crECall(locn,string,cons[crExp],tipe)
-    | crIntrinsic(locn,assemOp,cons[crExp],tipe)
     | crOCall(locn,crExp,cons[crExp],tipe)
     | crRecord(locn,string,cons[(string,crExp)],tipe)
     | crDot(locn,crExp,string,tipe)
@@ -40,7 +38,8 @@ star.compiler.core{
 
   public crDefn ::= fnDef(locn,string,tipe,cons[crVar],crExp) |
     glbDef(locn,crVar,crExp) |
-    rcDef(locn,string,tipe,cons[(string,tipe,integer)]).
+    rcDef(locn,string,tipe,tipe) |
+  tpDef(locn,tipe,tipe).
 
   public dispCrProg:(cons[crDefn])=>ss.
   dispCrProg(Defs) => ssSeq(interleave(Defs//disp,ss(".\n"))).
@@ -62,9 +61,7 @@ star.compiler.core{
   dspDef(rcDef(Lc,Nm,Tp,Fields),Off) where Off2 .= Off++"  " =>
     ssSeq([ss("rec: "),disp(Lc),ss("\n"),
 	ss(Nm),ss(":"),disp(Tp),ss("\n"),ss(Off),
-	ss(Nm),ss("{\n"),ss(Off2),
-	ssSeq(interleave(Fields//((FNm,FTp,FIx))=>ssSeq([ss(FNm),ss(":"),disp(FTp),ss("@"),disp(FIx)]),ss(";\n"++Off2))),
-	ss("}")]).
+	showType(Fields,.false,10000)]).
 
   dspExp:(crExp,string) => ss.
   dspExp(crVar(_,V),_) => disp(V).
@@ -74,7 +71,6 @@ star.compiler.core{
   dspExp(crVoid(_,_),_) => ss("void").
   dspExp(crLbl(_,Lb,_),_) => ssSeq([ss("."),ss(Lb)]).
   dspExp(crECall(_,Op,As,_),Off) => ssSeq([ss(Op),ss("("),ssSeq(dsplyExps(As,Off)),ss(")")]).
-  dspExp(crIntrinsic(_,Op,As,_),Off) => ssSeq([ss("intrinsic{"),disp(Op),ss("("),ssSeq(dsplyExps(As,Off)),ss(")}")]).
   dspExp(crOCall(_,Op,As,_),Off) => ssSeq([dspExp(Op,Off),ss("·("),ssSeq(dsplyExps(As,Off)),ss(")")]).
   dspExp(crCall(_,Op,As,_),Off) => ssSeq([ss(Op),ss("("),ssSeq(dsplyExps(As,Off)),ss(")")]).
   dspExp(crTerm(_,Op,As,_),Off) where isTplLbl(Op) => ssSeq([ss("‹"),ssSeq(dsplyExps(As,Off)),ss("›")]).
@@ -138,7 +134,6 @@ star.compiler.core{
     eqTerm(crTerm(_,S1,A1,_),crTerm(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
     eqTerm(crCall(_,S1,A1,_),crCall(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
     eqTerm(crECall(_,S1,A1,_),crECall(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
---    eqTerm(crIntrinsic(_,S1,A1,_),crIntrinsic(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
     eqTerm(crOCall(_,S1,A1,_),crOCall(_,S2,A2,_)) => eqTerm(S1,S2) && eqs(A1,A2).
     eqTerm(crRecord(_,S1,F1,_),crRecord(_,S2,F2,_)) => S1==S2 && eqFs(F1,F2).
     eqTerm(crDot(_,R1,F1,_),crDot(_,R2,F2,_)) => eqTerm(R1,R2) && F1==F2.
@@ -192,7 +187,6 @@ star.compiler.core{
     locOf(crLtRec(Lc,_,_,_)) => Lc.
     locOf(crCase(Lc,_,_,_,_)) => Lc.
     locOf(crCall(Lc,_,_,_))=>Lc.
-    locOf(crIntrinsic(Lc,_,_,_))=>Lc.
     locOf(crECall(Lc,_,_,_))=>Lc.
     locOf(crOCall(Lc,_,_,_))=>Lc.
     locOf(crRecord(Lc,_,_,_)) => Lc.
@@ -211,7 +205,6 @@ star.compiler.core{
     tpOf(crLbl(_,_,Tp)) => Tp.
     tpOf(crTerm(_,_,_,Tp)) => Tp.
     tpOf(crRecord(_,_,_,Tp)) => Tp.
-    tpOf(crIntrinsic(_,_,_,Tp)) => Tp.
     tpOf(crECall(_,_,_,Tp)) => Tp.
     tpOf(crOCall(_,_,_,Tp)) => Tp.
     tpOf(crCall(_,_,_,Tp)) => Tp.
@@ -285,8 +278,6 @@ star.compiler.core{
     crCall(Lc,Op,Args//(A)=>rwTerm(A,Tst),Tp).
   rwTerm(crOCall(Lc,Op,Args,Tp),Tst) =>
     crOCall(Lc,rwTerm(Op,Tst),Args//(A)=>rwTerm(A,Tst),Tp).
-  rwTerm(crIntrinsic(Lc,Op,Args,Tp),Tst) =>
-    crIntrinsic(Lc,Op,rwTerms(Args,Tst),Tp).
   rwTerm(crECall(Lc,Op,Args,Tp),Tst) =>
     crECall(Lc,Op,Args//(A)=>rwTerm(A,Tst),Tp).
   rwTerm(crCnj(Lc,L,R),Tst) =>
@@ -361,5 +352,4 @@ star.compiler.core{
   isGround(crLbl(_,_,_)) => .true.
   isGround(crTerm(_,_,Els,_)) => E in Els *> isGround(E).
   isGround(_) default => .false.
-
 }

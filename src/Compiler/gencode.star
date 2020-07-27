@@ -8,6 +8,7 @@ star.compiler.gencode{
   import star.compiler.core.
   import star.compiler.errors.
   import star.compiler.escapes.
+  import star.compiler.intrinsics.
   import star.compiler.meta.
   import star.compiler.misc.
   import star.compiler.peephole.
@@ -115,8 +116,8 @@ star.compiler.gencode{
   }
   compExp(crTerm(Lc,Nm,Args,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
     compExps(Args,Opts,bothCont(allocCont(tLbl(Nm,size(Args)),Tp,Stk),Cont),Ctx,Cde,Stk,Rp).
-  compExp(crIntrinsic(Lc,Op,Args,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
-    compExps(Args,Opts,bothCont(asmCont(Op,size(Args),Tp,Stk),Cont),Ctx,Cde,Stk,Rp).
+  compExp(crECall(Lc,Op,Args,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) where (_,Ins)^=intrinsic(Op) =>
+    compExps(Args,Opts,bothCont(asmCont(Ins,size(Args),Tp,Stk),Cont),Ctx,Cde,Stk,Rp).
   compExp(crECall(Lc,Nm,Args,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
     compExps(Args,Opts,bothCont(escCont(Nm,size(Args),Tp,Stk),Cont),Ctx,Cde,Stk,Rp).
   compExp(crCall(Lc,Nm,Args,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
@@ -721,7 +722,6 @@ star.compiler.gencode{
   ptnVars(crLbl(_,_,_),Ctx) => Ctx.
   ptnVars(crTerm(_,Op,Els,_),Ctx) => foldRight(ptnVars,Ctx,Els).
   ptnVars(crCall(_,_,_,_),Ctx) => Ctx.
-  ptnVars(crIntrinsic(_,_,_,_),Ctx) => Ctx.
   ptnVars(crECall(_,_,_,_),Ctx) => Ctx.
   ptnVars(crOCall(_,_,_,_),Ctx) => Ctx.
   ptnVars(crRecord(_,_,Els,_),Ctx) => foldRight(((_,El),X)=>ptnVars(El,X),Ctx,Els).

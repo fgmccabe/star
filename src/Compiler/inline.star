@@ -70,8 +70,6 @@ star.compiler.inline{
     inlineCall(Lc,Fn,Args//(A)=>simplifyExp(A,Prog,Depth),Tp,Prog,Depth).
   simplifyExp(crECall(Lc,Fn,Args,Tp),Prog,Depth) where Depth>0 =>
     inlineECall(Lc,Fn,Args//(A)=>simplifyExp(A,Prog,Depth),Tp,Depth).
-  simplifyExp(crIntrinsic(Lc,Fn,Args,Tp),Prog,Depth) =>
-    crIntrinsic(Lc,Fn,Args//(A)=>simplifyExp(A,Prog,Depth),Tp).
   simplifyExp(crOCall(Lc,Op,Args,Tp),Prog,Depth) where Depth>0 =>
     inlineOCall(Lc,simplifyExp(Op,Prog,Depth),Args//(A)=>simplifyExp(A,Prog,Depth),Tp,Prog,Depth).
   simplifyExp(crTerm(Lc,Fn,Args,Tp),Prog,Depth) =>
