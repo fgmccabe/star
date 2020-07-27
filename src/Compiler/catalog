@@ -10,6 +10,7 @@
     "star.compiler.checker": "checker.star",
     "star.compiler.constraints": "constraints.star",
     "star.compiler.core" : "core.star",
+    "star.compiler.core.ast" : "coreAst.star",
     "star.compiler.dependencies" : "dependencies.star",
     "star.compiler.dict": "dict.star",
     "star.compiler.dict.mgt": "dictmgt.star",
