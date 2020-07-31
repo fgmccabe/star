@@ -11,7 +11,7 @@
 poolPo ctxPool = Null;
 poolPo lblPool = Null;
 
-void initAssemX4() {
+void initAssemX64() {
   if (ctxPool == Null) {
     ctxPool = newPool(sizeof(AssemCtxRecord), 128);
     lblPool = newPool(sizeof(AssemLblRecord), 128);
@@ -22,7 +22,7 @@ static retCode clearLbl(char *lblNme, x64LblPo lbl);
 static retCode cleanupLabels(x64CtxPo ctx);
 
 x64CtxPo createCtx() {
-  initAssemX4();
+  initAssemX64();
   x64CtxPo ctx = (x64CtxPo) allocPool(ctxPool);
   ctx->bytes = malloc(1024);
   ctx->size = 1024;
@@ -129,13 +129,14 @@ logical isLabelDefined(x64LblPo lbl) {
   return lbl->pc >= 0;
 }
 
+static u8 encodeMod(u8 mode, x64Reg fst, x64Reg snd);
 static u8 encodeModRR(x64Reg dst, x64Reg src);
-static u8 encodeModRM(x64Reg fst, x64Reg snd, i64 disp);
+static u8 encodeModRM(x64Reg fst, x64Reg snd, i64 disp, logical flag);
 static void emitDisp(x64CtxPo ctx, i64 disp);
 static u8 encodeSIB(x64Reg base, x64Reg index, u8 scale);
-static u8 encodeModRI(x64Reg dst);
+static u8 encodeModRI(u8 mode, x64Reg dst);
 static u8 encodeRex(u8 rex, x64Reg dst, x64Reg index, x64Reg src);
-static u8 encodeBinOp(u8 opCode, x64Op dst, x64Op src, x64CtxPo ctx);
+static void binop_(u8 op_rm_r, u8 op_r_rm, u8 op_rm_imm, u8 rm_flag, x64Op dst, x64Op src, x64CtxPo ctx);
 static void emitLblRef(x64CtxPo ctx, x64LblPo tgt);
 static logical isByte(i64 x);
 static logical isI32(i64 x);
@@ -151,18 +152,159 @@ static void labelDisp32(x64CtxPo ctx, x64LblPo lbl, integer pc) {
   }
 }
 
+// Encode binary operators where one side must be a register or source may be immediate
+
+void binop_(u8 op_rm_r, u8 op_r_rm, u8 op_rm_imm, u8 rm_flag, x64Op dst, x64Op src, x64CtxPo ctx) {
+  switch (dst.mode) {
+    case Based:
+      switch (src.mode) {
+        case Reg:
+          emitU8(ctx, encodeRex(REX_W, src.op.reg, 0, dst.op.based.base));
+          emitU8(ctx, op_rm_r);
+          emitU8(ctx, encodeModRM(src.op.reg, dst.op.based.base, dst.op.based.disp, isByte(dst.op.based.disp)));
+          emitDisp(ctx, dst.op.based.disp);
+          return;
+        case Based:
+        case Indexed:
+          check(False, "not permitted");
+          return;
+        case Imm:
+          if (isI32(src.op.imm)) {
+            emitU8(ctx, encodeRex(REX_W, 0, 4, dst.op.based.base));
+            emitU8(ctx, op_rm_imm);
+            emitU8(ctx, encodeModRM(rm_flag, dst.op.based.base, dst.op.based.disp, isByte(dst.op.based.disp)));
+            emitDisp(ctx, dst.op.based.disp);
+            emitU32(ctx, src.op.imm);
+          } else {
+            check(False, "immediate too large");
+          }
+          return;
+        case Labeled:
+          check(False, "Not permitted");
+          return;
+      }
+    case Reg:
+      switch (src.mode) {
+        case Reg:
+          emitU8(ctx, encodeRex(REX_W, src.op.reg, 0, dst.op.reg));
+          emitU8(ctx, op_rm_r);
+          emitU8(ctx, encodeModRR(dst.op.reg, src.op.reg));
+          return;
+        case Imm:
+          emitU8(ctx, encodeRex(REX_W, 0, 0, dst.op.reg));
+          if (isI32(src.op.imm)) {
+            emitU8(ctx, op_rm_imm);
+            emitU8(ctx, encodeModRR(dst.op.reg, rm_flag));
+            emitU32(ctx, src.op.imm);
+          } else {
+            check(False, "immediate too large");
+          }
+          return;
+        case Based:
+          emitU8(ctx, encodeRex(REX_W, dst.op.reg, 0, src.op.based.base));
+          emitU8(ctx, op_r_rm);
+          emitU8(ctx, encodeModRM(dst.op.reg, src.op.based.base, src.op.based.disp, isByte(src.op.based.disp)));
+          emitDisp(ctx, src.op.based.disp);
+          return;
+        case Indexed:
+          emitU8(ctx, encodeRex(REX_W, dst.op.reg, src.op.indexed.index, src.op.indexed.base));
+          emitU8(ctx, op_r_rm);
+          emitU8(ctx, encodeModRM(dst.op.reg, 0x4, src.op.indexed.disp, isByte(src.op.indexed.disp)));
+          emitU8(ctx, encodeSIB(src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale));
+          emitDisp(ctx, src.op.indexed.disp);
+          return;
+        case Labeled: {
+          x64LblPo tgt = src.op.lbl;
+          emitU8(ctx, encodeRex(REX_W, dst.op.reg, 0, 0x0));
+          emitU8(ctx, op_r_rm);
+          emitU8(ctx, encodeModRM(dst.op.reg, 0x5, 0, False));
+          emitLblRef(ctx, tgt);
+          return;
+        }
+      }
+    case Imm:
+      check(False, "cannot target immediate operand");
+      return;
+    case Indexed:
+      switch (src.mode) {
+        case Reg:
+          emitU8(ctx, encodeRex(REX_W, src.op.reg, dst.op.indexed.index, dst.op.indexed.base));
+          emitU8(ctx, op_rm_r);
+          emitU8(ctx, encodeModRM(src.op.reg, 0x4, dst.op.indexed.disp, isByte(dst.op.indexed.disp)));
+          emitU8(ctx, encodeSIB(dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale));
+          emitDisp(ctx, dst.op.indexed.disp);
+          return;
+        case Based:
+        case Indexed:
+          check(False, "not permitted");
+          return;
+        case Imm:
+          emitU8(ctx, encodeRex(REX_W, 0, dst.op.indexed.index, dst.op.indexed.base));
+          emitU8(ctx, op_rm_imm);
+          emitU8(ctx, encodeModRM(rm_flag, 0x4, dst.op.indexed.disp, isByte(dst.op.indexed.disp)));
+          emitU8(ctx, encodeSIB(dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale));
+          emitDisp(ctx, dst.op.indexed.disp);
+          emitU32(ctx, src.op.imm);
+          return;
+        case Labeled:
+          check(False, "Not permitted");
+          return;
+      }
+    case Labeled:
+      check(False, "Not permitted");
+      return;
+  }
+}
+
+void adc_(x64Op dst, x64Op src, x64CtxPo ctx) {
+  binop_(ADC_rm_r, ADC_r_rm, ADC_rm_imm, 2, dst, src, ctx);
+}
+
+void add_(x64Op dst, x64Op src, x64CtxPo ctx) {
+  binop_(ADD_rm_r, ADD_r_rm, ADD_rm_imm, 0, dst, src, ctx);
+}
+
+void and_(x64Op dst, x64Op src, x64CtxPo ctx) {
+  binop_(AND_rm_r, AND_r_rm, AND_rm_imm, 4, dst, src, ctx);
+}
+void j_cc_(x64LblPo dst, u8 cc, x64CtxPo ctx) {
+  emitU8(ctx, JCC);
+  emitU8(ctx, 0x80u | cc);
+  emitLblRef(ctx, dst);
+}
+
+void jmp_(x64Op src, x64CtxPo ctx) {
+  switch (src.mode) {
+    case Reg:
+      if (src.op.reg >= R8)
+        emitU8(ctx, encodeRex(REX, 0, 0, src.op.reg));
+      emitU8(ctx, JMP_rm);
+      emitU8(ctx, encodeModRR(src.op.reg, 0x4));
+      return;
+    case Labeled: {
+      x64LblPo tgt = src.op.lbl;
+      emitU8(ctx, JMP_m);
+      emitLblRef(ctx, tgt);
+      return;
+    }
+    default:
+      check(False, " source mode not permitted");
+      return;
+  }
+}
+
 void lea_(x64Reg dst, x64Op src, x64CtxPo ctx) {
   switch (src.mode) {
     case Based:
       emitU8(ctx, encodeRex(REX_W, dst, 0, src.op.based.base));
       emitU8(ctx, LEA_r_m);
-      emitU8(ctx, encodeModRM(dst, src.op.based.base, src.op.based.disp));
+      emitU8(ctx, encodeModRM(dst, src.op.based.base, src.op.based.disp, isByte(src.op.based.disp)));
       emitDisp(ctx, src.op.based.disp);
       return;
     case Indexed:
       emitU8(ctx, encodeRex(REX_W, dst, src.op.indexed.index, src.op.indexed.base));
       emitU8(ctx, LEA_r_m);
-      emitU8(ctx, encodeModRM(dst, 0x4, src.op.indexed.disp));
+      emitU8(ctx, encodeModRM(dst, 0x4, src.op.indexed.disp, isByte(src.op.indexed.disp)));
       emitU8(ctx, encodeSIB(src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale));
       emitDisp(ctx, src.op.indexed.disp);
       return;
@@ -170,7 +312,7 @@ void lea_(x64Reg dst, x64Op src, x64CtxPo ctx) {
       x64LblPo tgt = src.op.lbl;
       emitU8(ctx, encodeRex(REX_W, dst, 0, 0x0));
       emitU8(ctx, LEA_r_m);
-      emitU8(ctx, encodeModRM(dst, 0x5, 0));
+      emitU8(ctx, encodeModRM(dst, 0x5, 0, False));
       emitLblRef(ctx, tgt);
       return;
     }
@@ -187,7 +329,7 @@ void mov_(x64Op dst, x64Op src, x64CtxPo ctx) {
         case Reg:
           emitU8(ctx, encodeRex(REX_W, src.op.reg, 0, dst.op.based.base));
           emitU8(ctx, MOV_rm_r);
-          emitU8(ctx, encodeModRM(src.op.reg, dst.op.based.base, dst.op.based.disp));
+          emitU8(ctx, encodeModRM(src.op.reg, dst.op.based.base, dst.op.based.disp, isByte(dst.op.based.disp)));
           emitDisp(ctx, dst.op.based.disp);
           return;
         case Based:
@@ -199,10 +341,10 @@ void mov_(x64Op dst, x64Op src, x64CtxPo ctx) {
             emitU8(ctx, encodeRex(REX_W, 0, 4, dst.op.based.base));
             emitU8(ctx, MOV_rm_imm);
             if (dst.op.based.base != RAX) {
-              emitU8(ctx, encodeModRM(0, 0x4, dst.op.based.disp)); // 4 = no index
+              emitU8(ctx, encodeModRM(0, 0x4, dst.op.based.disp, isByte(dst.op.based.disp))); // 4 = no index
               emitU8(ctx, encodeSIB(dst.op.based.base, 4, 1));
             } else {
-              emitU8(ctx, encodeModRM(0, dst.op.based.base, dst.op.based.disp));
+              emitU8(ctx, encodeModRM(0, dst.op.based.base, dst.op.based.disp, isByte(dst.op.based.disp)));
             }
             emitDisp(ctx, dst.op.based.disp);
             emitU32(ctx, src.op.imm);
@@ -225,7 +367,7 @@ void mov_(x64Op dst, x64Op src, x64CtxPo ctx) {
           emitU8(ctx, encodeRex(REX_W, 0, 0, dst.op.reg));
           if (isI32(src.op.imm)) {
             emitU8(ctx, MOV_rm_imm);
-            emitU8(ctx, encodeModRI(dst.op.reg));
+            emitU8(ctx, encodeModRI(0xc0u, dst.op.reg));
             emitU32(ctx, src.op.imm);
           } else {
             emitU8(ctx, MOV_r_i32 | (((unsigned) (dst.op.reg)) & 0x7u));
@@ -235,13 +377,13 @@ void mov_(x64Op dst, x64Op src, x64CtxPo ctx) {
         case Based:
           emitU8(ctx, encodeRex(REX_W, dst.op.reg, 0, src.op.based.base));
           emitU8(ctx, MOV_r_rm);
-          emitU8(ctx, encodeModRM(dst.op.reg, src.op.based.base, src.op.based.disp));
+          emitU8(ctx, encodeModRM(dst.op.reg, src.op.based.base, src.op.based.disp, isByte(src.op.based.disp)));
           emitDisp(ctx, src.op.based.disp);
           return;
         case Indexed:
           emitU8(ctx, encodeRex(REX_W, dst.op.reg, src.op.indexed.index, src.op.indexed.base));
           emitU8(ctx, MOV_r_rm);
-          emitU8(ctx, encodeModRM(dst.op.reg, 0x4, src.op.indexed.disp));
+          emitU8(ctx, encodeModRM(dst.op.reg, 0x4, src.op.indexed.disp, isByte(src.op.indexed.disp)));
           emitU8(ctx, encodeSIB(src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale));
           emitDisp(ctx, src.op.indexed.disp);
           return;
@@ -249,7 +391,7 @@ void mov_(x64Op dst, x64Op src, x64CtxPo ctx) {
           x64LblPo tgt = src.op.lbl;
           emitU8(ctx, encodeRex(REX_W, dst.op.reg, 0, 0x0));
           emitU8(ctx, MOV_r_rm);
-          emitU8(ctx, encodeModRM(dst.op.reg, 0x5, 0));
+          emitU8(ctx, encodeModRM(dst.op.reg, 0x5, 0, False));
           emitLblRef(ctx, tgt);
           return;
         }
@@ -262,7 +404,7 @@ void mov_(x64Op dst, x64Op src, x64CtxPo ctx) {
         case Reg:
           emitU8(ctx, encodeRex(REX_W, src.op.reg, dst.op.indexed.index, dst.op.indexed.base));
           emitU8(ctx, MOV_rm_r);
-          emitU8(ctx, encodeModRM(src.op.reg, 0x4, dst.op.indexed.disp));
+          emitU8(ctx, encodeModRM(src.op.reg, 0x4, dst.op.indexed.disp, isByte(dst.op.indexed.disp)));
           emitU8(ctx, encodeSIB(dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale));
           emitDisp(ctx, dst.op.indexed.disp);
           return;
@@ -273,7 +415,7 @@ void mov_(x64Op dst, x64Op src, x64CtxPo ctx) {
         case Imm:
           emitU8(ctx, encodeRex(REX_W, 0, dst.op.indexed.index, dst.op.indexed.base));
           emitU8(ctx, MOV_rm_imm);
-          emitU8(ctx, encodeModRM(0, 0x4, dst.op.indexed.disp));
+          emitU8(ctx, encodeModRM(0, 0x4, dst.op.indexed.disp, isByte(dst.op.indexed.disp)));
           emitU8(ctx, encodeSIB(dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale));
           emitDisp(ctx, dst.op.indexed.disp);
           emitU32(ctx, src.op.imm);
@@ -285,6 +427,34 @@ void mov_(x64Op dst, x64Op src, x64CtxPo ctx) {
     case Labeled:
       check(False, "Not permitted");
       return;
+  }
+}
+
+void pop_(x64Op dst, x64CtxPo ctx) {
+  switch (dst.mode) {
+    case Reg:
+      if (dst.op.reg >= R8)
+        emitU8(ctx, encodeRex(REX, 0, 0, dst.op.reg));
+      emitU8(ctx, POP_r + (dst.op.reg & 0x7u));
+      return;
+    case Based:
+      if (dst.op.reg >= R8)
+        emitU8(ctx, encodeRex(REX, 0, 0, dst.op.based.base));
+
+      emitU8(ctx, POP_rm);
+      emitU8(ctx, encodeModRM(0, dst.op.based.base, dst.op.based.disp, isByte(dst.op.based.disp)));
+      emitDisp(ctx, dst.op.based.disp);
+      return;
+    case Indexed:
+      if (dst.op.indexed.base >= R8 || dst.op.indexed.index >= R8)
+        emitU8(ctx, encodeRex(REX, 0, dst.op.indexed.index, dst.op.indexed.base));
+      emitU8(ctx, POP_rm);
+      emitU8(ctx, encodeModRM(0x0, 0x4, dst.op.indexed.disp, isByte(dst.op.indexed.disp)));
+      emitU8(ctx, encodeSIB(dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale));
+      emitDisp(ctx, dst.op.indexed.disp);
+      return;
+    default:
+      check(False, "not permitted");
   }
 }
 
@@ -311,14 +481,14 @@ void push_(x64Op src, x64CtxPo ctx) {
         emitU8(ctx, encodeRex(REX, 0, 0, src.op.based.base));
 
       emitU8(ctx, PUSH_rm);
-      emitU8(ctx, encodeModRM(6, src.op.based.base, src.op.based.disp));
+      emitU8(ctx, encodeModRM(6, src.op.based.base, src.op.based.disp, isByte(src.op.based.disp)));
       emitDisp(ctx, src.op.based.disp);
       return;
     case Indexed:
       if (src.op.indexed.base >= R8 || src.op.indexed.index >= R8)
         emitU8(ctx, encodeRex(REX, 0, src.op.indexed.index, src.op.indexed.base));
       emitU8(ctx, PUSH_rm);
-      emitU8(ctx, encodeModRM(0x6, 0x4, src.op.indexed.disp));
+      emitU8(ctx, encodeModRM(0x6, 0x4, src.op.indexed.disp, isByte(src.op.indexed.disp)));
       emitU8(ctx, encodeSIB(src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale));
       emitDisp(ctx, src.op.indexed.disp);
       return;
@@ -328,38 +498,175 @@ void push_(x64Op src, x64CtxPo ctx) {
   }
 }
 
-void pop_(x64Op dst, x64CtxPo ctx) {
-  switch (dst.mode) {
-    case Reg:
-      if (dst.op.reg >= R8)
-        emitU8(ctx, encodeRex(REX, 0, 0, dst.op.reg));
-      emitU8(ctx, POP_r + (dst.op.reg & 0x7u));
-      return;
-    case Based:
-      if (dst.op.reg >= R8)
-        emitU8(ctx, encodeRex(REX, 0, 0, dst.op.based.base));
+void setcc_(x64Reg dst, u8 cc, x64CtxPo ctx) {
+  emitU8(ctx, SET_CC_rm);
+  emitU8(ctx, 0x90u | cc);
+  emitU8(ctx, encodeModRR(dst, 0));
+}
 
-      emitU8(ctx, POP_rm);
-      emitU8(ctx, encodeModRM(0, dst.op.based.base, dst.op.based.disp));
-      emitDisp(ctx, dst.op.based.disp);
+void test_(x64Op dst, x64Op src, x64CtxPo ctx) {
+  switch (dst.mode) {
+    case Based:
+      switch (src.mode) {
+        case Reg:
+          emitU8(ctx, encodeRex(REX_W, src.op.reg, 0, dst.op.based.base));
+          emitU8(ctx, TEST_rm_r);
+          emitU8(ctx, encodeModRM(src.op.reg, dst.op.based.base, dst.op.based.disp, isByte(dst.op.based.disp)));
+          emitDisp(ctx, dst.op.based.disp);
+          return;
+        case Based:
+        case Indexed:
+        case Labeled:
+          check(False, "not permitted");
+          return;
+        case Imm:
+          if (isI32(src.op.imm)) {
+            emitU8(ctx, encodeRex(REX_W, 0, 4, dst.op.based.base));
+            emitU8(ctx, TEST_rm_imm);
+            if (dst.op.based.base != RAX) {
+              emitU8(ctx, encodeModRM(0, 0x4, dst.op.based.disp, isByte(dst.op.based.disp))); // 4 = no index
+              emitU8(ctx, encodeSIB(dst.op.based.base, 4, 1));
+            } else {
+              emitU8(ctx, encodeModRM(0, dst.op.based.base, dst.op.based.disp, isByte(dst.op.based.disp)));
+            }
+            emitDisp(ctx, dst.op.based.disp);
+            emitU32(ctx, src.op.imm);
+          } else {
+            check(False, "immediate too large");
+          }
+          return;
+      }
+    case Reg:
+      switch (src.mode) {
+        case Reg:
+          emitU8(ctx, encodeRex(REX_W, src.op.reg, 0, dst.op.reg));
+          emitU8(ctx, TEST_rm_r);
+          emitU8(ctx, encodeModRR(dst.op.reg, src.op.reg));
+          return;
+        case Imm:
+          emitU8(ctx, encodeRex(REX_W, 0, 0, dst.op.reg));
+          if (isI32(src.op.imm)) {
+            if (dst.op.reg == RAX) {
+              emitU8(ctx, TEST_RAX_imm);
+            } else {
+              emitU8(ctx, TEST_rm_imm);
+              emitU8(ctx, encodeModRI(0xc0, dst.op.reg));
+            }
+            emitU32(ctx, src.op.imm);
+          } else {
+            check(False, "immediate too large");
+          }
+          return;
+        case Based:
+          emitU8(ctx, encodeRex(REX_W, dst.op.reg, 0, src.op.based.base));
+          emitU8(ctx, TEST_rm_r);
+          emitU8(ctx, encodeModRM(dst.op.reg, src.op.based.base, src.op.based.disp, isByte(src.op.based.disp)));
+          emitDisp(ctx, src.op.based.disp);
+          return;
+        case Indexed:
+          emitU8(ctx, encodeRex(REX_W, dst.op.reg, src.op.indexed.index, src.op.indexed.base));
+          emitU8(ctx, TEST_rm_r);
+          emitU8(ctx, encodeModRM(dst.op.reg, 0x4, src.op.indexed.disp, isByte(src.op.indexed.disp)));
+          emitU8(ctx, encodeSIB(src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale));
+          emitDisp(ctx, src.op.indexed.disp);
+          return;
+        case Labeled: {
+          x64LblPo tgt = src.op.lbl;
+          emitU8(ctx, encodeRex(REX_W, dst.op.reg, 0, 0x0));
+          emitU8(ctx, TEST_rm_r);
+          emitU8(ctx, encodeMod(0x0, 0x4, dst.op.reg));
+          emitU8(ctx, 0x25); // Special SIB
+          emitLblRef(ctx, tgt);
+          return;
+        }
+      }
+    case Imm:
+    case Labeled:
+    case Indexed:
+      test_(src, dst, ctx);
+      return;
+  }
+}
+
+void xchg_(x64Op dst, x64Op src, x64CtxPo ctx) {
+  switch (dst.mode) {
+    case Based:
+      switch (src.mode) {
+        case Reg:
+          emitU8(ctx, encodeRex(REX_W, src.op.reg, 0, dst.op.based.base));
+          emitU8(ctx, XCHG_r_rm);
+          emitU8(ctx, encodeModRM(src.op.reg, dst.op.based.base, dst.op.based.disp, isByte(dst.op.based.disp)));
+          emitDisp(ctx, dst.op.based.disp);
+          return;
+        case Based:
+        case Indexed:
+        case Imm:
+        case Labeled:
+          check(False, "not permitted");
+          return;
+      }
+    case Reg:
+      switch (src.mode) {
+        case Reg:
+          if (src.op.reg == RAX) {
+            emitU8(ctx, encodeRex(REX_W, src.op.reg, 0, dst.op.reg));
+            emitU8(ctx, (unsigned) XCHG_EAX_r | (u8) (dst.op.reg & 0x7u));
+          } else if (dst.op.reg == RAX) {
+            emitU8(ctx, encodeRex(REX_W, dst.op.reg, 0, src.op.reg));
+            emitU8(ctx, (unsigned) XCHG_EAX_r | (u8) (src.op.reg & 0x7u));
+          } else {
+            emitU8(ctx, encodeRex(REX_W, src.op.reg, 0, dst.op.reg));
+            emitU8(ctx, XCHG_r_rm);
+            emitU8(ctx, encodeModRR(dst.op.reg, src.op.reg));
+          }
+          return;
+        case Imm:
+        case Labeled:
+          check(False, "not permitted");
+          return;
+        case Based:
+          emitU8(ctx, encodeRex(REX_W, dst.op.reg, 0, src.op.based.base));
+          emitU8(ctx, XCHG_r_rm);
+          emitU8(ctx, encodeModRM(dst.op.reg, src.op.based.base, src.op.based.disp, isByte(src.op.based.disp)));
+          emitDisp(ctx, src.op.based.disp);
+          return;
+        case Indexed:
+          emitU8(ctx, encodeRex(REX_W, dst.op.reg, src.op.indexed.index, src.op.indexed.base));
+          emitU8(ctx, XCHG_r_rm);
+          emitU8(ctx, encodeModRM(dst.op.reg, 0x4, src.op.indexed.disp, isByte(src.op.indexed.disp)));
+          emitU8(ctx, encodeSIB(src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale));
+          emitDisp(ctx, src.op.indexed.disp);
+          return;
+      }
+    case Imm:
+      check(False, "cannot target immediate operand");
       return;
     case Indexed:
-      if (dst.op.indexed.base >= R8 || dst.op.indexed.index >= R8)
-        emitU8(ctx, encodeRex(REX, 0, dst.op.indexed.index, dst.op.indexed.base));
-      emitU8(ctx, POP_rm);
-      emitU8(ctx, encodeModRM(0x0, 0x4, dst.op.indexed.disp));
-      emitU8(ctx, encodeSIB(dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale));
-      emitDisp(ctx, dst.op.indexed.disp);
+      switch (src.mode) {
+        case Reg:
+          emitU8(ctx, encodeRex(REX_W, src.op.reg, dst.op.indexed.index, dst.op.indexed.base));
+          emitU8(ctx, XCHG_r_rm);
+          emitU8(ctx, encodeModRM(src.op.reg, 0x4, dst.op.indexed.disp, isByte(dst.op.indexed.disp)));
+          emitU8(ctx, encodeSIB(dst.op.indexed.base, dst.op.indexed.index, dst.op.indexed.scale));
+          emitDisp(ctx, dst.op.indexed.disp);
+          return;
+        case Based:
+        case Indexed:
+        case Imm:
+        case Labeled:
+          check(False, "not permitted");
+          return;
+      }
+    case Labeled:
+      check(False, "Not permitted");
       return;
-    default:
-      check(False, "not permitted");
   }
 }
 
 void emitLblRef(x64CtxPo ctx, x64LblPo tgt) {
   if (isLabelDefined(tgt)) {
     integer delta = tgt->pc - (ctx->pc + 4);
-    if (!isI32(delta)){
+    if (!isI32(delta)) {
       check(False, "label displacement too large");
       return;
     }
@@ -370,6 +677,13 @@ void emitLblRef(x64CtxPo ctx, x64LblPo tgt) {
   }
 }
 
+u8 encodeMod(u8 mode, x64Reg fst, x64Reg snd) {
+  u8 dr = ((u8) fst) & 0x7u;
+  u8 sr = ((u8) snd) & 0x7u;
+
+  return (mode | (unsigned) (sr << 3u) | dr);
+}
+
 u8 encodeModRR(x64Reg dst, x64Reg src) {
   u8 dr = ((u8) dst) & 0x7u;
   u8 sr = ((u8) src) & 0x7u;
@@ -377,13 +691,13 @@ u8 encodeModRR(x64Reg dst, x64Reg src) {
   return ((u8) 0xc0) | (unsigned) (sr << 3u) | dr;
 }
 
-u8 encodeModRM(x64Reg fst, x64Reg snd, i64 disp) {
+u8 encodeModRM(x64Reg fst, x64Reg snd, i64 disp, logical flag) {
   u8 fr = ((u8) fst) & 0x7u;
   u8 sr = ((u8) snd) & 0x7u;
 
   if (disp == 0)
     return (unsigned) (fr << 3u) | sr;
-  else if (isByte(disp))
+  else if (flag)
     return ((u8) 0x40u) | (unsigned) (fr << 3u) | sr;
   else
     return ((u8) 0x80u) | (unsigned) (fr << 3u) | sr;
@@ -398,10 +712,10 @@ void emitDisp(x64CtxPo ctx, i64 disp) {
   }
 }
 
-u8 encodeModRI(x64Reg dst) {
+u8 encodeModRI(u8 mode, x64Reg dst) {
   u8 dr = ((u8) dst) & 0x7u;
 
-  return 0xc0u | dr;
+  return mode | dr;
 }
 
 u8 encodeSIB(x64Reg base, x64Reg index, u8 scale) {
@@ -458,7 +772,7 @@ void updateU32(x64CtxPo ctx, integer pc, u32 word) {
 }
 
 u32 readCtxAtPc(x64CtxPo ctx, integer pc) {
-  check(pc >= 0 && pc < ctx->pc - 4, "pc out of bounds");
+  check(pc >= 0 && pc <= ctx->pc - 4, "pc out of bounds");
   return ctx->bytes[pc] | (ctx->bytes[pc + 1] << 8u) | (ctx->bytes[pc + 2] << 16u) | (ctx->bytes[pc + 3] << 24u);
 }
 

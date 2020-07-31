@@ -36,9 +36,6 @@ void updateU32(x64CtxPo ctx, integer pc, u32 word);
 u32 readCtxAtPc(x64CtxPo ctx, integer pc);
 
 #define REX_W    0x48
-#define REX_R    0x44
-#define REX_X    0x42
-#define REX_B    0x41
 #define REX    0x40
 
 /* Size flags for emit_x86_instruction: */
@@ -52,30 +49,15 @@ u32 readCtxAtPc(x64CtxPo ctx, integer pc);
 #define EX86_PREF_F2    0x0800
 #define EX86_PREF_F3    0x1000
 
-
-// Status flags masks
-#define CF              (0u)
-#define PF              (1u<<2u)
-#define AF              (1u<<4u)
-#define ZF              (1u<<6u)
-#define SF              (1u<<7u)
-#define DF              (1u<<10u)
-#define OF              (1u<<11u)
-
-#define ADD    (/* BINARY */ 0 << 3)
-#define ADD_EAX_i32  0x05
 #define ADD_r_rm  0x03
 #define ADD_rm_r  0x01
-#define ADDSD_x_xm  0x58
-#define ADC    (/* BINARY */ 2 << 3)
-#define ADC_EAX_i32  0x15
+#define ADD_rm_imm  0x81
 #define ADC_r_rm  0x13
 #define ADC_rm_r  0x11
-#define AND    (/* BINARY */ 4 << 3)
-#define AND_EAX_i32  0x25
+#define ADC_rm_imm  0x81
 #define AND_r_rm  0x23
 #define AND_rm_r  0x21
-#define ANDPD_x_xm  0x54
+#define AND_rm_imm  0x81
 #define BSR_r_rm  (/* GROUP_0F */ 0xbd)
 #define CALL_i32  0xe8
 #define CALL_rm    (/* GROUP_FF */ 2 << 3)
@@ -99,34 +81,14 @@ u32 readCtxAtPc(x64CtxPo ctx, integer pc);
 #define IMUL_r_rm_i8  0x6b
 #define IMUL_r_rm_i32  0x69
 
-#define JE              0x84
-#define JNE             0x85
-#define JC              0x82
-#define JAE             0x83
-#define JBE             0x86
-#define JNBE            0x87
-#define JL              0x8c
-#define JNL             0x8d
-#define JLE             0x8e
-#define JNLE            0x8f
-#define JO              0x80
-#define JNO             0x81
-#define JP              0x8a
-#define JPO             0x8b
-
-#define JMP_rm    (/* GROUP_FF */ 4 << 3)
+#define JCC  0x0f
+#define JMP_m 0xe9
+#define JMP_rm 0xff
 #define LEA_r_m    0x8d
 #define MOV_r_rm  0x8b
 #define MOV_r_i32  0xb8u
 #define MOV_rm_r  0x89
 #define MOV_rm_imm 0xc7
-#define MOVSD_x_xm  0x10
-#define MOVSD_xm_x  0x11
-#define MOVSXD_r_rm  0x63
-#define MOVSX_r_rm8  (/* GROUP_0F */ 0xbe)
-#define MOVSX_r_rm16  (/* GROUP_0F */ 0xbf)
-#define MOVZX_r_rm8  (/* GROUP_0F */ 0xb6)
-#define MOVZX_r_rm16  (/* GROUP_0F */ 0xb7)
 #define MUL    (/* GROUP_F7 */ 4 << 3)
 #define MULSD_x_xm  0x59
 #define NEG_rm    (/* GROUP_F7 */ 3 << 3)
@@ -149,6 +111,7 @@ u32 readCtxAtPc(x64CtxPo ctx, integer pc);
 #define PUSHF    0x9c
 #define RET_near  0xc3
 #define RET_i16    0xc2
+#define SET_CC_rm  0x0f
 #define SBB    (/* BINARY */ 3 << 3)
 #define SBB_EAX_i32  0x1d
 #define SBB_r_rm  0x1b
@@ -161,8 +124,11 @@ u32 readCtxAtPc(x64CtxPo ctx, integer pc);
 #define SUB_r_rm  0x2b
 #define SUB_rm_r  0x29
 #define SUBSD_x_xm  0x5c
-#define TEST_EAX_i32  0xa9
+
+#define TEST_RAX_imm  0xa9
 #define TEST_rm_r  0x85
+#define TEST_rm_imm  0xf7
+
 #define UCOMISD_x_xm  0x2e
 #define UNPCKLPD_x_xm  0x14
 #define XCHG_EAX_r  0x90
@@ -173,17 +139,6 @@ u32 readCtxAtPc(x64CtxPo ctx, integer pc);
 #define XOR_rm_r  0x31
 #define XORPD_x_xm  0x57
 
-#define GROUP_0F  0x0f
-#define GROUP_F7  0xf7
-#define GROUP_FF  0xff
-#define GROUP_BINARY_81  0x81
-#define GROUP_BINARY_83  0x83
-#define GROUP_SHIFT_1  0xd1
-#define GROUP_SHIFT_N  0xc1
-#define GROUP_SHIFT_CL  0xd3
-
-#define MOD_REG    0xc0
-#define MOD_DISP8  0x40
 
 #define MAX_I32 0x7fffffffl
 #define MIN_I32 -0x80000000l
