@@ -12,7 +12,7 @@ void *cleanupCtx(x64CtxPo ctx);
 
 x64LblPo findLabel(x64CtxPo ctx, char *lName);
 x64LblPo defineLabel(x64CtxPo ctx, char *lName, integer pc);
-void setLabel(x64CtxPo ctx,x64LblPo lbl);
+void setLabel(x64CtxPo ctx, x64LblPo lbl);
 logical isLabelDefined(x64LblPo lbl);
 
 typedef void (*lblRefUpdater)(x64CtxPo ctx, x64LblPo lbl, integer pc);
@@ -37,23 +37,6 @@ typedef enum {
   R14 = 14,
   R15 = 15
 } x64Reg;
-
-typedef enum {
-  EQ = 0x84,
-  NE = 0x85,
-  C = 0x82,
-  NC = 0x83,
-  BE = 0x86,
-  NBE = 0x87,
-  LT = 0x8c,
-  NL = 0x8d,
-  LE = 0x8e,
-  NLE = 0x8f,
-  OV = 0x80,
-  NO = 0x81,
-  PE = 0x8a,
-  PO = 0x8b
-} x64Cond;
 
 typedef enum {
   Reg,
@@ -108,6 +91,8 @@ void mov_(x64Op dst, x64Op src, x64CtxPo ctx);
 #define mov(dst, src, ctx) do{ x64Op d=dst; x64Op s = src; mov_(d,s,ctx); } while(False)
 
 void xchg_(x64Op dst, x64Op src, x64CtxPo ctx);
+#define xchg(dst, src, ctx) do{ x64Op d=dst; x64Op s = src; xchg_(d,s,ctx); } while(False)
+
 void bswap_(x64Op dst, x64Op src, x64CtxPo ctx);
 void xadd_(x64Op dst, x64Op src, x64CtxPo ctx);
 void cmpxchg_(x64Op dst, x64Op src, x64CtxPo ctx);
@@ -119,10 +104,6 @@ void push_(x64Op src, x64CtxPo ctx);
 void pop_(x64Op dst, x64CtxPo ctx);
 #define pop(dst, ctx) do{ x64Op d=dst; pop_(d,ctx); } while(False)
 
-void pushad_(x64Op src, x64CtxPo ctx);
-void popad_(x64Op src, x64CtxPo ctx);
-void pusha_(x64Op src, x64CtxPo ctx);
-void popa_(x64Op src, x64CtxPo ctx);
 void cwd_(x64Op dst, x64CtxPo ctx);
 void cdq_(x64Op dst, x64CtxPo ctx);
 void cbw_(x64Op src, x64CtxPo ctx);
@@ -131,8 +112,12 @@ void movzx_(x64Op dst, x64Op src, x64CtxPo ctx);
 
 void adcx_(x64Op dst, x64Op src, x64CtxPo ctx);
 void adox_(x64Op dst, x64Op src, x64CtxPo ctx);
+
 void add_(x64Op dst, x64Op src, x64CtxPo ctx);
-void addc_(x64Op dst, x64Op src, x64CtxPo ctx);
+#define add(dst,src,ctx) do{ x64Op d=dst; x64Op s = src; add_(d,s,ctx); } while(False)
+void adc_(x64Op dst, x64Op src, x64CtxPo ctx);
+#define adc(dst,src,ctx) do{ x64Op d=dst; x64Op s = src; adc_(d,s,ctx); } while(False)
+
 void sub_(x64Op dst, x64Op src, x64CtxPo ctx);
 void sbb_(x64Op dst, x64Op src, x64CtxPo ctx);
 void imul_(x64Op dst, x64Op src, x64CtxPo ctx);
@@ -151,6 +136,8 @@ void aam_(x64Op dst, x64Op src, x64CtxPo ctx);
 void aad_(x64Op dst, x64Op src, x64CtxPo ctx);
 
 void and_(x64Op dst, x64Op src, x64CtxPo ctx);
+#define and(dst,src,ctx) do{ x64Op d=dst; x64Op s = src; and_(d,s,ctx); } while(False)
+
 void or_(x64Op dst, x64Op src, x64CtxPo ctx);
 void xor_(x64Op dst, x64Op src, x64CtxPo ctx);
 void not_(x64Op dst, x64CtxPo ctx);
@@ -174,41 +161,63 @@ void btc_(x64Op src, x64CtxPo ctx);
 void bsf_(x64Op dst, x64Op src, x64CtxPo ctx);
 void bsr_(x64Op dst, x64Op src, x64CtxPo ctx);
 
-void sete_(x64Op dst, x64Op src, x64CtxPo ctx);
-void setne_(x64Op dst, x64Op src, x64CtxPo ctx);
-void seta_(x64Op dst, x64Op src, x64CtxPo ctx);
-void setae_(x64Op dst, x64Op src, x64CtxPo ctx);
-void setg_(x64Op dst, x64Op src, x64CtxPo ctx);
-void setge_(x64Op dst, x64Op src, x64CtxPo ctx);
-void setl_(x64Op dst, x64Op src, x64CtxPo ctx);
-void setle_(x64Op dst, x64Op src, x64CtxPo ctx);
-void sets_(x64Op dst, x64Op src, x64CtxPo ctx);
-void setns_(x64Op dst, x64Op src, x64CtxPo ctx);
-void seto_(x64Op dst, x64Op src, x64CtxPo ctx);
-void setno_(x64Op dst, x64Op src, x64CtxPo ctx);
-void setpe_(x64Op dst, x64Op src, x64CtxPo ctx);
-void setpo_(x64Op dst, x64Op src, x64CtxPo ctx);
+#define EQ_CC 0x4
+#define NE_CC 0x5
+#define C_CC 0x2
+#define AE_CC 0x3
+#define NA_CC 0x6
+#define A_CC 0x7
+#define LT_CC 0xc
+#define GE_CC 0xd
+#define LE_CC 0xe
+#define G_CC 0xf
+#define OV_CC 0x0
+#define NO_CC 0x1
+#define PE_CC 0xa
+#define PO_CC 0xb
+#define S_CC 0x8
+#define NS_CC 0x9
+
+void setcc_(x64Reg dst, u8 cc, x64CtxPo ctx);
+#define setne(dst,ctx) setcc_(dst,NE_CC,ctx)
+#define seta(dst,ctx) setcc_(dst,A_CC,ctx)
+#define setae(dst,ctx) setcc_(dst,AE_CC,ctx)
+#define setg(dst,ctx) setcc_(dst,G_CC,ctx)
+#define setge(dst,ctx) setcc_(dst,GE_CC,ctx)
+#define setl(dst,ctx) setcc_(dst,LT_CC,ctx)
+#define setle(dst,ctx) setcc_(dst,LE_CC,ctx)
+#define sets(dst,ctx) setcc_(dst,S_CC,ctx)
+#define setns(dst,ctx) setcc_(dst,NS_CC,ctx)
+#define seto(dst,ctx) setcc_(dst,OV_CC,ctx)
+#define setno(dst,ctx) setcc_(dst,NO_CC,ctx)
+#define setpe(dst,ctx) setcc_(dst,PE_CC,ctx)
+#define setpo(dst,ctx) setcc_(dst,PO_CC,ctx)
 
 void test_(x64Op dst, x64Op src, x64CtxPo ctx);
+#define test(dst,src,ctx) do{ x64Op d=dst; x64Op s = src; test_(d,s,ctx); } while(False)
 
 void jmp_(x64Op dst, x64CtxPo ctx);
 #define jmp(dst, ctx) do{ x64Op d=dst; jmp_(d,ctx); } while(False)
 
-void je_(x64Op dst, x64CtxPo ctx);
-void jne_(x64Op dst, x64CtxPo ctx);
-void ja_(x64Op dst, x64CtxPo ctx);
-void jae_(x64Op dst, x64CtxPo ctx);
-void jg_(x64Op dst, x64CtxPo ctx);
-void jge_(x64Op dst, x64CtxPo ctx);
-void jl_(x64Op dst, x64CtxPo ctx);
-void jle_(x64Op dst, x64CtxPo ctx);
-void jc_(x64Op dst, x64CtxPo ctx);
-void jnc_(x64Op dst, x64CtxPo ctx);
-void jo_(x64Op dst, x64CtxPo ctx);
-void jno_(x64Op dst, x64CtxPo ctx);
-void jpe_(x64Op dst, x64CtxPo ctx);
-void jpo_(x64Op dst, x64CtxPo ctx);
-void jcxz_(x64Op dst, x64CtxPo ctx);
+void j_cc_(x64LblPo dst, u8 cc, x64CtxPo ctx);
+#define je(dst,cxt) j_cc_(dst,EQ_CC,ctx)
+#define jne(dst,cxt) j_cc_(dst,NE_CC,ctx)
+#define ja(dst,cxt) j_cc_(dst,A_CC,ctx)
+#define jna(dst,cxt) j_cc_(dst,NA_CC,ctx)
+#define jae(dst,cxt) j_cc_(dst,AE_CC,ctx)
+#define jg(dst,cxt) j_cc_(dst,G_CC,ctx)
+#define jge(dst,cxt) j_cc_(dst,GE_CC,ctx)
+#define jnge(dst,cxt) j_cc_(dst,GE_CC,ctx)
+#define jl(dst,cxt) j_cc_(dst,LT_CC,ctx)
+#define jle(dst,cxt) j_cc_(dst,LE_CC,ctx)
+#define jc(dst,cxt) j_cc_(dst,C_CC,ctx)
+#define jnc(dst,cxt) j_cc_(dst,AE_CC,ctx)
+#define jo(dst,cxt) j_cc_(dst,OV_CC,ctx)
+#define jno(dst,cxt) j_cc_(dst,NO_CC,ctx)
+#define jpe(dst,cxt) j_cc_(dst,PE_CC,ctx)
+#define jpo(dst,cxt) j_cc_(dst,PO_CC,ctx)
+#define js(dst,cxt) j_cc_(dst,S_CC,ctx)
+#define jns(dst,cxt) j_cc_(dst,NS_CC,ctx)
 
 void loop_(x64Op dst, x64Op src, x64CtxPo ctx);
 void loopz_(x64Op dst, x64Op src, x64CtxPo ctx);

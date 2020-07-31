@@ -5,11 +5,10 @@
 #include <ooio.h>
 #include <formioP.h>
 #include "unitTests.h"
-#include "../x86_64P.h"
 
 int tests_run = 0;
 
-retCode cmpBytes(u8 *lft, u8 *rgt, integer count) {
+retCode cmpBytes(byte *lft, byte *rgt, integer count) {
   for (integer ix = 0; ix < count; ix++)
     if (lft[ix] != rgt[ix]) {
       logMsg(logFile, "byte at %d is 0x%x, should be 0x%x", ix, rgt[ix], lft[ix]);
@@ -20,9 +19,9 @@ retCode cmpBytes(u8 *lft, u8 *rgt, integer count) {
   return Ok;
 }
 
-retCode run_test(tester test) {
+retCode run_test(tester tst) {
   tests_run++;
-  return test();
+  return tst();
 }
 
 retCode showByteSeq(ioPo f, void *data, long depth, long precision, logical alt) {
