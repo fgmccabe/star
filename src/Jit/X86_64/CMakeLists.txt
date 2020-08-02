@@ -16,7 +16,7 @@ set(HEADER_FILES
         x86_64P.h
         )
 
-set(SOURCE_FILES assemx86_64.c lower.c)
+set(SOURCE_FILES assemx86_64.c ins_x64.c lower.c)
 add_library(X86_64 STATIC ${SOURCE_FILES})
 
 

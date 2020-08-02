@@ -4,11 +4,11 @@
 #include <config.h>
 
 typedef struct assem_ctx *x64CtxPo;
-
 typedef struct assem_lbl *x64LblPo;
 
 x64CtxPo createCtx();
-void *cleanupCtx(x64CtxPo ctx);
+void discardCtx(x64CtxPo ctx);
+void *createCode(x64CtxPo ctx);
 
 x64LblPo findLabel(x64CtxPo ctx, char *lName);
 x64LblPo defineLabel(x64CtxPo ctx, char *lName, integer pc);
@@ -40,7 +40,7 @@ typedef enum {
 
 typedef enum {
   Reg,
-  Imm,
+  Immediate,
   Based,
   Indexed,
   Labeled
@@ -79,7 +79,7 @@ typedef struct {
 } x64Op;
 
 #define RG(Rg) {.mode=Reg, .op.reg=(Rg)}
-#define IM(Vl) {.mode=Imm, .op.imm=(Vl)}
+#define IM(Vl) {.mode=Immediate, .op.imm=(Vl)}
 #define BS(Rg, Off) {.mode=Based, .op.based.base=(Rg), .op.based.disp=(Off)}
 #define IX(Rg, Ix, Sc, Off) {.mode=Indexed, .op.indexed.base = (Rg), .op.indexed.index=(Ix), .op.indexed.disp=(Off), .op.indexed.scale=(Sc)}
 #define LB(l)  {.mode=Labeled, .op.lbl = (l)}
@@ -110,37 +110,43 @@ void cbw_(x64Op src, x64CtxPo ctx);
 void movsx_(x64Op dst, x64Op src, x64CtxPo ctx);
 void movzx_(x64Op dst, x64Op src, x64CtxPo ctx);
 
-void adcx_(x64Op dst, x64Op src, x64CtxPo ctx);
-void adox_(x64Op dst, x64Op src, x64CtxPo ctx);
-
 void add_(x64Op dst, x64Op src, x64CtxPo ctx);
-#define add(dst,src,ctx) do{ x64Op d=dst; x64Op s = src; add_(d,s,ctx); } while(False)
+#define add(dst, src, ctx) do{ x64Op d=dst; x64Op s = src; add_(d,s,ctx); } while(False)
 void adc_(x64Op dst, x64Op src, x64CtxPo ctx);
-#define adc(dst,src,ctx) do{ x64Op d=dst; x64Op s = src; adc_(d,s,ctx); } while(False)
-
+#define adc(dst, src, ctx) do{ x64Op d=dst; x64Op s = src; adc_(d,s,ctx); } while(False)
+void cmp_(x64Op dst, x64Op src, x64CtxPo ctx);
+#define cmp(dst, src, ctx) do{ x64Op d=dst; x64Op s = src; cmp_(d,s,ctx); } while(False)
 void sub_(x64Op dst, x64Op src, x64CtxPo ctx);
+#define sub(dst, src, ctx) do{ x64Op d=dst; x64Op s = src; sub_(d,s,ctx); } while(False)
 void sbb_(x64Op dst, x64Op src, x64CtxPo ctx);
-void imul_(x64Op dst, x64Op src, x64CtxPo ctx);
-void mul_(x64Op dst, x64Op src, x64CtxPo ctx);
-void idiv_(x64Op dst, x64Op src, x64CtxPo ctx);
-void div_(x64Op dst, x64Op src, x64CtxPo ctx);
+#define sbb(dst, src, ctx) do{ x64Op d=dst; x64Op s = src; sbb_(d,s,ctx); } while(False)
+
+void imul_(x64Reg dst, x64Op src, x64CtxPo ctx);
+#define imul(dst, src, ctx) do{ x64Op s = src; imul_(dst,s,ctx); } while(False)
+
+void idiv_(x64Op src, x64CtxPo ctx);
+#define idiv(src, ctx) do{ x64Op s = src; idiv_(s,ctx); } while(False)
+
 void inc_(x64Op dst, x64CtxPo ctx);
+#define inc(dst, ctx) do{ x64Op d=dst; inc_(d,ctx); } while(False)
+
 void dec_(x64Op dst, x64CtxPo ctx);
-void neg_(x64Op dst, x64CtxPo ctx);
-void cmp_(x64Op dst, x64CtxPo ctx);
-void daa_(x64Op dst, x64Op src, x64CtxPo ctx);
-void das_(x64Op dst, x64Op src, x64CtxPo ctx);
-void aaa_(x64Op dst, x64Op src, x64CtxPo ctx);
-void aas_(x64Op dst, x64Op src, x64CtxPo ctx);
-void aam_(x64Op dst, x64Op src, x64CtxPo ctx);
-void aad_(x64Op dst, x64Op src, x64CtxPo ctx);
+#define dec(dst, ctx) do{ x64Op d=dst; dec_(d,ctx); } while(False)
 
 void and_(x64Op dst, x64Op src, x64CtxPo ctx);
-#define and(dst,src,ctx) do{ x64Op d=dst; x64Op s = src; and_(d,s,ctx); } while(False)
+#define and(dst, src, ctx) do{ x64Op d=dst; x64Op s = src; and_(d,s,ctx); } while(False)
 
 void or_(x64Op dst, x64Op src, x64CtxPo ctx);
+#define or(dst, src, ctx) do{ x64Op d=dst; x64Op s = src; or_(d,s,ctx); } while(False)
+
 void xor_(x64Op dst, x64Op src, x64CtxPo ctx);
+#define xor(dst, src, ctx) do{ x64Op d=dst; x64Op s = src; xor_(d,s,ctx); } while(False)
+
+void neg_(x64Op dst, x64CtxPo ctx);
+#define neg(dst, ctx) do{ x64Op d=dst; neg_(d,ctx); } while(False)
+
 void not_(x64Op dst, x64CtxPo ctx);
+#define not(dst, ctx) do{ x64Op d=dst; not_(d,ctx); } while(False)
 
 void sar_(x64Op dst, x64Op src, x64CtxPo ctx);
 void shr_(x64Op dst, x64Op src, x64CtxPo ctx);
@@ -179,60 +185,56 @@ void bsr_(x64Op dst, x64Op src, x64CtxPo ctx);
 #define NS_CC 0x9
 
 void setcc_(x64Reg dst, u8 cc, x64CtxPo ctx);
-#define setne(dst,ctx) setcc_(dst,NE_CC,ctx)
-#define seta(dst,ctx) setcc_(dst,A_CC,ctx)
-#define setae(dst,ctx) setcc_(dst,AE_CC,ctx)
-#define setg(dst,ctx) setcc_(dst,G_CC,ctx)
-#define setge(dst,ctx) setcc_(dst,GE_CC,ctx)
-#define setl(dst,ctx) setcc_(dst,LT_CC,ctx)
-#define setle(dst,ctx) setcc_(dst,LE_CC,ctx)
-#define sets(dst,ctx) setcc_(dst,S_CC,ctx)
-#define setns(dst,ctx) setcc_(dst,NS_CC,ctx)
-#define seto(dst,ctx) setcc_(dst,OV_CC,ctx)
-#define setno(dst,ctx) setcc_(dst,NO_CC,ctx)
-#define setpe(dst,ctx) setcc_(dst,PE_CC,ctx)
-#define setpo(dst,ctx) setcc_(dst,PO_CC,ctx)
+#define setne(dst, ctx) setcc_(dst,NE_CC,ctx)
+#define seta(dst, ctx) setcc_(dst,A_CC,ctx)
+#define setae(dst, ctx) setcc_(dst,AE_CC,ctx)
+#define setg(dst, ctx) setcc_(dst,G_CC,ctx)
+#define setge(dst, ctx) setcc_(dst,GE_CC,ctx)
+#define setl(dst, ctx) setcc_(dst,LT_CC,ctx)
+#define setle(dst, ctx) setcc_(dst,LE_CC,ctx)
+#define sets(dst, ctx) setcc_(dst,S_CC,ctx)
+#define setns(dst, ctx) setcc_(dst,NS_CC,ctx)
+#define seto(dst, ctx) setcc_(dst,OV_CC,ctx)
+#define setno(dst, ctx) setcc_(dst,NO_CC,ctx)
+#define setpe(dst, ctx) setcc_(dst,PE_CC,ctx)
+#define setpo(dst, ctx) setcc_(dst,PO_CC,ctx)
 
 void test_(x64Op dst, x64Op src, x64CtxPo ctx);
-#define test(dst,src,ctx) do{ x64Op d=dst; x64Op s = src; test_(d,s,ctx); } while(False)
+#define test(dst, src, ctx) do{ x64Op d=dst; x64Op s = src; test_(d,s,ctx); } while(False)
 
 void jmp_(x64Op dst, x64CtxPo ctx);
 #define jmp(dst, ctx) do{ x64Op d=dst; jmp_(d,ctx); } while(False)
 
 void j_cc_(x64LblPo dst, u8 cc, x64CtxPo ctx);
-#define je(dst,cxt) j_cc_(dst,EQ_CC,ctx)
-#define jne(dst,cxt) j_cc_(dst,NE_CC,ctx)
-#define ja(dst,cxt) j_cc_(dst,A_CC,ctx)
-#define jna(dst,cxt) j_cc_(dst,NA_CC,ctx)
-#define jae(dst,cxt) j_cc_(dst,AE_CC,ctx)
-#define jg(dst,cxt) j_cc_(dst,G_CC,ctx)
-#define jge(dst,cxt) j_cc_(dst,GE_CC,ctx)
-#define jnge(dst,cxt) j_cc_(dst,GE_CC,ctx)
-#define jl(dst,cxt) j_cc_(dst,LT_CC,ctx)
-#define jle(dst,cxt) j_cc_(dst,LE_CC,ctx)
-#define jc(dst,cxt) j_cc_(dst,C_CC,ctx)
-#define jnc(dst,cxt) j_cc_(dst,AE_CC,ctx)
-#define jo(dst,cxt) j_cc_(dst,OV_CC,ctx)
-#define jno(dst,cxt) j_cc_(dst,NO_CC,ctx)
-#define jpe(dst,cxt) j_cc_(dst,PE_CC,ctx)
-#define jpo(dst,cxt) j_cc_(dst,PO_CC,ctx)
-#define js(dst,cxt) j_cc_(dst,S_CC,ctx)
-#define jns(dst,cxt) j_cc_(dst,NS_CC,ctx)
+#define je(dst, cxt) j_cc_(dst,EQ_CC,ctx)
+#define jne(dst, cxt) j_cc_(dst,NE_CC,ctx)
+#define ja(dst, cxt) j_cc_(dst,A_CC,ctx)
+#define jna(dst, cxt) j_cc_(dst,NA_CC,ctx)
+#define jae(dst, cxt) j_cc_(dst,AE_CC,ctx)
+#define jg(dst, cxt) j_cc_(dst,G_CC,ctx)
+#define jge(dst, cxt) j_cc_(dst,GE_CC,ctx)
+#define jnge(dst, cxt) j_cc_(dst,GE_CC,ctx)
+#define jl(dst, cxt) j_cc_(dst,LT_CC,ctx)
+#define jle(dst, cxt) j_cc_(dst,LE_CC,ctx)
+#define jc(dst, cxt) j_cc_(dst,C_CC,ctx)
+#define jnc(dst, cxt) j_cc_(dst,AE_CC,ctx)
+#define jo(dst, cxt) j_cc_(dst,OV_CC,ctx)
+#define jno(dst, cxt) j_cc_(dst,NO_CC,ctx)
+#define jpe(dst, cxt) j_cc_(dst,PE_CC,ctx)
+#define jpo(dst, cxt) j_cc_(dst,PO_CC,ctx)
+#define js(dst, cxt) j_cc_(dst,S_CC,ctx)
+#define jns(dst, cxt) j_cc_(dst,NS_CC,ctx)
 
 void loop_(x64Op dst, x64Op src, x64CtxPo ctx);
 void loopz_(x64Op dst, x64Op src, x64CtxPo ctx);
 void loopnz_(x64Op dst, x64Op src, x64CtxPo ctx);
 
 void call_(x64Op src, x64CtxPo ctx);
-void ret_(x64CtxPo ctx);
-void iret_(x64CtxPo ctx);
-void intrupt_(x64CtxPo ctx);
-void into_(x64CtxPo ctx);
+#define call(dst, ctx) do{ x64Op d=dst; call_(d,ctx); } while(False)
 
-void bound_(x64Op dst, x64Op src, x64CtxPo ctx);
-
-void enter_(x64Op dst, x64Op src, x64CtxPo ctx);
-void leave_(x64Op dst, x64Op src, x64CtxPo ctx);
+void ret_(i16 disp, x64CtxPo ctx);
+#define ret(disp, ctx) ret_(disp,ctx)
+#define rtn(ctx) ret_(0,ctx)
 
 void stc_(x64CtxPo ctx);
 void clc_(x64CtxPo ctx);
