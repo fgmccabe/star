@@ -51,10 +51,18 @@ Variables have a scope -- a syntactic range over which they are
 defined. Variables can be said to be free in a given scope --
 including functions that they are referenced within.
 
-Variables can be classified into single-assignment variables
-(variables that denote values and are therefore not reassignable) and
-re-assignable variables. The latter have a different type signature
-that signals the re-assignable property.
+Variables are @emph{single-assignment}; i.e., once given a value, a
+variable may not be reassigned to. Furthermore, all variable
+introductions are in contexts where the variable is given a value.
+
+However, it is possible to give a variable a @code{ref} type; which
+permits the variable to be effectively re-assigned.
+
+@quotation Note
+Technically, assigning to a @code{ref} variable is not changing the
+variable itself, but is changing the contents of the cell that denotes
+the @code{ref} variable's value.
+@end quotation
 
 @node Re-assignable Variables in Expressions
 @subsection Re-assignable Variables in Expressions
