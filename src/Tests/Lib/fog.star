@@ -1,5 +1,5 @@
 test.fog{
-  boolean ::= .true | .false.
+  import star.
 
   public id:all a ~~ (a)=>a.
   id(X) => X.
