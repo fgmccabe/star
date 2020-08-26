@@ -4,7 +4,7 @@ star.rrb{
 
   -- Relaxed Radix Balanced Trees - for vectors
 
-  public all e ~~ rrb[e] ::= rrbE
+  public all e ~~ rrb[e] ::= .rrbE
         | lf(e)
         | node4(integer,integer,integer,integer,integer,rrb[e],rrb[e],rrb[e],rrb[e]).
 
@@ -12,9 +12,16 @@ star.rrb{
   rrbGet(rrbE,_) => .none.
   rrbGet(lf(E),0) => some(E).
   rrbGet(lf(_),_) => .none.
-  rrbGet(node4(_,L1,L2,L3,L4,T1,T2,T3,T4),Ix) => select4(Ix,L1,L2,L3,L4,T1,T2,T3,T4).
+  rrbGet(node4(_,L1,L2,L3,L4,T1,T2,T3,T4),Ix) =>
+    select4(Ix/4,Ix,L1,L2,L3,L4,T1,T2,T3,T4).
 
-  select4:all e ~~ (integer,integer,integer,integer,integer,rrb[e],rrb[e],rrb[e],rrb[e]) => option[e].
+  select4:all e ~~ (integer,integer,integer,integer,integer,integer,rrb[e],rrb[e],rrb[e],rrb[e]) => option[e].
+  select4(0,Ix,_,_,_,_,T1,_,_,_) => rrbGet(Ix,T1).
+  select4(1,Ix,L1,L2,L3,_,_,T2,T3,_) where Ix=<L2 =>
+    rrbGet(Ix-L1,T2).  
+  select4(1,Ix,L1,L2,L3,_,_,T2,T3,_) where Ix>L1 =>
+    rrbGet(Ix-L1,T2).
+
   select4(Ix,L1,L2,L3,L4,T1,T2,T3,T4) =>
     (Ix<L1 ? rrbGet(T1,Ix)
      || Ix<L2 ? rrbGet(T2,Ix-L1)

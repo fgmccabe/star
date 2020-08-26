@@ -87,6 +87,7 @@
     "test.t": "t.star",
     "test.tl" : "tl.star",
     "test.th" : "th.star",
+    "test.tp1": "tp1.star",
     "test.ts": "ts.star",
     "test.tsort": "tsort.star",
     "test.u": "u.star"
