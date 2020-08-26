@@ -33,10 +33,10 @@ int getOptions(int argc, char **argv) {
 }
 
 static char *dot(opAndSpec A);
-static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A1, int delta, char *cmt);
-static void starPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt);
-static void showStarIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt);
-static void insOp(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt);
+static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, int delta, char *cmt);
+static void starPc(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt);
+static void showStarIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt);
+static void insOp(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt);
 
 int main(int argc, char **argv) {
   initLogfile("-");
@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
     bufferPo mnemBuff = newStringBuffer();
 
 #undef instruction
-#define instruction(M, A1, Dl, cmt) genStarIns(O_IO(mnemBuff),#M,M,A1,Dl,cmt);
+#define instruction(M, A1, A2, Dl, cmt) genStarIns(O_IO(mnemBuff),#M,M,A1,A2,Dl,cmt);
 
 #include "instructions.h"
 
@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
     bufferPo lblBuff = newStringBuffer();
 
 #undef instruction
-#define instruction(M, A1, Dl, cmt) starPc(O_IO(lblBuff),#M,M,A1,cmt);
+#define instruction(M, A1, A2, Dl, cmt) starPc(O_IO(lblBuff),#M,M,A1,A2,cmt);
 
 #include "instructions.h"
 
@@ -101,7 +101,7 @@ int main(int argc, char **argv) {
     bufferPo showBuff = newStringBuffer();
 
 #undef instruction
-#define instruction(M, A1, Dl, cmt) showStarIns(O_IO(showBuff),#M,M,A1,cmt);
+#define instruction(M, A1, A2, Dl, cmt) showStarIns(O_IO(showBuff),#M,M,A1,A2,cmt);
 
 #include "instructions.h"
 
@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
     bufferPo typeBuff = newStringBuffer();
 
 #undef instruction
-#define instruction(M, A1, Dl, Cmt) insOp(O_IO(typeBuff),#M,M,A1,Cmt);
+#define instruction(M, A1, A2, Dl, Cmt) insOp(O_IO(typeBuff),#M,M,A1,A2,Cmt);
 
 #include "instructions.h"
 
@@ -128,7 +128,7 @@ int main(int argc, char **argv) {
   }
 }
 
-static char *genArg(ioPo out, char *sep, opAndSpec A) {
+static char *genArg(ioPo out, char *sep, opAndSpec A, char *V) {
   switch (A) {
     case nOp:                             // No operand
     case tOs:
@@ -143,10 +143,10 @@ static char *genArg(ioPo out, char *sep, opAndSpec A) {
     case arg:
     case lcl:
     case lcs:
-      outMsg(out, "%sV", sep);
+      outMsg(out, "%s%s", sep, V);
       return ",";
     case off:
-      outMsg(out, "%sal(V)", sep);
+      outMsg(out, "%sal(%s)", sep, V);
       return ",";
     default:
       printf("Problem in generating opcode type\n");
@@ -175,12 +175,14 @@ char *dot(opAndSpec A) {
   }
 }
 
-static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, int delta, char *cmt) {
+static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, int delta, char *cmt) {
   char *sep = "(";
 
   outMsg(out, "  mnem([%si%s", dot(A), mnem);
 
-  sep = genArg(out, sep, A);
+  sep = genArg(out, sep, A, "U");
+
+  sep = genArg(out, sep, B, "V");
 
   if (strcmp(sep, ",") == 0)
     sep = ")";
@@ -192,34 +194,64 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, int delta, cha
   switch (A) {
     case nOp:                             // No operand
     case tOs:
+      check(B == nOp, "second operand not nOp");
       outMsg(out, "=> mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[intgr(%d),..Code]).\n", op);
       break;
     case lne:
     case lit:
-      outMsg(out,
-             "where (Lt1,LtNo) .= findLit(Lts,V) => mnem(Ins,Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,[intgr(LtNo),intgr(%d),..Code]).\n",
-             op);
-      return;
+      switch (B) {
+        case nOp:
+        case tOs:
+          outMsg(out,
+                 "where (Lt1,LtNo) .= findLit(Lts,U) => mnem(Ins,Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,[intgr(LtNo),intgr(%d),..Code]).\n",
+                 op);
+          return;
+        case off:
+          outMsg(out,
+                 "where (Lt1,LtNo) .= findLit(Lts,U) && Tgt ^= Lbls[V] => mnem(Ins,Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl,[intgr(Tgt-Pc-5),intgr(LtNo),intgr(%d),..Code]).\n",
+                 op);
+          return;
+        default:
+          outMsg(out, "Cannot generate instruction code\n");
+          exit(1);
+      }
+
     case sym:                            // symbol
-      outMsg(out,
-             "where (Lt1,LtNo) .= findLit(Lts,enum(V)) => mnem(Ins,Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,[intgr(LtNo),intgr(%d),..Code]).\n",
-             op);
-      break;
+      switch (B) {
+        case nOp:
+        case tOs:
+          outMsg(out,
+                 "where (Lt1,LtNo) .= findLit(Lts,symb(U)) => mnem(Ins,Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,[intgr(LtNo),intgr(%d),..Code]).\n",
+                 op);
+          return;
+        case off:
+          outMsg(out,
+                 "where (Lt1,LtNo) .= findLit(Lts,symb(U)) && Tgt ^= Lbls[V] => mnem(Ins,Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl,[intgr(Tgt-Pc-5),intgr(LtNo),intgr(%d),..Code]).\n",
+                 op);
+          return;
+        default:
+          outMsg(out, "Cannot generate instruction code\n");
+          exit(1);
+      }
     case i32:
     case art:
     case arg:
-      outMsg(out, "=> mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,[intgr(V),intgr(%d),..Code]).\n", op);
+      check(B == nOp, "second operand not nOp");
+      outMsg(out, "=> mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,[intgr(U),intgr(%d),..Code]).\n", op);
       break;
     case lcl:
     case lcs:
-      outMsg(out, "=> mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+3,max(V,MxLcl),[intgr(V),intgr(%d),..Code]).\n", op);
+      check(B == nOp, "second operand not nOp");
+      outMsg(out, "=> mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+3,max(U,MxLcl),[intgr(U),intgr(%d),..Code]).\n", op);
       break;
     case glb:
     case Es:                              // escape code (0..65535)
-      outMsg(out, "=> mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,[strg(V),intgr(%d),..Code]).\n", op);
+      check(B == nOp, "second operand not nOp");
+      outMsg(out, "=> mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,[strg(U),intgr(%d),..Code]).\n", op);
       break;
     case off:                            // program counter relative offset
-      outMsg(out, "where Tgt ^= Lbls[V] => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,[intgr(Tgt-Pc-3),intgr(%d),..Code]).\n",
+      check(B == nOp, "second operand not nOp");
+      outMsg(out, "where Tgt ^= Lbls[U] => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,[intgr(Tgt-Pc-3),intgr(%d),..Code]).\n",
              op);
       break;
     default:
@@ -228,8 +260,51 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, int delta, cha
   }
 }
 
-void starPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
+static integer insSize(OpCode op, opAndSpec A1, opAndSpec A2) {
+  integer sz = 1;
+
+  switch (A1) {
+    default:
+      break;
+    case lit:
+    case sym:
+    case lne:
+    case i32:
+    case art:
+    case arg:
+    case lcl:
+    case lcs:
+    case Es:
+    case glb:
+    case off:
+      sz += 2;
+      break;
+  }
+  switch (A2) {
+    default:
+      break;
+    case lit:
+    case sym:
+    case lne:
+    case i32:
+    case art:
+    case arg:
+    case lcl:
+    case lcs:
+    case Es:
+    case glb:
+    case off:
+      sz += 2;
+      break;
+  }
+  return sz;
+}
+
+void starPc(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt) {
   outMsg(out, "  genLblTbl([%si%s", dot(A1), mnem);
+
+  char *part1 = Null;
+  char *part2 = Null;
 
   switch (A1) {
     case nOp:                             // No operand
@@ -246,20 +321,51 @@ void starPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
     case Es:
     case glb:
     case off:
-      outMsg(out, "(_)");
+      part1 = "(_";
       break;
 
     default:
       fprintf(stderr, "Unknown instruction type code\n");
       exit(1);
+  }
+
+  switch (A2) {
+    case nOp:                             // No operand
+    case tOs:
+      break;
+    case lit:
+    case sym:
+    case lne:
+    case i32:
+    case art:
+    case arg:
+    case lcl:
+    case lcs:
+    case Es:
+    case glb:
+    case off:
+      part2 = ",_";
+      break;
+
+    default:
+      fprintf(stderr, "Unknown instruction type code\n");
+      exit(1);
+  }
+
+  if (part1 != Null) {
+    outStr(out, part1);
+    if (part2 != Null) {
+      outStr(out, part2);
+    }
+    outStr(out, ")");
   }
 
   outMsg(out, ",..Ins],Pc,Lbls) => ");
 
+  int increment = 1;
+
   switch (A1) {
-    case nOp:                             // No operand
-    case tOs:
-      outMsg(out, "genLblTbl(Ins,Pc+1,Lbls).\n");
+    default:
       break;
     case lit:
     case sym:
@@ -272,118 +378,110 @@ void starPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
     case Es:
     case glb:
     case off:
-      outMsg(out, "genLblTbl(Ins,Pc+3,Lbls).\n");
+      increment = 3;
       break;
   }
-}
-
-void insOp(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
-  outMsg(out, "    %si%s", dot(A1), mnem);
-  switch (A1) {
-    case nOp:                             // No operand
-    case tOs:
+  switch (A2) {
+    default:
       break;
     case lit:
-    case lne:
-      outMsg(out, "(term)");
-      break;
     case sym:
-      outMsg(out, "(termLbl)");
-      break;
+    case lne:
     case i32:
     case art:
     case arg:
     case lcl:
     case lcs:
-      outMsg(out, "(integer)");
-      break;
-
-    case off:
-      outMsg(out, "(assemLbl)");
-      break;
-
     case Es:
     case glb:
-      outMsg(out, "(string)");
+    case off:
+      increment += 2;
       break;
+  }
+  outMsg(out, "genLblTbl(Ins,Pc+%d,Lbls).\n", increment);
+}
 
+static char *opAndTp(opAndSpec A) {
+  switch (A) {
+    case nOp:                             // No operand
+    case tOs:
+      return Null;
+    case lit:
+    case lne:
+      return "term";
+    case sym:
+      return "termLbl";
+    case i32:
+    case art:
+    case arg:
+    case lcl:
+    case lcs:
+      return "integer";
+    case off:
+      return "assemLbl";
+    case Es:
+    case glb:
+      return "string";
     default:
       fprintf(stderr, "Unknown instruction type code\n");
       exit(1);
   }
+}
+
+void insOp(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt) {
+  outMsg(out, "    %si%s", dot(A1), mnem);
+  char *T1 = opAndTp(A1);
+  char *T2 = opAndTp(A2);
+
+  if (T1 != Null) {
+    outMsg(out, "(%s", T1);
+    if (T2 != Null)
+      outMsg(out, ",%s)", T2);
+    else
+      outMsg(out, ")");
+  }
+
   outMsg(out, " |\n");
 }
 
-static void showStarIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
-  outMsg(out, "  showMnem([%si%s", dot(A1), mnem);
-
-  switch (A1) {
+static logical genDisp(ioPo out, opAndSpec A, char *Nm) {
+  switch (A) {
     case nOp:                             // No operand
     case tOs:
-      break;
+    default:
+      return False;
+    case lne:
     case lit:
     case sym:
-    case lne:
     case i32:
     case art:
     case arg:
     case lcl:
     case lcs:
-    case Es:
     case glb:
     case off:
-      outMsg(out, "(XX)");
-      break;
-
-    default:
-      fprintf(stderr, "Unknown instruction type code\n");
-      exit(1);
+      outMsg(out, ",ss(\" \"),disp(%s)", Nm);
+      return True;
+    case Es:
+      outMsg(out, ",ss(\" \"),ss(%s)", Nm);
+      return True;
   }
+}
+
+static void showStarIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt) {
+  outMsg(out, "  showMnem([%si%s", dot(A1), mnem);
+
+  char *sep = genArg(out, "(", A1, "U");
+  sep = genArg(out, sep, A2, "V");
+
+  if (strcmp(sep, ",") == 0)
+    outStr(out, ")");
 
   outMsg(out, ",..Ins],Pc) => ");
 
-
   outMsg(out, "single(ssSeq([disp(Pc),ss(\":\"),ss(\"%P\")", mnem);
 
-  switch (A1) {
-    case nOp:                             // No operand
-    case tOs:
-      outMsg(out, ",ss(\"\\n\")])) ++ showMnem(Ins,");
-      break;
-    case lne:
-    case lit:
-    case sym:
-    case i32:
-    case art:
-    case arg:
-    case lcl:
-    case lcs:
-    case glb:
-    case off:
-      outMsg(out, ",ss(\" \"),disp(XX),ss(\"\\n\")])) ++ showMnem(Ins,");
-      break;
-    case Es:
-      outMsg(out, ",ss(\" \"),ss(XX),ss(\"\\n\")])) ++ showMnem(Ins,");
-      break;
-  }
-
-  switch (A1) {
-    case nOp:                             // No operand
-    case tOs:
-      outMsg(out, "Pc+1).\n");
-      break;
-    case lit:
-    case sym:
-    case lne:
-    case i32:
-    case art:
-    case arg:
-    case lcl:
-    case lcs:
-    case Es:
-    case glb:
-    case off:
-      outMsg(out, "Pc+3).\n");
-      break;
-  }
+  genDisp(out, A1,"U");
+  genDisp(out,A2,"V");
+  outMsg(out, ",ss(\"\\n\")])) ++ showMnem(Ins,Pc+%d).\n",insSize(op,A1,A2));
 }

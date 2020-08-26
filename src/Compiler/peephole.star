@@ -18,15 +18,14 @@ star.compiler.peephole{
   .}
 
   public peepOptimize:(cons[assemOp])=>cons[assemOp].
---  peepOptimize(Ins) => cleanLbls(trace("drop unused code ",peep(Ins,findTgts(Ins,[])))).
-  peepOptimize(Ins) => peep(Ins,findTgts(Ins,[])).
+  peepOptimize(Ins) => cleanLbls(peep(Ins,findTgts(Ins,[]))).
 
   -- Low-level optimizations.
   peep:(cons[assemOp],map[assemLbl,cons[assemOp]])=>cons[assemOp].
   peep([],_) => [].
   peep([iCase(Cx),..Code],Map) => [iCase(Cx),..copyPeep(Cx,Code,Map)].
   peep([iJmp(Lb),iLbl(Lb),..Code],Map) => peep([iLbl(Lb),..Code],Map).
---  peep([iJmp(Lb),..Code],Map) where [iJmp(XLb),.._]^=Map[Lb] && ~XLb==Lb => peep([iJmp(XLb),..Code],Map).
+  peep([iJmp(Lb),..Code],Map) where [iJmp(XLb),.._]^=Map[Lb] && ~XLb==Lb => peep([iJmp(XLb),..Code],Map).
   peep([iCall(Lb),iFrame(_),.iRet,..Code],Map) => [iTail(Lb),..peep(Code,Map)].
   peep([iOCall(Lb),iFrame(_),.iRet,..Code],Map) => [iOTail(Lb),..peep(Code,Map)].
   peep([iRst(_),iRst(D),..Code],Map) => peep([iRst(D),..Code],Map).
@@ -47,25 +46,31 @@ star.compiler.peephole{
   findJumps([iICmp(Lb),..Ins],Lbls) => findJumps(Ins,Lbls\+Lb).
   findJumps([iFCmp(Lb),..Ins],Lbls) => findJumps(Ins,Lbls\+Lb).
   findJumps([iCmp(Lb),..Ins],Lbls) => findJumps(Ins,Lbls\+Lb).
-  findJumps([iBf(Lb),..Ins],Lbls) => findJumps(Ins,Lbls\+Lb).
-  findJumps([iBt(Lb),..Ins],Lbls) => findJumps(Ins,Lbls\+Lb).
   findJumps([iCV(Lb),..Ins],Lbls) => findJumps(Ins,Lbls\+Lb).
   findJumps([iThrow(Lb),..Ins],Lbls) => findJumps(Ins,Lbls\+Lb).
   findJumps([iUnwind(Lb),..Ins],Lbls) => findJumps(Ins,Lbls\+Lb).
+  findJumps([iUnpack(_,Lb),..Ins],Lbls) => findJumps(Ins,Lbls\+Lb).
   findJumps([_,..Ins],Lbls) => findJumps(Ins,Lbls).
 
-  deleteUnusedLbls:(cons[assemOp],set[assemLbl]) => cons[assemOp].
-  deleteUnusedLbls([],_) => [].
-  deleteUnusedLbls([iLbl(Lb),..Ins],Lbls) =>
-    (Lb.<.Lbls ?
-	[iLbl(Lb),..deleteUnusedLbls(Ins,Lbls)] ||
-	deleteUnusedLbls(trace("$(Lb) dropped ",dropUntilLbl(trace("drop $(Lb) ",Ins))),Lbls)).
-  deleteUnusedLbls([I,..Ins],Lbls) => [I,..deleteUnusedLbls(Ins,Lbls)].
+  isJump(iJmp(_))=>.true.
+  isJump(_) default => .false.
 
-  dropUntilLbl([]) => [].
-  dropUntilLbl([iLbl(L),..Ins]) => [iLbl(L),..Ins].
-  dropUntilLbl([_,..Ins]) => dropUntilLbl(Ins).
+  deleteUnusedLbls:(boolean,cons[assemOp],set[assemLbl]) => cons[assemOp].
+  deleteUnusedLbls(_,[],_) => [].
+  deleteUnusedLbls(J,[iLbl(Lb),..Ins],Lbls) =>
+    (Lb.<.Lbls ?
+	[iLbl(Lb),..deleteUnusedLbls(.false,Ins,Lbls)] ||
+	dropUntilLbl(J,Ins,Lbls)).
+  deleteUnusedLbls(_,[I,..Ins],Lbls) => [I,..deleteUnusedLbls(isJump(I),Ins,Lbls)].
+
+  -- We only actually drop if prior instruction is an unconditional jump
+  dropUntilLbl(_,[],_) => [].
+  dropUntilLbl(J,[iLbl(L),..Ins],Lbls) =>
+    deleteUnusedLbls(J,[iLbl(L),..Ins],Lbls).
+  dropUntilLbl(.true,[_,..Ins],Lbls) => dropUntilLbl(.true,Ins,Lbls).
+  dropUntilLbl(.false,Ins,Lbls) => deleteUnusedLbls(.false,Ins,Lbls).
 
   cleanLbls:(cons[assemOp])=>cons[assemOp].
-  cleanLbls(Ins) => deleteUnusedLbls(Ins,findJumps(Ins,[])).
+  cleanLbls(Ins) => deleteUnusedLbls(.false,Ins,
+    findJumps(Ins,[])).
 }

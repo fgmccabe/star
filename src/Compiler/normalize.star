@@ -181,7 +181,6 @@ star.compiler.normalize{
       freeArgs <- seqmap((crId(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer,Rp),freeVars);
 --      logMsg("free vars lift to $(freeArgs)");
       cellVoids .= (vrDefs//(E)=>crVoid(Lc,typeOf(E)));
---      (freeArgs1,Ex1) <- liftRecArgs(vrDefs,size(freeVars),freeArgs++cellVoids,Q,ThV,M,Ex,Rp);
       GrpFree .= crTpl(Lc,freeArgs++cellVoids);
       
 --      logMsg("free term $(ThV) = $(GrpFree)\:$(typeOf(GrpFree))");
@@ -190,30 +189,9 @@ star.compiler.normalize{
       Ex2 <- transformGroup(Grp,M,M,GrpQ,some(ThVr),Ex,Rp);
       
       (BndTrm,Exx) <- liftExp(Bnd,M,GrpQ,Ex2,Rp);
-      valis (crLtt(Lc,ThV,GrpFree,BndTrm),Exx)
+      valis (crLtRec(Lc,ThV,GrpFree,BndTrm),Exx)
     }
   }
-
-  liftRecArgs:(cons[canon],integer,cons[crExp],set[crVar],crVar,nameMap,cons[crDefn],reports) =>
-    either[reports,(cons[crExp],cons[crDefn])].
-  liftRecArgs([],_,LetArgs,_,_,_,Ex,_) => either((LetArgs,Ex)).
-  liftRecArgs([E,..Es],Ix,LetArgs,Q,ThV,Map,Ex,Rp) => do{
-    (LT,Ex1) <- liftRecTerm(E,Ix,LetArgs,Q,ThV,Map,Ex,Rp);
-    liftRecArgs(Es,Ix+1,LT,Q,ThV,Map,Ex1,Rp)
-  }
-
-  liftRecTerm:(canon,integer,cons[crExp],set[crVar],crVar,nameMap,cons[crDefn],reports) =>
-    either[reports,(cons[crExp],cons[crDefn])].
-  liftRecTerm(Term,Ix,LetArgs,Q,ThV,Map,Ex,Rp) => do{
-    (Arg,Ex1) <- liftExp(Term,Map,Q,Ex,Rp);
-    valis (LetArgs[Ix->refactor(Arg,ThV,LetArgs)],Ex1)
-  }
-
-  refactor:(crExp,crVar,cons[crExp])=>crExp.
-  refactor(T,ThV,LetArgs) => let{.
-    test(crTplOff(_,crVar(_,ThV),Ix,_)) where R^=LetArgs[Ix] && ~crVoid(_,_).=R => some(R).
-    test(_) default => .none
-  .} in rwTerm(T,test).
 
   isFunctions:(cons[canonDef])=>boolean.
   isFunctions(Defs) => varDef(_,_,_,Vl,_,_) in Defs *> isFunDef(Vl).
@@ -303,7 +281,7 @@ star.compiler.normalize{
 
   liftPtn:(canon,nameMap,set[crVar],cons[crDefn],reports) => either[reports,crFlow].
   liftPtn(vr(Lc,Nm,Tp),Map,_,Ex,Rp) => trVarPtn(Lc,Nm,Tp,Map,Ex,Rp).
-  liftPtn(enm(Lc,FullNm,Tp),Map,_,Ex,Rp) => either((crLbl(Lc,FullNm,Tp),Ex)).
+  liftPtn(enm(Lc,FullNm,Tp),Map,_,Ex,Rp) => either((crTerm(Lc,FullNm,[],Tp),Ex)).
   liftPtn(intr(Lc,Ix),Map,_,Ex,Rp) => either((crInt(Lc,Ix),Ex)).
   liftPtn(flt(Lc,Dx),Map,_,Ex,Rp) => either((crFlot(Lc,Dx),Ex)).
   liftPtn(strng(Lc,Sx),Map,_,Ex,Rp) => either((crStrg(Lc,Sx),Ex)).
@@ -346,7 +324,7 @@ star.compiler.normalize{
 
   implementVarPtn(Lc,Nm,.none,Tp,_,Ex,_) => either((crVar(Lc,crId(Nm,Tp)),Ex)).
   implementVarPtn(Lc,Nm,some(moduleCons(Enum,CTp)),Tp,_,Ex,_) where ETp^=isEnumType(CTp) =>
-    either((crLbl(Lc,Enum,ETp),Ex)).
+    either((crTerm(Lc,Enum,[],ETp),Ex)).
   implementVarPtn(Lc,Nm,some(localCons(Enum,CTp,Vr)),Tp,_,Ex,_) =>
     either((crTerm(Lc,Enum,[crVar(Lc,Vr)],Tp),Ex)).
   implementVarPtn(Lc,Nm,some(labelArg(Base,Ix)),Tp,Map,Ex,Rp) => do{
@@ -369,7 +347,7 @@ star.compiler.normalize{
   liftExp(intr(Lc,Ix),_,Map,Ex,Rp) => either((crInt(Lc,Ix),Ex)).
   liftExp(flt(Lc,Dx),_,Map,Ex,Rp) => either((crFlot(Lc,Dx),Ex)).
   liftExp(strng(Lc,Sx),_,Map,Ex,Rp) => either((crStrg(Lc,Sx),Ex)).
-  liftExp(enm(Lc,FullNm,Tp),_,Map,Ex,Rp) => either((crLbl(Lc,FullNm,Tp),Ex)).
+  liftExp(enm(Lc,FullNm,Tp),_,Map,Ex,Rp) => either((crTerm(Lc,FullNm,[],Tp),Ex)).
   liftExp(tple(Lc,Els),Q,Map,Ex,Rp) => do{
     (LEls,Exx) <- liftExps(Els,Map,Q,Ex,Rp);
     valis (mkCrTpl(Lc,LEls),Exx)
@@ -453,8 +431,6 @@ star.compiler.normalize{
     either((crECall(Lc,Nm,Args,Tp),Ex)).
   liftExpCallOp(Lc,vr(_,Nm,_),Args,Tp,Map,_,Ex,Rp) where Entry ^= lookupVarName(Map,Nm) =>
     implementFunCall(Lc,Entry,Nm,Args,Tp,Map,Ex,Rp).
-  liftExpCallOp(Lc,enm(_,FullNm,_),[],Tp,Map,_,Ex,Rp) =>
-    either((crLbl(Lc,FullNm,Tp),Ex)).
   liftExpCallOp(Lc,enm(_,FullNm,_),Args,Tp,Map,_,Ex,Rp) =>
     either((crTerm(Lc,FullNm,Args,Tp),Ex)).
   liftExpCallOp(Lc,Op,Args,Tp,Map,Q,Ex,Rp) => do{
@@ -514,7 +490,7 @@ star.compiler.normalize{
     valis crCall(Lc,ClNm,[V],Tp)
   }
   implementVarExp(Lc,localVar(Vr),_,Tp,Rp) => either(Vr).
-  implementVarExp(Lc,moduleCons(Enum,CTp),_,Tp,Rp) => either(crLbl(Lc,Enum,Tp)).
+  implementVarExp(Lc,moduleCons(Enum,CTp),_,Tp,Rp) => either(crTerm(Lc,Enum,[],Tp)).
   implementVarExp(Lc,localCons(Enum,CTp,Vr),Map,Tp,Rp) => do{
     V <- liftVarExp(Lc,crName(Vr),typeOf(Vr),Map,Rp);
     valis crTerm(Lc,Enum,[V],Tp)

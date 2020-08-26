@@ -862,7 +862,7 @@ programAccess(moduleCons(Prog,Closure,Arity),Prog,Closure,Arity).
 programAccess(localFun(Prog,Closure,Arity,_),Prog,Closure,Arity).
 programAccess(localVar(Prog,Closure,_),Prog,Closure,1).
 
-makeDotLbl(Nm,enum(Nm)).
+makeDotLbl(Nm,lbl(Nm,0)).
 
 mkUnit(U) :-
   mkTpl([],U).

@@ -24,19 +24,19 @@ star.compiler.assem{
 
   public assem:(codeSegment) => term.
   assem(method(Nm,Sig,Ins)) where
-    (Lt0,_) .= findLit([],enum(Nm)) &&
+    (Lt0,_) .= findLit([],symb(Nm)) &&
     (Code,Lts,Lns,Max,Lcs) .= mnem(Ins,genLblTbl(Ins,0,[]),Lt0,[],[],0,0,[]) =>
     term(tLbl("method",7),
-      [enum(Nm),strg(encodeSignature(Sig)),intgr(Max),mkTpl(Code),litTbl(Lts),mkTpl(Lcs),
+      [symb(Nm),strg(encodeSignature(Sig)),intgr(Max),mkTpl(Code),litTbl(Lts),mkTpl(Lcs),
             mkTpl(sortLines(Lns))]).
   assem(global(Nm,Sig,Ins)) where
-    (Lt0,_) .= findLit([],enum(Nm)) &&
+    (Lt0,_) .= findLit([],symb(Nm)) &&
     (Code,Lts,Lns,Max,Lcs) .= mnem(Ins,genLblTbl(Ins,0,[]),Lt0,[],[],0,0,[]) =>
     term(tLbl("global",7),
-       [enum(Nm),strg(encodeSignature(Sig)),intgr(Max),mkTpl(Code),litTbl(Lts),mkTpl(Lcs),
+       [symb(Nm),strg(encodeSignature(Sig)),intgr(Max),mkTpl(Code),litTbl(Lts),mkTpl(Lcs),
             mkTpl(sortLines(Lns))]).
   assem(struct(Lbl,Tp,Flds)) =>
-    term(tLbl("struct",3),[enum(Lbl),strg(encodeSignature(Tp)),strg(encodeSignature(Flds))]).
+    term(tLbl("struct",3),[symb(Lbl),strg(encodeSignature(Tp)),strg(encodeSignature(Flds))]).
 
   private mnem:(cons[assemOp],map[string,integer],map[term,integer],map[term,integer],set[term],integer,integer,cons[term]) =>
     (cons[term],map[term,integer],map[term,integer],integer,cons[term]).
