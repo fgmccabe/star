@@ -28,6 +28,7 @@ typedef struct {
   lType type;
   srcLoc loc;
   termPo litrl;
+  int32 ix;
 } vOperand;
 
 

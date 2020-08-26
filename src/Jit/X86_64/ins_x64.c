@@ -9,7 +9,7 @@
 #include "x86_64P.h"
 
 static u8 encodeMod(u8 mode, x64Reg fst, x64Reg snd);
-static u8 encodeModRR(x64Reg dst, x64Reg src);
+static u8 encodeModRR(x64Reg op1, x64Reg op2);
 static u8 encodeModRM(x64Reg fst, x64Reg snd, i64 disp, logical flag);
 static void emitDisp(x64CtxPo ctx, i64 disp);
 static u8 encodeSIB(x64Reg base, x64Reg index, u8 scale);
@@ -467,6 +467,59 @@ void mov_(x64Op dst, x64Op src, x64CtxPo ctx) {
   }
 }
 
+static void genMovsxOp(u8 scale, x64CtxPo ctx) {
+  switch (scale) {
+    case 1:
+      emitU8(ctx, 0xf);
+      emitU8(ctx, MOVBSX_r_rm);
+      break;
+    case 2:
+      emitU8(ctx, 0xf);
+      emitU8(ctx, MOVSSX_r_rm);
+      break;
+    case 4:
+      emitU8(ctx, MOVLSX_r_rm);
+      break;
+    default:
+      check(False, " invalid scale");
+      return;
+  }
+}
+
+void movsx_(x64Reg dst, x64Op src, u8 scale, x64CtxPo ctx) {
+  switch (src.mode) {
+    case Reg:
+      emitU8(ctx, encodeRex(REX_W, dst, 0, src.op.reg));
+      genMovsxOp(scale, ctx);
+      emitU8(ctx, encodeModRR( src.op.reg,dst));
+      return;
+    case Based:
+      emitU8(ctx, encodeRex(REX_W, dst, 0, src.op.based.base));
+      genMovsxOp(scale, ctx);
+      emitU8(ctx, encodeModRM(dst, src.op.based.base, src.op.based.disp, isByte(src.op.based.disp)));
+      emitDisp(ctx, src.op.based.disp);
+      return;
+    case Indexed:
+      emitU8(ctx, encodeRex(REX_W, dst, src.op.indexed.index, src.op.indexed.base));
+      genMovsxOp(scale, ctx);
+      emitU8(ctx, encodeModRM(dst, 0x4, src.op.indexed.disp, isByte(src.op.indexed.disp)));
+      emitU8(ctx, encodeSIB(src.op.indexed.base, src.op.indexed.index, src.op.indexed.scale));
+      emitDisp(ctx, src.op.indexed.disp);
+      return;
+    case Labeled: {
+      x64LblPo tgt = src.op.lbl;
+      emitU8(ctx, encodeRex(REX_W, dst, 0, 0x0));
+      genMovsxOp(scale, ctx);
+      emitU8(ctx, encodeModRM(dst, 0x5, 0, False));
+      emitLblRef(ctx, tgt);
+      return;
+    }
+    default:
+      check(False, " source mode not permitted");
+      return;
+  }
+}
+
 void or_(x64Op dst, x64Op src, x64CtxPo ctx) {
   binop_(OR_rm_r, OR_r_rm, OR_rm_imm, 1, dst, src, ctx);
 }
@@ -731,9 +784,9 @@ u8 encodeMod(u8 mode, x64Reg fst, x64Reg snd) {
   return (mode | (unsigned) (sr << 3u) | dr);
 }
 
-u8 encodeModRR(x64Reg dst, x64Reg src) {
-  u8 dr = ((u8) dst) & 0x7u;
-  u8 sr = ((u8) src) & 0x7u;
+u8 encodeModRR(x64Reg op1, x64Reg op2) {
+  u8 dr = ((u8) op1) & 0x7u;
+  u8 sr = ((u8) op2) & 0x7u;
 
   return ((u8) 0xc0) | (unsigned) (sr << 3u) | dr;
 }

@@ -33,7 +33,7 @@ int getOptions(int argc, char **argv) {
 
 static char *dot(opAndSpec A);
 static char *capitalize(char *str);
-static retCode genInsHedder(ioPo out, char *mnem, int op, opAndSpec A1, int delta, char *cmt);
+static retCode genInsHedder(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, int delta, char *cmt);
 
 int main(int argc, char **argv) {
   initLogfile("-");
@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
     bufferPo buff = newStringBuffer();
 
 #undef instruction
-#define instruction(M, A1, Dl, cmt) genInsHedder(O_IO(buff),#M,M,A1,Dl,cmt);
+#define instruction(M, A1, A2,Dl, cmt) genInsHedder(O_IO(buff),#M,M,A1,A2,Dl,cmt);
 
 #include "instructions.h"
 
@@ -90,8 +90,8 @@ int main(int argc, char **argv) {
 
 static char *genArg(opAndSpec A);
 
-retCode genInsHedder(ioPo out, char *mnem, int op, opAndSpec A1, int delta, char *cmt) {
-  return outMsg(out, "retCode do%s(compileContextPo cxt%s);         // %s\n", mnem, genArg(A1), cmt);
+retCode genInsHedder(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, int delta, char *cmt) {
+  return outMsg(out, "retCode do%s(compileContextPo cxt%s%s);         // %s\n", mnem, genArg(A1), genArg(A2), cmt);
 }
 
 char *genArg(opAndSpec A) {

@@ -93,8 +93,16 @@ u32 readCtxAtPc(x64CtxPo ctx, integer pc);
 #define MOV_r_i32  0xb8u
 #define MOV_rm_r  0x89
 #define MOV_rm_imm 0xc7
-#define MUL    (/* GROUP_F7 */ 4 << 3)
+
+#define MOVBSX_r_rm 0xbe
+#define MOVSSX_r_rm 0xbf
+#define MOVLSX_r_rm 0x63
+
+#define MOVZX_r_rm 0xb6
+#define MOVZXD_r_rm 0x67
+
 #define MULSD_x_xm  0x59
+
 #define NEG_rm 0xf7
 #define NOP    0x90
 #define NOT_rm  0xf7

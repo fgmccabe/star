@@ -10,9 +10,9 @@
 #include "jitOps.h"
 
 #undef instruction
-#define instruction(Op, A1, Dl, Cmt)    \
+#define instruction(Op, A1, A2, Dl, Cmt)    \
     case Op:          \
-      ret = jit_##Op(code,&pc,A1,context); \
+      ret = jit_##Op(code,&pc,context); \
       break;
 
 retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {

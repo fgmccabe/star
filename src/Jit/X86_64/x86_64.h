@@ -107,8 +107,15 @@ void pop_(x64Op dst, x64CtxPo ctx);
 void cwd_(x64Op dst, x64CtxPo ctx);
 void cdq_(x64Op dst, x64CtxPo ctx);
 void cbw_(x64Op src, x64CtxPo ctx);
-void movsx_(x64Op dst, x64Op src, x64CtxPo ctx);
-void movzx_(x64Op dst, x64Op src, x64CtxPo ctx);
+
+void movsx_(x64Reg dst,  x64Op src,u8 scale, x64CtxPo ctx);
+#define movsx(dst, src, scale, ctx) do{ x64Op s = src; movsx_(dst,s,scale,ctx); } while(False)
+
+void movzx_(x64Reg dst, x64Op src, x64CtxPo ctx);
+#define movzx(dst, src, ctx) do{ x64Op s = src; movzx_(dst,s,ctx); } while(False)
+
+void movzdx_(x64Reg dst, x64Op src, x64CtxPo ctx);
+#define movzdx(dst, src, ctx) do{ x64Op s = src; movzdx_(dst,s,ctx); } while(False)
 
 void add_(x64Op dst, x64Op src, x64CtxPo ctx);
 #define add(dst, src, ctx) do{ x64Op d=dst; x64Op s = src; add_(d,s,ctx); } while(False)
