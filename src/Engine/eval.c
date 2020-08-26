@@ -81,7 +81,7 @@ retCode run(processPo P) {
         termPo nProg = nthElem(LITS, collectI32(PC));
         methodPo NPROG = labelCode(C_LBL(nProg));   // Which program do we want?
 
-        if (SP - stackDelta(NPROG) <= (ptrPo) P->stackBase) {
+        if (SP - stackDelta(NPROG) - STACKFRAME_SIZE <= (ptrPo) P->stackBase) {
           saveRegisters(P, SP);
           if (extendStack(P, 2, stackDelta(NPROG)) != Ok) {
             logMsg(logFile, "cannot extend stack");
@@ -89,7 +89,7 @@ retCode run(processPo P) {
           }
           restoreRegisters(P);
         }
-        assert(SP - stackDelta(PROG) > (ptrPo) P->stackBase);
+        assert(SP - stackDelta(PROG) - STACKFRAME_SIZE > (ptrPo) P->stackBase);
 
         push(PROG);
         PROG = NPROG;
@@ -132,7 +132,7 @@ retCode run(processPo P) {
         push(FP);
         FP = (framePo) SP;     /* set the new frame pointer */
 
-        if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
+        if (SP - stackDelta(PROG) - STACKFRAME_SIZE <= (ptrPo) P->stackBase) {
           saveRegisters(P, SP);
           if (extendStack(P, 2, stackDelta(PROG)) != Ok) {
             logMsg(logFile, "cannot extend stack");
@@ -140,7 +140,7 @@ retCode run(processPo P) {
           }
           restoreRegisters(P);
         }
-        assert(SP - stackDelta(PROG) > (ptrPo) P->stackBase);
+        assert(SP - stackDelta(PROG) - STACKFRAME_SIZE > (ptrPo) P->stackBase);
 
         integer lclCnt = lclCount(PROG);  /* How many locals do we have */
         SP -= lclCnt;
@@ -746,7 +746,7 @@ retCode run(processPo P) {
         labelPo cd = C_LBL(nthElem(LITS, collectI32(PC)));
         if (enoughRoom(H, cd) != Ok) {
           saveRegisters(P, SP);
-          retCode ret = gcCollect(H, NormalCellCount(cd->arity));
+          retCode ret = gcCollect(H, NormalCellCount(labelArity(cd)));
           if (ret != Ok)
             return ret;
           restoreRegisters(P);
@@ -774,6 +774,26 @@ retCode run(processPo P) {
         continue;
       }
 
+      case Unpack: {
+        labelPo l = C_LBL(nthElem(LITS, collectI32(PC)));
+        insPo exit = collectOff(PC);
+
+        termPo t = pop();
+        assert(validPC(PROG, exit));
+
+        if (isNormalPo(t)) {
+          normalPo cl = C_NORMAL(t);
+          if (sameLabel(l, termLbl(cl))) {
+            integer arity = labelArity(l);
+            for (integer ix = arity - 1; ix >= 0; ix--)
+              push(nthElem(cl, ix));
+            continue;
+          }
+        }
+        PC = exit;
+        continue;
+      }
+
       case Cmp: {
         termPo i = pop();
         termPo j = pop();
@@ -781,26 +801,6 @@ retCode run(processPo P) {
         assert(validPC(PROG, exit));
 
         if (!sameTerm(i, j))
-          PC = exit;
-        continue;
-      }
-
-      case Bf: {       /* Branch on false */
-        termPo i = pop();
-        insPo exit = collectOff(PC);
-        assert(validPC(PROG, exit));
-
-        if (i == falseEnum)
-          PC = exit;
-        continue;
-      }
-
-      case Bt: {        /* Branch on true */
-        termPo i = pop();
-        insPo exit = collectOff(PC);
-        assert(validPC(PROG, exit));
-
-        if (i == trueEnum)
           PC = exit;
         continue;
       }

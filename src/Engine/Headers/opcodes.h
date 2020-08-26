@@ -8,7 +8,7 @@
 #define _OPCODES_H_
 
 #undef instruction
-#define instruction(Op, Nd, Dl, Cmt) Op,
+#define instruction(Op, A,B, C, Cmt) Op,
 
 typedef enum {
 #include "instructions.h"

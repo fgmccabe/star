@@ -253,7 +253,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
     case enuTrm: {
       if ((res = decodeText(in, tmpBuffer)) == Ok) {
         integer len;
-        *tgt = (termPo) declareLbl(getTextFromBuffer(tmpBuffer, &len), 0);
+        *tgt = (termPo) declareEnum(getTextFromBuffer(tmpBuffer, &len), H);
       }
       return res;
     }

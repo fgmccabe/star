@@ -144,6 +144,12 @@ retCode gcCollect(heapPo H, long amount) {
   }
 
 #ifdef TRACEMEM
+  if (validateMemory) {
+    verifyHeap(H);
+  }
+#endif
+
+#ifdef TRACEMEM
   if (traceMemory) {
     outMsg(logFile, "%d objects found\n", G->oCnt);
     outMsg(logFile, "%d bytes used\n", H->curr - H->start);

@@ -10,7 +10,7 @@
 termPo consHead(normalPo p);
 termPo consTail(normalPo p);
 
-extern labelPo nilEnum;
+extern termPo nilEnum;
 extern labelPo consCons;
 
 integer consLength(termPo p);
