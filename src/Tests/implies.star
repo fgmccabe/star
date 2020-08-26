@@ -8,7 +8,7 @@ test.implies{
   ms : cons[string].
   ms = ["b","a"].
 
-/*  onlySons(P) => (P,S) in pars *> S in ms.
+  onlySons(P) => (P,S) in pars *> S in ms.
 
   hasD(P) => (P,S) in pars && ~ S in ms.
 
@@ -36,32 +36,30 @@ test.implies{
   		    } in checkMale).
   	    checkSon(_,So) => _valis(So)
       } in checkSon).
-  */
 
---  maleSons = [X | (X,_) in pars && (X,C) in pars *> C in ms].
+  maleSons = [X | (X,_) in pars && (X,C) in pars *> C in ms].
 
   main:()=>action[(),()].
   main()=>do{
-/*    show "hasD(a) = $(hasD("a"))";
+    show "hasD(a) = $(hasD("a"))";
     show "hasD(f) = $(hasD("f"))";
   
-    show "actionOnlySons(a) = $(valof actionOnlySons("a"))";
-    show "actionOnlySons(f) = $(valof actionOnlySons("f"))";
+    show some(_).=(valof actionOnlySons("a"));
+    show valof actionOnlySons("f");
 
     assert onlySons("a");
 
-    show disp(onlySons("a"));
-    show disp(onlySons("f"));
+    show onlySons("a");
+    show onlySons("f");
 
     assert ~onlySons("f");
-*/
 
-    show disp([X | (X,_) in pars])
---    show disp([X | (X,_) in pars && (X,C) in pars *> C in ms])
---    show disp(maleSons)
-/*
-    show disp(foldOnlySons("a"));
-    show disp(foldOnlySons("f"))
-*/
+
+    show [X | (X,_) in pars];
+    show [X | (X,_) in pars && (X,C) in pars *> C in ms];
+    show maleSons;
+
+    show foldOnlySons("a");
+    show foldOnlySons("f")
   }
 }
