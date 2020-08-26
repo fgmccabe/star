@@ -17,7 +17,7 @@ star.compiler.terms{
     | flot(float)
     | strg(string)
     | term(termLbl,cons[term])
-    | enum(termLbl).
+    | symb(termLbl).
 
   public implementation display[termLbl] => {.
     disp(tLbl(Nm,Ar)) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
@@ -40,7 +40,7 @@ star.compiler.terms{
     dispT(term(tLbl(T,_),Args)) where isTupleLbl(T) => ssSeq([ss("("),ssSeq(dispTs(Args)),ss(")")]).
     dispT(term(tLbl(Op,_),Args)) => ssSeq([ss(Op),ss("("),ssSeq(dispTs(Args)),ss(")")]).
     dispT(term(tRec(Nm,Flds),Args)) => ssSeq([ss(Nm),ss("{"),ssSeq(dispFs(Flds,Args,"")),ss("}")]).
-    dispT(enum(Sx)) => ssSeq([ss("'"),disp(Sx),ss("'")]).
+    dispT(symb(Sx)) => ssSeq([ss("'"),disp(Sx),ss("'")]).
 
     dispTs(Els) => interleave(Els//dispT,ss(",")).
 
@@ -63,7 +63,7 @@ star.compiler.terms{
     hsh(intgr(X)) => X.
     hsh(flot(X)) => hash(X).
     hsh(strg(S)) => hash(S).
-    hsh(enum(S)) => hash(S).
+    hsh(symb(S)) => hash(S).
     hsh(term(Op,Args)) =>
       foldRight((T,H)=>H*37+hsh(T),hash(Op)*37,Args).
   } in {
@@ -79,7 +79,7 @@ star.compiler.terms{
     eq(intgr(X),intgr(Y)) => X==Y.
     eq(flot(X),flot(Y)) => X==Y.
     eq(strg(X),strg(Y)) => X==Y.
-    eq(enum(X),enum(Y)) => X==Y.
+    eq(symb(X),symb(Y)) => X==Y.
     eq(term(O1,A1),term(O2,A2)) => O1==O2 && eqList(A1,A2).
     eq(_,_) default => .false.
 
@@ -103,7 +103,7 @@ star.compiler.terms{
   isScalar(intgr(_)) => .true.
   isScalar(flot(_)) => .true.
   isScalar(strg(_)) => .true.
-  isScalar(enum(_)) => .true.
+  isScalar(symb(_)) => .true.
   isScalar(_) default => .false.
 
   public implementation coercion[term,string] => {.
@@ -116,8 +116,7 @@ star.compiler.terms{
   encodeT(intgr(Ix),Chs) => encodeInt(Ix,[0cx,..Chs]).
   encodeT(flot(Dx),Chs) => encodeText(Dx::string,[0cd,..Chs]).
   encodeT(strg(Tx),Chs) => encodeText(Tx,[0cs,..Chs]).
-  encodeT(enum(tLbl(Nm,0)),Chs) => encodeText(Nm,[0ce,..Chs]).
-  encodeT(enum(Sym),Chs) => encodeL(Sym,Chs).
+  encodeT(symb(Sym),Chs) => encodeL(Sym,Chs).
   encodeT(term(tLbl("[]",Ar),Els),Chs) => encodeTerms(Els,encodeNat(Ar,[0cl,..Chs])).
   encodeT(term(Op,Args),Chs) =>
     encodeTerms(Args,encodeL(Op,encodeNat(size(Args),[0cn,..Chs]))).
@@ -149,11 +148,11 @@ star.compiler.terms{
   }
   decodeTerm([0ce,..Ls]) => do{
     (Sym,Lx) <- decodeText(Ls);
-    valis (enum(tLbl(Sym,0)),Lx)
+    valis (symb(tLbl(Sym,0)),Lx)
   }
   decodeTerm([0co,..Ls]) => do{
     (Sym,Lx) <- decodeLabel([0co,..Ls]);
-    valis (enum(Sym),Lx)
+    valis (symb(Sym),Lx)
   }
   decodeTerm([0cs,..Ls]) => do{
     (Txt,Lx) <- decodeText(Ls);
@@ -418,6 +417,6 @@ star.compiler.terms{
   pkgTerm(pkg(Pk,Ver))=>mkCons("pkg",[strg(Pk),versTerm(Ver)]).
 
   public versTerm:(version)=>term.
-  versTerm(.defltVersion) => enum(tLbl("*",0)).
+  versTerm(.defltVersion) => symb(tLbl("*",0)).
   versTerm(vers(V)) => strg(V).
 }

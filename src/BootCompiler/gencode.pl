@@ -426,7 +426,7 @@ ptnTest(Succ,Fail,Fl,D,Dx,End,C,Cx,Stk,Stkx) :-
   call(Fail,D1,Dx,End,C1,Cx,Stk,Stk2),
   mergeStkLvl(Stk1,Stk2,Stkx,"ptn test").
 
-testCont(Succ,Fail,D,Dx,End,[iBf(Fl)|C],Cx,Stk,Stkx) :-
+testCont(Succ,Fail,D,Dx,End,[iUnpack(lbl("star.core#true",0),Fl)|C],Cx,Stk,Stkx) :-
   genLbl(D,Fl,D0),
   Stk0 is Stk-1,
   call(Succ,D0,D1,End,C,[iLbl(Fl)|C0],Stk0,Stk1),
@@ -461,9 +461,16 @@ isCond(dsj(_,_,_)).
 isCond(ng(_,_)).
 isCond(mtch(_,_,_)).
 
-compCond(enum("star.core#true"),_Lc,Succ,_Fail,_Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
+isTrueSymb(enum(Nm)) :-
+  splitLocalName(Nm,"#",_,"true"),!.
+isFalseSymb(enum(Nm)) :-
+  splitLocalName(Nm,"#",_,"false"),!.
+
+compCond(enum(Sy),_Lc,Succ,_Fail,_Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
+  isTrueSymb(Sy),!,
   call(Succ,D,Dx,End,C,Cx,Stk,Stkx).
-compCond(enum("star.core#false"),_,_,Fail,_,D,Dx,End,C,Cx,Stk,Stkx) :-
+compCond(enum(Sy),_,_,Fail,_,D,Dx,End,C,Cx,Stk,Stkx) :-
+  isFalseSymb(Sy),!,
   call(Fail,D,Dx,End,C,Cx,Stk,Stkx).
 compCond(cnj(Lc,dsj(LLc,LL,LR),R),_,Succ,Fail,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-!,
   compCond(dsj(LLc,cnj(Lc,LL,R),cnj(Lc,LR,R)),Lc,Succ,Fail,Opts,D,Dx,End,C,Cx,Stk,Stkx).

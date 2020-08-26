@@ -241,10 +241,9 @@ star.compiler.core{
     _coerce(crInt(_,Ix)) => some(intgr(Ix)).
     _coerce(crFlot(_,Dx)) => some(flot(Dx)).
     _coerce(crStrg(_,Sx)) => some(strg(Sx)).
-    _coerce(crVoid(_,_)) => some(enum(tLbl("void",0))).
+    _coerce(crVoid(_,_)) => some(symb(tLbl("void",0))).
     _coerce(crInt(_,Ix)) => some(intgr(Ix)).
-    _coerce(crLbl(_,Nm,_)) => some(enum(tLbl(Nm,0))).
-    _coerce(crTerm(_,Nm,[],_)) => some(term(tLbl(Nm,0),[])).
+    _coerce(crLbl(_,Nm,_)) => some(symb(tLbl(Nm,0))).
     _coerce(crTerm(_,Nm,Args,_)) where NArgs ^= mapArgs(Args,[]) =>
       some(term(tLbl(Nm,size(Args)),NArgs)).
     _coerce(_) default => .none.

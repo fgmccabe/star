@@ -323,6 +323,7 @@ star.compiler{
     Repp .= ref Repo;
     try{
       for (pkgImp(Lc,_,P),Imps) in Pks do{
+--	logMsg("$(P) ok? $(~testPkg(P,Repo,Imps))");
 	if ~ (pkgOk(Repo,P) && pkgImp(_,_,I) in Imps *> pkgOk(Repo,I)) then{
 	  logMsg("Compiling $(P)");
 	  if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
@@ -366,4 +367,13 @@ star.compiler{
       throw Erp
     }
   }
+
+  testPkg:(pkg,termRepo,cons[importSpec])=>boolean.
+  testPkg(P,Repo,Imps) => valof action{
+--    logMsg("checking $(P)");
+    if pkgImp(_,_,I) in Imps *> pkgOk(Repo,I) then
+      valis .true
+    else
+    valis .false
+  }.
 }
