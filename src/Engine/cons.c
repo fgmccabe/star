@@ -6,11 +6,11 @@
 #include "consP.h"
 #include "assert.h"
 
-labelPo nilEnum;
+termPo nilEnum;
 labelPo consCons;
 
 void initCons() {
-  nilEnum = declareLbl("star.core#nil", 0);
+  nilEnum = declareEnum("star.core#nil", currHeap);
   consCons = declareLbl("star.core#cons", 2);
 }
 

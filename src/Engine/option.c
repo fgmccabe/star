@@ -6,11 +6,11 @@
 #include "optionP.h"
 #include "assert.h"
 
-labelPo noneEnum;
+termPo noneEnum;
 labelPo someCons;
 
 void initOption() {
-  noneEnum = declareLbl("star.core#none", 0);
+  noneEnum = declareEnum("star.core#none", currHeap);
   someCons = declareLbl("star.core#some", 1);
 }
 
@@ -31,7 +31,7 @@ logical isSome(termPo t) {
 }
 
 logical isNone(termPo t) {
-  return t == (termPo) noneEnum;
+  return t == noneEnum;
 }
 
 termPo unwrapSome(normalPo p) {

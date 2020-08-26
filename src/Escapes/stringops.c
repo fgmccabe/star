@@ -109,7 +109,7 @@ ReturnStatus g__str2flt(processPo p, ptrPo tos) {
         .result=(termPo) wrapSome(H, (termPo) allocateFloat(H, flt))};
     default:
     case Error:
-      return (ReturnStatus) {.ret=Ok, .result = (termPo) noneEnum};
+      return (ReturnStatus) {.ret=Ok, .result = noneEnum};
   }
 }
 
@@ -124,7 +124,7 @@ ReturnStatus g__str2int(processPo p, ptrPo tos) {
       return (ReturnStatus) {.ret=Ok,
         .result=(termPo) wrapSome(H, (termPo) allocateInteger(processHeap(p), ix))};
     default:
-      return (ReturnStatus) {.ret=Ok, .result = (termPo) noneEnum};
+      return (ReturnStatus) {.ret=Ok, .result = noneEnum};
   }
 }
 

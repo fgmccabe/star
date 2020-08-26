@@ -135,8 +135,12 @@ labelPo otherLbl(labelPo lbl, integer arity) {
     return Null;
 }
 
-labelPo declareEnum(const char *name) {
-  return declareLbl(name, 0);
+termPo declareEnum(const char *name, heapPo H) {
+  labelPo lbl = declareLbl(name, 0);
+  int root = gcAddRoot(H, (ptrPo) &lbl);
+  normalPo tpl = allocateStruct(H, lbl);
+  gcReleaseRoot(H, root);
+  return (termPo)tpl;
 }
 
 void declareFields(labelPo lbl, fieldTblPo tbl) {
@@ -262,11 +266,11 @@ retCode showLbl(ioPo out, labelPo lbl, integer depth, integer prec, logical alt)
     integer hashOff = uniLastIndexOf(lbl->name, lblLen, (codePoint) '#');
 
     if (hashOff > 0 && hashOff < lblLen - 1)
-      ret = outMsg(out, "…%S", &lbl->name[hashOff + 1], lblLen - hashOff - 1);
+      ret = outMsg(out, "…%S/%d", &lbl->name[hashOff + 1], lblLen - hashOff - 1, lbl->arity);
     else if (lblLen > prec) {
       integer half = prec / 2;
       integer hwp = backCodePoint(lbl->name, lblLen, half);
-      ret = outMsg(out, "%S…%S", lbl->name, half, &lbl->name[hwp], lblLen - hwp);
+      ret = outMsg(out, "%S…%S/%d", lbl->name, half, &lbl->name[hwp], lblLen - hwp, lbl->arity);
     } else
       ret = outMsg(out, "%S/%d", lbl->name, lblLen, lbl->arity);
 
@@ -274,10 +278,8 @@ retCode showLbl(ioPo out, labelPo lbl, integer depth, integer prec, logical alt)
       ret = showFields(out, lbl->fields);
 
     return ret;
-  } else if (lbl->arity > 0)
+  } else
     return outMsg(out, "%s/%d", lbl->name, lbl->arity);
-  else
-    return outMsg(out, "%s", lbl->name);
 }
 
 methodPo labelCode(labelPo lbl) {
@@ -293,7 +295,10 @@ char *labelName(labelPo lbl) {
 }
 
 logical isLabel(labelPo lbl, char *nm, integer arity) {
-  return uniCmp(lbl->name, nm) == same && lbl->arity == arity;
+  if (lbl != Null)
+    return uniCmp(lbl->name, nm) == same && lbl->arity == arity;
+  else
+    return False;
 }
 
 labelPo tplLabel(integer arity) {

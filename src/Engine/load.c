@@ -217,12 +217,14 @@ retCode decodePkgName(ioPo in, packagePo pkg, char *errorMsg, integer msgLen) {
     retCode ret = decodeText(O_IO(in), pkgB);
 
     if (ret == Ok) {
-      if (isLookingAt(in, "e\1*\1") == Ok)
+      if (isLookingAt(in, "e\1*\1") == Ok || isLookingAt(in,"o0\1*\1") == Ok)
         outStr(O_IO(vrB), "*");
       else if (isLookingAt(in, "s") == Ok) {
         ret = decodeText(O_IO(in), vrB);
-      } else
+      } else {
+        strMsg(errorMsg, msgLen, "expecting a package name");
         return Error;
+      }
     }
 
     outByte(O_IO(pkgB), 0);
@@ -345,10 +347,11 @@ static retCode decodeIns(ioPo in, uint16 **pc, integer *ix, integer *si, char *e
 #define szlne if(ret==Ok){ret = writeIntOperand(in,pc,ix); }
 #define szglb if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); writeOperand(pc,globalVarNo(escNm)); (*ix)++;}
 
-#define instruction(Op, A1, Dl, Cmt)    \
-      case Op:          \
-        (*si)+=Dl;      \
-        sz##A1          \
+#define instruction(Op, A1, A2, Dl, Cmt)    \
+      case Op:                              \
+        (*si)+=Dl;                          \
+        sz##A1                              \
+        sz##A2                              \
         return ret;
 
 #include "instructions.h"

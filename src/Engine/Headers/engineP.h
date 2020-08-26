@@ -46,6 +46,8 @@ typedef struct stack_frame_ {
   termPo args[ZEROARRAYSIZE];
 } StackFrame;
 
+#define STACKFRAME_SIZE 3
+
 extern void initEngine();
 extern retCode run(processPo P);
 

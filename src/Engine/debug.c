@@ -1109,7 +1109,8 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
 }
 
 void stackSummary(ioPo out, processPo P, ptrPo sp) {
-  outMsg(out, "sp: 0x%x, stack:%5.2g%%", sp, (double)(sp - (ptrPo) P->stackBase) * 100.0 / (double)(P->stackLimit - P->stackBase));
+  outMsg(out, "sp: 0x%x, stack:%5.2g%%", sp,
+         (double) (sp - (ptrPo) P->stackBase) * 100.0 / (double) (P->stackLimit - P->stackBase));
 }
 
 void showAllArgs(ioPo out, processPo p, methodPo mtd, framePo fp, ptrPo sp) {
@@ -1215,10 +1216,7 @@ static void showPcOffset(ioPo out, insPo base, insPo *pc, framePo fp, ptrPo sp) 
   (*pc) += 2;
   int32 delta = (hi32 << 16u) | lo32;
 
-  if (sp != Null)
-    outMsg(out, " PC[%d(%+d)], tos = %,*T", (*pc - base) + delta, delta, displayDepth, sp[0]);
-  else
-    outMsg(out, " PC[%d(%+d)]", (*pc - base) + delta, delta);
+  outMsg(out, " PC[%d(%+d)]", (*pc - base) + delta, delta);
 }
 
 insPo disass(ioPo out, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
@@ -1250,11 +1248,12 @@ insPo disass(ioPo out, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
 #define show_lne showConstant(out,mtd,collectI32(pc))
 #define show_glb showGlb(out, findGlobalVar(collectI32(pc)),fp,sp)
 
-#define instruction(Op, A1, Dl, Cmt)    \
-    case Op:          \
-      outMsg(out," %s",#Op);    \
-      show_##A1;        \
-  return pc;
+#define instruction(Op, A1, A2, Dl, Cmt)    \
+    case Op:                                \
+      outMsg(out," %s",#Op);                \
+      show_##A1;                            \
+      show_##A2;                            \
+      return pc;
 
 #include "instructions.h"
 

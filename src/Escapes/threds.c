@@ -74,14 +74,14 @@ ReturnStatus g__thread_state(processPo P, ptrPo tos) {
 
   switchProcessState(P, in_exclusion);
 
-  labelPo st;
+  termPo st;
 
   if (tgt == NULL)
-    st = declareEnum(state_names[dead]);
+    st = declareEnum(state_names[dead], currHeap);
   else
-    st = declareEnum(state_names[tgt->state]);
+    st = declareEnum(state_names[tgt->state], currHeap);
   setProcessRunnable(P);
-  return (ReturnStatus) {.ret=Ok, .result=(termPo) st};
+  return (ReturnStatus) {.ret=Ok, .result=st};
 }
 
 ReturnStatus g__waitfor(processPo P, ptrPo tos) {

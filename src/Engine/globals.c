@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <memory.h>
 #include <tpl.h>
+#include <cons.h>
+#include <option.h>
 #include "labels.h"
 #include "globalsP.h"
 #include "errorCodes.h"
@@ -67,26 +69,26 @@ void initGlobals() {
   glbVarTblSize = 1024;
   numGlbVars = 0;
 
-  eINTRUPT = (termPo) declareEnum("star.core#eINTRUPT");
-  eNOTDIR = (termPo) declareEnum("star.core#eNOTDIR");
-  eNOFILE = (termPo) declareEnum("star.core#eNOFILE");
-  eNOTFND = (termPo) declareEnum("star.core#eNOTFND");
-  eINVAL = (termPo) declareEnum("star.core#eINVAL");
-  eRANGE = (termPo) declareEnum("star.core#eRANGE");
-  eNOPERM = (termPo) declareEnum("star.core#eNOPERM");
-  eFAIL = (termPo) declareEnum("star.core#eFAIL");
-  eIOERROR = (termPo) declareEnum("star.core#eIOERROR");
-  eCONNECT = (termPo) declareEnum("star.core#eCONNECT");
-  eDEAD = (termPo) declareEnum("star.core#eDEAD");
+  eINTRUPT = declareEnum("star.core#eINTRUPT", currHeap);
+  eNOTDIR = declareEnum("star.core#eNOTDIR", currHeap);
+  eNOFILE = declareEnum("star.core#eNOFILE", currHeap);
+  eNOTFND = declareEnum("star.core#eNOTFND", currHeap);
+  eINVAL = declareEnum("star.core#eINVAL", currHeap);
+  eRANGE = declareEnum("star.core#eRANGE", currHeap);
+  eNOPERM = declareEnum("star.core#eNOPERM", currHeap);
+  eFAIL = declareEnum("star.core#eFAIL", currHeap);
+  eIOERROR = declareEnum("star.core#eIOERROR", currHeap);
+  eCONNECT = declareEnum("star.core#eCONNECT", currHeap);
+  eDEAD = declareEnum("star.core#eDEAD", currHeap);
 
-  falseEnum = (termPo) declareEnum("star.core#false");
-  trueEnum = (termPo) declareEnum("star.core#true");
+  falseEnum = declareEnum("star.core#false", currHeap);
+  trueEnum = declareEnum("star.core#true", currHeap);
 
-  voidEnum = (termPo) declareEnum("star.core#void");
+  voidEnum = declareEnum("star.core#void", currHeap);
 
-  okEnum = (termPo) declareEnum("star.core#ok");
-  failEnum = (termPo) declareEnum("star.core#fail");
-  eofEnum = (termPo) declareEnum("star.core#eof");
+  okEnum = declareEnum("star.core#ok", currHeap);
+  failEnum = declareEnum("star.core#fail", currHeap);
+  eofEnum = declareEnum("star.core#eof", currHeap);
 
   errorLbl = declareLbl("star.core#error", 2);
 
@@ -186,6 +188,31 @@ static void markGlobal(globalPo glb, gcSupportPo G) {
 void markGlobals(gcSupportPo G) {
   for (int32 ix = 0; ix < numGlbVars; ix++)
     markGlobal(&glbVars[ix], G);
+
+  eINTRUPT = markPtr(G, &eINTRUPT);
+  eNOTDIR = markPtr(G, &eNOTDIR);
+  eNOFILE = markPtr(G, &eNOFILE);
+  eNOTFND = markPtr(G, &eNOTFND);
+  eINVAL = markPtr(G, &eINVAL);
+  eRANGE = markPtr(G, &eRANGE);
+  eNOPERM = markPtr(G, &eNOPERM);
+  eFAIL = markPtr(G, &eFAIL);
+  eIOERROR = markPtr(G, &eIOERROR);
+  eCONNECT = markPtr(G, &eCONNECT);
+  eDEAD = markPtr(G, &eDEAD);
+
+  falseEnum = markPtr(G, &falseEnum);
+  trueEnum = markPtr(G, &trueEnum);
+
+  voidEnum = markPtr(G, &voidEnum);
+
+  okEnum = markPtr(G, &okEnum);
+  failEnum = markPtr(G, &failEnum);
+  eofEnum = markPtr(G, &eofEnum);
+
+  nilEnum = markPtr(G, &nilEnum);
+  noneEnum = markPtr(G,&noneEnum);
+
   unitEnum = markPtr(G, (ptrPo) &unitEnum);
 }
 

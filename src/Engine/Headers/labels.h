@@ -14,7 +14,7 @@
 labelPo findLbl(const char *name, integer arity);
 
 labelPo declareLbl(const char *name, integer arity);
-labelPo declareEnum(const char *name);
+termPo declareEnum(const char *name, heapPo H);
 labelPo otherLbl(labelPo lbl,integer arity);
 labelPo tplLabel(integer arity);
 logical isTplLabel(labelPo lb);

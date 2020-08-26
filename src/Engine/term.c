@@ -82,6 +82,24 @@ static retCode showField(labelPo fldLbl, integer offset, void *cl) {
   return dispTerm(info->out, nthArg(info->trm, offset), info->precision, info->depth, info->alt);
 }
 
+static retCode showArgs(ioPo out, normalPo nml, integer precision, integer depth, logical alt) {
+  retCode ret = outChar(out, '(');
+  if (depth > 0) {
+    char *sep = "";
+    integer ar = termArity(nml);
+    for (integer ix = 0; ix < ar && ret == Ok; ix++) {
+      ret = outStr(out, sep);
+      sep = ", ";
+      if (ret == Ok)
+        ret = dispTerm(out, nthArg(nml, ix), precision, depth - 1, alt);
+    }
+  } else
+    ret = outStr(out, "...");
+  if (ret == Ok)
+    ret = outChar(out, ')');
+  return ret;
+}
+
 retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   clssPo clss = t->clss;
   if (isSpecialClass(clss)) {
@@ -90,9 +108,10 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
   } else if (isNormalPo(t)) {
     normalPo nml = C_NORMAL(t);
     labelPo lbl = nml->lbl;
+    integer arity = labelArity(lbl);
+
     if (isRecordLabel(lbl)) {
       FieldInfoRec Info = {.out = out, .depth=depth, .precision=precision, .alt=alt, .trm=nml};
-      integer arity = labelArity(lbl);
 
       retCode ret = outMsg(out, "%Q", labelName(lbl));
       char *sep = "";
@@ -107,23 +126,14 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
       if (ret == Ok)
         ret = outStr(out, "}");
       return ret;
+    } else if (isTplLabel(lbl)) {
+      return showArgs(out, nml, precision, depth, alt);
+    } else if (arity == 0) {
+      return outMsg(out, ".%Q", labelName(lbl));
     } else {
-      retCode ret = (isTplLabel(lbl) ? Ok : showLbl(out, lbl, 0, 24, alt));
+      retCode ret = showLbl(out, lbl, 0, 24, alt);
       if (ret == Ok)
-        ret = outChar(out, '(');
-      if (depth > 0) {
-        char *sep = "";
-        integer ar = labelArity(lbl);
-        for (integer ix = 0; ix < ar && ret == Ok; ix++) {
-          ret = outStr(out, sep);
-          sep = ", ";
-          if (ret == Ok)
-            ret = dispTerm(out, nthArg(nml, ix), precision, depth - 1, alt);
-        }
-      } else
-        ret = outStr(out, "...");
-      if (ret == Ok)
-        ret = outChar(out, ')');
+        ret = showArgs(out, nml, precision, depth, alt);
       return ret;
     }
   } else

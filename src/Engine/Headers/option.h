@@ -10,7 +10,7 @@
 normalPo wrapSome(heapPo H, termPo lhs);
 termPo unwrapSome(normalPo p);
 
-extern labelPo noneEnum;
+extern termPo noneEnum;
 extern labelPo someCons;
 
 logical isSome(termPo t);
