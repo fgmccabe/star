@@ -437,6 +437,37 @@ static retCode test_mov() {
   return checkCode(tgt, NumberOf(tgt), ctx);
 }
 
+static retCode test_movsx() {
+  x64CtxPo ctx = createCtx();
+
+  x64LblPo l0 = defineLabel(ctx, "", ctx->pc);
+  movsx(RSI, RG(RAX), 1, ctx);
+  movsx(RAX, RG(RSI), 2, ctx);
+  movsx(R12, RG(RSI), 4, ctx);
+
+  movsx(R12, BS(RAX, 0x55), 2, ctx);
+  movsx(RAX, BS(RSI, 0), 4, ctx);
+
+  movsx(RAX, IX(RAX, R12, 4, 0x55), 1, ctx);
+  movsx(R10, IX(RAX, RDX, 8, 0x55), 4, ctx);
+
+  movsx(RAX, LB(l0), 4, ctx);
+  movsx(R9, LB(l0), 2, ctx);
+
+  u8 tgt[] = {0x48, 0x0f, 0xbe, 0xf0,
+              0x48, 0x0f, 0xbf, 0xc6,
+              0x4c, 0x63, 0xe6,
+              0x4c, 0x0f, 0xbf, 0x60, 0x55,
+              0x48, 0x63, 0x06,
+              0x4a, 0x0f, 0xbe, 0x44, 0xa0, 0x55,
+              0x4c, 0x63, 0x54, 0xd0, 0x55,
+              0x48, 0x63, 0x05, 0xdb, 0xff, 0xff, 0xff,
+              0x4c, 0x0f, 0xbf, 0x0d, 0xd3, 0xff, 0xff, 0xff
+  };
+
+  return checkCode(tgt, NumberOf(tgt), ctx);
+}
+
 static retCode test_neg() {
   x64CtxPo ctx = createCtx();
 
@@ -880,25 +911,45 @@ retCode test_factFun() {
   x64CtxPo ctx = createCtx();
 
   x64LblPo fct = preamble(ctx, 0);
-  x64LblPo l0 = defineLabel(ctx,"nonZero",-1);
-  x64LblPo lx = defineLabel(ctx,"exit",-1);
+  x64LblPo l0 = defineLabel(ctx, "nonZero", -1);
+  x64LblPo lx = defineLabel(ctx, "exit", -1);
   cmp(RG(RDI), IM(1), ctx);
-  jg(l0,ctx);
-  mov(RG(RAX),IM(1),ctx);
-  jmp(LB(lx),ctx);
-  setLabel(ctx,l0);
-  push(RG(RDI),ctx);
-  dec(RG(RDI),ctx);
-  call(LB(fct),ctx);
-  pop(RG(RDI),ctx);
-  imul(RAX,RG(RDI),ctx);
-  setLabel(ctx,lx);
+  jg(l0, ctx);
+  mov(RG(RAX), IM(1), ctx);
+  jmp(LB(lx), ctx);
+  setLabel(ctx, l0);
+  push(RG(RDI), ctx);
+  dec(RG(RDI), ctx);
+  call(LB(fct), ctx);
+  pop(RG(RDI), ctx);
+  imul(RAX, RG(RDI), ctx);
+  setLabel(ctx, lx);
   postamble(ctx);
 
   un_i64 fn = (un_i64) createCode(ctx);
-  tryRet(checkReslt(fn(3),6,"fact(3)"));
-  tryRet(checkReslt(fn(10),3628800,"fact(10)"));
+  tryRet(checkReslt(fn(3), 6, "fact(3)"));
+  tryRet(checkReslt(fn(10), 3628800, "fact(10)"));
   return Ok;
+}
+
+retCode checkCode(u8 *src, integer srcLen, x64CtxPo ctx) {
+  retCode ret;
+  if (ctx->pc != srcLen) {
+    logMsg(logFile, "%d bytes expected, %d bytes generated", srcLen, ctx->pc);
+    logMsg(logFile, "actual bytes: %.*X", ctx->pc, ctx->bytes);
+    ret = Error;
+  } else
+    ret = cmpBytes(src, ctx->bytes, srcLen);
+  discardCtx(ctx);
+  return ret;
+}
+
+retCode checkReslt(i64 test, i64 verify, char *msg) {
+  if (test != verify) {
+    logMsg(logFile, "Test %msg failed, expected %ld, got %ld", msg, verify, test);
+    return Error;
+  } else
+    return Ok;
 }
 
 retCode all_tests() {
@@ -918,6 +969,7 @@ retCode all_tests() {
   tryRet(run_test(test_lea));
   tryRet(run_test(test_lbl_lea));
   tryRet(run_test(test_mov));
+  tryRet(run_test(test_movsx));
   tryRet(run_test(test_neg));
   tryRet(run_test(test_not));
   tryRet(run_test(test_or));
@@ -941,24 +993,4 @@ retCode all_tests() {
   tryRet(run_test(test_factFun));
 
   return Ok;
-}
-
-retCode checkCode(u8 *src, integer srcLen, x64CtxPo ctx) {
-  retCode ret;
-  if (ctx->pc != srcLen) {
-    logMsg(logFile, "%d bytes expected, %d bytes generated", srcLen, ctx->pc);
-    logMsg(logFile, "actual bytes: %.*X", ctx->pc, ctx->bytes);
-    ret = Error;
-  } else
-    ret = cmpBytes(src, ctx->bytes, srcLen);
-  discardCtx(ctx);
-  return ret;
-}
-
-retCode checkReslt(i64 test, i64 verify, char *msg) {
-  if (test != verify) {
-    logMsg(logFile, "Test %msg failed, expected %ld, got %ld", msg, verify, test);
-    return Error;
-  } else
-    return Ok;
 }

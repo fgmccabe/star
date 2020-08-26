@@ -10,9 +10,11 @@
 
 #undef instruction
 
-#define instruction(Op, A1, Dl, Cmt)    \
-retCode jit_##Op(insPo code,integer *pc,opAndSpec OpAnd,jitCompPo context);
+#define instruction(Op,A1,A2, Dl, Cmt)    \
+retCode jit_##Op(insPo code,integer *pc,jitCompPo context);
 
 #include "instructions.h"
+
+#undef instruction
 
 #endif //STAR_JITOPS_H
