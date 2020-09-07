@@ -28,7 +28,7 @@ instruction(Jmp,off,nOp,0,"jump lbl")
 
 instruction(Drop,tOs,nOp,-1,"drop top of stack")
 instruction(Dup,tOs,nOp,1,"duplicate top of stack")
-instruction(Rst,i32,nOp,0,"reset stack height to a fixed height")
+instruction(Rst,ix32,nOp,0,"reset stack height to a fixed height")
 
 instruction(LdV,nOp,nOp,1,"Place a void value on stack")
 instruction(LdG,glb,nOp,1,"load a global variable")
@@ -44,12 +44,12 @@ instruction(TG,glb,nOp,0,"copy into a global variable")
 
 instruction(CLbl,off,nOp,-1,"T,Lbl --> test for a data term, branch if lbl")
 instruction(CV,off,nOp,-1,"T --> test for void on the stack, branch if void")
-instruction(Nth,i32,nOp,0,"T --> el, pick up the nth element")
-instruction(StNth,i32,nOp,-2,"T el --> store in nth element")
+instruction(Nth,ix32,nOp,0,"T --> el, pick up the nth element")
+instruction(StNth,ix32,nOp,-2,"T el --> store in nth element")
 instruction(Get,sym,nOp,0,"T --> el access a field from structure")
 instruction(Set,sym,nOp,-1,"T el --> store in field of structure")
 
-instruction(Case,i32,nOp,0,"T --> T, case <Max> ")
+instruction(Case,ix32,nOp,0,"T --> T, case <Max> ")
 
 instruction(IAdd,tOs,nOp,-1,"L R --> L+R")
 instruction(ISub,tOs,nOp,-1,"L R --> L-R")

@@ -18,6 +18,17 @@
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<(unsigned)16)|lo32))
 #define collectOff(pc) (hi32 = collectI32(pc), (pc)+(signed)hi32)
 
+#define checkAlloc(Count) {\
+  if (reserveSpace(H, Count) != Ok) {\
+    saveRegisters(P, SP);\
+    retCode ret = gcCollect(H, Count);\
+    if (ret != Ok)\
+      return ret;\
+    restoreRegisters(P);   \
+    check(reserveSpace(H,Count)==Ok,"could not reserve space");\
+  }\
+}
+
 static inline ptrPo checkStack(processPo P, ptrPo SP) {
   assert(SP > (ptrPo) P->stackBase);
   return SP;
@@ -89,7 +100,7 @@ retCode run(processPo P) {
           }
           restoreRegisters(P);
         }
-        assert(SP - stackDelta(PROG) - STACKFRAME_SIZE > (ptrPo) P->stackBase);
+        assert(SP - stackDelta(NPROG) - STACKFRAME_SIZE > (ptrPo) P->stackBase);
 
         push(PROG);
         PROG = NPROG;
@@ -122,6 +133,16 @@ retCode run(processPo P) {
           bail();
         }
 
+        if (SP - stackDelta(NPROG) - STACKFRAME_SIZE <= (ptrPo) P->stackBase) {
+          saveRegisters(P, SP);
+          if (extendStack(P, 2, stackDelta(NPROG)) != Ok) {
+            logMsg(logFile, "cannot extend stack");
+            bail();
+          }
+          restoreRegisters(P);
+        }
+        assert(SP - stackDelta(NPROG) - STACKFRAME_SIZE > (ptrPo) P->stackBase);
+
         push(nthElem(nProg, 0));                     // Put the free term back on the stack
         push(PROG);
         push(PC);       /* build up the frame. */
@@ -131,16 +152,6 @@ retCode run(processPo P) {
 
         push(FP);
         FP = (framePo) SP;     /* set the new frame pointer */
-
-        if (SP - stackDelta(PROG) - STACKFRAME_SIZE <= (ptrPo) P->stackBase) {
-          saveRegisters(P, SP);
-          if (extendStack(P, 2, stackDelta(PROG)) != Ok) {
-            logMsg(logFile, "cannot extend stack");
-            bail();
-          }
-          restoreRegisters(P);
-        }
-        assert(SP - stackDelta(PROG) - STACKFRAME_SIZE > (ptrPo) P->stackBase);
 
         integer lclCnt = lclCount(PROG);  /* How many locals do we have */
         SP -= lclCnt;
@@ -223,7 +234,7 @@ retCode run(processPo P) {
 
         if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
           saveRegisters(P, SP);
-          if (extendStack(P, 2, 0) != Ok) {
+          if (extendStack(P, 2, stackDelta(PROG)) != Ok) {
             logMsg(logFile, "cannot extend stack");
             bail();
           }
@@ -279,7 +290,7 @@ retCode run(processPo P) {
 
         if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
           saveRegisters(P, SP);
-          if (extendStack(P, 2, 0) != Ok) {
+          if (extendStack(P, 2, stackDelta(PROG)) != Ok) {
             logMsg(logFile, "cannot extend stack");
             bail();
           }
@@ -387,7 +398,7 @@ retCode run(processPo P) {
 
           if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
             saveRegisters(P, SP);
-            if (extendStack(P, 2, 0) != Ok) {
+            if (extendStack(P, 2, stackDelta(PROG)) != Ok) {
               logMsg(logFile, "cannot extend stack");
               bail();
             }
@@ -518,35 +529,39 @@ retCode run(processPo P) {
       }
 
       case IAdd: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
+        integer Lhs = integerVal(pop());
+        integer Rhs = integerVal(pop());
 
-        termPo Rs = (termPo) allocateInteger(H, integerVal(Lhs) + integerVal(Rhs));
+        checkAlloc(IntegerCellCount);
+        termPo Rs = allocateInteger(H, Lhs + Rhs);
         push(Rs);
         continue;
       }
 
       case ISub: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
+        integer Lhs = integerVal(pop());
+        integer Rhs = integerVal(pop());
 
-        termPo Rs = (termPo) allocateInteger(H, integerVal(Lhs) - integerVal(Rhs));
+        checkAlloc(IntegerCellCount);
+        termPo Rs = (termPo) allocateInteger(H, Lhs - Rhs);
         push(Rs);
         continue;
       }
       case IMul: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
+        integer Lhs = integerVal(pop());
+        integer Rhs = integerVal(pop());
 
-        termPo Rs = (termPo) allocateInteger(H, integerVal(Lhs) * integerVal(Rhs));
+        checkAlloc(IntegerCellCount);
+        termPo Rs = (termPo) allocateInteger(H, Lhs * Rhs);
         push(Rs);
         continue;
       }
       case IDiv: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
+        integer Lhs = integerVal(pop());
+        integer Rhs = integerVal(pop());
 
-        termPo Rs = (termPo) allocateInteger(H, integerVal(Lhs) / integerVal(Rhs));
+        checkAlloc(IntegerCellCount);
+        termPo Rs = (termPo) allocateInteger(H, Lhs / Rhs);
         push(Rs);
         continue;
       }
@@ -556,6 +571,7 @@ retCode run(processPo P) {
 
         integer reslt = denom % numerator;
 
+        checkAlloc(IntegerCellCount);
         termPo Rs = (termPo) allocateInteger(H, reslt);
 
         push(Rs);
@@ -565,6 +581,7 @@ retCode run(processPo P) {
         termPo Trm = pop();
         integer Arg = integerVal(Trm);
 
+        checkAlloc(IntegerCellCount);
         termPo Rs = (Arg < 0 ? (termPo) allocateInteger(H, -Arg) : Trm);
         push(Rs);
         continue;
@@ -604,96 +621,109 @@ retCode run(processPo P) {
         continue;
       }
       case BAnd: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
+        integer Lhs = integerVal(pop());
+        integer Rhs = integerVal(pop());
 
-        termPo Rs = (termPo) allocateInteger(H, ((unsigned) integerVal(Lhs) & (unsigned) integerVal(Rhs)));
+        checkAlloc(IntegerCellCount);
+        termPo Rs = (termPo) allocateInteger(H, ((unsigned) Lhs & (unsigned) Rhs));
         push(Rs);
         continue;
       }
       case BOr: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
+        integer Lhs = integerVal(pop());
+        integer Rhs = integerVal(pop());
 
-        termPo Rs = (termPo) allocateInteger(H, ((unsigned) integerVal(Lhs) | (unsigned) integerVal(Rhs)));
+        checkAlloc(IntegerCellCount);
+        termPo Rs = (termPo) allocateInteger(H, ((unsigned) Lhs | (unsigned) Rhs));
         push(Rs);
         continue;
       }
       case BXor: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
+        integer Lhs = integerVal(pop());
+        integer Rhs = integerVal(pop());
 
-        termPo Rs = (termPo) allocateInteger(H, ((unsigned) integerVal(Lhs) ^ (unsigned) integerVal(Rhs)));
+        checkAlloc(IntegerCellCount);
+        termPo Rs = (termPo) allocateInteger(H, ((unsigned) Lhs ^ (unsigned) Rhs));
         push(Rs);
         continue;
       }
       case BNot: {
-        termPo Lhs = pop();
+        integer Lhs = integerVal(pop());
 
-        termPo Rs = (termPo) allocateInteger(H, ~(unsigned) integerVal(Lhs));
+        checkAlloc(IntegerCellCount);
+        termPo Rs = (termPo) allocateInteger(H, ~(unsigned) Lhs);
         push(Rs);
         continue;
       }
       case BLsl: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
+        integer Lhs = integerVal(pop());
+        integer Rhs = integerVal(pop());
 
-        termPo Rs = (termPo) allocateInteger(H, ((unsigned) integerVal(Lhs) << (unsigned) integerVal(Rhs)));
+        checkAlloc(IntegerCellCount);
+        termPo Rs = (termPo) allocateInteger(H, ((unsigned) Lhs << (unsigned) Rhs));
         push(Rs);
         continue;
       }
       case BLsr: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
+        integer Lhs = integerVal(pop());
+        integer Rhs = integerVal(pop());
 
-        termPo Rs = (termPo) allocateInteger(H, (((unsigned) integerVal(Lhs)) >> ((unsigned) integerVal(Rhs))));
+        checkAlloc(IntegerCellCount);
+        termPo Rs = (termPo) allocateInteger(H, (((unsigned) Lhs) >> ((unsigned) Rhs)));
         push(Rs);
         continue;
       }
       case BAsr: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
+        integer Lhs = integerVal(pop());
+        integer Rhs = integerVal(pop());
 
-        termPo Rs = (termPo) allocateInteger(H, (integerVal(Lhs) >> integerVal(Rhs)));
+        checkAlloc(IntegerCellCount);
+        termPo Rs = (termPo) allocateInteger(H, (Lhs)>> Rhs);
         push(Rs);
         continue;
       }
       case FAdd: {
-        termPo Rhs = pop();
-        termPo Lhs = pop();
+        double Rhs = floatVal(pop());
+        double Lhs = floatVal(pop());
 
-        termPo Rs = (termPo) allocateFloat(H, floatVal(Lhs) + floatVal(Rhs));
+        checkAlloc(FloatCellCount);
+        termPo Rs = (termPo) allocateFloat(H, Lhs + Rhs);
         push(Rs);
         continue;
       }
       case FSub: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
+        double Rhs = floatVal(pop());
+        double Lhs = floatVal(pop());
 
-        termPo Rs = (termPo) allocateFloat(H, floatVal(Lhs) - floatVal(Rhs));
+        checkAlloc(FloatCellCount);
+        termPo Rs = (termPo) allocateFloat(H, Lhs - Rhs);
         push(Rs);
         continue;
       }
       case FMul: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
+        double Rhs = floatVal(pop());
+        double Lhs = floatVal(pop());
 
-        termPo Rs = (termPo) allocateFloat(H, floatVal(Lhs) * floatVal(Rhs));
+        checkAlloc(FloatCellCount);
+        termPo Rs = (termPo) allocateFloat(H, Lhs * Rhs);
         push(Rs);
         continue;
       }
       case FDiv: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
+        double Rhs = floatVal(pop());
+        double Lhs = floatVal(pop());
 
-        termPo Rs = (termPo) allocateFloat(H, floatVal(Lhs) / floatVal(Rhs));
+        checkAlloc(FloatCellCount);
+        termPo Rs = (termPo) allocateFloat(H, Lhs / Rhs);
         push(Rs);
         continue;
       }
       case FMod: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
-        termPo Rs = (termPo) allocateFloat(H, fmod(floatVal(Lhs), floatVal(Rhs)));
+        double Rhs = floatVal(pop());
+        double Lhs = floatVal(pop());
+
+        checkAlloc(FloatCellCount);
+        termPo Rs = (termPo) allocateFloat(H, fmod(Lhs, Rhs));
         push(Rs);
         continue;
       }

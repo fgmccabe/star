@@ -16,8 +16,7 @@
 typedef struct method_ {
   clssPo clss;         // == specialClass
   integer codeSize;     /* How big is the code block */
-  jitCode jit;        /* Pointer to jit'ed code */
-  integer jitSize;       /* How big is the Jit code? */
+  jitCode jit;          /* Pointer to jit'ed code */
 
   integer arity;        /* How many arguments in method */
   integer lclcnt;       // How many locals in the environment
@@ -54,6 +53,11 @@ static inline int64 argCount(methodPo mtd) {
 static inline integer stackDelta(methodPo mtd) {
   assert(mtd != Null);
   return mtd->stackDelta;
+}
+
+static inline logical hasJit(methodPo mtd){
+  assert(mtd != Null);
+  return mtd->jit!=Null;
 }
 
 extern retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
