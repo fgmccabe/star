@@ -103,6 +103,7 @@ star.compiler.operators{
   oper("~~") => [infixOp(1239,1240,1240)].
   oper("assert") => [prefixOp(1240,1239)].
   oper("!!") => [postfixOp(99,100)].
+  oper("⊕") => [infixOp(720,720,719)].
   oper(".^.") => [infixOp(720,720,719)].
   oper("//") => [infixOp(960,960,959)].
   oper("public") => [prefixOp(1700,1699)].
@@ -147,6 +148,9 @@ star.compiler.operators{
   oper(_) default => [].
 
   public isBracket:(string) => option[bracket].
+  isBracket("[|") => some(bkt("[|","[||]","|]",2000)).
+  isBracket("|]") => some(bkt("[|","[||]","|]",2000)).
+  isBracket("[||]") => some(bkt("[|","[||]","|]",2000)).
   isBracket("<|") => some(bkt("<|","<||>","|>",2000)).
   isBracket("|>") => some(bkt("<|","<||>","|>",2000)).
   isBracket("<||>") => some(bkt("<|","<||>","|>",2000)).
@@ -200,6 +204,7 @@ star.compiler.operators{
   first(0c?) => some("?").
   first(0c@) => some("@").
   first(0c!) => some("!").
+  first(0c⊕) => some("⊕").
   first(0c•) => some("•").
   first(0c#) => some("#").
   first(0c$) => some("$").
@@ -244,12 +249,14 @@ star.compiler.operators{
   follows("/",0c/) => some("//").
   follows("//",0c/) => some("///").
   follows("{",0c.) => some("{.").
+  follows("|",0c]) => some("|]").
   follows("|",0c:) => some("|:").
   follows("|",0c|) => some("||").
   follows("|",0c>) => some("|>").
   follows("|",0c)) => some("|)").
   follows("~",0c~) => some("~~").
   follows("~",0c>) => some("~>").
+  follows("[",0c|) => some("[|").
   follows("\\",0c+) => some("\\+").
   follows("\\",0c-) => some("\\-").
   follows("\\",0c/) => some("\\/").
@@ -324,6 +331,7 @@ star.compiler.operators{
   final("{") => .true.  /* braces */
   final("{.") => .true.  /* non-recursive braces */
   final("|") => .true.  /* type union, conditional, and abstraction */
+  final("|]") => .true.  /* measure brackets */
   final("|:") => .true.  /* constrained type */
   final("||") => .true.  /* disjunction */
   final("|>") => .true.  /* meta quote */
@@ -333,6 +341,7 @@ star.compiler.operators{
   final("~~") => .true.  /* quantifier */
   final("~>") => .true.  /* type function */
   final("[") => .true.  /* square brackets */
+  final("[|") => .true.  /* measure brackets */
   final("\\") => .true.  /* difference */
   final("\\+") => .true.  /* add element to set */
   final("\\-") => .true.  /* remove element from set */
@@ -372,6 +381,7 @@ star.compiler.operators{
   final("@") => .true.  /* meta annotation */
   final("!") => .true.  /* pick up value from a ref cell */
   final("!!") => .true.  /* pick up value from a memo */
+  final("⊕") => .true.  /* addition */
   final("•") => .true.  /* function composition */
   final("#") => .true.  /* Macro statement marker */
   final("$$") => .true.  /* wrap value in memo */
