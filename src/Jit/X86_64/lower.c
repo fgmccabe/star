@@ -39,4 +39,11 @@ retCode jit_Drop(insPo code,integer *c,jitCompPo context){
   return Ok;
 }
 
+retCode jit_IAdd(insPo code,integer *pc,jitCompPo context){
 
+}
+//instruction(ISub,tOs,nOp,-1,"L R --> L-R")
+//instruction(IMul,tOs,nOp,-1,"L R --> L*R")
+//instruction(IDiv,tOs,nOp,-1,"L R --> L/R")
+//instruction(IMod,tOs,nOp,-1,"L R --> L%R")
+//instruction(IAbs,tOs,nOp,0,"L --> abs(L)")
