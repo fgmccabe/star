@@ -7,6 +7,18 @@ star.compiler.intrinsics{
   import star.compiler.assem.
 
   public intrinsic:(string) => option[(tipe,assemOp)].
+  intrinsic("_int_plus") => some((tpExp(tpExp(tpFun("=>",2),tupleType([intType,intType])),intType),.iIAdd)).  -- add two integers
+  intrinsic("_int_minus") => some((tpExp(tpExp(tpFun("=>",2),tupleType([intType,intType])),intType),.iISub)).  -- subtract two integers
+  intrinsic("_int_times") => some((tpExp(tpExp(tpFun("=>",2),tupleType([intType,intType])),intType),.iIMul)).  -- multiply two integers
+  intrinsic("_int_div") => some((tpExp(tpExp(tpFun("=>",2),tupleType([intType,intType])),intType),.iIDiv)).  -- divide two integers
+  intrinsic("_int_mod") => some((tpExp(tpExp(tpFun("=>",2),tupleType([intType,intType])),intType),.iIMod)).  -- modulo remainder
+  intrinsic("_flt_plus") => some((tpExp(tpExp(tpFun("=>",2),tupleType([fltType,fltType])),fltType),.iFAdd)).  -- add two floats
+  intrinsic("_flt_minus") => some((tpExp(tpExp(tpFun("=>",2),tupleType([fltType,fltType])),fltType),.iFSub)).  -- subtract two floats
+  intrinsic("_flt_times") => some((tpExp(tpExp(tpFun("=>",2),tupleType([fltType,fltType])),fltType),.iFMul)).  -- multiply two floats
+  intrinsic("_flt_div") => some((tpExp(tpExp(tpFun("=>",2),tupleType([fltType,fltType])),fltType),.iFDiv)).  -- divide two floats
+  intrinsic("_flt_mod") => some((tpExp(tpExp(tpFun("=>",2),tupleType([fltType,fltType])),fltType),.iFMod)).  -- modulo remainder
+  intrinsic("_int_abs") => some((tpExp(tpExp(tpFun("=>",2),tupleType([intType])),intType),.iIAbs)).  -- integer absolute value
+  intrinsic("_flt_abs") => some((tpExp(tpExp(tpFun("=>",2),tupleType([fltType])),fltType),.iFAbs)).  -- float absolute value
   intrinsic("_int_eq") => some((tpExp(tpExp(tpFun("=>",2),tupleType([intType,intType])),boolType),.iIEq)).  -- integer equality
   intrinsic("_int_lt") => some((tpExp(tpExp(tpFun("=>",2),tupleType([intType,intType])),boolType),.iILt)).  -- integer less than
   intrinsic("_int_ge") => some((tpExp(tpExp(tpFun("=>",2),tupleType([intType,intType])),boolType),.iIGe)).  -- integer greater or equal
