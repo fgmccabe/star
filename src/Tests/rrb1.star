@@ -42,8 +42,8 @@ test.rrb{
     }
   }
 
-  SS = ["zero",..T].
+--  SS = ["zero",..T].
 
-  rev:all e ~~ (sk[e])=>sk[e].
-  rev(Tt) => foldLeft((E,So)=>[E,..So],[],Tt).
+--  rev:all e ~~ (sk[e])=>sk[e].
+--  rev(Tt) => foldLeft((E,So)=>[E,..So],[],Tt).
 }

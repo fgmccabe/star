@@ -17,8 +17,6 @@ star.ideal{
     private ihLeaf(integer,cons[keyval[k,v]]) | 
       private ihNode(map[k,v],map[k,v],map[k,v],map[k,v]). -- non-leaf case
 
-  public all K,V ~~ keyval[K,V] ::= (->)(K,V).
-  
   findIdeal: all k,v ~~ equality[k],hash[k] |: (map[k,v],k) => option[v].
   findIdeal(Tr,Ky) => findInTree(0,hash(Ky),Ky,Tr).
 
@@ -111,10 +109,6 @@ star.ideal{
   maxDepth = 64.
 
   -- Implement some standard contracts
-
-  implementation all k,v ~~ equality[k],equality[v] |: equality[keyval[k,v]] => {.
-    K1->V1 == K2->V2 => K1==K2 && V1==V2
-  .}
 
   public implementation all k,v ~~ equality[k],equality[v] |: equality[map[k,v]] => let {
     mapPairs(.ihNil,L) => L.

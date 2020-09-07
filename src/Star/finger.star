@@ -10,14 +10,14 @@ star.finger{
 
   -- 2-3 finger trees.
 
-  public all a ~~ fingerTree[a] ::=
+  public fingerTree[a] ::=
     private .eTree |
-    private single(a) |
-    private deep(digit[a],fingerTree[node[a]],digit[a]).
+      private single(a) |
+      private deep(integer,digit[a],fingerTree[node[a]],digit[a]).
 
   digit[a] ::= one(a) | two(a,a) | three(a,a,a) | four(a,a,a,a).
 
-  node[a] ::= node2(a,a) | node3(a,a,a).
+  node[a] ::= node2(integer,a,a) | node3(integer,a,a,a).
 
   implementation all e ~~ reduce[node[e]->>e] => {
     reducer = reducerNode.
@@ -26,14 +26,14 @@ star.finger{
   
   reducerNode:all e,a ~~ ((e,a)=>a) => (node[e],a)=>a.
   reducerNode(F) => let{
-    rdr(node2(a,b),z) => F(a,F(b,z)).
-    rdr(node3(a,b,c),z) => F(a,F(b,F(c,z))).
+    rdr(node2(_,a,b),z) => F(a,F(b,z)).
+    rdr(node3(_,a,b,c),z) => F(a,F(b,F(c,z))).
   } in rdr.
 
   reducelNode:all e,a ~~ ((e,a)=>a) => (node[e],a)=>a.
   reducelNode(F) => let{
-    rdl(node2(b,a),z) => F(a,F(b,z)).
-    rdl(node3(c,b,a),z) => F(a,F(b,F(c,z))).
+    rdl(node2(_,b,a),z) => F(a,F(b,z)).
+    rdl(node3(_,c,b,a),z) => F(a,F(b,F(c,z))).
   } in rdl.
 
   implementation all e ~~ reduce[digit[e]->>e] => {
@@ -57,7 +57,7 @@ star.finger{
     rdl(four(u,v,w,x),z) => F(w,F(v,F(u,F(x,z)))).
   } in rdl.
 
-  implementation all e ~~coercion[digit[e],cons[e]] => {
+  implementation all e ~~ coercion[digit[e],cons[e]] => {
     _coerce(one(x)) => some([x]).
     _coerce(two(x,y)) => some([x,y]).
     _coerce(three(x,y,z)) => some([x,y,z]).
@@ -65,8 +65,8 @@ star.finger{
   }
 
   implementation all e ~~ coercion[node[e],cons[e]] => {
-    _coerce(node2(l,r)) => some([l,r]).
-    _coerce(node3(l,m,r)) => some([l,m,r]).
+    _coerce(node2(_,l,r)) => some([l,r]).
+    _coerce(node3(_,l,m,r)) => some([l,m,r]).
   }
   
   implementation all e ~~ reduce[fingerTree[e]->>e] => {
@@ -78,7 +78,7 @@ star.finger{
   reducerTree(F) => let{
     rdr(.eTree,z) => z.
     rdr(single(u),z) => F(u,z).
-    rdr(deep(lft,mid,rgt),z) => let{
+    rdr(deep(_,lft,mid,rgt),z) => let{
       F1 = reducerDigits(F).
       F2 = reducerTree(reducerNode(F)).
     } in F1(lft,F2(mid,F1(rgt,z)))
@@ -88,7 +88,7 @@ star.finger{
   reducelTree(F) => let{
     rdl(.eTree,z) => z.
     rdl(single(u),z) => F(u,z).
-    rdl(deep(lft,mid,rgt),z) => let{
+    rdl(deep(_,lft,mid,rgt),z) => let{
       F1 = reducelDigits(F).
       F2 = reducelTree(reducelNode(F)).
     } in F1(rgt,F2(mid,F1(lft,z))).
@@ -116,108 +116,142 @@ star.finger{
     tail(four(_,x,y,z)) => some(three(x,y,z)).
   }
 
-  prepend:all e ~~ (e,fingerTree[e]) => fingerTree[e].
+  prepend:all e ~~ measured[e->>integer] |: (e,fingerTree[e]) => fingerTree[e].
   prepend(a,.eTree) => single(a).
-  prepend(a,single(b)) => deep(one(a),.eTree,one(b)).
-  prepend(a,deep(four(x,y,z,u),mid,r)) => deep(two(a,x),prepend(node3(y,z,u),mid),r).
-  prepend(a,deep(l,mid,r)) => deep(one(a)++l,mid,r).
+  prepend(a,single(b)) => deep([|a|]⊕[|b|],one(a),.eTree,one(b)).
+  prepend(a,deep(M,four(x,y,z,u),mid,r)) =>
+    deep([|a|]⊕M,two(a,x),prepend(node3([|y|]⊕[|z|]⊕[|u|],y,z,u),mid),r).
+  prepend(a,deep(M,l,mid,r)) => deep([|a|]⊕M,one(a)++l,mid,r).
 
-  append:all e ~~ (e,fingerTree[e]) => fingerTree[e].
+  append:all e ~~ measured[e->>integer] |:
+    (e,fingerTree[e]) => fingerTree[e].
   append(x,.eTree) => single(x).
-  append(x,single(a)) => deep(one(a),.eTree,one(x)).
-  append(x,deep(l,mid,four(a,b,c,d))) => deep(l,append(node3(a,b,c),mid),two(d,x)).
-  append(x,deep(l,mid,r)) => deep(l,mid,r++one(x)).
+  append(x,single(a)) => deep([|x|]⊕[|a|],one(a),.eTree,one(x)).
+  append(x,deep(M,l,mid,four(a,b,c,d))) =>
+    deep([|x|]⊕M,l,append(node3([|a|]⊕[|b|]⊕[|c|],a,b,c),mid),two(d,x)).
+  append(x,deep(M,l,mid,r)) => deep([|x|]⊕M,l,mid,r++one(x)).
 
-  liftPrepend:all e,f ~~ reduce[f->>e] |: (f,fingerTree[e]) => fingerTree[e].
+  liftPrepend:all e,f ~~ reduce[f->>e],measured[e->>integer] |:
+    (f,fingerTree[e]) => fingerTree[e].
   liftPrepend = reducer(prepend).
 
-  liftAppend:all e,f ~~ reduce[f->>e] |: (f,fingerTree[e])=>fingerTree[e].
+  liftAppend:all e,f ~~ reduce[f->>e],measured[e->>integer] |:
+    (f,fingerTree[e])=>fingerTree[e].
   liftAppend = reducel(append).
 
-  app3:all a ~~ (fingerTree[a],cons[a],fingerTree[a]) => fingerTree[a].
+  app3:all a ~~ measured[a->>integer] |:
+    (fingerTree[a],cons[a],fingerTree[a]) => fingerTree[a].
   app3(.eTree,ts,xs) => liftPrepend(ts,xs).
   app3(xs,ts,.eTree) => liftAppend(ts,xs).
   app3(single(x),ts,xs) => prepend(x,liftPrepend(ts,xs)).
   app3(xs,ts,single(x)) => append(x,liftAppend(ts,xs)).
-  app3(deep(pr1,m1,sf1),ts,deep(pr2,m2,sf2)) =>
-    deep(pr1,app3(m1,nodes(sf1::cons[a]++ts++pr2::cons[a]),m2),sf2).
+  app3(deep(M1,pr1,m1,sf1),ts,deep(M2,pr2,m2,sf2)) =>
+    deep(M1⊕M2,pr1,app3(m1,nodes(sf1::cons[a]++ts++pr2::cons[a]),m2),sf2).
 
-  nodes:all e ~~ (cons[e]) => cons[node[e]].
-  nodes([a,b]) => [node2(a,b)].
-  nodes([a,b,c]) => [node3(a,b,c)].
-  nodes([a,b,c,d]) => [node2(a,b),node2(c,d)].
-  nodes([a,b,c,..l]) => [node3(a,b,c),..nodes(l)].
+  nodes:all e ~~ measured[e->>integer] |: (cons[e]) => cons[node[e]].
+  nodes([a,b]) => [node2([|a|]⊕[|b|],a,b)].
+  nodes([a,b,c]) => [node3([|a|]⊕[|b|]⊕[|c|],a,b,c)].
+  nodes([a,b,c,d]) => [node2([|a|]⊕[|b|],a,b),node2([|c|]⊕[|d|],c,d)].
+  nodes([a,b,c,..l]) => [node3([|a|]⊕[|b|]⊕[|c|],a,b,c),..nodes(l)].
 
-  public implementation all e ~~ concat[fingerTree[e]] => {
-    T1++T2 => app3(T1,[],T2).
-  }
+  public implementation all e ~~ measured[e->>integer] |:
+    concat[fingerTree[e]] => {.
+      T1++T2 => app3(T1,[],T2).
+    .}.
 
-  public implementation all e ~~ sequence[fingerTree[e]->>e] => {
-    _cons(e,t) => prepend(e,t).
-    _nil = .eTree.
-  }
+  public implementation all e ~~ measured[e->>integer] |:
+    sequence[fingerTree[e]->>e] => {
+      _cons(e,t) => prepend(e,t).
+      _nil = .eTree.
+    }.
 
+  -- Implement meaasured contract
+  implementation all a ~~ measured[node[a]->>integer] => {.
+    [|node2(V,_,_)|]=>V.
+    [|node3(V,_,_,_)|] => V.
+  .}.
+
+  implementation all a ~~ measured[a->>integer] |:
+    measured[digit[a]->>integer] => {.
+      [|one(A)|] => [|A|].
+      [|two(A,B)|] => [|A|]⊕[|B|].
+      [|three(A,B,C)|] => [|A|]⊕[|B|]⊕[|C|].
+      [|four(A,B,C,D)|] => [|A|]⊕[|B|]⊕[|C|]⊕[|D|].
+    .}.
+
+  public implementation all a ~~ measured[a->>integer] |:
+    measured[fingerTree[a]->>integer] => {.
+      [|.eTree|] => zed.
+      [|single(A)|] => [|A|].
+      [|deep(V,_,_,_)|] => V
+    .}.
+  
   -- Implement iter contract
 
-  public implementation all t ~~ iter[fingerTree[t]->>t] => {
-    _iter:all x,m/2,e ~~ execution[m] |: (fingerTree[t],m[e,x],(t,x)=>m[e,x]) => m[e,x].
-    _iter(Lst,St,Fn) => iterOverFinger(Lst,St,Fn).
-
-    private iterOverFinger:all x,m/2,er ~~ execution[m] |:
-      (fingerTree[t],m[er,x],(t,x)=>m[er,x]) => m[er,x].
-    iterOverFinger(.eTree,St,_) => St.
-    iterOverFinger(Tr,St,Fn) where 
-	consl(El,tl) .= viewl(Tr) =>
-      _sequence(St,(SS)=>iterOverFinger(tl,Fn(El,SS),Fn)).
-  }
+  public implementation all t ~~ measured[t->>integer] |:
+    iter[fingerTree[t]->>t] => {
+      _iter:all x,m/2,e ~~ execution[m] |: (fingerTree[t],m[e,x],(t,x)=>m[e,x]) => m[e,x].
+      _iter(Lst,St,Fn) => iterOverFinger(Lst,St,Fn).
+    
+      private iterOverFinger:all x,m/2,er ~~ execution[m] |:
+	(fingerTree[t],m[er,x],(t,x)=>m[er,x]) => m[er,x].
+      iterOverFinger(.eTree,St,_) => St.
+      iterOverFinger(Tr,St,Fn) where 
+	  consl(El,tl) .= viewl(Tr) =>
+	_sequence(St,(SS)=>iterOverFinger(tl,Fn(El,SS),Fn)).
+    }.
 
   -- Implement display
 
   all s/1,a ~~ viewL[s,a] ::= .nill | consl(a,s[a]).
 
-  viewl:all e ~~ (fingerTree[e])=>viewL[fingerTree,e].
+  viewl:all e ~~ measured[e->>integer] |: (fingerTree[e])=>viewL[fingerTree,e].
   viewl(.eTree) => .nill.
   viewl(single(E)) => consl(E,.eTree).
-  viewl(deep(Lft,Md,Rgt)) where H^=head(Lft) => consl(H,deepL(tail(Lft),Md,Rgt)).
+  viewl(deep(M,Lft,Md,Rgt)) where H^=head(Lft) =>
+    consl(H,deepL(tail(Lft),Md,Rgt)).
 
   toDigit:all e ~~ (node[e])=>digit[e].
-  toDigit(node2(x,y)) => two(x,y).
-  toDigit(node3(x,y,z)) => three(x,y,z).
+  toDigit(node2(_,x,y)) => two(x,y).
+  toDigit(node3(_,x,y,z)) => three(x,y,z).
 
-  toTree:all e ~~ (digit[e]) => fingerTree[e].
+  toTree:all e ~~ measured[e->>integer] |: (digit[e]) => fingerTree[e].
   toTree(one(x)) => single(x).
-  toTree(two(x,y)) => deep(one(x),.eTree,one(y)).
-  toTree(three(x,y,z)) => deep(two(x,y),.eTree,one(z)).
-  toTree(four(x,y,z,u)) => deep(two(x,y),.eTree,two(z,u)).
+  toTree(two(x,y)) => deep([|x|]⊕[|y|],one(x),.eTree,one(y)).
+  toTree(three(x,y,z)) => deep([|x|]⊕[|y|]⊕[|z|],two(x,y),.eTree,one(z)).
+  toTree(four(x,y,z,u)) => deep([|x|]⊕[|y|]⊕[|z|]⊕[|u|],two(x,y),.eTree,two(z,u)).
 
-  deepL:all e ~~ (option[digit[e]],fingerTree[node[e]],digit[e]) => fingerTree[e].
+  deepL:all e ~~ measured[e->>integer] |:
+    (option[digit[e]],fingerTree[node[e]],digit[e]) => fingerTree[e].
   deepL(.none,Md,Rgt) =>
     ( consl(H,M) .= viewl(Md) ?
-	deep(toDigit(H),M,Rgt) ||
+	deep([|H|]⊕[|M|]⊕[|Rgt|],toDigit(H),M,Rgt) ||
 	toTree(Rgt)).
-  deepL(some(L),Md,Rgt) => deep(L,Md,Rgt).
+  deepL(some(L),Md,Rgt) => deep([|L|]⊕[|Md|]⊕[|Rgt|],L,Md,Rgt).
 
-  public implementation all e ~~ head[fingerTree[e]->>e] => {
-    head(T) where consl(h,_) .= viewl(T) => some(h).
-    head(_) => .none.
+  public implementation all e ~~ measured[e->>integer] |:
+    head[fingerTree[e]->>e] => {
+      head(T) where consl(h,_) .= viewl(T) => some(h).
+      head(_) => .none.
 
-    tail(T) where consl(_,t) .= viewl(T) => some(t).
-    tail(_) => .none.
-  }
+      tail(T) where consl(_,t) .= viewl(T) => some(t).
+      tail(_) => .none.
+    }.
 
   all s/1,a ~~ viewR[s,a] ::= .nilr | consr(a,s[a]).
 
-  viewr:all e ~~ (fingerTree[e])=>viewR[fingerTree,e].
+  viewr:all e ~~ measured[e->>integer] |: (fingerTree[e])=>viewR[fingerTree,e].
   viewr(.eTree) => .nilr.
   viewr(single(E)) => consr(E,.eTree).
-  viewr(deep(Lft,Md,Rgt)) where L^=last(Rgt) => consr(L,deepR(lead(Rgt),Md,Lft)).
+  viewr(deep(M,Lft,Md,Rgt)) where L^=last(Rgt) => consr(L,deepR(lead(Rgt),Md,Lft)).
 
-  deepR:all e ~~ (option[digit[e]],fingerTree[node[e]],digit[e]) => fingerTree[e].
+  deepR:all e ~~ measured[e->>integer] |:
+    (option[digit[e]],fingerTree[node[e]],digit[e]) => fingerTree[e].
   deepR(.none,Md,Lft) =>
     ( consr(L,F) .= viewr(Md) ?
-	deep(Lft,F,toDigit(L)) ||
+	deep([|Lft|]⊕[|F|]⊕[|L|],Lft,F,toDigit(L)) ||
 	toTree(Lft)).
-  deepR(some(L),Md,Rgt) => deep(L,Md,Rgt).
+  deepR(some(L),Md,Rgt) => deep([|L|]⊕[|Md|]⊕[|Rgt|],L,Md,Rgt).
 
   implementation all e ~~ back[digit[e]->>e] => {
     last(one(x)) => some(x).
@@ -231,7 +265,7 @@ star.finger{
     lead(four(x,y,z,_)) => some(three(x,y,z)).
   }
 
-  public implementation all e ~~ back[fingerTree[e]->>e] => {
+  public implementation all e ~~ measured[e->>integer] |: back[fingerTree[e]->>e] => {
     last(T) where consr(l,_) .= viewr(T) => some(l).
     last(_) => .none.
 
@@ -239,7 +273,7 @@ star.finger{
     lead(_) => .none.
   }
 
-  public implementation all e ~~ stream[fingerTree[e]->>e] => {
+  public implementation all e ~~ measured[e->>integer] |: stream[fingerTree[e]->>e] => {
     _eof(.eTree) => .true.
     _eof(_) => .false.
 
@@ -259,7 +293,7 @@ star.finger{
   dispTree:all e ~~ (fingerTree[e],(e,cons[ss])=>cons[ss],cons[ss]) => cons[ss].
   dispTree(.eTree,_,L) => L.
   dispTree(single(x),d,L) => d(x,L).
-  dispTree(deep(Lft,Md,Rgt),d,L) =>
+  dispTree(deep(_,Lft,Md,Rgt),d,L) =>
     dispDigits(Lft,d,
       dispTree(Md,(N,LL)=>dispNode(N,d,LL),
 	dispDigits(Rgt,d,L))).
@@ -276,8 +310,8 @@ star.finger{
 	  d(u,L)))).
 
   dispNode:all e ~~ (node[e],(e,cons[ss])=>cons[ss],cons[ss]) => cons[ss].
-  dispNode(node2(x,y),d,L) => d(x,d(y,L)).
-  dispNode(node3(x,y,z),d,L) => 
+  dispNode(node2(_,x,y),d,L) => d(x,d(y,L)).
+  dispNode(node3(_,x,y,z),d,L) => 
     d(x,d(y,d(z,L))).
   
 }

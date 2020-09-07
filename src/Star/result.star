@@ -27,8 +27,4 @@ star.result{
 
     _raise(S) => _failed(S).
   }
-
-  public implementation all e ~~ monadZero[result[e]] => {
-    zed = ._no_result
-  }
 }

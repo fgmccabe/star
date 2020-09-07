@@ -26,11 +26,11 @@ test.p{
   public _item:all s,t ~~ stream[s->>t] |: parser[s,t].
   _item=parser(pick).
 
-  zed : all e,t ~~ parser[e,t].
-  zed = parser((_)=>[]).
+  epsilon : all e,t ~~ parser[e,t].
+  epsilon = parser((_)=>[]).
 
   public _sat:all s,t ~~ stream[s->>t] |: ((t)=>boolean) => parser[s,t].
-  _sat(T) => _item >>= (Ch) => (T(Ch) ? (return Ch) || zed).
+  _sat(T) => _item >>= (Ch) => (T(Ch) ? (return Ch) || epsilon).
 
   public real:parser[cons[integer],float].
   real = (_tk(0c-) >>= (_) =>
