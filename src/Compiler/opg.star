@@ -86,14 +86,21 @@ star.compiler.opg{
     [tok(_,rgtTok(_)),.._].=Toks => (nme(Lc,Nm),Toks,Rpt,.needOne).
   term00([tok(Lc,idTok(Nm)),..Toks],Rpt) where ~isOperator(Nm) => (nme(Lc,Nm),Toks,Rpt,.needOne).
   term00([tok(Lc,idQTok(Nm)),..Toks],Rpt) => (nme(Lc,Nm),Toks,Rpt,.needOne).
-  term00([tok(Lc,lftTok(Lbl)),tok(Lc1,rgtTok(Lbl)),..Toks],Rpt) => (tpl(mergeLoc(Lc,Lc1),Lbl,[]),Toks,Rpt,.needOne).
+  term00([tok(Lc,lftTok(Lbl)),tok(Lc1,rgtTok(Lbl)),..Toks],Rpt) =>
+    (tpl(mergeLoc(Lc,Lc1),Lbl,[]),Toks,Rpt,.needOne).
   term00([tok(Lc,lftTok(Lbl)),..Toks],Rpt) where
     bkt(_,Lbl,_,Inner) ^= isBracket(Lbl) &&
     (Arg,_,Toks1,Rpt1,_) .= term(Toks,Rpt,Inner) &&
     (Lc2,Rpt2,Toks2) .= checkToken(rgtTok(Lbl),Rpt1,Toks1) =>
-    (tpl(mergeLoc(Lc,Lc2),Lbl,deComma(Arg)),Toks2,Rpt2,.needOne).
+    (genBkt(mergeLoc(Lc,Lc2),Lbl,Arg),Toks2,Rpt2,.needOne).
   term00([Tk,..Toks],Rp) =>
     term00(Toks,reportError(Rp,"problem with $(Tk)",locOf(Tk))).
+
+  genBkt(Lc,"[]",Arg)=>tpl(Lc,"[]",deComma(Arg)).
+  genBkt(Lc,"()",Arg)=>tpl(Lc,"()",deComma(Arg)).
+  genBkt(Lc,"(||)",Arg)=>unary(Lc,"(||)",Arg).
+  genBkt(Lc,"[||]",Arg)=>unary(Lc,"[||]",Arg).
+  genBkt(Lc,"<||>",Arg)=>unary(Lc,"<||>",Arg).
 
   termArgs:((ast,cons[token],reports,needsTerm)) => (ast,integer,cons[token],reports,needsTerm).
   termArgs((Left,[tok(Lc,lftTok("()")),tok(Lcx,rgtTok("()")),..Toks],Rpt,_)) =>

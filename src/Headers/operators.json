@@ -630,6 +630,16 @@
     "keyword": false
   },
   {
+    "infixOp": "⊕",
+    "priorities": [
+      720,
+      720,
+      719
+    ],
+    "desc": "addition",
+    "keyword": false
+  },
+  {
     "infixOp": "<$",
     "priorities": [
       719,
@@ -1128,6 +1138,13 @@
     "right": "]",
     "priority": 2000,
     "desc": "square brackets"
+  },
+  {
+    "bracket": "[||]",
+    "left": "[|",
+    "right": "|]",
+    "priority": 2000,
+    "desc": "measure brackets"
   },
   {
     "bracket": "{}",

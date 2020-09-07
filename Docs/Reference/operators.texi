@@ -294,6 +294,10 @@
 @tab non-associative postfix
 @tab 100
 @tab pick up value from a memo
+@item @code{⊕}
+@tab left associative infix
+@tab 720
+@tab addition
 @item @code{.^.}
 @tab left associative infix
 @tab 720

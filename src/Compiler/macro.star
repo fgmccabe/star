@@ -17,6 +17,8 @@ star.compiler.macro{
       (.expression,macroListComprehension),
       (.expression,makeSeqExp)],
     "<||>" -> [(.expression,macroQuote)],
+    "[||]" -> [(.expression,macroTpl)],
+    "(||)" -> [(.expression,macroTpl)],
     "::" -> [(.expression,macroCoercion)],
     ":?" -> [(.expression,macroCoercion)],
     "{}" -> [(.expression,macroComprehension)],
@@ -717,7 +719,10 @@ star.compiler.macro{
     either(active(typeAnnotation(Lc,unary(Lc,"_coerce",L),sqUnary(Lc,"option",R)))).
   macroCoercion(_,_,_) => either(.inactive).
 
-
+  macroTpl(tpl(Lc,Lbl,[]),.expression,Rp) => either(active(qnm(Lc,Lbl))).
+  macroTpl(tpl(Lc,Lbl,[A]),.expression,Rp) => either(active(unary(Lc,Lbl,A))).
+  macroTpl(_,_,_) => either(.inactive).
+  
   macroQuote(A,.expression,Rp) where (Lc,Trm) ^= isQuoted(A) =>
     either(active(quoteAst(A))).
   macroQuote(_,_,_) => either(.inactive).

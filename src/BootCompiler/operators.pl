@@ -86,6 +86,7 @@
   operator("~~", [infixOp(1239, 1240, 1240)]).
   operator("assert", [prefixOp(1240, 1239)]).
   operator("!!", [postfixOp(99, 100)]).
+  operator("⊕", [infixOp(720, 720, 719)]).
   operator(".^.", [infixOp(720, 720, 719)]).
   operator("//", [infixOp(960, 960, 959)]).
   operator("public", [prefixOp(1700, 1699)]).
@@ -128,6 +129,7 @@
   operator(">=", [infixOp(899, 900, 899)]).
   operator(">>", [infixOp(949, 950, 950)]).
 
+  bracket("[||]", "[|", "|]", 2000).
   bracket("<||>", "<|", "|>", 2000).
   bracket("{..}", "{.", ".}", 2000).
   bracket("[]", "[", "]", 2000).
@@ -161,6 +163,7 @@
   follows('','?','?').
   follows('','@','@').
   follows('','!','!').
+  follows('','⊕','⊕').
   follows('','•','•').
   follows('','#','#').
   follows('','$','$').
@@ -202,12 +205,14 @@
   follows('/','/','//').
   follows('//','/','///').
   follows('{','.','{.').
+  follows('|',']','|]').
   follows('|',':','|:').
   follows('|','|','||').
   follows('|','>','|>').
   follows('|',')','|)').
   follows('~','~','~~').
   follows('~','>','~>').
+  follows('[','|','[|').
   follows('\\','+','\\+').
   follows('\\','-','\\-').
   follows('\\','/','\\/').
@@ -281,6 +286,7 @@
   final('{',"{").	 /* braces */
   final('{.',"{.").	 /* non-recursive braces */
   final('|',"|").	 /* type union, conditional, and abstraction */
+  final('|]',"|]").	 /* measure brackets */
   final('|:',"|:").	 /* constrained type */
   final('||',"||").	 /* disjunction */
   final('|>',"|>").	 /* meta quote */
@@ -290,6 +296,7 @@
   final('~~',"~~").	 /* quantifier */
   final('~>',"~>").	 /* type function */
   final('[',"[").	 /* square brackets */
+  final('[|',"[|").	 /* measure brackets */
   final('\\',"\\").	 /* difference */
   final('\\+',"\\+").	 /* add element to set */
   final('\\-',"\\-").	 /* remove element from set */
@@ -329,6 +336,7 @@
   final('@',"@").	 /* meta annotation */
   final('!',"!").	 /* pick up value from a ref cell */
   final('!!',"!!").	 /* pick up value from a memo */
+  final('⊕',"⊕").	 /* addition */
   final('•',"•").	 /* function composition */
   final('#',"#").	 /* Macro statement marker */
   final('$$',"$$").	 /* wrap value in memo */

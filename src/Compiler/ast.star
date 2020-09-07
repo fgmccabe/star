@@ -161,5 +161,5 @@ star.compiler.ast{
   public qbrTuple(Lc,Els) => tpl(Lc,"{..}",Els).
 
   public isQuoted(tpl(Lc,"<||>",[E])) => some((Lc,E)).
-  isQuoted(_) default => .none.
+  isQuoted(E) => isUnary(E,"<||>").
 }
