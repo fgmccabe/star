@@ -296,8 +296,10 @@ void verifyProc(processPo P, heapPo H) {
 }
 
 void dumpGcStats() {
-  logMsg(logFile, "%ld allocations, %ld words, %d gc collections, %d heap grows",
-         numAllocated, totalAllocated, gcCount, gcGrow);
+#ifdef TRACEMEM
+  logMsg(logFile, "%ld allocations, %ld words, %d gc collections, %d heap grows, %d stack extensions",
+         numAllocated, totalAllocated, gcCount, gcGrow, stkGrow);
+#endif
 }
 
 retCode extendHeap(heapPo H, integer factor, integer hmin) {
