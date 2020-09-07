@@ -6,8 +6,7 @@
 
 /* Define the standard intrinsics */
 
-/*
- * intrinsic(_int_plus,"F(ii)i","IAdd","add two integers")
+intrinsic(_int_plus,"F(ii)i","IAdd","add two integers")
 intrinsic(_int_minus,"F(ii)i","ISub","subtract two integers")
 intrinsic(_int_times,"F(ii)i","IMul","multiply two integers")
 intrinsic(_int_div,"F(ii)i","IDiv","divide two integers")
@@ -21,7 +20,7 @@ intrinsic(_flt_mod,"F(ff)f","FMod","modulo remainder")
 
 intrinsic(_int_abs,"F(i)i","IAbs","integer absolute value")
 intrinsic(_flt_abs,"F(f)f","FAbs","float absolute value")
-*/
+
 intrinsic(_int_eq,"F(ii)l","IEq","integer equality")
 intrinsic(_int_lt,"F(ii)l","ILt","integer less than")
 intrinsic(_int_ge,"F(ii)l","IGe","integer greater or equal")
