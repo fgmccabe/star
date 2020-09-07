@@ -8,7 +8,7 @@ computational process of realizing the denoted value.
 @caption{Expression}
 @display
 @anchored{Expression}::=@refer{Variable}
-  | @refer{ScalarLiteral}
+  | @refer{NumericLiteral}
   | @refer{StringLiteral}
   | @refer{AlgebraicLiteral}
   | @refer{ApplicativeExpression}
@@ -56,7 +56,7 @@ variable may not be reassigned to. Furthermore, all variable
 introductions are in contexts where the variable is given a value.
 
 However, it is possible to give a variable a @code{ref} type; which
-permits the variable to be effectively re-assigned.
+permits the variable's value to be effectively re-assigned.
 
 @quotation Note
 Technically, assigning to a @code{ref} variable is not changing the
@@ -143,22 +143,13 @@ P is someone@{ name="fred". age := 23 @}
 I.e., re-assignability depends only on whether the target is re-assignable.
 @end quotation
 
-@node Scalar Literal Expressions
-@section Scalar Literal Expressions
-@cindex scalar literal
-There are three forms of scalar literal expression: numeric literals,
-string literals and enumerated symbols.
+@node Numeric Literal Expressions
+@section Numeric Literal Expressions
+@cindex numeric literal
+There are two forms of numeric literal expression: integers (@ref{Integer Literal}) and floats (@ref{FloatingPoint}).
 
-@float BNF,scalarLiteralFig
-@caption{Scalar Literal}
-@display
-@anchored{ScalarLiteral}::=@refer{IntegerLiteral}
-  | @refer{FloatingPoint}
-@end display
-@end float
-
-@node Integer Scalar Literals
-@subsection Integer Scalar Literals
+@node Integer Literal
+@subsection Integer Literal
 @cindex integer
 
 The @code{integer} type is used to denote integral values in the range
@@ -168,13 +159,6 @@ precision.}
 Integers may be written in a variety of styles (see
 @refer{decimalFig}; the most common form is the simple
 @refer{Decimal} notation.
-
-@float BNF,integerLiteralFig
-@caption{Integer Literals}
-@display
-@anchored{IntegerLiteral} ::= @refer{Decimal} | @refer{Hexadecimal} | @refer{CharacterCode}
-@end display
-@end float
 
 @node Floating Point Literals
 @subsection Floating Point Literals
@@ -187,9 +171,9 @@ bit.
 The syntax of floating point numbers is given in
 @ref{floatingPointFig}.
 
-@node String Expressions
-@section String Expressions
-@cindex string expressions
+@node String Literal Expressions
+@section String Literal Expressions
+@cindex string literals
 
 The @code{string} type is used to denote string values. There are two
 main forms of @code{string} literal: the double-quoted string
@@ -199,7 +183,11 @@ literal.
 The syntax of @code{string} literals is given in @ref{quotedStringFig}.
 
 The simplest form of @code{string} literal is a sequence of characters
-enclosed in double-quotes.
+enclosed in double-quotes:
+
+@example
+"A string literal with 35 characters"
+@end example
 
 In addition, quoted strings may include @emph{interpolation}
 expressions -- which are embedded expressions whose values are
@@ -284,7 +272,7 @@ An expression of the form:
 
 is interpreted as: 
 @example
-ssSeq([ss("@var{prefix}"),displ(@var{Exp}),ss("@var{suffix})])"
+ssSeq([ss("@var{prefix}"),disp(@var{Exp}),ss("@var{suffix})])"
 @end example
 
 If a @refer{FormattingSpec} is present, then the translation takes
@@ -303,7 +291,7 @@ where @code{frmt} is part of the @code{format} contract -- see
 @refer{formatContract}.
 
 @node String Embedding
-@subsection String Embedding
+@subsubsection String Embedding
 @cindex string embedding
 @anchor{stringEmbedding} String embedding is a simpler form of string
 interpolation where the contents of the embedded expression are
@@ -375,22 +363,22 @@ type of the symbol.
 @float BNF,enumeratedSymbolFig
 @caption{Enumerated Symbol}
 @display
-@anchored{EnumeratedSymbol} ::= @var{Identifier}
+@anchored{EnumeratedSymbol} ::= @code{.}@var{Identifier}
 @end display
 @end float
 
 For example, the @code{boolean} type definition has two
-@refer{EnumeratedSymbol}s in its definition: @code{true} and
-@code{false}. Thus
+@refer{EnumeratedSymbol}s in its definition: @code{.true} and
+@code{.false}. Thus
 
 @example
-true
+.true
 @end example
  
 is an expression consisting of an @refer{EnumeratedSymbol} from the
 type definition:
 @example
-boolean ::= true | false.
+boolean ::= .true | .false.
 @end example
 
 Enumerated symbols have no internal structure; they are often used
@@ -398,8 +386,15 @@ to define enumerations or for sentinels. For example, the
 standard cons-list type uses @code{nil} to mark the empty list:
 
 @example
-all e ~~ cons[e] ::=  nil | cons(e,cons[e])
+all e ~~ cons[e] ::=  .nil | cons(e,cons[e])
 @end example
+
+@quotation Note
+The period in front of an enumerated helps to highlight the special
+role of enumerated symbols. It also helps to prevent silent errors
+caused by mistyping an enumerated symbol.
+@end quotation
+
 
 @node Positional Constructor Literals
 @subsection Positional Constructor Literals
