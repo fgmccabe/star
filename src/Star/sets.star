@@ -5,6 +5,7 @@ star.sets{
   import star.ideal.
   import star.iterable.
   import star.cons.
+  import star.tuples.
 
   public all e ~~ set[e] ::= set(map[e,()]).
 

@@ -14,8 +14,9 @@ star.monad{
     (return): all a ~~ (a) => m[a].
   }
 
-  public contract all m/1 ~~ monadZero[m] ::= {
-    zed : all x ~~ m[x].
+  public contract all e ~~ monoid[e] ::= {
+    zed : e.
+    (⊕):(e,e)=>e.
   }
 
   public contract all m/2 ~~ execution[m] ::= {
@@ -34,4 +35,8 @@ star.monad{
   --   id : all a ~~ cat[a,a].
   --   (•) : all a,b,c ~~ (cat[b,c],cat[a,b])=>cat[a,c].
   -- }
+
+  public contract all a,b ~~ measured[a->>b] ::= {
+    '[||]':(a)=>b.
+  }
 }

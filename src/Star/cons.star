@@ -55,6 +55,10 @@ star.cons{
     isEmpty(_) default => .false.
   .}
 
+  public implementation all e ~~ measured[cons[e]->>integer] => {.
+    [|L|] => size(L)
+  .}
+
   last:all e ~~ (cons[e]) => (cons[e],e).
   last(cons(X,.nil)) => (.nil,X).
   last(cons(X,Y)) where (L,E) .= last(Y) => (cons(X,L),E).

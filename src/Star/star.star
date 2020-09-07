@@ -12,6 +12,7 @@ star{
   public import star.ideal.
   public import star.iterable.
   public import star.either.
+  public import star.misc.
   public import star.monad.
   public import star.option.
   public import star.result.

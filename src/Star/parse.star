@@ -20,10 +20,10 @@ star.parse{
   } in parser((S)=>hd(parse(P,S),S)).
 
   public _sat:all s,t ~~ stream[s->>t] |: ((t)=>boolean) => parser[s,t].
-  _sat(T) => _item >>= (Ch) => (T(Ch) ? (return Ch) || zed).
+  _sat(T) => _item >>= (Ch) => (T(Ch) ? (return Ch) || epsilon).
 
   public _test:all p,s,t ~~ stream[s->>t] |: ((t)=>option[p]) => parser[s,p].
-  _test(P) => _item >>= (Ch) => (X^=P(Ch) ? (return X) || zed).
+  _test(P) => _item >>= (Ch) => (X^=P(Ch) ? (return X) || epsilon).
 
   public _pred:all p,s,t ~~ stream[s->>t] |: (()=>option[p]) => parser[s,p].
   _pred(P) => let{
@@ -75,13 +75,11 @@ star.parse{
     first([E,.._])=>[E].
   } in parser((S)=>first(parse(p++q,S))).
 
-  public implementation all t ~~ monadZero[parser[t]] => {
---  zed:all e,t ~~ parser[e,t].
-    zed = parser((_)=>[]).
-  }
+  epsilon:all e,t ~~ parser[e,t].
+  epsilon = parser((_)=>[]).
 
   public _opt:all e,t ~~ (parser[t,e]) => parser[t,e].
-  _opt(P) => P +++ zed.
+  _opt(P) => P +++ epsilon.
 
   public _star:all e,t ~~ (parser[t,e]) => parser[t,cons[e]].
   _star(P) => _plus(P) ++ (return []).

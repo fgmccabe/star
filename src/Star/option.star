@@ -48,10 +48,6 @@ star.option{
     (.none >>= _) => .none.
   }
 
-  public implementation monadZero[option] => {
-    zed = .none.
-  }
-
   public implementation all e,f ~~ coercion[e,f] |: coercion[option[e],option[f]] => {.
     _coerce(some(X)) => some(_coerce(X)).
     _coerce(.none) => .none.

@@ -1,5 +1,6 @@
 star.arith{
   import star.core.
+  import star.monad.
 
   public contract all x ~~ arith[x] ::= {
     (+): (x,x)=>x.
@@ -24,6 +25,11 @@ star.arith{
     __minus(Ix) => _int_minus(0,Ix).
   }.
 
+  public implementation monoid[integer] => {.
+    A ⊕ B => _int_plus(A,B).
+    zed = 0.
+  .}
+
   public implementation equality[integer] => {
     X == Y => _int_eq(X,Y).
   }
@@ -35,6 +41,10 @@ star.arith{
   public implementation comp[integer] => {
     X<Y => _int_lt(X,Y).
     X>=Y => _int_ge(X,Y).
+  }
+
+  public implementation measured[integer->>integer] => {
+    [|_|] => 1.
   }
 
   public implementation display[integer] => {
