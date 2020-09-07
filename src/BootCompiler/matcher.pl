@@ -116,9 +116,7 @@ matchScalars(Tpls,[V|Vrs],Lc,Deflt,CaseExp) :-
   mkCase(Lc,V,Cases,Deflt,CaseExp).
 
 mkCnd(Lc,Tst,Th,El,Cnd) :-
-%  reportMsg("make cond Test=%s\nTh=%s\nEl=%s",[Tst,Th,El],Lc),
   mkCond(Lc,Tst,Th,El,Cnd).
-%  ,reportMsg("cond=%s",[Cnd],Lc).
 mkCond(Lc,Tst,cnd(_,T,Th,El),El,cnd(Lc,T1,Th,El)) :-!,
   mergeGoal(Tst,T,Lc,T1).
 mkCond(Lc,Tst,Th,El,cnd(Lc,Tst,Th,El)).

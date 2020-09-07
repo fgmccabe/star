@@ -174,7 +174,7 @@ star.compiler.matcher{
     pickMoreCases(Tr,Triples,Test,InCase,[A,..Others]).
 
   mkCase:(cons[crCase],locn,crExp,crExp) => crExp.
-  mkCase([(PLc,Ptn,Val)],Lc,Tst,Deflt) => crCnd(Lc,crMatch(PLc,Ptn,Tst),Val,Deflt).
+  mkCase([(PLc,Ptn,Val)],Lc,Tst,Deflt) => mkCond(Lc,crMatch(PLc,Ptn,Tst),Val,Deflt).
   mkCase(Cases,Lc,V,Deflt) => crCase(Lc,V,Cases,Deflt,typeOf(Deflt)).
 
   subTriples(Tpls) => (Tpls//subTriple).
@@ -185,16 +185,19 @@ star.compiler.matcher{
 
   conditionalize([],Deflt) => Deflt.
   conditionalize([(_,(Lc,Bnds,ArgCond,Test,Val),_),..Triples],Deflt) => valof action{
---    logMsg("conditionalize $(Lc)\:$(Bnds) $(ArgCond) $(Test) -> $(Val)");
     (Vl,Cnd) .= pullWhere(Val,Test);
---    logMsg("pulled where $(Cnd)");
     EqnCnd .= mergeGoal(Lc,ArgCond,Cnd);
---    logMsg("merged conditionalize goal $(EqnCnd)");
     if Tst ^= EqnCnd then
-      valis applyBindings(Bnds,Lc,crCnd(Lc,Tst,Vl,conditionalize(Triples,Deflt)))
+      valis applyBindings(Bnds,Lc,
+	mkCond(Lc,Tst,Vl,conditionalize(Triples,Deflt)))
     else
     valis applyBindings(Bnds,Lc,Vl)
   }
+
+  mkCond(Lc,Tst,Th,El) where crCnd(_,T1,Th1,El).=Th =>
+    crCnd(Lc,crCnj(Lc,Tst,T1),Th,El).
+  mkCond(Lc,Tst,Th,El) =>
+    crCnd(Lc,Tst,Th,El).
 
   applyBindings([],_,Val) => Val.
 
