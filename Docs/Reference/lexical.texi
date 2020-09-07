@@ -101,18 +101,11 @@ tokens. Except when they occur in a @refer{StringLiteral} or in a
 @cindex numeric literals
 @cindex literal,number
 
-@menu
-* Integer Literals::
-* Hexadecimal Integers::
-* Floating Point Numbers::
-* Character Codes::
-@end menu
-
 The numeric values include integer values, floating point values,
 decimal values and character codes. The latter are integers that
 represent the Unicode code points of particular characters.
 
-@float BNF,numericLiteralFig
+@float BNF,numericFig
 @caption{Numeric Literals}
 @display
 @anchored{NumericLiteral} ::= @refer{Decimal}
@@ -128,8 +121,8 @@ interpretation of negative numeric literals is part of the grammar,
 not the lexical notation.
 @end quotation
 
-@node Integer Literals
-@subsection Integer Literals
+@node Integer Tokens
+@subsection Integer Tokens
 @cindex integer
 @cindex number,integer
 @cindex syntax,integer
@@ -543,8 +536,9 @@ Identifiers}.
 @menu
 * End of Term::
 * Parentheses::
-* Square brackets::
+* Square Brackets::
 * Braces::
+* Special Brackets::
 @end menu
 
 @node End of Term
@@ -583,8 +577,8 @@ operators. This is because parentheses have two distinct roles: to
 group and/or override precedences, and as a way of enclosing tuples of
 terms.
 
-@node Square brackets
-@subsection Square brackets
+@node Square Brackets
+@subsection Square Brackets
 @cindex square brackets
 
 Square brackets (@code{[} and @code{]}) are used to delimit certain
@@ -608,6 +602,25 @@ There are two forms of braces: with and without a period character.
 They must be appropriately paired: a @code{@{} must be paired with a
 subsequent @code{@}}; and similarly the @code{@{.} must be paired with
 @code{.@}}.
+
+@node Special Brackets
+@subsection Special Brackets
+
+There are several @emph{special} sets of brackets:
+
+@float BNF specialBrFig
+@caption{Special Brackets}
+@display
+@anchored{SpecialBracket} ::= @code{'(|'} | @code{'|)'} |
+  @code{'[|'} | @code{'|]'} |
+  @code{'<|'} | @code{'|>'}
+@end display
+@end float
+
+As with other brackets, these must be appropriately paired. Each one
+of these special bracket pairs takes a single term as argument --
+unlike the @code{'()'} and @code{'[]'} brackets which take comma
+separated sequences.
 
 
 
