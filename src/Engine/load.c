@@ -336,7 +336,7 @@ static retCode decodeIns(ioPo in, uint16 **pc, integer *ix, integer *si, char *e
 #define sznOp
 #define sztOs
 #define szart return writeIntOperand(in,pc,ix);
-#define szi32 if(ret==Ok){ret = writeIntOperand(in,pc,ix);}
+#define szix32 if(ret==Ok){ret = writeIntOperand(in,pc,ix);}
 #define szarg if(ret==Ok){ret = writeIntOperand(in,pc,ix); }
 #define szlcl if(ret==Ok){ret = writeIntOperand(in,pc,ix); }
 #define szlcs if(ret==Ok){ret = writeIntOperand(in,pc,ix);}
@@ -357,7 +357,7 @@ static retCode decodeIns(ioPo in, uint16 **pc, integer *ix, integer *si, char *e
 #include "instructions.h"
 
 #undef instruction
-#undef szi32
+#undef szix32
 #undef szart
 #undef szarg
 #undef szlcl

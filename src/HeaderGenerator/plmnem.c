@@ -124,7 +124,7 @@ static integer insSize(OpCode op, opAndSpec A1, opAndSpec A2) {
     case lit:
     case sym:
     case lne:
-    case i32:
+    case ix32:
     case art:
     case arg:
     case lcl:
@@ -141,7 +141,7 @@ static integer insSize(OpCode op, opAndSpec A1, opAndSpec A2) {
     case lit:
     case sym:
     case lne:
-    case i32:
+    case ix32:
     case art:
     case arg:
     case lcl:
@@ -165,7 +165,7 @@ static char *genArg(ioPo out, char *sep, opAndSpec A, char *var) {
     case lne:
     case glb:
     case Es:
-    case i32:
+    case ix32:
     case art:
     case arg:
     case lcl:
@@ -220,7 +220,7 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
           outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
           outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).\n");
           break;
-        case i32:
+        case ix32:
         case art:
         case arg:
         case lcl:
@@ -243,7 +243,7 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
           exit(1);
       }
       break;
-    case i32:
+    case ix32:
     case art:
     case arg:
     case lcl:
@@ -256,7 +256,7 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
           outMsg(out, ",V|M]) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
           outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).\n");
           break;
-        case i32:
+        case ix32:
         case art:
         case arg:
         case lcl:
@@ -352,7 +352,7 @@ static void showOperand(ioPo out, opAndSpec A, char *vn, OpRes *resIn) {
       resIn->pcV++;
       break;
 
-    case i32:
+    case ix32:
     case art:
     case arg:
       showSep(out, resIn);

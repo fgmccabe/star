@@ -1237,7 +1237,7 @@ insPo disass(ioPo out, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
 #define show_nOp
 #define show_tOs showTos(out,fp,sp)
 #define show_art showTopOfStack(out,mtd,collectI32(pc),fp,sp)
-#define show_i32 outMsg(out," #%d",collectI32(pc))
+#define show_ix32 outMsg(out," #%d",collectI32(pc))
 #define show_arg showArg(out,collectI32(pc),mtd,fp,sp)
 #define show_lcl showLcl(out,collectI32(pc),mtd,fp,sp)
 #define show_lcs outMsg(out," l[%d]",collectI32(pc))

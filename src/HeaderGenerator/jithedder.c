@@ -106,7 +106,7 @@ char *genArg(opAndSpec A) {
       return ", integer litNo";
     case Es:
       return ", char *escName";
-    case i32:
+    case ix32:
       return ", integer cnt";
     case art:
       return ", integer arity";

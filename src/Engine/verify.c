@@ -265,7 +265,7 @@ static retCode splitOperand(opAndSpec A, vectorPo blocks, insPo code, integer *p
     case nOp:                                   // No operand
     case tOs:
       return Ok;
-    case i32:          /* 32 bit literal operand */
+    case ix32:          /* 32 bit literal operand */
     case art:          // Arity
     case arg:          /* argument variable offset */
     case lcl:          /* local variable offset */
@@ -413,7 +413,7 @@ retCode checkOprndTgt(insPo code, vectorPo blocks, integer oPc, integer *pc, opA
     case nOp:                                   // No operand
     case tOs:
       return Ok;
-    case i32:          /* 32 bit literal operand */
+    case ix32:          /* 32 bit literal operand */
     case art:          // Arity
     case arg:          /* argument variable offset */
     case lcl:          /* local variable offset */
@@ -513,7 +513,7 @@ static retCode checkOperand(segPo seg, integer oPc, integer *pc, opAndSpec A, ch
     case tOs:
       return Ok;
     case art:
-    case i32: {                     /* 32 bit literal operand */
+    case ix32: {                     /* 32 bit literal operand */
       collect32(base, pc);
       return Ok;
     }

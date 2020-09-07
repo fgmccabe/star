@@ -138,7 +138,7 @@ static char *genArg(ioPo out, char *sep, opAndSpec A, char *V) {
     case lne:
     case glb:
     case Es:
-    case i32:
+    case ix32:
     case art:
     case arg:
     case lcl:
@@ -233,7 +233,7 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
           outMsg(out, "Cannot generate instruction code\n");
           exit(1);
       }
-    case i32:
+    case ix32:
     case art:
     case arg:
       check(B == nOp, "second operand not nOp");
@@ -269,7 +269,7 @@ static integer insSize(OpCode op, opAndSpec A1, opAndSpec A2) {
     case lit:
     case sym:
     case lne:
-    case i32:
+    case ix32:
     case art:
     case arg:
     case lcl:
@@ -286,7 +286,7 @@ static integer insSize(OpCode op, opAndSpec A1, opAndSpec A2) {
     case lit:
     case sym:
     case lne:
-    case i32:
+    case ix32:
     case art:
     case arg:
     case lcl:
@@ -313,7 +313,7 @@ void starPc(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt)
     case lit:
     case sym:
     case lne:
-    case i32:
+    case ix32:
     case art:
     case arg:
     case lcl:
@@ -336,7 +336,7 @@ void starPc(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt)
     case lit:
     case sym:
     case lne:
-    case i32:
+    case ix32:
     case art:
     case arg:
     case lcl:
@@ -370,7 +370,7 @@ void starPc(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt)
     case lit:
     case sym:
     case lne:
-    case i32:
+    case ix32:
     case art:
     case arg:
     case lcl:
@@ -387,7 +387,7 @@ void starPc(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt)
     case lit:
     case sym:
     case lne:
-    case i32:
+    case ix32:
     case art:
     case arg:
     case lcl:
@@ -411,7 +411,7 @@ static char *opAndTp(opAndSpec A) {
       return "term";
     case sym:
       return "termLbl";
-    case i32:
+    case ix32:
     case art:
     case arg:
     case lcl:
@@ -453,7 +453,7 @@ static logical genDisp(ioPo out, opAndSpec A, char *Nm) {
     case lne:
     case lit:
     case sym:
-    case i32:
+    case ix32:
     case art:
     case arg:
     case lcl:
