@@ -5,35 +5,12 @@
 #ifndef STAR_X86_64P_H
 #define STAR_X86_64P_H
 
-
 #include "x86_64.h"
+#include "jitP.h"
 #include "ooio.h"
 #include "array.h"
 
-typedef struct assem_lbl{
-  char nm[128];
-  arrayPo refs;
-  integer pc;
-} AssemLblRecord;
 
-typedef struct lbl_ref{
-  lblRefUpdater updater;
-  integer pc;
-} AssemLblRefRecord;
-
-typedef struct assem_ctx {
-  u8 *bytes;
-  u32 size;
-  u32 pc;
-  hashPo lbls;
-} AssemCtxRecord;
-
-void emitU8(x64CtxPo ctx, u8 byte);
-void emitU16(x64CtxPo ctx, u16 word);
-void emitU32(x64CtxPo ctx, u32 word);
-void emitU64(x64CtxPo ctx, u64 word);
-void updateU32(x64CtxPo ctx, integer pc, u32 word);
-u32 readCtxAtPc(x64CtxPo ctx, integer pc);
 
 #define REX_W    0x48
 #define REX    0x40
@@ -148,19 +125,7 @@ u32 readCtxAtPc(x64CtxPo ctx, integer pc);
 #define XOR_rm_r  0x31
 #define XOR_rm_imm 0x81
 
-
-#define MAX_I32 0x7fffffffl
-#define MIN_I32 -0x80000000l
-
-void initAssemX64();
-
-logical isByte(i64 x);
-logical isI32(i64 x);
-
-void emitLblRef(x64CtxPo ctx, x64LblPo tgt);
-void labelDisp32(x64CtxPo ctx, x64LblPo lbl, integer pc);
-
-x64LblPo preamble(x64CtxPo ctx, i32 lclCount);
-retCode postamble(x64CtxPo ctx);
+codeLblPo preamble(codeCtxPo ctx, i32 lclCount);
+retCode postamble(codeCtxPo ctx);
 
 #endif //STAR_X86_64P_H

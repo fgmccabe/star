@@ -3,12 +3,13 @@
 //
 #include "unitTests.h"
 #include "x86_64P.h"
+#include "jitP.h"
 
-static retCode checkCode(u8 *src, integer srcLen, x64CtxPo ctx);
+static retCode checkCode(u8 *src, integer srcLen, codeCtxPo ctx);
 static retCode checkReslt(i64 test, i64 verify, char *msg);
 
 static retCode test_adc() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   adc(RG(R10), RG(RAX), ctx);
   adc(RG(RAX), RG(R10), ctx);
@@ -49,7 +50,7 @@ static retCode test_adc() {
 }
 
 static retCode test_add() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   add(RG(R10), RG(RAX), ctx);
   add(RG(RAX), RG(R10), ctx);
@@ -90,7 +91,7 @@ static retCode test_add() {
 }
 
 static retCode test_and() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   and(RG(R10), RG(RAX), ctx);
   and(RG(RAX), RG(R10), ctx);
@@ -131,10 +132,10 @@ static retCode test_and() {
 }
 
 static retCode test_call() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
-  x64LblPo l0 = defineLabel(ctx, "l0", ctx->pc);
-  x64LblPo l1 = defineLabel(ctx, "l1", -1);
+  codeLblPo l0 = defineLabel(ctx, "l0", ctx->pc);
+  codeLblPo l1 = defineLabel(ctx, "l1", -1);
   call(LB(l0), ctx);
   call(LB(l1), ctx);
   call(RG(R12), ctx);
@@ -150,7 +151,7 @@ static retCode test_call() {
 }
 
 static retCode test_ret() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   ret(0, ctx);
   ret(0x3344, ctx);
@@ -163,7 +164,7 @@ static retCode test_ret() {
 }
 
 static retCode test_cmp() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   cmp(RG(R10), RG(RAX), ctx);
   cmp(RG(RAX), RG(R10), ctx);
@@ -204,7 +205,7 @@ static retCode test_cmp() {
 }
 
 static retCode test_dec() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   dec(RG(RAX), ctx);
   dec(RG(R10), ctx);
@@ -232,9 +233,9 @@ static retCode test_dec() {
 }
 
 static retCode test_idiv() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
-  x64LblPo l0 = defineLabel(ctx, "l0", ctx->pc);
+  codeLblPo l0 = defineLabel(ctx, "l0", ctx->pc);
 
   idiv(RG(RAX), ctx);
   idiv(RG(R10), ctx);
@@ -255,8 +256,8 @@ static retCode test_idiv() {
 }
 
 static retCode test_imul() {
-  x64CtxPo ctx = createCtx();
-  x64LblPo l0 = defineLabel(ctx, "l0", ctx->pc);
+  codeCtxPo ctx = createCtx();
+  codeLblPo l0 = defineLabel(ctx, "l0", ctx->pc);
 
   imul(R10, RG(RAX), ctx);
   imul(RAX, RG(R10), ctx);
@@ -286,7 +287,7 @@ static retCode test_imul() {
 }
 
 static retCode test_inc() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   inc(RG(RAX), ctx);
   inc(RG(R10), ctx);
@@ -314,10 +315,10 @@ static retCode test_inc() {
 }
 
 static retCode test_jcc() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
-  x64LblPo l0 = defineLabel(ctx, "l0", ctx->pc);
-  x64LblPo l1 = defineLabel(ctx, "l1", -1);
+  codeLblPo l0 = defineLabel(ctx, "l0", ctx->pc);
+  codeLblPo l1 = defineLabel(ctx, "l1", -1);
   ja(l0, ctx);
   ja(l1, ctx);
   setLabel(ctx, l1);
@@ -329,10 +330,10 @@ static retCode test_jcc() {
 }
 
 static retCode test_jmp() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
-  x64LblPo l0 = defineLabel(ctx, "l0", ctx->pc);
-  x64LblPo l1 = defineLabel(ctx, "l1", -1);
+  codeLblPo l0 = defineLabel(ctx, "l0", ctx->pc);
+  codeLblPo l1 = defineLabel(ctx, "l1", -1);
   jmp(LB(l0), ctx);
   jmp(LB(l1), ctx);
   jmp(RG(R12), ctx);
@@ -346,7 +347,7 @@ static retCode test_jmp() {
 }
 
 static retCode test_lea() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   lea(R12, BS(RAX, 0x11223344), ctx);       // lea %r12,0x123344(%rax)
   lea(R10, IX(RAX, R10, 8, 0x34), ctx);    // lea %r10,0x34(rax,r10*8)
@@ -356,10 +357,10 @@ static retCode test_lea() {
 }
 
 static retCode test_lbl_lea() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
-  x64LblPo l0 = defineLabel(ctx, "l0", 0);
-  x64LblPo l1 = defineLabel(ctx, "l1", -1);
+  codeLblPo l0 = defineLabel(ctx, "l0", 0);
+  codeLblPo l1 = defineLabel(ctx, "l1", -1);
   lea(R12, LB(l1), ctx); // lea %r12,l1(%rip)
   lea(R10, LB(l0), ctx); // lea %r10,l0(%rip)
   setLabel(ctx, l1);
@@ -369,7 +370,7 @@ static retCode test_lbl_lea() {
 }
 
 static retCode test_mov() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   mov(RG(RSI), RG(RAX), ctx);
   mov(RG(RAX), RG(RSI), ctx);
@@ -438,9 +439,9 @@ static retCode test_mov() {
 }
 
 static retCode test_movsx() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
-  x64LblPo l0 = defineLabel(ctx, "", ctx->pc);
+  codeLblPo l0 = defineLabel(ctx, "", ctx->pc);
   movsx(RSI, RG(RAX), 1, ctx);
   movsx(RAX, RG(RSI), 2, ctx);
   movsx(R12, RG(RSI), 4, ctx);
@@ -469,7 +470,7 @@ static retCode test_movsx() {
 }
 
 static retCode test_neg() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   neg(RG(RAX), ctx);
   neg(RG(R10), ctx);
@@ -495,7 +496,7 @@ static retCode test_neg() {
 }
 
 static retCode test_not() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   not(RG(RAX), ctx);
   not(RG(R10), ctx);
@@ -521,7 +522,7 @@ static retCode test_not() {
 }
 
 static retCode test_or() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   or(RG(R10), RG(RAX), ctx);
   or(RG(RAX), RG(R10), ctx);
@@ -562,7 +563,7 @@ static retCode test_or() {
 }
 
 static retCode test_popr() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   pop(RG(RAX), ctx);
   pop(RG(RSI), ctx);
@@ -575,7 +576,7 @@ static retCode test_popr() {
 }
 
 static retCode test_popb() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   pop(BS(RAX, 0x55), ctx);
   pop(BS(RAX, 0x11223344), ctx);
@@ -591,7 +592,7 @@ static retCode test_popb() {
 }
 
 static retCode test_popx() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   pop(IX(RAX, RDX, 4, 0x55), ctx); // pop 0x55(rax,r10*4)
   pop(IX(RDX, RAX, 4, 0x11223344), ctx); // pop 0x11223344(rdx,rax*4)
@@ -609,7 +610,7 @@ static retCode test_popx() {
 }
 
 static retCode test_pushri() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   push(RG(RAX), ctx);
   push(RG(RSI), ctx);
@@ -627,7 +628,7 @@ static retCode test_pushri() {
 }
 
 static retCode test_pushb() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   push(BS(RAX, 0x55), ctx);
   push(BS(RAX, 0x11223344), ctx);
@@ -643,7 +644,7 @@ static retCode test_pushb() {
 }
 
 static retCode test_pushx() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   push(IX(RAX, RDX, 4, 0x55), ctx);
   push(IX(RAX, RDX, 4, 0x11223344), ctx);
@@ -661,7 +662,7 @@ static retCode test_pushx() {
 }
 
 static retCode test_setcc() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   setne(RAX, ctx);
   setne(RCX, ctx);
@@ -675,7 +676,7 @@ static retCode test_setcc() {
 }
 
 static retCode test_sbb() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   sbb(RG(R10), RG(RAX), ctx);
   sbb(RG(RAX), RG(R10), ctx);
@@ -716,7 +717,7 @@ static retCode test_sbb() {
 }
 
 static retCode test_sub() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   sub(RG(R10), RG(RAX), ctx);
   sub(RG(RAX), RG(R10), ctx);
@@ -757,7 +758,7 @@ static retCode test_sub() {
 }
 
 static retCode test_testr() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   test(RG(RAX), RG(RAX), ctx);
   test(RG(RCX), RG(RAX), ctx);
@@ -777,7 +778,7 @@ static retCode test_testr() {
 }
 
 static retCode test_testrm() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   test(RG(RAX), BS(RAX, 0x11223344), ctx);
   test(RG(RCX), BS(RAX, 0x11223344), ctx);
@@ -802,7 +803,7 @@ static retCode test_testrm() {
 }
 
 static retCode test_testmr() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   test(BS(RAX, 0x11223344), RG(RAX), ctx);
   test(BS(RAX, 0x11223344), RG(RCX), ctx);
@@ -825,7 +826,7 @@ static retCode test_testmr() {
 }
 
 static retCode test_xchg() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   xchg(RG(R10), RG(RAX), ctx);
   xchg(RG(RAX), RG(R10), ctx);
@@ -851,7 +852,7 @@ static retCode test_xchg() {
 }
 
 static retCode test_xor() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   xor(RG(R10), RG(RAX), ctx);
   xor(RG(RAX), RG(R10), ctx);
@@ -895,7 +896,7 @@ typedef i64 (*un_i64)(i64 x);
 typedef i64 (*bin_i64)(i64 x, i64 y);
 
 retCode test_addFun() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
   preamble(ctx, 0);
   mov(RG(RAX), RG(RDI), ctx);
@@ -908,11 +909,11 @@ retCode test_addFun() {
 }
 
 retCode test_factFun() {
-  x64CtxPo ctx = createCtx();
+  codeCtxPo ctx = createCtx();
 
-  x64LblPo fct = preamble(ctx, 0);
-  x64LblPo l0 = defineLabel(ctx, "nonZero", -1);
-  x64LblPo lx = defineLabel(ctx, "exit", -1);
+  codeLblPo fct = preamble(ctx, 0);
+  codeLblPo l0 = defineLabel(ctx, "nonZero", -1);
+  codeLblPo lx = defineLabel(ctx, "exit", -1);
   cmp(RG(RDI), IM(1), ctx);
   jg(l0, ctx);
   mov(RG(RAX), IM(1), ctx);
@@ -932,7 +933,7 @@ retCode test_factFun() {
   return Ok;
 }
 
-retCode checkCode(u8 *src, integer srcLen, x64CtxPo ctx) {
+retCode checkCode(u8 *src, integer srcLen, codeCtxPo ctx) {
   retCode ret;
   if (ctx->pc != srcLen) {
     logMsg(logFile, "%d bytes expected, %d bytes generated", srcLen, ctx->pc);
