@@ -55,11 +55,11 @@ conditionalize([(_,(Lc,Bnds,Test,Val),_)|M],Deflt,Repl) :-!,
   mergeGoal(Test,C0,Lc,TT),
 %  reportMsg("merged test %s goal = %s",[Test,TT],Lc),
   (mustSucceed(TT) ->
-    applyBindings(Bnds,Lc,Vl,Repl);
-    conditionalize(M,Deflt,Other),
-    applyBindings(Bnds,Lc,Vl,TVl),
-    Repl = cnd(Lc,TT,TVl,Other)
-%    reportMsg("conditionalized Repl=%s",[Repl],Lc)
+   applyBindings(Bnds,Lc,Vl,Repl);
+   conditionalize(M,Deflt,Other),
+   applyBindings(Bnds,Lc,Vl,TVl),
+   mkCnd(Lc,TT,TVl,Other,Repl)
+%    ,reportMsg("conditionalized Repl=%s",[Repl],Lc)
   ).
 
 mustSucceed(enum("star.core#true")).
@@ -115,7 +115,16 @@ matchScalars(Tpls,[V|Vrs],Lc,Deflt,CaseExp) :-
   formCases(ST,matcher:sameScalarTriple,Lc,Vrs,Deflt,Cases),
   mkCase(Lc,V,Cases,Deflt,CaseExp).
 
-mkCase(Lc,V,[(Lbl,Exp,Lc)],Deflt,cnd(Lc,mtch(Lc,Lbl,V),Exp,Deflt)) :-!.
+mkCnd(Lc,Tst,Th,El,Cnd) :-
+%  reportMsg("make cond Test=%s\nTh=%s\nEl=%s",[Tst,Th,El],Lc),
+  mkCond(Lc,Tst,Th,El,Cnd).
+%  ,reportMsg("cond=%s",[Cnd],Lc).
+mkCond(Lc,Tst,cnd(_,T,Th,El),El,cnd(Lc,T1,Th,El)) :-!,
+  mergeGoal(Tst,T,Lc,T1).
+mkCond(Lc,Tst,Th,El,cnd(Lc,Tst,Th,El)).
+
+mkCase(Lc,V,[(Lbl,Exp,Lc)],Deflt,Cnd) :-!,
+  mkCnd(Lc,mtch(Lc,Lbl,V),Exp,Deflt,Cnd).
 mkCase(Lc,V,Cases,Deflt,case(Lc,V,Cases,Deflt)).
 
 showCase((Lbl,Exp,Lc),C,Cx) :-
