@@ -146,9 +146,13 @@ static inline ptrPo realign(ptrPo ptr, ptrPo oldStack, ptrPo oldLimit, ptrPo new
   return newLimit - (oldLimit - ptr);
 }
 
-static ptrPo localVar(framePo fp, int64 off) {
+static inline ptrPo localVar(framePo fp, int64 off) {
   return &(((ptrPo) fp)[-off]);
 }
+
+#ifdef TRACEMEM
+long stkGrow = 0;
+#endif
 
 retCode extendStack(processPo p, integer sfactor, integer fixed) {
   integer stackSize = (integer) ((p->stackLimit - p->stackBase) * sfactor + fixed);
@@ -156,7 +160,7 @@ retCode extendStack(processPo p, integer sfactor, integer fixed) {
 #ifdef TRACEMEM
   if (traceMemory) {
     outMsg(logFile, "extending stack of process %d to %d cells\n%_", p->processNo, stackSize);
-
+    stkGrow++;
     verifyProc(p, processHeap(p));
   }
 #endif
