@@ -194,8 +194,9 @@ star.compiler.matcher{
     valis applyBindings(Bnds,Lc,Vl)
   }
 
-  mkCond(Lc,Tst,Th,El) where crCnd(_,T1,Th1,El).=Th =>
-    crCnd(Lc,crCnj(Lc,Tst,T1),Th,El).
+  mkCond(Lc,Tst,Th,El) where 
+      crCnd(_,T1,Th1,El1).=Th && El1==El =>
+    crCnd(Lc,crCnj(Lc,Tst,T1),Th1,El1).
   mkCond(Lc,Tst,Th,El) =>
     crCnd(Lc,Tst,Th,El).
 

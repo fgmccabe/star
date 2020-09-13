@@ -152,15 +152,19 @@ star.compiler.gencode{
   }
   compExp(crCase(Lc,Exp,Cases,Deflt,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
     compCase(Lc,Exp,Cases,Deflt,Tp,Opts,Cont,Ctx,Cde,Stk,Rp).
-  compExp(crAbort(Lc,Msg,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
-    compExps([Lc::crExp,crStrg(Lc,Msg)],Opts,bothCont(escCont("_abort",2,Tp,.none),Cont),Ctx,Cde,Stk,Rp).
-
+  compExp(crAbort(Lc,Msg,Tp),Opts,_,Ctx,Cde,Stk,Rp) =>
+    compExps([Lc::crExp,crStrg(Lc,Msg)],Opts,
+      escCont("_abort",2,Tp,.none), Ctx,Cde,Stk,Rp).
   compExp(crCnd(Lc,T,L,R),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
     CtxC .= ptnVars(T,Ctx);
-    OS .= onceCont(Lc,Cont);
-    compCond(T,Opts,
-      resetCont(Stk,expCont(L,Opts,OS)),
-      resetCont(Stk,expCont(R,Opts,OS)),CtxC,Cde,Stk,Rp)
+    logMsg("conditional exp $(crCnd(Lc,T,L,R)) @ $(Lc), Stk=$(Stk)");
+    (Nxt,Ctx0) .= defineLbl("L",CtxC);
+    (Ctx1,Cd1,Stk1) <- compCond(T,Opts,
+      expCont(L,Opts,jmpCont(Nxt)),
+      expCont(R,Opts,jmpCont(Nxt)),
+      Ctx0,Cde,Stk,Rp);
+    logMsg("stack after conditional $(Stk1)");
+    Cont.C(Ctx1,Cd1++[iLbl(Nxt)],Stk1,Rp)
   }
   compExp(C,Opts,Cont,Ctx,Cde,Stk,Rp) where isCrCond(C) => do{
     OS .= onceCont(locOf(C),Cont);
@@ -295,16 +299,14 @@ star.compiler.gencode{
   compCase(Lc,E,Cases,Deflt,Tp,Opts,Cont,Ctx,Cde,some(Stk),Rp) => do{
     (Nxt,Ctx1) .= defineLbl("CN",Ctx);
     (DLbl,Ctx2) .= defineLbl("CD",Ctx1);
-    OC .= onceCont(Lc,Cont);
     (Ctx3,ECode,EStk) <- compExp(E,Opts,jmpCont(Nxt),Ctx2,Cde,some(Stk),Rp);
     (Table,Max) .= genCaseTable(Cases);
-    (Ctx4,CCode,_) <- compCases(Table,0,Max,Cont,jmpCont(DLbl),DLbl,Opts,Ctx3,ECode++[iLbl(Nxt),iCase(Max)],EStk,Rp);
-    if crAbort(DLc,DMsg,DTp).=Deflt then{
-      (Ctx5,Cde5,_) <- compExps([DLc::crExp,crStrg(DLc,DMsg)],Opts,escCont("_abort",2,Tp,.none),Ctx4,
-	CCode++[iLbl(DLbl),iRst(size(Stk))],some(Stk),Rp);
-      valis (Ctx5,Cde5,some(Stk))
-    } else
-    compExp(Deflt,Opts,Cont,Ctx4,CCode++[iLbl(DLbl),iRst(size(Stk))],some(Stk),Rp)
+    OC .= onceCont(Lc,Cont);
+    (Ctx4,CCode,CStk) <- compCases(Table,0,Max,OC,jmpCont(DLbl),DLbl,Opts,Ctx3,ECode++[iLbl(Nxt),iCase(Max)],EStk,Rp);
+    (Ctx5,DCode,DStk) <- compExp(Deflt,Opts,OC,Ctx4,CCode++[iLbl(DLbl),iRst(size(Stk))],some(Stk),Rp);
+    Stkx <- mergeStack(Lc,CStk,DStk,Rp);
+    logMsg("stack after case @ $(Lc) is $(Stkx)");
+    valis (Ctx5,DCode,Stkx)
   }
 
   genCaseTable(Cases) where Mx.=nextPrime(size(Cases)) =>
@@ -347,6 +349,7 @@ star.compiler.gencode{
 
   compCaseBranch([(Lc,Ptn,Exp)],Succ,Fail,Deflt,Opts,Ctx,Cde,Stk,Rp) => do{
     (Nxt,Ctx1) .= defineLbl("CB",Ctx);
+--    logMsg("case branch $(Ptn)->$(Exp), Stk=$(Stk)");
     (Ctx2,Cde2,Stk1)<-compPtn(Ptn,Opts,jmpCont(Nxt),Fail,Ctx1,Cde,Stk,Rp);
     compExp(Exp,Opts,Succ,Ctx2,Cde2++[iLbl(Nxt)],Stk1,Rp)
   }
@@ -441,6 +444,8 @@ star.compiler.gencode{
   }
   compPtn(crWhere(Lc,Ptn,Cond),Opts,Succ,Fail,Ctx,Cde,Stk,Rp) =>
     compPtn(Ptn,Opts,condCont(Cond,Opts,Succ,Fail),Fail,Ctx,Cde,Stk,Rp).
+  compPtn(Ptn,Opts,Succ,Fail,Ctx,Cde,.none,Rp) =>
+    other(reportError(Rp,"unreachable pattern $(Ptn)",locOf(Ptn))).  
 
   compTermArgs:(cons[crExp],compilerOptions,Cont,Cont,
     codeCtx,multi[assemOp],option[cons[tipe]],reports) =>
@@ -532,11 +537,18 @@ star.compiler.gencode{
     Simple=.true.
   }.
 
+  traceCont:(()=>string,Cont)=>Cont.
+  traceCont(Msg,C) => ccont(C.Simple,
+    (Ctx,Cde,Stk,Rp)=> do{
+      logMsg("trace #(Msg()), stack=$(Stk)");
+      C.C(Ctx,Cde,Stk,Rp)
+    }).
+
   resetCont:(option[cons[tipe]],Cont)=>Cont.
   resetCont(.none,Cont) => Cont.
-  resetCont(some(SStk),C) where Dpth.=size(SStk) =>
-    ccont(C.Simple,(Ctx,Cde,Stk,Rp)=>
-	C.C(Ctx,Cde++genRst(Dpth,Stk),trimStack(Stk,Dpth),Rp)).
+  resetCont(some(SStk),C) =>
+    ccont(C.Simple,(Ctx,Cde,_,Rp)=>
+	C.C(Ctx,Cde++genRst(size(SStk),some(SStk)),some(SStk),Rp)).
 
   genRst:(integer,option[cons[tipe]]) => multi[assemOp].
   genRst(_,.none) => [].
@@ -698,9 +710,12 @@ star.compiler.gencode{
   testCont(Lc,Succ,Fail)=>
     ccont(.false,(Ctx,Cde,some([_,..Stk]),Rp)=> do{
 	(Lb,Ctx0) .= defineLbl("T",Ctx);
+	logMsg("test true outcome, stack=$(Stk)");
 	(Ctx1,C1,Stk1) <- Succ.C(Ctx0,Cde++[iUnpack(tLbl("star.core#true",0),Lb)],some(Stk),Rp);
+	logMsg("test false outcome, stack=$(Stk)");
 	(Ctx2,C2,Stk2) <- Fail.C(ctxLbls(Ctx,Ctx1),C1++[iLbl(Lb)],some(Stk),Rp);
 	Stkx <- mergeStack(Lc,Stk1,Stk2,Rp);
+	logMsg("stack after test $(Stkx)");
 	valis (Ctx2,C2,Stkx)
       }
     ).
