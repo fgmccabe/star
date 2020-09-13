@@ -129,6 +129,8 @@ star.compiler.inline{
 
   applyCase(Lc,Gov,Cases,Deflt,Tp,Prog,Depth) where 
       matching(Exp) .= matchingCase(Gov,Cases,Prog,Depth) => Exp.
+  applyCase(Lc,Gov,Cases,Deflt,Tp,Prog,Depth) =>
+    crCase(Lc,Gov,Cases,Deflt,Tp).
 
   matchingCase:(crExp,cons[crCase],map[string,crDefn],integer) => match[crExp].
   matchingCase(_,[],_,_) => .noMatch.
@@ -159,7 +161,7 @@ star.compiler.inline{
   inlineECall:(locn,string,cons[crExp],tipe,integer) => crExp.
   inlineECall(Lc,Nm,Args,Tp,Depth) where Depth>0 && A in Args *> isGround(A) =>
     rewriteECall(Lc,Nm,Args,Tp).
-  inlineECall(Lc,Nm,Args,Tp,_) default => crCall(Lc,Nm,Args,Tp).
+  inlineECall(Lc,Nm,Args,Tp,_) default => crECall(Lc,Nm,Args,Tp).
 
   inlineOCall(Lc,Op,Args,Tp,Prog,Depth) =>
     crOCall(Lc,Op,Args,Tp).

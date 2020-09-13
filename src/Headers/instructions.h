@@ -6,7 +6,7 @@
   preceded and followed by undefs. A typical sequence looks like:
 
 #undef instruction
-#define instruction(Op,A1,Dl,Cmnt) ...<expansion>...
+#define instruction(Op,A1,A2,Dl,Cmnt) ...<expansion>...
 
 #include "instruction.h"
 #undef instruction
