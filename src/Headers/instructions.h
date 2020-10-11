@@ -97,3 +97,5 @@ instruction(Unwind,off,nOp,0,"jump to handler")
 instruction(dLine,lne,nOp,0,"--> debug line")
 instruction(dBug,nOp,nOp,0,"debugging prefix")
 instruction(dBreak,nOp,nOp,0,"special instruction for break points")
+
+instruction(Block,lit,cDe,0,"block of instructions")

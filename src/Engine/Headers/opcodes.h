@@ -40,17 +40,20 @@ typedef enum {
 typedef enum {
   nOp,                                   // No operand
   tOs,
-  ix32,          /* 32 bit literal operand */
+  ix32,         /* 32 bit literal operand */
   art,          /* Arity */
   arg,          /* argument variable offset */
   lcl,          /* local variable offset */
-  lcs,        // Store to local variable
+  lcs,          // Store to local variable
   off,          /* offset within current code */
-  Es,          // escape code 0..65535
+  Es,           // escape code 0..65535
   lit,          /* constant literal */
   sym,          // Symbol
   lne,          // Constant that is a location
-  glb           // Global variable name
+  glb,          // Global variable name
+  tPe,          // Type signature
+  cDe,          // Code sequence
+  lVl           // Break level
 } opAndSpec;                    // Specification code for an operand
 #endif
 
