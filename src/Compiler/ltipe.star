@@ -23,9 +23,36 @@ star.compiler.ltipe{
     disp = showTp
   }
 
-  public implementation coercion[ltipe,string] => {.
-    _coerce(T) => (encLt(T)::cons[integer]):?string
-  .}
+  public implementation equality[ltipe] => let{
+    eq(.int64,.int64)=>.true.
+    eq(.flt64,.flt64)=>.true.
+    eq(.bool,.bool)=>.true.
+    eq(.ptr,.ptr)=>.true.
+    eq(funTipe(A1,R1),funTipe(A2,R2))=>
+      eqs(A1,A2) && eq(R1,R2).
+    eq(tplTipe(A1),tplTipe(A2))=>eqs(A1,A2).
+    eq(_,_) default => .false.
+
+    eqs([],[])=>.true.
+    eqs([E1,..T1],[E2,..T2]) => eq(E1,E2) && eqs(T1,T2)
+  } in {
+    X==Y => eq(X,Y)
+  }
+
+  public implementation hash[ltipe] => let{
+    hsh(.int64)=>hash("int64").
+    hsh(.flt64)=>hash("flt64").
+    hsh(.bool)=>hash("bool").
+    hsh(.ptr)=>hash("ptr").
+    hsh(funTipe(A1,R1))=>
+      hshs(A1,hash("=>"))*37+hsh(R1).
+    hsh(tplTipe(A1))=>hshs(A1,hash("()")).
+
+    hshs([],H)=>H.
+    hshs([E1,..T1],H) => hshs(T1,H*37+hsh(E1)).
+  } in {
+    hash(X) => hsh(X)
+  }
 
   public implementation coercion[tipe,ltipe] => {.
     _coerce(T) => some(reduceTp(T))
@@ -42,14 +69,4 @@ star.compiler.ltipe{
     funTipe(As//reduceTp,reduceTp(R)).
   redTp(tupleType(A)) => tplTipe(A//reduceTp).
   redTp(_) => .ptr.
-  
-  encLt:(ltipe)=>multi[integer].
-  encLt(.int64) => [0ci].
-  encLt(.flt64) => [0cf].
-  encLt(.bool) => [0cl].
-  encLt(.ptr) => [0cp].
-  encLt(funTipe(As,R)) => [0cF,..encLt(tplTipe(As))]++encLt(R).
-  encLt(tplTipe(As)) => ([0c\(]++multi(As//encLt)++[0c\)]).
-
-
 }
