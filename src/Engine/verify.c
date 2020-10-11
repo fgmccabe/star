@@ -7,6 +7,7 @@
 #include <debug.h>
 #include "verifyP.h"
 #include "topSort.h"
+#include "ltype.h"
 
 logical enableVerify = True;         // True if we verify code as it is loaded
 logical traceVerify = False;      // true if tracing code verification
@@ -273,6 +274,7 @@ static retCode splitOperand(opAndSpec A, vectorPo blocks, insPo code, integer *p
       collect32(code, pc);
       return Ok;
     }
+    case cDe:           // Range of instructions to skip
     case off: {         /* offset within current code */
       integer delta = collect32(code, pc);
       integer nPc = *pc + delta;
@@ -284,6 +286,7 @@ static retCode splitOperand(opAndSpec A, vectorPo blocks, insPo code, integer *p
     case lne:           // Location literal
     case sym:           // Symbol
     case glb:           // Global variable name
+    case tPe:           // Type literal
       collect32(code, pc);
       return Ok;
     default:
@@ -311,7 +314,7 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
       case Cmp:
       case CLbl:
       case CV:
-      case Unpack:{
+      case Unpack: {
         splitSeg(blocks, *pc);
         return Ok;
       }
@@ -376,7 +379,7 @@ retCode findTgts(vectorPo blocks, insPo code, integer *pc, integer to, char *err
       case Cmp:
       case CLbl:
       case CV:
-      case Unpack:{
+      case Unpack: {
         ret = checkDest(blocks, oPc, *pc, errorMsg, msgLen);
         break;
       }
@@ -421,6 +424,7 @@ retCode checkOprndTgt(insPo code, vectorPo blocks, integer oPc, integer *pc, opA
       collect32(code, pc);
       return Ok;
     }
+    case cDe:
     case off: {         /* offset within current code */
       integer delta = collect32(code, pc);
       integer nPc = *pc + delta;
@@ -432,6 +436,7 @@ retCode checkOprndTgt(insPo code, vectorPo blocks, integer oPc, integer *pc, opA
     case sym:           // Symbol
     case lne:           // Location literal
     case glb:           // Global variable name
+    case tPe:
       collect32(code, pc);
       return Ok;
     default:
@@ -509,7 +514,6 @@ static retCode checkOperand(segPo seg, integer oPc, integer *pc, opAndSpec A, ch
 
   switch (A) {
     case nOp:                                   // No operand
-      return Ok;
     case tOs:
       return Ok;
     case art:
@@ -558,6 +562,7 @@ static retCode checkOperand(segPo seg, integer oPc, integer *pc, opAndSpec A, ch
         return Error;
       }
     }
+    case cDe:
     case off: {                         /* offset within current code */
       int32 delta = collect32(base, pc);
       integer npc = *pc + delta;
@@ -589,6 +594,29 @@ static retCode checkOperand(segPo seg, integer oPc, integer *pc, opAndSpec A, ch
 
       return Ok;
     }
+    case tPe: {                          /* type literal */
+      int32 litNo = collect32(base, pc);
+      if (litNo < 0 || litNo >= codeLitCount(seg->seg.mtd)) {
+        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid literal number: %d @ %d" RED_ESC_OFF, litNo, *pc);
+        return Error;
+      }
+      termPo lit = getMtdLit(seg->seg.mtd,litNo);
+      if(isString(lit)){
+        integer len;
+        const char *text = stringVal(lit,&len);
+        if(validTypeSig(text,len)==Ok)
+          return Ok;
+        else{
+          strMsg(errorMsg, msgLen, RED_ESC_ON "invalid type signature literal: %d @ %d" RED_ESC_OFF, litNo, *pc);
+          return Error;
+        }
+      }
+      else{
+        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid type signature literal: %d @ %d" RED_ESC_OFF, litNo, *pc);
+        return Error;
+      }
+    }
+
     case glb: {                          // Global variable name
       int32 glbNo = collect32(base, pc);
 

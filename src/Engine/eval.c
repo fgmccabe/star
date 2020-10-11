@@ -18,7 +18,7 @@
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<(unsigned)16)|lo32))
 #define collectOff(pc) (hi32 = collectI32(pc), (pc)+(signed)hi32)
 
-#define checkAlloc(Count) {\
+#define checkAlloc(Count) do{\
   if (reserveSpace(H, Count) != Ok) {\
     saveRegisters(P, SP);\
     retCode ret = gcCollect(H, Count);\
@@ -27,7 +27,7 @@
     restoreRegisters(P);   \
     check(reserveSpace(H,Count)==Ok,"could not reserve space");\
   }\
-}
+}while(False)
 
 static inline ptrPo checkStack(processPo P, ptrPo SP) {
   assert(SP > (ptrPo) P->stackBase);
@@ -44,11 +44,11 @@ static inline ptrPo checkStack(processPo P, ptrPo SP) {
 #define saveRegisters(P, SP) STMT_WRAP({ (P)->pc = PC; (P)->fp = FP; (P)->prog = PROG; (P)->sp = (SP);})
 #define restoreRegisters(P) STMT_WRAP({ PC = (P)->pc; FP = (P)->fp; PROG=(P)->prog; SP=(P)->sp; LITS=codeLits(PROG);})
 
-#define bail() {\
+#define bail() do{\
   saveRegisters(P, SP);\
   dumpStackTrace(P, logFile);\
   return Error;\
-  }
+  }while(False)
 
 /*
  * Execute program on a given process/thread structure
@@ -724,6 +724,14 @@ retCode run(processPo P) {
 
         checkAlloc(FloatCellCount);
         termPo Rs = (termPo) allocateFloat(H, fmod(Lhs, Rhs));
+        push(Rs);
+        continue;
+      }
+      case FAbs: {
+        double Lhs = floatVal(pop());
+
+        checkAlloc(FloatCellCount);
+        termPo Rs = (termPo) allocateFloat(H, fabs(Lhs));
         push(Rs);
         continue;
       }

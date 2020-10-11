@@ -11,6 +11,7 @@
     "star.compiler.constraints": "constraints.star",
     "star.compiler.core" : "core.star",
     "star.compiler.core.ast" : "coreAst.star",
+    "star.compiler.core.enc" : "coreenc.star",
     "star.compiler.dependencies" : "dependencies.star",
     "star.compiler.dict": "dict.star",
     "star.compiler.dict.mgt": "dictmgt.star",

@@ -34,9 +34,6 @@ typedef short int int16;
 /* Define with a type that is 32 bits long */
 typedef int int32;
 
-/* Define with a type that is 64 bits long */
-typedef long long int64;
-
 /* Define to `unsigned int' if <sys/types.h> does not define. */
 /* #undef size_t */
 
