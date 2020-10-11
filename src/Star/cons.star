@@ -91,10 +91,13 @@ star.cons{
     tail(.nil) => .none.
   }
 
-  public front:all e ~~ (cons[e],integer)=>cons[e].
-  front([],_) => [].
-  front(_,0) => [].
-  front([E,..Es],Ix) where Ix>0 => [E,..front(Es,Ix-1)].
+  public front:all e ~~ (cons[e],integer)=>option[(cons[e],cons[e])].
+  front(Els,Ln) => let{
+    ff(Es,So,0) => some((reverse(So),Es)).
+    ff([E,..Es],So,Ix) =>
+      ff(Es,[E,..So],Ix-1).
+    ff(_,_,_) default => .none.
+  } in ff(Els,[],Ln).
 
   public zip: all e,f ~~ (cons[e],cons[f])=>cons[(e,f)].
   zip([],[]) => [].
