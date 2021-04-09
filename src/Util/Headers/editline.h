@@ -11,14 +11,14 @@
 #include "stringBuffer.h"
 
 
-typedef retCode (*CompletionCallback)(bufferPo lineBuff,void *cl,integer ix);
+typedef retCode (*CompletionCallback)(strBufferPo lineBuff, void *cl, integer ix);
 
 void setEditLineCompletionCallback(CompletionCallback fn, void *cl);
 
 void clearEditLineCompletionCallback();
 
 
-retCode consoleInput(bufferPo lineBuff);
+retCode consoleInput(strBufferPo lineBuff);
 
 void saveHistory();
 retCode initHistory(char *filename);

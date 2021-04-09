@@ -11,8 +11,8 @@
 
 static u8 encodeMod(u8 mode, x64Reg fst, x64Reg snd);
 static u8 encodeModRR(x64Reg op1, x64Reg op2);
-static u8 encodeModRM(x64Reg fst, x64Reg snd, i64 disp, logical flag);
-static void emitDisp(codeCtxPo ctx, i64 disp);
+static u8 encodeModRM(x64Reg fst, x64Reg snd, int64 disp, logical flag);
+static void emitDisp(codeCtxPo ctx, int64 disp);
 static u8 encodeSIB(x64Reg base, x64Reg index, u8 scale);
 static u8 encodeModRI(u8 mode, x64Reg dst);
 static u8 encodeRex(u8 rex, x64Reg dst, x64Reg index, x64Reg src);
@@ -225,7 +225,7 @@ void idiv_(x64Op src, codeCtxPo ctx) {
   unop_(IDIV, 7, src, ctx);
 }
 
-void ret_(i16 disp, codeCtxPo ctx) {
+void ret_(int16 disp, codeCtxPo ctx) {
   if (disp == 0)
     emitU8(ctx, RET_near);
   else {
@@ -574,7 +574,7 @@ void push_(x64Op src, codeCtxPo ctx) {
         emitU8(ctx, (u8) src.op.imm);
       } else if (isI32(src.op.imm)) {
         emitU8(ctx, PUSH_i32);
-        emitU32(ctx, (u32) src.op.imm);
+        emitU32(ctx, (uint32) src.op.imm);
       } else
         check(False, "immediate too large");
       return;
@@ -792,7 +792,7 @@ u8 encodeModRR(x64Reg op1, x64Reg op2) {
   return ((u8) 0xc0) | (unsigned) (sr << 3u) | dr;
 }
 
-u8 encodeModRM(x64Reg fst, x64Reg snd, i64 disp, logical flag) {
+u8 encodeModRM(x64Reg fst, x64Reg snd, int64 disp, logical flag) {
   u8 fr = ((u8) fst) & 0x7u;
   u8 sr = ((u8) snd) & 0x7u;
 
@@ -804,7 +804,7 @@ u8 encodeModRM(x64Reg fst, x64Reg snd, i64 disp, logical flag) {
     return ((u8) 0x80u) | (unsigned) (fr << 3u) | sr;
 }
 
-void emitDisp(codeCtxPo ctx, i64 disp) {
+void emitDisp(codeCtxPo ctx, int64 disp) {
   if (disp != 0) {
     if (isByte(disp))
       emitU8(ctx, (unsigned) disp & 0xffu);

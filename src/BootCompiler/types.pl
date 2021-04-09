@@ -1,16 +1,18 @@
 :- module(types,
 	  [isType/1,isConType/2,isFaceType/1,isConstraint/1,varConstraints/3,addConstraint/2,
-	   toLtipe/2,mkTplTipe/2,
+	   toLtipe/2,mkTplTipe/2,tpName/2,consTpName/2,
 	   netEnumType/2,
-	   newTypeVar/2,skolemVar/2,newTypeFun/3,skolemFun/3,deRef/2,mkTpExp/3,
+	   newTypeVar/2,skolemVar/2,newTypeFun/3,skolemFun/3,deRef/2,
 	   progTypeArity/2,progArgTypes/2,isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
 	   isFunctionType/1,isFunctionType/2,isCnsType/2,
 	   isProgramType/1,isFixedSizeType/1,
-	   dispType/1,dispType/2,showType/4,showConstraint/3,
+	   ssConstraint/4,ssType/4,
 	   contractType/2,contractTypes/2,
 	   isUnbound/1,isBound/1,isUnboundFVar/2, isIdenticalVar/2,
 	   moveQuants/3,reQuantTps/3,
-	   moveConstraints/3,moveConstraints/4, implementationName/2,
+	   getConstraints/3,putConstraints/3,
+	   implementationName/2,
+	   mkTypeRule/3,
 	   stdType/3]).
 :- use_module(misc).
 
@@ -66,15 +68,18 @@ newTypeFun(Nm,Ar,tFun(_,_,Nm,Ar,Id)) :- gensym(Nm,Id).
 
 varConstraints(tVar(_,Con,_,_),_,Con) :-!.
 varConstraints(tFun(_,Con,_,_,_),_,Con) :- !.
+/*varConstraints(kVar(_),_,[]) :- !.
+varConstraints(kFun(_,_),_,[]) :- !.
 varConstraints(kVar(Id),Env,Con) :- !,
   getEnvConstraints(Env,types:isKCon(kVar(Id)),Con,_).
 varConstraints(kFun(Id,Ar),Env,Con) :- !,
   getEnvConstraints(Env,types:isKCon(kFun(Id,Ar)),Con,_).
+  */
 
 isKCon(K,conTract(_,A,_)) :- is_member(K,A).
 
 getEnvConstraints([],_,Cx,Cx).
-getEnvConstraints([scope(_,_,Cns,_,_)|Ev],T,C,Cx) :-
+getEnvConstraints([dict(_,_,Cns,_,_)|Ev],T,C,Cx) :-
   collectConstraints(Cns,T,C,C0),
   getEnvConstraints(Ev,T,C0,Cx).
 
@@ -127,124 +132,134 @@ reQuantTps(Tp,[(V,Vr)|Q],allType(kVar(V),QTp)) :-
   isUnbound(Vr),
   reQuantTps(Tp,Q,QTp).
 
-moveConstraints(constrained(Tp,Con),[Con|C],Tmp) :-!,
-  moveConstraints(Tp,C,Tmp).
-moveConstraints(Tp,[],Tp).
+getConstraints(Tp,Cx,Inner) :-
+  deRef(Tp,DTp),
+  mvConstraints(DTp,Cx,[],Inner).
 
-moveConstraints(constrained(Tp,Con),C,Cx,Inner) :-
-  moveConstraints(Tp,[Con|C],Cx,Inner).
-moveConstraints(Tp,C,C,Tp).
+mvConstraints(constrained(Tp,Con),[Con|C],Cx,Tmp) :-
+  deRef(Tp,DTp),
+  mvConstraints(DTp,C,Cx,Tmp).
+mvConstraints(Tp,Cx,Cx,Tp).
 
-showType(anonType,_,O,Ox) :- appStr("_",O,Ox).
-showType(voidType,_,O,Ox) :- appStr("void",O,Ox).
-showType(kVar(Nm),_,O,Ox) :- appStr(Nm,O,Ox).
-showType(kFun(Nm,Ar),_,O,Ox) :- appStr(Nm,O,O1),appStr("/",O1,O2),appInt(Ar,O2,Ox).
-showType(tVar(Curr,_,_,_),ShCon,O,Ox) :- nonvar(Curr),!,showType(Curr,ShCon,O,Ox).
-showType(tVar(_,Cons,Nm,Id),ShCon,O,Ox) :- (ShCon=true -> showVarConstraints(Cons,"",O,O0); O=O0), appStr("%",O0,O1),appStr(Nm,O1,O2),appSym(Id,O2,Ox).
-showType(tFun(Curr,_,_,_,_),ShCon,O,Ox) :- nonvar(Curr),!,showType(Curr,ShCon,O,Ox).
-showType(tFun(_,_,_Nm,Ar,Id),_,O,Ox) :- appStr("%",O,O1),appStr(Id,O1,O2),appStr("/",O2,O3),appInt(Ar,O3,Ox).
-showType(type(Nm),_,O,Ox) :- appStr(Nm,O,Ox).
-showType(tpFun(Nm,Ar),_,O,Ox) :- appStr(Nm,O,O1),appStr("%",O1,O2),appInt(Ar,O2,Ox).
-showType(tpExp(Nm,A),ShCon,O,Ox) :- showTypeExp(tpExp(Nm,A),ShCon,O,Ox).
-showType(tupleType(A),ShCon,O,Ox) :- appStr("(",O,O1), showTypeEls(A,ShCon,O1,O2), appStr(")",O2,Ox).
-showType(funType(A,R),ShCon,O,Ox) :- showType(A,ShCon,O,O1), appStr("=>",O1,O2), showType(R,ShCon,O2,Ox).
-showType(consType(A,R),ShCon,O,Ox) :- showType(A,ShCon,O,O1), appStr("<=>",O1,O2), showType(R,ShCon,O2,Ox).
-showType(refType(R),ShCon,O,Ox) :- appStr("ref ",O,O4), showType(R,ShCon,O4,Ox).
-showType(valType(R),ShCon,O,Ox) :- appStr("val ",O,O4), showType(R,ShCon,O4,Ox).
-showType(allType(V,Tp),ShCon,O,Ox) :- appStr("all ",O,O1), showBound(V,O1,O2), showMoreQuantified(Tp,ShCon,O2,Ox).
-showType(existType(V,Tp),ShCon,O,Ox) :- appStr("exist ",O,O1), showBound(V,O1,O2), showMoreQuantified(Tp,ShCon,O2,Ox).
-showType(faceType(Els,Tps),ShCon,O,Ox) :- appStr("{ ",O,O1),
-    showFieldTypes(Els,"",Sp,ShCon,O1,O2),
-    showTypeFields(Tps,Sp,_,ShCon,O2,O3),
-    appStr("}",O3,Ox).
-showType(typeExists(Hd,Bd),ShCon,O,Ox) :- showType(Hd,ShCon,O,O1), appStr("<~",O1,O2),showType(Bd,ShCon,O2,Ox).
-showType(typeLambda(Hd,Bd),ShCon,O,Ox) :- showType(Hd,ShCon,O,O1), appStr("~>",O1,O2),showType(Bd,ShCon,O2,Ox).
-showType(contractExists(Spc,Fc),ShCon,O,Ox) :- showConstraint(Spc,O,O1), appStr("<~",O1,O2), showType(Fc,ShCon,O2,Ox).
-showType(constrained(Tp,Con),_,O,Ox) :- showConstraint(Con,O,O1), showMoreConstraints(Tp,O1,Ox).
+putConstraints([],Tp,Tp).
+putConstraints([Con|Cx],In,constrained(Tp,Con)) :-
+  putConstraints(Cx,In,Tp).
 
-showTypeExp(T,ShCon,O,Ox) :-
+ssType(anonType,_,_,ss("_")).
+ssType(voidType,_,_,ss("void")).
+ssType(kVar(Nm),_,_,id(Nm)).
+ssType(kFun(Nm,Ar),_,_,sq([id(Nm),ss("/"),ix(Ar)])).
+ssType(tVar(Curr,_,_,_),ShCon,Dp,S) :- nonvar(Curr),!,ssType(Curr,ShCon,Dp,S).
+ssType(tVar(_,Cons,_,Id),true,Dp,sq([sq(Cnx),ss("%"),ss(Id)])) :-
+  ssVarConstraints(Cons,Dp,Cnx).
+ssType(tVar(_,_,_,Id),false,_,sq([ss("%"),ss(Id)])).
+ssType(tFun(Curr,_,_,_,_),ShCon,Dp,S) :- nonvar(Curr),!,ssType(Curr,ShCon,Dp,S).
+ssType(tFun(_,Cons,_,Ar,Id),true,Dp,
+       sq([sq(Cnx),ss("%"),ss(Id),ss("/"),ix(Ar)])) :-
+  ssVarConstraints(Cons,Dp,Cnx).
+ssType(tFun(_,_,_,Ar,Id),false,_,sq([ss("%"),ss(Id),ss("/"),ix(Ar)])).
+ssType(type(Nm),_,_,id(Nm)).
+ssType(tpFun(Nm,Ar),_,_,sq([id(Nm),ss("/"),ix(Ar)])).
+ssType(tpExp(Nm,A),ShCon,Dp,S) :- ssTypeExp(tpExp(Nm,A),ShCon,Dp,S).
+ssType(tupleType(A),ShCon,Dp,sq([lp,iv(ss(","),AA),rp])) :-
+  ssTypeEls(A,ShCon,Dp,AA).
+ssType(funType(A,R),ShCon,Dp,sq([AA,ss("=>"),RR])) :-
+  ssType(A,ShCon,Dp,AA),
+  ssType(R,ShCon,Dp,RR).
+ssType(consType(A,R),ShCon,Dp,sq([AA,ss("<=>"),RR])) :-
+  ssType(A,ShCon,Dp,AA),
+  ssType(R,ShCon,Dp,RR).
+ssType(refType(R),ShCon,Dp,sq([ss("ref "),RR])) :- ssType(R,ShCon,Dp,RR).
+ssType(valType(R),ShCon,Dp,sq([ss("val "),RR])) :- ssType(R,ShCon,Dp,RR).
+ssType(allType(V,T),ShCon,Dp,sq([ss("all "),iv(ss(","),[types:tvr(V)|VV]),ss("~"),TT])) :-
+  deRef(T,T0),
+  ssABound(T0,ShCon,Dp,VV,TT).
+ssType(existType(V,T),ShCon,Dp,
+       sq([ss("exist "),iv(ss(","),[types:tvr(V)|VV]),ss("~"),TT])) :-
+  ssEBound(T,ShCon,Dp,VV,TT).
+ssType(faceType(Els,Tps),ShCon,Dp,sq([ss("{"),iv(nl(Dp2),FFTT),ss("}")])) :-
+  Dp2 is Dp+2,
+  map(Els,types:ssField(ShCon,Dp2),FF),
+  map(Tps,types:ssTypeField(ShCon,Dp2),TT),
+  concat(FF,TT,FFTT).
+ssType(typeExists(Hd,Bd),ShCon,Dp,sq([HH,ss("<~"),BB])) :-
+  ssType(Hd,ShCon,Dp,HH),
+  ssType(Bd,ShCon,Dp,BB).
+ssType(typeLambda(Hd,Bd),ShCon,Dp,sq([HH,ss("~>"),BB])) :-
+  ssType(Hd,ShCon,Dp,HH),
+  ssType(Bd,ShCon,Dp,BB).
+ssType(contractExists(Hd,Bd),ShCon,Dp,sq([HH,ss("<~"),BB])) :-
+  ssConstraint(ShCon,Dp,Hd,HH),
+  ssType(Bd,ShCon,Dp,BB).
+ssType(constrained(Tp,Con),_ShCon,Dp,sq([CC,ss("|:"),TT])) :-
+  ssConstraint(false,Dp,Con,CC),
+  ssType(Tp,false,Dp,TT).
+
+ssABound(allType(V,T),ShCon,Dp,[types:tvr(V)|Vs],TT) :-
+  deRef(T,T0),
+  ssABound(T0,ShCon,Dp,Vs,TT).
+ssABound(T,ShCon,Dp,[],TT) :-
+  ssType(T,ShCon,Dp,TT).
+ssEBound(existType(V,T),ShCon,Dp,[types:tvr(V)|Vs],TT) :-
+  deRef(T,T0),
+  ssABound(T0,ShCon,Dp,Vs,TT).
+ssEBound(T,ShCon,Dp,[],TT) :-
+  ssType(T,ShCon,Dp,TT).
+
+tvr(kVar(X),id(X)).
+tvr(kFun(X,A),sq([id(X),ss("/"),ix(A)])).
+
+ssTypeExp(T,ShCon,Dp,sq([Op,ss("["),iv(ss(","),Els),ss("]")])) :-
   deRef(T,Tp),
-  showTpExp(Tp,_,ShCon,0,O,O1),
-  appStr("]",O1,Ox).
+  ssTpExp(Tp,ShCon,Dp,Op,REls),
+  reverse(REls,Els).
 
-showTpExp(tpExp(T,A),",",ShCon,Ar,O,Ox) :-!,
+ssTpExp(tpExp(T,A),ShCon,Dp,OO,[AA|Els]) :-!,
   deRef(T,Op),
-  Ar2 is Ar+1,
-  showTpExp(Op,Sep,ShCon,Ar2,O,O1),
-  appStr(Sep,O1,O2),
-  showType(A,ShCon,O2,Ox).
-showTpExp(tpFun(Op,Ar),"[",_ShCon,Ar,O,Ox) :-!,
-  appStr(Op,O,Ox).
-showTpExp(Tp,"[",ShCon,_,O,Ox) :-
-  showType(Tp,ShCon,O,Ox).
+  ssTpExp(Op,ShCon,Dp,OO,Els),
+  ssType(A,ShCon,Dp,AA).
+ssTpExp(tpFun(Op,_),_ShCon,_Dp,id(Op),[]).
+ssTpExp(kFun(Op,_),_ShCon,_Dp,id(Op),[]).
+ssTpExp(Tp,ShCon,Dp,TT,[]) :-
+  ssType(Tp,ShCon,Dp,TT).
 
-showMoreConstraints(constrained(Tp,Con),O,Ox) :-
-  appStr(",",O,O1), showConstraint(Con,O1,O2), showMoreConstraints(Tp,O2,Ox).
-showMoreConstraints(Tp,O,Ox) :- appStr("|:",O,O1),showType(Tp,false,O1,Ox).
+ssField(ShCon,Dp,(Nm,Tp),sq([id(Nm),ss(":"),TT])) :-
+  ssType(Tp,ShCon,Dp,TT).
+ssTypeField(ShCon,Dp,(Nm,Tp),sq([id(Nm),ss(":"),TT])) :-
+  ssType(Tp,ShCon,Dp,TT).
 
-showConstraint(conTract(Nm,Els,[]),O,Ox) :-!,
-  appStr(Nm,O,O1), appStr("[",O1,O2),showTypeEls(Els,false,O2,O3),appStr("]",O3,Ox).
-showConstraint(conTract(Nm,Els,Deps),O,Ox) :-
-  appStr(Nm,O,O1),
-  appStr("[",O1,O2),
-  showTypeEls(Els,false,O2,O3),
-  appStr("->>",O3,O4),
-  showTypeEls(Deps,false,O4,O5),
-  appStr("]",O5,Ox).
-showConstraint(implementsFace(Tp,Face),O,Ox) :-
-  showType(Tp,false,O,O1),
-  appStr("<~",O1,O2),
-  showType(Face,false,O2,Ox).
-showConstraint(constrained(Con,Extra),O,Ox) :-
-  showConstraint(Extra,O,O1),
-  appStr("|:",O1,O2),
-  showConstraint(Con,O2,Ox).
+ssConstraint(ShCon,Dp,conTract(Nm,Els,[]),sq([id(Nm),ss("["),iv(ss(","),EE),ss("]")])) :-!,
+  ssTypeEls(Els,ShCon,Dp,EE).
+ssConstraint(ShCon,Dp,conTract(Nm,Els,Deps),
+	       sq([id(Nm),ss("["),iv(ss(","),EE),ss("->>"),
+		   iv(ss(","),DD),ss("]")])) :-
+  ssTypeEls(Els,ShCon,Dp,EE),
+  ssTypeEls(Deps,ShCon,Dp,DD).
+ssConstraint(ShCon,Dp,implementsFace(Tp,Face),sq([TT,ss("<~"),FF])) :-
+  ssType(Tp,ShCon,Dp,TT),
+  ssType(Face,ShCon,Dp,FF).
 
-showVarConstraints(C,Tl,O,Ox) :- var(C),!,(Tl=","->appStr("|:",O,Ox);O=Ox).
-showVarConstraints([C|Cx],Ld,O,Ox) :-
-  appStr(Ld,O,O1),
-  showConstraint(C,O1,O2),
-  showVarConstraints(Cx,",",O2,Ox).
+ssVarConstraints(C,_,[]) :- var(C),!.
+ssVarConstraints([C1|Cx],Dp,[CC,ss(",")|Cs]) :-
+  nonvar(Cx),!,
+  ssConstraint(false,Dp,C1,CC),
+  ssVarConstraints(Cx,Dp,Cs).
+ssVarConstraints([C|_],Dp,[CC,ss("|:")]) :-
+  ssConstraint(false,Dp,C,CC).
 
-showBound(Nm,O,Ox) :- showType(Nm,false,O,Ox).
+ssTypeEls(Tps,ShCon,Dp,TT) :-
+  map(Tps,types:ssTp(ShCon,Dp),TT).
 
-showTypeEls([],_,O,O).
-showTypeEls([Tp|More],ShCon,O,E) :- showType(Tp,ShCon,O,O1), showMoreTypeEls(More,ShCon,O1,E).
+ssTp(ShCon,Dp,Tp,TT) :-
+  ssType(Tp,ShCon,Dp,TT).
 
-showMoreTypeEls([],_,O,O).
-showMoreTypeEls([Tp|More],ShCon,O,E) :- appStr(", ",O,O1),showType(Tp,ShCon,O1,O2), showMoreTypeEls(More,ShCon,O2,E).
-
-showMoreQuantified(allType(Nm,Tp),ShCon,O,E) :- appStr(", ",O,O1), showType(Nm,ShCon,O1,O2), showMoreQuantified(Tp,ShCon,O2,E).
-showMoreQuantified(Tp,ShCon,O,E) :- appStr(" ~~ ",O,O1), showType(Tp,ShCon,O1,E).
-
-showFieldTypes([],Sep,Sep,_,O,O).
-showFieldTypes([F|More],Sep,Spx,ShCon,O,E) :- appStr(Sep,O,O0),showField(F,ShCon,O0,O1), showFieldTypes(More,". ",Spx,ShCon,O1,E).
-
-showField((Nm,Tp),ShCon,O,E) :- appStr(Nm,O,O1), appStr(" : ",O1,O2), showType(Tp,ShCon,O2,E).
-
-showTypeFields([],Sp,Sp,_,O,O).
-showTypeFields([F|More],Sep,Spx,ShCon,O,E) :-
-  appStr(Sep,O,O0),showTypeField(F,ShCon,O0,O1), showTypeFields(More,". ",Spx,ShCon,O1,E).
-
-showTypeField((Nm,Tp),ShCon,O,E) :- appStr(Nm,O,O1), appStr(" ~> ",O1,O2), showType(Tp,ShCon,O2,E).
-
-dispType(Tp) :-
-  showType(Tp,true,Chrs,[]),
-  string_chars(Text,Chrs),
-  writeln(Text).
-
-dispType(Msg,Tp) :-
-  appStr(Msg,Chrs,C0),
-  showType(Tp,true,C0,[]),
-  string_chars(Text,Chrs),
-  writeln(Text).
-
-typeArity(Tp,Ar) :- deRef(Tp,T), tArity(T,Ar).
+typeArity(Tp,Ar) :- deRef(Tp,T), tArity(T,Ar),!.
 
 tArity(type(_),0).
 tArity(kFun(_,Ar),Ar).
 tArity(kVar(_),0).
 tArity(tFun(_,_,_,Ar,_),Ar).
+tArity(tpFun(_,Ar),Ar).
 tArity(tpExp(Op,_),Ar) :-
   typeArity(Op,A1),
   Ar is A1-1.
@@ -253,9 +268,8 @@ progTypeArity(Tp,Ar) :- deRef(Tp,TTp), tpArity(TTp,Ar).
 
 tpArity(allType(_,Tp),Ar) :- !, progTypeArity(Tp,Ar).
 tpArity(existType(_,Tp),Ar) :- !, progTypeArity(Tp,Ar).
-tpArity(constrained(Tp,conTract(_,_,_)),Ar) :- !,
+tpArity(constrained(Tp,_),Ar) :- !,
   progTypeArity(Tp,A), Ar is A+1.
-tpArity(constrained(Tp,_),Ar) :- !,progTypeArity(Tp,Ar).
 tpArity(funType(A,_),Ar) :- !,
   progTypeArity(A,Ar).
 tpArity(consType(A,_),Ar) :- !,
@@ -302,6 +316,15 @@ isTpLam(allType(_,T),Ar) :- isTpLam(T,Ar).
 isTpLam(existType(_,T),Ar) :- isTpLam(T,Ar).
 isTpLam(constrained(T,_),Ar) :- isTpLam(T,Ar).
 
+mkTypeRule(typeLambda(Args,Tp),Tp,typeLambda(Args,Tp)) :-!.
+mkTypeRule(allType(K,T),allType(K,Tp),allType(K,R)) :-
+  mkTypeRule(T,Tp,R).
+mkTypeRule(existType(K,T),existType(K,Tp),existType(K,R)) :-
+  mkTypeRule(T,Tp,R).
+mkTypeRule(constrained(T,C),constraint(Tp,C),constrained(R,C)) :-
+  mkTypeRule(T,Tp,R).
+mkTypeRule(Tp,Tp,Tp).
+
 isTypeExp(Tp,Op,Args) :-
   isTpExp(Tp,Op,Args,[]).
 
@@ -312,6 +335,15 @@ isTpExp(Op,Op,Args,Args).
 mkTypeExp(Op,[],Op).
 mkTypeExp(Op,[A|Args],Tp) :-
   mkTypeExp(tpExp(Op,A),Args,Tp).
+
+tpName(Tp,Nm) :-
+  deRef(Tp,RTp),
+  surfaceName(RTp,Nm).
+
+consTpName(allType(_,T),Nm) :- consTpName(T,Nm).
+consTpName(existType(_,T),Nm) :- consTpName(T,Nm).
+consTpName(constrained(T,_),Nm) :- consTpName(T,Nm).
+consTpName(consType(_,Tp),Nm) :- tpName(Tp,Nm).
 
 implementationName(conTract(Nm,Args,_),INm) :-
   appStr(Nm,S0,S1),
@@ -343,13 +375,22 @@ surfaceName(typeLambda(_,R),Nm) :-
 surfaceName(tupleType(Els),Nm) :-
   length(Els,Ar),
   swritef(Nm,"()%d",[Ar]).
+surfaceName(faceType(Flds,_),Nm) :-
+  sort(Flds,types:cmpFld,SFlds),
+  project0(SFlds,Fns),
+  interleave(Fns,"|",Fs),
+  concatStrings(Fs,AllFs),
+  stringHash(0,AllFs,Hash),
+  swritef(Nm,"{}%d",[Hash]).
+
+cmpFld((F1,_),(F2,_)) :- str_lt(F1,F2).
 
 contractType(conTract(Nm,A,D),Tp) :-
   concat(A,D,Args),
   length(Args,Ar),
-  rfold(Args,types:mkTpExp,tpFun(Nm,Ar),Tp).
-
-mkTpExp(Op,A,tpExp(Op,A)).
+  mkTypeExp(tpFun(Nm,Ar),Args,Tp).
+contractType(allType(V,CT),allType(V,T)) :-
+  contractType(CT,T).
 
 contractTypes(CTs,TPs) :-
   map(CTs,types:contractType,TPs).
@@ -360,6 +401,7 @@ stdType("boolean",type("star.core*boolean"),typeExists(type("star.core*boolean")
 stdType("string",type("star.core*string"),typeExists(type("star.core*string"),faceType([],[]))).
 stdType("package",type("star.pkg*pkg"),typeExists(type("star.pkg*pkg"),faceType([],[]))).
 stdType("version",type("star.pkg*version"),typeExists(type("star.pkg*version"),faceType([],[]))).
+stdType("file",type("star.file*fileHandle"),typeExists(type("star.file*fileHandle"),faceType([],[]))).
 
 isFixedSizeType(Tp) :- deRef(Tp,T),!,isFxTp(T).
 
@@ -386,7 +428,7 @@ toLtp(_,ptrTipe).
 mkTplTipe(Cnt,tplTipe(As)) :-
   mkPtrs(Cnt,As),!.
 
-mkPtrs(0,[]).
+mkPtrs(0,[]) :-!.
 mkPtrs(I,[ptrTipe|As]) :-
   I1 is I-1,
   mkPtrs(I1,As).

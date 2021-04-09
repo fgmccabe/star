@@ -1,40 +1,57 @@
 /* Automatically generated, do not edit */
 
-:- module(assemble,[assem/2, showIns/3, dispIns/1]).
+:- module(assemble,[assem/2, dispIns/1]).
 :- use_module(misc).
 :- use_module(lterms).
 :- use_module(encode).
+:- use_module(display).
 
 assem(method(Nm,Sig,Lx,Ins),MTpl) :-
-    genLblTbl(Ins,0,labels{},Lbs),
     findLit([],Nm,_,Ls0),
-    mnem(Ins,Lbs,Ls0,Lts,[],Lcs,[],Lines,0,Cde),
+    assemBlock(Ins,labels{},Ls0,Lts,[],Lcs,[],Lines,0,_,[],Cde,[]),
     mkInsTpl(Cde,Code),
     mkLitTpl(Lts,LtTpl),
     mkTpl(Lcs,LcsTpl),
     sortLines(Lines,SLines),
     mkTpl(SLines,LnsTpl),
-    mkTpl([Nm,strg(Sig),intgr(Lx),Code,LtTpl,LcsTpl,LnsTpl],MTpl).
-assem(struct(Lbl,Sig,Fields),Tpl) :-
+    mkCons("method",[Nm,strg(Sig),intgr(Lx),Code,LtTpl,LcsTpl,LnsTpl],MTpl).
+assem(struct(Lbl,Ix,Sig,Fields),Tpl) :-
     mkTpl(Fields,FieldSigs),
-    mkTpl([Lbl,Sig,FieldSigs],Tpl).
+    mkCons("struct",[Lbl,intgr(Ix),Sig,FieldSigs],Tpl).
+assem(tipe(Tp,Rl,Map),Tpl) :-
+    encMap(Map,MapEls),
+    encType(Tp,TpSig),
+    encType(Rl,RlSig),
+    mkTpl(MapEls,MapTpl),
+    mkCons("type",[strg(TpSig),strg(RlSig),MapTpl],Tpl).
 
-mnem([],_,Lt,Lt,Lc,Lc,Lns,Lns,_,[]).
-mnem([iLbl(_)|Ins],Lbs,Lt,Lts,Lc,Lcx,Ln,Lnx,Pc,Code) :- mnem(Ins,Lbs,Lt,Lts,Lc,Lcx,Ln,Lnx,Pc,Code).
-mnem([iLocal(Nm,Frm,End,Off)|Ins],Lbs,Lt,Lts,Lc,Lcx,Ln,Lnx,Pc,Code) :-
+encMap([],[]).
+encMap([(Lbl,Ix)|Map],[E|MM]) :-
+  mkTpl([Lbl,intgr(Ix)],E),
+  encMap(Map,MM).
+
+assemBlock(Ins,Lbs,Lt,Lts,Lc,Lcx,Ln,Lnx,Pc,Pcx,Ends,Code,Cdx) :-
+    genLblTbl(Ins,Pc,Pc1,Lbs,Lbs0),!,
+    mnem(Ins,Lbs0,Lt,Lts,Lc,Lcx,Ln,Lnx,Pc,Pcx,[Pc1|Ends],Code,Cdx).
+
+mnem([],_,Lt,Lt,Lc,Lc,Lns,Lns,Pc,Pc,_,Cdx,Cdx).
+mnem([iLbl(_)|Ins],Lbs,Lt,Lts,Lc,Lcx,Ln,Lnx,Pc,Pcx,Ends,Code,Cdx) :- mnem(Ins,Lbs,Lt,Lts,Lc,Lcx,Ln,Lnx,Pc,Pcx,Ends,Code,Cdx).
+mnem([iLocal(Nm,Frm,End,Off)|Ins],Lbs,Lt,Lts,Lc,Lcx,Ln,Lnx,Pc,Pcx,Ends,Code,Cdx) :-
     findLbl(Frm,Lbs,F),
     findLbl(End,Lbs,T),
     mkTpl([strg(Nm),intgr(F),intgr(T),intgr(Off)],Entry),
     (is_member(Entry,Lc)->Lc0=Lc;Lc0=[Entry|Lc]),
-    mnem(Ins,Lbs,Lt,Lts,Lc0,Lcx,Ln,Lnx,Pc,Code).
-mnem([iLine(Loc)|Ins],Lbs,Lt,Lts,Lc,Lcx,Lns,Lnx,Pc,Code) :-
+    mnem(Ins,Lbs,Lt,Lts,Lc0,Lcx,Ln,Lnx,Pc,Pcx,Ends,Code,Cdx).
+mnem([iLine(Loc)|Ins],Lbs,Lt,Lts,Lc,Lcx,Lns,Lnx,Pc,Pcx,Ends,Code,Cdx) :-
     mkTpl([Loc,intgr(Pc)],LneEntry),
     (is_member(LneEntry,Lns) -> Lns1 = Lns; Lns1=[LneEntry|Lns]),
-    mnem([iDLine(Loc)|Ins],Lbs,Lt,Lts,Lc,Lcx,Lns1,Lnx,Pc,Code).
+    mnem([iDLine(Loc)|Ins],Lbs,Lt,Lts,Lc,Lcx,Lns1,Lnx,Pc,Pcx,Ends,Code,Cdx).
 #(Mnem)
 
-makeKey(Id,Key) :-
-  atom_string(Key,Id).
+findLevel(0,[Tgt|_],Tgt) :-!.
+findLevel(L,[_|Ends],Tgt) :-
+  L1 is L-1,
+  findLevel(L1,Ends,Tgt).
 
 findLbl(L,Lbs,Tgt) :-
   makeKey(L,Ky),
@@ -44,12 +61,12 @@ defineLbl(Lbl,Pc,Lbls,Lblx) :-
   makeKey(Lbl,Key),
   put_dict(Key,Lbls,Pc,Lblx).
 
-genLblTbl([],_,Lbls,Lbls).
-genLblTbl([iLbl(Lbl)|Ins],Pc,Lbls,Lbx) :-
+genLblTbl([],Pc,Pc,Lbls,Lbls).
+genLblTbl([iLbl(Lbl)|Ins],Pc,Pcx,Lbls,Lbx) :-
   defineLbl(Lbl,Pc,Lbls,Lbli),
-  genLblTbl(Ins,Pc,Lbli,Lbx).
-genLblTbl([iLocal(_,_,_,_)|Ins],Pc,Lbls,Lbx) :- genLblTbl(Ins,Pc,Lbls,Lbx).
-genLblTbl([iLine(Lc)|Ins],Pc,Lbls,Lbx) :- genLblTbl([iDLine(Lc)|Ins],Pc,Lbls,Lbx).
+  genLblTbl(Ins,Pc,Pcx,Lbli,Lbx).
+genLblTbl([iLocal(_,_,_,_)|Ins],Pc,Pcx,Lbls,Lbx) :- genLblTbl(Ins,Pc,Pcx,Lbls,Lbx).
+genLblTbl([iLine(Lc)|Ins],Pc,Pcx,Lbls,Lbx) :- genLblTbl([iDLine(Lc)|Ins],Pc,Pcx,Lbls,Lbx).
 #(Lbls)
 
 pcGap(Pc,Tgt,Off) :- Off is Tgt-Pc.
@@ -78,34 +95,19 @@ sortLines(Lns,Sorted) :-
 compLine(ctpl(_,[_,intgr(Pc1)]),ctpl(_,[_,intgr(Pc2)])) :- Pc1<Pc2.
 
 dispIns(Prog) :-
-  showIns(Prog,O,[]),
-  string_chars(Txt,O),
-  writeln(Txt).
+  showIns(Prog,O),
+  displayln(O).
 
-showIns([method(Nm,Sig,_Lx)|Ins],O,Ox) :-
-  showTerm(Nm,0,O,O1),
-  appStr(":",O1,O2),
-  appStr(Sig,O2,O3),
-  appNl(O3,O4),
-  showMnem(Ins,0,[],O4,Ox).
+showIns([method(Nm,Sig,_Lx)|Ins],sq([NN,ss(":"),ss(Sig),nl(0),iv(nl(0),II)])) :-
+  ssTrm(Nm,0,NN),
+  showMnem(Ins,0,[],II).
 
-showMnem([],_,_,Ox,Ox).
-showMnem([iLbl(Lb)|Ins],Pc,Lbs,O,Ox) :-
-  appStr(Lb,O,O1),
-  appStr(":",O1,O2),
-  appNl(O2,O3),
-  showMnem(Ins,Pc,[(Lb,Pc)|Lbs],O3,Ox).
-showMnem([iLocal(Nm,Frm,End,_Off)|Ins],Pc,Lbs,O,Ox) :-
-  appStr(Nm,O,O1),
-  appStr("::",O1,O2),
-  appStr(Frm,O2,O3),
-  appStr("-",O3,O4),
-  appStr(End,O4,O5),
-  appNl(O5,O6),
-  showMnem(Ins,Pc,Lbs,O6,Ox).
-showMnem([iLine(Loc)|Ins],Pc,Lbs,O,Ox) :-
-  appStr("Line: ",O,O1),
-  showTerm(Loc,0,O1,O2),
-  appNl(O2,O3),
-  showMnem(Ins,Pc,Lbs,O3,Ox).
+showMnem([],_,_,[]).
+showMnem([iLbl(Lb)|Ins],Pc,Lbs,[sq([ss(Lb),ss(":")])|II]) :-
+  showMnem(Ins,Pc,[(Lb,Pc)|Lbs],II).
+showMnem([iLocal(Nm,Frm,End,_Off)|Ins],Pc,Lbs,[sq([ss(Nm),ss("::"),ss(Frm),ss("-"),ss(End)])|II]) :-
+  showMnem(Ins,Pc,Lbs,II).
+showMnem([iLine(Loc)|Ins],Pc,Lbs,[sq([ss("Line "),LL])|II]) :-
+  ssTrm(Loc,0,LL),
+  showMnem(Ins,Pc,Lbs,II).
 #(Show)

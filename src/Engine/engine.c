@@ -7,6 +7,7 @@
 #include <str.h>
 #include <lblops.h>
 #include <args.h>
+#include <strings.h>
 
 #include "engineP.h"
 #include "decode.h"
@@ -27,12 +28,12 @@ static LockRecord processLock;
 
 static MethodRec halt = {
   .clss = Null,
-  .codeSize = 1,
+  .codeSize = 2,
   .arity = 0,
   .lclcnt = 0,
   .pool = Null,
   .locals = Null,
-  .code = {Halt}
+  .code = {Halt, 0}
 };
 
 void initEngine() {
@@ -43,11 +44,12 @@ void initEngine() {
 }
 
 retCode bootstrap(char *entry, char *rootWd, capabilityPo rootCap) {
-  labelPo umain = declareLbl(entry, 0);
+  labelPo umain = declareLbl(entry, 1, -1);
   methodPo mainMtd = labelCode(umain);
 
   if (mainMtd != Null) {
-    processPo p = newProcess(mainMtd, rootWd, rootCap);
+    termPo cmdLine = commandLine(currHeap);
+    processPo p = newProcess(mainMtd, rootWd, rootCap, cmdLine);
     retCode ret = run(p);
     ps_kill(p);
     return ret;
@@ -57,7 +59,7 @@ retCode bootstrap(char *entry, char *rootWd, capabilityPo rootCap) {
   }
 }
 
-processPo newProcess(methodPo mtd, char *rootWd, capabilityPo processCap) {
+processPo newProcess(methodPo mtd, char *rootWd, capabilityPo processCap, termPo rootArg) {
   processPo P = (processPo) allocPool(prPool);
 
   P->prog = mtd;
@@ -75,6 +77,9 @@ processPo newProcess(methodPo mtd, char *rootWd, capabilityPo processCap) {
   } else
     P->waitFor = never;
 
+  P->stk = allocateStack(currHeap,initStackSize);
+  setStackState(P->stk,root);
+
   P->tracing = tracing;
 
   P->fp = (framePo) P->stackLimit;
@@ -84,9 +89,12 @@ processPo newProcess(methodPo mtd, char *rootWd, capabilityPo processCap) {
   // cap the stack with a halting stop.
 
   ptrPo sp = (ptrPo) P->fp;
+  *--sp = rootArg;
+
   *--sp = (termPo) &halt;
   *--sp = (termPo) entryPoint(&halt);
   *--sp = (termPo) P->fp;    /* set the new frame pointer */
+
 
   P->fp = (framePo) sp;
   P->sp = sp;
@@ -179,7 +187,6 @@ retCode extendStack(processPo p, integer sfactor, integer fixed) {
     methodPo mtd = p->prog;
 
     while (fp < (framePo) p->stackLimit) {
-      ptrPo nsp = realign(sp, (ptrPo) p->stackBase, (ptrPo) p->stackLimit, (ptrPo) nLimit);
       framePo nfp = (framePo) realign((ptrPo) fp, (ptrPo) p->stackBase, (ptrPo) p->stackLimit, (ptrPo) nLimit);
       nfp->prog = fp->prog;
       nfp->rtn = fp->rtn;
@@ -271,7 +278,7 @@ static retCode prEntry(void *n, void *r, void *c) {
 
 retCode processProcesses(procProc p, void *cl) {
   Helper h = {.pr = p, .cl = cl};
-  return ProcessTable(prEntry, prTble, &h);
+  return processHashTable(prEntry, prTble, &h);
 }
 
 processPo getProcessOfThread(void) {

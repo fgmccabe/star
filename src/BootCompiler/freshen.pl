@@ -31,14 +31,12 @@ genSkolemFun(Nm,[],V) :-
 genSkolemFun(Nm,Q,Tp) :-
   length(Q,Ar),
   skolemFun(Nm,Ar,NN),
-  rfold(Q,types:mkTpExp,NN,Tp).
+  mkTypeExp(NN,Q,Tp).
 
 evidence(Tp,Env,Q,ProgramType) :-
   deRef(Tp,T),
   skolemize(T,[],Q,SkTp),
   freshn(SkTp,Env,Q,[],ProgramType).
-
-
 
 freshn(Tp,Env,Q,Ex,FTp) :- deRef(Tp,T),frshn(T,Env,Q,Ex,FTp),!.
 

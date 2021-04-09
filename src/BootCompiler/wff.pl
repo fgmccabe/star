@@ -1,18 +1,20 @@
 :-module(wff,[isAlgebraicTypeStmt/6,isConstructor/3,isConstructorType/3,
+	      isRoundCon/6,isBraceCon/6,
 	      isQuantified/3,isXQuantified/3,reUQuant/3,reXQuant/3,
 	      isConstrained/3,reConstrain/3,
-	      isContractStmt/6,isImplementationStmt/6,
+	      isContractStmt/6,isImplementationStmt/6,implementedContractName/2,
 	      isTypeExistsStmt/6,isTypeFunStmt/6,
 	      isTypeAnnotation/4,typeAnnotation/4,
-	      isTypeLambda/4,
+	      isTypeLambda/4,typeName/2,
 	      isValType/3,isFunType/4,isEnum/3,enum/3,
 	      isImport/3, findImport/3,isPrivate/3,isPublic/3,
 	      isDefault/3,isDefault/4,
 	      isLiteralInteger/3,isLiteralFloat/3,
 	      isIntegrity/3,isShow/3,isOpen/3,
 	      isConditional/5,conditional/5,isOfTerm/4,
-	      isEquation/5,isDefn/4,isAssignment/4,isRef/3,assignment/4,eqn/4,eqn/5,
-	      isCurriedRule/5,ruleHead/4,
+	      isEquation/4,isEquation/5,
+	      isDefn/4,isAssignment/4,isRef/3,assignment/4,eqn/4,eqn/5,
+	      ruleName/3,headName/2,
 	      isWhere/4,isCoerce/4,coerce/4,isOptCoerce/4,optCoerce/4,
 	      isFieldAcc/4,isIndexTerm/4,isRecordUpdate/4,
 	      isSlice/5,isSplice/6,
@@ -25,7 +27,7 @@
 	      isBind/4,isValof/3,isThrow/3,isReturn/3,isTryCatch/4,
 	      isIfThenElse/5,isIfThen/4,isWhileDo/4,isUntilDo/4,isForDo/4,
 	      isActionSeq/4,isActionSeq/3,
-	      isLetDef/4,mkLetDef/4,
+	      isLetDef/4,isLetRec/4,mkLetDef/4,mkLetRec/4,
 	      whereTerm/4,
 	      packageName/2,pkgName/2,
 	      collectImports/3,
@@ -35,6 +37,7 @@
 	      findVars/3]).
 :- use_module(abstract).
 :- use_module(misc).
+:- use_module(operators).
 
 isImport(St,Lc,M) :-
   isUnary(St,Lc,"public",I),!,
@@ -94,6 +97,22 @@ isConstructor(C,Lc,Nm) :-
   isRound(C,Lc,Nm,_).
 isConstructor(C,Lc,Nm) :-
   isBrace(C,Lc,Nm,_).
+
+isRoundCon(C,XQ,XC,Lc,Nm,Els) :-
+  isCon(C,abstract:isRoundTerm,XQ,XC,Lc,Nm,Els).
+
+isBraceCon(C,XQ,XC,Lc,Nm,Els) :-
+  isCon(C,abstract:isBraceTerm,XQ,XC,Lc,Nm,Els).
+
+isCon(C,Tst,[],[],Lc,Nm,Els) :-
+  call(Tst,C,Lc,N,Els),
+  isIden(N,Nm).
+isCon(C,Tst,XQ,XC,Lc,Nm,Els) :-
+  isXQuantified(C,XQ,I),
+  isCon(I,Tst,_,XC,Lc,Nm,Els).
+isCon(C,Tst,XQ,XC,Lc,Nm,Els) :-
+  isConstrained(C,I,XC),
+  isCon(I,Tst,XQ,_,Lc,Nm,Els).
 
 isConstructorType(C,Lc,Tp) :-
   isQuantified(C,U,I),
@@ -170,6 +189,39 @@ implSpec(S,[],Constraints,Con,Body) :-
 implSpec(S,[],[],Con,Body) :-
   isBinary(S,_,"=>",Con,Body).
 
+implementedContractName(Sq,INm) :-
+  isSquare(Sq,Nm,A),
+  appStr(Nm,S0,S1),
+  marker(over,M),
+  surfaceNames(A,M,S1,[]),
+  string_chars(INm,S0).
+
+surfaceNames([],_,S,S).
+surfaceNames([T|_],Sep,S0,Sx) :-
+  isBinary(T,_,"->>",L,_),!,
+  deComma(L,Els),
+  surfaceNames(Els,Sep,S0,Sx).
+surfaceNames([T|L],Sep,S0,Sx) :-
+  surfaceName(T,SN),
+  appStr(Sep,S0,S1),
+  appStr(SN,S1,S2),
+  surfaceNames(L,Sep,S2,Sx).
+
+surfaceName(N,Nm) :-
+  isIden(N,Nm).
+surfaceName(N,Nm) :-
+  isSquare(N,Nm,_).
+surfaceName(T,Nm) :-
+  isQuantified(T,_,B),
+  surfaceName(B,Nm).
+surfaceName(T,Nm) :-
+  isTypeLambda(T,_,_,Rhs),
+  surfaceName(Rhs,Nm).
+surfaceName(T,Nm) :-
+  isTuple(T,_,A),
+  length(A,Ar),
+  swritef(Nm,"()%d",[Ar]).
+
 isConstrainedTp(T,C,R) :-
   isConstrained(T,R,C),!.
 isConstrainedTp(T,[],T).
@@ -224,6 +276,16 @@ isTypeFunStmt(St,Lc,Q,C,L,R) :-
 isTypeFunStmt(St,Lc,[],[],L,R) :-
   isBinary(St,Lc,"~>",L,R).
 
+typeName(Tp,Nm) :-
+  isBinary(Tp,_,"|:",_,R),
+  typeName(R,Nm).
+typeName(Tp,Nm) :- isSquare(Tp,Nm,_), \+ isKeyword(Nm).
+typeName(Tp,Nm) :- isName(Tp,Nm), \+ isKeyword(Nm).
+typeName(Tp,"=>") :- isBinary(Tp,_,"=>",_,_).
+typeName(Tp,Nm) :- isTuple(Tp,_,A),
+  length(A,Ar),
+  swritef(Nm,"()%d",[Ar]).
+
 isTypeLambda(St,Lc,L,R) :-
   isBinary(St,Lc,"~>",L,R),
   isTuple(L,_,_).
@@ -257,21 +319,37 @@ isOfTerm(Term,Lc,Lbl,R) :-
   isSquareTuple(R,_,_),
   isIden(Lbl,_,_).
 
-ruleHead(Trm,Hd,Cond,IsDeflt) :-
-  isTuple(Trm,_,[A]),!,
-  ruleHead(A,Hd,Cond,IsDeflt).
-ruleHead(Trm,Hd,Cond,IsDeflt) :-
-  isWhere(Trm,_,Lhs,Cond),!,
-  ruleHead(Lhs,Hd,_,IsDeflt).
-ruleHead(Trm,Hd,Cond,true) :-
-  isDefault(Trm,_,H),!,
-  ruleHead(H,Hd,Cond,_).
-ruleHead(Trm,Trm,name(Lc,"true"),false) :-
-  isRound(Trm,Lc,_,_).
+ruleName(St,var(Nm),value) :-
+  headOfRule(St,Hd),
+  headName(Hd,Nm).
+
+headOfRule(St,Hd) :-
+  isDefn(St,_,Hd,_),!.
+headOfRule(St,Hd) :-
+  isAssignment(St,_,Hd,_),!.
+headOfRule(St,Hd) :-
+  isEquation(St,_,Hd,_,_),!.
+
+headName(Head,Nm) :-
+  isRoundTerm(Head,Op,_),
+  headName(Op,Nm).
+headName(Head,Nm) :-
+  isBrace(Head,_,Nm,_).
+headName(Name,Nm) :-
+  isName(Name,Nm),
+  \+isKeyword(Nm).
+headName(tuple(_,"()",[Name]),Nm) :-
+  headName(Name,Nm).
+headName(Head,Nm) :-
+  isDefault(Head,_,Lhs),
+  headName(Lhs,Nm).
 
 isEquation(Trm,Lc,Lhs,Cond,Rhs) :-
   isBinary(Trm,Lc,"=>",L,Rhs),
-  (isWhere(L,_,Lhs,Cond) ; L=Lhs, enum(Lc,"true",Cond)).
+  (isWhere(L,_,Lhs,G), Cond=some(G) ; L=Lhs, Cond=none).
+
+isEquation(Trm,Lc,Lhs,Rhs) :-
+  isBinary(Trm,Lc,"=>",Lhs,Rhs).
 
 eqn(Lc,Args,Cond,Rhs,Eqn) :-
   whereTerm(Lc,Args,Cond,Lhs),
@@ -279,22 +357,22 @@ eqn(Lc,Args,Cond,Rhs,Eqn) :-
 eqn(Lc,Lhs,Rhs,Eqn) :-
   binary(Lc,"=>",Lhs,Rhs,Eqn).
 
-% refactor f(A)(B) where C => D to f(A) => (B) where C =>D
-isCurriedRule(St,Lc,Op,Cond,Body) :-
-  isBinary(St,Lc,"=>",L,R),!,
-  ruleHead(L,H,Cond,_),
-  isRound(H,_,Op,Args),
-  isRound(Op,_,_,_),
-  eqn(Lc,tuple(Lc,"()",Args),name(Lc,"true"),R,Body).
-
 isDefn(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,"=",Lhs,Rhs).
 
-isLetDef(Trm,Lc,Body,Exp) :-
+isLetDef(Trm,Lc,Els,Exp) :-
   isBinary(Trm,Lc,"in",app(_,name(_,"let"),Body),Exp),
-  (isBraceTuple(Body,_,_);isQBraceTuple(Body,_,_)),!.
+  isQBraceTuple(Body,_,Els),!.
+
+isLetRec(Trm,Lc,Els,Exp) :-
+  isBinary(Trm,Lc,"in",app(_,name(_,"let"),Body),Exp),
+  isBraceTuple(Body,_,Els),!.
 
 mkLetDef(Lc,Els,Bnd,Let) :-
+  qbraceTerm(Lc,name(Lc,"let"),Els,Body),
+  binary(Lc,"in",Body,Bnd,Let).
+
+mkLetRec(Lc,Els,Bnd,Let) :-
   braceTerm(Lc,name(Lc,"let"),Els,Body),
   binary(Lc,"in",Body,Bnd,Let).
 
@@ -425,12 +503,6 @@ packageVersion(T,Pkg) :- isBinary(T,_,".",L,R),
   packageVersion(R,RP),
   string_concat(LP,".",I),
   string_concat(I,RP,Pkg).
-
-headName(H,Nm) :-
-  isIden(H,_,Nm).
-headName(H,Nm) :-
-  isRoundTerm(H,N,_),
-  isIden(N,_,Nm).
 
 findVars(name(Lc,V),SoFar,Vrs) :-
   is_member(name(_,V),SoFar) -> Vrs=SoFar ; Vrs = [name(Lc,V)|SoFar].

@@ -5,7 +5,7 @@
 #include <ooio.h>
 #include "parseOperators.h"
 #include "genoperators.h"
-#include "trie.h"
+#include "stringTrie.h"
 
 logical traceParse = False;
 

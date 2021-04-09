@@ -33,7 +33,7 @@ typedef enum {
 } historyDir;
 
 typedef struct {
-  bufferPo lineBuff;  // Line buffer
+  strBufferPo lineBuff;  // Line buffer
   integer firstPos;   // Nominal start of line
   integer history_index;  /* The history index we are currently editing. */
 } LineState;
@@ -60,8 +60,8 @@ enum KEY_ACTION {
 };
 
 static void resetAtExit(void);
-static void addLineToHistory(bufferPo lineBuff);
-static void refreshLine(integer firstPos, bufferPo lineBuf);
+static void addLineToHistory(strBufferPo lineBuff);
+static void refreshLine(integer firstPos, strBufferPo lineBuf);
 static void refreshFromText(integer firstPos, integer pos, char *content, integer size);
 
 /* Check if the terminal name is in the list of terminals we know are
@@ -131,16 +131,16 @@ static void beep(void) {
   outMsg(stdOut, "\07%_");
 }
 
-static void resetBuffer(bufferPo b, strgPo old, integer pos) {
-  clearBuffer(b);
-  stringIntoBuffer(b, old);
-  seekBuffer(b, pos);
+static void resetBuffer(strBufferPo b, strgPo old, integer pos) {
+  clearStrBuffer(b);
+  stringIntoStrBuffer(b, old);
+  seekStrBuffer(b, pos);
 }
 
 static retCode completeLine(LineState *ls) {
   integer cx = 0;
   strgPo snapShot = stringFromBuffer(ls->lineBuff);
-  integer snapPos = bufferOutPos(ls->lineBuff);
+  integer snapPos = strBufferOutPos(ls->lineBuff);
 
   do {
     retCode ret = completionCallback(ls->lineBuff, completionCl, cx++);
@@ -200,39 +200,39 @@ static void refreshFromText(integer firstPos, integer pos, char *content, intege
   outMsg(stdOut, "\r\033[%dC%_", pos + firstPos - 1);
 }
 
-static void refreshLine(integer firstPos, bufferPo lineBuf) {
+static void refreshLine(integer firstPos, strBufferPo lineBuf) {
   integer buffLen;
   char *content = getTextFromBuffer(lineBuf, &buffLen);
-  refreshFromText(firstPos, bufferOutPos(lineBuf), content, buffLen);
+  refreshFromText(firstPos, strBufferOutPos(lineBuf), content, buffLen);
 }
 
 retCode insertChar(LineState *l, char c) {
-  return insertIntoBuffer(l->lineBuff, (codePoint) c);
+  return insertIntoStringBuffer(l->lineBuff, (codePoint) c);
 }
 
 /* Move cursor to the left. */
 void moveLeft(LineState *l) {
-  if (bufferOutPos(l->lineBuff) > 0) {
-    bufferBumpOutPos(l->lineBuff, prev);
+  if (strBufferOutPos(l->lineBuff) > 0) {
+    strBufferBumpOutPos(l->lineBuff, prev);
     refreshLine(l->firstPos, l->lineBuff);
   }
 }
 
 /* Move cursor to the right. */
 void moveRight(LineState *l) {
-  bufferBumpOutPos(l->lineBuff, next);
+  strBufferBumpOutPos(l->lineBuff, next);
   refreshLine(l->firstPos, l->lineBuff);
 }
 
 /* Move cursor to the start of the line. */
 void moveHome(LineState *l) {
-  rewindBuffer(l->lineBuff);
+  rewindStrBuffer(l->lineBuff);
   refreshLine(l->firstPos, l->lineBuff);
 }
 
 /* Move cursor to the end of the line. */
 void moveEnd(LineState *l) {
-  seekBuffer(l->lineBuff, bufferLength(l->lineBuff));
+  seekStrBuffer(l->lineBuff, strBufferLength(l->lineBuff));
   refreshLine(l->firstPos, l->lineBuff);
 }
 
@@ -245,30 +245,30 @@ void moveInHistory(LineState *l, historyDir dir) {
 
     strgPo entry = O_STRG(getVectEl(history, l->history_index));
 
-    clearBuffer(l->lineBuff);
-    stringIntoBuffer(l->lineBuff, entry);
+    clearStrBuffer(l->lineBuff);
+    stringIntoStrBuffer(l->lineBuff, entry);
     refreshLine(l->firstPos, l->lineBuff);
   }
 }
 
 /* Delete the character at the right of the cursor */
 void deleteRight(LineState *l) {
-  deleteFromBuffer(l->lineBuff, 1);
+  deleteFromStrBuffer(l->lineBuff, 1);
   refreshLine(l->firstPos, l->lineBuff);
 }
 
 /* Backspace implementation. */
 void deleteLeft(LineState *l) {
-  deleteFromBuffer(l->lineBuff, -1);
+  deleteFromStrBuffer(l->lineBuff, -1);
   refreshLine(l->firstPos, l->lineBuff);
 }
 
-static retCode editLine(bufferPo lineBuff) {
+static retCode editLine(strBufferPo lineBuff) {
   LineState l = {.lineBuff = lineBuff,
     .firstPos=getTerminalCol(), .history_index=vectLength(history)};
 
   /* Buffer starts empty. */
-  clearBuffer(lineBuff);
+  clearStrBuffer(lineBuff);
 
   while (True) {
     char c;
@@ -294,7 +294,7 @@ static retCode editLine(bufferPo lineBuff) {
 
     switch (c) {
       case ENTER:    /* enter */
-        if (appendToBuffer(lineBuff, "\n", 1) != Ok)
+        if (appendToStrBuffer(lineBuff, "\n", 1) != Ok)
           return Error;
 
         addLineToHistory(lineBuff);
@@ -315,14 +315,14 @@ static retCode editLine(bufferPo lineBuff) {
         break;
       case CTRL_D:     /* ctrl-d, remove char at right of cursor, or if the
                             line is empty, act as end-of-file. */
-        if (bufferLength(lineBuff) > 0) {
+        if (strBufferLength(lineBuff) > 0) {
           deleteRight(&l);
         } else {
           return Eof;
         }
         break;
       case CTRL_T:    /* ctrl-t, swaps current character with previous. */
-        twizzleBuffer(lineBuff, bufferOutPos(lineBuff));
+        twizzleStrBuffer(lineBuff, strBufferOutPos(lineBuff));
         refreshLine(l.firstPos, lineBuff);
         break;
       case CTRL_B:     /* ctrl-b */
@@ -402,11 +402,11 @@ static retCode editLine(bufferPo lineBuff) {
           refreshLine(l.firstPos, lineBuff);
         break;
       case CTRL_U: /* Ctrl+u, delete the whole line. */
-        clearBuffer(l.lineBuff);
+        clearStrBuffer(l.lineBuff);
         refreshLine(l.firstPos, lineBuff);
         break;
       case CTRL_K: /* Ctrl+k, delete from current to end of line. */
-        deleteFromBuffer(l.lineBuff, bufferLength(lineBuff) - bufferOutPos(lineBuff));
+        deleteFromStrBuffer(l.lineBuff, strBufferLength(lineBuff) - strBufferOutPos(lineBuff));
         refreshLine(l.firstPos, lineBuff);
         break;
       case CTRL_A: /* Ctrl+a, go to the start of the line */
@@ -423,7 +423,7 @@ static retCode editLine(bufferPo lineBuff) {
   }
 }
 
-retCode consoleInput(bufferPo lineBuff) {
+retCode consoleInput(strBufferPo lineBuff) {
   if (!isatty(STDIN_FILENO) || isUnsupportedTerm()) {
     return inLine(stdIn, lineBuff, "\n");
   } else if (enableRawMode() != Ok) {
@@ -445,7 +445,7 @@ static void resetAtExit(void) {
 
 static int history_max_len = DEFAULT_HISTORY_MAX_LEN;
 
-void addLineToHistory(bufferPo lineBuff) {
+void addLineToHistory(strBufferPo lineBuff) {
   assert(history != Null);
 
   integer len;
@@ -482,7 +482,7 @@ retCode initHistory(char *filename) {
 
   ioPo historyFile = openInFile(historyFileName, utf8Encoding);
   if (historyFile != Null) {
-    bufferPo lineBuffer = newStringBuffer();
+    strBufferPo lineBuffer = newStringBuffer();
 
     retCode ret = Ok;
     while (ret == Ok && isFileAtEof(historyFile) != Eof) {

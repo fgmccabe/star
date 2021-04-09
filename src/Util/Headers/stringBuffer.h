@@ -27,38 +27,38 @@
 #include "unistr.h"
 #include "strng.h"
 
-typedef struct _buffer_ *bufferPo;
-extern classPo bufferClass;
+typedef struct stringBuffer_ *strBufferPo;
+extern classPo strBufferClass;
 
-bufferPo newStringBuffer();
-bufferPo newIoStringBuffer();
-bufferPo newReadStringBuffer(char *text, integer textLen);
-bufferPo fixedStringBuffer(char *buffer, long len);
+strBufferPo newStringBuffer();
+strBufferPo newIoStringBuffer();
+strBufferPo newReadStringBuffer(char *text, integer textLen);
+strBufferPo fixedStringBuffer(char *buffer, long len);
 
-char *getTextFromBuffer(bufferPo s, integer *len);
-retCode readTextFromBuffer(bufferPo b, char *tgt, integer len);
-integer bufferLength(bufferPo b);
-integer bufferOutPos(bufferPo b);
-integer bufferBumpOutPos(bufferPo b, integer incr);
-retCode insertIntoBuffer(bufferPo b, codePoint ch);
-retCode deleteFromBuffer(bufferPo b, integer len);
-retCode appendToBuffer(bufferPo b, const char *text, integer txtLen);
-retCode appendIntoBuffer(bufferPo b, const char *text, integer txtLen);
-retCode stringIntoBuffer(bufferPo b, strgPo str);
-retCode appendCodePointToBuffer(bufferPo b, codePoint ch);
-retCode clearBuffer(bufferPo b);
-retCode rewindBuffer(bufferPo b);
-retCode seekBuffer(bufferPo b, integer pos);
-retCode twizzleBuffer(bufferPo b, integer pos);
+char *getTextFromBuffer(strBufferPo s, integer *len);
+retCode readTextFromBuffer(strBufferPo b, char *tgt, integer len);
+integer strBufferLength(strBufferPo b);
+integer strBufferOutPos(strBufferPo b);
+integer strBufferBumpOutPos(strBufferPo b, integer incr);
+retCode insertIntoStringBuffer(strBufferPo b, codePoint ch);
+retCode deleteFromStrBuffer(strBufferPo b, integer len);
+retCode appendToStrBuffer(strBufferPo b, const char *text, integer txtLen);
+retCode appendIntoStrBuffer(strBufferPo b, const char *text, integer txtLen);
+retCode stringIntoStrBuffer(strBufferPo b, strgPo str);
+retCode appendCodePointToStrBuffer(strBufferPo b, codePoint ch);
+retCode clearStrBuffer(strBufferPo b);
+retCode rewindStrBuffer(strBufferPo b);
+retCode seekStrBuffer(strBufferPo b, integer pos);
+retCode twizzleStrBuffer(strBufferPo b, integer pos);
 
-strgPo stringFromBuffer(bufferPo b);
+strgPo stringFromBuffer(strBufferPo b);
 
-logical isTrivialBuffer(bufferPo b);
+logical isTrivialBuffer(strBufferPo b);
 
 #ifdef VERIFY_OBJECT
-#define O_BUFFER(c) ((bufferPo)(checkCast((c),bufferClass)))
+#define O_BUFFER(c) ((strBufferPo)(checkCast((c),strBufferClass)))
 #else
-#define O_BUFFER(c) ((bufferPo)(c))
+#define O_BUFFER(c) ((strBufferPo)(c))
 #endif
 
 #endif /* OOLIB_HEADERS_STRINGBUFFER_H_ */

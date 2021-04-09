@@ -18,7 +18,7 @@ constructPkgSig(Pkg,Imports,Face,Enums,Contracts,Impls,SigTpl) :-
   encImports(Imports,Imps),
   mkTpl(Imps,ImpTpl),
   encType(Face,Sig),
-  formatEnums(Enums,ClsSigs),
+  map(Enums,gensig:formatCnMap,ClsSigs),
   mkTpl(ClsSigs,ClsTpl),
   formatContracts(Contracts,ConSigs),
   mkTpl(ConSigs,ConTpl),
@@ -36,23 +36,38 @@ encImports([I|M],[IP|L]) :-
   encImport(I,IP),
   encImports(M,L).
 
-encImport(import(Viz,Pkg,_,_,_,_),ctpl(lbl("import",2),[enum(Viz),Enc])) :-
+encImport(import(Viz,Pkg,_,_,_,_,_),ctpl(lbl("import",2),[enum(Viz),Enc])) :-
   encPkg(Pkg,Enc).
 
-formatEnums([],[]).
-formatEnums([Nm|M],[strg(Nm)|R]) :-
-  formatEnums(M,R).
+formatCnMap((TpNm,Cns),ConTpl) :-
+  map(Cns,gensig:formatCns,Cnx),
+  mkTpl(Cnx,CnTpl),
+  mkTpl([strg(TpNm),CnTpl],ConTpl).
+
+formatCns((Nm,FlNm,Tp),Fmt) :-
+  encodeSignature(Tp,CnSig),
+  mkTpl([strg(Nm),strg(FlNm),CnSig],Fmt).
 
 formatContracts([],[]).
-formatContracts([conDef(Nm,CnNm,Spec)|M],[ConTpl|R]) :-
-  encodeType(Spec,CChars,[]),
-  string_chars(CSig,CChars),
-  mkTpl([strg(Nm),strg(CnNm),strg(CSig)],ConTpl),
+formatContracts([conDef(Lc,Nm,CnNm,CnTp,Spec)|M],[ConTpl|R]) :-
+  locTerm(Lc,LTrm),
+  encodeSignature(Spec,SpecSig),
+  encodeSignature(CnTp,CnSig),
+  mkTpl([LTrm,strg(Nm),strg(CnNm),CnSig,SpecSig],ConTpl),
   formatContracts(M,R).
 
 formatImpls([],[]).
-formatImpls([imp(Nm,FullNm,Spec)|M],[ImplTpl|R]) :-
-  encodeType(Spec,Chars,[]),
-  string_chars(Sig,Chars),
-  mkTpl([strg(Nm),strg(FullNm),strg(Sig)],ImplTpl),
+formatImpls([imp(Nm,FullNm,Spec)|M],[ctpl(lbl("imp",3),ImplTpl)|R]) :-
+  encodeSignature(Spec,SpecSig),
+  ImplTpl=[strg(Nm),strg(FullNm),SpecSig],
   formatImpls(M,R).
+formatImpls([acc(Tp,Fld,AccFn,AccTp)|M],[ctpl(lbl("acc",3),ImplTpl)|R]) :-
+  encodeSignature(Tp,TpSig),
+  encodeSignature(AccTp,AccSig),
+  ImplTpl=[TpSig,strg(Fld),strg(AccFn),AccSig],
+  formatImpls(M,R).
+
+encodeSignature(Tp,strg(Sig)) :-
+  encodeType(Tp,Chars,[]),
+  string_chars(Sig,Chars).
+  

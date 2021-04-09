@@ -2,8 +2,6 @@ star.file{
   import star.
   import star.capabilities.
 
-  public fileHandle <~ {}.  -- A file handle exists
-
   public
   getFile:(string) => option[string].
   getFile(Fn) where _file_present(Fn) => some(_get_file(Fn)).

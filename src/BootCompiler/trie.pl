@@ -1,36 +1,39 @@
-:- module(trie, [emptyTrie/1, addToTrie/4, findInTrie/3, foldTrie/4, walkTrie/4, outTrie/4, dispTrie/2]).
+:- module(trie, [emptyTrie/1,
+		 addToTrie/4, addStrToTrie/4,
+		 findInTrie/3, findStrInTrie/3,
+		 foldTrie/4, walkTrie/4, outTrie/4, dispTrie/2]).
 
 :- use_module(misc).
 
-emptyTrie(trie("",false,follows{})).
+emptyTrie(trie(none,follows{})).
 
-addToTrie(Ky,Value,Tr,Trx) :-
+addStrToTrie(Ky,Value,Tr,Trx) :-
   string_chars(Ky,Chrs),
-  add2Tr(Chrs,Value,Tr,Trx).
+  addToTrie(Chrs,Value,Tr,Trx).
 
-add2Tr([],Value,trie(_,_,Fl),trie(Value,true,Fl)).
-add2Tr([Ch|Rest],Value,trie(Vl,End,Fl),trie(Vl,End,Fl2)) :-
-  (get_dict(Ch,Fl,Fls) -> add2Tr(Rest,Value,Fls,F1),put_dict(Ch,Fl,F1,Fl2) ;
-   emptyTrie(E),add2Tr(Rest,Value,E,E2), put_dict(Ch,Fl,E2,Fl2)).
+addToTrie([],Value,trie(_,Fl),trie(some(Value),Fl)).
+addToTrie([Tk|Rest],Value,trie(Vl,Fl),trie(Vl,Fl2)) :-
+  (get_dict(Tk,Fl,Fls) -> addToTrie(Rest,Value,Fls,F1),put_dict(Tk,Fl,F1,Fl2) ;
+   emptyStringTrie(E),addToStringTrie(Rest,Value,E,E2), put_dict(Tk,Fl,E2,Fl2)).
 
-findInTrie(Ky,Tr,Value) :-
+findStrInTrie(Ky,Tr,Value) :-
   string_chars(Ky,Chrs),
   findTrie(Chrs,Tr,Value).
 
-findTrie([],trie(Value,true,_),Value).
-findTrie([Ch|Chrs],trie(_,_,Fl),Value) :-
+findTrie([],trie(some(Value),_),Value).
+findTrie([Ch|Chrs],trie(_,Fl),Value) :-
   get_dict(Ch,Fl,Tr),!,
   findTrie(Chrs,Tr,Value).
 
 foldTrie(Tr,Pr,Z,Zx) :-
   fldTrie([],Tr,Pr,Z,Zx).
 
-fldTrie(Prefix,trie(Value,true,Fls),Proc,Z,Zx) :-
+fldTrie(Prefix,trie(some(Value),Fls),Proc,Z,Zx) :-
   reverse(Prefix,Chrs),
   string_chars(Ky,Chrs),
   call(Proc,Ky,Value,Z,Z1),
   procTbl(Prefix,Fls,Proc,Z1,Zx).
-fldTrie(Prefix,trie(_,false,Fls),Proc,Z,Zx) :-
+fldTrie(Prefix,trie(none,Fls),Proc,Z,Zx) :-
   procTbl(Prefix,Fls,Proc,Z,Zx).
 
 procTbl(Prefix,Fls,Proc,Z,Zx) :-
@@ -58,8 +61,11 @@ dispTrie(Tr,Vp) :-
 
 walkTrie(Tr,Pr,Z,Zx) :- walkTr([],Tr,Pr,Z,Zx).
 
-walkTr(Prefix,trie(Value,Final,Fls),Proc,Z,Zx) :-
-  call(Proc,Prefix,Value,Final,Z,Z1),
+walkTr(Prefix,trie(some(Value),Fls),Proc,Z,Zx) :-!,
+  call(Proc,Prefix,Value,Z,Z1),
+  dict_pairs(Fls,_,Pairs),
+  rfold(Pairs,trie:walkPair(Prefix,Proc),Z1,Zx).
+walkTr(Prefix,trie(none,Fls),Proc,Z,Zx) :-
   dict_pairs(Fls,_,Pairs),
   rfold(Pairs,trie:walkPair(Prefix,Proc),Z1,Zx).
 

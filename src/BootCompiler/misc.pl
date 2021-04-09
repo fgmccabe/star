@@ -1,22 +1,26 @@
-:-module(misc,[concat/3,flatten/2,segment/3,last/2,reverse/2,revconcat/3,is_member/2,add_mem/3,
-        merge/3,intersect/3,subtract/3,replace/4,filter/3,
-        collect/4,map/3,rfold/4,project0/2,project1/2,project1_3/2,
-	zip/3,split_list/4,
-        isIdentifier/1,
-        appStr/3,appStrs/3,appIden/3,appInt/3,appFlt/3,
-	appSym/3,appQuoted/4,
-        appIndx/3,appNl/2,appNwln/3,appMulti/3,
-        genstr/2,str_lt/2,
-        subPath/4,pathSuffix/3,starts_with/2,ends_with/2,
-        localName/4,splitLocalName/4,
-        listShow/5,
-        stringHash/3,hashSixtyFour/2,stringEndsWith/2,
-        marker/2,
-	packageVarName/3,thetaName/3,packageTypeName/3,genNewName/3,
-        same/2,
-        interleave/3,concatStrings/2,
-        sort/3,sortedMerge/4,
-        nextPrime/2,sieve/2,
+:-module(misc,[concat/3,flatten/2,segment/3,last/2,reverse/2,revconcat/3,
+	       is_member/2,add_mem/3,
+	       merge/3,intersect/3,subtract/3,replace/4,filter/3,
+	       collect/4,map/3,lfold/4,rfold/4,
+	       project0/2,project1/2,project0_3/2,project1_3/2,
+	       zip/3,split_list/4,index_list/3,
+	       isIdentifier/1,
+	       appStr/3,appStrs/3,appIden/3,appInt/3,appFlt/3,
+	       appSym/3,appQuoted/4,
+	       appIndx/3,appNl/2,appNwln/3,appMulti/3,
+	       genstr/2,str_lt/2,
+	       subPath/4,pathSuffix/3,starts_with/2,ends_with/2,
+	       localName/3,localName/4,splitLocalName/4,
+	       listShow/5,
+	       stringHash/3,hashSixtyFour/2,stringEndsWith/2,
+	       marker/2,
+	       packageVarName/3,contractName/3,
+	       thetaName/3,consName/3,packageTypeName/3,genNewName/3,
+	       lambdaLbl/3,
+	       same/2,
+	       interleave/3,concatStrings/2,
+	       sort/3,sortedMerge/4,makeKey/2,
+	       nextPrime/2,sieve/2,
 	       check_implies/2,verify/2,bin_nop/2,
 	       clear_track/0,track/2]).
 
@@ -90,9 +94,18 @@ project1_3([],[]).
 project1_3([(_,E,_)|L],[E|K]) :-
   project1_3(L,K).
 
+project0_3([],[]).
+project0_3([(E,_,_)|L],[E|K]) :-
+  project0_3(L,K).
+
 zip([],[],[]).
 zip([E1|L1],[E2|L2],[(E1,E2)|L3]) :-
   zip(L1,L2,L3).
+
+index_list([],_,[]) :-!.
+index_list([E|L],Ix,[(E,Ix)|XL]) :-
+  Ix1 is Ix+1,
+  index_list(L,Ix1,XL).
 
 split_list(0,L,[],L) :-!.
 split_list(Ix,[H|I],[H|R],O) :-
@@ -134,6 +147,11 @@ rfold([],_,S,S).
 rfold([E|L],F,S,Sx) :-
   call(F,E,S,S0),!,
   rfold(L,F,S0,Sx).
+
+lfold([],_,S,S).
+lfold([E|L],F,S,Sx) :-
+  lfold(L,F,S,S0),
+  call(F,E,S0,Sx),!.
 
 appStr(Str,O,E) :- string_chars(Str,Chrs), concat(Chrs,E,O).
 
@@ -226,16 +244,18 @@ hashCodes([C|More],H0,Hx) :-
 hashSixtyFour(H0,H) :-
   H is H0 /\ 9223372036854775807.
 
-localName(_,Glue,Nm,Nm) :-
-  sub_string(Nm,_,_,_,Glue),!.
-localName(Pkg,Glue,Nm,LclName) :-
+localName(Pkg,Mrk,Nm,LclName) :-
+  marker(Mrk,Glue),!,
   string_concat(Pkg,Glue,T),
   string_concat(T,Nm,LclName).
+
+localName(Pref,Mrk,Str) :-
+  localName(Pref,Mrk,"",Str).
 
 splitLocalName(LclNm,Glue,Pkg,Nm) :-
   sub_string(LclNm,Before,_,After,Glue),
   sub_string(LclNm,0,Before,_,Pkg),
-  sub_string(LclNm,_,After,0,Nm).
+  sub_string(LclNm,_,After,0,Nm),!.
 
 marker(type,"*").
 marker(value,"@").
@@ -243,24 +263,33 @@ marker(class,"#").
 marker(conTract,"$").
 marker(over,"!").
 marker(package,"#").
+marker(field,"°").
+marker(closure,"^").
 
 packageVarName(Pkg,Nm,LclName) :-
-  marker(package,Mrk),
-  localName(Pkg,Mrk,Nm,LclName).
+  localName(Pkg,package,Nm,LclName).
 
 thetaName(Path,Nm,LclName) :-
-  marker(value,Mrk),
   genNewName(Path,"θ",ThPath),
-  localName(ThPath,Mrk,Nm,LclName).
+  localName(ThPath,value,Nm,LclName).
+
+lambdaLbl(Prefix,Variant,Nm) :-
+  genstr(Variant,V),
+  localName(Prefix,value,V,Nm).
+
+consName(Path,Nm,ConsNm) :-
+  localName(Path,class,Nm,ConsNm).
+
+contractName(Path,Nm,ConNm) :-
+  marker(conTract,Marker),
+  subPath(Path,Marker,Nm,ConNm).
 
 genNewName(Path,Prfx,Name) :-
-  marker(value,Mrk),
   genstr(Prfx,Pre),
-  localName(Path,Mrk,Pre,Name).
+  localName(Path,value,Pre,Name).
 
 packageTypeName(Pkg,Nm,LclName) :-
-  marker(type,Mrk),
-  localName(Pkg,Mrk,Nm,LclName).
+  localName(Pkg,type,Nm,LclName).
 
 listShow([],_,_,O,O) :-!.
 listShow([E|L],C,Sep,O,Ox) :-
@@ -283,6 +312,9 @@ split([T|L],Cmp,Ix,[T|L1],L2) :-
 split([T|L],Cmp,Ix,L1,[T|L2]) :-
   \+ call(Cmp,T,Ix),
   split(L,Cmp,Ix,L1,L2).
+
+makeKey(Id,Key) :-
+  atom_string(Key,Id).
 
 sort(L,C,S) :- qSort(L,C,S),!.
 

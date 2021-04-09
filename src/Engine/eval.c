@@ -13,6 +13,7 @@
 #include "engineP.h"
 #include "debugP.h"
 #include <math.h>
+#include <stdlib.h>
 #include "utils.h"
 
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<(unsigned)16)|lo32))
@@ -82,11 +83,12 @@ retCode run(processPo P) {
 
     switch ((OpCode) (*PC++)) {
       case Halt: {
+        int32 exitCode = collectI32(PC);
+
         if (insDebugging || lineDebugging) {
-          logMsg(logFile, "Halt %T", pop());
-          bail();
+          logMsg(logFile, "Halt %d", exitCode);
         }
-        return Ok;
+        return (retCode) exitCode;
       }
       case Call: {
         termPo nProg = nthElem(LITS, collectI32(PC));
@@ -94,7 +96,7 @@ retCode run(processPo P) {
 
         if (SP - stackDelta(NPROG) - STACKFRAME_SIZE <= (ptrPo) P->stackBase) {
           saveRegisters(P, SP);
-          if (extendStack(P, 2, stackDelta(NPROG)) != Ok) {
+          if (extendStack(NULL, 2, stackDelta(NPROG)) != Ok) {
             logMsg(logFile, "cannot extend stack");
             bail();
           }
@@ -135,7 +137,7 @@ retCode run(processPo P) {
 
         if (SP - stackDelta(NPROG) - STACKFRAME_SIZE <= (ptrPo) P->stackBase) {
           saveRegisters(P, SP);
-          if (extendStack(P, 2, stackDelta(NPROG)) != Ok) {
+          if (extendStack(NULL, 2, stackDelta(NPROG)) != Ok) {
             logMsg(logFile, "cannot extend stack");
             bail();
           }
@@ -234,7 +236,7 @@ retCode run(processPo P) {
 
         if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
           saveRegisters(P, SP);
-          if (extendStack(P, 2, stackDelta(PROG)) != Ok) {
+          if (extendStack(NULL, 2, stackDelta(PROG)) != Ok) {
             logMsg(logFile, "cannot extend stack");
             bail();
           }
@@ -290,7 +292,7 @@ retCode run(processPo P) {
 
         if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
           saveRegisters(P, SP);
-          if (extendStack(P, 2, stackDelta(PROG)) != Ok) {
+          if (extendStack(NULL, 2, stackDelta(PROG)) != Ok) {
             logMsg(logFile, "cannot extend stack");
             bail();
           }
@@ -381,40 +383,39 @@ retCode run(processPo P) {
           check(vr != Null, "undefined global");
 
           push(vr);     /* load a global variable */
-        } else if (glbHasProvider(glb)) {
-          termPo prov = getProvider(glb);  // Set up an OCall to the provider
+        } else {
+          methodPo PROV = labelCode(findLbl(globalVarName(glb), 0));       /* set up for object call */
 
-          normalPo nProg = C_NORMAL(prov);
+          if (PROV == Null) {
+            logMsg(logFile, "no definition for global %s", globalVarName(glb));
+            bail();
+          }
 
           push(PROG);
           push(PC);       /* build up the frame. */
-          labelPo oLbl = termLbl(nProg);
-          PROG = labelCode(objLabel(oLbl, 0));       /* set up for object call */
-          PC = entryPoint(PROG);
-          LITS = codeLits(PROG);
+          PC = entryPoint(PROV);
+          LITS = codeLits(PROV);
+          PROG = PROV;
 
           push(FP);
           FP = (framePo) SP;     /* set the new frame pointer */
 
-          if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
+          if (SP - stackDelta(PROV) <= (ptrPo) P->stackBase) {
             saveRegisters(P, SP);
-            if (extendStack(P, 2, stackDelta(PROG)) != Ok) {
+            if (extendStack(NULL, 2, stackDelta(PROV)) != Ok) {
               logMsg(logFile, "cannot extend stack");
               bail();
             }
             restoreRegisters(P);
           }
-          assert(SP - stackDelta(PROG) > (ptrPo) P->stackBase);
+          assert(SP - stackDelta(PROV) > (ptrPo) P->stackBase);
 
-          integer lclCnt = lclCount(PROG);  /* How many locals do we have */
+          integer lclCnt = lclCount(PROV);  /* How many locals do we have */
           SP -= lclCnt;
 #ifdef TRACEEXEC
           for (integer ix = 0; ix < lclCnt; ix++)
             SP[ix] = voidEnum;
 #endif
-        } else {
-          logMsg(logFile, "global %s not defined", globalVarName(glb));
-          bail();
         }
         continue;
       }
@@ -433,7 +434,7 @@ retCode run(processPo P) {
       }
 
       case CLbl: {
-        termPo l = pop();
+        termPo l = nthElem(LITS, collectI32(PC));
         termPo t = pop();
         insPo exit = collectOff(PC);
         assert(validPC(PROG, exit));
@@ -447,7 +448,7 @@ retCode run(processPo P) {
         continue;
       }
 
-      case CV: {
+      case CmpVd: {
         termPo t = pop();
         insPo exit = collectOff(PC);
         assert(validPC(PROG, exit));
@@ -678,7 +679,7 @@ retCode run(processPo P) {
         integer Rhs = integerVal(pop());
 
         checkAlloc(IntegerCellCount);
-        termPo Rs = (termPo) allocateInteger(H, (Lhs)>> Rhs);
+        termPo Rs = (termPo) allocateInteger(H, (Lhs) >> Rhs);
         push(Rs);
         continue;
       }
@@ -780,6 +781,32 @@ retCode run(processPo P) {
         continue;
       }
 
+      case IndxJmp: {    // Branch based on index of constructor term
+        int32 mx = collectI32(PC);
+        normalPo top = C_NORMAL(top());
+        labelPo lbl = termLbl(top);
+        integer hx = labelIndex(lbl);
+
+        PC = (insPo) ((void *) PC + (sizeof(insWord) * 3) * hx);
+        continue;
+      }
+
+      case Unpack: {
+        labelPo l = C_LBL(nthElem(LITS, collectI32(PC)));
+        normalPo t = C_NORMAL(pop());
+        insPo exit = collectOff(PC);
+
+        assert(validPC(PROG, exit));
+
+        if (sameLabel(l, termLbl(t))) {
+          integer arity = labelArity(l);
+          for (integer ix = arity - 1; ix >= 0; ix--)
+            push(nthElem(t, ix));
+        } else
+          PC=exit;
+        continue;
+      }
+
       case Alloc: {      /* heap allocate term */
         labelPo cd = C_LBL(nthElem(LITS, collectI32(PC)));
         if (enoughRoom(H, cd) != Ok) {
@@ -812,26 +839,6 @@ retCode run(processPo P) {
         continue;
       }
 
-      case Unpack: {
-        labelPo l = C_LBL(nthElem(LITS, collectI32(PC)));
-        insPo exit = collectOff(PC);
-
-        termPo t = pop();
-        assert(validPC(PROG, exit));
-
-        if (isNormalPo(t)) {
-          normalPo cl = C_NORMAL(t);
-          if (sameLabel(l, termLbl(cl))) {
-            integer arity = labelArity(l);
-            for (integer ix = arity - 1; ix >= 0; ix--)
-              push(nthElem(cl, ix));
-            continue;
-          }
-        }
-        PC = exit;
-        continue;
-      }
-
       case Cmp: {
         termPo i = pop();
         termPo j = pop();
@@ -839,6 +846,37 @@ retCode run(processPo P) {
         assert(validPC(PROG, exit));
 
         if (!sameTerm(i, j))
+          PC = exit;
+        continue;
+      }
+
+      case Comp: {
+        termPo i = pop();
+        termPo j = pop();
+        insPo exit = collectOff(PC);
+        assert(validPC(PROG, exit));
+
+        if (!sameTerm(i, j))
+          PC = exit;
+        continue;
+      }
+
+      case If: {
+        termPo i = pop();
+        insPo exit = collectOff(PC);
+        assert(validPC(PROG, exit));
+
+        if (i == trueEnum)
+          PC = exit;
+        continue;
+      }
+
+      case IfNot: {
+        termPo i = pop();
+        insPo exit = collectOff(PC);
+        assert(validPC(PROG, exit));
+
+        if (!sameTerm(i, trueEnum))
           PC = exit;
         continue;
       }

@@ -3,5 +3,4 @@ star.capabilities{
 
   public permission ::= readPermission | writePermission | createPermission | deletePermission.
   
-  public capability <~ {}.
 }

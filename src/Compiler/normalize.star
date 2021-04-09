@@ -52,7 +52,7 @@ star.compiler.normalize{
   normalize(PkgSpec,varDef(Lc,Nm,_,PkgVal,_,Tp),Rp) => do{
     Map .= pkgMap(PkgSpec);
     (Vl,Defs) <- liftExp(PkgVal,Map,[],[],Rp);
-    valis [glbDef(Lc,crId(Nm,Tp),Vl),..Defs]
+    valis [glbDef(Lc,Nm,Tp,Vl),..Defs]
   }
 
   pkgMap:(pkgSpec) => nameMap.
@@ -233,7 +233,7 @@ star.compiler.normalize{
   }
   transformDef(varDef(Lc,_,FullNm,Val,Cx,Tp),Map,Outer,Q,.none,Ex,Rp) => do{
     (Vl,Defs) <- liftExp(Val,Outer,Q,Ex,Rp);
-    valis [glbDef(Lc,crId(FullNm,Tp),Vl),..Defs]
+    valis [glbDef(Lc,FullNm,Tp,Vl),..Defs]
   }
   transformDef(varDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,some(V),Ex,Rp) => do{
     crVar(_,ThVr).=V;
@@ -607,11 +607,6 @@ star.compiler.normalize{
     check(memoArg(_,ThV,Ix))=>some(Ix).
     check(_) default => .none
   .} in check.
-
-  isModule(moduleFun(_,_))=>some(.true).
---  isModule(localFun(_,_,_))=>some(.true).
-  isModule(globalVar(_,_))=>some(.true).
-  isModule(_) default => .none.
 
   -- eliminate free variables that can be computed from other free vars
   reduceFreeArgs:(cons[crVar],nameMap,reports) => either[reports,cons[crVar]].

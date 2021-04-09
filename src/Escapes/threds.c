@@ -8,6 +8,7 @@
 #include <errno.h>
 #include "threds.h"
 #include <globals.h>
+#include <strings.h>
 #include "debugP.h"
 
 static const char *state_names[] = {"star.thread#quiescent",
@@ -36,7 +37,7 @@ void *forkThread(void *arg) {
 
 ReturnStatus g__fork(processPo P, ptrPo tos) {
   labelPo fn = C_LBL(tos[0]);
-  processPo np = newProcess(labelCode(fn), P->wd, Null);
+  processPo np = newProcess(labelCode(fn), P->wd, Null, NULL);
 
   threadPo thread = newThread(np);
 
@@ -77,9 +78,9 @@ ReturnStatus g__thread_state(processPo P, ptrPo tos) {
   termPo st;
 
   if (tgt == NULL)
-    st = declareEnum(state_names[dead], currHeap);
+    st = declareEnum(state_names[dead], dead, currHeap);
   else
-    st = declareEnum(state_names[tgt->state], currHeap);
+    st = declareEnum(state_names[tgt->state], dead, currHeap);
   setProcessRunnable(P);
   return (ReturnStatus) {.ret=Ok, .result=st};
 }

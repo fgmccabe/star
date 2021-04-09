@@ -5,9 +5,10 @@
 :- use_module(resource).
 :- use_module(lexer).
 :- use_module(grammar).
-:- use_module(display).
+:- use_module(astdisp).
 :- use_module(canon).
 :- use_module(checker).
+:- use_module(display).
 :- use_module(transform).
 :- use_module(errors).
 :- use_module(gensig).
@@ -126,13 +127,12 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
   locateResource(SrcUri,Src),
   parseFile(Pkg,Src,Term),!,
   noErrors,
-  (is_member(showAst,Opts) -> display(Term) ; true),
+  (is_member(showAst,Opts) -> astDisp(Term) ; true),
   checkProgram(Term,Pkg,Repo,Opts,Prog),!,
-  (is_member(showTCCode,Opts) -> dispProg(Prog);true),
   noErrors,
   (\+ is_member(compileOnly,Opts) ->
    transformProg(Prog,Opts,Rules),!,
-   (is_member(showTrCode,Opts) -> displayRules(Rules);true),
+   (is_member(showTrCode,Opts) -> dispProg(Rules),validLProg(Rules);true),
    noErrors,
    genPkgSig(Rules,Sig),
    genCode(Rules,Opts,Text),

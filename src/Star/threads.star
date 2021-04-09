@@ -6,7 +6,6 @@ star.thread{
     wait_term | wait_lock | wait_rendezvous |
     in_exclusion | dead.
 
-  public thread <~ {}.
 
   
 

@@ -134,7 +134,7 @@ encodeLtipe(f64Tipe,['f'|O],O).
 encodeLtipe(blTipe,['l'|O],O).
 encodeLtipe(ptrTipe,['p'|O],O).
 encodeLtipe(fnTipe(As,R),['F'|O],Ox) :-
-  encodeLtipe(tplType(As),O,O1),
+  encodeLtipe(tplTipe(As),O,O1),
   encodeLtipe(R,O1,Ox).
 encodeLtipe(tplTipe(As),['('|O],Ox) :-
   rfold(As,encode:encodeLtipe,O,[')'|Ox]).

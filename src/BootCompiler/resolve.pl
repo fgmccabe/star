@@ -1,31 +1,23 @@
-:- module(resolve,[overload/4,overloadOthers/3]).
+:- module(resolve,[overload/5,overloadOthers/3]).
 
+:- use_module(dict).
 :- use_module(misc).
 :- use_module(errors).
 :- use_module(types).
 :- use_module(freshen).
 :- use_module(canon).
 :- use_module(unify).
+:- use_module(vartypes).
 
-overload(Defs,Dict,RDict,RDefs) :-
-  declareImplementations(Defs,Dict,RDict),
-  overloadDefs(Defs,RDict,RDefs).
+overload(Lc,Defs,Dict,RDict,RDefs) :-
+  declareImplementations(Lc,Defs,Dict,RDict),
+  map(Defs,resolve:overloadDef(RDict),RDefs).
 
-overloadDefs(D,Dict,RD) :-
-  overloadList(D,overloadDef,Dict,RD).
-
-overloadDef(funDef(Lc,Nm,ExtNm,Tp,Cx,Eqns),Dict,RF) :-
+overloadDef(Dict,funDef(Lc,Nm,ExtNm,Tp,Cx,Eqns),RF) :-!,
   overloadFunction(Lc,Nm,ExtNm,Tp,Cx,Eqns,Dict,RF).
-overloadDef(varDef(Lc,Nm,ExtNm,Cx,Tp,Value),Dict,RD) :-
+overloadDef(Dict,varDef(Lc,Nm,ExtNm,Cx,Tp,Value),RD) :-!,
   overloadDefn(Lc,Nm,ExtNm,Cx,Tp,Value,Dict,RD).
-overloadDef(T,_,T) :-
-  T = typeDef(_,_,_,_).
-overloadDef(C,_,C) :-
-  C = cnsDef(_,_,_,_).
-overloadDef(C,_,C) :-
-  C = conDef(_,_,_).
-overloadDef(C,_,C) :-
-  C = implDef(_,_,_,_).
+overloadDef(_,Def,Def).
 
 overloadFunction(Lc,Nm,ExtNm,Tp,[],Eqns,Dict,funDef(Lc,Nm,ExtNm,Tp,[],REqns)) :-
   overloadEquations(Eqns,Dict,[],REqns).
@@ -36,26 +28,32 @@ overloadFunction(Lc,Nm,ExtNm,Tp,Cx,Eqns,Dict,funDef(Lc,Nm,ExtNm,Tp,[],REqns)) :-
 overloadEquations(Eqns,Dict,Extra,REqns) :-
   overloadList(Eqns,overloadEquation(Extra),Dict,REqns).
 
-overloadEquation(Extra,equation(Lc,Args,Cond,Exp),Dict,equation(Lc,RArgs,RCond,RExp)) :-
+overloadEquation(Extra,equation(Lc,Args,G,Exp),Dict,
+		 equation(Lc,RArgs,RG,RExp)) :-
   resolveTerm(Args,Dict,RA),
   addExtra(Extra,RA,RArgs),
-  resolveTerm(Cond,Dict,RCond),
+  resolveGuard(G,Dict,RG),
   resolveTerm(Exp,Dict,RExp).
 
+resolveGuard(none,_,none) :-!.
+resolveGuard(some(G),Dict,some(RG)) :-
+  resolveTerm(G,Dict,RG).
+
 % These are used when resolving lambdas only. A lambda cannot introduce any dictionary variables
-overloadRule(equation(Lc,Args,Cond,Exp),Dict,St,Stx,equation(Lc,RArgs,RCond,RExp)) :-
+overloadRule(equation(Lc,Args,G,Exp),Dict,St,Stx,equation(Lc,RArgs,RG,RExp)) :-
   overloadTerm(Args,Dict,St,St0,RArgs),
-  overloadTerm(Cond,Dict,St0,St1,RCond),
+  overloadGuard(G,Dict,St0,St1,RG),
   overloadTerm(Exp,Dict,St1,Stx,RExp).
 
 overloadDefn(Lc,Nm,ExtNm,[],Tp,Exp,Dict,varDef(Lc,Nm,ExtNm,[],Tp,RExp)) :-
   resolveTerm(Exp,Dict,RExp).
 overloadDefn(Lc,Nm,ExtNm,Cx,Tp,Exp,Dict,varDef(Lc,Nm,ExtNm,[],Tp,
-    lambda(Lc,equation(Lc,tple(Lc,CVars),enm(Lc,"true",type("star.core*boolean")),RExp),OTp))) :-
+    lambda(Lc,Lbl,equation(Lc,tple(Lc,CVars),none,RExp),OTp))) :-
   defineCVars(Lc,Cx,Dict,CVars,FDict),
   contractTypes(Cx,Tps),
   makeContractFunType(Tp,Tps,OTp),
-  resolveTerm(Exp,FDict,RExp).
+  resolveTerm(Exp,FDict,RExp),
+  lambdaLbl(Nm,"over",Lbl).
 
 makeContractFunType(allType(V,T),Cx,allType(V,CT)) :-
   makeContractFunType(T,Cx,CT).
@@ -64,13 +62,19 @@ makeContractFunType(constrained(T,_C),Cx,CT) :-
 makeContractFunType(T,Cx,funType(tupleType(Cx),T)).
 
 defineCVars(_,[],Dict,[],Dict).
-defineCVars(Lc,[Con|Cx],Dict,[NV|CVars],FDict) :-
+defineCVars(Lc,[Con|Cx],Dict,[v(Lc,ImplNm,ConTp)|CVars],FDict) :-
   implementationName(Con,ImplNm),
-  contractType(Con,Tp),
-  genVar(ImplNm,Lc,Tp,NV),
-  defineCVars(Lc,Cx,[(ImplNm,NV)|Dict],CVars,FDict).
-defineCVars(Lc,[implementsFace(_,_)|Cx],Dict,CVars,FDict) :-
-  defineCVars(Lc,Cx,Dict,CVars,FDict).
+  contractType(Con,ConTp),
+  declareVr(Lc,ImplNm,ConTp,Dict,D0),
+  defineCVars(Lc,Cx,D0,CVars,FDict).
+defineCVars(Lc,[implementsFace(X,faceType(Flds,_))|Cx],Dict,CVars,FDict) :-
+  fieldVars(Lc,X,Flds,CVars,CVrs,Dict,CDict),
+  defineCVars(Lc,Cx,CDict,CVrs,FDict).
+
+fieldVars(_,_,[],CVars,CVars,Dict,Dict).
+fieldVars(Lc,Tp,[(FldNm,FldTp)|Flds],[NV|CVrs],XVrs,Dict,CDict) :-
+  genVar(FldNm,Lc,funType(tupleType([Tp]),FldTp),NV),
+  fieldVars(Lc,Tp,Flds,CVrs,XVrs,[access(FldNm,NV)|Dict],CDict).
 
 resolveTerm(Term,Dict,Resolved) :-
 %  locOfCanon(Term,Lc),
@@ -95,28 +99,29 @@ markActive(_,Lc,Msg,active(Lc,Msg)).
 markResolved(inactive,resolved).
 markResolved(St,St).
 
-%overloadTerm(T,_,active(Lc,Msg),active(Lc,Msg),T) :- !.
 overloadTerm(void,_,St,St,void).
 overloadTerm(v(Lc,Nm,Tp),_,St,St,v(Lc,Nm,Tp)).
 overloadTerm(intLit(Ix,Tp),_,St,St,intLit(Ix,Tp)).
 overloadTerm(floatLit(Ix,Tp),_,St,St,floatLit(Ix,Tp)).
 overloadTerm(stringLit(Sx,Tp),_,St,St,stringLit(Sx,Tp)).
-overloadTerm(dot(Lc,Rc,Fld,Tp),Dict,St,Stx,dot(Lc,RRc,Fld,Tp)) :- overloadTerm(Rc,Dict,St,Stx,RRc).
+overloadTerm(dot(Lc,Rc,Fld,Tp),Dict,St,Stx,Dot) :-
+  overloadTerm(Rc,Dict,St,St0,RRc),
+  resolveAccess(Lc,RRc,Fld,Tp,Dict,St0,Stx,Dot).
 overloadTerm(enm(Lc,Rf,Tp),_,St,St,enm(Lc,Rf,Tp)).
 overloadTerm(cons(Lc,Rf,Tp),_,St,St,cons(Lc,Rf,Tp)).
 overloadTerm(tple(Lc,Args),Dict,St,Stx,tple(Lc,RArgs)) :-
   overloadLst(Args,resolve:overloadTerm,Dict,St,Stx,RArgs).
-overloadTerm(theta(Lc,Path,Defs,Sig),Dict,St,St,theta(Lc,Path,RDefs,Sig)) :-
-  overload(Defs,Dict,_RDict,RDefs).
-overloadTerm(record(Lc,Path,Defs,Sig),Dict,St,St,record(Lc,Path,RDefs,Sig)) :-
-  overload(Defs,Dict,_RDict,RDefs).
 overloadTerm(cell(Lc,Inn),Dict,St,Stx,cell(Lc,Inn1)) :-
   overloadTerm(Inn,Dict,St,Stx,Inn1).
 overloadTerm(assign(Lc,Lhs,Rhs),Dict,St,Stx,assign(Lc,L1,R1)) :-
   overloadTerm(Lhs,Dict,St,St1,L1),
   overloadTerm(Rhs,Dict,St1,Stx,R1).
-overloadTerm(letExp(Lc,Env,Bound),Dict,St,Stx,RLet) :-
-  overloadLetExp(Lc,Env,Bound,Dict,St,Stx,RLet).
+overloadTerm(letExp(Lc,Defs,Bound),Dict,St,Stx,letExp(Lc,RDefs,RBound)) :-
+  overload(Lc,Defs,Dict,RDict,RDefs),
+  overloadTerm(Bound,RDict,St,Stx,RBound).
+overloadTerm(letRec(Lc,Defs,Bound),Dict,St,Stx,letRec(Lc,RDefs,RBound)) :-
+  overload(Lc,Defs,Dict,RDict,RDefs),
+  overloadTerm(Bound,RDict,St,Stx,RBound).
 overloadTerm(where(Lc,Trm,Cond),Dict,St,Stx,where(Lc,RTrm,RCond)) :-
   overloadTerm(Trm,Dict,St,St0,RTrm),
   overloadTerm(Cond,Dict,St0,Stx,RCond).
@@ -151,32 +156,51 @@ overloadTerm(abstraction(Lc,B,C,Zed,Gen,Tp),
   overloadTerm(C,Dict,St0,St1,RC),
   overloadTerm(Zed,Dict,St1,St2,RZed),
   overloadTerm(Gen,Dict,St2,Stx,RGen).
-overloadTerm(apply(ALc,over(Lc,T,_,Cx),Args,Tp),Dict,St,Stx,apply(ALc,OverOp,tple(LcA,NArgs),Tp)) :-
-  resolveContracts(Lc,Cx,Dict,St,St0,DTerms),
-  markResolved(St0,St1),
-  overloadTerm(Args,Dict,St1,Stx,tple(LcA,RArgs)),
-  overloadRef(Lc,T,DTerms,RArgs,OverOp,NArgs).
+overloadTerm(apply(ALc,over(Lc,T,_,Cx),Args,Tp),Dict,St,Stx,Term) :-
+  overloadMethod(ALc,Lc,T,Cx,Args,Tp,Dict,St,Stx,Term).
+overloadTerm(apply(Lc,overaccess(T,V,Face),Args,Tp),
+	     Dict,St,Stx,Term) :-
+  overloadAccess(Lc,T,V,Face,Args,Tp,Dict,St,Stx,Term).
 overloadTerm(apply(Lc,Op,Args,Tp),Dict,St,Stx,apply(Lc,ROp,RArgs,Tp)) :-
   overloadTerm(Op,Dict,St,St0,ROp),
   overloadTerm(Args,Dict,St0,Stx,RArgs).
 overloadTerm(over(Lc,T,IsFn,Cx),Dict,St,Stx,Over) :-
   ( resolveContracts(Lc,Cx,Dict,St,St0,DTerms) ->
-    overloadRef(Lc,T,DTerms,[],OverOp,NArgs),
+    overloadRef(Lc,T,DTerms,[],OverOp,Dict,St0,St1,NArgs),
     overApply(Lc,OverOp,NArgs,IsFn,Over),
-    markResolved(St0,Stx);
+    markResolved(St1,Stx);
       genMsg("cannot find implementation for contracts %s",[Cx],Msg),
       markActive(St,Lc,Msg,Stx),
       Over = over(Lc,T,IsFn,Cx)).
 overloadTerm(mtd(Lc,Nm,Tp),_,St,Stx,mtd(Lc,Nm,Tp)) :-
   genMsg("cannot find implementation for %s",[Nm],Msg),
   markActive(St,Lc,Msg,Stx).
-overloadTerm(lambda(Lc,Eqn,Tp),Dict,St,Stx,lambda(Lc,OEqn,Tp)) :-
+overloadTerm(lambda(Lc,Lbl,Eqn,Tp),Dict,St,Stx,lambda(Lc,Lbl,OEqn,Tp)) :-
   overloadRule(Eqn,Dict,St,Stx,OEqn).
 overloadTerm(doTerm(Lc,Body,ElTp,ErTp,Con),Dict,St,Stx,doTerm(Lc,RBody,ElTp,ErTp,Con)) :-
   overloadAction(Body,Dict,St,Stx,RBody).
 overloadTerm(T,_,St,St,T) :-
   locOfCanon(T,Lc),
-  reportError("invalid term to resolve %s",[T],Lc).
+  reportError("invalid term to resolve %s",[can(T)],Lc).
+
+overloadGuard(none,_,Stx,Stx,none) :-!.
+overloadGuard(some(G),Dict,St,Stx,some(RG)) :-
+  overloadTerm(G,Dict,St,Stx,RG).
+
+overloadMethod(ALc,Lc,T,Cx,Args,Tp,Dict,St,Stx,apply(ALc,OverOp,tple(LcA,NArgs),Tp)) :-
+  resolveContracts(Lc,Cx,Dict,St,St0,DTerms),
+  markResolved(St0,St1),
+  overloadTerm(Args,Dict,St1,St2,tple(LcA,RArgs)),
+  overloadRef(Lc,T,DTerms,RArgs,OverOp,Dict,St2,Stx,NArgs).
+
+overloadAccess(Lc,T,V,Face,Args,Tp,Dict,St,Stx,
+	       apply(Lc,RT,tple(LcA,[v(Lc,FunNm,
+				       funType(tupleType([V]),FldTp))|RArgs]),Tp)) :-
+  overloadTerm(T,Dict,St,St0,RT),
+  deRef(Face,faceType([(Fld,FldTp)],[])),
+  markResolved(St0,St1),
+  overloadTerm(Args,Dict,St1,Stx,tple(LcA,RArgs)),
+  findAccess(V,Fld,Dict,FunNm).
 
 overloadLetExp(Lc,Env,Bound,Dict,St,Stx,letExp(Lc,REnv,RBound)) :-
   overloadTerm(Env,Dict,St,St0,REnv),
@@ -229,11 +253,12 @@ overApply(Lc,OverOp,Args,Tp,Lam) :-
   curryOver(Lc,OverOp,Args,Tp,Lam).
 
 curryOver(Lc,OverOp,Cx,Tp,
-    lambda(Lc,equation(Lc,tple(Lc,Args),enm(Lc,"true",type("star.core*boolean")),
+    lambda(Lc,Lbl,equation(Lc,tple(Lc,Args),none,
           apply(Lc,OverOp,tple(Lc,NArgs),Tp)),funType(tupleType(ArTps),Tp))) :-
   progArgTypes(Tp,ArTps),
   genVrs(ArTps,Lc,Args),
-  concat(Cx,Args,NArgs).
+  concat(Cx,Args,NArgs),
+  lambdaLbl("","curry",Lbl).
 
 genVrs([],_,[]).
 genVrs([Tp|ArTps],Lc,[v(Lc,Id,Tp)|Vrs]) :-
@@ -250,12 +275,18 @@ overloadList([T|L],C,D,[RT|RL]) :-
   call(C,T,D,RT),
   overloadList(L,C,D,RL).
 
-overloadRef(_,mtd(Lc,Nm,Tp),[DT|Ds],RArgs,dot(Lc,DT,Nm,Tp),Args) :- !,
-  concat(Ds,RArgs,Args).
-overloadRef(_,v(Lc,Nm,Tp),DT,RArgs,v(Lc,Nm,Tp),Args) :- !,
+overloadRef(_,mtd(Lc,Nm,Tp),[DT|Ds],RArgs,MtdCall,Dict,St,Stx,Args) :- !,
+  concat(Ds,RArgs,Args),
+  resolveAccess(Lc,DT,Nm,Tp,Dict,St,Stx,MtdCall).
+overloadRef(_,v(Lc,Nm,Tp),DT,RArgs,v(Lc,Nm,Tp),_,Stx,Stx,Args) :- !,
   concat(DT,RArgs,Args).
-overloadRef(_,C,DT,RArgs,C,Args) :-
+overloadRef(_,C,DT,RArgs,C,_,Stx,Stx,Args) :-
   concat(DT,RArgs,Args).
+
+resolveAccess(Lc,Rc,Fld,Tp,Dict,Stx,Stx,apply(Lc,V,tple(Lc,[Rc]),Tp)) :-
+  typeOfCanon(Rc,RcTp),
+  findAccess(RcTp,Fld,Dict,FunNm),
+  V = v(Lc,FunNm,funType(tupleType([RcTp]),Tp)).
 
 resolveContracts(_,[],_,St,St,[]).
 resolveContracts(Lc,[Con|C],Dict,St,Stx,[CV|Vs]) :-
@@ -264,25 +295,28 @@ resolveContracts(Lc,[Con|C],Dict,St,Stx,[CV|Vs]) :-
 
 resolveContract(Lc,C,Dict,St,Stx,Over) :-
   implementationName(C,ImpNm),
-  findImplementation(ImpNm,Dict,Impl),!,
-  resolve(Impl,C,ImpNm,Lc,Dict,St,St0,Over),!,
-  markResolved(St0,Stx).
+  getVar(Lc,ImpNm,Dict,D0,Impl),
+  typeOfCanon(Impl,ITp),
+  contractType(C,CTp),
+  sameType(ITp,CTp,Dict),
+  markResolved(St,St1),
+  overloadTerm(Impl,D0,St1,Stx,Over).
 resolveContract(Lc,C,_,St,Stx,C) :-
   genMsg("no implementation known for %s",[C],Msg),
   markActive(St,Lc,Msg,Stx).
 
-resolve(v(Lc,Nm,Tp),_,_,_,_,St,St,v(Lc,Nm,Tp)) :-!.
-resolve(I,C,ImpNm,Lc,Dict,St,Stx,Over) :-
+resolveImpl(v(Lc,Nm,Tp),_,_,_,_,St,St,v(Lc,Nm,Tp)) :-!.
+resolveImpl(I,C,ImpNm,Lc,Dict,St,Stx,Over) :-
   freshen(I,[],_,Con),
-  moveConstraints(Con,Cx,contractExists(CT,_)),
-  sameContract(CT,C,[]),
-  resolveDependents(Cx,Lc,Dict,St,St0,Args,[]),
+  getConstraints(Con,Cx,CT),
   contractType(C,Tp),
+  sameType(CT,Tp,[]),
+  resolveDependents(Cx,Lc,Dict,St,St0,Args,[]),
   (St0\=active(_,_) ->
     formOver(v(Lc,ImpNm,Tp),Args,Lc,Tp,Over),
     markResolved(St0,Stx) ;
     Stx=St0, Over = I).
-resolve(T,C,_,Lc,_,St,Stx,T) :-
+resolveImpl(T,C,_,Lc,_,St,Stx,T) :-
   genMsg("cannot resolve contract %s",[C],Msg),
   markActive(St,Lc,Msg,Stx).
 
@@ -297,18 +331,23 @@ formOver(V,Args,Lc,Tp,apply(Lc,V,tple(Lc,Args),Tp)).
 genVar(Nm,Lc,Tp,v(Lc,NV,Tp)) :-
   genstr(Nm,NV).
 
-declareImplementations([],Dict,Dict).
-declareImplementations([implDef(_,_,ImplName,Spec)|Defs],Dict,RDict) :-
-  declareImplementations(Defs,[(ImplName,Spec)|Dict],RDict).
-declareImplementations([_|Defs],Dict,RDict) :-
-  declareImplementations(Defs,Dict,RDict).
+declareImplementations(_,[],Dict,Dict).
+declareImplementations(Lc,[implDef(_,_Nm,ImplNm,ImplTp)|Defs],Dict,Dx) :-
+  declareImplementation(Lc,ImplNm,ImplTp,Dict,D0),
+  declareImplementations(Lc,Defs,D0,Dx).
+declareImplementations(Lc,[accDef(Tp,FldNm,FunNm,AcTp)|Defs],Dict,Dx) :-
+  declareFieldAccess(Tp,FldNm,FunNm,AcTp,Dict,D0),
+  declareImplementations(Lc,Defs,D0,Dx).
+declareImplementations(Lc,[_|Defs],Dict,Dx) :-
+  declareImplementations(Lc,Defs,Dict,Dx).
 
 findImplementation(ImplName,Dict,Spec) :-
-  is_member((ImplName,Spec),Dict).
+  is_member(impl(ImplName,Spec),Dict),!.
 
-inheritImplementations([],_,[]).
-inheritImplementations([Impl|L],Hd,[rule(Hd,Impl)|M]) :-
-  inheritImplementations(L,Hd,M).
+findAccess(Tp,FldNm,Dict,FunNm) :-
+  getFieldAccess(Tp,FldNm,FunNm,_,Dict).
+findAccess(_Tp,FldNm,Dict,FunNm) :-
+  is_member(access(FldNm,v(_,FunNm,_)),Dict),!.
 
 overloadOthers(Other,Dict,OOthers) :-
   overloadList(Other,resolve:overloadOther,Dict,OOthers).
@@ -339,10 +378,6 @@ resolveHead(Hd,[],Hd).
 resolveHead(enm(Lc,Nm,Tp),CVars,apply(Lc,v(Lc,Nm,Tp),CVars)).
 resolveHead(apply(Lc,v(ALc,Nm,Tp),Args,Tpx),CVars,apply(Lc,v(ALc,Nm,Tp),OArgs,Tpx)) :-
   addExtra(CVars,Args,OArgs).
-resolveHead(record(Lc,Lbl,Defs,Sig),CVars,record(Lc,Lbl,RDefs,Sig)) :-
-  addExtraDefs(CVars,Defs,RDefs).
-resolveHead(theta(Lc,Lbl,Defs,Sig),CVars,theta(Lc,Lbl,RDefs,Sig)) :-
-  addExtraDefs(CVars,Defs,RDefs).
 
 addExtra(Extra,tple(Lc,Els),tple(Lc,EEls)) :-
   concat(Extra,Els,EEls).

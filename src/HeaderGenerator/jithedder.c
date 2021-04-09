@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
     hashPut(vars, "Date", date);
 
     // Set up the assembler proper
-    bufferPo buff = newStringBuffer();
+    strBufferPo buff = newStringBuffer();
 
 #undef instruction
 #define instruction(M, A1, A2,Dl, cmt) genInsHedder(O_IO(buff),#M,M,A1,A2,Dl,cmt);
@@ -106,7 +106,7 @@ char *genArg(opAndSpec A) {
       return ", integer litNo";
     case Es:
       return ", char *escName";
-    case ix32:
+    case i32:
       return ", integer cnt";
     case art:
       return ", integer arity";

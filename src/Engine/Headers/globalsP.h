@@ -15,7 +15,6 @@ typedef struct _global_rec_ {
   integer varNo;
   integer hash;
   termPo content;               // Contents
-  termPo provider;              // Function that implements the value
   char *name;
 } GlobalRecord;
 

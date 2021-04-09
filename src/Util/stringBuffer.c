@@ -30,11 +30,7 @@ static retCode bufferFlusher(ioPo io, long count);
 
 static retCode bufferClose(ioPo io);
 
-static retCode bufferMark(ioPo io, integer *mark);
-
-static retCode bufferReset(ioPo io, integer mark);
-
-BufferClassRec BufferClass = {
+BufferClassRec StrBufferClass = {
   {(classPo) &IoClass,                    /* parent class is io object */
     "buffer",                             /* this is the buffer class */
     initBufferClass,                      /* Buffer class initializer */
@@ -58,14 +54,14 @@ BufferClassRec BufferClass = {
     bufferClose                           /* close  */
   }};
 
-classPo bufferClass = (classPo) &BufferClass;
+classPo strBufferClass = (classPo) &StrBufferClass;
 
 static void initBufferClass(classPo class, classPo req) {
 }
 
 // IO initialization should already be done at this point
 static void BufferInit(objectPo o, va_list *args) {
-  bufferPo f = O_BUFFER(o);
+  strBufferPo f = O_BUFFER(o);
 
   // Set up the buffer pointers
   f->buffer.in_pos = 0;
@@ -82,7 +78,7 @@ static void BufferInit(objectPo o, va_list *args) {
 }
 
 static void BufferDestroy(objectPo o) {
-  bufferPo str = O_BUFFER(o);
+  strBufferPo str = O_BUFFER(o);
   if (str->buffer.resizeable)
     free(str->buffer.buffer);
 }
@@ -92,7 +88,7 @@ static void BufferDestroy(objectPo o) {
 static retCode bufferInBytes(ioPo io, byte *ch, integer count, integer *actual) {
   retCode ret = Ok;
   integer remaining = count;
-  bufferPo f = O_BUFFER(io);
+  strBufferPo f = O_BUFFER(io);
 
   while (remaining > 0) {
     if (f->buffer.in_pos >= f->buffer.size) {
@@ -109,7 +105,7 @@ static retCode bufferInBytes(ioPo io, byte *ch, integer count, integer *actual) 
   return ret;
 }
 
-static retCode ensureSpace(bufferPo f, integer count) {
+static retCode ensureSpace(strBufferPo f, integer count) {
   if (f->buffer.out_pos + count >= f->buffer.bufferSize) {
     if (f->buffer.resizeable) {
       integer nlen = f->buffer.bufferSize + (f->buffer.bufferSize >> 1) + count; /* allow for some growth */
@@ -127,7 +123,7 @@ static retCode ensureSpace(bufferPo f, integer count) {
 }
 
 static retCode bufferOutBytes(ioPo io, byte *b, integer count, integer *actual) {
-  bufferPo f = O_BUFFER(io);
+  strBufferPo f = O_BUFFER(io);
 
   retCode ret = ensureSpace(f, count);
 
@@ -139,7 +135,7 @@ static retCode bufferOutBytes(ioPo io, byte *b, integer count, integer *actual) 
 }
 
 static retCode bufferBackByte(ioPo io, byte b) {
-  bufferPo f = O_BUFFER(io);
+  strBufferPo f = O_BUFFER(io);
 
   if (f->buffer.in_pos > 0) {
     f->buffer.buffer[--f->buffer.in_pos] = b;
@@ -148,28 +144,8 @@ static retCode bufferBackByte(ioPo io, byte b) {
     return Error;
 }
 
-static retCode bufferMark(ioPo io, integer *mark) {
-  bufferPo f = O_BUFFER(io);
-
-  *mark = f->buffer.in_pos;
-  return Ok;
-}
-
-static retCode bufferReset(ioPo io, integer mark) {
-  bufferPo f = O_BUFFER(io);
-
-  if (f->buffer.in_pos > 0) {
-    if (mark < f->buffer.size) {
-      f->buffer.in_pos = mark;
-      return Ok;
-    } else
-      return Fail;
-  } else
-    return Error;
-}
-
 static retCode bufferAtEof(ioPo io) {
-  bufferPo f = O_BUFFER(io);
+  strBufferPo f = O_BUFFER(io);
 
   if (f->buffer.out_pos < f->buffer.size)
     return Ok;
@@ -186,7 +162,7 @@ static retCode bufferClose(ioPo io) {
   return Ok;
 }
 
-retCode clearBuffer(bufferPo b) {
+retCode clearStrBuffer(strBufferPo b) {
   b->buffer.in_pos = 0;
   b->buffer.out_pos = 0;
   b->io.inBpos = b->io.inCpos = 0;
@@ -196,40 +172,40 @@ retCode clearBuffer(bufferPo b) {
 
 static integer bufferNo = 0;
 
-bufferPo newStringBuffer() {
+strBufferPo newStringBuffer() {
   char name[MAX_SYMB_LEN];
 
   strMsg(name, NumberOf(name), "<buffer%d>", bufferNo++);
 
   byte *buffer = (byte *) malloc(sizeof(byte) * 128);
 
-  return O_BUFFER(newObject(bufferClass, name, utf8Encoding, buffer, 128, ioWRITE, True));
+  return O_BUFFER(newObject(strBufferClass, name, utf8Encoding, buffer, 128, ioWRITE, True));
 }
 
-bufferPo newReadStringBuffer(char *text, integer textLen) {
+strBufferPo newReadStringBuffer(char *text, integer textLen) {
   char name[MAX_SYMB_LEN];
 
   strMsg(name, NumberOf(name), "<buffer%d>", bufferNo++);
 
-  return O_BUFFER(newObject(bufferClass, name, utf8Encoding, text, textLen, ioREAD, False));
+  return O_BUFFER(newObject(strBufferClass, name, utf8Encoding, text, textLen, ioREAD, False));
 }
 
-bufferPo newIoStringBuffer() {
+strBufferPo newIoStringBuffer() {
   char name[MAX_SYMB_LEN];
 
   strMsg(name, NumberOf(name), "<buffer%d>", bufferNo++);
 
   byte *buffer = (byte *) malloc(sizeof(byte) * 128);
 
-  return O_BUFFER(newObject(bufferClass, name, utf8Encoding, buffer, 128, ioWRITE | ioREAD, True));
+  return O_BUFFER(newObject(strBufferClass, name, utf8Encoding, buffer, 128, ioWRITE | ioREAD, True));
 }
 
-bufferPo fixedStringBuffer(char *buffer, long len) {
+strBufferPo fixedStringBuffer(char *buffer, long len) {
   char *name = "buffer";
-  return O_BUFFER(newObject(bufferClass, name, utf8Encoding, buffer, len, ioWRITE, False));
+  return O_BUFFER(newObject(strBufferClass, name, utf8Encoding, buffer, len, ioWRITE, False));
 }
 
-char *getTextFromBuffer(bufferPo s, integer *len) {
+char *getTextFromBuffer(strBufferPo s, integer *len) {
   *len = s->buffer.size;
 
   ensureSpace(s, 1);
@@ -238,7 +214,7 @@ char *getTextFromBuffer(bufferPo s, integer *len) {
   return s->buffer.buffer;
 }
 
-retCode readTextFromBuffer(bufferPo b,char *tgt,integer len){
+retCode readTextFromBuffer(strBufferPo b, char *tgt, integer len){
   if(len<=b->buffer.size)
     return Error;
   else{
@@ -250,38 +226,38 @@ retCode readTextFromBuffer(bufferPo b,char *tgt,integer len){
   }
 }
 
-logical isTrivialBuffer(bufferPo b) {
+logical isTrivialBuffer(strBufferPo b) {
   return uniIsTrivial(b->buffer.buffer, b->buffer.size);
 }
 
-integer bufferLength(bufferPo b) {
+integer strBufferLength(strBufferPo b) {
   return b->buffer.size;
 }
 
-integer bufferOutPos(bufferPo b) {
+integer strBufferOutPos(strBufferPo b) {
   return b->buffer.out_pos;
 }
 
-integer bufferBumpOutPos(bufferPo b, integer incr) {
+integer strBufferBumpOutPos(strBufferPo b, integer incr) {
   b->buffer.out_pos = clamp(0, b->buffer.out_pos + incr, b->buffer.size);
   return b->buffer.out_pos;
 }
 
-retCode rewindBuffer(bufferPo in) {
-  in->buffer.in_pos = 0;
-  in->io.inBpos = in->io.inCpos = 0;
+retCode rewindStrBuffer(strBufferPo b) {
+  b->buffer.in_pos = 0;
+  b->io.inBpos = b->io.inCpos = 0;
 
-  in->buffer.out_pos = 0;
+  b->buffer.out_pos = 0;
   return Ok;
 }
 
-retCode seekBuffer(bufferPo b, integer pos) {
+retCode seekStrBuffer(strBufferPo b, integer pos) {
   pos = clamp(0, pos, b->buffer.size);
   b->buffer.in_pos = b->buffer.out_pos = pos;
   return Ok;
 }
 
-retCode insertIntoBuffer(bufferPo b, codePoint ch) {
+retCode insertIntoStringBuffer(strBufferPo b, codePoint ch) {
   integer chSize = codePointSize(ch);
   integer insertPos = b->buffer.out_pos;
 
@@ -296,7 +272,7 @@ retCode insertIntoBuffer(bufferPo b, codePoint ch) {
   return Ok;
 }
 
-retCode appendIntoBuffer(bufferPo b, const char *text, integer txtLen) {
+retCode appendIntoStrBuffer(strBufferPo b, const char *text, integer txtLen) {
   ensureSpace(b, txtLen);
   for (integer ix = 0; ix < txtLen; ix++)
     b->buffer.buffer[b->buffer.out_pos++] = text[ix];
@@ -305,7 +281,7 @@ retCode appendIntoBuffer(bufferPo b, const char *text, integer txtLen) {
   return Ok;
 }
 
-retCode appendToBuffer(bufferPo b, const char *text, integer txtLen) {
+retCode appendToStrBuffer(strBufferPo b, const char *text, integer txtLen) {
   ensureSpace(b, txtLen);
   for (integer ix = 0; ix < txtLen; ix++)
     b->buffer.buffer[b->buffer.size++] = text[ix];
@@ -313,12 +289,12 @@ retCode appendToBuffer(bufferPo b, const char *text, integer txtLen) {
   return Ok;
 }
 
-retCode appendCodePointToBuffer(bufferPo b, codePoint ch){
+retCode appendCodePointToStrBuffer(strBufferPo b, codePoint ch){
   ensureSpace(b,5);
   return appendCodePoint(b->buffer.buffer,&b->buffer.out_pos,b->buffer.bufferSize,ch);
 }
 
-retCode twizzleBuffer(bufferPo b, integer pos) {
+retCode twizzleStrBuffer(strBufferPo b, integer pos) {
   if (pos < 0 || pos >= b->buffer.size - 1)
     return Error;
   else {
@@ -330,18 +306,18 @@ retCode twizzleBuffer(bufferPo b, integer pos) {
   }
 }
 
-retCode stringIntoBuffer(bufferPo b, strgPo str) {
-  return appendIntoBuffer(b, strgVal(str), strgLen(str));
+retCode stringIntoStrBuffer(strBufferPo b, strgPo str) {
+  return appendIntoStrBuffer(b, strgVal(str), strgLen(str));
 }
 
-retCode deleteFromBuffer(bufferPo b, integer len) {
-  integer endPt = bufferOutPos(b);
-  integer from = bufferOutPos(b);
+retCode deleteFromStrBuffer(strBufferPo b, integer len) {
+  integer endPt = strBufferOutPos(b);
+  integer from = strBufferOutPos(b);
 
   if (len > 0) {
-    endPt = advanceCodePoint(b->buffer.buffer, endPt, bufferLength(b), len);
+    endPt = advanceCodePoint(b->buffer.buffer, endPt, strBufferLength(b), len);
 
-    integer remaining = bufferLength(b) - endPt;
+    integer remaining = strBufferLength(b) - endPt;
 
     for (integer px = 0; px < remaining; px++)
       b->buffer.buffer[from + px] = b->buffer.buffer[endPt + px];
@@ -349,7 +325,7 @@ retCode deleteFromBuffer(bufferPo b, integer len) {
     b->buffer.size -= (endPt - from);
   } else {
     integer tgtPt = backCodePoint(b->buffer.buffer, endPt, -len);
-    integer remaining = bufferLength(b) - from;
+    integer remaining = strBufferLength(b) - from;
 
     for (integer px = 0; px < remaining; px++)
       b->buffer.buffer[tgtPt + px] = b->buffer.buffer[from + px];
@@ -362,12 +338,12 @@ retCode deleteFromBuffer(bufferPo b, integer len) {
   return Ok;
 }
 
-strgPo stringFromBuffer(bufferPo b) {
+strgPo stringFromBuffer(strBufferPo b) {
   return newStrng(b->buffer.size, b->buffer.buffer);
 }
 
 retCode showStringBuffer(ioPo f, void *data, long depth, long precision, logical alt) {
-  bufferPo b = O_BUFFER(data);
+  strBufferPo b = O_BUFFER(data);
   integer bufLen;
   char *content = getTextFromBuffer(b, &bufLen);
 

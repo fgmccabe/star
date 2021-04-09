@@ -265,15 +265,28 @@ followGraph(Ch,Id,St,St) :- final(Ch,Id).
 
 nextToken(St,NxSt,Tk) :- skipToNx(St,St1), nxTok(St1,NxSt,Tk),!.
 
-allTokens(pkg(Pkg,_),Txt,Toks) :- initSt(Pkg,Txt,St), tokenize(St,_,Toks), !.
+allTokens(pkg(Pkg,_),Txt,Toks) :-
+  initSt(Pkg,Txt,St),
+  tokenize(St,_,Tks),!,
+  multiToks(Tks,Toks).
 
-tokenize(St,NxSt,Toks) :- skipToNx(St,St1), nxTokenize(St1,NxSt,Toks).
+tokenize(St,NxSt,Toks) :-
+  skipToNx(St,St1),
+  nxTokenize(St1,NxSt,Toks).
 
 nxTokenize(St,St,[]) :- isTerminal(St).
 nxTokenize(St,NxSt,[Tok|More]) :- nxTok(St,St1,Tok), !,
 %  dispToken(Tok),
   tokenize(St1,NxSt,More).
 
+multiToks([],[]) :-!.
+multiToks([idTok(Id,Lc),idTok(Id2,Lc2)|Toks],[idTok(Idd,Lcc)|Tks]) :-
+  multiTok(Id,Id2,Idd),!,
+  mergeLoc(Lc,Lc2,Lcc),
+  multiToks(Toks,Tks).
+multiToks([Tk|Toks],[Tk|Tks]) :-
+  multiToks(Toks,Tks).
+	  
 finalizeToken(Lc,Id,lftTok(Bkt,Lc)) :-
   bracket(Bkt,Id,_,_),!.
 finalizeToken(Lc,Id,rgtTok(Bkt,Lc)) :-

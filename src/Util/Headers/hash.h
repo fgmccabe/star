@@ -29,7 +29,7 @@ typedef retCode (*procFun)(void *n, void *r, void *c); /* Processing func */
 /* Build a new hash table */
 hashPo newHash(long size, hashFun hash, compFun cmp, destFun dest);
 retCode eraseHash(hashPo hp);
-retCode ProcessTable(procFun pr,hashPo tbl,void *c);
+retCode processHashTable(procFun pr, hashPo htbl, void *c);
 
 // Use these instead
 retCode hashPut(hashPo htbl,void *name, void *r); // install a new entry

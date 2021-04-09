@@ -10,8 +10,9 @@
 extern retCode decInt(ioPo in, integer *ii);
 extern retCode decFlt(ioPo in, double *dx);
 extern retCode decodeInteger(ioPo in, integer *ix);
-extern retCode decodeText(ioPo in, bufferPo buffer);
+extern retCode decodeText(ioPo in, strBufferPo buffer);
 extern retCode decodeString(ioPo in, char *buffer, integer buffLen);
+extern retCode decodeName(ioPo in, char *buffer, integer buffLen, integer *length);
 
 typedef struct {
   char field[MAX_SYMB_LEN];

@@ -15,7 +15,7 @@ extern clssPo globalClass;
 
 extern globalPo C_GLOB(termPo t);
 
-extern globalPo globalVar(const char *nm, termPo provider);
+extern globalPo globalVar(const char *nm);
 
 extern int32 globalVarNo(const char *nm);
 extern logical isValidGlobalVarNo(int32 varNo);
@@ -27,8 +27,6 @@ extern termPo getGlobal(globalPo v);
 extern char *globalVarName(globalPo v);
 extern termPo setGlobalVar(globalPo v, termPo e);
 extern logical glbIsSet(globalPo glb);
-logical glbHasProvider(globalPo glb);
-extern termPo getProvider(globalPo glb);
 
 extern termPo voidEnum;
 extern termPo okEnum;

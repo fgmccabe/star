@@ -1,7 +1,8 @@
-:- module(unify,[sameType/3,idenType/3,faceOfType/3,sameContract/3,
-    simplifyType/5,checkConstraint/2]).
+:- module(unify,[sameType/3,faceOfType/3,sameContract/3,
+    simplifyType/5]).
 
 :- use_module(misc).
+:- use_module(canon).
 :- use_module(dict).
 :- use_module(types).
 :- use_module(freshen).
@@ -18,14 +19,6 @@ sm(V1,T2,Env) :- isUnbound(V1), !, varBinding(V1,T2,Env).
 sm(T1,V2,Env) :- isUnbound(V2), !, varBinding(V2,T1,Env).
 sm(type(Nm),type(Nm),_).
 sm(tpFun(Nm,Ar),tpFun(Nm,Ar),_).
-sm(tpExp(O1,A1),T2,Env) :-
-  isTypeFun(O1,Args,Env,OO),!,
-  applyTypeFn(OO,[A1|Args],Env,[],_,T1),
-  sameType(T1,T2,Env).
-sm(T1,tpExp(O2,A2),Env) :-
-  isTypeFun(O2,Args,Env,OO),!,
-  applyTypeFn(OO,[A2|Args],Env,[],_,T2),
-  sameType(T1,T2,Env).
 sm(tpExp(O1,A1),tpExp(O2,A2),Env) :- sameType(O1,O2,Env), sameType(A1,A2,Env).
 sm(refType(A1),refType(A2),Env) :- sameType(A1,A2,Env).
 sm(valType(A1),valType(A2),Env) :- sameType(A1,A2,Env).
@@ -113,7 +106,7 @@ getFace(tpExp(Op,Arg),Env,Face) :-
   isTypeExp(tpExp(Op,Arg),tpFun(Nm,_),_),!,
   isType(Nm,Env,tpDef(_,_,FaceRule)),
   freshen(FaceRule,Env,_,Rl),
-  moveConstraints(Rl,_,typeExists(Lhs,FTp)),
+  getConstraints(Rl,_,typeExists(Lhs,FTp)),
   sameType(Lhs,tpExp(Op,Arg),Env),!,
   getFace(FTp,Env,Face).
 getFace(T,Env,Face) :- deRef(T,TT),isUnbound(TT), !, % fix me - implement types
@@ -166,14 +159,6 @@ id(kFun(Nm,Ar),kFun(Nm,Ar),_).
 id(V1,V2,_) :- isUnbound(V1), isUnbound(V2), isIdenticalVar(V1,V2).
 id(type(Nm),type(Nm),_).
 id(tpFun(Nm,Ar),tpFun(Nm,Ar),_).
-id(tpExp(O1,A1),T2,Env) :-
-  isTypeFun(O1,Args,Env,OO),!,
-  applyTypeFn(OO,[A1|Args],Env,[],_,T1),
-  idenType(T1,T2,Env).
-id(T1,tpExp(O2,A2),Env) :-
-  isTypeFun(O2,Args,Env,OO),!,
-  applyTypeFn(OO,[A2|Args],Env,[],_,T2),
-  idenType(T1,T2,Env).
 id(tpExp(O1,A1),tpExp(O2,A2),Env) :- idenType(O1,O2,Env),idenType(A1,A2,Env).
 id(refType(A1),refType(A2),Env) :- idenType(A1,A2,Env).
 id(valType(A1),valType(A2),Env) :- idenType(A1,A2,Env).
@@ -288,16 +273,16 @@ smpCon(implementsFace(L,R),Env,C,Cx,implementsFace(Ls,Rs)) :-
 
 bind(tVar(Curr,Con,Nm,Id),Tp,Env) :- !,
   \+occursIn(tVar(Curr,Con,Nm,Id),Tp),
-  Curr=Tp,
-  (varConstraints(Tp,Env,Cx) ->
-    mergeConstraints(Con,Cx,Env) ;
-    checkConstraints(Con,Env)).
+  Curr=Tp.
+  % (varConstraints(Tp,Env,Cx) ->
+  %   mergeConstraints(Con,Cx,Env) ;
+  %   checkConstraints(Con,Env)).
 bind(tFun(Curr,Con,Nm,Ar,Id),Tp,Env) :-
   \+occursIn(tFun(Curr,Con,Nm,Ar,Id),Tp),
-  Curr=Tp,
-  (varConstraints(Tp,Env,Cx) ->
-    mergeConstraints(Con,Cx,Env) ;
-    checkConstraints(Con,Env)).
+  Curr=Tp.
+  % (varConstraints(Tp,Env,Cx) ->
+  %   mergeConstraints(Con,Cx,Env) ;
+  %   checkConstraints(Con,Env)).
 
 mergeConstraints(Cx,Cy,_Env) :- var(Cx),!, Cx=Cy.
 mergeConstraints([Cx|Xs],Y,Env) :- mergeConstraint(Cx,Y,Env), mergeConstraints(Xs,Y,Env).
@@ -311,16 +296,17 @@ mergeConstraint(Cx,[_|Y],Env) :- !, % TODO: handle merging implementsFace more g
 
 checkConstraints(Cx,_Env) :- var(Cx),!.
 checkConstraints([C|Cx],Env) :- checkConstraint(C,Env), checkConstraints(Cx,Env).
+checkConstraints([],_) :-!.
 
 checkConstraint(conTract(Nm,Args,Deps),Env) :-
-  (implementationName(conTract(Nm,Args,Deps),ImplNm) ->
-    (getImplementation(Nm,ImplNm,Env,Impl) ->
-      freshen(Impl,Env,_,ImplCon),
-      getConstrainedContract(ImplCon,Con),
-      sameContract(Con,conTract(Nm,Args,Deps),Env);
-      true);
-    true).
-
+  implementationName(conTract(Nm,Args,Deps),ImplNm),
+  (getVar(Nm,ImplNm,Env,_Ev,Impl) ->
+   typeOfCanon(Impl,ImplTp),
+   getConstraints(ImplTp,Cx,ImplCon),
+   contractType(conTract(Nm,Args,Deps),ConTp),
+   sameType(ConTp,ImplCon,Env),
+   checkConstraints(Cx,Env);
+   false).
 checkConstraint(implementsFace(Tp,NdFace),Env) :-
   faceOfType(Tp,Env,Face),
   subFace(NdFace,Face,Env).

@@ -3,7 +3,8 @@
 (require 'star-util)
 
 (defconst star-ops
-  '(  ("all" ( (prefix 1010 1009)))
+  '(  ("has type" ( (infix 1249 1250 1249)))
+  ("all" ( (prefix 1010 1009)))
   (".<." ( (infix 699 700 699)))
   ("^=" ( (infix 899 900 899)))
   ("&&" ( (infix 910 910 909)))
@@ -24,6 +25,7 @@
   ("then" ( (infix 1179 1180 1179)))
   ("!" ( (postfix 99 100)))
   ("->>" ( (infix 1199 1200 1199)))
+  ("has kind" ( (infix 1249 1250 1249)))
   ("=!=" ( (infix 899 900 899)))
   ("default" ( (postfix 939 940)))
   ("#" ( (prefix 1750 1749) (infix 759 760 759)))

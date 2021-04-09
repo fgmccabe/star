@@ -37,6 +37,7 @@ star.compiler.operators{
   pickPostfix([_,..L]) => pickPrefix(L).
 
   oper:(string)=>cons[operator].
+  oper("has type") => [infixOp(1249,1250,1249)].
   oper("all") => [prefixOp(1010,1009)].
   oper(".<.") => [infixOp(699,700,699)].
   oper("^=") => [infixOp(899,900,899)].
@@ -58,6 +59,7 @@ star.compiler.operators{
   oper("then") => [infixOp(1179,1180,1179)].
   oper("!") => [postfixOp(99,100)].
   oper("->>") => [infixOp(1199,1200,1199)].
+  oper("has kind") => [infixOp(1249,1250,1249)].
   oper("=!=") => [infixOp(899,900,899)].
   oper("default") => [postfixOp(939,940)].
   oper("#") => [prefixOp(1750,1749), infixOp(759,760,759)].
@@ -146,6 +148,10 @@ star.compiler.operators{
   oper(">=") => [infixOp(899,900,899)].
   oper(">>") => [infixOp(949,950,950)].
   oper(_) default => [].
+
+  public multiTok:(string)=>option[cons[string]].
+  multiTok("has") => some(["type", "kind"]).
+  multiTok(_) default => .none.
 
   public isBracket:(string) => option[bracket].
   isBracket("[|") => some(bkt("[|","[||]","|]",2000)).
@@ -388,67 +394,64 @@ star.compiler.operators{
   final(_) default => .false.
 
   public keyword:(string) => boolean.
-  keyword("all") => .true.
-  keyword("^=") => .true.
-  keyword("&&") => .true.
-  keyword("~>") => .true.
-  keyword("throw") => .true.
-  keyword("do") => .true.
-  keyword("do") => .true.
-  keyword("import") => .true.
-  keyword("catch") => .true.
-  keyword("valis") => .true.
-  keyword(",..") => .true.
-  keyword("for") => .true.
-  keyword("then") => .true.
-  keyword("->>") => .true.
-  keyword("default") => .true.
-  keyword("#") => .true.
-  keyword("#") => .true.
-  keyword("<-") => .true.
-  keyword("<<-") => .true.
-  keyword("*>") => .true.
-  keyword(",") => .true.
-  keyword("contract") => .true.
-  keyword(".") => .true.
-  keyword(".") => .true.
-  keyword("val") => .true.
-  keyword("try") => .true.
-  keyword("exists") => .true.
-  keyword("if") => .true.
-  keyword(":") => .true.
-  keyword(";") => .true.
-  keyword(".=") => .true.
-  keyword("=") => .true.
-  keyword("|:") => .true.
-  keyword("?") => .true.
-  keyword("@") => .true.
-  keyword("@") => .true.
-  keyword("in") => .true.
-  keyword("open") => .true.
-  keyword("~~") => .true.
-  keyword("public") => .true.
-  keyword("ref") => .true.
-  keyword("where") => .true.
-  keyword("case") => .true.
-  keyword("=>") => .true.
-  keyword("^") => .true.
-  keyword("^") => .true.
-  keyword("<=>") => .true.
-  keyword("valof") => .true.
-  keyword("until") => .true.
-  keyword("while") => .true.
-  keyword("private") => .true.
-  keyword("::") => .true.
-  keyword(":?") => .true.
-  keyword("^.") => .true.
-  keyword("<~") => .true.
-  keyword("type") => .true.
-  keyword("implementation") => .true.
-  keyword("|") => .true.
-  keyword("~") => .true.
-  keyword("||") => .true.
-  keyword("else") => .true.
-  keyword("::=") => .true.
+ keyword("has type") => .true.
+ keyword("all") => .true.
+ keyword("^=") => .true.
+ keyword("&&") => .true.
+ keyword("~>") => .true.
+ keyword("throw") => .true.
+ keyword("do") => .true.
+ keyword("import") => .true.
+ keyword("catch") => .true.
+ keyword("valis") => .true.
+ keyword(",..") => .true.
+ keyword("for") => .true.
+ keyword("then") => .true.
+ keyword("->>") => .true.
+ keyword("has kind") => .true.
+ keyword("default") => .true.
+ keyword("#") => .true.
+ keyword("<-") => .true.
+ keyword("<<-") => .true.
+ keyword("*>") => .true.
+ keyword(",") => .true.
+ keyword("contract") => .true.
+ keyword(".") => .true.
+ keyword("val") => .true.
+ keyword("try") => .true.
+ keyword("exists") => .true.
+ keyword("if") => .true.
+ keyword(":") => .true.
+ keyword(";") => .true.
+ keyword(".=") => .true.
+ keyword("=") => .true.
+ keyword("|:") => .true.
+ keyword("?") => .true.
+ keyword("@") => .true.
+ keyword("in") => .true.
+ keyword("open") => .true.
+ keyword("~~") => .true.
+ keyword("public") => .true.
+ keyword("ref") => .true.
+ keyword("where") => .true.
+ keyword("case") => .true.
+ keyword("=>") => .true.
+ keyword("^") => .true.
+ keyword("<=>") => .true.
+ keyword("valof") => .true.
+ keyword("until") => .true.
+ keyword("while") => .true.
+ keyword("private") => .true.
+ keyword("::") => .true.
+ keyword(":?") => .true.
+ keyword("^.") => .true.
+ keyword("<~") => .true.
+ keyword("type") => .true.
+ keyword("implementation") => .true.
+ keyword("|") => .true.
+ keyword("~") => .true.
+ keyword("||") => .true.
+ keyword("else") => .true.
+ keyword("::=") => .true.
   keyword(_) default => .false.
 }

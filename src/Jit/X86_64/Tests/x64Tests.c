@@ -6,7 +6,7 @@
 #include "jitP.h"
 
 static retCode checkCode(u8 *src, integer srcLen, codeCtxPo ctx);
-static retCode checkReslt(i64 test, i64 verify, char *msg);
+static retCode checkReslt(int64 test, int64 verify, char *msg);
 
 static retCode test_adc() {
   codeCtxPo ctx = createCtx();
@@ -892,8 +892,8 @@ static retCode test_xor() {
   return checkCode(tgt, NumberOf(tgt), ctx);
 }
 
-typedef i64 (*un_i64)(i64 x);
-typedef i64 (*bin_i64)(i64 x, i64 y);
+typedef int64 (*un_i64)(int64 x);
+typedef int64 (*bin_i64)(int64 x, int64 y);
 
 retCode test_addFun() {
   codeCtxPo ctx = createCtx();
@@ -904,7 +904,7 @@ retCode test_addFun() {
   postamble(ctx);
 
   bin_i64 fn = (bin_i64) createCode(ctx);
-  i64 reslt = fn(3, 5);
+  int64 reslt = fn(3, 5);
   return checkReslt(reslt, 8, "addFn");
 }
 
@@ -945,7 +945,7 @@ retCode checkCode(u8 *src, integer srcLen, codeCtxPo ctx) {
   return ret;
 }
 
-retCode checkReslt(i64 test, i64 verify, char *msg) {
+retCode checkReslt(int64 test, int64 verify, char *msg) {
   if (test != verify) {
     logMsg(logFile, "Test %msg failed, expected %ld, got %ld", msg, verify, test);
     return Error;

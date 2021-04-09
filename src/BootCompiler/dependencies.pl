@@ -1,4 +1,4 @@
-:- module(dependencies,[dependencies/3,collectDefinitions/4]).
+:- module(dependencies,[dependencies/3]).
 
 :- use_module(topsort).
 :- use_module(abstract).
@@ -12,308 +12,6 @@ dependencies(Dfs,Groups,Annots) :-
   collectThetaRefs(Dfs,ARefs,Annots,Defs),
   topsort(Defs,Groups,misc:same).
 %  showGroups(Groups).
-
-collectDefinitions([St|Stmts],Defs,P,A) :-
-  collectDefinition(St,Stmts,S0,Defs,D0,P,P0,A,A0,dependencies:nop),
-  collectDefinitions(S0,D0,P0,A0).
-collectDefinitions([],[],[],[]).
-
-collectDefinition(St,Stmts,Stmts,[(cns(V),Lc,[Tp])|Defs],Defs,P,Px,[(V,T)|A],A,Export) :-
-  isTypeAnnotation(St,Lc,L,T),
-  (isIden(L,V),Ex=Export; isPrivate(L,_,V1),isIden(V1,V),Ex=dependencies:nop),
-  isConstructorType(T,_,Tp),!,
-  call(Ex,var(V),P,Px).
-collectDefinition(St,Stmts,Stmts,Defs,Defs,P,Px,[(V,T)|A],A,Export) :-
-  isTypeAnnotation(St,Lc,L,T),
-  (isIden(L,V) ->
-   call(Export,var(V),P,Px) ;
-   isPrivate(L,_,V1), isIden(V1,V) ->
-   call(dependencies:nop,var(V),P,Px);
-   reportError("cannot understand type annotation of %s",[L],Lc),
-   P=Px).
-collectDefinition(St,Stmts,Stx,Defs,Dfx,P,P,A,Ax,_) :-
-  isPrivate(St,_,Inner),
-  collectDefinition(Inner,Stmts,Stx,Defs,Dfx,P,_,A,Ax,dependencies:nop).
-collectDefinition(St,Stmts,Stx,Defs,Dfx,P,Px,A,Ax,_) :-
-  isPublic(St,_,Inner),
-  collectDefinition(Inner,Stmts,Stx,Defs,Dfx,P,Px,A,Ax,dependencies:export).
-collectDefinition(St,Stmts,Stmts,[(Nm,Lc,[St])|Defs],Defs,P,Px,A,Ax,Export) :-
-  isContractStmt(St,Lc,Quants,Constraints,Con,Els),
-  generateAnnotations(Els,Quants,[Con|Constraints],A,Ax),
-  contractName(Con,Nm),
-  call(Export,Nm,P,Px).
-collectDefinition(St,Stmts,Stmts,[(Nm,Lc,[St])|Defs],Defs,P,Px,A,A,Export) :-
-  isImplementationStmt(St,Lc,_,_,N,_),
-  implementedContractName(N,Nm),
-  call(Export,Nm,P,Px).
-collectDefinition(St,Stmts,Stmts,Defs,Defs,Px,Px,A,A,_) :-
-  isBinary(St,_,"@",_,_).
-collectDefinition(St,Stmts,Stmts,Defs,Defs,Px,Px,A,A,_) :-
-  isUnary(St,_,"@",_).
-collectDefinition(St,Stmts,Stmts,[(tpe(Nm),Lc,[St])|Defs],Defs,P,Px,A,A,Export) :-
-  isTypeExistsStmt(St,Lc,_,_,L,_),
-  typeName(L,Nm),
-  call(Export,tpe(Nm),P,Px).
-collectDefinition(St,Stmts,Stmts,[(tpe(Nm),Lc,[St])|Defs],Defs,P,Px,A,A,Export) :-
-  isTypeFunStmt(St,Lc,_,_,L,_),
-  typeName(L,Nm),
-  call(Export,tpe(Nm),P,Px).
-collectDefinition(St,Stmts,Stmts,Defs,Dfx,P,Px,A,Ax,Export) :-
-  isAlgebraicTypeStmt(St,_,_,_,_,_),
-  reformAlgebraic(St,Defs,Dfx,A,Ax,Export,P,Px).
-collectDefinition(St,Stmts,Stx,[(Nm,Lc,[St|Defn])|Defs],Defs,P,Px,A,A,Export) :-
-  ruleName(St,Nm,Kind),
-  locOfAst(St,Lc),
-  collectDefines(Stmts,Kind,Stx,Nm,Defn),
-  call(Export,Nm,P,Px).
-collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,_) :-
-  locOfAst(St,Lc),
-  reportError("Cannot fathom %s",[St],Lc).
-
-export(Nm,[Nm|P],P).
-nop(_,P,P).
-
-% Pull apart an algebraic type def into its pieces
-reformAlgebraic(St,[(tpe(Nm),Lc,[TpRule])|Lst],Lx,A,Ax,Export,P,Px) :-
-  isAlgebraicTypeStmt(St,Lc,Quants,Constraints,Head,Body),
-  typeName(Head,Nm),
-  algebraicFace(Body,Face),
-%  reportMsg("face of %s is %s, quants = %s",[TpRule,Face,Quants],Lc),
-  binary(Lc,"<~",Head,Face,TRl),
-  reConstrain(Constraints,TRl,CTrl),
-  reUQuant(Quants,CTrl,TpRule),
-  call(Export,tpe(Nm),P,P0),
-  buildConstructors(Body,Quants,Constraints,Nm,Head,Lst,Lx,A,Ax,Export,P0,Px).
-
-algebraicFace(C,F) :-
-  isBinary(C,_,"|",L,R),!,
-  algebraicFace(L,F0),
-  algebraicFace(R,F1),
-  combineFaces(F0,F1,F).
-algebraicFace(C,E) :-
-  isIden(C,Lc,_),
-  braceTuple(Lc,[],E).
-algebraicFace(C,E) :-
-  isEnum(C,Lc,_),
-  braceTuple(Lc,[],E).
-algebraicFace(C,Face) :-
-  isRoundCon(C,_,_,Lc,_,_,dependencies:nop,_,_),
-  braceTuple(Lc,[],Face).
-algebraicFace(C,Face) :-
-  isBraceCon(C,XQ,XC,Lc,_,Els,dependencies:nop,_,_),
-  pullOthers(Els,Entries,_Asserts,_Defaults),
-  braceTuple(Lc,Entries,F),
-  reConstrain(XC,F,CF),
-  reXQuant(XQ,CF,Face).
-algebraicFace(C,Face) :-
-  isPrivate(C,_,I),
-  algebraicFace(I,Face).
-algebraicFace(C,Face) :-
-  isPublic(C,_,I),
-  algebraicFace(I,Face).
-algebraicFace(C,Face) :-
-  isXQuantified(C,_,I),
-  algebraicFace(I,Face).
-algebraicFace(C,Face) :-
-  isConstrained(C,I,_),
-  algebraicFace(I,Face).
-
-combineFaces(F0,F,F) :-
-  isEmptyBrace(F0).
-combineFaces(F,F0,F) :-
-  isEmptyBrace(F0).
-combineFaces(F0,F1,F2) :-
-  isBraceTuple(F0,Lc,Els0),
-  isBraceTuple(F1,_,Els1),
-  mergeFields(Els0,Els1,Els),!,
-  braceTuple(Lc,Els,F2).
-
-mergeFields([],F,F).
-mergeFields(F,[],F).
-mergeFields([A|As],B,[A|Fs]) :-
-  mergeField(A,B,B1),
-  mergeFields(As,B1,Fs).
-
-mergeField(A,B,Bx) :-
-  isTypeAnnotation(A,_,N,Tp),
-  isIden(N,_,Nm),
-  checkFields(Nm,Tp,B,Bx),!.
-
-checkFields(_,_,[],[]).
-checkFields(Nm,Tp,[B|Bs],Bx) :-
-  isTypeAnnotation(B,_,N,Tp2),
-  (isIden(N,Lc,Nm) ->
-   Bs=Bx,
-   (sameTerm(Tp,Tp2);
-    reportError("type of field %s mismatch, %s!=%s",[Nm,Tp,Tp2],Lc));
-   Bx=[B|Bx1],
-   checkFields(Nm,Tp,Bs,Bx1)).
-checkFields(Nm,Tp,[B|Bs],[B|Bx]) :-
-  checkFields(Nm,Tp,Bs,Bx).
-
-buildConstructors(Body,Quants,Constraints,Nm,Tp,Lst,Lx,A,Ax,Export,P,Px) :-
-  isBinary(Body,_,"|",L,R),
-  buildConstructors(L,Quants,Constraints,Nm,Tp,Lst,L0,A,A0,Export,P,P0),
-  buildConstructors(R,Quants,Constraints,Nm,Tp,L0,Lx,A0,Ax,Export,P0,Px).
-buildConstructors(C,Quants,Constraints,Nm,Tp,[St|L0],Lx,A,Ax,Export,P,Px) :-
-  buildConstructor(C,Quants,Constraints,Nm,Tp,St,L0,Lx,A,Ax,Export,P,Px).
-buildConstructors(C,_,_,_,_,Defs,Defs,Ax,Ax,_,Px,Px) :-
-  locOfAst(C,Lc),
-  reportError("invalid constructor: %s",[C],Lc).
-
-buildConstructor(N,Quants,Constraints,_,Tp,(cns(Nm),Lc,[St]),Lx,Lx,[(Nm,St)|Ax],Ax,Export,P,Px) :-
-  isEnum(N,Lc,En),!,
-  isIden(En,_,Nm),
-  roundTuple(Lc,[],Hd),
-  binary(Lc,"<=>",Hd,Tp,CnTp),
-  reConstrain(Constraints,CnTp,Rl),
-  reUQuant(Quants,Rl,St),
-  call(Export,var(Nm),P,Px).
-buildConstructor(N,Quants,Constraints,_,Tp,(cns(Nm),Lc,[St]),Lx,Lx,[(Nm,St)|Ax],Ax,Export,P,Px) :-
-  isIden(N,Lc,Nm),
-  reportMsg("use .%s instead of %s when defining enum",[N,N],Lc),
-  roundTuple(Lc,[],Hd),
-  binary(Lc,"<=>",Hd,Tp,CnTp),
-  reConstrain(Constraints,CnTp,Rl),
-  reUQuant(Quants,Rl,St),
-  call(Export,var(Nm),P,Px).
-buildConstructor(C,Quants,Constraints,_,Tp,(cns(Nm),Lc,[St]),Lx,Lx,[(Nm,St)|Ax],Ax,Export,P,Px) :-
-  isRoundCon(C,_,_,Lc,Nm,Args,Export,P,Px),
-  roundTuple(Lc,Args,Hd),
-  binary(Lc,"<=>",Hd,Tp,Rl),
-  reConstrain(Constraints,Rl,CRl),
-  reUQuant(Quants,CRl,St).
-buildConstructor(C,Quants,Constraints,_,Tp,(cns(Nm),Lc,[St]),Lx,Lx,[(Nm,St)|Ax],Ax,Export,P,Px) :-
-  isBraceCon(C,XQ,XC,Lc,Nm,Els,Export,P,Px),
-  pullOthers(Els,Entries,_Asserts,_Defaults),
-  braceTuple(Lc,Entries,Hd),
-  reConstrain(XC,Hd,XHd),
-  reXQuant(XQ,XHd,QHd),
-  binary(Lc,"<=>",QHd,Tp,Rl),
-  reConstrain(Constraints,Rl,CRl),
-  reUQuant(Quants,CRl,St).
-buildConstructor(C,Quants,Constraints,Nm,Tp,St,L,Lx,A,Ax,_,P,Px) :-
-  isPrivate(C,_,I),
-  buildConstructor(I,Quants,Constraints,Nm,Tp,St,L,Lx,A,Ax,dependencies:nop,P,Px).
-buildConstructor(C,Quants,Constraints,Nm,Tp,St,L,Lx,A,Ax,_,P,Px) :-
-  isPublic(C,_,I),
-  buildConstructor(I,Quants,Constraints,Nm,Tp,St,L,Lx,A,Ax,dependencies:export,P,Px).
-
-isRoundCon(C,XQ,XC,Lc,Nm,Els,Export,P,Px) :-
-  isCon(C,abstract:isRoundTerm,XQ,XC,Lc,Nm,Els,Export,P,Px).
-
-isBraceCon(C,XQ,XC,Lc,Nm,Els,Export,P,Px) :-
-  isCon(C,abstract:isBraceTerm,XQ,XC,Lc,Nm,Els,Export,P,Px).
-
-isCon(C,Tst,[],[],Lc,Nm,Els,Export,P,Px) :-
-  call(Tst,C,Lc,N,Els),
-  isIden(N,Nm),
-  call(Export,var(Nm),P,Px).
-isCon(C,Tst,XQ,XC,Lc,Nm,Els,Export,P,Px) :-
-  isXQuantified(C,XQ,I),
-  isCon(I,Tst,_,XC,Lc,Nm,Els,Export,P,Px).
-isCon(C,Tst,XQ,XC,Lc,Nm,Els,Export,P,Px) :-
-  isConstrained(C,I,XC),
-  isCon(I,Tst,XQ,_,Lc,Nm,Els,Export,P,Px).
-
-pullOthers([],[],[],[]).
-pullOthers([St|Els],Entries,[St|Asserts],Deflts) :-
-  isIntegrity(St,_,_),!,
-  pullOthers(Els,Entries,Asserts,Deflts).
-pullOthers([St|Els],Entries,Asserts,[St|Deflts]) :-
-  isDefault(St,_,_,_),!,
-  pullOthers(Els,Entries,Asserts,Deflts).
-pullOthers([St|Els],[St|Entries],Asserts,Deflts) :-
-  pullOthers(Els,Entries,Asserts,Deflts).
-
-ruleName(St,var(Nm),value) :-
-  headOfRule(St,Hd),
-  headName(Hd,Nm).
-
-contractName(St,con(Nm)) :-
-  isSquare(St,Nm,_).
-
-implementedContractName(Sq,imp(INm)) :-
-  isSquare(Sq,Nm,A),
-  appStr(Nm,S0,S1),
-  marker(over,M),
-  surfaceNames(A,M,S1,[]),
-  string_chars(INm,S0).
-
-surfaceNames([],_,S,S).
-surfaceNames([T|_],Sep,S0,Sx) :-
-  isBinary(T,_,"->>",L,_),!,
-  deComma(L,Els),
-  surfaceNames(Els,Sep,S0,Sx).
-surfaceNames([T|L],Sep,S0,Sx) :-
-  surfaceName(T,SN),
-  appStr(Sep,S0,S1),
-  appStr(SN,S1,S2),
-  surfaceNames(L,Sep,S2,Sx).
-
-surfaceName(N,Nm) :-
-  isIden(N,Nm).
-surfaceName(N,Nm) :-
-  isSquare(N,Nm,_).
-surfaceName(T,Nm) :-
-  isQuantified(T,_,B),
-  surfaceName(B,Nm).
-surfaceName(T,Nm) :-
-  isTypeLambda(T,_,_,Rhs),
-  surfaceName(Rhs,Nm).
-surfaceName(T,Nm) :-
-  isTuple(T,_,A),
-  length(A,Ar),
-  swritef(Nm,"()%d",[Ar]).
-
-% project contract members out
-generateAnnotations([],_,_,Ax,Ax).
-generateAnnotations([Def|Els],Quants,Constraints,[(Nm,MTp)|A],Ax) :-
-  isTypeAnnotation(Def,_,N,Tp),
-  isIden(N,_,Nm),
-  reConstrain(Constraints,Tp,CTp),
-  reUQuant(Quants,CTp,MTp),
-  generateAnnotations(Els,Quants,Constraints,A,Ax).
-generateAnnotations([_|Els],Quants,Constraints,A,Ax) :- % ignore things like assertions
-  generateAnnotations(Els,Quants,Constraints,A,Ax).
-
-collectDefines([St|Stmts],Kind,OSt,Nm,[St|Defn]) :-
-  ruleName(St,Nm,Kind),
-  collectDefines(Stmts,Kind,OSt,Nm,Defn).
-collectDefines([St|Stmts],Kind,[St|OSt],Nm,Defn) :-
-  collectDefines(Stmts,Kind,OSt,Nm,Defn).
-collectDefines(Stmts,_,Stmts,_,[]).
-
-headOfRule(St,Hd) :-
-  isDefn(St,_,Hd,_),!.
-headOfRule(St,Hd) :-
-  isAssignment(St,_,Hd,_),!.
-headOfRule(St,Hd) :-
-  isEquation(St,_,Hd,_,_),!.
-
-headName(Head,Nm) :-
-  isRoundTerm(Head,Op,_),
-  headName(Op,Nm).
-headName(Head,Nm) :-
-  isBrace(Head,_,Nm,_).
-headName(Name,Nm) :-
-  isName(Name,Nm),
-  \+isKeyword(Nm).
-headName(tuple(_,"()",[Name]),Nm) :-
-  headName(Name,Nm).
-headName(Head,Nm) :-
-  isDefault(Head,_,Lhs),
-  headName(Lhs,Nm).
-
-typeName(Tp,Nm) :-
-  isBinary(Tp,_,"|:",_,R),
-  typeName(R,Nm).
-typeName(Tp,Nm) :- isSquare(Tp,Nm,_), \+ isKeyword(Nm).
-typeName(Tp,Nm) :- isName(Tp,Nm), \+ isKeyword(Nm).
-typeName(Tp,"=>") :- isBinary(Tp,_,"=>",_,_).
-typeName(Tp,Nm) :- isTuple(Tp,_,A),
-  length(A,Ar),
-  swritef(Nm,"()%d",[Ar]).
 
 allRefs([(con(N),_,[St])|Defs],SoFar,AllRefs) :-
   conRefs(con(N),St,SoFar,Rf0),
@@ -367,11 +65,12 @@ collStmtRefs(St,All,Annots,SoFar,Refs) :-
   isEquation(St,_,H,Cond,Exp),
   collectAnnotRefs(H,All,Annots,SoFar,R0),
   collectHeadRefs(H,All,R0,R1),
-  collectCondRefs(Cond,All,R1,R2),
+  collectGuardRefs(Cond,All,R1,R2),
   collectTermRefs(Exp,All,R2,Refs).
 collStmtRefs(C,All,_,R,Refs) :-
-  isAlgebraicTypeStmt(C,_,_,Cx,_,_),
+  isAlgebraicTypeStmt(C,_,_,Cx,_,_Body),
   collConstraints(Cx,All,R,Refs).
+%  collectConstructorRefs(Body,All,Rf0,Refs).
 collStmtRefs(C,All,_,R,Refs) :-
   isConstructorStmt(C),
   collectTypeRefs(C,All,R,Refs).
@@ -397,6 +96,21 @@ collStmtRefs(St,All,_,R,Rx) :-
 collStmtRefs(St,_,_,R,R) :-
   locOfAst(St,Lc),
   reportError("Cannot fathom definition %s",[St],Lc).
+
+collectConstructorRefs(Body,All,Rf,Refs) :-
+  isBinary(Body,_,"|",L,R),!,
+  collectConstructorRefs(L,All,Rf,Rf0),
+  collectConstructorRefs(R,All,Rf0,Refs).
+collectConstructorRefs(Body,_,Refs,Refs) :-
+  isIden(Body,_,_),!.
+collectConstructorRefs(Body,_,Refs,Refs) :-
+  isEnum(Body,_,_),!.
+collectConstructorRefs(Body,All,Rf,Refs) :-
+  isRoundCon(Body,_,_,_,_,Args),!,
+  collectTypeList(Args,All,Rf,Refs).
+collectConstructorRefs(Body,All,Rf,Refs) :-
+  isBraceCon(Body,_,_,_,_,Entries),!,
+  collectFaceTypes(Entries,All,Rf,Refs).
 
 collImplementationRefs(C,Con,B,All,R0,Refs) :-
   collConstraints(C,All,R0,R1),
@@ -477,6 +191,10 @@ collectNmRef(N,All,Rfs,[N|Rfs]) :-
 collectNmRef(N,All,Rfs,[M|Rfs]) :-
   is_member((N,M),All),!.
 collectNmRef(_,_,Rfs,Rfs).
+
+collectGuardRefs(none,_,Rfs,Rfs) :-!.
+collectGuardRefs(some(G),A,R0,Refs) :-
+  collectCondRefs(G,A,R0,Refs).
 
 collectCondRefs(C,A,R0,Refs) :-
   isConjunct(C,_,L,R),
@@ -583,7 +301,7 @@ collectTermRefs(T,All,R,Refs) :-
 collectTermRefs(T,All,R0,Refs) :-
   isEquation(T,_,L,C,R),
   collectTermRefs(L,All,R0,R1),
-  collectCondRefs(C,All,R1,R2),
+  collectGuardRefs(C,All,R1,R2),
   collectTermRefs(R,All,R2,Refs).
 collectTermRefs(T,All,R,Refs) :-
   isRef(T,_,A),!,
@@ -618,7 +336,7 @@ collectCaseRefs([],_,_,Rf,Rf) :-!.
 collectCaseRefs([E|Cs],C,A,Rf,Refs) :-
   isEquation(E,_,L,Cond,R),
   collectTermRefs(L,A,Rf,R0),
-  collectTermRefs(Cond,A,R0,R1),
+  collectGuardRefs(Cond,A,R0,R1),
   call(C,R,A,R1,R2),
   collectCaseRefs(Cs,C,A,R2,Refs).
 

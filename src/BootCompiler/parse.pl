@@ -4,8 +4,6 @@
 :- use_module(wff).
 :- use_module(misc).
 :- use_module(errors).
-:- use_module(display).
-
 
 % handle grammar notation
 

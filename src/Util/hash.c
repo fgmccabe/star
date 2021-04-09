@@ -265,7 +265,7 @@ static void rehash(hashPo tbl) {
  * But a rehash is unsafe ... so insertions should be avoided
  */
 
-retCode ProcessTable(procFun pr, hashPo htbl, void *c) {
+retCode processHashTable(procFun pr, hashPo htbl, void *c) {
   retCode stat = Ok;
 
   pthread_mutex_lock(&htbl->mutex);

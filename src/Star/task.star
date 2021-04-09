@@ -8,11 +8,11 @@ star.task{
   public all e,a ~~ task[e,a] ::=
     private _task(()=>taskEvalState[e,a]).
 
-  all e,a ~~ taskEvalState[e,a] <~ {}.
-  taskDone:all e,a ~~ (a) <=> taskEvalState[e,a].
-  taskContinue:all e,a ~~ (task[e,a]) <=> taskEvalState[e,a].
-  taskWait:all e,a,b ~~ (action[e,b],(b)=>task[e,a]) <=> taskEvalState[e,a].
-  taskFailure:all e,a ~~ (e) <=> taskEvalState[e,a].
+
+  all e,a,b ~~ taskEvalState[e,a] ::= taskDone(a) |
+    taskContinue(task[e,a]) |
+    taskWait(action[e,b],(b)=>task[e,a]) |
+    taskFailure(e).
   
   taskWaitResult[e,a] ::= .taskSleep | taskMicroSleep(task[e,a]).
 

@@ -1,27 +1,28 @@
-:- module(canon,[dispCanonTerm/1,dispProg/1,dispDefs/1,showDef/4,
-		 showCanonTerm/4,showCanonAction/4,showPkg/3,showImports/3,showContracts/3,
-		 showImpls/3,showEqns/4,
-		 typeOfCanon/2,splitPtn/3,locOfCanon/2,mergeGl/4,
-		 isCanonDef/1,isCanon/1,isSimpleCanon/1,isAssertion/1,isShow/1,isPkg/1,
-		 ruleArity/2,
-		 isGoal/1,isIterableGoal/1,isAction/1,
+:- module(canon,[dispFunction/3,
+		 ssCanonProg/2,ssTerm/3,ssAction/3,ssPkg/2,ssContract/3,
+		 typeOfCanon/2,splitPtn/3,locOfCanon/2,
+		 isCanonDef/1,isCanon/1,isSimpleCanon/1,isAssertion/1,isShow/1,
+		 isPkg/1,isGoal/1,isIterableGoal/1,isAction/1,
 		 anonVar/3]).
 
 :- use_module(misc).
+:- use_module(display).
 :- use_module(operators).
 :- use_module(types).
 :- use_module(location).
 
 isCanonDef(funDef(_,_,_,_,_,_)).
 isCanonDef(varDef(_,_,_,_,_,_)).
-isCanonDef(cnsDef(_,_,_,_)).
-isCanonDef(typeDef(_,_,_,_)).
-isCanonDef(conDef(_,_,_)).
+isCanonDef(cnsDef(_,_,_)).
+isCanonDef(typeDef(_,_,_,_,_)).
+isCanonDef(conDef(_,_,_,_,_)).
 isCanonDef(implDef(_,_,_,_)).
+isCanonDef(accDef(_,_,_,_)).
 
-isCanon(prog(_,_,_,_,_,_,_,_)).
+isCanon(prog(_,_,_,_,_,_,_)).
 isCanon(v(_,_,_)).
 isCanon(over(_,_,_,_)).
+isCanon(overaccess(_,_,_)).
 isCanon(mtd(_,_,_)).
 isCanon(intLit(_,_)).
 isCanon(floatLit(_,_)).
@@ -31,8 +32,6 @@ isCanon(dot(_,_,_,_)).
 isCanon(enm(_,_,_)).
 isCanon(cons(_,_,_)).
 isCanon(tple(_,_)).
-isCanon(theta(_,_,_,_)).
-isCanon(record(_,_,_,_)).
 isCanon(where(_,_,_)).
 isCanon(conj(_,_,_)).
 isCanon(disj(_,_,_)).
@@ -42,7 +41,7 @@ isCanon(match(_,_,_)).
 isCanon(neg(_,_)).
 isCanon(assign(_,_,_)).
 isCanon(cell(_,_)).
-isCanon(lambda(_,_,_)).
+isCanon(lambda(_,_,_,_)).
 isCanon(doTerm(_,_,_,_,_)).
 isCanon(noDo(_)).
 isCanon(seqDo(_,_,_)).
@@ -64,6 +63,7 @@ isSimpleCanon(v(_,_,_)).
 isSimpleCanon(intLit(_,_)).
 isSimpleCanon(floatLit(_,_)).
 isSimpleCanon(stringLit(_,_)).
+isSimpleCanon(enm(_,_,_)).
 
 isAssertion(assertion(_,_)).
 isShow(show(_,_)).
@@ -74,6 +74,7 @@ isGoal(implies(_,_,_)) :- !.
 isGoal(disj(_,_,_)) :- !.
 isGoal(neg(_,_)) :- !.
 isGoal(search(_,_,_,_)) :- !.
+isGoal(cond(_,_,L,R,_)) :- !, isGoal(L),isGoal(R).
 
 isAction(seqDo(_,_,_)).
 isAction(ifThenDo(_,_,_,_,_,_,_)).
@@ -104,6 +105,7 @@ typeOfCanon(intLit(_,Tp),Tp) :- !.
 typeOfCanon(floatLit(_,Tp),Tp) :- !.
 typeOfCanon(stringLit(_,Tp),Tp) :- !.
 typeOfCanon(enm(_,_,Tp),Tp) :- !.
+typeOfCanon(cons(_,_,Tp),Tp) :- !.
 typeOfCanon(where(_,T,_),Tp) :- !, typeOfCanon(T,Tp).
 typeOfCanon(abstraction(_,_,_,_,_,Tp),Tp) :- !.
 typeOfCanon(search(_,_,_,_),type("star.core*boolean")) :-!.
@@ -112,9 +114,8 @@ typeOfCanon(conj(_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(disj(_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(implies(_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(cond(_,_,_,_,Tp),Tp) :-!.
-typeOfCanon(theta(_,_,_,Tp),Tp) :-!.
-typeOfCanon(record(_,_,_,Tp),Tp) :-!.
 typeOfCanon(letExp(_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
+typeOfCanon(letRec(_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(apply(_,_,_,Tp),Tp) :-!.
 typeOfCanon(tple(_,Els),tupleType(Tps)) :-!,
   map(Els,canon:typeOfCanon,Tps).
@@ -122,8 +123,9 @@ typeOfCanon(assign(_,_,Vl),Tp) :-
   typeOfCanon(Vl,Tp).
 typeOfCanon(cell(_,Vl),refType(Tp)) :-
   typeOfCanon(Vl,Tp).
-typeOfCanon(lambda(_,_,Tp),Tp) :-!.
+typeOfCanon(lambda(_,_,_,Tp),Tp) :-!.
 typeOfCanon(over(_,T,_,_),Tp) :- typeOfCanon(T,Tp).
+typeOfCanon(overaccess(V,_,_),Tp) :- typeOfCanon(V,Tp).
 typeOfCanon(mtd(_,_,Tp),Tp) :-!.
 typeOfCanon(case(_,_,_,Tp),Tp) :- !.
 
@@ -142,13 +144,12 @@ locOfCanon(disj(Lc,_,_),Lc) :-!.
 locOfCanon(neg(Lc,_),Lc) :-!.
 locOfCanon(implies(Lc,_,_),Lc) :-!.
 locOfCanon(cond(Lc,_,_,_,_),Lc) :-!.
-locOfCanon(theta(Lc,_,_,_),Lc) :-!.
-locOfCanon(record(Lc,_,_,_),Lc) :-!.
 locOfCanon(letExp(Lc,_,_),Lc) :- !.
+locOfCanon(letRec(Lc,_,_),Lc) :- !.
 locOfCanon(case(Lc,_,_,_),Lc) :- !.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
 locOfCanon(tple(Lc,_),Lc) :-!.
-locOfCanon(lambda(Lc,_,_),Lc) :-!.
+locOfCanon(lambda(Lc,_,_,_),Lc) :-!.
 locOfCanon(doTerm(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(seqDo(Lc,_,_),Lc) :-!.
 locOfCanon(ifThenDo(Lc,_,_,_,_,_,_),Lc) :-!.
@@ -168,380 +169,285 @@ locOfCanon(performDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(simpleDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(noDo(Lc),Lc) :-!.
 
-dispCanonTerm(Term) :-
-  showCanonTerm(Term,0,Chrs,[]),
-  string_chars(Res,Chrs), writeln(Res).
+ssCanonProg(prog(Pkg,_,Imports,Defs,_Fields,_Types,_Cons,_Impls),
+	    sq([PP,lb,nl(2),iv(nl(2),XX),rb])) :-
+  ssPkg(Pkg,PP),
+  map(Imports,canon:ssImport,II),
+%  map(Types,canon:ssTypeDef(2),TT),
+%  map(Cons,canon:ssContract(2),CC),
+%  map(Impls,canon:ssImpl(2),MM),
+  map(Defs,canon:ssDf(2),DD),
+  flatten([II,/*TT,CC,MM,*/DD],XX).
 
-dispDefs(Defs) :- showDefs(Defs,0,Chrs,[]),string_chars(Res,Chrs),writeln(Res).
+ssPkg(pkg(Nm,V),sq([ss(Nm)|Vs])) :-
+  ssVersion(V,Vs).
 
-dispProg(Pr) :-
-  writeln("Type checked code\n"),
-  showCanonProg(Pr,Chrs,[]),
-  string_chars(Res,Chrs),writeln(Res).
+ssVersion(defltVersion,[]).
+ssVersion(ver(V),[ss(":"),ss(V)]).
 
-showCanonProg(prog(Pkg,_,Imports,Defs,_Fields,Types,Cons,Impls),O,Ox) :-
-  showPkg(Pkg,O,O1),
-  appStr("{\n",O1,O2),
-  showImports(Imports,O2,O3),!,
-  showTypeDefs(Types,0,O3,O4),!,
-  appStr("\n",O4,O4a),
-  showContracts(Cons,O4a,O5),!,
-  showImpls(Impls,O5,O6),!,
-  showDefs(Defs,0,O6,O7),!,
-  appStr("}.\n",O7,Ox),!.
-
-showPkg(pkg(Nm,V),O,Ox) :-
-  appStr(Nm,O,O1),
-  showVersion(V,O1,Ox).
-
-showVersion(defltVersion,O,O).
-showVersion(ver(V),O,Ox) :-
-  appStr(":",O,O1),
-  appStr(V,O1,Ox).
-
-showCanonTerm(v(_,Nm,_),_,O,Ox) :- appIden(Nm,O,Ox).
-showCanonTerm(void,_,O,Ox) :- appStr("void",O,Ox).
-showCanonTerm(intLit(Ix,_),_,O,Ox) :- appInt(Ix,O,Ox).
-showCanonTerm(floatLit(Ix,_),_,O,Ox) :- appInt(Ix,O,Ox).
-showCanonTerm(stringLit(Str,_),_,O,Ox) :-
-  appStr("""",O,O1),
-  appStr(Str,O1,O2),
-  appStr("""",O2,Ox).
-showCanonTerm(apply(_,Op,Args,_),Dp,O,Ox) :-
-  showCanonTerm(Op,Dp,O,O1),
-  showCanonTerm(Args,Dp,O1,Ox).
-showCanonTerm(dot(_,Rc,Fld,_),Dp,O,Ox) :-
-  showCanonTerm(Rc,Dp,O,O1),
-  appStr(".",O1,O2),
-  appStr(Fld,O2,Ox).
-showCanonTerm(enm(_,Nm,_),_,O,Ox) :-
-  appStr(".",O,O1),
-  appStr(Nm,O1,Ox).
-showCanonTerm(cons(_,Nm,_),_,O,Ox) :-
-  appStr("%",O,O1),
-  appStr(Nm,O1,Ox).
-showCanonTerm(case(_,Bound,Cases,_),Dp,O,Ox) :-
-  appStr("case ",O,O0),
-  showCanonTerm(Bound,Dp,O0,O1),
-  appStr(" in {",O1,O2),
-  showRls("",Cases,Dp,O2,O3),
-  appStr("}",O3,Ox).
-showCanonTerm(theta(_,Path,Defs,_),Dp,O,Ox) :-
-  appIden(Path,O,O1),
-  appStr("{",O1,O2),
+ssTerm(v(_,Nm,_),_,id(Nm)).
+ssTerm(void,_,ss("void")).
+ssTerm(intLit(Ix,_),_,ix(Ix)).
+ssTerm(floatLit(Dx,_),_,fx(Dx)).
+ssTerm(stringLit(Str,_),_,sq([ss(""""),ss(Str),ss("""")])).
+ssTerm(apply(_,Op,Args,_),Dp,sq([O,A])) :-
+  ssTerm(Op,Dp,O),
+  ssTerm(Args,Dp,A).
+ssTerm(dot(_,Rc,Fld,_),Dp,sq([R,ss("."),id(Fld)])) :-
+  ssTerm(Rc,Dp,R).
+ssTerm(enm(_,Nm,_),_,sq([ss("."),id(Nm)])).
+ssTerm(cons(_,Nm,_),_,sq([ss("."),id(Nm)])).
+ssTerm(case(_,Bound,Cases,_),Dp,
+	    sq([ss("case "),B,ss(" in {"),Rs,ss("}")])) :-
+  ssTerm(Bound,Dp,B),
+  ssRls("",Cases,Dp,Rs).
+ssTerm(assign(_,Vr,Vl),Dp,sq([L,ss(" := "),R])) :-
+  ssTerm(Vr,Dp,L),
+  ssTerm(Vl,Dp,R).
+ssTerm(cell(_,Vr),Dp,sq([ss("!!"),V])) :-
+  ssTerm(Vr,Dp,V).
+ssTerm(letExp(_,Defs,Ex),Dp,
+	    sq([ss("let {."),nl(Dp2),Dfs,nl(Dp),ss(".} in "),B])) :-
   Dp2 is Dp+2,
-  appNwln(Dp2,O2,O3),
-  showDefs(Defs,Dp2,O3,O5),
-  appStr("}",O5,Ox).
-showCanonTerm(record(_,Path,Defs,_),Dp,O,Ox) :-
-  appIden(Path,O,O1),
-  appStr("{.",O1,O2),
+  ssDefs(Defs,Dp2,Dfs),
+  ssTerm(Ex,Dp,B).
+ssTerm(letRec(_,Defs,Ex),Dp,
+	    sq([ss("let {"),nl(Dp2),Dfs,nl(Dp),ss("} in "),B])) :-
   Dp2 is Dp+2,
-  appNwln(Dp2,O2,O3),
-  showDefs(Defs,Dp2,O3,O5),
-  appStr(".}",O5,Ox).
-showCanonTerm(assign(_,Vr,Vl),Dp,O,Ox) :-
-  showCanonTerm(Vr,Dp,O,O1),
-  appStr(":=",O1,O2),
-  showCanonTerm(Vl,Dp,O2,Ox).
-showCanonTerm(cell(_,Vr),Dp,O,Ox) :-
-  appStr("!!",O,O1),
-  showCanonTerm(Vr,Dp,O1,Ox).
-showCanonTerm(letExp(_,Env,Ex),Dp,O,Ox) :-
-  appStr("let ",O,O1),
-  showCanonTerm(Env,Dp,O1,O2),
-  appStr(" in ",O2,O3),
-  showCanonTerm(Ex,Dp,O3,Ox).
-showCanonTerm(lambda(_,Rle,_),Dp,O,Ox) :-
-  appStr("(",O,O1),
-  showRule("",Dp,Rle,O1,O2),
-  appStr(")",O2,Ox).
-showCanonTerm(tple(_,Els),Dp,O,Ox) :-
-  appStr("(",O,O1),
-  showTerms(Els,Dp,O1,O2),
-  appStr(")",O2,Ox).
-showCanonTerm(mtd(_,Nm,_),_,O,Ox) :-
-  appStr("°",O,O1),
-  appStr(Nm,O1,Ox).
-showCanonTerm(over(_,V,_,Cons),Dp,O,Ox) :-
-  showConstraints(Cons,O,O1),
-  showCanonTerm(V,Dp,O1,Ox).
-showCanonTerm(where(_,Ptn,Cond),Dp,O,Ox) :-
-  showCanonTerm(Ptn,Dp,O,O1),
-  showGuard(Cond,Dp,O1,Ox).
-showCanonTerm(conj(_,L,R),Dp,O,Ox) :-
-  showCanonTerm(L,Dp,O,O1),
-  appStr(" && ",O1,O2),
-  showCanonTerm(R,Dp,O2,Ox).
-showCanonTerm(disj(_,Either,Or),Dp,O,Ox) :-
-  appStr("(",O,O0),
-  showCanonTerm(Either,Dp,O0,O1),
-  appStr(" || ",O1,O2),
-  showCanonTerm(Or,Dp,O2,O3),
-  appStr(")",O3,Ox).
-showCanonTerm(implies(_,L,R),Dp,O,Ox) :-
-  showCanonTerm(L,Dp,O,O1),
-  appStr(" *> ",O1,O2),
-  showCanonTerm(R,Dp,O2,Ox).
-showCanonTerm(cond(_,Test,Either,Or,_),Dp,O,Ox) :-
-  appStr("(",O,O1),
-  showCanonTerm(Test,Dp,O1,O2),
-  appStr("?",O2,O3),
-  showCanonTerm(Either,Dp,O3,O4),
-  appStr(" | ",O4,O5),
-  showCanonTerm(Or,Dp,O5,O6),
-  appStr(")",O6,Ox).
-showCanonTerm(match(_,P,E),Dp,O,Ox) :-
-  showCanonTerm(P,Dp,O,O1),
-  appStr(" .= ",O1,O2),
-  showCanonTerm(E,Dp,O2,Ox).
-showCanonTerm(search(_,P,S,M),Dp,O,Ox) :-
-  showCanonTerm(P,Dp,O,O1),
-  appStr(" in ",O1,O2),
-  showCanonTerm(S,Dp,O2,O3),
-  appStr(" using ",O3,O4),
-  showCanonTerm(M,Dp,O4,Ox).
-showCanonTerm(abstraction(_,Bound,Guard,G,_,_),Dp,O,Ox) :-
-  appStr("{",O,O1),
-  showCanonTerm(Bound,Dp,O1,O2),
-  appStr("|",O2,O3),
-  showCanonTerm(Guard,Dp,O3,O4),
-  appStr("} using ",O4,O5),
-  showCanonTerm(G,Dp,O5,Ox).
-showCanonTerm(neg(_,R),Dp,O,Ox) :-
-  appStr("~",O,O1),
-  showCanonTerm(R,Dp,O1,Ox).
-showCanonTerm(doTerm(_,Body,_,_,_),Dp,O,Ox) :-
-  appStr("do ",O,O1),
-  showCanonAction(Body,Dp,O1,Ox).
-showCanonTerm(noDo(_),_,O,Ox) :-
-  appStr("nothing",O,Ox).
+  ssDefs(Defs,Dp2,Dfs),
+  ssTerm(Ex,Dp,B).
+ssTerm(lambda(_,_,Rle,_),Dp,sq([lp,Rl,rp])) :-
+  ssRule("",Dp,Rle,Rl).
+ssTerm(tple(_,Els),Dp,sq([lp,iv(ss(", "),SEls),rp])) :-
+  ssTerms(Els,Dp,SEls).
+ssTerm(mtd(_,Nm,_),_,sq([ss("°"),id(Nm)])).
+ssTerm(over(_,V,_,Cons),Dp,sq([iv(ss(","),CCs),ss("|:"),VV])) :-
+  map(Cons,types:ssConstraint(false,Dp),CCs),
+  ssTerm(V,Dp,VV).
+ssTerm(overaccess(V,TV,F),Dp,sq([TT,ss("<~"),FF,ss("|:"),VV])) :-
+  ssType(TV,false,Dp,TT),
+  ssType(F,false,Dp,FF),
+  ssTerm(V,Dp,VV).
+ssTerm(where(_,Ptn,Cond),Dp,sq([PP,GG])) :-
+  ssTerm(Ptn,Dp,PP),
+  ssGuard(some(Cond),Dp,GG).
+ssTerm(conj(_,L,R),Dp,sq([LL,ss(" && "),RR])) :-
+  ssTerm(L,Dp,LL),
+  ssTerm(R,Dp,RR).
+ssTerm(disj(_,L,R),Dp,sq([lp,LL,ss(" || "),RR,rp])) :-
+  ssTerm(L,Dp,LL),
+  ssTerm(R,Dp,RR).
+ssTerm(implies(_,L,R),Dp,sq([lp,LL,ss(" *> "),RR,rp])) :-
+  ssTerm(L,Dp,LL),
+  ssTerm(R,Dp,RR).
+ssTerm(cond(_,Test,Either,Or,_),Dp,sq([lp,TT,ss("?"),LL,ss(" || "),RR,rp])) :-
+  ssTerm(Test,Dp,TT),
+  ssTerm(Either,Dp,LL),
+  ssTerm(Or,Dp,RR).
+ssTerm(match(_,P,E),Dp,sq([lp,LL,ss(" .= "),RR,rp])) :-
+  ssTerm(P,Dp,LL),
+  ssTerm(E,Dp,RR).
+ssTerm(search(_,P,S,M),Dp,sq([lp,LL,ss(" in "),RR,ss(" using "),II,rp])) :-
+  ssTerm(P,Dp,LL),
+  ssTerm(S,Dp,RR),
+  ssTerm(M,Dp,II).
+ssTerm(abstraction(_,Bound,Guard,G,_,_),Dp,
+	    sq([ss("{"),BB,ss(" | "),CC, ss(" using "),II,ss("}")])) :-
+  ssTerm(Bound,Dp,BB),
+  ssTerm(Guard,Dp,CC),
+  ssTerm(G,Dp,II).
+ssTerm(neg(_,R),Dp,sq([lp,ss(" ~ "),RR,rp])) :-
+  ssTerm(R,Dp,RR).
+ssTerm(doTerm(_,Body,_,_,_),Dp,sq([ss(" do "),AA])) :-
+  ssAction(Body,Dp,AA).
+ssTerm(noDo(_),_,ss(" nothing ")).
 
-showTerms([],_,O,O).
-showTerms([T|More],Dp,O,Ox) :-
-  showCanonTerm(T,Dp,O,O1),
-  showMoreTerms(More,Dp,O1,Ox).
+ssTerms([],_,[]).
+ssTerms([T|More],Dp,[TT|TTs]) :-
+  ssTerm(T,Dp,TT),
+  ssTerms(More,Dp,TTs).
 
-showMoreTerms([],_,O,O).
-showMoreTerms([T|More],Dp,O,Ox) :-
-  appStr(", ",O,O1),
-  showCanonTerm(T,Dp,O1,O2),
-  showMoreTerms(More,Dp,O2,Ox).
+ssConstraints([],_,[]).
+ssConstraints([T|More],Dp,[TT|TTs]) :-
+  ssConstraint(false,Dp,T,TT),
+  ssConstraints(More,Dp,TTs).
 
-showCanonAction(seqDo(Lc,A,B),Dp,O,Ox) :-
-  appStr("{",O,O0),
+ssAction(seqDo(Lc,A,B),Dp,sq([lb,iv(sq([ss(";"),nl(Dp2)]),AA),rb])) :-
   Dp2 is Dp+2,
-  appNwln(Dp2,O0,O1),
-  showCanonActions(seqDo(Lc,A,B),Dp2,O1,O2),
-  appNwln(Dp,O2,O3),
-  appStr("}",O3,Ox).
-showCanonAction(delayDo(_,Actn,_,_,_),Dp,O,Ox) :-
-  appStr("delay ",O,O1),
-  showCanonAction(Actn,Dp,O1,Ox).
-showCanonAction(bindDo(_,Ptn,Exp,_),Dp,O,Ox) :-
-  showCanonTerm(Ptn,Dp,O,O1),
-  appStr(" <- ",O1,O2),
-  showCanonTerm(Exp,Dp,O2,Ox).
-showCanonAction(varDo(_,Ptn,Exp,_,_,_),Dp,O,Ox) :-
-  showCanonTerm(Ptn,Dp,O,O1),
-  appStr(" .= ",O1,O2),
-  showCanonTerm(Exp,Dp,O2,Ox).
-showCanonAction(ifThenDo(_,Tst,Th,El,_,_,_),Dp,O,Ox) :-
-  appStr("if ",O,O1),
+  ssActions(seqDo(Lc,A,B),Dp2,AA).
+ssAction(delayDo(_,Actn,_,_,_),Dp,sq([ss("delay "),AA])) :-
+  ssAction(Actn,Dp,AA).
+ssAction(bindDo(_,Ptn,Exp,_),Dp,sq([PP,ss(" <- "),VV])) :-
+  ssTerm(Ptn,Dp,PP),
+  ssTerm(Exp,Dp,VV).
+ssAction(varDo(_,Ptn,Exp,_,_,_),Dp,sq([PP,ss(" .= "),VV])) :-
+  ssTerm(Ptn,Dp,PP),
+  ssTerm(Exp,Dp,VV).
+ssAction(ifThenDo(_,Tst,Th,El,_,_,_),Dp,
+	 sq([ss("if "),CC,ss("then"),nl(Dp2),TT,nl(Dp2),ss("else"),EE])) :-
   Dp2 is Dp+2,
-  showCanonTerm(Tst,Dp,O1,O2),
-  appStr(" then ",O2,O3),
-  showCanonAction(Th,Dp2,O3,O4),
-  appStr(" else ",O4,O5),
-  showCanonAction(El,Dp2,O5,Ox).
-showCanonAction(caseDo(_,Gov,Cses,_,_),Dp,O,Ox) :-
-  appStr("case ",O,O1),
+  ssTerm(Tst,Dp,CC),
+  ssAction(Th,Dp2,TT),
+  ssAction(El,Dp2,EE).
+ssAction(caseDo(_,Gov,Cses,_,_),Dp,
+	 sq([ss("case "),GG,ss("in"),lb,iv(nl(Dp2),CC),rb])) :-
   Dp2 is Dp+2,
-  showCanonTerm(Gov,Dp,O1,O2),
-  appStr(" in {",O2,O3),
-  listShow(Cses,canon:showActionCase(Dp2),misc:appMulti([misc:appStr("."),
-							misc:appNwln(Dp2)]),O3,O4),
-  appStr("}",O4,Ox).
-showCanonAction(whileDo(_,Tst,Bdy,_,_),Dp,O,Ox) :-
-  appStr("while ",O,O1),
+  ssTerm(Gov,Dp,GG),
+  map(Cses,canon:ssActionCase(Dp2),CC).
+ssAction(whileDo(_,Tst,Bdy,_,_),Dp,
+	 sq([ss("while "),CC,ss("do"),nl(Dp2),BB])) :-
   Dp2 is Dp+2,
-  showCanonTerm(Tst,Dp,O1,O2),
-  appStr(" do ",O2,O3),
-  showCanonAction(Bdy,Dp2,O3,Ox).
-showCanonAction(untilDo(_,Tst,Bdy,_,_),Dp,O,Ox) :-
-  appStr(" do ",O,O1),
+  sTerm(Tst,Dp,CC),
+  ssAction(Bdy,Dp2,BB).
+ssAction(untilDo(_,Tst,Bdy,_,_),Dp,
+	 sq([ss("do"),BB,ss("until"),CC])) :-
   Dp2 is Dp+2,
-  showCanonAction(Bdy,Dp2,O1,O2),
-  appStr(" until ",O2,O3),
-  showCanonTerm(Tst,Dp,O3,Ox).
-showCanonAction(forDo(_,Tst,Bdy,_,_),Dp,O,Ox) :-
-  appStr("for ",O,O1),
+  sTerm(Tst,Dp,CC),
+  ssAction(Bdy,Dp2,BB).
+ssAction(forDo(_,Tst,Bdy,_,_),Dp,
+	 sq([ss("for "),CC,ss("do"),nl(Dp2),BB])) :-
   Dp2 is Dp+2,
-  showCanonTerm(Tst,Dp2,O1,O2),
-  appStr(" do ",O2,O3),
-  appNwln(Dp2,O3,O4),
-  showCanonAction(Bdy,Dp2,O4,Ox).
-showCanonAction(tryCatchDo(_,Bdy,Hndlr,_,_,_),Dp,O,Ox) :-
-  appStr("try ",O,O1),
+  sTerm(Tst,Dp,CC),
+  ssAction(Bdy,Dp2,BB).
+ssAction(tryCatchDo(_,Bdy,Hndlr,_,_,_),Dp,
+	 sq([ss("try "),BB,ss("catch"),HH])) :-
   Dp2 is Dp+2,
-  showCanonAction(Bdy,Dp2,O1,O2),
-  appStr(" catch ",O2,O3),
-  showCanonTerm(Hndlr,Dp2,O3,Ox).
-showCanonAction(returnDo(_,Exp,_,_,_),Dp,O,Ox) :-
-  appStr("valis ",O,O1),
-  Dp2 is Dp+2,
-  showCanonTerm(Exp,Dp2,O1,Ox).
-showCanonAction(throwDo(_,Exp,_,_,_),Dp,O,Ox) :-
-  appStr("throw ",O,O1),
-  Dp2 is Dp+2,
-  showCanonTerm(Exp,Dp2,O1,Ox).
-showCanonAction(performDo(_,Exp,_,_,_),Dp,O,Ox) :-
-  appStr("perform ",O,O1),
-  Dp2 is Dp+2,
-  showCanonTerm(Exp,Dp2,O1,Ox).
-showCanonAction(simpleDo(_,Exp,_,_),Dp,O,Ox) :-
-  showCanonTerm(Exp,Dp,O,Ox).
-showCanonAction(noDo(_),_,O,Ox) :-
-  appStr("nop",O,Ox).
+  sTerm(Hndlr,Dp2,HH),
+  ssAction(Bdy,Dp2,BB).
+ssAction(returnDo(_,Exp,_,_,_),Dp,sq([ss("valis "),EE])) :-
+  ssTerm(Exp,Dp,EE).
+ssAction(throwDo(_,Exp,_,_,_),Dp,sq([ss("throw "),EE])) :-
+  ssTerm(Exp,Dp,EE).
+ssAction(performDo(_,Exp,_,_,_),Dp,sq([ss("perform "),EE])) :-
+  ssTerm(Exp,Dp,EE).
+ssAction(simpleDo(_,Exp,_,_),Dp,sq([ss("just "),EE])) :-
+  ssTerm(Exp,Dp,EE).
 
-showCanonActions(seqDo(_,A,B),Dp,O,Ox) :-
-  showCanonAction(A,Dp,O,O1),
-  appStr("; ",O1,O2),
-  appNwln(Dp,O2,O3),
-  showCanonActions(B,Dp,O3,Ox).
-showCanonActions(A,Dp,O,Ox) :-
-  showCanonAction(A,Dp,O,Ox).
+ssActions(seqDo(_,A,B),Dp,[AA|BB]) :-
+  ssAction(A,Dp,AA),
+  ssActions(B,Dp,BB).
+ssActions(A,Dp,[AA]) :-
+  ssAction(A,Dp,AA).
 
-showActionCase(Dp,equation(_,Args,Cond,Value),O,Ox) :-!,
-  showCanonTerm(Args,Dp,O,O2),
-  showGuard(Cond,Dp,O2,O5),
-  appStr(" => ",O5,O6),
-  showCanonAction(Value,Dp,O6,Ox).
+ssActionCase(Dp,equation(_,Args,Guard,Value),sq([AA,GG,ss(" => "),VV])) :-
+  ssTerm(Args,Dp,AA),
+  ssGuard(Guard,Dp,GG),
+  ssAction(Value,Dp,VV).
 
-showImports(L,O,Ox) :-
-  listShow(L,canon:showImport,misc:appNl,O,O1),
-  appNl(O1,Ox).
+ssRule(Nm,Dp,equation(_,Args,Guard,Value),sq([id(Nm),A,G,ss(" => "),V])) :-
+  ssTerm(Args,Dp,A),
+  ssGuard(Guard,Dp,G),
+  ssTerm(Value,Dp,V).
 
-showImport(import(Viz,Pkg,_,_,_,_),O,Ox) :-
-  showVisibility(Viz,O,O0),
-  appStr("import ",O0,O1),
-  showPkg(Pkg,O1,O2),
-  appStr(".",O2,Ox).
+ssGuard(none,_,sq([])) :- !.
+ssGuard(some(C),Dp,sq([ss(" where "),CC])) :-
+  ssTerm(C,Dp,CC).
 
-showVisibility(private,O,Ox) :-
-  appStr("private ",O,Ox).
-showVisibility(public,O,Ox) :-
-  appStr("public ",O,Ox).
-showVisibility(transitive,O,Ox) :-
-  appStr("transitive ",O,Ox).
+ssDefs(L,Dp,iv(nl(Dp),LL)) :-
+  map(L,canon:ssDf(Dp),LL).
 
-showTypeDefs(L,Dp,O,Ox) :-
-  listShow(L,canon:showTypeDef,misc:appNwln(Dp),O,Ox).
+ssDf(Dp,Df,XX) :-
+  ssDef(Dp,Df,XX),
+  (validSS(XX) ; errors:reportMsg("%s not valid display",[XX]),abort).
 
-showTypeDef((_,Type),O,Ox) :-
-  showType(Type,true,O,Ox).
+ssDef(Dp,funDef(Lc,Nm,ExtNm,Type,_Cx,Eqns),
+      sq([ss("fun "),id(Nm),ss(" : "),Ts,ss("@"),Lcs,nl(Dp),Rs])) :-
+  ssType(Type,true,Dp,Ts),
+  ssRls(ExtNm,Eqns,Dp,Rs),
+  ssLoc(Lc,Lcs).
+ssDef(Dp,varDef(Lc,Nm,ExtNm,_Cx,Tp,Value),
+      sq([ss("var "),id(Nm),ss(" : "),Ts,ss("@"),Lcs,nl(Dp),
+	  id(ExtNm),ss(" = "),V])) :-
+  ssType(Tp,true,Dp,Ts),
+  ssTerm(Value,Dp,V),
+  ssLoc(Lc,Lcs).
+ssDef(Dp,cnsDef(Lc,Nm,C),
+      sq([ss("con "),id(Nm),ss(" : "),Ts,ss("@"),Lcs])) :-
+  typeOfCanon(C,Type),
+  ssType(Type,true,Dp,Ts),
+  ssLoc(Lc,Lcs).
+ssDef(Dp,typeDef(Lc,Nm,_Tp,_Mp,Rl),
+      sq([ss("type "),id(Nm),ss(":"),Ts,ss("@"),Lcs])) :-
+  ssLoc(Lc,Lcs),
+  ssType(Rl,true,Dp,Ts).
+ssDef(Dp,conDef(Lc,Nm,_ConNm,_ConTp,Rl),
+      sq([ss("contract "),id(Nm),ss(" : "),Ts,ss("@"),Lcs])) :-
+  ssLoc(Lc,Lcs),
+  ssType(Rl,true,Dp,Ts).
+ssDef(Dp,implDef(Nm,_ConNm,ImplNm,ImplTp),
+      sq([ss("impl "),id(Nm),ss(" = "),id(ImplNm),ss(":"),Ts])) :-
+  ssType(ImplTp,true,Dp,Ts).
+ssDef(Dp,accDef(Tp,FldNm,FunNm,_),
+      sq([ss("acc "),Ts,ss("."),id(FldNm),ss(" = "),id(FunNm)])) :-
+  ssType(Tp,false,Dp,Ts).
 
-showContracts(L,O,Ox) :-
-  listShow(L,canon:showContract,misc:appStr(""),O,Ox).
+ssFunction(Dp,Nm,Type,Eqns,
+	   sq([ss("fun "),id(Nm),ss(" : "),Ts,nl(Dp),Rs])) :-
+  ssType(Type,true,Dp,Ts),
+  ssRls(Nm,Eqns,Dp,Rs).
 
-showContract(conDef(_,Nm,ConRule),O,Ox) :-
-  appStr("contract: ",O,O1),
-  appStr(Nm,O1,O3),
-  appStr(" : ",O3,O4),
-  showType(ConRule,true,O4,O5),
-  appStr(".\n",O5,Ox).
+ssRls(Nm,Eqns,Dp,iv(nl(Dp),EE)) :-
+  map(Eqns,canon:ssEqn(Nm,Dp),EE).
 
-showImpls(L,O,Ox) :-
-  listShow(L,canon:showImpl,misc:appStr(""),O,Ox).
+ssEqn("",Dp,equation(_,Args,Guard,Value),
+      sq([canon:ssTerm(Args,Dp),canon:ssGuard(Guard,Dp),ss("=>"),
+	  canon:ssTerm(Value,Dp)])).
+ssEqn(Nm,Dp,equation(_,Args,Guard,Value),
+      sq([id(Nm),
+	  canon:ssTerm(Args,Dp),canon:ssGuard(Guard,Dp),ss("=>"),
+	  canon:ssTerm(Value,Dp)])).
 
-showImpl(imp(ImplName,FullName,Spec),O,Ox) :-
-  appStr("implementation: ",O,O1),
-  appStr(ImplName,O1,O2),
-  appStr("/",O2,O3),
-  appStr(FullName,O3,O4),
-  appStr(" for ",O4,O5),
-  showType(Spec,true,O5,O6),
-  appStr("\n",O6,Ox).
+ssImpl(Dp,imp(ImplName,FullName,Spec),
+       sq([ss("implementation "),
+	   id(ImplName),
+	   ss("="),
+	   id(FullName),
+	   ss(":"),
+	   SS])) :-
+  ssType(Spec,true,Dp,SS).
+ssImpl(Dp,acc(Tp,Fld,Fn,AccTp),
+       sq([ss("access "),
+	   SS,
+	   ss("."),
+	   id(Fld),
+	   ss(" with "),
+	   id(Fn),
+	   ss(":"),
+	   TT])) :-
+  ssType(Tp,true,Dp,SS),
+  ssType(AccTp,true,Dp,TT).
 
-showConstraints([],Ox,Ox).
-showConstraints(Cons,O,Ox) :-
-  listShow(Cons,types:showConstraint,misc:appStr(","),O,O1),
-  appStr("|:",O1,Ox).
+ssTypeDef(Dp,(_,Tp),sq([ss("type "),TT])) :-
+  ssType(Tp,false,Dp,TT).
 
-showDefs(L,Dp,O,Ox) :-
-  listShow(L,canon:showDef(Dp),misc:appNwln(Dp),O,Ox).
+ssContract(Dp,conDef(_,Nm,ConNm,_ConTp,ConRule),
+	   sq([ss("contract "),
+	       id(Nm),
+	       ss("«"),
+	       id(ConNm),
+	       ss("» "),
+	       TT])):-
+  ssType(ConRule,false,Dp,TT).
+	    
+ssImport(import(Viz,Pkg,_,_,_,_,_),
+	 sq([VV,ss(" import "),PP])) :-
+  ssVisibility(Viz,VV),
+  ssPkg(Pkg,PP).
 
-showDef(Dp,funDef(Lc,Nm,ExtNm,Type,Cx,Eqns),O,Ox) :-
-  appStr("function: ",O,O1),
-  appIden(Nm,O1,O2),
-  appStr("«",O2,O2a),
-  appIden(ExtNm,O2a,O2b),
-  appStr("» @ ",O2b,O3),
-  showLocation(Lc,O3,O6),
-  appNwln(Dp,O6,O7),
-  showType(Type,true,O7,O8),
-  showConstraints(Cx,O8,O9),
-  appNwln(Dp,O9,O10),
-  showRls(Nm,Eqns,Dp,O10,O11),
-  appNwln(Dp,O11,Ox),!.
-showDef(Dp,varDef(Lc,Nm,ExtNm,Cx,Tp,Value),O,Ox) :-
-  appStr("var: ",O,O1),
-  appIden(Nm,O1,O2),
-  appStr("«",O2,O3),
-  appIden(ExtNm,O3,O4),
-  appStr("» : ",O4,O5),
-  showType(Tp,true,O5,O6),
-  appStr(" @ ",O6,O7),
-  showLocation(Lc,O7,O8),
-  showConstraints(Cx,O8,O9),
-  appNwln(Dp,O9,O10),
-  appIden(Nm,O10,O11),
-  appStr(" = ",O11,O12),
-  showCanonTerm(Value,Dp,O12,O13),
-  appStr(".",O13,Ox).
-showDef(Dp,cnsDef(Lc,Nm,V,Type),O,Ox) :-
-  appStr("constructor: ",O,O1),
-  appStr(Nm,O1,O2),
-  appStr(" @ ",O2,O3),
-  showLocation(Lc,O3,O4),
-  appNwln(Dp,O4,O5),
-  showCanonTerm(V,Dp,O5,O6),
-  appStr(":",O6,O7),
-  showType(Type,true,O7,Ox).
-showDef(Dp,typeDef(Lc,Nm,_Tp,Rl),O,Ox) :-
-  appStr("type: ",O,O1),
-  appStr(Nm,O1,O2),
-  appStr(" @ ",O2,O5),
-  showLocation(Lc,O5,O6),
-  appNwln(Dp,O6,O7),
-  showType(Rl,true,O7,Ox).
-showDef(_,conDef(_,_,_),O,O).
-showDef(_,implDef(_,_,_,_),O,O).
+ssVisibility(private,ss("private ")).
+ssVisibility(public,ss("public ")).
+ssVisibility(transitive,ss("transitive ")).
 
-showRls(Nm,Rls,Dp,O,Ox) :-
-  listShow(Rls,canon:showRule(Nm,Dp),misc:appMulti([misc:appStr("."),misc:appNwln(Dp)]),O,Ox).
+dispFunction(Nm,Type,Eqns) :-
+  displayln(canon:ssFunction(0,Nm,Type,Eqns)).
 
-showEqns(Nm,Rls,C,Cx) :-
-  showRls(Nm,Rls,0,C,Cx).
-
-showRule(Nm,Dp,equation(_,Args,Cond,Value),O,Ox) :-!,
-  appStr(Nm,O,O1),
-  showCanonTerm(Args,Dp,O1,O2),
-  showGuard(Cond,Dp,O2,O5),
-  appStr(" => ",O5,O6),
-  showCanonTerm(Value,Dp,O6,Ox).
-
-showGuard(enm(_,"true",_),_,O,O) :- !.
-showGuard(C,Dp,O,Ox) :-
-  appStr(" where ",O,O1),
-  showCanonTerm(C,Dp,O1,Ox).
-
-ruleArity(equation(_,tple(_,A),_),Ar) :-
-  length(A,Ar).
-
-splitPtn(P,Px,Cond) :-
+splitPtn(P,Px,Cnd) :-
   locOfCanon(P,Lc),
-  splitPttrn(P,Px,enm(Lc,"true",type("core.star*boolean")),Cond).
+  splitPttrn(P,Px,none,C),
+  deoptional(C,Lc,Cnd).
+
+deoptional(none,Lc,enm(Lc,"true",type("star.core*boolean"))).
+deoptional(some(C),_,C).
 
 splitPttrn(apply(Lc,Op,Arg),apply(Lc,NOp,NArg),Cond,Cx) :-
   splitPttrn(Op,NOp,Cond,C0),
@@ -550,12 +456,12 @@ splitPttrn(tple(Lc,Els),tple(Lc,NEls),Cond,Cx) :-
   splitPttrns(Els,NEls,Cond,Cx).
 splitPttrn(where(Lc,Ptn,Cond),P1,C,Cx) :-
   splitPttrn(Ptn,P1,C,C0),
-  mergeGl(C0,Cond,Lc,Cx).
+  mergeGl(C0,some(Cond),Lc,Cx).
 splitPttrn(P,P,C,C).
 
-mergeGl(enm(_,"true",_),G,_,G) :-!.
-mergeGl(G,enm(_,"true",_),_,G) :-!.
-mergeGl(G1,G2,Lc,conj(Lc,G1,G2)).
+mergeGl(none,G,_,G) :-!.
+mergeGl(G,none,_,G) :-!.
+mergeGl(some(G1),some(G2),Lc,some(conj(Lc,G1,G2))).
 
 splitPttrns([],[],C,C).
 splitPttrns([P|Ps],[Px|Pxs],C,Cx) :-

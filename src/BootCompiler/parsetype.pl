@@ -1,12 +1,12 @@
-:- module(parsetype,[parseType/3,parseType/6,
-		     parseBoundTpVars/3,reQuant/3,reQuantX/3,wrapConstraints/3,
-		     parseTypeHead/5,
-		     parseTypeCore/3,
-		     parseContract/4,parseTypeDef/6,
-		     pickTypeTemplate/2,typeTemplate/3,
-		     parseConstraints/5,parseContractConstraint/6,bindAT/4]).
+:- module(parsetype,[parseType/3,
+		     parseTypeCore/4,
+		     parseContract/6,parseTypeDef/6,
+		     typeTemplate/3,
+		     parseContractConstraint/6,
+		     genBraceType/6,buildBraceAccessors/6]).
 
 :- use_module(abstract).
+:- use_module(canon).
 :- use_module(dict).
 :- use_module(errors).
 :- use_module(freshen).
@@ -17,21 +17,20 @@
 :- use_module(vartypes).
 
 parseType(T,Env,Type) :-
-  parseType(T,Env,[],[],Cons,Tp),
+  parseType(T,Env,[],Cons,[],Tp),
   wrapConstraints(Cons,Tp,Type).
 
 parseType(Tp,Env,B,C,C,PT) :-
   isQuantified(Tp,V,BT),!,
-  parseBoundTpVars(V,[],B0),
+  parseBoundTpVars(V,B0),
   concat(B,B0,Q),
-  parseType(BT,Env,Q,[],C0,BTp),
-  wrapConstraints(C0,BTp,Inner),
-  reQuant(B0,Inner,PT).
+  parseType(BT,Env,Q,C0,[],BTp),
+  wrapType(B0,C0,[],[],BTp,PT).
 parseType(Tp,Env,B,C,C,PT) :-
   isXQuantified(Tp,V,BT),!,
-  parseBoundTpVars(V,[],B0),
+  parseBoundTpVars(V,B0),
   concat(B,B0,Q),
-  parseType(BT,Env,Q,[],C0,BTp),
+  parseType(BT,Env,Q,C0,[],BTp),
   wrapConstraints(C0,BTp,Inner),
   reQuantX(B0,Inner,PT).
 parseType(F,Env,B,C0,Cx,Tp) :-
@@ -80,15 +79,17 @@ parseType(T,Env,B,C,Cx,typeLambda(AT,RT)) :-
   isTypeLambda(T,_,L,R),
   parseArgType(L,Env,B,C,C0,AT),
   parseType(R,Env,B,C0,Cx,RT).
-parseType(Term,Env,_,C,Cx,Tp) :-
+parseType(Term,Env,_,Cx,Cx,Tp) :-
   isFieldAcc(Term,Lc,L,Fld),
   isIden(L,Nm),
-  isVar(Nm,Env,vrEntry(_,_,RcTp,Fc)),!,
-  call(Fc,Env,Face),
-  freshen(Face,Env,_,FFace),
-  moveConstraints(FFace,C0,faceType(_,Types)),
-  fieldInFace(Types,Fld,RcTp,Lc,Tp),
-  concat(C0,C,Cx).
+  (getVar(Lc,Nm,Env,Ev,Term) ->
+   typeOfCanon(Term,VTp),
+   faceOfType(VTp,Ev,faceType(_,Types)),
+   (fieldInFace(Types,Fld,VTp,Lc,Tp) ;
+    reportError("%s not part of type of %s:%s",[Fld,can(Term),tpe(VTp)],Lc),
+    newTypeVar("_",Tp));
+   reportError("%s not a known variable",[ast(L)],Lc),
+   newTypeVar("_",Tp)).
 parseType(Trm,Env,B,C,Cx,Tp) :-
   isRoundTerm(Trm,Lc,Op,[L,R]),  %% Special case for binary to allow type aliases
   squareTerm(Lc,Op,[L,R],TT),
@@ -130,54 +131,45 @@ doTypeFun(Lc,constrained(CTp,Ct),Args,Env,C,Cx,Tp) :-
 doTypeFun(Lc,Op,[A|Args],Env,C,Cx,Tp) :-
   doTypeFun(Lc,tpExp(Op,A),Args,Env,C,Cx,Tp).
 
-bindAT([],_,Q,Q).
-bindAT(_,[],Q,Q).
-bindAT([kVar(V)|L],[Tp|TL],Q,Qx) :-
-  bindAT(L,TL,[(V,Tp)|Q],Qx).
-bindAT([kFun(N,Ar)|L1],[kFun(N2,Ar)|L2],Q,Qx) :-
-  bindAT(L1,L2,[(N,kFun(N2,Ar))|Q],Qx).
-bindAT([kFun(V,Ar)|L],[tpFun(Nm,Ar)|TL],Q,Qx) :-
-  bindAT(L,TL,[(V,tpFun(Nm,Ar))|Q],Qx).
-
-parseBoundTpVars([],Q,Q).
-parseBoundTpVars([V|L],Q,Qx) :-
+parseBoundTpVars([],[]).
+parseBoundTpVars([V|L],Q) :-
   parseBoundVar(V,Q,Q0),
-  parseBoundTpVars(L,Q0,Qx).
+  parseBoundTpVars(L,Q0).
 
-parseBoundVar(N,Q,[(Nm,kVar(Nm))|Q]) :-
-  isIden(N,Nm).
-parseBoundVar(N,Q,[(Nm,kFun(Nm,Ar))|Q]) :-
+parseBoundVar(N,[(Nm,kVar(Nm))|Q],Q) :-
+  isIden(N,Nm),!.
+parseBoundVar(N,[(Nm,kFun(Nm,Ar))|Q],Q) :-
   isBinary(N,_,"/",L,R),
   isInteger(R,Ar),
-  isIden(L,Nm).
+  isIden(L,Nm),!.
 parseBoundVar(N,Q,Q) :-
   locOfAst(N,Lc),
-  reportError("invalid bound variable: %s",[N],Lc).
+  reportError("invalid quantifier variable: %s",[ast(N)],Lc).
 
 % reapply quantifiers to a type to get full form
 reQuant([],Tp,Tp).
-reQuant([(_,KV)|M],Tp,QTp) :-
-  reQuant(M,allType(KV,Tp),QTp).
+reQuant([(_,KV)|M],Tp,allType(KV,QTp)) :-
+  reQuant(M,Tp,QTp).
 
 reQuantX([],Tp,Tp).
-reQuantX([(_,KV)|M],Tp,QTp) :-
-  reQuantX(M,existType(KV,Tp),QTp).
+reQuantX([(_,KV)|M],Tp,existType(KV,QTp)) :-
+  reQuantX(M,Tp,QTp).
 
 reBind([],_,Tp,Tp).
-reBind([(Nm,TV)|Q],Env,T,Tp) :-
+reBind([(Nm,TV)|Q],Env,T,allType(kFun(Nm,Ar),Tp)) :-
   isUnboundFVar(TV,Ar),!,
   sameType(TV,kFun(Nm,Ar),Env),
-  reBind(Q,Env,allType(kFun(Nm,Ar),T),Tp).
-reBind([(Nm,TV)|Q],Env,T,Tp) :-
+  reBind(Q,Env,T,Tp).
+reBind([(Nm,TV)|Q],Env,T,allType(kVar(Nm),Tp)) :-
   isUnbound(TV),!,
   sameType(TV,kVar(Nm),Env),
-  reBind(Q,Env,allType(kVar(Nm),T),Tp).
+  reBind(Q,Env,T,Tp).
 reBind([_|Q],Env,T,Tp) :-
   reBind(Q,Env,T,Tp).
 
 wrapConstraints([],Tp,Tp).
-wrapConstraints([Con|C],Tp,WTp) :-
-  wrapConstraints(C,constrained(Tp,Con),WTp).
+wrapConstraints([Con|C],Tp,constrained(WTp,Con)) :-
+  wrapConstraints(C,Tp,WTp).
 
 parseTypeFace(T,Env,Bound,AT,FT) :-
   isBraceTuple(T,_,L),
@@ -187,21 +179,16 @@ parseTypeFace(T,_,_,[],[]) :-
   reportError("%s is not a type interface",[T],Lc).
 
 parseConstraint(T,Env,B,C0,Cx) :-
-  isBinary(T,_,",",L,R),
-  parseConstraint(L,Env,B,C0,C1),
-  parseConstraint(R,Env,B,C1,Cx).
-parseConstraint(T,Env,B,C0,Cx) :-
   isBinary(T,_,"<~",L,R),
   parseType(L,Env,B,C0,C1,TV),
-  parseType(R,Env,B,C1,C2,AT),
-  addConstraint(implementsFace(TV,AT),C2,Cx).
+  parseType(R,Env,B,C1,[implementsFace(TV,AT)|Cx],AT).
 parseConstraint(Sq,Env,B,C0,Cx) :-
   isSquare(Sq,Lc,N,Args),
   parseContractArgs(Args,Env,B,C0,C1,ArgTps,Deps),
   ( parseContractName(Lc,N,Env,B,contractExists(conTract(Op,_ATs,_Dps),_)) ->
-      addConstraint(conTract(Op,ArgTps,Deps),C1,Cx) ;
-      reportError("contract %s not declared",[N],Lc),
-      Cx=C1).
+    C1=[conTract(Op,ArgTps,Deps)|Cx];
+    reportError("contract %s not declared",[N],Lc),
+    Cx=C1).
 parseConstraint(T,_,B,B,C,C) :-
   locOfAst(T,Lc),
   reportError("invalid type constraint %s",[T],Lc).
@@ -213,15 +200,15 @@ parseConstraints([Ct|L],E,Q,C,Cx) :-
 
 parseContractConstraint(Quants,Cons,Sq,Env,Op,ConSpec) :-
   isSquare(Sq,Lc,N,Args),
-  parseBoundTpVars(Quants,[],Q),
-  parseConstraints(Cons,Env,Q,[],C0),
+  parseBoundTpVars(Quants,Q),
+  parseConstraints(Cons,Env,Q,C0,[]),
   parseContractArgs(Args,Env,Q,C0,C1,ArgTps,Deps),
   ( parseContractName(Lc,N,Env,Q,contractExists(conTract(Op,ATs,Dps),IFace)) ->
       ( sameType(tupleType(ATs),tupleType(ArgTps),Env),
         simplifyType(tupleType(ATs),Env,C1,C2,tupleType(As)),
         sameType(tupleType(Dps),tupleType(Deps),Env) ->
           simplifyType(tupleType(Dps),Env,C2,Cx,tupleType(Ds)),
-          moveConstraints(CC,Cx,contractExists(conTract(Op,As,Ds),IFace)),
+          putConstraints(Cx,contractExists(conTract(Op,As,Ds),IFace),CC),
           reQuant(Q,CC,ConSpec);
           reportError("implementation does not match contract %s",[Op],Lc),
           fail);
@@ -231,7 +218,7 @@ addConstraint(Con,C0,C0) :- is_member(Con,C0),!.
 addConstraint(Con,C0,[Con|C0]).
 
 parseContractName(_,Id,Env,_,FCon) :-
-  getContract(Id,Env,conDef(_,_,Con)),!,
+  getContract(Id,Env,conDef(_,_,_,_,Con)),!,
   freshen(Con,Env,_,FCon).
 
 parseContractArgs([A],Env,B,C0,Cx,Args,Deps) :-
@@ -272,19 +259,26 @@ parseTypeField(FS,_,_,Fields,Fields,Types,Types) :-
   locOfAst(FS,Lc),
   reportError("invalid field type %s",[FS],Lc).
 
-parseContract(T,Env,Path,conDef(Nm,ConNm,ConRule)) :-
-  isContractStmt(T,_,Quants,C0,Con,Els),
-  parseBoundTpVars(Quants,[],Q),
+parseContract(T,Env,Ev,Path,[conDef(Lc,Nm,ConNm,CnType,ConRule),
+			     CnsDef,ConTpDef|Defs],Dfx) :-
+  isContractStmt(T,Lc,Quants,C0,Con,Els),
+  parseBoundTpVars(Quants,Q),
   parseContractSpec(Con,Q,C0,Cx,Env,SpC,Nm,ConNm,Path),
-  parseTypeFields(Els,Env,Q,[],Fc,[],Tps),
-  moveConstraints(Crl,Cx,contractExists(SpC,faceType(Fc,Tps))),
-  reQuant(Q,Crl,ConRule).
+  parseTypeFields(Els,Env,Q,[],Fs,[],Tps),
+  putConstraints(Cx,contractExists(SpC,faceType(Fs,Tps)),Crl),
+  reQuant(Q,Crl,ConRule),
+  contractType(SpC,ConTp),
+  wrapType(Q,Cx,[],[],typeExists(ConTp,faceType(Fs,Tps)),FaceRule),
+  wrapType(Q,Cx,[],[],ConTp,CnType),
+  ConTpDef = typeDef(Lc,ConNm,CnType,[(ConNm,0)],FaceRule),
+  genBraceConstructor(Lc,Fs,ConNm,Q,Cx,ConTp,CnsDef,Env,Ev),
+%  reportMsg("contract type constructor %s",[CnsDef]),
+  genBraceAccessors(Lc,Q,Cx,ConNm,ConTp,Fs,Fs,Defs,Dfx).
 
 parseContractSpec(T,Q,C0,Cx,Env,conTract(ConNm,ArgTps,Deps),Nm,ConNm,Path) :-
   isSquare(T,_,Nm,A),
   parseContractArgs(A,Env,Q,C0,Cx,ArgTps,Deps),
-  marker(conTract,Marker),
-  subPath(Path,Marker,Nm,ConNm).
+  contractName(Path,Nm,ConNm).
 
 parseTypeDef(St,[Defn|Dx],Dx,E,Ev,Path) :-
   isTypeExistsStmt(St,Lc,Quants,Ct,Hd,Body),!,
@@ -293,29 +287,279 @@ parseTypeDef(St,[Defn|Dx],Dx,E,Ev,Path) :-
 parseTypeDef(St,[Defn|Dx],Dx,E,Ev,Path) :-
   isTypeFunStmt(St,Lc,Quants,Ct,Hd,Bd),
   parseTypeFun(Lc,Quants,Ct,Hd,Bd,Defn,E,Ev,Path).
+parseTypeDef(St,Defs,Dx,E,Ev,Path) :-
+  isAlgebraicTypeStmt(St,Lc,Quants,Constraints,Hd,Body),
+  parseAlgebraicTypeDef(Lc,Quants,Constraints,Hd,Body,Defs,Dx,E,Ev,Path).
 
-parseTypeExists(Lc,Quants,Ct,Hd,Body,typeDef(Lc,Nm,Type,FaceRule),E,Ev,Path) :-
-  parseBoundTpVars(Quants,[],Q),
-  parseTypeHead(Hd,Q,Tp,Nm,Path),
-  parseConstraints(Ct,E,Q,[],C0),
+parseAlgebraicTypeDef(Lc,Quants,Constraints,Hd,Body,
+		      [typeDef(Lc,Nm,Type,ConMap,FaceRule)|D0],Dx,E,Ev,Path):-
+  algebraicFace(Body,Face),
+  parseBoundTpVars(Quants,Q),
+  parseTypeHead(Hd,Q,Tp,Nm,_,Path),
+  parseConstraints(Constraints,E,Q,C0,[]),
+  pickTypeTemplate(Tp,Tmp),
+  parseType(Face,E,Q,C0,Cx,FaceTp),
+  wrapType(Q,Cx,[],[],typeExists(Tp,FaceTp),FaceRule),
+  wrapType(Q,Cx,[],[],Tp,Type),
+  declareType(Nm,tpDef(Lc,Tmp,FaceRule),E,Ev),
+  tpName(Type,TpNm),
+  buildAccessors(Lc,Q,Cx,Path,TpNm,Tp,FaceTp,Body,D0,Dx),
+  buildConsMap(Body,ConMap).
+%  reportMsg("parsed type def %s",[typeDef(Lc,Nm,Type,ConMap,FaceRule)]).
+
+
+buildAccessors(Lc,Quants,Constraints,Path,TpNm,Tp,faceType(ElTps,_),Body,Defs,Dfx) :-
+  genAccessors(Lc,Quants,Constraints,Path,TpNm,Tp,ElTps,ElTps,Body,Defs,Dfx).
+
+genAccessors(_,_,_,_,_,_,[],_,_,Defs,Defs).
+genAccessors(Lc,Q,Cx,Path,TpNm,Tp,[(Fld,FldTp)|ElTps],AllElTps,Body,Defs,Dfx) :-
+  genAccessor(Lc,Q,Cx,Path,TpNm,Tp,Fld,FldTp,Tp,AllElTps,Body,Defs,Df0),
+  genAccessors(Lc,Q,Cx,Path,TpNm,Tp,ElTps,AllElTps,Body,Df0,Dfx).
+
+genAccessor(Lc,Q,Cx,Path,TpNm,Tp,Fld,FldTp,Tp,AllElTps,Body,
+	    [Impl,ImplDef|Defs],Defs) :-
+  localName(TpNm,field,Fld,AccName),
+  putConstraints(Cx,funType(tupleType([Tp]),FldTp),CxFunTp),
+  reQuant(Q,CxFunTp,AccFunTp),
+  accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,[]),
+  Impl = accDef(Tp,Fld,AccName,AccFunTp),
+  ImplDef = funDef(Lc,AccName,AccName,AccFunTp,[],Eqns).
+
+accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,Eqx) :-
+  isBinary(Body,_,"|",L,R),!,
+  accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,L,Eqns,Eq0),
+  accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,R,Eq0,Eqx).
+accessorEquations(Lc,_Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,Eqx) :-
+  isBraceCon(Body,_XQ,_XC,_,Nm,Args),!,
+  fieldPresent(Fld,Args,_),
+  genAccessorEquation(Lc,Nm,Fld,FldTp,Tp,AllElTps,Eqns,Eqx).
+accessorEquations(_,_,_,_,_,_,_,Eqx,Eqx).
+
+fieldPresent(Fld,[A|_],T) :-
+  isBinary(A,_,":",L,T),
+  isIden(L,_,Fld),!.
+fieldPresent(Fld,[_|Args],T) :-
+  fieldPresent(Fld,Args,T).
+
+genAccessorEquation(Lc,ConsNm,Fld,FldTp,Tp,AllElTps,
+		    [equation(Lc,tple(Lc,[apply(Lc,
+						cons(Lc,ConsNm,
+						     consType(ArgTps,Tp)),
+						tple(Lc,ArgPtns),Tp)]),
+			      none,
+			      XX)|Eqns],Eqns) :-
+  XX = v(Lc,"XX",FldTp),  
+  fillinElementPtns([(Fld,XX)],Lc,AllElTps,ArgPtns,ArgTps).
+
+fillinElementPtns(Els,Lc,Flds,Args,ArgTps) :-
+  rfold(Flds,parsetype:fillinElementPtn(Lc),Els,NEls),
+  sort(NEls,parsetype:cmpVarDef,Elements),
+  project1(Elements,Args),
+  map(Args,canon:typeOfCanon,ArgTps).
+
+buildBraceAccessors(Lc,Q,Cx,Tp,Defs,Dfx) :-
+  tpName(Tp,ConNm),
+  string_concat(ConNm,"#",Prefix),
+  deRef(Tp,faceType(ElTps,_)),
+  genBraceAccessors(Lc,Q,Cx,Prefix,Tp,ElTps,ElTps,Defs,Dfx).
+  
+genBraceAccessors(_Lc,_Q,_Cx,_ConNm,_Tp,[],_,Defs,Defs).
+genBraceAccessors(Lc,Q,Cx,ConNm,Tp,[(Fld,FldTp)|ElTps],AllElTps,Defs,Dfx) :-
+  genBraceAccessor(Lc,Q,Cx,ConNm,Tp,Fld,FldTp,Tp,AllElTps,Defs,Df0),
+  genBraceAccessors(Lc,Q,Cx,ConNm,Tp,ElTps,AllElTps,Df0,Dfx).
+
+genBraceAccessor(Lc,Q,Cx,ConNm,Tp,Fld,FldTp,Tp,AllElTps,
+		 [funDef(Lc,AccName,AccName,AccFunTp,[],[Eqn]),AccDef|Defs],Defs) :-
+  localName(ConNm,field,Fld,AccName),
+  putConstraints(Cx,funType(tupleType([Tp]),FldTp),CxFunTp),
+  reQuant(Q,CxFunTp,AccFunTp),
+  XX = v(Lc,"XX",FldTp),  
+  fillinElementPtns([(Fld,XX)],Lc,AllElTps,ArgPtns,ArgTps),
+  AccDef = accDef(Tp,Fld,AccName,AccFunTp),
+  Eqn=equation(Lc,tple(Lc,[apply(Lc,
+				 cons(Lc,ConNm,
+				      consType(ArgTps,Tp)),
+				 tple(Lc,ArgPtns),Tp)]),
+	       none,
+	       XX).
+
+genBraceType(Lc,Tp,Defs,Dfx,Env,Ev) :-
+  moveQuants(Tp,_Q,In),
+  getConstraints(In,_Cx,faceType(Flds,_)),
+  sort(Flds,parsetype:cmpVarDef,SFlds),
+  tpName(Tp,TpNm),
+  lfold(SFlds,parsetype:newFieldVar,([],[]),(Fs,ArgQ)),
+  BareFs = faceType(Fs,[]),
+  reQuant(Fs,BareFs,BrTp),
+  length(Fs,Ar),
+  mkTypeExp(tpFun(TpNm,Ar),ArgQ,Tp0),
+  wrapType(Fs,[],[],[],typeExists(Tp0,BareFs),FaceRule),
+  genBraceConstructor(Lc,Fs,TpNm,Fs,[],BareFs,ConDef,Env,Ev),
+  genBraceAccessors(Lc,Fs,[],TpNm,Tp0,Fs,Fs,Defs,
+		    [typeDef(Lc,TpNm,BrTp,[(TpNm,0)],FaceRule),ConDef|Dfx]).
+
+newFieldVar((Nm,_),(Fs,Args),([(Nm,kVar(Nm1))|Fs],[kVar(Nm1)|Args])) :-
+  genstr("_",Nm1).
+
+genBraceConstructor(Lc,[],Nm,Q,Cx,Tp,cnsDef(Lc,Nm,enm(Lc,Nm,ConTp)),Env,Ev) :-
+  wrapType(Q,Cx,[],[],consType(faceType([],[]),Tp),ConTp),
+  declareEnum(Lc,Nm,Nm,ConTp,Env,Ev).
+genBraceConstructor(Lc,Fields,Nm,Q,Cx,Tp,cnsDef(Lc,Nm,cons(Lc,Nm,ConTp)),Env,Ev) :-
+  wrapType(Q,Cx,[],[],consType(faceType(Fields,[]),Tp),ConTp),
+  declareCns(Lc,Nm,Nm,ConTp,Env,Ev).
+
+nonConstructorTp((_,Tp)) :- \+ isCnsType(Tp,_).
+
+cmpVarDef((N1,_),(N2,_)) :-
+  str_lt(N1,N2).
+
+fillinElementPtn(_,(Nm,_),Els,Els) :-
+  is_member((Nm,_),Els) ,!.
+fillinElementPtn(Lc,(Nm,Tp),Els,[(Nm,v(Lc,"_",Tp))|Els]).
+
+buildConsMap(Body,Map) :-
+  findCons(Body,Cns,[]),
+  sort(Cns,str_lt,SortedNms),
+  index_list(SortedNms,0,Map).
+
+findCons(Body,Cons,Cnx) :-
+  isBinary(Body,_,"|",L,R),!,
+  findCons(L,Cons,C0),
+  findCons(R,C0,Cnx).
+findCons(Body,[Nm|Cnx],Cnx) :-
+  isIden(Body,_,Nm),!.
+findCons(Body,[Nm|Cnx],Cnx) :-
+  isEnum(Body,_,E),
+  isIden(E,_,Nm),!.
+findCons(Body,[Nm|Cnx],Cnx) :-
+  isRoundCon(Body,_,_,_,Nm,_),!.
+findCons(Body,[Nm|Cnx],Cnx) :-
+  isBraceCon(Body,_,_,_,Nm,_),!.
+  
+parseConstructors(Body,Q,Cx,Tp,Defs,Dfx,Cons,Cnx,Env,Ev) :-
+  isBinary(Body,_,"|",L,R),!,
+  parseConstructors(L,Q,Cx,Tp,Defs,Df0,Cons,C0,Env,E0),
+  parseConstructors(R,Q,Cx,Tp,Df0,Dfx,C0,Cnx,E0,Ev).
+parseConstructors(Body,Q,Cx,Tp,
+		  [cnsDef(Lc,Nm,enm(Lc,Nm,Type))|Dfx],Dfx,
+		  [(Nm,Lc,Type)|Cnx],Cnx,Env,Env) :-
+  isIden(Body,Lc,Nm),!,
+  wrapType(Q,Cx,[],[],consType(tupleType([]),Tp),Type).
+parseConstructors(Body,Q,Cx,Tp,
+		  [cnsDef(Lc,Nm,enm(Lc,Nm,Type))|Dfx],Dfx,
+		  [(Nm,Lc,Type)|Cnx],Cnx,Env,Env) :-
+  isEnum(Body,Lc,E),
+  isIden(E,_,Nm),!,
+  wrapType(Q,Cx,[],[],consType(tupleType([]),Tp),Type).
+parseConstructors(Body,Q,Cx,Tp,
+		  [cnsDef(Lc,Nm,cons(Lc,Nm,Type))|Dfx],Dfx,
+		  [(Nm,Lc,Type)|Cnx],Cnx,Env,Env) :-
+  isRoundCon(Body,XQ,XC,Lc,Nm,Args),!,
+  parseTypes(Args,Env,Q,Cx,C2,ArgTps),
+  wrapType(Q,C2,XQ,XC,consType(tupleType(ArgTps),Tp),Type).
+parseConstructors(Body,Q,Cx,Tp,
+		  [cnsDef(Lc,Nm,cons(Lc,Nm,Type))|Dfx],Dfx,
+		  [(Nm,Lc,Type)|Cnx],Cnx,Env,Env) :-
+  isBraceCon(Body,XQ,XC,Lc,Nm,Args),!,
+  braceTuple(Lc,Args,F),
+  parseType(F,Env,Fce),
+  wrapType(Q,Cx,XQ,XC,consType(Fce,Tp),Type).
+ 
+wrapType(Q,Cx,XQ,XC,Tp,WTp) :-
+  wrapConstraints(XC,Tp,Tp0),
+  reXQuant(XQ,Tp0,Tp1),
+  wrapConstraints(Cx,Tp1,CTp),
+  reQuant(Q,CTp,WTp).
+
+algebraicFace(C,F) :-
+  isBinary(C,_,"|",L,R),!,
+  algebraicFace(L,F0),
+  algebraicFace(R,F1),
+  combineFaces(F0,F1,F).
+algebraicFace(C,E) :-
+  isIden(C,Lc,_),
+  braceTuple(Lc,[],E).
+algebraicFace(C,E) :-
+  isEnum(C,Lc,_),
+  braceTuple(Lc,[],E).
+algebraicFace(C,Face) :-
+  isRoundCon(C,_,_,Lc,_,_),
+  braceTuple(Lc,[],Face).
+algebraicFace(C,Face) :-
+  isBraceCon(C,XQ,XC,Lc,_,Entries),
+  braceTuple(Lc,Entries,F),
+  reConstrain(XC,F,CF),
+  reXQuant(XQ,CF,Face).
+algebraicFace(C,Face) :-
+  isPrivate(C,_,I),
+  algebraicFace(I,Face).
+algebraicFace(C,Face) :-
+  isPublic(C,_,I),
+  algebraicFace(I,Face).
+algebraicFace(C,Face) :-
+  isXQuantified(C,_,I),
+  algebraicFace(I,Face).
+algebraicFace(C,Face) :-
+  isConstrained(C,I,_),
+  algebraicFace(I,Face).
+
+combineFaces(F0,F,F) :-
+  isEmptyBrace(F0).
+combineFaces(F,F0,F) :-
+  isEmptyBrace(F0).
+combineFaces(F0,F1,F2) :-
+  isBraceTuple(F0,Lc,Els0),
+  isBraceTuple(F1,_,Els1),
+  mergeFields(Els0,Els1,Els),!,
+  braceTuple(Lc,Els,F2).
+
+mergeFields([],F,F).
+mergeFields(F,[],F).
+mergeFields([A|As],B,[A|Fs]) :-
+  mergeField(A,B,B1),
+  mergeFields(As,B1,Fs).
+
+mergeField(A,B,Bx) :-
+  isTypeAnnotation(A,_,N,Tp),
+  isIden(N,_,Nm),
+  checkFields(Nm,Tp,B,Bx),!.
+
+checkFields(_,_,[],[]).
+checkFields(Nm,Tp,[B|Bs],Bx) :-
+  isTypeAnnotation(B,_,N,Tp2),
+  (isIden(N,Lc,Nm) ->
+   Bs=Bx,
+   (sameTerm(Tp,Tp2);
+    reportError("type of field %s mismatch, %s!=%s",[Nm,Tp,Tp2],Lc));
+   Bx=[B|Bx1],
+   checkFields(Nm,Tp,Bs,Bx1)).
+checkFields(Nm,Tp,[B|Bs],[B|Bx]) :-
+  checkFields(Nm,Tp,Bs,Bx).
+  
+parseTypeExists(Lc,Quants,Ct,Hd,Body,typeDef(Lc,Nm,Type,[],FcRule),E,Ev,Path) :-
+  parseBoundTpVars(Quants,Q),
+  parseTypeHead(Hd,Q,Tp,Nm,_,Path),
+  parseConstraints(Ct,E,Q,C0,[]),
   pickTypeTemplate(Tp,Tmp),
   declareType(Nm,tpDef(Lc,Tmp,typeExists(Tmp,faceType([],[]))),E,E0),
   parseType(Body,E0,Q,C0,Cx,RTp),
   wrapConstraints(Cx,typeExists(Tp,RTp),Rl),
-  reQuant(Q,Rl,FaceRule),
+  reQuant(Q,Rl,FcRule),
   reQuant(Q,Tp,Type),
   pickTypeTemplate(Type,Tmp),
-  declareType(Nm,tpDef(Lc,Tmp,FaceRule),E,Ev).
+%  reportMsg("parsed type exists def %s",[typeDef(Lc,Nm,Type,[],FcRule)]),
+  declareType(Nm,tpDef(Lc,Tmp,FcRule),E,Ev).
 
-parseTypeFun(Lc,Quants,Ct,Hd,Bd,typeDef(Lc,Nm,Type,Rule),E,Ev,Path) :-
-  parseBoundTpVars(Quants,[],Q),
-  parseConstraints(Ct,E,Q,[],C0),
-  parseTypeHead(Hd,Q,Tp,Nm,Path),
+parseTypeFun(Lc,Quants,Ct,Hd,Bd,typeDef(Lc,Nm,Type,[],Rule),E,Ev,Path) :-
+  parseBoundTpVars(Quants,Q),
+  parseConstraints(Ct,E,Q,C0,[]),
+  parseTypeHead(Hd,Q,Tp,Nm,_,Path),
   parseType(Bd,E,Q,C0,Cx,RpTp),
   pickTypeTemplate(Tp,Type),
   mkTypeLambda(Tp,RpTp,Lam),
   wrapConstraints(Cx,Lam,Rl),
   reQuant(Q,Rl,Rule),
+%  reportMsg("parsed type alias def %s",[typeDef(Lc,Nm,Type,[],Rule)]),
   declareType(Nm,tpDef(Lc,Type,Rule),E,Ev).
 
 mkTypeLambda(tpExp(Op,A),Tp,RRTp) :-
@@ -354,37 +598,44 @@ typeTemplate(_Nm,Tp,Tmp) :-
 typeTemplate(Nm,Tp,Tmp) :-
   typeFunTemplate(Nm,0,Tp,Tmp).
 
-parseTypeCore(St,Type,Path) :-
-  isTypeExistsStmt(St,_,Quants,_,Head,_),
-  parseBoundTpVars(Quants,[],Q),
-  parseTypeHead(Head,Q,Tp,_,Path),
-  reQuant(Q,Tp,Type).
-parseTypeCore(St,Type,Path) :-
-  isTypeFunStmt(St,_,Quants,_,Head,_),
-  parseBoundTpVars(Quants,[],Q),
-  parseTypeHead(Head,Q,Tp,_,Path),
-  reQuant(Q,Tp,Type).
-parseTypeCore(St,Type,Path) :-
-  isAlgebraicTypeStmt(St,_,Quants,_,Hd,_),
-  parseBoundTpVars(Quants,[],Q),
-  parseTypeHead(Hd,Q,Tp,_,Path),
-  reQuant(Q,Tp,Type).
+mkTpLambda([],Tp,Tp) :-!.
+mkTpLambda([A|Args],Tp,typeLambda(A,LTp)) :-
+  mkTpLambda(Args,Tp,LTp).
 
-parseTypeHead(N,_,type(TpNm),Nm,Path) :-
+parseTypeCore(St,Type,_,Path) :-
+  isTypeExistsStmt(St,_,Quants,_,Head,_),
+  parseBoundTpVars(Quants,Q),
+  parseTypeHead(Head,Q,Tp,_,Args,Path),
+  mkTpLambda(Args,Tp,LTp),
+  reQuant(Q,LTp,Type).
+parseTypeCore(St,Type,_Env,Path) :-
+  isTypeFunStmt(St,_Lc,Quants,_Ct,Hd,_Bd),
+  parseBoundTpVars(Quants,Q),
+  parseTypeHead(Hd,Q,Tp,_,Args,Path),
+  mkTpLambda(Args,Tp,LTp),
+  reQuant(Q,LTp,Type).
+parseTypeCore(St,Type,_,Path) :-
+  isAlgebraicTypeStmt(St,_,Quants,_,Hd,_),
+  parseBoundTpVars(Quants,Q),
+  parseTypeHead(Hd,Q,Tp,_,Args,Path),
+  mkTpLambda(Args,Tp,LTp),
+  reQuant(Q,LTp,Type).
+
+parseTypeHead(N,_,type(TpNm),Nm,[],Path) :-
   isIden(N,_,Nm),
   marker(type,Marker),
   subPath(Path,Marker,Nm,TpNm).
-parseTypeHead(N,B,Tp,Nm,Path) :-
+parseTypeHead(N,B,Tp,Nm,Args,Path) :-
   isSquare(N,_,Nm,A),
   parseHeadArgs(A,B,Args),
   length(Args,Ar),
   marker(type,Marker),
   subPath(Path,Marker,Nm,TpNm),
   mkTypeExp(tpFun(TpNm,Ar),Args,Tp).
-parseTypeHead(N,B,Tp,Nm,Path) :-
+parseTypeHead(N,B,Tp,Nm,Args,Path) :-
   isRoundTerm(N,Lc,Op,Els),
   squareTerm(Lc,Op,Els,TT),
-  parseTypeHead(TT,B,Tp,Nm,Path).
+  parseTypeHead(TT,B,Tp,Nm,Args,Path).
 
 parseHeadArgs([],_,[]).
 parseHeadArgs([H|L],B,[V|Args]) :-

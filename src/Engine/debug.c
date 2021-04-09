@@ -7,6 +7,7 @@
 #include <ioTcp.h>
 #include <manifest.h>
 #include <termcap.h>
+#include <strings.h>
 
 #include "debugP.h"
 #include "arith.h"
@@ -114,6 +115,10 @@ void dA(termPo w) {
 }
 
 static retCode showConstant(ioPo out, methodPo mtd, integer off) {
+  return outMsg(out, " %,*T", displayDepth, nthArg(mtd->pool, off));
+}
+
+static retCode showLTipe(ioPo out, methodPo mtd, integer off) {
   return outMsg(out, " %,*T", displayDepth, nthArg(mtd->pool, off));
 }
 
@@ -233,7 +238,7 @@ static void resetDeflt(char *cmd) {
   defltLine(cmd, uniStrLen(cmd), &junk);
 }
 
-static retCode cmdComplete(bufferPo b, void *cl, integer cx) {
+static retCode cmdComplete(strBufferPo b, void *cl, integer cx) {
   integer bLen;
   char *content = getTextFromBuffer(b, &bLen);
 
@@ -264,14 +269,14 @@ static void dbgPrompt(processPo p) {
 }
 
 static DebugWaitFor cmder(debugOptPo opts, processPo p, methodPo mtd, termPo loc, insWord ins, insPo pc) {
-  static bufferPo cmdBuffer = Null;
+  static strBufferPo cmdBuffer = Null;
 
   if (cmdBuffer == Null)
     cmdBuffer = newStringBuffer();
 
   while (interactive) {
     dbgPrompt(p);
-    clearBuffer(cmdBuffer);
+    clearStrBuffer(cmdBuffer);
 
     setEditLineCompletionCallback(cmdComplete, (void *) opts);
     retCode res = (debuggerListener == Null ? consoleInput(cmdBuffer) : inLine(debugInChnnl, cmdBuffer, "\n"));
@@ -481,7 +486,7 @@ static DebugWaitFor dbgShowGlobal(char *line, processPo p, termPo loc, insWord i
   }
   if (uniStrLen(buff) > 0) {
     appendCodePoint(buff, &pos, NumberOf(buff), 0);
-    globalPo glb = globalVar(buff, NULL);
+    globalPo glb = globalVar(buff);
     if (glb != Null) {
       termPo val = getGlobal(glb);
       if (val != Null)
@@ -985,7 +990,7 @@ typedef void (*showCmd)(ioPo out, methodPo mtd, insPo pc, termPo trm, framePo fp
 
 termPo getLbl(termPo lbl, int32 arity) {
   labelPo oLbl = isNormalPo(lbl) ? termLbl(C_NORMAL(lbl)) : C_LBL(lbl);
-  return (termPo) declareLbl(oLbl->name, arity);
+  return (termPo) declareLbl(oLbl->name, arity, -1);
 }
 
 static DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show);
@@ -1237,16 +1242,20 @@ insPo disass(ioPo out, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
 #define show_nOp
 #define show_tOs showTos(out,fp,sp)
 #define show_art showTopOfStack(out,mtd,collectI32(pc),fp,sp)
-#define show_ix32 outMsg(out," #%d",collectI32(pc))
+#define show_i32 outMsg(out," #%d",collectI32(pc))
+#define show_lBs outMsg(out," #%d",collectI32(pc))
 #define show_arg showArg(out,collectI32(pc),mtd,fp,sp)
 #define show_lcl showLcl(out,collectI32(pc),mtd,fp,sp)
 #define show_lcs outMsg(out," l[%d]",collectI32(pc))
 #define show_off showPcOffset(out,entry,&pc,fp,sp)
+#define show_cDe showPcOffset(out,entry,&pc,fp,sp)
+#define show_lVl showPcOffset(out,entry,&pc,fp,sp)
 #define show_sym showConstant(out,mtd,collectI32(pc))
 #define show_Es outMsg(out, " %s", getEscape(collectI32(pc))->name)
 #define show_lit showConstant(out,mtd,collectI32(pc))
 #define show_lne showConstant(out,mtd,collectI32(pc))
 #define show_glb showGlb(out, findGlobalVar(collectI32(pc)),fp,sp)
+#define show_tPe showLTipe(out,mtd,collectI32(pc))
 
 #define instruction(Op, A1, A2, Dl, Cmt)    \
     case Op:                                \

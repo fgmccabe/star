@@ -4,7 +4,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c99")
 
 include_directories("Headers" "../Headers" "../Engine/Headers" "../Util/Headers" "../Infra/Headers")
 
-add_executable(ops genoperators.c trie.c trie.h trieP.h parseOperators.c parseOperators.h genoperators.h)
+add_executable(ops genoperators.c stringTrie.c stringTrie.h stringTrieP.h parseOperators.c parseOperators.h genoperators.h)
 target_link_libraries(ops ooio infra)
 
 set(ESC_SOURCE_FILES genescapes.c ../Headers/escapes.h ../Headers/intrinsics.h ../Headers/signature.h)
@@ -68,8 +68,16 @@ add_custom_target(star.intrinsics DEPENDS intrinsic
         COMMAND intrinsic -p -t ${INTRINSIC_PL_PLATE} ${INTRINSIC_PL}
         )
 
-add_custom_target(generate ALL DEPENDS operators star.operators star.escapes star.intrinsics
-        COMMAND genesc -p ${ESCAPES_PL}
+add_custom_target(pl.memnonics DEPENDS plmnem.c
         COMMAND plmnem -t ${CMAKE_CURRENT_SOURCE_DIR}/assem.pl.plate ${ASM_PL}
+        COMMENT "Creating star assembler in ${ASM_PL}"
+        )
+
+add_custom_target(star.memnonics DEPENDS starmnem.c
         COMMAND starmnem -t ${CMAKE_CURRENT_SOURCE_DIR}/assem.star.plate ${ASM_ST}
+        COMMENT "Creating star assembler in ${ASM_ST}"
+        )
+
+add_custom_target(generate ALL DEPENDS operators star.operators star.escapes star.intrinsics star.memnonics pl.memnonics
+        COMMAND genesc -p ${ESCAPES_PL}
         )

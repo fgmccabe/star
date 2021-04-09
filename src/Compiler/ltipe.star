@@ -58,6 +58,36 @@ star.compiler.ltipe{
     _coerce(T) => some(reduceTp(T))
   .}
 
+  public implementation coercion[ltipe,multi[integer]] => {.
+    _coerce(LT) => some(encTp(LT))
+  .}
+
+  public implementation coercion[ltipe,string] => {.
+    _coerce(LT) => some((encTp(LT)::cons[integer])::string)
+  .}
+
+  encTp:(ltipe)=>multi[integer].
+  encTp(.int64) => [0ci].
+  encTp(.flt64) => [0cf].
+  encTp(.bool) => [0cl].
+  encTp(.ptr) => [0cp].
+  encTp(funTipe(As,R)) => [0cF,..encTp(tplTipe(As))]++encTp(R).
+  encTp(tplTipe(As)) => [0c(]++multi(As//encTp)++[0c)].
+
+
+  decTp:(cons[integer])=>option[(ltipe,cons[integer])].
+  decTp([0ci,..Cs]) => some((.int64,Cs)).
+  decTp([0cf,..Cs]) => some((.flt64,Cs)).
+  decTp([0cl,..Cs]) => some((.bool,Cs)).
+  decTp([0cp,..Cs]) => some((.ptr,Cs)).
+  decTp([0c\(,..Cs]) => let{
+    decTps:(cons[integer],multi[ltipe])=>option[(ltipe,cons[integer])].
+    decTps([0c\),..Cs],So) => some((tplTipe(So::cons[ltipe]),Cs)).
+    decTps(C,So) where (E,C1)^=decTp(Cs) => decTps(C1,So++[E]).
+  } in decTps(Cs,[]).
+  decTp([0cF,..Cs]) where (tplTipe(As),C0)^=decTp(Cs) && (Rt,Cx) ^= decTp(C0) =>
+    some((funTipe(As,Rt),Cx)).
+
   reduceTp:(tipe)=>ltipe.
   reduceTp(T) => redTp(deRef(T)).
   
