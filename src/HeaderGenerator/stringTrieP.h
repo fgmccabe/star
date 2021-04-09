@@ -1,14 +1,14 @@
 #ifndef _TRIE_P_H_
 #define _TRIE_P_H_
 
-#include "trie.h"
+#include "stringTrie.h"
 #include "hash.h"
 #include "logical.h"
 
-typedef struct _trie_ {
+typedef struct stringTrie_ {
   char *prefix;
   void *value;
   hashPo follows;
-} TrieRec;
+} StringTrieRec;
 
 #endif

@@ -3,15 +3,14 @@ rdf.graph{
 
   public concept ::= concept(string) | text(string).
   public triple ::=  triple(concept,concept,concept).
-  public graph <~ {}.
-
-  graph:(
-    integer,
-    concept,
-    map[integer,triple],
-    map[string,integer],
-    map[string,integer],
-    map[string,integer]) <=> graph.
+  public graph ::=
+    graph(
+      integer,
+      concept,
+      map[integer,triple],
+      map[string,integer],
+      map[string,integer],
+      map[string,integer]).
 
   public implementation display[concept] => {.
     disp(concept(T)) => ss(T).

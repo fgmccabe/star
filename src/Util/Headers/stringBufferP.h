@@ -12,18 +12,18 @@
 #include "stringBuffer.h"
 
 typedef struct {
-} BufferClassPartRec;
+} StrBufferClassPartRec;
 
-typedef struct _buffer_class_ {
+typedef struct strBuffer_class_ {
   ObjectClassRec objectPart;
   LockClassPart lockPart;
   IoClassPartRec ioPart;
-  BufferClassPartRec bufferPart;
+  StrBufferClassPartRec bufferPart;
 } BufferClassRec;
 
-extern BufferClassRec BufferClass;  /* the standard pointer to an buffer class record */
+extern BufferClassRec StrBufferClass;  /* the standard pointer to an buffer class record */
 
-typedef struct _buffer_part_{
+typedef struct strBuffer_part_{
   char *buffer;                         /* The data buffer */
   integer bufferSize;
   integer in_pos;                       // Position of next read
@@ -32,7 +32,7 @@ typedef struct _buffer_part_{
   logical resizeable;                   /* Is this string object resizeable? */
 } BufferPart;
 
-typedef struct _buffer_ {
+typedef struct stringBuffer_ {
   ObjectRec object;                     /* object level of the io structure */
   LockObjectRec lock;
   IoPart io;                            /* Io level of io object */

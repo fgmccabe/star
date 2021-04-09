@@ -39,15 +39,15 @@ typedef struct {
     x64Reg reg;
     struct {
       x64Reg base;
-      i64 disp;
+      int disp;
     } based;
     struct {
       x64Reg base;
       x64Reg index;
       i8 scale;
-      i64 disp;
+      int64 disp;
     } indexed;
-    i64 imm;
+    int64 imm;
     u8 fpReg;
     codeLblPo lbl;
   } op;
@@ -214,7 +214,7 @@ void loopnz_(x64Op dst, x64Op src, codeCtxPo ctx);
 void call_(x64Op src, codeCtxPo ctx);
 #define call(dst, ctx) do{ x64Op d=dst; call_(d,ctx); } while(False)
 
-void ret_(i16 disp, codeCtxPo ctx);
+void ret_(int16 disp, codeCtxPo ctx);
 #define ret(disp, ctx) ret_(disp,ctx)
 #define rtn(ctx) ret_(0,ctx)
 

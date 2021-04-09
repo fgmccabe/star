@@ -128,7 +128,8 @@ static logical segmentEquality(objectPo o1, objectPo o2) {
 static retCode
 splitIns(vectorPo blocks, insPo code, integer *pc, integer to, logical jmpSplit, char *errorMsg, long msgLen);
 
-static retCode findTgts(vectorPo blocks, insPo code, integer *pc, integer to, char *errorMsg, long msgLen);
+static retCode
+findTgts(vectorPo blocks, methodPo mtd, insPo code, integer *pc, integer to, char *errorMsg, long msgLen);
 
 static vectorPo getRefs(objectPo def, void *cl) {
   segPo seg = O_SEG(def);
@@ -146,7 +147,7 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
 
   if (ret == Ok) {
     pc = 0;
-    ret = findTgts(blocks, entryPoint(mtd), &pc, insCount(mtd), errorMsg, msgLen);
+    ret = findTgts(blocks, mtd, entryPoint(mtd), &pc, insCount(mtd), errorMsg, msgLen);
   }
 
   vectorPo groups = topSort(blocks, getRefs, Null);
@@ -266,7 +267,7 @@ static retCode splitOperand(opAndSpec A, vectorPo blocks, insPo code, integer *p
     case nOp:                                   // No operand
     case tOs:
       return Ok;
-    case ix32:          /* 32 bit literal operand */
+    case i32:          /* 32 bit literal operand */
     case art:          // Arity
     case arg:          /* argument variable offset */
     case lcl:          /* local variable offset */
@@ -275,6 +276,7 @@ static retCode splitOperand(opAndSpec A, vectorPo blocks, insPo code, integer *p
       return Ok;
     }
     case cDe:           // Range of instructions to skip
+    case lVl:
     case off: {         /* offset within current code */
       integer delta = collect32(code, pc);
       integer nPc = *pc + delta;
@@ -290,7 +292,7 @@ static retCode splitOperand(opAndSpec A, vectorPo blocks, insPo code, integer *p
       collect32(code, pc);
       return Ok;
     default:
-      strMsg(errorMsg, msgLen, RED_ESC_ON "invalid operand specifier %d @ %d" RED_ESC_OFF, A, pc);
+      strMsg(errorMsg, msgLen, RED_ESC_ON "invalid operand specifier %d @ %d" RED_ESC_OFF, A, *pc);
       return Error;
   }
 }
@@ -312,14 +314,18 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
         return Ok;
       }
       case Cmp:
+      case Comp:
       case CLbl:
-      case CV:
-      case Unpack: {
+      case CmpVd:
+      case If:
+      case IfNot:
+      case Unpack:{
         splitSeg(blocks, *pc);
         return Ok;
       }
 
-      case Case: {
+      case Case:
+      case IndxJmp: {
         integer iPc = oPc + 1;
         int32 caseCnt = collect32(code, &iPc);
 
@@ -353,16 +359,16 @@ segPo splitSeg(vectorPo blocks, integer tgt) {
 #undef instruction
 #define instruction(Op, A1, A2, Delta, Cmt)\
     case Op:\
-      ret=checkTgt(blocks,code,oPc,pc,Op,A1,A2,(*pc)>=to,errorMsg,msgLen);\
+      ret=checkTgt(blocks,mtd,code,oPc,pc,Op,A1,A2,(*pc)>=to,errorMsg,msgLen);\
       break;
 
 static retCode
-checkTgt(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode op, opAndSpec A, opAndSpec B, logical isLast,
-         char *errorMsg, long msgLen);
+checkTgt(vectorPo blocks, methodPo mtd, insPo code, integer oPc, integer *pc, OpCode op, opAndSpec A, opAndSpec B,
+         logical isLast, char *errorMsg, long msgLen);
 
 static retCode checkDest(vectorPo blocks, integer pc, integer tgt, char *errorMsg, long msgLen);
 
-retCode findTgts(vectorPo blocks, insPo code, integer *pc, integer to, char *errorMsg, long msgLen) {
+retCode findTgts(vectorPo blocks, methodPo mtd, insPo code, integer *pc, integer to, char *errorMsg, long msgLen) {
   retCode ret = Ok;
   while (ret == Ok && *pc < to) {
     integer oPc = *pc;
@@ -377,9 +383,12 @@ retCode findTgts(vectorPo blocks, insPo code, integer *pc, integer to, char *err
 
     switch (ins) {
       case Cmp:
+      case Comp:
       case CLbl:
-      case CV:
-      case Unpack: {
+      case CmpVd:
+      case Unpack:
+      case If:
+      case IfNot: {
         ret = checkDest(blocks, oPc, *pc, errorMsg, msgLen);
         break;
       }
@@ -411,12 +420,13 @@ retCode checkDest(vectorPo blocks, integer pc, integer tgt, char *errorMsg, long
   }
 }
 
-retCode checkOprndTgt(insPo code, vectorPo blocks, integer oPc, integer *pc, opAndSpec A, char *errorMsg, long msgLen) {
+retCode checkOprndTgt(methodPo mtd, insPo code, vectorPo blocks, integer oPc, integer *pc, opAndSpec A, char *errorMsg,
+                      long msgLen) {
   switch (A) {
     case nOp:                                   // No operand
     case tOs:
       return Ok;
-    case ix32:          /* 32 bit literal operand */
+    case i32:          /* 32 bit literal operand */
     case art:          // Arity
     case arg:          /* argument variable offset */
     case lcl:          /* local variable offset */
@@ -424,33 +434,44 @@ retCode checkOprndTgt(insPo code, vectorPo blocks, integer oPc, integer *pc, opA
       collect32(code, pc);
       return Ok;
     }
-    case cDe:
+    case cDe: {
+      integer delta = collect32(code, pc);
+      return Ok;
+    }
+    case lVl:
     case off: {         /* offset within current code */
       integer delta = collect32(code, pc);
       integer nPc = *pc + delta;
       return checkDest(blocks, oPc, nPc, errorMsg, msgLen);
-      return Ok;
     }
-    case Es:
-    case lit:          /* constant literal */
-    case sym:           // Symbol
     case lne:           // Location literal
+    case Es:
     case glb:           // Global variable name
-    case tPe:
       collect32(code, pc);
       return Ok;
+    case lit:          /* constant literal */
+    case sym:           // Symbol
+    case tPe: {
+      integer litNo = collect32(code, pc);
+      if (litNo < 0 || litNo > codeLitCount(mtd)) {
+        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid literal number %d @ %d" RED_ESC_OFF, litNo, *pc);
+        return Error;
+      }
+
+      return Ok;
+    }
     default:
-      strMsg(errorMsg, msgLen, RED_ESC_ON "invalid operand specifier %d @ %d" RED_ESC_OFF, A, pc);
+      strMsg(errorMsg, msgLen, RED_ESC_ON "invalid operand specifier %d @ %d" RED_ESC_OFF, A, *pc);
       return Error;
   }
 }
 
 retCode
-checkTgt(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode op, opAndSpec A, opAndSpec B, logical isLast,
-         char *errorMsg, long msgLen) {
-  retCode ret = checkOprndTgt(code, blocks, oPc, pc, A, errorMsg, msgLen);
+checkTgt(vectorPo blocks, methodPo mtd, insPo code, integer oPc, integer *pc, OpCode op, opAndSpec A, opAndSpec B,
+         logical isLast, char *errorMsg, long msgLen) {
+  retCode ret = checkOprndTgt(mtd, code, blocks, oPc, pc, A, errorMsg, msgLen);
   if (ret == Ok)
-    ret = checkOprndTgt(code, blocks, oPc, pc, B, errorMsg, msgLen);
+    ret = checkOprndTgt(mtd, code, blocks, oPc, pc, B, errorMsg, msgLen);
 
 //  if (isLast) {
 //    segPo next = findSeg(blocks, *pc);
@@ -517,7 +538,7 @@ static retCode checkOperand(segPo seg, integer oPc, integer *pc, opAndSpec A, ch
     case tOs:
       return Ok;
     case art:
-    case ix32: {                     /* 32 bit literal operand */
+    case i32: {                     /* 32 bit literal operand */
       collect32(base, pc);
       return Ok;
     }
@@ -562,7 +583,11 @@ static retCode checkOperand(segPo seg, integer oPc, integer *pc, opAndSpec A, ch
         return Error;
       }
     }
-    case cDe:
+    case cDe: {                         /* offset within current code */
+      int32 delta = collect32(base, pc);
+      return Ok;
+    }
+    case lVl:
     case off: {                         /* offset within current code */
       int32 delta = collect32(base, pc);
       integer npc = *pc + delta;
@@ -600,18 +625,17 @@ static retCode checkOperand(segPo seg, integer oPc, integer *pc, opAndSpec A, ch
         strMsg(errorMsg, msgLen, RED_ESC_ON "invalid literal number: %d @ %d" RED_ESC_OFF, litNo, *pc);
         return Error;
       }
-      termPo lit = getMtdLit(seg->seg.mtd,litNo);
-      if(isString(lit)){
+      termPo lit = getMtdLit(seg->seg.mtd, litNo);
+      if (isString(lit)) {
         integer len;
-        const char *text = stringVal(lit,&len);
-        if(validTypeSig(text,len)==Ok)
+        const char *text = stringVal(lit, &len);
+        if (validTypeSig(text, len) == Ok)
           return Ok;
-        else{
+        else {
           strMsg(errorMsg, msgLen, RED_ESC_ON "invalid type signature literal: %d @ %d" RED_ESC_OFF, litNo, *pc);
           return Error;
         }
-      }
-      else{
+      } else {
         strMsg(errorMsg, msgLen, RED_ESC_ON "invalid type signature literal: %d @ %d" RED_ESC_OFF, litNo, *pc);
         return Error;
       }
@@ -673,7 +697,7 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
         seg->seg.stackDepth = depth;
         break;
       }
-      case Unpack: {
+      case Unpack:{
         int32 litNo = collect32(entryPoint(seg->seg.mtd), &iPc);
         if (litNo < 0 || litNo >= codeLitCount(seg->seg.mtd)) {
           strMsg(errorMsg, msgLen, RED_ESC_ON "invalid literal number: %d @ %d" RED_ESC_OFF, litNo, oPc);
@@ -695,9 +719,13 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
         } else
           return mergeSegVars(seg, alt);
       }
+
       case Cmp:
+      case Comp:
       case CLbl:
-      case CV: {
+      case CmpVd:
+      case If:
+      case IfNot: {
         segPo alt = findSeg(seg->seg.exits, *pc);
 
         if (alt == Null || alt->seg.pc != *pc) {

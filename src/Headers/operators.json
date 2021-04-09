@@ -40,6 +40,26 @@
     "keyword": true
   },
   {
+    "infixOp": "has type",
+    "priorities": [
+      1249,
+      1250,
+      1249
+    ],
+    "desc": "type annotation",
+    "keyword": true
+  },
+  {
+    "infixOp": "has kind",
+    "priorities": [
+      1249,
+      1250,
+      1249
+    ],
+    "desc": "type annotation",
+    "keyword": true
+  },
+  {
     "infixOp": "~~",
     "priorities": [
       1239,

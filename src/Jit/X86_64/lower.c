@@ -33,14 +33,14 @@ retCode jit_Dup(insPo code, integer *pc, jitCompPo context) {
   return Ok;
 }
 
-retCode jit_Drop(insPo code,integer *c,jitCompPo context){
-  check(context->vTop>0,"stack empty");
+retCode jit_Drop(insPo code, integer *c, jitCompPo context) {
+  check(context->vTop > 0, "stack empty");
   context->vTop--;
   return Ok;
 }
 
-retCode jit_IAdd(insPo code,integer *pc,jitCompPo context){
-
+retCode jit_IAdd(insPo code, integer *pc, jitCompPo context) {
+  return Error;
 }
 //instruction(ISub,tOs,nOp,-1,"L R --> L-R")
 //instruction(IMul,tOs,nOp,-1,"L R --> L*R")

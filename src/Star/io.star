@@ -1,6 +1,6 @@
-star.file{
+star.io{
   import star.
 
-  public fileHandle <~ {}.  -- A file handle exists
+
 
 }

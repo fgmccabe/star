@@ -69,28 +69,28 @@ void initGlobals() {
   glbVarTblSize = 1024;
   numGlbVars = 0;
 
-  eINTRUPT = declareEnum("star.core#eINTRUPT", currHeap);
-  eNOTDIR = declareEnum("star.core#eNOTDIR", currHeap);
-  eNOFILE = declareEnum("star.core#eNOFILE", currHeap);
-  eNOTFND = declareEnum("star.core#eNOTFND", currHeap);
-  eINVAL = declareEnum("star.core#eINVAL", currHeap);
-  eRANGE = declareEnum("star.core#eRANGE", currHeap);
-  eNOPERM = declareEnum("star.core#eNOPERM", currHeap);
-  eFAIL = declareEnum("star.core#eFAIL", currHeap);
-  eIOERROR = declareEnum("star.core#eIOERROR", currHeap);
-  eCONNECT = declareEnum("star.core#eCONNECT", currHeap);
-  eDEAD = declareEnum("star.core#eDEAD", currHeap);
+  eINTRUPT = declareEnum("star.core#eINTRUPT", -1, currHeap);
+  eNOTDIR = declareEnum("star.core#eNOTDIR", -1, currHeap);
+  eNOFILE = declareEnum("star.core#eNOFILE", -1, currHeap);
+  eNOTFND = declareEnum("star.core#eNOTFND", -1, currHeap);
+  eINVAL = declareEnum("star.core#eINVAL", -1, currHeap);
+  eRANGE = declareEnum("star.core#eRANGE", -1, currHeap);
+  eNOPERM = declareEnum("star.core#eNOPERM", -1, currHeap);
+  eFAIL = declareEnum("star.core#eFAIL", -1, currHeap);
+  eIOERROR = declareEnum("star.core#eIOERROR", -1, currHeap);
+  eCONNECT = declareEnum("star.core#eCONNECT", -1, currHeap);
+  eDEAD = declareEnum("star.core#eDEAD", -1, currHeap);
 
-  falseEnum = declareEnum("star.core#false", currHeap);
-  trueEnum = declareEnum("star.core#true", currHeap);
+  falseEnum = declareEnum("star.core#false", -1, currHeap);
+  trueEnum = declareEnum("star.core#true", -1, currHeap);
 
-  voidEnum = declareEnum("star.core#void", currHeap);
+  voidEnum = declareEnum("star.core#void", -1, currHeap);
 
-  okEnum = declareEnum("star.core#ok", currHeap);
-  failEnum = declareEnum("star.core#fail", currHeap);
-  eofEnum = declareEnum("star.core#eof", currHeap);
+  okEnum = declareEnum("star.core#ok", -1, currHeap);
+  failEnum = declareEnum("star.core#fail", -1, currHeap);
+  eofEnum = declareEnum("star.core#eof", -1, currHeap);
 
-  errorLbl = declareLbl("star.core#error", 2);
+  errorLbl = declareLbl("star.core#error", 2, -1);
 
   unitEnum = (termPo) allocateTpl(currHeap, 0);
 }
@@ -101,7 +101,7 @@ globalPo C_GLOB(termPo t) {
   return (globalPo) t;
 }
 
-globalPo globalVar(const char *nm, termPo provider) {
+globalPo globalVar(const char *nm) {
   GlobalRecord tst = {.name=(char *) nm, .hash=uniHash(nm)};
   globalPo glb = hashGet(globals, &tst);
 
@@ -119,13 +119,10 @@ globalPo globalVar(const char *nm, termPo provider) {
 
     glb->name = uniDuplicate(nm);
     glb->content = Null;
-    glb->provider = provider;
     glb->clss = globalClass;
     glb->hash = tst.hash;
     glb->varNo = numGlbVars - 1;
     hashPut(globals, glb, glb);
-  } else if (provider != Null && glb->provider == Null) {
-    glb->provider = provider;
   }
   return glb;
 }
@@ -172,17 +169,12 @@ termPo glbScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   if (glb->content != Null)
     helper((ptrPo) (&glb->content), c);
 
-  if (glb->provider != Null)
-    helper((ptrPo) (&glb->provider), c);
-
   return o + GlobalCellCount;
 }
 
 static void markGlobal(globalPo glb, gcSupportPo G) {
   if (glb->content != Null)
     glb->content = markPtr(G, (ptrPo) &glb->content);
-  if (glb->provider != Null)
-    glb->provider = markPtr(G, (ptrPo) &glb->provider);
 }
 
 void markGlobals(gcSupportPo G) {
@@ -230,7 +222,7 @@ termPo getGlobal(globalPo v) {
 }
 
 globalPo getGlobalVar(char *nm) {
-  return globalVar(nm, Null);
+  return globalVar(nm);
 }
 
 char *globalVarName(globalPo v) {
@@ -242,7 +234,7 @@ globalPo findGlobalVar(int32 varNo) {
 }
 
 int32 globalVarNo(const char *nm) {
-  return (int32) (globalVar(nm, NULL)->varNo);
+  return (int32) (globalVar(nm)->varNo);
 }
 
 logical isValidGlobalVarNo(int32 varNo) {
@@ -264,10 +256,3 @@ termPo setGlobalVar(globalPo v, termPo e) {
   return prev;
 }
 
-logical glbHasProvider(globalPo glb) {
-  return (logical) (glb->provider != Null);
-}
-
-termPo getProvider(globalPo glb) {
-  return glb->provider;
-}

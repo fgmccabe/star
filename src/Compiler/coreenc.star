@@ -15,7 +15,7 @@ star.compiler.core.enc{
   encDef:(crDefn) => multi[integer].
   encDef(fnDef(Lc,Nm,Tp,Args,Rep)) =>
     [0cF]++encText(Nm)++((Tp::ltipe)::multi[integer])++
-    encExp(mkCrTpl(Args))++encExp(Rep).
+    encExp(mkCrTpl(Lc,Args//(V)=>crVar(Lc,V)))++encExp(Rep).
   encDef(glbDef(Lc,Nm,Tp,Rep)) =>
     [0cG]++encText(Nm)++((Tp::ltipe)::multi[integer])++
     encExp(Rep).
@@ -42,7 +42,7 @@ star.compiler.core.enc{
   .}
 
   encExp:(crExp) => multi[integer].
-  encExp(crVar(Nm,Tp)) => [0cv]++encText(Nm)++Tp::multi[integer].
+  encExp(crVar(_,crId(Nm,Tp))) => [0cv]++encText(Nm)++Tp::multi[integer].
   encExp(crInt(Ix)) => [0ci]++encInt(Ix).
   encExp(crFlot(Dx)) => [0cf]++encInt(_float_bits(Dx)).
   encExp(crStrg(Sx)) => [0cs]++encText(Sx).
@@ -89,17 +89,6 @@ star.compiler.core.enc{
     encInt(size(Fs))++
     multi((Fs//((Nm,Vl))=>encText(Nm)++encExp(Vl))).
 
-  public implementation coercion[ltipe,multi[integer]] => {.
-    _coerce(LT) => some(encTp(LT))
-  .}
-
-  encTp:(ltipe)=>multi[integer].
-  encTp(.int64) => [0ci].
-  encTp(.flt64) => [0cf].
-  encTp(.bool) => [0cl].
-  encTp(.ptr) => [0cp].
-  encTp(funTipe(As,R)) => [0cF,..encTp(tplTipe(As))]++encTp(R).
-  encTp(tplTipe(As)) => [0cT]++encInt(size(As))++multi(As//encTp).
 
   decTp:(cons[integer])=>option[(ltipe,cons[integer])].
   decTp([0ci,..Cs]) => some((.int64,Cs)).

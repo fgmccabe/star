@@ -1,6 +1,7 @@
 /* Automatically generated, do not edit */
 
-:-module(operators,[infixOp/4,prefixOp/3,postfixOp/3,isOperator/1,follows/3,final/2,bracket/4,keyword/1,isKeyword/1]).
+:-module(operators,[infixOp/4,prefixOp/3,postfixOp/3,isOperator/1,follows/3,final/2,bracket/4,multiTok/3,
+                    keyword/1,isKeyword/1]).
 
   isOperator(O) :-
     operator(O,_).
@@ -20,6 +21,7 @@
   is_in(X,[X|_]).
   is_in(X,[_|Y]) :- is_in(X,Y).
 
+  operator("has type", [infixOp(1249, 1250, 1249)]).
   operator("all", [prefixOp(1010, 1009)]).
   operator(".<.", [infixOp(699, 700, 699)]).
   operator("^=", [infixOp(899, 900, 899)]).
@@ -41,6 +43,7 @@
   operator("then", [infixOp(1179, 1180, 1179)]).
   operator("!", [postfixOp(99, 100)]).
   operator("->>", [infixOp(1199, 1200, 1199)]).
+  operator("has kind", [infixOp(1249, 1250, 1249)]).
   operator("=!=", [infixOp(899, 900, 899)]).
   operator("default", [postfixOp(939, 940)]).
   operator("#", [prefixOp(1750, 1749), infixOp(759, 760, 759)]).
@@ -248,7 +251,6 @@
   follows('!','!','!!').
   follows('$','$','$$').
 
-
   final('%',"%").	 /* modulo */
   final('&&',"&&").	 /* conjunction */
   final('(',"(").	 /* parentheses */
@@ -341,70 +343,68 @@
   final('#',"#").	 /* Macro statement marker */
   final('$$',"$$").	 /* wrap value in memo */
 
+  multiTok("has", "type", "has type").
+  multiTok("has", "kind", "has kind").
 
-  keyword("all").
-  keyword("^=").
-  keyword("&&").
-  keyword("~>").
-  keyword("throw").
-  keyword("do").
-  keyword("do").
-  keyword("import").
-  keyword("catch").
-  keyword("valis").
-  keyword(",..").
-  keyword("for").
-  keyword("then").
-  keyword("->>").
-  keyword("default").
-  keyword("#").
-  keyword("#").
-  keyword("<-").
-  keyword("<<-").
-  keyword("*>").
-  keyword(",").
-  keyword("contract").
-  keyword(".").
-  keyword(".").
-  keyword("val").
-  keyword("try").
-  keyword("exists").
-  keyword("if").
-  keyword(":").
-  keyword(";").
-  keyword(".=").
-  keyword("=").
-  keyword("|:").
-  keyword("?").
-  keyword("@").
-  keyword("@").
-  keyword("in").
-  keyword("open").
-  keyword("~~").
-  keyword("public").
-  keyword("ref").
-  keyword("where").
-  keyword("case").
-  keyword("=>").
-  keyword("^").
-  keyword("^").
-  keyword("<=>").
-  keyword("valof").
-  keyword("until").
-  keyword("while").
-  keyword("private").
-  keyword("::").
-  keyword(":?").
-  keyword("^.").
-  keyword("<~").
-  keyword("type").
-  keyword("implementation").
-  keyword("|").
-  keyword("~").
-  keyword("||").
-  keyword("else").
-  keyword("::=").
-
+ keyword("has type").
+ keyword("all").
+ keyword("^=").
+ keyword("&&").
+ keyword("~>").
+ keyword("throw").
+ keyword("do").
+ keyword("import").
+ keyword("catch").
+ keyword("valis").
+ keyword(",..").
+ keyword("for").
+ keyword("then").
+ keyword("->>").
+ keyword("has kind").
+ keyword("default").
+ keyword("#").
+ keyword("<-").
+ keyword("<<-").
+ keyword("*>").
+ keyword(",").
+ keyword("contract").
+ keyword(".").
+ keyword("val").
+ keyword("try").
+ keyword("exists").
+ keyword("if").
+ keyword(":").
+ keyword(";").
+ keyword(".=").
+ keyword("=").
+ keyword("|:").
+ keyword("?").
+ keyword("@").
+ keyword("in").
+ keyword("open").
+ keyword("~~").
+ keyword("public").
+ keyword("ref").
+ keyword("where").
+ keyword("case").
+ keyword("=>").
+ keyword("^").
+ keyword("<=>").
+ keyword("valof").
+ keyword("until").
+ keyword("while").
+ keyword("private").
+ keyword("::").
+ keyword(":?").
+ keyword("^.").
+ keyword("<~").
+ keyword("type").
+ keyword("implementation").
+ keyword("|").
+ keyword("~").
+ keyword("||").
+ keyword("else").
+ keyword("::=").
 
   isKeyword(X):- keyword(X), !.
 

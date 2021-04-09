@@ -14,7 +14,7 @@
   Contact: Francis McCabe <fmccabe@gmail.com>
 */
 
-instruction(Halt,tOs,nOp,0,"Stop execution")
+instruction(Halt,i32,nOp,0,"Stop execution")
 
 instruction(Call,sym,nOp,0,"Call <prog>")
 instruction(OCall,art,nOp,0,"OCall")
@@ -28,7 +28,11 @@ instruction(Jmp,off,nOp,0,"jump lbl")
 
 instruction(Drop,tOs,nOp,-1,"drop top of stack")
 instruction(Dup,tOs,nOp,1,"duplicate top of stack")
-instruction(Rst,ix32,nOp,0,"reset stack height to a fixed height")
+instruction(Rst, i32, nOp, 0, "reset stack height to a fixed height")
+
+instruction(Prompt,tOs,nOp,1,"delimit a continuation")
+instruction(Cut,nOp,nOp,1,"find top prompt and cut stack there. Leave continuation on stack")
+instruction(Restore,tOs,nOp,-2,"restore a cut continuation with parameter")
 
 instruction(LdV,nOp,nOp,1,"Place a void value on stack")
 instruction(LdG,glb,nOp,1,"load a global variable")
@@ -42,14 +46,19 @@ instruction(StA,arg,nOp,-1,"store tos to args[xx]")
 instruction(StG,glb,nOp,-1,"store into a global variable")
 instruction(TG,glb,nOp,0,"copy into a global variable")
 
-instruction(CLbl,off,nOp,-1,"T,Lbl --> test for a data term, branch if lbl")
-instruction(CV,off,nOp,-1,"T --> test for void on the stack, branch if void")
-instruction(Nth,ix32,nOp,0,"T --> el, pick up the nth element")
-instruction(StNth,ix32,nOp,-2,"T el --> store in nth element")
+instruction(CLbl,lit,off,-1,"T,Lbl --> test for a data term, branch if lbl")
+instruction(CmpVd,lVl,nOp,-1,"T --> test for void on the stack, break if void")
+instruction(Nth, i32, nOp, 0, "T --> el, pick up the nth element")
+instruction(StNth, i32, nOp, -2, "T el --> store in nth element")
 instruction(Get,sym,nOp,0,"T --> el access a field from structure")
 instruction(Set,sym,nOp,-1,"T el --> store in field of structure")
 
-instruction(Case,ix32,nOp,0,"T --> T, case <Max> ")
+instruction(If,lVl,nOp,-1,"break if true")
+instruction(IfNot,lVl,nOp,-1,"brak if false")
+
+instruction(Case, i32, nOp, 0, "T --> T, case <Max> ")
+instruction(IndxJmp,i32,nOp,0,"check and jump on index")
+instruction(Unpack,lit,off,-1,"check against term & unpack")
 
 instruction(IAdd,tOs,nOp,-1,"L R --> L+R")
 instruction(ISub,tOs,nOp,-1,"L R --> L-R")
@@ -61,7 +70,7 @@ instruction(IAbs,tOs,nOp,0,"L --> abs(L)")
 instruction(IEq,tOs,nOp,-1,"L R --> L==R")
 instruction(ILt,tOs,nOp,-1,"L R --> L<R")
 instruction(IGe,tOs,nOp,-1,"L R --> L>=R")
-instruction(ICmp,off,nOp,-2,"L R --> branch if not same integer")
+instruction(ICmp,lVl,nOp,-2,"L R --> break if not same integer")
 
 instruction(BAnd,tOs,nOp,-1,"L R --> L&R")
 instruction(BOr,tOs,nOp,-1,"L R --> L|R")
@@ -85,11 +94,11 @@ instruction(FCmp,off,nOp,-2,"L R --> branch if not same floating point")
 
 instruction(Alloc,sym,nOp,1,"new structure, elements from stack")
 instruction(AlTpl,sym,nOp,1,"new empty structure")
-instruction(Unpack,sym,off,-1,"check against term & unpack")
 
 instruction(Cmp,off,nOp,-1,"t1 t2 --> , branch to offset if not same literal")
+instruction(Comp,lVl,nOp,-1,"t1 t2 --> , break if not same literal")
 
-instruction(Frame,lit,nOp,0,"frame instruction")
+instruction(Frame,tPe,nOp,0,"frame instruction")
 
 instruction(Throw,off,nOp,0,"T --> T throw to handler or out")
 instruction(Unwind,off,nOp,0,"jump to handler")
@@ -98,4 +107,3 @@ instruction(dLine,lne,nOp,0,"--> debug line")
 instruction(dBug,nOp,nOp,0,"debugging prefix")
 instruction(dBreak,nOp,nOp,0,"special instruction for break points")
 
-instruction(Block,lit,cDe,0,"block of instructions")

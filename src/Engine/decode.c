@@ -5,6 +5,7 @@
 #include <globals.h>
 #include <cons.h>
 #include <consP.h>
+#include <strings.h>
 #include "arithP.h"
 #include "strP.h"
 #include "heap.h"
@@ -59,12 +60,12 @@ retCode decodeTerm(ioPo in, heapPo H, termPo *tgt, char *errorMsg, long msgSize)
 
         switch (inChar(in, &delim)) {
           case Ok: {
-            bufferPo buffer = newStringBuffer();
+            strBufferPo buffer = newStringBuffer();
             while (True) {
               switch (inChar(in, &ch)) {
                 case Ok:
                   if (ch == delim) {
-                    rewindBuffer(buffer);
+                    rewindStrBuffer(buffer);
 
                     integer amnt;
 
@@ -77,8 +78,8 @@ retCode decodeTerm(ioPo in, heapPo H, termPo *tgt, char *errorMsg, long msgSize)
                       res = reserveSpace(H, amnt);
 
                     if (res == Ok) {
-                      rewindBuffer(buffer); /* re-read from string buffer */
-                      bufferPo tmpBuffer = newStringBuffer();
+                      rewindStrBuffer(buffer); /* re-read from string buffer */
+                      strBufferPo tmpBuffer = newStringBuffer();
 
                       res = decode(O_IO(buffer), &support, H, tgt, tmpBuffer);
 
@@ -223,9 +224,9 @@ retCode estimate(ioPo in, integer *amnt) {
  Warning: caller assumes responsibility for ensuring that tgt is a valid root
  */
 
-static retCode decodeList(ioPo in, encodePo S, integer count, heapPo H, termPo *tgt, bufferPo tmpBuffer);
+static retCode decodeList(ioPo in, encodePo S, integer count, heapPo H, termPo *tgt, strBufferPo tmpBuffer);
 
-retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
+retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo tmpBuffer) {
   codePoint ch;
   retCode res = inChar(in, &ch);
 
@@ -253,7 +254,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
     case enuTrm: {
       if ((res = decodeText(in, tmpBuffer)) == Ok) {
         integer len;
-        *tgt = (termPo) declareEnum(getTextFromBuffer(tmpBuffer, &len), H);
+        *tgt = (termPo) declareEnum(getTextFromBuffer(tmpBuffer, &len), -1, H);
       }
       return res;
     }
@@ -265,7 +266,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
 
       if ((res = decodeText(in, tmpBuffer)) == Ok) {
         integer len;
-        *tgt = (termPo) declareLbl(getTextFromBuffer(tmpBuffer, &len), arity);
+        *tgt = (termPo) declareLbl(getTextFromBuffer(tmpBuffer, &len), arity, -1);
       }
       return res;
     }
@@ -341,7 +342,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
   }
 }
 
-retCode decodeList(ioPo in, encodePo S, integer count, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
+retCode decodeList(ioPo in, encodePo S, integer count, heapPo H, termPo *tgt, strBufferPo tmpBuffer) {
   if (count == 0) {
     *tgt = (termPo) nilEnum;
     return Ok;
@@ -380,12 +381,12 @@ retCode decodeTplCount(ioPo in, integer *count, char *errorMsg, integer msgSize)
 }
 
 static retCode
-decodeRecordFieldTypes(ioPo in, encodePo S, integer count, fieldTblPo *tgt, bufferPo tmpBuffer, char *errorMsg,
+decodeRecordFieldTypes(ioPo in, encodePo S, integer count, fieldTblPo *tgt, strBufferPo tmpBuffer, char *errorMsg,
                        integer msgSize);
 
-retCode decodeRecLbl(ioPo in, encodePo S, termPo *tgt, bufferPo tmpBuffer, char *errorMsg, integer msgSize) {
+retCode decodeRecLbl(ioPo in, encodePo S, termPo *tgt, strBufferPo tmpBuffer, char *errorMsg, integer msgSize) {
   char lblName[MAX_SYMB_LEN];
-  bufferPo pkgB = fixedStringBuffer(lblName, NumberOf(lblName));
+  strBufferPo pkgB = fixedStringBuffer(lblName, NumberOf(lblName));
 
   retCode ret = decodeText(in, pkgB);
 
@@ -404,7 +405,7 @@ retCode decodeRecLbl(ioPo in, encodePo S, termPo *tgt, bufferPo tmpBuffer, char 
       ret = decodeRecordFieldTypes(in, S, 0, &tbl, tmpBuffer, errorMsg, msgSize);
 
       if (ret == Ok && tbl != Null) {
-        labelPo lbl = declareLbl(Nm, tbl->size);
+        labelPo lbl = declareLbl(Nm, tbl->size, -1);
         declareFields(lbl, tbl);
 
         *tgt = (termPo) lbl;
@@ -418,7 +419,7 @@ retCode decodeRecLbl(ioPo in, encodePo S, termPo *tgt, bufferPo tmpBuffer, char 
 }
 
 retCode
-decodeRecordFieldTypes(ioPo in, encodePo S, integer count, fieldTblPo *tgt, bufferPo tmpBuffer, char *errorMsg,
+decodeRecordFieldTypes(ioPo in, encodePo S, integer count, fieldTblPo *tgt, strBufferPo tmpBuffer, char *errorMsg,
                        integer msgSize) {
   if (isLookingAt(in, "}") == Ok) {
     *tgt = newFieldTable(count);
@@ -430,13 +431,13 @@ decodeRecordFieldTypes(ioPo in, encodePo S, integer count, fieldTblPo *tgt, buff
   } else {
     char fieldName[MAX_SYMB_LEN];
 
-    bufferPo pkgB = fixedStringBuffer(fieldName, NumberOf(fieldName));
+    strBufferPo pkgB = fixedStringBuffer(fieldName, NumberOf(fieldName));
     retCode ret = decodeText(O_IO(in), pkgB);
     outByte(O_IO(pkgB), 0);
     closeFile(O_IO(pkgB));
 
     if (ret == Ok) {
-      labelPo field = declareLbl(fieldName, 0);
+      labelPo field = declareLbl(fieldName, 0, -1);
 
 #ifdef TRACEDECODE
       if (traceDecode >= detailedTracing)

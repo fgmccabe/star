@@ -5,11 +5,11 @@
 #include <stringBuffer.h>
 #include "template.h"
 
-static retCode parseTemplateVar(bufferPo str, ioPo plate, char **reslt, hashPo vars, strProc defltPrc, void *cl);
+static retCode parseTemplateVar(strBufferPo str, ioPo plate, char **reslt, hashPo vars, strProc defltPrc, void *cl);
 
 retCode processTemplate(ioPo out, ioPo plate, hashPo vars, strProc defltPrc, void *cl) {
   retCode ret = Ok;
-  bufferPo str = newStringBuffer();
+  strBufferPo str = newStringBuffer();
 
   while (ret == Ok && isFileAtEof(plate) != Eof) {
     if (isLookingAt(plate, "#(") == Ok) {
@@ -21,7 +21,7 @@ retCode processTemplate(ioPo out, ioPo plate, hashPo vars, strProc defltPrc, voi
       char *repl;
       ret = parseTemplateVar(str, plate, &repl, vars, defltPrc, cl);
       if (ret == Ok) {
-        bufferPo replBuffer = newReadStringBuffer(repl, (long) uniStrLen(repl));
+        strBufferPo replBuffer = newReadStringBuffer(repl, (long) uniStrLen(repl));
         ret = processTemplate(out, O_IO(replBuffer), vars, defltPrc, cl);
         closeFile(O_IO(replBuffer));
       }
@@ -37,10 +37,10 @@ retCode processTemplate(ioPo out, ioPo plate, hashPo vars, strProc defltPrc, voi
   return ret;
 }
 
-retCode parseTemplateVar(bufferPo str, ioPo plate, char **reslt, hashPo vars, strProc defltPrc, void *cl) {
+retCode parseTemplateVar(strBufferPo str, ioPo plate, char **reslt, hashPo vars, strProc defltPrc, void *cl) {
   codePoint ch;
   retCode ret = Ok;
-  clearBuffer(str);
+  clearStrBuffer(str);
   while (ret == Ok) {
     ret = inChar(plate, &ch);
     if (ret == Ok) {

@@ -3,6 +3,7 @@
 //
 
 #include <labels.h>
+#include <strings.h>
 #include "consP.h"
 #include "assert.h"
 
@@ -10,8 +11,8 @@ termPo nilEnum;
 labelPo consCons;
 
 void initCons() {
-  nilEnum = declareEnum("star.core#nil", currHeap);
-  consCons = declareLbl("star.core#cons", 2);
+  nilEnum = declareEnum("star.core#nil", 1, currHeap);
+  consCons = declareLbl("star.core#cons", 2, 0);
 }
 
 normalPo allocateCons(heapPo H, termPo lhs, termPo rhs) {

@@ -145,7 +145,7 @@ static retCode pickAny(void *n, void *r, void *c) {
 manifestVersionPo manifestVersion(manifestEntryPo entry, char *version) {
   if (uniCmp(version, "*") == same) {
     manifestVersionPo deflt = NULL;
-    ProcessTable(pickAny, entry->versions, &deflt);
+    processHashTable(pickAny, entry->versions, &deflt);
     return deflt;
   } else
     return (manifestVersionPo) hashGet(entry->versions, version);
@@ -215,11 +215,11 @@ static retCode pruneVersions(void *n, void *r, void *c) {
 static retCode pruneEntries(void *n, void *r, void *c) {
   manifestEntryPo entry = (manifestEntryPo) r;
 
-  return ProcessTable(pruneVersions, entry->versions, c);
+  return processHashTable(pruneVersions, entry->versions, c);
 }
 
 retCode pruneResources(char *kind) {
-  return ProcessTable(pruneEntries, manifest, (void *) kind);
+  return processHashTable(pruneEntries, manifest, (void *) kind);
 }
 
 retCode loadManifest() {
@@ -524,7 +524,7 @@ static retCode dumpVersion(char *v, manifestVersionPo vers, void *cl) {
   retCode ret = outMsg(policy->out, "%s%p\"%s\":{\n", sep, policy->indent, vers->version);
 
   if (ret == Ok)
-    ret = ProcessTable((procFun) dumpRsrc, vers->resources, &inner);
+    ret = processHashTable((procFun) dumpRsrc, vers->resources, &inner);
 
   if (ret == Ok)
     ret = outMsg(policy->out, "}");
@@ -541,7 +541,7 @@ static retCode dispEntry(char *v, manifestEntryPo entry, void *cl) {
   retCode ret = outMsg(policy->out, "%s%p\"%s\":{\n", sep, policy->indent, entry->package);
 
   if (ret == Ok)
-    ret = ProcessTable((procFun) dumpVersion, entry->versions, &inner);
+    ret = processHashTable((procFun) dumpVersion, entry->versions, &inner);
 
   if (ret == Ok)
     ret = outMsg(policy->out, "}");
@@ -554,7 +554,7 @@ retCode dispManifest(ioPo out) {
   retCode ret = outMsg(out, "manifest{\n");
 
   if (ret == Ok)
-    ret = ProcessTable((procFun) dispEntry, manifest, &policy);
+    ret = processHashTable((procFun) dispEntry, manifest, &policy);
 
   if (ret == Ok)
     ret = outMsg(out, "}\n");
@@ -578,12 +578,12 @@ static retCode encodeRsrc(char *k, manifestRsrcPo rsrc, void *cl) {
 
 retCode encodeVersion(char *v, manifestVersionPo vers, void *cl) {
   EncodeInfo *info = (EncodeInfo *) cl;
-  bufferPo rsrcBuf = newStringBuffer();
+  strBufferPo rsrcBuf = newStringBuffer();
   EncodeInfo rsrc = {.out = O_IO(rsrcBuf), .count = 0};
 
   info->count++;
 
-  tryRet(ProcessTable((procFun) encodeRsrc, vers->resources, &rsrc));
+  tryRet(processHashTable((procFun) encodeRsrc, vers->resources, &rsrc));
 
   tryRet(encodeCons(info->out, 2));
   tryRet(encodeTplLbl(info->out, 2));
@@ -600,12 +600,12 @@ retCode encodeVersion(char *v, manifestVersionPo vers, void *cl) {
 
 retCode encodeEntry(char *v, manifestEntryPo entry, void *cl) {
   EncodeInfo *info = (EncodeInfo *) cl;
-  bufferPo versBuf = newStringBuffer();
+  strBufferPo versBuf = newStringBuffer();
   EncodeInfo vers = {.out = O_IO(versBuf), .count = 0};
 
   info->count++;
 
-  tryRet(ProcessTable((procFun) encodeVersion, entry->versions, &vers));
+  tryRet(processHashTable((procFun) encodeVersion, entry->versions, &vers));
 
   tryRet(encodeCons(info->out, 2));
   tryRet(encodeTplLbl(info->out, 2));
@@ -621,10 +621,10 @@ retCode encodeEntry(char *v, manifestEntryPo entry, void *cl) {
 }
 
 retCode encodeManifest(ioPo out) {
-  bufferPo buf = newStringBuffer();
+  strBufferPo buf = newStringBuffer();
   EncodeInfo info = {.out = O_IO(buf), .count=0};
 
-  retCode ret = ProcessTable((procFun) encodeEntry, manifest, &info);
+  retCode ret = processHashTable((procFun) encodeEntry, manifest, &info);
 
   if (ret == Ok) {
     ret = encodeLst(out, info.count);

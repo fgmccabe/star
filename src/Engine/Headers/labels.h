@@ -12,9 +12,10 @@
 #include "code.h"
 
 labelPo findLbl(const char *name, integer arity);
+integer labelHash(labelPo lbl);
 
-labelPo declareLbl(const char *name, integer arity);
-termPo declareEnum(const char *name, heapPo H);
+labelPo declareLbl(const char *name, integer arity, integer index);
+termPo declareEnum(const char *name, integer index, heapPo H);
 labelPo otherLbl(labelPo lbl,integer arity);
 labelPo tplLabel(integer arity);
 logical isTplLabel(labelPo lb);
@@ -22,6 +23,8 @@ logical isALabel(termPo t);
 
 integer labelArity(labelPo lbl);
 char *labelName(labelPo lbl);
+integer labelIndex(labelPo lbl);
+
 logical isLabel(labelPo lbl, char *nm, integer arity);
 integer fieldIndex(labelPo lbl, labelPo field);
 logical isRecordLabel(labelPo lbl);

@@ -12,7 +12,8 @@ star.compiler.assem{
 
   public codeSegment ::= method(termLbl,tipe,cons[assemOp]) |
     global(termLbl,tipe,cons[assemOp]) |
-    struct(termLbl,tipe,tipe).
+    struct(termLbl,integer,tipe,tipe) |
+    tipe(tipe,cons[(termLbl,tipe,integer)]).
 
   public assemOp ::=
 #(OpCodes)
@@ -25,38 +26,51 @@ star.compiler.assem{
   public assem:(codeSegment) => term.
   assem(method(Nm,Sig,Ins)) where
     (Lt0,_) .= findLit([],symb(Nm)) &&
-    (Code,Lts,Lns,Max,Lcs) .= mnem(Ins,genLblTbl(Ins,0,[]),Lt0,[],[],0,0,[]) =>
+    (_,Lbls) .= genLblTbl(Ins,0,[]) &&
+    (Code,Lts,Lns,Lcs,_,Max) .= assemBlock(Ins,Lbls,Lt0,[],[],0,0,[]) =>
     term(tLbl("method",7),
-      [symb(Nm),strg(encodeSignature(Sig)),intgr(Max),mkTpl(Code),litTbl(Lts),mkTpl(Lcs),
+      [symb(Nm),strg(encodeSignature(Sig)),intgr(Max),mkTpl(Code::cons[term]),litTbl(Lts),mkTpl({Lcl|Lcl in Lcs}),
             mkTpl(sortLines(Lns))]).
   assem(global(Nm,Sig,Ins)) where
     (Lt0,_) .= findLit([],symb(Nm)) &&
-    (Code,Lts,Lns,Max,Lcs) .= mnem(Ins,genLblTbl(Ins,0,[]),Lt0,[],[],0,0,[]) =>
+    (_,Lbls) .= genLblTbl(Ins,0,[]) &&
+    (Code,Lts,Lns,Lcs,_,Max) .= assemBlock(Ins,Lbls,Lt0,[],[],0,0,[]) =>
     term(tLbl("global",7),
-       [symb(Nm),strg(encodeSignature(Sig)),intgr(Max),mkTpl(Code),litTbl(Lts),mkTpl(Lcs),
+       [symb(Nm),strg(encodeSignature(Sig)),intgr(Max),mkTpl(Code::cons[term]),litTbl(Lts),mkTpl({Lcl|Lcl in Lcs}),
             mkTpl(sortLines(Lns))]).
-  assem(struct(Lbl,Tp,Flds)) =>
-    term(tLbl("struct",3),[symb(Lbl),strg(encodeSignature(Tp)),strg(encodeSignature(Flds))]).
+  assem(struct(Lbl,Ix,Tp,Flds)) =>
+    term(tLbl("struct",3),[symb(Lbl),intgr(Ix),strg(encodeSignature(Tp)),strg(encodeSignature(Flds))]).
 
-  private mnem:(cons[assemOp],map[string,integer],map[term,integer],map[term,integer],set[term],integer,integer,cons[term]) =>
-    (cons[term],map[term,integer],map[term,integer],integer,cons[term]).
-  mnem([],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => (reverse(Code),Lts,Lns,MxLcl,{Lcl|Lcl in Lcs}).
-  mnem([iLbl(_),..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code).
-  mnem([iLocal(Nm,Frm,End,Off),..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) where
+  private assemBlock:(cons[assemOp],map[string,integer],map[term,integer],map[term,integer],
+                      set[term],integer,integer,cons[integer]) =>
+                                        (multi[term],map[term,integer],map[term,integer],set[term],integer,integer).
+  assemBlock(Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (End,_).=genLblTbl(Code,Pc,[])
+    => mnem(Code,[],Lbls,Lts,Lns,Lcs,Pc,MxLcl,[End,..Ends]).
+
+  private mnem:(cons[assemOp],multi[term],map[string,integer],map[term,integer],map[term,integer],set[term],integer,integer,cons[integer]) =>
+    (multi[term],map[term,integer],map[term,integer],set[term],integer,integer).
+  mnem([],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,_) => (Code,Lts,Lns,Lcs,Pc,MxLcl).
+  mnem([iLbl(_),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends).
+  mnem([iLocal(Nm,Frm,End,Off),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where
     F ^= Lbls[Frm] &&
     T ^= Lbls[End] =>
-    mnem(Ins,Lbls,Lts,Lns,Lcs\+mkTpl([strg(Nm),intgr(F),intgr(T),intgr(Off)]),Pc,MxLcl,Code).
-  mnem([iLine(Lc),..Ins],Lbs,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem([idLine(Lc),..Ins],Lbs,Lts,Lns[mkTpl([Lc,intgr(Pc)])->Pc],Lcs,Pc,MxLcl,Code).
+    mnem(Ins,Code,Lbls,Lts,Lns,Lcs\+mkTpl([strg(Nm),intgr(F),intgr(T),intgr(Off)]),Pc,MxLcl,Ends).
+  mnem([iLine(Lc),..Ins],Code,Lbs,Lts,Lns,Lcs,Pc,MxLcl,Ends) =>
+    mnem([idLine(Lc),..Ins],Code,Lbs,Lts,Lns[mkTpl([Lc,intgr(Pc)])->Pc],Lcs,Pc,MxLcl,Ends).
 #(Mnem)
 
-  genLblTbl:(cons[assemOp],integer,map[string,integer]) => map[string,integer].
-  genLblTbl([],_,Lbls) => Lbls.
+  genLblTbl:(cons[assemOp],integer,map[string,integer]) => (integer,map[string,integer]).
+  genLblTbl([],Pc,Lbls) => (Pc,Lbls).
   genLblTbl([iLbl(al(Lbl)),..Ins],Pc,Lbls) =>
     genLblTbl(Ins,Pc,Lbls[Lbl->Pc]).
   genLblTbl([iLocal(_,_,_,_),..Ins],Pc,Lbls) =>
     genLblTbl(Ins,Pc,Lbls).
   genLblTbl([iLine(T),..Ins],Pc,Lbs) => genLblTbl([idLine(T),..Ins],Pc,Lbs).
 #(Lbls)
+
+  findEnd:(cons[integer],integer)=>integer.
+  findEnd([E,.._],0) => E.
+  findEnd([_,..Ends],Lvl) => findEnd(Ends,Lvl-1).
 
   findLit:(map[term,integer],term) => (map[term,integer],integer).
   findLit(Lts,T) where O ^= Lts[T] => (Lts,O).

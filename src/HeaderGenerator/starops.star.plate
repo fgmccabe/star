@@ -39,6 +39,9 @@ star.compiler.operators{
   oper:(string)=>cons[operator].
 #(Operators)  oper(_) default => [].
 
+  public multiTok:(string)=>option[cons[string]].
+#(Multi)  multiTok(_) default => .none.
+
   public isBracket:(string) => option[bracket].
 #(Brackets)  isBracket(_) default => .none.
 

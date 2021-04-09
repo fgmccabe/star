@@ -6,21 +6,20 @@ star.treelist{
   Balanced, supports addition on either end only.
   */
 
-  public all e ~~ tl[e] <~ {}.        -- only expose the type
-
   -- Constructors are not exposed directly
 
   -- the integer in the nodes denotes the size of the tree. Corresponds to the search key
 
-  private tlEmpty : all e ~~ () <=> tl[e].
-  private tlRed : all e ~~ (tl[e],integer,e,tl[e]) <=> tl[e].
-  private tlBlack : all e ~~ (tl[e],integer,e,tl[e]) <=> tl[e].
+  public tl[e] ::=        -- only expose the type
+    private .tlEmpty |
+      private tlRed(tl[e],integer,e,tl[e]) |
+      private tlBlack(tl[e],integer,e,tl[e]).
 
-  private tlColor ::= red | black.
+  private (tlColor ::= .red | .black).
 
   colorOf:all e ~~ (tl[e])=>tlColor.
-  colorOf(tlEmpty)=>black.
-  colorOf(tlRed(_,_,_,_)) => red.
+  colorOf(.tlEmpty)=>.black.
+  colorOf(tlRed(_,_,_,_)) => .red.
   colorOf(tlBlack(_,_,_,_)) => black.
 
   tlSize:all e ~~ (tl[e])=>integer.

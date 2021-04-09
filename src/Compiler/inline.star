@@ -14,13 +14,13 @@ star.compiler.inline{
 
   pickupDefn:(crDefn,map[string,crDefn])=>map[string,crDefn].
   pickupDefn(fnDef(Lc,Nm,Tp,Args,Val),Map) => Map[Nm->fnDef(Lc,Nm,Tp,Args,Val)].
-  pickupDefn(glbDef(Lc,Nm,Val),Map) => Map[crName(Nm)->glbDef(Lc,Nm,Val)].
+  pickupDefn(glbDef(Lc,Nm,Tp,Val),Map) => Map[Nm->glbDef(Lc,Nm,Tp,Val)].
 
   simplifyDefn:(crDefn,map[string,crDefn])=>crDefn.
   simplifyDefn(fnDef(Lc,Nm,Tp,Args,Val),Prog) =>
     fnDef(Lc,Nm,Tp,Args,simplifyExp(Val,Prog,3)).
-  simplifyDefn(glbDef(Lc,Vr,Val),Prog) =>
-    glbDef(Lc,Vr,simplifyExp(Val,Prog,3)).
+  simplifyDefn(glbDef(Lc,Nm,Tp,Val),Prog) =>
+    glbDef(Lc,Nm,Tp,simplifyExp(Val,Prog,3)).
   simplifyDef(D) default => D.
 
   -- There are three possibilities of a match ...

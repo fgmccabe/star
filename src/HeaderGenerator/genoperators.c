@@ -4,7 +4,8 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <stringBuffer.h>
-#include "trie.h"
+#include <assert.h>
+#include "stringTrie.h"
 #include "ooio.h"
 #include "formioP.h"
 #include "template.h"
@@ -62,13 +63,23 @@ typedef struct {
   integer priority;
 } BrktRecord, *bracketPo;
 
-static triePo tokenTrie;
+typedef struct {
+  char first[16];
+  int count;
+  char alts[8][16];
+} MultiToken, *multiTokPo;
+
+static stringTriePo tokenTrie;
+static hashPo multiTokens;
 static poolPo opPool;
 static hashPo operators;
 static hashPo bracketTbl;
 
+static void addMultiToken(char *token);
+
 static void initTries() {
-  tokenTrie = emptyTrie();
+  tokenTrie = emptyStringTrie();
+  multiTokens = newHash(16, (hashFun) uniHash, (compFun) uniCmp, Null);
 
   opPool = newPool(sizeof(TokenRecord), 128);
   operators = newHash(128, (hashFun) uniHash, (compFun) uniCmp, NULL);
@@ -138,7 +149,7 @@ static void dumpFollows(char *prefix, codePoint last, void *V, void *cl) {
 
 static void genFollows(ioPo out) {
   FollowCl cl = {out, out, "", "##"};
-  processTrie(tokenTrie, dumpFollows, &cl, True);
+  processStringTrie(tokenTrie, dumpFollows, &cl, True);
   outMsg(out, "%s", cl.sep);
 }
 
@@ -149,7 +160,7 @@ static void dumpFinal(char *prefix, codePoint last, void *V, void *cl) {
   if (op != NULL) {
     switch (genMode) {
       case genProlog:
-        outMsg(out, "  final('%P%#c',\"%P\").\t /* %s */\n", prefix, last, op->name, op->cmt);
+        outMsg(out, "  final('%P',\"%P\").\t /* %s */\n", op->name, op->name, op->cmt);
         break;
       case genStar:
         outMsg(out, "  final(\"%P\") => .true.  /* %s */\n", op->name, op->cmt);
@@ -162,7 +173,7 @@ static void dumpFinal(char *prefix, codePoint last, void *V, void *cl) {
 }
 
 static void genFinal(ioPo out) {
-  processTrie(tokenTrie, dumpFinal, out, False);
+  processStringTrie(tokenTrie, dumpFinal, out, False);
 }
 
 logical isAlphaNumeric(char *p) {
@@ -171,6 +182,69 @@ logical isAlphaNumeric(char *p) {
     return True;
   }
   return False;
+}
+
+logical isMultiToken(char *p) {
+  if (*p != '\0' && isalpha(*p)) {
+    integer pos = uniIndexOf(p, uniStrLen(p), 0, (codePoint) ' ');
+
+    if (pos > 0)
+      return True;
+  }
+  return False;
+}
+
+void addMultiToken(char *token) {
+  integer tLen = uniStrLen(token);
+  integer pos = uniIndexOf(token, tLen, 0, (codePoint) ' ');
+
+  if (pos > 0) {
+    assert(pos < 15);
+    char fragment[16];
+    uniNCpy(fragment, NumberOf(fragment), token, pos);
+
+    multiTokPo multi = (multiTokPo) hashGet(multiTokens, fragment);
+    if (multi == Null) {
+      multi = (multiTokPo) malloc(sizeof(MultiToken));
+      multi->count = 0;
+      strncpy(multi->first, fragment, NumberOf(multi->first));
+      hashPut(multiTokens, &multi->first, multi);
+    }
+    assert(multi->count < NumberOf(multi->alts));
+    strncpy(multi->alts[multi->count], &token[pos + 1], NumberOf(multi->alts[0]));
+    multi->count++;
+  }
+}
+
+static retCode procMulti(void *n, void *r, void *c) {
+  ioPo out = (ioPo) c;
+  multiTokPo b = (multiTokPo) r;
+
+  retCode ret = Ok;
+
+  switch (genMode) {
+    case genProlog:{
+      for(integer ix=0;ret==Ok & ix<b->count;ix++){
+        ret = outMsg(out,"  multiTok(\"%P\", \"%P\", \"%P %P\").\n",b->first,b->alts[ix],b->first,b->alts[ix]);
+      }
+      break;
+    }
+    case genStar:
+      ret = outMsg(out, "  multiTok(\"%P\") => some([",b->first);
+      char *sep = "";
+      for(integer ix=0;ret==Ok & ix<b->count;ix++){
+        ret = outMsg(out,"%s\"%P\"",sep,b->alts[ix]);
+        sep = ", ";
+      }
+      if(ret==Ok)
+        ret = outMsg(out,"]).\n");
+      break;
+    case genEmacs:
+    default:
+      break;
+  }
+
+  return ret;
 }
 
 static retCode pickKeywords(void *n, void *r, void *c);
@@ -204,8 +278,8 @@ int main(int argc, char **argv) {
       out = Stdout();
 
     // Load up the variable table
-    bufferPo operBuff = newStringBuffer();
-    ProcessTable(procOperator, operators, operBuff);
+    strBufferPo operBuff = newStringBuffer();
+    processHashTable(procOperator, operators, operBuff);
 
     integer len;
     char *allOps = getTextFromBuffer(operBuff, &len);
@@ -213,14 +287,19 @@ int main(int argc, char **argv) {
     hashPo vars = newHash(8, (hashFun) uniHash, (compFun) uniCmp, NULL);
     hashPut(vars, "Operators", allOps);
 
-    bufferPo bracketBuff = newStringBuffer();
-    ProcessTable(procBrackets, bracketTbl, bracketBuff);
+    strBufferPo bracketBuff = newStringBuffer();
+    processHashTable(procBrackets, bracketTbl, bracketBuff);
 
     char *allBkts = getTextFromBuffer(bracketBuff, &len);
     hashPut(vars, "Brackets", allBkts);
 
-    bufferPo keywordsBuff = newStringBuffer();
-    ProcessTable(pickKeywords, operators, keywordsBuff);
+    strBufferPo multiBuff = newStringBuffer();
+    processHashTable(procMulti, multiTokens, multiBuff);
+    char *allMulti = getTextFromBuffer(multiBuff, &len);
+    hashPut(vars, "Multi", allMulti);
+
+    strBufferPo keywordsBuff = newStringBuffer();
+    processHashTable(pickKeywords, operators, keywordsBuff);
     char *allKeywords = getTextFromBuffer(keywordsBuff, &len);
     hashPut(vars, "Keywords", allKeywords);
 
@@ -228,12 +307,12 @@ int main(int argc, char **argv) {
 
     // dumpTrie(tokenTrie,Stdout());
 
-    bufferPo followBuff = newStringBuffer();
+    strBufferPo followBuff = newStringBuffer();
     switch (genMode) {
       case genStar: {
-        bufferPo firstBuff = newStringBuffer();
+        strBufferPo firstBuff = newStringBuffer();
         FollowCl cl = {O_IO(firstBuff), O_IO(followBuff), "", "##"};
-        processTrie(tokenTrie, dumpFollows, &cl, True);
+        processStringTrie(tokenTrie, dumpFollows, &cl, True);
         outMsg(out, "%s", cl.sep);
         hashPut(vars, "Follows", getTextFromBuffer(followBuff, &len));
         hashPut(vars, "First", getTextFromBuffer(firstBuff, &len));
@@ -244,7 +323,7 @@ int main(int argc, char **argv) {
         hashPut(vars, "Follows", getTextFromBuffer(followBuff, &len));
     }
 
-    bufferPo finalBuff = newStringBuffer();
+    strBufferPo finalBuff = newStringBuffer();
     genFinal(O_IO(finalBuff));
     hashPut(vars, "Final", getTextFromBuffer(finalBuff, &len));
 
@@ -279,7 +358,9 @@ void genToken(char *op, char *cmt) {
   uniCpy(tk->cmt, NumberOf(tk->cmt), cmt);
 
   if (!isAlphaNumeric(op))
-    addToTrie(op, tk, tokenTrie);
+    addToStringTrie(op, tk, tokenTrie);
+  if (isMultiToken(op))
+    addMultiToken(op);
 }
 
 static opPo
@@ -287,7 +368,7 @@ genOper(char *op, char *ast, char *cmt, OperatorStyle style, int left, int prior
   opPo oper = (opPo) malloc(sizeof(Operator));
   strcpy(oper->name, op);
   strcpy(oper->ast, ast);
-  strcpy(oper->cmt,cmt);
+  strcpy(oper->cmt, cmt);
   oper->style = style;
   oper->left = left;
   oper->prior = prior;
@@ -410,18 +491,18 @@ static retCode procOperator(void *n, void *r, void *c) {
         switch (op->style) {
           case prefixOp: {
             char *type = (op->right == op->prior ? "associative" : "non-associative");
-            ret = outMsg(out, "@item @code{%I}\n@tab %s prefix\n@tab %d\n@tab %I\n", nm, type, op->prior,op->cmt);
+            ret = outMsg(out, "@item @code{%I}\n@tab %s prefix\n@tab %d\n@tab %I\n", nm, type, op->prior, op->cmt);
             break;
           }
           case infixOp: {
             char *type = (op->right == op->prior ? "right associative" :
                           op->left == op->prior ? "left associative" : "non-associative");
-            ret = outMsg(out, "@item @code{%I}\n@tab %s infix\n@tab %d\n@tab %I\n", nm, type, op->prior,op->cmt);
+            ret = outMsg(out, "@item @code{%I}\n@tab %s infix\n@tab %d\n@tab %I\n", nm, type, op->prior, op->cmt);
             break;
           }
           case postfixOp: {
             char *type = (op->left == op->prior ? "associative" : "non-associative");
-            ret = outMsg(out, "@item @code{%I}\n@tab %s postfix\n@tab %d\n@tab %I\n", nm, type, op->prior,op->cmt);
+            ret = outMsg(out, "@item @code{%I}\n@tab %s postfix\n@tab %d\n@tab %I\n", nm, type, op->prior, op->cmt);
             break;
           }
           default:
@@ -464,15 +545,14 @@ static retCode procKey(ioPo out, char *sep, opPo op) {
       static int col = 0;
       char *tag = "tab";
 
-      if (op->isKeyword && isUniIdentifier(op->name,uniStrLen(op->name))) {
+      if (op->isKeyword && isUniIdentifier(op->name, uniStrLen(op->name))) {
         if (col % 3 == 0) {
           col = 0;
           tag = "item";
         }
         col++;
         return outMsg(out, "@%s @code{%I}\n", tag, op->name);
-      }
-      else
+      } else
         return Ok;
     }
     case genEmacs:
@@ -488,11 +568,10 @@ retCode pickKeywords(void *n, void *r, void *c) {
   char *nm = (char *) n;
   retCode ret = Ok;
 
-  while (p != Null && ret == Ok) {
-    ret = procKey(out, "  ", p->op);
-    p = p->next;
-  }
-  return ret;
+  if(p!=Null)
+    return procKey(out," ",p->op);
+  else
+    return Error;
 }
 
 retCode procBrackets(void *n, void *r, void *c) {

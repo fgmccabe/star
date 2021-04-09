@@ -37,7 +37,7 @@ star.compiler.core{
   public crCase ~> (locn,crExp,crExp).
 
   public crDefn ::= fnDef(locn,string,tipe,cons[crVar],crExp) |
-    glbDef(locn,crVar,crExp) |
+    glbDef(locn,string,tipe,crExp) |
     rcDef(locn,string,tipe,tipe) |
   tpDef(locn,tipe,tipe).
 
@@ -54,9 +54,9 @@ star.compiler.core{
 	ss(Nm),ss("("),
 	ssSeq(interleave(Args//disp,ss(","))),ss(") => "),
 	dspExp(Rep,Off)]).
-  dspDef(glbDef(Lc,V,Rep),Off) =>
+  dspDef(glbDef(Lc,Nm,Tp,Rep),Off) =>
     ssSeq([ss("glb: "),disp(Lc),ss("\n"),
-	disp(V),ss("="),
+	ss(Nm),ss(":"),disp(Tp),ss("="),
 	dspExp(Rep,Off)]).
   dspDef(rcDef(Lc,Nm,Tp,Fields),Off) where Off2 .= Off++"  " =>
     ssSeq([ss("rec: "),disp(Lc),ss("\n"),
@@ -310,8 +310,8 @@ star.compiler.core{
 
   rwDef(fnDef(Lc,Nm,Tp,Args,Val),M) =>
     fnDef(Lc,Nm,Tp,Args,rwTerm(Val,M)).
-  rwDef(glbDef(Lc,V,Val),M) =>
-    glbDef(Lc,V,rwTerm(Val,M)).
+  rwDef(glbDef(Lc,Nm,Tp,Val),M) =>
+    glbDef(Lc,Nm,Tp,rwTerm(Val,M)).
 
   rwCase:(crCase,(crExp)=>option[crExp]) => crCase.
   rwCase((Lc,Ptn,Rp),T) => (Lc,rwTerm(Ptn,T),rwTerm(Rp,T)).
@@ -329,7 +329,7 @@ star.compiler.core{
 
   public implementation hasLoc[crDefn] => {
     locOf(fnDef(Lc,_,_,_,_)) => Lc.
-    locOf(glbDef(Lc,_,_)) => Lc.
+    locOf(glbDef(Lc,_,_,_)) => Lc.
   }
 
   public crName:(crVar) => string.

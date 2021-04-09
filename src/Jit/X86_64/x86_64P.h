@@ -125,7 +125,7 @@
 #define XOR_rm_r  0x31
 #define XOR_rm_imm 0x81
 
-codeLblPo preamble(codeCtxPo ctx, i32 lclCount);
+codeLblPo preamble(codeCtxPo ctx, int32 lclCount);
 retCode postamble(codeCtxPo ctx);
 
 #endif //STAR_X86_64P_H

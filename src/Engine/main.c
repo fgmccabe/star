@@ -11,6 +11,7 @@
 #include <consP.h>
 #include <formexts.h>
 #include <optionP.h>
+#include <continuationP.h>
 #include "capabilityP.h"
 #include "manifest.h"
 #include "clock.h"
@@ -46,6 +47,8 @@ int main(int argc, char **argv) {
   }
   initHistory(".star");
   initHeap(initHeapSize);
+  initStacks();
+  initContinuations();
   initArith();
   initStr();
   initLbls();

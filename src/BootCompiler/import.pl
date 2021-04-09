@@ -1,9 +1,10 @@
-:- module(import, [importAll/3,importPkg/4,loadPkg/4,
-		   loadPrologPkg/4,consultPrologPkg/3]).
+:- module(import, [importAll/3,importPkg/4,loadPkg/4]).
+
 
 :- use_module(resource).
 :- use_module(dict).
 :- use_module(errors).
+:- use_module(lterms).
 :- use_module(types).
 :- use_module(misc).
 :- use_module(uri).
@@ -42,7 +43,7 @@ pickupPkgSpec(Enc,Lc,Pkg,Imports,Face,Classes,Contracts,Implementations) :-
   pickupPkg(Pk,Pkg),
   pickupImports(Imps,Lc,Imports),
   pickupFace(FTps,Face),
-  pickupClasses(ClsSigs,Classes,[]),
+  pickupCnsMaps(ClsSigs,Classes,[]),
   pickupContracts(ConSigs,Contracts),
   pickupImplementations(ImplSigs,Implementations,[]).
 
@@ -69,43 +70,43 @@ pickupViz(enum("transitive"),transitive).
 pickupFace(strg(Sig),Type) :-
   decodeSignature(Sig,Type).
 
-pickupClasses([],Cls,Cls).
-pickupClasses([strg(Nm)|Rest],[Nm|More],Cls):-
-  pickupClasses(Rest,More,Cls).
+pickupCnsMaps([],Cls,Cls).
+pickupCnsMaps([ctpl(_,[strg(Nm),ctpl(_,CSigs)])|Rest],[(Nm,Ctors)|More],Cls):-
+  pickupCtors(CSigs,Ctors,[]),
+  pickupCnsMaps(Rest,More,Cls).
+
+pickupCtors([],Cnx,Cnx).
+pickupCtors([ctpl(_,[strg(Nm),strg(FlNm),strg(Sig)])|Rest],[(Nm,FlNm,Tp)|More],Cnx):-
+  decodeSignature(Sig,Tp),
+  pickupCtors(Rest,More,Cnx).
 
 pickupContracts(C,Cons) :-
   findContracts(C,Cons,[]).
 
 findContracts([],C,C).
-findContracts([ctpl(_,[strg(Nm),strg(CnNm),strg(Sig)])|M],[conDef(Nm,CnNm,Spec)|C],Cx) :-
+findContracts([ctpl(_,[LTrm,strg(Nm),strg(CnNm),strg(TSig),strg(Sig)])|M],
+	      [conDef(Lc,Nm,CnNm,CnTp,Spec)|C],Cx) :-
   decodeSignature(Sig,Spec),
+  decodeSignature(TSig,CnTp),
+  locTerm(Lc,LTrm),
   findContracts(M,C,Cx).
 
 pickupImplementations([],I,I).
-pickupImplementations([ctpl(_,[strg(Nm),strg(FNm),strg(Sig)])|M],[imp(Nm,FNm,Spec)|I],RI) :-
+pickupImplementations([ctpl(lbl("imp",3),[strg(Nm),strg(FNm),strg(Sig)])|M],[imp(Nm,FNm,Spec)|I],RI) :-
   decodeSignature(Sig,Spec),
   pickupImplementations(M,I,RI).
-
-loadPrologPkg(Pkg,Repo,Code,Imports) :-
-  openPrologPackageAsStream(Repo,Pkg,_,_,Strm),
-  read(Strm,SigTerm),
-  pickupPkgSpec(SigTerm,Pkg,Imports,_,_,_,_,_),
-  loadCode(Strm,Code),
-  close(Strm).
+pickupImplementations([ctpl(lbl("acc",3),
+			    [strg(Sig),strg(Fld),strg(Fn),strg(AccSig)])|M],
+		      [acc(Tp,Fld,Fn,AccTp)|I],RI) :-
+  decodeSignature(Sig,Tp),
+  decodeSignature(AccSig,AccTp),
+  pickupImplementations(M,I,RI).
 
 loadCode(Strm,[]) :-
   at_end_of_stream(Strm).
 loadCode(Strm,[Term|M]) :-
   read(Strm,Term),
   loadCode(Strm,M).
-
-consultPrologPkg(Pkg,Repo,Imports) :-
-  openPrologPackageAsStream(Repo,Pkg,_,_,Strm),
-  packageName(Pkg,Nm),
-  read(Strm,SigTerm),
-  pickupPkgSpec(SigTerm,Pkg,Imports,_,_,_,_,_),
-  load_files(Nm,[stream(Strm)]),
-  close(Strm).
 
 packageName(pkg(Nm,_),N) :-
   atom_string(N,Nm).

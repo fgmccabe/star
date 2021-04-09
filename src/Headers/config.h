@@ -44,6 +44,8 @@ typedef unsigned short uint16;
 typedef unsigned int uint32;
 
 /* Define with a type that is 64 bits long */
+typedef long long int64;
+
 typedef unsigned long long uint64;
 
 #define VERIFY_OBJECT

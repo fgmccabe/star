@@ -19,7 +19,6 @@ typedef struct string_term {
 
 extern void initStr();
 
-
 #define StringCellCount(len) CellCount(sizeof(StringRecord)+(len)*sizeof(char))
 
 #endif //STAR_STRP_H

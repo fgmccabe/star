@@ -67,9 +67,9 @@ retCode decodeInteger(ioPo in, integer *ix) {
     return Fail;
 }
 
-retCode decodeText(ioPo in, bufferPo buffer) {
+retCode decodeText(ioPo in, strBufferPo buffer) {
   codePoint delim;
-  clearBuffer(buffer);
+  clearStrBuffer(buffer);
 
   retCode ret = inChar(in, &delim);
 
@@ -89,9 +89,21 @@ retCode decodeText(ioPo in, bufferPo buffer) {
 
 retCode decodeString(ioPo in, char *buffer, integer buffLen) {
   if (isLookingAt(in, "s") == Ok) {
-    bufferPo b = fixedStringBuffer(buffer, buffLen);
+    strBufferPo b = fixedStringBuffer(buffer, buffLen);
     retCode ret = decodeText(in, b);
-    outChar(O_IO(b), 0);
+    if(ret==Ok)
+      ret = outByte(O_IO(b),0);
+    closeFile(O_IO(b));
+    return ret;
+  } else
+    return Fail;
+}
+
+retCode decodeName(ioPo in, char *buffer, integer buffLen, integer *length) {
+  if (isLookingAt(in, "s") == Ok) {
+    strBufferPo b = fixedStringBuffer(buffer, buffLen);
+    retCode ret = decodeText(in, b);
+    *length = strBufferLength(b);
     closeFile(O_IO(b));
     return ret;
   } else
@@ -99,7 +111,7 @@ retCode decodeString(ioPo in, char *buffer, integer buffLen) {
 }
 
 retCode decFlt(ioPo in, double *dx) {
-  bufferPo tmpBuffer = newStringBuffer();
+  strBufferPo tmpBuffer = newStringBuffer();
   retCode ret = decodeText(in, tmpBuffer);
 
   if (ret == Ok) {
@@ -112,10 +124,10 @@ retCode decFlt(ioPo in, double *dx) {
   return ret;
 }
 
-static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buff, char *errorMsg, integer msgLen);
+static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, strBufferPo buff, char *errorMsg, integer msgLen);
 
 retCode streamDecode(ioPo in, decodeCallBackPo cb, void *cl, char *errorMsg, integer msgLen) {
-  bufferPo strBuffer = newStringBuffer();
+  strBufferPo strBuffer = newStringBuffer();
   retCode ret = cb->startDecoding(cl);
 
   if (ret == Ok)
@@ -128,7 +140,7 @@ retCode streamDecode(ioPo in, decodeCallBackPo cb, void *cl, char *errorMsg, int
   return ret;
 }
 
-static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buff, char *errorMsg, integer msgLen) {
+static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, strBufferPo buff, char *errorMsg, integer msgLen) {
   codePoint ch;
   retCode res = inChar(in, &ch);
 
@@ -153,7 +165,7 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
       return res;
     }
     case enuTrm: {
-      clearBuffer(buff);
+      clearStrBuffer(buff);
 
       res = decodeText(in, buff);
 
@@ -166,7 +178,7 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
     }
     case lblTrm: {
       integer arity;
-      clearBuffer(buff);
+      clearStrBuffer(buff);
 
       if ((res = decInt(in, &arity)) != Ok) /* How many arguments in the class */
         return res;
@@ -181,7 +193,7 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
       return res;
     }
     case recLbl: {
-      clearBuffer(buff);
+      clearStrBuffer(buff);
       res = decodeText(in, buff);
 
       if (res == Ok) {
@@ -215,7 +227,7 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
       return res;
     }
     case strTrm: {
-      clearBuffer(buff);
+      clearStrBuffer(buff);
       res = decodeText(in, buff);
 
       if (res == Ok) {
@@ -459,14 +471,14 @@ retCode decodeLbl(ioPo in, char *nm, long nmLen, integer *arity,
     if (ret != Ok)
       return ret;
     else {
-      bufferPo pkgB = fixedStringBuffer(nm, nmLen);
+      strBufferPo pkgB = fixedStringBuffer(nm, nmLen);
       ret = decodeText(O_IO(in), pkgB);
       outByte(O_IO(pkgB), 0);
       closeFile(O_IO(pkgB));
       return ret;
     }
   } else if (isLookingAt(in, "e") == Ok) {
-    bufferPo pkgB = fixedStringBuffer(nm, nmLen);
+    strBufferPo pkgB = fixedStringBuffer(nm, nmLen);
     retCode ret = decodeText(O_IO(in), pkgB);
     outByte(O_IO(pkgB), 0);
     closeFile(O_IO(pkgB));

@@ -1,5 +1,7 @@
 :- module(location,[locOf/2, mergeLoc/3,
-		    showLocation/3,lcLine/2,lcColumn/2,lcSize/2,lcOff/2,isLocation/1,
+		    showLocation/3,
+		    ssLoc/2,
+		    lcLine/2,lcColumn/2,lcSize/2,lcOff/2,isLocation/1,
 		   pkgLoc/2]).
 
 :- use_module(misc).
@@ -28,6 +30,12 @@ showLocation(loc(Pk,Ln,Col,Pos,Sz),O,E) :-
   appStr("]",O8,E).
 showLocation(missing,O,Ox) :-
   appStr("unknown location",O,Ox).
+
+
+ssLoc(loc(Pk,Ln,Col,Pos,Sz),
+      sq([ss(Pk),ss("["),ix(Ln),ss(":"),ix(Col),ss("@"),
+	  ix(Pos),ss("-"),ix(Sz),ss("]")])).
+ssLoc(missing,ss("unknown location")).
 
 lcPk(loc(Pk,_,_,_,_),Pk).
 lcLine(loc(_,Ln,_,_,_),Ln).

@@ -5,7 +5,7 @@
 :- use_module(wff).
 :- use_module(misc).
 :- use_module(errors).
-:- use_module(display).
+:- use_module(astdisp).
 
 mkWherePtn(Lc,Ptn,Ex,Ptrn) :-
   genIden(Lc,V), % create a new variable
@@ -72,8 +72,8 @@ synthesize_main(Lc,Ts,As,[MainTp,Main|As]) :-
   roundTuple(Lc,[],Unit),
   binary(Lc,"=>",T3,Unit,TU),
   binary(Lc,":",name(Lc,"_main"),TU,MainTp).
-%  display(Main),
-%  display(MainTp).
+%  astDisp(Main),
+%  astDisp(MainTp).
   
 synthesize_coercions([],[],[]).
 synthesize_coercions([T|Ts],[V|Vs],[C|Cs]) :-
@@ -134,3 +134,4 @@ sameTypes([],[]).
 sameTypes([T1|Ts1],[T2|Ts2]) :-
   sameType(T1,T2),
   sameTypes(Ts1,Ts2).
+

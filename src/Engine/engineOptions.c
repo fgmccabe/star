@@ -300,7 +300,7 @@ static retCode setRootCapability(char *option, logical enable, void *cl) {
 
 static retCode setBootPkg(char *option, logical enable, void *cl) {
   tryRet(parsePkg(option, uniStrLen(option), &bootPkge));
-  strMsg(bootEntry, NumberOf(bootEntry), "%s#_boot", bootPkge.packageName);
+  strMsg(bootEntry, NumberOf(bootEntry), "%s@_boot", bootPkge.packageName);
   return Ok;
 }
 

@@ -144,7 +144,7 @@ ReturnStatus g__stringOf(processPo p, ptrPo tos) {
   termPo t = tos[0];
   integer depth = integerVal(Arg2);
 
-  bufferPo strb = newStringBuffer();
+  strBufferPo strb = newStringBuffer();
   retCode ret = dispTerm(O_IO(strb), t, 0, depth, False);
 
   integer oLen;
@@ -206,7 +206,7 @@ void dS(termPo w) {
 ReturnStatus g__implode(processPo p, ptrPo tos) {
   termPo list = tos[0];
 
-  bufferPo strb = newStringBuffer();
+  strBufferPo strb = newStringBuffer();
 
   while (isCons(list)) {
     normalPo pr = C_NORMAL(list);
@@ -421,10 +421,10 @@ ReturnStatus g__str_start(processPo p, ptrPo tos) {
     .result=(uniIsPrefix(lhs, llen, rhs, rlen) ? trueEnum : falseEnum)};
 }
 
-static retCode flatten(bufferPo str, termPo t);
+static retCode flatten(strBufferPo str, termPo t);
 
 ReturnStatus g__str_multicat(processPo p, ptrPo tos) {
-  bufferPo strb = newStringBuffer();
+  strBufferPo strb = newStringBuffer();
 
   retCode ret = flatten(strb, tos[0]);
 
@@ -437,7 +437,7 @@ ReturnStatus g__str_multicat(processPo p, ptrPo tos) {
   return rt;
 }
 
-retCode flatten(bufferPo str, termPo t) {
+retCode flatten(strBufferPo str, termPo t) {
   if (isCons(t)) {
     retCode ret = Ok;
     while (ret == Ok && isCons(t)) {
@@ -465,7 +465,7 @@ retCode flatten(bufferPo str, termPo t) {
 }
 
 ReturnStatus g__str_flatten(processPo p, ptrPo tos) {
-  bufferPo str = newStringBuffer();
+  strBufferPo str = newStringBuffer();
 
   retCode ret = flatten(str, tos[0]);
 

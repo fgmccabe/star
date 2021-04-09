@@ -6,6 +6,7 @@
 #define STAR_ENGINEP_H
 
 #include "engine.h"
+#include "stackP.h"
 #include "termP.h"
 #include "pkgP.h"
 #include "codeP.h"
@@ -18,6 +19,7 @@
 
 typedef struct processRec_ {
   insPo pc;           /* current program counter */
+  stackPo stk;        // Current stack
   framePo fp;         /* current frame */
   methodPo prog;      /* current program */
   ptrPo sp;           /* current top of stack */

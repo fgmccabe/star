@@ -2,7 +2,7 @@
  * trie structure
  */
 
-#include "trieP.h"
+#include "stringTrieP.h"
 #include "pool.h"
 #include <stdlib.h>
 #include <string.h>
@@ -13,14 +13,14 @@ static poolPo triePool;
 
 static void init() {
   if (triePool == NULL) {
-    triePool = newPool(sizeof(TrieRec), 1024);
+    triePool = newPool(sizeof(StringTrieRec), 1024);
   }
 }
 
-static triePo emptyTr(char *prefix) {
+static stringTriePo emptyTr(char *prefix) {
   init();
 
-  triePo emptyTr = (triePo) allocPool(triePool);
+  stringTriePo emptyTr = (stringTriePo) allocPool(triePool);
 
   emptyTr->prefix = prefix;
   emptyTr->follows = NULL;
@@ -28,7 +28,7 @@ static triePo emptyTr(char *prefix) {
   return emptyTr;
 }
 
-triePo emptyTrie() {
+stringTriePo emptyStringTrie() {
   return emptyTr("");
 }
 
@@ -49,7 +49,7 @@ static comparison charComp(void *l, void *r) {
     return bigger;
 }
 
-static void addToTr(char *key, integer pos, integer limit, void *value, triePo trie) {
+static void addToTr(char *key, integer pos, integer limit, void *value, stringTriePo trie) {
   if (pos >= limit) {
     trie->value = value;
   } else {
@@ -59,7 +59,7 @@ static void addToTr(char *key, integer pos, integer limit, void *value, triePo t
     integer xp = pos;
     codePoint cp = nextCodePoint(key, &pos, limit);
 
-    triePo follows = (triePo) hashGet(trie->follows, (void *) (integer) cp);
+    stringTriePo follows = (stringTriePo) hashGet(trie->follows, (void *) (integer) cp);
     if (follows == NULL) {
       char *prefix = (char *) calloc((size_t) (pos + 1), sizeof(byte));
       for (int ix = 0; ix < xp; ix++)
@@ -72,11 +72,11 @@ static void addToTr(char *key, integer pos, integer limit, void *value, triePo t
   }
 }
 
-void addToTrie(char *key, void *value, triePo trie) {
+void addToStringTrie(char *key, void *value, stringTriePo trie) {
   addToTr(key, 0, (integer) strlen(key), value, trie);
 }
 
-static void *trieFind(char *key, integer pos, integer limit, triePo trie) {
+static void *trieFind(char *key, integer pos, integer limit, stringTriePo trie) {
   if (trie == NULL)
     return NULL;
   else if (pos >= limit)
@@ -84,7 +84,7 @@ static void *trieFind(char *key, integer pos, integer limit, triePo trie) {
   else {
     codePoint cp = nextCodePoint(key, &pos, limit);
 
-    triePo next = (triePo) hashGet(trie->follows, (void *) (integer) cp);
+    stringTriePo next = (stringTriePo) hashGet(trie->follows, (void *) (integer) cp);
     if (next != NULL)
       return trieFind(key, pos, limit, next);
     else
@@ -92,7 +92,7 @@ static void *trieFind(char *key, integer pos, integer limit, triePo trie) {
   }
 }
 
-void *findInTrie(char *key, triePo trie) {
+void *findInStringTrie(char *key, stringTriePo trie) {
   integer limit = (integer) strlen(key);
   integer pos = 0;
   return trieFind(key, pos, limit, trie);
@@ -100,24 +100,24 @@ void *findInTrie(char *key, triePo trie) {
 
 typedef struct {
   void *cl;
-  trieProc proc;
+  stringTrieProc proc;
   logical breadthFirst;
 } ClRecord, *clPo;
 
 static retCode trieEntryProc(void *n, void *v, void *cl) {
-  triePo T = (triePo) v;
+  stringTriePo T = (stringTriePo) v;
   clPo P = (clPo) cl;
 
   P->proc(T->prefix, (codePoint)((long)n), T->value, P->cl);
   if (T->follows != NULL) {
-    return ProcessTable(trieEntryProc, T->follows, cl);
+    return processHashTable(trieEntryProc, T->follows, cl);
   }
   return Ok;
 }
 
 static retCode procEntries(void *n, void *v, void *cl) {
   codePoint cp = (codePoint) ((long)n);
-  triePo T = (triePo) v;
+  stringTriePo T = (stringTriePo) v;
   clPo P = (clPo) cl;
 
   P->proc(T->prefix, cp, T->value, P->cl);
@@ -125,33 +125,33 @@ static retCode procEntries(void *n, void *v, void *cl) {
 }
 
 static retCode procTree(void *n, void *v, void *cl) {
-  triePo T = (triePo) v;
+  stringTriePo T = (stringTriePo) v;
   clPo P = (clPo) cl;
-  processTrie(T, P->proc, P->cl, P->breadthFirst);
+  processStringTrie(T, P->proc, P->cl, P->breadthFirst);
   return Ok;
 }
 
 static retCode procDeeper(void *n, void *v, void *cl) {
-  triePo T = (triePo) v;
+  stringTriePo T = (stringTriePo) v;
   clPo P = (clPo) cl;
 
   if (T->follows != NULL) {
-    processTrie(T, P->proc, P->cl, True);
+    processStringTrie(T, P->proc, P->cl, True);
   }
   return Ok;
 }
 
-void processTrie(triePo trie, trieProc proc, void *cl, logical breadthFirst) {
+void processStringTrie(stringTriePo trie, stringTrieProc proc, void *cl, logical breadthFirst) {
   if (trie != NULL) {
     ClRecord Cl = {cl, proc, breadthFirst};
 
     if (breadthFirst) {
       if (trie->follows != NULL) {
-        ProcessTable(procEntries, trie->follows, &Cl);
-        ProcessTable(procDeeper, trie->follows, &Cl);
+        processHashTable(procEntries, trie->follows, &Cl);
+        processHashTable(procDeeper, trie->follows, &Cl);
       }
     } else {
-      ProcessTable(trieEntryProc, trie->follows, (void *) &Cl);
+      processHashTable(trieEntryProc, trie->follows, (void *) &Cl);
     }
   }
 }
@@ -161,7 +161,7 @@ static void showEntry(char *prefix, codePoint last, void *v, void *cl) {
   outMsg(out, "%s%C\n", prefix, last);
 }
 
-void dumpTrie(triePo trie, ioPo out) {
-  processTrie(trie, showEntry, out, False);
+void dumpStringTrie(stringTriePo trie, ioPo out) {
+  processStringTrie(trie, showEntry, out, False);
   flushOut();
 }

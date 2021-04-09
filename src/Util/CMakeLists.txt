@@ -26,6 +26,8 @@ set(PUBLIC_HEADERS
         Headers/managed.h Headers/object.h
         Headers/pair.h
         Headers/pool.h Headers/retcode.h Headers/pipe.h
+        Headers/byteBuffer.h
+        Headers/wordBuffer.h
         Headers/stringBuffer.h
         Headers/timer.h
         Headers/unistr.h Headers/utils.h
@@ -41,6 +43,8 @@ set(HEADER_FILES
         Headers/managedP.h Headers/objectP.h
         Headers/pairP.h
         Headers/pipeP.h
+        Headers/byteBufferP.h
+        Headers/wordBufferP.h
         Headers/stringBufferP.h
         Headers/unistrP.h
         Headers/pp.h
@@ -69,6 +73,8 @@ set(SOURCE_FILES
         pipe.c
         pool.c
         sockets.c
+        byteBuffer.c
+        wordBuffer.c
         stringBuffer.c
         template.c
         timer.c

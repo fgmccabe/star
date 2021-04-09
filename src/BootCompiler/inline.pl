@@ -40,7 +40,7 @@ inlineExp(over(Lc,Nm,Cx,Tp),Env,Max,over(Lc,Nm,Cx,Tp),T,T) :-!,
   reportWarning("unresolved expression %s",[Nm],Lc).
 inlineExp(where(Lc,T,C),Env,Max,Rep,Trg,Tx) :- !,
   inlineExp(T,Env,Max,RT,Trg,T0),
-  inlineExp(C,Env,Max,RC,T0,T1),
+  inlineGuard(C,Env,Max,RC,T0,T1),
   applyWhere(Lc,RT,RC,Env,Max,Rep,T1,Tx).
 inlineExp(conj(Lc,L,R),Env,Max,Rep,Trg,Tx) :-!,
   inlineExp(L,Env,Max,RL,Trg,T0),
@@ -70,7 +70,7 @@ inlineExp(search(Lc,L,R),Env,Max,Rep,Trg,Tx) :-!,
   inlinePtn(L,Env,Max,RL,Trg,T0),
   inlineExp(R,Env,Max,RR,T0,T1),
   applySearch(Lc,RL,RR,Env,Max,Reg,T1,Tx).
-inlineExp(lambda(Lc,Rle,Tp),Env,Max,lambda(Lc,RRle,Tp),Trg,Tx) :- !,
+inlineExp(lambda(Lc,Lbl,Rle,Tp),Env,Max,lambda(Lc,Lbl,RRle,Tp),Trg,Tx) :- !,
   inlineRule(Rle,Env,Max,RRle,Trg,Tx).
 inlineExp(theta(Lc,Path,Defs,Tp),Env,Max,theta(Lc,Path,RDefs,Tp),Trg,Tx) :-
   inlineDefs(Defs,Env,Max,RDefs,Trg,Tx).
@@ -156,7 +156,7 @@ rewriteTerm(letExp(Lc,Env,Bound),Env,letExp(Lc,REnv,RBound)) :-
   rewriteTerm(Bound,Env,RBound).
 rewriteTerm(where(Lc,Trm,Cond),Env,where(Lc,RTrm,RCond)) :-
   rewriteTerm(Trm,Env,RTrm),
-  rewriteTerm(Cond,Env,RCond).
+  rewriteGuard(Cond,Env,RCond).
 rewriteTerm(conj(Lc,L,R),Env,conj(Lc,RL,RR)) :-
   rewriteTerm(L,Env,RL),
   rewriteTerm(R,Env,RR).
@@ -191,7 +191,7 @@ rewriteTerm(abstraction(Lc,B,C,Zed,Gen,Tp),
 rewriteTerm(apply(Lc,Op,Args,Tp),Env,apply(Lc,ROp,RArgs,Tp)) :-
   rewriteTerm(Op,Env,ROp),
   rewriteTerm(Args,Env,RArgs).
-rewriteTerm(lambda(Lc,Eqn,Tp),Env,lambda(Lc,OEqn,Tp)) :-
+rewriteTerm(lambda(Lc,Lbl,Eqn,Tp),Env,lambda(Lc,Lbl,OEqn,Tp)) :-
   rewriteRule(Eqn,Env,OEqn).
 rewriteTerm(doTerm(Lc,Body,ElTp,ErTp,Con),Env,doTerm(Lc,RBody,ElTp,ErTp,Con)) :-
   rewriteAction(Body,Env,RBody).
@@ -212,12 +212,10 @@ rewriteDef(funDef(Lc,Nm,FullNm,Tp,Cx,Eqns),Env,
 rewriteDef(varDef(Lc,Nm,FullNm,Cx,Tp,Val),Env,
 	   varDef(Lc,Nm,FullNm,Tp,Cx,RVal)) :-
   rewriteTerm(Val,Env,RVal).
-rewriteDef(cnsDef(Lc,Nm,V,Tp),_,cnsDef(Lc,Nm,V,Tp)).
+rewriteDef(cnsDef(Lc,Nm,V),_,cnsDef(Lc,Nm,V)).
 rewriteDef(typeDef(Lc,Nm,Tp,Rl),_,typeDef(Lc,Nm,Tp,Rl)).
 rewriteDef(conDef(Lc,Nm,Tp),_,conDef(Lc,Nm,Tp)).
 rewriteDef(implDef(Nm,Con,Impl,Spec),_,implDef(Nm,Con,Impl,Spec)).
-
-
 
 applyOp(Lc,v(VLc,Nm,Tp),Args,Env,Max,Rep0,_,Tx) :-
   defInEnv(Nm,Env,Eqns),
@@ -232,12 +230,13 @@ findCandidate(Args,Env,Eqns,Cand) :-
 
 isCandidate(Args,Env,Eqn,(E1,SCond,SVal)) :-
   exclusions(Env,Excl),
-  freeVars(lambda(_,Eqn,_),[],Excl,[],FV),
+  freeVars(lambda(_,_,Eqn,_),[],Excl,[],FV),
   genVars(FV,Q),
   pushBindings(Q,Env,E0),
-  rewriteTerm(lamdba(_,Eqn,_),E0,lamdba(_,equation(Lc,EArgs,ECond,EVal),_)),
+  rewriteTerm(lamdba(_,Eqn,G,_),E0,
+	      lamdba(_,equation(Lc,EArgs,EG,ECond,EVal),_)),
   matchTerm(EArgs,Args,E0,E1),
-  rewriteTerm(ECond,E1,SCond),
+  rewriteGuard(ECond,E1,SCond),
   rewriteTerm(EVal,E1,SVal).
 
 varInEnv(Nm,inlines(Vars,_),Val) :-

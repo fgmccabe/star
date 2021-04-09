@@ -170,41 +170,41 @@ void emitU8(codeCtxPo ctx, u8 byte) {
   ctx->bytes[ctx->pc++] = byte;
 }
 
-void emitU16(codeCtxPo ctx, u16 word) {
+void emitU16(codeCtxPo ctx, uint16 word) {
   emitU8(ctx, word & 0xffu);
   emitU8(ctx, (u8) (word >> 8u));
 }
 
-void emitU32(codeCtxPo ctx, u32 word) {
+void emitU32(codeCtxPo ctx, uint32 word) {
   emitU16(ctx, word & 0xffffu);
-  emitU16(ctx, (u16) (word >> 16u));
+  emitU16(ctx, (uint16) (word >> 16u));
 }
 
-void emitU64(codeCtxPo ctx, u64 word) {
+void emitU64(codeCtxPo ctx, uint64 word) {
   emitU32(ctx, word & 0xffffffffu);
-  emitU32(ctx, (u32) (word >> 32u));
+  emitU32(ctx, (uint32) (word >> 32u));
 }
 
-void updateU32(codeCtxPo ctx, integer pc, u32 word) {
+void updateU32(codeCtxPo ctx, integer pc, uint32 word) {
   ctx->bytes[pc++] = (word & 0xffu);
   ctx->bytes[pc++] = (word >> 8u) & 0xffu;
   ctx->bytes[pc++] = (word >> 16u) & 0xffu;
   ctx->bytes[pc] = (word >> 23u) & 0xffu;
 }
 
-u32 readCtxAtPc(codeCtxPo ctx, integer pc) {
+uint32 readCtxAtPc(codeCtxPo ctx, integer pc) {
   check(pc >= 0 && pc <= ctx->pc - 4, "pc out of bounds");
   return ((unsigned) ctx->bytes[pc]) | (unsigned) (ctx->bytes[pc + 1] << 8u) | (unsigned) (ctx->bytes[pc + 2] << 16u) |
          (unsigned) (ctx->bytes[pc + 3] << 24u);
 }
 
-logical isByte(i64 x) {
+logical isByte(int64 x) {
   return x >= -128 && x < 128;
 }
 
 #define MAX_I32 0x7fffffffl
 #define MIN_I32 -0x80000000l
 
-logical isI32(i64 x) {
+logical isI32(int64 x) {
   return x >= MIN_I32 && x <= MAX_I32;
 }

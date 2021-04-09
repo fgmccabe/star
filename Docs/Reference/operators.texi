@@ -2,6 +2,10 @@
 @caption{Standard Operators}
 @multitable {implementation}{non-associative prefix}{1010}{Apply optional function and match result}
 @headitem Operator @tab Form @tab Priority @tab Description
+@item @code{has type}
+@tab non-associative infix
+@tab 1250
+@tab type annotation
 @item @code{all}
 @tab non-associative prefix
 @tab 1010
@@ -90,6 +94,10 @@
 @tab non-associative infix
 @tab 1200
 @tab dependent type marker
+@item @code{has kind}
+@tab non-associative infix
+@tab 1250
+@tab type annotation
 @item @code{=!=}
 @tab non-associative infix
 @tab 900
@@ -477,31 +485,30 @@
 @item @code{all}
 @tab @code{throw}
 @tab @code{do}
-@item @code{do}
-@tab @code{import}
+@item @code{import}
 @tab @code{catch}
-@item @code{valis}
-@tab @code{for}
+@tab @code{valis}
+@item @code{for}
 @tab @code{then}
-@item @code{default}
-@tab @code{contract}
+@tab @code{default}
+@item @code{contract}
 @tab @code{val}
-@item @code{try}
-@tab @code{exists}
+@tab @code{try}
+@item @code{exists}
 @tab @code{if}
-@item @code{in}
-@tab @code{open}
+@tab @code{in}
+@item @code{open}
 @tab @code{public}
-@item @code{ref}
-@tab @code{where}
+@tab @code{ref}
+@item @code{where}
 @tab @code{case}
-@item @code{valof}
-@tab @code{until}
+@tab @code{valof}
+@item @code{until}
 @tab @code{while}
-@item @code{private}
-@tab @code{type}
+@tab @code{private}
+@item @code{type}
 @tab @code{implementation}
-@item @code{else}
+@tab @code{else}
 
 @end multitable
 @end float

@@ -18,15 +18,6 @@ typedef struct assem_lbl *codeLblPo;
 typedef unsigned char u8;
 typedef signed char i8;
 
-typedef int16 i16;
-typedef uint16 u16;
-
-typedef uint32 u32;
-typedef int32 i32;
-
-typedef int64 i64;
-typedef uint64 u64;
-
 typedef enum {
   int64Tp,
   fltTp,
@@ -44,7 +35,7 @@ typedef struct {
   lType type;
   srcLoc loc;
   termPo litrl;
-  i32 ix;
+  int32 ix;
 } vOperand;
 
 typedef struct jit_compiler_ {
@@ -68,11 +59,11 @@ typedef struct assem_lbl {
 } AssemLblRecord;
 
 void emitU8(codeCtxPo ctx, u8 byte);
-void emitU16(codeCtxPo ctx, u16 word);
-void emitU32(codeCtxPo ctx, u32 word);
-void emitU64(codeCtxPo ctx, u64 word);
-void updateU32(codeCtxPo ctx, integer pc, u32 word);
-u32 readCtxAtPc(codeCtxPo ctx, integer pc);
+void emitU16(codeCtxPo ctx, uint16 word);
+void emitU32(codeCtxPo ctx, uint32 word);
+void emitU64(codeCtxPo ctx, uint64 word);
+void updateU32(codeCtxPo ctx, integer pc, uint32 word);
+uint32 readCtxAtPc(codeCtxPo ctx, integer pc);
 
 jitCompPo jitContext(methodPo mtd);
 
@@ -98,8 +89,8 @@ typedef struct lbl_ref {
   integer pc;
 } AssemLblRefRecord;
 
-logical isByte(i64 x);
-logical isI32(i64 x);
+logical isByte(int64 x);
+logical isI32(int64 x);
 
 
 #endif //STAR_JITP_H

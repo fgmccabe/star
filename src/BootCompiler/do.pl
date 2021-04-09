@@ -20,7 +20,7 @@ genAction(returnDo(Lc,A,ExTp,VlTp,ErTp),Contract,Cont,Exp,_) :-
   (Cont = noDo(_) ; reportError("valis: %s must be last action",[A],Lc)),
   genReturn(Lc,A,ExTp,VlTp,ErTp,Contract,Exp).
 /* X<-E --> _sequence(E,(X)=>Cont) */
-genAction(bindDo(Lc,Ptn,Gen,ExTp),Contract,Cont,Exp,_) :-
+genAction(bindDo(Lc,Ptn,Gen,ExTp),Contract,Cont,Exp,Path) :-
   (Cont = noDo(_) ->
    reportError("bind: %s<-%s may not be last action",[Ptn,Gen],Lc);
    true),
@@ -28,20 +28,22 @@ genAction(bindDo(Lc,Ptn,Gen,ExTp),Contract,Cont,Exp,_) :-
   typeOfCanon(Ptn,PtnTp),
   LTp = funType(tupleType([PtnTp]),ConTp),
   typeOfCanon(Gen,GenTp),
-  Lam = lambda(Lc,equation(Lc,tple(Lc,[Ptn]),enm(Lc,"true",type("star.core*boolean")),Cont),LTp),
+  Lam = lambda(Lc,LamLbl,equation(Lc,tple(Lc,[Ptn]),none,Cont),LTp),
   Seqn = over(Lc,mtd(Lc,"_sequence",funType(tupleType([GenTp,LTp]),ConTp)),
 	     true,[conTract(Contract,[ExTp],[])]),
-  Exp = apply(Lc,Seqn,tple(Lc,[Gen,Lam]),ConTp).
+  Exp = apply(Lc,Seqn,tple(Lc,[Gen,Lam]),ConTp),
+  lambdaLbl(Path,"bind",LamLbl).
 /* X = E --> ((X)=>Cont)(E) */
-genAction(varDo(Lc,Ptn,Ex,_ExTp,_VlTp,_ErTp),_Contract,Cont,Exp,_) :-
+genAction(varDo(Lc,Ptn,Ex,_ExTp,_VlTp,_ErTp),_Contract,Cont,Exp,Path) :-
   (Cont = noDo(_) ->
    reportError("bind: %s=%s may not be last action",[Ptn,Ex],Lc);
    true),
   typeOfCanon(Ptn,PtnTp),
   typeOfCanon(Cont,ConTp),
   LTp = funType(tupleType([PtnTp]),ConTp),
-  Lam = lambda(Lc,equation(Lc,tple(Lc,[Ptn]),enm(Lc,"true",type("star.core*boolean")),Cont),LTp),
-  Exp = apply(Lc,Lam,tple(Lc,[Ex]),ConTp).
+  Lam = lambda(Lc,LamLbl,equation(Lc,tple(Lc,[Ptn]),none,Cont),LTp),
+  Exp = apply(Lc,Lam,tple(Lc,[Ex]),ConTp),
+  lambdaLbl(Path,"bind",LamLbl).
 
 genAction(delayDo(Lc,Actn,ExTp,_,ErTp),Contract,Cont,Exp,Path) :-
   genUnit(Lc,ExTp,ErTp,Contract,RtnUnit),
@@ -90,7 +92,6 @@ genAction(whileDo(Lc,Ts,Body,StTp,ErTp),Contract,Cont,Exp,Path) :-
   packageVarName(Path,"loop",LclName),
   genNewName(Path,"lp",ThPath),
   genstr("loop",Fn),
-  genNewName(Path,"Γ",ThNm),
   Unit = tple(Lc,[]),
   UnitTp = tupleType([]),
   mkTypeExp(StTp,[ErTp,UnitTp],LpTp),
@@ -100,12 +101,8 @@ genAction(whileDo(Lc,Ts,Body,StTp,ErTp),Contract,Cont,Exp,Path) :-
 		  simpleDo(Lc,apply(Lc,v(Lc,Fn,FnTp),Unit,LpTp),StTp,ErTp)),
 	    Contract,noDo(Lc),Then,ThPath),
   FF=funDef(Lc,Fn,LclName,FnTp,[],
-	    [equation(Lc,tple(Lc,[]),
-		      enm(Lc,"true",type("star.core*boolean")),
-		      cond(Lc,Ts,Then,Cont,LpTp))]),
-  Exp = letExp(Lc,
-	      theta(Lc,ThNm,[FF],faceType([],[])),
-	       apply(Lc,v(Lc,Fn,FnTp),tple(Lc,[]),LpTp)).
+	    [equation(Lc,tple(Lc,[]),none,cond(Lc,Ts,Then,Cont,LpTp))]),
+  Exp = letExp(Lc, [FF], apply(Lc,v(Lc,Fn,FnTp),tple(Lc,[]),LpTp)).
 
 /* Construct a local iterator function for do .. until .. :
    let{
@@ -116,7 +113,6 @@ genAction(untilDo(Lc,Ts,Body,StTp,ErTp),Contract,Cont,Exp,Path) :-
   packageVarName(Path,"loop",LclName),
   genNewName(Path,"lp",ThPath),
   genstr("loop",Fn),
-  genNewName(Path,"Γ",ThNm),
   UnitTp = tupleType([]),
   Unit = tple(Lc,[]),
   mkTypeExp(StTp,[ErTp,UnitTp],LpTp),
@@ -129,12 +125,8 @@ genAction(untilDo(Lc,Ts,Body,StTp,ErTp),Contract,Cont,Exp,Path) :-
 			   StTp,UnitTp,ErTp)),
 	    Contract,noDo(Lc),Then,ThPath),
   FF=funDef(Lc,Fn,LclName,FnTp,[],
-	    [equation(Lc,tple(Lc,[]),
-		      enm(Lc,"true",type("star.core*boolean")),
-		      Then)]),
-  Exp = letExp(Lc,
-	      theta(Lc,ThNm,[FF],faceType([],[])),
-	       apply(Lc,v(Lc,Fn,FnTp),tple(Lc,[]),LpTp)).
+	    [equation(Lc,tple(Lc,[]),none,Then)]),
+  Exp = letExp(Lc, [FF], apply(Lc,v(Lc,Fn,FnTp),tple(Lc,[]),LpTp)).
 
 
 
@@ -151,7 +143,7 @@ genAction(forDo(Lc,Tst,Body,StTp,ErTp),Contract,Cont,Exp,Path) :-
   genAction(Body,Contract,Zed,IterBody,Path),
   genCondition(Tst,Path,
 	       do:genRtn(Lc,StTp,UnitTp,ErTp,Contract),
-	       do:genSeq(Lc,StTp,UnitTp,ErTp,Contract),
+	       do:genSeq(Lc,Path,StTp,UnitTp,ErTp,Contract),
 	       do:genForBody(Lc,StTp,UnitTp,ErTp,Contract,IterBody),
 	       unlifted(Unit),ForLoop),
   combineActs(Lc,ForLoop,Cont,Contract,StTp,ErTp,Exp).
@@ -168,7 +160,7 @@ genAction(caseDo(Lc,Gov,Cases,ExTp,ErTp),Contract,Cont,Exp,Path) :-
   map(Cases,do:genCase(Contract,Cont,Path),Eqns),
   combineActs(Lc,case(Lc,Gov,Eqns,Tp),Cont,Contract,ExTp,ErTp,Exp).
 
-genCase(Contract,Cont,Path,equation(Lc,Arg,Cond,Act),equation(Lc,Arg,Cond,Exp)) :-
+genCase(Contract,Cont,Path,equation(Lc,Arg,Guard,Act),equation(Lc,Arg,Guard,Exp)) :-
   genAction(Act,Contract,Cont,Exp,Path).
 
 genVl(Lc,Ptn,ExTp,ErTp,Contract,_,Exp) :-
@@ -202,16 +194,16 @@ genForBody(Lc,StTp,VlTp,ErTp,Contract,IterBody,St,Exp) :-
   combineActs(Lc,IterBody,End,Contract,StTp,ErTp,Exp).
   %reportMsg("for body-> %s",[Exp]).
 
-genSeq(Lc,ExStTp,ErTp,Contract,St,Init,Reslt,Exp) :-
+genSeq(Lc,Path,ExStTp,ErTp,Contract,St,Init,Reslt,Exp) :-
   typeOfCanon(St,ATp),
   mkTypeExp(ExStTp,[ErTp,ATp],MdTp),
   LTp = funType(tupleType([ATp]),MdTp),
-  Lam = lambda(Lc,equation(Lc,tple(Lc,[St]),
-			   enm(Lc,"true",type("star.core*boolean")),Reslt),LTp),
+  Lam = lambda(Lc,LamLbl,equation(Lc,tple(Lc,[St]),none,Reslt),LTp),
   Gen = over(Lc,mtd(Lc,"_sequence",funType(tupleType([MdTp,LTp]),MdTp)),
 	     true,[conTract(Contract,[ExStTp],[])]),
   genRtn(Lc,ExStTp,ATp,ErTp,Contract,Init,Initial),
-  Exp = apply(Lc,Gen,tple(Lc,[Initial,Lam]),MdTp).
+  Exp = apply(Lc,Gen,tple(Lc,[Initial,Lam]),MdTp),
+  lambdaLbl(Path,"bind",LamLbl).
 
 combineActs(Lc,noDo(_),noDo(_),Contract,ExTp,ErTp,RtnUnit) :-!,
   genUnit(Lc,ExTp,ErTp,Contract,RtnUnit).
@@ -222,8 +214,7 @@ combineActs(Lc,A1,Cont,Contract,StTp,_ErTp,Exp) :-
   anonVar(Lc,Anon,ATp),
   LTp = funType(tupleType([ATp]),ConTp),
   typeOfCanon(A1,A1Tp),
-  Lam = lambda(Lc,equation(Lc,tple(Lc,[Anon]),
-			   enm(Lc,"true",type("star.core*boolean")),Cont),LTp),
+  Lam = lambda(Lc,equation(Lc,tple(Lc,[Anon]),none,Cont),LTp),
   Gen = over(Lc,mtd(Lc,"_sequence",funType(tupleType([A1Tp,LTp]),ConTp)),
 	     true,[conTract(Contract,[StTp],[])]),
   Exp = apply(Lc,Gen,tple(Lc,[A1,Lam]),ConTp).
@@ -264,7 +255,7 @@ genIterableGl(Cond,Contract,Path,match(Lc,Ptn,Gl)) :-
   
   genCondition(Cond,Path,
 	       do:genRtn(Lc,EitherTp,OptTp,UnitTp,Contract),
-	       checker:genSeq(Lc,Contract,EitherTp,UnitTp),
+	       checker:genSeq(Lc,Path,Contract,EitherTp,UnitTp),
 	       do:genVl(Lc,Ptn,EitherTp,UnitTp,Contract),
 	       lifted(Zed),Seq),
   genPerform(Lc,Seq,MTp,EitherTp,Contract,Gl).

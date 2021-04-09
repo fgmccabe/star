@@ -1,4 +1,7 @@
-:-module(freevars,[freeVars/5,goalVars/2]).
+:-module(freevars,[freeVars/5,
+		   goalVars/2,
+		   definedVars/3,
+		   freeVarsInDefs/5]).
 
 :- use_module(misc).
 :- use_module(escapes).
@@ -22,7 +25,7 @@ freeVars(cell(_,Cll),Ex,Q,F,FV) :- freeVars(Cll,Ex,Q,F,FV).
 freeVars(assign(_,Lhs,Rhs),Ex,Q,F,FV) :- freeVars(Lhs,Ex,Q,F,F0),freeVars(Rhs,Ex,Q,F0,FV).
 freeVars(where(_,T,C),Ex,Q,F,FV) :- ptnGoalVars(C,freevars:addFrVar,Ex,E1),freeVars(T,E1,Q,F,F0),freeVars(C,E1,Q,F0,FV).
 freeVars(cond(_,C,T,E,_),Ex,Q,F,FV) :- ptnGoalVars(C,freevars:addFrVar,Ex,E1),freeVars(T,E1,Q,F,F0),freeVars(C,E1,Q,F0,F1),freeVars(E,Ex,Q,F1,FV).
-freeVars(lambda(_,Eqn,_),Ex,Q,F,FV) :- freeVarsInRule(Ex,Q,Eqn,F,FV).
+freeVars(lambda(_,_,Eqn,_),Ex,Q,F,FV) :- freeVarsInRule(Ex,Q,Eqn,F,FV).
 freeVars(conj(Lc,L,R),Ex,Q,F,FV) :- ptnGoalVars(conj(Lc,L,R),freevars:addFrVar,Ex,E1),freeVars(L,E1,Q,F,F0),freeVars(R,E1,Q,F0,FV).
 freeVars(disj(_,L,R),Ex,Q,F,FV) :- freeVars(L,Ex,Q,F,F0),freeVars(R,Ex,Q,F0,FV).
 freeVars(neg(_,L),Ex,Q,F,FV) :- freeVars(L,Ex,Q,F,FV).
@@ -41,14 +44,14 @@ freeVars(abstraction(_,B,C,Z,G,_),Ex,Q,F,FV) :-
   freeVars(C,Ex1,Q,F0,F1),
   freevars(Z,Ex1,Q,F1,F2),
   freeVars(G,Ex1,Q,F2,FV).
-freeVars(theta(_,_,Defs,_),Ex,Q,F,Fv) :-
+freeVars(letExp(_,Defs,Bnd),Ex,Q,F,Fv) :-
   definedVars(Defs,Ex,Ex1),
-  freeVarsInDefs(Defs,Ex1,Q,F,Fv).
-freeVars(record(_,_,Defs,_),Ex,Q,F,Fv) :-
-  freeVarsInDefs(Defs,Ex,Q,F,Fv).
-freeVars(letExp(_,Rc,Bnd),Ex,Q,F,Fv) :-
-  freeVars(Rc,Ex,Q,F,F0),
-  freeVars(Bnd,Ex,Q,F0,Fv).
+  freeVarsInDefs(Defs,Ex1,Q,F,F0),
+  freeVars(Bnd,Ex1,Q,F0,Fv).
+freeVars(letRec(_,Defs,Bnd),Ex,Q,F,Fv) :-
+  definedVars(Defs,Ex,Ex1),
+  freeVarsInDefs(Defs,Ex1,Q,F,F0),
+  freeVars(Bnd,Ex1,Q,F0,Fv).
 freeVars(case(_,Gov,Cses,_),Ex,Q,F,Fv) :-
   freeVars(Gov,Ex,Q,F,F0),
   freeVarsInRules(Cses,Ex,Q,F0,Fv).
@@ -76,9 +79,12 @@ freeVarsInDef(_,_,_,F,F).
 freeVarsInRules(Eqns,Ex,Q,F,Fv) :-
   varsInList(Eqns,freevars:freeVarsInRule(Ex,Q),F,Fv).
 
-freeVarsInRule(Ex,Q,equation(_,H,Cond,Exp),F,FV) :-
-  ptnVars(H,freevars:addFrVar,Ex,Ex0),
-  ptnGoalVars(Cond,freevars:addFrVar,Ex0,Ex1),
+freeVarsInRule(Ex,Q,equation(_,H,none,Exp),F,FV) :-!,
+  ptnVars(H,freevars:addFrVar,Ex,Ex1),
+  freeVars(H,Ex1,Q,F,F0),
+  freeVars(Exp,Ex1,Q,F0,FV).
+freeVarsInRule(Ex,Q,equation(_,H,some(Cond),Exp),F,FV) :-
+  ptnVars(H,freevars:addFrVar,Ex,Ex1),
   freeVars(H,Ex1,Q,F,F0),
   freeVars(Exp,Ex1,Q,F0,F1),
   freeVars(Cond,Ex1,Q,F1,FV).
@@ -96,8 +102,6 @@ ptnVars(cons(_,_,_),_,Q,Q).
 ptnVars(where(_,Ptn,C),A,Q,Qx) :- ptnVars(Ptn,A,Q,Q0), ptnGoalVars(C,A,Q0,Qx).
 ptnVars(tple(_,Els),A,Q,Qx) :- ptnVarsInList(Els,A,Q,Qx).
 ptnVars(apply(_,_,Arg,_),A,Q,Qx) :- ptnVars(Arg,A,Q,Qx).
-ptnVars(theta(_,_,Defs,_),A,Q,Qx) :- ptnVarsInDefs(Defs,A,Q,Qx).
-ptnVars(record(_,_,Defs,_),A,Q,Qx) :- ptnVarsInDefs(Defs,A,Q,Qx).
 ptnVars(dot(_,_,_,_),_,Q,Q).
 
 ptnVarsInList([],_,Q,Q).

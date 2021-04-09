@@ -3,6 +3,7 @@
 //
 
 #include <labels.h>
+#include <strings.h>
 #include "optionP.h"
 #include "assert.h"
 
@@ -10,8 +11,8 @@ termPo noneEnum;
 labelPo someCons;
 
 void initOption() {
-  noneEnum = declareEnum("star.core#none", currHeap);
-  someCons = declareLbl("star.core#some", 1);
+  noneEnum = declareEnum("star.core#none", 0, currHeap);
+  someCons = declareLbl("star.core#some", 1, 1);
 }
 
 normalPo wrapSome(heapPo H, termPo lhs) {

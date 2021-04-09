@@ -1,16 +1,20 @@
-:- module(transutils,[trCons/3,mergeGoal/4,mergeSeq/4,mergeWhere/4,extraVars/2,thisVar/2,
-          lookupVarName/3,lookupFunName/3,lookupThetaVar/3,lookupClassName/3,
-          definedProgs/2,labelVars/2,
-          genVar/2,
-          pushOpt/3, isOption/2,layerName/2,dispMap/2,showMap/3,
-          genVars/2,
-          pullWhere/4,pullWheres/4]).
+:- module(transutils,
+	  [trCons/3,mergeGoal/4,mergeSeq/4,mergeWhere/4,extraVars/2,thisVar/2,
+	   lookupVarName/3,lookupFunName/3,lookupThetaVar/3,lookupTypeIndex/3,
+	   lookupClassName/3,lookupType/3,findConsType/3,
+	   definedProgs/2,labelVars/2,
+	   genVar/2, genVars/2,
+	   genVoids/2,
+	   pushOpt/3, isOption/2,dispMap/2,
+	   pullWhere/4,pullWheres/4]).
 
+:- use_module(canon).
 :- use_module(misc).
 :- use_module(dict).
 :- use_module(types).
 :- use_module(freshen).
 :- use_module(lterms).
+:- use_module(display).
 
 trCons(Nm,Arity,lbl(Name,Arity)) :-
   integer(Arity),!,
@@ -25,8 +29,7 @@ trCons(Nm,Args,lbl(Name,Arity)) :-
 
 /*
  * Each element in Layers defines a scope. It is a tuple of the form:
- * lyr(Prefix,Defs:list[(Name,Class),LblRecord,Thvr)
- * Where Prefix is the current prefix
+ * lyr(Defs:list[(Name,Class),LblRecord,Thvr)
  * Defs is the set of local programs and other names defined in this scope
  * Loc is the file location of the defining label
  * LblRecord is the full form of the label term.
@@ -46,15 +49,15 @@ trCons(Nm,Args,lbl(Name,Arity)) :-
  * }
  *
  * The inner-most layer will look like:
- *    lyr(pk#foo#bar#anon23,Defs,anon23(Free,bar(B,foo(A))),ThVar)
+ *    lyr(Defs,anon23(Free,bar(B,foo(A))),ThVar)
  * the outermost class layer will look like
- *    lyr(pk#foo,Defs,foo(A),thVar)
+ *    lyr(Defs,foo(A),thVar)
  * the package layer will look like
- *    lyr(pk,Defs,'',void)
+ *    lyr(Defs,'',void)
  */
 
 lookup([],_,_,notInMap).
-lookup([lyr(_Prefix,Defns,_Lbl,_ThVr)|_Layers],Nm,Filter,Reslt) :-
+lookup([lyr(Defns,_Lbl,_ThVr)|_Layers],Nm,Filter,Reslt) :-
   filteredSearch(Defns,Filter,Nm,Reslt),!.
 lookup([_|Layers],Nm,Filter,Reslt) :-
   lookup(Layers,Nm,Filter,Reslt).
@@ -66,6 +69,9 @@ filteredSearch(Defns,Filter,Nm,Defn) :-
 lookupVarName(Map,Nm,V) :-
   lookup(Map,Nm,nonType,V).
 
+lookupType(Map,Nm,Entry) :-
+  lookup(Map,Nm,transutils:isTpe,Entry).
+
 anyDef(_).
 
 lookupThetaVar(Map,Nm,V) :-
@@ -73,7 +79,7 @@ lookupThetaVar(Map,Nm,V) :-
 
 getThetaVar(ThVr,localFun(_,_,_,ThVr)).
 getThetaVar(ThVr,localClass(_,_,_,_,ThVr)).
-% getThetaVar(ThVr,labelArg(_,_,ThVr)).
+getThetaVar(ThVr,labelArg(_,_,ThVr)).
 
 lookupFunName(Map,Nm,V) :-
   lookup(Map,Nm,isFnDef,V).
@@ -92,18 +98,37 @@ classDef(moduleCons(_,_,_)).
 lookupDefn(Map,Nm,Df) :-
   lookup(Map,Nm,nonType,Df).
 
-nonType(Df) :- Df \= moduleType(_,_,_), Df \= localType(_).
+nonType(Df) :- \+isTpe(Df).
 
-extraVars([lyr(_,_,_,void)|_],[]) :- !.
-extraVars([lyr(_,_,_,ThVr)|_],[ThVr]).
+isTpe(moduleType(_,_,_)) :-!.
+isTpe(localType(_,_)) :-!.
 
-thisVar([lyr(_,_,_,ThVr)|_],ThVr) :- ThVr \= void.
+lookupTypeIndex(Map,TpNm,Index) :-
+  makeKey(TpNm,Key),
+  lookupIndex(Map,Key,Index).
+
+lookupIndex([lyr(_,ConsIndex,_)|_],Key,Index) :-
+  get_dict(Key,ConsIndex,Index),!.
+lookupIndex([_|Map],Key,Index) :-
+  lookupIndex(Map,Key,Index).
+
+typeHasIndex(TpNm,moduleType(_,TpNm,_,_)).
+
+findConsType([lyr(Defs,_,_)|_],CnsNm,Tp) :-
+  is_member((_,moduleCons(CnsNm,Tp,_)),Defs),!.
+findConsType([_|Lyrs],CnsNm,Tp) :-
+  findConsType(Lyrs,CnsNm,Tp).
+
+extraVars([lyr(_,_,void)|_],[]) :- !.
+extraVars([lyr(_,_,ThVr)|_],[ThVr]).
+
+thisVar([lyr(_,_,ThVr)|_],ThVr) :- ThVr \= void.
 
 definedProgs(Map,Prgs) :-
   definedProgs(Map,[],Prgs).
 
 definedProgs([],Pr,Pr).
-definedProgs([lyr(_,Defs,_,_)|Map],Pr,Prx) :-
+definedProgs([lyr(Defs,_,_)|Map],Pr,Prx) :-
   definedInDefs(Defs,Pr,Pr0),
   definedProgs(Map,Pr0,Prx).
 
@@ -124,7 +149,7 @@ labelVars(Map,Prgs) :-
   lblVars(Map,[],Prgs).
 
 lblVars([],Pr,Pr).
-lblVars([lyr(_,Defs,_,ThVr)|Map],Pr,Prx) :-
+lblVars([lyr(Defs,_,ThVr)|Map],Pr,Prx) :-
   (ThVr=void -> Pr=Pr0 ;add_mem(ThVr,Pr,Pr0)),
   labelVarsInDefs(Defs,Pr0,Pr1),
   lblVars(Map,Pr1,Prx).
@@ -136,15 +161,15 @@ labelVarsInDefs([(_,labelArg(V,_,_ThVr))|Defs],Pr,Prx) :-
 labelVarsInDefs([_|Defs],Pr,Prx) :-
   labelVarsInDefs(Defs,Pr,Prx).
 
-mergeGoal(enum("star.core#true"),G,_,G).
-mergeGoal(G,enum("star.core#true"),_,G).
-mergeGoal(G1,G2,Lc,cnj(Lc,G1,G2)).
+mergeGoal(none,G,_,G).
+mergeGoal(some(G),none,_,G).
+mergeGoal(some(G1),some(G2),Lc,some(cnj(Lc,G1,G2))).
 
 mergeWhere(Exp,Cnd,Lc,Rslt) :-
   isCnd(Exp),!,
-  mergeGoal(Cnd,Exp,Lc,Rslt).
-mergeWhere(Exp,enum("star.core#true"),_,Exp).
-mergeWhere(Exp,G,Lc,whr(Lc,Exp,G)).
+  mergeGoal(Cnd,some(Exp),Lc,Rslt).
+mergeWhere(Exp,none,_,Exp).
+mergeWhere(Exp,some(G),Lc,whr(Lc,Exp,G)).
 
 mergeSeq(_,L,R,R) :- isUnit(L).
 mergeSeq(_,L,R,L) :- isUnit(R).
@@ -156,8 +181,6 @@ pushOpt(Opts,Opt,[Opt|Opts]).
 
 isOption(Opt,Opts) :- is_member(Opt,Opts),!.
 
-layerName([lyr(Nm,_,_,_)|_],Nm).
-
 genVar(Prefix,idnt(V)) :-
   genstr(Prefix,V).
 
@@ -167,6 +190,12 @@ genVars(K,[V|Rest]) :-
   K1 is K-1,
   genVar("_V",V),
   genVars(K1,Rest).
+
+genVoids(0,[]).
+genVoids(K,[voyd|Rest]) :-
+  K>0,
+  K1 is K-1,
+  genVoids(K1,Rest).
 
 pullWhere(whr(Lc,Val,Cond),G,Value,Gx) :-
   pullWhere(Val,G,Value,G1),
@@ -181,96 +210,55 @@ pullWheres([E|Rest],[Ex|Rx],G,Gx) :-
   pullWheres(Rest,Rx,G1,Gx).
 
 dispMap(Msg,Map) :-
-  appStr(Msg,Chrs,C0),
-  showMap(Map,C0,[]),
-  string_chars(Txt,Chrs),
-  writeln(Txt).
+  ssMap(Msg,Map,S),
+  displayln(S).
 
-showMap([],Ox,Ox).
-showMap([L|Rest],O,Ox) :-
-  showLayer(L,O,O1),
-  appNl(O1,O2),
-  showMap(Rest,O2,Ox).
+ssMap(Msg,Map,sq([ss(Msg),nl(0),iv(nl(0),MM)])) :-
+  map(Map,transutils:ssLayer,MM).
 
-showLayer(lyr(Nm,Defs,void,void),O,Ox) :-
-  appStr("Top Layer: ",O,O1),
-  appStr(Nm,O1,O2),
-  appNl(O2,O3),
-  showLayerDefs(Defs,O3,Ox).
-showLayer(lyr(Nm,Defs,FreeTerm,ThVr),O,Ox) :-
-  appStr("Layer: ",O,O1),
-  appStr(Nm,O1,O2),
-  appNl(O2,O3),
-  appStr("Free term: ",O3,O4),
-  showTerm(FreeTerm,0,O4,O5),
-  appStr("«",O5,O6),
-  showTerm(ThVr,0,O6,O7),
-  appStr("»\n",O7,O8),
-  showLayerDefs(Defs,O8,Ox).
+ssLayer(lyr(Defs,ConsMap,void),sq([ss("Top layer:"),MM,iv(nl(0),DD)])) :-
+  ssConsMap(ConsMap,MM),
+  map(Defs,transutils:ssLyrDef,DD).
+ssLayer(lyr(Defs,ConsMap,ThVr),
+	  sq([ss("layer:"),nl(0),MM,ss("«"),TT,ss("»"),iv(nl(0),DD)])) :-
+  ssConsMap(ConsMap,MM),
+  ssTrm(ThVr,0,TT),
+  map(Defs,transutils:ssLyrDef,DD).
 
-showLayerDefs(Defs,O,Ox) :-
-  listShow(Defs,transutils:showLayerDef,misc:appNl,O,Ox).
+ssConsMap(Map,iv(nl(2),S)) :-
+  dict_pairs(Map,_,Pairs),
+  map(Pairs,transutils:ssPair,S).
 
-showLayerDef((Nm,moduleFun(LclName,AccessName,Ar)),O,Ox) :-
-  appStr("Global Fun ",O,O0),
-  appStr(Nm,O0,O0a),
-  appStr("=",O0a,O1),
-  appStr(LclName,O1,O2),
-  appStr("«",O2,O3),
-  appStr(AccessName,O3,O4),
-  appStr("/",O4,O7),
-  appInt(Ar,O7,Ox).
-showLayerDef((Nm,localFun(LclName,ClosureName,Ar,ThV)),O,Ox) :-
-  appStr("Fun ",O,O0),
-  appStr(Nm,O0,O0a),
-  appStr("=",O0a,O1),
-  appStr(LclName,O1,O2),
-  appStr("»:[",O2,O5),
-  appStr(ClosureName,O5,O6),
-  appStr("@",O6,O6a),
-  showTerm(ThV,0,O6a,O6b),
-  appStr("]/",O6b,O7),
-  appInt(Ar,O7,Ox).
-showLayerDef((Nm,localVar(LclName,AccessName,ThV)),O,Ox) :-
-  appStr("Var ",O,O0),
-  appStr(Nm,O0,O0a),
-  appStr("=",O0a,O1),
-  appStr(LclName,O1,O2),
-  appStr("«",O2,O3),
-  appStr(AccessName,O3,O4),
-  appStr("»:[",O4,O5),
-  showTerm(ThV,0,O5,O6),
-  appStr("]",O6,Ox).
-showLayerDef((Nm,moduleVar(LclName)),O,Ox) :-
-  appStr("Global Var ",O,O0),
-  appStr(Nm,O0,O0a),
-  appStr("=",O0a,O1),
-  appStr(LclName,O1,Ox).
-showLayerDef((Nm,labelArg(Field,Ix,ThV)),O,Ox) :-
-  appStr("Free Var ",O,O0),
-  appStr(Nm,O0,O0a),
-  appStr("=",O0a,O1),
-  showTerm(Field,0,O1,O2),
-  appStr(":",O2,O3),
-  showTerm(ThV,0,O3,O4),
-  appStr("[",O4,O5),
-  appInt(Ix,O5,O6),
-  appStr("]",O6,Ox).
-showLayerDef((Nm,moduleType(LclName,FullName,Tp)),O,Ox) :-
-  appStr("Module type ",O,O1),
-  appStr(Nm,O1,O2),
-  appStr("=",O2,O3),
-  appStr(LclName,O3,O4),
-  appStr("«",O4,O5),
-  appStr(FullName,O5,O6),
-  appStr("»",O6,O7),
-  showType(Tp,false,O7,Ox).
-showLayerDef((Nm,moduleCons(LclName,FullName,Ar)),O,Ox) :-
-  appStr("Module cons ",O,O1),
-  appStr(Nm,O1,O2),
-  appStr("=",O2,O3),
-  appStr(LclName,O3,O4),
-  appStr("«",O4,O5),
-  appStr(FullName,O5,O6),
-  appStr("»/",O6,O7),
-  appInt(Ar,O7,Ox).
+ssPair(K-V,sq([id(K),ss("-"),XX])) :-
+  ssConsIndex(V,XX).
+
+ssConsIndex(V,iv(ss(","),XX)) :-
+  map(V,transutils:ssIxPr,XX).
+
+ssIxPr((Lbl,Ix),sq([LL,ss(":"),ix(Ix)])) :-
+  ssTrm(Lbl,0,LL).
+
+ssLyrDef((Nm,moduleFun(LclName,_AccessName,Ar)),
+	 sq([ss("Global Fun "),id(Nm),ss("="),ss(LclName),ss("/"),ix(Ar)])).
+ssLyrDef((Nm,localFun(LclName,_ClosureName,Ar,ThV)),
+	 sq([ss("Fun "),id(Nm),ss("="),ss(LclName),ss("/"),ix(Ar),ss("@"),TT])) :-
+  ssTrm(ThV,0,TT).
+ssLyrDef((Nm,localVar(LclName,_AccessName,ThV)),
+	 sq([ss("Var "),id(Nm),ss("="),ss(LclName),ss("@"),TT])) :-
+  ssTrm(ThV,0,TT).
+ssLyrDef((Nm,localVar(_,Val)),
+	 sq([ss("Var "),id(Nm),ss("="),VV])) :-
+  ssTerm(Val,0,VV).
+ssLyrDef((Nm,moduleVar(LclName)),
+	 sq([ss("Global Var "),id(Nm),ss("="),ss(LclName)])).
+ssLyrDef((Nm,labelArg(_Field,Ix,ThV)),
+	 sq([ss("Free Var "),id(Nm),ss("="),TT,ss("["),ix(Ix),ss("]")])) :-
+  ssTrm(ThV,0,TT).
+ssLyrDef((Nm,moduleType(TpNm,_Tp,IxMap)),
+	 sq([ss("Module type "),id(Nm),ss("="),ss(TpNm),CC])) :-
+  ssConsIndex(IxMap,CC).
+ssLyrDef((Nm,moduleCons(LclName,_,Ar)),
+	 sq([ss("Module Cons "),id(Nm),ss("="),ss(LclName),ss("/"),ix(Ar)])).
+ssLyrDef((Nm,fieldAcc(TpNm,FldNm,_FldTp)),
+	 sq([ss("Field accesss "),id(Nm),ss(" in "),ss(TpNm),ss(" is "),id(FldNm)])).
+

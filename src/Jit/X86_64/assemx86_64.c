@@ -26,7 +26,7 @@ void *createCode(codeCtxPo ctx) {
   return code;
 }
 
-codeLblPo preamble(codeCtxPo ctx, i32 lclCount) {
+codeLblPo preamble(codeCtxPo ctx, int32 lclCount) {
   codeLblPo entry = defineLabel(ctx, "entry", ctx->pc);
   push(RG(RBP), ctx);
   mov(RG(RBP), RG(RSP), ctx);

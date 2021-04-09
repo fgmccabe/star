@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
     hashPut(vars, "Date", date);
 
     // Set up the assembler proper
-    bufferPo mnemBuff = newStringBuffer();
+    strBufferPo mnemBuff = newStringBuffer();
 
 #undef instruction
 #define instruction(M, A1, A2, Dl, cmt) genPrologIns(O_IO(mnemBuff),#M,M,A1,A2,cmt);
@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
 
     // Set up the label generator
 
-    bufferPo lblBuff = newStringBuffer();
+    strBufferPo lblBuff = newStringBuffer();
 
 #undef instruction
 #define instruction(M, A1, A2, Dl, cmt) prologPc(O_IO(lblBuff),#M,M,A1,A2,cmt);
@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
     hashPut(vars, "Lbls", lblCode);
 
     // Set up the display code
-    bufferPo showBuff = newStringBuffer();
+    strBufferPo showBuff = newStringBuffer();
 #undef instruction
 #define instruction(M, A1, A2, Dl, cmt) showPrologIns(O_IO(showBuff),#M,M,A1,A2,cmt);
 
@@ -124,7 +124,7 @@ static integer insSize(OpCode op, opAndSpec A1, opAndSpec A2) {
     case lit:
     case sym:
     case lne:
-    case ix32:
+    case i32:
     case art:
     case arg:
     case lcl:
@@ -132,6 +132,9 @@ static integer insSize(OpCode op, opAndSpec A1, opAndSpec A2) {
     case Es:
     case glb:
     case off:
+    case lVl:
+    case tPe:
+    case cDe:
       sz += 2;
       break;
   }
@@ -141,7 +144,7 @@ static integer insSize(OpCode op, opAndSpec A1, opAndSpec A2) {
     case lit:
     case sym:
     case lne:
-    case ix32:
+    case i32:
     case art:
     case arg:
     case lcl:
@@ -149,6 +152,9 @@ static integer insSize(OpCode op, opAndSpec A1, opAndSpec A2) {
     case Es:
     case glb:
     case off:
+    case lVl:
+    case tPe:
+    case cDe:
       sz += 2;
       break;
   }
@@ -161,23 +167,23 @@ static char *genArg(ioPo out, char *sep, opAndSpec A, char *var) {
     case tOs:
       return sep;
     case lit:
+    case tPe:
     case sym:
     case lne:
     case glb:
     case Es:
-    case ix32:
+    case i32:
     case art:
     case arg:
     case lcl:
     case lcs:
-      outMsg(out, "%s%s", sep, var);
-      return ",";
     case off:
+    case cDe:
+    case lVl:
       outMsg(out, "%s%s", sep, var);
       return ",";
     default:
-      printf("Problem in generating opcode type\n");
-      exit(11);
+      check(False, "Cannot generate argument code");
   }
 }
 
@@ -201,49 +207,64 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
   if (strcmp(sep, ",") == 0)
     outStr(out, ")");
 
-  outMsg(out, "|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[%d", op);
+  outMsg(out, "|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,Pcx,Ends,[%d", op);
 
   // Mega hack :(
   switch (A1) {
     case nOp:                             // No operand
     case tOs:
-      outMsg(out, "|M]) :- Pc1 is Pc+1,\n");
-      outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).\n");
+      outMsg(out, "|M],Cdx) :- Pc1 is Pc+1,\n");
+      outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
       break;
     case lne:
     case lit:
     case sym:
+    case tPe:
       switch (A2) {
         case nOp:
         case tOs:
-          outMsg(out, ",LtNo|M]) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
+          outMsg(out, ",LtNo|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
           outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
           break;
-        case ix32:
+        case i32:
         case art:
         case arg:
         case lcl:
         case lcs:
         case glb:
         case Es:
-          outMsg(out, ",LtNo,W|M]) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
+          outMsg(out, ",LtNo,W|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
           outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
           break;
         case off:
-          outMsg(out, ",LtNo,Off|M]) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
+          outMsg(out, ",LtNo,Off|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
           outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
           outMsg(out, "      findLbl(W,Lbls,Tgt),\n");
           outMsg(out, "      pcGap(Pc1,Tgt,Off),\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
+          break;
+        case lVl:
+          outMsg(out, ",LtNo,Off|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
+          outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
+          outMsg(out, "      findLevel(W,Ends,Tgt),\n");
+          outMsg(out, "      pcGap(Pc1,Tgt,Off),\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
+          break;
+        case cDe:
+          outMsg(out, ",LtNo,Off|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
+          outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
+          outMsg(out, "      assemBlock(W,Lbls,Lt1,Lt2,Lc,Lc2,Lns,Ln2,Pc1,Pc2,Ends,M,Mx),\n");
+          outMsg(out, "      pcGap(Pc1,Pc2,Off),\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt2,Ltx,Lc2,Lcx,Ln2,Lnx,Pc2,Pcx,Ends,Mx,Cdx).\n");
           break;
         default:
-          outMsg(out, "Unknown instruction type code\n");
+          check(False, "Cannot generate instruction");
           exit(1);
       }
       break;
-    case ix32:
+    case i32:
     case art:
     case arg:
     case lcl:
@@ -253,38 +274,44 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
       switch (A2) {
         case nOp:
         case tOs:
-          outMsg(out, ",V|M]) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
-          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).\n");
+          outMsg(out, ",V|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
           break;
-        case ix32:
+        case i32:
         case art:
         case arg:
         case lcl:
         case lcs:
         case glb:
         case Es:
-          outMsg(out, ",V,W|M]) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
-          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).\n");
+          outMsg(out, ",V,W|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
           break;
         case off:
-          outMsg(out, ",V,Off|M]) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
+          outMsg(out, ",V,Off|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
           outMsg(out, "      findLbl(W,Lbls,Tgt),\n");
           outMsg(out, "      pcGap(Pc1,Tgt,Off),\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
           break;
         default:
-          outMsg(out, "Unknown instruction type code\n");
+          check(False, "Cannot generate instruction");
           exit(1);
       }
       break;
+    case lVl:
+      outMsg(out, ",Off|M],Cdx) :- Pc1 is Pc+3,\n");
+      outMsg(out, "      findLevel(V,Ends,Tgt),\n");
+      outMsg(out, "      pcGap(Pc1,Tgt,Off),\n");
+      outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
+      break;
     case off:                            // program counter relative offset
-      outMsg(out, ",Off|M]) :- Pc1 is Pc+3,\n");
+      outMsg(out, ",Off|M],Cdx) :- Pc1 is Pc+3,\n");
       outMsg(out, "      findLbl(V,Lbls,Tgt),\n");
       outMsg(out, "      pcGap(Pc1,Tgt,Off),\n");
-      outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).\n");
+      outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
       break;
     default:
-      outMsg(out, "Unknown instruction type code\n");
+      check(False, "Cannot generate instruction");
       exit(1);
   }
 }
@@ -302,31 +329,109 @@ char *dot(opAndSpec A) {
 void prologPc(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt) {
   outMsg(out, "genLblTbl([i%s", capitalize(mnem));
 
-  char *sep = genArg(out, "(", A1, "_");
-  sep = genArg(out, sep, A2, "_");
-  if (strcmp(sep, ",") == 0)
-    outStr(out, ")");
+  // Mega hack :(
+  switch (A1) {
+    case nOp:                             // No operand
+    case tOs:
+    case lne:
+    case lit:
+    case sym:
+    case tPe:
+    case i32:
+    case art:
+    case arg:
+    case lcl:
+    case lcs:
+    case glb:
+    case Es:
+    case off:
+    case lVl:
+      switch (A2) {
+        case nOp:
+        case tOs:
+        case i32:
+        case art:
+        case arg:
+        case lcl:
+        case lcs:
+        case glb:
+        case Es:
+        case off:
+        case tPe:
+        case lVl: {
+          char *sep = genArg(out, "(", A1, "_A");
+          sep = genArg(out, sep, A2, "_B");
+          if (strcmp(sep, ",") == 0)
+            outStr(out, ")");
 
-  outMsg(out, "|Ins],Pc,Lbls,Lbx) :- !, ");
-  outMsg(out, "Pc1 is Pc+%d, ", insSize(op, A1, A2));
-  outMsg(out, " genLblTbl(Ins,Pc1,Lbls,Lbx).\n");
+          outMsg(out, "|Ins],Pc,Pcx,Lbls,Lbx) :- !, ");
+          outMsg(out, "Pc1 is Pc+%d, ", insSize(op, A1, A2));
+          outMsg(out, " genLblTbl(Ins,Pc1,Pcx,Lbls,Lbx).\n");
+          break;
+          case cDe: { // code in second argument
+            char *sep = genArg(out, "(", A1, "_");
+            sep = genArg(out, sep, A2, "B");
+            if (strcmp(sep, ",") == 0)
+              outStr(out, ")");
+
+            outMsg(out, "|Ins],Pc,Pcx,Lbls,Lbx) :- !, ");
+            outMsg(out, "Pc1 is Pc+%d, ", insSize(op, A1, A2));
+            outMsg(out, "  genLblTbl(B,Pc1,Pc2,Lbls,Lb1), genLblTbl(Ins,Pc2,Pcx,Lb1,Lbx).\n");
+          }
+          break;
+          default:
+            check(False, "Cannot generate instruction");
+        }
+      }
+      break;
+    case cDe:
+      switch (A2) {
+        case nOp:
+        case tOs:
+        case i32:
+        case art:
+        case arg:
+        case lcl:
+        case lcs:
+        case glb:
+        case Es:
+        case off:
+        case tPe:
+        case lVl: {
+          char *sep = genArg(out, "(", A1, "A");
+          sep = genArg(out, sep, A2, "_");
+          if (strcmp(sep, ",") == 0)
+            outStr(out, ")");
+
+          outMsg(out, "|Ins],Pc,Pcx,Lbls,Lbx) :- !, ");
+          outMsg(out, "Pc1 is Pc+%d, ", insSize(op, A1, A2));
+          outMsg(out, "  genLblTbl(A,Pc1,Pc2,Lbls,Lb1), genLblTbl(Ins,Pc2,Pcx,Lb1,Lbx).\n");
+          break;
+        }
+        case cDe: { // code in second argument
+          char *sep = genArg(out, "(", A1, "A");
+          sep = genArg(out, sep, A2, "B");
+          if (strcmp(sep, ",") == 0)
+            outStr(out, ")");
+
+          outMsg(out, "|Ins],Pc,Pcx,Lbls,Lbx) :- !, ");
+          outMsg(out, "Pc1 is Pc+%d, ", insSize(op, A1, A2));
+          outMsg(out,
+                 "  genLblTbl(A,Pc1,Pc2,Lbls,Lb1), genLblTbl(B,Pc2,Pc3,Lb1,Lb2), genLblTbl(Ins,Pc3,Pcx,Lb2,Lbx).\n");
+          break;
+        }
+        default:
+          check(False, "Cannot generate instruction");
+      }
+  }
 }
 
 typedef struct {
-  integer chV;
   integer pcV;
   char *sep;
 } OpRes;
 
-static void showSep(ioPo out, OpRes *res) {
-  if (res->sep != Null) {
-    outMsg(out, "  appStr(\",\",O%d,O%d),\n", res->chV, res->chV + 1);
-    res->chV++;
-  }
-  res->sep = ",";
-}
-
-static void showOperand(ioPo out, opAndSpec A, char *vn, OpRes *resIn) {
+static void showOperand(ioPo out, opAndSpec A, char *vn, char *Vtxt, OpRes *resIn) {
   switch (A) {
     case nOp:                             // No operand
     case tOs:
@@ -334,10 +439,9 @@ static void showOperand(ioPo out, opAndSpec A, char *vn, OpRes *resIn) {
     case lne:
     case lit:
     case sym:
-      showSep(out, resIn);
-      outMsg(out, "  showTerm(%s,0,O%d,O%d),\n", vn, resIn->chV, resIn->chV + 1);
-      outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV+1, resIn->pcV);
-      resIn->chV++;
+    case tPe:
+      outMsg(out, "  ssTrm(%s,0,%s),\n", vn, Vtxt);
+      outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
       resIn->pcV++;
       break;
     case Es:
@@ -345,20 +449,23 @@ static void showOperand(ioPo out, opAndSpec A, char *vn, OpRes *resIn) {
     case lcs:
     case glb:
     case off:
-      showSep(out, resIn);
-      outMsg(out, "  appStr(%s,O%d,O%d),\n", vn, resIn->chV, resIn->chV + 1);
-      outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV+1, resIn->pcV);
-      resIn->chV++;
+      outMsg(out, "  %s=ss(%s),\n", Vtxt, vn);
+      outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
+      resIn->pcV++;
+      break;
+    case cDe:
+      outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
+      outMsg(out, "  %s=iv(nl(2),TT),\n", Vtxt);
+      outMsg(out, "  showMnem(%s,0,Lbls,TT),\n", vn);
       resIn->pcV++;
       break;
 
-    case ix32:
+    case i32:
     case art:
     case arg:
-      showSep(out, resIn);
-      outMsg(out, "  appInt(%s,O%d,O%d),\n", vn, resIn->chV, resIn->chV + 1);
-      outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV+1, resIn->pcV);
-      resIn->chV++;
+    case lVl:
+      outMsg(out, "  %s=ix(%s),\n", Vtxt, vn);
+      outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
       resIn->pcV++;
       break;
   }
@@ -373,17 +480,32 @@ static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec 
   if (strcmp(sep, ",") == 0)
     outStr(out, ")");
 
-  outMsg(out, "|Ins],Pc,Lbls,O,Ox) :- !,\n");
+  char *sep1 = "";
+  char *sep2 = "";
+  char *V1 = "";
+  char *V2 = "";
 
-  outMsg(out, "  appInt(Pc,O,O0),\n  appStr(\":\",O0,O00),\n");
-  outMsg(out, "  appStr(\"%P \",O00,O1),\n", mnem);
+  if (A1 != nOp) {
+    if (A1 != tOs) {
+      sep1 = ", ss(\" \"), ";
+      V1 = "UU";
+    }
+
+    if (A2 != nOp) {
+      if (A2 != tOs) {
+        sep2 = ", ss(\",\"), ";
+        V2 = "VV";
+      }
+    }
+  }
+
+  outMsg(out, "|Ins],Pc,Lbls,[sq([ix(Pc),ss(\":\"),ss(\"%P\")%s%s%s%s])|II]) :- !,\n", mnem, sep1, V1, sep2, V2);
   outMsg(out, "  Pc0 is Pc+1,\n");
 
-  OpRes res1 = {.pcV=0, .chV=1, .sep=Null};
+  OpRes res1 = {.pcV=0};
 
-  showOperand(out, A1, "U", &res1);
-  showOperand(out, A2, "V", &res1);
+  showOperand(out, A1, "U", "UU", &res1);
+  showOperand(out, A2, "V", "VV", &res1);
 
-  outMsg(out, "  appNl(O%d,O%d),\n", res1.chV, res1.chV + 1);
-  outMsg(out, "  showMnem(Ins,Pc%ld,Lbls,O%d,Ox).\n", res1.pcV, res1.chV + 1);
+  outMsg(out, "  showMnem(Ins,Pc%ld,Lbls,II).\n", res1.pcV);
 }

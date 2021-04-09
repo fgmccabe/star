@@ -35,7 +35,7 @@ typedef struct return_code_ {
   termPo result;
 } ReturnStatus;
 
-processPo newProcess(methodPo mtd, char *rootWd, capabilityPo processCap);
+processPo newProcess(methodPo mtd, char *rootWd, capabilityPo processCap, termPo rootArg);
 void setupProcess(processPo P, methodPo mtd);
 void switchProcessState(processPo p, ProcessState state);
 void setProcessRunnable(processPo p);

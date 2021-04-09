@@ -13,14 +13,14 @@
  */
 
 
-typedef struct _field_bucket_ {
+typedef struct field_bucket_ {
   labelPo lbl;
   integer offset; // offset in bytes of field
 } FieldBucket, *fieldPo;
 
-typedef struct _field_table_ {
+typedef struct field_table_ {
   integer size;
-  struct _field_bucket_ entries[ZEROARRAYSIZE];
+  struct field_bucket_ entries[ZEROARRAYSIZE];
 } FieldTable, *fieldTblPo;
 
 typedef struct labelTable_ *lblTablePo;
@@ -28,6 +28,7 @@ typedef struct labelTable_ *lblTablePo;
 typedef struct program_label_ {
   clssPo clss;                // == labelClass
   integer arity;              // Arity of label
+  integer index;              // Index of label in type
   integer hash;               // Hash code for the label
   methodPo mtd;               // Optimization - is a method defined for this label?
   char *name;                 // LblRecord name

@@ -11,7 +11,7 @@ parse_operators(Path,opTbl(Opers,Follows)) :-
   phrase(parseJson(J),Chars),
   jsonOperators(J,Opers),
   dict_pairs(Opers,_,Prs),
-  emptyTrie(ETr),
+  emptyStringTrie(ETr),
   computeTrie(Prs,ETr,Trie),
   computeFollows(Trie,Follows).
 
@@ -55,7 +55,7 @@ makeKey(Id,Key) :-
 
 computeTrie([],Tr,Tr).
 computeTrie([_-oper(Nm,_)|M],Tr,Trx) :-
-  addToTrie(Nm,Nm,Tr,Tr1),
+  addStrToTrie(Nm,Nm,Tr,Tr1),
   computeTrie(M,Tr1,Trx).
 
 computeFollows(Tr,Follows) :-

@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
     hashPut(vars, "Date", date);
 
     // Set up the assembler proper
-    bufferPo mnemBuff = newStringBuffer();
+    strBufferPo mnemBuff = newStringBuffer();
 
     switch (genMode) {
       case genProlog:

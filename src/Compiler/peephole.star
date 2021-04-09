@@ -26,10 +26,18 @@ star.compiler.peephole{
   peep([iCase(Cx),..Code],Map) => [iCase(Cx),..copyPeep(Cx,Code,Map)].
   peep([iJmp(Lb),iLbl(Lb),..Code],Map) => peep([iLbl(Lb),..Code],Map).
   peep([iJmp(Lb),..Code],Map) where [iJmp(XLb),.._]^=Map[Lb] && ~XLb==Lb => peep([iJmp(XLb),..Code],Map).
-  peep([iCall(Lb),iFrame(_),.iRet,..Code],Map) => [iTail(Lb),..peep(Code,Map)].
-  peep([iOCall(Lb),iFrame(_),.iRet,..Code],Map) => [iOTail(Lb),..peep(Code,Map)].
+  peep([iCall(Lb),iFrame(_),.iRet,..Code],Map) => [iTail(Lb),..dropTillLbls(Code,Map)].
+  peep([iOCall(Lb),iFrame(_),.iRet,..Code],Map) => [iOTail(Lb),..dropTillLbls(Code,Map)].
   peep([iRst(_),iRst(D),..Code],Map) => peep([iRst(D),..Code],Map).
+  peep([iRst(_),iLbl(Lb),iRst(D),..Code],Map) => peep([iLbl(Lb),iRst(D),..Code],Map).
+  peep([iBlock(Tpe,Inner),..Code],Map) => [iBlock(Tpe,peep(Inner,Map)),..peep(Code,Map)].
+  peep([.iRet,..Code],Map) => [.iRet,..dropTillLbls(Code,Map)].
   peep([Ins,..Code],Map) => [Ins,..peep(Code,Map)].
+
+  dropTillLbls([],_) => [].
+  dropTillLbls([iLbl(Lb),..Code],Map) => peep([iLbl(Lb),..Code],Map).
+  dropTillLbls([_,..Code],Map) => dropTillLbls(Code,Map).
+  
 
   copyPeep(0,Code,Map) => peep(Code,Map).
   copyPeep(Cx,[iJmp(Lb),..Code],Map) => [iJmp(Lb),..copyPeep(Cx-1,Code,Map)].
@@ -50,6 +58,7 @@ star.compiler.peephole{
   findJumps([iThrow(Lb),..Ins],Lbls) => findJumps(Ins,Lbls\+Lb).
   findJumps([iUnwind(Lb),..Ins],Lbls) => findJumps(Ins,Lbls\+Lb).
   findJumps([iUnpack(_,Lb),..Ins],Lbls) => findJumps(Ins,Lbls\+Lb).
+  findJumps([iBlock(_,Inner),..Ins],Lbls) => findJumps(Inner,findJumps(Ins,Lbls)).
   findJumps([_,..Ins],Lbls) => findJumps(Ins,Lbls).
 
   isJump(iJmp(_))=>.true.

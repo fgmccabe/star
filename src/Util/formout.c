@@ -981,7 +981,7 @@ retCode logMsg(ioPo out, char *fmt, ...) {
 }
 
 char *strMsg(char *buffer, long len, char *fmt, ...) {
-  bufferPo f = fixedStringBuffer(buffer, len);
+  strBufferPo f = fixedStringBuffer(buffer, len);
 
   va_list args;      /* access the generic arguments */
   va_start(args, fmt);    /* start the variable argument sequence */

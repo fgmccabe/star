@@ -322,11 +322,11 @@ retCode pushBack(ioPo f, char *str, integer from, integer len) {
  * read a line ... up to a terminating character 
  * len should be at least 2 ... one for the final NULL byte
  */
-retCode inLine(ioPo f, bufferPo buffer, char *term) {
+retCode inLine(ioPo f, strBufferPo buffer, char *term) {
   retCode ret = Ok;
   integer tlen = uniStrLen(term);
   objectPo o = O_OBJECT(f);
-  clearBuffer(buffer);
+  clearStrBuffer(buffer);
 
   lock(O_LOCKED(o));
 

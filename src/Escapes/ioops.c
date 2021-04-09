@@ -69,7 +69,7 @@ ReturnStatus g__inchars(processPo p, ptrPo tos) {
   ioPo io = ioChannel(C_IO(Arg1));
   integer limit = integerVal(Arg2);
 
-  bufferPo buffer = newStringBuffer();
+  strBufferPo buffer = newStringBuffer();
 
   retCode ret = Ok;
   while (limit-- > 0 && ret == Ok) {
@@ -159,7 +159,7 @@ ReturnStatus g__intext(processPo p, ptrPo tos) {
   integer mlen;
   const char *match = stringVal(Arg2, &mlen);
 
-  bufferPo buffer = newStringBuffer();
+  strBufferPo buffer = newStringBuffer();
 
   retCode ret = Ok;
   while (ret == Ok) {
@@ -192,7 +192,7 @@ ReturnStatus g__inline(processPo p, ptrPo tos) {
   const char *match = "\n\r";
   integer mlen = uniStrLen(match);
 
-  bufferPo buffer = newStringBuffer();
+  strBufferPo buffer = newStringBuffer();
 
   retCode ret = Ok;
   while (ret == Ok) {
@@ -227,7 +227,7 @@ ReturnStatus g__get_file(processPo p, ptrPo tos) {
 
   ioPo io = openInFile(fn, utf8Encoding);
   if (io != Null) {
-    bufferPo buffer = newStringBuffer();
+    strBufferPo buffer = newStringBuffer();
 
     retCode ret = Ok;
     while (ret == Ok) {

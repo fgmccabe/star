@@ -16,7 +16,7 @@ typedef struct _encoding_support_ {
   heapPo R;         /* Where should the roots go? */
 } EncodeSupport, *encodePo;
 
-retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo strBuffer);
-retCode decodeRecLbl(ioPo in, encodePo S, termPo *tgt, bufferPo tmpBuffer, char *errorMsg, integer msgSize);
+retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo strBuffer);
+retCode decodeRecLbl(ioPo in, encodePo S, termPo *tgt, strBufferPo tmpBuffer, char *errorMsg, integer msgSize);
 
 #endif //STAR_ENCODEDP_H

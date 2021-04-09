@@ -48,7 +48,7 @@ retCode isLookingAt(ioPo f, const char *prefix);    /* Is prefix the first thing
 
 retCode inChar(ioPo f, codePoint *ch);     /* read a character */
 retCode unGetChar(ioPo f, codePoint ch);   /* put a single character back */
-retCode inLine(ioPo f, bufferPo buffer, char *term);
+retCode inLine(ioPo f, strBufferPo buffer, char *term);
 
 retCode pushBack(ioPo f, char *str, integer from, integer len);
 

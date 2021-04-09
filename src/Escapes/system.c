@@ -222,7 +222,7 @@ ReturnStatus g__shell(processPo P, ptrPo tos) {
     for (integer ix = 0; ix < envCnt; ix++) {
       normalPo pair = C_NORMAL(consHead(C_NORMAL(env)));
       env = consTail(C_NORMAL(env));
-      bufferPo lineBf = newStringBuffer();
+      strBufferPo lineBf = newStringBuffer();
 
       integer klen, vlen;
       const char *key = stringVal(nthArg(pair, 0), &klen);
@@ -319,7 +319,7 @@ ReturnStatus g__popen(processPo P, ptrPo tos) {
     }
 
     argv[argCnt + 1] = NULL;
-    bufferPo lineBf = newStringBuffer();
+    strBufferPo lineBf = newStringBuffer();
     for (integer ix = 0; ix < envCnt; ix++) {
       normalPo pair = C_NORMAL(consHead(C_NORMAL(env)));
       env = consTail(C_NORMAL(env));
@@ -328,7 +328,7 @@ ReturnStatus g__popen(processPo P, ptrPo tos) {
       const char *key = stringVal(nthArg(pair, 0), &klen);
       const char *val = stringVal(nthArg(pair, 1), &vlen);
 
-      rewindBuffer(lineBf);
+      rewindStrBuffer(lineBf);
       outMsg(O_IO(lineBf), "%S = %S", key, klen, val, vlen);
 
       integer lineLen;
