@@ -1,11 +1,11 @@
 test.cn0{
   public boolean ::= .true | .false.
 
-  contract all x ~~ ar[x] ::= {
+  public contract all x ~~ ar[x] ::= {
     plus:(x,x)=>x.
   }
 
-  implementation ar[integer] => {.
+  public implementation ar[integer] => {.
     plus(x,y) => _int_plus(x,y).
   .}
 
@@ -22,7 +22,7 @@ test.cn0{
     plus((L1,R1),(L2,R2)) => (plus(L1,L2),plus(R1,R2)).
   .}
 
-  dblInt:(integer)=>integer.
+  public dblInt:(integer)=>integer.
   dblInt(X) => plus(X,X).
 
   dblCons:(cons[integer])=>cons[integer].

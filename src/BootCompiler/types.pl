@@ -3,13 +3,15 @@
 	   toLtipe/2,mkTplTipe/2,tpName/2,consTpName/2,
 	   netEnumType/2,
 	   newTypeVar/2,skolemVar/2,newTypeFun/3,skolemFun/3,deRef/2,
-	   progTypeArity/2,progArgTypes/2,isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
+	   progTypeArity/2,progArgTypes/2,funResType/2,
+	   isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
 	   isFunctionType/1,isFunctionType/2,isCnsType/2,
 	   isProgramType/1,isFixedSizeType/1,
 	   ssConstraint/4,ssType/4,
 	   contractType/2,contractTypes/2,
 	   isUnbound/1,isBound/1,isUnboundFVar/2, isIdenticalVar/2,
 	   moveQuants/3,reQuantTps/3,
+	   moveXQuants/3,reQuantX/3,
 	   getConstraints/3,putConstraints/3,
 	   implementationName/2,
 	   mkTypeRule/3,
@@ -120,6 +122,10 @@ moveQuants(allType(B,Tp),[B|Q],Tmpl) :- !,
   moveQuants(Tp,Q,Tmpl).
 moveQuants(Tp,[],Tp).
 
+moveXQuants(existType(B,InTp),[B|Q],Tp) :-!,
+  moveXQuants(InTp,Q,Tp).
+moveXQuants(Tp,[],Tp).
+
 reQuantTps(Tp,[],Tp).
 reQuantTps(Tp,[(_,Vt)|Q],allType(Vtt,QTp)) :-
   deRef(Vt,Vtt),
@@ -131,6 +137,10 @@ reQuantTps(Tp,[(_,Vt)|Q],QTp) :-
 reQuantTps(Tp,[(V,Vr)|Q],allType(kVar(V),QTp)) :-
   isUnbound(Vr),
   reQuantTps(Tp,Q,QTp).
+
+reQuantX(Tp,[],Tp).
+reQuantX(Tp,[(_,Vt)|Q],existType(Vt,QTp)) :-
+  reQuantX(Tp,Q,QTp).
 
 getConstraints(Tp,Cx,Inner) :-
   deRef(Tp,DTp),
@@ -288,6 +298,14 @@ tpArgTypes(constrained(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(funType(A,_),ArTps) :- tpArgTypes(A,ArTps).
 tpArgTypes(tupleType(ArTps),ArTps).
 
+funResType(Tp,ResTp) :- deRef(Tp,TT), resType(TT,ResTp).
+
+resType(allType(_,Tp),ResTp) :- resType(Tp,ResTp).
+resType(existType(_,Tp),ResTp) :- resType(Tp,ResTp).
+resType(constrained(_,Tp),ResTp) :- resType(Tp,ResTp).
+resType(funType(_,R),R) :- !.
+resType(R,R) :- !.
+
 isFunctionType(T) :- deRef(T,Tp), isFunctionType(Tp,_).
 
 isFunctionType(allType(_,T),Ar) :- deRef(T,Tp),isFunctionType(Tp,Ar).
@@ -338,7 +356,7 @@ mkTypeExp(Op,[A|Args],Tp) :-
 
 tpName(Tp,Nm) :-
   deRef(Tp,RTp),
-  surfaceName(RTp,Nm).
+  tpNm(RTp,Nm).
 
 consTpName(allType(_,T),Nm) :- consTpName(T,Nm).
 consTpName(existType(_,T),Nm) :- consTpName(T,Nm).
@@ -354,28 +372,28 @@ implementationName(conTract(Nm,Args,_),INm) :-
 surfaceNames([],_,S,S).
 surfaceNames([T|L],Sep,S0,Sx) :-
   deRef(T,TT),
-  surfaceName(TT,SN),
+  tpNm(TT,SN),
   appStr(Sep,S0,S1),
   appStr(SN,S1,S2),
   surfaceNames(L,Sep,S2,Sx).
 
-surfaceName(type(Nm),Nm).
-surfaceName(tpExp(Op,_),Nm) :- deRef(Op,OO), surfaceName(OO,Nm).
-surfaceName(kVar(Nm),Nm).
-surfaceName(kFun(Nm,_),Nm).
-surfaceName(tpFun(Nm,_),Nm).
-surfaceName(tVar(_,_,Nm,_),Nm).
-surfaceName(tFun(_,_,Nm,_,_),Nm).
-surfaceName(allType(_,Tp),Nm) :-
-  surfaceName(Tp,Nm).
-surfaceName(constrained(T,_),Nm) :-
-  surfaceName(T,Nm).
-surfaceName(typeLambda(_,R),Nm) :-
-  surfaceName(R,Nm).
-surfaceName(tupleType(Els),Nm) :-
+tpNm(type(Nm),Nm).
+tpNm(tpExp(Op,_),Nm) :- deRef(Op,OO), tpNm(OO,Nm).
+tpNm(kVar(Nm),Nm).
+tpNm(kFun(Nm,_),Nm).
+tpNm(tpFun(Nm,_),Nm).
+tpNm(tVar(_,_,Nm,_),Nm).
+tpNm(tFun(_,_,Nm,_,_),Nm).
+tpNm(allType(_,Tp),Nm) :-
+  tpNm(Tp,Nm).
+tpNm(constrained(T,_),Nm) :-
+  tpNm(T,Nm).
+tpNm(typeLambda(_,R),Nm) :-
+  tpNm(R,Nm).
+tpNm(tupleType(Els),Nm) :-
   length(Els,Ar),
   swritef(Nm,"()%d",[Ar]).
-surfaceName(faceType(Flds,_),Nm) :-
+tpNm(faceType(Flds,_),Nm) :-
   sort(Flds,types:cmpFld,SFlds),
   project0(SFlds,Fns),
   interleave(Fns,"|",Fs),
@@ -391,6 +409,8 @@ contractType(conTract(Nm,A,D),Tp) :-
   mkTypeExp(tpFun(Nm,Ar),Args,Tp).
 contractType(allType(V,CT),allType(V,T)) :-
   contractType(CT,T).
+contractType(constrained(_,Cn),Tp) :-
+  contractType(Cn,Tp).
 
 contractTypes(CTs,TPs) :-
   map(CTs,types:contractType,TPs).

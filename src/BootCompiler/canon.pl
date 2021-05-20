@@ -169,15 +169,15 @@ locOfCanon(performDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(simpleDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(noDo(Lc),Lc) :-!.
 
-ssCanonProg(prog(Pkg,_,Imports,Defs,_Fields,_Types,_Cons,_Impls),
+ssCanonProg(prog(Pkg,_,Imports,Defs,_Fields,_Types,_Cons,Impls),
 	    sq([PP,lb,nl(2),iv(nl(2),XX),rb])) :-
   ssPkg(Pkg,PP),
   map(Imports,canon:ssImport,II),
 %  map(Types,canon:ssTypeDef(2),TT),
 %  map(Cons,canon:ssContract(2),CC),
-%  map(Impls,canon:ssImpl(2),MM),
+  map(Impls,canon:ssImpl(2),MM),
   map(Defs,canon:ssDf(2),DD),
-  flatten([II,/*TT,CC,MM,*/DD],XX).
+  flatten([II,/*TT,CC,*/MM,DD],XX).
 
 ssPkg(pkg(Nm,V),sq([ss(Nm)|Vs])) :-
   ssVersion(V,Vs).
@@ -429,10 +429,11 @@ ssContract(Dp,conDef(_,Nm,ConNm,_ConTp,ConRule),
 	       TT])):-
   ssType(ConRule,false,Dp,TT).
 	    
-ssImport(import(Viz,Pkg,_,_,_,_,_),
-	 sq([VV,ss(" import "),PP])) :-
+ssImport(import(Viz,Pkg,_PkgVr,PkgExport,_,_,_),
+	 sq([VV,ss(" import "),PP,ss(":"),TT])) :-
   ssVisibility(Viz,VV),
-  ssPkg(Pkg,PP).
+  ssPkg(Pkg,PP),
+  ssType(PkgExport,false,0,TT).
 
 ssVisibility(private,ss("private ")).
 ssVisibility(public,ss("public ")).

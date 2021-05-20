@@ -501,7 +501,7 @@ liftLetRec(Lc,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(Bnd,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
   mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp).
 
-mkFreeLet(Lc,Vr,Fr,Ups,Exp,ltt(Lc,Vr,Fr,AExp)) :-
+mkFreeLet(Lc,Vr,Fr,Ups,Exp,AExp) :-
   computeFreeVect(Lc,Vr,Fr,Ups,Exp,AExp).
 
 computeFreeVect(Lc,Vr,Fr,[],Exp,ltt(Lc,Vr,Fr,Exp)).

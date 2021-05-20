@@ -47,11 +47,13 @@ isLTerm(ng(_,_)) :- !.
 isLTerm(error(_,_)) :- !.
 isLTerm(doAct(_,_)) :- !.
 
-ssTransformed(mdule(Pkg,_Imports,Tp,_,Defs,_Contracts,_Impls),
+ssTransformed(mdule(Pkg,_Imports,Tp,_,Defs,_Contracts,Impls),
 	      sq([ss("Package "),canon:ssPkg(Pkg),ss(" type "),TT,
-		  nl(0),iv(nl(0),Rs)])):-
+		  nl(0),iv(nl(0),Rs),
+		  nl(0),ss("Implementations\n"),iv(nl(0),Is)])):-
   ssType(Tp,true,0,TT),
-  map(Defs,lterms:ssRuleSet,Rs).
+  map(Defs,lterms:ssRuleSet,Rs),
+  map(Impls,canon:ssImpl(0),Is).
 
 ssRuleSet(fnDef(_Lc,Nm,_Tp,Args,Value),sq([ss("Fn: "),NN,lp,AA,rp,ss(" => "),VV])) :-
   ssTrm(Nm,0,NN),
@@ -377,6 +379,11 @@ inTerm(mtch(_,L,R),Nm) :-
   inTerm(L,Nm) ; inTerm(R,Nm).
 inTerm(ng(_,R),Nm) :-
   inTerm(R,Nm).
+inTerm(ltt(_,_,B,_E),Nm) :-
+  inTerm(B,Nm).
+inTerm(ltt(_,_,_B,E),Nm) :-
+  inTerm(E,Nm).
+
 
 isCnd(cnj(_,_,_)).
 isCnd(dsj(_,_,_)).
@@ -385,7 +392,12 @@ isCnd(ng(_,_)).
 
 validLProg(mdule(_Pkg,_Imports,_Tp,_,Defs,_Contracts,_Impls)) :-
   declareNms(Defs,[],Dct),
-  check_implies(is_member(D,Defs),lterms:validDf(D,Dct)).
+  validDfs(Defs,Dct).
+
+validDfs([],_).
+validDfs([D|Dfs],Dct) :-
+  validDf(D,Dct),!,
+  validDfs(Dfs,Dct).
 
 validDf(fnDef(Lc,_,_Tp,Args,Value),Dct) :-!,
   declareArgs(Args,Dct,D0),
@@ -397,11 +409,11 @@ validDf(tpDef(_Lc,_Tp,_Rl,_IxMap),_).
 declareNms(Defs,Dct,Dx) :-
   rfold(Defs,lterms:declareDef,Dct,Dx).
 
-declaref(fnDef(_Lc,Nm,_Tp,_Args,_Value),Dct,Dx) :-!,
+declareDef(fnDef(_Lc,Nm,_Tp,_Args,_Value),Dct,Dx) :-!,
   add_mem(Nm,Dct,Dx).
-validDf(glbDef(_Lc,Nm,_Tp,_Value),Dct,Dx) :-
+declareDef(glbDef(_Lc,Nm,_Tp,_Value),Dct,Dx) :-
   add_mem(Nm,Dct,Dx).
-validDf(tpDef(_Lc,_Tp,_Rl,_IxMap),Dx,Dx).
+declareDef(tpDef(_Lc,_Tp,_Rl,_IxMap),Dx,Dx).
        
 declareArgs(Args,Dct,Dx) :-
   rfold(Args,lterms:declareArg,Dct,Dx).
@@ -411,19 +423,19 @@ declareArg(idnt(Nm),D,Dx) :-
 
 validTerm(idnt(Nm),Lc,D) :-
   (is_member(Nm,D) -> true ; 
-   reportError("(internal) Variable %s not in scope %s",[Nm,D],Lc),
+   reportError("(validate) Variable %s not in scope %s",[Nm,D],Lc),
    abort).
 validTerm(voyd,_,_).
 validTerm(intgr(_),_,_).
 validTerm(float(_),_,_).
 validTerm(strg(_),_,_).
 validTerm(lbl(_,_),_,_).
-validTerm(cll(_,lbl(_,_),Args),Lc,D) :-
+validTerm(cll(Lc,lbl(_,_),Args),_,D) :-
   check_implies(is_member(A,Args),lterms:validTerm(A,Lc,D)).
-validTerm(ocall(_,Op,Args),Lc,D) :-
+validTerm(ocall(Lc,Op,Args),_,D) :-
   validTerm(Op,Lc,D),
   check_implies(is_member(A,Args),lterms:validTerm(A,Lc,D)).
-validTerm(ecll(_,Es,Args),Lc,D) :-
+validTerm(ecll(Lc,Es,Args),_,D) :-
   isEscape(Es),
   check_implies(is_member(A,Args),lterms:validTerm(A,Lc,D)).
 validTerm(intrinsic(Lc,Is,Args),_,D) :-

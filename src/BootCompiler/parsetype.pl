@@ -3,7 +3,8 @@
 		     parseContract/6,parseTypeDef/6,
 		     typeTemplate/3,
 		     parseContractConstraint/6,
-		     genBraceType/6,buildBraceAccessors/6]).
+		     genBraceType/6,buildBraceAccessors/6,
+		     genPkgType/9]).
 
 :- use_module(abstract).
 :- use_module(canon).
@@ -151,10 +152,6 @@ reQuant([],Tp,Tp).
 reQuant([(_,KV)|M],Tp,allType(KV,QTp)) :-
   reQuant(M,Tp,QTp).
 
-reQuantX([],Tp,Tp).
-reQuantX([(_,KV)|M],Tp,existType(KV,QTp)) :-
-  reQuantX(M,Tp,QTp).
-
 reBind([],_,Tp,Tp).
 reBind([(Nm,TV)|Q],Env,T,allType(kFun(Nm,Ar),Tp)) :-
   isUnboundFVar(TV,Ar),!,
@@ -273,7 +270,7 @@ parseContract(T,Env,Ev,Path,[conDef(Lc,Nm,ConNm,CnType,ConRule),
   ConTpDef = typeDef(Lc,ConNm,CnType,[(ConNm,0)],FaceRule),
   genBraceConstructor(Lc,Fs,ConNm,Q,Cx,ConTp,CnsDef,Env,Ev),
 %  reportMsg("contract type constructor %s",[CnsDef]),
-  genBraceAccessors(Lc,Q,Cx,ConNm,ConTp,Fs,Fs,Defs,Dfx).
+  genBraceAccessors(Lc,Q,Cx,ConNm,ConTp,Fs,Fs,Defs,Dfx,_,[]).
 
 parseContractSpec(T,Q,C0,Cx,Env,conTract(ConNm,ArgTps,Deps),Nm,ConNm,Path) :-
   isSquare(T,_,Nm,A),
@@ -363,13 +360,14 @@ buildBraceAccessors(Lc,Q,Cx,Tp,Defs,Dfx) :-
   deRef(Tp,faceType(ElTps,_)),
   genBraceAccessors(Lc,Q,Cx,Prefix,Tp,ElTps,ElTps,Defs,Dfx).
   
-genBraceAccessors(_Lc,_Q,_Cx,_ConNm,_Tp,[],_,Defs,Defs).
-genBraceAccessors(Lc,Q,Cx,ConNm,Tp,[(Fld,FldTp)|ElTps],AllElTps,Defs,Dfx) :-
-  genBraceAccessor(Lc,Q,Cx,ConNm,Tp,Fld,FldTp,Tp,AllElTps,Defs,Df0),
-  genBraceAccessors(Lc,Q,Cx,ConNm,Tp,ElTps,AllElTps,Df0,Dfx).
+genBraceAccessors(_Lc,_Q,_Cx,_ConNm,_Tp,[],_,Defs,Defs,Imps,Imps).
+genBraceAccessors(Lc,Q,Cx,ConNm,Tp,[(Fld,FldTp)|ElTps],AllElTps,Defs,Dfx,Imps,Imx) :-
+  genBraceAccessor(Lc,Q,Cx,ConNm,Tp,Fld,FldTp,Tp,AllElTps,Defs,Df0,Imps,Im0),
+  genBraceAccessors(Lc,Q,Cx,ConNm,Tp,ElTps,AllElTps,Df0,Dfx,Im0,Imx).
 
 genBraceAccessor(Lc,Q,Cx,ConNm,Tp,Fld,FldTp,Tp,AllElTps,
-		 [funDef(Lc,AccName,AccName,AccFunTp,[],[Eqn]),AccDef|Defs],Defs) :-
+		 [funDef(Lc,AccName,AccName,AccFunTp,[],[Eqn]),AccDef|Defs],Defs,
+		 [acc(Tp,Fld,AccName,AccFunTp)|Imx],Imx) :-
   localName(ConNm,field,Fld,AccName),
   putConstraints(Cx,funType(tupleType([Tp]),FldTp),CxFunTp),
   reQuant(Q,CxFunTp,AccFunTp),
@@ -396,10 +394,22 @@ genBraceType(Lc,Tp,Defs,Dfx,Env,Ev) :-
   wrapType(Fs,[],[],[],typeExists(Tp0,BareFs),FaceRule),
   genBraceConstructor(Lc,Fs,TpNm,Fs,[],BareFs,ConDef,Env,Ev),
   genBraceAccessors(Lc,Fs,[],TpNm,Tp0,Fs,Fs,Defs,
-		    [typeDef(Lc,TpNm,BrTp,[(TpNm,0)],FaceRule),ConDef|Dfx]).
+		    [typeDef(Lc,TpNm,BrTp,[(TpNm,0)],FaceRule),ConDef|Dfx],
+		    _Imps,[]).
 
 newFieldVar((Nm,_),(Fs,Args),([(Nm,kVar(Nm1))|Fs],[kVar(Nm1)|Args])) :-
   genstr("_",Nm1).
+
+genPkgType(Lc,PkgTpNm,PkgFace,Defs,Dfx,Accs,Acx,Env,Ev) :-
+  unwrapType(PkgFace,Q,Cx,faceType(Flds,FTps)),
+  sort(Flds,parsetype:cmpVarDef,Fs),
+  BareFs = faceType(Fs,FTps),
+  PkgTp = type(PkgTpNm),
+  wrapType(Q,Cx,[],[],typeExists(PkgTp,BareFs),FaceRule),
+  genBraceConstructor(Lc,Fs,PkgTpNm,Q,Cx,PkgTp,ConDef,Env,Ev),
+  genBraceAccessors(Lc,Q,[],PkgTpNm,PkgTp,Fs,Fs,Defs,
+		    [typeDef(Lc,PkgTpNm,PkgTp,[(PkgTpNm,0)],FaceRule),ConDef|Dfx],
+		    Accs,Acx).
 
 genBraceConstructor(Lc,[],Nm,Q,Cx,Tp,cnsDef(Lc,Nm,enm(Lc,Nm,ConTp)),Env,Ev) :-
   wrapType(Q,Cx,[],[],consType(faceType([],[]),Tp),ConTp),
@@ -470,6 +480,10 @@ wrapType(Q,Cx,XQ,XC,Tp,WTp) :-
   reXQuant(XQ,Tp0,Tp1),
   wrapConstraints(Cx,Tp1,CTp),
   reQuant(Q,CTp,WTp).
+
+unwrapType(Tp,Q,Cx,ITp) :-
+  moveQuants(Tp,Q,Tp0),
+  getConstraints(Tp0,Cx,ITp).
 
 algebraicFace(C,F) :-
   isBinary(C,_,"|",L,R),!,

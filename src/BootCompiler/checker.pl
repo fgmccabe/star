@@ -42,13 +42,13 @@ checkProgram(Prog,Pkg,Repo,Opts,Canon) :-
 %  displayln(sq([ss("external defs"),canon:ssDefs(XDefs,0)])),
   filter(Exports,parsetype:nonConstructorTp,PkgFlds),
   PkgTp=faceType(PkgFlds,[]),
-  genBraceType(Lc,PkgTp,ODfx,XDefs,OEnv,PEnv),
-  tpName(PkgTp,Lbl),
-  formTheta(Lc,Lbl,PDefs,PkgFlds,PkgTp,PkgVal),
   packageVarName(Pk,"",PkVr),
-  mkBoot(PEnv,Lc,Pk,PkVr,Lbl,ODfx,PkgDefs,BDefs),
+  packageTypeName(Pk,"",PkTpNm),
+  genPkgType(Lc,PkTpNm,PkgTp,ODfx,XDefs,Implx,Impls,OEnv,PEnv),
+  formTheta(Lc,PkTpNm,PDefs,PkgFlds,PkgTp,PkgVal),
+  mkBoot(PEnv,Lc,Pk,PkVr,PkTpNm,ODfx,PkgDefs,BDefs),
   BDefs=[varDef(Lc,PkVr,PkVr,[],PkgTp,PkgVal)|ODfx],
-  Canon=prog(Pkg,Lc,ImportSpecs,PkgDefs,Exports,Types,Contracts,Impls),
+  Canon=prog(Pkg,Lc,ImportSpecs,PkgDefs,Exports,Types,Contracts,Implx),
   (is_member(showTCCode,Opts) -> displayln(canon:ssCanonProg(Canon));true).
 
 
@@ -232,7 +232,9 @@ importDefs(spec(Pkg,faceType(Exported,Types),Enums,Cons,Impls,_),Lc,PkgVr,E,Evx)
   importTypes(Types,Lc,E,E1),
   declareImportedFields(Exported,Pkg,Enums,Lc,PkgVr,E1,E2),
   importContracts(Cons,Lc,E2,E3),
-  importImplementations(Lc,Impls,E3,Evx).
+  map(Impls,canon:ssImpl(0),II),
+  reportMsg("import from %s implementations %s",[pk(Pkg),ds(iv(nl(0),II))]),
+  importImplementations(Lc,PkgVr,Impls,E3,Evx).
 
 declareImportedFields([],_,_,_,_,Env,Env).
 declareImportedFields([(Nm,Tp)|More],Pkg,Enums,Lc,PkgVr,Env,Ex) :-
@@ -277,12 +279,14 @@ importContracts([C|L],Lc,E,Env) :-
 notAlreadyImported(import(_,_,Pkg),SoFar) :-
   \+ is_member(import(_,_,Pkg),SoFar),!.
 
-importImplementations(Lc,Impls,Ev,Evx) :-
-  rfold(Impls,checker:declImplementation(Lc),Ev,Evx).
+importImplementations(Lc,Vr,Impls,Ev,Evx) :-
+  rfold(Impls,checker:declImplementation(Lc,Vr),Ev,Evx).
 
-declImplementation(Lc,imp(_ImplNm,FullNm,ImplTp),Ev,Evx) :-
-  declareImplementation(Lc,FullNm,ImplTp,Ev,Evx).
-declImplementation(_,acc(Tp,Fld,FnNm,AccTp),Ev,Evx) :-
+declImplementation(Lc,Vr,imp(_ImplNm,FullNm,ImplTp),Ev,Evx) :-
+  declareField(Lc,Vr,FullNm,ImplTp,Ev,Ev0),
+  funResType(ImplTp,ConTp),
+  declareImplementation(Lc,ConTp,FullNm,ImplTp,Ev0,Evx).
+declImplementation(_,_Vr,acc(Tp,Fld,FnNm,AccTp),Ev,Evx) :-
   declareFieldAccess(Tp,Fld,FnNm,AccTp,Ev,Evx).
 
 checkGroups([],_,_,Defs,Defs,E,E,_).
@@ -525,7 +529,7 @@ splitHd(Id,Nm,none,notDeflt) :-
 splitHd(Term,"()",Term,notDeflt) :-
   isTuple(Term,_).
 
-checkImplementation(Stmt,INm,[Impl,ImplDef|Dfs],Dfs,Env,Ex,_,_Path) :-
+checkImplementation(Stmt,INm,[Impl,ImplDef|Dfs],Dfs,Env,Evx,_,_Path) :-
   isImplementationStmt(Stmt,Lc,Quants,Cons,Sq,IBody),
   parseContractConstraint(Quants,Cons,Sq,Env,ConNm,ConSpec),
   evidence(ConSpec,Env,IQ,CnSpec),
@@ -541,7 +545,8 @@ checkImplementation(Stmt,INm,[Impl,ImplDef|Dfs],Dfs,Env,Ex,_,_Path) :-
   reQuantTps(SS1,IQ,ImpType),
   ImplDef = varDef(Lc,ImplName,ImplName,AC,ImpType,ImplTerm),
   Impl = implDef(INm,ConNm,ImplName,ImpType),
-  declareImplementation(Lc,ImplName,ImpType,Env,Ex),!.
+  declareVr(Lc,ImplName,ImpType,Env,Ev0),
+  declareImplementation(Lc,CnType,ImplName,ImpType,Ev0,Evx),!.
 checkImplementation(Stmt,_,Defs,Defs,Env,Env,_,_) :-
   locOfAst(Stmt,Lc),
   reportError("could not check implementation statement %s",[Stmt],Lc).
@@ -1437,7 +1442,7 @@ exportDef(conDef(_,Nm,_,_CnTp,_),Con,_,Public,Lcx,Lcx,Dfx,Dfx,Ex,Ex,Tx,Tx,
 	  [Con|Cx],Cx,Impl,Impl) :-
   isPublicContract(Nm,Public).
 exportDef(implDef(TmpNm,ConNm,ImplName,Spec),_,_,Public,Lcx,Lcx,Dfx,Dfx,
-	  Ex,Ex,Tps,Tps,Cx,Cx,
+	  [(ImplName,Spec)|Ex],Ex,Tps,Tps,Cx,Cx,
 	  [imp(ConNm,ImplName,Spec)|Ix],Ix) :-
   isPublicImpl(TmpNm,Public),!.
 exportDef(accDef(Tp,Fld,AccFn,AccTp),Def,_,Public,Lcx,Lcx,[Def|Dfx],Dfx,

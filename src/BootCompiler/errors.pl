@@ -89,7 +89,8 @@ showTrm(ltrm(L),O) :-
   ss_to_chrs(lterms:ssTrm(L,0),O,[]).
 showTrm(ds(D),O) :-
   ss_to_chrs(D,O,[]).
-  
+showTrm(pk(P),O) :-
+  ss_to_chrs(canon:ssPkg(P),O,[]).
 showTrm(T,O) :-
   isAst(T), !, dispAst(T,0,O,[]).
 showTrm(L,O) :-
