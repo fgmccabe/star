@@ -271,13 +271,13 @@ smpCon(implementsFace(L,R),Env,C,Cx,implementsFace(Ls,Rs)) :-
   simplifyType(L,Env,C,C0,Ls),
   simplifyType(R,Env,C0,Cx,Rs).
 
-bind(tVar(Curr,Con,Nm,Id),Tp,Env) :- !,
+bind(tVar(Curr,Con,Nm,Id),Tp,_Env) :- !,
   \+occursIn(tVar(Curr,Con,Nm,Id),Tp),
   Curr=Tp.
   % (varConstraints(Tp,Env,Cx) ->
   %   mergeConstraints(Con,Cx,Env) ;
   %   checkConstraints(Con,Env)).
-bind(tFun(Curr,Con,Nm,Ar,Id),Tp,Env) :-
+bind(tFun(Curr,Con,Nm,Ar,Id),Tp,_Env) :-
   \+occursIn(tFun(Curr,Con,Nm,Ar,Id),Tp),
   Curr=Tp.
   % (varConstraints(Tp,Env,Cx) ->

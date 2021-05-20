@@ -4,7 +4,7 @@
 		mkVr/4,isVar/3,getVar/5,
 		currentVar/3,restoreVar/4,
 		declareContract/4,getContract/3,
-		declareImplementation/5,
+		declareImplementation/6,
 		declareFieldAccess/6,getFieldAccess/5,
 		getImplementation/4,
 		declareConstraint/4,declareConstraints/4,allConstraints/2,
@@ -116,10 +116,17 @@ allConstraints([dict(_,_,Cns,_,_,_)|Env],All) :-
   allConstraints(Env,Outer),
   concat(Cns,Outer,All).
 
-declareImplementation(Lc,ImplNm,ImplTp,Dict,Dx) :-
-  declareVr(Lc,ImplNm,ImplTp,Dict,Dx).
+declareImplementation(Lc,Contract,ImplNm,Tp,
+		      [dict(Types,Names,Cns,Impls,Accs,Contracts)|Outer],
+		      [dict(Types,Names,Cns,Implx,Accs,Contracts)|Outer]) :-
+  tpName(Contract,Nm),
+  makeKey(Nm,Key),
+  (get_dict(Key,Impls,Entries) ->
+   put_dict(Key,Impls,[implement(Lc,Contract,ImplNm,Tp)|Entries],Implx);
+   put_dict(Key,Impls,[implement(Lc,Contract,ImplNm,Tp)],Implx)).
 
-getImplementation(Nm,ImplNm,Env,Impl) :-
+getImplementation(Tp,ImplNm,Env,Impl) :-
+  tpName(Tp,Nm),
   makeKey(Nm,Key),
   implInDct(Key,ImplNm,Env,Impl).
 

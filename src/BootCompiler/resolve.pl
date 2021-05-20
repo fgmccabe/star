@@ -333,16 +333,16 @@ genVar(Nm,Lc,Tp,v(Lc,NV,Tp)) :-
 
 declareImplementations(_,[],Dict,Dict).
 declareImplementations(Lc,[implDef(_,_Nm,ImplNm,ImplTp)|Defs],Dict,Dx) :-
-  declareImplementation(Lc,ImplNm,ImplTp,Dict,D0),
-  declareImplementations(Lc,Defs,D0,Dx).
+  funResType(ImplTp,ResTp),
+  contractType(ResTp,ConTp),
+  declareVr(Lc,ImplNm,ImplTp,Dict,D0),
+  declareImplementation(Lc,ConTp,ImplNm,ImplTp,D0,D1),
+  declareImplementations(Lc,Defs,D1,Dx).
 declareImplementations(Lc,[accDef(Tp,FldNm,FunNm,AcTp)|Defs],Dict,Dx) :-
   declareFieldAccess(Tp,FldNm,FunNm,AcTp,Dict,D0),
   declareImplementations(Lc,Defs,D0,Dx).
 declareImplementations(Lc,[_|Defs],Dict,Dx) :-
   declareImplementations(Lc,Defs,Dict,Dx).
-
-findImplementation(ImplName,Dict,Spec) :-
-  is_member(impl(ImplName,Spec),Dict),!.
 
 findAccess(Tp,FldNm,Dict,FunNm) :-
   getFieldAccess(Tp,FldNm,FunNm,_,Dict).
