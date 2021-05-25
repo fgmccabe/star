@@ -17,7 +17,7 @@ importAll(Imports,Repo,AllImports) :-
   closure(Imports,[],import:notAlreadyImported,import:importMore(Repo),AllImports).
 
 importMore(Repo,import(Lc,Viz,Pkg),SoFar,[import(Lc,Viz,Pkg)|SoFar],Inp,More) :-
-  importPkg(Pkg,Lc,Repo,spec(_,_,_,_,_,Imports)),
+  importPkg(Pkg,Lc,Repo,spec(_,_,_,_,Imports)),
   addPublicImports(Imports,Inp,More).
 importMore(_,import(Lc,_,Pkg),SoFar,SoFar,Inp,Inp) :-
   reportError("could not import package %s",[Pkg],Lc).
@@ -34,18 +34,17 @@ addPublicImports([import(_,transitive,_)|I],Rest,Out) :-
   addPublicImports(I,Rest,Out).
 
 importPkg(Pkg,Lc,Repo,
-	  spec(Act,Face,Classes,Contracts,Implementations,Imports)) :-
+	  spec(Act,PkgTp,Face,Decls,Imports)) :-
   codePackagePresent(Repo,Pkg,Act,Sig,_U,_SrcWhen,_When),
-  pickupPkgSpec(Sig,Lc,Pkg,Imports,Face,Classes,Contracts,Implementations).
+  pickupPkgSpec(Sig,Lc,Pkg,Imports,PkgTp,Face,Decls).
 
-pickupPkgSpec(Enc,Lc,Pkg,Imports,Face,Classes,Contracts,Implementations) :-
-  decodeValue(Enc,ctpl(_,[Pk,ctpl(_,Imps),FTps,ctpl(_,ClsSigs),ctpl(_,ConSigs),ctpl(_,ImplSigs)])),
+pickupPkgSpec(Enc,Lc,Pkg,Imports,PkgTp,Face,Decls) :-
+  decodeValue(Enc,ctpl(_,[Pk,ctpl(_,Imps),Tp,FTps,ctpl(_,DeclSigs)])),
   pickupPkg(Pk,Pkg),
   pickupImports(Imps,Lc,Imports),
-  pickupFace(FTps,Face),
-  pickupCnsMaps(ClsSigs,Classes,[]),
-  pickupContracts(ConSigs,Contracts),
-  pickupImplementations(ImplSigs,Implementations,[]).
+  pickupType(Tp,PkgTp),
+  pickupType(FTps,Face),
+  pickupDeclarations(DeclSig,Decls).
 
 pickupPkg(ctpl(lbl("pkg",2),[strg(Nm),V]),pkg(Nm,Vers)) :-
   pickupVersion(V,VV),
@@ -67,41 +66,43 @@ pickupViz(enum("private"),private).
 pickupViz(enum("public"),public).
 pickupViz(enum("transitive"),transitive).
 
-pickupFace(strg(Sig),Type) :-
+pickupType(strg(Sig),Type) :-
   decodeSignature(Sig,Type).
 
-pickupCnsMaps([],Cls,Cls).
-pickupCnsMaps([ctpl(_,[strg(Nm),ctpl(_,CSigs)])|Rest],[(Nm,Ctors)|More],Cls):-
-  pickupCtors(CSigs,Ctors,[]),
-  pickupCnsMaps(Rest,More,Cls).
+pickupDeclarations(Encs,Impls) :-
+  map(Encs,import:pickupDeclaration,Impls).
 
-pickupCtors([],Cnx,Cnx).
-pickupCtors([ctpl(_,[strg(Nm),strg(FlNm),strg(Sig)])|Rest],[(Nm,FlNm,Tp)|More],Cnx):-
+pickupDeclaration(ctpl(lbl("imp",3),[strg(Nm),strg(FNm),strg(Sig)]),
+		  impDec(Nm,FNm,Spec)) :-
+  decodeSignature(Sig,Spec).
+pickupDeclaration(ctpl(lbl("acc",3),
+		       [strg(Sig),strg(Fld),strg(Fn),strg(AccSig)]),
+		  accDec(Tp,Fld,Fn,AccTp)) :-
   decodeSignature(Sig,Tp),
-  pickupCtors(Rest,More,Cnx).
-
-pickupContracts(C,Cons) :-
-  findContracts(C,Cons,[]).
-
-findContracts([],C,C).
-findContracts([ctpl(_,[LTrm,strg(Nm),strg(CnNm),strg(TSig),strg(Sig)])|M],
-	      [conDef(Lc,Nm,CnNm,CnTp,Spec)|C],Cx) :-
+  decodeSignature(AccSig,AccTp).
+pickupDeclaration(ctpl(lbl("con",5),
+		       [LTrm,strg(Nm),strg(CnNm),strg(TSig),strg(Sig)]),
+		  contractDec(Lc,Nm,CnNm,CnTp,Spec)) :-
   decodeSignature(Sig,Spec),
   decodeSignature(TSig,CnTp),
-  locTerm(Lc,LTrm),
-  findContracts(M,C,Cx).
-
-pickupImplementations([],I,I).
-pickupImplementations([ctpl(lbl("imp",3),[strg(Nm),strg(FNm),strg(Sig)])|M],[imp(Nm,FNm,Spec)|I],RI) :-
-  decodeSignature(Sig,Spec),
-  pickupImplementations(M,I,RI).
-pickupImplementations([ctpl(lbl("acc",3),
-			    [strg(Sig),strg(Fld),strg(Fn),strg(AccSig)])|M],
-		      [acc(Tp,Fld,Fn,AccTp)|I],RI) :-
+  locTerm(Lc,LTrm).
+pickupDeclaration(ctpl(lbl("tpe",3),[strg(Sig),strg(RlSig),ctpl(_,ConsEnc)]),
+		  typeDec(Tp,TpRule,ConsMap)) :-
   decodeSignature(Sig,Tp),
-  decodeSignature(AccSig,AccTp),
-  pickupImplementations(M,I,RI).
+  decodeSignature(RlSig,TpRule),
+  decodeConsMap(ConsEnc,ConsMap).
+pickupDeclaration(ctpl(lbl("var",3),[strg(Nm),LTrm,strg(Sig)]),varDec(Lc,Nm,Tp)) :-
+  decodeSignature(Sig,Tp),
+  locTerm(Lc,LTrm).
 
+
+decodeConsMap(ctpl(_,Ctors),ConsMap) :-
+  map(Ctors,import:pickupCtor,ConsMap).
+
+pickupCtor(ctpl(_,[strg(Nm),strg(FlNm),intgr(Ix),strg(Sig)]),(Nm,FlNm,Ix,Tp)) :-
+  decodeSignature(Sig,Tp).
+
+	    
 loadCode(Strm,[]) :-
   at_end_of_stream(Strm).
 loadCode(Strm,[Term|M]) :-
@@ -114,6 +115,6 @@ packageName(pkg(Nm,_),N) :-
 loadPkg(Pkg,Repo,Code,Imports) :-
   openPackageAsStream(Repo,Pkg,_,_,Strm),
   read(Strm,SigTerm),
-  pickupPkgSpec(SigTerm,Pkg,Imports,_,_,_,_,_),
+  pickupPkgSpec(SigTerm,Pkg,Imports,_,_,_,_,_,_),
   loadCode(Strm,Code),
   close(Strm).

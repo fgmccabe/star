@@ -10,15 +10,16 @@
 :- use_module(errors).
 :- use_module(gensig).
 
-genCode(mdule(Pkg,Imports,Face,_Enums,Defs,_Contracts,_Impls),Opts,Text) :-
+genCode(mdule(Pkg,Imports,PkgTp,Face,_Enums,Defs,_Contracts,_Impls),Opts,Text) :-
   encPkg(Pkg,PT),
+  encType(PkgTp,PkgSig),
   encType(Face,Sig),
   initDict(D),
   genImports(Imports,ImpTpl,D,D0),
   defineGlobals(Defs,D0,D1),
   genDefs(Defs,Opts,D1,C,[]),
   mkTpl(C,Cdes),
-  mkTpl([PT,strg(Sig),ImpTpl,Cdes],Tp),
+  mkTpl([PT,strg(PkgSig),strg(Sig),ImpTpl,Cdes],Tp),
   encode(Tp,Txt),
   encode(strg(Txt),Text).
 
@@ -27,12 +28,11 @@ genImports(Imps,ImpTpl,D,Dx) :-
   mkTpl(Els,ImpTpl),
   rfold(Imps,gencode:importGlbVar,D,Dx).
 
-genImport(import(_,Pkg,_,_,_,_,_),PkgTrm) :-
+genImport(importPkg(_,Pkg,_),PkgTrm) :-
   encPkg(Pkg,PkgTrm).
 
-importGlbVar(import(_,_,v(_,PkgVr,_),_,_,_,Impls),D,Dx) :-
-  defineGlbVar(PkgVr,D,D0),
-  defineImpls(Impls,D0,Dx).
+importGlbVar(importPkg(_,_,v(_,PkgVr,_)),D,Dx) :-
+  defineGlbVar(PkgVr,D,Dx).
 
 defineImpls(_,Dx,Dx).
 

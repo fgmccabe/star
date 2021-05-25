@@ -19,7 +19,7 @@ isCanonDef(conDef(_,_,_,_,_)).
 isCanonDef(implDef(_,_,_,_)).
 isCanonDef(accDef(_,_,_,_)).
 
-isCanon(prog(_,_,_,_,_,_,_)).
+isCanon(prog(_,_,_,_,_,_,_,_)).
 isCanon(v(_,_,_)).
 isCanon(over(_,_,_,_)).
 isCanon(overaccess(_,_,_)).
@@ -169,9 +169,10 @@ locOfCanon(performDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(simpleDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(noDo(Lc),Lc) :-!.
 
-ssCanonProg(prog(Pkg,_,Imports,Defs,_Fields,_Types,_Cons,Impls),
-	    sq([PP,lb,nl(2),iv(nl(2),XX),rb])) :-
+ssCanonProg(prog(Pkg,Imports,Defs,PkgTp,_Fields,_Types,_Cons,Impls),
+	    sq([PP,ss(":"),TT,lb,nl(2),iv(nl(2),XX),rb])) :-
   ssPkg(Pkg,PP),
+  ssType(PkgTp,false,0,TT),
   map(Imports,canon:ssImport,II),
 %  map(Types,canon:ssTypeDef(2),TT),
 %  map(Cons,canon:ssContract(2),CC),
