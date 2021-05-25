@@ -287,6 +287,11 @@ resolveAccess(Lc,Rc,Fld,Tp,Dict,Stx,Stx,apply(Lc,V,tple(Lc,[Rc]),Tp)) :-
   typeOfCanon(Rc,RcTp),
   findAccess(RcTp,Fld,Dict,FunNm),
   V = v(Lc,FunNm,funType(tupleType([RcTp]),Tp)).
+resolveAccess(Lc,Rc,Fld,Tp,_Dict,St,Stx,dot(Lc,Rc,Fld,Tp)) :-
+  typeOfCanon(Rc,RcTp),
+  genMsg("no accessor defined for %s for type %s in %s",
+	 [Fld,tpe(RcTp),can(dot(Lc,Rc,Fld,Tp))],Msg),
+  markActive(St,Lc,Msg,Stx).
 
 resolveContracts(_,[],_,St,St,[]).
 resolveContracts(Lc,[Con|C],Dict,St,Stx,[CV|Vs]) :-

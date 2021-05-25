@@ -304,7 +304,8 @@ isShow(St,Lc,Ex) :-
   isUnary(St,Lc,"show",Ex).
 
 isOpen(St,Lc,Ex) :-
-  isUnary(St,Lc,"open",Ex).
+  isUnary(St,Lc,"open",Ex),
+  isIden(Ex,_,_).
 
 isConditional(Term,Lc,Tst,Th,El) :-
   isBinary(Term,Lc,"?",Tst,Rhs),

@@ -52,8 +52,8 @@
 
 */
 
-transformProg(prog(pkg(Pkg,Vers),_Lc,Imports,Defs,Fields,Types,Contracts,Impls),
-	      Opts,mdule(pkg(Pkg,Vers),Imports,faceType(Fields,Types),Ctors,Dfs,Contracts,Impls)) :-
+transformProg(prog(pkg(Pkg,Vers),Imports,Defs,PkgTp,Fields,Types,Contracts,Impls),
+	      Opts,mdule(pkg(Pkg,Vers),Imports,PkgTp,faceType(Fields,Types),Ctors,Dfs,Contracts,Impls)) :-
   makePkgMap(Pkg,Defs,Types,Imports,Ctors,Map),
   transformModuleDefs(Defs,Pkg,Map,Opts,Dfs,[]).
 

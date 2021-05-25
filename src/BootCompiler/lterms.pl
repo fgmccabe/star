@@ -47,7 +47,7 @@ isLTerm(ng(_,_)) :- !.
 isLTerm(error(_,_)) :- !.
 isLTerm(doAct(_,_)) :- !.
 
-ssTransformed(mdule(Pkg,_Imports,Tp,_,Defs,_Contracts,Impls),
+ssTransformed(mdule(Pkg,_Imports,Tp,_,_,Defs,_Contracts,Impls),
 	      sq([ss("Package "),canon:ssPkg(Pkg),ss(" type "),TT,
 		  nl(0),iv(nl(0),Rs),
 		  nl(0),ss("Implementations\n"),iv(nl(0),Is)])):-
@@ -390,7 +390,7 @@ isCnd(dsj(_,_,_)).
 isCnd(mtch(_,_,_)).
 isCnd(ng(_,_)).
 
-validLProg(mdule(_Pkg,_Imports,_Tp,_,Defs,_Contracts,_Impls)) :-
+validLProg(mdule(_Pkg,_Imports,_Tp,_Face,_,Defs,_Contracts,_Impls)) :-
   declareNms(Defs,[],Dct),
   validDfs(Defs,Dct).
 

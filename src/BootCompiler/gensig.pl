@@ -7,16 +7,17 @@
 :- use_module(encode).
 :- use_module(uri).
 
-genPkgSig(mdule(Pkg,Imports,Face,Enums,_Defs,Contracts,Impls),Sig) :-
-  constructPkgSig(Pkg,Imports,Face,Enums,Contracts,Impls,Term),
+genPkgSig(mdule(Pkg,Imports,PkgTp,Face,Enums,_Defs,Contracts,Impls),Sig) :-
+  constructPkgSig(Pkg,Imports,PkgTp,Face,Enums,Contracts,Impls,Term),
   encodeTerm(Term,Chrs,[]),
   string_chars(Sig,Chrs).
 
-constructPkgSig(Pkg,Imports,Face,Enums,Contracts,Impls,SigTpl) :-
-  mkTpl([PkgNm,ImpTpl,strg(Sig),ClsTpl,ConTpl,ImplTpl],SigTpl),
+constructPkgSig(Pkg,Imports,PkgTp,Face,Enums,Contracts,Impls,SigTpl) :-
+  mkTpl([PkgNm,ImpTpl,strg(PkSig),strg(Sig),ClsTpl,ConTpl,ImplTpl],SigTpl),
   encPkg(Pkg,PkgNm),
   encImports(Imports,Imps),
   mkTpl(Imps,ImpTpl),
+  encType(PkgTp,PkSig),
   encType(Face,Sig),
   map(Enums,gensig:formatCnMap,ClsSigs),
   mkTpl(ClsSigs,ClsTpl),

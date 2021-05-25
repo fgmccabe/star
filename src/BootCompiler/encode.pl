@@ -1,4 +1,6 @@
-:- module(encode,[encode/2,encodeTerm/3,encType/2,encodeType/3,encLtp/2,encodeLtipe/3,encodeConstraint/3]).
+:- module(encode,
+	  [encode/2,encodeTerm/3,encType/2,encodeType/3,encLtp/2,
+	   encodeLtipe/3,encodeConstraint/3]).
 
 :- use_module(misc).
 :- use_module(base64).

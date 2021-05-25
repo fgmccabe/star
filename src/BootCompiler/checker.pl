@@ -41,14 +41,14 @@ checkProgram(Prog,Pkg,Repo,Opts,Canon) :-
 		Exports,Types,Contracts,Impls),!,
 %  displayln(sq([ss("external defs"),canon:ssDefs(XDefs,0)])),
   filter(Exports,parsetype:nonConstructorTp,PkgFlds),
-  PkgTp=faceType(PkgFlds,[]),
   packageVarName(Pk,"",PkVr),
   packageTypeName(Pk,"",PkTpNm),
-  genPkgType(Lc,PkTpNm,PkgTp,ODfx,XDefs,Implx,Impls,OEnv,PEnv),
+  PkgTp=type(PkTpNm),
+  genPkgType(Lc,PkTpNm,faceType(PkgFlds,[]),ODfx,XDefs,Implx,Impls,OEnv,PEnv),
   formTheta(Lc,PkTpNm,PDefs,PkgFlds,PkgTp,PkgVal),
   mkBoot(PEnv,Lc,Pk,PkVr,PkTpNm,ODfx,PkgDefs,BDefs),
   BDefs=[varDef(Lc,PkVr,PkVr,[],PkgTp,PkgVal)|ODfx],
-  Canon=prog(Pkg,Lc,ImportSpecs,PkgDefs,Exports,Types,Contracts,Implx),
+  Canon=prog(Pkg,ImportSpecs,PkgDefs,PkgTp,Exports,Types,Contracts,Implx),
   (is_member(showTCCode,Opts) -> displayln(canon:ssCanonProg(Canon));true).
 
 
@@ -76,8 +76,8 @@ mkFieldArg(Lc,(Nm,Tp),v(Lc,Nm,Tp)).
 
 thetaEnv(Pkg,Lc,Stmts,Fields,Base,TheEnv,Defs,Public) :-
   errorCount(ErrCount),
-  collectDefinitions(Stmts,Dfs,Public,Annots),
   (noNewErrors(ErrCount) ->
+   collectDefinitions(Stmts,Dfs,Public,Annots),
    dependencies(Dfs,Groups,Annots),
    pushFace(Fields,Lc,Base,Env),
    checkGroups(Groups,Fields,Annots,Defs,[],Env,TheEnv,Pkg);
@@ -228,7 +228,7 @@ findAllImports([St|More],[Spec|Imports]) :-
   findImport(St,private,Spec),
   findAllImports(More,Imports).
 
-importDefs(spec(Pkg,faceType(Exported,Types),Enums,Cons,Impls,_),Lc,PkgVr,E,Evx) :-
+importDefs(spec(Pkg,_,faceType(Exported,Types),Decls,_),Lc,PkgVr,E,Evx) :-
   importTypes(Types,Lc,E,E1),
   declareImportedFields(Exported,Pkg,Enums,Lc,PkgVr,E1,E2),
   importContracts(Cons,Lc,E2,E3),
@@ -258,16 +258,15 @@ importTypes([(Nm,Rule)|More],Lc,Env,Ex) :-
 
 importAllDefs([],[],_,Vrs,Vrs,Env,Env).
 importAllDefs([import(Lc,Viz,Pkg)|More],
-	      [import(Viz,Pkg,PkgVr,Exported,Cnx,Cons,Impls)|Specs],Repo,
+	      [importPkg(Viz,Pkg,PkgVr)|Specs],Repo,
 	      [PkgVr|IVrs],IVrx,
 	      Env,Ex) :-
   importPkg(Pkg,Lc,Repo,Spec),
   packageVar(Pkg,Lc,Spec,PkgVr),
-  Spec = spec(_,Exported,Cnx,Cons,Impls,_),
-  importDefs(Spec,Lc,PkgVr,Env,Ev0),
+  importDecls(Lc,PkgVr,Spec,Env,Ev0),
   importAllDefs(More,Specs,Repo,IVrs,IVrx,Ev0,Ex).
 
-packageVar(pkg(Pkg,_),Lc,spec(_,Face,_,_,_,_),v(Lc,PkgVar,Face)) :-
+packageVar(pkg(Pkg,_),Lc,spec(_,PkgTp,_,_,_),v(Lc,PkgVar,PkgTp)) :-
   packageVarName(Pkg,"",PkgVar).
 
 importContracts([],_,Env,Env).
@@ -315,6 +314,9 @@ checkGroup([(imp(Nm),_,[Stmt])|More],Defs,Dx,Env,Ex,Face,Path) :-
 checkGroup([(tpe(_),_,[Stmt])|More],Defs,Dx,Env,Ex,Face,Path) :-
   parseTypeDef(Stmt,Defs,D0,Env,E0,Path),
   checkGroup(More,D0,Dx,E0,Ex,Face,Path).
+checkGroup([(open(_),_,[Stmt])|More],Defs,Dx,Env,Ex,Face,Path) :-
+  checkOpenStmt(Stmt,Defs,Df0,Env,Ev0,Face,Path),
+  checkGroup(More,Df0,Dx,Ev0,Ex,Face,Path).
 checkGroup([],Defs,Defs,Env,Env,_,_).
 
 defineContract(N,Lc,Contract,E0,Ex) :-
@@ -377,6 +379,21 @@ parseTypeAnnotation(N,_,faceType(_,Types),_,_,F,[(N,Tp)|F]) :-
   is_member((N,Tp),Types),!.
 parseTypeAnnotation(N,Lc,_,_,_,Face,Face) :-
   reportError("no type annotation for variable %s",[N],Lc).
+
+checkOpenStmt(Stmt,Defs,Df0,Env,Ev,Face,Path) :-
+  isOpen(Stmt,Lc,Vr),!,
+  newTypeVar("_",VrTp),
+  typeOfExp(Vr,VrTp,Env,E0,Rc,Path),
+  faceOfType(VrTp,E0,faceType(Flds,Tps)),
+  declareExported(Vrs,Rc,Lc,Env,E1),
+  declareExportedTypes(Tps,Rc,Lc,E1,Ev).
+
+declareExported([],_,_,Env,Env).
+declareExported([(Nm,Tp)|More],Rc,Lc,Env,Ev) :-
+  declareField(Lc,Rc,Nm,Tp,Env,Ev0),
+  declareExported(More,Rc,Lc,Ev0,Ev).
+
+declareExportedTypes(_,_,_,Env,Env).
 
 checkVarRules(N,Lc,Stmts,E,Ev,Defs,Dx,Face,Path) :-
   pickupDefnType(N,Lc,Face,Stmts,E,E0,Tp),
