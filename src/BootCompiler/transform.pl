@@ -225,7 +225,7 @@ transformMdlDef(cnsDef(_,_,_),_Pkg,_Map,_Opts,Dx,Dx).
 transformMdlDef(typeDef(Lc,_Nm,Tp,ConMap,Rl),_Pkg,Map,_,D,Dx) :-
   tpName(Tp,TpNm),
   transformTypeDef(Lc,TpNm,Tp,ConMap,Rl,Map,D,Dx).
-transformMdlDef(conDef(_,_,_,_,_),_,_,_,Dx,Dx).
+transformMdlDef(conDef(_,_,_,_),_,_,_,Dx,Dx).
 transformMdlDef(implDef(_,_,_,_),_,_,_,Dx,Dx).
 transformMdlDef(accDef(_,_,_,_),_,_,_,Dx,Dx).
 
@@ -328,7 +328,7 @@ transformThetaDef(varDef(Lc,Nm,ExtNm,_,Tp,Value),Map,OMap,Opts,F,Fx,Dx,Dxx) :-
   transformThetaVarDef(Lc,Nm,ExtNm,Tp,Value,Map,OMap,Opts,F,Fx,Dx,Dxx).
 transformThetaDef(cnsDef(_Lc,_Nm,_),_Map,_,_Opts,Fx,Fx,Dx,Dx).
 transformThetaDef(typeDef(_,_,_,_,_),_,_,_,Fx,Fx,Dx,Dx).
-transformThetaDef(conDef(_,_,_,_,_),_,_,_,Fx,Fx,Dx,Dx).
+transformThetaDef(conDef(_,_,_,_),_,_,_,Fx,Fx,Dx,Dx).
 transformThetaDef(accDef(_,_,_,_),_,_,_,Fx,Fx,Dx,Dx).
 transformThetaDef(implDef(_,_,_,_),_,_,_,Fx,Fx,Dx,Dx).
 
@@ -778,7 +778,7 @@ collectMtd(accDef(Tp,Fld,Mtd,FTp),_ThV,_,_,List,
 	   [(Fld,fieldAcc(TpNm,Mtd,FTp))|List]) :-
   tpName(Tp,TpNm),!.
 collectMtd(implDef(_,_,_,_),_,_,_,List,List).
-collectMtd(conDef(_,_,_,_,_),_,_,_,List,List).
+collectMtd(conDef(_,_,_,_),_,_,_,List,List).
 
 collectLabelVars([],_,_,List,List).
 collectLabelVars([idnt(Nm)|Args],ThVr,Ix,List,Lx) :-

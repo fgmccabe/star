@@ -215,7 +215,7 @@ addConstraint(Con,C0,C0) :- is_member(Con,C0),!.
 addConstraint(Con,C0,[Con|C0]).
 
 parseContractName(_,Id,Env,_,FCon) :-
-  getContract(Id,Env,conDef(_,_,_,_,Con)),!,
+  getContract(Id,Env,conDef(_,_,_,Con)),!,
   freshen(Con,Env,_,FCon).
 
 parseContractArgs([A],Env,B,C0,Cx,Args,Deps) :-
@@ -256,7 +256,7 @@ parseTypeField(FS,_,_,Fields,Fields,Types,Types) :-
   locOfAst(FS,Lc),
   reportError("invalid field type %s",[FS],Lc).
 
-parseContract(T,Env,Ev,Path,[conDef(Lc,Nm,ConNm,CnType,ConRule),
+parseContract(T,Env,Ev,Path,[conDef(Nm,ConNm,CnType,ConRule),
 			     CnsDef,ConTpDef|Defs],Dfx) :-
   isContractStmt(T,Lc,Quants,C0,Con,Els),
   parseBoundTpVars(Quants,Q),
