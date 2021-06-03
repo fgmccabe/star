@@ -34,17 +34,16 @@ addPublicImports([import(_,transitive,_)|I],Rest,Out) :-
   addPublicImports(I,Rest,Out).
 
 importPkg(Pkg,Lc,Repo,
-	  spec(Act,PkgTp,Face,Decls,Imports)) :-
+	  spec(Act,Face,Decls,Imports)) :-
   codePackagePresent(Repo,Pkg,Act,Sig,_U,_SrcWhen,_When),
-  pickupPkgSpec(Sig,Lc,Pkg,Imports,PkgTp,Face,Decls).
+  pickupPkgSpec(Sig,Lc,Pkg,Imports,Face,Decls).
 
-pickupPkgSpec(Enc,Lc,Pkg,Imports,PkgTp,Face,Decls) :-
-  decodeValue(Enc,ctpl(_,[Pk,ctpl(_,Imps),Tp,FTps,ctpl(_,DeclSigs)])),
+pickupPkgSpec(Enc,Lc,Pkg,Imports,Face,Decls) :-
+  decodeValue(Enc,ctpl(_,[Pk,ctpl(_,Imps),Tp,ctpl(_,DeclSigs)])),
   pickupPkg(Pk,Pkg),
   pickupImports(Imps,Lc,Imports),
-  pickupType(Tp,PkgTp),
-  pickupType(FTps,Face),
-  pickupDeclarations(DeclSig,Decls).
+  pickupType(Tp,Face),
+  pickupDeclarations(DeclSigs,Decls).
 
 pickupPkg(ctpl(lbl("pkg",2),[strg(Nm),V]),pkg(Nm,Vers)) :-
   pickupVersion(V,VV),
@@ -77,23 +76,21 @@ pickupDeclaration(ctpl(lbl("imp",3),[strg(Nm),strg(FNm),strg(Sig)]),
   decodeSignature(Sig,Spec).
 pickupDeclaration(ctpl(lbl("acc",3),
 		       [strg(Sig),strg(Fld),strg(Fn),strg(AccSig)]),
-		  accDec(Tp,Fld,Fn,AccTp)) :-
+		  accessDec(Tp,Fld,Fn,AccTp)) :-
   decodeSignature(Sig,Tp),
   decodeSignature(AccSig,AccTp).
-pickupDeclaration(ctpl(lbl("con",5),
-		       [LTrm,strg(Nm),strg(CnNm),strg(TSig),strg(Sig)]),
-		  contractDec(Lc,Nm,CnNm,CnTp,Spec)) :-
+pickupDeclaration(ctpl(lbl("con",4),
+		       [strg(Nm),strg(CnNm),strg(TSig),strg(Sig)]),
+		  contractDec(Nm,CnNm,CnTp,Spec)) :-
   decodeSignature(Sig,Spec),
-  decodeSignature(TSig,CnTp),
-  locTerm(Lc,LTrm).
+  decodeSignature(TSig,CnTp).
 pickupDeclaration(ctpl(lbl("tpe",3),[strg(Sig),strg(RlSig),ctpl(_,ConsEnc)]),
 		  typeDec(Tp,TpRule,ConsMap)) :-
   decodeSignature(Sig,Tp),
   decodeSignature(RlSig,TpRule),
   decodeConsMap(ConsEnc,ConsMap).
-pickupDeclaration(ctpl(lbl("var",3),[strg(Nm),LTrm,strg(Sig)]),varDec(Lc,Nm,Tp)) :-
-  decodeSignature(Sig,Tp),
-  locTerm(Lc,LTrm).
+pickupDeclaration(ctpl(lbl("var",2),[strg(Nm),strg(Sig)]),varDec(Nm,Tp)) :-
+  decodeSignature(Sig,Tp).
 
 
 decodeConsMap(ctpl(_,Ctors),ConsMap) :-

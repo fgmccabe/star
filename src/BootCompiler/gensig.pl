@@ -50,11 +50,10 @@ formatCns((Nm,FlNm,Tp),Fmt) :-
   mkTpl([strg(Nm),strg(FlNm),CnSig],Fmt).
 
 formatContracts([],[]).
-formatContracts([conDef(Lc,Nm,CnNm,CnTp,Spec)|M],[ConTpl|R]) :-
-  locTerm(Lc,LTrm),
+formatContracts([conDef(Nm,CnNm,CnTp,Spec)|M],[ConTpl|R]) :-
   encodeSignature(Spec,SpecSig),
   encodeSignature(CnTp,CnSig),
-  mkTpl([LTrm,strg(Nm),strg(CnNm),CnSig,SpecSig],ConTpl),
+  mkTpl([strg(Nm),strg(CnNm),CnSig,SpecSig],ConTpl),
   formatContracts(M,R).
 
 formatImpls([],[]).
