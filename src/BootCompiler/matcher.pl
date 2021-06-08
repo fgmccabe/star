@@ -61,7 +61,7 @@ compileMatch(inVars,Tpls,Vrs,Lc,Deflt,Map,Reslt) :-
 conditionalize([],Deflt,Deflt).
 conditionalize([(_,(Lc,Bnds,Test,Val),_)|M],Deflt,Repl) :-!,
   pullWhere(Val,none,Vl,C0),
-  mergeGoal(Test,C0,Lc,TT),
+  mergeGl(Test,C0,Lc,TT),
 %  reportMsg("merged test %s goal = %s",[Test,TT],Lc),
   (mustSucceed(TT) ->
    applyBindings(Bnds,Lc,Vl,Repl);
@@ -129,7 +129,7 @@ matchScalars(Tpls,[V|Vrs],Lc,Deflt,Map,CaseExp) :-
 mkCnd(Lc,Tst,Th,El,Cnd) :-
   mkCond(Lc,Tst,Th,El,Cnd).
 mkCond(Lc,Tst,cnd(_,T,Th,El),El,cnd(Lc,T1,Th,El)) :-!,
-  mergeGoal(Tst,T,Lc,T1).
+  mergeGl(Tst,T,Lc,T1).
 mkCond(Lc,Tst,Th,El,cnd(Lc,Tst,Th,El)).
 
 mkCase(Lc,V,[(Lbl,Exp,Lc)],Deflt,Cnd) :-!,
@@ -183,7 +183,7 @@ matchConstructors(Lc,Tpls,[V|Vrs],Deflt,Map,CaseExp) :-
   mkUnpack(Lc,V,Cases,Index,Deflt,Map,CaseExp).
 
 findIndexMap([([A|_],_,_)|_],Map,Index) :-
-  constructorName(A,ANm),
+  cnsName(A,ANm),
   findConsType(Map,ANm,Tp),
   consTpName(Tp,TpNm),
   lookupTypeIndex(Map,TpNm,Index).
@@ -238,21 +238,21 @@ compareConstructorTriple(([A|_],_,_),([B|_],_,_)) :-
   compareConstructor(A,B).
 
 compareConstructor(A,B) :-
-  constructorName(A,ANm),
-  constructorName(B,BNm),
+  cnsName(A,ANm),
+  cnsName(B,BNm),
   str_lt(ANm,BNm).
 
 sameConstructorTriple(([A|_],_,_),([B|_],_,_)) :-
   sameConstructor(A,B).
 
 sameConstructor(A,B) :-
-  constructorName(A,Nm),
-  constructorName(B,Nm).
+  cnsName(A,Nm),
+  cnsName(B,Nm).
 
-constructorName(enum(Nm),Nm).
-constructorName(lbl(Nm,_),Nm).
-constructorName(ctpl(C,_),Nm) :-
-  constructorName(C,Nm).
+cnsName(enum(Nm),Nm).
+cnsName(lbl(Nm,_),Nm).
+cnsName(ctpl(C,_),Nm) :-
+  cnsName(C,Nm).
 
 compareScalarTriple(([A|_],_,_),([B|_],_,_)) :-
   compareScalar(A,B).
@@ -288,7 +288,7 @@ applyVar(idnt(V),[([whr(Lcw,idnt(XV),Cond)|Args],(Lc,Bnd,Test,Vl),Ix)|Tpls],
   substTerm(Vrs,Vl,NVl),
   substTerm(Vrs,Cond,NCond),
   substGoal(Vrs,Test,NTest),
-  mergeGoal(NTest,some(NCond),Lcw,NCnd),
+  mergeGl(NTest,some(NCond),Lcw,NCnd),
   substTerms(Vrs,Args,NArgs),
   applyVar(idnt(V),Tpls,NTpls).
 

@@ -7,6 +7,7 @@
 		  termHash/2,
 		  ssTrm/3,dispTerm/1,showTerm/4,locTerm/2,
 		  idInTerm/2, isLTerm/1,
+		  mergeGl/4,
 		  validLProg/1]).
 
 :- use_module(display).
@@ -46,6 +47,10 @@ isLTerm(mtch(_,_,_)) :- !.
 isLTerm(ng(_,_)) :- !.
 isLTerm(error(_,_)) :- !.
 isLTerm(doAct(_,_)) :- !.
+
+mergeGl(none,G,_,G).
+mergeGl(some(G),none,_,G).
+mergeGl(some(G1),some(G2),Lc,some(cnj(Lc,G1,G2))).
 
 ssTransformed(mdule(Pkg,_Imports,Tp,_,_,Defs,_Contracts,Impls),
 	      sq([ss("Package "),canon:ssPkg(Pkg),ss(" type "),TT,

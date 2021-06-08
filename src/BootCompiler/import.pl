@@ -91,7 +91,8 @@ pickupDeclaration(ctpl(lbl("tpe",3),[strg(Sig),strg(RlSig),ctpl(_,ConsEnc)]),
   decodeConsMap(ConsEnc,ConsMap).
 pickupDeclaration(ctpl(lbl("var",2),[strg(Nm),strg(Sig)]),varDec(Nm,Tp)) :-
   decodeSignature(Sig,Tp).
-
+pickupDeclaration(ctpl(lbl("fun",2),[strg(Nm),strg(Sig)]),funDec(Nm,Tp)) :-
+  decodeSignature(Sig,Tp).
 
 decodeConsMap(ctpl(_,Ctors),ConsMap) :-
   map(Ctors,import:pickupCtor,ConsMap).

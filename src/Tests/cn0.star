@@ -33,4 +33,6 @@ test.cn0{
 
   ddbl:((integer,cons[integer]))=>(integer,cons[integer]).
   ddbl(T1) => plus(T1,T1).
+
+  dd = ddbl((23,.nil)).
 }  

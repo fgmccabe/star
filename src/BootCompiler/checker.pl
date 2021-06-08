@@ -35,9 +35,9 @@ checkProgram(Prog,Pkg,Repo,Opts,Canon) :-
   thetaEnv(Pk,Lc,Stmts,faceType([],[]),Env0,OEnv,Defs,Public),
   overload(Lc,Defs,OEnv,_Dict,ODefs),
   completePublic(Public,Public,FllPb,Pk),
-  packageExport(ODefs,FllPb,XDefs,PkgDefs,ExportDecls),
-  mkBoot(OEnv,Lc,Pk,PkgDefs,XDefs),
-  Canon=prog(Pkg,Imports,ExportDecls,PkgDefs),
+  packageExport(ODefs,FllPb,ExportDecls,LDecls),
+  mkBoot(OEnv,Lc,Pk,ODefs,PkgDefs),
+  Canon=prog(Pkg,Imports,ExportDecls,LDecls,PkgDefs),
   (is_member(showTCCode,Opts) -> displayln(canon:ssCanonProg(Canon));true).
 
 
@@ -249,7 +249,9 @@ importDecl(Lc,contractDec(Nm,CnNm,CnTp,Rule),Ev,Evx) :-
 importDecl(Lc,typeDec(Tp,Rule,_ConsMap),Env,Evx) :-
   tpName(Tp,Nm),
   declareType(Nm,tpDef(Lc,Tp,Rule),Env,Evx).
-importDecl(Lc,varDec(Nm,Tp),Env,Evx) :-
+importDecl(Lc,varDec(Nm,_FullNm,Tp),Env,Evx) :-
+  declareVr(Lc,Nm,Tp,Env,Evx).
+importDecl(Lc,funDec(Nm,Tp),Env,Evx) :-
   declareVr(Lc,Nm,Tp,Env,Evx).
 importDecl(Lc,Entry,Env,Env) :-
   reportError("(internal) cannot figure out import entry %s",[Entry],Lc).
@@ -1413,59 +1415,41 @@ checkType(Ast,S,T,_) :-
   reportError("%s:%s not consistent with expected type\n%s",[ast(Ast),tpe(S),tpe(T)],
 	      Lc).
 
-packageExport(Defs,Public,Defns,LDefs,ExportDecls) :-
-  genDecls(Defs,Public,Defns,[],LDefs,[],ExportDecls,[]).
+packageExport(Defs,Public,ExportDecls,LDecls) :-
+  genDecls(Defs,Public,ExportDecls,[],LDecls,[]).
 
+genDecls([],_,Exx,Exx,LDx,LDx).
+genDecls([Def|Defs],Public,Exports,Exx,LDecls,LDx) :-
+  genDecl(Def,Public,Exports,Ex0,LDecls,LD0),
+  genDecls(Defs,Public,Ex0,Exx,LD0,LDx).
 
-genDecls([],_,Dfx,Dfx,LDefx,LDefx,Exx,Exx).
-genDecls([Def|Defs],Public,Defs,Dfx,LDfs,LDfx,Exports,Exx) :-
-  genDecl(Def,Def,Public,Defs,Df0,LDfs,LDf0,Exports,Ex0),
-  genDecls(Defs,Public,Df0,Dfx,LDf0,LDfx,Ex0,Exx).
-
-genDecl(funDef(_,Nm,_,Tp,_,_),Def,Public,[Def|Dx],Dx,LDfx,LDfx,
-	[varDec(Nm,Tp)|Ex],Ex) :-
-  isPublicVar(Nm,[],Public).
-genDecl(typeDef(_,Nm,_,Map,TpRule),Def,Public,[Def|Dx],Dx,LDfx,LDfx,
-	  [typeDec(Nm,Map,TpRule)|Tx],Tx,Cx,Cx,Ix,Ix) :-
+genDecl(funDef(_,Nm,FullNm,Tp,_,_),Public,[funDec(Nm,FullNm,Tp)|Ex],Ex,Lx,Lx) :-
+  is_member(var(Nm),Public),!.
+genDecl(funDef(_,Nm,FullNm,Tp,_,_),_,Ex,Ex,[funDec(Nm,FullNm,Tp)|Lx],Lx).
+genDecl(typeDef(_,Nm,Tp,Map,TpRule),Public,[typeDec(Nm,Tp,Map,TpRule)|Ex],Ex,Lx,Lx) :-
   isPublicType(Nm,Public),!.
-genDecl(varDef(_,Nm,_,_,Tp,_),Def,Fields,Public,[Def|Lcx],Lcx,Dfx,Dfx,
-	  [(Nm,Tp)|Ex],Ex,Tx,Tx,Cx,Cx,Impl,Impl) :-
-  isPublicVar(Nm,Fields,Public).
-genDecl(cnsDef(_,Nm,Con),Def,Fields,Public,Lcx,Lcx,[Def|Dfx],Dfx,
-	  [(Nm,Tp)|Ex],Ex,Tx,Tx,Cx,Cx,Impl,Impl) :-
-  isPublicVar(Nm,Fields,Public),
+genDecl(typeDef(_,Nm,Tp,Map,TpRule),_,Ex,Ex,[typeDec(Nm,Tp,Map,TpRule)|Lx],Lx).
+genDecl(varDef(_,Nm,FullNm,_,Tp,_),Public,[varDec(Nm,FullNm,Tp)|Ex],Ex,Lx,Lx) :-
+  is_member(var(Nm),Public),!.
+genDecl(varDef(_,Nm,FullNm,_,Tp,_),_,Ex,Ex,[varDec(Nm,FullNm,Tp)|Lx],Lx).
+genDecl(cnsDef(_,Nm,Con),Public,[cnsDec(Nm,FullNm,Tp)|Ex],Ex,Lx,Lx) :-
+  is_member(var(Nm),Public),!,
+  constructorName(Con,FullNm),
   typeOfCanon(Con,Tp).
-genDecl(conDef(Nm,_,_CnTp,_),Con,_,Public,Lcx,Lcx,Dfx,Dfx,Ex,Ex,Tx,Tx,
-	  [Con|Cx],Cx,Impl,Impl) :-
+genDecl(cnsDef(_,Nm,Con),_,Ex,Ex,[cnsDec(Nm,FullNm,Tp)|Lx],Lx) :-
+  constructorName(Con,FullNm),
+  typeOfCanon(Con,Tp).
+genDecl(conDef(Nm,CnNm,CnTp,CnSpec),Public,
+	[contractDec(Nm,CnNm,CnTp,CnSpec)|Ex],Ex,Lx,Lx) :-
   isPublicContract(Nm,Public).
-genDecl(implDef(TmpNm,ConNm,ImplName,Spec),_,_,Public,Lcx,Lcx,Dfx,Dfx,
-	  [(ImplName,Spec)|Ex],Ex,Tps,Tps,Cx,Cx,
-	  [imp(ConNm,ImplName,Spec)|Ix],Ix) :-
+genDecl(conDef(Nm,CnNm,CnTp,CnSpec),_,Ex,Ex,[contractDec(Nm,CnNm,CnTp,CnSpec)|Lx],Lx).
+genDecl(implDef(TmpNm,ConNm,ImplName,Spec),Public,
+	[impDec(ConNm,ImplName,Spec)|Ex],Ex,Lx,Lx) :-
   isPublicImpl(TmpNm,Public),!.
-genDecl(accDef(Tp,Fld,AccFn,AccTp),Def,_,Public,Lcx,Lcx,[Def|Dfx],Dfx,
-	  [(AccFn,AccTp)|Ex],Ex,Tx,Tx,Cx,Cx,
-	  [acc(Tp,Fld,AccFn,AccTp)|Ix],Ix) :-
+genDecl(implDef(_,ConNm,ImplName,Spec),_,Ex,Ex,[impDec(ConNm,ImplName,Spec)|Lx],Lx).
+genDecl(accDef(Tp,Fld,AccFn,AccTp),Public,[accDec(Tp,Fld,AccFn,AccTp)|Ex],Ex,Lx,Lx) :-
   exportAcc(Tp,Public).
-genDecl(_,Df,_,_,[Df|Lcx],Lcx,Dfx,Dfx,Ex,Ex,Tps,Tps,Cx,Cx,Impls,Impls).
-
-gen
-
-  
-  compExport(Defs,faceType([],[]),Public,LDefs,[],Defns,[],
-	     Exports,[],Types,[],Contracts,[],Impls,[]),
-  genVarDecls(Exports,[],E0),
-  genTypeDecls(Types,E0,E1),
-  genContractDecls(Contracts,E1,E2),
-  genImplementationDecls(Impls,E2,ExportDecls).
-
-
-genTypeDecls([],Exx.Exx).
-genTypeDecls([(Nm,Map,TpRule)|M],Ex,Exx) :-
-  genTypeDecls(M,[typeDec(
-
-genContractDecls([],Exx,Exx).
-genContractDecls([conDef(Nm,CnNm,CnTp,TpRule)|M],Ex,Exx) :-
-  genContractDecls(M,[contractDec(Nm,CnNm,CnTp,TpRule)|Ex],Exx).
+genDecl(accDef(Tp,Fld,AccFn,AccTp),_,Ex,Ex,[accDec(Tp,Fld,AccFn,AccTp)|Lx],Lx).
 
 computeExport(Defs,Fields,Public,Defns,Exports,Types,Contracts,Impls) :-
   compExport(Defs,Fields,Public,Defns,LDefns,LDefns,[],
