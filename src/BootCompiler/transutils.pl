@@ -1,5 +1,5 @@
 :- module(transutils,
-	  [trCons/3,mergeGoal/4,mergeSeq/4,mergeWhere/4,extraVars/2,thisVar/2,
+	  [trCons/3,mergeSeq/4,mergeWhere/4,extraVars/2,thisVar/2,
 	   lookupVarName/3,lookupFunName/3,lookupThetaVar/3,lookupTypeIndex/3,
 	   lookupClassName/3,lookupType/3,findConsType/3,
 	   definedProgs/2,labelVars/2,
@@ -57,8 +57,8 @@ trCons(Nm,Args,lbl(Name,Arity)) :-
  */
 
 lookup([],_,_,notInMap).
-lookup([lyr(Defns,_Lbl,_ThVr)|_Layers],Nm,Filter,Reslt) :-
-  filteredSearch(Defns,Filter,Nm,Reslt),!.
+lookup([Lyr|_Layers],Nm,Filter,Reslt) :-
+  call(Filter,Lyr,Nm,Reslt),!.
 lookup([_|Layers],Nm,Filter,Reslt) :-
   lookup(Layers,Nm,Filter,Reslt).
 
@@ -69,8 +69,14 @@ filteredSearch(Defns,Filter,Nm,Defn) :-
 lookupVarName(Map,Nm,V) :-
   lookup(Map,Nm,nonType,V).
 
-lookupType(Map,Nm,Entry) :-
-  lookup(Map,Nm,transutils:isTpe,Entry).
+lookupType(Map,TpNm,Entry) :-
+  marker(type,TpMrkr),
+  splitLocalName(TpNm,TpMrkr,_,Nm),
+  makeKey(Nm,Key),
+  lookup(Map,Key,transutils:findType,Entry).
+
+findType(lyr(_,TpMap,_,_),Key,Entry) :-
+  get_dict(Key,TpMap,Entry),!.
 
 anyDef(_).
 
@@ -216,16 +222,24 @@ dispMap(Msg,Map) :-
 ssMap(Msg,Map,sq([ss(Msg),nl(0),iv(nl(0),MM)])) :-
   map(Map,transutils:ssLayer,MM).
 
-ssLayer(lyr(Defs,ConsMap,void),sq([ss("Top layer:"),MM,iv(nl(0),DD)])) :-
+ssLayer(lyr(VarMap,TpMap,ConsMap,void),sq([ss("Top layer:"),nl(0),iv(nl(0),DD)])) :-
   ssConsMap(ConsMap,MM),
-  map(Defs,transutils:ssLyrDef,DD).
-ssLayer(lyr(Defs,ConsMap,ThVr),
-	  sq([ss("layer:"),nl(0),MM,ss("«"),TT,ss("»"),iv(nl(0),DD)])) :-
+  ssDecMap(VarMap,VV),
+  ssDecMap(TpMap,TT),
+  flatten([MM,VV,TT],DD).
+ssLayer(lyr(VarMap,TpMap,ConsMap,ThVr),
+	  sq([ss("layer:"),ss("«"),TT,ss("»"),nl(0),iv(nl(0),DD)])) :-
   ssConsMap(ConsMap,MM),
   ssTrm(ThVr,0,TT),
-  map(Defs,transutils:ssLyrDef,DD).
+  ssDecMap(VarMap,VV),
+  ssDecMap(TpMap,TT),
+  flatten([MM,VV,TT],DD).
 
-ssConsMap(Map,iv(nl(2),S)) :-
+ssDecMap(Map,XX) :-
+  dict_pairs(Map,_,Pairs),
+  map(Pairs,transutils:ssLyrDec,XX).
+  
+ssConsMap(Map,S) :-
   dict_pairs(Map,_,Pairs),
   map(Pairs,transutils:ssPair,S).
 
@@ -238,27 +252,26 @@ ssConsIndex(V,iv(ss(","),XX)) :-
 ssIxPr((Lbl,Ix),sq([LL,ss(":"),ix(Ix)])) :-
   ssTrm(Lbl,0,LL).
 
-ssLyrDef((Nm,moduleFun(LclName,_AccessName,Ar)),
+ssLyrDec(Nm-moduleFun(LclName,_AccessName,Ar),
 	 sq([ss("Global Fun "),id(Nm),ss("="),ss(LclName),ss("/"),ix(Ar)])).
-ssLyrDef((Nm,localFun(LclName,_ClosureName,Ar,ThV)),
+ssLyrDec(Nm-localFun(LclName,_ClosureName,Ar,ThV),
 	 sq([ss("Fun "),id(Nm),ss("="),ss(LclName),ss("/"),ix(Ar),ss("@"),TT])) :-
   ssTrm(ThV,0,TT).
-ssLyrDef((Nm,localVar(LclName,_AccessName,ThV)),
+ssLyrDec(Nm-localVar(LclName,_AccessName,ThV),
 	 sq([ss("Var "),id(Nm),ss("="),ss(LclName),ss("@"),TT])) :-
   ssTrm(ThV,0,TT).
-ssLyrDef((Nm,localVar(_,Val)),
+ssLyrDec(Nm-localVar(_,Val),
 	 sq([ss("Var "),id(Nm),ss("="),VV])) :-
   ssTerm(Val,0,VV).
-ssLyrDef((Nm,moduleVar(LclName)),
+ssLyrDec(Nm-moduleVar(LclName),
 	 sq([ss("Global Var "),id(Nm),ss("="),ss(LclName)])).
-ssLyrDef((Nm,labelArg(_Field,Ix,ThV)),
+ssLyrDec(Nm-labelArg(_Field,Ix,ThV),
 	 sq([ss("Free Var "),id(Nm),ss("="),TT,ss("["),ix(Ix),ss("]")])) :-
   ssTrm(ThV,0,TT).
-ssLyrDef((Nm,moduleType(TpNm,_Tp,IxMap)),
+ssLyrDec(Nm-moduleType(TpNm,_Tp,IxMap),
 	 sq([ss("Module type "),id(Nm),ss("="),ss(TpNm),CC])) :-
   ssConsIndex(IxMap,CC).
-ssLyrDef((Nm,moduleCons(LclName,_,Ar)),
+ssLyrDec(Nm-moduleCons(LclName,_,Ar),
 	 sq([ss("Module Cons "),id(Nm),ss("="),ss(LclName),ss("/"),ix(Ar)])).
-ssLyrDef((Nm,fieldAcc(TpNm,FldNm,_FldTp)),
+ssLyrDec(Nm-fieldAcc(TpNm,FldNm,_FldTp),
 	 sq([ss("Field accesss "),id(Nm),ss(" in "),ss(TpNm),ss(" is "),id(FldNm)])).
-

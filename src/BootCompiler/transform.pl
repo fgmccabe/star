@@ -52,106 +52,36 @@
 
 */
 
-transformProg(prog(pkg(Pkg,Vers),Imports,Defs,PkgTp,Fields,Types,Contracts,Impls),
-	      Opts,mdule(pkg(Pkg,Vers),Imports,PkgTp,faceType(Fields,Types),Ctors,Dfs,Contracts,Impls)) :-
-  makePkgMap(Pkg,Defs,Types,Imports,Ctors,Map),
+transformProg(prog(pkg(Pkg,Vers),Imports,Decls,LDecls,Defs),
+	      Opts,mdule(pkg(Pkg,Vers),Imports,Decls,LDecls,Ctors,Dfs)) :-
+  makePkgMap(Pkg,Decls,LDecls,Ctors,Map),
+  (is_member(showTrCode,Opts) -> dispMap("Package map: ",Map);true),
   transformModuleDefs(Defs,Pkg,Map,Opts,Dfs,[]).
 
-makePkgMap(Pkg,Defs,Types,Imports,Ctors,[lyr(Entries,ConsMap,void)]) :-
-  makeImportsMap(Imports,[],M1,consMap{},CnMap),
-  makeConstructorMap(Defs,CnMap,Ctors,ConsMap),
-  makeTypesMap(Pkg,Types,M1,M2),
-  makeModuleMap(Pkg,Defs,ConsMap,M2,Entries).
+makePkgMap(Pkg,Decls,LDecls,Ctors,[lyr(VarMap,TpMap,ConsMap,void)]) :-
+  makeConstructorMap(Decls,consMap{},Ctors,ConsMap),
+  declareModuleGlobals(Pkg,Decls,ConsMap,varMap{},VM,typeMap{},TM),
+  declareModuleGlobals(Pkg,LDecls,ConsMap,VM,VarMap,TM,TpMap).
 
-makeModuleMap(Pkg,[Def|Rest],ConsMap,Map,Mx) :-
-  makeMdlEntry(Pkg,Def,ConsMap,Map,M0),
-  makeModuleMap(Pkg,Rest,ConsMap,M0,Mx).
-makeModuleMap(_,[],_,Map,Map).
+declareModuleGlobals(Pkg,[Def|Rest],ConsMap,VMap,VMx,TMap,TMx) :-
+  declMdlGlobal(Pkg,Def,ConsMap,VMap,M0,TMap,TM0),
+  declareModuleGlobals(Pkg,Rest,ConsMap,M0,VMx,TM0,TMx).
+declareModuleGlobals(_,[],_,Map,Map,TMap,TMap).
 
-makeMdlEntry(Pkg,funDef(_,Nm,LclName,Tp,_,_),_,Mx,[(Nm,moduleFun(LclName,ClosureName,Ar))|Mx]) :-
+declMdlGlobal(Pkg,funDec(Nm,LclName,Tp),_,VMp,VMx,TMx,TMx) :-
   localName(Pkg,closure,Nm,ClosureName),
-  progTypeArity(Tp,Ar).
-makeMdlEntry(_Pkg,varDef(_,Nm,LclName,_,_,_),_,Mx,[(Nm,moduleVar(LclName))|Mx]).
-makeMdlEntry(_Pkg,cnsDef(_,Nm,Cons),_,Mx,
-	     [(Nm,moduleCons(LclName,Tp,Ar)),
-	      (LclName,moduleCons(LclName,Tp,Ar))|Mx]) :-
-  constructorName(Cons,LclName),
-  constructorType(Cons,Tp),
-  progTypeArity(Tp,Ar).
-makeMdlEntry(_Pkg,typeDef(_,_,Tp,_IxMap,_),ConsMap,Mx,[(TpNm,moduleType(TpNm,Tp,IxMap))|Mx]) :-
-  tpName(Tp,TpNm),
-  findConsMap(TpNm,ConsMap,IxMap),!.
-makeMdlEntry(_,implDef(_,_,ImplNm,Tp),_,Mx,[(ImplNm,Entry)|Mx]) :-
-  makeImplEntry(ImplNm,Tp,Entry).
-makeMdlEntry(_,_,_,Mx,Mx).
-
-makeImplEntry(ImplNm,Tp,Entry) :-
-  estimateImplArity(Tp,Ar),
-  (Ar=0 -> Entry=moduleVar(ImplNm) ; Entry=moduleFun(ImplNm,ImplNm,Ar)).
-
-estimateImplArity(allType(_,Tp),Ar) :- estimateImplArity(Tp,Ar).
-estimateImplArity(constrained(T,_),Ar) :- estimateImplArity(T,A), Ar is A+1.
-estimateImplArity(_,0).
-
-makeImportsMap([Import|Rest],Map,Mx,CnMp,ConsMap) :-
-  makeImportMap(Import,Map,M0,CnMp,CnMp0),
-  makeImportsMap(Rest,M0,Mx,CnMp0,ConsMap).
-makeImportsMap([],Map,Map,ConsMap,ConsMap).
-
-makeImportMap(import(_,pkg(Pkg,_),_,
-		     faceType(Fields,Types),Cns,_,_Impls),Map,Mx,CnMp,ConsMap) :-
-  importFields(Pkg,Fields,Map,M0),
-  importCns(Cns,CnMp,ConsMap,M0,M1),
-  importTypes(Types,M1,Mx).
-
-importFields(_,[],Map,Map).
-importFields(Pkg,[(Nm,Tp)|Fields],Map,Mx) :-
-  moveQuants(Tp,_,QTp),
-  getConstraints(QTp,_,Template),
   progTypeArity(Tp,Ar),
-  makeImportEntry(Template,Ar,Pkg,Nm,Map,M0),
-  importFields(Pkg,Fields,M0,Mx).
-
-makeImportEntry(funType(_,_),Ar,Pkg,Nm,Mx,[(Nm,moduleFun(LclName,ClosureName,Ar))|Mx]) :-
-  packageVarName(Pkg,Nm,LclName),
-  localName(Pkg,closure,Nm,ClosureName).
-makeImportEntry(consType(At,Tp),Ar,Pkg,Nm,Mx,
-		[(Nm,moduleCons(LclName,consType(At,Tp),Ar)),
-		 (LclName,moduleCons(LclName,consType(At,Tp),Ar))|Mx]) :-
-  localName(Pkg,class,Nm,LclName).
-makeImportEntry(_,_,Pkg,Nm,Mx,[(Nm,moduleVar(LclName))|Mx]) :-
-  packageVarName(Pkg,Nm,LclName).
-
-importImplementations([],Map,Map).
-importImplementations([imp(_,FullNm,Con)|L],M,[(FullNm,moduleVar(FullNm))|Mx]) :-
-  typeArity(Con,0),
-  importImplementations(L,M,Mx).
-importImplementations([imp(_,FullNm,Con)|L],M,[(FullNm,moduleFun(FullNm,ClosureName,Ar))|Mx]) :-
-  typeArity(Con,Ar),
-  importImplementations(L,M,Mx),
-  localName("",closure,FullNm,ClosureName).
-importImplementations([acc(_,_,_,_)|L],M,Mx) :-
-  importImplementations(L,M,Mx).
-
-importCns([],Cnx,Cnx,Map,Map) :-!.
-importCns([(TpNm,L)|Cs],CnIx,Cxs,Map,Mpx) :-
-  makeKey(TpNm,Key),
-  map(L,transform:mkConsLbl,L0),
-  sort(L0,transform:lblLt,L1),
-  index_list(L1,0,SL),
-  put_dict(Key,CnIx,SL,CnIx0),
-  moduleEntries(L,Map,Map0),
-  importCns(Cs,CnIx0,Cxs,Map0,Mpx).
-
-moduleEntries(Cns,Map,Mpx) :-
-  rfold(Cns,transform:moduleConsEntry,Map,Mpx).
-
-moduleConsEntry((Nm,FlNm,Tp),Map,
-		[(Nm,moduleCons(FlNm,Tp,Ar)),
-		 (FlNm,moduleCons(FlNm,Tp,Ar))|Map]) :-
-  progTypeArity(Tp,Ar).
-
-importTypes(_,L,L).
+  declEntry(Nm,moduleFun(LclName,ClosureName,Ar),VMp,VMx).
+declMdlGlobal(_Pkg,varDec(Nm,LclName,_),_,Mp,Mx,TMx,TMx) :-
+  declEntry(Nm,moduleVar(LclName),Mp,Mx).
+declMdlGlobal(_Pkg,cnsDec(Nm,FullNm,Tp),_,Mp,Mx,TMx,TMx) :-
+  progTypeArity(Tp,Ar),
+  declEntry(Nm,moduleCons(FullNm,Tp,Ar),Mp,Mx).
+declMdlGlobal(_Pkg,typeDec(Nm,Tp,_IxMap,_),ConsMap,VMx,VMx,TMp,TMx) :-
+  tpName(Tp,TpNm),
+  findConsMap(TpNm,ConsMap,IxMap),!,
+  declEntry(Nm,moduleType(TpNm,Tp,IxMap),TMp,TMx).
+declMdlGlobal(_,_,_,Mx,Mx,TMx,TMx).
 
 contractArity(allType(_,Con),Ar) :- contractArity(Con,Ar).
 contractArity(constrained(Con,_),Ar) :- contractArity(Con,A), Ar is A+1.
@@ -160,16 +90,12 @@ contractArity(contractExists(_,_),0).
 contractStruct(0,Nm,enum(Nm)).
 contractStruct(Ar,Nm,lbl(Nm,Ar)).
 
-makeTypesMap(_,_,List,List).
-
-makeConstructorMap(Defs,CnMp,Cons,ConsMap) :-
-  findAllConstructors(Defs,[],Cons),
+makeConstructorMap(Decls,CnMp,Cons,ConsMap) :-
+  findAllConstructors(Decls,[],Cons),
   indexConstructors(Cons,CnMp,ConsMap).
 
 findAllConstructors([],Cons,Cons) :-!.
-findAllConstructors([cnsDef(_,Nm,Cns)|Defs],Cons,Cnx) :-
-  constructorName(Cns,FullNm),
-  constructorType(Cns,CnsTp),
+findAllConstructors([cnsDec(Nm,FullNm,CnsTp)|Defs],Cons,Cnx) :-
   consTpName(CnsTp,TpNm),
   (concat(L1,[(TpNm,L)|L2],Cons) ->
    concat(L1,[(TpNm,[(Nm,FullNm,CnsTp)|L])|L2],C0) ;
@@ -177,12 +103,6 @@ findAllConstructors([cnsDef(_,Nm,Cns)|Defs],Cons,Cnx) :-
   findAllConstructors(Defs,C0,Cnx).
 findAllConstructors([_|Defs],Cons,Cnx) :-
   findAllConstructors(Defs,Cons,Cnx).
-
-constructorName(enm(_,Nm,_),Nm) :-!.
-constructorName(cons(_,Nm,_),Nm).
-
-constructorType(enm(_,_,Tp),Tp) :-!.
-constructorType(cons(_,_,Tp),Tp).
 
 collectCons(Nm,TpNm,Cons,Cns) :-
   (concat(L1,[(TpNm,L)|L2],Cons) ->
@@ -202,6 +122,10 @@ mkConsLbl((_,Nm,Tp),lbl(Nm,Ar)) :-
   isConType(Tp,Ar),!.
 
 lblLt(lbl(N1,_),lbl(N2,_)) :- str_lt(N1,N2).
+
+declEntry(Nm,Entry,Map,Mpx) :-
+  makeKey(Nm,Key),
+  put_dict(Key,Map,Entry,Mpx).
 
 findConsMap(Nm,ConsMap,IxMap) :-
   makeKey(Nm,Key),
