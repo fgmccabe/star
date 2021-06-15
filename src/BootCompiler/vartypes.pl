@@ -33,10 +33,10 @@ checkType(Ast,S,T,_) :-
 
 declareMtd(Lc,Nm,Tp,Env,Ev) :-
   declareVar(Nm,vrEntry(Lc,vartypes:mkMtd(Nm),Tp),Env,Ev).
-declareEnum(Lc,Nm,_FullNm,Tp,Env,Ev) :-
-  declareVar(Nm,vrEntry(Lc,vartypes:mkEnum(Nm),Tp),Env,Ev).
-declareCns(Lc,Nm,_FullNm,Tp,Env,Ev) :-
-  declareVar(Nm,vrEntry(Lc,vartypes:mkCns(Nm),Tp),Env,Ev).
+declareEnum(Lc,Nm,FullNm,Tp,Env,Ev) :-
+  declareVar(Nm,vrEntry(Lc,vartypes:mkEnum(FullNm),Tp),Env,Ev).
+declareCns(Lc,Nm,FullNm,Tp,Env,Ev) :-
+  declareVar(Nm,vrEntry(Lc,vartypes:mkCns(FullNm),Tp),Env,Ev).
 
 mkMtd(Nm,Lc,Tp,mtd(Lc,Nm,Tp)).
 mkCns(Nm,Lc,Tp,cons(Lc,Nm,Tp)).

@@ -3,8 +3,7 @@
 		     parseContract/6,parseTypeDef/6,
 		     typeTemplate/3,
 		     parseContractConstraint/6,
-		     genBraceType/6,buildBraceAccessors/6,
-		     genPkgType/9]).
+		     genBraceType/6,buildBraceAccessors/6]).
 
 :- use_module(abstract).
 :- use_module(canon).
@@ -267,7 +266,7 @@ parseContract(T,Env,Ev,Path,[conDef(Nm,ConNm,CnType,ConRule),
   contractType(SpC,ConTp),
   wrapType(Q,Cx,[],[],typeExists(ConTp,faceType(Fs,Tps)),FaceRule),
   wrapType(Q,Cx,[],[],ConTp,CnType),
-  ConTpDef = typeDef(Lc,ConNm,CnType,[(ConNm,0)],FaceRule),
+  ConTpDef = typeDef(Lc,ConNm,CnType,FaceRule),
   genBraceConstructor(Lc,Fs,ConNm,Q,Cx,ConTp,CnsDef,Env,Ev),
 %  reportMsg("contract type constructor %s",[CnsDef]),
   genBraceAccessors(Lc,Q,Cx,ConNm,ConTp,Fs,Fs,Defs,Dfx,_,[]).
@@ -289,7 +288,7 @@ parseTypeDef(St,Defs,Dx,E,Ev,Path) :-
   parseAlgebraicTypeDef(Lc,Quants,Constraints,Hd,Body,Defs,Dx,E,Ev,Path).
 
 parseAlgebraicTypeDef(Lc,Quants,Constraints,Hd,Body,
-		      [typeDef(Lc,Nm,Type,ConMap,FaceRule)|D0],Dx,E,Ev,Path):-
+		      [typeDef(Lc,Nm,Type,FaceRule)|D0],Dx,E,Ev,Path):-
   algebraicFace(Body,Face),
   parseBoundTpVars(Quants,Q),
   parseTypeHead(Hd,Q,Tp,Nm,_,Path),
@@ -298,12 +297,10 @@ parseAlgebraicTypeDef(Lc,Quants,Constraints,Hd,Body,
   parseType(Face,E,Q,C0,Cx,FaceTp),
   wrapType(Q,Cx,[],[],typeExists(Tp,FaceTp),FaceRule),
   wrapType(Q,Cx,[],[],Tp,Type),
+%  buildConsMap(Body,ConsMap,Path),
   declareType(Nm,tpDef(Lc,Tmp,FaceRule),E,Ev),
   tpName(Type,TpNm),
-  buildAccessors(Lc,Q,Cx,Path,TpNm,Tp,FaceTp,Body,D0,Dx),
-  buildConsMap(Body,ConMap).
-%  reportMsg("parsed type def %s",[typeDef(Lc,Nm,Type,ConMap,FaceRule)]).
-
+  buildAccessors(Lc,Q,Cx,Path,TpNm,Tp,FaceTp,Body,D0,Dx).
 
 buildAccessors(Lc,Quants,Constraints,Path,TpNm,Tp,faceType(ElTps,_),Body,Defs,Dfx) :-
   genAccessors(Lc,Quants,Constraints,Path,TpNm,Tp,ElTps,ElTps,Body,Defs,Dfx).
@@ -394,22 +391,11 @@ genBraceType(Lc,Tp,Defs,Dfx,Env,Ev) :-
   wrapType(Fs,[],[],[],typeExists(Tp0,BareFs),FaceRule),
   genBraceConstructor(Lc,Fs,TpNm,Fs,[],BareFs,ConDef,Env,Ev),
   genBraceAccessors(Lc,Fs,[],TpNm,Tp0,Fs,Fs,Defs,
-		    [typeDef(Lc,TpNm,BrTp,[(TpNm,0)],FaceRule),ConDef|Dfx],
+		    [typeDef(Lc,TpNm,BrTp,FaceRule),ConDef|Dfx],
 		    _Imps,[]).
 
 newFieldVar((Nm,_),(Fs,Args),([(Nm,kVar(Nm1))|Fs],[kVar(Nm1)|Args])) :-
   genstr("_",Nm1).
-
-genPkgType(Lc,PkgTpNm,PkgFace,Defs,Dfx,Accs,Acx,Env,Ev) :-
-  unwrapType(PkgFace,Q,Cx,faceType(Flds,FTps)),
-  sort(Flds,parsetype:cmpVarDef,Fs),
-  BareFs = faceType(Fs,FTps),
-  PkgTp = type(PkgTpNm),
-  wrapType(Q,Cx,[],[],typeExists(PkgTp,BareFs),FaceRule),
-  genBraceConstructor(Lc,Fs,PkgTpNm,Q,Cx,PkgTp,ConDef,Env,Ev),
-  genBraceAccessors(Lc,Q,[],PkgTpNm,PkgTp,Fs,Fs,Defs,
-		    [typeDef(Lc,PkgTpNm,PkgTp,[(PkgTpNm,0)],FaceRule),ConDef|Dfx],
-		    Accs,Acx).
 
 genBraceConstructor(Lc,[],Nm,Q,Cx,Tp,cnsDef(Lc,Nm,enm(Lc,Nm,ConTp)),Env,Ev) :-
   wrapType(Q,Cx,[],[],consType(faceType([],[]),Tp),ConTp),
@@ -427,24 +413,28 @@ fillinElementPtn(_,(Nm,_),Els,Els) :-
   is_member((Nm,_),Els) ,!.
 fillinElementPtn(Lc,(Nm,Tp),Els,[(Nm,v(Lc,"_",Tp))|Els]).
 
-buildConsMap(Body,Map) :-
-  findCons(Body,Cns,[]),
+buildConsMap(Body,Map,Path) :-
+  findCons(Body,Cns,[],Path),
   sort(Cns,str_lt,SortedNms),
   index_list(SortedNms,0,Map).
 
-findCons(Body,Cons,Cnx) :-
+findCons(Body,Cons,Cnx,Path) :-
   isBinary(Body,_,"|",L,R),!,
-  findCons(L,Cons,C0),
-  findCons(R,C0,Cnx).
-findCons(Body,[Nm|Cnx],Cnx) :-
-  isIden(Body,_,Nm),!.
-findCons(Body,[Nm|Cnx],Cnx) :-
+  findCons(L,Cons,C0,Path),
+  findCons(R,C0,Cnx,Path).
+findCons(Body,[Id|Cnx],Cnx,Path) :-
+  isIden(Body,_,Nm),!,
+  localName(Path,class,Nm,Id).
+findCons(Body,[Id|Cnx],Cnx,Path) :-
   isEnum(Body,_,E),
-  isIden(E,_,Nm),!.
-findCons(Body,[Nm|Cnx],Cnx) :-
-  isRoundCon(Body,_,_,_,Nm,_),!.
-findCons(Body,[Nm|Cnx],Cnx) :-
-  isBraceCon(Body,_,_,_,Nm,_),!.
+  isIden(E,_,Nm),!,
+  localName(Path,class,Nm,Id).
+findCons(Body,[Id|Cnx],Cnx,Path) :-
+  isRoundCon(Body,_,_,_,Nm,_),!,
+  localName(Path,class,Nm,Id).
+findCons(Body,[Id|Cnx],Cnx,Path) :-
+  isBraceCon(Body,_,_,_,Nm,_),!,
+  localName(Path,class,Nm,Id).
   
 parseConstructors(Body,Q,Cx,Tp,Defs,Dfx,Cons,Cnx,Env,Ev) :-
   isBinary(Body,_,"|",L,R),!,
@@ -550,7 +540,7 @@ checkFields(Nm,Tp,[B|Bs],Bx) :-
 checkFields(Nm,Tp,[B|Bs],[B|Bx]) :-
   checkFields(Nm,Tp,Bs,Bx).
   
-parseTypeExists(Lc,Quants,Ct,Hd,Body,typeDef(Lc,Nm,Type,[],FcRule),E,Ev,Path) :-
+parseTypeExists(Lc,Quants,Ct,Hd,Body,typeDef(Lc,Nm,Type,FcRule),E,Ev,Path) :-
   parseBoundTpVars(Quants,Q),
   parseTypeHead(Hd,Q,Tp,Nm,_,Path),
   parseConstraints(Ct,E,Q,C0,[]),
@@ -561,10 +551,9 @@ parseTypeExists(Lc,Quants,Ct,Hd,Body,typeDef(Lc,Nm,Type,[],FcRule),E,Ev,Path) :-
   reQuant(Q,Rl,FcRule),
   reQuant(Q,Tp,Type),
   pickTypeTemplate(Type,Tmp),
-%  reportMsg("parsed type exists def %s",[typeDef(Lc,Nm,Type,[],FcRule)]),
   declareType(Nm,tpDef(Lc,Tmp,FcRule),E,Ev).
 
-parseTypeFun(Lc,Quants,Ct,Hd,Bd,typeDef(Lc,Nm,Type,[],Rule),E,Ev,Path) :-
+parseTypeFun(Lc,Quants,Ct,Hd,Bd,typeDef(Lc,Nm,Type,Rule),E,Ev,Path) :-
   parseBoundTpVars(Quants,Q),
   parseConstraints(Ct,E,Q,C0,[]),
   parseTypeHead(Hd,Q,Tp,Nm,_,Path),
@@ -573,7 +562,6 @@ parseTypeFun(Lc,Quants,Ct,Hd,Bd,typeDef(Lc,Nm,Type,[],Rule),E,Ev,Path) :-
   mkTypeLambda(Tp,RpTp,Lam),
   wrapConstraints(Cx,Lam,Rl),
   reQuant(Q,Rl,Rule),
-%  reportMsg("parsed type alias def %s",[typeDef(Lc,Nm,Type,[],Rule)]),
   declareType(Nm,tpDef(Lc,Type,Rule),E,Ev).
 
 mkTypeLambda(tpExp(Op,A),Tp,RRTp) :-
