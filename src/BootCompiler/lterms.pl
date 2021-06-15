@@ -52,13 +52,9 @@ mergeGl(none,G,_,G).
 mergeGl(some(G),none,_,G).
 mergeGl(some(G1),some(G2),Lc,some(cnj(Lc,G1,G2))).
 
-ssTransformed(mdule(Pkg,_Imports,Tp,_,_,Defs,_Contracts,Impls),
-	      sq([ss("Package "),canon:ssPkg(Pkg),ss(" type "),TT,
-		  nl(0),iv(nl(0),Rs),
-		  nl(0),ss("Implementations\n"),iv(nl(0),Is)])):-
-  ssType(Tp,true,0,TT),
-  map(Defs,lterms:ssRuleSet,Rs),
-  map(Impls,canon:ssImpl(0),Is).
+ssTransformed(mdule(Pkg,_Imports,_,_,_,Defs),
+	      sq([ss("Package "),canon:ssPkg(Pkg),nl(0),iv(nl(0),Rs)])):-
+  map(Defs,lterms:ssRuleSet,Rs).
 
 ssRuleSet(fnDef(_Lc,Nm,_Tp,Args,Value),sq([ss("Fn: "),NN,lp,AA,rp,ss(" => "),VV])) :-
   ssTrm(Nm,0,NN),
@@ -395,8 +391,9 @@ isCnd(dsj(_,_,_)).
 isCnd(mtch(_,_,_)).
 isCnd(ng(_,_)).
 
-validLProg(mdule(_Pkg,_Imports,_Tp,_Face,_,Defs,_Contracts,_Impls)) :-
-  declareNms(Defs,[],Dct),
+validLProg(mdule(_Pkg,_Imports,Decls,LDecls,_,Defs)) :-
+  declareNms(Decls,[],D0),
+  declareNms(LDecls,D0,Dct),
   validDfs(Defs,Dct).
 
 validDfs([],_).
@@ -414,11 +411,15 @@ validDf(tpDef(_Lc,_Tp,_Rl,_IxMap),_).
 declareNms(Defs,Dct,Dx) :-
   rfold(Defs,lterms:declareDef,Dct,Dx).
 
-declareDef(fnDef(_Lc,Nm,_Tp,_Args,_Value),Dct,Dx) :-!,
+declareDef(funDec(_,Nm,_Tp),Dct,Dx) :-!,
   add_mem(Nm,Dct,Dx).
-declareDef(glbDef(_Lc,Nm,_Tp,_Value),Dct,Dx) :-
+declareDef(varDec(_,Nm,_Tp),Dct,Dx) :-!,
   add_mem(Nm,Dct,Dx).
-declareDef(tpDef(_Lc,_Tp,_Rl,_IxMap),Dx,Dx).
+declareDef(typeDec(_,_,_),Dx,Dx).
+declareDef(cnsDec(_,_,_),Dx,Dx).
+declareDef(contractDec(_,_,_,_),Dx,Dx).
+declareDef(accDec(_,_,_,_),Dx,Dx).
+declareDef(impDec(_,_,_),Dx,Dx).
        
 declareArgs(Args,Dct,Dx) :-
   rfold(Args,lterms:declareArg,Dct,Dx).

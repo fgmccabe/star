@@ -44,11 +44,11 @@ freeVars(abstraction(_,B,C,Z,G,_),Ex,Q,F,FV) :-
   freeVars(C,Ex1,Q,F0,F1),
   freevars(Z,Ex1,Q,F1,F2),
   freeVars(G,Ex1,Q,F2,FV).
-freeVars(letExp(_,Defs,Bnd),Ex,Q,F,Fv) :-
+freeVars(letExp(_,_,Defs,Bnd),Ex,Q,F,Fv) :-
   definedVars(Defs,Ex,Ex1),
   freeVarsInDefs(Defs,Ex1,Q,F,F0),
   freeVars(Bnd,Ex1,Q,F0,Fv).
-freeVars(letRec(_,Defs,Bnd),Ex,Q,F,Fv) :-
+freeVars(letRec(_,_,Defs,Bnd),Ex,Q,F,Fv) :-
   definedVars(Defs,Ex,Ex1),
   freeVarsInDefs(Defs,Ex1,Q,F,F0),
   freeVars(Bnd,Ex1,Q,F0,Fv).

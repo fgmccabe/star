@@ -7,24 +7,18 @@
 :- use_module(encode).
 :- use_module(uri).
 
-genPkgSig(mdule(Pkg,Imports,PkgTp,Face,Enums,_Defs,Contracts,Impls),Sig) :-
-  constructPkgSig(Pkg,Imports,PkgTp,Face,Enums,Contracts,Impls,Term),
+genPkgSig(mdule(Pkg,Imports,Decls,_LDecls,_),Sig) :-
+  constructPkgSig(Pkg,Imports,Decls,Term),
   encodeTerm(Term,Chrs,[]),
   string_chars(Sig,Chrs).
 
-constructPkgSig(Pkg,Imports,PkgTp,Face,Enums,Contracts,Impls,SigTpl) :-
-  mkTpl([PkgNm,ImpTpl,strg(PkSig),strg(Sig),ClsTpl,ConTpl,ImplTpl],SigTpl),
+constructPkgSig(Pkg,Imports,Decls,SigTpl) :-
+  mkTpl([PkgNm,ImpTpl,DeclTpl],SigTpl),
   encPkg(Pkg,PkgNm),
   encImports(Imports,Imps),
   mkTpl(Imps,ImpTpl),
-  encType(PkgTp,PkSig),
-  encType(Face,Sig),
-  map(Enums,gensig:formatCnMap,ClsSigs),
-  mkTpl(ClsSigs,ClsTpl),
-  formatContracts(Contracts,ConSigs),
-  mkTpl(ConSigs,ConTpl),
-  formatImpls(Impls,ImplSigs),
-  mkTpl(ImplSigs,ImplTpl).
+  map(Decls,gensig:formatDecl,DeclSigs),
+  mkTpl(DeclSigs,DeclTpl).
 
 encPkg(pkg(Nm,Vers),ctpl(lbl("pkg",2),[strg(Nm),V])) :-
   encVer(Vers,V).

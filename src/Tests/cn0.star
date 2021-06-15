@@ -35,4 +35,7 @@ test.cn0{
   ddbl(T1) => plus(T1,T1).
 
   dd = ddbl((23,.nil)).
+
+  consLen(.nil) => 0.
+  consLen(cons(_,T)) => plus(1,consLen(T)).
 }  

@@ -1,7 +1,7 @@
 :- module(transutils,
 	  [trCons/3,mergeSeq/4,mergeWhere/4,extraVars/2,thisVar/2,
-	   lookupVarName/3,lookupFunName/3,lookupThetaVar/3,lookupTypeIndex/3,
-	   lookupClassName/3,lookupType/3,findConsType/3,
+	   lookupVar/3,lookupThetaVar/3,lookupTypeIndex/3,
+	   lookupType/3,findConsType/3,
 	   definedProgs/2,labelVars/2,
 	   genVar/2, genVars/2,
 	   genVoids/2,
@@ -62,84 +62,65 @@ lookup([Lyr|_Layers],Nm,Filter,Reslt) :-
 lookup([_|Layers],Nm,Filter,Reslt) :-
   lookup(Layers,Nm,Filter,Reslt).
 
-filteredSearch(Defns,Filter,Nm,Defn) :-
-  is_member((Nm,Defn),Defns),
-  call(Filter,Defn),!.
+lookupVar(Map,Nm,Entry) :-
+  makeKey(Nm,Key),
+  lookup(Map,Key,transutils:findVar,Entry).
 
-lookupVarName(Map,Nm,V) :-
-  lookup(Map,Nm,nonType,V).
+findVar(lyr(VrMap,_,_,_),Key,Entry) :-
+  get_dict(Key,VrMap,Entry),!.
 
 lookupType(Map,TpNm,Entry) :-
-  marker(type,TpMrkr),
-  splitLocalName(TpNm,TpMrkr,_,Nm),
-  makeKey(Nm,Key),
+%  marker(type,TpMrkr),
+%  splitLocalName(TpNm,TpMrkr,_,Nm),
+  makeKey(TpNm,Key),
   lookup(Map,Key,transutils:findType,Entry).
 
 findType(lyr(_,TpMap,_,_),Key,Entry) :-
   get_dict(Key,TpMap,Entry),!.
 
-anyDef(_).
-
 lookupThetaVar(Map,Nm,V) :-
-  lookup(Map,Nm,transutils:getThetaVar(V),R), R\=notInMap.
+  makeKey(Nm,Key),
+  lookup(Map,Key,transutils:findThetaVar,V),
+  \+V=notInMap.
 
-getThetaVar(ThVr,localFun(_,_,_,ThVr)).
-getThetaVar(ThVr,localClass(_,_,_,_,ThVr)).
-getThetaVar(ThVr,labelArg(_,_,ThVr)).
+findThetaVar(lyr(VrMap,_,_,_),Key,V) :-
+  get_dict(Key,VrMap,Entry),
+  getThetaVar(Entry,V),!.
 
-lookupFunName(Map,Nm,V) :-
-  lookup(Map,Nm,isFnDef,V).
-
-isFnDef(localFun(_,_,_,_)).
-isFnDef(moduleFun(_,_,_)).
-isFnDef(localClass(_,_,_,_,_)).
-isFnDef(moduleCons(_,_,_)).
-
-lookupClassName(Map,Nm,V) :-
-  lookup(Map,Nm,classDef,V).
-
-classDef(localClass(_,_,_,_,_)).
-classDef(moduleCons(_,_,_)).
-
-lookupDefn(Map,Nm,Df) :-
-  lookup(Map,Nm,nonType,Df).
-
-nonType(Df) :- \+isTpe(Df).
-
-isTpe(moduleType(_,_,_)) :-!.
-isTpe(localType(_,_)) :-!.
+getThetaVar(localFun(_,_,_,ThVr),ThVr).
+getThetaVar(localClass(_,_,_,_,ThVr),ThVr).
+getThetaVar(labelArg(_,_,ThVr),ThVr).
 
 lookupTypeIndex(Map,TpNm,Index) :-
   makeKey(TpNm,Key),
   lookupIndex(Map,Key,Index).
 
-lookupIndex([lyr(_,ConsIndex,_)|_],Key,Index) :-
+lookupIndex([lyr(_,_,ConsIndex,_)|_],Key,Index) :-
   get_dict(Key,ConsIndex,Index),!.
 lookupIndex([_|Map],Key,Index) :-
   lookupIndex(Map,Key,Index).
 
 typeHasIndex(TpNm,moduleType(_,TpNm,_,_)).
 
-findConsType([lyr(Defs,_,_)|_],CnsNm,Tp) :-
-  is_member((_,moduleCons(CnsNm,Tp,_)),Defs),!.
-findConsType([_|Lyrs],CnsNm,Tp) :-
-  findConsType(Lyrs,CnsNm,Tp).
+findConsType(Map,CnsNm,Tp) :-
+ lookupVar(Map,CnsNm,moduleCons(_,Tp,_)).
 
-extraVars([lyr(_,_,void)|_],[]) :- !.
-extraVars([lyr(_,_,ThVr)|_],[ThVr]).
+extraVars([lyr(_,_,_,void)|_],[]) :- !.
+extraVars([lyr(_,_,_,ThVr)|_],[ThVr]).
 
-thisVar([lyr(_,_,ThVr)|_],ThVr) :- ThVr \= void.
+thisVar([lyr(_,_,_,ThVr)|_],ThVr) :- ThVr \= void.
 
 definedProgs(Map,Prgs) :-
   definedProgs(Map,[],Prgs).
 
 definedProgs([],Pr,Pr).
-definedProgs([lyr(Defs,_,_)|Map],Pr,Prx) :-
-  definedInDefs(Defs,Pr,Pr0),
+definedProgs([lyr(Defs,_,_,_)|Map],Pr,Prx) :-
+  dict_pairs(Defs,_,Pairs),
+  definedInDefs(Pairs,Pr,Pr0),
   definedProgs(Map,Pr0,Prx).
 
 definedInDefs([],Pr,Pr).
-definedInDefs([(Nm,Entry)|Defs],Pr,Prx) :-
+definedInDefs([Nm-Entry|Defs],Pr,Prx) :-
   definedP(Nm,Entry),!,
   (is_member(idnt(Nm),Pr) -> Pr0=Pr ; Pr0=[idnt(Nm)|Pr]),
   definedInDefs(Defs,Pr0,Prx).
@@ -155,13 +136,14 @@ labelVars(Map,Prgs) :-
   lblVars(Map,[],Prgs).
 
 lblVars([],Pr,Pr).
-lblVars([lyr(Defs,_,ThVr)|Map],Pr,Prx) :-
+lblVars([lyr(Vrs,_,_,ThVr)|Map],Pr,Prx) :-
   (ThVr=void -> Pr=Pr0 ;add_mem(ThVr,Pr,Pr0)),
-  labelVarsInDefs(Defs,Pr0,Pr1),
+  dict_pairs(Vrs,_,Pairs),
+  labelVarsInDefs(Pairs,Pr0,Pr1),
   lblVars(Map,Pr1,Prx).
 
 labelVarsInDefs([],Pr,Pr).
-labelVarsInDefs([(_,labelArg(V,_,_ThVr))|Defs],Pr,Prx) :-
+labelVarsInDefs([_-labelArg(V,_,_ThVr)|Defs],Pr,Prx) :-
   (is_member(V,Pr) -> Pr0=Pr ; Pr0=[V|Pr]),
   labelVarsInDefs(Defs,Pr0,Prx).
 labelVarsInDefs([_|Defs],Pr,Prx) :-
@@ -228,9 +210,9 @@ ssLayer(lyr(VarMap,TpMap,ConsMap,void),sq([ss("Top layer:"),nl(0),iv(nl(0),DD)])
   ssDecMap(TpMap,TT),
   flatten([MM,VV,TT],DD).
 ssLayer(lyr(VarMap,TpMap,ConsMap,ThVr),
-	  sq([ss("layer:"),ss("«"),TT,ss("»"),nl(0),iv(nl(0),DD)])) :-
+	  sq([ss("layer:"),ss("«"),TV,ss("»"),nl(0),iv(nl(0),DD)])) :-
   ssConsMap(ConsMap,MM),
-  ssTrm(ThVr,0,TT),
+  ssTrm(ThVr,0,TV),
   ssDecMap(VarMap,VV),
   ssDecMap(TpMap,TT),
   flatten([MM,VV,TT],DD).

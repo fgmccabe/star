@@ -84,11 +84,11 @@ pickupDeclaration(ctpl(lbl("con",4),
 		  contractDec(Nm,CnNm,CnTp,Spec)) :-
   decodeSignature(Sig,Spec),
   decodeSignature(TSig,CnTp).
-pickupDeclaration(ctpl(lbl("tpe",3),[strg(Sig),strg(RlSig),ctpl(_,ConsEnc)]),
-		  typeDec(Tp,TpRule,ConsMap)) :-
+pickupDeclaration(ctpl(lbl("tpe",3),[strg(Sig),strg(RlSig)]),
+		  typeDec(Nm,Tp,TpRule)) :-
   decodeSignature(Sig,Tp),
-  decodeSignature(RlSig,TpRule),
-  decodeConsMap(ConsEnc,ConsMap).
+  tpName(Tp,Nm),
+  decodeSignature(RlSig,TpRule).
 pickupDeclaration(ctpl(lbl("var",2),[strg(Nm),strg(Sig)]),varDec(Nm,Tp)) :-
   decodeSignature(Sig,Tp).
 pickupDeclaration(ctpl(lbl("fun",2),[strg(Nm),strg(Sig)]),funDec(Nm,Tp)) :-

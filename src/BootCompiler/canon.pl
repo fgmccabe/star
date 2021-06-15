@@ -15,7 +15,7 @@
 isCanonDef(funDef(_,_,_,_,_,_)).
 isCanonDef(varDef(_,_,_,_,_,_)).
 isCanonDef(cnsDef(_,_,_)).
-isCanonDef(typeDef(_,_,_,_,_)).
+isCanonDef(typeDef(_,_,_,_)).
 isCanonDef(conDef(_,_,_,_)).
 isCanonDef(implDef(_,_,_,_)).
 isCanonDef(accDef(_,_,_,_)).
@@ -115,8 +115,8 @@ typeOfCanon(conj(_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(disj(_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(implies(_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(cond(_,_,_,_,Tp),Tp) :-!.
-typeOfCanon(letExp(_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
-typeOfCanon(letRec(_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
+typeOfCanon(letExp(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
+typeOfCanon(letRec(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(apply(_,_,_,Tp),Tp) :-!.
 typeOfCanon(tple(_,Els),tupleType(Tps)) :-!,
   map(Els,canon:typeOfCanon,Tps).
@@ -145,8 +145,8 @@ locOfCanon(disj(Lc,_,_),Lc) :-!.
 locOfCanon(neg(Lc,_),Lc) :-!.
 locOfCanon(implies(Lc,_,_),Lc) :-!.
 locOfCanon(cond(Lc,_,_,_,_),Lc) :-!.
-locOfCanon(letExp(Lc,_,_),Lc) :- !.
-locOfCanon(letRec(Lc,_,_),Lc) :- !.
+locOfCanon(letExp(Lc,_,_,_),Lc) :- !.
+locOfCanon(letRec(Lc,_,_,_),Lc) :- !.
 locOfCanon(case(Lc,_,_,_),Lc) :- !.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
 locOfCanon(tple(Lc,_),Lc) :-!.
@@ -176,12 +176,12 @@ constructorName(cons(_,Nm,_),Nm).
 constructorType(enm(_,_,Tp),Tp) :-!.
 constructorType(cons(_,_,Tp),Tp).
 
-ssCanonProg(prog(Pkg,Imports,_,_,Defs),sq([PP,nl(2),iv(nl(2),XX),rb])) :-
+ssCanonProg(prog(Pkg,Imports,_,Decls,Defs),sq([PP,nl(2),iv(nl(2),XX),rb])) :-
   ssPkg(Pkg,PP),
   map(Imports,canon:ssImport,II),
-%  map(Decls,canon:ssDecl(2),DD),
+  map(Decls,canon:ssDecl(2),DD),
   map(Defs,canon:ssDf(2),FF),
-  flatten([II,FF],XX).
+  flatten([DD,II,FF],XX).
 
 ssPkg(pkg(Nm,V),sq([ss(Nm)|Vs])) :-
   ssVersion(V,Vs).
@@ -210,15 +210,19 @@ ssTerm(assign(_,Vr,Vl),Dp,sq([L,ss(" := "),R])) :-
   ssTerm(Vl,Dp,R).
 ssTerm(cell(_,Vr),Dp,sq([ss("!!"),V])) :-
   ssTerm(Vr,Dp,V).
-ssTerm(letExp(_,Defs,Ex),Dp,
-	    sq([ss("let {."),nl(Dp2),Dfs,nl(Dp),ss(".} in "),B])) :-
+ssTerm(letExp(_,Decls,Defs,Ex),Dp,
+	    sq([ss("let {."),nl(Dp2),iv(nl(Dp2),Ds),nl(Dp),ss(".} in "),B])) :-
   Dp2 is Dp+2,
-  ssDefs(Defs,Dp2,Dfs),
+  map(Decls,canon:ssDecl(Dp2),DD),
+  map(Defs,canon:ssDf(Dp2),XX),
+  flatten([DD,XX],Ds),
   ssTerm(Ex,Dp,B).
-ssTerm(letRec(_,Defs,Ex),Dp,
-	    sq([ss("let {"),nl(Dp2),Dfs,nl(Dp),ss("} in "),B])) :-
+ssTerm(letRec(_,Decls,Defs,Ex),Dp,
+	    sq([ss("let {"),nl(Dp2),iv(nl(Dp2),Ds),nl(Dp),ss("} in "),B])) :-
   Dp2 is Dp+2,
-  ssDefs(Defs,Dp2,Dfs),
+  map(Decls,canon:ssDecl(Dp2),DD),
+  map(Defs,canon:ssDf(Dp2),XX),
+  flatten([DD,XX],Ds),
   ssTerm(Ex,Dp,B).
 ssTerm(lambda(_,_,Rle,_),Dp,sq([lp,Rl,rp])) :-
   ssRule("",Dp,Rle,Rl).
@@ -354,9 +358,8 @@ ssDf(Dp,Df,XX) :-
   ssDef(Dp,Df,XX),
   (validSS(XX) ; errors:reportMsg("%s not valid display",[XX]),abort).
 
-ssDef(Dp,funDef(Lc,Nm,ExtNm,Type,_Cx,Eqns),
-      sq([ss("fun "),id(Nm),ss(" : "),Ts,ss("@"),Lcs,nl(Dp),Rs])) :-
-  ssType(Type,true,Dp,Ts),
+ssDef(Dp,funDef(Lc,Nm,ExtNm,_Type,_Cx,Eqns),
+      sq([ss("fun "),id(Nm),ss("@"),Lcs,nl(Dp),Rs])) :-
   ssRls(ExtNm,Eqns,Dp,Rs),
   ssLoc(Lc,Lcs).
 ssDef(Dp,varDef(Lc,Nm,ExtNm,_Cx,Tp,Value),
@@ -370,7 +373,7 @@ ssDef(Dp,cnsDef(Lc,Nm,C),
   typeOfCanon(C,Tp),
   ssType(Tp,true,Dp,Ts),
   ssLoc(Lc,Lcs).
-ssDef(Dp,typeDef(Lc,Nm,_Tp,_Mp,Rl),
+ssDef(Dp,typeDef(Lc,Nm,_Tp,Rl),
       sq([ss("type "),id(Nm),ss(":"),Ts,ss("@"),Lcs])) :-
   ssLoc(Lc,Lcs),
   ssType(Rl,true,Dp,Ts).
@@ -409,7 +412,7 @@ ssDecl(Dp,varDec(Nm,LclNme,Tp),
 ssDecl(Dp,cnsDec(Nm,LclNme,Tp),
       sq([ss("cons "),id(Nm),ss("~"),id(LclNme),ss(" :: "),Ts])) :-
   ssType(Tp,true,Dp,Ts).
-ssDecl(Dp,typeDec(Nm,Tp,_Mp,_Rl),
+ssDecl(Dp,typeDec(Nm,Tp,_Rl),
        sq([ss("type "),id(Nm),ss("::"),Ts])) :-
   ssType(Tp,true,Dp,Ts).
 ssDecl(Dp,contractDec(Nm,_ConNm,_ConTp,Rl),
@@ -442,9 +445,6 @@ ssImpl(Dp,acc(Tp,Fld,Fn,AccTp),
 	   TT])) :-
   ssType(Tp,true,Dp,SS),
   ssType(AccTp,true,Dp,TT).
-
-ssTypeDef(Dp,(_,Tp),sq([ss("type "),TT])) :-
-  ssType(Tp,false,Dp,TT).
 
 ssContract(Dp,conDef(Nm,ConNm,_ConTp,ConRule),
 	   sq([ss("contract "),

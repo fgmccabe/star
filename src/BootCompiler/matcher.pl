@@ -143,7 +143,7 @@ populateArms([],_,_,_,_,[]).
 populateArms([(lbl(FullNm,_),_Ix)|Index],Cases,Map,DLc,Deflt,[Arm|Arms]) :-
   (armPresent(FullNm,Cases,Lbl,Exp,Lc) ->
    Arm=(Lbl,Exp,Lc);
-   lookupClassName(Map,FullNm,moduleCons(_,CnsTp,_)),
+   lookupVar(Map,FullNm,moduleCons(_,CnsTp,_)),
    emptyCase(CnsTp,FullNm,EmptyLbl),
    Arm=(EmptyLbl,Deflt,DLc)),
   populateArms(Index,Cases,Map,DLc,Deflt,Arms).

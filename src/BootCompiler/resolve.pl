@@ -116,10 +116,10 @@ overloadTerm(cell(Lc,Inn),Dict,St,Stx,cell(Lc,Inn1)) :-
 overloadTerm(assign(Lc,Lhs,Rhs),Dict,St,Stx,assign(Lc,L1,R1)) :-
   overloadTerm(Lhs,Dict,St,St1,L1),
   overloadTerm(Rhs,Dict,St1,Stx,R1).
-overloadTerm(letExp(Lc,Defs,Bound),Dict,St,Stx,letExp(Lc,RDefs,RBound)) :-
+overloadTerm(letExp(Lc,Decls,Defs,Bound),Dict,St,Stx,letExp(Lc,Decls,RDefs,RBound)) :-
   overload(Lc,Defs,Dict,RDict,RDefs),
   overloadTerm(Bound,RDict,St,Stx,RBound).
-overloadTerm(letRec(Lc,Defs,Bound),Dict,St,Stx,letRec(Lc,RDefs,RBound)) :-
+overloadTerm(letRec(Lc,Decls,Defs,Bound),Dict,St,Stx,letRec(Lc,Decls,RDefs,RBound)) :-
   overload(Lc,Defs,Dict,RDict,RDefs),
   overloadTerm(Bound,RDict,St,Stx,RBound).
 overloadTerm(where(Lc,Trm,Cond),Dict,St,Stx,where(Lc,RTrm,RCond)) :-
@@ -201,11 +201,6 @@ overloadAccess(Lc,T,V,Face,Args,Tp,Dict,St,Stx,
   markResolved(St0,St1),
   overloadTerm(Args,Dict,St1,Stx,tple(LcA,RArgs)),
   findAccess(V,Fld,Dict,FunNm).
-
-overloadLetExp(Lc,Env,Bound,Dict,St,Stx,letExp(Lc,REnv,RBound)) :-
-  overloadTerm(Env,Dict,St,St0,REnv),
-  overloadTerm(Bound,Dict,St0,Stx,RBound).
-
 
 overloadCases(Cses,Dict,St,Stx,RCases) :-
   overloadLst(Cses,resolve:overloadRule,Dict,St,Stx,RCases).
