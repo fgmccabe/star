@@ -52,7 +52,7 @@ mergeGl(none,G,_,G).
 mergeGl(some(G),none,_,G).
 mergeGl(some(G1),some(G2),Lc,some(cnj(Lc,G1,G2))).
 
-ssTransformed(mdule(Pkg,_Imports,_,_,_,Defs),
+ssTransformed(mdule(Pkg,_Imports,_,_,Defs),
 	      sq([ss("Package "),canon:ssPkg(Pkg),nl(0),iv(nl(0),Rs)])):-
   map(Defs,lterms:ssRuleSet,Rs).
 
@@ -391,7 +391,7 @@ isCnd(dsj(_,_,_)).
 isCnd(mtch(_,_,_)).
 isCnd(ng(_,_)).
 
-validLProg(mdule(_Pkg,_Imports,Decls,LDecls,_,Defs)) :-
+validLProg(mdule(_Pkg,_Imports,Decls,LDecls,Defs)) :-
   declareNms(Decls,[],D0),
   declareNms(LDecls,D0,Dct),
   validDfs(Defs,Dct).

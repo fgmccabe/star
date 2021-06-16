@@ -134,7 +134,7 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
    transformProg(Prog,Opts,Rules),!,
    (is_member(showTrCode,Opts) -> dispProg(Rules),validLProg(Rules);true),
    noErrors,
-   genPkgSig(Rules,Sig),
+   genPkgSig(Rules,Sig), % goes into the repo manifest
    genCode(Rules,Opts,Text),
    noErrors,
    addCodePackage(Repo,SrcUri,Pkg,Sig,Text,Rx);
