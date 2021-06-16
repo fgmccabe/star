@@ -1,4 +1,4 @@
-:- module(gensig,[genPkgSig/2,encPkg/2]).
+:- module(gensig,[genPkgSig/2,encPkg/2,formatDecl/2]).
 
 :- use_module(misc).
 :- use_module(lterms).
@@ -7,7 +7,7 @@
 :- use_module(encode).
 :- use_module(uri).
 
-genPkgSig(mdule(Pkg,Imports,Decls,_LDecls,_),Sig) :-
+genPkgSig(mdule(Pkg,Imports,Decls,_,_),Sig) :-
   constructPkgSig(Pkg,Imports,Decls,Term),
   encodeTerm(Term,Chrs,[]),
   string_chars(Sig,Chrs).
@@ -33,6 +33,29 @@ encImports([I|M],[IP|L]) :-
 
 encImport(import(Viz,Pkg,_,_,_,_,_),ctpl(lbl("import",2),[enum(Viz),Enc])) :-
   encPkg(Pkg,Enc).
+
+formatDecl(varDec(Nm,FullNm,Tp),ctpl(lbl("var",3),[strg(Nm),strg(FullNm),Sig])) :-
+  encodeSignature(Tp,Sig).
+formatDecl(funDec(Nm,FullNm,Tp),ctpl(lbl("fun",3),[strg(Nm),strg(FullNm),Sig])) :-
+  encodeSignature(Tp,Sig).
+formatDecl(typeDec(Nm,Tp,TpRule),ctpl(lbl("tpe",3),[strg(Nm),TpSig,RlSig])) :-
+  encodeSignature(Tp,TpSig),
+  encodeSignature(TpRule,RlSig).
+formatDecl(accDec(Tp,Fld,Fn,AccTp),
+	   ctpl(lbl("acc",4),[TpSig,strg(Fld),strg(Fn),AccSig])) :-
+  encodeSignature(Tp,TpSig),
+  encodeSignature(AccTp,AccSig).
+formatDecl(impDec(ConNm,ImplNm,ImplTp),
+	   ctpl(lbl("imp",3),[strg(ConNm),strg(ImplNm),ImplSig])) :-
+  encodeSignature(ImplTp,ImplSig).
+formatDecl(contractDec(Nm,CnNm,Tp,Spec),
+	   ctpl(lbl("con",4),[strg(Nm),strg(CnNm),TpSig,SpecSig])) :-
+  encodeSignature(Tp,TpSig),
+  encodeSignature(Spec,SpecSig).
+formatDecl(cnsDec(Nm,FullNm,Tp),ctpl(lbl("cns",3),
+				     [strg(Nm),strg(FullNm),Sig])) :-
+  encodeSignature(Tp,Sig).
+
 
 formatCnMap((TpNm,Cns),ConTpl) :-
   map(Cns,gensig:formatCns,Cnx),

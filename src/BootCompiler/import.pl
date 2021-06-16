@@ -74,9 +74,9 @@ pickupDeclarations(Encs,Impls) :-
 pickupDeclaration(ctpl(lbl("imp",3),[strg(Nm),strg(FNm),strg(Sig)]),
 		  impDec(Nm,FNm,Spec)) :-
   decodeSignature(Sig,Spec).
-pickupDeclaration(ctpl(lbl("acc",3),
+pickupDeclaration(ctpl(lbl("acc",4),
 		       [strg(Sig),strg(Fld),strg(Fn),strg(AccSig)]),
-		  accessDec(Tp,Fld,Fn,AccTp)) :-
+		  accDec(Tp,Fld,Fn,AccTp)) :-
   decodeSignature(Sig,Tp),
   decodeSignature(AccSig,AccTp).
 pickupDeclaration(ctpl(lbl("con",4),
@@ -84,15 +84,22 @@ pickupDeclaration(ctpl(lbl("con",4),
 		  contractDec(Nm,CnNm,CnTp,Spec)) :-
   decodeSignature(Sig,Spec),
   decodeSignature(TSig,CnTp).
-pickupDeclaration(ctpl(lbl("tpe",3),[strg(Sig),strg(RlSig)]),
+pickupDeclaration(ctpl(lbl("tpe",3),[strg(Nm),strg(Sig),strg(RlSig)]),
 		  typeDec(Nm,Tp,TpRule)) :-
   decodeSignature(Sig,Tp),
   tpName(Tp,Nm),
   decodeSignature(RlSig,TpRule).
-pickupDeclaration(ctpl(lbl("var",2),[strg(Nm),strg(Sig)]),varDec(Nm,Tp)) :-
+pickupDeclaration(ctpl(lbl("var",3),[strg(Nm),strg(FullNm),strg(Sig)]),
+		  varDec(Nm,FullNm,Tp)) :-
   decodeSignature(Sig,Tp).
-pickupDeclaration(ctpl(lbl("fun",2),[strg(Nm),strg(Sig)]),funDec(Nm,Tp)) :-
+pickupDeclaration(ctpl(lbl("fun",3),[strg(Nm),strg(FullNm),strg(Sig)]),
+		  funDec(Nm,FullNm,Tp)) :-
   decodeSignature(Sig,Tp).
+pickupDeclaration(ctpl(lbl("cns",3),
+		       [strg(Nm),strg(FullNm),strg(Sig)]),
+		  cnsDec(Nm,FullNm,CnTp)) :-
+  decodeSignature(Sig,CnTp).
+
 
 decodeConsMap(ctpl(_,Ctors),ConsMap) :-
   map(Ctors,import:pickupCtor,ConsMap).

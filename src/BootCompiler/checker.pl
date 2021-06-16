@@ -224,7 +224,7 @@ importDecl(Lc,impDec(_ImplNm,FullNm,ImplTp),Ev,Evx) :-
   declareVr(Lc,FullNm,ImplTp,Ev,Ev0),
   funResType(ImplTp,ConTp),
   declareImplementation(Lc,ConTp,FullNm,ImplTp,Ev0,Evx).
-importDecl(_,accessDec(Tp,Fld,FnNm,AccTp),Ev,Evx) :-
+importDecl(_,accDec(Tp,Fld,FnNm,AccTp),Ev,Evx) :-
   declareFieldAccess(Tp,Fld,FnNm,AccTp,Ev,Evx).
 importDecl(Lc,contractDec(Nm,CnNm,CnTp,Rule),Ev,Evx) :-
   defineContract(Nm,Lc,conDef(Nm,CnNm,CnTp,Rule),Ev,Evx).

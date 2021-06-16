@@ -70,62 +70,59 @@ digit(7,'7').
 digit(8,'8').
 digit(9,'9').
 
-
 encType(Tp,Sig) :-
-  encodeTp(Tp,O,[]),
+  encodeType(Tp,O,[]),
   string_chars(Sig,O).
 
-encodeTp(T,C,Cx) :-
+encodeType(T,C,Cx) :-
   deRef(T,Tp),
-  encodeType(Tp,C,Cx),!.
+  encodeT(Tp,C,Cx),!.
 
-encodeType(anonType,['_'|O],O).
-encodeType(voidType,['v'|O],O).
-encodeType(T,['_'|O],O) :- isUnbound(T).
-encodeType(type("star.core*boolean"),['l'|O],O).
-encodeType(type("star.core*integer"),['i'|O],O).
-encodeType(type("star.core*float"),['f'|O],O).
-encodeType(type("star.core*string"),['S'|O],O).
-encodeType(kVar(Nm),['k'|O],Ox) :- encodeText(Nm,O,Ox).
-encodeType(kFun(Nm,Ar),['K'|O],Ox) :- encodeInt(Ar,O,O1),encodeText(Nm,O1,Ox).
-encodeType(type(Nm),['t'|O],Ox) :- encodeText(Nm,O,Ox).
-encodeType(tpFun(Nm,Ar),['z'|O],Ox) :- encodeInt(Ar,O,O1),encodeText(Nm,O1,Ox).
-encodeType(tpExp(T,Arg),['U'|O],Ox) :- deRef(T,Tp),encodeTp(Tp,O,O1), encodeTp(Arg,O1,Ox).
-encodeType(refType(Tp),['r'|O],Ox) :- encodeTp(Tp,O,Ox).
-encodeType(funType(AT,Tp),['F'|O],Ox) :- encodeTp(AT,O,O1), encodeTp(Tp,O1,Ox).
-encodeType(consType(Args,Tp),['C'|O],Ox) :- encodeTp(Args,O,O1), encodeTp(Tp,O1,Ox).
-encodeType(tupleType(Args),O,Ox) :- encodeTypes(Args,O,Ox).
-encodeType(faceType(Fields,Types),['I'|O],Ox) :- encodeFieldTypes(Fields,O,O1),encodeFieldTypes(Types,O1,Ox).
-encodeType(allType(B,Tp),[':'|O],Ox) :- encodeTp(B,O,O1),encodeTp(Tp,O1,Ox).
-encodeType(existType(B,Tp),['e'|O],Ox) :- encodeTp(B,O,O1),encodeTp(Tp,O1,Ox).
-encodeType(constrained(Tp,Con),['|'|O],Ox) :- encodeTp(Tp,O,O1),encodeConstraint(Con,O1,Ox).
-encodeType(typeExists(L,R),['Y'|O],Ox) :- encodeTp(L,O,O1), encodeTp(R,O1,Ox).
-encodeType(typeLambda(L,R),['y'|O],Ox) :- encodeTp(L,O,O1), encodeTp(R,O1,Ox).
-encodeType(contractExists(L,R),['Z'|O],Ox) :- encodeConstraint(L,O,O1), encodeTp(R,O1,Ox).
+encodeT(anonType,['_'|O],O).
+encodeT(voidType,['v'|O],O).
+encodeT(T,['_'|O],O) :- isUnbound(T).
+encodeT(type("star.core*boolean"),['l'|O],O).
+encodeT(type("star.core*integer"),['i'|O],O).
+encodeT(type("star.core*float"),['f'|O],O).
+encodeT(type("star.core*string"),['S'|O],O).
+encodeT(kVar(Nm),['k'|O],Ox) :- encodeText(Nm,O,Ox).
+encodeT(kFun(Nm,Ar),['K'|O],Ox) :- encodeInt(Ar,O,O1),encodeText(Nm,O1,Ox).
+encodeT(type(Nm),['t'|O],Ox) :- encodeText(Nm,O,Ox).
+encodeT(tpFun(Nm,Ar),['z'|O],Ox) :- encodeInt(Ar,O,O1),encodeText(Nm,O1,Ox).
+encodeT(tpExp(T,Arg),['U'|O],Ox) :- deRef(T,Tp),encodeType(Tp,O,O1), encodeType(Arg,O1,Ox).
+encodeT(refType(Tp),['r'|O],Ox) :- encodeType(Tp,O,Ox).
+encodeT(funType(AT,Tp),['F'|O],Ox) :- encodeType(AT,O,O1), encodeType(Tp,O1,Ox).
+encodeT(consType(Args,Tp),['C'|O],Ox) :- encodeType(Args,O,O1), encodeType(Tp,O1,Ox).
+encodeT(tupleType(Args),['('|O],Ox) :- encodeTypes(Args,O,[')'|Ox]).
+encodeT(faceType(Fields,Types),['I'|O],Ox) :- encodeFieldTypes(Fields,O,O1),encodeFieldTypes(Types,O1,Ox).
+encodeT(allType(B,Tp),[':'|O],Ox) :- encodeType(B,O,O1),encodeType(Tp,O1,Ox).
+encodeT(existType(B,Tp),['e'|O],Ox) :- encodeType(B,O,O1),encodeType(Tp,O1,Ox).
+encodeT(constrained(Tp,Con),['|'|O],Ox) :- encodeType(Tp,O,O1),encodeConstraint(Con,O1,Ox).
+encodeT(typeExists(L,R),['Y'|O],Ox) :- encodeType(L,O,O1), encodeType(R,O1,Ox).
+encodeT(typeLambda(L,R),['y'|O],Ox) :- encodeType(L,O,O1), encodeType(R,O1,Ox).
+encodeT(contractExists(L,R),['Z'|O],Ox) :- encodeConstraint(L,O,O1), encodeType(R,O1,Ox).
 
-encodeTypes(Tps,['('|O],Ox) :- encodeTps(Tps,O,[')'|Ox]).
-
-encodeTps([],O,O).
-encodeTps([Tp|More],O,Ox) :- encodeTp(Tp,O,O1), encodeTps(More,O1,Ox).
+encodeTypes([],O,O).
+encodeTypes([Tp|More],O,Ox) :- encodeType(Tp,O,O1), encodeTypes(More,O1,Ox).
 
 encodeFieldTypes(Fields,['{'|O],Ox) :- encodeFieldTps(Fields,O,['}'|Ox]).
 
 encodeFieldTps([],O,O).
-encodeFieldTps([(Nm,Tp)|More],O,Ox) :- encodeText(Nm,O,O1),encodeTp(Tp,O1,O2), encodeFieldTps(More,O2,Ox).
+encodeFieldTps([(Nm,Tp)|More],O,Ox) :- encodeText(Nm,O,O1),encodeType(Tp,O1,O2), encodeFieldTps(More,O2,Ox).
 
 encodeConstraint(allType(V,C),[':'|O],Ox) :-
-  encodeType(V,O,O1),
+  encodeT(V,O,O1),
   encodeConstraint(C,O1,Ox).
 encodeConstraint(constrained(Con,Extra),['|'|O],Ox) :-
   encodeConstraint(Con,O,O1),
   encodeConstraint(Extra,O1,Ox).
 encodeConstraint(conTract(Nm,Args,Deps),['c'|O],Ox) :-
   encodeText(Nm,O,O1),
-  encodeType(tupleType(Args),O1,O2),
-  encodeType(tupleType(Deps),O2,Ox).
+  encodeT(tupleType(Args),O1,O2),
+  encodeT(tupleType(Deps),O2,Ox).
 encodeConstraint(implementsFace(V,Face),['a'|O],Ox) :-
-  encodeTp(V,O,O1),
-  encodeTp(Face,O1,Ox).
+  encodeType(V,O,O1),
+  encodeType(Face,O1,Ox).
 
 encLtp(Tp,Sig) :-
   encodeLtipe(Tp,Chrs,[]),
