@@ -233,6 +233,15 @@
     "keyword": true
   },
   {
+    "prefixOp": "perform",
+    "priorities": [
+      300,
+      299
+    ],
+    "desc": "perform an action or task",
+    "keyword": true
+  },
+  {
     "infixOp": "->>",
     "priorities": [
       1199,

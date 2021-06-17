@@ -1,6 +1,7 @@
 {
   "content": {
     "test.a": "a.star",
+    "test.ac0": "ac0.star",
     "test.ar": "ar.star",
     "test.as": "as.star",
     "test.as2": "as2.star",

@@ -24,7 +24,7 @@
 	      isAbstraction/4,isListAbstraction/4,
 	      isCaseExp/4,
 	      isDoTerm/3,isDoTerm/2,isDoTerm/1,isTaskTerm/3,isActionTerm/3,isScriptTerm/3,
-	      isBind/4,isValof/3,isThrow/3,isReturn/3,isTryCatch/4,
+	      isBind/4,isValof/3,isPerform/3,isThrow/3,isReturn/3,isTryCatch/4,
 	      isIfThenElse/5,isIfThen/4,isWhileDo/4,isUntilDo/4,isForDo/4,
 	      isActionSeq/4,isActionSeq/3,
 	      isLetDef/4,isLetRec/4,mkLetDef/4,mkLetRec/4,
@@ -547,6 +547,9 @@ isReturn(A,Lc,E) :-
 
 isValof(A,Lc,E) :-
   isUnary(A,Lc,"valof",E).
+
+isPerform(A,Lc,E) :-
+  isUnary(A,Lc,"perform",E).
 
 isThrow(A,Lc,E) :-
   isUnary(A,Lc,"throw",E).
