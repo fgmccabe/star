@@ -264,6 +264,9 @@ collectTermRefs(T,A,R0,Refs) :-
   collectTermRefs(B,A,R0,R1),
   collectCondRefs(G,A,R1,Refs).
 collectTermRefs(T,A,R0,Refs) :-
+  isValof(T,_,E),!,
+  collectTermRefs(E,A,R0,Refs).
+collectTermRefs(T,A,R0,Refs) :-
   isDoTerm(T,_,Stmts),!,
   collectDoRefs(Stmts,A,R0,Refs).
 collectTermRefs(T,A,R0,Refs) :-
@@ -272,8 +275,6 @@ collectTermRefs(T,A,R0,Refs) :-
 collectTermRefs(T,A,R0,Refs) :-
   isTaskTerm(T,_,Stmts),!,
   collectDoRefs(Stmts,A,R0,Refs).
-collectTermRefs(T,_A,Refs,Refs) :-
-  isDoTerm(T,_),!.
 collectTermRefs(T,A,R0,Refs) :-
   isScriptTerm(T,_,Stmts),!,
   collectDoRefs(Stmts,A,R0,Refs).
@@ -354,6 +355,10 @@ collectDoRefs(T,All,Rf,Rfx) :-
   collectTermRefs(L,All,Rf,Rf0),
   collectTermRefs(R,All,Rf0,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
+  isMatch(T,_,L,R),!,
+  collectTermRefs(L,All,Rf,Rf0),
+  collectTermRefs(R,All,Rf0,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
   isDefn(T,_,L,R),!,
   collectTermRefs(L,All,Rf,Rf0),
   collectTermRefs(R,All,Rf0,Rfx).
@@ -392,6 +397,9 @@ collectDoRefs(T,All,Rf,Rfx) :-
   collectCatchRefs(R,All,Rf1,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isThrow(T,_,E),!,
+  collectTermRefs(E,All,Rf,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  isReturn(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   collectTermRefs(T,All,Rf,Rfx).

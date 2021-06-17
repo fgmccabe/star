@@ -43,6 +43,8 @@ isCanon(neg(_,_)).
 isCanon(assign(_,_,_)).
 isCanon(cell(_,_)).
 isCanon(lambda(_,_,_,_)).
+isCanon(actionTerm(_,_,_)).
+isCanon(taskTerm(_,_,_)).
 isCanon(doTerm(_,_,_,_,_)).
 isCanon(noDo(_)).
 isCanon(seqDo(_,_,_)).
@@ -58,6 +60,7 @@ isCanon(returnDo(_,_,_,_,_)).
 isCanon(throwDo(_,_,_,_,_)).
 isCanon(performDo(_,_,_,_,_)).
 isCanon(simpleDo(_,_,_,_)).
+isCanon(assertDo(_,_)).
 isCanon(search(_,_,_,_)).
 
 isSimpleCanon(v(_,_,_)).
@@ -151,7 +154,8 @@ locOfCanon(case(Lc,_,_,_),Lc) :- !.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
 locOfCanon(tple(Lc,_),Lc) :-!.
 locOfCanon(lambda(Lc,_,_,_),Lc) :-!.
-locOfCanon(doTerm(Lc,_,_,_,_),Lc) :-!.
+locOfCanon(actionTerm(Lc,_,_),Lc) :-!.
+locOfCanon(taskTerm(Lc,_,_),Lc) :-!.
 locOfCanon(seqDo(Lc,_,_),Lc) :-!.
 locOfCanon(ifThenDo(Lc,_,_,_,_,_,_),Lc) :-!.
 locOfCanon(whileDo(Lc,_,_,_,_),Lc) :-!.
@@ -266,7 +270,9 @@ ssTerm(abstraction(_,Bound,Guard,G,_,_),Dp,
   ssTerm(G,Dp,II).
 ssTerm(neg(_,R),Dp,sq([lp,ss(" ~ "),RR,rp])) :-
   ssTerm(R,Dp,RR).
-ssTerm(doTerm(_,Body,_,_,_),Dp,sq([ss(" do "),AA])) :-
+ssTerm(actionTerm(_,Body,_),Dp,sq([ss(" action "),AA])) :-
+  ssAction(Body,Dp,AA).
+ssTerm(taskTerm(_,Body,_),Dp,sq([ss(" task "),AA])) :-
   ssAction(Body,Dp,AA).
 ssTerm(noDo(_),_,ss(" nothing ")).
 
@@ -330,6 +336,8 @@ ssAction(performDo(_,Exp,_,_,_),Dp,sq([ss("perform "),EE])) :-
   ssTerm(Exp,Dp,EE).
 ssAction(simpleDo(_,Exp,_,_),Dp,sq([ss("just "),EE])) :-
   ssTerm(Exp,Dp,EE).
+ssAction(assertDo(_,Guard),Dp,sq([ss(" assert "),AA])) :-
+  ssGuard(Guard,Dp,AA).
 
 ssActions(seqDo(_,A,B),Dp,[AA|BB]) :-
   ssAction(A,Dp,AA),
