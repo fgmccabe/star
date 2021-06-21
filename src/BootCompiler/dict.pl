@@ -4,12 +4,12 @@
 		mkVr/4,isVar/3,getVar/5,
 		currentVar/3,restoreVar/4,
 		declareContract/4,getContract/3,
-		declareImplementation/6,
+		declareImplementation/5,
 		declareFieldAccess/6,getFieldAccess/5,
 		getImplementation/4,
 		declareConstraint/4,declareConstraints/4,allConstraints/2,
 		pushScope/2,mergeDict/4,pushFace/4,makeKey/2,stdDict/1,
-		dispEnv/2
+		dispEnv/1
 	       ]).
 
 :- use_module(canon).
@@ -18,6 +18,7 @@
 :- use_module(types).
 :- use_module(escapes).
 :- use_module(intrinsics).
+:- use_module(location).
 
 isType(Nm,Env,Tp) :-
   marker(type,M),
@@ -116,25 +117,20 @@ allConstraints([dict(_,_,Cns,_,_,_)|Env],All) :-
   allConstraints(Env,Outer),
   concat(Cns,Outer,All).
 
-declareImplementation(Lc,Contract,ImplNm,Tp,
+declareImplementation(ImplNm,ImplVrNm,Tp,
 		      [dict(Types,Names,Cns,Impls,Accs,Contracts)|Outer],
 		      [dict(Types,Names,Cns,Implx,Accs,Contracts)|Outer]) :-
-  tpName(Contract,Nm),
-  makeKey(Nm,Key),
-  (get_dict(Key,Impls,Entries) ->
-   put_dict(Key,Impls,[implement(Lc,Contract,ImplNm,Tp)|Entries],Implx);
-   put_dict(Key,Impls,[implement(Lc,Contract,ImplNm,Tp)],Implx)).
+  makeKey(ImplNm,Key),
+  put_dict(Key,Impls,implement(ImplNm,ImplVrNm,Tp),Implx).
 
-getImplementation(Tp,ImplNm,Env,Impl) :-
-  tpName(Tp,Nm),
-  makeKey(Nm,Key),
-  implInDct(Key,ImplNm,Env,Impl).
+getImplementation(Env,ImplNm,ImplVrNm,ImplTp) :-
+  makeKey(ImplNm,Key),
+  implInDct(Env,Key,ImplVrNm,ImplTp).
 
-implInDct(Ky,ImplNm,[dict(_,_,_,Impls,_,_)|_],Im) :-
-  get_dict(Ky,Impls,I),
-  is_member((ImplNm,Im),I),!.
-implInDct(Key,ImplNm,[_|Env],Im) :-
-  implInDct(Key,ImplNm,Env,Im).
+implInDct([dict(_,_,_,Impls,_,_)|_],Key,ImplVrNm,ImplTp) :-
+  get_dict(Key,Impls,implement(_,ImplVrNm,ImplTp)).
+implInDct([_|Env],Key,ImplVrNm,ImplTp) :-
+  implInDct(Env,Key,ImplVrNm,ImplTp).
 
 declareFieldAccess(Tp,Fld,Fun,FldTp,[dict(Types,Vars,Cns,Impls,Acs,Cons)|Outer],
 		   [dict(Types,Vars,Cns,Impls,Acx,Cons)|Outer]) :-
@@ -214,16 +210,16 @@ pushTypes([(N,Type)|Tps],Lc,Env,ThEnv) :-
   declareType(N,tpDef(Lc,Tp,Rl),Env,E0),
   pushTypes(Tps,Lc,E0,ThEnv).
 
-processNames(Dict,P,Cx,Result) :-
-  processNames(Dict,P,Cx,[],Result),!.
+processDictLvl(Dict,P,Cx,Result) :-
+  processDictLvl(Dict,P,Cx,[],Result),!.
 
-processNames(_,_,0,SoFar,SoFar).
-processNames([],_,_,SoFar,SoFar).
-processNames([dict(_,Names,_,_,_,_)|Outer],P,Cx,SoFar,Result) :-
+processDictLvl(_,_,0,SoFar,SoFar).
+processDictLvl([],_,_,SoFar,SoFar).
+processDictLvl([dict(_,Names,_,_,_,_)|Outer],P,Cx,SoFar,Result) :-
   dict_pairs(Names,_,Pairs),
   procNames(Pairs,P,SoFar,S0),
   Cx1 is Cx-1,
-  processNames(Outer,P,Cx1,S0,Result).
+  processDictLvl(Outer,P,Cx1,S0,Result).
 
 procNames([],_,SoFar,SoFar).
 procNames([K-Vr|More],P,SoFar,Result) :-
@@ -246,9 +242,67 @@ stdDict(Base) :-
   declareType("task",tpDef(std,TaskTp,TaskEx),B4,Bx),
   Bx=Base.
 
-dispEnv(Env,Cx) :-
-  processNames(Env,dict:showDictVarEntry,Cx,S),
-  display(S).
+dispDictLvl(dict(Types,Nms,_Cns,Impls,Accs,Contracts),Cx,
+	    sq([ix(Cx),ss("-"),
+		iv(nl(2),[TT,VV,II,AA,CC])])) :-
+  dispTypes(Types,TT),
+  dispVars(Nms,VV),
+  dispImplementations(Impls,II),
+  dispAccessors(Accs,AA),
+  dispContracts(Contracts,CC).
 
-showDictVarEntry(K,vrEntry(_Lc,Tp),Sx,[sq([id(K),ss(":"),TT,nl(0)])|Sx]) :-
-  ssType(Tp,true,TT).
+dispTypes(Tps,sq([ss("Types"),nl(4),iv(nl(4),TT)])) :-
+  dict_pairs(Tps,_,Pairs),
+  map(Pairs,dict:showTpEntry,TT).
+
+showTpEntry(_-tpDef(_Lc,Tp,Rl),sq([TT,ss("~~"),RR])) :-
+  ssType(Tp,false,2,TT),
+  ssType(Rl,false,2,RR).
+
+dispContracts(Cons,sq([ss("Contracts"),nl(4),iv(nl(4),CC)])) :-
+  dict_pairs(Cons,_,Pairs),
+  map(Pairs,dict:showContractEntry,CC).
+
+showContractEntry(_-conDef(Nm,FullNm,Tp,Rl),sq([id(Nm),ss("~"),id(FullNm),ss(":"),
+						TT,ss("~~"),RR])) :-
+  ssType(Tp,false,2,TT),
+  ssType(Rl,false,2,RR).
+
+dispVars(Vrs,sq([ss("Vars"),nl(4),iv(nl(4),VV)])) :-
+  dict_pairs(Vrs,_,Pairs),
+  map(Pairs,dict:showVrEntry,VV).
+
+showVrEntry(Nm-vrEntry(_,_,Tp),sq([id(Nm),ss(":"),TT])) :-
+  ssType(Tp,false,2,TT).
+
+dispAccessors(Acs,sq([ss("Accessors"),nl(4),iv(nl(4),AA)])) :-
+  dict_pairs(Acs,_,Pairs),
+  map(Pairs,dict:showAccessor,AA).
+
+showAccessor(Nm-L,sq([id(Nm),LL])) :-
+  dispFieldAccesses(L,LL).
+
+dispFieldAccesses(List,iv(nl(4),LL)) :-
+  map(List,dict:dispFieldAccess,LL).
+
+dispFieldAccess((Fld,Fun,FldTp),sq([ss("."),id(Fld),ss(" -> "),id(Fun),TT])) :-
+  ssType(FldTp,false,4,TT).
+
+dispImplementations(Acs,sq([ss("Implementations"),nl(4),iv(nl(4),II)])) :-
+  dict_pairs(Acs,_,Pairs),
+  map(Pairs,dict:showImplementation,II).
+
+showImplementation(_Nm-implement(ImplNm,ImplVrNm,ImplTp),
+		   sq([id(ImplNm),ss("="),id(ImplVrNm),ss(":"),TT])) :-
+  ssType(ImplTp,false,4,TT).
+
+dispEnv(Env) :-
+  dispEnv(Env,0).
+
+dispEnv([],_).
+dispEnv([D|Env],Cx) :-
+  dispDictLvl(D,Cx,DD),
+  display(DD),
+  C1 is Cx+1,
+  dispEnv(Env,C1).
+

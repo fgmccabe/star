@@ -13,6 +13,7 @@
     "test.c": "c.star",
     "test.c2": "c2.star",
     "test.cn0": "cn0.star",
+    "test.cn1": "cn1.star",
     "test.cns": "cns.star",
     "test.coe": "coe.star",
     "test.cse": "casetest.star",

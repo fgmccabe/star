@@ -43,23 +43,21 @@ isCanon(neg(_,_)).
 isCanon(assign(_,_,_)).
 isCanon(cell(_,_)).
 isCanon(lambda(_,_,_,_)).
-isCanon(actionTerm(_,_,_)).
-isCanon(taskTerm(_,_,_)).
-isCanon(doTerm(_,_,_,_,_)).
+isCanon(doTerm(_,_,_)).
 isCanon(noDo(_)).
 isCanon(seqDo(_,_,_)).
-isCanon(ifThenDo(_,_,_,_,_,_,_)).
-isCanon(whileDo(_,_,_,_,_)).
-isCanon(untilDo(_,_,_,_,_)).
-isCanon(forDo(_,_,_,_,_)).
-isCanon(tryCatchDo(_,_,_,_,_,_)).
+isCanon(ifThenDo(_,_,_,_)).
+isCanon(whileDo(_,_,_)).
+isCanon(untilDo(_,_,_)).
+isCanon(forDo(_,_,_)).
+isCanon(tryCatchDo(_,_,_)).
 isCanon(caseDo(_,_,_,_,_)).
-isCanon(varDo(_,_,_,_,_,_)).
-isCanon(bindDo(_,_,_,_)).
-isCanon(returnDo(_,_,_,_,_)).
-isCanon(throwDo(_,_,_,_,_)).
-isCanon(performDo(_,_,_,_,_)).
-isCanon(simpleDo(_,_,_,_)).
+isCanon(varDo(_,_,_)).
+isCanon(bindDo(_,_,_)).
+isCanon(valisDo(_,_)).
+isCanon(throwDo(_,_)).
+isCanon(performDo(_,_)).
+isCanon(simpleDo(_,_)).
 isCanon(assertDo(_,_)).
 isCanon(search(_,_,_,_)).
 
@@ -81,18 +79,18 @@ isGoal(search(_,_,_,_)) :- !.
 isGoal(cond(_,_,L,R,_)) :- !, isGoal(L),isGoal(R).
 
 isAction(seqDo(_,_,_)).
-isAction(ifThenDo(_,_,_,_,_,_,_)).
-isAction(whileDo(_,_,_,_,_)).
-isAction(forDo(_,_,_,_,_)).
-isAction(caseDo(_,_,_,_,_)).
-isAction(tryCatch(_,_,_,_,_)).
+isAction(ifThenDo(_,_,_,_)).
+isAction(whileDo(_,_,_)).
+isAction(forDo(_,_,_,_)).
+isAction(caseDo(_,_,_)).
+isAction(tryCatchDo(_,_,_)).
 isAction(assign(_,_,_)).
 isAction(apply(_,_,_,_)).
-isAction(bindDo(_,_,_,_)).
-isAction(varDo(_,_,_,_,_,_)).
-isAction(returnDo(_,_,_,_,_)).
-isAction(throwDo(_,_,_,_,_)).
-isAction(performDo(_,_,_,_,_)).
+isAction(bindDo(_,_,_)).
+isAction(varDo(_,_,_)).
+isAction(valisDo(_,_)).
+isAction(throwDo(_,_)).
+isAction(performDo(_,_)).
 isAction(noDo(_)).
 
 isIterableGoal(conj(_,L,R)) :- !, (isIterableGoal(L) ; isIterableGoal(R)).
@@ -154,21 +152,20 @@ locOfCanon(case(Lc,_,_,_),Lc) :- !.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
 locOfCanon(tple(Lc,_),Lc) :-!.
 locOfCanon(lambda(Lc,_,_,_),Lc) :-!.
-locOfCanon(actionTerm(Lc,_,_),Lc) :-!.
-locOfCanon(taskTerm(Lc,_,_),Lc) :-!.
+locOfCanon(doTerm(Lc,_,_),Lc) :-!.
 locOfCanon(seqDo(Lc,_,_),Lc) :-!.
 locOfCanon(ifThenDo(Lc,_,_,_,_,_,_),Lc) :-!.
-locOfCanon(whileDo(Lc,_,_,_,_),Lc) :-!.
-locOfCanon(untilDo(Lc,_,_,_,_),Lc) :-!.
-locOfCanon(forDo(Lc,_,_,_,_),Lc) :-!.
-locOfCanon(caseDo(Lc,_,_,_,_),Lc) :-!.
-locOfCanon(tryCatchDo(Lc,_,_,_,_,_),Lc) :-!.
+locOfCanon(whileDo(Lc,_,_),Lc) :-!.
+locOfCanon(untilDo(Lc,_,_),Lc) :-!.
+locOfCanon(forDo(Lc,_,_),Lc) :-!.
+locOfCanon(caseDo(Lc,_,_),Lc) :-!.
+locOfCanon(tryCatchDo(Lc,_,_),Lc) :-!.
 locOfCanon(assign(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
 locOfCanon(delayDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(bindDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(varDo(Lc,_,_,_,_,_),Lc) :-!.
-locOfCanon(returnDo(Lc,_,_,_,_),Lc) :-!.
+locOfCanon(valisDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(throwDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(performDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(simpleDo(Lc,_,_,_),Lc) :-!.
@@ -270,9 +267,7 @@ ssTerm(abstraction(_,Bound,Guard,G,_,_),Dp,
   ssTerm(G,Dp,II).
 ssTerm(neg(_,R),Dp,sq([lp,ss(" ~ "),RR,rp])) :-
   ssTerm(R,Dp,RR).
-ssTerm(actionTerm(_,Body,_),Dp,sq([ss(" action "),AA])) :-
-  ssAction(Body,Dp,AA).
-ssTerm(taskTerm(_,Body,_),Dp,sq([ss(" task "),AA])) :-
+ssTerm(doTerm(_,Body,_),Dp,sq([ss(" do "),AA])) :-
   ssAction(Body,Dp,AA).
 ssTerm(noDo(_),_,ss(" nothing ")).
 
@@ -291,13 +286,13 @@ ssAction(seqDo(Lc,A,B),Dp,sq([lb,iv(sq([ss(";"),nl(Dp2)]),AA),rb])) :-
   ssActions(seqDo(Lc,A,B),Dp2,AA).
 ssAction(delayDo(_,Actn,_,_,_),Dp,sq([ss("delay "),AA])) :-
   ssAction(Actn,Dp,AA).
-ssAction(bindDo(_,Ptn,Exp,_),Dp,sq([PP,ss(" <- "),VV])) :-
+ssAction(bindDo(_,Ptn,Exp),Dp,sq([PP,ss(" <- "),VV])) :-
   ssTerm(Ptn,Dp,PP),
   ssTerm(Exp,Dp,VV).
-ssAction(varDo(_,Ptn,Exp,_,_,_),Dp,sq([PP,ss(" .= "),VV])) :-
+ssAction(varDo(_,Ptn,Exp),Dp,sq([PP,ss(" .= "),VV])) :-
   ssTerm(Ptn,Dp,PP),
   ssTerm(Exp,Dp,VV).
-ssAction(ifThenDo(_,Tst,Th,El,_,_,_),Dp,
+ssAction(ifThenDo(_,Tst,Th,El),Dp,
 	 sq([ss("if "),CC,ss("then"),nl(Dp2),TT,nl(Dp2),ss("else"),EE])) :-
   Dp2 is Dp+2,
   ssTerm(Tst,Dp,CC),
@@ -308,31 +303,31 @@ ssAction(caseDo(_,Gov,Cses,_,_),Dp,
   Dp2 is Dp+2,
   ssTerm(Gov,Dp,GG),
   map(Cses,canon:ssActionCase(Dp2),CC).
-ssAction(whileDo(_,Tst,Bdy,_,_),Dp,
+ssAction(whileDo(_,Tst,Bdy),Dp,
 	 sq([ss("while "),CC,ss("do"),nl(Dp2),BB])) :-
   Dp2 is Dp+2,
   sTerm(Tst,Dp,CC),
   ssAction(Bdy,Dp2,BB).
-ssAction(untilDo(_,Tst,Bdy,_,_),Dp,
+ssAction(untilDo(_,Tst,Bdy),Dp,
 	 sq([ss("do"),BB,ss("until"),CC])) :-
   Dp2 is Dp+2,
   sTerm(Tst,Dp,CC),
   ssAction(Bdy,Dp2,BB).
-ssAction(forDo(_,Tst,Bdy,_,_),Dp,
+ssAction(forDo(_,Tst,Bdy),Dp,
 	 sq([ss("for "),CC,ss("do"),nl(Dp2),BB])) :-
   Dp2 is Dp+2,
   sTerm(Tst,Dp,CC),
   ssAction(Bdy,Dp2,BB).
-ssAction(tryCatchDo(_,Bdy,Hndlr,_,_,_),Dp,
+ssAction(tryCatchDo(_,Bdy,Hndlr),Dp,
 	 sq([ss("try "),BB,ss("catch"),HH])) :-
   Dp2 is Dp+2,
   sTerm(Hndlr,Dp2,HH),
   ssAction(Bdy,Dp2,BB).
-ssAction(returnDo(_,Exp,_,_,_),Dp,sq([ss("valis "),EE])) :-
+ssAction(valisDo(_,Exp,_,_,_),Dp,sq([ss("valis "),EE])) :-
   ssTerm(Exp,Dp,EE).
 ssAction(throwDo(_,Exp,_,_,_),Dp,sq([ss("throw "),EE])) :-
   ssTerm(Exp,Dp,EE).
-ssAction(performDo(_,Exp,_,_,_),Dp,sq([ss("perform "),EE])) :-
+ssAction(performDo(_,Exp,_,_),Dp,sq([ss("perform "),EE])) :-
   ssTerm(Exp,Dp,EE).
 ssAction(simpleDo(_,Exp,_,_),Dp,sq([ss("just "),EE])) :-
   ssTerm(Exp,Dp,EE).

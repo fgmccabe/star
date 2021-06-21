@@ -7,7 +7,7 @@
 	      isTypeAnnotation/4,typeAnnotation/4,
 	      isTypeLambda/4,typeName/2,
 	      isValType/3,isFunType/4,isEnum/3,enum/3,
-	      isImport/3, findImport/3,isPrivate/3,isPublic/3,
+	      isImport/3, isPrivate/3,isPublic/3,
 	      isDefault/3,isDefault/4,
 	      isLiteralInteger/3,isLiteralFloat/3,
 	      isIntegrity/3,isShow/3,isOpen/3,
@@ -54,7 +54,7 @@ findImport(St,_,Spec) :-
 findImport(St,_,Spec) :-
   isPublic(St,_,I),!,
   findImport(I,public,Spec).
-findImport(St,Viz,import(Lc,Viz,Pkg)) :-
+findImport(St,Viz,importPk(Lc,Viz,Pkg)) :-
   isImport(St,Lc,P),!,
   pkgName(P,Pkg).
 
