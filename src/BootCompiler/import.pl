@@ -1,4 +1,4 @@
-:- module(import, [importAll/3,importPkg/4,loadPkg/4]).
+:- module(import, [importAll/3,importPkg/3,loadPkg/4]).
 
 
 :- use_module(resource).
@@ -16,33 +16,32 @@
 importAll(Imports,Repo,AllImports) :-
   closure(Imports,[],import:notAlreadyImported,import:importMore(Repo),AllImports).
 
-importMore(Repo,import(Lc,Viz,Pkg),SoFar,[import(Lc,Viz,Pkg)|SoFar],Inp,More) :-
-  importPkg(Pkg,Lc,Repo,spec(_,_,_,_,Imports)),
-  addPublicImports(Imports,Inp,More).
-importMore(_,import(Lc,_,Pkg),SoFar,SoFar,Inp,Inp) :-
+importMore(Repo,importPk(Lc,Viz,Pkg),SoFar,[importPk(Lc,Viz,Pkg)|SoFar],Inp,More) :-
+  importPkg(Pkg,Repo,spec(_,Imports,_)),
+  addPublicImports(Imports,Lc,Inp,More).
+importMore(_,importPk(Lc,_,Pkg),SoFar,SoFar,Inp,Inp) :-
   reportError("could not import package %s",[Pkg],Lc).
 
-notAlreadyImported(import(_,_,Pkg),SoFar) :-
-  \+ is_member(import(_,_,Pkg),SoFar),!.
+notAlreadyImported(importPk(_,_,Pkg),SoFar) :-
+  \+ is_member(importPk(_,_,Pkg),SoFar),!.
 
-addPublicImports([],Imp,Imp).
-addPublicImports([import(Lc,public,Pkg)|I],Rest,[import(Lc,transitive,Pkg)|Out]) :-
-  addPublicImports(I,Rest,Out).
-addPublicImports([import(_,private,_)|I],Rest,Out) :-
-  addPublicImports(I,Rest,Out).
-addPublicImports([import(_,transitive,_)|I],Rest,Out) :-
-  addPublicImports(I,Rest,Out).
+addPublicImports([],_,Imp,Imp).
+addPublicImports([import(public,Pkg)|I],Rest,Lc,
+		 [importPk(Lc,transitive,Pkg)|Out]) :-
+  addPublicImports(I,Lc,Rest,Out).
+addPublicImports([import(private,_)|I],Rest,Lc,Out) :-
+  addPublicImports(I,Rest,Lc,Out).
+addPublicImports([import(transitive,_)|I],Rest,Lc,Out) :-
+  addPublicImports(I,Rest,Lc,Out).
 
-importPkg(Pkg,Lc,Repo,
-	  spec(Act,Face,Decls,Imports)) :-
-  codePackagePresent(Repo,Pkg,Act,Sig,_U,_SrcWhen,_When),
-  pickupPkgSpec(Sig,Lc,Pkg,Imports,Face,Decls).
+importPkg(Pkg,Repo,Spec) :-
+  codePackagePresent(Repo,Pkg,_Act,Sig,_U,_SrcWhen,_When),
+  pickupPkgSpec(Sig,Spec).
 
-pickupPkgSpec(Enc,Lc,Pkg,Imports,Face,Decls) :-
-  decodeValue(Enc,ctpl(_,[Pk,ctpl(_,Imps),Tp,ctpl(_,DeclSigs)])),
+pickupPkgSpec(Enc,spec(Pkg,Imports,Decls)) :-
+  decodeValue(Enc,ctpl(_,[Pk,ctpl(_,Imps),ctpl(_,DeclSigs)])),
   pickupPkg(Pk,Pkg),
-  pickupImports(Imps,Lc,Imports),
-  pickupType(Tp,Face),
+  pickupImports(Imps,Imports),
   pickupDeclarations(DeclSigs,Decls).
 
 pickupPkg(ctpl(lbl("pkg",2),[strg(Nm),V]),pkg(Nm,Vers)) :-
@@ -55,11 +54,11 @@ pickupVersion(strg(V),ver(V)).
 consistentVersion(defltVersion,_).
 consistentVersion(ver(V),ver(V)).
 
-pickupImports([],_,[]).
-pickupImports([ctpl(lbl("import",2),[V,P])|L],Lc,[import(Lc,Viz,Pkg)|M]) :-
+pickupImports([],[]).
+pickupImports([ctpl(lbl("import",2),[V,P])|L],[import(Viz,Pkg)|M]) :-
   pickupViz(V,Viz),
   pickupPkg(P,Pkg),
-  pickupImports(L,Lc,M).
+  pickupImports(L,M).
 
 pickupViz(enum("private"),private).
 pickupViz(enum("public"),public).
@@ -87,7 +86,6 @@ pickupDeclaration(ctpl(lbl("con",4),
 pickupDeclaration(ctpl(lbl("tpe",3),[strg(Nm),strg(Sig),strg(RlSig)]),
 		  typeDec(Nm,Tp,TpRule)) :-
   decodeSignature(Sig,Tp),
-  tpName(Tp,Nm),
   decodeSignature(RlSig,TpRule).
 pickupDeclaration(ctpl(lbl("var",3),[strg(Nm),strg(FullNm),strg(Sig)]),
 		  varDec(Nm,FullNm,Tp)) :-
@@ -120,6 +118,6 @@ packageName(pkg(Nm,_),N) :-
 loadPkg(Pkg,Repo,Code,Imports) :-
   openPackageAsStream(Repo,Pkg,_,_,Strm),
   read(Strm,SigTerm),
-  pickupPkgSpec(SigTerm,Pkg,Imports,_,_,_,_,_,_),
+  pickupPkgSpec(SigTerm,spec(_,Imports,_)),
   loadCode(Strm,Code),
   close(Strm).

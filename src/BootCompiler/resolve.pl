@@ -10,7 +10,7 @@
 :- use_module(vartypes).
 
 overload(Lc,Defs,Dict,RDict,RDefs) :-
-  declareImplementations(Lc,Defs,Dict,RDict),
+  declareAccessors(Lc,Defs,Dict,RDict),
   map(Defs,resolve:overloadDef(RDict),RDefs).
 
 overloadDef(Dict,funDef(Lc,Nm,ExtNm,Tp,Cx,Eqns),RF) :-!,
@@ -62,11 +62,13 @@ makeContractFunType(constrained(T,_C),Cx,CT) :-
 makeContractFunType(T,Cx,funType(tupleType(Cx),T)).
 
 defineCVars(_,[],Dict,[],Dict).
-defineCVars(Lc,[Con|Cx],Dict,[v(Lc,ImplNm,ConTp)|CVars],FDict) :-
+defineCVars(Lc,[Con|Cx],Dict,[v(Lc,CVarNm,ConTp)|CVars],FDict) :-
   implementationName(Con,ImplNm),
+  localName("_",value,ImplNm,CVarNm),
   contractType(Con,ConTp),
-  declareVr(Lc,ImplNm,ConTp,Dict,D0),
-  defineCVars(Lc,Cx,D0,CVars,FDict).
+  declareImplementation(ImplNm,CVarNm,ConTp,Dict,D0),
+  declareVr(Lc,CVarNm,ConTp,D0,D1),
+  defineCVars(Lc,Cx,D1,CVars,FDict).
 defineCVars(Lc,[implementsFace(X,faceType(Flds,_))|Cx],Dict,CVars,FDict) :-
   fieldVars(Lc,X,Flds,CVars,CVrs,Dict,CDict),
   defineCVars(Lc,Cx,CDict,CVrs,FDict).
@@ -177,9 +179,7 @@ overloadTerm(mtd(Lc,Nm,Tp),_,St,Stx,mtd(Lc,Nm,Tp)) :-
   markActive(St,Lc,Msg,Stx).
 overloadTerm(lambda(Lc,Lbl,Eqn,Tp),Dict,St,Stx,lambda(Lc,Lbl,OEqn,Tp)) :-
   overloadRule(Eqn,Dict,St,Stx,OEqn).
-overloadTerm(actionTerm(Lc,Body,Tp),Dict,St,Stx,actionTerm(Lc,RBody,Tp)) :-
-  overloadAction(Body,Dict,St,Stx,RBody).
-overloadTerm(taskTerm(Lc,Body,Tp),Dict,St,Stx,taskTerm(Lc,RBody,Tp)) :-
+overloadTerm(doTerm(Lc,Body,Tp),Dict,St,Stx,doTerm(Lc,RBody,Tp)) :-
   overloadAction(Body,Dict,St,Stx,RBody).
 overloadTerm(T,_,St,St,T) :-
   locOfCanon(T,Lc),
@@ -216,36 +216,34 @@ overloadAction(bindDo(Lc,Ptn,Exp),Dict,St,Stx,bindDo(Lc,RPtn,RExp)) :-
 overloadAction(varDo(Lc,Ptn,Exp),Dict,St,Stx,varDo(Lc,RPtn,RExp)) :-
   overloadTerm(Ptn,Dict,St,St1,RPtn),
   overloadTerm(Exp,Dict,St1,Stx,RExp).
-overloadAction(ifthenDo(Lc,Tst,Th,El,AcTp,VlTp,ErTp),Dict,St,Stx,
-	       ifthenDo(Lc,RTst,RTh,REl,AcTp,VlTp,ErTp)) :-
+overloadAction(ifthenDo(Lc,Tst,Th,El),Dict,St,Stx,
+	       ifthenDo(Lc,RTst,RTh,REl)) :-
   overloadTerm(Tst,Dict,St,St1,RTst),
   overloadAction(Th,Dict,St1,St2,RTh),
   overloadAction(El,Dict,St2,Stx,REl).
-overloadAction(whileDo(Lc,Tst,Body,ErTp),Dict,St,Stx,whileDo(Lc,RTst,RBody,ErTp)) :-
+overloadAction(whileDo(Lc,Tst,Body),Dict,St,Stx,whileDo(Lc,RTst,RBody)) :-
   overloadTerm(Tst,Dict,St,St1,RTst),
   overloadAction(Body,Dict,St1,Stx,RBody).
-overloadAction(untilDo(Lc,Tst,Body,ErTp),Dict,St,Stx,untilDo(Lc,RTst,RBody,ErTp)) :-
+overloadAction(untilDo(Lc,Tst,Body),Dict,St,Stx,untilDo(Lc,RTst,RBody)) :-
   overloadTerm(Tst,Dict,St,St1,RTst),
   overloadAction(Body,Dict,St1,Stx,RBody).
-overloadAction(forDo(Lc,Tst,Body,ErTp),Dict,St,Stx,forDo(Lc,RTst,RBody,ErTp)) :-
+overloadAction(forDo(Lc,Tst,Body),Dict,St,Stx,forDo(Lc,RTst,RBody)) :-
   overloadTerm(Tst,Dict,St,St1,RTst),
   overloadAction(Body,Dict,St1,Stx,RBody).
-overloadAction(tryCatchDo(Lc,Body,Hndlr,VlTp,ErTp),Dict,St,Stx,
-	       tryCatchDo(Lc,RBody,RHndlr,VlTp,ErTp)) :-
+overloadAction(tryCatchDo(Lc,Body,Hndlr),Dict,St,Stx,tryCatchDo(Lc,RBody,RHndlr)) :-
   overloadAction(Body,Dict,St,St1,RBody),
   overloadTerm(Hndlr,Dict,St1,Stx,RHndlr).
-overloadAction(returnDo(Lc,Exp,AcTp,VlTp,ErTp),Dict,St,Stx,
-	       returnDo(Lc,RExp,AcTp,VlTp,ErTp)) :-
+overloadAction(valisDo(Lc,Exp),Dict,St,Stx,valisDo(Lc,RExp)) :-
   overloadTerm(Exp,Dict,St,Stx,RExp).
-overloadAction(throwDo(Lc,Exp,AcTp,VlTp,ErTp),Dict,St,Stx,
-	       throwDo(Lc,RExp,AcTp,VlTp,ErTp)) :-
+overloadAction(throwDo(Lc,Exp),Dict,St,Stx,throwDo(Lc,RExp)) :-
   overloadTerm(Exp,Dict,St,Stx,RExp).
-overloadAction(performDo(Lc,Exp,AcTp,VlTp,ErTp),Dict,St,Stx,
-	       performDo(Lc,RExp,AcTp,VlTp,ErTp)) :-
+overloadAction(performDo(Lc,Exp),Dict,St,Stx,performDo(Lc,RExp)) :-
   overloadAction(Exp,Dict,St,Stx,RExp).
-overloadAction(simpleDo(Lc,Exp,AcTp,VlTp,ErTp),Dict,St,Stx,
-	       simpleDo(Lc,RExp,AcTp,VlTp,ErTp)) :-
+overloadAction(simpleDo(Lc,Exp),Dict,St,Stx,simpleDo(Lc,RExp)) :-
   overloadTerm(Exp,Dict,St,Stx,RExp).
+overloadAction(caseDo(Lc,Exp,Cses),Dict,St,Stx,caseDo(Lc,RExp,RCases)) :-
+  overloadTerm(Exp,Dict,St,St0,RExp),
+  overloadCases(Cses,Dict,St0,Stx,RCases).
 
 overloadActions([],_,St,St,[]).
 overloadActions([A|As],Dict,St,Stx,[RA|RAs]) :-
@@ -305,8 +303,9 @@ resolveContracts(Lc,[Con|C],Dict,St,Stx,[CV|Vs]) :-
 
 resolveContract(Lc,C,Dict,St,Stx,Over) :-
   implementationName(C,ImpNm),
-  getVar(Lc,ImpNm,Dict,D0,Impl),
-  typeOfCanon(Impl,ITp),
+  getImplementation(Dict,ImpNm,ImplVrNm,_ImplTp),
+  getVar(Lc,ImplVrNm,Dict,D0,Impl),
+  typeOfCanon(Impl,ITp), % ITp=freshened(ImplTp)
   contractType(C,CTp),
   sameType(ITp,CTp,Dict),
   markResolved(St,St1),
@@ -341,18 +340,19 @@ formOver(V,Args,Lc,Tp,apply(Lc,V,tple(Lc,Args),Tp)).
 genVar(Nm,Lc,Tp,v(Lc,NV,Tp)) :-
   genstr(Nm,NV).
 
-declareImplementations(_,[],Dict,Dict).
-declareImplementations(Lc,[implDef(_,_Nm,ImplNm,ImplTp)|Defs],Dict,Dx) :-
+declareAccessors(_,[],Dict,Dict).
+/*declareAccessors(Lc,[implDef(_,ImplNm,ImplVrNm,ImplTp)|Defs],Dict,Dx) :-
   funResType(ImplTp,ResTp),
   contractType(ResTp,ConTp),
   declareVr(Lc,ImplNm,ImplTp,Dict,D0),
   declareImplementation(Lc,ConTp,ImplNm,ImplTp,D0,D1),
-  declareImplementations(Lc,Defs,D1,Dx).
-declareImplementations(Lc,[accDef(Tp,FldNm,FunNm,AcTp)|Defs],Dict,Dx) :-
+  declareAccessors(Lc,Defs,D1,Dx).
+  */
+declareAccessors(Lc,[accDef(Tp,FldNm,FunNm,AcTp)|Defs],Dict,Dx) :-
   declareFieldAccess(Tp,FldNm,FunNm,AcTp,Dict,D0),
-  declareImplementations(Lc,Defs,D0,Dx).
-declareImplementations(Lc,[_|Defs],Dict,Dx) :-
-  declareImplementations(Lc,Defs,Dict,Dx).
+  declareAccessors(Lc,Defs,D0,Dx).
+declareAccessors(Lc,[_|Defs],Dict,Dx) :-
+  declareAccessors(Lc,Defs,Dict,Dx).
 
 findAccess(Tp,FldNm,Dict,FunNm) :-
   getFieldAccess(Tp,FldNm,FunNm,_,Dict).

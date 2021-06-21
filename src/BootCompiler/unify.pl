@@ -300,7 +300,8 @@ checkConstraints([],_) :-!.
 
 checkConstraint(conTract(Nm,Args,Deps),Env) :-
   implementationName(conTract(Nm,Args,Deps),ImplNm),
-  (getVar(Nm,ImplNm,Env,_Ev,Impl) ->
+  getImplementation(Env,ImplNm,ImplVrNm,_ImplTp),
+  (getVar(Nm,ImplVrNm,Env,_Ev,Impl) ->
    typeOfCanon(Impl,ImplTp),
    getConstraints(ImplTp,Cx,ImplCon),
    contractType(conTract(Nm,Args,Deps),ConTp),

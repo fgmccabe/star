@@ -26,13 +26,16 @@
 
 checkProgram(Prog,Pkg,Repo,Opts,Canon) :-
   stdDict(Base),
+%  dispEnv(Base),
   isBraceTerm(Prog,Lc,_,El0),
   build_main(El0,Els),
   Pkg = pkg(Pk,_),
   collectImports(Els,Imports,Stmts),
   importAll(Imports,Repo,AllImports),
   importAllDefs(AllImports,Repo,Base,Env0),
+  dispEnv(Env0),
   thetaEnv(Pk,Lc,Stmts,faceType([],[]),Env0,OEnv,Defs,Public),
+%  dispEnv(OEnv),
   overload(Lc,Defs,OEnv,_Dict,ODefs),
   completePublic(Public,Public,FllPb,Pk),
   packageExport(ODefs,FllPb,ExportDecls,LDecls,XDefs),
@@ -191,11 +194,6 @@ pullOthers([St|Els],Entries,Asserts,[St|Deflts]) :-
 pullOthers([St|Els],[St|Entries],Asserts,Deflts) :-
   pullOthers(Els,Entries,Asserts,Deflts).
 
-findAllImports([],[]).
-findAllImports([St|More],[Spec|Imports]) :-
-  findImport(St,private,Spec),
-  findAllImports(More,Imports).
-
 declareImportedVar(Lc,Nm,pkg(Pkg,_),PkgVr,_Enums,Tp,Env,E0) :-
   consName(Pkg,Nm,LclNm),
   (isConType(Tp,Ar) ->
@@ -212,8 +210,8 @@ importTypes([(Nm,Rule)|More],Lc,Env,Ex) :-
   importTypes(More,Lc,E0,Ex).
 
 importAllDefs([],_,Env,Env).
-importAllDefs([import(Lc,_Viz,Pkg)|More],Repo,Env,Ex) :-
-  importPkg(Pkg,Lc,Repo,spec(_,_,Decls,_)),
+importAllDefs([importPk(Lc,_Viz,Pkg)|More],Repo,Env,Ex) :-
+  importPkg(Pkg,Repo,spec(_,_,Decls)),
   rfold(Decls,checker:importDecl(Lc),Env,Ev0),
   importAllDefs(More,Repo,Ev0,Ex).
 
@@ -229,6 +227,10 @@ importDecl(Lc,typeDec(Nm,Tp,Rule),Env,Evx) :-
   declareType(Nm,tpDef(Lc,Tp,Rule),Env,Evx).
 importDecl(Lc,varDec(Nm,_FullNm,Tp),Env,Evx) :-
   declareVr(Lc,Nm,Tp,Env,Evx).
+importDecl(Lc,cnsDec(Nm,FullNm,Tp),Env,Evx) :-
+  (isConType(Tp,0) ->
+   declareEnum(Lc,Nm,FullNm,Tp,Env,Evx) ;
+   declareCns(Lc,Nm,FullNm,Tp,Env,Evx)).
 importDecl(Lc,funDec(Nm,Tp),Env,Evx) :-
   declareVr(Lc,Nm,Tp,Env,Evx).
 importDecl(Lc,Entry,Env,Env) :-
@@ -529,7 +531,7 @@ splitHd(Id,Nm,none,notDeflt) :-
 splitHd(Term,"()",Term,notDeflt) :-
   isTuple(Term,_).
 
-checkImplementation(Stmt,INm,[Impl,ImplDef|Dfs],Dfs,Env,Evx,_,_Path) :-
+checkImplementation(Stmt,INm,[Impl,ImplVar|Dfs],Dfs,Env,Evx,_,Path) :-
   isImplementationStmt(Stmt,Lc,Quants,Cons,Sq,IBody),
   parseContractConstraint(Quants,Cons,Sq,Env,ConNm,ConSpec),
   evidence(ConSpec,Env,IQ,CnSpec),
@@ -537,16 +539,17 @@ checkImplementation(Stmt,INm,[Impl,ImplDef|Dfs],Dfs,Env,Evx,_,_Path) :-
   declareTypeVars(IQ,Lc,Env,E1),
   declareConstraints(Lc,AC,E1,ThEnv),
   implementationName(Spec,ImplName),
+  localName(Path,value,ImplName,ImplVrNm),
   contractType(Spec,CnType),
   labelImplExp(IBody,ConNm,ImpBody),
 %  reportMsg("implementation %s, expected type %s",[ast(ImpBody),tpe(CnType)]),
   typeOfExp(ImpBody,CnType,ThEnv,_ThEv,ImplTerm,ImplName),
   putConstraints(AC,CnType,SS1),
   reQuantTps(SS1,IQ,ImpType),
-  ImplDef = varDef(Lc,ImplName,ImplName,AC,ImpType,ImplTerm),
-  Impl = implDef(INm,ConNm,ImplName,ImpType),
-  declareVr(Lc,ImplName,ImpType,Env,Ev0),
-  declareImplementation(Lc,CnType,ImplName,ImpType,Ev0,Evx),!.
+  ImplVar = varDef(Lc,ImplVrNm,ImplVrNm,AC,ImpType,ImplTerm),
+  Impl = implDef(INm,ImplName,ImplVrNm,ImpType),
+  declareVr(Lc,ImplVrNm,ImpType,Env,Ev0),
+  declareImplementation(ImplName,ImplVrNm,ImpType,Ev0,Evx),!.
 checkImplementation(Stmt,_,Defs,Defs,Env,Env,_,_) :-
   locOfAst(Stmt,Lc),
   reportError("could not check implementation statement %s",[Stmt],Lc).
@@ -766,22 +769,24 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isRef(Term,Lc,I),
   roundTerm(Lc,name(Lc,"_cell"),[I],R),
   typeOfExp(R,Tp,Env,Ev,Exp,Path).
-typeOfExp(Term,Tp,Env,Ev,actionTerm(Lc,Body,Tp),Path) :-
+typeOfExp(Term,Tp,Env,Ev,doTerm(Lc,Body,Tp),Path) :-
   isActionTerm(Term,Lc,Stmts),!,
   findType("action",Lc,Env,ActionTp),
   newTypeVar("E",ErTp),
   newTypeVar("X",ElTp),
   mkTypeExp(ActionTp,[ElTp,ErTp],MTp),
   checkType(Term,MTp,Tp,Env),
-  checkAction(Stmts,Env,Ev,ActionTp,ElTp,ErTp,Body,Path).
-typeOfExp(Term,Tp,Env,Ev,taskTerm(Lc,Body,Tp),Path) :-
+  checkAction(Stmts,Env,Ev,ActionTp,ElTp,ErTp,Act,Path),
+  genAction(Act,Body,Path).
+typeOfExp(Term,Tp,Env,Ev,doTerm(Lc,Body,Tp),Path) :-
   isTaskTerm(Term,Lc,Stmts),!,
   findType("task",Lc,Env,TaskTp), % action type is just the core
   newTypeVar("E",ErTp),
   newTypeVar("X",ElTp),
   mkTypeExp(TaskTp,[ElTp,ErTp],TTp),
   checkType(Term,TTp,Tp,Env),
-  checkAction(Stmts,Env,Ev,TaskTp,ElTp,ErTp,Body,Path).
+  checkAction(Stmts,Env,Ev,TaskTp,ElTp,ErTp,Act,Path),
+  genAction(Act,Body,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isSquareTuple(Term,Lc,Els),
   \+isListAbstraction(Term,_,_,_), !,
@@ -1059,6 +1064,9 @@ genTpVars([_|I],[Tp|More]) :-
 checkAction(Term,Env,Env,_,VlTp,_,noDo(Lc),_) :-
   isIden(Term,Lc,"nothing"),!,
   checkType(Term,tupleType([]),VlTp,Env).
+checkAction(Term,Env,Env,_,VlTp,_ErTp,noDo(Lc),_Path) :-
+  isBraceTuple(Term,Lc,[]),!,
+  checkType(Term,tupleType([]),VlTp,Env).
 checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,seqDo(Lc,A1,A2),Path) :-
   isActionSeq(Term,Lc,S1,S2),!,
   checkAction(S1,Env,E1,AcTp,tupleType([]),ErTp,A1,Path),
@@ -1076,77 +1084,65 @@ checkAction(Term,Env,Ev,_AcTp,VlTp,_ErTp,varDo(Lc,Ptn,Exp),Path) :-
   newTypeVar("_P",PT),
   typeOfPtn(P,PT,Env,Ev,Ptn,Path),
   typeOfExp(Ex,PT,Env,_,Exp,Path).
-checkAction(Term,Env,Ev,AcTp,ValTp,ErTp,Act,Path) :-
+checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,Act,Path) :-
   isOptionMatch(Term,Lc,P,Exp),!,
   unary(Lc,"some",P,OP),
   binary(Lc,".=",OP,Exp,Term2),
-  checkAction(Term2,Env,Ev,AcTp,ValTp,ErTp,Act,Path).
-checkAction(Term,Env,Ev,_AcTp,VlTp,_ErTp,assertDo(Lc,Guard),Path) :-
-  isIntegrity(Term,Lc,G),!,
-  checkType(Term,tupleType([]),VlTp,Env),
-  checkGuard(G,Env,Ev,Guard,Path).
+  checkAction(Term2,Env,Ev,AcTp,VlTp,ErTp,Act,Path).
 checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,Act,Path) :-
-  isShow(Term,Lc,S),!,
-  createShowAction(Lc,S,IAc),
-%  astDisp(IAc),
-  checkAction(IAc,Env,Ev,AcTp,VlTp,ErTp,Act,Path).
-checkAction(Term,Env,Ev,AcTp,ValTp,ErTp,Act,Path) :-
   isSplice(Term,Lc,S,F,T,R),!,
+  checkType(Term,tupleType([]),VlTp,Env),
   unary(Lc,"!",S,Src),
   nary(Lc,"_splice",[S,F,T,R],Rep),
-  checkAssignment(Lc,Src,Rep,Env,Ev,AcTp,ValTp,ErTp,Act,Path).
-checkAction(Term,Env,Ev,AcTp,ValTp,ErTp,Act,Path) :-
+  checkAssignment(Lc,Src,Rep,Env,Ev,AcTp,VlTp,ErTp,Act,Path).
+checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,Act,Path) :-
   isAssignment(Term,Lc,L,R),!,
-  checkAssignment(Lc,L,R,Env,Ev,AcTp,ValTp,ErTp,Act,Path).
-checkAction(Term,Env,Ev,AcTp,ValTp,ErTp,
-	    ifThenDo(Lc,Ts,Th,El,AcTp,ValTp,ErTp),Path) :-
+  checkAssignment(Lc,L,R,Env,Ev,AcTp,VlTp,ErTp,Act,Path).
+checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,ifThenDo(Lc,Ts,Th,El),Path) :-
   isIfThenElse(Term,Lc,T,H,E),!,
   checkGuard(T,Env,Et,Ts,Path),
-  checkAction(H,Et,E1,AcTp,ValTp,ErTp,Th,Path),
-  checkAction(E,Env,E2,AcTp,ValTp,ErTp,El,Path),
+  checkAction(H,Et,E1,AcTp,VlTp,ErTp,Th,Path),
+  checkAction(E,Env,E2,AcTp,VlTp,ErTp,El,Path),
   mergeDict(E1,E2,Env,Ev).
-checkAction(Term,Env,Env,AcTp,VlTp,ErTp,
-	    ifThenDo(Lc,Ts,Th,noDo(Lc),AcTp,VlTp,ErTp),Path) :-
+checkAction(Term,Env,Env,AcTp,VlTp,ErTp,ifThenDo(Lc,Ts,Th,noDo(Lc)),Path) :-
   isIfThen(Term,Lc,T,H),!,
   checkGuard(T,Env,Et,Ts,Path),
   checkType(Term,tupleType([]),VlTp,Env),
   checkAction(H,Et,_E1,AcTp,VlTp,ErTp,Th,Path).
-checkAction(Term,Env,Env,AcTp,VlTp,ErTp,whileDo(Lc,Ts,Bdy,ErTp),Path) :-
+checkAction(Term,Env,Env,AcTp,VlTp,ErTp,whileDo(Lc,Ts,Bdy),Path) :-
   isWhileDo(Term,Lc,T,B),!,
   checkType(Term,tupleType([]),VlTp,Env),
   checkGuard(T,Env,Et,Ts,Path),
   checkAction(B,Et,_,AcTp,tupleType([]),ErTp,Bdy,Path).
-checkAction(Term,Env,Env,AcTp,VlTp,ErTp,untilDo(Lc,Ts,Bdy,ErTp),Path) :-
+checkAction(Term,Env,Env,AcTp,VlTp,ErTp,untilDo(Lc,Ts,Bdy),Path) :-
   isUntilDo(Term,Lc,B,T),!,
   checkType(Term,tupleType([]),VlTp,Env),
   checkGuard(T,Env,_Et,Ts,Path),
   checkAction(B,Env,_,AcTp,tupleType([]),ErTp,Bdy,Path).
-checkAction(Term,Env,Env,AcTp,VlTp,ErTp,forDo(Lc,Ts,Bdy,ErTp),Path) :-
+checkAction(Term,Env,Env,AcTp,VlTp,ErTp,forDo(Lc,Ts,Bdy),Path) :-
   isForDo(Term,Lc,T,B),!,
   checkType(Term,tupleType([]),VlTp,Env),
   checkGuard(T,Env,Et,Ts,Path),
   checkAction(B,Et,_,AcTp,tupleType([]),ErTp,Bdy,Path).
-checkAction(Term,Env,Env,AcTp,ValTp,ErTp,
-	    tryCatchDo(Lc,Bdy,Hndlr,ValTp,ErTp),Path) :-
+checkAction(Term,Env,Env,AcTp,VlTp,ErTp,tryCatchDo(Lc,Bdy,Hndlr),Path) :-
   isTryCatch(Term,Lc,B,H),!,
   anonVar(Lc,Anon,BdErTp),
-  checkAction(B,Env,_,AcTp,ValTp,BdErTp,Bdy,Path),
-  checkCatch(H,Env,AcTp,ValTp,ErTp,BdErTp,Anon,Hndlr,Path).
-checkAction(Term,Env,Env,_AcTp,VlTp,ErTp,throwDo(Lc,Exp,ErTp),Path) :-
+  checkAction(B,Env,_,AcTp,VlTp,BdErTp,Bdy,Path),
+  checkCatch(H,Env,AcTp,VlTp,ErTp,BdErTp,Anon,Hndlr,Path).
+checkAction(Term,Env,Env,_AcTp,VlTp,ErTp,throwDo(Lc,Exp),Path) :-
   isThrow(Term,Lc,E),!,
   checkType(Term,tupleType([]),VlTp,Env),
   typeOfExp(E,ErTp,Env,_,Exp,Path).
-checkAction(Term,Env,Env,AcTp,ValTp,ErTp,
-	    returnDo(Lc,Reslt,AcTp,ValTp,ErTp),Path) :-
+checkAction(Term,Env,Env,_AcTp,VlTp,_ErTp,valisDo(Lc,Reslt),Path) :-
   isReturn(Term,Lc,Ex),!,
-  typeOfExp(Ex,ValTp,Env,_,Exp,Path),
+  typeOfExp(Ex,VlTp,Env,_,Exp,Path),
   processIterable(Env,Path,Exp,Reslt).
-checkAction(Term,Env,Env,AcTp,VlTp,ErTp,caseDo(Lc,Gov,Cases,VlTp,ErTp),Path) :-
+checkAction(Term,Env,Env,AcTp,VlTp,ErTp,caseDo(Lc,Gov,Cases),Path) :-
   isCaseExp(Term,Lc,Gv,Cs),!,
   newTypeVar("_G",GTp),
   typeOfExp(Gv,GTp,Env,_,Gov,Path),
   checkActionCases(Cs,GTp,Env,AcTp,VlTp,ErTp,Cases,Dflt,Dflt,[],Path).
-checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,performDo(Lc,Act,AcTp,ErTp),Path) :-
+checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,performDo(Lc,Act),Path) :-
   isPerform(Term,Lc,Arg),!,
   checkType(Term,tupleType([]),VlTp,Env),
   newTypeVar("_",ATp),
@@ -1154,10 +1150,7 @@ checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,performDo(Lc,Act,AcTp,ErTp),Path) :-
 checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,Exp,Path) :-
   isBraceTuple(Term,_,[Stmt]),!,
   checkAction(Stmt,Env,Ev,AcTp,VlTp,ErTp,Exp,Path).
-checkAction(Term,Env,Env,_,VlTp,_ErTp,noDo(Lc),_Path) :-
-  isBraceTuple(Term,Lc,[]),!,
-  checkType(Term,tupleType([]),VlTp,Env).
-checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,simpleDo(Lc,Exp,AcTp,ErTp),Path) :-
+checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,simpleDo(Lc,Exp),Path) :-
   isRoundTerm(Term,Lc,_,_),!,
   mkTypeExp(AcTp,[VlTp,ErTp],MTp),
   typeOfExp(Term,MTp,Env,Ev,Exp,Path).
@@ -1165,7 +1158,7 @@ checkAction(Term,Env,Env,_,_,_,noDo(Lc),_) :-
   locOfAst(Term,Lc),
   reportError("invalid action: %s",[Term],Lc).
 
-checkAssignment(Lc,L,R,Env,Ev,AcTp,VlTp,ErTp,simpleDo(Lc,Exp,AcTp,ErTp),Path) :-
+checkAssignment(Lc,L,R,Env,Ev,AcTp,VlTp,ErTp,simpleDo(Lc,Exp),Path) :-
   checkType(L,tupleType([]),VlTp,Env),
   (isIndexTerm(L,LLc,C,I) ->
      unary(LLc,"!",C,CC),
@@ -1176,19 +1169,19 @@ checkAssignment(Lc,L,R,Env,Ev,AcTp,VlTp,ErTp,simpleDo(Lc,Exp,AcTp,ErTp),Path) :-
   typeOfExp(Term,MTp,Env,Ev,Exp,Path).
 
 checkActionCases([],_,_,_,_,_,Cases,Cases,Dfx,Dfx,_).
-checkActionCases([C|Ss],GTp,Env,AcTp,ValTp,ErTp,Cases,Cx,Df,Dfx,Path) :-
+checkActionCases([C|Ss],GTp,Env,AcTp,VlTp,ErTp,Cases,Cx,Df,Dfx,Path) :-
   isEquation(C,Lc,L,G,R),!,
-  checkActionCase(Lc,L,G,R,GTp,Env,AcTp,ValTp,ErTp,Cases,C0,Df,Df0,Path),
-  checkActionCases(Ss,GTp,Env,AcTp,ValTp,ErTp,C0,Cx,Df0,Dfx,Path).
+  checkActionCase(Lc,L,G,R,GTp,Env,AcTp,VlTp,ErTp,Cases,C0,Df,Df0,Path),
+  checkActionCases(Ss,GTp,Env,AcTp,VlTp,ErTp,C0,Cx,Df0,Dfx,Path).
 
-checkActionCase(Lc,Lhs,G,R,GTp,Env,AcTp,ValTp,ErTp,Cases,Cases,Df,Dfx,Path) :-
+checkActionCase(Lc,Lhs,G,R,GTp,Env,AcTp,VlTp,ErTp,Cases,Cases,Df,Dfx,Path) :-
   isDefault(Lhs,_,DLhs),!,
-  checkActionCase(Lc,DLhs,G,R,GTp,Env,AcTp,ValTp,ErTp,Df,Dfx,_,_,Path).
-checkActionCase(Lc,H,G,R,GTp,Env,AcTp,ValTp,ErTp,
+  checkActionCase(Lc,DLhs,G,R,GTp,Env,AcTp,VlTp,ErTp,Df,Dfx,_,_,Path).
+checkActionCase(Lc,H,G,R,GTp,Env,AcTp,VlTp,ErTp,
 		[equation(Lc,Arg,Guard,Exp)|Eqns],Eqns,Dfx,Dfx,Path) :-
   typeOfPtn(H,GTp,Env,E1,Arg,Path),
   checkGuard(G,E1,E2,Guard,Path),
-  checkAction(R,E2,_,AcTp,ValTp,ErTp,Exp,Path).
+  checkAction(R,E2,_,AcTp,VlTp,ErTp,Exp,Path).
 
 /*
  assert C 
@@ -1229,15 +1222,16 @@ createShowAction(Lc,Exp,Act) :-
   eqn(Lc,tuple(Lc,"()",[]),Exp,Lam),
   roundTerm(Lc,name(Lc,"shwMsg"),[Lam,string(Lc,Txt),Loc],Act).
 
-checkCatch(Term,Env,AcTp,ValTp,ErTp,BdErTp,Anon,Hndlr,Path) :-
+checkCatch(Term,Env,AcTp,VlTp,ErTp,BdErTp,Anon,Hndlr,Path) :-
   isBraceTuple(Term,Lc,[St]),!,
-  mkTypeExp(AcTp,[ErTp,ValTp],MTp),
+  mkTypeExp(AcTp,[VlTp,ErTp],MTp),
   Htype = funType(tupleType([BdErTp]),MTp),
-  checkAction(St,Env,_,AcTp,ValTp,ErTp,H,Path),
-  Hndlr = lambda(Lc,LamLbl,equation(Lc,tple(Lc,[Anon]),none,doTerm(Lc,H)),Htype),
+  checkAction(St,Env,_,AcTp,VlTp,ErTp,HA,Path),
+  genAction(HA,H,Path),
+  Hndlr = lambda(Lc,LamLbl,equation(Lc,tple(Lc,[Anon]),none,H),Htype),
   lambdaLbl(Path,"catch",LamLbl).
-checkCatch(Term,Env,AcTp,ValTp,ErTp,BdErTp,_,Hndlr,Path) :-
-  mkTypeExp(AcTp,[ErTp,ValTp],MTp),
+checkCatch(Term,Env,AcTp,VlTp,ErTp,BdErTp,_,Hndlr,Path) :-
+  mkTypeExp(AcTp,[ErTp,VlTp],MTp),
   Htype = funType(tupleType([BdErTp]),MTp),
   typeOfExp(Term,Htype,Env,_,Hndlr,Path).
 
@@ -1275,7 +1269,7 @@ typeOfTerms([A|As],[ETp|ElTypes],Env,Ev,_,[Term|Els],Path) :-
   deRef(ETp,ElTp),
   typeOfExp(A,ElTp,Env,E0,Term,Path),
   % reportMsg("type of argument %s |= %s",[A,ETp]),
-  % dispEnv(Env,1),
+  % dispEnv(Env),
   locOfAst(A,Lc),
   typeOfTerms(As,ElTypes,E0,Ev,Lc,Els,Path).
 
@@ -1437,11 +1431,11 @@ genDecl(conDef(Nm,CnNm,CnTp,CnSpec),_,Public,
   call(Public,con(Nm)).
 genDecl(conDef(Nm,CnNm,CnTp,CnSpec),_,_,Ex,Ex,
 	[contractDec(Nm,CnNm,CnTp,CnSpec)|Lx],Lx,Dfx,Dfx).
-genDecl(implDef(TmpNm,ConNm,ImplName,Spec),_,Public,
-	[impDec(ConNm,ImplName,Spec)|Ex],Ex,Lx,Lx,Dfx,Dfx) :-
+genDecl(implDef(TmpNm,ImplName,ImplVrNm,Spec),_,Public,
+	[impDec(ImplName,ImplVrNm,Spec)|Ex],Ex,Lx,Lx,Dfx,Dfx) :-
   call(Public,imp(TmpNm)),!.
-genDecl(implDef(_,ConNm,ImplName,Spec),_,_,Ex,Ex,
-	[impDec(ConNm,ImplName,Spec)|Lx],Lx,Dfx,Dfx).
+genDecl(implDef(_,ImplName,ImplVrNm,Spec),_,_,Ex,Ex,
+	[impDec(ImplName,ImplVrNm,Spec)|Lx],Lx,Dfx,Dfx).
 genDecl(accDef(Tp,Fld,AccFn,AccTp),_,Public,
 	[accDec(Tp,Fld,AccFn,AccTp)|Ex],Ex,Lx,Lx,Dfx,Dfx) :-
   exportAcc(Tp,Public).

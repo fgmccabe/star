@@ -165,14 +165,32 @@ ssTrm(error(Lc,M),Dp,sq([lp,ss("error "),MM,rp,ss("@"),LL])) :-
 ssTrm(doAct(_,Act),Dp,sq([ss("do "),AA])) :-
   ssAct(Act,Dp,AA).
 
+ssAct(nop(_),_,ss("{}")).
 ssAct(seq(_,L,R),Dp,sq([LL,ss(";"),RR])) :-
   ssAct(L,Dp,LL),
   ssAct(R,Dp,RR).
-ssAct(varD(_,P,E),Dp,sq([PP,ss(" = "),EE])) :-
+ssAct(varD(_,P,E),Dp,sq([PP,ss(" .= "),EE])) :-
   ssTrm(P,Dp,PP),
   ssTrm(E,Dp,EE).
-ssAct(perf(_,E),Dp,sq([ss("perform "),EE])) :-
+ssAct(bindD(_,P,E),Dp,sq([PP,ss(" <- "),EE])) :-
+  ssTrm(P,Dp,PP),
   ssTrm(E,Dp,EE).
+ssAct(perfD(_,E),Dp,sq([ss("perform "),EE])) :-
+  ssTrm(E,Dp,EE).
+ssAct(cnd(_,T,Th,El),Dp,sq([ss("if "),TT,ss(" then "),nl(Dp2),
+			    HH,ss("else"),nl(Dp2),EE,nl(Dp),ss("fi")])) :-
+  Dp2 is Dp+2,
+  ssTrm(T,Dp,TT),
+  ssAct(Th,Dp2,HH),
+  ssAct(El,Dp2,EE).
+ssAct(whileD(_,G,B),Dp,sq([ss("while "),TT,ss(" do "),nl(Dp2),BB])) :-
+  Dp2 is Dp+2,
+  ssTrm(G,Dp,TT),
+  ssAct(B,Dp2,BB).
+ssAct(untilD(_,G,B),Dp,sq([ss(" do "),BB,nl(Dp2),ss(" until "),TT])) :-
+  Dp2 is Dp+2,
+  ssTrm(G,Dp,TT),
+  ssAct(B,Dp2,BB).
 
 ssCases(Cases,Dp,sq([lb,nl(Dp2),iv(nl(Dp2),CC),nl(Dp),rb])) :-
   Dp2 is Dp+2,

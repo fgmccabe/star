@@ -1,4 +1,4 @@
-:- module(do,[genAction/5,genPerform/6,genRtn/7,genReturn/7,genIterableGl/4]).
+:- module(do,[genAction/3,genPerform/6,genRtn/7,genReturn/7,genIterableGl/4]).
 
 :- use_module(misc).
 :- use_module(canon).
@@ -9,18 +9,18 @@
 
 /* Implement the monadic transformation of do expressions */
 
-genAction(Act,Contract,_StTp,_ErTp,Exp,Path) :-
+genAction(Act,Exp,Path) :-
   locOfCanon(Act,Lc),!,
-  genAction(Act,Contract,noDo(Lc),Exp,Path).
+  genAction(Act,_Contract,noDo(Lc),Exp,Path).
 
 genAction(seqDo(_,A,B),Contract,Cont,Exp,Path) :-
 	genAction(B,Contract,Cont,RR,Path),
 	genAction(A,Contract,RR,Exp,Path).
-genAction(returnDo(Lc,A,ExTp,VlTp,ErTp),Contract,Cont,Exp,_) :-
-  (Cont = noDo(_) ; reportError("valis: %s must be last action",[A],Lc)),
-  genReturn(Lc,A,ExTp,VlTp,ErTp,Contract,Exp).
+genAction(valisDo(Lc,A),Contract,Cont,valisDo(Lc,A),_) :-
+  (Cont = noDo(_) ; reportError("valis: %s must be last action",[A],Lc)).
+%  genReturn(Lc,A,ExTp,VlTp,ErTp,Contract,Exp).
 /* X<-E --> _sequence(E,(X)=>Cont) */
-genAction(bindDo(Lc,Ptn,Gen,ExTp),Contract,Cont,Exp,Path) :-
+genAction(bindDo(Lc,Ptn,Gen),Contract,Cont,Exp,Path) :-
   (Cont = noDo(_) ->
    reportError("bind: %s<-%s may not be last action",[Ptn,Gen],Lc);
    true),
@@ -28,13 +28,13 @@ genAction(bindDo(Lc,Ptn,Gen,ExTp),Contract,Cont,Exp,Path) :-
   typeOfCanon(Ptn,PtnTp),
   LTp = funType(tupleType([PtnTp]),ConTp),
   typeOfCanon(Gen,GenTp),
-  Lam = lambda(Lc,LamLbl,equation(Lc,tple(Lc,[Ptn]),none,Cont),LTp),
+  Lam = lambda(Lc,LamLbl,equation(Lc,tple(Lc,[Ptn]),none,doTerm(Lc,Cont)),LTp),
   Seqn = over(Lc,mtd(Lc,"_sequence",funType(tupleType([GenTp,LTp]),ConTp)),
 	     true,[conTract(Contract,[ExTp],[])]),
   Exp = apply(Lc,Seqn,tple(Lc,[Gen,Lam]),ConTp),
   lambdaLbl(Path,"bind",LamLbl).
 /* X = E --> ((X)=>Cont)(E) */
-genAction(varDo(Lc,Ptn,Ex,_ExTp,_VlTp,_ErTp),_Contract,Cont,Exp,Path) :-
+genAction(varDo(Lc,Ptn,Ex,_AcTp,_VlTp,_ErTp),_Contract,Cont,Exp,Path) :-
   (Cont = noDo(_) ->
    reportError("bind: %s=%s may not be last action",[Ptn,Ex],Lc);
    true),

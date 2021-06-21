@@ -365,7 +365,7 @@ liftExp(apply(Lc,Op,tple(_,A),_),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   trExpCallOp(Lc,Op,LA,Exp,Q1,Qx,Map,Opts,Ex1,Exx).
 liftExp(case(Lc,Bnd,Cses,_),Result,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(Bnd,Bound,Q,Q0,Map,Opts,Ex,Ex0),
-  liftCases(Cses,Cases,Q0,Qx,Map,Opts,Ex0,Exx),
+  liftCases(Cses,Cases,Q0,Qx,Map,Opts,transform:liftExp,Ex0,Exx),
   (idnt(_)=Bound ->
    caseMatcher(Lc,Bound,Cases,Map,Result) ;
    genVar("_C",V),
@@ -490,15 +490,17 @@ implementFunCall(_,moduleCons(Mdl,_,Ar),_,Args,ctpl(lbl(Mdl,Ar),Args),Q,Q,_,_,Ex
 implementFunCall(Lc,notInMap,Nm,Args,ocall(Lc,idnt(Nm),Args),Q,Q,_Map,_Opts,Ex,Ex) :-
   reportError("cannot compile unknown function %s",[Nm],Lc).
 
-liftCases([],[],Qx,Qx,_Map,_Opts,Exx,Exx) :- !.
-liftCases([C|Cses],[Case|Cases],Q,Qx,Map,Opts,Ex,Exx) :-
-  liftCase(C,Case,Q,Q0,Map,Opts,Ex,Ex0),
-  liftCases(Cses,Cases,Q0,Qx,Map,Opts,Ex0,Exx).
+liftCases([],[],Qx,Qx,_Map,_Opts,_,Exx,Exx) :- !.
+liftCases([C|Cses],[Case|Cases],Q,Qx,Map,Opts,Lifter,Ex,Exx) :-
+  liftCase(C,Case,Q,Q0,Map,Opts,Lifter,Ex,Ex0),
+  liftCases(Cses,Cases,Q0,Qx,Map,Opts,Lifter,Ex0,Exx).
 
-liftCase(equation(Lc,P,G,Value),(Lc,[Ptn],Test,Rep),Q,Qx,Map,Opts,Ex,Exx) :-
+liftCase(equation(Lc,P,G,Value),(Lc,[Ptn],Test,Rep),Q,Qx,Map,Opts,Lifter,Ex,Exx) :-
   liftPtn(P,Ptn,Q,Q0,Map,Opts,Ex,Ex0),
-  liftGuard(G,Test,Q0,Q1,Map,Opts,Ex0,Ex1),   % condition goals
-  liftExp(Value,Rep,Q1,Qx,Map,Opts,Ex1,Exx).  % replacement expression
+  liftGuard(G,Test,Q0,Q1,Map,Opts,Ex0,Ex1), % condition goals
+  call(Lifter,Value,Rep,Q1,Qx,Map,Opts,Ex1,Exx). % replacement expression
+  
+%  liftExp(Value,Rep,Q1,Qx,Map,Opts,Ex1,Exx).  % replacement expression
 
 liftLambda(lambda(Lc,LamLbl,Eqn,Tp),Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
   lambdaMap(lambda(Lc,LamLbl,Eqn,Tp),LamLbl,Q,Map,Opts,Closure,LMap),
@@ -525,14 +527,39 @@ mkClosure(Lam,FreeVars,Closure) :-
     Closure=enum(Lam) |
   Closure=ctpl(lbl(Lam,Ar),FreeVars)).
 
+liftAction(noDo(Lc),nop(Lc),Qx,Qx,_,_,Ex,Ex).
 liftAction(seqDo(Lc,E1,E2),seq(Lc,L1,L2),Q,Qx,Map,Opts,Ex,Exx) :-
   liftAction(E1,L1,Q,Q0,Map,Opts,Ex,Ex1),
   liftAction(E2,L2,Q0,Qx,Map,Opts,Ex1,Exx).
-liftAction(varDo(Lc,P,E,_,_,_),varD(Lc,P1,E1),Q,Q,Map,Opts,Ex,Exx) :-
+liftAction(bindDo(Lc,P,E),bindD(Lc,P1,E1),Q,Q,Map,Opts,Ex,Exx) :-
   liftPtn(P,P1,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(E,E1,Q0,_,Map,Opts,Ex0,Exx).
-liftAction(performDo(Lc,Exp,_,_,_),perf(Lc,E1),Q,Qx,Map,Opts,Ex,Exx) :-
+liftAction(varDo(Lc,P,E),varD(Lc,P1,E1),Q,Q,Map,Opts,Ex,Exx) :-
+  liftPtn(P,P1,Q,Q0,Map,Opts,Ex,Ex0),
+  liftExp(E,E1,Q0,_,Map,Opts,Ex0,Exx).
+liftAction(performDo(Lc,Exp),perfD(Lc,E1),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(Exp,E1,Q,Qx,Map,Opts,Ex,Exx).
+liftAction(ifThenDo(Lc,Ts,Th,El),cnd(Lc,Tst,Th1,El1),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftGoal(Ts,Tst,Q,Q0,Map,Opts,Ex,Ex0),
+  liftAction(Th,Th1,Q,Q0,Map,Opts,Ex0,Ex1),
+  liftAction(El,El1,Q0,Qx,Map,Opts,Ex1,Exx).
+liftAction(whileDo(Lc,G,B),whileD(Lc,Gl,Bdy),Q,Q,Map,Opts,Ex,Exx) :-
+  liftGoal(G,Gl,Q,Q0,Map,Opts,Ex,Ex0),
+  liftAction(B,Bdy,Q,Q0,Map,Opts,Ex0,Exx).
+liftAction(untilDo(Lc,G,B),untilD(Lc,Gl,Bdy),Q,Q,Map,Opts,Ex,Exx) :-
+  liftGoal(G,Gl,Q,Q0,Map,Opts,Ex,Ex0),
+  liftAction(B,Bdy,Q,Q0,Map,Opts,Ex0,Exx).
+liftAction(forDo(Lc,G,B),forD(Lc,Gl,Bdy),Q,Q,Map,Opts,Ex,Exx) :-
+  liftGoal(G,Gl,Q,Q0,Map,Opts,Ex,Ex0),
+  liftAction(B,Bdy,Q,Q0,Map,Opts,Ex0,Exx).
+liftAction(caseDo(Lc,G,C),Result,Q,Q,Map,Opts,Ex,Exx) :-
+  liftExp(G,Bound,Q,_,Map,Opts,Ex,Ex0),
+  liftCases(C,Cs,Q,Map,Opts,transform:liftAction,Ex0,Exx),
+  (idnt(_)=Bound ->
+   caseMatcher(Lc,Bound,Cs,Map,Result) ;
+   genVar("_C",V),
+   caseMatcher(Lc,V,Cs,Map,Res),
+   Result = seqD(Lc,varD(Lc,V,Bound),Res)).
 
 liftGoal(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   liftGl(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx).
