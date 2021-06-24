@@ -43,7 +43,9 @@ isCanon(neg(_,_)).
 isCanon(assign(_,_,_)).
 isCanon(cell(_,_)).
 isCanon(lambda(_,_,_,_)).
+isCanon(valof(_,_)).
 isCanon(doTerm(_,_,_)).
+isCanon(taskTerm(_,_,_)).
 isCanon(noDo(_)).
 isCanon(seqDo(_,_,_)).
 isCanon(ifThenDo(_,_,_,_)).
@@ -53,7 +55,6 @@ isCanon(forDo(_,_,_)).
 isCanon(tryCatchDo(_,_,_)).
 isCanon(caseDo(_,_,_,_,_)).
 isCanon(varDo(_,_,_)).
-isCanon(bindDo(_,_,_)).
 isCanon(valisDo(_,_)).
 isCanon(throwDo(_,_)).
 isCanon(performDo(_,_)).
@@ -86,7 +87,6 @@ isAction(caseDo(_,_,_)).
 isAction(tryCatchDo(_,_,_)).
 isAction(assign(_,_,_)).
 isAction(apply(_,_,_,_)).
-isAction(bindDo(_,_,_)).
 isAction(varDo(_,_,_)).
 isAction(valisDo(_,_)).
 isAction(throwDo(_,_)).
@@ -130,6 +130,7 @@ typeOfCanon(over(_,T,_,_),Tp) :- typeOfCanon(T,Tp).
 typeOfCanon(overaccess(V,_,_),Tp) :- typeOfCanon(V,Tp).
 typeOfCanon(mtd(_,_,Tp),Tp) :-!.
 typeOfCanon(case(_,_,_,Tp),Tp) :- !.
+typeOfCanon(valof(_,_,Tp),Tp).
 
 locOfCanon(v(Lc,_,_),Lc) :- !.
 locOfCanon(dot(Lc,_,_,_),Lc) :- !.
@@ -152,7 +153,9 @@ locOfCanon(case(Lc,_,_,_),Lc) :- !.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
 locOfCanon(tple(Lc,_),Lc) :-!.
 locOfCanon(lambda(Lc,_,_,_),Lc) :-!.
+locOfCanon(valof(Lc,_,_),Lc) :-!.
 locOfCanon(doTerm(Lc,_,_),Lc) :-!.
+locOfCanon(taskTerm(Lc,_,_),Lc) :-!.
 locOfCanon(seqDo(Lc,_,_),Lc) :-!.
 locOfCanon(ifThenDo(Lc,_,_,_,_,_,_),Lc) :-!.
 locOfCanon(whileDo(Lc,_,_),Lc) :-!.
@@ -162,8 +165,6 @@ locOfCanon(caseDo(Lc,_,_),Lc) :-!.
 locOfCanon(tryCatchDo(Lc,_,_),Lc) :-!.
 locOfCanon(assign(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
-locOfCanon(delayDo(Lc,_,_,_,_),Lc) :-!.
-locOfCanon(bindDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(varDo(Lc,_,_,_,_,_),Lc) :-!.
 locOfCanon(valisDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(throwDo(Lc,_,_,_,_),Lc) :-!.
@@ -269,6 +270,10 @@ ssTerm(neg(_,R),Dp,sq([lp,ss(" ~ "),RR,rp])) :-
   ssTerm(R,Dp,RR).
 ssTerm(doTerm(_,Body,_),Dp,sq([ss(" do "),AA])) :-
   ssAction(Body,Dp,AA).
+ssTerm(taskTerm(_,Body,_),Dp,sq([ss(" task "),AA])) :-
+  ssAction(Body,Dp,AA).
+ssTerm(valof(_,E,_),Dp,sq([ss("valof "),EE])) :-
+  ssTerm(E,Dp,EE).
 ssTerm(noDo(_),_,ss(" nothing ")).
 
 ssTerms([],_,[]).
@@ -284,11 +289,6 @@ ssConstraints([T|More],Dp,[TT|TTs]) :-
 ssAction(seqDo(Lc,A,B),Dp,sq([lb,iv(sq([ss(";"),nl(Dp2)]),AA),rb])) :-
   Dp2 is Dp+2,
   ssActions(seqDo(Lc,A,B),Dp2,AA).
-ssAction(delayDo(_,Actn,_,_,_),Dp,sq([ss("delay "),AA])) :-
-  ssAction(Actn,Dp,AA).
-ssAction(bindDo(_,Ptn,Exp),Dp,sq([PP,ss(" <- "),VV])) :-
-  ssTerm(Ptn,Dp,PP),
-  ssTerm(Exp,Dp,VV).
 ssAction(varDo(_,Ptn,Exp),Dp,sq([PP,ss(" .= "),VV])) :-
   ssTerm(Ptn,Dp,PP),
   ssTerm(Exp,Dp,VV).
@@ -323,16 +323,14 @@ ssAction(tryCatchDo(_,Bdy,Hndlr),Dp,
   Dp2 is Dp+2,
   sTerm(Hndlr,Dp2,HH),
   ssAction(Bdy,Dp2,BB).
-ssAction(valisDo(_,Exp,_,_,_),Dp,sq([ss("valis "),EE])) :-
+ssAction(valisDo(_,Exp),Dp,sq([ss("valis "),EE])) :-
   ssTerm(Exp,Dp,EE).
-ssAction(throwDo(_,Exp,_,_,_),Dp,sq([ss("throw "),EE])) :-
+ssAction(throwDo(_,Exp),Dp,sq([ss("throw "),EE])) :-
   ssTerm(Exp,Dp,EE).
-ssAction(performDo(_,Exp,_,_),Dp,sq([ss("perform "),EE])) :-
+ssAction(performDo(_,Exp),Dp,sq([ss("perform "),EE])) :-
   ssTerm(Exp,Dp,EE).
-ssAction(simpleDo(_,Exp,_,_),Dp,sq([ss("just "),EE])) :-
+ssAction(simpleDo(_,Exp),Dp,sq([ss("just "),EE])) :-
   ssTerm(Exp,Dp,EE).
-ssAction(assertDo(_,Guard),Dp,sq([ss(" assert "),AA])) :-
-  ssGuard(Guard,Dp,AA).
 
 ssActions(seqDo(_,A,B),Dp,[AA|BB]) :-
   ssAction(A,Dp,AA),
@@ -458,11 +456,10 @@ ssContract(Dp,conDef(Nm,ConNm,_ConTp,ConRule),
 	       TT])):-
   ssType(ConRule,false,Dp,TT).
 	    
-ssImport(import(Viz,Pkg,_PkgVr,PkgExport,_,_,_),
-	 sq([VV,ss(" import "),PP,ss(":"),TT])) :-
+ssImport(importPk(_,Viz,Pkg),
+	 sq([VV,ss(" import "),PP])) :-
   ssVisibility(Viz,VV),
-  ssPkg(Pkg,PP),
-  ssType(PkgExport,false,0,TT).
+  ssPkg(Pkg,PP).
 
 ssVisibility(private,ss("private ")).
 ssVisibility(public,ss("public ")).

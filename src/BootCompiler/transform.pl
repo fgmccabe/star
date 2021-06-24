@@ -398,7 +398,7 @@ liftExp(lambda(Lc,Lbl,Rle,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-!,
   liftLambda(lambda(Lc,Lbl,Rle,Tp),Rslt,Q,Map,Opts,Ex,Exx).
 liftExp(abstraction(Lc,Bnd,Cond,Zed,Gen,Tp),Rslt,Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftAbstraction(abstraction(Lc,Bnd,Cond,Zed,Gen,Tp),Rslt,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(doTerm(Lc,Action),doAct(Lc,Act),Q,Q,Map,Opts,Ex,Exx) :-
+liftExp(doTerm(Lc,Action,_),doAct(Lc,Act),Q,Q,Map,Opts,Ex,Exx) :-
   liftAction(Action,Act,Q,_,Map,Opts,Ex,Exx).
 liftExp(XX,void,Q,Q,_,_,Ex,Ex) :-
   locOfCanon(XX,Lc),
@@ -528,12 +528,11 @@ mkClosure(Lam,FreeVars,Closure) :-
   Closure=ctpl(lbl(Lam,Ar),FreeVars)).
 
 liftAction(noDo(Lc),nop(Lc),Qx,Qx,_,_,Ex,Ex).
+liftAction(valisDo(Lc,E),retAct(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftAction(seqDo(Lc,E1,E2),seq(Lc,L1,L2),Q,Qx,Map,Opts,Ex,Exx) :-
   liftAction(E1,L1,Q,Q0,Map,Opts,Ex,Ex1),
   liftAction(E2,L2,Q0,Qx,Map,Opts,Ex1,Exx).
-liftAction(bindDo(Lc,P,E),bindD(Lc,P1,E1),Q,Q,Map,Opts,Ex,Exx) :-
-  liftPtn(P,P1,Q,Q0,Map,Opts,Ex,Ex0),
-  liftExp(E,E1,Q0,_,Map,Opts,Ex0,Exx).
 liftAction(varDo(Lc,P,E),varD(Lc,P1,E1),Q,Q,Map,Opts,Ex,Exx) :-
   liftPtn(P,P1,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(E,E1,Q0,_,Map,Opts,Ex0,Exx).

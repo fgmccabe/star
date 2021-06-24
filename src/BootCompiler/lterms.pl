@@ -166,13 +166,12 @@ ssTrm(doAct(_,Act),Dp,sq([ss("do "),AA])) :-
   ssAct(Act,Dp,AA).
 
 ssAct(nop(_),_,ss("{}")).
+ssAct(retAct(_,E),Dp,sq([ss("return "),EE])) :-
+  ssTrm(E,Dp,EE).
 ssAct(seq(_,L,R),Dp,sq([LL,ss(";"),RR])) :-
   ssAct(L,Dp,LL),
   ssAct(R,Dp,RR).
 ssAct(varD(_,P,E),Dp,sq([PP,ss(" .= "),EE])) :-
-  ssTrm(P,Dp,PP),
-  ssTrm(E,Dp,EE).
-ssAct(bindD(_,P,E),Dp,sq([PP,ss(" <- "),EE])) :-
   ssTrm(P,Dp,PP),
   ssTrm(E,Dp,EE).
 ssAct(perfD(_,E),Dp,sq([ss("perform "),EE])) :-
@@ -267,11 +266,11 @@ rewriteTerm(QTest,varNames(Lc,V,T),varNames(Lc,NV,NT)) :-
   rewriteTerm(QTest,T,NT).
 rewriteTerm(QTest,case(Lc,T,C,D),case(Lc,NT,NC,ND)) :-
   rewriteTerm(QTest,T,NT),
-  map(C,lterms:rewriteCase(QTest),NC),
+  map(C,lterms:rewriteCase(QTest,lterms:rewriteTerm),NC),
   rewriteTerm(QTest,D,ND).
 rewriteTerm(QTest,unpack(Lc,T,C),unpack(Lc,NT,NC)) :-
   rewriteTerm(QTest,T,NT),
-  map(C,lterms:rewriteCase(QTest),NC).
+  map(C,lterms:rewriteCase(QTest,lterms:rewriteTerm),NC).
 rewriteTerm(QTest,seq(Lc,L,R),seq(Lc,NL,NR)) :-
   rewriteTerm(QTest,L,NL),
   rewriteTerm(QTest,R,NR).
@@ -290,10 +289,39 @@ rewriteTerm(QTest,mtch(Lc,L,R),mtch(Lc,NL,NR)) :-
   rewriteTerm(QTest,R,NR).
 rewriteTerm(QTest,ng(Lc,R),ng(Lc,NR)) :-
   rewriteTerm(QTest,R,NR).
+rewriteTerm(QTest,doAct(Lc,A),doAct(Lc,AA)) :-
+  rewriteAction(QTest,A,AA),!.
 rewriteTerm(_,error(Lc,M),error(Lc,strg(M))) :-!.
 
 rewriteTerms(QTest,Els,NEls):-
   map(Els,lterms:rewriteTerm(QTest),NEls).
+
+rewriteAction(_,nop(Lc),nop(Lc)).
+rewriteAction(QTest,retAct(Lc,A),retAct(Lc,AA)) :-
+  rewriteTerm(QTest,A,AA).
+rewriteAction(QTest,seq(Lc,A,B),seq(Lc,AA,BB)) :-
+  rewriteAction(QTest,A,AA),
+  rewriteAction(QTest,B,BB).
+rewriteAction(QTest,varD(Lc,P,A),varD(Lc,PP,AA)) :-
+  rewriteTerm(QTest,P,PP),
+  rewriteTerm(QTest,A,AA).
+rewriteAction(QTest,perfD(Lc,A),perfD(Lc,AA)) :-
+  rewriteTerm(QTest,A,AA).
+rewriteAction(QTest,cnd(Lc,T,A,B),cnd(Lc,TT,AA,BB)) :-
+  rewriteTerm(QTest,T,TT),
+  rewriteAction(QTest,A,AA),
+  rewriteAction(QTest,B,BB).
+rewriteAction(QTest,whileD(Lc,T,A),whileD(Lc,TT,AA)) :-
+  rewriteTerm(QTest,T,TT),
+  rewriteAction(QTest,A,AA).
+rewriteAction(QTest,untilD(Lc,T,A),untilD(Lc,TT,AA)) :-
+  rewriteTerm(QTest,T,TT),
+  rewriteAction(QTest,A,AA).
+rewriteAction(QTest,caseD(Lc,T,C),caseD(Lc,TT,CC)) :-
+  rewriteTerm(QTest,T,TT),
+  map(C,lterms:rewriteCase(QTest,lterms:rewriteAction),CC).
+
+
 
 rewriteGoal(_,none,none).
 rewriteGoal(QTest,some(T),some(NT)) :-
@@ -302,9 +330,9 @@ rewriteGoal(QTest,some(T),some(NT)) :-
 rewriteVN(QTest,(T,E),(T,NE)) :-
   rewriteTerm(QTest,E,NE).
 
-rewriteCase(QTest,(T,E,Lbl),(NT,NE,Lbl)) :-
+rewriteCase(QTest,BCall,(T,E,Lbl),(NT,NE,Lbl)) :-
   rewriteTerm(QTest,T,NT),
-  rewriteTerm(QTest,E,NE).
+  call(BCall,QTest,E,NE).
 
 checkV(Vr,Other,T,T1) :-
   T\=Vr,

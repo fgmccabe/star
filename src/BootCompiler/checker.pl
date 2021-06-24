@@ -215,10 +215,9 @@ importAllDefs([importPk(Lc,_Viz,Pkg)|More],Repo,Env,Ex) :-
   rfold(Decls,checker:importDecl(Lc),Env,Ev0),
   importAllDefs(More,Repo,Ev0,Ex).
 
-importDecl(Lc,impDec(_ImplNm,FullNm,ImplTp),Ev,Evx) :-
+importDecl(Lc,impDec(ImplNm,FullNm,ImplTp),Ev,Evx) :-
   declareVr(Lc,FullNm,ImplTp,Ev,Ev0),
-  funResType(ImplTp,ConTp),
-  declareImplementation(Lc,ConTp,FullNm,ImplTp,Ev0,Evx).
+  declareImplementation(ImplNm,FullNm,ImplTp,Ev0,Evx).
 importDecl(_,accDec(Tp,Fld,FnNm,AccTp),Ev,Evx) :-
   declareFieldAccess(Tp,Fld,FnNm,AccTp,Ev,Evx).
 importDecl(Lc,contractDec(Nm,CnNm,CnTp,Rule),Ev,Evx) :-
@@ -244,16 +243,6 @@ importContracts([C|L],Lc,E,Env) :-
 
 notAlreadyImported(import(_,_,Pkg),SoFar) :-
   \+ is_member(import(_,_,Pkg),SoFar),!.
-
-importImplementations(Lc,Vr,Impls,Ev,Evx) :-
-  rfold(Impls,checker:declImplementation(Lc,Vr),Ev,Evx).
-
-declImplementation(Lc,imp(_ImplNm,FullNm,ImplTp),Ev,Evx) :-
-  declareVr(Lc,FullNm,ImplTp,Ev,Ev0),
-  funResType(ImplTp,ConTp),
-  declareImplementation(Lc,ConTp,FullNm,ImplTp,Ev0,Evx).
-declImplementation(_,acc(Tp,Fld,FnNm,AccTp),Ev,Evx) :-
-  declareFieldAccess(Tp,Fld,FnNm,AccTp,Ev,Evx).
 
 checkGroups([],_,_,Defs,Defs,E,E,_).
 checkGroups([Gp|More],Fields,Annots,Defs,Dfx,E,Ev,Path) :-
@@ -769,24 +758,22 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isRef(Term,Lc,I),
   roundTerm(Lc,name(Lc,"_cell"),[I],R),
   typeOfExp(R,Tp,Env,Ev,Exp,Path).
-typeOfExp(Term,Tp,Env,Ev,doTerm(Lc,Body,Tp),Path) :-
-  isActionTerm(Term,Lc,Stmts),!,
-  findType("action",Lc,Env,ActionTp),
+typeOfExp(Term,Tp,Env,Ev,doTerm(Lc,Act,Tp),Path) :-
+  isDoTerm(Term,Lc,Stmts),!,
+  findType("action",Lc,Env,ActFnTp),
   newTypeVar("E",ErTp),
   newTypeVar("X",ElTp),
-  mkTypeExp(ActionTp,[ElTp,ErTp],MTp),
+  mkTypeExp(ActFnTp,[ElTp,ErTp],MTp),
   checkType(Term,MTp,Tp,Env),
-  checkAction(Stmts,Env,Ev,ActionTp,ElTp,ErTp,Act,Path),
-  genAction(Act,Body,Path).
-typeOfExp(Term,Tp,Env,Ev,doTerm(Lc,Body,Tp),Path) :-
+  checkAction(Stmts,Env,Ev,ActFnTp,ElTp,ErTp,Act,Path).
+typeOfExp(Term,Tp,Env,Ev,taskTerm(Lc,Act,Tp),Path) :-
   isTaskTerm(Term,Lc,Stmts),!,
   findType("task",Lc,Env,TaskTp), % action type is just the core
   newTypeVar("E",ErTp),
   newTypeVar("X",ElTp),
   mkTypeExp(TaskTp,[ElTp,ErTp],TTp),
   checkType(Term,TTp,Tp,Env),
-  checkAction(Stmts,Env,Ev,TaskTp,ElTp,ErTp,Act,Path),
-  genAction(Act,Body,Path).
+  checkAction(Stmts,Env,Ev,TaskTp,ElTp,ErTp,Act,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isSquareTuple(Term,Lc,Els),
   \+isListAbstraction(Term,_,_,_), !,
@@ -1071,13 +1058,6 @@ checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,seqDo(Lc,A1,A2),Path) :-
   isActionSeq(Term,Lc,S1,S2),!,
   checkAction(S1,Env,E1,AcTp,tupleType([]),ErTp,A1,Path),
   checkAction(S2,E1,Ev,AcTp,VlTp,ErTp,A2,Path).
-checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,bindDo(Lc,Ptn,Gen),Path) :-
-  isBind(Term,Lc,P,Ex),!,
-  checkType(Term,tupleType([]),VlTp,Env),
-  newTypeVar("_P",PT),
-  mkTypeExp(AcTp,[PT,ErTp],HType),  % in a bind, the type of the value must be in the same monad
-  typeOfExp(Ex,HType,Env,E1,Gen,Path),
-  typeOfPtn(P,PT,E1,Ev,Ptn,Path).
 checkAction(Term,Env,Ev,_AcTp,VlTp,_ErTp,varDo(Lc,Ptn,Exp),Path) :-
   isMatch(Term,Lc,P,Ex),!,
   checkType(Term,tupleType([]),VlTp,Env),
@@ -1227,8 +1207,7 @@ checkCatch(Term,Env,AcTp,VlTp,ErTp,BdErTp,Anon,Hndlr,Path) :-
   mkTypeExp(AcTp,[VlTp,ErTp],MTp),
   Htype = funType(tupleType([BdErTp]),MTp),
   checkAction(St,Env,_,AcTp,VlTp,ErTp,HA,Path),
-  genAction(HA,H,Path),
-  Hndlr = lambda(Lc,LamLbl,equation(Lc,tple(Lc,[Anon]),none,H),Htype),
+  Hndlr = lambda(Lc,LamLbl,equation(Lc,tple(Lc,[Anon]),none,HA),Htype),
   lambdaLbl(Path,"catch",LamLbl).
 checkCatch(Term,Env,AcTp,VlTp,ErTp,BdErTp,_,Hndlr,Path) :-
   mkTypeExp(AcTp,[ErTp,VlTp],MTp),
