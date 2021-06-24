@@ -20,10 +20,10 @@ overloadDef(Dict,varDef(Lc,Nm,ExtNm,Cx,Tp,Value),RD) :-!,
 overloadDef(_,Def,Def).
 
 overloadFunction(Lc,Nm,ExtNm,Tp,[],Eqns,Dict,funDef(Lc,Nm,ExtNm,Tp,[],REqns)) :-
-  overloadEquations(Eqns,Dict,[],REqns).
+  overloadEquations(Eqns,Dict,[],REqns),!.
 overloadFunction(Lc,Nm,ExtNm,Tp,Cx,Eqns,Dict,funDef(Lc,Nm,ExtNm,Tp,[],REqns)) :-
   defineCVars(Lc,Cx,Dict,CVars,FDict),
-  overloadEquations(Eqns,FDict,CVars,REqns).
+  overloadEquations(Eqns,FDict,CVars,REqns),!.
 
 overloadEquations(Eqns,Dict,Extra,REqns) :-
   overloadList(Eqns,overloadEquation(Extra),Dict,REqns).
@@ -179,7 +179,11 @@ overloadTerm(mtd(Lc,Nm,Tp),_,St,Stx,mtd(Lc,Nm,Tp)) :-
   markActive(St,Lc,Msg,Stx).
 overloadTerm(lambda(Lc,Lbl,Eqn,Tp),Dict,St,Stx,lambda(Lc,Lbl,OEqn,Tp)) :-
   overloadRule(Eqn,Dict,St,Stx,OEqn).
-overloadTerm(doTerm(Lc,Body,Tp),Dict,St,Stx,doTerm(Lc,RBody,Tp)) :-
+overloadTerm(valof(Lc,T,Tp),Dict,St,Stx,valof(Lc,RT,Tp)) :-
+  overloadTerm(T,Dict,St,Stx,RT).
+overloadTerm(doTerm(Lc,Body,Tp),Dict,St,Stx,doTerm(Lc,RBody,Tp)) :-!,
+  overloadAction(Body,Dict,St,Stx,RBody).
+overloadTerm(taskTerm(Lc,Body,Tp),Dict,St,Stx,taskTerm(Lc,RBody,Tp)) :-
   overloadAction(Body,Dict,St,Stx,RBody).
 overloadTerm(T,_,St,St,T) :-
   locOfCanon(T,Lc),
@@ -210,9 +214,6 @@ overloadCases(Cses,Dict,St,Stx,RCases) :-
 overloadAction(seqDo(Lc,A,B),Dict,St,Stx,seqDo(Lc,RA,RB)) :-
   overloadAction(A,Dict,St,St1,RA),
   overloadAction(B,Dict,St1,Stx,RB).
-overloadAction(bindDo(Lc,Ptn,Exp),Dict,St,Stx,bindDo(Lc,RPtn,RExp)) :-
-  overloadTerm(Ptn,Dict,St,St1,RPtn),
-  overloadTerm(Exp,Dict,St1,Stx,RExp).
 overloadAction(varDo(Lc,Ptn,Exp),Dict,St,Stx,varDo(Lc,RPtn,RExp)) :-
   overloadTerm(Ptn,Dict,St,St1,RPtn),
   overloadTerm(Exp,Dict,St1,Stx,RExp).

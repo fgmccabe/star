@@ -196,7 +196,7 @@ smpTp(voidType,_,C,C,voidType).
 smpTp(type(Nm),_,C,C,type(Nm)).
 smpTp(tpExp(O,A),Env,C,Cx,Tp) :-
   isTypeFun(O,Args,Env,OO),!,
-  applyTypeFn(OO,[A|Args],Env,C,C0,TT),
+  applyTypeFun(OO,[A|Args],Env,C,C0,TT),
   simplifyType(TT,Env,C0,Cx,Tp).
 smpTp(tpExp(O,A),Env,C,Cx,tpExp(OO,As)) :-
   simplifyType(O,Env,C,C0,OO),
@@ -244,21 +244,6 @@ smpFldTps([(F,T)|Flds],Env,C,Cx,[(F,Tp)|Fs]) :-
   simplifyType(T,Env,C,C0,Tp),
   smpFldTps(Flds,Env,C0,Cx,Fs).
 
-applyTypeFn(kFun(T,Ar),Args,_,Cx,Cx,Tp) :-
-  length(Args,Ar),!,
-  mkTypeExp(kFun(T,Ar),Args,Tp).
-applyTypeFn(tFun(T,B,Ar,Id),Args,_,Cx,Cx,Tp) :-
-  length(Args,AAr),AAr=<Ar,!,
-  mkTypeExp(tFun(T,B,Ar,Id),Args,Tp).
-applyTypeFn(tpFun(T,Ar),Args,_,Cx,Cx,Tp) :-
-  length(Args,AAr),AAr=<Ar,!,
-  mkTypeExp(tpFun(T,Ar),Args,Tp).
-applyTypeFn(constrained(Tp,Ct),ArgTps,Env,C,Cx,ATp) :-
-  applyTypeFn(Tp,ArgTps,Env,[Ct|C],Cx,ATp),!.
-applyTypeFn(typeLambda(L,Tp),[A|ArgTps],Env,C,Cx,RTp) :-
-  sameType(L,A,Env),!,
-  applyTypeFn(Tp,ArgTps,Env,C,Cx,RTp).
-applyTypeFn(Tp,[],_,C,C,Tp).
 
 wrapConstraints([],Tp,Tp).
 wrapConstraints([Con|C],Tp,WTp) :-

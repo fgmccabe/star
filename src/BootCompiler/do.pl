@@ -16,39 +16,15 @@ genAction(Act,Exp,Path) :-
 genAction(seqDo(_,A,B),Contract,Cont,Exp,Path) :-
 	genAction(B,Contract,Cont,RR,Path),
 	genAction(A,Contract,RR,Exp,Path).
-genAction(valisDo(Lc,A),Contract,Cont,valisDo(Lc,A),_) :-
+genAction(valisDo(Lc,A),_Contract,Cont,valisDo(Lc,A),_) :-
   (Cont = noDo(_) ; reportError("valis: %s must be last action",[A],Lc)).
 %  genReturn(Lc,A,ExTp,VlTp,ErTp,Contract,Exp).
 /* X<-E --> _sequence(E,(X)=>Cont) */
-genAction(bindDo(Lc,Ptn,Gen),Contract,Cont,Exp,Path) :-
+genAction(varDo(Lc,Ptn,Gen),_Contract,Cont,Exp,Path) :-
   (Cont = noDo(_) ->
-   reportError("bind: %s<-%s may not be last action",[Ptn,Gen],Lc);
+   reportError("bind: %s.=%s may not be last action",[Ptn,Gen],Lc);
    true),
-  typeOfCanon(Cont,ConTp),
-  typeOfCanon(Ptn,PtnTp),
-  LTp = funType(tupleType([PtnTp]),ConTp),
-  typeOfCanon(Gen,GenTp),
-  Lam = lambda(Lc,LamLbl,equation(Lc,tple(Lc,[Ptn]),none,doTerm(Lc,Cont)),LTp),
-  Seqn = over(Lc,mtd(Lc,"_sequence",funType(tupleType([GenTp,LTp]),ConTp)),
-	     true,[conTract(Contract,[ExTp],[])]),
-  Exp = apply(Lc,Seqn,tple(Lc,[Gen,Lam]),ConTp),
-  lambdaLbl(Path,"bind",LamLbl).
-/* X = E --> ((X)=>Cont)(E) */
-genAction(varDo(Lc,Ptn,Ex,_AcTp,_VlTp,_ErTp),_Contract,Cont,Exp,Path) :-
-  (Cont = noDo(_) ->
-   reportError("bind: %s=%s may not be last action",[Ptn,Ex],Lc);
-   true),
-  typeOfCanon(Ptn,PtnTp),
-  typeOfCanon(Cont,ConTp),
-  LTp = funType(tupleType([PtnTp]),ConTp),
-  Lam = lambda(Lc,LamLbl,equation(Lc,tple(Lc,[Ptn]),none,Cont),LTp),
-  Exp = apply(Lc,Lam,tple(Lc,[Ex]),ConTp),
-  lambdaLbl(Path,"bind",LamLbl).
-
-genAction(delayDo(Lc,Actn,ExTp,_,ErTp),Contract,Cont,Exp,Path) :-
-  genUnit(Lc,ExTp,ErTp,Contract,RtnUnit),
-  genAction(Actn,Contract,Cont,NAct,Path),
-  combineActs(Lc,RtnUnit,NAct,Contract,ExTp,ErTp,Exp).
+  genActionSequence(varDo(Lc,Ptn,Gen),Cont,Path,Exp).
 
 genAction(tryCatchDo(Lc,Bdy,Hndlr,ExTp,ValTp,ErTp),Contract,Cont,Exp,Path) :-
   typeOfCanon(Hndlr,HType),
@@ -159,6 +135,13 @@ genAction(caseDo(Lc,Gov,Cases,ExTp,ErTp),Contract,Cont,Exp,Path) :-
   mkTypeExp(ExTp,[ErTp,ExTp],Tp),
   map(Cases,do:genCase(Contract,Cont,Path),Eqns),
   combineActs(Lc,case(Lc,Gov,Eqns,Tp),Cont,Contract,ExTp,ErTp,Exp).
+
+
+genActionSequence(A1,noDo(_),_,A1) :-!.
+genActionSequence(noDo(_),A2,_,A2) :-!.
+genActionSequence(A1,A2,seqDo(Lc,A1,A2),_) :-
+  locOfAst(A1,Lc).
+
 
 genCase(Contract,Cont,Path,equation(Lc,Arg,Guard,Act),equation(Lc,Arg,Guard,Exp)) :-
   genAction(Act,Contract,Cont,Exp,Path).

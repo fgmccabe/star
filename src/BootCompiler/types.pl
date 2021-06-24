@@ -343,6 +343,8 @@ mkTypeRule(constrained(T,C),constraint(Tp,C),constrained(R,C)) :-
   mkTypeRule(T,Tp,R).
 mkTypeRule(Tp,Tp,Tp).
 
+
+
 isTypeExp(Tp,Op,Args) :-
   isTpExp(Tp,Op,Args,[]).
 
@@ -422,13 +424,15 @@ stdType("string",type("star.core*string"),typeExists(type("star.core*string"),fa
 stdType("package",type("star.pkg*pkg"),typeExists(type("star.pkg*pkg"),faceType([],[]))).
 stdType("version",type("star.pkg*version"),typeExists(type("star.pkg*version"),faceType([],[]))).
 stdType("file",type("star.file*fileHandle"),typeExists(type("star.file*fileHandle"),faceType([],[]))).
-stdType("action",tpFun("star.core*action",2),
+stdType("action",
+	tpFun("star.core*action",2),
 	allType(kVar("a"),
 		allType(kVar("e"),
 			typeExists(tpExp(tpExp(tpFun("star.core*action",2),kVar("a")),
 					 kVar("e")),
 				   faceType([],[]))))).
-stdType("task",tpFun("star.core*task",2),
+stdType("task",
+	tpFun("star.core*task",2),
 	allType(kVar("a"),
 		allType(kVar("e"),
 			typeExists(tpExp(tpExp(tpFun("star.core*task",2),kVar("a")),

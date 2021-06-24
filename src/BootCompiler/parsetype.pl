@@ -291,14 +291,15 @@ parseAlgebraicTypeDef(Lc,Quants,Constraints,Hd,Body,
 		      [typeDef(Lc,Nm,Type,FaceRule)|D0],Dx,E,Ev,Path):-
   algebraicFace(Body,Face),
   parseBoundTpVars(Quants,Q),
-  parseTypeHead(Hd,Q,Tp,Nm,_,Path),
+  parseTypeHead(Hd,Q,Tp,Nm,Args,Path),
   parseConstraints(Constraints,E,Q,C0,[]),
-  pickTypeTemplate(Tp,Tmp),
+%  pickTypeTemplate(Tp,Tmp),
+  mkTpLambda(Args,Tp,TpLam),
   parseType(Face,E,Q,C0,Cx,FaceTp),
   wrapType(Q,Cx,[],[],typeExists(Tp,FaceTp),FaceRule),
-  wrapType(Q,Cx,[],[],Tp,Type),
+  wrapType(Q,Cx,[],[],TpLam,Type),
 %  buildConsMap(Body,ConsMap,Path),
-  declareType(Nm,tpDef(Lc,Tmp,FaceRule),E,Ev),
+  declareType(Nm,tpDef(Lc,Type,FaceRule),E,Ev),
   tpName(Type,TpNm),
   buildAccessors(Lc,Q,Cx,Path,TpNm,Tp,FaceTp,Body,D0,Dx).
 
@@ -542,16 +543,17 @@ checkFields(Nm,Tp,[B|Bs],[B|Bx]) :-
   
 parseTypeExists(Lc,Quants,Ct,Hd,Body,typeDef(Lc,Nm,Type,FcRule),E,Ev,Path) :-
   parseBoundTpVars(Quants,Q),
-  parseTypeHead(Hd,Q,Tp,Nm,_,Path),
+  parseTypeHead(Hd,Q,Tp,Nm,Args,Path),
   parseConstraints(Ct,E,Q,C0,[]),
   pickTypeTemplate(Tp,Tmp),
-  declareType(Nm,tpDef(Lc,Tmp,typeExists(Tmp,faceType([],[]))),E,E0),
+  mkTpLambda(Args,Tmp,TpLam),
+  declareType(Nm,tpDef(Lc,TpLam,typeExists(Tmp,faceType([],[]))),E,E0),
   parseType(Body,E0,Q,C0,Cx,RTp),
   wrapConstraints(Cx,typeExists(Tp,RTp),Rl),
   reQuant(Q,Rl,FcRule),
   reQuant(Q,Tp,Type),
-  pickTypeTemplate(Type,Tmp),
-  declareType(Nm,tpDef(Lc,Tmp,FcRule),E,Ev).
+%  pickTypeTemplate(Type,Tmp),
+  declareType(Nm,tpDef(Lc,TpLam,FcRule),E,Ev).
 
 parseTypeFun(Lc,Quants,Ct,Hd,Bd,typeDef(Lc,Nm,Type,Rule),E,Ev,Path) :-
   parseBoundTpVars(Quants,Q),

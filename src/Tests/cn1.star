@@ -18,10 +18,9 @@ test.cn1{
   consLen(.nil) => 0.
   consLen(cons(_,T)) => plus(1,consLen(T)).
 
-  logM:(string)=>action[()].
+  logM:(string)=>action[(),()].
   logM(M) => do{
-    _ = _logmsg(M);
+    _ .= _logmsg(M);
     return ()
   }
-
 }
