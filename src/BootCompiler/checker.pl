@@ -1127,6 +1127,12 @@ checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,performDo(Lc,Act),Path) :-
   checkType(Term,tupleType([]),VlTp,Env),
   newTypeVar("_",ATp),
   checkAction(Arg,Env,Ev,AcTp,ATp,ErTp,Act,Path).
+checkAction(Term,Env,Env,_AcTp,VlTp,_ErTp,varDo(Lc,Anon,Exp),Path) :-
+  isIgnore(Term,Lc,Ex),!,
+  checkType(Term,tupleType([]),VlTp,Env),
+  newTypeVar("_P",PT),
+  anonVar(Lc,Anon,PT),
+  typeOfExp(Ex,PT,Env,_,Exp,Path).
 checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,Exp,Path) :-
   isBraceTuple(Term,_,[Stmt]),!,
   checkAction(Stmt,Env,Ev,AcTp,VlTp,ErTp,Exp,Path).

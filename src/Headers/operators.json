@@ -1074,7 +1074,7 @@
       930,
       929
     ],
-    "desc": "wrap value in execution",
+    "desc": "return value from execution",
     "keyword": true
   },
   {
@@ -1084,6 +1084,15 @@
       929
     ],
     "desc": "throw an exception",
+    "keyword": true
+  },
+  {
+    "prefixOp": "ignore",
+    "priorities": [
+      930,
+      929
+    ],
+    "desc": "ignore result of expression",
     "keyword": true
   },
   {

@@ -31,7 +31,7 @@ encImports([I|M],[IP|L]) :-
   encImport(I,IP),
   encImports(M,L).
 
-encImport(import(Viz,Pkg,_,_,_,_,_),ctpl(lbl("import",2),[enum(Viz),Enc])) :-
+encImport(importPk(_,Viz,Pkg),ctpl(lbl("import",2),[enum(Viz),Enc])) :-
   encPkg(Pkg,Enc).
 
 formatDecl(varDec(Nm,FullNm,Tp),ctpl(lbl("var",3),[strg(Nm),strg(FullNm),Sig])) :-
