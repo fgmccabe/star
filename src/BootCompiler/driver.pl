@@ -132,7 +132,7 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
   noErrors,
   (\+ is_member(compileOnly,Opts) ->
    transformProg(Prog,Opts,Rules),!,
-   (is_member(showTrCode,Opts) -> dispProg(Rules),validLProg(Rules);true),
+   (is_member(showTrCode,Opts) -> dispProg(Rules);true),
    noErrors,
    genPkgSig(Rules,Sig), % goes into the repo manifest
    genCode(Rules,Opts,Text),

@@ -30,7 +30,7 @@ genImports(Imps,ImpTpl) :-
   map(Imps,gencode:genImport,Els),
   mkTpl(Els,ImpTpl).
 
-genImport(importPkg(_,Pkg,_),PkgTrm) :-
+genImport(importPk(_,_,Pkg),PkgTrm) :-
   encPkg(Pkg,PkgTrm).
 
 defGlbl(varDec(_,Nm,_),D,Dx) :-!,
