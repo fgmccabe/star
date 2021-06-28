@@ -100,8 +100,6 @@ lookupIndex([lyr(_,_,ConsIndex,_)|_],Key,Index) :-
 lookupIndex([_|Map],Key,Index) :-
   lookupIndex(Map,Key,Index).
 
-typeHasIndex(TpNm,moduleType(_,TpNm,_,_)).
-
 findConsType(Map,CnsNm,Tp) :-
  lookupVar(Map,CnsNm,moduleCons(_,Tp,_)).
 

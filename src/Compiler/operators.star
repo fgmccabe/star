@@ -55,6 +55,7 @@ star.compiler.operators{
   oper("**") => [infixOp(600,600,599)].
   oper("->") => [infixOp(889,890,889)].
   oper(".+.") => [prefixOp(700,699)].
+  oper("ignore") => [prefixOp(930,929)].
   oper("<$") => [infixOp(719,720,720)].
   oper("then") => [infixOp(1179,1180,1179)].
   oper("!") => [postfixOp(99,100)].
@@ -119,6 +120,7 @@ star.compiler.operators{
   oper("=>") => [infixOp(949,950,950)].
   oper("^") => [prefixOp(100,99), infixOp(99,100,99)].
   oper("<=>") => [infixOp(949,950,949)].
+  oper("perform") => [prefixOp(300,299)].
   oper("valof") => [prefixOp(300,299)].
   oper("until") => [infixOp(1174,1175,1174)].
   oper("while") => [prefixOp(1175,1174)].
@@ -406,6 +408,7 @@ star.compiler.operators{
  keyword("valis") => .true.
  keyword(",..") => .true.
  keyword("for") => .true.
+ keyword("ignore") => .true.
  keyword("then") => .true.
  keyword("->>") => .true.
  keyword("has kind") => .true.
@@ -438,6 +441,7 @@ star.compiler.operators{
  keyword("=>") => .true.
  keyword("^") => .true.
  keyword("<=>") => .true.
+ keyword("perform") => .true.
  keyword("valof") => .true.
  keyword("until") => .true.
  keyword("while") => .true.

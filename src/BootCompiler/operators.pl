@@ -39,6 +39,7 @@
   operator("**", [infixOp(600, 600, 599)]).
   operator("->", [infixOp(889, 890, 889)]).
   operator(".+.", [prefixOp(700, 699)]).
+  operator("ignore", [prefixOp(930, 929)]).
   operator("<$", [infixOp(719, 720, 720)]).
   operator("then", [infixOp(1179, 1180, 1179)]).
   operator("!", [postfixOp(99, 100)]).
@@ -103,6 +104,7 @@
   operator("=>", [infixOp(949, 950, 950)]).
   operator("^", [prefixOp(100, 99), infixOp(99, 100, 99)]).
   operator("<=>", [infixOp(949, 950, 949)]).
+  operator("perform", [prefixOp(300, 299)]).
   operator("valof", [prefixOp(300, 299)]).
   operator("until", [infixOp(1174, 1175, 1174)]).
   operator("while", [prefixOp(1175, 1174)]).
@@ -358,6 +360,7 @@
  keyword("valis").
  keyword(",..").
  keyword("for").
+ keyword("ignore").
  keyword("then").
  keyword("->>").
  keyword("has kind").
@@ -390,6 +393,7 @@
  keyword("=>").
  keyword("^").
  keyword("<=>").
+ keyword("perform").
  keyword("valof").
  keyword("until").
  keyword("while").

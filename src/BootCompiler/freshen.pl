@@ -1,7 +1,6 @@
 :- module(freshen,[freshen/4,
 		   rewriteType/5,
-		   evidence/4,
-		   applyTypeFun/6]).
+		   evidence/4]).
 
 :- use_module(misc).
 :- use_module(types).
@@ -130,22 +129,3 @@ frshnFields([(Nm,A)|L],E,B,Ex,[(Nm,FA)|FL]) :-
 rewriteTypes([],_,_,_,[]).
 rewriteTypes([A|L],E,B,Ex,[FA|FL]) :- rewriteType(A,E,B,Ex,FA), rewriteTypes(L,E,B,Ex,FL).
 
-applyTypeFun(Lam,Args,Env,C,Cx,Tp) :-
-  freshen(Lam,Env,_,Lm),
-  applyTypeFn(Lm,Args,Env,C,Cx,Tp).
-
-applyTypeFn(kFun(T,Ar),Args,_,Cx,Cx,Tp) :-
-  length(Args,Ar),!,
-  mkTypeExp(kFun(T,Ar),Args,Tp).
-applyTypeFn(tFun(T,B,Ar,Id),Args,_,Cx,Cx,Tp) :-
-  length(Args,AAr),AAr=<Ar,!,
-  mkTypeExp(tFun(T,B,Ar,Id),Args,Tp).
-applyTypeFn(tpFun(T,Ar),Args,_,Cx,Cx,Tp) :-
-  length(Args,AAr),AAr=<Ar,!,
-  mkTypeExp(tpFun(T,Ar),Args,Tp).
-applyTypeFn(constrained(Tp,Ct),ArgTps,Env,C,Cx,ATp) :-
-  applyTypeFn(Tp,ArgTps,Env,[Ct|C],Cx,ATp),!.
-applyTypeFn(typeLambda(L,Tp),[A|ArgTps],Env,C,Cx,RTp) :-
-  sameType(L,A,Env),!,
-  applyTypeFn(Tp,ArgTps,Env,C,Cx,RTp).
-applyTypeFn(Tp,[],_,C,C,Tp).

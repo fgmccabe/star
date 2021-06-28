@@ -1,5 +1,5 @@
 :- module(unify,[sameType/3,faceOfType/3,sameContract/3,
-    simplifyType/5]).
+    simplifyType/5,applyTypeFun/6]).
 
 :- use_module(misc).
 :- use_module(canon).
@@ -324,3 +324,23 @@ occIn(Id,existType(V,Tp)) :- V\=kVar(Id),occIn(Id,Tp).
 occIn(Id,allType(V,Tp)) :- V\=kVar(Id),occIn(Id,Tp).
 occIn(Id,faceType(L,_)) :- is_member((_,A),L), occIn(Id,A),!.
 occIn(Id,faceType(_,T)) :- is_member((_,A),T), occIn(Id,A),!.
+
+applyTypeFun(Lam,Args,Env,C,Cx,Tp) :-
+  freshen(Lam,Env,_,Lm),
+  applyTypeFn(Lm,Args,Env,C,Cx,Tp).
+
+applyTypeFn(kFun(T,Ar),Args,_,Cx,Cx,Tp) :-
+  length(Args,Ar),!,
+  mkTypeExp(kFun(T,Ar),Args,Tp).
+applyTypeFn(tFun(T,B,Ar,Id),Args,_,Cx,Cx,Tp) :-
+  length(Args,AAr),AAr=<Ar,!,
+  mkTypeExp(tFun(T,B,Ar,Id),Args,Tp).
+applyTypeFn(tpFun(T,Ar),Args,_,Cx,Cx,Tp) :-
+  length(Args,AAr),AAr=<Ar,!,
+  mkTypeExp(tpFun(T,Ar),Args,Tp).
+applyTypeFn(constrained(Tp,Ct),ArgTps,Env,C,Cx,ATp) :-
+  applyTypeFn(Tp,ArgTps,Env,[Ct|C],Cx,ATp),!.
+applyTypeFn(typeLambda(L,Tp),[A|ArgTps],Env,C,Cx,RTp) :-
+  sameType(L,A,Env),!,
+  applyTypeFn(Tp,ArgTps,Env,C,Cx,RTp).
+applyTypeFn(Tp,[],_,C,C,Tp).

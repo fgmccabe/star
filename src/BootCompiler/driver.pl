@@ -128,14 +128,17 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
   parseFile(Pkg,Src,Term),!,
   noErrors,
   (is_member(showAst,Opts) -> astDisp(Term) ; true),
-  checkProgram(Term,Pkg,Repo,Opts,Prog),!,
+  checkProgram(Term,Pkg,Repo,Opts,PkgDecls,Canon),!,
+  (is_member(showTCCode,Opts) ->
+   displayln(canon:ssCanonProg(Canon));true),
+  dispDecls(PkgDecls),
   noErrors,
   (\+ is_member(compileOnly,Opts) ->
-   transformProg(Prog,Opts,Rules),!,
-   (is_member(showTrCode,Opts) -> dispProg(Rules);true),
+   transformProg(PkgDecls,Canon,Opts,Rules),!,
+   (is_member(showTrCode,Opts) -> dispProg(Rules),validLProg(PkgDecls,Rules);true),
    noErrors,
    genPkgSig(Rules,Sig), % goes into the repo manifest
-   genCode(Rules,Opts,Text),
+   genCode(PkgDecls,Rules,Opts,Text),
    noErrors,
    addCodePackage(Repo,SrcUri,Pkg,Sig,Text,Rx);
    true).

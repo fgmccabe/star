@@ -5,7 +5,7 @@
 
 dispAstTerm(Msg,Term,Pr) :- write(Msg), display(Term,Pr), nl().
 
-dispAst(Term) :- dispAst("",Term,2000).
+dispAst(Term) :- dispAst(Term,2000).
 dispAst(Term,Pr) :- dispAst(Term,Pr,Chrs,[]), string_chars(Res,Chrs), writeln(Res).
 
 ast2String(A,Txt) :-

@@ -1,4 +1,4 @@
-:- module(transform,[transformProg/3]).
+:- module(transform,[transformProg/4]).
 
 /*
  * Implement a lambda lifting transformation to reduce (slightly) the semantics to
@@ -52,16 +52,15 @@
 
 */
 
-transformProg(prog(pkg(Pkg,Vers),Imports,Decls,LDecls,Defs),
+transformProg(PkgDecls,prog(pkg(Pkg,Vers),Imports,Decls,LDecls,Defs),
 	      Opts,mdule(pkg(Pkg,Vers),Imports,Decls,LDecls,Dfs)) :-
-  makePkgMap(Pkg,Decls,LDecls,_Ctors,Map),
+  makePkgMap(Pkg,PkgDecls,Map),
   (is_member(showTrCode,Opts) -> dispMap("Package map: ",Map);true),
   transformModuleDefs(Defs,Pkg,Map,Opts,Dfs,[]).
 
-makePkgMap(Pkg,Decls,LDecls,Ctors,[lyr(VarMap,TpMap,ConsMap,void)]) :-
-  makeConstructorMap(Decls,consMap{},Ctors,ConsMap),
-  declareModuleGlobals(Pkg,Decls,ConsMap,varMap{},VM,typeMap{},TM),
-  declareModuleGlobals(Pkg,LDecls,ConsMap,VM,VarMap,TM,TpMap).
+makePkgMap(Pkg,PkgDecls,[lyr(VarMap,TpMap,ConsMap,void)]) :-
+  makeConstructorMap(PkgDecls,consMap{},ConsMap),
+  declareModuleGlobals(Pkg,PkgDecls,ConsMap,varMap{},VarMap,typeMap{},TpMap).
 
 declareModuleGlobals(Pkg,[Def|Rest],ConsMap,VMap,VMx,TMap,TMx) :-
   declMdlGlobal(Pkg,Def,ConsMap,VMap,M0,TMap,TM0),
@@ -71,7 +70,7 @@ declareModuleGlobals(_,[],_,Map,Map,TMap,TMap).
 declMdlGlobal(Pkg,funDec(Nm,LclName,Tp),_,VMp,VMx,TMx,TMx) :-
   localName(Pkg,closure,Nm,ClosureName),
   progTypeArity(Tp,Ar),
-  declEntry(Nm,moduleFun(LclName,ClosureName,Ar),VMp,VMx).
+  declEntry(Nm,moduleFun(LclName,some(ClosureName),Ar),VMp,VMx).
 declMdlGlobal(_Pkg,varDec(Nm,LclName,_),_,Mp,Mx,TMx,TMx) :-
   declEntry(Nm,moduleVar(LclName),Mp,Mx).
 declMdlGlobal(_Pkg,cnsDec(_Nm,FullNm,Tp),_,Mp,Mx,TMx,TMx) :-
@@ -81,6 +80,12 @@ declMdlGlobal(_Pkg,typeDec(Nm,Tp,_,_),ConsMap,VMx,VMx,TMp,TMx) :-
   tpName(Tp,TpNm),
   findConsMap(TpNm,ConsMap,IxMap),!,
   declEntry(Nm,moduleType(TpNm,Tp,IxMap),TMp,TMx).
+declMdlGlobal(_,accDec(_,_,AccName,Tp),_,VMp,VMx,TMx,TMx) :-
+  progTypeArity(Tp,Ar),
+  makeKey(AccName,Key),
+  (get_dict(Key,VMp,_),VMx=VMp;
+   declEntry(AccName,moduleFun(AccName,none,Ar),VMp,VMx)).
+
 declMdlGlobal(_,_,_,Mx,Mx,TMx,TMx).
 
 contractArity(allType(_,Con),Ar) :- contractArity(Con,Ar).
@@ -90,7 +95,7 @@ contractArity(contractExists(_,_),0).
 contractStruct(0,Nm,enum(Nm)).
 contractStruct(Ar,Nm,lbl(Nm,Ar)).
 
-makeConstructorMap(Decls,CnMp,Cons,ConsMap) :-
+makeConstructorMap(Decls,CnMp,ConsMap) :-
   findAllConstructors(Decls,[],Cons),
   indexConstructors(Cons,CnMp,ConsMap).
 
@@ -146,8 +151,9 @@ transformMdlDef(funDef(Lc,Nm,ExtNm,Tp,[],Eqns),_,Map,Opts,Dx,Dxx) :-
 transformMdlDef(varDef(Lc,_Nm,ExtNm,[],Tp,Val),_Pkg,Map,Opts,Dx,Dxx) :-
   transformGlobal(Lc,ExtNm,Val,Tp,Map,Opts,Dx,Dxx).
 transformMdlDef(typeDef(Lc,_Nm,Tp,Rl),_Pkg,Map,_,D,Dx) :-
-  tpName(Tp,TpNm),
-  transformTypeDef(Lc,TpNm,Tp,Rl,Map,D,Dx).
+  transformTypeDef(Lc,Tp,Rl,Map,D,Dx).
+transformMdlDef(cnsDef(Lc,Nm,Tp),_Pkg,Map,_,D,Dx) :-
+  transformConsDef(Lc,Nm,Tp,Map,D,Dx).
 
 transformGlobal(Lc,ExtNm,Val,Tp,Map,Opts,[glbDef(Lc,ExtNm,Tp,Vl)|Dx],Dxx) :-
   liftExp(Val,Vl,[],_Q3,Map,Opts,Dx,Dxx), % replacement expression
@@ -157,8 +163,15 @@ extraArity(Arity,Vars,ExAr) :-
   length(Vars,E),
   ExAr is E+Arity.
 
-transformTypeDef(Lc,TpNm,Tp,Rl,Map,[tpDef(Lc,Tp,Rl,IxMap)|Dx],Dx) :-
+transformTypeDef(Lc,Tp,Rl,Map,[tpDef(Lc,Tp,Rl,IxMap)|Dx],Dx) :-
+  tpName(Tp,TpNm),
   lookupTypeIndex(Map,TpNm,IxMap),!.
+
+transformConsDef(Lc,Nm,Tp,Map,[lblDef(Lc,lbl(Nm,Ar),Tp,Ix)|Dx],Dx) :-
+  consTpName(Tp,TpNm),
+  lookupTypeIndex(Map,TpNm,IxMap),
+  progTypeArity(Tp,Ar),
+  is_member((Nm,Ix),IxMap).
 
 genConsArgs(_,[],Args,Args,BndArgs,BndArgs).
 genConsArgs(Lc,[_|Els],[V|Args],Ax,[V|Bnd],Bx) :-
@@ -168,7 +181,7 @@ genConsArgs(Lc,[_|Els],[V|Args],Ax,[V|Bnd],Bx) :-
 transformFunction(Lc,Nm,LclName,Tp,Eqns,Map,OMap,Opts,[Fun|Ex],Exx) :-
   (is_member(showTrCode,Opts) -> dispFunction(LclName,Tp,Eqns);true),
   lookupVar(Map,Nm,Reslt),
-  programAccess(Reslt,_,_,Arity),
+  programArity(Reslt,Arity),
   extraVars(Map,Extra),
   extraArity(Arity,Extra,Ar),
   LclPrg = lbl(LclName,Ar),
@@ -454,7 +467,8 @@ implementVarExp(moduleCons(C,_,Ar),_,_,Cns,_,_,Q,Q) :-
   trCons(C,Ar,Cns).
 implementVarExp(notInMap,_,Nm,idnt(Nm),_,_,Q,Qx) :-
   merge([idnt(Nm)],Q,Qx).
-implementVarExp(moduleFun(_,Closure,_),_,_,ctpl(lbl(Closure,1),[Unit]),_,_,Q,Q) :-
+implementVarExp(moduleFun(_,some(Closure),_),_,_,ctpl(lbl(Closure,1),[Unit]),_,_,Q,Q) :-
+  Closure\==void,
   mkTpl([],Unit).
 implementVarExp(localFun(_Fn,Closure,_,ThVr),Lc,_,ctpl(lbl(Closure,1),[Vr]),Map,Opts,Q,Qx) :-
   liftVar(Lc,ThVr,Vr,Map,Opts,Q,Qx).
@@ -528,7 +542,7 @@ mkClosure(Lam,FreeVars,Closure) :-
   Closure=ctpl(lbl(Lam,Ar),FreeVars)).
 
 liftAction(noDo(Lc),nop(Lc),Qx,Qx,_,_,Ex,Ex).
-liftAction(valisDo(Lc,E),retAct(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-
+liftAction(valisDo(Lc,E),rtn(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftAction(seqDo(Lc,E1,E2),seq(Lc,L1,L2),Q,Qx,Map,Opts,Ex,Exx) :-
   liftAction(E1,L1,Q,Q0,Map,Opts,Ex,Ex1),
@@ -536,16 +550,16 @@ liftAction(seqDo(Lc,E1,E2),seq(Lc,L1,L2),Q,Qx,Map,Opts,Ex,Exx) :-
 liftAction(varDo(Lc,P,E),varD(Lc,P1,E1),Q,Q,Map,Opts,Ex,Exx) :-
   liftPtn(P,P1,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(E,E1,Q0,_,Map,Opts,Ex0,Exx).
-liftAction(performDo(Lc,Exp),perfD(Lc,E1),Q,Qx,Map,Opts,Ex,Exx) :-
+liftAction(performDo(Lc,Exp),perf(Lc,E1),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(Exp,E1,Q,Qx,Map,Opts,Ex,Exx).
 liftAction(ifThenDo(Lc,Ts,Th,El),cnd(Lc,Tst,Th1,El1),Q,Qx,Map,Opts,Ex,Exx) :-
   liftGoal(Ts,Tst,Q,Q0,Map,Opts,Ex,Ex0),
   liftAction(Th,Th1,Q,Q0,Map,Opts,Ex0,Ex1),
   liftAction(El,El1,Q0,Qx,Map,Opts,Ex1,Exx).
-liftAction(whileDo(Lc,G,B),whileD(Lc,Gl,Bdy),Q,Q,Map,Opts,Ex,Exx) :-
+liftAction(whileDo(Lc,G,B),whle(Lc,Gl,Bdy),Q,Q,Map,Opts,Ex,Exx) :-
   liftGoal(G,Gl,Q,Q0,Map,Opts,Ex,Ex0),
   liftAction(B,Bdy,Q,Q0,Map,Opts,Ex0,Exx).
-liftAction(untilDo(Lc,G,B),untilD(Lc,Gl,Bdy),Q,Q,Map,Opts,Ex,Exx) :-
+liftAction(untilDo(Lc,G,B),untl(Lc,Gl,Bdy),Q,Q,Map,Opts,Ex,Exx) :-
   liftGoal(G,Gl,Q,Q0,Map,Opts,Ex,Ex0),
   liftAction(B,Bdy,Q,Q0,Map,Opts,Ex0,Exx).
 liftAction(forDo(Lc,G,B),forD(Lc,Gl,Bdy),Q,Q,Map,Opts,Ex,Exx) :-
@@ -615,7 +629,7 @@ thetaMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,[lyr(Vx,Tx,ConsMap,ThVr)|Map],FreeTer
   varDefs(Defs,CellVars),
   concat(CellVars,ThFree,FreeVars),
   collectLabelVars(FreeVars,ThVr,0,varMap{},V0),
-  makeConstructorMap(Defs,consMap{},_,ConsMap),
+  makeConstructorMap(Defs,consMap{},ConsMap),
   declareThetaVars(Decls,ThVr,CellVars,ConsMap,V0,Vx,typeMap{},Tx),
   makeFreeTerm(CellVars,Lc,ThFree,Map,Opts,FreeTerm).
 
@@ -625,7 +639,7 @@ recordMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,
   varDefs(Defs,CellVars),
   concat(CellVars,ThFree,FreeVars),
   collectLabelVars(FreeVars,ThVr,0,varMap{},V0),
-  makeConstructorMap(Defs,consMap{},_,ConsMap),
+  makeConstructorMap(Defs,consMap{},ConsMap),
   declareThetaVars(Decls,ThVr,CellVars,ConsMap,V0,Vx,typeMap{},Tx),
   makeFreeTerm(CellVars,Lc,ThFree,Map,Opts,FreeTerm).
 
@@ -741,8 +755,11 @@ closureRule(_,Lc,Nm,ClosureName,ThVr,
 accessRule(_,Lc,Nm,LclName,ThV,(Lc,[ThV,DotName],enum("star.core#true"),cll(Lc,lbl(LclName,1),[ThV]))) :-
   makeDotLbl(Nm,DotName).
 
-programAccess(moduleFun(Prog,Closure,Arity),Prog,Closure,Arity).
+programAccess(moduleFun(Prog,some(Closure),Arity),Prog,Closure,Arity).
 programAccess(localFun(Prog,Closure,Arity,_),Prog,Closure,Arity).
+
+programArity(moduleFun(_,_,Arity),Arity).
+programArity(localFun(_,_,Arity,_),Arity).
 
 makeDotLbl(Nm,lbl(Nm,0)).
 

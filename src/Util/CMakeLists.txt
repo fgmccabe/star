@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.7)
 project(OOIO)
 
-find_package(BISON)
+find_package(BISON 3.2)
 find_package(FLEX)
 
 BISON_TARGET(JsonParser json.y ${CMAKE_CURRENT_BINARY_DIR}/jsonParser.c)
