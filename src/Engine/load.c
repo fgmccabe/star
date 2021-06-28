@@ -31,7 +31,7 @@ static retCode decodeTplCount(ioPo in, integer *count, char *errMsg, integer msg
 static retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen);
 
 static char stringSig[] = {strTrm, 0};
-static char *pkgSig = "n4o4\1()4\1";
+static char *pkgSig = "n5o5\1()5\1";
 
 static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg pickup, void *cl) {
   char codeName[MAXFILELEN];
@@ -76,6 +76,12 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
         if (ret == Ok) {
           if (pickup != Null)
             ret = decodeImportsSig(sigBuffer, errorMsg, msgSize, pickup, cl);
+
+          if (ret == Ok)
+            ret = skipEncoded(O_IO(sigBuffer), errorMsg, msgSize); // Skip export declarations
+
+          if (ret == Ok)
+            ret = skipEncoded(O_IO(sigBuffer), errorMsg, msgSize); // Skip local declarations
 
           if (ret == Ok)
             ret = loadDefs(O_IO(sigBuffer), currHeap, markLoaded(lddPkg.packageName, lddPkg.version), errorMsg,
@@ -131,6 +137,12 @@ installPackage(char *pkgText, long pkgTxtLen, heapPo H, char *errorMsg, long msg
       ret = decodeImportsSig(sigBuffer, errorMsg, msgSize, pickup, cl);
 
       if (ret == Ok)
+        ret = skipEncoded(O_IO(sigBuffer), errorMsg, msgSize); // Skip export declarations
+
+      if (ret == Ok)
+        ret = skipEncoded(O_IO(sigBuffer), errorMsg, msgSize); // Skip local declarations
+
+      if (ret == Ok)
         ret = loadDefs(O_IO(sigBuffer), H, markLoaded(lddPkg.packageName, lddPkg.version), errorMsg, msgSize);
     }
 #ifdef TRACEPKG
@@ -173,10 +185,6 @@ static retCode decodeImportsSig(strBufferPo sigBuffer, char *errorMsg, long msgL
 
   if (isLookingAt(in, pkgSig) == Ok) {
     retCode ret = skipEncoded(in, errorMsg, msgLen); // The package name
-    if (ret != Ok)
-      return ret;
-
-    ret = skipEncoded(in, errorMsg, msgLen); // The package signature
     if (ret != Ok)
       return ret;
 
@@ -259,13 +267,14 @@ retCode decodeTplCount(ioPo in, integer *count, char *errMsg, integer msgLen) {
     return Fail;
 }
 
-static char *consPreamble = "n4o4\1()4\1";
+static char *consPreamble = "n3o3\1cons\1";
 static char *typePreamble = "n3o3\1type\1";
 static char *fieldPreamble = "n2o2\1()2\1";
 static char *methodPreamble = "n7o7\1method\1";
 
 static retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize);
 static retCode loadType(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize);
+static retCode loadCons(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize);
 
 retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen) {
   integer count;
@@ -277,6 +286,8 @@ retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen
         ret = loadFunc(in, h, owner, errorMsg, msgLen);
       else if (isLookingAt(in, typePreamble) == Ok)
         ret = loadType(in, h, owner, errorMsg, msgLen);
+      else if (isLookingAt(in, consPreamble) == Ok)
+        ret = loadCons(in, h, owner, errorMsg, msgLen);
       else {
         strMsg(errorMsg, msgLen, "invalid code stream");
         return Error;
@@ -341,13 +352,13 @@ static retCode writeBlocks(ioPo in, wordBufferPo bfr, integer *ix, integer *si, 
   writeOperand(bfr, (uint32) count);
   (*ix)++;
   integer pos;
-  reserveBufferSpace(bfr,count*2,&pos);
+  reserveBufferSpace(bfr, count * 2, &pos);
 
   (*ix) += count;
 
   for (integer i = 0; ret == Ok && i < count; i++) {
     integer pc = *ix;
-    writeIntoBuffer(bfr,pc,*ix);
+    writeIntoBuffer(bfr, pc, *ix);
     ret = decodeIns(in, bfr, ix, si, errorMsg, msgSize);
   }
   return ret;
@@ -529,5 +540,25 @@ retCode loadType(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSiz
 
     }
   }
+  return ret;
+}
+
+retCode loadCons(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize) {
+  char lblName[MAX_SYMB_LEN];
+  integer arity;
+
+  retCode ret = decodeLbl(in, lblName, NumberOf(lblName), &arity, errorMsg, msgSize);
+  if (ret == Ok) {
+    ret = skipEncoded(in, errorMsg, msgSize);
+
+    if (ret == Ok) {
+      integer index;
+      ret = decodeInteger(in, &index);
+      if (ret == Ok) {
+        declareLbl(lblName, arity, index);
+      }
+    }
+  }
+
   return ret;
 }

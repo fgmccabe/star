@@ -1,4 +1,4 @@
-:- module(checker,[checkProgram/5]).
+:- module(checker,[checkProgram/6]).
 
 :- use_module(abstract).
 :- use_module(astdisp).
@@ -24,7 +24,7 @@
 :- use_module(cnc).
 :- use_module(vartypes).
 
-checkProgram(Prog,Pkg,Repo,Opts,Canon) :-
+checkProgram(Prog,Pkg,Repo,_Opts,PkgDecls,Canon) :-
   stdDict(Base),
 %  dispEnv(Base),
   isBraceTerm(Prog,Lc,_,El0),
@@ -32,8 +32,10 @@ checkProgram(Prog,Pkg,Repo,Opts,Canon) :-
   Pkg = pkg(Pk,_),
   collectImports(Els,Imports,Stmts),
   importAll(Imports,Repo,AllImports),
-  importAllDefs(AllImports,Repo,Base,Env0),
-  dispEnv(Env0),
+  collectImportDecls(AllImports,Repo,[],IDecls),
+  declareAllDecls(IDecls,Lc,Base,Env0),
+  dispDecls(IDecls),
+%  dispEnv(Env0),
   thetaEnv(Pk,Lc,Stmts,faceType([],[]),Env0,OEnv,Defs,Public),
 %  dispEnv(OEnv),
   overload(Lc,Defs,OEnv,_Dict,ODefs),
@@ -41,7 +43,8 @@ checkProgram(Prog,Pkg,Repo,Opts,Canon) :-
   packageExport(ODefs,FllPb,ExportDecls,LDecls,XDefs),
   mkBoot(OEnv,Lc,Pk,XDefs,PkgDefs),
   Canon=prog(Pkg,Imports,ExportDecls,LDecls,PkgDefs),
-  (is_member(showTCCode,Opts) -> displayln(canon:ssCanonProg(Canon));true).
+  concat(ExportDecls,IDecls,D0),
+  concat(LDecls,D0,PkgDecls).
 
 findExportedDefs(Lc,Flds,Els) :-
   map(Flds,checker:mkFieldArg(Lc),Els).
@@ -194,26 +197,16 @@ pullOthers([St|Els],Entries,Asserts,[St|Deflts]) :-
 pullOthers([St|Els],[St|Entries],Asserts,Deflts) :-
   pullOthers(Els,Entries,Asserts,Deflts).
 
-declareImportedVar(Lc,Nm,pkg(Pkg,_),PkgVr,_Enums,Tp,Env,E0) :-
-  consName(Pkg,Nm,LclNm),
-  (isConType(Tp,Ar) ->
-   (Ar=0 ->
-    declareEnum(Lc,Nm,LclNm,Tp,Env,E0) ;
-    declareCns(Lc,Nm,LclNm,Tp,Env,E0)) ;
-   declareField(Lc,PkgVr,Nm,Tp,Env,E0)).
+collectImportDecls([],_,Decls,Decls) :-!.
+collectImportDecls([importPk(_Lc,_Viz,Pkg)|More],Repo,Decls,Dcx) :-
+  importPkg(Pkg,Repo,spec(_,_,PDecls)),
+  concat(PDecls,Decls,Dc0),
+  collectImportDecls(More,Repo,Dc0,Dcx).
 
-importTypes([],_,Env,Env).
-importTypes([(Nm,Rule)|More],Lc,Env,Ex) :-
-%  reportMsg("import type %s with rule %s",[Nm,Rule]),
-  typeTemplate(Nm,Rule,Type),
-  declareType(Nm,tpDef(Lc,Type,Rule),Env,E0),
-  importTypes(More,Lc,E0,Ex).
-
-importAllDefs([],_,Env,Env).
-importAllDefs([importPk(Lc,_Viz,Pkg)|More],Repo,Env,Ex) :-
-  importPkg(Pkg,Repo,spec(_,_,Decls)),
-  rfold(Decls,checker:importDecl(Lc),Env,Ev0),
-  importAllDefs(More,Repo,Ev0,Ex).
+declareAllDecls([],_,Env,Env).
+declareAllDecls([D|More],Lc,Env,Evx) :-
+  importDecl(Lc,D,Env,E0),
+  declareAllDecls(More,Lc,E0,Evx).
 
 importDecl(Lc,impDec(ImplNm,FullNm,ImplTp),Ev,Evx) :-
   declareVr(Lc,FullNm,ImplTp,Ev,Ev0),
@@ -693,7 +686,8 @@ typeOfExp(V,Tp,Env,Ev,Term,_Path) :-
    typeOfCanon(Term,VTp),
    checkType(V,Tp,VTp,Ev);
    reportError("variable '%s' not defined, expecting a %s",[V,Tp],Lc),
-   Term=void).
+   Term=void,
+   Env=Ev).
 typeOfExp(V,Tp,Env,Ev,Term,_Path) :-
   isIden(V,Lc,N),!,
   (isVar(N,Env,Spec) ->
@@ -1417,7 +1411,8 @@ genDecl(conDef(Nm,CnNm,CnTp,CnSpec),_,Public,
 genDecl(conDef(Nm,CnNm,CnTp,CnSpec),_,_,Ex,Ex,
 	[contractDec(Nm,CnNm,CnTp,CnSpec)|Lx],Lx,Dfx,Dfx).
 genDecl(implDef(TmpNm,ImplName,ImplVrNm,Spec),_,Public,
-	[impDec(ImplName,ImplVrNm,Spec)|Ex],Ex,Lx,Lx,Dfx,Dfx) :-
+	[impDec(ImplName,ImplVrNm,Spec),
+	 varDec(ImplVrNm,ImplVrNm,Spec)|Ex],Ex,Lx,Lx,Dfx,Dfx) :-
   call(Public,imp(TmpNm)),!.
 genDecl(implDef(_,ImplName,ImplVrNm,Spec),_,_,Ex,Ex,
 	[impDec(ImplName,ImplVrNm,Spec)|Lx],Lx,Dfx,Dfx).
@@ -1446,7 +1441,7 @@ isLetExport(Private,Nm) :-
 completePublic([],Pub,Pub,_).
 completePublic([con(Nm)|List],Pub,Px,Path) :-
   contractName(Path,Nm,ConNm),
-  completePublic(List,[tpe(ConNm),var(ConNm)|Pub],Px,Path).
+  completePublic(List,[tpe(ConNm)|Pub],Px,Path).
 completePublic([_|List],Pub,Px,Path) :-
   completePublic(List,Pub,Px,Path).
 
@@ -1473,10 +1468,11 @@ exportAcc(Tp,Export) :-
    splitLocalName(TpNm,CnMrkr,_,Nm),
    call(Export,con(Nm))),!.
 
-mkBoot(Env,Lc,Pkg,[BootDef|Dfs],Dfs) :-
+mkBoot(Env,Lc,Pkg,Dfs,[BootDef|Dfs]) :-
+  findType("cons",Lc,Env,ConsTp),
   isVar("_main",Env,Spec),
   localName(Pkg,value,"_boot",BootNm),
-  mkTypeExp(tpFun("star.core*consType",1),[type("star.core*string")],LSTp),
+  applyTypeFun(ConsTp,[type("star.core*string")],Env,[],[],LSTp),
   CmdVr = v(Lc,"CmdVr",LSTp),
   UnitTp = tupleType([]),
   MnTp = funType(tupleType([LSTp]),UnitTp),

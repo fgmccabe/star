@@ -15,9 +15,8 @@ assem(method(Nm,Sig,Lx,Ins),MTpl) :-
     sortLines(Lines,SLines),
     mkTpl(SLines,LnsTpl),
     mkCons("method",[Nm,strg(Sig),intgr(Lx),Code,LtTpl,LcsTpl,LnsTpl],MTpl).
-assem(struct(Lbl,Ix,Sig,Fields),Tpl) :-
-    mkTpl(Fields,FieldSigs),
-    mkCons("struct",[Lbl,intgr(Ix),Sig,FieldSigs],Tpl).
+assem(struct(Lbl,Ix,Sig),Tpl) :-
+    mkCons("cons",[Lbl,Sig,intgr(Ix)],Tpl).
 assem(tipe(Tp,Rl,Map),Tpl) :-
     encMap(Map,MapEls),
     encType(Tp,TpSig),
@@ -98,7 +97,7 @@ dispIns(Prog) :-
   showIns(Prog,O),
   displayln(O).
 
-showIns([method(Nm,Sig,_Lx)|Ins],sq([NN,ss(":"),ss(Sig),nl(0),iv(nl(0),II)])) :-
+showIns(method(Nm,Sig,Lx,Ins),sq([NN,ss(":"),ss(Sig),nl(0),iv(nl(0),[sq([ss("locals "),ix(Lx)])|II])])) :-
   ssTrm(Nm,0,NN),
   showMnem(Ins,0,[],II).
 

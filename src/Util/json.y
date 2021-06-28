@@ -2,6 +2,7 @@
  * LALR grammar for json
  * Event-based parser -- calls out events when parsing. Allows client to avoid constructing structures
  */
+%require "3.2"
 
 %{
 #include "unistr.h"
@@ -16,9 +17,11 @@
 %}
 
 %locations
-%define api.pure
+
 %defines
+
 %define parse.error verbose
+%define api.pure full
 
 %debug
 

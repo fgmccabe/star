@@ -1,5 +1,6 @@
 :- module(canon,[dispFunction/3,
 		 ssCanonProg/2,ssTerm/3,ssAction/3,ssPkg/2,ssContract/3,
+		 dispDecls/1,
 		 typeOfCanon/2,splitPtn/3,locOfCanon/2,
 		 constructorName/2,constructorType/2,
 		 isCanonDef/1,isCanon/1,isSimpleCanon/1,isAssertion/1,isShow/1,
@@ -178,12 +179,13 @@ constructorName(cons(_,Nm,_),Nm).
 constructorType(enm(_,_,Tp),Tp) :-!.
 constructorType(cons(_,_,Tp),Tp).
 
-ssCanonProg(prog(Pkg,Imports,_,Decls,Defs),sq([PP,nl(2),iv(nl(2),XX),rb])) :-
+ssCanonProg(prog(Pkg,Imports,XDecls,Decls,Defs),sq([PP,nl(2),iv(nl(2),XX),rb])) :-
   ssPkg(Pkg,PP),
   map(Imports,canon:ssImport,II),
-  map(Decls,canon:ssDecl(2),DD),
+  map(XDecls,canon:ssDecl(2,ss("export ")),EE),
+  map(Decls,canon:ssDecl(2,ss("local ")),DD),
   map(Defs,canon:ssDf(2),FF),
-  flatten([DD,II,FF],XX).
+  flatten([EE,DD,II,FF],XX).
 
 ssPkg(pkg(Nm,V),sq([ss(Nm)|Vs])) :-
   ssVersion(V,Vs).
@@ -215,14 +217,14 @@ ssTerm(cell(_,Vr),Dp,sq([ss("!!"),V])) :-
 ssTerm(letExp(_,Decls,Defs,Ex),Dp,
 	    sq([ss("let {."),nl(Dp2),iv(nl(Dp2),Ds),nl(Dp),ss(".} in "),B])) :-
   Dp2 is Dp+2,
-  map(Decls,canon:ssDecl(Dp2),DD),
+  map(Decls,canon:ssDecl(Dp2,ss("let ")),DD),
   map(Defs,canon:ssDf(Dp2),XX),
   flatten([DD,XX],Ds),
   ssTerm(Ex,Dp,B).
 ssTerm(letRec(_,Decls,Defs,Ex),Dp,
 	    sq([ss("let {"),nl(Dp2),iv(nl(Dp2),Ds),nl(Dp),ss("} in "),B])) :-
   Dp2 is Dp+2,
-  map(Decls,canon:ssDecl(Dp2),DD),
+  map(Decls,canon:ssDecl(Dp2,ss("rec ")),DD),
   map(Defs,canon:ssDf(Dp2),XX),
   flatten([DD,XX],Ds),
   ssTerm(Ex,Dp,B).
@@ -404,26 +406,31 @@ ssEqn(Nm,Dp,equation(_,Args,Guard,Value),
 	  canon:ssTerm(Args,Dp),canon:ssGuard(Guard,Dp),ss("=>"),
 	  canon:ssTerm(Value,Dp)])).
 
-ssDecl(Dp,funDec(Nm,LclNme,Type),
-       sq([ss("fun "),id(Nm),ss("~"),id(LclNme),ss(" :: "),TT])) :-
+dispDecls(Decls) :-
+  map(Decls,canon:ssDecl(0,ss("")),DD),
+  displayln(iv(nl(0),DD)).
+
+ssDecl(Dp,X,funDec(Nm,LclNme,Type),
+       sq([X,ss("fun "),id(Nm),ss("~"),id(LclNme),ss(" :: "),TT])) :-
   ssType(Type,true,Dp,TT).
-ssDecl(Dp,varDec(Nm,LclNme,Tp),
-      sq([ss("var "),id(Nm),ss("~"),id(LclNme),ss(" :: "),Ts])) :-
+ssDecl(Dp,X,varDec(Nm,LclNme,Tp),
+      sq([X,ss("var "),id(Nm),ss("~"),id(LclNme),ss(" :: "),Ts])) :-
   ssType(Tp,true,Dp,Ts).
-ssDecl(Dp,cnsDec(Nm,LclNme,Tp),
-      sq([ss("cons "),id(Nm),ss("~"),id(LclNme),ss(" :: "),Ts])) :-
+ssDecl(Dp,X,cnsDec(Nm,LclNme,Tp),
+      sq([X,ss("cons "),id(Nm),ss("~"),id(LclNme),ss(" :: "),Ts])) :-
   ssType(Tp,true,Dp,Ts).
-ssDecl(Dp,typeDec(Nm,Tp,_Rl),
-       sq([ss("type "),id(Nm),ss("::"),Ts])) :-
+ssDecl(Dp,X,typeDec(Nm,Tp,_Rl),
+       sq([X,ss("type "),id(Nm),ss("::"),Ts])) :-
   ssType(Tp,true,Dp,Ts).
-ssDecl(Dp,contractDec(Nm,_ConNm,_ConTp,Rl),
-       sq([ss("contract "),id(Nm),ss(" :: "),Ts])) :-
+ssDecl(Dp,X,contractDec(Nm,_ConNm,_ConTp,Rl),
+       sq([X,ss("contract "),id(Nm),ss(" :: "),Ts])) :-
   ssType(Rl,true,Dp,Ts).
-ssDecl(Dp,impDec(Nm,ImplNm,ImplTp),
-       sq([ss("impl "),id(Nm),ss(" ~ "),id(ImplNm),ss("::"),Ts])) :-
+ssDecl(Dp,X,impDec(Nm,ImplNm,ImplTp),
+       sq([X,ss("impl "),id(Nm),ss(" ~ "),id(ImplNm),ss("::"),Ts])) :-
   ssType(ImplTp,true,Dp,Ts).
-ssDecl(Dp,accDec(Tp,FldNm,FunNm,FunTp),
-       sq([ss("acc "),Ts,ss("."),id(FldNm),ss(" using "),id(FunNm),ss(" :: "),TT])) :-
+ssDecl(Dp,X,accDec(Tp,FldNm,FunNm,FunTp),
+       sq([X,ss("acc "),Ts,ss("."),id(FldNm),
+	   ss(" using "),id(FunNm),ss(" :: "),TT])) :-
   ssType(Tp,false,Dp,Ts),
   ssType(FunTp,false,Dp,TT).
 

@@ -23,4 +23,13 @@ test.cn1{
     _ .= _logmsg(M);
     return ()
   }
+
+  _main:(cons[string])=>().
+  _main(cons(A,.nil)) =>
+    valof main(A).
+
+  main:(string)=>action[(),()].
+  main(T) => do{
+    logM(T)
+  }
 }

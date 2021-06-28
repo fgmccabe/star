@@ -87,6 +87,8 @@ showTrm(act(A),O) :-
   ss_to_chrs(canon:ssAction(A,0),O,[]).
 showTrm(ltrm(L),O) :-
   ss_to_chrs(lterms:ssTrm(L,0),O,[]).
+showTrm(lact(A),O) :-
+  ss_to_chrs(lterms:ssAct(A,0),O,[]).
 showTrm(ds(D),O) :-
   ss_to_chrs(D,O,[]).
 showTrm(pk(P),O) :-

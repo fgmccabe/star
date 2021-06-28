@@ -1,4 +1,4 @@
-:- module(gencode,[genCode/3]).
+:- module(gencode,[genCode/4]).
 
 :- use_module(misc).
 :- use_module(types).
@@ -10,12 +10,11 @@
 :- use_module(errors).
 :- use_module(gensig).
 
-genCode(mdule(Pkg,Imports,Decls,LDecls,Defs),Opts,Text) :-
+genCode(PkgDecls,mdule(Pkg,Imports,Decls,LDecls,Defs),Opts,Text) :-
   encPkg(Pkg,PT),
   initDict(D0),
   genImports(Imports,ImpTpl),
-  rfold(Decls,gencode:defGlbl,D0,D1),
-  rfold(LDecls,gencode:defGlbl,D1,D2),
+  rfold(PkgDecls,gencode:defGlbl,D0,D2),
   genDefs(Defs,Opts,D2,C,[]),
   mkTpl(C,Cdes),
   map(Decls,gensig:formatDecl,Ds),
@@ -49,8 +48,8 @@ genDef(D,Opts,fnDef(Lc,Nm,Tp,Args,Value),O,[CdTrm|O]) :-
   genLine(Opts,Lc,C0,C1),
   compPtnArgs(Args,Lc,argCont,0,contCont(Ex),raiseCont(Lc,strg("failed"),Opts),Opts,D1a,D2,End,C1,[iLbl(Ex)|C2],0,Stk0),
   compTerm(Value,Lc,retCont(Opts),Opts,D2,Dx,End,C2,[iLbl(End)],Stk0,_Stk),
-  (is_member(showGenCode,Opts) -> dispIns([method(Nm,Sig,_Lx)|C0]);true ),
   findMaxLocal(Dx,Lx),
+  (is_member(showGenCode,Opts) -> dispIns(method(Nm,Sig,Lx,C0));true ),
   removeExtraLines(C0,Cde),
   assem(method(Nm,Sig,Lx,Cde),CdTrm).
 genDef(D,Opts,glbDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
@@ -58,13 +57,13 @@ genDef(D,Opts,glbDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
   genLbl(D,End,D1),
   genLine(Opts,Lc,C0,C1),
   compTerm(Value,Lc,bothCont(glbCont(Nm),retCont(Opts)),Opts,D1,Dx,End,C1,[iLbl(End)],0,_Stk),
-  (is_member(showGenCode,Opts) -> dispIns([method(lbl(Nm,0),Sig,Lx)|C0]);true ),
   findMaxLocal(Dx,Lx),
+  (is_member(showGenCode,Opts) -> dispIns(method(lbl(Nm,0),Sig,Lx,C0));true ),
   removeExtraLines(C0,Cde),
   assem(method(lbl(Nm,0),Sig,Lx,Cde),Cd).
 genDef(_,_,lblDef(_,Lbl,Tp,Ix),O,[LblTrm|O]) :-
   encType(Tp,Sig),
-  assem(struct(Lbl,Ix,strg(Sig),[]),LblTrm).
+  assem(struct(Lbl,strg(Sig),Ix),LblTrm).
 genDef(_,_,tpDef(_,Tp,Rl,IxMap),O,[TpTrm|O]) :-
   assem(tipe(Tp,Rl,IxMap),TpTrm).
 
@@ -82,7 +81,7 @@ idxCont(Cont,Off,D,Dx,End,[iNth(Off)|C],Cx,Stk,Stkx) :-!,
 sxCont(Cont,Off,D,Dx,End,[iStNth(Off)|C],Cx,Stk,Stkx) :-!,
   call(Cont,D,Dx,End,C,Cx,Stk,Stkx).
 
-initDict(scope([],[],0)).
+initDict(scope([],[],[],0)).
 
 buildArgs([],_,D,D).
 buildArgs([A|R],Ix,D,Dx) :-
@@ -90,46 +89,50 @@ buildArgs([A|R],Ix,D,Dx) :-
   Ix1 is Ix+1,
   buildArgs(R,Ix1,D0,Dx).
 
-buildArg(idnt(Nm),Ix,scope(D,Lbs,InUse),scope([(Nm,a(Ix),void,void)|D],Lbs,InUse)).
+buildArg(idnt(Nm),Ix,scope(D,Lbs,FreeRg,Mx),
+	 scope([(Nm,a(Ix),void,void)|D],Lbs,FreeRg,Mx)).
 buildArg(_,_,D,D).
 
-lclVar(Nm,Wh,scope(Vrs,_,_)) :-
+lclVar(Nm,Wh,scope(Vrs,_,_,_)) :-
   is_member((Nm,Wh,_,_),Vrs),!.
 
-varLabels(scope(Vrs,_,_),Vrs).
+varLabels(scope(Vrs,_,_,_),Vrs).
 
-defineLclVar(Nm,Lbl,End,scope(Vrs,Lbs,InUse),
-      scope([(Nm,l(Off),Lbl,End)|Vrs],Lbs,NInUse),Off,[iLocal(Nm,Lbl,End,Off)|Cx],Cx) :-
-  nextFreeOff(InUse,Off,NInUse).
+defineLclVar(Nm,Lbl,End,scope(Vrs,Lbs,FreeRg,Mx),
+	     scope([(Nm,l(Off),Lbl,End)|Vrs],Lbs,NFreeRg,Mx1),Off,
+	     [iLocal(Nm,Lbl,End,Off)|Cx],Cx) :-
+  nextFreeOff(FreeRg,Mx,Off,NFreeRg,Mx1).
 
-clearLclVar(Nm,scope(Vrs,Lbs,InUse),scope(NVrs,Lbs,NInUse)) :-
+clearLclVar(Nm,scope(Vrs,Lbs,FreeRg,Mx),scope(NVrs,Lbs,NFreeRg,NMx)) :-
   subtract((Nm,l(Off),_,_),Vrs,NVrs),
-  addToFree(Off,InUse,NInUse).
+  addToFree(Off,FreeRg,Mx,NFreeRg,NMx).
 
-defineGlbVar(Nm,scope(Vrs,Lbs,InUse),
-      scope([(Nm,g(Nm),none,none)|Vrs],Lbs,InUse)).
+nextFreeOff([Off|FreeRg],Mx,Off,FreeRg,Mx).
+nextFreeOff([],Mx,Mx1,[],Mx1) :-
+  Mx1 is Mx+1.
+
+addToFree(Off,FreeRg,Mx,[Off|FreeRg],Mx) :-!.
+
+defineGlbVar(Nm,scope(Vrs,Lbs,FreeRg,Mx),
+	     scope([(Nm,g(Nm),none,none)|Vrs],Lbs,FreeRg,Mx)).
 
 populateVarNames([],_,_,C,C).
 populateVarNames([(Nw,idnt(Ex))|Vs],Lc,D,C,Cx) :-
   populateVarNm(Nw,Lc,Ex,D,C,C0),
   populateVarNames(Vs,Lc,D,C0,Cx).
 
-populateVarNm(Nw,_,Ex,scope(Vrs,_,_),[iLocal(Nw,Frm,End,Off)|Cx],Cx) :-
+populateVarNm(Nw,_,Ex,scope(Vrs,_,_,_),[iLocal(Nw,Frm,End,Off)|Cx],Cx) :-
   is_member((Ex,l(Off),Frm,End),Vrs),!.
-populateVarNm(_,_,Ex,scope(Vrs,_,_),Cx,Cx) :-
+populateVarNm(_,_,Ex,scope(Vrs,_,_,_),Cx,Cx) :-
   is_member((Ex,a(_),_,_),Vrs),!.
 populateVarNm(_,Lc,Ex,_,C,C) :-
   reportError("variable %s not known",[Ex],Lc).
 
-nextFreeOff(InUse,Nxt,Nxt) :-
-  Nxt is InUse+1.
-
-genLbl(scope(Nms,Lbs,IU),Lb,scope(Nms,[Lb|Lbs],IU)) :-
+genLbl(scope(Nms,Lbs,FreeRg,Mx),Lb,scope(Nms,[Lb|Lbs],FreeRg,Mx)) :-
   length(Lbs,N),
   swritef(Lb,"_L%d",[N]).
 
-findMaxLocal(scope(Nms,_,_),Mx) :-
-  rfold(Nms,gencode:localMx,0,Mx).
+findMaxLocal(scope(_,_,_,Mx),Mx).
 
 localMx((_,l(Off),_),M,Mx) :- !, Mx is max(Off,M).
 localMx(_,M,M).
@@ -247,7 +250,7 @@ compAction(perf(Lc,Exp),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   compTerm(Exp,Lc,bothCont(dropCont,Cont),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 compAction(seq(Lc,A,B),_,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
-  compAction(A,Lc,compAction(B,Cont),Lc,Opts,D,Dx,End,C,Cx,Stk,Stkx).
+  compAction(A,Lc,compAction(B,Lc,Cont,Opts),Opts,D,Dx,End,C,Cx,Stk,Stkx).
 compAction(varD(Lc,idnt(Nm),E),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   genLbl(D,Lb,D0),
@@ -258,6 +261,8 @@ compAction(cnd(Lc,T,L,R),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   splitCont(Cont,OC),
   compCond(T,Lc,compAction(L,Lc,OC,Opts),compAction(R,Lc,OC,Opts),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
+compAction(rtn(Lc,E),_Lc,_Cont,Opts,D,Dx,Env,C,Cx,Stk,Stkx) :-
+  compTerm(E,Lc,retCont(Opts),Opts,D,Dx,Env,C,Cx,Stk,Stkx).
 
 contCont(Lbl,D,D,_,C,Cx,Stk,Stk) :-
   (nonvar(Cx),Cx=[iLbl(Lbl)|_]) ->
