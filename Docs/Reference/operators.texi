@@ -57,7 +57,7 @@
 @item @code{valis}
 @tab non-associative prefix
 @tab 930
-@tab wrap value in execution
+@tab return value from execution
 @item @code{,..}
 @tab non-associative infix
 @tab 1000
@@ -78,6 +78,10 @@
 @tab non-associative prefix
 @tab 700
 @tab count of number of bits
+@item @code{ignore}
+@tab non-associative prefix
+@tab 930
+@tab ignore result of expression
 @item @code{<$}
 @tab right associative infix
 @tab 720
@@ -362,6 +366,10 @@
 @tab non-associative infix
 @tab 950
 @tab constructor arrow
+@item @code{perform}
+@tab non-associative prefix
+@tab 300
+@tab perform an action or task
 @item @code{valof}
 @tab non-associative prefix
 @tab 300
@@ -489,25 +497,27 @@
 @tab @code{catch}
 @tab @code{valis}
 @item @code{for}
+@tab @code{ignore}
 @tab @code{then}
-@tab @code{default}
-@item @code{contract}
+@item @code{default}
+@tab @code{contract}
 @tab @code{val}
-@tab @code{try}
-@item @code{exists}
+@item @code{try}
+@tab @code{exists}
 @tab @code{if}
-@tab @code{in}
-@item @code{open}
+@item @code{in}
+@tab @code{open}
 @tab @code{public}
-@tab @code{ref}
-@item @code{where}
+@item @code{ref}
+@tab @code{where}
 @tab @code{case}
+@item @code{perform}
 @tab @code{valof}
-@item @code{until}
-@tab @code{while}
+@tab @code{until}
+@item @code{while}
 @tab @code{private}
-@item @code{type}
-@tab @code{implementation}
+@tab @code{type}
+@item @code{implementation}
 @tab @code{else}
 
 @end multitable

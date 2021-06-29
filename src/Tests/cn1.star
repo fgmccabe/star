@@ -19,7 +19,7 @@ test.cn1{
   consLen(cons(_,T)) => plus(1,consLen(T)).
 
   logM:(string)=>action[(),()].
-  logM(M) => do{
+  logM(M) => action{
     _ .= _logmsg(M);
     return ()
   }
@@ -29,7 +29,7 @@ test.cn1{
     valof main(A).
 
   main:(string)=>action[(),()].
-  main(T) => do{
+  main(T) => action{
     logM(T)
   }
 }

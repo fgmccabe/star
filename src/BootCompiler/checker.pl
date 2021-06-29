@@ -752,21 +752,17 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isRef(Term,Lc,I),
   roundTerm(Lc,name(Lc,"_cell"),[I],R),
   typeOfExp(R,Tp,Env,Ev,Exp,Path).
-typeOfExp(Term,Tp,Env,Ev,doTerm(Lc,Act,Tp),Path) :-
-  isDoTerm(Term,Lc,Stmts),!,
-  findType("action",Lc,Env,ActFnTp),
-  newTypeVar("E",ErTp),
-  newTypeVar("X",ElTp),
-  mkTypeExp(ActFnTp,[ElTp,ErTp],MTp),
-  checkType(Term,MTp,Tp,Env),
-  checkAction(Stmts,Env,Ev,ActFnTp,ElTp,ErTp,Act,Path).
-typeOfExp(Term,Tp,Env,Ev,taskTerm(Lc,Act,Tp),Path) :-
+typeOfExp(Term,Tp,Env,Ev,Action,Path) :-
+  isActionTerm(Term,Lc,Stmts),!,
+  typeOfActionExp(Lc,Stmts,Tp,Env,Ev,Action,Path).
+typeOfExp(Term,Tp,Env,Ev,taskTerm(Lc,TaskLbl,Act,Tp),Path) :-
   isTaskTerm(Term,Lc,Stmts),!,
   findType("task",Lc,Env,TaskTp), % action type is just the core
   newTypeVar("E",ErTp),
   newTypeVar("X",ElTp),
   mkTypeExp(TaskTp,[ElTp,ErTp],TTp),
   checkType(Term,TTp,Tp,Env),
+  lambdaLbl(Path,"𝜏",TaskLbl),
   checkAction(Stmts,Env,Ev,TaskTp,ElTp,ErTp,Act,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isSquareTuple(Term,Lc,Els),
@@ -787,7 +783,6 @@ typeOfExp(Term,Tp,Env,Env,Val,Path) :-
   typeOfExp(F,consType(FnTp,Tp),Env,E0,Fun,Path),
   funLbl(Fun,Lbl),
   checkThetaBody(FnTp,Lbl,Lc,Els,E0,Val,Path).
-
 typeOfExp(Term,Tp,Env,Env,Val,Path) :-
   isQBraceTerm(Term,Lc,F,Els),
   newTypeVar("R",FnTp),
@@ -941,6 +936,31 @@ typeOfLambda(Term,Tp,Env,lambda(Lc,Lbl,equation(Lc,Args,Guard,Exp),Tp),Path) :-
 					%  reportMsg("type after arg %s",[Tp]),
   lambdaLbl(Path,"_",Lbl),
   typeOfExp(R,RT,E1,_,Exp,Path).
+
+typeOfActionExp(Lc,Stmts,Tp,Env,Ev,Action,Path) :-
+  findType("action",Lc,Env,ActionTp),
+  findType("either",Lc,Env,EitherTp),
+  getVar(Lc,"action",Env,_,ActFn),
+  newTypeVar("E",ErTp),
+  newTypeVar("X",ElTp),
+  applyTypeFun(ActionTp,[ElTp,ErTp],Env,MTp),
+  applyTypeFun(EitherTp,[ElTp,ErTp],Env,RTp),
+  checkType(Term,MTp,Tp,Env),
+  typeOfCanon(ActFn,ActConsTp),
+  LamTp = funType(tupleType([]),RTp),
+  dispType(LamTp),
+  checkType(Term,consType(tupleType([LamTp]),MTp),ActConsTp,Env),
+  dispType(ActConsTp),
+  lambdaLbl(Path,"∂",ActLbl),
+  checkAction(Stmts,Env,Ev,ActionTp,ElTp,ErTp,Act,Path),
+  Action = apply(Lc,ActFn,
+		 tple(Lc,
+		      [lambda(Lc,ActLbl,
+			      equation(Lc,tple(Lc,[]),none,
+				       doTerm(Lc,Act,RTp)),
+			      LamTp)]),Tp),
+  dispCanon(Action).
+
 
 typeOfIndex(Lc,Mp,Arg,Tp,Env,Ev,Exp,Path) :-
   isBinary(Arg,_,"->",Ky,Vl),!,
@@ -1107,9 +1127,10 @@ checkAction(Term,Env,Env,_AcTp,VlTp,ErTp,throwDo(Lc,Exp),Path) :-
   isThrow(Term,Lc,E),!,
   checkType(Term,tupleType([]),VlTp,Env),
   typeOfExp(E,ErTp,Env,_,Exp,Path).
-checkAction(Term,Env,Env,_AcTp,VlTp,_ErTp,valisDo(Lc,Reslt),Path) :-
-  isReturn(Term,Lc,Ex),!,
+checkAction(Term,Env,Env,ActTp,VlTp,ErTp,valisDo(Lc,Reslt,RTp),Path) :-
+  isValis(Term,Lc,Ex),!,
   typeOfExp(Ex,VlTp,Env,_,Exp,Path),
+  applyTypeFun(ActTp,[VlTp,ErTp],Env,RTp),
   processIterable(Env,Path,Exp,Reslt).
 checkAction(Term,Env,Env,AcTp,VlTp,ErTp,caseDo(Lc,Gov,Cases),Path) :-
   isCaseExp(Term,Lc,Gv,Cs),!,
@@ -1132,7 +1153,7 @@ checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,Exp,Path) :-
   checkAction(Stmt,Env,Ev,AcTp,VlTp,ErTp,Exp,Path).
 checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,simpleDo(Lc,Exp),Path) :-
   isRoundTerm(Term,Lc,_,_),!,
-  mkTypeExp(AcTp,[VlTp,ErTp],MTp),
+  applyTypeFun(AcTp,[VlTp,ErTp],Env,MTp),
   typeOfExp(Term,MTp,Env,Ev,Exp,Path).
 checkAction(Term,Env,Env,_,_,_,noDo(Lc),_) :-
   locOfAst(Term,Lc),
@@ -1472,7 +1493,7 @@ mkBoot(Env,Lc,Pkg,Dfs,[BootDef|Dfs]) :-
   findType("cons",Lc,Env,ConsTp),
   isVar("_main",Env,Spec),
   localName(Pkg,value,"_boot",BootNm),
-  applyTypeFun(ConsTp,[type("star.core*string")],Env,[],[],LSTp),
+  applyTypeFun(ConsTp,[type("star.core*string")],Env,LSTp),
   CmdVr = v(Lc,"CmdVr",LSTp),
   UnitTp = tupleType([]),
   MnTp = funType(tupleType([LSTp]),UnitTp),
