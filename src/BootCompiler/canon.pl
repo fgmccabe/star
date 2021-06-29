@@ -1,4 +1,4 @@
-:- module(canon,[dispFunction/3,
+:- module(canon,[dispFunction/3,dispCanon/1,
 		 ssCanonProg/2,ssTerm/3,ssAction/3,ssPkg/2,ssContract/3,
 		 dispDecls/1,
 		 typeOfCanon/2,splitPtn/3,locOfCanon/2,
@@ -132,6 +132,7 @@ typeOfCanon(overaccess(V,_,_),Tp) :- typeOfCanon(V,Tp).
 typeOfCanon(mtd(_,_,Tp),Tp) :-!.
 typeOfCanon(case(_,_,_,Tp),Tp) :- !.
 typeOfCanon(valof(_,_,Tp),Tp).
+typeOfCanon(doTerm(_,_,Tp),Tp).
 
 locOfCanon(v(Lc,_,_),Lc) :- !.
 locOfCanon(dot(Lc,_,_,_),Lc) :- !.
@@ -192,6 +193,9 @@ ssPkg(pkg(Nm,V),sq([ss(Nm)|Vs])) :-
 
 ssVersion(defltVersion,[]).
 ssVersion(ver(V),[ss(":"),ss(V)]).
+
+dispCanon(T) :-
+  displayln(canon:ssTerm(T,0)).
 
 ssTerm(v(_,Nm,_),_,id(Nm)).
 ssTerm(void,_,ss("void")).
@@ -272,7 +276,7 @@ ssTerm(neg(_,R),Dp,sq([lp,ss(" ~ "),RR,rp])) :-
   ssTerm(R,Dp,RR).
 ssTerm(doTerm(_,Body,_),Dp,sq([ss(" do "),AA])) :-
   ssAction(Body,Dp,AA).
-ssTerm(taskTerm(_,Body,_),Dp,sq([ss(" task "),AA])) :-
+ssTerm(taskTerm(_,Lbl,Body,_),Dp,sq([ss(" task ("),ss(Lbl),ss(")"),AA])) :-
   ssAction(Body,Dp,AA).
 ssTerm(valof(_,E,_),Dp,sq([ss("valof "),EE])) :-
   ssTerm(E,Dp,EE).
@@ -325,7 +329,7 @@ ssAction(tryCatchDo(_,Bdy,Hndlr),Dp,
   Dp2 is Dp+2,
   sTerm(Hndlr,Dp2,HH),
   ssAction(Bdy,Dp2,BB).
-ssAction(valisDo(_,Exp),Dp,sq([ss("valis "),EE])) :-
+ssAction(valisDo(_,Exp,_),Dp,sq([ss("valis "),EE])) :-
   ssTerm(Exp,Dp,EE).
 ssAction(throwDo(_,Exp),Dp,sq([ss("throw "),EE])) :-
   ssTerm(Exp,Dp,EE).

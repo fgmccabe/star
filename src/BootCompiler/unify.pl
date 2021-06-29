@@ -1,5 +1,5 @@
 :- module(unify,[sameType/3,faceOfType/3,sameContract/3,
-    simplifyType/5,applyTypeFun/6]).
+    simplifyType/5,applyTypeFun/6,applyTypeFun/4]).
 
 :- use_module(misc).
 :- use_module(canon).
@@ -324,6 +324,9 @@ occIn(Id,existType(V,Tp)) :- V\=kVar(Id),occIn(Id,Tp).
 occIn(Id,allType(V,Tp)) :- V\=kVar(Id),occIn(Id,Tp).
 occIn(Id,faceType(L,_)) :- is_member((_,A),L), occIn(Id,A),!.
 occIn(Id,faceType(_,T)) :- is_member((_,A),T), occIn(Id,A),!.
+
+applyTypeFun(Fn,Args,Env,Tp) :-
+  applyTypeFun(Fn,Args,Env,[],[],Tp).
 
 applyTypeFun(Lam,Args,Env,C,Cx,Tp) :-
   freshen(Lam,Env,_,Lm),

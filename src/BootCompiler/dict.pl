@@ -232,14 +232,14 @@ stdDict(Base) :-
   stdType("string",StrTp,StpEx),
   stdType("float",FltTp,FtEx),
   stdType("file",FileTp,FileEx),
-  stdType("action",ActionTp,ActionEx),
+%  stdType("action",ActionTp,ActionEx),
   stdType("task",TaskTp,TaskEx),
   declareType("string",tpDef(std,StrTp,StpEx),B,B0),
   declareType("integer",tpDef(std,IntTp,ITpEx),B0,B1),
   declareType("float",tpDef(std,FltTp,FtEx),B1,B2),
   declareType("file",tpDef(std,FileTp,FileEx),B2,B3),
-  declareType("action",tpDef(std,ActionTp,ActionEx),B3,B4),
-  declareType("task",tpDef(std,TaskTp,TaskEx),B4,Bx),
+%  declareType("action",tpDef(std,ActionTp,ActionEx),B3,B4),
+  declareType("task",tpDef(std,TaskTp,TaskEx),B3,Bx),
   Bx=Base.
 
 dispDictLvl(dict(Types,Nms,_Cns,Impls,Accs,Contracts),Cx,

@@ -23,8 +23,8 @@
 	      isForall/4,isNegation/3,isMatch/4,isSearch/4,
 	      isAbstraction/4,isListAbstraction/4,
 	      isCaseExp/4,
-	      isDoTerm/3,isDoTerm/2,isDoTerm/1,isTaskTerm/3,isActionTerm/3,isScriptTerm/3,
-	      isBind/4,isValof/3,isPerform/3,isThrow/3,isReturn/3,isIgnore/3,
+	      isTaskTerm/3,isActionTerm/3,isScriptTerm/3,
+	      isBind/4,isValof/3,isPerform/3,isThrow/3,isValis/3,isIgnore/3,
 	      isTryCatch/4,
 	      isIfThenElse/5,isIfThen/4,isWhileDo/4,isUntilDo/4,isForDo/4,
 	      isActionSeq/4,isActionSeq/3,
@@ -521,16 +521,6 @@ mergeCond(L,R,_,L) :- isEnum(R,_,"true"),!.
 mergeCond(L,R,Lc,Cnd) :-
   binary(Lc,"&&",L,R,Cnd).
 
-isDoTerm(A,Lc,Stmts) :-
-  isUnary(A,Lc,"do",R),
-  isBraceTuple(R,_,[Stmts]),!.
-
-isDoTerm(A,Lc) :-
-  isUnary(A,Lc,"do",_),!.
-
-isDoTerm(A) :-
-  isUnary(A,_,"do",_),!.
-
 isActionTerm(A,Lc,Stmts) :-
   isBrace(A,Lc,"action",[Stmts]).
 
@@ -543,7 +533,7 @@ isScriptTerm(A,Lc,Stmts) :-
 isBind(T,Lc,B,E) :-
   isBinary(T,Lc,"<-",B,E),!.
 
-isReturn(A,Lc,E) :-
+isValis(A,Lc,E) :-
   (isUnary(A,Lc,"valis",E) ; isUnary(A,Lc,"return",E)),!.
 
 isValof(A,Lc,E) :-

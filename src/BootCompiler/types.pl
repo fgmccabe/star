@@ -7,7 +7,7 @@
 	   isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
 	   isFunctionType/1,isFunctionType/2,isCnsType/2,
 	   isProgramType/1,isFixedSizeType/1,
-	   ssConstraint/4,ssType/4,
+	   ssConstraint/4,ssType/4,dispType/1,
 	   contractType/2,contractTypes/2,
 	   isUnbound/1,isBound/1,isUnboundFVar/2, isIdenticalVar/2,
 	   moveQuants/3,reQuantTps/3,
@@ -17,6 +17,7 @@
 	   mkTypeRule/3,
 	   stdType/3]).
 :- use_module(misc).
+:- use_module(display).
 
 isType(anonType).
 isType(voidType).
@@ -154,6 +155,10 @@ mvConstraints(Tp,Cx,Cx,Tp).
 putConstraints([],Tp,Tp).
 putConstraints([Con|Cx],In,constrained(Tp,Con)) :-
   putConstraints(Cx,In,Tp).
+
+dispType(Tp) :-
+  ssType(Tp,false,0,TT),
+  displayln(TT).
 
 ssType(anonType,_,_,ss("_")).
 ssType(voidType,_,_,ss("void")).
@@ -424,13 +429,14 @@ stdType("string",type("star.core*string"),typeExists(type("star.core*string"),fa
 stdType("package",type("star.pkg*pkg"),typeExists(type("star.pkg*pkg"),faceType([],[]))).
 stdType("version",type("star.pkg*version"),typeExists(type("star.pkg*version"),faceType([],[]))).
 stdType("file",type("star.file*fileHandle"),typeExists(type("star.file*fileHandle"),faceType([],[]))).
-stdType("action",
+/*stdType("action",
 	tpFun("star.core*action",2),
 	allType(kVar("a"),
 		allType(kVar("e"),
 			typeExists(tpExp(tpExp(tpFun("star.core*action",2),kVar("a")),
 					 kVar("e")),
 				   faceType([],[]))))).
+  */
 stdType("task",
 	tpFun("star.core*task",2),
 	allType(kVar("a"),
