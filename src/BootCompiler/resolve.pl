@@ -234,7 +234,7 @@ overloadAction(forDo(Lc,Tst,Body),Dict,St,Stx,forDo(Lc,RTst,RBody)) :-
 overloadAction(tryCatchDo(Lc,Body,Hndlr),Dict,St,Stx,tryCatchDo(Lc,RBody,RHndlr)) :-
   overloadAction(Body,Dict,St,St1,RBody),
   overloadTerm(Hndlr,Dict,St1,Stx,RHndlr).
-overloadAction(valisDo(Lc,Exp),Dict,St,Stx,valisDo(Lc,RExp)) :-
+overloadAction(valisDo(Lc,Exp,Tp),Dict,St,Stx,valisDo(Lc,RExp,Tp)) :-
   overloadTerm(Exp,Dict,St,Stx,RExp).
 overloadAction(throwDo(Lc,Exp),Dict,St,Stx,throwDo(Lc,RExp)) :-
   overloadTerm(Exp,Dict,St,Stx,RExp).
