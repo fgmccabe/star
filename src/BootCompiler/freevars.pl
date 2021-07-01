@@ -55,6 +55,46 @@ freeVars(letRec(_,_,Defs,Bnd),Ex,Q,F,Fv) :-
 freeVars(case(_,Gov,Cses,_),Ex,Q,F,Fv) :-
   freeVars(Gov,Ex,Q,F,F0),
   freeVarsInRules(Cses,Ex,Q,F0,Fv).
+freeVars(doTerm(_,A,_),Ex,Q,F,Fv) :-
+  freeActionVars(A,Ex,Q,F,Fv).
+
+freeActionVars(seqDo(_,A,B),Ex,Q,F,Fv) :-
+  freeActionVars(A,Ex,Q,F,F0),
+  freeActionVars(B,Ex,Q,F0,Fv).
+freeActionVars(varDo(_,P,E),Ex,Q,F,Fv) :-
+  ptnVars(P,freevars:addFrVar,Ex,Ex1),
+  freeVars(E,Ex1,Q,F,Fv).
+freeActionVars(ifThenDo(_,G,Th,El),Ex,Q,F,Fv) :-
+  ptnGoalVars(G,freevars:addFrVar,Ex,E1),
+  freeVars(G,E1,Q,F,F0),
+  freeActionVars(Th,E1,Q,F0,F1),
+  freeActionVars(El,Ex,Q,F1,Fv).
+freeActionVars(whileDo(_,G,B),Ex,Q,F,Fv) :-
+  ptnGoalVars(G,freevars:addFrVar,Ex,E1),
+  freeVars(G,E1,Q,F,F0),
+  freeActionVars(B,E1,Q,F0,Fv).
+freeActionVars(untilDo(_,G,B),Ex,Q,F,Fv) :-
+  ptnGoalVars(G,freevars:addFrVar,Ex,E1),
+  freeVars(G,E1,Q,F,F0),
+  freeActionVars(B,E1,Q,F0,Fv).
+freeActionVars(forDo(_,G,B),Ex,Q,F,Fv) :-
+  ptnGoalVars(G,freevars:addFrVar,Ex,E1),
+  freeVars(G,E1,Q,F,F0),
+  freeActionVars(B,E1,Q,F0,Fv).
+freeActionVars(caseDo(_,Gov,Cses,_,_),Ex,Q,F,Fv) :-
+  freeVars(Gov,Ex,Q,F,F0),
+  freeVarsInRules(Cses,Ex,Q,F0,Fv).
+freeActionVars(tryCatchDo(_,A,H),Ex,Q,F,Fv) :-
+  freeActionVars(A,Ex,Q,F,F0),
+  freeVars(H,Ex,Q,F0,Fv).
+freeActionVars(valisDo(_,Exp,_),Ex,Q,F,Fv) :-
+  freeVars(Exp,Ex,Q,F,Fv).
+freeActionVars(throwDo(_,Exp,_),Ex,Q,F,Fv) :-
+  freeVars(Exp,Ex,Q,F,Fv).
+freeActionVars(performDo(_,Exp,_),Ex,Q,F,Fv) :-
+  freeVars(Exp,Ex,Q,F,Fv).
+freeActionVars(simpleDo(_,A,_),Ex,Q,F,Fv) :-
+  freeActionVars(A,Ex,Q,F,Fv).
   
 definedVars(Defs,Q,Qx) :-
   varsInList(Defs,freevars:defVar,Q,Qx).

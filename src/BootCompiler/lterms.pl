@@ -299,7 +299,8 @@ rewriteTerm(QTest,ng(Lc,R),ng(Lc,NR)) :-
   rewriteTerm(QTest,R,NR).
 rewriteTerm(QTest,doAct(Lc,A),doAct(Lc,AA)) :-
   rewriteAction(QTest,A,AA),!.
-rewriteTerm(_,error(Lc,M),error(Lc,strg(M))) :-!.
+rewriteTerm(QTest,error(Lc,M),error(Lc,MM)) :-!,
+  rewriteTerm(QTest,M,MM).
 
 rewriteTerms(QTest,Els,NEls):-
   map(Els,lterms:rewriteTerm(QTest),NEls).

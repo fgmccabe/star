@@ -1,6 +1,11 @@
 test.cn1{
   import test.cn0.
 
+  _perform:all a,e ~~ (action[a,e]) => a.
+  _perform(action(F)) => case F() in {
+    either(R) => R
+  }
+
   public dblInt:(integer)=>integer.
   dblInt(X) => plus(X,X).
 

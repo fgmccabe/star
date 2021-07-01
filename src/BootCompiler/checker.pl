@@ -40,8 +40,8 @@ checkProgram(Prog,Pkg,Repo,_Opts,PkgDecls,Canon) :-
 %  dispEnv(OEnv),
   overload(Lc,Defs,OEnv,_Dict,ODefs),
   completePublic(Public,Public,FllPb,Pk),
-  packageExport(ODefs,FllPb,ExportDecls,LDecls,XDefs),
-  mkBoot(OEnv,Lc,Pk,XDefs,PkgDefs),
+  packageExport(ODefs,FllPb,EDecls,LDecls,XDefs),
+  mkBoot(OEnv,Lc,Pk,XDefs,PkgDefs,EDecls,ExportDecls),
   Canon=prog(Pkg,Imports,ExportDecls,LDecls,PkgDefs),
   concat(ExportDecls,IDecls,D0),
   concat(LDecls,D0,PkgDecls).
@@ -1489,7 +1489,7 @@ exportAcc(Tp,Export) :-
    splitLocalName(TpNm,CnMrkr,_,Nm),
    call(Export,con(Nm))),!.
 
-mkBoot(Env,Lc,Pkg,Dfs,[BootDef|Dfs]) :-
+mkBoot(Env,Lc,Pkg,Dfs,[BootDef|Dfs],Decls,[funDec("_boot",BootNm,BootTp)|Decls]) :-
   findType("cons",Lc,Env,ConsTp),
   isVar("_main",Env,Spec),
   localName(Pkg,value,"_boot",BootNm),
@@ -1498,8 +1498,9 @@ mkBoot(Env,Lc,Pkg,Dfs,[BootDef|Dfs]) :-
   UnitTp = tupleType([]),
   MnTp = funType(tupleType([LSTp]),UnitTp),
   typeOfVar(Lc,"_main",MnTp,Spec,Env,_Ev,MainTrm),
+  BootTp = funType(tupleType([LSTp]),UnitTp),
   BootEqn = equation(Lc,tple(Lc,[CmdVr]),none,
 		     apply(Lc,MainTrm,
 			   tple(Lc,[CmdVr]),UnitTp)),
-  BootDef = funDef(Lc,"_boot",BootNm,funType(tupleType([LSTp]),UnitTp),[],[BootEqn]).
-mkBoot(_Env,_,_,Dfs,Dfs).
+  BootDef = funDef(Lc,"_boot",BootNm,BootTp,[],[BootEqn]).
+mkBoot(_Env,_,_,Dfs,Dfs,Decls,Decls).
