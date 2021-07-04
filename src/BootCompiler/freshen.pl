@@ -11,10 +11,6 @@ freshen(Tp,Env,Bx,FTp) :-
   freshQuants(T,[],Bx,T0),
   freshn(T0,Env,Bx,[],FTp),!.
 
-freshenConstraint(Q,Qx,Con,E,FCon) :-
-  boundVars(Q,Qx),
-  frshnConstraint(Con,bind,E,Qx,FCon).
-
 boundVars([],[]).
 boundVars([kVar(V)|L],[(V,TV)|Lx]) :- newTypeVar(V,TV),
   boundVars(L,Lx).
@@ -76,7 +72,7 @@ frshn(funType(A,R),E,B,Ex,funType(FA,FR)) :-
 frshn(consType(A,R),E,B,Ex,consType(FA,FR)) :-
   rewriteType(A,E,B,Ex,FA),
   rewriteType(R,E,B,Ex,FR).
-frshn(tupleType(L),E,B,Ex,tupleType(FL)) :- rewriteTypes(L,E,B,Ex,FL).
+frshn(tplType(L),E,B,Ex,tplType(FL)) :- rewriteTypes(L,E,B,Ex,FL).
 frshn(tpExp(O,A),E,B,Ex,tpExp(FO,FA)) :- rewriteType(O,E,B,Ex,FO),rewriteType(A,E,B,Ex,FA).
 frshn(allType(V,Tp),E,B,Ex,allType(V,FTp)) :-
   rewriteType(Tp,E,B,[V|Ex],FTp).

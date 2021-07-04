@@ -105,9 +105,6 @@ showTrm(C,O) :-
   isConstraint(C),!,
   ss_to_chrs(types:ssConstraint(false,0,C),O,[]).
 showTrm(T,O) :-
-  isAction(T),!,
-  ss_to_chrs(canon:ssAction(T,0),O,[]).
-showTrm(T,O) :-
   isCanon(T),!,
   ss_to_chrs(canon:ssTerm(T,0),O,[]).
 showTrm(T,O) :-

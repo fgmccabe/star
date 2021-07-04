@@ -1,5 +1,6 @@
-:- module(do,[genAction/3,genPerform/6,genRtn/7,genReturn/7,genIterableGl/4]).
+:- module(do,[genPerform/6,genRtn/7,genReturn/7,genIterableGl/4]).
 
+:- use_module(abstract).
 :- use_module(misc).
 :- use_module(canon).
 :- use_module(types).
@@ -8,10 +9,6 @@
 :- use_module(errors).
 
 /* Implement the monadic transformation of do expressions */
-
-genAction(Act,Exp,Path) :-
-  locOfCanon(Act,Lc),!,
-  genAction(Act,_Contract,noDo(Lc),Exp,Path).
 
 genAction(seqDo(_,A,B),Contract,Cont,Exp,Path) :-
 	genAction(B,Contract,Cont,RR,Path),
@@ -31,14 +28,14 @@ genAction(tryCatchDo(Lc,Bdy,Hndlr,ExTp,ValTp,ErTp),Contract,Cont,Exp,Path) :-
   mkTypeExp(ExTp,[ErTp,ValTp],ConTp),
   genAction(Bdy,Contract,noDo(Lc),Body,Path),
   typeOfCanon(Body,BType),
-  H = over(Lc,mtd(Lc,"_handle",funType(tupleType([BType,HType]),ConTp)),
+  H = over(Lc,mtd(Lc,"_handle",funType(tplType([BType,HType]),ConTp)),
 	      true,[conTract(Contract,[ExTp],[])]),
   HB = apply(Lc,H,tple(Lc,[Body,Hndlr]),ConTp),
   combineActs(Lc,HB,Cont,Contract,ExTp,ErTp,Exp).
 genAction(throwDo(Lc,A,ExTp,VlTp,ErTp),Contract,_Cont,
 	  apply(Lc,Gen,tple(Lc,[A]),Tp),_) :-
   mkTypeExp(ExTp,[ErTp,VlTp],Tp),		% monadic type of thrown value
-  Gen = over(Lc,mtd(Lc,"_raise",funType(tupleType([ErTp]),Tp)),
+  Gen = over(Lc,mtd(Lc,"_raise",funType(tplType([ErTp]),Tp)),
 	     true,[conTract(Contract,[ExTp],[])]).
 genAction(performDo(Lc,Ex,ExTp,VlTp,ErTp),Contract,Cont,Exp,_) :-!,
   genReturn(Lc,Ex,ExTp,VlTp,ErTp,Contract,Perf),
@@ -69,9 +66,9 @@ genAction(whileDo(Lc,Ts,Body,StTp,ErTp),Contract,Cont,Exp,Path) :-
   genNewName(Path,"lp",ThPath),
   genstr("loop",Fn),
   Unit = tple(Lc,[]),
-  UnitTp = tupleType([]),
+  UnitTp = tplType([]),
   mkTypeExp(StTp,[ErTp,UnitTp],LpTp),
-  FnTp = funType(tupleType([]),LpTp),
+  FnTp = funType(tplType([]),LpTp),
   genAction(seqDo(Lc,
 		  Body,
 		  simpleDo(Lc,apply(Lc,v(Lc,Fn,FnTp),Unit,LpTp),StTp,ErTp)),
@@ -89,10 +86,10 @@ genAction(untilDo(Lc,Ts,Body,StTp,ErTp),Contract,Cont,Exp,Path) :-
   packageVarName(Path,"loop",LclName),
   genNewName(Path,"lp",ThPath),
   genstr("loop",Fn),
-  UnitTp = tupleType([]),
+  UnitTp = tplType([]),
   Unit = tple(Lc,[]),
   mkTypeExp(StTp,[ErTp,UnitTp],LpTp),
-  FnTp = funType(tupleType([]),LpTp),
+  FnTp = funType(tplType([]),LpTp),
   genAction(seqDo(Lc,
 		  Body,
 		  ifThenDo(Lc,Ts,
@@ -114,7 +111,7 @@ genAction(untilDo(Lc,Ts,Body,StTp,ErTp),Contract,Cont,Exp,Path) :-
 */
 genAction(forDo(Lc,Tst,Body,StTp,ErTp),Contract,Cont,Exp,Path) :-
   Unit = tple(Lc,[]),
-  UnitTp = tupleType([]),
+  UnitTp = tplType([]),
   genReturn(Lc,Unit,StTp,UnitTp,ErTp,Contract,Zed),
   genAction(Body,Contract,Zed,IterBody,Path),
   genCondition(Tst,Path,
@@ -154,7 +151,7 @@ genUse(_Lc,_StTp,_ErTp,_Contract,Exp,_,Exp).
 
 genUnit(Lc,ExTp,ErTp,Contract,RtnUnit) :-
   Unit = tple(Lc,[]),
-  UnitTp = tupleType([]),
+  UnitTp = tplType([]),
   genReturn(Lc,Unit,ExTp,UnitTp,ErTp,Contract,RtnUnit).
 
 genRtn(_Lc,_,_,_,_,lifted(Exp),Exp).
@@ -163,12 +160,12 @@ genRtn(Lc,ExTp,VlTp,ErTp,Contract,unlifted(St),Exp) :-
 
 genReturn(Lc,A,ExTp,VlTp,ErTp,Contract,apply(Lc,Gen,tple(Lc,[A]),MTp)) :-
   mkTypeExp(ExTp,[ErTp,VlTp],MTp),		% monadic type of returned value
-  Gen = over(Lc,mtd(Lc,"_valis",funType(tupleType([VlTp]),MTp)),
+  Gen = over(Lc,mtd(Lc,"_valis",funType(tplType([VlTp]),MTp)),
 	     true,[conTract(Contract,[ExTp],[])]).
 
 genPerform(Lc,A,Tp,ExTp,Contract,apply(Lc,Perf,tple(Lc,[A]),Tp)) :-
   typeOfCanon(A,MdTp),!,
-  Perf = over(Lc,mtd(Lc,"_perform",funType(tupleType([MdTp]),Tp)),
+  Perf = over(Lc,mtd(Lc,"_perform",funType(tplType([MdTp]),Tp)),
 	      true,[conTract(Contract,[ExTp],[])]).
 %  reportMsg("perform -> %s",[Perf]).
 
@@ -180,9 +177,9 @@ genForBody(Lc,StTp,VlTp,ErTp,Contract,IterBody,St,Exp) :-
 genSeq(Lc,Path,ExStTp,ErTp,Contract,St,Init,Reslt,Exp) :-
   typeOfCanon(St,ATp),
   mkTypeExp(ExStTp,[ErTp,ATp],MdTp),
-  LTp = funType(tupleType([ATp]),MdTp),
+  LTp = funType(tplType([ATp]),MdTp),
   Lam = lambda(Lc,LamLbl,equation(Lc,tple(Lc,[St]),none,Reslt),LTp),
-  Gen = over(Lc,mtd(Lc,"_sequence",funType(tupleType([MdTp,LTp]),MdTp)),
+  Gen = over(Lc,mtd(Lc,"_sequence",funType(tplType([MdTp,LTp]),MdTp)),
 	     true,[conTract(Contract,[ExStTp],[])]),
   genRtn(Lc,ExStTp,ATp,ErTp,Contract,Init,Initial),
   Exp = apply(Lc,Gen,tple(Lc,[Initial,Lam]),MdTp),
@@ -195,10 +192,10 @@ combineActs(_,A1,noDo(_),_Contract,_,_,A1) :-!.
 combineActs(Lc,A1,Cont,Contract,StTp,_ErTp,Exp) :-
   typeOfCanon(Cont,ConTp),
   anonVar(Lc,Anon,ATp),
-  LTp = funType(tupleType([ATp]),ConTp),
+  LTp = funType(tplType([ATp]),ConTp),
   typeOfCanon(A1,A1Tp),
   Lam = lambda(Lc,equation(Lc,tple(Lc,[Anon]),none,Cont),LTp),
-  Gen = over(Lc,mtd(Lc,"_sequence",funType(tupleType([A1Tp,LTp]),ConTp)),
+  Gen = over(Lc,mtd(Lc,"_sequence",funType(tplType([A1Tp,LTp]),ConTp)),
 	     true,[conTract(Contract,[StTp],[])]),
   Exp = apply(Lc,Gen,tple(Lc,[A1,Lam]),ConTp).
 
@@ -222,18 +219,18 @@ genIterableGl(Cond,Contract,Path,match(Lc,Ptn,Gl)) :-
   VTpl = tple(Lc,Vrs),
   typeOfCanon(VTpl,VlTp),
 
-  UnitTp = tupleType([]),
+  UnitTp = tplType([]),
 
   mkTypeExp(OptionTp,[VlTp],OptTp),
   mkTypeExp(EitherTp,[UnitTp,OptTp],MTp),
 
-  Unit = apply(Lc,v(Lc,"either",funType(tupleType([OptTp]),MTp)),
+  Unit = apply(Lc,v(Lc,"either",funType(tplType([OptTp]),MTp)),
 	       tple(Lc,[enm(Lc,"none",OptTp)]),MTp),
 
   genReturn(Lc,Unit,EitherTp,OptTp,UnitTp,Contract,Zed),
 
-  Ptn = apply(Lc,v(Lc,"either",funType(tupleType([OptTp]),MTp)),
-	      tple(Lc,[apply(Lc,v(Lc,"some",funType(tupleType([VlTp]),OptTp)),
+  Ptn = apply(Lc,v(Lc,"either",funType(tplType([OptTp]),MTp)),
+	      tple(Lc,[apply(Lc,v(Lc,"some",funType(tplType([VlTp]),OptTp)),
 			    tple(Lc,[VTpl]),OptTp)]),MTp),
   
   genCondition(Cond,Path,

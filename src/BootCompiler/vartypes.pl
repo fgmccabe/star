@@ -1,6 +1,5 @@
 :- module(vartypes,[typeOfVar/7,
-		    declareEnum/6,
-		    declareCns/6,declareMtd/5]).
+		    declareMtd/5]).
 
 :- use_module(abstract).
 :- use_module(freshen).
@@ -33,14 +32,8 @@ checkType(Ast,S,T,_) :-
 
 declareMtd(Lc,Nm,Tp,Env,Ev) :-
   declareVar(Nm,vrEntry(Lc,vartypes:mkMtd(Nm),Tp),Env,Ev).
-declareEnum(Lc,Nm,FullNm,Tp,Env,Ev) :-
-  declareVar(Nm,vrEntry(Lc,vartypes:mkEnum(FullNm),Tp),Env,Ev).
-declareCns(Lc,Nm,FullNm,Tp,Env,Ev) :-
-  declareVar(Nm,vrEntry(Lc,vartypes:mkCns(FullNm),Tp),Env,Ev).
 
 mkMtd(Nm,Lc,Tp,mtd(Lc,Nm,Tp)).
-mkCns(Nm,Lc,Tp,cons(Lc,Nm,Tp)).
-mkEnum(Nm,Lc,Tp,enm(Lc,Nm,ETp)) :- netEnumType(Tp,ETp).
 
 gtType(Tp,Env,Type) :-
   freshen(Tp,Env,_,Type).

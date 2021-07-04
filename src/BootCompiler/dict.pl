@@ -1,6 +1,7 @@
 :- module(dict,[declareType/4,isType/3,
 		declareTypeVars/4,isTypeVar/3,
 		declareVar/4,declareVr/5,declareField/6,
+		declareEnum/6,declareCns/6,
 		mkVr/4,isVar/3,getVar/5,
 		currentVar/3,restoreVar/4,
 		declareContract/4,getContract/3,
@@ -64,13 +65,20 @@ getVar(Lc,Nm,Env,Ev,Vr) :-
   call(MkTrm,Lc,ViTp,VExp),
   manageConstraints(Cx,Lc,VExp,Vr).
 
+declareEnum(Lc,Nm,FullNm,Tp,Env,Ev) :-
+  declareVar(Nm,vrEntry(Lc,dict:mkEnum(FullNm),Tp),Env,Ev).
+
+declareCns(Lc,Nm,FullNm,Tp,Env,Ev) :-
+  declareVar(Nm,vrEntry(Lc,dict:mkCns(FullNm),Tp),Env,Ev).
+
+mkCns(Nm,Lc,Tp,cons(Lc,Nm,Tp)).
+mkEnum(Nm,Lc,Tp,enm(Lc,Nm,ETp)) :- netEnumType(Tp,ETp).
+
 manageConstraints([],_,Exp,Exp).
 manageConstraints([implementsFace(TV,Fc)|Cx],Lc,Term,Exp) :-
   manageConstraints(Cx,Lc,overaccess(Term,TV,Fc),Exp).
 manageConstraints([Con|Cx],Lc,V,over(Lc,V,Tp,[Con|Cx])) :-
   typeOfCanon(V,Tp).
-
-mkEnum(Nm,Lc,Tp,enm(Lc,Nm,Tp)).
 
 mkVr(Nm,Lc,Tp,v(Lc,Nm,Tp)).
 noFace(_,faceType([],[])).
@@ -231,6 +239,7 @@ stdDict(Base) :-
   stdType("integer",IntTp,ITpEx),
   stdType("string",StrTp,StpEx),
   stdType("float",FltTp,FtEx),
+  stdType("cons",ConsTp,ConsEx),
   stdType("file",FileTp,FileEx),
 %  stdType("action",ActionTp,ActionEx),
   stdType("task",TaskTp,TaskEx),
@@ -238,8 +247,19 @@ stdDict(Base) :-
   declareType("integer",tpDef(std,IntTp,ITpEx),B0,B1),
   declareType("float",tpDef(std,FltTp,FtEx),B1,B2),
   declareType("file",tpDef(std,FileTp,FileEx),B2,B3),
+  declareType("cons",tpDef(std,ConsTp,ConsEx),B3,B4),
+/*  declareEnum(std,"nil","star.core#nil",
+	      allType(kVar("e"),
+		      consType(tplType([]),
+			       tpExp(tpFun("star.core*cons",1),kVar("e")))),B4,B5),
+  declareCns(std,"cons","star.core#cons",
+	      allType(kVar("e"),
+		      consType(tplType([kVar("e"),
+					tpExp(tpFun("star.core*cons",1),kVar("e"))]),
+			       tpExp(tpFun("star.core*cons",1),kVar("e")))),B5,B6),
+    */
 %  declareType("action",tpDef(std,ActionTp,ActionEx),B3,B4),
-  declareType("task",tpDef(std,TaskTp,TaskEx),B3,Bx),
+  declareType("task",tpDef(std,TaskTp,TaskEx),B4,Bx),
   Bx=Base.
 
 dispDictLvl(dict(Types,Nms,_Cns,Impls,Accs,Contracts),Cx,

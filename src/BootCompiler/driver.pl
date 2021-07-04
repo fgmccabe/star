@@ -1,4 +1,4 @@
-:- module(driver,[main/1,test/1,openR/5]).
+:- module(driver,[main/1,openR/5]).
 
 /* Logic and Object compiler driver */
 
@@ -127,7 +127,7 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
   locateResource(SrcUri,Src),
   parseFile(Pkg,Src,Term),!,
   noErrors,
-  (is_member(showAst,Opts) -> astDisp(Term) ; true),
+  (is_member(showAst,Opts) -> dispAst(Term) ; true),
   checkProgram(Term,Pkg,Repo,Opts,PkgDecls,Canon),!,
   (is_member(showTCCode,Opts) ->
    displayln(canon:ssCanonProg(Canon));true),
@@ -148,7 +148,7 @@ processStdin(Pkg,Repo,Opts) :-
   readStdinput(Src),
   parseFile(Pkg,Src,Term),!,
   noErrors,
-  checkProgram(Term,Pkg,Repo,Opts,_Prog),!.
+  checkProgram(Term,Pkg,Repo,Opts,_,_Prog),!.
 
 packageVersion(Opts,ver(Vers)) :-
   is_member(ver(Vers),Opts),!.
@@ -157,10 +157,6 @@ packageVersion(_,defltVersion).
 parseFile(Pkg,Txt,Term) :-
   allTokens(Pkg,Txt,Toks),
   parse(Toks,Term,_), !.
-
-test(Fl) :-
-  getCWDUri(CWD),
-  processFile(Fl,CWD,[/*debugging*/]).
 
 getSrcUri(Fl,WD,FU,FUri) :-
   parseURI(Fl,FU),

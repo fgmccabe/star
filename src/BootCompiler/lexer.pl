@@ -1,6 +1,7 @@
 :- module(lexer,[nextToken/3,allTokens/3,locOfToken/2,isToken/1,showToken/2,subTokenize/3]).
 :- use_module(operators).
 :- use_module(errors).
+:- use_module(location).
 :- use_module(misc).
 
 /* tokenState(text,currLine,currOff,currPos,PkNm) */

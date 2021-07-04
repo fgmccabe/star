@@ -3,7 +3,7 @@
 		     parseContract/6,parseTypeDef/6,
 		     typeTemplate/3,
 		     parseContractConstraint/6,
-		     genBraceType/6,buildBraceAccessors/6]).
+		     genBraceType/6,buildBraceAccessors/8]).
 
 :- use_module(abstract).
 :- use_module(canon).
@@ -62,14 +62,14 @@ parseType(F,Env,B,C,Cx,valType(Tp)) :-
   isValType(F,Lc,T),!,
   parseType(T,Env,B,C,Cx,Tp),
   (isFixedSizeType(Tp) -> true ; reportError("val type %s must be known size",[Tp],Lc)).
-parseType(T,Env,B,C0,Cx,tupleType(AT)) :-
+parseType(T,Env,B,C0,Cx,tplType(AT)) :-
   isTuple(T,[A]),
   isTuple(A,Inner),!,
   parseTypes(Inner,Env,B,C0,Cx,AT).
 parseType(T,Env,B,C0,Cx,AT) :-
   isTuple(T,[A]),!,
   parseType(A,Env,B,C0,Cx,AT).
-parseType(T,Env,B,C0,Cx,tupleType(AT)) :-
+parseType(T,Env,B,C0,Cx,tplType(AT)) :-
   isTuple(T,A),!,
   parseTypes(A,Env,B,C0,Cx,AT).
 parseType(T,Env,B,Cx,Cx,faceType(AT,FT)) :-
@@ -98,7 +98,7 @@ parseType(T,_,_,Cx,Cx,anonType) :-
   locOfAst(T,Lc),
   reportError("cannot understand type %s",[T],Lc).
 
-parseArgType(T,Env,Q,C,Cx,tupleType(AT)) :-
+parseArgType(T,Env,Q,C,Cx,tplType(AT)) :-
   isTuple(T,A),!,
   parseTypes(A,Env,Q,C,Cx,AT).
 parseArgType(T,Env,Q,C,Cx,Tp) :-
@@ -116,12 +116,12 @@ parseTypeName(_,Id,Env,_,C,C,Tp) :-
   isType(Id,Env,tpDef(_,T,TpDf)),
   (isTypeLam(TpDf) ->
    freshen(TpDf,Env,_,TpL),
-   (TpL=typeLambda(tupleType([]),Tp) ; Tp = TpL);
+   (TpL=typeLambda(tplType([]),Tp) ; Tp = TpL);
    Tp=T).
 parseTypeName(Lc,Id,_,_,C,C,anonType) :-
   reportError("type %s not declared",[Id],Lc).
 
-doTypeFun(_,typeLambda(tupleType([]),Tp),[],_,Cx,Cx,Tp) :-!. % special case
+doTypeFun(_,typeLambda(tplType([]),Tp),[],_,Cx,Cx,Tp) :-!. % special case
 doTypeFun(_,Op,[],_,Cx,Cx,Op).
 doTypeFun(Lc,typeLambda(L,R),[A|Args],Env,C,Cx,Tp) :-
   sameType(L,A,Env),
@@ -200,10 +200,10 @@ parseContractConstraint(Quants,Cons,Sq,Env,Op,ConSpec) :-
   parseConstraints(Cons,Env,Q,C0,[]),
   parseContractArgs(Args,Env,Q,C0,C1,ArgTps,Deps),
   ( parseContractName(Lc,N,Env,Q,contractExists(conTract(Op,ATs,Dps),IFace)) ->
-      ( sameType(tupleType(ATs),tupleType(ArgTps),Env),
-        simplifyType(tupleType(ATs),Env,C1,C2,tupleType(As)),
-        sameType(tupleType(Dps),tupleType(Deps),Env) ->
-          simplifyType(tupleType(Dps),Env,C2,Cx,tupleType(Ds)),
+      ( sameType(tplType(ATs),tplType(ArgTps),Env),
+        simplifyType(tplType(ATs),Env,C1,C2,tplType(As)),
+        sameType(tplType(Dps),tplType(Deps),Env) ->
+          simplifyType(tplType(Dps),Env,C2,Cx,tplType(Ds)),
           putConstraints(Cx,contractExists(conTract(Op,As,Ds),IFace),CC),
           reQuant(Q,CC,ConSpec);
           reportError("implementation does not match contract %s",[Op],Lc),
@@ -314,7 +314,7 @@ genAccessors(Lc,Q,Cx,Path,TpNm,Tp,[(Fld,FldTp)|ElTps],AllElTps,Body,Defs,Dfx) :-
 genAccessor(Lc,Q,Cx,Path,TpNm,Tp,Fld,FldTp,Tp,AllElTps,Body,
 	    [Impl,ImplDef|Defs],Defs) :-
   localName(TpNm,field,Fld,AccName),
-  putConstraints(Cx,funType(tupleType([Tp]),FldTp),CxFunTp),
+  putConstraints(Cx,funType(tplType([Tp]),FldTp),CxFunTp),
   reQuant(Q,CxFunTp,AccFunTp),
   accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,[]),
   Impl = accDef(Tp,Fld,AccName,AccFunTp),
@@ -352,11 +352,11 @@ fillinElementPtns(Els,Lc,Flds,Args,ArgTps) :-
   project1(Elements,Args),
   map(Args,canon:typeOfCanon,ArgTps).
 
-buildBraceAccessors(Lc,Q,Cx,Tp,Defs,Dfx) :-
+buildBraceAccessors(Lc,Q,Cx,Tp,Defs,Dfx,Imps,Impx) :-
   tpName(Tp,ConNm),
   string_concat(ConNm,"#",Prefix),
   deRef(Tp,faceType(ElTps,_)),
-  genBraceAccessors(Lc,Q,Cx,Prefix,Tp,ElTps,ElTps,Defs,Dfx).
+  genBraceAccessors(Lc,Q,Cx,Prefix,Tp,ElTps,ElTps,Defs,Dfx,Imps,Impx).
   
 genBraceAccessors(_Lc,_Q,_Cx,_ConNm,_Tp,[],_,Defs,Defs,Imps,Imps).
 genBraceAccessors(Lc,Q,Cx,ConNm,Tp,[(Fld,FldTp)|ElTps],AllElTps,Defs,Dfx,Imps,Imx) :-
@@ -367,7 +367,7 @@ genBraceAccessor(Lc,Q,Cx,ConNm,Tp,Fld,FldTp,Tp,AllElTps,
 		 [funDef(Lc,AccName,AccName,AccFunTp,[],[Eqn]),AccDef|Defs],Defs,
 		 [acc(Tp,Fld,AccName,AccFunTp)|Imx],Imx) :-
   localName(ConNm,field,Fld,AccName),
-  putConstraints(Cx,funType(tupleType([Tp]),FldTp),CxFunTp),
+  putConstraints(Cx,funType(tplType([Tp]),FldTp),CxFunTp),
   reQuant(Q,CxFunTp,AccFunTp),
   XX = v(Lc,"XX",FldTp),  
   fillinElementPtns([(Fld,XX)],Lc,AllElTps,ArgPtns,ArgTps),
@@ -445,19 +445,19 @@ parseConstructors(Body,Q,Cx,Tp,
 		  [cnsDef(Lc,Nm,enm(Lc,Nm,Type))|Dfx],Dfx,
 		  [(Nm,Lc,Type)|Cnx],Cnx,Env,Env) :-
   isIden(Body,Lc,Nm),!,
-  wrapType(Q,Cx,[],[],consType(tupleType([]),Tp),Type).
+  wrapType(Q,Cx,[],[],consType(tplType([]),Tp),Type).
 parseConstructors(Body,Q,Cx,Tp,
 		  [cnsDef(Lc,Nm,enm(Lc,Nm,Type))|Dfx],Dfx,
 		  [(Nm,Lc,Type)|Cnx],Cnx,Env,Env) :-
   isEnum(Body,Lc,E),
   isIden(E,_,Nm),!,
-  wrapType(Q,Cx,[],[],consType(tupleType([]),Tp),Type).
+  wrapType(Q,Cx,[],[],consType(tplType([]),Tp),Type).
 parseConstructors(Body,Q,Cx,Tp,
 		  [cnsDef(Lc,Nm,cons(Lc,Nm,Type))|Dfx],Dfx,
 		  [(Nm,Lc,Type)|Cnx],Cnx,Env,Env) :-
   isRoundCon(Body,XQ,XC,Lc,Nm,Args),!,
   parseTypes(Args,Env,Q,Cx,C2,ArgTps),
-  wrapType(Q,C2,XQ,XC,consType(tupleType(ArgTps),Tp),Type).
+  wrapType(Q,C2,XQ,XC,consType(tplType(ArgTps),Tp),Type).
 parseConstructors(Body,Q,Cx,Tp,
 		  [cnsDef(Lc,Nm,cons(Lc,Nm,Type))|Dfx],Dfx,
 		  [(Nm,Lc,Type)|Cnx],Cnx,Env,Env) :-
@@ -569,7 +569,7 @@ parseTypeFun(Lc,Quants,Ct,Hd,Bd,typeDef(Lc,Nm,Type,Rule),E,Ev,Path) :-
 mkTypeLambda(tpExp(Op,A),Tp,RRTp) :-
   mkTypeLambda(Op,typeLambda(A,Tp),RRTp).
 mkTypeLambda(tpFun(_,_),Tp,Tp).
-mkTypeLambda(type(_),Tp,typeLambda(tupleType([]),Tp)).
+mkTypeLambda(type(_),Tp,typeLambda(tplType([]),Tp)).
 
 pickTypeTemplate(existType(_,Tp),Tmp) :-
   pickTypeTemplate(Tp,Tmp).

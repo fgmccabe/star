@@ -1,4 +1,4 @@
-:- module(import, [importAll/3,importPkg/3,loadPkg/4]).
+:- module(import, [importAll/3,importPkg/3]).
 
 
 :- use_module(resource).
@@ -115,9 +115,3 @@ loadCode(Strm,[Term|M]) :-
 packageName(pkg(Nm,_),N) :-
   atom_string(N,Nm).
 
-loadPkg(Pkg,Repo,Code,Imports) :-
-  openPackageAsStream(Repo,Pkg,_,_,Strm),
-  read(Strm,SigTerm),
-  pickupPkgSpec(SigTerm,spec(_,Imports,_)),
-  loadCode(Strm,Code),
-  close(Strm).

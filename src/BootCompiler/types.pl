@@ -27,7 +27,7 @@ isType(tFun(_,_,_,_,_)).
 isType(type(_)).
 isType(tpExp(_,_)).
 isType(refType(_)).
-isType(tupleType(_)).
+isType(tplType(_)).
 isType(funType(_,_)).
 isType(consType(_,_)).
 isType(allType(_,_)).
@@ -176,7 +176,7 @@ ssType(tFun(_,_,_,Ar,Id),false,_,sq([ss("%"),ss(Id),ss("/"),ix(Ar)])).
 ssType(type(Nm),_,_,id(Nm)).
 ssType(tpFun(Nm,Ar),_,_,sq([id(Nm),ss("/"),ix(Ar)])).
 ssType(tpExp(Nm,A),ShCon,Dp,S) :- ssTypeExp(tpExp(Nm,A),ShCon,Dp,S).
-ssType(tupleType(A),ShCon,Dp,sq([lp,iv(ss(","),AA),rp])) :-
+ssType(tplType(A),ShCon,Dp,sq([lp,iv(ss(","),AA),rp])) :-
   ssTypeEls(A,ShCon,Dp,AA).
 ssType(funType(A,R),ShCon,Dp,sq([AA,ss("=>"),RR])) :-
   ssType(A,ShCon,Dp,AA),
@@ -291,7 +291,7 @@ tpArity(consType(A,_),Ar) :- !,
   tpArity(A,Ar).
 tpArity(refType(A),Ar) :- !,
   progTypeArity(A,Ar).
-tpArity(tupleType(A),Ar) :- !,length(A,Ar).
+tpArity(tplType(A),Ar) :- !,length(A,Ar).
 tpArity(faceType(A,_),Ar) :- !,length(A,Ar).
 tpArity(_,0).
 
@@ -301,7 +301,7 @@ tpArgTypes(allType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(existType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(constrained(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(funType(A,_),ArTps) :- tpArgTypes(A,ArTps).
-tpArgTypes(tupleType(ArTps),ArTps).
+tpArgTypes(tplType(ArTps),ArTps).
 
 funResType(Tp,ResTp) :- deRef(Tp,TT), resType(TT,ResTp).
 
@@ -397,7 +397,7 @@ tpNm(constrained(T,_),Nm) :-
   tpNm(T,Nm).
 tpNm(typeLambda(_,R),Nm) :-
   tpNm(R,Nm).
-tpNm(tupleType(Els),Nm) :-
+tpNm(tplType(Els),Nm) :-
   length(Els,Ar),
   swritef(Nm,"()%d",[Ar]).
 tpNm(faceType(Flds,_),Nm) :-
@@ -426,6 +426,11 @@ stdType("integer",type("star.core*integer"),typeExists(type("star.core*integer")
 stdType("float",type("star.core*float"),typeExists(type("star.core*float"),faceType([],[]))).
 stdType("boolean",type("star.core*boolean"),typeExists(type("star.core*boolean"),faceType([],[]))).
 stdType("string",type("star.core*string"),typeExists(type("star.core*string"),faceType([],[]))).
+stdType("cons",
+	tpFun("star.core*cons",1),
+	allType(kVar("a"),
+		typeExists(tpExp(tpFun("star.core*cons",2),kVar("a")),
+			   faceType([],[])))).
 stdType("package",type("star.pkg*pkg"),typeExists(type("star.pkg*pkg"),faceType([],[]))).
 stdType("version",type("star.pkg*version"),typeExists(type("star.pkg*version"),faceType([],[]))).
 stdType("file",type("star.file*fileHandle"),typeExists(type("star.file*fileHandle"),faceType([],[]))).
@@ -450,7 +455,7 @@ isFixedSizeType(Tp) :- deRef(Tp,T),!,isFxTp(T).
 isFxTp(type("star.core*integer")).
 isFxTp(type("star.core*float")).
 isFxTp(type("star.core*boolean")).
-isFxTp(tupleType(Els)) :- check_implies(misc:is_member(T,Els),types:isFixedSizeType(T)).
+isFxTp(tplType(Els)) :- check_implies(misc:is_member(T,Els),types:isFixedSizeType(T)).
 isFxTp(faceType(Flds,_)) :- check_implies(misc:is_member((_,T),Flds),types:isFixedSizeType(T)).
 
 toLtipe(Tp,LTp) :-
@@ -463,7 +468,7 @@ toLtp(type("star.core*boolean"),blTipe) :- !.
 toLtp(funType(Args,Res),fnTipe(As,R)) :-
   map(Args,types:toLtipe,As),
   toLtipe(Res,R).
-toLtp(tupleType(Args),tplTipe(As)) :-
+toLtp(tplType(Args),tplTipe(As)) :-
   map(Args,types:toLtipe,As).
 toLtp(_,ptrTipe).
 

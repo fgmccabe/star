@@ -7,7 +7,6 @@
 :- use_module(freshen).
 :- use_module(canon).
 :- use_module(unify).
-:- use_module(vartypes).
 
 overload(Lc,Defs,Dict,RDict,RDefs) :-
   declareAccessors(Lc,Defs,Dict,RDict),
@@ -59,7 +58,7 @@ makeContractFunType(allType(V,T),Cx,allType(V,CT)) :-
   makeContractFunType(T,Cx,CT).
 makeContractFunType(constrained(T,_C),Cx,CT) :-
   makeContractFunType(T,Cx,CT).
-makeContractFunType(T,Cx,funType(tupleType(Cx),T)).
+makeContractFunType(T,Cx,funType(tplType(Cx),T)).
 
 defineCVars(_,[],Dict,[],Dict).
 defineCVars(Lc,[Con|Cx],Dict,[v(Lc,CVarNm,ConTp)|CVars],FDict) :-
@@ -75,7 +74,7 @@ defineCVars(Lc,[implementsFace(X,faceType(Flds,_))|Cx],Dict,CVars,FDict) :-
 
 fieldVars(_,_,[],CVars,CVars,Dict,Dict).
 fieldVars(Lc,Tp,[(FldNm,FldTp)|Flds],[NV|CVrs],XVrs,Dict,CDict) :-
-  genVar(FldNm,Lc,funType(tupleType([Tp]),FldTp),NV),
+  genVar(FldNm,Lc,funType(tplType([Tp]),FldTp),NV),
   fieldVars(Lc,Tp,Flds,CVrs,XVrs,[access(FldNm,NV)|Dict],CDict).
 
 resolveTerm(Term,Dict,Resolved) :-
@@ -201,7 +200,7 @@ overloadMethod(ALc,Lc,T,Cx,Args,Tp,Dict,St,Stx,apply(ALc,OverOp,tple(LcA,NArgs),
 
 overloadAccess(Lc,T,V,Face,Args,Tp,Dict,St,Stx,
 	       apply(Lc,RT,tple(LcA,[v(Lc,FunNm,
-				       funType(tupleType([V]),FldTp))|RArgs]),Tp)) :-
+				       funType(tplType([V]),FldTp))|RArgs]),Tp)) :-
   overloadTerm(T,Dict,St,St0,RT),
   deRef(Face,faceType([(Fld,FldTp)],[])),
   markResolved(St0,St1),
@@ -258,7 +257,7 @@ overApply(Lc,OverOp,Args,Tp,Lam) :-
 
 curryOver(Lc,OverOp,Cx,Tp,
     lambda(Lc,Lbl,equation(Lc,tple(Lc,Args),none,
-          apply(Lc,OverOp,tple(Lc,NArgs),Tp)),funType(tupleType(ArTps),Tp))) :-
+          apply(Lc,OverOp,tple(Lc,NArgs),Tp)),funType(tplType(ArTps),Tp))) :-
   progArgTypes(Tp,ArTps),
   genVrs(ArTps,Lc,Args),
   concat(Cx,Args,NArgs),
@@ -290,7 +289,7 @@ overloadRef(_,C,DT,RArgs,C,_,Stx,Stx,Args) :-
 resolveAccess(Lc,Rc,Fld,Tp,Dict,Stx,Stx,apply(Lc,V,tple(Lc,[Rc]),Tp)) :-
   typeOfCanon(Rc,RcTp),
   findAccess(RcTp,Fld,Dict,FunNm),
-  V = v(Lc,FunNm,funType(tupleType([RcTp]),Tp)).
+  V = v(Lc,FunNm,funType(tplType([RcTp]),Tp)).
 resolveAccess(Lc,Rc,Fld,Tp,_Dict,St,Stx,dot(Lc,Rc,Fld,Tp)) :-
   typeOfCanon(Rc,RcTp),
   genMsg("no accessor defined for %s for type %s in %s",
