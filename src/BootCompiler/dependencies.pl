@@ -267,6 +267,9 @@ collectTermRefs(T,A,R0,Refs) :-
   isValof(T,_,E),!,
   collectTermRefs(E,A,R0,Refs).
 collectTermRefs(T,A,R0,Refs) :-
+  isDoTerm(T,_,Stmts),!,
+  collectDoRefs(Stmts,A,R0,Refs).
+collectTermRefs(T,A,R0,Refs) :-
   isActionTerm(T,_,Stmts),!,
   collectDoRefs(Stmts,A,R0,Refs).
 collectTermRefs(T,A,R0,Refs) :-
@@ -327,7 +330,7 @@ collectIndexRefs(A,All,R,Refs) :-
 
 collectFaceRefs([],_,R,R).
 collectFaceRefs([St|L],All,R0,Refs) :-
-  collectStmtRefs(St,All,R0,R1),
+  collectStmtRefs(St,All,[],R0,R1),
   collectFaceRefs(L,All,R1,Refs).
 
 collectCaseRefs([],_,_,Rf,Rf) :-!.

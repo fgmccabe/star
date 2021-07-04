@@ -1,10 +1,6 @@
 test.cn1{
   import test.cn0.
 
-  _perform:all a,e ~~ (action[a,e]) => a.
-  _perform(action(F)) => case F() in {
-    either(R) => R
-  }
 
   public dblInt:(integer)=>integer.
   dblInt(X) => plus(X,X).
@@ -23,18 +19,4 @@ test.cn1{
   consLen(.nil) => 0.
   consLen(cons(_,T)) => plus(1,consLen(T)).
 
-  logM:(string)=>action[(),()].
-  logM(M) => action{
-    _ .= _logmsg(M);
-    return ()
-  }
-
-  _main:(cons[string])=>().
-  _main(cons(A,.nil)) =>
-    valof main(A).
-
-  main:(string)=>action[(),()].
-  main(T) => action{
-    logM(T)
-  }
 }

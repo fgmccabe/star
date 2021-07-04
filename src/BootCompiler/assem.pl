@@ -336,9 +336,6 @@ mkInsTpl(Is,Tpl) :-
     map(Is,assemble:mkIns,Ins),
     mkTpl(Ins,Tpl).
 
-mkIns((O,A),Tpl) :-
-    wrap(A,WA),
-    mkTpl([intgr(O),WA],Tpl).
 mkIns(O,intgr(O)) :- number(O).
 mkIns(S,strg(S)) :- string(S).
 

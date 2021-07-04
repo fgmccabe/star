@@ -42,7 +42,7 @@ freeVars(abstraction(_,B,C,Z,G,_),Ex,Q,F,FV) :-
   ptnGoalVars(C,freevars:addFrVar,Ex,Ex1),
   freeVars(B,Ex1,Q,F,F0),
   freeVars(C,Ex1,Q,F0,F1),
-  freevars(Z,Ex1,Q,F1,F2),
+  freeVars(Z,Ex1,Q,F1,F2),
   freeVars(G,Ex1,Q,F2,FV).
 freeVars(letExp(_,_,Defs,Bnd),Ex,Q,F,Fv) :-
   definedVars(Defs,Ex,Ex1),
@@ -93,8 +93,8 @@ freeActionVars(throwDo(_,Exp,_),Ex,Q,F,Fv) :-
   freeVars(Exp,Ex,Q,F,Fv).
 freeActionVars(performDo(_,Exp,_),Ex,Q,F,Fv) :-
   freeVars(Exp,Ex,Q,F,Fv).
-freeActionVars(simpleDo(_,A,_),Ex,Q,F,Fv) :-
-  freeActionVars(A,Ex,Q,F,Fv).
+freeActionVars(simpleDo(_,A),Ex,Q,F,Fv) :-
+  freeVars(A,Ex,Q,F,Fv).
   
 definedVars(Defs,Q,Qx) :-
   varsInList(Defs,freevars:defVar,Q,Qx).

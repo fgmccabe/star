@@ -180,7 +180,7 @@ static char *dumpSig(char *sig, strBufferPo out) {
       outStr(O_IO(out), ")");
       break;
     case tplSig:
-      outStr(O_IO(out), "tupleType(");
+      outStr(O_IO(out), "tplType(");
       sig = dSequence(sig, out);
       outStr(O_IO(out), ")");
       break;

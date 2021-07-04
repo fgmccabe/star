@@ -512,7 +512,16 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
 }
 
 retCode loadType(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize) {
-  retCode ret = skipEncoded(in, errorMsg, msgSize); // Type name
+  char typeName[MAX_SYMB_LEN];
+  integer typeNameLen;
+
+  retCode ret = decodeName(in, typeName, NumberOf(typeName), &typeNameLen);
+
+#ifdef TRACEPKG
+  if (tracePkg >= detailedTracing)
+    logMsg(logFile, "loading type %S", &typeName,typeNameLen);
+#endif
+
   if (ret == Ok)
     ret = skipEncoded(in, errorMsg, msgSize); // Type rule signature
   if (ret == Ok) {                             // Type index
@@ -532,6 +541,10 @@ retCode loadType(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSiz
             integer index;
             ret = decodeInteger(in, &index);
             if (ret == Ok) {
+#ifdef TRACEPKG
+              if (tracePkg >= detailedTracing)
+                logMsg(logFile, "defining label %s/%d @ %d", &lblName, arity, index);
+#endif
               declareLbl(lblName, arity, index);
             }
           }

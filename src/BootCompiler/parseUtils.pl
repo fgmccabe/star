@@ -17,6 +17,9 @@ upAlpha(C) --> [C], { isUpAlpha(C) }.
 
 natural([F|R]) --> digit(F), digitStar(R).
 
+digitStar([C|More]) --> digit(C), digitStar(More).
+digitStar([]) --> [], \+ digit(_).
+
 digit(C) --> [C], { digit(C) }.
 
 alphanum(C) --> alpha(C) ; digit(C).

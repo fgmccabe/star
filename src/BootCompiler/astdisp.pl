@@ -69,7 +69,7 @@ ssAst(_,float(_,Dx),fx(Dx)) :- !.
 ssAst(_,string(_,S),sq([ss(""""),ss(S),ss("""")])) :- !.
 ssAst(_,tuple(_,Nm,A),sq([ss(Left),iv(ss(Sep),AA),ss(Right)])) :-
   bracket(Nm,Left,Right,Sep,Pr),
-  map(A,ast:ssAst(Pr),AA).
+  map(A,astdisp:ssAst(Pr),AA).
 ssAst(Pr,app(_,name(_,Nm),tuple(_,"()",[A])),sq([Par,id(Nm),ss(" "),AA,En])) :-
   prefixOp(Nm,OpPr, RightPr),!,
   openPar(Pr,OpPr,Par),

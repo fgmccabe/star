@@ -93,7 +93,7 @@ encodeT(tpExp(T,Arg),['U'|O],Ox) :- deRef(T,Tp),encodeType(Tp,O,O1), encodeType(
 encodeT(refType(Tp),['r'|O],Ox) :- encodeType(Tp,O,Ox).
 encodeT(funType(AT,Tp),['F'|O],Ox) :- encodeType(AT,O,O1), encodeType(Tp,O1,Ox).
 encodeT(consType(Args,Tp),['C'|O],Ox) :- encodeType(Args,O,O1), encodeType(Tp,O1,Ox).
-encodeT(tupleType(Args),['('|O],Ox) :- encodeTypes(Args,O,[')'|Ox]).
+encodeT(tplType(Args),['('|O],Ox) :- encodeTypes(Args,O,[')'|Ox]).
 encodeT(faceType(Fields,Types),['I'|O],Ox) :- encodeFieldTypes(Fields,O,O1),encodeFieldTypes(Types,O1,Ox).
 encodeT(allType(B,Tp),[':'|O],Ox) :- encodeType(B,O,O1),encodeType(Tp,O1,Ox).
 encodeT(existType(B,Tp),['e'|O],Ox) :- encodeType(B,O,O1),encodeType(Tp,O1,Ox).
@@ -118,8 +118,8 @@ encodeConstraint(constrained(Con,Extra),['|'|O],Ox) :-
   encodeConstraint(Extra,O1,Ox).
 encodeConstraint(conTract(Nm,Args,Deps),['c'|O],Ox) :-
   encodeText(Nm,O,O1),
-  encodeT(tupleType(Args),O1,O2),
-  encodeT(tupleType(Deps),O2,Ox).
+  encodeT(tplType(Args),O1,O2),
+  encodeT(tplType(Deps),O2,Ox).
 encodeConstraint(implementsFace(V,Face),['a'|O],Ox) :-
   encodeType(V,O,O1),
   encodeType(Face,O1,Ox).

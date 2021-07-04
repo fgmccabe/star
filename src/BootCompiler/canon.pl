@@ -4,7 +4,7 @@
 		 typeOfCanon/2,splitPtn/3,locOfCanon/2,
 		 constructorName/2,constructorType/2,
 		 isCanonDef/1,isCanon/1,isSimpleCanon/1,isAssertion/1,isShow/1,
-		 isPkg/1,isGoal/1,isIterableGoal/1,isAction/1,
+		 isPkg/1,isGoal/1,isIterableGoal/1,
 		 anonVar/3]).
 
 :- use_module(misc).
@@ -80,20 +80,6 @@ isGoal(neg(_,_)) :- !.
 isGoal(search(_,_,_,_)) :- !.
 isGoal(cond(_,_,L,R,_)) :- !, isGoal(L),isGoal(R).
 
-isAction(seqDo(_,_,_)).
-isAction(ifThenDo(_,_,_,_)).
-isAction(whileDo(_,_,_)).
-isAction(forDo(_,_,_,_)).
-isAction(caseDo(_,_,_)).
-isAction(tryCatchDo(_,_,_)).
-isAction(assign(_,_,_)).
-isAction(apply(_,_,_,_)).
-isAction(varDo(_,_,_)).
-isAction(valisDo(_,_)).
-isAction(throwDo(_,_)).
-isAction(performDo(_,_)).
-isAction(noDo(_)).
-
 isIterableGoal(conj(_,L,R)) :- !, (isIterableGoal(L) ; isIterableGoal(R)).
 isIterableGoal(implies(_,L,R)) :- !, (isIterableGoal(L) ; isIterableGoal(R)).
 isIterableGoal(disj(_,L,R)) :- !,  (isIterableGoal(L) ; isIterableGoal(R)).
@@ -120,7 +106,7 @@ typeOfCanon(cond(_,_,_,_,Tp),Tp) :-!.
 typeOfCanon(letExp(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(letRec(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(apply(_,_,_,Tp),Tp) :-!.
-typeOfCanon(tple(_,Els),tupleType(Tps)) :-!,
+typeOfCanon(tple(_,Els),tplType(Tps)) :-!,
   map(Els,canon:typeOfCanon,Tps).
 typeOfCanon(assign(_,_,Vl),Tp) :-
   typeOfCanon(Vl,Tp).
@@ -312,22 +298,22 @@ ssAction(caseDo(_,Gov,Cses,_,_),Dp,
 ssAction(whileDo(_,Tst,Bdy),Dp,
 	 sq([ss("while "),CC,ss("do"),nl(Dp2),BB])) :-
   Dp2 is Dp+2,
-  sTerm(Tst,Dp,CC),
+  ssTerm(Tst,Dp,CC),
   ssAction(Bdy,Dp2,BB).
 ssAction(untilDo(_,Tst,Bdy),Dp,
 	 sq([ss("do"),BB,ss("until"),CC])) :-
   Dp2 is Dp+2,
-  sTerm(Tst,Dp,CC),
+  ssTerm(Tst,Dp,CC),
   ssAction(Bdy,Dp2,BB).
 ssAction(forDo(_,Tst,Bdy),Dp,
 	 sq([ss("for "),CC,ss("do"),nl(Dp2),BB])) :-
   Dp2 is Dp+2,
-  sTerm(Tst,Dp,CC),
+  ssTerm(Tst,Dp,CC),
   ssAction(Bdy,Dp2,BB).
 ssAction(tryCatchDo(_,Bdy,Hndlr),Dp,
 	 sq([ss("try "),BB,ss("catch"),HH])) :-
   Dp2 is Dp+2,
-  sTerm(Hndlr,Dp2,HH),
+  ssTerm(Hndlr,Dp2,HH),
   ssAction(Bdy,Dp2,BB).
 ssAction(valisDo(_,Exp,_),Dp,sq([ss("valis "),EE])) :-
   ssTerm(Exp,Dp,EE).

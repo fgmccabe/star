@@ -199,7 +199,7 @@ static char *dumpStarSig(char *sig, ioPo out) {
       outStr(out, ")");
       break;
     case tplSig:
-      outStr(out, "tupleType(");
+      outStr(out, "tplType(");
       sig = dStarSequence(sig, out);
       outStr(out, ")");
       break;
@@ -359,7 +359,7 @@ static char *dumpPrologSig(char *sig, ioPo out) {
       outStr(out, ")");
       break;
     case tplSig:
-      outStr(out, "tupleType(");
+      outStr(out, "tplType(");
       sig = dPrologSequence(sig, out);
       outStr(out, ")");
       break;

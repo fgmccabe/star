@@ -10,7 +10,7 @@ generateMain(Defs,Env,RDefs) :-
   */
   findType("action",Lc,Env,AcTp),
   findType("integer",Lc,Env,IntegerTp),
-  ActionTp = tpExp(tpExp(AcTp,IntegerTp),tupleType([])),
+  ActionTp = tpExp(tpExp(AcTp,IntegerTp),tplType([])),
   newTypeVar("_A",AT),
   (sameType(funType(AT,ActionTp),Tp,Env) ->
    

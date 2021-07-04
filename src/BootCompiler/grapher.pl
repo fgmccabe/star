@@ -57,7 +57,7 @@ checkPkg(spec(Pkg,Imports,_),Repo,Cat,CWD,SrcFn,SoFar,Pkgs) :-
   scanImports(Imps,Repo,Cat,CWD,[(Pkg,Imps,Imps,SrcFn)|SoFar],Pkgs).
 
 reformatImports([],[]).
-reformatImports([import(_,_,P)|L],[P|M]) :- reformatImports(L,M).
+reformatImports([import(_,P)|L],[P|M]) :- reformatImports(L,M).
 
 scanImports([],_,_,_,Pkgs,Pkgs).
 scanImports([Pkg|Imports],Repo,Cat,CWD,SoFar,Pkgs) :-
