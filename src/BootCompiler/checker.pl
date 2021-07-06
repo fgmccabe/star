@@ -752,9 +752,9 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isRef(Term,Lc,I),
   roundTerm(Lc,name(Lc,"_cell"),[I],R),
   typeOfExp(R,Tp,ErTp,Env,Ev,Exp,Path).
-typeOfExp(Term,Tp,ErTp,Env,Ev,DoExp,Path) :-
+typeOfExp(Term,Tp,_ErTp,Env,Ev,DoExp,Path) :-
   isDoTerm(Term,Lc,Stmts),!,
-  typeOfDoExp(Lc,Stmts,Tp,ErTp,Env,Ev,DoExp,Path),
+  typeOfDoExp(Lc,Stmts,Tp,Env,Ev,DoExp,Path),
   dispCanon(DoExp).
 typeOfExp(Term,Tp,ErTp,Env,Ev,Action,Path) :-
   isActionTerm(Term,Lc,Stmts),!,
@@ -764,7 +764,7 @@ typeOfExp(Term,Tp,_,Env,Ev,taskTerm(Lc,TaskLbl,Act,Tp),Path) :-
   findType("task",Lc,Env,TaskTp), % action type is just the core
   newTypeVar("E",ErTp),
   newTypeVar("X",ElTp),
-  mkTypeExp(TaskTp,[ElTp,ErTp],TTp),
+  applyTypeFun(TaskTp,[ElTp,ErTp],Env,TTp),
   checkType(Term,TTp,Tp,Env),
   lambdaLbl(Path,"𝜏",TaskLbl),
   checkAction(Stmts,Env,Ev,TaskTp,ElTp,ErTp,Act,Path).
@@ -826,7 +826,7 @@ typeOfExp(Term,Tp,ErTp,Env,Env,Exp,Path) :-
   checkAbstraction(Term,Lc,B,G,Tp,ErTp,Env,Exp,Path).
 typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isValof(Term,Lc,Ex),!,
-  unary(Lc,"_perform",Ex,VV),
+  unary(Lc,"_valof",Ex,VV),
   typeOfExp(VV,Tp,ErTp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isIndexTerm(Term,Lc,F,A),!,
@@ -938,13 +938,14 @@ typeOfLambda(Term,Tp,Env,lambda(Lc,Lbl,equation(Lc,Args,Guard,Exp),Tp),Path) :-
   lambdaLbl(Path,"_",Lbl),
   typeOfExp(R,RT,ErTp,E1,_,Exp,Path).
 
-typeOfDoExp(Lc,Stmts,Tp,ErTp,Env,Ev,doTerm(Lc,Act,Tp),Path) :-
+typeOfDoExp(Lc,Stmts,Tp,Env,Ev,doTerm(Lc,Act,Tp),Path) :-
   findType("result",Lc,Env,ResltTp),
   getVar(Lc,"okResult",Env,_,OkFn),
   typeOfCanon(OkFn,OkFnTp),
   getVar(Lc,"eventResult",Env,_,EvtFn),
   typeOfCanon(EvtFn,EvtFnTp),
   newTypeVar("X",ElTp),
+  newTypeVar("E",ErTp),
   applyTypeFun(ResltTp,[ElTp,ErTp],Env,RTp),
   verifyType(Lc,RTp,Tp,Env),
   verifyType(Lc,consType(tplType([ElTp]),RTp),OkFnTp,Env),
@@ -953,30 +954,23 @@ typeOfDoExp(Lc,Stmts,Tp,ErTp,Env,Ev,doTerm(Lc,Act,Tp),Path) :-
 
 typeOfActionExp(Lc,Stmts,Tp,ErTp,Env,Ev,Action,Path) :-
   findType("action",Lc,Env,ActionTp),
-  findType("result",Lc,Env,EitherTp),
   getVar(Lc,"action",Env,_,ActFn),
-  getVar(Lc,"okResult",Env,_,OkFn),
-  typeOfCanon(OkFn,OkFnTp),
-  getVar(Lc,"eventResult",Env,_,EvtFn),
-  typeOfCanon(EvtFn,EvtFnTp),
+  findType("result",Lc,Env,ResltTp),
   newTypeVar("X",ElTp),
   applyTypeFun(ActionTp,[ElTp,ErTp],Env,MTp),
-  applyTypeFun(EitherTp,[ElTp,ErTp],Env,RTp),
+  applyTypeFun(ResltTp,[ElTp,ErTp],Env,RTp),
   verifyType(Lc,MTp,Tp,Env),
   typeOfCanon(ActFn,ActConsTp),
   LamTp = funType(tplType([]),RTp),
   dispType(LamTp),
   verifyType(Lc,consType(tplType([LamTp]),MTp),ActConsTp,Env),
-  verifyType(Lc,consType(tplType([ElTp]),RTp),OkFnTp,Env),
-  verifyType(Lc,consType(tplType([ErTp]),RTp),EvtFnTp,Env),
   dispType(ActConsTp),
   lambdaLbl(Path,"∂",ActLbl),
-  checkAction(Stmts,Env,Ev,ActionTp,ElTp,ErTp,OkFn,EvtFn,Act,Path),
+  typeOfDoExp(Lc,Stmts,RTp,Env,Ev,Act,Path),
   Action = apply(Lc,ActFn,
 		 tple(Lc,
 		      [lambda(Lc,ActLbl,
-			      equation(Lc,tple(Lc,[]),none,
-				       doTerm(Lc,Act,RTp)),
+			      equation(Lc,tple(Lc,[]),none,Act),
 			      LamTp)]),Tp),
   dispCanon(Action).
 
@@ -1102,15 +1096,15 @@ checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,OkFn,EvtFn,Act,Path) :-
   unary(Lc,"some",P,OP),
   binary(Lc,".=",OP,Exp,Term2),
   checkAction(Term2,Env,Ev,AcTp,VlTp,ErTp,OkFn,EvtFn,Act,Path).
-checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,_,_,Act,Path) :-
+checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,OkFn,EvtFn,Act,Path) :-
   isSplice(Term,Lc,S,F,T,R),!,
   checkType(Term,tplType([]),VlTp,Env),
   unary(Lc,"!",S,Src),
   nary(Lc,"_splice",[S,F,T,R],Rep),
-  checkAssignment(Lc,Src,Rep,Env,Ev,AcTp,VlTp,ErTp,Act,Path).
-checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,_,_,Act,Path) :-
+  checkAssignment(Lc,Src,Rep,Env,Ev,AcTp,VlTp,ErTp,OkFn,EvtFn,Act,Path).
+checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,OkFn,EvtFn,Act,Path) :-
   isAssignment(Term,Lc,L,R),!,
-  checkAssignment(Lc,L,R,Env,Ev,AcTp,VlTp,ErTp,Act,Path).
+  checkAssignment(Lc,L,R,Env,Ev,AcTp,VlTp,ErTp,OkFn,EvtFn,Act,Path).
 checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,OkFn,EvtFn,ifThenDo(Lc,Ts,Th,El),Path) :-
   isIfThenElse(Term,Lc,T,H,E),!,
   checkGoal(T,ErTp,Env,Et,Ts,Path),
@@ -1181,15 +1175,23 @@ checkAction(Term,Env,Env,_,_,_,_,_,noDo(Lc),_) :-
   locOfAst(Term,Lc),
   reportError("invalid action: %s",[ast(Term)],Lc).
 
-checkAssignment(Lc,L,R,Env,Ev,AcTp,VlTp,ErTp,simpleDo(Lc,Exp),Path) :-
-  checkType(L,tplType([]),VlTp,Env),
+checkAssignment(Lc,L,R,Env,Ev,AcTp,VlTp,ErTp,OkFn,EvtFn,Act,Path) :-
+  verifyType(Lc,tplType([]),VlTp,Env),
+  applyTypeFun(AcTp,[VlTp,ErTp],Env,MTp),
   (isIndexTerm(L,LLc,C,I) ->
-     unary(LLc,"!",C,CC),
-    ternary(LLc,"_put",CC,I,R,Repl),
-    binary(Lc,":=",C,Repl,Term);
-   binary(Lc,":=",L,R,Term)),
-  mkTypeExp(AcTp,[VlTp,ErTp],MTp),
-  typeOfExp(Term,MTp,ErTp,Env,Ev,Exp,Path).
+   unary(LLc,"!",C,CC),
+   ternary(LLc,"_put",CC,I,R,Repl),
+   binary(Lc,":=",C,Repl,Term),
+   typeOfExp(Term,MTp,ErTp,Env,Ev,Exp,Path),
+   Act=simpleDo(Lc,Exp);
+   (isIden(L,_,VrNm),
+    isVar(VrNm,Env,_) ->
+    binary(Lc,":=",L,R,Term),
+    typeOfExp(Term,MTp,ErTp,Env,Ev,Exp,Path),
+    Act=simpleDo(Lc,Exp);
+    unary(Lc,"ref",R,RR),
+    binary(Lc,".=",L,RR,St),
+    checkAction(St,Env,Ev,AcTp,VlTp,ErTp,OkFn,EvtFn,Act,Path))).
 
 checkActionCases([],_,_,_,_,_,_,_,Cases,Cases,Dfx,Dfx,_).
 checkActionCases([C|Ss],GTp,Env,AcTp,VlTp,ErTp,OkFn,EvtFn,Cases,Cx,Df,Dfx,Path) :-
@@ -1247,13 +1249,13 @@ createShowAction(Lc,Exp,Act) :-
 
 checkCatch(Term,Env,AcTp,VlTp,ErTp,BdErTp,Anon,OkFn,EvtFn,Hndlr,Path) :-
   isBraceTuple(Term,Lc,[St]),!,
-  mkTypeExp(AcTp,[VlTp,ErTp],MTp),
+  applyTypeFun(AcTp,[VlTp,ErTp],Env,MTp),
   Htype = funType(tplType([BdErTp]),MTp),
   checkAction(St,Env,_,AcTp,VlTp,ErTp,OkFn,EvtFn,HA,Path),
   Hndlr = lambda(Lc,LamLbl,equation(Lc,tple(Lc,[Anon]),none,HA),Htype),
   lambdaLbl(Path,"catch",LamLbl).
 checkCatch(Term,Env,AcTp,VlTp,ErTp,BdErTp,_,_,Hndlr,Path) :-
-  mkTypeExp(AcTp,[ErTp,VlTp],MTp),
+  applyTypeFun(AcTp,[ErTp,VlTp],Env,MTp),
   Htype = funType(tplType([BdErTp]),MTp),
   typeOfExp(Term,Htype,ErTp,Env,_,Hndlr,Path).
 
