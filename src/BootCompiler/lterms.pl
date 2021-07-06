@@ -165,17 +165,16 @@ ssTrm(ng(_,R),Dp,sq([lp,ss("~"),RR,rp])) :-
 ssTrm(error(Lc,M),Dp,sq([lp,ss("error "),MM,rp,ss("@"),LL])) :-
   ssTrm(M,Dp,MM),
   ssLoc(Lc,LL).
-ssTrm(doAct(_,Act),Dp,sq([ss("do "),AA])) :-
-  ssAct(Act,Dp,AA).
+ssTrm(doAct(_,Act),Dp,sq([ss("do "),iv(nl(Dp),AA)])) :-
+  ssActs(Act,Dp,AA).
 
 ssAct(nop(_),_,ss("{}")).
 ssAct(rtnDo(_,E),Dp,sq([ss("return "),EE])) :-
   ssTrm(E,Dp,EE).
 ssAct(raisDo(_,E),Dp,sq([ss("raise "),EE])) :-
   ssTrm(E,Dp,EE).
-ssAct(seq(_,L,R),Dp,sq([LL,ss(";"),RR])) :-
-  ssAct(L,Dp,LL),
-  ssAct(R,Dp,RR).
+ssAct(seq(Lc,L,R),Dp,iv(nl(Dp),AA)) :-
+  ssActs(seq(Lc,L,R),Dp,AA).
 ssAct(varD(_,P,E),Dp,sq([PP,ss(" .= "),EE])) :-
   ssTrm(P,Dp,PP),
   ssTrm(E,Dp,EE).
@@ -205,6 +204,12 @@ ssAct(justDo(_,E),Dp,sq([ss("just "),EE])) :-
 ssAct(tryDo(_,A,H),Dp,sq([ss("try "),AA,ss(" catch "),HH])) :-
   ssAct(A,Dp,AA),
   ssTrm(H,Dp,HH).
+
+ssActs(seq(_,L,R),Dp,[LL|RR]) :-!,
+  ssAct(L,Dp,LL),
+  ssActs(R,Dp,RR).
+ssActs(A,Dp,[AA]) :-
+  ssAct(A,Dp,AA).
 
 ssCases(Cases,Dp,Leaf,sq([lb,nl(Dp2),iv(nl(Dp2),CC),nl(Dp),rb])) :-
   Dp2 is Dp+2,

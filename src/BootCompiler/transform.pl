@@ -562,13 +562,13 @@ liftAction(ifThenDo(Lc,Ts,Th,El),cnd(Lc,Tst,Th1,El1),Q,Qx,Map,Opts,Ex,Exx) :-
   liftAction(El,El1,Q0,Qx,Map,Opts,Ex1,Exx).
 liftAction(whileDo(Lc,G,B),whle(Lc,Gl,Bdy),Q,Q,Map,Opts,Ex,Exx) :-
   liftGoal(G,Gl,Q,Q0,Map,Opts,Ex,Ex0),
-  liftAction(B,Bdy,Q,Q0,Map,Opts,Ex0,Exx).
+  liftAction(B,Bdy,Q0,_,Map,Opts,Ex0,Exx).
 liftAction(untilDo(Lc,G,B),untl(Lc,Gl,Bdy),Q,Q,Map,Opts,Ex,Exx) :-
   liftGoal(G,Gl,Q,Q0,Map,Opts,Ex,Ex0),
-  liftAction(B,Bdy,Q,Q0,Map,Opts,Ex0,Exx).
+  liftAction(B,Bdy,Q0,_,Map,Opts,Ex0,Exx).
 liftAction(forDo(Lc,G,B),forD(Lc,Gl,Bdy),Q,Q,Map,Opts,Ex,Exx) :-
   liftGoal(G,Gl,Q,Q0,Map,Opts,Ex,Ex0),
-  liftAction(B,Bdy,Q,Q0,Map,Opts,Ex0,Exx).
+  liftAction(B,Bdy,Q0,_,Map,Opts,Ex0,Exx).
 liftAction(caseDo(Lc,G,C),Result,Q,Q,Map,Opts,Ex,Exx) :-
   liftExp(G,Bound,Q,_,Map,Opts,Ex,Ex0),
   liftCases(C,Cs,Q,_,Map,Opts,transform:liftAction,Ex0,Exx),

@@ -75,11 +75,9 @@ retCont(Opts,D,D,_,C,Cx,_Stk,none) :-
 dropCont(D,D,_,[iDrop|Cx],Cx,Stk,Stk1) :-
   Stk1 is Stk-1.
 
-idxCont(Cont,Off,D,Dx,End,[iNth(Off)|C],Cx,Stk,Stkx) :-!,
-  call(Cont,D,Dx,End,C,Cx,Stk,Stkx).
+idxCont(Off,Dx,Dx,_End,[iNth(Off)|Cx],Cx,Stkx,Stkx).
 
-sxCont(Cont,Off,D,Dx,End,[iStNth(Off)|C],Cx,Stk,Stkx) :-!,
-  call(Cont,D,Dx,End,C,Cx,Stk,Stkx).
+sxCont(Off,Dx,Dx,_End,[iStNth(Off)|Cx],Cx,Stkx,Stkx).
 
 initDict(scope([],[],[],0)).
 
@@ -168,12 +166,12 @@ compTerm(ocall(Lc,Fn,A),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
 	    Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 compTerm(nth(Lc,Exp,Off),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),!,
-  compTerm(Exp,Lc,idxCont(Cont,Off),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
+  compTerm(Exp,Lc,bothCont(idxCont(Off),Cont),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 compTerm(setix(Lc,Exp,Off,Vl),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stk) :-
   chLine(Opts,OLc,Lc,C,C0),!,
   compTerm(Exp,Lc,
 	   compTerm(Vl,Lc,
-		    sxCont(Cont,Off),Opts),
+		    bothCont(sxCont(Off),Cont),Opts),
 	   Opts,D,Dx,End,C0,Cx,Stk,_Stkx).
 compTerm(case(Lc,T,Cases,Deflt),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),!,
@@ -200,7 +198,8 @@ compTerm(ltt(Lc,idnt(Nm),Val,Exp),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(D,Lb,D0),
   chLine(Opts,OLc,Lc,C,C0),!,
   defineLclVar(Nm,Lb,End,D0,D1,Off,C0,[iStV(Off)|C1]),
-  compTerm(Val,Lc,stoCont(Off,Lb,compTerm(Exp,Lc,Cont,Opts)),Opts,D1,Dx,End,C1,Cx,Stk,Stkx).
+  compTerm(Val,Lc,bothCont(stoCont(Off,Lb),
+			   compTerm(Exp,Lc,Cont,Opts)),Opts,D1,Dx,End,C1,Cx,Stk,Stkx).
 compTerm(error(Lc,Msg),_OLc,_Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-!,
   raiseCont(Lc,Msg,Opts,D,Dx,End,C,Cx,Stk,Stkx). % no continuation after an error
 compTerm(cnd(Lc,dsj(TLc,TL,TR),L,R),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-!,
@@ -255,18 +254,36 @@ compAction(varD(Lc,idnt(Nm),E),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   genLbl(D,Lb,D0),
   defineLclVar(Nm,Lb,End,D0,D1,Off,C0,C1),
-  compTerm(E,Lc,stoCont(Off,Lb,bothCont(Cont,releaseCont(Nm))),
+  compTerm(E,Lc,bothCont(stoCont(Off,Lb),
+			 bothCont(Cont,releaseCont(Nm))),
 	   Opts,D1,Dx,End,C1,Cx,Stk,Stkx).
 compAction(cnd(Lc,T,L,R),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   splitCont(Lc,Cont,OC),
   compCond(T,Lc,compAction(L,Lc,OC,Opts),compAction(R,Lc,OC,Opts),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
-compAction(rtnDo(Lc,E),_Lc,_Cont,Opts,D,Dx,Env,C,Cx,Stk,Stkx) :-
-  compTerm(E,Lc,retCont(Opts),Opts,D,Dx,Env,C,Cx,Stk,Stkx).
-compAction(raisDo(Lc,E),_Lc,_Cont,Opts,D,Dx,Env,C,Cx,Stk,Stkx) :-
-  compTerm(E,Lc,retCont(Opts),Opts,D,Dx,Env,C,Cx,Stk,Stkx).
-compAction(justDo(Lc,Exp),_,Cont,Opts,D,Dx,Env,C,Cx,Stk,Stkx) :-
-  compTerm(Exp,Lc,Cont,Opts,D,Dx,Env,C,Cx,Stk,Stkx).
+compAction(rtnDo(Lc,E),_Lc,_Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
+  compTerm(E,Lc,retCont(Opts),Opts,D,Dx,End,C,Cx,Stk,Stkx).
+compAction(raisDo(Lc,E),_Lc,_Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
+  compTerm(E,Lc,retCont(Opts),Opts,D,Dx,End,C,Cx,Stk,Stkx).
+compAction(justDo(Lc,Exp),_,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
+  compTerm(Exp,Lc,bothCont(dropCont,Cont),Opts,D,Dx,End,C,Cx,Stk,Stkx).
+compAction(whle(Lc,Cond,Body),_,Cont,Opts,D,Dx,End,
+	   [iLbl(Nxt),iJmp(Tst)|C],Cx,Stk,Stk) :-
+  genLbl(D,Nxt,D0),
+  genLbl(D0,Tst,D1),
+  compCond(Cond,Lc,contCont(Nxt),Cont,
+	   Opts,D1,D2,End,C2,Cx,Stk,Stk1),
+  compAction(Body,Lc,contCont(Tst),Opts,D2,Dx,End,C,[iLbl(Tst)|C2],Stk1,Stkx),
+  verify(Stk=:=Stkx,"while body stack").
+compAction(untl(Lc,Cond,Body),_,Cont,Opts,D,Dx,End,
+	   [iLbl(Nxt)|C],Cx,Stk,Stk) :-
+  genLbl(D,Nxt,D0),
+  genLbl(D0,Tst,D1),
+  compAction(Body,Lc,contCont(Tst),Opts,D1,D2,End,C,[iLbl(Tst)|C1],Stk,Stk1),
+  compCond(Cond,Lc,Cont,contCont(Nxt),
+	   Opts,D2,Dx,End,C1,Cx,Stk1,Stkx),
+  verify(Stk=:=Stkx,"until body stack").
+  
 
 contCont(Lbl,D,D,_,C,Cx,Stk,Stk) :-
   (nonvar(Cx),Cx=[iLbl(Lbl)|_]) ->
@@ -307,9 +324,8 @@ allocCont(Str,D,D,_,[iAlloc(Str),Frame|Cx],Cx,Stk,Stkx) :-
 resetCont(Lvl,D,D,_,Cx,Cx,Lvl,Lvl) :-!.
 resetCont(Lvl,D,D,_,[iRst(Lvl)|Cx],Cx,_,Lvl).
 
-stoCont(Off,Lb,Cont,D,Dx,End,[iStL(Off),iLbl(Lb)|C],Cx,Stk,Stkx) :-
-  Stk1 is Stk-1,
-  call(Cont,D,Dx,End,C,Cx,Stk1,Stkx).
+stoCont(Off,Lb,Dx,Dx,_End,[iStL(Off),iLbl(Lb)|Cx],Cx,Stk,Stkx) :-
+  Stkx is Stk-1.
 
 releaseCont(Nm,D,Dx,_,Cx,Cx,Stk,Stk) :-
   clearLclVar(Nm,D,Dx).
@@ -340,9 +356,6 @@ oclCont(Arity,Stk0,Cont,Opts,D,Dx,End,C,Cx,_,Stkx) :-
 jmpCont(Lbl,D,D,_End,[iJmp(Lbl)|Cx],Cx,Stk,Stk).
 
 isJmpCont(jmpCont(Lbl),Lbl).
-
-lblCont(Lb,Cont,D,Dx,End,[iLbl(Lb)|C],Cx,Stk,Stkx) :-
-  call(Cont,D,Dx,End,C,Cx,Stk,Stkx).
 
 isBrkCont(jmpCont(_)).
 isBrkCont(retCont(_)).

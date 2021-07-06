@@ -57,11 +57,6 @@ collStmtRefs(St,All,Annots,SoFar,Refs) :-
   collectHeadRefs(H,All,R0,R1),
   collectTermRefs(Exp,All,R1,Refs).
 collStmtRefs(St,All,Annots,SoFar,Refs) :-
-  isAssignment(St,_,H,Exp),
-  collectAnnotRefs(H,All,Annots,SoFar,R0),
-  collectHeadRefs(H,All,R0,R1),
-  collectTermRefs(Exp,All,R1,Refs).
-collStmtRefs(St,All,Annots,SoFar,Refs) :-
   isEquation(St,_,H,Cond,Exp),
   collectAnnotRefs(H,All,Annots,SoFar,R0),
   collectHeadRefs(H,All,R0,R1),
@@ -351,19 +346,11 @@ collectDoRefs(T,All,Rf,Rfx) :-
 collectDoRefs(T,_,Rf,Rf) :-
   isBraceTuple(T,_,[]),!.
 collectDoRefs(T,All,Rf,Rfx) :-
-  isBind(T,_,bind(L),R),!,
-  collectTermRefs(L,All,Rf,Rf0),
-  collectTermRefs(R,All,Rf0,Rfx).
-collectDoRefs(T,All,Rf,Rfx) :-
   isMatch(T,_,L,R),!,
   collectTermRefs(L,All,Rf,Rf0),
   collectTermRefs(R,All,Rf0,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isDefn(T,_,L,R),!,
-  collectTermRefs(L,All,Rf,Rf0),
-  collectTermRefs(R,All,Rf0,Rfx).
-collectDoRefs(T,All,Rf,Rfx) :-
-  isAssignment(T,_,L,R),!,
   collectTermRefs(L,All,Rf,Rf0),
   collectTermRefs(R,All,Rf0,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
