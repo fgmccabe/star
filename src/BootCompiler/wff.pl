@@ -13,6 +13,7 @@
 	      isIntegrity/3,isShow/3,isOpen/3,
 	      isConditional/5,conditional/5,isOfTerm/4,
 	      isEquation/4,isEquation/5,
+	      isPrompt/4,isCut/5,isTag/2,
 	      isDefn/4,isAssignment/4,isRef/3,assignment/4,eqn/4,eqn/5,
 	      ruleName/3,headName/2,
 	      isWhere/4,isCoerce/4,coerce/4,isOptCoerce/4,optCoerce/4,
@@ -382,6 +383,17 @@ isCaseExp(Trm,Lc,Exp,Cases) :-
   isUnary(Trm,Lc,"case",L),
   isBinary(L,_,"in",Exp,R),
   isBraceTuple(R,_,Cases).
+
+isTag(Trm,Lc) :-
+  isName(Trm,Lc,"tag").
+
+isPrompt(Trm,Lc,Lb,E) :-
+  isBinary(Trm,Lc,"prompt",Lb,E).
+
+isCut(Trm,Lc,Lb,L,R) :-
+  isBinary(Trm,Lc,"cut",Lb,Rhs),
+  isBinary(Rhs,_,"in",L,R),
+  isIden(L,_).
 
 isAssignment(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,":=",Lhs,Rhs).

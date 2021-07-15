@@ -1,7 +1,6 @@
 #include "config.h"
 #include <unistd.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <threds.h>
 
 #include "heapP.h"
@@ -10,8 +9,6 @@
 
 long initHeapSize = 200 * 1024;   /* How much memory to give the heap */
 long maxHeapSize = 1024 * 1024 * 1024; // Maximum heap size 1G cells
-long initStackSize = 1024;        /* How big is the stack */
-long maxStackSize = 100 * 1024 * 1024;     /* 100M cells is default max stack size */
 
 logical traceMemory = False;      /* memory tracing */
 logical validateMemory = False;   // Validate heap after every allocation
@@ -67,7 +64,7 @@ retCode reserveSpace(heapPo H, integer amnt) {
     return Error;
 }
 
-termPo allocateObject(heapPo H, clssPo clss, size_t amnt) {
+termPo allocateObject(heapPo H, clssPo clss, integer amnt) {
 #ifdef TRACEMEM
   if (validateMemory) {
     verifyHeap(H);
@@ -98,8 +95,8 @@ retCode enoughRoom(heapPo H, labelPo lbl) {
   return reserveSpace(H, NormalCellCount(labelArity(lbl)));
 }
 
-void initHeapLck(heapPo heap) {
-  initLock(&heap->heapLock);
+void initHeapLck(heapPo H) {
+  initLock(&H->heapLock);
 }
 
 extern void lockHeap(heapPo H) {
@@ -112,10 +109,6 @@ extern void releaseHeapLock(heapPo H) {
 
 void validPtr(heapPo H, termPo t) {
   assert((t >= H->start && t < H->limit) || !(t >= H->base && t < H->outerLimit));
-}
-
-void inStackPtr(processPo P, ptrPo o) {
-  assert(o >= (ptrPo) P->stackBase && o <= (ptrPo) P->stackLimit);
 }
 
 static retCode verifyScanHelper(ptrPo arg, void *c) {

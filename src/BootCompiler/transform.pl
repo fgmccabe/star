@@ -376,6 +376,11 @@ liftExp(tple(_,A),TApl,Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftExp(apply(Lc,Op,tple(_,A),_),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
   trExpCallOp(Lc,Op,LA,Exp,Q1,Qx,Map,Opts,Ex1,Exx).
+liftExp(shift(Lc,v(_,Nm,_),E),shft(Lc,idnt(Nm),EE),Q,Q,Map,Opts,Ex,Exx) :-!,
+  liftExp(E,EE,Q,_,Map,Opts,Ex,Exx).
+liftExp(prompt(Lc,L,E,_),prmpt(Lc,Lb,EE),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftExp(L,Lb,Q,Q0,Map,Opts,Ex,Ex0),
+  liftExp(E,EE,Q0,Qx,Map,Opts,Ex0,Exx).
 liftExp(case(Lc,Bnd,Cses,_),Result,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(Bnd,Bound,Q,Q0,Map,Opts,Ex,Ex0),
   liftCases(Cses,Cases,Q0,Qx,Map,Opts,transform:liftExp,Ex0,Exx),
@@ -386,9 +391,6 @@ liftExp(case(Lc,Bnd,Cses,_),Result,Q,Qx,Map,Opts,Ex,Exx) :-!,
    Result = ltt(Lc,V,Bound,Res)).
 liftExp(cell(Lc,In),ecll(Lc,"_cell",[CellV]),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(In,CellV,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(assign(Lc,Vr,Vl),ecll(Lc,"_assign",[VVr,Val]),Q,Qx,Map,Opts,Ex,Exx) :-
-  liftExp(Vr,VVr,Q,Q0,Map,Opts,Ex,Ex1),
-  liftExp(Vl,Val,Q0,Qx,Map,Opts,Ex1,Exx).
 liftExp(where(Lc,P,C),whr(Lc,LP,LC),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(P,LP,Q,Q0,Map,Opts,Ex,Ex0),
   liftGoal(C,LC,Q0,Qx,Map,Opts,Ex0,Exx),
@@ -501,6 +503,8 @@ implementFunCall(Lc,localFun(Fn,_,Ar,ThVr),_,Args,cll(Lc,lbl(Fn,Ar2),XArgs),Q,Qx
 implementFunCall(Lc,moduleFun(Fn,_,Ar),_,Args,cll(Lc,lbl(Fn,Ar),Args),Qx,Qx,_,_,Ex,Ex).
 implementFunCall(Lc,moduleVar(Fn),_,Args,ocall(Lc,idnt(Fn),Args),Qx,Qx,_,_,Ex,Ex).
 implementFunCall(_,moduleCons(Mdl,_,Ar),_,Args,ctpl(lbl(Mdl,Ar),Args),Q,Q,_,_,Ex,Ex).
+implementFunCall(Lc,labelArg(_,Ix,ThVr),_,Args,
+		 ocall(Lc,nth(Lc,ThVr,Ix),Args),Qx,Qx,_,_,Ex,Ex).
 implementFunCall(Lc,notInMap,Nm,Args,ocall(Lc,idnt(Nm),Args),Q,Q,_Map,_Opts,Ex,Ex) :-
   reportError("cannot compile unknown function %s",[Nm],Lc).
 
@@ -518,8 +522,7 @@ liftCase(equation(Lc,P,G,Value),(Lc,[Ptn],Test,Rep),Q,Qx,Map,Opts,Lifter,Ex,Exx)
 
 liftLambda(lambda(Lc,LamLbl,Eqn,Tp),Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
   lambdaMap(lambda(Lc,LamLbl,Eqn,Tp),LamLbl,Q,Map,Opts,Closure,LMap),
-%  reportMsg("lift lambda %s",[lambda(Lc,LamLbl,Eqn,Tp)],Lc),
-%  dispMap("lambda map",LMap),
+%  (is_member(showTrCode,Opts) -> dispMap("lambda map: ",LMap);true),
   transformEqn(Eqn,LMap,LMap,Opts,LamLbl,Rls,[],Ex,Exx),
   is_member((_,Args,_,_),Rls),!,
   length(Args,Ar),

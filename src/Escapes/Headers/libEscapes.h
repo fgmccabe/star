@@ -15,9 +15,9 @@ typedef struct {
 
 void installEscapes();
 
-int32 lookupEscape(char *name);
+uint32 lookupEscape(char *name);
 
-escapePo getEscape(int32 escNo);
+escapePo getEscape(uint32 escNo);
 
 extern ReturnStatus rtnStatus(processPo p, retCode ret, char *msg);
 

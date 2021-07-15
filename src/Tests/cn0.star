@@ -43,12 +43,10 @@ test.cn0{
     div((L1,R1),(L2,R2)) => (div(L1,L2),div(R1,R2)).
   .}
 
+  public (•):all a,b,c ~~ ((b)=>c,(a)=>b)=>(a)=>c.
+  F • G => (x)=>F(G(x)).
+
   public contract all x ~~ cmp[x] ::= {
     (<) : (x,x)=>boolean.
   }
-
-/*  public implementation cmp[integer] => {.
-    X < Y => _int_lt(X,Y)
-  .}
-*/
 }  

@@ -808,6 +808,32 @@ typeOfExp(Trm,Tp,ErTp,Env,Ev,tple(Lc,Els),Path) :-
   genTpVars(A,ArgTps),
   checkType(Trm,tplType(ArgTps),Tp,Env),
   typeOfTerms(A,ArgTps,ErTp,Env,Ev,Lc,Els,Path).
+typeOfExp(Trm,Tp,_,Env,Env,tag(Lc,Tp),_Path) :-
+  isTag(Trm,Lc),
+  newTypeVar("_",Rt),
+  newTypeVar("_",Ct),
+  mkTypeExp(tpFun("tag",2),[Rt,Ct],TTp),
+  verifyType(Lc,TTp,Tp,Env).
+typeOfExp(Trm,Tp,ErTp,Env,Env,prompt(Lc,Lb,Lam,Tp),Path) :-
+  isPrompt(Trm,Lc,L,P),!,
+  newTypeVar("_",Rt),
+  mkTypeExp(tpFun("tag",2),[Rt,Tp],TTp),
+  typeOfExp(L,TTp,Env,_,Lb,Path),
+  typeOfExp(P,Tp,ErTp,Env,_,Exp,Path),
+  lambdaLbl(Path,"ç",Lbl),
+  Lam = lambda(Lc,Lbl,equation(Lc,tple(Lc,[]),none,Exp),
+	       funType(tplType([]),Tp)).
+typeOfExp(Trm,Tp,ErTp,Env,Env,shift(Lc,Lb,Lam),Path) :-
+  isCut(Trm,Lc,L,Lhs,Rhs),
+  newTypeVar("_",Rt),
+  KType = funType(tplType([Tp]),Rt),
+  mkTypeExp(tpFun("tag",2),[Tp,Rt],TTp),
+  typeOfExp(L,TTp,Env,_,Lb,Path),
+  typeOfPtn(Lhs,KType,ErTp,Env,E0,V,Path),
+  typeOfExp(Rhs,Rt,ErTp,E0,_,Exp,Path),
+  lambdaLbl(Path,"ç",Lbl),
+  Lam = lambda(Lc,Lbl,equation(Lc,tple(Lc,[V]),none,Exp),
+	       funType(tpleType([KType]),Rt)).
 typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isUnaryMinus(Term,Lc,Arg), % handle unary minus
   unary(Lc,"__minus",Arg,Sub),
@@ -912,7 +938,7 @@ typeOfRoundTerm(Lc,F,A,Tp,ErTp,Env,Ev,apply(Lc,Fun,Args,Tp),Path) :-
 
 typeOfSearch(Lc,L,R,Tp,ErTp,Env,Ev,search(Lc,Ptn,Src,Iterator),Path) :-
   findType("boolean",Lc,Env,LogicalTp),
-  checkType(L,LogicalTp,Tp,Env),
+  verifyType(Lc,LogicalTp,Tp,Env),
   newTypeFun("_m",1,MTp),
   newTypeVar("_x",StTp),
   newTypeVar("_Sr",SrTp),
@@ -934,7 +960,6 @@ typeOfLambda(Term,Tp,Env,lambda(Lc,Lbl,equation(Lc,Args,Guard,Exp),Tp),Path) :-
   checkGuard(C,tplType([]),E0,E1,Guard,Path),
   newTypeVar("_E",RT),
   checkType(Term,funType(AT,RT),Tp,Env),
-					%  reportMsg("type after arg %s",[Tp]),
   lambdaLbl(Path,"_",Lbl),
   typeOfExp(R,RT,ErTp,E1,_,Exp,Path).
 
@@ -1030,6 +1055,7 @@ checkCase(Lc,H,G,R,LhsTp,Tp,ErTp,Env,
   typeOfExp(R,Tp,ErTp,E2,_,Exp,Path).
 
 checkAbstraction(Term,Lc,B,G,Tp,ErTp,Env,Abstr,Path) :-
+  dispAst(G),
   findType("boolean",Lc,Env,LogicalTp),
   typeOfExp(G,LogicalTp,ErTp,Env,E1,Cond,Path),
   pickupContract(Lc,Env,"sequence",StTp,[ElTp],Op),
@@ -1349,9 +1375,6 @@ processIterable(Env,Path,cond(Lc,T,L,R),cond(Lc,NT,NL,NR)) :-!,
 processIterable(Env,Path,neg(Lc,L),neg(Lc,NL)) :-!,
   processIterable(Env,Path,L,NL).
 processIterable(Env,Path,match(Lc,L,R),match(Lc,NL,NR)) :-!,
-  processIterable(Env,Path,L,NL),
-  processIterable(Env,Path,R,NR).
-processIterable(Env,Path,assign(Lc,L,R),assign(Lc,NL,NR)) :-!,
   processIterable(Env,Path,L,NL),
   processIterable(Env,Path,R,NR).
 processIterable(Env,Path,cell(Lc,L),cell(Lc,NL)) :-!,

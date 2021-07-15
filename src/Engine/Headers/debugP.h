@@ -8,8 +8,9 @@
 #include "debug.h"
 #include "bkpoint.h"
 #include "vector.h"
+#include "stack.h"
 
-typedef DebugWaitFor (*debugCmd)(char *line, processPo p, termPo loc, insWord ins, insPo pc, void *cl);
+typedef DebugWaitFor (*debugCmd)(char *line, processPo p, termPo loc, insWord ins, void *cl);
 
 typedef retCode (*completeCb)(strBufferPo, integer cx);
 
@@ -42,6 +43,5 @@ DebugWaitFor insDebug(processPo p, insWord ins);
 DebugWaitFor lineDebug(processPo p, termPo line);
 DebugWaitFor enterDebug(processPo p);
 
-void stackTrace(processPo p, ioPo out, logical showStack);
-void dumpStackTrace(processPo p, ioPo out);
+void stackTrace(processPo p, ioPo out, stackPo stk);
 #endif //STAR_DEBUGP_H

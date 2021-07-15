@@ -20,7 +20,6 @@ static termPo lblScan(specialClassPo cl, specialHelperFun helper, void *c, termP
 static logical lblCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer lblHash(specialClassPo cl, termPo o);
 static retCode lblDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
-static retCode showFields(ioPo out, fieldTblPo tbl);
 
 SpecialClass LabelClass = {
   .clss = Null,
@@ -77,7 +76,6 @@ static labelPo newLbl(lblTablePo table, const char *name, integer arity, integer
   lbl->mtd = Null;
   lbl->clss = labelClass;
   lbl->hash = arity * 37 + uniHash(name);
-  lbl->fields = Null;
   lbl->table = table;
   return lbl;
 }
@@ -146,10 +144,6 @@ termPo declareEnum(const char *name, integer index, heapPo H) {
   normalPo tpl = allocateStruct(H, lbl);
   gcReleaseRoot(H, root);
   return (termPo) tpl;
-}
-
-void declareFields(labelPo lbl, fieldTblPo tbl) {
-  lbl->fields = tbl;
 }
 
 labelPo objLabel(labelPo lbl, integer arity) {
@@ -242,15 +236,6 @@ termPo lblScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   if (lbl->mtd != Null)
     helper((ptrPo) (&lbl->mtd), c);
 
-  if (lbl->fields != Null) {
-    fieldTblPo fields = lbl->fields;
-    for (integer ix = 0; ix < fields->size; ix++) {
-      fieldPo fld = &fields->entries[ix];
-      if (fld->lbl != Null)
-        scanTerm(c, (termPo) fld->lbl);
-    }
-  }
-
   return o + LabelCellCount;
 }
 
@@ -278,9 +263,6 @@ retCode showLbl(ioPo out, labelPo lbl, integer depth, integer prec, logical alt)
       ret = outMsg(out, "%S…%S/%d", lbl->name, half, &lbl->name[hwp], lblLen - hwp, lbl->arity);
     } else
       ret = outMsg(out, "%S/%d", lbl->name, lblLen, lbl->arity);
-
-    if (ret == Ok)
-      ret = showFields(out, lbl->fields);
 
     return ret;
   } else
@@ -334,82 +316,4 @@ logical isTplLabel(labelPo lb) {
 
 logical isALabel(termPo t) {
   return hasClass(t, labelClass);
-}
-
-logical isRecordLabel(labelPo lbl) {
-  return lbl->fields != Null;
-}
-
-integer fieldIndex(labelPo lbl, labelPo field) {
-  fieldTblPo fields = lbl->fields;
-  if (fields == Null)
-    return -1;
-  else {
-    integer mx = fields->size - 1;
-    integer lx = 0;
-
-    while (mx >= lx) {
-      integer mid = (mx + lx) / 2;
-      switch (labelCmp(field, fields->entries[mid].lbl)) {
-        case same:
-          return fields->entries[mid].offset;
-        case smaller:
-          mx = mid - 1;
-          continue;
-        case bigger:
-          lx = mid + 1;
-          continue;
-        default:
-          return -1;
-      }
-    }
-
-    return -1;
-  }
-}
-
-fieldTblPo newFieldTable(integer count) {
-  fieldTblPo tbl = (fieldTblPo) malloc(sizeof(FieldTable) + count * sizeof(FieldBucket));
-  tbl->size = count;
-  return tbl;
-}
-
-void setFieldTblEntry(fieldTblPo tbl, labelPo field, integer offset) {
-  assert(offset >= 0 && offset < tbl->size);
-  tbl->entries[offset].lbl = field;
-  tbl->entries[offset].offset = offset;
-}
-
-void destroyFieldTable(fieldTblPo tbl) {
-  free(tbl);
-}
-
-void clearFieldTable(labelPo lbl) {
-  fieldTblPo fields = lbl->fields;
-  lbl->fields = Null;
-  destroyFieldTable(fields);
-}
-
-retCode applyFieldProc(labelPo lbl, integer ix, fieldProc p, void *cl) {
-  assert(ix >= 0 && ix < lbl->fields->size);
-  fieldPo fld = &lbl->fields->entries[ix];
-  return p(fld->lbl, fld->offset, cl);
-}
-
-retCode showFields(ioPo out, fieldTblPo tbl) {
-  retCode ret = Ok;
-
-  if (tbl != Null) {
-    char *sep = "";
-
-    ret = outMsg(out, "{ ");
-    for (integer ix = 0; ret == Ok && ix < tbl->size; ix++) {
-      fieldPo fld = &tbl->entries[ix];
-      ret = outMsg(out, "%s%d: %A", sep, fld->offset, fld->lbl);
-      sep = "; ";
-    }
-    if (ret == Ok)
-      ret = outMsg(out, " }");
-  }
-  return ret;
 }

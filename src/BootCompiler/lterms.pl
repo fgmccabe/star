@@ -47,6 +47,8 @@ isLTerm(mtch(_,_,_)) :- !.
 isLTerm(ng(_,_)) :- !.
 isLTerm(error(_,_)) :- !.
 isLTerm(doAct(_,_)) :- !.
+isLTerm(shft(_,_,_)) :-!.
+isLTerm(rst(_,_)) :- !.
 
 mergeGl(none,G,_,G).
 mergeGl(some(G),none,_,G).
@@ -116,6 +118,12 @@ ssTrm(ctpl(Op,A),Dp,sq([ss("."),OO,lp,AA,rp])) :-
   ssCOnOp(Op,OO),
   Dp1 is Dp+2,
   showArgs(A,Dp1,AA).
+ssTrm(shft(_,V,E),Dp,sq([ss("shift "),VV,ss(" in "),EE])) :-
+  ssTrm(V,Dp,VV),
+  Dp1 is Dp+2,
+  ssTrm(E,Dp1,EE).
+ssTrm(rst(_,E),Dp,sq([ss("reset "),EE])) :-
+  ssTrm(E,Dp,EE).
 ssTrm(enum(Nm),_,sq([ss("."),id(Nm)])).
 ssTrm(nth(_,Rc,Off),Dp,sq([OO,ss("."),ix(Off)])) :-
   ssTrm(Rc,Dp,OO).
@@ -260,6 +268,10 @@ rewriteTerm(_,lbl(Nm,Ar),lbl(Nm,Ar)).
 rewriteTerm(QTest,ltt(Lc,V,Val,Exp),ltt(Lc,V,Val1,Exp1)) :-
   rewriteTerm(lterms:checkV(V,QTest),Val,Val1),
   rewriteTerm(lterms:checkV(V,QTest),Exp,Exp1).
+rewriteTerm(QTest,shft(Lc,V,E),shft(Lc,V,EE)) :-
+  rewriteTerm(lterms:checkV(V,QTest),E,EE).
+rewriteTerm(QTest,rst(Lc,E),rst(Lc,EE)) :-
+  rewriteTerm(QTest,E,EE).
 rewriteTerm(QTest,cll(Lc,Op,Args),cll(Lc,NOp,NArgs)) :-
   rewriteTerm(QTest,Op,NOp),
   rewriteTerms(QTest,Args,NArgs).
@@ -429,6 +441,10 @@ inTerm(ctpl(_,Args),Nm) :-
   is_member(Arg,Args), inTerm(Arg,Nm),!.
 inTerm(ecll(_,_,Args),Nm) :-
   is_member(Arg,Args), inTerm(Arg,Nm),!.
+inTerm(rst(_,Exp),Nm) :-
+  inTerm(Exp,Nm),!.
+inTerm(shft(_,idnt(Nm),_),Nm) :-!,false.
+inTerm(shft(_,_,E),Nm) :-!,inTerm(E,Nm).
 inTerm(whr(_,T,_),Nm) :-
   inTerm(T,Nm),!.
 inTerm(whr(_,_,C),Nm) :-
@@ -544,6 +560,10 @@ validTerm(ltt(Lc,Vr,Bnd,Exp),_,D) :-
   ptnVars(Vr,D,D1),
   validTerm(Vr,Lc,D1),
   validTerm(Exp,Lc,D1).
+validTerm(rst(Lc,Exp),_,D) :-
+  validTerm(Exp,Lc,D).
+validTerm(shft(Lc,idnt(_),Exp),_,D) :-
+  validTerm(Exp,Lc,D).
 validTerm(varNames(Lc,Vars,Value),_,D) :-
   rfold(Vars,lterms:validVr,D,D1),
   validTerm(Value,Lc,D1).

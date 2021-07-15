@@ -24,17 +24,23 @@ typedef enum {
   attached
 } StackState;
 
-extern stackPo allocateStack(heapPo H, integer sze);
+
+typedef struct stack_frame_ *framePo;
+
+extern stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, termPo prompt);
 
 extern StackState stackState(stackPo stk);
 extern retCode setStackState(stackPo stk, StackState state);
 extern stackPo attachedStack(stackPo stk);
 
-extern integer stackTos(stackPo stk);
-extern integer stackFp(stackPo stk);
-extern ptrPo stackTerm(stackPo stk, integer off);
 extern framePo stackFrame(stackPo stk, integer off);
+extern framePo currFrame(stackPo stk);
+extern framePo pushFrame(stackPo stk, methodPo mtd, integer fp);
 
-extern stackPo glueOnStack(heapPo H, stackPo stk, integer amt);
+extern termPo popStack(stackPo stk);
+extern void pushStack(stackPo stk, termPo ptr);
+
+extern stackPo glueOnStack(heapPo H, stackPo stk, integer size);
+extern stackPo spinupStack(heapPo H, stackPo stk, integer size,termPo prompt);
 
 #endif //STAR_STACK_H

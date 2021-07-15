@@ -18,13 +18,7 @@
 #include "capability.h"
 
 typedef struct processRec_ {
-  insPo pc;           /* current program counter */
   stackPo stk;        // Current stack
-  framePo fp;         /* current frame */
-  methodPo prog;      /* current program */
-  ptrPo sp;           /* current top of stack */
-  termPo stackBase;   /* base of execution stack */
-  termPo stackLimit;  /* Limit of execution stack */
   heapPo heap;        // Local heap for this process
   pthread_t threadID;      /* What is the posix thread ID? */
   char wd[MAXFILELEN]; // Each thread may have its own working directory.
@@ -41,15 +35,7 @@ typedef struct processRec_ {
 #endif
 } ProcessRec;
 
-typedef struct stack_frame_ {
-  framePo fp;
-  insPo rtn;          /* The return address entry */
-  methodPo prog;      /* stacked program */
-  termPo args[ZEROARRAYSIZE];
-} StackFrame;
-
-#define STACKFRAME_SIZE 3
-
+extern MethodRec haltMethod;
 extern void initEngine();
 extern retCode run(processPo P);
 
@@ -74,8 +60,6 @@ void displayProcesses(void);
 void displayProcess(processPo p);
 
 void verifyProc(processPo P, heapPo H);
-
-retCode extendStack(processPo p, integer sfactor, integer fixed);
 
 #ifdef TRACEMEM
 long stkGrow;

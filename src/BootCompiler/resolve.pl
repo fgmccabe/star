@@ -114,9 +114,6 @@ overloadTerm(tple(Lc,Args),Dict,St,Stx,tple(Lc,RArgs)) :-
   overloadLst(Args,resolve:overloadTerm,Dict,St,Stx,RArgs).
 overloadTerm(cell(Lc,Inn),Dict,St,Stx,cell(Lc,Inn1)) :-
   overloadTerm(Inn,Dict,St,Stx,Inn1).
-overloadTerm(assign(Lc,Lhs,Rhs),Dict,St,Stx,assign(Lc,L1,R1)) :-
-  overloadTerm(Lhs,Dict,St,St1,L1),
-  overloadTerm(Rhs,Dict,St1,Stx,R1).
 overloadTerm(letExp(Lc,Decls,Defs,Bound),Dict,St,Stx,letExp(Lc,Decls,RDefs,RBound)) :-
   overload(Lc,Defs,Dict,RDict,RDefs),
   overloadTerm(Bound,RDict,St,Stx,RBound).
@@ -178,6 +175,10 @@ overloadTerm(mtd(Lc,Nm,Tp),_,St,Stx,mtd(Lc,Nm,Tp)) :-
   markActive(St,Lc,Msg,Stx).
 overloadTerm(lambda(Lc,Lbl,Eqn,Tp),Dict,St,Stx,lambda(Lc,Lbl,OEqn,Tp)) :-
   overloadRule(Eqn,Dict,St,Stx,OEqn).
+overloadTerm(prompt(Lc,E,Tp),Dict,St,Stx,prompt(Lc,EE,Tp)) :-
+  overloadTerm(E,Dict,St,Stx,EE).
+overloadTerm(shift(Lc,V,F),Dict,St,Stx,shift(Lc,V,FF)) :-
+  overloadTerm(F,Dict,St,Stx,FF).
 overloadTerm(valof(Lc,T,Tp),Dict,St,Stx,valof(Lc,RT,Tp)) :-
   overloadTerm(T,Dict,St,Stx,RT).
 overloadTerm(doTerm(Lc,Body,Tp),Dict,St,Stx,doTerm(Lc,RBody,Tp)) :-!,

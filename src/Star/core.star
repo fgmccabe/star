@@ -1,6 +1,8 @@
 star.core {
   @"Core definitions of types and interfaces that are really part of the language".
 
+  public boolean ::= .true | .false.
+
   equality@"defines semantic equality".
   public contract all x ~~ equality[x] ::= {
     (==)@"semantic equality is defined explicitly".
@@ -86,9 +88,6 @@ star.core {
   public contract all t ~~ reversible[t] ::= {
     reverse:(t)=>t.
   }
-
-  -- Not strictly necessary, but makes for better symmetry.
-  public boolean ::= .true | .false.
 
   public implementation display[boolean] => {
     disp(.true) => ss("true").

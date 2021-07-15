@@ -21,18 +21,15 @@ ReturnStatus g__definedLbl(processPo P, ptrPo tos) {
     .result = findLbl(label, arity) != Null ? trueEnum : falseEnum};
 }
 
-static inline ptrPo checkStack(processPo P, ptrPo SP) {
-  assert(SP > (ptrPo) P->stackBase);
-  return SP;
-}
-
 static inline void push(processPo P, termPo t) {
-  *checkStack(P, --P->sp) = t;
+  stackPo stack = P->stk;
+  stackSanityCheck(P->stk);
+  stack->stack[--stack->sp] = (ptrPo)t;
 }
 
 static void pushArgs(processPo P, termPo args) {
   if (isCons(args)) {
-    normalPo const p = C_NORMAL(args);
+    normalPo p = C_NORMAL(args);
     pushArgs(P, consTail(p));
     push(P, consHead(p));
   }
@@ -56,19 +53,19 @@ ReturnStatus g__callLbl(processPo P, ptrPo tos) {
     } else {
       pushArgs(P, args);
 
-      push(P, (termPo) P->prog);
-      push(P, (termPo) P->pc);       // Set up for a return
-      P->pc = entryPoint(prog);
-      push(P, (termPo) P->fp);
-      P->fp = (framePo) P->sp;     /* set the new frame pointer */
+      stackPo stk = P->stk;
+      framePo f = stackFrame(stk,++stk->fp);
+      f->prog = prog;
+      f->pc = entryPoint(prog);
+      f->fp = stk->sp;
+
       integer lclCnt = lclCount(prog);  /* How many locals do we have */
-      P->sp -= lclCnt;
+      stk->sp -= lclCnt;
 #ifdef TRACEEXEC
       for (integer ix = 0; ix < lclCnt; ix++)
-        P->sp[ix] = voidEnum;
+        P->stk->stack[stk->sp + ix] = (ptrPo)voidEnum;
 #endif
-      assert(P->sp > (ptrPo) P->stackBase);
-      P->prog = prog;
+      assert(validStkPtr(stk, stk->sp));
 
       ret.ret = Switch;               // Special flag for dynamic call
       return ret;

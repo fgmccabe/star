@@ -49,6 +49,7 @@ star.compiler.operators{
   oper("do") => [prefixOp(200,199), infixOp(1199,1200,1199)].
   oper("import") => [prefixOp(900,899)].
   oper("catch") => [infixOp(1198,1199,1198)].
+  oper("prompt") => [prefixOp(300,299)].
   oper("valis") => [prefixOp(930,929)].
   oper(",..") => [infixOp(999,1000,999)].
   oper("for") => [prefixOp(1175,1174)].
@@ -101,6 +102,7 @@ star.compiler.operators{
   oper("@") => [prefixOp(400,399), infixOp(399,400,400)].
   oper("in") => [infixOp(899,900,900)].
   oper("^|") => [infixOp(919,920,920)].
+  oper("cut") => [infixOp(949,950,949)].
   oper("open") => [prefixOp(900,899)].
   oper("=~=") => [infixOp(899,900,899)].
   oper("~~") => [infixOp(1239,1240,1240)].
@@ -405,6 +407,7 @@ star.compiler.operators{
  keyword("do") => .true.
  keyword("import") => .true.
  keyword("catch") => .true.
+ keyword("prompt") => .true.
  keyword("valis") => .true.
  keyword(",..") => .true.
  keyword("for") => .true.
@@ -432,6 +435,7 @@ star.compiler.operators{
  keyword("?") => .true.
  keyword("@") => .true.
  keyword("in") => .true.
+ keyword("cut") => .true.
  keyword("open") => .true.
  keyword("~~") => .true.
  keyword("public") => .true.

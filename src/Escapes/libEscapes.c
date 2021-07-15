@@ -4,7 +4,6 @@
 #include "term.h"
 #include <globals.h>
 #include <str.h>
-#include <stdlib.h>
 #include "engine.h"
 #include "libEscapes.h"
 #include "signature.h"
@@ -44,7 +43,7 @@ int installEscape(char *name, char *sig, libFun fun) {
   return escIx;
 }
 
-int32 lookupEscape(char *name) {
+uint32 lookupEscape(char *name) {
   for (int ix = 0; ix < topEsc; ix++) {
     if (uniCmp(name, escapes[ix].name) == same)
       return ix;
@@ -54,7 +53,7 @@ int32 lookupEscape(char *name) {
   return -1;
 }
 
-escapePo getEscape(int32 escNo) {
+escapePo getEscape(uint32 escNo) {
   assert(escNo >= 0 && escNo < topEsc);
   return &escapes[escNo];
 }

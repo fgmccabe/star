@@ -1,54 +1,54 @@
 [
-  {
-    "infixOp": "::=",
-    "priorities": [
-      1249,
-      1250,
-      1249
-    ],
-    "desc": "algebraic type definition",
-    "keyword": true
-  },
-  {
-    "infixOp": "|",
-    "priorities": [
-      1248,
-      1248,
-      1247
-    ],
-    "desc": "type union, conditional, and abstraction",
-    "keyword": true
-  },
-  {
-    "infixOp": "^|",
-    "priorities": [
-      919,
-      920,
-      920
-    ],
-    "desc": "option or-else operator",
-    "keyword": false
-  },
-  {
-    "infixOp": ":",
-    "priorities": [
-      1249,
-      1250,
-      1249
-    ],
-    "desc": "type annotation",
-    "keyword": true
-  },
-  {
-    "infixOp": "has type",
-    "priorities": [
-      1249,
-      1250,
-      1249
-    ],
-    "desc": "type annotation",
-    "keyword": true
-  },
+    {
+	"infixOp": "::=",
+	"priorities": [
+	    1249,
+	    1250,
+	    1249
+	],
+	"desc": "algebraic type definition",
+	"keyword": true
+    },
+    {
+	"infixOp": "|",
+	"priorities": [
+	    1248,
+	    1248,
+	    1247
+	],
+	"desc": "type union, conditional, and abstraction",
+	"keyword": true
+    },
+    {
+	"infixOp": "^|",
+	"priorities": [
+	    919,
+	    920,
+	    920
+	],
+	"desc": "option or-else operator",
+	"keyword": false
+    },
+    {
+	"infixOp": ":",
+	"priorities": [
+	    1249,
+	    1250,
+	    1249
+	],
+	"desc": "type annotation",
+	"keyword": true
+    },
+    {
+	"infixOp": "has type",
+	"priorities": [
+	    1249,
+	    1250,
+	    1249
+	],
+	"desc": "type annotation",
+	"keyword": true
+    },x
   {
     "infixOp": "has kind",
     "priorities": [
@@ -241,6 +241,31 @@
     "desc": "perform an action or task",
     "keyword": true
   },
+    {
+	"prefixOp": "prompt",
+	"priorities": [
+	    300,
+	    299
+	],
+	"desc": "delimit a continuation",
+	"keyword": true
+    },
+    {
+	"infixOp": "cut",
+	"priorities": [
+	    949,
+	    950,
+	    949
+	],
+	"desc": "capture continuation",
+	"keyword": true
+    },
+    {
+	"token": "tag",
+	"desc": "continuation delimiter",
+	"keyword": true
+    },
+    
   {
     "infixOp": "->>",
     "priorities": [
