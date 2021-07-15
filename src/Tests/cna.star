@@ -34,7 +34,8 @@ test.cna{
 
   main:(string)=>action[(),()].
   main(T) => action{
-    logM(T)
+    logM(T);
+    valis ()
   }
   
 

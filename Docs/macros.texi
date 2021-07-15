@@ -12,7 +12,7 @@
 @ifnotinfo
 @ifnottex
 @macro turnstile
-@U{22a6}
+⊦
 @end macro
 @end ifnottex
 @end ifnotinfo
@@ -36,13 +36,13 @@
 @ifnotinfo
 @ifnottex
 @macro noteq
-@U{2260}
+≠
 @end macro
 @end ifnottex
 @end ifnotinfo
 
 @macro spce
-@U{2420}
+␣
 @end macro
 
 @macro typeprod{E,Exp,T}
