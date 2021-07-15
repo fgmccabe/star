@@ -11,6 +11,7 @@
 #include "engineOptions.h"
 #include "streamDecode.h"
 #include "heapP.h"
+#include "stackP.h"
 #include "manifestP.h"
 #include "verifyP.h"
 #include "debugP.h"
@@ -131,6 +132,15 @@ static retCode debugOption(char *option, logical enable, void *cl) {
         continue;
 #else
         logMsg(logFile,"memory validation not enabled");
+        return -1;
+#endif
+
+      case 'S':    /* trace stack operations  */
+#ifdef TRACESTACK
+        traceStacks = True;
+        continue;
+#else
+        logMsg(logFile,"stack operation tracing not enabled");
         return -1;
 #endif
 

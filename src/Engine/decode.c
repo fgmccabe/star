@@ -270,9 +270,6 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo tmpBuffer
       }
       return res;
     }
-    case recLbl: {
-      return decodeRecLbl(in, S, tgt, tmpBuffer, S->errorMsg, S->msgSize);
-    }
     case strTrm: {
       if ((res = decodeText(in, tmpBuffer)) == Ok) {
         integer len;
@@ -378,79 +375,4 @@ retCode decodeTplCount(ioPo in, integer *count, char *errorMsg, integer msgSize)
     return ret;
   } else
     return Fail;
-}
-
-static retCode
-decodeRecordFieldTypes(ioPo in, encodePo S, integer count, fieldTblPo *tgt, strBufferPo tmpBuffer, char *errorMsg,
-                       integer msgSize);
-
-retCode decodeRecLbl(ioPo in, encodePo S, termPo *tgt, strBufferPo tmpBuffer, char *errorMsg, integer msgSize) {
-  char lblName[MAX_SYMB_LEN];
-  strBufferPo pkgB = fixedStringBuffer(lblName, NumberOf(lblName));
-
-  retCode ret = decodeText(in, pkgB);
-
-  if (ret == Ok) {
-    integer lblLen;
-    char *Nm = getTextFromBuffer(pkgB, &lblLen);
-
-#ifdef TRACEDECODE
-    if (traceDecode >= detailedTracing)
-      outMsg(logFile, "decoding record label %s\n%_", lblName);
-#endif
-
-    if ((ret = isLookingAt(in, "{")) == Ok) {
-      fieldTblPo tbl = Null;
-
-      ret = decodeRecordFieldTypes(in, S, 0, &tbl, tmpBuffer, errorMsg, msgSize);
-
-      if (ret == Ok && tbl != Null) {
-        labelPo lbl = declareLbl(Nm, tbl->size, -1);
-        declareFields(lbl, tbl);
-
-        *tgt = (termPo) lbl;
-      }
-    }
-  }
-  closeFile(O_IO(pkgB));
-
-//  outMsg(logFile, "%#T\n", *tgt);
-  return ret;
-}
-
-retCode
-decodeRecordFieldTypes(ioPo in, encodePo S, integer count, fieldTblPo *tgt, strBufferPo tmpBuffer, char *errorMsg,
-                       integer msgSize) {
-  if (isLookingAt(in, "}") == Ok) {
-    *tgt = newFieldTable(count);
-#ifdef TRACEDECODE
-    if (traceDecode >= detailedTracing)
-      outMsg(logFile, "%d fields in record\n%_", count);
-#endif
-    return Ok;
-  } else {
-    char fieldName[MAX_SYMB_LEN];
-
-    strBufferPo pkgB = fixedStringBuffer(fieldName, NumberOf(fieldName));
-    retCode ret = decodeText(O_IO(in), pkgB);
-    outByte(O_IO(pkgB), 0);
-    closeFile(O_IO(pkgB));
-
-    if (ret == Ok) {
-      labelPo field = declareLbl(fieldName, 0, -1);
-
-#ifdef TRACEDECODE
-      if (traceDecode >= detailedTracing)
-        outMsg(logFile, "record field %s\n%_", fieldName);
-#endif
-
-      ret = skipSignature(in); // Field signature
-      if (ret == Ok) {
-        ret = decodeRecordFieldTypes(in, S, count + 1, tgt, tmpBuffer, errorMsg, msgSize);
-        if (ret == Ok)
-          setFieldTblEntry(*tgt, field, count);
-      }
-    }
-    return ret;
-  }
 }

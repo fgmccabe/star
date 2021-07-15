@@ -9,7 +9,6 @@
 #include "engineP.h"      /* access engine definitions */
 
 #include "config.h"    /* pick up standard configuration header */
-#include <stdlib.h>
 #include <memory.h>
 #include <labelsP.h>
 #include <globalsP.h>
@@ -232,67 +231,13 @@ static retCode markProcess(processPo P, gcSupportPo G) {
   if (traceMemory)
     outMsg(logFile, "Mark process %d\n%_", P->processNo);
 #endif
+  markPtr(G, (ptrPo) &P->stk);
 
-  ptrPo t = P->sp;
-  framePo f = P->fp;
-
-  while (f < (framePo) P->stackLimit) {
-    while (t < (ptrPo) f) {
-      *t = markPtr(G, t);
-      t++;
-    }
-    integer off = insOffset(f->prog, f->rtn);
-    f->prog = (methodPo) markPtr(G, (ptrPo) &f->prog);
-    f->rtn = pcAddr(f->prog, off);
-
-    t = (ptrPo) (f + 1);
-    f = f->fp;
-  }
-  while (t < (ptrPo) f) {
-    *t = markPtr(G, t);
-    t++;
-  }
-
-  integer off = insOffset(P->prog, P->pc);
-  P->prog = (methodPo) markPtr(G, (ptrPo) &P->prog);
-  P->pc = pcAddr(P->prog, off);
   return Ok;
 }
 
 void verifyProc(processPo P, heapPo H) {
-  integer lvl = 0;
-
-  ptrPo t = P->sp;
-  framePo f = P->fp;
-  methodPo mtd = P->prog;
-  insPo pc = P->pc;
-
-  assert(t <= (ptrPo) f);
-  assert((ptrPo) f < (ptrPo) P->stackLimit);
-
-  while (f < (framePo) P->stackLimit) {
-    integer pcOffset = (integer) (pc - mtd->code);
-
-    assert(pcOffset >= 0 && pcOffset < mtd->codeSize);
-
-    inStackPtr(P, &f->args[argCount(mtd)]);
-    inStackPtr(P, t);
-    inStackPtr(P, (ptrPo) f);
-
-    while (t < (ptrPo) f) {
-      validPtr(H, *t);
-      t++;
-    }
-
-    validPtr(H, (termPo) f->prog);
-
-    t = (ptrPo) (f + 1);
-
-    mtd = f->prog;
-    pc = f->rtn;
-    f = f->fp;
-    lvl++;
-  }
+  verifyStack(P->stk,H);
 }
 
 void dumpGcStats() {

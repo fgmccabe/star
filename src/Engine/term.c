@@ -110,23 +110,7 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
     labelPo lbl = nml->lbl;
     integer arity = labelArity(lbl);
 
-    if (isRecordLabel(lbl)) {
-      FieldInfoRec Info = {.out = out, .depth=depth, .precision=precision, .alt=alt, .trm=nml};
-
-      retCode ret = outMsg(out, "%Q", labelName(lbl));
-      char *sep = "";
-      if (ret == Ok)
-        ret = outStr(out, "{ ");
-      for (integer ix = 0; ret == Ok && ix < arity; ix++) {
-        ret = outStr(out, sep);
-        if (ret == Ok)
-          ret = applyFieldProc(lbl, ix, showField, &Info);
-        sep = "; ";
-      }
-      if (ret == Ok)
-        ret = outStr(out, "}");
-      return ret;
-    } else if (isTplLabel(lbl)) {
+    if (isTplLabel(lbl)) {
       return showArgs(out, nml, precision, depth, alt);
     } else if (arity == 0) {
       return outMsg(out, ".%Q", labelName(lbl));
@@ -209,19 +193,3 @@ normalPo allocatePair(heapPo H, termPo lhs, termPo rhs) {
   return tpl;
 }
 
-termPo getField(normalPo term, labelPo field) {
-  integer offset = fieldIndex(term->lbl, field);
-  if (offset >= 0)
-    return nthArg(term, offset);
-  else
-    return Null;
-}
-
-retCode setField(normalPo term, labelPo field, termPo val) {
-  integer offset = fieldIndex(term->lbl, field);
-  if (offset >= 0) {
-    setArg(term, offset, val);
-    return Ok;
-  } else
-    return Error;
-}

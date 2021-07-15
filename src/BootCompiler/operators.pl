@@ -33,6 +33,7 @@
   operator("do", [prefixOp(200, 199), infixOp(1199, 1200, 1199)]).
   operator("import", [prefixOp(900, 899)]).
   operator("catch", [infixOp(1198, 1199, 1198)]).
+  operator("prompt", [prefixOp(300, 299)]).
   operator("valis", [prefixOp(930, 929)]).
   operator(",..", [infixOp(999, 1000, 999)]).
   operator("for", [prefixOp(1175, 1174)]).
@@ -85,6 +86,7 @@
   operator("@", [prefixOp(400, 399), infixOp(399, 400, 400)]).
   operator("in", [infixOp(899, 900, 900)]).
   operator("^|", [infixOp(919, 920, 920)]).
+  operator("cut", [infixOp(949, 950, 949)]).
   operator("open", [prefixOp(900, 899)]).
   operator("=~=", [infixOp(899, 900, 899)]).
   operator("~~", [infixOp(1239, 1240, 1240)]).
@@ -357,6 +359,7 @@
  keyword("do").
  keyword("import").
  keyword("catch").
+ keyword("prompt").
  keyword("valis").
  keyword(",..").
  keyword("for").
@@ -384,6 +387,7 @@
  keyword("?").
  keyword("@").
  keyword("in").
+ keyword("cut").
  keyword("open").
  keyword("~~").
  keyword("public").

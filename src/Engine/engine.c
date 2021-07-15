@@ -26,7 +26,7 @@ static integer newProcessNumber();
 
 static LockRecord processLock;
 
-static MethodRec halt = {
+MethodRec haltMethod = {
   .clss = Null,
   .codeSize = 2,
   .arity = 0,
@@ -40,7 +40,7 @@ void initEngine() {
   prPool = newPool(sizeof(ProcessRec), 32);
   prTble = newHash(16, processHash, sameProcess, Null);
   initLock(&processLock);
-  halt.clss = methodClass;
+  haltMethod.clss = methodClass;
 }
 
 retCode bootstrap(char *entry, char *rootWd, capabilityPo rootCap) {
@@ -61,11 +61,12 @@ retCode bootstrap(char *entry, char *rootWd, capabilityPo rootCap) {
 
 processPo newProcess(methodPo mtd, char *rootWd, capabilityPo processCap, termPo rootArg) {
   processPo P = (processPo) allocPool(prPool);
+  stackPo stk = P->stk = allocateStack(currHeap, initStackSize, &haltMethod, voidEnum);
+  setStackState(P->stk, root);
 
-  P->prog = mtd;
-  P->pc = entryPoint(mtd);
-  P->stackBase = (termPo) malloc(sizeof(integer) * initStackSize);
-  P->stackLimit = &P->stackBase[initStackSize];
+  pushStack(stk, rootArg);
+  pushFrame(stk, mtd, stk->sp);
+
   P->heap = currHeap;
   P->state = P->savedState = quiescent;
   P->pauseRequest = False;
@@ -77,64 +78,14 @@ processPo newProcess(methodPo mtd, char *rootWd, capabilityPo processCap, termPo
   } else
     P->waitFor = never;
 
-  P->stk = allocateStack(currHeap,initStackSize);
-  setStackState(P->stk,root);
-
   P->tracing = tracing;
 
-  P->fp = (framePo) P->stackLimit;
-
   setProcessWd(P, rootWd, uniStrLen(rootWd));
-
-  // cap the stack with a halting stop.
-
-  ptrPo sp = (ptrPo) P->fp;
-  *--sp = rootArg;
-
-  *--sp = (termPo) &halt;
-  *--sp = (termPo) entryPoint(&halt);
-  *--sp = (termPo) P->fp;    /* set the new frame pointer */
-
-
-  P->fp = (framePo) sp;
-  P->sp = sp;
 
   P->processNo = newProcessNumber();
 
   hashPut(prTble, (void *) P->processNo, P);
-
   return P;
-}
-
-void setupProcess(processPo P, methodPo mtd) {
-  P->prog = mtd;
-  P->pc = entryPoint(mtd);
-  P->heap = currHeap;
-  P->state = P->savedState = quiescent;
-  P->pauseRequest = False;
-  if (insDebugging || lineDebugging) {
-    if (interactive)
-      P->waitFor = stepInto;
-    else
-      P->waitFor = nextBreak;
-  } else
-    P->waitFor = never;
-
-  P->tracing = tracing;
-
-  uniNCpy(P->wd, NumberOf(P->wd), CWD, NumberOf(CWD));
-
-  P->fp = (framePo) P->stackLimit;
-
-  // cap the stack with a halting stop.
-
-  ptrPo sp = (ptrPo) P->fp;
-  *--sp = (termPo) &halt;
-  *--sp = (termPo) entryPoint(&halt);
-  *--sp = (termPo) P->fp;    /* set the new frame pointer */
-
-  P->fp = (framePo) sp;
-  P->sp = sp;
 }
 
 void ps_kill(processPo p) {
@@ -161,73 +112,6 @@ static inline ptrPo localVar(framePo fp, int64 off) {
 #ifdef TRACEMEM
 long stkGrow = 0;
 #endif
-
-retCode extendStack(processPo p, integer sfactor, integer fixed) {
-  integer stackSize = (integer) ((p->stackLimit - p->stackBase) * sfactor + fixed);
-
-#ifdef TRACEMEM
-  if (traceMemory) {
-    outMsg(logFile, "extending stack of process %d to %d cells\n%_", p->processNo, stackSize);
-    stkGrow++;
-    verifyProc(p, processHeap(p));
-  }
-#endif
-  if (stackSize > maxStackSize)
-    return Error;
-
-  termPo nStack = (termPo) malloc(stackSize * sizeof(termPo));
-
-  if (nStack == NULL) {
-    syserr("not enough memory to grow stack");
-    return Error;
-  } else {
-    termPo nLimit = nStack + stackSize;
-    framePo fp = p->fp;
-    ptrPo sp = p->sp;
-    methodPo mtd = p->prog;
-
-    while (fp < (framePo) p->stackLimit) {
-      framePo nfp = (framePo) realign((ptrPo) fp, (ptrPo) p->stackBase, (ptrPo) p->stackLimit, (ptrPo) nLimit);
-      nfp->prog = fp->prog;
-      nfp->rtn = fp->rtn;
-      nfp->fp = (framePo) realign((ptrPo) (fp->fp), (ptrPo) p->stackBase, (ptrPo) p->stackLimit, (ptrPo) nLimit);
-
-      integer count = argCount(mtd);
-
-      for (integer ix = 0; ix < count; ix++) {
-        nfp->args[ix] = fp->args[ix];
-      }
-
-      for (integer vx = 1; vx <= lclCount(mtd); vx++) {
-        *localVar(nfp, vx) = *localVar(fp, vx);
-      }
-
-      ptrPo stackTop = ((ptrPo) fp) - mtd->lclcnt;
-      for (integer ix = 0; sp < stackTop; ix++, sp++) {
-        *realign(sp, (ptrPo) p->stackBase, (ptrPo) p->stackLimit, (ptrPo) nLimit) = *sp;
-      }
-
-      mtd = fp->prog;
-
-      sp = (ptrPo) (fp + 1);
-      fp = fp->fp;
-    }
-    p->fp = (framePo) realign((ptrPo) (p->fp), (ptrPo) p->stackBase, (ptrPo) p->stackLimit, (ptrPo) nLimit);
-    p->sp = realign((ptrPo) (p->sp), (ptrPo) p->stackBase, (ptrPo) p->stackLimit, (ptrPo) nLimit);
-
-    free(p->stackBase);
-    p->stackBase = nStack;
-    p->stackLimit = nLimit;
-
-#ifdef TRACEMEM
-    if (traceMemory) {
-      verifyProc(p, processHeap(p));
-    }
-#endif
-
-    return Ok;
-  }
-}
 
 ReturnStatus liberror(processPo P, char *name, termPo code) {
   heapPo H = processHeap(P);

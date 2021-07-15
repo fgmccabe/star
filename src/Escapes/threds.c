@@ -124,13 +124,13 @@ ReturnStatus g__abort(processPo P, ptrPo tos) {
 
   logMsg(logFile, "Abort %T at %L", msg, lc);
   verifyProc(P, processHeap(P));
-  dumpStackTrace(P, logFile);
+  stackTrace(P, logFile, P->stk);
 
   return (ReturnStatus) {.ret=Error, .result=(termPo) voidEnum};
 }
 
 ReturnStatus g__stackTrace(processPo P, ptrPo tos) {
-  stackTrace(P, logFile, False);
+  stackTrace(P, logFile, P->stk);
 
   return (ReturnStatus) {.ret=Ok, .result=(termPo) voidEnum};
 }

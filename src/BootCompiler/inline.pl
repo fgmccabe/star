@@ -30,8 +30,6 @@ inlineExp(case(Lc,Bound,Cases,Tp),Env,Max,Rep,Trg,Tx) :- !,
   applyCases(Lc,RRBnd,Cases,Tp,Env,Max,Rep,T0,Tx).
 inlineExp(tple(Lc,Els),Env,Max,tple(Lc,REls),T0,Tx) :- !,
   inlineExps(Els,Env,Max,REls,T0,Tx).
-inlineExp(assign(Lc,Vr,Vl),Env,Max,assign(Lc,Vr,RVl),Trg,Tx) :-!,
-  inlineExp(Vl,Env,Max,RVl,Trg,Tx).
 inlineExp(cell(Lc,Vl),Env,Max,cell(Lc,RVl),Trg,Tx) :-!,
   inlineExp(Vl,Env,Max,RVl,Trg,Tx).
 inlineExp(mtd(Lc,Nm,Tp),Env,Max,mtd(Lc,Nm,Tp),T,T) :-!,
@@ -148,12 +146,13 @@ rewriteTerm(record(Lc,Path,Anon,Defs,Sig),Env,record(Lc,Path,Anon,RDefs,Sig)) :-
   rewriteDefs(Defs,Env,RDefs).
 rewriteTerm(cell(Lc,Inn),Env,cell(Lc,Inn1)) :-
   rewriteTerm(Inn,Env,Inn1).
-rewriteTerm(assign(Lc,Lhs,Rhs),Env,assign(Lc,L1,R1)) :-
-  rewriteTerm(Lhs,Env,L1),
-  rewriteTerm(Rhs,Env,R1).
 rewriteTerm(letExp(Lc,Env,Bound),Env,letExp(Lc,REnv,RBound)) :-
   rewriteTerm(Env,Env,REnv),
   rewriteTerm(Bound,Env,RBound).
+rewriteTerm(prompt(Lc,Trm,Tp),Env,prompt(Lc,RTrm,Tp)) :-
+  rewriteTerm(Trm,Env,RTrm).
+rewriteTerm(shift(Lc,V,F),Env,shift(Lc,V,RF)) :-
+  rewriteTerm(F,Env,RF).
 rewriteTerm(where(Lc,Trm,Cond),Env,where(Lc,RTrm,RCond)) :-
   rewriteTerm(Trm,Env,RTrm),
   rewriteGuard(Cond,Env,RCond).

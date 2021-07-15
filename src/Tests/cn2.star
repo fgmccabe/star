@@ -31,4 +31,6 @@ test.cn2{
   public _getResult:all a,e ~~ (result[a,e])=>a.
   _getResult(okResult(X)) => X.
 
+  
+
 }

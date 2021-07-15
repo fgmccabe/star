@@ -1,15 +1,18 @@
 :- module(abstract,[locOfAst/2,astOfLoc/2,isAst/1,
-      nary/4,binary/5,unary/4,zeroary/3,apply/4,isApply/4,
-      isUnary/3,isUnary/4,isBinary/5,isBinaryTerm/4,
-      isTernary/5,ternary/6,isParen/2,deParen/2,
-      roundTerm/4,isRound/4,isRoundTerm/3,isRoundTerm/4,isTuple/2,isTuple/3,isRoundTuple/3,roundTuple/3,
-      braceTerm/4,isBrace/4,isBraceTerm/4,isBraceTuple/3,braceTuple/3,isEmptyBrace/1,
-      qbraceTerm/4,isQBrace/3,isQBraceTerm/4,isQBraceTuple/3,
-      squareTerm/4,isSquare/3,isSquare/4,isSquareTuple/3,isSquareTuple/2,isSquareTerm/3,isSquareTerm/4,sqUnary/4,
-      isName/2,isIden/1,isIden/2,isIden/3,genIden/2,genIden/3,isString/2,isString/3,isInteger/2,
-      isConsTerm/4,
-      sameTerm/2,
-      explodeString/2]).
+		    nary/4,binary/5,unary/4,zeroary/3,apply/4,isApply/4,
+		    isUnary/3,isUnary/4,isBinary/5,isBinaryTerm/4,
+		    isTernary/5,ternary/6,isParen/2,deParen/2,
+		    roundTerm/4,isRound/4,isRoundTerm/3,isRoundTerm/4,
+		    isTuple/2,isTuple/3,isRoundTuple/3,roundTuple/3,
+		    braceTerm/4,isBrace/4,isBraceTerm/4,isBraceTuple/3,braceTuple/3,
+		    isEmptyBrace/1,
+		    qbraceTerm/4,isQBrace/3,isQBraceTerm/4,isQBraceTuple/3,
+		    squareTerm/4,isSquare/3,isSquare/4,isSquareTuple/3,
+		    isSquareTuple/2,isSquareTerm/3,isSquareTerm/4,sqUnary/4,
+		    isName/2,isName/3,
+		    isIden/1,isIden/2,isIden/3,genIden/2,genIden/3,isString/2,
+		    isString/3,isInteger/2,isConsTerm/4, sameTerm/2,
+		    explodeString/2]).
 :- use_module(operators).
 :- use_module(misc).
 
@@ -95,6 +98,7 @@ isConsTerm(Trm,Lc,H,T) :-
   isBinary(Trm,Lc,",..",H,T).
 
 isName(name(_,Nm),Nm).
+isName(name(Lc,Nm),Lc,Nm).
 
 isIden(N) :- isIden(N,_).
 

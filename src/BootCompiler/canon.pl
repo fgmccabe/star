@@ -41,7 +41,6 @@ isCanon(implies(_,_,_)).
 isCanon(cond(_,_,_,_,_)).
 isCanon(match(_,_,_)).
 isCanon(neg(_,_)).
-isCanon(assign(_,_,_)).
 isCanon(cell(_,_)).
 isCanon(lambda(_,_,_,_)).
 isCanon(valof(_,_)).
@@ -106,10 +105,10 @@ typeOfCanon(cond(_,_,_,_,Tp),Tp) :-!.
 typeOfCanon(letExp(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(letRec(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(apply(_,_,_,Tp),Tp) :-!.
+typeOfCanon(prompt(_,_,Tp),Tp) :-!.
+typeOfCanon(shift(_,_,F),Tp) :-!, typeOfCanon(F,Tp).
 typeOfCanon(tple(_,Els),tplType(Tps)) :-!,
   map(Els,canon:typeOfCanon,Tps).
-typeOfCanon(assign(_,_,Vl),Tp) :-
-  typeOfCanon(Vl,Tp).
 typeOfCanon(cell(_,Vl),refType(Tp)) :-
   typeOfCanon(Vl,Tp).
 typeOfCanon(lambda(_,_,_,Tp),Tp) :-!.
@@ -141,6 +140,8 @@ locOfCanon(case(Lc,_,_,_),Lc) :- !.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
 locOfCanon(tple(Lc,_),Lc) :-!.
 locOfCanon(lambda(Lc,_,_,_),Lc) :-!.
+locOfCanon(prompt(Lc,_,_),Lc) :-!.
+locOfCanon(shift(Lc,_,_),Lc) :-!.
 locOfCanon(valof(Lc,_,_),Lc) :-!.
 locOfCanon(doTerm(Lc,_,_),Lc) :-!.
 locOfCanon(taskTerm(Lc,_,_),Lc) :-!.
@@ -151,7 +152,6 @@ locOfCanon(untilDo(Lc,_,_),Lc) :-!.
 locOfCanon(forDo(Lc,_,_),Lc) :-!.
 locOfCanon(caseDo(Lc,_,_),Lc) :-!.
 locOfCanon(tryCatchDo(Lc,_,_),Lc) :-!.
-locOfCanon(assign(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
 locOfCanon(varDo(Lc,_,_,_,_,_),Lc) :-!.
 locOfCanon(valisDo(Lc,_,_,_,_),Lc) :-!.
@@ -199,9 +199,6 @@ ssTerm(case(_,Bound,Cases,_),Dp,
 	    sq([ss("case "),B,ss(" in {"),Rs,ss("}")])) :-
   ssTerm(Bound,Dp,B),
   ssRls("",Cases,Dp,Rs).
-ssTerm(assign(_,Vr,Vl),Dp,sq([L,ss(" := "),R])) :-
-  ssTerm(Vr,Dp,L),
-  ssTerm(Vl,Dp,R).
 ssTerm(cell(_,Vr),Dp,sq([ss("!!"),V])) :-
   ssTerm(Vr,Dp,V).
 ssTerm(letExp(_,Decls,Defs,Ex),Dp,
@@ -220,6 +217,11 @@ ssTerm(letRec(_,Decls,Defs,Ex),Dp,
   ssTerm(Ex,Dp,B).
 ssTerm(lambda(_,_,Rle,_),Dp,sq([lp,Rl,rp])) :-
   ssRule("",Dp,Rle,Rl).
+ssTerm(prompt(_,E,_),Dp,sq([ss("prompt "),EE])) :-
+  ssTerm(E,Dp,EE).
+ssTerm(shift(_,V,F),Dp,sq([ss("shift "),VV,ss("in"),FF])) :-
+  ssTerm(V,Dp,VV),
+  ssTerm(F,Dp,FF).
 ssTerm(tple(_,Els),Dp,sq([lp,iv(ss(", "),SEls),rp])) :-
   ssTerms(Els,Dp,SEls).
 ssTerm(mtd(_,Nm,_),_,sq([ss("°"),id(Nm)])).

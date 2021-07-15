@@ -309,7 +309,10 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
       case OTail:
       case Jmp:
       case Halt:
-      case Ret: {
+      case Ret:
+      case Underflow:
+      case Cut:
+      case Restore:{
         splitSeg(blocks, *pc);
         return Ok;
       }

@@ -49,9 +49,6 @@ termPo nthArg(normalPo term, integer ix);
 termPo nthElem(normalPo term, integer ix);
 void setArg(normalPo term, integer ix, termPo arg);
 
-termPo getField(normalPo term, labelPo field);
-retCode setField(normalPo term, labelPo field, termPo val);
-
 extern termPo falseEnum;
 extern termPo trueEnum;
 

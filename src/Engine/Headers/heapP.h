@@ -35,8 +35,7 @@ typedef struct stack_frame_ *framePo;
 
 extern long initHeapSize;        /* How much memory to give the heap */
 extern long maxHeapSize;         // Maximum permitted size of heap
-extern long initStackSize;       /* How big is the stack */
-extern long maxStackSize;        // How big may the stack grow?
+
 
 extern logical traceMemory;      /* memory tracing */
 extern logical traceAllocs;      // trace allocations
@@ -54,7 +53,6 @@ typedef struct gc_support_ {
 extern void setupGCSupport(heapPo H, gcSupportPo G);
 
 extern void validPtr(heapPo H, termPo t);
-extern void inStackPtr(processPo P, ptrPo o);
 extern void verifyHeap(heapPo H);
 
 extern termPo markPtr(gcSupportPo G, ptrPo p);

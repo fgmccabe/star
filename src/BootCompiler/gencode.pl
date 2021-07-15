@@ -151,7 +151,8 @@ compTerm(ctpl(St,A),Lc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stk2) :-!,
   compTerms(A,Lc,bothCont(allocCont(St),Cont),Opts,D,Dx,End,C,Cx,Stk,Stk2).
 compTerm(intrinsic(Lc,Op,A),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
-  compTerms(A,Lc,bothCont(asmCont(Op,Stk),Cont),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
+  Stk1 is Stk+1,
+  compTerms(A,Lc,bothCont(asmCont(Op,Stk1),Cont),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 compTerm(ecll(Lc,Nm,A),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   compTerms(A,Lc,bothCont(escCont(Nm,Stk),Cont),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
@@ -164,6 +165,12 @@ compTerm(ocall(Lc,Fn,A),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   Arity is Ar+1,
   compTerms(A,Lc,compTerm(Fn,Lc,oclCont(Arity,Stk,Cont,Opts),Opts),
 	    Opts,D,Dx,End,C0,Cx,Stk,Stkx).
+compTerm(prmpt(Lc,Lb,Lam),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
+  chLine(Opts,OLc,Lc,C,C0),
+  compTerm(Lb,Lc,
+	   compTerm(Lam,Lc,
+		    bothCont(asmCont(iPrompt,Stk),Cont),Opts),
+	   Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 compTerm(nth(Lc,Exp,Off),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),!,
   compTerm(Exp,Lc,bothCont(idxCont(Off),Cont),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
@@ -268,10 +275,10 @@ compAction(raisDo(Lc,E),_Lc,_Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
 compAction(justDo(Lc,Exp),_,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   compTerm(Exp,Lc,bothCont(dropCont,Cont),Opts,D,Dx,End,C,Cx,Stk,Stkx).
 compAction(whle(Lc,Cond,Body),_,Cont,Opts,D,Dx,End,
-	   [iLbl(Nxt),iJmp(Tst)|C],Cx,Stk,Stk) :-
+	   [iJmp(Tst),iLbl(Nxt)|C],Cx,Stk,Stk) :-
   genLbl(D,Nxt,D0),
   genLbl(D0,Tst,D1),
-  compCond(Cond,Lc,contCont(Nxt),Cont,
+  compCond(Cond,Lc,jmpCont(Nxt),Cont,
 	   Opts,D1,D2,End,C2,Cx,Stk,Stk1),
   compAction(Body,Lc,contCont(Tst),Opts,D2,Dx,End,C,[iLbl(Tst)|C2],Stk1,Stkx),
   verify(Stk=:=Stkx,"while body stack").
@@ -330,8 +337,7 @@ stoCont(Off,Lb,Dx,Dx,_End,[iStL(Off),iLbl(Lb)|Cx],Cx,Stk,Stkx) :-
 releaseCont(Nm,D,Dx,_,Cx,Cx,Stk,Stk) :-
   clearLclVar(Nm,D,Dx).
 
-asmCont(IOp,Stk0,D,D,_,[IOp|Cx],Cx,_,Stkx) :-
-  Stkx is Stk0+1.
+asmCont(IOp,Stkx,D,D,_,[IOp|Cx],Cx,_,Stkx).
 
 escCont(Nm,Stk0,D,D,_,[iEscape(Nm),Frame|Cx],Cx,_Stk,Stkx) :-
   Stkx is Stk0+1,

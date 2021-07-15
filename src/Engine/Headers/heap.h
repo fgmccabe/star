@@ -17,7 +17,7 @@ extern integer numAllocated;
 extern integer totalAllocated;
 #endif
 
-extern termPo allocateObject(heapPo H, clssPo clss, size_t amnt);
+extern termPo allocateObject(heapPo H, clssPo clss, integer amnt);
 
 extern normalPo allocateStruct(heapPo H, labelPo lbl);
 extern retCode enoughRoom(heapPo H,labelPo lbl);

@@ -11,7 +11,6 @@
 #include "capability.h"
 
 typedef struct processRec_ *processPo;
-typedef struct stack_frame_ *framePo;
 
 typedef enum {
   stepInto, stepOver, nextBreak, never, quitDbg, moreDebug
@@ -36,7 +35,6 @@ typedef struct return_code_ {
 } ReturnStatus;
 
 processPo newProcess(methodPo mtd, char *rootWd, capabilityPo processCap, termPo rootArg);
-void setupProcess(processPo P, methodPo mtd);
 void switchProcessState(processPo p, ProcessState state);
 void setProcessRunnable(processPo p);
 ProcessState processState(processPo p);

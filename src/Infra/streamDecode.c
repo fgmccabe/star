@@ -192,40 +192,6 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, strBufferPo 
       }
       return res;
     }
-    case recLbl: {
-      clearStrBuffer(buff);
-      res = decodeText(in, buff);
-
-      if (res == Ok) {
-        integer lblLen;
-        char *Nm = getTextFromBuffer(buff, &lblLen);
-        FieldRec tbl[MAX_SYMB_LEN];
-        integer arity = 0;
-
-        while (res == Ok && isLookingAt(in, (char *) "}") != Ok && arity < NumberOf(tbl)) {
-          res = decodeText(in, buff);
-
-          if (res == Ok) {
-            res = readTextFromBuffer(buff, tbl[arity].field, NumberOf(tbl[arity].field));
-
-            if (res == Ok) {
-              res = skipSignature(in); // Field signature
-
-              if (res == Ok)
-                res = decodeInteger(in, &tbl[arity].offset);
-              if (res == Ok)
-                arity++;
-            }
-          }
-        }
-
-        if (isLookingAt(in, "}") == Ok) {
-          return cb->decRecLbl(Nm, arity, tbl, cl);
-        } else
-          return Fail;
-      }
-      return res;
-    }
     case strTrm: {
       clearStrBuffer(buff);
       res = decodeText(in, buff);

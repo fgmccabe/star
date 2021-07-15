@@ -11,6 +11,7 @@
 
 #ifdef ALLTRACE
 #define TRACEMEM
+#define TRACESTACK
 #define TRACEEXEC
 #define TRACEMANIFEST
 #define TRACECAPABILITY
