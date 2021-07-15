@@ -54,6 +54,10 @@
 @tab non-associative infix
 @tab 1199
 @tab try @{...@} catch @{...@}
+@item @code{prompt}
+@tab non-associative prefix
+@tab 300
+@tab delimit a continuation
 @item @code{valis}
 @tab non-associative prefix
 @tab 930
@@ -286,6 +290,10 @@
 @tab right associative infix
 @tab 920
 @tab option or-else operator
+@item @code{cut}
+@tab non-associative infix
+@tab 950
+@tab capture continuation
 @item @code{open}
 @tab non-associative prefix
 @tab 900
@@ -495,30 +503,32 @@
 @tab @code{do}
 @item @code{import}
 @tab @code{catch}
-@tab @code{valis}
-@item @code{for}
+@tab @code{prompt}
+@item @code{valis}
+@tab @code{for}
 @tab @code{ignore}
-@tab @code{then}
-@item @code{default}
+@item @code{then}
+@tab @code{default}
 @tab @code{contract}
-@tab @code{val}
-@item @code{try}
+@item @code{val}
+@tab @code{try}
 @tab @code{exists}
-@tab @code{if}
-@item @code{in}
-@tab @code{open}
+@item @code{if}
+@tab @code{in}
+@tab @code{cut}
+@item @code{open}
 @tab @code{public}
-@item @code{ref}
-@tab @code{where}
+@tab @code{ref}
+@item @code{where}
 @tab @code{case}
-@item @code{perform}
-@tab @code{valof}
+@tab @code{perform}
+@item @code{valof}
 @tab @code{until}
-@item @code{while}
-@tab @code{private}
+@tab @code{while}
+@item @code{private}
 @tab @code{type}
-@item @code{implementation}
-@tab @code{else}
+@tab @code{implementation}
+@item @code{else}
 
 @end multitable
 @end float

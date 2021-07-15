@@ -390,6 +390,13 @@ onceCont(Lc,(_,Stkin,Stkout),_,D,D,_,Cx,Cx,_Stk,Stkout) :-
   reportError("cannot reconcile stacks [%w,%w]",[Stkin,Stkout],Lc),
   abort.
 
+unitCont(Stk,D,D,_,[iLdC(U)|Cx],Cx,Stk,Stkx) :-!,
+  Stkx is Stk+1,
+  mkTpl([],U).
+unitCont(Stk,D,D,_,[iRst(Stk),iLdC(U)|Cx],Cx,_,Stkx) :-
+  Stkx is Stk+1,
+  mkTpl([],U).
+
 reconcileStack(_,_,none,C,C) :-!.
 reconcileStack(Stk,Stk,_,C,C) :-!.
 reconcileStack(Stki,Stk,_,[iRst(Stk)|C],C) :-
