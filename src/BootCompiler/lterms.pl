@@ -188,6 +188,9 @@ ssAct(seq(Lc,L,R),Dp,iv(nl(Dp),AA)) :-
 ssAct(varD(_,P,E),Dp,sq([PP,ss(" .= "),EE])) :-
   ssTrm(P,Dp,PP),
   ssTrm(E,Dp,EE).
+ssAct(assignD(_,P,E),Dp,sq([PP,ss(" := "),EE])) :-
+  ssTrm(P,Dp,PP),
+  ssTrm(E,Dp,EE).
 ssAct(perfDo(_,E),Dp,sq([ss("perform "),EE])) :-
   ssTrm(E,Dp,EE).
 ssAct(cnd(_,T,Th,El),Dp,sq([ss("if "),TT,ss(" then "),nl(Dp2),
@@ -341,6 +344,9 @@ rewriteAction(QTest,seq(Lc,A,B),seq(Lc,AA,BB)) :-
   rewriteAction(QTest,A,AA),
   rewriteAction(QTest,B,BB).
 rewriteAction(QTest,varD(Lc,P,A),varD(Lc,PP,AA)) :-
+  rewriteTerm(QTest,P,PP),
+  rewriteTerm(QTest,A,AA).
+rewriteAction(QTest,assignD(Lc,P,A),assignD(Lc,PP,AA)) :-
   rewriteTerm(QTest,P,PP),
   rewriteTerm(QTest,A,AA).
 rewriteAction(QTest,perfDo(Lc,A),perfDo(Lc,AA)) :-
@@ -625,6 +631,10 @@ validAct(seq(Lc,L,R),_,D) :-
   validAct(L,Lc,D),
   validAct(R,Lc,D).
 validAct(varD(Lc,P,E),_,D) :-
+  ptnVars(P,D,D0),
+  validTerm(P,Lc,D0),
+  validTerm(E,Lc,D).
+validAct(assignD(Lc,P,E),_,D) :-
   ptnVars(P,D,D0),
   validTerm(P,Lc,D0),
   validTerm(E,Lc,D).

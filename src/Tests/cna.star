@@ -27,8 +27,8 @@ test.cna{
   }
 
   _main:(cons[string])=>().
-  _main(_/*cons(A,.nil)*/) =>
-    valof main("hello").
+  _main(cons(A,.nil)) =>
+    valof main(A).
 
   main:(string)=>action[(),()].
   main(T) => action{

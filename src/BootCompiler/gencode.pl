@@ -265,9 +265,15 @@ compAction(varD(Lc,idnt(Nm),E),OLc,Cont,_,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   compTerm(E,Lc,bothCont(stoCont(Off,Lb),
 			 bothCont(Cont,releaseCont(Nm))),
 	   Opts,D1,Dx,End,C1,Cx,Stk,Stkx).
-
 compAction(varD(Lc,ann(_),E),_,Cont,_,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   compTerm(E,Lc,bothCont(dropCont,Cont),Opts,D,Dx,End,C,Cx,Stk,Stkx).
+compAction(assignD(Lc,L,E),OLc,Cont,_RCont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
+  chLine(Opts,OLc,Lc,C,C0),
+  bumpStk(Stk,Stk0),
+  compTerm(E,Lc,
+	   compTerm(L,Lc,
+		    bothCont(asmCont(iAssign,Stk0),Cont),Opts),
+	   Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 compAction(cnd(Lc,T,L,R),OLc,Cont,RCont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   splitCont(Lc,Cont,OC),

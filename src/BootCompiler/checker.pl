@@ -1208,18 +1208,16 @@ checkAction(Term,Env,Env,_,_,_,_,_,noDo(Lc),_) :-
 
 checkAssignment(Lc,L,R,Env,Ev,AcTp,VlTp,ErTp,OkFn,EvtFn,Act,Path) :-
   verifyType(Lc,tplType([]),VlTp,Env),
-  applyTypeFun(AcTp,[VlTp,ErTp],Env,MTp),
   (isIndexTerm(L,LLc,C,I) ->
    unary(LLc,"!",C,CC),
    ternary(LLc,"_put",CC,I,R,Repl),
    binary(Lc,":=",C,Repl,Term),
-   typeOfExp(Term,MTp,ErTp,Env,Ev,Exp,Path),
-   Act=simpleDo(Lc,Exp);
-   (isIden(L,_,VrNm),
-    isVar(VrNm,Env,_) ->
-    binary(Lc,":=",L,R,Term),
-    typeOfExp(Term,MTp,ErTp,Env,Ev,Exp,Path),
-    Act=simpleDo(Lc,Exp);
+   checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,OkFn,EvtFn,Act,Path);
+   (isIden(L,_,VrNm), isVar(VrNm,Env,VrSpec) ->
+    newTypeVar("A",ATp),
+    typeOfVar(Lc,VrNm,refType(ATp),VrSpec,Env,_,Lhs),
+    typeOfExp(R,ATp,ErTp,Env,Ev,Rhs,Path),
+    Act = assignDo(Lc,Lhs,Rhs);
     unary(Lc,"ref",R,RR),
     binary(Lc,".=",L,RR,St),
     checkAction(St,Env,Ev,AcTp,VlTp,ErTp,OkFn,EvtFn,Act,Path))).

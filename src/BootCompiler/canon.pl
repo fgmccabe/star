@@ -57,6 +57,7 @@ isCanon(forDo(_,_,_)).
 isCanon(tryCatchDo(_,_,_)).
 isCanon(caseDo(_,_,_,_,_)).
 isCanon(varDo(_,_,_)).
+isCanon(assignDo(_,_,_)).
 isCanon(valisDo(_,_)).
 isCanon(throwDo(_,_)).
 isCanon(performDo(_,_)).
@@ -160,7 +161,8 @@ locOfCanon(forDo(Lc,_,_),Lc) :-!.
 locOfCanon(caseDo(Lc,_,_),Lc) :-!.
 locOfCanon(tryCatchDo(Lc,_,_),Lc) :-!.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
-locOfCanon(varDo(Lc,_,_,_,_,_),Lc) :-!.
+locOfCanon(varDo(Lc,_,_),Lc) :-!.
+locOfCanon(assignDo(Lc,_,_),Lc) :-!.
 locOfCanon(valisDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(throwDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(performDo(Lc,_,_,_,_),Lc) :-!.
@@ -294,6 +296,9 @@ ssAction(seqDo(Lc,A,B),Dp,sq([lb,iv(sq([ss(";"),nl(Dp2)]),AA),rb])) :-
   Dp2 is Dp+2,
   ssActions(seqDo(Lc,A,B),Dp2,AA).
 ssAction(varDo(_,Ptn,Exp),Dp,sq([PP,ss(" .= "),VV])) :-
+  ssTerm(Ptn,Dp,PP),
+  ssTerm(Exp,Dp,VV).
+ssAction(assignDo(_,Ptn,Exp),Dp,sq([PP,ss(" := "),VV])) :-
   ssTerm(Ptn,Dp,PP),
   ssTerm(Exp,Dp,VV).
 ssAction(ifThenDo(_,Tst,Th,El),Dp,
