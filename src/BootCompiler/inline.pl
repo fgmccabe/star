@@ -32,6 +32,8 @@ inlineExp(tple(Lc,Els),Env,Max,tple(Lc,REls),T0,Tx) :- !,
   inlineExps(Els,Env,Max,REls,T0,Tx).
 inlineExp(cell(Lc,Vl),Env,Max,cell(Lc,RVl),Trg,Tx) :-!,
   inlineExp(Vl,Env,Max,RVl,Trg,Tx).
+inlineExp(deref(Lc,Vl),Env,Max,deref(Lc,RVl),Trg,Tx) :-!,
+  inlineExp(Vl,Env,Max,RVl,Trg,Tx).
 inlineExp(mtd(Lc,Nm,Tp),Env,Max,mtd(Lc,Nm,Tp),T,T) :-!,
   reportWarning("unresolved method %s",[Nm],Lc).
 inlineExp(over(Lc,Nm,Cx,Tp),Env,Max,over(Lc,Nm,Cx,Tp),T,T) :-!,
@@ -145,6 +147,8 @@ rewriteTerm(theta(Lc,Path,Defs,Sig),Env,theta(Lc,Path,RDefs,Sig)) :-
 rewriteTerm(record(Lc,Path,Anon,Defs,Sig),Env,record(Lc,Path,Anon,RDefs,Sig)) :-
   rewriteDefs(Defs,Env,RDefs).
 rewriteTerm(cell(Lc,Inn),Env,cell(Lc,Inn1)) :-
+  rewriteTerm(Inn,Env,Inn1).
+rewriteTerm(deref(Lc,Inn),Env,deref(Lc,Inn1)) :-
   rewriteTerm(Inn,Env,Inn1).
 rewriteTerm(letExp(Lc,Env,Bound),Env,letExp(Lc,REnv,RBound)) :-
   rewriteTerm(Env,Env,REnv),

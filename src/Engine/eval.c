@@ -14,6 +14,7 @@
 #include "debugP.h"
 #include <math.h>
 #include "utils.h"
+#include "cellP.h"
 
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<(unsigned)16)|lo32))
 #define collectOff(pc) (hi32 = collectI32(pc), (pc)+(signed)hi32)
@@ -495,6 +496,26 @@ retCode run(processPo P) {
         termPo val = top();
         globalPo glb = findGlobalVar(glbNo);
         setGlobalVar(glb, val);      // Update the global variable
+        continue;
+      }
+
+      case Cell:{
+        cellPo cell = newCell(H, pop());
+        push(cell);
+        continue;
+      }
+
+      case Get:{
+        cellPo cell = C_CELL(pop());
+        push(getCell(cell));
+        continue;
+      }
+
+      case Assign:{
+        cellPo cell = C_CELL(pop());
+        termPo vl = pop();
+        setCell(cell, vl);
+        push(unitEnum);
         continue;
       }
 

@@ -1,4 +1,5 @@
 test.cn1{
+  import star.core.
   import test.cn0.
 
 

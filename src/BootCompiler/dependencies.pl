@@ -303,6 +303,9 @@ collectTermRefs(T,All,R,Rx) :-
   isRef(T,_,A),!,
   collectTermRefs(A,All,R,Rx).
 collectTermRefs(T,All,R,Rx) :-
+  isDeRef(T,_,A),!,
+  collectTermRefs(A,All,R,Rx).
+collectTermRefs(T,All,R,Rx) :-
   isPrompt(T,_,Lb,A),!,
   collectTermRefs(Lb,All,R,R0),
   collectTermRefs(A,All,R0,Rx).
@@ -397,6 +400,11 @@ collectDoRefs(T,All,Rf,Rfx) :-
 collectDoRefs(T,All,Rf,Rfx) :-
   isValis(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
+/*collectDoRefs(T,All,Rf,Rfx) :-
+  isAssignment(T,_,L,R),!,
+  collectTermRefs(L,All,Rf,Rf0),
+  collectTermRefs(R,All,Rf0,Rfx).
+  */
 collectDoRefs(T,All,Rf,Rfx) :-
   collectTermRefs(T,All,Rf,Rfx).
 

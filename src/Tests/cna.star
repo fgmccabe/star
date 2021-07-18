@@ -1,4 +1,5 @@
 test.cna{
+  import star.core.
   import test.cn0.
   import test.cn1.
   import test.cn2.
@@ -20,9 +21,6 @@ test.cna{
     tst(_) => .false
   .} in tst(minus(X,Y)).
 
-  public (!):all a ~~ (ref a)=>a.
-  (!)(V) => _get(V).
-
   public (:=):all a,e ~~ (ref a,a) => result[(),e].
   (:=)(L,V) => do{
     valis _assign(L,V)
@@ -34,6 +32,7 @@ test.cna{
 
   main:(string)=>action[(),()].
   main(T) => action{
+    _ .= factW(6);
     logM(T);
     valis ()
   }

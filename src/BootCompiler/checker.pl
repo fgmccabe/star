@@ -458,7 +458,7 @@ checkThetaBody(Tp,Lbl,Lc,Els,Env,Val,Path) :-
 
 formTheta(Lc,Lbl,Decls,Defs,Flds,Tp,letRec(Lc,Decls,Defs,Exp)) :-
   sort(Flds,checker:cmpPair,SortedFlds),
-  findExportedDefs(Lc,Flds,Args),
+  findExportedDefs(Lc,SortedFlds,Args),
   project1(SortedFlds,ElTps),
   Exp = apply(Lc,cons(Lc,Lbl,consType(tplType(ElTps),Tp)),
 	      tple(Lc,Args),Tp).
@@ -477,7 +477,7 @@ checkRecordBody(Tp,Lbl,Lc,Els,Env,Val,Path) :-
 
 formRecord(Lc,Lbl,Decls,Defs,Flds,Tp,letExp(Lc,Decls,Defs,Exp)) :-
   sort(Flds,checker:cmpPair,SortedFlds),
-  findExportedDefs(Lc,Flds,Args),
+  findExportedDefs(Lc,SortedFlds,Args),
   project1(SortedFlds,ElTps),
   Exp = apply(Lc,cons(Lc,Lbl,consType(tplType(ElTps),Tp)),
 	      tple(Lc,Args),Tp).
@@ -748,10 +748,14 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,cond(Lc,Test,Then,Else,Tp),Path) :-
 typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isCaseExp(Term,Lc,Bnd,Cases),
   checkCaseExp(Lc,Bnd,Cases,Tp,ErTp,Env,Ev,Exp,Path).
-typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
+typeOfExp(Term,Tp,ErTp,Env,Ev,cell(Lc,Exp),Path) :-
   isRef(Term,Lc,I),
-  roundTerm(Lc,name(Lc,"_cell"),[I],R),
-  typeOfExp(R,Tp,ErTp,Env,Ev,Exp,Path).
+  newTypeVar("r",RT),
+  verifyType(Lc,refType(RT),Tp,"expecting a ref type"),
+  typeOfExp(I,RT,ErTp,Env,Ev,Exp,Path).
+typeOfExp(Term,Tp,ErTp,Env,Ev,deref(Lc,Exp),Path) :-
+  isDeRef(Term,Lc,I),
+  typeOfExp(I,refType(Tp),ErTp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,_ErTp,Env,Ev,DoExp,Path) :-
   isDoTerm(Term,Lc,Stmts),!,
   typeOfDoExp(Lc,Stmts,Tp,Env,Ev,DoExp,Path),
