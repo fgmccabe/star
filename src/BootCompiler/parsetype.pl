@@ -399,7 +399,7 @@ genBraceType(Lc,Tp,Defs,Dfx,Env,Ev) :-
 		    _Imps,[]).
 
 newFieldVar((Nm,_),(Fs,Args),([(Nm,kVar(Nm1))|Fs],[kVar(Nm1)|Args])) :-
-  genstr("_",Nm1).
+  genstr("ϰ",Nm1).
 
 genBraceConstructor(Lc,[],Nm,Q,Cx,Tp,cnsDef(Lc,Nm,enm(Lc,Nm,ConTp)),Env,Ev) :-
   wrapType(Q,Cx,[],[],consType(faceType([],[]),Tp),ConTp),
@@ -415,7 +415,7 @@ cmpVarDef((N1,_),(N2,_)) :-
 
 fillinElementPtn(_,(Nm,_),Els,Els) :-
   is_member((Nm,_),Els) ,!.
-fillinElementPtn(Lc,(Nm,Tp),Els,[(Nm,v(Lc,"_",Tp))|Els]).
+fillinElementPtn(Lc,(Nm,Tp),Els,[(Nm,anon(Lc,Tp))|Els]).
 
 buildConsMap(Body,Map,Path) :-
   findCons(Body,Cns,[],Path),

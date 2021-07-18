@@ -102,6 +102,7 @@ markResolved(St,St).
 
 overloadTerm(void,_,St,St,void).
 overloadTerm(v(Lc,Nm,Tp),_,St,St,v(Lc,Nm,Tp)).
+overloadTerm(anon(Lc,Tp),_,St,St,anon(Lc,Tp)).
 overloadTerm(intLit(Ix,Tp),_,St,St,intLit(Ix,Tp)).
 overloadTerm(floatLit(Ix,Tp),_,St,St,floatLit(Ix,Tp)).
 overloadTerm(stringLit(Sx,Tp),_,St,St,stringLit(Sx,Tp)).
@@ -268,7 +269,7 @@ curryOver(Lc,OverOp,Cx,Tp,
 
 genVrs([],_,[]).
 genVrs([Tp|ArTps],Lc,[v(Lc,Id,Tp)|Vrs]) :-
-  genstr("_",Id),
+  genstr("V",Id),
   genVrs(ArTps,Lc,Vrs).
 
 overloadLst([],_,_,St,St,[]):-!.

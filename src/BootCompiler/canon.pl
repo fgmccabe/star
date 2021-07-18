@@ -23,6 +23,7 @@ isCanonDef(accDef(_,_,_,_)).
 
 isCanon(prog(_,_,_,_,_)).
 isCanon(v(_,_,_)).
+isCanon(anon(_,_)).
 isCanon(deref(_,_)).
 isCanon(cell(_,_)).
 isCanon(over(_,_,_,_)).
@@ -64,6 +65,7 @@ isCanon(assertDo(_,_)).
 isCanon(search(_,_,_,_)).
 
 isSimpleCanon(v(_,_,_)).
+isSimpleCanon(anon(_,_)).
 isSimpleCanon(intLit(_,_)).
 isSimpleCanon(floatLit(_,_)).
 isSimpleCanon(stringLit(_,_)).
@@ -89,6 +91,7 @@ isIterableGoal(search(_,_,_,_)) :- !.
 isPkg(pkg(_,_)).
 
 typeOfCanon(v(_,_,Tp),Tp) :- !.
+typeOfCanon(anon(_,Tp),Tp) :- !.
 typeOfCanon(dot(_,_,_,Tp),Tp) :- !.
 typeOfCanon(intLit(_,Tp),Tp) :- !.
 typeOfCanon(floatLit(_,Tp),Tp) :- !.
@@ -123,6 +126,7 @@ typeOfCanon(valof(_,_,Tp),Tp).
 typeOfCanon(doTerm(_,_,Tp),Tp).
 
 locOfCanon(v(Lc,_,_),Lc) :- !.
+locOfCanon(anon(Lc,_),Lc) :- !.
 locOfCanon(dot(Lc,_,_,_),Lc) :- !.
 locOfCanon(intLit(Lc,_),Lc) :- !.
 locOfCanon(floatLit(Lc,_),Lc) :- !.
@@ -187,6 +191,7 @@ dispCanon(T) :-
   displayln(canon:ssTerm(T,0)).
 
 ssTerm(v(_,Nm,_),_,id(Nm)).
+ssTerm(anon(_,_),_,ss("_")).
 ssTerm(void,_,ss("void")).
 ssTerm(intLit(Ix,_),_,ix(Ix)).
 ssTerm(floatLit(Dx,_),_,fx(Dx)).
@@ -499,7 +504,6 @@ splitPttrns([P|Ps],[Px|Pxs],C,Cx) :-
   splitPttrn(P,Px,C,C0),
   splitPttrns(Ps,Pxs,C0,Cx).
 
-anonVar(Lc,v(Lc,N,Tp),Tp) :-
-  genstr("_",N),
-  newTypeVar(N,Tp).
+anonVar(Lc,anon(Lc,Tp),Tp) :-
+  newTypeVar("_",Tp).
 

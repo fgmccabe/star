@@ -173,13 +173,8 @@ transformConsDef(Lc,Nm,Tp,Map,[lblDef(Lc,lbl(Nm,Ar),Tp,Ix)|Dx],Dx) :-
   progTypeArity(Tp,Ar),
   is_member((Nm,Ix),IxMap).
 
-genConsArgs(_,[],Args,Args,BndArgs,BndArgs).
-genConsArgs(Lc,[_|Els],[V|Args],Ax,[V|Bnd],Bx) :-
-  genVar("_",V),
-  genConsArgs(Lc,Els,Args,Ax,Bnd,Bx).
-
 transformFunction(Lc,Nm,LclName,Tp,Eqns,Map,OMap,Opts,[Fun|Ex],Exx) :-
-%  (is_member(showTrCode,Opts) -> dispFunction(LclName,Tp,Eqns);true),
+  (is_member(showTrCode,Opts) -> dispFunction(LclName,Tp,Eqns);true),
   lookupVar(Map,Nm,Reslt),
   programArity(Reslt,Arity),
   extraVars(Map,Extra),
@@ -188,8 +183,8 @@ transformFunction(Lc,Nm,LclName,Tp,Eqns,Map,OMap,Opts,[Fun|Ex],Exx) :-
   extendFunTp(Tp,Extra,ATp),
   transformEquations(Map,OMap,Opts,LclPrg,Eqns,Rules,[],Ex,Ex0),
   closureEntry(Map,Lc,Nm,Tp,Ex0,Exx),
-  functionMatcher(Lc,Ar,LclPrg,ATp,Rules,Map,Fun),!.
-%  (is_member(showTrCode,Opts) -> dispRuleSet(Fun);true).
+  functionMatcher(Lc,Ar,LclPrg,ATp,Rules,Map,Fun),!,
+  (is_member(showTrCode,Opts) -> dispRuleSet(Fun);true).
 
 extendFunTp(Tp,[],Tp):-!.
 extendFunTp(funType(tplType(Els),Rt),Extra,funType(tplType(NEls),Rt)) :-
@@ -272,7 +267,7 @@ closureEntry(Map,Lc,Name,Tp,[ClEntry|L],L) :-
   extendFunTp(Tp,[_],TTp),
   Ar is Arity+1,
   (Extra = [] ->
-   genVar("_",FrVr),
+   genVar("ϕ",FrVr),
    ClEntry = fnDef(Lc,lbl(Closure,Ar),TTp,[FrVr|Args],cll(Lc,lbl(Prog,Arity),Args)) ;
    concat(Extra,Args,XArgs),
    length(XArgs,ArXX),
@@ -292,6 +287,7 @@ liftPtn(v(_,"this",_),ThVr,Q,Qx,Map,_,Ex,Ex) :-
   merge([ThVr],Q,Qx).
 liftPtn(v(Lc,Nm,_),A,Q,Qx,Map,Opts,Ex,Ex) :- !,
   trVarPtn(Lc,Nm,A,Q,Qx,Map,Opts).
+liftPtn(anon(Lc,_),ann(Lc),Q,Q,_,_,Ex,Ex).
 liftPtn(enm(Lc,Nm,_),Ptn,Q,Qx,Map,Opts,Ex,Ex) :- !,
   trVarPtn(Lc,Nm,Ptn,Q,Qx,Map,Opts).
 liftPtn(void,voyd,Q,Q,_,_,Ex,Ex):-!.
@@ -312,10 +308,9 @@ liftPtn(where(Lc,P,C),whr(Lc,LP,LC),Q,Qx,Map,Opts,Ex,Exx) :-
   liftGoal(C,LC,Q0,Qx,Map,Opts,Ex0,Exx).
 liftPtn(XX,whr(Lc,Vr,mtch(Lc,Vr,Val)),Q,Qx,Map,Opts,Ex,Exx) :-
   locOfCanon(XX,Lc),
-  genVar("_",Vr),
+  genVar("ϕ",Vr),
   liftExp(XX,Val,Q,Qx,Map,Opts,Ex,Exx).
 
-trVarPtn(_,"_",idnt("_"),Q,Q,_,_).
 trVarPtn(Lc,Nm,A,Q,Qx,Map,Opts) :-
   lookupVar(Map,Nm,V),!,
   implementVarPtn(V,Nm,Lc,A,Map,Opts,Q,Qx).

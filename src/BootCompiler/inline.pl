@@ -12,6 +12,7 @@ inlineExp(v(_,Nm,_),Env,Max,Rpl,_,Trg) :-
   varInEnv(Nm,Env,Rep),!,
   inlineEx(Rep,Env,Max,Rpl,triggered,Trg).
 inlineExp(v(Lc,Nm,Tp),Env,Max,v(Lc,Nm,Tp),T,T) :- !.
+inlineExp(anon(Lc,Tp),_,_,anon(Lc,Tp),T,T) :-!.
 inlineExp(void,_Env,_Max,void,Trg,Trg) :-!.
 inlineExp(intLit(Ix,Lc),_Env,_Max,intLit(Ix,Lc),Trg,Trg) :-!.
 inlineExp(floatLit(Dx,Lc),_Env,_Max,floatLit(Dx,Lc),Trg,Trg) :-!.
