@@ -73,8 +73,8 @@ glbCont(Nm,D,D,_,[iDup,iStG(Nm)|Cx],Cx,Stk,Stk).
 retCont(Opts,D,D,_,C,Cx,_Stk,none) :-
   genDbg(Opts,C,[iRet|Cx]).
 
-dropCont(D,D,_,[iDrop|Cx],Cx,some(Stk),some(Stk1)) :-
-  Stk1 is Stk-1.
+dropCont(D,D,_,[iDrop|Cx],Cx,Stk,Stk1) :-
+  dropStk(Stk,1,Stk1).
 
 idxCont(Off,Dx,Dx,_End,[iNth(Off)|Cx],Cx,Stkx,Stkx).
 
@@ -265,6 +265,9 @@ compAction(varD(Lc,idnt(Nm),E),OLc,Cont,_,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   compTerm(E,Lc,bothCont(stoCont(Off,Lb),
 			 bothCont(Cont,releaseCont(Nm))),
 	   Opts,D1,Dx,End,C1,Cx,Stk,Stkx).
+
+compAction(varD(Lc,ann(_),E),_,Cont,_,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
+  compTerm(E,Lc,bothCont(dropCont,Cont),Opts,D,Dx,End,C,Cx,Stk,Stkx).
 compAction(cnd(Lc,T,L,R),OLc,Cont,RCont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   splitCont(Lc,Cont,OC),
@@ -449,6 +452,9 @@ compPtn(idnt(Nm),_,Succ,_,_Opts,D,Dx,End,[iStL(Off),iLbl(Lb)|C],Cx,Stk,Stkx) :-
   defineLclVar(Nm,Lb,End,D0,D1,Off,C,C0),
   dropStk(Stk,1,Stk1),
   call(Succ,D1,Dx,End,C0,Cx,Stk1,Stkx).
+compPtn(ann(_),_,Succ,_,_Opts,D,Dx,End,[iDrop|C],Cx,Stk,Stkx) :-
+  dropStk(Stk,1,Stk1),
+  call(Succ,D,Dx,End,C,Cx,Stk1,Stkx).
 compPtn(ctpl(St,A),Lc,Succ,Fail,Opts,D,Dx,End,[iDup,iCLbl(St,Nxt),iLbl(FLb),iRst(Stk0)|C],Cx,Stk,Stkx) :-
   genLbl(D,Nxt,D0),
   dropStk(Stk,1,Stk0),

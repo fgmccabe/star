@@ -21,6 +21,7 @@
 :- use_module(errors).
 
 isLTerm(idnt(_)) :- !.
+isLTerm(ann(_)) :- !.
 isLTerm(voyd) :- !.
 isLTerm(intgr(_)) :- !.
 isLTerm(float(_)) :- !.
@@ -96,6 +97,7 @@ showTerm(Trm,Dp,O,Ox) :-
 
 ssTrm(voyd,_,ss("void")).
 ssTrm(idnt(Nm),_,id(Nm)).
+ssTrm(ann(_),_,ss("_")).
 ssTrm(intgr(Ix),_,ix(Ix)).
 ssTrm(float(Dx),_,fx(Dx)).
 ssTrm(strg(Str),_,sq([ss(""""),ss(Str),ss("""")])).
@@ -261,6 +263,7 @@ rewriteTerm(QTst,T,T1) :-
 rewriteTerm(_,voyd,voyd).
 rewriteTerm(_,intgr(Ix),intgr(Ix)).
 rewriteTerm(_,idnt(Nm),idnt(Nm)).
+rewriteTerm(_,ann(Lc),ann(Lc)).
 rewriteTerm(_,float(Dx),float(Dx)).
 rewriteTerm(_,strg(Sx),strg(Sx)).
 rewriteTerm(_,enum(Nm),enum(Nm)).
@@ -525,6 +528,7 @@ validTerm(idnt(Nm),Lc,D) :-
   (is_member(Nm,D) -> true ; 
    reportError("(validate) Variable %s not in scope %s",[Nm,D],Lc),
    abort).
+validTerm(ann(_),_,_).
 validTerm(voyd,_,_).
 validTerm(intgr(_),_,_).
 validTerm(float(_),_,_).
@@ -658,6 +662,7 @@ validAct(A,Lc,_) :-
 
 ptnVars(idnt(Nm),D,Dx) :-
   add_mem(Nm,D,Dx).
+ptnVars(ann(_),Dx,Dx).
 ptnVars(voyd,Dx,Dx).
 ptnVars(intgr(_),Dx,Dx).
 ptnVars(float(_),Dx,Dx).

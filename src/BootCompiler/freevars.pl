@@ -13,6 +13,7 @@ freeVars(v(Lc,Lb,Tp),Ex,Q,F,Fv) :-
   qualifed(Lb,Q),!,
   addFrVar(v(Lc,Lb,Tp),F,Fv).
 freeVars(v(_,_,_),_,_,F,F).
+freeVars(anon(_,_),_,_,F,F).
 freeVars(enm(_,_,_),_,_,F,F).
 freeVars(cons(_,_,_),_,_,F,F).
 freeVars(intLit(_,_),_,_,F,F).
@@ -136,6 +137,7 @@ freeVarsList(L,Ex,Q,F,Fv) :- varsInList(L,freevars:frVars(Ex,Q),F,Fv).
 frVars(Ex,Q,Trm,F,Fv) :- freeVars(Trm,Ex,Q,F,Fv).
 
 ptnVars(v(Lc,Nm,Tp),A,Q,Qx) :- call(A,v(Lc,Nm,Tp),Q,Qx).
+ptnVars(anon(_,_),_,Q,Q).
 ptnVars(intLit(_,_),_,Q,Q).
 ptnVars(floatLit(_,_),_,Q,Q).
 ptnVars(stringLit(_,_),_,Q,Q).

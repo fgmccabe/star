@@ -570,9 +570,8 @@ typeOfArgPtn(T,Tp,ErTp,Env,Ev,tple(Lc,Els),Path) :-
 typeOfArgPtn(T,Tp,ErTp,Env,Ev,Exp,Path) :-
   typeOfPtn(T,Tp,ErTp,Env,Ev,Exp,Path).
 
-typeOfPtn(V,Tp,_,Env,Env,v(Lc,N,Tp),_Path) :-
-  isIden(V,Lc,"_"),!,
-  genstr("_",N).
+typeOfPtn(V,Tp,_,Env,Env,anon(Lc,Tp),_Path) :-
+  isAnon(V,Lc),!.
 typeOfPtn(V,Tp,ErTp,Env,Ev,Term,Path) :-
   isIden(V,Lc,N),
   isVar(N,Env,_),!,
@@ -670,7 +669,7 @@ cmpPair((N1,_),(N2,_)) :-
 
 fillinElementPtn(_,(Nm,_),Els,Els) :-
   is_member((Nm,_),Els) ,!.
-fillinElementPtn(Lc,(Nm,Tp),Els,[(Nm,v(Lc,"_",Tp))|Els]).
+fillinElementPtn(Lc,(Nm,Tp),Els,[(Nm,anon(Lc,Tp))|Els]).
   
 typeOfArgTerm(T,Tp,ErTp,Env,Ev,tple(Lc,Els),Path) :-
   isTuple(T,Lc,A),
@@ -680,6 +679,9 @@ typeOfArgTerm(T,Tp,ErTp,Env,Ev,tple(Lc,Els),Path) :-
 typeOfArgTerm(T,Tp,ErTp,Env,Ev,Exp,Path) :-
   typeOfExp(T,Tp,ErTp,Env,Ev,Exp,Path).
 
+typeOfExp(V,Tp,_,Env,Env,anon(Lc,Tp),_) :-
+  isAnon(V,Lc),
+  reportError("anonymous variable not permitted as expression",[],Lc).
 typeOfExp(V,Tp,_,Env,Ev,Term,_Path) :-
   isIden(V,Lc,N),!,
   (getVar(Lc,N,Env,Ev,Term) ->
@@ -964,7 +966,7 @@ typeOfLambda(Term,Tp,Env,lambda(Lc,Lbl,equation(Lc,Args,Guard,Exp),Tp),Path) :-
   checkGuard(C,tplType([]),E0,E1,Guard,Path),
   newTypeVar("_E",RT),
   checkType(Term,funType(AT,RT),Tp,Env),
-  lambdaLbl(Path,"_",Lbl),
+  lambdaLbl(Path,"λ",Lbl),
   typeOfExp(R,RT,ErTp,E1,_,Exp,Path).
 
 typeOfDoExp(Lc,Stmts,Tp,Env,Ev,doTerm(Lc,Act,Tp),Path) :-
@@ -1186,12 +1188,11 @@ checkAction(Term,Env,Env,AcTp,VlTp,ErTp,OkFn,EvtFn,caseDo(Lc,Gov,Cases),Path) :-
 checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,OkFn,EvtFn,performDo(Lc,Act),Path) :-
   isPerform(Term,Lc,Arg),!,
   checkType(Term,tplType([]),VlTp,Env),
-  newTypeVar("_",ATp),
+  newTypeVar("T",ATp),
   checkAction(Arg,Env,Ev,AcTp,ATp,ErTp,OkFn,EvtFn,Act,Path).
 checkAction(Term,Env,Env,_AcTp,VlTp,ErTp,_,_,varDo(Lc,Anon,Exp),Path) :-
   isIgnore(Term,Lc,Ex),!,
   checkType(Term,tplType([]),VlTp,Env),
-  newTypeVar("_P",PT),
   anonVar(Lc,Anon,PT),
   typeOfExp(Ex,PT,ErTp,Env,_,Exp,Path).
 checkAction(Term,Env,Ev,AcTp,VlTp,ErTp,OkFn,EvtFn,Exp,Path) :-

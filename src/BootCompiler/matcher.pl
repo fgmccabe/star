@@ -82,6 +82,7 @@ filterBndVar(Val,(Nm,X)) :-
   idInTerm(idnt(X),Val).
 
 argMode(idnt(_),inVars).
+argMode(ann(_),inVars).
 argMode(voyd,inScalars).
 argMode(intgr(_),inScalars).
 argMode(float(_),inScalars).
@@ -115,11 +116,6 @@ partTriples(L,L,_,[]).
 
 tripleArgMode(([A|_],_,_),Mode) :-
   argMode(A,Mode),!.
-
-newVars([],V,V).
-newVars([_|L],V,[idnt(NN)|VV]) :-
-  genstr("_",NN),
-  newVars(L,V,VV).
 
 matchScalars(Tpls,[V|Vrs],Lc,Deflt,Map,CaseExp) :-
   sort(Tpls,matcher:compareScalarTriple,ST),
@@ -204,12 +200,24 @@ formCase(([Lbl|_],_,_),Lbl,Tpls,Lc,Vrs,Deflt,Map,Case) :-
 formCase(([enum(Lb)|_],_,_),enum(Lb),Tpls,Lc,Vrs,Deflt,Map,Case) :-
   subTriples(Tpls,STpls),
   matchTriples(Lc,Vrs,STpls,Deflt,Map,Case).
+formCase(([ctpl(Op,Args)],_,_),ctpl(Op,NVrs),Tpls,Lc,Vrs,Deflt,Map,Case) :-!,
+  genTplVars(Args,NVrs),
+  concat(NVrs,Vrs,NArgs),
+  subTriples(Tpls,NTpls),
+  matchTriples(Lc,NArgs,NTpls,Deflt,Map,Case).
 formCase(([ctpl(Op,Args)|_],_,_),ctpl(Op,NVrs),Tpls,Lc,Vrs,Deflt,Map,Case) :-
   length(Args,Ar),
   genVars(Ar,NVrs),
   concat(NVrs,Vrs,NArgs),
   subTriples(Tpls,NTpls),
   matchTriples(Lc,NArgs,NTpls,Deflt,Map,Case).
+
+genTplVars([],[]).
+genTplVars([ann(Lc)|Vrs],[ann(Lc)|Rest]) :-
+  genTplVars(Vrs,Rest).
+genTplVars([idnt(Nm)|Vrs],[idnt(NNm)|Rest]) :-
+  genstr(Nm,NNm),
+  genTplVars(Vrs,Rest).
 
 pickMoreCases(_,[],[],_,[]).
 pickMoreCases(Tr,[A|Trpls],[A|Tx],Cmp,More) :-
@@ -282,6 +290,9 @@ applyVar(idnt(V),[([idnt(XV)|Args],(Lc,Bnd,Cond,Vl),Ix)|Tpls],
   substTerms(Vrs,Args,NArgs),
   substGoal(Vrs,Cond,NCond),
   applyVar(idnt(V),Tpls,NTpls).
+applyVar(idnt(V),[([ann(_)|Args],(Lc,Bnd,Cond,Vl),Ix)|Tpls],
+	 [(Args,(Lc,Bnd,Cond,Vl),Ix)|NTpls]) :-
+  applyVar(idnt(V),Tpls,NTpls).
 applyVar(idnt(V),[([whr(Lcw,idnt(XV),Cond)|Args],(Lc,Bnd,Test,Vl),Ix)|Tpls],
 	 [(NArgs,(Lc,[(XV,idnt(V))|Bnd],NCnd,NVl),Ix)|NTpls]) :-
   Vrs = [(XV,idnt(V))],
@@ -291,4 +302,7 @@ applyVar(idnt(V),[([whr(Lcw,idnt(XV),Cond)|Args],(Lc,Bnd,Test,Vl),Ix)|Tpls],
   mergeGl(NTest,some(NCond),Lcw,NCnd),
   substTerms(Vrs,Args,NArgs),
   applyVar(idnt(V),Tpls,NTpls).
+applyVar(ann(Lc0),[([ann(_)|Args],(Lc,Bnd,Cond,Vl),Ix)|Tpls],
+	 [(Args,(Lc,Bnd,Cond,Vl),Ix)|NTpls]) :-
+  applyVar(ann(Lc0),Tpls,NTpls).
 

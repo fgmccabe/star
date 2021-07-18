@@ -6,7 +6,7 @@
 	      isTypeExistsStmt/6,isTypeFunStmt/6,
 	      isTypeAnnotation/4,typeAnnotation/4,
 	      isTypeLambda/4,typeName/2,
-	      isValType/3,isFunType/4,isEnum/3,enum/3,
+	      isValType/3,isFunType/4,isEnum/3,enum/3,isAnon/2,
 	      isImport/3, isPrivate/3,isPublic/3,
 	      isDefault/3,isDefault/4,
 	      isLiteralInteger/3,isLiteralFloat/3,
@@ -132,6 +132,9 @@ isEnum(C,Lc,Id) :-
 
 enum(Lc,Id,E) :-
   unary(Lc,".",name(Lc,Id),E).
+
+isAnon(T,Lc) :-
+  isName(T,Lc,"_").
 
 isQuantified(T,Q,B) :-
   isBinary(T,_,"~~",L,B),

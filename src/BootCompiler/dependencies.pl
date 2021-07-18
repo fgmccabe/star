@@ -213,6 +213,8 @@ collectCondRefs(C,A,R0,Refs) :-
 collectCondRefs(C,A,R0,Refs) :-
   collectTermRefs(C,A,R0,Refs).
 
+collectTermRefs(E,_,Rx,Rx) :-
+  isAnon(E,_),!.
 collectTermRefs(E,A,R0,Rx) :-
   isTypeAnnotation(E,_,L,R),
   collectTermRefs(L,A,R0,R1),
