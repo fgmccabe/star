@@ -218,6 +218,8 @@ genTplVars([ann(Lc)|Vrs],[ann(Lc)|Rest]) :-
 genTplVars([idnt(Nm)|Vrs],[idnt(NNm)|Rest]) :-
   genstr(Nm,NNm),
   genTplVars(Vrs,Rest).
+genTplVars([A|Vrs],[A|Rest]) :-
+  genTplVars(Vrs,Rest).
 
 pickMoreCases(_,[],[],_,[]).
 pickMoreCases(Tr,[A|Trpls],[A|Tx],Cmp,More) :-

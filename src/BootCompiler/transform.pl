@@ -489,10 +489,6 @@ trExpCallOp(Lc,cons(Lc0,Nm,Tp),Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
 trExpCallOp(Lc,Op,A,ocall(Lc,Rc,A),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(Op,Rc,Q,Qx,Map,Opts,Ex,Exx).
 
-mkBinds(Lc,[],[],Exp,perfDo(Lc,Exp)).
-mkBinds(Lc,[P|Ps],[A|As],Exp,Reslt) :-
-  mkBinds(Lc,Ps,As,seq(Lc,varD(Lc,P,A),Exp),Reslt).
-
 implementFunCall(Lc,localFun(Fn,_,Ar,ThVr),_,Args,cll(Lc,lbl(Fn,Ar2),XArgs),Q,Qx,Map,Opts,Ex,Ex) :-
   liftVar(Lc,ThVr,Vr,Map,Opts,Q,Qx),
   concat([Vr],Args,XArgs),
@@ -552,6 +548,9 @@ liftAction(seqDo(Lc,E1,E2),seq(Lc,L1,L2),Q,Qx,Map,Opts,Ex,Exx) :-
   liftAction(E1,L1,Q,Q0,Map,Opts,Ex,Ex1),
   liftAction(E2,L2,Q0,Qx,Map,Opts,Ex1,Exx).
 liftAction(varDo(Lc,P,E),varD(Lc,P1,E1),Q,Q,Map,Opts,Ex,Exx) :-
+  liftPtn(P,P1,Q,Q0,Map,Opts,Ex,Ex0),
+  liftExp(E,E1,Q0,_,Map,Opts,Ex0,Exx).
+liftAction(assignDo(Lc,P,E),assignD(Lc,P1,E1),Q,Q,Map,Opts,Ex,Exx) :-
   liftPtn(P,P1,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(E,E1,Q0,_,Map,Opts,Ex0,Exx).
 liftAction(performDo(Lc,Exp),perfDo(Lc,E1),Q,Qx,Map,Opts,Ex,Exx) :-
