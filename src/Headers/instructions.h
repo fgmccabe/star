@@ -47,6 +47,10 @@ instruction(StA,arg,nOp,-1,"store tos to args[xx]")
 instruction(StG,glb,nOp,-1,"store into a global variable")
 instruction(TG,glb,nOp,0,"copy into a global variable")
 
+instruction(Cell,tOs,nOp,0,"create R/W cell")
+instruction(Get,tOs,nOp,0,"access a R/W cell")
+instruction(Assign,tOs,nOp,-1,"assign to a R/W cell")
+
 instruction(CLbl,lit,off,-1,"T,Lbl --> test for a data term, branch if lbl")
 instruction(CmpVd,lVl,nOp,-1,"T --> test for void on the stack, break if void")
 instruction(Nth, i32, nOp, 0, "T --> el, pick up the nth element")

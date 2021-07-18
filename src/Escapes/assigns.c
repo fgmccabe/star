@@ -4,7 +4,6 @@
 
 #include <arith.h>
 #include <str.h>
-#include <lblops.h>
 #include <globals.h>
 #include "assigns.h"
 #include "cellP.h"

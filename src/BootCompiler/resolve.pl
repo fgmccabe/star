@@ -114,6 +114,8 @@ overloadTerm(tple(Lc,Args),Dict,St,Stx,tple(Lc,RArgs)) :-
   overloadLst(Args,resolve:overloadTerm,Dict,St,Stx,RArgs).
 overloadTerm(cell(Lc,Inn),Dict,St,Stx,cell(Lc,Inn1)) :-
   overloadTerm(Inn,Dict,St,Stx,Inn1).
+overloadTerm(deref(Lc,Inn),Dict,St,Stx,deref(Lc,Inn1)) :-
+  overloadTerm(Inn,Dict,St,Stx,Inn1).
 overloadTerm(letExp(Lc,Decls,Defs,Bound),Dict,St,Stx,letExp(Lc,Decls,RDefs,RBound)) :-
   overload(Lc,Defs,Dict,RDict,RDefs),
   overloadTerm(Bound,RDict,St,Stx,RBound).

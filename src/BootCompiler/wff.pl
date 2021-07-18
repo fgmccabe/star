@@ -14,7 +14,7 @@
 	      isConditional/5,conditional/5,isOfTerm/4,
 	      isEquation/4,isEquation/5,
 	      isPrompt/4,isCut/5,isTag/2,
-	      isDefn/4,isAssignment/4,isRef/3,assignment/4,eqn/4,eqn/5,
+	      isDefn/4,isAssignment/4,isRef/3,isDeRef/3,assignment/4,eqn/4,eqn/5,
 	      ruleName/3,headName/2,
 	      isWhere/4,isCoerce/4,coerce/4,isOptCoerce/4,optCoerce/4,
 	      isFieldAcc/4,isIndexTerm/4,isRecordUpdate/4,
@@ -400,6 +400,9 @@ isAssignment(Trm,Lc,Lhs,Rhs) :-
 
 isRef(Trm,Lc,Rhs) :-
   isUnary(Trm,Lc,"ref",Rhs).
+
+isDeRef(Trm,Lc,Rhs) :-
+  isUnary(Trm,Lc,"!",Rhs).
 
 assignment(Lc,Lhs,Rhs,Stmt) :-
   binary(Lc,":=",Lhs,Rhs,Stmt).

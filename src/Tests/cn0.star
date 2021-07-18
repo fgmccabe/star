@@ -1,5 +1,5 @@
 test.cn0{
-  public boolean ::= .true | .false.
+  import star.core.
 
   public contract all x ~~ ar[x] ::= {
     plus:(x,x)=>x.
@@ -14,8 +14,6 @@ test.cn0{
     times(x,y) => _int_times(x,y).
     div(x,y) => _int_div(x,y).
   .}
-
-  public cons[e] ::= .nil | cons(e,cons[e]).
 
   public implementation all e ~~ ar[e] |: ar[cons[e]] => let{
     pl(.nil,.nil) => .nil.
@@ -42,9 +40,6 @@ test.cn0{
     times((L1,R1),(L2,R2)) => (times(L1,L2),times(R1,R2)).
     div((L1,R1),(L2,R2)) => (div(L1,L2),div(R1,R2)).
   .}
-
-  public (•):all a,b,c ~~ ((b)=>c,(a)=>b)=>(a)=>c.
-  F • G => (x)=>F(G(x)).
 
   public contract all x ~~ cmp[x] ::= {
     (<) : (x,x)=>boolean.

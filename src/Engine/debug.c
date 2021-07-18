@@ -1102,7 +1102,7 @@ retCode showLcl(ioPo out, stackPo stk, integer vr) {
 
 retCode showGlb(ioPo out, globalPo glb) {
   if (glb != Null) {
-    if (getGlobal(glb) != Null)
+    if (glbIsSet(glb))
       return outMsg(out, " %s=%,*T", globalVarName(glb), displayDepth, getGlobal(glb));
     else
       return outMsg(out, " %s (undef)", globalVarName(glb));

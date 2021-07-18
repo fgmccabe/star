@@ -25,6 +25,9 @@ star.compiler.intrinsics{
   intrinsic("_flt_eq") => some((tpExp(tpExp(tpFun("=>",2),tplType([fltType,fltType,fltType])),boolType),.iFEq)).  -- float equality
   intrinsic("_flt_lt") => some((tpExp(tpExp(tpFun("=>",2),tplType([fltType,fltType])),boolType),.iFLt)).  -- float less than
   intrinsic("_flt_ge") => some((tpExp(tpExp(tpFun("=>",2),tplType([fltType,fltType])),boolType),.iFGe)).  -- float greater or equal
+  intrinsic("_cell") => some((allType(nomnal("t"),tpExp(tpExp(tpFun("=>",2),tplType([nomnal("t")])),tpExp(tpFun("ref",1),nomnal("t")))),.iCell)).  -- create a reference cell
+  intrinsic("_get") => some((allType(nomnal("t"),tpExp(tpExp(tpFun("=>",2),tplType([tpExp(tpFun("ref",1),nomnal("t"))])),nomnal("t"))),.iGet)).  -- Access contents of cell
+  intrinsic("_assign") => some((allType(nomnal("t"),tpExp(tpExp(tpFun("=>",2),tplType([tpExp(tpFun("ref",1),nomnal("t")),nomnal("t")])),tplType([]))),.iAssign)).  -- update contents of reference cell
 
   intrinsic(_) default => .none.
 }
