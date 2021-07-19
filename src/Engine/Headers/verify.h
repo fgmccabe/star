@@ -13,6 +13,8 @@
 
 typedef struct _code_segment_ *segPo;
 
+integer segNo(segPo seg);
+
 retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen);
 
 extern classPo segmentClass;

@@ -14,9 +14,9 @@ inlineExp(v(_,Nm,_),Env,Max,Rpl,_,Trg) :-
 inlineExp(v(Lc,Nm,Tp),Env,Max,v(Lc,Nm,Tp),T,T) :- !.
 inlineExp(anon(Lc,Tp),_,_,anon(Lc,Tp),T,T) :-!.
 inlineExp(void,_Env,_Max,void,Trg,Trg) :-!.
-inlineExp(intLit(Ix,Lc),_Env,_Max,intLit(Ix,Lc),Trg,Trg) :-!.
-inlineExp(floatLit(Dx,Lc),_Env,_Max,floatLit(Dx,Lc),Trg,Trg) :-!.
-inlineExp(stringLit(Sx,Lc),_Env,_Max,stringLit(Sx,Lc),Trg,Trg) :-!.
+inlineExp(intLit(Lc,Ix),_Env,_Max,intLit(Lc,Ix),Trg,Trg) :-!.
+inlineExp(floatLit(Lc,Dx),_Env,_Max,floatLit(Lc,Dx),Trg,Trg) :-!.
+inlineExp(stringLit(Lc,Sx),_Env,_Max,stringLit(Lc,Sx),Trg,Trg) :-!.
 inlineExp(enm(Lc,Nm,Tp),_Env,_Max,enm(Lc,Nm,Tp),Trg,Trg) :-!.
 inlineExp(cons(Lc,Nm,Tp),_Env,_Max,cons(Lc,Nm,Tp),Trg,Trg) :-!.
 inlineExp(apply(Lc,Op,Args,Tp),Env,Max,Rep,Trg,Tx) :-!,
@@ -108,8 +108,8 @@ matchTerm(Oth,v(Lc,Nm,Tp),Env,REnv) :- !,
   addToEnv(Nm,Oth,Env,REnv).
 matchTerm(void,void,Env,Env) :- !.
 matchTerm(intLit(Ix,Tp),intLit(Ix,Tp),Env,Env) :-!.
-matchTerm(floatLit(Dx,Tp),floatLit(Dx,Tp),Env,Env) :-!.
-matchTerm(stringLit(Sx,Tp),stringLit(Sx,Tp),Env,Env) :-!.
+matchTerm(floatLit(Lc,Dx),floatLit(Lc,Dx),Env,Env) :-!.
+matchTerm(stringLit(Lc,Sx),stringLit(Lc,Sx),Env,Env) :-!.
 matchTerm(enm(_,Nm,Tp),enm(_,Nm,Tp),Env,Env) :-!.
 matchTerm(cons(_,Nm,Tp),cons(_,Nm,Tp),Env,Env) :-!.
 matchTerm(apply(_,LOp,LArgs,_),apply(_,ROp,RArgs,_),Env,REnv) :-!,
@@ -134,9 +134,9 @@ rewriteTerm(v(_,Nm,_),Env,Trm) :-
   varInEnv(Nm,Env,Vl),
   rewriteTerm(Vl,Env,Trm).
 rewriteTerm(v(Lc,Nm,Tp),_,v(Lc,Nm,Tp)).
-rewriteTerm(intLit(Ix,Tp),_,intLit(Ix,Tp)).
-rewriteTerm(floatLit(Ix,Tp),_,floatLit(Ix,Tp)).
-rewriteTerm(stringLit(Sx,Tp),_,stringLit(Sx,Tp)).
+rewriteTerm(intLit(Lc,Ix),_,intLit(Lc,Ix)).
+rewriteTerm(floatLit(Lc,Dx),_,floatLit(Lc,Dx)).
+rewriteTerm(stringLit(Lc,Sx),_,stringLit(Lc,Sx)).
 rewriteTerm(dot(Lc,Rc,Fld,Tp),Env,dot(Lc,RRc,Fld,Tp)) :-
   rewriteTerm(Rc,Env,RRc).
 rewriteTerm(enm(Lc,Rf,Tp),_,enm(Lc,Rf,Tp)).

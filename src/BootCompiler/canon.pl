@@ -94,9 +94,9 @@ isPkg(pkg(_,_)).
 typeOfCanon(v(_,_,Tp),Tp) :- !.
 typeOfCanon(anon(_,Tp),Tp) :- !.
 typeOfCanon(dot(_,_,_,Tp),Tp) :- !.
-typeOfCanon(intLit(_,Tp),Tp) :- !.
-typeOfCanon(floatLit(_,Tp),Tp) :- !.
-typeOfCanon(stringLit(_,Tp),Tp) :- !.
+typeOfCanon(intLit(_,_),type("star.core*integer")) :- !.
+typeOfCanon(floatLit(_,_),type("star.core*float")) :- !.
+typeOfCanon(stringLit(_,_),type("star.core*string")) :- !.
 typeOfCanon(enm(_,_,Tp),Tp) :- !.
 typeOfCanon(cons(_,_,Tp),Tp) :- !.
 typeOfCanon(where(_,T,_),Tp) :- !, typeOfCanon(T,Tp).
@@ -195,9 +195,9 @@ dispCanon(T) :-
 ssTerm(v(_,Nm,_),_,id(Nm)).
 ssTerm(anon(_,_),_,ss("_")).
 ssTerm(void,_,ss("void")).
-ssTerm(intLit(Ix,_),_,ix(Ix)).
-ssTerm(floatLit(Dx,_),_,fx(Dx)).
-ssTerm(stringLit(Str,_),_,sq([ss(""""),ss(Str),ss("""")])).
+ssTerm(intLit(_,Ix),_,ix(Ix)).
+ssTerm(floatLit(_,Dx),_,fx(Dx)).
+ssTerm(stringLit(_,Str),_,sq([ss(""""),ss(Str),ss("""")])).
 ssTerm(apply(_,Op,Args,_),Dp,sq([O,A])) :-
   ssTerm(Op,Dp,O),
   ssTerm(Args,Dp,A).
@@ -292,6 +292,8 @@ ssConstraints([T|More],Dp,[TT|TTs]) :-
   ssConstraint(false,Dp,T,TT),
   ssConstraints(More,Dp,TTs).
 
+ssAction(noDo(Lc),_,sq([ss("no-op at "),LL])) :-
+  ssLoc(Lc,LL).
 ssAction(seqDo(Lc,A,B),Dp,sq([lb,iv(sq([ss(";"),nl(Dp2)]),AA),rb])) :-
   Dp2 is Dp+2,
   ssActions(seqDo(Lc,A,B),Dp2,AA).

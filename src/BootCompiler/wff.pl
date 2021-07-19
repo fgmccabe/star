@@ -586,7 +586,7 @@ isWhileDo(A,Lc,Ts,Bd) :-
 
 isUntilDo(A,Lc,Bd,Ts) :-
   isBinary(A,Lc,"until",B,Ts),
-  isUnary(B,Lc,"do",Bd),!.
+  isUnary(B,_,"do",Bd),!.
 
 isForDo(A,Lc,Ts,Bd) :-
   isBinary(A,Lc,"do",LL,Bd),

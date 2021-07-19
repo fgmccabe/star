@@ -583,17 +583,17 @@ typeOfPtn(V,Tp,_,Ev,Env,v(Lc,N,Tp),_Path) :-
 typeOfPtn(Trm,Tp,ErTp,Env,Ev,Term,Path) :-
   isEnum(Trm,_,_),
   typeOfExp(Trm,Tp,ErTp,Env,Ev,Term,Path).
-typeOfPtn(Trm,Tp,_,Env,Env,intLit(Ix,IntTp),_) :-
+typeOfPtn(Trm,Tp,_,Env,Env,intLit(Lc,Ix),_) :-
   isLiteralInteger(Trm,Lc,Ix),!,
   findType("integer",Lc,Env,IntTp),
   checkType(Trm,IntTp,Tp,Env).
-typeOfPtn(T,Tp,_,Env,Env,floatLit(Dx,FltTp),_Path) :- 
+typeOfPtn(T,Tp,_,Env,Env,floatLit(Lc,Dx),_Path) :- 
   isLiteralFloat(T,Lc,Dx),!,
   findType("float",Lc,Env,FltTp),
   checkType(T,FltTp,Tp,Env).
-typeOfPtn(string(Lc,Ix),Tp,_,Env,Env,stringLit(Ix,StrTp),_Path) :- !,
+typeOfPtn(string(Lc,Sx),Tp,_,Env,Env,stringLit(Lc,Sx),_Path) :- !,
   findType("string",Lc,Env,StrTp),
-  checkType(string(Lc,Ix),StrTp,Tp,Env).
+  checkType(string(Lc,Sx),StrTp,Tp,Env).
 typeOfPtn(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isTypeAnnotation(Term,_,L,R),!,
   parseType(R,Env,RT),
@@ -700,17 +700,17 @@ typeOfExp(V,Tp,_,Env,Ev,Term,_Path) :-
 typeOfExp(T,Tp,ErTp,Env,Ev,Term,Path) :-
   isEnum(T,_,N),
   typeOfExp(N,Tp,ErTp,Env,Ev,Term,Path),!.
-typeOfExp(T,Tp,_,Env,Env,intLit(Ix,IntTp),_Path) :-
+typeOfExp(T,Tp,_,Env,Env,intLit(Lc,Ix),_Path) :-
   isLiteralInteger(T,Lc,Ix),!,
   findType("integer",Lc,Env,IntTp),
   checkType(T,IntTp,Tp,Env).
-typeOfExp(T,Tp,_,Env,Env,floatLit(Dx,FltTp),_Path) :-
+typeOfExp(T,Tp,_,Env,Env,floatLit(Lc,Dx),_Path) :-
   isLiteralFloat(T,Lc,Dx),!,
   findType("float",Lc,Env,FltTp),
   checkType(T,FltTp,Tp,Env).
-typeOfExp(string(Lc,Ix),Tp,_,Env,Env,stringLit(Ix,StrTp),_Path) :- !,
+typeOfExp(string(Lc,Sx),Tp,_,Env,Env,stringLit(Lc,Sx),_Path) :- !,
   findType("string",Lc,Env,StrTp),
-  checkType(string(Lc,Ix),StrTp,Tp,Env).
+  checkType(string(Lc,Sx),StrTp,Tp,Env).
 typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isTypeAnnotation(Term,_,L,R),!,
   parseType(R,Env,RT),
@@ -1513,7 +1513,7 @@ isLetExport(Private,Nm) :-
 completePublic([],Pub,Pub,_).
 completePublic([con(Nm)|List],Pub,Px,Path) :-
   contractName(Path,Nm,ConNm),
-  completePublic(List,[tpe(ConNm)|Pub],Px,Path).
+  completePublic(List,[tpe(ConNm),var(ConNm)|Pub],Px,Path).
 completePublic([_|List],Pub,Px,Path) :-
   completePublic(List,Pub,Px,Path).
 

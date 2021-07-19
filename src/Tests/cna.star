@@ -15,16 +15,15 @@ test.cna{
     valis R!
   }
 
+  public implementation equality[integer] => {
+    X == Y => _int_eq(X,Y).
+  }
+
   eq:(integer,integer)=>boolean.
   eq(X,Y) => let{.
     tst(0) => .true.
     tst(_) => .false
   .} in tst(minus(X,Y)).
-
-  public (:=):all a,e ~~ (ref a,a) => result[(),e].
-  (:=)(L,V) => do{
-    valis _assign(L,V)
-  }
 
   _main:(cons[string])=>().
   _main(cons(A,.nil)) =>

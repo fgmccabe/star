@@ -103,9 +103,9 @@ markResolved(St,St).
 overloadTerm(void,_,St,St,void).
 overloadTerm(v(Lc,Nm,Tp),_,St,St,v(Lc,Nm,Tp)).
 overloadTerm(anon(Lc,Tp),_,St,St,anon(Lc,Tp)).
-overloadTerm(intLit(Ix,Tp),_,St,St,intLit(Ix,Tp)).
-overloadTerm(floatLit(Ix,Tp),_,St,St,floatLit(Ix,Tp)).
-overloadTerm(stringLit(Sx,Tp),_,St,St,stringLit(Sx,Tp)).
+overloadTerm(intLit(Lc,Ix),_,St,St,intLit(Lc,Ix)).
+overloadTerm(floatLit(Lc,Dx),_,St,St,floatLit(Lc,Dx)).
+overloadTerm(stringLit(Lx,Sx),_,St,St,stringLit(Lx,Sx)).
 overloadTerm(dot(Lc,Rc,Fld,Tp),Dict,St,Stx,Dot) :-
   overloadTerm(Rc,Dict,St,St0,RRc),
   resolveAccess(Lc,RRc,Fld,Tp,Dict,St0,Stx,Dot).
@@ -214,6 +214,7 @@ overloadAccess(Lc,T,V,Face,Args,Tp,Dict,St,Stx,
 overloadCases(Cses,Dict,St,Stx,RCases) :-
   overloadLst(Cses,resolve:overloadRule,Dict,St,Stx,RCases).
 
+overloadAction(noDo(Lc),_,St,St,noDo(Lc)).
 overloadAction(seqDo(Lc,A,B),Dict,St,Stx,seqDo(Lc,RA,RB)) :-
   overloadAction(A,Dict,St,St1,RA),
   overloadAction(B,Dict,St1,Stx,RB).
