@@ -224,8 +224,8 @@ overloadAction(varDo(Lc,Ptn,Exp),Dict,St,Stx,varDo(Lc,RPtn,RExp)) :-
 overloadAction(assignDo(Lc,Ptn,Exp),Dict,St,Stx,assignDo(Lc,RPtn,RExp)) :-
   overloadTerm(Ptn,Dict,St,St1,RPtn),
   overloadTerm(Exp,Dict,St1,Stx,RExp).
-overloadAction(ifthenDo(Lc,Tst,Th,El),Dict,St,Stx,
-	       ifthenDo(Lc,RTst,RTh,REl)) :-
+overloadAction(ifThenDo(Lc,Tst,Th,El),Dict,St,Stx,
+	       ifThenDo(Lc,RTst,RTh,REl)) :-
   overloadTerm(Tst,Dict,St,St1,RTst),
   overloadAction(Th,Dict,St1,St2,RTh),
   overloadAction(El,Dict,St2,Stx,REl).

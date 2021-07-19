@@ -584,13 +584,13 @@ validTerm(case(Lc,G,Cases,Deflt),_,D) :-
 validTerm(unpack(Lc,G,Cases),_,D) :-
   validTerm(G,Lc,D),
   validCases(Cases,lterms:validTerm,D).
-validTerm(seq(_,L,R),Lc,D) :-
+validTerm(seq(Lc,L,R),_,D) :-
   validTerm(L,Lc,D),
   validTerm(R,Lc,D).
-validTerm(cnj(_,L,R),Lc,D) :-
+validTerm(cnj(Lc,L,R),_,D) :-
   validTerm(L,Lc,D),
   validTerm(R,Lc,D).
-validTerm(dsj(_,L,R),Lc,D) :-
+validTerm(dsj(Lc,L,R),_,D) :-
   validTerm(L,Lc,D),
   validTerm(R,Lc,D).
 validTerm(cnd(Lc,T,L,R),_,D) :-
@@ -598,7 +598,7 @@ validTerm(cnd(Lc,T,L,R),_,D) :-
   validTerm(T,Lc,D0),
   validTerm(L,Lc,D0),
   validTerm(R,Lc,D).
-validTerm(mtch(Lc,L,R),Lc,D) :-
+validTerm(mtch(Lc,L,R),_,D) :-
   validTerm(L,Lc,D),
   validTerm(R,Lc,D).
 validTerm(ng(Lc,R),_,D) :-
