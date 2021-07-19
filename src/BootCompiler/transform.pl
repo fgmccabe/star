@@ -644,9 +644,9 @@ thetaMap(Lc,Decls,Defs,_Bnd,ThVr,Q,Map,Opts,[lyr(Vx,Tx,ConsMap,ThVr)|Map],FreeTe
 freeVarsInLetDefs(P,Ex,Q,Fr) :-
   freeVarsInDefs(P,Ex,Q,[],Fr).
   
-letMap(Lc,Decls,Defs,_Bnd,ThVr,Q,Map,Opts,
+letMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,
        [lyr(Vx,Tx,ConsMap,ThVr)|Map],[lyr(V0,Tx,ConsMap,ThVr)|Map],FreeTerm) :-
-  findFreeVars(transform:freeVarsInLetDefs(Defs),Map,Q,ThFree),
+  findFreeVars(transform:freeVarsInExp(letExp(Lc,Decls,Defs,Bnd)),Map,Q,ThFree),
   varDefs(Defs,CellVars),
   concat(CellVars,ThFree,FreeVars),
   collectLabelVars(FreeVars,ThVr,0,varMap{},V0),
@@ -656,13 +656,13 @@ letMap(Lc,Decls,Defs,_Bnd,ThVr,Q,Map,Opts,
 
 lambdaMap(Lam,LamLbl,Q,Map,Opts,ctpl(lbl(LamLbl,1),[FreeTerm]),
     [lyr(Vx,typeMap{},consMap{},ThVr)|Map]) :-
-  findFreeVars(transform:freeVarsInLambda(Lam),Map,Q,LmFree),
+  findFreeVars(transform:freeVarsInExp(Lam),Map,Q,LmFree),
   genVar("_ΛV",ThVr),
   collectLabelVars(LmFree,ThVr,0,varMap{},Vx),
   locOfCanon(Lam,Lc),
   makeFreeTerm([],Lc,LmFree,Map,Opts,FreeTerm).
 
-freeVarsInLambda(P,Ex,Q,Fr) :-
+freeVarsInExp(P,Ex,Q,Fr) :-
   freeVars(P,Ex,Q,[],Fr).
 
 findFreeVars(Finder,Map,Q,LmFr0) :-

@@ -34,7 +34,7 @@ checkProgram(Prog,Pkg,Repo,_Opts,PkgDecls,Canon) :-
   importAll(Imports,Repo,AllImports),
   collectImportDecls(AllImports,Repo,[],IDecls),
   declareAllDecls(IDecls,Lc,Base,Env0),
-  dispDecls(IDecls),
+%  dispDecls(IDecls),
 %  dispEnv(Env0),
   thetaEnv(Pk,Lc,Stmts,faceType([],[]),Env0,OEnv,Defs,Public),
 %  dispEnv(OEnv),

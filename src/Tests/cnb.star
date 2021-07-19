@@ -15,6 +15,16 @@ test.cnb{
 
     valis R!
   }
+
+  public factF:(integer)=>integer.
+  factF(N) => valof factFF(1,N,1).
+
+  factFF(F,T,S) => do{
+    if F>T then
+      valis S
+    else
+    factFF(F+1,T,S*F)
+  }
   
   _main:(cons[string])=>().
   _main(cons(A,.nil)) =>
@@ -23,6 +33,7 @@ test.cnb{
   main:(string)=>action[(),()].
   main(T) => action{
     _ .= factU(6);
+    _ .= factF(6);
     logM(T);
     valis ()
   }
