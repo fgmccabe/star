@@ -125,11 +125,16 @@ static logical segmentEquality(objectPo o1, objectPo o2) {
   return (logical) (s1->seg.segNo == s2->seg.segNo);
 }
 
+integer segNo(segPo seg){
+  return seg->seg.segNo;
+}
+
 static retCode
 splitIns(vectorPo blocks, insPo code, integer *pc, integer to, logical jmpSplit, char *errorMsg, long msgLen);
 
 static retCode
 findTgts(vectorPo blocks, methodPo mtd, insPo code, integer *pc, integer to, char *errorMsg, long msgLen);
+static retCode findBlocksTgts(vectorPo blocks, methodPo mtd, insPo code, char *errorMsg, long msgLen);
 
 static vectorPo getRefs(objectPo def, void *cl) {
   segPo seg = O_SEG(def);
@@ -137,6 +142,11 @@ static vectorPo getRefs(objectPo def, void *cl) {
 }
 
 retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
+#ifdef TRACEVERIFY
+  if (traceVerify)
+    showMethodCode(logFile, name, mtd);
+#endif
+
   vectorPo blocks = vector(0);
   segPo first = newSegment(0, mtd, 0, insCount(mtd), 0, True);
 
@@ -146,18 +156,14 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
   retCode ret = splitIns(blocks, entryPoint(mtd), &pc, insCount(mtd), True, errorMsg, msgLen);
 
   if (ret == Ok) {
-    pc = 0;
-    ret = findTgts(blocks, mtd, entryPoint(mtd), &pc, insCount(mtd), errorMsg, msgLen);
+    ret = findBlocksTgts(blocks, mtd, entryPoint(mtd), errorMsg, msgLen);
   }
 
   vectorPo groups = topSort(blocks, getRefs, Null);
 
 #ifdef TRACEVERIFY
-  if (traceVerify) {
-    showMethodCode(logFile, name, mtd);
+  if (traceVerify)
     showGroups(groups, name);
-    flushOut();
-  }
 #endif
 
   if (ret == Ok) {
@@ -202,7 +208,7 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
         for (integer sx = 0; sx < vectLength(group); sx++) {
           segPo seg = O_SEG(getVectEl(group, sx));
           if (!seg->seg.checked) {
-            strMsg(errorMsg, msgLen, RED_ESC_ON "unreachable segment %d @ PC:%d" RED_ESC_OFF, seg->seg.segNo,
+            strMsg(errorMsg, msgLen, RED_ESC_ON "unreachable segment %d @ PC:%d" RED_ESC_OFF, segNo(seg),
                    seg->seg.pc);
             ret = Error;
             break;
@@ -312,7 +318,7 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
       case Ret:
       case Underflow:
       case Cut:
-      case Restore:{
+      case Restore: {
         splitSeg(blocks, *pc);
         return Ok;
       }
@@ -322,7 +328,7 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
       case CmpVd:
       case If:
       case IfNot:
-      case Unpack:{
+      case Unpack: {
         splitSeg(blocks, *pc);
         return Ok;
       }
@@ -362,14 +368,26 @@ segPo splitSeg(vectorPo blocks, integer tgt) {
 #undef instruction
 #define instruction(Op, A1, A2, Delta, Cmt)\
     case Op:\
-      ret=checkTgt(blocks,mtd,code,oPc,pc,Op,A1,A2,(*pc)>=to,errorMsg,msgLen);\
+      ret=checkTgt(blocks,mtd,code,oPc,pc,Op,A1,A2,to,errorMsg,msgLen);\
       break;
 
 static retCode
 checkTgt(vectorPo blocks, methodPo mtd, insPo code, integer oPc, integer *pc, OpCode op, opAndSpec A, opAndSpec B,
-         logical isLast, char *errorMsg, long msgLen);
+         integer limit, char *errorMsg, long msgLen);
 
 static retCode checkDest(vectorPo blocks, integer pc, integer tgt, char *errorMsg, long msgLen);
+
+retCode findBlocksTgts(vectorPo blocks, methodPo mtd, insPo code, char *errorMsg, long msgLen) {
+  retCode ret = Ok;
+  for (integer ix = 0; ret == Ok && ix < vectLength(blocks); ix++) {
+    segPo seg = O_SEG(getVectEl(blocks, ix));
+    assert(seg != Null);
+    integer pc = seg->seg.pc;
+    integer to = seg->seg.maxPc;
+    ret = findTgts(blocks, mtd, code, &pc, to, errorMsg, msgLen);
+  }
+  return ret;
+}
 
 retCode findTgts(vectorPo blocks, methodPo mtd, insPo code, integer *pc, integer to, char *errorMsg, long msgLen) {
   retCode ret = Ok;
@@ -402,6 +420,27 @@ retCode findTgts(vectorPo blocks, methodPo mtd, insPo code, integer *pc, integer
   return ret;
 }
 
+static void updateEntryPoint(segPo srcSeg,segPo tgtSeg){
+  for(integer ix=0;ix<tgtSeg->seg.entryPoints;ix++) {
+    segPo eSeg = O_SEG(getVectEl(tgtSeg->seg.entries, ix));
+    if (eSeg == srcSeg) {
+      return;
+    }
+  }
+  tgtSeg->seg.entryPoints++;
+  appendVectEl(tgtSeg->seg.entries, O_OBJECT(srcSeg));
+}
+
+static void updateExitPoint(segPo srcSeg,segPo tgtSeg){
+  for(integer ix=0;ix< vectLength(srcSeg->seg.exits);ix++) {
+    segPo eSeg = O_SEG(getVectEl(srcSeg->seg.exits, ix));
+    if (eSeg == tgtSeg) {
+      return;
+    }
+  }
+  appendVectEl(srcSeg->seg.exits, O_OBJECT(tgtSeg));
+}
+
 retCode checkDest(vectorPo blocks, integer pc, integer tgt, char *errorMsg, long msgLen) {
   segPo tgtSeg = findSeg(blocks, tgt);
 
@@ -409,9 +448,8 @@ retCode checkDest(vectorPo blocks, integer pc, integer tgt, char *errorMsg, long
     segPo srcSeg = findSeg(blocks, pc);
 
     if (srcSeg != Null) {
-      tgtSeg->seg.entryPoints++;
-      appendVectEl(tgtSeg->seg.entries, O_OBJECT(srcSeg));
-      appendVectEl(srcSeg->seg.exits, O_OBJECT(tgtSeg));
+      updateEntryPoint(srcSeg,tgtSeg);
+      updateExitPoint(srcSeg,tgtSeg);
       return Ok;
     } else {
       strMsg(errorMsg, msgLen, RED_ESC_ON "invalid source pc %d" RED_ESC_OFF, pc);
@@ -471,29 +509,29 @@ retCode checkOprndTgt(methodPo mtd, insPo code, vectorPo blocks, integer oPc, in
 
 retCode
 checkTgt(vectorPo blocks, methodPo mtd, insPo code, integer oPc, integer *pc, OpCode op, opAndSpec A, opAndSpec B,
-         logical isLast, char *errorMsg, long msgLen) {
+         integer limit, char *errorMsg, long msgLen) {
   retCode ret = checkOprndTgt(mtd, code, blocks, oPc, pc, A, errorMsg, msgLen);
   if (ret == Ok)
     ret = checkOprndTgt(mtd, code, blocks, oPc, pc, B, errorMsg, msgLen);
 
-//  if (isLast) {
-//    segPo next = findSeg(blocks, *pc);
-//    segPo current = findSeg(blocks, oPc);
-//
-//    if (next != Null && current != Null) {
-//      switch (code[oPc]) {
-//        case Jmp:
-//        case Tail:
-//        case OTail:
-//        case Throw:
-//        case Unwind:
-//          break;
-//        default:
-//          appendVectEl(next->seg.entries, O_OBJECT(newInteger(current->seg.segNo)));
-//          appendVectEl(current->seg.exits, O_OBJECT(newInteger(next->seg.segNo)));
-//      }
-//    }
-//  }
+  if (*pc >= limit) {
+    segPo next = findSeg(blocks, *pc);
+    segPo current = findSeg(blocks, oPc);
+
+    if (next != Null && current != Null) {
+      switch (code[oPc]) {
+        case Jmp:
+        case Tail:
+        case OTail:
+        case Throw:
+        case Unwind:
+          break;
+        default:
+          updateEntryPoint(current,next);
+          updateExitPoint(current,next);
+      }
+    }
+  }
   return ret;
 }
 
@@ -700,7 +738,7 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
         seg->seg.stackDepth = depth;
         break;
       }
-      case Unpack:{
+      case Unpack: {
         int32 litNo = collect32(entryPoint(seg->seg.mtd), &iPc);
         if (litNo < 0 || litNo >= codeLitCount(seg->seg.mtd)) {
           strMsg(errorMsg, msgLen, RED_ESC_ON "invalid literal number: %d @ %d" RED_ESC_OFF, litNo, oPc);
@@ -785,8 +823,14 @@ retCode checkSegment(segPo seg, char *errorMsg, long msgLen) {
       showSeg(seg);
     }
 #endif
+    for(integer ex=0;ret==Ok && ex< vectLength(seg->seg.exits);ex++){
+      segPo exit = O_SEG(getVectEl(seg->seg.exits,ex));
+      ret = mergeSegVars(seg, exit);
+    }
     return ret;
   }
+
+
   return Ok;
 }
 
@@ -841,5 +885,5 @@ void showGroups(vectorPo groups, char *name) {
     vectorPo group = O_VECT(getVectEl(groups, gx));
     showGroup(group, gx);
   }
-  flushFile(logFile);
+  flushOut();
 }

@@ -34,6 +34,10 @@ star.core {
     isEmpty:(c) => boolean.
   }
 
+  public contract all a,b ~~ measured[a->>b] ::= {
+    '[||]':(a)=>b.
+  }
+
   -- The head'n tail contract
   public contract all c,e ~~ head[c->>e] ::= {
     head:(c)=>option[e].

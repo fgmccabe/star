@@ -32,6 +32,8 @@ retCode procVector(vectorPo v, vectorProc proc, void *cl);
 vectorPo vector(int count, ...);
 vectorPo duplicateVector(vectorPo src);
 
+vectorPo reverseVector(vectorPo vec);
+
 extern classPo vectorClass;
 
 #ifdef VERIFY_OBJECT

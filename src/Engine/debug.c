@@ -597,6 +597,7 @@ void showMethodCode(ioPo out, char *name, methodPo mtd) {
     pc = disass(out, NULL, mtd, pc);
     outMsg(out, "\n");
   }
+  flushOut();
 }
 
 static DebugWaitFor dbgInsDebug(char *line, processPo p, termPo loc, insWord ins, void *cl) {

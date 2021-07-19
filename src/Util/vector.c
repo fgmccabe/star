@@ -102,6 +102,22 @@ vectorPo duplicateVector(vectorPo src) {
   return tgt;
 }
 
+vectorPo reverseVector(vectorPo vec){
+  if(vec->vect.data!=Null){
+    integer from = 0;
+    integer to = vec->vect.count;
+
+    while(from<to){
+      to--;
+      objectPo el = vec->vect.data[to];
+      vec->vect.data[to] = vec->vect.data[from];
+      vec->vect.data[from] = el;
+      from++;
+    }
+  }
+  return vec;
+}
+
 objectPo getVectEl(vectorPo v, integer ix) {
   assert(ix >= 0 && ix < v->vect.count && ix < v->vect.size);
   return v->vect.data[ix];

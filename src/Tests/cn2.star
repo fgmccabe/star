@@ -1,7 +1,7 @@
 test.cn2{
   import star.core.
-  import test.cn0.
-  import test.cn1.
+--  import test.cn0.
+--  import test.cn1.
 
   public result[e,o] ::= okResult(e) | eventResult(o).
   public action[a,e] ::= action(()=>result[a,e]).

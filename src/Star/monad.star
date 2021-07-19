@@ -36,7 +36,12 @@ star.monad{
   --   (•) : all a,b,c ~~ (cat[b,c],cat[a,b])=>cat[a,c].
   -- }
 
-  public contract all a,b ~~ measured[a->>b] ::= {
-    '[||]':(a)=>b.
-  }
+  public implementation monoid[integer] => {.
+    A ⊕ B => _int_plus(A,B).
+    zed = 0.
+  .}
+
+  
+
+  
 }

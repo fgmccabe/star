@@ -299,8 +299,9 @@ compAction(untl(Lc,Cond,Body),_,Cont,RCont,Opts,D,Dx,End,
 	   [iLbl(Nxt)|C],Cx,Stk,Stk) :-
   genLbl(D,Nxt,D0),
   genLbl(D0,Tst,D1),
-  compAction(Body,Lc,contCont(Tst),RCont,Opts,D1,D2,End,C,[iLbl(Tst)|C1],Stk,Stk1),
+  compAction(Body,Lc,bothCont(resetCont(Stk),contCont(Tst)),RCont,Opts,D1,D2,End,C,[iLbl(Tst)|C1],Stk,Stk1),
   compCond(Cond,Lc,Cont,contCont(Nxt),Opts,D2,Dx,End,C1,Cx,Stk1,Stkx),
+  verify(gencode:sameStk(Stk,Stk1),"until test stack"),
   verify(gencode:sameStk(Stk,Stkx),"until body stack").
 
 contCont(Lbl,D,D,_,C,Cx,Stk,Stk) :-
