@@ -1,9 +1,7 @@
 test.cn2{
   import star.core.
---  import test.cn0.
---  import test.cn1.
 
-  public result[e,o] ::= okResult(e) | eventResult(o).
+/*  public result[e,o] ::= okResult(e) | eventResult(o).
   public action[a,e] ::= action(()=>result[a,e]).
 
   public contract all C,e,o ~~ _exec[C->>e,o] ::= {
@@ -32,6 +30,10 @@ test.cn2{
   public _getResult:all a,e ~~ (result[a,e])=>a.
   _getResult(okResult(X)) => X.
 
-  
+*/
+  public implementation all x ~~ sequence[cons[x] ->> x] => {
+    _cons(E,S) => cons(E,S).
+    _nil = .nil.
+  }
 
 }

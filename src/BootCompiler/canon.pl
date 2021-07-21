@@ -1,4 +1,4 @@
-:- module(canon,[dispFunction/3,dispCanon/1,
+:- module(canon,[dispFunction/3,dispDef/1,dispCanon/1,
 		 ssCanonProg/2,ssTerm/3,ssAction/3,ssPkg/2,ssContract/3,
 		 dispDecls/1,
 		 typeOfCanon/2,splitPtn/3,locOfCanon/2,
@@ -179,9 +179,9 @@ ssCanonProg(prog(Pkg,Imports,XDecls,Decls,Defs),sq([PP,nl(2),iv(nl(2),XX),rb])) 
   ssPkg(Pkg,PP),
   map(Imports,canon:ssImport,II),
   map(XDecls,canon:ssDecl(2,ss("export ")),EE),
-  map(Decls,canon:ssDecl(2,ss("local ")),DD),
+%  map(Decls,canon:ssDecl(2,ss("local ")),DD),
   map(Defs,canon:ssDf(2),FF),
-  flatten([EE,DD,II,FF],XX).
+  flatten([EE,/*DD,*/II,FF],XX).
 
 ssPkg(pkg(Nm,V),sq([ss(Nm)|Vs])) :-
   ssVersion(V,Vs).
@@ -374,10 +374,9 @@ ssDef(Dp,funDef(Lc,Nm,ExtNm,_Type,_Cx,Eqns),
       sq([ss("fun "),id(Nm),ss("@"),Lcs,nl(Dp),Rs])) :-
   ssRls(ExtNm,Eqns,Dp,Rs),
   ssLoc(Lc,Lcs).
-ssDef(Dp,varDef(Lc,Nm,ExtNm,_Cx,Tp,Value),
-      sq([ss("var "),id(Nm),ss(" : "),Ts,ss("@"),Lcs,nl(Dp),
+ssDef(Dp,varDef(Lc,Nm,ExtNm,_Cx,_Tp,Value),
+      sq([ss("var "),id(Nm),ss("@"),Lcs,nl(Dp),
 	  id(ExtNm),ss(" = "),V])) :-
-  ssType(Tp,true,Dp,Ts),
   ssTerm(Value,Dp,V),
   ssLoc(Lc,Lcs).
 ssDef(Dp,cnsDef(Lc,Nm,C),
@@ -419,8 +418,9 @@ dispDecls(Decls) :-
   map(Decls,canon:ssDecl(0,ss("")),DD),
   displayln(iv(nl(0),DD)).
 
-ssDecl(Dp,X,funDec(Nm,LclNme,Type),
-       sq([X,ss("fun "),id(Nm),ss("~"),id(LclNme),ss(" :: "),TT])) :-
+ssDecl(Dp,X,funDec(Nm,Nm,Type),sq([X,ss("fun "),id(Nm),ss(" :: "),TT])) :-!,
+  ssType(Type,true,Dp,TT).
+ssDecl(Dp,X,funDec(Nm,LclNme,Type),sq([X,ss("fun "),id(Nm),ss("~"),id(LclNme),ss(" :: "),TT])) :-
   ssType(Type,true,Dp,TT).
 ssDecl(Dp,X,varDec(Nm,LclNme,Tp),
       sq([X,ss("var "),id(Nm),ss("~"),id(LclNme),ss(" :: "),Ts])) :-
@@ -483,6 +483,10 @@ ssVisibility(transitive,ss("transitive ")).
 
 dispFunction(Nm,Type,Eqns) :-
   displayln(canon:ssFunction(0,Nm,Type,Eqns)).
+
+dispDef(Def) :-
+  displayln(canon:ssDef(0,Def)).
+
 
 splitPtn(P,Px,Cnd) :-
   locOfCanon(P,Lc),
