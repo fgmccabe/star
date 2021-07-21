@@ -3,6 +3,10 @@ test.cnc{
   import star.core.
   import star.arith.
   import star.strings.
+  import star.display.
+  import star.option.
+  import star.coerce.
+  import test.cn2.
 
   -- stream & sequence contracts
   public implementation all x ~~ stream[cons[x] ->> x] => {
@@ -17,6 +21,19 @@ test.cnc{
     _cons(E,S) => cons(E,S).
     _nil = .nil.
   }
+
+  public implementation all e ~~ display[e] |: display[cons[e]] => let{
+    consDisp(.nil) => ss("").
+    consDisp(cons(X,.nil)) => disp(X).
+    consDisp(cons(X,R)) => ssSeq([disp(X), ss(","), consDisp(R)]).
+  } in {
+    disp(L) => ssSeq([ss("["), consDisp(L),ss("]")]).
+  }
+
+  public implementation all x,y ~~ display[x], display[y] |: display[(x,y)] =>
+    {.
+      disp((a,b)) => ssSeq([ss("("),disp(a),ss(" , "),disp(b),ss(")")]).
+    .}
 
   parent:cons[(string,string)].
   parent = [("a","ab"),("b","ab"),("a","c"),("c","aa"),("ab","abc"),
@@ -40,6 +57,11 @@ test.cnc{
 
   gp0:(string) => cons[string].
   gp0(GC) => findGs(findPs(parent,GC,[]),[]).
-  
+
+  main:()=>action[(),()].
+  main() => action{
+    logM("parent=$(parent)");
+    valis ()
+  }
 }
   

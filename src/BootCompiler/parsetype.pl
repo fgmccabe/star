@@ -320,8 +320,8 @@ genAccessor(Lc,Q,Cx,Path,TpNm,Tp,Fld,FldTp,Tp,AllElTps,Body,
   putConstraints(Cx,funType(tplType([Tp]),FldTp),CxFunTp),
   reQuant(Q,CxFunTp,AccFunTp),
   accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,[]),
-  Impl = accDef(Tp,Fld,AccName,AccFunTp),
-  ImplDef = funDef(Lc,AccName,AccName,AccFunTp,[],Eqns).
+  Impl = funDef(Tp,Fld,AccName,AccFunTp),
+  ImplDef = accDef(Lc,AccName,AccName,AccFunTp,[],Eqns).
 
 accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,Eqx) :-
   isBinary(Body,_,"|",L,R),!,

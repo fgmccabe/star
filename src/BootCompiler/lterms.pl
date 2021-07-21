@@ -52,7 +52,7 @@ isLTerm(shft(_,_,_)) :-!.
 isLTerm(rst(_,_)) :- !.
 
 mergeGl(none,G,_,G).
-mergeGl(some(G),none,_,G).
+mergeGl(some(G),none,_,some(G)).
 mergeGl(some(G1),some(G2),Lc,some(cnj(Lc,G1,G2))).
 
 ssTransformed(mdule(Pkg,_Imports,_,_,Defs),
@@ -163,10 +163,11 @@ ssTrm(cnj(_,L,R),Dp,sq([LL,ss("&&"),RR])) :-
 ssTrm(dsj(_,L,R),Dp,sq([lp,LL,ss("||"),RR,rp])) :-
   ssTrm(L,Dp,LL),
   ssTrm(R,Dp,RR).
-ssTrm(cnd(_,T,L,R),Dp,sq([lp,TT,ss(" ? "),LL,ss("||"),RR,rp])) :-
+ssTrm(cnd(_,T,L,R),Dp,sq([lp,TT,ss(" ? "),nl(Dp1),LL,ss("||"),nl(Dp1),RR,rp])) :-
+  Dp1 is Dp+2,
   ssTrm(T,Dp,TT),
-  ssTrm(L,Dp,LL),
-  ssTrm(R,Dp,RR).
+  ssTrm(L,Dp1,LL),
+  ssCnd(R,Dp,RR).
 ssTrm(mtch(_,L,R),Dp,sq([lp,LL,ss(".="),RR,rp])) :-
   ssTrm(L,Dp,LL),
   ssTrm(R,Dp,RR).
@@ -177,6 +178,14 @@ ssTrm(error(Lc,M),Dp,sq([lp,ss("error "),MM,rp,ss("@"),LL])) :-
   ssLoc(Lc,LL).
 ssTrm(doAct(_,Act),Dp,sq([ss("do "),iv(nl(Dp),AA)])) :-
   ssActs(Act,Dp,AA).
+
+ssCnd(cnd(_,T,L,R),Dp,sq([TT,ss(" ? "),nl(Dp),LL,ss("||"),nl(Dp),RR])) :-
+  Dp1 is Dp+2,
+  ssTrm(T,Dp,TT),
+  ssTrm(L,Dp1,LL),
+  ssCnd(R,Dp,RR).
+ssCnd(Exp,Dp,XX) :- ssTrm(Exp,Dp,XX).
+
 
 ssAct(nop(_),_,ss("{}")).
 ssAct(rtnDo(_,E),Dp,sq([ss("return "),EE])) :-

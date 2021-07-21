@@ -59,10 +59,10 @@ compileMatch(inVars,Tpls,Vrs,Lc,Deflt,Map,Reslt) :-
   matchVars(Lc,Vrs,Tpls,Deflt,Map,Reslt).
 
 conditionalize([],Deflt,Deflt).
-conditionalize([(_,(Lc,Bnds,Test,Val),_)|M],Deflt,Repl) :-!,
+conditionalize([(_,(Lc,Bnds,Guard,Test,Val),_)|M],Deflt,Repl) :-!,
   pullWhere(Val,none,Vl,C0),
-  mergeGl(Test,C0,Lc,TT),
-%  reportMsg("merged test %s goal = %s",[Test,TT],Lc),
+  mergeGl(Guard,Test,Lc,G0),
+  mergeGl(G0,C0,Lc,TT),
   (mustSucceed(TT) ->
    applyBindings(Bnds,Lc,Vl,Repl);
    conditionalize(M,Deflt,Other),
@@ -98,9 +98,7 @@ makeTriples([Rl|L],Ix,[Tr|LL]) :-
   Ix1 is Ix+1,
   makeTriples(L,Ix1,LL).
 
-makeEqnTriple((Lc,Args,Test,Val),Ix,(Args,(Lc,[],Test,Val),Ix)) :-!.
-%makeEqnTriple((Lc,Args,none,Val),Ix,(Args,(Lc,[],none,Val),Ix)) :-!.
-%makeEqnTriple((Lc,Args,some(Cnd),Val),Ix,(Args,(Lc,[],none,whr(Lc,Val,Cnd)),Ix)).
+makeEqnTriple((Lc,Args,Test,Val),Ix,(Args,(Lc,[],none,Test,Val),Ix)).
 
 partitionTriples([Tr|L],[[Tr|LL]|Tx]) :-
   tripleArgMode(Tr,M),
@@ -124,12 +122,13 @@ matchScalars(Tpls,[V|Vrs],Lc,Deflt,Map,CaseExp) :-
 
 mkCnd(Lc,Tst,Th,El,Cnd) :-
   mkCond(Lc,Tst,Th,El,Cnd).
+
 mkCond(Lc,Tst,cnd(_,T,Th,El),El,cnd(Lc,T1,Th,El)) :-!,
-  mergeGl(Tst,T,Lc,T1).
-mkCond(Lc,Tst,Th,El,cnd(Lc,Tst,Th,El)).
+  mergeGl(Tst,some(T),Lc,some(T1)).
+mkCond(Lc,some(Tst),Th,El,cnd(Lc,Tst,Th,El)).
 
 mkCase(Lc,V,[(Lbl,Exp,Lc)],Deflt,Cnd) :-!,
-  mkCnd(Lc,mtch(Lc,Lbl,V),Exp,Deflt,Cnd).
+  mkCnd(Lc,some(mtch(Lc,Lbl,V)),Exp,Deflt,Cnd).
 mkCase(Lc,V,Cases,Deflt,case(Lc,V,Cases,Deflt)).
 
 mkUnpack(Lc,V,Cases,Index,Deflt,Map,unpack(Lc,V,Arms)) :-
@@ -285,26 +284,28 @@ matchVars(Lc,[V|Vrs],Triples,Deflt,Map,Reslt) :-
   matchTriples(Lc,Vrs,NTriples,Deflt,Map,Reslt).
 
 applyVar(_,[],[]).
-applyVar(idnt(V),[([idnt(XV)|Args],(Lc,Bnd,Cond,Vl),Ix)|Tpls],
-	 [(NArgs,(Lc,[(XV,idnt(V))|Bnd],NCond,NVl),Ix)|NTpls]) :-
+applyVar(idnt(V),[([idnt(XV)|Args],(Lc,Bnd,Guard,Cond,Vl),Ix)|Tpls],
+	 [(NArgs,(Lc,[(XV,idnt(V))|Bnd],NGuard,NCond,NVl),Ix)|NTpls]) :-
   Vrs = [(XV,idnt(V))],
   substTerm(Vrs,Vl,NVl),
   substTerms(Vrs,Args,NArgs),
   substGoal(Vrs,Cond,NCond),
+  substGoal(Vrs,Guard,NGuard),
   applyVar(idnt(V),Tpls,NTpls).
-applyVar(idnt(V),[([ann(_)|Args],(Lc,Bnd,Cond,Vl),Ix)|Tpls],
-	 [(Args,(Lc,Bnd,Cond,Vl),Ix)|NTpls]) :-
+applyVar(idnt(V),[([ann(_)|Args],(Lc,Bnd,Guard,Cond,Vl),Ix)|Tpls],
+	 [(Args,(Lc,Bnd,Guard,Cond,Vl),Ix)|NTpls]) :-
   applyVar(idnt(V),Tpls,NTpls).
-applyVar(idnt(V),[([whr(Lcw,idnt(XV),Cond)|Args],(Lc,Bnd,Test,Vl),Ix)|Tpls],
-	 [(NArgs,(Lc,[(XV,idnt(V))|Bnd],NCnd,NVl),Ix)|NTpls]) :-
+applyVar(idnt(V),[([whr(Lcw,idnt(XV),WCond)|Args],(Lc,Bnd,Guard,Cond,Vl),Ix)|Tpls],
+	 [(NArgs,(Lc,[(XV,idnt(V))|Bnd],MGuard,NCond,NVl),Ix)|NTpls]) :-
   Vrs = [(XV,idnt(V))],
   substTerm(Vrs,Vl,NVl),
-  substTerm(Vrs,Cond,NCond),
-  substGoal(Vrs,Test,NTest),
-  mergeGl(NTest,some(NCond),Lcw,NCnd),
+  substTerm(Vrs,WCond,NWC),
+  substGoal(Vrs,Guard,NGuard),
+  substGoal(Vrs,Cond,NCond),
+  mergeGl(NGuard,some(NWC),Lcw,MGuard),
   substTerms(Vrs,Args,NArgs),
   applyVar(idnt(V),Tpls,NTpls).
-applyVar(ann(Lc0),[([ann(_)|Args],(Lc,Bnd,Cond,Vl),Ix)|Tpls],
-	 [(Args,(Lc,Bnd,Cond,Vl),Ix)|NTpls]) :-
+applyVar(ann(Lc0),[([ann(_)|Args],(Lc,Bnd,Guard,Cond,Vl),Ix)|Tpls],
+	 [(Args,(Lc,Bnd,Guard,Cond,Vl),Ix)|NTpls]) :-
   applyVar(ann(Lc0),Tpls,NTpls).
 

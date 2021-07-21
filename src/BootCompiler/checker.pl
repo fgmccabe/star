@@ -525,7 +525,7 @@ checkImplementation(Stmt,INm,[Impl,ImplVar|Dfs],Dfs,Env,Evx,_,Path) :-
   contractType(Spec,CnType),
   labelImplExp(IBody,ConNm,ImpBody),
 %  reportMsg("implementation %s, expected type %s",[ast(ImpBody),tpe(CnType)]),
-  typeOfExp(ImpBody,CnType,tplType([]),ThEnv,_ThEv,ImplTerm,ImplName),
+  typeOfExp(ImpBody,CnType,tplType([]),ThEnv,_ThEv,ImplTerm,ImplVrNm),
   putConstraints(AC,CnType,SS1),
   reQuantTps(SS1,IQ,ImpType),
   ImplVar = varDef(Lc,ImplVrNm,ImplVrNm,AC,ImpType,ImplTerm),
@@ -760,8 +760,8 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,deref(Lc,Exp),Path) :-
   typeOfExp(I,refType(Tp),ErTp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,_ErTp,Env,Ev,DoExp,Path) :-
   isDoTerm(Term,Lc,Stmts),!,
-  typeOfDoExp(Lc,Stmts,Tp,Env,Ev,DoExp,Path),
-  dispCanon(DoExp).
+  typeOfDoExp(Lc,Stmts,Tp,Env,Ev,DoExp,Path).
+%  dispCanon(DoExp).
 typeOfExp(Term,Tp,ErTp,Env,Ev,Action,Path) :-
   isActionTerm(Term,Lc,Stmts),!,
   typeOfActionExp(Lc,Stmts,Tp,ErTp,Env,Ev,Action,Path).
@@ -993,17 +993,17 @@ typeOfActionExp(Lc,Stmts,Tp,ErTp,Env,Ev,Action,Path) :-
   verifyType(Lc,MTp,Tp,Env),
   typeOfCanon(ActFn,ActConsTp),
   LamTp = funType(tplType([]),RTp),
-  dispType(LamTp),
+%  dispType(LamTp),
   verifyType(Lc,consType(tplType([LamTp]),MTp),ActConsTp,Env),
-  dispType(ActConsTp),
+%  dispType(ActConsTp),
   lambdaLbl(Path,"∂",ActLbl),
   typeOfDoExp(Lc,Stmts,RTp,Env,Ev,Act,Path),
   Action = apply(Lc,ActFn,
 		 tple(Lc,
 		      [lambda(Lc,ActLbl,
 			      equation(Lc,tple(Lc,[]),none,Act),
-			      LamTp)]),Tp),
-  dispCanon(Action).
+			      LamTp)]),Tp).
+%  dispCanon(Action).
 
 
 typeOfIndex(Lc,Mp,Arg,Tp,ErTp,Env,Ev,Exp,Path) :-

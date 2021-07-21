@@ -286,9 +286,9 @@ overloadList([T|L],C,D,[RT|RL]) :-
   call(C,T,D,RT),
   overloadList(L,C,D,RL).
 
-overloadRef(_,mtd(Lc,Nm,Tp),[DT|Ds],RArgs,MtdCall,Dict,St,Stx,Args) :- !,
+overloadRef(_,mtd(Lc,Nm,Tp),[DT|Ds],RArgs,MtdCall,Dict,St,Stx,Args) :-
   concat(Ds,RArgs,Args),
-  resolveAccess(Lc,DT,Nm,Tp,Dict,St,Stx,MtdCall).
+  resolveAccess(Lc,DT,Nm,Tp,Dict,St,Stx,MtdCall),!.
 overloadRef(_,v(Lc,Nm,Tp),DT,RArgs,v(Lc,Nm,Tp),_,Stx,Stx,Args) :- !,
   concat(DT,RArgs,Args).
 overloadRef(_,C,DT,RArgs,C,_,Stx,Stx,Args) :-
@@ -349,13 +349,6 @@ genVar(Nm,Lc,Tp,v(Lc,NV,Tp)) :-
   genstr(Nm,NV).
 
 declareAccessors(_,[],Dict,Dict).
-/*declareAccessors(Lc,[implDef(_,ImplNm,ImplVrNm,ImplTp)|Defs],Dict,Dx) :-
-  funResType(ImplTp,ResTp),
-  contractType(ResTp,ConTp),
-  declareVr(Lc,ImplNm,ImplTp,Dict,D0),
-  declareImplementation(Lc,ConTp,ImplNm,ImplTp,D0,D1),
-  declareAccessors(Lc,Defs,D1,Dx).
-  */
 declareAccessors(Lc,[accDef(Tp,FldNm,FunNm,AcTp)|Defs],Dict,Dx) :-
   declareFieldAccess(Tp,FldNm,FunNm,AcTp,Dict,D0),
   declareAccessors(Lc,Defs,D0,Dx).
