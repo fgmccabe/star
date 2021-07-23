@@ -183,10 +183,11 @@ transformFunction(Lc,Nm,LclName,Tp,Eqns,Map,OMap,Opts,[Fun|Ex],Exx) :-
   LclPrg = lbl(LclName,Ar),
   extendFunTp(Tp,Extra,ATp),
   transformEquations(Map,OMap,Opts,LclPrg,Eqns,Rules,[],Ex,Ex0),
+  (is_member(showTrCode,Opts) -> dispEquations(Rules);true),
   closureEntry(Map,Lc,Nm,Tp,Ex0,Exx),
   functionMatcher(Lc,Ar,LclPrg,ATp,Rules,Map,Fun),!,
   (is_member(showTrCode,Opts) -> dispRuleSet(Fun);true).
-
+	   
 extendFunTp(Tp,[],Tp):-!.
 extendFunTp(funType(tplType(Els),Rt),Extra,funType(tplType(NEls),Rt)) :-
   extendTplTp(Extra,Anons),!,
@@ -219,11 +220,10 @@ liftGuard(some(G),some(LG),Q,Qx,Map,Opts,Ex,Exx) :-
   liftGoal(G,LG,Q,Qx,Map,Opts,Ex,Exx).
 
 transformThetaVarDef(Lc,Nm,_LclName,_Tp,Exp,Map,OMap,Opts,F,Fx,Dx,Dxx) :-
-  \+isSimpleCanon(Exp),!,
   liftExp(Exp,Rep,[],_Qx,OMap,Opts,Dx,Dxx),
   lookupVar(Map,Nm,labelArg(_,Ix,_ThVr)),
   updateFreeTerm(F,Ix,Lc,Rep,Fx).
-transformThetaVarDef(_Lc,_Nm,_LclName,_Tp,_Exp,_Map,_OMap,_Opts,Fx,Fx,Dx,Dx).
+%transformThetaVarDef(_Lc,_Nm,_LclName,_Tp,_Exp,_Map,_OMap,_Opts,Fx,Fx,Dx,Dx).
 
 /*updateFreeTerm((ctpl(Lbl,Args),Fx),Ix,_,Term,ThVr,(ctpl(Lbl,NArgs),Fx)) :-
   \+idInTerm(ThVr,Term),
@@ -288,7 +288,7 @@ liftPtn(v(_,"this",_),ThVr,Q,Qx,Map,_,Ex,Ex) :-
   merge([ThVr],Q,Qx).
 liftPtn(v(Lc,Nm,_),A,Q,Qx,Map,Opts,Ex,Ex) :- !,
   trVarPtn(Lc,Nm,A,Q,Qx,Map,Opts).
-liftPtn(anon(Lc,_),ann(Lc),Q,Q,_,_,Ex,Ex).
+liftPtn(anon(_,_),anon,Q,Q,_,_,Ex,Ex).
 liftPtn(enm(Lc,Nm,_),Ptn,Q,Qx,Map,Opts,Ex,Ex) :- !,
   trVarPtn(Lc,Nm,Ptn,Q,Qx,Map,Opts).
 liftPtn(void,voyd,Q,Q,_,_,Ex,Ex):-!.
@@ -423,15 +423,17 @@ liftLetExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
 %  (is_member(showTrCode,Opts) -> dispMap("Record map: ",ThMap);true),
   transformThetaDefs(ThMap,RMap,Opts,Defs,[],Fx,Ex,Ex1),
   liftExp(Bnd,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
-  mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp).
+  mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
+  (is_member(showTrCode,Opts) -> dispTerm(Exp);true).
 
 liftLetRec(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   genVar("_ThV",ThVr),
   thetaMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,ThMap,FreeTerm),
-%  (is_member(showTrCode,Opts) -> dispMap("Theta map: ",ThMap);true),
+  (is_member(showTrCode,Opts) -> dispMap("Theta map: ",ThMap);true),
   transformThetaDefs(ThMap,ThMap,Opts,Defs,[],Fx,Ex,Ex1),
   liftExp(Bnd,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
-  mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp).
+  mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
+  (is_member(showTrCode,Opts) -> dispTerm(Exp);true).
 
 mkFreeLet(Lc,Vr,Fr,Ups,Exp,AExp) :-
   computeFreeVect(Lc,Vr,Fr,Ups,Exp,AExp).

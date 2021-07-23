@@ -175,7 +175,7 @@ constructorName(cons(_,Nm,_),Nm).
 constructorType(enm(_,_,Tp),Tp) :-!.
 constructorType(cons(_,_,Tp),Tp).
 
-ssCanonProg(prog(Pkg,Imports,XDecls,Decls,Defs),sq([PP,nl(2),iv(nl(2),XX),rb])) :-
+ssCanonProg(prog(Pkg,Imports,XDecls,_Decls,Defs),sq([PP,nl(2),iv(nl(2),XX),rb])) :-
   ssPkg(Pkg,PP),
   map(Imports,canon:ssImport,II),
   map(XDecls,canon:ssDecl(2,ss("export ")),EE),

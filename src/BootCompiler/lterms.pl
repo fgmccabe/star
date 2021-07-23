@@ -1,5 +1,5 @@
 :- module(lterms,[ssTransformed/2,
-		  dispRuleSet/1,dispProg/1,
+		  dispRuleSet/1,dispProg/1,dispEquations/1,
 		  substTerm/3,substGoal/3,substTerms/3,rewriteTerm/3,
 		  genTplStruct/2,isLiteral/1,isGround/1,isCnd/1,mkTpl/2,
 		  isTplLbl/2,mkCons/3,
@@ -21,7 +21,7 @@
 :- use_module(errors).
 
 isLTerm(idnt(_)) :- !.
-isLTerm(ann(_)) :- !.
+isLTerm(anon) :- !.
 isLTerm(voyd) :- !.
 isLTerm(intgr(_)) :- !.
 isLTerm(float(_)) :- !.
@@ -73,6 +73,19 @@ ssRuleSet(lblDef(_Lc,Lbl,_Tp,Ix),
 	  sq([ss("Cn: "),LL,ss(" @ "),ix(Ix)])) :-
   ssTrm(Lbl,0,LL).
 
+dispEquations(Eqs) :-
+  map(Eqs,lterms:ssEqn,EE),
+  displayln(iv(nl(0),EE)).
+
+ssEqn((_Lc,Args,Grd,Val),sq([ss("("),AA,ss(")=>"),GG,VV])) :-
+  showArgs(Args,0,AA),
+  ssGuard(Grd,GG),
+  ssTrm(Val,0,VV).
+
+ssGuard(none,ss("")).
+ssGuard(some(G),sq([ss(" where "),GG])) :-
+  ssTrm(G,0,GG).
+
 dispProg(M) :-
   ssTransformed(M,S),
   validSS(S),!,
@@ -97,7 +110,7 @@ showTerm(Trm,Dp,O,Ox) :-
 
 ssTrm(voyd,_,ss("void")).
 ssTrm(idnt(Nm),_,id(Nm)).
-ssTrm(ann(_),_,ss("_")).
+ssTrm(anon,_,ss("_")).
 ssTrm(intgr(Ix),_,ix(Ix)).
 ssTrm(float(Dx),_,fx(Dx)).
 ssTrm(strg(Str),_,sq([ss(""""),ss(Str),ss("""")])).
@@ -275,7 +288,7 @@ rewriteTerm(QTst,T,T1) :-
 rewriteTerm(_,voyd,voyd).
 rewriteTerm(_,intgr(Ix),intgr(Ix)).
 rewriteTerm(_,idnt(Nm),idnt(Nm)).
-rewriteTerm(_,ann(Lc),ann(Lc)).
+rewriteTerm(_,anon,anon).
 rewriteTerm(_,float(Dx),float(Dx)).
 rewriteTerm(_,strg(Sx),strg(Sx)).
 rewriteTerm(_,enum(Nm),enum(Nm)).
@@ -543,7 +556,7 @@ validTerm(idnt(Nm),Lc,D) :-
   (is_member(Nm,D) -> true ; 
    reportError("(validate) Variable %s not in scope %s",[Nm,D],Lc),
    abort).
-validTerm(ann(_),_,_).
+validTerm(anon,_,_).
 validTerm(voyd,_,_).
 validTerm(intgr(_),_,_).
 validTerm(float(_),_,_).
@@ -681,7 +694,7 @@ validAct(A,Lc,_) :-
 
 ptnVars(idnt(Nm),D,Dx) :-
   add_mem(Nm,D,Dx).
-ptnVars(ann(_),Dx,Dx).
+ptnVars(anon,Dx,Dx).
 ptnVars(voyd,Dx,Dx).
 ptnVars(intgr(_),Dx,Dx).
 ptnVars(float(_),Dx,Dx).
