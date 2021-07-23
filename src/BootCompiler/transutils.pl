@@ -4,7 +4,7 @@
 	   lookupType/3,findConsType/3,
 	   definedProgs/2,labelVars/2,
 	   genVar/2, genVars/2,
-	   genVoids/2,
+	   genAnons/2,
 	   pushOpt/3, isOption/2,dispMap/2,
 	   pullWhere/4,pullWheres/4]).
 
@@ -177,11 +177,11 @@ genVars(K,[V|Rest]) :-
   genVar("_V",V),
   genVars(K1,Rest).
 
-genVoids(0,[]).
-genVoids(K,[voyd|Rest]) :-
+genAnons(0,[]).
+genAnons(K,[anon|Rest]) :-
   K>0,
   K1 is K-1,
-  genVoids(K1,Rest).
+  genAnons(K1,Rest).
 
 pullWhere(whr(Lc,Val,Cond),G,Value,Gx) :-
   pullWhere(Val,G,Value,G1),

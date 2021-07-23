@@ -176,13 +176,13 @@ compTerm(prmpt(Lc,Lb,Lam),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
 compTerm(nth(Lc,Exp,Off),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),!,
   compTerm(Exp,Lc,bothCont(idxCont(Off),Cont),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
-compTerm(setix(Lc,Exp,Off,Vl),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stk) :-
+compTerm(setix(Lc,Exp,Off,Vl),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),!,
   compTerm(Exp,Lc,
 	   compTerm(Vl,Lc,
 		    bothCont(sxCont(Off),Cont),Opts),
 	   Opts,D,Dx,End,C0,Cx,Stk,Stk0),
-  verify(gencode;sameStk(Stk,Stk0),"set ix stack balance").
+  mergeStkLvl(Stk,Stk0,Stkx,"set ix").
 compTerm(case(Lc,T,Cases,Deflt),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),!,
   compCase(T,Lc,Cases,Deflt,Cont,Opts,D,Dx,End,C0,Cx,Stk,Stkx).
@@ -265,7 +265,7 @@ compAction(varD(Lc,idnt(Nm),E),OLc,Cont,_,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   compTerm(E,Lc,bothCont(stoCont(Off,Lb),
 			 bothCont(Cont,releaseCont(Nm))),
 	   Opts,D1,Dx,End,C1,Cx,Stk,Stkx).
-compAction(varD(Lc,ann(_),E),_,Cont,_,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
+compAction(varD(Lc,anon,E),_,Cont,_,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   compTerm(E,Lc,bothCont(dropCont,Cont),Opts,D,Dx,End,C,Cx,Stk,Stkx).
 compAction(assignD(Lc,L,E),OLc,Cont,_RCont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
@@ -461,7 +461,7 @@ compPtn(idnt(Nm),_,Succ,_,_Opts,D,Dx,End,[iStL(Off),iLbl(Lb)|C],Cx,Stk,Stkx) :-
   defineLclVar(Nm,Lb,End,D0,D1,Off,C,C0),
   dropStk(Stk,1,Stk1),
   call(Succ,D1,Dx,End,C0,Cx,Stk1,Stkx).
-compPtn(ann(_),_,Succ,_,_Opts,D,Dx,End,[iDrop|C],Cx,Stk,Stkx) :-
+compPtn(anon,_,Succ,_,_Opts,D,Dx,End,[iDrop|C],Cx,Stk,Stkx) :-
   dropStk(Stk,1,Stk1),
   call(Succ,D,Dx,End,C,Cx,Stk1,Stkx).
 compPtn(ctpl(St,A),Lc,Succ,Fail,Opts,D,Dx,End,[iDup,iCLbl(St,Nxt),iLbl(FLb)|C],Cx,Stk,Stkx) :-

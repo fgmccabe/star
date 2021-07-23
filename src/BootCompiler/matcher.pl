@@ -82,7 +82,7 @@ filterBndVar(Val,(Nm,X)) :-
   idInTerm(idnt(X),Val).
 
 argMode(idnt(_),inVars).
-argMode(ann(_),inVars).
+argMode(anon,inVars).
 argMode(voyd,inScalars).
 argMode(intgr(_),inScalars).
 argMode(float(_),inScalars).
@@ -150,7 +150,7 @@ armPresent(Nm,[_|Cases],Lbl,Exp,Lc) :-
 
 emptyCase(ConsTp,CnsNm,ctpl(lbl(CnsNm,Ar),Args)) :-
   isConType(ConsTp,Ar),
-  genVoids(Ar,Args).
+  genAnons(Ar,Args).
 
 showCase((Lbl,Exp,Lc),C,Cx) :-
   appStr("case ",C,C0),
@@ -199,10 +199,10 @@ formCase(([Lbl|_],_,_),Lbl,Tpls,Lc,Vrs,Deflt,Map,Case) :-
 formCase(([enum(Lb)|_],_,_),enum(Lb),Tpls,Lc,Vrs,Deflt,Map,Case) :-
   subTriples(Tpls,STpls),
   matchTriples(Lc,Vrs,STpls,Deflt,Map,Case).
-formCase(([ctpl(Op,Args)],_,_),ctpl(Op,NVrs),Tpls,Lc,Vrs,Deflt,Map,Case) :-!,
+formCase(([ctpl(Op,Args)|_],_,_),ctpl(Op,NVrs),[Tpl],Lc,Vrs,Deflt,Map,Case) :-!,
   genTplVars(Args,NVrs),
   concat(NVrs,Vrs,NArgs),
-  subTriples(Tpls,NTpls),
+  subTriples([Tpl],NTpls),
   matchTriples(Lc,NArgs,NTpls,Deflt,Map,Case).
 formCase(([ctpl(Op,Args)|_],_,_),ctpl(Op,NVrs),Tpls,Lc,Vrs,Deflt,Map,Case) :-
   length(Args,Ar),
@@ -212,12 +212,13 @@ formCase(([ctpl(Op,Args)|_],_,_),ctpl(Op,NVrs),Tpls,Lc,Vrs,Deflt,Map,Case) :-
   matchTriples(Lc,NArgs,NTpls,Deflt,Map,Case).
 
 genTplVars([],[]).
-genTplVars([ann(Lc)|Vrs],[ann(Lc)|Rest]) :-
+genTplVars([anon|Vrs],[anon|Rest]) :-
   genTplVars(Vrs,Rest).
 genTplVars([idnt(Nm)|Vrs],[idnt(NNm)|Rest]) :-
   genstr(Nm,NNm),
   genTplVars(Vrs,Rest).
-genTplVars([A|Vrs],[A|Rest]) :-
+genTplVars([_|Vrs],[idnt(Nm)|Rest]) :-
+  genstr("V",Nm),
   genTplVars(Vrs,Rest).
 
 pickMoreCases(_,[],[],_,[]).
@@ -292,7 +293,7 @@ applyVar(idnt(V),[([idnt(XV)|Args],(Lc,Bnd,Guard,Cond,Vl),Ix)|Tpls],
   substGoal(Vrs,Cond,NCond),
   substGoal(Vrs,Guard,NGuard),
   applyVar(idnt(V),Tpls,NTpls).
-applyVar(idnt(V),[([ann(_)|Args],(Lc,Bnd,Guard,Cond,Vl),Ix)|Tpls],
+applyVar(idnt(V),[([anon|Args],(Lc,Bnd,Guard,Cond,Vl),Ix)|Tpls],
 	 [(Args,(Lc,Bnd,Guard,Cond,Vl),Ix)|NTpls]) :-
   applyVar(idnt(V),Tpls,NTpls).
 applyVar(idnt(V),[([whr(Lcw,idnt(XV),WCond)|Args],(Lc,Bnd,Guard,Cond,Vl),Ix)|Tpls],
@@ -305,7 +306,7 @@ applyVar(idnt(V),[([whr(Lcw,idnt(XV),WCond)|Args],(Lc,Bnd,Guard,Cond,Vl),Ix)|Tpl
   mergeGl(NGuard,some(NWC),Lcw,MGuard),
   substTerms(Vrs,Args,NArgs),
   applyVar(idnt(V),Tpls,NTpls).
-applyVar(ann(Lc0),[([ann(_)|Args],(Lc,Bnd,Guard,Cond,Vl),Ix)|Tpls],
+applyVar(anon,[([anon|Args],(Lc,Bnd,Guard,Cond,Vl),Ix)|Tpls],
 	 [(Args,(Lc,Bnd,Guard,Cond,Vl),Ix)|NTpls]) :-
-  applyVar(ann(Lc0),Tpls,NTpls).
+  applyVar(anon,Tpls,NTpls).
 
