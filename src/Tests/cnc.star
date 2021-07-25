@@ -61,6 +61,7 @@ test.cnc{
   main:()=>action[(),()].
   main() => action{
     logM("parent=$(parent)");
+    logM("gps=$(gp0("abc"))");
     valis ()
   }
 }

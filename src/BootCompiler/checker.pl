@@ -18,6 +18,7 @@
 :- use_module(errors).
 :- use_module(operators).
 :- use_module(macro).
+:- use_module(macros).
 :- use_module(import).
 :- use_module(transitive).
 :- use_module(resolve).
@@ -419,25 +420,22 @@ checkEquation(Lc,H,C,R,funType(AT,RT),Defs,Defsx,Df,Dfx,E,Path) :-
   typeOfArgPtn(A,AT,tplType([]),Env,E0,Args,Path),
   checkGuard(C,tplType([]),E0,E1,Guard,Path),
   typeOfExp(R,RT,tplType([]),E1,_E2,Exp,Path),
-  processIterable(Env,Path,Exp,Reslt),
-  Eqn = equation(Lc,Args,Guard,Reslt),
+  Eqn = equation(Lc,Args,Guard,Exp),
 %  reportMsg("equation %s",[Eqn],Lc),
   (IsDeflt=isDeflt -> Defs=Defsx, Df=[Eqn|Dfx]; Defs=[Eqn|Defsx],Df=Dfx).
 checkEquation(Lc,_,_,_,ProgramType,Defs,Defs,Df,Df,_,_) :-
   reportError("equation not consistent with expected type: %s",[ProgramType],Lc).
 
-checkDefn(Lc,L,R,Tp,varDef(Lc,Nm,ExtNm,[],Tp,Reslt),Env,Path) :-
+checkDefn(Lc,L,R,Tp,varDef(Lc,Nm,ExtNm,[],Tp,Value),Env,Path) :-
   isIden(L,_,Nm),
   pushScope(Env,E),
   typeOfExp(R,Tp,tplType([]),E,_E2,Value,Path),
-  processIterable(Env,Path,Value,Reslt),
   packageVarName(Path,Nm,ExtNm).
 
-checkVarDefn(Lc,L,R,refType(Tp),[varDef(Lc,Nm,ExtNm,[],refType(Tp),cell(Lc,Reslt))|Defs],Defs,Env,Path) :-
+checkVarDefn(Lc,L,R,refType(Tp),[varDef(Lc,Nm,ExtNm,[],refType(Tp),cell(Lc,Value))|Defs],Defs,Env,Path) :-
   isIden(L,_,Nm),
   pushScope(Env,E1),
   typeOfExp(R,Tp,tplType([]),E1,_E2,Value,Path),
-  processIterable(Env,Path,Value,Reslt),
   packageVarName(Path,Nm,ExtNm).
 checkVarDefn(Lc,L,_,Tp,Defs,Defs,_,_) :-
   reportError("expecting an assignable type, not %s for %s",[tpe(Tp),ast(L)],Lc).
@@ -605,7 +603,7 @@ typeOfPtn(P,Tp,ErTp,Env,Ex,where(Lc,Ptn,Cond),Path) :-
   checkGuard(some(C),ErTp,E0,Ex,some(Cond),Path).
 typeOfPtn(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isSquareTuple(Term,Lc,Els),
-  \+isListAbstraction(Term,_,_,_), !,
+  \+isListComprehension(Term,_,_,_), !,
   macroSquarePtn(Lc,Els,Ptn),
   typeOfPtn(Ptn,Tp,ErTp,Env,Ev,Exp,Path).
 typeOfPtn(Trm,Tp,ErTp,Env,Ev,Exp,Path) :-
@@ -776,11 +774,11 @@ typeOfExp(Term,Tp,_,Env,Ev,taskTerm(Lc,TaskLbl,Act,Tp),Path) :-
   checkAction(Stmts,Env,Ev,TaskTp,ElTp,ErTp,Act,Path).
 typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isSquareTuple(Term,Lc,Els),
-  \+isListAbstraction(Term,_,_,_), !,
+  \+isListComprehension(Term,_,_,_), !,
   squareTupleExp(Lc,Els,Tp,ErTp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,_ErTp,Env,Env,Val,Path) :-
   isBraceTuple(Term,Lc,Els),
-  \+isAbstraction(Term,_,_,_),
+  \+isComprehension(Term,_,_,_),
   tpName(Tp,Lbl),
   checkThetaBody(Tp,Lbl,Lc,Els,Env,Val,Path).
 typeOfExp(Term,Tp,_,Env,Env,Val,Path) :-
@@ -848,14 +846,15 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isSearch(Term,Lc,L,R),!,
   typeOfSearch(Lc,L,R,Tp,ErTp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,ErTp,Env,Env,Exp,Path) :-
-  isAbstraction(Term,Lc,B,G),!,
-  checkAbstraction(Term,Lc,B,G,Tp,ErTp,Env,Exp,Path).
+  isComprehension(Term,Lc,B,G),!,
+  checkComprehension(Lc,B,G,Tp,ErTp,Env,Exp,Path).
 typeOfExp(Term,Tp,ErTp,Env,Env,Exp,Path) :-
-  isListAbstraction(Term,Lc,B,G),!,
-  findType("cons",Lc,Env,LTp),
+  isListComprehension(Term,Lc,B,G),!,
+  checkComprehension(Lc,B,G,Tp,ErTp,Env,Exp,Path),
+  findType("cons",Lc,Env,ConsTp),
   newTypeVar("_El",ElTp),
-  checkType(Term,tpExp(LTp,ElTp),Tp,Env),
-  checkAbstraction(Term,Lc,B,G,Tp,ErTp,Env,Exp,Path).
+  applyTypeFun(ConsTp,[ElTp],Env,LTp),
+  checkType(Term,LTp,Tp,Env).
 typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isValof(Term,Lc,Ex),!,
   unary(Lc,"_valof",Ex,VV),
@@ -1060,28 +1059,12 @@ checkCase(Lc,H,G,R,LhsTp,Tp,ErTp,Env,
   checkGuard(G,ErTp,E1,E2,Guard,Path),
   typeOfExp(R,Tp,ErTp,E2,_,Exp,Path).
 
-checkAbstraction(Term,Lc,B,G,Tp,ErTp,Env,Abstr,Path) :-
+checkComprehension(Lc,B,G,Tp,ErTp,Env,Exp,Path) :-
   dispAst(G),
-  findType("boolean",Lc,Env,LogicalTp),
-  typeOfExp(G,LogicalTp,ErTp,Env,E1,Cond,Path),
-  pickupContract(Lc,Env,"sequence",StTp,[ElTp],Op),
-  checkType(Term,Tp,StTp,Env),
-  typeOfExp(B,ElTp,ErTp,E1,_,Bnd,Path),
-  pickupContract(Lc,Env,"execution",ExTp,_,Contract),
-  findType("action",Lc,Env,ActionTp),
-  newTypeVar("_Er",ErTp),
-  checkType(name(Lc,"action"),ActionTp,ExTp,Env),
-  genReturn(Lc,over(Lc,mtd(Lc,"_nil",StTp),
-		    true,[conTract(Op,[StTp],[ElTp])]),
-	    ExTp,StTp,ErTp,Contract,Zed),
-  Gen = over(Lc,mtd(Lc,"_cons",
-		    funType(tplType([ElTp,StTp]),StTp)),
-	     true,[conTract(Op,[StTp],[ElTp])]),
-  genCondition(Cond,Path,checker:genRtn(Lc,ExTp,StTp,ErTp,Contract),
-	       checker:genSeq(Lc,Path,Contract,ExTp,ErTp),
-	       checker:genEl(Lc,Gen,Bnd,StTp,Contract,ExTp,ErTp),
-	       lifted(Zed),ACond),
-  genPerform(Lc,ACond,Tp,ActionTp,Contract,Abstr).
+  makeComprehension(Lc,B,G,Rp),
+  dispAst(Rp),
+  typeOfExp(Rp,Tp,ErTp,Env,_,Exp,Path).
+
 
 genEl(Lc,Gen,Bnd,StTp,Contract,ExTp,ErTp,unlifted(St),Exp) :-
   Next  = apply(Lc,Gen,tple(Lc,[Bnd,St]),StTp),
@@ -1178,8 +1161,7 @@ checkAction(Term,Env,Env,ActTp,VlTp,ErTp,OkFn,_EvtFn,valisDo(Lc,Reslt,RTp),Path)
   isValis(Term,Lc,Ex),!,
   typeOfExp(Ex,VlTp,ErTp,Env,_,Exp,Path),
   applyTypeFun(ActTp,[VlTp,ErTp],Env,RTp),
-  processIterable(Env,Path,Exp,IExp),
-  Reslt=apply(Lc,OkFn,tple(Lc,[IExp]),RTp).
+  Reslt=apply(Lc,OkFn,tple(Lc,[Exp]),RTp).
 checkAction(Term,Env,Env,AcTp,VlTp,ErTp,OkFn,EvtFn,caseDo(Lc,Gov,Cases),Path) :-
   isCaseExp(Term,Lc,Gv,Cs),!,
   newTypeVar("_G",GTp),
@@ -1343,46 +1325,6 @@ typeOfPtns([A|As],[ETp|ElTypes],ErTp,Env,Ev,_,[Term|Els],Path) :-
 squareTupleExp(Lc,Els,Tp,ErTp,Env,Ev,Exp,Path) :-
   macroListEntries(Lc,Els,Trm,nilGen,consGen,appndGen),
   typeOfExp(Trm,Tp,ErTp,Env,Ev,Exp,Path).
-
-/* Process any remaining iterable conditions */
-
-processIterable(Env,Path,Cond,Goal) :-
-  isIterableGoal(Cond),!,
-  locOfCanon(Cond,Lc),
-  pickupContract(Lc,Env,"execution",_,_,Contract),
-  genIterableGl(Cond,Contract,Path,Goal).
-%  reportMsg("iterable exp -> %s",[Goal]).
-processIterable(Env,Path,apply(Lc,Op,Arg,Tp),apply(Lc,NOp,NArg,Tp)) :-!,
-  processIterable(Env,Path,Op,NOp),
-  processIterable(Env,Path,Arg,NArg).
-processIterable(Env,Path,dot(Lc,Rc,Fld,Tp),dot(Lc,NRc,Fld,Tp)) :-!,
-  processIterable(Env,Path,Rc,NRc).
-processIterable(Env,Path,tple(Lc,Els),tple(Lc,NEls)) :-!,
-  map(Els,checker:processIterable(Env,Path),NEls).
-processIterable(Env,Path,where(Lc,E,C),where(Lc,NE,NC)) :-!,
-  processIterable(Env,Path,E,NE),
-  processIterable(Env,Path,C,NC).
-processIterable(Env,Path,conj(Lc,L,R),conj(Lc,NL,NR)) :-!,
-  processIterable(Env,Path,L,NL),
-  processIterable(Env,Path,R,NR).
-processIterable(Env,Path,disj(Lc,L,R),disj(Lc,NL,NR)) :-!,
-  processIterable(Env,Path,L,NL),
-  processIterable(Env,Path,R,NR).
-processIterable(Env,Path,implies(Lc,L,R),implies(Lc,NL,NR)) :-!,
-  processIterable(Env,Path,L,NL),
-  processIterable(Env,Path,R,NR).
-processIterable(Env,Path,cond(Lc,T,L,R),cond(Lc,NT,NL,NR)) :-!,
-  processIterable(Env,Path,T,NT),
-  processIterable(Env,Path,L,NL),
-  processIterable(Env,Path,R,NR).
-processIterable(Env,Path,neg(Lc,L),neg(Lc,NL)) :-!,
-  processIterable(Env,Path,L,NL).
-processIterable(Env,Path,match(Lc,L,R),match(Lc,NL,NR)) :-!,
-  processIterable(Env,Path,L,NL),
-  processIterable(Env,Path,R,NR).
-processIterable(Env,Path,cell(Lc,L),cell(Lc,NL)) :-!,
-  processIterable(Env,Path,L,NL).
-processIterable(_,_,T,T).
 
 nilGen(Lc,name(Lc,"_nil")).
 

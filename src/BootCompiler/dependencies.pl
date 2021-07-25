@@ -253,11 +253,11 @@ collectTermRefs(T,A,Rf,Rx) :-
   collectTermRefs(G,A,Rf,R0),
   collectCaseRefs(C,collectTermRefs,A,R0,Rx).
 collectTermRefs(T,A,R0,Rx) :-
-  isAbstraction(T,_,B,G),!,
+  isComprehension(T,_,B,G),!,
   collectTermRefs(B,A,R0,R1),
   collectCondRefs(G,A,R1,Rx).
 collectTermRefs(T,A,R0,Rx) :-
-  isListAbstraction(T,_,B,G),!,
+  isListComprehension(T,_,B,G),!,
   collectTermRefs(B,A,R0,R1),
   collectCondRefs(G,A,R1,Rx).
 collectTermRefs(T,A,R0,Rx) :-

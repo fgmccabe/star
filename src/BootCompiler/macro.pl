@@ -71,9 +71,9 @@ synthesize_main(Lc,Ts,As,[MainTp,Main|As]) :-
   roundTuple(Lc,[T1],T3),
   roundTuple(Lc,[],Unit),
   binary(Lc,"=>",T3,Unit,TU),
-  binary(Lc,":",name(Lc,"_main"),TU,MainTp),
-  dispAst(Main),
-  dispAst(MainTp).
+  binary(Lc,":",name(Lc,"_main"),TU,MainTp).
+%  dispAst(Main),
+%  dispAst(MainTp).
   
 synthesize_coercions([],[],[]).
 synthesize_coercions([T|Ts],[V|Vs],[C|Cs]) :-
@@ -104,7 +104,6 @@ synthesizeConDisplay(Dspr,ATp,T,[Eqn|Eqs],Eqs) :-
   roundTerm(Lc,Nm,Args,LArg),
   unary(Lc,Dspr,LArg,Lhs),
   eqn(Lc,Lhs,Rhs,Eqn).
-
 
 synthesizeTpDisplays(_,_,[],[],[]).
 synthesizeTpDisplays(Dspr,ATp,[T|Tps],[A|As],[D|Ds]) :-

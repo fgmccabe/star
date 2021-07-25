@@ -6,7 +6,7 @@
 	      isTypeExistsStmt/6,isTypeFunStmt/6,
 	      isTypeAnnotation/4,typeAnnotation/4,
 	      isTypeLambda/4,typeName/2,
-	      isValType/3,isFunType/4,isEnum/3,enum/3,isAnon/2,
+	      isValType/3,isFunType/4,isEnum/3,enum/3,isAnon/2,mkAnon/2,
 	      isImport/3, isPrivate/3,isPublic/3,
 	      isDefault/3,isDefault/4,
 	      isLiteralInteger/3,isLiteralFloat/3,
@@ -20,9 +20,10 @@
 	      isFieldAcc/4,isIndexTerm/4,isRecordUpdate/4,
 	      isSlice/5,isSplice/6,
 	      isOptionPtn/4,isOptionMatch/4,optionMatch/4,
-	      isConjunct/4,isDisjunct/4,
-	      isForall/4,isNegation/3,isMatch/4,isSearch/4,
-	      isAbstraction/4,isListAbstraction/4,
+	      isConjunct/4,conjunct/4,isDisjunct/4,
+	      isForall/4,isNegation/3,negation/3,
+	      isMatch/4,isSearch/4,
+	      isComprehension/4,isListComprehension/4,
 	      isCaseExp/4,
 	      isTaskTerm/3,isActionTerm/3,isScriptTerm/3,isDoTerm/3,
 	      isValof/3,isPerform/3,isThrow/3,isValis/3,isIgnore/3,
@@ -135,6 +136,8 @@ enum(Lc,Id,E) :-
 
 isAnon(T,Lc) :-
   isName(T,Lc,"_").
+
+mkAnon(Lc,name(Lc,"_")).
 
 isQuantified(T,Q,B) :-
   isBinary(T,_,"~~",L,B),
@@ -448,11 +451,17 @@ isLiteralFloat(T,Lc,Nx) :-
 isConjunct(Trm,Lc,L,R) :-
   isBinary(Trm,Lc,"&&",L,R).
 
+conjunct(Lc,L,R,Trm) :-
+  binary(Lc,"&&",L,R,Trm).
+
 isDisjunct(Trm,Lc,L,R) :-
   isBinary(Trm,Lc,"||",L,R).
 
 isNegation(Trm,Lc,L) :-
   isUnary(Trm,Lc,"~",L).
+
+negation(Lc,L,Trm) :-
+  unary(Lc,"~",L,Trm).
 
 isForall(Trm,Lc,L,R) :-
   isBinary(Trm,Lc,"*>",L,R).
@@ -463,11 +472,11 @@ isMatch(Trm,Lc,P,E) :-
 isSearch(Trm,Lc,Ptn,Gen) :-
   isBinary(Trm,Lc,"in",Ptn,Gen).
 
-isAbstraction(Trm,Lc,Bnd,Body) :-
+isComprehension(Trm,Lc,Bnd,Body) :-
   isBraceTuple(Trm,Lc,[T]),
   isBinary(T,_,"|",Bnd,Body).
 
-isListAbstraction(Trm,Lc,Bnd,Body) :-
+isListComprehension(Trm,Lc,Bnd,Body) :-
   isSquareTuple(Trm,Lc,[T]),
   isBinary(T,_,"|",Bnd,Body).
 
