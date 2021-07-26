@@ -11,6 +11,7 @@
 		    isSquareTuple/2,isSquareTerm/3,isSquareTerm/4,sqUnary/4,
 		    isName/2,isName/3,
 		    isIden/1,isIden/2,isIden/3,genIden/2,genIden/3,isString/2,
+		    isFloat/3,
 		    isString/3,isInteger/2,isConsTerm/4, sameTerm/2,
 		    explodeString/2]).
 :- use_module(operators).
@@ -119,6 +120,8 @@ isString(string(_,St),St).
 isString(string(Lc,Txt),Lc,Txt).
 
 isInteger(integer(_,Ix),Ix).
+
+isFloat(float(Lc,Dx),Lc,Dx).
 
 isAst(A) :- locOfAst(A,_).
 

@@ -15,6 +15,8 @@
 	      isEquation/4,isEquation/5,
 	      isPrompt/4,isCut/5,isTag/2,
 	      isDefn/4,isAssignment/4,isRef/3,isDeRef/3,assignment/4,eqn/4,eqn/5,
+	      mkDefn/4,
+	      isIterableGl/1,
 	      ruleName/3,headName/2,
 	      isWhere/4,isCoerce/4,coerce/4,isOptCoerce/4,optCoerce/4,
 	      isFieldAcc/4,isIndexTerm/4,isRecordUpdate/4,
@@ -357,6 +359,12 @@ isEquation(Trm,Lc,Lhs,Cond,Rhs) :-
   isBinary(Trm,Lc,"=>",L,Rhs),
   (isWhere(L,_,Lhs,G), Cond=some(G) ; L=Lhs, Cond=none).
 
+mkEquation(Lc,Lhs,none,Rhs,Eqn) :-
+  binary(Lc,"=>",Lhs,Rhs,Eqn).
+mkEquation(Lc,Args,some(G),Rhs,Eqn) :-
+  whereTerm(Lc,Args,G,Lhs),
+  binary(Lc,"=>",Lhs,Rhs,Eqn).
+  
 isEquation(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,"=>",Lhs,Rhs).
 
@@ -368,6 +376,9 @@ eqn(Lc,Lhs,Rhs,Eqn) :-
 
 isDefn(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,"=",Lhs,Rhs).
+
+mkDefn(Lc,L,R,Trm) :-
+  binary(Lc,"=",L,R,Trm).
 
 isLetDef(Trm,Lc,Els,Exp) :-
   isBinary(Trm,Lc,"in",app(_,name(_,"let"),Body),Exp),
@@ -508,6 +519,21 @@ isSplice(Trm,Lc,S,F,T,R) :-
   isAssignment(Trm,Lc,L,R), % S[F:T]:=R
   isSquareTerm(L,_,S,X),
   isBinary(X,_,":",F,T),!.
+
+isIterableGl(C) :-
+  isConjunct(C,_,L,R),!,
+  (isIterableGl(L) ; isIterableGl(R)).
+isIterableGl(C) :-
+  isDisjunct(C,_,L,R),!,
+  (isIterableGl(L) ; isIterableGl(R)).
+isIterableGl(C) :-
+  isNegation(C,_,L),!,
+  isIterableGl(L).
+isIterableGl(C) :-
+  isForall(C,_,L,R),!,
+  (isIterableGl(L) ; isIterableGl(R)).
+isIterableGl(C) :-
+  isSearch(C,_,_,_),!.
 
 packageName(T,Pkg) :- isIden(T,Pkg).
 packageName(T,Pkg) :- isString(T,Pkg).

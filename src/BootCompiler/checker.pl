@@ -1031,12 +1031,10 @@ checkGuard(some(G),ErTp,Env,Ev,some(Goal),Path) :-
 checkGoal(G,ErTp,Env,Ev,Goal,Path) :-
   locOfAst(G,Lc),
   findType("boolean",Lc,Env,LogicalTp),
-  typeOfExp(G,LogicalTp,ErTp,Env,Ev,Cond,Path),
-  (isIterableGoal(Cond) ->
-   pickupContract(Lc,Env,"execution",_,_,ExContract),
-   genIterableGl(Cond,ExContract,Path,Goal);
-%   reportMsg("iterable goal: %s",[Goal]);
-   Cond=Goal).
+  (isIterableGl(G) ->
+   makeIterableGoal(G,Gl),
+   typeOfExp(Gl,LogicalTp,ErTp,Env,Ev,Goal,Path) ;
+   typeOfExp(G,LogicalTp,ErTp,Env,Ev,Goal,Path)).
 
 checkCaseExp(Lc,Bnd,Cases,Tp,ErTp,Env,Env,case(Lc,Bound,Eqns,Tp),Path) :-
   newTypeVar("_L",LhsTp),
@@ -1076,7 +1074,7 @@ genPut(Lc,Gen,Key,Value,StTp,Contract,ExTp,ErTp,unlifted(St),Exp) :-
 
 genSeq(Lc,Path,Contract,ExecTp,ErTp,St,Init,Reslt,Exp) :-
   typeOfCanon(St,ATp),
-  mkTypeExp(ExecTp,[ErTp,ATp],MdTp),
+  applyTypeFun(ExecTp,[ErTp,ATp],MdTp),
   LTp = funType(tplType([ATp]),MdTp),
   Lam = lambda(Lc,LamLbl,equation(Lc,tple(Lc,[St]),none,Reslt),LTp),
   Gen = over(Lc,mtd(Lc,"_sequence",funType(tplType([MdTp,LTp]),MdTp)),
