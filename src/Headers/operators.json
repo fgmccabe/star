@@ -1189,6 +1189,11 @@
     "keyword": true
   },
   {
+    "token": "action",
+    "desc": "action expression",
+    "keyword": true
+  },
+  {
     "bracket": "()",
     "left": "(",
     "right": ")",
@@ -1208,6 +1213,13 @@
     "right": "|]",
     "priority": 2000,
     "desc": "measure brackets"
+  },
+  {
+    "bracket": "{??}",
+    "left": "{?",
+    "right": "?}",
+    "priority": 2000,
+    "desc": "comprehension test "
   },
   {
     "bracket": "{}",

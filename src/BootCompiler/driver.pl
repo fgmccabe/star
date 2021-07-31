@@ -15,6 +15,7 @@
 :- use_module(gencode).
 :- use_module(uri).
 :- use_module(catalog).
+:- use_module(macros).
 :- use_module(misc).
 :- use_module(import).
 :- use_module(repository).
@@ -127,8 +128,9 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
   locateResource(SrcUri,Src),
   parseFile(Pkg,Src,Term),!,
   noErrors,
-  (is_member(showAst,Opts) -> dispAst(Term) ; true),
-  checkProgram(Term,Pkg,Repo,Opts,PkgDecls,Canon),!,
+  macroPkg(Term,Prog),
+  (is_member(showAst,Opts) -> dispAst(Prog) ; true),
+  checkProgram(Prog,Pkg,Repo,Opts,PkgDecls,Canon),!,
   (is_member(showTCCode,Opts) ->
    displayln(canon:ssCanonProg(Canon));true),
   dispDecls(PkgDecls),
@@ -148,7 +150,9 @@ processStdin(Pkg,Repo,Opts) :-
   readStdinput(Src),
   parseFile(Pkg,Src,Term),!,
   noErrors,
-  checkProgram(Term,Pkg,Repo,Opts,_,_Prog),!.
+  macroPkg(Term,Prog),
+  noErrors,
+  checkProgram(Prog,Pkg,Repo,Opts,_,_),!.
 
 packageVersion(Opts,ver(Vers)) :-
   is_member(ver(Vers),Opts),!.

@@ -71,7 +71,7 @@ genCall(T,void,T).
 
 genSquare(_,[E],V,Bd) :-
   locOfAst(E,Lc),
-  (isWhere(E,_,Arg,Cond) ; E=Arg,enum(Lc,"true",Cond)),
+  (isWhere(E,_,Arg,Cond) ; E=Arg,mkEnum(Lc,"true",Cond)),
   ptnVars(E,[],Vrs),
   roundTuple(Lc,Vrs,VV),
   (Vrs=[Vr] ->
@@ -81,7 +81,7 @@ genSquare(_,[E],V,Bd) :-
   unary(Lc,Nm,Arg,Lhs),
   eqn(Lc,Lhs,Cond,Rhs,Eqn),
   unary(Lc,Nm,name(Lc,"_"),Anon),
-  enum(Lc,"none",None),
+  mEnum(Lc,"none",None),
   eqn(Lc,Anon,None,Deflt),
   mkLetDef(Lc,[Eqn,Deflt],name(Lc,Nm),Fun),
   unary(Lc,"_test",Fun,Bd).
@@ -97,7 +97,7 @@ genCond(Lc,C,V,Cl) :-
   genstr("P",Nm),
   zeroary(Lc,Nm,Empty),
   eqn(Lc,Empty,C,Rhs,E1),
-  enum(Lc,"none",None),
+  mkEnum(Lc,"none",None),
   eqn(Lc,Empty,None,E2),
   mkLetDef(Lc,[E1,E2],name(Lc,Nm),Fun),
   unary(Lc,"_pred",Fun,Cl).

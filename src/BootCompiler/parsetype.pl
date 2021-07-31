@@ -44,11 +44,11 @@ parseType(Sq,Env,Q,C0,Cx,Tp) :-
   isSquareTerm(Sq,Lc,N,Args),!,
   parseType(N,Env,Q,C0,C1,Op),
   parseTypes(Args,Env,Q,C1,C2,ArgTps),
-  freshen(Op,Env,Qx,OOp),
-  doTypeFun(Lc,OOp,ArgTps,Env,C2,Cx,T),
-  reBind(Qx,Env,T,Tp).
+  freshen(Op,Env,_Qx,OOp),
+  doTypeFun(Lc,OOp,ArgTps,Env,C2,Cx,Tp).
+%  reBind(Qx,Env,T,Tp).
 parseType(F,Env,B,C0,Cx,funType(AT,RT)) :-
-  isFunType(F,_,L,R),
+  isFuncType(F,_,L,R),
   parseArgType(L,Env,B,C0,C1,AT),
   parseType(R,Env,B,C1,Cx,RT).
 parseType(F,Env,B,C0,Cx,consType(AT,RT)) :-
@@ -140,7 +140,7 @@ parseBoundVar(N,[(Nm,kVar(Nm))|Q],Q) :-
   isIden(N,Nm),!.
 parseBoundVar(N,[(Nm,kFun(Nm,Ar))|Q],Q) :-
   isBinary(N,_,"/",L,R),
-  isInteger(R,Ar),
+  isInteger(R,_,Ar),
   isIden(L,Nm),!.
 parseBoundVar(N,Q,Q) :-
   locOfAst(N,Lc),

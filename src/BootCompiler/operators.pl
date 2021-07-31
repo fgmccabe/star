@@ -143,6 +143,7 @@
   bracket("()", "(", ")", 2000).
   bracket("{}", "{", "}", 2000).
   bracket("(||)", "(|", "|)", 2000).
+  bracket("{??}", "{?", "?}", 2000).
 
   follows('','%','%').
   follows('','&','&').
@@ -211,6 +212,7 @@
   follows('/','\\','/\\').
   follows('/','/','//').
   follows('//','/','///').
+  follows('{','?','{?').
   follows('{','.','{.').
   follows('|',']','|]').
   follows('|',':','|:').
@@ -252,6 +254,7 @@
   follows('>','=','>=').
   follows('>','>','>>').
   follows('>>','=','>>=').
+  follows('?','}','?}').
   follows('!','!','!!').
   follows('$','$','$$').
 
@@ -290,8 +293,9 @@
   final('//',"//").	 /* map over */
   final('///',"///").	 /* indexed map over */
   final('{',"{").	 /* braces */
+  final('{?',"{?").	 /* comprehension test  */
   final('{.',"{.").	 /* non-recursive braces */
-  final('|',"|").	 /* type union, conditional, and abstraction */
+  final('|',"|").	 /* type union and abstraction */
   final('|]',"|]").	 /* measure brackets */
   final('|:',"|:").	 /* constrained type */
   final('||',"||").	 /* disjunction */
@@ -339,6 +343,7 @@
   final('>>',">>").	 /* monadic bind */
   final('>>=',">>=").	 /* monadic bind */
   final('?',"?").	 /* conditional operator */
+  final('?}',"?}").	 /* comprehension test  */
   final('@',"@").	 /* meta annotation */
   final('!',"!").	 /* pick up value from a ref cell */
   final('!!',"!!").	 /* pick up value from a memo */

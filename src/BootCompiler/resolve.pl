@@ -13,6 +13,7 @@ overload(Lc,Defs,Dict,RDict,RDefs) :-
   map(Defs,resolve:overloadDef(RDict),RDefs).
 
 overloadDef(Dict,funDef(Lc,Nm,ExtNm,Tp,Cx,Eqns),RF) :-!,
+%  dispDef(funDef(Lc,Nm,ExtNm,Tp,Cx,Eqns)),
   overloadFunction(Lc,Nm,ExtNm,Tp,Cx,Eqns,Dict,RF).
 overloadDef(Dict,varDef(Lc,Nm,ExtNm,Cx,Tp,Value),RD) :-!,
   overloadDefn(Lc,Nm,ExtNm,Cx,Tp,Value,Dict,RD).
