@@ -453,7 +453,7 @@
 @item @code{|}
 @tab left associative infix
 @tab 1248
-@tab type union, conditional, and abstraction
+@tab type union and abstraction
 @item @code{.#.}
 @tab left associative infix
 @tab 600

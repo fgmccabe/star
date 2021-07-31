@@ -22,7 +22,7 @@ test.cn3{
   }
 
   public contract all s,t ~~ iter[s->>t] ::= {
-    _iter:all x,e ~~ (s,x,(t,x)=>x) => x
+    _iter:all x ~~ (s,x,(t,x)=>x) => x
   }
   
   public implementation all e,x ~~ iter[cons[e]->>e] => {

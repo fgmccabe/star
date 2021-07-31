@@ -236,8 +236,11 @@ collectTermRefs(T,A,Rfs,Rx) :-
   isName(I,Nm),
   collectNmRef(cns(Nm),A,Rfs,Rx).
 collectTermRefs(T,A,R,Rx) :-
-  isLetDef(T,_,B,Ex),!,
-  collectLetRefs(B,Ex,A,R,Rx).
+  isLetDef(T,_,S,B),!,
+  collectLetRefs(S,B,A,R,Rx).
+collectTermRefs(T,A,R,Rx) :-
+  isLetRec(T,_,S,B),!,
+  collectLetRefs(S,B,A,R,Rx).
 collectTermRefs(T,A,R0,Rx) :-
   isRoundTerm(T,O,Args),
   collectTermRefs(O,A,R0,R1),
@@ -305,7 +308,7 @@ collectTermRefs(T,All,R,Rx) :-
   isRef(T,_,A),!,
   collectTermRefs(A,All,R,Rx).
 collectTermRefs(T,All,R,Rx) :-
-  isDeRef(T,_,A),!,
+  isCellRef(T,_,A),!,
   collectTermRefs(A,All,R,Rx).
 collectTermRefs(T,All,R,Rx) :-
   isPrompt(T,_,Lb,A),!,
@@ -323,9 +326,9 @@ collectTermListRefs([E|L],A,R0,Rx) :-
   collectTermRefs(E,A,R0,R1),
   collectTermListRefs(L,A,R1,Rx).
 
-collectLetRefs(B,Ex,A,R,Rx) :-
-  collectTermRefs(B,A,R,R0),
-  collectTermRefs(Ex,A,R0,Rx).
+collectLetRefs(S,B,A,R,Rx) :-
+  collectStmtRefs(S,A,[],R,R0),
+  collectTermRefs(B,A,R0,Rx).
 
 collectIndexRefs([A],All,R,Rx) :-
   isBinary(A,_,"->",Ky,Vl),!,

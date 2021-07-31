@@ -4,15 +4,16 @@
 		    isTernary/5,ternary/6,isParen/2,deParen/2,
 		    roundTerm/4,isRound/4,isRoundTerm/3,isRoundTerm/4,
 		    isTuple/2,isTuple/3,isRoundTuple/3,roundTuple/3,
+		    isTpl/4,mkTpl/4,
 		    braceTerm/4,isBrace/4,isBraceTerm/4,isBraceTuple/3,braceTuple/3,
 		    isEmptyBrace/1,
-		    qbraceTerm/4,isQBrace/3,isQBraceTerm/4,isQBraceTuple/3,
-		    squareTerm/4,isSquare/3,isSquare/4,isSquareTuple/3,
-		    isSquareTuple/2,isSquareTerm/3,isSquareTerm/4,sqUnary/4,
+		    qbraceTerm/4,isQBrace/3,isQBraceTerm/4,isQBraceTuple/3,qbraceTuple/3,
+		    squareTerm/4,isSquare/3,isSquare/4,
+		    isSquareTuple/3,squareTuple/3,isSquareTerm/3,isSquareTerm/4,sqUnary/4,
 		    isName/2,isName/3,
 		    isIden/1,isIden/2,isIden/3,genIden/2,genIden/3,isString/2,
 		    isFloat/3,
-		    isString/3,isInteger/2,isConsTerm/4, sameTerm/2,
+		    isString/3,isInteger/3,isConsTerm/4, sameTerm/2,
 		    explodeString/2]).
 :- use_module(operators).
 :- use_module(misc).
@@ -24,6 +25,10 @@ isApply(app(Lc,Op,Args),Lc,Op,Args).
 isTuple(tuple(_,"()",Args),Args).
 
 isTuple(tuple(Lc,"()",Args),Lc,Args).
+
+isTpl(tuple(Lc,Op,Args),Lc,Op,Args).
+
+mkTpl(Lc,Op,Args,tuple(Lc,Op,Args)).
 
 isRoundTuple(tuple(Lc,"()",Args),Lc,Args).
 
@@ -79,6 +84,8 @@ isQBraceTerm(app(Lc,Op,tuple(_,"{..}",A)),Lc,Op,A) :- \+isKeyOp(Op).
 
 isQBraceTuple(tuple(Lc,"{..}",L),Lc,L).
 
+qbraceTuple(Lc,Els,tuple(Lc,"{..}",Els)).
+
 squareTerm(Lc,Op,Els,app(Lc,Op,tuple(Lc,"[]",Els))).
 
 sqUnary(Lc,Nm,Arg,app(Lc,name(Lc,Nm),tuple(Lc,"[]",[Arg]))).
@@ -91,9 +98,9 @@ isSquareTerm(app(_,Op,tuple(_,"[]",L)),Op,L) :- \+isKeyOp(Op).
 
 isSquareTerm(app(Lc,Op,tuple(_,"[]",L)),Lc,Op,L) :- \+isKeyOp(Op).
 
-isSquareTuple(tuple(_,"[]",A),A).
-
 isSquareTuple(tuple(Lc,"[]",L),Lc,L).
+
+squareTuple(Lc,L,tuple(Lc,"[]",L)).
 
 isConsTerm(Trm,Lc,H,T) :-
   isBinary(Trm,Lc,",..",H,T).
@@ -119,7 +126,7 @@ isString(string(_,St),St).
 
 isString(string(Lc,Txt),Lc,Txt).
 
-isInteger(integer(_,Ix),Ix).
+isInteger(integer(Lc,Ix),Lc,Ix).
 
 isFloat(float(Lc,Dx),Lc,Dx).
 

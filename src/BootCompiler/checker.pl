@@ -5,6 +5,7 @@
 :- use_module(display).
 :- use_module(wff).
 :- use_module(macro).
+:- use_module(macros).
 :- use_module(do).
 :- use_module(dependencies).
 :- use_module(freshen).
@@ -17,19 +18,15 @@
 :- use_module(canon).
 :- use_module(errors).
 :- use_module(operators).
-:- use_module(macro).
-:- use_module(macros).
 :- use_module(import).
 :- use_module(transitive).
 :- use_module(resolve).
 :- use_module(cnc).
 :- use_module(vartypes).
 
-checkProgram(Prog,Pkg,Repo,_Opts,PkgDecls,Canon) :-
+checkProgram(Prg,Pkg,Repo,_Opts,PkgDecls,Canon) :-
   stdDict(Base),
-%  dispEnv(Base),
-  isBraceTerm(Prog,Lc,_,El0),
-  build_main(El0,Els),
+  isBraceTerm(Prg,Lc,_,Els),
   Pkg = pkg(Pk,_),
   collectImports(Els,Imports,Stmts),
   importAll(Imports,Repo,AllImports),
@@ -68,10 +65,10 @@ collectDefinitions([St|Stmts],Defs,P,A) :-
   collectDefinitions(S0,D0,P0,A0).
 collectDefinitions([],[],[],[]).
 
-collectDefinition(St,Stmts,Stmts,[(cns(V),Lc,[Tp])|Defs],Defs,P,Px,[(V,T)|A],A,Export) :-
+collectDefinition(St,Stmts,Stmts,[(cns(V),Lc,[T])|Defs],Defs,P,Px,[(V,T)|A],A,Export) :-
   isTypeAnnotation(St,Lc,L,T),
   (isIden(L,V),Ex=Export; isPrivate(L,_,V1),isIden(V1,V),Ex=checker:nop),
-  isConstructorType(T,_,Tp),!,
+  isConstructorType(T,_,_,_,_,_),!,
   call(Ex,var(V),P,Px).
 collectDefinition(St,Stmts,Stmts,Defs,Defs,P,Px,[(V,T)|A],A,Export) :-
   isTypeAnnotation(St,Lc,L,T),
@@ -754,7 +751,7 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,cell(Lc,Exp),Path) :-
   verifyType(Lc,refType(RT),Tp,"expecting a ref type"),
   typeOfExp(I,RT,ErTp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,ErTp,Env,Ev,deref(Lc,Exp),Path) :-
-  isDeRef(Term,Lc,I),
+  isCellRef(Term,Lc,I),
   typeOfExp(I,refType(Tp),ErTp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,_ErTp,Env,Ev,DoExp,Path) :-
   isDoTerm(Term,Lc,Stmts),!,
@@ -839,17 +836,16 @@ typeOfExp(Trm,Tp,ErTp,Env,Env,shift(Lc,Lb,Lam),Path) :-
   Lam = lambda(Lc,Lbl,equation(Lc,tple(Lc,[V]),none,Exp),
 	       funType(tpleType([KType]),Rt)).
 typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
-  isUnaryMinus(Term,Lc,Arg), % handle unary minus
-  unary(Lc,"__minus",Arg,Sub),
-  typeOfExp(Sub,Tp,ErTp,Env,Ev,Exp,Path).
-typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isSearch(Term,Lc,L,R),!,
+  reportError("internal - search",[],Lc),
   typeOfSearch(Lc,L,R,Tp,ErTp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,ErTp,Env,Env,Exp,Path) :-
   isComprehension(Term,Lc,B,G),!,
+  reportError("internal - comprehension",[],Lc),
   checkComprehension(Lc,B,G,Tp,ErTp,Env,Exp,Path).
 typeOfExp(Term,Tp,ErTp,Env,Env,Exp,Path) :-
   isListComprehension(Term,Lc,B,G),!,
+  reportError("internal - list comprehension",[],Lc),
   checkComprehension(Lc,B,G,Tp,ErTp,Env,Exp,Path),
   findType("cons",Lc,Env,ConsTp),
   newTypeVar("_El",ElTp),
@@ -868,10 +864,7 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   typeOfExp(Actual,Tp,ErTp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
-  (hasPromotion(Term) ->
-    promoteOption(Term,NT),
-    typeOfExp(NT,Tp,ErTp,Env,Ev,Exp,Path);
-    typeOfRoundTerm(Lc,F,A,Tp,ErTp,Env,Ev,Exp,Path)).
+  typeOfRoundTerm(Lc,F,A,Tp,ErTp,Env,Ev,Exp,Path).  
 typeOfExp(Term,Tp,_ErTp,Env,Env,Lam,Path) :-
   isEquation(Term,_Lc,_H,_R),
   typeOfLambda(Term,Tp,Env,Lam,Path).
@@ -904,9 +897,9 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,match(Lc,Lhs,Rhs),Path) :-
   findType("boolean",Lc,Env,LogicalTp),
   checkType(Term,LogicalTp,Tp,Env),
   newTypeVar("_#",TV),
-  typeOfPtn(P,TV,ErTp,Env,E0,Lhs,Path),
-  typeOfExp(E,TV,ErTp,E0,Ev,Rhs,Path).
-typeOfExp(Term,Tp,ErTp,Env,Ev,match(Lc,Lhs,Rhs),Path) :-
+  typeOfPtn(P,TV,ErTp,Env,Ev,Lhs,Path),
+  typeOfExp(E,TV,ErTp,Env,_,Rhs,Path).
+/*typeOfExp(Term,Tp,ErTp,Env,Ev,match(Lc,Lhs,Rhs),Path) :-
   isOptionMatch(Term,Lc,P,E),!,
   findType("boolean",Lc,Env,LogicalTp),
   checkType(Term,LogicalTp,Tp,Env),
@@ -914,7 +907,7 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,match(Lc,Lhs,Rhs),Path) :-
   unary(Lc,"some",P,SP),
   typeOfPtn(SP,TV,ErTp,Env,E0,Lhs,Path),
   typeOfExp(E,TV,ErTp,E0,Ev,Rhs,Path).
-
+*/
 typeOfExp(Term,Tp,_,Env,Env,void,_) :-
   locOfAst(Term,Lc),
   reportError("illegal expression: %s, expecting a %s",[Term,Tp],Lc).
@@ -1031,10 +1024,7 @@ checkGuard(some(G),ErTp,Env,Ev,some(Goal),Path) :-
 checkGoal(G,ErTp,Env,Ev,Goal,Path) :-
   locOfAst(G,Lc),
   findType("boolean",Lc,Env,LogicalTp),
-  (isIterableGl(G) ->
-   makeIterableGoal(G,Gl),
-   typeOfExp(Gl,LogicalTp,ErTp,Env,Ev,Goal,Path) ;
-   typeOfExp(G,LogicalTp,ErTp,Env,Ev,Goal,Path)).
+  typeOfExp(G,LogicalTp,ErTp,Env,Ev,Goal,Path).
 
 checkCaseExp(Lc,Bnd,Cases,Tp,ErTp,Env,Env,case(Lc,Bound,Eqns,Tp),Path) :-
   newTypeVar("_L",LhsTp),
@@ -1071,17 +1061,6 @@ genEl(Lc,Gen,Bnd,StTp,Contract,ExTp,ErTp,unlifted(St),Exp) :-
 genPut(Lc,Gen,Key,Value,StTp,Contract,ExTp,ErTp,unlifted(St),Exp) :-
   Next  = apply(Lc,Gen,tple(Lc,[St,Key,Value]),StTp),
   genReturn(Lc,Next,ExTp,StTp,ErTp,Contract,Exp).
-
-genSeq(Lc,Path,Contract,ExecTp,ErTp,St,Init,Reslt,Exp) :-
-  typeOfCanon(St,ATp),
-  applyTypeFun(ExecTp,[ErTp,ATp],MdTp),
-  LTp = funType(tplType([ATp]),MdTp),
-  Lam = lambda(Lc,LamLbl,equation(Lc,tple(Lc,[St]),none,Reslt),LTp),
-  Gen = over(Lc,mtd(Lc,"_sequence",funType(tplType([MdTp,LTp]),MdTp)),
-	     true,[conTract(Contract,[ExecTp],[])]),
-  genRtn(Lc,ExecTp,LTp,ErTp,Contract,Init,Initial),
-  Exp = apply(Lc,Gen,tple(Lc,[Initial,Lam]),MdTp),
-  lambdaLbl(Path,"sq",LamLbl).
 
 genTpVars([],[]).
 genTpVars([_|I],[Tp|More]) :-
@@ -1320,18 +1299,6 @@ typeOfPtns([A|As],[ETp|ElTypes],ErTp,Env,Ev,_,[Term|Els],Path) :-
 
 % Analyse a square tuple term to try to disambiguate maps from others.
 
-squareTupleExp(Lc,Els,Tp,ErTp,Env,Ev,Exp,Path) :-
-  macroListEntries(Lc,Els,Trm,nilGen,consGen,appndGen),
-  typeOfExp(Trm,Tp,ErTp,Env,Ev,Exp,Path).
-
-nilGen(Lc,name(Lc,"_nil")).
-
-consGen(Lc,L,R,Trm) :-
-  binary(Lc,"_cons",L,R,Trm).
-
-appndGen(Lc,L,R,Trm) :-
-  binary(Lc,"_apnd",L,R,Trm).
-
 isMapSequence([E|_]) :-
   isBinary(E,_,"->",_,_).
 
@@ -1342,27 +1309,6 @@ isMapType(Tp,Env) :-
 
 isListSequence([E|_]) :-
   \+isBinary(E,_,"->",_,_).
-
-macroSquarePtn(Lc,Els,Ptn) :-
-  macroListEntries(Lc,Els,Ptn,genEofTest,genHedTest,genTailTest).
-
-genEofTest(Lc,Trm) :-
-  mkWhere(Lc,"_eof",Trm).
-
-genHedTest(Lc,L,R,Trm) :-
-  mkWherePtn(Lc,tuple(Lc,"()",[L,R]),name(Lc,"_hdtl"),Trm).
-
-genTailTest(Lc,L,R,Trm) :-
-  mkWherePtn(Lc,tuple(Lc,"()",[L,R]),name(Lc,"_back"),Trm).
-
-macroListEntries(Lc,[],Trm,End,_,_) :-
-  call(End,Lc,Trm).
-macroListEntries(_,[Cns],Trm,_,Hed,_) :-
-  isConsTerm(Cns,Lc,H,T),
-  call(Hed,Lc,H,T,Trm).
-macroListEntries(Lc,[E|L],Trm,End,Hed,Tail) :-
-  macroListEntries(Lc,L,Tr,End,Hed,Tail),
-  call(Hed,Lc,E,Tr,Trm).
 
 checkType(_,Actual,Expected,Env) :-
   sameType(Actual,Expected,Env).

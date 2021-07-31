@@ -621,8 +621,8 @@ validTerm(cnd(Lc,T,L,R),_,D) :-
   validTerm(L,Lc,D0),
   validTerm(R,Lc,D).
 validTerm(mtch(Lc,L,R),_,D) :-
-  validTerm(L,Lc,D),
-  validTerm(R,Lc,D).
+  validPtn(L,Lc,D,D0),
+  validTerm(R,Lc,D0).
 validTerm(ng(Lc,R),_,D) :-
   validTerm(R,Lc,D).
 validTerm(error(Lc,R),_,D) :-
@@ -635,12 +635,39 @@ validTerm(T,Lc,D) :-
 
 validVr(Id,D,[Id|D]).
 
+validPtn(idnt(Nm),_,D,Dx) :-
+  add_mem(Nm,D,Dx).
+validPtn(anon,_,Dx,Dx).
+validPtn(voyd,_,Dx,Dx).
+validPtn(intgr(_),_,Dx,Dx).
+validPtn(float(_),_,Dx,Dx).
+validPtn(strg(_),_,Dx,Dx).
+validPtn(lbl(_,_),_,Dx,Dx).
+validPtn(ctpl(lbl(_,_),Args),Lc,D,Dx) :-
+  validPtns(Args,Lc,D,Dx).
+validPtn(enum(_),_,Dx,Dx).
+validPtn(nth(Lc,Rc,_),_,D,Dx) :-
+  validPtn(Rc,Lc,D,Dx).
+validPtn(whr(Lc,Ptn,Cond),_,D,Dx) :-
+  validPtn(Ptn,Lc,D,D0),
+  glVars(Cond,D0,Dx),
+  validTerm(Cond,Lc,Dx).
+validPtn(varNames(Lc,_,Value),_,D,Dx) :-
+  validPtn(Value,Lc,D,Dx).
+validPtn(T,Lc,D,D) :-
+  reportError("(internal) Invalid pattern %s in scope %s",[ltrm(T),D],Lc),
+  abort.
+
+validPtns([],_,Dx,Dx) :-!.
+validPtns([P|Ps],Lc,D,Dx) :-
+  validPtn(P,Lc,D,D0),
+  validPtns(Ps,Lc,D0,Dx).
+
 validCases(Cases,Leaf,D) :-
   check_implies(is_member((Ptn,Val,Lc),Cases),lterms:validCase(Lc,Ptn,Val,Leaf,D)).
 
 validCase(Lc,Ptn,Val,Leaf,D) :-
-  ptnVars(Ptn,D,D1),
-  validTerm(Ptn,Lc,D1),
+  validPtn(Ptn,Lc,D,D1),
   call(Leaf,Val,Lc,D1).
 
 validAct(nop(_),_,_).
@@ -653,9 +680,8 @@ validAct(seq(Lc,L,R),_,D) :-
   validAct(L,Lc,D),
   validAct(R,Lc,D).
 validAct(varD(Lc,P,E),_,D) :-
-  ptnVars(P,D,D0),
-  validTerm(P,Lc,D0),
-  validTerm(E,Lc,D).
+  validPtn(P,Lc,D,D0),
+  validTerm(E,Lc,D0).
 validAct(assignD(Lc,P,E),_,D) :-
   ptnVars(P,D,D0),
   validTerm(P,Lc,D0),

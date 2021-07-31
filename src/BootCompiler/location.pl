@@ -1,7 +1,7 @@
 :- module(location,[locOf/2, mergeLoc/3,
 		    showLocation/3,
 		    ssLoc/2,
-		    lcLine/2,lcColumn/2,lcSize/2,lcOff/2,isLocation/1,
+		    lcPk/2,lcLine/2,lcColumn/2,lcSize/2,lcOff/2,isLocation/1,
 		   pkgLoc/2]).
 
 :- use_module(misc).

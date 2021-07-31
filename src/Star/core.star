@@ -14,6 +14,12 @@ star.core {
   public (=~=):all x ~~ equality[x] |: (x,x)=>boolean.
   x =~= y => ~x==y.
 
+  public implementation equality[boolean] => {.
+    .true == .true => .true.
+    .false == .false => .true.
+    _ == _ default => .false
+  .}
+
   public contract all x ~~ comp[x] ::= {
     (<): (x,x)=>boolean.
     (>=): (x,x)=>boolean.

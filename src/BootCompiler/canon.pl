@@ -487,7 +487,6 @@ dispFunction(Nm,Type,Eqns) :-
 dispDef(Def) :-
   displayln(canon:ssDef(0,Def)).
 
-
 splitPtn(P,Px,Cnd) :-
   locOfCanon(P,Lc),
   splitPttrn(P,Px,none,C),

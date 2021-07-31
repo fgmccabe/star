@@ -1,48 +1,69 @@
-:-module(wff,[isAlgebraicTypeStmt/6,isConstructor/3,isConstructorType/3,
+:-module(wff,[isAnnotation/4,
+	      isAlgebraicTypeStmt/6,mkAlgebraicTypeStmt/6,
+	      isConstructor/3,
+	      isConstructorType/6,constructorType/6,
 	      isRoundCon/6,isBraceCon/6,
 	      isQuantified/3,isXQuantified/3,reUQuant/3,reXQuant/3,
 	      isConstrained/3,reConstrain/3,
-	      isContractStmt/6,isImplementationStmt/6,implementedContractName/2,
-	      isTypeExistsStmt/6,isTypeFunStmt/6,
+	      isContractStmt/6,contractStmt/6,
+	      isImplementationStmt/6,implementationStmt/6,
+	      implementedContractName/2,
+	      isTypeExists/4,typeExists/4,
+	      isTypeExistsStmt/6,typeExistsStmt/6,isTypeFunStmt/6,typeFunStmt/6,
 	      isTypeAnnotation/4,typeAnnotation/4,
-	      isTypeLambda/4,typeName/2,
-	      isValType/3,isFunType/4,isEnum/3,enum/3,isAnon/2,mkAnon/2,
+	      isTypeLambda/4,typeLambda/4,typeName/2,
+	      isValType/3,isFuncType/4,funcType/4,isEnum/3,mkEnum/3,isAnon/2,mkAnon/2,
 	      isImport/3, isPrivate/3,isPublic/3,
-	      isDefault/3,isDefault/4,
+	      isDefault/3,isDefault/4,mkDefault/3,
 	      isLiteralInteger/3,isLiteralFloat/3,
 	      isIntegrity/3,isShow/3,isOpen/3,
 	      isConditional/5,conditional/5,isOfTerm/4,
-	      isEquation/4,isEquation/5,
+	      isEquation/4,isEquation/5,mkEquation/5,
 	      isPrompt/4,isCut/5,isTag/2,
-	      isDefn/4,isAssignment/4,isRef/3,isDeRef/3,assignment/4,eqn/4,eqn/5,
+	      isDefn/4,isAssignment/4,isRef/3,isCellRef/3,cellRef/3,
+	      assignment/4,eqn/4,eqn/5,
 	      mkDefn/4,
 	      isIterableGl/1,
 	      ruleName/3,headName/2,
-	      isWhere/4,isCoerce/4,coerce/4,isOptCoerce/4,optCoerce/4,
-	      isFieldAcc/4,isIndexTerm/4,isRecordUpdate/4,
+	      isWhere/4,mkWhere/4,mkWherePtn/4,mkWhereEquality/3,
+	      isCoerce/4,coerce/4,isOptCoerce/4,optCoerce/4,
+	      isFieldAcc/4,fieldAcc/4,isIndexTerm/4,isRecordUpdate/4,recordUpdate/4,
 	      isSlice/5,isSplice/6,
 	      isOptionPtn/4,isOptionMatch/4,optionMatch/4,
-	      isConjunct/4,conjunct/4,isDisjunct/4,
-	      isForall/4,isNegation/3,negation/3,
-	      isMatch/4,isSearch/4,
+	      isConjunct/4,conjunct/4,isDisjunct/4,disjunct/4,
+	      isForall/4,mkForall/4,isNegation/3,negation/3,
+	      isMatch/4,match/4,isSearch/4,search/4,
 	      isComprehension/4,isListComprehension/4,
-	      isCaseExp/4,
-	      isTaskTerm/3,isActionTerm/3,isScriptTerm/3,isDoTerm/3,
-	      isValof/3,isPerform/3,isThrow/3,isValis/3,isIgnore/3,
-	      isTryCatch/4,
-	      isIfThenElse/5,isIfThen/4,isWhileDo/4,isUntilDo/4,isForDo/4,
-	      isActionSeq/4,isActionSeq/3,
+	      isTestComprehension/3,mkTestComprehension/3,
+	      isCaseExp/4,caseExp/4,
+	      isTaskTerm/3,mkTaskTerm/3,isActionTerm/3,mkActionTerm/3,
+	      isScriptTerm/3,isDoTerm/3,mkDoTerm/3,
+	      isValof/3,mkValof/3,isPerform/3,mkPerform/3,
+	      isThrow/3,mkThrow/3,isValis/3,mkValis/3,
+	      isIgnore/3,mkIgnore/3,
+	      isTryCatch/4,mkTryCatch/4,
+	      isIfThenElse/5,isIfThen/4,mkIfThenElse/5,mkIfThen/4,
+	      isWhileDo/4,isUntilDo/4,isForDo/4,
+	      mkWhileDo/4,mkUntilDo/4,mkForDo/4,
+	      isActionSeq/4,isActionSeq/3,mkActionSeq/4,
 	      isLetDef/4,isLetRec/4,mkLetDef/4,mkLetRec/4,
 	      whereTerm/4,
 	      packageName/2,pkgName/2,
 	      collectImports/3,
-	      isComma/4,deComma/2,reComma/2,
+	      isComma/4,comma/4,deComma/2,reComma/2,
+	      isCons/4,mkCons/4,
+	      isPair/4,pair/4,
 	      isUnaryMinus/3,
 	      mergeCond/4,
 	      findVars/3]).
 :- use_module(abstract).
 :- use_module(misc).
 :- use_module(operators).
+
+isAnnotation(St,Lc,none,A) :-
+  isUnary(St,Lc,"@",A).
+isAnnotation(St,Lc,some(L),R) :-
+  isBinary(St,Lc,"@",L,R).
 
 isImport(St,Lc,M) :-
   isUnary(St,Lc,"public",I),!,
@@ -87,6 +108,11 @@ isAlgebraicTypeStmt(Stmt,Lc,Q,Cx,Head,Body) :-
   getQuantifiers(Lhs,Q,Inner),
   isConstrainedTp(Inner,Cx,Head).
 
+mkAlgebraicTypeStmt(Lc,Q,Cx,Head,Body,S) :-
+  reConstrain(Cx,Head,H0),
+  reUQuant(Q,H0,H1),
+  binary(Lc,"::=",H1,Body,S).
+
 isConstructor(C,Lc,Nm) :-
   isQuantified(C,_,I),
   isConstructor(I,Lc,Nm).
@@ -119,21 +145,24 @@ isCon(C,Tst,XQ,XC,Lc,Nm,Els) :-
   isConstrained(C,I,XC),
   isCon(I,Tst,XQ,_,Lc,Nm,Els).
 
-isConstructorType(C,Lc,Tp) :-
-  isQuantified(C,U,I),
-  isConstructorType(I,Lc,T),!,
-  reUQuant(U,T,Tp).
-isConstructorType(C,Lc,Tp) :-
-  isXQuantified(C,U,I),
-  isConstructorType(I,Lc,T),!,
-  reXQuant(U,T,Tp).
-isConstructorType(C,Lc,C) :-
-  isBinary(C,Lc,"<=>",_Lhs,_Rhs),!.
+isConstructorType(A,Lc,U,X,L,R) :-
+  isQuantified(A,U,I),!,
+  isConstructorType(I,Lc,_U,X,L,R).
+isConstructorType(A,Lc,U,X,L,R) :-
+  isXQuantified(A,X,I),!,
+  isConstructorType(I,Lc,U,_X,L,R).
+isConstructorType(A,Lc,[],[],L,R) :-
+  isBinary(A,Lc,"<=>",L,R).
+
+constructorType(Lc,U,X,L,R,Tp) :-
+  binary(Lc,"<=>",L,R,T0),
+  reXQuant(X,T0,T1),
+  reUQuant(U,T1,Tp).
 
 isEnum(C,Lc,Id) :-
   isUnary(C,Lc,".",Id).
 
-enum(Lc,Id,E) :-
+mkEnum(Lc,Id,E) :-
   unary(Lc,".",name(Lc,Id),E).
 
 isAnon(T,Lc) :-
@@ -173,31 +202,47 @@ isContractStmt(St,Lc,Quants,Constraints,Con,Body) :-
   isUnary(St,Lc,"contract",I),
   isBinary(I,_,"::=",Lhs,B),
   isBraceTuple(B,_,Body),
-  contractSpec(Lhs,Quants,Constraints,Con).
+  isContractSpec(Lhs,Quants,Constraints,Con).
 
-contractSpec(S,Quants,Constraints,Con) :-
+contractStmt(Lc,Q,C,T,B,St) :-
+  contractSpec(Lc,Q,C,T,Spec),
+  braceTuple(Lc,B,Body),
+  binary(Lc,"::=",Spec,Body,S0),
+  unary(Lc,"contract",S0,St).
+
+isContractSpec(S,Quants,Constraints,Con) :-
   isQuantified(S,Quants,B),
-  contractSpec(B,_,Constraints,Con).
-contractSpec(S,[],Constraints,Con) :-
+  isContractSpec(B,_,Constraints,Con).
+isContractSpec(S,[],Constraints,Con) :-
   isBinary(S,_,"|:",L,R),
   deComma(L,Constraints),
-  contractSpec(R,_,_,Con).
-contractSpec(S,[],[],S) :-
+  isContractSpec(R,_,_,Con).
+isContractSpec(S,[],[],S) :-
   isSquareTerm(S,_,_).
+
+contractSpec(_Lc,Q,C,Tp,Spec) :-
+  reConstrain(C,Tp,T0),
+  reUQuant(Q,T0,Spec).
 
 isImplementationStmt(St,Lc,Q,Cx,Con,Body) :-
   isUnary(St,Lc,"implementation",I),
-  implSpec(I,Q,Cx,Con,Body).
+  isImplSpec(I,Q,Cx,Con,Body).
 
-implSpec(S,Quants,Constraints,Con,Body) :-
+isImplSpec(S,Quants,Constraints,Con,Body) :-
   isQuantified(S,Quants,B),
-  implSpec(B,_,Constraints,Con,Body).
-implSpec(S,[],Constraints,Con,Body) :-
+  isImplSpec(B,_,Constraints,Con,Body).
+isImplSpec(S,[],Constraints,Con,Body) :-
   isBinary(S,_,"|:",L,R),
   deComma(L,Constraints),
-  implSpec(R,_,_,Con,Body).
-implSpec(S,[],[],Con,Body) :-
+  isImplSpec(R,_,_,Con,Body).
+isImplSpec(S,[],[],Con,Body) :-
   isBinary(S,_,"=>",Con,Body).
+
+implementationStmt(Lc,Q,Cx,Con,Body,St) :-
+  binary(Lc,"=>",Con,Body,S0),
+  reConstrain(Cx,S0,S1),
+  reUQuant(Q,S1,S2),
+  unary(Lc,"implementation",S2,St).
 
 implementedContractName(Sq,INm) :-
   isSquare(Sq,Nm,A),
@@ -239,11 +284,17 @@ isConstrainedTp(T,[],T).
 isValType(T,Lc,Tp) :-
   isUnary(T,"val",Lc,Tp).
 
-isFunType(T,Lc,Lh,Rh) :-
+isFuncType(T,Lc,Lh,Rh) :-
   isBinary(T,Lc,"=>",Lh,Rh).
+
+funcType(Lc,L,R,Tp) :-
+  binary(Lc,"=>",L,R,Tp).
 
 isComma(T,Lc,L,R) :-
   isBinary(T,Lc,",",L,R).
+
+comma(Lc,L,R,T) :-
+  binary(Lc,",",L,R,T).
 
 deComma(T,LL) :-
   isBinary(T,_,",",L,R),
@@ -258,6 +309,18 @@ reComma([F|M],T) :-
   locOfAst(F,Lc),
   binary(Lc,",",F,T1,T).
 
+isCons(T,Lc,L,R) :-
+  isBinary(T,Lc,",..",L,R).
+
+mkCons(Lc,L,R,T) :-
+  binary(Lc,",..",L,R,T).
+
+isPair(T,Lc,L,R) :-
+  isBinary(T,Lc,"->",L,R).
+
+pair(Lc,L,R,T) :-
+  binary(Lc,"->",L,R,T).
+
 isConstrained(Tp,T,Cx) :-
   isBinary(Tp,_,"|:",L,T),
   deComma(L,Cx).
@@ -271,6 +334,12 @@ reConstrain(Cx,T,CT) :-
 isUnaryMinus(T,Lc,A) :-
   isUnary(T,Lc,"-",A).
 
+isTypeExists(A,Lc,L,R) :-
+  isBinary(A,Lc,"<~",L,R).
+
+typeExists(Lc,L,R,A) :-
+  binary(Lc,"<~",L,R,A).
+
 isTypeExistsStmt(St,Lc,Q,Cx,L,R) :-
   isQuantified(St,Q,B),
   isConstrainedTp(B,Cx,Inn),
@@ -279,12 +348,22 @@ isTypeExistsStmt(St,Lc,Q,[],T,R) :-
   isBinary(St,Lc,"<~",L,R),
   getQuantifiers(L,Q,T).
 
+typeExistsStmt(Lc,Q,C,L,R,S) :-
+  binary(Lc,"<~",L,R,S0),
+  reConstrain(C,S0,S1),
+  reUQuant(Q,S1,S).
+
 isTypeFunStmt(St,Lc,Q,C,L,R) :-
   isQuantified(St,Q,B),
   isConstrainedTp(B,C,Inn),
   isTypeFunStmt(Inn,Lc,_,_,L,R).
 isTypeFunStmt(St,Lc,[],[],L,R) :-
   isBinary(St,Lc,"~>",L,R).
+
+typeFunStmt(Lc,Q,C,L,R,S) :-
+  binary(Lc,"~>",L,R,S0),
+  reConstrain(C,S0,S1),
+  reUQuant(Q,S1,S).
 
 typeName(Tp,Nm) :-
   isBinary(Tp,_,"|:",_,R),
@@ -300,6 +379,9 @@ isTypeLambda(St,Lc,L,R) :-
   isBinary(St,Lc,"~>",L,R),
   isTuple(L,_,_).
 
+typeLambda(Lc,L,R,T) :-
+  binary(Lc,"~>",L,R,T).
+
 isIntegrity(St,Lc,C) :-
   isUnary(St,Lc,"assert",C).
 
@@ -309,6 +391,9 @@ isDefault(St,Lc,Lhs) :-
 isDefault(St,Lc,Ptn,Val) :-
   isDefn(St,Lc,Lhs,Val),
   isUnary(Lhs,_,"default",Ptn).
+
+mkDefault(Lc,I,T) :-
+  unary(Lc,"default",I,T).
 
 isShow(St,Lc,Ex) :-
   isUnary(St,Lc,"show",Ex).
@@ -401,6 +486,11 @@ isCaseExp(Trm,Lc,Exp,Cases) :-
   isBinary(L,_,"in",Exp,R),
   isBraceTuple(R,_,Cases).
 
+caseExp(Lc,Exp,Cases,Trm) :-
+  braceTuple(Lc,Cases,R),
+  binary(Lc,"in",Exp,R,C0),
+  unary(Lc,"case",C0,Trm).
+
 isTag(Trm,Lc) :-
   isName(Trm,Lc,"tag").
 
@@ -418,14 +508,32 @@ isAssignment(Trm,Lc,Lhs,Rhs) :-
 isRef(Trm,Lc,Rhs) :-
   isUnary(Trm,Lc,"ref",Rhs).
 
-isDeRef(Trm,Lc,Rhs) :-
+isCellRef(Trm,Lc,Rhs) :-
   isUnary(Trm,Lc,"!",Rhs).
+
+cellRef(Lc,Rhs,Trm) :-
+  unary(Lc,"!",Rhs,Trm).
 
 assignment(Lc,Lhs,Rhs,Stmt) :-
   binary(Lc,":=",Lhs,Rhs,Stmt).
 
 isWhere(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,"where",Lhs,Rhs).
+
+mkWhere(Lc,L,R,T) :-
+  binary(Lc,"where",L,R,T).
+
+mkWherePtn(Lc,Ptn,Ex,Ptrn) :-
+  genIden(Lc,V), % create a new variable
+  nary(Lc,Ex,[V],Cl), % call pattern generator
+  unary(Lc,"some",Ptn,Lhs),
+  binary(Lc,".=",Lhs,Cl,Test), % Ex(V)=.some(Ptn)
+  binary(Lc,"where",V,Test,Ptrn).
+
+mkWhereEquality(Lc,name(ILc,V),Ptrn) :-
+  genIden(Lc,V,VV),
+  binary(Lc,"==",VV,name(ILc,V),Test),
+  binary(Lc,"where",VV,Test,Ptrn).
 
 whereTerm(_,Lhs,Cond,Lhs) :-
   isEnum(Cond,_,name(_,"true")),!.
@@ -468,6 +576,9 @@ conjunct(Lc,L,R,Trm) :-
 isDisjunct(Trm,Lc,L,R) :-
   isBinary(Trm,Lc,"||",L,R).
 
+disjunct(Lc,L,R,Trm) :-
+  binary(Lc,"||",L,R,Trm).
+
 isNegation(Trm,Lc,L) :-
   isUnary(Trm,Lc,"~",L).
 
@@ -477,11 +588,20 @@ negation(Lc,L,Trm) :-
 isForall(Trm,Lc,L,R) :-
   isBinary(Trm,Lc,"*>",L,R).
 
+mkForall(Lc,L,R,Trm) :-
+  binary(Lc,"*>",L,R,Trm).
+
 isMatch(Trm,Lc,P,E) :-
   isBinary(Trm,Lc,".=",P,E),!.
 
+match(Lc,L,R,T) :-
+  binary(Lc,".=",L,R,T).
+
 isSearch(Trm,Lc,Ptn,Gen) :-
   isBinary(Trm,Lc,"in",Ptn,Gen).
+
+search(Lc,L,R,T) :-
+  binary(Lc,"in",L,R,T).
 
 isComprehension(Trm,Lc,Bnd,Body) :-
   isBraceTuple(Trm,Lc,[T]),
@@ -491,6 +611,12 @@ isListComprehension(Trm,Lc,Bnd,Body) :-
   isSquareTuple(Trm,Lc,[T]),
   isBinary(T,_,"|",Bnd,Body).
 
+isTestComprehension(Trm,Lc,Body) :-
+  isUnary(Trm,Lc,"{??}",Body).
+
+mkTestComprehension(Lc,Body,Trm) :-
+  unary(Lc,"{??}",Body,Trm).
+
 isFieldAcc(Trm,Lc,Rc,Fld) :-
   isBinary(Trm,Lc,".",Rc,F),
   isIden(F,Fld),!.
@@ -499,8 +625,14 @@ isFieldAcc(Trm,Lc,Rc,Fld) :-
   isIden(F,Fld),!,
   unary(Lc,"!",L,Rc).
 
+fieldAcc(Lc,Rc,F,T) :-
+  binary(Lc,".",Rc,F,T).
+
 isRecordUpdate(Trm,Lc,Lft,Rep) :-
   isBinary(Trm,Lc,"<<-",Lft,Rep).
+
+recordUpdate(Lc,L,R,T) :-
+  binary(Lc,"<<-",L,R,T).
 
 isIndexTerm(Trm,Lc,Lhs,Rhs) :-
   isSquareTerm(Trm,Lc,Lhs,[Rhs]),
@@ -577,8 +709,14 @@ mergeCond(L,R,Lc,Cnd) :-
 isActionTerm(A,Lc,Stmts) :-
   isBrace(A,Lc,"action",[Stmts]).
 
+mkActionTerm(Lc,S,T) :-
+  braceTerm(Lc,name(Lc,"action"),[S],T).
+
 isTaskTerm(A,Lc,Stmts) :-
   isBrace(A,Lc,"task",[Stmts]).
+
+mkTaskTerm(Lc,S,T) :-
+  braceTerm(Lc,name(Lc,"task"),[S],T).
 
 isScriptTerm(A,Lc,Stmts) :-
   isBrace(A,Lc,"script",[Stmts]),!.
@@ -587,48 +725,95 @@ isDoTerm(A,Lc,Stmts) :-
   isUnary(A,Lc,"do",I),
   isBraceTuple(I,_,[Stmts]).
 
+mkDoTerm(Lc,A,Trm) :-
+  braceTuple(Lc,[A],S0),
+  unary(Lc,"do",S0,Trm).
+
 isValis(A,Lc,E) :-
   (isUnary(A,Lc,"valis",E) ; isUnary(A,Lc,"return",E)),!.
+
+mkValis(Lc,A,E) :-
+  unary(Lc,"valis",A,E).
 
 isValof(A,Lc,E) :-
   isUnary(A,Lc,"valof",E).
 
+mkValof(Lc,A,E) :-
+  unary(Lc,"valof",A,E).
+
 isPerform(A,Lc,E) :-
   isUnary(A,Lc,"perform",E).
+
+mkPerform(Lc,A,E) :-
+  unary(Lc,"perform",A,E).
 
 isThrow(A,Lc,E) :-
   isUnary(A,Lc,"throw",E).
 
+mkThrow(Lc,A,E) :-
+  unary(Lc,"throw",A,E).
+
 isIgnore(A,Lc,E) :-
   isUnary(A,Lc,"ignore",E).
+
+mkIgnore(Lc,A,E) :-
+  unary(Lc,"ignore",A,E).
 
 isTryCatch(A,Lc,B,H) :-
   isUnary(A,Lc,"try",I),
   isBinary(I,_,"catch",B,H).
+
+mkTryCatch(Lc,B,H,A) :-
+  binary(Lc,"catch",B,H,A0),
+  unary(Lc,"try",A0,A).
 
 isIfThenElse(A,Lc,Ts,Th,El) :-
   isBinary(A,Lc,"else",Lhs,El),!,
   isBinary(Lhs,_,"then",LL,Th),
   isUnary(LL,_,"if",Ts).
 
+mkIfThenElse(Lc,T,L,R,S) :-
+  unary(Lc,"if",T,Ts),
+  binary(Lc,"then",Ts,L,Lh),
+  binary(Lc,"else",Lh,R,S).
+
 isIfThen(A,Lc,Ts,Th) :-
   isBinary(A,Lc,"then",LL,Th),!,
   isUnary(LL,_,"if",Ts).
+
+mkIfThen(Lc,T,L,S) :-
+  inary(Lc,"if",T,Ts),
+  binary(Lc,"then",Ts,L,S).
 
 isWhileDo(A,Lc,Ts,Bd) :-
   isBinary(A,Lc,"do",LL,Bd),
   isUnary(LL,_,"while",Ts),!.
 
+mkWhileDo(Lc,T,B,S) :-
+  unary(Lc,"while",T,Ts),
+  binary(Lc,"do",Ts,B,S).
+
 isUntilDo(A,Lc,Bd,Ts) :-
   isBinary(A,Lc,"until",B,Ts),
   isUnary(B,_,"do",Bd),!.
+
+mkUntilDo(Lc,T,B,S) :-
+  unary(Lc,"do",B,B0),
+  binary(Lc,"until",B0,T,S).
 
 isForDo(A,Lc,Ts,Bd) :-
   isBinary(A,Lc,"do",LL,Bd),
   isUnary(LL,_,"for",Ts),!.
 
+mkForDo(Lc,T,B,S) :-
+  unary(Lc,"for",T,Ts),
+  binary(Lc,"do",Ts,B,S).
+
 isActionSeq(A,Lc,S1,S2) :-
   isBinary(A,Lc,";",S1,S2).
 isActionSeq(A,Lc,S) :-
   isUnary(A,Lc,";",S).
+
+mkActionSeq(Lc,S1,S2,T) :-
+  binary(Lc,";",S1,S2,T).
 

@@ -57,11 +57,10 @@ isVar(Nm,_,vrEntry(std,dict:mkVr(Nm),Tp)) :- isIntrinsic(Nm,Tp,_),!.
 isVar(Nm,_,vrEntry(std,dict:mkVr(Nm),Tp)) :- escapeType(Nm,Tp),!.
 isVar(Nm,Env,Vr) :- makeKey(Nm,Key), isVr(Key,Env,Vr).
 
-getVar(Lc,Nm,Env,Ev,Vr) :-
+getVar(Lc,Nm,Env,Env,Vr) :-
   isVar(Nm,Env,vrEntry(_,MkTrm,VTp)),
-  freshen:freshen(VTp,Env,Q,VrTp),
+  freshen:freshen(VTp,Env,_Q,VrTp),
   getConstraints(VrTp,Cx,ViTp),
-  declareTypeVars(Q,Lc,Env,Ev),
   call(MkTrm,Lc,ViTp,VExp),
   manageConstraints(Cx,Lc,VExp,Vr).
 
