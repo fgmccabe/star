@@ -1,12 +1,5 @@
 :- module(macroRules,[build_main/2,
-		      macroRl/3,
-		      macroSquareExp/3,
-		      macroComprehension/3,		      
-		      macroListComprehension/3,
-		      uminusMacro/3,
-		      optionMatchMacro/3,
-		      optionPtnMacro/3,
-		      pkgNameMacro/3]).
+		      macroRl/3]).
 
 :- use_module(abstract).
 :- use_module(wff).
@@ -16,16 +9,23 @@
 
 macroRl("[]",pattern,macroRules:macroSquarePtn).
 macroRl("[]",expression,macroRules:macroListComprehension).
-macroRl("[]",expression,macroRules:macroSquareExp).
+macroRl("[]",expression,macroRules:macroSquareTuple).
 macroRl("<||>",expression,macroRules:macroQuote).
 macroRl("{}",expression,macroRules:macroComprehension).
+macroRl("{!!}",expression,macroRules:macroIotaComprehension).
 macroRl("{??}",expression,macroRules:macroIterableGoal).
 macroRl("::",expression,macroRules:macroCoercion).
 macroRl(":?",expression,macroRules:macroCoercion).
 macroRl("__pkg__",expression,macroRules:pkgNameMacro).
+macroRl("__loc__",expression,macroRules:macroLocationExp).
 macroRl("-",expression,macroRules:uminusMacro).
 macroRl("^=",expression,macroRules:optionMatchMacro).
 macroRl("^",pattern,macroRules:optionPtnMacro).
+macroRl("^",expression,macroRules:unwrapExpMacro).
+macroRl(":=",action,macroRules:spliceAssignMacro).
+macroRl(":=",action,macroRules:indexAssignMacro).
+macroRl("assert",action,macroRules:assertMacro).
+macroRl("show",action,macroRules:showMacro).
 
 build_main(As,Bs) :-
   look_for_signature(As,"main",Lc,Ms),
@@ -70,7 +70,7 @@ list_pttrn(Lc,Ts,Arg) :-
   reComma(Ts,As),
   isSquareTuple(Arg,Lc,[As]).
 
-macroSquareExp(A,expression,Trm) :-
+macroSquareTuple(A,expression,Trm) :-
   isSquareTuple(A,Lc,Els),!,
   macroListEntries(Lc,Els,Trm,nilGen,consGen,appndGen).
 
@@ -119,6 +119,12 @@ macroListComprehension(T,expression,Rp) :-
 
 makeComprehension(Lc,Bnd,Body,Rp) :-
   makeCondition(Body,macroRules:passThru,macroRules:consResult(Lc,Bnd),grounded(name(Lc,"_nil")),Rp).
+
+macroIotaComprehension(T,expression,Rp) :-
+  isIotaComprehension(T,Lc,Bnd,Body),!,
+  unary(Lc,"some",Bnd,Res),
+  mkEnum(Lc,"none",Empty),
+  makeCondition(Body,macroRules:passThru,macroRules:rtn(Res),grounded(Empty),Rp).
 
 macroIterableGoal(G,expression,Gx) :-
   isTestComprehension(G,_Lc,B),
@@ -278,7 +284,106 @@ optionPtnMacro(T,pattern,Tx) :-
   isOptionPtn(T,Lc,Pt,Ex),
   mkWherePtn(Lc,Pt,Ex,Tx).
 
+unwrapExpMacro(T,expression,Tx) :-
+  isBinary(T,Lc,"^",L,R),isIden(L,_,Con),!,
+  genIden(Lc,V),
+  unary(Lc,Con,V,Ptn),
+  match(Lc,Ptn,R,Mtch),
+  mkWhere(Lc,V,Mtch,Tx).
+
 pkgNameMacro(T,expression,string(Lc,P)) :-
   isName(T,Lc,"__pkg__"),
   lcPk(Lc,P).
+
+macroLocationExp(T,expression,Loc) :-
+  isName(T,Lc,"__loc__"),!,
+  mkLoc(Lc,Loc).
+
+/*
+ assert C 
+becomes
+ try{
+   assrt(()=>C,"failed: C",Loc)
+ } catch(Err) => action{
+   logMsg(Err)
+   throw ()
+  }
+*/
+assertMacro(T,action,Act) :-
+  isIntegrity(T,Lc,Cond),!,
+  ast2String(Cond,Msg),
+  locOfAst(Cond,CLc),
+  eqn(Lc,tuple(Lc,"()",[]),Cond,Lam),
+  mkLoc(CLc,Loc),
+  roundTerm(Lc,name(Lc,"assrt"),[Lam,string(Lc,Msg),Loc],Assert),
+  braceTuple(Lc,[Assert],B),
+  genIden(Lc,Err),
+  roundTerm(Lc,name(Lc,"logMsg"),[Err],Rep),
+  roundTuple(Lc,[],Unit),
+  unary(Lc,"throw",Unit,Thr),
+  binary(Lc,";",Rep,Thr,CtBd),
+  braceTerm(Lc,name(Lc,"action"),[CtBd],R1),
+  eqn(Lc,tuple(Lc,"()",[Err]),R1,ELam),
+  binary(Lc,"catch",B,ELam,R2),
+  unary(Lc,"try",R2,Act).
+
+/*
+ show E 
+becomes
+  shwMsg(()=>E,"E",Lc)
+*/
+showMacro(T,action,Act) :-
+  isShow(T,Lc,Exp),!,
+  ast2String(Exp,Txt),
+  locOfAst(Exp,ELc),
+  mkLoc(ELc,Loc),
+  eqn(Lc,tuple(Lc,"()",[]),Exp,Lam),
+  roundTerm(Lc,name(Lc,"shwMsg"),[Lam,string(Lc,Txt),Loc],Act).
+
+/*
+   A[F:T] := R
+  becomes
+  A := _splice(A!,F,T,R)
+*/
+
+spliceAssignMacro(A,action,Act) :-
+  isSplice(A,Lc,S,F,T,R),!,
+  unary(Lc,"!",S,Src),
+  nary(Lc,"_splice",[Src,F,T,R],Rep),
+  assignment(Lc,S,Rep,Act).
+
+/*
+  A[Ix] := R
+  becomes
+  A := _put(A!,Ix,R)
+*/
+indexAssignMacro(A,action,Act) :-
+  isAssignment(A,Lc,L,R),
+  isIndexTerm(L,LLc,C,I),!,
+  unary(LLc,"!",C,CC),
+  ternary(LLc,"_put",CC,I,R,Repl),
+  binary(Lc,":=",C,Repl,Act).
+  
+macroQuote(T,expression,Rp) :-
+  isQuote(T,_,A),!,
+  quoteExp(A,Rp).
+
+quoteExp(A,I) :-
+  isUnary(A,_,"$",I),!.
+quoteExp(name(Lc,Id),I) :-
+  unary(Lc,"_name",string(Lc,Id),I).
+quoteExp(integer(Lc,Ix),I) :-
+  unary(Lc,"_integer",integer(Lc,Ix),I).
+quoteExp(float(Lc,Dx),I) :-
+  unary(Lc,"_float",float(Lc,Dx),I).
+quoteExp(string(Lc,Sx),I) :-
+  unary(Lc,"_string",string(Lc,Sx),I).
+quoteExp(tuple(Lc,Lb,Els),Rp) :-
+  map(Els,quoteExp,QEls),
+  macroListEntries(Lc,QEls,R,nilGen,consGen,appndGen),
+  binary(Lc,"_tuple",string(Lc,Lb),R,Rp).
+quoteExp(app(Lc,O,A),Rp) :-
+  quoteExp(O,Oq),
+  quoteExp(A,Aq),
+  bnary(Lc,"_apply",Oq,Aq,Rp).
 

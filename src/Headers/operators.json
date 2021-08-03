@@ -1215,11 +1215,11 @@
     "desc": "measure brackets"
   },
   {
-    "bracket": "{??}",
-    "left": "{?",
-    "right": "?}",
+    "bracket": "{!!}",
+    "left": "{!",
+    "right": "!}",
     "priority": 2000,
-    "desc": "comprehension test "
+    "desc": "iota comprehension"
   },
   {
     "bracket": "{}",

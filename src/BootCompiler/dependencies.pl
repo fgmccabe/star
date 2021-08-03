@@ -228,7 +228,7 @@ collectTermRefs(E,A,R0,Rx) :-
   collectTermRefs(L,A,R0,R1),
   collectTypeRefs(R,A,R1,Rx).
 collectTermRefs(V,A,Rfs,Rx) :-
-  isName(V,Nm),
+  isName(V,_,Nm),
   collectNmRef(var(Nm),A,Rfs,Rf0),
   collectNmRef(cns(Nm),A,Rf0,Rx).
 collectTermRefs(T,A,Rfs,Rx) :-
@@ -256,14 +256,6 @@ collectTermRefs(T,A,Rf,Rx) :-
   collectTermRefs(G,A,Rf,R0),
   collectCaseRefs(C,collectTermRefs,A,R0,Rx).
 collectTermRefs(T,A,R0,Rx) :-
-  isComprehension(T,_,B,G),!,
-  collectTermRefs(B,A,R0,R1),
-  collectCondRefs(G,A,R1,Rx).
-collectTermRefs(T,A,R0,Rx) :-
-  isListComprehension(T,_,B,G),!,
-  collectTermRefs(B,A,R0,R1),
-  collectCondRefs(G,A,R1,Rx).
-collectTermRefs(T,A,R0,Rx) :-
   isValof(T,_,E),!,
   collectTermRefs(E,A,R0,Rx).
 collectTermRefs(T,A,R0,Rx) :-
@@ -274,9 +266,6 @@ collectTermRefs(T,A,R0,Rx) :-
   collectDoRefs(Stmts,A,R0,Rx).
 collectTermRefs(T,A,R0,Rx) :-
   isTaskTerm(T,_,Stmts),!,
-  collectDoRefs(Stmts,A,R0,Rx).
-collectTermRefs(T,A,R0,Rx) :-
-  isScriptTerm(T,_,Stmts),!,
   collectDoRefs(Stmts,A,R0,Rx).
 collectTermRefs(app(_,Op,Args),All,R,Rx) :-
   collectTermRefs(Op,All,R,R0),

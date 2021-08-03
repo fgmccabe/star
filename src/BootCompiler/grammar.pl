@@ -83,13 +83,10 @@ term0(Tks,T,Toks,Lst) :- term00(Tks,Op,RTks,LLst), termArgs(RTks,Op,T,Toks,LLst,
 
 emptyBkt(Lc,"[]",tuple(Lc,"[]",[])).
 emptyBkt(Lc,"()",tuple(Lc,"()",[])).
-emptyBkt(Lc,"(||)",name(Lc,"(||)")).
-emptyBkt(Lc,"[||]",name(Lc,"[||]")).
-emptyBkt(Lc,"<||>",nme(Lc,"<||>")).
 
-term00([idTok(I,Lc)|Toks],T,Toks,id) :-
-      (isOperator(I), \+lookAhead(rgtTok("()",_),Toks), !, reportError("unexpected operator: '%s'",[I],Lc),T=void(Lc);
-      T = name(Lc,I)).
+term00([idTok(I,Lc)|Toks],name(Lc,I),Toks,id) :-
+      (isOperator(I), \+lookAhead(rgtTok("()",_),Toks), !, reportError("unexpected operator: '%s'",[I],Lc);
+      true).
 term00([idQTok(I,Lc)|Toks],name(Lc,I),Toks,id).
 term00([lftTok("()",Lc0),rgtTok("()",Lc2)|Toks],tuple(Lc,"()",[]),Toks,rpar) :-
   mergeLoc(Lc0,Lc2,Lc).

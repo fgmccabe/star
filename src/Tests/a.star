@@ -2,14 +2,18 @@ test.a{
   import star.
   import star.script.
 
-  o : action[string,integer].
-  o = return 1.
+  o : action[integer,()].
+  o = action{
+    valis 1
+  }
 
-  p : action[string,integer].
-  p = (o >>= double) >>= double.
+  p : action[integer,()].
 
-  double:(integer) => action[string,integer].
-  double(I) => return (I+I).
+
+  double:(integer) => action[integer,()].
+  double(I) => action{
+    valis I+I
+  }
 
   main:()=>action[(),()].
   main()=>do{
@@ -20,7 +24,7 @@ test.a{
   }
   
   a = do{
-    x <- p;
+    x .= valof p;
     valis x
   }
 }

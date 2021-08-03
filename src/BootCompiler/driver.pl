@@ -131,9 +131,7 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
   macroPkg(Term,Prog),
   (is_member(showAst,Opts) -> dispAst(Prog) ; true),
   checkProgram(Prog,Pkg,Repo,Opts,PkgDecls,Canon),!,
-  (is_member(showTCCode,Opts) ->
-   displayln(canon:ssCanonProg(Canon));true),
-  dispDecls(PkgDecls),
+  (is_member(showTCCode,Opts) -> dispCanonProg(Canon);true),
   noErrors,
   (\+ is_member(compileOnly,Opts) ->
    transformProg(PkgDecls,Canon,Opts,Rules),!,

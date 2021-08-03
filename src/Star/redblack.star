@@ -230,13 +230,12 @@ star.redblack{
   .}
 
   public implementation all k,v ~~ iter[rbtree[k,v]->>keyval[k,v]] => let{
-    iter:all m/2,e,x ~~ execution[m] |: (rbtree[k,v],m[e,x],(keyval[k,v],x)=>m[e,x])=>m[e,x].
+    iter:all x ~~ (rbtree[k,v],x,(keyval[k,v],x)=>x)=>x.
     iter(.leaf,St,_) => St.
-    iter(node(_,K,V,L,R),St,F) =>
-      _sequence(iter(L,St,F),(S)=>iter(R,F(K->V,S),F)).
-  } in {
+    iter(node(_,K,V,L,R),St,F) =>iter(R,F(K->V,iter(L,St,F)),F).
+  } in {.
     _iter(Tr,St,Fn) => iter(Tr,St,Fn)
-  }
+  .}
 
   public implementation all k,v ~~ sizeable[rbtree[k,v]] => let{
     count(.leaf,Cx)=>Cx.

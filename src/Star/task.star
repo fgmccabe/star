@@ -72,6 +72,6 @@ star.task{
     _sequence = taskStep.
     _handle = taskHandle.
     _raise(E) => _task(()=>taskFailure(E)).
-    _perform(T) => executeTask(T).
+    _valof(T) => executeTask(T).
   }
 }

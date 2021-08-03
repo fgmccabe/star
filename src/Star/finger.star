@@ -190,15 +190,13 @@ star.finger{
 
   public implementation all t ~~ measured[t->>integer] |:
     iter[fingerTree[t]->>t] => {
-      _iter:all x,m/2,e ~~ execution[m] |: (fingerTree[t],m[e,x],(t,x)=>m[e,x]) => m[e,x].
+      _iter:all x ~~ (fingerTree[t],x,(t,x)=>x) => x.
       _iter(Lst,St,Fn) => iterOverFinger(Lst,St,Fn).
     
-      private iterOverFinger:all x,m/2,er ~~ execution[m] |:
-	(fingerTree[t],m[er,x],(t,x)=>m[er,x]) => m[er,x].
+      private iterOverFinger:all x ~~ (fingerTree[t],x,(t,x)=>x) => x.
       iterOverFinger(.eTree,St,_) => St.
       iterOverFinger(Tr,St,Fn) where 
-	  consl(El,tl) .= viewl(Tr) =>
-	_sequence(St,(SS)=>iterOverFinger(tl,Fn(El,SS),Fn)).
+	  consl(El,tl) .= viewl(Tr) => iterOverFinger(tl,Fn(El,St),Fn).
     }.
 
   -- Implement display

@@ -1,6 +1,7 @@
 star.sets{
   import star.core.
   import star.coerce.
+  import star.index.
   import star.collection.
   import star.ideal.
   import star.iterable.

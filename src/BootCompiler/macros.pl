@@ -76,18 +76,18 @@ examineStmt(S,Rp) :-
   macroType(R,Rx),
   map(C,macros:macroType,Cx),
   typeFunStmt(Lc,Q,Cx,Lx,Rx,Rp).
-examineStmt(S,Sx) :-
-  isAlgebraicTypeStmt(S,Lc,Q,C,H,B),!,
-  macroType(H,Hx),
-  map(C,macros:macroType,Cx),
-  macroConsBody(B,Bx),
-  mkAlgebraicTypeStmt(Lc,Q,Cx,Hx,Bx,Sx).
 examineStmt(S,Rp) :-
   isContractStmt(S,Lc,Q,C,T,B),!,
   macroType(T,Tx),
   map(B,macros:macroStmt,Bx),
   map(C,macros:macroType,Cx),
   contractStmt(Lc,Q,Cx,Tx,Bx,Rp).
+examineStmt(S,Sx) :-
+  isAlgebraicTypeStmt(S,Lc,Q,C,H,B),!,
+  macroType(H,Hx),
+  map(C,macros:macroType,Cx),
+  macroConsBody(B,Bx),
+  mkAlgebraicTypeStmt(Lc,Q,Cx,Hx,Bx,Sx).
 examineStmt(S,Rp) :-
   isImplementationStmt(S,Lc,Q,C,T,B),!,
   macroType(T,Tx),
@@ -121,6 +121,10 @@ macroConsBody(B,Bx) :-
   isBraceTerm(B,Lc,O,E),!,
   map(E,macros:macroStmt,Ex),
   braceTerm(Lc,O,Ex,Bx).
+macroConsBody(B,Bx) :-
+  isPrivate(B,Lc,I),
+  macroConsBody(I,Ix),
+  mkPrivate(Lc,Ix,Bx).
 
 disThroughGroup(S,C,Rp) :-
   isBraceTuple(S,Lc,Els),
@@ -482,9 +486,16 @@ examinePtn(T,T) :-
   locOfAst(T,Lc),
   reportError("cannot figure out pattern %s",[ast(T)],Lc).
 
+macroField(F,Fx) :-
+  macroAst(F,field,macros:examineField,Fx).
+
+examineField(F,Fx) :-
+  isDefn(F,Lc,L,R),!,
+  examinePtn(R,Rx),
+  mkDefn(Lc,L,Rx,Fx).
 
 macroAction(T,Tx) :-
-  macroAst(T,pattern,macros:examineAction,Tx).
+  macroAst(T,action,macros:examineAction,Tx).
 
 examineAction(T,T) :-
   isName(T,_,_),!.
@@ -508,12 +519,6 @@ examineAction(A,Ax) :-
   macroTerm(R,Rx),
   unary(Lc,"some",Lx,Lh),
   match(Lc,Lh,Rx,Ax).
-examineAction(A,Ax) :-
-  isSplice(A,Lc,S,F,T,R),!,
-  unary(Lc,"!",S,Src),
-  nary(Lc,"_splice",[Src,F,T,R],Rep),
-  assignment(Lc,S,Rep,A0),
-  examineAction(A0,Ax).
 examineAction(A,Ax) :-
   isAssignment(A,Lc,L,R),!,
   macroTerm(L,Lx),
@@ -584,6 +589,7 @@ macroKey(string(_,_),"$string").
 macroKey(A,Ky) :- isTuple(A,_,[I]),!,
   macroKey(I,Ky).
 macroKey(tuple(_,Op,_),Op).
-macroKey(app(_,Op,_),Ky) :-
+macroKey(app(_,Op,tuple(_,"()",_)),Ky) :-
   macroKey(Op,Ky).
-
+macroKey(app(_,_,tuple(_,"[]",_)),"$[]").
+macroKey(app(_,_,tuple(_,"{}",_)),"${}").
