@@ -23,10 +23,10 @@ test.cnq{
   ms : cons[string].
   ms = ["b","c"].
 
-  onlySons(P) => {? (P,S) in parent *> S in ms ?}.
+  onlySons(P) => {! () | (P,S) in parent *> S in ms !}.
 
-  hasD(P) => {? (P,S) in parent && ~ S in ms ?}.
-  isF(P) => {? ~ P in ms ?}.
+  hasD(P) => {! D | (P,D) in parent && ~ D in ms !}.
+  isF(P) => {! () | ~ P in ms !}.
 
   fatherOf:(string)=>cons[string].
   fatherOf(A) => [ F | (F,A) in parent && F in ms].

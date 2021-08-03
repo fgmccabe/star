@@ -180,12 +180,11 @@ transformFunction(Lc,Nm,LclName,Tp,Eqns,Map,OMap,Opts,[Fun|Ex],Exx) :-
   programArity(Reslt,Arity),
   extraVars(Map,Extra),
   extraArity(Arity,Extra,Ar),
-  LclPrg = lbl(LclName,Ar),
   extendFunTp(Tp,Extra,ATp),
-  transformEquations(Map,OMap,Opts,LclPrg,Eqns,Rules,[],Ex,Ex0),
+  transformEquations(Map,OMap,Opts,Eqns,Rules,[],Ex,Ex0),
   (is_member(showTrCode,Opts) -> dispEquations(Rules);true),
   closureEntry(Map,Lc,Nm,Tp,Ex0,Exx),
-  functionMatcher(Lc,Ar,LclPrg,ATp,Rules,Map,Fun),!,
+  functionMatcher(Lc,Ar,lbl(LclName,Ar),ATp,Rules,Map,Fun),!,
   (is_member(showTrCode,Opts) -> dispRuleSet(Fun);true).
 	   
 extendFunTp(Tp,[],Tp):-!.
@@ -201,12 +200,12 @@ extendTplTp([],[]).
 extendTplTp([_|M],[anonType|NEls]) :-
   extendTplTp(M,NEls).
 
-transformEquations(_,_,_,_,[],Rules,Rules,Ex,Ex).
-transformEquations(Map,OMap,Opts,LclPrg,[Eqn|Defs],Rules,Rx,Ex,Exx) :-
-  transformEqn(Eqn,Map,OMap,Opts,LclPrg,Rules,R0,Ex,Ex0),
-  transformEquations(Map,OMap,Opts,LclPrg,Defs,R0,Rx,Ex0,Exx).
+transformEquations(_,_,_,[],Rules,Rules,Ex,Ex).
+transformEquations(Map,OMap,Opts,[Eqn|Defs],Rules,Rx,Ex,Exx) :-
+  transformEqn(Eqn,Map,OMap,Opts,Rules,R0,Ex,Ex0),
+  transformEquations(Map,OMap,Opts,Defs,R0,Rx,Ex0,Exx).
 
-transformEqn(equation(Lc,A,G,Value),Map,OMap,Opts,_LclPrg,
+transformEqn(equation(Lc,A,G,Value),Map,OMap,Opts,
     [(Lc,Args,Test,Rep)|Rx],Rx,Ex,Exx) :-
   extraVars(Map,Extra),
   filterVars(Extra,Q0),
@@ -520,7 +519,7 @@ liftLambda(lambda(Lc,LamLbl,Eqn,Tp),Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
   (is_member(showTrCode,Opts) -> dispCanon(lambda(Lc,LamLbl,Eqn,Tp));true),
   lambdaMap(lambda(Lc,LamLbl,Eqn,Tp),LamLbl,Q,Map,Opts,Closure,LMap),
   (is_member(showTrCode,Opts) -> dispMap("lambda map: ",LMap);true),
-  transformEqn(Eqn,LMap,LMap,Opts,LamLbl,Rls,[],Ex,Exx),
+  transformEqn(Eqn,LMap,LMap,Opts,Rls,[],Ex,Exx),
   is_member((_,Args,_,_),Rls),!,
   length(Args,Ar),
   functionMatcher(Lc,Ar,lbl(LamLbl,Ar),Tp,Rls,Map,LamFun).
@@ -544,9 +543,7 @@ mkClosure(Lam,FreeVars,Closure) :-
 liftAction(noDo(Lc),nop(Lc),Qx,Qx,_,_,Ex,Ex).
 liftAction(valisDo(Lc,E,_),rtnDo(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
-liftAction(throwDo(Lc,E,_),raisDo(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-
-  liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
-liftAction(throwDo(Lc,E,_),raisDo(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-
+liftAction(throwDo(Lc,E),raisDo(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftAction(seqDo(Lc,E1,E2),seq(Lc,L1,L2),Q,Qx,Map,Opts,Ex,Exx) :-
   liftAction(E1,L1,Q,Q0,Map,Opts,Ex,Ex1),

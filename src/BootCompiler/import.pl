@@ -26,17 +26,17 @@ notAlreadyImported(importPk(_,_,Pkg),SoFar) :-
   \+ is_member(importPk(_,_,Pkg),SoFar),!.
 
 addPublicImports([],_,Imp,Imp).
-addPublicImports([import(public,Pkg)|I],Rest,Lc,
+addPublicImports([import(public,Pkg)|I],Lc,Rest,
 		 [importPk(Lc,transitive,Pkg)|Out]) :-
   addPublicImports(I,Lc,Rest,Out).
-addPublicImports([import(private,_)|I],Rest,Lc,Out) :-
-  addPublicImports(I,Rest,Lc,Out).
-addPublicImports([import(transitive,_)|I],Rest,Lc,Out) :-
-  addPublicImports(I,Rest,Lc,Out).
+addPublicImports([import(private,_)|I],Lc,Rest,Out) :-
+  addPublicImports(I,Lc,Rest,Out).
+addPublicImports([import(transitive,_)|I],Lc,Rest,Out) :-
+  addPublicImports(I,Lc,Rest,Out).
 
 importPkg(Pkg,Repo,Spec) :-
   codePackagePresent(Repo,Pkg,_Act,Sig,_U,_SrcWhen,_When),
-  pickupPkgSpec(Sig,Spec).
+  pickupPkgSpec(Sig,Spec),!.
 
 pickupPkgSpec(Enc,spec(Pkg,Imports,Decls)) :-
   decodeValue(Enc,ctpl(_,[Pk,ctpl(_,Imps),ctpl(_,DeclSigs)])),

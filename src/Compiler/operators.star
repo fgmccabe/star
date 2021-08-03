@@ -179,9 +179,9 @@ star.compiler.operators{
   isBracket("(|") => some(bkt("(|","(||)","|)",2000)).
   isBracket("|)") => some(bkt("(|","(||)","|)",2000)).
   isBracket("(||)") => some(bkt("(|","(||)","|)",2000)).
-  isBracket("{?") => some(bkt("{?","{??}","?}",2000)).
-  isBracket("?}") => some(bkt("{?","{??}","?}",2000)).
-  isBracket("{??}") => some(bkt("{?","{??}","?}",2000)).
+  isBracket("{!") => some(bkt("{!","{!!}","!}",2000)).
+  isBracket("!}") => some(bkt("{!","{!!}","!}",2000)).
+  isBracket("{!!}") => some(bkt("{!","{!!}","!}",2000)).
   isBracket(_) default => .none.
 
   public isLeftBracket:(string) => boolean.
@@ -261,8 +261,8 @@ star.compiler.operators{
   follows("/",0c\\) => some("/\\").
   follows("/",0c/) => some("//").
   follows("//",0c/) => some("///").
-  follows("{",0c?) => some("{?").
   follows("{",0c.) => some("{.").
+  follows("{",0c!) => some("{!").
   follows("|",0c]) => some("|]").
   follows("|",0c:) => some("|:").
   follows("|",0c|) => some("||").
@@ -303,8 +303,8 @@ star.compiler.operators{
   follows(">",0c=) => some(">=").
   follows(">",0c>) => some(">>").
   follows(">>",0c=) => some(">>=").
-  follows("?",0c}) => some("?}").
   follows("!",0c!) => some("!!").
+  follows("!",0c}) => some("!}").
   follows("$",0c$) => some("$$").
   follows(_,_) default => .none.
 
@@ -344,8 +344,8 @@ star.compiler.operators{
   final("//") => .true.  /* map over */
   final("///") => .true.  /* indexed map over */
   final("{") => .true.  /* braces */
-  final("{?") => .true.  /* comprehension test  */
   final("{.") => .true.  /* non-recursive braces */
+  final("{!") => .true.  /* iota comprehension */
   final("|") => .true.  /* type union and abstraction */
   final("|]") => .true.  /* measure brackets */
   final("|:") => .true.  /* constrained type */
@@ -394,10 +394,10 @@ star.compiler.operators{
   final(">>") => .true.  /* monadic bind */
   final(">>=") => .true.  /* monadic bind */
   final("?") => .true.  /* conditional operator */
-  final("?}") => .true.  /* comprehension test  */
   final("@") => .true.  /* meta annotation */
   final("!") => .true.  /* pick up value from a ref cell */
   final("!!") => .true.  /* pick up value from a memo */
+  final("!}") => .true.  /* iota comprehension */
   final("⊕") => .true.  /* addition */
   final("•") => .true.  /* function composition */
   final("#") => .true.  /* Macro statement marker */

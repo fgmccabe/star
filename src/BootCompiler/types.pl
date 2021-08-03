@@ -7,7 +7,7 @@
 	   isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
 	   isFunctionType/1,isFunctionType/2,isCnsType/2,
 	   isProgramType/1,isFixedSizeType/1,
-	   ssConstraint/4,ssType/4,dispType/1,
+	   ssConstraint/4,ssType/4,dispType/1,dispConstraint/1,
 	   contractType/2,contractTypes/2,
 	   isUnbound/1,isBound/1,isUnboundFVar/2, isIdenticalVar/2,
 	   moveQuants/3,reQuantTps/3,
@@ -66,8 +66,8 @@ isFcType(allType(_,T)) :- isFaceType(T).
 isFcType(existType(_,T)) :- isFaceType(T).
 isFcType(constrained(T,_)) :- isFaceType(T).
 
-newTypeVar(Nm,tVar(_,_,Nm,Id)) :- gensym("_#",Id).
-newTypeFun(Nm,Ar,tFun(_,_,Nm,Ar,Id)) :- gensym(Nm,Id).
+newTypeVar(Nm,tVar(_,_,Nm,Id)) :- genstr("_#",Id).
+newTypeFun(Nm,Ar,tFun(_,_,Nm,Ar,Id)) :- genstr(Nm,Id).
 
 varConstraints(tVar(_,Con,_,_),_,Con) :-!.
 varConstraints(tFun(_,Con,_,_,_),_,Con) :- !.
@@ -242,6 +242,10 @@ ssField(ShCon,Dp,(Nm,Tp),sq([id(Nm),ss(":"),TT])) :-
   ssType(Tp,ShCon,Dp,TT).
 ssTypeField(ShCon,Dp,(Nm,Tp),sq([id(Nm),ss(":"),TT])) :-
   ssType(Tp,ShCon,Dp,TT).
+
+dispConstraint(Tp) :-
+  ssConstraint(true,0,Tp,TT),
+  displayln(TT).
 
 ssConstraint(ShCon,Dp,conTract(Nm,Els,[]),sq([id(Nm),ss("["),iv(ss(","),EE),ss("]")])) :-!,
   ssTypeEls(Els,ShCon,Dp,EE).

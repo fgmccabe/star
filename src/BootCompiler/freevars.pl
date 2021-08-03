@@ -134,9 +134,10 @@ freeVarsInRule(Ex,Q,equation(_,H,none,Exp),F,FV) :-!,
   freeVars(Exp,Ex1,Q,F0,FV).
 freeVarsInRule(Ex,Q,equation(_,H,some(Cond),Exp),F,FV) :-
   ptnVars(H,Ex,Ex1),
-  freeVars(H,Ex1,Q,F,F0),
-  freeVars(Exp,Ex1,Q,F0,F1),
-  freeVars(Cond,Ex1,Q,F1,FV).
+  ptnGoalVars(Cond,Ex1,Ex2),
+  freeVars(H,Ex2,Q,F,F0),
+  freeVars(Exp,Ex2,Q,F0,F1),
+  freeVars(Cond,Ex2,Q,F1,FV).
 
 freeVarsList(L,Ex,Q,F,Fv) :- varsInList(L,freevars:frVars(Ex,Q),F,Fv).
 
@@ -158,9 +159,6 @@ ptnVarsInList([],Q,Q).
 ptnVarsInList([P|L],Q,Qx) :-
   ptnVars(P,Q,Q0),
   ptnVarsInList(L,Q0,Qx).
-
-goalVars(G,Q) :-
-  ptnGoalVars(G,[],Q).
 
 ptnGoalVars(conj(_,L,R),Q,Qx) :-
   ptnGoalVars(L,Q,Q0),

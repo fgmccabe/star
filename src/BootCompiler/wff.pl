@@ -1,4 +1,4 @@
-:-module(wff,[isAnnotation/4,
+:-module(wff,[isAnnotation/4,isQuote/3,
 	      isAlgebraicTypeStmt/6,mkAlgebraicTypeStmt/6,
 	      isConstructor/3,
 	      isConstructorType/6,constructorType/6,
@@ -13,7 +13,7 @@
 	      isTypeAnnotation/4,typeAnnotation/4,
 	      isTypeLambda/4,typeLambda/4,typeName/2,
 	      isValType/3,isFuncType/4,funcType/4,isEnum/3,mkEnum/3,isAnon/2,mkAnon/2,
-	      isImport/3, isPrivate/3,isPublic/3,
+	      isImport/3, isPrivate/3,isPublic/3,mkPrivate/3,mkPublic/3,
 	      isDefault/3,isDefault/4,mkDefault/3,
 	      isLiteralInteger/3,isLiteralFloat/3,
 	      isIntegrity/3,isShow/3,isOpen/3,
@@ -22,7 +22,7 @@
 	      isPrompt/4,isCut/5,isTag/2,
 	      isDefn/4,isAssignment/4,isRef/3,isCellRef/3,cellRef/3,
 	      assignment/4,eqn/4,eqn/5,
-	      mkDefn/4,
+	      mkDefn/4,mkLoc/2,
 	      isIterableGl/1,
 	      ruleName/3,headName/2,
 	      isWhere/4,mkWhere/4,mkWherePtn/4,mkWhereEquality/3,
@@ -33,11 +33,11 @@
 	      isConjunct/4,conjunct/4,isDisjunct/4,disjunct/4,
 	      isForall/4,mkForall/4,isNegation/3,negation/3,
 	      isMatch/4,match/4,isSearch/4,search/4,
-	      isComprehension/4,isListComprehension/4,
+	      isComprehension/4,isListComprehension/4,isIotaComprehension/4,
 	      isTestComprehension/3,mkTestComprehension/3,
 	      isCaseExp/4,caseExp/4,
 	      isTaskTerm/3,mkTaskTerm/3,isActionTerm/3,mkActionTerm/3,
-	      isScriptTerm/3,isDoTerm/3,mkDoTerm/3,
+	      isDoTerm/3,mkDoTerm/3,
 	      isValof/3,mkValof/3,isPerform/3,mkPerform/3,
 	      isThrow/3,mkThrow/3,isValis/3,mkValis/3,
 	      isIgnore/3,mkIgnore/3,
@@ -96,6 +96,12 @@ isPrivate(St,Lc,I) :-
 
 isPublic(St,Lc,I) :-
   isUnary(St,Lc,"public",I).
+
+mkPrivate(Lc,E,Ex) :-
+  unary(Lc,"private",E,Ex).
+
+mkPublic(Lc,E,Ex) :-
+  unary(Lc,"public",E,Ex).
 
 isTypeAnnotation(St,Lc,V,T) :-
   isBinary(St,Lc,":",V,T),!.
@@ -617,6 +623,14 @@ isTestComprehension(Trm,Lc,Body) :-
 mkTestComprehension(Lc,Body,Trm) :-
   unary(Lc,"{??}",Body,Trm).
 
+isIotaComprehension(Trm,Lc,Bnd,Body) :-
+  isUnary(Trm,Lc,"{!!}",B),
+  isBinary(B,_,"|",Bnd,Body).
+
+mkIotaComprehension(Lc,Bnd,Body,Trm) :-
+  binary(Lc,"|",Bnd,Body,B),
+  unary(Lc,"{!!}",B,Trm).
+
 isFieldAcc(Trm,Lc,Rc,Fld) :-
   isBinary(Trm,Lc,".",Rc,F),
   isIden(F,Fld),!.
@@ -718,9 +732,6 @@ isTaskTerm(A,Lc,Stmts) :-
 mkTaskTerm(Lc,S,T) :-
   braceTerm(Lc,name(Lc,"task"),[S],T).
 
-isScriptTerm(A,Lc,Stmts) :-
-  isBrace(A,Lc,"script",[Stmts]),!.
-
 isDoTerm(A,Lc,Stmts) :-
   isUnary(A,Lc,"do",I),
   isBraceTuple(I,_,[Stmts]).
@@ -817,3 +828,14 @@ isActionSeq(A,Lc,S) :-
 mkActionSeq(Lc,S1,S2,T) :-
   binary(Lc,";",S1,S2,T).
 
+mkLoc(Lc,T) :-
+  Lc=loc(Pk,Line,Col,Off,Ln),
+  roundTuple(Lc,
+	     [string(Lc,Pk),
+	      integer(Lc,Line),
+	      integer(Lc,Col),
+	      integer(Lc,Off),
+	      integer(Lc,Ln)],T).
+
+isQuote(Trm,Lc,Body) :-
+  isUnary(Trm,Lc,"<||>",Body).

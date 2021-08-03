@@ -1,4 +1,4 @@
-:- module(canon,[dispFunction/3,dispDef/1,dispCanon/1,
+:- module(canon,[dispFunction/3,dispDef/1,dispCanon/1,dispCanonProg/1,
 		 ssCanonProg/2,ssTerm/3,ssAction/3,ssPkg/2,ssContract/3,
 		 dispDecls/1,
 		 typeOfCanon/2,splitPtn/3,locOfCanon/2,
@@ -174,6 +174,9 @@ constructorName(cons(_,Nm,_),Nm).
 
 constructorType(enm(_,_,Tp),Tp) :-!.
 constructorType(cons(_,_,Tp),Tp).
+
+dispCanonProg(P) :-
+  displayln(canon:ssCanonProg(P)).  
 
 ssCanonProg(prog(Pkg,Imports,XDecls,_Decls,Defs),sq([PP,nl(2),iv(nl(2),XX),rb])) :-
   ssPkg(Pkg,PP),

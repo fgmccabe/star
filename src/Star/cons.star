@@ -108,10 +108,10 @@ star.cons{
   unzip([(A,B),..Ls]) where
       (L,R) .= unzip(Ls) => ([A,..L],[B,..R]).
 
-  -- Implement iteration of executions over a cons list
-  public implementation all t ~~ iter[cons[t]->>t] => {
-    _iter(.nil,St,_) => St.
-    _iter(cons(H,T),St,Fn) => _sequence(St,(SS)=>_iter(T,Fn(H,SS),Fn)).
+  -- Implement iteration over a cons list
+  public implementation all e,x ~~ iter[cons[e]->>e] => {
+    _iter(.nil,S,_) => S.
+    _iter(cons(H,T),S,F) => _iter(T,F(H,S),F).
   }
 
   public implementation all e ~~ display[e] |: display[cons[e]] => let{

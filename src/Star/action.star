@@ -7,80 +7,58 @@ star.action{
   import star.cons.
   import star.display.
 
-  public all a,e ~~ action[e,a] ::= done(a) | delay(()=>action[e,a]) | err(e).
+  public all a,e ~~ action[e,a] ::= action(()=>result[e,a]).
+
+  public all e,a ~~ result[e,a] ::= private ok(a) | private err(e).
+
+  public implementation all e ~~ monad[result[e]] => {
+    (ok(X) >>= F) => F(X).
+    (err(E) >>= _) => err(E).
+
+    return X => ok(X)
+  }
 
   public implementation all e ~~ monad[action[e]] => {
-    (err(E) >>= _) => err(E).
-    (done(A) >>= F) => delay(()=>F(A)).
-    (delay(G) >>= F) => delay(()=>G()>>=F).
+    (action(A) >>= F) => test(A(),F).
 
-    return X => delay(()=>done(X)).
+    test(ok(A),F) => F(A).
+    test(err(E),_) => action(()=>err(E)).
+
+    return X => action(()=>ok(X)).
   }
 
-  public implementation execution[action] => {
-    _perform(done(X)) => X.
-    _perform(delay(F)) => _perform(F()).
+  public implementation execution[result] => {
+    _valof(ok(X)) => X.
 
-    _valis(X) => delay(()=>done(X)).
+    _valis(X) => ok(X).
+    _raise(E) => err(E).
 
+    _sequence(ok(X),F) => F(X).
     _sequence(err(E),_) => err(E).
-    _sequence(done(A),F) => delay(()=>F(A)).
-    _sequence(delay(G),F) => delay(()=>_sequence(G(),F)).
 
-    _handle(done(X),_) => done(X).
-    _handle(delay(A),E) => _handle(A(),E).
-    _handle(err(X),E) => E(X).
-
-    _raise(S) => err(S).
+    _handle(ok(X),_) => ok(X).
+    _handle(err(E),H) => H(E).
   }
 
-  public strmap:all x,y,m/1,s/1 ~~ monad[m],stream[s[x]->>x], sequence[s[y]->>y],reversible[s[y]] |:
-    ((x)=>m[y],s[x]) => m[s[y]].
-  strmap(F,S) => let{
-    mmm:(s[x],s[y]) => m[s[y]].
-    mmm([],So) => return reverse(So).
-    mmm([E,..Es],So) =>
-      F(E) >>= (X)=>mmm(Es,[X,..So]).
-  } in mmm(S,[]).
+  public implementation execution[action] => let{.
+    test(ok(X),F) => F(X).
+    test(err(E),_) => action(()=>err(E)).
+    
+    testE(ok(X),_) => action(()=>ok(X)).
+    testE(err(E),H) => H(E).
+  .} in {.
+    _valof(action(A)) => _valof(A()).
 
-  public seqmap:all x,y,e,m/2,s/1 ~~ execution[m],stream[s[x]->>x],sequence[s[y]->>y],reversible[s[y]] |:
-    ((x)=>m[e,y],s[x]) => m[e,s[y]].
-  seqmap(F,S) => let{
-    mmm:(s[x],s[y]) => m[e,s[y]].
-    mmm([],So) => _valis(reverse(So)).
-    mmm([E,..Es],So) =>
-      _sequence(F(E),(X)=>mmm(Es,[X,..So])).
-  } in mmm(S,[]).
+    _valis(X) => action(()=>ok(X)).
+    _raise(E) => action(()=>err(E)).
 
+    _sequence(action(A),F) => test(A(),F).
+    _handle(action(A),H) => testE(A(),H).
+  .}
 
-  public implementation all e ~~ coercion[option[e],action[(),e]] => {
-    _coerce(.none) => some(err(())).
-    _coerce(some(X)) => some(done(X)).
-  }
-
-  public (:=):all a,m/2,e ~~ execution[m] |: (ref a,a) => m[e,()].
-  (:=)(L,V) => do{
-    valis _assign(L,V)
-  }
-
-  public (!):all a ~~ (ref a)=>a.
-  (!)(V) => _get(V).
-
-  public logMsg:all m/2,e ~~ execution[m] |: (string)=>m[e,()].
-  logMsg(Msg) => do{
+  public logMsg:all e ~~ (string)=>action[e,()].
+  logMsg(Msg) => action{
     _ .= _logmsg(Msg);
     valis ()
-  }
-
-  public trace:all x ~~ display[x] |: (string,x)=>x.
-  trace(M,X) => valof action{
-    logMsg("#(M) - $(X)");
-    valis X
-  }
-
-  public trc:all x ~~ (string,x)=>x.
-  trc(M,X) => valof action{
-    logMsg(M);
-    valis X
   }
 }

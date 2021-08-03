@@ -8,7 +8,7 @@ test.cn3{
   import star.coerce.
 
   -- stream & sequence contracts
-  public implementation all x ~~ stream[cons[x] ->> x] => {
+/*  public implementation all x ~~ stream[cons[x] ->> x] => {
     _eof(.nil) => .true.
     _eof(cons(_,_)) => .false.
     
@@ -20,8 +20,8 @@ test.cn3{
     _cons(E,S) => cons(E,S).
     _nil = .nil.
   }
-
-  public contract all s,t ~~ iter[s->>t] ::= {
+*/
+/*  public contract all s,t ~~ iter[s->>t] ::= {
     _iter:all x ~~ (s,x,(t,x)=>x) => x
   }
   
@@ -38,8 +38,16 @@ test.cn3{
     disp(L) => ssSeq([ss("["), consDisp(L),ss("]")]).
   }
 
-  public implementation all x,y ~~ display[x], display[y] |: display[(x,y)] =>
-    {.
-      disp((a,b)) => ssSeq([ss("("),disp(a),ss(" , "),disp(b),ss(")")]).
-    .}
+  public implementation all x,y ~~ display[x], display[y] |: display[(x,y)] => {.
+    disp((a,b)) => ssSeq([ss("("),disp(a),ss(" , "),disp(b),ss(")")]).
+  .}
+*/
+  
+  take(cons(X,_)) => some(X).
+
+  hh(L) => let{
+    hdtl(Tr) where Hh^=take(Tr) => some((Hh,Tr)).
+    hdtl(_) default => .none.
+  } in hdtl(L).
+    
 }

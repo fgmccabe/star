@@ -143,7 +143,7 @@
   bracket("()", "(", ")", 2000).
   bracket("{}", "{", "}", 2000).
   bracket("(||)", "(|", "|)", 2000).
-  bracket("{??}", "{?", "?}", 2000).
+  bracket("{!!}", "{!", "!}", 2000).
 
   follows('','%','%').
   follows('','&','&').
@@ -212,8 +212,8 @@
   follows('/','\\','/\\').
   follows('/','/','//').
   follows('//','/','///').
-  follows('{','?','{?').
   follows('{','.','{.').
+  follows('{','!','{!').
   follows('|',']','|]').
   follows('|',':','|:').
   follows('|','|','||').
@@ -254,8 +254,8 @@
   follows('>','=','>=').
   follows('>','>','>>').
   follows('>>','=','>>=').
-  follows('?','}','?}').
   follows('!','!','!!').
+  follows('!','}','!}').
   follows('$','$','$$').
 
   final('%',"%").	 /* modulo */
@@ -293,8 +293,8 @@
   final('//',"//").	 /* map over */
   final('///',"///").	 /* indexed map over */
   final('{',"{").	 /* braces */
-  final('{?',"{?").	 /* comprehension test  */
   final('{.',"{.").	 /* non-recursive braces */
+  final('{!',"{!").	 /* iota comprehension */
   final('|',"|").	 /* type union and abstraction */
   final('|]',"|]").	 /* measure brackets */
   final('|:',"|:").	 /* constrained type */
@@ -343,10 +343,10 @@
   final('>>',">>").	 /* monadic bind */
   final('>>=',">>=").	 /* monadic bind */
   final('?',"?").	 /* conditional operator */
-  final('?}',"?}").	 /* comprehension test  */
   final('@',"@").	 /* meta annotation */
   final('!',"!").	 /* pick up value from a ref cell */
   final('!!',"!!").	 /* pick up value from a memo */
+  final('!}',"!}").	 /* iota comprehension */
   final('⊕',"⊕").	 /* addition */
   final('•',"•").	 /* function composition */
   final('#',"#").	 /* Macro statement marker */
