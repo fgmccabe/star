@@ -374,10 +374,6 @@ examineTerm(T,Tx) :-
   map(D,macros:macroStmt,Dx),
   macroTerm(O,Ox),
   qbraceTerm(Lc,Ox,Dx,Tx).
-examineTerm(T,Tx) :-
-  isValof(T,Lc,A),!,
-  macroTerm(A,Ax),
-  mkValof(Lc,Ax,Tx).
 examineTerm(T,T) :-
   locOfAst(T,Lc),
   reportError("cannot figure out expression %s",[ast(T)],Lc).
@@ -559,6 +555,10 @@ examineAction(A,Ax) :-
   isValis(A,Lc,V),!,
   macroTerm(V,Vx),
   mkValis(Lc,Vx,Ax).
+examineAction(A,Ax) :-
+  isIgnore(A,Lc,V),!,
+  macroAction(V,Vx),
+  mkIgnore(Lc,Vx,Ax).
 examineAction(A,Ax) :-
   isThrow(A,Lc,V),!,
   macroTerm(V,Vx),

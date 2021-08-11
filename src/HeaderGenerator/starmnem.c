@@ -197,9 +197,22 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
   switch (A) {
     case nOp:                             // No operand
     case tOs:
-      check(B == nOp, "second operand not nOp");
-      outMsg(out, "=> mnem(Ins,Code++[intgr(%d)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).\n", op);
-      return;
+      switch (B) {
+        case nOp:
+        case tOs:
+          outMsg(out, "=> mnem(Ins,Code++[intgr(%d)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).\n", op);
+          return;
+        case off:
+          outMsg(out,
+                 "where Tgt ^= Lbls[V] => mnem(Ins,Code++[intgr(%d),intgr(Tgt-Pc-3)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).\n",
+                 op);
+          return;
+        case i32:
+          outMsg(out, "=> mnem(Ins,Code++[intgr(%d),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", op);
+          return;
+        default:
+          check(False, "invalid second operand");
+      }
     case lne:
     case lit:
       switch (B) {
@@ -260,7 +273,8 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
       switch (B) {
         case nOp:
         case tOs:
-          outMsg(out, "%s => mnem(Ins,Code++[intgr(%d),intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).\n", cond, op);
+          outMsg(out, "%s => mnem(Ins,Code++[intgr(%d),intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).\n", cond,
+                 op);
           return;
         case off:
           outMsg(out,
@@ -285,7 +299,8 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
       return;
     case lVl:
       check(B == nOp, "second operand not nOp");
-      outMsg(out, "=> mnem(Ins,Code++[intgr(%d),intgr(findEnd(Ends,U)-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", op);
+      outMsg(out, "=> mnem(Ins,Code++[intgr(%d),intgr(findEnd(Ends,U)-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n",
+             op);
       return;
     case lcl:
     case lcs:
@@ -413,7 +428,8 @@ static char *opAndTp(opAndSpec A) {
 }
 
 void insOp(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt) {
-  outMsg(out, "    %si%s", dot(A1), mnem);
+  char *dot = ((A1==tOs||A1==nOp)&&(A2==nOp)?".":"");
+  outMsg(out, "    %si%s", dot, mnem);
   char *T1 = opAndTp(A1);
   char *T2 = opAndTp(A2);
 
@@ -423,7 +439,8 @@ void insOp(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt) 
       outMsg(out, ",%s)", T2);
     else
       outMsg(out, ")");
-  }
+  } else if (T2 != Null)
+    outMsg(out, "(%s)", T2);
 
   outMsg(out, " |\n");
 }

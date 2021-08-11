@@ -73,13 +73,13 @@ star.compiler.escapes{
   escapeType("_tuple_nth") => some(allType(nomnal("t"),allType(nomnal("e"),tpExp(tpExp(tpFun("=>",2),tplType([nomnal("t"),nomnal("star.core*integer")])),nomnal("e"))))).
   escapeType("_tuple_set_nth") => some(allType(nomnal("t"),allType(nomnal("e"),tpExp(tpExp(tpFun("=>",2),tplType([nomnal("t"),nomnal("star.core*integer"),nomnal("e")])),nomnal("t"))))).
   escapeType("_cwd") => some(tpExp(tpExp(tpFun("=>",2),tplType([])),nomnal("star.core*string"))).
-  escapeType("_cd") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),nomnal("star.core*sysResult"))).
-  escapeType("_rm") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),nomnal("star.core*sysResult"))).
-  escapeType("_mv") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*string")])),nomnal("star.core*sysResult"))).
-  escapeType("_mkdir") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*integer")])),nomnal("star.core*sysResult"))).
-  escapeType("_rmdir") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),nomnal("star.core*sysResult"))).
+  escapeType("_cd") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),tpExp(tpFun("star.core*result",2),nomnal("star.core*string")))).
+  escapeType("_rm") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),tpExp(tpFun("star.core*result",2),nomnal("star.core*string")))).
+  escapeType("_mv") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*string")])),tpExp(tpFun("star.core*result",2),nomnal("star.core*string")))).
+  escapeType("_mkdir") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*integer")])),tpExp(tpFun("star.core*result",2),nomnal("star.core*string")))).
+  escapeType("_rmdir") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),tpExp(tpFun("star.core*result",2),nomnal("star.core*string")))).
   escapeType("_isdir") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),nomnal("star.core*boolean"))).
-  escapeType("_file_chmod") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*integer")])),nomnal("star.core*sysResult"))).
+  escapeType("_file_chmod") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*integer")])),tpExp(tpFun("star.core*result",2),nomnal("star.core*string")))).
   escapeType("_ls") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),tpExp(tpFun("star.core*cons",1),nomnal("star.core*string")))).
   escapeType("_repo") => some(tpExp(tpExp(tpFun("=>",2),tplType([])),nomnal("star.core*string"))).
   escapeType("_file_mode") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),nomnal("star.core*integer"))).
@@ -93,7 +93,7 @@ star.compiler.escapes{
   escapeType("_openAppendFile") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*integer")])),nomnal("star.file*fileHandle"))).
   escapeType("_openAppendIOFile") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*integer")])),nomnal("star.file*fileHandle"))).
   escapeType("_popen") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),tpExp(tpFun("star.core*cons",1),nomnal("star.core*string")),tpExp(tpFun("star.core*cons",1),tplType([nomnal("star.core*string"),nomnal("star.core*string")]))])),tplType([nomnal("star.file*fileHandle"),nomnal("star.file*fileHandle"),nomnal("star.file*fileHandle")]))).
-  escapeType("_close") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle")])),nomnal("star.core*sysResult"))).
+  escapeType("_close") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle")])),tpExp(tpFun("star.core*result",2),nomnal("star.core*string")))).
   escapeType("_end_of_file") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle")])),nomnal("star.core*boolean"))).
   escapeType("_ready_to_read") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle")])),nomnal("star.core*boolean"))).
   escapeType("_ready_to_write") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle")])),nomnal("star.core*boolean"))).
@@ -102,16 +102,16 @@ star.compiler.escapes{
   escapeType("_inbyte") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle")])),nomnal("star.core*integer"))).
   escapeType("_inline") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle")])),nomnal("star.core*string"))).
   escapeType("_intext") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle"),nomnal("star.core*string")])),nomnal("star.core*string"))).
-  escapeType("_outchar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle"),nomnal("star.core*integer")])),nomnal("star.core*sysResult"))).
-  escapeType("_outbyte") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle"),nomnal("star.core*integer")])),nomnal("star.core*sysResult"))).
-  escapeType("_outbytes") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle"),tpExp(tpFun("star.core*cons",1),nomnal("star.core*integer"))])),nomnal("star.core*sysResult"))).
-  escapeType("_outtext") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle"),nomnal("star.core*string")])),nomnal("star.core*sysResult"))).
+  escapeType("_outchar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle"),nomnal("star.core*integer")])),tpExp(tpFun("star.core*result",2),nomnal("star.core*string")))).
+  escapeType("_outbyte") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle"),nomnal("star.core*integer")])),tpExp(tpFun("star.core*result",2),nomnal("star.core*string")))).
+  escapeType("_outbytes") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle"),tpExp(tpFun("star.core*cons",1),nomnal("star.core*integer"))])),tpExp(tpFun("star.core*result",2),nomnal("star.core*string")))).
+  escapeType("_outtext") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle"),nomnal("star.core*string")])),tpExp(tpFun("star.core*result",2),nomnal("star.core*string")))).
   escapeType("_stdfile") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.file*fileHandle"))).
   escapeType("_fposition") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle")])),nomnal("star.core*integer"))).
-  escapeType("_fseek") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle"),nomnal("star.core*integer")])),nomnal("star.core*sysResult"))).
-  escapeType("_flush") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle")])),nomnal("star.core*sysResult"))).
+  escapeType("_fseek") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle"),nomnal("star.core*integer")])),tpExp(tpFun("star.core*result",2),nomnal("star.core*string")))).
+  escapeType("_flush") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle")])),tpExp(tpFun("star.core*result",2),nomnal("star.core*string")))).
   escapeType("_flushall") => some(tpExp(tpExp(tpFun("=>",2),tplType([])),tplType([]))).
-  escapeType("_setfileencoding") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle"),nomnal("star.core*integer")])),nomnal("star.core*sysResult"))).
+  escapeType("_setfileencoding") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle"),nomnal("star.core*integer")])),tpExp(tpFun("star.core*result",2),nomnal("star.core*string")))).
   escapeType("_get_file") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),nomnal("star.core*string"))).
   escapeType("_put_file") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*string")])),tplType([]))).
   escapeType("_show") => some(tpExp(tpExp(tpFun("=>",2),tplType([tplType([nomnal("star.core*string"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer")]),nomnal("star.core*string")])),tplType([]))).
@@ -119,14 +119,14 @@ star.compiler.escapes{
   escapeType("_pkg_is_present") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*string")])),nomnal("star.core*boolean"))).
   escapeType("_in_manifest") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*string"),nomnal("star.core*string")])),nomnal("star.core*boolean"))).
   escapeType("_locate_in_manifest") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*string"),nomnal("star.core*string")])),nomnal("star.core*string"))).
-  escapeType("_logmsg") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),nomnal("star.core*sysResult"))).
+  escapeType("_logmsg") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),tplType([]))).
   escapeType("_connect") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*integer"),nomnal("star.core*integer")])),tplType([nomnal("star.file*fileHandle"),nomnal("star.file*fileHandle")]))).
   escapeType("_listen") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.file*fileHandle"))).
   escapeType("_accept") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle")])),tplType([nomnal("star.file*fileHandle"),nomnal("star.file*fileHandle"),nomnal("star.core*string"),nomnal("star.core*integer"),nomnal("star.core*string")]))).
   escapeType("_hosttoip") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),tpExp(tpFun("star.core*cons",1),nomnal("star.core*string")))).
   escapeType("_iptohost") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),nomnal("star.core*string"))).
-  escapeType("_delay") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*float")])),nomnal("star.core*sysResult"))).
-  escapeType("_sleep") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*float")])),nomnal("star.core*sysResult"))).
+  escapeType("_delay") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*float")])),tplType([]))).
+  escapeType("_sleep") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*float")])),tplType([]))).
   escapeType("_now") => some(tpExp(tpExp(tpFun("=>",2),tplType([])),nomnal("star.core*float"))).
   escapeType("_today") => some(tpExp(tpExp(tpFun("=>",2),tplType([])),nomnal("star.core*float"))).
   escapeType("_ticks") => some(tpExp(tpExp(tpFun("=>",2),tplType([])),nomnal("star.core*integer"))).
@@ -198,22 +198,21 @@ star.compiler.escapes{
   escapeType("_str_cons") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer"),nomnal("star.core*string")])),nomnal("star.core*string"))).
   escapeType("_str_apnd") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*integer")])),nomnal("star.core*string"))).
   escapeType("_getenv") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*string")])),nomnal("star.core*string"))).
-  escapeType("_setenv") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*string")])),nomnal("star.core*sysResult"))).
+  escapeType("_setenv") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*string")])),tplType([]))).
   escapeType("_envir") => some(tpExp(tpExp(tpFun("=>",2),tplType([])),tpExp(tpFun("star.core*cons",1),tplType([nomnal("star.core*string"),nomnal("star.core*string")])))).
   escapeType("_getlogin") => some(tpExp(tpExp(tpFun("=>",2),tplType([])),nomnal("star.core*string"))).
-  escapeType("_fork") => some(tpExp(tpExp(tpFun("=>",2),tplType([tpExp(tpExp(tpFun("=>",2),tplType([])),nomnal("star.core*sysResult"))])),nomnal("star.thread*thread"))).
+  escapeType("_fork") => some(tpExp(tpExp(tpFun("=>",2),tplType([tpExp(tpExp(tpFun("=>",2),tplType([])),tpExp(tpFun("star.core*result",2),nomnal("star.core*string"))),tplType([])])),nomnal("star.thread*thread"))).
   escapeType("_thread") => some(tpExp(tpExp(tpFun("=>",2),tplType([])),nomnal("star.thread*thread"))).
-  escapeType("_kill") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.thread*thread")])),nomnal("star.core*sysResult"))).
+  escapeType("_kill") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.thread*thread")])),tpExp(tpFun("star.core*result",2),nomnal("star.core*string")))).
   escapeType("_thread_state") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.thread*thread")])),nomnal("star.thread*threadState"))).
-  escapeType("_waitfor") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.thread*thread")])),nomnal("star.core*sysResult"))).
+  escapeType("_waitfor") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.thread*thread")])),tpExp(tpFun("star.core*result",2),nomnal("star.core*string")))).
   escapeType("_shell") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),tpExp(tpFun("star.core*cons",1),nomnal("star.core*string")),tpExp(tpFun("star.core*cons",1),tplType([nomnal("star.core*string"),nomnal("star.core*string")]))])),nomnal("star.core*integer"))).
   escapeType("_newLock") => some(tpExp(tpExp(tpFun("=>",2),tplType([])),nomnal("star.thread*lock"))).
-  escapeType("_acquireLock") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.thread*lock"),nomnal("star.core*float")])),nomnal("star.core*sysResult"))).
-  escapeType("_waitLock") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.thread*lock"),nomnal("star.core*float")])),nomnal("star.core*sysResult"))).
-  escapeType("_releaseLock") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.thread*lock")])),nomnal("star.core*sysResult"))).
+  escapeType("_acquireLock") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.thread*lock"),nomnal("star.core*float")])),tpExp(tpFun("star.core*result",2),nomnal("star.core*string")))).
+  escapeType("_waitLock") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.thread*lock"),nomnal("star.core*float")])),tpExp(tpFun("star.core*result",2),nomnal("star.core*string")))).
+  escapeType("_releaseLock") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.thread*lock")])),tpExp(tpFun("star.core*result",2),nomnal("star.core*string")))).
   escapeType("_ins_debug") => some(tpExp(tpExp(tpFun("=>",2),tplType([])),tplType([]))).
   escapeType("_stackTrace") => some(tpExp(tpExp(tpFun("=>",2),tplType([])),tplType([]))).
-  escapeType("_assert") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*boolean"),tplType([nomnal("star.core*string"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer")])])),tplType([]))).
   escapeType(_) default => .none.
 
   public isEscape:(string)=>boolean.
@@ -425,6 +424,5 @@ star.compiler.escapes{
   isEscape("_releaseLock") => .true.
   isEscape("_ins_debug") => .true.
   isEscape("_stackTrace") => .true.
-  isEscape("_assert") => .true.
   isEscape(_) default => .false.
 }.

@@ -1,7 +1,7 @@
 :- module(canon,[dispFunction/3,dispDef/1,dispCanon/1,dispCanonProg/1,
 		 ssCanonProg/2,ssTerm/3,ssAction/3,ssPkg/2,ssContract/3,
 		 dispDecls/1,
-		 typeOfCanon/2,splitPtn/3,locOfCanon/2,
+		 typeOfCanon/2,locOfCanon/2,
 		 constructorName/2,constructorType/2,
 		 isCanonDef/1,isCanon/1,isSimpleCanon/1,isAssertion/1,isShow/1,
 		 isPkg/1,isGoal/1,isIterableGoal/1,
@@ -43,6 +43,7 @@ isCanon(disj(_,_,_)).
 isCanon(implies(_,_,_)).
 isCanon(cond(_,_,_,_,_)).
 isCanon(match(_,_,_)).
+isCanon(throw(_,_,_)).
 isCanon(neg(_,_)).
 isCanon(lambda(_,_,_,_)).
 isCanon(valof(_,_)).
@@ -100,6 +101,7 @@ typeOfCanon(stringLit(_,_),type("star.core*string")) :- !.
 typeOfCanon(enm(_,_,Tp),Tp) :- !.
 typeOfCanon(cons(_,_,Tp),Tp) :- !.
 typeOfCanon(where(_,T,_),Tp) :- !, typeOfCanon(T,Tp).
+typeOfCanon(throw(_,_,Tp),Tp) :-!.
 typeOfCanon(abstraction(_,_,_,_,_,Tp),Tp) :- !.
 typeOfCanon(search(_,_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(match(_,_,_),type("star.core*boolean")) :-!.
@@ -134,6 +136,7 @@ locOfCanon(floatLit(Lc,_),Lc) :- !.
 locOfCanon(stringLit(Lc,_),Lc) :- !.
 locOfCanon(enm(Lc,_,_),Lc) :- !.
 locOfCanon(where(Lc,_,_),Lc) :- !.
+locOfCanon(throw(Lc,_,_),Lc) :-!.
 locOfCanon(abstraction(Lc,_,_,_,_,_),Lc) :- !.
 locOfCanon(search(Lc,_,_,_),Lc) :-!.
 locOfCanon(match(Lc,_,_),Lc) :-!.
@@ -163,8 +166,8 @@ locOfCanon(tryCatchDo(Lc,_,_),Lc) :-!.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
 locOfCanon(varDo(Lc,_,_),Lc) :-!.
 locOfCanon(assignDo(Lc,_,_),Lc) :-!.
-locOfCanon(valisDo(Lc,_,_,_,_),Lc) :-!.
-locOfCanon(throwDo(Lc,_,_,_,_),Lc) :-!.
+locOfCanon(valisDo(Lc,_),Lc) :-!.
+locOfCanon(throwDo(Lc,_),Lc) :-!.
 locOfCanon(performDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(simpleDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(noDo(Lc),Lc) :-!.
@@ -208,6 +211,7 @@ ssTerm(dot(_,Rc,Fld,_),Dp,sq([R,ss("."),id(Fld)])) :-
   ssTerm(Rc,Dp,R).
 ssTerm(enm(_,Nm,_),_,sq([ss("."),id(Nm)])).
 ssTerm(cons(_,Nm,_),_,sq([ss("."),id(Nm)])).
+ssTerm(throw(_,E,_),Dp,sq([ss("throw "),EE])) :- ssTerm(E,Dp,EE).
 ssTerm(case(_,Bound,Cases,_),Dp,
 	    sq([ss("case "),B,ss(" in {"),Rs,ss("}")])) :-
   ssTerm(Bound,Dp,B),
@@ -337,7 +341,7 @@ ssAction(tryCatchDo(_,Bdy,Hndlr),Dp,
   Dp2 is Dp+2,
   ssTerm(Hndlr,Dp2,HH),
   ssAction(Bdy,Dp2,BB).
-ssAction(valisDo(_,Exp,_),Dp,sq([ss("valis "),EE])) :-
+ssAction(valisDo(_,Exp),Dp,sq([ss("valis "),EE])) :-
   ssTerm(Exp,Dp,EE).
 ssAction(throwDo(_,Exp),Dp,sq([ss("throw "),EE])) :-
   ssTerm(Exp,Dp,EE).
@@ -489,33 +493,6 @@ dispFunction(Nm,Type,Eqns) :-
 
 dispDef(Def) :-
   displayln(canon:ssDef(0,Def)).
-
-splitPtn(P,Px,Cnd) :-
-  locOfCanon(P,Lc),
-  splitPttrn(P,Px,none,C),
-  deoptional(C,Lc,Cnd).
-
-deoptional(none,Lc,enm(Lc,"true",type("star.core*boolean"))).
-deoptional(some(C),_,C).
-
-splitPttrn(apply(Lc,Op,Arg),apply(Lc,NOp,NArg),Cond,Cx) :-
-  splitPttrn(Op,NOp,Cond,C0),
-  splitPttrn(Arg,NArg,C0,Cx).
-splitPttrn(tple(Lc,Els),tple(Lc,NEls),Cond,Cx) :-
-  splitPttrns(Els,NEls,Cond,Cx).
-splitPttrn(where(Lc,Ptn,Cond),P1,C,Cx) :-
-  splitPttrn(Ptn,P1,C,C0),
-  mergeGl(C0,some(Cond),Lc,Cx).
-splitPttrn(P,P,C,C).
-
-mergeGl(none,G,_,G) :-!.
-mergeGl(G,none,_,G) :-!.
-mergeGl(some(G1),some(G2),Lc,some(conj(Lc,G1,G2))).
-
-splitPttrns([],[],C,C).
-splitPttrns([P|Ps],[Px|Pxs],C,Cx) :-
-  splitPttrn(P,Px,C,C0),
-  splitPttrns(Ps,Pxs,C0,Cx).
 
 anonVar(Lc,anon(Lc,Tp),Tp) :-
   newTypeVar("_",Tp).

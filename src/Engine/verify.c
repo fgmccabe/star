@@ -523,8 +523,6 @@ checkTgt(vectorPo blocks, methodPo mtd, insPo code, integer oPc, integer *pc, Op
         case Jmp:
         case Tail:
         case OTail:
-        case Throw:
-        case Unwind:
           break;
         default:
           updateEntryPoint(current,next);

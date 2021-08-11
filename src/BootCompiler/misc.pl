@@ -1,6 +1,6 @@
 :-module(misc,[concat/3,flatten/2,segment/3,last/2,reverse/2,revconcat/3,
 	       is_member/2,add_mem/3,one_of/1,
-	       merge/3,intersect/3,subtract/3,replace/4,filter/3,
+	       merge/3,intersect/3,subtract/3,replace/4,filter/3,front/3,
 	       collect/4,map/3,lfold/4,rfold/4,
 	       project0/2,project1/2,project0_3/2,project1_3/2,
 	       zip/3,split_list/4,index_list/3,
@@ -62,6 +62,12 @@ merge([E|X],Y,Z) :-
   merge(X,Y,Z).
 merge([E|X],Y,Z) :-
   merge(X,[E|Y],Z).
+
+front([],_,[]) :-!.
+front(_,0,[]) :-!.
+front([H|T],Dp,[H|Rs]) :-
+  Dp1 is Dp-1,
+  front(T,Dp1,Rs).
 
 replace([],_,El,[El]).
 replace([E|X],E,Nw,[Nw|X]).

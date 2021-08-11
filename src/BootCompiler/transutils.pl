@@ -5,7 +5,7 @@
 	   definedProgs/2,labelVars/2,
 	   genVar/2, genVars/2,
 	   genAnons/2,
-	   pushOpt/3, isOption/2,dispMap/2,
+	   pushOpt/3, isOption/2,dispMap/3,
 	   pullWhere/4,pullWheres/4]).
 
 :- use_module(canon).
@@ -195,8 +195,8 @@ pullWheres([E|Rest],[Ex|Rx],G,Gx) :-
   pullWhere(E,G,Ex,G1),
   pullWheres(Rest,Rx,G1,Gx).
 
-dispMap(Msg,Map) :-
-  ssMap(Msg,Map,S),
+dispMap(Msg,Dpth,Map) :-
+  (Dpth>0 -> front(Map,Dpth,SMap),ssMap(Msg,SMap,S) ; ssMap(Msg,Map,S)),
   displayln(S).
 
 ssMap(Msg,Map,sq([ss(Msg),nl(0),iv(nl(0),MM)])) :-

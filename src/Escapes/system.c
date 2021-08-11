@@ -61,14 +61,6 @@ ReturnStatus g__exit(processPo p, ptrPo tos) {
   exit((int) ix);
 }
 
-ReturnStatus g__assert(processPo P, ptrPo tos) {
-  if (tos[0] != trueEnum) {
-    logMsg(logFile, "assertion failed at %L\n", tos[1]);
-    exit(10);
-  }
-  return (ReturnStatus) {.ret=Ok, .result=unitEnum};
-}
-
 static char **argsv = NULL;  /* Store the command line list */
 static int argcnt = 0;
 

@@ -114,6 +114,8 @@ overloadTerm(enm(Lc,Rf,Tp),_,St,St,enm(Lc,Rf,Tp)).
 overloadTerm(cons(Lc,Rf,Tp),_,St,St,cons(Lc,Rf,Tp)).
 overloadTerm(tple(Lc,Args),Dict,St,Stx,tple(Lc,RArgs)) :-
   overloadLst(Args,resolve:overloadTerm,Dict,St,Stx,RArgs).
+overloadTerm(throw(Lc,Er,Tp),Dict,St,Stx,throw(Lc,Err,Tp)) :-
+  overloadTerm(Er,Dict,St,Stx,Err).
 overloadTerm(cell(Lc,Inn),Dict,St,Stx,cell(Lc,Inn1)) :-
   overloadTerm(Inn,Dict,St,Stx,Inn1).
 overloadTerm(deref(Lc,Inn),Dict,St,Stx,deref(Lc,Inn1)) :-
@@ -242,12 +244,12 @@ overloadAction(forDo(Lc,Tst,Body),Dict,St,Stx,forDo(Lc,RTst,RBody)) :-
 overloadAction(tryCatchDo(Lc,Body,Hndlr),Dict,St,Stx,tryCatchDo(Lc,RBody,RHndlr)) :-
   overloadAction(Body,Dict,St,St1,RBody),
   overloadTerm(Hndlr,Dict,St1,Stx,RHndlr).
-overloadAction(valisDo(Lc,Exp,Tp),Dict,St,Stx,valisDo(Lc,RExp,Tp)) :-
+overloadAction(valisDo(Lc,Exp),Dict,St,Stx,valisDo(Lc,RExp)) :-
   overloadTerm(Exp,Dict,St,Stx,RExp).
 overloadAction(throwDo(Lc,Exp),Dict,St,Stx,throwDo(Lc,RExp)) :-
   overloadTerm(Exp,Dict,St,Stx,RExp).
 overloadAction(performDo(Lc,Exp),Dict,St,Stx,performDo(Lc,RExp)) :-
-  overloadAction(Exp,Dict,St,Stx,RExp).
+  overloadTerm(Exp,Dict,St,Stx,RExp).
 overloadAction(simpleDo(Lc,Exp),Dict,St,Stx,simpleDo(Lc,RExp)) :-
   overloadTerm(Exp,Dict,St,Stx,RExp).
 overloadAction(caseDo(Lc,Exp,Cses),Dict,St,Stx,caseDo(Lc,RExp,RCases)) :-
