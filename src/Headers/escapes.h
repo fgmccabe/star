@@ -6,7 +6,7 @@
 
 /* Declare standard types used in escapes */
 
-#define sysRet "t'star.core*sysResult'"
+#define sysRet(E) "Uz2'star.core*result'" E "()"
 #define processState "t'star.thread*threadState'"
 #define threadType "t'star.thread*thread'"
 #define lockType "t'star.thread*lock'"
@@ -109,13 +109,13 @@ escape(_suspend,":k'u'P2k'u'P0","suspend handler if variable not bound")
 */
 
 escape(_cwd,"F()S","return url of current working directory")
-escape(_cd,"F(S)"sysRet,"change current working directory")
-escape(_rm,"F(S)"sysRet,"remove file")
-escape(_mv,"F(SS)"sysRet,"rename file")
-escape(_mkdir,"F(Si)"sysRet,"create directory")
-escape(_rmdir,"F(S)"sysRet,"delete directory")
+escape(_cd,"F(S)"sysRet("S"),"change current working directory")
+escape(_rm,"F(S)"sysRet("S"),"remove file")
+escape(_mv,"F(SS)"sysRet("S"),"rename file")
+escape(_mkdir,"F(Si)"sysRet("S"),"create directory")
+escape(_rmdir,"F(S)"sysRet("S"),"delete directory")
 escape(_isdir,"F(S)l","is directory present")
-escape(_file_chmod,"F(Si)"sysRet,"change mode of a file or directory")
+escape(_file_chmod,"F(Si)"sysRet("S"),"change mode of a file or directory")
 escape(_ls,"F(S)LS","return a array of files in a directory")
 escape(_repo,"F()S","return the standard repo directory name")
 
@@ -133,7 +133,7 @@ escape(_openAppendIOFile,"F(Si)"fileType,"open output file")
 
 escape(_popen,"F(SLSL(SS))("fileType fileType fileType")","open a pipe")
 
-escape(_close,"F("fileType")"sysRet,"close file")
+escape(_close,"F("fileType")"sysRet("S"),"close file")
 escape(_end_of_file,"F("fileType")l","end of file test")
 escape(_ready_to_read,"F("fileType")l","file ready test")
 escape(_ready_to_write,"F("fileType")l","file ready test")
@@ -143,16 +143,16 @@ escape(_inchar,"F("fileType")i","read single character")
 escape(_inbyte,"F("fileType")i","read single byte")
 escape(_inline,"F("fileType")S","read a line")
 escape(_intext,"F("fileType"S)S","read until matching character")
-escape(_outchar,"F("fileType"i)"sysRet,"write a single character")
-escape(_outbyte,"F("fileType"i)"sysRet,"write a single byte")
-escape(_outbytes,"F("fileType"Li)"sysRet,"write a list of bytes")
-escape(_outtext,"F("fileType"S)"sysRet,"write a string as a block")
+escape(_outchar,"F("fileType"i)"sysRet("S"),"write a single character")
+escape(_outbyte,"F("fileType"i)"sysRet("S"),"write a single byte")
+escape(_outbytes,"F("fileType"Li)"sysRet("S"),"write a list of bytes")
+escape(_outtext,"F("fileType"S)"sysRet("S"),"write a string as a block")
 escape(_stdfile,"F(i)"fileType,"standard file descriptor")
 escape(_fposition,"F("fileType")i","report current file position")
-escape(_fseek,"F("fileType"i)"sysRet,"seek to new file position")
-escape(_flush,"F("fileType")"sysRet,"flush the I/O buffer")
+escape(_fseek,"F("fileType"i)"sysRet("S"),"seek to new file position")
+escape(_flush,"F("fileType")"sysRet("S"),"flush the I/O buffer")
 escape(_flushall,"F()()","flush all files")
-escape(_setfileencoding,"F("fileType"i)"sysRet, "set file encoding on file")
+escape(_setfileencoding,"F("fileType"i)"sysRet("S"), "set file encoding on file")
 escape(_get_file,"F(S)S","file into a string")
 escape(_put_file,"F(SS)()","write string into file")
 escape(_show,"F((Siiii)S)()","show something on console")
@@ -162,7 +162,7 @@ escape(_pkg_is_present,"F(SS)l","True if an identified package is available")
 escape(_in_manifest,"F(SSS)l","True if pkg/version/kind is present in manifest")
 escape(_locate_in_manifest,"F(SSS)S","Access manifest resource")
 
-escape(_logmsg,"F(S)"sysRet,"log a message in logfile or console")
+escape(_logmsg,"F(S)()","log a message in logfile or console")
 
 // Socket handling functions
 escape(_connect,"F(Sii)("fileType fileType")","connect to remote host")
@@ -180,8 +180,8 @@ escape(_hosttoip,"F(S)LS","IP address of host")
 escape(_iptohost,"F(S)S","host name from IP")
 
 // Timing and delaying
-escape(_delay,"F(f)"sysRet,"delay for period of time")
-escape(_sleep,"F(f)"sysRet,"sleep until a definite time")
+escape(_delay,"F(f)()","delay for period of time")
+escape(_sleep,"F(f)()","sleep until a definite time")
 escape(_now,"F()f","current time")
 escape(_today,"F()f","time at midnight")
 escape(_ticks,"F()i","used CPU time")
@@ -270,28 +270,27 @@ escape(_str_cons,"F(iS)S","put a char in the front")
 escape(_str_apnd,"F(Si)S","put a char in the back")
 
 escape(_getenv,"F(SS)S","get an environment variable")
-escape(_setenv,"F(SS)"sysRet,"set an environment variable")
+escape(_setenv,"F(SS)()","set an environment variable")
 escape(_envir,"F()L(SS)","return entire environment")
 escape(_getlogin,"F()S","return user's login")
 
 // Process manipulation
-escape(_fork,"F(F()"sysRet")"threadType,"fork new process")
+escape(_fork,"F(F()"sysRet("S")")"threadType,"fork new process")
 escape(_thread,"F()"threadType"","report thread of current process")
-escape(_kill,"F("threadType")"sysRet ,"kill off a process")
+escape(_kill,"F("threadType")"sysRet("S") ,"kill off a process")
 escape(_thread_state,"F("threadType ")" processState,"state of process")
-escape(_waitfor,"F("threadType")"sysRet,"wait for other thread to terminate")
+escape(_waitfor,"F("threadType")"sysRet("S"),"wait for other thread to terminate")
 
 escape(_shell,"F(SLSL(SS))i","Run a shell cmd")
 
 // Lock management
 escape(_newLock,"F()"lockType,"create a new lock")
-escape(_acquireLock,"F("lockType"f)"sysRet,"acquire lock")
-escape(_waitLock,"F("lockType"f)"sysRet,"release and wait on a lock")
-escape(_releaseLock,"F("lockType")"sysRet,"release a lock")
+escape(_acquireLock,"F("lockType"f)"sysRet("S"),"acquire lock")
+escape(_waitLock,"F("lockType"f)"sysRet("S"),"release and wait on a lock")
+escape(_releaseLock,"F("lockType")"sysRet("S"),"release a lock")
 
 escape(_ins_debug,"F()()","set instruction-level")
 escape(_stackTrace,"F()()","Print a stack trace")
-escape(_assert,"F(l(Siiii))()","Check an assertion and bolt if false")
 
 #undef processState
 #undef threadType

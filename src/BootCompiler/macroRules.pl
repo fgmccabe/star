@@ -10,6 +10,7 @@
 macroRl("[]",pattern,macroRules:macroSquarePtn).
 macroRl("[]",expression,macroRules:macroListComprehension).
 macroRl("[]",expression,macroRules:macroSquareTuple).
+macroRl("$[]",expression,macroRules:indexMacro).
 macroRl("<||>",expression,macroRules:macroQuote).
 macroRl("{}",expression,macroRules:macroComprehension).
 macroRl("{!!}",expression,macroRules:macroIotaComprehension).
@@ -26,6 +27,7 @@ macroRl(":=",action,macroRules:spliceAssignMacro).
 macroRl(":=",action,macroRules:indexAssignMacro).
 macroRl("assert",action,macroRules:assertMacro).
 macroRl("show",action,macroRules:showMacro).
+macroRl("valof",expression,macroRules:valofMacro).
 
 build_main(As,Bs) :-
   look_for_signature(As,"main",Lc,Ms),
@@ -47,7 +49,7 @@ synthesize_main(Lc,Ts,As,[MainTp,Main|As]) :-
   list_pttrn(Lc,Vs,Arg),
   roundTerm(Lc,name(Lc,"_main"),[Arg],Lhs),
   roundTerm(Lc,name(Lc,"main"),Cs,Rhs),
-  unary(Lc,"valof",Rhs,MnCall),
+  mkValof(Lc,Rhs,MnCall),
   eqn(Lc,Lhs,MnCall,Main),
   squareTerm(Lc,name(Lc,"cons"),[name(Lc,"string")],T1),
   roundTuple(Lc,[T1],T3),
@@ -71,8 +73,12 @@ list_pttrn(Lc,Ts,Arg) :-
   isSquareTuple(Arg,Lc,[As]).
 
 macroSquareTuple(A,expression,Trm) :-
-  isSquareTuple(A,Lc,Els),!,
-  macroListEntries(Lc,Els,Trm,nilGen,consGen,appndGen).
+  isSquareTuple(A,Lc,Els),
+  \+isMapLiteral(A,_,_),!,
+  macroListEntries(Lc,Els,Trm,nilGen,consGen).
+macroSquareTuple(A,expression,Trm) :-
+  isMapLiteral(A,Lc,Prs),
+  macroListEntries(Lc,Prs,Trm,emptyGen,putGen).
 
 nilGen(Lc,name(Lc,"_nil")).
 
@@ -82,9 +88,17 @@ consGen(Lc,L,R,Trm) :-
 appndGen(Lc,L,R,Trm) :-
   binary(Lc,"_apnd",L,R,Trm).
 
+emptyGen(Lc,name(Lc,"_empty")).
+
+putGen(Lc,(F,V),R,Trm) :-
+  ternary(Lc,"_put",R,F,V,Trm).
+
+concGen(Lc,L,(F,V),Trm) :-
+  ternary(Lc,"put",L,F,V,Trm).
+
 macroSquarePtn(A,pattern,Ptn) :-
   isSquareTuple(A,Lc,Els),!,
-  macroListEntries(Lc,Els,Ptn,genEofTest,genHedTest,genTailTest).
+  macroListEntries(Lc,Els,Ptn,genEofTest,genHedTest).
 
 genEofTest(Lc,Trm) :-
   genIden(Lc,X),
@@ -97,14 +111,25 @@ genHedTest(Lc,L,R,Trm) :-
 genTailTest(Lc,L,R,Trm) :-
   mkWherePtn(Lc,tuple(Lc,"()",[L,R]),name(Lc,"_back"),Trm).
 
-macroListEntries(Lc,[],Trm,End,_,_) :-
+macroListEntries(Lc,[],Trm,End,_) :-
   call(End,Lc,Trm).
-macroListEntries(_,[Cns],Trm,_,Hed,_) :-
+macroListEntries(_,[Cns],Trm,_,Hed) :-
   isConsTerm(Cns,Lc,H,T),
   call(Hed,Lc,H,T,Trm).
-macroListEntries(Lc,[E|L],Trm,End,Hed,Tail) :-
-  macroListEntries(Lc,L,Tr,End,Hed,Tail),
+macroListEntries(Lc,[E|L],Trm,End,Hed) :-
+  macroListEntries(Lc,L,Tr,End,Hed),
   call(Hed,Lc,E,Tr,Trm).
+
+indexMacro(T,expression,Rp) :-
+  isIndexTerm(T,Lc,M,A),!,
+  (isBinary(A,_,"->",Ky,Vl) ->
+   ternary(Lc,"_put",M,Ky,Vl,Rp);
+   isNegation(A,_,Ky) ->
+   binary(Lc,"_remove",M,Ky,Rp);
+   binary(Lc,"_index",M,A,Rp)).
+indexMacro(T,expression,Rp) :-
+  isSlice(T,Lc,M,F,T),
+  ternary(Lc,"_slice",M,F,T,Rp).
 
 macroComprehension(T,expression,Rp) :-
   isComprehension(T,Lc,Bnd,Body),!,
@@ -302,12 +327,7 @@ macroLocationExp(T,expression,Loc) :-
 /*
  assert C 
 becomes
- try{
-   assrt(()=>C,"failed: C",Loc)
- } catch(Err) => action{
-   logMsg(Err)
-   throw ()
-  }
+ perform assrt(()=>C,"failed: C",Loc)
 */
 assertMacro(T,action,Act) :-
   isIntegrity(T,Lc,Cond),!,
@@ -316,16 +336,7 @@ assertMacro(T,action,Act) :-
   eqn(Lc,tuple(Lc,"()",[]),Cond,Lam),
   mkLoc(CLc,Loc),
   roundTerm(Lc,name(Lc,"assrt"),[Lam,string(Lc,Msg),Loc],Assert),
-  braceTuple(Lc,[Assert],B),
-  genIden(Lc,Err),
-  roundTerm(Lc,name(Lc,"logMsg"),[Err],Rep),
-  roundTuple(Lc,[],Unit),
-  unary(Lc,"throw",Unit,Thr),
-  binary(Lc,";",Rep,Thr,CtBd),
-  braceTerm(Lc,name(Lc,"action"),[CtBd],R1),
-  eqn(Lc,tuple(Lc,"()",[Err]),R1,ELam),
-  binary(Lc,"catch",B,ELam,R2),
-  unary(Lc,"try",R2,Act).
+  mkPerform(Lc,Assert,Act).
 
 /*
  show E 
@@ -363,6 +374,10 @@ indexAssignMacro(A,action,Act) :-
   unary(LLc,"!",C,CC),
   ternary(LLc,"_put",CC,I,R,Repl),
   binary(Lc,":=",C,Repl,Act).
+
+valofMacro(T,expression,Tx) :-
+  isValof(T,Lc,A),!,
+  unary(Lc,"_valof",A,Tx).
   
 macroQuote(T,expression,Rp) :-
   isQuote(T,_,A),!,
@@ -380,7 +395,7 @@ quoteExp(string(Lc,Sx),I) :-
   unary(Lc,"_string",string(Lc,Sx),I).
 quoteExp(tuple(Lc,Lb,Els),Rp) :-
   map(Els,quoteExp,QEls),
-  macroListEntries(Lc,QEls,R,nilGen,consGen,appndGen),
+  macroListEntries(Lc,QEls,R,nilGen,consGen),
   binary(Lc,"_tuple",string(Lc,Lb),R,Rp).
 quoteExp(app(Lc,O,A),Rp) :-
   quoteExp(O,Oq),

@@ -10,6 +10,7 @@ star{
   public import star.q.
   public import star.display.
   public import star.ideal.
+  public import star.index.
   public import star.iterable.
   public import star.either.
   public import star.misc.

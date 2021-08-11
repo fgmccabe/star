@@ -213,8 +213,17 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
   switch (A1) {
     case nOp:                             // No operand
     case tOs:
-      outMsg(out, "|M],Cdx) :- Pc1 is Pc+1,\n");
-      outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
+      switch (A2) {
+        case i32:{
+          outMsg(out, ",W|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
+          break;
+        }
+        default:
+          outMsg(out, "|M],Cdx) :- Pc1 is Pc+1,\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
+          break;
+      }
       break;
     case lne:
     case lit:

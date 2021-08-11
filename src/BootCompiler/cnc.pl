@@ -5,7 +5,6 @@
 :- use_module(canon).
 :- use_module(unify).
 :- use_module(abstract).
-:- use_module(lterms).
 :- use_module(misc).
 :- use_module(do).
 :- use_module(errors).
@@ -181,3 +180,30 @@ analyseExps(Exps,Df,Dfx,Rq,Rqx,Cand) :-
 
 addVar(v(_,Nm,_),D,D) :- is_member(v(_,Nm,_),D),!.
 addVar(V,D,[V|D]).
+
+splitPtn(P,Px,Cnd) :-
+  locOfCanon(P,Lc),
+  splitPttrn(P,Px,none,C),
+  deoptional(C,Lc,Cnd).
+
+deoptional(none,Lc,enm(Lc,"true",type("star.core*boolean"))).
+deoptional(some(C),_,C).
+
+splitPttrn(apply(Lc,Op,Arg),apply(Lc,NOp,NArg),Cond,Cx) :-
+  splitPttrn(Op,NOp,Cond,C0),
+  splitPttrn(Arg,NArg,C0,Cx).
+splitPttrn(tple(Lc,Els),tple(Lc,NEls),Cond,Cx) :-
+  splitPttrns(Els,NEls,Cond,Cx).
+splitPttrn(where(Lc,Ptn,Cond),P1,C,Cx) :-
+  splitPttrn(Ptn,P1,C,C0),
+  mergeGl(C0,some(Cond),Lc,Cx).
+splitPttrn(P,P,C,C).
+
+mergeGl(none,G,_,G) :-!.
+mergeGl(G,none,_,G) :-!.
+mergeGl(some(G1),some(G2),Lc,some(conj(Lc,G1,G2))).
+
+splitPttrns([],[],C,C).
+splitPttrns([P|Ps],[Px|Pxs],C,Cx) :-
+  splitPttrn(P,Px,C,C0),
+  splitPttrns(Ps,Pxs,C0,Cx).

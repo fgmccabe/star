@@ -6,6 +6,7 @@ star.action{
   import star.coerce.
   import star.cons.
   import star.display.
+  import star.either.
 
   public all a,e ~~ action[e,a] ::= action(()=>result[e,a]).
 
@@ -56,8 +57,8 @@ star.action{
     _handle(action(A),H) => testE(A(),H).
   .}
 
-  public logMsg:all e ~~ (string)=>action[e,()].
-  logMsg(Msg) => action{
+  public logMsg:all e ~~ (string)=>result[e,()].
+  logMsg(Msg) => do{
     _ .= _logmsg(Msg);
     valis ()
   }

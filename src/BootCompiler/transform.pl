@@ -55,7 +55,7 @@
 transformProg(PkgDecls,prog(pkg(Pkg,Vers),Imports,Decls,LDecls,Defs),
 	      Opts,mdule(pkg(Pkg,Vers),Imports,Decls,LDecls,Dfs)) :-
   makePkgMap(Pkg,PkgDecls,Map),
-%  (is_member(showTrCode,Opts) -> dispMap("Package map: ",Map);true),
+  (is_member(showTrCode,Opts) -> dispMap("Package map: ",0,Map);true),
   transformModuleDefs(Defs,Pkg,Map,Opts,Dfs,[]).
 
 makePkgMap(Pkg,PkgDecls,[lyr(VarMap,TpMap,ConsMap,void)]) :-
@@ -67,8 +67,8 @@ declareModuleGlobals(Pkg,[Def|Rest],ConsMap,VMap,VMx,TMap,TMx) :-
   declareModuleGlobals(Pkg,Rest,ConsMap,M0,VMx,TM0,TMx).
 declareModuleGlobals(_,[],_,Map,Map,TMap,TMap).
 
-declMdlGlobal(Pkg,funDec(Nm,LclName,Tp),_,VMp,VMx,TMx,TMx) :-
-  localName(Pkg,closure,Nm,ClosureName),
+declMdlGlobal(_Pkg,funDec(Nm,LclName,Tp),_,VMp,VMx,TMx,TMx) :-
+  localName(LclName,closure,ClosureName),
   progTypeArity(Tp,Ar),
   declEntry(Nm,moduleFun(LclName,some(ClosureName),Ar),VMp,VMx).
 declMdlGlobal(_Pkg,varDec(Nm,LclName,_),_,Mp,Mx,TMx,TMx) :-
@@ -368,6 +368,8 @@ liftExp(stringLit(_,Sx),strg(Sx),Q,Q,_,_,Ex,Ex) :-!.
 liftExp(tple(_,A),TApl,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,TA,[],Q,Qx,Map,Opts,Ex,Exx),
   mkTpl(TA,TApl).
+liftExp(throw(Lc,E,_),rais(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(apply(Lc,Op,tple(_,A),_),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
   trExpCallOp(Lc,Op,LA,Exp,Q1,Qx,Map,Opts,Ex1,Exx).
@@ -411,7 +413,7 @@ liftExp(lambda(Lc,Lbl,Rle,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-!,
 liftExp(abstraction(Lc,Bnd,Cond,Zed,Gen,Tp),Rslt,Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftAbstraction(abstraction(Lc,Bnd,Cond,Zed,Gen,Tp),Rslt,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(doTerm(Lc,Action,_),doAct(Lc,Act),Q,Q,Map,Opts,Ex,Exx) :-
-  liftAction(Action,Act,Q,_,Map,Opts,Ex,Exx).
+  liftAction(last,Action,Act,Q,_,Map,Opts,Ex,Exx).
 liftExp(XX,void,Q,Q,_,_,Ex,Ex) :-
   locOfCanon(XX,Lc),
   reportFatal("internal: cannot transform %s as expression",[XX],Lc).
@@ -419,7 +421,7 @@ liftExp(XX,void,Q,Q,_,_,Ex,Ex) :-
 liftLetExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   genVar("_ThR",ThVr),
   letMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,ThMap,RMap,FreeTerm),
-%  (is_member(showTrCode,Opts) -> dispMap("Record map: ",ThMap);true),
+  (is_member(showTrCode,Opts) -> dispMap("Record map: ",2,ThMap);true),
   transformThetaDefs(ThMap,RMap,Opts,Defs,[],Fx,Ex,Ex1),
   liftExp(Bnd,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
   mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
@@ -428,7 +430,7 @@ liftLetExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftLetRec(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   genVar("_ThV",ThVr),
   thetaMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,ThMap,FreeTerm),
-  (is_member(showTrCode,Opts) -> dispMap("Theta map: ",ThMap);true),
+  (is_member(showTrCode,Opts) -> dispMap("Theta map: ",2,ThMap);true),
   transformThetaDefs(ThMap,ThMap,Opts,Defs,[],Fx,Ex,Ex1),
   liftExp(Bnd,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
   mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
@@ -518,7 +520,7 @@ liftCase(equation(Lc,P,G,Value),(Lc,[Ptn],Test,Rep),Q,Qx,Map,Opts,Lifter,Ex,Exx)
 liftLambda(lambda(Lc,LamLbl,Eqn,Tp),Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
   (is_member(showTrCode,Opts) -> dispCanon(lambda(Lc,LamLbl,Eqn,Tp));true),
   lambdaMap(lambda(Lc,LamLbl,Eqn,Tp),LamLbl,Q,Map,Opts,Closure,LMap),
-  (is_member(showTrCode,Opts) -> dispMap("lambda map: ",LMap);true),
+  (is_member(showTrCode,Opts) -> dispMap("lambda map: ",2,LMap);true),
   transformEqn(Eqn,LMap,LMap,Opts,Rls,[],Ex,Exx),
   is_member((_,Args,_,_),Rls),!,
   length(Args,Ar),
@@ -540,48 +542,56 @@ mkClosure(Lam,FreeVars,Closure) :-
     Closure=enum(Lam) |
   Closure=ctpl(lbl(Lam,Ar),FreeVars)).
 
-liftAction(noDo(Lc),nop(Lc),Qx,Qx,_,_,Ex,Ex).
-liftAction(valisDo(Lc,E,_),rtnDo(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-
+liftAction(Last,noDo(Lc),nop(Lc),Qx,Qx,_,_,Ex,Ex) :- checkNotLast(Last,Lc).
+liftAction(_,valisDo(Lc,E),rtnDo(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
-liftAction(throwDo(Lc,E),raisDo(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-
+liftAction(_,throwDo(Lc,E),raisDo(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
-liftAction(seqDo(Lc,E1,E2),seq(Lc,L1,L2),Q,Qx,Map,Opts,Ex,Exx) :-
-  liftAction(E1,L1,Q,Q0,Map,Opts,Ex,Ex1),
-  liftAction(E2,L2,Q0,Qx,Map,Opts,Ex1,Exx).
-liftAction(varDo(Lc,P,E),varD(Lc,P1,E1),Q,Q,Map,Opts,Ex,Exx) :-
+liftAction(Last,seqDo(Lc,E1,E2),seq(Lc,L1,L2),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftAction(notLast,E1,L1,Q,Q0,Map,Opts,Ex,Ex1),
+  liftAction(Last,E2,L2,Q0,Qx,Map,Opts,Ex1,Exx).
+liftAction(Last,varDo(Lc,P,E),varD(Lc,P1,E1),Q,Q,Map,Opts,Ex,Exx) :-
+  checkNotLast(Last,Lc),
   liftPtn(P,P1,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(E,E1,Q0,_,Map,Opts,Ex0,Exx).
-liftAction(assignDo(Lc,P,E),assignD(Lc,P1,E1),Q,Q,Map,Opts,Ex,Exx) :-
+liftAction(Last,assignDo(Lc,P,E),assignD(Lc,P1,E1),Q,Q,Map,Opts,Ex,Exx) :-
+  checkNotLast(Last,Lc),
   liftPtn(P,P1,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(E,E1,Q0,_,Map,Opts,Ex0,Exx).
-liftAction(performDo(Lc,Exp),perfDo(Lc,E1),Q,Qx,Map,Opts,Ex,Exx) :-
+liftAction(_,performDo(Lc,Exp),perfDo(Lc,E1),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(Exp,E1,Q,Qx,Map,Opts,Ex,Exx).
-liftAction(ifThenDo(Lc,Ts,Th,El),cnd(Lc,Tst,Th1,El1),Q,Qx,Map,Opts,Ex,Exx) :-
+liftAction(_,simpleDo(Lc,Exp),justDo(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftExp(Exp,EE,Q,Qx,Map,Opts,Ex,Exx).
+liftAction(Last,ifThenDo(Lc,Ts,Th,El),cnd(Lc,Tst,Th1,El1),Q,Qx,Map,Opts,Ex,Exx) :-
   liftGoal(Ts,Tst,Q,Q0,Map,Opts,Ex,Ex0),
-  liftAction(Th,Th1,Q,Q0,Map,Opts,Ex0,Ex1),
-  liftAction(El,El1,Q0,Qx,Map,Opts,Ex1,Exx).
-liftAction(whileDo(Lc,G,B),whle(Lc,Gl,Bdy),Q,Q,Map,Opts,Ex,Exx) :-
+  liftAction(Last,Th,Th1,Q,Q0,Map,Opts,Ex0,Ex1),
+  liftAction(Last,El,El1,Q0,Qx,Map,Opts,Ex1,Exx).
+liftAction(Last,whileDo(Lc,G,B),whle(Lc,Gl,Bdy),Q,Q,Map,Opts,Ex,Exx) :-
+  checkNotLast(Last,Lc),
   liftGoal(G,Gl,Q,Q0,Map,Opts,Ex,Ex0),
-  liftAction(B,Bdy,Q0,_,Map,Opts,Ex0,Exx).
-liftAction(untilDo(Lc,G,B),untl(Lc,Gl,Bdy),Q,Q,Map,Opts,Ex,Exx) :-
+  liftAction(Last,B,Bdy,Q0,_,Map,Opts,Ex0,Exx).
+liftAction(Last,untilDo(Lc,G,B),untl(Lc,Gl,Bdy),Q,Q,Map,Opts,Ex,Exx) :-
   liftGoal(G,Gl,Q,Q0,Map,Opts,Ex,Ex0),
-  liftAction(B,Bdy,Q0,_,Map,Opts,Ex0,Exx).
-liftAction(forDo(Lc,G,B),forD(Lc,Gl,Bdy),Q,Q,Map,Opts,Ex,Exx) :-
+  liftAction(Last,B,Bdy,Q0,_,Map,Opts,Ex0,Exx).
+liftAction(Last,forDo(Lc,G,B),forD(Lc,Gl,Bdy),Q,Q,Map,Opts,Ex,Exx) :-
+  checkNotLast(Last,Lc),
   liftGoal(G,Gl,Q,Q0,Map,Opts,Ex,Ex0),
-  liftAction(B,Bdy,Q0,_,Map,Opts,Ex0,Exx).
-liftAction(caseDo(Lc,G,C),Result,Q,Q,Map,Opts,Ex,Exx) :-
+  liftAction(Last,B,Bdy,Q0,_,Map,Opts,Ex0,Exx).
+liftAction(Last,caseDo(Lc,G,C),Result,Q,Q,Map,Opts,Ex,Exx) :-
   liftExp(G,Bound,Q,_,Map,Opts,Ex,Ex0),
-  liftCases(C,Cs,Q,_,Map,Opts,transform:liftAction,Ex0,Exx),
+  liftCases(C,Cs,Q,_,Map,Opts,transform:liftAction(Last),Ex0,Exx),
   (idnt(_)=Bound ->
    caseMatcher(Lc,Bound,Cs,Map,Result) ;
    genVar("_C",V),
    caseMatcher(Lc,V,Cs,Map,Res),
    Result = seqD(Lc,varD(Lc,V,Bound),Res)).
-liftAction(simpleDo(Lc,Exp),justDo(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-
-  liftExp(Exp,EE,Q,Qx,Map,Opts,Ex,Exx).
-liftAction(tryCatchDo(Lc,Bdy,Hndlr),tryDo(Lc,BB,HH),Q,Q,Map,Opts,Ex,Exx) :-
-  liftAction(Bdy,BB,Q,_,Map,Opts,Ex,Ex0),
-  liftExp(Hndlr,HH,Q,_,Map,Opts,Ex0,Exx).
+liftAction(_,tryCatchDo(Lc,Bdy,Lam),tryDo(Lc,BB,H),Q,Q,Map,Opts,Ex,Exx) :-
+  liftAction(last,Bdy,BB,Q,_,Map,Opts,Ex,Ex0),
+  liftExp(Lam,H,Q,_,Map,Opts,Ex0,Exx).
+
+checkNotLast(last,Lc) :-
+  reportError("not permitted to be last action",[],Lc).
+checkNotLast(notLast,_).
 
 liftGoal(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   liftGl(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx).

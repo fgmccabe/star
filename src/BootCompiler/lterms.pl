@@ -49,6 +49,7 @@ isLTerm(ng(_,_)) :- !.
 isLTerm(error(_,_)) :- !.
 isLTerm(doAct(_,_)) :- !.
 isLTerm(shft(_,_,_)) :-!.
+isLTerm(rais(_,_)) :-!.
 isLTerm(rst(_,_)) :- !.
 
 mergeGl(none,G,_,G).
@@ -133,6 +134,9 @@ ssTrm(ctpl(Op,A),Dp,sq([ss("."),OO,lp,AA,rp])) :-
   ssCOnOp(Op,OO),
   Dp1 is Dp+2,
   showArgs(A,Dp1,AA).
+ssTrm(rais(_,E),Dp,sq([ss("raise "),EE])) :-
+  Dp1 is Dp+2,
+  ssTrm(E,Dp1,EE).
 ssTrm(shft(_,V,E),Dp,sq([ss("shift "),VV,ss(" in "),EE])) :-
   ssTrm(V,Dp,VV),
   Dp1 is Dp+2,
@@ -293,6 +297,8 @@ rewriteTerm(_,float(Dx),float(Dx)).
 rewriteTerm(_,strg(Sx),strg(Sx)).
 rewriteTerm(_,enum(Nm),enum(Nm)).
 rewriteTerm(_,lbl(Nm,Ar),lbl(Nm,Ar)).
+rewriteTerm(QTest,rais(Lc,E),rais(Lc,EE)) :-
+  rewriteTerm(QTest,E,EE).
 rewriteTerm(QTest,ltt(Lc,V,Val,Exp),ltt(Lc,V,Val1,Exp1)) :-
   rewriteTerm(lterms:checkV(V,QTest),Val,Val1),
   rewriteTerm(lterms:checkV(V,QTest),Exp,Exp1).
@@ -464,6 +470,8 @@ inTerm(ocall(_,_Op,Args),Nm) :-
   is_member(Arg,Args), inTerm(Arg,Nm),!.
 inTerm(nth(_,Op,_),Nm) :-
   inTerm(Op,Nm).
+inTerm(rais(_,E),Nm) :-
+  inTerm(E,Nm).
 inTerm(setix(_,Op,_,_),Nm) :-
   inTerm(Op,Nm).
 inTerm(setix(_,_,_,Vl),Nm) :-
@@ -579,6 +587,8 @@ validTerm(enum(_),_,_).
 validTerm(nth(Lc,Rc,Off),_,D) :-
   integer(Off),
   validTerm(Rc,Lc,D).
+validTerm(rais(Lc,Exp),_,D) :-
+  validTerm(Exp,Lc,D).
 validTerm(setix(Lc,Rc,Off,Vl),_,D) :-
   integer(Off),
   validTerm(Rc,Lc,D),
@@ -691,7 +701,7 @@ validAct(rtnDo(Lc,E),_,D) :-
 validAct(raisDo(Lc,E),_,D) :-
   validTerm(E,Lc,D).
 validAct(perfDo(Lc,A),_,D) :-
-  validAct(A,Lc,D).
+  validTerm(A,Lc,D).
 validAct(whle(Lc,T,A),_,D) :-
   validTerm(T,Lc,D),
   validAct(A,Lc,D).

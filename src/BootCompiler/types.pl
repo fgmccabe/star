@@ -15,7 +15,8 @@
 	   getConstraints/3,putConstraints/3,
 	   implementationName/2,
 	   mkTypeRule/3,
-	   stdType/3]).
+	   stdType/3,
+	   unitTp/1]).
 :- use_module(misc).
 :- use_module(display).
 
@@ -484,3 +485,4 @@ mkPtrs(I,[ptrTipe|As]) :-
   I1 is I-1,
   mkPtrs(I1,As).
 
+unitTp(tplType([])).

@@ -23,7 +23,7 @@
 	      isDefn/4,isAssignment/4,isRef/3,isCellRef/3,cellRef/3,
 	      assignment/4,eqn/4,eqn/5,
 	      mkDefn/4,mkLoc/2,
-	      isIterableGl/1,
+	      isGl/1,isIterableGl/1,
 	      ruleName/3,headName/2,
 	      isWhere/4,mkWhere/4,mkWherePtn/4,mkWhereEquality/3,
 	      isCoerce/4,coerce/4,isOptCoerce/4,optCoerce/4,
@@ -32,7 +32,7 @@
 	      isOptionPtn/4,isOptionMatch/4,optionMatch/4,
 	      isConjunct/4,conjunct/4,isDisjunct/4,disjunct/4,
 	      isForall/4,mkForall/4,isNegation/3,negation/3,
-	      isMatch/4,match/4,isSearch/4,search/4,
+	      isMatch/4,match/4,isSearch/4,search/4,isMapLiteral/3,
 	      isComprehension/4,isListComprehension/4,isIotaComprehension/4,
 	      isTestComprehension/3,mkTestComprehension/3,
 	      isCaseExp/4,caseExp/4,
@@ -609,6 +609,14 @@ isSearch(Trm,Lc,Ptn,Gen) :-
 search(Lc,L,R,T) :-
   binary(Lc,"in",L,R,T).
 
+isMapLiteral(T,Lc,Prs) :-
+  isSquareTuple(T,Lc,Els),
+  Els\==[],
+  map(Els,wff:collectPair,Prs).
+
+collectPair(T,(F,E)) :-
+  isPair(T,_,F,E).
+
 isComprehension(Trm,Lc,Bnd,Body) :-
   isBraceTuple(Trm,Lc,[T]),
   isBinary(T,_,"|",Bnd,Body).
@@ -666,6 +674,19 @@ isSplice(Trm,Lc,S,F,T,R) :-
   isSquareTerm(L,_,S,X),
   isBinary(X,_,":",F,T),!.
 
+isGl(C) :-
+  isConjunct(C,_,_,_),!.
+isGl(C) :-
+  isDisjunct(C,_,_,_),!.
+isGl(C) :-
+  isNegation(C,_,_),!.
+isGl(C) :-
+  isForall(C,_,_,_),!.
+isGl(C) :-
+  isSearch(C,_,_,_),!.
+isGl(C) :-
+  isMatch(C,_,_,_),!.
+
 isIterableGl(C) :-
   isConjunct(C,_,L,R),!,
   (isIterableGl(L) ; isIterableGl(R)).
@@ -680,6 +701,8 @@ isIterableGl(C) :-
   (isIterableGl(L) ; isIterableGl(R)).
 isIterableGl(C) :-
   isSearch(C,_,_,_),!.
+
+
 
 packageName(T,Pkg) :- isIden(T,Pkg).
 packageName(T,Pkg) :- isString(T,Pkg).
@@ -830,7 +853,7 @@ mkActionSeq(Lc,S1,S2,T) :-
 
 mkLoc(Lc,T) :-
   Lc=loc(Pk,Line,Col,Off,Ln),
-  roundTuple(Lc,
+  roundTerm(Lc,name(Lc,"locn"),
 	     [string(Lc,Pk),
 	      integer(Lc,Line),
 	      integer(Lc,Col),

@@ -27,6 +27,7 @@ instruction(Ret,tOs,nOp,0,"return")
 instruction(Jmp,off,nOp,0,"jump lbl")
 
 instruction(Drop,tOs,nOp,-1,"drop top of stack")
+instruction(DropTo,tOs,i32,0,"drop stack tp fixed level")
 instruction(Dup,tOs,nOp,1,"duplicate top of stack")
 instruction(Rst, i32, nOp, 0, "reset stack height to a fixed height")
 
@@ -51,13 +52,13 @@ instruction(Cell,tOs,nOp,0,"create R/W cell")
 instruction(Get,tOs,nOp,0,"access a R/W cell")
 instruction(Assign,tOs,nOp,-1,"assign to a R/W cell")
 
-instruction(CLbl,lit,off,-1,"T,Lbl --> test for a data term, branch if lbl")
+instruction(CLbl,lit,off,0,"T,Lbl --> test for a data term, branch if lbl")
 instruction(CmpVd,lVl,nOp,-1,"T --> test for void on the stack, break if void")
 instruction(Nth, i32, nOp, 0, "T --> el, pick up the nth element")
 instruction(StNth, i32, nOp, -2, "T el --> store in nth element")
 
-instruction(If,lVl,nOp,-1,"break if true")
-instruction(IfNot,lVl,nOp,-1,"brak if false")
+instruction(If,off,nOp,-1,"break if true")
+instruction(IfNot,off,nOp,-1,"brak if false")
 
 instruction(Case, i32, nOp, 0, "T --> T, case <Max> ")
 instruction(IndxJmp,i32,nOp,0,"check and jump on index")
@@ -102,9 +103,6 @@ instruction(Cmp,off,nOp,-1,"t1 t2 --> , branch to offset if not same literal")
 instruction(Comp,lVl,nOp,-1,"t1 t2 --> , break if not same literal")
 
 instruction(Frame,tPe,nOp,0,"frame instruction")
-
-instruction(Throw,off,nOp,0,"T --> T throw to handler or out")
-instruction(Unwind,off,nOp,0,"jump to handler")
 
 instruction(dLine,lne,nOp,0,"--> debug line")
 instruction(dBug,nOp,nOp,0,"debugging prefix")

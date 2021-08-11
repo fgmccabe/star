@@ -25,6 +25,7 @@ star.compiler.assem{
     .iRet |
     iJmp(assemLbl) |
     .iDrop |
+    iDropTo(integer) |
     .iDup |
     iRst(integer) |
     .iPrompt |
@@ -49,8 +50,8 @@ star.compiler.assem{
     iCmpVd(integer) |
     iNth(integer) |
     iStNth(integer) |
-    iIf(integer) |
-    iIfNot(integer) |
+    iIf(assemLbl) |
+    iIfNot(assemLbl) |
     iCase(integer) |
     iIndxJmp(integer) |
     iUnpack(term,assemLbl) |
@@ -86,8 +87,6 @@ star.compiler.assem{
     iCmp(assemLbl) |
     iComp(integer) |
     iFrame(ltipe) |
-    iThrow(assemLbl) |
-    iUnwind(assemLbl) |
     idLine(term) |
     .idBug |
     .idBreak |
@@ -141,72 +140,71 @@ star.compiler.assem{
   mnem([.iRet,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(6)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
   mnem([iJmp(al(U)),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where Tgt ^= Lbls[U] => mnem(Ins,Code++[intgr(7),intgr(Tgt-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
   mnem([.iDrop,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(8)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iDup,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(9)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([iRst(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(10),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([.iPrompt,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(11)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iCut,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(12)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iRestore,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(13)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iUnderflow,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(14)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iLdV,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(15)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([iLdG(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(16),strg(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([iLdC(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (Lt1,LtNo) .= findLit(Lts,U) => mnem(Ins,Code++[intgr(17),intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([iLdA(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(18),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([iLdL(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(19),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,max(U,MxLcl),Ends).
-  mnem([iStL(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(20),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,max(U,MxLcl),Ends).
-  mnem([iStV(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(21),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,max(U,MxLcl),Ends).
-  mnem([iTL(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(22),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,max(U,MxLcl),Ends).
-  mnem([iStA(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(23),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([iStG(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(24),strg(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([iTG(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(25),strg(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([.iCell,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(26)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iGet,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(27)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iAssign,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(28)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([iCLbl(U,al(V)),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (Lt1,LtNo) .= findLit(Lts,U) && Tgt ^= Lbls[V] => mnem(Ins,Code++[intgr(29),intgr(LtNo),intgr(Tgt-Pc-5)],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl,Ends).
-  mnem([iCmpVd(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(30),intgr(findEnd(Ends,U)-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([iNth(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(31),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([iStNth(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(32),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([iIf(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(33),intgr(findEnd(Ends,U)-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([iIfNot(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(34),intgr(findEnd(Ends,U)-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([iCase(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(35),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([iIndxJmp(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(36),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([iUnpack(U,al(V)),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (Lt1,LtNo) .= findLit(Lts,U) && Tgt ^= Lbls[V] => mnem(Ins,Code++[intgr(37),intgr(LtNo),intgr(Tgt-Pc-5)],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl,Ends).
-  mnem([.iIAdd,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(38)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iISub,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(39)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iIMul,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(40)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iIDiv,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(41)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iIMod,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(42)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iIAbs,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(43)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iIEq,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(44)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iILt,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(45)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iIGe,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(46)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([iICmp(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(47),intgr(findEnd(Ends,U)-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([.iBAnd,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(48)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iBOr,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(49)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iBXor,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(50)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iBLsl,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(51)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iBLsr,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(52)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iBAsr,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(53)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iBNot,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(54)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iFAdd,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(55)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iFSub,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(56)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iFMul,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(57)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iFDiv,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(58)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iFMod,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(59)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iFAbs,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(60)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iFEq,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(61)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iFLt,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(62)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.iFGe,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(63)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([iFCmp(al(U)),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where Tgt ^= Lbls[U] => mnem(Ins,Code++[intgr(64),intgr(Tgt-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([iAlloc(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (Lt1,LtNo) .= findLit(Lts,symb(U)) => mnem(Ins,Code++[intgr(65),intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([iAlTpl(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (Lt1,LtNo) .= findLit(Lts,symb(U)) => mnem(Ins,Code++[intgr(66),intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([iCmp(al(U)),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where Tgt ^= Lbls[U] => mnem(Ins,Code++[intgr(67),intgr(Tgt-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([iComp(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(68),intgr(findEnd(Ends,U)-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([iFrame(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (Lt1,LtNo) .= findLit(Lts,strg(U::string)) => mnem(Ins,Code++[intgr(69),intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([iThrow(al(U)),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where Tgt ^= Lbls[U] => mnem(Ins,Code++[intgr(70),intgr(Tgt-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([iUnwind(al(U)),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where Tgt ^= Lbls[U] => mnem(Ins,Code++[intgr(71),intgr(Tgt-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([idLine(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (Lt1,LtNo) .= findLit(Lts,U) => mnem(Ins,Code++[intgr(72),intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([.idBug,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(73)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.idBreak,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(74)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iDropTo(V),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(9),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([.iDup,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(10)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([iRst(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(11),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([.iPrompt,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(12)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iCut,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(13)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iRestore,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(14)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iUnderflow,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(15)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iLdV,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(16)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([iLdG(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(17),strg(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([iLdC(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (Lt1,LtNo) .= findLit(Lts,U) => mnem(Ins,Code++[intgr(18),intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([iLdA(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(19),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([iLdL(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(20),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,max(U,MxLcl),Ends).
+  mnem([iStL(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(21),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,max(U,MxLcl),Ends).
+  mnem([iStV(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(22),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,max(U,MxLcl),Ends).
+  mnem([iTL(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(23),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,max(U,MxLcl),Ends).
+  mnem([iStA(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(24),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([iStG(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(25),strg(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([iTG(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(26),strg(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([.iCell,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(27)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iGet,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(28)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iAssign,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(29)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([iCLbl(U,al(V)),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (Lt1,LtNo) .= findLit(Lts,U) && Tgt ^= Lbls[V] => mnem(Ins,Code++[intgr(30),intgr(LtNo),intgr(Tgt-Pc-5)],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl,Ends).
+  mnem([iCmpVd(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(31),intgr(findEnd(Ends,U)-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([iNth(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(32),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([iStNth(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(33),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([iIf(al(U)),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where Tgt ^= Lbls[U] => mnem(Ins,Code++[intgr(34),intgr(Tgt-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([iIfNot(al(U)),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where Tgt ^= Lbls[U] => mnem(Ins,Code++[intgr(35),intgr(Tgt-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([iCase(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(36),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([iIndxJmp(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(37),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([iUnpack(U,al(V)),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (Lt1,LtNo) .= findLit(Lts,U) && Tgt ^= Lbls[V] => mnem(Ins,Code++[intgr(38),intgr(LtNo),intgr(Tgt-Pc-5)],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl,Ends).
+  mnem([.iIAdd,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(39)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iISub,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(40)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iIMul,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(41)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iIDiv,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(42)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iIMod,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(43)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iIAbs,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(44)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iIEq,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(45)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iILt,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(46)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iIGe,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(47)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([iICmp(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(48),intgr(findEnd(Ends,U)-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([.iBAnd,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(49)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iBOr,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(50)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iBXor,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(51)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iBLsl,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(52)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iBLsr,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(53)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iBAsr,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(54)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iBNot,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(55)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iFAdd,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(56)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iFSub,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(57)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iFMul,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(58)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iFDiv,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(59)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iFMod,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(60)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iFAbs,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(61)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iFEq,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(62)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iFLt,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(63)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iFGe,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(64)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([iFCmp(al(U)),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where Tgt ^= Lbls[U] => mnem(Ins,Code++[intgr(65),intgr(Tgt-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([iAlloc(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (Lt1,LtNo) .= findLit(Lts,symb(U)) => mnem(Ins,Code++[intgr(66),intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([iAlTpl(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (Lt1,LtNo) .= findLit(Lts,symb(U)) => mnem(Ins,Code++[intgr(67),intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([iCmp(al(U)),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where Tgt ^= Lbls[U] => mnem(Ins,Code++[intgr(68),intgr(Tgt-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([iComp(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(69),intgr(findEnd(Ends,U)-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([iFrame(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (Lt1,LtNo) .= findLit(Lts,strg(U::string)) => mnem(Ins,Code++[intgr(70),intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([idLine(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (Lt1,LtNo) .= findLit(Lts,U) => mnem(Ins,Code++[intgr(71),intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([.idBug,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(72)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.idBreak,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(73)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
 
 
   genLblTbl:(cons[assemOp],integer,map[string,integer]) => (integer,map[string,integer]).
@@ -225,6 +223,7 @@ star.compiler.assem{
   genLblTbl([.iRet,..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+1,Lbls).
   genLblTbl([iJmp(al(A)),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([.iDrop,..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+1,Lbls).
+  genLblTbl([.iDropTo(B),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([.iDup,..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+1,Lbls).
   genLblTbl([iRst(A),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([.iPrompt,..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+1,Lbls).
@@ -249,8 +248,8 @@ star.compiler.assem{
   genLblTbl([iCmpVd(A),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([iNth(A),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([iStNth(A),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
-  genLblTbl([iIf(A),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
-  genLblTbl([iIfNot(A),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
+  genLblTbl([iIf(al(A)),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
+  genLblTbl([iIfNot(al(A)),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([iCase(A),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([iIndxJmp(A),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([iUnpack(A,al(B)),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+5,Lbls).
@@ -286,8 +285,6 @@ star.compiler.assem{
   genLblTbl([iCmp(al(A)),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([iComp(A),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([iFrame(A),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
-  genLblTbl([iThrow(al(A)),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
-  genLblTbl([iUnwind(al(A)),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([idLine(A),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([.idBug,..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+1,Lbls).
   genLblTbl([.idBreak,..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+1,Lbls).
@@ -336,6 +333,7 @@ star.compiler.assem{
   showMnem([.iRet,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Ret"),ss("\n")])) ++ showMnem(Ins,Pc+1).
   showMnem([iJmp(al(U)),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Jmp"),ss(" "),disp(U),ss("\n")])) ++ showMnem(Ins,Pc+3).
   showMnem([.iDrop,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Drop"),ss("\n")])) ++ showMnem(Ins,Pc+1).
+  showMnem([.iDropTo(V),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("DropTo"),ss(" "),disp(V),ss("\n")])) ++ showMnem(Ins,Pc+3).
   showMnem([.iDup,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Dup"),ss("\n")])) ++ showMnem(Ins,Pc+1).
   showMnem([iRst(U),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Rst"),ss(" "),disp(U),ss("\n")])) ++ showMnem(Ins,Pc+3).
   showMnem([.iPrompt,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Prompt"),ss("\n")])) ++ showMnem(Ins,Pc+1).
@@ -360,8 +358,8 @@ star.compiler.assem{
   showMnem([iCmpVd(U),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("CmpVd"),ss(" "),disp(U),ss("\n")])) ++ showMnem(Ins,Pc+3).
   showMnem([iNth(U),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Nth"),ss(" "),disp(U),ss("\n")])) ++ showMnem(Ins,Pc+3).
   showMnem([iStNth(U),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("StNth"),ss(" "),disp(U),ss("\n")])) ++ showMnem(Ins,Pc+3).
-  showMnem([iIf(U),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("If"),ss(" "),disp(U),ss("\n")])) ++ showMnem(Ins,Pc+3).
-  showMnem([iIfNot(U),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("IfNot"),ss(" "),disp(U),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iIf(al(U)),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("If"),ss(" "),disp(U),ss("\n")])) ++ showMnem(Ins,Pc+3).
+  showMnem([iIfNot(al(U)),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("IfNot"),ss(" "),disp(U),ss("\n")])) ++ showMnem(Ins,Pc+3).
   showMnem([iCase(U),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Case"),ss(" "),disp(U),ss("\n")])) ++ showMnem(Ins,Pc+3).
   showMnem([iIndxJmp(U),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("IndxJmp"),ss(" "),disp(U),ss("\n")])) ++ showMnem(Ins,Pc+3).
   showMnem([iUnpack(U,al(V)),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Unpack"),ss(" "),disp(U),ss(" "),disp(V),ss("\n")])) ++ showMnem(Ins,Pc+5).
@@ -397,8 +395,6 @@ star.compiler.assem{
   showMnem([iCmp(al(U)),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Cmp"),ss(" "),disp(U),ss("\n")])) ++ showMnem(Ins,Pc+3).
   showMnem([iComp(U),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Comp"),ss(" "),disp(U),ss("\n")])) ++ showMnem(Ins,Pc+3).
   showMnem([iFrame(U),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Frame"),ss(" "),disp(U),ss("\n")])) ++ showMnem(Ins,Pc+3).
-  showMnem([iThrow(al(U)),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Throw"),ss(" "),disp(U),ss("\n")])) ++ showMnem(Ins,Pc+3).
-  showMnem([iUnwind(al(U)),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("Unwind"),ss(" "),disp(U),ss("\n")])) ++ showMnem(Ins,Pc+3).
   showMnem([idLine(U),..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("dLine"),ss(" "),disp(U),ss("\n")])) ++ showMnem(Ins,Pc+3).
   showMnem([.idBug,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("dBug"),ss("\n")])) ++ showMnem(Ins,Pc+1).
   showMnem([.idBreak,..Ins],Pc) => single(ssSeq([disp(Pc),ss(":"),ss("dBreak"),ss("\n")])) ++ showMnem(Ins,Pc+1).

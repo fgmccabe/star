@@ -127,6 +127,12 @@ retCode run(processPo P) {
         int arity = collectI32(PC);
         normalPo obj = C_NORMAL(pop());
         labelPo oLbl = objLabel(termLbl(obj), arity);
+
+        if(oLbl==Null){
+          logMsg(logFile,"label %s/%d not defined", labelName(termLbl(obj)),arity);
+          bail();
+        }
+
         methodPo mtd = labelCode(oLbl);       /* set up for object call */
 
         if (mtd == Null) {
@@ -259,7 +265,7 @@ retCode run(processPo P) {
         termPo retVal = *SP;     /* return value */
 
         assert(F->fp > 0);
-        assert(stackOffset(S,SP)<F->fp); // We must have a value to return
+        assert(stackOffset(S, SP) < F->fp); // We must have a value to return
 
         SP = stackPtr(F->fp + argCount(F->prog));
         S->fp--;
@@ -279,6 +285,15 @@ retCode run(processPo P) {
       case Drop:
         SP++;       /* drop tos */
         continue;
+
+      case DropTo: {
+        termPo top = pop();
+        int32 height = collectI32(PC);
+        assert(height >= 0);
+        SP = stackPtr(F->fp - lclCount(F->prog) - height);
+        push(top);
+        continue;
+      }
 
       case Dup: {        /* duplicate tos */
         termPo tos = *SP;
@@ -413,7 +428,7 @@ retCode run(processPo P) {
 
       case CLbl: {
         termPo l = nthElem(LITS, collectI32(PC));
-        termPo t = pop();
+        termPo t = top();
         insPo exit = collectOff(PC);
         assert(validPC(F->prog, exit));
 
@@ -421,8 +436,7 @@ retCode run(processPo P) {
           normalPo cl = C_NORMAL(t);
           if (isALabel(l) && sameLabel(C_LBL(l), termLbl(cl)))
             PC = exit;
-        } else if (sameTerm(t, l))
-          PC = exit;
+        }
         continue;
       }
 
@@ -499,19 +513,19 @@ retCode run(processPo P) {
         continue;
       }
 
-      case Cell:{
+      case Cell: {
         cellPo cell = newCell(H, pop());
         push(cell);
         continue;
       }
 
-      case Get:{
+      case Get: {
         cellPo cell = C_CELL(pop());
         push(getCell(cell));
         continue;
       }
 
-      case Assign:{
+      case Assign: {
         cellPo cell = C_CELL(pop());
         termPo vl = pop();
         setCell(cell, vl);
@@ -792,8 +806,10 @@ retCode run(processPo P) {
           integer arity = labelArity(l);
           for (integer ix = arity - 1; ix >= 0; ix--)
             push(nthElem(t, ix));
-        } else
+        } else {
+          push(t);
           PC = exit;
+        }
         continue;
       }
 
@@ -856,7 +872,7 @@ retCode run(processPo P) {
         insPo exit = collectOff(PC);
         assert(validPC(F->prog, exit));
 
-        if (i == trueEnum)
+        if (sameTerm(i, trueEnum))
           PC = exit;
         continue;
       }
@@ -875,31 +891,6 @@ retCode run(processPo P) {
         PC += 2; // ignore frame entity for now
         continue;
       }
-      case Throw: {
-        termPo item = pop();
-        int32 off = collectI32(PC);
-
-        while (off == 0) {
-          int64 argCnt = argCount(F->prog);
-
-          SP = stackPtr(F->fp + argCnt);
-          S->fp--;
-          F = currFrame(S);
-          PC = F->pc;
-          LITS = codeLits(F->prog);   /* reset pointer to code literals */
-
-          OpCode nxt = (OpCode) (*PC++);
-          assert(nxt == Unwind);
-          off = collectI32(PC);     // look at the offset in the next instruction
-        }
-        PC += off;
-        push(item);
-        continue;
-      }
-
-      case Unwind:
-        PC += 2;
-        continue;
 
       case dBug: {
 #ifdef TRACEEXEC
