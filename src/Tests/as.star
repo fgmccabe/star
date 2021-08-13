@@ -7,8 +7,8 @@ test.as{
     name = "fred" ++ "'s friend".
   } in {.name=name. age=23 .}.
 
-  main:()=>action[(),()].
-  main() => do{
+  main:()=> action[(),()].
+  main() => action{
     show peter.name;
 
     assert peter.name=="fred's friend" && peter.age==23

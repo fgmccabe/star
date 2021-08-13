@@ -23,7 +23,7 @@ test.ar{
   sample = times(plus(2,3),one).
 
   public main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     assert sample==5;
     show ff(5)
   }

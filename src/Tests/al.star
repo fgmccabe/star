@@ -19,7 +19,7 @@ test.al{
     name = "peter".
     friend = 23.
     age(X) => X+30
-  }
+    }
 
   contract all t,e ~~ '$name'[t->>e] ::= {
     '$name':(t)=>e
@@ -30,9 +30,8 @@ test.al{
     '$name'(P) => P.name.
   .}
   
-
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     assert Pete.name=="peter";
     assert '$name'(Pete)=="peter";
     assert Pete.age(3)==33

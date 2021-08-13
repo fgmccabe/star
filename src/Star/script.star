@@ -18,6 +18,7 @@ star.script{
       logMsg("assert #(Msg) at $(Lc)")
     }
     else{
+      logMsg("failed assert #(Msg) at $(Lc)");
       ignore _exit(1);
       valis ()
     }

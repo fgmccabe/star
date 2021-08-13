@@ -205,7 +205,7 @@ examineType(T,Tx) :-
 examineType(T,Tx) :-
   isFieldAcc(T,Lc,L,F),!,
   macroTerm(L,Lx),
-  fieldAcc(Lc,Lx,F,Tx).
+  fieldAcc(Lc,Lx,name(Lc,F),Tx).
 examineType(T,T) :-
   locOfAst(T,Lc),
   reportError("cannot figure out type %s",[ast(T)],Lc).
@@ -333,7 +333,7 @@ examineTerm(T,Tx) :-
 examineTerm(T,Tx) :-
   isFieldAcc(T,Lc,L,F),!,
   macroTerm(L,Lx),
-  fieldAcc(Lc,Lx,F,Tx).
+  fieldAcc(Lc,Lx,name(Lc,F),Tx).
 examineTerm(T,Tx) :-
   isRecordUpdate(T,Lc,L,R),!,
   macroTerm(L,Lx),
