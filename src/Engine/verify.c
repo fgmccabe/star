@@ -125,7 +125,7 @@ static logical segmentEquality(objectPo o1, objectPo o2) {
   return (logical) (s1->seg.segNo == s2->seg.segNo);
 }
 
-integer segNo(segPo seg){
+integer segNo(segPo seg) {
   return seg->seg.segNo;
 }
 
@@ -315,6 +315,7 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
       case OTail:
       case Jmp:
       case Halt:
+      case Abort:
       case Ret:
       case Underflow:
       case Cut:
@@ -420,8 +421,8 @@ retCode findTgts(vectorPo blocks, methodPo mtd, insPo code, integer *pc, integer
   return ret;
 }
 
-static void updateEntryPoint(segPo srcSeg,segPo tgtSeg){
-  for(integer ix=0;ix<tgtSeg->seg.entryPoints;ix++) {
+static void updateEntryPoint(segPo srcSeg, segPo tgtSeg) {
+  for (integer ix = 0; ix < tgtSeg->seg.entryPoints; ix++) {
     segPo eSeg = O_SEG(getVectEl(tgtSeg->seg.entries, ix));
     if (eSeg == srcSeg) {
       return;
@@ -431,8 +432,8 @@ static void updateEntryPoint(segPo srcSeg,segPo tgtSeg){
   appendVectEl(tgtSeg->seg.entries, O_OBJECT(srcSeg));
 }
 
-static void updateExitPoint(segPo srcSeg,segPo tgtSeg){
-  for(integer ix=0;ix< vectLength(srcSeg->seg.exits);ix++) {
+static void updateExitPoint(segPo srcSeg, segPo tgtSeg) {
+  for (integer ix = 0; ix < vectLength(srcSeg->seg.exits); ix++) {
     segPo eSeg = O_SEG(getVectEl(srcSeg->seg.exits, ix));
     if (eSeg == tgtSeg) {
       return;
@@ -448,8 +449,8 @@ retCode checkDest(vectorPo blocks, integer pc, integer tgt, char *errorMsg, long
     segPo srcSeg = findSeg(blocks, pc);
 
     if (srcSeg != Null) {
-      updateEntryPoint(srcSeg,tgtSeg);
-      updateExitPoint(srcSeg,tgtSeg);
+      updateEntryPoint(srcSeg, tgtSeg);
+      updateExitPoint(srcSeg, tgtSeg);
       return Ok;
     } else {
       strMsg(errorMsg, msgLen, RED_ESC_ON "invalid source pc %d" RED_ESC_OFF, pc);
@@ -490,8 +491,21 @@ retCode checkOprndTgt(methodPo mtd, insPo code, vectorPo blocks, integer oPc, in
     case glb:           // Global variable name
       collect32(code, pc);
       return Ok;
+    case sym: {           // Symbol
+      integer litNo = collect32(code, pc);
+      if (litNo < 0 || litNo > codeLitCount(mtd)) {
+        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid literal number %d @ %d" RED_ESC_OFF, litNo, *pc);
+        return Error;
+      }
+      termPo sym = getMtdLit(mtd,litNo);
+      if(!isALabel(sym)){
+        strMsg(errorMsg, msgLen, RED_ESC_ON "expecting a label, not %T @ %d" RED_ESC_OFF, sym, *pc);
+        return Error;
+      }
+
+      return Ok;
+    }
     case lit:          /* constant literal */
-    case sym:           // Symbol
     case tPe: {
       integer litNo = collect32(code, pc);
       if (litNo < 0 || litNo > codeLitCount(mtd)) {
@@ -523,10 +537,12 @@ checkTgt(vectorPo blocks, methodPo mtd, insPo code, integer oPc, integer *pc, Op
         case Jmp:
         case Tail:
         case OTail:
+        case Halt:
+        case Abort:
           break;
         default:
-          updateEntryPoint(current,next);
-          updateExitPoint(current,next);
+          updateEntryPoint(current, next);
+          updateExitPoint(current, next);
       }
     }
   }
@@ -803,13 +819,28 @@ retCode checkSegment(segPo seg, char *errorMsg, long msgLen) {
     seg->seg.checked = True;
     insPo base = entryPoint(seg->seg.mtd);
 
+    insWord lastOp = Halt;
+
     while (ret == Ok && pc < limit) {
       integer oPc = pc;
-      switch (base[pc++]) {
+      switch (lastOp = base[pc++]) {
 #include "instructions.h"
 
         default:
           strMsg(errorMsg, msgLen, RED_ESC_ON "illegal instruction at %d" RED_ESC_OFF, pc);
+          return Error;
+      }
+    }
+    if (vectIsEmpty(seg->seg.exits)) {
+      switch (lastOp) {
+        case Ret:
+        case Halt:
+        case Abort:
+        case Tail:
+        case OTail:
+          break;
+        default:
+          strMsg(errorMsg, msgLen, RED_ESC_ON "expecting a return at %d" RED_ESC_OFF, pc);
           return Error;
       }
     }
@@ -821,15 +852,13 @@ retCode checkSegment(segPo seg, char *errorMsg, long msgLen) {
       showSeg(seg);
     }
 #endif
-    for(integer ex=0;ret==Ok && ex< vectLength(seg->seg.exits);ex++){
-      segPo exit = O_SEG(getVectEl(seg->seg.exits,ex));
+    for (integer ex = 0; ret == Ok && ex < vectLength(seg->seg.exits); ex++) {
+      segPo exit = O_SEG(getVectEl(seg->seg.exits, ex));
       ret = mergeSegVars(seg, exit);
     }
     return ret;
-  }
-
-
-  return Ok;
+  } else
+    return Ok;
 }
 
 static void showVar(char *nm, integer ix, varPo v) {
