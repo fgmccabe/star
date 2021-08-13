@@ -99,6 +99,16 @@ retCode run(processPo P) {
         }
         return (retCode) exitCode;
       }
+      case Abort: {
+        termPo lc = pop();
+        termPo msg = pop();
+
+        logMsg(logFile, "Abort %T at %L", msg, lc);
+        verifyProc(P, processHeap(P));
+        stackTrace(P, logFile, P->stk);
+
+        return Error;
+      }
       case Call: {
         termPo nProg = nthElem(LITS, collectI32(PC));
         methodPo mtd = labelCode(C_LBL(nProg));   // Which program do we want?
@@ -128,8 +138,8 @@ retCode run(processPo P) {
         normalPo obj = C_NORMAL(pop());
         labelPo oLbl = objLabel(termLbl(obj), arity);
 
-        if(oLbl==Null){
-          logMsg(logFile,"label %s/%d not defined", labelName(termLbl(obj)),arity);
+        if (oLbl == Null) {
+          logMsg(logFile, "label %s/%d not defined", labelName(termLbl(obj)), arity);
           bail();
         }
 
@@ -427,14 +437,14 @@ retCode run(processPo P) {
       }
 
       case CLbl: {
-        termPo l = nthElem(LITS, collectI32(PC));
+        labelPo l = C_LBL(nthElem(LITS, collectI32(PC)));
         termPo t = top();
         insPo exit = collectOff(PC);
         assert(validPC(F->prog, exit));
 
         if (isNormalPo(t)) {
           normalPo cl = C_NORMAL(t);
-          if (isALabel(l) && sameLabel(C_LBL(l), termLbl(cl)))
+          if (sameLabel(l, termLbl(cl)))
             PC = exit;
         }
         continue;

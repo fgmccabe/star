@@ -15,6 +15,7 @@
 */
 
 instruction(Halt,i32,nOp,0,"Stop execution")
+instruction(Abort,tOs,nOp,-2,"abort with message")
 
 instruction(Call,sym,nOp,0,"Call <prog>")
 instruction(OCall,art,nOp,0,"OCall")
@@ -52,7 +53,7 @@ instruction(Cell,tOs,nOp,0,"create R/W cell")
 instruction(Get,tOs,nOp,0,"access a R/W cell")
 instruction(Assign,tOs,nOp,-1,"assign to a R/W cell")
 
-instruction(CLbl,lit,off,0,"T,Lbl --> test for a data term, branch if lbl")
+instruction(CLbl,sym,off,0,"T,Lbl --> test for a data term, branch if lbl")
 instruction(CmpVd,lVl,nOp,-1,"T --> test for void on the stack, break if void")
 instruction(Nth, i32, nOp, 0, "T --> el, pick up the nth element")
 instruction(StNth, i32, nOp, -2, "T el --> store in nth element")
@@ -62,7 +63,7 @@ instruction(IfNot,off,nOp,-1,"brak if false")
 
 instruction(Case, i32, nOp, 0, "T --> T, case <Max> ")
 instruction(IndxJmp,i32,nOp,0,"check and jump on index")
-instruction(Unpack,lit,off,-1,"check against term & unpack")
+instruction(Unpack,sym,off,-1,"check against term & unpack")
 
 instruction(IAdd,tOs,nOp,-1,"L R --> L+R")
 instruction(ISub,tOs,nOp,-1,"L R --> L-R")
