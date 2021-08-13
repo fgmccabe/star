@@ -112,10 +112,4 @@ star.core {
 
   public (•):all a,b,c ~~ ((b)=>c,(a)=>b)=>(a)=>c.
   F • G => (x)=>F(G(x)).
-
-  sysResult@"used by some escapes to encode a result".
-  public sysResult ::= .ok
-	| .fail
-	| .eof
-	| error(string).
 }

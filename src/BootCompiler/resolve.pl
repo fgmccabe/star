@@ -351,8 +351,8 @@ formOver(V,Args,Lc,Tp,apply(Lc,V,tple(Lc,Args),Tp)).
 genVar(Nm,Lc,Tp,v(Lc,NV,Tp)) :-
   genstr(Nm,NV).
 
-declareAccessors(_,[],Dict,Dict).
-declareAccessors(Lc,[accDef(Tp,FldNm,FunNm,AcTp)|Defs],Dict,Dx) :-
+declareAccessors(_,[],Dict,Dict) :-!.
+declareAccessors(Lc,[accDef(Tp,FldNm,FunNm,AcTp)|Defs],Dict,Dx) :-!,
   declareFieldAccess(Tp,FldNm,FunNm,AcTp,Dict,D0),
   declareAccessors(Lc,Defs,D0,Dx).
 declareAccessors(Lc,[_|Defs],Dict,Dx) :-

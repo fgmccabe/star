@@ -1010,7 +1010,7 @@ checkCase(Lc,Lhs,G,R,LhsTp,Tp,ErTp,Env,Eqns,Eqns,Df,Defx,Path) :-
   checkCase(Lc,DLhs,G,R,LhsTp,Tp,ErTp,Env,Df,Defx,_,_,Path).
 checkCase(Lc,H,G,R,LhsTp,Tp,ErTp,Env,
 	  [equation(Lc,Arg,Guard,Exp)|Eqns],Eqns,Dfx,Dfx,Path) :-
-  typeOfPtn(H,LhsTp,Env,E1,Arg,Path),
+  typeOfPtn(H,LhsTp,ErTp,Env,E1,Arg,Path),
   checkGuard(G,ErTp,E1,E2,Guard,Path),
   typeOfExp(R,Tp,ErTp,E2,_,Exp,Path).
 
@@ -1145,15 +1145,15 @@ checkCatch(Term,Env,MdTp,VlTp,ErTp,BdErTp,_,_,_,Hndlr,Path) :-
   applyTypeFun(MdTp,[ErTp,VlTp],Env,RTp),
   typeOfExp(Term,funType(tplType([BdErTp]),RTp),ErTp,Env,_,Hndlr,Path).
 
-recordAccessExp(Lc,Rc,Fld,ET,Env,Ev,dot(Lc,Rec,Fld,Tp),Path) :-
+recordAccessExp(Lc,Rc,Fld,Tp,ErTp,Env,Ev,dot(Lc,Rec,Fld,Tp),Path) :-
   newTypeVar("_R",AT),
-  typeOfExp(Rc,AT,Env,Ev,Rec,Path),
+  typeOfExp(Rc,AT,ErTp,Env,Ev,Rec,Path),
   faceOfType(AT,Env,Fc),
   freshen(Fc,Env,_,Fce),
   deRef(Fce,Face),
   fieldInFace(Face,Fld,Lc,FTp),!,
-  freshen(FTp,Env,_,Tp),
-  checkType(Fld,Tp,ET,Env).
+  freshen(FTp,Env,_,FldTp),
+  verifyType(Lc,FldTp,Tp,Env).
 
 fieldInFace(faceType(Fields,_),Nm,_,Tp) :-
   is_member((Nm,Tp),Fields),!.

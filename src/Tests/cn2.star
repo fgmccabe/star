@@ -1,19 +1,13 @@
 test.cn2{
   import star.core.
   import star.action.
+  import star.monad.
 
   
-  public _perform:all a,e ~~ (action[a,e]) => a.
-  _perform(action(F)) => case F() in {
-    okResult(R) => R
-  }
+  public _perform:all a,e ~~ (action[e,a]) => a.
+  _perform(action(F)) => _valof(F()).
 
-  public logM:(string)=>result[(),()].
-  logM(M) => do{
-    _ .= _logmsg(M);
-    return ()
-  }
 
-  public _getResult:all a,e ~~ (result[a,e])=>a.
-  _getResult(okResult(X)) => X.
+  public _getResult:all a,e ~~ (result[e,a])=>a.
+  _getResult(R) => _valof(R).
 }

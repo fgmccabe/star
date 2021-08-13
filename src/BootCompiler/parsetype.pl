@@ -270,9 +270,10 @@ parseContract(T,Env,Ev,Path,[conDef(Nm,ConNm,CnType,ConRule),
   wrapType(Q,Cx,[],[],typeExists(ConTp,Face),FaceRule),
   wrapType(Q,Cx,[],[],ConTp,CnType),
   ConTpDef = typeDef(Lc,ConNm,CnType,FaceRule),
-  genBraceConstructor(Lc,SortedFlds,ConNm,Q,Cx,ConTp,CnsDef,Env,Ev),
+  genBraceConstructor(Lc,SortedFlds,ConNm,Q,Cx,ConTp,CnsDef,Env,Ev0),
 %  reportMsg("contract type constructor %s",[CnsDef]),
-  genBraceAccessors(Lc,Q,Cx,ConNm,ConTp,SortedFlds,SortedFlds,Defs,Dfx,_,[]).
+  genBraceAccessors(Lc,Q,Cx,ConNm,ConTp,SortedFlds,SortedFlds,Defs,Dfx,Acc,[]),
+  declareAccessors(Acc,Ev0,Ev).
 
 parseContractSpec(T,Q,C0,Cx,Env,conTract(ConNm,ArgTps,Deps),Nm,ConNm,Path) :-
   isSquare(T,_,Nm,A),
@@ -303,35 +304,42 @@ parseAlgebraicTypeDef(Lc,Quants,Constraints,Hd,Body,
   wrapType(Q,Cx,[],[],typeExists(Tp,FaceTp),FaceRule),
 %  buildConsMap(Body,ConsMap,Path),
 %  dispType(FaceRule),
-  declareType(Nm,tpDef(Lc,Type,FaceRule),E,Ev),
+  declareType(Nm,tpDef(Lc,Type,FaceRule),E,Ev0),
   tpName(Type,TpNm),
-  buildAccessors(Lc,Q,Cx,Path,TpNm,Tp,FaceTp,Body,D0,Dx).
+  buildAccessors(Lc,Q,Cx,Path,TpNm,Tp,FaceTp,Body,D0,Dx,Acc,[]),
+  declareAccessors(Acc,Ev0,Ev).
 
-buildAccessors(Lc,Quants,Constraints,Path,TpNm,Tp,faceType(ElTps,_),Body,Defs,Dfx) :-
-  genAccessors(Lc,Quants,Constraints,Path,TpNm,Tp,ElTps,ElTps,Body,Defs,Dfx).
+declareAccessors(Acc,Ev,Evx) :-
+  rfold(Acc,parsetype:declareAcc,Ev,Evx).
 
-genAccessors(_,_,_,_,_,_,[],_,_,Defs,Defs).
-genAccessors(Lc,Q,Cx,Path,TpNm,Tp,[(Fld,FldTp)|ElTps],AllElTps,Body,Defs,Dfx) :-
-  genAccessor(Lc,Q,Cx,Path,TpNm,Tp,Fld,FldTp,Tp,AllElTps,Body,Defs,Df0),
-  genAccessors(Lc,Q,Cx,Path,TpNm,Tp,ElTps,AllElTps,Body,Df0,Dfx).
+declareAcc(acc(Tp,Fld,AccName,AccFunTp),Env,Ev) :-
+  declareFieldAccess(Tp,Fld,AccName,AccFunTp,Env,Ev).
+
+buildAccessors(Lc,Quants,Constraints,Path,TpNm,Tp,faceType(ElTps,_),Body,Defs,Dfx,Acc,Acx) :-
+  genAccessors(Lc,Quants,Constraints,Path,TpNm,Tp,ElTps,ElTps,Body,Defs,Dfx,Acc,Acx).
+
+genAccessors(_,_,_,_,_,_,[],_,_,Defs,Defs,Acc,Acc).
+genAccessors(Lc,Q,Cx,Path,TpNm,Tp,[(Fld,FldTp)|ElTps],AllElTps,Body,Defs,Dfx,Acc,Accx) :-
+  genAccessor(Lc,Q,Cx,Path,TpNm,Tp,Fld,FldTp,Tp,AllElTps,Body,Defs,Df0,Acc,Ac0),
+  genAccessors(Lc,Q,Cx,Path,TpNm,Tp,ElTps,AllElTps,Body,Df0,Dfx,Ac0,Accx).
 
 genAccessor(Lc,Q,Cx,Path,TpNm,Tp,Fld,FldTp,Tp,AllElTps,Body,
-	    [Impl,ImplDef|Defs],Defs) :-
+	    [ImplDef|Defs],Defs,[acc(Tp,Fld,AccName,AccFunTp)|Acc],Acc) :-
   localName(TpNm,field,Fld,AccName),
   putConstraints(Cx,funType(tplType([Tp]),FldTp),CxFunTp),
   reQuant(Q,CxFunTp,AccFunTp),
   accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,[]),
-  Impl = funDef(Tp,Fld,AccName,AccFunTp),
-  ImplDef = accDef(Lc,AccName,AccName,AccFunTp,[],Eqns).
+  ImplDef = funDef(Lc,AccName,AccName,AccFunTp,[],Eqns).
 
 accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,Eqx) :-
   isBinary(Body,_,"|",L,R),!,
   accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,L,Eqns,Eq0),
   accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,R,Eq0,Eqx).
-accessorEquations(Lc,_Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,Eqx) :-
-  isBraceCon(Body,_XQ,_XC,_,Nm,Args),!,
-  fieldPresent(Fld,Args,_),
-  genAccessorEquation(Lc,Nm,Fld,FldTp,Tp,AllElTps,Eqns,Eqx).
+accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,Eqx) :-
+  isBraceCon(Body,_XQ,_XC,_,Nm,Args),
+  fieldPresent(Fld,Args,_),!,
+  localName(Path,class,Nm,ConNm),
+  genAccessorEquation(Lc,ConNm,Fld,FldTp,Tp,AllElTps,Eqns,Eqx).
 accessorEquations(_,_,_,_,_,_,_,Eqx,Eqx).
 
 fieldPresent(Fld,[A|_],T) :-
