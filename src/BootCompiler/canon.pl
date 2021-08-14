@@ -13,7 +13,7 @@
 :- use_module(types).
 :- use_module(location).
 
-isCanonDef(funDef(_,_,_,_,_,_)).
+isCanonDef(funDef(_,_,_,_,_,_,_)).
 isCanonDef(varDef(_,_,_,_,_,_)).
 isCanonDef(cnsDef(_,_,_)).
 isCanonDef(typeDef(_,_,_,_)).
@@ -220,12 +220,12 @@ ssTerm(cell(_,Vr),Dp,sq([ss("!!"),V])) :-
   ssTerm(Vr,Dp,V).
 ssTerm(deref(_,Vr),Dp,sq([V,ss("!")])) :-
   ssTerm(Vr,Dp,V).
-ssTerm(letExp(_,Decls,Defs,Ex),Dp,
-	    sq([ss("let {."),nl(Dp2),iv(nl(Dp2),Ds),nl(Dp),ss(".} in "),B])) :-
+ssTerm(letExp(_,_Decls,Defs,Ex),Dp,
+	    sq([ss("let {."),nl(Dp2),iv(nl(Dp2),DS),nl(Dp),ss(".} in "),B])) :-
   Dp2 is Dp+2,
-  map(Decls,canon:ssDecl(Dp2,ss("let ")),DD),
-  map(Defs,canon:ssDf(Dp2),XX),
-  flatten([DD,XX],Ds),
+%  map(Decls,canon:ssDecl(Dp2,ss("let ")),DD),
+  map(Defs,canon:ssDf(Dp2),DS),
+%  flatten([DD,XX],Ds),
   ssTerm(Ex,Dp,B).
 ssTerm(letRec(_,Decls,Defs,Ex),Dp,
 	    sq([ss("let {"),nl(Dp2),iv(nl(Dp2),Ds),nl(Dp),ss("} in "),B])) :-
@@ -234,8 +234,8 @@ ssTerm(letRec(_,Decls,Defs,Ex),Dp,
   map(Defs,canon:ssDf(Dp2),XX),
   flatten([DD,XX],Ds),
   ssTerm(Ex,Dp,B).
-ssTerm(lambda(_,_,Rle,_),Dp,sq([lp,Rl,rp])) :-
-  ssRule("",Dp,Rle,Rl).
+ssTerm(lambda(_,Lbl,Rle,_),Dp,sq([lp,Rl,rp])) :-
+  ssRule(Lbl,Dp,Rle,Rl).
 ssTerm(prompt(_,E,_),Dp,sq([ss("prompt "),EE])) :-
   ssTerm(E,Dp,EE).
 ssTerm(shift(_,V,F),Dp,sq([ss("shift "),VV,ss("in"),FF])) :-
@@ -377,15 +377,14 @@ ssDf(Dp,Df,XX) :-
   ssDef(Dp,Df,XX),
   (validSS(XX) ; errors:reportMsg("%s not valid display",[XX]),abort).
 
-ssDef(Dp,funDef(Lc,Nm,ExtNm,_Type,_Cx,Eqns),
-      sq([ss("fun "),id(Nm),ss("@"),Lcs,nl(Dp),Rs])) :-
+ssDef(Dp,funDef(Lc,Nm,ExtNm,Sft,_Type,_Cx,Eqns),
+      sq([ss(SS),ss("fun "),id(Nm),ss("@"),Lcs,nl(Dp),Rs])) :-
   ssRls(ExtNm,Eqns,Dp,Rs),
-  ssLoc(Lc,Lcs).
-ssDef(Dp,varDef(Lc,Nm,ExtNm,_Cx,_Tp,Value),
-      sq([ss("var "),id(Nm),ss("@"),Lcs,nl(Dp),
-	  id(ExtNm),ss(" = "),V])) :-
-  ssTerm(Value,Dp,V),
-  ssLoc(Lc,Lcs).
+  ssLoc(Lc,Lcs),
+  (Sft=soft -> SS="soft " ; SS="").
+ssDef(Dp,varDef(_Lc,Nm,_ExtNm,_Cx,_Tp,Value),
+      sq([ss("var "),id(Nm),ss(" = "),V])) :-
+  ssTerm(Value,Dp,V).
 ssDef(Dp,cnsDef(Lc,Nm,C),
       sq([ss("con "),id(Nm),ss(" : "),Ts,ss("@"),Lcs])) :-
   typeOfCanon(C,Tp),

@@ -28,7 +28,7 @@ test.as2{
   } in check.
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     assert checkLists()([1,2],[1,2]);
     assert ~checkLists()([],[1])
   }

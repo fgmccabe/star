@@ -1,4 +1,4 @@
-:- module(matcher,[functionMatcher/7,caseMatcher/5]).
+:- module(matcher,[functionMatcher/8,caseMatcher/5]).
 
 :- use_module(canon).
 :- use_module(errors).
@@ -8,12 +8,12 @@
 :- use_module(lterms).
 :- use_module(transutils).
 
-functionMatcher(Lc,Ar,Nm,Tp,Eqns,Map,fnDef(Lc,Nm,Tp,NVrs,Reslt)) :-
+functionMatcher(Lc,Ar,Nm,H,Tp,Eqns,Map,fnDef(Lc,Nm,H,Tp,NVrs,Reslt)) :-
   genVars(Ar,NVrs),
   makeTriples(Eqns,0,Tpls),
   genRaise(Lc,Error),
   matchTriples(Lc,NVrs,Tpls,Error,Map,Reslt),!.
-functionMatcher(Lc,_Ar,Nm,Tp,_Eqns,_,fnDef(Lc,Nm,Tp,[],enum("void"))) :-
+functionMatcher(Lc,_Ar,Nm,H,Tp,_Eqns,_,fnDef(Lc,Nm,H,Tp,[],enum("void"))) :-
   reportError("(internal) failed to construct function for %s",[Nm],Lc).
 
 caseMatcher(Lc,Bnd,Cases,Map,Result) :-

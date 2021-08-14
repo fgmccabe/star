@@ -6,7 +6,7 @@
 :- use_module(encode).
 :- use_module(display).
 
-assem(method(Nm,Sig,Lx,Ins),MTpl) :-
+assem(func(Nm,H,Sig,Lx,Ins),MTpl) :-
     findLit([],Nm,_,Ls0),
     assemBlock(Ins,labels{},Ls0,Lts,[],Lcs,[],Lines,0,_,[],Cde,[]),
     mkInsTpl(Cde,Code),
@@ -14,7 +14,8 @@ assem(method(Nm,Sig,Lx,Ins),MTpl) :-
     mkTpl(Lcs,LcsTpl),
     sortLines(Lines,SLines),
     mkTpl(SLines,LnsTpl),
-    mkCons("method",[Nm,strg(Sig),intgr(Lx),Code,LtTpl,LcsTpl,LnsTpl],MTpl).
+    encPolicy(H,HP),
+    mkCons("func",[Nm,HP,strg(Sig),intgr(Lx),Code,LtTpl,LcsTpl,LnsTpl],MTpl).
 assem(struct(Lbl,Ix,Sig),Tpl) :-
     mkCons("cons",[Lbl,Sig,intgr(Ix)],Tpl).
 assem(tipe(Tp,Rl,Map),Tpl) :-
@@ -23,6 +24,11 @@ assem(tipe(Tp,Rl,Map),Tpl) :-
     encType(Rl,RlSig),
     mkTpl(MapEls,MapTpl),
     mkCons("type",[strg(TpSig),strg(RlSig),MapTpl],Tpl).
+
+encPolicy(hard,T) :-
+  mkTpl([],T).
+encPolicy(soft,T) :-
+  mkTpl([strg("soft")],T).
 
 encMap([],[]).
 encMap([(Lbl,Ix)|Map],[E|MM]) :-
@@ -94,9 +100,13 @@ dispIns(Prog) :-
   showIns(Prog,O),
   displayln(O).
 
-showIns(method(Nm,Sig,Lx,Ins),sq([NN,ss(":"),ss(Sig),nl(0),iv(nl(0),[sq([ss("locals "),ix(Lx)])|II])])) :-
+showIns(func(Nm,H,Sig,Lx,Ins),sq([HH,ss(" "),NN,ss(":"),ss(Sig),nl(0),iv(nl(0),[sq([ss("locals "),ix(Lx)])|II])])) :-
   ssTrm(Nm,0,NN),
-  showMnem(Ins,0,[],II).
+  showMnem(Ins,0,[],II),
+  ssPolicy(H,HH).
+
+ssPolicy(soft,ss("soft")).
+ssPolicy(hard,ss("hard")).
 
 showMnem([],_,_,[]).
 showMnem([iLbl(Lb)|Ins],Pc,Lbs,[sq([ss(Lb),ss(":")])|II]) :-

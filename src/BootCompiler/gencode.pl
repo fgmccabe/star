@@ -39,8 +39,8 @@ defGlbl(_,D,D).
 genDefs(Defs,Opts,D,O,Ox) :-
   rfold(Defs,gencode:genDef(D,Opts),Ox,O).
 
-genDef(D,Opts,fnDef(Lc,Nm,Tp,Args,Value),O,[CdTrm|O]) :-
-  dispRuleSet(fnDef(Lc,Nm,Tp,Args,Value)),
+genDef(D,Opts,fnDef(Lc,Nm,H,Tp,Args,Value),O,[CdTrm|O]) :-
+  dispRuleSet(fnDef(Lc,Nm,H,Tp,Args,Value)),
   encType(Tp,Sig),
   genLbl(D,Ex,D0),
   genLbl(D0,End,D1),
@@ -50,18 +50,18 @@ genDef(D,Opts,fnDef(Lc,Nm,Tp,Args,Value),O,[CdTrm|O]) :-
 	      C1,[iLbl(Ex)|C2],some(0),Stk0),
   compTerm(Value,Lc,retCont(Opts),trapCont(Lc),Opts,D2,Dx,End,C2,[iLbl(End)],Stk0,_Stk),
   findMaxLocal(Dx,Lx),
-  (is_member(showGenCode,Opts) -> dispIns(method(Nm,Sig,Lx,C0));true ),
+  (is_member(showGenCode,Opts) -> dispIns(func(Nm,H,Sig,Lx,C0));true ),
   removeExtraLines(C0,Cde),
-  assem(method(Nm,Sig,Lx,Cde),CdTrm).
+  assem(func(Nm,H,Sig,Lx,Cde),CdTrm).
 genDef(D,Opts,glbDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
   encType(funType(tplType([]),Tp),Sig),
   genLbl(D,End,D1),
   genLine(Opts,Lc,C0,C1),
   compTerm(Value,Lc,bothCont(glbCont(Nm),retCont(Opts)),trapCont(Lc),Opts,D1,Dx,End,C1,[iLbl(End)],some(0),_Stk),
   findMaxLocal(Dx,Lx),
-  (is_member(showGenCode,Opts) -> dispIns(method(lbl(Nm,0),Sig,Lx,C0));true ),
+  (is_member(showGenCode,Opts) -> dispIns(func(lbl(Nm,0),hard,Sig,Lx,C0));true ),
   removeExtraLines(C0,Cde),
-  assem(method(lbl(Nm,0),Sig,Lx,Cde),Cd).
+  assem(func(lbl(Nm,0),hard,Sig,Lx,Cde),Cd).
 genDef(_,_,lblDef(_,Lbl,Tp,Ix),O,[LblTrm|O]) :-
   encType(Tp,Sig),
   assem(struct(Lbl,strg(Sig),Ix),LblTrm).
@@ -769,7 +769,7 @@ genBoot(Defs,pkg(Pkg,_),[BootCde]) :-
   BootLbl = lbl(BootNm,0),
   is_member(fnDef(_,MainLbl,_,_,_),Defs),!,
   encType(funType(tplType([]),tplType([])),Sig),
-  BootMtd = method(BootLbl,Sig,0,
+  BootMtd = func(BootLbl,hard,Sig,0,
 		   [iEscape("_command_line"),
 		    iCall(MainLbl)|Cx]),
   frameIns(some(0),Cx,[iHalt]),

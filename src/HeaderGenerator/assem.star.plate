@@ -9,10 +9,16 @@ star.compiler.assem{
   import star.compiler.types.
   import star.compiler.ltipe.
 
+  public codePolicy ::= hardDefinition | softDefinition.
 
-  public codeSegment ::= method(termLbl,tipe,cons[assemOp]) |
+  public implementation display[codePolicy] => {.
+    disp(hardDefinition) => ss("hard").
+    disp(softDefinition) => ss("soft").
+  .}
+
+  public codeSegment ::= func(termLbl,codePolicy,tipe,cons[assemOp]) |
     global(termLbl,tipe,cons[assemOp]) |
-    struct(termLbl,integer,tipe,tipe) |
+    struct(termLbl,tipe,integer) |
     tipe(tipe,cons[(termLbl,tipe,integer)]).
 
   public assemOp ::=
@@ -24,22 +30,25 @@ star.compiler.assem{
   public assemLbl ::= al(string).
 
   public assem:(codeSegment) => term.
-  assem(method(Nm,Sig,Ins)) where
+  assem(func(Nm,H,Sig,Ins)) where
     (Lt0,_) .= findLit([],symb(Nm)) &&
     (_,Lbls) .= genLblTbl(Ins,0,[]) &&
     (Code,Lts,Lns,Lcs,_,Max) .= assemBlock(Ins,Lbls,Lt0,[],[],0,0,[]) =>
-    term(tLbl("method",7),
-      [symb(Nm),strg(encodeSignature(Sig)),intgr(Max),mkTpl(Code::cons[term]),litTbl(Lts),mkTpl({Lcl|Lcl in Lcs}),
+    mkCons("func",
+      [symb(Nm),encPolicy(H),strg(encodeSignature(Sig)),intgr(Max),mkTpl(Code::cons[term]),litTbl(Lts),mkTpl([Lcl|Lcl in Lcs]),
             mkTpl(sortLines(Lns))]).
   assem(global(Nm,Sig,Ins)) where
     (Lt0,_) .= findLit([],symb(Nm)) &&
     (_,Lbls) .= genLblTbl(Ins,0,[]) &&
     (Code,Lts,Lns,Lcs,_,Max) .= assemBlock(Ins,Lbls,Lt0,[],[],0,0,[]) =>
-    term(tLbl("global",7),
+    mkCons("global",
        [symb(Nm),strg(encodeSignature(Sig)),intgr(Max),mkTpl(Code::cons[term]),litTbl(Lts),mkTpl({Lcl|Lcl in Lcs}),
             mkTpl(sortLines(Lns))]).
-  assem(struct(Lbl,Ix,Tp,Flds)) =>
-    term(tLbl("struct",3),[symb(Lbl),intgr(Ix),strg(encodeSignature(Tp)),strg(encodeSignature(Flds))]).
+  assem(struct(Lbl,Tp,Ix)) =>
+    mkCons("struct",[symb(Lbl),strg(encodeSignature(Tp)),intgr(Ix)]).
+
+  encPolicy(hardDefinition) => mkTpl([]).
+  encPolicy(softDefinition) => mkTpl([strg("soft")]).
 
   private assemBlock:(cons[assemOp],map[string,integer],map[term,integer],map[term,integer],
                       set[term],integer,integer,cons[integer]) =>
@@ -90,7 +99,7 @@ star.compiler.assem{
   .}
 
   public implementation display[codeSegment] => {.
-    disp(method(Nm,Sig,Ins)) => ssSeq([disp(Nm),ss(":"),disp(Sig),ss("\n"),..(showMnem(Ins,0)::cons[ss])]).
+    disp(func(Nm,H,Sig,Ins)) => ssSeq([disp(H),ss(" "),disp(Nm),ss(":"),disp(Sig),ss("\n"),..(showMnem(Ins,0)::cons[ss])]).
     disp(global(Nm,Sig,Ins)) => ssSeq([ss("global "),disp(Nm),ss(":"),disp(Sig),ss("\n"),..(showMnem(Ins,0)::cons[ss])]).
   .}
 

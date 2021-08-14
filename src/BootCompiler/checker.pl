@@ -6,7 +6,6 @@
 :- use_module(wff).
 :- use_module(macro).
 :- use_module(macros).
-:- use_module(do).
 :- use_module(dependencies).
 :- use_module(freshen).
 :- use_module(freevars).
@@ -21,7 +20,6 @@
 :- use_module(import).
 :- use_module(transitive).
 :- use_module(resolve).
-:- use_module(cnc).
 :- use_module(vartypes).
 
 checkProgram(Prg,Pkg,Repo,_Opts,PkgDecls,Canon) :-
@@ -354,7 +352,7 @@ checkVarRules(N,Lc,Stmts,E,Ev,Defs,Dx,Face,Path) :-
   formDefn(Rules,N,LclName,E,Ev,Tp,Cx,Defs,Dx).
 %  reportMsg("type of %s:%s",[N,ProgramType]).
 
-formDefn([Eqn|Eqns],Nm,LclNm,Env,Ev,Tp,Cx,[funDef(Lc,Nm,LclNm,Tp,Cx,[Eqn|Eqns])|Dx],Dx) :-
+formDefn([Eqn|Eqns],Nm,LclNm,Env,Ev,Tp,Cx,[funDef(Lc,Nm,LclNm,hard,Tp,Cx,[Eqn|Eqns])|Dx],Dx) :-
   Eqn = equation(Lc,_,_,_),
   declareVr(Lc,Nm,Tp,Env,Ev).
 formDefn([varDef(Lc,_,_,_,_,Value)],Nm,LclNm,Env,Ev,Tp,Cx,
@@ -1222,10 +1220,10 @@ genDecls([Def|Defs],Public,Exports,Exx,LDecls,LDx,Dfs,Dfx) :-
   genDecl(Def,Def,Public,Exports,Ex0,LDecls,LD0,Dfs,Df0),
   genDecls(Defs,Public,Ex0,Exx,LD0,LDx,Df0,Dfx).
 
-genDecl(funDef(_,Nm,FullNm,Tp,_,_),Def,Public,
+genDecl(funDef(_,Nm,FullNm,_,Tp,_,_),Def,Public,
 	[funDec(Nm,FullNm,Tp)|Ex],Ex,Lx,Lx,[Def|Dfx],Dfx) :-
   call(Public,var(Nm)),!.
-genDecl(funDef(_,Nm,FullNm,Tp,_,_),Def,_,Ex,Ex,
+genDecl(funDef(_,Nm,FullNm,_,Tp,_,_),Def,_,Ex,Ex,
 	[funDec(Nm,FullNm,Tp)|Lx],Lx,[Def|Dfx],Dfx).
 genDecl(typeDef(_,Nm,Tp,TpRule),Def,Public,
 	[typeDec(Nm,Tp,TpRule)|Ex],Ex,Lx,Lx,[Def|Dfx],Dfx) :-
@@ -1234,11 +1232,11 @@ genDecl(typeDef(_,Nm,Tp,TpRule),Def,_,Ex,Ex,
 	[typeDec(Nm,Tp,TpRule)|Lx],Lx,[Def|Dfx],Dfx).
 genDecl(varDef(Lc,Nm,FullNm,[],Tp,lambda(_,_,Eqn),_),_,Public,
 	 [funDec(Nm,FullNm,Tp)|Ex],Ex,Lx,Lx,
-	 [funDef(Lc,Nm,FullNm,Tp,[],[Eqn])|Dfx],Dfx) :-
+	 [funDef(Lc,Nm,FullNm,hard,Tp,[],[Eqn])|Dfx],Dfx) :-
   call(Public,var(Nm)),!.
 genDecl(varDef(Lc,Nm,FullNm,[],Tp,lambda(_,_,Eqn),_),_,Public,
 	 Ex,Ex,[funDec(Nm,FullNm,Tp)|Lx],Lx,
-	 [funDef(Lc,Nm,FullNm,Tp,[],[Eqn])|Dfx],Dfx) :-
+	 [funDef(Lc,Nm,FullNm,hard,Tp,[],[Eqn])|Dfx],Dfx) :-
   call(Public,var(Nm)),!.
 genDecl(varDef(_,Nm,FullNm,_,Tp,_),Def,Public,
 	[varDec(Nm,FullNm,Tp)|Ex],Ex,Lx,Lx,[Def|Dfx],Dfx) :-
@@ -1328,5 +1326,5 @@ mkBoot(Env,Lc,Pkg,Dfs,[BootDef|Dfs],Decls,[funDec("_boot",BootNm,BootTp)|Decls])
   BootEqn = equation(Lc,tple(Lc,[CmdVr]),none,
 		     apply(Lc,MainTrm,
 			   tple(Lc,[CmdVr]),UnitTp)),
-  BootDef = funDef(Lc,"_boot",BootNm,BootTp,[],[BootEqn]).
+  BootDef = funDef(Lc,"_boot",BootNm,hard,BootTp,[],[BootEqn]).
 mkBoot(_Env,_,_,Dfs,Dfs,Decls,Decls).

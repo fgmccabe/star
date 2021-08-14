@@ -329,7 +329,7 @@ genAccessor(Lc,Q,Cx,Path,TpNm,Tp,Fld,FldTp,Tp,AllElTps,Body,
   putConstraints(Cx,funType(tplType([Tp]),FldTp),CxFunTp),
   reQuant(Q,CxFunTp,AccFunTp),
   accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,[]),
-  ImplDef = funDef(Lc,AccName,AccName,AccFunTp,[],Eqns).
+  ImplDef = funDef(Lc,AccName,AccName,soft,AccFunTp,[],Eqns).
 
 accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,Eqx) :-
   isBinary(Body,_,"|",L,R),!,
@@ -376,7 +376,7 @@ genBraceAccessors(Lc,Q,Cx,ConNm,Tp,[(Fld,FldTp)|ElTps],AllElTps,Defs,Dfx,Imps,Im
   genBraceAccessors(Lc,Q,Cx,ConNm,Tp,ElTps,AllElTps,Df0,Dfx,Im0,Imx).
 
 genBraceAccessor(Lc,Q,Cx,ConNm,Tp,Fld,FldTp,Tp,AllElTps,
-		 [funDef(Lc,AccName,AccName,AccFunTp,[],[Eqn]),AccDef|Defs],Defs,
+		 [funDef(Lc,AccName,AccName,soft,AccFunTp,[],[Eqn]),AccDef|Defs],Defs,
 		 [acc(Tp,Fld,AccName,AccFunTp)|Imx],Imx) :-
   localName(ConNm,field,Fld,AccName),
   putConstraints(Cx,funType(tplType([Tp]),FldTp),CxFunTp),
