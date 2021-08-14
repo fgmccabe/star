@@ -12,16 +12,16 @@ overload(Lc,Defs,Dict,RDict,RDefs) :-
   declareAccessors(Lc,Defs,Dict,RDict),
   map(Defs,resolve:overloadDef(RDict),RDefs).
 
-overloadDef(Dict,funDef(Lc,Nm,ExtNm,Tp,Cx,Eqns),RF) :-!,
-%  dispDef(funDef(Lc,Nm,ExtNm,Tp,Cx,Eqns)),
-  overloadFunction(Lc,Nm,ExtNm,Tp,Cx,Eqns,Dict,RF).
+overloadDef(Dict,funDef(Lc,Nm,ExtNm,H,Tp,Cx,Eqns),RF) :-!,
+%  dispDef(funDef(Lc,Nm,ExtNm,H,Tp,Cx,Eqns)),
+  overloadFunction(Lc,Nm,ExtNm,H,Tp,Cx,Eqns,Dict,RF).
 overloadDef(Dict,varDef(Lc,Nm,ExtNm,Cx,Tp,Value),RD) :-!,
   overloadDefn(Lc,Nm,ExtNm,Cx,Tp,Value,Dict,RD).
 overloadDef(_,Def,Def).
 
-overloadFunction(Lc,Nm,ExtNm,Tp,[],Eqns,Dict,funDef(Lc,Nm,ExtNm,Tp,[],REqns)) :-
+overloadFunction(Lc,Nm,ExtNm,H,Tp,[],Eqns,Dict,funDef(Lc,Nm,ExtNm,H,Tp,[],REqns)) :-
   overloadEquations(Eqns,Dict,[],REqns),!.
-overloadFunction(Lc,Nm,ExtNm,Tp,Cx,Eqns,Dict,funDef(Lc,Nm,ExtNm,Tp,[],REqns)) :-
+overloadFunction(Lc,Nm,ExtNm,H,Tp,Cx,Eqns,Dict,funDef(Lc,Nm,ExtNm,H,Tp,[],REqns)) :-
   defineCVars(Lc,Cx,Dict,CVars,FDict),
   overloadEquations(Eqns,FDict,CVars,REqns),!.
 

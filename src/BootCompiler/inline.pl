@@ -212,8 +212,8 @@ rewriteDefs([D|Ds],Env,[RD|RDs]) :-
   rewriteDef(D,Env,RD),
   rewriteDefs(Ds,Env,RDs).
 
-rewriteDef(funDef(Lc,Nm,FullNm,Tp,Cx,Eqns),Env,
-	   funDef(Lc,Nm,FullNm,Tp,Cx,REqns)) :-
+rewriteDef(funDef(Lc,Nm,FullNm,H,Tp,Cx,Eqns),Env,
+	   funDef(Lc,Nm,FullNm,H,Tp,Cx,REqns)) :-
   rewriteRules(Eqns,Env,REqns).
 rewriteDef(varDef(Lc,Nm,FullNm,Cx,Tp,Val),Env,
 	   varDef(Lc,Nm,FullNm,Tp,Cx,RVal)) :-
@@ -251,7 +251,7 @@ varInEnv(Nm,inlines(Vars,_),Val) :-
 
 defInEnv(Nm,inlines(_,Defs),Eqns) :-
   makeKey(Nm,Key),
-  get_dict(Key,Defs,funDef(_,_,_,_,Eqns)).
+  get_dict(Key,Defs,funDef(_,_,_,_,_,Eqns)).
 
 extendEnv([],Env,Env).
 extendEnv([D|Ds],Env,Ev) :-
@@ -260,9 +260,9 @@ extendEnv([D|Ds],Env,Ev) :-
 
 extendDef(varDef(_,Nm,_,[],_,Val),Env,Ev) :-
   addVarToEnv(Nm,Val,Env,Ev).
-extendDef(funDef(Lc,Nm,FullNm,Tp,[],Eqns),inlines(Vars,Defs),inlines(Vars,EDefs)) :-
+extendDef(funDef(Lc,Nm,FullNm,H,Tp,[],Eqns),inlines(Vars,Defs),inlines(Vars,EDefs)) :-
   make_key(Nm,Key),
-  put_dict(Key,Defs,funDef(Lc,Nm,FullNm,Tp,[],Eqns),EDefs).
+  put_dict(Key,Defs,funDef(Lc,Nm,FullNm,H,Tp,[],Eqns),EDefs).
 extendDef(_,Env,Env).
 
 addVarToEnv(Nm,Vr,inlines(Vars,Defs),inlines(EVars,Defs)) :-

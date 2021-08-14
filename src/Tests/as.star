@@ -2,10 +2,12 @@ test.as{
   import star.
   import star.script.
 
+  pTrm[a,b] ::= pTrm{name:a. age:b}.
+
   -- peter:{name:string. age:integer}.
   peter = let{
     name = "fred" ++ "'s friend".
-  } in {.name=name. age=23 .}.
+  } in pTrm{.name=name. age=23 .}.
 
   main:()=> action[(),()].
   main() => action{

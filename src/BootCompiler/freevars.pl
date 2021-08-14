@@ -109,7 +109,7 @@ freeActionVars(simpleDo(_,A),Ex,Q,F,Fv) :-
 definedVars(Defs,Q,Qx) :-
   varsInList(Defs,freevars:defVar,Q,Qx).
 
-defVar(funDef(_,Nm,_,_,_,_),Q,[idnt(Nm)|Q]).
+defVar(funDef(_,Nm,_,_,_,_,_),Q,[idnt(Nm)|Q]).
 defVar(varDef(_,Nm,_,_,_,_),Q,[idnt(Nm)|Q]).
 defVar(_,Q,Q).
 
@@ -120,7 +120,7 @@ qualifed(V,Q) :- is_member(idnt(V),Q).
 freeVarsInDefs(L,Ex,Q,F,Fv) :-
   rfold(L,freevars:freeVarsInDef(Ex,Q),F,Fv).
 
-freeVarsInDef(Ex,Q,funDef(_,_,_,_,_,Eqns),F,Fv) :-
+freeVarsInDef(Ex,Q,funDef(_,_,_,_,_,_,Eqns),F,Fv) :-
   freeVarsInRules(Eqns,Ex,Q,F,Fv).
 freeVarsInDef(Ex,Q,varDef(_,_,_,_,_Tp,Value),F,Fv) :-
   freeVars(Value,Ex,Q,F,Fv).

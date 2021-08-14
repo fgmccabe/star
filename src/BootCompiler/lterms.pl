@@ -60,10 +60,11 @@ ssTransformed(mdule(Pkg,_Imports,_,_,Defs),
 	      sq([ss("Package "),canon:ssPkg(Pkg),nl(0),iv(nl(0),Rs)])):-
   map(Defs,lterms:ssRuleSet,Rs).
 
-ssRuleSet(fnDef(_Lc,Nm,_Tp,Args,Value),sq([ss("Fn: "),NN,lp,AA,rp,ss(" => "),VV])) :-
+ssRuleSet(fnDef(_Lc,Nm,H,_Tp,Args,Value),sq([ss(HH),ss("Fn: "),NN,lp,AA,rp,ss(" => "),VV])) :-
   ssTrm(Nm,0,NN),
   showArgs(Args,0,AA),
-  ssTrm(Value,0,VV).
+  ssTrm(Value,0,VV),
+  (H=soft -> HH="soft ";HH="").
 ssRuleSet(glbDef(_Lc,Nm,_Tp,Value),sq([ss("Gl: "),id(Nm),ss(" = "),VV])) :-
   ssTrm(Value,0,VV).
 ssRuleSet(tpDef(_Lc,Tp,_Rl,IxMap),
@@ -532,7 +533,7 @@ validDfs([D|Dfs],Dct) :-
   validDf(D,Dct),!,
   validDfs(Dfs,Dct).
 
-validDf(fnDef(Lc,_,_Tp,Args,Value),Dct) :-!,
+validDf(fnDef(Lc,_,_,_Tp,Args,Value),Dct) :-!,
   declareArgs(Args,Dct,D0),
   validTerm(Value,Lc,D0),!.
 validDf(glbDef(Lc,_Nm,_Tp,Value),Dct) :-
@@ -562,8 +563,7 @@ declareArg(idnt(Nm),D,Dx) :-
 
 validTerm(idnt(Nm),Lc,D) :-
   (is_member(Nm,D) -> true ; 
-   reportError("(validate) Variable %s not in scope %s",[Nm,D],Lc),
-   abort).
+   reportError("(validate) Variable %s not in scope",[Nm],Lc)).
 validTerm(anon,_,_).
 validTerm(voyd,_,_).
 validTerm(intgr(_),_,_).
@@ -639,9 +639,8 @@ validTerm(error(Lc,R),_,D) :-
   validTerm(R,Lc,D).
 validTerm(doAct(Lc,Act),_,D) :-
   validAct(Act,Lc,D).
-validTerm(T,Lc,D) :-
-  reportError("(internal) Invalid term %s in scope %s",[ltrm(T),D],Lc),
-  abort.
+validTerm(T,Lc,_) :-
+  reportError("(internal) Invalid term %s in scope",[ltrm(T)],Lc).
 
 validVr(Id,D,[Id|D]).
 
@@ -665,8 +664,7 @@ validPtn(whr(Lc,Ptn,Cond),_,D,Dx) :-
 validPtn(varNames(Lc,_,Value),_,D,Dx) :-
   validPtn(Value,Lc,D,Dx).
 validPtn(T,Lc,D,D) :-
-  reportError("(internal) Invalid pattern %s in scope %s",[ltrm(T),D],Lc),
-  abort.
+  reportError("(internal) Invalid pattern %s",[ltrm(T)],Lc).
 
 validPtns([],_,Dx,Dx) :-!.
 validPtns([P|Ps],Lc,D,Dx) :-
@@ -725,8 +723,7 @@ validAct(tryDo(Lc,B,H),_,D) :-
   validAct(B,Lc,D),
   validTerm(H,Lc,D).
 validAct(A,Lc,_) :-
-  reportError("(internal) Invalid action %s",[lact(A)],Lc),
-  abort.
+  reportError("(internal) Invalid action %s",[lact(A)],Lc).
 
 ptnVars(idnt(Nm),D,Dx) :-
   add_mem(Nm,D,Dx).

@@ -270,7 +270,12 @@ retCode decodeTplCount(ioPo in, integer *count, char *errMsg, integer msgLen) {
 static char *consPreamble = "n3o3\1cons\1";
 static char *typePreamble = "n3o3\1type\1";
 static char *fieldPreamble = "n2o2\1()2\1";
-static char *methodPreamble = "n7o7\1method\1";
+static char *funcPreamble = "n8o8\1func\1";
+
+typedef enum {
+  hardDef,
+  softDef
+} DefinitionMode;
 
 static retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize);
 static retCode loadType(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize);
@@ -282,7 +287,7 @@ retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen
     retCode ret = Ok;
 
     for (integer ix = 0; ret == Ok && ix < count; ix++) {
-      if (isLookingAt(in, methodPreamble) == Ok)
+      if (isLookingAt(in, funcPreamble) == Ok)
         ret = loadFunc(in, h, owner, errorMsg, msgLen);
       else if (isLookingAt(in, typePreamble) == Ok)
         ret = loadType(in, h, owner, errorMsg, msgLen);
@@ -427,19 +432,39 @@ retCode decodeIns(ioPo in, wordBufferPo bfr, integer *ix, integer *si, char *err
   return ret;
 }
 
+retCode decodePolicies(ioPo in, heapPo H, DefinitionMode *redefine, char *errorMsg, long msgSize) {
+  integer policyCount;
+  retCode ret = decodeTplCount(in, &policyCount, errorMsg, msgSize);
+  for (integer ix = 0; ret == Ok && ix < policyCount; ix++) {
+    char nameBuff[MAX_SYMB_LEN];
+    if (decodeString(in, nameBuff, NumberOf(nameBuff)) == Ok) {
+      if (uniIsLit(nameBuff, "soft")) {
+        *redefine = softDef;
+      } else; // ignore unknown policies
+    } else {
+      strMsg(errorMsg, msgSize, "problem in loading policy");
+      return Error;
+    }
+  }
+  return ret;
+}
+
 retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize) {
   char prgName[MAX_SYMB_LEN];
   integer arity;
   integer lclCount = 0;
   integer maxStack = 0;
+  DefinitionMode redefine = hardDef;
 
-  retCode ret = decodeLbl(in, prgName, NumberOf(prgName), &arity,
-                          errorMsg, msgSize);
+  retCode ret = decodeLbl(in, prgName, NumberOf(prgName), &arity, errorMsg, msgSize);
 
 #ifdef TRACEPKG
   if (tracePkg >= detailedTracing)
     logMsg(logFile, "loading function %s/%d", &prgName, arity);
 #endif
+
+  if (ret == Ok)
+    ret = decodePolicies(in, H, &redefine, errorMsg, msgSize);
 
   if (ret == Ok)
     ret = skipEncoded(in, errorMsg, msgSize); // Skip the code signature
@@ -484,8 +509,10 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
               labelPo lbl = declareLbl(prgName, arity, -1);
 
               if (labelCode(lbl) != Null) {
-                strMsg(errorMsg, msgSize, "attempt to redeclare method %A", lbl);
-                ret = Error;
+                if (redefine != softDef) {
+                  strMsg(errorMsg, msgSize, "attempt to redeclare method %A", lbl);
+                  ret = Error;
+                } // Otherwise don't redefine
               } else {
                 gcAddRoot(H, (ptrPo) &lbl);
 
@@ -519,7 +546,7 @@ retCode loadType(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSiz
 
 #ifdef TRACEPKG
   if (tracePkg >= detailedTracing)
-    logMsg(logFile, "loading type %S", &typeName,typeNameLen);
+    logMsg(logFile, "loading type %S", &typeName, typeNameLen);
 #endif
 
   if (ret == Ok)
