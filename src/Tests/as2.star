@@ -2,7 +2,7 @@ test.as2{
   import star.
   import star.script.
 
-  checkLists() => let{.
+  checkLists() => let{
     foo : ref integer.
     foo := 0.
 
@@ -15,8 +15,7 @@ test.as2{
       foo := X;
       valis .true
     }
-  .} in 
-  let{
+  } in let{
     check:(cons[integer],cons[integer])=>boolean.
     check([],[]) => .true.
     check([E,..Es],[D,..Ds]) =>
