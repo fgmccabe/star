@@ -751,10 +751,12 @@ typeOfExp(Term,Tp,_ErTp,Env,Env,Action,Path) :-
 typeOfExp(Term,Tp,_ErTp,Env,Env,Val,Path) :-
   isBraceTuple(Term,Lc,Els),
   \+isComprehension(Term,_,_,_),
+  reportError("anonymous brace expression %s not supported",[ast(Term)],Lc),
   tpName(Tp,Lbl),
   checkThetaBody(Tp,Lbl,Lc,Els,Env,Val,Path).
 typeOfExp(Term,Tp,_ErTp,Env,Env,Val,Path) :-
   isQBraceTuple(Term,Lc,Els),
+  reportError("anonymous brace expression %s not supported",[ast(Term)],Lc),
   tpName(Tp,Lbl),
   checkRecordBody(Tp,Lbl,Lc,Els,Env,Val,Path).
 typeOfExp(Term,Tp,ErTp,Env,Env,Val,Path) :-
@@ -912,11 +914,11 @@ typeOfActionExp(Lc,Stmts,Tp,Env,Action,Path) :-
   typeOfCanon(ActFn,ActConsTp),
   LamTp = funType(tplType([]),RTp),
   verifyType(Lc,consType(tplType([LamTp]),MTp),ActConsTp,Env),
-  lambdaLbl(Path,"∂",ActLbl),
+  lambdaLbl(Path,"λ",LamLbl),
   typeOfDoExp(Lc,Stmts,RTp,ErTp,Env,Act,Path),
   Action = apply(Lc,ActFn,
 		 tple(Lc,
-		      [lambda(Lc,ActLbl,
+		      [lambda(Lc,LamLbl,
 			      equation(Lc,tple(Lc,[]),none,Act),
 			      LamTp)]),Tp).
 
@@ -1108,14 +1110,19 @@ checkAction(Term,Env,Env,_,_,_,_,_,noDo(Lc),_) :-
 
 checkAssignment(Lc,L,R,Env,Ev,Tp,VlTp,ErTp,OkFn,EvtFn,Act,Path) :-
   verifyType(Lc,tplType([]),VlTp,Env),
-  (isIden(L,_,VrNm), isVar(VrNm,Env,VrSpec) ->
+  (isIden(L,_,VrNm) ->
+   (isVar(VrNm,Env,VrSpec) ->
+    newTypeVar("A",ATp),
+    typeOfVar(Lc,VrNm,refType(ATp),VrSpec,Env,_,Lhs),
+    typeOfExp(R,ATp,ErTp,Env,Ev,Rhs,Path),
+    Act = assignDo(Lc,Lhs,Rhs);
+    unary(Lc,"ref",R,RR),
+    binary(Lc,".=",L,RR,St),
+    checkAction(St,Env,Ev,Tp,VlTp,ErTp,OkFn,EvtFn,Act,Path));
    newTypeVar("A",ATp),
-   typeOfVar(Lc,VrNm,refType(ATp),VrSpec,Env,_,Lhs),
-   typeOfExp(R,ATp,ErTp,Env,Ev,Rhs,Path),
-   Act = assignDo(Lc,Lhs,Rhs);
-   unary(Lc,"ref",R,RR),
-   binary(Lc,".=",L,RR,St),
-   checkAction(St,Env,Ev,Tp,VlTp,ErTp,OkFn,EvtFn,Act,Path)).
+   typeOfExp(L,refType(ATp),ErTp,Env,Ev,Lhs,Path),
+   typeOfExp(R,ATp,ErTp,Env,_,Rhs,Path),
+   Act = assignDo(Lc,Lhs,Rhs)).
 
 checkActionCases([],_,_,_,_,_,_,_,Cases,Cases,Dfx,Dfx,_).
 checkActionCases([C|Ss],GTp,Env,Tp,VlTp,ErTp,OkFn,EvtFn,Cases,Cx,Df,Dfx,Path) :-

@@ -11,17 +11,22 @@
 functionMatcher(Lc,Ar,Nm,H,Tp,Eqns,Map,fnDef(Lc,Nm,H,Tp,NVrs,Reslt)) :-
   genVars(Ar,NVrs),
   makeTriples(Eqns,0,Tpls),
-  genRaise(Lc,Error),
+  getLocalLblName(Nm,LclNm),
+  genRaise(Lc,LclNm,Error),
   matchTriples(Lc,NVrs,Tpls,Error,Map,Reslt),!.
 functionMatcher(Lc,_Ar,Nm,H,Tp,_Eqns,_,fnDef(Lc,Nm,H,Tp,[],enum("void"))) :-
   reportError("(internal) failed to construct function for %s",[Nm],Lc).
 
+getLocalLblName(lbl(Nm,_),LclNm) :-
+  getLocalName(Nm,LclNm).
+
 caseMatcher(Lc,Bnd,Cases,Map,Result) :-
   makeTriples(Cases,0,Tpls),
-  genRaise(Lc,Error),
+  genRaise(Lc,"case",Error),
   matchTriples(Lc,[Bnd],Tpls,Error,Map,Result).
 
-genRaise(Lc,error(Lc,strg("no matches"))).
+genRaise(Lc,Nm,error(Lc,strg(Msg))) :-
+  string_concat("no matches in ",Nm,Msg).
 
 genVarPairs(Tp,Vrs) :-
   progArgTypes(Tp,Tps),

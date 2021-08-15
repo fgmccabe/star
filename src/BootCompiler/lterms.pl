@@ -194,7 +194,7 @@ ssTrm(ng(_,R),Dp,sq([lp,ss("~"),RR,rp])) :-
 ssTrm(error(Lc,M),Dp,sq([lp,ss("error "),MM,rp,ss("@"),LL])) :-
   ssTrm(M,Dp,MM),
   ssLoc(Lc,LL).
-ssTrm(doAct(_,Act),Dp,sq([ss("do "),iv(nl(Dp),AA)])) :-
+ssTrm(doAct(_,Act),Dp,sq([ss("do "),lb,iv(nl(Dp),AA),rb])) :-
   ssActs(Act,Dp,AA).
 
 ssCnd(cnd(_,T,L,R),Dp,sq([TT,ss(" ? "),nl(Dp),LL,ss("||"),nl(Dp),RR])) :-
@@ -679,11 +679,11 @@ validCase(Lc,Ptn,Val,Leaf,D) :-
   call(Leaf,Val,Lc,D1).
 
 validAct(nop(_),_,_).
-validAct(seq(Lc,varD(_,V,B),R),_,D) :-
+validAct(seq(SLc,varD(Lc,V,B),R),_,D) :-
   ptnVars(V,D,D0),
   validTerm(V,Lc,D0),
   validTerm(B,Lc,D),
-  validAct(R,Lc,D0).
+  validAct(R,SLc,D0).
 validAct(seq(Lc,L,R),_,D) :-
   validAct(L,Lc,D),
   validAct(R,Lc,D).

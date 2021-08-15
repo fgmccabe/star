@@ -89,7 +89,7 @@ star.compiler.operators{
   oper("$$") => [prefixOp(899,898)].
   oper("background") => [prefixOp(950,949)].
   oper(":") => [infixOp(1249,1250,1249)].
-  oper(";") => [infixOp(1250,1251,1251)].
+  oper(";") => [postfixOp(1250,1251), infixOp(1250,1251,1251)].
   oper("<") => [infixOp(899,900,899)].
   oper(".=") => [infixOp(899,900,899)].
   oper("=") => [infixOp(974,975,974)].

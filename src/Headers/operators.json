@@ -224,6 +224,15 @@
     "keyword": true
   },
   {
+    "postfixOp": ";",
+    "priorities": [
+      1250,
+      1251
+    ],
+    "desc": "sequencing operator",
+    "keyword": true
+  },
+  {
     "prefixOp": "valof",
     "priorities": [
       300,

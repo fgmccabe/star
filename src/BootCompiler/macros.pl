@@ -501,6 +501,9 @@ examineAction(A,Ax) :-
   macroAction(R,Rx),
   mkActionSeq(Lc,Lx,Rx,Ax).
 examineAction(A,Ax) :-
+  isActionSeq(A,_,L),!,
+  macroAction(L,Ax).
+examineAction(A,Ax) :-
   isBraceTuple(A,Lc,[S]),!,
   macroAction(S,Sx),
   braceTuple(Lc,[Sx],Ax).

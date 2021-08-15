@@ -235,6 +235,10 @@
 @tab 1250
 @tab type annotation
 @item @code{;}
+@tab non-associative postfix
+@tab 1251
+@tab sequencing operator
+@item @code{;}
 @tab right associative infix
 @tab 1251
 @tab sequencing operator

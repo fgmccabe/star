@@ -65,46 +65,47 @@ freeVars(case(_,Gov,Cses,_),Ex,Q,F,Fv) :-
   freeVars(Gov,Ex,Q,F,F0),
   freeVarsInRules(Cses,Ex,Q,F0,Fv).
 freeVars(doTerm(_,A,_),Ex,Q,F,Fv) :-
-  freeActionVars(A,Ex,Q,F,Fv).
+  freeActionVars(A,Ex,_,Q,F,Fv).
 
-freeActionVars(seqDo(_,A,B),Ex,Q,F,Fv) :-
-  freeActionVars(A,Ex,Q,F,F0),
-  freeActionVars(B,Ex,Q,F0,Fv).
-freeActionVars(varDo(_,P,E),Ex,Q,F,Fv) :-
+freeActionVars(seqDo(_,A,B),Ex,Exx,Q,F,Fv) :-
+  freeActionVars(A,Ex,Ex0,Q,F,F0),
+  freeActionVars(B,Ex0,Exx,Q,F0,Fv).
+freeActionVars(varDo(_,P,E),Ex,Ex1,Q,F,Fv) :-
   ptnVars(P,Ex,Ex1),
-  freeVars(E,Ex1,Q,F,Fv).
-freeActionVars(assignDo(_,V,E),Ex,Q,F,Fv) :-
+  freeVars(P,Ex1,Q,F,F0),
+  freeVars(E,Ex1,Q,F0,Fv).
+freeActionVars(assignDo(_,V,E),Ex,Ex,Q,F,Fv) :-
   freeVars(V,Ex,Q,F,F0),
   freeVars(E,Ex,Q,F0,Fv).
-freeActionVars(ifThenDo(_,G,Th,El),Ex,Q,F,Fv) :-
+freeActionVars(ifThenDo(_,G,Th,El),Ex,Ex,Q,F,Fv) :-
   ptnGoalVars(G,Ex,E1),
   freeVars(G,E1,Q,F,F0),
-  freeActionVars(Th,E1,Q,F0,F1),
-  freeActionVars(El,Ex,Q,F1,Fv).
-freeActionVars(whileDo(_,G,B),Ex,Q,F,Fv) :-
+  freeActionVars(Th,E1,_,Q,F0,F1),
+  freeActionVars(El,Ex,_,Q,F1,Fv).
+freeActionVars(whileDo(_,G,B),Ex,Ex,Q,F,Fv) :-
   ptnGoalVars(G,Ex,E1),
   freeVars(G,E1,Q,F,F0),
-  freeActionVars(B,E1,Q,F0,Fv).
-freeActionVars(untilDo(_,G,B),Ex,Q,F,Fv) :-
+  freeActionVars(B,E1,_,Q,F0,Fv).
+freeActionVars(untilDo(_,G,B),Ex,Ex,Q,F,Fv) :-
   freeVars(G,Ex,Q,F,F0),
-  freeActionVars(B,Ex,Q,F0,Fv).
-freeActionVars(forDo(_,G,B),Ex,Q,F,Fv) :-
+  freeActionVars(B,Ex,_,Q,F0,Fv).
+freeActionVars(forDo(_,G,B),Ex,Ex,Q,F,Fv) :-
   ptnGoalVars(G,Ex,E1),
   freeVars(G,E1,Q,F,F0),
-  freeActionVars(B,E1,Q,F0,Fv).
-freeActionVars(caseDo(_,Gov,Cses,_,_),Ex,Q,F,Fv) :-
+  freeActionVars(B,E1,_,Q,F0,Fv).
+freeActionVars(caseDo(_,Gov,Cses,_,_),Ex,Ex,Q,F,Fv) :-
   freeVars(Gov,Ex,Q,F,F0),
-  freeVarsInRules(Cses,Ex,Q,F0,Fv).
-freeActionVars(tryCatchDo(_,A,H),Ex,Q,F,Fv) :-
-  freeActionVars(A,Ex,Q,F,F0),
+  freeVarsInRules(Cses,Ex,_,Q,F0,Fv).
+freeActionVars(tryCatchDo(_,A,H),Ex,Ex,Q,F,Fv) :-
+  freeActionVars(A,Ex,_,Q,F,F0),
   freeVars(H,Ex,Q,F0,Fv).
-freeActionVars(valisDo(_,Exp),Ex,Q,F,Fv) :-
+freeActionVars(valisDo(_,Exp),Ex,Ex,Q,F,Fv) :-
   freeVars(Exp,Ex,Q,F,Fv).
-freeActionVars(throwDo(_,Exp),Ex,Q,F,Fv) :-
+freeActionVars(throwDo(_,Exp),Ex,Ex,Q,F,Fv) :-
   freeVars(Exp,Ex,Q,F,Fv).
-freeActionVars(performDo(_,Exp),Ex,Q,F,Fv) :-
+freeActionVars(performDo(_,Exp),Ex,Ex,Q,F,Fv) :-
   freeVars(Exp,Ex,Q,F,Fv).
-freeActionVars(simpleDo(_,A),Ex,Q,F,Fv) :-
+freeActionVars(simpleDo(_,A),Ex,Ex,Q,F,Fv) :-
   freeVars(A,Ex,Q,F,Fv).
   
 definedVars(Defs,Q,Qx) :-

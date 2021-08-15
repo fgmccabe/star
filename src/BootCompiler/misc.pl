@@ -10,7 +10,7 @@
 	       appIndx/3,appNl/2,appNwln/3,appMulti/3,
 	       genstr/2,str_lt/2,
 	       subPath/4,pathSuffix/3,starts_with/2,ends_with/2,
-	       localName/3,localName/4,splitLocalName/4,
+	       localName/3,localName/4,splitLocalName/4,getLocalName/2,
 	       listShow/5,
 	       stringHash/3,hashSixtyFour/2,stringEndsWith/2,
 	       marker/2,
@@ -264,6 +264,11 @@ splitLocalName(LclNm,Glue,Pkg,Nm) :-
   sub_string(LclNm,Before,_,After,Glue),
   sub_string(LclNm,0,Before,_,Pkg),
   sub_string(LclNm,_,After,0,Nm),!.
+
+getLocalName(Lcl,Nm) :-
+  marker(_,Mrk),
+  splitLocalName(Lcl,Mrk,_,Nm),!.
+getLocalName(Nm,Nm).
 
 marker(type,"*").
 marker(value,"@").
