@@ -3,7 +3,6 @@
 :-module(escapes,[isEscape/1,escapeType/2]).
 
 escapeType("_exit",funType(tplType([type("star.core*integer")]),tplType([]))).
-escapeType("_command_line",funType(tplType([]),tpExp(tpFun("star.core*cons",1),type("star.core*string")))).
 escapeType("_abort",allType(kVar("s"),funType(tplType([kVar("s"),type("star.core*string")]),tplType([])))).
 escapeType("_definedLbl",funType(tplType([type("star.core*string"),type("star.core*integer")]),type("star.core*boolean"))).
 escapeType("_callLbl",funType(tplType([type("star.core*string"),type("star.core*integer"),tpExp(tpFun("star.core*cons",1),tpExp(tpFun("star.core*cons",1),type("star.core*string")))]),tplType([]))).
@@ -211,7 +210,6 @@ escapeType("_releaseLock",funType(tplType([type("star.thread*lock")]),tpExp(tpFu
 escapeType("_ins_debug",funType(tplType([]),tplType([]))).
 escapeType("_stackTrace",funType(tplType([]),tplType([]))).
 isEscape("_exit").
-isEscape("_command_line").
 isEscape("_abort").
 isEscape("_definedLbl").
 isEscape("_callLbl").

@@ -352,6 +352,9 @@ collectDoRefs(T,All,Rf,Rfx) :-
   collectDoRefs(L,All,Rf,Rf1),
   collectDoRefs(R,All,Rf1,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
+  isActionSeq(T,_,L),!,
+  collectDoRefs(L,All,Rf,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
   isBraceTuple(T,_,[St]),!,
   collectDoRefs(St,All,Rf,Rfx).
 collectDoRefs(T,_,Rf,Rf) :-

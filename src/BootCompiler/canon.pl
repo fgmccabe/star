@@ -301,7 +301,7 @@ ssConstraints([T|More],Dp,[TT|TTs]) :-
 
 ssAction(noDo(Lc),_,sq([ss("no-op at "),LL])) :-
   ssLoc(Lc,LL).
-ssAction(seqDo(Lc,A,B),Dp,sq([lb,iv(sq([ss(";"),nl(Dp2)]),AA),rb])) :-
+ssAction(seqDo(Lc,A,B),Dp,sq([lb,nl(Dp2),iv(sq([ss(";"),nl(Dp2)]),AA),nl(Dp),rb])) :-
   Dp2 is Dp+2,
   ssActions(seqDo(Lc,A,B),Dp2,AA).
 ssAction(varDo(_,Ptn,Exp),Dp,sq([PP,ss(" .= "),VV])) :-

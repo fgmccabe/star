@@ -83,10 +83,6 @@ termPo commandLine(heapPo H) {
   return list;
 }
 
-ReturnStatus g__command_line(processPo p, ptrPo tos) {
-  return (ReturnStatus) {.ret=Ok, .result=commandLine(processHeap(p))};
-}
-
 extern char **environ;
 
 integer countEnviron() {

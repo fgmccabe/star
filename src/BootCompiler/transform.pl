@@ -54,7 +54,7 @@
 transformProg(PkgDecls,prog(pkg(Pkg,Vers),Imports,Decls,LDecls,Defs),
 	      Opts,mdule(pkg(Pkg,Vers),Imports,Decls,LDecls,Dfs)) :-
   makePkgMap(Pkg,PkgDecls,Map),
-  (is_member(showTrCode,Opts) -> dispMap("Package map: ",0,Map);true),
+%  (is_member(showTrCode,Opts) -> dispMap("Package map: ",0,Map);true),
   transformModuleDefs(Defs,Pkg,Map,Opts,Dfs,[]).
 
 makePkgMap(Pkg,PkgDecls,[lyr(VarMap,TpMap,ConsMap,void)]) :-
@@ -402,7 +402,7 @@ liftLetExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftLetRec(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   genVar("_ThV",ThVr),
   letRecMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,ThMap,FreeTerm),
-  (is_member(showTrCode,Opts) -> dispMap("Theta map: ",1,ThMap);true),
+%  (is_member(showTrCode,Opts) -> dispMap("Theta map: ",1,ThMap);true),
   transformThetaDefs(ThMap,ThMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
   liftExp(Bnd,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
   mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
@@ -529,7 +529,7 @@ liftAction(Last,varDo(Lc,P,E),varD(Lc,P1,E1),Q,Q,Map,Opts,Ex,Exx) :-
   liftExp(E,E1,Q0,_,Map,Opts,Ex0,Exx).
 liftAction(Last,assignDo(Lc,P,E),assignD(Lc,P1,E1),Q,Q,Map,Opts,Ex,Exx) :-
   checkNotLast(Last,Lc),
-  liftPtn(P,P1,Q,Q0,Map,Opts,Ex,Ex0),
+  liftExp(P,P1,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(E,E1,Q0,_,Map,Opts,Ex0,Exx).
 liftAction(_,performDo(Lc,Exp),perfDo(Lc,E1),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(Exp,E1,Q,Qx,Map,Opts,Ex,Exx).
@@ -615,8 +615,8 @@ letMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,
   makeConstructorMap(Defs,consMap{},ConsMap),
   declareThetaVars(Decls,ThVr,CellVars,ConsMap,varMap{},V0,typeMap{},Tx),
   collectLabelVars(FreeVars,ThVr,0,V0,Vx),
-  makeFreeTerm(CellVars,Lc,ThFree,Map,Opts,FreeTerm),
-  (is_member(showTrCode,Opts) -> dispMap("Record map: ",1,[lyr(Vx,Tx,ConsMap,ThVr)|Map]);true).
+  makeFreeTerm(CellVars,Lc,ThFree,Map,Opts,FreeTerm).
+%  (is_member(showTrCode,Opts) -> dispMap("Record map: ",1,[lyr(Vx,Tx,ConsMap,ThVr)|Map]);true).
 
 lambdaMap(Lam,ThVr,LamLbl,Q,Map,Opts,ctpl(lbl(LamLbl,1),[FreeTerm]),
 	  [lyr(Vx,typeMap{},consMap{},ThVr)|Map]) :-

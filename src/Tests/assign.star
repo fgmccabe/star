@@ -15,10 +15,10 @@ test.assign{
   -- peter:{name:string. age:integer}.
   peter = let{
     name = "fred" ++ "'s friend".
-  } in {.name=name. age=23 .}.
+  } in someone{.name:=name. age=23 .}.
 
   main:()=>action[(),()].
-  main() => do{
+  main() => action{
     assert valof action {
       fred.name := "fred";
       valis fred.name!
@@ -26,11 +26,11 @@ test.assign{
 
     show fred.name!;
     
-    show peter.name;
+    show peter.name!;
 
-    alpha .= ref 23;
+    alpha := 23;
 
-    checkInc .= (() where _ .= valof action {alpha := alpha!+1} => alpha!==24);
+    checkInc .= (() where _ .= valof action {alpha := alpha!+1; valis ()} => alpha!==24);
 
     assert alpha!==23;
 
@@ -38,6 +38,6 @@ test.assign{
 
     assert checkInc();
 
-    assert peter.name=="fred's friend" && peter.age==23
+    assert peter.name!=="fred's friend" && peter.age==23
   }
 }

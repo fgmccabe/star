@@ -6,7 +6,6 @@ star.compiler.escapes{
 
   public escapeType:(string)=>option[tipe].
   escapeType("_exit") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),tplType([]))).
-  escapeType("_command_line") => some(tpExp(tpExp(tpFun("=>",2),tplType([])),tpExp(tpFun("star.core*cons",1),nomnal("star.core*string")))).
   escapeType("_abort") => some(allType(nomnal("s"),tpExp(tpExp(tpFun("=>",2),tplType([nomnal("s"),nomnal("star.core*string")])),tplType([])))).
   escapeType("_definedLbl") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
   escapeType("_callLbl") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*integer"),tpExp(tpFun("star.core*cons",1),tpExp(tpFun("star.core*cons",1),nomnal("star.core*string")))])),tplType([]))).
@@ -217,7 +216,6 @@ star.compiler.escapes{
 
   public isEscape:(string)=>boolean.
   isEscape("_exit") => .true.
-  isEscape("_command_line") => .true.
   isEscape("_abort") => .true.
   isEscape("_definedLbl") => .true.
   isEscape("_callLbl") => .true.

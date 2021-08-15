@@ -73,7 +73,7 @@
   operator("$$", [prefixOp(899, 898)]).
   operator("background", [prefixOp(950, 949)]).
   operator(":", [infixOp(1249, 1250, 1249)]).
-  operator(";", [infixOp(1250, 1251, 1251)]).
+  operator(";", [postfixOp(1250, 1251), infixOp(1250, 1251, 1251)]).
   operator("<", [infixOp(899, 900, 899)]).
   operator(".=", [infixOp(899, 900, 899)]).
   operator("=", [infixOp(974, 975, 974)]).
