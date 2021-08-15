@@ -73,8 +73,9 @@ freeActionVars(seqDo(_,A,B),Ex,Q,F,Fv) :-
 freeActionVars(varDo(_,P,E),Ex,Q,F,Fv) :-
   ptnVars(P,Ex,Ex1),
   freeVars(E,Ex1,Q,F,Fv).
-freeActionVars(assignDo(_,_,E),Ex,Q,F,Fv) :-
-  freeVars(E,Ex,Q,F,Fv).
+freeActionVars(assignDo(_,V,E),Ex,Q,F,Fv) :-
+  freeVars(V,Ex,Q,F,F0),
+  freeVars(E,Ex,Q,F0,Fv).
 freeActionVars(ifThenDo(_,G,Th,El),Ex,Q,F,Fv) :-
   ptnGoalVars(G,Ex,E1),
   freeVars(G,E1,Q,F,F0),

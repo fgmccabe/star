@@ -62,6 +62,11 @@ collStmtRefs(St,All,Annots,SoFar,Refs) :-
   collectHeadRefs(H,All,R0,R1),
   collectGuardRefs(Cond,All,R1,R2),
   collectTermRefs(Exp,All,R2,Refs).
+collStmtRefs(St,All,Annots,SoFar,Refs) :-
+  isAssignment(St,_,H,Exp),
+  collectAnnotRefs(H,All,Annots,SoFar,R0),
+  collectHeadRefs(H,All,R0,R1),
+  collectTermRefs(Exp,All,R1,Refs).
 collStmtRefs(C,All,_,R,Refs) :-
   isAlgebraicTypeStmt(C,_,_,Cx,_,_Body),
   collConstraints(Cx,All,R,Refs).

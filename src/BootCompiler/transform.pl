@@ -413,6 +413,7 @@ mkFreeLet(Lc,Vr,Fr,Ups,Exp,AExp) :-
 
 computeFreeVect(Lc,Vr,Fr,[],Exp,ltt(Lc,Vr,Fr,Exp)).
 computeFreeVect(Lc,Vr,ctpl(Lbl,Args),[(_,Ix,Term)|Ups],Exp,Reslt) :-
+  \+idInTerm(Vr,Term),!,
   split_list(Ix,Args,F,[voyd|R]),
   concat(F,[Term|R],NArgs),
   computeFreeVect(Lc,Vr,ctpl(Lbl,NArgs),Ups,Exp,Reslt).
