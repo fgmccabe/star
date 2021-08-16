@@ -409,10 +409,10 @@ quoteExp(app(Lc,O,A),Rp) :-
   (A!)[Ix]
 */
 binRefMacro(T,expression,Rp) :-
-  isBinary(T,Lc,"!",A,B),
+  isBinary(T,Lc,"!",L,B),
   isSquareTuple(B,_,[A]),!,
-  cellRef(Lc,A,AR),
-  squareTerm(Lc,AR,[A],Rp).
+  cellRef(Lc,L,LR),
+  squareTerm(Lc,LR,[A],Rp).
   
 
 
