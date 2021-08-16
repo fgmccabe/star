@@ -67,7 +67,7 @@ ssRuleSet(fnDef(_Lc,Nm,H,_Tp,Args,Value),sq([ss(HH),ss("Fn: "),NN,lp,AA,rp,ss(" 
   (H=soft -> HH="soft ";HH="").
 ssRuleSet(glbDef(_Lc,Nm,_Tp,Value),sq([ss("Gl: "),id(Nm),ss(" = "),VV])) :-
   ssTrm(Value,0,VV).
-ssRuleSet(tpDef(_Lc,Tp,_Rl,IxMap),
+ssRuleSet(typDef(_Lc,Tp,_Rl,IxMap),
 	  sq([ss("Tp: "),TT,ss(" : "),MM])) :-
   ssType(Tp,false,0,TT),
   ssConsMap(IxMap,MM).
@@ -110,94 +110,93 @@ swTrm(Dp,T,S) :- ssTrm(T,Dp,S).
 showTerm(Trm,Dp,O,Ox) :-
   ss_to_chrs(lterms:ssTrm(Trm,Dp),O,Ox).
 
-ssTrm(voyd,_,ss("void")).
-ssTrm(idnt(Nm),_,id(Nm)).
-ssTrm(anon,_,ss("_")).
-ssTrm(intgr(Ix),_,ix(Ix)).
-ssTrm(float(Dx),_,fx(Dx)).
-ssTrm(strg(Str),_,sq([ss(""""),ss(Str),ss("""")])).
-ssTrm(cll(_,Op,Args),Dp,sq([OO,lp,AA,rp])) :-
+ssTrm(voyd,_,ss("void")) :-!.
+ssTrm(idnt(Nm),_,id(Nm)) :-!.
+ssTrm(anon,_,ss("_")) :-!.
+ssTrm(intgr(Ix),_,ix(Ix)) :-!.
+ssTrm(float(Dx),_,fx(Dx)) :-!.
+ssTrm(strg(Str),_,sq([ss(""""),ss(Str),ss("""")])) :-!.
+ssTrm(cll(_,Op,Args),Dp,sq([OO,lp,AA,rp])) :- !,
   ssTrm(Op,Dp,OO),
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
-ssTrm(ocall(_,Op,Args),Dp,sq([OO,ss("°"),lp,AA,rp])) :-
+ssTrm(ocall(_,Op,Args),Dp,sq([OO,ss("°"),lp,AA,rp])) :-!,
   ssTrm(Op,Dp,OO),
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
-ssTrm(ecll(_,Es,Args),Dp,sq([ss("ε"),ss(Es),ss("("),AA,ss(")")])) :-
+ssTrm(ecll(_,Es,Args),Dp,sq([ss("ε"),ss(Es),ss("("),AA,ss(")")])) :-!,
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
-ssTrm(intrinsic(_,Op,Args),Dp,sq([id(OpNm),ss("<"),AA,ss(">")])) :-
+ssTrm(intrinsic(_,Op,Args),Dp,sq([id(OpNm),ss("<"),AA,ss(">")])) :-!,
   atom_string(Op,OpNm),
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
-ssTrm(ctpl(Op,A),Dp,sq([ss("."),OO,lp,AA,rp])) :-
+ssTrm(ctpl(Op,A),Dp,sq([ss("."),OO,lp,AA,rp])) :-!,
   ssCOnOp(Op,OO),
   Dp1 is Dp+2,
   showArgs(A,Dp1,AA).
-ssTrm(rais(_,E),Dp,sq([ss("raise "),EE])) :-
+ssTrm(rais(_,E),Dp,sq([ss("raise "),EE])) :-!,
   Dp1 is Dp+2,
   ssTrm(E,Dp1,EE).
-ssTrm(shft(_,V,E),Dp,sq([ss("shift "),VV,ss(" in "),EE])) :-
+ssTrm(shft(_,V,E),Dp,sq([ss("shift "),VV,ss(" in "),EE])) :-!,
   ssTrm(V,Dp,VV),
   Dp1 is Dp+2,
   ssTrm(E,Dp1,EE).
-ssTrm(rst(_,E),Dp,sq([ss("reset "),EE])) :-
+ssTrm(rst(_,E),Dp,sq([ss("reset "),EE])) :-!,
   ssTrm(E,Dp,EE).
-ssTrm(enum(Nm),_,sq([ss("."),id(Nm)])).
-ssTrm(nth(_,Rc,Off),Dp,sq([OO,ss("."),ix(Off)])) :-
+ssTrm(enum(Nm),_,sq([ss("."),id(Nm)])) :-!.
+ssTrm(nth(_,Rc,Off),Dp,sq([OO,ss("."),ix(Off)])) :-!,
   ssTrm(Rc,Dp,OO).
-ssTrm(setix(_,Rc,Off,Vl),Dp,sq([OO,ss("."),ix(Off),ss(":="),VV])) :-
+ssTrm(setix(_,Rc,Off,Vl),Dp,sq([OO,ss("."),ix(Off),ss(":="),VV])) :-!,
   ssTrm(Rc,Dp,OO),
   ssTrm(Vl,Dp,VV).
-ssTrm(lbl(Nm,Ar),_,sq([id(Nm),ss("/"),ix(Ar)])).
-ssTrm(whr(_,Ptn,Cond),Dp,sq([PP,ss(" whr "),CC])) :-
+ssTrm(lbl(Nm,Ar),_,sq([id(Nm),ss("/"),ix(Ar)])) :-!.
+ssTrm(whr(_,Ptn,Cond),Dp,sq([PP,ss(" whr "),CC])) :-!,
   ssTrm(Ptn,Dp,PP),
   Dp1 is Dp+2,
   ssTrm(Cond,Dp1,CC).
-ssTrm(ltt(_,Vr,Bnd,Exp),Dp,sq([ss("let "),VV,ss("="),BB,ss(" in "),EE])) :-
+ssTrm(ltt(_,Vr,Bnd,Exp),Dp,sq([ss("let "),VV,ss("="),BB,ss(" in "),EE])) :-!,
   Dp1 is Dp+2,
   ssTrm(Vr,Dp1,VV),
   ssTrm(Bnd,Dp1,BB),
   ssTrm(Exp,Dp1,EE).
-ssTrm(varNames(_,Vars,Value),Dp,sq([ss("vars:"),VV,ss("->"),EE])) :-
+ssTrm(varNames(_,Vars,Value),Dp,sq([ss("vars:"),VV,ss("->"),EE])) :-!,
   ssVarNames(Vars,Dp,VV),
   ssTrm(Value,Dp,EE).
 ssTrm(case(_,G,Cases,Deflt),Dp,
-      sq([ss("case "),GG,ss("in"),lb,CC,rb,ss(" else "),DD])) :-
+      sq([ss("case "),GG,ss("in"),lb,CC,rb,ss(" else "),DD])) :-!,
   ssTrm(G,Dp,GG),
   ssCases(Cases,Dp,lterms:ssTrm,CC),
   ssTrm(Deflt,Dp,DD).
-ssTrm(unpack(_,G,Cases),Dp,
-      sq([ss("unpack "),GG,ss(" in "),CC])) :-
+ssTrm(unpack(_,G,Cases),Dp, sq([ss("unpack "),GG,ss(" in "),CC])) :-!,
   ssTrm(G,Dp,GG),
   ssCases(Cases,Dp,lterms:ssTrm,CC).
-ssTrm(seq(_,L,R),Dp,sq([LL,ss(";"),RR])) :-
+ssTrm(seq(_,L,R),Dp,sq([LL,ss(";"),RR])) :-!,
   ssTrm(L,Dp,LL),
   ssTrm(R,Dp,RR).
-ssTrm(cnj(_,L,R),Dp,sq([LL,ss("&&"),RR])) :-
+ssTrm(cnj(_,L,R),Dp,sq([LL,ss("&&"),RR])) :-!,
   ssTrm(L,Dp,LL),
   ssTrm(R,Dp,RR).
-ssTrm(dsj(_,L,R),Dp,sq([lp,LL,ss("||"),RR,rp])) :-
+ssTrm(dsj(_,L,R),Dp,sq([lp,LL,ss("||"),RR,rp])) :-!,
   ssTrm(L,Dp,LL),
   ssTrm(R,Dp,RR).
-ssTrm(cnd(_,T,L,R),Dp,sq([lp,TT,ss(" ? "),nl(Dp1),LL,ss("||"),nl(Dp1),RR,rp])) :-
+ssTrm(cnd(_,T,L,R),Dp,sq([lp,TT,ss(" ? "),nl(Dp1),LL,ss("||"),nl(Dp1),RR,rp])) :-!,
   Dp1 is Dp+2,
   ssTrm(T,Dp,TT),
   ssTrm(L,Dp1,LL),
   ssCnd(R,Dp,RR).
-ssTrm(mtch(_,L,R),Dp,sq([lp,LL,ss(".="),RR,rp])) :-
+ssTrm(mtch(_,L,R),Dp,sq([lp,LL,ss(".="),RR,rp])) :-!,
   ssTrm(L,Dp,LL),
   ssTrm(R,Dp,RR).
-ssTrm(ng(_,R),Dp,sq([lp,ss("~"),RR,rp])) :-
+ssTrm(ng(_,R),Dp,sq([lp,ss("~"),RR,rp])) :-!,
   ssTrm(R,Dp,RR).
-ssTrm(error(Lc,M),Dp,sq([lp,ss("error "),MM,rp,ss("@"),LL])) :-
+ssTrm(error(Lc,M),Dp,sq([lp,ss("error "),MM,rp,ss("@"),LL])) :-!,
   ssTrm(M,Dp,MM),
   ssLoc(Lc,LL).
-ssTrm(doAct(_,Act),Dp,sq([ss("do "),lb,iv(nl(Dp),AA),rb])) :-
+ssTrm(doAct(_,Act),Dp,sq([ss("do "),lb,iv(nl(Dp),AA),rb])) :-!,
   ssActs(Act,Dp,AA).
 
-ssCnd(cnd(_,T,L,R),Dp,sq([TT,ss(" ? "),nl(Dp),LL,ss("||"),nl(Dp),RR])) :-
+ssCnd(cnd(_,T,L,R),Dp,sq([TT,ss(" ? "),nl(Dp),LL,ss("||"),nl(Dp),RR])) :-!,
   Dp1 is Dp+2,
   ssTrm(T,Dp,TT),
   ssTrm(L,Dp1,LL),
@@ -205,43 +204,43 @@ ssCnd(cnd(_,T,L,R),Dp,sq([TT,ss(" ? "),nl(Dp),LL,ss("||"),nl(Dp),RR])) :-
 ssCnd(Exp,Dp,XX) :- ssTrm(Exp,Dp,XX).
 
 
-ssAct(nop(_),_,ss("{}")).
-ssAct(rtnDo(_,E),Dp,sq([ss("return "),EE])) :-
+ssAct(nop(_),_,ss("{}")) :-!.
+ssAct(rtnDo(_,E),Dp,sq([ss("return "),EE])) :-!,
   ssTrm(E,Dp,EE).
-ssAct(raisDo(_,E),Dp,sq([ss("raise "),EE])) :-
+ssAct(raisDo(_,E),Dp,sq([ss("raise "),EE])) :-!,
   ssTrm(E,Dp,EE).
-ssAct(seq(Lc,L,R),Dp,iv(nl(Dp),AA)) :-
+ssAct(seq(Lc,L,R),Dp,iv(nl(Dp),AA)) :-!,
   ssActs(seq(Lc,L,R),Dp,AA).
-ssAct(varD(_,P,E),Dp,sq([PP,ss(" .= "),EE])) :-
+ssAct(varD(_,P,E),Dp,sq([PP,ss(" .= "),EE])) :-!,
   ssTrm(P,Dp,PP),
   ssTrm(E,Dp,EE).
-ssAct(assignD(_,P,E),Dp,sq([PP,ss(" := "),EE])) :-
+ssAct(assignD(_,P,E),Dp,sq([PP,ss(" := "),EE])) :-!,
   ssTrm(P,Dp,PP),
   ssTrm(E,Dp,EE).
-ssAct(perfDo(_,E),Dp,sq([ss("perform "),EE])) :-
+ssAct(perfDo(_,E),Dp,sq([ss("perform "),EE])) :-!,
   ssTrm(E,Dp,EE).
 ssAct(cnd(_,T,Th,El),Dp,sq([ss("if "),TT,ss(" then "),nl(Dp2),
-			    HH,ss("else"),nl(Dp2),EE,nl(Dp),ss("fi")])) :-
+			    HH,ss("else"),nl(Dp2),EE,nl(Dp),ss("fi")])) :-!,
   Dp2 is Dp+2,
   ssTrm(T,Dp,TT),
   ssAct(Th,Dp2,HH),
   ssAct(El,Dp2,EE).
-ssAct(whle(_,G,B),Dp,sq([ss("while "),TT,ss(" do "),nl(Dp2),BB])) :-
+ssAct(whle(_,G,B),Dp,sq([ss("while "),TT,ss(" do "),nl(Dp2),BB])) :-!,
   Dp2 is Dp+2,
   ssTrm(G,Dp,TT),
   ssAct(B,Dp2,BB).
-ssAct(untl(_,G,B),Dp,sq([ss("repeat "),BB,nl(Dp2),ss(" until "),TT])) :-
+ssAct(untl(_,G,B),Dp,sq([ss("repeat "),BB,nl(Dp2),ss(" until "),TT])) :-!,
   Dp2 is Dp+2,
   ssTrm(G,Dp,TT),
   ssAct(B,Dp2,BB).
 ssAct(case(_,G,Cases,Deflt),Dp,
-      sq([ss("case "),GG,ss("in"),lb,CC,rb,ss(" else "),DD])) :-
+      sq([ss("case "),GG,ss("in"),lb,CC,rb,ss(" else "),DD])) :-!,
   ssTrm(G,Dp,GG),
   ssCases(Cases,Dp,lterms:ssAct,CC),
   ssTrm(Deflt,Dp,DD).
-ssAct(justDo(_,E),Dp,sq([ss("just "),EE])) :-
+ssAct(justDo(_,E),Dp,sq([ss("just "),EE])) :-!,
   ssTrm(E,Dp,EE).
-ssAct(tryDo(_,A,H),Dp,sq([ss("try "),AA,ss(" catch "),HH])) :-
+ssAct(tryDo(_,A,H),Dp,sq([ss("try "),AA,ss(" catch "),HH])) :-!,
   ssAct(A,Dp,AA),
   ssTrm(H,Dp,HH).
 
@@ -257,7 +256,7 @@ ssCases(Cases,Dp,Leaf,sq([lb,nl(Dp2),iv(nl(Dp2),CC),nl(Dp),rb])) :-
 
 ssCase(Dp,Leaf,(Ptn,Val,_),sq([PP,ss("=>"),VV])) :-
   ssTrm(Ptn,Dp,PP),
-  call(Leaf,Val,Dp,VV).
+  call(Leaf,Val,Dp,VV),!.
 
 ssCOnOp(lbl(L,Ar),sq([])) :-
   isTplLbl(L,Ar).
@@ -538,7 +537,7 @@ validDf(fnDef(Lc,_,_,_Tp,Args,Value),Dct) :-!,
   validTerm(Value,Lc,D0),!.
 validDf(glbDef(Lc,_Nm,_Tp,Value),Dct) :-
   validTerm(Value,Lc,Dct).
-validDf(tpDef(_Lc,_Tp,_Rl,_IxMap),_).
+validDf(typDef(_Lc,_Tp,_Rl,_IxMap),_).
 
 declareNms(Defs,Dct,Dx) :-
   rfold(Defs,lterms:declareDef,Dct,Dx).

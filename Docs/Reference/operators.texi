@@ -26,6 +26,10 @@
 @tab non-associative prefix
 @tab 300
 @tab wrap value in applicative
+@item @code{~=}
+@tab non-associative infix
+@tab 900
+@tab not equals
 @item @code{~>}
 @tab non-associative infix
 @tab 1231
@@ -98,6 +102,10 @@
 @tab non-associative postfix
 @tab 100
 @tab pick up value from a ref cell
+@item @code{!}
+@tab non-associative infix
+@tab 100
+@tab pick up value from a ref cell
 @item @code{->>}
 @tab non-associative infix
 @tab 1200
@@ -106,10 +114,6 @@
 @tab non-associative infix
 @tab 1250
 @tab type annotation
-@item @code{=!=}
-@tab non-associative infix
-@tab 900
-@tab not equals
 @item @code{default}
 @tab non-associative postfix
 @tab 940
@@ -302,10 +306,6 @@
 @tab non-associative prefix
 @tab 900
 @tab import object
-@item @code{=~=}
-@tab non-associative infix
-@tab 900
-@tab not equals
 @item @code{~~}
 @tab right associative infix
 @tab 1240

@@ -456,17 +456,7 @@
     "keyword": false
   },
   {
-    "infixOp": "=!=",
-    "priorities": [
-      899,
-      900,
-      899
-    ],
-    "desc": "not equals",
-    "keyword": false
-  },
-  {
-    "infixOp": "=~=",
+    "infixOp": "~=",
     "priorities": [
       899,
       900,
@@ -1184,13 +1174,23 @@
     "keyword": false
   },
   {
+    "infixOp": "!",
+    "priorities": [
+	99,
+	100,
+	99
+    ],
+    "desc": "pick up value from a ref cell",
+    "keyword": true
+  },
+  {
     "postfixOp": "!",
     "priorities": [
       99,
       100
     ],
     "desc": "pick up value from a ref cell",
-    "keyword": false
+    "keyword": true
   },
   {
     "token": ". ",

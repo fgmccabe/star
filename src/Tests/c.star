@@ -30,7 +30,7 @@ test.c {
   tfct(N,A) => tfct(_int_minus(N,1),_int_times(N,A)).
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     assert fp.name == "";
     assert fp.spouse == .none;
 

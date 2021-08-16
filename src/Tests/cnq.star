@@ -18,7 +18,7 @@ test.cnq{
   gp(X) => {G | (Y,X) in parent && (G,Y) in parent}.
 
   sibs:() => cons[(string,string)].
-  sibs() => { (X,Y) | (Z,X) in parent && (Z,Y) in parent && X=~=Y }.
+  sibs() => { (X,Y) | (Z,X) in parent && (Z,Y) in parent && X~=Y }.
 
   ms : cons[string].
   ms = ["b","c"].

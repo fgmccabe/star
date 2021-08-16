@@ -23,6 +23,7 @@ macroRl("-",expression,macroRules:uminusMacro).
 macroRl("^=",expression,macroRules:optionMatchMacro).
 macroRl("^",pattern,macroRules:optionPtnMacro).
 macroRl("^",expression,macroRules:unwrapExpMacro).
+macroRl("!",expression,macroRules:binRefMacro).
 macroRl(":=",action,macroRules:spliceAssignMacro).
 macroRl(":=",action,macroRules:indexAssignMacro).
 macroRl("assert",action,macroRules:assertMacro).
@@ -401,4 +402,18 @@ quoteExp(app(Lc,O,A),Rp) :-
   quoteExp(O,Oq),
   quoteExp(A,Aq),
   bnary(Lc,"_apply",Oq,Aq,Rp).
+
+/*
+  A![Ix]
+  becomes
+  (A!)[Ix]
+*/
+binRefMacro(T,expression,Rp) :-
+  isBinary(T,Lc,"!",A,B),
+  isSquareTuple(B,_,[A]),!,
+  cellRef(Lc,A,AR),
+  squareTerm(Lc,AR,[A],Rp).
+  
+
+
 

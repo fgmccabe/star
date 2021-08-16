@@ -6,7 +6,7 @@ test.assign{
 
   rec : (integer)=>person.
   rec(A) => let{.
-    nm := "".
+    nm = ref "".
     foo(X) => X+A.
   .} in someone{. name=nm. age=foo(10). .}.
 
@@ -15,7 +15,7 @@ test.assign{
   -- peter:{name:string. age:integer}.
   peter = let{
     name = "fred" ++ "'s friend".
-  } in someone{.name:=name. age=23 .}.
+  } in someone{.name= ref name. age=23 .}.
 
   main:()=>action[(),()].
   main() => action{
@@ -28,7 +28,7 @@ test.assign{
     
     show peter.name!;
 
-    alpha := 23;
+    alpha .= ref 23;
 
     checkInc .= (() where _ .= valof action {alpha := alpha!+1; valis ()} => alpha!==24);
 

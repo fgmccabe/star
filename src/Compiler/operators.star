@@ -43,6 +43,7 @@ star.compiler.operators{
   oper("^=") => [infixOp(899,900,899)].
   oper("&&") => [infixOp(910,910,909)].
   oper("pure") => [prefixOp(300,299)].
+  oper("~=") => [infixOp(899,900,899)].
   oper("~>") => [infixOp(1230,1231,1230)].
   oper("throw") => [prefixOp(930,929)].
   oper(".|.") => [infixOp(720,720,719)].
@@ -59,10 +60,9 @@ star.compiler.operators{
   oper("ignore") => [prefixOp(930,929)].
   oper("<$") => [infixOp(719,720,720)].
   oper("then") => [infixOp(1179,1180,1179)].
-  oper("!") => [postfixOp(99,100)].
+  oper("!") => [postfixOp(99,100), infixOp(99,100,99)].
   oper("->>") => [infixOp(1199,1200,1199)].
   oper("has kind") => [infixOp(1249,1250,1249)].
-  oper("=!=") => [infixOp(899,900,899)].
   oper("default") => [postfixOp(939,940)].
   oper("#") => [prefixOp(1750,1749), infixOp(759,760,759)].
   oper("%") => [infixOp(700,700,699)].
@@ -104,7 +104,6 @@ star.compiler.operators{
   oper("^|") => [infixOp(919,920,920)].
   oper("cut") => [infixOp(949,950,949)].
   oper("open") => [prefixOp(900,899)].
-  oper("=~=") => [infixOp(899,900,899)].
   oper("~~") => [infixOp(1239,1240,1240)].
   oper("assert") => [prefixOp(1240,1239)].
   oper("!!") => [postfixOp(99,100)].
@@ -269,6 +268,7 @@ star.compiler.operators{
   follows("|",0c>) => some("|>").
   follows("|",0c)) => some("|)").
   follows("~",0c~) => some("~~").
+  follows("~",0c=) => some("~=").
   follows("~",0c>) => some("~>").
   follows("[",0c|) => some("[|").
   follows("\\",0c+) => some("\\+").
@@ -293,13 +293,9 @@ star.compiler.operators{
   follows("<*",0c>) => some("<*>").
   follows("<<",0c-) => some("<<-").
   follows("<=",0c>) => some("<=>").
-  follows("=",0c~) => some("=~").
   follows("=",0c<) => some("=<").
-  follows("=",0c!) => some("=!").
   follows("=",0c=) => some("==").
   follows("=",0c>) => some("=>").
-  follows("=~",0c=) => some("=~=").
-  follows("=!",0c=) => some("=!=").
   follows(">",0c=) => some(">=").
   follows(">",0c>) => some(">>").
   follows(">>",0c=) => some(">>=").
@@ -355,6 +351,7 @@ star.compiler.operators{
   final("}") => .true.  /* braces */
   final("~") => .true.  /* logical negation */
   final("~~") => .true.  /* quantifier */
+  final("~=") => .true.  /* not equals */
   final("~>") => .true.  /* type function */
   final("[") => .true.  /* square brackets */
   final("[|") => .true.  /* measure brackets */
@@ -384,9 +381,7 @@ star.compiler.operators{
   final("<|") => .true.  /* meta quote */
   final("<=>") => .true.  /* constructor arrow */
   final("=") => .true.  /* definition */
-  final("=~=") => .true.  /* not equals */
   final("=<") => .true.  /* less than or equal */
-  final("=!=") => .true.  /* not equals */
   final("==") => .true.  /* equality predicate */
   final("=>") => .true.  /* function arrow */
   final(">") => .true.  /* greater than */
@@ -420,6 +415,7 @@ star.compiler.operators{
  keyword("for") => .true.
  keyword("ignore") => .true.
  keyword("then") => .true.
+ keyword("!") => .true.
  keyword("->>") => .true.
  keyword("has kind") => .true.
  keyword("default") => .true.

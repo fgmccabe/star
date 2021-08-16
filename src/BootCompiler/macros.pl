@@ -54,11 +54,6 @@ examineStmt(S,Rp) :-
   macroTerm(V,VV),
   mkDefn(Lc,PP,VV,Rp).
 examineStmt(S,Rp) :-
-  isAssignment(S,Lc,P,V),!,
-  macroPtn(P,PP),
-  macroTerm(V,VV),
-  assignment(Lc,PP,VV,Rp).
-examineStmt(S,Rp) :-
   isEquation(S,Lc,P,G,V),!,
   macroHead(P,PP),
   macroOpt(G,macros:macroTerm,GG),
@@ -280,6 +275,10 @@ examineTerm(T,Tx) :-
   macroTerm(L,Lx),
   macroTerm(R,Rx),
   pair(Lc,Lx,Rx,Tx).
+examineTerm(T,Tx) :-
+  isRef(T,Lc,R),!,
+  macroTerm(R,Rx),
+  mkRef(Lc,Rx,Tx).
 examineTerm(T,Tx) :-
   isWhere(T,Lc,L,R),!,
   macroTerm(L,Lx),

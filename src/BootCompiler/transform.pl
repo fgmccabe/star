@@ -59,7 +59,7 @@ transformProg(PkgDecls,prog(pkg(Pkg,Vers),Imports,Decls,LDecls,Defs),
 
 makePkgMap(Pkg,PkgDecls,[lyr(VarMap,TpMap,ConsMap,void)]) :-
   makeConstructorMap(PkgDecls,consMap{},ConsMap),
-  declareModuleGlobals(Pkg,PkgDecls,ConsMap,varMap{},VarMap,typeMap{},TpMap).
+  declareModuleGlobals(Pkg,PkgDecls,ConsMap,varMap{},VarMap,typeMap{},TpMap),!.
 
 declareModuleGlobals(Pkg,[Def|Rest],ConsMap,VMap,VMx,TMap,TMx) :-
   declMdlGlobal(Pkg,Def,ConsMap,VMap,M0,TMap,TM0),
@@ -163,9 +163,10 @@ extraArity(Arity,Vars,ExAr) :-
   length(Vars,E),
   ExAr is E+Arity.
 
-transformTypeDef(Lc,Tp,Rl,Map,[tpDef(Lc,Tp,Rl,IxMap)|Dx],Dx) :-
+transformTypeDef(Lc,Tp,Rl,Map,[typDef(Lc,Tp,Rl,IxMap)|Dx],Dx) :-
   tpName(Tp,TpNm),
   lookupTypeIndex(Map,TpNm,IxMap),!.
+transformTypeDef(_Lc,_Tp,_Rl,_Map,Dx,Dx).
 
 transformConsDef(Lc,Nm,Tp,Map,[lblDef(Lc,lbl(Nm,Ar),Tp,Ix)|Dx],Dx) :-
   consTpName(Tp,TpNm),

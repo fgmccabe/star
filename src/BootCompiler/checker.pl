@@ -371,9 +371,6 @@ processStmt(St,ProgramType,Defs,Defx,Df,Dfx,E,Path) :-
 processStmt(St,Tp,[Def|Defs],Defs,Df,Df,Env,Path) :-
   isDefn(St,Lc,L,R),
   checkDefn(Lc,L,R,Tp,Def,Env,Path),!.
-processStmt(St,Tp,Defs,Dfsx,Df,Df,Env,Path) :-
-  isAssignment(St,Lc,L,R),!,
-  checkVarDefn(Lc,L,R,Tp,Defs,Dfsx,Env,Path).
 processStmt(St,_,Defs,Defs,Df,Df,_,_) :-
   locOfAst(St,Lc),
   reportError("Invalid statement %s",[ast(St)],Lc).
@@ -397,9 +394,6 @@ guessType(St,_,_,funType(tplType(AT),RTp)) :-
   newTypeVar("_",RTp).
 guessType(St,_,_,GTp) :-
   isDefn(St,_,_,_),!,
-  newTypeVar("_",GTp).
-guessType(St,_,_,refType(GTp)) :-
-  isAssignment(St,_,_,_),!,
   newTypeVar("_",GTp).
 guessType(_,N,Lc,GTp) :- !,
   reportError("%s not declared",[N],Lc),
@@ -429,15 +423,6 @@ checkDefn(Lc,L,R,Tp,varDef(Lc,Nm,ExtNm,[],Tp,Value),Env,Path) :-
   unitTp(ErTp),
   typeOfExp(R,Tp,ErTp,E,_E2,Value,Path),
   packageVarName(Path,Nm,ExtNm).
-
-checkVarDefn(Lc,L,R,refType(Tp),[varDef(Lc,Nm,ExtNm,[],refType(Tp),cell(Lc,Value))|Defs],Defs,Env,Path) :-
-  isIden(L,_,Nm),
-  pushScope(Env,E1),
-  unitTp(ErTp),
-  typeOfExp(R,Tp,ErTp,E1,_E2,Value,Path),
-  packageVarName(Path,Nm,ExtNm).
-checkVarDefn(Lc,L,_,Tp,Defs,Defs,_,_) :-
-  reportError("expecting an assignable type, not %s for %s",[tpe(Tp),ast(L)],Lc).
 
 checkThetaBody(Tp,Lbl,Lc,Els,Env,Val,Path) :-
   evidence(Tp,Env,Q,ETp),
@@ -1035,9 +1020,9 @@ checkAction(Term,Env,Ev,_Tp,VlTp,ErTp,_,_,varDo(Lc,Ptn,Exp),Path) :-
   newTypeVar("_P",PT),
   typeOfPtn(P,PT,ErTp,Env,Ev,Ptn,Path),
   typeOfExp(Ex,PT,ErTp,Env,_,Exp,Path).
-checkAction(Term,Env,Ev,Tp,VlTp,ErTp,OkFn,EvtFn,Act,Path) :-
+checkAction(Term,Env,Ev,_Tp,VlTp,ErTp,_OkFn,_EvtFn,Act,Path) :-
   isAssignment(Term,Lc,L,R),!,
-  checkAssignment(Lc,L,R,Env,Ev,Tp,VlTp,ErTp,OkFn,EvtFn,Act,Path).
+  checkAssignment(Lc,L,R,Env,Ev,VlTp,ErTp,Act,Path).
 checkAction(Term,Env,Ev,Tp,VlTp,ErTp,OkFn,EvtFn,ifThenDo(Lc,Ts,Th,El),Path) :-
   isIfThenElse(Term,Lc,T,H,E),!,
   checkGoal(T,ErTp,Env,Et,Ts,Path),
@@ -1108,21 +1093,11 @@ checkAction(Term,Env,Env,_,_,_,_,_,noDo(Lc),_) :-
   locOfAst(Term,Lc),
   reportError("invalid action: %s",[ast(Term)],Lc).
 
-checkAssignment(Lc,L,R,Env,Ev,Tp,VlTp,ErTp,OkFn,EvtFn,Act,Path) :-
+checkAssignment(Lc,L,R,Env,Ev,VlTp,ErTp,assignDo(Lc,Lhs,Rhs),Path) :-
   verifyType(Lc,tplType([]),VlTp,Env),
-  (isIden(L,_,VrNm) ->
-   (isVar(VrNm,Env,VrSpec) ->
-    newTypeVar("A",ATp),
-    typeOfVar(Lc,VrNm,refType(ATp),VrSpec,Env,_,Lhs),
-    typeOfExp(R,ATp,ErTp,Env,Ev,Rhs,Path),
-    Act = assignDo(Lc,Lhs,Rhs);
-    unary(Lc,"ref",R,RR),
-    binary(Lc,".=",L,RR,St),
-    checkAction(St,Env,Ev,Tp,VlTp,ErTp,OkFn,EvtFn,Act,Path));
-   newTypeVar("A",ATp),
-   typeOfExp(L,refType(ATp),ErTp,Env,Ev,Lhs,Path),
-   typeOfExp(R,ATp,ErTp,Env,_,Rhs,Path),
-   Act = assignDo(Lc,Lhs,Rhs)).
+  newTypeVar("A",ATp),
+  typeOfExp(L,refType(ATp),ErTp,Env,Ev,Lhs,Path),
+  typeOfExp(R,ATp,ErTp,Env,_,Rhs,Path).
 
 checkActionCases([],_,_,_,_,_,_,_,Cases,Cases,Dfx,Dfx,_).
 checkActionCases([C|Ss],GTp,Env,Tp,VlTp,ErTp,OkFn,EvtFn,Cases,Cx,Df,Dfx,Path) :-

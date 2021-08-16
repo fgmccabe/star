@@ -20,7 +20,7 @@ test.cse{
   }
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     assert "TT" ^= sVal(foo("TT"));
 
     show sVal(foo("beta"))

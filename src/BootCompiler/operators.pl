@@ -27,6 +27,7 @@
   operator("^=", [infixOp(899, 900, 899)]).
   operator("&&", [infixOp(910, 910, 909)]).
   operator("pure", [prefixOp(300, 299)]).
+  operator("~=", [infixOp(899, 900, 899)]).
   operator("~>", [infixOp(1230, 1231, 1230)]).
   operator("throw", [prefixOp(930, 929)]).
   operator(".|.", [infixOp(720, 720, 719)]).
@@ -43,10 +44,9 @@
   operator("ignore", [prefixOp(930, 929)]).
   operator("<$", [infixOp(719, 720, 720)]).
   operator("then", [infixOp(1179, 1180, 1179)]).
-  operator("!", [postfixOp(99, 100)]).
+  operator("!", [postfixOp(99, 100), infixOp(99, 100, 99)]).
   operator("->>", [infixOp(1199, 1200, 1199)]).
   operator("has kind", [infixOp(1249, 1250, 1249)]).
-  operator("=!=", [infixOp(899, 900, 899)]).
   operator("default", [postfixOp(939, 940)]).
   operator("#", [prefixOp(1750, 1749), infixOp(759, 760, 759)]).
   operator("%", [infixOp(700, 700, 699)]).
@@ -88,7 +88,6 @@
   operator("^|", [infixOp(919, 920, 920)]).
   operator("cut", [infixOp(949, 950, 949)]).
   operator("open", [prefixOp(900, 899)]).
-  operator("=~=", [infixOp(899, 900, 899)]).
   operator("~~", [infixOp(1239, 1240, 1240)]).
   operator("assert", [prefixOp(1240, 1239)]).
   operator("!!", [postfixOp(99, 100)]).
@@ -220,6 +219,7 @@
   follows('|','>','|>').
   follows('|',')','|)').
   follows('~','~','~~').
+  follows('~','=','~=').
   follows('~','>','~>').
   follows('[','|','[|').
   follows('\\','+','\\+').
@@ -244,13 +244,9 @@
   follows('<*','>','<*>').
   follows('<<','-','<<-').
   follows('<=','>','<=>').
-  follows('=','~','=~').
   follows('=','<','=<').
-  follows('=','!','=!').
   follows('=','=','==').
   follows('=','>','=>').
-  follows('=~','=','=~=').
-  follows('=!','=','=!=').
   follows('>','=','>=').
   follows('>','>','>>').
   follows('>>','=','>>=').
@@ -304,6 +300,7 @@
   final('}',"}").	 /* braces */
   final('~',"~").	 /* logical negation */
   final('~~',"~~").	 /* quantifier */
+  final('~=',"~=").	 /* not equals */
   final('~>',"~>").	 /* type function */
   final('[',"[").	 /* square brackets */
   final('[|',"[|").	 /* measure brackets */
@@ -333,9 +330,7 @@
   final('<|',"<|").	 /* meta quote */
   final('<=>',"<=>").	 /* constructor arrow */
   final('=',"=").	 /* definition */
-  final('=~=',"=~=").	 /* not equals */
   final('=<',"=<").	 /* less than or equal */
-  final('=!=',"=!=").	 /* not equals */
   final('==',"==").	 /* equality predicate */
   final('=>',"=>").	 /* function arrow */
   final('>',">").	 /* greater than */
@@ -370,6 +365,7 @@
  keyword("for").
  keyword("ignore").
  keyword("then").
+ keyword("!").
  keyword("->>").
  keyword("has kind").
  keyword("default").

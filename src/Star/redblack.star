@@ -6,6 +6,7 @@ star.redblack{
   import star.cons.
   import star.display.
   import star.ideal.
+  import star.index.
   import star.iterable.
   import star.monad.
   import star.option.
@@ -60,7 +61,6 @@ star.redblack{
     node(whiten(Cl),Ky,Vy,node(.Black,Kx,Vx,A,B),node(.Black,Kz,Vz,C,D)).
   balance(Cl where isBlack(Cl),Kx,Vx,A,node(.Red,Ky,Vy,B,node(.Red,Kz,Vz,C,D))) =>
     node(whiten(Cl),Ky,Vy,node(.Black,Kx,Vx,A,B),node(.Black,Kz,Vz,C,D)).
-  
   balance(.BBlack,Kz,Vz,node(.NBlack,Kx,Vx,node(.Black,Kw,Vw,A,B),node(.Black,Ky,Vy,C,D)),E) =>
     node(.Black,Ky,Vy,balance(.Black,Ky,Vy,redden(node(.Black,Kw,Vw,A,B)),C),node(.Black,Kz,Vz,D,E)).
   balance(.BBlack,Kx,Vx,A,node(.NBlack,Kz,Vz,node(.Black,Ky,Vy,B,C),node(.Black,Kw,Vw,D,E)))=>
