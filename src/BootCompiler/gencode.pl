@@ -65,7 +65,7 @@ genDef(D,Opts,glbDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
 genDef(_,_,lblDef(_,Lbl,Tp,Ix),O,[LblTrm|O]) :-
   encType(Tp,Sig),
   assem(struct(Lbl,strg(Sig),Ix),LblTrm).
-genDef(_,_,tpDef(_,Tp,Rl,IxMap),O,[TpTrm|O]) :-
+genDef(_,_,typDef(_,Tp,Rl,IxMap),O,[TpTrm|O]) :-
   assem(tipe(Tp,Rl,IxMap),TpTrm).
 
 glbCont(Nm,D,D,_,[iDup,iStG(Nm)|Cx],Cx,Stk,Stk).
@@ -273,16 +273,9 @@ compAction(perfDo(Lc,Exp),OLc,Cont,_PCont,_RCont,ECont,Opts,D,Dx,End,C,Cx,Stk,St
   compTerm(Exp,Lc,Cont,ECont,Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 compAction(justDo(Lc,Exp),_,Cont,_PCont,_,ECont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   compTerm(Exp,Lc,Cont,ECont,Opts,D,Dx,End,C,Cx,Stk,Stkx).
-compAction(varD(Lc,idnt(Nm),E),OLc,Cont,_,_,ECont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
+compAction(varD(Lc,Ptn,E),OLc,Cont,_,_,ECont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
-  genLbl(D,Lb,D0),
-  defineLclVar(Nm,Lb,End,D0,D1,Off,C0,C1),
-  compTerm(E,Lc,bothCont(stoCont(Off,Lb),
-			 bothCont(Cont,releaseCont(Nm))),
-	   ECont,
-	   Opts,D1,Dx,End,C1,Cx,Stk,Stkx).
-compAction(varD(Lc,anon,E),_,Cont,_,_,ECont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
-  compTerm(E,Lc,bothCont(dropCont,Cont),ECont,Opts,D,Dx,End,C,Cx,Stk,Stkx).
+  compTerm(E,Lc,compPtn(Ptn,Lc,Cont,ECont,ECont,Opts),ECont,Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 compAction(assignD(Lc,L,E),OLc,Cont,_,_RCont,_ECont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   bumpStk(Stk,Stk0),

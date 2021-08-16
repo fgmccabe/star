@@ -544,7 +544,7 @@ star.compiler.gencode{
   defineLbl(Pr,codeCtx(Vrs,Lc,Count,Lb))=>(al(Pr++"$(Lb)"),codeCtx(Vrs,Lc,Count,Lb+1)).
 
   changeLoc:(locn,compilerOptions,codeCtx)=>(multi[assemOp],codeCtx).
-  changeLoc(Lc,_,codeCtx(Vars,Lc0,Dp,Lb)) where Lc=~=Lc0 =>
+  changeLoc(Lc,_,codeCtx(Vars,Lc0,Dp,Lb)) where Lc~=Lc0 =>
     ([iLine(Lc::term)],codeCtx(Vars,Lc,Dp,Lb)).
     changeLoc(_,_,Ctx)=>([],Ctx).
 

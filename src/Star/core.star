@@ -10,9 +10,9 @@ star.core {
     (==): (x,x)=>boolean.
   }
 
-  (=~=)@"semantic inequality defined in terms of equality".
-  public (=~=):all x ~~ equality[x] |: (x,x)=>boolean.
-  x =~= y => ~x==y.
+  (~=)@"semantic inequality defined in terms of equality".
+  public (~=):all x ~~ equality[x] |: (x,x)=>boolean.
+  x ~= y => ~x==y.
 
   public implementation equality[boolean] => {.
     .true == .true => .true.

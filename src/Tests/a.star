@@ -19,7 +19,7 @@ test.a{
 
   main:()=>action[(),()].
   main()=>action{
-    assert 3=~=2;
+    assert 3~=2;
     show valof o;
     assert valof o==1;
 

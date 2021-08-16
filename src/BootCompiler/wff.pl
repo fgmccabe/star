@@ -20,14 +20,14 @@
 	      isConditional/5,conditional/5,isOfTerm/4,
 	      isEquation/4,isEquation/5,mkEquation/5,
 	      isPrompt/4,isCut/5,isTag/2,
-	      isDefn/4,isAssignment/4,isRef/3,isCellRef/3,cellRef/3,
+	      isDefn/4,isAssignment/4,isRef/3,mkRef/3,isCellRef/3,cellRef/3,
 	      assignment/4,eqn/4,eqn/5,
 	      mkDefn/4,mkLoc/2,
 	      isGl/1,isIterableGl/1,
 	      ruleName/3,headName/2,
 	      isWhere/4,mkWhere/4,mkWherePtn/4,mkWhereEquality/3,
 	      isCoerce/4,coerce/4,isOptCoerce/4,optCoerce/4,
-	      isFieldAcc/4,fieldAcc/4,isIndexTerm/4,isRecordUpdate/4,recordUpdate/4,
+	      isFieldAcc/4,fieldAcc/4,isIndexTerm/4,mkIndexTerm/4,isRecordUpdate/4,recordUpdate/4,
 	      isSlice/5,isSplice/6,
 	      isOptionPtn/4,isOptionMatch/4,optionMatch/4,
 	      isConjunct/4,conjunct/4,isDisjunct/4,disjunct/4,
@@ -514,6 +514,9 @@ isAssignment(Trm,Lc,Lhs,Rhs) :-
 isRef(Trm,Lc,Rhs) :-
   isUnary(Trm,Lc,"ref",Rhs).
 
+mkRef(Lc,Rhs,Trm) :-
+  unary(Lc,"ref",Rhs,Trm).
+
 isCellRef(Trm,Lc,Rhs) :-
   isUnary(Trm,Lc,"!",Rhs).
 
@@ -660,14 +663,12 @@ isIndexTerm(Trm,Lc,Lhs,Rhs) :-
   isSquareTerm(Trm,Lc,Lhs,[Rhs]),
   \+isBinary(Rhs,_,":",_,_),!.
 
+mkIndexTerm(Lc,L,R,Trm) :-
+  squareTerm(Lc,L,R,Trm).
+
 isSlice(Trm,Lc,Lhs,Frm,To) :-
   isSquareTerm(Trm,Lc,Lhs,[Rhs]),
   isBinary(Rhs,_,":",Frm,To),!.
-isSlice(Trm,Lc,Lhs,F,T) :-
-  isBinary(Trm,Lc,"!",L,R),
-  unary(Lc,"!",L,Lhs),
-  isSquareTuple(R,_,[X]),
-  isBinary(X,_,":",F,T),!.
 
 isSplice(Trm,Lc,S,F,T,R) :-
   isAssignment(Trm,Lc,L,R), % S[F:T]:=R
@@ -816,7 +817,7 @@ isIfThen(A,Lc,Ts,Th) :-
   isUnary(LL,_,"if",Ts).
 
 mkIfThen(Lc,T,L,S) :-
-  inary(Lc,"if",T,Ts),
+  unary(Lc,"if",T,Ts),
   binary(Lc,"then",Ts,L,S).
 
 isWhileDo(A,Lc,Ts,Bd) :-

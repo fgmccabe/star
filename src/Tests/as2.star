@@ -4,7 +4,7 @@ test.as2{
 
   checkLists() => let{
     foo : ref integer.
-    foo := 0.
+    foo = ref 0.
 
     reset = action{
       foo := 0;

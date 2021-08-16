@@ -9,7 +9,7 @@ test.bench{
   timer_start(count, msg) => (_ticks(), count, msg).
 
   timer_finish : ((integer, integer, string)) => action[(),()].
-  timer_finish((start, count, msg)) => do {
+  timer_finish((start, count, msg)) => action {
     stop .= _ticks();
     elapsed .= ((stop - start)::float)/1.0e6;
     ops_per_sec .= ((count::float) / elapsed)::integer;
@@ -24,8 +24,8 @@ test.bench{
   rbiota(Mx,Mx) => [].
   rbiota(Ix,Mx) where Ix<Mx => [Ix->Ix,..rbiota(Ix+1,Mx)].
 
-  ignore:all e ~~ (e)=>action[(),()].
-  ignore(_) => do{
+  empty:all e ~~ (e)=>action[(),()].
+  empty(_) => action{
     valis ()
   }
 
@@ -41,13 +41,13 @@ test.bench{
     timer := timer_start(Count, "Iterating over all elements in cons list");
     for i in (cn_list!) do {
 --      logMsg("cons element: $(i)");
-      ignore(some(i))
+      empty(some(i))
     };
     timer_finish(timer!);
 
     timer := timer_start(Count, "Accessing all elements in cons list");
     for i in idxes do {
-      El .= (cn_list!)[i]
+      El .= cn_list![i]
 --      logMsg("cons element: $(El)");
     };
     timer_finish(timer!);
@@ -69,7 +69,7 @@ test.bench{
     timer := timer_start(Count, "Iterating over all elements in finger list");
     for i in (fn_list!) do {
 --      logMsg(" element: $(i) .= $(El)")
-      ignore(some(i))
+      empty(some(i))
     };
     timer_finish(timer!);
 
@@ -94,7 +94,7 @@ test.bench{
 
     timer := timer_start(Count, "Iterating over all elements in skew list");
     for i in (sk_list!) do {
-      ignore(some(i))
+      empty(some(i))
 --      logMsg("skew element: $(i)")
     };
     timer_finish(timer!);
@@ -122,7 +122,7 @@ test.bench{
 
     timer := timer_start(Count, "Iterating over all elements in red/black list");
     for i->_ in (rb_list!) do {
-      ignore(some(i))
+      empty(some(i))
 --      logMsg("rb element: $(i)")
     };
     timer_finish(timer!);

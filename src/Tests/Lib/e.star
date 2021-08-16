@@ -4,5 +4,4 @@ test.e{
     (==)@"semantic equality is defined explicitly".
   }
 
-  (=!=)@"semantic inequality defined in terms of equality".
 }
