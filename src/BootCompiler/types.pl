@@ -186,7 +186,7 @@ ssType(funType(A,R),ShCon,Dp,sq([AA,ss("=>"),RR])) :-
 ssType(consType(A,R),ShCon,Dp,sq([AA,ss("<=>"),RR])) :-
   ssType(A,ShCon,Dp,AA),
   ssType(R,ShCon,Dp,RR).
-ssType(contType(A,R),ShCon,Dp,sq([AA,ss("=>>"),RR])) :-
+ssType(contType(A,R),ShCon,Dp,sq([lp,AA,rp,ss("=>>"),RR])) :-
   ssType(A,ShCon,Dp,AA),
   ssType(R,ShCon,Dp,RR).
 ssType(refType(R),ShCon,Dp,sq([ss("ref "),RR])) :- ssType(R,ShCon,Dp,RR).
@@ -298,8 +298,7 @@ tpArity(funType(A,_),Ar) :- !,
   progTypeArity(A,Ar).
 tpArity(consType(A,_),Ar) :- !,
   tpArity(A,Ar).
-tpArity(contType(A,_),Ar) :- !,
-  progTypeArity(A,Ar).
+tpArity(contType(_,_),1) :- !.
 tpArity(refType(A),Ar) :- !,
   progTypeArity(A,Ar).
 tpArity(tplType(A),Ar) :- !,length(A,Ar).
@@ -312,7 +311,7 @@ tpArgTypes(allType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(existType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(constrained(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(funType(A,_),ArTps) :- tpArgTypes(A,ArTps).
-tpArgTypes(contType(A,_),ArTps) :- tpArgTypes(A,ArTps).
+tpArgTypes(contType(A,_),[A]) :- !.
 tpArgTypes(tplType(ArTps),ArTps).
 
 funResType(Tp,ResTp) :- deRef(Tp,TT), resType(TT,ResTp).
@@ -481,8 +480,8 @@ toLtp(type("star.core*boolean"),blTipe) :- !.
 toLtp(funType(Args,Res),fnTipe(As,R)) :-
   map(Args,types:toLtipe,As),
   toLtipe(Res,R).
-toLtp(contType(Args,Res),contTipe(As,R)) :-
-  map(Args,types:toLtipe,As),
+toLtp(contType(Arg,Res),contTipe(A,R)) :-
+  toLtipe(Arg,A),
   toLtipe(Res,R).
 toLtp(tplType(Args),tplTipe(As)) :-
   map(Args,types:toLtipe,As).

@@ -7,7 +7,7 @@ test.cnd{
   UU = T prompt 1.
   XX = T prompt (1 + (T cut K in 3)).
 
-  YY = T prompt (1 + (T cut K in K..(3))).
+  YY = T prompt (1 + (T cut K in K.(3))).
 
   main:()=>action[(),()].
   main()=>action{
