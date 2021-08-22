@@ -79,7 +79,6 @@ star.compiler.operators{
   oper("contract") => [prefixOp(1260,1259)].
   oper("\\/") => [infixOp(720,720,719)].
   oper("-") => [prefixOp(300,299), infixOp(720,720,719)].
-  oper("..") => [infixOp(99,100,99)].
   oper(".") => [prefixOp(10,9), infixOp(100,100,99)].
   oper("/") => [infixOp(700,700,699)].
   oper("<*>") => [infixOp(949,950,950)].
@@ -245,7 +244,6 @@ star.compiler.operators{
   follows(".",0c+) => some(".+").
   follows(".",0c=) => some(".=").
   follows(".",0c>) => some(".>").
-  follows(".",0c.) => some("..").
   follows(".",0c ) => some(". ").
   follows(".#",0c.) => some(".#.").
   follows(".&",0c.) => some(".&.").
@@ -338,7 +336,6 @@ star.compiler.operators{
   final(".=") => .true.  /* pattern match */
   final(".>>.") => .true.  /* logical shift right */
   final(".>>>.") => .true.  /* arithmetic shift right */
-  final("..") => .true.  /* resume a continuation */
   final(". ") => .true.  /* statement terminator */
   final("/") => .true.  /* division */
   final("/\\") => .true.  /* intersection */
@@ -431,7 +428,6 @@ star.compiler.operators{
  keyword("*>") => .true.
  keyword(",") => .true.
  keyword("contract") => .true.
- keyword("..") => .true.
  keyword(".") => .true.
  keyword("val") => .true.
  keyword("try") => .true.

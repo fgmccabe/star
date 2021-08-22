@@ -63,7 +63,6 @@
   operator("contract", [prefixOp(1260, 1259)]).
   operator("\\/", [infixOp(720, 720, 719)]).
   operator("-", [prefixOp(300, 299), infixOp(720, 720, 719)]).
-  operator("..", [infixOp(99, 100, 99)]).
   operator(".", [prefixOp(10, 9), infixOp(100, 100, 99)]).
   operator("/", [infixOp(700, 700, 699)]).
   operator("<*>", [infixOp(949, 950, 950)]).
@@ -196,7 +195,6 @@
   follows('.','+','.+').
   follows('.','=','.=').
   follows('.','>','.>').
-  follows('.','.','..').
   follows('.',' ','. ').
   follows('.#','.','.#.').
   follows('.&','.','.&.').
@@ -287,7 +285,6 @@
   final('.=',".=").	 /* pattern match */
   final('.>>.',".>>.").	 /* logical shift right */
   final('.>>>.',".>>>.").	 /* arithmetic shift right */
-  final('..',"..").	 /* resume a continuation */
   final('. ',". ").	 /* statement terminator */
   final('/',"/").	 /* division */
   final('/\\',"/\\").	 /* intersection */
@@ -381,7 +378,6 @@
  keyword("*>").
  keyword(",").
  keyword("contract").
- keyword("..").
  keyword(".").
  keyword("val").
  keyword("try").

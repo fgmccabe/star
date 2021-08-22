@@ -445,32 +445,34 @@ retCode run(processPo P) {
         continue;
       }
 
+      case TResume: {                         // Tail resumptive entry to continuation
+        termPo cont = pop();
+        termPo k = pop();
+        stackPo stk = C_STACK(cont);
+
+        assert(F->fp > 0);
+
+        SP = stackPtr(F->fp + argCount(F->prog));
+        S->fp--;
+        F = currFrame(S);
+        PC = F->pc;
+
+        saveRegisters();
+        S = P->stk = attachStack(S, stk);
+        restoreRegisters();
+        push(k);
+        continue;
+      }
+
       case Underflow: {
         termPo val = pop();
         saveRegisters();  // Seal off the current stack
-        switch (stackState(S)) {
-          case attached:
-            setStackState(S, detached);
-            S = P->stk = S->attachment;
-            restoreRegisters();
-            push(val);
-            continue;
-          case suspended:
-            if (insDebugging || lineDebugging) {
-              logMsg(logFile, "Underflow of suspended stack");
-            }
-            return (retCode) -99;
-          case detached:
-            if (insDebugging || lineDebugging) {
-              logMsg(logFile, "Underflow of detached stack");
-            }
-            return (retCode) -99;
-          case root:
-            if (insDebugging || lineDebugging) {
-              logMsg(logFile, "Underflow of root");
-            }
-            return (retCode) -99;
-        }
+        assert(stackState(S) == attached);
+        setStackState(S, detached);
+        S = P->stk = S->attachment;
+        restoreRegisters();
+        push(val);
+        continue;
       }
 
       case LdV: {

@@ -311,9 +311,9 @@ collectTermRefs(T,All,R,Rx) :-
   collectTermRefs(L,All,R0,R1),
   collectTermRefs(E,All,R1,Rx).
 collectTermRefs(T,A,R0,Rx) :-
-  isResume(T,_,O,Args),
+  isResume(T,_,O,Arg),
   collectTermRefs(O,A,R0,R1),
-  collectTermListRefs(Args,A,R1,Rx).
+  collectTermRefs(Arg,A,R1,Rx).
 collectTermRefs(_,_,Rx,Rx).
 
 collectTermListRefs([],_,Rx,Rx).

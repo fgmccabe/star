@@ -353,7 +353,7 @@ liftExp(shift(Lc,Lb,E),shft(Lc,LL,EE),Q,Q,Map,Opts,Ex,Exx) :-!,
 liftExp(prompt(Lc,L,E,_),prmpt(Lc,Lb,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(L,Lb,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(E,EE,Q0,Qx,Map,Opts,Ex0,Exx).
-liftExp(resume(Lc,Kont,tple(_,[Arg]),_Tp),resme(Lc,KK,AA),Q,Q,Map,Opts,Ex,Exx) :-!,
+liftExp(resume(Lc,Kont,Arg,_Tp),resme(Lc,KK,AA),Q,Q,Map,Opts,Ex,Exx) :-!,
   liftExp(Kont,KK,Q,_,Map,Opts,Ex,Ex0),
   liftExp(Arg,AA,Q,_,Map,Opts,Ex0,Exx).
 liftExp(case(Lc,Bnd,Cses,_),Result,Q,Qx,Map,Opts,Ex,Exx) :-!,

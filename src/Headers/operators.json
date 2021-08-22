@@ -276,12 +276,6 @@
 	"keyword": true
     },
     {
-	"infixOp" : "..",
-	"priorities" : [ 99,100,99],
-	"desc" : "resume a continuation",
-	"keyword" : true
-    },
-    {
 	"infixOp": "->>",
 	"priorities": [
 	    1199,

@@ -251,7 +251,7 @@ ssTerm(prompt(_,Lb,E,_),Dp,sq([LL,ss(" prompt "),EE])) :-
 ssTerm(shift(_,L,F),Dp,sq([LL,ss(" shift "),FF])) :-
   ssTerm(L,Dp,LL),
   ssTerm(F,Dp,FF).
-ssTerm(resume(_,K,A,_),Dp,sq([KK,ss("|"),lp,AA,rp])) :-
+ssTerm(resume(_,K,A,_),Dp,sq([KK,ss("."),lp,AA,rp])) :-
   ssTerm(K,Dp,KK),
   ssTerm(A,Dp,AA).
 ssTerm(tple(_,Els),Dp,sq([lp,iv(ss(", "),SEls),rp])) :-

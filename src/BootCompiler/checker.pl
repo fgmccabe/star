@@ -787,7 +787,7 @@ typeOfExp(Trm,_Tp,ErTp,Env,Env,resume(Lc,Kont,Arg,RTp),Path) :-
   newTypeVar("A",VTp),
   KTp = contType(VTp,RTp),
   typeOfExp(F,KTp,ErTp,Env,_,Kont,Path),
-  typeOfArgTerm(A,VTp,ErTp,Env,_,Arg,Path).
+  typeOfExp(A,VTp,ErTp,Env,_,Arg,Path).
 typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isSlice(Term,Lc,S,F,T),!,
   ternary(Lc,"_slice",S,F,T,Actual),
@@ -882,7 +882,7 @@ typeOfPrompt(Lc,L,P,Tp,ErTp,Env,prompt(Lc,Lb,Lam,Tp),Path) :-
 
 typeOfCut(Lc,L,Lhs,Rhs,Tp,ErTp,Env,shift(Lc,Lb,Lam),Path) :-
   newTypeVar("_",Rt),
-  KType = contType(tplType([Tp]),Rt),
+  KType = contType(Tp,Rt),
   mkTypeExp(tpFun("tag",2),[KType,Rt],TTp),
   typeOfExp(L,TTp,ErTp,Env,_,Lb,Path),
   dispType(TTp),

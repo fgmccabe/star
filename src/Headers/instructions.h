@@ -37,6 +37,7 @@ instruction(Tag,sym,nOp,1,"allocate a marker")
 instruction(Prompt,tOs,nOp,-2,"delimit a suspendable computation")
 instruction(Cut,tOs,nOp,0,"find top prompt and cut stack there. Leave continuation on stack")
 instruction(Resume,tOs,nOp,0,"restore a cut continuation with parameter")
+instruction(TResume,tOs,nOp,0,"restore a cut continuation with parameter")
 instruction(Underflow,nOp,nOp,0,"underflow from current stack")
 
 instruction(LdV,nOp,nOp,1,"Place a void value on stack")

@@ -195,10 +195,9 @@ compTerm(shft(Lc,Lb,Lam),OLc,Cont,TCont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
 	   Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 compTerm(resme(Lc,K,A),OLc,Cont,TCont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
-  bumpStk(Stk,Stk1),
   compTerm(A,Lc,
 	   compTerm(K,Lc,
-		    bothCont(asmCont(iResume,Stk1),Cont),TCont,Opts),TCont,
+		    resumeCont(Cont,Opts),TCont,Opts),TCont,
 	   Opts,D,Dx,End,C0,Cx,Stk,Stkx).
   
 compTerm(nth(Lc,Exp,Off),OLc,Cont,TCont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
@@ -432,6 +431,13 @@ oclCont(Arity,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   bumpStk(Stk0,Stk1),
   frameIns(Stk1,C0,C1),
   call(Cont,D,Dx,End,C1,Cx,Stk1,Stkx).
+
+resumeCont(retCont(_),Opts,Dx,Dx,_End,C,Cx,_,none) :-!,
+  genDbg(Opts,C,[iTResume|Cx]).
+resumeCont(Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
+  genDbg(Opts,C,[iResume|C0]),
+  frameIns(Stk,C0,C1),
+  call(Cont,D,Dx,End,C1,Cx,Stk,Stkx).
 
 jmpCont(Lbl,D,D,_End,[iJmp(Lbl)|Cx],Cx,Stk,Stk).
 
