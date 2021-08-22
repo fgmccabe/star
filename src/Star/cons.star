@@ -135,4 +135,16 @@ star.cons{
     (return X) => cons(X,.nil).
     (XS >>= F) => multicat(fmap(F,XS)).
   }
+
+  public consIterState[e] ::= consIterState(ref cons[e]).
+
+/*  public implementation all e ~~ iteration[consIterState[e]->>e] => {.
+    _hasNext(consIterState(L)) => cons(_,_).=L!.
+    _current(consIterState(L)) where cons(H,_).=L! => H.
+    _advance(consIterState(L)) where cons(_,T).=L! => do{
+      L:= T;
+      valis ()
+    }
+  .}
+*/
 }

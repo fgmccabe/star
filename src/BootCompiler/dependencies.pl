@@ -299,6 +299,8 @@ collectTermRefs(T,All,R,Rx) :-
 collectTermRefs(T,All,R,Rx) :-
   isCellRef(T,_,A),!,
   collectTermRefs(A,All,R,Rx).
+collectTermRefs(T,_All,Rx,Rx) :-
+  isTag(T,_),!.
 collectTermRefs(T,All,R,Rx) :-
   isPrompt(T,_,Lb,A),!,
   collectTermRefs(Lb,All,R,R0),
@@ -308,6 +310,10 @@ collectTermRefs(T,All,R,Rx) :-
   collectTermRefs(Lb,All,R,R0),
   collectTermRefs(L,All,R0,R1),
   collectTermRefs(E,All,R1,Rx).
+collectTermRefs(T,A,R0,Rx) :-
+  isResume(T,_,O,Args),
+  collectTermRefs(O,A,R0,R1),
+  collectTermListRefs(Args,A,R1,Rx).
 collectTermRefs(_,_,Rx,Rx).
 
 collectTermListRefs([],_,Rx,Rx).
@@ -422,7 +428,11 @@ collectTypeRefs(St,_,SoFar,SoFar) :-
 collectTypeRefs(St,_,SoFar,SoFar) :-
   isUnary(St,_,"@",_).
 collectTypeRefs(T,All,SoFar,Rx) :-
-  isBinary(T,_,"=>",L,R),
+  isFuncType(T,_,L,R),
+  collectTypeRefs(L,All,SoFar,R0),
+  collectTypeRefs(R,All,R0,Rx).
+collectTypeRefs(T,All,SoFar,Rx) :-
+  isContType(T,_,L,R),
   collectTypeRefs(L,All,SoFar,R0),
   collectTypeRefs(R,All,R0,Rx).
 collectTypeRefs(T,All,SoFar,Rx) :-

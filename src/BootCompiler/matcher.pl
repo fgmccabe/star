@@ -87,13 +87,21 @@ conditionalize(Vrs,[(Args,(Lc,Bnds,Guard,Test,Val),_)|M],Deflt,Repl) :-
   mkMatchCond(Vrs,Args,Lc,BaseCond),
   pullWhere(Val,BaseCond,Vl,C0),
   mergeGl(Guard,Test,Lc,G0),
-  mergeGl(G0,C0,Lc,TT),
+  mergeGl(C0,G0,Lc,TT),
   (mustSucceed(TT) ->
    applyBindings(Bnds,Lc,Vl,Repl);
    conditionalize(Vrs,M,Deflt,Other),
    applyBindings(Bnds,Lc,Vl,TVl),
    mkCnd(Lc,TT,TVl,Other,Repl)
   ).
+
+mkMatchCond([_|Vrs],[anon|Args],Lc,Cnd) :-
+  mkMatchCond(Vrs,Args,Lc,Cnd).
+mkMatchCond([],[],_,none).
+mkMatchCond([V|Vrs],[A|Args],Lc,Cond) :-
+  mkMatchCond(Vrs,Args,Lc,C0),
+  mergeGl(some(mtch(Lc,A,V)),C0,Lc,Cond).
+/*
 
 mkMatchCond(Vrs,Args,Lc,Cnd) :-
   mkMtchEls(Vrs,Args,Vs,As),
@@ -108,6 +116,7 @@ mkMtchEls([_V|Vs],[anon|As],Vrs,Args) :-!,
   mkMtchEls(Vs,As,Vrs,Args).
 mkMtchEls([V|Vs],[A|As],[V|Vrs],[A|Args]) :-
   mkMtchEls(Vs,As,Vrs,Args).
+  */
   
 mustSucceed(none).
 

@@ -29,8 +29,16 @@ freeVars(cond(_,C,T,E,_),Ex,Q,F,FV) :- ptnGoalVars(C,Ex,E1),
   freeVars(C,E1,Q,F0,F1),
   freeVars(E,Ex,Q,F1,FV).
 freeVars(lambda(_,_,Eqn,_),Ex,Q,F,FV) :- freeVarsInRule(Ex,Q,Eqn,F,FV).
-freeVars(prompt(_,E,_),Ex,Q,F,Fv) :- freeVars(E,Ex,Q,F,Fv).
-freeVars(shift(_,V,A),Ex,Q,F,Fv) :- addFrVar(V,Ex,Ex1),freeVars(A,Ex1,Q,F,Fv).
+freeVars(prompt(_,L,E),Ex,Q,F,Fv) :-
+  freeVars(L,Ex,Q,F,F0),
+  freeVars(E,Ex,Q,F0,Fv).
+freeVars(shift(_,L,E),Ex,Q,F,Fv) :-
+  freeVars(L,Ex,Q,F,F0),
+  freeVars(E,Ex,Q,F0,Fv).
+freeVars(tag(_,_),_,_,Fv,Fv) :-!.
+freeVars(resume(_,K,A,_),Ex,Q,F,Fv) :-
+  freeVars(K,Ex,Q,F,F0),
+  freeVars(A,Ex,Q,F0,Fv).
 freeVars(conj(Lc,L,R),Ex,Q,F,FV) :- ptnGoalVars(conj(Lc,L,R),Ex,E1),
   freeVars(L,E1,Q,F,F0),freeVars(R,E1,Q,F0,FV).
 freeVars(disj(_,L,R),Ex,Q,F,FV) :- freeVars(L,Ex,Q,F,F0),freeVars(R,Ex,Q,F0,FV).

@@ -1,7 +1,7 @@
 :- module(location,[locOf/2, mergeLoc/3,
 		    showLocation/3,
 		    ssLoc/2,
-		    lcPk/2,lcLine/2,lcColumn/2,lcSize/2,lcOff/2,isLocation/1,
+		    lcPk/2,lcLine/2,lcColumn/2,lcSize/2,lcOff/2,isLocation/1,locHash/2,
 		   pkgLoc/2]).
 
 :- use_module(misc).
@@ -46,3 +46,8 @@ lcOff(loc(_,_,_,Off,_),Off).
 isLocation(loc(_,_,_,_,_)).
 
 pkgLoc(pkg(Pk,_),loc(Pk,0,0,0,0)).
+
+locHash(loc(Pk,_,_,S,L),H) :-
+  H0 is S*37+L,
+  hashSixtyFour(H0,H1),
+  stringHash(H1,Pk,H).

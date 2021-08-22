@@ -34,6 +34,10 @@ isCanon(floatLit(_,_)).
 isCanon(stringLit(_,_)).
 isCanon(apply(_,_,_,_)).
 isCanon(dot(_,_,_,_)).
+isCanon(tag(_,_)).
+isCanon(prompt(_,_,_)).
+isCanon(shift(_,_,_)).
+isCanon(resume(_,_,_,_)).
 isCanon(enm(_,_,_)).
 isCanon(cons(_,_,_)).
 isCanon(tple(_,_)).
@@ -114,6 +118,7 @@ typeOfCanon(letRec(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(apply(_,_,_,Tp),Tp) :-!.
 typeOfCanon(prompt(_,_,Tp),Tp) :-!.
 typeOfCanon(shift(_,_,F),Tp) :-!, typeOfCanon(F,Tp).
+typeOfCanon(resume(_,_,_,Tp),Tp) :-!.
 typeOfCanon(tple(_,Els),tplType(Tps)) :-!,
   map(Els,canon:typeOfCanon,Tps).
 typeOfCanon(cell(_,Vl),refType(Tp)) :-
@@ -151,7 +156,9 @@ locOfCanon(case(Lc,_,_,_),Lc) :- !.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
 locOfCanon(tple(Lc,_),Lc) :-!.
 locOfCanon(lambda(Lc,_,_,_),Lc) :-!.
+locOfCanon(tag(Lc,_),Lc) :-!.
 locOfCanon(prompt(Lc,_,_),Lc) :-!.
+locOfCanon(resume(Lc,_,_,_),Lc) :-!.
 locOfCanon(shift(Lc,_,_),Lc) :-!.
 locOfCanon(valof(Lc,_,_),Lc) :-!.
 locOfCanon(doTerm(Lc,_,_),Lc) :-!.
@@ -236,11 +243,17 @@ ssTerm(letRec(_,Decls,Defs,Ex),Dp,
   ssTerm(Ex,Dp,B).
 ssTerm(lambda(_,Lbl,Rle,_),Dp,sq([lp,Rl,rp])) :-
   ssRule(Lbl,Dp,Rle,Rl).
-ssTerm(prompt(_,E,_),Dp,sq([ss("prompt "),EE])) :-
+ssTerm(tag(_,Tp),Dp,sq([ss("tag:"),TT])) :-
+  ssType(Tp,false,Dp,TT).
+ssTerm(prompt(_,Lb,E,_),Dp,sq([LL,ss(" prompt "),EE])) :-
+  ssTerm(Lb,Dp,LL),
   ssTerm(E,Dp,EE).
-ssTerm(shift(_,V,F),Dp,sq([ss("shift "),VV,ss("in"),FF])) :-
-  ssTerm(V,Dp,VV),
+ssTerm(shift(_,L,F),Dp,sq([LL,ss(" shift "),FF])) :-
+  ssTerm(L,Dp,LL),
   ssTerm(F,Dp,FF).
+ssTerm(resume(_,K,A,_),Dp,sq([KK,ss("|"),lp,AA,rp])) :-
+  ssTerm(K,Dp,KK),
+  ssTerm(A,Dp,AA).
 ssTerm(tple(_,Els),Dp,sq([lp,iv(ss(", "),SEls),rp])) :-
   ssTerms(Els,Dp,SEls).
 ssTerm(mtd(_,Nm,_),_,sq([ss("°"),id(Nm)])).

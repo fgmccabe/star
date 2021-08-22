@@ -12,14 +12,15 @@
 	      isTypeExistsStmt/6,typeExistsStmt/6,isTypeFunStmt/6,typeFunStmt/6,
 	      isTypeAnnotation/4,typeAnnotation/4,
 	      isTypeLambda/4,typeLambda/4,typeName/2,
-	      isValType/3,isFuncType/4,funcType/4,isEnum/3,mkEnum/3,isAnon/2,mkAnon/2,
+	      isValType/3,isFuncType/4,funcType/4,isContType/4,mkContType/4,
+	      isEnum/3,mkEnum/3,isAnon/2,mkAnon/2,
 	      isImport/3, isPrivate/3,isPublic/3,mkPrivate/3,mkPublic/3,
 	      isDefault/3,isDefault/4,mkDefault/3,
 	      isLiteralInteger/3,isLiteralFloat/3,
 	      isIntegrity/3,isShow/3,isOpen/3,
 	      isConditional/5,conditional/5,isOfTerm/4,
 	      isEquation/4,isEquation/5,mkEquation/5,
-	      isPrompt/4,isCut/5,isTag/2,
+	      isPrompt/4,mkPrompt/4,isCut/5,mkCut/5,isTag/2,mkTag/2,isResume/4,mkResume/4,
 	      isDefn/4,isAssignment/4,isRef/3,mkRef/3,isCellRef/3,cellRef/3,
 	      assignment/4,eqn/4,eqn/5,
 	      mkDefn/4,mkLoc/2,
@@ -296,6 +297,12 @@ isFuncType(T,Lc,Lh,Rh) :-
 funcType(Lc,L,R,Tp) :-
   binary(Lc,"=>",L,R,Tp).
 
+isContType(T,Lc,Lh,Rh) :-
+  isBinary(T,Lc,"=>>",Lh,Rh).
+
+mkContType(Lc,L,R,Tp) :-
+  binary(Lc,"=>>",L,R,Tp).
+
 isComma(T,Lc,L,R) :-
   isBinary(T,Lc,",",L,R).
 
@@ -498,15 +505,31 @@ caseExp(Lc,Exp,Cases,Trm) :-
   unary(Lc,"case",C0,Trm).
 
 isTag(Trm,Lc) :-
-  isName(Trm,Lc,"tag").
+  isZeroary(Trm,Lc,"tag").
+
+mkTag(Lc,Trm) :-
+  mkZeroary(Lc,"tag",Trm).
 
 isPrompt(Trm,Lc,Lb,E) :-
   isBinary(Trm,Lc,"prompt",Lb,E).
+
+mkPrompt(Lc,Lb,E,Trm) :-
+  binary(Lc,"prompt",Lb,E,Trm).
 
 isCut(Trm,Lc,Lb,L,R) :-
   isBinary(Trm,Lc,"cut",Lb,Rhs),
   isBinary(Rhs,_,"in",L,R),
   isIden(L,_).
+
+mkCut(Lc,Lb,L,R,Trm) :-
+  binary(Lc,"in",L,R,Rhs),
+  binary(Lc,"cut",Lb,Rhs,Trm).
+
+isResume(T,Lc,K,C) :-
+  isBinary(T,Lc,"..",K,C).
+
+mkResume(Lc,K,C,T) :-
+  binary(Lc,"..",K,C,T).
 
 isAssignment(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,":=",Lhs,Rhs).

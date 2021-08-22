@@ -160,8 +160,8 @@ static logical shouldWeStop(processPo p, stackPo stk, insWord ins, termPo arg) {
           }
         }
       }
-      case Tail:
-      case OTail: {
+      case TCall:
+      case TOCall: {
         breakPointPo bp = callBreakPointHit(C_LBL(arg));
 
         if (bp != Null) {
@@ -331,8 +331,8 @@ static DebugWaitFor dbgOver(char *line, processPo p, termPo loc, insWord ins, vo
       p->tracing = False;
       break;
     }
-    case Tail:
-    case OTail: {
+    case TCall:
+    case TOCall: {
       p->traceDepth = 0;
       p->tracing = False;
       break;
@@ -382,8 +382,8 @@ static DebugWaitFor dbgUntilRet(char *line, processPo p, termPo loc, insWord ins
       p->traceDepth = 2;
       break;
     }
-    case Tail:
-    case OTail: {
+    case TCall:
+    case TOCall: {
       p->traceDepth = 1;
       break;
     }
@@ -548,8 +548,6 @@ static DebugWaitFor dbgStackTrace(char *line, processPo p, termPo loc, insWord i
 void stackTrace(processPo p, ioPo out, stackPo stk) {
   heapPo h = processHeap(p);
 
-  integer frameNo = 0;
-
   outMsg(out, "Stack trace for process %d ", p->processNo);
 #ifdef TRACEEXEC
   if (debugDebugging) {
@@ -557,12 +555,19 @@ void stackTrace(processPo p, ioPo out, stackPo stk) {
     heapSummary(out, h);
   }
 #endif
-  outMsg(out, "\n%_");
 
-  for (integer fx = stk->fp; fx > 0; fx--) {
-    showStackEntry(out, stk, fx);
-    frameNo++;
-  }
+  outMsg(out, "\n%_");
+  do {
+    if (stackPrompt(stk) != Null) {
+      outMsg(out, "Prompt %T\n", stackPrompt(stk));
+    } else
+      outMsg(out, "root stack\n");
+    for (integer fx = stk->fp; fx > 0; fx--) {
+      showStackEntry(out, stk, fx);
+    }
+    stk = stk->attachment;
+  } while (stk != Null);
+
   flushFile(out);
 }
 
@@ -733,8 +738,8 @@ static logical shouldWeStopIns(processPo p, stackPo stk, insWord ins) {
         }
         return False;
       }
-      case Tail:
-      case OTail:
+      case TCall:
+      case TOCall:
         switch (p->waitFor) {
           case stepOver:
             return (logical) (p->traceDepth == 0 && p->traceCount == 0);
@@ -957,11 +962,11 @@ DebugWaitFor ocallDebug(processPo p, termPo call) {
 }
 
 DebugWaitFor tailDebug(processPo p, termPo call) {
-  return lnDebug(p, Tail, call, showTail);
+  return lnDebug(p, TCall, call, showTail);
 }
 
 DebugWaitFor otailDebug(processPo p, termPo call) {
-  return lnDebug(p, OTail, call, showOTail);
+  return lnDebug(p, TOCall, call, showOTail);
 }
 
 DebugWaitFor retDebug(processPo p, termPo val) {
@@ -980,14 +985,14 @@ DebugWaitFor enterDebug(processPo p) {
   switch (ins) {
     case Call:
       return callDebug(p, getMtdLit(f->prog, collect32(pc)));
-    case Tail:
+    case TCall:
       return tailDebug(p, getMtdLit(f->prog, collect32(pc)));
     case OCall: {
       int32 arity = collect32(pc);
       termPo callee = getLbl(stackArg(stk, stk->fp, 0), arity);
       return ocallDebug(p, callee);
     }
-    case OTail: {
+    case TOCall: {
       int32 arity = collect32(pc);
       termPo callee = getLbl(stackArg(stk, stk->fp, 0), arity);
       return otailDebug(p, callee);

@@ -95,7 +95,7 @@ genCond(Lc,C,V,Cl) :-
     unary(Lc,"some",Vr,Rhs), V=Arg;
     unary(Lc,"some",Arg,Rhs), roundTuple(Lc,[Arg],V)),
   genstr("P",Nm),
-  zeroary(Lc,Nm,Empty),
+  mkZeroary(Lc,Nm,Empty),
   eqn(Lc,Empty,C,Rhs,E1),
   mkEnum(Lc,"none",None),
   eqn(Lc,Empty,None,E2),

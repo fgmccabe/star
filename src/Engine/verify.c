@@ -311,15 +311,15 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
 
   if (jmpSplit) {
     switch (op) {
-      case Tail:
-      case OTail:
+      case TCall:
+      case TOCall:
       case Jmp:
       case Halt:
       case Abort:
       case Ret:
       case Underflow:
-      case Cut:
-      case Restore: {
+        //    case Cut:
+      case Prompt: {
         splitSeg(blocks, *pc);
         return Ok;
       }
@@ -497,8 +497,8 @@ retCode checkOprndTgt(methodPo mtd, insPo code, vectorPo blocks, integer oPc, in
         strMsg(errorMsg, msgLen, RED_ESC_ON "invalid literal number %d @ %d" RED_ESC_OFF, litNo, *pc);
         return Error;
       }
-      termPo sym = getMtdLit(mtd,litNo);
-      if(!isALabel(sym)){
+      termPo sym = getMtdLit(mtd, litNo);
+      if (!isALabel(sym)) {
         strMsg(errorMsg, msgLen, RED_ESC_ON "expecting a label, not %T @ %d" RED_ESC_OFF, sym, *pc);
         return Error;
       }
@@ -535,10 +535,11 @@ checkTgt(vectorPo blocks, methodPo mtd, insPo code, integer oPc, integer *pc, Op
     if (next != Null && current != Null) {
       switch (code[oPc]) {
         case Jmp:
-        case Tail:
-        case OTail:
+        case TCall:
+        case TOCall:
         case Halt:
         case Abort:
+        case Cut:
           break;
         default:
           updateEntryPoint(current, next);
@@ -744,7 +745,7 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
         }
         break;
       }
-      case Tail:
+      case TCall:
         seg->seg.stackDepth = 0;
         break;
       case Rst: {
@@ -836,8 +837,9 @@ retCode checkSegment(segPo seg, char *errorMsg, long msgLen) {
         case Ret:
         case Halt:
         case Abort:
-        case Tail:
-        case OTail:
+        case TCall:
+        case TOCall:
+        case Cut:
           break;
         default:
           strMsg(errorMsg, msgLen, RED_ESC_ON "expecting a return at %d" RED_ESC_OFF, pc);

@@ -150,6 +150,10 @@ examineType(T,Tx) :- isFuncType(T,Lc,L,R),!,
   macroType(L,Lx),
   macroType(R,Rx),
   funcType(Lc,Lx,Rx,Tx).
+examineType(T,Tx) :- isContType(T,Lc,L,R),!,
+  macroType(L,Lx),
+  macroType(R,Rx),
+  contType(Lc,Lx,Rx,Tx).
 examineType(T,Tx) :- isRoundTuple(T,Lc,Els),!,
   map(Els,macros:macroType,Elx),
   roundTuple(Lc,Elx,Tx).
@@ -355,6 +359,24 @@ examineTerm(T,Tx) :-
   isTaskTerm(T,Lc,S),!,
   macroAction(S,Sx),
   mkTaskTerm(Lc,Sx,Tx).
+examineTerm(T,T) :-
+  isTag(T,_),!.
+examineTerm(T,Tx) :-
+  isPrompt(T,Lc,L,R),!,
+  macroTerm(L,Lx),
+  macroTerm(R,Rx),
+  mkPrompt(Lc,Lx,Rx,Tx).
+examineTerm(T,Tx) :-
+  isCut(T,Lc,Lb,L,R),!,
+  macroTerm(Lb,Lbx),
+  macroTerm(L,Lx),
+  macroTerm(R,Rx),
+  mkCut(Lc,Lbx,Lx,Rx,Tx).
+examineTerm(T,Tx) :-
+  isResume(T,Lc,L,R),!,
+  macroTerm(L,Lx),
+  macroTerm(R,Rx),
+  mkResume(Lc,Lx,Rx,Tx).
 examineTerm(T,Tx) :-
   isBraceTuple(T,Lc,D),!,
   map(D,macros:macroStmt,Dx),

@@ -30,6 +30,7 @@ isType(tpExp(_,_)).
 isType(refType(_)).
 isType(tplType(_)).
 isType(funType(_,_)).
+isType(contType(_,_)).
 isType(consType(_,_)).
 isType(allType(_,_)).
 isType(existType(_,_)).
@@ -185,6 +186,9 @@ ssType(funType(A,R),ShCon,Dp,sq([AA,ss("=>"),RR])) :-
 ssType(consType(A,R),ShCon,Dp,sq([AA,ss("<=>"),RR])) :-
   ssType(A,ShCon,Dp,AA),
   ssType(R,ShCon,Dp,RR).
+ssType(contType(A,R),ShCon,Dp,sq([AA,ss("=>>"),RR])) :-
+  ssType(A,ShCon,Dp,AA),
+  ssType(R,ShCon,Dp,RR).
 ssType(refType(R),ShCon,Dp,sq([ss("ref "),RR])) :- ssType(R,ShCon,Dp,RR).
 ssType(valType(R),ShCon,Dp,sq([ss("val "),RR])) :- ssType(R,ShCon,Dp,RR).
 ssType(allType(V,T),ShCon,Dp,sq([ss("all "),iv(ss(","),[types:tvr(V)|VV]),ss("~"),TT])) :-
@@ -294,6 +298,8 @@ tpArity(funType(A,_),Ar) :- !,
   progTypeArity(A,Ar).
 tpArity(consType(A,_),Ar) :- !,
   tpArity(A,Ar).
+tpArity(contType(A,_),Ar) :- !,
+  progTypeArity(A,Ar).
 tpArity(refType(A),Ar) :- !,
   progTypeArity(A,Ar).
 tpArity(tplType(A),Ar) :- !,length(A,Ar).
@@ -306,6 +312,7 @@ tpArgTypes(allType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(existType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(constrained(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(funType(A,_),ArTps) :- tpArgTypes(A,ArTps).
+tpArgTypes(contType(A,_),ArTps) :- tpArgTypes(A,ArTps).
 tpArgTypes(tplType(ArTps),ArTps).
 
 funResType(Tp,ResTp) :- deRef(Tp,TT), resType(TT,ResTp).
@@ -314,6 +321,7 @@ resType(allType(_,Tp),ResTp) :- resType(Tp,ResTp).
 resType(existType(_,Tp),ResTp) :- resType(Tp,ResTp).
 resType(constrained(_,Tp),ResTp) :- resType(Tp,ResTp).
 resType(funType(_,R),R) :- !.
+resType(contType(_,R),R) :- !.
 resType(R,R) :- !.
 
 isFunctionType(T) :- deRef(T,Tp), isFunctionType(Tp,_).
@@ -471,6 +479,9 @@ toLtp(type("star.core*integer"),i64Tipe) :- !.
 toLtp(type("star.core*float"),f64Tipe) :- !.
 toLtp(type("star.core*boolean"),blTipe) :- !.
 toLtp(funType(Args,Res),fnTipe(As,R)) :-
+  map(Args,types:toLtipe,As),
+  toLtipe(Res,R).
+toLtp(contType(Args,Res),contTipe(As,R)) :-
   map(Args,types:toLtipe,As),
   toLtipe(Res,R).
 toLtp(tplType(Args),tplTipe(As)) :-

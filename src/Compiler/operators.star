@@ -50,7 +50,7 @@ star.compiler.operators{
   oper("do") => [prefixOp(200,199), infixOp(1199,1200,1199)].
   oper("import") => [prefixOp(900,899)].
   oper("catch") => [infixOp(1198,1199,1198)].
-  oper("prompt") => [prefixOp(300,299)].
+  oper("prompt") => [infixOp(299,300,299)].
   oper("valis") => [prefixOp(930,929)].
   oper(",..") => [infixOp(999,1000,999)].
   oper("for") => [prefixOp(1175,1174)].
@@ -79,6 +79,7 @@ star.compiler.operators{
   oper("contract") => [prefixOp(1260,1259)].
   oper("\\/") => [infixOp(720,720,719)].
   oper("-") => [prefixOp(300,299), infixOp(720,720,719)].
+  oper("..") => [infixOp(99,100,99)].
   oper(".") => [prefixOp(10,9), infixOp(100,100,99)].
   oper("/") => [infixOp(700,700,699)].
   oper("<*>") => [infixOp(949,950,950)].
@@ -92,6 +93,7 @@ star.compiler.operators{
   oper(";") => [postfixOp(1250,1251), infixOp(1250,1251,1251)].
   oper("<") => [infixOp(899,900,899)].
   oper(".=") => [infixOp(899,900,899)].
+  oper("=>>") => [infixOp(949,950,950)].
   oper("=") => [infixOp(974,975,974)].
   oper("|:") => [infixOp(1234,1235,1234)].
   oper("show") => [prefixOp(1240,1239)].
@@ -243,6 +245,7 @@ star.compiler.operators{
   follows(".",0c+) => some(".+").
   follows(".",0c=) => some(".=").
   follows(".",0c>) => some(".>").
+  follows(".",0c.) => some("..").
   follows(".",0c ) => some(". ").
   follows(".#",0c.) => some(".#.").
   follows(".&",0c.) => some(".&.").
@@ -296,6 +299,7 @@ star.compiler.operators{
   follows("=",0c<) => some("=<").
   follows("=",0c=) => some("==").
   follows("=",0c>) => some("=>").
+  follows("=>",0c>) => some("=>>").
   follows(">",0c=) => some(">=").
   follows(">",0c>) => some(">>").
   follows(">>",0c=) => some(">>=").
@@ -334,6 +338,7 @@ star.compiler.operators{
   final(".=") => .true.  /* pattern match */
   final(".>>.") => .true.  /* logical shift right */
   final(".>>>.") => .true.  /* arithmetic shift right */
+  final("..") => .true.  /* resume a continuation */
   final(". ") => .true.  /* statement terminator */
   final("/") => .true.  /* division */
   final("/\\") => .true.  /* intersection */
@@ -384,6 +389,7 @@ star.compiler.operators{
   final("=<") => .true.  /* less than or equal */
   final("==") => .true.  /* equality predicate */
   final("=>") => .true.  /* function arrow */
+  final("=>>") => .true.  /* continuation arrow */
   final(">") => .true.  /* greater than */
   final(">=") => .true.  /* greater than or equal */
   final(">>") => .true.  /* monadic bind */
@@ -425,6 +431,7 @@ star.compiler.operators{
  keyword("*>") => .true.
  keyword(",") => .true.
  keyword("contract") => .true.
+ keyword("..") => .true.
  keyword(".") => .true.
  keyword("val") => .true.
  keyword("try") => .true.
@@ -433,6 +440,7 @@ star.compiler.operators{
  keyword(":") => .true.
  keyword(";") => .true.
  keyword(".=") => .true.
+ keyword("=>>") => .true.
  keyword("=") => .true.
  keyword("|:") => .true.
  keyword("?") => .true.

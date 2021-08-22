@@ -40,6 +40,7 @@ typedef enum {
 
   funSig = 'F', /* Function signature */
   conSig = 'C', /* constructor */
+  contSig = 'D', //  continuation signature
 
   tpruleSig = 'Y',  /* Type rule -- aka type alias or existential type assignment */
   tplambdaSig = 'Z', /* Type function */

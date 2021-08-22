@@ -59,7 +59,7 @@
 @tab 1199
 @tab try @{...@} catch @{...@}
 @item @code{prompt}
-@tab non-associative prefix
+@tab non-associative infix
 @tab 300
 @tab delimit a continuation
 @item @code{valis}
@@ -194,6 +194,10 @@
 @tab left associative infix
 @tab 720
 @tab subtraction
+@item @code{..}
+@tab non-associative infix
+@tab 100
+@tab resume a continuation
 @item @code{.}
 @tab non-associative prefix
 @tab 10
@@ -254,6 +258,10 @@
 @tab non-associative infix
 @tab 900
 @tab pattern match
+@item @code{=>>}
+@tab right associative infix
+@tab 950
+@tab continuation arrow
 @item @code{=}
 @tab non-associative infix
 @tab 975

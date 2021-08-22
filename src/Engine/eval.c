@@ -61,6 +61,30 @@
   }\
   })
 
+#define oCall(obj, arity) STMT_WRAP({ \
+  labelPo oLbl = objLabel(termLbl(obj), (arity));\
+  if (oLbl == Null) {\
+    logMsg(logFile, "label %s/%d not defined", labelName(termLbl(obj)), arity);\
+    bail();\
+  }\
+  methodPo mtd = labelCode(oLbl);       /* set up for object call */\
+  if (mtd == Null) {\
+    logMsg(logFile, "no definition for %T", oLbl);\
+    bail();\
+  }\
+  push(nthElem(obj, 0));                     // Put the free term back on the stack\
+  if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE))\
+    stackGrow(stackDelta(mtd) + STACKFRAME_SIZE, codeArity(mtd));\
+  F->pc = PC;\
+  F = pushFrame(S, mtd, stackOffset(S, SP));\
+  PC = entryPoint(mtd);\
+  LITS = codeLits(mtd);\
+  integer lclCnt = lclCount(mtd);  /* How many locals do we have */\
+  SP -= lclCnt;\
+  for (integer ix = 0; ix < lclCnt; ix++)\
+    SP[ix] = voidEnum;\
+})
+
 /*
  * Execute program on a given process/thread structure
  */
@@ -197,7 +221,7 @@ retCode run(processPo P) {
         }
       }
 
-      case Tail: {       /* Tail call of explicit program */
+      case TCall: {       /* Tail call of explicit program */
         termPo nProg = nthElem(LITS, collectI32(PC));
         labelPo lbl = C_LBL(nProg);
         integer arity = labelArity(lbl);
@@ -230,7 +254,7 @@ retCode run(processPo P) {
         continue;       /* Were done */
       }
 
-      case OTail: {       /* Tail call */
+      case TOCall: {       /* Tail call */
         int arity = collectI32(PC);
         normalPo obj = C_NORMAL(pop());
         labelPo oLbl = objLabel(termLbl(obj), arity);
@@ -318,14 +342,32 @@ retCode run(processPo P) {
         continue;
       }
 
+      case Swap: {
+        termPo t1 = pop();
+        termPo t2 = pop();
+        push(t1);
+        push(t2);
+        continue;
+      }
+
+      case Tag: {
+        labelPo lbl = C_LBL(nthElem(LITS, collectI32(PC)));
+        static integer tagCount = 0;
+
+        labelPo nLbl = otherLbl(lbl, tagCount++);
+        push(nLbl);
+        continue;
+      }
+
       case Prompt: {
         normalPo thunk = C_NORMAL(pop());
-        termPo promptLbl = pop();
+        termPo prompt = pop();
         saveRegisters();
 
-        S = spinupStack(H, S, initStackSize, promptLbl);
+        S = P->stk = spinupStack(H, S, initStackSize, prompt);
 
         restoreRegisters();
+        push(nthElem(thunk, 0));                     // Put the free term back on the stack
 
         labelPo oLbl = termLbl(thunk);
         methodPo thMtd = labelCode(oLbl);       /* set up for object call */
@@ -335,8 +377,6 @@ retCode run(processPo P) {
           bail();
         }
 
-        push(nthElem(thunk, 0));                     // Put the free term back on the stack
-        F->pc = PC;
         F = pushFrame(S, thMtd, stackOffset(S, SP));
         PC = entryPoint(thMtd);
         LITS = codeLits(thMtd);
@@ -351,17 +391,75 @@ retCode run(processPo P) {
         continue;
       }
 
+      case Cut: {
+        termPo handler = pop();
+        termPo promptLbl = pop();
+        saveRegisters();
+        stackPo prompt = detachStack(S, promptLbl);
+
+        if (prompt == Null) {
+          logMsg(logFile, "cannot find prompt associated with %T", promptLbl);
+          bail();
+        } else {
+          stackPo suspended = S;
+
+          S = P->stk = prompt; // Reset the stack to prompt point
+          restoreRegisters();
+
+          push(suspended);
+
+          labelPo oLbl = objLabel(termLbl(handler), 2);  // Enter the cut handler
+
+          methodPo thMtd = labelCode(oLbl);       /* set up for object call */
+
+          if (thMtd == Null) {
+            logMsg(logFile, "no definition for %T", oLbl);
+            bail();
+          }
+
+          push(nthElem(handler, 0));                     // Put the free term back on the stack
+          F->pc = PC;
+          F = pushFrame(S, thMtd, stackOffset(S, SP));
+          PC = entryPoint(thMtd);
+          LITS = codeLits(thMtd);
+
+          integer lclCnt = lclCount(thMtd);  /* How many locals do we have */
+          SP -= lclCnt;
+#ifdef TRACEEXEC
+          for (integer ix = 0; ix < lclCnt; ix++)
+            SP[ix] = voidEnum;
+#endif
+
+        }
+        continue;
+      }
+
+      case Resume: {
+        termPo cont = pop();
+        termPo k = pop();
+        stackPo stk = C_STACK(cont);
+        saveRegisters();
+        S = P->stk = attachStack(S, stk);
+        restoreRegisters();
+        push(k);
+        continue;
+      }
+
       case Underflow: {
         termPo val = pop();
         saveRegisters();  // Seal off the current stack
         switch (stackState(S)) {
           case attached:
             setStackState(S, detached);
-            S = S->attachment;
+            S = P->stk = S->attachment;
             restoreRegisters();
             push(val);
             continue;
-
+          case suspended:
+            if (insDebugging || lineDebugging) {
+              logMsg(logFile, "Underflow of suspended stack");
+            }
+            return (retCode) -99;
           case detached:
             if (insDebugging || lineDebugging) {
               logMsg(logFile, "Underflow of detached stack");
