@@ -105,7 +105,8 @@ logical validSig(char *sig, integer *start, integer end) {
         return False;
     }
     case funSig:        /* Function signature */
-    case conSig:        /* Type constructor */
+    case conSig:        /* Constructor function */
+    case contSig:       // Continuation signature
     case xstSig:       /* Existential quantifier */
     case allSig:        /* Universal quantifier */
     case tpruleSig:
@@ -263,7 +264,8 @@ retCode skipSig(char *sig, integer *start, integer end) {
           return Error;
       }
       case funSig:        /* Function signature */
-      case conSig:        /* Type constructor */
+      case conSig:        /* Constructor function */
+      case contSig:       // Continuation signature
       case xstSig:        /* Existential quantifier */
       case allSig:        /* Universal quantifier */
       case tpruleSig:
@@ -445,7 +447,8 @@ retCode skipSignature(ioPo in) {
         return ret;
       }
       case funSig:        /* Function signature */
-      case conSig:        /* Type constructor */
+      case conSig:        /* Constructor function */
+      case contSig:       // Continuation signature
       case xstSig:        /* Existential quantifier */
       case allSig:        /* Universal quantifier */
       case tpruleSig:
@@ -586,9 +589,13 @@ retCode showSignature(ioPo out, char *sig, integer *start, integer end) {
       tryRet(showSignature(out, sig, start, end));
       tryRet(outStr(out, "=>"));
       return showSignature(out, sig, start, end);
-    case conSig:        /* Type constructor */
+    case conSig:        /* Constructor function */
       tryRet(showSignature(out, sig, start, end));
       tryRet(outStr(out, " <=> "));
+      return showSignature(out, sig, start, end);
+    case contSig:        /* Continuation */
+      tryRet(showSignature(out, sig, start, end));
+      tryRet(outStr(out, " =>> "));
       return showSignature(out, sig, start, end);
     case xstSig:        /* Existential quantifier */
       tryRet(outStr(out, "exists "));

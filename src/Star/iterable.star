@@ -12,4 +12,10 @@ star.iterable{
   public contract all coll/1, m/2, k,v ~~ grouping[coll ->> m,k,v] ::=  {
     (group_by) : (coll[v], (v)=>k) => m[k,coll[v]]
   }
+
+/*  public contract all s,t ~~ iteration[s->>t] ::= {
+    _hasNext:(s)=>boolean.
+    _current:(s) => t.
+    _advance:(s) => result[(),()].
+  }  */
 }

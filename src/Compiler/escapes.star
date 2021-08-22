@@ -9,6 +9,7 @@ star.compiler.escapes{
   escapeType("_abort") => some(allType(nomnal("s"),tpExp(tpExp(tpFun("=>",2),tplType([nomnal("s"),nomnal("star.core*string")])),tplType([])))).
   escapeType("_definedLbl") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
   escapeType("_callLbl") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*integer"),tpExp(tpFun("star.core*cons",1),tpExp(tpFun("star.core*cons",1),nomnal("star.core*string")))])),tplType([]))).
+  escapeType("_fun2cont") => some(allType(nomnal("a"),allType(nomnal("b"),tpExp(tpExp(tpFun("=>",2),tplType([tpExp(tpExp(tpFun("=>",2),tplType([nomnal("a")])),nomnal("b"))])),tpExp(tpExp(tpFun("=>>",2),nomnal("a")),nomnal("b")))))).
   escapeType("_int_plus") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*integer"))).
   escapeType("_int_minus") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*integer"))).
   escapeType("_int_times") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*integer"))).
@@ -219,6 +220,7 @@ star.compiler.escapes{
   isEscape("_abort") => .true.
   isEscape("_definedLbl") => .true.
   isEscape("_callLbl") => .true.
+  isEscape("_fun2cont") => .true.
   isEscape("_int_plus") => .true.
   isEscape("_int_minus") => .true.
   isEscape("_int_times") => .true.

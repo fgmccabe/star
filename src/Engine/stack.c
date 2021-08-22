@@ -45,13 +45,16 @@ stackPo C_STACK(termPo t) {
   return (stackPo) t;
 }
 
-stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, termPo prompt) {
+stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, StackState state, stackPo attachment, termPo prompt) {
+  int root = gcAddRoot(H, (ptrPo) &attachment);
+  gcAddRoot(H, &prompt);
+
   stackPo stk = (stackPo) allocateObject(H, stackClass, StackCellCount(sze));
   stk->sze = sze;
   stk->sp = sze;
   stk->fp = 0;
-  stk->attachment = Null;
-  stk->state = detached;
+  stk->attachment = attachment;
+  stk->state = state;
   stk->hash = stackCount++;
   stk->prompt = prompt;
 
@@ -65,6 +68,8 @@ stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, termPo prompt) 
   f->pc = entryPoint(underFlow);
   f->fp = stk->sp;
 
+  gcReleaseRoot(H, root);
+
   return stk;
 }
 
@@ -75,6 +80,7 @@ StackState stackState(stackPo stk) {
 retCode setStackState(stackPo stk, StackState state) {
   switch (stk->state) {
     case detached:
+    case suspended:
       stk->state = state;
       return Ok;
     case attached:
@@ -135,6 +141,7 @@ void verifyStack(stackPo stk, heapPo H) {
 
   switch (stackState(stk)) {
     case attached:
+    case suspended:
       verifyStack(stk->attachment, H);
       break;
     case root:
@@ -238,25 +245,62 @@ stackPo glueOnStack(heapPo H, stackPo stk, integer size) {
 
   assert(size >= initThreadStackSize);
 
-  stackPo newStack = allocateStack(H, size, &underFlowMethod, voidEnum);
-
-  newStack->attachment = stk;
-  newStack->state = attached;
+  stackPo newStack = allocateStack(H, size, &underFlowMethod, attached, stk, Null);
 
   gcReleaseRoot(H, root);
   return newStack;
 }
 
-stackPo spinupStack(heapPo H, stackPo stk, integer size,termPo prompt) {
-  int root = gcAddRoot(H, (ptrPo) &stk);
-
+stackPo spinupStack(heapPo H, stackPo stk, integer size, termPo prompt) {
   assert(size >= initThreadStackSize);
 
-  stackPo newStack = allocateStack(H, size, &underFlowMethod, prompt);
+  return allocateStack(H, size, &underFlowMethod, attached, stk, prompt);
 
-  newStack->attachment = stk;
-  newStack->state = attached;
+}
 
-  gcReleaseRoot(H, root);
-  return newStack;
+stackPo attachStack(stackPo stk, stackPo seg) {
+#ifdef TRACESTACK
+  if (traceStacks)
+    outMsg(logFile, "attach stack %T to %T\n", seg, stk);
+#endif
+
+  stackPo s = seg;
+  stackPo f = s;
+  while (s != Null && stackState(s) == suspended) {
+    setStackState(s, attached);
+    f = s;
+    s = s->attachment;
+  }
+  assert(stackState(f) == attached && f->attachment == Null);
+  f->attachment = stk;
+  return seg;
+}
+
+// Get the stack immediately below the identified prompt
+stackPo detachStack(stackPo stk, termPo prompt) {
+  #ifdef TRACESTACK
+  if (traceStacks)
+    outMsg(logFile, "detach stack %T at %T\n", stk, prompt);
+#endif
+  stackPo s = stk;
+  while (s != Null && s->prompt != prompt) {
+    s->state = suspended;
+    s = stk->attachment;
+  }
+  if (s == Null || s->state == root)
+    return Null;
+  else {
+    stackPo ss = s->attachment;
+    s->attachment = Null;
+    s->state = suspended;
+    return ss;
+  }
+}
+
+termPo stackPrompt(stackPo stk) {
+  return stk->prompt;
+}
+
+void setPrompt(stackPo stk, termPo prompt) {
+  stk->prompt = prompt;
 }

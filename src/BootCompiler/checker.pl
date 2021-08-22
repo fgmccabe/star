@@ -772,32 +772,22 @@ typeOfExp(Trm,Tp,ErTp,Env,Ev,tple(Lc,Els),Path) :-
   genTpVars(A,ArgTps),
   checkType(Trm,tplType(ArgTps),Tp,Env),
   typeOfTerms(A,ArgTps,ErTp,Env,Ev,Lc,Els,Path).
-typeOfExp(Trm,Tp,_ErTp,Env,Env,tag(Lc,Tp),_Path) :-
-  isTag(Trm,Lc),
-  newTypeVar("_",Rt),
-  newTypeVar("_",Ct),
-  mkTypeExp(tpFun("tag",2),[Rt,Ct],TTp),
-  verifyType(Lc,TTp,Tp,Env).
-typeOfExp(Trm,Tp,_ErTp,Env,Env,prompt(Lc,Lb,Lam,Tp),Path) :-
+typeOfExp(Trm,Tp,_ErTp,Env,Env,Exp,_Path) :-
+  isTag(Trm,Lc),!,
+  typeOfTag(Lc,Tp,Env,Exp).
+typeOfExp(Trm,Tp,ErTp,Env,Env,Exp,Path) :-
   isPrompt(Trm,Lc,L,P),!,
-  newTypeVar("_",Rt),
-  mkTypeExp(tpFun("tag",2),[Rt,Tp],TTp),
-  typeOfExp(L,TTp,Env,_,Lb,Path),
-  typeOfExp(P,Tp,Env,_,Exp,Path),
-  lambdaLbl(Path,"ç",Lbl),
-  Lam = lambda(Lc,Lbl,equation(Lc,tple(Lc,[]),none,Exp),
-	       funType(tplType([]),Tp)).
-typeOfExp(Trm,Tp,ErTp,Env,Env,shift(Lc,Lb,Lam),Path) :-
-  isCut(Trm,Lc,L,Lhs,Rhs),
-  newTypeVar("_",Rt),
-  KType = funType(tplType([Tp]),Rt),
-  mkTypeExp(tpFun("tag",2),[Tp,Rt],TTp),
-  typeOfExp(L,TTp,ErTp,Env,_,Lb,Path),
-  typeOfPtn(Lhs,KType,Env,E0,V,Path),
-  typeOfExp(Rhs,Rt,ErTp,E0,_,Exp,Path),
-  lambdaLbl(Path,"ç",Lbl),
-  Lam = lambda(Lc,Lbl,equation(Lc,tple(Lc,[V]),none,Exp),
-	       funType(tpleType([KType]),Rt)).
+  typeOfPrompt(Lc,L,P,Tp,ErTp,Env,Exp,Path).
+typeOfExp(Trm,Tp,ErTp,Env,Env,Shift,Path) :-
+  isCut(Trm,Lc,L,Lhs,Rhs),!,
+  typeOfCut(Lc,L,Lhs,Rhs,Tp,ErTp,Env,Shift,Path).
+typeOfExp(Trm,_Tp,ErTp,Env,Env,resume(Lc,Kont,Arg,RTp),Path) :-
+  isResume(Trm,Lc,F,A),!,
+  newTypeVar("R",RTp),
+  newTypeVar("A",VTp),
+  KTp = contType(VTp,RTp),
+  typeOfExp(F,KTp,ErTp,Env,_,Kont,Path),
+  typeOfArgTerm(A,VTp,ErTp,Env,_,Arg,Path).
 typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isSlice(Term,Lc,S,F,T),!,
   ternary(Lc,"_slice",S,F,T,Actual),
@@ -874,7 +864,36 @@ typeOfLambda(Term,Tp,Env,lambda(Lc,Lbl,equation(Lc,Args,Guard,Exp),Tp),Path) :-
   lambdaLbl(Path,"λ",Lbl),
   typeOfExp(R,RT,ErTp,E1,_,Exp,Path).
 
-typeOfDoExp(Lc,Stmts,Tp,ErTp,Env,doTerm(Lc,Act,Tp),Path) :-
+typeOfTag(Lc,Tp,Env,tag(Lc,Tp)) :-
+  newTypeVar("_",Rt),
+  newTypeVar("_",Ct),
+  mkTypeExp(tpFun("tag",2),[Rt,Ct],TTp),
+  verifyType(Lc,TTp,Tp,Env).
+
+typeOfPrompt(Lc,L,P,Tp,ErTp,Env,prompt(Lc,Lb,Lam,Tp),Path) :-
+  newTypeVar("_",Rt),
+  mkTypeExp(tpFun("tag",2),[Rt,Tp],TTp),
+  typeOfExp(L,TTp,ErTp,Env,_,Lb,Path),
+  dispType(TTp),
+  typeOfExp(P,Tp,ErTp,Env,_,Exp,Path),
+  lambdaLbl(Path,"ç",Lbl),
+  Lam = lambda(Lc,Lbl,equation(Lc,tple(Lc,[]),none,Exp),
+	       funType(tplType([]),Tp)).
+
+typeOfCut(Lc,L,Lhs,Rhs,Tp,ErTp,Env,shift(Lc,Lb,Lam),Path) :-
+  newTypeVar("_",Rt),
+  KType = contType(tplType([Tp]),Rt),
+  mkTypeExp(tpFun("tag",2),[KType,Rt],TTp),
+  typeOfExp(L,TTp,ErTp,Env,_,Lb,Path),
+  dispType(TTp),
+  typeOfPtn(Lhs,KType,ErTp,Env,E0,V,Path),
+  typeOfExp(Rhs,Tp,ErTp,E0,_,Exp,Path),
+  lambdaLbl(Path,"ç",Lbl),
+  Lam = lambda(Lc,Lbl,equation(Lc,tple(Lc,[V]),none,Exp),
+	       funType(tplType([KType]),Rt)),
+  dispCanon(Lam).
+
+  typeOfDoExp(Lc,Stmts,Tp,ErTp,Env,doTerm(Lc,Act,Tp),Path) :-
   findType("result",Lc,Env,ResltTp),
   getVar(Lc,"_valis",Env,_,OkFn),
   typeOfCanon(OkFn,OkFnTp),

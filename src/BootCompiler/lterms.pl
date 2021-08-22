@@ -48,9 +48,11 @@ isLTerm(mtch(_,_,_)) :- !.
 isLTerm(ng(_,_)) :- !.
 isLTerm(error(_,_)) :- !.
 isLTerm(doAct(_,_)) :- !.
+isLTerm(tg(_,_)) :-!.
 isLTerm(shft(_,_,_)) :-!.
+isLTerm(prmpt(_,_,_)) :-!.
+isLTerm(resme(_,_,_)) :-!.
 isLTerm(rais(_,_)) :-!.
-isLTerm(rst(_,_)) :- !.
 
 mergeGl(none,G,_,G).
 mergeGl(some(G),none,_,some(G)).
@@ -138,12 +140,18 @@ ssTrm(ctpl(Op,A),Dp,sq([ss("."),OO,lp,AA,rp])) :-!,
 ssTrm(rais(_,E),Dp,sq([ss("raise "),EE])) :-!,
   Dp1 is Dp+2,
   ssTrm(E,Dp1,EE).
-ssTrm(shft(_,V,E),Dp,sq([ss("shift "),VV,ss(" in "),EE])) :-!,
-  ssTrm(V,Dp,VV),
+ssTrm(tg(_,_),_,ss("tag()")) :-!.
+ssTrm(shft(_,Lb,E),Dp,sq([LL,ss(" cut "),EE])) :-!,
+  ssTrm(Lb,Dp,LL),
   Dp1 is Dp+2,
   ssTrm(E,Dp1,EE).
-ssTrm(rst(_,E),Dp,sq([ss("reset "),EE])) :-!,
-  ssTrm(E,Dp,EE).
+ssTrm(prmpt(_,Lb,E),Dp,sq([LL,ss(" prompt "),EE])) :-!,
+  ssTrm(Lb,Dp,LL),
+  Dp1 is Dp+2,
+  ssTrm(E,Dp1,EE).
+ssTrm(resme(_,K,A),Dp,sq([KK,ss("|"),lp,AA,rp])) :-!,
+  ssTrm(K,Dp,KK),
+  ssTrm(A,Dp,AA).
 ssTrm(enum(Nm),_,sq([ss("."),id(Nm)])) :-!.
 ssTrm(nth(_,Rc,Off),Dp,sq([OO,ss("."),ix(Off)])) :-!,
   ssTrm(Rc,Dp,OO).
@@ -302,10 +310,16 @@ rewriteTerm(QTest,rais(Lc,E),rais(Lc,EE)) :-
 rewriteTerm(QTest,ltt(Lc,V,Val,Exp),ltt(Lc,V,Val1,Exp1)) :-
   rewriteTerm(lterms:checkV(V,QTest),Val,Val1),
   rewriteTerm(lterms:checkV(V,QTest),Exp,Exp1).
-rewriteTerm(QTest,shft(Lc,V,E),shft(Lc,V,EE)) :-
-  rewriteTerm(lterms:checkV(V,QTest),E,EE).
-rewriteTerm(QTest,rst(Lc,E),rst(Lc,EE)) :-
-  rewriteTerm(QTest,E,EE).
+rewriteTerm(_,tg(Lc,Tp),tg(Lc,Tp)).
+rewriteTerm(QTest,prmpt(Lc,L,A),prmpt(Lc,LL,AA)) :-
+  rewriteTerm(QTest,L,LL),
+  rewriteTerm(QTest,A,AA).
+rewriteTerm(QTest,shft(Lc,L,A),shft(Lc,LL,AA)) :-
+  rewriteTerm(QTest,L,LL),
+  rewriteTerm(QTest,A,AA).
+rewriteTerm(QTest,resme(Lc,K,A),resme(Lc,KK,AA)) :-
+  rewriteTerm(QTest,K,KK),
+  rewriteTerm(QTest,A,AA).
 rewriteTerm(QTest,cll(Lc,Op,Args),cll(Lc,NOp,NArgs)) :-
   rewriteTerm(QTest,Op,NOp),
   rewriteTerms(QTest,Args,NArgs).
@@ -480,10 +494,19 @@ inTerm(ctpl(_,Args),Nm) :-
   is_member(Arg,Args), inTerm(Arg,Nm),!.
 inTerm(ecll(_,_,Args),Nm) :-
   is_member(Arg,Args), inTerm(Arg,Nm),!.
-inTerm(rst(_,Exp),Nm) :-
-  inTerm(Exp,Nm),!.
-inTerm(shft(_,idnt(Nm),_),Nm) :-!,false.
-inTerm(shft(_,_,E),Nm) :-!,inTerm(E,Nm).
+inTerm(shft(_,L,_A),Nm) :-
+  is_member(L,Nm).
+inTerm(shft(_,_L,A),Nm) :-
+  is_member(A,Nm).
+inTerm(prmpt(_,L,_A),Nm) :-
+  is_member(L,Nm).
+inTerm(prmpt(_,_L,A),Nm) :-
+  is_member(A,Nm).
+inTerm(resme(_,L,_A),Nm) :-
+  is_member(L,Nm).
+inTerm(resme(_,_L,Arg),Nm) :-
+  inTerm(Arg,Nm),!.
+inTerm(tg(_,_),_) :-!,false.
 inTerm(whr(_,T,_),Nm) :-
   inTerm(T,Nm),!.
 inTerm(whr(_,_,C),Nm) :-
@@ -570,18 +593,18 @@ validTerm(float(_),_,_).
 validTerm(strg(_),_,_).
 validTerm(lbl(_,_),_,_).
 validTerm(cll(Lc,lbl(_,_),Args),_,D) :-
-  check_implies(is_member(A,Args),lterms:validTerm(A,Lc,D)).
+  validTerms(Args,Lc,D).
 validTerm(ocall(Lc,Op,Args),_,D) :-
   validTerm(Op,Lc,D),
-  check_implies(is_member(A,Args),lterms:validTerm(A,Lc,D)).
+  validTerms(Args,Lc,D).
 validTerm(ecll(Lc,Es,Args),_,D) :-
   isEscape(Es),
-  check_implies(is_member(A,Args),lterms:validTerm(A,Lc,D)).
+  validTerms(Args,Lc,D).
 validTerm(intrinsic(Lc,Is,Args),_,D) :-
   isIntrinsic(_,_,Is),
-  check_implies(is_member(A,Args),lterms:validTerm(A,Lc,D)).
+  validTerms(Args,Lc,D).
 validTerm(ctpl(lbl(_,_),Args),Lc,D) :-
-  check_implies(is_member(A,Args),lterms:validTerm(A,Lc,D)).
+  validTerms(Args,Lc,D).
 validTerm(enum(_),_,_).
 validTerm(nth(Lc,Rc,Off),_,D) :-
   integer(Off),
@@ -601,10 +624,16 @@ validTerm(ltt(Lc,Vr,Bnd,Exp),_,D) :-
   ptnVars(Vr,D,D1),
   validTerm(Vr,Lc,D1),
   validTerm(Exp,Lc,D1).
-validTerm(rst(Lc,Exp),_,D) :-
+validTerm(tg(_,_),_,_).
+validTerm(prmpt(Lc,Lb,Exp),_,D) :-
+  validTerm(Lb,Lc,D),
   validTerm(Exp,Lc,D).
-validTerm(shft(Lc,idnt(_),Exp),_,D) :-
+validTerm(shft(Lc,Lb,Exp),_,D) :-
+  validTerm(Lb,Lc,D),
   validTerm(Exp,Lc,D).
+validTerm(resme(Lc,K,Arg),_,D) :-
+  validTerm(K,Lc,D),
+  validTerm(Arg,Lc,D).
 validTerm(varNames(Lc,Vars,Value),_,D) :-
   rfold(Vars,lterms:validVr,D,D1),
   validTerm(Value,Lc,D1).
@@ -640,6 +669,11 @@ validTerm(doAct(Lc,Act),_,D) :-
   validAct(Act,Lc,D).
 validTerm(T,Lc,_) :-
   reportError("(internal) Invalid term %s in scope",[ltrm(T)],Lc).
+
+validTerms([],_,_) :-!.
+validTerms([A|Args],Lc,D) :-
+  validTerm(A,Lc,D),
+  validTerms(Args,Lc,D).
 
 validVr(Id,D,[Id|D]).
 

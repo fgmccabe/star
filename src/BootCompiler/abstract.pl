@@ -1,5 +1,5 @@
 :- module(abstract,[locOfAst/2,isAst/1,
-		    nary/4,binary/5,unary/4,zeroary/3,apply/4,isApply/4,
+		    nary/4,binary/5,unary/4,isZeroary/3,mkZeroary/3,apply/4,isApply/4,
 		    isUnary/3,isUnary/4,isBinary/5,isBinaryTerm/4,
 		    isTernary/5,ternary/6,isParen/2,deParen/2,
 		    roundTerm/4,isRound/4,isRoundTerm/3,isRoundTerm/4,
@@ -50,7 +50,9 @@ isBinary(app(Lc,name(_,Op),tuple(_,"()",[L,R])),Lc,Op,L,R).
 
 isBinaryTerm(app(_,Op,tuple(_,"()",[L,R])),Op,L,R).
 
-zeroary(Lc,Op,app(Lc,name(Lc,Op),tuple(Lc,"()",[]))).
+isZeroary(app(Lc,name(_,Op),tuple(_,"()",[])),Lc,Op).
+
+mkZeroary(Lc,Op,app(Lc,name(Lc,Op),tuple(Lc,"()",[]))).
 
 unary(Lc,Op,L,app(Lc,name(Lc,Op),tuple(Lc,"()",[L]))).
 

@@ -21,26 +21,33 @@ extern stackPo stackVal(termPo o);
 typedef enum {
   root,
   detached,
+  suspended,
   attached
 } StackState;
 
-
 typedef struct stack_frame_ *framePo;
 
-extern stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, termPo prompt);
+stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, StackState state, stackPo attachment, termPo prompt);
 
-extern StackState stackState(stackPo stk);
-extern retCode setStackState(stackPo stk, StackState state);
-extern stackPo attachedStack(stackPo stk);
+StackState stackState(stackPo stk);
+retCode setStackState(stackPo stk, StackState state);
+stackPo attachedStack(stackPo stk);
 
-extern framePo stackFrame(stackPo stk, integer off);
-extern framePo currFrame(stackPo stk);
-extern framePo pushFrame(stackPo stk, methodPo mtd, integer fp);
+stackPo attachStack(stackPo stk, stackPo seg);
+stackPo detachStack(stackPo stk,termPo prompt);
 
-extern termPo popStack(stackPo stk);
-extern void pushStack(stackPo stk, termPo ptr);
+framePo stackFrame(stackPo stk, integer off);
+framePo currFrame(stackPo stk);
+framePo pushFrame(stackPo stk, methodPo mtd, integer fp);
 
-extern stackPo glueOnStack(heapPo H, stackPo stk, integer size);
-extern stackPo spinupStack(heapPo H, stackPo stk, integer size,termPo prompt);
+termPo popStack(stackPo stk);
+void pushStack(stackPo stk, termPo ptr);
+
+stackPo glueOnStack(heapPo H, stackPo stk, integer size);
+stackPo spinupStack(heapPo H, stackPo stk, integer size, termPo prompt);
+
+stackPo findStack(stackPo current, termPo prompt);
+termPo stackPrompt(stackPo stk);
+void setPrompt(stackPo stk,termPo prompt);
 
 #endif //STAR_STACK_H

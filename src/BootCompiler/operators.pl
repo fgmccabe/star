@@ -34,7 +34,7 @@
   operator("do", [prefixOp(200, 199), infixOp(1199, 1200, 1199)]).
   operator("import", [prefixOp(900, 899)]).
   operator("catch", [infixOp(1198, 1199, 1198)]).
-  operator("prompt", [prefixOp(300, 299)]).
+  operator("prompt", [infixOp(299, 300, 299)]).
   operator("valis", [prefixOp(930, 929)]).
   operator(",..", [infixOp(999, 1000, 999)]).
   operator("for", [prefixOp(1175, 1174)]).
@@ -63,6 +63,7 @@
   operator("contract", [prefixOp(1260, 1259)]).
   operator("\\/", [infixOp(720, 720, 719)]).
   operator("-", [prefixOp(300, 299), infixOp(720, 720, 719)]).
+  operator("..", [infixOp(99, 100, 99)]).
   operator(".", [prefixOp(10, 9), infixOp(100, 100, 99)]).
   operator("/", [infixOp(700, 700, 699)]).
   operator("<*>", [infixOp(949, 950, 950)]).
@@ -76,6 +77,7 @@
   operator(";", [postfixOp(1250, 1251), infixOp(1250, 1251, 1251)]).
   operator("<", [infixOp(899, 900, 899)]).
   operator(".=", [infixOp(899, 900, 899)]).
+  operator("=>>", [infixOp(949, 950, 950)]).
   operator("=", [infixOp(974, 975, 974)]).
   operator("|:", [infixOp(1234, 1235, 1234)]).
   operator("show", [prefixOp(1240, 1239)]).
@@ -194,6 +196,7 @@
   follows('.','+','.+').
   follows('.','=','.=').
   follows('.','>','.>').
+  follows('.','.','..').
   follows('.',' ','. ').
   follows('.#','.','.#.').
   follows('.&','.','.&.').
@@ -247,6 +250,7 @@
   follows('=','<','=<').
   follows('=','=','==').
   follows('=','>','=>').
+  follows('=>','>','=>>').
   follows('>','=','>=').
   follows('>','>','>>').
   follows('>>','=','>>=').
@@ -283,6 +287,7 @@
   final('.=',".=").	 /* pattern match */
   final('.>>.',".>>.").	 /* logical shift right */
   final('.>>>.',".>>>.").	 /* arithmetic shift right */
+  final('..',"..").	 /* resume a continuation */
   final('. ',". ").	 /* statement terminator */
   final('/',"/").	 /* division */
   final('/\\',"/\\").	 /* intersection */
@@ -333,6 +338,7 @@
   final('=<',"=<").	 /* less than or equal */
   final('==',"==").	 /* equality predicate */
   final('=>',"=>").	 /* function arrow */
+  final('=>>',"=>>").	 /* continuation arrow */
   final('>',">").	 /* greater than */
   final('>=',">=").	 /* greater than or equal */
   final('>>',">>").	 /* monadic bind */
@@ -375,6 +381,7 @@
  keyword("*>").
  keyword(",").
  keyword("contract").
+ keyword("..").
  keyword(".").
  keyword("val").
  keyword("try").
@@ -383,6 +390,7 @@
  keyword(":").
  keyword(";").
  keyword(".=").
+ keyword("=>>").
  keyword("=").
  keyword("|:").
  keyword("?").

@@ -1,12 +1,8 @@
 star.action{
   import star.core.
-  import star.iterable.
   import star.monad.
   import star.option.
-  import star.coerce.
-  import star.cons.
   import star.display.
-  import star.either.
 
   public all a,e ~~ action[e,a] ::= action(()=>result[e,a]).
 

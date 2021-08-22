@@ -241,18 +241,19 @@
     "desc": "evaluate an action expression",
     "keyword": true
   },
-  {
-    "prefixOp": "perform",
-    "priorities": [
-      300,
-      299
-    ],
-    "desc": "perform an action or task",
-    "keyword": true
-  },
     {
-	"prefixOp": "prompt",
+	"prefixOp": "perform",
 	"priorities": [
+	    300,
+	    299
+	],
+	"desc": "perform an action or task",
+	"keyword": true
+    },
+    {
+	"infixOp": "prompt",
+	"priorities": [
+	    299,
 	    300,
 	    299
 	],
@@ -274,28 +275,33 @@
 	"desc": "continuation delimiter",
 	"keyword": true
     },
-    
-  {
-    "infixOp": "->>",
-    "priorities": [
-      1199,
-      1200,
-      1199
-    ],
-    "desc": "dependent type marker",
-    "keyword": true
-  },
-  {
-    "infixOp": ",",
-    "priorities": [
-      999,
-      1000,
-      1000
-    ],
-    "desc": "tupling operator",
-    "keyword": true
-  },
-  {
+    {
+	"infixOp" : "..",
+	"priorities" : [ 99,100,99],
+	"desc" : "resume a continuation",
+	"keyword" : true
+    },
+    {
+	"infixOp": "->>",
+	"priorities": [
+	    1199,
+	    1200,
+	    1199
+	],
+	"desc": "dependent type marker",
+	"keyword": true
+    },
+    {
+	"infixOp": ",",
+	"priorities": [
+	    999,
+	    1000,
+	    1000
+	],
+	"desc": "tupling operator",
+	"keyword": true
+    },
+    {
     "infixOp": ",..",
     "priorities": [
       999,
@@ -343,6 +349,16 @@
       950
     ],
     "desc": "function arrow",
+    "keyword": true
+  },
+  {
+    "infixOp": "=>>",
+    "priorities": [
+      949,
+      950,
+      950
+    ],
+    "desc": "continuation arrow",
     "keyword": true
   },
   {

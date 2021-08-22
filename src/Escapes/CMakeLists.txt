@@ -26,13 +26,13 @@ set(HEADER_FILES
         Headers/pkgops.h
         Headers/turm.h
         Headers/listops.h
-        )
+        Headers/stkops.h)
 
 set(SOURCE_FILES
         ${HEADER_FILES}
         libEscapes.c
         clock.c
         system.c arithmetic.c unicode.c assigns.c
-        ioops.c locks.c fileops.c netfile.c stringops.c datentime.c threds.c lblops.c turm.c pkgops.c)
+        ioops.c locks.c fileops.c netfile.c stringops.c datentime.c threds.c lblops.c turm.c pkgops.c stkops.c Headers/stkops.h)
 
 add_library(escapes STATIC ${SOURCE_FILES})

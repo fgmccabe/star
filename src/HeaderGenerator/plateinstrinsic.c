@@ -217,6 +217,13 @@ static char *dumpStarSig(char *sig, ioPo out) {
       sig = dumpStarSig(sig, out);
       outStr(out, ")");
       break;
+    case contSig:
+      outStr(out, "tpExp(tpExp(tpFun(\"=>>\",2),");
+      sig = dumpStarSig(sig, out);
+      outStr(out, "),");
+      sig = dumpStarSig(sig, out);
+      outStr(out, ")");
+      break;
     case faceSig:
       outStr(out, "faceType(");
       sig = dStarFields(sig, out);
@@ -372,6 +379,13 @@ static char *dumpPrologSig(char *sig, ioPo out) {
       return sig;
     case conSig:
       outStr(out, "consType(");
+      sig = dPrologTple(sig, out);
+      outStr(out, ",");
+      sig = dumpPrologSig(sig, out);
+      outStr(out, ")");
+      return sig;
+    case contSig:
+      outStr(out, "contType(");
       sig = dPrologTple(sig, out);
       outStr(out, ",");
       sig = dumpPrologSig(sig, out);

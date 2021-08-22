@@ -21,6 +21,7 @@ escape(_abort,":k's'F(k's'S)()","abort process")
 
 escape(_definedLbl,"F(Si)l","test for defined name")
 escape(_callLbl,"F(SiLLS)()","invoke defined name")
+escape(_fun2cont,":k'a':k'b'F(F(k'a')k'b')Dk'a'k'b'","create a continuation from a function")
 
 escape(_int_plus,"F(ii)i","add two integers")
 escape(_int_minus,"F(ii)i","subtract two integers")

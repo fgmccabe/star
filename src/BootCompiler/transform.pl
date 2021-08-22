@@ -341,16 +341,21 @@ liftExp(stringLit(_,Sx),strg(Sx),Q,Q,_,_,Ex,Ex) :-!.
 liftExp(tple(_,A),TApl,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,TA,[],Q,Qx,Map,Opts,Ex,Exx),
   mkTpl(TA,TApl).
-liftExp(throw(Lc,E,_),rais(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-
+liftExp(throw(Lc,E,_),rais(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(apply(Lc,Op,tple(_,A),_),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
   trExpCallOp(Lc,Op,LA,Exp,Q1,Qx,Map,Opts,Ex1,Exx).
-liftExp(shift(Lc,v(_,Nm,_),E),shft(Lc,idnt(Nm),EE),Q,Q,Map,Opts,Ex,Exx) :-!,
-  liftExp(E,EE,Q,_,Map,Opts,Ex,Exx).
-liftExp(prompt(Lc,L,E,_),prmpt(Lc,Lb,EE),Q,Qx,Map,Opts,Ex,Exx) :-
+liftExp(tag(Lc,Tp),tg(Lc,Tp),Q,Q,_,_,Ex,Ex) :-!.
+liftExp(shift(Lc,Lb,E),shft(Lc,LL,EE),Q,Q,Map,Opts,Ex,Exx) :-!,
+  liftExp(Lb,LL,Q,_,Map,Opts,Ex,Ex0),
+  liftExp(E,EE,Q,_,Map,Opts,Ex0,Exx).
+liftExp(prompt(Lc,L,E,_),prmpt(Lc,Lb,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(L,Lb,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(E,EE,Q0,Qx,Map,Opts,Ex0,Exx).
+liftExp(resume(Lc,Kont,tple(_,[Arg]),_Tp),resme(Lc,KK,AA),Q,Q,Map,Opts,Ex,Exx) :-!,
+  liftExp(Kont,KK,Q,_,Map,Opts,Ex,Ex0),
+  liftExp(Arg,AA,Q,_,Map,Opts,Ex0,Exx).
 liftExp(case(Lc,Bnd,Cses,_),Result,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(Bnd,Bound,Q,Q0,Map,Opts,Ex,Ex0),
   liftCases(Cses,Cases,Q0,Qx,Map,Opts,transform:liftExp,Ex0,Exx),
@@ -493,7 +498,7 @@ liftCase(equation(Lc,P,G,Value),(Lc,[Ptn],Test,Rep),Q,Qx,Map,Opts,Lifter,Ex,Exx)
 liftLambda(lambda(Lc,LamLbl,Eqn,Tp),Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
   (is_member(showTrCode,Opts) -> dispCanon(lambda(Lc,LamLbl,Eqn,Tp));true),
   lambdaMap(lambda(Lc,LamLbl,Eqn,Tp),ThVr,LamLbl,Q,Map,Opts,Closure,LMap),
-  (is_member(showTrCode,Opts) -> dispMap("lambda map: ",1,LMap);true),
+%  (is_member(showTrCode,Opts) -> dispMap("lambda map: ",1,LMap);true),
   transformEqn(Eqn,LMap,[ThVr],Opts,Rls,[],Ex,Exx),
   is_member((_,Args,_,_),Rls),!,
   length(Args,Ar),

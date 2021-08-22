@@ -24,6 +24,7 @@ sm(refType(A1),refType(A2),Env) :- sameType(A1,A2,Env).
 sm(valType(A1),valType(A2),Env) :- sameType(A1,A2,Env).
 sm(tplType(A1),tplType(A2),Env) :- smList(A1,A2,Env).
 sm(funType(A1,R1),funType(A2,R2),Env) :- sameType(R1,R2,Env), sameType(A2,A1,Env).
+sm(contType(A1,R1),contType(A2,R2),Env) :- sameType(R1,R2,Env), sameType(A2,A1,Env).
 sm(typeLambda(A1,R1),typeLambda(A2,R2),Env) :- sameType(R1,R2,Env), sameType(A2,A1,Env).
 sm(consType(A1,R1),consType(A2,R2),Env) :- sameType(R1,R2,Env), sameType(A1,A2,Env).
 sm(faceType(E1,T1),faceType(E2,T2),Env) :- sameLength(E1,E2),
@@ -164,6 +165,7 @@ id(refType(A1),refType(A2),Env) :- idenType(A1,A2,Env).
 id(valType(A1),valType(A2),Env) :- idenType(A1,A2,Env).
 id(tplType(A1),tplType(A2),Env) :- idList(A1,A2,Env).
 id(funType(A1,R1),funType(A2,R2),Env) :- idenType(R1,R2,Env), idenType(A2,A1,Env).
+id(contType(A1,R1),contType(A2,R2),Env) :- idenType(R1,R2,Env), idenType(A2,A1,Env).
 id(typeLambda(A1,R1),typeLambda(A2,R2),Env) :- idenType(R1,R2,Env), idenType(A2,A1,Env).
 id(consType(A1,R1),consType(A2,R2),Env) :- idenType(R1,R2,Env), idenType(A1,A2,Env).
 id(faceType(E1,T1),faceType(E2,T2),Env) :- sameLength(E1,E2),
@@ -215,6 +217,9 @@ smpTp(funType(L,R),Env,C,Cx,funType(Ls,Rs)) :-
   simplifyType(L,Env,C,C0,Ls),
   simplifyType(R,Env,C0,Cx,Rs).
 smpTp(consType(L,R),Env,C,Cx,consType(Ls,Rs)) :-
+  simplifyType(L,Env,C,C0,Ls),
+  simplifyType(R,Env,C0,Cx,Rs).
+smpTp(contType(L,R),Env,C,Cx,contType(Ls,Rs)) :-
   simplifyType(L,Env,C,C0,Ls),
   simplifyType(R,Env,C0,Cx,Rs).
 smpTp(allType(V,typeLambda(V,tpExp(Op,V))),_,C,C,Op).
@@ -317,6 +322,8 @@ occIn(Id,funType(A,_)) :- occIn(Id,A).
 occIn(Id,funType(_,R)) :- occIn(Id,R).
 occIn(Id,consType(L,_)) :- occIn(Id,L).
 occIn(Id,consType(_,R)) :- occIn(Id,R).
+occIn(Id,contType(A,_)) :- occIn(Id,A).
+occIn(Id,contType(_,R)) :- occIn(Id,R).
 occIn(Id,constrained(Tp,Con)) :- occIn(Id,Con) ; occIn(Id,Tp).
 occIn(Id,typeLambda(A,_)) :- occIn(Id,A).
 occIn(Id,typeLambda(_,R)) :- occIn(Id,R).
