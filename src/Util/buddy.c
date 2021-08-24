@@ -132,42 +132,35 @@ voidPtr *allocateBuddy(buddyRegionPo region, integer size) {
 #ifdef TRACE_BUDDY_MEMORY
   if (traceBuddyMemory) {
     logMsg(logFile, "allocate %d block", size);
-//    showRegion(region);
+    showRegion(region);
   }
 #endif
 
-  for (;;) {
-    freePo block = Null;
-    integer foundLg = -1;
+  for (integer ix = roundDiff; ix < region->freeListSize; ix++) {
+    if (region->freeLists[ix] != Null) {
+      freePo block = region->freeLists[ix];
+      region->freeLists[ix] = block->next;
+      integer foundLg = ix;
 
-    for (integer ix = roundDiff; ix < region->freeListSize; ix++) {
-      if (region->freeLists[ix] != Null) {
-        block = region->freeLists[ix];
-        region->freeLists[ix] = block->next;
-        foundLg = ix;
-        break;
-      }
-    }
-
-    if (block != Null) {
       if (foundLg > roundDiff) { // Do we need to split our block
         integer prevIx = foundLg - 1;
         integer prevLg = prevIx + region->minLg;
-        assert(foundLg > 0 && region->freeLists[prevIx] == Null);
+        assert(region->freeLists[prevIx] == Null);
         // We split the block we found, put them on the previous freelist
         freePo block2 = (freePo) (((voidPtr *) block) + (1 << prevLg));
         block2->buddy.lgSize = prevLg;
         block->buddy.lgSize = prevLg;
 
         region->freeLists[prevIx] = insertBlock(insertBlock(region->freeLists[prevIx], block2), block);
+        return allocateBuddy(region,size);
       } else {
         assert(foundLg == roundDiff);
 
         return (voidPtr) (block + 1);
       }
-    } else
-      return Null;
+    }
   }
+  return Null;
 }
 
 retCode release(buddyRegionPo region, voidPtr *block) {

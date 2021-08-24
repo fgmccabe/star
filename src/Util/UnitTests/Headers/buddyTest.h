@@ -8,6 +8,7 @@
 #include "ooio.h"
 #include "buddy.h"
 
-retCode test_buddy() ;
+retCode test_buddy();
+retCode test_many_blocks();
 
 #endif //STAR_BUDDYTEST_H
