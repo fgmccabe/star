@@ -9,11 +9,12 @@
 #include "termP.h"
 #include "engineP.h"
 #include "heapP.h"
+#include "buddy.h"
 
 logical traceStacks = False;      // stack operation tracing
-long initStackSize = 1024;        /* How big is the stack */
-long initThreadStackSize;         // How big is a stacklet stack
-long maxStackSize = 100 * 1024 * 1024;     /* 100M cells is default max stack size */
+integer minStackSize = 128;        /* What is the smallest stack */
+// How big is a stacklet stack
+integer maxStackSize = (1 << 23);     /* 64M cells is default max stack size */
 
 static long stkSize(specialClassPo cl, termPo o);
 static termPo stkCopy(specialClassPo cl, termPo dst, termPo src);
@@ -21,12 +22,14 @@ static termPo stkScan(specialClassPo cl, specialHelperFun helper, void *c, termP
 static logical stkCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer stkHash(specialClassPo cl, termPo o);
 static retCode stkDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
+static termPo stkFinalizer(specialClassPo class, termPo o, void *cl);
 
 SpecialClass StackClass = {
   .clss = Null,
   .sizeFun = stkSize,
   .copyFun = stkCopy,
   .scanFun = stkScan,
+  .finalizer = stkFinalizer,
   .compFun = stkCmp,
   .hashFun = stkHash,
   .dispFun = stkDisp
@@ -35,9 +38,19 @@ SpecialClass StackClass = {
 clssPo stackClass = (clssPo) &StackClass;
 
 static integer stackCount = 0;
+static buddyRegionPo stackRegion;
 
 void initStacks() {
   StackClass.clss = specialClass;
+  integer regionSize = (1 << lg2(maxStackSize));
+  integer minSize = (1 << lg2(minStackSize));
+
+#ifdef TRACESTACK
+  if (traceStacks)
+    outMsg(logFile, "setting stack region to %d words\n", regionSize);
+#endif
+
+  //stackRegion = createRegion(regionSize, minStackSize, 2);
 }
 
 stackPo C_STACK(termPo t) {
@@ -46,6 +59,9 @@ stackPo C_STACK(termPo t) {
 }
 
 stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, StackState state, stackPo attachment, termPo prompt) {
+  if (sze > maxStackSize)
+    syserr("tried to allocate too large a stack");
+
   int root = gcAddRoot(H, (ptrPo) &attachment);
   gcAddRoot(H, &prompt);
 
@@ -210,6 +226,12 @@ termPo stkScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   return o + StackCellCount(stk->sze);
 }
 
+termPo stkFinalizer(specialClassPo class, termPo o, void *cl) {
+  stackPo stk = C_STACK(o);
+  // TODO: release the stack memory
+  return o + StackCellCount(stk->sze);
+}
+
 static char *stackStateName(StackState ste) {
   switch (ste) {
     case root:
@@ -243,7 +265,7 @@ static MethodRec underFlowMethod = {
 stackPo glueOnStack(heapPo H, stackPo stk, integer size) {
   int root = gcAddRoot(H, (ptrPo) &stk);
 
-  assert(size >= initThreadStackSize);
+  assert(size >= minStackSize);
 
   stackPo newStack = allocateStack(H, size, &underFlowMethod, attached, stk, Null);
 
@@ -252,7 +274,7 @@ stackPo glueOnStack(heapPo H, stackPo stk, integer size) {
 }
 
 stackPo spinupStack(heapPo H, stackPo stk, integer size, termPo prompt) {
-  assert(size >= initThreadStackSize);
+  assert(size >= minStackSize);
 
   return allocateStack(H, size, &underFlowMethod, attached, stk, prompt);
 
@@ -278,7 +300,7 @@ stackPo attachStack(stackPo stk, stackPo seg) {
 
 // Get the stack immediately below the identified prompt
 stackPo detachStack(stackPo stk, termPo prompt) {
-  #ifdef TRACESTACK
+#ifdef TRACESTACK
   if (traceStacks)
     outMsg(logFile, "detach stack %T at %T\n", stk, prompt);
 #endif

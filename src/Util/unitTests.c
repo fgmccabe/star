@@ -37,9 +37,19 @@ retCode showByteSeq(ioPo f, void *data, long depth, long precision, logical alt)
   return ret;
 }
 
+retCode checkReslt(int64 test, int64 verify, char *msg) {
+  if (test != verify) {
+    logMsg(logFile, "Test %msg failed, expected %ld, got %ld", msg, verify, test);
+    return Error;
+  } else
+    return Ok;
+}
+
 int main(int argc, char **argv) {
   initLogfile("-");
   installMsgProc('X', showByteSeq);
+
+  tests_run = 0;
 
   retCode ret = all_tests();
 

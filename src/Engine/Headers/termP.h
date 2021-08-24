@@ -31,14 +31,17 @@ typedef logical (*classSameFun)(specialClassPo class, termPo t1, termPo t2);
 
 typedef integer (*classHashFun)(specialClassPo class, termPo t1);
 
+typedef termPo (*classFinalizerFun)(specialClassPo class,termPo o,void* cl);
+
 typedef struct special_class {
   clssPo clss;                 // == specialClass
   classSizeFun sizeFun;        /* Function to compute size of object */
   classCpyFun copyFun;         /* Function to copy special object */
   classScanFun scanFun;        /* Function to scan object */
-  classSameFun compFun;          // Compare two specials
-  classHashFun hashFun;         // Compute a hash code of the value
-  classDispFun dispFun;         // How to display the special object
+  classFinalizerFun finalizer; // Called when finalizing a dead object
+  classSameFun compFun;        // Compare two specials
+  classHashFun hashFun;        // Compute a hash code of the value
+  classDispFun dispFun;        // How to display the special object
 } SpecialClass;
 
 extern clssPo specialClass;

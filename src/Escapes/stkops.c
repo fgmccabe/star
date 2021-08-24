@@ -20,7 +20,7 @@ ReturnStatus g__fun2cont(processPo p, ptrPo tos) {
   heapPo H = processHeap(p);
 
 
-  stackPo newStack = allocateStack(H, initStackSize, &contMethod, suspended, Null, Null);
+  stackPo newStack = allocateStack(H, minStackSize, &contMethod, suspended, Null, Null);
 
   pushStack(newStack,tos[0]);
 

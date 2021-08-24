@@ -401,7 +401,7 @@ retCode decodeIns(ioPo in, wordBufferPo bfr, integer *ix, integer *si, char *err
         (*si)+=Dl;                          \
         sz##A1                              \
         sz##A2                              \
-        return ret;
+        break;
 
 #include "instructions.h"
 
@@ -430,6 +430,76 @@ retCode decodeIns(ioPo in, wordBufferPo bfr, integer *ix, integer *si, char *err
     }
   }
   return ret;
+}
+
+
+static integer maxDepth(insPo code, integer maxPc, normalPo constPool) {
+  integer stackDepth = 0;
+  integer maxDepth = 0;
+  for(integer pc=0;pc<maxPc;){
+    insWord op = code[pc++];
+    integer litNo = 0;
+
+    switch(op){
+
+#define collectI32 { uint32 hi32 = (uint32)(code[pc++]); uint32 lo32 = (uint32)(code[pc++]); litNo = ((hi32<<(unsigned)16)|lo32);}
+
+#define sznOp
+#define sztOs
+#define szart pc+=2;
+#define szi32 pc+=2;
+#define szlBs pc+=2;
+#define szarg pc+=2;
+#define szlcl pc+=2;
+#define szlcs pc+=2;
+#define szoff pc+=2;
+#define szlVl pc+=2;
+#define szcDe pc+=2;
+#define szsym collectI32;
+#define szEs pc+=2;
+#define szlit collectI32;
+#define sztPe pc+=2;
+#define szlne pc+=2;
+#define szglb pc+=2;
+
+#define instruction(Op,A1,A2,Dl,Cmt) \
+case Op:                       \
+stackDepth+=Dl;              \
+sz##A1                       \
+sz##A2                       \
+if(stackDepth>maxDepth)      \
+maxDepth = stackDepth;     \
+break;
+
+#include "instructions.h"
+
+#undef instruction
+#undef szi32
+#undef szlBs
+#undef szart
+#undef szarg
+#undef szlcl
+#undef szlcs
+#undef szoff
+#undef szcDe
+#undef szlVl
+#undef szsym
+#undef szEs
+#undef szlit
+#undef sztPe
+#undef szlne
+#undef szglb
+#undef sznOp
+#undef sztOs
+    }
+    if(op==Unpack){
+      labelPo lbl = C_LBL(nthArg(constPool,litNo));
+      stackDepth += labelArity(lbl);
+      if(stackDepth>maxDepth)
+        maxDepth = stackDepth;
+    }
+  }
+  return maxDepth;
 }
 
 retCode decodePolicies(ioPo in, heapPo H, DefinitionMode *redefine, char *errorMsg, long msgSize) {
@@ -516,7 +586,9 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
               } else {
                 gcAddRoot(H, (ptrPo) &lbl);
 
-                methodPo mtd = defineMtd(H, ins, pcCount, lclCount, maxStack, lbl, C_NORMAL(pool),
+                integer stackDelta = maxDepth(ins, pcCount, C_NORMAL(pool))+lclCount;
+
+                methodPo mtd = defineMtd(H, ins, pcCount, lclCount, stackDelta, lbl, C_NORMAL(pool),
                                          C_NORMAL(locals),
                                          C_NORMAL(lines));
                 if (enableVerify)

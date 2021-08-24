@@ -48,6 +48,8 @@ static integer inline clamp(integer min, integer ix, integer max) {
 
 extern char *genSym(const char *prefix, char *buffer, integer buffLen);
 
+extern integer lg2(integer ix);
+
 extern integer nextPrime(integer min);
 
 extern void syserr(const char *msg);

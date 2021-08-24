@@ -48,12 +48,14 @@ static termPo glbScan(specialClassPo cl, specialHelperFun helper, void *c, termP
 static logical glbCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer glbHash(specialClassPo cl, termPo o);
 static retCode glbDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
+static termPo glbFinalizer(specialClassPo class, termPo o, void *cl);
 
 SpecialClass GlobalClass = {
   .clss = Null,
   .sizeFun = glbSize,
   .copyFun = glbCopy,
   .scanFun = glbScan,
+  .finalizer = glbFinalizer,
   .compFun = glbCmp,
   .hashFun = glbHash,
   .dispFun = glbDisp
@@ -172,6 +174,12 @@ termPo glbScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   return o + GlobalCellCount;
 }
 
+termPo glbFinalizer(specialClassPo class, termPo o, void *cl) {
+  globalPo glb = C_GLOB(o);
+
+  return o + GlobalCellCount;
+}
+
 static void markGlobal(globalPo glb, gcSupportPo G) {
   if (glb->content != Null)
     glb->content = markPtr(G, (ptrPo) &glb->content);
@@ -203,7 +211,7 @@ void markGlobals(gcSupportPo G) {
   eofEnum = markPtr(G, &eofEnum);
 
   nilEnum = markPtr(G, &nilEnum);
-  noneEnum = markPtr(G,&noneEnum);
+  noneEnum = markPtr(G, &noneEnum);
 
   unitEnum = markPtr(G, (ptrPo) &unitEnum);
 }

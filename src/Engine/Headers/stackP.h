@@ -37,9 +37,8 @@ typedef struct StackStructure {
 extern void initStacks();
 extern logical traceStacks;      // stack operation tracing
 
-extern long initStackSize;       /* How big is a stack */
-extern long initThreadStackSize; // How big is a stacklet
-extern long maxStackSize;        // How big may the stack grow?
+extern integer minStackSize;       /* How big is a stack */
+extern integer maxStackSize;        // How big may the stack grow?
 
 static inline integer spMin(stackPo stk){
   return CellCount(sizeof(StackFrame)) * (stk->fp + 1);
@@ -52,7 +51,7 @@ static inline ptrPo validStkPtr(stackPo stk, integer offset) {
 
 static inline integer stackOffset(stackPo stk, ptrPo ptr) {
   integer off = ptr - (ptrPo) stk->stack;
-  assert(off >= spMin(stk) && off <= stk->sze);
+  assert(off >= 0 && off <= stk->sze);
   return off;
 }
 

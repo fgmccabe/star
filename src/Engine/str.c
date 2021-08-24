@@ -12,12 +12,14 @@ static termPo strScan(specialClassPo cl, specialHelperFun helper, void *c, termP
 static logical strCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer strHash(specialClassPo cl, termPo o);
 static retCode strDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
+static termPo strFinalizer(specialClassPo class, termPo o, void *cl);
 
 SpecialClass StringClass = {
   .clss = Null,
   .sizeFun = strSize,
   .copyFun = strCopy,
   .scanFun = strScan,
+  .finalizer = strFinalizer,
   .compFun = strCmp,
   .hashFun = strHash,
   .dispFun = strDisp
@@ -71,6 +73,12 @@ termPo strCopy(specialClassPo cl, termPo dst, termPo src) {
 }
 
 termPo strScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
+  stringPo str = C_STR(o);
+
+  return o + StringCellCount(str->length);
+}
+
+termPo strFinalizer(specialClassPo class, termPo o, void *cl) {
   stringPo str = C_STR(o);
 
   return o + StringCellCount(str->length);

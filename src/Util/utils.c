@@ -37,6 +37,21 @@ retCode homeDir(char *user, char *buffer, integer bufLen) {
   return Fail;
 }
 
+integer lg2(integer ix){
+  uint64 v = (unsigned)ix;
+  uint64 shift;
+  uint64 r;
+
+  r = (v>0xffffffff) << 5; v >>= r;
+  shift = (v>0xffff) << 4; v >>= shift; r |=shift;
+  shift = (v>0xff) << 3; v >>= shift; r |=shift;
+  shift = (v>0xf) << 2; v >>= shift; r |=shift;
+  shift = (v>0x3) << 1; v >>= shift; r |=shift;
+  r |= (v>>1);
+
+  return (integer)r;
+}
+
 static pthread_mutex_t prMutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_once_t prOnce = PTHREAD_ONCE_INIT;
 

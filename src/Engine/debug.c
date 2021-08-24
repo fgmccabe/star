@@ -42,7 +42,7 @@ logical insDebugging = False;     // instruction tracing option
 logical lineDebugging = False;
 logical debugDebugging = False;
 logical tracing = False;          /* tracing option */
-int debuggerPort = 0;                // Debug port to establish listener on
+integer debuggerPort = 0;                // Debug port to establish listener on
 logical showPkgFile = False;      // True if we show file names instead of package names
 logical showColors = True;        // True if we want to show colored output
 

@@ -13,12 +13,14 @@ static termPo intScan(specialClassPo cl, specialHelperFun helper, void *c, termP
 static retCode intDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 static integer intHash(specialClassPo cl, termPo o);
 static logical intCmp(specialClassPo cl, termPo t1, termPo t2);
+static termPo intFinalizer(specialClassPo class, termPo o, void *cl);
 
 SpecialClass IntegerClass = {
   .clss = Null,
   .sizeFun = intSize,
   .copyFun = intCopy,
   .scanFun = intScan,
+  .finalizer = intFinalizer,
   .compFun = intCmp,
   .hashFun = intHash,
   .dispFun = intDisp
@@ -29,6 +31,7 @@ clssPo integerClass = (clssPo) &IntegerClass;
 static long fltSize(specialClassPo cl, termPo o);
 static termPo fltCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo fltScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
+static termPo fltFinalizer(specialClassPo class, termPo o, void *cl);
 static retCode fltDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 static integer fltHash(specialClassPo cl, termPo o);
 static logical fltCmp(specialClassPo cl, termPo t1, termPo t2);
@@ -38,6 +41,7 @@ SpecialClass FloatClass = {
   .sizeFun = fltSize,
   .copyFun = fltCopy,
   .scanFun = fltScan,
+  .finalizer = fltFinalizer,
   .compFun = fltCmp,
   .hashFun = fltHash,
   .dispFun = fltDisp
@@ -68,6 +72,10 @@ termPo intCopy(specialClassPo cl, termPo dst, termPo src) {
 }
 
 termPo intScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
+  return (termPo) (o + IntegerCellCount);
+}
+
+termPo intFinalizer(specialClassPo class, termPo o, void *cl) {
   return (termPo) (o + IntegerCellCount);
 }
 
@@ -124,6 +132,10 @@ termPo fltCopy(specialClassPo cl, termPo dst, termPo src) {
 }
 
 termPo fltScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
+  return (termPo) (o + FloatCellCount);
+}
+
+termPo fltFinalizer(specialClassPo class, termPo o, void *cl) {
   return (termPo) (o + FloatCellCount);
 }
 

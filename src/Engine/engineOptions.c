@@ -338,13 +338,21 @@ static retCode setDisplayDepth(char *option, logical enable, void *cl) {
   return Ok;
 }
 
-static retCode setStackSize(char *option, logical enable, void *cl) {
-  initStackSize = parseSize(option);
+static retCode setMinStackSize(char *option, logical enable, void *cl) {
+  minStackSize = parseSize(option);
+  if(minStackSize!=(1<<lg2(minStackSize))){
+    outMsg(logFile,"minimum stack size should be a power of 2, suggesting %d",1<<(lg2(minStackSize)+1));
+    minStackSize = 1<<(lg2(minStackSize)+1);
+  }
   return Ok;
 }
 
 static retCode setMaxStackSize(char *option, logical enable, void *cl) {
   maxStackSize = parseSize(option);
+  if(maxStackSize!=(1<<lg2(maxStackSize))){
+    outMsg(logFile,"maximum stack size should be a power of 2, suggesting %d",1<<lg2(maxStackSize));
+    maxStackSize = 1<<lg2(maxStackSize);
+  }
   return Ok;
 }
 
@@ -353,18 +361,18 @@ Option options[] = {
   {'p', "depth",         hasArgument, STAR_DBG_OPTS,      setDisplayDepth,   Null, "-p|--depth <depth>"},
   {'g', "symbol-debug",  noArgument,  SYMBOL_DEBUG,       symbolDebug,       Null, "-g|--symbol-debug"},
   {'G', "debugger-port", hasArgument, STAR_DEBUGGER_PORT, setDebuggerPort,   Null, "-G|--debugger-port"},
-  {'v', "version",       noArgument,  Null,               displayVersion,    Null, "-v|--version"},
-  {'b', "boot-pkg",      hasArgument, STAR_BOOT,          setBootPkg,        Null, "-b|--boot-pkg <pkg>"},
-  {'m', "main",          hasArgument, STAR_MAIN,          setBootEntry,      Null, "-m|--main <entry>"},
-  {'L', "logFile",       hasArgument, STAR_LOGFILE,       setLogFile,        Null, "-L|--logFile <path>"},
-  {'r', "repository",    hasArgument, STAR_REPO,          setRepoDir,        Null, "-r|--repository <path>"},
-  {'w', "set-wd",        hasArgument, STAR_WD,            setWD,             Null, "-w|--set-wd <dir>"},
-  {'W', "set-root-cap",  hasArgument, STAR_ROOT_WD,       setRootCapability, Null, "-W|--set-root-cap <dir>"},
-  {'V', "verify",        noArgument,  STAR_VERIFY,        setVerify,         Null, "-V|--verify code"},
-  {'h', "heap",          hasArgument, STAR_INIT_HEAP,     setHeapSize,       Null, "-h|--heap <size>"},
-  {'H', "max-heap",      hasArgument, STAR_MAX_HEAP,      setMaxHeapSize,    Null, "-H|--max-heap <size>"},
-  {'s', "stack",         hasArgument, STAR_INIT_STACK,    setStackSize,      Null, "-s|--stack <size>"},
-  {'S', "max-stack",     hasArgument, STAR_MAX_STACK,     setMaxStackSize,   Null, "-S|--max-stack <size>"},};
+  {'v', "version",       noArgument,  Null,           displayVersion,    Null, "-v|--version"},
+  {'b', "boot-pkg",      hasArgument, STAR_BOOT,      setBootPkg,        Null, "-b|--boot-pkg <pkg>"},
+  {'m', "main",          hasArgument, STAR_MAIN,      setBootEntry,      Null, "-m|--main <entry>"},
+  {'L', "logFile",       hasArgument, STAR_LOGFILE,   setLogFile,        Null, "-L|--logFile <path>"},
+  {'r', "repository",    hasArgument, STAR_REPO,      setRepoDir,        Null, "-r|--repository <path>"},
+  {'w', "set-wd",        hasArgument, STAR_WD,        setWD,             Null, "-w|--set-wd <dir>"},
+  {'W', "set-root-cap",  hasArgument, STAR_ROOT_WD,   setRootCapability, Null, "-W|--set-root-cap <dir>"},
+  {'V', "verify",        noArgument,  STAR_VERIFY,    setVerify,         Null, "-V|--verify code"},
+  {'h', "heap",          hasArgument, STAR_INIT_HEAP, setHeapSize,       Null, "-h|--heap <size>"},
+  {'H', "max-heap",      hasArgument, STAR_MAX_HEAP,  setMaxHeapSize,    Null, "-H|--max-heap <size>"},
+  {'s', "min-stack",     hasArgument, STAR_MIN_STACK, setMinStackSize,   Null, "-s|--min-stack <size>"},
+  {'S', "max-stack",     hasArgument, STAR_MAX_STACK, setMaxStackSize,   Null, "-S|--max-stack <size>"},};
 
 int getEngineOptions(int argc, char **argv) {
   splitFirstArg(argc, argv, &argc, &argv);
