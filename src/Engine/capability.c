@@ -16,12 +16,14 @@ static termPo capScan(specialClassPo cl, specialHelperFun helper, void *c, termP
 static logical capCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer capHash(specialClassPo cl, termPo o);
 static retCode capDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
+static termPo capFinalizer(specialClassPo class, termPo o, void *cl);
 
 SpecialClass CapabilityClass = {
   .clss = Null,
   .sizeFun = capSize,
   .copyFun = capCopy,
   .scanFun = capScan,
+  .finalizer = capFinalizer,
   .compFun = capCmp,
   .hashFun = capHash,
   .dispFun = capDisp
@@ -83,6 +85,12 @@ termPo capCopy(specialClassPo cl, termPo dst, termPo src) {
 termPo capScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   capabilityPo cap = C_CAP(o);
 
+  return o + CapabilityCellCount(cap->length);
+}
+
+termPo capFinalizer(specialClassPo class, termPo o, void *cl) {
+  capabilityPo cap = C_CAP(o);
+// TODO: close the capability?
   return o + CapabilityCellCount(cap->length);
 }
 

@@ -9,6 +9,7 @@ FLEX_TARGET(JsonTokeniser jtoken.l ${CMAKE_CURRENT_BINARY_DIR}/jsontoken.c)
 ADD_FLEX_BISON_DEPENDENCY(JsonTokeniser JsonParser)
 
 add_subdirectory("UnicodeStuff")
+add_subdirectory("UnitTests")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c99")
 # SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -lpthread -lm")
@@ -33,7 +34,7 @@ set(PUBLIC_HEADERS
         Headers/unistr.h Headers/utils.h
         Headers/jsonEvent.h Headers/udp.h Headers/ooio.h
         Headers/cmdOptions.h Headers/template.h Headers/pp.h Headers/ppP.h
-        Headers/strng.h Headers/editline.h Headers/array.h Headers/async.h Headers/promise.h)
+        Headers/strng.h Headers/editline.h Headers/array.h Headers/async.h Headers/promise.h Headers/buddy.h)
 
 set(HEADER_FILES
         Headers/ioP.h Headers/fileP.h Headers/formioP.h
@@ -52,7 +53,7 @@ set(HEADER_FILES
         Headers/vectorP.h
         Headers/integerP.h
         Headers/strngP.h
-        Headers/topSortP.h Headers/arrayP.h Headers/asyncP.h Headers/promiseP.h)
+        Headers/topSortP.h Headers/arrayP.h Headers/asyncP.h Headers/promiseP.h Headers/buddyP.h)
 
 set(SOURCE_FILES
         class.c
@@ -93,7 +94,7 @@ set(SOURCE_FILES
 
         ${PUBLIC_HEADERS}
         ${HEADER_FILES}
-        vector.c integer.c strng.c editline.c topSort.c Headers/topSort.h arrays.c promise.c)
+        vector.c integer.c strng.c editline.c topSort.c Headers/topSort.h arrays.c promise.c buddy.c UnitTests/Headers/buddyTest.h)
 
 add_library(ooio STATIC ${SOURCE_FILES})
 target_link_libraries(ooio pthread m)

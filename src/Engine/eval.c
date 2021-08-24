@@ -364,7 +364,7 @@ retCode run(processPo P) {
         termPo prompt = pop();
         saveRegisters();
 
-        S = P->stk = spinupStack(H, S, initStackSize, prompt);
+        S = P->stk = spinupStack(H, S, minStackSize, prompt);
 
         restoreRegisters();
         push(nthElem(thunk, 0));                     // Put the free term back on the stack
@@ -392,7 +392,7 @@ retCode run(processPo P) {
       }
 
       case Cut: {
-        termPo handler = pop();
+        normalPo handler = C_NORMAL(pop());
         termPo promptLbl = pop();
         saveRegisters();
         stackPo prompt = detachStack(S, promptLbl);

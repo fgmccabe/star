@@ -20,12 +20,14 @@ static termPo lblScan(specialClassPo cl, specialHelperFun helper, void *c, termP
 static logical lblCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer lblHash(specialClassPo cl, termPo o);
 static retCode lblDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
+static termPo lblFinalizer(specialClassPo class, termPo o, void *cl);
 
 SpecialClass LabelClass = {
   .clss = Null,
   .sizeFun = lblSize,
   .copyFun = lblCopy,
   .scanFun = lblScan,
+  .finalizer = lblFinalizer,
   .compFun = lblCmp,
   .hashFun = lblHash,
   .dispFun = lblDisp
@@ -235,6 +237,12 @@ termPo lblScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 
   if (lbl->mtd != Null)
     helper((ptrPo) (&lbl->mtd), c);
+
+  return o + LabelCellCount;
+}
+
+termPo lblFinalizer(specialClassPo class, termPo o, void *cl) {
+  labelPo lbl = C_LBL(o);
 
   return o + LabelCellCount;
 }

@@ -8,11 +8,14 @@
 #include "formioP.h"
 #include "labels.h"
 
+static termPo termFinalizer(specialClassPo class, termPo o, void *cl);
+
 SpecialClass SpecialClss = {
   .clss = Null,
   .sizeFun = Null,
   .copyFun = Null,
   .scanFun = Null,
+  .finalizer = termFinalizer,
   .compFun = Null,
   .hashFun = Null,
   .dispFun = Null
@@ -158,6 +161,12 @@ integer termHash(termPo t) {
 
     return hash;
   }
+}
+
+termPo termFinalizer(specialClassPo class, termPo o, void *cl) {
+  labelPo lbl = C_LBL((termPo) o->clss);
+
+  return o + NormalCellCount(lbl->arity);
 }
 
 // Special hash function used in case instruction. Only looks at the label of the term

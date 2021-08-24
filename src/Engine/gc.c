@@ -29,6 +29,7 @@ static logical hasMoved(termPo t);
 static termPo movedTo(termPo t);
 static void markMoved(termPo t, termPo where);
 static retCode extendHeap(heapPo H, integer factor, integer hmin);
+static termPo finalizeTerm(gcSupportPo G, termPo x);
 
 /* The standard garbage collector invoked when a process runs out of
    heap is a compacting garbage collector, O(n) in time and space
@@ -124,6 +125,11 @@ retCode gcCollect(heapPo H, long amount) {
     assert(t >= H->start && t < H->curr);
     t = scanTerm(G, t);
     assert(H->curr <= H->limit);
+  }
+
+  termPo f = G->oldBase;
+  while (f < G->oldLimit) {
+    f = finalizeTerm(G, f);
   }
 
 #ifdef TRACEMEM
@@ -226,6 +232,18 @@ termPo scanTerm(gcSupportPo G, termPo x) {
   }
 }
 
+termPo finalizeTerm(gcSupportPo G, termPo x) {
+  if (hasMoved(x)) {
+    termPo n = movedTo(x);
+    specialClassPo sClass = (specialClassPo) classOf(n);
+
+    return x + sClass->sizeFun(sClass, n);
+  } else {
+    specialClassPo sClass = (specialClassPo) classOf(x);
+    return sClass->finalizer(sClass, x, Null);
+  }
+}
+
 static retCode markProcess(processPo P, gcSupportPo G) {
 #ifdef TRACEMEM
   if (traceMemory)
@@ -237,7 +255,7 @@ static retCode markProcess(processPo P, gcSupportPo G) {
 }
 
 void verifyProc(processPo P, heapPo H) {
-  verifyStack(P->stk,H);
+  verifyStack(P->stk, H);
 }
 
 void dumpGcStats() {

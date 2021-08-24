@@ -32,7 +32,7 @@ extern logical tracing;        /* tracing option */
 extern logical insDebugging;
 extern logical lineDebugging;
 extern logical debugDebugging;
-extern int debuggerPort;
+extern integer debuggerPort;
 extern logical showPkgFile;       // True if we show file instead of package during debugging
 extern logical showColors;
 extern logical interactive;      /* interactive instruction tracing option */

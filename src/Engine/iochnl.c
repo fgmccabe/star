@@ -11,12 +11,13 @@ static termPo ioScan(specialClassPo cl, specialHelperFun helper, void *c, termPo
 static logical ioCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer ioHash(specialClassPo cl, termPo o);
 static retCode ioDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
-
+static termPo ioFinalizer(specialClassPo class, termPo o, void *cl);
 SpecialClass IOChnnlClass = {
   .clss = Null,
   .sizeFun = ioSize,
   .copyFun = ioCopy,
   .scanFun = ioScan,
+  .finalizer = ioFinalizer,
   .compFun = ioCmp,
   .hashFun = ioHash,
   .dispFun = ioDisp
@@ -46,6 +47,14 @@ termPo ioCopy(specialClassPo cl, termPo dst, termPo src) {
 }
 
 termPo ioScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
+  return (termPo) (o + IOChnnlCellCount);
+}
+
+termPo ioFinalizer(specialClassPo class, termPo o, void *cl){
+  ioChnnlPo chnl = C_IO(o);
+
+  // close the channel
+
   return (termPo) (o + IOChnnlCellCount);
 }
 

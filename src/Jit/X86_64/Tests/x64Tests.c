@@ -6,7 +6,6 @@
 #include "jitP.h"
 
 static retCode checkCode(u8 *src, integer srcLen, codeCtxPo ctx);
-static retCode checkReslt(int64 test, int64 verify, char *msg);
 
 static retCode test_adc() {
   codeCtxPo ctx = createCtx();
@@ -943,14 +942,6 @@ retCode checkCode(u8 *src, integer srcLen, codeCtxPo ctx) {
     ret = cmpBytes(src, ctx->bytes, srcLen);
   discardCtx(ctx);
   return ret;
-}
-
-retCode checkReslt(int64 test, int64 verify, char *msg) {
-  if (test != verify) {
-    logMsg(logFile, "Test %msg failed, expected %ld, got %ld", msg, verify, test);
-    return Error;
-  } else
-    return Ok;
 }
 
 retCode all_tests() {

@@ -43,14 +43,14 @@ set(HEADER_FILES
         Headers/verify.h Headers/verifyP.h Headers/srcmap.h Headers/srcmapP.h
         Headers/debugP.h Headers/capability.h Headers/capabilityP.h Headers/asm.h
         Headers/codegen.h Headers/consP.h Headers/option.h Headers/optionP.h
-        Headers/starP.h Headers/stackP.h Headers/continuation.h
-        Headers/stack.h Headers/continuationP.h)
+        Headers/starP.h Headers/stackP.h
+        Headers/stack.h)
 
 set(SOURCE_FILES
         decode.c debug.c eval.c engine.c engineOptions.c gc.c globals.c heap.c load.c main.c
         ${HEADER_FILES} code.c term.c labels.c arith.c repo.c
         str.c lockvar.c cell.c iochnl.c thr.c bkpoint.c verify.c capability.c cons.c option.c ltype.c ltype.h stack.c
-        continuation.c)
+        )
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})
 

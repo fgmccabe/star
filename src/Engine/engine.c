@@ -61,7 +61,7 @@ retCode bootstrap(char *entry, char *rootWd, capabilityPo rootCap) {
 
 processPo newProcess(methodPo mtd, char *rootWd, capabilityPo processCap, termPo rootArg) {
   processPo P = (processPo) allocPool(prPool);
-  stackPo stk = P->stk = allocateStack(currHeap, initStackSize, &haltMethod, root, Null, Null);
+  stackPo stk = P->stk = allocateStack(currHeap, minStackSize, &haltMethod, root, Null, Null);
 
   pushStack(stk, rootArg);
   pushFrame(stk, mtd, stk->sp);

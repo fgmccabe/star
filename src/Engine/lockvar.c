@@ -25,6 +25,7 @@ static termPo lockScan(specialClassPo cl, specialHelperFun helper, void *c, term
 static logical lockCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer lckHash(specialClassPo cl, termPo o);
 static retCode lockDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
+static termPo lockFinalizer(specialClassPo class, termPo o, void *cl);
 
 logical traceLock = False;        /* true if tracing locks */
 
@@ -33,6 +34,7 @@ SpecialClass LockClass = {
   .sizeFun = lockSize,
   .copyFun = lockCopy,
   .scanFun = lockScan,
+  .finalizer = lockFinalizer,
   .compFun = lockCmp,
   .hashFun = lckHash,
   .dispFun = lockDisp
@@ -62,6 +64,10 @@ termPo lockCopy(specialClassPo cl, termPo dst, termPo src) {
 }
 
 termPo lockScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
+  return (termPo) (o + LockCellCount);
+}
+
+termPo lockFinalizer(specialClassPo class, termPo o, void *cl) {
   return (termPo) (o + LockCellCount);
 }
 

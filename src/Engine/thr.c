@@ -12,12 +12,14 @@ static termPo thrScan(specialClassPo cl, specialHelperFun helper, void *c, termP
 static logical thrCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer thrHash(specialClassPo cl, termPo o);
 static retCode thrDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
+static termPo thrFinalizer(specialClassPo class, termPo o, void *cl);
 
 SpecialClass ThredClass = {
   .clss = Null,
   .sizeFun = thrSize,
   .copyFun = thrCopy,
   .scanFun = thrScan,
+  .finalizer = thrFinalizer,
   .compFun = thrCmp,
   .hashFun = thrHash,
   .dispFun = thrDisp
@@ -53,6 +55,10 @@ termPo thrCopy(specialClassPo cl, termPo dst, termPo src) {
 termPo thrScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   threadPo str = C_THREAD(o);
 
+  return o + ThreadCellCount;
+}
+
+termPo thrFinalizer(specialClassPo class, termPo o, void *cl) {
   return o + ThreadCellCount;
 }
 
