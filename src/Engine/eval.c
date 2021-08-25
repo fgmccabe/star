@@ -30,16 +30,14 @@
   }\
 }while(False)
 
-#define stackPtr(offset) ((ptrPo)(&S->stack[offset]))
-
 #define pop() (*SP++)
 #define top() (*SP)
 #define push(T) STMT_WRAP({*--SP=(termPo)(T);})
-#define local(off) stackPtr(F->fp-off)
-#define arg(off) stackPtr(F->fp+off)
-#define stackRoom(amnt) ((SP-(amnt)) > (ptrPo)(F+1))
-#define saveRegisters() STMT_WRAP({ F->pc = PC; S->sp = stackOffset(S,SP); })
-#define restoreRegisters() STMT_WRAP({ F = currFrame(S); PC = F->pc;  SP=stackPtr(S->sp); LITS=codeLits(F->prog);})
+#define local(off) (((ptrPo)F)[-off])
+#define arg(off) (((ptrPo) (F + 1))[off])
+#define stackRoom(amnt) ((SP-(amnt)) > S->stkMem)
+#define saveRegisters() STMT_WRAP({ F->pc = PC; S->sp = SP; S->fp = F; })
+#define restoreRegisters() STMT_WRAP({ F = S->fp; PC = F->pc;  SP=S->sp; LITS=codeLits(F->prog);})
 
 #define bail() STMT_WRAP({\
   saveRegisters();\
@@ -61,40 +59,16 @@
   }\
   })
 
-#define oCall(obj, arity) STMT_WRAP({ \
-  labelPo oLbl = objLabel(termLbl(obj), (arity));\
-  if (oLbl == Null) {\
-    logMsg(logFile, "label %s/%d not defined", labelName(termLbl(obj)), arity);\
-    bail();\
-  }\
-  methodPo mtd = labelCode(oLbl);       /* set up for object call */\
-  if (mtd == Null) {\
-    logMsg(logFile, "no definition for %T", oLbl);\
-    bail();\
-  }\
-  push(nthElem(obj, 0));                     // Put the free term back on the stack\
-  if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE))\
-    stackGrow(stackDelta(mtd) + STACKFRAME_SIZE, codeArity(mtd));\
-  F->pc = PC;\
-  F = pushFrame(S, mtd, stackOffset(S, SP));\
-  PC = entryPoint(mtd);\
-  LITS = codeLits(mtd);\
-  integer lclCnt = lclCount(mtd);  /* How many locals do we have */\
-  SP -= lclCnt;\
-  for (integer ix = 0; ix < lclCnt; ix++)\
-    SP[ix] = voidEnum;\
-})
-
 /*
  * Execute program on a given process/thread structure
  */
 retCode run(processPo P) {
   heapPo H = P->heap;
   stackPo S = P->stk;
-  framePo F = currFrame(S);
+  framePo F = S->fp;
   register insPo PC = F->pc;    /* Program counter */
   register normalPo LITS = codeLits(F->prog); /* pool of literals */
-  register ptrPo SP = stackPtr(S->sp);         /* Current 'top' of stack (grows down) */
+  register ptrPo SP = S->sp;         /* Current 'top' of stack (grows down) */
 
   register uint32 hi32, lo32;    /* Temporary registers */
 
@@ -129,6 +103,7 @@ retCode run(processPo P) {
 
         logMsg(logFile, "Abort %T at %L", msg, lc);
         verifyProc(P, processHeap(P));
+        saveRegisters();
         stackTrace(P, logFile, P->stk);
 
         return Error;
@@ -142,13 +117,15 @@ retCode run(processPo P) {
 
           assert(stackRoom(stackDelta(mtd) + STACKFRAME_SIZE));
         }
+
+        assert(isPcOfMtd(F->prog, PC));
         F->pc = PC;
-        F = pushFrame(S, mtd, stackOffset(S, SP));
+        F = pushFrame(S, mtd, F, SP);
         PC = entryPoint(mtd);
         LITS = codeLits(mtd);
 
         integer lclCnt = lclCount(mtd);  /* How many locals do we have */
-        SP -= lclCnt;
+        SP = (ptrPo) F - lclCnt;
 #ifdef TRACEEXEC
         for (integer ix = 0; ix < lclCnt; ix++)
           SP[ix] = voidEnum;
@@ -179,13 +156,14 @@ retCode run(processPo P) {
         if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE))
           stackGrow(stackDelta(mtd) + STACKFRAME_SIZE, codeArity(mtd));
 
+        assert(isPcOfMtd(F->prog, PC));
         F->pc = PC;
-        F = pushFrame(S, mtd, stackOffset(S, SP));
+        F = pushFrame(S, mtd, F, SP);
         PC = entryPoint(mtd);
         LITS = codeLits(mtd);
 
         integer lclCnt = lclCount(mtd);  /* How many locals do we have */
-        SP -= lclCnt;
+        SP = (ptrPo) F - lclCnt;
 #ifdef TRACEEXEC
         for (integer ix = 0; ix < lclCnt; ix++)
           SP[ix] = voidEnum;
@@ -227,24 +205,29 @@ retCode run(processPo P) {
         integer arity = labelArity(lbl);
 
         // Pick up existing frame
-        ptrPo tgt = stackPtr(F->fp + argCount(F->prog));
+        ptrPo tgt = &arg(argCount(F->prog));
         ptrPo src = SP + arity;                  /* base of argument vector */
+        framePo oldFp = F->fp;
 
         for (int ix = 0; ix < arity; ix++)
           *--tgt = *--src;    /* copy the argument vector */
 
-        methodPo mtd = F->prog = labelCode(lbl);
+        F = ((framePo) tgt) - 1;
+        methodPo mtd = labelCode(lbl);
+        if (mtd == Null) {
+          logMsg(logFile, "no definition for %T", lbl);
+          bail();
+        }
         F->pc = PC = entryPoint(mtd);
-        SP = tgt;
-        F->fp = stackOffset(S, SP);
+        F->fp = oldFp;
+        F->prog = mtd;
 
         LITS = codeLits(mtd);
         integer lclCnt = lclCount(mtd);  /* How many locals do we have */
+        SP = ((ptrPo) F) - lclCnt;
 
-        if (!stackRoom(lclCnt))
-          stackGrow(lclCnt, arity);
-
-        SP -= lclCnt;
+        if (!stackRoom(stackDelta(mtd)))
+          stackGrow(stackDelta(mtd), arity);
 
 #ifdef TRACEEXEC
         for (integer ix = 0; ix < lclCnt; ix++)
@@ -262,8 +245,9 @@ retCode run(processPo P) {
         push(nthElem(obj, 0));                     // Put the free term back on the stack
 
         // Pick up existing frame
-        ptrPo tgt = stackPtr(F->fp + argCount(F->prog));
+        ptrPo tgt = &arg(argCount(F->prog));
         ptrPo src = SP + arity;                  /* base of argument vector */
+        framePo oldFp = F->fp;
 
         for (int ix = 0; ix < arity; ix++)
           *--tgt = *--src;    /* copy the argument vector */
@@ -273,19 +257,18 @@ retCode run(processPo P) {
           logMsg(logFile, "no definition for %T", oLbl);
           bail();
         }
-
-        F->prog = mtd;
-        F->pc = PC = entryPoint(mtd);
-        SP = tgt;
-        F->fp = stackOffset(S, SP);
-
         LITS = codeLits(mtd);
         integer lclCnt = lclCount(mtd);  /* How many locals do we have */
 
-        if (!stackRoom(lclCnt))
-          stackGrow(lclCnt, arity);
+        F = ((framePo) tgt) - 1;          // Frame may have shifted
+        F->prog = mtd;
+        F->pc = PC = entryPoint(mtd);
+        F->fp = oldFp;
 
-        SP -= lclCnt;
+        SP = ((ptrPo) F) - lclCnt;
+
+        if (!stackRoom(stackDelta(mtd)))
+          stackGrow(stackDelta(mtd), arity);
 
 #ifdef TRACEEXEC
         for (integer ix = 0; ix < lclCnt; ix++)
@@ -298,12 +281,10 @@ retCode run(processPo P) {
       case Ret: {        /* return from function */
         termPo retVal = *SP;     /* return value */
 
-        assert(F->fp > 0);
-        assert(stackOffset(S, SP) < F->fp); // We must have a value to return
+        assert((ptrPo) F->fp <= stackLimit(S) && SP <= (ptrPo) F);
 
-        SP = stackPtr(F->fp + argCount(F->prog));
-        S->fp--;
-        F = currFrame(S);
+        SP = &arg(argCount(F->prog)); // Just above arguments to current call
+        F = F->fp;
         PC = F->pc;
         LITS = codeLits(F->prog);   /* reset pointer to code literals */
 
@@ -324,7 +305,7 @@ retCode run(processPo P) {
         termPo top = pop();
         int32 height = collectI32(PC);
         assert(height >= 0);
-        SP = stackPtr(F->fp - lclCount(F->prog) - height);
+        SP = (ptrPo) (F->fp) - lclCount(F->prog) - height;
         push(top);
         continue;
       }
@@ -336,9 +317,9 @@ retCode run(processPo P) {
       }
 
       case Rst: {
-        int32 offset = collectI32(PC);
-        assert(offset >= 0);
-        SP = stackPtr(F->fp - lclCount(F->prog) - offset);
+        int32 height = collectI32(PC);
+        assert(height >= 0);
+        SP = (ptrPo) (F->fp) - lclCount(F->prog) - height;
         continue;
       }
 
@@ -377,12 +358,12 @@ retCode run(processPo P) {
           bail();
         }
 
-        F = pushFrame(S, thMtd, stackOffset(S, SP));
+        F = pushFrame(S, thMtd, F, SP);
         PC = entryPoint(thMtd);
         LITS = codeLits(thMtd);
 
         integer lclCnt = lclCount(thMtd);  /* How many locals do we have */
-        SP -= lclCnt;
+        SP = (ptrPo) F - lclCnt;
 #ifdef TRACEEXEC
         for (integer ix = 0; ix < lclCnt; ix++)
           SP[ix] = voidEnum;
@@ -419,12 +400,12 @@ retCode run(processPo P) {
 
           push(nthElem(handler, 0));                     // Put the free term back on the stack
           F->pc = PC;
-          F = pushFrame(S, thMtd, stackOffset(S, SP));
+          F = pushFrame(S, thMtd, F, SP);
           PC = entryPoint(thMtd);
           LITS = codeLits(thMtd);
 
           integer lclCnt = lclCount(thMtd);  /* How many locals do we have */
-          SP -= lclCnt;
+          SP = (ptrPo) F - lclCnt;
 #ifdef TRACEEXEC
           for (integer ix = 0; ix < lclCnt; ix++)
             SP[ix] = voidEnum;
@@ -450,11 +431,10 @@ retCode run(processPo P) {
         termPo k = pop();
         stackPo stk = C_STACK(cont);
 
-        assert(F->fp > 0);
+        assert((ptrPo) F->fp <= stackLimit(S) && SP <= (ptrPo) F);
 
-        SP = stackPtr(F->fp + argCount(F->prog));
-        S->fp--;
-        F = currFrame(S);
+        SP = &arg(argCount(F->prog)); // Just above arguments to current call
+        F = F->fp;
         PC = F->pc;
 
         saveRegisters();
@@ -468,8 +448,7 @@ retCode run(processPo P) {
         termPo val = pop();
         saveRegisters();  // Seal off the current stack
         assert(stackState(S) == attached);
-        setStackState(S, detached);
-        S = P->stk = S->attachment;
+        S = P->stk = dropStack(S);
         restoreRegisters();
         push(val);
         continue;
@@ -486,15 +465,13 @@ retCode run(processPo P) {
 
       case LdA: {
         int32 offset = collectI32(PC);
-        ptrPo src = arg(offset);
-        push(*src);     /* load argument */
+        push(arg(offset));    /* load argument */
         continue;
       }
 
       case LdL: {
         int32 offset = collectI32(PC);
-        ptrPo src = local(offset);
-        push(*src);     /* load local */
+        push(local(offset));      /* load local */
         continue;
       }
 
@@ -522,12 +499,12 @@ retCode run(processPo P) {
             assert(stackRoom(stackDelta(glbThnk) + STACKFRAME_SIZE));
           }
           F->pc = PC;
-          F = pushFrame(S, glbThnk, stackOffset(S, SP));
+          F = pushFrame(S, glbThnk, F, SP);
           PC = entryPoint(glbThnk);
           LITS = codeLits(glbThnk);
 
           integer lclCnt = lclCount(glbThnk);  /* How many locals do we have */
-          SP -= lclCnt;
+          SP = ((ptrPo) F) - lclCnt;
 #ifdef TRACEEXEC
           for (integer ix = 0; ix < lclCnt; ix++)
             SP[ix] = voidEnum;
@@ -574,27 +551,27 @@ retCode run(processPo P) {
 
       case StL: {
         int32 offset = collectI32(PC);
-        ptrPo dest = local(offset);
+        ptrPo dest = &local(offset);
         *dest = pop();
         continue;
       }
 
       case StV: {
         int32 offset = collectI32(PC);
-        ptrPo dest = local(offset);
+        ptrPo dest = &local(offset);
         *dest = voidEnum;
         continue;
       }
       case TL: {
         int32 offset = collectI32(PC);
-        ptrPo dest = local(offset);
+        ptrPo dest = &local(offset);
         *dest = top();
         continue;
       }
 
       case StA: {
         int32 offset = collectI32(PC);
-        ptrPo dest = arg(offset);
+        ptrPo dest = &arg(offset);
         *dest = pop();     /* store as argument */
         continue;
       }

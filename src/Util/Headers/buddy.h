@@ -10,7 +10,7 @@
 
 typedef struct buddy_memory_ *buddyRegionPo;
 
-buddyRegionPo createRegion(integer size, integer minSize, integer factor);
+buddyRegionPo createRegion(integer size, integer minSize);
 
 typedef void* voidPtr;
 voidPtr *allocateBuddy(buddyRegionPo region, integer size);

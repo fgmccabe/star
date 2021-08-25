@@ -6,7 +6,6 @@
 #include <assert.h>
 #include <str.h>
 #include <lblops.h>
-#include <args.h>
 #include <strings.h>
 
 #include "engineP.h"
@@ -51,6 +50,7 @@ retCode bootstrap(char *entry, char *rootWd, capabilityPo rootCap) {
     termPo cmdLine = commandLine(currHeap);
     processPo p = newProcess(mainMtd, rootWd, rootCap, cmdLine);
     retCode ret = run(p);
+
     ps_kill(p);
     return ret;
   } else {
@@ -64,7 +64,7 @@ processPo newProcess(methodPo mtd, char *rootWd, capabilityPo processCap, termPo
   stackPo stk = P->stk = allocateStack(currHeap, minStackSize, &haltMethod, root, Null, Null);
 
   pushStack(stk, rootArg);
-  pushFrame(stk, mtd, stk->sp);
+  pushFrame(stk, mtd, stk->fp, stk->sp);
 
   P->heap = currHeap;
   P->state = P->savedState = quiescent;
@@ -89,6 +89,8 @@ processPo newProcess(methodPo mtd, char *rootWd, capabilityPo processCap, termPo
 
 void ps_kill(processPo p) {
   if (p != NULL) {
+    p->stk = dropStack(p->stk);
+
     pthread_t thread = p->threadID;
 
     pthread_cancel(thread);    /* cancel the thread */
@@ -96,16 +98,6 @@ void ps_kill(processPo p) {
     hashRemove(prTble, (void *) p->processNo);
     freePool(prPool, p);
   }
-}
-
-static inline ptrPo realign(ptrPo ptr, ptrPo oldStack, ptrPo oldLimit, ptrPo newLimit) {
-  assert(ptr >= oldStack && ptr <= oldLimit);
-
-  return newLimit - (oldLimit - ptr);
-}
-
-static inline ptrPo localVar(framePo fp, int64 off) {
-  return &(((ptrPo) fp)[-off]);
 }
 
 #ifdef TRACEMEM

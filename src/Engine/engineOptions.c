@@ -16,6 +16,7 @@
 #include "verifyP.h"
 #include "debugP.h"
 #include "capabilityP.h"
+#include "buddyP.h"
 
 char CWD[MAXFILELEN] = "";
 char rootCap[MAXFILELEN] = "/";
@@ -209,6 +210,15 @@ static retCode debugOption(char *option, logical enable, void *cl) {
         return -1;
 #endif
 
+      case 'B':    /* trace stack memory allocations operations  */
+#ifdef TRACE_BUDDY_MEMORY
+        traceBuddyMemory = True;
+        continue;
+#else
+        logMsg(logFile,"stack memory tracing not enabled");
+        return -1;
+#endif
+
       case 'F':   // Show file name instead of package
         showPkgFile = True;
         continue;
@@ -258,7 +268,10 @@ static retCode debugOptHelp(ioPo out, char opt, char *usage, void *cl) {
                      "Q|"
                      #endif
                      #ifdef TRACEPKG
-                     "P"
+                     "P|"
+                     #endif
+                     #ifdef TRACE_BUDDY_MEMORY
+                     "B|"
                      #endif
                      "F"
                      ">\n%_");
@@ -340,39 +353,39 @@ static retCode setDisplayDepth(char *option, logical enable, void *cl) {
 
 static retCode setMinStackSize(char *option, logical enable, void *cl) {
   minStackSize = parseSize(option);
-  if(minStackSize!=(1<<lg2(minStackSize))){
-    outMsg(logFile,"minimum stack size should be a power of 2, suggesting %d",1<<(lg2(minStackSize)+1));
-    minStackSize = 1<<(lg2(minStackSize)+1);
+  if (minStackSize != (1 << lg2(minStackSize))) {
+    outMsg(logFile, "minimum stack size should be a power of 2, suggesting %d", 1 << (lg2(minStackSize) + 1));
+    minStackSize = 1 << (lg2(minStackSize) + 1);
   }
   return Ok;
 }
 
-static retCode setMaxStackSize(char *option, logical enable, void *cl) {
-  maxStackSize = parseSize(option);
-  if(maxStackSize!=(1<<lg2(maxStackSize))){
-    outMsg(logFile,"maximum stack size should be a power of 2, suggesting %d",1<<lg2(maxStackSize));
-    maxStackSize = 1<<lg2(maxStackSize);
+static retCode setStackRegionSize(char *option, logical enable, void *cl) {
+  stackRegionSize = parseSize(option);
+  if (stackRegionSize != (1 << lg2(stackRegionSize))) {
+    outMsg(logFile, "maximum stack region size should be a power of 2, suggesting %d", 1 << lg2(stackRegionSize));
+    stackRegionSize = 1 << lg2(stackRegionSize);
   }
   return Ok;
 }
 
 Option options[] = {
-  {'d', "debug",         hasArgument, STAR_DBG_OPTS,      debugOption,       Null, "-d|--debug <flags>", debugOptHelp},
-  {'p', "depth",         hasArgument, STAR_DBG_OPTS,      setDisplayDepth,   Null, "-p|--depth <depth>"},
-  {'g', "symbol-debug",  noArgument,  SYMBOL_DEBUG,       symbolDebug,       Null, "-g|--symbol-debug"},
-  {'G', "debugger-port", hasArgument, STAR_DEBUGGER_PORT, setDebuggerPort,   Null, "-G|--debugger-port"},
-  {'v', "version",       noArgument,  Null,           displayVersion,    Null, "-v|--version"},
-  {'b', "boot-pkg",      hasArgument, STAR_BOOT,      setBootPkg,        Null, "-b|--boot-pkg <pkg>"},
-  {'m', "main",          hasArgument, STAR_MAIN,      setBootEntry,      Null, "-m|--main <entry>"},
-  {'L', "logFile",       hasArgument, STAR_LOGFILE,   setLogFile,        Null, "-L|--logFile <path>"},
-  {'r', "repository",    hasArgument, STAR_REPO,      setRepoDir,        Null, "-r|--repository <path>"},
-  {'w', "set-wd",        hasArgument, STAR_WD,        setWD,             Null, "-w|--set-wd <dir>"},
-  {'W', "set-root-cap",  hasArgument, STAR_ROOT_WD,   setRootCapability, Null, "-W|--set-root-cap <dir>"},
-  {'V', "verify",        noArgument,  STAR_VERIFY,    setVerify,         Null, "-V|--verify code"},
-  {'h', "heap",          hasArgument, STAR_INIT_HEAP, setHeapSize,       Null, "-h|--heap <size>"},
-  {'H', "max-heap",      hasArgument, STAR_MAX_HEAP,  setMaxHeapSize,    Null, "-H|--max-heap <size>"},
-  {'s', "min-stack",     hasArgument, STAR_MIN_STACK, setMinStackSize,   Null, "-s|--min-stack <size>"},
-  {'S', "max-stack",     hasArgument, STAR_MAX_STACK, setMaxStackSize,   Null, "-S|--max-stack <size>"},};
+  {'d', "debug",         hasArgument, STAR_DBG_OPTS,      debugOption,        Null, "-d|--debug <flags>", debugOptHelp},
+  {'p', "depth",         hasArgument, STAR_DBG_OPTS,      setDisplayDepth,    Null, "-p|--depth <depth>"},
+  {'g', "symbol-debug",  noArgument,  SYMBOL_DEBUG,       symbolDebug,        Null, "-g|--symbol-debug"},
+  {'G', "debugger-port", hasArgument, STAR_DEBUGGER_PORT, setDebuggerPort,    Null, "-G|--debugger-port"},
+  {'v', "version",       noArgument,  Null,               displayVersion,     Null, "-v|--version"},
+  {'b', "boot-pkg",      hasArgument, STAR_BOOT,          setBootPkg,         Null, "-b|--boot-pkg <pkg>"},
+  {'m', "main",          hasArgument, STAR_MAIN,          setBootEntry,       Null, "-m|--main <entry>"},
+  {'L', "logFile",       hasArgument, STAR_LOGFILE,       setLogFile,         Null, "-L|--logFile <path>"},
+  {'r', "repository",    hasArgument, STAR_REPO,          setRepoDir,         Null, "-r|--repository <path>"},
+  {'w', "set-wd",        hasArgument, STAR_WD,            setWD,              Null, "-w|--set-wd <dir>"},
+  {'W', "set-root-cap",  hasArgument, STAR_ROOT_WD,       setRootCapability,  Null, "-W|--set-root-cap <dir>"},
+  {'V', "verify",        noArgument,  STAR_VERIFY,        setVerify,          Null, "-V|--verify code"},
+  {'h', "heap",          hasArgument, STAR_INIT_HEAP,     setHeapSize,        Null, "-h|--heap <size>"},
+  {'H', "max-heap",      hasArgument, STAR_MAX_HEAP,      setMaxHeapSize,     Null, "-H|--max-heap <size>"},
+  {'s', "min-stack",     hasArgument, STAR_MIN_STACK,     setMinStackSize,    Null, "-s|--min-stack <size>"},
+  {'S', "max-stack",     hasArgument, STAR_MAX_STACK,     setStackRegionSize, Null, "-S|--max-stack <size>"},};
 
 int getEngineOptions(int argc, char **argv) {
   splitFirstArg(argc, argv, &argc, &argv);

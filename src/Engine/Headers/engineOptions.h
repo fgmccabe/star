@@ -8,6 +8,7 @@
 #include "config.h"
 #include "io.h"
 #include "starOptions.h"
+#include "buddy.h"
 
 #ifdef ALLTRACE
 #define TRACEMEM

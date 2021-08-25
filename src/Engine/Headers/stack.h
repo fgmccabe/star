@@ -35,10 +35,11 @@ stackPo attachedStack(stackPo stk);
 
 stackPo attachStack(stackPo stk, stackPo seg);
 stackPo detachStack(stackPo stk,termPo prompt);
+stackPo dropStack(stackPo stk);
 
 framePo stackFrame(stackPo stk, integer off);
 framePo currFrame(stackPo stk);
-framePo pushFrame(stackPo stk, methodPo mtd, integer fp);
+framePo pushFrame(stackPo stk, methodPo mtd, framePo fp, ptrPo sp);
 
 termPo popStack(stackPo stk);
 void pushStack(stackPo stk, termPo ptr);
