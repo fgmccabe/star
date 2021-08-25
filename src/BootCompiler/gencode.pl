@@ -69,13 +69,16 @@ genDef(_,_,lblDef(_,Lbl,Tp,Ix),O,[LblTrm|O]) :-
 genDef(_,_,typDef(_,Tp,Rl,IxMap),O,[TpTrm|O]) :-
   assem(tipe(Tp,Rl,IxMap),TpTrm).
 
-glbCont(Nm,D,D,_,[iDup,iStG(Nm)|Cx],Cx,Stk,Stk).
+glbCont(Nm,D,D,_,[iTG(Nm)|Cx],Cx,Stk,Stk).
 
 retCont(Opts,D,D,_,C,Cx,_Stk,none) :-
   genDbg(Opts,C,[iRet|Cx]).
 
 dropCont(D,D,_,[iDrop|Cx],Cx,Stk,Stk1) :-
   dropStk(Stk,1,Stk1).
+
+dropToCont(N,D,D,_,[iDropTo(N)|Cx],Cx,Stk,Stkx) :-
+  dropStk(Stk,N,Stkx).
 
 trapCont(Lc,D,D,_,Cx,Cx,Stk,Stk) :-
   reportError("not permitted to throw",[],Lc),
@@ -570,13 +573,20 @@ mergeStkLvl(Stk,none,Stk,_) :-!.
 mergeStkLvl(Stk1,Stk2,Stk1,Msg) :-
   verify(gencode:sameStk(Stk1,Stk2),Msg).
 
-compPtnArgs([],_,_,_,_,Succ,_,_,D,Dx,End,C,Cx,Stk,Stkx)			  :- 
+compPtnArgs([],_,_,_,_,Succ,_,_,D,Dx,End,C,Cx,Stk,Stkx)	:- 
   call(Succ,D,Dx,End,C,Cx,Stk,Stkx).
 compPtnArgs([voyd|R],Lc,ArgCont,TCont,Ix,Succ,Fail,Opts,D,Dx,End,C,Cx,Stk,Stkx) :- 
   call(ArgCont,Ix,D,_D0,End,Stk,_Stk0,C,[iDrop|C0]),
   Ix1 is Ix+1,
   compPtnArgs(R,Lc,ArgCont,TCont,Ix1,Succ,Fail,Opts,D,Dx,End,C0,Cx,Stk,Stkx).
-compPtnArgs([A|R],Lc,ArgCont,TCont,Ix,Succ,Fail,Opts,D,Dx,End,C,Cx,Stk,Stkx)	  :- 
+% compPtnArgs([A|R],Lc,stkArgCont,TCont,Ix,Succ,Fail,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
+%   trivialRemaining(R),!,
+%   stkArgCont(Ix,D,D0,End,Stk,Stk0,C,C0),
+%   stkLvl(Stk,Lvl),
+%   L1 is Lvl+1,
+%   compPtnArg(A,Ix,Lc,bothCont(dropToCont(L1),Succ),
+% 	     Fail,TCont,Opts,D0,Dx,End,C0,Cx,Stk0,Stkx).
+compPtnArgs([A|R],Lc,ArgCont,TCont,Ix,Succ,Fail,Opts,D,Dx,End,C,Cx,Stk,Stkx) :- 
   call(ArgCont,Ix,D,D0,End,Stk,Stk0,C,C0),
   genLbl(D0,Nxt,D1),
   compPtnArg(A,Ix,Lc,
@@ -584,6 +594,10 @@ compPtnArgs([A|R],Lc,ArgCont,TCont,Ix,Succ,Fail,Opts,D,Dx,End,C,Cx,Stk,Stkx)	  :
   Ix1 is Ix+1,
   verify(gencode:sameStk(Stk,Stk1),"argument pattern"),
   compPtnArgs(R,Lc,ArgCont,TCont,Ix1,Succ,Fail,Opts,D2,Dx,End,C1,Cx,Stk1,Stkx).
+
+trivialRemaining([]) :-!.
+trivialRemaining([voyd|R]) :-
+  trivialRemaining(R).
 
 compPtnArg(idnt(V),Ix,_,Succ,_Fail,_TCont,_,D,Dx,End,C,Cx,Stk,Stkx) :-
   lclVar(V,a(Ix),D),!,

@@ -3,7 +3,6 @@
 //
 
 #include <assert.h>
-#include <string.h>
 #include <globals.h>
 #include "stackP.h"
 #include "termP.h"
@@ -11,10 +10,9 @@
 #include "heapP.h"
 #include "buddy.h"
 
-logical traceStacks = False;      // stack operation tracing
-integer minStackSize = 128;        /* What is the smallest stack */
-// How big is a stacklet stack
-integer maxStackSize = (1 << 23);     /* 64M cells is default max stack size */
+logical traceStacks = False;          // stack operation tracing
+integer minStackSize = 128;           /* What is the smallest stack size */
+integer stackRegionSize = (1 << 23);     /* 64M cells is default max stack size */
 
 static long stkSize(specialClassPo cl, termPo o);
 static termPo stkCopy(specialClassPo cl, termPo dst, termPo src);
@@ -35,6 +33,16 @@ SpecialClass StackClass = {
   .dispFun = stkDisp
 };
 
+static MethodRec underFlowMethod = {
+  .clss = Null,
+  .codeSize = 2,
+  .arity = 0,
+  .lclcnt = 0,
+  .pool = Null,
+  .locals = Null,
+  .code = {Underflow, 0}
+};
+
 clssPo stackClass = (clssPo) &StackClass;
 
 static integer stackCount = 0;
@@ -42,15 +50,15 @@ static buddyRegionPo stackRegion;
 
 void initStacks() {
   StackClass.clss = specialClass;
-  integer regionSize = (1 << lg2(maxStackSize));
-  integer minSize = (1 << lg2(minStackSize));
+  underFlowMethod.clss = methodClass;
+  integer regionSize = (1 << lg2(stackRegionSize));
 
 #ifdef TRACESTACK
   if (traceStacks)
     outMsg(logFile, "setting stack region to %d words\n", regionSize);
 #endif
 
-  //stackRegion = createRegion(regionSize, minStackSize, 2);
+  stackRegion = createRegion(regionSize, minStackSize);
 }
 
 stackPo C_STACK(termPo t) {
@@ -59,16 +67,19 @@ stackPo C_STACK(termPo t) {
 }
 
 stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, StackState state, stackPo attachment, termPo prompt) {
-  if (sze > maxStackSize)
+  if (sze > stackRegionSize)
     syserr("tried to allocate too large a stack");
+
+  sze = (1 << lg2(2 * sze - 1)) - 1; // Adjust stack size to be just under a power of two
 
   int root = gcAddRoot(H, (ptrPo) &attachment);
   gcAddRoot(H, &prompt);
 
-  stackPo stk = (stackPo) allocateObject(H, stackClass, StackCellCount(sze));
+  stackPo stk = (stackPo) allocateObject(H, stackClass, StackCellCount);
+  stk->stkMem = (ptrPo) allocateBuddy(stackRegion, sze);
   stk->sze = sze;
-  stk->sp = sze;
-  stk->fp = 0;
+  stk->sp = &stk->stkMem[sze];
+  stk->fp = (framePo) &stk->stkMem[sze];
   stk->attachment = attachment;
   stk->state = state;
   stk->hash = stackCount++;
@@ -79,11 +90,7 @@ stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, StackState stat
     outMsg(logFile, "establish stack of %d words\n", sze);
 #endif
 
-  framePo f = currFrame(stk);
-  f->prog = underFlow;
-  f->pc = entryPoint(underFlow);
-  f->fp = stk->sp;
-
+  pushFrame(stk, underFlow, stk->fp, stk->sp);
   gcReleaseRoot(H, root);
 
   return stk;
@@ -111,25 +118,23 @@ retCode setStackState(stackPo stk, StackState state) {
   }
 }
 
-framePo stackFrame(stackPo stk, integer index) {
-  assert(index >= 0 && index <= stk->fp);
-  return &((framePo) (stk->stack))[index];
-}
-
 framePo currFrame(stackPo stk) {
-  return stackFrame(stk, stk->fp);
+  return stk->fp;
 }
 
-framePo pushFrame(stackPo stk, methodPo mtd, integer fp) {
-  framePo f = stackFrame(stk, ++stk->fp);
+framePo pushFrame(stackPo stk, methodPo mtd, framePo fp, ptrPo sp) {
+  framePo f = (framePo) (sp) - 1;
+  assert(f >= (framePo) (stk->stkMem));
   f->prog = mtd;
   f->pc = entryPoint(mtd);
   f->fp = fp;
+  stk->fp = f;
+  stk->sp = (ptrPo) f;
   return f;
 }
 
 long stkSize(specialClassPo cl, termPo o) {
-  return StackCellCount(C_STACK(o)->sze);
+  return StackCellCount;
 }
 
 stackPo attachedStack(stackPo stk) {
@@ -137,22 +142,23 @@ stackPo attachedStack(stackPo stk) {
 }
 
 void stackSanityCheck(stackPo stk) {
-  assert(stk != Null && stk->sp > 0 && stk->sp <= stk->sze && stk->fp > 0 && stk->fp <= stk->sze);
+  assert(
+    stk != Null && stk->sp >= stk->stkMem && stk->sp <= &stk->stkMem[stk->sze] && stk->fp >= (framePo) stk->stkMem &&
+    stk->fp <= (framePo) &stk->stkMem[stk->sze]);
 }
 
 void verifyStack(stackPo stk, heapPo H) {
   stackSanityCheck(stk);
-  integer ssp = stk->sp;
+  ptrPo sp = stk->sp;
+  framePo fp = stk->fp;
+  ptrPo limit = stk->stkMem + stk->sze;
 
-  for (integer fx = stk->fp; fx >= 0; fx--) {
-    framePo frme = stackFrame(stk, fx);
-    assert(frme->fp >= ssp && frme->fp < stk->sze);
-    ssp = frme->fp;
-  }
-
-  for (integer pt = stk->sp; pt < stk->sze; pt++) {
-    termPo t = *validStkPtr(stk, pt);
-    validPtr(H, t);
+  while (sp < limit) {
+    assert(sp <= (ptrPo) fp);
+    while (sp < (ptrPo) fp)
+      validPtr(H, *sp++);
+    sp = (ptrPo) (fp + 1);
+    fp = fp->fp;
   }
 
   switch (stackState(stk)) {
@@ -171,9 +177,7 @@ termPo stkCopy(specialClassPo cl, termPo dst, termPo src) {
   stackPo ds = (stackPo) dst; // Dest not yet a valid stack structure
   *ss = *ss;                  // Copy the structural part
 
-  memcpy(ds->stack, ss->stack, ss->sze * sizeof(ptrPo)); // Could make this smaller
-
-  return ((termPo) ds) + StackCellCount(ss->sze);
+  return ((termPo) ds) + StackCellCount;
 }
 
 logical stkCmp(specialClassPo cl, termPo o1, termPo o2) {
@@ -185,13 +189,13 @@ integer stkHash(specialClassPo cl, termPo o) {
 }
 
 termPo popStack(stackPo stk) {
-  assert(stk->sp < stk->sze);
-  return (termPo) stk->stack[stk->sp++];
+  assert(stk->sp < stackLimit(stk));
+  return *stk->sp++;
 }
 
 void pushStack(stackPo stk, termPo ptr) {
-  assert(stk->sp >= spMin(stk));
-  stk->stack[--stk->sp] = (ptrPo) ptr;
+  assert(stk->sp > stk->stkMem);
+  *--stk->sp = ptr;
 }
 
 termPo stkScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
@@ -208,28 +212,36 @@ termPo stkScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   }
 #endif
 
-  for (integer fx = 0; fx <= stk->fp; fx++) {
-    framePo f = stackFrame(stk, fx);
-    integer off = insOffset(f->prog, f->pc);
-    helper((ptrPo) &f->prog, c);
-    f->pc = pcAddr(f->prog, off);
-  }
+  ptrPo sp = stk->sp;
+  framePo fp = stk->fp;
+  ptrPo limit = stk->stkMem + stk->sze;
 
-  for (integer sx = stk->sp; sx < stk->sze; sx++)
-    helper(validStkPtr(stk, sx), c);
+  while (sp < limit) {
+    assert(sp <= (ptrPo) fp);
+    while (sp < (ptrPo) fp)
+      helper(sp++, c);
+
+    integer off = insOffset(fp->prog, fp->pc);
+    helper((ptrPo) &fp->prog, c);
+    fp->pc = pcAddr(fp->prog, off);
+
+    sp = (ptrPo) (fp + 1);
+    fp = fp->fp;
+  }
 
   if (stackState(stk) == attached)
     helper((ptrPo) &stk->attachment, c);
 
   helper((ptrPo) &stk->prompt, c);
 
-  return o + StackCellCount(stk->sze);
+  return o + StackCellCount;
 }
 
 termPo stkFinalizer(specialClassPo class, termPo o, void *cl) {
   stackPo stk = C_STACK(o);
-  // TODO: release the stack memory
-  return o + StackCellCount(stk->sze);
+  release(stackRegion, (voidPtr) stk->stkMem);
+  stk->stkMem = Null;
+  return o + StackCellCount;
 }
 
 static char *stackStateName(StackState ste) {
@@ -240,6 +252,8 @@ static char *stackStateName(StackState ste) {
       return "attached";
     case detached:
       return "detached";
+    case suspended:
+      return "suspended";
     default:
       return "unknown state";
   }
@@ -247,20 +261,10 @@ static char *stackStateName(StackState ste) {
 
 retCode stkDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   stackPo stk = C_STACK(t);
-  return outMsg(out, "stack %d:%s %d cells",
+  return outMsg(out, "(.stack %d:%s %d cells @ 0x%x.)",
                 stk->hash, stackStateName(stk->state),
-                stk->sze);
+                stk->sze,stk->stkMem);
 }
-
-static MethodRec underFlowMethod = {
-  .clss = Null,
-  .codeSize = 2,
-  .arity = 0,
-  .lclcnt = 0,
-  .pool = Null,
-  .locals = Null,
-  .code = {Underflow, 0}
-};
 
 stackPo glueOnStack(heapPo H, stackPo stk, integer size) {
   int root = gcAddRoot(H, (ptrPo) &stk);
@@ -277,7 +281,6 @@ stackPo spinupStack(heapPo H, stackPo stk, integer size, termPo prompt) {
   assert(size >= minStackSize);
 
   return allocateStack(H, size, &underFlowMethod, attached, stk, prompt);
-
 }
 
 stackPo attachStack(stackPo stk, stackPo seg) {
@@ -302,7 +305,7 @@ stackPo attachStack(stackPo stk, stackPo seg) {
 stackPo detachStack(stackPo stk, termPo prompt) {
 #ifdef TRACESTACK
   if (traceStacks)
-    outMsg(logFile, "detach stack %T at %T\n", stk, prompt);
+    outMsg(logFile, "detach %T at prompt %T\n", stk, prompt);
 #endif
   stackPo s = stk;
   while (s != Null && s->prompt != prompt) {
@@ -317,6 +320,19 @@ stackPo detachStack(stackPo stk, termPo prompt) {
     s->state = suspended;
     return ss;
   }
+}
+
+stackPo dropStack(stackPo stk) {
+#ifdef TRACESTACK
+  if (traceStacks)
+    outMsg(logFile, "drop stack %T\n%_", stk);
+#endif
+  stackPo previous = stk->attachment;
+  stk->state = detached;
+  release(stackRegion, (voidPtr) stk->stkMem);
+  stk->stkMem = Null;
+  stk->sze = -1;
+  return previous;
 }
 
 termPo stackPrompt(stackPo stk) {

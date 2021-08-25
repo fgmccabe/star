@@ -4,6 +4,7 @@ project(star)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c99 -fsanitize=address -fsanitize=leak")
 
 include_directories("Headers" "../Headers" "../Util/Headers" "../Escapes/Headers" "../Infra/Headers" "../Jit/Headers")
+add_subdirectory("EngineTests")
 
 set(HEADER_FILES
         ../Headers/version.h

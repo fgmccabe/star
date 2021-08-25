@@ -11,7 +11,7 @@ static integer minStackSize = 16;
 retCode test_buddy() {
 //  traceBuddyMemory = True;
 
-  buddyRegionPo region = createRegion(128, minStackSize, 2);
+  buddyRegionPo region = createRegion(128, minStackSize);
 
   assert(available(region, 127));
 
@@ -40,7 +40,7 @@ retCode test_many_blocks() {
   integer regionSize = 1<<20;
   integer testBlockCount = 1<<16;
 
-  buddyRegionPo region = createRegion(regionSize, minStackSize, 2);
+  buddyRegionPo region = createRegion(regionSize, minStackSize);
 
   assert(available(region, regionSize-1));
 

@@ -23,11 +23,11 @@ static void showLn(ioPo out, stackPo stk, termPo ln);
 static void showRet(ioPo out, stackPo stk, termPo val);
 
 static void showRegisters(processPo p, heapPo h);
-static void showAllLocals(ioPo out, stackPo stk, integer frameNo);
+static void showAllLocals(ioPo out, stackPo stk, framePo fp);
 static retCode showTos(ioPo out, stackPo stk);
 static retCode showLcl(ioPo out, stackPo stk, integer vr);
 static retCode showArg(ioPo out, stackPo stk, integer arg);
-static void showStackCall(ioPo out, stackPo stk, integer frameNo);
+static void showStackCall(ioPo out, stackPo stk, framePo fp, integer frameNo);
 static retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bufLen);
 static void stackSummary(ioPo out, stackPo stk);
 
@@ -422,7 +422,7 @@ static DebugWaitFor dbgShowRegisters(char *line, processPo p, termPo loc, insWor
 
 static DebugWaitFor dbgShowCall(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   stackPo stk = p->stk;
-  showStackCall(debugOutChnnl, stk, stk->fp);
+  showStackCall(debugOutChnnl, stk, stk->fp, 0);
 
   resetDeflt("n");
   return moreDebug;
@@ -431,11 +431,11 @@ static DebugWaitFor dbgShowCall(char *line, processPo p, termPo loc, insWord ins
 static DebugWaitFor dbgShowLocal(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   integer lclNo = cmdCount(line, 0);
   stackPo stk = p->stk;
-  framePo frame = currFrame(stk);
-  methodPo mtd = frame->prog;
+  framePo fp = stk->fp;
+  methodPo mtd = fp->prog;
 
   if (lclNo == 0)
-    showAllLocals(debugOutChnnl, stk, stk->fp);
+    showAllLocals(debugOutChnnl, stk, fp);
   else if (lclNo > 0 && lclNo <= lclCount(mtd))
     showLcl(debugOutChnnl, stk, cmdCount(line, 0));
   else
@@ -491,18 +491,20 @@ static DebugWaitFor dbgShowGlobal(char *line, processPo p, termPo loc, insWord i
 
 static DebugWaitFor dbgShowStack(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   stackPo stk = p->stk;
-  framePo frame = currFrame(stk);
-  ptrPo sp = validStkPtr(stk, stk->sp);
+  framePo fp = currFrame(stk);
+  ptrPo limit = validStkPtr(stk, stackLcl(stk, fp, lclCount(fp->prog)));
 
   if (line[0] == '\n') {
-    ptrPo limit = validStkPtr(stk, frame->fp - lclCount(frame->prog));
+    ptrPo sp = stk->sp;
 
     for (integer ix = 0; sp < limit; ix++, sp++) {
       outMsg(debugOutChnnl, "SP[%d]=%,*T\n", ix, displayDepth, *sp);
     }
   } else {
     integer count = cmdCount(line, 1);
-    ptrPo limit = validStkPtr(stk, minimum(stk->sp + count, frame->fp - lclCount(frame->prog)));
+    limit -= count;
+    ptrPo sp = stk->sp;
+
     for (integer ix = 0; sp < limit; ix++, sp++) {
       outMsg(debugOutChnnl, "SP[%d]=%,*T\n", ix, displayDepth, *sp);
     }
@@ -512,10 +514,9 @@ static DebugWaitFor dbgShowStack(char *line, processPo p, termPo loc, insWord in
   return moreDebug;
 }
 
-void showStackCall(ioPo out, stackPo stk, integer frameNo) {
-  framePo f = stackFrame(stk, frameNo);
-  methodPo mtd = f->prog;
-  insPo pc = f->pc;
+void showStackCall(ioPo out, stackPo stk, framePo fp, integer frameNo) {
+  methodPo mtd = fp->prog;
+  insPo pc = fp->pc;
   integer pcOffset = (integer) (pc - mtd->code);
 
   termPo locn = findPcLocation(mtd, pcOffset);
@@ -527,15 +528,15 @@ void showStackCall(ioPo out, stackPo stk, integer frameNo) {
   integer count = argCount(mtd);
   char *sep = "";
   for (integer ix = 0; ix < count; ix++) {
-    outMsg(out, "%s%,*T", sep, displayDepth, stackArg(stk, frameNo, ix));
+    outMsg(out, "%s%,*T", sep, displayDepth, *stackArg(stk, fp, ix));
     sep = ", ";
   }
   outMsg(out, ")\n%_");
 }
 
-void showStackEntry(ioPo out, stackPo stk, integer frameNo) {
-  showStackCall(out, stk, frameNo);
-  showAllLocals(out, stk, frameNo);
+void showStackEntry(ioPo out, stackPo stk, framePo fp, integer frameNo) {
+  showStackCall(out, stk, fp, frameNo);
+  showAllLocals(out, stk, fp);
 }
 
 static DebugWaitFor dbgStackTrace(char *line, processPo p, termPo loc, insWord ins, void *cl) {
@@ -562,9 +563,15 @@ void stackTrace(processPo p, ioPo out, stackPo stk) {
       outMsg(out, "Prompt %T\n", stackPrompt(stk));
     } else
       outMsg(out, "root stack\n");
-    for (integer fx = stk->fp; fx > 0; fx--) {
-      showStackEntry(out, stk, fx);
+
+    ptrPo sp = stk->sp;
+    framePo fp = stk->fp;
+    for (integer fx = 0; sp < stackLimit(stk); fx++) {
+      showStackEntry(out, stk, fp, fx);
+      sp = (ptrPo) (fp + 1);
+      fp = fp->fp;
     }
+
     stk = stk->attachment;
   } while (stk != Null);
 
@@ -667,11 +674,11 @@ static DebugWaitFor dbgDropFrame(char *line, processPo p, termPo loc, insWord in
   stackPo stk = p->stk;
 
   integer frameNo = 0;
+  framePo limit = (framePo) stackLimit(stk);
 
-  while (frameNo < count && stk->fp > 0) {
-    framePo fr = currFrame(stk);
-    stk->sp = fr->fp + lclCount(fr->prog);
-    stk->fp--;
+  while (frameNo < count && stk->fp < limit) {
+    stk->sp = ((ptrPo) (stk->fp + 1));
+    stk->fp = stk->fp->fp;
     frameNo++;
   }
 
@@ -800,7 +807,7 @@ DebugWaitFor insDebug(processPo p, insWord ins) {
 
   logical stopping = shouldWeStopIns(p, stk, ins);
   if (p->tracing || stopping) {
-    outMsg(debugOutChnnl, "[%d/%d]: ", stk->fp, pcCount);
+    outMsg(debugOutChnnl, "[%d]: ", pcCount);
     disass(debugOutChnnl, stk, frame->prog, frame->pc);
 
     if (stopping) {
@@ -861,12 +868,11 @@ retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
     return outMsg(f, "%,*T", displayDepth, ln);
 }
 
-static retCode shArgs(ioPo out, integer depth, stackPo stk, integer frameNo, integer from) {
+static retCode shArgs(ioPo out, integer depth, stackPo stk, integer from, framePo fp) {
   char *sep = "";
   tryRet(outStr(out, "("));
-  framePo f = stackFrame(stk, frameNo);
-  for (integer ix = from; ix < codeArity(f->prog); ix++) {
-    tryRet(outMsg(out, "%s%#,*T", sep, depth, stackArg(stk, frameNo, ix)));
+  for (integer ix = from; ix < codeArity(fp->prog); ix++) {
+    tryRet(outMsg(out, "%s%#,*T", sep, depth, *stackArg(stk, fp, ix)));
     sep = ", ";
   }
   return outMsg(out, ")");
@@ -878,7 +884,7 @@ static retCode shCall(ioPo out, char *msg, termPo locn, methodPo mtd, stackPo st
   } else
     tryRet(outMsg(out, "%s %#.16T", msg, mtd));
 
-  return shArgs(out, displayDepth, stk, stk->fp, 0);
+  return shArgs(out, displayDepth, stk, 0, stk->fp);
 }
 
 void showCall(ioPo out, stackPo stk, termPo call) {
@@ -911,9 +917,9 @@ static retCode shOCall(ioPo out, char *msg, stackPo stk, termPo call) {
   } else
     tryRet(outMsg(out, "%s ", msg));
 
-  tryRet(outMsg(out, "%#,*T", displayDepth, stackArg(stk, stk->fp, 0)));
+  tryRet(outMsg(out, "%#,*T", displayDepth, *stackArg(stk, stk->fp, 0)));
   tryRet(outMsg(out, "•%#.16T", f->prog));
-  return shArgs(out, displayDepth, stk, stk->fp, 1);
+  return shArgs(out, displayDepth, stk, 1, stk->fp);
 }
 
 void showOCall(ioPo out, stackPo stk, termPo call) {
@@ -989,16 +995,16 @@ DebugWaitFor enterDebug(processPo p) {
       return tailDebug(p, getMtdLit(f->prog, collect32(pc)));
     case OCall: {
       int32 arity = collect32(pc);
-      termPo callee = getLbl(stackArg(stk, stk->fp, 0), arity);
+      termPo callee = getLbl(*stackArg(stk, stk->fp, 0), arity);
       return ocallDebug(p, callee);
     }
     case TOCall: {
       int32 arity = collect32(pc);
-      termPo callee = getLbl(stackArg(stk, stk->fp, 0), arity);
+      termPo callee = getLbl(*stackArg(stk, stk->fp, 0), arity);
       return otailDebug(p, callee);
     }
     case Ret:
-      return retDebug(p, stackArg(stk, stk->fp, 0));
+      return retDebug(p, *stackArg(stk, stk->fp, 0));
     default:
       return stepOver;
   }
@@ -1071,26 +1077,24 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
 }
 
 void stackSummary(ioPo out, stackPo stk) {
-  framePo curr = currFrame(stk);
-  integer freeCount = stk->sp - ((ptrPo) (curr + 1) - (ptrPo) &stk->stack[0]);
+  integer freeCount = stk->sp - stk->stkMem;
   integer used = stk->sze - freeCount;
   outMsg(out, "used: %l, free:%5.2g%%", used, ((double) freeCount) / (double) stk->sze);
 }
 
 retCode showArg(ioPo out, stackPo stk, integer arg) {
   if (stk != Null) {
-    return outMsg(out, " A[%d] = %,*T", arg, displayDepth, stackArg(stk, stk->fp, arg));
+    return outMsg(out, " A[%d] = %,*T", arg, displayDepth, *stackArg(stk, stk->fp, arg));
   } else
     return outMsg(out, " A[%d]", arg);
 }
 
-void showAllLocals(ioPo out, stackPo stk, integer frameNo) {
-  framePo frame = stackFrame(stk, frameNo);
-  methodPo mtd = frame->prog;
+void showAllLocals(ioPo out, stackPo stk, framePo fp) {
+  methodPo mtd = fp->prog;
   for (integer vx = 1; vx <= lclCount(mtd); vx++) {
     char vName[MAX_SYMB_LEN];
-    if (localVName(mtd, frame->pc, vx, vName, NumberOf(vName)) == Ok) {
-      ptrPo var = validStkPtr(stk, currFrame(stk)->fp - vx);
+    if (localVName(mtd, fp->pc, vx, vName, NumberOf(vName)) == Ok) {
+      ptrPo var = stackLcl(stk, fp, vx);
       if (*var != Null && *var != voidEnum)
         outMsg(out, "  %s = %#,*T\n", vName, displayDepth, *var);
       else
@@ -1101,7 +1105,7 @@ void showAllLocals(ioPo out, stackPo stk, integer frameNo) {
 
 retCode showLcl(ioPo out, stackPo stk, integer vr) {
   if (stk != Null)
-    return outMsg(out, " l[%d] = %,*T", vr, displayDepth, stackLcl(stk, stk->fp, vr));
+    return outMsg(out, " l[%d] = %,*T", vr, displayDepth, *stackLcl(stk, stk->fp, vr));
   else
     return outMsg(out, " l[%d]", vr);
 }
@@ -1118,7 +1122,7 @@ retCode showGlb(ioPo out, globalPo glb) {
 
 retCode showTos(ioPo out, stackPo stk) {
   if (stk != Null)
-    return outMsg(out, " <tos> = %,*T", displayDepth, *validStkPtr(stk, stk->sp));
+    return outMsg(out, " <tos> = %,*T", displayDepth, *stk->sp);
   else
     return outMsg(out, " <tos>");
 }
@@ -1129,8 +1133,8 @@ static void showTopOfStack(ioPo out, stackPo stk, integer cnt) {
     ptrPo sp = validStkPtr(stk, stk->sp);
     outMsg(out, " %s%,*T(", sep, displayDepth, *sp++);
 
-    for (integer ix = 1; ix < cnt; ix++, sp++) {
-      outMsg(out, "%s%,*T", sep, displayDepth, *sp);
+    for (integer ix = 1; ix < cnt; ix++) {
+      outMsg(out, "%s%,*T", sep, displayDepth, *sp++);
       sep = ", ";
     }
 
@@ -1206,7 +1210,7 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
 
 void showRegisters(processPo p, heapPo h) {
   stackPo stk = p->stk;
-  showStackEntry(debugOutChnnl, stk, stk->fp);
+  showStackEntry(debugOutChnnl, stk, stk->fp, 0);
 
 #ifdef TRACEEXEC
   if (debugDebugging) {

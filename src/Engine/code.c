@@ -120,42 +120,45 @@ integer mtdCodeSize(methodPo mtd) {
 
 termPo findPcLocation(methodPo mtd, integer pc) {
   normalPo lines = mtd->lines;
-  integer start = 0;
-  integer limit = termArity(lines) - 1;
+  if (lines != Null) {
+    integer start = 0;
+    integer limit = termArity(lines) - 1;
 
-  integer lowerPc = -1;
-  integer upperPc = mtdCodeSize(mtd);
+    integer lowerPc = -1;
+    integer upperPc = mtdCodeSize(mtd);
 
-  termPo lowerLoc = Null;
-  termPo upperLoc = Null;
+    termPo lowerLoc = Null;
+    termPo upperLoc = Null;
 
-  while (limit >= start) {
-    integer mid = start + (limit - start) / 2;
-    normalPo midEntry = C_NORMAL(nthArg(lines, mid));
-    integer testPc = integerVal(nthArg(midEntry, 1));
-    termPo testLoc = nthArg(midEntry, 0);
+    while (limit >= start) {
+      integer mid = start + (limit - start) / 2;
+      normalPo midEntry = C_NORMAL(nthArg(lines, mid));
+      integer testPc = integerVal(nthArg(midEntry, 1));
+      termPo testLoc = nthArg(midEntry, 0);
 
-    if (testPc == pc)
-      return testLoc;
-    else if (testPc < pc) {
-      start = mid + 1;
-      if (testPc > lowerPc) {
-        lowerPc = testPc;
-        lowerLoc = testLoc;
-      }
-    } else {
-      limit = mid - 1;
+      if (testPc == pc)
+        return testLoc;
+      else if (testPc < pc) {
+        start = mid + 1;
+        if (testPc > lowerPc) {
+          lowerPc = testPc;
+          lowerLoc = testLoc;
+        }
+      } else {
+        limit = mid - 1;
 
-      if (testPc < upperPc) {
-        upperPc = testPc;
-        upperLoc = testLoc;
+        if (testPc < upperPc) {
+          upperPc = testPc;
+          upperLoc = testLoc;
+        }
       }
     }
-  }
-  if (lowerLoc != Null)
-    return lowerLoc;
-  else
-    return upperLoc;
+    if (lowerLoc != Null)
+      return lowerLoc;
+    else
+      return upperLoc;
+  } else
+    return Null;
 }
 
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt) {

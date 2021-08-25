@@ -60,6 +60,10 @@ static inline logical hasJit(methodPo mtd){
   return mtd->jit!=Null;
 }
 
+static inline logical isPcOfMtd(methodPo mtd, insPo pc){
+  return pc>=entryPoint(mtd) && pc< entryPoint(mtd)+ insCount(mtd);
+}
+
 extern retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
 extern logical validPC(methodPo mtd, insPo pc);
 

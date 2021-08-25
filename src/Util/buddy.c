@@ -11,7 +11,7 @@
 
 logical traceBuddyMemory = False;
 
-buddyRegionPo createRegion(integer size, integer minSize, integer factor) {
+buddyRegionPo createRegion(integer size, integer minSize) {
   integer lg = lg2(size);
   assert(size == (1 << lg));
   integer lg2Min = lg2(minSize);
@@ -125,16 +125,9 @@ static void coalesceBlocks(buddyRegionPo region, integer freeIx) {
 
 // Size in terms of pointer cells
 voidPtr *allocateBuddy(buddyRegionPo region, integer size) {
-  integer lgRoundUp = lg2(size * 2); // include space for the block header
-  integer roundDiff = lgRoundUp - region->minLg;
+  // include space for the block header
+  integer roundDiff = lg2(size * 2) - region->minLg;
   assert(roundDiff >= 0);
-
-#ifdef TRACE_BUDDY_MEMORY
-  if (traceBuddyMemory) {
-    logMsg(logFile, "allocate %d block", size);
-    showRegion(region);
-  }
-#endif
 
   for (integer ix = roundDiff; ix < region->freeListSize; ix++) {
     if (region->freeLists[ix] != Null) {
@@ -152,11 +145,18 @@ voidPtr *allocateBuddy(buddyRegionPo region, integer size) {
         block->buddy.lgSize = prevLg;
 
         region->freeLists[prevIx] = insertBlock(insertBlock(region->freeLists[prevIx], block2), block);
-        return allocateBuddy(region,size);
+        return allocateBuddy(region, size);
       } else {
         assert(foundLg == roundDiff);
 
-        return (voidPtr) (block + 1);
+#ifdef TRACE_BUDDY_MEMORY
+        if (traceBuddyMemory) {
+          logMsg(logFile, "allocate %d block at 0x%x", size, block);
+//          showRegion(region);
+        }
+#endif
+
+        return (voidPtr) ((buddyPo) block + 1);
       }
     }
   }
@@ -164,19 +164,30 @@ voidPtr *allocateBuddy(buddyRegionPo region, integer size) {
 }
 
 retCode release(buddyRegionPo region, voidPtr *block) {
-  freePo entry = (freePo) block - 1;
+  freePo entry = (freePo) (((buddyPo) block) - 1);
   integer freeIx = entry->buddy.lgSize - region->minLg;
 
 #ifdef TRACE_BUDDY_MEMORY
   if (traceBuddyMemory) {
     logMsg(logFile, "release block @ 0x%x", entry);
+//    showRegion(region);
   }
 #endif
 
   region->freeLists[freeIx] = insertBlock(region->freeLists[freeIx], entry);
   assert(validBlockList(region->freeLists[freeIx]));
 
+#ifdef TRACE_BUDDY_MEMORY
+  memset(entry + 1, 0x5a, (1 << entry->buddy.lgSize) - sizeof(FreeEntry));
+#endif
+
   coalesceBlocks(region, freeIx);
+
+#ifdef TRACE_BUDDY_MEMORY
+  if (traceBuddyMemory) {
+//    showRegion(region);
+  }
+#endif
 
   return Ok;
 }

@@ -12,10 +12,11 @@
 
 extern stackPo C_STACK(termPo t);
 
+typedef struct stack_frame_ *framePo;
 typedef struct stack_frame_ {
   insPo pc;           // The current program counter
   methodPo prog;      // The returnee program
-  integer fp;         // Index to the arg/locals split
+  framePo fp;         // Index to the arg/locals split
 } StackFrame;
 
 #define STACKFRAME_SIZE 3
@@ -24,46 +25,40 @@ typedef struct StackStructure {
   clssPo clss;                  // == stackClass
   integer hash;                 // Hash code of stack (== count of created stacks)
   integer sze;                  // Size of stack
-  integer sp;                   // current top of value stack
-  integer fp;                   // Current frame index
+  ptrPo sp;                     // Current stack pointer
+  framePo fp;                   // Current frame pointer
   stackPo attachment;           // Where is the stack attached
   StackState state;             // is the stack attached, root or detached
   termPo prompt;                // Prompt label for this stack
-  ptrPo stack[ZEROARRAYSIZE];
+  ptrPo stkMem;                 // Memory block used for stack
 } StackRecord;
 
-#define StackCellCount(len) CellCount(sizeof(StackRecord)+((len)*sizeof(ptrPo)))
+#define StackCellCount CellCount(sizeof(StackRecord))
 
 extern void initStacks();
 extern logical traceStacks;      // stack operation tracing
 
 extern integer minStackSize;       /* How big is a stack */
-extern integer maxStackSize;        // How big may the stack grow?
+extern integer stackRegionSize;    // How much space for stacks
 
-static inline integer spMin(stackPo stk){
-  return CellCount(sizeof(StackFrame)) * (stk->fp + 1);
+static inline ptrPo stackLimit(stackPo stk) {
+  return stk->stkMem + stk->sze;
 }
 
-static inline ptrPo validStkPtr(stackPo stk, integer offset) {
-  assert(offset >= spMin(stk) && offset <= stk->sze);
-  return (ptrPo) &stk->stack[offset];
-}
-
-static inline integer stackOffset(stackPo stk, ptrPo ptr) {
-  integer off = ptr - (ptrPo) stk->stack;
-  assert(off >= 0 && off <= stk->sze);
-  return off;
+static inline ptrPo validStkPtr(stackPo stk, ptrPo p) {
+  assert(p >= stk->stkMem && p <= stackLimit(stk));
+  return p;
 }
 
 extern void stackSanityCheck(stackPo stk);
 extern void verifyStack(stackPo stk, heapPo H);
 
-static inline termPo stackArg(stackPo stk, integer frame, integer arg) {
-  return *validStkPtr(stk, stackFrame(stk, frame)->fp + arg);
+static inline ptrPo stackArg(stackPo stk, framePo frame, integer arg) {
+  return ((ptrPo) (frame + 1))+arg;
 }
 
-static inline termPo stackLcl(stackPo stk, integer frame, integer lcl) {
-  return *validStkPtr(stk, stackFrame(stk, frame)->fp - lcl);
+static inline ptrPo stackLcl(stackPo stk, framePo frame, integer lcl) {
+  return ((ptrPo) (frame))-lcl;
 }
 
 #endif //STAR_STACKP_H

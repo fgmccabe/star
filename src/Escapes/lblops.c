@@ -16,7 +16,6 @@ ReturnStatus g__definedLbl(processPo P, ptrPo tos) {
   copyString2Buff(C_STR(Arg1), label, NumberOf(label));
   integer arity = integerVal(Arg2);
 
-  labelPo lbl = findLbl(label, arity);
   return (ReturnStatus) {.ret=Ok,
     .result = findLbl(label, arity) != Null ? trueEnum : falseEnum};
 }
@@ -24,7 +23,7 @@ ReturnStatus g__definedLbl(processPo P, ptrPo tos) {
 static inline void push(processPo P, termPo t) {
   stackPo stack = P->stk;
   stackSanityCheck(P->stk);
-  stack->stack[--stack->sp] = (ptrPo)t;
+  *--stack->sp = t;
 }
 
 static void pushArgs(processPo P, termPo args) {
@@ -54,16 +53,13 @@ ReturnStatus g__callLbl(processPo P, ptrPo tos) {
       pushArgs(P, args);
 
       stackPo stk = P->stk;
-      framePo f = stackFrame(stk,++stk->fp);
-      f->prog = prog;
-      f->pc = entryPoint(prog);
-      f->fp = stk->sp;
+      pushFrame(stk,prog,stk->fp,stk->sp);
 
       integer lclCnt = lclCount(prog);  /* How many locals do we have */
-      stk->sp -= lclCnt;
+      ptrPo sp = stk->sp -= lclCnt;
 #ifdef TRACEEXEC
       for (integer ix = 0; ix < lclCnt; ix++)
-        P->stk->stack[stk->sp + ix] = (ptrPo)voidEnum;
+        sp[ix] = voidEnum;
 #endif
       assert(validStkPtr(stk, stk->sp));
 
