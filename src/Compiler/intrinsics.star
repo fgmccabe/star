@@ -28,6 +28,13 @@ star.compiler.intrinsics{
   intrinsic("_cell") => some((allType(nomnal("t"),tpExp(tpExp(tpFun("=>",2),tplType([nomnal("t")])),tpExp(tpFun("ref",1),nomnal("t")))),.iCell)).  -- create a reference cell
   intrinsic("_get") => some((allType(nomnal("t"),tpExp(tpExp(tpFun("=>",2),tplType([tpExp(tpFun("ref",1),nomnal("t"))])),nomnal("t"))),.iGet)).  -- Access contents of cell
   intrinsic("_assign") => some((allType(nomnal("t"),tpExp(tpExp(tpFun("=>",2),tplType([tpExp(tpFun("ref",1),nomnal("t")),nomnal("t")])),tplType([]))),.iAssign)).  -- update contents of reference cell
+  intrinsic("_band") => some((tpExp(tpExp(tpFun("=>",2),tplType([intType,intType])),intType),.iBAnd)).  -- bitwise and two integers
+  intrinsic("_bor") => some((tpExp(tpExp(tpFun("=>",2),tplType([intType,intType])),intType),.iBOr)).  -- bitwise or two integers
+  intrinsic("_bxor") => some((tpExp(tpExp(tpFun("=>",2),tplType([intType,intType])),intType),.iBXor)).  -- bitwise xor two integers
+  intrinsic("_blsl") => some((tpExp(tpExp(tpFun("=>",2),tplType([intType,intType])),intType),.iBLsl)).  -- logical left shift
+  intrinsic("_blsr") => some((tpExp(tpExp(tpFun("=>",2),tplType([intType,intType])),intType),.iBLsr)).  -- logical right shift
+  intrinsic("_basr") => some((tpExp(tpExp(tpFun("=>",2),tplType([intType,intType])),intType),.iBAsr)).  -- arithmetic right shift
+  intrinsic("_bnot") => some((tpExp(tpExp(tpFun("=>",2),tplType([intType])),intType),.iBNot)).  -- bitwise negate number
 
   intrinsic(_) default => .none.
 }
