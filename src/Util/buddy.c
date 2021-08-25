@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <strings.h>
 #include "buddyP.h"
-#include "pool.h"
 #include "ooio.h"
 
 logical traceBuddyMemory = False;
@@ -170,7 +169,6 @@ retCode release(buddyRegionPo region, voidPtr *block) {
 #ifdef TRACE_BUDDY_MEMORY
   if (traceBuddyMemory) {
     logMsg(logFile, "release block @ 0x%x", entry);
-//    showRegion(region);
   }
 #endif
 
@@ -185,7 +183,6 @@ retCode release(buddyRegionPo region, voidPtr *block) {
 
 #ifdef TRACE_BUDDY_MEMORY
   if (traceBuddyMemory) {
-//    showRegion(region);
   }
 #endif
 
@@ -194,8 +191,8 @@ retCode release(buddyRegionPo region, voidPtr *block) {
 
 // Is a given size available?
 logical available(buddyRegionPo region, integer size) {
-  integer lgRoundUp = lg2(size * 2); // include space for the block header
-  integer roundDiff = lgRoundUp - region->minLg;
+  // include space for the block header
+  integer roundDiff = lg2(size * 2) - region->minLg;
   assert(roundDiff >= 0);
 
   for (integer ix = roundDiff; ix < region->freeListSize; ix++) {
