@@ -290,7 +290,7 @@ formatDigits(logical isSigned, const char *digits, int64 precision, const char *
   *pos = 0;
 
   for (int64 ix = formatLen - 1, px = (int64) (precision - 1); ix >= 0; ix--) {
-    int formChar = format[ix];
+    char formChar = format[ix];
     switch (formChar) {
       case '-':
         if (isSigned)
@@ -317,9 +317,6 @@ formatDigits(logical isSigned, const char *digits, int64 precision, const char *
 
         break;
       case '.':
-        if (px >= 0 || zeroDigits > 0)
-          attachChar(out, pos, outLen, formChar);
-        break;
       case ',':
       default:
         if (px >= 0 || zeroDigits > 0)

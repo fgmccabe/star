@@ -35,7 +35,7 @@
 /* Set up the file class */
 
 FileClassRec FileClass = {
-  {
+  .objectPart={
     (classPo) &IoClass,                   // parent class is io object
     "file",                               // this is the file class
     initFileClass,                        // File class initializer, phase I
@@ -50,8 +50,8 @@ FileClassRec FileClass = {
     PTHREAD_ONCE_INIT,                    // not yet initialized
     PTHREAD_MUTEX_INITIALIZER
   },
-  {},
-  {
+  .lockPart={},
+  .ioPart={
     fileInBytes,                          // inByte
     fileOutBytes,                         // outBytes
     fileBackByte,                         // put a byte back in the buffer
@@ -59,7 +59,7 @@ FileClassRec FileClass = {
     fileFlusher,                          // flush
     fileClose                             // close
   },
-  {
+  .filePart={
     fileConfigure,                        // configure a file
     flSeek,                               /* seek to a point in the file */
     fileInReady,                          // readyIn
@@ -71,54 +71,6 @@ FileClassRec FileClass = {
 classPo fileClass = (classPo) &FileClass;
 
 // Implement inheritance of file specific portions of class
-
-void inheritFile(classPo class, classPo request) {
-  FileClassRec *req = (FileClassRec *) request;
-  FileClassRec *template = (FileClassRec *) class;
-
-  /* logical done = False; */
-
-  /* while (!done) { */
-  /*   done = True; */
-
-  /*   if (req->filePart.configure == O_INHERIT_DEF) { */
-  /*     if (template->filePart.configure != O_INHERIT_DEF) */
-  /*       req->filePart.configure = template->filePart.configure; */
-  /*     else */
-  /*       done = False; */
-  /*   } */
-
-  /*   if (req->filePart.seek == O_INHERIT_DEF) { */
-  /*     if (template->filePart.seek != O_INHERIT_DEF) */
-  /*       req->filePart.seek = template->filePart.seek; */
-  /*     else */
-  /*       done = False; */
-  /*   } */
-
-  /*   if (req->filePart.filler == O_INHERIT_DEF) { */
-  /*     if (template->filePart.filler != O_INHERIT_DEF) */
-  /*       req->filePart.filler = template->filePart.filler; */
-  /*     else */
-  /*       done = False; */
-  /*   } */
-
-  /*   if (req->filePart.inReady == O_INHERIT_DEF) { */
-  /*     if (template->filePart.inReady != O_INHERIT_DEF) */
-  /*       req->filePart.inReady = template->filePart.inReady; */
-  /*     else */
-  /*       done = False; */
-  /*   } */
-
-  /*   if (req->filePart.outReady == O_INHERIT_DEF) { */
-  /*     if (template->filePart.outReady != O_INHERIT_DEF) */
-  /*       req->filePart.outReady = template->filePart.outReady; */
-  /*     else */
-  /*       done = False; */
-  /*   } */
-
-  /*   template = (FileClassRec *) (template->objectPart.parent); */
-  /* } */
-}
 
 void initFileClass(classPo class, classPo request) {
   assert(request->pool != NULL);
@@ -350,6 +302,8 @@ ioPo stdErr = Null;
 
 static sigset_t blocked;
 
+static retCode trimName(char *s, integer sLen, char *front, char *trail, char *out, integer outLen);
+
 static void stopAlarm(void)    // stop the cpu timer from delivering alarm signals
 {
   sigset_t set;
@@ -413,7 +367,7 @@ retCode fileFill(filePo f) {
 retCode fileFlush(filePo f, long count) {
   int fno = f->file.fno;
   long written;
-  int16 remaining = f->file.out_pos;
+  long remaining = f->file.out_pos;
   byte *cp = f->file.out_line;
   long writeGap = 0;
 
@@ -428,13 +382,13 @@ retCode fileFlush(filePo f, long count) {
         case EINTR:
           if (writeGap > 0) {
             memmove(&f->file.out_line[0], cp, sizeof(byte) * remaining);
-            f->file.out_pos = remaining;
+            f->file.out_pos = (int16) remaining;
           }
           return Interrupt;    // report an interrupt
         case EAGAIN:        // we shuffle the remaining buffer to the front
           if (writeGap > 0) {
             memmove(&f->file.out_line[0], cp, sizeof(byte) * remaining);
-            f->file.out_pos = remaining;
+            f->file.out_pos = (int16) remaining;
           }
           return Fail;
         default:
@@ -629,12 +583,9 @@ ioPo openInOutAppendFile(char *name, ioEncoding encoding) {
 retCode isRegularFile(char *fname) {
   struct stat buf;
 
-  if (stat((const char *) fname, &buf) == -1)
-    return Fail;    /* File not found */
-  else if (S_ISDIR(buf.st_mode))
-    return Fail;
-  else
-    return Ok;
+  if ((stat((const char *) fname, &buf) == -1) || S_ISDIR(buf.st_mode))
+    return Fail;    /* File not found */;
+  return Ok;
 }
 
 retCode isDirectory(char *fname) {
@@ -984,4 +935,37 @@ retCode resolvePath(char *root, integer rootLen, const char *fn, integer fnLen, 
   }
   strMsg(buff, buffLen, "%s/%s", wd, &fname[pos]);
   return Ok;
+}
+
+retCode trimName(char *s, integer sLen, char *front, char *trail, char *out, integer outLen) {
+  const integer frSize = uniStrLen(front);
+  const integer trSize = uniStrLen(trail);
+
+  integer fx = 0;
+  integer tx = sLen;
+
+  while (fx < sLen) {
+    integer px = fx;
+    codePoint ch = nextCodePoint(s, &px, sLen);
+    if (uniIndexOf(front, frSize, 0, ch) >= 0) {
+      fx = px;
+      continue;
+    } else
+      break;
+  }
+
+  while (tx >= fx) {
+    codePoint ch;
+    integer px = tx;
+    if (prevPoint(s, &px, &ch) == Ok) {
+      if (uniIndexOf(trail, trSize, 0, ch) >= 0) {
+        tx = px;
+        continue;
+      } else
+        break;
+    } else
+      break;
+  }
+
+  return uniNCpy(out, outLen, &s[fx], tx - fx);
 }

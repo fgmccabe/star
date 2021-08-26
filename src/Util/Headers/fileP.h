@@ -25,7 +25,7 @@ typedef struct {
   fileProc filler;                      // We use this to refill the buffer
 } FileClassPartRec;
 
-typedef struct _file_class_ {
+typedef struct file_class_ {
   ObjectClassRec objectPart;
   LockClassPart lockPart;
   IoClassPartRec ioPart;                // the io part of the class information */
@@ -35,7 +35,7 @@ typedef struct _file_class_ {
 FileClassRec FileClass;
 /* the standard pointer to an File class record */
 
-typedef struct _file_part_ {
+typedef struct file_part_ {
   /* The file specific part of a file object */
   int fno;                              // The file number
   byte in_line[MAXLINE + 32];           // The input buffer */
@@ -48,14 +48,13 @@ typedef struct _file_part_ {
   int16 out_pos;                        // Current position within the output buffer
 } FilePart;
 
-typedef struct _file_object_ {
+typedef struct file_object_ {
   ObjectRec object;                     // object level of the io structure */
   LockObjectRec lock;
   IoPart io;                            // Io level of io object */
   FilePart file;                        // File level of file object
 } FileObject;
 
-void inheritFile(classPo class, classPo request);
 void initFileClass(classPo class, classPo request);
 void FileInit(objectPo o, va_list *args);
 

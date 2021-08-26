@@ -30,7 +30,7 @@ static retCode nullFlusher(ioPo f, long count);
 static retCode nullClose(ioPo f);
 
 IoClassRec IoClass = {
-  {
+  .objectPart={
     (classPo) &LockedClass,                /* parent class is object */
     "io",                                 /* this is the io class */
     initIoClass,                          /* IO class initializer */
@@ -45,8 +45,8 @@ IoClassRec IoClass = {
     PTHREAD_ONCE_INIT,          /* not yet initialized */
     PTHREAD_MUTEX_INITIALIZER
   },
-  {},
-  {
+  .lockPart={},
+  .ioPart={
     nullInBytes,          /* inByte, abstract for the io class  */
     nullOutBytes,         /* outByte, abstract for the io class  */
     nullOutByte,          /* putbackByte, abstract for the io class  */
@@ -61,7 +61,6 @@ classPo ioClass = (classPo) &IoClass;
 static pthread_once_t ioOnce = PTHREAD_ONCE_INIT;
 
 static void initIoEtc(void) {
-  IoClass.objectPart.parent = lockedClass;
   atexit(closeIo);                      /* set up general closer for exit */
   initRecursiveMutex(&ioClass->mutex);
 }
@@ -165,30 +164,30 @@ retCode inBytes(ioPo f, byte *ch, integer count, integer *actual) {
 }
 
 retCode putBackByte(ioPo f, byte b) {
-//  objectPo o = O_OBJECT(f);
+  objectPo o = O_OBJECT(f);
   retCode ret;
 
-//  lock(O_LOCKED(o));
+  lock(O_LOCKED(o));
   ret = ((IoClassRec *) f->object.class)->ioPart.backByte(f, b);
 
   if (ret == Ok)
     f->io.inBpos--;
 
-//  unlock(O_LOCKED(o));
+  unlock(O_LOCKED(o));
   return ret;
 }
 
 /* Byte level output */
 
 retCode outBytes(ioPo f, byte *data, integer len, integer *actual) {
-//  objectPo o = O_OBJECT(f);
+  objectPo o = O_OBJECT(f);
   retCode ret;
 
-//  lock(O_LOCKED(o));
+  lock(O_LOCKED(o));
   ret = ((IoClassRec *) f->object.class)->ioPart.write(f, data, len, actual);
   f->io.outBpos += *actual;
 
-//  unlock(O_LOCKED(o));
+  unlock(O_LOCKED(o));
   return ret;
 }
 
@@ -285,6 +284,7 @@ retCode unGetChar(ioPo io, codePoint ch)   /* put a single character back */
       case utf8Encoding:
         ret = appendCodePoint(&chbuff[0], &len, NumberOf(chbuff), ch);
         break;
+      case rawEncoding:
       default:
         chbuff[0] = (byte) ch;
         len = 1;
@@ -336,7 +336,7 @@ retCode inLine(ioPo f, strBufferPo buffer, char *term) {
       ret = inChar(f, &ch);
 
       if (ret == Ok) {
-        if(ch==0)
+        if (ch == 0)
           return Error;
         ret = outChar(O_IO(buffer), ch);
 

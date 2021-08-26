@@ -3,7 +3,6 @@
  */
 #include "star.h"
 #include <stdlib.h>
-#include <assert.h>
 #include <str.h>
 #include <lblops.h>
 #include <strings.h>
