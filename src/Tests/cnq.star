@@ -1,13 +1,6 @@
 test.cnq{
-  import star.core.
-  import star.arith.
-  import star.strings.
-  import star.display.
-  import star.option.
-  import star.coerce.
-  import test.cn2.
-  import test.cn3.
-  import test.cnc.
+  import star.
+  import test.ac0.
 
   parent:cons[(string,string)].
   parent = [("a","ab"),("b","ab"),("a","c"),("c","aa"),("ab","abc"),
