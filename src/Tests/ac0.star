@@ -1,6 +1,8 @@
 test.ac0{
-  public logM:(string)=>action[(),()].
-  logM(M) => action{
+  import star.
+  
+  public logM:(string)=>result[(),()].
+  logM(M) => do{
     _ .= _logmsg(M);
     return ()
   }
