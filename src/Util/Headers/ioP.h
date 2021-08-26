@@ -55,7 +55,7 @@ typedef struct _io_part_{
   ioPo next;                            /* Next file in open set */
 } IoPart;
 
-typedef struct _io_object_ {
+typedef struct io_object_ {
   ObjectRec object;                     /* object level of the io structure */
   LockObjectRec lock;                   // Lock part of object
   IoPart io;                            /* Io level of io object */

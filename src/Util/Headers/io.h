@@ -24,7 +24,7 @@ typedef enum {
   ioNULL = 000u, ioREAD = 001u, ioWRITE = 002u
 } ioDirection;
 
-typedef struct _io_object_ *ioPo;
+typedef struct io_object_ *ioPo;
 extern classPo ioClass;
 
 #include "unistr.h"
@@ -58,7 +58,7 @@ retCode outBytes(ioPo f, byte *data, integer len, integer *actual);
 
 retCode outText(ioPo f, const char *text, integer len);
 retCode outStr(ioPo f, char *str);
-retCode outStrg(ioPo f,strgPo str);
+retCode outStrg(ioPo f, strgPo str);
 
 retCode closeFile(ioPo f);            /* generic file closer */
 retCode flushFile(ioPo f);            /* generic file flush */
@@ -72,7 +72,7 @@ logical isWritingFile(ioPo f);
 retCode isFileAtEof(ioPo f);
 retCode fileStatus(ioPo f);
 
-char * fileName(ioPo f);
+char *fileName(ioPo f);
 ioDirection fileMode(ioPo f);
 integer inCPos(ioPo f);
 integer outBPos(ioPo f);

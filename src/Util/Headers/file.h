@@ -18,6 +18,7 @@
 
 #include "config.h"
 #include "io.h"
+#include "unistr.h"
 
 extern ioPo stdIn;    /* Standard input  */
 extern ioPo stdOut;    /* Standard output */
@@ -27,7 +28,7 @@ typedef enum {
   turnOffBlocking, turnOnBlocking, enableAsynch, disableAsynch
 } ioConfigOpt;
 
-typedef struct _file_object_ *filePo;
+typedef struct file_object_ *filePo;
 
 extern classPo fileClass;
 
