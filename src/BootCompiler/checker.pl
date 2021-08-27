@@ -882,12 +882,15 @@ typeOfPrompt(Lc,L,P,Tp,ErTp,Env,prompt(Lc,Lb,Lam,Tp),Path) :-
 
 typeOfCut(Lc,L,Lhs,Rhs,Tp,ErTp,Env,shift(Lc,Lb,Lam),Path) :-
   newTypeVar("_",Rt),
+  newTypeVar("_",Ct),
   KType = contType(Tp,Rt),
-  mkTypeExp(tpFun("tag",2),[KType,Rt],TTp),
+  mkTypeExp(tpFun("tag",2),[Tp,Ct],TTp),
+  dispType(TTp),
   typeOfExp(L,TTp,ErTp,Env,_,Lb,Path),
   dispType(TTp),
   typeOfPtn(Lhs,KType,ErTp,Env,E0,V,Path),
-  typeOfExp(Rhs,Tp,ErTp,E0,_,Exp,Path),
+  dispType(TTp),
+  typeOfExp(Rhs,Ct,ErTp,E0,_,Exp,Path),
   lambdaLbl(Path,"ç",Lbl),
   Lam = lambda(Lc,Lbl,equation(Lc,tple(Lc,[V]),none,Exp),
 	       funType(tplType([KType]),Rt)),
@@ -1028,14 +1031,14 @@ checkAction(Term,Env,Env,_,VlTp,_,_,_,noDo(Lc),_) :-
   checkType(Term,tplType([]),VlTp,Env).
 checkAction(Term,Env,Env,_,VlTp,_ErTp,_,_,noDo(Lc),_Path) :-
   isBraceTuple(Term,Lc,[]),!,
-  checkType(Term,tplType([]),VlTp,Env).
+  verifyType(Lc,tplType([]),VlTp,Env).
 checkAction(Term,Env,Ev,Tp,VlTp,ErTp,OkFn,EvtFn,seqDo(Lc,A1,A2),Path) :-
   isActionSeq(Term,Lc,S1,S2),!,
   checkAction(S1,Env,E1,Tp,tplType([]),ErTp,OkFn,EvtFn,A1,Path),
   checkAction(S2,E1,Ev,Tp,VlTp,ErTp,OkFn,EvtFn,A2,Path).
 checkAction(Term,Env,Ev,_Tp,VlTp,ErTp,_,_,varDo(Lc,Ptn,Exp),Path) :-
   isMatch(Term,Lc,P,Ex),!,
-  checkType(Term,tplType([]),VlTp,Env),
+  verifyType(Lc,tplType([]),VlTp,Env),
   newTypeVar("_P",PT),
   typeOfPtn(P,PT,ErTp,Env,Ev,Ptn,Path),
   typeOfExp(Ex,PT,ErTp,Env,_,Exp,Path).
@@ -1064,11 +1067,19 @@ checkAction(Term,Env,Env,Tp,VlTp,ErTp,OkFn,EvtFn,untilDo(Lc,Ts,Bdy),Path) :-
   verifyType(Lc,tplType([]),VlTp,Env),
   checkAction(B,Env,Ev,Tp,tplType([]),ErTp,OkFn,EvtFn,Bdy,Path),
   checkGoal(T,ErTp,Ev,_,Ts,Path).
-checkAction(Term,Env,Env,Tp,VlTp,ErTp,OkFn,EvtFn,forDo(Lc,Ts,Bdy),Path) :-
-  isForDo(Term,Lc,T,B),!,
-  verifyType(Term,tplType([]),VlTp,Env),
-  checkGoal(T,ErTp,Env,Ev,Ts,Path),
-  checkAction(B,Ev,_,Tp,tplType([]),ErTp,OkFn,EvtFn,Bdy,Path).
+% checkAction(Term,Env,Env,Tp,VlTp,ErTp,OkFn,EvtFn,forDo(Lc,Ts,Bdy),Path) :-
+%   isForDo(Term,Lc,E,C,B),!,
+%   verifyType(Term,tplType([]),VlTp,Env),
+%   newTypeVar("C",CTp),
+%   typeOfExp(C,CTp,ErTp,Env,_,Cl,Path),
+  
+  
+%   typeOfPtn(E,ETp,ErTp,Env,E1,Arg,Path),
+
+  
+  
+%   checkGoal(T,ErTp,Env,Ev,Ts,Path),
+%   checkAction(B,Ev,_,Tp,tplType([]),ErTp,OkFn,EvtFn,Bdy,Path).
 checkAction(Term,Env,Env,Tp,VlTp,ErTp,OkFn,EvtFn,tryCatchDo(Lc,Bdy,Hndlr),Path) :-
   isTryCatch(Term,Lc,B,H),!,
   anonVar(Lc,Anon,BdErTp),

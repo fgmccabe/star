@@ -571,10 +571,11 @@ examineAction(A,Ax) :-
   macroAction(B,Bx),
   mkUntilDo(Lc,Tx,Bx,Ax).
 examineAction(A,Ax) :-
-  isForDo(A,Lc,T,B),!,
+  isForDo(A,Lc,E,T,B),!,
+  macroTerm(E,Ex),
   macroTerm(T,Tx),
   macroAction(B,Bx),
-  mkForDo(Lc,Tx,Bx,Ax).
+  mkForDo(Lc,Ex,Tx,Bx,Ax).
 examineAction(A,Ax) :-
   isValis(A,Lc,V),!,
   macroTerm(V,Vx),

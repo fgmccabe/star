@@ -141,9 +141,9 @@ reQuantTps(Tp,[(V,Vr)|Q],allType(kVar(V),QTp)) :-
   isUnbound(Vr),
   reQuantTps(Tp,Q,QTp).
 
-reQuantX(Tp,[],Tp).
-reQuantX(Tp,[(_,Vt)|Q],existType(Vt,QTp)) :-
-  reQuantX(Tp,Q,QTp).
+reQuantX([],Tp,Tp).
+reQuantX([(_,Vt)|Q],Tp,existType(Vt,QTp)) :-
+  reQuantX(Q,Tp,QTp).
 
 getConstraints(Tp,Cx,Inner) :-
   deRef(Tp,DTp),

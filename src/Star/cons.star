@@ -4,6 +4,7 @@ star.cons{
   import star.iterable.
   import star.monad.
   import star.coerce.
+  import star.action.
 
   public implementation all x ~~ equality[x] |: equality[cons[x]] => let{
     smList:all x ~~ equality[x] |: (cons[x],cons[x]) => boolean.
@@ -138,13 +139,16 @@ star.cons{
 
   public consIterState[e] ::= consIterState(ref cons[e]).
 
-/*  public implementation all e ~~ iteration[consIterState[e]->>e] => {.
-    _hasNext(consIterState(L)) => cons(_,_).=L!.
-    _current(consIterState(L)) where cons(H,_).=L! => H.
+  public implementation all e ~~ iteration[consIterState[e]->>e] => {.
+    _current(consIterState(L)) where cons(H,_).=L! => some(H).
+    _current(consIterState(L)) default => .none.
     _advance(consIterState(L)) where cons(_,T).=L! => do{
       L:= T;
       valis ()
     }
   .}
-*/
+
+  public implementation all e ~~ iterator[cons[e]->>consIterState[e]] => {.
+    _iterator(L) => consIterState(ref L)
+  .}
 }

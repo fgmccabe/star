@@ -734,8 +734,9 @@ validAct(raisDo(Lc,E),_,D) :-
 validAct(perfDo(Lc,A),_,D) :-
   validTerm(A,Lc,D).
 validAct(whle(Lc,T,A),_,D) :-
-  validTerm(T,Lc,D),
-  validAct(A,Lc,D).
+  glVars(T,D,D0),
+  validTerm(T,Lc,D0),
+  validAct(A,Lc,D0).
 validAct(untl(Lc,T,A),_,D) :-
   validTerm(T,Lc,D),
   validAct(A,Lc,D).

@@ -7,6 +7,10 @@
 
 #include "streamDecode.h"
 
+#ifdef TRACEDECODE
+extern tracingLevel traceDecode;
+#endif
+
 extern retCode decInt(ioPo in, integer *ii);
 extern retCode decFlt(ioPo in, double *dx);
 extern retCode decodeInteger(ioPo in, integer *ix);

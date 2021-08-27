@@ -173,7 +173,7 @@ retCode release(buddyRegionPo region, voidPtr *block) {
 #endif
 
   region->freeLists[freeIx] = insertBlock(region->freeLists[freeIx], entry);
-  assert(validBlockList(region->freeLists[freeIx]));
+//  assert(validBlockList(region->freeLists[freeIx]));
 
 #ifdef TRACE_BUDDY_MEMORY
   memset(entry + 1, 0x5a, (1 << entry->buddy.lgSize) - sizeof(FreeEntry));
@@ -183,6 +183,7 @@ retCode release(buddyRegionPo region, voidPtr *block) {
 
 #ifdef TRACE_BUDDY_MEMORY
   if (traceBuddyMemory) {
+    logMsg(logFile, "block released @ 0x%x", entry);
   }
 #endif
 
