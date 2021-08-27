@@ -1,8 +1,6 @@
 star.action{
   import star.core.
   import star.monad.
-  import star.option.
-  import star.display.
 
   public all a,e ~~ action[e,a] ::= action(()=>result[e,a]).
 

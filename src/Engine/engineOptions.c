@@ -9,7 +9,7 @@
 
 #include "cmdOptions.h"
 #include "engineOptions.h"
-#include "streamDecode.h"
+#include "streamDecodeP.h"
 #include "heapP.h"
 #include "stackP.h"
 #include "manifestP.h"

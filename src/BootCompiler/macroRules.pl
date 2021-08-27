@@ -28,6 +28,7 @@ macroRl(":=",action,macroRules:spliceAssignMacro).
 macroRl(":=",action,macroRules:indexAssignMacro).
 macroRl("assert",action,macroRules:assertMacro).
 macroRl("show",action,macroRules:showMacro).
+macroRl("do",action,macroRules:forLoopMacro).
 macroRl("valof",expression,macroRules:valofMacro).
 
 build_main(As,Bs) :-
@@ -324,6 +325,31 @@ pkgNameMacro(T,expression,string(Lc,P)) :-
 macroLocationExp(T,expression,Loc) :-
   isName(T,Lc,"__loc__"),!,
   mkLoc(Lc,Loc).
+
+/*
+  for X in L do A
+  becomes
+  { _It .= _iterator(L);
+    while X^=current(_It) do{
+      A;
+      _advance(_It)
+    }
+  }
+*/
+
+forLoopMacro(A,action,Ax) :-
+  isForDo(A,Lc,P,C,B),!,
+  genIden(Lc,It),
+  roundTerm(Lc,name(Lc,"_iterator"),[C],Itor),
+  match(Lc,It,Itor,S1),
+  roundTerm(Lc,name(Lc,"_current"),[It],Cr),
+  optionMatch(Lc,P,Cr,WCnd),
+  roundTerm(Lc,name(Lc,"_advance"),[It],Ad),
+  mkActionSeq(Lc,B,Ad,B1),
+  mkWhileDo(Lc,WCnd,B1,S2),
+  mkActionSeq(Lc,S1,S2,S3),
+  braceTuple(Lc,[S3],Ax).
+  
 
 /*
  assert C 

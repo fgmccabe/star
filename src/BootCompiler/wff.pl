@@ -44,8 +44,8 @@
 	      isIgnore/3,mkIgnore/3,
 	      isTryCatch/4,mkTryCatch/4,
 	      isIfThenElse/5,isIfThen/4,mkIfThenElse/5,mkIfThen/4,
-	      isWhileDo/4,isUntilDo/4,isForDo/4,
-	      mkWhileDo/4,mkUntilDo/4,mkForDo/4,
+	      isWhileDo/4,isUntilDo/4,isForDo/5,
+	      mkWhileDo/4,mkUntilDo/4,mkForDo/5,
 	      isActionSeq/4,isActionSeq/3,mkActionSeq/4,
 	      isLetDef/4,isLetRec/4,mkLetDef/4,mkLetRec/4,
 	      whereTerm/4,
@@ -861,11 +861,13 @@ mkUntilDo(Lc,T,B,S) :-
   unary(Lc,"do",B,B0),
   binary(Lc,"until",B0,T,S).
 
-isForDo(A,Lc,Ts,Bd) :-
+isForDo(A,Lc,El,It,Bd) :-
   isBinary(A,Lc,"do",LL,Bd),
-  isUnary(LL,_,"for",Ts),!.
+  isUnary(LL,_,"for",Ts),
+  isBinary(Ts,_,"in",El,It),!.
 
-mkForDo(Lc,T,B,S) :-
+mkForDo(Lc,El,It,B,S) :-
+  binary(Lc,"in",El,It,T),
   unary(Lc,"for",T,Ts),
   binary(Lc,"do",Ts,B,S).
 

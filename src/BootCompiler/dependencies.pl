@@ -390,9 +390,10 @@ collectDoRefs(T,All,Rf,Rfx) :-
   collectTermRefs(Tt,All,Rf,Rf0),
   collectDoRefs(B,All,Rf0,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
-  isForDo(T,_,Tt,B),!,
-  collectTermRefs(Tt,All,Rf,Rf0),
-  collectDoRefs(B,All,Rf0,Rfx).
+  isForDo(T,_,E,Tt,B),!,
+  collectTermRefs(E,All,Rf,Rf0),
+  collectTermRefs(Tt,All,Rf0,Rf1),
+  collectDoRefs(B,All,Rf1,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isTryCatch(T,_,L,R),!,
   collectDoRefs(L,All,Rf,Rf1),

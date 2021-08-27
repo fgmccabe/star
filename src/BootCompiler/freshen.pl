@@ -19,9 +19,20 @@ boundVars([kFun(V,Ar)|L],[(V,TV)|Lx]) :- newTypeFun(V,Ar,TV),
 
 hasQuants(allType(_,_)).
 
-freshQuants(allType(kVar(V),Tp),B,BV,FTp) :- newTypeVar(V,TV),deRef(Tp,T),freshQuants(T,[(V,TV)|B],BV,FTp).
-freshQuants(allType(kFun(V,Ar),Tp),B,BV,FTp) :- newTypeFun(V,Ar,TV),deRef(Tp,T),freshQuants(T,[(V,TV)|B],BV,FTp).
-freshQuants(existType(kVar(V),Tp),B,BV,FTp) :- genSkolemFun(V,B,TV),deRef(Tp,T),freshQuants(T,[(V,TV)|B],BV,FTp).
+freshQuants(allType(kVar(V),Tp),B,BV,FTp) :-
+  newTypeVar(V,TV),
+  deRef(Tp,T),
+  freshQuants(T,[(V,TV)|B],BV,FTp).
+freshQuants(allType(kFun(V,Ar),Tp),B,BV,FTp) :-
+  newTypeFun(V,Ar,TV),
+  deRef(Tp,T),
+  freshQuants(T,[(V,TV)|B],BV,FTp).
+freshQuants(existType(kVar(V),Tp),B,BV,FTp) :-
+  genSkolemFun(V,B,TV),
+  deRef(Tp,T),
+  freshQuants(T,[(V,TV)|B],BV,FTp).
+freshQuants(constrained(Tp,Con),B,BV,constrained(FTp,Con)) :-
+  freshQuants(Tp,B,BV,FTp).
 freshQuants(Tp,B,B,Tp).
 
 genSkolemFun(Nm,[],V) :-
@@ -29,7 +40,9 @@ genSkolemFun(Nm,[],V) :-
 genSkolemFun(Nm,Q,Tp) :-
   length(Q,Ar),
   skolemFun(Nm,Ar,NN),
-  mkTypeExp(NN,Q,Tp).
+  rfold(Q,freshen:skExp,NN,Tp).
+
+skExp((_,V),T,tpExp(T,V)).
 
 evidence(Tp,Env,Q,ProgramType) :-
   deRef(Tp,T),
@@ -76,7 +89,9 @@ frshn(contType(A,R),E,B,Ex,contType(FA,FR)) :-
   rewriteType(A,E,B,Ex,FA),
   rewriteType(R,E,B,Ex,FR).
 frshn(tplType(L),E,B,Ex,tplType(FL)) :- rewriteTypes(L,E,B,Ex,FL).
-frshn(tpExp(O,A),E,B,Ex,tpExp(FO,FA)) :- rewriteType(O,E,B,Ex,FO),rewriteType(A,E,B,Ex,FA).
+frshn(tpExp(O,A),E,B,Ex,tpExp(FO,FA)) :-
+  rewriteType(O,E,B,Ex,FO),
+  rewriteType(A,E,B,Ex,FA).
 frshn(allType(V,Tp),E,B,Ex,allType(V,FTp)) :-
   rewriteType(Tp,E,B,[V|Ex],FTp).
 frshn(existType(V,Tp),E,B,Ex,existType(V,FTp)) :-

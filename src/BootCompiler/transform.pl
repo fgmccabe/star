@@ -205,6 +205,8 @@ extendFunTp(funType(tplType(Els),Rt),Extra,funType(tplType(NEls),Rt)) :-
   concat(Anons,Els,NEls).
 extendFunTp(allType(V,T),Extra,allType(V,NT)) :-
   extendFunTp(T,Extra,NT).
+extendFunTp(existType(V,T),Extra,existType(V,NT)) :-
+  extendFunTp(T,Extra,NT).
 extendFunTp(constrained(T,C),Extra,constrained(NT,C)) :-
   extendFunTp(T,Extra,NT).
 

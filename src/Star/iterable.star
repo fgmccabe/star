@@ -1,6 +1,6 @@
 star.iterable{
   import star.core.
-  import star.monad.
+  import star.action.
 
   -- The iter contract is used in query evaluation
   -- The _iter function iterates over the collection composing it
@@ -13,9 +13,12 @@ star.iterable{
     (group_by) : (coll[v], (v)=>k) => m[k,coll[v]]
   }
 
-/*  public contract all s,t ~~ iteration[s->>t] ::= {
-    _hasNext:(s)=>boolean.
-    _current:(s) => t.
+  public contract all s,e ~~ iteration[s->>e] ::= {
+    _current:(s) => option[e].
     _advance:(s) => result[(),()].
-  }  */
+  }
+
+  public contract all s,i,e ~~ iterator[s->>i] ::= {
+    _iterator:(s) => i
+  }
 }
