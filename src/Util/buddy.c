@@ -106,8 +106,7 @@ static void coalesceBlocks(buddyRegionPo region, integer freeIx) {
     assert((*list)->buddy.lgSize == freeIx + region->minLg);
     freePo lst = *list;
 
-    if (lst->next != Null && ((voidPtr *) lst) + blockSize == (voidPtr *) lst->next &&
-        (((uint64) blockOffset(region, lst)) & (uint64) blockSize) == 0) {
+    if (lst->next != Null && (blockOffset(region,lst)^blockSize)==blockOffset(region,lst->next)){
       freePo entry = lst;
       *list = entry->next->next; // Chop the newly coalesced block out
 
@@ -180,12 +179,6 @@ retCode release(buddyRegionPo region, voidPtr *block) {
 #endif
 
   coalesceBlocks(region, freeIx);
-
-#ifdef TRACE_BUDDY_MEMORY
-  if (traceBuddyMemory) {
-    logMsg(logFile, "block released @ 0x%x", entry);
-  }
-#endif
 
   return Ok;
 }
