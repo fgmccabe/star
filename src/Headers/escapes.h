@@ -14,6 +14,7 @@
 #define udpType "t'star.io*udpHandle'"
 #define ssType "t'star.core*ss'"
 #define optionType(T) "Uz1'star.core*option'" T
+#define tagType(F,T) "UUz2'tag'" F T
 
 /* Define the standard escapes */
 escape(_exit,"F(i)()","terminate engine")
@@ -21,7 +22,7 @@ escape(_abort,":k's'F(k's'S)()","abort process")
 
 escape(_definedLbl,"F(Si)l","test for defined name")
 escape(_callLbl,"F(SiLLS)()","invoke defined name")
-escape(_fun2cont,":k'a':k'b'F(F(k'a')k'b')Dk'a'k'b'","create a continuation from a function")
+escape(_fun2cont,":k'a':k'b'F("tagType("k'a'", "k'b'")"F(k'a')k'b')D(k'a')k'b'","create a continuation from a function")
 
 escape(_int_plus,"F(ii)i","add two integers")
 escape(_int_minus,"F(ii)i","subtract two integers")

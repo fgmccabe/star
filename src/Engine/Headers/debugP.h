@@ -44,4 +44,6 @@ DebugWaitFor lineDebug(processPo p, termPo line);
 DebugWaitFor enterDebug(processPo p);
 
 void stackTrace(processPo p, ioPo out, stackPo stk);
+
+insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc);
 #endif //STAR_DEBUGP_H

@@ -48,6 +48,8 @@ clssPo stackClass = (clssPo) &StackClass;
 static integer stackCount = 0;
 static buddyRegionPo stackRegion;
 
+static framePo firstFrame(stackPo stk);
+
 void initStacks() {
   StackClass.clss = specialClass;
   underFlowMethod.clss = methodClass;
@@ -188,6 +190,10 @@ integer stkHash(specialClassPo cl, termPo o) {
   return C_STACK(o)->hash;
 }
 
+integer stackNo(stackPo stk) {
+  return stk->hash;
+}
+
 termPo popStack(stackPo stk) {
   assert(stk->sp < stackLimit(stk));
   return *stk->sp++;
@@ -261,9 +267,18 @@ static char *stackStateName(StackState ste) {
 
 retCode stkDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   stackPo stk = C_STACK(t);
-  return outMsg(out, "(.stack %d:%s %d cells @ 0x%x.)",
-                stk->hash, stackStateName(stk->state),
-                stk->sze,stk->stkMem);
+  framePo first = firstFrame(stk);
+
+  if (first != Null && first != stk->fp)
+    return outMsg(out, "(.stack %d:[%s] %M .. %M.)",
+                  stk->hash,
+                  stackStateName(stk->state),
+                  stk->fp->prog, first->prog);
+  else
+    return outMsg(out, "(.stack %d:[%s] %M.)",
+                  stk->hash,
+                  stackStateName(stk->state),
+                  stk->fp->prog);
 }
 
 stackPo glueOnStack(heapPo H, stackPo stk, integer size) {
@@ -341,4 +356,21 @@ termPo stackPrompt(stackPo stk) {
 
 void setPrompt(stackPo stk, termPo prompt) {
   stk->prompt = prompt;
+}
+
+framePo firstFrame(stackPo stk) {
+  ptrPo sp = stk->sp;
+  framePo fp = stk->fp;
+  framePo f = fp;
+  framePo limit = (framePo) (stk->stkMem + stk->sze);
+
+  while (fp < limit) {
+    f = fp;
+    fp = fp->fp;
+  }
+
+  if (f < limit)
+    return f;
+  else
+    return Null;
 }

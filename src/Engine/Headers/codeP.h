@@ -67,8 +67,6 @@ static inline logical isPcOfMtd(methodPo mtd, insPo pc){
 extern retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
 extern logical validPC(methodPo mtd, insPo pc);
 
-extern void markMtd(gcSupportPo G, methodPo mtd);
-
 retCode loadPackage(packagePo p, char *errorMsg, long msgSize, void *cl);
 
 typedef retCode (*pickupPkg)(packagePo pkg, char *errorMsg, long msgLen, void *cl);

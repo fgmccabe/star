@@ -31,8 +31,6 @@ static void showStackCall(ioPo out, stackPo stk, framePo fp, integer frameNo);
 static retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bufLen);
 static void stackSummary(ioPo out, stackPo stk);
 
-static insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc);
-
 static sockPo debuggerListener = Null;
 
 static ioPo debugInChnnl = Null;
@@ -807,7 +805,7 @@ DebugWaitFor insDebug(processPo p, insWord ins) {
 
   logical stopping = shouldWeStopIns(p, stk, ins);
   if (p->tracing || stopping) {
-    outMsg(debugOutChnnl, "[%d]: ", pcCount);
+    outMsg(debugOutChnnl, "[(%d)%d]: ", stackNo(stk), pcCount);
     disass(debugOutChnnl, stk, frame->prog, frame->pc);
 
     if (stopping) {

@@ -51,4 +51,6 @@ stackPo findStack(stackPo current, termPo prompt);
 termPo stackPrompt(stackPo stk);
 void setPrompt(stackPo stk,termPo prompt);
 
+integer stackNo(stackPo stk);
+
 #endif //STAR_STACK_H
