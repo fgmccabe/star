@@ -7,6 +7,7 @@
 #include <arith.h>
 #include "codeP.h"
 #include "labelsP.h"
+#include "debugP.h"
 
 static poolPo pkgPool;
 static hashPo packages;
@@ -90,16 +91,16 @@ integer mtdHash(specialClassPo cl, termPo o) {
 
 retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   methodPo mtd = C_MTD(t);
+
   normalPo pool = codeLits(mtd);
   if (pool != Null) {
     labelPo lbl = C_LBL(nthArg(pool, 0));
     return showLbl(out, lbl, 0, precision, alt);
-  } else
-    return outMsg(out, "<unknown mtd>");
-}
-
-void markMtd(gcSupportPo G, methodPo mtd) {
-
+  } else {
+    outMsg(out, "<unknown mtd: ");
+    disass(out, Null, mtd, mtd->code);
+    return outMsg(out, ">");
+  }
 }
 
 integer insOffset(methodPo m, insPo pc) {
@@ -162,11 +163,7 @@ termPo findPcLocation(methodPo mtd, integer pc) {
 }
 
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt) {
-  methodPo mtd = (methodPo) data;
-  normalPo pool = codeLits(mtd);
-  termPo lbl = nthArg(pool, 0);
-
-  return outMsg(f, "%T", lbl);
+  return mtdDisp(f, (termPo) data, precision, depth, alt);
 }
 
 normalPo codeLits(methodPo mtd) {
