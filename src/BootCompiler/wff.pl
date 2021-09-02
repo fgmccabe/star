@@ -525,13 +525,12 @@ mkCut(Lc,Lb,L,R,Trm) :-
   binary(Lc,"in",L,R,Rhs),
   binary(Lc,"cut",Lb,Rhs,Trm).
 
-isResume(T,Lc,K,C) :-
+isResume(T,Lc,K,A) :-
   isBinary(T,Lc,".",K,A),
-  isTuple(A,_,[C]).
+  isTuple(A,_,_).
 
 mkResume(Lc,K,C,T) :-
-  roundTuple(Lc,[C],Tpl),
-  binary(Lc,".",K,Tpl,T).
+  binary(Lc,".",K,C,T).
 
 isAssignment(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,":=",Lhs,Rhs).

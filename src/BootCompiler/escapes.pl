@@ -6,7 +6,7 @@ escapeType("_exit",funType(tplType([type("star.core*integer")]),tplType([]))).
 escapeType("_abort",allType(kVar("s"),funType(tplType([kVar("s"),type("star.core*string")]),tplType([])))).
 escapeType("_definedLbl",funType(tplType([type("star.core*string"),type("star.core*integer")]),type("star.core*boolean"))).
 escapeType("_callLbl",funType(tplType([type("star.core*string"),type("star.core*integer"),tpExp(tpFun("star.core*cons",1),tpExp(tpFun("star.core*cons",1),type("star.core*string")))]),tplType([]))).
-escapeType("_fun2cont",allType(kVar("a"),allType(kVar("b"),funType(tplType([funType(tplType([kVar("a")]),kVar("b"))]),contType(kVar("a"),kVar("b")))))).
+escapeType("_fun2cont",allType(kVar("a"),allType(kVar("b"),funType(tplType([tpExp(tpExp(tpFun("tag",2),kVar("a")),kVar("b")),funType(tplType([kVar("a")]),kVar("b"))]),contType(tplType([kVar("a")]),kVar("b")))))).
 escapeType("_int_plus",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer"))).
 escapeType("_int_minus",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer"))).
 escapeType("_int_times",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer"))).

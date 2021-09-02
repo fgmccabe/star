@@ -311,9 +311,9 @@ collectTermRefs(T,All,R,Rx) :-
   collectTermRefs(L,All,R0,R1),
   collectTermRefs(E,All,R1,Rx).
 collectTermRefs(T,A,R0,Rx) :-
-  isResume(T,_,O,Arg),
+  isResume(T,_,O,Args),
   collectTermRefs(O,A,R0,R1),
-  collectTermRefs(Arg,A,R1,Rx).
+  collectTermRefs(Args,A,R1,Rx).
 collectTermRefs(_,_,Rx,Rx).
 
 collectTermListRefs([],_,Rx,Rx).
@@ -408,6 +408,19 @@ collectDoRefs(T,All,Rf,Rfx) :-
   isAssignment(T,_,L,R),!,
   collectTermRefs(L,All,Rf,Rf0),
   collectTermRefs(R,All,Rf0,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  isPrompt(T,_,L,R),!,
+  collectTermRefs(L,All,Rf,Rf1),
+  collectDoRefs(R,All,Rf1,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  isCut(T,_,L,K,R),!,
+  collectTermRefs(K,All,Rf,Rf0),
+  collectTermRefs(L,All,Rf0,Rf1),
+  collectDoRefs(R,All,Rf1,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  isResume(T,_,L,Args),!,
+  collectTermRefs(L,All,Rf,R1),
+  collectTermRefs(Args,All,R1,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   collectTermRefs(T,All,Rf,Rfx).
 

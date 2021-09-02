@@ -44,6 +44,11 @@ star.q{
     reverse(qc(F,B)) => qc(B,F).
   }
 
+  public implementation all x ~~ glue[qc[x]->>x] => {.
+    prepend(X,qc(F,T)) => qc(cons(X,F),T).
+    append(qc(F,T),X) => qc(F,cons(X,T)).
+  .}
+
   public implementation all e ~~ folding[qc[e]->>e] => {
     foldRight(F,U,qc(.nil,.nil)) => U.
     foldRight(F,U,qc(.nil,B)) => foldLeftR(F,U,B).

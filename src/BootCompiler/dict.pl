@@ -195,12 +195,12 @@ mergeVDefs([Vr-T1|D1],D2,Env,[Vr-T1|D3]) :-
 mergeVDefs([_|D1],D2,Env,D3) :-
   mergeVDefs(D1,D2,Env,D3).
 
-sameTpDef(tpDef(_,T1,R1),tpDef(_,T2,R2),Env) :-
-  unify:sameType(T1,T2,Env),
-  unify:sameType(R1,R2,Env).
+sameTpDef(tpDef(Lc,T1,R1),tpDef(_,T2,R2),Env) :-
+  unify:sameType(T1,T2,Lc,Env),
+  unify:sameType(R1,R2,Lc,Env).
 
-sameDesc(vrEntry(_,C1,Tp1),vrEntry(_,C1,Tp2),Env) :-
-  unify:sameType(Tp1,Tp2,Env).
+sameDesc(vrEntry(Lc,C1,Tp1),vrEntry(_,C1,Tp2),Env) :-
+  unify:sameType(Tp1,Tp2,Lc,Env).
 
 pushFace(faceType(Vrs,Tps),Lc,Env,ThEnv) :-
   pushFields(Vrs,Lc,Env,E0),
@@ -240,6 +240,7 @@ stdDict(Base) :-
   stdType("float",FltTp,FtEx),
   stdType("cons",ConsTp,ConsEx),
   stdType("file",FileTp,FileEx),
+  stdType("tag",TagTp,TagEx),
 %  stdType("action",ActionTp,ActionEx),
   stdType("task",TaskTp,TaskEx),
   declareType("string",tpDef(std,StrTp,StpEx),B,B0),
@@ -247,6 +248,7 @@ stdDict(Base) :-
   declareType("float",tpDef(std,FltTp,FtEx),B1,B2),
   declareType("file",tpDef(std,FileTp,FileEx),B2,B3),
   declareType("cons",tpDef(std,ConsTp,ConsEx),B3,B4),
+  declareType("tag",tpDef(std,TagTp,TagEx),B4,B5),
 /*  declareEnum(std,"nil","star.core#nil",
 	      allType(kVar("e"),
 		      consType(tplType([]),
@@ -258,7 +260,7 @@ stdDict(Base) :-
 			       tpExp(tpFun("star.core*cons",1),kVar("e")))),B5,B6),
     */
 %  declareType("action",tpDef(std,ActionTp,ActionEx),B3,B4),
-  declareType("task",tpDef(std,TaskTp,TaskEx),B4,Bx),
+  declareType("task",tpDef(std,TaskTp,TaskEx),B5,Bx),
   Bx=Base.
 
 dispDictLvl(dict(Types,Nms,_Cns,Impls,Accs,Contracts),Cx,

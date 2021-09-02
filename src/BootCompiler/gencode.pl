@@ -305,6 +305,24 @@ compAction(perfDo(Lc,Exp),OLc,Cont,_PCont,_RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,S
   compTerm(Exp,Lc,Cont,ECont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 compAction(justDo(Lc,Exp),_,Cont,_PCont,_,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   compTerm(Exp,Lc,Cont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
+compAction(promptD(Lc,Lb,Lam),OLc,Cont,_PCont,_RCont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  chLine(Opts,OLc,Lc,C,C0),
+  compTerm(Lb,Lc,
+	   compTerm(Lam,Lc,
+		    bothCont(asmCont(iPrompt,Stk),Cont),TCont,Opts),TCont,
+	   Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+compAction(cutD(Lc,Lb,Lam),OLc,Cont,_PCont,_RCont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  chLine(Opts,OLc,Lc,C,C0),
+  compTerm(Lb,Lc,
+	   compTerm(Lam,Lc,
+		    bothCont(asmCont(iCut,Stk),Cont),TCont,Opts),TCont,
+	   Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+compAction(resumeD(Lc,K,A),OLc,Cont,_PCont,_,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  chLine(Opts,OLc,Lc,C,C0),
+  compTerm(A,Lc,
+	   compTerm(K,Lc,
+		    resumeCont(Cont,Opts),ECont,Opts),ECont,
+	   Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 compAction(varD(Lc,Ptn,E),OLc,Cont,_,_,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   compTerm(E,Lc,compPtn(Ptn,Lc,Cont,ECont,ECont,Opts),ECont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).

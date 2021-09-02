@@ -543,6 +543,15 @@ liftAction(_,performDo(Lc,Exp),perfDo(Lc,E1),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(Exp,E1,Q,Qx,Map,Opts,Ex,Exx).
 liftAction(_,simpleDo(Lc,Exp),justDo(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(Exp,EE,Q,Qx,Map,Opts,Ex,Exx).
+liftAction(_,promptDo(Lc,Lb,Lam,_),promptD(Lc,LL,Thnk),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftExp(Lb,LL,Q,Q0,Map,Opts,Ex,Ex0),
+  liftExp(Lam,Thnk,Q0,Qx,Map,Opts,Ex0,Exx).
+liftAction(_,cutDo(Lc,Lb,Lm),cutD(Lc,LL,Thnk),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftExp(Lb,LL,Q,Q0,Map,Opts,Ex,Ex0),
+  liftExp(Lm,Thnk,Q0,Qx,Map,Opts,Ex0,Exx).
+liftAction(_,resumeDo(Lc,K,A,_),resumeD(Lc,KK,AA),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftExp(K,KK,Q,Q0,Map,Opts,Ex,Ex0),
+  liftExp(A,AA,Q0,Qx,Map,Opts,Ex0,Exx).
 liftAction(Last,ifThenDo(Lc,Ts,Th,El),cnd(Lc,Tst,Th1,El1),Q,Qx,Map,Opts,Ex,Exx) :-
   liftGoal(Ts,Tst,Q,Q0,Map,Opts,Ex,Ex0),
   liftAction(Last,Th,Th1,Q,Q0,Map,Opts,Ex0,Ex1),

@@ -153,7 +153,7 @@ examineType(T,Tx) :- isFuncType(T,Lc,L,R),!,
 examineType(T,Tx) :- isContType(T,Lc,L,R),!,
   macroType(L,Lx),
   macroType(R,Rx),
-  contType(Lc,Lx,Rx,Tx).
+  mkContType(Lc,Lx,Rx,Tx).
 examineType(T,Tx) :- isRoundTuple(T,Lc,Els),!,
   map(Els,macros:macroType,Elx),
   roundTuple(Lc,Elx,Tx).
@@ -373,10 +373,10 @@ examineTerm(T,Tx) :-
   macroTerm(R,Rx),
   mkCut(Lc,Lbx,Lx,Rx,Tx).
 examineTerm(T,Tx) :-
-  isResume(T,Lc,L,R),!,
+  isResume(T,Lc,L,Args),!,
   macroTerm(L,Lx),
-  macroTerm(R,Rx),
-  mkResume(Lc,Lx,Rx,Tx).
+  macroTerm(Args,As),
+  mkResume(Lc,Lx,As,Tx).
 examineTerm(T,Tx) :-
   isBraceTuple(T,Lc,D),!,
   map(D,macros:macroStmt,Dx),
@@ -592,6 +592,22 @@ examineAction(A,Ax) :-
   isPerform(A,Lc,V),!,
   macroTerm(V,Vx),
   mkPerform(Lc,Vx,Ax).
+examineAction(A,Ax) :-
+  isPrompt(A,Lc,L,R),!,
+  macroTerm(L,Lx),
+  macroAction(R,Rx),
+  mkPrompt(Lc,Lx,Rx,Ax).
+examineAction(A,Ax) :-
+  isCut(A,Lc,Lb,L,R),!,
+  macroTerm(Lb,Lbx),
+  macroTerm(L,Lx),
+  macroAction(R,Rx),
+  mkCut(Lc,Lbx,Lx,Rx,Ax).
+examineAction(A,Ax) :-
+  isResume(A,Lc,L,Args),!,
+  macroTerm(L,Lx),
+  macroTerm(Args,As),
+  mkResume(Lc,Lx,As,Ax).
 examineAction(T,Tx) :-
   isCaseExp(T,Lc,E,C),!,
   macroTerm(E,Ex),

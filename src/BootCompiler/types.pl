@@ -19,12 +19,13 @@
 	   unitTp/1]).
 :- use_module(misc).
 :- use_module(display).
+:- use_module(location).
 
 isType(anonType).
 isType(voidType).
 isType(kVar(_)).
-isType(tVar(_,_,_,_)).
-isType(tFun(_,_,_,_,_)).
+isType(tVar(_,_,_,_,_)).
+isType(tFun(_,_,_,_,_,_)).
 isType(type(_)).
 isType(tpExp(_,_)).
 isType(refType(_)).
@@ -68,18 +69,11 @@ isFcType(allType(_,T)) :- isFaceType(T).
 isFcType(existType(_,T)) :- isFaceType(T).
 isFcType(constrained(T,_)) :- isFaceType(T).
 
-newTypeVar(Nm,tVar(_,_,Nm,Id)) :- genstr("_#",Id).
-newTypeFun(Nm,Ar,tFun(_,_,Nm,Ar,Id)) :- genstr(Nm,Id).
+newTypeVar(Nm,tVar(_,_,_,Nm,Id)) :- genstr("_#",Id).
+newTypeFun(Nm,Ar,tFun(_,_,_,Nm,Ar,Id)) :- genstr(Nm,Id).
 
-varConstraints(tVar(_,Con,_,_),_,Con) :-!.
-varConstraints(tFun(_,Con,_,_,_),_,Con) :- !.
-/*varConstraints(kVar(_),_,[]) :- !.
-varConstraints(kFun(_,_),_,[]) :- !.
-varConstraints(kVar(Id),Env,Con) :- !,
-  getEnvConstraints(Env,types:isKCon(kVar(Id)),Con,_).
-varConstraints(kFun(Id,Ar),Env,Con) :- !,
-  getEnvConstraints(Env,types:isKCon(kFun(Id,Ar)),Con,_).
-  */
+varConstraints(tVar(_,Con,_,_,_),_,Con) :-!.
+varConstraints(tFun(_,Con,_,_,_,_),_,Con) :- !.
 
 isKCon(K,conTract(_,A,_)) :- is_member(K,A).
 
@@ -95,8 +89,8 @@ collectConstraints([C|Cs],T,[C|C0],Cx) :-
 collectConstraints([_|Cs],T,C,Cx) :-
   collectConstraints(Cs,T,C,Cx).
 
-addConstraint(tVar(_,Cx,_,_),Con) :- !, safeAdd(Cx,Con).
-addConstraint(tFun(_,Cx,_,_,_),Con) :- safeAdd(Cx,Con).
+addConstraint(tVar(_,Cx,_,_,_),Con) :- !, safeAdd(Cx,Con).
+addConstraint(tFun(_,Cx,_,_,_,_),Con) :- safeAdd(Cx,Con).
 
 safeAdd(Cx,Con) :- var(Cx),!,Cx=[Con|_].
 safeAdd([_|Cx],Con) :- safeAdd(Cx,Con).
@@ -106,20 +100,22 @@ skolemVar(Nm,kVar(Id)) :- genstr(Nm,Id).
 skolemFun(Nm,0,kVar(Id)) :- !,genstr(Nm,Id).
 skolemFun(Nm,Ar,kFun(Id,Ar)) :- genstr(Nm,Id).
 
-deRef(tVar(Curr,_,_,_),Tp) :- nonvar(Curr), !, deRef(Curr,Tp),!.
-deRef(tFun(Curr,_,_,_,_),Tp) :- nonvar(Curr), !, deRef(Curr,Tp),!.
+deRef(tVar(Curr,_,_,_,_),Tp) :- nonvar(Curr), !, deRef(Curr,Tp),!.
+deRef(tFun(Curr,_,_,_,_,_),Tp) :- nonvar(Curr), !, deRef(Curr,Tp),!.
 deRef(T,T).
 
-isIdenticalVar(tVar(_,_,_,Id),tVar(_,_,_,Id)).
-isIdenticalVar(tFun(_,_,_,Ar,Id),tFun(_,_,_,Ar,Id)).
+isIdenticalVar(tVar(_,_,_,_,Id),tVar(_,_,_,_,Id)).
+isIdenticalVar(tFun(_,_,_,_,Ar,Id),tFun(_,_,_,_,Ar,Id)).
 isIdenticalVar(kVar(Id),kVar(Id)).
 isIdenticalVar(kFun(Id,Ar),kFun(Id,Ar)).
 
-isUnbound(T) :- deRef(T,Tp), (Tp=tVar(Curr,_,_,_),!,var(Curr) ; Tp=tFun(Curr,_,_,_,_),!,var(Curr)).
+isUnbound(T) :- deRef(T,Tp),
+  (Tp=tVar(Curr,_,_,_,_),!,var(Curr) ;
+   Tp=tFun(Curr,_,_,_,_,_),!,var(Curr)).
 
-isUnboundFVar(T,Ar) :- deRef(T,tFun(_,_,_,Ar,_)).
+isUnboundFVar(T,Ar) :- deRef(T,tFun(_,_,_,_,Ar,_)).
 
-isBound(T) :- deRef(T,TV), TV\=tVar(_,_,_,_),TV\=tFun(_,_,_,_,_).
+isBound(T) :- deRef(T,TV), TV\=tVar(_,_,_,_,_),TV\=tFun(_,_,_,_,_).
 
 moveQuants(allType(B,Tp),[B|Q],Tmpl) :- !,
   moveQuants(Tp,Q,Tmpl).
@@ -166,15 +162,21 @@ ssType(anonType,_,_,ss("_")).
 ssType(voidType,_,_,ss("void")).
 ssType(kVar(Nm),_,_,id(Nm)).
 ssType(kFun(Nm,Ar),_,_,sq([id(Nm),ss("/"),ix(Ar)])).
-ssType(tVar(Curr,_,_,_),ShCon,Dp,S) :- nonvar(Curr),!,ssType(Curr,ShCon,Dp,S).
+ssType(tVar(Curr,_,Lc,_,_),true,Dp,sq([S,ss("@"),LL])) :-
+  nonvar(Curr),!,
+  deRef(Curr,Cr),
+  ssType(Cr,true,Dp,S),
+  lastBindingLoc(Curr,Lc,VLc),
+  ssLc(VLc,LL).
+ssType(tVar(Curr,_,_,_,_),false,Dp,S) :- nonvar(Curr),!,ssType(Curr,false,Dp,S).
+ssType(tVar(_,_,_,_,Id),_,_,sq([ss("%"),ss(Id)])).
 ssType(tVar(_,Cons,_,Id),true,Dp,sq([sq(Cnx),ss("%"),ss(Id)])) :-
   ssVarConstraints(Cons,Dp,Cnx).
-ssType(tVar(_,_,_,Id),false,_,sq([ss("%"),ss(Id)])).
-ssType(tFun(Curr,_,_,_,_),ShCon,Dp,S) :- nonvar(Curr),!,ssType(Curr,ShCon,Dp,S).
-ssType(tFun(_,Cons,_,Ar,Id),true,Dp,
+ssType(tFun(Curr,_,_,_,_,_),ShCon,Dp,S) :- nonvar(Curr),!,ssType(Curr,ShCon,Dp,S).
+ssType(tFun(_,Cons,_,_,Ar,Id),true,Dp,
        sq([sq(Cnx),ss("%"),ss(Id),ss("/"),ix(Ar)])) :-
   ssVarConstraints(Cons,Dp,Cnx).
-ssType(tFun(_,_,_,Ar,Id),false,_,sq([ss("%"),ss(Id),ss("/"),ix(Ar)])).
+ssType(tFun(_,_,_,_,Ar,Id),false,_,sq([ss("%"),ss(Id),ss("/"),ix(Ar)])).
 ssType(type(Nm),_,_,id(Nm)).
 ssType(tpFun(Nm,Ar),_,_,sq([id(Nm),ss("/"),ix(Ar)])).
 ssType(tpExp(Nm,A),ShCon,Dp,S) :- ssTypeExp(tpExp(Nm,A),ShCon,Dp,S).
@@ -186,7 +188,7 @@ ssType(funType(A,R),ShCon,Dp,sq([AA,ss("=>"),RR])) :-
 ssType(consType(A,R),ShCon,Dp,sq([AA,ss("<=>"),RR])) :-
   ssType(A,ShCon,Dp,AA),
   ssType(R,ShCon,Dp,RR).
-ssType(contType(A,R),ShCon,Dp,sq([lp,AA,rp,ss("=>>"),RR])) :-
+ssType(contType(A,R),ShCon,Dp,sq([AA,ss("=>>"),RR])) :-
   ssType(A,ShCon,Dp,AA),
   ssType(R,ShCon,Dp,RR).
 ssType(refType(R),ShCon,Dp,sq([ss("ref "),RR])) :- ssType(R,ShCon,Dp,RR).
@@ -298,7 +300,8 @@ tpArity(funType(A,_),Ar) :- !,
   progTypeArity(A,Ar).
 tpArity(consType(A,_),Ar) :- !,
   tpArity(A,Ar).
-tpArity(contType(_,_),1) :- !.
+tpArity(contType(A,_),Ar) :- !,
+  tpArity(A,Ar).
 tpArity(refType(A),Ar) :- !,
   progTypeArity(A,Ar).
 tpArity(tplType(A),Ar) :- !,length(A,Ar).
@@ -311,7 +314,7 @@ tpArgTypes(allType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(existType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(constrained(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(funType(A,_),ArTps) :- tpArgTypes(A,ArTps).
-tpArgTypes(contType(A,_),[A]) :- !.
+tpArgTypes(contType(A,_),ArTps) :- tpArgTypes(A,ArTps).
 tpArgTypes(tplType(ArTps),ArTps).
 
 funResType(Tp,ResTp) :- deRef(Tp,TT), resType(TT,ResTp).
@@ -401,8 +404,8 @@ tpNm(tpExp(Op,_),Nm) :- deRef(Op,OO), tpNm(OO,Nm).
 tpNm(kVar(Nm),Nm).
 tpNm(kFun(Nm,_),Nm).
 tpNm(tpFun(Nm,_),Nm).
-tpNm(tVar(_,_,Nm,_),Nm).
-tpNm(tFun(_,_,Nm,_,_),Nm).
+tpNm(tVar(_,_,_,Nm,_),Nm).
+tpNm(tFun(_,_,_,Nm,_,_),Nm).
 tpNm(allType(_,Tp),Nm) :-
   tpNm(Tp,Nm).
 tpNm(constrained(T,_),Nm) :-
@@ -446,6 +449,11 @@ stdType("cons",
 stdType("package",type("star.pkg*pkg"),typeExists(type("star.pkg*pkg"),faceType([],[]))).
 stdType("version",type("star.pkg*version"),typeExists(type("star.pkg*version"),faceType([],[]))).
 stdType("file",type("star.file*fileHandle"),typeExists(type("star.file*fileHandle"),faceType([],[]))).
+stdType("tag",tpFun("tag",2),
+	allType(kVar("a"),
+		allType(kVar("b"),
+			typeExists(tpExp(tpExp(tpFun("tag",2),kVar("a")),kVar("b")),
+				   faceType([],[]))))).
 /*stdType("action",
 	tpFun("star.core*action",2),
 	allType(kVar("a"),
@@ -478,7 +486,7 @@ toLtp(type("star.core*integer"),i64Tipe) :- !.
 toLtp(type("star.core*float"),f64Tipe) :- !.
 toLtp(type("star.core*boolean"),blTipe) :- !.
 toLtp(funType(Args,Res),fnTipe(As,R)) :-
-  map(Args,types:toLtipe,As),
+  toLtipe(Args,As),
   toLtipe(Res,R).
 toLtp(contType(Arg,Res),contTipe(A,R)) :-
   toLtipe(Arg,A),
@@ -496,3 +504,12 @@ mkPtrs(I,[ptrTipe|As]) :-
   mkPtrs(I1,As).
 
 unitTp(tplType([])).
+
+lastBindingLoc(tVar(Curr,_,Lc,_,_),_,Lc) :-
+  nonvar(Curr), \+Curr=tVar(_,_,_,_,_),!.
+lastBindingLoc(tVar(Curr,_,VLc,_,_),_,Lc) :-
+  nonvar(Curr),!,
+  lastBindingLoc(Curr,VLc,Lc).
+lastBindingLoc(_,Lc,Lc).
+
+
