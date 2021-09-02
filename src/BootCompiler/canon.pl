@@ -63,11 +63,14 @@ isCanon(tryCatchDo(_,_,_)).
 isCanon(caseDo(_,_,_,_,_)).
 isCanon(varDo(_,_,_)).
 isCanon(assignDo(_,_,_)).
+isCanon(promptDo(_,_,_)).
+isCanon(cutDo(_,_,_)).
 isCanon(valisDo(_,_)).
 isCanon(throwDo(_,_)).
 isCanon(performDo(_,_)).
 isCanon(simpleDo(_,_)).
 isCanon(assertDo(_,_)).
+isCanon(resumeDo(_,_,_,_)).
 isCanon(search(_,_,_,_)).
 
 isSimpleCanon(v(_,_,_)).
@@ -173,10 +176,13 @@ locOfCanon(tryCatchDo(Lc,_,_),Lc) :-!.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
 locOfCanon(varDo(Lc,_,_),Lc) :-!.
 locOfCanon(assignDo(Lc,_,_),Lc) :-!.
+locOfCanon(promptDo(Lc,_,_),Lc) :-!.
+locOfCanon(cutDo(Lc,_,_),Lc) :-!.
 locOfCanon(valisDo(Lc,_),Lc) :-!.
 locOfCanon(throwDo(Lc,_),Lc) :-!.
 locOfCanon(performDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(simpleDo(Lc,_,_,_),Lc) :-!.
+locOfCanon(resumeDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(noDo(Lc),Lc) :-!.
 
 constructorName(enm(_,Nm,_),Nm) :-!.
@@ -230,9 +236,7 @@ ssTerm(deref(_,Vr),Dp,sq([V,ss("!")])) :-
 ssTerm(letExp(_,_Decls,Defs,Ex),Dp,
 	    sq([ss("let {."),nl(Dp2),iv(nl(Dp2),DS),nl(Dp),ss(".} in "),B])) :-
   Dp2 is Dp+2,
-%  map(Decls,canon:ssDecl(Dp2,ss("let ")),DD),
   map(Defs,canon:ssDf(Dp2),DS),
-%  flatten([DD,XX],Ds),
   ssTerm(Ex,Dp,B).
 ssTerm(letRec(_,Decls,Defs,Ex),Dp,
 	    sq([ss("let {"),nl(Dp2),iv(nl(Dp2),Ds),nl(Dp),ss("} in "),B])) :-
@@ -323,6 +327,15 @@ ssAction(varDo(_,Ptn,Exp),Dp,sq([PP,ss(" .= "),VV])) :-
 ssAction(assignDo(_,Ptn,Exp),Dp,sq([PP,ss(" := "),VV])) :-
   ssTerm(Ptn,Dp,PP),
   ssTerm(Exp,Dp,VV).
+ssAction(promptDo(_,Lb,E,_),Dp,sq([LL,ss(" prompt "),EE])) :-
+  ssTerm(Lb,Dp,LL),
+  ssTerm(E,Dp,EE).
+ssAction(cutDo(_,L,F),Dp,sq([LL,ss(" cut "),FF])) :-
+  ssTerm(L,Dp,LL),
+  ssTerm(F,Dp,FF).
+ssAction(resumeDo(_,K,A,_),Dp,sq([KK,ss("."),lp,AA,rp])) :-
+  ssTerm(K,Dp,KK),
+  ssTerm(A,Dp,AA).
 ssAction(ifThenDo(_,Tst,Th,El),Dp,
 	 sq([ss("if "),CC,ss("then"),nl(Dp2),TT,nl(Dp2),ss("else"),EE])) :-
   Dp2 is Dp+2,

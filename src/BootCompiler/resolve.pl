@@ -112,7 +112,7 @@ overloadTerm(dot(Lc,Rc,Fld,Tp),Dict,St,Stx,Dot) :-
   resolveAccess(Lc,RRc,Fld,Tp,Dict,St0,Stx,Dot).
 overloadTerm(enm(Lc,Rf,Tp),_,St,St,enm(Lc,Rf,Tp)).
 overloadTerm(cons(Lc,Rf,Tp),_,St,St,cons(Lc,Rf,Tp)).
-overloadTerm(tple(Lc,Args),Dict,St,Stx,tple(Lc,RArgs)) :-
+overloadTerm(tple(Lc,Args),Dict,St,Stx,tple(Lc,RArgs)) :-!,
   overloadLst(Args,resolve:overloadTerm,Dict,St,Stx,RArgs).
 overloadTerm(throw(Lc,Er,Tp),Dict,St,Stx,throw(Lc,Err,Tp)) :-
   overloadTerm(Er,Dict,St,Stx,Err).
@@ -258,6 +258,16 @@ overloadAction(performDo(Lc,Exp),Dict,St,Stx,performDo(Lc,RExp)) :-
   overloadTerm(Exp,Dict,St,Stx,RExp).
 overloadAction(simpleDo(Lc,Exp),Dict,St,Stx,simpleDo(Lc,RExp)) :-
   overloadTerm(Exp,Dict,St,Stx,RExp).
+overloadAction(promptDo(Lc,Lb,Lam,Tp),Dict,St,Stx,promptDo(Lc,RLb,RLam,Tp)) :-
+  overloadTerm(Lb,Dict,St,St0,RLb),
+  overloadTerm(Lam,Dict,St0,Stx,RLam).
+overloadAction(cutDo(Lc,Lb,Lam),Dict,St,Stx,cutDo(Lc,RLb,RLam)) :-
+  overloadTerm(Lb,Dict,St,St0,RLb),
+  overloadTerm(Lam,Dict,St0,Stx,RLam).
+overloadAction(resumeDo(Lc,K,A,Tp),Dict,St,Stx,resumeDo(Lc,RK,RA,Tp)) :-
+  overloadTerm(K,Dict,St,St0,RK),
+  overloadTerm(A,Dict,St0
+,Stx,RA).
 overloadAction(caseDo(Lc,Exp,Cses),Dict,St,Stx,caseDo(Lc,RExp,RCases)) :-
   overloadTerm(Exp,Dict,St,St0,RExp),
   overloadCases(Cses,Dict,St0,Stx,RCases).
@@ -324,11 +334,11 @@ resolveContract(Lc,C,Dict,St,Stx,Over) :-
   getVar(Lc,ImplVrNm,Dict,D0,Impl),
   typeOfCanon(Impl,ITp), % ITp=freshened(ImplTp)
   contractType(C,CTp),
-  sameType(ITp,CTp,Dict),
+  sameType(ITp,CTp,Lc,Dict),
   markResolved(St,St1),
   overloadTerm(Impl,D0,St1,Stx,Over).
 resolveContract(Lc,C,_,St,Stx,C) :-
-  genMsg("no implementation known for %s",[C],Msg),
+  genMsg("no implementation known for %s",[con(C)],Msg),
   markActive(St,Lc,Msg,Stx).
 
 resolveImpl(v(Lc,Nm,Tp),_,_,_,_,St,St,v(Lc,Nm,Tp)) :-!.
@@ -336,7 +346,7 @@ resolveImpl(I,C,ImpNm,Lc,Dict,St,Stx,Over) :-
   freshen(I,[],_,Con),
   getConstraints(Con,Cx,CT),
   contractType(C,Tp),
-  sameType(CT,Tp,[]),
+  sameType(CT,Tp,Lc,[]),
   resolveDependents(Cx,Lc,Dict,St,St0,Args,[]),
   (St0\=active(_,_) ->
     formOver(v(Lc,ImpNm,Tp),Args,Lc,Tp,Over),

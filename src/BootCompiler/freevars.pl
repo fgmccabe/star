@@ -115,6 +115,15 @@ freeActionVars(performDo(_,Exp),Ex,Ex,Q,F,Fv) :-
   freeVars(Exp,Ex,Q,F,Fv).
 freeActionVars(simpleDo(_,A),Ex,Ex,Q,F,Fv) :-
   freeVars(A,Ex,Q,F,Fv).
+freeActionVars(promptDo(_,Lb,Lam,_),Ex,Ex,Q,F,Fv) :-
+  freeVars(Lb,Ex,Q,F,F0),
+  freeVars(Lam,Ex,Q,F0,Fv).
+freeActionVars(cutDo(_,Lb,Lam),Ex,Ex,Q,F,Fv) :-
+  freeVars(Lb,Ex,Q,F,F0),
+  freeVars(Lam,Ex,Q,F0,Fv).
+freeActionVars(resumeDo(_,K,A,_),Ex,Ex,Q,F,Fv) :-
+  freeVars(K,Ex,Q,F,F0),
+  freeVars(A,Ex,Q,F0,Fv).
   
 definedVars(Defs,Q,Qx) :-
   varsInList(Defs,freevars:defVar,Q,Qx).

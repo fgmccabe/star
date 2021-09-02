@@ -18,11 +18,11 @@ test.cng{
 	some(Vl) => FC.((cc,Vl))
     }).
 
-  iterLoop(BF,IT) => let{
+/*  iterLoop(BF,IT) => let{
     loop() => let{.
       Tg = tag().
       LC := Tg cut K in K.
-      IC := mkYield(LC).
+*/
       
       
       

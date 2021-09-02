@@ -227,6 +227,17 @@ ssAct(assignD(_,P,E),Dp,sq([PP,ss(" := "),EE])) :-!,
   ssTrm(E,Dp,EE).
 ssAct(perfDo(_,E),Dp,sq([ss("perform "),EE])) :-!,
   ssTrm(E,Dp,EE).
+ssAct(promptD(_,Lb,E),Dp,sq([LL,ss(" prompt "),EE])) :-!,
+  ssTrm(Lb,Dp,LL),
+  Dp1 is Dp+2,
+  ssTrm(E,Dp1,EE).
+ssAct(cutD(_,Lb,E),Dp,sq([LL,ss(" cut "),EE])) :-!,
+  ssTrm(Lb,Dp,LL),
+  Dp1 is Dp+2,
+  ssTrm(E,Dp1,EE).
+ssAct(resumeD(_,K,A),Dp,sq([KK,ss("."),lp,AA,rp])) :-
+  ssTrm(K,Dp,KK),
+  ssTrm(A,Dp,AA).
 ssAct(cnd(_,T,Th,El),Dp,sq([ss("if "),TT,ss(" then "),nl(Dp2),
 			    HH,ss("else"),nl(Dp2),EE,nl(Dp),ss("fi")])) :-!,
   Dp2 is Dp+2,
@@ -392,6 +403,15 @@ rewriteAction(QTest,assignD(Lc,P,A),assignD(Lc,PP,AA)) :-
   rewriteTerm(QTest,P,PP),
   rewriteTerm(QTest,A,AA).
 rewriteAction(QTest,perfDo(Lc,A),perfDo(Lc,AA)) :-
+  rewriteTerm(QTest,A,AA).
+rewriteAction(QTest,promptD(Lc,K,A),promptD(Lc,KK,AA)) :-
+  rewriteTerm(QTest,K,KK),
+  rewriteTerm(QTest,A,AA).
+rewriteAction(QTest,cutD(Lc,K,A),cutD(Lc,KK,AA)) :-
+  rewriteTerm(QTest,K,KK),
+  rewriteTerm(QTest,A,AA).
+rewriteAction(QTest,resumeD(Lc,K,A),resumeD(Lc,KK,AA)) :-
+  rewriteTerm(QTest,K,KK),
   rewriteTerm(QTest,A,AA).
 rewriteAction(QTest,cnd(Lc,T,A,B),cnd(Lc,TT,AA,BB)) :-
   rewriteTerm(QTest,T,TT),
@@ -753,6 +773,15 @@ validAct(unpack(Lc,T,C),_,D) :-
   validCases(C,lterms:validAct,D).
 validAct(justDo(Lc,E),_,D) :-
   validTerm(E,Lc,D).
+validAct(promptD(Lc,K,A),_,D) :-
+  validTerm(K,Lc,D),
+  validTerm(A,Lc,D).
+validAct(cutD(Lc,K,A),_,D) :-
+  validTerm(K,Lc,D),
+  validTerm(A,Lc,D).
+validAct(resumeD(Lc,K,A),_,D) :-
+  validTerm(K,Lc,D),
+  validTerm(A,Lc,D).
 validAct(tryDo(Lc,B,H),_,D) :-
   validAct(B,Lc,D),
   validTerm(H,Lc,D).

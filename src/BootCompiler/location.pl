@@ -1,10 +1,12 @@
 :- module(location,[locOf/2, mergeLoc/3,
 		    showLocation/3,
 		    ssLoc/2,
+		    ssLc/2,
 		    lcPk/2,lcLine/2,lcColumn/2,lcSize/2,lcOff/2,isLocation/1,locHash/2,
 		   pkgLoc/2]).
 
 :- use_module(misc).
+:- use_module(display).
 
 locOf(idTok(_,Lc),Lc).
 locOf(idQTok(_,Lc),Lc).
@@ -36,6 +38,10 @@ ssLoc(loc(Pk,Ln,Col,Pos,Sz),
       sq([ss(Pk),ss("["),ix(Ln),ss(":"),ix(Col),ss("@"),
 	  ix(Pos),ss("-"),ix(Sz),ss("]")])).
 ssLoc(missing,ss("unknown location")).
+
+ssLc(loc(_,Ln,Col,_,_),
+     sq([ss("\e[31m"),ix(Ln),ss(":"),ix(Col),ss("\e[0m")])).
+ssLc(missing,ss("")).
 
 lcPk(loc(Pk,_,_,_,_),Pk).
 lcLine(loc(_,Ln,_,_,_),Ln).

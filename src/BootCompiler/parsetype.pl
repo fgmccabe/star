@@ -46,7 +46,6 @@ parseType(Sq,Env,Q,C0,Cx,Tp) :-
   parseTypes(Args,Env,Q,C1,C2,ArgTps),
   freshen(Op,Env,_Qx,OOp),
   doTypeFun(Lc,OOp,ArgTps,Env,C2,Cx,Tp).
-%  reBind(Qx,Env,T,Tp).
 parseType(F,Env,B,C0,Cx,funType(AT,RT)) :-
   isFuncType(F,_,L,R),
   parseArgType(L,Env,B,C0,C1,AT),
@@ -128,7 +127,7 @@ parseTypeName(Lc,Id,_,_,C,C,anonType) :-
 doTypeFun(_,typeLambda(tplType([]),Tp),[],_,Cx,Cx,Tp) :-!. % special case
 doTypeFun(_,Op,[],_,Cx,Cx,Op).
 doTypeFun(Lc,typeLambda(L,R),[A|Args],Env,C,Cx,Tp) :-
-  sameType(L,A,Env),
+  sameType(L,A,Lc,Env),
   doTypeFun(Lc,R,Args,Env,C,Cx,Tp).
 doTypeFun(Lc,constrained(CTp,Ct),Args,Env,C,Cx,Tp) :-
   doTypeFun(Lc,CTp,Args,Env,[Ct|C],Cx,Tp).
@@ -154,18 +153,6 @@ parseBoundVar(N,Q,Q) :-
 reQuant([],Tp,Tp).
 reQuant([(_,KV)|M],Tp,allType(KV,QTp)) :-
   reQuant(M,Tp,QTp).
-
-reBind([],_,Tp,Tp).
-reBind([(Nm,TV)|Q],Env,T,allType(kFun(Nm,Ar),Tp)) :-
-  isUnboundFVar(TV,Ar),!,
-  sameType(TV,kFun(Nm,Ar),Env),
-  reBind(Q,Env,T,Tp).
-reBind([(Nm,TV)|Q],Env,T,allType(kVar(Nm),Tp)) :-
-  isUnbound(TV),!,
-  sameType(TV,kVar(Nm),Env),
-  reBind(Q,Env,T,Tp).
-reBind([_|Q],Env,T,Tp) :-
-  reBind(Q,Env,T,Tp).
 
 wrapConstraints([],Tp,Tp).
 wrapConstraints([Con|C],Tp,constrained(WTp,Con)) :-
@@ -204,10 +191,10 @@ parseContractConstraint(Quants,Cons,Sq,Env,Op,ConSpec) :-
   parseConstraints(Cons,Env,Q,C0,[]),
   parseContractArgs(Args,Env,Q,C0,C1,ArgTps,Deps),
   ( parseContractName(Lc,N,Env,Q,contractExists(conTract(Op,ATs,Dps),IFace)) ->
-      ( sameType(tplType(ATs),tplType(ArgTps),Env),
-        simplifyType(tplType(ATs),Env,C1,C2,tplType(As)),
-        sameType(tplType(Dps),tplType(Deps),Env) ->
-          simplifyType(tplType(Dps),Env,C2,Cx,tplType(Ds)),
+      ( sameType(tplType(ATs),tplType(ArgTps),Lc,Env),
+        simplifyType(tplType(ATs),Lc,Env,C1,C2,tplType(As)),
+        sameType(tplType(Dps),tplType(Deps),Lc,Env) ->
+          simplifyType(tplType(Dps),Lc,Env,C2,Cx,tplType(Ds)),
           putConstraints(Cx,contractExists(conTract(Op,As,Ds),IFace),CC),
           reQuant(Q,CC,ConSpec);
           reportError("implementation does not match contract %s",[Op],Lc),
