@@ -22,6 +22,7 @@
 	      isEquation/4,isEquation/5,mkEquation/5,
 	      isPrompt/4,mkPrompt/4,isCut/5,mkCut/5,isTag/2,mkTag/2,isResume/4,mkResume/4,
 	      isDefn/4,isAssignment/4,isRef/3,mkRef/3,isCellRef/3,cellRef/3,
+	      isSequence/4,mkSequence/4,
 	      assignment/4,eqn/4,eqn/5,
 	      mkDefn/4,mkLoc/2,
 	      isGl/1,isIterableGl/1,
@@ -589,6 +590,12 @@ coerce(Lc,Lhs,Rhs,Trm) :- binary(Lc,"::",Lhs,Rhs,Trm).
 isOptCoerce(Trm,Lc,Lhs,Rhs) :-  isBinary(Trm,Lc,":?",Lhs,Rhs).
 
 optCoerce(Lc,Lhs,Rhs,Trm) :- binary(Lc,":?",Lhs,Rhs,Trm).
+
+isSequence(Trm,Lc,Lhs,Rhs) :-
+  isBinary(Trm,Lc,";",Lhs,Rhs).
+
+mkSequence(Lc,Lhs,Rhs,Trm) :-
+  binary(Lc,";",Lhs,Rhs,Trm).
 
 isLiteralInteger(integer(Lc,Ix),Lc,Ix) :-!.
 isLiteralInteger(I,Lc,Nx) :-

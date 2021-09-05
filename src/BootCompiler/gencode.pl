@@ -83,8 +83,7 @@ dropToCont(N,Lx,Lx,D,D,_,[iDropTo(N)|Cx],Cx,Stk,Stkx) :-
   dropStk(Stk,N,Stkx).
 
 trapCont(Lc,Lx,Lx,D,D,_,Cx,Cx,Stk,Stk) :-
-  reportError("not permitted to throw",[],Lc),
-  abort.
+  reportError("not permitted to throw",[],Lc).
 
 idxCont(Off,Lx,Lx,Dx,Dx,_End,[iNth(Off)|Cx],Cx,Stkx,Stkx).
 
@@ -164,7 +163,9 @@ compTerm(idnt(Nm),Lc,Cont,_TCont,_,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-!,
   (lclVar(Nm,V,D) -> 
    compVar(V,Cont,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) ;
    reportError("cannot locate variable %s",[Nm],Lc),
-   abort).
+   C=[iLdV|Cx],
+   bumpStk(Stk,Stkx),
+   D=Dx,L=Lx).
 compTerm(ctpl(St,A),Lc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stk2) :-!,
   compTerms(A,Lc,bothCont(allocCont(St),Cont),TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stk2).
 compTerm(intrinsic(Lc,Op,A),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-!,
@@ -249,7 +250,8 @@ compTerm(cnd(Lc,T,A,B),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   splitCont(Lc,Cont,OC),!,
   compCond(T,Lc,compTerm(A,Lc,OC,TCont,Opts),
-	   compTerm(B,Lc,OC,TCont,Opts),TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+	   resetVrCont(D,resetCont(Stk,compTerm(B,Lc,OC,TCont,Opts))),
+	   TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 compTerm(seq(Lc,A,B),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   compTerm(A,Lc,resetCont(Stk,compTerm(B,Lc,Cont,TCont,Opts)),TCont,
@@ -290,6 +292,8 @@ compTerms([T|Ts],Lc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
 
 /* Compile actions as sequences with several possible continuations */
 
+compAction(nop(_),_,Cont,_PCont,_RCont,_ECont,_Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  call(Cont,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 compAction(seq(Lc,A,B),_,Cont,PCont,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   propagatingAction(A),!,
   compAction(A,Lc,combineCont(PCont,
@@ -336,8 +340,13 @@ compAction(assignD(Lc,V,E),OLc,Cont,_,_RCont,_ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,
 compAction(cnd(Lc,T,A,B),OLc,Cont,PCont,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   splitCont(Lc,Cont,SCont),
+  genLbl(L,Else,L0),
   compCond(T,Lc,compAction(A,Lc,SCont,PCont,RCont,ECont,Opts),
-	   compAction(B,Lc,SCont,PCont,RCont,ECont,Opts),ECont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+	   contCont(Else),
+	   ECont,Opts,L0,L1,D,D1,End,C0,[iLbl(Else)|C1],Stk,Stk1),
+  resetVrCont(D,resetCont(Stk,compAction(B,Lc,SCont,PCont,RCont,ECont,Opts)),
+	      L1,Lx,D1,Dx,End,C1,C2,Stk,Stk2),
+  reconcileStack(Stk1,Stk2,Stkx,C2,Cx).
 compAction(rtnDo(Lc,E),_Lc,_Cont,_,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   compTerm(E,Lc,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 compAction(raisDo(Lc,E),_Lc,_Cont,_PCont,_RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
@@ -363,6 +372,8 @@ compAction(tryDo(Lc,A,H),_,Cont,_PCont,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,S
   compTerm(H,Lc,contCont(Nxt),ECont,Opts,L2,L3,D2,D3,End,C1,[iLbl(Nxt)|C2],Stk0,Stk2),
   oclCont(1,Cont,Opts,L3,Lx,D3,Dx,End,C2,Cx,Stk2,Stk3),
   mergeStkLvl(Stk1,Stk3,Stkx,"catch").
+
+%compIfThen(Lc,Cond,Succ,Fail,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) 
 
 compWhile(whle(Lc,Cond,Body),OLc,Cont,PCont,RCont,ECont,Opts,L,Lx,D,Dx,End,
 	  [iJmp(Tst),iLbl(Nxt)|C],Cx,Stk,Stk) :-
@@ -498,8 +509,7 @@ onceCont(_,Lf,Cont,L,Lx,D,Dx,End,[iLbl(Lb)|C],Cx,Stk,Stkx) :-
 onceCont(_,(Lb,Stkin,Stkout),_,Lx,Lx,D,D,_,C,Cx,Stk,Stkout) :-
   reconcileStack(Stk,Stkin,Stkout,C,[iJmp(Lb)|Cx]).
 onceCont(Lc,(_,Stkin,Stkout),_,Lx,Lx,D,D,_,Cx,Cx,_Stk,Stkout) :-
-  reportError("cannot reconcile stacks [%w,%w]",[Stkin,Stkout],Lc),
-  abort.
+  reportError("cannot reconcile stacks [%w,%w]",[Stkin,Stkout],Lc).
 
 contLbl(onceCont(_,(Lb,_,_),_),Lb).
 
@@ -661,7 +671,7 @@ compCond(cnd(Lc,T,A,B),OLc,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
 	   Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 compCond(mtch(Lc,P,E),OLc,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
-  compTerm(E,Lc,compPtn(P,Lc,Succ,resetVrCont(D,resetCont(Stk,Fail)),TCont,Opts),
+  compTerm(E,Lc,compPtn(P,Lc,Succ,Fail,TCont,Opts),
 	   TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 compCond(E,Lc,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   compTerm(E,Lc,testCont(Succ,Fail),TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).

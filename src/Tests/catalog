@@ -63,6 +63,7 @@
     "test.func": "func.star",
     "test.g": "g.star",
     "test.gp": "gp.star",
+    "test.gt0": "gt0.star",
     "test.i": "i.star",
     "test.idx0": "idx0.star",
     "test.implies": "implies.star",

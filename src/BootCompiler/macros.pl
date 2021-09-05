@@ -280,6 +280,11 @@ examineTerm(T,Tx) :-
   macroTerm(R,Rx),
   pair(Lc,Lx,Rx,Tx).
 examineTerm(T,Tx) :-
+  isSequence(T,Lc,L,R),!,
+  macroTerm(L,Lx),
+  macroTerm(R,Rx),
+  mkSequence(Lc,Lx,Rx,Tx).
+examineTerm(T,Tx) :-
   isRef(T,Lc,R),!,
   macroTerm(R,Rx),
   mkRef(Lc,Rx,Tx).

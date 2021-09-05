@@ -329,7 +329,7 @@ checkOpenStmt(Stmt,Env,Ev,Path) :-
   newTypeVar("_",VrTp),
   unitTp(ErTp),
   typeOfExp(Vr,VrTp,ErTp,Env,E0,Rc,Path),
-  faceOfType(VrTp,E0,faceType(Flds,Tps)),
+  faceOfType(VrTp,Lc,E0,faceType(Flds,Tps)),
   declareExported(Flds,Rc,Lc,Env,E1),
   declareExportedTypes(Tps,Rc,Lc,E1,Ev).
 
@@ -425,13 +425,13 @@ checkDefn(Lc,L,R,Tp,varDef(Lc,Nm,ExtNm,[],Tp,Value),Env,Path) :-
 
 checkThetaBody(Tp,Lbl,Lc,Els,Env,Val,Path) :-
   evidence(Tp,Env,Q,ETp),
-  faceOfType(ETp,Env,FaceTp),
+  faceOfType(ETp,Lc,Env,FaceTp),
   getConstraints(FaceTp,Cx,Face),
   pushScope(Env,Base),
   declareTypeVars(Q,Lc,Base,E0),
   declareConstraints(Lc,Cx,E0,BaseEnv),
   thetaEnv(Path,Lc,Els,Face,BaseEnv,_,Defs,Public),
-  faceOfType(ETp,Env,TpFace),
+  faceOfType(ETp,Lc,Env,TpFace),
   getConstraints(TpFace,_,faceType(Fs,_)),
   completePublic(Public,Public,FullPublic,Path),
   computeThetaExport(Defs,Fs,FullPublic,Decls,Defns),!,
@@ -446,7 +446,7 @@ formTheta(Lc,Lbl,Decls,Defs,Flds,Tp,letRec(Lc,Decls,Defs,Exp)) :-
 
 checkRecordBody(Tp,Lbl,Lc,Els,Env,Val,Path) :-
   evidence(Tp,Env,Q,ETp),
-  faceOfType(ETp,Env,FaceTp),
+  faceOfType(ETp,Lc,Env,FaceTp),
   getConstraints(FaceTp,Cx,faceType(Fs,Ts)),
   pushScope(Env,Base),
   declareTypeVars(Q,Lc,Base,E0),
@@ -618,7 +618,7 @@ typeOfRecordPtn(Lc,Tp,ErTp,F,Args,Env,Ev,Exp,Path) :-
   newTypeVar("F",FnTp),
   typeOfExp(F,consType(FnTp,Tp),ErTp,Env,E0,Fun,Path),
   evidence(Tp,Env,Q,ETp),
-  faceOfType(ETp,Env,FaceTp),
+  faceOfType(ETp,Lc,Env,FaceTp),
   getConstraints(FaceTp,Cx,Face),
   pushScope(E0,E1),
   declareTypeVars(Q,Lc,E1,E2),
@@ -797,6 +797,11 @@ typeOfExp(Term,Tp,ErTp,Env,Env,Exp,Path) :-
 typeOfExp(Term,Tp,_,Env,Env,Lam,Path) :-
   isEquation(Term,_Lc,_H,_R),
   typeOfLambda(Term,Tp,Env,Lam,Path).
+typeOfExp(Term,Tp,ErTp,Env,Ev,sequence(Lc,Fst,Snd),Path) :-
+  isSequence(Term,Lc,L,R),!,
+  newTypeVar("L",LTp),
+  typeOfExp(L,LTp,ErTp,Env,E1,Fst,Path),
+  typeOfExp(R,Tp,ErTp,E1,Ev,Snd,Path).
 typeOfExp(Term,Tp,ErTp,Env,Ex,conj(Lc,Lhs,Rhs),Path) :-
   isConjunct(Term,Lc,L,R),!,
   findType("boolean",Lc,Env,LogicalTp),
@@ -1206,7 +1211,7 @@ checkCatch(Term,Env,MdTp,VlTp,ErTp,BdErTp,_,_,_,Hndlr,Path) :-
 recordAccessExp(Lc,Rc,Fld,Tp,ErTp,Env,Ev,dot(Lc,Rec,Fld,Tp),Path) :-
   newTypeVar("_R",AT),
   typeOfExp(Rc,AT,ErTp,Env,Ev,Rec,Path),
-  faceOfType(AT,Env,Fc),
+  faceOfType(AT,Lc,Env,Fc),
   freshen(Fc,Env,_,Fce),
   deRef(Fce,Face),
   fieldInFace(Face,Fld,Lc,FTp),!,
