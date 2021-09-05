@@ -761,8 +761,9 @@ validAct(untl(Lc,T,A),_,D) :-
   validTerm(T,Lc,D),
   validAct(A,Lc,D).
 validAct(cnd(Lc,T,A,B),_,D) :-
-  validTerm(T,Lc,D),
-  validAct(A,Lc,D),
+  glVars(T,D,D0),
+  validTerm(T,Lc,D0),
+  validAct(A,Lc,D0),
   validAct(B,Lc,D).
 validAct(case(Lc,T,C,Df),_,D) :-
   validTerm(T,Lc,D),

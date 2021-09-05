@@ -39,6 +39,9 @@ freeVars(tag(_,_),_,_,Fv,Fv) :-!.
 freeVars(resume(_,K,A,_),Ex,Q,F,Fv) :-
   freeVars(K,Ex,Q,F,F0),
   freeVars(A,Ex,Q,F0,Fv).
+freeVars(sequence(_,L,R),Ex,Q,F,Fv) :-
+  freeVars(L,Ex,Q,F,F0),
+  freeVars(R,Ex,Q,F0,Fv).
 freeVars(conj(Lc,L,R),Ex,Q,F,FV) :- ptnGoalVars(conj(Lc,L,R),Ex,E1),
   freeVars(L,E1,Q,F,F0),freeVars(R,E1,Q,F0,FV).
 freeVars(disj(_,L,R),Ex,Q,F,FV) :- freeVars(L,Ex,Q,F,F0),freeVars(R,Ex,Q,F0,FV).

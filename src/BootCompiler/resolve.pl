@@ -129,6 +129,9 @@ overloadTerm(letRec(Lc,Decls,Defs,Bound),Dict,St,Stx,letRec(Lc,Decls,RDefs,RBoun
 overloadTerm(where(Lc,Trm,Cond),Dict,St,Stx,where(Lc,RTrm,RCond)) :-
   overloadTerm(Trm,Dict,St,St0,RTrm),
   overloadTerm(Cond,Dict,St0,Stx,RCond).
+overloadTerm(sequence(Lc,L,R),Dict,St,Stx,sequence(Lc,RL,RR)) :-
+  overloadTerm(L,Dict,St,St0,RL),
+  overloadTerm(R,Dict,St0,Stx,RR).
 overloadTerm(conj(Lc,L,R),Dict,St,Stx,conj(Lc,RL,RR)) :-
   overloadTerm(L,Dict,St,St0,RL),
   overloadTerm(R,Dict,St0,Stx,RR).

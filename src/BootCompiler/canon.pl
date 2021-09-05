@@ -42,6 +42,7 @@ isCanon(enm(_,_,_)).
 isCanon(cons(_,_,_)).
 isCanon(tple(_,_)).
 isCanon(where(_,_,_)).
+isCanon(sequence(_,_,_)).
 isCanon(conj(_,_,_)).
 isCanon(disj(_,_,_)).
 isCanon(implies(_,_,_)).
@@ -112,6 +113,7 @@ typeOfCanon(throw(_,_,Tp),Tp) :-!.
 typeOfCanon(abstraction(_,_,_,_,_,Tp),Tp) :- !.
 typeOfCanon(search(_,_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(match(_,_,_),type("star.core*boolean")) :-!.
+typeOfCanon(sequence(_,_,R),Tp) :-!, typeOfCanon(R,Tp).
 typeOfCanon(conj(_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(disj(_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(implies(_,_,_),type("star.core*boolean")) :-!.
@@ -148,6 +150,7 @@ locOfCanon(throw(Lc,_,_),Lc) :-!.
 locOfCanon(abstraction(Lc,_,_,_,_,_),Lc) :- !.
 locOfCanon(search(Lc,_,_,_),Lc) :-!.
 locOfCanon(match(Lc,_,_),Lc) :-!.
+locOfCanon(sequence(Lc,_,_),Lc) :-!.
 locOfCanon(conj(Lc,_,_),Lc) :-!.
 locOfCanon(disj(Lc,_,_),Lc) :-!.
 locOfCanon(neg(Lc,_),Lc) :-!.
@@ -271,6 +274,9 @@ ssTerm(overaccess(V,TV,F),Dp,sq([TT,ss("<~"),FF,ss("|:"),VV])) :-
 ssTerm(where(_,Ptn,Cond),Dp,sq([PP,GG])) :-
   ssTerm(Ptn,Dp,PP),
   ssGuard(some(Cond),Dp,GG).
+ssTerm(sequence(_,L,R),Dp,sq([LL,ss(" ; "),RR])) :-
+  ssTerm(L,Dp,LL),
+  ssTerm(R,Dp,RR).
 ssTerm(conj(_,L,R),Dp,sq([LL,ss(" && "),RR])) :-
   ssTerm(L,Dp,LL),
   ssTerm(R,Dp,RR).

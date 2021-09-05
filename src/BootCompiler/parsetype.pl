@@ -87,7 +87,7 @@ parseType(Term,Env,_,Cx,Cx,Tp) :-
   isIden(L,Nm),
   (getVar(Lc,Nm,Env,Ev,Term) ->
    typeOfCanon(Term,VTp),
-   faceOfType(VTp,Ev,faceType(_,Types)),
+   faceOfType(VTp,Lc,Ev,faceType(_,Types)),
    (fieldInFace(Types,Fld,VTp,Lc,Tp) ;
     reportError("%s not part of type of %s:%s",[Fld,can(Term),tpe(VTp)],Lc),
     newTypeVar("_",Tp));

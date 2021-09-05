@@ -44,6 +44,12 @@ star.q{
     reverse(qc(F,B)) => qc(B,F).
   }
 
+  public implementation all x ~~ sizeable[qc[x]] => {.
+    size(qc(L,R)) => size(L)+size(R).
+    isEmpty(qc(.nil,.nil)) => .true.
+    isEmpty(_) default => .false.
+  .}
+
   public implementation all x ~~ glue[qc[x]->>x] => {.
     prepend(X,qc(F,T)) => qc(cons(X,F),T).
     append(qc(F,T),X) => qc(F,cons(X,T)).

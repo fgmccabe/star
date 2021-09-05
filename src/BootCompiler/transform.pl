@@ -358,6 +358,9 @@ liftExp(prompt(Lc,L,E,_),prmpt(Lc,Lb,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftExp(resume(Lc,Kont,Arg,_Tp),resme(Lc,KK,AA),Q,Q,Map,Opts,Ex,Exx) :-!,
   liftExp(Kont,KK,Q,_,Map,Opts,Ex,Ex0),
   liftExp(Arg,AA,Q,_,Map,Opts,Ex0,Exx).
+liftExp(sequence(Lc,Lb,E),seq(Lc,LL,EE),Q,Q,Map,Opts,Ex,Exx) :-!,
+  liftExp(Lb,LL,Q,_,Map,Opts,Ex,Ex0),
+  liftExp(E,EE,Q,_,Map,Opts,Ex0,Exx).
 liftExp(case(Lc,Bnd,Cses,_),Result,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(Bnd,Bound,Q,Q0,Map,Opts,Ex,Ex0),
   liftCases(Cses,Cases,Q0,Qx,Map,Opts,transform:liftExp,Ex0,Exx),
@@ -554,8 +557,8 @@ liftAction(_,resumeDo(Lc,K,A,_),resumeD(Lc,KK,AA),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(A,AA,Q0,Qx,Map,Opts,Ex0,Exx).
 liftAction(Last,ifThenDo(Lc,Ts,Th,El),cnd(Lc,Tst,Th1,El1),Q,Qx,Map,Opts,Ex,Exx) :-
   liftGoal(Ts,Tst,Q,Q0,Map,Opts,Ex,Ex0),
-  liftAction(Last,Th,Th1,Q,Q0,Map,Opts,Ex0,Ex1),
-  liftAction(Last,El,El1,Q0,Qx,Map,Opts,Ex1,Exx).
+  liftAction(Last,Th,Th1,Q0,Q1,Map,Opts,Ex0,Ex1),
+  liftAction(Last,El,El1,Q1,Qx,Map,Opts,Ex1,Exx).
 liftAction(Last,whileDo(Lc,G,B),whle(Lc,Gl,Bdy),Q,Q,Map,Opts,Ex,Exx) :-
   checkNotLast(Last,Lc),
   liftGoal(G,Gl,Q,Q0,Map,Opts,Ex,Ex0),

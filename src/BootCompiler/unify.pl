@@ -82,14 +82,14 @@ subFace(Tp1,Tp2,Lc,Env) :-
   check_implies(is_member((Nm,Tp1),F1),(is_member((Nm,Tp2),F2),sameType(Tp1,Tp2,Lc,Env))),
   check_implies(is_member((Nm,Tp1),T1),(is_member((Nm,Tp2),T2),sameType(Tp1,Tp2,Lc,Env))).
 
-isTypeFun(type(Nm),[],Lc,Env,Tp) :-
-  isType(Nm,Lc,Env,tpDef(_,_,Rule)),
+isTypeFun(type(Nm),[],_Lc,Env,Tp) :-
+  isType(Nm,Env,tpDef(_,_,Rule)),
   isTypeLam(Rule),!,
   freshen(Rule,Env,_,Tp).
 isTypeFun(tpExp(Nm,A),[A|Args],Lc,Env,Tp) :-!,
   isTypeFun(Nm,Args,Lc,Env,Tp).
-isTypeFun(tpFun(Nm,_),[],Lc,Env,Tp) :-
-  isType(Nm,Lc,Env,tpDef(_,_,Rule)),!,
+isTypeFun(tpFun(Nm,_),[],_Lc,Env,Tp) :-
+  isType(Nm,Env,tpDef(_,_,Rule)),!,
   isTypeLam(Rule),!,
   freshen(Rule,Env,_,Tp).
 
@@ -98,14 +98,14 @@ faceOfType(T,Lc,Env,Face) :-
   getFace(Tp,Lc,Env,Face).
 
 getFace(type(Nm),Lc,Env,Face) :- 
-  (isType(Nm,Lc,Env,tpDef(_,_,FaceRule)) ->
+  (isType(Nm,Env,tpDef(_,_,FaceRule)) ->
    freshen(FaceRule,Env,_,typeExists(Lhs,FTp)),
    sameType(type(Nm),Lhs,Lc,Env),!,
    getFace(FTp,Lc,Env,Face) ;
    Face=faceType([],[])).
 getFace(tpExp(Op,Arg),Lc,Env,Face) :-
   isTypeExp(tpExp(Op,Arg),tpFun(Nm,_),_),!,
-  isType(Nm,Lc,Env,tpDef(_,_,FaceRule)),
+  isType(Nm,Env,tpDef(_,_,FaceRule)),
   freshen(FaceRule,Env,_,Rl),
   getConstraints(Rl,_,typeExists(Lhs,FTp)),
   sameType(Lhs,tpExp(Op,Arg),Lc,Env),!,
@@ -193,9 +193,9 @@ simplifyType(T,Lc,Env,C,Cx,Tp) :-
   deRef(T,TT),!,
   smpTp(TT,Lc,Env,C,Cx,Tp).
 
-smpTp(anonType,_,C,C,anonType).
-smpTp(voidType,_,C,C,voidType).
-smpTp(type(Nm),_,C,C,type(Nm)).
+smpTp(anonType,_,_,C,C,anonType).
+smpTp(voidType,_,_,C,C,voidType).
+smpTp(type(Nm),_,_,C,C,type(Nm)).
 smpTp(tpExp(O,A),Lc,Env,C,Cx,Tp) :-
   isTypeFun(O,Args,Lc,Env,OO),!,
   applyTypeFun(OO,[A|Args],Lc,Env,C,C0,TT),
@@ -239,12 +239,12 @@ smpTp(constrained(T,Cn),Lc,Env,[Cs|C],Cx,Tp) :-
   smpCon(Cn,Lc,Env,C,C0,Cs),
   simplifyType(T,Lc,Env,C0,Cx,Tp).
 
-smpTps([],_,Cx,Cx,[]).
+smpTps([],_,_,Cx,Cx,[]).
 smpTps([T|Tps],Lc,Env,C,Cx,[TT|TTps]) :-
   simplifyType(T,Lc,Env,C,C0,TT),
   smpTps(Tps,Lc,Env,C0,Cx,TTps).
 
-smpFldTps([],_,C,C,[]).
+smpFldTps([],_,_,C,C,[]).
 smpFldTps([(F,T)|Flds],Lc,Env,C,Cx,[(F,Tp)|Fs]) :-
   simplifyType(T,Lc,Env,C,C0,Tp),
   smpFldTps(Flds,Lc,Env,C0,Cx,Fs).
