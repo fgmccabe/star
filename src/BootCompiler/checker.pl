@@ -38,8 +38,8 @@ checkProgram(Prg,Pkg,Repo,_Opts,PkgDecls,Canon) :-
   packageExport(ODefs,FllPb,EDecls,LDecls,XDefs),
   mkBoot(OEnv,Lc,Pk,XDefs,PkgDefs,EDecls,ExportDecls),
   Canon=prog(Pkg,Imports,ExportDecls,LDecls,PkgDefs),
-  concat(ExportDecls,IDecls,D0),
-  concat(LDecls,D0,PkgDecls).
+  concat(ExportDecls,LDecls,D0),
+  concat(D0,IDecls,PkgDecls).
 
 findExportedDefs(Lc,Flds,Els) :-
   map(Flds,checker:mkFieldArg(Lc),Els).

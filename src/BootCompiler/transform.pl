@@ -54,12 +54,13 @@
 transformProg(PkgDecls,prog(pkg(Pkg,Vers),Imports,Decls,LDecls,Defs),
 	      Opts,mdule(pkg(Pkg,Vers),Imports,Decls,LDecls,Dfs)) :-
   makePkgMap(Pkg,PkgDecls,Map),
-%  (is_member(showTrCode,Opts) -> dispMap("Package map: ",0,Map);true),
+  (is_member(showTrCode,Opts) -> dispMap("Package map: ",0,Map);true),
   transformModuleDefs(Defs,Pkg,Map,Opts,Dfs,[]).
 
 makePkgMap(Pkg,PkgDecls,[lyr(VarMap,TpMap,ConsMap,void)]) :-
-  makeConstructorMap(PkgDecls,consMap{},ConsMap),
-  declareModuleGlobals(Pkg,PkgDecls,ConsMap,varMap{},VarMap,typeMap{},TpMap),!.
+  reverse(PkgDecls,Decls),  % declare imports first
+  makeConstructorMap(Decls,consMap{},ConsMap),
+  declareModuleGlobals(Pkg,Decls,ConsMap,varMap{},VarMap,typeMap{},TpMap),!.
 
 declareModuleGlobals(Pkg,[Def|Rest],ConsMap,VMap,VMx,TMap,TMx) :-
   declMdlGlobal(Pkg,Def,ConsMap,VMap,M0,TMap,TM0),

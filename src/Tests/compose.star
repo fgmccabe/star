@@ -35,7 +35,7 @@ test.compose{
   dec(_) => .none.
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     assert decimal("123"::cons[integer])==some(([],123));
     assert ([],1234)^=dec("1234"::cons[integer]);
 
