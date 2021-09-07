@@ -319,7 +319,7 @@ retCode run(processPo P) {
       case Rst: {
         int32 height = collectI32(PC);
         assert(height >= 0);
-        SP = (ptrPo) (FP->fp) - lclCount(FP->prog) - height;
+        SP = (ptrPo) FP - lclCount(FP->prog) - height;
         continue;
       }
 
@@ -894,7 +894,6 @@ retCode run(processPo P) {
           for (integer ix = arity - 1; ix >= 0; ix--)
             push(nthElem(t, ix));
         } else {
-          push(t);
           PC = exit;
         }
         continue;

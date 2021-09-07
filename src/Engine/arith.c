@@ -13,7 +13,7 @@ static termPo intScan(specialClassPo cl, specialHelperFun helper, void *c, termP
 static retCode intDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 static integer intHash(specialClassPo cl, termPo o);
 static logical intCmp(specialClassPo cl, termPo t1, termPo t2);
-static termPo intFinalizer(specialClassPo class, termPo o, void *cl);
+static termPo intFinalizer(specialClassPo class, termPo o);
 
 SpecialClass IntegerClass = {
   .clss = Null,
@@ -31,7 +31,7 @@ clssPo integerClass = (clssPo) &IntegerClass;
 static long fltSize(specialClassPo cl, termPo o);
 static termPo fltCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo fltScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
-static termPo fltFinalizer(specialClassPo class, termPo o, void *cl);
+static termPo fltFinalizer(specialClassPo class, termPo o);
 static retCode fltDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 static integer fltHash(specialClassPo cl, termPo o);
 static logical fltCmp(specialClassPo cl, termPo t1, termPo t2);
@@ -75,7 +75,7 @@ termPo intScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   return (termPo) (o + IntegerCellCount);
 }
 
-termPo intFinalizer(specialClassPo class, termPo o, void *cl) {
+termPo intFinalizer(specialClassPo class, termPo o) {
   return (termPo) (o + IntegerCellCount);
 }
 
@@ -135,7 +135,7 @@ termPo fltScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   return (termPo) (o + FloatCellCount);
 }
 
-termPo fltFinalizer(specialClassPo class, termPo o, void *cl) {
+termPo fltFinalizer(specialClassPo class, termPo o) {
   return (termPo) (o + FloatCellCount);
 }
 

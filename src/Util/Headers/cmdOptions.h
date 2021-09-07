@@ -11,11 +11,8 @@
 
 void splitFirstArg(int argc, char **argv, int *newArgc, char ***newArgv);
 
-typedef retCode (*setOption)(char *option,logical enable,void *cl);
-
-typedef retCode (*helpOption)(ioPo out,char shortName,char *usage,void *cl);
-
-typedef retCode (*postOption)(integer count);
+typedef retCode (*setOption)(char *option,logical enable);
+typedef retCode (*helpOption)(ioPo out,char shortName,char *usage);
 
 typedef enum {
   hasArgument,
@@ -28,7 +25,6 @@ typedef struct {
   HasArgument hasArg;
   const char *envVar;
   setOption setter;
-  void *cl;
   char *usage;
   helpOption helper;
 } Option;
@@ -36,5 +32,7 @@ typedef struct {
 int processOptions(char *copyRight, int argc, char **argv, Option *options, int optionCount);
 
 void showUsage(char *name, char *copyRight, Option options[], int optionCount);
+
+integer parseSize(char *text);
 
 #endif //STAR_OPTIONS_H

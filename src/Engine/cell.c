@@ -13,7 +13,7 @@ static termPo cellScan(specialClassPo cl, specialHelperFun helper, void *c, term
 static logical cellCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer cellHash(specialClassPo cl, termPo o);
 static retCode cellDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
-static termPo cellFinalizer(specialClassPo class, termPo o, void *cl);
+static termPo cellFinalizer(specialClassPo class, termPo o);
 
 SpecialClass CellClass = {
   .clss = Null,
@@ -48,7 +48,7 @@ termPo cellScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   return o + CellCellCount;
 }
 
-termPo cellFinalizer(specialClassPo class, termPo o, void *cl) {
+termPo cellFinalizer(specialClassPo class, termPo o) {
   cellPo list = C_CELL(o);
 
   return o + CellCellCount;

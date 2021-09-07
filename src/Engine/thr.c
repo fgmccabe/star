@@ -12,7 +12,7 @@ static termPo thrScan(specialClassPo cl, specialHelperFun helper, void *c, termP
 static logical thrCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer thrHash(specialClassPo cl, termPo o);
 static retCode thrDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
-static termPo thrFinalizer(specialClassPo class, termPo o, void *cl);
+static termPo thrFinalizer(specialClassPo class, termPo o);
 
 SpecialClass ThredClass = {
   .clss = Null,
@@ -58,7 +58,7 @@ termPo thrScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   return o + ThreadCellCount;
 }
 
-termPo thrFinalizer(specialClassPo class, termPo o, void *cl) {
+termPo thrFinalizer(specialClassPo class, termPo o) {
   return o + ThreadCellCount;
 }
 

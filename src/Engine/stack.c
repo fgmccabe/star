@@ -20,7 +20,7 @@ static termPo stkScan(specialClassPo cl, specialHelperFun helper, void *c, termP
 static logical stkCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer stkHash(specialClassPo cl, termPo o);
 static retCode stkDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
-static termPo stkFinalizer(specialClassPo class, termPo o, void *cl);
+static termPo stkFinalizer(specialClassPo class, termPo o);
 
 SpecialClass StackClass = {
   .clss = Null,
@@ -243,7 +243,7 @@ termPo stkScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   return o + StackCellCount;
 }
 
-termPo stkFinalizer(specialClassPo class, termPo o, void *cl) {
+termPo stkFinalizer(specialClassPo class, termPo o) {
   stackPo stk = C_STACK(o);
   release(stackRegion, (voidPtr) stk->stkMem);
   stk->stkMem = Null;

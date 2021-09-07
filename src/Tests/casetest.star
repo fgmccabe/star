@@ -23,6 +23,8 @@ test.cse{
   main()=>action{
     assert "TT" ^= sVal(foo("TT"));
 
-    show sVal(foo("beta"))
+    show sVal(foo("beta"));
+
+    assert sVal(foo("beta")) == some("two")
   }
 }

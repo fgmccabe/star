@@ -18,7 +18,7 @@ star.iterable{
     _advance:(s) => result[(),()].
   }
 
-  public contract all s,i,e ~~ iterator[s->>i] ::= {
+  public contract all s,i ~~ iterator[s->>i] ::= {
     _iterator:(s) => i
   }
 }

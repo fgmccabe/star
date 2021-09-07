@@ -20,7 +20,7 @@ static termPo lblScan(specialClassPo cl, specialHelperFun helper, void *c, termP
 static logical lblCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer lblHash(specialClassPo cl, termPo o);
 static retCode lblDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
-static termPo lblFinalizer(specialClassPo class, termPo o, void *cl);
+static termPo lblFinalizer(specialClassPo class, termPo o);
 
 SpecialClass LabelClass = {
   .clss = Null,
@@ -241,7 +241,7 @@ termPo lblScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   return o + LabelCellCount;
 }
 
-termPo lblFinalizer(specialClassPo class, termPo o, void *cl) {
+termPo lblFinalizer(specialClassPo class, termPo o) {
   labelPo lbl = C_LBL(o);
 
   return o + LabelCellCount;
