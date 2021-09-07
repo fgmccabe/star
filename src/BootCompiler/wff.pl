@@ -10,7 +10,7 @@
 	      implementedContractName/2,
 	      isTypeExists/4,typeExists/4,
 	      isTypeExistsStmt/6,typeExistsStmt/6,isTypeFunStmt/6,typeFunStmt/6,
-	      isTypeAnnotation/4,typeAnnotation/4,
+	      isTypeAnnotation/4,typeAnnotation/4,isTypeField/4,mkTypeField/4,
 	      isTypeLambda/4,typeLambda/4,typeName/2,
 	      isValType/3,isFuncType/4,funcType/4,isContType/4,mkContType/4,
 	      isEnum/3,mkEnum/3,isAnon/2,mkAnon/2,
@@ -378,6 +378,14 @@ typeFunStmt(Lc,Q,C,L,R,S) :-
   binary(Lc,"~>",L,R,S0),
   reConstrain(C,S0,S1),
   reUQuant(Q,S1,S).
+
+isTypeField(St,Lc,L,R) :-
+  isUnary(St,Lc,"type",Lhs),
+  isBinary(Lhs,_,":",L,R).
+
+mkTypeField(Lc,L,R,St) :-
+  binary(Lc,":",L,R,S0),
+  unary(Lc,"type",S0,St).
 
 typeName(Tp,Nm) :-
   isBinary(Tp,_,"|:",_,R),

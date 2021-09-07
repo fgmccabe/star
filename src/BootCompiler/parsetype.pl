@@ -31,8 +31,7 @@ parseType(Tp,Env,B,C,C,PT) :-
   parseBoundTpVars(V,B0),
   concat(B,B0,Q),
   parseType(BT,Env,Q,C0,[],BTp),
-  wrapConstraints(C0,BTp,Inner),
-  reQuantX(B0,Inner,PT).
+  wrapType([],[],B0,C0,BTp,PT).
 parseType(F,Env,B,C0,Cx,Tp) :-
   isConstrained(F,T,C),!,
   parseConstraints(C,Env,B,C0,C1),
@@ -150,9 +149,13 @@ parseBoundVar(N,Q,Q) :-
   reportError("invalid quantifier variable: %s",[ast(N)],Lc).
 
 % reapply quantifiers to a type to get full form
-reQuant([],Tp,Tp).
-reQuant([(_,KV)|M],Tp,allType(KV,QTp)) :-
-  reQuant(M,Tp,QTp).
+reUQnt([],Tp,Tp).
+reUQnt([(_,KV)|M],Tp,allType(KV,QTp)) :-
+  reUQnt(M,Tp,QTp).
+
+reXQnt([],Tp,Tp).
+reXQnt([(_,KV)|M],Tp,existType(KV,QTp)) :-
+  reXQnt(M,Tp,QTp).
 
 wrapConstraints([],Tp,Tp).
 wrapConstraints([Con|C],Tp,constrained(WTp,Con)) :-
@@ -196,7 +199,7 @@ parseContractConstraint(Quants,Cons,Sq,Env,Op,ConSpec) :-
         sameType(tplType(Dps),tplType(Deps),Lc,Env) ->
           simplifyType(tplType(Dps),Lc,Env,C2,Cx,tplType(Ds)),
           putConstraints(Cx,contractExists(conTract(Op,As,Ds),IFace),CC),
-          reQuant(Q,CC,ConSpec);
+          reUQnt(Q,CC,ConSpec);
           reportError("implementation does not match contract %s",[Op],Lc),
           fail);
     reportError("contract %s not declared",[N],Lc), fail).
@@ -233,10 +236,9 @@ parseTypeField(F,Env,Bound,Flds,[(Fld,FldTp)|Flds],Types,Types) :-
   parseType(FT,Env,Bound,[],Cx,FldTp),
   (Cx=[] -> true ; reportError("unexpected constraints in field type %s",[Nm],Lc)).
 parseTypeField(S,Env,Bound,Flds,Flds,Types,[(Fld,FldTp)|Types]) :-
-  isUnary(S,_,"type",F),
-  isTypeAnnotation(F,_,Nm,FT),
+  isTypeField(S,_,Nm,T),
   isIden(Nm,Lc,Fld),
-  parseType(FT,Env,Bound,[],Cx,FldTp),
+  parseType(T,Env,Bound,[],Cx,FldTp),
   (Cx=[] -> true ; reportError("unexpected constraints in field type %s",[Nm],Lc)).
 parseTypeField(F,_,_,Fields,Fields,Types,Types) :-
   isUnary(F,_,"@",_).
@@ -256,7 +258,7 @@ parseContract(T,Env,Ev,Path,[conDef(Nm,ConNm,CnType,ConRule),
   sort(Ts,checker:cmpPair,SortedTps),
   Face = faceType(SortedFlds,SortedTps),
   putConstraints(Cx,contractExists(SpC,Face),Crl),
-  reQuant(Q,Crl,ConRule),
+  reUQnt(Q,Crl,ConRule),
   contractType(SpC,ConTp),
   wrapType(Q,Cx,[],[],typeExists(ConTp,Face),FaceRule),
   wrapType(Q,Cx,[],[],ConTp,CnType),
@@ -284,20 +286,22 @@ parseTypeDef(St,Defs,Dx,E,Ev,Path) :-
 
 parseAlgebraicTypeDef(Lc,Quants,Constraints,Hd,Body,
 		      [typeDef(Lc,Nm,Type,FaceRule)|D0],Dx,E,Ev,Path):-
-  algebraicFace(Body,Face),
+  algebraicFace(Body,[],EQ,Face),
+  parseBoundTpVars(EQ,XQ),
   parseBoundTpVars(Quants,Q),
-  parseTypeHead(Hd,Q,Tp,Nm,_Args,Path),
-  parseConstraints(Constraints,E,Q,C0,[]),
+  concat(XQ,Q,QV),
+  parseTypeHead(Hd,QV,Tp,Nm,_Args,Path),
+  parseConstraints(Constraints,E,QV,C0,[]),
 %  dispType(Tp),
   pickTypeTemplate(Tp,Type),
-  parseType(Face,E,Q,C0,Cx,FaceTp),
+  parseType(Face,E,QV,C0,Cx,FaceTp),
 %  dispType(FaceTp),
-  wrapType(Q,Cx,[],[],typeExists(Tp,FaceTp),FaceRule),
+  wrapType(Q,Cx,XQ,[],typeExists(Tp,FaceTp),FaceRule),
 %  buildConsMap(Body,ConsMap,Path),
 %  dispType(FaceRule),
   declareType(Nm,tpDef(Lc,Type,FaceRule),E,Ev0),
   tpName(Type,TpNm),
-  buildAccessors(Lc,Q,Cx,Path,TpNm,Tp,FaceTp,Body,D0,Dx,Acc,[]),
+  buildAccessors(Lc,Q,XQ,Cx,Path,TpNm,Tp,FaceTp,Body,D0,Dx,Acc,[]),
   declareAccessors(Acc,Ev0,Ev).
 
 declareAccessors(Acc,Ev,Evx) :-
@@ -306,19 +310,20 @@ declareAccessors(Acc,Ev,Evx) :-
 declareAcc(acc(Tp,Fld,AccName,AccFunTp),Env,Ev) :-
   declareFieldAccess(Tp,Fld,AccName,AccFunTp,Env,Ev).
 
-buildAccessors(Lc,Quants,Constraints,Path,TpNm,Tp,faceType(ElTps,_),Body,Defs,Dfx,Acc,Acx) :-
-  genAccessors(Lc,Quants,Constraints,Path,TpNm,Tp,ElTps,ElTps,Body,Defs,Dfx,Acc,Acx).
+buildAccessors(Lc,Q,XQ,Constraints,Path,TpNm,Tp,faceType(ElTps,_),Body,Defs,Dfx,Acc,Acx) :-
+  genAccessors(Lc,Q,XQ,Constraints,Path,TpNm,Tp,ElTps,ElTps,Body,Defs,Dfx,Acc,Acx).
 
-genAccessors(_,_,_,_,_,_,[],_,_,Defs,Defs,Acc,Acc).
-genAccessors(Lc,Q,Cx,Path,TpNm,Tp,[(Fld,FldTp)|ElTps],AllElTps,Body,Defs,Dfx,Acc,Accx) :-
-  genAccessor(Lc,Q,Cx,Path,TpNm,Tp,Fld,FldTp,Tp,AllElTps,Body,Defs,Df0,Acc,Ac0),
-  genAccessors(Lc,Q,Cx,Path,TpNm,Tp,ElTps,AllElTps,Body,Df0,Dfx,Ac0,Accx).
+genAccessors(_,_,_,_,_,_,_,[],_,_,Defs,Defs,Acc,Acc).
+genAccessors(Lc,Q,XQ,Cx,Path,TpNm,Tp,[(Fld,FldTp)|ElTps],AllElTps,Body,Defs,Dfx,Acc,Accx) :-
+  genAccessor(Lc,Q,XQ,Cx,Path,TpNm,Tp,Fld,FldTp,Tp,AllElTps,Body,Defs,Df0,Acc,Ac0),
+  genAccessors(Lc,Q,XQ,Cx,Path,TpNm,Tp,ElTps,AllElTps,Body,Df0,Dfx,Ac0,Accx).
 
-genAccessor(Lc,Q,Cx,Path,TpNm,Tp,Fld,FldTp,Tp,AllElTps,Body,
+genAccessor(Lc,Q,XQ,Cx,Path,TpNm,Tp,Fld,FldTp,Tp,AllElTps,Body,
 	    [ImplDef|Defs],Defs,[acc(Tp,Fld,AccName,AccFunTp)|Acc],Acc) :-
   localName(TpNm,field,Fld,AccName),
   putConstraints(Cx,funType(tplType([Tp]),FldTp),CxFunTp),
-  reQuant(Q,CxFunTp,AccFunTp),
+  reXQnt(XQ,CxFunTp,XCxFnTp),
+  reUQnt(Q,XCxFnTp,AccFunTp),
   accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,[]),
   ImplDef = funDef(Lc,AccName,AccName,soft,AccFunTp,[],Eqns).
 
@@ -371,7 +376,7 @@ genBraceAccessor(Lc,Q,Cx,ConNm,Tp,Fld,FldTp,Tp,AllElTps,
 		 [acc(Tp,Fld,AccName,AccFunTp)|Imx],Imx) :-
   localName(ConNm,field,Fld,AccName),
   putConstraints(Cx,funType(tplType([Tp]),FldTp),CxFunTp),
-  reQuant(Q,CxFunTp,AccFunTp),
+  reUQnt(Q,CxFunTp,AccFunTp),
   XX = v(Lc,"XX",FldTp),  
   fillinElementPtns([(Fld,XX)],Lc,AllElTps,ArgPtns,ArgTps),
   AccDef = accDef(Tp,Fld,AccName,AccFunTp),
@@ -389,7 +394,7 @@ genBraceType(Lc,Tp,Defs,Dfx,Env,Ev) :-
   tpName(Tp,TpNm),
   lfold(SFlds,parsetype:newFieldVar,([],[]),(Fs,ArgQ)),
   BareFs = faceType(Fs,[]),
-  reQuant(Fs,BareFs,BrTp),
+  reUQnt(Fs,BareFs,BrTp),
   length(Fs,Ar),
   mkTypeExp(tpFun(TpNm,Ar),ArgQ,Tp0),
   wrapType(Fs,[],[],[],typeExists(Tp0,BareFs),FaceRule),
@@ -471,45 +476,46 @@ parseConstructors(Body,Q,Cx,Tp,
  
 wrapType(Q,Cx,XQ,XC,Tp,WTp) :-
   wrapConstraints(XC,Tp,Tp0),
-  reXQuant(XQ,Tp0,Tp1),
+  reXQnt(XQ,Tp0,Tp1),
   wrapConstraints(Cx,Tp1,CTp),
-  reQuant(Q,CTp,WTp).
+  reUQnt(Q,CTp,WTp).
 
 unwrapType(Tp,Q,Cx,ITp) :-
   moveQuants(Tp,Q,Tp0),
   getConstraints(Tp0,Cx,ITp).
 
-algebraicFace(C,F) :-
+algebraicFace(C,Q,Qx,F) :-
   isBinary(C,_,"|",L,R),!,
-  algebraicFace(L,F0),
-  algebraicFace(R,F1),
+  algebraicFace(L,Q,Q0,F0),
+  algebraicFace(R,Q0,Qx,F1),
   combineFaces(F0,F1,F).
-algebraicFace(C,E) :-
+algebraicFace(C,Q,Q,E) :-
   isIden(C,Lc,_),
   braceTuple(Lc,[],E).
-algebraicFace(C,E) :-
+algebraicFace(C,Q,Q,E) :-
   isEnum(C,Lc,_),
   braceTuple(Lc,[],E).
-algebraicFace(C,Face) :-
+algebraicFace(C,Q,Q,Face) :-
   isRoundCon(C,_,_,Lc,_,_),
   braceTuple(Lc,[],Face).
-algebraicFace(C,Face) :-
+algebraicFace(C,Q,Qx,Face) :-
   isBraceCon(C,XQ,XC,Lc,_,Entries),
   braceTuple(Lc,Entries,F),
-  reConstrain(XC,F,CF),
-  reXQuant(XQ,CF,Face).
-algebraicFace(C,Face) :-
+  concat(Q,XQ,Qx),
+  reConstrain(XC,F,Face).
+algebraicFace(C,Q,Qx,Face) :-
   isPrivate(C,_,I),
-  algebraicFace(I,Face).
-algebraicFace(C,Face) :-
+  algebraicFace(I,Q,Qx,Face).
+algebraicFace(C,Q,Qx,Face) :-
   isPublic(C,_,I),
-  algebraicFace(I,Face).
-algebraicFace(C,Face) :-
-  isXQuantified(C,_,I),
-  algebraicFace(I,Face).
-algebraicFace(C,Face) :-
+  algebraicFace(I,Q,Qx,Face).
+algebraicFace(C,Q,Qx,Face) :-
+  isXQuantified(C,EQ,I),
+  concat(Q,EQ,Q0),
+  algebraicFace(I,Q0,Qx,Face).
+algebraicFace(C,Q,Qx,Face) :-
   isConstrained(C,I,_),
-  algebraicFace(I,Face).
+  algebraicFace(I,Q,Qx,Face).
 
 combineFaces(F0,F,F) :-
   isEmptyBrace(F0).
@@ -552,7 +558,7 @@ parseTypeExists(Lc,Quants,Ct,Hd,Body,typeDef(Lc,Nm,Type,FcRule),E,Ev,Path) :-
   declareType(Nm,tpDef(Lc,Type,typeExists(Type,faceType([],[]))),E,E0),
   parseType(Body,E0,Q,C0,Cx,RTp),
   wrapConstraints(Cx,typeExists(Tp,RTp),Rl),
-  reQuant(Q,Rl,FcRule),
+  reUQnt(Q,Rl,FcRule),
   declareType(Nm,tpDef(Lc,Type,FcRule),E,Ev).
 
 parseTypeFun(Lc,Quants,Ct,Hd,Bd,typeDef(Lc,Nm,Type,Rule),E,Ev,Path) :-
@@ -563,7 +569,7 @@ parseTypeFun(Lc,Quants,Ct,Hd,Bd,typeDef(Lc,Nm,Type,Rule),E,Ev,Path) :-
   pickTypeTemplate(Tp,Type),
   mkTypeLambda(Tp,RpTp,Lam),
   wrapConstraints(Cx,Lam,Rl),
-  reQuant(Q,Rl,Rule),
+  reUQnt(Q,Rl,Rule),
   declareType(Nm,tpDef(Lc,Type,Rule),E,Ev).
 
 mkTypeLambda(tpExp(Op,A),Tp,RRTp) :-
@@ -611,19 +617,19 @@ parseTypeCore(St,Type,_,Path) :-
   parseBoundTpVars(Quants,Q),
   parseTypeHead(Head,Q,Tp,_,Args,Path),
   mkTpLambda(Args,Tp,LTp),
-  reQuant(Q,LTp,Type).
+  reUQnt(Q,LTp,Type).
 parseTypeCore(St,Type,_Env,Path) :-
   isTypeFunStmt(St,_Lc,Quants,_Ct,Hd,_Bd),
   parseBoundTpVars(Quants,Q),
   parseTypeHead(Hd,Q,Tp,_,Args,Path),
   mkTpLambda(Args,Tp,LTp),
-  reQuant(Q,LTp,Type).
+  reUQnt(Q,LTp,Type).
 parseTypeCore(St,Type,_,Path) :-
   isAlgebraicTypeStmt(St,_,Quants,_,Hd,_),
   parseBoundTpVars(Quants,Q),
   parseTypeHead(Hd,Q,Tp,_,Args,Path),
   mkTpLambda(Args,Tp,LTp),
-  reQuant(Q,LTp,Type).
+  reUQnt(Q,LTp,Type).
 
 parseTypeHead(N,_,type(TpNm),Nm,[],Path) :-
   isIden(N,_,Nm),

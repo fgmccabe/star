@@ -37,6 +37,10 @@ examineStmt(S,Rp) :-
   macroType(T,Tx),
   typeAnnotation(Lc,V,Tx,Rp).
 examineStmt(S,Rp) :-
+  isTypeField(S,Lc,V,T),!,
+  macroType(T,Tx),
+  mkTypeField(Lc,V,Tx,Rp).
+examineStmt(S,Rp) :-
   isPublic(S,Lc,I),!,
   macroStmt(I,II),
   disThroughGroup(II,abstract:unary(Lc,"public"),Rp).
@@ -120,6 +124,10 @@ macroConsBody(B,Bx) :-
   isPrivate(B,Lc,I),
   macroConsBody(I,Ix),
   mkPrivate(Lc,Ix,Bx).
+macroConsBody(B,Bx) :-
+  isXQuantified(B,Q,I),
+  macroConsBody(I,Ix),
+  reXQuant(Q,Ix,Bx).
 
 disThroughGroup(S,C,Rp) :-
   isBraceTuple(S,Lc,Els),

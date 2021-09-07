@@ -4,7 +4,7 @@ test.cons{
 
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     show cons(5,cons(6,.nil));
     
     -- Test equality over cons lists

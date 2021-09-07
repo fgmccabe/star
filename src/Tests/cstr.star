@@ -9,7 +9,7 @@ test.cstream{
   cc = disp(aa)::string.
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     show cc::string;
 
     show disp([0]:cons[_])::string
