@@ -34,7 +34,7 @@ test.co{
   trpl(([A,.._],_,_)) => A.
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     assert Pete.name=="peter";
     assert Pete.age(3)==33
   }

@@ -8,7 +8,7 @@ test.cc{
   foo(X,Y) => X==Y.
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     assert foo("alpha","beta")
   }
 }
