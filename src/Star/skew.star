@@ -20,7 +20,7 @@ star.skew{
   hed(cons((w,node(x,_,_)),_)) => x.
 
   tl:all a ~~ (rlist[a]) => rlist[a].
-tl(cons((1,_),ts)) => ts.
+  tl(cons((1,_),ts)) => ts.
   tl(cons((w,node(_,t1,t2)),ts)) => cons((w/2,t1),cons((w/2,t2),ts)).
 
   lookup:all a ~~ (integer,rlist[a]) => option[a].

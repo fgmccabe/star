@@ -95,6 +95,10 @@ showTrm(ds(D),O) :-
   ss_to_chrs(D,O,[]).
 showTrm(pk(P),O) :-
   ss_to_chrs(canon:ssPkg(P),O,[]).
+showTrm(stk(some(N)),O) :-
+  ss_to_chrs(sq([ss("Stk "),ix(N)]),O,[]).
+showTrm(stk(nono),O) :-
+  ss_to_chrs(ss("Stk empty"),O,[]).
 showTrm(T,O) :-
   isAst(T), !, dispAst(T,0,O,[]).
 showTrm(L,O) :-

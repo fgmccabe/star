@@ -92,7 +92,7 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
             case hasArgument: {
               if (uniStrLen(opt) == 2) {
                 if (ix < argc - 1) {
-                  if (options[j].setter(argv[++ix], True, options[j].cl) != Ok)
+                  if (options[j].setter(argv[++ix], True) != Ok)
                     goto failOptions;
                   else {
                     processedOptions[j] = True;
@@ -101,7 +101,7 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
                 } else
                   goto failOptions;
               } else {
-                if (options[j].setter(opt + 2, True, options[j].cl) != Ok)
+                if (options[j].setter(opt + 2, True) != Ok)
                   goto failOptions;
                 else {
                   processedOptions[j] = True;
@@ -111,7 +111,7 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
             }
             case noArgument: {
               if (uniStrLen(opt) == 2) {
-                if (options[j].setter(NULL, True, options[j].cl) != Ok)
+                if (options[j].setter(NULL, True) != Ok)
                   goto failOptions;
                 else {
                   processedOptions[j] = True;
@@ -125,7 +125,7 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
           switch (options[j].hasArg) {
             case hasArgument: {
               if (ix < argc - 1) {
-                if (options[j].setter(argv[++ix], True, options[j].cl) != Ok)
+                if (options[j].setter(argv[++ix], True) != Ok)
                   goto failOptions;
                 else {
                   processedOptions[j] = True;
@@ -135,7 +135,7 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
                 goto failOptions;
             }
             case noArgument: {
-              if (options[j].setter(Null, True, options[j].cl) != Ok)
+              if (options[j].setter(Null, True) != Ok)
                 goto failOptions;
               else {
                 processedOptions[j] = True;
@@ -163,7 +163,7 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
               setOpt = (logical) (uniCmp(var, "true") == same || uniCmp(var, "TRUE") == same ||
                                   uniCmp(var, "yes") == same ||
                                   uniCmp(var, "YES") == same);
-            if (options[jx].setter(var, setOpt, options[jx].cl) == Ok)
+            if (options[jx].setter(var, setOpt) == Ok)
               processedOptions[jx] = True;
             else {
               outMsg(Stderr(), "bad environment variable: %s=%s\n", options[jx].envVar, var);
@@ -171,7 +171,7 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
             }
           }
           case hasArgument: {
-            if (options[jx].setter(var, True, options[jx].cl) == Ok)
+            if (options[jx].setter(var, True) == Ok)
               processedOptions[jx] = True;
             else {
               outMsg(Stderr(), "bad environment variable: %s=%s\n", options[jx].envVar, var);
@@ -179,7 +179,6 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
             }
           }
         }
-
       }
     }
   }
@@ -187,7 +186,6 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
   return ix;
 
   failOptions:
-
   showUsage(argv[0], copyRight, options, optionCount);
   return -1;
 }
@@ -203,8 +201,37 @@ void showUsage(char *name, char *copyRight, Option options[], int optionCount) {
   for (int ix = 0; ix < optionCount; ix++) {
     Option *opt = &options[ix];
     if (opt->helper != Null)
-      opt->helper(stdErr, opt->shortName, opt->usage, opt->cl);
+      opt->helper(stdErr, opt->shortName, opt->usage);
     else
       outMsg(stdErr, "    %s\n", options[ix].usage);
   }
+}
+
+static logical isDigit(char ch) {
+  return (logical) (ch >= '0' && ch <= '9');
+}
+
+integer parseSize(char *text) {
+  char *p = text;
+  integer scale = 1;
+  while (*p != '\0' && isDigit(*p))
+    p++;
+  if (*p != '\0') {
+    switch (*p) {
+      case 'k':
+      case 'K':
+        scale = 1 << 10;
+        break;
+      case 'm':
+      case 'M':
+        scale = 1 << 20;
+        break;
+      case 'g':
+      case 'G':
+        scale = 1 << 30;
+        break;
+      default:;
+    }
+  }
+  return parseInt(text, (integer) (p - text)) * scale;
 }

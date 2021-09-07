@@ -16,7 +16,7 @@ static termPo capScan(specialClassPo cl, specialHelperFun helper, void *c, termP
 static logical capCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer capHash(specialClassPo cl, termPo o);
 static retCode capDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
-static termPo capFinalizer(specialClassPo class, termPo o, void *cl);
+static termPo capFinalizer(specialClassPo class, termPo o);
 
 SpecialClass CapabilityClass = {
   .clss = Null,
@@ -88,7 +88,7 @@ termPo capScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   return o + CapabilityCellCount(cap->length);
 }
 
-termPo capFinalizer(specialClassPo class, termPo o, void *cl) {
+termPo capFinalizer(specialClassPo class, termPo o) {
   capabilityPo cap = C_CAP(o);
 // TODO: close the capability?
   return o + CapabilityCellCount(cap->length);

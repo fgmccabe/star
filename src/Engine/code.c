@@ -18,7 +18,7 @@ static termPo mtdScan(specialClassPo cl, specialHelperFun helper, void *c, termP
 static logical mtdCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer mtdHash(specialClassPo cl, termPo o);
 static retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
-static termPo codeFinalizer(specialClassPo class, termPo o, void *cl);
+static termPo codeFinalizer(specialClassPo class, termPo o);
 
 SpecialClass MethodClass = {
   .clss = Null,
@@ -75,10 +75,8 @@ termPo mtdScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   return ((termPo) o) + mtdSize(cl, o);
 }
 
-termPo codeFinalizer(specialClassPo class, termPo o, void *cl) {
-  methodPo mtd = C_MTD(o);
-
-  return ((termPo) o) + mtdSize(cl, o);
+termPo codeFinalizer(specialClassPo class, termPo o) {
+  return ((termPo) o) + mtdSize(class, o);
 }
 
 logical mtdCmp(specialClassPo cl, termPo o1, termPo o2) {

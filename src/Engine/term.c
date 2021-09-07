@@ -8,7 +8,7 @@
 #include "formioP.h"
 #include "labels.h"
 
-static termPo termFinalizer(specialClassPo class, termPo o, void *cl);
+static termPo termFinalizer(specialClassPo class, termPo o);
 
 SpecialClass SpecialClss = {
   .clss = Null,
@@ -163,7 +163,7 @@ integer termHash(termPo t) {
   }
 }
 
-termPo termFinalizer(specialClassPo class, termPo o, void *cl) {
+termPo termFinalizer(specialClassPo class, termPo o) {
   labelPo lbl = C_LBL((termPo) o->clss);
 
   return o + NormalCellCount(lbl->arity);

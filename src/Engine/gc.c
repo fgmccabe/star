@@ -235,12 +235,20 @@ termPo scanTerm(gcSupportPo G, termPo x) {
 termPo finalizeTerm(gcSupportPo G, termPo x) {
   if (hasMoved(x)) {
     termPo n = movedTo(x);
-    specialClassPo sClass = (specialClassPo) classOf(n);
+    if (isSpecialClass(n->clss)) {
+      specialClassPo sClass = (specialClassPo) classOf(n);
 
-    return x + sClass->sizeFun(sClass, n);
-  } else {
+      return x + sClass->sizeFun(sClass, n);
+    } else {
+      return x + NormalCellCount(termArity(C_NORMAL(n)));
+    }
+  } else if (isSpecialClass(x->clss)) {
     specialClassPo sClass = (specialClassPo) classOf(x);
-    return sClass->finalizer(sClass, x, Null);
+    sClass->finalizer(sClass, x);
+    return x + sClass->sizeFun(sClass, x);
+
+  } else {
+    return x + NormalCellCount(termArity(C_NORMAL(x)));
   }
 }
 
