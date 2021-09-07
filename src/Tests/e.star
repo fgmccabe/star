@@ -1,4 +1,4 @@
-test.d{
+test.e{
   import star.
   import star.script.
 
@@ -18,7 +18,7 @@ test.d{
   yy = xx.get(.false).
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     assert xx.test
   }
 }

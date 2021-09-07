@@ -45,6 +45,9 @@ collectStmtRefs([St|Stmts],All,Annots,R,Refs) :-
 collStmtRefs(St,All,_,R,Rfs) :-
   isTypeAnnotation(St,_,_,Tp),!,
   collectTypeRefs(Tp,All,R,Rfs).
+collStmtRefs(St,All,_,R,Rfs) :-
+  isTypeField(St,_,_,Tp),!,
+  collectTypeRefs(Tp,All,R,Rfs).
 collStmtRefs(St,All,Annots,R,Rx) :-
   isPublic(St,_,I),!,
   collStmtRefs(I,All,Annots,R,Rx).
