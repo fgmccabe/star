@@ -7,7 +7,7 @@ test.fn{
   S = ["one","two","three","four","five","six","seven","eight","nine","ten"].
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     assert "one"^=head(S);
     assert "ten"^=last(S);
 

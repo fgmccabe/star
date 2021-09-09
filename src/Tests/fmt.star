@@ -3,9 +3,11 @@ test.fmt{
   import star.script.
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     bar .= "bar";
     show "Foo#(bar)";
-    assert "Foo#(bar)"=="Foobar"
+    show "ten = $(10):9.9;";
+    assert "ten = $(10):00;"=="ten = 10";
+    assert "Foo#(bar)"=="Foobar";
   }
 }

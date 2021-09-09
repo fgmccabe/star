@@ -7,7 +7,7 @@ test.f{
   fact(N)=>_int_times(N,fact(_int_minus(N,1))).
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     assert _int_eq(fact(3),6)
   }
 }
