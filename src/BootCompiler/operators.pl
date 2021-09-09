@@ -1,6 +1,6 @@
 /* Automatically generated, do not edit */
 
-:-module(operators,[infixOp/4,prefixOp/3,postfixOp/3,isOperator/1,follows/3,final/2,bracket/4,multiTok/3,
+:-module(operators,[infixOp/4,prefixOp/3,postfixOp/3,isOperator/1,follows/3,final/2,bracket/5,multiTok/3,
                     keyword/1,isKeyword/1]).
 
   isOperator(O) :-
@@ -136,14 +136,14 @@
   operator(">=", [infixOp(899, 900, 899)]).
   operator(">>", [infixOp(949, 950, 950)]).
 
-  bracket("[||]", "[|", "|]", 2000).
-  bracket("<||>", "<|", "|>", 2000).
-  bracket("{..}", "{.", ".}", 2000).
-  bracket("[]", "[", "]", 2000).
-  bracket("()", "(", ")", 2000).
-  bracket("{}", "{", "}", 2000).
-  bracket("(||)", "(|", "|)", 2000).
-  bracket("{!!}", "{!", "!}", 2000).
+  bracket("[||]", "[|", "|]", "", 2000).
+  bracket("<||>", "<|", "|>", "", 2000).
+  bracket("{..}", "{.", ".}", "", 2000).
+  bracket("[]", "[", "]", ",", 2000).
+  bracket("()", "(", ")", ",", 2000).
+  bracket("{}", "{", "}", ".\n", 2000).
+  bracket("(||)", "(|", "|)", "", 2000).
+  bracket("{!!}", "{!", "!}", "", 2000).
 
   follows('','%','%').
   follows('','&','&').

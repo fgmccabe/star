@@ -229,7 +229,7 @@ examineTerm(T,T) :-
 examineTerm(T,T) :-
   isFloat(T,_,_),!.
 examineTerm(T,T) :-
-  isString(T,_,_),!.
+  isText(T,_,_),!.
 examineTerm(T,Tx) :-
   isTypeAnnotation(T,Lc,L,R),!,
   macroTerm(L,Lx),
@@ -445,7 +445,7 @@ examinePtn(T,T) :-
 examinePtn(T,T) :-
   isFloat(T,_,_),!.
 examinePtn(T,T) :-
-  isString(T,_,_),!.
+  isText(T,_,_),!.
 examinePtn(T,Tx) :-
   isTypeAnnotation(T,Lc,L,R),!,
   macroPtn(L,Lx),

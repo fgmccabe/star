@@ -745,7 +745,7 @@ isIterableGl(C) :-
 
 
 packageName(T,Pkg) :- isIden(T,Pkg).
-packageName(T,Pkg) :- isString(T,Pkg).
+packageName(T,Pkg) :- isText(T,Pkg).
 packageName(T,Pkg) :- isBinary(T,_,".",L,R),
   packageName(L,LP),
   packageName(R,RP),
@@ -760,7 +760,7 @@ pkgName(T,pkg(Pkg,defltVersion)) :-
   packageName(T,Pkg).
 
 packageVersion(T,Pkg) :- isIden(T,Pkg).
-packageVersion(T,Pkg) :- isString(T,Pkg).
+packageVersion(T,Pkg) :- isText(T,Pkg).
 packageVersion(integer(_,Ix),Pkg) :- atom_string(Ix,Pkg).
 packageVersion(T,Pkg) :- isBinary(T,_,".",L,R),
   packageVersion(L,LP),

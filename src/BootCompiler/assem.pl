@@ -379,7 +379,8 @@ showMnem([iLocal(Nm,Frm,End,_Off)|Ins],Pc,Lbs,[sq([ss(Nm),ss("::"),ss(Frm),ss("-
   showMnem(Ins,Pc,Lbs,II).
 showMnem([iLine(Loc)|Ins],Pc,Lbs,[sq([ss("Line "),LL])|II]) :-
   ssTrm(Loc,0,LL),
-  showMnem(Ins,Pc,Lbs,II).
+  Pc1 is Pc+3,
+  showMnem(Ins,Pc1,Lbs,II).
 showMnem([iHalt(U)|Ins],Pc,Lbls,[sq([ix(Pc),ss(":"),ss("Halt"), ss(" "), UU])|II]) :- !,
   Pc0 is Pc+1,
   UU=ix(U),

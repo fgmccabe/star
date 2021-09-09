@@ -45,20 +45,32 @@ locOfToken(idTok(_,Lc),Lc).
 locOfToken(idQTok(_,Lc),Lc).
 locOfToken(integerTok(_,Lc),Lc).
 locOfToken(floatTok(_,Lc),Lc).
+locOfToken(segTok(_,Lc),Lc).
 locOfToken(stringTok(_,Lc),Lc).
 locOfToken(termTok(Lc),Lc).
 locOfToken(terminal,missing).
 
 showToken(lftTok(Bkt,_),Chrs) :-
-  bracket(Bkt,Lft,_,_),!,
+  bracket(Bkt,Lft,_,_,_),!,
   string_chars(Lft,Chrs).
 showToken(rgtTok(Bkt,_),Chrs) :-
-  bracket(Bkt,_,Rgt,_),!,
+  bracket(Bkt,_,Rgt,_,_),!,
   string_chars(Rgt,Chrs).
-showToken(idQTok(Id,_),St) :- string_chars(Id,St).
-showToken(idTok(Id,_),St) :- string_chars(Id,St).
-showToken(integerTok(Ix,_),Str) :- number_string(Ix,St),string_chars(St,Str).
-showToken(floatTok(Dx,_),Str) :- number_string(Dx,St),string_chars(St,Str).
+showToken(idQTok(Id,_),St) :-
+  string_chars(Id,St).
+showToken(idTok(Id,_),St) :-
+  string_chars(Id,St).
+showToken(integerTok(Ix,_),Str) :-
+  number_string(Ix,St),
+  string_chars(St,Str).
+showToken(floatTok(Dx,_),Str) :-
+  number_string(Dx,St),
+  string_chars(St,Str).
+showToken(segTok(Txt,_),Str) :-
+  appStr("\"",Chrs,C0),
+  appStr(Txt,C0,C1),
+  appStr("\"",C1,[]),
+  string_chars(Chrs,Str).
 showToken(stringTok(St,_),Str) :-
   appStr("\"",Chrs,C0),
   dispString(St,C0,C1),
@@ -119,17 +131,49 @@ lineComment(St,St).
 blockComment(St,NxSt) :- hedChar(St,'*'), hedHedChar(St,'/'), nxtNxtSt(St,NxSt).
 blockComment(St,NxSt) :- nxtSt(St,St1), blockComment(St1,NxSt).
 
-nxTok(St,NxSt,integerTok(Code,Lc)) :- lookingAt(St,St1,['0','c'],_), charRef(St1,NxSt,Ch), char_code(Ch,Code), makeLoc(St,NxSt,Lc).
-nxTok(St,NxSt,integerTok(Hx,Lc)) :- lookingAt(St,St1,['0','x'],_), readHex(St1,NxSt,0,Hx), makeLoc(St,NxSt,Lc).
-nxTok(St,NxSt,Tk) :- hedChar(St,Ch), isDigit(Ch,_), readNumber(St,NxSt,Tk).
-nxTok(St,NxSt,idQTok(Id,Lc)) :- nextSt(St,St1,''''), readQuoted(St1,NxSt,'''',Id), makeLoc(St,NxSt,Lc).
-nxTok(St,NxSt,stringTok([segment(Seg,Lc)],Lc)) :- lookingAt(St,St1,['"','"','"']), stringBlob(St1,St2,Txt),lookingAt(St2,NxSt,['"','"','"']),string_chars(Seg,Txt),makeLoc(St1,St2,Lc).
-nxTok(St,NxSt,Str) :- nextSt(St,St1,'"'), readString(St1,NxSt,Str).
-nxTok(St,NxSt,idTok(Id,Lc)) :- hedChar(St,Ch), idStart(Ch), readIden(St,NxSt,Id), makeLoc(St,NxSt,Lc).
-nxTok(St,NxSt,termTok(Lc)) :- lookingAt(St,NxSt,['.',' '],Lc).
-nxTok(St,NxSt,termTok(Lc)) :- lookingAt(St,NxSt,['.','\t'],Lc).
-nxTok(St,NxSt,termTok(Lc)) :- lookingAt(St,NxSt,['.','\n'],Lc).
-nxTok(St,NxSt,Tok) :- nextSt(St,St1,Ch),
+nxTok(St,NxSt,integerTok(Code,Lc)) :-
+  lookingAt(St,St1,['0','c'],_),
+  charRef(St1,NxSt,Ch),
+  char_code(Ch,Code),
+  makeLoc(St,NxSt,Lc).
+nxTok(St,NxSt,integerTok(Hx,Lc)) :-
+  lookingAt(St,St1,['0','x'],_),
+  readHex(St1,NxSt,0,Hx),
+  makeLoc(St,NxSt,Lc).
+nxTok(St,NxSt,segTok(Txt,Lc)) :-
+  lookingAt(St,St1,['0','"'],_),
+  readQuoted(St1,NxSt,'"',Txt),
+  makeLoc(St,NxSt,Lc).
+nxTok(St,NxSt,Tk) :-
+  hedChar(St,Ch),
+  isDigit(Ch,_),
+  readNumber(St,NxSt,Tk).
+nxTok(St,NxSt,idQTok(Id,Lc)) :-
+  nextSt(St,St1,''''),
+  readQuoted(St1,NxSt,'''',Id),
+  makeLoc(St,NxSt,Lc).
+nxTok(St,NxSt,stringTok([segment(Seg,Lc)],Lc)) :-
+  lookingAt(St,St1,['"','"','"']),
+  stringBlob(St1,St2,Txt),
+  lookingAt(St2,NxSt,['"','"','"']),
+  string_chars(Seg,Txt),
+  makeLoc(St1,St2,Lc).
+nxTok(St,NxSt,Str) :-
+  nextSt(St,St1,'"'),
+  readString(St1,NxSt,Str).
+nxTok(St,NxSt,idTok(Id,Lc)) :-
+  hedChar(St,Ch),
+  idStart(Ch),
+  readIden(St,NxSt,Id),
+  makeLoc(St,NxSt,Lc).
+nxTok(St,NxSt,termTok(Lc)) :-
+  lookingAt(St,NxSt,['.',' '],Lc).
+nxTok(St,NxSt,termTok(Lc)) :-
+  lookingAt(St,NxSt,['.','\t'],Lc).
+nxTok(St,NxSt,termTok(Lc)) :-
+  lookingAt(St,NxSt,['.','\n'],Lc).
+nxTok(St,NxSt,Tok) :-
+  nextSt(St,St1,Ch),
   follows('',Ch,_),
   followGraph(Ch,Id,St1,NxSt), !,
   makeLoc(St,NxSt,Lc),
@@ -142,30 +186,65 @@ nxTok(St,NxSt,Tk) :-
   nxTok(St2,NxSt,Tk).
 nxTok(St,St,terminal) :- isTerminal(St).
 
-readNumber(St,NxSt,Tk) :- readNumber(St,St,NxSt,1,Tk).
+readNumber(St,NxSt,Tk) :-
+  readNumber(St,St,NxSt,1,Tk).
 
-readNumber(St0,St,NxSt,Sgn,Tk) :- readNatural(St,St1,0,D), readMoreNumber(St0,St1,NxSt,Sgn,D,Tk).
+readNumber(St0,St,NxSt,Sgn,Tk) :-
+  readNatural(St,St1,0,D),
+  readMoreNumber(St0,St1,NxSt,Sgn,D,Tk).
 
-readNatural(St,NxSt,D,N) :- nextSt(St,St1,Ch), isDigit(Ch,Dx), D1 is D*10+Dx, readNatural(St1,NxSt,D1,N).
+readNatural(St,NxSt,D,N) :-
+  nextSt(St,St1,Ch),
+  isDigit(Ch,Dx),
+  D1 is D*10+Dx,
+  readNatural(St1,NxSt,D1,N).
 readNatural(St,St,D,D).
 
-readDecimal(St,NxSt,Ng) :- nextSt(St,St1,'-'), readNatural(St1,NxSt,0,N), Ng is -N.
-readDecimal(St,NxSt,N) :- readNatural(St,NxSt,0,N).
+readDecimal(St,NxSt,Ng) :-
+  nextSt(St,St1,'-'),
+  readNatural(St1,NxSt,0,N), Ng is -N.
+readDecimal(St,NxSt,N) :-
+  readNatural(St,NxSt,0,N).
 
-readMoreNumber(St0,St,NxSt,Sgn,D,floatTok(FP,Lc)) :- nextSt(St,St1,'.'), hedChar(St1,Dg), isDigit(Dg,_), readFraction(St1,St2,D,0.1,Fr), Mant is Sgn*Fr, readExponent(St2,NxSt,Mant,FP), makeLoc(St0,NxSt,Lc).
-readMoreNumber(St0,St,St,Sgn,D,integerTok(FP,Lc)) :- FP is Sgn*D, makeLoc(St0,St,Lc).
+readMoreNumber(St0,St,NxSt,Sgn,D,floatTok(FP,Lc)) :-
+  nextSt(St,St1,'.'),
+  hedChar(St1,Dg),
+  isDigit(Dg,_),
+  readFraction(St1,St2,D,0.1,Fr),
+  Mant is Sgn*Fr,
+  readExponent(St2,NxSt,Mant,FP),
+  makeLoc(St0,NxSt,Lc).
+readMoreNumber(St0,St,St,Sgn,D,integerTok(FP,Lc)) :-
+  FP is Sgn*D,
+  makeLoc(St0,St,Lc).
 
-readFraction(St,NxSt,SF,Fx,Fr) :- nextSt(St,St1,Ch), isDigit(Ch,D), SF1 is SF+D*Fx, Fx1 is Fx/10, readFraction(St1,NxSt,SF1,Fx1,Fr).
+readFraction(St,NxSt,SF,Fx,Fr) :-
+  nextSt(St,St1,Ch),
+  isDigit(Ch,D),
+  SF1 is SF+D*Fx,
+  Fx1 is Fx/10,
+  readFraction(St1,NxSt,SF1,Fx1,Fr).
 readFraction(St,St,Fr,_,Fr).
 
-readExponent(St,NxSt,M,FP) :- nextSt(St,St1,'e'), readDecimal(St1,NxSt,E), FP is M*10**E.
+readExponent(St,NxSt,M,FP) :-
+  nextSt(St,St1,'e'),
+  readDecimal(St1,NxSt,E),
+  FP is M*10**E.
 readExponent(St,St,M,M).
 
-readHex(St,NxSt,SF,Hx) :- nextSt(St,St1,D), isHexDigit(D,H), !, NF is SF*16+H, readHex(St1,NxSt,NF,Hx).
+readHex(St,NxSt,SF,Hx) :-
+  nextSt(St,St1,D),
+  isHexDigit(D,H), !,
+  NF is SF*16+H,
+  readHex(St1,NxSt,NF,Hx).
 readHex(St,St,SF,SF).
 
-charRef(St,Nxt,Chr) :- nextSt(St,St1,'\\'), nextSt(St1,St2,Ch), backslashRef(St2,Nxt,Ch,Chr).
-charRef(St,Nxt,Chr) :- nextSt(St,Nxt,Chr).
+charRef(St,Nxt,Chr) :-
+  nextSt(St,St1,'\\'),
+  nextSt(St1,St2,Ch),
+  backslashRef(St2,Nxt,Ch,Chr).
+charRef(St,Nxt,Chr) :-
+    nextSt(St,Nxt,Chr).
 
 backslashRef(St,St,'a','\a').
 backslashRef(St,St,'b','\b').
@@ -173,21 +252,39 @@ backslashRef(St,St,'e','\e').
 backslashRef(St,St,'t','\t').
 backslashRef(St,St,'n','\n').
 backslashRef(St,St,'r','\r').
-backslashRef(St,Nxt,'u',Ch) :- hexChar(St,Nxt,0,Hx), string_codes(SS,[Hx]),string_chars(SS,[Ch]).
+backslashRef(St,Nxt,'u',Ch) :-
+  hexChar(St,Nxt,0,Hx),
+  string_codes(SS,[Hx]),
+  string_chars(SS,[Ch]).
 backslashRef(St,St,Ch,Ch).
 
-hexChar(St,NxSt,SF,SF) :- nextSt(St,NxSt,';').
-hexChar(St,NxSt,SF,Hx) :- nextSt(St,St1,D), isHexDigit(D,H), NF is SF*16+H, hexChar(St1,NxSt,NF,Hx).
+hexChar(St,NxSt,SF,SF) :-
+  nextSt(St,NxSt,';').
+hexChar(St,NxSt,SF,Hx) :-
+  nextSt(St,St1,D),
+  isHexDigit(D,H),
+  NF is SF*16+H,
+  hexChar(St1,NxSt,NF,Hx).
 
-readQuoted(St,NxSt,Stop,Id) :- readUntil(St,NxSt,Stop,Chrs), string_chars(Id,Chrs).
+readQuoted(St,NxSt,Stop,Id) :-
+  readUntil(St,NxSt,Stop,Chrs),
+  string_chars(Id,Chrs).
 
-readUntil(St,NxSt,Stop,[]) :- nextSt(St,NxSt,Stop).
-readUntil(St,NxSt,Stop,[Ch|Chrs]) :- charRef(St,St1,Ch), readUntil(St1,NxSt,Stop,Chrs).
+readUntil(St,NxSt,Stop,[]) :-
+  nextSt(St,NxSt,Stop).
+readUntil(St,NxSt,Stop,[Ch|Chrs]) :-
+  charRef(St,St1,Ch),
+  readUntil(St1,NxSt,Stop,Chrs).
 
 stringBlob(St,St,[]) :- lookingAt(St,_,['"','"','"']).
-stringBlob(St,NxSt,[Ch|L]) :- nextSt(St,St1,Ch), stringBlob(St1,NxSt,L).
+stringBlob(St,NxSt,[Ch|L]) :-
+  nextSt(St,St1,Ch),
+  stringBlob(St1,NxSt,L).
 
-readString(St,NxSt,stringTok(Str,Lc)) :- readMoreString(St,St2,Str), makeLoc(St,St2,Lc), nextSt(St2,NxSt,'"').
+readString(St,NxSt,stringTok(Str,Lc)) :-
+  readMoreString(St,St2,Str),
+  makeLoc(St,St2,Lc),
+  nextSt(St2,NxSt,'"').
 
 readMoreString(St,St,[]) :- hedChar(St,'"').
 readMoreString(St,NxSt,[Seg|Segments]) :-
@@ -289,9 +386,9 @@ multiToks([Tk|Toks],[Tk|Tks]) :-
   multiToks(Toks,Tks).
 	  
 finalizeToken(Lc,Id,lftTok(Bkt,Lc)) :-
-  bracket(Bkt,Id,_,_),!.
+  bracket(Bkt,Id,_,_,_),!.
 finalizeToken(Lc,Id,rgtTok(Bkt,Lc)) :-
-  bracket(Bkt,_,Id,_),!.
+  bracket(Bkt,_,Id,_,_),!.
 finalizeToken(Lc,Id,idTok(Id,Lc)).
 
 subTokenize(loc(Pkg,LineNo,Col,Off,_),Chars,Toks) :-

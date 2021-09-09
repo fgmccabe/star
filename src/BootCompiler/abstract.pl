@@ -11,9 +11,9 @@
 		    squareTerm/4,isSquare/3,isSquare/4,
 		    isSquareTuple/3,squareTuple/3,isSquareTerm/3,isSquareTerm/4,sqUnary/4,
 		    isName/2,isName/3,
-		    isIden/1,isIden/2,isIden/3,genIden/2,genIden/3,isString/2,
+		    isIden/1,isIden/2,isIden/3,genIden/2,genIden/3,isText/2,
 		    isFloat/3,
-		    isString/3,isInteger/3,isConsTerm/4, sameTerm/2,
+		    isText/3,isInteger/3,isConsTerm/4, sameTerm/2,
 		    explodeString/2]).
 :- use_module(operators).
 :- use_module(misc).
@@ -125,9 +125,9 @@ genIden(Lc,name(Lc,Id)) :-
 genIden(Lc,Pre,name(Lc,Id)) :-
   genstr(Pre,Id).
 
-isString(string(_,St),St).
+isText(string(_,St),St).
 
-isString(string(Lc,Txt),Lc,Txt).
+isText(string(Lc,Txt),Lc,Txt).
 
 isInteger(integer(Lc,Ix),Lc,Ix).
 
