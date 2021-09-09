@@ -59,7 +59,7 @@ genCall(T,Bnd,Cl) :-
   isSquareTuple(T,Lc,Els),
   genSquare(Lc,Els,Bnd,Cl).
 genCall(T,void,Cl) :-
-  isString(T,Lc,_),
+  isText(T,Lc,_),
   unary(Lc,"_str",T,Cl).
 genCall(T,V,Cl) :-
   isBraceTuple(T,Lc,[C]),!,

@@ -264,7 +264,7 @@ ptnVars(T,_,V,V) :-
 ptnVars(T,_,V,V) :-
   isFloat(T,_,_),!.
 ptnVars(T,_,V,V) :-
-  isString(T,_,_),!.
+  isText(T,_,_),!.
 ptnVars(T,_,V,V) :-
   isEnum(T,_,_),!.
 ptnVars(T,E,V,Vx) :-

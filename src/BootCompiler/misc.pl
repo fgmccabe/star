@@ -5,7 +5,7 @@
 	       project0/2,project1/2,project0_3/2,project1_3/2,
 	       zip/3,split_list/4,index_list/3,
 	       isIdentifier/1,
-	       appStr/3,appStrs/3,appIden/3,appInt/3,appFlt/3,
+	       appStr/3,appStrs/3,appIden/3,appInt/3,appFlt/3,quoteConcat/4,
 	       appSym/3,appQuoted/4,
 	       appIndx/3,appNl/2,appNwln/3,appMulti/3,
 	       genstr/2,str_lt/2,
@@ -175,7 +175,12 @@ isIdentifier(Nm) :- string_chars(Nm,Chrs), check_implies(is_member(Ch,Chrs),isAl
 
 isAlphaNum(Ch) :- char_type(Ch,alpha) ; char_type(Ch,alnum) ; Ch='_'.
 
-appQuoted(Str,Qt,O,E) :- appStr(Qt,O,O1), string_chars(Qt,[Q]),string_chars(Str,Chars), quoteConcat(Q,Chars,O1,O2), appStr(Qt,O2,E).
+appQuoted(Str,Qt,O,E) :-
+  appStr(Qt,O,O1),
+  string_chars(Qt,[Q]),
+  string_chars(Str,Chars),
+  quoteConcat(Q,Chars,O1,O2),
+  appStr(Qt,O2,E).
 
 quoteConcat(_,[],O,O).
 quoteConcat(Qt,['\"'|More],['\\','\"'|Out],Ox) :- quoteConcat(Qt,More,Out,Ox).

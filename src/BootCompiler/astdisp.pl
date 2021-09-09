@@ -1,4 +1,5 @@
 :-module(astdisp,[dispAst/4,dispAst/1,dispAstTerm/3,ast2String/2]).
+:- use_module(abstract).
 :- use_module(operators).
 :- use_module(misc).
 :- use_module(display).
@@ -20,6 +21,13 @@ dispAst(tuple(_,Nm,A),_,O,E) :- bracket(Nm,Left,Right,Sep,Pr),
     appStr(Left,O,O1),
     writeEls(A,Pr,Sep,O1,O2),
     appStr(Right,O2,E).
+dispAst(Trm,_,O,Ox) :-
+  isBinary(Trm,_,"::",L,R),
+  isName(R,_,"string"),
+  isUnary(L,_,"ssSeq",_),!,
+  appStr("\"",O,O1),
+  deInterpolate(L,O1,O2),
+  appStr("\"",O2,Ox).
 dispAst(app(_,name(_,Nm),tuple(_,"()",[A])),Pr,O,E) :-
   prefixOp(Nm,OpPr, RightPr),!,
   openParen(Pr,OpPr,O,O1),
@@ -45,11 +53,40 @@ dispAst(app(_,name(_,Nm),tuple(_,"()",[A,B])),Pr,O,E) :-
   closeParen(Pr,OpPr,O6,E).
 dispAst(app(_,Op,A),_,O,E) :- dispAst(Op,0,O,O1), dispAst(A,0,O1,E).
 
-bracket("()","(",")",", ",1000).
-bracket("[]","[","]",", ",2000).
-bracket("{}","{","}",".\n",2000).
-bracket("<||>","<|","|>",". ",2000).
-bracket("{..}","{.",".}",".\n",2000).
+deInterpolate(T,O,Ox) :-
+  isUnary(T,_,"ss",Tx), isText(Tx,Txt),!,
+  string_chars(Txt,Chars),
+  quoteConcat('\"',Chars,O,Ox).
+deInterpolate(T,O,Ox) :-
+  isUnary(T,_,"ss",Trm),!,
+  appStr("#",O,O1),
+  dispAst(Trm,1000,O1,Ox).
+deInterpolate(T,O,Ox) :-
+  isUnary(T,_,"disp",Trm),
+  appStr("$",O,O1),
+  dispAst(Trm,1000,O1,Ox).
+deInterpolate(T,O,Ox) :-
+  isBinary(T,_,"frmt",Trm,Fmt),
+  isText(Fmt,FmtTxt),
+  appStr("$",O,O1),
+  dispAst(Trm,1000,O1,O2),
+  appStr(":",O2,O3),
+  appStr(FmtTxt,O3,O4),
+  appStr(";",O4,Ox).
+deInterpolate(T,O,Ox) :-
+  isUnary(T,_,"ssSeq",L),
+  isSquareTuple(L,_,Els),!,
+  rfold(Els,astdisp:deInterpolate,O,Ox).
+deInterpolate(T,O,Ox) :-
+  isUnary(T,_,"ssSeq",L),
+  deInterpolateEls(L,O,Ox).
+
+
+deInterpolateEls(End,O,O) :- isName(End,_,"_nil"),!.
+deInterpolateEls(El,O,Ox) :-
+  isBinary(El,_,"_cons",E,T),
+  deInterpolate(E,O,O1),
+  deInterpolateEls(T,O1,Ox).
 
 writeEls([],_,_,O,O) :- !.
 writeEls([H|M],Pr,Sep,O,E) :- dispAst(H,Pr,O,O1), writeMoreEls(M,Pr,Sep,O1,E).

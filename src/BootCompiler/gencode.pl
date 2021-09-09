@@ -93,6 +93,9 @@ resetVrCont(scope(Vrs,FrReg,M0),Cont,L,Lx,scope(_,_,M1),Dx,End,C,Cx,Stk,Stkx) :-
   Mx is max(M0,M1),
   call(Cont,L,Lx,scope(Vrs,FrReg,Mx),Dx,End,C,Cx,Stk,Stkx).
 
+resetVars(scope(Vrs,FrReg,M0),scope(_,_,M1),scope(Vrs,FrReg,Mx)) :-
+  Mx is max(M0,M1).
+
 mergeVars(scope(V1,Fr1,M1),scope(V2,Fr2,M2),scope(Vx,Frx,Mx)) :-
   intersect(V1,V2,Vx),
   intersect(Fr1,Fr2,Frx),
@@ -352,14 +355,16 @@ compAction(assignD(Lc,V,E),OLc,Cont,_,_RCont,_ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,
 	   compTerm(V,Lc,
 		    bothCont(asmCont(iAssign,Stk0),Cont),ECont,Opts),ECont,
 	   Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
-compAction(cnd(Lc,T,A,B),OLc,Cont,PCont,RCont,ECont,Opts,L,Lx,D,D,End,C,Cx,Stk,Stk) :-
+compAction(cnd(Lc,T,A,B),OLc,Cont,PCont,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stk) :-
   chLine(Opts,OLc,Lc,C,C0),
   splitCont(Lc,Cont,SCont),
   genLbl(L,Then,L0),
   genLbl(L0,Else,L1),
   compCond(T,Lc,contCont(Then),contCont(Else),ECont,Opts,L1,L2,D,D1,End,C0,[iLbl(Then)|C1],Stk,Stk1),
-  compAction(A,Lc,SCont,PCont,RCont,ECont,Opts,L2,L3,D1,_,Else,C1,C1a,Stk1,Stk2),
-  compAction(B,Lc,SCont,PCont,RCont,ECont,Opts,L3,Lx,D,_,End,C2,C3,Stk,Stk3),
+  compAction(A,Lc,SCont,PCont,RCont,ECont,Opts,L2,L3,D1,D2,Else,C1,C1a,Stk1,Stk2),
+  resetVars(D2,D,Da),
+  compAction(B,Lc,SCont,PCont,RCont,ECont,Opts,L3,Lx,Da,Db,End,C2,C3,Stk,Stk3),
+  resetVars(D,Db,Dx),
   reconcileStack(Stk2,Stk,_,C1a,[iLbl(Else)|C2]),
   reconcileStack(Stk3,Stk,_,C3,Cx).
 compAction(rtnDo(Lc,E),_Lc,_Cont,_,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
@@ -592,8 +597,9 @@ compPtn(ctpl(St,Args),Lc,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,[iUnpack(St,Fl)|C],C
   genLbl(L,Fl,L0),
   stkLvl(Stka,Lvla),
   compPtnArgs(Args,Lc,stkArgCont,TCont,0,Succ,contCont(Fl),
-	      Opts,L0,L1,D,Dx,End,C,[iLbl(Fl),iRst(Lvla)|C1],Stka,Stkx),
-  call(Fail,L1,Lx,D,_D2,End,C1,Cx,Stka,_).
+	      Opts,L0,L1,D,D1,End,C,[iLbl(Fl),iRst(Lvla)|C1],Stka,Stkx),
+  call(Fail,L1,Lx,D,D2,End,C1,Cx,Stka,_),
+  resetVars(D1,D2,Dx).
 compPtn(whr(Lc,P,Cnd),OLc,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   splitCont(Lc,Fail,SFail),
