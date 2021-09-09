@@ -50,13 +50,14 @@ typedef enum {
   inBkt,
   inLeft,
   inRight,
+  inSep,
   inPriority,
   inKeyword,
   unknownState
 } ParseState;
 
 static char *stNames[] = {"initial", "inDecl", "inOper", "ast", "token", "priorities", "desc", "bracket", "left",
-                          "right", "priority", "keyword", "unknown"};
+                          "right", "seperator", "priority", "keyword", "unknown"};
 
 static OperatorStyle operatorMode(const char *name);
 static ParseState fromStName(const char *name);
@@ -71,6 +72,7 @@ typedef struct {
   logical isKeyword;
   char left[16];
   char right[16];
+  char sep[16];
   char desc[1024];
   ParseState state;
 } ParsingState, *statePo;
@@ -100,6 +102,7 @@ retCode startCollection(void *cl) {
     case initial:
       info->state = inDecl;
       uniCpy((char *) &info->oper, NumberOf(info->oper), "");
+      uniCpy((char *) &info->sep, NumberOf(info->sep), "");
       info->numPriorities = 0;
       info->isKeyword = False;
       break;
@@ -133,7 +136,7 @@ retCode endCollection(void *cl) {
           genPostfix(info->oper, info->ast, info->priorities[0], info->priorities[1], info->isKeyword, info->desc);
           return Ok;
         case brackets:
-          genBracket(info->oper, info->priority, info->left, info->right, info->desc);
+          genBracket(info->oper, info->priority, info->left, info->right, info->sep, info->desc);
           return Ok;
         case tokenOnly:
           genToken(info->oper, info->desc);
@@ -191,6 +194,7 @@ retCode startEntry(const char *name, void *cl) {
           return Ok;
         case inBkt:
           info->mode = brackets;
+          uniCpy(info->sep, NumberOf(info->sep), "");
           return Ok;
         case inKeyword:
           info->isKeyword = False;
@@ -218,11 +222,10 @@ retCode endEntry(const char *name, void *cl) {
     case inDescription:
     case inToken:
     case inAst:
-      info->state = inDecl;
-      return Ok;
     case inLeft:
     case inRight:
     case inPriority:
+    case inSep:
     case inBkt:
     case inKeyword:
       info->state = inDecl;
@@ -285,6 +288,9 @@ retCode txtEntry(const char *name, void *cl) {
       return Ok;
     case inRight:
       uniCpy(info->right, NumberOf(info->right), name);
+      return Ok;
+    case inSep:
+      uniCpy(info->sep, NumberOf(info->sep), name);
       return Ok;
     case inDescription:
       uniCpy(info->desc, NumberOf(info->desc), name);

@@ -61,6 +61,7 @@ typedef struct {
   char left[16];
   char right[16];
   integer priority;
+  char sep[16];
 } BrktRecord, *bracketPo;
 
 typedef struct {
@@ -223,21 +224,21 @@ static retCode procMulti(void *n, void *r, void *c) {
   retCode ret = Ok;
 
   switch (genMode) {
-    case genProlog:{
-      for(integer ix=0;ret==Ok & ix<b->count;ix++){
-        ret = outMsg(out,"  multiTok(\"%P\", \"%P\", \"%P %P\").\n",b->first,b->alts[ix],b->first,b->alts[ix]);
+    case genProlog: {
+      for (integer ix = 0; ret == Ok & ix < b->count; ix++) {
+        ret = outMsg(out, "  multiTok(\"%P\", \"%P\", \"%P %P\").\n", b->first, b->alts[ix], b->first, b->alts[ix]);
       }
       break;
     }
     case genStar:
-      ret = outMsg(out, "  multiTok(\"%P\") => some([",b->first);
+      ret = outMsg(out, "  multiTok(\"%P\") => some([", b->first);
       char *sep = "";
-      for(integer ix=0;ret==Ok & ix<b->count;ix++){
-        ret = outMsg(out,"%s\"%P\"",sep,b->alts[ix]);
+      for (integer ix = 0; ret == Ok & ix < b->count; ix++) {
+        ret = outMsg(out, "%s\"%P\"", sep, b->alts[ix]);
         sep = ", ";
       }
-      if(ret==Ok)
-        ret = outMsg(out,"]).\n");
+      if (ret == Ok)
+        ret = outMsg(out, "]).\n");
       break;
     case genEmacs:
     default:
@@ -398,12 +399,13 @@ void genPostfix(char *op, char *ast, int left, int prior, logical isKeyword, cha
   genToken(oper->name, cmt);
 }
 
-void genBracket(char *op, integer prior, char *left, char *right, char *cmt) {
+void genBracket(char *op, integer prior, char *left, char *right, char *sep, char *cmt) {
   bracketPo bkt = (bracketPo) malloc(sizeof(BrktRecord));
 
   strcpy(bkt->name, op);
   strcpy(bkt->left, left);
   strcpy(bkt->right, right);
+  strcpy(bkt->sep, sep);
   bkt->priority = prior;
 
   hashPut(bracketTbl, bkt->name, bkt);
@@ -568,8 +570,8 @@ retCode pickKeywords(void *n, void *r, void *c) {
   char *nm = (char *) n;
   retCode ret = Ok;
 
-  if(p!=Null)
-    return procKey(out," ",p->op);
+  if (p != Null)
+    return procKey(out, " ", p->op);
   else
     return Error;
 }
@@ -583,17 +585,17 @@ retCode procBrackets(void *n, void *r, void *c) {
 
   switch (genMode) {
     case genProlog:
-      ret = outMsg(out, "  bracket(\"%P\", \"%P\", \"%P\", %d).\n", nm, b->left, b->right, b->priority);
+      ret = outMsg(out, "  bracket(\"%P\", \"%P\", \"%P\", \"%P\", %d).\n", nm, b->left, b->right, b->sep, b->priority);
       break;
     case genStar:
-      ret = outMsg(out, "  isBracket(\"%P\") => some(bkt(\"%P\",\"%P\",\"%P\",%d)).\n", b->left, b->left, b->name,
-                   b->right, b->priority);
+      ret = outMsg(out, "  isBracket(\"%P\") => some(bkt(\"%P\",\"%P\",\"%P\",\"%P\",%d)).\n", b->left, b->left,
+                   b->name, b->right, b->sep, b->priority);
       if (ret == Ok)
-        ret = outMsg(out, "  isBracket(\"%P\") => some(bkt(\"%P\",\"%P\",\"%P\",%d)).\n", b->right, b->left, b->name,
-                     b->right, b->priority);
+        ret = outMsg(out, "  isBracket(\"%P\") => some(bkt(\"%P\",\"%P\",\"%P\",\"%P\",%d)).\n", b->right, b->left,
+                     b->name, b->right, b->sep, b->priority);
       if (ret == Ok)
-        ret = outMsg(out, "  isBracket(\"%P\") => some(bkt(\"%P\",\"%P\",\"%P\",%d)).\n", b->name, b->left, b->name,
-                     b->right, b->priority);
+        ret = outMsg(out, "  isBracket(\"%P\") => some(bkt(\"%P\",\"%P\",\"%P\",\"%P\",%d)).\n",
+                     b->name, b->left, b->name,b->right, b->sep, b->priority);
       break;
     case genEmacs:
       return outMsg(out, "  ( \"%P\" \"%P\" \"%P\" %d)\n", nm, b->left, b->right, b->priority);
