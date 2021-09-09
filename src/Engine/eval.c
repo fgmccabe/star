@@ -18,7 +18,7 @@
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<(unsigned)16)|lo32))
 #define collectOff(pc) (hi32 = collectI32(pc), (pc)+(signed)hi32)
 
-#define checkAlloc(Count) do{\
+#define checkAlloc(Count) STMT_WRAP({\
   if (reserveSpace(H, Count) != Ok) {\
     saveRegisters();\
     retCode ret = gcCollect(H, Count);\
@@ -27,7 +27,7 @@
     restoreRegisters();   \
     check(reserveSpace(H,Count)==Ok,"could not reserve space");\
   }\
-}while(False)
+})
 
 #define pop() (*SP++)
 #define top() (*SP)
@@ -204,30 +204,66 @@ retCode run(processPo P) {
         labelPo lbl = C_LBL(nProg);
         integer arity = labelArity(lbl);
 
-        // Pick up existing frame
-        ptrPo tgt = &arg(argCount(FP->prog));
-        ptrPo src = SP + arity;                  /* base of argument vector */
-        framePo oldFp = FP->fp;
-
-        for (int ix = 0; ix < arity; ix++)
-          *--tgt = *--src;    /* copy the argument vector */
-
-        FP = ((framePo) tgt) - 1;
         methodPo mtd = labelCode(lbl);
         if (mtd == Null) {
           logMsg(logFile, "no definition for %T", lbl);
           bail();
         }
-        FP->pc = PC = entryPoint(mtd);
-        FP->fp = oldFp;
-        FP->prog = mtd;
+
+        if (!stackRoom(stackDelta(mtd))) {
+          int root = gcAddRoot(H, (ptrPo) &mtd);
+
+          stackPo prevStack = STK;
+
+          gcAddRoot(H, (ptrPo) &prevStack);
+
+          saveRegisters();
+          STK = P->stk = glueOnStack(H, STK, (STK->sze * 3) / 2 + stackDelta(mtd));
+
+          SP = STK->sp;
+          // Copy arguments from old stack
+          ptrPo src = prevStack->sp + arity;
+          for (integer ix = 0; ix < arity; ix++) {
+            *--SP = *--src;
+          }
+
+          // Set up new frame on new stack
+          FP = ((framePo) SP) - 1;
+          FP->pc = PC = entryPoint(mtd);
+          FP->fp = STK->fp;
+          FP->prog = mtd;
+          PC = entryPoint(mtd);
+
+          // drop old frame on old stack
+          framePo prevFrame = prevStack->fp;
+          prevStack->sp = stackArg(prevStack, prevFrame, argCount(prevFrame->prog));
+          prevStack->fp = prevFrame->fp;
+          gcReleaseRoot(H, root);
+
+#ifdef TRACEEXEC
+          SP = (ptrPo) FP;
+          saveRegisters();
+          verifyStack(STK, H);
+#endif
+        } else {
+          // Pick up existing frame
+          ptrPo tgt = &arg(argCount(FP->prog));
+          ptrPo src = SP + arity;                  /* base of argument vector */
+          framePo oldFp = FP->fp;
+
+          for (int ix = 0; ix < arity; ix++)
+            *--tgt = *--src;    /* copy the argument vector */
+
+          FP = ((framePo) tgt) - 1;
+          FP->pc = PC = entryPoint(mtd);
+          FP->fp = oldFp;
+          FP->prog = mtd;
+        }
 
         LITS = codeLits(mtd);
         integer lclCnt = lclCount(mtd);  /* How many locals do we have */
-        SP = ((ptrPo) FP) - lclCnt;
 
-        if (!stackRoom(stackDelta(mtd)))
-          stackGrow(stackDelta(mtd), arity);
+        SP = ((ptrPo) FP) - lclCnt;
 
 #ifdef TRACEEXEC
         for (integer ix = 0; ix < lclCnt; ix++)
@@ -240,35 +276,70 @@ retCode run(processPo P) {
       case TOCall: {       /* Tail call */
         int arity = collectI32(PC);
         normalPo obj = C_NORMAL(pop());
-        labelPo oLbl = objLabel(termLbl(obj), arity);
+        labelPo lbl = objLabel(termLbl(obj), arity);
 
         push(nthElem(obj, 0));                     // Put the free term back on the stack
 
-        // Pick up existing frame
-        ptrPo tgt = &arg(argCount(FP->prog));
-        ptrPo src = SP + arity;                  /* base of argument vector */
-        framePo oldFp = FP->fp;
-
-        for (int ix = 0; ix < arity; ix++)
-          *--tgt = *--src;    /* copy the argument vector */
-
-        methodPo mtd = labelCode(oLbl);       /* set up for object call */
+        methodPo mtd = labelCode(lbl);
         if (mtd == Null) {
-          logMsg(logFile, "no definition for %T", oLbl);
+          logMsg(logFile, "no definition for %T", lbl);
           bail();
         }
+
+        if (!stackRoom(stackDelta(mtd))) {
+          int root = gcAddRoot(H, (ptrPo) &mtd);
+
+          stackPo prevStack = STK;
+
+          gcAddRoot(H, (ptrPo) &prevStack);
+
+          saveRegisters();
+          STK = P->stk = glueOnStack(H, STK, (STK->sze * 3) / 2 + stackDelta(mtd));
+
+          SP = STK->sp;
+          // Copy arguments from old stack
+          ptrPo src = prevStack->sp + arity;
+          for (integer ix = 0; ix < arity; ix++) {
+            *--SP = *--src;
+          }
+
+          // Set up new frame on new stack
+          FP = ((framePo) SP) - 1;
+          FP->pc = PC = entryPoint(mtd);
+          FP->fp = STK->fp;
+          FP->prog = mtd;
+          PC = entryPoint(mtd);
+
+          // drop old frame on old stack
+          framePo prevFrame = prevStack->fp;
+          prevStack->sp = stackArg(prevStack, prevFrame, argCount(prevFrame->prog));
+          prevStack->fp = prevFrame->fp;
+          gcReleaseRoot(H, root);
+
+#ifdef TRACEEXEC
+          SP = (ptrPo) FP;
+          saveRegisters();
+          verifyStack(STK, H);
+#endif
+        } else {
+          // Pick up existing frame
+          ptrPo tgt = &arg(argCount(FP->prog));
+          ptrPo src = SP + arity;                  /* base of argument vector */
+          framePo oldFp = FP->fp;
+
+          for (int ix = 0; ix < arity; ix++)
+            *--tgt = *--src;    /* copy the argument vector */
+
+          FP = ((framePo) tgt) - 1;
+          FP->pc = PC = entryPoint(mtd);
+          FP->fp = oldFp;
+          FP->prog = mtd;
+        }
+
         LITS = codeLits(mtd);
         integer lclCnt = lclCount(mtd);  /* How many locals do we have */
 
-        FP = ((framePo) tgt) - 1;          // Frame may have shifted
-        FP->prog = mtd;
-        FP->pc = PC = entryPoint(mtd);
-        FP->fp = oldFp;
-
         SP = ((ptrPo) FP) - lclCnt;
-
-        if (!stackRoom(stackDelta(mtd)))
-          stackGrow(stackDelta(mtd), arity);
 
 #ifdef TRACEEXEC
         for (integer ix = 0; ix < lclCnt; ix++)

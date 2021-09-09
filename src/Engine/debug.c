@@ -547,20 +547,38 @@ static DebugWaitFor dbgStackTrace(char *line, processPo p, termPo loc, insWord i
 void stackTrace(processPo p, ioPo out, stackPo stk) {
   heapPo h = processHeap(p);
 
-  outMsg(out, "Stack trace for process %d ", p->processNo);
+  outMsg(out, "Stack trace for process %d\n", p->processNo);
 #ifdef TRACEEXEC
   if (debugDebugging) {
-    stackSummary(out, stk);
     heapSummary(out, h);
   }
 #endif
 
-  outMsg(out, "\n%_");
   do {
+    switch (stackState(stk)) {
+      case suspended:
+        outMsg(out, RED_ESC_ON"Suspended"RED_ESC_OFF);
+        break;
+      case attached:
+        outMsg(out, GREEN_ESC_ON"Attached"GREEN_ESC_OFF);
+        break;
+      case detached:
+        outMsg(out, RED_ESC_ON"Detached"RED_ESC_OFF);
+        break;
+      case root:
+        outMsg(out, YELLOW_ESC_ON"Root"YELLOW_ESC_OFF);
+        break;
+    }
     if (stackPrompt(stk) != Null) {
-      outMsg(out, "Prompt %T\n", stackPrompt(stk));
+      outMsg(out, " prompt %T\n", stackPrompt(stk));
     } else
-      outMsg(out, "root stack\n");
+      outMsg(out, "\n");
+
+#ifdef TRACEEXEC
+    if (debugDebugging) {
+      stackSummary(out, stk);
+    }
+#endif
 
     ptrPo sp = stk->sp;
     framePo fp = stk->fp;
@@ -1094,7 +1112,7 @@ void showAllLocals(ioPo out, stackPo stk, framePo fp) {
     if (localVName(mtd, fp->pc, vx, vName, NumberOf(vName)) == Ok) {
       ptrPo var = stackLcl(stk, fp, vx);
       if (*var != Null && *var != voidEnum)
-        outMsg(out, "  %s = %#,*T\n", vName, displayDepth, *var);
+        outMsg(out, "  %s(%d) = %#,*T\n", vName, vx, displayDepth, *var);
       else
         outMsg(out, "  %s(%d) (unset)\n", vName, vx);
     }

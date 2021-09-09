@@ -61,9 +61,9 @@ static pthread_once_t prOnce = PTHREAD_ONCE_INIT;
 */
 
 
-typedef struct _primeHopper_ *primePo;
+typedef struct primeHopper_ *primePo;
 
-typedef struct _primeHopper_ {
+typedef struct primeHopper_ {
   integer pr;
   primePo next;
 } primeHopper;
