@@ -1212,60 +1212,63 @@
     "desc": "action expression",
     "keyword": true
   },
-  {
-    "bracket": "()",
-    "left": "(",
-    "right": ")",
-    "priority": 2000,
-    "desc": "parentheses"
-  },
-  {
-    "bracket": "[]",
-    "left": "[",
-    "right": "]",
-    "priority": 2000,
-    "desc": "square brackets"
-  },
-  {
-    "bracket": "[||]",
-    "left": "[|",
-    "right": "|]",
-    "priority": 2000,
-    "desc": "measure brackets"
-  },
-  {
-    "bracket": "{!!}",
-    "left": "{!",
-    "right": "!}",
-    "priority": 2000,
-    "desc": "iota comprehension"
-  },
-  {
-    "bracket": "{}",
-    "left": "{",
-    "right": "}",
-    "priority": 2000,
-    "desc": "braces"
-  },
-  {
-    "bracket": "{..}",
-    "left": "{.",
-    "right": ".}",
-    "priority": 2000,
-    "desc": "non-recursive braces"
-  },
-  {
-    "bracket": "(||)",
-    "left": "(|",
-    "right": "|)",
-    "priority": 2000,
-    "desc": "banana brackets"
-  },
-  {
-    "bracket": "<||>",
-    "left": "<|",
-    "right": "|>",
-    "priority": 2000,
-    "desc": "meta quote"
-  }
+    {
+	"bracket": "()",
+	"left": "(",
+	"right": ")",
+	"seperator" : ",",
+	"priority": 2000,
+	"desc": "parentheses"
+    },
+    {
+	"bracket": "[]",
+	"left": "[",
+	"right": "]",
+	"seperator" : ",",
+	"priority": 2000,
+	"desc": "square brackets"
+    },
+    {
+	"bracket": "[||]",
+	"left": "[|",
+	"right": "|]",
+	"priority": 2000,
+	"desc": "measure brackets"
+    },
+    {
+	"bracket": "{!!}",
+	"left": "{!",
+	"right": "!}",
+	"priority": 2000,
+	"desc": "iota comprehension"
+    },
+    {
+	"bracket": "{}",
+	"left": "{",
+	"right": "}",
+	"seperator" : ".\n",
+	"priority": 2000,
+	"desc": "braces"
+    },
+    {
+	"bracket": "{..}",
+	"left": "{.",
+	"right": ".}",
+	"priority": 2000,
+	"desc": "non-recursive braces"
+    },
+    {
+	"bracket": "(||)",
+	"left": "(|",
+	"right": "|)",
+	"priority": 2000,
+	"desc": "banana brackets"
+    },
+    {
+	"bracket": "<||>",
+	"left": "<|",
+	"right": "|>",
+	"priority": 2000,
+	"desc": "meta quote"
+    }
 ]
