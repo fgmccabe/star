@@ -242,6 +242,7 @@ escape(_str2flt,"F(s)" optionType("f"),"parse a string as a float")
 escape(_str2int,"F(s)" optionType("i"),"parse a string as an integer")
 
 escape(_str_eq,"F(ss)l","String equality")
+escape(_string_eq,"F(SS)l","String equality")
 escape(_str_lt,"F(ss)l","String 1 is less than string 2")
 escape(_str_ge,"F(ss)l","String 1 is greater than or equals to string 2")
 

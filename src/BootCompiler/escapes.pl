@@ -170,6 +170,7 @@ escapeType("_flt_format",funType(tplType([type("star.core*float"),type("chars")]
 escapeType("_str2flt",funType(tplType([type("chars")]),tpExp(tpFun("star.core*option",1),type("star.core*float")))).
 escapeType("_str2int",funType(tplType([type("chars")]),tpExp(tpFun("star.core*option",1),type("star.core*integer")))).
 escapeType("_str_eq",funType(tplType([type("chars"),type("chars")]),type("star.core*boolean"))).
+escapeType("_string_eq",funType(tplType([type("star.core*string"),type("star.core*string")]),type("star.core*boolean"))).
 escapeType("_str_lt",funType(tplType([type("chars"),type("chars")]),type("star.core*boolean"))).
 escapeType("_str_ge",funType(tplType([type("chars"),type("chars")]),type("star.core*boolean"))).
 escapeType("_str_hash",funType(tplType([type("chars")]),type("star.core*integer"))).
@@ -377,6 +378,7 @@ isEscape("_flt_format").
 isEscape("_str2flt").
 isEscape("_str2int").
 isEscape("_str_eq").
+isEscape("_string_eq").
 isEscape("_str_lt").
 isEscape("_str_ge").
 isEscape("_str_hash").
