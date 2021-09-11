@@ -19,7 +19,7 @@ isCanonDef(cnsDef(_,_,_)).
 isCanonDef(typeDef(_,_,_,_)).
 isCanonDef(conDef(_,_,_,_)).
 isCanonDef(implDef(_,_,_,_)).
-isCanonDef(accDef(_,_,_,_)).
+isCanonDef(accDec(_,_,_,_)).
 
 isCanon(prog(_,_,_,_,_)).
 isCanon(v(_,_,_)).
@@ -432,7 +432,7 @@ ssDef(Dp,conDef(Nm,_ConNm,_ConTp,Rl),
 ssDef(Dp,implDef(Nm,_ConNm,ImplNm,ImplTp),
       sq([ss("impl "),id(Nm),ss(" = "),id(ImplNm),ss(":"),Ts])) :-
   ssType(ImplTp,true,Dp,Ts).
-ssDef(Dp,accDef(Tp,FldNm,FunNm,_),
+ssDef(Dp,accDec(Tp,FldNm,FunNm,_),
       sq([ss("acc "),Ts,ss("."),id(FldNm),ss(" = "),id(FunNm)])) :-
   ssType(Tp,false,Dp,Ts).
 

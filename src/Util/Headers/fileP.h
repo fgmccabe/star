@@ -46,6 +46,8 @@ typedef struct file_part_ {
 
   byte out_line[MAXLINE];               // The output buffer
   int16 out_pos;                        // Current position within the output buffer
+  fileCallBackProc ioReadyProc;         // Called when i/o is ready (if configured)
+  void *ioReadClientData;               // Used as part of the callback
 } FilePart;
 
 typedef struct file_object_ {

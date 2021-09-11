@@ -57,6 +57,9 @@ retCode configureIo(filePo f, ioConfigOpt mode);
 logical isFileBlocking(filePo f);
 logical isFileAsynch(filePo f);
 
+typedef retCode (*fileCallBackProc)(filePo f,void *cl);
+retCode configureForAsynch(filePo fl,fileCallBackProc cb,void *cl);
+
 retCode fileSeek(filePo f, integer pos);
 
 void setup_stdin(void);

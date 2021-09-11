@@ -10,7 +10,7 @@ static void initPromiseClass(classPo class, classPo request);
 static void promiseInit(objectPo o, va_list *args);
 
 PromiseClassRec PromiseClass = {
-  {
+  .objectPart={
     (classPo) &LockedClass,               /* parent class is object */
     "promise",                            /* this is the promise class */
     initPromiseClass,                     /* Promise class initializer */
@@ -25,8 +25,8 @@ PromiseClassRec PromiseClass = {
     PTHREAD_ONCE_INIT,                    /* not yet initialized */
     PTHREAD_MUTEX_INITIALIZER
   },
-  {},                         // Nothing in the lockable class
-  {
+  .lockPart={},                         // Nothing in the lockable class
+  .promisePart={
     Null                         // Empty active queue
   }
 };

@@ -44,7 +44,7 @@ extern SockClassRec SockClass; /* the standard pointer to a socket class record 
 typedef struct _sock_part_{        /* The file specific part of a file object */
 } SockPart;
 
-typedef struct _sock_object_ {
+typedef struct sock_object_ {
   ObjectRec object;                     /* object level of the io structure */
   LockedRecord locked;                   /* The managed part of the socket */
   IoPart io;                            /* Io level of io object */

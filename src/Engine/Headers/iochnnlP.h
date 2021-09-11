@@ -10,7 +10,7 @@
 #include "termP.h"
 #include "heap.h"
 
-typedef struct _io_record_ {
+typedef struct io_record_ {
   clssPo clss;                  // == integerClass
   ioPo io;
 } ChnnlRecord;

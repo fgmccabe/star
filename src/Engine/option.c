@@ -3,7 +3,6 @@
 //
 
 #include <labels.h>
-#include <strings.h>
 #include "optionP.h"
 #include "assert.h"
 
@@ -26,13 +25,13 @@ normalPo wrapSome(heapPo H, termPo lhs) {
 logical isSome(termPo t) {
   if (isNormalPo(t)) {
     normalPo c = C_NORMAL(t);
-    return (logical) (termLbl(c) == someCons);
+    return sameLabel(termLbl(c), someCons);
   } else
     return False;
 }
 
 logical isNone(termPo t) {
-  return t == noneEnum;
+  return sameTerm(t, noneEnum);
 }
 
 termPo unwrapSome(normalPo p) {

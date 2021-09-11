@@ -8,7 +8,7 @@
 #include "term.h"
 #include "heap.h"
 
-typedef struct _io_record_ *ioChnnlPo;
+typedef struct io_record_ *ioChnnlPo;
 
 extern clssPo ioChnnlClass;
 

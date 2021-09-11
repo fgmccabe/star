@@ -319,7 +319,8 @@ genAccessors(Lc,Q,XQ,Cx,Path,TpNm,Tp,[(Fld,FldTp)|ElTps],AllElTps,Body,Defs,Dfx,
   genAccessors(Lc,Q,XQ,Cx,Path,TpNm,Tp,ElTps,AllElTps,Body,Df0,Dfx,Ac0,Accx).
 
 genAccessor(Lc,Q,XQ,Cx,Path,TpNm,Tp,Fld,FldTp,Tp,AllElTps,Body,
-	    [ImplDef|Defs],Defs,[acc(Tp,Fld,AccName,AccFunTp)|Acc],Acc) :-
+	    [ImplDef,accDec(Tp,Fld,AccName,AccFunTp)|Defs],Defs,
+	    [acc(Tp,Fld,AccName,AccFunTp)|Acc],Acc) :-
   localName(TpNm,field,Fld,AccName),
   putConstraints(Cx,funType(tplType([Tp]),FldTp),CxFunTp),
   reXQnt(XQ,CxFunTp,XCxFnTp),
@@ -379,7 +380,7 @@ genBraceAccessor(Lc,Q,Cx,ConNm,Tp,Fld,FldTp,Tp,AllElTps,
   reUQnt(Q,CxFunTp,AccFunTp),
   XX = v(Lc,"XX",FldTp),  
   fillinElementPtns([(Fld,XX)],Lc,AllElTps,ArgPtns,ArgTps),
-  AccDef = accDef(Tp,Fld,AccName,AccFunTp),
+  AccDef = accDec(Tp,Fld,AccName,AccFunTp),
   Eqn=equation(Lc,tple(Lc,[apply(Lc,
 				 cons(Lc,ConNm,
 				      consType(ArgTps,Tp)),

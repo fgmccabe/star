@@ -490,7 +490,7 @@ static DebugWaitFor dbgShowGlobal(char *line, processPo p, termPo loc, insWord i
 static DebugWaitFor dbgShowStack(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   stackPo stk = p->stk;
   framePo fp = currFrame(stk);
-  ptrPo limit = validStkPtr(stk, stackLcl(stk, fp, lclCount(fp->prog)));
+  ptrPo limit = stackLcl(stk, fp, lclCount(fp->prog));
 
   if (line[0] == '\n') {
     ptrPo sp = stk->sp;
@@ -1146,7 +1146,7 @@ retCode showTos(ioPo out, stackPo stk) {
 static void showTopOfStack(ioPo out, stackPo stk, integer cnt) {
   if (stk != Null) {
     char *sep = "";
-    ptrPo sp = validStkPtr(stk, stk->sp);
+    ptrPo sp = stk->sp;
     outMsg(out, " %s%,*T(", sep, displayDepth, *sp++);
 
     for (integer ix = 1; ix < cnt; ix++) {

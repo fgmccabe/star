@@ -204,6 +204,19 @@ void pushStack(stackPo stk, termPo ptr) {
   *--stk->sp = ptr;
 }
 
+void moveStack2Stack(stackPo toStk, stackPo fromStk, integer count) {
+  assert(validStkPtr(fromStk, fromStk->sp + count));
+  assert(stkHasSpace(toStk, count));
+
+  ptrPo src = fromStk->sp+count;
+  ptrPo dst = toStk->sp;
+    for (integer ix = count; ix > 0; ix--) {
+      *--dst = *--src;
+    }
+    toStk->sp = dst;
+    fromStk->sp += count;
+}
+
 termPo stkScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   stackPo stk = C_STACK(o);
 

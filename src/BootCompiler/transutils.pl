@@ -101,7 +101,8 @@ lookupIndex([_|Map],Key,Index) :-
   lookupIndex(Map,Key,Index).
 
 findConsType(Map,CnsNm,Tp) :-
- lookupVar(Map,CnsNm,moduleCons(_,Tp,_)).
+  lookupVar(Map,CnsNm,Entry),
+  (Entry=moduleCons(_,Tp,_) ; Entry=localCons(_,Tp,_,_)).
 
 extraVars([lyr(_,_,_,void)|_],[]) :- !.
 extraVars([lyr(_,_,_,ThVr)|_],[ThVr]).
@@ -251,7 +252,13 @@ ssLyrDec(Nm-labelArg(_Field,Ix,ThV),
 ssLyrDec(Nm-moduleType(TpNm,_Tp,IxMap),
 	 sq([ss("Module type "),id(Nm),ss("="),ss(TpNm),CC])) :-
   ssConsIndex(IxMap,CC).
+ssLyrDec(Nm-localType(TpNm,_Tp,IxMap),
+	 sq([ss("Local type "),id(Nm),ss("="),ss(TpNm),CC])) :-
+  ssConsIndex(IxMap,CC).
 ssLyrDec(Nm-moduleCons(LclName,_,Ar),
 	 sq([ss("Module Cons "),id(Nm),ss("="),ss(LclName),ss("/"),ix(Ar)])).
+ssLyrDec(Nm-localCons(LclName,_,Ar,ThV),
+	 sq([ss("Local cons "),id(Nm),ss("="),ss(LclName),ss("/"),ix(Ar),ss("@"),TT])):-
+  ssTrm(ThV,0,TT).
 ssLyrDec(Nm-fieldAcc(TpNm,FldNm,_FldTp),
 	 sq([ss("Field accesss "),id(Nm),ss(" in "),ss(TpNm),ss(" is "),id(FldNm)])).

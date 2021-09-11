@@ -1210,6 +1210,9 @@ checkCatch(Term,Env,MdTp,VlTp,ErTp,BdErTp,_,_,_,Hndlr,Path) :-
 
 recordAccessExp(Lc,Rc,Fld,Tp,ErTp,Env,Ev,dot(Lc,Rec,Fld,Tp),Path) :-
   newTypeVar("_R",AT),
+  typeOfExp(Rc,AT,ErTp,Env,Ev,Rec,Path).
+recordAccessExp(Lc,Rc,Fld,Tp,ErTp,Env,Ev,dot(Lc,Rec,Fld,Tp),Path) :-
+  newTypeVar("_R",AT),
   typeOfExp(Rc,AT,ErTp,Env,Ev,Rec,Path),
   faceOfType(AT,Lc,Env,Fc),
   freshen(Fc,Env,_,Fce),
@@ -1314,10 +1317,10 @@ genDecl(implDef(TmpNm,ImplName,ImplVrNm,Spec),_,Public,
   call(Public,imp(TmpNm)),!.
 genDecl(implDef(_,ImplName,ImplVrNm,Spec),_,_,Ex,Ex,
 	[impDec(ImplName,ImplVrNm,Spec)|Lx],Lx,Dfx,Dfx).
-genDecl(accDef(Tp,Fld,AccFn,AccTp),_,Public,
+genDecl(accDec(Tp,Fld,AccFn,AccTp),_,Public,
 	[accDec(Tp,Fld,AccFn,AccTp)|Ex],Ex,Lx,Lx,Dfx,Dfx) :-
   exportAcc(Tp,Public).
-genDecl(accDef(Tp,Fld,AccFn,AccTp),_,_,Ex,Ex,
+genDecl(accDec(Tp,Fld,AccFn,AccTp),_,_,Ex,Ex,
 	[accDec(Tp,Fld,AccFn,AccTp)|Lx],Lx,Dfx,Dfx).
 
 computeThetaExport(Defs,Fields,Public,Decls,XDefs) :-

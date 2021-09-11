@@ -40,6 +40,10 @@ logical hasLabel(normalPo n, char *name, integer arity) {
   return isLabel(n->lbl, name, arity);
 }
 
+logical hasLbl(normalPo t, labelPo lbl) {
+  return isLabel(t->lbl, lbl->name, lbl->arity);
+}
+
 labelPo termLbl(normalPo t) {
   return t->lbl;
 }
