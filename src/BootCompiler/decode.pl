@@ -52,6 +52,7 @@ decodeType(anonType) --> ['_'].
 decodeType(voidType) --> ['v'].
 decodeType(type("star.core*integer")) --> ['i'].
 decodeType(type("star.core*float")) --> ['f'].
+decodeType(type("chars")) --> ['s'].
 decodeType(type("star.core*string")) --> ['S'].
 decodeType(type("star.core*boolean")) --> ['l'].
 decodeType(kVar(Nm)) --> ['k'], decodeText(Nm).

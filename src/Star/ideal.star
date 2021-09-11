@@ -133,17 +133,21 @@ star.ideal{
   }
 
   public implementation all k,v ~~ display[k],display[v] |: display[map[k,v]] => let{
-    dispTree:(map[k,v],cons[ss])=>cons[ss].
+    dispTree:(map[k,v],cons[string])=>cons[string].
     dispTree(.ihNil,SS) => SS.
     dispTree(ihLeaf(_,Els),SS) => dispEls(Els,SS).
     dispTree(ihNode(A1,A2,A3,A4),SS) => dispTree(A1,dispTree(A2,dispTree(A3,dispTree(A4,SS)))).
 
-    dispEls:(cons[keyval[k,v]],cons[ss])=>cons[ss].
+    dispEls:(cons[keyval[k,v]],cons[string])=>cons[string].
     dispEls(.nil,SS)=>SS.
-    dispEls(cons(K->V,T),SS) => dispEls(T,[ssSeq([disp(K),ss("->"),disp(V)]),..SS]).
-  } in {
-    disp(Tr) => ssSeq([ss("["),ssSeq(interleave(dispTree(Tr,[]),ss(", "))),ss("]")]).
-  }
+    dispEls(cons(P,T),SS) => dispEls(T,[disp(P),..SS]).
+
+    pairUp:(cons[string],string)=>string.
+    pairUp([],S) => S.
+    pairUp([H,..T],S) => pair_(H,pairUp(T,S)).
+  } in {.
+    disp(Tr) => "[#(pairUp(interleave(dispTree(Tr,[]),", "),""))]".
+  .}
 
   public implementation all k,v ~~ equality[k],hash[k] |: indexed[map[k,v]->>k,v] => {
     _index(Tr,Ky) => findIdeal(Tr,Ky).

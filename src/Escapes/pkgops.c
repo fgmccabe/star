@@ -2,7 +2,7 @@
 // Created by Francis McCabe on 3/11/18.
 //
 
-#include <str.h>
+#include <chars.h>
 #include <pkgP.h>
 #include <globals.h>
 #include <stdlib.h>
@@ -22,9 +22,9 @@ ReturnStatus g__pkg_is_present(processPo P, ptrPo tos) {
   char pkgNm[MAX_SYMB_LEN];
   char vers[MAX_SYMB_LEN];
 
-  retCode ret = copyString2Buff(C_STR(Arg1), pkgNm, NumberOf(pkgNm));
+  retCode ret = copyChars2Buff(C_CHARS(Arg1), pkgNm, NumberOf(pkgNm));
   if (ret == Ok)
-    ret = copyString2Buff(C_STR(Arg2), vers, NumberOf(vers));
+    ret = copyChars2Buff(C_CHARS(Arg2), vers, NumberOf(vers));
 
   if (ret == Ok) {
     char *version = loadedVersion(pkgNm);
@@ -66,7 +66,7 @@ static retCode pickupImport(packagePo p, char *errorMsg, long msgLen, void *cl) 
 ReturnStatus g__install_pkg(processPo P, ptrPo tos) {
   termPo Arg1 = tos[0];
   integer len;
-  const char *text = stringVal(Arg1, &len);
+  const char *text = charsVal(Arg1, &len);
   char *buffer = (char *) malloc(sizeof(char) * len);
 
   memmove(buffer, text, len);
@@ -98,12 +98,12 @@ ReturnStatus g__in_manifest(processPo P, ptrPo tos) {
   char kind[MAX_SYMB_LEN];
   char rsrc[MAXFILELEN];
 
-  retCode ret = copyString2Buff(C_STR(Arg1), ((char *) (pkg)), NumberOf(pkg));
+  retCode ret = copyChars2Buff(C_CHARS(Arg1), ((char *) (pkg)), NumberOf(pkg));
   if (ret == Ok)
-    ret = copyString2Buff(C_STR(Arg2), ((char *) (version)), NumberOf(version));
+    ret = copyChars2Buff(C_CHARS(Arg2), ((char *) (version)), NumberOf(version));
 
   if (ret == Ok)
-    ret = copyString2Buff(C_STR(Arg3), kind, NumberOf(kind));
+    ret = copyChars2Buff(C_CHARS(Arg3), kind, NumberOf(kind));
 
   if (ret == Ok) {
     ret = manifestCompatibleResource(pkg, version, kind, rsrc, NumberOf(rsrc));
@@ -127,12 +127,12 @@ ReturnStatus g__locate_in_manifest(processPo P, ptrPo tos) {
   char kind[MAX_SYMB_LEN];
   char rsrc[MAXFILELEN];
 
-  retCode ret = copyString2Buff(C_STR(Arg1), pkg, NumberOf(pkg));
+  retCode ret = copyChars2Buff(C_CHARS(Arg1), pkg, NumberOf(pkg));
   if (ret == Ok)
-    ret = copyString2Buff(C_STR(Arg2), version, NumberOf(version));
+    ret = copyChars2Buff(C_CHARS(Arg2), version, NumberOf(version));
 
   if (ret == Ok)
-    ret = copyString2Buff(C_STR(Arg3), kind, NumberOf(kind));
+    ret = copyChars2Buff(C_CHARS(Arg3), kind, NumberOf(kind));
 
   if (ret == Ok) {
     ret = manifestCompatibleResource(pkg, version, kind, rsrc, NumberOf(rsrc));
@@ -141,7 +141,7 @@ ReturnStatus g__locate_in_manifest(processPo P, ptrPo tos) {
       return (ReturnStatus) {.ret=Error, .result= voidEnum};
     } else {
       return (ReturnStatus) {.ret=Ok,
-        .result=(termPo) allocateString(processHeap(P), rsrc, uniStrLen(rsrc))};
+        .result=(termPo) allocateChars(processHeap(P), rsrc, uniStrLen(rsrc))};
     }
   } else {
     return (ReturnStatus) {.ret=ret, .result= voidEnum};

@@ -5,7 +5,7 @@ star.location{
   public locn ::= locn(string,integer,integer,integer,integer).
 
   public implementation display[locn] => {.
-    disp(locn(P,Line,Col,_,Ln)) => ssSeq([ss(P),ss(":"),disp(Line),ss(":"),disp(Col),ss("("),disp(Ln),ss(")")]).
+    disp(locn(P,Line,Col,_,Ln)) => "#(P)\:$(Line)\:$(Col)($(Ln))".
   .}
 
   public implementation coercion[locn,string] => {.

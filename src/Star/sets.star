@@ -29,11 +29,16 @@ star.sets{
   }
 
   public implementation all e ~~ display[e] |: display[set[e]] => let{
-    dispEntry:(e,(),cons[ss])=>cons[ss].
+    dispEntry:(e,(),cons[string])=>cons[string].
     dispEntry(K,_,[]) => [disp(K)].
-    dispEntry(K,_,L) default => [disp(K),ss(","),..L].
+    dispEntry(K,_,L) default => [disp(K),..L].
+
+    pairUp:(cons[string],string)=>string.
+    pairUp([],S) => S.
+    pairUp([H,..T],S) => pair_(H,pairUp(T,S)).
+    
   } in {.
-    disp(set(M)) => ssSeq([ss("{"),ssSeq(ixLeft(dispEntry,[],M)),ss("}")]).
+    disp(set(M)) => "{#(pairUp(interleave(ixLeft(dispEntry,[],M),", "),""))}".
   .}
 
   public implementation all e ~~ sizeable[set[e]] => {.

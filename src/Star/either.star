@@ -9,8 +9,8 @@ star.either{
 
   -- Display either-or values
   public implementation all x,y ~~ display[x], display[y] |: display[either[x,y]] => {.
-    disp(either(a)) => ssSeq([ss("either("),disp(a),ss(")")]).
-    disp(other(b)) => ssSeq([ss("or("),disp(b),ss(")")]).
+    disp(either(a)) => "either($(a))".
+    disp(other(b)) => "or($(b))".
   .}
 
   public implementation all x,y ~~ equality[x], equality[y] |: equality[either[x,y]] => {.

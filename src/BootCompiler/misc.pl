@@ -1,4 +1,4 @@
-:-module(misc,[concat/3,flatten/2,segment/3,last/2,reverse/2,revconcat/3,
+:-module(misc,[concat/3,flatten/2,segment/3,last/2,reverse/2,revconcat/3,part2/3,
 	       is_member/2,add_mem/3,one_of/1,
 	       merge/3,intersect/3,subtract/3,replace/4,filter/3,front/3,
 	       collect/4,map/3,lfold/4,rfold/4,
@@ -41,6 +41,14 @@ reverse([E|R],X,Y) :- reverse(R,[E|X],Y).
 revconcat(X,Y,Z) :-
   reverse(X,Y,Z).
 
+part2([],[],[]) :-!.
+part2([A],[A],[]) :-!.
+part2(Ls,L,R) :-
+  length(Ls,Ln),
+  Ln2 is Ln//2,
+  front(Ls,Ln2,L,R).
+  
+
 segment(Str,Ch,Segments) :- split_string(Str,Ch,"",Segments).
 
 last([El],El).
@@ -68,6 +76,12 @@ front(_,0,[]) :-!.
 front([H|T],Dp,[H|Rs]) :-
   Dp1 is Dp-1,
   front(T,Dp1,Rs).
+
+front([],_,[],[]).
+front(Ls,0,[],Ls).
+front([H|T],Cnt,[H|Ts],Ls) :-
+  Cn is Cnt-1,
+  front(T,Cn,Ts,Ls).
 
 replace([],_,El,[El]).
 replace([E|X],E,Nw,[Nw|X]).

@@ -16,8 +16,8 @@ test.tsort{
     disp(D) => dispDf(D).
   .}
 
-  dispDf: all x,y ~~ display[x], display[y] |: (df[x,y]) => ss.
-  dispDf(df(X,Y)) => ssSeq([ss("("),disp(X),ss(","),disp(Y),ss(")")]).
+  dispDf: all x,y ~~ display[x], display[y] |: (df[x,y]) => string.
+  dispDf(df(X,Y)) => "($(X),$(Y))".
 
   implementation all x,y ~~ equality[x], equality[y] |: equality[df[x,y]] => {.
     df(X1,Y1)==df(X2,Y2) => X1==X2 && Y1==Y2.

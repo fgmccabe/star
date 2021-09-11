@@ -42,7 +42,7 @@
   "regular expression that matches identifiers")
 
 (defconst star-string-regexp
-  "\\(\\(?:\"\"\"\\(?:.\\|\n\\)*\"\"\"\\)\\|\\(?:\"\\(?:\\\\.\\|[^\"\n]\\)*\"\\)\\)"
+  "\\(\\(?:\"\"\"\\(?:.\\|\n\\)*\"\"\"\\)\\|\\(?:[0]?\"\\(?:\\\\.\\|[^\"\n]\\)*\"\\)\\)"
   "regular expression that matches basic strings")
 
 (defconst star-term-regexp

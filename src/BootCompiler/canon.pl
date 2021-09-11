@@ -31,7 +31,7 @@ isCanon(overaccess(_,_,_)).
 isCanon(mtd(_,_,_)).
 isCanon(intLit(_,_)).
 isCanon(floatLit(_,_)).
-isCanon(stringLit(_,_)).
+isCanon(charsLit(_,_)).
 isCanon(apply(_,_,_,_)).
 isCanon(dot(_,_,_,_)).
 isCanon(tag(_,_)).
@@ -78,7 +78,7 @@ isSimpleCanon(v(_,_,_)).
 isSimpleCanon(anon(_,_)).
 isSimpleCanon(intLit(_,_)).
 isSimpleCanon(floatLit(_,_)).
-isSimpleCanon(stringLit(_,_)).
+isSimpleCanon(charsLit(_,_)).
 isSimpleCanon(enm(_,_,_)).
 
 isAssertion(assertion(_,_)).
@@ -105,7 +105,7 @@ typeOfCanon(anon(_,Tp),Tp) :- !.
 typeOfCanon(dot(_,_,_,Tp),Tp) :- !.
 typeOfCanon(intLit(_,_),type("star.core*integer")) :- !.
 typeOfCanon(floatLit(_,_),type("star.core*float")) :- !.
-typeOfCanon(stringLit(_,_),type("star.core*string")) :- !.
+typeOfCanon(charsLit(_,_),type("chars")) :- !.
 typeOfCanon(enm(_,_,Tp),Tp) :- !.
 typeOfCanon(cons(_,_,Tp),Tp) :- !.
 typeOfCanon(where(_,T,_),Tp) :- !, typeOfCanon(T,Tp).
@@ -143,7 +143,7 @@ locOfCanon(anon(Lc,_),Lc) :- !.
 locOfCanon(dot(Lc,_,_,_),Lc) :- !.
 locOfCanon(intLit(Lc,_),Lc) :- !.
 locOfCanon(floatLit(Lc,_),Lc) :- !.
-locOfCanon(stringLit(Lc,_),Lc) :- !.
+locOfCanon(charsLit(Lc,_),Lc) :- !.
 locOfCanon(enm(Lc,_,_),Lc) :- !.
 locOfCanon(where(Lc,_,_),Lc) :- !.
 locOfCanon(throw(Lc,_,_),Lc) :-!.
@@ -219,7 +219,7 @@ ssTerm(anon(_,_),_,ss("_")).
 ssTerm(void,_,ss("void")).
 ssTerm(intLit(_,Ix),_,ix(Ix)).
 ssTerm(floatLit(_,Dx),_,fx(Dx)).
-ssTerm(stringLit(_,Str),_,sq([ss(""""),ss(Str),ss("""")])).
+ssTerm(charsLit(_,Str),_,sq([ss("0"""),ss(Str),ss("""")])).
 ssTerm(apply(_,Op,Args,_),Dp,sq([O,A])) :-
   ssTerm(Op,Dp,O),
   ssTerm(Args,Dp,A).

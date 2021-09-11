@@ -229,7 +229,7 @@ examineTerm(T,T) :-
 examineTerm(T,T) :-
   isFloat(T,_,_),!.
 examineTerm(T,T) :-
-  isText(T,_,_),!.
+  isChars(T,_,_),!.
 examineTerm(T,Tx) :-
   isTypeAnnotation(T,Lc,L,R),!,
   macroTerm(L,Lx),
@@ -445,7 +445,7 @@ examinePtn(T,T) :-
 examinePtn(T,T) :-
   isFloat(T,_,_),!.
 examinePtn(T,T) :-
-  isText(T,_,_),!.
+  isChars(T,_,_),!.
 examinePtn(T,Tx) :-
   isTypeAnnotation(T,Lc,L,R),!,
   macroPtn(L,Lx),
@@ -639,7 +639,7 @@ macroKey(name(_,Nm),Nm).
 macroKey(qnm(_,Nm),Nm).
 macroKey(integer(_,_),"$integer").
 macroKey(float(_,_),"$float").
-macroKey(string(_,_),"$string").
+macroKey(chars(_,_),"$string").
 macroKey(A,Ky) :- isTuple(A,_,[I]),!,
   macroKey(I,Ky).
 macroKey(tuple(_,Op,_),Op).

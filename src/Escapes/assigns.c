@@ -3,7 +3,7 @@
 //
 
 #include <arith.h>
-#include <str.h>
+#include <chars.h>
 #include <globals.h>
 #include "assigns.h"
 #include "cellP.h"
@@ -47,7 +47,7 @@ ReturnStatus g__overwrite(processPo p, ptrPo tos) {
 static globalPo globalLabel(termPo t) {
   char lblNm[MAX_SYMB_LEN];
 
-  copyString2Buff(C_STR(t), lblNm, NumberOf(lblNm));
+  copyChars2Buff(C_CHARS(t), lblNm, NumberOf(lblNm));
 
   return globalVar(lblNm);
 }

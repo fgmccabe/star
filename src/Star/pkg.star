@@ -13,7 +13,7 @@ star.pkg{
   pkgVersion(pkg(_,V))=>V.
 
   public implementation display[pkg] => {.
-    disp(pkg(P,V)) => ssSeq([ss(P),ss(":"),disp(V)]).
+    disp(pkg(P,V)) => "#(P):$(V)".
   .}
 
   public implementation equality[pkg] => {.
@@ -21,8 +21,8 @@ star.pkg{
   .}
 
   public implementation display[version] => {.
-    disp(.defltVersion) => ss("*").
-    disp(vers(V)) => ss(V).
+    disp(.defltVersion) => "*".
+    disp(vers(V)) => V.
   .}
 
   public implementation equality[version] => {.

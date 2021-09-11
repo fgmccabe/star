@@ -1,4 +1,5 @@
 :-module(wff,[isAnnotation/4,isQuote/3,
+	      isSSChars/3,mkSSChars/3,isSSPair/4,mkSSPair/4,
 	      isAlgebraicTypeStmt/6,mkAlgebraicTypeStmt/6,
 	      isConstructor/3,
 	      isConstructorType/6,constructorType/6,
@@ -745,7 +746,6 @@ isIterableGl(C) :-
 
 
 packageName(T,Pkg) :- isIden(T,Pkg).
-packageName(T,Pkg) :- isText(T,Pkg).
 packageName(T,Pkg) :- isBinary(T,_,".",L,R),
   packageName(L,LP),
   packageName(R,RP),
@@ -760,7 +760,7 @@ pkgName(T,pkg(Pkg,defltVersion)) :-
   packageName(T,Pkg).
 
 packageVersion(T,Pkg) :- isIden(T,Pkg).
-packageVersion(T,Pkg) :- isText(T,Pkg).
+packageVersion(T,Pkg) :- isChars(T,Pkg).
 packageVersion(integer(_,Ix),Pkg) :- atom_string(Ix,Pkg).
 packageVersion(T,Pkg) :- isBinary(T,_,".",L,R),
   packageVersion(L,LP),
@@ -776,7 +776,7 @@ findVars(tuple(_,_,Els),SoFar,Vrs) :-
   rfold(Els,wff:findVars,SoFar,Vrs).
 findVars(integer(_,_),Vrs,Vrs).
 findVars(float(_,_),Vrs,Vrs).
-findVars(string(_,_),Vrs,Vrs).
+findVars(chars(_,_),Vrs,Vrs).
 
 mergeCond(L,R,_,R) :- isEnum(L,_,"true"),!.
 mergeCond(L,R,_,L) :- isEnum(R,_,"true"),!.
@@ -895,8 +895,9 @@ mkActionSeq(Lc,S1,S2,T) :-
 
 mkLoc(Lc,T) :-
   Lc=loc(Pk,Line,Col,Off,Ln),
+  mkSSChars(Lc,Pk,PkNm),
   roundTerm(Lc,name(Lc,"locn"),
-	     [string(Lc,Pk),
+	     [PkNm,
 	      integer(Lc,Line),
 	      integer(Lc,Col),
 	      integer(Lc,Off),
@@ -904,3 +905,15 @@ mkLoc(Lc,T) :-
 
 isQuote(Trm,Lc,Body) :-
   isUnary(Trm,Lc,"<||>",Body).
+
+isSSChars(T,Lc,Txt) :-
+  isUnary(T,Lc,"chrs_",chars(_,Txt)).
+
+mkSSChars(Lc,Txt,T) :-
+  unary(Lc,"chrs_",chars(Lc,Txt),T).
+
+isSSPair(T,Lc,L,R) :-
+  isBinary(T,Lc,"pair_",L,R).
+
+mkSSPair(Lc,L,R,T) :-
+  binary(Lc,"pair_",L,R,T).

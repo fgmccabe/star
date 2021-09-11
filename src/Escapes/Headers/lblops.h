@@ -10,7 +10,7 @@
 
 #include "engine.h"
 #include "libEscapes.h"
-#include "str.h"
+#include "chars.h"
 #include "arith.h"
 #include "labels.h"
 

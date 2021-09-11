@@ -7,7 +7,7 @@ star.tuples{
   -- Some basic stuff for tuples
   -- Zero-tuples
   public implementation display[()] => {
-    disp(_) => ss("()").
+    disp(_) => "()".
   }
 
   public implementation equality[()] => {
@@ -19,10 +19,9 @@ star.tuples{
   }
 
   -- 2-tuples
-  public implementation all x,y ~~ display[x], display[y] |: display[(x,y)] =>
-    {.
-      disp((a,b)) => ssSeq([ss("("),disp(a),ss(" , "),disp(b),ss(")")]).
-    .}
+  public implementation all x,y ~~ display[x], display[y] |: display[(x,y)] => {.
+    disp((a,b)) => "($(a),$(b))".
+  .}
 
   public implementation all x,y ~~ equality[x], equality[y] |: equality[(x,y)] => {.
     (A1,A2)==(B1,B2) => A1==B1 && A2==B2.
@@ -40,7 +39,7 @@ star.tuples{
 
   -- 3-tuples
   public implementation all x,y,z ~~ display[x], display[y], display[z] |: display[(x,y,z)] => {.
-    disp((a,b,c)) => ssSeq([ss("("),disp(a),ss(" , "),disp(b),ss(" , "),disp(c),ss(")")]).
+    disp((a,b,c)) => "($(a),$(b),$(c))".
   .}
 
   public implementation all x,y,z ~~ equality[x], equality[y],equality[z] |: equality[(x,y,z)] => {.
@@ -53,7 +52,7 @@ star.tuples{
 
   -- 4-tuples
   public implementation all x,y,z,w ~~ display[w], display[x], display[y], display[z] |: display[(w,x,y,z)] => {.
-    disp((a,b,c,d)) => ssSeq([ss("("),disp(a),ss(" , "),disp(b),ss(" , "),disp(c),ss(" , "),disp(d),ss(")")]).
+    disp((a,b,c,d)) => "($(a),$(b),$(c),$(d))".
   .}
 
   public implementation all w,x,y,z ~~ equality[w], equality[x], equality[y],equality[z] |: equality[(w,x,y,z)] => {.
@@ -66,7 +65,7 @@ star.tuples{
 
   -- 5-tuples
   public implementation all u,x,y,z,w ~~ display[u],display[w], display[x], display[y], display[z] |: display[(u,w,x,y,z)] => {.
-    disp((a,b,c,d,e)) => ssSeq([ss("("),disp(a),ss(" , "),disp(b),ss(" , "),disp(c),ss(" , "),disp(d),ss(" , "),disp(e),ss(")")]).
+    disp((a,b,c,d,e)) => "($(a),$(b),$(c),$(d),$(e))".
   .}
 
   public implementation all u,w,x,y,z ~~ equality[u], equality[w], equality[x], equality[y],equality[z] |: equality[(u,w,x,y,z)] => {.
@@ -82,7 +81,7 @@ star.tuples{
   
   public implementation all k,v ~~ display[k],display[v] |:
     display[keyval[k,v]] => {.
-      disp(K->V) => ssSeq([disp(K),ss(" -> "),disp(V)])
+      disp(K->V) => "$(K) -> $(V)"
     .}.
 
   public implementation all k,v ~~ equality[k],equality[v] |:
