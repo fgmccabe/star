@@ -116,11 +116,11 @@ star.cons{
   }
 
   public implementation all e ~~ display[e] |: display[cons[e]] => let{
-    consDisp(.nil) => ss("").
+    consDisp(.nil) => "".
     consDisp(cons(X,.nil)) => disp(X).
-    consDisp(cons(X,R)) => ssSeq([disp(X), ss(","), consDisp(R)]).
+    consDisp(cons(X,R)) => pair_(disp(X), pair_(",", consDisp(R))).
   } in {
-    disp(L) => ssSeq([ss("["), consDisp(L),ss("]")]).
+    disp(L) => pair_("[", pair_(consDisp(L),"]")).
   }
 
   public implementation functor[cons] => let{

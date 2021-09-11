@@ -14,7 +14,6 @@
     "star.capabilities": "capabilities.star",
     "star.coerce": "coerce.star",
     "star.combo": "combo.star",
-    "star.display": "display.star",
     "star.either": "either.star",
     "star.file": "file.star",
     "star.finger": "finger.star",

@@ -53,7 +53,7 @@ star.action{
 
   public logMsg:all e ~~ (string)=>result[e,()].
   logMsg(Msg) => do{
-    _ .= _logmsg(Msg);
+    _ .= _logmsg(_str_fltn(Msg));
     valis ()
   }
 }

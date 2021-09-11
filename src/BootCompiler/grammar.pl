@@ -5,6 +5,7 @@
 :- use_module(location).
 :- use_module(errors).
 :- use_module(lexer).
+:- use_module(misc).
 :- use_module(wff).
 
 parse(Tks,T,RTks) :-
@@ -57,9 +58,11 @@ legalNextRight([idTok(I,_)|_],Pr) :- ( prefixOp(I,PPr,_), PPr=<Pr ; \+ isOperato
 legalNextRight([idQTok(_,_)|_],_).
 legalNextRight([lftTok(_,_)|_],_).
 legalNextRight([stringTok(_,_)|_],_).
+legalNextRight([charsTok(_,_)|_],_).
 legalNextRight([integerTok(_,_)|_],_).
 legalNextRight([floatTok(_,_)|_],_).
 
+term0([charsTok(Txt,Lc)|Toks],chars(Lc,Txt),Toks,id).
 term0([stringTok(St,Lc)|Toks],Str,Toks,id) :-
   handleInterpolation(St,Lc,Str).
 term0([integerTok(In,Lc)|Toks],integer(Lc,In),Toks,id).
@@ -175,34 +178,30 @@ tupleize(T,Lc,Op,tuple(Lc,Op,Els)) :-
 
 lookAhead(Tk,[Tk|_]).
 
-handleInterpolation([segment(Str,Lc)],_,string(Lc,Str)).
-handleInterpolation([],Lc,string(Lc,"")).
-handleInterpolation(Segments,Lc,Term) :-
-  stringSegments(Segments,Inters),
-  unary(Lc,"ssSeq",tuple(Lc,"[]",Inters),Seq),
-  binary(Lc,"::",Seq,name(Lc,"string"),Term).
-
-stringSegments([],[]).
-stringSegments([Seg|More],[H|T]) :- stringSegment(Seg,H),!, stringSegments(More,T).
-
-stringSegment(segment(Str,Lc),S) :-
-  unary(Lc,"ss",string(Lc,Str),S).
-stringSegment(interpolate(Text,"",Lc),Disp) :-
+handleInterpolation([segment(Str,Lc)],_,Trm) :-
+  mkSSChars(Lc,Str,Trm).
+handleInterpolation([interpolate(Text,"",Lc)],_,Disp) :-
   subTokenize(Lc,Text,Toks),
   term(Toks,2000,Term,TksX,_),
   unary(Lc,"disp",Term,Disp),
   ( TksX = [] ; lookAhead(ATk,TksX),locOf(ATk,ALc),reportError("extra tokens in string interpolation",[],ALc)).
-stringSegment(interpolate(Text,Fmt,Lc),Disp) :-
+handleInterpolation([interpolate(Text,Fmt,Lc)],_,Disp) :-
   subTokenize(Lc,Text,Toks),
   term(Toks,2000,Term,TksX,_),
-  binary(Lc,"frmt",Term,string(Lc,Fmt),Disp),
+  binary(Lc,"frmt",Term,chars(Lc,Fmt),Disp),
   ( TksX = [] ; lookAhead(ATk,TksX),locOf(ATk,ALc),reportError("extra tokens in string interpolation",[],ALc)).
-stringSegment(coerce(Text,Lc),Disp) :-
+handleInterpolation([coerce(Text,Lc)],_,Disp) :-
   subTokenize(Lc,Text,Toks),
-  term(Toks,2000,Term,TksX,_),
-  unary(Lc,"ss",Term,Disp),
+  term(Toks,2000,Disp,TksX,_),
   ( TksX = [] ; lookAhead(ATk,TksX),locOf(ATk,ALc),reportError("extra tokens in string interpolation",[],ALc)).
-
+handleInterpolation([],Lc,T) :-
+  mkSSChars(Lc,"",T).
+handleInterpolation(Segments,Lc,Term) :-
+  part2(Segments,L,R),
+  handleInterpolation(L,Lc,Lhs),
+  handleInterpolation(R,Lc,Rhs),
+  mkSSPair(Lc,Lhs,Rhs,Term).
+  
 checkToken([Tk|Toks],Toks,Tk,_,_,_) :- !.
 checkToken([Tk|Toks],Toks,_,Lc,Msg,Extra) :- locOfToken(Tk,Lc), reportError(Msg,[Tk|Extra],Lc).
 checkToken([],[],Tk,_,Msg,Extra) :- reportError(Msg,[Tk|Extra],missing).

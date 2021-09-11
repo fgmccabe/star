@@ -70,19 +70,19 @@ star.core {
   public all t ~~ cons[t] ::= .nil | cons(t,cons[t]).
 
   -- Structured string.
-  public ss ::= ss(string) | ssSeq(cons[ss]).
+  public string ::= chrs_(chars) | pair_(string,string).
 
   -- Displayable contract
   public contract all t ~~ display[t] ::= {
-    disp:(t)=>ss.
+    disp:(t)=>string.
   }
 
   format@"Formatting contract".
   public contract all t ~~ format[t] ::= {
-    frmt:(t,string) => ss.
+    frmt:(t,chars) => string.
   }
 
-  public implementation display[ss] => {
+  public implementation display[string] => {
     disp(X) => X
   }
 
@@ -99,10 +99,10 @@ star.core {
     reverse:(t)=>t.
   }
 
-  public implementation display[boolean] => {
-    disp(.true) => ss("true").
-    disp(.false) => ss("false").
-  }
+  public implementation display[boolean] => {.
+    disp(.true) => chrs_(0"true").
+    disp(.false) => chrs_(0"false").
+  .}
 
   option@"the option type is useful when a value is not always available".
   public all t ~~ option[t] ::= .none | some(t).

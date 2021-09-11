@@ -106,7 +106,7 @@ overloadTerm(v(Lc,Nm,Tp),_,St,St,v(Lc,Nm,Tp)).
 overloadTerm(anon(Lc,Tp),_,St,St,anon(Lc,Tp)).
 overloadTerm(intLit(Lc,Ix),_,St,St,intLit(Lc,Ix)).
 overloadTerm(floatLit(Lc,Dx),_,St,St,floatLit(Lc,Dx)).
-overloadTerm(stringLit(Lx,Sx),_,St,St,stringLit(Lx,Sx)).
+overloadTerm(charsLit(Lx,Sx),_,St,St,charsLit(Lx,Sx)).
 overloadTerm(dot(Lc,Rc,Fld,Tp),Dict,St,Stx,Dot) :-
   overloadTerm(Rc,Dict,St,St0,RRc),
   resolveAccess(Lc,RRc,Fld,Tp,Dict,St0,Stx,Dot).

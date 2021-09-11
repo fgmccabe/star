@@ -575,9 +575,8 @@ typeOfPtn(T,Tp,_ErTp,Env,Env,floatLit(Lc,Dx),_Path) :-
   isLiteralFloat(T,Lc,Dx),!,
   findType("float",Lc,Env,FltTp),
   verifyType(Lc,FltTp,Tp,Env).
-typeOfPtn(string(Lc,Sx),Tp,_ErTp,Env,Env,stringLit(Lc,Sx),_Path) :- !,
-  findType("string",Lc,Env,StrTp),
-  verifyType(Lc,StrTp,Tp,Env).
+typeOfPtn(chars(Lc,Sx),Tp,_ErTp,Env,Env,charsLit(Lc,Sx),_Path) :- !,
+  verifyType(Lc,type("chars"),Tp,Env).
 typeOfPtn(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isTypeAnnotation(Term,Lc,L,R),!,
   parseType(R,Env,RT),
@@ -680,8 +679,8 @@ typeOfExp(T,Tp,_ErTp,Env,Env,floatLit(Lc,Dx),_Path) :-
   isLiteralFloat(T,Lc,Dx),!,
   findType("float",Lc,Env,FltTp),
   verifyType(Lc,FltTp,Tp,Env).
-typeOfExp(string(Lc,Sx),Tp,_ErTp,Env,Env,stringLit(Lc,Sx),_Path) :- !,
-  findType("string",Lc,Env,StrTp),
+typeOfExp(chars(Lc,Sx),Tp,_ErTp,Env,Env,charsLit(Lc,Sx),_Path) :- !,
+  findType("chars",Lc,Env,StrTp),
   verifyType(Lc,StrTp,Tp,Env).
 typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isTypeAnnotation(Term,Lc,L,R),!,
@@ -1373,7 +1372,7 @@ mkBoot(Env,Lc,Pkg,Dfs,[BootDef|Dfs],Decls,[funDec("_boot",BootNm,BootTp)|Decls])
   findType("cons",Lc,Env,ConsTp),
   isVar("_main",Env,Spec),
   localName(Pkg,value,"_boot",BootNm),
-  applyTypeFun(ConsTp,[type("star.core*string")],Lc,Env,LSTp),
+  applyTypeFun(ConsTp,[type("chars")],Lc,Env,LSTp),
   CmdVr = v(Lc,"CmdVr",LSTp),
   unitTp(UnitTp),
   MnTp = funType(tplType([LSTp]),UnitTp),

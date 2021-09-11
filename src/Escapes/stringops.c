@@ -2,7 +2,7 @@
 // Created by Francis McCabe on 3/8/18.
 //
 
-#include <strP.h>
+#include <charsP.h>
 #include <arithP.h>
 #include <stringBuffer.h>
 #include <assert.h>
@@ -13,10 +13,10 @@
 #include "option.h"
 
 ReturnStatus g__str_eq(processPo p, ptrPo tos) {
-  stringPo Arg1 = C_STR(tos[0]);
-  stringPo Arg2 = C_STR(tos[1]);
+  charsPo Arg1 = C_CHARS(tos[0]);
+  charsPo Arg2 = C_CHARS(tos[1]);
 
-  logical eq = sameString(Arg1, Arg2);
+  logical eq = sameCharSeqs(Arg1, Arg2);
 
   return (ReturnStatus) {.ret=Ok, .result=(eq ? trueEnum : falseEnum)};
 }
@@ -26,8 +26,8 @@ ReturnStatus g__str_lt(processPo p, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
   integer llen, rlen;
-  const char *lhs = stringVal(Arg1, &llen);
-  const char *rhs = stringVal(Arg2, &rlen);
+  const char *lhs = charsVal(Arg1, &llen);
+  const char *rhs = charsVal(Arg2, &rlen);
 
   integer li = 0;
   integer ri = 0;
@@ -53,8 +53,8 @@ ReturnStatus g__str_ge(processPo p, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
   integer llen, rlen;
-  const char *lhs = stringVal(Arg1, &llen);
-  const char *rhs = stringVal(Arg2, &rlen);
+  const char *lhs = charsVal(Arg1, &llen);
+  const char *rhs = charsVal(Arg2, &rlen);
 
   integer li = 0;
   integer ri = 0;
@@ -77,11 +77,11 @@ ReturnStatus g__str_ge(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__str_hash(processPo p, ptrPo tos) {
-  stringPo lhs = C_STR(tos[0]);
+  charsPo lhs = C_CHARS(tos[0]);
 
   if (lhs->hash == 0) {
     integer len;
-    const char *str = stringVal(tos[0], &len);
+    const char *str = charsVal(tos[0], &len);
     lhs->hash = uniNHash(str, len);
   }
 
@@ -91,7 +91,7 @@ ReturnStatus g__str_hash(processPo p, ptrPo tos) {
 
 ReturnStatus g__str_len(processPo p, ptrPo tos) {
   integer len;
-  const char *str = stringVal(tos[0], &len);
+  const char *str = charsVal(tos[0], &len);
 
   return (ReturnStatus) {.ret=Ok,
     .result=(termPo) allocateInteger(processHeap(p), len)};
@@ -99,7 +99,7 @@ ReturnStatus g__str_len(processPo p, ptrPo tos) {
 
 ReturnStatus g__str2flt(processPo p, ptrPo tos) {
   integer len;
-  const char *str = stringVal(tos[0], &len);
+  const char *str = charsVal(tos[0], &len);
   double flt;
   heapPo H = processHeap(p);
 
@@ -115,7 +115,7 @@ ReturnStatus g__str2flt(processPo p, ptrPo tos) {
 
 ReturnStatus g__str2int(processPo p, ptrPo tos) {
   integer len;
-  const char *str = stringVal(tos[0], &len);
+  const char *str = charsVal(tos[0], &len);
   integer ix;
   heapPo H = processHeap(p);
 
@@ -130,13 +130,13 @@ ReturnStatus g__str2int(processPo p, ptrPo tos) {
 
 ReturnStatus g__str_gen(processPo p, ptrPo tos) {
   integer len;
-  const char *str = stringVal(tos[0], &len);
+  const char *str = charsVal(tos[0], &len);
   char rnd[MAXLINE];
 
   strMsg(rnd, NumberOf(rnd), "%S%d", str, minimum(len, NumberOf(rnd) - INT64_DIGITS), randomInt());
 
   return (ReturnStatus) {.ret=Ok,
-    .result=(termPo) allocateString(processHeap(p), rnd, uniStrLen(rnd))};
+    .result=(termPo) allocateChars(processHeap(p), rnd, uniStrLen(rnd))};
 }
 
 ReturnStatus g__stringOf(processPo p, ptrPo tos) {
@@ -151,7 +151,23 @@ ReturnStatus g__stringOf(processPo p, ptrPo tos) {
   const char *buff = getTextFromBuffer(strb, &oLen);
 
   ReturnStatus result = {.ret=ret,
-    .result=(termPo) allocateString(processHeap(p), buff, oLen)};
+    .result=(termPo) allocateChars(processHeap(p), buff, oLen)};
+
+  closeFile(O_IO(strb));
+  return result;
+}
+
+ReturnStatus g__str_quote(processPo p, ptrPo tos) {
+  termPo t = tos[0];
+
+  strBufferPo strb = newStringBuffer();
+  retCode ret = quoteChars(O_IO(strb), C_CHARS(t));
+
+  integer oLen;
+  const char *buff = getTextFromBuffer(strb, &oLen);
+
+  ReturnStatus result = {.ret=ret,
+    .result=(termPo) allocateChars(processHeap(p), buff, oLen)};
 
   closeFile(O_IO(strb));
   return result;
@@ -159,11 +175,11 @@ ReturnStatus g__stringOf(processPo p, ptrPo tos) {
 
 ReturnStatus g__explode(processPo p, ptrPo tos) {
   termPo Arg1 = tos[0];
-  stringPo str = C_STR(tos[0]);
-  integer len = stringLength(str);
+  charsPo str = C_CHARS(tos[0]);
+  integer len = charsLength(str);
   char buffer[len + 1];
 
-  retCode ret = copyString2Buff(str, buffer, len + 1);
+  retCode ret = copyChars2Buff(str, buffer, len + 1);
   if (ret == Ok) {
     heapPo H = processHeap(p);
     termPo list = (termPo) nilEnum;
@@ -217,7 +233,7 @@ ReturnStatus g__implode(processPo p, ptrPo tos) {
   integer oLen;
   const char *buff = getTextFromBuffer(strb, &oLen);
 
-  termPo result = (termPo) allocateString(processHeap(p), buff, oLen);
+  termPo result = (termPo) allocateChars(processHeap(p), buff, oLen);
 
   closeFile(O_IO(strb));
 
@@ -229,9 +245,9 @@ ReturnStatus g__str_find(processPo p, ptrPo tos) {
   termPo Arg2 = tos[1];
   termPo Arg3 = tos[2];
   integer len;
-  const char *str = stringVal(Arg1, &len);
+  const char *str = charsVal(Arg1, &len);
   integer tlen;
-  const char *tgt = stringVal(Arg2, &tlen);
+  const char *tgt = charsVal(Arg2, &tlen);
   integer start = integerVal(Arg3);
 
   integer found = uniSearch(str, len, start, tgt, tlen);
@@ -245,7 +261,7 @@ ReturnStatus g__sub_str(processPo p, ptrPo tos) {
   termPo Arg2 = tos[1];
   termPo Arg3 = tos[2];
   integer len;
-  const char *str = stringVal(Arg1, &len);
+  const char *str = charsVal(Arg1, &len);
   integer start = integerVal(Arg2);
   integer count = integerVal(Arg3);
 
@@ -253,14 +269,14 @@ ReturnStatus g__sub_str(processPo p, ptrPo tos) {
   uniNCpy(buff, count + 1, &str[start], count);
 
   return (ReturnStatus) {.ret=Ok,
-    .result=(termPo) allocateString(processHeap(p), buff, count)};
+    .result=(termPo) allocateChars(processHeap(p), buff, count)};
 }
 
 ReturnStatus g__str_hdtl(processPo p, ptrPo tos) {
-  stringPo src = C_STR(tos[0]);
-  integer len = stringLength(src);
+  charsPo src = C_CHARS(tos[0]);
+  integer len = charsLength(src);
   char str[len + 1];
-  copyString2Buff(src, str, len + 1);
+  copyChars2Buff(src, str, len + 1);
   heapPo H = processHeap(p);
 
   integer offset = 0;
@@ -270,7 +286,7 @@ ReturnStatus g__str_hdtl(processPo p, ptrPo tos) {
   if (ret == Ok) {
     termPo chCode = allocateInteger(H, ch);
     int mark = gcAddRoot(H, &chCode);
-    termPo rest = allocateString(H, &str[offset], len - offset);
+    termPo rest = allocateChars(H, &str[offset], len - offset);
     gcAddRoot(H, &rest);
     normalPo pair = allocateTpl(H, 2);
     setArg(pair, 0, chCode);
@@ -284,38 +300,48 @@ ReturnStatus g__str_hdtl(processPo p, ptrPo tos) {
 
 ReturnStatus g__str_cons(processPo p, ptrPo tos) {
   integer ch = integerVal(tos[0]);
-  stringPo src = C_STR(tos[1]);
-  integer len = stringLength(src);
+  charsPo src = C_CHARS(tos[1]);
+  integer len = charsLength(src);
   integer offset = 0;
   char str[len + 16];
   appendCodePoint(str, &offset, len + 16, (codePoint) ch);
-  retCode ret = copyString2Buff(src, &str[offset], len + 16);
+  retCode ret = copyChars2Buff(src, &str[offset], len + 16);
   heapPo H = processHeap(p);
 
   return (ReturnStatus) {.ret=ret,
-    .result=(termPo) allocateString(processHeap(p), str, offset + len)};
+    .result=(termPo) allocateChars(processHeap(p), str, offset + len)};
+}
+
+ReturnStatus g__code2str(processPo p, ptrPo tos) {
+  integer ch = integerVal(tos[0]);
+  integer codeLength = 0;
+  char str[16];
+  appendCodePoint(str, &codeLength, NumberOf(str), (codePoint) ch);
+
+  return (ReturnStatus) {.ret=Ok,
+    .result=(termPo) allocateChars(processHeap(p), str, codeLength)};
 }
 
 ReturnStatus g__str_apnd(processPo p, ptrPo tos) {
   integer ch = integerVal(tos[1]);
-  stringPo src = C_STR(tos[0]);
-  integer len = stringLength(src);
+  charsPo src = C_CHARS(tos[0]);
+  integer len = charsLength(src);
   integer offset = len;
   char str[len + 16];
-  copyString2Buff(src, str, len + 16);
+  copyChars2Buff(src, str, len + 16);
   heapPo H = processHeap(p);
 
   retCode ret = appendCodePoint(str, &offset, len + 16, (codePoint) integerVal(tos[0]));
 
   return (ReturnStatus) {.ret=ret,
-    .result=(termPo) allocateString(processHeap(p), str, offset)};
+    .result=(termPo) allocateChars(processHeap(p), str, offset)};
 }
 
 ReturnStatus g__str_back(processPo p, ptrPo tos) {
-  stringPo src = C_STR(tos[0]);
-  integer len = stringLength(src);
+  charsPo src = C_CHARS(tos[0]);
+  integer len = charsLength(src);
   char str[len + 1];
-  copyString2Buff(src, str, len + 1);
+  copyChars2Buff(src, str, len + 1);
   heapPo H = processHeap(p);
 
   integer offset = len;
@@ -325,10 +351,10 @@ ReturnStatus g__str_back(processPo p, ptrPo tos) {
   if (ret == Ok) {
     termPo chCode = allocateInteger(H, ch);
     int mark = gcAddRoot(H, (ptrPo) &chCode);
-    termPo rest = allocateString(H, str, offset);
+    termPo rest = allocateChars(H, str, offset);
     gcAddRoot(H, &rest);
     normalPo pair = allocateTpl(H, 2);
-    setArg(pair, 0,  rest);
+    setArg(pair, 0, rest);
     setArg(pair, 1, chCode);
     gcReleaseRoot(H, mark);
     return (ReturnStatus) {.ret=Ok, .result=(termPo) pair};
@@ -341,7 +367,7 @@ ReturnStatus g__str_split(processPo p, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
   integer len;
-  const char *str = stringVal(Arg1, &len);
+  const char *str = charsVal(Arg1, &len);
   integer start = integerVal(Arg2);
 
   char buff[len];
@@ -351,10 +377,10 @@ ReturnStatus g__str_split(processPo p, ptrPo tos) {
   normalPo pair = allocateTpl(H, 2);
   int root = gcAddRoot(H, (ptrPo) &pair);
 
-  termPo lhs = (termPo) allocateString(H, buff, start);
+  termPo lhs = (termPo) allocateChars(H, buff, start);
   setArg(pair, 0, lhs);
 
-  termPo rhs = (termPo) allocateString(H, &buff[start], len - start);
+  termPo rhs = (termPo) allocateChars(H, &buff[start], len - start);
   setArg(pair, 1, rhs);
 
   gcReleaseRoot(H, root);
@@ -365,9 +391,9 @@ ReturnStatus g__str_concat(processPo p, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
   integer llen;
-  const char *lhs = stringVal(Arg1, &llen);
+  const char *lhs = charsVal(Arg1, &llen);
   integer rlen;
-  const char *rhs = stringVal(Arg2, &rlen);
+  const char *rhs = charsVal(Arg2, &rlen);
 
   integer len = llen + rlen + 1;
   char buff[len];
@@ -375,7 +401,7 @@ ReturnStatus g__str_concat(processPo p, ptrPo tos) {
   uniNCpy(&buff[llen], len - llen, rhs, rlen);
 
   return (ReturnStatus) {.ret=Ok,
-    .result=(termPo) allocateString(processHeap(p), buff, llen + rlen)};
+    .result=(termPo) allocateChars(processHeap(p), buff, llen + rlen)};
 }
 
 ReturnStatus g__str_splice(processPo p, ptrPo tos) {
@@ -385,9 +411,9 @@ ReturnStatus g__str_splice(processPo p, ptrPo tos) {
   termPo Arg4 = tos[3];
 
   integer llen;
-  const char *lhs = stringVal(Arg1, &llen);
+  const char *lhs = charsVal(Arg1, &llen);
   integer rlen;
-  const char *rhs = stringVal(Arg4, &rlen);
+  const char *rhs = charsVal(Arg4, &rlen);
 
   // Clamp the from and cnt values
   if (from < 0)
@@ -406,22 +432,37 @@ ReturnStatus g__str_splice(processPo p, ptrPo tos) {
   uniNCpy(&buff[from + rlen], len - from - rlen, &lhs[from + cnt], llen - from - cnt);
 
   return (ReturnStatus) {.ret=Ok,
-    .result=(termPo) allocateString(processHeap(p), buff, len)};
+    .result=(termPo) allocateChars(processHeap(p), buff, len)};
 }
 
 ReturnStatus g__str_start(processPo p, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
   integer llen;
-  const char *lhs = stringVal(Arg1, &llen);
+  const char *lhs = charsVal(Arg1, &llen);
   integer rlen;
-  const char *rhs = stringVal(Arg2, &rlen);
+  const char *rhs = charsVal(Arg2, &rlen);
 
   return (ReturnStatus) {.ret=Ok,
     .result=(uniIsPrefix(lhs, llen, rhs, rlen) ? trueEnum : falseEnum)};
 }
 
-static retCode flatten(strBufferPo str, termPo t);
+retCode flatten(strBufferPo str, termPo t) {
+  if (isNormalPo(t)) {
+    normalPo ss = C_NORMAL(t);
+    integer cx = termArity(ss);
+    retCode ret = Ok;
+    for (integer ix = 0; ret == Ok && ix < cx; ix++) {
+      ret = flatten(str, nthArg(ss, ix));
+    }
+    return ret;
+  } else if (isChars(t)) {
+    integer len;
+    const char *elTxt = charsVal(t, &len);
+    return outText(O_IO(str), elTxt, len);
+  } else
+    return Error;
+}
 
 ReturnStatus g__str_multicat(processPo p, ptrPo tos) {
   strBufferPo strb = newStringBuffer();
@@ -432,39 +473,12 @@ ReturnStatus g__str_multicat(processPo p, ptrPo tos) {
   const char *buff = getTextFromBuffer(strb, &oLen);
 
   ReturnStatus rt = {.ret=ret,
-    .result=(termPo) allocateString(processHeap(p), buff, oLen)};
+    .result=(termPo) allocateChars(processHeap(p), buff, oLen)};
   closeFile(O_IO(strb));
   return rt;
 }
 
-retCode flatten(strBufferPo str, termPo t) {
-  if (isCons(t)) {
-    retCode ret = Ok;
-    while (ret == Ok && isCons(t)) {
-      normalPo lst = C_NORMAL(t);
-      ret = flatten(str, consHead(lst));
-      t = consTail(lst);
-    }
-    return ret;
-  } else if (isNormalPo(t)) {
-    normalPo ss = C_NORMAL(t);
-    integer cx = termArity(ss);
-    retCode ret = Ok;
-    for (integer ix = 0; ret == Ok && ix < cx; ix++) {
-      ret = flatten(str, nthArg(ss, ix));
-    }
-    return ret;
-  } else if (isInteger(t)) {
-    return outChar(O_IO(str), integerVal(t));
-  } else if (isString(t)) {
-    integer len;
-    const char *elTxt = stringVal(t, &len);
-    return outText(O_IO(str), elTxt, len);
-  } else
-    return Ok;
-}
-
-ReturnStatus g__str_flatten(processPo p, ptrPo tos) {
+ReturnStatus g__str_fltn(processPo p, ptrPo tos) {
   strBufferPo str = newStringBuffer();
 
   retCode ret = flatten(str, tos[0]);
@@ -473,7 +487,7 @@ ReturnStatus g__str_flatten(processPo p, ptrPo tos) {
     integer oLen;
     const char *buff = getTextFromBuffer(str, &oLen);
 
-    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), buff, oLen)};
+    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateChars(processHeap(p), buff, oLen)};
     closeFile(O_IO(str));
     return rt;
   } else {
@@ -485,7 +499,7 @@ ReturnStatus g__str_flatten(processPo p, ptrPo tos) {
 ReturnStatus g__str_reverse(processPo p, ptrPo tos) {
   termPo Arg1 = tos[0];
   integer len;
-  const char *lhs = stringVal(Arg1, &len);
+  const char *lhs = charsVal(Arg1, &len);
 
   char buff[len];
   uniNCpy(buff, len, lhs, len);
@@ -493,5 +507,5 @@ ReturnStatus g__str_reverse(processPo p, ptrPo tos) {
   uniReverse(buff, len);
 
   return (ReturnStatus) {.ret=Ok,
-    .result=(termPo) allocateString(processHeap(p), buff, len)};
+    .result=(termPo) allocateChars(processHeap(p), buff, len)};
 }

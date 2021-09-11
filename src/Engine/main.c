@@ -17,7 +17,7 @@
 #include "args.h"
 #include "formioP.h"
 #include "arithP.h"
-#include "strP.h"
+#include "charsP.h"
 #include "debug.h"
 #include "editline.h"
 #include "jit.h"
@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
   initHeap(initHeapSize);
   initStacks();
   initArith();
-  initStr();
+  initChars();
   initLbls();
   initGlobals();
   initCons();

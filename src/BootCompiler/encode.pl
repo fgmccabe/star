@@ -84,6 +84,7 @@ encodeT(T,['_'|O],O) :- isUnbound(T).
 encodeT(type("star.core*boolean"),['l'|O],O).
 encodeT(type("star.core*integer"),['i'|O],O).
 encodeT(type("star.core*float"),['f'|O],O).
+encodeT(type("chars"),['s'|O],O).
 encodeT(type("star.core*string"),['S'|O],O).
 encodeT(kVar(Nm),['k'|O],Ox) :- encodeText(Nm,O,Ox).
 encodeT(kFun(Nm,Ar),['K'|O],Ox) :- encodeInt(Ar,O,O1),encodeText(Nm,O1,Ox).

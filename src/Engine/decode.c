@@ -7,7 +7,7 @@
 #include <consP.h>
 #include <strings.h>
 #include "arithP.h"
-#include "strP.h"
+#include "charsP.h"
 #include "heap.h"
 #include "signature.h"
 #include "labelsP.h"
@@ -156,7 +156,7 @@ static retCode estimateFlt(double dx, void *cl) {
 static retCode estimateString(char *nm, integer size, void *cl) {
   Estimation *info = (Estimation *) cl;
 
-  info->amnt += CellCount(sizeof(StringRecord) + (size + 1) * sizeof(char));
+  info->amnt += CellCount(sizeof(CharsRecord) + (size + 1) * sizeof(char));
   return Ok;
 }
 
@@ -274,7 +274,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo tmpBuffer
       if ((res = decodeText(in, tmpBuffer)) == Ok) {
         integer len;
         const char *txt = getTextFromBuffer(tmpBuffer, &len);
-        *tgt = (termPo) allocateString(H, txt, len);
+        *tgt = (termPo) allocateChars(H, txt, len);
       }
       return res;
     }

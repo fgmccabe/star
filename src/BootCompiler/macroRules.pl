@@ -53,7 +53,7 @@ synthesize_main(Lc,Ts,As,[MainTp,Main|As]) :-
   roundTerm(Lc,name(Lc,"main"),Cs,Rhs),
   mkValof(Lc,Rhs,MnCall),
   eqn(Lc,Lhs,MnCall,Main),
-  squareTerm(Lc,name(Lc,"cons"),[name(Lc,"string")],T1),
+  squareTerm(Lc,name(Lc,"cons"),[name(Lc,"chars")],T1),
   roundTuple(Lc,[T1],T3),
   roundTuple(Lc,[],Unit),
   binary(Lc,"=>",T3,Unit,TU),
@@ -65,7 +65,8 @@ synthesize_coercions([],[],[]).
 synthesize_coercions([T|Ts],[V|Vs],[C|Cs]) :-
   locOfAst(T,Lc),
   genIden(Lc,V),
-  coerce(Lc,V,T,C),
+  mkSSChars(Lc,V,VS),
+  coerce(Lc,VS,T,C),
   synthesize_coercions(Ts,Vs,Cs).
 
 list_pttrn(Lc,[],Arg) :-
@@ -264,7 +265,7 @@ ptnVars(T,_,V,V) :-
 ptnVars(T,_,V,V) :-
   isFloat(T,_,_),!.
 ptnVars(T,_,V,V) :-
-  isText(T,_,_),!.
+  isChars(T,_,_),!.
 ptnVars(T,_,V,V) :-
   isEnum(T,_,_),!.
 ptnVars(T,E,V,Vx) :-
@@ -318,9 +319,10 @@ unwrapExpMacro(T,expression,Tx) :-
   match(Lc,Ptn,R,Mtch),
   mkWhere(Lc,V,Mtch,Tx).
 
-pkgNameMacro(T,expression,string(Lc,P)) :-
+pkgNameMacro(T,expression,Trm) :-
   isName(T,Lc,"__pkg__"),
-  lcPk(Lc,P).
+  lcPk(Lc,P),
+  mkSSChars(Lc,P,Trm).
 
 macroLocationExp(T,expression,Loc) :-
   isName(T,Lc,"__loc__"),!,
@@ -358,11 +360,11 @@ becomes
 */
 assertMacro(T,action,Act) :-
   isIntegrity(T,Lc,Cond),!,
-  ast2String(Cond,Msg),
+  ast2String(Lc,Cond,Msg),
   locOfAst(Cond,CLc),
   eqn(Lc,tuple(Lc,"()",[]),Cond,Lam),
   mkLoc(CLc,Loc),
-  roundTerm(Lc,name(Lc,"assrt"),[Lam,string(Lc,Msg),Loc],Assert),
+  roundTerm(Lc,name(Lc,"assrt"),[Lam,Msg,Loc],Assert),
   mkPerform(Lc,Assert,Act).
 
 /*
@@ -372,11 +374,11 @@ becomes
 */
 showMacro(T,action,Act) :-
   isShow(T,Lc,Exp),!,
-  ast2String(Exp,Txt),
+  ast2String(Lc,Exp,Txt),
   locOfAst(Exp,ELc),
   mkLoc(ELc,Loc),
   eqn(Lc,tuple(Lc,"()",[]),Exp,Lam),
-  roundTerm(Lc,name(Lc,"shwMsg"),[Lam,string(Lc,Txt),Loc],Act).
+  roundTerm(Lc,name(Lc,"shwMsg"),[Lam,Txt,Loc],Act).
 
 /*
    A[F:T] := R
@@ -413,17 +415,20 @@ macroQuote(T,expression,Rp) :-
 quoteExp(A,I) :-
   isUnary(A,_,"$",I),!.
 quoteExp(name(Lc,Id),I) :-
-  unary(Lc,"_name",string(Lc,Id),I).
+  mkSSChars(Lc,Id,S),
+  unary(Lc,"_name",S,I).
 quoteExp(integer(Lc,Ix),I) :-
   unary(Lc,"_integer",integer(Lc,Ix),I).
 quoteExp(float(Lc,Dx),I) :-
   unary(Lc,"_float",float(Lc,Dx),I).
-quoteExp(string(Lc,Sx),I) :-
-  unary(Lc,"_string",string(Lc,Sx),I).
+quoteExp(chars(Lc,Sx),I) :-
+  mkSSChars(Lc,Sx,S),
+  unary(Lc,"_string",S,I).
 quoteExp(tuple(Lc,Lb,Els),Rp) :-
   map(Els,quoteExp,QEls),
   macroListEntries(Lc,QEls,R,nilGen,consGen),
-  binary(Lc,"_tuple",string(Lc,Lb),R,Rp).
+  mkSSChars(Lc,Lb,S),
+  binary(Lc,"_tuple",S,R,Rp).
 quoteExp(app(Lc,O,A),Rp) :-
   quoteExp(O,Oq),
   quoteExp(A,Aq),

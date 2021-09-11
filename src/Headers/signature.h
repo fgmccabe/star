@@ -18,6 +18,7 @@ typedef enum {
   intSig = 'i', /* An integer */
   fltSig = 'f', /* A float */
   logSig = 'l', /* Logical value */
+  chrSig = 's', // A char sequence
   strSig = 'S', /* String */
   kvrSig = 'k', /* quantified type variable */
   kfnSig = 'K', /* quantified type function */

@@ -11,9 +11,9 @@ star.option{
     disp(O) => dispOptional(O).
   }
 
-  private dispOptional:all x ~~ display[x] |: (option[x]) => ss.
-  dispOptional(.none) => ss("none").
-  dispOptional(some(X)) => ssSeq([ss("some("),disp(X),ss(")")]).
+  private dispOptional:all x ~~ display[x] |: (option[x]) => string.
+  dispOptional(.none) => "none".
+  dispOptional(some(X)) => "some($(X))".
 
   public implementation all x ~~ equality[x] |: equality[option[x]] => {
     X == Y => optionEqual(X,Y).

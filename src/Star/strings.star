@@ -5,54 +5,53 @@ star.strings{
 
   -- and strings ...
   public implementation equality[string] => {
-    X==Y => _str_eq(X,Y).
+    X==Y => _str_eq(_str_fltn(X),_str_fltn(Y)).
   }
 
   public implementation hash[string] => {
-    hash(X) => _str_hash(X).
+    hash(X) => _str_hash(_str_fltn(X)).
   }
 
   public implementation comp[string] => {
-    X<Y => _str_lt(X,Y).
-    X>=Y => _str_ge(X,Y).
+    X<Y => _str_lt(_str_fltn(X),_str_fltn(Y)).
+    X>=Y => _str_ge(_str_fltn(X),_str_fltn(Y)).
   }
 
   public implementation display[string] => {
     disp(X) => displayString(X).
   }
 
-  public displayString:(string) => ss.
-  displayString(S) => ss(_stringOf(S,1)).
+  public displayString:(string) => string.
+  displayString(S) => "\"#(chrs_(_str_quote(_str_fltn(S))))\"".
 
   public implementation sizeable[string] => {
-    size(S) => _str_len(S).
-    isEmpty("") => .true.
-    isEmpty(_) => .false.
+    size(S) => _str_len(_str_fltn(S)).
+    isEmpty(S) => size(S)==0.
   }
 
   public implementation  measured[string->>integer] => {.
-    [|L|] => _str_len(L)
+    [|L|] => _str_len(_str_fltn(L))
   .}
 
   public implementation concat[string] => {
-    S1++S2 => _str_concat(S1,S2).
+    S1++S2 => pair_(S1,S2).
   }.
 
   public implementation slice[string->>integer] => {
-    _slice(S,F,T) => _sub_str(S,F,T-F).
-    _splice(S,F,T,N) => _str_splice(S,F,T-F,N).
+    _slice(S,F,T) => chrs_(_sub_str(_str_fltn(S),F,T-F)).
+    _splice(S,F,T,N) => chrs_(_str_splice(_str_fltn(S),F,T-F,_str_fltn(N))).
   }.
 
   public implementation reversible[string] => {
-    reverse(L) => _str_reverse(L).
+    reverse(L) => chrs_(_str_reverse(_str_fltn(L))).
   }
 
   public implementation coercion[string,cons[integer]] => {
-    _coerce(S) => some(_explode(S)).
+    _coerce(S) => some(_explode(_str_fltn(S))).
   }
 
   public implementation coercion[cons[integer],string] => {
-    _coerce(L) => some(_implode(L)).
+    _coerce(L) => some(chrs_(_implode(L))).
   }
 
   public implementation coercion[string,string] => {
@@ -61,14 +60,15 @@ star.strings{
 
   -- Stream and sequence contracts
 
-  public implementation stream[string->>integer] => {.
+  public implementation stream[string->>integer] => {
     _eof(S) => S=="".
-    _hdtl(S) default => some(_str_hdtl(S)).
-    _hdtl("") => .none.
-  .}
+    _hdtl(chrs_(Cs)) where (H,T).=_str_hdtl(Cs) => some((H,chrs_(T))).
+    _hdtl(pair_(L,R)) where (H,T) ^= _hdtl(L) => some((H,pair_(T,R))).
+    _hdtl(chrs_(0"")) => .none.
+  }
 
   public implementation sequence[string->>integer] => {.
-    _cons(C,S) => _str_cons(C,S).
+    _cons(C,S) => pair_(chrs_(_code2str(C)),S).
     _nil = "".
   .}
 
@@ -104,5 +104,5 @@ star.strings{
   isAlphaNum(Ch) => (_isLetterChar(Ch) || _isNdChar(Ch)).
 
   public genSym:(string) => string.
-  genSym(Pre) => _str_gen(Pre).
+  genSym(Pre) => chrs_(_str_gen(_str_fltn(Pre))).
 }

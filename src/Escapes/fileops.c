@@ -2,7 +2,7 @@
 // Created by Francis McCabe on 3/7/18.
 //
 
-#include <str.h>
+#include <chars.h>
 #include <errno.h>
 #include <sys/stat.h>
 #include <arithP.h>
@@ -21,21 +21,21 @@
 ReturnStatus g__cwd(processPo p, ptrPo tos) {
   char cwBuffer[MAXFILELEN];
   strMsg(cwBuffer, NumberOf(cwBuffer), "%s/", processWd(p));
-  termPo cwd = (termPo) allocateString(processHeap(p), cwBuffer, uniStrLen(cwBuffer));
+  termPo cwd = (termPo) allocateChars(processHeap(p), cwBuffer, uniStrLen(cwBuffer));
 
   return (ReturnStatus) {.result = cwd, .ret=Ok};
 }
 
 ReturnStatus g__cd(processPo p, ptrPo tos) {
   integer len;
-  const char *cd = stringVal(tos[0], &len);
+  const char *cd = charsVal(tos[0], &len);
 
   return rtnStatus(p, setProcessWd(p, (char *) cd, len), "cd problem");
 }
 
 ReturnStatus g__rm(processPo P, ptrPo tos) {
   integer fnLen;
-  const char *fn = stringVal(tos[0], &fnLen);
+  const char *fn = charsVal(tos[0], &fnLen);
   char buff[MAXFILELEN];
 
   char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
@@ -67,7 +67,7 @@ static char *const RMDIR = "__rmdir";
 
 ReturnStatus g__rmdir(processPo P, ptrPo tos) {
   integer fnLen;
-  const char *fn = stringVal(tos[0], &fnLen);
+  const char *fn = charsVal(tos[0], &fnLen);
   char buff[MAXFILELEN];
 
   char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
@@ -102,7 +102,7 @@ ReturnStatus g__mkdir(processPo P, ptrPo tos) {
   termPo Arg2 = tos[1];
 
   integer fnLen;
-  const char *fn = stringVal(Arg1, &fnLen);
+  const char *fn = charsVal(Arg1, &fnLen);
   char buff[MAXFILELEN];
 
   char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
@@ -138,12 +138,12 @@ ReturnStatus g__mv(processPo P, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
   integer sLen;
-  const char *fn = stringVal(Arg1, &sLen);
+  const char *fn = charsVal(Arg1, &sLen);
   char srcBuff[MAXFILELEN];
 
   char *srcFn = resolveFileName(processWd(P), fn, sLen, srcBuff, NumberOf(srcBuff));
   integer dLen;
-  const char *df = stringVal(Arg2, &dLen);
+  const char *df = charsVal(Arg2, &dLen);
   char dstBuff[MAXFILELEN];
 
   char *dstFn = resolveFileName(processWd(P), fn, sLen, dstBuff, NumberOf(dstBuff));
@@ -174,7 +174,7 @@ ReturnStatus g__mv(processPo P, ptrPo tos) {
 ReturnStatus g__ls(processPo P, ptrPo tos) {
   termPo Arg1 = tos[0];
   integer sLen;
-  const char *fn = stringVal(Arg1, &sLen);
+  const char *fn = charsVal(Arg1, &sLen);
   char srcBuff[MAXFILELEN];
 
   char *dir = resolveFileName(processWd(P), fn, sLen, srcBuff, NumberOf(srcBuff));
@@ -210,7 +210,7 @@ ReturnStatus g__ls(processPo P, ptrPo tos) {
     while ((ent = readdir(directory)) != NULL) {
       /* skip special entries "." and ".." */
       if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0) {
-        name = (termPo) allocateString(H, ent->d_name, uniStrLen(ent->d_name));
+        name = (termPo) allocateChars(H, ent->d_name, uniStrLen(ent->d_name));
         list = (termPo) allocateCons(H, name, list);
       }
     }
@@ -228,7 +228,7 @@ static char *const FILE_MODE = "_file_mode";
 
 ReturnStatus g__file_mode(processPo P, ptrPo tos) {
   integer fnLen;
-  const char *fn = stringVal(tos[0], &fnLen);
+  const char *fn = charsVal(tos[0], &fnLen);
   char buff[MAXFILELEN];
 
   char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
@@ -273,7 +273,7 @@ ReturnStatus g__file_chmod(processPo P, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
   integer fnLen;
-  const char *fn = stringVal(Arg1, &fnLen);
+  const char *fn = charsVal(Arg1, &fnLen);
   char buff[MAXFILELEN];
 
   char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
@@ -303,7 +303,7 @@ ReturnStatus g__file_chmod(processPo P, ptrPo tos) {
 
 ReturnStatus g__file_present(processPo P, ptrPo tos) {
   integer fnLen;
-  const char *fn = stringVal(tos[0], &fnLen);
+  const char *fn = charsVal(tos[0], &fnLen);
   char buff[MAXFILELEN];
 
   char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
@@ -319,7 +319,7 @@ ReturnStatus g__file_present(processPo P, ptrPo tos) {
 
 ReturnStatus g__isdir(processPo P, ptrPo tos) {
   integer fnLen;
-  const char *fn = stringVal(tos[0], &fnLen);
+  const char *fn = charsVal(tos[0], &fnLen);
   char buff[MAXFILELEN];
 
   char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
@@ -350,7 +350,7 @@ static char *const FILE_MODIFIED = "__file_modified";
 
 ReturnStatus g__file_type(processPo P, ptrPo tos) {
   integer fnLen;
-  const char *fn = stringVal(tos[0], &fnLen);
+  const char *fn = charsVal(tos[0], &fnLen);
   char buff[MAXFILELEN];
 
   char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
@@ -411,7 +411,7 @@ ReturnStatus g__file_type(processPo P, ptrPo tos) {
 
 ReturnStatus g__file_size(processPo P, ptrPo tos) {
   integer fnLen;
-  const char *fn = stringVal(tos[0], &fnLen);
+  const char *fn = charsVal(tos[0], &fnLen);
   char buff[MAXFILELEN];
 
   char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
@@ -455,7 +455,7 @@ ReturnStatus g__file_size(processPo P, ptrPo tos) {
 
 ReturnStatus g__file_date(processPo P, ptrPo tos) {
   integer fnLen;
-  const char *fn = stringVal(tos[0], &fnLen);
+  const char *fn = charsVal(tos[0], &fnLen);
   char buff[MAXFILELEN];
 
   char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
@@ -511,7 +511,7 @@ ReturnStatus g__file_date(processPo P, ptrPo tos) {
 
 ReturnStatus g__file_modified(processPo P, ptrPo tos) {
   integer fnLen;
-  const char *fn = stringVal(tos[0], &fnLen);
+  const char *fn = charsVal(tos[0], &fnLen);
   char buff[MAXFILELEN];
 
   char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
@@ -559,7 +559,7 @@ ReturnStatus g__openInFile(processPo P, ptrPo tos) {
   ioEncoding enc = pickEncoding(integerVal(Arg2));
 
   integer fnLen;
-  const char *fn = stringVal(Arg1, &fnLen);
+  const char *fn = charsVal(Arg1, &fnLen);
   char buff[MAXFILELEN];
 
   char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
@@ -579,7 +579,7 @@ ReturnStatus g__openOutFile(processPo P, ptrPo tos) {
   ioEncoding enc = pickEncoding(integerVal(Arg2));
 
   integer fnLen;
-  const char *fn = stringVal(Arg1, &fnLen);
+  const char *fn = charsVal(Arg1, &fnLen);
   char buff[MAXFILELEN];
 
   char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
@@ -599,7 +599,7 @@ ReturnStatus g__openAppendFile(processPo P, ptrPo tos) {
   ioEncoding enc = pickEncoding(integerVal(Arg2));
 
   integer fnLen;
-  const char *fn = stringVal(Arg1, &fnLen);
+  const char *fn = charsVal(Arg1, &fnLen);
   char buff[MAXFILELEN];
 
   char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
@@ -619,7 +619,7 @@ ReturnStatus g__openAppendIOFile(processPo P, ptrPo tos) {
   ioEncoding enc = pickEncoding(integerVal(Arg2));
 
   integer fnLen;
-  const char *fn = stringVal(Arg1, &fnLen);
+  const char *fn = charsVal(Arg1, &fnLen);
   char buff[MAXFILELEN];
 
   char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));

@@ -88,7 +88,6 @@ scanForImports(Term,Pkg,Imports) :-
     scanThetaEnv(Els,Imports),!.
 
 scanPackageName(Term,Nm) :- isIden(Term,Nm).
-scanPackageName(Term,Nm) :- isText(Term,Nm).
 scanPackageName(Term,Pk) :- isBinary(Term,_,".",L,R),
   scanPackageName(L,F),
   scanPackageName(R,B),

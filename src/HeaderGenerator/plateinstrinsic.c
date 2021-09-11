@@ -142,6 +142,9 @@ static char *dumpStarSig(char *sig, ioPo out) {
     case fltSig:
       outMsg(out, "fltType");
       break;
+    case chrSig:
+      outMsg(out, "chrsType");
+      break;
     case strSig:
       outMsg(out, "strType");
       break;
@@ -308,6 +311,9 @@ static char *dumpPrologSig(char *sig, ioPo out) {
       break;
     case fltSig:
       dumpPrologStdType("star.core*float", out);
+      break;
+    case chrSig:
+      dumpPrologStdType("chars", out);
       break;
     case strSig:
       dumpPrologStdType("star.core*string", out);
