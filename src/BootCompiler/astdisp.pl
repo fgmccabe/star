@@ -24,7 +24,7 @@ dispAst(tuple(_,Nm,A),_,O,E) :- bracket(Nm,Left,Right,Sep,Pr),
 dispAst(Trm,_,O,Ox) :-
   isBinary(Trm,_,"::",L,R),
   isName(R,_,"string"),
-  isUnary(L,_,"ssSeq",_),!,
+  (isUnary(L,_,"ssSeq",_);isUnary(L,_,"disp")),!,
   appStr("\"",O,O1),
   deInterpolate(L,O1,O2),
   appStr("\"",O2,Ox).

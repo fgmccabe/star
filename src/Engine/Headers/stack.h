@@ -43,6 +43,7 @@ framePo pushFrame(stackPo stk, methodPo mtd, framePo fp, ptrPo sp);
 
 termPo popStack(stackPo stk);
 void pushStack(stackPo stk, termPo ptr);
+void moveStack2Stack(stackPo toStk, stackPo fromStk, integer count);
 
 stackPo glueOnStack(heapPo H, stackPo stk, integer size);
 stackPo spinupStack(heapPo H, stackPo stk, integer size, termPo prompt);

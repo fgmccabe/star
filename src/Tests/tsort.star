@@ -40,15 +40,15 @@ test.tsort{
 
   main:()=>action[(),()].
   main() => action{
-    show disp(topsort(a1));
+    show topsort(a1);
 
     assert size(topsort(a1)) == 4;
 
-    show disp(topsort(a2));
+    show topsort(a2);
 
     assert size(topsort(a2)) == 1;
 
-    show disp(topsort(a3));
+    show topsort(a3);
 
     assert size(topsort(a3)) == 2
   }

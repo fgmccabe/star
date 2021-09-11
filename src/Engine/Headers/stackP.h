@@ -45,20 +45,24 @@ static inline ptrPo stackLimit(stackPo stk) {
   return stk->stkMem + stk->sze;
 }
 
-static inline ptrPo validStkPtr(stackPo stk, ptrPo p) {
-  assert(p >= stk->stkMem && p <= stackLimit(stk));
-  return p;
+static inline logical validStkPtr(stackPo stk, ptrPo p) {
+  return p >= stk->stkMem && p <= stackLimit(stk);
+}
+
+static inline logical stkHasSpace(stackPo stk, integer amount) {
+  assert(amount >= 0);
+  return stk->sp - amount >= stk->stkMem;
 }
 
 extern void stackSanityCheck(stackPo stk);
 extern void verifyStack(stackPo stk, heapPo H);
 
 static inline ptrPo stackArg(stackPo stk, framePo frame, integer arg) {
-  return ((ptrPo) (frame + 1))+arg;
+  return ((ptrPo) (frame + 1)) + arg;
 }
 
 static inline ptrPo stackLcl(stackPo stk, framePo frame, integer lcl) {
-  return ((ptrPo) (frame))-lcl;
+  return ((ptrPo) (frame)) - lcl;
 }
 
 #endif //STAR_STACKP_H

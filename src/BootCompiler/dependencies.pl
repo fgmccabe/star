@@ -10,8 +10,8 @@
 dependencies(Dfs,Groups,Annots) :-
   allRefs(Dfs,[],ARefs),
   collectThetaRefs(Dfs,ARefs,Annots,Defs),
-  topsort(Defs,Groups,misc:same),
-  showGroups(Groups).
+  topsort(Defs,Groups,misc:same).
+%  showGroups(Groups).
 
 allRefs([(con(N),_,[St])|Defs],SoFar,AllRefs) :-
   conRefs(con(N),St,SoFar,Rf0),

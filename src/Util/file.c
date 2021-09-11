@@ -111,6 +111,17 @@ void FileInit(objectPo o, va_list *args) {
   f->io.mode = va_arg(*args, ioDirection);
 }
 
+retCode configureForAsynch(filePo fl,fileCallBackProc cb,void *cl){
+  retCode ret = configureIo(fl,enableAsynch);
+  if(ret==Ok)
+    ret = configureIo(fl,turnOffBlocking);
+  if(ret==Ok){
+    fl->file.ioReadyProc = cb;
+    fl->file.ioReadClientData = cl;
+  }
+  return ret;
+}
+
 // Implement class file functions
 
 retCode fileBackByte(ioPo io, byte b) {

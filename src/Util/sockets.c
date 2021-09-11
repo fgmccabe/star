@@ -46,9 +46,9 @@ static retCode sockFlush(ioPo io, long count);
 static retCode sockConfigure(filePo, ioConfigOpt mode);
 
 FileClassRec SocketClass = {
-  {
+  .objectPart={
     (classPo) &IoClass,                   /* parent class is io object */
-    "file",                               /* this is the file class */
+    "socket",                  /* this is the socket class */
     initFileClass,                        /* File class initializer, phase I */
     O_INHERIT_DEF,                        /* File object element creation */
     NULL,                                 /* File objectdestruction */
@@ -61,8 +61,8 @@ FileClassRec SocketClass = {
     PTHREAD_ONCE_INIT,                    /* not yet initialized */
     PTHREAD_MUTEX_INITIALIZER
   },
-  {},
-  {
+  .lockPart={},
+  .ioPart={
     fileInBytes,                        /* inByte  */
     fileOutBytes,                       /* outBytes  */
     fileBackByte,                       //  put a byte back in the buffer
@@ -70,7 +70,7 @@ FileClassRec SocketClass = {
     sockFlush,                          //  flush
     fileClose                           //  close
   },
-  {
+  .filePart={
     sockConfigure,                      //  configure a file
     sockSeek,                           //  seek
     fileInReady,                        //  readyIn

@@ -76,7 +76,7 @@ declMdlGlobal(_Pkg,varDec(Nm,LclName,_),_,Mp,Mx,TMx,TMx) :-
 declMdlGlobal(_Pkg,cnsDec(_Nm,FullNm,Tp),_,Mp,Mx,TMx,TMx) :-
   progTypeArity(Tp,Ar),
   declEntry(FullNm,moduleCons(FullNm,Tp,Ar),Mp,Mx).
-declMdlGlobal(_Pkg,typeDec(Nm,Tp,_,_),ConsMap,VMx,VMx,TMp,TMx) :-
+declMdlGlobal(_Pkg,typeDec(Nm,Tp,_),ConsMap,VMx,VMx,TMp,TMx) :-
   tpName(Tp,TpNm),
   findConsMap(TpNm,ConsMap,IxMap),!,
   declEntry(Nm,moduleType(TpNm,Tp,IxMap),TMp,TMx).
@@ -247,7 +247,7 @@ transformThetaDef(varDef(Lc,Nm,ExtNm,_,Tp,Value),_,Map,OMap,Opts,F,Fx,Dx,Dxx) :-
 transformThetaDef(cnsDef(_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 transformThetaDef(typeDef(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 transformThetaDef(conDef(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
-transformThetaDef(accDef(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
+transformThetaDef(accDec(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 transformThetaDef(implDef(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 
 liftArgPtn(tple(_Lc,Els),A,Q,Qx,Map,Opts,Ex,Exx) :-
@@ -326,6 +326,8 @@ implementPtnCall(moduleFun(Fn,_,Ar),Lc,Args,
   genVar("_X",X),
   merge([X],Q,Qx).
 implementPtnCall(moduleCons(Mdl,_,Ar),_,Args,ctpl(lbl(Mdl,Ar),Args),_,_,Q,Q).
+implementPtnCall(localCons(Nm,_,Ar,ThV),_,Args,ctpl(lbl(Nm,Arity),[ThV|Args]),_,_,Q,Q) :-
+  Arity is Ar+1.
 
 liftExps([],Args,Args,Q,Q,_,_,Ex,Ex) :-!.
 liftExps([P|More],[A|Args],Extra,Q,Qx,Map,Opts,Ex,Exx) :-
@@ -414,7 +416,7 @@ liftLetExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftLetRec(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   genVar("_ThV",ThVr),
   letRecMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,ThMap,FreeTerm),
-%  (is_member(showTrCode,Opts) -> dispMap("Theta map: ",1,ThMap);true),
+  (is_member(showTrCode,Opts) -> dispMap("Theta map: ",1,ThMap);true),
   transformThetaDefs(ThMap,ThMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
   liftExp(Bnd,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
   mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
@@ -624,7 +626,7 @@ letRecMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,[lyr(Vx,Tx,ConsMap,ThVr)|Map],FreeTe
   varDefs(Defs,CellVars),
   concat(CellVars,ThFree,FreeVars),
   collectLabelVars(FreeVars,ThVr,0,varMap{},V0),
-  makeConstructorMap(Defs,consMap{},ConsMap),
+  makeConstructorMap(Decls,consMap{},ConsMap),
   declareThetaVars(Decls,ThVr,CellVars,ConsMap,V0,Vx,typeMap{},Tx),
   makeFreeTerm(CellVars,Lc,ThFree,Map,Opts,FreeTerm).
 
@@ -633,7 +635,7 @@ letMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,
   findFreeVars(letExp(Lc,Decls,Defs,Bnd),Map,Q,ThFree),
   varDefs(Defs,CellVars),
   concat(CellVars,ThFree,FreeVars),
-  makeConstructorMap(Defs,consMap{},ConsMap),
+  makeConstructorMap(Decls,consMap{},ConsMap),
   declareThetaVars(Decls,ThVr,CellVars,ConsMap,varMap{},V0,typeMap{},Tx),
   collectLabelVars(FreeVars,ThVr,0,V0,Vx),
   makeFreeTerm(CellVars,Lc,ThFree,Map,Opts,FreeTerm).
@@ -733,14 +735,14 @@ declareThetaVar(funDec(Nm,LclName,Tp),ThV,_,_,V,Vx,Tx,Tx) :-
 declareThetaVar(varDec(Nm,LclName,_),ThV,CellVars,_,V,Vx,Tx,Tx) :-
   (is_member(idnt(Nm),CellVars) -> V=Vx ;
    declEntry(Nm,localVar(LclName,ThV),V,Vx)).
-declareThetaVar(cnsDec(Nm,LclName,Tp),ThV,_,_,V,Vx,Tx,Tx) :-
+declareThetaVar(cnsDec(_Nm,LclName,Tp),_ThV,_,_,V,Vx,Tx,Tx) :-
   progTypeArity(Tp,Ar),
-  declEntry(Nm,localCons(LclName,Tp,Ar,ThV),V,Vx).
-declareThetaVar(typeDec(Nm,Tp,_,_),_,ConsMap,Vx,Vx,T,Tx) :-
+  declEntry(LclName,moduleCons(LclName,Tp,Ar),V,Vx).
+declareThetaVar(typeDec(Nm,Tp,_),_,_,ConsMap,Vx,Vx,T,Tx) :-
   tpName(Tp,TpNm),
   findConsMap(TpNm,ConsMap,IxMap),!,
   declEntry(Nm,localType(TpNm,Tp,IxMap),T,Tx).
-declareThetaVar(_,_,_,Vx,Vx,Tx,Tx).
+declareThetaVar(_,_,_,_,Vx,Vx,Tx,Tx).
 
 collectLabelVars([],_,_,List,List).
 collectLabelVars([idnt(Nm)|Args],ThVr,Ix,List,Lx) :-

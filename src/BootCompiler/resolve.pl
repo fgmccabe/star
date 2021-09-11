@@ -121,11 +121,9 @@ overloadTerm(cell(Lc,Inn),Dict,St,Stx,cell(Lc,Inn1)) :-
 overloadTerm(deref(Lc,Inn),Dict,St,Stx,deref(Lc,Inn1)) :-
   overloadTerm(Inn,Dict,St,Stx,Inn1).
 overloadTerm(letExp(Lc,Decls,Defs,Bound),Dict,St,Stx,letExp(Lc,Decls,RDefs,RBound)) :-
-  overload(Lc,Defs,Dict,RDict,RDefs),
-  overloadTerm(Bound,RDict,St,Stx,RBound).
+  overloadLet(Lc,Decls,Defs,Bound,Dict,St,Stx,RDefs,RBound).
 overloadTerm(letRec(Lc,Decls,Defs,Bound),Dict,St,Stx,letRec(Lc,Decls,RDefs,RBound)) :-
-  overload(Lc,Defs,Dict,RDict,RDefs),
-  overloadTerm(Bound,RDict,St,Stx,RBound).
+  overloadLet(Lc,Decls,Defs,Bound,Dict,St,Stx,RDefs,RBound).
 overloadTerm(where(Lc,Trm,Cond),Dict,St,Stx,where(Lc,RTrm,RCond)) :-
   overloadTerm(Trm,Dict,St,St0,RTrm),
   overloadTerm(Cond,Dict,St0,Stx,RCond).
@@ -165,9 +163,13 @@ overloadTerm(abstraction(Lc,B,C,Zed,Gen,Tp),
   overloadTerm(Gen,Dict,St2,Stx,RGen).
 overloadTerm(apply(ALc,over(Lc,T,_,Cx),Args,Tp),Dict,St,Stx,Term) :-
   overloadMethod(ALc,Lc,T,Cx,Args,Tp,Dict,St,Stx,Term).
-overloadTerm(apply(Lc,overaccess(T,V,Face),Args,Tp),
-	     Dict,St,Stx,Term) :-
-  overloadAccess(Lc,T,V,Face,Args,Tp,Dict,St,Stx,Term).
+/*overloadTerm(apply(Lc,overaccess(Rc,_,Face),Args,Tp),
+	     Dict,St,Stx,apply(Lc,OverOp,tple(LcA,NArgs),Tp)) :-
+  deRef(Face,faceType([(Fld,FldTp)],[])),
+  resolveAccess(Lc,Rc,Fld,FldTp,Dict,St,St1,OverOp),
+  overloadTerm(Args,Dict,St1,St2,tple(LcA,RArgs)),
+  overloadRef(Lc,T,DTerms,RArgs,OverOp,Dict,St2,Stx,NArgs).
+  */
 overloadTerm(apply(Lc,Op,Args,Tp),Dict,St,Stx,apply(Lc,ROp,RArgs,Tp)) :-
   overloadTerm(Op,Dict,St,St0,ROp),
   overloadTerm(Args,Dict,St0,Stx,RArgs).
@@ -208,20 +210,16 @@ overloadGuard(none,_,Stx,Stx,none) :-!.
 overloadGuard(some(G),Dict,St,Stx,some(RG)) :-
   overloadTerm(G,Dict,St,Stx,RG).
 
+overloadLet(Lc,Decls,Defs,Bound,Dict,St,Stx,RDefs,RBound) :-
+  declareAccessors(Lc,Decls,Dict,RDict),
+  overload(Lc,Defs,RDict,RRDict,RDefs),
+  overloadTerm(Bound,RRDict,St,Stx,RBound).
+
 overloadMethod(ALc,Lc,T,Cx,Args,Tp,Dict,St,Stx,apply(ALc,OverOp,tple(LcA,NArgs),Tp)) :-
   resolveContracts(Lc,Cx,Dict,St,St0,DTerms),
   markResolved(St0,St1),
   overloadTerm(Args,Dict,St1,St2,tple(LcA,RArgs)),
   overloadRef(Lc,T,DTerms,RArgs,OverOp,Dict,St2,Stx,NArgs).
-
-overloadAccess(Lc,T,V,Face,Args,Tp,Dict,St,Stx,
-	       apply(Lc,RT,tple(LcA,[v(Lc,FunNm,
-				       funType(tplType([V]),FldTp))|RArgs]),Tp)) :-
-  overloadTerm(T,Dict,St,St0,RT),
-  deRef(Face,faceType([(Fld,FldTp)],[])),
-  markResolved(St0,St1),
-  overloadTerm(Args,Dict,St1,Stx,tple(LcA,RArgs)),
-  findAccess(V,Fld,Dict,FunNm).
 
 overloadCases(Cses,Dict,St,Stx,RCases) :-
   overloadLst(Cses,resolve:overloadRule,Dict,St,Stx,RCases).
@@ -316,12 +314,24 @@ overloadRef(_,v(Lc,Nm,Tp),DT,RArgs,v(Lc,Nm,Tp),_,Stx,Stx,Args) :- !,
 overloadRef(_,C,DT,RArgs,C,_,Stx,Stx,Args) :-
   concat(DT,RArgs,Args).
 
-resolveAccess(Lc,Rc,Fld,Tp,Dict,Stx,Stx,apply(Lc,V,tple(Lc,[Rc]),Tp)) :-
+resolveAccess(Lc,Rc,Fld,Tp,Dict,St,Stx,apply(Lc,V,tple(Lc,[Rc]),Tp)) :-
   typeOfCanon(Rc,RcTp),
-  findAccess(RcTp,Fld,Dict,FunNm),
-  V = v(Lc,FunNm,funType(tplType([RcTp]),Tp)).
+  findAccess(RcTp,Fld,Dict,AccTp,FunNm),
+  freshen(AccTp,Dict,_,FAccTp),
+  newTypeVar("FF",RTp),
+  sameType(funType(tplType([RcTp]),RTp),FAccTp,Lc,Dict),
+
+  /* freshen result type again (special case for method access from contract record) */
+  freshen(RTp,Dict,_,FTp),
+  sameType(FTp,Tp,Lc,Dict),
+  
+  V = v(Lc,FunNm,funType(tplType([RcTp]),FTp)),
+%  reportMsg("resolved access to %s.%s with %s",[can(Rc),Fld,can(V)],Lc),
+  markResolved(St,Stx).
 resolveAccess(Lc,Rc,Fld,Tp,_Dict,St,Stx,dot(Lc,Rc,Fld,Tp)) :-
   typeOfCanon(Rc,RcTp),
+%  reportMsg("no accessor defined for %s for type %s in %s",
+%	 [Fld,tpe(RcTp),can(dot(Lc,Rc,Fld,Tp))],Lc),
   genMsg("no accessor defined for %s for type %s in %s",
 	 [Fld,tpe(RcTp),can(dot(Lc,Rc,Fld,Tp))],Msg),
   markActive(St,Lc,Msg,Stx).
@@ -371,16 +381,16 @@ genVar(Nm,Lc,Tp,v(Lc,NV,Tp)) :-
   genstr(Nm,NV).
 
 declareAccessors(_,[],Dict,Dict) :-!.
-declareAccessors(Lc,[accDef(Tp,FldNm,FunNm,AcTp)|Defs],Dict,Dx) :-!,
+declareAccessors(Lc,[accDec(Tp,FldNm,FunNm,AcTp)|Defs],Dict,Dx) :-!,
   declareFieldAccess(Tp,FldNm,FunNm,AcTp,Dict,D0),
   declareAccessors(Lc,Defs,D0,Dx).
 declareAccessors(Lc,[_|Defs],Dict,Dx) :-
   declareAccessors(Lc,Defs,Dict,Dx).
 
-findAccess(Tp,FldNm,Dict,FunNm) :-
-  getFieldAccess(Tp,FldNm,FunNm,_,Dict).
-findAccess(_Tp,FldNm,Dict,FunNm) :-
-  is_member(access(FldNm,v(_,FunNm,_)),Dict),!.
+findAccess(Tp,FldNm,Dict,AccTp,FunNm) :-
+  getFieldAccess(Tp,FldNm,FunNm,AccTp,Dict).
+findAccess(_Tp,FldNm,Dict,AccTp,FunNm) :-
+  is_member(access(FldNm,v(_,FunNm,AccTp)),Dict),!.
 
 overloadOthers(Other,Dict,OOthers) :-
   overloadList(Other,resolve:overloadOther,Dict,OOthers).

@@ -19,7 +19,7 @@
 #include "config.h"
 #include "file.h"
 
-typedef struct _sock_object_ *sockPo;
+typedef struct sock_object_ *sockPo;
 
 sockPo listeningPort(char * name, uint16 port);
 retCode acceptConnection(sockPo listen,ioEncoding encoding,
