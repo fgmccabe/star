@@ -173,6 +173,7 @@ star.compiler.escapes{
   escapeType("_str2flt") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("chars")])),tpExp(tpFun("star.core*option",1),nomnal("star.core*float")))).
   escapeType("_str2int") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("chars")])),tpExp(tpFun("star.core*option",1),nomnal("star.core*integer")))).
   escapeType("_str_eq") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("chars"),nomnal("chars")])),nomnal("star.core*boolean"))).
+  escapeType("_string_eq") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*string")])),nomnal("star.core*boolean"))).
   escapeType("_str_lt") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("chars"),nomnal("chars")])),nomnal("star.core*boolean"))).
   escapeType("_str_ge") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("chars"),nomnal("chars")])),nomnal("star.core*boolean"))).
   escapeType("_str_hash") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("chars")])),nomnal("star.core*integer"))).
@@ -383,6 +384,7 @@ star.compiler.escapes{
   isEscape("_str2flt") => .true.
   isEscape("_str2int") => .true.
   isEscape("_str_eq") => .true.
+  isEscape("_string_eq") => .true.
   isEscape("_str_lt") => .true.
   isEscape("_str_ge") => .true.
   isEscape("_str_hash") => .true.

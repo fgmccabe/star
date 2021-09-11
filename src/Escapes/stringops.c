@@ -8,9 +8,120 @@
 #include <assert.h>
 #include <tpl.h>
 #include <globals.h>
+#include <alloca.h>
 #include "arithmetic.h"
 #include "consP.h"
 #include "option.h"
+
+static retCode flatten(strBufferPo str, termPo t);
+
+typedef struct stringIterator_ *strIteratorPo;
+typedef struct {
+  normalPo t;
+  integer off;
+} IteratorPair;
+
+typedef struct stringIterator_ {
+  integer maxDepth;
+  integer currDepth;
+  char *chars;
+  integer currIndex;
+  integer currLimit;
+  IteratorPair table[ZEROARRAYSIZE];
+} StringIteratorRecord;
+
+#define iteratorTableSize(D) (sizeof(StringIteratorRecord)+sizeof(IteratorPair)*D)
+
+static integer termDepth(termPo t) {
+  if (isNormalPo(t)) {
+    normalPo ss = C_NORMAL(t);
+    integer cx = termArity(ss);
+    integer mx = -1;
+    for (integer ix = 0; ix < cx; ix++) {
+      integer elMx = termDepth(nthArg(ss, ix));
+      if (elMx > mx)
+        mx = elMx;
+    }
+    return mx + 1;
+  } else if (isChars(t)) {
+    return 1;
+  } else
+    return 0;
+}
+
+static void pushTerm(strIteratorPo it, normalPo t) {
+  it->table[it->currDepth].t = t;
+  it->table[it->currDepth].off = 0;
+  it->currDepth++;
+}
+
+static logical hasMore(strIteratorPo it) {
+  return it->currIndex < it->currLimit;
+}
+
+static logical advance(strIteratorPo it) {
+  assert(it->currDepth > 0);
+
+  while (it->currIndex >= it->currLimit && it->currDepth > 0) {
+    while (it->currDepth > 0 && it->table[it->currDepth - 1].off >= termArity(it->table[it->currDepth - 1].t)) {
+      it->currDepth--;
+    }
+
+    if (it->currDepth > 0) {
+      normalPo curr = it->table[it->currDepth - 1].t;
+      termPo child = nthArg(curr, it->table[it->currDepth - 1].off++);
+      while (isNormalPo(child)) {
+        pushTerm(it, C_NORMAL(child));
+        child = nthArg(C_NORMAL(child), it->table[it->currDepth - 1].off++);
+      }
+      assert(isChars(child));
+      it->chars = (char *) charsVal(child, &it->currLimit);
+      it->currIndex = 0;
+    }
+  }
+  return it->currIndex < it->currLimit;
+}
+
+static codePoint next(strIteratorPo it) {
+  assert(hasMore(it));
+
+  codePoint cp = nextCodePoint(it->chars, &it->currIndex, it->currLimit);
+  advance(it);
+  return cp;
+}
+
+void initStrIterator(strIteratorPo it, integer dp, termPo t) {
+  it->maxDepth = dp;
+  it->currDepth = 0;
+  it->currIndex = 0;
+  it->currLimit = 0;
+
+  if (isChars(t)) {
+    it->chars = (char *) charsVal(t, &it->currLimit);
+  } else {
+    pushTerm(it, C_NORMAL(t));
+    advance(it);
+  }
+}
+
+// This is pretty complex :(
+ReturnStatus g__string_eq(processPo p, ptrPo tos) {
+  integer d1 = termDepth(tos[0]);
+  integer d2 = termDepth(tos[1]);
+  strIteratorPo i1 = (strIteratorPo) (alloca(iteratorTableSize(d1)));
+  strIteratorPo i2 = (strIteratorPo) (alloca(iteratorTableSize(d2)));
+
+  initStrIterator(i1, d1, tos[0]);
+  initStrIterator(i2, d2, tos[1]);
+
+  while (hasMore(i1) && hasMore(i2)) {
+    codePoint ch1 = next(i1);
+    codePoint ch2 = next(i2);
+    if (ch1 != ch2)
+      return (ReturnStatus) {.ret=Ok, .result=(falseEnum)};
+  }
+  return (ReturnStatus) {.ret=Ok, .result=((!hasMore(i1) && !hasMore(i2)) ? trueEnum : falseEnum)};
+}
 
 ReturnStatus g__str_eq(processPo p, ptrPo tos) {
   charsPo Arg1 = C_CHARS(tos[0]);

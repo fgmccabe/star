@@ -5,7 +5,7 @@ star.strings{
 
   -- and strings ...
   public implementation equality[string] => {
-    X==Y => _str_eq(_str_fltn(X),_str_fltn(Y)).
+    X==Y => _string_eq(X,Y).
   }
 
   public implementation hash[string] => {

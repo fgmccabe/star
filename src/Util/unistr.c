@@ -215,31 +215,31 @@ retCode uniNAppend(char *dest, integer *pos, integer len, char *src, integer sLe
 retCode appendCodePoint(char *dest, integer *pos, integer len, codePoint ch) {
   if (ch <= 0x7f) {
     if ((*pos) < len - 1) {
-      dest[(*pos)++] = (byte) ((ch) & 0x7fu);
+      dest[(*pos)++] = (char)((ch) & 0x7fu);
       return Ok;
     } else
       return Eof;
   } else if (ch <= 0x7ff) {
     if ((*pos) < len - 2) {
-      dest[(*pos)++] = (byte) ((((ch) >> 6u) & 0x1fu) | U80);
-      dest[(*pos)++] = (byte) (UXR(ch) | UR);
+      dest[(*pos)++] = (char) ((((ch) >> 6u) & 0x1fu) | U80);
+      dest[(*pos)++] = (char) (UXR(ch) | UR);
       return Ok;
     } else
       return Eof;
   } else if (ch >= 0x800 && ch <= 0xffff) {
     if ((*pos) < len - 3) {
-      dest[(*pos)++] = (byte) ((((ch) >> 12u) & 0xfu) | U800);
-      dest[(*pos)++] = (byte) (UXR(ch >> 6u) | UR);
-      dest[(*pos)++] = (byte) (UXR(ch) | UR);
+      dest[(*pos)++] = (char) ((((ch) >> 12u) & 0xfu) | U800);
+      dest[(*pos)++] = (char) (UXR(ch >> 6u) | UR);
+      dest[(*pos)++] = (char) (UXR(ch) | UR);
       return Ok;
     } else
       return Eof;
   } else if (ch >= 0x10000 && ch <= 0x1fffff) {
     if ((*pos) < len - 4) {
-      dest[(*pos)++] = (byte) ((((ch) >> 18u) & 0xfu) | U1000);
-      dest[(*pos)++] = (byte) (UXR(ch >> 12u) | UR);
-      dest[(*pos)++] = (byte) (UXR(ch >> 6u) | UR);
-      dest[(*pos)++] = (byte) (UXR(ch) | UR);
+      dest[(*pos)++] = (char) ((((ch) >> 18u) & 0xfu) | U1000);
+      dest[(*pos)++] = (char) (UXR(ch >> 12u) | UR);
+      dest[(*pos)++] = (char) (UXR(ch >> 6u) | UR);
+      dest[(*pos)++] = (char) (UXR(ch) | UR);
       return Ok;
     } else
       return Eof;
