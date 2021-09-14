@@ -30,6 +30,7 @@ macroRl("assert",action,macroRules:assertMacro).
 macroRl("show",action,macroRules:showMacro).
 macroRl("do",action,macroRules:forLoopMacro).
 macroRl("valof",expression,macroRules:valofMacro).
+macroRl("try",action,macroRules:tryCatchMacro).
 
 build_main(As,Bs) :-
   look_for_signature(As,"main",Lc,Ms),
@@ -445,6 +446,11 @@ binRefMacro(T,expression,Rp) :-
   cellRef(Lc,L,LR),
   squareTerm(Lc,LR,[A],Rp).
   
-
-
-
+tryCatchMacro(T,action,Tx) :-
+  isTryCatch(T,Lc,B,H),
+  isBraceTuple(H,LLc,_),!,
+  mkAnon(LLc,A),
+  roundTuple(Lc,[A],Arg),
+  unary(LLc,"do",H,HA),
+  mkEquation(Lc,Arg,none,HA,Hx),
+  mkTryCatch(Lc,B,Hx,Tx).

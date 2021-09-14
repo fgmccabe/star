@@ -13,25 +13,13 @@ test.dq{
   gp : (cons[(string,string)])=>cons[(string,string)].
   gp(parents) => { (X,Y) | (X,Z) in parents && (Z,Y) in parents}.
 
-  /* gp written by hand as iter query */
-  Gx : action[(),cons[(string,string)]].
-  Gx = _iter(Ps,do{return _nil},
-        ((Gp,Pr),Cx)=> let{
-          sF((Pr,Gc),St)=> do { return _cons((Gp,Gc),St) }
-          sF(_,St) => do { return St }
-          } in _iter(Ps,do { return Cx },sF)).
-  
-
   ggp : (cons[(string,string)])=>cons[(string,string)].
   ggp(parents) => { (X,Y) | (X,Z) in parents && (Z,W) in parents && (W,Y) in parents}
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     show Ps;
-    show "grandparents: $(gp(Ps))";
-
-    show "hand written Gx= $(valof Gx)";
-
-    show "ggp(Ps) = $(ggp(Ps))"
+    show gp(Ps);
+    show ggp(Ps)
   }
 }

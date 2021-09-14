@@ -111,7 +111,7 @@ star.compiler.escapes{
   escapeType("_setfileencoding") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.file*fileHandle"),nomnal("star.core*integer")])),tpExp(tpFun("star.core*result",2),nomnal("chars")))).
   escapeType("_get_file") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("chars")])),nomnal("chars"))).
   escapeType("_put_file") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("chars"),nomnal("chars")])),tplType([]))).
-  escapeType("_show") => some(tpExp(tpExp(tpFun("=>",2),tplType([tplType([nomnal("chars"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer")]),nomnal("chars")])),tplType([]))).
+  escapeType("_show") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("chars")])),tplType([]))).
   escapeType("_install_pkg") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("chars")])),tpExp(tpFun("star.core*cons",1),tplType([nomnal("chars"),nomnal("chars")])))).
   escapeType("_pkg_is_present") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("chars"),nomnal("chars")])),nomnal("star.core*boolean"))).
   escapeType("_in_manifest") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("chars"),nomnal("chars"),nomnal("chars")])),nomnal("star.core*boolean"))).
@@ -177,6 +177,7 @@ star.compiler.escapes{
   escapeType("_str_lt") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("chars"),nomnal("chars")])),nomnal("star.core*boolean"))).
   escapeType("_str_ge") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("chars"),nomnal("chars")])),nomnal("star.core*boolean"))).
   escapeType("_str_hash") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("chars")])),nomnal("star.core*integer"))).
+  escapeType("_string_len") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),nomnal("star.core*integer"))).
   escapeType("_str_len") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("chars")])),nomnal("star.core*integer"))).
   escapeType("_str_gen") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("chars")])),nomnal("chars"))).
   escapeType("_stringOf") => some(allType(nomnal("t"),tpExp(tpExp(tpFun("=>",2),tplType([nomnal("t"),nomnal("star.core*integer")])),nomnal("chars")))).
@@ -388,6 +389,7 @@ star.compiler.escapes{
   isEscape("_str_lt") => .true.
   isEscape("_str_ge") => .true.
   isEscape("_str_hash") => .true.
+  isEscape("_string_len") => .true.
   isEscape("_str_len") => .true.
   isEscape("_str_gen") => .true.
   isEscape("_stringOf") => .true.

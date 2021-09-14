@@ -17,7 +17,7 @@ test.assign{
     name = "fred" ++ "'s friend".
   } in someone{.name= ref name. age=23 .}.
 
-  main:()=>action[(),()].
+  main:() => action[(),()].
   main() => action{
     assert valof action {
       fred.name := "fred";

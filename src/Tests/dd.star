@@ -3,29 +3,34 @@ test.dd{
   import test.fact.
   import star.script.
 
-  ff:(integer)=>action[(),integer].
-  ff(X) => delay(()=>(_valis(fact(X)))).
+  ff:(integer)=>result[(),integer].
+  ff(X) => _valis(fact(X)).
 
-/*  AA : action[(),integer].
-  AA = do{
+  fc:(integer)=>result[(),()].
+  fc(X) => do{
+    show fact(X)
+  }
+
+  AA : action[(),integer].
+  AA = action{
     valis 34.
   }.
 
   XX : action[(),integer].
-  XX = do{
-    A <- ff(4);
-    B <- ff(3);
+  XX = action{
+    A .= valof ff(4);
+    B .= valof ff(3);
     valis A*B.
   }
 
-*/
   YY : action[(),integer].
-  YY = do{
-    ff(4)
+  YY = action{
+    fc(4);
+    ff(5)
   }
 
   ZZ : action[(),integer].
-  ZZ = do {
+  ZZ = action {
     try {
       throw ()
     } catch {
@@ -34,7 +39,7 @@ test.dd{
   }
 
   UU : (integer)=>action[(),integer].
-  UU = (U)=>do {
+  UU = (U)=>action {
     if valof ZZ == U then
       valis 1
     else
@@ -42,10 +47,12 @@ test.dd{
   }
 
   -- Test different error types across try-catch
-/*
   VV : action[(),integer].
-  VV = do {
+  VV = action {
+    R .= fact(10);
     try{
+      fc(10);
+      
       try {
         throw "fred"
       } catch (F) => do{
@@ -54,23 +61,22 @@ test.dd{
       }
     } catch (E) => do{
       logMsg("we got exception $(E)");
-      valis 10
+      valis R
     }
   }
 
-  */
-
   main:()=>action[(),()].
-  main()=>do{
---    show "AA=$(valof AA)";
---    show "XX=$(valof XX)";
---    show "YY=$(valof YY)";
+  main()=>action{
+    show valof AA;
+    show valof XX;
+    show valof YY;
 
---    assert valof ZZ == 10;
+    assert valof ZZ == 10;
 
-    show "UU(10)=$(valof UU(10))";
-    show "UU(9) = $(valof UU(9))"
+    show valof UU(10);
+    show valof UU(9);
 
---    assert valof VV == 10
+    show valof VV;
+    assert valof VV == 3628800
   }
 }

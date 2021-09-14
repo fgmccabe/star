@@ -49,43 +49,43 @@ test.idx0{
   unzip(L,Ix,Inc,T0) => snd(foldLeft((E,(I,T))=>(I+Inc,T[~I]),(Ix,T0),L)).
 
   main:()=>action[(),()].
-  main()=>do{
-    show disp(t9);
-    show disp(a1);
-    show disp(a2);
+  main()=>action{
+    show t9;
+    show a1;
+    show a2;
 
-    show disp(u1);
+    show u1;
 
-    show disp(u1[0]);
-    show disp(u1[4]);
-    show disp(u1[8]);
-    show disp(u1[12]);
+    show u1[0];
+    show u1[4];
+    show u1[8];
+    show u1[12];
 
     assert u1[5]==.none;
     assert u0[12] == .none;
 
     assert u1[12] == some("d");
 
-    show disp(zip(["a","b","c","d","e","f","g","h","i"],0,1,[]));
+    show zip(["a","b","c","d","e","f","g","h","i"],0,1,[]);
 
-    show disp(zip(["a","b","c","d","e","f","g","h","i","j","k","l"],0,1,[]));
+    show zip(["a","b","c","d","e","f","g","h","i","j","k","l"],0,1,[]);
 
-    show disp(zip(["a","b","c","d","e","f","g","h","i","j","k","l","m"],0,1,[]));
+    show zip(["a","b","c","d","e","f","g","h","i","j","k","l","m"],0,1,[]);
 
-    show disp(aa0);
-    show disp(chek(["a","b","c","d"],0,4,(Ix,V)=>V^=u1[Ix]));
+    show aa0;
+    show chek(["a","b","c","d"],0,4,(Ix,V)=>V^=u1[Ix]);
 
     assert chek(letters,0,1,(Ix,V)=>V^=aa0[Ix]);
 
-    show disp(u1[~12]);
+    show u1[~12];
 
-    show disp(u1[~12][8]);
+    show u1[~12][8];
 
-    show disp(unzip(["a","b","c"],0,4,[]));
+    show unzip(["a","b","c"],0,4,[]);
 
-    show disp(unzip(["a","b","c"],0,4,u1));
+    show unzip(["a","b","c"],0,4,u1);
 
-    show disp([12->"d"]:map[integer,string])
+    show ([12->"d"]:map[integer,string])
   }
 
 }

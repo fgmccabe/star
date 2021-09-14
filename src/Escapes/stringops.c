@@ -200,6 +200,19 @@ ReturnStatus g__str_hash(processPo p, ptrPo tos) {
     .result=(termPo) allocateInteger(processHeap(p), lhs->hash)};
 }
 
+ReturnStatus g__string_len(processPo p, ptrPo tos) {
+  integer d1 = termDepth(tos[0]);
+  strIteratorPo i1 = (strIteratorPo) (alloca(iteratorTableSize(d1)));
+  initStrIterator(i1, d1, tos[0]);
+
+  integer count = 0;
+
+  while (hasMore(i1)) {
+    codePoint ch1 = next(i1);
+  }
+  return (ReturnStatus) {.ret=Ok, .result=(termPo) allocateInteger(processHeap(p), count)};
+}
+
 ReturnStatus g__str_len(processPo p, ptrPo tos) {
   integer len;
   const char *str = charsVal(tos[0], &len);

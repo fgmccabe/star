@@ -60,15 +60,15 @@ test.gp{
   qC3(Y) => { X | (Z,Y) in parent && (X,Z) in parent }.
 
   main:()=>action[(),()].
-  main()=>do{
-    show disp(parent);
-    show disp(qP1());
-    show disp(gpF("abc"));
+  main()=>action{
+    show parent;
+    show qP1();
+    show gpF("abc");
 
-    show disp(qC2("abc"));
+    show qC2("abc");
 
-    show disp(gp0("abc"));
+    show gp0("abc");
 
-    show disp(qC3("abc"))
+    show qC3("abc")
   }
 }

@@ -232,7 +232,7 @@ ssTerm(case(_,Bound,Cases,_),Dp,
 	    sq([ss("case "),B,ss(" in {"),Rs,ss("}")])) :-
   ssTerm(Bound,Dp,B),
   ssRls("",Cases,Dp,Rs).
-ssTerm(cell(_,Vr),Dp,sq([ss("!!"),V])) :-
+ssTerm(cell(_,Vr),Dp,sq([ss("ref "),V])) :-
   ssTerm(Vr,Dp,V).
 ssTerm(deref(_,Vr),Dp,sq([V,ss("!")])) :-
   ssTerm(Vr,Dp,V).

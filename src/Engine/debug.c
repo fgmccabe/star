@@ -770,7 +770,7 @@ static logical shouldWeStopIns(processPo p, stackPo stk, insWord ins) {
             return False;
         }
       case dLine: {
-        termPo loc = findPcLocation(f->prog, insOffset(f->prog, f->pc));
+        termPo loc = getMtdLit(f->prog, collect32(f->pc + 1));
 
         breakPointPo bp = lineBreakPointHit(C_NORMAL(loc));
         if (bp != Null) {

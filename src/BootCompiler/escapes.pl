@@ -108,7 +108,7 @@ escapeType("_flushall",funType(tplType([]),tplType([]))).
 escapeType("_setfileencoding",funType(tplType([type("star.file*fileHandle"),type("star.core*integer")]),tpExp(tpFun("star.core*result",2),type("chars")))).
 escapeType("_get_file",funType(tplType([type("chars")]),type("chars"))).
 escapeType("_put_file",funType(tplType([type("chars"),type("chars")]),tplType([]))).
-escapeType("_show",funType(tplType([tplType([type("chars"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer")]),type("chars")]),tplType([]))).
+escapeType("_show",funType(tplType([type("chars")]),tplType([]))).
 escapeType("_install_pkg",funType(tplType([type("chars")]),tpExp(tpFun("star.core*cons",1),tplType([type("chars"),type("chars")])))).
 escapeType("_pkg_is_present",funType(tplType([type("chars"),type("chars")]),type("star.core*boolean"))).
 escapeType("_in_manifest",funType(tplType([type("chars"),type("chars"),type("chars")]),type("star.core*boolean"))).
@@ -174,6 +174,7 @@ escapeType("_string_eq",funType(tplType([type("star.core*string"),type("star.cor
 escapeType("_str_lt",funType(tplType([type("chars"),type("chars")]),type("star.core*boolean"))).
 escapeType("_str_ge",funType(tplType([type("chars"),type("chars")]),type("star.core*boolean"))).
 escapeType("_str_hash",funType(tplType([type("chars")]),type("star.core*integer"))).
+escapeType("_string_len",funType(tplType([type("star.core*string")]),type("star.core*integer"))).
 escapeType("_str_len",funType(tplType([type("chars")]),type("star.core*integer"))).
 escapeType("_str_gen",funType(tplType([type("chars")]),type("chars"))).
 escapeType("_stringOf",allType(kVar("t"),funType(tplType([kVar("t"),type("star.core*integer")]),type("chars")))).
@@ -382,6 +383,7 @@ isEscape("_string_eq").
 isEscape("_str_lt").
 isEscape("_str_ge").
 isEscape("_str_hash").
+isEscape("_string_len").
 isEscape("_str_len").
 isEscape("_str_gen").
 isEscape("_stringOf").

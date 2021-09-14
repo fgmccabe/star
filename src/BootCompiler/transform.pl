@@ -54,7 +54,7 @@
 transformProg(PkgDecls,prog(pkg(Pkg,Vers),Imports,Decls,LDecls,Defs),
 	      Opts,mdule(pkg(Pkg,Vers),Imports,Decls,LDecls,Dfs)) :-
   makePkgMap(Pkg,PkgDecls,Map),
-  (is_member(showTrCode,Opts) -> dispMap("Package map: ",0,Map);true),
+%  (is_member(showTrCode,Opts) -> dispMap("Package map: ",0,Map);true),
   transformModuleDefs(Defs,Pkg,Map,Opts,Dfs,[]).
 
 makePkgMap(Pkg,PkgDecls,[lyr(VarMap,TpMap,ConsMap,void)]) :-
@@ -234,7 +234,6 @@ liftGuard(some(G),some(LG),Q,Qx,Map,Opts,Ex,Exx) :-
 transformThetaVarDef(_Lc,Nm,_LclName,_Tp,Exp,Map,OMap,Opts,F,[(Nm,Ix,Rep)|F],Dx,Dxx) :-
   liftExp(Exp,Rep,[],_Qx,OMap,Opts,Dx,Dxx),
   lookupVar(Map,Nm,labelArg(_,Ix,_ThVr)).
-
 transformThetaDefs(_,_,_,_,[],Fx,Fx,Dfs,Dfs).
 transformThetaDefs(Map,OMap,Extra,Opts,[Def|Defs],F,Fx,Ex,Exx) :-
   transformThetaDef(Def,Extra,Map,OMap,Opts,F,F1,Ex,Ex1),!,
@@ -416,7 +415,7 @@ liftLetExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftLetRec(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   genVar("_ThV",ThVr),
   letRecMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,ThMap,FreeTerm),
-  (is_member(showTrCode,Opts) -> dispMap("Theta map: ",1,ThMap);true),
+  (is_member(showTrCode,Opts) -> dispMap("Letrec map: ",1,ThMap);true),
   transformThetaDefs(ThMap,ThMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
   liftExp(Bnd,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
   mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),

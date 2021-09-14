@@ -309,11 +309,10 @@ ReturnStatus g__outtext(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__show(processPo p, ptrPo tos) {
-  termPo Lc = tos[0];
-  termPo Arg2 = tos[1];
+  termPo Arg = tos[0];
   integer length;
-  const char *text = charsVal(Arg2, &length);
-  retCode ret = outMsg(logFile, "%L: %S\n%_", Lc, text, length);
+  const char *text = charsVal(Arg, &length);
+  retCode ret = outMsg(logFile, "%S\n%_", text, length);
 
   return rtnStatus(p, ret, "_show");
 }
