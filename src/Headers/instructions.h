@@ -41,7 +41,6 @@ instruction(TResume,tOs,nOp,0,"restore a cut continuation with parameter")
 instruction(Underflow,nOp,nOp,0,"underflow from current stack")
 
 instruction(LdV,nOp,nOp,1,"Place a void value on stack")
-instruction(LdG,glb,nOp,1,"load a global variable")
 instruction(LdC,lit,nOp,1,"load literal from constant pool")
 instruction(LdA,arg,nOp,1,"load stack from args[xx]")
 instruction(LdL,lcl,nOp,1,"load stack from local[xx]")
@@ -49,6 +48,8 @@ instruction(StL,lcs,nOp,-1,"store tos to local[xx]")
 instruction(StV,lcs,nOp,0,"clear a local to void")
 instruction(TL,lcs,nOp,0,"copy tos to local[xx]")
 instruction(StA,arg,nOp,-1,"store tos to args[xx]")
+
+instruction(LdG,glb,nOp,1,"load a global variable")
 instruction(StG,glb,nOp,-1,"store into a global variable")
 instruction(TG,glb,nOp,0,"copy into a global variable")
 

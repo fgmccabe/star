@@ -9,7 +9,7 @@ test.i{
   ll = _put(kk,"delta",4).
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     assert 1^=kk["alpha"];
     assert some(1).=_index(ll,"alpha");
     show kk[~"alpha"];

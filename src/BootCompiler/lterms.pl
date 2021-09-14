@@ -1,7 +1,7 @@
 :- module(lterms,[ssTransformed/2,
 		  dispRuleSet/1,dispProg/1,dispEquations/1,
 		  substTerm/3,substGoal/3,substTerms/3,rewriteTerm/3,
-		  genTplStruct/2,isLiteral/1,isGround/1,isCnd/1,mkTpl/2,
+		  genTplStruct/2,isLiteral/1,isCnd/1,mkTpl/2,
 		  isTplLbl/2,mkCons/3,
 		  isUnit/1,
 		  termHash/2,
@@ -201,8 +201,9 @@ ssTrm(ng(_,R),Dp,sq([lp,ss("~"),RR,rp])) :-!,
 ssTrm(error(Lc,M),Dp,sq([lp,ss("error "),MM,rp,ss("@"),LL])) :-!,
   ssTrm(M,Dp,MM),
   ssLoc(Lc,LL).
-ssTrm(doAct(_,Act),Dp,sq([ss("do "),lb,iv(nl(Dp),AA),rb])) :-!,
-  ssActs(Act,Dp,AA).
+ssTrm(doAct(_,Act),Dp,sq([ss("do "),lb,nl(Dp1),iv(nl(Dp1),AA),nl(Dp),rb])) :-!,
+  Dp1 is Dp+2,
+  ssActs(Act,Dp1,AA).
 
 ssCnd(cnd(_,T,L,R),Dp,sq([TT,ss(" ? "),nl(Dp),LL,ss("||"),nl(Dp),RR])) :-!,
   Dp1 is Dp+2,
@@ -259,9 +260,11 @@ ssAct(case(_,G,Cases,Deflt),Dp,
   ssTrm(Deflt,Dp,DD).
 ssAct(justDo(_,E),Dp,sq([ss("just "),EE])) :-!,
   ssTrm(E,Dp,EE).
-ssAct(tryDo(_,A,H),Dp,sq([ss("try "),AA,ss(" catch "),HH])) :-!,
-  ssAct(A,Dp,AA),
-  ssTrm(H,Dp,HH).
+ssAct(tryDo(_,A,H),Dp,sq([ss("try "),
+			  nl(Dp2),AA,nl(Dp2),ss(" catch "),HH])) :-!,
+  Dp2 is Dp+2,
+  ssAct(A,Dp2,AA),
+  ssTrm(H,Dp2,HH).
 
 ssActs(seq(_,L,R),Dp,[LL|RR]) :-!,
   ssAct(L,Dp,LL),
@@ -466,17 +469,14 @@ mkCons(Nm,Els,ctpl(lbl(Nm,Arity),Els)) :-
 
 isUnit(ctpl(lbl("()0",0),[])).
 
-isLiteral(voyd).
 isLiteral(intgr(_)).
 isLiteral(float(_)).
 isLiteral(strg(_)).
 isLiteral(enum(_)).
 isLiteral(lbl(_,_)).
-
-isGround(T) :- isLiteral(T),!.
-isGround(ctpl(S,A)) :-
-  isGround(S),
-  check_implies(is_member(E,A), lterms:isGround(E)).
+isLiteral(ctpl(Lbl,Args)) :-
+  isLiteral(Lbl),
+  check_implies(misc:is_member(A,Args),lterms:isLiteral(A)),!.
 
 termHash(voyd,0).
 termHash(intgr(Ix),Ix).
@@ -501,6 +501,8 @@ inTerm(cll(_,_,Args),Nm) :-
 inTerm(ocall(_,Op,_),Nm) :-
   inTerm(Op,Nm).
 inTerm(ocall(_,_Op,Args),Nm) :-
+  is_member(Arg,Args), inTerm(Arg,Nm),!.
+inTerm(intrinsic(_,_Op,Args),Nm) :-
   is_member(Arg,Args), inTerm(Arg,Nm),!.
 inTerm(nth(_,Op,_),Nm) :-
   inTerm(Op,Nm).

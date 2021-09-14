@@ -156,7 +156,7 @@ escape(_flushall,"F()()","flush all files")
 escape(_setfileencoding,"F("fileType"i)"sysRet("s"), "set file encoding on file")
 escape(_get_file,"F(s)s","file into a char sequence")
 escape(_put_file,"F(ss)()","write string into file")
-escape(_show,"F((siiii)s)()","show something on console")
+escape(_show,"F(s)()","show something on console")
 
 escape(_install_pkg,"F(s)L(ss)","define package from string contents")
 escape(_pkg_is_present,"F(ss)l","True if an identified package is available")
@@ -247,7 +247,8 @@ escape(_str_lt,"F(ss)l","String 1 is less than string 2")
 escape(_str_ge,"F(ss)l","String 1 is greater than or equals to string 2")
 
 escape(_str_hash,"F(s)i","Compute hash of string")
-escape(_str_len,"F(s)i","return length of string")
+escape(_string_len,"F(S)i","return length of string")
+escape(_str_len,"F(s)i","return length of char sequence")
 
 escape(_str_gen,"F(s)s","Generate a unique string")
 

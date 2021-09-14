@@ -56,4 +56,10 @@ star.action{
     _ .= _logmsg(_str_fltn(Msg));
     valis ()
   }
+
+  public showMsg:all e ~~ (string)=>result[e,()].
+  showMsg(Msg) => do{
+    _ .= _show(_str_fltn(Msg));
+    valis ()
+  }
 }

@@ -6,12 +6,12 @@ test.lt{
   genInt(X) => X+10.
 
   ll(M) => let{
-    S := genInt(M).
+    S = ref genInt(M).
 
     f(A) => (N) => (N>=S! ?  A || f(A*N)(N+1)).
   } in (f(1)(1),S!).
 
-  contract all x ~~ zz[x] ::= {
+/*  contract all x ~~ zz[x] ::= {
     pl: (x,x)=>x.
     zero: x.
   }.
@@ -20,11 +20,12 @@ test.lt{
     pl(X,Y) => _int_plus(X,Y).
     zero = 0.
   }.
+*/
   
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     show ll(1);
     show ll(2);
-    show pl(zero,1)
+--    show pl(zero,1)
   }
 }  

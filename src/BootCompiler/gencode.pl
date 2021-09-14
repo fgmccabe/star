@@ -87,7 +87,12 @@ trapCont(Lc,Lx,Lx,D,D,_,Cx,Cx,Stk,Stk) :-
 
 idxCont(Off,Lx,Lx,Dx,Dx,_End,[iNth(Off)|Cx],Cx,Stkx,Stkx).
 
-sxCont(Off,Lx,Lx,Dx,Dx,_End,[iStNth(Off)|Cx],Cx,Stkx,Stkx).
+sxCont(Off,Cont,L,Lx,D,Dx,End,[iStNth(Off)|C],Cx,Stk,Stkx) :-
+  dropStk(Stk,2,Stk0),
+  call(Cont,L,Lx,D,Dx,End,C,Cx,Stk0,Stkx).
+
+txCont(Off,Cont,L,Lx,D,Dx,End,[iTNth(Off)|C],Cx,Stk,Stkx) :-
+  call(Cont,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 
 resetVrCont(scope(Vrs,FrReg,M0),Cont,L,Lx,scope(_,_,M1),Dx,End,C,Cx,Stk,Stkx) :-
   Mx is max(M0,M1),
@@ -158,21 +163,10 @@ localMx(_,M,M).
 compTerm(voyd,_,Cont,_TCont,_Opts,L,Lx,D,Dx,End,[iLdV|C0],Cx,Stk,Stkx) :-
   bumpStk(Stk,Stk1),
   call(Cont,L,Lx,D,Dx,End,C0,Cx,Stk1,Stkx).
-compTerm(intgr(Ix),_,Cont,_TCont,_,L,Lx,D,Dx,End,[iLdC(intgr(Ix))|C0],Cx,Stk,Stkx) :-!,
+compTerm(Trm,_Lc,Cont,_ECont,_Opts,L,Lx,D,Dx,End,[iLdC(Trm)|C],Cx,Stk,Stkx) :-
+  isLiteral(Trm),!,
   bumpStk(Stk,Stk1),
-  call(Cont,L,Lx,D,Dx,End,C0,Cx,Stk1,Stkx).
-compTerm(float(Fx),_,Cont,_TCont,_,L,Lx,D,Dx,End,[iLdC(float(Fx))|C0],Cx,Stk,Stkx) :-!,
-  bumpStk(Stk,Stk1),
-  call(Cont,L,Lx,D,Dx,End,C0,Cx,Stk1,Stkx).
-compTerm(strg(Sx),_,Cont,_TCont,_,L,Lx,D,Dx,End,[iLdC(strg(Sx))|C0],Cx,Stk,Stkx) :-!,
-  bumpStk(Stk,Stk1),
-  call(Cont,L,Lx,D,Dx,End,C0,Cx,Stk1,Stkx).
-compTerm(enum(Nm),_,Cont,_TCont,_,L,Lx,D,Dx,End,[iLdC(enum(Nm))|C0],Cx,Stk,Stkx) :-!,
-  bumpStk(Stk,Stk1),
-  call(Cont,L,Lx,D,Dx,End,C0,Cx,Stk1,Stkx).
-compTerm(lbl(Nm,Ar),_,Cont,_TCont,_,L,Lx,D,Dx,End,[iLdC(lbl(Nm,Ar))|C0],Cx,Stk,Stkx) :-!,
-  bumpStk(Stk,Stk1),
-  call(Cont,L,Lx,D,Dx,End,C0,Cx,Stk1,Stkx).
+  call(Cont,L,Lx,D,Dx,End,C,Cx,Stk1,Stkx).
 compTerm(idnt(Nm),Lc,Cont,_TCont,_,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-!,
   (lclVar(Nm,V,D) -> 
    compVar(V,Cont,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) ;
@@ -230,7 +224,7 @@ compTerm(setix(Lc,Exp,Off,Vl),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :
   chLine(Opts,OLc,Lc,C,C0),!,
   compTerm(Exp,Lc,
 	   compTerm(Vl,Lc,
-		    bothCont(sxCont(Off),Cont),TCont,Opts),TCont,
+		    sxCont(Off,Cont),TCont,Opts),TCont,
 	   Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stk0),
   mergeStkLvl(Stk,Stk0,Stkx,"set ix").
 compTerm(case(Lc,T,Cases,Deflt),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
@@ -383,18 +377,10 @@ compAction(untl(Lc,Cond,Body),_,Cont,PCont,RCont,ECont,Opts,L,Lx,D,Dx,End,
   compCond(Cond,Lc,contCont(Ext),contCont(Nxt),ECont,Opts,L3,L4,D2,_,End,
 	   C1,[iLbl(Ext)|C2],Stk1,_Stk2),
   call(Cont,L4,Lx,D,Dx,End,C2,Cx,Stk,Stkx).
-compAction(tryDo(Lc,A,H),_,Cont,_PCont,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
-  genLbl(L,Nxt,L0),
-  genLbl(L0,ThLbl,L1),
-  stkLvl(Stk,Lvl),
-  compAction(A,Lc,Cont,throwCont(jmpCont(ThLbl)),RCont,
-	     jmpCont(ThLbl),Opts,L1,L2,D,D2,End,C,[iLbl(ThLbl),iDropTo(Lvl)|C1],Stk,Stk1),
-  bumpStk(Stk,Stk0),
-  compTerm(H,Lc,contCont(Nxt),ECont,Opts,L2,L3,D2,D3,End,C1,[iLbl(Nxt)|C2],Stk0,Stk2),
-  oclCont(1,Cont,Opts,L3,Lx,D3,Dx,End,C2,Cx,Stk2,Stk3),
-  mergeStkLvl(Stk1,Stk3,Stkx,"catch").
-
-%compIfThen(Lc,Cond,Succ,Fail,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) 
+compAction(tryDo(Lc,A,H),OLc,Cont,PCont,RCont,ECont,Opts,
+	   L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  chLine(Opts,OLc,Lc,C,C0),
+  compTryCatch(Lc,A,H,Cont,PCont,RCont,ECont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 
 compWhile(whle(Lc,Cond,Body),OLc,Cont,PCont,RCont,ECont,Opts,L,Lx,D,Dx,End,
 	  [iJmp(Tst),iLbl(Nxt)|C],Cx,Stk,Stk) :-
@@ -407,6 +393,20 @@ compWhile(whle(Lc,Cond,Body),OLc,Cont,PCont,RCont,ECont,Opts,L,Lx,D,Dx,End,
 	     Opts,L3,Lx,D2,Dx,End,C0,[iLbl(Tst)|C2],Stk,Stk2),
   verify(gencode:sameStk(Stk,Stk1),"while test stack"),
   verify(gencode:sameStk(Stk,Stk2),"while body stack").
+
+compTryCatch(Lc,A,H,Cont,PCont,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  splitCont(Lc,handleAction(Lc,Cont,ECont,H,Opts),ThCont),
+  compAction(A,Lc,Cont,PCont,RCont,ThCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
+
+handleAction(Lc,Cont,ECont,H,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  compTerm(H,Lc,oclCont(2,handleCont(ECont,Cont),Opts),ECont,Opts,
+	   L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
+
+handleCont(ECont,Cont,L,Lx,D,Dx,End,[iCLbl(lbl("star.action#ok",1),Nxt)|C],Cx,Stk,Stkx) :-
+  genLbl(L,Nxt,L1),
+  call(ECont,L1,L2,D,D2,End,C,[iLbl(Nxt)|C0],Stk,Stk1),
+  call(Cont,L2,Lx,D2,Dx,End,C0,Cx,Stk,Stk2),
+  mergeStkLvl(Stk1,Stk2,Stkx,"propagate").
 
 propagatingAction(perfDo(_,_)) :-!.
 propagatingAction(justDo(_,_)) :-!.
@@ -568,7 +568,7 @@ chLine(_,Lc,Lc,C,C) :- !.
 chLine(Opts,_,Lc,C,Cx) :-
   genLine(Opts,Lc,C,Cx).
 
-genLine(Opts,Lc,[iLine(Lt)|Cx],Cx) :-
+genLine(Opts,Lc,[iDLine(Lt)|Cx],Cx) :-
   is_member(debugging,Opts),!,
   locTerm(Lc,Lt).
 genLine(_,_,Cx,Cx).
@@ -852,8 +852,9 @@ compArms([(ctpl(Cn,Args),E,Lc)|Cases],_Lc,Cont,TCont,Opts,L,Lx,D,Dx,
   mergeStkLvl(Stk2,Stk3,Stkx,"bad unpack cases").
 
 removeExtraLines([],[]).
-removeExtraLines([iLine(_),iLine(Lc)|Ins], Out) :-
-  removeExtraLines([iLine(Lc)|Ins],Out).
+removeExtraLines([iDLine(_),iDLine(Lc)|Ins], Out) :-
+  removeExtraLines([iDLine(Lc)|Ins],Out).
+
 removeExtraLines([I|Ins],[I|Out]) :-
   removeExtraLines(Ins,Out).
 

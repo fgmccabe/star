@@ -27,6 +27,6 @@ star.script{
   public shwMsg:all e,t ~~ display[t] |: (()=>t,string,locn) => result[e,()].
   shwMsg(Tst,Msg,Lc) => do{
     R .= Tst();
-    logMsg("#(Msg) = $(R) at $(Lc)")
+    showMsg("#(Msg) = $(R) at $(Lc)")
   }
 }
