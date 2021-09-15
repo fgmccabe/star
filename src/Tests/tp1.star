@@ -14,7 +14,7 @@ test.tp1{
   thd((_,_,Z))=>Z.
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     TT .= ("j",2,3.1);
 
     show "triple: $(TT)";

@@ -43,7 +43,7 @@ test.do2{
   
 
   main:()=>action[(),()].
-  main() => do{
+  main() => action{
     doFirst();
     assert valof doIf(4);
     assert valof doIf2(4);

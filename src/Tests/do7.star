@@ -9,14 +9,13 @@ test.do7{
     ("de","abc"),("d","de"),("e","de"),
     ("f","a"),("g","f")].
 
-  parentOf(X) where (Y,X) in parent => some(Y).
-  parentOf(_) default => .none.
+  parentOf(X) => {!Y | (Y,X) in parent !}.
 
-  check(X) where (X,_) in parent => .true.
+  check(X) where _ ^= {! () | (X,_) in parent !} => .true.
   check(_) default => .false.
   
   main:()=>action[(),()].
-  main() => do{
+  main() => action{
     show parentOf("ab");
     show parentOf("a");
 

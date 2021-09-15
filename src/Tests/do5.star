@@ -10,7 +10,7 @@ test.do5{
             ("f","a"),("g","f")].
 
   main:()=>action[(),()].
-  main() => do{
+  main() => action{
     show [ X | X in parent];
     show [ fst(X) | X in parent];
     show [ snd(X) | X in parent];

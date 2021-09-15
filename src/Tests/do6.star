@@ -10,7 +10,7 @@ test.do6{
             ("f","a"),("g","f")].
 
   main:()=>action[(),()].
-  main() => do{
+  main() => action{
     show [ (X,Y) | (X,Z) in parent && (Z,Y) in parent];
 
     show [ (X,Y) | (X,Y) in parent || (Y,X) in parent ]

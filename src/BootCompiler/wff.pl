@@ -36,7 +36,9 @@
 	      isConjunct/4,conjunct/4,isDisjunct/4,disjunct/4,
 	      isForall/4,mkForall/4,isNegation/3,negation/3,
 	      isMatch/4,match/4,isSearch/4,search/4,isMapLiteral/3,
-	      isComprehension/4,isListComprehension/4,isIotaComprehension/4,
+	      isComprehension/4,mkComprehension/4,
+	      isListComprehension/4,mkListComprehension/4,
+	      isIotaComprehension/4,
 	      isTestComprehension/3,mkTestComprehension/3,
 	      isCaseExp/4,caseExp/4,
 	      isTaskTerm/3,mkTaskTerm/3,isActionTerm/3,mkActionTerm/3,
@@ -664,9 +666,17 @@ isComprehension(Trm,Lc,Bnd,Body) :-
   isBraceTuple(Trm,Lc,[T]),
   isBinary(T,_,"|",Bnd,Body).
 
+mkComprehension(Lc,Bnd,Bdy,Trm) :-
+  binary(Lc,"|",Bnd,Bdy,El),
+  braceTuple(Lc,[El],Trm).
+
 isListComprehension(Trm,Lc,Bnd,Body) :-
   isSquareTuple(Trm,Lc,[T]),
   isBinary(T,_,"|",Bnd,Body).
+
+mkListComprehension(Lc,Bnd,Bdy,Trm) :-
+  binary(Lc,"|",Bnd,Bdy,El),
+  squareTuple(Lc,[El],Trm).
 
 isTestComprehension(Trm,Lc,Body) :-
   isUnary(Trm,Lc,"{??}",Body).
