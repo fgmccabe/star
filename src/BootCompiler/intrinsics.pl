@@ -20,9 +20,6 @@ isIntrinsic("_int_ge",funType(tplType([type("star.core*integer"),type("star.core
 isIntrinsic("_flt_eq",funType(tplType([type("star.core*float"),type("star.core*float"),type("star.core*float")]),type("star.core*boolean")),iFEq).  % float equality
 isIntrinsic("_flt_lt",funType(tplType([type("star.core*float"),type("star.core*float")]),type("star.core*boolean")),iFLt).  % float less than
 isIntrinsic("_flt_ge",funType(tplType([type("star.core*float"),type("star.core*float")]),type("star.core*boolean")),iFGe).  % float greater or equal
-isIntrinsic("_cell",allType(kVar("t"),funType(tplType([kVar("t")]),refType(kVar("t")))),iCell).  % create a reference cell
-isIntrinsic("_get",allType(kVar("t"),funType(tplType([refType(kVar("t"))]),kVar("t"))),iGet).  % Access contents of cell
-isIntrinsic("_assign",allType(kVar("t"),funType(tplType([refType(kVar("t")),kVar("t")]),tplType([]))),iAssign).  % update contents of reference cell
 isIntrinsic("_band",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer")),iBAnd).  % bitwise and two integers
 isIntrinsic("_bor",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer")),iBOr).  % bitwise or two integers
 isIntrinsic("_bxor",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer")),iBXor).  % bitwise xor two integers

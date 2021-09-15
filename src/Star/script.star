@@ -8,10 +8,6 @@ star.script{
     _coerce(scriptError(Lc,Msg)) => some("Failed: #(Msg) at $(Lc)")
   .}
 
-/*  public implementation coercion[scriptMsg,()] => {.
-    _coerce(_) => some(())
-  .}
-*/
   public assrt:all e ~~ (()=>boolean,string,locn) => result[e,()].
   assrt(Tst,Msg,Lc) => do{
     if Tst() then{

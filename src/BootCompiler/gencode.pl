@@ -227,6 +227,21 @@ compTerm(setix(Lc,Exp,Off,Vl),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :
 		    sxCont(Off,Cont),TCont,Opts),TCont,
 	   Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stk0),
   mergeStkLvl(Stk,Stk0,Stkx,"set ix").
+compTerm(cel(Lc,Exp),_,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  bumpStk(Stk,Stk1),
+  compTerm(Exp,Lc,bothCont(asmCont(iCell,Stk1),Cont),
+	   TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
+compTerm(get(Lc,Exp),_,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  bumpStk(Stk,Stk1),
+  compTerm(Exp,Lc,bothCont(asmCont(iGet,Stk1),Cont),
+	   TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
+compTerm(set(Lc,Cl,Val),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  chLine(Opts,OLc,Lc,C,C0),
+  compTerm(Val,Lc,
+	   compTerm(Cl,Lc,
+		    bothCont(asmCont(iSet,Stk),Cont),
+		    TCont,Opts),
+	   TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 compTerm(case(Lc,T,Cases,Deflt),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),!,
   compCase(T,Lc,Cases,Deflt,Cont,TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
@@ -271,7 +286,7 @@ compTerm(doAct(Lc,Act),OLc,Cont,_TCont,Opts,L,Lx,D,Dx,_End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   genLbl(L,End,L1),
   splitCont(Lc,Cont,RCont),
-  compAction(Act,Lc,RCont,propagateCont(RCont),RCont,RCont,
+  compAction(Act,Lc,RCont,handleCont(RCont),RCont,RCont,
 	     Opts,L1,Lx,D,Dx,End,C0,[iLbl(End)|Cx],Stk,Stkx).
 compTerm(T,Lc,_,_,_,Lx,Lx,Dx,Dx,_,C,C,Stk,Stk) :-
   reportError("cannot compile %s",[T],Lc),
@@ -309,11 +324,11 @@ compAction(nop(_),_,Cont,_PCont,_RCont,_ECont,_Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx)
 compAction(seq(Lc,A,B),_,Cont,PCont,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   propagatingAction(A),!,
   compAction(A,Lc,combineCont(PCont,
-			      compAction(B,Lc,Cont,PCont,RCont,ECont,Opts)),
+			      resetCont(Stk,compAction(B,Lc,Cont,PCont,RCont,ECont,Opts))),
 	     PCont,RCont,ECont,
 	     Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 compAction(seq(Lc,A,B),_,Cont,PCont,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
-  compAction(A,Lc,resetCont(Stk,compAction(B,Lc,Cont,PCont,RCont,ECont,Opts)),
+  compAction(A,Lc,compAction(B,Lc,Cont,PCont,RCont,ECont,Opts),
 	     PCont,RCont,ECont,
 	     Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 compAction(perfDo(Lc,Exp),OLc,Cont,_PCont,_RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
@@ -341,40 +356,32 @@ compAction(resumeD(Lc,K,A),OLc,Cont,_PCont,_,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,S
 	   Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 compAction(varD(Lc,Ptn,E),OLc,Cont,_,_,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
-  compTerm(E,Lc,compPtn(Ptn,Lc,Cont,ECont,ECont,Opts),ECont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+  compTerm(E,Lc,compPtn(Ptn,Lc,Cont,resetCont(Stk,ECont),ECont,Opts),ECont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 compAction(assignD(Lc,V,E),OLc,Cont,_,_RCont,_ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
-  bumpStk(Stk,Stk0),
   compTerm(E,Lc,
 	   compTerm(V,Lc,
-		    bothCont(asmCont(iAssign,Stk0),Cont),ECont,Opts),ECont,
+		    bothCont(asmCont(iAssign,Stk),Cont),ECont,Opts),ECont,
 	   Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
-compAction(cnd(Lc,T,A,B),OLc,Cont,PCont,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stk) :-
-  chLine(Opts,OLc,Lc,C,C0),
-  splitCont(Lc,Cont,SCont),
-  genLbl(L,Then,L0),
-  genLbl(L0,Else,L1),
-  compCond(T,Lc,contCont(Then),contCont(Else),ECont,Opts,L1,L2,D,D1,End,C0,[iLbl(Then)|C1],Stk,Stk1),
-  compAction(A,Lc,SCont,PCont,RCont,ECont,Opts,L2,L3,D1,D2,Else,C1,C1a,Stk1,Stk2),
-  resetVars(D2,D,Da),
-  compAction(B,Lc,SCont,PCont,RCont,ECont,Opts,L3,Lx,Da,Db,End,C2,C3,Stk,Stk3),
-  resetVars(D,Db,Dx),
-  reconcileStack(Stk2,Stk,_,C1a,[iLbl(Else)|C2]),
-  reconcileStack(Stk3,Stk,_,C3,Cx).
+compAction(cnd(Lc,T,A,B),OLc,Cont,PCont,RCont,ECont,Opts,
+	   L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  compIfThen(Lc,T,A,B,OLc,Cont,PCont,RCont,ECont,Opts,
+	     L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 compAction(rtnDo(Lc,E),_Lc,_Cont,_,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   compTerm(E,Lc,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 compAction(raisDo(Lc,E),_Lc,_Cont,_PCont,_RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   compTerm(E,Lc,ECont,trapCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 compAction(whle(Lc,Cond,Body),OLc,Cont,PCont,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
-  compWhile(whle(Lc,Cond,Body),OLc,Cont,PCont,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
+  compWhile(Lc,Cond,Body,OLc,Cont,PCont,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 compAction(untl(Lc,Cond,Body),_,Cont,PCont,RCont,ECont,Opts,L,Lx,D,Dx,End,
 	   [iLbl(Nxt)|C],Cx,Stk,Stkx) :-
   genLbl(L,Nxt,L0),
   genLbl(L0,Tst,L1),
   genLbl(L1,Ext,L2),
-  compAction(Body,Lc,resetCont(Stk,contCont(Tst)),PCont,RCont,ECont,
+  compAction(Body,Lc,contCont(Tst),PCont,RCont,ECont,
 	     Opts,L2,L3,D,D2,End,C,[iLbl(Tst)|C1],Stk,Stk1),
-  compCond(Cond,Lc,contCont(Ext),contCont(Nxt),ECont,Opts,L3,L4,D2,_,End,
+  compCond(Cond,Lc,contCont(Ext),resetCont(Stk,contCont(Nxt)),
+	   ECont,Opts,L3,L4,D2,_,End,
 	   C1,[iLbl(Ext)|C2],Stk1,_Stk2),
   call(Cont,L4,Lx,D,Dx,End,C2,Cx,Stk,Stkx).
 compAction(tryDo(Lc,A,H),OLc,Cont,PCont,RCont,ECont,Opts,
@@ -382,18 +389,23 @@ compAction(tryDo(Lc,A,H),OLc,Cont,PCont,RCont,ECont,Opts,
   chLine(Opts,OLc,Lc,C,C0),
   compTryCatch(Lc,A,H,Cont,PCont,RCont,ECont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 
-compWhile(whle(Lc,Cond,Body),OLc,Cont,PCont,RCont,ECont,Opts,L,Lx,D,Dx,End,
-	  [iJmp(Tst),iLbl(Nxt)|C],Cx,Stk,Stk) :-
+compIfThen(Lc,T,A,B,OLc,Cont,PCont,RCont,ECont,Opts,
+	   L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
-  genLbl(L,Nxt,L0),
-  genLbl(L0,Tst,L1),
-  mkLbledCont(L1,L2,Cont,Exit),
-  compCond(Cond,Lc,jmpCont(Nxt),Exit,ECont,Opts,L2,L3,D,D2,End,C2,Cx,Stk,Stk1),
-  compAction(Body,Lc,resetCont(Stk,contCont(Tst)),PCont,RCont,ECont,
-	     Opts,L3,Lx,D2,Dx,End,C0,[iLbl(Tst)|C2],Stk,Stk2),
-  verify(gencode:sameStk(Stk,Stk1),"while test stack"),
-  verify(gencode:sameStk(Stk,Stk2),"while body stack").
+  splitCont(Lc,Cont,SCont),
+  compCond(T,Lc,compAction(A,Lc,SCont,PCont,RCont,ECont,Opts),
+	   resetCont(Stk,resetVrCont(D,compAction(B,Lc,SCont,PCont,RCont,ECont,Opts))),
+	   ECont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 
+compWhile(Lc,Cond,Body,OLc,Cont,PCont,RCont,ECont,Opts,L,Lx,D,Dx,End,
+	  [iLbl(Loop)|C],Cx,Stk,Stk) :-
+  chLine(Opts,OLc,Lc,C,C0),
+  genLbl(L,Loop,L0),
+  compCond(Cond,Lc,
+	   compAction(Body,Lc,resetCont(Stk,contCont(Loop)),
+		      PCont,RCont,ECont,Opts),
+	   resetCont(Stk,Cont),ECont,Opts,L0,Lx,D,Dx,End,C0,Cx,Stk,Stkx),
+  verify(gencode:sameStk(Stk,Stkx),"while stack").
 compTryCatch(Lc,A,H,Cont,PCont,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   splitCont(Lc,handleAction(Lc,Cont,ECont,H,Opts),ThCont),
   compAction(A,Lc,Cont,PCont,RCont,ThCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).

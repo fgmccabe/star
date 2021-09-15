@@ -2,8 +2,8 @@ test.df{
   import star.
   import star.script.
   
-  CX : (cons[integer],integer) => result[(),integer].
-  CX(Is,Lm) => do{
+  CX : (cons[integer],integer) => action[(),integer].
+  CX(Is,Lm) => action{
     Cx .= ref 0;
 
     logMsg("Cx=$(Cx!), Is=$(Is)");
