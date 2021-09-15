@@ -55,7 +55,7 @@ instruction(TG,glb,nOp,0,"copy into a global variable")
 
 instruction(Cell,tOs,nOp,0,"create R/W cell")
 instruction(Get,tOs,nOp,0,"access a R/W cell")
-instruction(Assign,tOs,nOp,-1,"assign to a R/W cell")
+instruction(Assign,tOs,nOp,-2,"assign to a R/W cell")
 
 instruction(CLbl,sym,off,0,"T,Lbl --> test for a data term, branch if lbl")
 instruction(CmpVd,lVl,nOp,-1,"T --> test for void on the stack, break if void")

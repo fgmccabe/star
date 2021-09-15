@@ -29,10 +29,6 @@ intrinsic(_flt_eq,"F(fff)l","FEq","float equality")
 intrinsic(_flt_lt,"F(ff)l","FLt","float less than")
 intrinsic(_flt_ge,"F(ff)l","FGe","float greater or equal")
 
-intrinsic(_cell,":k't'F(k't')rk't'","Cell","create a reference cell")
-intrinsic(_get,":k't'F(rk't')k't'","Get","Access contents of cell")
-intrinsic(_assign,":k't'F(rk't'k't')()","Assign","update contents of reference cell")
-
 intrinsic(_band,"F(ii)i","BAnd","bitwise and two integers")
 intrinsic(_bor,"F(ii)i","BOr","bitwise or two integers")
 intrinsic(_bxor,"F(ii)i","BXor","bitwise xor two integers")

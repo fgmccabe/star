@@ -31,6 +31,9 @@ isLTerm(ocall(_,_,_)) :- !.
 isLTerm(ecll(_,_,_)) :- !.
 isLTerm(intrinsic(_,_,_)) :- !.
 isLTerm(nth(_,_,_)) :- !.
+isLTerm(cel(_,_)) :- !.
+isLTerm(get(_,_)) :- !.
+isLTerm(set(_,_,_)) :- !.
 isLTerm(setix(_,_,_,_)) :- !.
 isLTerm(ctpl(_,_)) :- !.
 isLTerm(enum(_)) :- !.
@@ -158,6 +161,13 @@ ssTrm(nth(_,Rc,Off),Dp,sq([OO,ss("."),ix(Off)])) :-!,
 ssTrm(setix(_,Rc,Off,Vl),Dp,sq([OO,ss("."),ix(Off),ss(":="),VV])) :-!,
   ssTrm(Rc,Dp,OO),
   ssTrm(Vl,Dp,VV).
+ssTrm(cel(_,C),Dp,sq([ss("ref "),CC])) :-!,
+  ssTrm(C,Dp,CC).
+ssTrm(get(_,C),Dp,sq([CC,ss("!")])) :-!,
+  ssTrm(C,Dp,CC).
+ssTrm(set(_,C,V),Dp,sq([CC,ss(":="),VV])) :-!,
+  ssTrm(C,Dp,CC),
+  ssTrm(V,Dp,VV).
 ssTrm(lbl(Nm,Ar),_,sq([id(Nm),ss("/"),ix(Ar)])) :-!.
 ssTrm(whr(_,Ptn,Cond),Dp,sq([PP,ss(" whr "),CC])) :-!,
   ssTrm(Ptn,Dp,PP),
@@ -342,6 +352,13 @@ rewriteTerm(QTest,ocall(Lc,Op,Args),ocall(Lc,NOp,NArgs)) :-
   rewriteTerms(QTest,Args,NArgs).
 rewriteTerm(QTest,nth(Lc,Op,Off),nth(Lc,NOp,Off)) :-
   rewriteTerm(QTest,Op,NOp).
+rewriteTerm(QTest,cel(Lc,T),cel(Lc,NT)) :-
+  rewriteTerm(QTest,T,NT).
+rewriteTerm(QTest,get(Lc,T),get(Lc,NT)) :-
+  rewriteTerm(QTest,T,NT).
+rewriteTerm(QTest,set(Lc,T,V),set(Lc,NT,NV)) :-
+  rewriteTerm(QTest,T,NT),
+  rewriteTerm(QTest,V,NV).
 rewriteTerm(QTest,setix(Lc,Op,Off,Vl),setix(Lc,NOp,Off,NVl)) :-
   rewriteTerm(QTest,Op,NOp),
   rewriteTerm(QTest,Vl,NVl).
@@ -506,6 +523,14 @@ inTerm(intrinsic(_,_Op,Args),Nm) :-
   is_member(Arg,Args), inTerm(Arg,Nm),!.
 inTerm(nth(_,Op,_),Nm) :-
   inTerm(Op,Nm).
+inTerm(cel(_,C),Nm) :-
+  inTerm(C,Nm).
+inTerm(get(_,C),Nm) :-
+  inTerm(C,Nm).
+inTerm(set(_,C,_),Nm) :-
+  inTerm(C,Nm).
+inTerm(set(_,_,V),Nm) :-
+  inTerm(V,Nm).
 inTerm(rais(_,E),Nm) :-
   inTerm(E,Nm).
 inTerm(setix(_,Op,_,_),Nm) :-
@@ -631,6 +656,13 @@ validTerm(enum(_),_,_).
 validTerm(nth(Lc,Rc,Off),_,D) :-
   integer(Off),
   validTerm(Rc,Lc,D).
+validTerm(cel(Lc,C),_,D) :-
+  validTerm(C,Lc,D).
+validTerm(get(Lc,C),_,D) :-
+  validTerm(C,Lc,D).
+validTerm(set(Lc,C,V),_,D) :-
+  validTerm(C,Lc,D),
+  validTerm(V,Lc,D).
 validTerm(rais(Lc,Exp),_,D) :-
   validTerm(Exp,Lc,D).
 validTerm(setix(Lc,Rc,Off,Vl),_,D) :-

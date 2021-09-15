@@ -127,6 +127,7 @@ freeActionVars(cutDo(_,Lb,Lam),Ex,Ex,Q,F,Fv) :-
 freeActionVars(resumeDo(_,K,A,_),Ex,Ex,Q,F,Fv) :-
   freeVars(K,Ex,Q,F,F0),
   freeVars(A,Ex,Q,F0,Fv).
+freeActionVars(noDo(_),Ex,Ex,_Q,Fv,Fv).
   
 definedVars(Defs,Q,Qx) :-
   varsInList(Defs,freevars:defVar,Q,Qx).

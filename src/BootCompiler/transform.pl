@@ -371,9 +371,9 @@ liftExp(case(Lc,Bnd,Cses,_),Result,Q,Qx,Map,Opts,Ex,Exx) :-!,
    genVar("_C",V),
    caseMatcher(Lc,V,Cases,Map,Res),
    Result = ltt(Lc,V,Bound,Res)).
-liftExp(cell(Lc,In),intrinsic(Lc,iCell,[CellV]),Q,Qx,Map,Opts,Ex,Exx) :- !,
+liftExp(cell(Lc,In),cel(Lc,CellV),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(In,CellV,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(deref(Lc,In),intrinsic(Lc,iGet,[CellV]),Q,Qx,Map,Opts,Ex,Exx) :- !,
+liftExp(deref(Lc,In),get(Lc,CellV),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(In,CellV,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(where(Lc,P,C),whr(Lc,LP,LC),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(P,LP,Q,Q0,Map,Opts,Ex,Ex0),

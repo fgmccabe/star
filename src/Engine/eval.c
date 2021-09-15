@@ -685,7 +685,6 @@ retCode run(processPo P) {
         cellPo cell = C_CELL(pop());
         termPo vl = pop();
         setCell(cell, vl);
-        push(unitEnum);
         continue;
       }
 
