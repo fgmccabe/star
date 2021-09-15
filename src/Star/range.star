@@ -5,6 +5,7 @@ star.range{
   import star.cons.
   import star.iterable.
   import star.monad.
+  import star.action.
 
   public all a ~~ range[a]::=range(a,a,a).
 
@@ -34,11 +35,28 @@ star.range{
 
   public implementation all a ~~ arith[a],equality[a] |: iter[range[a]->>a] => {
     _iter(range(X,X,_),St,_) => St.
-    _iter(range(X,Y,S),St,Fn) =>
-      _sequence(St,(SS)=>_iter(range(X+S,Y,S),Fn(X,SS),Fn))
+    _iter(range(X,Y,S),St,Fn) => _iter(range(X+S,Y,S),Fn(X,St),Fn)
   }
 
   public implementation all a ~~ display[a] |: display[range[a]] => {.
-    disp(range(F,T,St)) => ssSeq([disp(F),ss(":"),disp(T),ss("@"),disp(St)]).
+    disp(range(F,T,St)) => "$(F)\:$(T)@$(St)".
   .}
+
+  public rangeState[a] ::= rangeState(ref a,a,a).
+
+  public implementation all a ~~ arith[a],comp[a] |:
+    iteration[rangeState[a]->>a] => {.
+    _current(rangeState(Fr,To,_)) where Fr! < To => some(Fr!).
+    _current(_) default => .none.
+
+    _advance(rangeState(Fr,To,St)) where Fr!+St=<To => do{
+      Fr := Fr!+St;
+      valis ()
+    }
+  .}
+
+  public implementation all a ~~ arith[a],comp[a] |:
+    iterator[range[a]->>rangeState[a]] => {.
+      _iterator(range(Fr,To,St)) => rangeState(ref Fr,To,St)
+    .}
 }

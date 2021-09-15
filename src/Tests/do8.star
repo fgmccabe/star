@@ -2,7 +2,7 @@ test.do8{
   import star.
 
   main:()=>action[(),()].
-  main() => do{
+  main() => action{
     A .= "alpha";
     B .= "beta";
 

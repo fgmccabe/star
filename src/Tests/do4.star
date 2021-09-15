@@ -7,7 +7,7 @@ test.do4{
     -- Test action notation (for loop)
 
   doFact:(integer) => action[(),integer].
-  doFact(X) => do{
+  doFact(X) => action{
     Fx .= ref 1;
     for Ix in range(1,X+1,1) do{
       Fx := Fx!*Ix
@@ -16,7 +16,7 @@ test.do4{
   }
 
   main:()=>action[(),()].
-  main() => do{
+  main() => action{
     show valof doFact(4);
     assert valof doFact(4) == 24
   }

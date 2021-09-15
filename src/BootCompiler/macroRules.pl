@@ -78,7 +78,8 @@ list_pttrn(Lc,Ts,Arg) :-
 
 macroSquareTuple(A,expression,Trm) :-
   isSquareTuple(A,Lc,Els),
-  \+isMapLiteral(A,_,_),!,
+  \+isMapLiteral(A,_,_),
+  \+isListComprehension(A,_,_,_),!,
   macroListEntries(Lc,Els,Trm,nilGen,consGen).
 macroSquareTuple(A,expression,Trm) :-
   isMapLiteral(A,Lc,Prs),
@@ -175,6 +176,7 @@ rtn(Vl,grounded(_),Vl).
 rtn(_,lyfted(St),St).
 
 passThru(grounded(X),X).
+passThru(lyfted(X),X).
 
 consResult(Lc,Bnd,grounded(St),Res) :-
   binary(Lc,"_cons",Bnd,St,Res).

@@ -260,6 +260,25 @@ examineTerm(T,Tx) :-
   macroTerm(O,Ox),
   roundTerm(Lc,Ox,Dx,Tx).
 examineTerm(T,Tx) :-
+  isComprehension(T,Lc,Bnd,Bdy),!,
+  macroTerm(Bnd,Bndx),
+  macroTerm(Bdy,Bdyx),
+  mkComprehension(Lc,Bndx,Bdyx,Tx).
+examineTerm(T,Tx) :-
+  isListComprehension(T,Lc,Bnd,Bdy),!,
+  macroTerm(Bnd,Bndx),
+  macroTerm(Bdy,Bdyx),
+  mkListComprehension(Lc,Bndx,Bdyx,Tx).
+examineTerm(T,Tx) :-
+  isIotaComprehension(T,Lc,Bnd,Bdy),!,
+  macroTerm(Bnd,Bndx),
+  macroTerm(Bdy,Bdyx),
+  mkIotaComprehension(Lc,Bndx,Bdyx,Tx).
+examineTerm(T,Tx) :-
+  isTestComprehension(T,Lc,Bdy),!,
+  macroTerm(Bdy,Bdyx),
+  mkTestComprehension(Lc,Bdyx,Tx).
+examineTerm(T,Tx) :-
   isSquareTerm(T,Lc,O,D),!,
   map(D,macros:macroTerm,Dx),
   macroTerm(O,Ox),

@@ -5,7 +5,7 @@ test.do3{
   -- Test action notation (iteration)
 
   doDupl:(integer,string) => action[(),string].
-  doDupl(Mx,S) => do{
+  doDupl(Mx,S) => action{
     Cx .= ref 0;
     Rs .= ref "";
     
@@ -17,7 +17,7 @@ test.do3{
   }
 
   main:()=>action[(),()].
-  main() => do{
+  main() => action{
     assert valof doDupl(3,"ab") == "ababab"
   }
 }

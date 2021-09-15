@@ -13,7 +13,7 @@ test.do11{
   }
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     assert valof multiWhr(foo(23,""))==23
   }
 }

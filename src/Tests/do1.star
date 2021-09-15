@@ -13,7 +13,7 @@ test.do1{
   }
 
   main:()=>action[(),()].
-  main() => do{
+  main() => action{
     doFirst()
   }
 }
