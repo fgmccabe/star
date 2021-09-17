@@ -257,7 +257,7 @@ static retCode markProcess(processPo P, gcSupportPo G) {
   if (traceMemory)
     outMsg(logFile, "Mark process %d\n%_", P->processNo);
 #endif
-  markPtr(G, (ptrPo) &P->stk);
+  P->stk = C_STACK(markPtr(G, (ptrPo) &P->stk));
 
   return Ok;
 }

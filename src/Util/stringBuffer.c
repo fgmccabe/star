@@ -291,7 +291,7 @@ retCode appendToStrBuffer(strBufferPo b, const char *text, integer txtLen) {
 
 retCode appendCodePointToStrBuffer(strBufferPo b, codePoint ch){
   ensureSpace(b,5);
-  return appendCodePoint(b->buffer.buffer,&b->buffer.out_pos,b->buffer.bufferSize,ch);
+  return appendCodePoint(b->buffer.buffer,&b->buffer.size,b->buffer.bufferSize,ch);
 }
 
 retCode twizzleStrBuffer(strBufferPo b, integer pos) {

@@ -10,7 +10,7 @@ test.rc{
   .}
 
   main:()=>action[(),()].
-  main()=>do{
-    show "foo $(cont(2).C)"
+  main()=>action{
+    show cont(2).C
   }
 }

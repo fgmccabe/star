@@ -24,7 +24,7 @@ test.let{
   } in g.
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     assert inc(2)(3) == 5 && k.=kk(3) && k() == 3;
 
     assert fg()(3) == 6

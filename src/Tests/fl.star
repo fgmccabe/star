@@ -10,7 +10,7 @@ test.fl{
   acc(Ls,Cx) => foldRight((+),Cx,Ls).
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     show count([[1],[2,3],[4,5]]);
 
     assert count([[1],[2,3],[4,5]]) == 15

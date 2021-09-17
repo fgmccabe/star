@@ -5,7 +5,7 @@ test.j{
   import star.script.
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     assert "11"::json == jNum(11.0);
 
     assert "[1]"::json == jSeq([jNum(1.0)]);

@@ -17,6 +17,7 @@ voidPtr *allocateBuddy(buddyRegionPo region, integer size);
 retCode release(buddyRegionPo region, voidPtr *block);
 
 logical available(buddyRegionPo region, integer size);
+logical inFreeBlock(buddyRegionPo region, voidPtr from);
 
 #ifdef ALLTRACE
 #define TRACE_BUDDY_MEMORY

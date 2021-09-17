@@ -41,7 +41,7 @@ typedef enum {
 retCode formatDouble(char *out, integer outLen, double x, FloatDisplayMode displayMode, int precision, logical sign);
 
 integer parseInt(const char *s, integer l);
-retCode parseInteger(const char *s, integer len, integer *res);
+retCode parseInteger(const char *s, integer *pos, integer len, integer *res);
 double parseNumber(char *s, integer len);
 
 retCode parseDouble(const char *s, integer len, double *rslt);

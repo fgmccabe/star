@@ -168,14 +168,14 @@ mergeDict(D1,D2,Env,D3) :-
 mergeScopes([dict(Ts1,Ns1,Cns,Impls,Accs,Cons)|O],
     [dict(Ts2,Ns2,Cns,Impls,Accs,Cons)|O],Env,
 	    [dict(Ts3,N3,Cns,Impls,Accs,Cons)|O]) :-
-  dict_pairs(Ts1,_,T1),
+  dict_pairs(Ts1,T,T1),
   dict_pairs(Ts2,_,T2),
   mergeTDefs(T1,T2,Env,Ts),
   dict_pairs(Ts3,T,Ts),
   dict_pairs(Ns1,_,N1),
-  dict_pairs(Ns2,T,N2),
+  dict_pairs(Ns2,N,N2),
   mergeVDefs(N1,N2,Env,Ns),
-  dict_pairs(N3,T,Ns).
+  dict_pairs(N3,N,Ns).
 
 mergeTDefs([],_,_,[]).
 mergeTDefs(_,[],_,[]).

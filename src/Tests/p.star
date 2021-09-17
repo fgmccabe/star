@@ -15,7 +15,7 @@ test.p{
   onlyOk(cons(_,L)) => onlyOk(L).
 
   main:() => action[(),()].
-  main() => do{
+  main() => action{
     assert onlyOk(cons("0",cons("1",cons("10",.nil)))) == cons(0,cons(10,.nil))
   }
 

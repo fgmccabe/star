@@ -3,7 +3,7 @@ test.ac0{
   
   public logM:(string)=>result[(),()].
   logM(M) => do{
-    _ .= _logmsg(M);
+    _ .= _logmsg(_str_fltn(M));
     return ()
   }
 }  

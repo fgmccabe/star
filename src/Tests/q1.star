@@ -24,10 +24,10 @@ test.q1{
   pub = .pUblic.
   
 --  fp(P) => (P,pub) in status.
-  fp(P) => (P,.pUblic) in status.
+  fp(P) => {? (P,.pUblic) in status ?}.
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     show "$(fp("ab"))"
   }
 }

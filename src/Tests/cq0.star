@@ -26,9 +26,9 @@ test.cq0{
   Gf : (cons[(string,string)])=>cons[(string,string)].
   Gf(Ps) => foldLeft(((X,Z),U) =>
       foldLeft(let{.
-	  ff((Z,Y)) => cons((X,Y),UU).
-	  ff(_) => UU
-	.} in ff(Pr,UU),U,Ps),
+	  ff((Z,Y),UU) => cons((X,Y),UU).
+	  ff(_,UU) => UU
+	.} in ff(Pr,U),U,Ps),
       .nil,Ps).
 
 /*

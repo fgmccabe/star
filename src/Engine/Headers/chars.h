@@ -19,19 +19,21 @@ static inline logical isChars(termPo p) {
   return hasClass(p, charsClass);
 }
 
-extern const char *charsVal(termPo o, integer *size);
+const char *charsVal(termPo o, integer *size);
 
-extern integer charsLength(charsPo str);
+integer charsLength(charsPo str);
 
-extern integer charsHash(charsPo str);
+integer charsHash(charsPo str);
 
-extern termPo allocateChars(heapPo H, const char *txt, long length);
+termPo allocateChars(heapPo H, const char *txt, long length);
 
-extern termPo allocateCString(heapPo H, const char *txt);
+termPo allocateFromStrBuffer(strBufferPo bffr, heapPo H);
 
-extern retCode copyChars2Buff(charsPo str, char *buffer, integer buffLen);
+termPo allocateCString(heapPo H, const char *txt);
 
-extern logical sameCharSeqs(charsPo s1, charsPo s2);
+retCode copyChars2Buff(charsPo str, char *buffer, integer buffLen);
+
+logical sameCharSeqs(charsPo s1, charsPo s2);
 
 retCode quoteChars(ioPo out, charsPo str);
 

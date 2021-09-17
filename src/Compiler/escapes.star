@@ -198,6 +198,7 @@ star.compiler.escapes{
   escapeType("_code2str") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("chars"))).
   escapeType("_str_apnd") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("chars"),nomnal("star.core*integer")])),nomnal("chars"))).
   escapeType("_str_quote") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("chars")])),nomnal("chars"))).
+  escapeType("_str_format") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("chars"),nomnal("chars")])),nomnal("chars"))).
   escapeType("_getenv") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("chars"),nomnal("chars")])),nomnal("chars"))).
   escapeType("_setenv") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("chars"),nomnal("chars")])),tplType([]))).
   escapeType("_envir") => some(tpExp(tpExp(tpFun("=>",2),tplType([])),tpExp(tpFun("star.core*cons",1),tplType([nomnal("chars"),nomnal("chars")])))).
@@ -410,6 +411,7 @@ star.compiler.escapes{
   isEscape("_code2str") => .true.
   isEscape("_str_apnd") => .true.
   isEscape("_str_quote") => .true.
+  isEscape("_str_format") => .true.
   isEscape("_getenv") => .true.
   isEscape("_setenv") => .true.
   isEscape("_envir") => .true.

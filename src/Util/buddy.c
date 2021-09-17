@@ -195,3 +195,16 @@ logical available(buddyRegionPo region, integer size) {
   }
   return False;
 }
+
+logical inFreeBlock(buddyRegionPo region, voidPtr from) {
+  for(integer fx=0;fx<region->freeListSize;fx++){
+    integer buddySize = (1<<(fx+region->minLg));
+    freePo free = region->freeLists[fx];
+    while(free!=Null){
+      if((voidPtr)free<=from && ((voidPtr)free)+buddySize>from)
+        return True;
+      free = free->next;
+    }
+  }
+  return False;
+}

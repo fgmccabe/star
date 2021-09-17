@@ -25,6 +25,7 @@ typedef struct StackStructure {
   clssPo clss;                  // == stackClass
   integer hash;                 // Hash code of stack (== count of created stacks)
   integer sze;                  // Size of stack
+  integer hwm;                  // High water mark of stack sizes rooted off this stack
   ptrPo sp;                     // Current stack pointer
   framePo fp;                   // Current frame pointer
   stackPo attachment;           // Where is the stack attached
@@ -64,5 +65,7 @@ static inline ptrPo stackArg(stackPo stk, framePo frame, integer arg) {
 static inline ptrPo stackLcl(stackPo stk, framePo frame, integer lcl) {
   return ((ptrPo) (frame)) - lcl;
 }
+
+void propagateHwm(stackPo stk);
 
 #endif //STAR_STACKP_H

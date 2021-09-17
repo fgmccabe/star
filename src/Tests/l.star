@@ -10,7 +10,7 @@ test.l{
   } in f().
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     assert _int_eq(fact(3),6)
   }
 }

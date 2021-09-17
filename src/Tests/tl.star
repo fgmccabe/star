@@ -10,7 +10,7 @@ test.tl{
   T1 = foldRight((Ix,L)=>cons(Ix,L),[],range(1,1,100)).
 
   main:() => action[(),()].
-  main() => do{
-    show disp(T1)
+  main() => action{
+    show T1
   }
 }

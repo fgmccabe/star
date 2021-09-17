@@ -16,7 +16,7 @@ test.g{
   txt = "fred"::cons[integer].
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     show txt;
     assert some(_).=isTerm(txt,0cf);
     assert .none.=isTerm(txt,0cr)

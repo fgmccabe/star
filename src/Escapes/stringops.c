@@ -243,7 +243,7 @@ ReturnStatus g__str2int(processPo p, ptrPo tos) {
   integer ix;
   heapPo H = processHeap(p);
 
-  switch (parseInteger(str, len, &ix)) {
+  switch (parseInteger(str, NULL, len, &ix)) {
     case Ok:
       return (ReturnStatus) {.ret=Ok,
         .result=(termPo) wrapSome(H, (termPo) allocateInteger(processHeap(p), ix))};
@@ -292,6 +292,121 @@ ReturnStatus g__str_quote(processPo p, ptrPo tos) {
 
   ReturnStatus result = {.ret=ret,
     .result=(termPo) allocateChars(processHeap(p), buff, oLen)};
+
+  closeFile(O_IO(strb));
+  return result;
+}
+
+typedef enum {
+  alignLeft,
+  alignCenter,
+  alignRight
+} Alignment;
+
+typedef enum {
+  leftToRight,
+  rightToLeft
+} SrcAlign;
+
+ReturnStatus g__str_format(processPo p, ptrPo tos) {
+  integer fLen;
+  const char *fmt = charsVal(tos[1], &fLen);
+  Alignment alignment = alignLeft;
+  SrcAlign sourceAlign = leftToRight;
+  integer width = 0;
+  integer srcWidth = 0;
+  codePoint pad = ' ';
+
+  integer fPos = 0;
+
+  // How much of the source are we taking?
+  parseInteger(fmt, &fPos, fLen, &srcWidth);
+
+  if (srcWidth < 0) {
+    sourceAlign = rightToLeft;
+    srcWidth = -srcWidth;
+  }
+
+  // What is the output alignment?
+  codePoint f = nextCodePoint(fmt, &fPos, fLen);
+  switch (f) {
+    case 'l':
+    case 'L':
+      alignment = alignLeft;
+      break;
+    case 'c':
+    case 'C':
+      alignment = alignCenter;
+      break;
+    case 'r':
+    case 'R':
+      alignment = alignRight;
+      break;
+    default:;
+  }
+
+  // What is the output width?
+  parseInteger(fmt, &fPos, fLen, &width);
+
+  if (width < 0) {
+    width = -width;
+  }
+
+  if (fPos < fLen) {
+    pad = nextCodePoint(fmt, &fPos, fLen);
+  }
+
+  strBufferPo strb = newStringBuffer();
+
+  integer txtLen = 0;
+  const char *txt = charsVal(tos[0], &txtLen);
+  integer txtPos = 0;
+
+  integer txtQ = (width == 0 ? txtLen : minimum(width, txtLen));
+
+  if (srcWidth != 0)
+    txtQ = minimum(txtQ, srcWidth);
+
+  switch (sourceAlign) {
+    default:
+    case leftToRight:
+      txtPos = 0;
+      break;
+    case rightToLeft:
+      txtPos = maximum(txtLen - txtQ, 0);
+      break;
+  }
+
+  switch (alignment) {
+    default:
+    case alignLeft: {
+      for (integer cx = 0; cx < txtQ; cx++)
+        appendCodePointToStrBuffer(strb, nextCodePoint(txt, &txtPos, txtLen));
+      for (integer cx = txtQ; cx < width; cx++)
+        appendCodePointToStrBuffer(strb, pad);
+      break;
+    }
+    case alignCenter: {
+      integer space = (width - txtQ) / 2;
+      for (integer cx = 0; cx < space; cx++)
+        appendCodePointToStrBuffer(strb, pad);
+      for (integer cx = 0; cx < txtQ; cx++)
+        appendCodePointToStrBuffer(strb, nextCodePoint(txt, &txtPos, txtLen));
+      for (integer cx = space + txtQ; cx < width; cx++)
+        appendCodePointToStrBuffer(strb, pad);
+      break;
+    }
+    case alignRight: {
+      for (integer cx = 0; cx < width - txtQ; cx++)
+        appendCodePointToStrBuffer(strb, pad);
+      for (integer cx = 0; cx < txtQ; cx++)
+        appendCodePointToStrBuffer(strb, nextCodePoint(txt, &txtPos, txtLen));
+      break;
+    }
+  }
+
+  ReturnStatus result = {.ret=Ok,
+    .result= allocateFromStrBuffer(strb, processHeap(p))};
 
   closeFile(O_IO(strb));
   return result;

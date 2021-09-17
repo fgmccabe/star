@@ -796,33 +796,34 @@ compCaseBranch([(P,E,Lc)],Lbl,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,[iLbl(Lbl)|C],C
   genLine(Opts,Lc,C,C0),
   compPtn(P,Lc,contCont(Nxt),Fail,TCont,Opts,L1,L2,D,D2,End,C0,[iLbl(Nxt)|C1],Stk,Stk1),
   compTerm(E,Lc,Succ,TCont,Opts,L2,Lx,D2,Dx,End,C1,Cx,Stk1,Stkx).
+
 compCaseBranch([(P,E,Lc)|SC],Lbl,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,
 	       [iLbl(Lbl),iTL(Off),iLbl(VLb)|C],Cx,Stk,Stkx) :-
-  genLbl(L,Nxt,L1),
-  genLbl(L1,Fl,L2),
-  genLbl(L2,VLb,L3),
+  genLbl(L,Fl,L1),
+  genLbl(L1,VLb,L2),
+  genLbl(L2,VLE,L3),
   defineLclVar("__",VLb,End,D,D1,Off,C,C0),
   genLine(Opts,Lc,C0,C1),
-  compPtn(P,Lc,contCont(Nxt),contCont(Fl),TCont,Opts,L3,L4,D1,D5,End,C1,[iLbl(Nxt)|C2],Stk,Stk1),
-  verify(gencode:dropStk(Stk1,1,Stk),"case branch"),
-  stkLvl(Stk1,Lvl1),
-  compTerm(E,Lc,Succ,TCont,Opts,L4,L5,D5,D6,End,C2,[iLbl(Fl),iRst(Lvl1)|C3],Stk1,Stk2),
-  compMoreCase(SC,Off,Succ,Fail,TCont,Opts,L5,Lx,D6,Dx,End,C3,Cx,Stk1,Stk3),
-  mergeStkLvl(Stk2,Stk3,Stkx,"case branch stack").
-
+  dropStk(Stk,1,Stk0),
+  compPtn(P,Lc,compTerm(E,Lc,Succ,TCont,Opts),resetCont(Stk0,contCont(Fl)),
+	  TCont,Opts,L3,L4,D1,D2,VLE,C1,[iLbl(Fl)|C2],Stk,Stk1),
+  resetVars(D1,D2,D3),
+  compMoreCase(SC,Off,Succ,Fail,TCont,Opts,L4,Lx,
+	       D3,Dx,VLE,C2,[iLbl(VLE)|Cx],Stk0,Stk2),
+  mergeStkLvl(Stk1,Stk2,Stkx,"case branch stack").
 compMoreCase([],_,_Succ,Fail,_TCont,_Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   call(Fail,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 compMoreCase([(P,E,Lc)|SC],VLb,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,[iLdL(VLb)|C],Cx,Stk,Stkx) :-
-  genLbl(L,Fl,L0),
-  genLbl(L0,Nxt,L1),
+  genLbl(L,Fl,L1),
   bumpStk(Stk,Stk0),
   genLine(Opts,Lc,C,C0),
-  compPtn(P,Lc,contCont(Nxt),contCont(Fl),TCont,Opts,L1,L2,D,D2,End,C0,[iLbl(Nxt)|C1],Stk0,Stk1),
-  verify(gencode:sameStk(Stk,Stk1),"more case branch"),
-  stkLvl(Stk,Lvl),
-  compTerm(E,Lc,Succ,TCont,Opts,L2,L3,D2,D3,End,C1,[iLbl(Fl),iRst(Lvl)|C2],Stk,Stk2),
-  compMoreCase(SC,VLb,Succ,Fail,TCont,Opts,L3,Lx,D3,Dx,End,C2,Cx,Stk,Stk3),
-  mergeStkLvl(Stk2,Stk3,Stkx,"more case branch stack").
+  compPtn(P,Lc,compTerm(E,Lc,Succ,TCont,Opts),
+	  resetCont(Stk,contCont(Fl)),
+	  TCont,Opts,L1,L2,D,D1,End,C0,[iLbl(Fl)|C1],Stk0,Stk1),
+  resetVars(D,D1,D2),
+  compMoreCase(SC,VLb,Succ,Fail,TCont,Opts,L2,Lx,D2,Dx,End,C1,Cx,Stk,Stk2),
+  mergeStkLvl(Stk1,Stk2,Stkx,"more case branch stack").
+
 
 compCnsCases([(ctpl(Cn,Args),E,Lc)],_,Cont,TCont,Opts,L,Lx,D,Dx,
 	     [iUnpack(Cn,Fl)|C],Cx,Stk,Stkx) :-!,

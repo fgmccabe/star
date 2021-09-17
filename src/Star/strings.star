@@ -17,12 +17,13 @@ star.strings{
     X>=Y => _str_ge(_str_fltn(X),_str_fltn(Y)).
   }
 
-  public implementation display[string] => {
-    disp(X) => displayString(X).
-  }
+  public implementation display[string] => {.
+    disp(S) => "\"#(chrs_(_str_quote(_str_fltn(S))))\"".
+  .}
 
-  public displayString:(string) => string.
-  displayString(S) => "\"#(chrs_(_str_quote(_str_fltn(S))))\"".
+  public implementation format[string] => {.
+    frmt(S,Fmt) => chrs_(_str_format(_str_fltn(S),Fmt)).
+  .}
 
   public implementation sizeable[string] => {
     size(S) => _str_len(_str_fltn(S)).

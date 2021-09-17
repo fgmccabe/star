@@ -222,38 +222,38 @@ star.uri{
   drop([_,..L])=>some(L).
   drop(_) default => .none.
 
-  public implementation display[uri] => {
-    disp(absUri(Scheme,Rsrc,Query)) => ssSeq([ss(Scheme),ss(":"),dispRsrc(Rsrc),dispQuery(Query)]).
-    disp(relUri(Rsrc,Query)) => ssSeq([dispRsrc(Rsrc),dispQuery(Query)]).
+  public implementation display[uri] => {.
+  disp(absUri(Scheme,Rsrc,Query)) => "#(Scheme)\:#(dispRsrc(Rsrc))#(dispQuery(Query))".
+  disp(relUri(Rsrc,Query)) => "#(dispRsrc(Rsrc))#(dispQuery(Query))".
+.}
 
-    private dispQuery:(query)=>ss.
-    dispQuery(.noQ) => ssSeq([]).
-    dispQuery(qry(Q)) => ssSeq([ss("?"),ss(Q)]).
-  }
+  private dispQuery:(query)=>string.
+  dispQuery(.noQ) => "".
+  dispQuery(qry(Q)) => "?#(Q)".
 
-  dispRsrc:(rsrcName)=>ss.
-  dispRsrc(netRsrc(H,P)) => ssSeq([dispAuthority(H),dispPath(P)]).
+  dispRsrc:(rsrcName)=>string.
+  dispRsrc(netRsrc(H,P)) => "#(dispAuthority(H))#(dispPath(P))".
   dispRsrc(localRsrc(P)) => dispPath(P).
 
-  dispAuthority:(authority)=>ss.
+  dispAuthority:(authority)=>string.
   dispAuthority(server(.none,H)) => dispHost(H).
-  dispAuthority(server(some(U),H)) => ssSeq([dispUser(U),ss("@"),dispHost(H)]).
+  dispAuthority(server(some(U),H)) => "#(dispUser(U))@#(dispHost(H))".
 
-  dispUser:(userInfo)=>ss.
-  dispUser(user(U)) => ss(U).
+  dispUser:(userInfo)=>string.
+  dispUser(user(U)) => U.
 
-  dispHost:(host) => ss.
-  dispHost(hostPort(H,P)) => ssSeq([ss(H),ss(":"),ss(P)]).
-  dispHost(host(H)) => ss(H).
+  dispHost:(host) => string.
+  dispHost(hostPort(H,P)) => "#(H)\:#(P)".
+  dispHost(host(H)) => H.
 
-  dispPath:(resourcePath)=>ss.
-  dispPath(absPath(Segs)) => ssSeq([ss("/"),..dispSegs(Segs)]).
-  dispPath(relPath(Segs)) => ssSeq(dispSegs(Segs)).
+  dispPath:(resourcePath)=>string.
+  dispPath(absPath(Segs)) => "/#(dispSegs(Segs))".
+  dispPath(relPath(Segs)) => dispSegs(Segs).
 
-  dispSegs:(cons[string]) => cons[ss].
-  dispSegs([]) => [].
-  dispSegs([S]) => [ss(S)].
-  dispSegs([S,..M]) => [ss(S),ss("/"),..dispSegs(M)].
+  dispSegs:(cons[string]) => string.
+  dispSegs([]) => "".
+  dispSegs([S]) => S.
+  dispSegs([S,..M]) => "#(S)/#(dispSegs(M))".
 
   public
   getUriPath:(uri)=>string.
