@@ -13,7 +13,8 @@
 		    isName/2,isName/3,
 		    isIden/1,isIden/2,isIden/3,genIden/2,genIden/3,isChars/2,
 		    isFloat/3,
-		    isChars/3,isInteger/3,isConsTerm/4, sameTerm/2,
+		    isChars/3,isInteger/3,mkInteger/3,mkFloat/3,
+		    isConsTerm/4, sameTerm/2,
 		    explodeString/2]).
 :- use_module(operators).
 :- use_module(misc).
@@ -130,8 +131,10 @@ isChars(chars(_,St),St).
 isChars(chars(Lc,Txt),Lc,Txt).
 
 isInteger(integer(Lc,Ix),Lc,Ix).
-
+mkInteger(Lc,Ix,integer(Lc,Ix)).
+	 
 isFloat(float(Lc,Dx),Lc,Dx).
+mkFloat(Lc,Dx,float(Lc,Dx)).
 
 isAst(A) :- locOfAst(A,_).
 

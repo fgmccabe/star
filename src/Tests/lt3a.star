@@ -3,16 +3,16 @@ test.lt3a{
   import star.script.
 
   foo() => let{
-    X := genSym("x").
+    X = ref genSym("x").
 
     test()=>X!
   } in test.
 
 
-  genSym(Pr) => _str_gen(Pr).
+  genSym(Pr) => chrs_(_str_gen(_str_fltn(Pr))).
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     show foo()();
     show foo()();
     assert ~foo()()==foo()()

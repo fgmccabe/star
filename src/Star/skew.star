@@ -148,20 +148,20 @@ star.skew{
   .}
   
   public implementation all e ~~ display[e] |: display[sk[e]] => let{
-    dispList:all a ~~ display[a] |: (rlist[a],cons[ss]) => cons[ss].
+    dispList:all a ~~ display[a] |: (rlist[a],cons[string]) => cons[string].
     dispList(.nil,L) => L.
     dispList(cons((_,T),rs),L) => dispTree(T,dispList(rs,L)).
 
-    dispTree:all a ~~ display[a] |: (tree[a],cons[ss]) => cons[ss].
+    dispTree:all a ~~ display[a] |: (tree[a],cons[string]) => cons[string].
     dispTree(.eTree,L) => L.
-    dispTree(node(X,t1,t2),L) => cons(disp(X),dispTree(t1,dispTree(t2,L))).
+    dispTree(node(X,t1,t2),L) => [disp(X),..dispTree(t1,dispTree(t2,L))].
 
-    rollup:(cons[ss]) => ss.
-    rollup(.nil) => ss("").
+    rollup:(cons[string]) => string.
+    rollup(.nil) => "".
     rollup(cons(S,.nil)) => S.
-    rollup(cons(S,R)) => ssSeq([S,ss(","),rollup(R)]).
+    rollup(cons(S,R)) => "#(S),#(rollup(R))".
   } in {
-    disp(rl(L)) => ssSeq([ss("["),rollup(dispList(L,.nil)),ss("]")]).
+    disp(rl(L)) => "[#(rollup(dispList(L,.nil)))]".
   }
 
   public implementation all e ~~ equality[e] |: equality[sk[e]] => let{
@@ -203,4 +203,9 @@ star.skew{
   } in {.
     _iter(rl(L),St,Fn) => iterList(L,St,Fn).
   .}
+
+  public implementation all t ~~ coercion[sk[t],cons[t]] => {.
+    _coerce(S) => some(foldLeft((e,L) => cons(e,L),.nil,S)).
+  .}
+    
 }

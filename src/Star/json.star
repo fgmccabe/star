@@ -12,34 +12,27 @@ star.json{
     disp(j) => dispJson(j,0).
   }
 
-  private dispJson:(json,integer) => ss.
-  dispJson(.jTrue,_) => ss("true").
-  dispJson(.jFalse,_) => ss("false").
-  dispJson(.jNull,_) => ss("null").
+  private dispJson:(json,integer) => string.
+  dispJson(.jTrue,_) => "true".
+  dispJson(.jFalse,_) => "false".
+  dispJson(.jNull,_) => "null".
   dispJson(jTxt(T),_) => disp(T).
   dispJson(jNum(D),_) => disp(D).
-  dispJson(jColl(M),Sp) => ssSeq([ss("{"),ssSeq(dispColl(M::cons[keyval[string,json]],Sp+2,"")),ss("}")]).
-  dispJson(jSeq(L),Sp) => ssSeq([ss("["),ssSeq(dispSeq(L,Sp,"")),ss("]")]).
+  dispJson(jColl(M),Sp) => "{#(dispColl(M::cons[keyval[string,json]],Sp+2,""))}".
+  dispJson(jSeq(L),Sp) => "[#(dispSeq(L,Sp,""))]".
 
-  dispColl:(cons[keyval[string,json]],integer,string) => cons[ss].
-  dispColl([],_,_) => [].
-  dispColl([f->e,..l],Sp,s) => [ss(s),break(Sp),disp(f),ss(":"),dispJson(e,Sp),..dispColl(l,Sp,",")].
+  dispColl:(cons[keyval[string,json]],integer,string) => string.
+  dispColl([],_,_) => "".
+  dispColl([f->e,..l],Sp,s) => "#(s)$(f)\:#(dispJson(e,Sp))#(dispColl(l,Sp,","))".
 
-  dispSeq:(cons[json],integer,string) => cons[ss].
-  dispSeq([],_,_) => [].
-  dispSeq([e,..l],Sp,s) => [ss(s),dispJson(e,Sp),..dispSeq(l,Sp,",")].
+  dispSeq:(cons[json],integer,string) => string.
+  dispSeq([],_,_) => "".
+  dispSeq([e],_,_) => "$(e)".
+  dispSeq([e,..l],Sp,s) => pair_(pair_(s,dispJson(e,Sp)),dispSeq(l,Sp,",")).
 
   public implementation coercion[json,string] => {.
-    _coerce(J) => disp(J):?string.
+    _coerce(J) => some(disp(J)).
   .}
-
-  break:(integer) => ss.
-  break(0) => ssSeq([]).
-  break(X) => let{
-    spces:(integer) => cons[ss].
-    spces(0) => [].
-    spces(C) => [ss(" "),..spces(C-1)].
-  } in ssSeq([ss("\n"),..spces(X)]).
 
   public implementation equality[json] => {.
     T1 == T2 => equalJson(T1,T2).
@@ -52,7 +45,7 @@ star.json{
   equalJson(jTxt(S1),jTxt(S2)) => S1==S2.
   equalJson(jNum(D1),jNum(D2)) => D1==D2.
   equalJson(jColl(C1),jColl(C2)) => C1==C2.
-  equalJson(jSeq(L1),jSeq(L2)) => (E1,E2) in zip(L1,L2) *> equalJson(E1,E2).
+  equalJson(jSeq(L1),jSeq(L2)) => {?(E1,E2) in zip(L1,L2) *> equalJson(E1,E2)?}.
   equalJson(_,_) => .false.
 
   public implementation coercion[string,json] => {.

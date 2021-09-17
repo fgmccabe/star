@@ -12,7 +12,7 @@ test.m{
   double(x)=>x+x.
   
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     assert fog(id,double)(4) == double(4)
   }
 }

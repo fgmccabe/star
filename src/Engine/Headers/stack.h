@@ -45,12 +45,14 @@ termPo popStack(stackPo stk);
 void pushStack(stackPo stk, termPo ptr);
 void moveStack2Stack(stackPo toStk, stackPo fromStk, integer count);
 
-stackPo glueOnStack(heapPo H, stackPo stk, integer size);
+stackPo glueOnStack(heapPo H, stackPo stk, integer size, integer saveArity);
 stackPo spinupStack(heapPo H, stackPo stk, integer size, termPo prompt);
 
 stackPo findStack(stackPo current, termPo prompt);
 termPo stackPrompt(stackPo stk);
 void setPrompt(stackPo stk,termPo prompt);
+
+integer stackHwm(stackPo stk);;
 
 integer stackNo(stackPo stk);
 

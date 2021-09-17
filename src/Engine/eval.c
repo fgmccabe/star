@@ -35,8 +35,8 @@
 #define local(off) (((ptrPo)FP)[-off])
 #define arg(off) (((ptrPo) (FP + 1))[off])
 #define stackRoom(amnt) ((SP-(amnt)) > STK->stkMem)
-#define saveRegisters() STMT_WRAP({ FP->pc = PC; STK->sp = SP; STK->fp = FP; })
-#define restoreRegisters() STMT_WRAP({ FP = STK->fp; PC = FP->pc;  SP=STK->sp; LITS=codeLits(FP->prog);})
+#define saveRegisters() STMT_WRAP({ FP->pc = PC; STK->sp = SP; STK->fp = FP; P->stk = STK;})
+#define restoreRegisters() STMT_WRAP({ STK = P->stk; FP = STK->fp; PC = FP->pc;  SP=STK->sp; LITS=codeLits(FP->prog);})
 
 #define bail() STMT_WRAP({\
   saveRegisters();\
@@ -46,9 +46,7 @@
 
 #define stackGrow(Amnt, SaveArity) STMT_WRAP({\
   saveRegisters();\
-  stackPo prevStack = STK;\
-  STK = P->stk = glueOnStack(H, STK, (STK->sze * 3) / 2 + (Amnt)); \
-  moveStack2Stack(STK, prevStack, SaveArity); \
+  P->stk = glueOnStack(H, STK, maximum(stackHwm(STK),(STK->sze * 3) / 2 + (Amnt)),SaveArity); \
   restoreRegisters();\
   if (!stackRoom(Amnt)) {\
     logMsg(logFile, "cannot extend stack sufficiently");\
@@ -111,8 +109,10 @@ retCode run(processPo P) {
         methodPo mtd = labelCode(C_LBL(nProg));   // Which program do we want?
 
         if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE)) {
+          int root = gcAddRoot(H, &nProg);
+          gcAddRoot(H, (ptrPo) &mtd);
           stackGrow(stackDelta(mtd) + STACKFRAME_SIZE, codeArity(mtd));
-
+          gcReleaseRoot(H, root);
           assert(stackRoom(stackDelta(mtd) + STACKFRAME_SIZE));
         }
 
@@ -151,8 +151,11 @@ retCode run(processPo P) {
 
         push(nthElem(obj, 0));                     // Put the free term back on the stack
 
-        if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE))
+        if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE)) {
+          int root = gcAddRoot(H, (ptrPo) &mtd);
           stackGrow(stackDelta(mtd) + STACKFRAME_SIZE, codeArity(mtd));
+          gcReleaseRoot(H, root);
+        }
 
         assert(isPcOfMtd(FP->prog, PC));
         FP->pc = PC;
@@ -216,14 +219,14 @@ retCode run(processPo P) {
           gcAddRoot(H, (ptrPo) &prevStack);
 
           saveRegisters();
-          STK = P->stk = glueOnStack(H, STK, (STK->sze * 3) / 2 + stackDelta(mtd));
+          STK = P->stk = glueOnStack(H, STK, (STK->sze * 3) / 2 + stackDelta(mtd), arity);
 
           SP = STK->sp;
-          // Copy arguments from old stack
-          ptrPo src = prevStack->sp + arity;
-          for (integer ix = 0; ix < arity; ix++) {
-            *--SP = *--src;
-          }
+//          // Copy arguments from old stack
+//          ptrPo src = prevStack->sp + arity;
+//          for (integer ix = 0; ix < arity; ix++) {
+//            *--SP = *--src;
+//          }
 
           // Set up new frame on new stack
           FP = ((framePo) SP) - 1;
@@ -292,14 +295,14 @@ retCode run(processPo P) {
           gcAddRoot(H, (ptrPo) &prevStack);
 
           saveRegisters();
-          STK = P->stk = glueOnStack(H, STK, (STK->sze * 3) / 2 + stackDelta(mtd));
+          STK = P->stk = glueOnStack(H, STK, (STK->sze * 3) / 2 + stackDelta(mtd), arity);
 
           SP = STK->sp;
           // Copy arguments from old stack
-          ptrPo src = prevStack->sp + arity;
-          for (integer ix = 0; ix < arity; ix++) {
-            *--SP = *--src;
-          }
+//          ptrPo src = prevStack->sp + arity;
+//          for (integer ix = 0; ix < arity; ix++) {
+//            *--SP = *--src;
+//          }
 
           // Set up new frame on new stack
           FP = ((framePo) SP) - 1;
@@ -563,8 +566,9 @@ retCode run(processPo P) {
           }
 
           if (!stackRoom(stackDelta(glbThnk) + STACKFRAME_SIZE)) {
+            int root = gcAddRoot(H, (ptrPo) &glbThnk);
             stackGrow(stackDelta(glbThnk) + STACKFRAME_SIZE, codeArity(glbThnk));
-
+            gcReleaseRoot(H,root);
             assert(stackRoom(stackDelta(glbThnk) + STACKFRAME_SIZE));
           }
           FP->pc = PC;

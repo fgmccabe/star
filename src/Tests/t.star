@@ -10,7 +10,7 @@ test.t{
   t = pair(3,"fred").
 
   main:() => action[(),()].
-  main() => do{
+  main() => action{
     assert pair(K,V).=t && K==3
   }
 }

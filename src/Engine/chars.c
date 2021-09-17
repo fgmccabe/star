@@ -58,6 +58,13 @@ termPo allocateCString(heapPo H, const char *txt) {
   return allocateChars(H, txt, uniStrLen(txt));
 }
 
+termPo allocateFromStrBuffer(strBufferPo bffr, heapPo H) {
+  integer oLen;
+  const char *buff = getTextFromBuffer(bffr, &oLen);
+
+  return allocateChars(H, buff, oLen);
+}
+
 long chrsSize(specialClassPo cl, termPo o) {
   return CharsCellCount(C_CHARS(o)->length);
 }
@@ -155,7 +162,7 @@ retCode chrsDisp(ioPo out, termPo t, integer precision, integer depth, logical a
   return ret;
 }
 
-retCode quoteChars(ioPo out, charsPo str){
+retCode quoteChars(ioPo out, charsPo str) {
   return processUnicodes(str->txt, str->length, cpDisp, out);
 }
 

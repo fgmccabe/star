@@ -9,6 +9,8 @@ test.sy0{
 
   public boolean ::= .true | .false.
 
+  public string ::= chrs_(chars) | pair_(string,string).
+
   -- Tree type
   public tree[x] ::= .empty | node(foo[x],x,tree[x]).
 

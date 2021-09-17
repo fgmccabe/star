@@ -195,6 +195,7 @@ escapeType("_str_cons",funType(tplType([type("star.core*integer"),type("chars")]
 escapeType("_code2str",funType(tplType([type("star.core*integer")]),type("chars"))).
 escapeType("_str_apnd",funType(tplType([type("chars"),type("star.core*integer")]),type("chars"))).
 escapeType("_str_quote",funType(tplType([type("chars")]),type("chars"))).
+escapeType("_str_format",funType(tplType([type("chars"),type("chars")]),type("chars"))).
 escapeType("_getenv",funType(tplType([type("chars"),type("chars")]),type("chars"))).
 escapeType("_setenv",funType(tplType([type("chars"),type("chars")]),tplType([]))).
 escapeType("_envir",funType(tplType([]),tpExp(tpFun("star.core*cons",1),tplType([type("chars"),type("chars")])))).
@@ -404,6 +405,7 @@ isEscape("_str_cons").
 isEscape("_code2str").
 isEscape("_str_apnd").
 isEscape("_str_quote").
+isEscape("_str_format").
 isEscape("_getenv").
 isEscape("_setenv").
 isEscape("_envir").

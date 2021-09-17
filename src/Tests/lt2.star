@@ -5,7 +5,11 @@ test.lt2{
   js ::=
     .jT | .jF  | jS(js).
 
-  eqr = {.
+  eqr ::= eqq{
+    eq:(js,js)=>boolean
+  }.
+  
+  eqr = eqq{.
     eq = equalJ
   .}.
 
@@ -19,7 +23,7 @@ test.lt2{
   test() => equalJ(jS(.jT),jS(.jT)).
 
   main:()=>action[(),()].
-  main() => do{
+  main() => action{
     assert test();
     assert ~execQ(.jF,.jT)
   }

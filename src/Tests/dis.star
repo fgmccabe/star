@@ -8,7 +8,7 @@ test.dis{
       some((2,A)) .= S) ? some(A) || .none.
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     assert 3 ^= check(some((3,1)));
     assert 3 ^= check(some((2,3)))
   }

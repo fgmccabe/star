@@ -87,7 +87,19 @@ static retCode debugOption(char *option, logical enable) {
         return Error;
 #endif
 
-      case 'm':    /* trace memory allocations  */
+
+      case 'a':    /* trace memory allocations  */
+#ifdef TRACEMEM
+        traceAllocs = True;
+
+        atexit(dumpGcStats);
+        continue;
+#else
+        logMsg(logFile,"memory tracing not enabled");
+              return -1;
+#endif
+
+      case 'm':    /* trace memory activity  */
 #ifdef TRACEMEM
         traceMemory = True;
 

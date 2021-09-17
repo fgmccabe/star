@@ -23,28 +23,30 @@
  */
 integer parseInt(const char *s, integer l) {
   integer x;
-  parseInteger(s, l, &x);
+  integer pos = 0;
+  parseInteger(s, &pos, l, &x);
   return x;
 }
 
-retCode parseInteger(const char *s, integer len, integer *res) {
+retCode parseInteger(const char *s, integer *pos, integer len, integer *res) {
   logical positive = True;
   integer x = 0;
-  integer pos = 0;
 
-  if (*s == '-') {
+  if (s[*pos] == '-') {
     positive = False;
-    pos++;
-  } else if (*s == '+') {
+    (*pos)++;
+  } else if (s[*pos] == '+') {
     positive = True;
-    pos++;
+    (*pos)++;
   }
-  while (pos < len) {
-    codePoint ch = nextCodePoint(s, &pos, len);
+  while (*pos < len) {
+    codePoint ch = nextCodePoint(s, pos, len);
     if (isNdChar(ch)) {
       x = x * 10 + digitValue(ch);
-    } else if (!isSpaceChar(ch))
-      return Error;
+    } else {
+      prevPoint(s, pos, &ch);
+      break;
+    }
   }
 
   if (!positive)

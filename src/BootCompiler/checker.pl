@@ -1000,6 +1000,10 @@ checkGoal(Term,ErTp,Env,Ev,match(Lc,Lhs,Rhs),Path) :-
   newTypeVar("_#",TV),
   typeOfPtn(P,TV,ErTp,Env,Ev,Lhs,Path),
   typeOfExp(E,TV,ErTp,Env,_,Rhs,Path).
+checkGoal(Trm,ErTp,Env,Ev,Gl,Path) :-
+  isTuple(Trm,_,[Inner]),
+  \+ isTuple(Inner,_), !,
+  checkGoal(Inner,ErTp,Env,Ev,Gl,Path).
 checkGoal(G,ErTp,Env,Env,Goal,Path) :-
   locOfAst(G,Lc),
   findType("boolean",Lc,Env,LogicalTp),

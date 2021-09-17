@@ -11,7 +11,7 @@ test.mm{
   
   
   main:() => action[(),()].
-  main() => do{
+  main() => action{
     logMsg(disp(conc([1,2,3],[4,5]))::string);
 
     assert conc([1,2,3],[4,5])==([1,2,3,4,5]:cons[integer]);

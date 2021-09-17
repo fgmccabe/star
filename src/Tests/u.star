@@ -10,7 +10,7 @@ test.u{
 
   tt() => loop(() where _.=parse(uriParse,"http://foo.bar.com?query"::cons[integer])=>(),100).
 
-  main:()=>action[(),()].
+  main:()=> action[(),()].
   main() => action{
     assert _.=tt();
 

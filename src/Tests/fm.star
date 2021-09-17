@@ -3,7 +3,7 @@ test.fm{
   import star.script.
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     show "--$(-15):-   0;--";
 
     assert "--  -15--" == "--$(-15):-   0;--"; -- 

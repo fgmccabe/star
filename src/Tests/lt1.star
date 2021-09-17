@@ -15,7 +15,7 @@ test.lt1{
   } in f.
 
   main:()=>action[(),()].
-  main() => do{
+  main() => action{
     K .= ff(2);
 
     assert K(3)==0.

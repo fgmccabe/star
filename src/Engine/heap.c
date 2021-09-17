@@ -11,6 +11,7 @@ long initHeapSize = 200 * 1024;   /* How much memory to give the heap */
 long maxHeapSize = 1024 * 1024 * 1024; // Maximum heap size 1G cells
 
 logical traceMemory = False;      /* memory tracing */
+logical traceAllocs = False;      // trace allocations
 logical validateMemory = False;   // Validate heap after every allocation
 
 HeapRecord heap;
@@ -65,11 +66,6 @@ retCode reserveSpace(heapPo H, integer amnt) {
 }
 
 termPo allocateObject(heapPo H, clssPo clss, integer amnt) {
-#ifdef TRACEMEM
-  if (validateMemory) {
-    verifyHeap(H);
-  }
-#endif
   if ((((ptrPo) currHeap->curr) + amnt) < ((ptrPo) (currHeap->limit))) {
     termPo t = currHeap->curr;
     H->curr = H->curr + amnt;

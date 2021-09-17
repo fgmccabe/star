@@ -5,12 +5,12 @@ test.coe{
   public _main(L) =>
     logStrs(L).
 
-  logMsg:(string)=>().
+  logMsg:(chars)=>().
   logMsg(M) where _ .= _logmsg(M) =>().
 
   logStrs(.nil) => ().
   logStrs(cons(H,T)) =>
     (_ .= logMsg(H) ?
 	logStrs(T) ||
-	logMsg("something went wrong")).
+	logMsg(0"something went wrong")).
 }

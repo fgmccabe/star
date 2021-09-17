@@ -273,6 +273,7 @@ escape(_str_cons,"F(is)s","put a char in the front")
 escape(_code2str,"F(i)s","make a 1 char string")
 escape(_str_apnd,"F(si)s","put a char in the back")
 escape(_str_quote,"F(s)s","construct a quoted version of a string")
+escape(_str_format,"F(ss)s","apply formatting to a char sequence")
 
 escape(_getenv,"F(ss)s","get an environment variable")
 escape(_setenv,"F(ss)()","set an environment variable")

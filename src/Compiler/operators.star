@@ -179,6 +179,9 @@ star.compiler.operators{
   isBracket("(|") => some(bkt("(|","(||)","|)","",2000)).
   isBracket("|)") => some(bkt("(|","(||)","|)","",2000)).
   isBracket("(||)") => some(bkt("(|","(||)","|)","",2000)).
+  isBracket("{?") => some(bkt("{?","{??}","?}","",2000)).
+  isBracket("?}") => some(bkt("{?","{??}","?}","",2000)).
+  isBracket("{??}") => some(bkt("{?","{??}","?}","",2000)).
   isBracket("{!") => some(bkt("{!","{!!}","!}","",2000)).
   isBracket("!}") => some(bkt("{!","{!!}","!}","",2000)).
   isBracket("{!!}") => some(bkt("{!","{!!}","!}","",2000)).
@@ -261,6 +264,7 @@ star.compiler.operators{
   follows("/",0c\\) => some("/\\").
   follows("/",0c/) => some("//").
   follows("//",0c/) => some("///").
+  follows("{",0c?) => some("{?").
   follows("{",0c.) => some("{.").
   follows("{",0c!) => some("{!").
   follows("|",0c]) => some("|]").
@@ -301,6 +305,7 @@ star.compiler.operators{
   follows(">",0c=) => some(">=").
   follows(">",0c>) => some(">>").
   follows(">>",0c=) => some(">>=").
+  follows("?",0c}) => some("?}").
   follows("!",0c!) => some("!!").
   follows("!",0c}) => some("!}").
   follows("$",0c$) => some("$$").
@@ -342,6 +347,7 @@ star.compiler.operators{
   final("//") => .true.  /* map over */
   final("///") => .true.  /* indexed map over */
   final("{") => .true.  /* braces */
+  final("{?") => .true.  /* test comprehension */
   final("{.") => .true.  /* non-recursive braces */
   final("{!") => .true.  /* iota comprehension */
   final("|") => .true.  /* type union and abstraction */
@@ -392,6 +398,7 @@ star.compiler.operators{
   final(">>") => .true.  /* monadic bind */
   final(">>=") => .true.  /* monadic bind */
   final("?") => .true.  /* conditional operator */
+  final("?}") => .true.  /* test comprehension */
   final("@") => .true.  /* meta annotation */
   final("!") => .true.  /* pick up value from a ref cell */
   final("!!") => .true.  /* pick up value from a memo */

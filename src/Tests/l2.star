@@ -5,8 +5,8 @@ test.l2{
   tree[a] ::= .empty | node(tree[a],a,tree[a]).
 
   implementation all e ~~ display[e] |: display[tree[e]] => let {
-    dTree(.empty) => ss("e").
-    dTree(node(L,Lb,R)) => ssSeq([ss("<"),dTree(L),disp(Lb),dTree(R),ss(">")]).
+    dTree(.empty) => "e".
+    dTree(node(L,Lb,R)) => "<#(dTree(L))$(Lb)#(dTree(R))>".
   } in {.
     disp = dTree
   .}
@@ -22,7 +22,7 @@ test.l2{
   } in spl(T).
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=> action{
     show "splits $(splits(node(node(.empty,(1,"a"),.empty),(2,"b"),.empty)))"
   }
 }

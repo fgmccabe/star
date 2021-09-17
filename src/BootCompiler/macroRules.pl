@@ -133,8 +133,8 @@ indexMacro(T,expression,Rp) :-
    binary(Lc,"_remove",M,Ky,Rp);
    binary(Lc,"_index",M,A,Rp)).
 indexMacro(T,expression,Rp) :-
-  isSlice(T,Lc,M,F,T),
-  ternary(Lc,"_slice",M,F,T,Rp).
+  isSlice(T,Lc,M,Fr,To),
+  ternary(Lc,"_slice",M,Fr,To,Rp).
 
 macroComprehension(T,expression,Rp) :-
   isComprehension(T,Lc,Bnd,Body),!,
@@ -161,14 +161,10 @@ macroIterableGoal(G,expression,Gx) :-
   makeIterableGoal(B,Gx).
 
 makeIterableGoal(G,Rp) :-
-  glVars(G,[],[],V),
   locOfAst(G,Lc),
-  map(V,macroRules:mkName(Lc),Vrs),
-  roundTuple(Lc,Vrs,VrTpl),
-  mkEnum(Lc,"none",None),
-  unary(Lc,"some",VrTpl,Vl),
-  makeCondition(G,macroRules:passThru,macroRules:rtn(Vl),grounded(None),Exp),
-  optionMatch(Lc,VrTpl,Exp,Rp).
+  mkEnum(Lc,"false",False),
+  mkEnum(Lc,"true",True),
+  makeCondition(G,macroRules:passThru,macroRules:rtn(True),grounded(False),Rp).
 
 mkName(Lc,Nm,name(Lc,Nm)).
 
@@ -304,7 +300,13 @@ macroCoercion(Term,expression,N) :-
 
 uminusMacro(T,expression,Tx) :-
   isUnaryMinus(T,Lc,A),!,
-  unary(Lc,"__minus",A,Tx).
+  (isInteger(A,LLc,Ix) ->
+   IIx is -Ix,
+   mkInteger(LLc,IIx,Tx);
+   isFloat(A,LLc,Dx) ->
+   MDx is -Dx,
+   mkFloat(LLc,MDx,Tx);
+   unary(Lc,"__minus",A,Tx)).   
 
 optionMatchMacro(T,expression,Tx) :-
   isOptionMatch(T,Lc,P,E),!,

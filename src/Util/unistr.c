@@ -140,6 +140,14 @@ codePoint nextCodePoint(const char *src, integer *start, integer end) {
     return (codePoint) 0;
 }
 
+codePoint prevCodePoint(const char *src, integer *start, integer end) {
+  codePoint ch;
+  if (prevPoint(src, start, &ch) == Ok)
+    return ch;
+  else
+    return (codePoint) 0;
+}
+
 codePoint codePointAt(const char *src, integer pt, integer end) {
   codePoint ch;
   if (nxtPoint(src, &pt, end, &ch) == Ok)
@@ -166,12 +174,12 @@ integer uniNStrLen(const char *s, integer max) {
   return count;
 }
 
-logical isUniIdentifier(char *str, integer len){
+logical isUniIdentifier(char *str, integer len) {
   integer pos = 0;
-  while(pos<len){
+  while (pos < len) {
     codePoint ch;
-    if(nxtPoint(str,&pos,len,&ch)==Ok){
-      if(!isIdContinue(ch))
+    if (nxtPoint(str, &pos, len, &ch) == Ok) {
+      if (!isIdContinue(ch))
         return False;
     } else
       return False;
@@ -215,7 +223,7 @@ retCode uniNAppend(char *dest, integer *pos, integer len, char *src, integer sLe
 retCode appendCodePoint(char *dest, integer *pos, integer len, codePoint ch) {
   if (ch <= 0x7f) {
     if ((*pos) < len - 1) {
-      dest[(*pos)++] = (char)((ch) & 0x7fu);
+      dest[(*pos)++] = (char) ((ch) & 0x7fu);
       return Ok;
     } else
       return Eof;
@@ -303,34 +311,35 @@ comparison uniCmp(const char *s1, const char *s2) {
     pos++;
   }
 
-  if ((unsigned)s1[pos] < (unsigned)s2[pos] || s1[pos] == 0)
+  if ((unsigned) s1[pos] < (unsigned) s2[pos] || s1[pos] == 0)
     return smaller;
   else
     return bigger;
 }
 
-comparison unicodeCmp(const char *s1, integer l1,const char *s2,integer l2) {
-  integer p1 = 0, p2=0;
+comparison unicodeCmp(const char *s1, integer l1, const char *s2, integer l2) {
+  integer p1 = 0, p2 = 0;
   assert(s1 != NULL && s2 != NULL);
 
-  while(p1<l1 && p2<l2){
-    codePoint ch1 = nextCodePoint(s1,&p1,l1);
-    codePoint ch2 = nextCodePoint(s2,&p2,l2);
+  while (p1 < l1 && p2 < l2) {
+    codePoint ch1 = nextCodePoint(s1, &p1, l1);
+    codePoint ch2 = nextCodePoint(s2, &p2, l2);
 
-    if(ch1==ch2)
+    if (ch1 == ch2)
       continue;
-    else if(ch1<ch2)
+    else if (ch1 < ch2)
       return smaller;
     else
       return bigger;
   }
-  if(p1==l1 && p2==l2)
+  if (p1 == l1 && p2 == l2)
     return same;
-  else if(p1<l1)
+  else if (p1 < l1)
     return bigger;
   else
     return smaller;
 }
+
 comparison uniNCmp(const char *s1, integer l1, const char *s2, integer l2) {
   integer sz = minimum(l1, l2);
 
@@ -348,16 +357,16 @@ comparison uniNCmp(const char *s1, integer l1, const char *s2, integer l2) {
     return same;
 }
 
-logical uniSame(const char *s1,integer l1, const char *s2,integer l2){
+logical uniSame(const char *s1, integer l1, const char *s2, integer l2) {
   integer ix = 0;
   integer jx = 0;
-  while(ix<l1 && jx<l2){
-    codePoint ch1 = nextCodePoint(s1,&ix,l1);
-    codePoint ch2 = nextCodePoint(s2,&jx,l2);
-    if(ch1!=ch2)
+  while (ix < l1 && jx < l2) {
+    codePoint ch1 = nextCodePoint(s1, &ix, l1);
+    codePoint ch2 = nextCodePoint(s2, &jx, l2);
+    if (ch1 != ch2)
       return False;
   }
-  return (logical)(ix==l1 && jx==l2);
+  return (logical) (ix == l1 && jx == l2);
 }
 
 integer uniIndexOf(const char *s, integer len, integer from, codePoint c) {
@@ -501,7 +510,7 @@ logical uniIsPrefix(const char *s1, integer len1, const char *s2, integer len2) 
 }
 
 integer uniHash(const char *name) {
-  return uniNHash(name,uniByteLen((name)));
+  return uniNHash(name, uniByteLen((name)));
 }
 
 integer uniNHash(const char *name, long len) {

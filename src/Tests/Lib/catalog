@@ -8,6 +8,7 @@
     "test.fog": "fog.star",
     "test.o": "o.star",
     "test.ralist" : "ralist.star",
+    "test.sy1": "sy1.star",
     "test.record": "record.star"
   },
  "version": "1.0.0",

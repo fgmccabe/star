@@ -16,18 +16,16 @@ test.qi{
   m = ["a","ab","d","f"].
 
   parentOf:(string)=>option[string].
-  parentOf(X) where (P,X) in parent => some(P).
-  parentOf(_) default => .none.
+  parentOf(X) => {! P | (P,X) in parent !}.
 
   gparentOf:(string)=>option[string].
-  gparentOf(X) where (P,X) in parent && (G,P) in parent  => some(G).
-  gparentOf(_) default => .none.
+  gparentOf(X) => {! G | (P,X) in parent && (G,P) in parent !}.
 
   main:() => action[(),()].
-  main() => do{
-    show "parent = $(parent)";
-    show "parent of ab = $(parentOf("ab"))";
+  main() => action{
+    show parent;
+    show parentOf("ab");
 
-    show "grandparent of abc = $(parentOf("abc"))"
+    show gparentOf("abc")
   }
 }
