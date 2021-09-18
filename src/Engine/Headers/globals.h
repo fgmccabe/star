@@ -9,7 +9,7 @@
 #include "heap.h"
 #include "chars.h"
 
-typedef struct _global_rec_ *globalPo;
+typedef struct global_rec_ *globalPo;
 
 extern clssPo globalClass;
 

@@ -42,6 +42,9 @@ framePo currFrame(stackPo stk);
 framePo pushFrame(stackPo stk, methodPo mtd, framePo fp, ptrPo sp);
 
 termPo popStack(stackPo stk);
+termPo peekStack(stackPo stk,integer delta);
+termPo topStack(stackPo stk);
+
 void pushStack(stackPo stk, termPo ptr);
 void moveStack2Stack(stackPo toStk, stackPo fromStk, integer count);
 

@@ -10,7 +10,7 @@
 #include "heapP.h"
 
 
-typedef struct _global_rec_ {
+typedef struct global_rec_ {
   clssPo clss;                  // == globalClass
   integer varNo;
   integer hash;
