@@ -25,7 +25,7 @@ test.lt2a{
   runner(F) => F().
 
   main:()=>action[(),()].
-  main() => do{
+  main() => action{
     assert test()
   }
 }

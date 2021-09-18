@@ -5,7 +5,7 @@ test.sy{
   -- Test of syntax of star
 
   CX : (cons[integer],integer) => action[(),integer].
-  CX(Is,Lm) => do{
+  CX(Is,Lm) => action{
     Cx .= ref 0;
     
     for Ix in Is do{
@@ -58,8 +58,8 @@ test.sy{
   /* Block comment */
 
   a = do{
-    x <- p;
-    y <- p;
+    x .= valof p;
+    y .= valof p;
     return x
   }
   
@@ -70,7 +70,7 @@ test.sy{
   } in ff(N,one).
 
   main:() => action[(),()].
-  main() => do{
+  main() => action{
     show "fact(3) = $(fact(3))";
     
     show """a multi
@@ -83,6 +83,5 @@ string\n
     assert valof o == 1;		-- End comment
   
     assert valof p == 4;
-    assert _perform(p) == 4		/* block comment */
   }
 }

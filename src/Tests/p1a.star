@@ -45,7 +45,7 @@ test.p1a{
   digit = _sat(isDigit).
 
   main:() => action[(),()].
-  main() => do{
+  main() => action{
     assert parse(p,[1,2,3]) == [((1,3),[])];
 
     show parse(a,"1"::cons[integer]);

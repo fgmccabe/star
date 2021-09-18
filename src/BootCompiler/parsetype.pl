@@ -336,8 +336,16 @@ accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,Eqx) :-
   isBraceCon(Body,_XQ,_XC,_,Nm,Args),
   fieldPresent(Fld,Args,_),!,
   localName(Path,class,Nm,ConNm),
-  genAccessorEquation(Lc,ConNm,Fld,FldTp,Tp,AllElTps,Eqns,Eqx).
+  projectArgTypes(Args,AllElTps,ArgTps),
+  genAccessorEquation(Lc,ConNm,Fld,FldTp,Tp,ArgTps,Eqns,Eqx).
 accessorEquations(_,_,_,_,_,_,_,Eqx,Eqx).
+
+projectArgTypes([],_,[]).
+projectArgTypes([A|As],AllTps,[(Nm,ATp)|Tps]) :-
+  isTypeAnnotation(A,_,V,_),
+  isIden(V,Nm),!,
+  is_member((Nm,ATp),AllTps),!,
+  projectArgTypes(As,AllTps,Tps).
 
 fieldPresent(Fld,[A|_],T) :-
   isBinary(A,_,":",L,T),

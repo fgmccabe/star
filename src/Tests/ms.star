@@ -31,20 +31,15 @@ test.ms{
   
 
   main:() => action[(),()].
-  main() => do{
-    show "$(mapOver(doubleOrQuits,KK))";
+  main() => action{
+    show mapOver(doubleOrQuits,KK);
 
-    show "$(mapOver(doubleOrQuits,LL))";
+    show mapOver(doubleOrQuits,LL);
 
     assert [2,4,6,8,10] ^= mapOver(doubleOrQuits,KK);
 
     assert mapOver(doubleOrQuits,LL)==.none;
 
-    show disp(strmap(sq,([1.0,2.0,3.0,4.0]:cons[float])));
-
-    show disp(strmap(sq,([1.0,2.0,-3.0]:cons[float])));
-
-    show disp(seqmap(sqr,([1.0,2.0,3.0,4.0]:cons[float])));
-    show disp(seqmap(sqr,([1.0,-2.0,3.0,4.0]:cons[float])))
+    show (([1.0,2.0,-3.0]//sq):cons[option[float]]);
   }
 }

@@ -7,7 +7,7 @@ test.st{
   hs(_) default => .none.
 
   main:() => action[(),()].
-  main() => do{
-    show disp(hs("fred"))::string
+  main() => action{
+    show hs("fred")
   }
 }

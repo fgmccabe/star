@@ -783,9 +783,9 @@ typeOfExp(Trm,_Tp,ErTp,Env,Env,resume(Lc,Kont,Arg,RTp),Path) :-
   isResume(Trm,Lc,F,A),!,
   newTypeVar("R",RTp),
   newTypeVar("A",At),
-  KTp = contType(At,RTp),
+  KTp = contType(tplType([At]),RTp),
   typeOfExp(F,KTp,ErTp,Env,_,Kont,Path),
-  typeOfArgTerm(A,At,ErTp,Env,_,Arg,Path).
+  typeOfExp(A,At,ErTp,Env,_,Arg,Path).
 typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isSlice(Term,Lc,S,F,T),!,
   ternary(Lc,"_slice",S,F,T,Actual),
