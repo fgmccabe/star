@@ -1,49 +1,45 @@
 test.rrb{
   import star.
-  import star.rrb.
+  import star.skew.
   import star.script.
 
   T:sk[string].
   T = ["one","two","three","four","five","six","seven","eight","nine","ten"].
 
   main:() => action[(),()].
-  main() => do{
-    show disp(T);
+  main() => action{
+    show T;
 
-    show disp(T[0]);
-    show disp(T[1]);
-    show disp(T[2]);
-    show disp(T[3]);
-    show disp(T[4]);
-    show disp(T[5]);
-    show disp(T[6]);
-    show disp(T[7]);
-    show disp(T[8]);
-    show disp(T[9]);
-    show disp(T[10]);
+    show T[0];
+    show T[1];
+    show T[2];
+    show T[3];
+    show T[4];
+    show T[5];
+    show T[6];
+    show T[7];
+    show T[8];
+    show T[9];
+    show T[10];
 
-    show disp(rev(SS));
+    show rev(SS);
 
-    show disp(T++SS);
+    show T++SS;
 
-    show disp(SS++T);
+    show SS++T;
 
-    show disp(SS^/((Nm)=>size(Nm)<5));
+    show (SS^/((Nm)=>size(Nm)<5));
 
-    assert rev(rev(SS))==SS;
+    assert reverse(reverse(SS))==SS;
 
     XX .= ref SS;
 
     XX[5] := "alpha";
     logMsg("XX=$(XX!)");
-
-    for El in (XX!) do{
-      logMsg("El: $(El)")
-    }
   }
 
---  SS = ["zero",..T].
+  SS = ["zero",..T].
 
---  rev:all e ~~ (sk[e])=>sk[e].
---  rev(Tt) => foldLeft((E,So)=>[E,..So],[],Tt).
+  rev:all e ~~ (sk[e])=>sk[e].
+  rev(Tt) => foldLeft((E,So)=>[E,..So],[],Tt).
 }

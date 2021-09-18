@@ -19,10 +19,10 @@ star.redblack{
   color ::= .Red | .Black | .BBlack | .NBlack .
 
   implementation display[color]=>{.
-    disp(.Red) => ss("red").
-    disp(.Black) => ss("blk").
-    disp(.BBlack) => ss("bblk").
-    disp(.NBlack) => ss("nblk")
+    disp(.Red) => "red".
+    disp(.Black) => "blk".
+    disp(.BBlack) => "bblk".
+    disp(.NBlack) => "nblk"
   .}
 
   -- Only the type itself is exposed
@@ -137,14 +137,10 @@ star.redblack{
   pairs(.bleaf,Ps) => Ps.
   pairs(node(_,K,V,L,R),Ps) => pairs(L,[K->V,..pairs(R,Ps)]).
 
-  dispTree:all k,v ~~ display[k], display[v] |: (rbtree[k,v])=>ss.
-  dispTree(.leaf)=>ss("leaf").
-  dispTree(.bleaf)=>ss("bleaf").
-  dispTree(node(Cl,K,V,L,R)) => ssSeq([ss("("),disp(Cl),ss(" "),
-      dispTree(L),ss(":"),disp(K),ss("->"),disp(V),ss(":"),dispTree(R),ss(")")]).
-
-  public dumpTree:all k,v ~~ display[k], display[v] |: (rbtree[k,v])=>string.
-  dumpTree(T)=>(dispTree(T)::string).
+  dispTree:all k,v ~~ display[k], display[v] |: (rbtree[k,v])=>string.
+  dispTree(.leaf)=>"leaf".
+  dispTree(.bleaf)=>"bleaf".
+  dispTree(node(Cl,K,V,L,R)) => "(#(Cl) #(dispTree(L))\:$(disp(K))->$(V)\:#(dispTree(R)))".
 
   public validRb:all k,v ~~ (rbtree[k,v])=>boolean.
   validRb(T) => validReds(T) && allSame(blackHeights(T,0,[])).

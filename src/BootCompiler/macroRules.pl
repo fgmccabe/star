@@ -6,6 +6,7 @@
 :- use_module(misc).
 :- use_module(errors).
 :- use_module(astdisp).
+:- use_module(location).
 
 macroRl("[]",pattern,macroRules:macroSquarePtn).
 macroRl("[]",expression,macroRules:macroListComprehension).

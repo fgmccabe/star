@@ -12,7 +12,7 @@ test.qx{
   longNmes = { K->V | K->V in parent && size(V)>1 }
 
   main:() => action[(),()].
-  main() => do{
+  main() => action{
     show "long names $(longNmes)";
 
     assert longNmes==["a"->"ab","b"->"ab","ab"->"abc", "e"->"de"]
