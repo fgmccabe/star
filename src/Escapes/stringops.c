@@ -243,7 +243,8 @@ ReturnStatus g__str2int(processPo p, ptrPo tos) {
   integer ix;
   heapPo H = processHeap(p);
 
-  switch (parseInteger(str, NULL, len, &ix)) {
+  integer pos = 0;
+  switch (parseInteger(str, &pos, len, &ix)) {
     case Ok:
       return (ReturnStatus) {.ret=Ok,
         .result=(termPo) wrapSome(H, (termPo) allocateInteger(processHeap(p), ix))};

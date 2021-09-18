@@ -125,16 +125,16 @@ framePo currFrame(stackPo stk) {
   return stk->fp;
 }
 
-integer stackHwm(stackPo stk){
+integer stackHwm(stackPo stk) {
   return stk->hwm;
 }
 
-void propagateHwm(stackPo stk){
+void propagateHwm(stackPo stk) {
   integer hwm = stk->hwm;
 
-  while(stk->attachment!=Null){
+  while (stk->attachment != Null) {
     stk = stk->attachment;
-    if(stk->hwm<hwm)
+    if (stk->hwm < hwm)
       stk->hwm = hwm;
   }
 }
@@ -216,6 +216,16 @@ integer stackNo(stackPo stk) {
 termPo popStack(stackPo stk) {
   assert(stk->sp < stackLimit(stk));
   return *stk->sp++;
+}
+
+termPo topStack(stackPo stk) {
+  assert(stk->sp < (ptrPo) stk->fp);
+  return stk->sp[0];
+}
+
+termPo peekStack(stackPo stk, integer delta) {
+  assert(stk->sp + delta < (ptrPo) stk->fp);
+  return stk->sp[delta];
 }
 
 void pushStack(stackPo stk, termPo ptr) {

@@ -279,7 +279,7 @@ typedef enum {
 
 static retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize);
 static retCode loadType(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize);
-static retCode loadCons(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize);
+static retCode loadCtor(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize);
 
 retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen) {
   integer count;
@@ -292,7 +292,7 @@ retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen
       else if (isLookingAt(in, typePreamble) == Ok)
         ret = loadType(in, h, owner, errorMsg, msgLen);
       else if (isLookingAt(in, consPreamble) == Ok)
-        ret = loadCons(in, h, owner, errorMsg, msgLen);
+        ret = loadCtor(in, h, owner, errorMsg, msgLen);
       else {
         strMsg(errorMsg, msgLen, "invalid code stream");
         return Error;
@@ -655,7 +655,7 @@ retCode loadType(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSiz
   return ret;
 }
 
-retCode loadCons(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize) {
+retCode loadCtor(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize) {
   char lblName[MAX_SYMB_LEN];
   integer arity;
 

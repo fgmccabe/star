@@ -21,6 +21,11 @@ static void showOCall(ioPo out, stackPo stk, termPo call);
 static void showOTail(ioPo out, stackPo stk, termPo call);
 static void showLn(ioPo out, stackPo stk, termPo ln);
 static void showRet(ioPo out, stackPo stk, termPo val);
+static void showPrompt(ioPo out, stackPo stk, termPo prompt);
+static void showCut(ioPo out, stackPo stk, termPo prompt);
+static void showResume(ioPo out, stackPo stk, termPo cont);
+static void showTResume(ioPo out, stackPo stk, termPo cont);
+static void showGlobal(ioPo out, stackPo stk, termPo global);
 
 static void showRegisters(processPo p, heapPo h);
 static void showAllLocals(ioPo out, stackPo stk, framePo fp);
@@ -921,7 +926,6 @@ void showTail(ioPo out, stackPo stk, termPo call) {
     shCall(out, GREEN_ESC_ON"tail:"GREEN_ESC_OFF, locn, labelCode(C_LBL(call)), stk);
   else
     shCall(out, "tail:", locn, labelCode(C_LBL(call)), stk);
-
 }
 
 static retCode shOCall(ioPo out, char *msg, stackPo stk, termPo call) {
@@ -933,7 +937,7 @@ static retCode shOCall(ioPo out, char *msg, stackPo stk, termPo call) {
   } else
     tryRet(outMsg(out, "%s ", msg));
 
-  tryRet(outMsg(out, "%#,*T", displayDepth, *stackArg(stk, stk->fp, 0)));
+  tryRet(outMsg(out, "%#,*T", displayDepth, topStack(stk)));
   tryRet(outMsg(out, "•%#.16T", f->prog));
   return shArgs(out, displayDepth, stk, 1, stk->fp);
 }
@@ -966,6 +970,64 @@ void showRet(ioPo out, stackPo stk, termPo val) {
     outMsg(out, "return: %T->%#,*T", f->prog, displayDepth, val);
 }
 
+void showPrompt(ioPo out, stackPo stk, termPo prompt) {
+  framePo f = currFrame(stk);
+  termPo locn = findPcLocation(f->prog, insOffset(f->prog, f->pc));
+
+  if (locn != Null) {
+    if (showColors)
+      outMsg(out, BLUE_ESC_ON"prompt:"BLUE_ESC_OFF" %#L %#,*T", locn, displayDepth, prompt);
+    else
+      outMsg(out, "prompt: %#L %#,*T", locn, displayDepth, prompt);
+  } else
+    outMsg(out, "prompt: %#,*T", displayDepth, prompt);
+}
+
+void showCut(ioPo out, stackPo stk, termPo prompt) {
+  framePo f = currFrame(stk);
+  termPo loc = findPcLocation(f->prog, insOffset(f->prog, f->pc));
+
+  if (loc != Null) {
+    if (showColors)
+      outMsg(out, BLUE_ESC_ON"cut:"BLUE_ESC_OFF" %#L %#,*T", loc, displayDepth, prompt);
+    else
+      outMsg(out, "cut: %#L %#,*T", loc, displayDepth, prompt);
+  } else
+    outMsg(out, "cut: %#,*T", displayDepth, prompt);
+}
+
+void showResume(ioPo out, stackPo stk, termPo cont) {
+  framePo f = currFrame(stk);
+  termPo loc = findPcLocation(f->prog, insOffset(f->prog, f->pc));
+
+  if (showColors)
+    outMsg(out, BLUE_ESC_ON"resume:"BLUE_ESC_OFF "%#L %#,*T", loc, displayDepth, cont);
+  else
+    outMsg(out, "resume:", "%#L %#,*T", loc, displayDepth, cont);
+}
+
+void showTResume(ioPo out, stackPo stk, termPo cont) {
+  framePo f = currFrame(stk);
+  termPo loc = findPcLocation(f->prog, insOffset(f->prog, f->pc));
+
+  if (showColors)
+    outMsg(out, BLUE_ESC_ON"tresume:"BLUE_ESC_OFF "%#L %#,*T", loc, displayDepth, cont);
+  else
+    outMsg(out, "tresume:", "%#L %#,*T", loc, displayDepth, cont);
+}
+
+void showGlobal(ioPo out, stackPo stk, termPo global) {
+  framePo f = currFrame(stk);
+  termPo loc = findPcLocation(f->prog, insOffset(f->prog, f->pc));
+
+  globalPo glb = C_GLOB(global);
+
+  if (showColors)
+    outMsg(out, BLUE_ESC_ON"global:"BLUE_ESC_OFF "%#L %#,*T", loc, displayDepth, global);
+  else
+    outMsg(out, "global:", "%#L %#,*T", loc, displayDepth, global);
+}
+
 typedef void (*showCmd)(ioPo out, stackPo stk, termPo trm);
 
 termPo getLbl(termPo lbl, int32 arity) {
@@ -975,24 +1037,8 @@ termPo getLbl(termPo lbl, int32 arity) {
 
 static DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show);
 
-DebugWaitFor callDebug(processPo p, termPo call) {
-  return lnDebug(p, Call, Null, showCall);
-}
-
-DebugWaitFor ocallDebug(processPo p, termPo call) {
-  return lnDebug(p, OCall, call, showOCall);
-}
-
 DebugWaitFor tailDebug(processPo p, termPo call) {
   return lnDebug(p, TCall, call, showTail);
-}
-
-DebugWaitFor otailDebug(processPo p, termPo call) {
-  return lnDebug(p, TOCall, call, showOTail);
-}
-
-DebugWaitFor retDebug(processPo p, termPo val) {
-  return lnDebug(p, Ret, val, showRet);
 }
 
 DebugWaitFor lineDebug(processPo p, termPo line) {
@@ -1005,23 +1051,42 @@ DebugWaitFor enterDebug(processPo p) {
   insPo pc = f->pc;
   insWord ins = *pc++;
   switch (ins) {
-    case Call:
-      return callDebug(p, getMtdLit(f->prog, collect32(pc)));
+    case Call: {
+      return lnDebug(p, ins, getMtdLit(f->prog, collect32(pc)), showCall);
+    }
     case TCall:
       return tailDebug(p, getMtdLit(f->prog, collect32(pc)));
     case OCall: {
-      int32 arity = collect32(pc);
-      termPo callee = getLbl(*stackArg(stk, stk->fp, 0), arity);
-      return ocallDebug(p, callee);
+      return lnDebug(p, ins, getLbl(topStack(stk), collect32(pc)), showOCall);
     }
     case TOCall: {
-      int32 arity = collect32(pc);
-      termPo callee = getLbl(*stackArg(stk, stk->fp, 0), arity);
-      return otailDebug(p, callee);
+      return lnDebug(p, ins, getLbl(topStack(stk), collect32(pc)), showOTail);
     }
-    case Ret:
-      return retDebug(p, *stackArg(stk, stk->fp, 0));
-    default:
+    case Ret: {
+      return lnDebug(p, ins, topStack(stk), showRet);
+    }
+    case Prompt: {
+      termPo prompt = peekStack(stk, 1);
+      return lnDebug(p, ins, prompt, showPrompt);
+    }
+    case Cut: {
+      termPo prompt = peekStack(stk, 1);
+      return lnDebug(p, ins, prompt, showCut);
+    }
+    case Resume: {
+      termPo cont = topStack(stk);
+      return lnDebug(p, ins, cont, showResume);
+    }
+    case TResume: {
+      termPo cont = topStack(stk);
+      return lnDebug(p, ins, cont, showTResume);
+    }
+    case LdG: {
+      int32 glbNo = collect32(pc);
+      globalPo glb = findGlobalVar(glbNo);
+
+      return lnDebug(p, ins, (termPo)glb, showGlobal);
+    }  default:
       return stepOver;
   }
 }
