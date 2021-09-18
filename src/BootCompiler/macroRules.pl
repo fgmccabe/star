@@ -60,14 +60,13 @@ synthesize_main(Lc,Ts,As,[MainTp,Main|As]) :-
   roundTuple(Lc,[],Unit),
   binary(Lc,"=>",T3,Unit,TU),
   binary(Lc,":",name(Lc,"_main"),TU,MainTp).
-%  dispAst(Main),
-%  dispAst(MainTp).
+%  dispAst(Main).
   
 synthesize_coercions([],[],[]).
 synthesize_coercions([T|Ts],[V|Vs],[C|Cs]) :-
   locOfAst(T,Lc),
   genIden(Lc,V),
-  mkSSChars(Lc,V,VS),
+  unary(Lc,"chrs_",V,VS),
   coerce(Lc,VS,T,C),
   synthesize_coercions(Ts,Vs,Cs).
 

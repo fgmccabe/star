@@ -54,7 +54,8 @@ dispAst(app(_,name(_,Nm),tuple(_,"()",[A,B])),Pr,O,E) :-
 dispAst(app(_,Op,A),_,O,E) :- dispAst(Op,0,O,O1), dispAst(A,0,O1,E).
 
 isSSTrm(T) :-
-  isUnary(T,_,"chrs_",_).
+  isUnary(T,_,"chrs_",A),
+  isChars(A,_).
 isSSTrm(T) :-
   isBinary(T,_,"pair_",L,R),
   isSSTrm(L),

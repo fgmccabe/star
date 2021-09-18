@@ -354,12 +354,12 @@ fieldPresent(Fld,[_|Args],T) :-
   fieldPresent(Fld,Args,T).
 
 genAccessorEquation(Lc,ConsNm,Fld,FldTp,Tp,AllElTps,
-		    [equation(Lc,tple(Lc,[apply(Lc,
-						cons(Lc,ConsNm,
-						     consType(ArgTps,Tp)),
-						tple(Lc,ArgPtns),Tp)]),
-			      none,
-			      XX)|Eqns],Eqns) :-
+		    [rule(Lc,tple(Lc,[apply(Lc,
+					    cons(Lc,ConsNm,
+						 consType(ArgTps,Tp)),
+					    tple(Lc,ArgPtns),Tp)]),
+			  none,
+			  XX)|Eqns],Eqns) :-
   XX = v(Lc,"XX",FldTp),  
   fillinElementPtns([(Fld,XX)],Lc,AllElTps,ArgPtns,ArgTps).
 
@@ -389,12 +389,12 @@ genBraceAccessor(Lc,Q,Cx,ConNm,Tp,Fld,FldTp,Tp,AllElTps,
   XX = v(Lc,"XX",FldTp),  
   fillinElementPtns([(Fld,XX)],Lc,AllElTps,ArgPtns,ArgTps),
   AccDef = accDec(Tp,Fld,AccName,AccFunTp),
-  Eqn=equation(Lc,tple(Lc,[apply(Lc,
-				 cons(Lc,ConNm,
-				      consType(ArgTps,Tp)),
-				 tple(Lc,ArgPtns),Tp)]),
-	       none,
-	       XX).
+  Eqn=rule(Lc,tple(Lc,[apply(Lc,
+			     cons(Lc,ConNm,
+				  consType(ArgTps,Tp)),
+			     tple(Lc,ArgPtns),Tp)]),
+	   none,
+	   XX).
 
 genBraceType(Lc,Tp,Defs,Dfx,Env,Ev) :-
   moveQuants(Tp,_Q,In),

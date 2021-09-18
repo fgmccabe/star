@@ -240,7 +240,7 @@ isCandidate(Args,Env,Eqn,(E1,SCond,SVal)) :-
   genVars(FV,Q),
   pushBindings(Q,Env,E0),
   rewriteTerm(lamdba(_,Eqn,G,_),E0,
-	      lamdba(_,equation(Lc,EArgs,EG,ECond,EVal),_)),
+	      lamdba(_,rule(Lc,EArgs,EG,ECond,EVal),_)),
   matchTerm(EArgs,Args,E0,E1),
   rewriteGuard(ECond,E1,SCond),
   rewriteTerm(EVal,E1,SVal).
