@@ -8,7 +8,7 @@ test.cns{
   remove(cons(H,T),K) => cons(H,remove(T,K)).
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     assert remove([1,2,3],2) == [1,3]
   }
 }

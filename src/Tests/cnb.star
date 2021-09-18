@@ -1,12 +1,11 @@
 test.cnb{
-  import star.core.
-  import star.arith.
-  import test.cn2.
+  import star.
+  import star.script.
 
   public factU:(integer)=>integer.
   factU(N) => valof do{
-    I := 1;
-    R := 1;
+    I .= ref 1;
+    R .= ref 1;
 
     do{
       R := R!*I!;
@@ -26,16 +25,10 @@ test.cnb{
     factFF(F+1,T,S*F)
   }
   
-  _main:(cons[string])=>().
-  _main(cons(A,.nil)) =>
-    valof main(A).
-
-  main:(string)=>action[(),()].
-  main(T) => action{
-    _ .= factU(6);
-    _ .= factF(6);
-    logM(T);
-    valis ()
+  main:()=>action[(),()].
+  main() => action{
+    show factU(6);
+    show factF(6)
   }
 }
   

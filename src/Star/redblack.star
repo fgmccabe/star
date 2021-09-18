@@ -4,7 +4,6 @@ star.redblack{
   import star.arith.
   import star.collection.
   import star.cons.
-  import star.display.
   import star.ideal.
   import star.index.
   import star.iterable.
@@ -140,7 +139,7 @@ star.redblack{
   dispTree:all k,v ~~ display[k], display[v] |: (rbtree[k,v])=>string.
   dispTree(.leaf)=>"leaf".
   dispTree(.bleaf)=>"bleaf".
-  dispTree(node(Cl,K,V,L,R)) => "(#(Cl) #(dispTree(L))\:$(disp(K))->$(V)\:#(dispTree(R)))".
+  dispTree(node(Cl,K,V,L,R)) => "($(Cl) #(dispTree(L))\:$(disp(K))->$(V)\:#(dispTree(R)))".
 
   public validRb:all k,v ~~ (rbtree[k,v])=>boolean.
   validRb(T) => validReds(T) && allSame(blackHeights(T,0,[])).

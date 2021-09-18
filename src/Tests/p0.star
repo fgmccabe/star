@@ -16,12 +16,10 @@ test.p0{
 
   aa = parse(_item,([0]:cons[integer])).
 
-  bb = disp(aa).
-
   main:() => action[(),()].
-  main() => do{
-    show bb::string;
+  main() => action{
+    show aa;
 
-    show disp(parse(_item,([0]:cons[integer])))::string
+    show parse(_item,([0]:cons[integer]))
   }
 }

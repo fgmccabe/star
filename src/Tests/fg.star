@@ -1,10 +1,13 @@
 test.fg{
   import star.
+  import star.script.
   import test.fact.
 
-  public _main:(cons[string])=>().
-  _main([F,.._]) where Fn.=F::integer => valof action{
-    logMsg("Fact of $(Fn) is $(fact(Fn))").
+  public _main:(cons[chars])=>().
+  _main(_) => valof main(5).
+  
+  public main:(integer)=>action[(),()].
+  main(F) => action{
+    show fact(F)
   }
-  _main([]) => ().
 }

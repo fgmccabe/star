@@ -33,17 +33,17 @@ test.qs{
   ff = { fact(X) | X in someInts && X>=0}
  
   main:() => action[(),()].
-  main() => do{
-    show "parent = $(parent)";
-    show "$(gp)";
+  main() => action{
+    show parent;
+    show gp;
 
-    show "ff = $(ff)";
+    show ff;
 
     assert size(parent)==10;
 
-    show "$(pp)";
+    show pp;
 
-    show "$(pos)";
-    show "pm=$(pm)"
+    show pos;
+    show pm
   }
 }

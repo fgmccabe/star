@@ -5,7 +5,7 @@ test.pk{
   import star.script.
 
   main:() => action[(),()].
-  main() => do{
+  main() => action{
     show __pkg__;
 
     assert __pkg__ == "test.pk"

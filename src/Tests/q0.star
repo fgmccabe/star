@@ -22,15 +22,15 @@ test.q0{
   pos = { X | X in someInts && X>0 }.
 
   main:() => action[(),()].
-  main() => do{
-    show "$(parent)";
+  main() => action{
+    show parent;
 
     assert size(parent)==10;
 
-    show "$(gp)";
+    show gp;
 
-    show "$(pp)";
+    show pp;
 
-    show "$(pos)"
+    show pos
   }
 }

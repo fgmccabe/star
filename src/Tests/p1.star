@@ -45,10 +45,10 @@ test.p1{
   digit() => _sat(isDigit).
 
   main:() => action[(),()].
-  main() => do{
+  main() => action{
     assert parse(p,[1,2,3]) == [((1,3),[])];
 
-    show disp(parse(a,"1"::cons[integer]))::string;
+    show parse(a,"1"::cons[integer]);
 
     assert parse(q,[0c(,0c)]) == [((),[])];
 
@@ -56,7 +56,7 @@ test.p1{
 
     assert listMem((([(),()]:cons[()]),[]),parse(_plus(_str("a")),"aa"::cons[integer]));
 
-    show disp(parse(_star(_str("a")),"aab"::cons[integer]))::string;
+    show parse(_star(_str("a")),"aab"::cons[integer]);
 
     assert listMem((([(),()]),[0cb]),parse(_star(_str("a")),"aab"::cons[integer]));
 
