@@ -47,6 +47,10 @@ mnem([iLocal(Nm,Frm,End,Off)|Ins],Lbs,Lt,Lts,Lc,Lcx,Ln,Lnx,Pc,Pcx,Ends,Code,Cdx)
     mkTpl([strg(Nm),intgr(F),intgr(T),intgr(Off)],Entry),
     (is_member(Entry,Lc)->Lc0=Lc;Lc0=[Entry|Lc]),
     mnem(Ins,Lbs,Lt,Lts,Lc0,Lcx,Ln,Lnx,Pc,Pcx,Ends,Code,Cdx).
+mnem([iLine(Loc)|Ins],Lbs,Lt,Lts,Lc,Lcx,Lns,Lnx,Pc,Pcx,Ends,Code,Cdx) :-
+    mkTpl([Loc,intgr(Pc)],LneEntry),
+    (is_member(LneEntry,Lns) -> Lns1 = Lns; Lns1=[LneEntry|Lns]),
+    mnem([iDLine(Loc)|Ins],Lbs,Lt,Lts,Lc,Lcx,Lns1,Lnx,Pc,Pcx,Ends,Code,Cdx).
 mnem([iHalt(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,Pcx,Ends,[0,V|M],Cdx) :- Pc1 is Pc+3,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).
 mnem([iAbort|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,Pcx,Ends,[1|M],Cdx) :- Pc1 is Pc+1,
@@ -253,6 +257,7 @@ genLblTbl([iLbl(Lbl)|Ins],Pc,Pcx,Lbls,Lbx) :-
   defineLbl(Lbl,Pc,Lbls,Lbli),
   genLblTbl(Ins,Pc,Pcx,Lbli,Lbx).
 genLblTbl([iLocal(_,_,_,_)|Ins],Pc,Pcx,Lbls,Lbx) :- genLblTbl(Ins,Pc,Pcx,Lbls,Lbx).
+genLblTbl([iLine(Lc)|Ins],Pc,Pcx,Lbls,Lbx) :- genLblTbl([iDLine(Lc)|Ins],Pc,Pcx,Lbls,Lbx).
 genLblTbl([iHalt(_A)|Ins],Pc,Pcx,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Pcx,Lbls,Lbx).
 genLblTbl([iAbort|Ins],Pc,Pcx,Lbls,Lbx) :- !, Pc1 is Pc+1,  genLblTbl(Ins,Pc1,Pcx,Lbls,Lbx).
 genLblTbl([iCall(_A)|Ins],Pc,Pcx,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Pcx,Lbls,Lbx).
@@ -372,6 +377,10 @@ showMnem([iLbl(Lb)|Ins],Pc,Lbs,[sq([ss(Lb),ss(":")])|II]) :-
   showMnem(Ins,Pc,[(Lb,Pc)|Lbs],II).
 showMnem([iLocal(Nm,Frm,End,_Off)|Ins],Pc,Lbs,[sq([ss(Nm),ss("::"),ss(Frm),ss("-"),ss(End)])|II]) :-
   showMnem(Ins,Pc,Lbs,II).
+showMnem([iLine(Loc)|Ins],Pc,Lbs,[sq([ss("Line "),LL])|II]) :-
+  ssTrm(Loc,0,LL),
+  Pc1 is Pc+3,
+  showMnem(Ins,Pc1,Lbs,II).
 showMnem([iHalt(U)|Ins],Pc,Lbls,[sq([ix(Pc),ss(":"),ss("Halt"), ss(" "), UU])|II]) :- !,
   Pc0 is Pc+1,
   UU=ix(U),
