@@ -102,7 +102,8 @@ star.compiler.assem{
     .idBreak |
 
     iLbl(assemLbl) |
-    iLocal(string,string,string,integer).
+    iLocal(string,string,string,integer) |
+    iLine(term).
 
   public assemLbl ::= al(string).
 
@@ -141,6 +142,8 @@ star.compiler.assem{
     F ^= Lbls[Frm] &&
     T ^= Lbls[End] =>
     mnem(Ins,Code,Lbls,Lts,Lns,Lcs\+mkTpl([strg(Nm),intgr(F),intgr(T),intgr(Off)]),Pc,MxLcl,Ends).
+  mnem([iLine(Lc),..Ins],Code,Lbs,Lts,Lns,Lcs,Pc,MxLcl,Ends) =>
+        mnem([idLine(Lc),..Ins],Code,Lbs,Lts,Lns[mkTpl([Lc,intgr(Pc)])->Pc],Lcs,Pc,MxLcl,Ends).
   mnem([iHalt(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(0),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
   mnem([.iAbort,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(1)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
   mnem([iCall(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (Lt1,LtNo) .= findLit(Lts,symb(U)) => mnem(Ins,Code++[intgr(2),intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).
@@ -227,6 +230,7 @@ star.compiler.assem{
     genLblTbl(Ins,Pc,Lbls[Lbl->Pc]).
   genLblTbl([iLocal(_,_,_,_),..Ins],Pc,Lbls) =>
     genLblTbl(Ins,Pc,Lbls).
+  genLblTbl([iLine(T),..Ins],Pc,Lbs) => genLblTbl([idLine(T),..Ins],Pc,Lbs).
   genLblTbl([iHalt(A),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([.iAbort,..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+1,Lbls).
   genLblTbl([iCall(A),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).

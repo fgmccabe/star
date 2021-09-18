@@ -24,7 +24,8 @@ star.compiler.assem{
   public assemOp ::=
 #(OpCodes)
     iLbl(assemLbl) |
-    iLocal(string,string,string,integer).
+    iLocal(string,string,string,integer) |
+    iLine(term).
 
   public assemLbl ::= al(string).
 
@@ -63,6 +64,8 @@ star.compiler.assem{
     F ^= Lbls[Frm] &&
     T ^= Lbls[End] =>
     mnem(Ins,Code,Lbls,Lts,Lns,Lcs\+mkTpl([strg(Nm),intgr(F),intgr(T),intgr(Off)]),Pc,MxLcl,Ends).
+  mnem([iLine(Lc),..Ins],Code,Lbs,Lts,Lns,Lcs,Pc,MxLcl,Ends) =>
+        mnem([idLine(Lc),..Ins],Code,Lbs,Lts,Lns[mkTpl([Lc,intgr(Pc)])->Pc],Lcs,Pc,MxLcl,Ends).
 #(Mnem)
 
   genLblTbl:(cons[assemOp],integer,map[string,integer]) => (integer,map[string,integer]).
@@ -71,6 +74,7 @@ star.compiler.assem{
     genLblTbl(Ins,Pc,Lbls[Lbl->Pc]).
   genLblTbl([iLocal(_,_,_,_),..Ins],Pc,Lbls) =>
     genLblTbl(Ins,Pc,Lbls).
+  genLblTbl([iLine(T),..Ins],Pc,Lbs) => genLblTbl([idLine(T),..Ins],Pc,Lbs).
 #(Lbls)
 
   findEnd:(cons[integer],integer)=>integer.
