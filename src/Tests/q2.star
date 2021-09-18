@@ -11,7 +11,7 @@ test.q2{
   pm = [X | (X,Y) in parent && "ab".=Y] .
 
   main:() => action[(),()].
-  main() => do{
+  main() => action{
     show pm
   }
 }

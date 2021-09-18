@@ -1,5 +1,8 @@
 {
   "content": {
+    "test.ac0": "ac0.star",
+    "test.cn0": "cn0.star",
+    "test.cn1": "cn1.star",
     "star.core0" : "core0.star",
     "test.aa": "aa.star",
     "test.disp" : "disp.star",
@@ -8,6 +11,7 @@
     "test.fog": "fog.star",
     "test.o": "o.star",
     "test.ralist" : "ralist.star",
+    "test.sy0": "sy0.star",
     "test.sy1": "sy1.star",
     "test.record": "record.star"
   },

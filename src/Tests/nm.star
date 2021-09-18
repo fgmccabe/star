@@ -8,7 +8,7 @@ test.nm{
   first([(E,_),.._])=>some(E).
 
   main:() => action[(),()].
-  main() => do{
+  main() => action{
     show first(parse(real(),"34.56e10"::cons[integer]));
 
     assert 34.56e10 ^= first(parse(real(),"34.56e10"::cons[integer]));
@@ -19,18 +19,19 @@ test.nm{
     show first(parse(real(),"34"::cons[integer]));
     show first(parse(real(),"-34"::cons[integer]));
 
-    show optInt(^first(parse(real(),"-34"::cons[integer])));
+    show optInt(first(parse(real(),"-34"::cons[integer])));
     
-    assert -34 ^= optInt(^first(parse(real(),"-34"::cons[integer])));
+    assert -34 ^= optInt(first(parse(real(),"-34"::cons[integer])));
 
-    assert XX ^= optInt(^first(parse(real(),"-34"::cons[integer]))) && XX==-34;
+    assert XX ^= optInt(first(parse(real(),"-34"::cons[integer]))) && XX==-34;
 
-    assert XX ^= optInt(^first(parse(real(),"-34"::cons[integer]))) && -XX==34;
+    assert XX ^= optInt(first(parse(real(),"-34"::cons[integer]))) && -XX==34;
 
-    show disp(first(parse(decimal,"-34"::cons[integer])))
+    show first(parse(decimal,"-34"::cons[integer]))
   }
   
-  optInt:(float)=>option[integer].
-  optInt(F) => some(F::integer).
+  optInt:(option[float])=>option[integer].
+  optInt(some(F)) => some(F::integer).
+  optInt(.none) => .none.
 
 }

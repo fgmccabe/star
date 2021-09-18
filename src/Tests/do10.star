@@ -6,15 +6,15 @@ test.do10{
     wi : string.
   }
 
-  handle:(cons[string],pp)=>action[(),()].
+  handle:(cons[string],pp)=>result[(),()].
   handle(_,X) => do{
     logMsg(X.ri)
   }
 
-  public _main:(cons[string])=>().
+  public _main:(cons[chars])=>().
   _main(Args) => valof action{
     RI ^= some("fred");
     WI ^=  some("file:");
-    handle(Args,pp{ ri=RI. wi=WI. })
+    handle(Args//((C)=>chrs_(C)),pp{ ri=RI. wi=WI. })
   }
 }

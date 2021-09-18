@@ -4,7 +4,7 @@ test.ech0{
   public _main(L) =>
     logStrs(L).
 
-  logMsg:(string)=>().
+  logMsg:(chars)=>().
   logMsg(M) where _ .= _logmsg(M) =>().
   
 

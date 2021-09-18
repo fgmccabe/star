@@ -50,7 +50,7 @@ test.rb0{
   unzip(L,Ix,Inc,T0) => snd(foldLeft((E,(I,T))=>(I+Inc,T[~I]),(Ix,T0),L)).
 
   main:()=>action[(),()].
-  main()=>do{
+  main()=>action{
     show t9;
     assert size(t9)==9;
     show a1;
@@ -79,11 +79,11 @@ test.rb0{
 
     assert chek(letters,0,1,(Ix,V)=>V^=aa0[Ix]);
 
-    for K->V in u1 do{
+/*    for K->V in u1 do{
       show K->V
     };
-    
-    show dumpTree(u1);
+  */  
+    show u1;
     assert validRb(u1);
 
     show u1[~12];

@@ -9,12 +9,12 @@ test.pr{
 
   mkPr(Nm,Rl) =>
     pr{.
-      name := Nm.
+      name = ref Nm.
       role = Rl
     .}
 
   main:()=>action[(),()].
-  main() => do{
+  main() => action{
     joe .= mkPr("fred","janitor");
 
     show joe.name!;

@@ -6,7 +6,7 @@ test.do11{
 
   locOf(foo(L,_)) => L.
 
-  multiWhr:(foo)=>action[(),integer].
+  multiWhr:(foo)=>result[(),integer].
   multiWhr(X where foo(_,_).=X) where V .= locOf(X) => do{
     logMsg("$(V)");
     valis V

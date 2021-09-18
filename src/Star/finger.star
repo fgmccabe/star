@@ -280,15 +280,15 @@ star.finger{
   }
 
   public implementation all e ~~ display[e] |: display[fingerTree[e]] => {.
-    disp(T) => ssSeq([ss("["),reform(dispTree(T,(x,L)=>cons(disp(x),L),.nil)),ss("]")]).
+    disp(T) => "[#(reform(dispTree(T,(x,L)=>cons(disp(x),L),.nil)))]".
   .}
 
-  reform:(cons[ss]) => ss.
-  reform(.nil) => ss("").
+  reform:(cons[string]) => string.
+  reform(.nil) => "".
   reform(cons(x,.nil)) => x.
-  reform(cons(x,y)) => ssSeq([x,ss(","),reform(y)]).
-
-  dispTree:all e ~~ (fingerTree[e],(e,cons[ss])=>cons[ss],cons[ss]) => cons[ss].
+  reform(cons(x,y)) => pair_(",",reform(y)).
+  
+  dispTree:all e ~~ (fingerTree[e],(e,cons[string])=>cons[string],cons[string]) => cons[string].
   dispTree(.eTree,_,L) => L.
   dispTree(single(x),d,L) => d(x,L).
   dispTree(deep(_,Lft,Md,Rgt),d,L) =>
@@ -296,7 +296,7 @@ star.finger{
       dispTree(Md,(N,LL)=>dispNode(N,d,LL),
 	dispDigits(Rgt,d,L))).
 
-  dispDigits:all e ~~ (digit[e],(e,cons[ss])=>cons[ss],cons[ss]) => cons[ss].
+  dispDigits:all e ~~ (digit[e],(e,cons[string])=>cons[string],cons[string]) => cons[string].
   dispDigits(one(x),d,L) => d(x,L).
   dispDigits(two(x,y),d,L) => d(x,d(y,L)).
   dispDigits(three(x,y,z),d,L) => 
@@ -307,7 +307,7 @@ star.finger{
 	d(z,
 	  d(u,L)))).
 
-  dispNode:all e ~~ (node[e],(e,cons[ss])=>cons[ss],cons[ss]) => cons[ss].
+  dispNode:all e ~~ (node[e],(e,cons[string])=>cons[string],cons[string]) => cons[string].
   dispNode(node2(_,x,y),d,L) => d(x,d(y,L)).
   dispNode(node3(_,x,y,z),d,L) => 
     d(x,d(y,d(z,L))).

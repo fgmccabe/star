@@ -11,10 +11,10 @@ test.fn{
     assert "one"^=head(S);
     assert "ten"^=last(S);
 
-    show disp(S);
-    show disp(lead(S));
-    show disp(last(S));
-    show disp(head(S));
-    show disp(tail(S))
+    show S;
+    show lead(S);
+    show last(S);
+    show head(S);
+    show tail(S)
   }
 }
