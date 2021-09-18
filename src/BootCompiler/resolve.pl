@@ -7,6 +7,7 @@
 :- use_module(freshen).
 :- use_module(canon).
 :- use_module(unify).
+:- use_module(location).
 
 overload(Lc,Defs,Dict,RDict,RDefs) :-
   declareAccessors(Lc,Defs,Dict,RDict),
@@ -28,8 +29,8 @@ overloadFunction(Lc,Nm,ExtNm,H,Tp,Cx,Eqns,Dict,funDef(Lc,Nm,ExtNm,H,Tp,[],REqns)
 overloadEquations(Eqns,Dict,Extra,REqns) :-
   overloadList(Eqns,overloadEquation(Extra),Dict,REqns).
 
-overloadEquation(Extra,equation(Lc,Args,G,Exp),Dict,
-		 equation(Lc,RArgs,RG,RExp)) :-
+overloadEquation(Extra,rule(Lc,Args,G,Exp),Dict,
+		 rule(Lc,RArgs,RG,RExp)) :-
   resolveTerm(Args,Dict,RA),
   addExtra(Extra,RA,RArgs),
   resolveGuard(G,Dict,RG),
@@ -40,15 +41,15 @@ resolveGuard(some(G),Dict,some(RG)) :-
   resolveTerm(G,Dict,RG).
 
 % These are used when resolving lambdas only. A lambda cannot introduce any dictionary variables
-overloadRule(equation(Lc,Args,G,Exp),Dict,St,Stx,equation(Lc,RArgs,RG,RExp)) :-
+overloadRule(Over,rule(Lc,Args,G,Exp),Dict,St,Stx,rule(Lc,RArgs,RG,RExp)) :-
   overloadTerm(Args,Dict,St,St0,RArgs),
   overloadGuard(G,Dict,St0,St1,RG),
-  overloadTerm(Exp,Dict,St1,Stx,RExp).
+  call(Over,Exp,Dict,St1,Stx,RExp).
 
 overloadDefn(Lc,Nm,ExtNm,[],Tp,Exp,Dict,varDef(Lc,Nm,ExtNm,[],Tp,RExp)) :-
   resolveTerm(Exp,Dict,RExp).
 overloadDefn(Lc,Nm,ExtNm,Cx,Tp,Exp,Dict,varDef(Lc,Nm,ExtNm,[],Tp,
-    lambda(Lc,Lbl,equation(Lc,tple(Lc,CVars),none,RExp),OTp))) :-
+    lambda(Lc,Lbl,rule(Lc,tple(Lc,CVars),none,RExp),OTp))) :-
   defineCVars(Lc,Cx,Dict,CVars,FDict),
   contractTypes(Cx,Tps),
   makeContractFunType(Tp,Tps,OTp),
@@ -154,7 +155,7 @@ overloadTerm(search(Lc,P,S,I),Dict,St,Stx,search(Lc,RP,RS,RI)) :-
   overloadTerm(I,Dict,St1,Stx,RI).
 overloadTerm(case(Lc,B,C,Tp),Dict,St,Stx,case(Lc,RB,RC,Tp)) :-
   overloadTerm(B,Dict,St,St0,RB),
-  overloadCases(C,Dict,St0,Stx,RC).
+  overloadCases(C,resolve:overloadTerm,Dict,St0,Stx,RC).
 overloadTerm(abstraction(Lc,B,C,Zed,Gen,Tp),
 	     Dict,St,Stx,abstraction(Lc,RB,RC,RZed,RGen,Tp)) :-
   overloadTerm(B,Dict,St,St0,RB),
@@ -185,7 +186,7 @@ overloadTerm(mtd(Lc,Nm,Tp),_,St,Stx,mtd(Lc,Nm,Tp)) :-
   genMsg("cannot find implementation for %s",[Nm],Msg),
   markActive(St,Lc,Msg,Stx).
 overloadTerm(lambda(Lc,Lbl,Eqn,Tp),Dict,St,Stx,lambda(Lc,Lbl,OEqn,Tp)) :-
-  overloadRule(Eqn,Dict,St,Stx,OEqn).
+  overloadRule(resolve:overloadTerm,Eqn,Dict,St,Stx,OEqn).
 overloadTerm(tag(Lc,Tp),_,St,St,tag(Lc,Tp)).
 overloadTerm(prompt(Lc,Lb,E,Tp),Dict,St,Stx,prompt(Lc,LL,EE,Tp)) :-
   overloadTerm(Lb,Dict,St,St0,LL),
@@ -221,8 +222,8 @@ overloadMethod(ALc,Lc,T,Cx,Args,Tp,Dict,St,Stx,apply(ALc,OverOp,tple(LcA,NArgs),
   overloadTerm(Args,Dict,St1,St2,tple(LcA,RArgs)),
   overloadRef(Lc,T,DTerms,RArgs,OverOp,Dict,St2,Stx,NArgs).
 
-overloadCases(Cses,Dict,St,Stx,RCases) :-
-  overloadLst(Cses,resolve:overloadRule,Dict,St,Stx,RCases).
+overloadCases(Cses,Resolver,Dict,St,Stx,RCases) :-
+  overloadLst(Cses,resolve:overloadRule(Resolver),Dict,St,Stx,RCases).
 
 overloadAction(noDo(Lc),_,St,St,noDo(Lc)).
 overloadAction(seqDo(Lc,A,B),Dict,St,Stx,seqDo(Lc,RA,RB)) :-
@@ -271,7 +272,7 @@ overloadAction(resumeDo(Lc,K,A,Tp),Dict,St,Stx,resumeDo(Lc,RK,RA,Tp)) :-
 ,Stx,RA).
 overloadAction(caseDo(Lc,Exp,Cses),Dict,St,Stx,caseDo(Lc,RExp,RCases)) :-
   overloadTerm(Exp,Dict,St,St0,RExp),
-  overloadCases(Cses,Dict,St0,Stx,RCases).
+  overloadCases(Cses,resolve:overloadAction,Dict,St0,Stx,RCases).
 
 overloadActions([],_,St,St,[]).
 overloadActions([A|As],Dict,St,Stx,[RA|RAs]) :-
@@ -284,12 +285,13 @@ overApply(Lc,OverOp,Args,Tp,Lam) :-
   curryOver(Lc,OverOp,Args,Tp,Lam).
 
 curryOver(Lc,OverOp,Cx,Tp,
-    lambda(Lc,Lbl,equation(Lc,tple(Lc,Args),none,
+    lambda(Lc,Lbl,rule(Lc,tple(Lc,Args),none,
           apply(Lc,OverOp,tple(Lc,NArgs),Tp)),funType(tplType(ArTps),Tp))) :-
   progArgTypes(Tp,ArTps),
   genVrs(ArTps,Lc,Args),
   concat(Cx,Args,NArgs),
-  lambdaLbl("","curry",Lbl).
+  lcPk(Lc,Path),
+  lambdaLbl(Path,"curry",Lbl).
 
 genVrs([],_,[]).
 genVrs([Tp|ArTps],Lc,[v(Lc,Id,Tp)|Vrs]) :-

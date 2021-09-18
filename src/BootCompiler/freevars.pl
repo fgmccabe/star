@@ -104,9 +104,9 @@ freeActionVars(forDo(_,G,B),Ex,Ex,Q,F,Fv) :-
   ptnGoalVars(G,Ex,E1),
   freeVars(G,E1,Q,F,F0),
   freeActionVars(B,E1,_,Q,F0,Fv).
-freeActionVars(caseDo(_,Gov,Cses,_,_),Ex,Ex,Q,F,Fv) :-
+freeActionVars(caseDo(_,Gov,Cses),Ex,Ex,Q,F,Fv) :-
   freeVars(Gov,Ex,Q,F,F0),
-  freeVarsInRules(Cses,Ex,_,Q,F0,Fv).
+  varsInList(Cses,freevars:freeVarsInActionRule(Ex,Q),F0,Fv).
 freeActionVars(tryCatchDo(_,A,H),Ex,Ex,Q,F,Fv) :-
   freeActionVars(A,Ex,_,Q,F,F0),
   freeVars(H,Ex,Q,F0,Fv).
@@ -128,6 +128,17 @@ freeActionVars(resumeDo(_,K,A,_),Ex,Ex,Q,F,Fv) :-
   freeVars(K,Ex,Q,F,F0),
   freeVars(A,Ex,Q,F0,Fv).
 freeActionVars(noDo(_),Ex,Ex,_Q,Fv,Fv).
+
+freeVarsInActionRule(Ex,Q,rule(_,H,none,Act),F,Fv) :-
+  ptnVars(H,Ex,Ex1),
+  freeVars(H,Ex1,Q,F,F0),
+  freeActionVars(Act,Ex1,_,Q,F0,Fv).
+freeVarsInActionRule(Ex,Q,rule(_,H,some(Cond),Act),F,FV) :-
+  ptnVars(H,Ex,Ex1),
+  ptnGoalVars(Cond,Ex1,Ex2),
+  freeVars(H,Ex2,Q,F,F0),
+  freeActionVars(Act,Ex2,Q,F0,F1),
+  freeVars(Cond,Ex2,_,Q,F1,FV).
   
 definedVars(Defs,Q,Qx) :-
   varsInList(Defs,freevars:defVar,Q,Qx).
@@ -152,11 +163,11 @@ freeVarsInDef(_,_,_,F,F).
 freeVarsInRules(Eqns,Ex,Q,F,Fv) :-
   varsInList(Eqns,freevars:freeVarsInRule(Ex,Q),F,Fv).
 
-freeVarsInRule(Ex,Q,equation(_,H,none,Exp),F,FV) :-!,
+freeVarsInRule(Ex,Q,rule(_,H,none,Exp),F,FV) :-!,
   ptnVars(H,Ex,Ex1),
   freeVars(H,Ex1,Q,F,F0),
   freeVars(Exp,Ex1,Q,F0,FV).
-freeVarsInRule(Ex,Q,equation(_,H,some(Cond),Exp),F,FV) :-
+freeVarsInRule(Ex,Q,rule(_,H,some(Cond),Exp),F,FV) :-
   ptnVars(H,Ex,Ex1),
   ptnGoalVars(Cond,Ex1,Ex2),
   freeVars(H,Ex2,Q,F,F0),

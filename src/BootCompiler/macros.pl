@@ -436,7 +436,7 @@ macroOpt(some(A),C,some(Ax)) :-
   call(C,A,Ax).
 
 macroLambda(A,Ax) :-
-  macroAst(A,equation,macros:examineLambda,Ax).
+  macroAst(A,rule,macros:examineLambda,Ax).
 
 examineLambda(S,Rp) :-
   isEquation(S,Lc,P,G,V),!,
@@ -560,6 +560,8 @@ examineAction(A,Ax) :-
   isBraceTuple(A,Lc,[S]),!,
   macroAction(S,Sx),
   braceTuple(Lc,[Sx],Ax).
+examineAction(A,A) :-
+  isBraceTuple(A,_,[]),!.
 examineAction(A,Ax) :-
   isMatch(A,Lc,L,R),!,
   macroPtn(L,Lx),
@@ -643,7 +645,7 @@ examineAction(A,Ax) :-
 examineAction(T,Tx) :-
   isCaseExp(T,Lc,E,C),!,
   macroTerm(E,Ex),
-  map(C,macros:macroLambda,Cx),
+  map(C,macros:examineActionCase,Cx),
   caseExp(Lc,Ex,Cx,Tx).
 examineAction(A,Ax) :-
   isRoundTerm(A,Lc,O,D),!,
@@ -653,6 +655,13 @@ examineAction(A,Ax) :-
 examineAction(T,T) :-
   locOfAst(T,Lc),
   reportError("cannot figure out action %s",[ast(T)],Lc).
+
+examineActionCase(A,Ax) :-
+  isEquation(A,Lc,P,G,V),!,
+  macroHead(P,PP),
+  macroOpt(G,macros:macroTerm,GG),
+  macroAction(V,VV),
+  mkEquation(Lc,PP,GG,VV,Ax).
 
 macroKey(name(_,Nm),Nm).
 macroKey(qnm(_,Nm),Nm).

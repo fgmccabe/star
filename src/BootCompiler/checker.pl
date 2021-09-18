@@ -352,7 +352,7 @@ checkVarRules(N,Lc,Stmts,E,Ev,Defs,Dx,Face,Path) :-
 %  reportMsg("type of %s:%s",[N,ProgramType]).
 
 formDefn([Eqn|Eqns],Nm,LclNm,Env,Ev,Tp,Cx,[funDef(Lc,Nm,LclNm,hard,Tp,Cx,[Eqn|Eqns])|Dx],Dx) :-
-  Eqn = equation(Lc,_,_,_),
+  Eqn = rule(Lc,_,_,_),
   declareVr(Lc,Nm,Tp,Env,Ev).
 formDefn([varDef(Lc,_,_,_,_,Value)],Nm,LclNm,Env,Ev,Tp,Cx,
     [varDef(Lc,Nm,LclNm,Cx,Tp,Value)|Dx],Dx) :-
@@ -365,7 +365,7 @@ processStmts([St|More],ProgramType,Defs,Dx,Df,Dfx,E0,Path) :-
 
 processStmt(St,ProgramType,Defs,Defx,Df,Dfx,E,Path) :-
   isEquation(St,Lc,L,Cond,R),!,
-%  reportMsg("check equation %s",[St],Lc),
+%  reportMsg("check rule %s",[St],Lc),
   checkEquation(Lc,L,Cond,R,ProgramType,Defs,Defx,Df,Dfx,E,Path).
 processStmt(St,Tp,[Def|Defs],Defs,Df,Df,Env,Path) :-
   isDefn(St,Lc,L,R),
@@ -410,11 +410,11 @@ checkEquation(Lc,H,C,R,funType(AT,RT),Defs,Defsx,Df,Dfx,E,Path) :-
   typeOfArgPtn(A,AT,ErTp,Env,E0,Args,Path),
   checkGuard(C,ErTp,E0,E1,Guard,Path),
   typeOfExp(R,RT,ErTp,E1,_E2,Exp,Path),
-  Eqn = equation(Lc,Args,Guard,Exp),
-%  reportMsg("equation %s",[Eqn],Lc),
+  Eqn = rule(Lc,Args,Guard,Exp),
+%  reportMsg("rule %s",[Eqn],Lc),
   (IsDeflt=isDeflt -> Defs=Defsx, Df=[Eqn|Dfx]; Defs=[Eqn|Defsx],Df=Dfx).
 checkEquation(Lc,_,_,_,ProgramType,Defs,Defs,Df,Df,_,_) :-
-  reportError("equation not consistent with expected type: %s",[ProgramType],Lc).
+  reportError("rule not consistent with expected type: %s",[ProgramType],Lc).
 
 checkDefn(Lc,L,R,Tp,varDef(Lc,Nm,ExtNm,[],Tp,Value),Env,Path) :-
   isIden(L,_,Nm),
@@ -855,7 +855,7 @@ typeOfRoundTerm(Lc,F,A,Tp,ErTp,Env,apply(Lc,Fun,Args,Tp),Path) :-
    Args = tple(Lc,[])).
 %   reportMsg("after type of %s:%s (%s)",[F,FnTp,Tp]).
 
-typeOfLambda(Term,Tp,Env,lambda(Lc,Lbl,equation(Lc,Args,Guard,Exp),Tp),Path) :-
+typeOfLambda(Term,Tp,Env,lambda(Lc,Lbl,rule(Lc,Args,Guard,Exp),Tp),Path) :-
 %  reportMsg("expected type of lambda %s = %s",[Term,Tp]),
   isEquation(Term,Lc,H,C,R),
   newTypeVar("_A",AT),
@@ -880,7 +880,7 @@ typeOfPrompt(Lc,L,P,Tp,ErTp,Env,prompt(Lc,Lb,Lam,Tp),Path) :-
   dispType(TTp),
   typeOfExp(P,Tp,ErTp,Env,_,Exp,Path),
   lambdaLbl(Path,"ç",Lbl),
-  Lam = lambda(Lc,Lbl,equation(Lc,tple(Lc,[]),none,Exp),
+  Lam = lambda(Lc,Lbl,rule(Lc,tple(Lc,[]),none,Exp),
 	       funType(tplType([]),Tp)).
 
 typeOfCut(Lc,L,Lhs,Rhs,Tp,ErTp,Env,shift(Lc,Lb,Lam),Path) :-
@@ -897,7 +897,7 @@ typeOfCut(Lc,L,Lhs,Rhs,Tp,ErTp,Env,shift(Lc,Lb,Lam),Path) :-
   dispType(Ct),
   typeOfExp(Rhs,Ct,ErTp,E0,_,Exp,Path),
   lambdaLbl(Path,"ç",Lbl),
-  Lam = lambda(Lc,Lbl,equation(Lc,tple(Lc,[V]),none,Exp),
+  Lam = lambda(Lc,Lbl,rule(Lc,tple(Lc,[V]),none,Exp),
 	       funType(tplType([KType]),Rt)),
   dispCanon(Lam).
 
@@ -931,7 +931,7 @@ typeOfActionExp(Lc,Stmts,Tp,Env,Action,Path) :-
   Action = apply(Lc,ActFn,
 		 tple(Lc,
 		      [lambda(Lc,LamLbl,
-			      equation(Lc,tple(Lc,[]),none,Act),
+			      rule(Lc,tple(Lc,[]),none,Act),
 			      LamTp)]),Tp).
 
 typeOfTaskExp(Lc,Stmts,Tp,Env,taskTerm(Lc,TaskLbl,Action,Tp),Path) :-
@@ -953,7 +953,7 @@ typeOfTaskExp(Lc,Stmts,Tp,Env,taskTerm(Lc,TaskLbl,Action,Tp),Path) :-
   Action = apply(Lc,ActFn,
 		 tple(Lc,
 		      [lambda(Lc,ActLbl,
-			      equation(Lc,tple(Lc,[]),none,Act),
+			      rule(Lc,tple(Lc,[]),none,Act),
 			      LamTp)]),Tp).
 
 typeOfIndex(Lc,Mp,Arg,Tp,ErTp,Env,Ev,Exp,Path) :-
@@ -1025,7 +1025,7 @@ checkCase(Lc,Lhs,G,R,LhsTp,Tp,ErTp,Env,Eqns,Eqns,Df,Defx,Path) :-
   isDefault(Lhs,_,DLhs),!,
   checkCase(Lc,DLhs,G,R,LhsTp,Tp,ErTp,Env,Df,Defx,_,_,Path).
 checkCase(Lc,H,G,R,LhsTp,Tp,ErTp,Env,
-	  [equation(Lc,Arg,Guard,Exp)|Eqns],Eqns,Dfx,Dfx,Path) :-
+	  [rule(Lc,Arg,Guard,Exp)|Eqns],Eqns,Dfx,Dfx,Path) :-
   typeOfPtn(H,LhsTp,ErTp,Env,E1,Arg,Path),
   checkGuard(G,ErTp,E1,E2,Guard,Path),
   typeOfExp(R,Tp,ErTp,E2,_,Exp,Path).
@@ -1150,7 +1150,7 @@ checkPromptAction(Lc,L,P,Env,Tp,VlTp,ErTp,OkFn,EvtFn,promptDo(Lc,Lb,Lam,Tp),Path
   dispType(TTp),
   checkAction(P,Env,_,Tp,VlTp,ErTp,OkFn,EvtFn,Act,Path),
   lambdaLbl(Path,"ç",Lbl),
-  Lam = lambda(Lc,Lbl,equation(Lc,tple(Lc,[]),none,doTerm(Lc,Act,Tp)),
+  Lam = lambda(Lc,Lbl,rule(Lc,tple(Lc,[]),none,doTerm(Lc,Act,Tp)),
 	       funType(tplType([]),Tp)).
 
 checkCutAction(Lc,L,Lhs,Rhs,Env,Tp,VlTp,ErTp,OkFn,EvtFn,cutDo(Lc,Lb,Lam),Path) :-
@@ -1165,7 +1165,7 @@ checkCutAction(Lc,L,Lhs,Rhs,Env,Tp,VlTp,ErTp,OkFn,EvtFn,cutDo(Lc,Lb,Lam),Path) :
   dispType(TTp),
   checkAction(Rhs,E0,_,Tp,VlTp,ErTp,OkFn,EvtFn,Act,Path),
   lambdaLbl(Path,"ç",Lbl),
-  Lam = lambda(Lc,Lbl,equation(Lc,tple(Lc,[V]),none,doTerm(Lc,Act,Tp)),
+  Lam = lambda(Lc,Lbl,rule(Lc,tple(Lc,[V]),none,doTerm(Lc,Act,Tp)),
 	       funType(tplType([KType]),Rt)),
   dispCanon(Lam).
 
@@ -1194,7 +1194,7 @@ checkActionCase(Lc,Lhs,G,R,GTp,Env,Tp,VlTp,ErTp,OkFn,EvtFn,Cases,Cases,Df,Dfx,Pa
   isDefault(Lhs,_,DLhs),!,
   checkActionCase(Lc,DLhs,G,R,GTp,Env,Tp,VlTp,ErTp,OkFn,EvtFn,Df,Dfx,_,_,Path).
 checkActionCase(Lc,H,G,R,GTp,Env,Tp,VlTp,ErTp,OkFn,EvtFn,
-		[equation(Lc,Arg,Guard,Exp)|Eqns],Eqns,Dfx,Dfx,Path) :-
+		[rule(Lc,Arg,Guard,Exp)|Eqns],Eqns,Dfx,Dfx,Path) :-
   typeOfPtn(H,GTp,ErTp,Env,E1,Arg,Path),
   checkGuard(G,ErTp,E1,E2,Guard,Path),
   checkAction(R,E2,_,Tp,VlTp,ErTp,OkFn,EvtFn,Exp,Path).
@@ -1204,7 +1204,7 @@ checkCatch(Term,Env,MdTp,VlTp,ErTp,BdErTp,Anon,OkFn,EvtFn,Hndlr,Path) :-
   applyTypeFun(MdTp,[ErTp,VlTp],Lc,Env,RTp),
   Htype = funType(tplType([BdErTp]),RTp),
   checkAction(St,Env,_,MdTp,VlTp,ErTp,OkFn,EvtFn,HA,Path),
-  Hndlr = lambda(Lc,LamLbl,equation(Lc,tple(Lc,[Anon]),none,HA),Htype),
+  Hndlr = lambda(Lc,LamLbl,rule(Lc,tple(Lc,[Anon]),none,HA),Htype),
   lambdaLbl(Path,"catch",LamLbl).
 checkCatch(Term,Env,MdTp,VlTp,ErTp,BdErTp,_,_,_,Hndlr,Path) :-
   locOfAst(Term,Lc),
@@ -1382,8 +1382,8 @@ mkBoot(Env,Lc,Pkg,Dfs,[BootDef|Dfs],Decls,[funDec("_boot",BootNm,BootTp)|Decls])
   MnTp = funType(tplType([LSTp]),UnitTp),
   typeOfVar(Lc,MnTp,Spec,Env,_Ev,MainTrm),
   BootTp = funType(tplType([LSTp]),UnitTp),
-  BootEqn = equation(Lc,tple(Lc,[CmdVr]),none,
-		     apply(Lc,MainTrm,
-			   tple(Lc,[CmdVr]),UnitTp)),
+  BootEqn = rule(Lc,tple(Lc,[CmdVr]),none,
+		 apply(Lc,MainTrm,
+		       tple(Lc,[CmdVr]),UnitTp)),
   BootDef = funDef(Lc,"_boot",BootNm,hard,BootTp,[],[BootEqn]).
 mkBoot(_Env,_,_,Dfs,Dfs,Decls,Decls).

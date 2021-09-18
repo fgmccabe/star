@@ -220,7 +220,7 @@ transformEquations(Map,Extra,Opts,[Eqn|Defs],Rules,Rx,Ex,Exx) :-
   transformEqn(Eqn,Map,Extra,Opts,Rules,R0,Ex,Ex0),
   transformEquations(Map,Extra,Opts,Defs,R0,Rx,Ex0,Exx).
 
-transformEqn(equation(Lc,A,G,Value),OMap,Extra,Opts,[(Lc,Args,Test,Rep)|Rx],Rx,Ex,Exx) :-
+transformEqn(rule(Lc,A,G,Value),OMap,Extra,Opts,[(Lc,Args,Test,Rep)|Rx],Rx,Ex,Exx) :-
   filterVars(Extra,Q0),
   liftArgPtn(A,AA,Q0,Q1,OMap,Opts,Ex,Ex0), % head args
   liftGuard(G,Test,Q1,Q2,OMap,Opts,Ex0,Ex1),
@@ -495,7 +495,7 @@ liftCases([C|Cses],[Case|Cases],Q,Qx,Map,Opts,Lifter,Ex,Exx) :-
   liftCase(C,Case,Q,Q0,Map,Opts,Lifter,Ex,Ex0),
   liftCases(Cses,Cases,Q0,Qx,Map,Opts,Lifter,Ex0,Exx).
 
-liftCase(equation(Lc,P,G,Value),(Lc,[Ptn],Test,Rep),Q,Qx,Map,Opts,Lifter,Ex,Exx) :-
+liftCase(rule(Lc,P,G,Value),(Lc,[Ptn],Test,Rep),Q,Qx,Map,Opts,Lifter,Ex,Exx) :-
   liftPtn(P,Ptn,Q,Q0,Map,Opts,Ex,Ex0),
   liftGuard(G,Test,Q0,Q1,Map,Opts,Ex0,Ex1), % condition goals
   call(Lifter,Value,Rep,Q1,Qx,Map,Opts,Ex1,Exx). % replacement expression
@@ -533,7 +533,7 @@ liftAction(_,valisDo(Lc,E),rtnDo(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftAction(_,throwDo(Lc,E),raisDo(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
-liftAction(Last,seqDo(Lc,E1,E2),seq(Lc,L1,L2),Q,Qx,Map,Opts,Ex,Exx) :-
+liftAction(Last,seqDo(Lc,E1,E2),seqD(Lc,L1,L2),Q,Qx,Map,Opts,Ex,Exx) :-
   liftAction(notLast,E1,L1,Q,Q0,Map,Opts,Ex,Ex1),
   liftAction(Last,E2,L2,Q0,Qx,Map,Opts,Ex1,Exx).
 liftAction(Last,varDo(Lc,P,E),varD(Lc,P1,E1),Q,Q,Map,Opts,Ex,Exx) :-
@@ -576,9 +576,9 @@ liftAction(Last,caseDo(Lc,G,C),Result,Q,Q,Map,Opts,Ex,Exx) :-
   liftExp(G,Bound,Q,_,Map,Opts,Ex,Ex0),
   liftCases(C,Cs,Q,_,Map,Opts,transform:liftAction(Last),Ex0,Exx),
   (idnt(_)=Bound ->
-   caseMatcher(Lc,Bound,Cs,Map,Result) ;
+   actionCaseMatcher(Lc,Bound,Cs,Map,Result) ;
    genVar("_C",V),
-   caseMatcher(Lc,V,Cs,Map,Res),
+   actionCaseMatcher(Lc,V,Cs,Map,Res),
    Result = seqD(Lc,varD(Lc,V,Bound),Res)).
 liftAction(_,tryCatchDo(Lc,Bdy,Lam),tryDo(Lc,BB,H),Q,Q,Map,Opts,Ex,Exx) :-
   liftAction(last,Bdy,BB,Q,_,Map,Opts,Ex,Ex0),

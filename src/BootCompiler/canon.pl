@@ -61,7 +61,7 @@ isCanon(whileDo(_,_,_)).
 isCanon(untilDo(_,_,_)).
 isCanon(forDo(_,_,_)).
 isCanon(tryCatchDo(_,_,_)).
-isCanon(caseDo(_,_,_,_,_)).
+isCanon(caseDo(_,_,_)).
 isCanon(varDo(_,_,_)).
 isCanon(assignDo(_,_,_)).
 isCanon(promptDo(_,_,_)).
@@ -348,7 +348,7 @@ ssAction(ifThenDo(_,Tst,Th,El),Dp,
   ssTerm(Tst,Dp,CC),
   ssAction(Th,Dp2,TT),
   ssAction(El,Dp2,EE).
-ssAction(caseDo(_,Gov,Cses,_,_),Dp,
+ssAction(caseDo(_,Gov,Cses),Dp,
 	 sq([ss("case "),GG,ss("in"),lb,iv(nl(Dp2),CC),rb])) :-
   Dp2 is Dp+2,
   ssTerm(Gov,Dp,GG),
@@ -388,12 +388,12 @@ ssActions(seqDo(_,A,B),Dp,[AA|BB]) :-
 ssActions(A,Dp,[AA]) :-
   ssAction(A,Dp,AA).
 
-ssActionCase(Dp,equation(_,Args,Guard,Value),sq([AA,GG,ss(" => "),VV])) :-
+ssActionCase(Dp,rule(_,Args,Guard,Value),sq([AA,GG,ss(" => "),VV])) :-
   ssTerm(Args,Dp,AA),
   ssGuard(Guard,Dp,GG),
   ssAction(Value,Dp,VV).
 
-ssRule(Nm,Dp,equation(_,Args,Guard,Value),sq([id(Nm),A,G,ss(" => "),V])) :-
+ssRule(Nm,Dp,rule(_,Args,Guard,Value),sq([id(Nm),A,G,ss(" => "),V])) :-
   ssTerm(Args,Dp,A),
   ssGuard(Guard,Dp,G),
   ssTerm(Value,Dp,V).
@@ -444,10 +444,10 @@ ssFunction(Dp,Nm,Type,Eqns,
 ssRls(Nm,Eqns,Dp,iv(nl(Dp),EE)) :-
   map(Eqns,canon:ssEqn(Nm,Dp),EE).
 
-ssEqn("",Dp,equation(_,Args,Guard,Value),
+ssEqn("",Dp,rule(_,Args,Guard,Value),
       sq([canon:ssTerm(Args,Dp),canon:ssGuard(Guard,Dp),ss("=>"),
 	  canon:ssTerm(Value,Dp)])).
-ssEqn(Nm,Dp,equation(_,Args,Guard,Value),
+ssEqn(Nm,Dp,rule(_,Args,Guard,Value),
       sq([id(Nm),
 	  canon:ssTerm(Args,Dp),canon:ssGuard(Guard,Dp),ss("=>"),
 	  canon:ssTerm(Value,Dp)])).
