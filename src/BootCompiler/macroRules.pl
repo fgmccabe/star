@@ -339,7 +339,7 @@ macroLocationExp(T,expression,Loc) :-
   { _It .= _iterator(L);
     while X^=current(_It) do{
       A;
-      _advance(_It)
+      ignore _advance(_It)
     }
   }
 */
@@ -352,7 +352,8 @@ forLoopMacro(A,action,Ax) :-
   roundTerm(Lc,name(Lc,"_current"),[It],Cr),
   optionMatch(Lc,P,Cr,WCnd),
   roundTerm(Lc,name(Lc,"_advance"),[It],Ad),
-  mkActionSeq(Lc,B,Ad,B1),
+  mkIgnore(Lc,Ad,Stp),
+  mkActionSeq(Lc,B,Stp,B1),
   mkWhileDo(Lc,WCnd,B1,S2),
   mkActionSeq(Lc,S1,S2,S3),
   braceTuple(Lc,[S3],Ax).

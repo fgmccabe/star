@@ -139,16 +139,19 @@ star.cons{
 
   public consIterState[e] ::= consIterState(ref cons[e]).
 
-  public implementation all e ~~ iteration[consIterState[e]->>e] => {.
+  public implementation all e ~~ iterator[consIterState[e]->>e] => {.
     _current(consIterState(L)) where cons(H,_).=L! => some(H).
     _current(consIterState(L)) default => .none.
     _advance(consIterState(L)) where cons(_,T).=L! => do{
       L:= T;
-      valis ()
+      valis .true
+    }
+    _advance(consIterState(L)) => do{
+      valis .false
     }
   .}
 
-  public implementation all e ~~ iterator[cons[e]->>consIterState[e]] => {.
+  public implementation all e ~~ iterable[cons[e]->>consIterState[e]] => {.
     _iterator(L) => consIterState(ref L)
   .}
 }
