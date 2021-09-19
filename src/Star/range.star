@@ -45,18 +45,21 @@ star.range{
   public rangeState[a] ::= rangeState(ref a,a,a).
 
   public implementation all a ~~ arith[a],comp[a] |:
-    iteration[rangeState[a]->>a] => {.
-    _current(rangeState(Fr,To,_)) where Fr! < To => some(Fr!).
-    _current(_) default => .none.
+    iterator[rangeState[a]->>a] => {.
+      _current(rangeState(Fr,To,_)) where Fr! < To => some(Fr!).
+      _current(_) default => .none.
 
-    _advance(rangeState(Fr,To,St)) where Fr!+St=<To => do{
-      Fr := Fr!+St;
-      valis ()
-    }
+      _advance(rangeState(Fr,To,St)) where Fr!+St=<To => do{
+	Fr := Fr!+St;
+	valis .true
+      }
+      _advance(rangeState(Fr,To,St)) default => do{
+	valis .false
+      }
   .}
 
   public implementation all a ~~ arith[a],comp[a] |:
-    iterator[range[a]->>rangeState[a]] => {.
-      _iterator(range(Fr,To,St)) => rangeState(ref Fr,To,St)
-    .}
+    iterable[range[a]->>rangeState[a]] => {.
+	_iterator(range(Fr,To,St)) => rangeState(ref Fr,To,St)
+      .}
 }
