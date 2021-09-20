@@ -59,7 +59,7 @@ star.arith{
     X/Y => _flt_div(X,Y).
     X%Y => _flt_mod(X,Y).
     one = 1.0.
-    __minus(Ix) => _flt_minus(0.0,Ix).
+    __minus(Dx) => _flt_minus(0.0,Dx).
   }
 
   public implementation equality[float] => {

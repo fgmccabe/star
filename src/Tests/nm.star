@@ -17,6 +17,11 @@ test.nm{
 
     show first(parse(real(),"34.56e-45"::cons[integer]));
     show first(parse(real(),"34"::cons[integer]));
+
+    assert ("-"::cons[integer])==[0c-];
+    
+    show first(parse(decimal,"-34"::cons[integer]));
+
     show first(parse(real(),"-34"::cons[integer]));
 
     show optInt(first(parse(real(),"-34"::cons[integer])));
