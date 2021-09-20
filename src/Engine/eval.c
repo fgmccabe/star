@@ -847,8 +847,8 @@ retCode run(processPo P) {
         continue;
       }
       case FAdd: {
-        double Rhs = floatVal(pop());
         double Lhs = floatVal(pop());
+        double Rhs = floatVal(pop());
 
         checkAlloc(FloatCellCount);
         termPo Rs = (termPo) allocateFloat(H, Lhs + Rhs);
@@ -856,8 +856,8 @@ retCode run(processPo P) {
         continue;
       }
       case FSub: {
-        double Rhs = floatVal(pop());
         double Lhs = floatVal(pop());
+        double Rhs = floatVal(pop());
 
         checkAlloc(FloatCellCount);
         termPo Rs = (termPo) allocateFloat(H, Lhs - Rhs);
@@ -865,8 +865,8 @@ retCode run(processPo P) {
         continue;
       }
       case FMul: {
-        double Rhs = floatVal(pop());
         double Lhs = floatVal(pop());
+        double Rhs = floatVal(pop());
 
         checkAlloc(FloatCellCount);
         termPo Rs = (termPo) allocateFloat(H, Lhs * Rhs);
@@ -874,8 +874,8 @@ retCode run(processPo P) {
         continue;
       }
       case FDiv: {
-        double Rhs = floatVal(pop());
         double Lhs = floatVal(pop());
+        double Rhs = floatVal(pop());
 
         checkAlloc(FloatCellCount);
         termPo Rs = (termPo) allocateFloat(H, Lhs / Rhs);
@@ -883,8 +883,8 @@ retCode run(processPo P) {
         continue;
       }
       case FMod: {
-        double Rhs = floatVal(pop());
         double Lhs = floatVal(pop());
+        double Rhs = floatVal(pop());
 
         checkAlloc(FloatCellCount);
         termPo Rs = (termPo) allocateFloat(H, fmod(Lhs, Rhs));
