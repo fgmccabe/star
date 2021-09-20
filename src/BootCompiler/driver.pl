@@ -100,10 +100,13 @@ openRepo(_,Repo) :-
 processGroups([],_,_,_,_).
 processGroups([G|L],CPkgs,Repo,CWD,Opts) :-
   (length(G,1) ->
-    processGroup(G,CPkgs,CP0,Repo,R0,CWD,Opts),!,
-    processGroups(L,CP0,R0,CWD,Opts) ;
-    reportMsg("circular dependency in packages %s",[G]),!,
-    fail).
+   processGroup(G,CPkgs,CP0,Repo,R0,CWD,Opts),!,
+   processGroups(L,CP0,R0,CWD,Opts) ;
+   map(G,driver:wrpPk,Gs),
+   reportMsg("circular dependency in packages %s",[Gs]),!,
+   fail).
+
+wrpPk((P,_),pk(P)).
 
 processGroup([],CP,CP,Repo,Repo,_,_).
 processGroup([(P,Imps,Fl)|L],CP,CPx,Repo,Rx,CWD,Opts) :-

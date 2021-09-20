@@ -129,6 +129,8 @@ showTrm(T,O) :-
   isLTerm(T),!,
   showTerm(T,0,O,[]).
 showTrm([],[]).
-showTrm([E|_],O) :-
-  showTrm(E,O).
+showTrm([E|Es],O) :-
+  showTrm(E,O0),
+  showTrm(Es,O1),
+  misc:concat(O0,[' '|O1],O).
 showTrm(T,O) :- term_string(T,S), !,string_chars(S,O).
