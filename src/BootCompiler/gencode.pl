@@ -41,7 +41,7 @@ genDefs(Defs,Opts,D,O,Ox) :-
   rfold(Defs,gencode:genDef(D,Opts),Ox,O).
 
 genDef(D,Opts,fnDef(Lc,Nm,H,Tp,Args,Value),O,[CdTrm|O]) :-
-  dispRuleSet(fnDef(Lc,Nm,H,Tp,Args,Value)),
+%  dispRuleSet(fnDef(Lc,Nm,H,Tp,Args,Value)),
   encType(Tp,Sig),
   genLbl([],Ex,L0),
   genLbl(L0,End,L1),
@@ -698,9 +698,9 @@ isTrueSymb(enum("star.core#true")).
 isFalseSymb(enum("star.core#false")).
 
 compCondT(Cnd,Lc,S,F,T,O,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
-  reportMsg("Compile condition %s, stack %s",[ltrm(Cnd),stk(Stk)],Lc),
-  compCond(Cnd,Lc,S,F,T,O,L,Lx,D,Dx,End,C,Cx,Stk,Stkx),!,
-  reportMsg("after compiling   %s, stack %s",[ltrm(Cnd),stk(Stkx)],Lc).
+%  reportMsg("Compile condition %s, stack %s",[ltrm(Cnd),stk(Stk)],Lc),
+  compCond(Cnd,Lc,S,F,T,O,L,Lx,D,Dx,End,C,Cx,Stk,Stkx),!.
+%  reportMsg("after compiling   %s, stack %s",[ltrm(Cnd),stk(Stkx)],Lc).
   
 compCond(enum(Sy),_Lc,Succ,_Fail,_TCont,_Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   isTrueSymb(Sy),!,
