@@ -53,6 +53,7 @@
     "star.task": "task.star",
     "star.thread": "threads.star",
     "star.topsort": "topsort.star",
+    "star.trace": "trace.star",
     "star.treelist" : "treelist.star",
     "star.trie": "trie.star",
     "star.tuples": "tuples.star",

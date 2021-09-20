@@ -1,5 +1,6 @@
 star.parse{
   import star.
+  import star.trace.
 
   public all e,s ~~ parser[s,e] ::= parser((s)=>cons[(e,s)]).
 
@@ -136,12 +137,12 @@ star.parse{
   decimal = (_tk(0c-) >>= (_) => natural >>= (N) => return -N) ++ natural.
 
   public real:()=>parser[cons[integer],float].
-  real() => (natural >>= (M) =>
-	    ((_tk(0c.) >>= (_) =>
-		fraction(M::float,0.1) >>= (F) =>
-		exponent >>= (E) => return F*E) +++ (return M::float))) +++
-  (_tk(0c-) >>= (_) =>
-      real() >>= (N) => return -N).
+  real() => (_tk(0c-) >>= (_) =>
+      real() >>= (N) => return -N) +++
+  (natural >>= (M) =>
+      ((_tk(0c.) >>= (_) =>
+	    fraction(M::float,0.1) >>= (F) =>
+	      exponent >>= (E) => return F*E) +++ (return M::float))).
 
   fraction:(float,float) => parser[cons[integer],float].
   fraction(SoFar,Scale) =>
