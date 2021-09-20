@@ -14,6 +14,7 @@
 #include "editline.h"
 
 integer pcCount = 0;
+static integer lineCount = 0;
 
 static void showCall(ioPo out, stackPo stk, termPo call);
 static void showTail(ioPo out, stackPo stk, termPo call);
@@ -889,11 +890,11 @@ retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
     return outMsg(f, "%,*T", displayDepth, ln);
 }
 
-static retCode shArgs(ioPo out, integer depth, stackPo stk, integer from, framePo fp) {
+static retCode shArgs(ioPo out, integer depth, ptrPo sp, integer from, integer arity) {
   char *sep = "";
   tryRet(outStr(out, "("));
-  for (integer ix = from; ix < codeArity(fp->prog); ix++) {
-    tryRet(outMsg(out, "%s%#,*T", sep, depth, *stackArg(stk, fp, ix)));
+  for (integer ix = from; ix < arity; ix++) {
+    tryRet(outMsg(out, "%s%#,*T", sep, depth, sp[ix]));
     sep = ", ";
   }
   return outMsg(out, ")");
@@ -905,7 +906,7 @@ static retCode shCall(ioPo out, char *msg, termPo locn, methodPo mtd, stackPo st
   } else
     tryRet(outMsg(out, "%s %#.16T", msg, mtd));
 
-  return shArgs(out, displayDepth, stk, 0, stk->fp);
+  return shArgs(out, displayDepth, stk->sp, 0, codeArity(mtd));
 }
 
 void showCall(ioPo out, stackPo stk, termPo call) {
@@ -930,7 +931,11 @@ void showTail(ioPo out, stackPo stk, termPo call) {
 
 static retCode shOCall(ioPo out, char *msg, stackPo stk, termPo call) {
   framePo f = currFrame(stk);
-  termPo locn = findPcLocation(f->prog, insOffset(f->prog, f->pc));
+  labelPo oLbl = C_LBL(call);
+  integer arity = labelArity(oLbl);
+
+  termPo locn = findPcLocation(stk->fp->prog, insOffset(stk->fp->prog, f->pc));
+  methodPo mtd = labelCode(oLbl);       /* set up for object call */
 
   if (locn != Null) {
     tryRet(outMsg(out, "%s %#L ", msg, locn));
@@ -938,8 +943,7 @@ static retCode shOCall(ioPo out, char *msg, stackPo stk, termPo call) {
     tryRet(outMsg(out, "%s ", msg));
 
   tryRet(outMsg(out, "%#,*T", displayDepth, topStack(stk)));
-  tryRet(outMsg(out, "•%#.16T", f->prog));
-  return shArgs(out, displayDepth, stk, 1, stk->fp);
+  return shArgs(out, displayDepth, stk->sp, 1, arity);
 }
 
 void showOCall(ioPo out, stackPo stk, termPo call) {
@@ -1037,10 +1041,6 @@ termPo getLbl(termPo lbl, int32 arity) {
 
 static DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show);
 
-DebugWaitFor tailDebug(processPo p, termPo call) {
-  return lnDebug(p, TCall, call, showTail);
-}
-
 DebugWaitFor lineDebug(processPo p, termPo line) {
   return lnDebug(p, dLine, line, showLn);
 }
@@ -1050,12 +1050,14 @@ DebugWaitFor enterDebug(processPo p) {
   framePo f = currFrame(stk);
   insPo pc = f->pc;
   insWord ins = *pc++;
+  lineCount++;
   switch (ins) {
     case Call: {
       return lnDebug(p, ins, getMtdLit(f->prog, collect32(pc)), showCall);
     }
-    case TCall:
-      return tailDebug(p, getMtdLit(f->prog, collect32(pc)));
+    case TCall: {
+      return lnDebug(p, ins, getMtdLit(f->prog, collect32(pc)), showTail);
+    }
     case OCall: {
       return lnDebug(p, ins, getLbl(topStack(stk), collect32(pc)), showOCall);
     }
