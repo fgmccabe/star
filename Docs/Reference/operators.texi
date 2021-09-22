@@ -2,10 +2,6 @@
 @caption{Standard Operators}
 @multitable {implementation}{non-associative prefix}{1010}{Apply optional function and match result}
 @headitem Operator @tab Form @tab Priority @tab Description
-@item @code{has type}
-@tab non-associative infix
-@tab 1250
-@tab type annotation
 @item @code{all}
 @tab non-associative prefix
 @tab 1010
@@ -110,10 +106,6 @@
 @tab non-associative infix
 @tab 1200
 @tab dependent type marker
-@item @code{has kind}
-@tab non-associative infix
-@tab 1250
-@tab type annotation
 @item @code{default}
 @tab non-associative postfix
 @tab 940
@@ -149,7 +141,7 @@
 @item @code{*}
 @tab non-associative postfix
 @tab 700
-@tab zero or more repetitions
+@tab multicat
 @item @code{*}
 @tab left associative infix
 @tab 700
