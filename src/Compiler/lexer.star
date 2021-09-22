@@ -57,8 +57,8 @@ star.compiler.lexer{
     graphFollow(Strm,Id,Deflt) default => Deflt.
 
     finalist(SoFr,Str,Deflt) where final(SoFr) =>
-      ( bkt(SoFr,Lbl,_,_) ^= isBracket(SoFr) ? some((Str,tok(makeLoc(St0,Str),lftTok(Lbl)))) ||
-        bkt(_,Lbl,SoFr,_) ^= isBracket(SoFr) ? some((Str,tok(makeLoc(St0,Str),rgtTok(Lbl)))) ||
+    ( bkt(SoFr,Lbl,_,_,_) ^= isBracket(SoFr) ? some((Str,tok(makeLoc(St0,Str),lftTok(Lbl)))) ||
+      bkt(_,Lbl,SoFr,_,_) ^= isBracket(SoFr) ? some((Str,tok(makeLoc(St0,Str),rgtTok(Lbl)))) ||
         some((Str,tok(makeLoc(St0,Str),idTok(SoFr))))).
     finalist(_,_,Deflt) => Deflt.
   } in graphFollow(St,Ld,finalist(Ld,St,.none)).

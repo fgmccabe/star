@@ -15,23 +15,27 @@ star.compiler.token{
   public stringSegment ::= segment(locn,string) | interpolate(locn,cons[token],string) | coerce(locn,cons[token]).
 
   public implementation display[tk] => {.
-    disp(idQTok(Id)) => ssSeq([ss("''"),ss(Id),ss("''")]).
-    disp(idTok(Id)) => ssSeq([ss("'"),ss(Id),ss("'")]).
+    disp(idQTok(Id)) => "''#(Id)''".
+    disp(idTok(Id)) => "'#(Id)'".
     disp(intTok(Ix)) => disp(Ix).
     disp(fltTok(Dx)) => disp(Dx).
-    disp(strTok(S)) => ssSeq([ss("\""),ssSeq(dispSegments(S)),ss("\"")]).
-    disp(lftTok(Id)) => ssSeq([ss("<"),ss(Id)]).
-    disp(rgtTok(Id)) => ssSeq([ss(Id),ss(">")]).
+    disp(strTok(S)) => "\"#(dispSegments(S))\"".
+    disp(lftTok(Id)) => "<#(Id)".
+    disp(rgtTok(Id)) => "#(Id)>".
   .}
 
-  dispSegments:(cons[stringSegment]) => cons[ss].
-  dispSegments(Segs) => (Segs//disp).
+  dispSegments:(cons[stringSegment]) => string.
+  dispSegments(Segs) => reform(Segs//disp).
+
+  reform([])=>"".
+  reform([S])=>S.
+  reform([S,..Ss]) => pair_(S,reform(Ss)).
 
   public implementation display[stringSegment] => {.
-    disp(segment(_,S)) => ss(S).
-    disp(interpolate(_,S,"")) => ssSeq([ss("\$("),disp(S),ss(")")]).
-    disp(interpolate(_,S,F)) => ssSeq([ss("\$("),disp(S),ss("):"),ss(F),ss(";")]).
-    disp(coerce(_,S)) => ssSeq([ss("\#("),disp(S),ss(")")]).
+    disp(segment(_,S)) => S.
+    disp(interpolate(_,S,"")) => "\$($(S))".
+    disp(interpolate(_,S,F)) => "\$($(S)):#(F);".
+    disp(coerce(_,S)) => "\#($(S))".
   .}
 
   implementation equality[stringSegment] => {.
@@ -59,8 +63,8 @@ star.compiler.token{
   .}
 
   public implementation display[token] => {.
-    disp(tok(Lc,Tk)) => ssSeq([disp(Tk),ss("@"),disp(Lc)]).
-    disp(endTok(Lc)) => ssSeq([ss("end of stream: "),disp(Lc)]).
+    disp(tok(Lc,Tk)) => "$(Tk)@$(Lc)".
+    disp(endTok(Lc)) => "end of stream@$(Lc)".
   .}
 
   public implementation hasLoc[token] => {.

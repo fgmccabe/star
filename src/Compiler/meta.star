@@ -10,10 +10,10 @@ star.compiler.meta{
   public visibility ::= .priVate | .deFault | .pUblic | .transItive.
 
   public implementation display[visibility] => {
-    disp(.priVate) => ss("private").
-    disp(.pUblic) => ss("public").
-    disp(.deFault) => ss("default").
-    disp(.transItive) => ss("transitive").
+    disp(.priVate) => "private".
+    disp(.pUblic) => "public".
+    disp(.deFault) => "default".
+    disp(.transItive) => "transitive".
   }
 
   public implementation comp[visibility] => {
@@ -54,11 +54,11 @@ star.compiler.meta{
     | implSp(string).
 
   public implementation display[defnSp] => let{
-    dispSp(varSp(Nm)) => ssSeq([ss("var: "),ss(Nm)]).
-    dispSp(cnsSp(Nm)) => ssSeq([ss("constructor: "),ss(Nm)]).
-    dispSp(tpSp(Nm)) => ssSeq([ss("type: "),ss(Nm)]).
-    dispSp(conSp(Nm)) => ssSeq([ss("contract: "),ss(Nm)]).
-    dispSp(implSp(Nm)) => ssSeq([ss("implementation: "),ss(Nm)]).
+    dispSp(varSp(Nm)) => "var: $(Nm)".
+    dispSp(cnsSp(Nm)) => "constructor: $(Nm)".
+    dispSp(tpSp(Nm)) => "type: $(Nm)".
+    dispSp(conSp(Nm)) => "contract: $(Nm)".
+    dispSp(implSp(Nm)) => "implementation: $(Nm)".
   } in {.
     disp = dispSp
   .}
@@ -83,15 +83,13 @@ star.compiler.meta{
   .}
 
   public implementation display[defnSpec] => let{
-    dispSpec(defnSpec(Sp,Lc,Els)) =>
-      ssSeq([disp(Sp),ss("@"),disp(Lc),disp(Els)])
+    dispSpec(defnSpec(Sp,Lc,Els)) => "$(Sp)@$(Lc)$(Els)"
   } in {
     disp = dispSpec
   }
 
   public implementation display[importSpec] => let{
-    dispSpc(pkgImp(Lc,Vi,Pk)) =>
-      ssSeq([disp(Vi),ss(" import "),disp(Pk)]).
+    dispSpc(pkgImp(Lc,Vi,Pk)) => "$(Vi) import $(Pk)"
   } in {.
     disp(S) => dispSpc(S)
   .}
@@ -113,8 +111,8 @@ star.compiler.meta{
   .}
 
   public implementation display[optimizationLvl] => {.
-    disp(.base) => ss("base").
-    disp(.inlining) => ss("inlining")
+    disp(.base) => "base".
+    disp(.inlining) => "inlining"
   .}
 
   public compilerOptions ::=
