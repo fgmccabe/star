@@ -571,7 +571,7 @@ retCode pickKeywords(void *n, void *r, void *c) {
   retCode ret = Ok;
 
   if (p != Null)
-    return procKey(out, " ", p->op);
+    return procKey(out, "  ", p->op);
   else
     return Error;
 }

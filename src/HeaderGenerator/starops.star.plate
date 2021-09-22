@@ -7,7 +7,7 @@ star.compiler.operators{
              | infixOp(integer,integer,integer)
              | postfixOp(integer,integer).
 
-  public bracket ::= bkt(string,string,string,integer).
+  public bracket ::= bkt(string,string,string,string,integer).
 
   public isOperator:(string)=>boolean.
   isOperator(Nm) => size(oper(Nm))>0.
@@ -46,10 +46,10 @@ star.compiler.operators{
 #(Brackets)  isBracket(_) default => .none.
 
   public isLeftBracket:(string) => boolean.
-  isLeftBracket(S) => bkt(S,_,_,_) ^= isBracket(S).
+  isLeftBracket(S) => bkt(S,_,_,_,_) ^= isBracket(S).
 
   public isRightBracket:(string) => boolean.
-  isRightBracket(S) => bkt(_,_,S,_) ^= isBracket(S).
+  isRightBracket(S) => bkt(_,_,S,_,_) ^= isBracket(S).
 
   public first:(integer) => option[string].
 #(First)  first(_) default => .none.
