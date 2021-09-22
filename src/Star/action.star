@@ -4,7 +4,7 @@ star.action{
 
   public all a,e ~~ action[e,a] ::= action(()=>result[e,a]).
 
-  public all e,a ~~ result[e,a] ::= private ok(a) | private err(e).
+  public all e,a ~~ result[e,a] ::= ok(a) | err(e).
 
   public implementation all e ~~ monad[result[e]] => {
     (ok(X) >>= F) => F(X).

@@ -47,13 +47,13 @@ findExportedDefs(Lc,Flds,Els) :-
 mkFieldArg(Lc,(Nm,Tp),v(Lc,Nm,Tp)).
 
 thetaEnv(Pkg,Lc,Stmts,Fields,Base,TheEnv,Defs,Public) :-
-  collectDefinitions(Stmts,Dfs,Public,Annots),
+  collectDefinitions(Stmts,Dfs,Public,Annots),!,
   dependencies(Dfs,Groups,Annots),
   pushFace(Fields,Lc,Base,Env),
   checkGroups(Groups,Fields,Annots,Defs,[],Env,TheEnv,Pkg).
 
 recordEnv(Path,_Lc,Stmts,Fields,Base,TheEnv,Defs,Public) :-
-  collectDefinitions(Stmts,Dfs,Public,Annots),
+  collectDefinitions(Stmts,Dfs,Public,Annots),!,
   parseAnnotations(Dfs,Fields,Annots,Base,Path,Face),
   checkGroup(Dfs,Defs,[],Base,TheEnv,Face,Path).
 
@@ -200,7 +200,7 @@ collectImportDecls([importPk(_Lc,_Viz,Pkg)|More],Repo,Decls,Dcx) :-
 
 declareAllDecls([],_,Env,Env).
 declareAllDecls([D|More],Lc,Env,Evx) :-
-  importDecl(Lc,D,Env,E0),
+  importDecl(Lc,D,Env,E0),!,
   declareAllDecls(More,Lc,E0,Evx).
 
 importDecl(Lc,impDec(ImplNm,FullNm,ImplTp),Ev,Evx) :-
@@ -744,17 +744,10 @@ typeOfExp(Term,Tp,_ErTp,Env,Env,Val,Path) :-
   checkRecordBody(Tp,Lbl,Lc,Els,Env,Val,Path).
 typeOfExp(Term,Tp,ErTp,Env,Env,Val,Path) :-
   isBraceTerm(Term,Lc,F,Els),
-  newTypeVar("F",FnTp),
-  typeOfExp(F,consType(FnTp,Tp),ErTp,Env,E0,Fun,Path),
-  funLbl(Fun,Lbl),
-%  dispType(consType(FnTp,Tp)),
-  checkThetaBody(FnTp,Lbl,Lc,Els,E0,Val,Path).
+  typeOfBraceTerm(Lc,F,Els,Tp,ErTp,Env,Env,Val,Path).
 typeOfExp(Term,Tp,ErTp,Env,Env,Val,Path) :-
   isQBraceTerm(Term,Lc,F,Els),
-  newTypeVar("R",FnTp),
-  typeOfExp(F,consType(FnTp,Tp),ErTp,Env,E0,Fun,Path),
-  funLbl(Fun,Lbl),
-  checkRecordBody(FnTp,Lbl,Lc,Els,E0,Val,Path).
+  typeOfQBraceTerm(Lc,F,Els,Tp,ErTp,Env,Env,Val,Path).
 typeOfExp(Term,Tp,ErTp,Ev,Ev,LetExp,Path) :-
   isLetDef(Term,Lc,Els,Ex),
   checkLetExp(Tp,ErTp,Lc,Els,Ex,Ev,LetExp,Path).
@@ -853,7 +846,20 @@ typeOfRoundTerm(Lc,F,A,Tp,ErTp,Env,apply(Lc,Fun,Args,Tp),Path) :-
     typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Path);
    reportError("type of %s:\n%s\nnot consistent with:\n%s=>%s",[Fun,FnTp,At,Tp],Lc),
    Args = tple(Lc,[])).
-%   reportMsg("after type of %s:%s (%s)",[F,FnTp,Tp]).
+					%   reportMsg("after type of %s:%s (%s)",[F,FnTp,Tp]).
+
+typeOfBraceTerm(Lc,F,Els,Tp,ErTp,Env,Env,Val,Path) :-
+  newTypeVar("F",FnTp),
+  typeOfExp(F,consType(FnTp,Tp),ErTp,Env,E0,Fun,Path),
+  funLbl(Fun,Lbl),
+%  dispType(consType(FnTp,Tp)),
+  checkThetaBody(FnTp,Lbl,Lc,Els,E0,Val,Path).
+
+typeOfQBraceTerm(Lc,F,Els,Tp,ErTp,Env,Env,Val,Path) :-
+  newTypeVar("R",FnTp),
+  typeOfExp(F,consType(FnTp,Tp),ErTp,Env,E0,Fun,Path),
+  funLbl(Fun,Lbl),
+  checkRecordBody(FnTp,Lbl,Lc,Els,E0,Val,Path).
 
 typeOfLambda(Term,Tp,Env,lambda(Lc,Lbl,rule(Lc,Args,Guard,Exp),Tp),Path) :-
 %  reportMsg("expected type of lambda %s = %s",[Term,Tp]),

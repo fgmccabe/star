@@ -79,9 +79,6 @@ retCont(Opts,Lx,Lx,D,D,_,C,Cx,_Stk,none) :-
 dropCont(Lx,Lx,D,D,_,[iDrop|Cx],Cx,Stk,Stk1) :-
   dropStk(Stk,1,Stk1).
 
-dropToCont(N,Lx,Lx,D,D,_,[iDropTo(N)|Cx],Cx,Stk,Stkx) :-
-  dropStk(Stk,N,Stkx).
-
 trapCont(Lc,Lx,Lx,D,D,_,Cx,Cx,Stk,Stk) :-
   reportError("not permitted to throw",[],Lc).
 

@@ -88,6 +88,7 @@ star.core {
 
   public contract all k ~~ concat[k] ::= {
     (++) : (k,k)=>k.
+    _multicat : (cons[k]) => k.
   }
 
   public contract all c,e ~~ glue[c->>e] ::= {

@@ -38,7 +38,11 @@ star.q{
 
   public implementation all x ~~ concat[qc[x]] => {.
     qc(F1,B1)++qc(F2,B2) => qc(F1++reverse(B1),B2++reverse(F2)).
+    _multicat(Qs) => multiq(Qs).
   .}
+
+  multiq([]) => qc(.nil,.nil).
+  multiq([Q,..Qs]) => Q++multiq(Qs).
 
   public implementation all x ~~ reversible[qc[x]] => {
     reverse(qc(F,B)) => qc(B,F).

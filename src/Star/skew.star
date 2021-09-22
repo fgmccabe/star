@@ -124,6 +124,8 @@ star.skew{
 
   public implementation all e ~~ concat[sk[e]] => {
     rl(L)++rl(R) => rl(foldDRight((E,So)=>cns(E,So),R,L)).
+    _multicat([]) => rl(.nil).
+    _multicat([S1,..Ss]) => S1++_multicat(Ss).
   }
 
   public implementation all e ~~ filter[sk[e]->>e] => let {.
