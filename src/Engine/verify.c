@@ -325,7 +325,6 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
         return Ok;
       }
       case Cmp:
-      case Comp:
       case CLbl:
       case CmpVd:
       case If:
@@ -406,7 +405,6 @@ retCode findTgts(vectorPo blocks, methodPo mtd, insPo code, integer *pc, integer
 
     switch (ins) {
       case Cmp:
-      case Comp:
       case CLbl:
       case CmpVd:
       case Unpack:
@@ -779,7 +777,6 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
       }
 
       case Cmp:
-      case Comp:
       case CLbl:
       case CmpVd:
       case If:

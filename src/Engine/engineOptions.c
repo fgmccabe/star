@@ -4,6 +4,7 @@
 #include "config.h"
 #include <stdlib.h>
 #include <unistd.h>
+#include <jitP.h>
 
 #include "version.h"      /* Version ID for the Star system */
 
@@ -154,6 +155,15 @@ static retCode debugOption(char *option, logical enable) {
         tracing = True;
         continue;
 
+      case 'j':
+#ifdef TRACEJIT
+       traceJit = True;
+       continue;
+#else
+        logMsg(logFile, "jit tracing not enabled");
+        return Error;
+#endif
+
       case 's':
 #ifdef TRACESTATS
         atexit(dumpStats);
@@ -238,6 +248,9 @@ static retCode debugOptHelp(ioPo out, char opt, char *usage) {
                      #ifdef TRACEEXEC
                      "G|g|"
                      #endif
+                     #ifdef TRACEJIT
+                     "j|"
+                     #endif
                      #ifdef TRACESTATS
                      "s|"
                      #endif
@@ -311,6 +324,11 @@ static retCode setBootPkg(char *option, logical enable) {
   return Ok;
 }
 
+static retCode setJitThreshold(char *option, logical enable) {
+  jitThreshold = parseInt(option, uniStrLen(option));
+  return Ok;
+}
+
 static retCode setVerify(char *option, logical enable) {
   enableVerify = (logical) !enableVerify;
   return Ok;
@@ -360,6 +378,7 @@ Option options[] = {
   {'G', "debugger-port", hasArgument, STAR_DEBUGGER_PORT, setDebuggerPort,    "-G|--debugger-port"},
   {'v', "version",       noArgument,  Null,               displayVersion,     "-v|--version"},
   {'b', "boot-pkg",      hasArgument, STAR_BOOT,          setBootPkg,         "-b|--boot-pkg <pkg>"},
+  {'j', "threshold",     hasArgument, STAR_JIT_THRESHOLD, setJitThreshold,    "-j|--threshold <count>"},
   {'m', "main",          hasArgument, STAR_MAIN,          setBootEntry,       "-m|--main <entry>"},
   {'L', "logFile",       hasArgument, STAR_LOGFILE,       setLogFile,         "-L|--logFile <path>"},
   {'r', "repository",    hasArgument, STAR_REPO,          setRepoDir,         "-r|--repository <path>"},

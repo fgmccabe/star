@@ -14,6 +14,7 @@
 #include <math.h>
 #include "utils.h"
 #include "cellP.h"
+#include "jitP.h"
 
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<(unsigned)16)|lo32))
 #define collectOff(pc) (hi32 = collectI32(pc), (pc)+(signed)hi32)
@@ -118,16 +119,31 @@ retCode run(processPo P) {
 
         assert(isPcOfMtd(FP->prog, PC));
         FP->pc = PC;
-        FP = pushFrame(STK, mtd, FP, SP);
-        PC = entryPoint(mtd);
-        LITS = codeLits(mtd);
 
-        integer lclCnt = lclCount(mtd);  /* How many locals do we have */
-        SP = (ptrPo) FP - lclCnt;
-#ifdef TRACEEXEC
-        for (integer ix = 0; ix < lclCnt; ix++)
-          SP[ix] = voidEnum;
+        if (hasJit(mtd)) {
+#ifdef TRACEJIT
+          if (traceJit) {
+            logMsg(logFile, "entering jitted code %T", mtd);
+          }
 #endif
+          saveRegisters();
+          termPo res = invokeJitMethod(mtd, H, STK);
+          restoreRegisters();
+          push(res);
+        } else {
+          FP = pushFrame(STK, mtd, FP, SP);
+          PC = entryPoint(mtd);
+          LITS = codeLits(mtd);
+
+          incEntryCount(mtd);              // Increment number of times program called
+
+          integer lclCnt = lclCount(mtd);  /* How many locals do we have */
+          SP = (ptrPo) FP - lclCnt;
+#ifdef TRACEEXEC
+          for (integer ix = 0; ix < lclCnt; ix++)
+            SP[ix] = voidEnum;
+#endif
+        }
 
         continue;
       }
@@ -162,6 +178,8 @@ retCode run(processPo P) {
         FP = pushFrame(STK, mtd, FP, SP);
         PC = entryPoint(mtd);
         LITS = codeLits(mtd);
+
+        incEntryCount(mtd);              // Increment number of times program called
 
         integer lclCnt = lclCount(mtd);  /* How many locals do we have */
         SP = (ptrPo) FP - lclCnt;
@@ -222,11 +240,6 @@ retCode run(processPo P) {
           STK = P->stk = glueOnStack(H, STK, (STK->sze * 3) / 2 + stackDelta(mtd), arity);
 
           SP = STK->sp;
-//          // Copy arguments from old stack
-//          ptrPo src = prevStack->sp + arity;
-//          for (integer ix = 0; ix < arity; ix++) {
-//            *--SP = *--src;
-//          }
 
           // Set up new frame on new stack
           FP = ((framePo) SP) - 1;
@@ -261,6 +274,7 @@ retCode run(processPo P) {
           FP->prog = mtd;
         }
 
+        incEntryCount(mtd);              // Increment number of times program called
         LITS = codeLits(mtd);
         integer lclCnt = lclCount(mtd);  /* How many locals do we have */
 
@@ -298,11 +312,6 @@ retCode run(processPo P) {
           STK = P->stk = glueOnStack(H, STK, (STK->sze * 3) / 2 + stackDelta(mtd), arity);
 
           SP = STK->sp;
-          // Copy arguments from old stack
-//          ptrPo src = prevStack->sp + arity;
-//          for (integer ix = 0; ix < arity; ix++) {
-//            *--SP = *--src;
-//          }
 
           // Set up new frame on new stack
           FP = ((framePo) SP) - 1;
@@ -338,6 +347,7 @@ retCode run(processPo P) {
         }
 
         LITS = codeLits(mtd);
+        incEntryCount(mtd);              // Increment number of times program called
         integer lclCnt = lclCount(mtd);  /* How many locals do we have */
 
         SP = ((ptrPo) FP) - lclCnt;
@@ -372,15 +382,6 @@ retCode run(processPo P) {
       case Drop:
         SP++;       /* drop tos */
         continue;
-
-      case DropTo: {
-        termPo top = pop();
-        int32 height = collectI32(PC);
-        assert(height >= 0);
-        SP = (ptrPo) (FP->fp) - lclCount(FP->prog) - height;
-        push(top);
-        continue;
-      }
 
       case Dup: {        /* duplicate tos */
         termPo tos = *SP;
@@ -568,7 +569,7 @@ retCode run(processPo P) {
           if (!stackRoom(stackDelta(glbThnk) + STACKFRAME_SIZE)) {
             int root = gcAddRoot(H, (ptrPo) &glbThnk);
             stackGrow(stackDelta(glbThnk) + STACKFRAME_SIZE, codeArity(glbThnk));
-            gcReleaseRoot(H,root);
+            gcReleaseRoot(H, root);
             assert(stackRoom(stackDelta(glbThnk) + STACKFRAME_SIZE));
           }
           FP->pc = PC;
@@ -987,34 +988,7 @@ retCode run(processPo P) {
         continue;
       }
 
-      case AlTpl: {      /* Allocate new tuple */
-        labelPo cd = C_LBL(nthElem(LITS, collectI32(PC)));
-        if (enoughRoom(H, cd) != Ok) {
-          saveRegisters();
-          retCode ret = gcCollect(H, NormalCellCount(cd->arity));
-          if (ret != Ok)
-            return ret;
-          restoreRegisters();
-        }
-        normalPo cl = allocateStruct(H, cd); /* allocate a closure on the heap */
-        for (int ix = 0; ix < cd->arity; ix++)
-          cl->args[ix] = voidEnum;   /* fill in free variables with voids */
-        push(cl);       /* put the structure back on the stack */
-        continue;
-      }
-
       case Cmp: {
-        termPo i = pop();
-        termPo j = pop();
-        insPo exit = collectOff(PC);
-        assert(validPC(FP->prog, exit));
-
-        if (!sameTerm(i, j))
-          PC = exit;
-        continue;
-      }
-
-      case Comp: {
         termPo i = pop();
         termPo j = pop();
         insPo exit = collectOff(PC);

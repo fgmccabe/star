@@ -203,7 +203,7 @@ logical isByte(int64 x) {
 }
 
 #define MAX_I32 0x7fffffffl
-#define MIN_I32 -0x80000000l
+#define MIN_I32 (-0x80000000l)
 
 logical isI32(int64 x) {
   return x >= MIN_I32 && x <= MAX_I32;

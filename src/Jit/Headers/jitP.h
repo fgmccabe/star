@@ -12,6 +12,12 @@
 
 #define MAX_VSTACK 256
 
+#ifdef TRACEJIT
+extern logical traceJit;
+#endif
+
+extern integer jitThreshold;
+
 typedef struct assem_ctx *codeCtxPo;
 typedef struct assem_lbl *codeLblPo;
 

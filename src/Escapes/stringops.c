@@ -208,7 +208,8 @@ ReturnStatus g__string_len(processPo p, ptrPo tos) {
   integer count = 0;
 
   while (hasMore(i1)) {
-    codePoint ch1 = next(i1);
+    count++;
+    next(i1);
   }
   return (ReturnStatus) {.ret=Ok, .result=(termPo) allocateInteger(processHeap(p), count)};
 }
