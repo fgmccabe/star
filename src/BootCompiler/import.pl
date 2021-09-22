@@ -14,7 +14,7 @@
 :- use_module(repository).
 
 importAll(Imports,Repo,AllImports) :-
-  closure(Imports,[],import:notAlreadyImported,import:importMore(Repo),AllImports).
+  closure(Imports,[],import:notAlreadyImported,import:importMore(Repo),AllImports),!.
 
 importMore(Repo,importPk(Lc,Viz,Pkg),SoFar,[importPk(Lc,Viz,Pkg)|SoFar],Inp,More) :-
   importPkg(Pkg,Repo,spec(_,Imports,_)),
