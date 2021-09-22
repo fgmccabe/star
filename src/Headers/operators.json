@@ -40,56 +40,36 @@
 	"keyword": true
     },
     {
-	"infixOp": "has type",
+	"infixOp": "~~",
 	"priorities": [
-	    1249,
-	    1250,
-	    1249
+	    1239,
+	    1240,
+	    1240
 	],
-	"desc": "type annotation",
+	"desc": "quantifier",
 	"keyword": true
-    },x
-  {
-    "infixOp": "has kind",
-    "priorities": [
-      1249,
-      1250,
-      1249
-    ],
-    "desc": "type annotation",
-    "keyword": true
-  },
-  {
-    "infixOp": "~~",
-    "priorities": [
-      1239,
-      1240,
-      1240
-    ],
-    "desc": "quantifier",
-    "keyword": true
-  },
-  {
-    "infixOp": "|:",
-    "priorities": [
-      1234,
-      1235,
-      1234
-    ],
-    "desc": "constrained type",
-    "keyword": true
-  },
-  {
-    "infixOp": "<~",
-    "priorities": [
-      1230,
-      1231,
-      1230
-    ],
-    "desc": "type interface rule",
-    "keyword": true
-  },
-  {
+    },
+    {
+	"infixOp": "|:",
+	"priorities": [
+	    1234,
+	    1235,
+	    1234
+	],
+	"desc": "constrained type",
+	"keyword": true
+    },
+    {
+	"infixOp": "<~",
+	"priorities": [
+	    1230,
+	    1231,
+	    1230
+	],
+	"desc": "type interface rule",
+	"keyword": true
+    },
+    {
     "infixOp": "~>",
     "priorities": [
       1230,
@@ -1144,7 +1124,7 @@
       699,
       700
     ],
-    "desc": "zero or more repetitions",
+    "desc": "multicat",
     "keyword": false
   },
   {

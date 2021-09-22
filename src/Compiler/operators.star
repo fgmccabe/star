@@ -7,7 +7,7 @@ star.compiler.operators{
              | infixOp(integer,integer,integer)
              | postfixOp(integer,integer).
 
-  public bracket ::= bkt(string,string,string,integer).
+  public bracket ::= bkt(string,string,string,string,integer).
 
   public isOperator:(string)=>boolean.
   isOperator(Nm) => size(oper(Nm))>0.
@@ -37,7 +37,6 @@ star.compiler.operators{
   pickPostfix([_,..L]) => pickPrefix(L).
 
   oper:(string)=>cons[operator].
-  oper("has type") => [infixOp(1249,1250,1249)].
   oper("all") => [prefixOp(1010,1009)].
   oper(".<.") => [infixOp(699,700,699)].
   oper("^=") => [infixOp(899,900,899)].
@@ -62,7 +61,6 @@ star.compiler.operators{
   oper("then") => [infixOp(1179,1180,1179)].
   oper("!") => [postfixOp(99,100), infixOp(99,100,99)].
   oper("->>") => [infixOp(1199,1200,1199)].
-  oper("has kind") => [infixOp(1249,1250,1249)].
   oper("default") => [postfixOp(939,940)].
   oper("#") => [prefixOp(1750,1749), infixOp(759,760,759)].
   oper("%") => [infixOp(700,700,699)].
@@ -154,7 +152,6 @@ star.compiler.operators{
   oper(_) default => [].
 
   public multiTok:(string)=>option[cons[string]].
-  multiTok("has") => some(["type", "kind"]).
   multiTok(_) default => .none.
 
   public isBracket:(string) => option[bracket].
@@ -188,10 +185,10 @@ star.compiler.operators{
   isBracket(_) default => .none.
 
   public isLeftBracket:(string) => boolean.
-  isLeftBracket(S) => bkt(S,_,_,_) ^= isBracket(S).
+  isLeftBracket(S) => bkt(S,_,_,_,_) ^= isBracket(S).
 
   public isRightBracket:(string) => boolean.
-  isRightBracket(S) => bkt(_,_,S,_) ^= isBracket(S).
+  isRightBracket(S) => bkt(_,_,S,_,_) ^= isBracket(S).
 
   public first:(integer) => option[string].
   first(0c%) => some("%").
@@ -317,7 +314,7 @@ star.compiler.operators{
   final("(") => .true.  /* parentheses */
   final("(|") => .true.  /* banana brackets */
   final(")") => .true.  /* parentheses */
-  final("*") => .true.  /* zero or more repetitions */
+  final("*") => .true.  /* multicat */
   final("**") => .true.  /* exponentiation */
   final("*>") => .true.  /* for all */
   final("+") => .true.  /* one or more repetitions */
@@ -410,70 +407,68 @@ star.compiler.operators{
   final(_) default => .false.
 
   public keyword:(string) => boolean.
- keyword("has type") => .true.
- keyword("all") => .true.
- keyword("^=") => .true.
- keyword("&&") => .true.
- keyword("~>") => .true.
- keyword("throw") => .true.
- keyword("do") => .true.
- keyword("import") => .true.
- keyword("catch") => .true.
- keyword("prompt") => .true.
- keyword("valis") => .true.
- keyword(",..") => .true.
- keyword("for") => .true.
- keyword("ignore") => .true.
- keyword("then") => .true.
- keyword("!") => .true.
- keyword("->>") => .true.
- keyword("has kind") => .true.
- keyword("default") => .true.
- keyword("#") => .true.
- keyword("<-") => .true.
- keyword("<<-") => .true.
- keyword("*>") => .true.
- keyword(",") => .true.
- keyword("contract") => .true.
- keyword(".") => .true.
- keyword("val") => .true.
- keyword("try") => .true.
- keyword("exists") => .true.
- keyword("if") => .true.
- keyword(":") => .true.
- keyword(";") => .true.
- keyword(".=") => .true.
- keyword("=>>") => .true.
- keyword("=") => .true.
- keyword("|:") => .true.
- keyword("?") => .true.
- keyword("@") => .true.
- keyword("in") => .true.
- keyword("cut") => .true.
- keyword("open") => .true.
- keyword("~~") => .true.
- keyword("public") => .true.
- keyword("ref") => .true.
- keyword("where") => .true.
- keyword("case") => .true.
- keyword("=>") => .true.
- keyword("^") => .true.
- keyword("<=>") => .true.
- keyword("perform") => .true.
- keyword("valof") => .true.
- keyword("until") => .true.
- keyword("while") => .true.
- keyword("private") => .true.
- keyword("::") => .true.
- keyword(":?") => .true.
- keyword("^.") => .true.
- keyword("<~") => .true.
- keyword("type") => .true.
- keyword("implementation") => .true.
- keyword("|") => .true.
- keyword("~") => .true.
- keyword("||") => .true.
- keyword("else") => .true.
- keyword("::=") => .true.
+  keyword("all") => .true.
+  keyword("^=") => .true.
+  keyword("&&") => .true.
+  keyword("~>") => .true.
+  keyword("throw") => .true.
+  keyword("do") => .true.
+  keyword("import") => .true.
+  keyword("catch") => .true.
+  keyword("prompt") => .true.
+  keyword("valis") => .true.
+  keyword(",..") => .true.
+  keyword("for") => .true.
+  keyword("ignore") => .true.
+  keyword("then") => .true.
+  keyword("!") => .true.
+  keyword("->>") => .true.
+  keyword("default") => .true.
+  keyword("#") => .true.
+  keyword("<-") => .true.
+  keyword("<<-") => .true.
+  keyword("*>") => .true.
+  keyword(",") => .true.
+  keyword("contract") => .true.
+  keyword(".") => .true.
+  keyword("val") => .true.
+  keyword("try") => .true.
+  keyword("exists") => .true.
+  keyword("if") => .true.
+  keyword(":") => .true.
+  keyword(";") => .true.
+  keyword(".=") => .true.
+  keyword("=>>") => .true.
+  keyword("=") => .true.
+  keyword("|:") => .true.
+  keyword("?") => .true.
+  keyword("@") => .true.
+  keyword("in") => .true.
+  keyword("cut") => .true.
+  keyword("open") => .true.
+  keyword("~~") => .true.
+  keyword("public") => .true.
+  keyword("ref") => .true.
+  keyword("where") => .true.
+  keyword("case") => .true.
+  keyword("=>") => .true.
+  keyword("^") => .true.
+  keyword("<=>") => .true.
+  keyword("perform") => .true.
+  keyword("valof") => .true.
+  keyword("until") => .true.
+  keyword("while") => .true.
+  keyword("private") => .true.
+  keyword("::") => .true.
+  keyword(":?") => .true.
+  keyword("^.") => .true.
+  keyword("<~") => .true.
+  keyword("type") => .true.
+  keyword("implementation") => .true.
+  keyword("|") => .true.
+  keyword("~") => .true.
+  keyword("||") => .true.
+  keyword("else") => .true.
+  keyword("::=") => .true.
   keyword(_) default => .false.
 }
