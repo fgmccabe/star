@@ -152,9 +152,9 @@ test.bench{
     valis ()
   }
 
-  public _main:(cons[string])=>().
+  public _main:(cons[chars])=>().
   _main([]) => valof main(10,"test").
-  _main([Count]) => valof main(Count::integer,"test").
+  _main([Count]) => valof main(chrs_(Count)::integer,"test").
 }
 
 
