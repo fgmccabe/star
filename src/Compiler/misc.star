@@ -22,13 +22,13 @@ star.compiler.misc{
 
   public qualifiedName:(string,markerType,string) => string.
   qualifiedName(_,Mrk,Nm) where Glue.=markerString(Mrk) &&
-      Ix .= _str_find(Nm,Glue,0) && Ix>=0 => Nm.
-  qualifiedName(Pth,Mrk,Nm) => _str_concat(Pth,_str_concat(markerString(Mrk),Nm)).
+      Ix .= strFind(Nm,Glue,0) && Ix>=0 => Nm.
+  qualifiedName(Pth,Mrk,Nm) => Pth++markerString(Mrk)++Nm.
 
   public localName:(string,markerType)=>string.
-  localName(QNm,M) where Ix.=_str_find(QNm,markerString(M),0) &&
-      Ix>=0 && MX .= _str_len(markerString(M)) =>
-    _sub_str(QNm,Ix+MX,_str_len(QNm)-Ix-MX).
+  localName(QNm,M) where Ix.=strFind(QNm,markerString(M),0) &&
+      Ix>=0 && MX .= [|markerString(M)|] =>
+    subString(QNm,Ix+MX,[|QNm|]-Ix-MX).
   localName(Nm,_) default => Nm.
 
   public packageVar:(pkg)=>string.

@@ -2,7 +2,6 @@ star.compiler.ast{
   import star.
   import star.compiler.location.
   import star.compiler.misc.
-
   import star.compiler.operators.
 
   public ast ::=
@@ -45,36 +44,51 @@ star.compiler.ast{
     disp(A) => dispAst(A,2000,"").
   .}
 
-  public dispAst:(ast,integer,string) => ss.
+  public dispAst:(ast,integer,string) => string.
   dispAst(int(_,Ix),_,_) => disp(Ix).
   dispAst(num(_,Dx),_,_) => disp(Dx).
   dispAst(str(_,Sx),_,_) => disp(Sx).
   dispAst(nme(_,Id),_,_) => dispId(Id).
-  dispAst(qnm(_,Id),_,_) => ssSeq([ss("'"),ss(Id),ss("'")]).
+  dispAst(qnm(_,Id),_,_) => "'#(stringQuote(Id))'".
   dispAst(tpl(_,"{}",Els),_,Sp) =>
-    ssSeq([ss("{\n"),ss(Sp),ssSeq(interleave(Els//((E)=>dispAst(E,2000,Sp++"  ")),ss(".\n"++Sp))),ss("\n"++Sp),ss("}")]).
-  dispAst(tpl(_,"()",[nme(_,Id)]),_,_) => ssSeq([ss("("),ss(Id),ss(")")]).
-  dispAst(tpl(_,Bk,Els),_,Sp) where bkt(Lft,_,Rgt,Inn)^=isBracket(Bk) =>
-    ssSeq([ss(Lft),ssSeq(interleave(Els//((E)=>dispAst(E,Inn,Sp)),ss(","))),ss(Rgt)]).
+    "{#(interleave(Els//((E)=>dispAst(E,2000,Sp++"  ")),".\n")*)}".
+  dispAst(tpl(_,Bk,Els),_,Sp) where bkt(Lft,_,Rgt,Sep,Inn)^=isBracket(Bk) =>
+    "#(Lft)#(interleave(Els//((E)=>dispAst(E,Inn,Sp++"  ")),Sep)*)#(Rgt)".
   dispAst(app(_,nme(_,Op),tpl(_,"()",[L,R])),Pr,Sp) where (Lf,P,Rg)^=isInfixOp(Op)=>
-    ssSeq([leftPar(P,Pr),dispAst(L,Lf,Sp),ss(" "),ss(Op),ss(" "),dispAst(R,Rg,Sp),rightPar(P,Pr)]).
+    "#(leftPar(P,Pr))#(dispAst(L,Lf,Sp)) #(Op) #(dispAst(R,Rg,Sp))#(rightPar(P,Pr))".
   dispAst(app(_,nme(_,Op),tpl(_,"()",[R])),Pr,Sp) where (P,Rg)^=isPrefixOp(Op) =>
-    ssSeq([leftPar(P,Pr),ss(Op),ss(" "),dispAst(R,Rg,Sp),rightPar(P,Pr)]).
-  dispAst(app(_,nme(_,Op),tpl(_,"()",[R])),Pr,Sp) where (P,Rg)^=isPostfixOp(Op) =>
-    ssSeq([leftPar(P,Pr),dispAst(R,Rg,Sp),ss(" "),ss(Op),rightPar(P,Pr)]).
-  dispAst(app(_,Op,A),_,Sp) => ssSeq([dispAst(Op,0,Sp),dispAst(A,0,Sp++"  ")]).
+    "#(leftPar(P,Pr))#(Op) #(dispAst(R,Rg,Sp))#(rightPar(P,Pr))".
+  dispAst(app(_,nme(_,Op),tpl(_,"()",[L])),Pr,Sp) where (P,Rg)^=isPostfixOp(Op) =>
+    "#(leftPar(P,Pr))#(dispAst(L,Rg,Sp)) #(Op)#(rightPar(P,Pr))".
+  dispAst(T,_,_) where isInterpolated(T) => "\"#(deInterpolate(T))\"".
+  dispAst(app(_,Op,A),_,Sp) => "$(Op)#(dispAst(A,0,Sp++"  "))".
 
-  dispId:(string) => ss.
-  dispId(S) where isOperator(S) => ssSeq([ss("("),ss(S),ss(")")]).
-  dispId(S) => ss(S). -- temporary until we can fix better
+  dispId:(string) => string.
+  dispId(S) where isOperator(S) => "(#(S))".
+  dispId(S) => S. -- temporary until we can fix better
 
-  leftPar:(integer,integer) => ss.
-  leftPar(P,Pr) where P>Pr => ss("(").
-  leftPar(_,_) default => ss("").
+  leftPar:(integer,integer) => string.
+  leftPar(P,Pr) where P>Pr => "(".
+  leftPar(_,_) default => "".
 
-  rightPar:(integer,integer) => ss.
-  rightPar(P,Pr) where P>Pr => ss(")").
-  rightPar(_,_) default => ss("").
+  rightPar:(integer,integer) => string.
+  rightPar(P,Pr) where P>Pr => ")".
+  rightPar(_,_) default => "".
+
+  isInterpolated(A) where (_,L,R) ^= isBinary(A,"pair_") => isInterpolated(L) || isInterpolated(R).
+  isInterpolated(A) where _ ^= isUnary(A,"disp") => .true.
+  isInterpolated(A) where _ ^= isBinary(A,"frmt") => .true.
+  isInterpolated(A) where _ ^= isUnary(A,"eval") => .true.
+  isInterpolated(A) default => false.
+
+  deInterpolate:(ast) => string.
+  deInterpolate(A) where (_,S) ^= isUnary(A,"chrs_") && (_,Sx)^=isStr(S) => stringQuote(Sx).
+  deInterpolate(A) where (_,L,R) ^= isBinary(A,"pair_") => pair_(deInterpolate(L),deInterpolate(R)).
+  deInterpolate(A) where (_,I) ^= isUnary(A,"disp") => pair_("$",dispAst(I,0,"")).
+  deInterpolate(A) where (_,I,F) ^= isBinary(A,"frmt") && (_,Fmt) ^= isStr(F) =>
+    "\$#(dispAst(I,0,""))\:#(Fmt);".
+  deInterpolate(A) where (_,I) ^= isUnary(A,"eval") => pair_("#",dispAst(I,0,"")).
+
 
   public implementation coercion[ast,string] => {.
     _coerce(A) => some("$(A)").

@@ -8,13 +8,13 @@ star.compiler.errors{
   public reports ::= reports(cons[reportMsg]).
 
   public implementation display[reports] => {.
-    disp(reports(M)) => ssSeq([ssSeq(M//disp),ss("\n"),disp(countErrors(M)),ss(" errors, "),
-                               disp(countWarnings(M)),ss(" warnings.")]).
+    disp(reports(M)) => "$(countErrors(M)) errors\n$(countWarnings(M)) warnings".
+
   .}
 
   public implementation display[reportMsg] => {.
-    disp(errorMsg(Lc,Msg)) => ssSeq([ss("error "),ss(Msg),ss(" at "),disp(Lc)]).
-    disp(warnMsg(Lc,Msg)) => ssSeq([ss("warning "),ss(Msg),ss(" at "),disp(Lc)]).
+    disp(errorMsg(Lc,Msg)) => "error #(Msg) at $(Lc)".
+    disp(warnMsg(Lc,Msg)) => "warning #(Msg) at $(Lc)".
   .}
 
   public errorFree:(reports)=>boolean.
