@@ -26,16 +26,18 @@ star.strings{
   .}
 
   public implementation sizeable[string] => {
-    size(S) => _str_len(_str_fltn(S)).
+    size(S) => _string_len(S).
     isEmpty(S) => size(S)==0.
   }
 
   public implementation  measured[string->>integer] => {.
-    [|L|] => _str_len(_str_fltn(L))
+    [|L|] => _string_len(L)
   .}
 
   public implementation concat[string] => {
     S1++S2 => pair_(S1,S2).
+    _multicat(.nil) => "".
+    _multicat(cons(S,Ss)) => pair_(S,_multicat(Ss)).
   }.
 
   public implementation slice[string->>integer] => {
@@ -58,6 +60,9 @@ star.strings{
   public implementation coercion[string,string] => {
     _coerce(S) => some(S).
   }
+
+  public stringQuote:(string)=>string.
+  stringQuote(S) => chrs_(_str_quote(_str_fltn(S))).
 
   -- Stream and sequence contracts
 
@@ -106,4 +111,10 @@ star.strings{
 
   public genSym:(string) => string.
   genSym(Pre) => chrs_(_str_gen(_str_fltn(Pre))).
+
+  public strFind:(string,string,integer) => integer.
+  strFind(Txt,Ky,Ix) => _str_find(_str_fltn(Txt),_str_fltn(Ky),Ix).
+
+  public subString:(string,integer,integer)=>string.
+  subString(Txt,Fr,Ln) => chrs_(_sub_str(_str_fltn(Txt),Fr,Ln)).
 }

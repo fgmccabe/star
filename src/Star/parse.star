@@ -63,12 +63,17 @@ star.parse{
   public implementation all t ~~ monad[parser[t]] => {.
     return a => parser((S)=>[(a,S)]).
 
-    (P >>= F) => parser((S)=>multicat(parse(P,S)//(((a,S1))=>parse(F(a),S1)))).
+    (P >>= F) => parser((S)=>(parse(P,S)//(((a,S1))=>parse(F(a),S1)))*).
   .}
 
   public implementation all e,t ~~ concat[parser[t,e]] => {.
     P1 ++ P2 => parser((S)=>parse(P1,S)++parse(P2,S)).
+    _multicat(P) => parserChoice(P).
   .}
+
+  parserChoice: all e,t ~~ (cons[parser[t,e]])=>parser[t,e].
+  parserChoice(.nil) => parser((_)=>[]).
+  parserChoice(cons(P,Ps)) => P++parserChoice(Ps).
 
   public (+++): all e,t ~~ (parser[t,e],parser[t,e])=>parser[t,e].
   p+++q => let{
