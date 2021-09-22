@@ -14,8 +14,7 @@
 		    isIden/1,isIden/2,isIden/3,genIden/2,genIden/3,isChars/2,
 		    isFloat/3,
 		    isChars/3,isInteger/3,mkInteger/3,mkFloat/3,
-		    isConsTerm/4, sameTerm/2,
-		    explodeString/2]).
+		    isConsTerm/4, sameTerm/2]).
 :- use_module(operators).
 :- use_module(misc).
 
@@ -160,10 +159,6 @@ sameTerms([],[]).
 sameTerms([A|L1],[B|L2]) :-
   sameTerm(A,B),
   sameTerms(L1,L2).
-
-explodeString(chars(Lc,S),tuple(Lc,"[]",Els)) :-
-  string_codes(S,C),
-  map(C,abstract:makeInt(Lc),Els).
 
 makeInt(Lc,Ix,integer(Lc,Ix)).
 

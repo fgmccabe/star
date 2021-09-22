@@ -9,7 +9,7 @@
 
 dependencies(Dfs,Groups,Annots) :-
   allRefs(Dfs,[],ARefs),
-  collectThetaRefs(Dfs,ARefs,Annots,Defs),
+  collectThetaRefs(Dfs,ARefs,Annots,Defs),!,
   topsort(Defs,Groups,misc:same).
 %  showGroups(Groups).
 

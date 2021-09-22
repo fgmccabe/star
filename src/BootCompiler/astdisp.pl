@@ -7,13 +7,14 @@
 
 dispAstTerm(Msg,Term,Pr) :- write(Msg), display(Term,Pr), nl().
 
-dispAst(Term) :- dispAst(Term,2000).
+dispAst(Term) :- dispAst(Term,2000),!.
+
 dispAst(Term,Pr) :- dispAst(Term,Pr,Chrs,[]), string_chars(Res,Chrs), writeln(Res).
 
 ast2String(Lc,A,Trm) :-
   dispAst(A,2000,Chrs,[]),
   string_chars(Txt,Chrs),
-  mkSSChars(Lc,Txt,Trm).
+  mkSSChars(Lc,Txt,Trm),!.
 
 dispAst(name(_,Nm),_,O,E) :- appStr(Nm,O,E).
 dispAst(integer(_,Nm),_,O,E) :- number_chars(Nm,Chrs), concat(Chrs,E,O).
