@@ -129,7 +129,10 @@ test.ralist{
 
   public implementation all e ~~ concat[ra[e]] => {.
     ra(L)++R => foldDRight((E,So)=>[E,..So],R,L).
+    _multicat(S) => foldRight(_concat,ra(.nil),S).
   .}
+
+  _concat(ra(L),R) => foldDRight((E,So)=>[E,..So],R,L).
 
   public implementation all e ~~ filter[ra[e]->>e] => {
     (ra(L)^/F) => let{
