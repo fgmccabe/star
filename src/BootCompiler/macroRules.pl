@@ -16,8 +16,9 @@ macroRl("<||>",expression,macroRules:macroQuote).
 macroRl("{}",expression,macroRules:macroComprehension).
 macroRl("{!!}",expression,macroRules:macroIotaComprehension).
 macroRl("{??}",expression,macroRules:macroIterableGoal).
-macroRl("::",expression,macroRules:macroCoercion).
-macroRl(":?",expression,macroRules:macroCoercion).
+macroRl("::",expression,macroRules:coercionMacro).
+macroRl(":?",expression,macroRules:coercionMacro).
+macroRl("*",expression,macroRules:multicatMacro).
 macroRl("__pkg__",expression,macroRules:pkgNameMacro).
 macroRl("__loc__",expression,macroRules:macroLocationExp).
 macroRl("-",expression,macroRules:uminusMacro).
@@ -287,16 +288,20 @@ ptnListVars([T|R],E,V,Vx) :-
   ptnVars(T,E,V,V0),
   ptnListVars(R,E,V0,Vx).
 
-macroCoercion(Term,expression,N) :-
+coercionMacro(Term,expression,N) :-
   isCoerce(Term,Lc,L,R),!,
   unary(Lc,"_coerce",L,LT),
   unary(Lc,"_optval",LT,OLT),
   binary(Lc,":",OLT,R,N).
-macroCoercion(Term,expression,N) :-
+coercionMacro(Term,expression,N) :-
   isOptCoerce(Term,Lc,L,R),!,
   unary(Lc,"_coerce",L,LT),
   sqUnary(Lc,"option",R,OR),
   binary(Lc,":",LT,OR,N).
+
+multicatMacro(T,expression,Tx) :-
+  isUnary(T,Lc,"*",I),!,
+  unary(Lc,"_multicat",I,Tx).
 
 uminusMacro(T,expression,Tx) :-
   isUnaryMinus(T,Lc,A),!,
@@ -334,30 +339,34 @@ macroLocationExp(T,expression,Loc) :-
   mkLoc(Lc,Loc).
 
 /*
-  for X in L do A
+  for X in L do Act
   becomes
-  { _It .= _iterator(L);
-    while X^=current(_It) do{
-      A;
-      ignore _advance(_It)
-    }
-  }
+  ignore _iter(L,ok(()),let{
+    lP(_,err(E)) => err(E).
+    lP(X,_) => do{ Act}
+  } in lP)
 */
 
 forLoopMacro(A,action,Ax) :-
-  isForDo(A,Lc,P,C,B),!,
-  genIden(Lc,It),
-  roundTerm(Lc,name(Lc,"_iterator"),[C],Itor),
-  match(Lc,It,Itor,S1),
-  roundTerm(Lc,name(Lc,"_current"),[It],Cr),
-  optionMatch(Lc,P,Cr,WCnd),
-  roundTerm(Lc,name(Lc,"_advance"),[It],Ad),
-  mkIgnore(Lc,Ad,Stp),
-  mkActionSeq(Lc,B,Stp,B1),
-  mkWhileDo(Lc,WCnd,B1,S2),
-  mkActionSeq(Lc,S1,S2,S3),
-  braceTuple(Lc,[S3],Ax).
-  
+  isForDo(A,Lc,X,L,Act),!,
+  genIden(Lc,E),
+  genIden(Lc,Lp),
+  unary(Lc,"err",E,Err),
+  mkAnon(Lc,Anon),
+  roundTerm(Lc,Lp,[Anon,Err],Hd1),
+  mkEquation(Lc,Hd1,none,Err,Eq1),
+  roundTerm(Lc,Lp,[X,Anon],Hd2),
+  roundTuple(Lc,[],Unit),
+  mkValis(Lc,Unit,Last),
+  mkSequence(Lc,Act,Last,Bdy),
+  mkDoTerm(Lc,Bdy,Rhs2),
+  mkEquation(Lc,Hd2,none,Rhs2,Eq2),
+
+  unary(Lc,"ok",Unit,S0),
+  mkLetDef(Lc,[Eq1,Eq2],Lp,LetFn),
+  ternary(Lc,"_iter",L,S0,LetFn,Ax).
+%  mkIgnore(Lc,Exp,Ax),
+%  reportMsg("for loop %s becomes %s",[ast(A),ast(Ax)],Lc).
 
 /*
  assert C 

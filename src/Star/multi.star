@@ -32,7 +32,8 @@ star.multi{
     conc(A,multi(L)) => multi([A,..L]).
     conc(A,single(X)) => multi([A,single(X)]).
   } in {.
-    L++R => conc(L,R)
+    L++R => conc(L,R).
+    _multicat(L) => multi(L).
   .}
 
   public implementation all e ~~ glue[multi[e]->>e] => {.

@@ -322,7 +322,7 @@ resolveAccess(Lc,Rc,Fld,Tp,Dict,St,Stx,apply(Lc,V,tple(Lc,[Rc]),Tp)) :-
   freshen(AccTp,Dict,_,FAccTp),
   newTypeVar("FF",RTp),
   sameType(funType(tplType([RcTp]),RTp),FAccTp,Lc,Dict),
-
+%  reportMsg("accessor defined %s:%s",[Fld,tpe(FAccTp)],Lc),
   /* freshen result type again (special case for method access from contract record) */
   freshen(RTp,Dict,_,FTp),
   sameType(FTp,Tp,Lc,Dict),

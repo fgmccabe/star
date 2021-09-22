@@ -84,8 +84,8 @@ parseType(T,Env,B,C,Cx,typeLambda(AT,RT)) :-
 parseType(Term,Env,_,Cx,Cx,Tp) :-
   isFieldAcc(Term,Lc,L,Fld),
   isIden(L,Nm),
-  (getVar(Lc,Nm,Env,Ev,Term) ->
-   typeOfCanon(Term,VTp),
+  (getVar(Lc,Nm,Env,Ev,Vr) ->
+   typeOfCanon(Vr,VTp),
    faceOfType(VTp,Lc,Ev,faceType(_,Types)),
    (fieldInFace(Types,Fld,VTp,Lc,Tp) ;
     reportError("%s not part of type of %s:%s",[Fld,can(Term),tpe(VTp)],Lc),
@@ -319,14 +319,15 @@ genAccessors(Lc,Q,XQ,Cx,Path,TpNm,Tp,[(Fld,FldTp)|ElTps],AllElTps,Body,Defs,Dfx,
   genAccessors(Lc,Q,XQ,Cx,Path,TpNm,Tp,ElTps,AllElTps,Body,Df0,Dfx,Ac0,Accx).
 
 genAccessor(Lc,Q,XQ,Cx,Path,TpNm,Tp,Fld,FldTp,Tp,AllElTps,Body,
-	    [ImplDef,accDec(Tp,Fld,AccName,AccFunTp)|Defs],Defs,
+	    [funDef(Lc,AccName,AccName,soft,AccFunTp,[],Eqns),
+	     accDec(Tp,Fld,AccName,AccFunTp)|Defs],Defs,
 	    [acc(Tp,Fld,AccName,AccFunTp)|Acc],Acc) :-
   localName(TpNm,field,Fld,AccName),
   putConstraints(Cx,funType(tplType([Tp]),FldTp),CxFunTp),
   reXQnt(XQ,CxFunTp,XCxFnTp),
   reUQnt(Q,XCxFnTp,AccFunTp),
-  accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,[]),
-  ImplDef = funDef(Lc,AccName,AccName,soft,AccFunTp,[],Eqns).
+  accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,[]).
+%  reportMsg("accessor defined %s:%s",[Fld,tpe(AccFunTp)],Lc).
 
 accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,Eqx) :-
   isBinary(Body,_,"|",L,R),!,
@@ -346,7 +347,10 @@ projectArgTypes([A|As],AllTps,[(Nm,ATp)|Tps]) :-
   isIden(V,Nm),!,
   is_member((Nm,ATp),AllTps),!,
   projectArgTypes(As,AllTps,Tps).
-
+projectArgTypes([S|As],AllTps,Tps) :-
+  isTypeField(S,_,_,_),!,
+  projectArgTypes(As,AllTps,Tps).
+  
 fieldPresent(Fld,[A|_],T) :-
   isBinary(A,_,":",L,T),
   isIden(L,_,Fld),!.

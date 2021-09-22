@@ -66,13 +66,14 @@ star.cons{
 
   public implementation all x ~~ concat[cons[x]] => {
     X++Y => concat(X,Y).
+    _multicat(X) => multicat(X).
   }
 
   concat: all e ~~ (cons[e],cons[e])=>cons[e].
   concat(.nil,Y) => Y.
   concat(cons(E,X),Y) => cons(E,concat(X,Y)).
 
-  public multicat : all e ~~ (cons[cons[e]]) => cons[e].
+  multicat : all e ~~ (cons[cons[e]]) => cons[e].
   multicat(.nil) => .nil.
   multicat(cons(H,T)) => concat(H,multicat(T)).
 
@@ -136,22 +137,4 @@ star.cons{
     (return X) => cons(X,.nil).
     (XS >>= F) => multicat(fmap(F,XS)).
   }
-
-  public consIterState[e] ::= consIterState(ref cons[e]).
-
-  public implementation all e ~~ iterator[consIterState[e]->>e] => {.
-    _current(consIterState(L)) where cons(H,_).=L! => some(H).
-    _current(consIterState(L)) default => .none.
-    _advance(consIterState(L)) where cons(_,T).=L! => do{
-      L:= T;
-      valis .true
-    }
-    _advance(consIterState(L)) => do{
-      valis .false
-    }
-  .}
-
-  public implementation all e ~~ iterable[cons[e]->>consIterState[e]] => {.
-    _iterator(L) => consIterState(ref L)
-  .}
 }

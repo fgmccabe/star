@@ -102,6 +102,8 @@ star.finger{
     two(a,b)++one(c) => three(a,b,c).
     two(a,b)++two(c,d) => four(a,b,c,d).
     three(a,b,c)++one(d) => four(a,b,c,d).
+    _multicat(cons(T,.nil)) => T.
+    _multicat(cons(T,Ts)) => T++_multicat(Ts).
   }
 
   implementation all e ~~ head[digit[e]->>e] => {
@@ -157,6 +159,8 @@ star.finger{
   public implementation all e ~~ measured[e->>integer] |:
     concat[fingerTree[e]] => {.
       T1++T2 => app3(T1,[],T2).
+      _multicat(.nil) => .eTree.
+      _multicat(cons(T,Ts)) => T++_multicat(Ts).
     .}.
 
   public implementation all e ~~ measured[e->>integer] |:

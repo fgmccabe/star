@@ -20,6 +20,7 @@
 :- use_module(escapes).
 :- use_module(intrinsics).
 :- use_module(location).
+:- use_module(errors).
 
 isType(Nm,Env,Tp) :-
   marker(type,M),
