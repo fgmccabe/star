@@ -28,7 +28,6 @@ instruction(Ret,tOs,nOp,0,"return")
 instruction(Jmp,off,nOp,0,"jump lbl")
 
 instruction(Drop,tOs,nOp,-1,"drop top of stack")
-instruction(DropTo,tOs,i32,0,"drop stack tp fixed level")
 instruction(Dup,tOs,nOp,1,"duplicate top of stack")
 instruction(Rst, i32, nOp, 0, "reset stack height to a fixed height")
 instruction(Swap,tOs,nOp,0,"swap top two elements on stack")
@@ -102,10 +101,8 @@ instruction(FGe,tOs,nOp,1,"L R --> L>=R")
 instruction(FCmp,off,nOp,-2,"L R --> branch if not same floating point")
 
 instruction(Alloc,sym,nOp,1,"new structure, elements from stack")
-instruction(AlTpl,sym,nOp,1,"new empty structure")
 
 instruction(Cmp,off,nOp,-1,"t1 t2 --> , branch to offset if not same literal")
-instruction(Comp,lVl,nOp,-1,"t1 t2 --> , break if not same literal")
 
 instruction(Frame,tPe,nOp,0,"frame instruction")
 
