@@ -124,6 +124,7 @@ int main(int argc, char **argv) {
 
     retCode ret = processTemplate(out, plate, vars, NULL, NULL);
 
+    flushOut();
     closeFile(out);
     exit(0);
   }
@@ -308,9 +309,12 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
       outMsg(out, "=> mnem(Ins,Code++[intgr(%d),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,max(U,MxLcl),Ends).\n", op);
       return;
     case glb:
-    case Es:                              // escape code (0..65535)
       check(B == nOp, "second operand not nOp");
       outMsg(out, "=> mnem(Ins,Code++[intgr(%d),strg(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", op);
+      break;
+    case Es:                              // escape code (0..65535)
+      check(B == nOp, "second operand not nOp");
+      outMsg(out, " where Cd^=isEscape(U) => mnem(Ins,Code++[intgr(%d),intgr(Cd)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", op);
       break;
     case off:                            // program counter relative offset
       check(B == nOp, "second operand not nOp");
@@ -464,10 +468,8 @@ static logical genDisp(ioPo out, opAndSpec A, char *Nm) {
     case off:
     case lVl:
     case cDe:
-      outMsg(out, ",ss(\" \"),disp(%s)", Nm);
-      return True;
     case Es:
-      outMsg(out, ",ss(\" \"),ss(%s)", Nm);
+      outMsg(out, " #(%s)", Nm);
       return True;
   }
 }
@@ -483,9 +485,9 @@ static void showStarIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2
 
   outMsg(out, ",..Ins],Pc) => ");
 
-  outMsg(out, "single(ssSeq([disp(Pc),ss(\":\"),ss(\"%P\")", mnem);
+  outMsg(out, "\"$(Pc)\\: %P",  mnem);
 
   genDisp(out, A1, "U");
   genDisp(out, A2, "V");
-  outMsg(out, ",ss(\"\\n\")])) ++ showMnem(Ins,Pc+%d).\n", insSize(op, A1, A2));
+  outMsg(out, "\\n\" ++ showMnem(Ins,Pc+%d).\n", insSize(op, A1, A2));
 }

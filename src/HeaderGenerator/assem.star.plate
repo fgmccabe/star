@@ -12,8 +12,8 @@ star.compiler.assem{
   public codePolicy ::= hardDefinition | softDefinition.
 
   public implementation display[codePolicy] => {.
-    disp(hardDefinition) => ss("hard").
-    disp(softDefinition) => ss("soft").
+    disp(hardDefinition) => "hard".
+    disp(softDefinition) => "soft".
   .}
 
   public codeSegment ::= func(termLbl,codePolicy,tipe,cons[assemOp]) |
@@ -95,21 +95,21 @@ star.compiler.assem{
   compLine(T1->P1,T2->P2) => P1<P2.
 
   public implementation display[assemLbl] => {.
-    disp(al(L)) => ss(L)
+    disp(al(L)) => L
   .}
 
   public implementation display[codeSegment] => {.
-    disp(func(Nm,H,Sig,Ins)) => ssSeq([disp(H),ss(" "),disp(Nm),ss(":"),disp(Sig),ss("\n"),..(showMnem(Ins,0)::cons[ss])]).
-    disp(global(Nm,Sig,Ins)) => ssSeq([ss("global "),disp(Nm),ss(":"),disp(Sig),ss("\n"),..(showMnem(Ins,0)::cons[ss])]).
+    disp(func(Nm,H,Sig,Ins)) => "$(H) $(Nm)\:$(Sig)\n"++showMnem(Ins,0).
+    disp(global(Nm,Sig,Ins)) => "global $(nm)\:$(Sig)\n"++showMnem(Ins,0).
   .}
 
   public implementation display[assemOp] => {.
-    disp(Op) => ssSeq(showMnem([Op],0)::cons[ss]).
+    disp(Op) => showMnem([Op],0).
   .}
 
-  showMnem:(cons[assemOp],integer) => multi[ss].
-  showMnem([],_) => .null.
-  showMnem([iLbl(al(Lb)),..Ins],Pc) => single(ssSeq([ss(Lb),ss(":\n")]))++showMnem(Ins,Pc).
-  showMnem([iLocal(Nm,Frm,End,_Off),..Ins],Pc) => single(ssSeq([ss(Nm),ss("::"),disp(Frm),ss("-"),disp(End),ss("\n")]))++showMnem(Ins,Pc).
+  showMnem:(cons[assemOp],integer) => string.
+  showMnem([],_) => "".
+  showMnem([iLbl(al(Lb)),..Ins],Pc) => "\#(Lb):\n"++showMnem(Ins,Pc).
+  showMnem([iLocal(Nm,Frm,End,_Off),..Ins],Pc) => "\#(Nm)\::$(Frm)-$(End)\n"++showMnem(Ins,Pc).
 #(Show)
 }

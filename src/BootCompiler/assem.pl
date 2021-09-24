@@ -5,6 +5,7 @@
 :- use_module(lterms).
 :- use_module(encode).
 :- use_module(display).
+:- use_module(escapes).
 
 assem(func(Nm,H,Sig,Lx,Ins),MTpl) :-
     findLit([],Nm,_,Ls0),
@@ -60,7 +61,8 @@ mnem([iCall(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,Pcx,Ends,[2,LtNo|M],Cdx) :- Pc
       mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).
 mnem([iOCall(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,Pcx,Ends,[3,V|M],Cdx) :- Pc1 is Pc+3,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).
-mnem([iEscape(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,Pcx,Ends,[4,V|M],Cdx) :- Pc1 is Pc+3,
+mnem([iEscape(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,Pcx,Ends,[4,Cd|M],Cdx) :- Pc1 is Pc+3,
+      isEscape(V,Cd),!,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).
 mnem([iTCall(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,Pcx,Ends,[5,LtNo|M],Cdx) :- Pc1 is Pc+3,
       findLit(Lt,V,LtNo,Lt1),
@@ -389,7 +391,7 @@ showMnem([iOCall(U)|Ins],Pc,Lbls,[sq([ix(Pc),ss(":"),ss("OCall"), ss(" "), UU])|
   showMnem(Ins,Pc1,Lbls,II).
 showMnem([iEscape(U)|Ins],Pc,Lbls,[sq([ix(Pc),ss(":"),ss("Escape"), ss(" "), UU])|II]) :- !,
   Pc0 is Pc+1,
-  UU=ss(U),
+  UU=ss(U),!,
   Pc1 is Pc0+2,
   showMnem(Ins,Pc1,Lbls,II).
 showMnem([iTCall(U)|Ins],Pc,Lbls,[sq([ix(Pc),ss(":"),ss("TCall"), ss(" "), UU])|II]) :- !,

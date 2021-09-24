@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
 
     switch (genMode) {
       case genProlog:
-        fprintf(out, ":-module(escapes,[isEscape/1,escapeType/2]).\n\n");
+        fprintf(out, ":-module(escapes,[isEscape/2,escapeType/2]).\n\n");
         prologEscapeTypes(out);
         prologIsEscape(out);
         break;
@@ -402,12 +402,12 @@ static void starEscapeTypes(FILE *out) {
 }
 
 #undef escape
-#define escape(name, type, cmt) genPrIsEsc(out,buffer,#name);
+#define escape(name, type, cmt) genPrIsEsc(out,buffer,#name,Esc##name);
 
-static void genPrIsEsc(FILE *out, strBufferPo buffer, char *name) {
+static void genPrIsEsc(FILE *out, strBufferPo buffer, char *name, EscapeCode code) {
   outStr(O_IO(buffer), "isEscape(");
   dumpStr(name, buffer);
-  outStr(O_IO(buffer), ").\n");
+  outMsg(O_IO(buffer), ",%d).\n", code);
 
   integer len;
   char *text = (char *) getTextFromBuffer(buffer, &len);
@@ -424,12 +424,12 @@ static void prologIsEscape(FILE *out) {
 }
 
 #undef escape
-#define escape(name, type, cmt) genStarIsEsc(out,buffer,#name);
+#define escape(name, type, cmt) genStarIsEsc(out,buffer,#name,Esc##name);
 
-static void genStarIsEsc(FILE *out, strBufferPo buffer, char *name) {
+static void genStarIsEsc(FILE *out, strBufferPo buffer, char *name, EscapeCode code) {
   outStr(O_IO(buffer), "  isEscape(");
   dumpStr(name, buffer);
-  outStr(O_IO(buffer), ") => .true.\n");
+  outMsg(O_IO(buffer), ") => some(%d).\n", code);
 
   integer len;
   char *text = (char *) getTextFromBuffer(buffer, &len);
@@ -440,11 +440,11 @@ static void genStarIsEsc(FILE *out, strBufferPo buffer, char *name) {
 static void starIsEscape(FILE *out) {
   strBufferPo buffer = newStringBuffer();
 
-  fprintf(out, "\n  public isEscape:(string)=>boolean.\n");
+  fprintf(out, "\n  public isEscape:(string)=>option[integer].\n");
 
 #include "escapes.h"
 
-  fprintf(out, "  isEscape(_) default => .false.\n");
+  fprintf(out, "  isEscape(_) default => .none.\n");
 
   closeFile(O_IO(buffer));
 }
