@@ -25,7 +25,10 @@ retCode processTemplate(ioPo out, ioPo plate, hashPo vars, strProc defltPrc, voi
         ret = processTemplate(out, O_IO(replBuffer), vars, defltPrc, cl);
         closeFile(O_IO(replBuffer));
       }
-    } else {
+    } else if(isLookingAt(plate,"\\#")==Ok){
+      ret = outStr(out,"#");
+    }
+    else {
       codePoint ch;
       ret = inChar(plate, &ch);
       if (ret == Ok)

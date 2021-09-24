@@ -1,6 +1,6 @@
 /* Automatically generated, do not edit */
 
-:-module(operators,[infixOp/4,prefixOp/3,postfixOp/3,isOperator/1,follows/3,final/2,bracket/5,multiTok/3,
+:-module(operators,[infixOp/4,prefixOp/3,postfixOp/3,isOperator/1,follows/3,final/2,bracket/5,
                     keyword/1,isKeyword/1]).
 
   isOperator(O) :-
@@ -352,7 +352,6 @@
   final('•',"•").	 /* function composition */
   final('#',"#").	 /* Macro statement marker */
   final('$$',"$$").	 /* wrap value in memo */
-
 
   keyword("all").
   keyword("^=").
