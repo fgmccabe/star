@@ -151,9 +151,6 @@ star.compiler.operators{
   oper(">>") => [infixOp(949,950,950)].
   oper(_) default => [].
 
-  public multiTok:(string)=>option[cons[string]].
-  multiTok(_) default => .none.
-
   public isBracket:(string) => option[bracket].
   isBracket("[|") => some(bkt("[|","[||]","|]","",2000)).
   isBracket("|]") => some(bkt("[|","[||]","|]","",2000)).
