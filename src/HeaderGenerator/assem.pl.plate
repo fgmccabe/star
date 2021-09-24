@@ -5,6 +5,7 @@
 :- use_module(lterms).
 :- use_module(encode).
 :- use_module(display).
+:- use_module(escapes).
 
 assem(func(Nm,H,Sig,Lx,Ins),MTpl) :-
     findLit([],Nm,_,Ls0),

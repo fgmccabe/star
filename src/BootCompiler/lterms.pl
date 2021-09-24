@@ -653,7 +653,7 @@ validTerm(ocall(Lc,Op,Args),_,D) :-
   validTerm(Op,Lc,D),
   validTerms(Args,Lc,D).
 validTerm(ecll(Lc,Es,Args),_,D) :-
-  isEscape(Es),
+  isEscape(Es,_),
   validTerms(Args,Lc,D).
 validTerm(intrinsic(Lc,Is,Args),_,D) :-
   isIntrinsic(_,_,Is),

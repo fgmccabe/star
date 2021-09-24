@@ -13,12 +13,12 @@ static int topEsc = 0;
 
 static integer escCount[256];
 
-static int installEscape(char *name, char *sig, libFun fun);
+static int installEscape(EscapeCode code, char *name, char *sig, libFun fun);
 
 #undef escape
 #define escape(Fun, Sig, Cmnt)\
 extern ReturnStatus g_##Fun(processPo p,ptrPo tos);\
-  installEscape(#Fun,Sig,g_##Fun);
+  installEscape(Esc##Fun,#Fun,Sig,g_##Fun);
 
 void installEscapes() {
   topEsc = 0;
@@ -29,9 +29,9 @@ void installEscapes() {
 
 }
 
-int installEscape(char *name, char *sig, libFun fun) {
+int installEscape(EscapeCode code, char *name, char *sig, libFun fun) {
   int escIx = topEsc++;
-  escapePo esc = &escapes[escIx];
+  escapePo esc = &escapes[code];
 
   esc->name = uniDuplicate(name);
   esc->sig = uniDuplicate(sig);
@@ -48,7 +48,7 @@ uint32 lookupEscape(char *name) {
     if (uniCmp(name, escapes[ix].name) == same)
       return ix;
   }
-  logMsg(logFile,"cannot find escape %s",name);
+  logMsg(logFile, "cannot find escape %s", name);
   syserr("could not find escape");
   return -1;
 }

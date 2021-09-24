@@ -306,7 +306,7 @@ trPtnCallOp(Lc,Nm,Args,whr(Lc,X,mtch(Lc,X,intrinsic(Lc,Op,Args))),
   genVar("_X",X),
   merge([X],Q,Qx).
 trPtnCallOp(Lc,Nm,Args,whr(Lc,X,mtch(Lc,X,ecll(Lc,Nm,Args))),Q,Qx,_,_,Ex,Ex) :-
-  isEscape(Nm),!,
+  isEscape(Nm,_),!,
   genVar("_X",X),
   merge([X],Q,Qx).
 trPtnCallOp(Lc,Nm,Args,Ptn,Q,Qx,Map,Opts,Ex,Ex) :-
@@ -466,7 +466,7 @@ implementVarExp(_Other,Lc,Nm,idnt(Nm),_,_,Q,Q) :-
 trExpCallOp(Lc,v(_,Nm,_),Args,intrinsic(Lc,Op,Args),Qx,Qx,_,_,Ex,Ex) :-
   isIntrinsic(Nm,_,Op),!.
 trExpCallOp(Lc,v(_,Nm,_),Args,ecll(Lc,Nm,Args),Qx,Qx,_,_,Ex,Ex) :-
-  isEscape(Nm),!.
+  isEscape(Nm,_),!.
 trExpCallOp(Lc,v(_,Nm,_),Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   lookupVar(Map,Nm,Reslt),
   Reslt\=notInMap,!,

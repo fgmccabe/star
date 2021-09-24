@@ -242,7 +242,6 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
         case lcl:
         case lcs:
         case glb:
-        case Es:
           outMsg(out, ",LtNo,W|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
           outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
           outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
@@ -279,7 +278,6 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
     case lcl:
     case lcs:
     case glb:
-    case Es:
       switch (A2) {
         case nOp:
         case tOs:
@@ -293,6 +291,34 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
         case lcs:
         case glb:
         case Es:
+          outMsg(out, ",V,W|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
+          break;
+        case off:
+          outMsg(out, ",V,Off|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
+          outMsg(out, "      findLbl(W,Lbls,Tgt),\n");
+          outMsg(out, "      pcGap(Pc1,Tgt,Off),\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
+          break;
+        default:
+          check(False, "Cannot generate instruction");
+          exit(1);
+      }
+      break;
+    case Es:
+      switch (A2) {
+        case nOp:
+        case tOs:
+          outMsg(out, ",Cd|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
+          outMsg(out, "      isEscape(V,Cd),!,\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
+          break;
+        case i32:
+        case art:
+        case arg:
+        case lcl:
+        case lcs:
+        case glb:
           outMsg(out, ",V,W|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
           outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
           break;
@@ -453,7 +479,6 @@ static void showOperand(ioPo out, opAndSpec A, char *vn, char *Vtxt, OpRes *resI
       outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
       resIn->pcV++;
       break;
-    case Es:
     case lcl:
     case lcs:
     case glb:
@@ -474,6 +499,11 @@ static void showOperand(ioPo out, opAndSpec A, char *vn, char *Vtxt, OpRes *resI
     case arg:
     case lVl:
       outMsg(out, "  %s=ix(%s),\n", Vtxt, vn);
+      outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
+      resIn->pcV++;
+      break;
+    case Es:
+      outMsg(out,"  %s=ss(%s),!,\n",Vtxt,vn);;
       outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
       resIn->pcV++;
       break;

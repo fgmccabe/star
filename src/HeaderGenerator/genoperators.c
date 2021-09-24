@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <stringBuffer.h>
-#include <assert.h>
 #include "stringTrie.h"
 #include "ooio.h"
 #include "formioP.h"
@@ -64,23 +63,13 @@ typedef struct {
   char sep[16];
 } BrktRecord, *bracketPo;
 
-typedef struct {
-  char first[16];
-  int count;
-  char alts[8][16];
-} MultiToken, *multiTokPo;
-
 static stringTriePo tokenTrie;
-static hashPo multiTokens;
 static poolPo opPool;
 static hashPo operators;
 static hashPo bracketTbl;
 
-static void addMultiToken(char *token);
-
 static void initTries() {
   tokenTrie = emptyStringTrie();
-  multiTokens = newHash(16, (hashFun) uniHash, (compFun) uniCmp, Null);
 
   opPool = newPool(sizeof(TokenRecord), 128);
   operators = newHash(128, (hashFun) uniHash, (compFun) uniCmp, NULL);
@@ -185,69 +174,6 @@ logical isAlphaNumeric(char *p) {
   return False;
 }
 
-logical isMultiToken(char *p) {
-  if (*p != '\0' && isalpha(*p)) {
-    integer pos = uniIndexOf(p, uniStrLen(p), 0, (codePoint) ' ');
-
-    if (pos > 0)
-      return True;
-  }
-  return False;
-}
-
-void addMultiToken(char *token) {
-  integer tLen = uniStrLen(token);
-  integer pos = uniIndexOf(token, tLen, 0, (codePoint) ' ');
-
-  if (pos > 0) {
-    assert(pos < 15);
-    char fragment[16];
-    uniNCpy(fragment, NumberOf(fragment), token, pos);
-
-    multiTokPo multi = (multiTokPo) hashGet(multiTokens, fragment);
-    if (multi == Null) {
-      multi = (multiTokPo) malloc(sizeof(MultiToken));
-      multi->count = 0;
-      strncpy(multi->first, fragment, NumberOf(multi->first));
-      hashPut(multiTokens, &multi->first, multi);
-    }
-    assert(multi->count < NumberOf(multi->alts));
-    strncpy(multi->alts[multi->count], &token[pos + 1], NumberOf(multi->alts[0]));
-    multi->count++;
-  }
-}
-
-static retCode procMulti(void *n, void *r, void *c) {
-  ioPo out = (ioPo) c;
-  multiTokPo b = (multiTokPo) r;
-
-  retCode ret = Ok;
-
-  switch (genMode) {
-    case genProlog: {
-      for (integer ix = 0; ret == Ok & ix < b->count; ix++) {
-        ret = outMsg(out, "  multiTok(\"%P\", \"%P\", \"%P %P\").\n", b->first, b->alts[ix], b->first, b->alts[ix]);
-      }
-      break;
-    }
-    case genStar:
-      ret = outMsg(out, "  multiTok(\"%P\") => some([", b->first);
-      char *sep = "";
-      for (integer ix = 0; ret == Ok & ix < b->count; ix++) {
-        ret = outMsg(out, "%s\"%P\"", sep, b->alts[ix]);
-        sep = ", ";
-      }
-      if (ret == Ok)
-        ret = outMsg(out, "]).\n");
-      break;
-    case genEmacs:
-    default:
-      break;
-  }
-
-  return ret;
-}
-
 static retCode pickKeywords(void *n, void *r, void *c);
 
 int main(int argc, char **argv) {
@@ -294,11 +220,6 @@ int main(int argc, char **argv) {
     char *allBkts = getTextFromBuffer(bracketBuff, &len);
     hashPut(vars, "Brackets", allBkts);
 
-    strBufferPo multiBuff = newStringBuffer();
-    processHashTable(procMulti, multiTokens, multiBuff);
-    char *allMulti = getTextFromBuffer(multiBuff, &len);
-    hashPut(vars, "Multi", allMulti);
-
     strBufferPo keywordsBuff = newStringBuffer();
     processHashTable(pickKeywords, operators, keywordsBuff);
     char *allKeywords = getTextFromBuffer(keywordsBuff, &len);
@@ -337,7 +258,7 @@ int main(int argc, char **argv) {
     exit(1);
 }
 
-typedef struct _operator_ {
+typedef struct operator_ {
   char name[MAXLINE];
   char ast[MAXLINE];
   char cmt[MAXLINE];
@@ -346,9 +267,9 @@ typedef struct _operator_ {
   logical isKeyword;
 } Operator, *opPo;
 
-typedef struct _pair_ *pairPo;
+typedef struct pair_ *pairPo;
 
-typedef struct _pair_ {
+typedef struct pair_ {
   opPo op;
   pairPo next;
 } Pair;
@@ -360,8 +281,6 @@ void genToken(char *op, char *cmt) {
 
   if (!isAlphaNumeric(op))
     addToStringTrie(op, tk, tokenTrie);
-  if (isMultiToken(op))
-    addMultiToken(op);
 }
 
 static opPo
@@ -567,8 +486,6 @@ static retCode procKey(ioPo out, char *sep, opPo op) {
 retCode pickKeywords(void *n, void *r, void *c) {
   ioPo out = (ioPo) c;
   pairPo p = (pairPo) r;
-  char *nm = (char *) n;
-  retCode ret = Ok;
 
   if (p != Null)
     return procKey(out, "  ", p->op);
@@ -595,7 +512,7 @@ retCode procBrackets(void *n, void *r, void *c) {
                      b->name, b->right, b->sep, b->priority);
       if (ret == Ok)
         ret = outMsg(out, "  isBracket(\"%P\") => some(bkt(\"%P\",\"%P\",\"%P\",\"%P\",%d)).\n",
-                     b->name, b->left, b->name,b->right, b->sep, b->priority);
+                     b->name, b->left, b->name, b->right, b->sep, b->priority);
       break;
     case genEmacs:
       return outMsg(out, "  ( \"%P\" \"%P\" \"%P\" %d)\n", nm, b->left, b->right, b->priority);

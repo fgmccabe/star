@@ -390,7 +390,7 @@ retCode decodeIns(ioPo in, wordBufferPo bfr, integer *ix, integer *si, char *err
 #define szlVl if(ret==Ok){ret = writeIntOperand(in,bfr,ix); }
 #define szcDe if(ret==Ok){ret = writeIntOperand(in,bfr,ix); }
 #define szsym if(ret==Ok){ret = writeIntOperand(in,bfr,ix); }
-#define szEs if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); writeOperand(bfr,lookupEscape(escNm)); (*ix)++;}
+#define szEs if(ret==Ok){ret = writeIntOperand(in,bfr,ix);}
 #define szlit if(ret==Ok){ret = writeIntOperand(in,bfr,ix); }
 #define sztPe if(ret==Ok){ret = writeIntOperand(in,bfr,ix); }
 #define szlne if(ret==Ok){ret = writeIntOperand(in,bfr,ix); }

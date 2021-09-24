@@ -26,4 +26,13 @@ void recordEscape(integer escNo);
 void dumpEscapes(ioPo out);
 #endif
 
+#undef escape
+#define escape(Nm,Tp,Cmt) Esc##Nm,
+
+typedef enum {
+#include "escapes.h"
+}EscapeCode;
+
+#undef escape
+
 #endif
