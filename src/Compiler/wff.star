@@ -324,25 +324,15 @@ star.compiler.wff{
     some(pkgImp(Lc,.priVate,Pkg)).
   isImport(_) default => .none.
 
-  public pkgeName:(ast) => either[(),pkg].
-  pkgeName(A) where (_,L,R) ^= isBinary(A,"#") => do{
-    Nm <- dottedName(L);
-    Vr <- dottedName(R);
-    valis pkg(Nm,vers(Vr))
-  }
-  pkgeName(A) => do{
-    Nm <- dottedName(A);
-    valis pkg(Nm,.defltVersion)
-  }
+  public pkgeName:(ast) => pkg.
+  pkgeName(A) where (_,L,R) ^= isBinary(A,"#") => 
+    pkg(dottedName(L),vers(dottedName(R))).
+  pkgeName(A) => pkg(dottedName(A),.defltVersion).
 
-  dottedName:(ast) => either[(),string].
-  dottedName(N) where (_,Id) ^= isName(N) => either(Id).
-  dottedName(N) where (_,L,R) ^= isBinary(N,".") => do{
-    LL <- dottedName(L);
-    RR <- dottedName(R);
-    valis "#(LL).#(RR)"
-  }
-  dottedName(_) default => other(()).
+  dottedName:(ast) => string.
+  dottedName(N) where (_,Id) ^= isName(N) => Id.
+  dottedName(N) where (_,L,R) ^= isBinary(N,".") => "#(dottedName(L)).#(dottedName(R))".
+  dottedName(A) default => disp(A).
 
   public isOpen:(ast)=> option[(locn,ast)].
   isOpen(A) => isUnary(A,"open").
@@ -481,18 +471,12 @@ star.compiler.wff{
   typeName(Tp) where (_,Id,_) ^= isSquareApply(Tp) => Id.
   typeName(Tp) where (_,Els) ^= isTuple(Tp) => "()$(size(Els))".
 
-  public collectImports:(cons[ast],
-    cons[importSpec],
-    cons[ast],
-    reports) => either[reports,(cons[importSpec],cons[ast])].
-  collectImports([],Imp,Oth,Rp) => either((Imp,reverse(Oth))).
-  collectImports([A,..Ss],Imp,Oth,Rp) => do{
-    if Spec ^= isImport(A) then{
-      collectImports(Ss,[Spec,..Imp],Oth,Rp)
-    } else{
-      collectImports(Ss,Imp,[A,..Oth],Rp)
-    }
-  }
+  public collectImports:(cons[ast], cons[importSpec], cons[ast]) => (cons[importSpec],cons[ast]).
+  collectImports([],Imp,Oth) => (Imp,reverse(Oth)).
+  collectImports([A,..Ss],Imp,Oth) => (
+    Spec ^= isImport(A) ?
+      collectImports(Ss,[Spec,..Imp],Oth,Rp) ||
+      collectImports(Ss,Imp,[A,..Oth],Rp)).
 
   public ruleName:(ast) => option[(locn,string)].
   ruleName(A) where (_,some(Nm),_,_,_,_) ^= isEquation(A) && (Lc,Id)^=isName(Nm) => some((Lc,Id)).
