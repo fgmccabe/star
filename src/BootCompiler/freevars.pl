@@ -88,6 +88,10 @@ freeActionVars(varDo(_,P,E),Ex,Ex1,Q,F,Fv) :-
 freeActionVars(assignDo(_,V,E),Ex,Ex,Q,F,Fv) :-
   freeVars(V,Ex,Q,F,F0),
   freeVars(E,Ex,Q,F0,Fv).
+freeActionVars(bindDo(_,P,E),Ex,Ex1,Q,F,Fv) :-
+  ptnVars(P,Ex,Ex1),
+  freeVars(P,Ex1,Q,F,F0),
+  freeVars(E,Ex1,Q,F0,Fv).
 freeActionVars(ifThenDo(_,G,Th,El),Ex,Ex,Q,F,Fv) :-
   ptnGoalVars(G,Ex,E1),
   freeVars(G,E1,Q,F,F0),

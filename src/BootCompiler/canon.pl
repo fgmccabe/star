@@ -64,6 +64,7 @@ isCanon(tryCatchDo(_,_,_)).
 isCanon(caseDo(_,_,_)).
 isCanon(varDo(_,_,_)).
 isCanon(assignDo(_,_,_)).
+isCanon(bindDo(_,_,_)).
 isCanon(promptDo(_,_,_)).
 isCanon(cutDo(_,_,_)).
 isCanon(valisDo(_,_)).
@@ -179,6 +180,7 @@ locOfCanon(tryCatchDo(Lc,_,_),Lc) :-!.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
 locOfCanon(varDo(Lc,_,_),Lc) :-!.
 locOfCanon(assignDo(Lc,_,_),Lc) :-!.
+locOfCanon(bindDo(Lc,_,_),Lc) :-!.
 locOfCanon(promptDo(Lc,_,_),Lc) :-!.
 locOfCanon(cutDo(Lc,_,_),Lc) :-!.
 locOfCanon(valisDo(Lc,_),Lc) :-!.
@@ -331,6 +333,9 @@ ssAction(varDo(_,Ptn,Exp),Dp,sq([PP,ss(" .= "),VV])) :-
   ssTerm(Ptn,Dp,PP),
   ssTerm(Exp,Dp,VV).
 ssAction(assignDo(_,Ptn,Exp),Dp,sq([PP,ss(" := "),VV])) :-
+  ssTerm(Ptn,Dp,PP),
+  ssTerm(Exp,Dp,VV).
+ssAction(bindDo(_,Ptn,Exp),Dp,sq([PP,ss(" <- "),VV])) :-
   ssTerm(Ptn,Dp,PP),
   ssTerm(Exp,Dp,VV).
 ssAction(promptDo(_,Lb,E,_),Dp,sq([LL,ss(" prompt "),EE])) :-

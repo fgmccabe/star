@@ -346,6 +346,8 @@ static DebugWaitFor dbgOver(char *line, processPo p, termPo loc, insWord ins, vo
       p->traceDepth = 0;
       break;
   }
+
+  resetDeflt("n");
   return stepOver;
 }
 

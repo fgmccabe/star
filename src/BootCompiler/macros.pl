@@ -574,6 +574,11 @@ examineAction(A,Ax) :-
   unary(Lc,"some",Lx,Lh),
   match(Lc,Lh,Rx,Ax).
 examineAction(A,Ax) :-
+  isBind(A,Lc,L,R),!,
+  macroPtn(L,Lx),
+  macroTerm(R,Rx),
+  mkBind(Lc,Lx,Rx,Ax).
+examineAction(A,Ax) :-
   isAssignment(A,Lc,L,R),!,
   macroTerm(L,Lx),
   macroTerm(R,Rx),

@@ -244,6 +244,10 @@ collectTermRefs(T,A,R,Rx) :-
 collectTermRefs(T,A,R,Rx) :-
   isLetRec(T,_,S,B),!,
   collectLetRefs(S,B,A,R,Rx).
+collectTermRefs(T,All,Rf,Rx) :-
+  isMatch(T,_,L,R),!,
+  collectTermRefs(L,All,Rf,Rf0),
+  collectTermRefs(R,All,Rf0,Rx).
 collectTermRefs(T,A,R0,Rx) :-
   isRoundTerm(T,O,Args),
   collectTermRefs(O,A,R0,R1),
@@ -365,6 +369,10 @@ collectDoRefs(T,_,Rf,Rf) :-
   isBraceTuple(T,_,[]),!.
 collectDoRefs(T,All,Rf,Rfx) :-
   isMatch(T,_,L,R),!,
+  collectTermRefs(L,All,Rf,Rf0),
+  collectTermRefs(R,All,Rf0,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  isBind(T,_,L,R),!,
   collectTermRefs(L,All,Rf,Rf0),
   collectTermRefs(R,All,Rf0,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-

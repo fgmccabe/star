@@ -22,6 +22,11 @@ star.action{
     return X => action(()=>ok(X)).
   }
 
+  public implementation all e,a ~~ display[e],display[a] |: display[result[e,a]] => {.
+    disp(ok(O)) => "ok: $(O)".
+    disp(err(E)) => "err: $(E)".
+  .}
+
   public implementation execution[result] => {
     _valof(ok(X)) => X.
 

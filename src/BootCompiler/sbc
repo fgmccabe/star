@@ -1,2 +1,2 @@
 #!/bin/bash
-/Users/fgm/homebrew/bin/swipl $HOME/Projects/star/src/BootCompiler/sbc.pl $*
+swipl $HOME/Projects/star/src/BootCompiler/sbc.pl $*

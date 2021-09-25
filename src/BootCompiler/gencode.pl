@@ -365,6 +365,10 @@ compAction(assignD(Lc,V,E),OLc,Cont,_RCont,_ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,St
 	   compTerm(V,Lc,
 		    bothCont(asmCont(iAssign,Stk),Cont),ECont,Opts),ECont,
 	   Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+compAction(bindD(Lc,P,E),OLc,Cont,_RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  chLine(Opts,OLc,Lc,C,C0),
+  compTerm(E,Lc,bindCont(compPtn(P,Lc,Cont,resetCont(Stk,ECont),ECont,Opts),
+			 ECont),ECont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 compAction(cnd(Lc,T,A,B),OLc,Cont,RCont,ECont,Opts,
 	   L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   compIfThen(Lc,T,A,B,OLc,Cont,RCont,ECont,Opts,
@@ -438,10 +442,14 @@ propagateCont(ECont,Cont,L,Lx,D,Dx,End,[iCLbl(lbl("star.action#ok",1),Nxt)|C],Cx
   call(Cont,L2,Lx,D2,Dx,End,C0,Cx,Stk0,Stk2),
   mergeStkLvl(Stk1,Stk2,Stkx,"propagate").
 
-throwCont(ThCont,Cont,L,Lx,D,Dx,End,[iUnpack(lbl("star.action#err",1),Nxt)|C],Cx,Stk,Stkx) :-
-  genLbl(L,Nxt,L0),
-  call(ThCont,L0,L1,D,D1,End,C,[iLbl(Nxt)|C1],Stk,_Stk0),
-  call(Cont,L1,Lx,D1,Dx,End,C1,Cx,Stk,Stkx).
+bindCont(PCont,ECont,L,Lx,D,Dx,End,[iIndxJmp(2),iJmp(Err),iJmp(Ok),iLbl(Trp),iHalt(99),
+				    iLbl(Ok),iUnpack(lbl("star.action#ok",1),Trp)|C],Cx,Stk,Stkx) :-
+  genLbl(L,Ok,L0),
+  genLbl(L0,Err,L1),
+  genLbl(L1,Trp,L2),
+  call(PCont,L2,L3,D,D1,End,C,[iLbl(Err),iUnpack(lbl("star.action#err",1),Trp)|C1],Stk,_Stk0),
+  call(ECont,L3,Lx,D,D2,End,C1,Cx,Stk,Stkx),
+  mergeVars(D1,D2,Dx).
 
 combineCont(ACont,BCont,L,Lx,D,Dx,End,C,Cx,S,Sx) :-
   call(ACont,BCont,L,Lx,D,Dx,End,C,Cx,S,Sx).
