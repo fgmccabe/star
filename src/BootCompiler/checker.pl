@@ -1060,6 +1060,9 @@ checkAction(Term,Env,Ev,_Tp,VlTp,ErTp,_,_,varDo(Lc,Ptn,Exp),Path) :-
 checkAction(Term,Env,Ev,_Tp,VlTp,ErTp,_OkFn,_EvtFn,Act,Path) :-
   isAssignment(Term,Lc,L,R),!,
   checkAssignment(Lc,L,R,Env,Ev,VlTp,ErTp,Act,Path).
+checkAction(Term,Env,Ev,XTp,VlTp,ErTp,_OkFn,_EvtFn,Act,Path) :-
+  isBind(Term,Lc,L,R),!,
+  checkBind(Lc,L,R,Env,Ev,XTp,VlTp,ErTp,Act,Path).
 checkAction(Term,Env,Ev,Tp,VlTp,ErTp,OkFn,EvtFn,ifThenDo(Lc,Ts,Th,El),Path) :-
   isIfThenElse(Term,Lc,T,H,E),!,
   checkGoal(T,ErTp,Env,Et,Ts,Path),
@@ -1189,6 +1192,13 @@ checkAssignment(Lc,L,R,Env,Ev,VlTp,ErTp,assignDo(Lc,Lhs,Rhs),Path) :-
   newTypeVar("A",ATp),
   typeOfExp(L,refType(ATp),ErTp,Env,Ev,Lhs,Path),
   typeOfExp(R,ATp,ErTp,Env,_,Rhs,Path).
+
+checkBind(Lc,L,R,Env,E1,XTp,VlTp,ErTp,bindDo(Lc,Lhs,Rhs),Path) :-
+  verifyType(Lc,tplType([]),VlTp,Env),
+  newTypeVar("A",ATp),
+  typeOfPtn(L,ATp,ErTp,Env,E1,Lhs,Path),
+  applyTypeFun(XTp,[ErTp,ATp],Lc,Env,RTp),
+  typeOfExp(R,RTp,ErTp,Env,_,Rhs,Path).
 
 checkActionCases([],_,_,_,_,_,_,_,Cases,Cases,Dfx,Dfx,_).
 checkActionCases([C|Ss],GTp,Env,Tp,VlTp,ErTp,OkFn,EvtFn,Cases,Cx,Df,Dfx,Path) :-

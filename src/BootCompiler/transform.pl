@@ -544,6 +544,10 @@ liftAction(Last,assignDo(Lc,P,E),assignD(Lc,P1,E1),Q,Q,Map,Opts,Ex,Exx) :-
   checkNotLast(Last,Lc),
   liftExp(P,P1,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(E,E1,Q0,_,Map,Opts,Ex0,Exx).
+liftAction(Last,bindDo(Lc,P,E),bindD(Lc,P1,E1),Q,Q,Map,Opts,Ex,Exx) :-
+  checkNotLast(Last,Lc),
+  liftPtn(P,P1,Q,Q0,Map,Opts,Ex,Ex0),
+  liftExp(E,E1,Q0,_,Map,Opts,Ex0,Exx).
 liftAction(_,performDo(Lc,Exp),perfDo(Lc,E1),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(Exp,E1,Q,Qx,Map,Opts,Ex,Exx).
 liftAction(_,simpleDo(Lc,Exp),justDo(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-

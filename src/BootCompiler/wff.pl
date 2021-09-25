@@ -35,7 +35,8 @@
 	      isOptionPtn/4,isOptionMatch/4,optionMatch/4,
 	      isConjunct/4,conjunct/4,isDisjunct/4,disjunct/4,
 	      isForall/4,mkForall/4,isNegation/3,negation/3,
-	      isMatch/4,match/4,isSearch/4,search/4,isMapLiteral/3,
+	      isMatch/4,match/4,isSearch/4,search/4,isBind/4,mkBind/4,
+	      isMapLiteral/3,
 	      isComprehension/4,mkComprehension/4,
 	      isListComprehension/4,mkListComprehension/4,
 	      isIotaComprehension/4,
@@ -647,6 +648,12 @@ isMatch(Trm,Lc,P,E) :-
 
 match(Lc,L,R,T) :-
   binary(Lc,".=",L,R,T).
+
+isBind(Trm,Lc,L,R) :-
+  isBinary(Trm,Lc,"<-",L,R).
+
+mkBind(Lc,L,R,Trm) :-
+  binary(Lc,"<-",L,R,Trm).
 
 isSearch(Trm,Lc,Ptn,Gen) :-
   isBinary(Trm,Lc,"in",Ptn,Gen).
