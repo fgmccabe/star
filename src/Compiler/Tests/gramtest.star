@@ -1,5 +1,7 @@
 test.comp.gram{
   import star.
+  import star.script.
+  
   import star.compiler.ast.
   import star.compiler.errors.
   import star.compiler.opg.
@@ -9,25 +11,28 @@ test.comp.gram{
   import star.compiler.location.
   import star.pkg.
 
-  lc=pkgLoc(pkg("test",defltVersion)).
+  main:()=>action[(),()].
+  main()=>action{
+    lc.=pkgLoc(pkg("test",defltVersion));
 
-  show disp(parseText(lc,"X. ",reports([])))::string.
+    show parseText(lc,"X. ",reports([]));
 
-  assert (some(nme(_,"X")),_).=parseText(lc,"X. ",reports([])).
+    assert (some(nme(_,"X")),_).=parseText(lc,"X. ",reports([]));
 
-  assert (some(app(_,nme(_,"+"),tpl(_,"()",[lit(_,intgr(2)),lit(_,intgr(3))]))),_) .=
-    parseText(lc,"2+3. ",reports([])).
+    assert (some(app(_,nme(_,"+"),tpl(_,"()",[int(_,2),int(_,3)]))),_) .=
+      parseText(lc,"2+3. ",reports([]));
 
-  show disp(parseText(lc,"(X)=>X+Y*Z. ",reports([])))::string.
+    show parseText(lc,"(X)=>X+Y*Z. ",reports([]));
 
-  show disp(parseText(lc,"f(X)(Y)=>X+Y*Z. ",reports([])))::string.
+    show parseText(lc,"f(X)(Y)=>X+Y*Z. ",reports([]));
 
-  show disp(parseText(lc,"{f(X)(Y)=>X+Y*Z}",reports([])))::string.
+    show parseText(lc,"{f(X)(Y)=>X+Y*Z}",reports([]));
 
-  show disp(parseText(lc,"{f(X)=>g(Y). g(Y)=>(X+Y)*Z}",reports([])))::string.
+    show parseText(lc,"{f(X)=>g(Y). g(Y)=>(X+Y)*Z}",reports([]));
 
-  show disp(parseText(lc,"{f(X)=>g(X.foo(Y)). g(Y)=>(X+Y)*Z}",reports([])))::string.
+    show parseText(lc,"{f(X)=>g(X.foo(Y)). g(Y)=>(X+Y)*Z}",reports([]));
 
-  show disp(parseText(lc,"{f(X,Y)=>g(X.foo(Y)). g(Y)=>(X+Y)*Z}",reports([])))::string.
+    show parseText(lc,"{f(X,Y)=>g(X.foo(Y)). g(Y)=>(X+Y)*Z}",reports([]))
+  }
 
 }

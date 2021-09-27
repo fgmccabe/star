@@ -89,7 +89,7 @@ star.compiler.opg{
   term00([tok(Lc,lftTok(Lbl)),tok(Lc1,rgtTok(Lbl)),..Toks],Rpt) =>
     (tpl(mergeLoc(Lc,Lc1),Lbl,[]),Toks,Rpt,.needOne).
   term00([tok(Lc,lftTok(Lbl)),..Toks],Rpt) where
-    bkt(_,Lbl,_,Inner) ^= isBracket(Lbl) &&
+      bkt(_,Lbl,_,_,Inner) ^= isBracket(Lbl) &&
     (Arg,_,Toks1,Rpt1,_) .= term(Toks,Rpt,Inner) &&
     (Lc2,Rpt2,Toks2) .= checkToken(rgtTok(Lbl),Rpt1,Toks1) =>
     (genBkt(mergeLoc(Lc,Lc2),Lbl,Arg),Toks2,Rpt2,.needOne).
@@ -154,16 +154,12 @@ star.compiler.opg{
       (Sg,Rp1).=stringSegment(Seg,Rp) => stringSegments(More,Rp1,[Sg,..SoFar]).
 
   stringSegment:(stringSegment,reports) => (ast,reports).
-  stringSegment(segment(Lc,Str),Rp) => (unary(Lc,"ss",str(Lc,Str)),Rp).
+  stringSegment(segment(Lc,Str),Rp) => (unary(Lc,"",str(Lc,Str)),Rp).
   stringSegment(interpolate(Lc,Toks,""),Rpt) where
-      (A,Rpt1,_) .= astParse(Toks,Rpt) =>
-    (unary(Lc,"disp",A),Rpt1).
+      (A,Rpt1,_) .= astParse(Toks,Rpt) => (unary(Lc,"disp",A),Rpt1).
   stringSegment(interpolate(Lc,Toks,Frmt),Rpt) where
-      (A,Rpt1,_) .= astParse(Toks,Rpt) =>
-    (binary(Lc,"frmt",A,str(Lc,Frmt)),Rpt1).
-  stringSegment(coerce(Lc,Toks),Rp) where 
-      (A,Rpt1,_) .= astParse(Toks,Rp) =>
-    (unary(Lc,"ss",binary(Lc,"::",A,nme(Lc,"string"))),Rp).
+      (A,Rpt1,_) .= astParse(Toks,Rpt) => (binary(Lc,"frmt",A,str(Lc,Frmt)),Rpt1).
+  stringSegment(evaluate(Lc,Toks),Rp) where (A,Rpt1,_) .= astParse(Toks,Rp) => (A,Rp).
 
   checkToken:(tk,reports,cons[token]) => (locn,reports,cons[token]).
   checkToken(Tk,Rpt,[tok(Lc,Tk),..Toks]) => (Lc,Rpt,Toks).
@@ -180,7 +176,7 @@ star.compiler.opg{
   checkTerminator(Rpt,[tok(Lc,T),..Toks],.needOne) default => (reportError(Rpt,"missing terminator",Lc),[tok(Lc,T),..Toks]).
 
   implementation display[needsTerm] => {.
-    disp(.needOne) => ss("needs terminator").
-    disp(.noNeed) => ss("terminator optional").
+    disp(.needOne) => "needs terminator".
+    disp(.noNeed) => "terminator optional".
   .}
 }

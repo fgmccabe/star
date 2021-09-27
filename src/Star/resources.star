@@ -1,33 +1,24 @@
 star.resources{
-  import star.uri.
   import star.
+  import star.file.
+  import star.uri.
 
   public
   getResource:(uri) => option[string].
-  getResource(U) where Fn .= getUriPath(U) && _file_present(Fn) => some(_get_file(Fn)).
+  getResource(U) where Fn .= getUriPath(U) => getFile(Fn).
   getResource(_) default => .none.
 
-  public
-  putResource:(uri,string)=>().
-  putResource(U,Content) => _put_file(getUriPath(U),Content).
+  public putResource:(uri,string)=>().
+  putResource(U,Content) => putFile(getUriPath(U),Content).
 
   public resourcePresent:(uri)=>boolean.
-  resourcePresent(U) => _file_present(getUriPath(U)).
+  resourcePresent(U) => filePresent(getUriPath(U)).
 
-  public newerFile:(uri,uri) => boolean.
-  newerFile(F1,F2) where
-    P1 .= getUriPath(F1) &&
-    P2 .= getUriPath(F2) &&
-    _file_present(P1) &&
-    _file_present(P2) =>
-    _file_modified(P1) > _file_modified(P2).
-  newerFile(_,_) default => .false.
-
-  public isDir:(string) => boolean.
-  isDir(D) => _isdir(D).
+  public newerRsrc:(uri,uri)=>boolean.
+  newerRsrc(U1,U2) => newerFile(getUriPath(U1),getUriPath(U2)).
 
   public cwd:()=>uri.
-  cwd() where U^=parseUri(_cwd()) => U.
+  cwd() where U^=parseUri(chrs_(_cwd())) => U.
 
   public searchForRsRc:(uri,string)=>option[uri].
   searchForRsRc(U,Pth) where P^=parseUri("../") && R ^= parseUri(Pth) =>
@@ -35,7 +26,7 @@ star.resources{
       searchFor(C) where
 	  RU ^= resolveUri(C,R) &&
 	  P1 .= getUriPath(RU) &&
-	  _file_present(P1) => some(RU).
+	  filePresent(P1) => some(RU).
       searchFor(C) where
 	  PU ^= resolveUri(C,P) &&
 	  P1 .= getUriPath(PU) && P1~="/" =>
