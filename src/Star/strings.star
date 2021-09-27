@@ -8,6 +8,10 @@ star.strings{
     X==Y => _string_eq(X,Y).
   }
 
+  public implementation equality[chars] => {
+    X==Y => _str_eq(X,Y).
+  }
+
   public implementation hash[string] => {
     hash(X) => _str_hash(_str_fltn(X)).
   }
@@ -19,6 +23,10 @@ star.strings{
 
   public implementation display[string] => {.
     disp(S) => "\"#(chrs_(_str_quote(_str_fltn(S))))\"".
+  .}
+
+  public implementation display[chars] => {.
+    disp(S) => "\"0#(chrs_(_str_quote(S)))\"".
   .}
 
   public implementation format[string] => {.
