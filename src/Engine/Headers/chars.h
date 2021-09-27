@@ -37,4 +37,6 @@ logical sameCharSeqs(charsPo s1, charsPo s2);
 
 retCode quoteChars(ioPo out, charsPo str);
 
+retCode outChars(ioPo out, termPo t, integer precision, integer depth, logical alt);
+
 #endif //STAR_CHARS_H

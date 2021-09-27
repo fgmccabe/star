@@ -310,6 +310,9 @@ typedef enum {
   rightToLeft
 } SrcAlign;
 
+static char *const CHARS = "chrs_";
+static char *const PAIR = "pair_";
+
 ReturnStatus g__str_format(processPo p, ptrPo tos) {
   integer fLen;
   const char *fmt = charsVal(tos[1], &fLen);
@@ -415,7 +418,6 @@ ReturnStatus g__str_format(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__explode(processPo p, ptrPo tos) {
-  termPo Arg1 = tos[0];
   charsPo str = C_CHARS(tos[0]);
   integer len = charsLength(str);
   char buffer[len + 1];
@@ -686,6 +688,33 @@ ReturnStatus g__str_start(processPo p, ptrPo tos) {
 
   return (ReturnStatus) {.ret=Ok,
     .result=(uniIsPrefix(lhs, llen, rhs, rlen) ? trueEnum : falseEnum)};
+}
+
+logical isStringTerm(termPo t) {
+  if (isNormalPo(t)) {
+    normalPo s = C_NORMAL(t);
+    if (hasLabel(s, CHARS, 1))
+      return True;
+    else if (hasLabel(s, "pair_", 2)) {
+      return isStringTerm(nthArg(s, 0)) && isStringTerm(nthArg(s, 1));
+    } else
+      return False;
+  } else
+    return False;
+}
+
+retCode dispStringTerm(ioPo out, termPo t, integer precision, integer depth, logical alt) {
+  if (isNormalPo(t)) {
+    normalPo s = C_NORMAL(t);
+    if (hasLabel(s, CHARS, 1) && isChars(nthArg(s, 0))) {
+      return outChars(out, nthArg(s, 0), precision, depth, alt);
+    } else if (hasLabel(s, PAIR, 2)) {
+      tryRet(dispStringTerm(out, nthArg(s, 0), precision, depth, alt));
+      return dispStringTerm(out, nthArg(s, 1), precision, depth, alt);
+    } else
+      return Error;
+  } else
+    return Error;
 }
 
 retCode flatten(strBufferPo str, termPo t) {

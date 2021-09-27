@@ -53,7 +53,8 @@ classPo segmentClass = (classPo) &SegmentClass;
 void segmentInit(objectPo o, va_list *args) {
   segPo s = O_SEG(o);
 
-  s->seg.segNo = va_arg(*args, int);
+  s->seg.segNo = va_arg(*args,
+  int);
   s->seg.mtd = va_arg(*args, methodPo);
   s->seg.arity = codeArity(s->seg.mtd);
   s->seg.pc = va_arg(*args, integer);
@@ -195,11 +196,6 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
         }
       }
     }
-
-#ifdef TRACEVERIFY
-    if (traceVerify)
-      showGroups(groups, name);
-#endif
 
     if (ret == Ok) {
       for (integer gx = 0; ret == Ok && gx < vectLength(groups); gx++) {
@@ -723,10 +719,20 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
   if (ret == Ok) {
     seg->seg.stackDepth += delta;
     integer iPc = oPc + 1;
+    insPo const base = entryPoint(seg->seg.mtd);
     // Special handling for specific instructions
+
     switch (op) {
+      case Halt: {
+        int32 code = collect32(base, &iPc);
+        if (code < 0 || code > MAX_RETCODE) {
+          strMsg(errorMsg, msgLen, RED_ESC_ON "invalid halt code: %d @ %d" RED_ESC_OFF, code, oPc);
+          return Error;
+        } else
+          break;
+      }
       case Call: {
-        int32 litNo = collect32(entryPoint(seg->seg.mtd), &iPc);
+        int32 litNo = collect32(base, &iPc);
         if (litNo < 0 || litNo >= codeLitCount(seg->seg.mtd)) {
           strMsg(errorMsg, msgLen, RED_ESC_ON "invalid literal number: %d @ %d" RED_ESC_OFF, litNo, oPc);
           return Error;
@@ -749,12 +755,12 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
         seg->seg.stackDepth = 0;
         break;
       case Rst: {
-        int32 depth = collect32(entryPoint(seg->seg.mtd), &iPc);
+        int32 depth = collect32(base, &iPc);
         seg->seg.stackDepth = depth;
         break;
       }
       case Unpack: {
-        int32 litNo = collect32(entryPoint(seg->seg.mtd), &iPc);
+        int32 litNo = collect32(base, &iPc);
         if (litNo < 0 || litNo >= codeLitCount(seg->seg.mtd)) {
           strMsg(errorMsg, msgLen, RED_ESC_ON "invalid literal number: %d @ %d" RED_ESC_OFF, litNo, oPc);
           return Error;
@@ -831,7 +837,7 @@ retCode checkSegment(segPo seg, char *errorMsg, long msgLen) {
           return Error;
       }
     }
-    if (vectIsEmpty(seg->seg.exits)) {
+    if (ret==Ok && vectIsEmpty(seg->seg.exits)) {
       switch (lastOp) {
         case Ret:
         case Halt:
