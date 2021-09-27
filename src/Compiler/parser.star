@@ -12,38 +12,22 @@ star.compiler.parser{
   import star.compiler.opg.
   import star.compiler.token.
 
-  public parseSrc:(uri,pkg,reports) => either[reports,ast].
-  parseSrc(U,P,Rp) => do{
-    if Txt ^= getResource(U) then{
---      logMsg("parse $(U)");
-      Chrs .= Txt::cons[integer];
---      logMsg("got chars");
-      Toks .= allTokens(initSt(pkgLoc(P),Chrs));
---      logMsg("input tokens are $(Toks)");
-      (Trm,Rp1,_) .= astParse(Toks,Rp);
---      logMsg("input term $(Trm)");
-      if errorFree(Rp1) then
-	valis Trm
-      else
-      throw reportError(Rp1,"could not parse $(P) properly",pkgLoc(P))
-    } else
-    throw reportError(Rp,"Cannot locate $(P) in $(U)",pkgLoc(P))
-  }
+  public parseSrc:(uri,pkg,reports) => (option[ast],reports).
+  parseSrc(U,P,Rp) where Txt ^= getResource(U) &&
+      (Toks,Rp1) .= allTokens(initSt(pkgLoc(P),Txt::cons[integer],Rp)) =>
+    (errorFree(Rp1) ?
+	((Trm,Rptx,_) .= astParse(Toks,Rp1) ?
+	    (errorFree(Rptx) ?
+		(some(Trm),Rptx) ||
+		(.none,Rptx)) ||
+	    (.none,Rp1)) ||
+	(.none,Rp1)).
+  parseSrc(U,P,Rp) => (.none,reportError(Rp,"Cannot locate $(P) in $(U)",pkgLoc(P))).
 
   public parseText:(locn,string,reports) => (option[ast],reports).
   parseText(Lc,Txt,Rpt) =>
-    ( (Toks.=allTokens(initSt(Lc,Txt::cons[integer])) &&
-      (Trm,Rptx,_) .= astParse(Toks,Rpt)) ?
-        (some(Trm),Rptx) ||
-        (.none, reportError(Rpt,"Could not successfully parse",Lc))).
-
-  public tokenizeSrc:(uri,pkg,reports) => either[reports,cons[token]].
-  tokenizeSrc(U,P,Rp) => do{
-    if Txt ^= getResource(U) then{
---      logMsg("parse $(U)");
-      valis allTokens(initSt(pkgLoc(P),Txt::cons[integer]))
---      logMsg("input tokens are $(Toks)");
-    } else
-    throw reportError(Rp,"Cannot locate $(P) in $(U)",pkgLoc(P))
-  }
+    ( ((Toks,Rp1).=allTokens(initSt(Lc,Txt::cons[integer],Rpt))) &&
+	  (Trm,Rptx,_) .= astParse(Toks,Rp1)) ?
+      (some(Trm),Rptx) ||
+      (.none, reportError(Rpt,"Could not successfully parse",Lc)).
 }

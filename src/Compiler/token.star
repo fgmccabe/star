@@ -12,7 +12,9 @@ star.compiler.token{
               | fltTok(float)
               | strTok(cons[stringSegment]).
 
-  public stringSegment ::= segment(locn,string) | interpolate(locn,cons[token],string) | coerce(locn,cons[token]).
+  public stringSegment ::= segment(locn,string)
+    | interpolate(locn,cons[token],string)
+    | evaluate(locn,cons[token]).
 
   public implementation display[tk] => {.
     disp(idQTok(Id)) => "''#(Id)''".
@@ -35,13 +37,13 @@ star.compiler.token{
     disp(segment(_,S)) => S.
     disp(interpolate(_,S,"")) => "\$($(S))".
     disp(interpolate(_,S,F)) => "\$($(S)):#(F);".
-    disp(coerce(_,S)) => "\#($(S))".
+    disp(evaluate(_,S)) => "\#($(S))".
   .}
 
   implementation equality[stringSegment] => {.
     segment(_,S1) == segment(_,S2) => S1==S2.
     interpolate(_,S1,F1) == interpolate(_,S2,F2) => S1==S2 && F1==F2.
-    coerce(_,S1) == coerce(_,S2) => S1==S2.
+    evaluate(_,S1) == evaluate(_,S2) => S1==S2.
     _ == _ default => .false.
   .}
 
