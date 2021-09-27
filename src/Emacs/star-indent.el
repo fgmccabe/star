@@ -34,7 +34,7 @@
   )
 
 (defconst star-num-regexp
-  "\\(0x[0-9a-fA-F]+\\|0c\\(?:\\\\u[^;]*;\\|.\\)\\|[0-9]+\\(?:[.][0-9]+\\(?:[eE][-+]?[0-9]+\\)?\\)?\\)"
+  "\\(0x[0-9a-fA-F]+\\|0c\\(?:\\\\u[^;]*;\\|\\\\.\\|\\|.\\)\\|[0-9]+\\(?:[.][0-9]+\\(?:[eE][-+]?[0-9]+\\)?\\)?\\)"
   "regular expression that matches numeric literals")
 
 (defconst star-id-regexp

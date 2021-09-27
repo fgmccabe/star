@@ -4,7 +4,7 @@
 (defvar star-compiler "/Users/fgm/Projects/star/src/BootCompiler/sbc"
   "Exec path to the star compiler")
 
-(defvar star-build-repo "../Star/Build/"
+(defvar star-build-repo "/Users/fgm/Projects/star/.star-repo/"
   "Name of the build repository for the compiler")
 
 (defun star-package ()
