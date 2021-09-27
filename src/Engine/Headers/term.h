@@ -66,4 +66,7 @@ retCode showTerm(ioPo f, void *data, long depth, long precision, logical alt);
 
 extern logical sameTerm(termPo t1, termPo t2);
 
+logical isStringTerm(termPo t);
+retCode dispStringTerm(ioPo out, termPo t, integer precision, integer depth, logical alt);
+
 #endif //STAR_TERM_H

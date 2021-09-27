@@ -48,7 +48,7 @@ retCode bootstrap(char *entry, char *rootWd, capabilityPo rootCap) {
   if (mainMtd != Null) {
     termPo cmdLine = commandLine(currHeap);
     processPo p = newProcess(mainMtd, rootWd, rootCap, cmdLine);
-    retCode ret = run(p);
+    integer ret = run(p);
 
     ps_kill(p);
     return ret;

@@ -112,7 +112,9 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
   if (isSpecialClass(clss)) {
     specialClassPo spec = (specialClassPo) clss;
     return spec->dispFun(out, t, precision, depth, alt);
-  } else if (isNormalPo(t)) {
+  } else if(isStringTerm(t))
+    return dispStringTerm(out,t,precision,depth,alt);
+  else if (isNormalPo(t)) {
     normalPo nml = C_NORMAL(t);
     labelPo lbl = nml->lbl;
     integer arity = labelArity(lbl);

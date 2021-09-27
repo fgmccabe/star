@@ -259,16 +259,21 @@ retCode formattedFloat(double dx, char *out, integer *endPos, integer outLen, co
 }
 
 retCode formattedLong(integer ix, char *out, integer *endPos, integer outLen, const char *frmt, integer formatLen) {
-  char digits[256];
-  uint16 base = (uint16) (uniIndexOf(frmt, formatLen, 0, 'X') >= 0 ? 16 : 10);
-  logical isSigned = False;
-  if (ix < 0) {
-    isSigned = True;
-    ix = -ix;
-  }
-  integer len = natural2StrByBase(digits, ix, 0, base);
+  if (uniSame(frmt, formatLen, "c", uniStrLen("c"))) {
+    codePoint cp = (codePoint) ix;
+    return appendCodePoint(out,endPos,outLen,cp);
+  } else {
+    char digits[256];
+    uint16 base = (uint16) (uniIndexOf(frmt, formatLen, 0, 'X') >= 0 ? 16 : 10);
+    logical isSigned = False;
+    if (ix < 0) {
+      isSigned = True;
+      ix = -ix;
+    }
+    integer len = natural2StrByBase(digits, ix, 0, base);
 
-  return formatDigits(isSigned, digits, (long) len, frmt, formatLen, out, outLen, endPos);
+    return formatDigits(isSigned, digits, (long) len, frmt, formatLen, out, outLen, endPos);
+  }
 }
 
 #define attachChar(O, P, L, Ch) do{ if((*(P))>=(L)) return Error; else (O)[(*(P))++] = Ch; } while(False)
@@ -281,8 +286,8 @@ formatDigits(logical isSigned, const char *digits, int64 precision, const char *
   logical encounteredSign = False;
   int zeroDigits = countSignificants(format, 0, formatLen, "0 ");
 
-  char signFmt = (uniIndexOf(format, formatLen, 0, '-') >= 0 ? '-' :
-                  uniIndexOf(format, formatLen, 0, '+') >= 0 ? '+' : ' ');
+  char signFmt = (char) (uniIndexOf(format, formatLen, 0, '-') >= 0 ? '-' :
+                         uniIndexOf(format, formatLen, 0, '+') >= 0 ? '+' : ' ');
 
   if (precision > formSigDigits)
     return Error;
@@ -797,7 +802,8 @@ retCode __voutMsg(ioPo f, char *format, va_list args) {
         }
 
         if (procs[fcp & 0xff] != NULL) {
-          void *data = va_arg(args, void*); /* pick up a special value */
+          void *data = va_arg(args,
+          void*); /* pick up a special value */
           ret = procs[((unsigned int) fcp) & 0xffu](f, data, depth, precision, alternate);
         } else
           switch (fcp) {
@@ -805,7 +811,9 @@ retCode __voutMsg(ioPo f, char *format, va_list args) {
               ret = flushFile(f);
               break;
             case 'c': {    /* Display an integer value as a char */
-              codePoint i = (codePoint) (longValue ? va_arg(args, integer) : va_arg(args, int));
+              codePoint
+              i = (codePoint) (longValue ? va_arg(args, integer) : va_arg(args,
+              int));
 
               if (alternate) {
                 integer gaps = 0;
@@ -815,7 +823,9 @@ retCode __voutMsg(ioPo f, char *format, va_list args) {
               break;
             }
             case 'd': {    /* Display an integer value */
-              integer i = (integer) (longValue ? va_arg(args, integer) : va_arg(args, int));
+              integer
+              i = (integer) (longValue ? va_arg(args, integer) : va_arg(args,
+              int));
 
               ret = outInteger(f, i, 10, (int) width, (int) precision, pad, leftPad, prefix, sign);
               break;
@@ -835,19 +845,25 @@ retCode __voutMsg(ioPo f, char *format, va_list args) {
               break;
             }
             case 'o': {    /* Display an octal value */
-              integer i = (integer) (longValue ? va_arg(args, integer) : va_arg(args, long));
+              integer
+              i = (integer) (longValue ? va_arg(args, integer) : va_arg(args,
+              long));
 
               ret = outOctal(f, i, width, precision, pad, leftPad, prefix, sign, alternate);
               break;
             }
             case 'x': {    /* Display a hex value */
-              integer i = (integer) (longValue ? va_arg(args, integer) : va_arg(args, long));
+              integer
+              i = (integer) (longValue ? va_arg(args, integer) : va_arg(args,
+              long));
 
               ret = outHex(f, i, width, precision, pad, leftPad, prefix, sign, alternate);
               break;
             }
             case 'b': {    /* Display a binary value */
-              integer i = (integer) (longValue ? va_arg(args, integer) : va_arg(args, long));
+              integer
+              i = (integer) (longValue ? va_arg(args, integer) : va_arg(args,
+              long));
 
               ret = outInteger(f, i, 2, width, precision, pad, leftPad, prefix, sign);
               break;
@@ -858,7 +874,8 @@ retCode __voutMsg(ioPo f, char *format, va_list args) {
             case 'E':
             case 'F':
             case 'f': {    /* Display floating point number */
-              double num = (double) va_arg(args, double);
+              double num = (double) va_arg(args,
+              double);
 
               if (!overridePrecision) /* default precision for floats */
                 precision = 6;
@@ -866,7 +883,8 @@ retCode __voutMsg(ioPo f, char *format, va_list args) {
               break;
             }
             case 's': {    /* Display a string */
-              char *str = (char *) va_arg(args, char *);
+              char *str = (char *) va_arg(args,
+              char *);
 
               if (str != NULL) {
                 ret = outUniString(f, str, uniStrLen(str), width, precision, ' ', leftPad, alternate);
@@ -876,8 +894,10 @@ retCode __voutMsg(ioPo f, char *format, va_list args) {
             }
 
             case 'S': {    /* Display a lengthed string */
-              char *str = (char *) va_arg(args, char *);
-              long len = (long) va_arg(args, long);
+              char *str = (char *) va_arg(args,
+              char *);
+              long len = (long) va_arg(args,
+              long);
 
               if (str != NULL)
                 ret = outUniString(f, str, len, width, precision, ' ', leftPad, alternate);
@@ -887,7 +907,8 @@ retCode __voutMsg(ioPo f, char *format, va_list args) {
             }
 
             case 'U': {    /* Display a uniCode string */
-              char *str = (char *) va_arg(args, char *);
+              char *str = (char *) va_arg(args,
+              char *);
 
               if (str != NULL) {
                 ret = outUStr(f, prefix);
@@ -899,7 +920,9 @@ retCode __voutMsg(ioPo f, char *format, va_list args) {
             }
 
             case 'p': {    /* Display some spaces */
-              integer i = (integer) (longValue ? va_arg(args, integer) : va_arg(args, int));
+              integer
+              i = (integer) (longValue ? va_arg(args, integer) : va_arg(args,
+              int));
 
               ret = outStr(f, prefix);
               while (ret == Ok && i-- > 0) {

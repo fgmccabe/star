@@ -162,6 +162,12 @@ retCode chrsDisp(ioPo out, termPo t, integer precision, integer depth, logical a
   return ret;
 }
 
+retCode outChars(ioPo out, termPo t, integer precision, integer depth, logical alt) {
+  charsPo str = C_CHARS(t);
+
+  return processUnicodes(str->txt, str->length, cpDisp, out);
+}
+
 retCode quoteChars(ioPo out, charsPo str) {
   return processUnicodes(str->txt, str->length, cpDisp, out);
 }
