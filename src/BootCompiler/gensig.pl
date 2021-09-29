@@ -9,7 +9,7 @@
 
 genPkgSig(mdule(Pkg,Imports,Decls,_,_),Sig) :-
   constructPkgSig(Pkg,Imports,Decls,Term),
-  encodeTerm(Term,Chrs,[]),
+  encodeTerm(Term,Chrs,[]),!,
   string_chars(Sig,Chrs).
 
 constructPkgSig(Pkg,Imports,Decls,SigTpl) :-

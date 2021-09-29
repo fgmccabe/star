@@ -853,7 +853,7 @@ ptnVars(voyd,Dx,Dx).
 ptnVars(intgr(_),Dx,Dx).
 ptnVars(float(_),Dx,Dx).
 ptnVars(strg(_),Dx,Dx).
-ptnVars(lbl(Dx,Dx),Dx,Dx).
+ptnVars(lbl(_,_),Dx,Dx).
 ptnVars(cll(_,_,Args),D,Dx) :-
   rfold(Args,lterms:ptnVars,D,Dx).
 ptnVars(ocall(_,_,Args),D,Dx) :-
