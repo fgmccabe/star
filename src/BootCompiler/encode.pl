@@ -7,7 +7,7 @@
 :- use_module(types).
 
 encode(T,Str) :-
-  encodeTerm(T,Chrs,[]),
+  encodeTerm(T,Chrs,[]),!,
   string_chars(Str,Chrs).
 
 encodeTerm(voyd, ['v'|O],O).
