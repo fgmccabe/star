@@ -534,7 +534,6 @@ checkTgt(vectorPo blocks, methodPo mtd, insPo code, integer oPc, integer *pc, Op
         case TResume:
         case Halt:
         case Abort:
-        case Cut:
         case Throw:
         case Ret:
           break;

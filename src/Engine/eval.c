@@ -131,6 +131,7 @@ retCode run(processPo P) {
           restoreRegisters();
           push(res);
         } else {
+          bumpCallCount(mtd);
           FP = pushFrame(STK, mtd, FP, SP);
           PC = entryPoint(mtd);
           LITS = codeLits(mtd);
@@ -164,6 +165,8 @@ retCode run(processPo P) {
           logMsg(logFile, "no definition for %T", oLbl);
           bail();
         }
+
+        bumpCallCount(mtd);
 
         push(nthElem(obj, 0));                     // Put the free term back on the stack
 
@@ -228,6 +231,8 @@ retCode run(processPo P) {
           logMsg(logFile, "no definition for %T", lbl);
           bail();
         }
+
+        bumpCallCount(mtd);
 
         if (!stackRoom(stackDelta(mtd))) {
           int root = gcAddRoot(H, (ptrPo) &mtd);
@@ -300,6 +305,8 @@ retCode run(processPo P) {
           logMsg(logFile, "no definition for %T", lbl);
           bail();
         }
+
+        bumpCallCount(mtd);
 
         if (!stackRoom(stackDelta(mtd))) {
           int root = gcAddRoot(H, (ptrPo) &mtd);

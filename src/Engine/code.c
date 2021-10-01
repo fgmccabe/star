@@ -179,6 +179,10 @@ termPo getMtdLit(methodPo mtd, integer litNo) {
   return nthArg(codeLits(mtd), litNo);
 }
 
+integer bumpCallCount(methodPo mtd) {
+  return ++mtd->entryCount;
+}
+
 packagePo loadedPackage(const char *package) {
   return (packagePo) hashGet(packages, (void *) package);
 }
@@ -244,28 +248,44 @@ integer codeArity(methodPo mtd) {
 methodPo
 defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stackDelta, labelPo lbl, normalPo pool,
           normalPo locals, normalPo lines) {
-  int root = gcAddRoot(H, (ptrPo) &lbl);
-  gcAddRoot(H, (ptrPo) &pool);
-  gcAddRoot(H, (ptrPo) &locals);
-  gcAddRoot(H, (ptrPo) &lines);
+int root = gcAddRoot(H, (ptrPo) &lbl);
+gcAddRoot(H, (ptrPo)
+&pool);
+gcAddRoot(H, (ptrPo)
+&locals);
+gcAddRoot(H, (ptrPo)
+&lines);
 
-  methodPo mtd = (methodPo) allocateObject(H, methodClass, MtdCellCount(insCount));
+methodPo mtd = (methodPo) allocateObject(H, methodClass, MtdCellCount(insCount));
 
-  for (integer ix = 0; ix < insCount; ix++)
-    mtd->code[ix] = ins[ix];
+for (
+integer ix = 0;
+ix<insCount;
+ix++)
+mtd->code[ix] = ins[ix];
 
-  mtd->codeSize = insCount;
-  mtd->jit = Null;
-  mtd->arity = lbl->arity;
-  mtd->lclcnt = lclCount;
-  mtd->pool = pool;
-  mtd->locals = locals;
-  mtd->lines = lines;
-  mtd->stackDelta = stackDelta;
+mtd->
+codeSize = insCount;
+mtd->
+jit = Null;
+mtd->
+arity = lbl->arity;
+mtd->
+lclcnt = lclCount;
+mtd->
+pool = pool;
+mtd->
+locals = locals;
+mtd->lines = lines;
+mtd->
+stackDelta = stackDelta;
 
-  lbl->mtd = mtd;
+lbl->
+mtd = mtd;
 
-  gcReleaseRoot(H, root);
+gcReleaseRoot(H, root
+);
 
-  return mtd;
+return
+mtd;
 }

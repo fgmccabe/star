@@ -6,7 +6,6 @@
 #include "term.h"
 #include "heap.h"
 #include "opcodes.h"
-//#include "pkg.h"
 
 typedef uint16 insWord;
 typedef const insWord *insPo;
@@ -15,19 +14,21 @@ typedef struct method_ *methodPo;
 
 void initCode();
 
-extern methodPo C_MTD(termPo t);
+methodPo C_MTD(termPo t);
 
-extern normalPo codeLits(methodPo mtd);
-extern integer codeLitCount(methodPo mtd);
+normalPo codeLits(methodPo mtd);
+integer codeLitCount(methodPo mtd);
 
-extern termPo getMtdLit(methodPo mtd, integer litNo);
+termPo getMtdLit(methodPo mtd, integer litNo);
 
-extern integer lclCount(methodPo mtd);
-extern integer codeArity(methodPo mtd);
+integer lclCount(methodPo mtd);
+integer codeArity(methodPo mtd);
 
-extern termPo findPcLocation(methodPo mtd, integer pc);
-extern integer insOffset(methodPo m, insPo pc);
-extern insPo pcAddr(methodPo mtd, integer off);
-extern integer mtdCodeSize(methodPo mtd);
+termPo findPcLocation(methodPo mtd, integer pc);
+integer insOffset(methodPo m, insPo pc);
+insPo pcAddr(methodPo mtd, integer off);
+integer mtdCodeSize(methodPo mtd);
+
+integer bumpCallCount(methodPo mtd);
 
 #endif
