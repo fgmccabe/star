@@ -6,8 +6,8 @@ test.do10{
     wi : string.
   }
 
-  handle:(cons[string],pp)=>result[(),()].
-  handle(_,X) => do{
+  hndle:(cons[string],pp)=>result[(),()].
+  hndle(_,X) => do{
     logMsg(X.ri)
   }
 
@@ -15,6 +15,6 @@ test.do10{
   _main(Args) => valof action{
     RI ^= some("fred");
     WI ^=  some("file:");
-    handle(Args//((C)=>chrs_(C)),pp{ ri=RI. wi=WI. })
+    hndle(Args//((C)=>chrs_(C)),pp{ ri=RI. wi=WI. })
   }
 }
