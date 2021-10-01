@@ -27,8 +27,9 @@ retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
   insPo code = entryPoint(mtd);
   int len = insCount(mtd);
   integer pc = 0;
-  retCode ret = Ok;
   jitCompPo context = jitContext(mtd);
+
+  retCode ret = jit_preamble(mtd, context);
 
   while (ret == Ok && pc < len) {
     switch (code[pc++]) {
@@ -38,7 +39,13 @@ retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
         return Error;
     }
   }
-  return Error;
+
+  if (ret == Ok)
+    ret = jit_postamble(mtd, context);
+
+  if(ret==Ok)
+
+  return ret;
 }
 
 termPo invokeJitMethod(methodPo mtd, heapPo H, stackPo stk) {
