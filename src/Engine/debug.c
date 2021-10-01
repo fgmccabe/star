@@ -1077,6 +1077,14 @@ DebugWaitFor enterDebug(processPo p) {
       termPo prompt = peekStack(stk, 1);
       return lnDebug(p, ins, prompt, showCut);
     }
+    case Handle: {
+      termPo prompt = peekStack(stk, 2);
+      return lnDebug(p, ins, prompt, showPrompt);
+    }
+    case Throw: {
+      termPo prompt = peekStack(stk, 1);
+      return lnDebug(p, ins, prompt, showCut);
+    }
     case Resume: {
       termPo cont = topStack(stk);
       return lnDebug(p, ins, cont, showResume);
