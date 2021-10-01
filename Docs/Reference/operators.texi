@@ -458,6 +458,10 @@
 @tab left associative infix
 @tab 600
 @tab test nth bit
+@item @code{handle}
+@tab non-associative infix
+@tab 1199
+@tab try @{...@} handle @{...@}
 @item @code{~}
 @tab non-associative prefix
 @tab 905
@@ -528,7 +532,8 @@
 @item @code{private}
 @tab @code{type}
 @tab @code{implementation}
-@item @code{else}
+@item @code{handle}
+@tab @code{else}
 
 @end multitable
 @end float

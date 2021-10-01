@@ -125,6 +125,7 @@
   operator("implementation", [prefixOp(1260, 1259)]).
   operator("|", [infixOp(1248, 1248, 1247)]).
   operator(".#.", [infixOp(600, 600, 599)]).
+  operator("handle", [infixOp(1198, 1199, 1198)]).
   operator("~", [prefixOp(905, 904)]).
   operator("^//", [infixOp(800, 800, 799)]).
   operator("||", [infixOp(919, 920, 920)]).
@@ -412,6 +413,7 @@
   keyword("type").
   keyword("implementation").
   keyword("|").
+  keyword("handle").
   keyword("~").
   keyword("||").
   keyword("else").

@@ -141,6 +141,7 @@ star.compiler.operators{
   oper("implementation") => [prefixOp(1260,1259)].
   oper("|") => [infixOp(1248,1248,1247)].
   oper(".#.") => [infixOp(600,600,599)].
+  oper("handle") => [infixOp(1198,1199,1198)].
   oper("~") => [prefixOp(905,904)].
   oper("^//") => [infixOp(800,800,799)].
   oper("||") => [infixOp(919,920,920)].
@@ -463,6 +464,7 @@ star.compiler.operators{
   keyword("type") => .true.
   keyword("implementation") => .true.
   keyword("|") => .true.
+  keyword("handle") => .true.
   keyword("~") => .true.
   keyword("||") => .true.
   keyword("else") => .true.
