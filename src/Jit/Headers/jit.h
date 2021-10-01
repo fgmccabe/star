@@ -8,6 +8,7 @@
 #include <code.h>
 #include "config.h"
 #include "ooio.h"
+#include "term.h"
 #include "stack.h"
 
 typedef termPo (*jitCode)();
@@ -24,6 +25,7 @@ typedef termPo (*jitCode8)(termPo a1, termPo a2, termPo a3, termPo a4, termPo a5
 typedef struct jit_compiler_ *jitCompPo;
 
 void initJit();
+retCode installJitCode(methodPo mtd,jitCode code);
 retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen);
 termPo invokeJitMethod(methodPo mtd, heapPo H, stackPo stk);
 

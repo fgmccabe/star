@@ -98,5 +98,8 @@ typedef struct lbl_ref {
 logical isByte(int64 x);
 logical isI32(int64 x);
 
+retCode jit_preamble(methodPo mtd,jitCompPo context);
+
+retCode jit_postamble(methodPo mtd,jitCompPo context);
 
 #endif //STAR_JITP_H

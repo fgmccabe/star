@@ -4,6 +4,14 @@
 #include "jitP.h"
 #include "jitOps.h"
 
+retCode jit_preamble(methodPo mtd,jitCompPo context){
+  return Error;
+}
+
+retCode jit_postamble(methodPo mtd,jitCompPo context){
+  return Error;
+}
+
 static int32 collectOperand(insPo base, integer *pc) {
   uint32 hi = (uint32) base[(*pc)++];
   uint32 lo = (uint32) base[(*pc)++];
