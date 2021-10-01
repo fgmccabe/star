@@ -12,7 +12,8 @@
 peepOptimize(Ins,Cde) :-
   findLblUsages(Ins,lbls{},Lbs),
   deleteUnused(false,Ins,Lbs,In0),
-  peep(In0,Cde).
+  findTgts(Ins,mp{},Map),
+  peep(In0,Map,Cde),!.
 
 findLblUsages([],Lblx,Lblx).
 findLblUsages([iJmp(Lbl)|Ins],Lb,Lbx) :-
@@ -69,9 +70,34 @@ dropUntilLbl(true,[_|Ins],Lbs,Cde) :-
 dropUntilLbl(false,[I|Ins],Lbs,[I|Cde]) :-
   deleteUnused(false,Ins,Lbs,Cde).
 
-peep([],[]).
-peep([iLine(Lc),iLine(_)|Ins], Out) :-
-  peep([iLine(Lc)|Ins],Out).
-peep([I|Ins],[I|Cde]) :-
-  peep(Ins,Cde).
+findTgts([],Mp,Mp).
+findTgts([iLbl(Lb)|Ins],Mp,Mpx) :-
+  addTgt(Lb,Ins,Mp,Mp0),
+  findTgts(Ins,Mp0,Mpx).
+findTgts([_|Ins],Mp,Mpx) :-
+  findTgts(Ins,Mp,Mpx).
 
+addTgt(Lb,Ins,Mp,Mpx) :-
+  makeKey(Lb,Ky),
+  put_dict(Ky,Mp,Ins,Mpx).
+
+pickupTgt(Lb,Mp,Ins) :-
+  makeKey(Lb,Ky),
+  get_dict(Ky,Mp,Ins).
+  
+peep([],_,[]).
+peep([iLine(Lc),iLine(_)|Ins],Map, Out) :-!,
+  peep([iLine(Lc)|Ins],Map,Out).
+peep(Ins,Map,Out) :-
+  accessorPtn(Ins,Int),!,
+  peep(Int,Map,Out).
+peep([I|Ins],Map,[I|Cde]) :-
+  peep(Ins,Map,Cde).
+
+accessorPtn([iUnpack(Lb,Fl)|Ins],[iUnpack(Lb,Fl)|LdDrops]) :-
+  dropSeq(Ins,[iStL(Off)|Ins1],LdDrops,[iRet|Inz]),
+  dropSeq(Ins1,[iLdL(Off),iRet|Inz],_,_),!.
+  
+dropSeq([iDrop|Ins],Rest,[iDrop|Iz],Io) :-!,
+  dropSeq(Ins,Rest,Iz,Io).
+dropSeq(Ins,Ins,Dp,Dp).

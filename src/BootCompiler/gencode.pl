@@ -53,6 +53,7 @@ genDef(D,Opts,fnDef(Lc,Nm,H,Tp,Args,Value),O,[CdTrm|O]) :-
 	      C1,[iLbl(Ex)|C2],some(0),Stk0),
   compTerm(Value,Lc,retCont(Opts),trapCont(Lc),Opts,L2,_Lx,D2,Dx,End,C2,[iLbl(End)],Stk0,_Stk),
   findMaxLocal(Dx,Mx),
+%  (is_member(showGenCode,Opts) -> dispIns(func(Nm,H,Sig,Mx,C0));true ),
   peepOptimize(C0,Cde),
   (is_member(showGenCode,Opts) -> dispIns(func(Nm,H,Sig,Mx,Cde));true ),
   assem(func(Nm,H,Sig,Mx,Cde),CdTrm).
@@ -119,10 +120,14 @@ buildArg(_,_,D,D).
 lclVar(Nm,Wh,scope(Vrs,_,_)) :-
   is_member((Nm,Wh,_,_),Vrs),!.
 
-defineLclVar(Nm,Lbl,End,scope(Vrs,FreeRg,Mx),
-	     scope([(Nm,l(Off),Lbl,End)|Vrs],NFreeRg,Mx1),Off,
-	     [iLocal(Nm,Lbl,End,Off)|Cx],Cx) :-
-  nextFreeOff(FreeRg,Mx,Off,NFreeRg,Mx1).
+defineLclVar(Nm,Lbl,End,Opts,scope(Vrs,FreeRg,Mx),scope([(Nm,l(Off),Lbl,End)|Vrs],NFreeRg,Mx1),Off,C,Cx) :-
+  nextFreeOff(FreeRg,Mx,Off,NFreeRg,Mx1),
+  genDebug(Opts,iLocal(Nm,Lbl,End,Off),C,Cx).
+
+genDebug(Opts,Debug,[Debug|Cx],Cx) :-
+  is_member(debugging,Opts),!.
+genDebug(_,_,Cx,Cx).
+
 
 clearLclVar(Nm,scope(Vrs,FreeRg,Mx),scope(NVrs,NFreeRg,NMx)) :-
   subtract((Nm,l(Off),_,_),Vrs,NVrs),
@@ -258,7 +263,7 @@ compTerm(whr(Lc,T,Cnd),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
 compTerm(ltt(Lc,idnt(Nm),Val,Exp),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(L,Lb,L1),
   chLine(Opts,OLc,Lc,C,C0),!,
-  defineLclVar(Nm,Lb,End,D,D1,Off,C0,[iStV(Off)|C1]),
+  defineLclVar(Nm,Lb,End,Opts,D,D1,Off,C0,[iStV(Off)|C1]),
   compTerm(Val,Lc,bothCont(stoCont(Off,Lb),
 			   compTerm(Exp,Lc,Cont,TCont,Opts)),TCont,Opts,
 	   L1,Lx,D1,Dx,End,C1,Cx,Stk,Stkx).
@@ -444,7 +449,7 @@ propagateCont(ECont,Cont,L,Lx,D,Dx,End,[iCLbl(lbl("star.action#ok",1),Nxt)|C],Cx
   call(Cont,L2,Lx,D2,Dx,End,C0,Cx,Stk0,Stk2),
   mergeStkLvl(Stk1,Stk2,Stkx,"propagate").
 
-bindCont(PCont,ECont,L,Lx,D,Dx,End,[iIndxJmp(2),iJmp(Err),iJmp(Ok),iLbl(Trp),iHalt(99),
+bindCont(PCont,ECont,L,Lx,D,Dx,End,[iIndxJmp(2),iJmp(Err),iJmp(Ok),iLbl(Trp),iHalt(2),
 				    iLbl(Ok),iUnpack(lbl("star.action#ok",1),Trp)|C],Cx,Stk,Stkx) :-
   genLbl(L,Ok,L0),
   genLbl(L0,Err,L1),
@@ -621,9 +626,9 @@ compPtn(Lit,_,Succ,Fail,_TCont,_Opts,L,Lx,D,Dx,End,[iLdC(Lit),iCmp(Fl)|C],Cx,Stk
   isLiteral(Lit),!,
   dropStk(Stk,1,Stk1),
   ptnTest(Succ,Fail,Fl,L,Lx,D,Dx,End,C,Cx,Stk1,Stkx).
-compPtn(idnt(Nm),_,Succ,_,_,_Opts,L,Lx,D,Dx,End,[iStL(Off),iLbl(Lb)|C],Cx,Stk,Stkx) :-
+compPtn(idnt(Nm),_,Succ,_,_,Opts,L,Lx,D,Dx,End,[iStL(Off),iLbl(Lb)|C],Cx,Stk,Stkx) :-
   genLbl(L,Lb,L0),
-  defineLclVar(Nm,Lb,End,D,D1,Off,C,C0),
+  defineLclVar(Nm,Lb,End,Opts,D,D1,Off,C,C0),
   dropStk(Stk,1,Stk1),
   call(Succ,L0,Lx,D1,Dx,End,C0,Cx,Stk1,Stkx).
 compPtn(anon,_,Succ,_,_,_Opts,L,Lx,D,Dx,End,[iDrop|C],Cx,Stk,Stkx) :-
@@ -830,7 +835,7 @@ compCaseBranch([(P,E,Lc)|SC],Lbl,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,
   genLbl(L,Fl,L1),
   genLbl(L1,VLb,L2),
   genLbl(L2,VLE,L3),
-  defineLclVar("__",VLb,End,D,D1,Off,C,C0),
+  defineLclVar("__",VLb,Opts,End,D,D1,Off,C,C0),
   genLine(Opts,Lc,C0,C1),
   dropStk(Stk,1,Stk0),
   compPtn(P,Lc,compTerm(E,Lc,Succ,TCont,Opts),resetCont(Stk0,contCont(Fl)),
