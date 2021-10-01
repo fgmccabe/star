@@ -10,6 +10,7 @@
 :- use_module(errors).
 :- use_module(gensig).
 :- use_module(location).
+:- use_module(peephole).
 
 genCode(PkgDecls,mdule(Pkg,Imports,Decls,LDecls,Defs),Opts,Text) :-
   encPkg(Pkg,PT),
@@ -41,7 +42,7 @@ genDefs(Defs,Opts,D,O,Ox) :-
   rfold(Defs,gencode:genDef(D,Opts),Ox,O).
 
 genDef(D,Opts,fnDef(Lc,Nm,H,Tp,Args,Value),O,[CdTrm|O]) :-
-%  dispRuleSet(fnDef(Lc,Nm,H,Tp,Args,Value)),
+  (is_member(showTrCode,Opts) -> dispRuleSet(fnDef(Lc,Nm,H,Tp,Args,Value)) ; true),
   encType(Tp,Sig),
   genLbl([],Ex,L0),
   genLbl(L0,End,L1),
@@ -52,8 +53,8 @@ genDef(D,Opts,fnDef(Lc,Nm,H,Tp,Args,Value),O,[CdTrm|O]) :-
 	      C1,[iLbl(Ex)|C2],some(0),Stk0),
   compTerm(Value,Lc,retCont(Opts),trapCont(Lc),Opts,L2,_Lx,D2,Dx,End,C2,[iLbl(End)],Stk0,_Stk),
   findMaxLocal(Dx,Mx),
-  (is_member(showGenCode,Opts) -> dispIns(func(Nm,H,Sig,Mx,C0));true ),
-  removeExtraLines(C0,Cde),
+  peepOptimize(C0,Cde),
+  (is_member(showGenCode,Opts) -> dispIns(func(Nm,H,Sig,Mx,Cde));true ),
   assem(func(Nm,H,Sig,Mx,Cde),CdTrm).
 genDef(D,Opts,glbDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
   encType(funType(tplType([]),Tp),Sig),
@@ -62,8 +63,8 @@ genDef(D,Opts,glbDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
   compTerm(Value,Lc,bothCont(glbCont(Nm),retCont(Opts)),trapCont(Lc),
 	   Opts,L1,_Lx,D,Dx,End,C1,[iLbl(End)],some(0),_Stk),
   findMaxLocal(Dx,Mx),
-  (is_member(showGenCode,Opts) -> dispIns(func(lbl(Nm,0),hard,Sig,Mx,C0));true ),
-  removeExtraLines(C0,Cde),
+  peepOptimize(C0,Cde),
+  (is_member(showGenCode,Opts) -> dispIns(func(lbl(Nm,0),hard,Sig,Mx,Cde));true ),
   assem(func(lbl(Nm,0),hard,Sig,Mx,Cde),Cd).
 genDef(_,_,lblDef(_,Lbl,Tp,Ix),O,[LblTrm|O]) :-
   encType(Tp,Sig),
@@ -295,6 +296,7 @@ compCondExp(Lc,T,A,B,OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   splitCont(Lc,Cont,OC),!,
   compCond(T,Lc,compTerm(A,Lc,OC,TCont,Opts),
+%	   resetCont(Stk,compTerm(B,Lc,OC,TCont,Opts)),
 	   resetVrCont(D,resetCont(Stk,compTerm(B,Lc,OC,TCont,Opts))),
 	   TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 
@@ -726,8 +728,7 @@ compCond(dsj(Lc,A,B),OLc,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   compCond(A,Lc,OSc,
 	   resetVrCont(D,compCond(B,Lc,OSc,Fail,TCont,Opts)),TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 compCond(ng(Lc,Cn),OLc,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
-  chLine(Opts,OLc,Lc,C,C0),
-  compCond(Cn,Lc,Fail,Succ,TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+  compNeg(Lc,Cn,OLc,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 compCond(cnd(Lc,T,A,B),OLc,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   splitCont(Lc,Succ,OSc),
   splitCont(Lc,Fail,OFl),
@@ -740,15 +741,19 @@ compCond(mtch(Lc,P,E),OLc,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   compTerm(E,Lc,compPtn(P,Lc,Succ,Fail,TCont,Opts),
 	   TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 compCond(E,Lc,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
-  compTerm(E,Lc,testCont(Succ,Fail),TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
+  compTerm(E,Lc,ifCont(Succ,Fail),TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 
-testCont(Succ,Fail,L,Lx,D,Dx,End,[iIfNot(Fl)|C],Cx,Stk,Stkx) :-
+ifCont(Succ,Fail,L,Lx,D,Dx,End,[iIfNot(Fl)|C],Cx,Stk,Stkx) :-
   dropStk(Stk,1,Stk0),
   genLbl(L,Fl,L0),
   call(Succ,L0,L1,D,D1,End,C,[iLbl(Fl)|C0],Stk0,Stk1),
   call(Fail,L1,Lx,D,D2,End,C0,Cx,Stk0,Stk2),
   mergeStkLvl(Stk1,Stk2,Stkx,"test exp"),
   mergeVars(D1,D2,Dx).
+
+compNeg(Lc,Cn,OLc,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  chLine(Opts,OLc,Lc,C,C0),
+  compCond(Cn,Lc,Fail,Succ,TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 
 compCase(T,Lc,Cases,Deflt,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(L,Nxt,L1),
@@ -890,6 +895,5 @@ compArms([(ctpl(Cn,Args),E,Lc)|Cases],_Lc,CompRhs,Cont,TCont,Opts,L,Lx,D,Dx,
 removeExtraLines([],[]).
 removeExtraLines([iLine(_),iLine(Lc)|Ins], Out) :-
   removeExtraLines([iLine(Lc)|Ins],Out).
-
 removeExtraLines([I|Ins],[I|Out]) :-
   removeExtraLines(Ins,Out).

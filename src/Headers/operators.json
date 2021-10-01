@@ -194,6 +194,16 @@
     "keyword": true
   },
   {
+    "infixOp": "handle",
+    "priorities": [
+      1198,
+      1199,
+      1198
+    ],
+    "desc": "try {...} handle {...}",
+    "keyword": true
+  },
+  {
     "infixOp": ";",
     "priorities": [
       1250,

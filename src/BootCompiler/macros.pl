@@ -600,6 +600,11 @@ examineAction(A,Ax) :-
   macroTerm(H,Hx),
   mkTryCatch(Lc,Bx,Hx,Ax).
 examineAction(A,Ax) :-
+  isTryHandle(A,Lc,B,H),!,
+  macroAction(B,Bx),
+  macroTerm(H,Hx),
+  mkTryHandle(Lc,Bx,Hx,Ax).
+examineAction(A,Ax) :-
   isWhileDo(A,Lc,T,B),!,
   macroTerm(T,Tx),
   macroAction(B,Bx),

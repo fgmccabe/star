@@ -33,6 +33,7 @@ macroRl("show",action,macroRules:showMacro).
 macroRl("do",action,macroRules:forLoopMacro).
 macroRl("valof",expression,macroRules:valofMacro).
 macroRl("try",action,macroRules:tryCatchMacro).
+macroRl("try",action,macroRules:tryHandleMacro).
 
 build_main(As,Bs) :-
   look_for_signature(As,"main",Lc,Ms),
@@ -468,3 +469,13 @@ tryCatchMacro(T,action,Tx) :-
   unary(LLc,"do",H,HA),
   mkEquation(Lc,Arg,none,HA,Hx),
   mkTryCatch(Lc,B,Hx,Tx).
+
+tryHandleMacro(T,action,Tx) :-
+  isTryHandle(T,Lc,B,H),
+  isBraceTuple(H,LLc,_),!,
+  mkAnon(LLc,A),
+  isName(Cont,LLc,"$k"),
+  roundTuple(Lc,[A,Cont],Arg),
+  unary(LLc,"do",H,HA),
+  mkEquation(Lc,Arg,none,HA,Hx),
+  mkTryHandle(Lc,B,Hx,Tx).

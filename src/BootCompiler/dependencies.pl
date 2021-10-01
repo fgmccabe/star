@@ -410,6 +410,10 @@ collectDoRefs(T,All,Rf,Rfx) :-
   collectDoRefs(L,All,Rf,Rf1),
   collectCatchRefs(R,All,Rf1,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
+  isTryHandle(T,_,L,R),!,
+  collectDoRefs(L,All,Rf,Rf1),
+  collectCatchRefs(R,All,Rf1,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
   isThrow(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-

@@ -193,7 +193,7 @@ appQuoted(Str,Qt,O,E) :-
   appStr(Qt,O,O1),
   string_chars(Qt,[Q]),
   string_chars(Str,Chars),
-  quoteConcat(Q,Chars,O1,O2),
+  quoteConcat(Q,Chars,O1,O2),!,
   appStr(Qt,O2,E).
 
 quoteConcat(_,[],O,O).

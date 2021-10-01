@@ -48,6 +48,7 @@
 	      isThrow/3,mkThrow/3,isValis/3,mkValis/3,
 	      isIgnore/3,mkIgnore/3,
 	      isTryCatch/4,mkTryCatch/4,
+	      isTryHandle/4,mkTryHandle/4,
 	      isIfThenElse/5,isIfThen/4,mkIfThenElse/5,mkIfThen/4,
 	      isWhileDo/4,isUntilDo/4,isForDo/5,
 	      mkWhileDo/4,mkUntilDo/4,mkForDo/5,
@@ -856,6 +857,14 @@ isTryCatch(A,Lc,B,H) :-
 
 mkTryCatch(Lc,B,H,A) :-
   binary(Lc,"catch",B,H,A0),
+  unary(Lc,"try",A0,A).
+
+isTryHandle(A,Lc,B,H) :-
+  isUnary(A,Lc,"try",I),
+  isBinary(I,_,"handle",B,H).
+
+mkTryHandle(Lc,B,H,A) :-
+  binary(Lc,"handle",B,H,A0),
   unary(Lc,"try",A0,A).
 
 isIfThenElse(A,Lc,Ts,Th,El) :-

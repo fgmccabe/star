@@ -69,6 +69,10 @@ star.strings{
     _coerce(S) => some(S).
   }
 
+  public implementation coercion[string,chars] => {
+    _coerce(S) => some(_str_fltn(S)).
+  }
+
   public stringQuote:(string)=>string.
   stringQuote(S) => chrs_(_str_quote(_str_fltn(S))).
 
@@ -125,4 +129,7 @@ star.strings{
 
   public subString:(string,integer,integer)=>string.
   subString(Txt,Fr,Ln) => chrs_(_sub_str(_str_fltn(Txt),Fr,Ln)).
+
+  public string2chars:(string)=>chars.
+  string2Chars(S) => _str_fltn(S).
 }

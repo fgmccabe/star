@@ -54,7 +54,7 @@ void segmentInit(objectPo o, va_list *args) {
   segPo s = O_SEG(o);
 
   s->seg.segNo = va_arg(*args,
-  int);
+                        int);
   s->seg.mtd = va_arg(*args, methodPo);
   s->seg.arity = codeArity(s->seg.mtd);
   s->seg.pc = va_arg(*args, integer);
@@ -315,11 +315,10 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
       case Ret:
       case Underflow:
       case TResume:
-        //    case Cut:
-      case Prompt: {
-        splitSeg(blocks, *pc);
-        return Ok;
-      }
+      case Cut:
+      case Prompt:
+      case Handle:
+      case Throw:
       case Cmp:
       case CLbl:
       case CmpVd:
@@ -536,6 +535,8 @@ checkTgt(vectorPo blocks, methodPo mtd, insPo code, integer oPc, integer *pc, Op
         case Halt:
         case Abort:
         case Cut:
+        case Throw:
+        case Ret:
           break;
         default:
           updateEntryPoint(current, next);
@@ -837,7 +838,7 @@ retCode checkSegment(segPo seg, char *errorMsg, long msgLen) {
           return Error;
       }
     }
-    if (ret==Ok && vectIsEmpty(seg->seg.exits)) {
+    if (ret == Ok && vectIsEmpty(seg->seg.exits)) {
       switch (lastOp) {
         case Ret:
         case Halt:
@@ -846,6 +847,7 @@ retCode checkSegment(segPo seg, char *errorMsg, long msgLen) {
         case TOCall:
         case Cut:
         case TResume:
+        case Throw:
           break;
         default:
           strMsg(errorMsg, msgLen, RED_ESC_ON "expecting a return at %d" RED_ESC_OFF, pc);

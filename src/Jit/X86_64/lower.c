@@ -299,6 +299,14 @@ retCode jit_Prompt(insPo code, integer *pc, jitCompPo context) {
   return Error;
 }
 
+retCode jit_Handle(insPo code, integer *pc, jitCompPo context) {
+  return Error;
+}
+
+retCode jit_Throw(insPo code, integer *pc, jitCompPo context) {
+  return Error;
+}
+
 retCode jit_Resume(insPo code, integer *pc, jitCompPo context) {
   return Error;
 }
