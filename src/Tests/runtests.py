@@ -1,7 +1,7 @@
 import json
 from pprint import pprint
 import subprocess
-import sys, getopt, os
+import sys, getopt
 
 starExec = "/Users/fgm/Projects/star/Build/src/Engine/star"
 testDir = "/Users/fgm/Projects/star/src/Tests/"
@@ -23,8 +23,8 @@ def main(argv):
     run_failures = []
     try:
         opts,args = getopt.getopt(argv,"dhct:",["sc","test=","help","compile_only","tracing","all","ignore_failures","starexec=","sbc","testdir=","repo="])
-    except getopt.GetoptError:
-        print (usage)
+    except getopt.GetoptError as e:
+        print (e.msg)
         sys.exit(2)
     for opt, arg in opts:
         if opt== '--help':
@@ -101,7 +101,7 @@ def runPkg(Pkg):
         out = subprocess.check_output([starExec, "-r",repoDir,"-h","4m", Pkg],
                                       stderr=subprocess.STDOUT)
         if tracing:
-            print (out)
+            print(out)
         return 0
     except subprocess.CalledProcessError as err:
         print (err.output)
