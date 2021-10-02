@@ -13,6 +13,7 @@
 #include "debugP.h"
 #include <math.h>
 #include "utils.h"
+#include "thunk.h"
 #include "cellP.h"
 #include "jitP.h"
 
@@ -591,6 +592,74 @@ retCode run(processPo P) {
             SP[ix] = voidEnum;
 #endif
         }
+        continue;
+      }
+
+      case Thnk: {
+        normalPo thnkLam = C_NORMAL(pop());
+        thunkPo thnk = thunkVar(H, thnkLam);
+        push(thnk);
+        continue;
+      }
+
+      case ThGet: {
+        thunkPo thnk = C_THUNK(pop());
+
+        if (thunkIsSet(thnk)) {
+          termPo vr = thunkVal(thnk);
+
+          check(vr != Null, "undefined thunk");
+
+          push(vr);     /* load a global variable */
+        } else {
+          normalPo lam = thunkLam(thnk);
+          labelPo oLbl = objLabel(termLbl(lam), 2); // 1 for the free vect and 1 for the thnk
+
+          if (oLbl == Null) {
+            logMsg(logFile, "label %s/%d not defined", labelName(termLbl(lam)), 2);
+            bail();
+          }
+
+          methodPo mtd = labelCode(oLbl);       /* set up for object call */
+
+          if (mtd == Null) {
+            logMsg(logFile, "no definition for %T", oLbl);
+            bail();
+          }
+
+          bumpCallCount(mtd);
+
+          push(nthElem(lam, 0));                     // Put the free term back on the stack
+
+          if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE)) {
+            int root = gcAddRoot(H, (ptrPo) &mtd);
+            stackGrow(stackDelta(mtd) + STACKFRAME_SIZE, codeArity(mtd));
+            gcReleaseRoot(H, root);
+          }
+
+          assert(isPcOfMtd(FP->prog, PC));
+          FP->pc = PC;
+          FP = pushFrame(STK, mtd, FP, SP);
+          PC = entryPoint(mtd);
+          LITS = codeLits(mtd);
+
+          incEntryCount(mtd);              // Increment number of times program called
+
+          integer lclCnt = lclCount(mtd);  /* How many locals do we have */
+          SP = (ptrPo) FP - lclCnt;
+#ifdef TRACEEXEC
+          for (integer ix = 0; ix < lclCnt; ix++)
+            SP[ix] = voidEnum;
+#endif
+        }
+
+        continue;
+      }
+
+      case ThSet: {
+        termPo val = pop();
+        thunkPo thnk = C_THUNK(pop());
+        setThunk(thnk, val);      // Update the thunk variable
         continue;
       }
 
