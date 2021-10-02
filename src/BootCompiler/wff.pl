@@ -60,9 +60,7 @@
 	      isComma/4,comma/4,deComma/2,reComma/2,
 	      isCons/4,mkCons/4,
 	      isPair/4,pair/4,
-	      isUnaryMinus/3,
-	      mergeCond/4,
-	      findVars/3]).
+	      isUnaryMinus/3]).
 :- use_module(abstract).
 :- use_module(misc).
 :- use_module(operators).
@@ -458,7 +456,7 @@ headName(Head,Nm) :-
 headName(Head,Nm) :-
   isBrace(Head,_,Nm,_).
 headName(Name,Nm) :-
-  isName(Name,Nm),
+  isIden(Name,Nm),
   \+isKeyword(Nm).
 headName(tuple(_,"()",[Name]),Nm) :-
   headName(Name,Nm).
@@ -777,28 +775,12 @@ pkgName(T,pkg(Pkg,defltVersion)) :-
   packageName(T,Pkg).
 
 packageVersion(T,Pkg) :- isIden(T,Pkg).
-packageVersion(T,Pkg) :- isChars(T,Pkg).
 packageVersion(integer(_,Ix),Pkg) :- atom_string(Ix,Pkg).
 packageVersion(T,Pkg) :- isBinary(T,_,".",L,R),
   packageVersion(L,LP),
   packageVersion(R,RP),
   string_concat(LP,".",I),
   string_concat(I,RP,Pkg).
-
-findVars(name(Lc,V),SoFar,Vrs) :-
-  is_member(name(_,V),SoFar) -> Vrs=SoFar ; Vrs = [name(Lc,V)|SoFar].
-findVars(app(_,_,Args),SoFar,Vrs) :-
-  findVars(Args,SoFar,Vrs).
-findVars(tuple(_,_,Els),SoFar,Vrs) :-
-  rfold(Els,wff:findVars,SoFar,Vrs).
-findVars(integer(_,_),Vrs,Vrs).
-findVars(float(_,_),Vrs,Vrs).
-findVars(chars(_,_),Vrs,Vrs).
-
-mergeCond(L,R,_,R) :- isEnum(L,_,"true"),!.
-mergeCond(L,R,_,L) :- isEnum(R,_,"true"),!.
-mergeCond(L,R,Lc,Cnd) :-
-  binary(Lc,"&&",L,R,Cnd).
 
 isActionTerm(A,Lc,Stmts) :-
   isBrace(A,Lc,"action",[Stmts]).

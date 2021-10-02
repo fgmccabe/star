@@ -139,7 +139,7 @@ disThroughGroup(S,C,Rp) :-
 macroType(T,Tx) :-
   macroAst(T,type,macros:examineType,Tx).
 
-examineType(T,T) :- isName(T,_,_),!.
+examineType(T,T) :- isIden(T,_,_),!.
 examineType(T,Tx) :- isSquareTerm(T,Lc,Op,Args),!,
   map(Args,macros:macroType,Argx),
   macroType(Op,Opx),
@@ -221,7 +221,7 @@ macroTerm(T,Tx) :-
   macroAst(T,expression,macros:examineTerm,Tx).
 
 examineTerm(T,T) :-
-  isName(T,_,_),!.
+  isIden(T,_,_),!.
 examineTerm(T,T) :-
   isEnum(T,_,_),!.
 examineTerm(T,T) :-
@@ -456,7 +456,7 @@ macroPtn(T,Tx) :-
   macroAst(T,pattern,macros:examinePtn,Tx).
 
 examinePtn(T,T) :-
-  isName(T,_,_),!.
+  isIden(T,_,_),!.
 examinePtn(T,T) :-
   isEnum(T,_,_),!.
 examinePtn(T,T) :-

@@ -92,9 +92,9 @@ squareTerm(Lc,Op,Els,app(Lc,Op,tuple(Lc,"[]",Els))).
 
 sqUnary(Lc,Nm,Arg,app(Lc,name(Lc,Nm),tuple(Lc,"[]",[Arg]))).
 
-isSquare(app(_,name(_,Op),tuple(_,"[]",L)),Op,L).
+isSquare(app(_,Op,tuple(_,"[]",L)),Nm,L) :- isIden(Op,Nm).
 
-isSquare(app(Lc,name(_,Op),tuple(_,"[]",L)),Lc,Op,L).
+isSquare(app(Lc,Op,tuple(_,"[]",L)),Lc,Nm,L) :- isIden(Op,Nm).
 
 isSquareTerm(app(_,Op,tuple(_,"[]",L)),Op,L) :- \+isKeyOp(Op).
 
@@ -139,6 +139,7 @@ mkFloat(Lc,Dx,float(Lc,Dx)).
 isAst(A) :- locOfAst(A,_).
 
 locOfAst(name(Lc,_),Lc).
+locOfAst(qnme(Lc,_),Lc).
 locOfAst(integer(Lc,_),Lc).
 locOfAst(float(Lc,_),Lc).
 locOfAst(chars(Lc,_),Lc).
