@@ -108,16 +108,17 @@ isConsTerm(Trm,Lc,H,T) :-
   isBinary(Trm,Lc,",..",H,T).
 
 isName(name(_,Nm),Nm).
-
 isName(name(Lc,Nm),Lc,Nm).
 
 isIden(N) :- isIden(N,_).
 
-isIden(name(_,Nm),Nm).
-isIden(tuple(_,"()",[name(_,Nm)]),Nm).
+isIden(A,Nm) :-
+  isIden(A,_,Nm).
 
 isIden(name(Lc,Nm),Lc,Nm).
 isIden(tuple(Lc,"()",[name(_,Nm)]),Lc,Nm).
+isIden(qnme(Lc,Nm),Lc,Nm).
+isIden(tuple(Lc,"()",[qnme(_,Nm)]),Lc,Nm).
 
 genIden(Lc,name(Lc,Id)) :-
   genstr("_N",Id).

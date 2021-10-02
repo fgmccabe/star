@@ -90,7 +90,7 @@ emptyBkt(Lc,"()",tuple(Lc,"()",[])).
 term00([idTok(I,Lc)|Toks],name(Lc,I),Toks,id) :-
       (isOperator(I), \+lookAhead(rgtTok("()",_),Toks), !, reportError("unexpected operator: '%s'",[I],Lc);
       true).
-term00([idQTok(I,Lc)|Toks],name(Lc,I),Toks,id).
+term00([idQTok(I,Lc)|Toks],qnme(Lc,I),Toks,id).
 term00([lftTok("()",Lc0),rgtTok("()",Lc2)|Toks],tuple(Lc,"()",[]),Toks,rpar) :-
   mergeLoc(Lc0,Lc2,Lc).
 term00([lftTok("()",Lcx)|Tks],T,Toks,rpar) :-
