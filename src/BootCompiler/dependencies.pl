@@ -231,12 +231,12 @@ collectTermRefs(E,A,R0,Rx) :-
   collectTermRefs(L,A,R0,R1),
   collectTypeRefs(R,A,R1,Rx).
 collectTermRefs(V,A,Rfs,Rx) :-
-  isName(V,Nm),
+  isIden(V,Nm),
   collectNmRef(var(Nm),A,Rfs,Rf0),
   collectNmRef(cns(Nm),A,Rf0,Rx).
 collectTermRefs(T,A,Rfs,Rx) :-
   isEnum(T,_,I),!,
-  isName(I,Nm),
+  isIden(I,Nm),
   collectNmRef(cns(Nm),A,Rfs,Rx).
 collectTermRefs(T,A,R,Rx) :-
   isLetDef(T,_,S,B),!,

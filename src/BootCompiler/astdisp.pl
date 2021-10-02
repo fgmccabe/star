@@ -17,7 +17,7 @@ ast2String(Lc,A,Trm) :-
   mkSSChars(Lc,Txt,Trm),!.
 
 dispAst(name(_,Nm),_,O,E) :- appStr(Nm,O,E).
-dispAst(qnme(_,Nm),_,O,E) :- appQuoted(Nm,"\'",O,Ox).
+dispAst(qnme(_,Nm),_,O,Ox) :- appQuoted(Nm,"\'",O,Ox).
 dispAst(integer(_,Nm),_,O,E) :- number_chars(Nm,Chrs), concat(Chrs,E,O).
 dispAst(float(_,Nm),_,O,E) :- number_chars(Nm,Chrs), concat(Chrs,E,O).
 dispAst(chars(_,S),_,O,Ox) :- appStr("0",O,O1),appQuoted(S,"\"",O1,Ox).

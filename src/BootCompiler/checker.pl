@@ -883,7 +883,7 @@ typeOfPrompt(Lc,L,P,Tp,ErTp,Env,prompt(Lc,Lb,Lam,Tp),Path) :-
   newTypeVar("_",Rt),
   mkTypeExp(tpFun("tag",2),[Rt,Tp],TTp),
   typeOfExp(L,TTp,ErTp,Env,_,Lb,Path),
-  dispType(TTp),
+%  dispType(TTp),
   typeOfExp(P,Tp,ErTp,Env,_,Exp,Path),
   lambdaLbl(Path,"ç",Lbl),
   Lam = lambda(Lc,Lbl,rule(Lc,tple(Lc,[]),none,Exp),
@@ -904,8 +904,8 @@ typeOfCut(Lc,L,Lhs,Rhs,Tp,ErTp,Env,shift(Lc,Lb,Lam),Path) :-
   typeOfExp(Rhs,Ct,ErTp,E0,_,Exp,Path),
   lambdaLbl(Path,"ç",Lbl),
   Lam = lambda(Lc,Lbl,rule(Lc,tple(Lc,[V]),none,Exp),
-	       funType(tplType([KType]),Rt)),
-  dispCanon(Lam).
+	       funType(tplType([KType]),Rt)).
+%  dispCanon(Lam).
 
 typeOfDoExp(Lc,Stmts,Tp,ErTp,Env,doTerm(Lc,Act,Tp),Path) :-
   findType("result",Lc,Env,ResltTp),
