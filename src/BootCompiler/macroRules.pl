@@ -433,6 +433,9 @@ quoteExp(A,I) :-
 quoteExp(name(Lc,Id),I) :-
   mkSSChars(Lc,Id,S),
   unary(Lc,"_name",S,I).
+quoteExp(qnme(Lc,Id),I) :-
+  mkSSChars(Lc,Id,S),
+  unary(Lc,"_qnme",S,I).
 quoteExp(integer(Lc,Ix),I) :-
   unary(Lc,"_integer",integer(Lc,Ix),I).
 quoteExp(float(Lc,Dx),I) :-
@@ -441,14 +444,14 @@ quoteExp(chars(Lc,Sx),I) :-
   mkSSChars(Lc,Sx,S),
   unary(Lc,"_string",S,I).
 quoteExp(tuple(Lc,Lb,Els),Rp) :-
-  map(Els,quoteExp,QEls),
+  map(Els,macroRules:quoteExp,QEls),
   macroListEntries(Lc,QEls,R,nilGen,consGen),
   mkSSChars(Lc,Lb,S),
   binary(Lc,"_tuple",S,R,Rp).
 quoteExp(app(Lc,O,A),Rp) :-
   quoteExp(O,Oq),
   quoteExp(A,Aq),
-  bnary(Lc,"_apply",Oq,Aq,Rp).
+  binary(Lc,"_apply",Oq,Aq,Rp).
 
 /*
   A![Ix]

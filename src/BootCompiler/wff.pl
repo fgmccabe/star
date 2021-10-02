@@ -178,8 +178,7 @@ isEnum(C,Lc,Id) :-
 mkEnum(Lc,Id,E) :-
   unary(Lc,".",name(Lc,Id),E).
 
-isAnon(T,Lc) :-
-  isName(T,Lc,"_").
+isAnon(name(Lc,"_"),Lc).
 
 mkAnon(Lc,name(Lc,"_")).
 

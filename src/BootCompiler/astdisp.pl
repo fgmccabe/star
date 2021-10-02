@@ -17,6 +17,7 @@ ast2String(Lc,A,Trm) :-
   mkSSChars(Lc,Txt,Trm),!.
 
 dispAst(name(_,Nm),_,O,E) :- appStr(Nm,O,E).
+dispAst(qnme(_,Nm),_,O,E) :- appQuoted(Nm,"\'",O,Ox).
 dispAst(integer(_,Nm),_,O,E) :- number_chars(Nm,Chrs), concat(Chrs,E,O).
 dispAst(float(_,Nm),_,O,E) :- number_chars(Nm,Chrs), concat(Chrs,E,O).
 dispAst(chars(_,S),_,O,Ox) :- appStr("0",O,O1),appQuoted(S,"\"",O1,Ox).
@@ -29,6 +30,10 @@ dispAst(Trm,_,O,Ox) :-
   appStr("\"",O,O1),
   deInterpolate(Trm,O1,O2),!,
   appStr("\"",O2,Ox).
+dispAst(app(_,name(_,Nm),tuple(_,"()",A)),_,O,E) :- bracket(Nm,Left,Right,Sep,Pr),
+    appStr(Left,O,O1),
+    writeEls(A,Pr,Sep,O1,O2),
+    appStr(Right,O2,E).
 dispAst(app(_,name(_,Nm),tuple(_,"()",[A])),Pr,O,E) :-
   prefixOp(Nm,OpPr, RightPr),!,
   openParen(Pr,OpPr,O,O1),
@@ -52,6 +57,7 @@ dispAst(app(_,name(_,Nm),tuple(_,"()",[A,B])),Pr,O,E) :-
   appStr(" ",O4,O5),
   dispAst(B,RightPr,O5,O6),
   closeParen(Pr,OpPr,O6,E).
+
 dispAst(app(_,Op,A),_,O,E) :- dispAst(Op,0,O,O1), dispAst(A,0,O1,E).
 
 isSSTrm(T) :-

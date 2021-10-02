@@ -74,6 +74,7 @@
     "test.mm": "mm.star",
     "test.ms" : "ms.star",
     "test.nm": "nm.star",
+    "test.opg" : "opgtst.star",
     "test.phone": "phone.star",
     "test.pk": "pk.star",
     "test.p": "p.star",
