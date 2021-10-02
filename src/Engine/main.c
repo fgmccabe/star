@@ -22,6 +22,7 @@
 #include "editline.h"
 #include "jit.h"
 #include "starP.h"
+#include "thunkP.h"
 
 #include "stringBufferP.h"
 
@@ -50,6 +51,7 @@ int main(int argc, char **argv) {
   initArith();
   initChars();
   initLbls();
+  initThunk();
   initGlobals();
   initCons();
   initOption();

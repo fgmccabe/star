@@ -54,6 +54,10 @@ instruction(LdG,glb,nOp,1,"load a global variable")
 instruction(StG,glb,nOp,-1,"store into a global variable")
 instruction(TG,glb,nOp,0,"copy into a global variable")
 
+instruction(Thnk,tOs,nOp,0,"create thunk cell")
+instruction(ThGet,tOs,nOp,0,"access a thunk cell")
+instruction(ThSet,tOs,nOp,-2,"assign to a thunk cell")
+
 instruction(Cell,tOs,nOp,0,"create R/W cell")
 instruction(Get,tOs,nOp,0,"access a R/W cell")
 instruction(Assign,tOs,nOp,-2,"assign to a R/W cell")

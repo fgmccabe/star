@@ -9,7 +9,6 @@
 #include <option.h>
 #include "labels.h"
 #include "globalsP.h"
-#include "errorCodes.h"
 
 termPo eINTRUPT;
 termPo eINVAL;

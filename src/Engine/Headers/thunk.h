@@ -1,0 +1,23 @@
+//
+// Created by Francis McCabe on 10/2/21.
+//
+
+#ifndef STAR_THUNK_H
+#define STAR_THUNK_H
+
+#include "term.h"
+#include "heap.h"
+
+typedef struct thunk_rec_ *thunkPo;
+
+extern clssPo thunkClass;
+
+thunkPo C_THUNK(termPo t);
+
+thunkPo thunkVar(heapPo H, normalPo lam);
+termPo thunkVal(thunkPo v);
+termPo setThunk(thunkPo v, termPo e);
+logical thunkIsSet(thunkPo thnk);
+normalPo thunkLam(thunkPo thunk);
+
+#endif //STAR_THUNK_H

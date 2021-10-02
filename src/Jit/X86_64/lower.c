@@ -4,11 +4,11 @@
 #include "jitP.h"
 #include "jitOps.h"
 
-retCode jit_preamble(methodPo mtd,jitCompPo context){
+retCode jit_preamble(methodPo mtd, jitCompPo context) {
   return Error;
 }
 
-retCode jit_postamble(methodPo mtd,jitCompPo context){
+retCode jit_postamble(methodPo mtd, jitCompPo context) {
   return Error;
 }
 
@@ -136,6 +136,18 @@ retCode jit_Escape(insPo code, integer *pc, jitCompPo context) {
 }
 
 retCode jit_Ret(insPo code, integer *pc, jitCompPo context) {
+  return Error;
+}
+
+retCode jit_Thnk(insPo code, integer *pc, jitCompPo context) {
+  return Error;
+}
+
+retCode jit_ThGet(insPo code, integer *pc, jitCompPo context) {
+  return Error;
+}
+
+retCode jit_ThSet(insPo code, integer *pc, jitCompPo context) {
   return Error;
 }
 
