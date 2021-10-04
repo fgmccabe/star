@@ -12,6 +12,11 @@
   "Table of standard star brackets"
 )
 
+(defconst star-keywords
+  '(#(Keywords))
+  "Table of standard keywords"
+)
+
 (defun star-is-a-word (s)
   (string-match "\\`\\w+\\'" s))
 

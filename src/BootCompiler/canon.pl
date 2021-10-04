@@ -61,6 +61,8 @@ isCanon(whileDo(_,_,_)).
 isCanon(untilDo(_,_,_)).
 isCanon(forDo(_,_,_)).
 isCanon(tryCatchDo(_,_,_)).
+isCanon(letDo(_,_,_,_)).
+isCanon(letRecDo(_,_,_,_)).
 isCanon(caseDo(_,_,_)).
 isCanon(varDo(_,_,_)).
 isCanon(assignDo(_,_,_)).
@@ -171,6 +173,8 @@ locOfCanon(valof(Lc,_,_),Lc) :-!.
 locOfCanon(doTerm(Lc,_,_),Lc) :-!.
 locOfCanon(taskTerm(Lc,_,_),Lc) :-!.
 locOfCanon(seqDo(Lc,_,_),Lc) :-!.
+locOfCanon(letDo(Lc,_,_,_),Lc) :-!.
+locOfCanon(letRecDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(ifThenDo(Lc,_,_,_,_,_,_),Lc) :-!.
 locOfCanon(whileDo(Lc,_,_),Lc) :-!.
 locOfCanon(untilDo(Lc,_,_),Lc) :-!.
@@ -386,6 +390,18 @@ ssAction(performDo(_,Exp),Dp,sq([ss("perform "),EE])) :-
   ssTerm(Exp,Dp,EE).
 ssAction(simpleDo(_,Exp),Dp,sq([ss("just "),EE])) :-
   ssTerm(Exp,Dp,EE).
+ssAction(letDo(_,_Decls,Defs,Ex),Dp,
+	    sq([ss("let {."),nl(Dp2),iv(nl(Dp2),DS),nl(Dp),ss(".} in "),B])) :-
+  Dp2 is Dp+2,
+  map(Defs,canon:ssDf(Dp2),DS),
+  ssAction(Ex,Dp,B).
+ssAction(letRecDo(_,Decls,Defs,Ex),Dp,
+	    sq([ss("let {"),nl(Dp2),iv(nl(Dp2),Ds),nl(Dp),ss("} in "),B])) :-
+  Dp2 is Dp+2,
+  map(Decls,canon:ssDecl(Dp2,ss("rec ")),DD),
+  map(Defs,canon:ssDf(Dp2),XX),
+  flatten([DD,XX],Ds),
+  ssAction(Ex,Dp,B).
 
 ssActions(seqDo(_,A,B),Dp,[AA|BB]) :-
   ssAction(A,Dp,AA),

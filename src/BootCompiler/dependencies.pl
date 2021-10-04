@@ -240,10 +240,12 @@ collectTermRefs(T,A,Rfs,Rx) :-
   collectNmRef(cns(Nm),A,Rfs,Rx).
 collectTermRefs(T,A,R,Rx) :-
   isLetDef(T,_,S,B),!,
-  collectLetRefs(S,B,A,R,Rx).
+  collectStmtRefs(S,A,[],R,R0),
+  collectTermRefs(B,A,R0,Rx).
 collectTermRefs(T,A,R,Rx) :-
   isLetRec(T,_,S,B),!,
-  collectLetRefs(S,B,A,R,Rx).
+  collectStmtRefs(S,A,[],R,R0),
+  collectTermRefs(B,A,R0,Rx).
 collectTermRefs(T,All,Rf,Rx) :-
   isMatch(T,_,L,R),!,
   collectTermRefs(L,All,Rf,Rf0),
@@ -409,6 +411,14 @@ collectDoRefs(T,All,Rf,Rfx) :-
   isTryCatch(T,_,L,R),!,
   collectDoRefs(L,All,Rf,Rf1),
   collectCatchRefs(R,All,Rf1,Rfx).
+collectDoRefs(T,A,R,Rx) :-
+  isLetDef(T,_,S,B),!,
+  collectStmtRefs(S,A,[],R,R0),
+  collectDoRefs(B,A,R0,Rx).
+collectDoRefs(T,A,R,Rx) :-
+  isLetRec(T,_,S,B),!,
+  collectStmtRefs(S,A,[],R,R0),
+  collectDoRefs(B,A,R0,Rx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isTryHandle(T,_,L,R),!,
   collectDoRefs(L,All,Rf,Rf1),

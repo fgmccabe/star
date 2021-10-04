@@ -482,3 +482,28 @@ tryHandleMacro(T,action,Tx) :-
   unary(LLc,"do",H,HA),
   mkEquation(Lc,Arg,none,HA,Hx),
   mkTryHandle(Lc,B,Hx,Tx).
+
+/*
+ * Synthesize a type from an unnamed brace term
+*/
+% braceTypeMacro(E,Ex) :-
+%   isBraceTuple(E,Lx,Els),!,
+%   collectEntries(Es,TpPairs),
+%   sort(Es,macroRule:cmpTpl,SEs),
+%   project0_3(SEs,Nms),
+%   interleave(Nms,".",Ns),
+%   concateStrings(Ns,TpNm),
+%   braceTerm(Lx,name(Lx,TpNm),SEs,TpBdy),
+%   project2_3(SEs,Vrs),
+%   squareTerm(Lx,name(Lc,TpNm),[Vrs],TpHd).
+
+
+% collectEntries([],[]).
+% collectEntries([E|Els],[(Nm,An,TV)|TVs]) :-
+%   ruleName(E,var(Nm),value),
+%   locOfAst(E,Lc),
+%   genIden(Lc,Nm,TV),
+%   typeAnnotation(Lc,name(Lc,Nm),TV,An),
+%   collectEntries(Els,TVs).
+
+  

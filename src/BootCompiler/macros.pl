@@ -652,6 +652,16 @@ examineAction(A,Ax) :-
   macroTerm(L,Lx),
   macroTerm(Args,As),
   mkResume(Lc,Lx,As,Ax).
+examineAction(A,Ax) :-
+  isLetDef(A,Lc,D,B),!,
+  map(D,macros:macroStmt,Dx),
+  macroAction(B,Bx),
+  mkLetDef(Lc,Dx,Bx,Ax).
+examineAction(A,Ax) :-
+  isLetRec(A,Lc,D,B),!,
+  map(D,macros:macroStmt,Dx),
+  macroAction(B,Bx),
+  mkLetRec(Lc,Dx,Bx,Ax).
 examineAction(T,Tx) :-
   isCaseExp(T,Lc,E,C),!,
   macroTerm(E,Ex),

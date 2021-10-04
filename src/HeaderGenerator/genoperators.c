@@ -476,8 +476,12 @@ static retCode procKey(ioPo out, char *sep, opPo op) {
       } else
         return Ok;
     }
-    case genEmacs:
-      return Ok;
+    case genEmacs: {
+      if (op->isKeyword && isUniIdentifier(op->name, uniStrLen(op->name)))
+        return outMsg(out, "%s\"%P\"\n", sep, op->name);
+      else
+        return Ok;
+    }
     default:
       return Error;
   }

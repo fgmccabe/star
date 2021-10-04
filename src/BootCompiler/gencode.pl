@@ -273,7 +273,7 @@ compTerm(rais(Lc,E),_,_,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,none) :-
   compTerm(E,Lc,TCont,trapCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,_).
 compTerm(cnd(Lc,T,A,B),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   compCondExp(Lc,T,A,B,OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
-compTerm(seq(Lc,A,B),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-!,
+compTerm(seqD(Lc,A,B),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   compTerm(A,Lc,resetCont(Stk,compTerm(B,Lc,Cont,TCont,Opts)),TCont,
 	   Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
@@ -376,6 +376,19 @@ compAction(bindD(Lc,P,E),OLc,Cont,_RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx)
   chLine(Opts,OLc,Lc,C,C0),
   compTerm(E,Lc,bindCont(compPtn(P,Lc,Cont,resetCont(Stk,ECont),ECont,Opts),
 			 ECont),ECont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+compAction(setix(Lc,Exp,Off,Vl),OLc,Cont,_RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  chLine(Opts,OLc,Lc,C,C0),!,
+  compTerm(Exp,Lc,
+	   compTerm(Vl,Lc,
+		    sxCont(Off,Cont),ECont,Opts),ECont,
+	   Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+compAction(ltt(Lc,idnt(Nm),Val,Act),OLc,Cont,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  genLbl(L,Lb,L1),
+  chLine(Opts,OLc,Lc,C,C0),!,
+  defineLclVar(Nm,Lb,End,Opts,D,D1,Off,C0,[iStV(Off)|C1]),
+  compTerm(Val,Lc,bothCont(stoCont(Off,Lb),
+			   compAction(Act,Lc,Cont,RCont,ECont,Opts)),ECont,Opts,
+	   L1,Lx,D1,Dx,End,C1,Cx,Stk,Stkx).
 compAction(cnd(Lc,T,A,B),OLc,Cont,RCont,ECont,Opts,
 	   L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   compIfThen(Lc,T,A,B,OLc,Cont,RCont,ECont,Opts,

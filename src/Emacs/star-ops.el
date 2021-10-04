@@ -8,23 +8,25 @@
   ("^=" ( (infix 899 900 899)))
   ("&&" ( (infix 910 910 909)))
   ("pure" ( (prefix 300 299)))
+  ("~=" ( (infix 899 900 899)))
   ("~>" ( (infix 1230 1231 1230)))
   ("throw" ( (prefix 930 929)))
   (".|." ( (infix 720 720 719)))
   ("do" ( (prefix 200 199) (infix 1199 1200 1199)))
   ("import" ( (prefix 900 899)))
   ("catch" ( (infix 1198 1199 1198)))
+  ("prompt" ( (infix 299 300 299)))
   ("valis" ( (prefix 930 929)))
   (",.." ( (infix 999 1000 999)))
   ("for" ( (prefix 1175 1174)))
   ("**" ( (infix 600 600 599)))
   ("->" ( (infix 889 890 889)))
   (".+." ( (prefix 700 699)))
+  ("ignore" ( (prefix 930 929)))
   ("<$" ( (infix 719 720 720)))
   ("then" ( (infix 1179 1180 1179)))
-  ("!" ( (postfix 99 100)))
+  ("!" ( (postfix 99 100) (infix 99 100 99)))
   ("->>" ( (infix 1199 1200 1199)))
-  ("=!=" ( (infix 899 900 899)))
   ("default" ( (postfix 939 940)))
   ("#" ( (prefix 1750 1749) (infix 759 760 759)))
   ("%" ( (infix 700 700 699)))
@@ -51,9 +53,10 @@
   ("$$" ( (prefix 899 898)))
   ("background" ( (prefix 950 949)))
   (":" ( (infix 1249 1250 1249)))
-  (";" ( (infix 1250 1251 1251)))
+  (";" ( (postfix 1250 1251) (infix 1250 1251 1251)))
   ("<" ( (infix 899 900 899)))
   (".=" ( (infix 899 900 899)))
+  ("=>>" ( (infix 949 950 950)))
   ("=" ( (infix 974 975 974)))
   ("|:" ( (infix 1234 1235 1234)))
   ("show" ( (prefix 1240 1239)))
@@ -64,10 +67,12 @@
   ("@" ( (prefix 400 399) (infix 399 400 400)))
   ("in" ( (infix 899 900 900)))
   ("^|" ( (infix 919 920 920)))
+  ("cut" ( (infix 949 950 949)))
   ("open" ( (prefix 900 899)))
   ("~~" ( (infix 1239 1240 1240)))
   ("assert" ( (prefix 1240 1239)))
   ("!!" ( (postfix 99 100)))
+  ("⊕" ( (infix 720 720 719)))
   (".^." ( (infix 720 720 719)))
   ("//" ( (infix 960 960 959)))
   ("public" ( (prefix 1700 1699)))
@@ -81,6 +86,7 @@
   ("=>" ( (infix 949 950 950)))
   ("^" ( (prefix 100 99) (infix 99 100 99)))
   ("<=>" ( (infix 949 950 949)))
+  ("perform" ( (prefix 300 299)))
   ("valof" ( (prefix 300 299)))
   ("until" ( (infix 1174 1175 1174)))
   ("while" ( (prefix 1175 1174)))
@@ -91,6 +97,7 @@
   ("::" ( (infix 399 400 399)))
   ("+++" ( (infix 719 720 720)))
   (":=" ( (infix 974 975 974)))
+  (":?" ( (infix 399 400 399)))
   (".<<." ( (infix 600 600 599)))
   ("^." ( (infix 450 450 449)))
   (">>=" ( (infix 949 950 950)))
@@ -100,6 +107,7 @@
   ("implementation" ( (prefix 1260 1259)))
   ("|" ( (infix 1248 1248 1247)))
   (".#." ( (infix 600 600 599)))
+  ("handle" ( (infix 1198 1199 1198)))
   ("~" ( (prefix 905 904)))
   ("^//" ( (infix 800 800 799)))
   ("||" ( (infix 919 920 920)))
@@ -113,13 +121,54 @@
 )
 
 (defconst star-brackets
-  '(  ( "{..}" "{." ".}" 2000)
+  '(  ( "[||]" "[|" "|]" 2000)
+  ( "<||>" "<|" "|>" 2000)
+  ( "{..}" "{." ".}" 2000)
   ( "[]" "[" "]" 2000)
   ( "()" "(" ")" 2000)
   ( "{}" "{" "}" 2000)
   ( "(||)" "(|" "|)" 2000)
+  ( "{??}" "{?" "?}" 2000)
+  ( "{!!}" "{!" "!}" 2000)
 )
   "Table of standard star brackets"
+)
+
+(defconst star-keywords
+  '(  "all"
+  "throw"
+  "do"
+  "import"
+  "catch"
+  "prompt"
+  "valis"
+  "for"
+  "ignore"
+  "then"
+  "default"
+  "contract"
+  "val"
+  "try"
+  "exists"
+  "if"
+  "in"
+  "cut"
+  "open"
+  "public"
+  "ref"
+  "where"
+  "case"
+  "perform"
+  "valof"
+  "until"
+  "while"
+  "private"
+  "type"
+  "implementation"
+  "handle"
+  "else"
+)
+  "Table of standard keywords"
 )
 
 (defun star-is-a-word (s)

@@ -2,7 +2,7 @@
 	       is_member/2,add_mem/3,one_of/1,
 	       merge/3,intersect/3,subtract/3,replace/4,filter/3,front/3,
 	       collect/4,map/3,lfold/4,rfold/4,
-	       project0/2,project1/2,project0_3/2,project1_3/2,
+	       project0/2,project1/2,project0_3/2,project1_3/2,project2_3/2,
 	       zip/3,split_list/4,index_list/3,
 	       isIdentifier/1,
 	       appStr/3,appStrs/3,appIden/3,appInt/3,appFlt/3,quoteConcat/4,
@@ -119,6 +119,10 @@ project1_3([(_,E,_)|L],[E|K]) :-
 project0_3([],[]).
 project0_3([(E,_,_)|L],[E|K]) :-
   project0_3(L,K).
+
+project2_3([],[]).
+project2_3([(_,_,E)|L],[E|K]) :-
+  project2_3(L,K).
 
 zip([],[],[]).
 zip([E1|L1],[E2|L2],[(E1,E2)|L3]) :-

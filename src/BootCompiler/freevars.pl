@@ -108,6 +108,14 @@ freeActionVars(forDo(_,G,B),Ex,Ex,Q,F,Fv) :-
   ptnGoalVars(G,Ex,E1),
   freeVars(G,E1,Q,F,F0),
   freeActionVars(B,E1,_,Q,F0,Fv).
+freeActionVars(letDo(_,_,Defs,Bnd),Ex,Ex,Q,F,Fv) :-
+  definedVars(Defs,Ex,Ex1),
+  freeVarsInDefs(Defs,Ex1,Q,F,F0),
+  freeActionVars(Bnd,Ex1,_,Q,F0,Fv).
+freeActionVars(letRecDo(_,_,Defs,Bnd),Ex,Ex,Q,F,Fv) :-
+  definedVars(Defs,Ex,Ex1),
+  freeVarsInDefs(Defs,Ex1,Q,F,F0),
+  freeActionVars(Bnd,Ex1,_,Q,F0,Fv).
 freeActionVars(caseDo(_,Gov,Cses),Ex,Ex,Q,F,Fv) :-
   freeVars(Gov,Ex,Q,F,F0),
   varsInList(Cses,freevars:freeVarsInActionRule(Ex,Q),F0,Fv).
