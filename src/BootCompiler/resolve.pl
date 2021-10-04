@@ -276,6 +276,15 @@ overloadAction(resumeDo(Lc,K,A,Tp),Dict,St,Stx,resumeDo(Lc,RK,RA,Tp)) :-
 overloadAction(caseDo(Lc,Exp,Cses),Dict,St,Stx,caseDo(Lc,RExp,RCases)) :-
   overloadTerm(Exp,Dict,St,St0,RExp),
   overloadCases(Cses,resolve:overloadAction,Dict,St0,Stx,RCases).
+overloadAction(letDo(Lc,Decls,Defs,Bound),Dict,St,Stx,letDo(Lc,Decls,RDefs,RBound)) :-
+  declareAccessors(Lc,Decls,Dict,RDict),
+  overload(Lc,Defs,RDict,RRDict,RDefs),
+  overloadAction(Bound,RRDict,St,Stx,RBound).
+overloadAction(letRecDo(Lc,Decls,Defs,Bound),Dict,St,Stx,letRecDo(Lc,Decls,RDefs,RBound)) :-
+  declareAccessors(Lc,Decls,Dict,RDict),
+  overload(Lc,Defs,RDict,RRDict,RDefs),
+  overloadAction(Bound,RRDict,St,Stx,RBound).
+
 
 overloadActions([],_,St,St,[]).
 overloadActions([A|As],Dict,St,Stx,[RA|RAs]) :-

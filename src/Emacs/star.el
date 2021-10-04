@@ -73,17 +73,7 @@
 
 (defvar star-keyword-regexp
   (concat "\\<"
-	  (star-one-of
-	   '(
-	     "private" "public"
-	     "import"
-	     "contract" "implementation"
-	     "valof" "do" "if" "then" "else" "while" "for" "in" "valis"
-	     "open"
-	     "try" "catch" "throw"
-	     "where" "type" "all" "exists" "let" "default" "val"
-	     "show" "assert")
-	   )
+	  (star-one-of star-keywords)
 	  "\\>")
   "Regular expression matching the keywords to highlight in Star mode."
   )

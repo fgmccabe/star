@@ -360,7 +360,7 @@ liftExp(prompt(Lc,L,E,_),prmpt(Lc,Lb,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftExp(resume(Lc,Kont,Arg,_Tp),resme(Lc,KK,AA),Q,Q,Map,Opts,Ex,Exx) :-!,
   liftExp(Kont,KK,Q,_,Map,Opts,Ex,Ex0),
   liftExp(Arg,AA,Q,_,Map,Opts,Ex0,Exx).
-liftExp(sequence(Lc,Lb,E),seq(Lc,LL,EE),Q,Q,Map,Opts,Ex,Exx) :-!,
+liftExp(sequence(Lc,Lb,E),seqD(Lc,LL,EE),Q,Q,Map,Opts,Ex,Exx) :-!,
   liftExp(Lb,LL,Q,_,Map,Opts,Ex,Ex0),
   liftExp(E,EE,Q,_,Map,Opts,Ex0,Exx).
 liftExp(case(Lc,Bnd,Cses,_),Result,Q,Qx,Map,Opts,Ex,Exx) :-!,
@@ -431,7 +431,7 @@ computeFreeVect(Lc,Vr,ctpl(Lbl,Args),[(_,Ix,Term)|Ups],Exp,Reslt) :-
   concat(F,[Term|R],NArgs),
   computeFreeVect(Lc,Vr,ctpl(Lbl,NArgs),Ups,Exp,Reslt).
 computeFreeVect(Lc,Vr,Fr,[(_,Ix,Term)|Ups],Exp,Reslt) :-
-  computeFreeVect(Lc,Vr,Fr,Ups,seq(Lc,setix(Lc,Vr,Ix,Term),Exp),Reslt).
+  computeFreeVect(Lc,Vr,Fr,Ups,seqD(Lc,setix(Lc,Vr,Ix,Term),Exp),Reslt).
   
 trVarExp(Lc,Nm,Exp,Map,Opts,Q,Qx) :-
   lookupVar(Map,Nm,V),!,
@@ -572,6 +572,22 @@ liftAction(Last,whileDo(Lc,G,B),whle(Lc,Gl,Bdy),Q,Q,Map,Opts,Ex,Exx) :-
 liftAction(Last,untilDo(Lc,G,B),untl(Lc,Gl,Bdy),Q,Q,Map,Opts,Ex,Exx) :-
   liftGoal(G,Gl,Q,Q0,Map,Opts,Ex,Ex0),
   liftAction(Last,B,Bdy,Q0,_,Map,Opts,Ex0,Exx).
+liftAction(Last,letDo(Lc,Decls,Defs,Bnd),Act,Q,Qx,Map,Opts,Ex,Exx) :-!,
+  (is_member(showTrCode,Opts) -> dispCanon(letDo(Lc,Decls,Defs,Bnd));true),
+  genVar("_ThR",ThVr),
+  letMap(Lc,Decls,Defs,doTerm(Lc,Bnd,_),ThVr,Q,Map,Opts,ThMap,_RMap,FreeTerm),
+  transformThetaDefs(ThMap,Map,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
+  liftAction(Last,Bnd,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
+  mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Act),
+  (is_member(showTrCode,Opts) -> dispAct(Act);true).
+liftAction(Last,letRecDo(Lc,Decls,Defs,Bnd),Act,Q,Qx,Map,Opts,Ex,Exx) :-!,
+  genVar("_ThV",ThVr),
+  letRecMap(Lc,Decls,Defs,doTerm(Lc,Bnd,_),ThVr,Q,Map,Opts,ThMap,FreeTerm),
+  (is_member(showTrCode,Opts) -> dispMap("Letrec map: ",1,ThMap);true),
+  transformThetaDefs(ThMap,ThMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
+  liftAction(Last,Bnd,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
+  mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Act),
+  (is_member(showTrCode,Opts) -> dispAct(Act);true).
 liftAction(Last,forDo(Lc,G,B),forD(Lc,Gl,Bdy),Q,Q,Map,Opts,Ex,Exx) :-
   checkNotLast(Last,Lc),
   liftGoal(G,Gl,Q,Q0,Map,Opts,Ex,Ex0),

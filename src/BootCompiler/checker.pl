@@ -1090,14 +1090,9 @@ checkAction(Term,Env,Env,Tp,VlTp,ErTp,OkFn,EvtFn,tryCatchDo(Lc,Bdy,Hndlr),Path) 
   anonVar(Lc,Anon,BdErTp),
   checkAction(B,Env,_,Tp,VlTp,BdErTp,OkFn,EvtFn,Bdy,Path),
   checkCatch(H,Env,Tp,VlTp,ErTp,BdErTp,Anon,OkFn,EvtFn,Hndlr,Path).
-checkAction(Term,Env,Env,Tp,VlTp,ErTp,OkFn,EvtFn,tryHandleDo(Lc,Tag,Bdy,Hndlr),Path) :-
+checkAction(Term,Env,Env,Tp,VlTp,ErTp,OkFn,EvtFn,Act,Path) :-
   isTryHandle(Term,Lc,B,H),!,
-  anonVar(Lc,Anon,BdErTp),
-  newTypeVar("Tg",TgTp),
-  typeOfTag(Lc,TgTp,Tag),
-  declareVr(Lc,"$tag",TgTp,Env,Ev0),
-  checkAction(B,Ev0,_,Tp,VlTp,BdErTp,OkFn,EvtFn,Bdy,Path),
-  checkHandle(H,Ev0,TgTp,Tp,VlTp,ErTp,BdErTp,Anon,OkFn,EvtFn,Hndlr,Path).
+  checkTryHandleAction(Lc,B,H,Env,Tp,VlTp,ErTp,OkFn,EvtFn,Act,Path).
 checkAction(Term,Env,Env,Tp,VlTp,ErTp,_OkFn,EvtFn,throwDo(Lc,Evt),Path) :-
   isThrow(Term,Lc,E),!,
   unitTp(Unit),
@@ -1125,6 +1120,12 @@ checkAction(Term,Env,Env,_Tp,VlTp,ErTp,_,_,varDo(Lc,Anon,Exp),Path) :-
   verifyType(Lc,tplType([]),VlTp,Env),
   anonVar(Lc,Anon,PT),
   typeOfExp(Ex,PT,ErTp,Env,_,Exp,Path).
+checkAction(Term,Env,Env,Tp,VlTp,ErTp,OkFn,EvtFn,Act,Path) :-
+  isLetDef(Term,Lc,Els,A),
+  checkLetAction(Lc,Els,A,Env,Tp,VlTp,ErTp,OkFn,EvtFn,Act,Path).
+checkAction(Term,Env,Env,Tp,VlTp,ErTp,OkFn,EvtFn,Act,Path) :-
+  isLetRec(Term,Lc,Els,A),
+  checkLetRecAction(Lc,Els,A,Env,Tp,VlTp,ErTp,OkFn,EvtFn,Act,Path).
 checkAction(Term,Env,Env,Tp,VlTp,ErTp,OkFn,EvtFn,Action,Path) :-
   isPrompt(Term,Lc,L,P),!,
   checkPromptAction(Lc,L,P,Env,Tp,VlTp,ErTp,OkFn,EvtFn,Action,Path).
@@ -1144,6 +1145,20 @@ checkAction(Term,Env,Env,Tp,VlTp,ErTp,_,_,simpleDo(Lc,Exp),Path) :-
 checkAction(Term,Env,Env,_,_,_,_,_,noDo(Lc),_) :-
   locOfAst(Term,Lc),
   reportError("invalid action: %s",[ast(Term)],Lc).
+
+checkLetRecAction(Lc,Els,A,Env,Tp,VlTp,ErTp,OkFn,EvtFn,letRecDo(Lc,Decls,XDefs,Bound),Path) :-
+  genNewName(Path,"Γ",ThPath),
+  pushScope(Env,ThEnv),
+  thetaEnv(ThPath,Lc,Els,faceType([],[]),ThEnv,OEnv,Defs,_Public),
+  computeLetExport(Defs,[],Decls,XDefs),
+  checkAction(A,OEnv,OEnv,Tp,VlTp,ErTp,OkFn,EvtFn,Bound,Path).
+
+checkLetAction(Lc,Els,A,Env,Tp,VlTp,ErTp,OkFn,EvtFn,letDo(Lc,Decls,XDefs,Bound),Path):-
+  genNewName(Path,"Γ",ThPath),
+  pushScope(Env,ThEnv),
+  recordEnv(ThPath,Lc,Els,faceType([],[]),ThEnv,OEnv,Defs,_Public),
+  computeLetExport(Defs,[],Decls,XDefs),
+  checkAction(A,OEnv,OEnv,Tp,VlTp,ErTp,OkFn,EvtFn,Bound,Path).
 
 checkPromptAction(Lc,L,P,Env,Tp,VlTp,ErTp,OkFn,EvtFn,promptDo(Lc,Lb,Lam,Tp),Path) :-
   verifyType(Lc,tplType([]),VlTp,Env),
@@ -1214,6 +1229,16 @@ checkCatch(Term,Env,MdTp,VlTp,ErTp,BdErTp,_,_,_,Hndlr,Path) :-
   locOfAst(Term,Lc),
   applyTypeFun(MdTp,[ErTp,VlTp],Lc,Env,RTp),
   typeOfExp(Term,funType(tplType([BdErTp]),RTp),ErTp,Env,_,Hndlr,Path).
+
+checkTryHandleAction(Lc,B,H,Env,Tp,VlTp,ErTp,OkFn,EvtFn,tryHandleDo(Lc,tag(Lc,TgTp),Bdy,Hndlr),Path) :-
+  anonVar(Lc,Anon,BdErTp),
+  newTypeVar("_",Rt),
+  newTypeVar("_",Ct),
+  mkTypeExp(tpFun("tag",2),[Rt,Ct],TgTp),
+  declareVr(Lc,"$tag",TgTp,Env,Ev0),
+  checkAction(B,Ev0,_,Tp,VlTp,BdErTp,OkFn,EvtFn,Bdy,Path),
+  checkHandle(H,Ev0,Rt,Ct,Tp,VlTp,ErTp,BdErTp,Anon,OkFn,EvtFn,Hndlr,Path).
+
 
 % checkHandle(Term,Env,TgTp,MdTp,VlTp,ErTp,BdErTp,_,_,_,Hndlr,Path) :-
 %   locOfAst(Term,Lc),
