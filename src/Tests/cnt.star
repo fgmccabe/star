@@ -23,6 +23,14 @@ test.cnt{
   contFromFun:all x,y ~~ (tag[x,y],(x)=>y) => ((x)=>>y).
   contFromFun(T,F) => _fun2cont(T,F).
 
+  drainQ:()=>result[(),()].
+  drainQ()=>do{
+    while (N,Qs) ^= _hdtl(QQ!) do {
+      QQ := Qs;
+      N.(())
+    };
+    valis ()
+  }
 
   createHandler(K,F) => do{
     (N,Qs) ^= _hdtl(append(append(QQ!,contFromFun(Tg,F)),K));
@@ -44,7 +52,7 @@ test.cnt{
     Tg prompt {    
       _ .= createThread(threadMain("alpha"));
       _ .= createThread(threadMain("beta"));
-      valis ()
+      drainQ()
     }
   }
 }    

@@ -5,7 +5,7 @@ test.do13{
   maybeFail:(integer)=>result[integer,integer].
   maybeFail(X) => do{
     if X==10 then
-      throw 10
+      raise 10
     else
       valis X
   }

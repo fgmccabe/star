@@ -44,7 +44,7 @@ star.compiler.checker{
 	
 	(Defs,ThEnv) <- checkGroups(Gps,[],faceType([],[]),Annots,TEnv,PkgNm,Rp);
 	if [Open,.._] .= Opens then
-	  throw reportError(Rp,"open statement $(Open) not permitted in package",locOf(Open));
+	  raise reportError(Rp,"open statement $(Open) not permitted in package",locOf(Open));
 
 	Contracts .= [ D | DD in Defs && D in DD && conDef(_,Nm,_,_).=D &&
 	      (conSp(Nm), .pUblic) in Vis];
@@ -61,9 +61,9 @@ star.compiler.checker{
 	  varDef(Lc,packageVar(Pkg),packageVar(Pkg),PkgTheta,[],PkgType))
       }
       else
-      throw reportError(Rp,"package name $(Pkg) does not match expected $(Pkge)",locOf(P))
+      raise reportError(Rp,"package name $(Pkg) does not match expected $(Pkge)",locOf(P))
     } else
-    throw reportError(Rp,"invalid package structure",locOf(P))
+    raise reportError(Rp,"invalid package structure",locOf(P))
   }
 
   makePkgTheta:(locn,string,tipe,dict,cons[cons[canonDef]],reports)=>either[reports,canon].
@@ -201,14 +201,14 @@ star.compiler.checker{
 	    declareImplementation(FullNm,ImplTp,Env))
 	}
 	else{
-	  throw reportError(Rp,"implementation type $(Cn) not consistent with contract type $(ConTp)",Lc)
+	  raise reportError(Rp,"implementation type $(Cn) not consistent with contract type $(ConTp)",Lc)
 	}
       } else{
-	throw reportError(Rp,"Contract $(ConName) not known",Lc)
+	raise reportError(Rp,"Contract $(ConName) not known",Lc)
       }
     }
     else
-    throw reportError(Rp,"not a valid implementation statement",Lc)
+    raise reportError(Rp,"not a valid implementation statement",Lc)
   }
   checkTypeDefn(_,Env,_,_) default => either(Env).
   
@@ -283,7 +283,7 @@ star.compiler.checker{
 	declareVar(Nm,some(Lc),Tp,some(faceOfType(Tp,Env)),Env))
     }
     else{
-      throw reportError(Rp,"bad definition $(Stmt)",Lc)
+      raise reportError(Rp,"bad definition $(Stmt)",Lc)
     }
   }.
   checkDefn(defnSpec(tpSp(TpNm),Lc,[St]),Env,_,Path,Rp) =>
@@ -299,7 +299,7 @@ star.compiler.checker{
     if (_,Q,C,H,B) ^= isImplementationStmt(St) then
       checkImplementation(Lc,Nm,Q,C,H,B,Env,Outer,Path,Rp)
     else
-      throw reportError(Rp,"not a valid implementation statement",Lc)
+      raise reportError(Rp,"not a valid implementation statement",Lc)
   }
 
   checkFunction:(string,tipe,locn,cons[ast],dict,dict,string,reports) =>
@@ -323,7 +323,7 @@ star.compiler.checker{
     (Rl,IsDeflt) <- processEqn(St,ProgramType,Env,Outer,Path,Rp);
     if IsDeflt then{
       if DRl ^= Deflt then{
-	throw reportError(Rp,"cannot have more than one default, other one at $(locOf(DRl))",
+	raise reportError(Rp,"cannot have more than one default, other one at $(locOf(DRl))",
 	  locOf(Rl))
       } else{
 	processEqns(Ss,ProgramType,Rls,some(Rl),Env,Outer,Path,Rp)
@@ -368,10 +368,10 @@ star.compiler.checker{
 	  declareImplementation(FullNm,ImplTp,Env))
       }
       else{
-	throw reportError(Rp,"implementation type $(Cn) not consistent with contract type $(ConTp)",Lc)
+	raise reportError(Rp,"implementation type $(Cn) not consistent with contract type $(ConTp)",Lc)
       }
     } else{
-      throw reportError(Rp,"Contract $(ConName) not known",Lc)
+      raise reportError(Rp,"Contract $(ConName) not known",Lc)
     }
   }
     
@@ -443,10 +443,10 @@ star.compiler.checker{
       if sameType(Tp,typeOf(Var),Env) then {
 	valis Var
       } else
-      throw reportError(Rp,"variable $(Id)\:$(typeOf(Var)) not consistent with expected type: $(Tp)",Lc)
+      raise reportError(Rp,"variable $(Id)\:$(typeOf(Var)) not consistent with expected type: $(Tp)",Lc)
     }
     else
-    throw reportError(Rp,"variable $(Id) not defined. Expecting a $(Tp)",locOf(A)).
+    raise reportError(Rp,"variable $(Id) not defined. Expecting a $(Tp)",locOf(A)).
   }
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Nm) ^= isEnumSymb(A) =>
     typeOfExp(zeroary(Lc,Nm),Tp,Env,Path,Rp).
@@ -483,7 +483,7 @@ star.compiler.checker{
 	  valis Acc
 	}
 	else
-	throw reportError(Rp,"field $(Fld)\:$(FldTp) not consistent with expected type: $(Tp)",Lc)
+	raise reportError(Rp,"field $(Fld)\:$(FldTp) not consistent with expected type: $(Tp)",Lc)
       }
 
   typeOfExp(A,Tp,Env,Path,Rp) where _ ^= isConjunct(A) => do{
@@ -615,7 +615,7 @@ star.compiler.checker{
 	reConstrainType(Cx,ThetaTp),Rp)
     }
     else
-    throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Tp)",Lc)
+    raise reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Tp)",Lc)
   }
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Els) ^= isQTheta(A) => do{
     (Q,ETp) .= evidence(Tp,Env);
@@ -628,7 +628,7 @@ star.compiler.checker{
       formRecordExp(Lc,.none,deRef(faceOfType(Tp,ThEnv)),ThEnv,[Defs],reConstrainType(Cx,ThetaTp),Rp)
     }
     else
-    throw reportError(Rp,"type of qtheta: $(ThetaTp)\nnot consistent with \n$(Tp)",Lc)
+    raise reportError(Rp,"type of qtheta: $(ThetaTp)\nnot consistent with \n$(Tp)",Lc)
   }
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Op,Els) ^= isLabeledTheta(A) && (_,Nm)^=isName(Op) => do{
     FceTp .= newTypeVar("_");
@@ -645,7 +645,7 @@ star.compiler.checker{
       formTheta(Lc,some(Nm),Face,ThEnv,sortDefs(multicat(Defs)),Tp,Rp)
     }
     else
-    throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Op)\:$(ConTp) ",Lc)
+    raise reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Op)\:$(ConTp) ",Lc)
   }
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Op,Els) ^= isLabeledRecord(A) && (_,Nm)^=isName(Op) => do{
     FceTp .= newTypeVar("_");
@@ -661,7 +661,7 @@ star.compiler.checker{
       formRecordExp(Lc,some(Nm),Face,ThEnv,sortDefs(Defs),Tp,Rp)
     }
     else
-    throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Op)\:$(ConTp) ",Lc)
+    raise reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Op)\:$(ConTp) ",Lc)
   }
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Rc,Upd) ^= isRecordUpdate(A) => do{
     Rec <- typeOfExp(Rc,Tp,Env,Pth,Rp);
@@ -672,9 +672,9 @@ star.compiler.checker{
     for (F,TU) in UpFlds do{
       if (F,TR) in RecFlds then{
 	if ~sameType(TU,TR,Env) then
-	  throw reportError(Rp,"replacement for field $(F)\:$(TU) not consistent with record field $(TR)",Lc)
+	  raise reportError(Rp,"replacement for field $(F)\:$(TU) not consistent with record field $(TR)",Lc)
       } else
-      throw reportError(Rp,"replacement for field $(F)\:$(TU) does not exist in record $(Rec)",Lc)
+      raise reportError(Rp,"replacement for field $(F)\:$(TU) does not exist in record $(Rec)",Lc)
     };
     valis update(Lc,Rec,Update)
   }
@@ -721,7 +721,7 @@ star.compiler.checker{
     if sameType(FFTp,tpFun("=>",2),Env) || sameType(FFTp,tpFun("<=>",2),Env) then{
       valis apply(Lc,Fun,tple(Lc,Args),Tp)
     } else
-      throw reportError(Rp,"type of $(Op)\:$(ExTp) not consistent with $(fnType(At,Tp))",Lc)
+      raise reportError(Rp,"type of $(Op)\:$(ExTp) not consistent with $(fnType(At,Tp))",Lc)
   }
 
   typeOfArgExp:(ast,tipe,dict,string,reports) => either[reports,(canon,dict)].

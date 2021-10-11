@@ -77,6 +77,6 @@ star.boot{
       valis _callLbl(Pred,1,[Args])
     }
     else
-      throw "No _main program: $(Top)".
+      raise "No _main program: $(Top)".
   }
 }

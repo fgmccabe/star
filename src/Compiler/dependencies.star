@@ -94,7 +94,7 @@ star.compiler.dependencies{
 	  valis (Stmts,Defs,[(varSp(Id),Vz),..Pb],[(Id,T),..As],Opn)
 	}
 	else
-	throw reportError(Rp,"expecting an identifier, not $(V)",locOf(V))
+	raise reportError(Rp,"expecting an identifier, not $(V)",locOf(V))
       }
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
       (Lc,S,Els) ^= isContractStmt(A) &&
@@ -127,7 +127,7 @@ star.compiler.dependencies{
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
       (Lc,Nm) ^= ruleName(A) => do{
 	if DLc ^= isDefined(varSp(Nm),Defs) then
-	  throw reportError(Rp,"$(Nm) already defined at $(DLc)",Lc)
+	  raise reportError(Rp,"$(Nm) already defined at $(DLc)",Lc)
 	else{
 	  (Ss,Dfs) .= collectDefines(Stmts,Nm,[A]);
 	  Sp .= varSp(Nm);

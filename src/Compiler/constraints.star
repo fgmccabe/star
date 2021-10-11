@@ -135,7 +135,7 @@ star.compiler.constraints{
       if sameType(typeOf(Impl),Tp,Dict) then {
 	valis (some(check(Lc,some(Impl),Dict,Tp)),extractTermConstraints(Impl,Dict,[])).
       } else{
-	throw reportError(Rp,"implementation $(typeOf(Impl)) not consistent with $(Tp)",Lc)
+	raise reportError(Rp,"implementation $(typeOf(Impl)) not consistent with $(Tp)",Lc)
       }
     }
     else

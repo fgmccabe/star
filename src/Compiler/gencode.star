@@ -95,7 +95,7 @@ star.compiler.gencode{
     if Loc^=locateVar(Vr,Ctx) then {
       compVar(Lc,Vr,Loc,Opts,Ctx,Stk,Rp)
     } else
-    throw reportError(Rp,"cannot locate variable $(Vr)\:$(Tp)",Lc)
+    raise reportError(Rp,"cannot locate variable $(Vr)\:$(Tp)",Lc)
   }
   compExp(crTerm(Lc,Nm,Args,Tp),Opts,Ctx,Stk,Rp) => do{
     (Ctx1,CdeA,Stka) <- compExps(Args,Opts,Ctx,[],Rp);
