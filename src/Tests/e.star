@@ -2,8 +2,7 @@ test.e{
   import star.
   import star.script.
 
-  xx : index[boolean].
-  xx = xc{
+  xx = open xc{
     get(.false) => 0.
     get(_) default => 1.
 

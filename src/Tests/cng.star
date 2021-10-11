@@ -24,9 +24,6 @@ test.cng{
       LC := Tg cut K in K.
 */
       
-      
-      
-
   main:()=>action[(),()].
   main()=>action{
     logMsg("hello");
