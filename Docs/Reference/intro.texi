@@ -87,6 +87,30 @@ This grammar rule defines an @var{BlockAction} as a possibly empty sequence of
 @var{Action}s separated by semi-colons and enclosed in braces -- i.e.,
 the classic definition of a block.
 
+I.e., there are three language patterns that fit this rule:
+
+@enumerate
+@item An empty sequence of actions, which would be denoted by:
+@example
+@{@}
+@end example
+@item A single action, enclosed by braces with no separating semi-colons. For example:
+@example
+@{
+  X := 12
+@}
+@end example
+is a single action -- that is an assignment in this case.
+@item A sequence of several actions; each of which is separated by semi-colons. For example:
+@example
+@{
+  A .= 42;
+  fooBar();
+  valis A
+@}
+@end example
+is a @ref{BlockAction} that consists of three actions within it.
+
 The rule:
 @example
 @var{Decimal} ::= @var{Digit} .. @var{Digit}+
@@ -96,6 +120,7 @@ The rule:
 denotes a definition in which there must be at least one occurrence of
 a @var{Digit}; in this case there is also no separator between the
 @var{Digit}s.
+@end enumerate
 
 Occasionally, where a non-terminal is not conveniently captured in a
 single production, later sections will add to the definition of the

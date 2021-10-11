@@ -90,6 +90,10 @@
 @tab right associative infix
 @tab 720
 @tab constant replace
+@item @code{raise}
+@tab non-associative prefix
+@tab 930
+@tab raise an exception
 @item @code{then}
 @tab non-associative infix
 @tab 1180
@@ -202,10 +206,6 @@
 @tab right associative infix
 @tab 950
 @tab applicative splat
-@item @code{val}
-@tab non-associative prefix
-@tab 900
-@tab value type marker
 @item @code{try}
 @tab non-associative prefix
 @tab 1200
@@ -511,10 +511,10 @@
 @item @code{valis}
 @tab @code{for}
 @tab @code{ignore}
-@item @code{then}
+@item @code{raise}
+@tab @code{then}
 @tab @code{default}
-@tab @code{contract}
-@item @code{val}
+@item @code{contract}
 @tab @code{try}
 @tab @code{exists}
 @item @code{if}

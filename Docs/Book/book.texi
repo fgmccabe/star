@@ -29,7 +29,7 @@ All rights reserved.
 @summarycontents
 @contents
 
-@include ../macros.texi
+@include macros.texi
 
 @node Top
 @top Star Guide

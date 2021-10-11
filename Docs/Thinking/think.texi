@@ -27,7 +27,7 @@ All rights reserved.
 @node Top
 @top Thinking About Star
 
-@include ../macros.texi
+@include macros.texi
 
 Star is a functional, multi-paradigm and extensible programming
 language. It is a full-scale language, capable of expressing many
