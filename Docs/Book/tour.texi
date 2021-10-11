@@ -165,7 +165,7 @@ For example, in the factorial module, we use braces for grouping; but
 we also use the @code{import} and the @code{where} keywords. The
 rationale here is that programmers have become used to seeing braces
 for grouping statements;@footnote{Those who remember
-Pascal@footnote{Or Algol 60} will understand that braces are not the
+Pascal (or Algol 60) will understand that braces are not the
 only way of grouping statements.}  whereas the import and where
 elements are somewhat rarer.
 
