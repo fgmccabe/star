@@ -1,8 +1,8 @@
 :- module(dict,[declareType/4,isType/3,
 		declareTypeVars/4,isTypeVar/3,
-		declareVar/4,declareVr/5,declareField/6,
+		declareVar/4,declareVr/6,declareField/6,declareMtd/5,
 		declareEnum/6,declareCns/6,
-		mkVr/4,isVar/3,getVar/5,
+		getVar/5,getVarTypeFace/4,
 		currentVar/3,restoreVar/4,
 		declareContract/4,getContract/3,
 		declareImplementation/5,
@@ -49,27 +49,38 @@ declareVar(Nm,Vr,[dict(Types,Names,Cns,Impls,Accs,Contracts)|Outer],
   makeKey(Nm,Key),
   put_dict(Key,Names,Vr,Names1).
 
-declareVr(Lc,Nm,Tp,Env,Ev) :-
-  declareVar(Nm,vrEntry(Lc,dict:mkVr(Nm),Tp),Env,Ev).
-declareField(Lc,Rc,Nm,Tp,Env,Ev) :-
-  declareVar(Nm,vrEntry(Lc,dict:mkFld(Nm,Rc),Tp),Env,Ev).
+declareVr(Lc,Nm,Tp,Face,Env,Ev) :-
+  declareVar(Nm,vrEntry(Lc,dict:mkVr(Nm),Face,Tp),Env,Ev).
 
-isVar(Nm,_,vrEntry(std,dict:mkVr(Nm),Tp)) :- isIntrinsic(Nm,Tp,_),!.
-isVar(Nm,_,vrEntry(std,dict:mkVr(Nm),Tp)) :- escapeType(Nm,Tp),!.
+declareField(Lc,Rc,Nm,Tp,Env,Ev) :-
+  declareVar(Nm,vrEntry(Lc,dict:mkFld(Nm,Rc),none,Tp),Env,Ev).
+
+declareMtd(Lc,Nm,Tp,Env,Ev) :-
+  declareVar(Nm,vrEntry(Lc,dict:mkMtd(Nm),none,Tp),Env,Ev).
+
+mkMtd(Nm,Lc,Tp,mtd(Lc,Nm,Tp)).
+
+isVar(Nm,_,vrEntry(std,dict:mkVr(Nm),none,Tp)) :- isIntrinsic(Nm,Tp,_),!.
+isVar(Nm,_,vrEntry(std,dict:mkVr(Nm),none,Tp)) :- escapeType(Nm,Tp),!.
 isVar(Nm,Env,Vr) :- makeKey(Nm,Key), isVr(Key,Env,Vr).
 
-getVar(Lc,Nm,Env,Env,Vr) :-
-  isVar(Nm,Env,vrEntry(_,MkTrm,VTp)),
+getVar(Lc,Nm,Env,Vr,ViTp) :-
+  isVar(Nm,Env,vrEntry(_,MkTrm,_,VTp)),
   freshen:freshen(VTp,Env,_Q,VrTp),
   getConstraints(VrTp,Cx,ViTp),
   call(MkTrm,Lc,ViTp,VExp),
   manageConstraints(Cx,Lc,VExp,Vr).
 
+getVarTypeFace(_Lc,Nm,Env,ViTp) :-
+  isVar(Nm,Env,vrEntry(_,_,some(Fce),_)),
+  freshen:freshen(Fce,Env,_Q,VrTp),
+  getConstraints(VrTp,_Cx,ViTp).
+
 declareEnum(Lc,Nm,FullNm,Tp,Env,Ev) :-
-  declareVar(Nm,vrEntry(Lc,dict:mkEnum(FullNm),Tp),Env,Ev).
+  declareVar(Nm,vrEntry(Lc,dict:mkEnum(FullNm),none,Tp),Env,Ev).
 
 declareCns(Lc,Nm,FullNm,Tp,Env,Ev) :-
-  declareVar(Nm,vrEntry(Lc,dict:mkCns(FullNm),Tp),Env,Ev).
+  declareVar(Nm,vrEntry(Lc,dict:mkCns(FullNm),none,Tp),Env,Ev).
 
 mkCns(Nm,Lc,Tp,cons(Lc,Nm,Tp)).
 mkEnum(Nm,Lc,Tp,enm(Lc,Nm,ETp)) :- netEnumType(Tp,ETp).
@@ -111,7 +122,7 @@ contractInD(Key,[_|Env],Con) :- contractInD(Key,Env,Con).
 declareConstraint(Lc,C,E,Ev) :- C=conTract(_,_Args,_Deps),!,
   implementationName(C,ImpNm),
   contractType(C,CTp),
-  declareVr(Lc,ImpNm,CTp,E,Ev).
+  declareVr(Lc,ImpNm,CTp,none,E,Ev).
 declareConstraint(_,Con,[dict(Types,Nms,Cns,Impl,Accs,Cons)|Outer],
 		  [dict(Types,Nms,[Con|Cns],Impl,Accs,Cons)|Outer]).
 
@@ -200,7 +211,7 @@ sameTpDef(tpDef(Lc,T1,R1),tpDef(_,T2,R2),Env) :-
   unify:sameType(T1,T2,Lc,Env),
   unify:sameType(R1,R2,Lc,Env).
 
-sameDesc(vrEntry(Lc,C1,Tp1),vrEntry(_,C1,Tp2),Env) :-
+sameDesc(vrEntry(Lc,C1,_,Tp1),vrEntry(_,C1,_,Tp2),Env) :-
   unify:sameType(Tp1,Tp2,Lc,Env).
 
 pushFace(faceType(Vrs,Tps),Lc,Env,ThEnv) :-
@@ -209,7 +220,7 @@ pushFace(faceType(Vrs,Tps),Lc,Env,ThEnv) :-
 
 pushFields([],_,Env,Env).
 pushFields([(Nm,Tp)|Fields],Lc,Env,ThEnv) :-
-  declareVar(Nm,vrEntry(Lc,dict:mkVr(Nm),Tp),Env,Env0),
+  declareVar(Nm,vrEntry(Lc,dict:mkVr(Nm),none,Tp),Env,Env0),
   pushFields(Fields,Lc,Env0,ThEnv).
 
 pushTypes([],_,Env,Env).
@@ -293,7 +304,7 @@ dispVars(Vrs,sq([ss("Vars"),nl(4),iv(nl(4),VV)])) :-
   dict_pairs(Vrs,_,Pairs),
   map(Pairs,dict:showVrEntry,VV).
 
-showVrEntry(Nm-vrEntry(_,_,Tp),sq([id(Nm),ss(":"),TT])) :-
+showVrEntry(Nm-vrEntry(_,_,_,Tp),sq([id(Nm),ss(":"),TT])) :-
   ssType(Tp,false,2,TT).
 
 dispAccessors(Acs,sq([ss("Accessors"),nl(4),iv(nl(4),AA)])) :-

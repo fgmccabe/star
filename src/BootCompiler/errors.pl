@@ -99,6 +99,8 @@ showTrm(stk(some(N)),O) :-
   ss_to_chrs(sq([ss("Stk "),ix(N)]),O,[]).
 showTrm(stk(nono),O) :-
   ss_to_chrs(ss("Stk empty"),O,[]).
+showTrm(ss(S),O) :-
+  ss_to_chrs(S,O,[]).
 showTrm(T,O) :-
   isAst(T), !, dispAst(T,0,O,[]).
 showTrm(L,O) :-

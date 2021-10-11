@@ -370,6 +370,10 @@ examineTerm(T,Tx) :-
   macroTerm(L,Lx),
   fieldAcc(Lc,Lx,name(Lc,F),Tx).
 examineTerm(T,Tx) :-
+  isOpen(T,Lc,E),!,
+  macroTerm(E,Ex),
+  mkOpen(Lc,Ex,Tx).
+examineTerm(T,Tx) :-
   isRecordUpdate(T,Lc,L,R),!,
   macroTerm(L,Lx),
   macroTerm(R,Rx),
@@ -628,6 +632,10 @@ examineAction(A,Ax) :-
   isIgnore(A,Lc,V),!,
   macroAction(V,Vx),
   mkIgnore(Lc,Vx,Ax).
+examineAction(A,Ax) :-
+  isRaise(A,Lc,V),!,
+  macroTerm(V,Vx),
+  mkRaise(Lc,Vx,Ax).
 examineAction(A,Ax) :-
   isThrow(A,Lc,V),!,
   macroTerm(V,Vx),

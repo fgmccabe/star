@@ -14,7 +14,6 @@
 :- use_module(unify).
 :- use_module(wff).
 :- use_module(types).
-:- use_module(vartypes).
 
 parseType(T,Env,Type) :-
   parseType(T,Env,[],Cons,[],Tp),
@@ -50,7 +49,7 @@ parseType(F,Env,B,C0,Cx,funType(AT,RT)) :-
   parseArgType(L,Env,B,C0,C1,AT),
   parseType(R,Env,B,C1,Cx,RT).
 parseType(F,Env,B,C0,Cx,consType(AT,RT)) :-
-  isBinary(F,_,"<=>",L,R),
+  isConstructorType(F,_,_,_,L,R),!, % quantifiers already handled
   parseArgType(L,Env,B,C0,C1,AT),!,
   parseType(R,Env,B,C1,Cx,RT).
 parseType(F,Env,B,C0,Cx,contType(AT,RT)) :-
@@ -60,10 +59,6 @@ parseType(F,Env,B,C0,Cx,contType(AT,RT)) :-
 parseType(F,Env,B,C0,Cx,refType(Tp)) :-
   isRef(F,_,L),
   parseType(L,Env,B,C0,Cx,Tp).
-parseType(F,Env,B,C,Cx,valType(Tp)) :-
-  isValType(F,Lc,T),!,
-  parseType(T,Env,B,C,Cx,Tp),
-  (isFixedSizeType(Tp) -> true ; reportError("val type %s must be known size",[Tp],Lc)).
 parseType(T,Env,B,C0,Cx,tplType(AT)) :-
   isTuple(T,[A]),
   isTuple(A,Inner),!,
@@ -83,15 +78,7 @@ parseType(T,Env,B,C,Cx,typeLambda(AT,RT)) :-
   parseType(R,Env,B,C0,Cx,RT).
 parseType(Term,Env,_,Cx,Cx,Tp) :-
   isFieldAcc(Term,Lc,L,Fld),
-  isIden(L,Nm),
-  (getVar(Lc,Nm,Env,Ev,Vr) ->
-   typeOfCanon(Vr,VTp),
-   faceOfType(VTp,Lc,Ev,faceType(_,Types)),
-   (fieldInFace(Types,Fld,VTp,Lc,Tp) ;
-    reportError("%s not part of type of %s:%s",[Fld,can(Term),tpe(VTp)],Lc),
-    newTypeVar("_",Tp));
-   reportError("%s not a known variable",[ast(L)],Lc),
-   newTypeVar("_",Tp)).
+  parseFieldAccType(Lc,L,Fld,Env,Tp).
 parseType(Trm,Env,B,C,Cx,Tp) :-
   isRoundTerm(Trm,Lc,Op,[L,R]),  %% Special case for binary to allow type aliases
   squareTerm(Lc,Op,[L,R],TT),
@@ -99,6 +86,16 @@ parseType(Trm,Env,B,C,Cx,Tp) :-
 parseType(T,_,_,Cx,Cx,anonType) :-
   locOfAst(T,Lc),
   reportError("cannot understand type %s",[T],Lc).
+
+parseFieldAccType(Lc,L,Fld,Env,Tp) :-
+  isIden(L,Nm),
+  (getVarTypeFace(Lc,Nm,Env,VTp) ->
+   faceOfType(VTp,Lc,Env,faceType(_,Types)),
+   (fieldInFace(Types,Fld,VTp,Lc,Tp) ;
+    reportError("%s not part of type of %s:%s",[Fld,ast(L),tpe(VTp)],Lc),
+    newTypeVar("_",Tp));
+   reportError("%s not a known variable",[ast(L)],Lc),
+   newTypeVar("_",Tp)).
 
 parseArgType(T,Env,Q,C,Cx,tplType(AT)) :-
   isTuple(T,A),!,
@@ -155,6 +152,9 @@ reUQnt([(_,KV)|M],Tp,allType(KV,QTp)) :-
 
 reXQnt([],Tp,Tp).
 reXQnt([(_,KV)|M],Tp,existType(KV,QTp)) :-
+  occursIn(KV,Tp),!,
+  reXQnt(M,Tp,QTp).
+reXQnt([_|M],Tp,QTp) :-
   reXQnt(M,Tp,QTp).
 
 wrapConstraints([],Tp,Tp).
@@ -292,16 +292,17 @@ parseAlgebraicTypeDef(Lc,Quants,Constraints,Hd,Body,
   concat(XQ,Q,QV),
   parseTypeHead(Hd,QV,Tp,Nm,_Args,Path),
   parseConstraints(Constraints,E,QV,C0,[]),
-%  dispType(Tp),
+%  reportMsg("algebraic type %s",[tpe(Tp)],Lc),
   pickTypeTemplate(Tp,Type),
-  parseType(Face,E,QV,C0,Cx,FaceTp),
-%  dispType(FaceTp),
-  wrapType(Q,Cx,XQ,[],typeExists(Tp,FaceTp),FaceRule),
+  parseType(Face,E,QV,C0,Cx,FceTp),
+  wrapType([],[],XQ,[],FceTp,FaceTp),
+%  reportMsg("face type %s",[tpe(FaceTp)],Lc),
+  wrapType(Q,Cx,[],[],typeExists(Tp,FaceTp),FaceRule),
 %  buildConsMap(Body,ConsMap,Path),
-%  dispType(FaceRule),
+%  reportMsg("algebraic face rule %s",[tpe(FaceRule)],Lc),
   declareType(Nm,tpDef(Lc,Type,FaceRule),E,Ev0),
   tpName(Type,TpNm),
-  buildAccessors(Lc,Q,XQ,Cx,Path,TpNm,Tp,FaceTp,Body,D0,Dx,Acc,[]),
+  buildAccessors(Lc,Q,XQ,Cx,Path,TpNm,Tp,FceTp,Body,D0,Dx,Acc,[]),
   declareAccessors(Acc,Ev0,Ev).
 
 declareAccessors(Acc,Ev,Evx) :-
@@ -322,12 +323,14 @@ genAccessor(Lc,Q,XQ,Cx,Path,TpNm,Tp,Fld,FldTp,Tp,AllElTps,Body,
 	    [funDef(Lc,AccName,AccName,soft,AccFunTp,[],Eqns),
 	     accDec(Tp,Fld,AccName,AccFunTp)|Defs],Defs,
 	    [acc(Tp,Fld,AccName,AccFunTp)|Acc],Acc) :-
-  localName(TpNm,field,Fld,AccName),
+  mangleName(TpNm,field,Fld,AccName),
+%  reXQnt(XQ,FldTp,XFldTp),
   putConstraints(Cx,funType(tplType([Tp]),FldTp),CxFunTp),
-  reXQnt(XQ,CxFunTp,XCxFnTp),
-  reUQnt(Q,XCxFnTp,AccFunTp),
+  concat(Q,XQ,TQ),
+  reUQnt(TQ,CxFunTp,AccFunTp),
   accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,[]).
-%  reportMsg("accessor defined %s:%s",[Fld,tpe(AccFunTp)],Lc).
+%  reportMsg("accessor defined %s:%s",[Fld,tpe(AccFunTp)],Lc),
+%  reportMsg("accessor %s",[ss(canon:ssDf(0,funDef(Lc,AccName,AccName,soft,AccFunTp,[],Eqns)))],Lc).
 
 accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,Eqx) :-
   isBinary(Body,_,"|",L,R),!,
@@ -336,7 +339,7 @@ accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,Eqx) :-
 accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,Eqx) :-
   isBraceCon(Body,_XQ,_XC,_,Nm,Args),
   fieldPresent(Fld,Args,_),!,
-  localName(Path,class,Nm,ConNm),
+  mangleName(Path,class,Nm,ConNm),
   projectArgTypes(Args,AllElTps,ArgTps),
   genAccessorEquation(Lc,ConNm,Fld,FldTp,Tp,ArgTps,Eqns,Eqx).
 accessorEquations(_,_,_,_,_,_,_,Eqx,Eqx).
@@ -387,7 +390,7 @@ genBraceAccessors(Lc,Q,Cx,ConNm,Tp,[(Fld,FldTp)|ElTps],AllElTps,Defs,Dfx,Imps,Im
 genBraceAccessor(Lc,Q,Cx,ConNm,Tp,Fld,FldTp,Tp,AllElTps,
 		 [funDef(Lc,AccName,AccName,soft,AccFunTp,[],[Eqn]),AccDef|Defs],Defs,
 		 [acc(Tp,Fld,AccName,AccFunTp)|Imx],Imx) :-
-  localName(ConNm,field,Fld,AccName),
+  mangleName(ConNm,field,Fld,AccName),
   putConstraints(Cx,funType(tplType([Tp]),FldTp),CxFunTp),
   reUQnt(Q,CxFunTp,AccFunTp),
   XX = v(Lc,"XX",FldTp),  
@@ -446,17 +449,17 @@ findCons(Body,Cons,Cnx,Path) :-
   findCons(R,C0,Cnx,Path).
 findCons(Body,[Id|Cnx],Cnx,Path) :-
   isIden(Body,_,Nm),!,
-  localName(Path,class,Nm,Id).
+  mangleName(Path,class,Nm,Id).
 findCons(Body,[Id|Cnx],Cnx,Path) :-
   isEnum(Body,_,E),
   isIden(E,_,Nm),!,
-  localName(Path,class,Nm,Id).
+  mangleName(Path,class,Nm,Id).
 findCons(Body,[Id|Cnx],Cnx,Path) :-
   isRoundCon(Body,_,_,_,Nm,_),!,
-  localName(Path,class,Nm,Id).
+  mangleName(Path,class,Nm,Id).
 findCons(Body,[Id|Cnx],Cnx,Path) :-
   isBraceCon(Body,_,_,_,Nm,_),!,
-  localName(Path,class,Nm,Id).
+  mangleName(Path,class,Nm,Id).
   
 parseConstructors(Body,Q,Cx,Tp,Defs,Dfx,Cons,Cnx,Env,Ev) :-
   isBinary(Body,_,"|",L,R),!,

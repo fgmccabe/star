@@ -10,7 +10,7 @@
 	       appIndx/3,appNl/2,appNwln/3,appMulti/3,
 	       genstr/2,str_lt/2,
 	       subPath/4,pathSuffix/3,starts_with/2,ends_with/2,
-	       localName/3,localName/4,splitLocalName/4,getLocalName/2,
+	       mangleName/3,mangleName/4,splitLocalName/4,getLocalName/2,localName/3,
 	       listShow/5,
 	       stringHash/3,hashSixtyFour/2,stringEndsWith/2,
 	       marker/2,
@@ -275,18 +275,22 @@ hashCodes([C|More],H0,Hx) :-
 hashSixtyFour(H0,H) :-
   H is H0 /\ 9223372036854775807.
 
-localName(Pkg,Mrk,Nm,LclName) :-
+mangleName(Pkg,Mrk,Nm,LclName) :-
   marker(Mrk,Glue),!,
   string_concat(Pkg,Glue,T),
   string_concat(T,Nm,LclName).
 
-localName(Pref,Mrk,Str) :-
-  localName(Pref,Mrk,"",Str).
+mangleName(Pref,Mrk,Str) :-
+  mangleName(Pref,Mrk,"",Str).
 
 splitLocalName(LclNm,Glue,Pkg,Nm) :-
   sub_string(LclNm,Before,_,After,Glue),
   sub_string(LclNm,0,Before,_,Pkg),
   sub_string(LclNm,_,After,0,Nm),!.
+
+localName(Nm,Tp,Lcl) :-
+  marker(Tp,Mrk),!,
+  splitLocalName(Nm,Mrk,_,Lcl).
 
 getLocalName(Lcl,Nm) :-
   marker(_,Mrk),
@@ -303,18 +307,18 @@ marker(field,"°").
 marker(closure,"^").
 
 packageVarName(Pkg,Nm,LclName) :-
-  localName(Pkg,package,Nm,LclName).
+  mangleName(Pkg,package,Nm,LclName).
 
 thetaName(Path,Nm,LclName) :-
   genNewName(Path,"θ",ThPath),
-  localName(ThPath,value,Nm,LclName).
+  mangleName(ThPath,value,Nm,LclName).
 
 lambdaLbl(Prefix,Variant,Nm) :-
   genstr(Variant,V),
-  localName(Prefix,value,V,Nm).
+  mangleName(Prefix,value,V,Nm).
 
 consName(Path,Nm,ConsNm) :-
-  localName(Path,class,Nm,ConsNm).
+  mangleName(Path,class,Nm,ConsNm).
 
 contractName(Path,Nm,ConNm) :-
   marker(conTract,Marker),
@@ -322,10 +326,10 @@ contractName(Path,Nm,ConNm) :-
 
 genNewName(Path,Prfx,Name) :-
   genstr(Prfx,Pre),
-  localName(Path,value,Pre,Name).
+  mangleName(Path,value,Pre,Name).
 
 packageTypeName(Pkg,Nm,LclName) :-
-  localName(Pkg,type,Nm,LclName).
+  mangleName(Pkg,type,Nm,LclName).
 
 listShow([],_,_,O,O) :-!.
 listShow([E|L],C,Sep,O,Ox) :-

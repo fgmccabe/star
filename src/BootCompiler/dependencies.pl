@@ -265,6 +265,9 @@ collectTermRefs(T,A,Rf,Rx) :-
   collectTermRefs(G,A,Rf,R0),
   collectCaseRefs(C,collectTermRefs,A,R0,Rx).
 collectTermRefs(T,A,R0,Rx) :-
+  isOpen(T,_,E),!,
+  collectTermRefs(E,A,R0,Rx).
+collectTermRefs(T,A,R0,Rx) :-
   isValof(T,_,E),!,
   collectTermRefs(E,A,R0,Rx).
 collectTermRefs(T,A,R0,Rx) :-
@@ -424,7 +427,7 @@ collectDoRefs(T,All,Rf,Rfx) :-
   collectDoRefs(L,All,Rf,Rf1),
   collectCatchRefs(R,All,Rf1,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
-  isThrow(T,_,E),!,
+  isRaise(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isValis(T,_,E),!,

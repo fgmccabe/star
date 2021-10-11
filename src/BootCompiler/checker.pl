@@ -19,7 +19,6 @@
 :- use_module(import).
 :- use_module(transitive).
 :- use_module(resolve).
-:- use_module(vartypes).
 
 checkProgram(Prg,Pkg,Repo,_Opts,PkgDecls,Canon) :-
   stdDict(Base),
@@ -204,7 +203,7 @@ declareAllDecls([D|More],Lc,Env,Evx) :-
   declareAllDecls(More,Lc,E0,Evx).
 
 importDecl(Lc,impDec(ImplNm,FullNm,ImplTp),Ev,Evx) :-
-  declareVr(Lc,FullNm,ImplTp,Ev,Ev0),
+  declareVr(Lc,FullNm,ImplTp,none,Ev,Ev0),
   declareImplementation(ImplNm,FullNm,ImplTp,Ev0,Evx).
 importDecl(_,accDec(Tp,Fld,FnNm,AccTp),Ev,Evx) :-
   declareFieldAccess(Tp,Fld,FnNm,AccTp,Ev,Evx).
@@ -213,13 +212,13 @@ importDecl(Lc,contractDec(Nm,CnNm,CnTp,Rule),Ev,Evx) :-
 importDecl(Lc,typeDec(Nm,Tp,Rule),Env,Evx) :-
   declareType(Nm,tpDef(Lc,Tp,Rule),Env,Evx).
 importDecl(Lc,varDec(Nm,_FullNm,Tp),Env,Evx) :-
-  declareVr(Lc,Nm,Tp,Env,Evx).
+  declareVr(Lc,Nm,Tp,none,Env,Evx).
 importDecl(Lc,cnsDec(Nm,FullNm,Tp),Env,Evx) :-
   (isConType(Tp,0) ->
    declareEnum(Lc,Nm,FullNm,Tp,Env,Evx) ;
    declareCns(Lc,Nm,FullNm,Tp,Env,Evx)).
 importDecl(Lc,funDec(Nm,_FullNm,Tp),Env,Evx) :-
-  declareVr(Lc,Nm,Tp,Env,Evx).
+  declareVr(Lc,Nm,Tp,none,Env,Evx).
 importDecl(Lc,Entry,Env,Env) :-
   reportError("(internal) cannot figure out import entry %s",[Entry],Lc).
 
@@ -283,7 +282,7 @@ formMethods([(Nm,Tp)|M],Lc,Q,Cx,Con,Env,Ev) :-
 
 parseConstructor(Nm,Lc,T,Env,Ev,[cnsDef(Lc,Nm,ConVr)|Defs],Defs,Path) :-
   parseType(T,Env,Tp),
-  localName(Path,class,Nm,FullNm),
+  mangleName(Path,class,Nm,FullNm),
   (isConType(Tp,0) ->
    declareEnum(Lc,Nm,FullNm,Tp,Env,Ev), ConVr=enm(Lc,FullNm,Tp) ;
    declareCns(Lc,Nm,FullNm,Tp,Env,Ev), ConVr=cons(Lc,FullNm,Tp)).
@@ -306,8 +305,8 @@ parseAnnotation(Nm,_,_,_,Annots,Env,F,[(Nm,Tp)|F]) :-
   parseType(T,Env,Tp).
 parseAnnotation(N,_,_,faceType(Fields,_),_,_,F,[(N,Tp)|F]) :-
   is_member((N,Tp),Fields),!.
-parseAnnotation(N,_,_,_,_,Env,F,[(N,Tp)|F]) :-
-  isVar(N,Env,vrEntry(_,_,Tp)),!.
+parseAnnotation(N,Lc,_,_,_,Env,F,[(N,Tp)|F]) :-
+  getVar(Lc,N,Env,_,Tp),!.
 parseAnnotation(N,Lc,Stmts,_,_,_,F,[(N,Tp)|F]) :-
   guessStmtType(Stmts,N,Lc,Tp).
 parseAnnotation(_,_,_,_,_,_,Face,Face).
@@ -353,10 +352,15 @@ checkVarRules(N,Lc,Stmts,E,Ev,Defs,Dx,Face,Path) :-
 
 formDefn([Eqn|Eqns],Nm,LclNm,Env,Ev,Tp,Cx,[funDef(Lc,Nm,LclNm,hard,Tp,Cx,[Eqn|Eqns])|Dx],Dx) :-
   Eqn = rule(Lc,_,_,_),
-  declareVr(Lc,Nm,Tp,Env,Ev).
+  declareVr(Lc,Nm,Tp,none,Env,Ev).
+formDefn([varDef(Lc,_,_,_,_,open(VLc,Value,Tp))],Nm,LclNm,Env,Ev,Tp,Cx,
+	 [varDef(Lc,Nm,LclNm,Cx,Tp,open(VLc,Value,Tp))|Dx],Dx) :-
+  freshen(Tp,Env,_,FTp),
+  faceOfType(FTp,Lc,Env,FaceTp),
+  declareVr(Lc,Nm,Tp,some(FaceTp),Env,Ev).
 formDefn([varDef(Lc,_,_,_,_,Value)],Nm,LclNm,Env,Ev,Tp,Cx,
     [varDef(Lc,Nm,LclNm,Cx,Tp,Value)|Dx],Dx) :-
-  declareVr(Lc,Nm,Tp,Env,Ev).
+  declareVr(Lc,Nm,Tp,none,Env,Ev).
 
 processStmts([],_,Defs,Defs,Dflts,Dflts,_,_).
 processStmts([St|More],ProgramType,Defs,Dx,Df,Dfx,E0,Path) :-
@@ -378,7 +382,7 @@ pickupDefnType(N,_,faceType(F,_),_,Ev,Ev,Tp) :-
   is_member((N,Tp),F),!.
 pickupDefnType(Nm,Lc,_,Stmts,E,Ev,Tp) :-
   guessStmtType(Stmts,Nm,Lc,Tp),
-  declareVr(Lc,Nm,Tp,E,Ev).
+  declareVr(Lc,Nm,Tp,none,E,Ev).
 
 guessStmtType([],N,Lc,VTp) :- !,
   reportError("%s not declared",[N],Lc),
@@ -504,7 +508,7 @@ checkImplementation(Stmt,INm,[Impl,ImplVar|Dfs],Dfs,Env,Evx,_,Path) :-
   declareTypeVars(IQ,Lc,Env,E1),
   declareConstraints(Lc,AC,E1,ThEnv),
   implementationName(Spec,ImplName),
-  localName(Path,value,ImplName,ImplVrNm),
+  mangleName(Path,value,ImplName,ImplVrNm),
   contractType(Spec,CnType),
 %  dispType(CnType),
   labelImplExp(IBody,ConNm,ImpBody),
@@ -514,7 +518,7 @@ checkImplementation(Stmt,INm,[Impl,ImplVar|Dfs],Dfs,Env,Evx,_,Path) :-
   reQuantTps(SS1,IQ,ImpType),
   ImplVar = varDef(Lc,ImplVrNm,ImplVrNm,AC,ImpType,ImplTerm),
   Impl = implDef(INm,ImplName,ImplVrNm,ImpType),
-  declareVr(Lc,ImplVrNm,ImpType,Env,Ev0),
+  declareVr(Lc,ImplVrNm,ImpType,none,Env,Ev0),
   declareImplementation(ImplName,ImplVrNm,ImpType,Ev0,Evx),!.
 checkImplementation(Stmt,_,Defs,Defs,Env,Env,_,_) :-
   locOfAst(Stmt,Lc),
@@ -558,12 +562,12 @@ typeOfPtn(V,Tp,_ErTp,Env,Env,anon(Lc,Tp),_Path) :-
   isAnon(V,Lc),!.
 typeOfPtn(V,Tp,ErTp,Env,Ev,Term,Path) :-
   isIden(V,Lc,N),
-  isVar(N,Env,_),!,
+  getVar(Lc,N,Env,_,_),!,
   mkWhereEquality(Lc,V,TT),
   typeOfPtn(TT,Tp,ErTp,Env,Ev,Term,Path).
 typeOfPtn(V,Tp,_ErTp,Ev,Env,v(Lc,N,Tp),_Path) :-
   isIden(V,Lc,N),
-  declareVr(Lc,N,Tp,Ev,Env).
+  declareVr(Lc,N,Tp,none,Ev,Env).
 typeOfPtn(Trm,Tp,ErTp,Env,Ev,Term,Path) :-
   isEnum(Trm,_,_),
   typeOfExp(Trm,Tp,ErTp,Env,Ev,Term,Path).
@@ -660,17 +664,15 @@ typeOfArgTerm(T,Tp,ErTp,Env,Ev,Exp,Path) :-
 typeOfExp(V,Tp,_ErTp,Env,Env,anon(Lc,Tp),_) :-
   isAnon(V,Lc),
   reportError("anonymous variable not permitted as expression",[],Lc).
-typeOfExp(V,Tp,_ErTp,Env,Ev,Term,_Path) :-
+typeOfExp(V,Tp,_ErTp,Env,Env,Term,_Path) :-
   isIden(V,Lc,N),!,
-  (getVar(Lc,N,Env,Ev,Term) ->
-   typeOfCanon(Term,VTp),
-   verifyType(Lc,Tp,VTp,Ev);
+  (getVar(Lc,N,Env,Term,VTp) ->
+   verifyType(Lc,Tp,VTp,Env);
    reportError("variable '%s' not defined, expecting a %s",[V,Tp],Lc),
-   Term=void,
-   Env=Ev).
+   Term=void).
 typeOfExp(T,Tp,ErTp,Env,Ev,Term,Path) :-
   isEnum(T,_,N),
-  typeOfExp(N,Tp,ErTp,Env,Ev,Term,Path),!.
+  typeOfExp(N,consType(tplType([]),Tp),ErTp,Env,Ev,Term,Path),!.
 typeOfExp(T,Tp,_ErTp,Env,Env,intLit(Lc,Ix),_Path) :-
   isLiteralInteger(T,Lc,Ix),!,
   findType("integer",Lc,Env,IntTp),
@@ -684,17 +686,18 @@ typeOfExp(chars(Lc,Sx),Tp,_ErTp,Env,Env,charsLit(Lc,Sx),_Path) :- !,
   verifyType(Lc,StrTp,Tp,Env).
 typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isTypeAnnotation(Term,Lc,L,R),!,
-  parseType(R,Env,RT),
-  verifyType(Lc,RT,Tp,Env),
-  typeOfExp(L,Tp,ErTp,Env,Ev,Exp,Path).
+  parseType(R,Env,PTp),
+  verifyType(Lc,PTp,Tp,Env),
+  typeOfExp(L,PTp,ErTp,Env,Ev,Exp,Path).
 typeOfExp(P,Tp,ErTp,Env,Ex,where(Lc,Ptn,Cond),Path) :-
   isWhere(P,Lc,L,C),!,
   reportError("Unexpected where `%s' in expression",[ast(P)],Lc),
   typeOfExp(L,Tp,ErTp,Env,E0,Ptn,Path),
   checkGuard(some(C),ErTp,E0,Ex,some(Cond),Path).
-typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
+typeOfExp(Term,Tp,ErTp,Env,Ev,dot(Lc,Rec,Fld,Tp),Path) :-
   isFieldAcc(Term,Lc,Rc,Fld),!,
-  recordAccessExp(Lc,Rc,Fld,Tp,ErTp,Env,Ev,Exp,Path).
+  newTypeVar("_R",AT),
+  typeOfExp(Rc,AT,ErTp,Env,Ev,Rec,Path).
 typeOfExp(Term,Tp,ErTp,Env,Ev,replace(Lc,LExp,RExp),Path) :-
   isRecordUpdate(Term,Lc,Lft,Rgt),!,
   typeOfExp(Lft,Tp,ErTp,Env,Ev,LExp,Path),
@@ -709,9 +712,12 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,cond(Lc,Test,Then,Else,Tp),Path) :-
 typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isCaseExp(Term,Lc,Bnd,Cases),
   checkCaseExp(Lc,Bnd,Cases,Tp,ErTp,Env,Ev,Exp,Path).
-typeOfExp(Term,Tp,ErTp,Env,Env,throw(Lc,Exp,Tp),Path) :-
-  isThrow(Term,Lc,E),!,
+typeOfExp(Term,Tp,ErTp,Env,Env,raise(Lc,Exp,Tp),Path) :-
+  isRaise(Term,Lc,E),!,
   typeOfExp(E,ErTp,ErTp,Env,_,Exp,Path).
+typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
+  isOpen(Term,Lc,I),!,
+  typeOfOpen(Lc,I,Tp,ErTp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,ErTp,Env,Ev,cell(Lc,Exp),Path) :-
   isRef(Term,Lc,I),
   newTypeVar("r",RT),
@@ -829,11 +835,20 @@ typeOfExp(Term,Tp,_ErTp,Env,Env,void,_) :-
   locOfAst(Term,Lc),
   reportError("illegal expression: %s, expecting a %s",[Term,Tp],Lc).
 
+verifyType(Lc,Actual,Expected,Env) :-
+  sameType(Actual,Expected,Lc,Env),!.
+verifyType(Lc,S,T,_) :-
+  reportError("type %s not consistent with expected type\n%s",[tpe(S),tpe(T)],Lc).
+
 funLbl(over(_,T,_,_),L) :- funLbl(T,L).
 funLbl(v(_,L,_),L).
 funLbl(cons(_,Nm,_),Nm).
 funLbl(enm(_,Nm,_),Nm).
 funLbl(mtd(_,Nm,_),Nm).
+
+typeOfOpen(Lc,I,Tp,ErTp,Env,Ev,open(Lc,Exp,Tp),Path) :-
+  typeOfExp(I,Tp,ErTp,Env,Ev,Exp,Path),
+  reportMsg("opened value %s:%s",[can(Exp),tpe(Tp)],Lc).
 
 typeOfRoundTerm(Lc,F,A,Tp,ErTp,Env,apply(Lc,Fun,Args,Tp),Path) :-
   newTypeVar("F",FnTp),
@@ -880,8 +895,8 @@ typeOfTag(Lc,Tp,Env,tag(Lc,Tp)) :-
   verifyType(Lc,TTp,Tp,Env).
 
 typeOfPrompt(Lc,L,P,Tp,ErTp,Env,prompt(Lc,Lb,Lam,Tp),Path) :-
-  newTypeVar("_",Rt),
-  mkTypeExp(tpFun("tag",2),[Rt,Tp],TTp),
+  newTypeVar("_",Ct),
+  mkTypeExp(tpFun("tag",2),[Ct,Tp],TTp),
   typeOfExp(L,TTp,ErTp,Env,_,Lb,Path),
 %  dispType(TTp),
   typeOfExp(P,Tp,ErTp,Env,_,Exp,Path),
@@ -889,30 +904,56 @@ typeOfPrompt(Lc,L,P,Tp,ErTp,Env,prompt(Lc,Lb,Lam,Tp),Path) :-
   Lam = lambda(Lc,Lbl,rule(Lc,tple(Lc,[]),none,Exp),
 	       funType(tplType([]),Tp)).
 
-typeOfCut(Lc,L,Lhs,Rhs,Tp,ErTp,Env,shift(Lc,Lb,Lam),Path) :-
-%  dispType(Tp),
-  newTypeVar("_",Rt),
+checkPromptAction(Lc,L,P,Env,Tp,VlTp,ErTp,OkFn,EvtFn,promptDo(Lc,Lb,Lam,Tp),Path) :-
+  verifyType(Lc,tplType([]),VlTp,Env),
   newTypeVar("_",Ct),
+  applyTypeFun(Tp,[ErTp,VlTp],Lc,Env,RTp),
+  applyTypeFun(tpFun("tag",2),[Ct,RTp],Lc,Env,TTp),
+  typeOfExp(L,TTp,ErTp,Env,_,Lb,Path),
+%  dispType(TTp),
+  checkAction(P,Env,_,Tp,VlTp,ErTp,OkFn,EvtFn,Act,Path),
+  lambdaLbl(Path,"ç",Lbl),
+  Lam = lambda(Lc,Lbl,rule(Lc,tple(Lc,[]),none,doTerm(Lc,Act,Tp)),
+	       funType(tplType([]),Tp)).
+
+typeOfCut(Lc,L,Lhs,Rhs,Tp,ErTp,Env,shift(Lc,Lb,Lam),Path) :-
+  dispType(Tp),
+  newTypeVar("_",Rt),
   KType = contType(tplType([Tp]),Rt),
-  mkTypeExp(tpFun("tag",2),[Tp,Ct],TTp),
+  mkTypeExp(tpFun("tag",2),[Tp,Rt],TTp),
+  dispType(TTp),
+  typeOfExp(L,TTp,ErTp,Env,_,Lb,Path),
+  dispType(TTp),
+  typeOfPtn(Lhs,KType,ErTp,Env,E0,V,Path),
+  dispType(KType),
+  typeOfExp(Rhs,Rt,ErTp,E0,_,Exp,Path),
+  lambdaLbl(Path,"ç",Lbl),
+  Lam = lambda(Lc,Lbl,rule(Lc,tple(Lc,[V]),none,Exp),
+	       funType(tplType([KType]),Rt)),
+  dispCanon(Lam).
+
+checkCutAction(Lc,L,Lhs,Rhs,Env,Tp,VlTp,ErTp,OkFn,EvtFn,cutDo(Lc,Lb,Lam),Path) :-
+  newTypeVar("_",Rt),
+  applyTypeFun(Tp,[ErTp,Rt],Lc,Env,At),
+  KType = contType(tplType([At]),Rt),
+  mkTypeExp(tpFun("tag",2),[At,Rt],TTp),
 %  dispType(TTp),
   typeOfExp(L,TTp,ErTp,Env,_,Lb,Path),
 %  dispType(TTp),
   typeOfPtn(Lhs,KType,ErTp,Env,E0,V,Path),
-%  dispType(KType),
-%  dispType(Ct),
-  typeOfExp(Rhs,Ct,ErTp,E0,_,Exp,Path),
+%  dispType(TTp),
+  checkAction(Rhs,E0,_,Tp,VlTp,ErTp,OkFn,EvtFn,Act,Path),
   lambdaLbl(Path,"ç",Lbl),
-  Lam = lambda(Lc,Lbl,rule(Lc,tple(Lc,[V]),none,Exp),
+  Lam = lambda(Lc,Lbl,rule(Lc,tple(Lc,[V]),none,doTerm(Lc,Act,Tp)),
 	       funType(tplType([KType]),Rt)).
 %  dispCanon(Lam).
 
+
+
 typeOfDoExp(Lc,Stmts,Tp,ErTp,Env,doTerm(Lc,Act,Tp),Path) :-
   findType("result",Lc,Env,ResltTp),
-  getVar(Lc,"_valis",Env,_,OkFn),
-  typeOfCanon(OkFn,OkFnTp),
-  getVar(Lc,"_raise",Env,_,EvtFn),
-  typeOfCanon(EvtFn,EvtFnTp),
+  getVar(Lc,"_valis",Env,OkFn,OkFnTp),
+  getVar(Lc,"_raise",Env,EvtFn,EvtFnTp),
   newTypeVar("X",ElTp),
   applyTypeFun(ResltTp,[ErTp,ElTp],Lc,Env,RTp),
   verifyType(Lc,RTp,Tp,Env),
@@ -923,13 +964,12 @@ typeOfDoExp(Lc,Stmts,Tp,ErTp,Env,doTerm(Lc,Act,Tp),Path) :-
 typeOfActionExp(Lc,Stmts,Tp,Env,Action,Path) :-
   findType("action",Lc,Env,ActionTp),
   findType("result",Lc,Env,ResltTp),
-  getVar(Lc,"action",Env,_,ActFn),
+  getVar(Lc,"action",Env,ActFn,ActConsTp),
   newTypeVar("X",ElTp),
   newTypeVar("E",ErTp),
   applyTypeFun(ActionTp,[ErTp,ElTp],Lc,Env,MTp),
   applyTypeFun(ResltTp,[ErTp,ElTp],Lc,Env,RTp),
   verifyType(Lc,MTp,Tp,Env),
-  typeOfCanon(ActFn,ActConsTp),
   LamTp = funType(tplType([]),RTp),
   verifyType(Lc,consType(tplType([LamTp]),MTp),ActConsTp,Env),
   lambdaLbl(Path,"λ",LamLbl),
@@ -943,14 +983,13 @@ typeOfActionExp(Lc,Stmts,Tp,Env,Action,Path) :-
 typeOfTaskExp(Lc,Stmts,Tp,Env,taskTerm(Lc,TaskLbl,Action,Tp),Path) :-
   findType("task",Lc,Env,TaskTp), % action type is just the core
   findType("result",Lc,Env,ResltTp),
-  getVar(Lc,"task",Env,_,ActFn),
+  getVar(Lc,"task",Env,ActFn,ActConsTp),
   newTypeVar("E",ErTp),
   newTypeVar("X",ElTp),
   applyTypeFun(TaskTp,[ErTp,ElTp],Lc,Env,TTp),
   applyTypeFun(ResltTp,[ErTp,ElTp],Lc,Env,RTp),
   verifyType(Lc,TTp,Tp,Env),
   LamTp = funType(tplType([]),RTp),
-  typeOfCanon(ActFn,ActConsTp),
   verifyType(Lc,consType(tplType([LamTp]),Tp),ActConsTp,Env),
 %  dispType(ActConsTp),
   lambdaLbl(Path,"∂",ActLbl),
@@ -1093,8 +1132,8 @@ checkAction(Term,Env,Env,Tp,VlTp,ErTp,OkFn,EvtFn,tryCatchDo(Lc,Bdy,Hndlr),Path) 
 checkAction(Term,Env,Env,Tp,VlTp,ErTp,OkFn,EvtFn,Act,Path) :-
   isTryHandle(Term,Lc,B,H),!,
   checkTryHandleAction(Lc,B,H,Env,Tp,VlTp,ErTp,OkFn,EvtFn,Act,Path).
-checkAction(Term,Env,Env,Tp,VlTp,ErTp,_OkFn,EvtFn,throwDo(Lc,Evt),Path) :-
-  isThrow(Term,Lc,E),!,
+checkAction(Term,Env,Env,Tp,VlTp,ErTp,_OkFn,EvtFn,raiseDo(Lc,Evt),Path) :-
+  isRaise(Term,Lc,E),!,
   unitTp(Unit),
   typeOfExp(E,ErTp,Unit,Env,_,Exp,Path),
   applyTypeFun(Tp,[ErTp,VlTp],Lc,Env,RTp),
@@ -1160,42 +1199,14 @@ checkLetAction(Lc,Els,A,Env,Tp,VlTp,ErTp,OkFn,EvtFn,letDo(Lc,Decls,XDefs,Bound),
   computeLetExport(Defs,[],Decls,XDefs),
   checkAction(A,OEnv,OEnv,Tp,VlTp,ErTp,OkFn,EvtFn,Bound,Path).
 
-checkPromptAction(Lc,L,P,Env,Tp,VlTp,ErTp,OkFn,EvtFn,promptDo(Lc,Lb,Lam,Tp),Path) :-
-  verifyType(Lc,tplType([]),VlTp,Env),
-  newTypeVar("_",Rt),
-  applyTypeFun(Tp,[ErTp,VlTp],Lc,Env,RTp),
-  applyTypeFun(tpFun("tag",2),[Rt,RTp],Lc,Env,TTp),
-  typeOfExp(L,TTp,ErTp,Env,_,Lb,Path),
-  dispType(TTp),
-  checkAction(P,Env,_,Tp,VlTp,ErTp,OkFn,EvtFn,Act,Path),
-  lambdaLbl(Path,"ç",Lbl),
-  Lam = lambda(Lc,Lbl,rule(Lc,tple(Lc,[]),none,doTerm(Lc,Act,Tp)),
-	       funType(tplType([]),Tp)).
-
-checkCutAction(Lc,L,Lhs,Rhs,Env,Tp,VlTp,ErTp,OkFn,EvtFn,cutDo(Lc,Lb,Lam),Path) :-
-  newTypeVar("_",Rt),
-  newTypeVar("_",Ct),
-  KType = contType(tplType([Tp]),Rt),
-  mkTypeExp(tpFun("tag",2),[Tp,Ct],TTp),
-  dispType(TTp),
-  typeOfExp(L,TTp,ErTp,Env,_,Lb,Path),
-  dispType(TTp),
-  typeOfPtn(Lhs,KType,ErTp,Env,E0,V,Path),
-  dispType(TTp),
-  checkAction(Rhs,E0,_,Tp,VlTp,ErTp,OkFn,EvtFn,Act,Path),
-  lambdaLbl(Path,"ç",Lbl),
-  Lam = lambda(Lc,Lbl,rule(Lc,tple(Lc,[V]),none,doTerm(Lc,Act,Tp)),
-	       funType(tplType([KType]),Rt)),
-  dispCanon(Lam).
-
 checkResumeAction(Lc,F,A,Env,Tp,VlTp,ErTp,_OkFn,_EvtFn,resumeDo(Lc,Kont,Arg,RTp),Path) :-
   verifyType(Lc,tplType([]),VlTp,Env),
   applyTypeFun(Tp,[ErTp,VlTp],Lc,Env,RTp),
   newTypeVar("A",At),
   KTp = contType(At,RTp),
   typeOfExp(F,KTp,ErTp,Env,_,Kont,Path),
-  typeOfArgTerm(A,At,ErTp,Env,_,Arg,Path),
-  dispType(KTp).
+  typeOfArgTerm(A,At,ErTp,Env,_,Arg,Path).
+%  dispType(KTp).
 
 checkAssignment(Lc,L,R,Env,Ev,VlTp,ErTp,assignDo(Lc,Lhs,Rhs),Path) :-
   verifyType(Lc,tplType([]),VlTp,Env),
@@ -1235,7 +1246,7 @@ checkTryHandleAction(Lc,B,H,Env,Tp,VlTp,ErTp,OkFn,EvtFn,tryHandleDo(Lc,tag(Lc,Tg
   newTypeVar("_",Rt),
   newTypeVar("_",Ct),
   mkTypeExp(tpFun("tag",2),[Rt,Ct],TgTp),
-  declareVr(Lc,"$tag",TgTp,Env,Ev0),
+  declareVr(Lc,"$tag",TgTp,none,Env,Ev0),
   checkAction(B,Ev0,_,Tp,VlTp,BdErTp,OkFn,EvtFn,Bdy,Path),
   checkHandle(H,Ev0,Rt,Ct,Tp,VlTp,ErTp,BdErTp,Anon,OkFn,EvtFn,Hndlr,Path).
 
@@ -1253,19 +1264,6 @@ checkTryHandleAction(Lc,B,H,Env,Tp,VlTp,ErTp,OkFn,EvtFn,tryHandleDo(Lc,tag(Lc,Tg
 
   
 %   typeOfExp(Term,funType(tplType([BdErTp,KType]),RTp),ErTp,Env,_,Hndlr,Path).
-
-recordAccessExp(Lc,Rc,Fld,Tp,ErTp,Env,Ev,dot(Lc,Rec,Fld,Tp),Path) :-
-  newTypeVar("_R",AT),
-  typeOfExp(Rc,AT,ErTp,Env,Ev,Rec,Path).
-recordAccessExp(Lc,Rc,Fld,Tp,ErTp,Env,Ev,dot(Lc,Rec,Fld,Tp),Path) :-
-  newTypeVar("_R",AT),
-  typeOfExp(Rc,AT,ErTp,Env,Ev,Rec,Path),
-  faceOfType(AT,Lc,Env,Fc),
-  freshen(Fc,Env,_,Fce),
-  deRef(Fce,Face),
-  fieldInFace(Face,Fld,Lc,FTp),!,
-  freshen(FTp,Env,_,FldTp),
-  verifyType(Lc,FldTp,Tp,Env).
 
 fieldInFace(faceType(Fields,_),Nm,_,Tp) :-
   is_member((Nm,Tp),Fields),!.
@@ -1417,13 +1415,13 @@ exportAcc(Tp,Export) :-
 
 mkBoot(Env,Lc,Pkg,Dfs,[BootDef|Dfs],Decls,[funDec("_boot",BootNm,BootTp)|Decls]) :-
   findType("cons",Lc,Env,ConsTp),
-  isVar("_main",Env,Spec),
-  localName(Pkg,value,"_boot",BootNm),
+  getVar(Lc,"_main",Env,MainTrm,MnTp),
+  mangleName(Pkg,value,"_boot",BootNm),
   applyTypeFun(ConsTp,[type("chars")],Lc,Env,LSTp),
   CmdVr = v(Lc,"CmdVr",LSTp),
   unitTp(UnitTp),
-  MnTp = funType(tplType([LSTp]),UnitTp),
-  typeOfVar(Lc,MnTp,Spec,Env,_Ev,MainTrm),
+  MainTp = funType(tplType([LSTp]),UnitTp),
+  sameType(MnTp,MainTp,Lc,Env),
   BootTp = funType(tplType([LSTp]),UnitTp),
   BootEqn = rule(Lc,tple(Lc,[CmdVr]),none,
 		 apply(Lc,MainTrm,

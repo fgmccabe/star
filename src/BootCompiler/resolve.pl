@@ -65,10 +65,10 @@ makeContractFunType(T,Cx,funType(tplType(Cx),T)).
 defineCVars(_,[],Dict,[],Dict).
 defineCVars(Lc,[Con|Cx],Dict,[v(Lc,CVarNm,ConTp)|CVars],FDict) :-
   implementationName(Con,ImplNm),
-  localName("_",value,ImplNm,CVarNm),
+  mangleName("_",value,ImplNm,CVarNm),
   contractType(Con,ConTp),
   declareImplementation(ImplNm,CVarNm,ConTp,Dict,D0),
-  declareVr(Lc,CVarNm,ConTp,D0,D1),
+  declareVr(Lc,CVarNm,ConTp,none,D0,D1),
   defineCVars(Lc,Cx,D1,CVars,FDict).
 defineCVars(Lc,[implementsFace(X,faceType(Flds,_))|Cx],Dict,CVars,FDict) :-
   fieldVars(Lc,X,Flds,CVars,CVrs,Dict,CDict),
@@ -115,7 +115,9 @@ overloadTerm(enm(Lc,Rf,Tp),_,St,St,enm(Lc,Rf,Tp)).
 overloadTerm(cons(Lc,Rf,Tp),_,St,St,cons(Lc,Rf,Tp)).
 overloadTerm(tple(Lc,Args),Dict,St,Stx,tple(Lc,RArgs)) :-!,
   overloadLst(Args,resolve:overloadTerm,Dict,St,Stx,RArgs).
-overloadTerm(throw(Lc,Er,Tp),Dict,St,Stx,throw(Lc,Err,Tp)) :-
+overloadTerm(open(Lc,Er,Tp),Dict,St,Stx,open(Lc,Err,Tp)) :-
+  overloadTerm(Er,Dict,St,Stx,Err).
+overloadTerm(raise(Lc,Er,Tp),Dict,St,Stx,raise(Lc,Err,Tp)) :-
   overloadTerm(Er,Dict,St,Stx,Err).
 overloadTerm(cell(Lc,Inn),Dict,St,Stx,cell(Lc,Inn1)) :-
   overloadTerm(Inn,Dict,St,Stx,Inn1).
@@ -257,7 +259,7 @@ overloadAction(tryCatchDo(Lc,Body,Hndlr),Dict,St,Stx,tryCatchDo(Lc,RBody,RHndlr)
   overloadTerm(Hndlr,Dict,St1,Stx,RHndlr).
 overloadAction(valisDo(Lc,Exp),Dict,St,Stx,valisDo(Lc,RExp)) :-
   overloadTerm(Exp,Dict,St,Stx,RExp).
-overloadAction(throwDo(Lc,Exp),Dict,St,Stx,throwDo(Lc,RExp)) :-
+overloadAction(raiseDo(Lc,Exp),Dict,St,Stx,raiseDo(Lc,RExp)) :-
   overloadTerm(Exp,Dict,St,Stx,RExp).
 overloadAction(performDo(Lc,Exp),Dict,St,Stx,performDo(Lc,RExp)) :-
   overloadTerm(Exp,Dict,St,Stx,RExp).
@@ -328,20 +330,25 @@ overloadRef(_,v(Lc,Nm,Tp),DT,RArgs,v(Lc,Nm,Tp),_,Stx,Stx,Args) :- !,
 overloadRef(_,C,DT,RArgs,C,_,Stx,Stx,Args) :-
   concat(DT,RArgs,Args).
 
-resolveAccess(Lc,Rc,Fld,Tp,Dict,St,Stx,apply(Lc,V,tple(Lc,[Rc]),Tp)) :-
+resolveAccess(Lc,Rc,Fld,Tp,Dict,St,Stx,Reslvd) :-
   typeOfCanon(Rc,RcTp),
   findAccess(RcTp,Fld,Dict,AccTp,FunNm),
   freshen(AccTp,Dict,_,FAccTp),
   newTypeVar("FF",RTp),
-  sameType(funType(tplType([RcTp]),RTp),FAccTp,Lc,Dict),
-%  reportMsg("accessor defined %s:%s",[Fld,tpe(FAccTp)],Lc),
-  /* freshen result type again (special case for method access from contract record) */
-  freshen(RTp,Dict,_,FTp),
-  sameType(FTp,Tp,Lc,Dict),
-  
-  V = v(Lc,FunNm,funType(tplType([RcTp]),FTp)),
-%  reportMsg("resolved access to %s.%s with %s",[can(Rc),Fld,can(V)],Lc),
-  markResolved(St,Stx).
+  (sameType(funType(tplType([RcTp]),RTp),FAccTp,Lc,Dict),
+%   reportMsg("accessor defined %s:%s",[Fld,tpe(FAccTp)],Lc),
+   /* freshen result type again (special case for method access from contract record) */
+   freshen(RTp,Dict,_,FTp),
+%   reportMsg("accessor type %s",[tpe(FTp)],Lc),
+%   reportMsg("expected type %s",[tpe(Tp)],Lc),
+   sameType(FTp,Tp,Lc,Dict),
+   V = v(Lc,FunNm,funType(tplType([RcTp]),FTp)),
+   markResolved(St,Stx),
+   Reslvd = apply(Lc,V,tple(Lc,[Rc]),Tp);
+   genMsg("accessor defined for %s:%s in %s\nnot consistent with\n%s",
+	  [Fld,tpe(FAccTp),can(dot(Lc,Rc,Fld,Tp)),tpe(Tp)],Msg),
+   markActive(St,Lc,Msg,Stx),
+   Reslvd = dot(Lc,Rc,Fld,Tp)).
 resolveAccess(Lc,Rc,Fld,Tp,_Dict,St,Stx,dot(Lc,Rc,Fld,Tp)) :-
   typeOfCanon(Rc,RcTp),
 %  reportMsg("no accessor defined for %s for type %s in %s",
@@ -358,12 +365,11 @@ resolveContracts(Lc,[Con|C],Dict,St,Stx,[CV|Vs]) :-
 resolveContract(Lc,C,Dict,St,Stx,Over) :-
   implementationName(C,ImpNm),
   getImplementation(Dict,ImpNm,ImplVrNm,_ImplTp),
-  getVar(Lc,ImplVrNm,Dict,D0,Impl),
-  typeOfCanon(Impl,ITp), % ITp=freshened(ImplTp)
+  getVar(Lc,ImplVrNm,Dict,Impl,ITp),
   contractType(C,CTp),
   sameType(ITp,CTp,Lc,Dict),
   markResolved(St,St1),
-  overloadTerm(Impl,D0,St1,Stx,Over).
+  overloadTerm(Impl,Dict,St1,Stx,Over).
 resolveContract(Lc,C,_,St,Stx,C) :-
   genMsg("no implementation known for %s",[con(C)],Msg),
   markActive(St,Lc,Msg,Stx).
