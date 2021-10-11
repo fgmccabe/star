@@ -2,6 +2,7 @@
 // Created by Francis McCabe on 4/1/20.
 //
 
+#include <lower.h>
 #include "jitP.h"
 #include "pool.h"
 #include <stdlib.h>
@@ -38,6 +39,7 @@ codeCtxPo createCtx() {
   ctx->size = 1024;
   ctx->pc = 0;
   ctx->lbls = newHash(256, (hashFun) uniHash, (compFun) uniCmp, (destFun) clearLbl);
+  clearCodeCtxMaps(ctx);
   return ctx;
 }
 

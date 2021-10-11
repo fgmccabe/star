@@ -12,12 +12,6 @@
 
 #define MAX_VSTACK 256
 
-#ifdef TRACEJIT
-extern logical traceJit;
-#endif
-
-extern integer jitThreshold;
-
 typedef struct assem_ctx *codeCtxPo;
 typedef struct assem_lbl *codeLblPo;
 
@@ -34,29 +28,35 @@ typedef enum {
   argument,
   local,
   literal,
-  immediate
+  immediate,
+  mcReg
 } srcLoc;
 
 typedef struct {
   lType type;
   srcLoc loc;
   termPo litrl;
-  int32 ix;
+  int64 ix;
+  double dx;
+  int regNo;
 } vOperand;
-
-typedef struct jit_compiler_ {
-  codeCtxPo codeBase;
-  methodPo mtd;
-  integer vTop;
-  vOperand vStack[MAX_VSTACK];
-} JitCompilerContext;
 
 typedef struct assem_ctx {
   unsigned char *bytes;
   uint32 size;
   uint32 pc;
   hashPo lbls;
+  registerMap usedRegs;
+  registerMap freeRegs;
 } AssemCtxRecord;
+
+typedef struct jit_compiler_ {
+  codeCtxPo codeBase;
+  methodPo mtd;
+  integer vTop;
+  vOperand vStack[MAX_VSTACK];
+  AssemCtxRecord cxt;
+} JitCompilerContext;
 
 typedef struct assem_lbl {
   char nm[128];
@@ -72,6 +72,7 @@ void updateU32(codeCtxPo ctx, integer pc, uint32 word);
 uint32 readCtxAtPc(codeCtxPo ctx, integer pc);
 
 jitCompPo jitContext(methodPo mtd);
+void clearCodeCtxMaps(codeCtxPo ctx);;
 
 void initAssemX64();
 codeCtxPo createCtx();
@@ -98,8 +99,8 @@ typedef struct lbl_ref {
 logical isByte(int64 x);
 logical isI32(int64 x);
 
-retCode jit_preamble(methodPo mtd,jitCompPo context);
+retCode jit_preamble(methodPo mtd, jitCompPo context);
 
-retCode jit_postamble(methodPo mtd,jitCompPo context);
+retCode jit_postamble(methodPo mtd, jitCompPo context);
 
 #endif //STAR_JITP_H

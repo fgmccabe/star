@@ -6,6 +6,7 @@
 #include <turm.h>
 #include "utils.h"
 #include "codeP.h"
+#include "lower.h"
 #include "jitP.h"
 #include "jitOps.h"
 
@@ -43,9 +44,9 @@ retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
   if (ret == Ok)
     ret = jit_postamble(mtd, context);
 
-  if(ret==Ok)
+  if (ret == Ok)
 
-  return ret;
+    return ret;
 }
 
 termPo invokeJitMethod(methodPo mtd, heapPo H, stackPo stk) {
@@ -72,8 +73,13 @@ termPo invokeJitMethod(methodPo mtd, heapPo H, stackPo stk) {
     case 8:
       return ((jitCode8) codeJit(mtd))(topStack(stk), peekStack(stk, 1), peekStack(stk, 2), peekStack(stk, 3),
                                        peekStack(stk, 4), peekStack(stk, 5), peekStack(stk, 6), peekStack(stk, 7));
-    default:
-      syserr("cannot invoke jitted code");
-      return Null;
+    default:{
+      integer arity = codeArity(mtd);
+      termPo args[arity];
+      for(integer ix = 0;ix<arity;ix++){
+        args[ix] = peekStack(stk,ix);
+      }
+      return ((jitCodeStar)codeJit(mtd))(args);
+    }
   }
 }

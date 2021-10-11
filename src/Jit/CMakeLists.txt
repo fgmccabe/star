@@ -12,10 +12,12 @@ include_directories("Headers"
         "../Util/Headers"
         "../Escapes/Headers"
         "../Engine/Headers"
-        "../Infra/Headers")
+        "../Infra/Headers"
+        "${JIT_ARCH}/Headers")
 
 set(HEADER_FILES
         Headers/jit.h Headers/jitP.h Headers/jitOps.h
+        ${JIT_ARCH}/Headers/lower.h
         )
 
 set(SOURCE_FILES jit.c jitInfra.c)

@@ -12,11 +12,11 @@ include_directories("Headers"
         "../../Headers")
 
 set(HEADER_FILES
-        x86_64.h
-        x86_64P.h
+        Headers/x86_64.h
+        Headers/x86_64P.h
         )
 
-set(SOURCE_FILES assemx86_64.c ins_x64.c lower.c)
+set(SOURCE_FILES assemx86_64.c ins_x64.c lower.c Headers/lower.h)
 add_library(X86_64 STATIC ${SOURCE_FILES})
 
 
