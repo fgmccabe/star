@@ -58,6 +58,7 @@ star.compiler.operators{
   oper(".+.") => [prefixOp(700,699)].
   oper("ignore") => [prefixOp(930,929)].
   oper("<$") => [infixOp(719,720,720)].
+  oper("raise") => [prefixOp(930,929)].
   oper("then") => [infixOp(1179,1180,1179)].
   oper("!") => [postfixOp(99,100), infixOp(99,100,99)].
   oper("->>") => [infixOp(1199,1200,1199)].
@@ -80,7 +81,6 @@ star.compiler.operators{
   oper(".") => [prefixOp(10,9), infixOp(100,100,99)].
   oper("/") => [infixOp(700,700,699)].
   oper("<*>") => [infixOp(949,950,950)].
-  oper("val") => [prefixOp(900,899)].
   oper("try") => [prefixOp(1200,1199)].
   oper("exists") => [prefixOp(1010,1009)].
   oper("if") => [prefixOp(1175,1174)].
@@ -418,6 +418,7 @@ star.compiler.operators{
   keyword(",..") => .true.
   keyword("for") => .true.
   keyword("ignore") => .true.
+  keyword("raise") => .true.
   keyword("then") => .true.
   keyword("!") => .true.
   keyword("->>") => .true.
@@ -429,7 +430,6 @@ star.compiler.operators{
   keyword(",") => .true.
   keyword("contract") => .true.
   keyword(".") => .true.
-  keyword("val") => .true.
   keyword("try") => .true.
   keyword("exists") => .true.
   keyword("if") => .true.

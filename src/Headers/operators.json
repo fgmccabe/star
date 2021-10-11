@@ -1030,15 +1030,6 @@
     "keyword": true
   },
   {
-    "prefixOp": "val",
-    "priorities": [
-      900,
-      899
-    ],
-    "desc": "value type marker",
-    "keyword": true
-  },
-  {
     "prefixOp": "open",
     "priorities": [
       900,
@@ -1108,6 +1099,15 @@
       929
     ],
     "desc": "throw an exception",
+    "keyword": true
+  },
+  {
+    "prefixOp": "raise",
+    "priorities": [
+      930,
+      929
+    ],
+    "desc": "raise an exception",
     "keyword": true
   },
   {
