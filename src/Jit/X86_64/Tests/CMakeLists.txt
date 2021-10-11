@@ -11,7 +11,7 @@ include_directories("../Headers"
         "../")
 
 set(TEST_SOURCE_FILES ../../../Util/unitTests.c x64Tests.c ../../jitinfra.c)
-set(TEST_HEADER_FILES ../x86_64.h ../x86_64P.h ../../../Util/Headers/unitTests.h ../../Headers/jitP.h)
+set(TEST_HEADER_FILES ../Headers/x86_64.h ../Headers/x86_64P.h ../../../Util/Headers/unitTests.h ../../Headers/jitP.h)
 
 add_executable(x64Test EXCLUDE_FROM_ALL ${TEST_SOURCE_FILES} ${TEST_HEADER_FILES})
 target_link_libraries(x64Test X86_64 ooio m)

@@ -1,8 +1,11 @@
 //
 // Created by Francis McCabe on 7/9/20.
 //
+#include <config.h>
+#include "lower.h"
 #include "jitP.h"
 #include "jitOps.h"
+#include "x86_64.h"
 
 retCode jit_preamble(methodPo mtd, jitCompPo context) {
   return Error;
@@ -16,6 +19,20 @@ static int32 collectOperand(insPo base, integer *pc) {
   uint32 hi = (uint32) base[(*pc)++];
   uint32 lo = (uint32) base[(*pc)++];
   return (int32) (hi << (uint32) 16 | lo);
+}
+
+x64Reg popStkIReg(jitCompPo context) {
+  check(context->vTop > 0, "stack out of bounds");
+  vOperand v = context->vStack[context->vTop--];
+  switch (v.loc) {
+    case argument:
+    case local:
+    case literal:
+    case immediate:
+      return 0;
+    case mcReg:
+      return v.regNo;
+  }
 }
 
 retCode jit_Halt(insPo code, integer *pc, jitCompPo context) {
@@ -38,7 +55,7 @@ retCode jit_LdA(insPo code, integer *pc, jitCompPo context) {
   check(context->vTop < NumberOf(context->vStack) - 1, "stack out of bounds");
   int32 lxlNo = collectOperand(code, pc);
   vOperand entry = {.loc=argument, .ix=lxlNo, .type=ptrTp, .litrl=Null};
-  context->vStack[context->vTop] = entry;
+  context->vStack[context->vTop++] = entry;
   return Ok;
 }
 
@@ -46,12 +63,17 @@ retCode jit_LdL(insPo code, integer *pc, jitCompPo context) {
   check(context->vTop < NumberOf(context->vStack) - 1, "stack out of bounds");
   int32 lxlNo = collectOperand(code, pc);
   vOperand entry = {.loc=local, .ix=lxlNo, .type=ptrTp, .litrl=Null};
-  context->vStack[context->vTop] = entry;
+  context->vStack[context->vTop++] = entry;
   return Ok;
 }
 
 retCode jit_LdC(insPo code, integer *pc, jitCompPo context) {
-  return Error;
+  check(context->vTop < NumberOf(context->vStack) - 1, "stack out of bounds");
+  int32 litNo = collectOperand(code, pc);
+  termPo lit = getMtdLit(context->mtd, litNo);
+  vOperand entry = {.loc = literal, .ix=litNo, .litrl=lit};
+  context->vStack[context->vTop++] = entry;
+  return Ok;
 }
 
 retCode jit_LdG(insPo code, integer *pc, jitCompPo context) {
@@ -108,11 +130,18 @@ retCode jit_Drop(insPo code, integer *c, jitCompPo context) {
 }
 
 retCode jit_Swap(insPo code, integer *pc, jitCompPo context) {
-  return Error;
+  check(context->vTop > 0, "stack empty");
+  vOperand entry = context->vStack[context->vTop];
+  context->vStack[context->vTop] = context->vStack[context->vTop - 1];
+  context->vStack[context->vTop - 1] = entry;
+  return Ok;
 }
 
 retCode jit_Rst(insPo code, integer *pc, jitCompPo context) {
-  return Error;
+  int32 height = collectOperand(code, pc);
+  check(height >= 0 && height <= context->vTop, "reset alignment");
+  context->vTop = height;
+  return Ok;
 }
 
 retCode jit_Call(insPo code, integer *pc, jitCompPo context) {
@@ -216,6 +245,10 @@ retCode jit_FLt(insPo code, integer *pc, jitCompPo context) {
 }
 
 retCode jit_IAdd(insPo code, integer *pc, jitCompPo context) {
+  check(context->vTop > 1, "stack empty");
+  x64Reg a1 = popStkIReg(context);
+  x64Reg a2 = popStkIReg(context);
+
   return Error;
 }
 

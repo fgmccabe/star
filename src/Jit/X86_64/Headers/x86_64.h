@@ -31,8 +31,6 @@ typedef enum {
   Labeled
 } x64OpMode;
 
-
-
 typedef struct {
   x64OpMode mode;
   union {

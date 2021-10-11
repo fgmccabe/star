@@ -15,7 +15,7 @@
 #include "utils.h"
 #include "thunk.h"
 #include "cellP.h"
-#include "jitP.h"
+#include "jit.h"
 
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<(unsigned)16)|lo32))
 #define collectOff(pc) (hi32 = collectI32(pc), (pc)+(signed)hi32)

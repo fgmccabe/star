@@ -5,12 +5,13 @@
 #ifndef STAR_X86_64P_H
 #define STAR_X86_64P_H
 
+#include "lower.h"
 #include "x86_64.h"
 #include "jitP.h"
 #include "ooio.h"
 #include "array.h"
 
-
+void clearCodeCtxMaps(codeCtxPo ctx);
 
 #define REX_W    0x48
 #define REX    0x40
