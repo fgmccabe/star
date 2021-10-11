@@ -42,6 +42,7 @@
   operator(".+.", [prefixOp(700, 699)]).
   operator("ignore", [prefixOp(930, 929)]).
   operator("<$", [infixOp(719, 720, 720)]).
+  operator("raise", [prefixOp(930, 929)]).
   operator("then", [infixOp(1179, 1180, 1179)]).
   operator("!", [postfixOp(99, 100), infixOp(99, 100, 99)]).
   operator("->>", [infixOp(1199, 1200, 1199)]).
@@ -64,7 +65,6 @@
   operator(".", [prefixOp(10, 9), infixOp(100, 100, 99)]).
   operator("/", [infixOp(700, 700, 699)]).
   operator("<*>", [infixOp(949, 950, 950)]).
-  operator("val", [prefixOp(900, 899)]).
   operator("try", [prefixOp(1200, 1199)]).
   operator("exists", [prefixOp(1010, 1009)]).
   operator("if", [prefixOp(1175, 1174)]).
@@ -367,6 +367,7 @@
   keyword(",..").
   keyword("for").
   keyword("ignore").
+  keyword("raise").
   keyword("then").
   keyword("!").
   keyword("->>").
@@ -378,7 +379,6 @@
   keyword(",").
   keyword("contract").
   keyword(".").
-  keyword("val").
   keyword("try").
   keyword("exists").
   keyword("if").

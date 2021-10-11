@@ -24,6 +24,7 @@
   (".+." ( (prefix 700 699)))
   ("ignore" ( (prefix 930 929)))
   ("<$" ( (infix 719 720 720)))
+  ("raise" ( (prefix 930 929)))
   ("then" ( (infix 1179 1180 1179)))
   ("!" ( (postfix 99 100) (infix 99 100 99)))
   ("->>" ( (infix 1199 1200 1199)))
@@ -46,7 +47,6 @@
   ("." ( (prefix 10 9) (infix 100 100 99)))
   ("/" ( (infix 700 700 699)))
   ("<*>" ( (infix 949 950 950)))
-  ("val" ( (prefix 900 899)))
   ("try" ( (prefix 1200 1199)))
   ("exists" ( (prefix 1010 1009)))
   ("if" ( (prefix 1175 1174)))
@@ -144,10 +144,10 @@
   "valis"
   "for"
   "ignore"
+  "raise"
   "then"
   "default"
   "contract"
-  "val"
   "try"
   "exists"
   "if"
