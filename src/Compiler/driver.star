@@ -357,14 +357,14 @@ star.compiler{
 	    }
 	  }
 	  else
-	  throw reportError(Rp,"cannot locate source of $(P)",Lc)
+	  raise reportError(Rp,"cannot locate source of $(P)",Lc)
 	}
       };
       valis flushRepo(Repp!)
     }catch (Erp) => do{
       logMsg("Errors $(Erp)");
       _ .= flushRepo(Repp!);
-      throw Erp
+      raise Erp
     }
   }
 

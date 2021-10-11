@@ -629,6 +629,9 @@ star.compiler.wff{
   public isThrow:(ast) => option[(locn,ast)].
   isThrow(A) => isUnary(A,"throw").
 
+  public isRaise:(ast) => option[(locn,ast)].
+  isRaise(A) => isUnary(A,"raise").
+
   public isPerform:(ast) => option[(locn,ast)].
   isPerform(A) => isUnary(A,"perform").
 

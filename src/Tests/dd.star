@@ -32,7 +32,7 @@ test.dd{
   ZZ : action[(),integer].
   ZZ = action {
     try {
-      throw ()
+      raise ()
     } catch {
       valis 10
     }
@@ -54,10 +54,10 @@ test.dd{
       fc(10);
       
       try {
-        throw "fred"
+        raise "fred"
       } catch (F) => do{
         logMsg("we got exception $(F)");
-	throw ()
+	raise ()
       }
     } catch (E) => do{
       logMsg("we got exception $(E)");

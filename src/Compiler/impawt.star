@@ -38,7 +38,7 @@ star.compiler.impawt{
 	  [(PkgVar,Sig),..Sigs],Rp)
       }
       catch {
-	throw reportError(Rp,"cannot import $(Pkg)",Lc)
+	raise reportError(Rp,"cannot import $(Pkg)",Lc)
       }
     }
   }

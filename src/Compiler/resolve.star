@@ -237,10 +237,10 @@ star.compiler.resolve{
       if sameType(typeOf(Impl),Tp,Dict) then {
 	resolveTerm(Impl,Dict,Rp)
       } else{
-	throw reportError(Rp,"implementation $(typeOf(Impl)) not consistent with $(Tp)",Lc)
+	raise reportError(Rp,"implementation $(typeOf(Impl)) not consistent with $(Tp)",Lc)
       }
     } else{
-      throw reportError(Rp,"cannot find an implementation for $(Tp)",Lc)
+      raise reportError(Rp,"cannot find an implementation for $(Tp)",Lc)
     }
   }
 }

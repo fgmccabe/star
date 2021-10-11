@@ -230,7 +230,7 @@ star.compiler.core.ast{
       Tp <- astType(T,D,Rp);
       parseFields(Es,[(Id,Tp),..Flds],Tps,D,Rp)
     } else
-    throw reportError(Rp,"invalid field $(E)",locOf(E))
+    raise reportError(Rp,"invalid field $(E)",locOf(E))
   }
 
   exprAst:(crExp)=>ast.

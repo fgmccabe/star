@@ -46,10 +46,10 @@ star.compiler.grapher{
 	  try{
 	    scanPkgs(Pkgs++Imps,Repo,Cat,[(P,Imps),..SoFar],Rp)
 	  } catch {
-	    throw reportError(Rp,"cannot graph $(Pkg)",Lc) -- This is kind of ugly.
+	    raise reportError(Rp,"cannot graph $(Pkg)",Lc) -- This is kind of ugly.
 	  }
 	} catch{
-	  throw reportError(Rp,"cannot import $(Pkg)",Lc)
+	  raise reportError(Rp,"cannot import $(Pkg)",Lc)
 	}
       } else
       scanCat(Lc,Vz,Pkg,Pkgs,Repo,Cat,SoFar,Rp)
@@ -68,9 +68,9 @@ star.compiler.grapher{
 	SubImps <- scanForImports(Ast,Rp);
 	scanPkgs(Pkgs++SubImps,Repo,Cat,[(pkgImp(Lc,Vz,CPkg),SubImps),..SoFar],Rp)
       } else
-      throw reportError(Rp,"package in catalog $(CPkg) not compatible with requested package $(Pkg)",Lc)
+      raise reportError(Rp,"package in catalog $(CPkg) not compatible with requested package $(Pkg)",Lc)
     } else
-    throw reportError(Rp,"package $(Pkg) not in catalog $(Cat)",Lc)
+    raise reportError(Rp,"package $(Pkg) not in catalog $(Cat)",Lc)
   }
 
   scanForImports:(ast,reports) => either[reports,cons[importSpec]].
@@ -84,7 +84,7 @@ star.compiler.grapher{
       };
       valis Imps!
     } else
-    throw reportError(Rp,"not a valid package $(Term)",locOf(Term))
+    raise reportError(Rp,"not a valid package $(Term)",locOf(Term))
   }
 
   consistentVersion(.defltVersion,_) => .true.

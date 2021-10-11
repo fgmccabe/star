@@ -78,7 +78,7 @@ star.bboot{
     if _definedLbl(Pred,0) then {
       valis _callLbl(Pred,0,[])
     } else
-      throw "No init for $(P)"
+      raise "No init for $(P)"
   }
 
   invokeMain:(string,cons[string]) => action[string,()].
@@ -88,6 +88,6 @@ star.bboot{
       valis _callLbl(Pred,1,[Args])
     }
     else
-      throw "No _main program: $(Top)".
+      raise "No _main program: $(Top)".
   }
 }

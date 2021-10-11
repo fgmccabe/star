@@ -574,7 +574,7 @@ star.compiler.macro{
       if Tp==Tp2 then
 	valis As
       else
-      throw reportError(Rp,"type associated with $(Id) at $(Lc) incompatible with $(Tp2)",Lc2)
+      raise reportError(Rp,"type associated with $(Id) at $(Lc) incompatible with $(Tp2)",Lc2)
     } else{
       A1 <- mergeField(Lc,Id,Tp,As,Rp);
       valis [A,..A1]
@@ -964,7 +964,7 @@ star.compiler.macro{
   assrt(()=>C,"failed: C",Loc)
   } catch(Err) => action{
     logMsg(Err)
-    throw ()
+    raise ()
   }
 */
   makeAction(A,Cont,Rp) where (Lc,C) ^= isIntegrity(A) => do{
@@ -1056,7 +1056,7 @@ star.compiler.macro{
 	  valis mkLambda(CLc,CD,CL,CC,AR)
 	}
 	else
-	throw reportError(Rp,"invalid action case $(C)",locOf(C))
+	raise reportError(Rp,"invalid action case $(C)",locOf(C))
       },Cs);
     valis combine(mkCaseExp(Lc,G,Cases),Cont)
   }

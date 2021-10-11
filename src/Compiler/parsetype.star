@@ -47,7 +47,7 @@ star.compiler.typeparse{
       valis T
     }
     else
-    throw reportError(Rp,"type $(Nm) not declared",Lc)
+    raise reportError(Rp,"type $(Nm) not declared",Lc)
   }
   
   parseType(Q,Tp,Env,Rp) where (Lc,O,Args) ^= isSquareTerm(Tp) && (OLc,Nm)^=isName(O) => do{
@@ -67,13 +67,13 @@ star.compiler.typeparse{
 	    valis rebind(Qx,Rhs,Env)
 	  }
 	  else
-	  throw reportError(Rp,"type rule for $(Nm) does not apply to $(Tp)",OLc)
+	  raise reportError(Rp,"type rule for $(Nm) does not apply to $(Tp)",OLc)
 	} else{
 	  valis rebind(Qx,Inn,Env)
 	}
       }
     } else
-    throw reportError(Rp,"Could not freshen $(Op)",Lc)
+    raise reportError(Rp,"Could not freshen $(Op)",Lc)
   }
   parseType(Q,T,Env,Rp) where (Lc,Lhs,Rhs) ^= isBinary(T,"=>") => do{
     A <- parseArgType(Q,Lhs,Env,Rp);
@@ -120,11 +120,11 @@ star.compiler.typeparse{
 	if (Fld,Ftp) in Tps then
 	  valis Ftp
 	else
-	throw reportError(Rp,"Field $(Rhs) not defined in type $(RcType)",Lc)
+	raise reportError(Rp,"Field $(Rhs) not defined in type $(RcType)",Lc)
       } else
-      throw reportError(Rp,"variable $(Id) not defined",Lc)
+      raise reportError(Rp,"variable $(Id) not defined",Lc)
     } else
-    throw reportError(Rp,"type access to non-var $(Lhs) not supported",Lc)
+    raise reportError(Rp,"type access to non-var $(Lhs) not supported",Lc)
   }
   parseType(Q,T,Env,Rp) default =>
     other(reportError(Rp,"cannot parse type $(T)",locOf(T))).
@@ -166,7 +166,7 @@ star.compiler.typeparse{
       FTp<-parseType(Q,Rhs,Env,Rp);
       valis ([(Nm,FTp),..Flds],Tps)
     } else
-    throw reportError(Rp,"invalid lhs -- $(Lhs) -- of type annotation",locOf(Lhs)) -- 
+    raise reportError(Rp,"invalid lhs -- $(Lhs) -- of type annotation",locOf(Lhs)) -- 
   }
   parseTypeField(Q,F,Flds,Tps,Env,Rp) where
       (_,A)^=isUnary(F,"type") &&
@@ -175,7 +175,7 @@ star.compiler.typeparse{
 	  FTp<-parseType(Q,Rhs,Env,Rp);
 	  valis (Flds,[(Nm,FTp),..Tps])
 	} else
-	throw reportError(Rp,"invalid lhs -- $(Lhs) -- of type annotation",locOf(Lhs)) -- 
+	raise reportError(Rp,"invalid lhs -- $(Lhs) -- of type annotation",locOf(Lhs)) -- 
       }.
   parseTypeField(Q,F,Flds,Tps,Env,Rp) =>
     other(reportError(Rp,"invalid type field -- $(F)",locOf(F))). -- 
@@ -256,7 +256,7 @@ star.compiler.typeparse{
       valis contractConstraint(snd(freshen(Con,Env)))
     }
       else
-	throw reportError(Rp,"contract $(Op) not defined",locOf(Op))
+	raise reportError(Rp,"contract $(Op) not defined",locOf(Op))
   }
 
   parseTypes:(tipes,cons[ast],dict,reports) => either[reports,cons[tipe]].
