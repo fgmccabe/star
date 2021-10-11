@@ -13,12 +13,12 @@
 	      isTypeExistsStmt/6,typeExistsStmt/6,isTypeFunStmt/6,typeFunStmt/6,
 	      isTypeAnnotation/4,typeAnnotation/4,isTypeField/4,mkTypeField/4,
 	      isTypeLambda/4,typeLambda/4,typeName/2,
-	      isValType/3,isFuncType/4,funcType/4,isContType/4,mkContType/4,
+	      isFuncType/4,funcType/4,isContType/4,mkContType/4,
 	      isEnum/3,mkEnum/3,isAnon/2,mkAnon/2,
 	      isImport/3, isPrivate/3,isPublic/3,mkPrivate/3,mkPublic/3,
 	      isDefault/3,isDefault/4,mkDefault/3,
 	      isLiteralInteger/3,isLiteralFloat/3,
-	      isIntegrity/3,isShow/3,isOpen/3,
+	      isIntegrity/3,isShow/3,isOpen/3,mkOpen/3,
 	      isConditional/5,conditional/5,isOfTerm/4,
 	      isEquation/4,isEquation/5,mkEquation/5,
 	      isPrompt/4,mkPrompt/4,isCut/5,mkCut/5,isTag/2,mkTag/2,isResume/4,mkResume/4,
@@ -45,7 +45,7 @@
 	      isTaskTerm/3,mkTaskTerm/3,isActionTerm/3,mkActionTerm/3,
 	      isDoTerm/3,mkDoTerm/3,
 	      isValof/3,mkValof/3,isPerform/3,mkPerform/3,
-	      isThrow/3,mkThrow/3,isValis/3,mkValis/3,
+	      isRaise/3,mkRaise/3,isThrow/3,mkThrow/3,isValis/3,mkValis/3,
 	      isIgnore/3,mkIgnore/3,
 	      isTryCatch/4,mkTryCatch/4,
 	      isTryHandle/4,mkTryHandle/4,
@@ -291,9 +291,6 @@ isConstrainedTp(T,C,R) :-
   isConstrained(T,R,C),!.
 isConstrainedTp(T,[],T).
 
-isValType(T,Lc,Tp) :-
-  isUnary(T,"val",Lc,Tp).
-
 isFuncType(T,Lc,Lh,Rh) :-
   isBinary(T,Lc,"=>",Lh,Rh).
 
@@ -423,8 +420,10 @@ isShow(St,Lc,Ex) :-
   isUnary(St,Lc,"show",Ex).
 
 isOpen(St,Lc,Ex) :-
-  isUnary(St,Lc,"open",Ex),
-  isIden(Ex,_,_).
+  isUnary(St,Lc,"open",Ex).
+
+mkOpen(Lc,I,Trm) :-
+  unary(Lc,"open",I,Trm).
 
 isConditional(Term,Lc,Tst,Th,El) :-
   isBinary(Term,Lc,"?",Tst,Rhs),
@@ -819,6 +818,12 @@ isPerform(A,Lc,E) :-
 
 mkPerform(Lc,A,E) :-
   unary(Lc,"perform",A,E).
+
+isRaise(A,Lc,E) :-
+  isUnary(A,Lc,"raise",E).
+
+mkRaise(Lc,A,E) :-
+  unary(Lc,"raise",A,E).
 
 isThrow(A,Lc,E) :-
   isUnary(A,Lc,"throw",E).

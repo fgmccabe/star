@@ -262,11 +262,11 @@ smpCon(implementsFace(L,R),Lc,Env,C,Cx,implementsFace(Ls,Rs)) :-
   simplifyType(R,Lc,Env,C0,Cx,Rs).
 
 bind(tVar(Curr,Con,VLc,Nm,Id),Tp,Lc) :- !,
-  \+occursIn(tVar(Curr,Con,_,Nm,Id),Tp),
+  \+varIsIn(tVar(Curr,Con,_,Nm,Id),Tp),
   Curr=Tp,
   VLc=Lc.
 bind(tFun(Curr,Con,VLc,Nm,Ar,Id),Tp,Lc) :-
-  \+occursIn(tFun(Curr,Con,_,Nm,Ar,Id),Tp),
+  \+varIsIn(tFun(Curr,Con,_,Nm,Ar,Id),Tp),
   Curr=Tp,
   VLc=Lc.
 
@@ -280,28 +280,7 @@ mergeConstraint(conTract(Nm,X,XDps),[conTract(Nm,Y,YDps)|_],Lc,Env) :-
 mergeConstraint(Cx,[_|Y],Lc,Env) :- !, % TODO: handle merging implementsFace more gracefully
   mergeConstraint(Cx,Y,Lc,Env).
 
-checkConstraints(Cx,_,_Env) :- var(Cx),!.
-checkConstraints([C|Cx],Lc,Env) :- checkConstraint(C,Lc,Env), checkConstraints(Cx,Lc,Env).
-checkConstraints([],_,_) :-!.
-
-checkConstraint(conTract(Nm,Args,Deps),Lc,Env) :-
-  implementationName(conTract(Nm,Args,Deps),ImplNm),
-  getImplementation(Env,ImplNm,ImplVrNm,_ImplTp),
-  (getVar(Nm,ImplVrNm,Lc,Env,_Ev,Impl) ->
-   typeOfCanon(Impl,ImplTp),
-   getConstraints(ImplTp,Cx,ImplCon),
-   contractType(conTract(Nm,Args,Deps),ConTp),
-   sameType(ConTp,ImplCon,Lc,Env),
-   checkConstraints(Cx,Lc,Env);
-   false).
-checkConstraint(implementsFace(Tp,NdFace),Lc,Env) :-
-  faceOfType(Tp,Lc,Env,Face),
-  subFace(NdFace,Face,Lc,Env).
-
-getConstrainedContract(constrained(C,_),Con) :- getConstrainedContract(C,Con).
-getConstrainedContract(contractExists(Con,_),Con).
-
-occursIn(TV,Tp) :- deRef(Tp,DTp),
+varIsIn(TV,Tp) :- deRef(Tp,DTp),
   \+ isIdenticalVar(TV,DTp),
   (TV = tVar(_,_,_,Id) -> occIn(Id,DTp); TV=tFun(_,_,_,_,Id), occIn(Id,DTp)),!.
 

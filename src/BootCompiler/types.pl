@@ -9,7 +9,7 @@
 	   isProgramType/1,isFixedSizeType/1,
 	   ssConstraint/4,ssType/4,dispType/1,dispConstraint/1,
 	   contractType/2,contractTypes/2,
-	   isUnbound/1,isBound/1,isUnboundFVar/2, isIdenticalVar/2,
+	   isUnbound/1,isBound/1,isUnboundFVar/2, isIdenticalVar/2,occursIn/2,
 	   moveQuants/3,reQuantTps/3,
 	   moveXQuants/3,reQuantX/3,
 	   getConstraints/3,putConstraints/3,
@@ -148,14 +148,14 @@ ssType(anonType,_,_,ss("_")).
 ssType(voidType,_,_,ss("void")).
 ssType(kVar(Nm),_,_,id(Nm)).
 ssType(kFun(Nm,Ar),_,_,sq([id(Nm),ss("/"),ix(Ar)])).
-ssType(tVar(Curr,_,Lc,_,_),true,Dp,sq([S,ss("@"),LL])) :-
-  nonvar(Curr),!,
-  deRef(Curr,Cr),
-  ssType(Cr,true,Dp,S),
-  lastBindingLoc(Curr,Lc,VLc),
-  ssLc(VLc,LL).
-ssType(tVar(Curr,_,_,_,_),false,Dp,S) :- nonvar(Curr),!,ssType(Curr,false,Dp,S).
-ssType(tVar(_,_,_,_,Id),_,_,sq([ss("%"),ss(Id)])).
+% ssType(tVar(Curr,_,Lc,_,_),true,Dp,sq([S/*,ss("@"),LL*/])) :-
+%   nonvar(Curr),!,
+%   deRef(Curr,Cr),
+%   ssType(Cr,true,Dp,S),
+%   lastBindingLoc(Curr,Lc,VLc),
+%   ssLc(VLc,_LL).
+ssType(tVar(Curr,_,_,_,_),_,Dp,S) :- nonvar(Curr),!,ssType(Curr,false,Dp,S).
+ssType(tVar(_,_,_,_,Id),_,_,ss(Id)).
 ssType(tVar(_,Cons,_,Id),true,Dp,sq([sq(Cnx),ss("%"),ss(Id)])) :-
   ssVarConstraints(Cons,Dp,Cnx).
 ssType(tFun(Curr,_,_,_,_,_),ShCon,Dp,S) :- nonvar(Curr),!,ssType(Curr,ShCon,Dp,S).
@@ -163,8 +163,8 @@ ssType(tFun(_,Cons,_,_,Ar,Id),true,Dp,
        sq([sq(Cnx),ss("%"),ss(Id),ss("/"),ix(Ar)])) :-
   ssVarConstraints(Cons,Dp,Cnx).
 ssType(tFun(_,_,_,_,Ar,Id),false,_,sq([ss("%"),ss(Id),ss("/"),ix(Ar)])).
-ssType(type(Nm),_,_,id(Nm)).
-ssType(tpFun(Nm,Ar),_,_,sq([id(Nm),ss("/"),ix(Ar)])).
+ssType(type(Nm),_,_,id(Id)) :- typeName(Nm,Id).
+ssType(tpFun(Nm,Ar),_,_,sq([id(Id),ss("/"),ix(Ar)])) :- typeName(Nm,Id).
 ssType(tpExp(Nm,A),ShCon,Dp,S) :- ssTypeExp(tpExp(Nm,A),ShCon,Dp,S).
 ssType(tplType(A),ShCon,Dp,sq([lp,iv(ss(","),AA),rp])) :-
   ssTypeEls(A,ShCon,Dp,AA).
@@ -226,7 +226,7 @@ ssTpExp(tpExp(T,A),ShCon,Dp,OO,[AA|Els]) :-!,
   deRef(T,Op),
   ssTpExp(Op,ShCon,Dp,OO,Els),
   ssType(A,ShCon,Dp,AA).
-ssTpExp(tpFun(Op,_),_ShCon,_Dp,id(Op),[]).
+ssTpExp(tpFun(Op,_),_ShCon,_Dp,id(Id),[]) :- typeName(Op,Id).
 ssTpExp(kFun(Op,_),_ShCon,_Dp,id(Op),[]).
 ssTpExp(Tp,ShCon,Dp,TT,[]) :-
   ssType(Tp,ShCon,Dp,TT).
@@ -498,4 +498,30 @@ lastBindingLoc(tVar(Curr,_,VLc,_,_),_,Lc) :-
   lastBindingLoc(Curr,VLc,Lc).
 lastBindingLoc(_,Lc,Lc).
 
+typeName(Nm,Id) :- localName(Nm,type,Id),!.
+typeName(Nm,Nm).
 
+occursIn(V,Tp) :-
+  deRef(V,DV),
+  deRef(Tp,DTp),
+  occIn(DV,DTp).
+
+occIn(V,VV) :- isIdenticalVar(V,VV),!.
+occIn(V,tpExp(O,_)) :- deRef(O,OO),!,occIn(V,OO),!.
+occIn(V,tpExp(_,A)) :- deRef(A,AA),!,occIn(V,AA),!.
+occIn(V,refType(I)) :- deRef(I,II),occIn(V,II).
+occIn(V,tplType(L)) :- is_member(A,L), deRef(A,AA),occIn(V,AA).
+occIn(V,funType(A,_)) :- deRef(A,AA),occIn(V,AA).
+occIn(V,funType(_,R)) :- deRef(R,RR),occIn(V,RR).
+occIn(V,consType(L,_)) :- deRef(L,LL),occIn(V,LL).
+occIn(V,consType(_,R)) :- deRef(R,RR),occIn(V,RR).
+occIn(V,contType(A,_)) :- deRef(A,AA),occIn(V,AA).
+occIn(V,contType(_,R)) :- deRef(R,RR),occIn(V,RR).
+occIn(V,constrained(_,C)) :- deRef(C,CC),occIn(V,CC),!.
+occIn(V,constrained(T,_)) :- deRef(T,TT),occIn(V,TT),!.
+occIn(V,typeLambda(A,_)) :- deRef(A,AA),occIn(V,AA).
+occIn(V,typeLambda(_,R)) :- deRef(R,RR),occIn(V,RR).
+occIn(V,existType(VV,T)) :- \+isIdenticalVar(V,VV),deRef(T,TT),occIn(V,TT).
+occIn(V,allType(VV,T)) :- \+isIdenticalVar(V,VV),deRef(T,TT),occIn(V,TT).
+occIn(V,faceType(L,_)) :- is_member((_,A),L), deRef(A,AA),occIn(V,AA),!.
+occIn(V,faceType(_,T)) :- is_member((_,A),T), deRef(A,AA),occIn(V,AA),!.

@@ -68,7 +68,7 @@ declareModuleGlobals(Pkg,[Def|Rest],ConsMap,VMap,VMx,TMap,TMx) :-
 declareModuleGlobals(_,[],_,Map,Map,TMap,TMap).
 
 declMdlGlobal(_Pkg,funDec(Nm,LclName,Tp),_,VMp,VMx,TMx,TMx) :-
-  localName(LclName,closure,ClosureName),
+  mangleName(LclName,closure,ClosureName),
   progTypeArity(Tp,Ar),
   declEntry(Nm,moduleFun(LclName,some(ClosureName),Ar),VMp,VMx).
 declMdlGlobal(_Pkg,varDec(Nm,LclName,_),_,Mp,Mx,TMx,TMx) :-
@@ -345,7 +345,9 @@ liftExp(charsLit(_,Sx),strg(Sx),Q,Q,_,_,Ex,Ex) :-!.
 liftExp(tple(_,A),TApl,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,TA,[],Q,Qx,Map,Opts,Ex,Exx),
   mkTpl(TA,TApl).
-liftExp(throw(Lc,E,_),rais(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-!,
+liftExp(open(_,E,_),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
+liftExp(raise(Lc,E,_),rais(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(apply(Lc,Op,tple(_,A),_),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
@@ -406,8 +408,8 @@ liftExp(XX,void,Q,Q,_,_,Ex,Ex) :-
 
 liftLetExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   genVar("_ThR",ThVr),
-  letMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,ThMap,_RMap,FreeTerm),
-  transformThetaDefs(ThMap,Map,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
+  letMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,ThMap,RMap,FreeTerm),
+  transformThetaDefs(ThMap,RMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
   liftExp(Bnd,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
   mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
   (is_member(showTrCode,Opts) -> dispTerm(Exp);true).
@@ -531,7 +533,7 @@ mkClosure(Lam,FreeVars,Closure) :-
 liftAction(Last,noDo(Lc),nop(Lc),Qx,Qx,_,_,Ex,Ex) :- checkNotLast(Last,Lc).
 liftAction(_,valisDo(Lc,E),rtnDo(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
-liftAction(_,throwDo(Lc,E),raisDo(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-
+liftAction(_,raiseDo(Lc,E),raisDo(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftAction(Last,seqDo(Lc,E1,E2),seqD(Lc,L1,L2),Q,Qx,Map,Opts,Ex,Exx) :-
   liftAction(notLast,E1,L1,Q,Q0,Map,Opts,Ex,Ex1),
@@ -573,10 +575,11 @@ liftAction(Last,untilDo(Lc,G,B),untl(Lc,Gl,Bdy),Q,Q,Map,Opts,Ex,Exx) :-
   liftGoal(G,Gl,Q,Q0,Map,Opts,Ex,Ex0),
   liftAction(Last,B,Bdy,Q0,_,Map,Opts,Ex0,Exx).
 liftAction(Last,letDo(Lc,Decls,Defs,Bnd),Act,Q,Qx,Map,Opts,Ex,Exx) :-!,
-  (is_member(showTrCode,Opts) -> dispCanon(letDo(Lc,Decls,Defs,Bnd));true),
+  (is_member(showTrCode,Opts) -> dispCanonAction(letDo(Lc,Decls,Defs,Bnd));true),
   genVar("_ThR",ThVr),
-  letMap(Lc,Decls,Defs,doTerm(Lc,Bnd,_),ThVr,Q,Map,Opts,ThMap,_RMap,FreeTerm),
-  transformThetaDefs(ThMap,Map,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
+  letMap(Lc,Decls,Defs,doTerm(Lc,Bnd,_),ThVr,Q,Map,Opts,ThMap,RMap,FreeTerm),
+  (is_member(showTrCode,Opts) -> dispMap("Let map: ",1,ThMap);true),
+  transformThetaDefs(ThMap,RMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
   liftAction(Last,Bnd,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
   mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Act),
   (is_member(showTrCode,Opts) -> dispAct(Act);true).
@@ -658,7 +661,6 @@ letMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,
   declareThetaVars(Decls,ThVr,CellVars,ConsMap,varMap{},V0,typeMap{},Tx),
   collectLabelVars(FreeVars,ThVr,0,V0,Vx),
   makeFreeTerm(CellVars,Lc,ThFree,Map,Opts,FreeTerm).
-%  (is_member(showTrCode,Opts) -> dispMap("Record map: ",1,[lyr(Vx,Tx,ConsMap,ThVr)|Map]);true).
 
 lambdaMap(Lam,ThVr,LamLbl,Q,Map,Opts,ctpl(lbl(LamLbl,1),[FreeTerm]),
 	  [lyr(Vx,typeMap{},consMap{},ThVr)|Map]) :-
@@ -748,7 +750,7 @@ declareThetaVars([D|Ds],ThVr,CellVars,ConsMap,V,Vx,T,Tx) :-
   declareThetaVars(Ds,ThVr,CellVars,ConsMap,V0,Vx,T0,Tx).
 
 declareThetaVar(funDec(Nm,LclName,Tp),ThV,_,_,V,Vx,Tx,Tx) :-
-  localName(LclName,closure,ClosureName),
+  mangleName(LclName,closure,ClosureName),
   progTypeArity(Tp,Ar),
   declEntry(Nm,localFun(LclName,ClosureName,Ar,ThV),V,Vx).
 declareThetaVar(varDec(Nm,LclName,_),ThV,CellVars,_,V,Vx,Tx,Tx) :-

@@ -82,7 +82,7 @@ dropCont(Lx,Lx,D,D,_,[iDrop|Cx],Cx,Stk,Stk1) :-
   dropStk(Stk,1,Stk1).
 
 trapCont(Lc,Lx,Lx,D,D,_,Cx,Cx,Stk,Stk) :-
-  reportError("not permitted to throw",[],Lc).
+  reportError("not permitted to raise an exception",[],Lc).
 
 idxCont(Off,Lx,Lx,Dx,Dx,_End,[iNth(Off)|Cx],Cx,Stkx,Stkx).
 

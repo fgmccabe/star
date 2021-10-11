@@ -1,4 +1,4 @@
-:- module(canon,[dispFunction/3,dispDef/1,dispCanon/1,dispCanonProg/1,
+:- module(canon,[dispFunction/3,dispDef/1,dispCanon/1,dispCanonAction/1,dispCanonProg/1,
 		 ssCanonProg/2,ssTerm/3,ssAction/3,ssPkg/2,ssContract/3,
 		 dispDecls/1,
 		 typeOfCanon/2,locOfCanon/2,
@@ -48,7 +48,8 @@ isCanon(disj(_,_,_)).
 isCanon(implies(_,_,_)).
 isCanon(cond(_,_,_,_,_)).
 isCanon(match(_,_,_)).
-isCanon(throw(_,_,_)).
+isCanon(raise(_,_,_)).
+isCanon(open(_,_,_)).
 isCanon(neg(_,_)).
 isCanon(lambda(_,_,_,_)).
 isCanon(valof(_,_)).
@@ -70,7 +71,7 @@ isCanon(bindDo(_,_,_)).
 isCanon(promptDo(_,_,_)).
 isCanon(cutDo(_,_,_)).
 isCanon(valisDo(_,_)).
-isCanon(throwDo(_,_)).
+isCanon(raiseDo(_,_)).
 isCanon(performDo(_,_)).
 isCanon(simpleDo(_,_)).
 isCanon(assertDo(_,_)).
@@ -112,7 +113,8 @@ typeOfCanon(charsLit(_,_),type("chars")) :- !.
 typeOfCanon(enm(_,_,Tp),Tp) :- !.
 typeOfCanon(cons(_,_,Tp),Tp) :- !.
 typeOfCanon(where(_,T,_),Tp) :- !, typeOfCanon(T,Tp).
-typeOfCanon(throw(_,_,Tp),Tp) :-!.
+typeOfCanon(raise(_,_,Tp),Tp) :-!.
+typeOfCanon(open(_,_,Tp),Tp) :-!.
 typeOfCanon(abstraction(_,_,_,_,_,Tp),Tp) :- !.
 typeOfCanon(search(_,_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(match(_,_,_),type("star.core*boolean")) :-!.
@@ -149,7 +151,8 @@ locOfCanon(floatLit(Lc,_),Lc) :- !.
 locOfCanon(charsLit(Lc,_),Lc) :- !.
 locOfCanon(enm(Lc,_,_),Lc) :- !.
 locOfCanon(where(Lc,_,_),Lc) :- !.
-locOfCanon(throw(Lc,_,_),Lc) :-!.
+locOfCanon(raise(Lc,_,_),Lc) :-!.
+locOfCanon(open(Lc,_,_),Lc) :-!.
 locOfCanon(abstraction(Lc,_,_,_,_,_),Lc) :- !.
 locOfCanon(search(Lc,_,_,_),Lc) :-!.
 locOfCanon(match(Lc,_,_),Lc) :-!.
@@ -188,7 +191,7 @@ locOfCanon(bindDo(Lc,_,_),Lc) :-!.
 locOfCanon(promptDo(Lc,_,_),Lc) :-!.
 locOfCanon(cutDo(Lc,_,_),Lc) :-!.
 locOfCanon(valisDo(Lc,_),Lc) :-!.
-locOfCanon(throwDo(Lc,_),Lc) :-!.
+locOfCanon(raiseDo(Lc,_),Lc) :-!.
 locOfCanon(performDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(simpleDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(resumeDo(Lc,_,_,_),Lc) :-!.
@@ -233,7 +236,8 @@ ssTerm(dot(_,Rc,Fld,_),Dp,sq([R,ss("."),id(Fld)])) :-
   ssTerm(Rc,Dp,R).
 ssTerm(enm(_,Nm,_),_,sq([ss("."),id(Nm)])).
 ssTerm(cons(_,Nm,_),_,sq([ss("."),id(Nm)])).
-ssTerm(throw(_,E,_),Dp,sq([ss("throw "),EE])) :- ssTerm(E,Dp,EE).
+ssTerm(open(_,E,_),Dp,sq([ss("open "),EE])) :- ssTerm(E,Dp,EE).
+ssTerm(raise(_,E,_),Dp,sq([ss("raise "),EE])) :- ssTerm(E,Dp,EE).
 ssTerm(case(_,Bound,Cases,_),Dp,
 	    sq([ss("case "),B,ss(" in {"),Rs,ss("}")])) :-
   ssTerm(Bound,Dp,B),
@@ -328,6 +332,9 @@ ssConstraints([T|More],Dp,[TT|TTs]) :-
   ssConstraint(false,Dp,T,TT),
   ssConstraints(More,Dp,TTs).
 
+dispCanonAction(T) :-
+  displayln(canon:ssAction(T,0)).
+
 ssAction(noDo(Lc),_,sq([ss("no-op at "),LL])) :-
   ssLoc(Lc,LL).
 ssAction(seqDo(Lc,A,B),Dp,sq([lb,nl(Dp2),iv(sq([ss(";"),nl(Dp2)]),AA),nl(Dp),rb])) :-
@@ -384,7 +391,7 @@ ssAction(tryCatchDo(_,Bdy,Hndlr),Dp,
   ssAction(Bdy,Dp2,BB).
 ssAction(valisDo(_,Exp),Dp,sq([ss("valis "),EE])) :-
   ssTerm(Exp,Dp,EE).
-ssAction(throwDo(_,Exp),Dp,sq([ss("throw "),EE])) :-
+ssAction(raiseDo(_,Exp),Dp,sq([ss("raise "),EE])) :-
   ssTerm(Exp,Dp,EE).
 ssAction(performDo(_,Exp),Dp,sq([ss("perform "),EE])) :-
   ssTerm(Exp,Dp,EE).
