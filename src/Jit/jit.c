@@ -44,9 +44,7 @@ retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
   if (ret == Ok)
     ret = jit_postamble(mtd, context);
 
-  if (ret == Ok)
-
-    return ret;
+  return ret;
 }
 
 termPo invokeJitMethod(methodPo mtd, heapPo H, stackPo stk) {
@@ -61,25 +59,13 @@ termPo invokeJitMethod(methodPo mtd, heapPo H, stackPo stk) {
       return ((jitCode3) codeJit(mtd))(topStack(stk), peekStack(stk, 1), peekStack(stk, 2));
     case 4:
       return ((jitCode4) codeJit(mtd))(topStack(stk), peekStack(stk, 1), peekStack(stk, 2), peekStack(stk, 3));
-    case 5:
-      return ((jitCode5) codeJit(mtd))(topStack(stk), peekStack(stk, 1), peekStack(stk, 2), peekStack(stk, 3),
-                                       peekStack(stk, 4));
-    case 6:
-      return ((jitCode6) codeJit(mtd))(topStack(stk), peekStack(stk, 1), peekStack(stk, 2), peekStack(stk, 3),
-                                       peekStack(stk, 4), peekStack(stk, 5));
-    case 7:
-      return ((jitCode7) codeJit(mtd))(topStack(stk), peekStack(stk, 1), peekStack(stk, 2), peekStack(stk, 3),
-                                       peekStack(stk, 4), peekStack(stk, 5), peekStack(stk, 6));
-    case 8:
-      return ((jitCode8) codeJit(mtd))(topStack(stk), peekStack(stk, 1), peekStack(stk, 2), peekStack(stk, 3),
-                                       peekStack(stk, 4), peekStack(stk, 5), peekStack(stk, 6), peekStack(stk, 7));
-    default:{
+    default: {
       integer arity = codeArity(mtd);
       termPo args[arity];
-      for(integer ix = 0;ix<arity;ix++){
-        args[ix] = peekStack(stk,ix);
+      for (integer ix = 0; ix < arity; ix++) {
+        args[ix] = peekStack(stk, ix);
       }
-      return ((jitCodeStar)codeJit(mtd))(args);
+      return ((jitCodeStar) codeJit(mtd))(args);
     }
   }
 }

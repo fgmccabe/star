@@ -9,19 +9,19 @@
 #include "x86_64P.h"
 #include "jitP.h"
 
-static u8 encodeMod(u8 mode, x64Reg fst, x64Reg snd);
-static u8 encodeModRR(x64Reg op1, x64Reg op2);
-static u8 encodeModRM(x64Reg fst, x64Reg snd, int64 disp, logical flag);
-static void emitDisp(codeCtxPo ctx, int64 disp);
-static u8 encodeSIB(x64Reg base, x64Reg index, u8 scale);
-static u8 encodeModRI(u8 mode, x64Reg dst);
-static u8 encodeRex(u8 rex, x64Reg dst, x64Reg index, x64Reg src);
-static void binop_(u8 op_rm_r, u8 op_r_rm, u8 op_rm_imm, u8 rm_flag, x64Op dst, x64Op src, codeCtxPo ctx);
+static uint8 encodeMod(uint8 mode, x64Reg fst, x64Reg snd);
+static uint8 encodeModRR(x64Reg op1, x64Reg op2);
+static uint8 encodeModRM(x64Reg fst, x64Reg snd, int64 disp, logical flag);
+static void emitDisp(assemCtxPo ctx, int64 disp);
+static uint8 encodeSIB(x64Reg base, x64Reg index, uint8 scale);
+static uint8 encodeModRI(uint8 mode, x64Reg dst);
+static uint8 encodeRex(uint8 rex, x64Reg dst, x64Reg index, x64Reg src);
+static void binop_(uint8 op_rm_r, uint8 op_r_rm, uint8 op_rm_imm, uint8 rm_flag, x64Op dst, x64Op src, assemCtxPo ctx);
 
 
 // Encode binary operators where one side must be a register or source may be immediate
 
-void binop_(u8 op_rm_r, u8 op_r_rm, u8 op_rm_imm, u8 rm_flag, x64Op dst, x64Op src, codeCtxPo ctx) {
+void binop_(uint8 op_rm_r, uint8 op_r_rm, uint8 op_rm_imm, uint8 rm_flag, x64Op dst, x64Op src, assemCtxPo ctx) {
   switch (dst.mode) {
     case Based:
       switch (src.mode) {
@@ -126,7 +126,7 @@ void binop_(u8 op_rm_r, u8 op_r_rm, u8 op_rm_imm, u8 rm_flag, x64Op dst, x64Op s
 
 // Encode unary operators
 
-void unop_(u8 op_rm, u8 rm_flag, x64Op dst, codeCtxPo ctx) {
+void unop_(uint8 op_rm, uint8 rm_flag, x64Op dst, assemCtxPo ctx) {
   switch (dst.mode) {
     case Based:
       emitU8(ctx, encodeRex(REX_W, 0, 0, dst.op.based.base));
@@ -160,19 +160,19 @@ void unop_(u8 op_rm, u8 rm_flag, x64Op dst, codeCtxPo ctx) {
   }
 }
 
-void adc_(x64Op dst, x64Op src, codeCtxPo ctx) {
+void adc_(x64Op dst, x64Op src, assemCtxPo ctx) {
   binop_(ADC_rm_r, ADC_r_rm, ADC_rm_imm, 2, dst, src, ctx);
 }
 
-void add_(x64Op dst, x64Op src, codeCtxPo ctx) {
+void add_(x64Op dst, x64Op src, assemCtxPo ctx) {
   binop_(ADD_rm_r, ADD_r_rm, ADD_rm_imm, 0, dst, src, ctx);
 }
 
-void and_(x64Op dst, x64Op src, codeCtxPo ctx) {
+void and_(x64Op dst, x64Op src, assemCtxPo ctx) {
   binop_(AND_rm_r, AND_r_rm, AND_rm_imm, 4, dst, src, ctx);
 }
 
-void call_(x64Op src, codeCtxPo ctx) {
+void call_(x64Op src, assemCtxPo ctx) {
   switch (src.mode) {
     case Reg:
       if (src.op.reg >= R8)
@@ -192,11 +192,11 @@ void call_(x64Op src, codeCtxPo ctx) {
   }
 }
 
-void cmp_(x64Op dst, x64Op src, codeCtxPo ctx) {
+void cmp_(x64Op dst, x64Op src, assemCtxPo ctx) {
   binop_(CMP_rm_r, CMP_r_rm, CMP_rm_imm, 7, dst, src, ctx);
 }
 
-void dec_(x64Op dst, codeCtxPo ctx) {
+void dec_(x64Op dst, assemCtxPo ctx) {
   switch (dst.mode) {
     case Reg:
       emitU8(ctx, encodeRex(REX_W, 0, 0, dst.op.reg));
@@ -221,11 +221,11 @@ void dec_(x64Op dst, codeCtxPo ctx) {
   }
 }
 
-void idiv_(x64Op src, codeCtxPo ctx) {
+void idiv_(x64Op src, assemCtxPo ctx) {
   unop_(IDIV, 7, src, ctx);
 }
 
-void ret_(int16 disp, codeCtxPo ctx) {
+void ret_(int16 disp, assemCtxPo ctx) {
   if (disp == 0)
     emitU8(ctx, RET_near);
   else {
@@ -234,7 +234,7 @@ void ret_(int16 disp, codeCtxPo ctx) {
   }
 }
 
-void imul_(x64Reg dst, x64Op src, codeCtxPo ctx) {
+void imul_(x64Reg dst, x64Op src, assemCtxPo ctx) {
   switch (src.mode) {
     case Reg: {
       emitU8(ctx, encodeRex(REX_W, dst, 0, src.op.reg));
@@ -280,7 +280,7 @@ void imul_(x64Reg dst, x64Op src, codeCtxPo ctx) {
   }
 }
 
-void inc_(x64Op dst, codeCtxPo ctx) {
+void inc_(x64Op dst, assemCtxPo ctx) {
   switch (dst.mode) {
     case Reg:
       emitU8(ctx, encodeRex(REX_W, 0, 0, dst.op.reg));
@@ -305,13 +305,13 @@ void inc_(x64Op dst, codeCtxPo ctx) {
   }
 }
 
-void j_cc_(codeLblPo dst, u8 cc, codeCtxPo ctx) {
+void j_cc_(codeLblPo dst, uint8 cc, assemCtxPo ctx) {
   emitU8(ctx, JCC);
   emitU8(ctx, 0x80u | cc);
   emitLblRef(ctx, dst);
 }
 
-void jmp_(x64Op src, codeCtxPo ctx) {
+void jmp_(x64Op src, assemCtxPo ctx) {
   switch (src.mode) {
     case Reg:
       if (src.op.reg >= R8)
@@ -331,7 +331,7 @@ void jmp_(x64Op src, codeCtxPo ctx) {
   }
 }
 
-void lea_(x64Reg dst, x64Op src, codeCtxPo ctx) {
+void lea_(x64Reg dst, x64Op src, assemCtxPo ctx) {
   switch (src.mode) {
     case Based:
       emitU8(ctx, encodeRex(REX_W, dst, 0, src.op.based.base));
@@ -360,7 +360,7 @@ void lea_(x64Reg dst, x64Op src, codeCtxPo ctx) {
   }
 }
 
-void mov_(x64Op dst, x64Op src, codeCtxPo ctx) {
+void mov_(x64Op dst, x64Op src, assemCtxPo ctx) {
   switch (dst.mode) {
     case Based:
       switch (src.mode) {
@@ -468,7 +468,7 @@ void mov_(x64Op dst, x64Op src, codeCtxPo ctx) {
   }
 }
 
-static void genMovsxOp(u8 scale, codeCtxPo ctx) {
+static void genMovsxOp(uint8 scale, assemCtxPo ctx) {
   switch (scale) {
     case 1:
       emitU8(ctx, 0xf);
@@ -487,7 +487,7 @@ static void genMovsxOp(u8 scale, codeCtxPo ctx) {
   }
 }
 
-void movsx_(x64Reg dst, x64Op src, u8 scale, codeCtxPo ctx) {
+void movsx_(x64Reg dst, x64Op src, uint8 scale, assemCtxPo ctx) {
   switch (src.mode) {
     case Reg:
       emitU8(ctx, encodeRex(REX_W, dst, 0, src.op.reg));
@@ -521,19 +521,19 @@ void movsx_(x64Reg dst, x64Op src, u8 scale, codeCtxPo ctx) {
   }
 }
 
-void or_(x64Op dst, x64Op src, codeCtxPo ctx) {
+void or_(x64Op dst, x64Op src, assemCtxPo ctx) {
   binop_(OR_rm_r, OR_r_rm, OR_rm_imm, 1, dst, src, ctx);
 }
 
-void neg_(x64Op dst, codeCtxPo ctx) {
+void neg_(x64Op dst, assemCtxPo ctx) {
   unop_(NEG_rm, 3, dst, ctx);
 }
 
-void not_(x64Op dst, codeCtxPo ctx) {
+void not_(x64Op dst, assemCtxPo ctx) {
   unop_(NOT_rm, 2, dst, ctx);
 }
 
-void pop_(x64Op dst, codeCtxPo ctx) {
+void pop_(x64Op dst, assemCtxPo ctx) {
   switch (dst.mode) {
     case Reg:
       if (dst.op.reg >= R8)
@@ -561,7 +561,7 @@ void pop_(x64Op dst, codeCtxPo ctx) {
   }
 }
 
-void push_(x64Op src, codeCtxPo ctx) {
+void push_(x64Op src, assemCtxPo ctx) {
   switch (src.mode) {
     case Reg:
       if (src.op.reg >= R8)
@@ -571,7 +571,7 @@ void push_(x64Op src, codeCtxPo ctx) {
     case Immediate: {
       if (isByte(src.op.imm)) {
         emitU8(ctx, PUSH_i8);
-        emitU8(ctx, (u8) src.op.imm);
+        emitU8(ctx, (uint8) src.op.imm);
       } else if (isI32(src.op.imm)) {
         emitU8(ctx, PUSH_i32);
         emitU32(ctx, (uint32) src.op.imm);
@@ -601,21 +601,21 @@ void push_(x64Op src, codeCtxPo ctx) {
   }
 }
 
-void setcc_(x64Reg dst, u8 cc, codeCtxPo ctx) {
+void setcc_(x64Reg dst, uint8 cc, assemCtxPo ctx) {
   emitU8(ctx, SET_CC_rm);
   emitU8(ctx, 0x90u | cc);
   emitU8(ctx, encodeModRR(dst, 0));
 }
 
-void sbb_(x64Op dst, x64Op src, codeCtxPo ctx) {
+void sbb_(x64Op dst, x64Op src, assemCtxPo ctx) {
   binop_(SBB_rm_r, SBB_r_rm, SBB_rm_imm, 3, dst, src, ctx);
 }
 
-void sub_(x64Op dst, x64Op src, codeCtxPo ctx) {
+void sub_(x64Op dst, x64Op src, assemCtxPo ctx) {
   binop_(SUB_rm_r, SUB_r_rm, SUB_rm_imm, 5, dst, src, ctx);
 }
 
-void test_(x64Op dst, x64Op src, codeCtxPo ctx) {
+void test_(x64Op dst, x64Op src, assemCtxPo ctx) {
   switch (dst.mode) {
     case Based:
       switch (src.mode) {
@@ -699,7 +699,7 @@ void test_(x64Op dst, x64Op src, codeCtxPo ctx) {
   }
 }
 
-void xchg_(x64Op dst, x64Op src, codeCtxPo ctx) {
+void xchg_(x64Op dst, x64Op src, assemCtxPo ctx) {
   switch (dst.mode) {
     case Based:
       switch (src.mode) {
@@ -721,10 +721,10 @@ void xchg_(x64Op dst, x64Op src, codeCtxPo ctx) {
         case Reg:
           if (src.op.reg == RAX) {
             emitU8(ctx, encodeRex(REX_W, src.op.reg, 0, dst.op.reg));
-            emitU8(ctx, (unsigned) XCHG_EAX_r | (u8) (dst.op.reg & 0x7u));
+            emitU8(ctx, (unsigned) XCHG_EAX_r | (uint8) (dst.op.reg & 0x7u));
           } else if (dst.op.reg == RAX) {
             emitU8(ctx, encodeRex(REX_W, dst.op.reg, 0, src.op.reg));
-            emitU8(ctx, (unsigned) XCHG_EAX_r | (u8) (src.op.reg & 0x7u));
+            emitU8(ctx, (unsigned) XCHG_EAX_r | (uint8) (src.op.reg & 0x7u));
           } else {
             emitU8(ctx, encodeRex(REX_W, src.op.reg, 0, dst.op.reg));
             emitU8(ctx, XCHG_r_rm);
@@ -774,37 +774,37 @@ void xchg_(x64Op dst, x64Op src, codeCtxPo ctx) {
   }
 }
 
-void xor_(x64Op dst, x64Op src, codeCtxPo ctx) {
+void xor_(x64Op dst, x64Op src, assemCtxPo ctx) {
   binop_(XOR_rm_r, XOR_r_rm, XOR_rm_imm, 6, dst, src, ctx);
 }
 
-u8 encodeMod(u8 mode, x64Reg fst, x64Reg snd) {
-  u8 dr = ((u8) fst) & 0x7u;
-  u8 sr = ((u8) snd) & 0x7u;
+uint8 encodeMod(uint8 mode, x64Reg fst, x64Reg snd) {
+  uint8 dr = ((uint8) fst) & 0x7u;
+  uint8 sr = ((uint8) snd) & 0x7u;
 
   return (mode | (unsigned) (sr << 3u) | dr);
 }
 
-u8 encodeModRR(x64Reg op1, x64Reg op2) {
-  u8 dr = ((u8) op1) & 0x7u;
-  u8 sr = ((u8) op2) & 0x7u;
+uint8 encodeModRR(x64Reg op1, x64Reg op2) {
+  uint8 dr = ((uint8) op1) & 0x7u;
+  uint8 sr = ((uint8) op2) & 0x7u;
 
-  return ((u8) 0xc0) | (unsigned) (sr << 3u) | dr;
+  return ((uint8) 0xc0) | (unsigned) (sr << 3u) | dr;
 }
 
-u8 encodeModRM(x64Reg fst, x64Reg snd, int64 disp, logical flag) {
-  u8 fr = ((u8) fst) & 0x7u;
-  u8 sr = ((u8) snd) & 0x7u;
+uint8 encodeModRM(x64Reg fst, x64Reg snd, int64 disp, logical flag) {
+  uint8 fr = ((uint8) fst) & 0x7u;
+  uint8 sr = ((uint8) snd) & 0x7u;
 
   if (disp == 0)
     return (unsigned) (fr << 3u) | sr;
   else if (flag)
-    return ((u8) 0x40u) | (unsigned) (fr << 3u) | sr;
+    return ((uint8) 0x40u) | (unsigned) (fr << 3u) | sr;
   else
-    return ((u8) 0x80u) | (unsigned) (fr << 3u) | sr;
+    return ((uint8) 0x80u) | (unsigned) (fr << 3u) | sr;
 }
 
-void emitDisp(codeCtxPo ctx, int64 disp) {
+void emitDisp(assemCtxPo ctx, int64 disp) {
   if (disp != 0) {
     if (isByte(disp))
       emitU8(ctx, (unsigned) disp & 0xffu);
@@ -813,14 +813,14 @@ void emitDisp(codeCtxPo ctx, int64 disp) {
   }
 }
 
-u8 encodeModRI(u8 mode, x64Reg dst) {
-  u8 dr = ((u8) dst) & 0x7u;
+uint8 encodeModRI(uint8 mode, x64Reg dst) {
+  uint8 dr = ((uint8) dst) & 0x7u;
 
   return mode | dr;
 }
 
-u8 encodeSIB(x64Reg base, x64Reg index, u8 scale) {
-  u8 sib = ((index & 0x7u) << 3u) | (base & 0x7u);
+uint8 encodeSIB(x64Reg base, x64Reg index, uint8 scale) {
+  uint8 sib = ((index & 0x7u) << 3u) | (base & 0x7u);
 
   switch (scale) {
     case 1:
@@ -837,10 +837,10 @@ u8 encodeSIB(x64Reg base, x64Reg index, u8 scale) {
   }
 }
 
-u8 encodeRex(u8 rex, x64Reg dst, x64Reg index, x64Reg src) {
-  u8 dr = ((unsigned) (((u8) dst) >> 3u) & 1u) << 2u;
-  u8 sr = ((unsigned) (((u8) src) >> 3u) & 1u);
-  u8 sx = ((unsigned) (((u8) index) >> 3u) & 1u) << 1u;
+uint8 encodeRex(uint8 rex, x64Reg dst, x64Reg index, x64Reg src) {
+  uint8 dr = ((unsigned) (((uint8) dst) >> 3u) & 1u) << 2u;
+  uint8 sr = ((unsigned) (((uint8) src) >> 3u) & 1u);
+  uint8 sx = ((unsigned) (((uint8) index) >> 3u) & 1u) << 1u;
 
   return (unsigned) rex | dr | sx | sr;
 }

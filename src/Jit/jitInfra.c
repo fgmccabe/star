@@ -10,13 +10,14 @@
 
 static poolPo contextPool = Null;
 static poolPo lblPool = Null;
-static poolPo ctxPool = Null;
+static poolPo asmPool = Null;
 
 void initJit() {
   if (contextPool == Null) {
     contextPool = newPool(sizeof(JitCompilerContext), 8);
     lblPool = newPool(sizeof(AssemLblRecord), 128);
-    ctxPool = newPool(sizeof(AssemCtxRecord), 128);
+    asmPool = newPool(sizeof(AssemCtxRecord), 128);
+    initAssemX64();
   }
 }
 
@@ -31,10 +32,10 @@ jitCompPo jitContext(methodPo mtd) {
 
 static retCode clearLbl(char *lblNme, codeLblPo lbl);
 
-codeCtxPo createCtx() {
+assemCtxPo createCtx() {
   initJit();
-  initAssemX64();
-  codeCtxPo ctx = (codeCtxPo) allocPool(ctxPool);
+
+  assemCtxPo ctx = (assemCtxPo) allocPool(asmPool);
   ctx->bytes = malloc(1024);
   ctx->size = 1024;
   ctx->pc = 0;
@@ -43,16 +44,20 @@ codeCtxPo createCtx() {
   return ctx;
 }
 
-void discardCtx(codeCtxPo ctx) {
+void discardCtx(assemCtxPo ctx) {
   cleanupLabels(ctx);
   if (ctx->bytes != Null) {
     free(ctx->bytes);
     ctx->bytes = Null;
   }
-  freePool(ctxPool, ctx);
+  freePool(asmPool, ctx);
 }
 
-codeLblPo findLabel(codeCtxPo ctx, char *lName) {
+void verifyJitCtx(jitCompPo jitCtx, integer amnt, integer space) {
+  check(jitCtx->vTop >= amnt && jitCtx->vTop<NumberOf(jitCtx->vStack)-space, "stack out of bounds");
+}
+
+codeLblPo findLabel(assemCtxPo ctx, char *lName) {
   codeLblPo lbl = (codeLblPo) hashGet(ctx->lbls, lName);
   if (lbl == Null) {
     lbl = (codeLblPo) allocPool(lblPool);
@@ -82,7 +87,7 @@ static retCode checkLbl(void *n, void *r, void *c) {
   return Fail;  // undefined label
 }
 
-retCode cleanupLabels(codeCtxPo ctx) {
+retCode cleanupLabels(assemCtxPo ctx) {
   if (ctx->lbls != Null) {
     eraseHash(ctx->lbls);
     ctx->lbls = Null;
@@ -91,7 +96,7 @@ retCode cleanupLabels(codeCtxPo ctx) {
 }
 
 typedef struct {
-  codeCtxPo ctx;
+  assemCtxPo ctx;
   codeLblPo lbl;
 } ClInfo;
 
@@ -102,7 +107,7 @@ static retCode updateLblEntry(void *entry, integer ix, void *cl) {
   return Ok;
 }
 
-codeLblPo defineLabel(codeCtxPo ctx, char *lName, integer pc) {
+codeLblPo defineLabel(assemCtxPo ctx, char *lName, integer pc) {
   codeLblPo lbl = findLabel(ctx, lName);
   if (lbl == Null) {
     lbl = (codeLblPo) allocPool(lblPool);
@@ -120,14 +125,14 @@ codeLblPo defineLabel(codeCtxPo ctx, char *lName, integer pc) {
   return lbl;
 }
 
-void setLabel(codeCtxPo ctx, codeLblPo lbl) {
+void setLabel(assemCtxPo ctx, codeLblPo lbl) {
   lbl->pc = ctx->pc;
   ClInfo info = {.ctx=ctx, .lbl=lbl};
   processArrayElements(lbl->refs, updateLblEntry, &info);
   lbl->refs = eraseArray(lbl->refs);
 }
 
-retCode addLabelReference(codeCtxPo ctx, codeLblPo lbl, integer pc, lblRefUpdater updater) {
+retCode addLabelReference(assemCtxPo ctx, codeLblPo lbl, integer pc, lblRefUpdater updater) {
   check(!isLabelDefined(lbl), "label should not be defined");
   if (lbl->refs == Null) {
     lbl->refs = allocArray(sizeof(AssemLblRefRecord), 4, True);
@@ -142,7 +147,7 @@ logical isLabelDefined(codeLblPo lbl) {
 
 #define UNDEF_LBL_LANDING_PAD 0x11223344
 
-void labelDisp32(codeCtxPo ctx, codeLblPo lbl, integer pc) {
+void labelDisp32(assemCtxPo ctx, codeLblPo lbl, integer pc) {
   check(readCtxAtPc(ctx, pc) == UNDEF_LBL_LANDING_PAD, "bad label reference");
 
   integer delta = lbl->pc - (pc + 4);
@@ -153,7 +158,7 @@ void labelDisp32(codeCtxPo ctx, codeLblPo lbl, integer pc) {
   }
 }
 
-void emitLblRef(codeCtxPo ctx, codeLblPo tgt) {
+void emitLblRef(assemCtxPo ctx, codeLblPo tgt) {
   if (isLabelDefined(tgt)) {
     integer delta = tgt->pc - (ctx->pc + 4);
     if (!isI32(delta)) {
@@ -167,34 +172,34 @@ void emitLblRef(codeCtxPo ctx, codeLblPo tgt) {
   }
 }
 
-void emitU8(codeCtxPo ctx, u8 byte) {
+void emitU8(assemCtxPo ctx, uint8 byte) {
   assert(ctx->pc < ctx->size);
   ctx->bytes[ctx->pc++] = byte;
 }
 
-void emitU16(codeCtxPo ctx, uint16 word) {
+void emitU16(assemCtxPo ctx, uint16 word) {
   emitU8(ctx, word & 0xffu);
-  emitU8(ctx, (u8) (word >> 8u));
+  emitU8(ctx, (uint8) (word >> 8u));
 }
 
-void emitU32(codeCtxPo ctx, uint32 word) {
+void emitU32(assemCtxPo ctx, uint32 word) {
   emitU16(ctx, word & 0xffffu);
   emitU16(ctx, (uint16) (word >> 16u));
 }
 
-void emitU64(codeCtxPo ctx, uint64 word) {
+void emitU64(assemCtxPo ctx, uint64 word) {
   emitU32(ctx, word & 0xffffffffu);
   emitU32(ctx, (uint32) (word >> 32u));
 }
 
-void updateU32(codeCtxPo ctx, integer pc, uint32 word) {
+void updateU32(assemCtxPo ctx, integer pc, uint32 word) {
   ctx->bytes[pc++] = (word & 0xffu);
   ctx->bytes[pc++] = (word >> 8u) & 0xffu;
   ctx->bytes[pc++] = (word >> 16u) & 0xffu;
   ctx->bytes[pc] = (word >> 23u) & 0xffu;
 }
 
-uint32 readCtxAtPc(codeCtxPo ctx, integer pc) {
+uint32 readCtxAtPc(assemCtxPo ctx, integer pc) {
   check(pc >= 0 && pc <= ctx->pc - 4, "pc out of bounds");
   return ((unsigned) ctx->bytes[pc]) | (unsigned) (ctx->bytes[pc + 1] << 8u) | (unsigned) (ctx->bytes[pc + 2] << 16u) |
          (unsigned) (ctx->bytes[pc + 3] << 24u);

@@ -5,13 +5,12 @@
 #ifndef STAR_X86_64P_H
 #define STAR_X86_64P_H
 
-#include "lower.h"
-#include "x86_64.h"
 #include "jitP.h"
+#include "x86_64.h"
 #include "ooio.h"
 #include "array.h"
 
-void clearCodeCtxMaps(codeCtxPo ctx);
+void clearCodeCtxMaps(assemCtxPo ctx);
 
 #define REX_W    0x48
 #define REX    0x40
@@ -126,7 +125,7 @@ void clearCodeCtxMaps(codeCtxPo ctx);
 #define XOR_rm_r  0x31
 #define XOR_rm_imm 0x81
 
-codeLblPo preamble(codeCtxPo ctx, int32 lclCount);
-retCode postamble(codeCtxPo ctx);
+codeLblPo preamble(assemCtxPo ctx, int32 lclCount);
+retCode postamble(assemCtxPo ctx);
 
 #endif //STAR_X86_64P_H
