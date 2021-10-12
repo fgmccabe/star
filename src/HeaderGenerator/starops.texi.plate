@@ -13,3 +13,11 @@
 #(Keywords)
 @end multitable
 @end float
+
+@float Table,tokensTbl
+@caption{Standard Graphical Tokens}
+@multitable {implementation}{implementation}{implementation}
+@headitem Graphic @tab Graphic @tab Graphic
+#(Tokens)
+@end multitable
+@end float
