@@ -14,6 +14,7 @@
 #include "parseOperators.h"
 
 static retCode procOperator(void *n, void *r, void *c);
+static retCode procToken(void *n, void *r, void *c);
 static retCode procBrackets(void *n, void *r, void *c);
 static retCode genTexiStr(ioPo f, void *data, long depth, long precision, logical alt);
 
@@ -213,6 +214,12 @@ int main(int argc, char **argv) {
 
     hashPo vars = newHash(8, (hashFun) uniHash, (compFun) uniCmp, NULL);
     hashPut(vars, "Operators", allOps);
+
+    strBufferPo tokenBuff = newStringBuffer();
+    processHashTable(procToken, operators, tokenBuff);
+    char *allTokens = getTextFromBuffer(tokenBuff, &len);
+
+    hashPut(vars, "Tokens", allTokens);
 
     strBufferPo bracketBuff = newStringBuffer();
     processHashTable(procBrackets, bracketTbl, bracketBuff);
@@ -444,6 +451,31 @@ static retCode procOperator(void *n, void *r, void *c) {
       if (ret == Ok)
         ret = outStr(out, "))\n");
       return ret;
+    }
+    default:
+      return Error;
+  }
+}
+
+retCode procToken(void *n, void *r, void *c) {
+  ioPo out = (ioPo) c;
+  pairPo p = (pairPo) r;
+  char *nm = (char *) n;
+
+  char *sep = "";
+
+  switch (genMode) {
+    case genProlog: {
+      return outMsg(out, "  token(\"%P\").\n", nm);
+    }
+    case genStar: {
+      return outMsg(out, "  token(\"%P\") => .true.\n", sep, nm);
+    }
+    case genTexi: {
+      return outMsg(out, "@item @code{%I}\n", nm);
+    }
+    case genEmacs: {
+      return outMsg(out, "  \"%P\" ", nm);
     }
     default:
       return Error;

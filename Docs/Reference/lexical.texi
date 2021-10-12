@@ -5,7 +5,7 @@
 @menu
 * Characters::
 * Number Literals::
-* Strings and Characters::
+* Characters and Strings::
 * Identifiers::
 * Punctuation::
 @end menu
@@ -39,11 +39,11 @@ higher-level semantics of the language.
 
 @float BNF,ignorableFig
 @caption{Ignorable Characters}
-@example
+@display
 @anchored{Ignorable} ::= @refer{LineComment}
   | @refer{BlockComment}
   | @refer{WhiteSpace}
-@end example
+@end display
 @end float
 
 There are two forms of comment: line comment and block comment.
@@ -227,16 +227,13 @@ Unicode has the capability to represent up to one million character code points.
 
 A @var{CharacterCode} has type @code{integer}.
 
-@node Strings and Characters
-@section Strings and Characters
-@cindex string
-@cindex string literal
+@node Characters and Strings
+@section Characters and Strings
 @cindex character reference
-@cindex syntax,string literal
 
 @menu
 * Character Reference::
-* Quoted Strings::
+* String Literals::
 * Block String::
 @end menu
 
@@ -316,29 +313,36 @@ a given keyboard:
 This notation accommodates the Unicode's varying width of character
 codes -- from 8 bits through to 20 bits.
 
-@node Quoted Strings
-@subsection Quoted Strings
+@node String Literals
+@subsection String Literals
+@cindex string
+@cindex string literal
+@cindex syntax,string literal
 @cindex string,quoted
 
 @noindent
-A string is a sequence of character references (
-@pxref{CharRef}) enclosed in double quotes; alternately a
-string may take the form of a @xref{BlockString}.
+A string is a sequence of character references (@pxref{CharRef}).
+
+There are several forms of @emph{string literal}: a
+@var{QuotedString}, a @var{BlockString} and a @var{RawString}.
+
 
 @float BNF,quotedStringFig
-@caption{Quoted String}
+@caption{String Literals}
 @display
-@anchored{StringLiteral} ::= @var{QuotedString} | @var{BlockString}
+@anchored{StringLiteral} ::= @var{QuotedString} | @var{BlockString} | @var{RawString}
 
 @anchored{QuotedString} ::= @code{'"'} @var{StrChar} @dots{} @var{StrChar} @code{'"'}
 
 @anchored{StrChar} ::= @var{CharRef} | @var{Interpolation} | @var{Embedding}
 
-@anchored{Interpolation} ::= @code{'$'} @code{'('} @var{Expression} @code{')'} [ @code{':'} @var{FormattingSpec} @code{';'} ]
+@anchored{Interpolation} ::= @code{'$'} @code{'('} @var{Expression} @code{')'} [ @code{':'} @var{FormattingSpec} @code{';'} ] 
 
 @anchored{FormattingSpec} ::= @var{CharRef} @dots{} @var{CharRef}
 
 @anchored{Embedding} ::= @code{'#'} @code{'('} @var{Expression} @code{')'}
+
+@anchored{RawString} ::= @code{'0'} @code{'"'} @var{CharRef} @dots{} @var{CharRef} @code{'"'}
 
 @end display
 @end float
@@ -351,6 +355,20 @@ than as a character reference.
 @example
 "This string has a \nnew line in the middle"
 @end example
+
+@quotation Note
+There are some subtle differences between @var{QuotedString}s and
+@var{RawString}s (apart from the leading zero character):
+
+@itemize
+@item A @var{QuotedString} may have embedded interpolation expressions, for example
+@example
+"His name is $(Cat.name)"
+@end example
+@item A @var{RawString} may not have embedded interpolation expressions. In fact, such forms are treated as part of the string literal itself.
+@item The type of a @var{QuotedString} is @code{string}, whereas the type of a @var{RawString} is @code{chars}.
+@end itemize
+@end quotation
 
 @node Block String
 @subsection Block String
@@ -468,6 +486,10 @@ of all the standard graphic-form identifiers.
 @anchored{SymbolicChar} ::= @var{Char} excepting @var{BodyChar}
 @end display
 @end float
+
+The standard @var{GraphicIdentifier}s are listed in
+Table~@ref{tokensTbl}. I.e, such identifiers are normally
+also operators.
 
 @quotation TIP
 Apart from their graphic form there is no particular semantic

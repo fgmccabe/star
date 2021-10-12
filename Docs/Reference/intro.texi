@@ -77,17 +77,16 @@ meta-grammar can be described using itself; as shown in @pxref{metaGrammar}.
 
 Some grammar combinations are worth explaining as they occur quite
 frequently and may not be standard in BNF-style grammars. For example
-the rules for actions contain:
+the rules for actions contain this rule for block actions:
 
-@example
+@display
 @var{BlockAction} ::= '@{' @var{Action} ';' .. ';' @var{Action} '@}'
-@end example
+@end display
 
-This grammar rule defines an @var{BlockAction} as a possibly empty sequence of
-@var{Action}s separated by semi-colons and enclosed in braces -- i.e.,
-the classic definition of a block.
-
-I.e., there are three language patterns that fit this rule:
+This grammar rule defines a @refer{BlockAction} as a possibly empty
+sequence of @var{Action}s separated by semi-colons and enclosed in
+braces -- the classic definition of a block. There are three language
+patterns that fit this rule:
 
 @enumerate
 @item An empty sequence of actions, which would be denoted by:
@@ -112,9 +111,9 @@ is a single action -- that is an assignment in this case.
 is a @ref{BlockAction} that consists of three actions within it.
 
 The rule:
-@example
+@display
 @var{Decimal} ::= @var{Digit} .. @var{Digit}+
-@end example
+@end display
 
 @noindent
 denotes a definition in which there must be at least one occurrence of
@@ -126,9 +125,9 @@ Occasionally, where a non-terminal is not conveniently captured in a
 single production, later sections will add to the definition of the
 non-terminal. This is signaled with a @code{::+=} production, as in:
 
-@example
+@display
 @var{Expression} ::+= @var{ListLiteral}
-@end example
+@end display
 
 which signals that, in addition
 to previously defined expressions, a @var{ListLiteral} is also an
