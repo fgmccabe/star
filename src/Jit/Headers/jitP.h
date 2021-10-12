@@ -9,14 +9,11 @@
 #include "jit.h"
 #include "ooio.h"
 #include "array.h"
+#include "lower.h"
 
 #define MAX_VSTACK 256
 
-typedef struct assem_ctx *codeCtxPo;
-typedef struct assem_lbl *codeLblPo;
-
-typedef unsigned char u8;
-typedef signed char i8;
+typedef uint64 registerMap;
 
 typedef enum {
   int64Tp,
@@ -35,10 +32,8 @@ typedef enum {
 typedef struct {
   lType type;
   srcLoc loc;
-  termPo litrl;
   int64 ix;
-  double dx;
-  int regNo;
+  registerSpec mcLoc;
 } vOperand;
 
 typedef struct assem_ctx {
@@ -48,14 +43,14 @@ typedef struct assem_ctx {
   hashPo lbls;
   registerMap usedRegs;
   registerMap freeRegs;
+  jitCompPo jitCxt;
 } AssemCtxRecord;
 
 typedef struct jit_compiler_ {
-  codeCtxPo codeBase;
   methodPo mtd;
   integer vTop;
   vOperand vStack[MAX_VSTACK];
-  AssemCtxRecord cxt;
+  assemCtxPo assemCtx;
 } JitCompilerContext;
 
 typedef struct assem_lbl {
@@ -64,32 +59,32 @@ typedef struct assem_lbl {
   integer pc;
 } AssemLblRecord;
 
-void emitU8(codeCtxPo ctx, u8 byte);
-void emitU16(codeCtxPo ctx, uint16 word);
-void emitU32(codeCtxPo ctx, uint32 word);
-void emitU64(codeCtxPo ctx, uint64 word);
-void updateU32(codeCtxPo ctx, integer pc, uint32 word);
-uint32 readCtxAtPc(codeCtxPo ctx, integer pc);
+void emitU8(assemCtxPo ctx, uint8 byte);
+void emitU16(assemCtxPo ctx, uint16 word);
+void emitU32(assemCtxPo ctx, uint32 word);
+void emitU64(assemCtxPo ctx, uint64 word);
+void updateU32(assemCtxPo ctx, integer pc, uint32 word);
+uint32 readCtxAtPc(assemCtxPo ctx, integer pc);
 
 jitCompPo jitContext(methodPo mtd);
-void clearCodeCtxMaps(codeCtxPo ctx);;
+void clearCodeCtxMaps(assemCtxPo ctx);;
 
 void initAssemX64();
-codeCtxPo createCtx();
-void discardCtx(codeCtxPo ctx);
-void *createCode(codeCtxPo ctx);
+assemCtxPo createCtx();
+void discardCtx(assemCtxPo ctx);
+void *createCode(assemCtxPo ctx);
 
-codeLblPo findLabel(codeCtxPo ctx, char *lName);
-codeLblPo defineLabel(codeCtxPo ctx, char *lName, integer pc);
-void setLabel(codeCtxPo ctx, codeLblPo lbl);
+codeLblPo findLabel(assemCtxPo ctx, char *lName);
+codeLblPo defineLabel(assemCtxPo ctx, char *lName, integer pc);
+void setLabel(assemCtxPo ctx, codeLblPo lbl);
 logical isLabelDefined(codeLblPo lbl);
-retCode cleanupLabels(codeCtxPo ctx);
+retCode cleanupLabels(assemCtxPo ctx);
 
-typedef void (*lblRefUpdater)(codeCtxPo ctx, codeLblPo lbl, integer pc);
-retCode addLabelReference(codeCtxPo ctx, codeLblPo lbl, integer pc, lblRefUpdater updater);
+typedef void (*lblRefUpdater)(assemCtxPo ctx, codeLblPo lbl, integer pc);
+retCode addLabelReference(assemCtxPo ctx, codeLblPo lbl, integer pc, lblRefUpdater updater);
 static retCode updateLblEntry(void *entry, integer ix, void *cl);
-void emitLblRef(codeCtxPo ctx, codeLblPo tgt);
-void labelDisp32(codeCtxPo ctx, codeLblPo lbl, integer pc);
+void emitLblRef(assemCtxPo ctx, codeLblPo tgt);
+void labelDisp32(assemCtxPo ctx, codeLblPo lbl, integer pc);
 
 typedef struct lbl_ref {
   lblRefUpdater updater;
@@ -99,8 +94,10 @@ typedef struct lbl_ref {
 logical isByte(int64 x);
 logical isI32(int64 x);
 
-retCode jit_preamble(methodPo mtd, jitCompPo context);
+retCode jit_preamble(methodPo mtd, jitCompPo ctx);
 
-retCode jit_postamble(methodPo mtd, jitCompPo context);
+retCode jit_postamble(methodPo mtd, jitCompPo ctx);
+
+void verifyJitCtx(jitCompPo jitCtx, integer amnt, integer space);
 
 #endif //STAR_JITP_H

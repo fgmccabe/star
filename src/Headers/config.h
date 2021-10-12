@@ -28,6 +28,11 @@
 /* How to specify a zero array size */
 #define ZEROARRAYSIZE /**/
 
+/* Define a type that is 8bits long */
+typedef unsigned char uint8;
+
+typedef signed char int8;
+
 /* Define with a type that is 16 bits long */
 typedef short int int16;
 
