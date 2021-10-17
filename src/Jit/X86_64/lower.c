@@ -9,8 +9,8 @@
 /* Lower Star VM code to X64 code */
 /*
  *  First four arguments passed in registers:
- *  A0 = RBX
- *  A1 = RCX
+ *  A0 = RCX
+ *  A1 = RDX
  *  A2 = R8
  *  A3 = R9
  *
@@ -39,11 +39,11 @@ x64Op formX64Operand(vOperand v) {
     case argument: {
       switch (v.ix) {
         case 0: {
-          x64Op op = {.mode=Reg, .op.reg=RBX};
+          x64Op op = {.mode=Reg, .op.reg=RCX};
           return op;
         }
         case 1: {
-          x64Op op = {.mode=Reg, .op.reg=RCX};
+          x64Op op = {.mode=Reg, .op.reg=RDX};
           return op;
         }
         case 2: {
@@ -78,13 +78,13 @@ x64Op formX64Operand(vOperand v) {
   }
 }
 
-static x64Op popStkIReg(jitCompPo jitCtx) {
+static x64Op popStkOp(jitCompPo jitCtx) {
   verifyJitCtx(jitCtx, 1, 0);
   vOperand v = jitCtx->vStack[--jitCtx->vTop];
   return formX64Operand(v);
 }
 
-static void pushStk(jitCompPo jitCtx, x64Op operand) {
+static void pushStkOp(jitCompPo jitCtx, x64Op operand) {
   verifyJitCtx(jitCtx, 0, 1);
   vOperand v = {.loc=mcReg, .mcLoc=operand};
   jitCtx->vStack[jitCtx->vTop++] = v;
@@ -300,11 +300,11 @@ retCode jit_FLt(insPo code, integer *pc, jitCompPo jitCtx) {
 
 retCode jit_IAdd(insPo code, integer *pc, jitCompPo jitCtx) {
   verifyJitCtx(jitCtx, 1, 0);
-  x64Op a1 = popStkIReg(jitCtx);
-  x64Op a2 = popStkIReg(jitCtx);
+  x64Op a1 = popStkOp(jitCtx);
+  x64Op a2 = popStkOp(jitCtx);
 
   add(a1, a2, jitCtx->assemCtx);
-  pushStk(jitCtx, a1);
+  pushStkOp(jitCtx, a1);
 
   return Error;
 }
