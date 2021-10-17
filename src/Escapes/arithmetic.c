@@ -4,7 +4,7 @@
 
 
 #include <math.h>
-#include <chars.h>
+#include <strings.h>
 #include <tpl.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -206,7 +206,7 @@ ReturnStatus g__int2str(processPo p, ptrPo tos) {
   char buff[64];
 
   integer len = int2StrByBase(buff, ix, 0, 10);
-  termPo str = (termPo) allocateChars(processHeap(p), buff, len);
+  termPo str = (termPo) allocateString(processHeap(p), buff, len);
 
   return (ReturnStatus){.result = str, .ret=Ok};
 }
@@ -215,14 +215,14 @@ ReturnStatus g__int_format(processPo p, ptrPo tos) {
   termPo Lhs = tos[0];
   integer ix = integerVal(Lhs);
   integer length;
-  const char *fmt = charsVal(tos[1], &length);
+  const char *fmt = strVal(tos[1], &length);
   char buff[64];
   integer pos = 0;
 
   retCode ret = formattedLong(ix, buff, &pos, NumberOf(buff), fmt, length);
 
   if (ret == Ok) {
-    return (ReturnStatus){.result = (termPo) allocateChars(processHeap(p), buff, pos), .ret=Ok};
+    return (ReturnStatus){.result = (termPo) allocateString(processHeap(p), buff, pos), .ret=Ok};
   } else
     return liberror(p, "_int_format", eINVAL);
 }
@@ -420,7 +420,7 @@ ReturnStatus g__flt2str(processPo p, ptrPo tos) {
   retCode ret = formatDouble(buff, NumberOf(buff), Arg, general, 0, False);
   if (ret == Ok) {
     return (ReturnStatus) {.ret=Ok,
-              .result = (termPo) allocateChars(processHeap(p), buff, uniStrLen(buff))};
+              .result = (termPo) allocateString(processHeap(p), buff, uniStrLen(buff))};
   } else
     return liberror(p, "_fltstr", eINVAL);
 }
@@ -430,14 +430,14 @@ ReturnStatus g__flt_format(processPo p, ptrPo tos) {
   termPo Rhs = tos[1];
   double Arg = floatVal(Lhs);
   integer length;
-  const char *fmt = charsVal(Rhs, &length);
+  const char *fmt = strVal(Rhs, &length);
   char buff[64];
   integer pos = 0;
 
   retCode ret = formattedFloat(Arg, buff, &pos, NumberOf(buff), fmt, length);
 
   if (ret == Ok) {
-    return (ReturnStatus) {.result = (termPo) allocateChars(processHeap(p), buff, uniStrLen(buff)), .ret=Ok};
+    return (ReturnStatus) {.result = (termPo) allocateString(processHeap(p), buff, uniStrLen(buff)), .ret=Ok};
   } else
     return liberror(p, "_flt_format", eINVAL);
 }

@@ -4,7 +4,7 @@
 #include <sys/time.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <chars.h>
+#include <strings.h>
 #include <string.h>
 #include <globals.h>
 #include <tpl.h>
@@ -76,7 +76,7 @@ termPo commandLine(heapPo H) {
   gcAddRoot(H, &el);
 
   for (integer ix = argcnt - 1; ix >= 0; ix--) {
-    el = (termPo) allocateChars(H, argsv[ix], uniStrLen(argsv[ix]));
+    el = (termPo) allocateString(H, argsv[ix], uniStrLen(argsv[ix]));
     list = (termPo) allocateCons(H, el, list);
   }
   gcReleaseRoot(H, root);
@@ -110,8 +110,8 @@ ReturnStatus g__envir(processPo P, ptrPo tos) {
     char *pt = strchr(environ[ix], '=');
 
     if (pt != NULL) {
-      ky = (termPo) allocateChars(H, envPair, pt - envPair);
-      vl = (termPo) allocateChars(H, pt + 1, uniStrLen(pt + 1));
+      ky = (termPo) allocateString(H, envPair, pt - envPair);
+      vl = (termPo) allocateString(H, pt + 1, uniStrLen(pt + 1));
     } else {
       ky = (termPo) allocateCString(H, envPair);
       vl = voidEnum;
@@ -129,7 +129,7 @@ ReturnStatus g__getenv(processPo P, ptrPo tos) {
   termPo Arg2 = tos[1];
   char key[MAX_SYMB_LEN];
 
-  copyChars2Buff(C_CHARS(Arg1), key, NumberOf(key));
+  copyChars2Buff(C_STR(Arg1), key, NumberOf(key));
 
   char *val = getenv((char *) key);
 
@@ -147,8 +147,8 @@ ReturnStatus g__setenv(processPo P, ptrPo tos) {
   char key[MAX_SYMB_LEN];
   char val[MAX_SYMB_LEN];
 
-  copyChars2Buff(C_CHARS(Arg1), key, NumberOf(key));
-  copyChars2Buff(C_CHARS(Arg2), val, NumberOf(val));
+  copyChars2Buff(C_STR(Arg1), key, NumberOf(key));
+  copyChars2Buff(C_STR(Arg2), val, NumberOf(val));
 
   if (setenv((char *) key, val, 1) == 0) {
     return (ReturnStatus) {.ret=Ok, .result=voidEnum};
@@ -159,7 +159,7 @@ ReturnStatus g__setenv(processPo P, ptrPo tos) {
 ReturnStatus g__repo(processPo p, ptrPo tos) {
   char repoBuffer[MAXFILELEN];
   strMsg(repoBuffer, NumberOf(repoBuffer), "%s/", repoDir);
-  termPo repo = (termPo) allocateChars(processHeap(p), repoBuffer, uniStrLen(repoBuffer));
+  termPo repo = (termPo) allocateString(processHeap(p), repoBuffer, uniStrLen(repoBuffer));
 
   return (ReturnStatus) {.result = repo, .ret=Ok};
 }
@@ -177,7 +177,7 @@ ReturnStatus g__shell(processPo P, ptrPo tos) {
 
   char cmd[MAXFILELEN];
 
-  copyChars2Buff(C_CHARS(Arg1), cmd, NumberOf(cmd));
+  copyChars2Buff(C_STR(Arg1), cmd, NumberOf(cmd));
 
   termPo args = Arg2;
   termPo env = Arg3;
@@ -200,7 +200,7 @@ ReturnStatus g__shell(processPo P, ptrPo tos) {
 
     for (integer ix = 0; ix < argCnt; ix++) {
       char arg[MAXFILELEN];
-      copyChars2Buff(C_CHARS(consHead(C_NORMAL(args))), arg, NumberOf(arg));
+      copyChars2Buff(C_STR(consHead(C_NORMAL(args))), arg, NumberOf(arg));
       args = consTail(C_NORMAL(args));
       argv[ix + 1] = strdup(arg);
     }
@@ -213,8 +213,8 @@ ReturnStatus g__shell(processPo P, ptrPo tos) {
       strBufferPo lineBf = newStringBuffer();
 
       integer klen, vlen;
-      const char *key = charsVal(nthArg(pair, 0), &klen);
-      const char *val = charsVal(nthArg(pair, 1), &vlen);
+      const char *key = strVal(nthArg(pair, 0), &klen);
+      const char *val = strVal(nthArg(pair, 1), &vlen);
 
       outMsg(O_IO(lineBf), "%S = %S", key, klen, val, vlen);
 
@@ -279,7 +279,7 @@ ReturnStatus g__popen(processPo P, ptrPo tos) {
 
   char cmd[MAXFILELEN];
 
-  copyChars2Buff(C_CHARS(Arg1), cmd, NumberOf(cmd));
+  copyChars2Buff(C_STR(Arg1), cmd, NumberOf(cmd));
 
   termPo args = Arg2;
   termPo env = Arg3;
@@ -301,7 +301,7 @@ ReturnStatus g__popen(processPo P, ptrPo tos) {
     argv[0] = cmd;
     for (integer ix = 0; ix < argCnt; ix++) {
       char arg[MAXFILELEN];
-      copyChars2Buff(C_CHARS(consHead(C_NORMAL(args))), arg, NumberOf(arg));
+      copyChars2Buff(C_STR(consHead(C_NORMAL(args))), arg, NumberOf(arg));
       argv[ix + 1] = strdup(arg);
       args = consTail(C_NORMAL(args));
     }
@@ -313,8 +313,8 @@ ReturnStatus g__popen(processPo P, ptrPo tos) {
       env = consTail(C_NORMAL(env));
 
       integer klen, vlen;
-      const char *key = charsVal(nthArg(pair, 0), &klen);
-      const char *val = charsVal(nthArg(pair, 1), &vlen);
+      const char *key = strVal(nthArg(pair, 0), &klen);
+      const char *val = strVal(nthArg(pair, 1), &vlen);
 
       rewindStrBuffer(lineBf);
       outMsg(O_IO(lineBf), "%S = %S", key, klen, val, vlen);

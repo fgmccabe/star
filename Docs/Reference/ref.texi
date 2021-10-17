@@ -40,7 +40,6 @@ This is the
 on-line
 @end ifinfo 
 reference for the @Star{} language, version @value{VERSION}.  
-@refill
 
 @noindent
 This manual offers an in-depth and complete description of the @Star{}

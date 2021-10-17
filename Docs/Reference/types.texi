@@ -437,8 +437,7 @@ The various annotations in a record type are terminated by a dot-space
 terminator.
 @end quotation
 
-Record types are used as the type of anonymous records (see
-@refer{AnonymousRecord}). They are also the basis of other features of the
+Record types are used as the basis of other features of the
 type language -- including the @refer{ConstructorType} and
 @refer{Contract}s.
 

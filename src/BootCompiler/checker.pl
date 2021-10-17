@@ -580,7 +580,8 @@ typeOfPtn(T,Tp,_ErTp,Env,Env,floatLit(Lc,Dx),_Path) :-
   findType("float",Lc,Env,FltTp),
   verifyType(Lc,FltTp,Tp,Env).
 typeOfPtn(chars(Lc,Sx),Tp,_ErTp,Env,Env,charsLit(Lc,Sx),_Path) :- !,
-  verifyType(Lc,type("chars"),Tp,Env).
+  findType("string",Lc,Env,StrTp),
+  verifyType(Lc,StrTp,Tp,Env).
 typeOfPtn(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isTypeAnnotation(Term,Lc,L,R),!,
   parseType(R,Env,RT),
@@ -682,7 +683,7 @@ typeOfExp(T,Tp,_ErTp,Env,Env,floatLit(Lc,Dx),_Path) :-
   findType("float",Lc,Env,FltTp),
   verifyType(Lc,FltTp,Tp,Env).
 typeOfExp(chars(Lc,Sx),Tp,_ErTp,Env,Env,charsLit(Lc,Sx),_Path) :- !,
-  findType("chars",Lc,Env,StrTp),
+  findType("string",Lc,Env,StrTp),
   verifyType(Lc,StrTp,Tp,Env).
 typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isTypeAnnotation(Term,Lc,L,R),!,
@@ -847,8 +848,8 @@ funLbl(enm(_,Nm,_),Nm).
 funLbl(mtd(_,Nm,_),Nm).
 
 typeOfOpen(Lc,I,Tp,ErTp,Env,Ev,open(Lc,Exp,Tp),Path) :-
-  typeOfExp(I,Tp,ErTp,Env,Ev,Exp,Path),
-  reportMsg("opened value %s:%s",[can(Exp),tpe(Tp)],Lc).
+  typeOfExp(I,Tp,ErTp,Env,Ev,Exp,Path).
+%  reportMsg("opened value %s:%s",[can(Exp),tpe(Tp)],Lc).
 
 typeOfRoundTerm(Lc,F,A,Tp,ErTp,Env,apply(Lc,Fun,Args,Tp),Path) :-
   newTypeVar("F",FnTp),
@@ -916,21 +917,22 @@ checkPromptAction(Lc,L,P,Env,Tp,VlTp,ErTp,OkFn,EvtFn,promptDo(Lc,Lb,Lam,Tp),Path
   Lam = lambda(Lc,Lbl,rule(Lc,tple(Lc,[]),none,doTerm(Lc,Act,Tp)),
 	       funType(tplType([]),Tp)).
 
-typeOfCut(Lc,L,Lhs,Rhs,Tp,ErTp,Env,shift(Lc,Lb,Lam),Path) :-
+typeOfCut(Lc,L,Lhs,Rhs,Tp,ErTp,Env,shift(Lc,Tg,Lam),Path) :-
   dispType(Tp),
   newTypeVar("_",Rt),
   KType = contType(tplType([Tp]),Rt),
   mkTypeExp(tpFun("tag",2),[Tp,Rt],TTp),
   dispType(TTp),
-  typeOfExp(L,TTp,ErTp,Env,_,Lb,Path),
-  dispType(TTp),
+  typeOfExp(L,TTp,ErTp,Env,_,Tg,Path),
+%  reportMsg("tag type %s, cont type %s",[tpe(TTp),tpe(KType)],Lc),
   typeOfPtn(Lhs,KType,ErTp,Env,E0,V,Path),
-  dispType(KType),
+%  reportMsg("tag type %s, cont type %s",[tpe(TTp),tpe(KType)],Lc),
   typeOfExp(Rhs,Rt,ErTp,E0,_,Exp,Path),
+%  reportMsg("tag type %s, cont type %s",[tpe(TTp),tpe(KType)],Lc),
   lambdaLbl(Path,"ç",Lbl),
   Lam = lambda(Lc,Lbl,rule(Lc,tple(Lc,[V]),none,Exp),
-	       funType(tplType([KType]),Rt)),
-  dispCanon(Lam).
+	       funType(tplType([KType]),Rt)).
+%  dispCanon(Lam).
 
 checkCutAction(Lc,L,Lhs,Rhs,Env,Tp,VlTp,ErTp,OkFn,EvtFn,cutDo(Lc,Lb,Lam),Path) :-
   newTypeVar("_",Rt),
@@ -1417,7 +1419,7 @@ mkBoot(Env,Lc,Pkg,Dfs,[BootDef|Dfs],Decls,[funDec("_boot",BootNm,BootTp)|Decls])
   findType("cons",Lc,Env,ConsTp),
   getVar(Lc,"_main",Env,MainTrm,MnTp),
   mangleName(Pkg,value,"_boot",BootNm),
-  applyTypeFun(ConsTp,[type("chars")],Lc,Env,LSTp),
+  applyTypeFun(ConsTp,[type("star.core*string")],Lc,Env,LSTp),
   CmdVr = v(Lc,"CmdVr",LSTp),
   unitTp(UnitTp),
   MainTp = funType(tplType([LSTp]),UnitTp),

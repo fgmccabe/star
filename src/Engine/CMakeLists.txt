@@ -32,7 +32,7 @@ set(HEADER_FILES
         Headers/globals.h
         Headers/heap.h Headers/heapP.h
         Headers/lockvar.h Headers/lockvarP.h
-        Headers/term.h Headers/termP.h Headers/chars.h Headers/arith.h
+        Headers/term.h Headers/termP.h Headers/strings.h Headers/arith.h
         Headers/debug.h
         Headers/tpl.h Headers/engineP.h
         Headers/local.h Headers/engineOptions.h
@@ -50,7 +50,7 @@ set(HEADER_FILES
 set(SOURCE_FILES
         decode.c debug.c eval.c engine.c engineOptions.c gc.c globals.c heap.c load.c main.c
         ${HEADER_FILES} code.c term.c labels.c arith.c repo.c
-        chars.c lockvar.c cell.c iochnl.c thr.c bkpoint.c verify.c capability.c cons.c option.c ltype.c ltype.h stack.c
+        strings.c lockvar.c cell.c iochnl.c thr.c bkpoint.c verify.c capability.c cons.c option.c ltype.c ltype.h stack.c
         future.c thunk.c Headers/thunk.h)
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})

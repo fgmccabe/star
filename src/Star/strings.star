@@ -5,88 +5,74 @@ star.strings{
 
   -- and strings ...
   public implementation equality[string] => {
-    X==Y => _string_eq(X,Y).
-  }
-
-  public implementation equality[chars] => {
     X==Y => _str_eq(X,Y).
   }
 
   public implementation hash[string] => {
-    hash(X) => _str_hash(_str_fltn(X)).
+    hash(X) => _str_hash(X).
   }
 
   public implementation comp[string] => {
-    X<Y => _str_lt(_str_fltn(X),_str_fltn(Y)).
-    X>=Y => _str_ge(_str_fltn(X),_str_fltn(Y)).
+    X<Y => _str_lt(X,Y).
+    X>=Y => _str_ge(X,Y).
   }
 
   public implementation display[string] => {.
-    disp(S) => "\"#(chrs_(_str_quote(_str_fltn(S))))\"".
-  .}
-
-  public implementation display[chars] => {.
-    disp(S) => "\"0#(chrs_(_str_quote(S)))\"".
+    disp(S) => "\"#(_str_quote(S))\"".
   .}
 
   public implementation format[string] => {.
-    frmt(S,Fmt) => chrs_(_str_format(_str_fltn(S),Fmt)).
+    frmt(S,Fmt) => _str_format(S,Fmt).
   .}
 
   public implementation sizeable[string] => {
-    size(S) => _string_len(S).
+    size(S) => _str_len(S).
     isEmpty(S) => size(S)==0.
   }
 
   public implementation  measured[string->>integer] => {.
-    [|L|] => _string_len(L)
+    [|L|] => _str_len(L)
   .}
 
   public implementation concat[string] => {
-    S1++S2 => pair_(S1,S2).
-    _multicat(.nil) => "".
-    _multicat(cons(S,Ss)) => pair_(S,_multicat(Ss)).
+    S1++S2 => _str_concat(S1,S2).
+    _multicat(Els) => _str_multicat(Els).
   }.
 
   public implementation slice[string->>integer] => {
-    _slice(S,F,T) => chrs_(_sub_str(_str_fltn(S),F,T-F)).
-    _splice(S,F,T,N) => chrs_(_str_splice(_str_fltn(S),F,T-F,_str_fltn(N))).
+    _slice(S,F,T) => _sub_str(S,F,T-F).
+    _splice(S,F,T,N) => _str_splice(S,F,T-F,N).
   }.
 
   public implementation reversible[string] => {
-    reverse(L) => chrs_(_str_reverse(_str_fltn(L))).
+    reverse(L) => _str_reverse(L).
   }
 
   public implementation coercion[string,cons[integer]] => {
-    _coerce(S) => some(_explode(_str_fltn(S))).
+    _coerce(S) => some(_explode(S)).
   }
 
   public implementation coercion[cons[integer],string] => {
-    _coerce(L) => some(chrs_(_implode(L))).
+    _coerce(L) => some(_implode(L)).
   }
 
   public implementation coercion[string,string] => {
     _coerce(S) => some(S).
   }
 
-  public implementation coercion[string,chars] => {
-    _coerce(S) => some(_str_fltn(S)).
-  }
-
   public stringQuote:(string)=>string.
-  stringQuote(S) => chrs_(_str_quote(_str_fltn(S))).
+  stringQuote(S) => _str_quote(S).
 
   -- Stream and sequence contracts
 
   public implementation stream[string->>integer] => {
     _eof(S) => S=="".
-    _hdtl(chrs_(Cs)) where (H,T).=_str_hdtl(Cs) => some((H,chrs_(T))).
-    _hdtl(pair_(L,R)) where (H,T) ^= _hdtl(L) => some((H,pair_(T,R))).
-    _hdtl(chrs_(0"")) => .none.
+    _hdtl(Cs) where (H,T).=_str_hdtl(Cs) => some((H,T)).
+    _hdtl("") => .none.
   }
 
   public implementation sequence[string->>integer] => {.
-    _cons(C,S) => pair_(chrs_(_code2str(C)),S).
+    _cons(C,S) => _str_concat(_code2str(C),S).
     _nil = "".
   .}
 
@@ -122,14 +108,11 @@ star.strings{
   isAlphaNum(Ch) => (_isLetterChar(Ch) || _isNdChar(Ch)).
 
   public genSym:(string) => string.
-  genSym(Pre) => chrs_(_str_gen(_str_fltn(Pre))).
+  genSym(Pre) => _str_gen(Pre).
 
   public strFind:(string,string,integer) => integer.
-  strFind(Txt,Ky,Ix) => _str_find(_str_fltn(Txt),_str_fltn(Ky),Ix).
+  strFind(Txt,Ky,Ix) => _str_find(Txt,Ky,Ix).
 
   public subString:(string,integer,integer)=>string.
-  subString(Txt,Fr,Ln) => chrs_(_sub_str(_str_fltn(Txt),Fr,Ln)).
-
-  public string2chars:(string)=>chars.
-  string2Chars(S) => _str_fltn(S).
+  subString(Txt,Fr,Ln) => _sub_str(Txt,Fr,Ln).
 }

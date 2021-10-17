@@ -65,7 +65,6 @@ logical validSig(char *sig, integer *start, integer end) {
     case fltSig:
     case logSig:
     case chrSig:
-    case strSig:
       return True;
     case kvrSig:
     case tpeSig:
@@ -220,7 +219,6 @@ retCode skipSig(char *sig, integer *start, integer end) {
       case fltSig:
       case logSig:
       case chrSig:
-      case strSig:
         return Ok;
       case kvrSig:
       case tpeSig:
@@ -415,7 +413,6 @@ retCode skipSignature(ioPo in) {
       case fltSig:
       case logSig:
       case chrSig:
-      case strSig:
         return Ok;
       case kvrSig:
       case tpeSig:
@@ -539,8 +536,6 @@ retCode showSignature(ioPo out, char *sig, integer *start, integer end) {
     case logSig:
       return outStr(out, "logical");
     case chrSig:
-      return outStr(out, "chars");
-    case strSig:
       return outStr(out, "string");
     case kvrSig:
       tryRet(showSigId(out, sig, start, end));

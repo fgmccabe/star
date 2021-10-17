@@ -58,13 +58,11 @@ legalNextRight([idTok(I,_)|_],Pr) :- ( prefixOp(I,PPr,_), PPr=<Pr ; \+ isOperato
 legalNextRight([idQTok(_,_)|_],_).
 legalNextRight([lftTok(_,_)|_],_).
 legalNextRight([stringTok(_,_)|_],_).
-legalNextRight([charsTok(_,_)|_],_).
 legalNextRight([integerTok(_,_)|_],_).
 legalNextRight([floatTok(_,_)|_],_).
 
-term0([charsTok(Txt,Lc)|Toks],chars(Lc,Txt),Toks,id).
 term0([stringTok(St,Lc)|Toks],Str,Toks,id) :-
-  handleInterpolation(St,Lc,Str).
+  interpolateString(St,Lc,Str).
 term0([integerTok(In,Lc)|Toks],integer(Lc,In),Toks,id).
 term0([floatTok(Fl,Lc)|Toks],float(Lc,Fl),Toks,id).
 term0([lftTok("{}",Lc0),rgtTok("{}",Lc2)|Toks],tuple(Lc,"{}",[]),Toks,rbrce) :-
@@ -178,29 +176,41 @@ tupleize(T,Lc,Op,tuple(Lc,Op,Els)) :-
 
 lookAhead(Tk,[Tk|_]).
 
-handleInterpolation([segment(Str,Lc)],_,Trm) :-
-  mkSSChars(Lc,Str,Trm).
-handleInterpolation([interpolate(Text,"",Lc)],_,Disp) :-
+/* an interpolated string becomes
+   _multicat(cons(S1,cons(S2,....nil)))
+   if it has multiple segments
+*/
+
+interpolateString(Els,Lc,Term) :-
+  length(Els,Ln),Ln>1,
+  handleInterpolations(Els,Lc,Cons),
+  unary(Lc,"_str_multicat",Cons,Term).
+interpolateString([],Lc,chars(Lc,"")).
+interpolateString([El],Lc,Term) :-
+  handleInterpolation(El,Lc,Term).
+
+handleInterpolations([],Lc,Nil) :-
+  mkEnum(Lc,"nil",Nil).
+handleInterpolations([El|Els],Lc,Cons) :-
+  handleInterpolation(El,Lc,H),
+  handleInterpolations(Els,Lc,T),
+  binary(Lc,"cons",H,T,Cons).
+
+handleInterpolation(segment(Str,Lc),_,chars(Lc,Str)) :-!.
+handleInterpolation(interpolate(Text,"",Lc),_,Disp) :-
   subTokenize(Lc,Text,Toks),
   term(Toks,2000,Term,TksX,_),
   unary(Lc,"disp",Term,Disp),
   ( TksX = [] ; lookAhead(ATk,TksX),locOf(ATk,ALc),reportError("extra tokens in string interpolation",[],ALc)).
-handleInterpolation([interpolate(Text,Fmt,Lc)],_,Disp) :-
+handleInterpolation(interpolate(Text,Fmt,Lc),_,Disp) :-
   subTokenize(Lc,Text,Toks),
   term(Toks,2000,Term,TksX,_),
   binary(Lc,"frmt",Term,chars(Lc,Fmt),Disp),
   ( TksX = [] ; lookAhead(ATk,TksX),locOf(ATk,ALc),reportError("extra tokens in string interpolation",[],ALc)).
-handleInterpolation([coerce(Text,Lc)],_,Disp) :-
+handleInterpolation(coerce(Text,Lc),_,Disp) :-
   subTokenize(Lc,Text,Toks),
   term(Toks,2000,Disp,TksX,_),
   ( TksX = [] ; lookAhead(ATk,TksX),locOf(ATk,ALc),reportError("extra tokens in string interpolation",[],ALc)).
-handleInterpolation([],Lc,T) :-
-  mkSSChars(Lc,"",T).
-handleInterpolation(Segments,Lc,Term) :-
-  part2(Segments,L,R),
-  handleInterpolation(L,Lc,Lhs),
-  handleInterpolation(R,Lc,Rhs),
-  mkSSPair(Lc,Lhs,Rhs,Term).
   
 checkToken([Tk|Toks],Toks,Tk,_,_,_) :- !.
 checkToken([Tk|Toks],Toks,_,Lc,Msg,Extra) :- locOfToken(Tk,Lc), reportError(Msg,[Tk|Extra],Lc).

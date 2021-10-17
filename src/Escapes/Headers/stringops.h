@@ -10,6 +10,8 @@
 
 #include "engine.h"
 #include "libEscapes.h"
-#include "chars.h"
+#include "strings.h"
+
+retCode str_flatten(strBufferPo str, termPo t);
 
 #endif //STAR_STRINGOPS_H

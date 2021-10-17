@@ -6,7 +6,7 @@
 #include <ioTcp.h>
 #include <errorCodes.h>
 #include <iochnnlP.h>
-#include <chars.h>
+#include <strings.h>
 #include <arithP.h>
 #include <tpl.h>
 #include <hosts.h>
@@ -72,10 +72,10 @@ ReturnStatus g__accept(processPo P, ptrPo tos) {
         termPo outChnl = (termPo) allocateIOChnnl(H, outC);
         gcAddRoot(H, &outChnl);
 
-        termPo peer = (termPo) allocateChars(H, peerN, uniStrLen(peerN));
+        termPo peer = (termPo) allocateString(H, peerN, uniStrLen(peerN));
         gcAddRoot(H, &peer);
 
-        termPo peerIP = (termPo) allocateChars(H, peerI, uniStrLen(peerI));
+        termPo peerIP = (termPo) allocateString(H, peerI, uniStrLen(peerI));
         gcAddRoot(H, &peerIP);
 
         termPo prt = (termPo) allocateInteger(H, port);
@@ -106,7 +106,7 @@ ReturnStatus g__connect(processPo P, ptrPo tos) {
   integer port = integerVal(Arg2);
 
   integer hLen;
-  const char *host = charsVal(Arg1, &hLen);
+  const char *host = strVal(Arg1, &hLen);
 
   ioEncoding enc = pickEncoding(integerVal(Arg3));
 
@@ -146,7 +146,7 @@ ReturnStatus g__hosttoip(processPo P, ptrPo tos) {
   char ip[MAX_SYMB_LEN];
   heapPo H = processHeap(P);
 
-  copyChars2Buff(C_CHARS(Arg1), host, NumberOf(host));
+  copyChars2Buff(C_STR(Arg1), host, NumberOf(host));
 
   termPo ipList = (termPo) nilEnum;
   termPo el = voidEnum;
@@ -167,7 +167,7 @@ ReturnStatus g__iptohost(processPo P, ptrPo tos) {
   char ip[MAX_SYMB_LEN];
   heapPo H = processHeap(P);
 
-  copyChars2Buff(C_CHARS(tos[0]), ip, NumberOf(ip));
+  copyChars2Buff(C_STR(tos[0]), ip, NumberOf(ip));
 
   char *host = getHostname(ip);
 

@@ -1,5 +1,4 @@
 :-module(wff,[isAnnotation/4,isQuote/3,
-	      isSSChars/3,mkSSChars/3,isSSPair/4,mkSSPair/4,
 	      isAlgebraicTypeStmt/6,mkAlgebraicTypeStmt/6,
 	      isConstructor/3,
 	      isConstructorType/6,constructorType/6,
@@ -907,9 +906,8 @@ mkActionSeq(Lc,S1,S2,T) :-
 
 mkLoc(Lc,T) :-
   Lc=loc(Pk,Line,Col,Off,Ln),
-  mkSSChars(Lc,Pk,PkNm),
   roundTerm(Lc,name(Lc,"locn"),
-	     [PkNm,
+	     [chars(Lc,Pk),
 	      integer(Lc,Line),
 	      integer(Lc,Col),
 	      integer(Lc,Off),
@@ -918,14 +916,3 @@ mkLoc(Lc,T) :-
 isQuote(Trm,Lc,Body) :-
   isUnary(Trm,Lc,"<||>",Body).
 
-isSSChars(T,Lc,Txt) :-
-  isUnary(T,Lc,"chrs_",chars(_,Txt)).
-
-mkSSChars(Lc,Txt,T) :-
-  unary(Lc,"chrs_",chars(Lc,Txt),T).
-
-isSSPair(T,Lc,L,R) :-
-  isBinary(T,Lc,"pair_",L,R).
-
-mkSSPair(Lc,L,R,T) :-
-  binary(Lc,"pair_",L,R,T).

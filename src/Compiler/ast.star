@@ -9,7 +9,7 @@ star.compiler.ast{
       | qnm(locn,string)
       | int(locn,integer)
       | num(locn,float)
-      | chrs(locn,chars)
+      | chrs(locn,string)
       | tpl(locn,string,cons[ast])
       | app(locn,ast,ast).
 
@@ -75,21 +75,24 @@ star.compiler.ast{
   rightPar(P,Pr) where P>Pr => ")".
   rightPar(_,_) default => "".
 
-  isInterpolated(A) where (_,L,R) ^= isBinary(A,"pair_") => isInterpolated(L) || isInterpolated(R).
+  isInterpolated(A) where _ ^= isUnary(A,"_str_multicat") => .true.
   isInterpolated(A) where _ ^= isUnary(A,"disp") => .true.
   isInterpolated(A) where _ ^= isBinary(A,"frmt") => .true.
-  isInterpolated(A) where _ ^= isUnary(A,"eval") => .true.
   isInterpolated(A) default => false.
 
   deInterpolate:(ast) => string.
-  deInterpolate(A) where (_,S) ^= isUnary(A,"chrs_") && (_,Sx)^=isChrs(S) => stringQuote(chrs_(Sx)).
-  deInterpolate(A) where (_,L,R) ^= isBinary(A,"pair_") => pair_(deInterpolate(L),deInterpolate(R)).
-  deInterpolate(A) where (_,I) ^= isUnary(A,"disp") => pair_("$",dispAst(I,0,"")).
-  deInterpolate(A) where (_,I,F) ^= isBinary(A,"frmt") && (_,Fmt) ^= isChrs(F) =>
-    "\$#(dispAst(I,0,""))\:#(chrs_(Fmt));".
-  deInterpolate(A) where (_,I) ^= isUnary(A,"eval") => pair_("#",dispAst(I,0,"")).
+  deInterpolate(A) where (_,S) ^= isUnary(A,"_str_multicat") => _str_multicat(deConsPolate(S)).
+  deInterpolate(A) where (_,S) ^= isUnary(A,"disp") => dePolate(A).
+  deInterpolate(A) where (_,I,F) ^= isBinary(A,"frmt") => dePolate(A).
 
+  deConsPolate(A) where _ ^= isEnum(A,"nil") => .nil.
+  deConsPolate(A) where (_,L,R) ^= isBinary(A,"cons") =>
+    cons(dePolate(L),deConsPolate(R)).
 
+  dePolate(A) where (_,D) ^= isUnary(A,"disp") => "$"++dispAst(D,0,"").
+  dePolate(A) where (_,D,chrs(_,F)) ^= isBinary(A,"frmt") => "$"++dispAst(D,0,"")++":"++F++";".
+  dePolate(A) where (_,D) ^= isUnary(A,"eval") => "#"++dispAst(D,0,"").
+  
   public implementation coercion[ast,string] => {.
     _coerce(A) => some("$(A)").
   .}
@@ -112,9 +115,9 @@ star.compiler.ast{
   isFlt(num(Lc,Dx)) => some((Lc,Dx)).
   isFlt(_) default => .none.
 
-  public isChrs:(ast) => option[(locn,chars)].
-  isChrs(chrs(Lc,Sx)) => some((Lc,Sx)).
-  isChrs(_) default => .none.
+  public isStr:(ast) => option[(locn,string)].
+  isStr(chrs(Lc,Sx)) => some((Lc,Sx)).
+  isStr(_) default => .none.
 
   public zeroary:(locn,string)=>ast.
   zeroary(Lc,Op) => app(Lc,nme(Lc,Op),tpl(Lc,"()",[])).

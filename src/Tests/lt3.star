@@ -9,7 +9,7 @@ test.lt3{
   } in test.
 
 
-  genSym(Pr) => chrs_(_str_gen(_str_fltn(Pr))).
+  genSym(Pr) => _str_gen(Pr).
 
   main:()=>action[(),()].
   main()=>action{

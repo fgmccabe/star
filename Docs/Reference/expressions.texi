@@ -181,7 +181,6 @@ expression and the triple-quoted or block-quoted @code{string}
 literal.
 
 The syntax of @code{string} literals is given in @ref{quotedStringFig}.
-
 The simplest form of @code{string} literal is a sequence of characters
 enclosed in double-quotes:
 
@@ -189,8 +188,18 @@ enclosed in double-quotes:
 "A string literal with 35 characters"
 @end example
 
-In addition, quoted strings may include @emph{interpolation}
-expressions -- which are embedded expressions whose values are
+The @code{string} type is actually defined as a normal algebraic data type:
+@float Program,stringTypeFig
+@caption{String Type}
+@example
+string ::= chrs_(chars) | pair_(string,string).
+@end example
+@end float
+
+This reflects the fact that most strings in @Star{} are so-called
+@emph{structured strings}. Structured strings reflect the ability to
+support efficient string interpolation and string concatenation.
+String interpolation expressions are embedded expressions whose values are
 interpolated into the actual string value.
 
 @node String Interpolation
@@ -272,7 +281,7 @@ An expression of the form:
 
 is interpreted as: 
 @example
-ssSeq([ss("@var{prefix}"),disp(@var{Exp}),ss("@var{suffix})])"
+pair_(chrs_(@var{prefix}),pair_(disp(@var{Exp}),chrs_(@var{suffix})))
 @end example
 
 If a @refer{FormattingSpec} is present, then the translation takes
@@ -284,7 +293,7 @@ that into account also. For example, the expression:
 
 is equivalent to the expression: 
 @example
-ssSeq([ss("@var{prefix}"),frmt(@var{Exp},@var{Format}),ss("@var{suffix})]::string"
+pair_(chrs_(@var{prefix}),pair_(frmt(@var{Exp},@var{Format}),chrs_(@var{suffix})))
 @end example
 
 where @code{frmt} is part of the @code{format} contract -- see
@@ -356,9 +365,9 @@ There are three primary forms of @refer{AlgebraicConstructor}s:
 @cindex enumerated symbols
 
 Enumerated symbols are written using regular identifiers (see
-@refer{enumeratedSymbolFig}). Such a symbol must first have been
-declared within a type definition statement which also determines the
-type of the symbol.
+@refer{enumeratedSymbolFig}) -- prefixed with a period. Such a symbol
+must first have been declared within a type definition statement which
+also determines the type of the symbol.
 
 @float BNF,enumeratedSymbolFig
 @caption{Enumerated Symbol}
@@ -394,7 +403,6 @@ The period in front of an enumerated helps to highlight the special
 role of enumerated symbols. It also helps to prevent silent errors
 caused by mistyping an enumerated symbol.
 @end quotation
-
 
 @node Positional Constructor Literals
 @subsection Positional Constructor Literals
@@ -706,35 +714,35 @@ denotes a singleton tuple with the integer @code{34} in it.
 Fortunately, singleton tuples are not often required in programs.
 @end quotation
 
-@node Anonymous Records
-@section Anonymous Records
+@c @node Anonymous Records
+@c @section Anonymous Records
 
-An anonymous record is one which does not have an explicit label. It
-is the counterpart to the tuple, except that elements of an anonymous
-record can be accessed using @refer{RecordAccess} expressions.
+@c An anonymous record is one which does not have an explicit label. It
+@c is the counterpart to the tuple, except that elements of an anonymous
+@c record can be accessed using @refer{RecordAccess} expressions.
 
-Like the normal @refer{RecordLiteral}, there are two variants: an
-@refer{AnonymousRecord} and an @refer{AnonymousThetaRecord}.
+@c Like the normal @refer{RecordLiteral}, there are two variants: an
+@c @refer{AnonymousRecord} and an @refer{AnonymousThetaRecord}.
 
-@float BNF,anonRecordFig
-@caption{Anonymous Record Literal}
-@display
-@anchored{AnonymousRecord}::= @code{'@{.'} @refer{RecordElement}@refer{Terminator} @dots{} @refer{Terminator} @refer{RecordElement} @code{'.@}'}
-@anchored{AnonymousThetaRecord}::= @code{'@{'} @refer{Definition}@refer{Terminator} @dots{} @refer{Terminator} @refer{Definition} @code{'@}'}
-@end display
-@end float
+@c @float BNF,anonRecordFig
+@c @caption{Anonymous Record Literal}
+@c @display
+@c @anchored{AnonymousRecord}::= @code{'@{.'} @refer{RecordElement}@refer{Terminator} @dots{} @refer{Terminator} @refer{RecordElement} @code{'.@}'}
+@c @anchored{AnonymousThetaRecord}::= @code{'@{'} @refer{Definition}@refer{Terminator} @dots{} @refer{Terminator} @refer{Definition} @code{'@}'}
+@c @end display
+@c @end float
 
-For example, an anonymous record consisting of a @code{name} and an
-@code{address} may be written: 
-@example
-@{. name="Fred. address="1 Main St" .@}
-@end example
+@c For example, an anonymous record consisting of a @code{name} and an
+@c @code{address} may be written: 
+@c @example
+@c @{. name="Fred. address="1 Main St" .@}
+@c @end example
 
-Anonymous records have, as their type, a @refer{RecordType}. The type of this record would be represented by:
+@c Anonymous records have, as their type, a @refer{RecordType}. The type of this record would be represented by:
 
-@example
-@{ name : string. address : string @}
-@end example
+@c @example
+@c @{ name : string. address : string @}
+@c @end example
 
 
 @node Function Application Expressions
@@ -830,7 +838,6 @@ expressed as equations is effectively a @code{case} expression.
 @end display
 @end float
 
-
 The value of a conditional expression depends on whether the
 @refer{Condition} is satisfiable or not. If the @refer{Condition} is
 satisfiable, then the expression is equivalent to the 'then' branch of
@@ -879,16 +886,21 @@ auxiliary definitions.
 @float BNF,letExpressionFig
 @caption{Let Expression}
 @display
-@anchored{LetExpression}::=@code{'let'} @refer{AnonymousRecord} @code{'in'} @refer{Expression}
+@anchored{LetExpression}::=@code{'let'} @refer{LetEnvironment} @code{'in'} @refer{Expression}
+@anchored{LetEnvironment} ::= @code{'@{.'} @refer{RecordElement}@refer{Terminator} @dots{} @refer{Terminator} @refer{RecordElement} @code{'.@}'} |
+  @code{'@{'} @refer{Definition}@refer{Terminator} @dots{} @refer{Terminator} @refer{Definition} @code{'@}'}
 @end display
 @end float
 
 A @code{let} expression consists of a body -- which is an
-@refer{AnonymousRecord} -- and a bound @refer{Expression}. Within the
-@refer{AnonymousRecord} may occur any of the permitted forms of
-definition: function definitions, variable definitions, type
-definitions, and so on. The scope of these definitions includes the
-bound expression.
+@refer{LetEnvironment} -- and a bound @refer{Expression}. There are
+two forms of let expressions, recursive and non-recursive. The
+non-recursive form is written using the @code{@{.} and @code{.@}}
+brackets, whereas the recursive environment is written using @code{@{}
+and @code{@}} brackets.
+
+Both environments support value and type definitions; the recursive
+environment allows mutually recursive definitions to be constructed.
 
 @quotation Note
 @code{let} expressions are an important program structuring tool for
@@ -905,13 +917,21 @@ S = sort(L,myCompare)
 @end example
 
 Or, the same may be achieved where the call to @code{sort} is not so
-conveniently close to a theta environment: 
+conveniently close to a definition environment: 
 @example
-sort(L, let@{
+sort(L, let@{.
   pComp(someone@{name=N1@},someone@{name=N2@}) => N1<N2
-@}
+.@}
 in pComp)
 @end example
+
+@quotation Note
+Of course, in this case, the @code{sort} expression could equally have
+been written using a lambda expression:
+@example
+sort(L, (someone@{name=N1@},someone@{name=N2@}) => N1<N2)
+@end example
+@end quotation
 
 The @code{let} expression has major applications when constructing
 function-returning functions.
@@ -930,7 +950,7 @@ though by the algebraic type definition in:
 @float Program,optionTypeDef
 @caption{@code{option} Type Definition}
 @example
-option[t] ::= none | some(t)
+option[t] ::= .none | some(t)
 @end example
 @end float
 
@@ -945,7 +965,7 @@ some("alpha")
 
 signals the definite tring value @code{"alpha"}; whereas 
 @example
-none
+.none
 @end example
 signals that there is no value.
 
@@ -1060,9 +1080,8 @@ appropriately implementing the @code{coercion} contract.
 @cindex expression,sequence
 
 Sequence expressions are a syntactic feature that make it
-straightforward to represent sequence and other forms of collective
-values. The difference between a collection and a
-sequence is that the latter embodies a sequential ordering of
+straightforward to represent sequences and other forms of collection
+values. Some sequence forms embody a sequential ordering of
 the elements. A collection may have an ordering present; but
 that is not required by the contract and is not enforced in the
 notation.
@@ -1084,7 +1103,7 @@ I.e., a sequence expression consists of a sequence of
 sequence may be denoted by an expression. Otherwise the sequence is
 nil-terminated.
 
-Sequence expressions are interpreted in terms of the @code{stream} contract.
+Sequence expressions are interpreted in terms of the @code{sequence} contract.
 
 An expression of the form: 
 @example
@@ -1099,7 +1118,9 @@ _cons(@var{E@sub{1}}, @dots{} , _cons(@var{E@sub{n}},_nil) @dots{} )
 where @code{_cons} and @code{_nil} are elements of the @code{sequence} contract.
 
 @quotation
-There is a corresponding contract for sequence terms as patterns.
+There is a corresponding contract for sequence terms as patterns;
+which uses the @code{stream} contract to signal the underlying
+semantics.
 @end quotation
 
 @node Index Expression

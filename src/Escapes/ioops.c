@@ -3,7 +3,7 @@
 //
 
 
-#include <chars.h>
+#include <strings.h>
 #include <assigns.h>
 #include <arith.h>
 #include <stringBuffer.h>
@@ -83,7 +83,7 @@ ReturnStatus g__inchars(processPo p, ptrPo tos) {
     integer length;
     char *text = getTextFromBuffer(buffer, &length);
 
-    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateChars(processHeap(p), text, length)};
+    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), text, length)};
     closeFile(O_IO(buffer));
     return rt;
   } else {
@@ -157,7 +157,7 @@ ReturnStatus g__intext(processPo p, ptrPo tos) {
   termPo Arg2 = tos[1];
   ioPo io = ioChannel(C_IO(Arg1));
   integer mlen;
-  const char *match = charsVal(Arg2, &mlen);
+  const char *match = strVal(Arg2, &mlen);
 
   strBufferPo buffer = newStringBuffer();
 
@@ -177,7 +177,7 @@ ReturnStatus g__intext(processPo p, ptrPo tos) {
     integer length;
     char *text = getTextFromBuffer(buffer, &length);
 
-    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateChars(processHeap(p), text, length)};
+    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), text, length)};
     closeFile(O_IO(buffer));
     return rt;
   } else {
@@ -210,7 +210,7 @@ ReturnStatus g__inline(processPo p, ptrPo tos) {
     integer length;
     char *text = getTextFromBuffer(buffer, &length);
 
-    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateChars(processHeap(p), text, length)};
+    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), text, length)};
     closeFile(O_IO(buffer));
     return rt;
   } else {
@@ -223,7 +223,7 @@ ReturnStatus g__inline(processPo p, ptrPo tos) {
 ReturnStatus g__get_file(processPo p, ptrPo tos) {
   char fn[MAXFILELEN];
 
-  copyChars2Buff(C_CHARS(tos[0]), fn, NumberOf(fn));
+  copyChars2Buff(C_STR(tos[0]), fn, NumberOf(fn));
 
   ioPo io = openInFile(fn, utf8Encoding);
   if (io != Null) {
@@ -241,7 +241,7 @@ ReturnStatus g__get_file(processPo p, ptrPo tos) {
       integer length;
       char *text = getTextFromBuffer(buffer, &length);
 
-      ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateChars(processHeap(p), text, length)};
+      ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), text, length)};
       closeFile(O_IO(buffer));
       return rt;
     } else {
@@ -294,7 +294,7 @@ ReturnStatus g__outtext(processPo p, ptrPo tos) {
   termPo Arg2 = tos[1];
   ioPo io = ioChannel(C_IO(Arg1));
   integer length;
-  const char *text = charsVal(Arg2, &length);
+  const char *text = strVal(Arg2, &length);
   retCode ret = Ok;
 
   integer pos = 0;
@@ -311,7 +311,7 @@ ReturnStatus g__outtext(processPo p, ptrPo tos) {
 ReturnStatus g__show(processPo p, ptrPo tos) {
   termPo Arg = tos[0];
   integer length;
-  const char *text = charsVal(Arg, &length);
+  const char *text = strVal(Arg, &length);
   retCode ret = outMsg(logFile, "%S\n%_", text, length);
 
   return rtnStatus(p, ret, "_show");
@@ -320,12 +320,12 @@ ReturnStatus g__show(processPo p, ptrPo tos) {
 ReturnStatus g__put_file(processPo p, ptrPo tos) {
   char fn[MAXFILELEN];
 
-  copyChars2Buff(C_CHARS(tos[0]), fn, NumberOf(fn));
+  copyChars2Buff(C_STR(tos[0]), fn, NumberOf(fn));
 
   ioPo io = openOutFile(fn, utf8Encoding);
   if (io != Null) {
     integer tLen;
-    const char *txt = charsVal(tos[1], &tLen);
+    const char *txt = strVal(tos[1], &tLen);
 
     retCode ret = outText(io, txt, tLen);
     closeFile(O_IO(io));
@@ -340,7 +340,7 @@ ReturnStatus g__put_file(processPo p, ptrPo tos) {
 
 ReturnStatus g__logmsg(processPo p, ptrPo tos) {
   integer length;
-  const char *text = charsVal(tos[0], &length);
+  const char *text = strVal(tos[0], &length);
   retCode ret = logMsg(logFile, "%S", (char *) text, length);
 
   return rtnStatus(p, ret, "logmsg");

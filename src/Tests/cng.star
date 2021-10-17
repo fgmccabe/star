@@ -4,6 +4,8 @@ test.cng{
 
   Tg = tag().
 
+  tgWrap[x,y] ::= tgWrap{ K:(x)=>>tgWrap[x,y]}.
+
   consWlk(.nil,Y) => Y(.none).
   consWlk(cons(H,T),Y) => valof do{
     Y(some(H));
@@ -12,7 +14,7 @@ test.cng{
 
   mkYield(FC) =>
     (V) => let{.
-      cc = Tg cut K in K.
+      cc = Tg cut K in tgWrap{K=K}.
     .} in (case V in {
 	.none => ().
 	some(Vl) => FC.((cc,Vl))

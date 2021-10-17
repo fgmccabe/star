@@ -142,25 +142,26 @@ star.compiler.opg{
   deComma(Trm) where (_,Lhs,Rhs) ^= isBinary(Trm,",") => [Lhs,..deComma(Rhs)].
   deComma(Trm) => [Trm].
 
-  handleInterpolation:(cons[stringSegment],reports,locn) => (ast,reports).
-  handleInterpolation([segment(Lc,Str)],Rpt,_) => (unary(Lc,"chrs_",chrs(Lc,_str_fltn(Str))),Rpt).
-  handleInterpolation([],Rpt,Lc) => (unary(Lc,"chrs_",chrs(Lc,0"")),Rpt).
-  handleInterpolation(Segments,Rp,Lc) where
-    (Segs,Rpx) .= stringSegments(Segments,Rp,[]) => (binary(Lc,"::",unary(Lc,"ssSeq",tpl(Lc,"[]",Segs)),nme(Lc,"string")),Rpx).
+  interpolateString:(cons[stringSegment],reports,locn) => (ast,reports).
+  interpolateString(Els,Rp,Lc) where size(Els)>1 && (Interpolation,Rp1) .= handleInterpolations(Els,Rp,Lc) =>
+    (unary(Lc,"_str_multicat",Interpolation),Rp1).
 
-  stringSegments:(cons[stringSegment],reports,cons[ast]) => (cons[ast],reports).
-  stringSegments([],Rp,SoFar) => (reverse(SoFar),Rp).
-  stringSegments([Seg,..More],Rp,SoFar) where
-      (Sg,Rp1).=stringSegment(Seg,Rp) => stringSegments(More,Rp1,[Sg,..SoFar]).
+  handleInterpolations:(cons[stringSegment],reports,locn) => (ast,reports).
+  handleInterpolations(.nil,Rp,Lc) => (enum(Lc,"nil"),Rp).
+  handleInterpolations(cons(H,T),Rp,Lc) where
+      (HH,Rp0) .= handleInterpolation(H,Rp,Lc) &&
+      (TT,Rp1) .= handleInterpolations(T,Rp0,Lc) =>
+    (binary(Lc,"cons",HH,TT),Rp1).
 
-  stringSegment:(stringSegment,reports) => (ast,reports).
-  stringSegment(segment(Lc,Str),Rp) => (unary(Lc,"chrs_",chrs(Lc,_str_fltn(Str))),Rp).
-  stringSegment(interpolate(Lc,Toks,""),Rpt) where
+  handleInterpolation:(stringSegment,reports,locn) => (ast,reports).
+  handleInterpolation(segment(Lc,Str),Rpt,_) => (chrs(Lc,Str),Rpt).
+
+  handleInterpolation(interpolate(Lc,Toks,""),Rpt) where
       (A,Rpt1,_) .= astParse(Toks,Rpt) => (unary(Lc,"disp",A),Rpt1).
-  stringSegment(interpolate(Lc,Toks,Frmt),Rpt) where
-      (A,Rpt1,_) .= astParse(Toks,Rpt) => (binary(Lc,"frmt",A,chrs(Lc,_str_fltn(Frmt))),Rpt1).
-  stringSegment(evaluate(Lc,Toks),Rp) where (A,Rpt1,_) .= astParse(Toks,Rp) => (A,Rp).
-
+  handleInterpolation(interpolate(Lc,Toks,Frmt),Rpt) where
+      (A,Rpt1,_) .= astParse(Toks,Rpt) => (binary(Lc,"frmt",A,chrs(Lc,Frmt)),Rpt1).
+  handleInterpolation(evaluate(Lc,Toks),Rp) where (A,Rpt1,_) .= astParse(Toks,Rp) => (A,Rp).
+  
   checkToken:(tk,reports,cons[token]) => (locn,reports,cons[token]).
   checkToken(Tk,Rpt,[tok(Lc,Tk),..Toks]) => (Lc,Rpt,Toks).
   checkToken(Tk,Rpt,[tok(Lc,T),..Toks]) => (Lc,reportError(Rpt,"missing $(Tk)",Lc),[tok(Lc,T),..Toks]).

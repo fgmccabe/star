@@ -19,16 +19,15 @@ star.json{
   dispJson(jTxt(T),_) => disp(T).
   dispJson(jNum(D),_) => disp(D).
   dispJson(jColl(M),Sp) => "{#(dispColl(M::cons[keyval[string,json]],Sp+2,""))}".
-  dispJson(jSeq(L),Sp) => "[#(dispSeq(L,Sp,""))]".
+  dispJson(jSeq(L),Sp) => "[#(interleave(dispSeq(L,Sp),", ")*)]".
 
   dispColl:(cons[keyval[string,json]],integer,string) => string.
   dispColl([],_,_) => "".
   dispColl([f->e,..l],Sp,s) => "#(s)$(f)\:#(dispJson(e,Sp))#(dispColl(l,Sp,","))".
 
-  dispSeq:(cons[json],integer,string) => string.
-  dispSeq([],_,_) => "".
-  dispSeq([e],_,_) => "$(e)".
-  dispSeq([e,..l],Sp,s) => pair_(pair_(s,dispJson(e,Sp)),dispSeq(l,Sp,",")).
+  dispSeq:(cons[json],integer) => cons[string].
+  dispSeq([],_) => .nil.
+  dispSeq([e,..l],Sp) => cons(dispJson(e,Sp),dispSeq(l,Sp)).
 
   public implementation coercion[json,string] => {.
     _coerce(J) => some(disp(J)).

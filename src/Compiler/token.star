@@ -21,17 +21,13 @@ star.compiler.token{
     disp(idTok(Id)) => "'#(Id)'".
     disp(intTok(Ix)) => disp(Ix).
     disp(fltTok(Dx)) => disp(Dx).
-    disp(strTok(S)) => "\"#(dispSegments(S))\"".
+    disp(strTok(S)) => "\"#(dispSegments(S)*)\"".
     disp(lftTok(Id)) => "<#(Id)".
     disp(rgtTok(Id)) => "#(Id)>".
   .}
 
-  dispSegments:(cons[stringSegment]) => string.
-  dispSegments(Segs) => reform(Segs//disp).
-
-  reform([])=>"".
-  reform([S])=>S.
-  reform([S,..Ss]) => pair_(S,reform(Ss)).
+  dispSegments:(cons[stringSegment]) => cons[string].
+  dispSegments(Segs) => (Segs//disp).
 
   public implementation display[stringSegment] => {.
     disp(segment(_,S)) => S.

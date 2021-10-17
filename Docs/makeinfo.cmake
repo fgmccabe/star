@@ -1,6 +1,8 @@
 find_program(MAKEINFO makeinfo
         PATHS ${PATH} NODEFAULT)
-# message("Makeinfo = ${MAKEINFO} $ENV{PATH}")
+find_program(TEXIPDF texi2pdf
+        PATHS ${PATH} NODEFAULT)
+message("Makeinfo = ${MAKEINFO} $ENV{PATH}")
 
 function(add_info nm)
     if (MAKEINFO)

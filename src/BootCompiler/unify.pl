@@ -282,7 +282,7 @@ mergeConstraint(Cx,[_|Y],Lc,Env) :- !, % TODO: handle merging implementsFace mor
 
 varIsIn(TV,Tp) :- deRef(Tp,DTp),
   \+ isIdenticalVar(TV,DTp),
-  (TV = tVar(_,_,_,Id) -> occIn(Id,DTp); TV=tFun(_,_,_,_,Id), occIn(Id,DTp)),!.
+  (TV = tVar(_,_,_,_,Id) -> occIn(Id,DTp); TV=tFun(_,_,_,_,_,Id), occIn(Id,DTp)),!.
 
 occIn(Id,tVar(_,_,_,_,Id)) :-!.
 occIn(Id,tVar(Curr,_,_,_,_)) :- nonvar(Curr), !, occIn(Id,Curr).

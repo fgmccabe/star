@@ -18,7 +18,7 @@ star.resources{
   newerRsrc(U1,U2) => newerFile(getUriPath(U1),getUriPath(U2)).
 
   public cwd:()=>uri.
-  cwd() where U^=parseUri(chrs_(_cwd())) => U.
+  cwd() where U^=parseUri(_cwd()) => U.
 
   public searchForRsRc:(uri,string)=>option[uri].
   searchForRsRc(U,Pth) where P^=parseUri("../") && R ^= parseUri(Pth) =>

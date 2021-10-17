@@ -12,6 +12,8 @@ displayln(L) :-
 
 ss_to_chrs(ss(Str),C,Cx) :-!,
   appStr(Str,C,Cx).
+ss_to_chrs(qt(Qt,Str),C,Cx) :-!,
+  appQuoted(Str,Qt,C,Cx).
 ss_to_chrs(ix(Ix),C,Cx) :-!,
   appInt(Ix,C,Cx).
 ss_to_chrs(fx(Dx),C,Cx) :-!,

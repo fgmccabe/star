@@ -437,6 +437,7 @@ compWhile(Lc,Cond,Body,OLc,Cont,RCont,ECont,Opts,L,Lx,D,Dx,End,
 	   compAction(Body,Lc,resetCont(Stk,contCont(Loop)),RCont,ECont,Opts),
 	   resetCont(Stk,Cont),ECont,Opts,L0,Lx,D,Dx,End,C0,Cx,Stk,Stkx),
   verify(gencode:sameStk(Stk,Stkx),"while stack").
+
 compTryCatch(Lc,A,H,Cont,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   splitCont(Lc,handleAction(Lc,Cont,ECont,H,Opts),ThCont),
   compAction(A,Lc,Cont,RCont,ThCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).

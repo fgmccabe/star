@@ -69,9 +69,6 @@ star.core {
 
   public all t ~~ cons[t] ::= .nil | cons(t,cons[t]).
 
-  -- Structured string.
-  public string ::= chrs_(chars) | pair_(string,string).
-
   -- Displayable contract
   public contract all t ~~ display[t] ::= {
     disp:(t)=>string.
@@ -79,7 +76,7 @@ star.core {
 
   format@"Formatting contract".
   public contract all t ~~ format[t] ::= {
-    frmt:(t,chars) => string.
+    frmt:(t,string) => string.
   }
 
   public implementation display[string] => {
@@ -101,8 +98,8 @@ star.core {
   }
 
   public implementation display[boolean] => {.
-    disp(.true) => chrs_(0"true").
-    disp(.false) => chrs_(0"false").
+    disp(.true) => "true".
+    disp(.false) => "false".
   .}
 
   option@"the option type is useful when a value is not always available".

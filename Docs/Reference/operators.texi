@@ -540,121 +540,83 @@
 
 @float Table,tokensTbl
 @caption{Standard Graphical Tokens}
-@multitable {implementation}{implementation}{implementation}
-@headitem Graphic @tab Graphic @tab Graphic
-@item @code{all}
-@item @code{.<.}
-@item @code{^=}
-@item @code{&&}
-@item @code{pure}
-@item @code{~=}
-@item @code{~>}
-@item @code{throw}
-@item @code{.|.}
-@item @code{do}
-@item @code{import}
-@item @code{catch}
-@item @code{prompt}
-@item @code{valis}
-@item @code{,..}
-@item @code{for}
-@item @code{**}
-@item @code{->}
-@item @code{.+.}
-@item @code{ignore}
-@item @code{<$}
-@item @code{raise}
-@item @code{then}
-@item @code{!}
-@item @code{->>}
-@item @code{default}
-@item @code{#}
-@item @code{%}
-@item @code{<-}
-@item @code{.>>>.}
-@item @code{\\+}
-@item @code{<<-}
-@item @code{*}
-@item @code{\\-}
-@item @code{+}
-@item @code{.>>.}
-@item @code{*>}
-@item @code{,}
-@item @code{contract}
-@item @code{\\/}
-@item @code{-}
-@item @code{.}
-@item @code{/}
-@item @code{<*>}
-@item @code{try}
-@item @code{exists}
-@item @code{if}
-@item @code{$$}
-@item @code{background}
-@item @code{:}
-@item @code{;}
-@item @code{<}
-@item @code{.=}
-@item @code{=>>}
-@item @code{=}
-@item @code{|:}
-@item @code{show}
-@item @code{++}
-@item @code{>}
-@item @code{return}
-@item @code{?}
-@item @code{@@}
-@item @code{in}
-@item @code{^|}
-@item @code{cut}
-@item @code{open}
-@item @code{~~}
-@item @code{assert}
-@item @code{!!}
-@item @code{⊕}
-@item @code{.^.}
-@item @code{//}
-@item @code{public}
-@item @code{ref}
-@item @code{.~.}
-@item @code{where}
-@item @code{=<}
-@item @code{case}
-@item @code{==}
-@item @code{\\}
-@item @code{=>}
-@item @code{^}
-@item @code{<=>}
-@item @code{perform}
-@item @code{valof}
-@item @code{until}
-@item @code{while}
-@item @code{private}
-@item @code{•}
-@item @code{.&.}
-@item @code{///}
-@item @code{::}
-@item @code{+++}
-@item @code{:=}
-@item @code{:?}
-@item @code{.<<.}
-@item @code{^.}
-@item @code{>>=}
-@item @code{^/}
-@item @code{<~}
-@item @code{type}
-@item @code{implementation}
-@item @code{|}
-@item @code{.#.}
-@item @code{handle}
-@item @code{~}
-@item @code{^//}
-@item @code{||}
-@item @code{else}
-@item @code{::=}
-@item @code{/\\}
-@item @code{>=}
-@item @code{>>}
+@multitable |{Graphic}|{Graphic}|{Graphic}|{Graphic}|{Graphic}|
+  @item @code{.<.}
+  @tab @code{^=}
+  @tab @code{&&}
+  @tab @code{~=}
+  @tab @code{~>}
+  @item @code{.|.}
+  @tab @code{,..}
+  @tab @code{**}
+  @tab @code{->}
+  @tab @code{.+.}
+  @item @code{<$}
+  @tab @code{!}
+  @tab @code{->>}
+  @tab @code{#}
+  @tab @code{%}
+  @item @code{<-}
+  @tab @code{.>>>.}
+  @tab @code{\\+}
+  @tab @code{<<-}
+  @tab @code{*}
+  @item @code{\\-}
+  @tab @code{+}
+  @tab @code{.>>.}
+  @tab @code{*>}
+  @tab @code{,}
+  @item @code{\\/}
+  @tab @code{-}
+  @tab @code{.}
+  @tab @code{/}
+  @tab @code{<*>}
+  @item @code{$$}
+  @tab @code{:}
+  @tab @code{;}
+  @tab @code{<}
+  @tab @code{.=}
+  @item @code{=>>}
+  @tab @code{=}
+  @tab @code{|:}
+  @tab @code{++}
+  @tab @code{>}
+  @item @code{?}
+  @tab @code{@@}
+  @tab @code{^|}
+  @tab @code{~~}
+  @tab @code{!!}
+  @item @code{⊕}
+  @tab @code{.^.}
+  @tab @code{//}
+  @tab @code{.~.}
+  @tab @code{=<}
+  @item @code{==}
+  @tab @code{\\}
+  @tab @code{=>}
+  @tab @code{^}
+  @tab @code{<=>}
+  @item @code{•}
+  @tab @code{.&.}
+  @tab @code{///}
+  @tab @code{::}
+  @tab @code{+++}
+  @item @code{:=}
+  @tab @code{:?}
+  @tab @code{.<<.}
+  @tab @code{^.}
+  @tab @code{>>=}
+  @item @code{^/}
+  @tab @code{<~}
+  @tab @code{|}
+  @tab @code{.#.}
+  @tab @code{~}
+  @item @code{^//}
+  @tab @code{||}
+  @tab @code{::=}
+  @tab @code{/\\}
+  @tab @code{>=}
+  @item @code{>>}
 
 @end multitable
 @end float

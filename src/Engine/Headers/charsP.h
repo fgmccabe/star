@@ -8,7 +8,7 @@
 #include "heap.h"
 #include "code.h"
 #include "termP.h"
-#include "chars.h"
+#include "strings.h"
 
 typedef struct chars_term_ {
   clssPo clss;                  // == stringClass
@@ -17,7 +17,7 @@ typedef struct chars_term_ {
   char txt[ZEROARRAYSIZE];
 } CharsRecord;
 
-extern void initChars();
+extern void initStrings();
 
 #define CharsCellCount(len) CellCount(sizeof(CharsRecord)+(len)*sizeof(char))
 

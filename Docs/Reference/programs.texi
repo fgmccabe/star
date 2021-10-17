@@ -4,8 +4,7 @@
 This chapter focuses on the organization of programs using functions,
 types and other computational forms. Apart from program values
 themselves, a key concept is the @refer{ThetaEnvironment}. This is
-where many programs, types etc. are defined. @refer{ThetaEnvironment}s
-are also first-class values -- showing up as @refer{AnonymousRecord}s.
+where many programs, types etc. are defined. 
 
 @node Sources and Catalogs
 @section Sources and Catalogs
@@ -43,9 +42,6 @@ where @emph{PkgName} is a valid Star package name -- written as a
 string because it's JSON.
 
 @emph{FileName}s and @emph{CatalogPath}s are relative file names -- or URLs.
-
-
-
 
 @node Package Structure
 @section Package Structure

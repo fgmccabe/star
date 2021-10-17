@@ -3,7 +3,7 @@
 #include <assert.h>
 #include "term.h"
 #include <globals.h>
-#include <chars.h>
+#include <strings.h>
 #include "engine.h"
 #include "libEscapes.h"
 #include "signature.h"
@@ -75,7 +75,7 @@ ReturnStatus rtnStatus(processPo p, retCode ret, char *msg) {
       heapPo H = processHeap(p);
       normalPo err = allocateStruct(H, (labelPo) errorLbl);
       int root = gcAddRoot(H, (ptrPo) (&err));
-      setArg(err, 0, (termPo) allocateChars(H, msg, uniStrLen(msg)));
+      setArg(err, 0, (termPo) allocateString(H, msg, uniStrLen(msg)));
       gcReleaseRoot(H, root);
       rtn.result = (termPo) err;
       return rtn;

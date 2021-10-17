@@ -5,7 +5,7 @@
 #include <arith.h>
 #include <math.h>
 #include <stringBuffer.h>
-#include <chars.h>
+#include <strings.h>
 #include <arithP.h>
 #include <tpl.h>
 #include "datentime.h"

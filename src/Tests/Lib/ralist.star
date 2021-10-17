@@ -142,16 +142,16 @@ test.ralist{
   }
   
   public implementation all e ~~ display[e] |: display[ra[e]] => let{
-    dispList:(cons[digit[e]])=>string.
-    dispList(.nil) => "".
-    dispList(cons(.zer,ts))=>dispList(ts).
-    dispList(cons(one(t),ts)) =>
-      pair_(dispTree(t), dispList(ts)).
+    dispList:(cons[digit[e]],cons[string])=>cons[string].
+    dispList(.nil,L) => L.
+    dispList(cons(.zer,ts),L)=>dispList(ts,L).
+    dispList(cons(one(t),ts),L) =>
+      dispTree(t,dispList(ts,L)).
 
-    dispTree:(tree[e]) => string.
-    dispTree(leaf(x)) => pair_(disp(x),",").
-    dispTree(node(_,t1,t2)) => pair_(dispTree(t1),dispTree(t2)).
+    dispTree:(tree[e],cons[string]) => cons[string].
+    dispTree(leaf(x),L) => cons(disp(x),L).
+    dispTree(node(_,t1,t2),L) => dispTree(t1,dispTree(t2,L)).
   } in {
-    disp(ra(ts)) => "[#(dispList(ts))]".
+    disp(ra(ts)) => "[#(interleave(dispList(ts,.nil),", ")*)]".
   }
 }

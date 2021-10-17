@@ -7,19 +7,19 @@ star.coerce{
   }
 
   public implementation coercion[integer,string] => {
-    _coerce(Ix) => some(chrs_(_int2str(Ix,10,0,0)))
+    _coerce(Ix) => some(_int2str(Ix,10,0,0))
   }
 
   public implementation coercion[float,string] => {
-    _coerce(Dx) => some(chrs_(_flt2str(Dx,0,8,0cg,.false)))
+    _coerce(Dx) => some(_flt2str(Dx,0,8,0cg,.false))
   }
 
   public implementation coercion[string,float] => {
-    _coerce(Sx) => _str2flt(_str_fltn(Sx)).
+    _coerce(Sx) => _str2flt(Sx).
   }
 
   public implementation coercion[string,integer] => {
-    _coerce(Sx) => _str2int(_str_fltn(Sx)).
+    _coerce(Sx) => _str2int(Sx).
   }
 
   public implementation coercion[integer,float] => {

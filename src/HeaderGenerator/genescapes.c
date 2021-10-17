@@ -98,9 +98,6 @@ static char *dumpSig(char *sig, strBufferPo out) {
       dumpStdType("star.core*float", out);
       break;
     case chrSig:
-      dumpStdType("chars", out);
-      break;
-    case strSig:
       dumpStdType("star.core*string", out);
       break;
     case logSig:

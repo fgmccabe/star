@@ -6,6 +6,7 @@ star.finger{
   import star.coerce.
   import star.monad.
   import star.iterable.
+  import star.strings.
   import star.option.
 
   -- 2-3 finger trees.
@@ -284,14 +285,9 @@ star.finger{
   }
 
   public implementation all e ~~ display[e] |: display[fingerTree[e]] => {.
-    disp(T) => "[#(reform(dispTree(T,(x,L)=>cons(disp(x),L),.nil)))]".
+    disp(T) => "[#(interleave(dispTree(T,(x,L)=>cons(disp(x),L),.nil),", ")*)]".
   .}
 
-  reform:(cons[string]) => string.
-  reform(.nil) => "".
-  reform(cons(x,.nil)) => x.
-  reform(cons(x,y)) => pair_(",",reform(y)).
-  
   dispTree:all e ~~ (fingerTree[e],(e,cons[string])=>cons[string],cons[string]) => cons[string].
   dispTree(.eTree,_,L) => L.
   dispTree(single(x),d,L) => d(x,L).

@@ -323,14 +323,14 @@ codes -- from 8 bits through to 20 bits.
 @noindent
 A string is a sequence of character references (@pxref{CharRef}).
 
-There are several forms of @emph{string literal}: a
-@var{QuotedString}, a @var{BlockString} and a @var{RawString}.
+There are two forms of @emph{string literal}: a
+@var{QuotedString} and a @var{BlockString}.
 
 
 @float BNF,quotedStringFig
 @caption{String Literals}
 @display
-@anchored{StringLiteral} ::= @var{QuotedString} | @var{BlockString} | @var{RawString}
+@anchored{StringLiteral} ::= @var{QuotedString} | @var{BlockString}
 
 @anchored{QuotedString} ::= @code{'"'} @var{StrChar} @dots{} @var{StrChar} @code{'"'}
 
@@ -342,8 +342,6 @@ There are several forms of @emph{string literal}: a
 
 @anchored{Embedding} ::= @code{'#'} @code{'('} @var{Expression} @code{')'}
 
-@anchored{RawString} ::= @code{'0'} @code{'"'} @var{CharRef} @dots{} @var{CharRef} @code{'"'}
-
 @end display
 @end float
 
@@ -352,23 +350,14 @@ Strings are @emph{not} permitted to contain the new-line character -- other
 than as a character reference.
 @end quotation
 
+Most string literals take the form of @refer{QuotedString}s. Such
+string literals support special notation for control characters and
+also permit @emph{interpolation} of values embedded within them. The
+supported control characters are mostly the usual suspects:
+
 @example
 "This string has a \nnew line in the middle"
 @end example
-
-@quotation Note
-There are some subtle differences between @var{QuotedString}s and
-@var{RawString}s (apart from the leading zero character):
-
-@itemize
-@item A @var{QuotedString} may have embedded interpolation expressions, for example
-@example
-"His name is $(Cat.name)"
-@end example
-@item A @var{RawString} may not have embedded interpolation expressions. In fact, such forms are treated as part of the string literal itself.
-@item The type of a @var{QuotedString} is @code{string}, whereas the type of a @var{RawString} is @code{chars}.
-@end itemize
-@end quotation
 
 @node Block String
 @subsection Block String
@@ -488,14 +477,13 @@ of all the standard graphic-form identifiers.
 @end float
 
 The standard @var{GraphicIdentifier}s are listed in
-Table~@ref{tokensTbl}. I.e, such identifiers are normally
+@ref{tokensTbl}. I.e, such identifiers are normally
 also operators.
 
 @quotation TIP
 Apart from their graphic form there is no particular semantic
 distinction between a graphic form identifier and a alphanumeric form
-identifier. In fact, new graphical tokens may be introduced as a
-result of declaring an operator -- see <<symbolicOperators>>.
+identifier.
 @end quotation
 
 @node Quoted Identifiers
@@ -635,7 +623,8 @@ There are several @emph{special} sets of brackets:
 @display
 @anchored{SpecialBracket} ::= @code{'(|'} | @code{'|)'} |
   @code{'[|'} | @code{'|]'} |
-  @code{'<|'} | @code{'|>'}
+  @code{'<|'} | @code{'|>'} |
+  @code{'@{!'} | @code{'!@}'} | @code{'@{?'} | @code{'?@}'}
 @end display
 @end float
 

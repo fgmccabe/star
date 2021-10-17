@@ -13,7 +13,7 @@ ReturnStatus g__definedLbl(processPo P, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
   char label[MAX_SYMB_LEN];
-  copyChars2Buff(C_CHARS(Arg1), label, NumberOf(label));
+  copyChars2Buff(C_STR(Arg1), label, NumberOf(label));
   integer arity = integerVal(Arg2);
 
   return (ReturnStatus) {.ret=Ok,
@@ -39,7 +39,7 @@ ReturnStatus g__callLbl(processPo P, ptrPo tos) {
   termPo args = tos[2];
 
   char label[MAX_SYMB_LEN];
-  copyChars2Buff(C_CHARS(tos[0]), label, NumberOf(label));
+  copyChars2Buff(C_STR(tos[0]), label, NumberOf(label));
 
   ReturnStatus ret = {.ret=Error, .result = voidEnum};
 
