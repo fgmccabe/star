@@ -443,8 +443,17 @@ compTryCatch(Lc,A,H,Cont,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   compAction(A,Lc,Cont,RCont,ThCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 
 handleAction(Lc,Cont,ECont,H,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
-  compTerm(H,Lc,oclCont(2,handleCont(ECont,Cont),Opts),ECont,Opts,
-	   L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
+  handlerCont(Cont,compTerm(H,Lc,oclCont(2,handleCont(ECont,Cont),Opts),ECont,Opts),
+	      L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
+
+handlerCont(PCont,ECont,L,Lx,D,Dx,End,[iIndxJmp(2),iJmp(Err),iJmp(Ok),iLbl(Trp),iHalt(2),
+				       iLbl(Ok),iUnpack(lbl("star.action#ok",1),Trp)|C],Cx,Stk,Stkx) :-
+  genLbl(L,Ok,L0),
+  genLbl(L0,Err,L1),
+  genLbl(L1,Trp,L2),
+  call(PCont,L2,L3,D,D1,End,C,[iLbl(Err),iUnpack(lbl("star.action#err",1),Trp)|C1],Stk,_Stk0),
+  call(ECont,L3,Lx,D,D2,End,C1,Cx,Stk,Stkx),
+  mergeVars(D1,D2,Dx).
 
 handleCont(ECont,Cont,L,Lx,D,Dx,End,[iCLbl(lbl("star.action#ok",1),Nxt)|C],Cx,Stk,Stkx) :-
   genLbl(L,Nxt,L1),
