@@ -9,7 +9,7 @@
 #include "heap.h"
 
 // String structure
-typedef struct chars_term_ *stringPo;
+typedef struct string_term_ *stringPo;
 
 extern clssPo strClass;
 

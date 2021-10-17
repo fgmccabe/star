@@ -17,7 +17,7 @@
 #include "args.h"
 #include "formioP.h"
 #include "arithP.h"
-#include "charsP.h"
+#include "stringsP.h"
 #include "debug.h"
 #include "editline.h"
 #include "jit.h"

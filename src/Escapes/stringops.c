@@ -2,7 +2,7 @@
 // Created by Francis McCabe on 3/8/18.
 //
 
-#include <charsP.h>
+#include <stringsP.h>
 #include <arithP.h>
 #include <stringBuffer.h>
 #include <assert.h>

@@ -4,7 +4,7 @@
 
 #include <assert.h>
 #include <string.h>
-#include "charsP.h"
+#include "stringsP.h"
 
 static long strSize(specialClassPo cl, termPo o);
 static termPo strCopy(specialClassPo cl, termPo dst, termPo src);
@@ -43,7 +43,7 @@ const char *strVal(termPo o, integer *size) {
 }
 
 termPo allocateString(heapPo H, const char *txt, long length) {
-  stringPo str = (stringPo) allocateObject(H, strClass, CharsCellCount(length));
+  stringPo str = (stringPo) allocateObject(H, strClass, StringCellCount(length));
 
   str->clss = strClass;
   str->hash = 0;
@@ -66,7 +66,7 @@ termPo allocateFromStrBuffer(strBufferPo bffr, heapPo H) {
 }
 
 long strSize(specialClassPo cl, termPo o) {
-  return CharsCellCount(C_STR(o)->length);
+  return StringCellCount(C_STR(o)->length);
 }
 
 termPo strCopy(specialClassPo cl, termPo dst, termPo src) {
@@ -76,19 +76,19 @@ termPo strCopy(specialClassPo cl, termPo dst, termPo src) {
 
   memcpy(di->txt, si->txt, si->length);
 
-  return ((termPo) di) + CharsCellCount(si->length);
+  return ((termPo) di) + StringCellCount(si->length);
 }
 
 termPo strScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   stringPo str = C_STR(o);
 
-  return o + CharsCellCount(str->length);
+  return o + StringCellCount(str->length);
 }
 
 termPo strFinalizer(specialClassPo class, termPo o) {
   stringPo str = C_STR(o);
 
-  return o + CharsCellCount(str->length);
+  return o + StringCellCount(str->length);
 }
 
 logical strCmp(specialClassPo cl, termPo o1, termPo o2) {
