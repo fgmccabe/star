@@ -37,7 +37,7 @@ set(HEADER_FILES
         Headers/tpl.h Headers/engineP.h
         Headers/local.h Headers/engineOptions.h
         Headers/labels.h Headers/labelsP.h
-        Headers/arithP.h Headers/charsP.h
+        Headers/arithP.h Headers/stringsP.h
         Headers/struct.h Headers/structP.h
         Headers/thr.h Headers/thrP.h
         Headers/repoP.h Headers/repo.h

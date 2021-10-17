@@ -2,23 +2,23 @@
 // Created by Francis McCabe on 1/23/18.
 //
 
-#ifndef STAR_CHARSP_H
-#define STAR_CHARSP_H
+#ifndef STAR_STRINGSP_H
+#define STAR_STRINGSP_H
 
 #include "heap.h"
 #include "code.h"
 #include "termP.h"
 #include "strings.h"
 
-typedef struct chars_term_ {
+typedef struct string_term_ {
   clssPo clss;                  // == stringClass
   integer length;
   integer hash;
   char txt[ZEROARRAYSIZE];
-} CharsRecord;
+} StringRecord;
 
 extern void initStrings();
 
-#define CharsCellCount(len) CellCount(sizeof(CharsRecord)+(len)*sizeof(char))
+#define StringCellCount(len) CellCount(sizeof(StringRecord)+(len)*sizeof(char))
 
-#endif //STAR_CHARSP_H
+#endif //STAR_STRINGSP_H
