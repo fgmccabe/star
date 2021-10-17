@@ -99,8 +99,8 @@ retCode run(processPo P) {
         termPo msg = pop();
 
         logMsg(logFile, "Abort %T at %L", msg, lc);
-        verifyProc(P, processHeap(P));
         saveRegisters();
+        verifyProc(P, processHeap(P));
         stackTrace(P, logFile, P->stk);
 
         return Error;
