@@ -2,6 +2,7 @@
 #define X86_64_H_
 
 #include <config.h>
+#include "utils.h"
 
 typedef struct assem_ctx *assemCtxPo;
 typedef struct assem_lbl *codeLblPo;
@@ -67,6 +68,8 @@ void lea_(x64Reg dst, x64Op src, assemCtxPo ctx);
 void mov_(x64Op dst, x64Op src, assemCtxPo ctx);
 #define mov(dst, src, ctx) do{ x64Op d=dst; x64Op s = src; mov_(d,s,ctx); } while(False)
 
+void cmov_(x64Op dst, x64Op src, assemCtxPo ctx);
+
 void xchg_(x64Op dst, x64Op src, assemCtxPo ctx);
 #define xchg(dst, src, ctx) do{ x64Op d=dst; x64Op s = src; xchg_(d,s,ctx); } while(False)
 
@@ -75,14 +78,20 @@ void xadd_(x64Op dst, x64Op src, assemCtxPo ctx);
 void cmpxchg_(x64Op dst, x64Op src, assemCtxPo ctx);
 void cmpxchg8b_(x64Op dst, x64Op src, assemCtxPo ctx);
 
+void cmp_(x64Op dst, x64Op src, assemCtxPo ctx);
+
+void cqo_(assemCtxPo ctx); // sign extend rax into rdx:rax
+void cdq_(assemCtxPo ctx); // sign extend eax into edx:eax
+
 void push_(x64Op src, assemCtxPo ctx);
 #define push(src, ctx) do{ x64Op s=src; push_(s,ctx); } while(False)
 
 void pop_(x64Op dst, assemCtxPo ctx);
 #define pop(dst, ctx) do{ x64Op d=dst; pop_(d,ctx); } while(False)
 
+void leave_(assemCtxPo ctx);
+
 void cwd_(x64Op dst, assemCtxPo ctx);
-void cdq_(x64Op dst, assemCtxPo ctx);
 void cbw_(x64Op src, assemCtxPo ctx);
 
 void movsx_(x64Reg dst, x64Op src, uint8 scale, assemCtxPo ctx);
@@ -93,6 +102,13 @@ void movzx_(x64Reg dst, x64Op src, assemCtxPo ctx);
 
 void movzdx_(x64Reg dst, x64Op src, assemCtxPo ctx);
 #define movzdx(dst, src, ctx) do{ x64Op s = src; movzdx_(dst,s,ctx); } while(False)
+
+void fld(int i, assemCtxPo ctx);
+
+void fadd_(assemCtxPo ctx);
+void fsub_(assemCtxPo ctx);
+void fmul_(assemCtxPo ctx);
+void fdiv_(assemCtxPo ctx);
 
 void add_(x64Op dst, x64Op src, assemCtxPo ctx);
 #define add(dst, src, ctx) do{ x64Op d=dst; x64Op s = src; add_(d,s,ctx); } while(False)
@@ -226,13 +242,19 @@ void cmc_(assemCtxPo ctx);
 
 void std_(assemCtxPo ctx);
 void cld_(assemCtxPo ctx);
+void cpuid_(assemCtxPo ctx);
+void hlt_();
 
 void lahf_(assemCtxPo ctx);
 void sahf_(assemCtxPo ctx);
 void pushf_(assemCtxPo ctx);
+void pushq_(assemCtxPo ctx);
 void pushfd_(assemCtxPo ctx);
+void pushfq_(assemCtxPo ctx);
 void popf_(assemCtxPo ctx);
 void popfd_(assemCtxPo ctx);
+void popfq_(assemCtxPo ctx);
+void popq_(assemCtxPo ctx);
 
 void sti_(assemCtxPo ctx);
 void cli_(assemCtxPo ctx);
@@ -248,7 +270,6 @@ void nop_(assemCtxPo ctx);
 void xlat_(x64Op dst, x64Op src, assemCtxPo ctx);
 void xlatb_(x64Op dst, x64Op src, assemCtxPo ctx);
 
-void cpuid_(x64Op dst, assemCtxPo ctx);
 void movebe_(x64Op dst, x64Op src, assemCtxPo ctx);
 void prefetchw_(x64Op src, assemCtxPo ctx);
 void prefetchwt1_(x64Op src, assemCtxPo ctx);
@@ -265,4 +286,7 @@ void xgetbv_(x64Op dst, assemCtxPo ctx);
 void rdrand_(x64Op dst, assemCtxPo ctx);
 void rdseed_(x64Op dst, assemCtxPo ctx);
 
+void mfence_(assemCtxPo ctx);
+void lfence_(assemCtxPo ctx);
+void pause_(assemCtxPo ctx);
 #endif
