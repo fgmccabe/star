@@ -7,7 +7,7 @@
 
 #include "term.h"
 #include "heap.h"
-#include "chars.h"
+#include "strings.h"
 
 typedef struct global_rec_ *globalPo;
 

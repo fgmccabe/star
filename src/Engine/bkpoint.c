@@ -3,7 +3,7 @@
 //
 
 #include "bkpoint.h"
-#include <chars.h>
+#include <strings.h>
 #include <arith.h>
 #include <labels.h>
 
@@ -99,7 +99,7 @@ retCode isValidBreakPoint(breakPointPo b) {
 breakPointPo lineBreakPointHit(normalPo loc) {
   char pkgNm[MAX_SYMB_LEN];
 
-  copyChars2Buff(C_CHARS(nthArg(loc, 0)), pkgNm, NumberOf(pkgNm));
+  copyChars2Buff(C_STR(nthArg(loc, 0)), pkgNm, NumberOf(pkgNm));
   integer lineNo = integerVal(nthArg(loc, 1));
   integer offset = integerVal(nthArg(loc, 2));
 

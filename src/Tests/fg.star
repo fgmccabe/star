@@ -3,7 +3,7 @@ test.fg{
   import star.script.
   import test.fact.
 
-  public _main:(cons[chars])=>().
+  public _main:(cons[string])=>().
   _main(_) => valof main(5).
   
   public main:(integer)=>action[(),()].

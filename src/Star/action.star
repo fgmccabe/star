@@ -58,13 +58,13 @@ star.action{
 
   public logMsg:all e ~~ (string)=>result[e,()].
   logMsg(Msg) => do{
-    _ .= _logmsg(_str_fltn(Msg));
+    _ .= _logmsg(Msg);
     valis ()
   }
 
   public showMsg:all e ~~ (string)=>result[e,()].
   showMsg(Msg) => do{
-    _ .= _show(_str_fltn(Msg));
+    _ .= _show(Msg);
     valis ()
   }
 }

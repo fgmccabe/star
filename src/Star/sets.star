@@ -6,6 +6,7 @@ star.sets{
   import star.ideal.
   import star.iterable.
   import star.cons.
+  import star.strings.
   import star.tuples.
 
   public all e ~~ set[e] ::= set(map[e,()]).
@@ -32,13 +33,8 @@ star.sets{
     dispEntry:(e,(),cons[string])=>cons[string].
     dispEntry(K,_,[]) => [disp(K)].
     dispEntry(K,_,L) default => [disp(K),..L].
-
-    pairUp:(cons[string],string)=>string.
-    pairUp([],S) => S.
-    pairUp([H,..T],S) => pair_(H,pairUp(T,S)).
-    
   } in {.
-    disp(set(M)) => "{#(pairUp(interleave(ixLeft(dispEntry,[],M),", "),""))}".
+    disp(set(M)) => "{#(interleave(ixLeft(dispEntry,[],M),", ")*)}".
   .}
 
   public implementation all e ~~ sizeable[set[e]] => {.

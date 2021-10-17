@@ -16,8 +16,7 @@
 
 @float Table,tokensTbl
 @caption{Standard Graphical Tokens}
-@multitable {implementation}{implementation}{implementation}
-@headitem Graphic @tab Graphic @tab Graphic
+@multitable |{Graphic}|{Graphic}|{Graphic}|{Graphic}|{Graphic}|
 #(Tokens)
 @end multitable
 @end float

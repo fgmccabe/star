@@ -11,10 +11,10 @@ test.do10{
     logMsg(X.ri)
   }
 
-  public _main:(cons[chars])=>().
+  public _main:(cons[string])=>().
   _main(Args) => valof action{
     RI ^= some("fred");
     WI ^=  some("file:");
-    hndle(Args//((C)=>chrs_(C)),pp{ ri=RI. wi=WI. })
+    hndle(Args,pp{ ri=RI. wi=WI. })
   }
 }

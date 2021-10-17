@@ -42,11 +42,11 @@ star.arith{
   }
 
   public implementation display[integer] => {
-    disp(X) => chrs_(_int2str(X,10,0,0c )).
+    disp(X) => _int2str(X,10,0,0c ).
   }
 
   public implementation format[integer] => {
-    frmt(X,F) => chrs_(_int_format(X,F)).
+    frmt(X,F) => _int_format(X,F).
   }
 
   -- implement standard contracts for floats
@@ -94,11 +94,11 @@ star.arith{
   abs(X) default => X.
 
   public implementation display[float] => {
-    disp(X) => chrs_(_flt2str(X,0,8,0cg,.false)).
+    disp(X) => _flt2str(X,0,8,0cg,.false).
   }
 
   public implementation format[float] => {
-    frmt(X,F) => chrs_(_flt_format(X,F)).
+    frmt(X,F) => _flt_format(X,F).
   }
 
   public (**):(float,float)=>float.

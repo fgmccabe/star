@@ -7,7 +7,7 @@ test.opg{
     _tuple(string,cons[ast]) |
     _integer(integer) |
     _float(float) |
-    _string(chars) |
+    _string(string) |
     _apply(ast,ast).
 
   implementation display[ast] => let{
@@ -15,7 +15,7 @@ test.opg{
     dsp(_qnme(Nm)) => "'#(Nm)'".
     dsp(_integer(Ix)) => "$(Ix)".
     dsp(_float(Dx)) => "$(Dx)".
-    dsp(_string(Cx)) => "0$(Cx)".
+    dsp(_string(Cx)) => "$(Cx)".
     dsp(_tuple("()",Els)) => "(#(interleave(Els//dsp,",")*))".
     dsp(_tuple("[]",Els)) => "[#(interleave(Els//dsp,",")*)]".
     dsp(_tuple("{}",Els)) => "[#(interleave(Els//dsp,". ")*)]".

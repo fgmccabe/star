@@ -3,7 +3,7 @@
 #include "engineP.h"
 #include <stdlib.h>
 #include <globals.h>
-#include <chars.h>
+#include <strings.h>
 #include <ioTcp.h>
 #include <manifest.h>
 #include <termcap.h>
@@ -877,7 +877,7 @@ retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
   if (isNormalPo(ln)) {
     normalPo line = C_NORMAL(ln);
     char pkgNm[MAX_SYMB_LEN];
-    copyChars2Buff(C_CHARS(nthArg(line, 0)), pkgNm, NumberOf(pkgNm));
+    copyChars2Buff(C_STR(nthArg(line, 0)), pkgNm, NumberOf(pkgNm));
 
     if (alt && showPkgFile) {
       char srcName[MAXFILELEN];
@@ -1327,7 +1327,7 @@ retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bu
     integer to = integerVal(nthArg(vr, 2));
 
     if (from <= pcOffset && to > pcOffset && integerVal(nthArg(vr, 3)) == vNo) {
-      copyChars2Buff(C_CHARS(nthArg(vr, 0)), buffer, bufLen);
+      copyChars2Buff(C_STR(nthArg(vr, 0)), buffer, bufLen);
 
       if (uniIsLitPrefix(buffer, anonPrefix))
         uniCpy(buffer, bufLen, "l");

@@ -462,7 +462,8 @@ retCode procToken(void *n, void *r, void *c) {
   pairPo p = (pairPo) r;
   char *nm = (char *) n;
 
-  char *sep = "";
+  static char *sep = "";
+  static int tokenCount = 0;
 
   switch (genMode) {
     case genProlog: {
@@ -472,7 +473,15 @@ retCode procToken(void *n, void *r, void *c) {
       return outMsg(out, "  token(\"%P\") => .true.\n", sep, nm);
     }
     case genTexi: {
-      return outMsg(out, "@item @code{%I}\n", nm);
+      if (!isAlphaNumeric(nm)) {
+        if (tokenCount++ % 5 == 0) {
+          sep = "  @item";
+        } else {
+          sep = "  @tab";
+        }
+        return outMsg(out, "%s @code{%I}\n", sep, nm);
+      } else
+        return Ok;
     }
     case genEmacs: {
       return outMsg(out, "  \"%P\" ", nm);

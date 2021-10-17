@@ -117,11 +117,11 @@ star.cons{
   }
 
   public implementation all e ~~ display[e] |: display[cons[e]] => let{
-    consDisp(.nil) => "".
-    consDisp(cons(X,.nil)) => disp(X).
-    consDisp(cons(X,R)) => pair_(disp(X), pair_(",", consDisp(R))).
+    consDisp(.nil,L) => L.
+    consDisp(cons(X,.nil),L) => cons(disp(X), L).
+    consDisp(cons(X,R),L) => cons(disp(X), cons(",", consDisp(R,L))).
   } in {
-    disp(L) => pair_("[", pair_(consDisp(L),"]")).
+    disp(L) => _str_multicat(cons("[",consDisp(L,cons("]",.nil))))
   }
 
   public implementation functor[cons] => let{

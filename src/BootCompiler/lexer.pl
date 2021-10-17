@@ -45,7 +45,6 @@ locOfToken(idTok(_,Lc),Lc).
 locOfToken(idQTok(_,Lc),Lc).
 locOfToken(integerTok(_,Lc),Lc).
 locOfToken(floatTok(_,Lc),Lc).
-locOfToken(charsTok(_,Lc),Lc).
 locOfToken(stringTok(_,Lc),Lc).
 locOfToken(termTok(Lc),Lc).
 locOfToken(terminal,missing).
@@ -66,10 +65,6 @@ showToken(integerTok(Ix,_),Str) :-
 showToken(floatTok(Dx,_),Str) :-
   number_string(Dx,St),
   string_chars(St,Str).
-showToken(charsTok(Txt,_),Str) :-
-  appStr("0",C,C0),
-  appQuoted(Txt,"\"",C0,[]),
-  string_chars(C,Str).
 showToken(stringTok(St,_),Str) :-
   appStr("\"",Chrs,C0),
   dispString(St,C0,C1),
@@ -141,10 +136,6 @@ nxTok(St,NxSt,integerTok(Code,Lc)) :-
 nxTok(St,NxSt,integerTok(Hx,Lc)) :-
   lookingAt(St,St1,['0','x'],_),
   readHex(St1,NxSt,0,Hx),
-  makeLoc(St,NxSt,Lc).
-nxTok(St,NxSt,charsTok(Txt,Lc)) :-
-  lookingAt(St,St1,['0','"'],_),
-  readQuoted(St1,NxSt,'"',Txt),
   makeLoc(St,NxSt,Lc).
 nxTok(St,NxSt,Tk) :-
   hedChar(St,Ch),

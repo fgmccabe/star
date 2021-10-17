@@ -109,7 +109,7 @@ typeOfCanon(anon(_,Tp),Tp) :- !.
 typeOfCanon(dot(_,_,_,Tp),Tp) :- !.
 typeOfCanon(intLit(_,_),type("star.core*integer")) :- !.
 typeOfCanon(floatLit(_,_),type("star.core*float")) :- !.
-typeOfCanon(charsLit(_,_),type("chars")) :- !.
+typeOfCanon(charsLit(_,_),type("star.core*string")) :- !.
 typeOfCanon(enm(_,_,Tp),Tp) :- !.
 typeOfCanon(cons(_,_,Tp),Tp) :- !.
 typeOfCanon(where(_,T,_),Tp) :- !, typeOfCanon(T,Tp).
@@ -228,7 +228,7 @@ ssTerm(anon(_,_),_,ss("_")).
 ssTerm(void,_,ss("void")).
 ssTerm(intLit(_,Ix),_,ix(Ix)).
 ssTerm(floatLit(_,Dx),_,fx(Dx)).
-ssTerm(charsLit(_,Str),_,sq([ss("0"""),ss(Str),ss("""")])).
+ssTerm(charsLit(_,Str),_,sq([ss(""""),ss(Str),ss("""")])).
 ssTerm(apply(_,Op,Args,_),Dp,sq([O,A])) :-
   ssTerm(Op,Dp,O),
   ssTerm(Args,Dp,A).
@@ -385,7 +385,7 @@ ssAction(forDo(_,Tst,Bdy),Dp,
   ssTerm(Tst,Dp,CC),
   ssAction(Bdy,Dp2,BB).
 ssAction(tryCatchDo(_,Bdy,Hndlr),Dp,
-	 sq([ss("try "),BB,ss("catch"),HH])) :-
+	 sq([ss("try "),BB,nl(Dp),ss("catch"),HH])) :-
   Dp2 is Dp+2,
   ssTerm(Hndlr,Dp2,HH),
   ssAction(Bdy,Dp2,BB).

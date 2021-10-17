@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
   initHeap(initHeapSize);
   initStacks();
   initArith();
-  initChars();
+  initStrings();
   initLbls();
   initThunk();
   initGlobals();

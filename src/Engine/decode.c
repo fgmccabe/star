@@ -274,7 +274,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo tmpBuffer
       if ((res = decodeText(in, tmpBuffer)) == Ok) {
         integer len;
         const char *txt = getTextFromBuffer(tmpBuffer, &len);
-        *tgt = (termPo) allocateChars(H, txt, len);
+        *tgt = (termPo) allocateString(H, txt, len);
       }
       return res;
     }

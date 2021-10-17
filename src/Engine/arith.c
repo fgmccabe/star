@@ -95,7 +95,7 @@ static retCode intDisp(ioPo out, termPo t, integer precision, integer depth, log
   return outInteger(out, ix->ix, 10, 0, precision, 0, False, "", alt);
 }
 
-extern intPo C_INT(termPo t) {
+intPo C_INT(termPo t) {
 #ifdef TRACEEXEC
   assert(hasClass(t, integerClass));
 #endif

@@ -7,6 +7,7 @@ star.ideal{
   import star.collection.
   import star.index.
   import star.iterable.
+  import star.strings.
   import star.tuples.
   import star.monad.
 
@@ -141,12 +142,8 @@ star.ideal{
     dispEls:(cons[keyval[k,v]],cons[string])=>cons[string].
     dispEls(.nil,SS)=>SS.
     dispEls(cons(P,T),SS) => dispEls(T,[disp(P),..SS]).
-
-    pairUp:(cons[string],string)=>string.
-    pairUp([],S) => S.
-    pairUp([H,..T],S) => pair_(H,pairUp(T,S)).
   } in {.
-    disp(Tr) => "[#(pairUp(interleave(dispTree(Tr,[]),", "),""))]".
+    disp(Tr) => "[#(interleave(dispTree(Tr,[]),", ")*)]".
   .}
 
   public implementation all k,v ~~ equality[k],hash[k] |: indexed[map[k,v]->>k,v] => {

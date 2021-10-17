@@ -12,7 +12,6 @@
 #define lockType "t'star.thread*lock'"
 #define fileType "t'star.file*fileHandle'"
 #define udpType "t'star.io*udpHandle'"
-#define ssType "t'star.core*ss'"
 #define optionType(T) "Uz1'star.core*option'" T
 #define tagType(F,T) "UUz2'tag'" F T
 
@@ -172,8 +171,8 @@ escape(_accept,"F("fileType")("fileType fileType "sis)","accept connection")
 
 /*
 escape(_udpPort,"F(i"udpType")"sysRet,"estabish a UDP port")
-escape(_udpGet,"F("udpType")(SSi)","read a UDP datagram")
-escape(_udpSend,"F("udpType"SSi)"sysRet,"send a UDP datagram")
+escape(_udpGet,"F("udpType")(ssi)","read a UDP datagram")
+escape(_udpSend,"F("udpType"ssi)"sysRet,"send a UDP datagram")
 escape(_udpClose,"F("udpType")"sysRet,"close the UDP socket")
 */
 
@@ -242,12 +241,10 @@ escape(_str2flt,"F(s)" optionType("f"),"parse a string as a float")
 escape(_str2int,"F(s)" optionType("i"),"parse a string as an integer")
 
 escape(_str_eq,"F(ss)l","String equality")
-escape(_string_eq,"F(SS)l","String equality")
 escape(_str_lt,"F(ss)l","String 1 is less than string 2")
 escape(_str_ge,"F(ss)l","String 1 is greater than or equals to string 2")
 
 escape(_str_hash,"F(s)i","Compute hash of string")
-escape(_string_len,"F(S)i","return length of string")
 escape(_str_len,"F(s)i","return length of char sequence")
 
 escape(_str_gen,"F(s)s","Generate a unique string")
@@ -266,7 +263,6 @@ escape(_str_start,"F(ss)l","True if second string starts with first")
 escape(_str_splice,"F(siis)s","splice a substring into a string")
 
 escape(_str_multicat,"F(Ls)s","Concatenate a list of strings into one")
-escape(_str_fltn,"F(S)s","Flatten a string into a char sequence")
 escape(_str_hdtl,"F(s)(is)","pick up the first character and return remainder")
 escape(_str_back,"F(s)(si)","pick up the last character and return remainder")
 escape(_str_cons,"F(is)s","put a char in the front")
