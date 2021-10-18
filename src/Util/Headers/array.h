@@ -18,7 +18,7 @@ arrayPo fixedArray(int elSize, integer initial, void *data);
 retCode appendEntry(arrayPo ar,void *el);
 void *nthEntry(arrayPo ar,integer ix);
 retCode dropEntry(arrayPo ar,integer ix);
-arrayPo eraseArray(arrayPo ar);
+arrayPo eraseArray(arrayPo ar, arrayElProc eraser, void *cl);
 retCode processArrayElements(arrayPo ar, arrayElProc proc, void *cl);
 
 #endif //STAR_ARRAY_H
