@@ -77,7 +77,10 @@ retCode dropEntry(arrayPo ar, integer ix) {
   return Ok;
 }
 
-arrayPo eraseArray(arrayPo ar) {
+arrayPo eraseArray(arrayPo ar, arrayElProc eraser, void *cl) {
+  if (eraser != Null)
+    processArrayElements(ar, eraser, cl);
+
   if (ar->growable)
     free(ar->data);
   freePool(arrayPool, ar);

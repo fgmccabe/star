@@ -40,7 +40,7 @@ typedef struct assem_ctx {
   unsigned char *bytes;
   uint32 size;
   uint32 pc;
-  hashPo lbls;
+  arrayPo lbls;
   registerMap usedRegs;
   registerMap freeRegs;
   jitCompPo jitCxt;
@@ -54,7 +54,6 @@ typedef struct jit_compiler_ {
 } JitCompilerContext;
 
 typedef struct assem_lbl {
-  char nm[128];
   arrayPo refs;
   integer pc;
 } AssemLblRecord;
@@ -74,7 +73,6 @@ assemCtxPo createCtx();
 void discardCtx(assemCtxPo ctx);
 void *createCode(assemCtxPo ctx);
 
-codeLblPo findLabel(assemCtxPo ctx, char *lName);
 codeLblPo defineLabel(assemCtxPo ctx, char *lName, integer pc);
 void setLabel(assemCtxPo ctx, codeLblPo lbl);
 logical isLabelDefined(codeLblPo lbl);

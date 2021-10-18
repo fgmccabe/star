@@ -40,10 +40,6 @@ logical hasLabel(normalPo n, char *name, integer arity) {
   return isLabel(n->lbl, name, arity);
 }
 
-logical hasLbl(normalPo t, labelPo lbl) {
-  return isLabel(t->lbl, lbl->name, lbl->arity);
-}
-
 labelPo termLbl(normalPo t) {
   return t->lbl;
 }
@@ -73,20 +69,6 @@ retCode showTerm(ioPo f, void *data, long depth, long precision, logical alt) {
 }
 
 void initTerm() {
-}
-
-typedef struct {
-  ioPo out;
-  normalPo trm;
-  integer precision;
-  integer depth;
-  logical alt;
-} FieldInfoRec;
-
-static retCode showField(labelPo fldLbl, integer offset, void *cl) {
-  FieldInfoRec *info = (FieldInfoRec *) cl;
-  tryRet(outMsg(info->out, "%T = ", fldLbl));
-  return dispTerm(info->out, nthArg(info->trm, offset), info->precision, info->depth, info->alt);
 }
 
 static retCode showArgs(ioPo out, normalPo nml, integer precision, integer depth, logical alt) {

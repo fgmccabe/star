@@ -30,7 +30,7 @@ jitCompPo jitContext(methodPo mtd) {
   return ctx;
 }
 
-static retCode clearLbl(char *lblNme, codeLblPo lbl);
+static retCode clearLbl(codeLblPo lbl);
 
 assemCtxPo createCtx() {
   initJit();
@@ -39,7 +39,8 @@ assemCtxPo createCtx() {
   ctx->bytes = malloc(1024);
   ctx->size = 1024;
   ctx->pc = 0;
-  ctx->lbls = newHash(256, (hashFun) uniHash, (compFun) uniCmp, (destFun) clearLbl);
+  ctx->lbls = allocArray(sizeof(AssemLblRecord), 16, True);
+
   clearCodeCtxMaps(ctx);
   return ctx;
 }
@@ -54,42 +55,25 @@ void discardCtx(assemCtxPo ctx) {
 }
 
 void verifyJitCtx(jitCompPo jitCtx, integer amnt, integer space) {
-  check(jitCtx->vTop >= amnt && jitCtx->vTop<NumberOf(jitCtx->vStack)-space, "stack out of bounds");
+  check(jitCtx->vTop >= amnt && jitCtx->vTop < NumberOf(jitCtx->vStack) - space, "stack out of bounds");
 }
 
-codeLblPo findLabel(assemCtxPo ctx, char *lName) {
-  codeLblPo lbl = (codeLblPo) hashGet(ctx->lbls, lName);
-  if (lbl == Null) {
-    lbl = (codeLblPo) allocPool(lblPool);
-    uniCpy(lbl->nm, NumberOf(lbl->nm), lName);
-    lbl->pc = -1;
-    lbl->refs = Null;
-  }
-  return lbl;
-}
-
-retCode clearLbl(char *lblNme, codeLblPo lbl) {
+retCode clearLbl(codeLblPo lbl) {
+  check(lbl->refs == Null, "label not defined");
   if (lbl->refs != Null) {
-    eraseArray(lbl->refs);
+    eraseArray(lbl->refs, NULL, NULL);
   }
   freePool(lblPool, lbl);
   return Ok;
 }
 
-static retCode checkLbl(void *n, void *r, void *c) {
-  codeLblPo lbl = (codeLblPo) r;
-  if (lbl->pc >= 0) {
-    if (lbl->refs != Null)
-      return Error;
-    else
-      return Ok;
-  }
-  return Fail;  // undefined label
+retCode clrLblProc(void *l, integer ix, void *cl) {
+  return clearLbl((codeLblPo) l);
 }
 
 retCode cleanupLabels(assemCtxPo ctx) {
   if (ctx->lbls != Null) {
-    eraseHash(ctx->lbls);
+    eraseArray(ctx->lbls, clrLblProc, NULL);
     ctx->lbls = Null;
   }
   return Ok;
@@ -108,20 +92,10 @@ static retCode updateLblEntry(void *entry, integer ix, void *cl) {
 }
 
 codeLblPo defineLabel(assemCtxPo ctx, char *lName, integer pc) {
-  codeLblPo lbl = findLabel(ctx, lName);
-  if (lbl == Null) {
-    lbl = (codeLblPo) allocPool(lblPool);
-    uniCpy(lbl->nm, NumberOf(lbl->nm), lName);
-    lbl->pc = pc;
-    lbl->refs = Null;
-  } else {
-    lbl->pc = pc;
-    if (pc >= 0 && lbl->refs != Null) {
-      ClInfo info = {.ctx=ctx, .lbl=lbl};
-      processArrayElements(lbl->refs, updateLblEntry, &info);
-      lbl->refs = eraseArray(lbl->refs);
-    }
-  }
+  codeLblPo lbl = (codeLblPo) allocPool(lblPool);
+  lbl->refs = Null;
+  lbl->pc = pc;
+
   return lbl;
 }
 
@@ -129,7 +103,7 @@ void setLabel(assemCtxPo ctx, codeLblPo lbl) {
   lbl->pc = ctx->pc;
   ClInfo info = {.ctx=ctx, .lbl=lbl};
   processArrayElements(lbl->refs, updateLblEntry, &info);
-  lbl->refs = eraseArray(lbl->refs);
+  lbl->refs = eraseArray(lbl->refs, NULL, NULL);
 }
 
 retCode addLabelReference(assemCtxPo ctx, codeLblPo lbl, integer pc, lblRefUpdater updater) {
