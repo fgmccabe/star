@@ -32,12 +32,6 @@ star.action{
 
     _valis(X) => ok(X).
     _raise(E) => err(E).
-
-    _sequence(ok(X),F) => F(X).
-    _sequence(err(E),_) => err(E).
-
-    _handle(ok(X),_) => ok(X).
-    _handle(err(E),H) => H(E).
   }
 
   public implementation execution[action] => let{.
@@ -51,9 +45,6 @@ star.action{
 
     _valis(X) => action(()=>ok(X)).
     _raise(E) => action(()=>err(E)).
-
-    _sequence(action(A),F) => test(A(),F).
-    _handle(action(A),H) => testE(A(),H).
   .}
 
   public logMsg:all e ~~ (string)=>result[e,()].

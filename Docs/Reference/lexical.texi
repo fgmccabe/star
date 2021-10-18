@@ -15,10 +15,23 @@
 @cindex character set
 @cindex Unicode
 
-@Star{} source text is based on the Unicode character set. This
-means that identifiers and string values may directly use any Unicode
-characters. However, all the standard operators and keywords fall in
-he ASCII subset of Unicode.
+@Star{} source text is based on the Unicode character set. This means
+that identifiers and string values may directly use any Unicode
+characters; specifically any @emph{Unicode Scalar Value}.@footnote{In
+particular, the so-called @emph{surrogate pairs} are not legal in
+@Star{}.}
+
+@quotation Note
+We use the term @emph{CodePoint} to refer to a Unicode Scalar Value --
+the former being easier to say than the latter. However, @Star{} does
+not support surrogate pairs; hence @Star{} code points are technically
+Unicode Scalar Values.
+@end quotation
+
+@quotation Note
+However, all the standard operators and keywords fall in he ASCII
+subset of Unicode.
+@end quotation
 
 @menu
 * Comments and White Space::
@@ -205,13 +218,13 @@ single-precision floating pointer numbers.
 @cindex syntax,character code
 @noindent
 The character code notation allows a number to be based on the coding
-value of a character. Any Unicode character code point can be entered
+value of a character. Any Unicode character scalar value can be entered
 in this way:
 @example
 0cX 0c[ 0c\n 0c
 @end example
 
-For example, @code{0c\n} is the code point associated with the new
+For example, @code{0c\n} is the character associated with the new
 line character, i.e., its value is @code{10}.
 
 @quotation TIP
@@ -245,7 +258,7 @@ code points as @code{integer}s.
 
 @quotation CAUTION
 The reasons for this are due to the fact that Unicode @code{string}
-values cannot be easily represented as a unique sequence.
+values cannot be easily represented as a unique sequence of code points.
 @end quotation
 
 @node Character Reference
