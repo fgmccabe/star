@@ -417,10 +417,11 @@ compAction(untl(Lc,Cond,Body),_,Cont,RCont,ECont,Opts,L,Lx,D,Dx,End,
 	   ECont,Opts,L3,L4,D2,_,End,
 	   C1,[iLbl(Ext)|C2],Stk1,_Stk2),
   call(Cont,L4,Lx,D,Dx,End,C2,Cx,Stk,Stkx).
-compAction(tryDo(Lc,A,H),OLc,Cont,RCont,ECont,Opts,
-	   L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+compAction(tryDo(Lc,A,H),OLc,Cont,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
-  compTryCatch(Lc,A,H,Cont,RCont,ECont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+  splitCont(Lc,Cont,SuccCont),
+  splitCont(Lc,catchAction(Lc,SuccCont,ECont,H,Opts),ThCont),
+  compAction(A,Lc,SuccCont,RCont,ThCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 
 compIfThen(Lc,T,A,B,OLc,Cont,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
@@ -438,24 +439,17 @@ compWhile(Lc,Cond,Body,OLc,Cont,RCont,ECont,Opts,L,Lx,D,Dx,End,
 	   resetCont(Stk,Cont),ECont,Opts,L0,Lx,D,Dx,End,C0,Cx,Stk,Stkx),
   verify(gencode:sameStk(Stk,Stkx),"while stack").
 
-compTryCatch(Lc,A,H,Cont,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
-  splitCont(Lc,handleAction(Lc,Cont,ECont,H,Opts),ThCont),
-  compAction(A,Lc,Cont,RCont,ThCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
-
-handleAction(Lc,Cont,ECont,H,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
-  handlerCont(Cont,compTerm(H,Lc,oclCont(2,handleCont(ECont,Cont),Opts),ECont,Opts),
-	      L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
-
-handlerCont(PCont,ECont,L,Lx,D,Dx,End,[iIndxJmp(2),iJmp(Err),iJmp(Ok),iLbl(Trp),iHalt(2),
-				       iLbl(Ok),iUnpack(lbl("star.action#ok",1),Trp)|C],Cx,Stk,Stkx) :-
+catchAction(Lc,Cont,ECont,H,Opts,L,Lx,D,Dx,End,
+	     [iIndxJmp(2),iJmp(Err),iJmp(Ok),iLbl(Trp),iHalt(2),
+	      iLbl(Ok),iCLbl(lbl("star.action#ok",1),Trp)|C],Cx,Stk,Stkx) :-
   genLbl(L,Ok,L0),
   genLbl(L0,Err,L1),
   genLbl(L1,Trp,L2),
-  call(PCont,L2,L3,D,D1,End,C,[iLbl(Err),iUnpack(lbl("star.action#err",1),Trp)|C1],Stk,_Stk0),
-  call(ECont,L3,Lx,D,D2,End,C1,Cx,Stk,Stkx),
+  call(Cont,L2,L3,D,D1,End,C,[iLbl(Err),iUnpack(lbl("star.action#err",1),Trp)|C1],Stk,_Stk0),
+  compTerm(H,Lc,oclCont(2,handleCont(ECont,Cont),Opts),ECont,Opts,L3,Lx,D,D2,End,C1,Cx,Stk,Stkx),
   mergeVars(D1,D2,Dx).
 
-handleCont(ECont,Cont,L,Lx,D,Dx,End,[iCLbl(lbl("star.action#ok",1),Nxt)|C],Cx,Stk,Stkx) :-
+handleCont(ECont,Cont,L,Lx,D,Dx,End,[iCLbl(lbl("star.action#err",1),Nxt)|C],Cx,Stk,Stkx) :-
   genLbl(L,Nxt,L1),
   call(ECont,L1,L2,D,D2,End,C,[iLbl(Nxt)|C0],Stk,Stk1),
   call(Cont,L2,Lx,D2,Dx,End,C0,Cx,Stk,Stk2),
@@ -465,7 +459,7 @@ propagatingAction(perfDo(_,_)) :-!.
 propagatingAction(justDo(_,_)) :-!.
 propagatingAction(seqD(_,_,R)) :- propagatingAction(R).
 
-propagateCont(ECont,Cont,L,Lx,D,Dx,End,[iCLbl(lbl("star.action#ok",1),Nxt)|C],Cx,Stk,Stkx) :-
+propagateCont(ECont,Cont,L,Lx,D,Dx,End,[iCLbl(lbl("star.action#err",1),Nxt)|C],Cx,Stk,Stkx) :-
   genLbl(L,Nxt,L1),
   dropStk(Stk,1,Stk0),
   call(ECont,L1,L2,D,D2,End,C,[iLbl(Nxt),iDrop|C0],Stk0,Stk1),
@@ -477,7 +471,7 @@ bindCont(PCont,ECont,L,Lx,D,Dx,End,[iIndxJmp(2),iJmp(Err),iJmp(Ok),iLbl(Trp),iHa
   genLbl(L,Ok,L0),
   genLbl(L0,Err,L1),
   genLbl(L1,Trp,L2),
-  call(PCont,L2,L3,D,D1,End,C,[iLbl(Err),iUnpack(lbl("star.action#err",1),Trp)|C1],Stk,_Stk0),
+  call(PCont,L2,L3,D,D1,End,C,[iLbl(Err)|C1],Stk,_Stk0),
   call(ECont,L3,Lx,D,D2,End,C1,Cx,Stk,Stkx),
   mergeVars(D1,D2,Dx).
 

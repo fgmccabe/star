@@ -918,11 +918,11 @@ checkPromptAction(Lc,L,P,Env,Tp,VlTp,ErTp,OkFn,EvtFn,promptDo(Lc,Lb,Lam,Tp),Path
 	       funType(tplType([]),Tp)).
 
 typeOfCut(Lc,L,Lhs,Rhs,Tp,ErTp,Env,shift(Lc,Tg,Lam),Path) :-
-  dispType(Tp),
+%  dispType(Tp),
   newTypeVar("_",Rt),
   KType = contType(tplType([Tp]),Rt),
   mkTypeExp(tpFun("tag",2),[Tp,Rt],TTp),
-  dispType(TTp),
+%  dispType(TTp),
   typeOfExp(L,TTp,ErTp,Env,_,Tg,Path),
 %  reportMsg("tag type %s, cont type %s",[tpe(TTp),tpe(KType)],Lc),
   typeOfPtn(Lhs,KType,ErTp,Env,E0,V,Path),
