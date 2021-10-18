@@ -672,8 +672,9 @@ retCode run(processPo P) {
         if (isNormalPo(t)) {
           normalPo cl = C_NORMAL(t);
           if (sameLabel(l, termLbl(cl)))
-            PC = exit;
+            continue;
         }
+        PC = exit;
         continue;
       }
 

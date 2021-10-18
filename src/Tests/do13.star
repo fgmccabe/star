@@ -20,7 +20,7 @@ test.do13{
       show BB;
       assert valof BB == 6;
       XX <- maybeFail(10);
-      show XX -- never get here
+      assert .false  -- never get here
     } catch (Ix) => do{
       assert Ix==10
     }
