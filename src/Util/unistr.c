@@ -303,10 +303,10 @@ retCode uniNCpy(char *dest, integer len, const char *src, integer sLen) {
 
 retCode uniMove(char *dest, integer len, const char *src, integer sLen){
   integer pos = 0;
-  integer max = (sLen < len - 1 ? sLen : len - 1);
+  integer max = (sLen < len ? sLen : len);
   char *s = (char *) src;
 
-  while (pos < max && *src != 0)
+  while (pos < max)
     dest[pos++] = *s++;
   return pos < len ? Ok : Eof;
 }
