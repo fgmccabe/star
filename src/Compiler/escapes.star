@@ -172,6 +172,11 @@ star.compiler.escapes{
   escapeType("_flt_format") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*float"),nomnal("star.core*string")])),nomnal("star.core*string"))).
   escapeType("_str2flt") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),tpExp(tpFun("star.core*option",1),nomnal("star.core*float")))).
   escapeType("_str2int") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),tpExp(tpFun("star.core*option",1),nomnal("star.core*integer")))).
+  escapeType("_chr_eq") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char"),nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_chr_lt") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char"),nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_chr_ge") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char"),nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_chr_hash") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*integer"))).
+  escapeType("_chr_quote") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*string"))).
   escapeType("_str_eq") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*string")])),nomnal("star.core*boolean"))).
   escapeType("_str_lt") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*string")])),nomnal("star.core*boolean"))).
   escapeType("_str_ge") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*string")])),nomnal("star.core*boolean"))).
@@ -382,45 +387,50 @@ star.compiler.escapes{
   isEscape("_flt_format") => some(164).
   isEscape("_str2flt") => some(165).
   isEscape("_str2int") => some(166).
-  isEscape("_str_eq") => some(167).
-  isEscape("_str_lt") => some(168).
-  isEscape("_str_ge") => some(169).
-  isEscape("_str_hash") => some(170).
-  isEscape("_str_len") => some(171).
-  isEscape("_str_gen") => some(172).
-  isEscape("_stringOf") => some(173).
-  isEscape("_explode") => some(174).
-  isEscape("_implode") => some(175).
-  isEscape("_str_find") => some(176).
-  isEscape("_sub_str") => some(177).
-  isEscape("_str_split") => some(178).
-  isEscape("_str_concat") => some(179).
-  isEscape("_str_reverse") => some(180).
-  isEscape("_str_start") => some(181).
-  isEscape("_str_splice") => some(182).
-  isEscape("_str_multicat") => some(183).
-  isEscape("_str_hdtl") => some(184).
-  isEscape("_str_back") => some(185).
-  isEscape("_str_cons") => some(186).
-  isEscape("_code2str") => some(187).
-  isEscape("_str_apnd") => some(188).
-  isEscape("_str_quote") => some(189).
-  isEscape("_str_format") => some(190).
-  isEscape("_getenv") => some(191).
-  isEscape("_setenv") => some(192).
-  isEscape("_envir") => some(193).
-  isEscape("_getlogin") => some(194).
-  isEscape("_fork") => some(195).
-  isEscape("_thread") => some(196).
-  isEscape("_kill") => some(197).
-  isEscape("_thread_state") => some(198).
-  isEscape("_waitfor") => some(199).
-  isEscape("_shell") => some(200).
-  isEscape("_newLock") => some(201).
-  isEscape("_acquireLock") => some(202).
-  isEscape("_waitLock") => some(203).
-  isEscape("_releaseLock") => some(204).
-  isEscape("_ins_debug") => some(205).
-  isEscape("_stackTrace") => some(206).
+  isEscape("_chr_eq") => some(167).
+  isEscape("_chr_lt") => some(168).
+  isEscape("_chr_ge") => some(169).
+  isEscape("_chr_hash") => some(170).
+  isEscape("_chr_quote") => some(171).
+  isEscape("_str_eq") => some(172).
+  isEscape("_str_lt") => some(173).
+  isEscape("_str_ge") => some(174).
+  isEscape("_str_hash") => some(175).
+  isEscape("_str_len") => some(176).
+  isEscape("_str_gen") => some(177).
+  isEscape("_stringOf") => some(178).
+  isEscape("_explode") => some(179).
+  isEscape("_implode") => some(180).
+  isEscape("_str_find") => some(181).
+  isEscape("_sub_str") => some(182).
+  isEscape("_str_split") => some(183).
+  isEscape("_str_concat") => some(184).
+  isEscape("_str_reverse") => some(185).
+  isEscape("_str_start") => some(186).
+  isEscape("_str_splice") => some(187).
+  isEscape("_str_multicat") => some(188).
+  isEscape("_str_hdtl") => some(189).
+  isEscape("_str_back") => some(190).
+  isEscape("_str_cons") => some(191).
+  isEscape("_code2str") => some(192).
+  isEscape("_str_apnd") => some(193).
+  isEscape("_str_quote") => some(194).
+  isEscape("_str_format") => some(195).
+  isEscape("_getenv") => some(196).
+  isEscape("_setenv") => some(197).
+  isEscape("_envir") => some(198).
+  isEscape("_getlogin") => some(199).
+  isEscape("_fork") => some(200).
+  isEscape("_thread") => some(201).
+  isEscape("_kill") => some(202).
+  isEscape("_thread_state") => some(203).
+  isEscape("_waitfor") => some(204).
+  isEscape("_shell") => some(205).
+  isEscape("_newLock") => some(206).
+  isEscape("_acquireLock") => some(207).
+  isEscape("_waitLock") => some(208).
+  isEscape("_releaseLock") => some(209).
+  isEscape("_ins_debug") => some(210).
+  isEscape("_stackTrace") => some(211).
   isEscape(_) default => .none.
 }.

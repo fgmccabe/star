@@ -426,6 +426,7 @@ contractTypes(CTs,TPs) :-
 stdType("integer",type("star.core*integer"),typeExists(type("star.core*integer"),faceType([],[]))).
 stdType("float",type("star.core*float"),typeExists(type("star.core*float"),faceType([],[]))).
 stdType("boolean",type("star.core*boolean"),typeExists(type("star.core*boolean"),faceType([],[]))).
+stdType("char",type("star.core*char"),typeExists(type("star.core*char"),faceType([],[]))).
 stdType("string",type("star.core*string"),typeExists(type("star.core*string"),faceType([],[]))).
 stdType("cons",
 	tpFun("star.core*cons",1),

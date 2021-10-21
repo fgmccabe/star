@@ -43,31 +43,3 @@ ReturnStatus g__overwrite(processPo p, ptrPo tos) {
     return (ReturnStatus){.ret=Error, .result= voidEnum};
   }
 }
-
-static globalPo globalLabel(termPo t) {
-  char lblNm[MAX_SYMB_LEN];
-
-  copyChars2Buff(C_STR(t), lblNm, NumberOf(lblNm));
-
-  return globalVar(lblNm);
-}
-
-ReturnStatus g__isDefinedVr(processPo p, ptrPo tos) {
-  globalPo gv = globalLabel(tos[0]);
-
-  return (ReturnStatus){.ret=Ok, .result=glbIsSet(gv) ? trueEnum : falseEnum};
-}
-
-ReturnStatus g__definedVr(processPo p, ptrPo tos) {
-  globalPo gv = globalLabel(tos[0]);
-
-  return (ReturnStatus){.ret=Ok, .result=getGlobal(gv)};
-}
-
-ReturnStatus g__defineVr(processPo p, ptrPo tos) {
-  globalPo gv = globalLabel(tos[0]);
-  termPo vl = tos[1];
-  setGlobalVar(gv, vl);
-
-  return (ReturnStatus){.ret=Ok, .result=trueEnum};
-}

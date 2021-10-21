@@ -138,6 +138,7 @@ argMode(anon,inVars).
 argMode(voyd,inScalars).
 argMode(intgr(_),inScalars).
 argMode(float(_),inScalars).
+argMode(chr(_),inScalars).
 argMode(strg(_),inScalars).
 argMode(lbl(_,_),inScalars).
 argMode(whr(_,T,_),M) :- argMode(T,M).
@@ -325,6 +326,8 @@ compareScalar(intgr(A),intgr(B)) :-!,
   A<B.
 compareScalar(float(A),float(B)) :-!,
   A<B.
+compareScalar(chr(A),chr(B)) :-!,
+  chr_lt(A,B).
 compareScalar(strg(A),strg(B)) :-!,
   str_lt(A,B).
 compareScalar(lbl(L1,_A1),lbl(L2,_A2)) :-

@@ -16,6 +16,8 @@ ss_to_chrs(qt(Qt,Str),C,Cx) :-!,
   appQuoted(Str,Qt,C,Cx).
 ss_to_chrs(ix(Ix),C,Cx) :-!,
   appInt(Ix,C,Cx).
+ss_to_chrs(cp(Cp),C,Cx) :-!,
+  appChr(Cp,C,Cx).
 ss_to_chrs(fx(Dx),C,Cx) :-!,
   appFlt(Dx,C,Cx).
 ss_to_chrs(id(Id),C,Cx) :-!,
@@ -62,6 +64,7 @@ ss_to_str(L,Str) :-
   string_chars(Str,Chrs).
 
 validSS(ss(S)) :-!, string(S).
+validSS(cp(S)) :-!, atom(S).
 validSS(ix(I)) :-!, integer(I).
 validSS(fx(Dx)) :-!, float(Dx).
 validSS(id(Id)) :-!, string(Id).

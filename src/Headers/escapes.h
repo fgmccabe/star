@@ -94,10 +94,6 @@ escape(_get,":k't'F(rk't')k't'","access contents of reference cell")
 escape(_assign,":k't'F(rk't'k't')()","update contents of reference cell")
 
 escape(_overwrite,":k't'F(k't'k't')k't'","overwrite a structure with new structure")
-//
-//escape(_isDefinedVr,":k't'F(s)l","Check a global variable")
-//escape(_definedVr,":k't'F(s)k't'","Access a global variable")
-//escape(_defineVr,":k't'F(sk't')l","Define a global variable")
 
 escape(_tuple_nth,":k't':k'e'F(k't'i)k'e'","Access tuple element")
 escape(_tuple_set_nth,":k't':k'e'F(k't'ik'e')k't'","Update tuple element")
@@ -239,6 +235,13 @@ escape(_flt_format,"F(fs)s","format a floating point using picture format")
 
 escape(_str2flt,"F(s)" optionType("f"),"parse a string as a float")
 escape(_str2int,"F(s)" optionType("i"),"parse a string as an integer")
+
+escape(_chr_eq,"F(cc)l","Character equality")
+escape(_chr_lt,"F(cc)l","Character 1 is less than character 2")
+escape(_chr_ge,"F(cc)l","Character 1 is greater than or equals to character 2")
+
+escape(_chr_hash,"F(c)i","Compute hash of a character")
+escape(_chr_quote,"F(c)s","Display string for a character")
 
 escape(_str_eq,"F(ss)l","String equality")
 escape(_str_lt,"F(ss)l","String 1 is less than string 2")

@@ -52,6 +52,7 @@ static retCode startList(integer arity, void *cl);
 static retCode endList(void *cl);
 static retCode startEntry(integer arity, void *cl);
 static retCode endEntry(void *cl);
+static retCode charEntry(codePoint cp, void *cl);
 static retCode txtEntry(char *name, integer length, void *cl);
 static retCode lblEntry(char *name, integer arity, void *cl);
 static retCode recLblEntry(char *name, integer arity, FieldRec fields[], void *cl);
@@ -71,6 +72,7 @@ retCode decodeManifest(ioPo in) {
     fltEntry,               // decFlt
     lblEntry,               // decLbl
     recLblEntry,            // record label
+    charEntry,              // Character
     txtEntry,               // decString
     startEntry,             // decCon
     endEntry,               // End of constructor entry
@@ -425,6 +427,10 @@ retCode fltEntry(double dx, void *cl) {
 }
 
 retCode badEntry(void *cl) {
+  return Error;
+}
+
+retCode charEntry(codePoint cp, void *cl) {
   return Error;
 }
 

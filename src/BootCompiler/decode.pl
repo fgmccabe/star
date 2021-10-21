@@ -25,6 +25,7 @@ decodeTerm(voyd) --> ['v'].
 decodeTerm(intgr(Ix)) --> ['x'], decInt(Ix).
 decodeTerm(float(Dx)) --> ['d'], decFloat(Dx).
 decodeTerm(enum(Nm)) --> ['e'], decodeText(Nm).
+decodeTerm(chr(Cp)) --> ['c',Cp].
 decodeTerm(strg(Txt)) --> ['s'], decodeText(Txt).
 decodeTerm(lbl(Nm,Ar)) --> ['o'], decInt(Ar), decodeText(Nm).
 decodeTerm(ctpl(Con,Els)) --> ['n'], decInt(Len), decodeTerm(Con), decTerms(Len,Els).
@@ -52,6 +53,7 @@ decodeType(anonType) --> ['_'].
 decodeType(voidType) --> ['v'].
 decodeType(type("star.core*integer")) --> ['i'].
 decodeType(type("star.core*float")) --> ['f'].
+decodeType(type("star.core*char")) --> ['c'].
 decodeType(type("star.core*string")) --> ['s'].
 decodeType(type("star.core*boolean")) --> ['l'].
 decodeType(kVar(Nm)) --> ['k'], decodeText(Nm).

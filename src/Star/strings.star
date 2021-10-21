@@ -3,6 +3,15 @@ star.strings{
   import star.arith.
   import star.coerce.
 
+  -- Chars --
+  public implementation equality[char] => {.
+    X==Y => _chr_eq(X,Y).
+  .}
+
+  public implementation display[char] => {.
+    disp(Cp) => "`#(_chr_quote(Cp))`".
+  .}
+
   -- and strings ...
   public implementation equality[string] => {
     X==Y => _str_eq(X,Y).

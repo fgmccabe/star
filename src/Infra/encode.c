@@ -12,6 +12,11 @@ retCode encodeInt(ioPo out, int64 ix) {
   return outInt(out, ix);
 }
 
+retCode encodeChar(ioPo out, codePoint cp) {
+  tryRet(outChar(out, chrTrm));
+  return outChar(out, cp);
+}
+
 retCode encodeStr(ioPo out, char *str, integer len) {
   tryRet(outChar(out, strTrm));
   return encodeTxt(out, str, len);

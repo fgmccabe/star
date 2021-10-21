@@ -2,7 +2,6 @@
 // Created by Francis McCabe on 3/1/18.
 //
 
-#include <stdlib.h>
 #include <math.h>
 #include "arithP.h"
 #include "assert.h"

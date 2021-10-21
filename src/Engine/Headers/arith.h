@@ -10,10 +10,6 @@
 // Integer structure
 extern clssPo integerClass;
 
-static inline logical isInteger(termPo p) {
-  return hasClass(p, integerClass);
-}
-
 extern integer integerVal(termPo o);
 
 // Float structure

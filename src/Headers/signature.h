@@ -2,8 +2,8 @@
  * Specification of type signatures
  * Contact: Francis McCabe <frankmccabe@mac.com>
  */
-#ifndef _SIGNATURE_H_
-#define _SIGNATURE_H_
+#ifndef SIGNATURE_H_
+#define SIGNATURE_H_
 
 #include <logical.h>
 #include <retcode.h>
@@ -18,6 +18,7 @@ typedef enum {
   intSig = 'i', /* An integer */
   fltSig = 'f', /* A float */
   logSig = 'l', /* Logical value */
+  chrSig = 'c', /* A character */
   strSig = 's', // A string
   kvrSig = 'k', /* quantified type variable */
   kfnSig = 'K', /* quantified type function */
@@ -58,6 +59,7 @@ typedef enum {
   vodTrm = 'v',         // Void value
   intTrm = 'x',         // Integer value
   fltTrm = 'd',         // Floating point value
+  chrTrm = 'c',         // Character value
   strTrm = 's',         // String value
   dtaTrm = 'n',         // Constructor data value
   lstTrm = 'l',
@@ -73,4 +75,5 @@ retCode showSignature(ioPo out, char *sig, integer *start, integer end);
 retCode showConstraint(ioPo out, char *sig, integer *start, integer end);
 retCode showSig(ioPo out, char *sig);
 retCode skipSignature(ioPo in);
+
 #endif

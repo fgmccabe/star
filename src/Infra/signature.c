@@ -64,6 +64,7 @@ logical validSig(char *sig, integer *start, integer end) {
     case intSig:
     case fltSig:
     case logSig:
+    case chrSig:
     case strSig:
       return True;
     case kvrSig:
@@ -218,6 +219,7 @@ retCode skipSig(char *sig, integer *start, integer end) {
       case intSig:
       case fltSig:
       case logSig:
+      case chrSig:
       case strSig:
         return Ok;
       case kvrSig:
@@ -412,6 +414,7 @@ retCode skipSignature(ioPo in) {
       case intSig:
       case fltSig:
       case logSig:
+      case chrSig:
       case strSig:
         return Ok;
       case kvrSig:
@@ -535,6 +538,8 @@ retCode showSignature(ioPo out, char *sig, integer *start, integer end) {
       return outStr(out, "float");
     case logSig:
       return outStr(out, "logical");
+    case chrSig:
+      return outStr(out, "char");
     case strSig:
       return outStr(out, "string");
     case kvrSig:

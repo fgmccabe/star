@@ -29,7 +29,7 @@ extern void gcReleaseRoot(heapPo H, int mark);
 #define PTRSZE (sizeof(void*))
 
 #define ALIGNPTR(count, size) ((((count)+(size)-1)/(size))*(size))
-#define CellCount(size) (ALIGNPTR(size,PTRSZE)/PTRSZE)
+#define CellCount(size) ((integer)(ALIGNPTR(size,PTRSZE)/PTRSZE))
 #ifndef ALIGNED
 #define ALIGNED(ptr, size) (((((ptrI)ptr)+size-1)/size)*(size)==(ptrI)ptr)
 #endif

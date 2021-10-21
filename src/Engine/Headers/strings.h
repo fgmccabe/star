@@ -15,7 +15,7 @@ extern clssPo strClass;
 
 extern stringPo C_STR(termPo t);
 
-static inline logical isChars(termPo p) {
+static inline logical isString(termPo p) {
   return hasClass(p, strClass);
 }
 
@@ -36,6 +36,8 @@ retCode copyChars2Buff(stringPo str, char *buffer, integer buffLen);
 logical sameString(stringPo s1, stringPo s2);
 
 retCode quoteStrg(ioPo out, stringPo str);
+
+retCode qtChar(ioPo f, codePoint ch);
 
 retCode outChars(ioPo out, termPo t, integer precision, integer depth, logical alt);
 

@@ -3,7 +3,6 @@
 //
 
 #include <assert.h>
-#include <string.h>
 #include "stringsP.h"
 
 static long strSize(specialClassPo cl, termPo o);
@@ -49,7 +48,7 @@ termPo allocateString(heapPo H, const char *txt, long length) {
   str->hash = 0;
   str->length = length;
 
-  memmove(str->txt, txt, length * sizeof(char));
+  uniMove(str->txt, length, txt, length);
 
   return (termPo) str;
 }
@@ -74,7 +73,7 @@ termPo strCopy(specialClassPo cl, termPo dst, termPo src) {
   stringPo di = (stringPo) dst;
   *di = *si;
 
-  memcpy(di->txt, si->txt, si->length);
+  uniMove(di->txt, si->length, si->txt, si->length);
 
   return ((termPo) di) + StringCellCount(si->length);
 }
@@ -103,7 +102,7 @@ logical sameString(stringPo s1, stringPo s2) {
   return uniSame(s1->txt, s1->length, s2->txt, s2->length);
 }
 
-static retCode qtChar(ioPo f, codePoint ch) {
+retCode qtChar(ioPo f, codePoint ch) {
   retCode ret;
   switch (ch) {
     case '\a':

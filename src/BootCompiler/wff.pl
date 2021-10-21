@@ -907,7 +907,7 @@ mkActionSeq(Lc,S1,S2,T) :-
 mkLoc(Lc,T) :-
   Lc=loc(Pk,Line,Col,Off,Ln),
   roundTerm(Lc,name(Lc,"locn"),
-	     [chars(Lc,Pk),
+	     [string(Lc,Pk),
 	      integer(Lc,Line),
 	      integer(Lc,Col),
 	      integer(Lc,Off),

@@ -7,12 +7,12 @@
 #include <consP.h>
 #include <strings.h>
 #include "arithP.h"
+#include "charP.h"
 #include "stringsP.h"
 #include "heap.h"
 #include "signature.h"
 #include "labelsP.h"
 #include "streamDecode.h"
-#include "debug.h"
 
 #ifdef TRACEDECODE
 tracingLevel traceDecode = noTracing;
@@ -153,10 +153,16 @@ static retCode estimateFlt(double dx, void *cl) {
   return Ok;
 }
 
+static retCode estimateChar(codePoint _, void *cl) {
+  Estimation *info = (Estimation *) cl;
+  info->amnt += CharCellCount;
+  return Ok;
+}
+
 static retCode estimateString(char *nm, integer size, void *cl) {
   Estimation *info = (Estimation *) cl;
 
-  info->amnt += CellCount(sizeof(StringRecord) + (size + 1) * sizeof(char));
+  info->amnt += StringCellCount(size);
   return Ok;
 }
 
@@ -202,8 +208,9 @@ retCode estimate(ioPo in, integer *amnt) {
     estimateVoid,           // decVoid
     estimateInt,            // decInt
     estimateFlt,            // decFlt
-    estimateLbl,           // decLbl
+    estimateLbl,            // decLbl
     estimateRecLbl,         // record label
+    estimateChar,           // Character
     estimateString,         // decString
     estimateCns,            // decCon
     endEstimateCns,         // End of constructor
@@ -269,6 +276,13 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo tmpBuffer
         *tgt = (termPo) declareLbl(getTextFromBuffer(tmpBuffer, &len), arity, -1);
       }
       return res;
+    }
+    case chrTrm: {
+      codePoint cp;
+      if ((res = inChar(in, &cp)) != Ok)
+        return res;
+      *tgt = (termPo) allocateCharacter(H, cp);
+      return Ok;
     }
     case strTrm: {
       if ((res = decodeText(in, tmpBuffer)) == Ok) {

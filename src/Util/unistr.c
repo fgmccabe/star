@@ -301,6 +301,16 @@ retCode uniNCpy(char *dest, integer len, const char *src, integer sLen) {
   return pos < len ? Ok : Eof;
 }
 
+retCode uniMove(char *dest, integer len, const char *src, integer sLen){
+  integer pos = 0;
+  integer max = (sLen < len - 1 ? sLen : len - 1);
+  char *s = (char *) src;
+
+  while (pos < max && *src != 0)
+    dest[pos++] = *s++;
+  return pos < len ? Ok : Eof;
+}
+
 comparison uniCmp(const char *s1, const char *s2) {
   long pos = 0;
   assert(s1 != NULL && s2 != NULL);

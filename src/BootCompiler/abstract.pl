@@ -11,9 +11,9 @@
 		    squareTerm/4,isSquare/3,isSquare/4,
 		    isSquareTuple/3,squareTuple/3,isSquareTerm/3,isSquareTerm/4,sqUnary/4,
 		    isName/2,isName/3,
-		    isIden/1,isIden/2,isIden/3,genIden/2,genIden/3,isChars/2,
-		    isFloat/3,
-		    isChars/3,isInteger/3,mkInteger/3,mkFloat/3,
+		    isIden/1,isIden/2,isIden/3,genIden/2,genIden/3,
+		    isFloat/3,isString/3,
+		    isChar/3,mkChar/3,isInteger/3,mkInteger/3,mkFloat/3,
 		    isConsTerm/4, sameTerm/2]).
 :- use_module(operators).
 :- use_module(misc).
@@ -126,9 +126,10 @@ genIden(Lc,name(Lc,Id)) :-
 genIden(Lc,Pre,name(Lc,Id)) :-
   genstr(Pre,Id).
 
-isChars(chars(_,St),St).
-
-isChars(chars(Lc,Txt),Lc,Txt).
+isChar(char(Lc,Cp),Lc,Cp).
+mkChar(Lc,Cp,char(Lc,Cp)).
+	 
+isString(string(Lc,Txt),Lc,Txt).
 
 isInteger(integer(Lc,Ix),Lc,Ix).
 mkInteger(Lc,Ix,integer(Lc,Ix)).
@@ -142,7 +143,8 @@ locOfAst(name(Lc,_),Lc).
 locOfAst(qnme(Lc,_),Lc).
 locOfAst(integer(Lc,_),Lc).
 locOfAst(float(Lc,_),Lc).
-locOfAst(chars(Lc,_),Lc).
+locOfAst(char(Lc,_),Lc).
+locOfAst(string(Lc,_),Lc).
 locOfAst(tuple(Lc,_,_),Lc).
 locOfAst(app(Lc,_,_),Lc).
 locOfAst(void(Lc),Lc).
@@ -150,7 +152,8 @@ locOfAst(void(Lc),Lc).
 sameTerm(name(_,Nm),name(_,Nm)).
 sameTerm(integer(_,Ix),integer(_,Ix)).
 sameTerm(float(_,Dx),float(_,Dx)).
-sameTerm(chars(_,S),chars(_,S)).
+sameTerm(char(_,S),char(_,S)).
+sameTerm(string(_,S),string(_,S)).
 sameTerm(tuple(_,T,A),tuple(_,T,B)) :-
   sameTerms(A,B).
 sameTerm(app(_,OA,AA),app(_,OB,BA)) :-
