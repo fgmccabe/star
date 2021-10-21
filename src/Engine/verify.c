@@ -678,7 +678,7 @@ static retCode checkOperand(segPo seg, integer oPc, integer *pc, opAndSpec A, ch
         return Error;
       }
       termPo lit = getMtdLit(seg->seg.mtd, litNo);
-      if (isChars(lit)) {
+      if (isString(lit)) {
         integer len;
         const char *text = strVal(lit, &len);
         if (validTypeSig(text, len) == Ok)

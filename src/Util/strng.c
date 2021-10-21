@@ -69,25 +69,12 @@ strgPo newStrng(integer length, const char *txt) {
   return O_STRG(newObject(strgClass, length, txt));
 }
 
-strgPo newStr(const char *txt) {
-  return newStrng(uniStrLen(txt), txt);
-}
-
 char *strgVal(strgPo s) {
   return s->s.txt;
 }
 
 integer strgLen(strgPo s) {
   return s->s.len;
-}
-
-retCode unpackStrg(strgPo s, char *buff, integer buffLen, integer *actual) {
-  if (s->s.len <= buffLen) {
-    uniNCpy(buff, buffLen, s->s.txt, s->s.len);
-    *actual = s->s.len;
-    return Ok;
-  } else
-    return Space;
 }
 
 retCode showStrg(ioPo f, void *data, long depth, long precision, logical alt){

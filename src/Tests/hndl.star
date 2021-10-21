@@ -20,6 +20,19 @@ test.hndl{
   }
   */
 
+
+  -- stateEffect[I] ::= put((I)=>stateEffect[I]) |
+  --   get((())=>stateEffect[I]) |
+  --   rtn((I)=>stateEffect[I]).
+
+  -- contract hndlr[E->>s] ::= {
+  --   effect:(E,s,(())=>>())=>(s)=>((),s).
+  --   retn:(E,(())=>>())=>(s)=>s
+  -- }
+
+  -- implementation all e ~~ hdnlr[stateEffect[e]->>e] => {.
+  --   effect(put(X),
+
   -- What works now ..
   main()=>action{
     let{.

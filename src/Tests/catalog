@@ -8,6 +8,7 @@
     "test.assign": "assign.star",
     "test.bench" : "bench.star",
     "test.cons": "constest.star",
+    "test.chr": "chr.star",
     "test.co": "co.star",
     "test.c": "c.star",
     "test.c2": "c2.star",

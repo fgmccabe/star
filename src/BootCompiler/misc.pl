@@ -5,14 +5,14 @@
 	       project0/2,project1/2,project0_3/2,project1_3/2,project2_3/2,
 	       zip/3,split_list/4,index_list/3,
 	       isIdentifier/1,
-	       appStr/3,appStrs/3,appIden/3,appInt/3,appFlt/3,quoteConcat/4,
+	       appChr/3,appStr/3,appStrs/3,appIden/3,appInt/3,appFlt/3,quoteConcat/4,
 	       appSym/3,appQuoted/4,
 	       appIndx/3,appNl/2,appNwln/3,appMulti/3,
-	       genstr/2,str_lt/2,
+	       genstr/2,str_lt/2,chr_lt/2,
 	       subPath/4,pathSuffix/3,starts_with/2,ends_with/2,
 	       mangleName/3,mangleName/4,splitLocalName/4,getLocalName/2,localName/3,
 	       listShow/5,
-	       stringHash/3,hashSixtyFour/2,stringEndsWith/2,
+	       charHash/3,stringHash/3,hashSixtyFour/2,stringEndsWith/2,
 	       marker/2,
 	       packageVarName/3,contractName/3,
 	       thetaName/3,consName/3,packageTypeName/3,genNewName/3,
@@ -181,6 +181,8 @@ lfold([E|L],F,S,Sx) :-
 
 appStr(Str,O,E) :- string_chars(Str,Chrs), concat(Chrs,E,O).
 
+appChr(Cp,[Cp|O],O).
+
 appStrs([],O,O).
 appStrs([S|L],O,Ox) :- appStr(S,O,O1), appStrs(L,O1,Ox).
 
@@ -251,6 +253,11 @@ genstr(Prefix,S) :-
   gensym(Prefix,A),
   atom_string(A,S).
 
+chr_lt(CP1,CP2) :-
+  atom_codes(CP1,C1),
+  atom_codes(CP2,C2),
+  codeSmaller(C1,C2),!.
+
 str_lt(S1,S2) :-
      string_codes(S1,C1),
      string_codes(S2,C2),
@@ -264,6 +271,11 @@ codeSmaller([C|L],[C|M]) :-
 
 stringHash(H,Str,Hx) :-
   string_codes(Str,Codes),
+  hashCodes(Codes,H,Hs),
+  hashSixtyFour(Hs,Hx).
+
+charHash(H,Cp,Hx) :-
+  atom_codes(Cp,Codes),
   hashCodes(Codes,H,Hs),
   hashSixtyFour(Hs,Hx).
 

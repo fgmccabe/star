@@ -11,7 +11,7 @@ dispAst(Term) :- dispAst(Term,2000),!.
 
 dispAst(Term,Pr) :- dispAst(Term,Pr,Chrs,[]), string_chars(Res,Chrs), writeln(Res).
 
-ast2String(Lc,A,chars(Lc,Txt)) :-
+ast2String(Lc,A,string(Lc,Txt)) :-
   dispAst(A,2000,Chrs,[]),
   string_chars(Txt,Chrs),!.
 
@@ -19,7 +19,8 @@ dispAst(name(_,Nm),_,O,E) :- appStr(Nm,O,E).
 dispAst(qnme(_,Nm),_,O,Ox) :- appQuoted(Nm,"\'",O,Ox).
 dispAst(integer(_,Nm),_,O,E) :- number_chars(Nm,Chrs), concat(Chrs,E,O).
 dispAst(float(_,Nm),_,O,E) :- number_chars(Nm,Chrs), concat(Chrs,E,O).
-dispAst(chars(_,S),_,O,Ox) :- appQuoted(S,"\"",O,Ox).
+dispAst(char(_,Cp),_,O,E) :- appQuoted([Cp],"`",O,E).
+dispAst(string(_,S),_,O,Ox) :- appQuoted(S,"\"",O,Ox).
 dispAst(tuple(_,Nm,A),_,O,E) :- bracket(Nm,Left,Right,Sep,Pr),
     appStr(Left,O,O1),
     writeEls(A,Pr,Sep,O1,O2),
@@ -68,7 +69,7 @@ deInterpolate(T,O,Ox) :-
   isBinary(T,_,"cons",H,T),
   deInterpolate(H,O,O1),
   deInterpolate(T,O1,Ox).
-deInterpolate(chars(_,Txt),O,Ox) :-
+deInterpolate(string(_,Txt),O,Ox) :-
   string_chars(Txt,Chars),
   quoteConcat('\"',Chars,O,Ox).
 deInterpolate(T,O,Ox) :-
@@ -77,7 +78,7 @@ deInterpolate(T,O,Ox) :-
   dispAst(Trm,1000,O1,Ox).
 deInterpolate(T,O,Ox) :-
   isBinary(T,_,"frmt",Trm,Fmt),
-  isChars(Fmt,FmtTxt),
+  isString(Fmt,_,FmtTxt),
   appStr("$",O,O1),
   dispAst(Trm,1000,O1,O2),
   appStr(":",O2,O3),
@@ -99,7 +100,8 @@ closeParen(_,_,O,O).
 ssAst(_,name(_,Nm),id(Nm)) :- !.
 ssAst(_,integer(_,Ix),ix(Ix)) :- !.
 ssAst(_,float(_,Dx),fx(Dx)) :- !.
-ssAst(_,chars(_,S),qt("""",S)) :- !.
+ssAst(_,char(_,Cp),sq([ss("#"),cp(Cp)])) :- !.
+ssAst(_,string(_,S),qt("""",S)) :- !.
 ssAst(_,tuple(_,Nm,A),sq([ss(Left),iv(ss(Sep),AA),ss(Right)])) :-
   bracket(Nm,Left,Right,Sep,Pr),
   map(A,astdisp:ssAst(Pr),AA).

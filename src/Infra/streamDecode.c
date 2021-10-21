@@ -91,8 +91,8 @@ retCode decodeString(ioPo in, char *buffer, integer buffLen) {
   if (isLookingAt(in, "s") == Ok) {
     strBufferPo b = fixedStringBuffer(buffer, buffLen);
     retCode ret = decodeText(in, b);
-    if(ret==Ok)
-      ret = outByte(O_IO(b),0);
+    if (ret == Ok)
+      ret = outByte(O_IO(b), 0);
     closeFile(O_IO(b));
     return ret;
   } else
@@ -192,6 +192,13 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, strBufferPo 
       }
       return res;
     }
+    case chrTrm: {
+      codePoint cp;
+      retCode ret = inChar(in, &cp);
+      if (ret == Ok)
+        ret = cb->decChar(cp, cl);
+      return ret;
+    }
     case strTrm: {
       clearStrBuffer(buff);
       res = decodeText(in, buff);
@@ -203,7 +210,6 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, strBufferPo 
       }
       return res;
     }
-
     case dtaTrm: {
       integer arity;
 
@@ -273,6 +279,10 @@ static retCode skipFlt(double dx, void *cl) {
   return Ok;
 }
 
+static retCode skipChar(codePoint cp, void *cl) {
+  return Ok;
+}
+
 static retCode skipString(char *sx, integer len, void *cl) {
   return Ok;
 }
@@ -309,6 +319,7 @@ static DecodeCallBacks skipCB = {
   skipFlt,            // decFlt
   skipName,           // decLbl
   skipRecLbl,         // record label
+  skipChar,           // Character
   skipString,         // decString
   skipCns,            // decCons
   endSkipCns,         // End of constructor
@@ -347,14 +358,17 @@ static retCode copyVoid(void *cl) {
 
 static retCode copyInt(integer ix, void *cl) {
   ioPo out = ((CopyRec *) cl)->out;
-  outChar(out, intTrm);
   return encodeInt(out, ix);
 }
 
 static retCode copyFlt(double dx, void *cl) {
   ioPo out = ((CopyRec *) cl)->out;
-  outChar(out, fltTrm);
   return encodeFlt(out, dx);
+}
+
+static retCode copyChar(codePoint cp, void *cl) {
+  ioPo out = ((CopyRec *) cl)->out;
+  return encodeChar(out, cp);
 }
 
 static retCode encodeName(ioPo out, char *sx, integer len) {
@@ -422,6 +436,7 @@ static DecodeCallBacks copyCB = {
   copyFlt,            // decFlt
   copyEnum,           // decLbl
   copyRecLbl,          // record label
+  copyChar,           // character
   copyString,         // decString
   copyCons,            // decCons
   endCopyCons,        // Copying a structure

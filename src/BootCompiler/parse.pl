@@ -59,7 +59,7 @@ genCall(T,Bnd,Cl) :-
   isSquareTuple(T,Lc,Els),
   genSquare(Lc,Els,Bnd,Cl).
 genCall(T,void,Cl) :-
-  isChars(T,Lc,_),
+  isString(T,Lc,_),
   unary(Lc,"_str",T,Cl).
 genCall(T,V,Cl) :-
   isBraceTuple(T,Lc,[C]),!,
@@ -128,7 +128,8 @@ ptnVars(tuple(_,_,Els),SoFar,Vrs) :-
   rfold(Els,parse:ptnVars,SoFar,Vrs).
 ptnVars(integer(_,_),Vrs,Vrs).
 ptnVars(float(_,_),Vrs,Vrs).
-ptnVars(chars(_,_),Vrs,Vrs).
+ptnVars(string(_,_),Vrs,Vrs).
+ptnVars(char(_,_),Vrs,Vrs).
 
 condVars(C,V,Vx) :-
   isBinary(C,_,"&&",L,R),!,

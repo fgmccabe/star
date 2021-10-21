@@ -58,11 +58,13 @@ legalNextRight([idTok(I,_)|_],Pr) :- ( prefixOp(I,PPr,_), PPr=<Pr ; \+ isOperato
 legalNextRight([idQTok(_,_)|_],_).
 legalNextRight([lftTok(_,_)|_],_).
 legalNextRight([stringTok(_,_)|_],_).
+legalNextRight([charTok(_,_)|_],_).
 legalNextRight([integerTok(_,_)|_],_).
 legalNextRight([floatTok(_,_)|_],_).
 
 term0([stringTok(St,Lc)|Toks],Str,Toks,id) :-
   interpolateString(St,Lc,Str).
+term0([charTok(Cp,Lc)|Toks],char(Lc,Cp),Toks,id).
 term0([integerTok(In,Lc)|Toks],integer(Lc,In),Toks,id).
 term0([floatTok(Fl,Lc)|Toks],float(Lc,Fl),Toks,id).
 term0([lftTok("{}",Lc0),rgtTok("{}",Lc2)|Toks],tuple(Lc,"{}",[]),Toks,rbrce) :-
@@ -185,7 +187,7 @@ interpolateString(Els,Lc,Term) :-
   length(Els,Ln),Ln>1,
   handleInterpolations(Els,Lc,Cons),
   unary(Lc,"_str_multicat",Cons,Term).
-interpolateString([],Lc,chars(Lc,"")).
+interpolateString([],Lc,string(Lc,"")).
 interpolateString([El],Lc,Term) :-
   handleInterpolation(El,Lc,Term).
 
@@ -196,7 +198,7 @@ handleInterpolations([El|Els],Lc,Cons) :-
   handleInterpolations(Els,Lc,T),
   binary(Lc,"cons",H,T,Cons).
 
-handleInterpolation(segment(Str,Lc),_,chars(Lc,Str)) :-!.
+handleInterpolation(segment(Str,Lc),_,string(Lc,Str)) :-!.
 handleInterpolation(interpolate(Text,"",Lc),_,Disp) :-
   subTokenize(Lc,Text,Toks),
   term(Toks,2000,Term,TksX,_),
@@ -205,7 +207,7 @@ handleInterpolation(interpolate(Text,"",Lc),_,Disp) :-
 handleInterpolation(interpolate(Text,Fmt,Lc),_,Disp) :-
   subTokenize(Lc,Text,Toks),
   term(Toks,2000,Term,TksX,_),
-  binary(Lc,"frmt",Term,chars(Lc,Fmt),Disp),
+  binary(Lc,"frmt",Term,string(Lc,Fmt),Disp),
   ( TksX = [] ; lookAhead(ATk,TksX),locOf(ATk,ALc),reportError("extra tokens in string interpolation",[],ALc)).
 handleInterpolation(coerce(Text,Lc),_,Disp) :-
   subTokenize(Lc,Text,Toks),

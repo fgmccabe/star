@@ -26,7 +26,8 @@ isLTerm(anon) :- !.
 isLTerm(voyd) :- !.
 isLTerm(intgr(_)) :- !.
 isLTerm(float(_)) :- !.
-isLTerm(strg()) :- !.
+isLTerm(chr()) :- !.
+isLTerm(strg(_)) :- !.
 isLTerm(cll(_,_,_)) :- !.
 isLTerm(ocall(_,_,_)) :- !.
 isLTerm(ecll(_,_,_)) :- !.
@@ -121,6 +122,7 @@ ssTrm(idnt(Nm),_,id(Nm)) :-!.
 ssTrm(anon,_,ss("_")) :-!.
 ssTrm(intgr(Ix),_,ix(Ix)) :-!.
 ssTrm(float(Dx),_,fx(Dx)) :-!.
+ssTrm(chr(Cp),_,sq([ss("#"),cp(Cp)])) :-!.
 ssTrm(strg(Str),_,sq([ss(""""),ss(Str),ss("""")])) :-!.
 ssTrm(cll(_,Op,Args),Dp,sq([OO,lp,AA,rp])) :- !,
   ssTrm(Op,Dp,OO),
@@ -344,6 +346,7 @@ rewriteTerm(_,intgr(Ix),intgr(Ix)).
 rewriteTerm(_,idnt(Nm),idnt(Nm)).
 rewriteTerm(_,anon,anon).
 rewriteTerm(_,float(Dx),float(Dx)).
+rewriteTerm(_,chr(Cp),chr(Cp)).
 rewriteTerm(_,strg(Sx),strg(Sx)).
 rewriteTerm(_,enum(Nm),enum(Nm)).
 rewriteTerm(_,lbl(Nm,Ar),lbl(Nm,Ar)).
@@ -518,6 +521,7 @@ isUnit(ctpl(lbl("()0",0),[])).
 
 isLiteral(intgr(_)).
 isLiteral(float(_)).
+isLiteral(chr(_)).
 isLiteral(strg(_)).
 isLiteral(enum(_)).
 isLiteral(lbl(_,_)).
@@ -528,6 +532,7 @@ isLiteral(ctpl(Lbl,Args)) :-
 termHash(voyd,0).
 termHash(intgr(Ix),Ix).
 termHash(float(Dx),Ix) :- Ix is round(Dx).
+termHash(chr(Cp),Ix) :- charHash(0,Cp,Ix).
 termHash(strg(Sx),Ix) :- stringHash(0,Sx,Ix).
 termHash(enum(Sx),Ix) :- termHash(lbl(Sx,0),Ix).
 termHash(lbl(Nm,Ar),Hx) :-
@@ -666,6 +671,7 @@ validTerm(anon,_,_).
 validTerm(voyd,_,_).
 validTerm(intgr(_),_,_).
 validTerm(float(_),_,_).
+validTerm(chr(_),_,_).
 validTerm(strg(_),_,_).
 validTerm(lbl(_,_),_,_).
 validTerm(cll(Lc,lbl(_,_),Args),_,D) :-
@@ -767,6 +773,7 @@ validPtn(anon,_,Dx,Dx).
 validPtn(voyd,_,Dx,Dx).
 validPtn(intgr(_),_,Dx,Dx).
 validPtn(float(_),_,Dx,Dx).
+validPtn(chr(_),_,Dx,Dx).
 validPtn(strg(_),_,Dx,Dx).
 validPtn(lbl(_,_),_,Dx,Dx).
 validPtn(ctpl(lbl(_,_),Args),Lc,D,Dx) :-
@@ -875,6 +882,7 @@ ptnVars(anon,Dx,Dx).
 ptnVars(voyd,Dx,Dx).
 ptnVars(intgr(_),Dx,Dx).
 ptnVars(float(_),Dx,Dx).
+ptnVars(chr(_),Dx,Dx).
 ptnVars(strg(_),Dx,Dx).
 ptnVars(lbl(_,_),Dx,Dx).
 ptnVars(cll(_,_,Args),D,Dx) :-

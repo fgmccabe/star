@@ -579,7 +579,10 @@ typeOfPtn(T,Tp,_ErTp,Env,Env,floatLit(Lc,Dx),_Path) :-
   isLiteralFloat(T,Lc,Dx),!,
   findType("float",Lc,Env,FltTp),
   verifyType(Lc,FltTp,Tp,Env).
-typeOfPtn(chars(Lc,Sx),Tp,_ErTp,Env,Env,charsLit(Lc,Sx),_Path) :- !,
+typeOfPtn(char(Lc,Cp),Tp,_ErTp,Env,Env,charLit(Lc,Cp),_Path) :- !,
+  findType("char",Lc,Env,StrTp),
+  verifyType(Lc,StrTp,Tp,Env).
+typeOfPtn(string(Lc,Sx),Tp,_ErTp,Env,Env,stringLit(Lc,Sx),_Path) :- !,
   findType("string",Lc,Env,StrTp),
   verifyType(Lc,StrTp,Tp,Env).
 typeOfPtn(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
@@ -682,7 +685,10 @@ typeOfExp(T,Tp,_ErTp,Env,Env,floatLit(Lc,Dx),_Path) :-
   isLiteralFloat(T,Lc,Dx),!,
   findType("float",Lc,Env,FltTp),
   verifyType(Lc,FltTp,Tp,Env).
-typeOfExp(chars(Lc,Sx),Tp,_ErTp,Env,Env,charsLit(Lc,Sx),_Path) :- !,
+typeOfExp(char(Lc,Cp),Tp,_ErTp,Env,Env,charLit(Lc,Cp),_Path) :- !,
+  findType("char",Lc,Env,StrTp),
+  verifyType(Lc,StrTp,Tp,Env).
+typeOfExp(string(Lc,Sx),Tp,_ErTp,Env,Env,stringLit(Lc,Sx),_Path) :- !,
   findType("string",Lc,Env,StrTp),
   verifyType(Lc,StrTp,Tp,Env).
 typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-

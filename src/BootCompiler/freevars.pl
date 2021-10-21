@@ -14,7 +14,8 @@ freeVars(enm(_,_,_),_,_,F,F).
 freeVars(cons(_,_,_),_,_,F,F).
 freeVars(intLit(_,_),_,_,F,F).
 freeVars(floatLit(_,_),_,_,F,F).
-freeVars(charsLit(_,_),_,_,F,F).
+freeVars(charLit(_,_),_,_,F,F).
+freeVars(stringLit(_,_),_,_,F,F).
 freeVars(tple(_,Els),Ex,Q,F,FV) :- freeVarsList(Els,Ex,Q,F,FV).
 freeVars(apply(_,Op,A,_),Ex,Q,F,FV) :- freeVars(Op,Ex,Q,F,F0), freeVars(A,Ex,Q,F0,FV).
 freeVars(dot(_,Rc,_,_),Ex,Q,F,FV) :- freeVars(Rc,Ex,Q,F,FV).
@@ -195,7 +196,8 @@ ptnVars(v(_,Nm,_),Q,Qx) :- add_mem(idnt(Nm),Q,Qx).
 ptnVars(anon(_,_),Q,Q).
 ptnVars(intLit(_,_),Q,Q).
 ptnVars(floatLit(_,_),Q,Q).
-ptnVars(charsLit(_,_),Q,Q).
+ptnVars(charLit(_,_),Q,Q).
+ptnVars(stringLit(_,_),Q,Q).
 ptnVars(enm(_,_,_),Q,Q).
 ptnVars(cons(_,_,_),Q,Q).
 ptnVars(where(_,Ptn,C),Q,Qx) :- ptnVars(Ptn,Q,Q0), ptnGoalVars(C,Q0,Qx).

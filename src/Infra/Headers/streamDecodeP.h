@@ -28,6 +28,7 @@ typedef retCode (*intProc)(integer ix, void *cl);
 typedef retCode (*fltProc)(double dx, void *cl);
 typedef retCode (*nameProc)(char *sx, integer ar, void *cl);
 typedef retCode (*recLblProc)(char *sx, integer ar, FieldRec fields[], void *cl);
+typedef retCode (*charProc)(codePoint cp, void *cl);
 typedef retCode (*stringProc)(char *sx, integer len, void *cl);
 typedef retCode (*consProc)(integer len, void *cl);
 typedef retCode (*flagProc)(void *cl);
@@ -40,6 +41,7 @@ typedef struct {
   fltProc decFlt;
   nameProc decLbl;
   recLblProc decRecLbl;
+  charProc decChar;
   stringProc decString;
   consProc decCons;
   flagProc endCons;

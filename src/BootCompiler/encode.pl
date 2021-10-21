@@ -14,6 +14,7 @@ encodeTerm(voyd, ['v'|O],O).
 encodeTerm(intgr(Ix),['x'|O],Ox) :- encodeInt(Ix,O,Ox).
 encodeTerm(float(Dx),['d'|O],Ox) :- encodeFloat(Dx,O,Ox).
 encodeTerm(enum(Nm),['e'|O],Ox) :- encodeText(Nm,O,Ox).
+encodeTerm(chr(Cp),['c'|O],Ox) :- appChr(Cp,O,Ox).
 encodeTerm(strg(St),['s'|O],Ox) :- encodeText(St,O,Ox).
 encodeTerm(lbl(Nm,Arity),['o'|O],Ox) :-
   encodeInt(Arity,O,O1),
@@ -84,6 +85,7 @@ encodeT(T,['_'|O],O) :- isUnbound(T).
 encodeT(type("star.core*boolean"),['l'|O],O).
 encodeT(type("star.core*integer"),['i'|O],O).
 encodeT(type("star.core*float"),['f'|O],O).
+encodeT(type("star.core*char"),['c'|O],O).
 encodeT(type("star.core*string"),['s'|O],O).
 encodeT(kVar(Nm),['k'|O],Ox) :- encodeText(Nm,O,Ox).
 encodeT(kFun(Nm,Ar),['K'|O],Ox) :- encodeInt(Ar,O,O1),encodeText(Nm,O1,Ox).

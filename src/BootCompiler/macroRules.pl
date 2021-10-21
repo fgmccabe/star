@@ -266,7 +266,7 @@ ptnVars(T,_,V,V) :-
 ptnVars(T,_,V,V) :-
   isFloat(T,_,_),!.
 ptnVars(T,_,V,V) :-
-  isChars(T,_,_),!.
+  isString(T,_,_),!.
 ptnVars(T,_,V,V) :-
   isEnum(T,_,_),!.
 ptnVars(T,E,V,Vx) :-
@@ -330,7 +330,7 @@ unwrapExpMacro(T,expression,Tx) :-
   match(Lc,Ptn,R,Mtch),
   mkWhere(Lc,V,Mtch,Tx).
 
-pkgNameMacro(T,expression,chars(Lc,P)) :-
+pkgNameMacro(T,expression,string(Lc,P)) :-
   isName(T,Lc,"__pkg__"),
   lcPk(Lc,P).
 
@@ -430,19 +430,21 @@ macroQuote(T,expression,Rp) :-
 quoteExp(A,I) :-
   isUnary(A,_,"$",I),!.
 quoteExp(name(Lc,Id),I) :-
-  unary(Lc,"_name",chars(Lc,Id),I).
+  unary(Lc,"_name",string(Lc,Id),I).
 quoteExp(qnme(Lc,Id),I) :-
-  unary(Lc,"_qnme",chars(Lc,Id),I).
+  unary(Lc,"_qnme",string(Lc,Id),I).
 quoteExp(integer(Lc,Ix),I) :-
   unary(Lc,"_integer",integer(Lc,Ix),I).
 quoteExp(float(Lc,Dx),I) :-
   unary(Lc,"_float",float(Lc,Dx),I).
-quoteExp(chars(Lc,Sx),I) :-
-  unary(Lc,"_string",chars(Lc,Sx),I).
+quoteExp(char(Lc,Cp),I) :-
+  unary(Lc,"_char",char(Lc,Cp),I).
+quoteExp(string(Lc,Sx),I) :-
+  unary(Lc,"_string",string(Lc,Sx),I).
 quoteExp(tuple(Lc,Lb,Els),Rp) :-
   map(Els,macroRules:quoteExp,QEls),
   macroListEntries(Lc,QEls,R,nilGen,consGen),
-  binary(Lc,"_tuple",chars(Lc,Lb),R,Rp).
+  binary(Lc,"_tuple",string(Lc,Lb),R,Rp).
 quoteExp(app(Lc,O,A),Rp) :-
   quoteExp(O,Oq),
   quoteExp(A,Aq),
@@ -501,4 +503,3 @@ tryHandleMacro(T,action,Tx) :-
 %   typeAnnotation(Lc,name(Lc,Nm),TV,An),
 %   collectEntries(Els,TVs).
 
-  

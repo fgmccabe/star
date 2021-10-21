@@ -228,10 +228,6 @@ termPo getGlobal(globalPo v) {
   return v->content;
 }
 
-globalPo getGlobalVar(char *nm) {
-  return globalVar(nm);
-}
-
 char *globalVarName(globalPo v) {
   return v->name;
 }
@@ -262,4 +258,3 @@ termPo setGlobalVar(globalPo v, termPo e) {
   v->content = e;
   return prev;
 }
-
