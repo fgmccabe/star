@@ -61,27 +61,27 @@ star.pkg{
   compatibleVersion(_,_) => .false.
 
   public parsePkgName:(string) => option[pkg].
-  parsePkgName(S) => first(parse(pkgParse,S::cons[integer])).
+  parsePkgName(S) => first(parse(pkgParse,S::cons[char])).
 
   first([])=>.none.
   first([(E,_),.._])=>some(E).
 
-  public pkgParse:parser[cons[integer],pkg].
+  public pkgParse:parser[cons[char],pkg].
   pkgParse = parseName >>= (Pkg) => parseVersion >>= (V) => return pkg(Pkg,V).
 
-  parseName:parser[cons[integer],string].
+  parseName:parser[cons[char],string].
   parseName = segment.
 
-  segment:parser[cons[integer],string].
+  segment:parser[cons[char],string].
   segment=_plus(segChr) >>= (Chrs) => return (Chrs::string).
 
-  segChr:parser[cons[integer],integer].
+  segChr:parser[cons[char],char].
   segChr = _sat(isSegChr).
 
-  isSegChr:(integer)=>boolean.
-  isSegChr(0c.) => .true.
+  isSegChr:(char)=>boolean.
+  isSegChr(`.`) => .true.
   isSegChr(Ch) => isAlphaNum(Ch).
 
-  parseVersion:parser[cons[integer],version].
+  parseVersion:parser[cons[char],version].
   parseVersion = ((_str("#") >>= (_) => segment >>= (Seg) => (return vers(Seg))) +++ (return .defltVersion)).
 }

@@ -67,8 +67,9 @@ showToken(floatTok(Dx,_),Str) :-
   number_string(Dx,St),
   string_chars(St,Str).
 showToken(charTok(Cp,_),Str) :-
-  appStr("#",Chrs,C0),
-  appChr(Cp,C0,[]),
+  appStr("`",Chrs,C0),
+  appChr(Cp,C0,C1),
+  appStr("`",C1,[]),
   string_chars(Chrs,Str).
 showToken(stringTok(St,_),Str) :-
   appStr("\"",Chrs,C0),
@@ -153,6 +154,11 @@ nxTok(St,NxSt,idQTok(Id,Lc)) :-
 nxTok(St,NxSt,charTok(Cp,Lc)) :-
   lookingAt(St,St1,['#'],_),
   charRef(St1,NxSt,Cp),
+  makeLoc(St,NxSt,Lc).
+nxTok(St,NxSt,charTok(Cp,Lc)) :-
+  lookingAt(St,St1,['`'],_),
+  charRef(St1,St2,Cp),
+  nextSt(St2,NxSt,'`'),
   makeLoc(St,NxSt,Lc).
 nxTok(St,NxSt,stringTok([segment(Seg,Lc)],Lc)) :-
   lookingAt(St,St1,['"','"','"']),

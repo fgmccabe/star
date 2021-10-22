@@ -17,6 +17,10 @@ star.strings{
     X==Y => _str_eq(X,Y).
   }
 
+  public implementation hash[char] => {
+    hash(X) => _chr_hash(X).
+  }
+
   public implementation hash[string] => {
     hash(X) => _str_hash(X).
   }
@@ -57,11 +61,11 @@ star.strings{
     reverse(L) => _str_reverse(L).
   }
 
-  public implementation coercion[string,cons[integer]] => {
+  public implementation coercion[string,cons[char]] => {
     _coerce(S) => some(_explode(S)).
   }
 
-  public implementation coercion[cons[integer],string] => {
+  public implementation coercion[cons[char],string] => {
     _coerce(L) => some(_implode(L)).
   }
 
@@ -69,51 +73,59 @@ star.strings{
     _coerce(S) => some(S).
   }
 
+  public implementation coercion[integer,char] => {
+    _coerce(S) => some(_char(S)).
+  }
+
+  public implementation coercion[char,integer] => {
+    _coerce(S) => some(_codePoint(S)).
+  }
+  
   public stringQuote:(string)=>string.
   stringQuote(S) => _str_quote(S).
 
   -- Stream and sequence contracts
 
-  public implementation stream[string->>integer] => {
+  public implementation stream[string->>char] => {
     _eof(S) => S=="".
     _hdtl(Cs) where (H,T).=_str_hdtl(Cs) => some((H,T)).
     _hdtl("") => .none.
   }
 
-  public implementation sequence[string->>integer] => {.
-    _cons(C,S) => _str_concat(_code2str(C),S).
+  public implementation sequence[string->>char] => {.
+    _cons(C,S) => _str_cons(C,S).
     _nil = "".
   .}
 
-  public isDigit:(integer)=>boolean.
+  public isDigit:(char)=>boolean.
   isDigit(D) => _isNdChar(D).
 
-  public digitVal:(integer)=>integer.
+  public digitVal:(char)=>integer.
   digitVal(D) => _digitCode(D).
 
-  public isHexDigit:(integer) => option[integer].
+  public isHexDigit:(char) => option[integer].
   isHexDigit(Ch) where isDigit(Ch) => some(digitVal(Ch)).
-  isHexDigit(0ca) => some(10).
-  isHexDigit(0cb) => some(11).
-  isHexDigit(0cc) => some(12).
-  isHexDigit(0cd) => some(13).
-  isHexDigit(0ce) => some(14).
-  isHexDigit(0cf) => some(15).
-  isHexDigit(0cA) => some(10).
-  isHexDigit(0cB) => some(11).
-  isHexDigit(0cC) => some(12).
-  isHexDigit(0cD) => some(13).
-  isHexDigit(0cE) => some(14).
-  isHexDigit(0cF) => some(15).
+  isHexDigit(`a`) => some(10).
+  isHexDigit(`b`) => some(11).
+  isHexDigit(`c`) => some(12).
+  isHexDigit(`d`) => some(13).
+  isHexDigit(`e`) => some(14).
+  isHexDigit(`f`) => some(15).
+  isHexDigit(`A`) => some(10).
+  isHexDigit(`B`) => some(11).
+  isHexDigit(`C`) => some(12).
+  isHexDigit(`D`) => some(13).
+  isHexDigit(`E`) => some(14).
+  isHexDigit(`F`) => some(15).
   isHexDigit(_) default => .none.
 
-  public isSpace:(integer) => boolean.
-  isSpace(Ch) => (_isZsChar(Ch) || _isZlChar(Ch) || Ch==0c\n || Ch==0c\t).
+  public isSpace:(char) => boolean.
+  isSpace(Ch) => (_isZsChar(Ch) || _isZlChar(Ch) || Ch==`\n` || Ch==`\t`).
 
-  public isLetter:(integer) => boolean.
+  public isLetter:(char) => boolean.
   isLetter(Ch) => _isLetterChar(Ch).
 
-  public isAlphaNum:(integer) => boolean.
+  public isAlphaNum:(char) => boolean.
   isAlphaNum(Ch) => (_isLetterChar(Ch) || _isNdChar(Ch)).
 
   public genSym:(string) => string.

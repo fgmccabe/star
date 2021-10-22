@@ -51,14 +51,14 @@ star.parse{
     ng([_,.._],S) => [].
     } in parser((S)=>ng(parse(P,S),S)).
 
-  public _str:(string) => parser[cons[integer],()].
-  _str(S) => _literal(S::cons[integer]).
+  public _str:(string) => parser[cons[char],()].
+  _str(S) => _literal(S::cons[char]).
 
-  public _pKy:all k ~~ (string,k)=>parser[cons[integer],k].
+  public _pKy:all k ~~ (string,k)=>parser[cons[char],k].
   _pKy(K,V) => let{
     prs([]) => return V.
     prs([Cx,..L]) => _tk(Cx) >>= (_) => prs(L).
-  } in prs(K::cons[integer]).
+  } in prs(K::cons[char]).
  
   public implementation all t ~~ monad[parser[t]] => {.
     return a => parser((S)=>[(a,S)]).
@@ -120,41 +120,41 @@ star.parse{
     prs(A) => (P >>= (O) => prs(Op(O,A))) ++ (return A)
   } in (P>>=(Z) => prs(Z)).
 
-  public spaces:parser[cons[integer],()].
+  public spaces:parser[cons[char],()].
   spaces = _star(_sat(isSpace)) >>= (_) => return ().
 
-  public space:parser[cons[integer],()].
+  public space:parser[cons[char],()].
   space = _sat(isSpace) >>= (_) => return ().
 
-  public skip:all e ~~ (parser[cons[integer],e])=>parser[cons[integer],e].
+  public skip:all e ~~ (parser[cons[char],e])=>parser[cons[char],e].
   skip(P) => spaces >>= (_) => P.
 
-  public digit:parser[cons[integer],integer].
+  public digit:parser[cons[char],char].
   digit = _sat(isDigit).
 
-  numeral:parser[cons[integer],integer].
+  numeral:parser[cons[char],integer].
   numeral = digit >>= (D) => return digitVal(D).
 
-  public natural:parser[cons[integer],integer].
+  public natural:parser[cons[char],integer].
   natural = _pplus(numeral,(d,s)=>s*10+d).
 
-  public decimal:parser[cons[integer],integer].
-  decimal = (_tk(0c-) >>= (_) => natural >>= (N) => return -N) ++ natural.
+  public decimal:parser[cons[char],integer].
+  decimal = (_tk(`-`) >>= (_) => natural >>= (N) => return -N) ++ natural.
 
-  public real:()=>parser[cons[integer],float].
-  real() => (_tk(0c-) >>= (_) =>
+  public real:()=>parser[cons[char],float].
+  real() => (_tk(`-`) >>= (_) =>
       real() >>= (N) => return -N) +++
   (natural >>= (M) =>
-      ((_tk(0c.) >>= (_) =>
+      ((_tk(`.`) >>= (_) =>
 	    fraction(M::float,0.1) >>= (F) =>
 	      exponent >>= (E) => return F*E) +++ (return M::float))).
 
-  fraction:(float,float) => parser[cons[integer],float].
+  fraction:(float,float) => parser[cons[char],float].
   fraction(SoFar,Scale) =>
     (numeral >>= (D) => fraction(SoFar+Scale*(D::float),Scale*0.1)) +++
     (return SoFar).
 
-  exponent:parser[cons[integer],float].
-  exponent = (_tk(0ce) >>= (_) =>
+  exponent:parser[cons[char],float].
+  exponent = (_tk(`e`) >>= (_) =>
 		decimal >>= (E) => return 10.0**(E::float)) +++ (return 1.0).
 }

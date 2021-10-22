@@ -43,7 +43,7 @@ DebugWaitFor insDebug(processPo p, insWord ins);
 DebugWaitFor lineDebug(processPo p, termPo line);
 DebugWaitFor enterDebug(processPo p);
 
-void stackTrace(processPo p, ioPo out, stackPo stk);
+void stackTrace(processPo p, ioPo out, stackPo stk, logical showLocals);
 
 insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc);
 #endif //STAR_DEBUGP_H

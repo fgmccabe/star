@@ -540,19 +540,20 @@ void showStackCall(ioPo out, stackPo stk, framePo fp, integer frameNo) {
   outMsg(out, ")\n%_");
 }
 
-void showStackEntry(ioPo out, stackPo stk, framePo fp, integer frameNo) {
+void showStackEntry(ioPo out, stackPo stk, framePo fp, integer frameNo, logical showLocals) {
   showStackCall(out, stk, fp, frameNo);
-  showAllLocals(out, stk, fp);
+  if (showLocals)
+    showAllLocals(out, stk, fp);
 }
 
 static DebugWaitFor dbgStackTrace(char *line, processPo p, termPo loc, insWord ins, void *cl) {
-  stackTrace(p, debugOutChnnl, p->stk);
+  stackTrace(p, debugOutChnnl, p->stk, True);
 
   resetDeflt("n");
   return moreDebug;
 }
 
-void stackTrace(processPo p, ioPo out, stackPo stk) {
+void stackTrace(processPo p, ioPo out, stackPo stk, logical showLocals) {
   heapPo h = processHeap(p);
 
   outMsg(out, "Stack trace for process %d\n", p->processNo);
@@ -591,7 +592,7 @@ void stackTrace(processPo p, ioPo out, stackPo stk) {
     ptrPo sp = stk->sp;
     framePo fp = stk->fp;
     for (integer fx = 0; sp < stackLimit(stk); fx++) {
-      showStackEntry(out, stk, fp, fx);
+      showStackEntry(out, stk, fp, fx, showLocals);
       sp = (ptrPo) (fp + 1);
       fp = fp->fp;
     }
@@ -1097,8 +1098,9 @@ DebugWaitFor enterDebug(processPo p) {
       int32 glbNo = collect32(pc);
       globalPo glb = findGlobalVar(glbNo);
 
-      return lnDebug(p, ins, (termPo)glb, showGlobal);
-    }  default:
+      return lnDebug(p, ins, (termPo) glb, showGlobal);
+    }
+    default:
       return stepOver;
   }
 }
@@ -1303,7 +1305,7 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
 
 void showRegisters(processPo p, heapPo h) {
   stackPo stk = p->stk;
-  showStackEntry(debugOutChnnl, stk, stk->fp, 0);
+  showStackEntry(debugOutChnnl, stk, stk->fp, 0, True);
 
 #ifdef TRACEEXEC
   if (debugDebugging) {

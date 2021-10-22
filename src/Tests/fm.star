@@ -34,9 +34,9 @@ test.fm{
     assert "Balance: $(Amnt):P999900.00P; ---" == "Balance: (05.63) ---";
     show "Balance: $(-Amnt):P999900.00P; ---";
 
-    C .= 0c\u22a6; ;
+    C .= `\u22a6;` ;
 
-    show "Unicode: $(([C]:cons[integer])::string)/$(C):XXXXX;";
+    show "Unicode: $(([C]:cons[char])::string)/$(_codePoint(C)):XXXXX;";
 
     bar .= "bar";
     show "Foo#(bar)"

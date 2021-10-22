@@ -3,63 +3,63 @@ test.p1{
   import star.parse.
   import star.script.
 
-  a:parser[cons[integer],integer].
+  a:parser[cons[char],char].
   -- a = _item.
   a = _item >>= (C) => return C.
 
-  p:parser[cons[integer],(integer,integer)].
+  p:parser[cons[char],(char,char)].
   p = _item >>= (C) =>
       _item >>= (_) =>
       _item >>= (D) =>
       return (C,D).
 
-  q:parser[cons[integer],()].
-  q = _tk(0c() >>= (_) => _tk(0c)) >>= (_) => return ().
+  q:parser[cons[char],()].
+  q = _tk(`(`) >>= (_) => _tk(`)`) >>= (_) => return ().
 
   listMem:all e ~~ equality[e] |: (e,cons[e])=>boolean.
   listMem(E,L) => E .<. L.
 
-  symb:(string)=>parser[cons[integer],()].
+  symb:(string)=>parser[cons[char],()].
   symb(S) => _str(S).
 
   -- Simple expression parser
-  expr : ()=>parser[cons[integer],integer].
+  expr : ()=>parser[cons[char],integer].
   expr() => chainl1(term(),addop()).
 
-  term: ()=>parser[cons[integer],integer].
+  term: ()=>parser[cons[char],integer].
   term() => chainl1(factor(),mulop()).
 
-  factor: ()=>parser[cons[integer],integer].
+  factor: ()=>parser[cons[char],integer].
   factor() => decimal() +++ (symb("(") >>= (_) => expr() >>= (F) => symb(")") >>= (_) => return F).
 
-  addop: ()=>parser[cons[integer],(integer,integer)=>integer].
+  addop: ()=>parser[cons[char],(integer,integer)=>integer].
   addop() => (symb("+") >>= (_) => return (+)) +++ (symb("-") >>= (_) => return (-)).
 
-  mulop: ()=>parser[cons[integer],(integer,integer)=>integer].
+  mulop: ()=>parser[cons[char],(integer,integer)=>integer].
   mulop() => (symb("*") >>= (_) => return (*)) +++ (symb("/") >>= (_) => return (/)).
 
-  decimal:()=>parser[cons[integer],integer].
-  decimal() => skip(digit()) >>= (D) => return (D-0c0).
+  decimal:()=>parser[cons[char],integer].
+  decimal() => skip(digit()) >>= (D) => return (digitVal(D)).
 
-  digit:()=>parser[cons[integer],integer].
+  digit:()=>parser[cons[char],char].
   digit() => _sat(isDigit).
 
   main:() => action[(),()].
   main() => action{
-    assert parse(p,[1,2,3]) == [((1,3),[])];
+    assert parse(p,[`1`,`2`,`3`]) == [((`1`,`3`),[])];
 
-    show parse(a,"1"::cons[integer]);
+    show parse(a,"1"::cons[char]);
 
-    assert parse(q,[0c(,0c)]) == [((),[])];
+    assert parse(q,[`(`,`)`]) == [((),[])];
 
-    assert parse(_str("alpha"),"alpha0"::cons[integer]) == [((),[0c0])];
+    assert parse(_str("alpha"),"alpha0"::cons[char]) == [((),[`0`])];
 
-    assert listMem((([(),()]:cons[()]),[]),parse(_plus(_str("a")),"aa"::cons[integer]));
+    assert listMem((([(),()]:cons[()]),[]),parse(_plus(_str("a")),"aa"::cons[char]));
 
-    show parse(_star(_str("a")),"aab"::cons[integer]);
+    show parse(_star(_str("a")),"aab"::cons[char]);
 
-    assert listMem((([(),()]),[0cb]),parse(_star(_str("a")),"aab"::cons[integer]));
+    assert listMem((([(),()]),[`b`]),parse(_star(_str("a")),"aab"::cons[char]));
 
-    assert parse(expr(),"(3+5*3)"::cons[integer]) == [(18,[])]
+    assert parse(expr(),"(3+5*3)"::cons[char]) == [(18,[])]
   }
 }

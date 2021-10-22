@@ -10,7 +10,9 @@
 // Integer structure
 extern clssPo integerClass;
 
-extern integer integerVal(termPo o);
+logical isInteger(termPo t);
+
+integer integerVal(termPo o);
 
 // Float structure
 

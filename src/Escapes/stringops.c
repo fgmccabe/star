@@ -13,6 +13,7 @@
 #include "consP.h"
 #include "option.h"
 #include "charP.h"
+#include "stringops.h"
 
 ReturnStatus g__chr_eq(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=(charVal(tos[0]) == charVal(tos[1]) ? trueEnum : falseEnum)};
@@ -342,7 +343,7 @@ ReturnStatus g__explode(processPo p, ptrPo tos) {
       codePoint cp;
       ret = prevPoint(buffer, &pos, &cp);
       if (ret == Ok) {
-        el = (termPo) allocateInteger(H, (integer) cp);
+        el = (termPo) allocateCharacter(H, cp);
         list = (termPo) allocateCons(H, el, list);
       }
     }
@@ -376,7 +377,7 @@ ReturnStatus g__implode(processPo p, ptrPo tos) {
 
   while (isCons(list)) {
     normalPo pr = C_NORMAL(list);
-    outChar(O_IO(strb), (codePoint) integerVal(consHead(pr)));
+    outChar(O_IO(strb), charVal(consHead(pr)));
     list = consTail(pr);
   }
 
@@ -434,7 +435,7 @@ ReturnStatus g__str_hdtl(processPo p, ptrPo tos) {
   retCode ret = nxtPoint(str, &offset, len, &ch);
 
   if (ret == Ok) {
-    termPo chCode = allocateInteger(H, ch);
+    termPo chCode = allocateCharacter(H, ch);
     int mark = gcAddRoot(H, &chCode);
     termPo rest = allocateString(H, &str[offset], len - offset);
     gcAddRoot(H, &rest);
@@ -449,12 +450,12 @@ ReturnStatus g__str_hdtl(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__str_cons(processPo p, ptrPo tos) {
-  integer ch = integerVal(tos[0]);
+  codePoint ch = charVal(tos[0]);
   stringPo src = C_STR(tos[1]);
   integer len = strLength(src);
   integer offset = 0;
   char str[len + 16];
-  appendCodePoint(str, &offset, len + 16, (codePoint) ch);
+  appendCodePoint(str, &offset, len + 16, ch);
   retCode ret = copyChars2Buff(src, &str[offset], len + 16);
   heapPo H = processHeap(p);
 
@@ -463,7 +464,7 @@ ReturnStatus g__str_cons(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__code2str(processPo p, ptrPo tos) {
-  integer ch = integerVal(tos[0]);
+  codePoint ch = charVal(tos[0]);
   integer codeLength = 0;
   char str[16];
   appendCodePoint(str, &codeLength, NumberOf(str), (codePoint) ch);
@@ -473,15 +474,14 @@ ReturnStatus g__code2str(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__str_apnd(processPo p, ptrPo tos) {
-  integer ch = integerVal(tos[1]);
+  codePoint ch = charVal(tos[1]);
   stringPo src = C_STR(tos[0]);
   integer len = strLength(src);
   integer offset = len;
   char str[len + 16];
   copyChars2Buff(src, str, len + 16);
-  heapPo H = processHeap(p);
 
-  retCode ret = appendCodePoint(str, &offset, len + 16, (codePoint) integerVal(tos[0]));
+  retCode ret = appendCodePoint(str, &offset, len + 16, ch);
 
   return (ReturnStatus) {.ret=ret,
     .result=(termPo) allocateString(processHeap(p), str, offset)};
@@ -499,7 +499,7 @@ ReturnStatus g__str_back(processPo p, ptrPo tos) {
   retCode ret = prevPoint(str, &offset, &ch);
 
   if (ret == Ok) {
-    termPo chCode = allocateInteger(H, ch);
+    termPo chCode = allocateCharacter(H, ch);
     int mark = gcAddRoot(H, (ptrPo) &chCode);
     termPo rest = allocateString(H, str, offset);
     gcAddRoot(H, &rest);
@@ -637,7 +637,11 @@ retCode str_flatten(strBufferPo str, termPo t) {
     integer len;
     const char *elTxt = strVal(t, &len);
     return outText(O_IO(str), elTxt, len);
-  } else
+  } else if(isChar(t))
+    return outChar(O_IO(str),charVal(t));
+  else if(isInteger(t))
+    return outChar(O_IO(str), integerVal(t));
+  else
     return Error;
 }
 
@@ -661,10 +665,7 @@ ReturnStatus g__str_fltn(processPo p, ptrPo tos) {
   retCode ret = str_flatten(str, tos[0]);
 
   if (ret == Ok) {
-    integer oLen;
-    const char *buff = getTextFromBuffer(str, &oLen);
-
-    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), buff, oLen)};
+    ReturnStatus rt = {.ret=Ok, .result=allocateFromStrBuffer(str, processHeap(p))};
     closeFile(O_IO(str));
     return rt;
   } else {
