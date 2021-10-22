@@ -30,7 +30,6 @@ void initChars() {
   CharacterClass.clss = specialClass;
 }
 
-
 termPo allocateCharacter(heapPo H, codePoint cp) {
   charPo t = (charPo) allocateObject(H, charClass, CharCellCount);
   t->cp = cp;
@@ -77,6 +76,11 @@ charPo C_CHAR(termPo t) {
   assert(hasClass(t, charClass));
 #endif
   return (charPo) t;
+}
+
+logical isChar(termPo t) {
+  return
+    hasClass(t, charClass);
 }
 
 codePoint charVal(termPo o) {

@@ -101,6 +101,10 @@ intPo C_INT(termPo t) {
   return (intPo) t;
 }
 
+logical isInteger(termPo t) {
+  return hasClass(t, integerClass);
+}
+
 integer integerVal(termPo o) {
   intPo ix = C_INT(o);
   return ix->ix;

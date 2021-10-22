@@ -10,6 +10,8 @@
 // Character structure
 extern clssPo charClass;
 
-extern codePoint charVal(termPo o);
+logical isChar(termPo t);
+
+codePoint charVal(termPo o);
 
 #endif //STAR_CHAR_H

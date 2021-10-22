@@ -12,13 +12,13 @@ test.g{
   isTerm([C,..L],C) => some(L).
   isTerm(_,_) => .none.
 
-  txt:cons[integer].
-  txt = "fred"::cons[integer].
+  txt:cons[char].
+  txt = "fred"::cons[char].
 
   main:()=>action[(),()].
   main()=>action{
     show txt;
-    assert some(_).=isTerm(txt,0cf);
-    assert .none.=isTerm(txt,0cr)
+    assert some(_).=isTerm(txt,`f`);
+    assert .none.=isTerm(txt,`r`)
   }
 }

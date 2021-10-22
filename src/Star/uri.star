@@ -18,154 +18,154 @@ star.uri{
   public query ::= qry(string) | .noQ.
 
   public parseUri:(string) => option[uri].
-  parseUri(S) => first(parse(uriParse,S::cons[integer])).
+  parseUri(S) => first(parse(uriParse,S::cons[char])).
 
   first([])=>.none.
   first([(E,_),.._])=>some(E).
 
-  public uriParse:parser[cons[integer],uri].
+  public uriParse:parser[cons[char],uri].
   uriParse = absoluteUri +++ relativeUri.
 
-  absoluteUri:parser[cons[integer],uri].
+  absoluteUri:parser[cons[char],uri].
   absoluteUri = scheme >>= (Scheme) =>
     hierPart >>= (Hier) =>
       query >>= (Query) => return absUri(Scheme,Hier,Query).
   
-  scheme:parser[cons[integer],string].
-  scheme = _sat(isAlphaNum) >>= (A) => _star(alphaStar) >>= (Rest) => _tk(0c:) >>= (_) => return ([A,..Rest]::string).
+  scheme:parser[cons[char],string].
+  scheme = _sat(isAlphaNum) >>= (A) => _star(alphaStar) >>= (Rest) => _tk(`:`) >>= (_) => return ([A,..Rest]::string).
 
-  hierPart:parser[cons[integer],rsrcName].
+  hierPart:parser[cons[char],rsrcName].
   hierPart = netPath +++ absoluteRsrc.
 
-  netPath:parser[cons[integer],rsrcName].
+  netPath:parser[cons[char],rsrcName].
   netPath = _str("//") >>= (_) =>
     authority >>= (A) =>
       (absolutePath +++ relativePath) >>= (P) => return netRsrc(A,P).
 
-  authority:parser[cons[integer],authority].
-  authority = (userInfo >>= (U) => _tk(0c@) >>= (_) => hostNamePort >>= (H) => return server(some(U),H)) +++
+  authority:parser[cons[char],authority].
+  authority = (userInfo >>= (U) => _tk(`@`) >>= (_) => hostNamePort >>= (H) => return server(some(U),H)) +++
   (hostNamePort >>= (H) => return server(.none,H)).
 
-  userInfo:parser[cons[integer],userInfo].
+  userInfo:parser[cons[char],userInfo].
   userInfo = _star(userStar) >>= (U) => return user(U::string).
 
-  relativeUri:parser[cons[integer],uri].
+  relativeUri:parser[cons[char],uri].
   relativeUri = (netPath+++absoluteRsrc+++relativeRsrc) >>= (P) => query >>= (Q)=>return relUri(P,Q).
 
-  absoluteRsrc:parser[cons[integer],rsrcName].
+  absoluteRsrc:parser[cons[char],rsrcName].
   absoluteRsrc = absolutePath >>= (P)=> return localRsrc(P).
 
-  absolutePath:parser[cons[integer],resourcePath].
-  absolutePath = _tk(0c/) >>= (_) => sepby(segment,_tk(0c/)) >>= (S) => return absPath(S).
+  absolutePath:parser[cons[char],resourcePath].
+  absolutePath = _tk(`/`) >>= (_) => sepby(segment,_tk(`/`)) >>= (S) => return absPath(S).
 
-  relativeRsrc:parser[cons[integer],rsrcName].
+  relativeRsrc:parser[cons[char],rsrcName].
   relativeRsrc = relativePath >>= (P) => return localRsrc(P).
 
-  relativePath:parser[cons[integer],resourcePath].
-  relativePath = sepby(segment,_tk(0c/)) >>= (S) => return relPath(S).
+  relativePath:parser[cons[char],resourcePath].
+  relativePath = sepby(segment,_tk(`/`)) >>= (S) => return relPath(S).
 
-  segment:parser[cons[integer],string].
+  segment:parser[cons[char],string].
   segment=_star(segChr) >>= (Chrs) => return (Chrs::string).
 
-  segChr:parser[cons[integer],integer].
+  segChr:parser[cons[char],char].
   segChr = _sat(isSegChr).
 
-  isSegChr:(integer)=>boolean.
-  isSegChr(0c:) => .true.
-  isSegChr(0c@) => .true.
-  isSegChr(0c&) => .true.
-  isSegChr(0c=) => .true.
-  isSegChr(0c+) => .true.
-  isSegChr(0c$) => .true.
-  isSegChr(0c<) => .true.
-  isSegChr(0c:) => .true.
-  isSegChr(0c;) => .true. -- This is a hack to merge parameters with the segment
+  isSegChr:(char)=>boolean.
+  isSegChr(`:`) => .true.
+  isSegChr(`@`) => .true.
+  isSegChr(`&`) => .true.
+  isSegChr(`=`) => .true.
+  isSegChr(`+`) => .true.
+  isSegChr(`$`) => .true.
+  isSegChr(`<`) => .true.
+  isSegChr(`:`) => .true.
+  isSegChr(`;`) => .true. -- This is a hack to merge parameters with the segment
   isSegChr(Ch) => isUnreserved(Ch).
 
-  query:parser[cons[integer],query].
-  query = (_tk(0c?) >>= (_) => _star(_sat(isUric)) >>= (QQ)=> return qry(QQ::string)) +++ (return .noQ).
+  query:parser[cons[char],query].
+  query = (_tk(`?`) >>= (_) => _star(_sat(isUric)) >>= (QQ)=> return qry(QQ::string)) +++ (return .noQ).
 
-  userStar:parser[cons[integer],integer].
+  userStar:parser[cons[char],char].
   userStar = _sat(userCh).
 
-  userCh:(integer) => boolean.
-  userCh(0c$) => .true.
-  userCh(0c,) => .true.
-  userCh(0c;) => .true.
-  userCh(0c:) => .true.
-  userCh(0c&) => .true.
-  userCh(0c=) => .true.
-  userCh(0c+) => .true.
+  userCh:(char) => boolean.
+  userCh(`$`) => .true.
+  userCh(`,`) => .true.
+  userCh(`;`) => .true.
+  userCh(`:`) => .true.
+  userCh(`&`) => .true.
+  userCh(`=`) => .true.
+  userCh(`+`) => .true.
   userCh(Ch) => isUnreserved(Ch).
 
-  hostNamePort:parser[cons[integer],host].
+  hostNamePort:parser[cons[char],host].
   hostNamePort = hostName >>= (H) =>
-    ((_tk(0c:) >>= (_) => port >>= (P) => return hostPort(H,P)) +++ (return host(H))).
+    ((_tk(`:`) >>= (_) => port >>= (P) => return hostPort(H,P)) +++ (return host(H))).
 
-  hostName:parser[cons[integer],string].
+  hostName:parser[cons[char],string].
   hostName = _star(alphaDash) >>= (H)=> return (H::string).
 
-  alphaStar:parser[cons[integer],integer].
+  alphaStar:parser[cons[char],char].
   alphaStar = _sat(isAlphaStar).
 
-  isAlphaStar:(integer)=>boolean.
+  isAlphaStar:(char)=>boolean.
   isAlphaStar(Ch) => (isAlphaNum(Ch) || isPlus(Ch) || isMinus(Ch) || isDot(Ch)).
 
-  alphaDash:parser[cons[integer],integer].
+  alphaDash:parser[cons[char],char].
   alphaDash = _sat(isAlphaDash).
 
-  isAlphaDash:(integer)=>boolean.
+  isAlphaDash:(char)=>boolean.
   isAlphaDash(Ch) => (isAlphaNum(Ch) || isMinus(Ch) || isDot(Ch)).
 
-  port:parser[cons[integer],string].
+  port:parser[cons[char],string].
   port = _plus(_sat(isDigit)) >>= (P)=>return (P::string).
 
-  isMinus:(integer)=>boolean.
-  isMinus(Ch) => Ch==0c-.
+  isMinus:(char)=>boolean.
+  isMinus(Ch) => Ch==`-`.
 
-  isPlus:(integer)=>boolean.
-  isPlus(Ch)=>Ch==0c+.
+  isPlus:(char)=>boolean.
+  isPlus(Ch)=>Ch==`+`.
 
-  isDot:(integer)=>boolean.
-  isDot(Ch)=>Ch==0c..
+  isDot:(char)=>boolean.
+  isDot(Ch)=>Ch==`.`.
 
-  isUric:(integer)=>boolean.
+  isUric:(char)=>boolean.
   isUric(Ch) => (isReserved(Ch) || isAlphaNum(Ch) || isMark(Ch)).
 
-  isReserved:(integer)=>boolean.
-  isReserved(0c;) => .true.
-  isReserved(0c/) => .true.
-  isReserved(0c?) => .true.
-  isReserved(0c:) => .true.
-  isReserved(0c@) => .true.
-  isReserved(0c&) => .true.
-  isReserved(0c=) => .true.
-  isReserved(0c+) => .true.
-  isReserved(0c$) => .true.
-  isReserved(0c,) => .true.
+  isReserved:(char)=>boolean.
+  isReserved(`;`) => .true.
+  isReserved(`/`) => .true.
+  isReserved(`?`) => .true.
+  isReserved(`:`) => .true.
+  isReserved(`@`) => .true.
+  isReserved(`&`) => .true.
+  isReserved(`=`) => .true.
+  isReserved(`+`) => .true.
+  isReserved(`$`) => .true.
+  isReserved(`,`) => .true.
   isReserved(_) => .false.
 
-  isMark:(integer)=>boolean.
-  isMark(0c-) => .true.
-  isMark(0c_) => .true.
-  isMark(0c.) => .true.
-  isMark(0c!) => .true.
-  isMark(0c~) => .true.
-  isMark(0c*) => .true.
-  isMark(0c\') => .true.
-  isMark(0c\() => .true.
-  isMark(0c\)) => .true.
+  isMark:(char)=>boolean.
+  isMark(`-`) => .true.
+  isMark(`_`) => .true.
+  isMark(`.`) => .true.
+  isMark(`!`) => .true.
+  isMark(`~`) => .true.
+  isMark(`*`) => .true.
+  isMark(`\'`) => .true.
+  isMark(`\(`) => .true.
+  isMark(`\)`) => .true.
   isMark(_) => .false.
 
-  isUnreserved:(integer) => boolean.
+  isUnreserved:(char) => boolean.
   isUnreserved(Ch) => (isAlphaNum(Ch) || isMark(Ch)).
 
-  isDelim:(integer)=>boolean.
-  isDelim(0c<) => .true.
-  isDelim(0c>) => .true.
-  isDelim(0c#) => .true.
-  isDelim(0c%) => .true.
-  isDelim(0c\") => .true.
+  isDelim:(char)=>boolean.
+  isDelim(`<`) => .true.
+  isDelim(`>`) => .true.
+  isDelim(`#`) => .true.
+  isDelim(`%`) => .true.
+  isDelim(`\"`) => .true.
   isDelim(_) => .false.
 
   -- Implement equality for URIs

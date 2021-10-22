@@ -5,28 +5,28 @@ test.phone{
 
   -- Implement phone encoding algorithm
 
-  digitMap:map[integer,cons[integer]].
-  digitMap = [0 -> [0ce],
-    1 -> [0cj, 0cn, 0cq],
-    2 -> [0cr, 0cw, 0cx],
-    3 -> [0cd, 0cs, 0cy],
-    4 -> [0cf, 0ct],
-    5 -> [0ca, 0cm],
-    6 -> [0cc, 0ci, 0cv],
-    7 -> [0cb, 0ck, 0cu],
-    8 -> [0cl, 0co, 0cp],
-    9 -> [0cg, 0ch, 0cz]].
+  digitMap:map[integer,cons[char]].
+  digitMap = [0 -> [`e`],
+    1 -> [`j`, `n`, `q`],
+    2 -> [`r`, `w`, `x`],
+    3 -> [`d`, `s`, `y`],
+    4 -> [`f`, `t`],
+    5 -> [`a`, `m`],
+    6 -> [`c`, `i`, `v`],
+    7 -> [`b`, `k`, `u`],
+    8 -> [`l`, `o`, `p`],
+    9 -> [`g`, `h`, `z`]].
 
-  parseWord:(string,trie[integer,string]) => trie[integer,string].
+  parseWord:(string,trie[char,string]) => trie[char,string].
   parseWord(Word,Tr) =>
     insertInTrie(sanitize(Word),Word,Tr).
 
-  parseDict:(cons[string],trie[integer,string]) =>trie[integer,string].
+  parseDict:(cons[string],trie[char,string]) =>trie[char,string].
   parseDict(Dict,Tr) => foldRight(parseWord,Tr,Dict).
 
-  sanitize(Word) => (((Word::cons[integer])^/isLetter)//lowerCase).
+  sanitize(Word) => (((Word::cons[char])^/isLetter)//lowerCase).
 
-  lowerCase(C) where _isLuChar(C) => C+32.
+  lowerCase(C) where _isLuChar(C) => _char(_codePoint(C)+32).
   lowerCase(X) default => X.
 
 /*  encode:(cons[integer],trie[integer,string]) => cons[cons[string]].

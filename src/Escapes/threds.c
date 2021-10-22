@@ -124,13 +124,18 @@ ReturnStatus g__abort(processPo P, ptrPo tos) {
 
   logMsg(logFile, "Abort %T at %L", msg, lc);
   verifyProc(P, processHeap(P));
-  stackTrace(P, logFile, P->stk);
+  stackTrace(P, logFile, P->stk, True);
 
   return (ReturnStatus) {.ret=Error, .result=(termPo) voidEnum};
 }
 
 ReturnStatus g__stackTrace(processPo P, ptrPo tos) {
-  stackTrace(P, logFile, P->stk);
+  strBufferPo str = newStringBuffer();
 
-  return (ReturnStatus) {.ret=Ok, .result=(termPo) voidEnum};
+  stackTrace(P, O_IO(str), P->stk, False);
+
+  ReturnStatus rt = {.ret=Ok, .result=allocateFromStrBuffer(str, processHeap(P))};
+  closeFile(O_IO(str));
+
+  return rt;
 }

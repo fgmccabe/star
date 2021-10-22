@@ -131,41 +131,43 @@ star.compiler.escapes{
   escapeType("_time2utc") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*float")])),tplType([nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*float"),nomnal("star.core*integer"),nomnal("star.core*integer")]))).
   escapeType("_date2time") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*float"),nomnal("star.core*integer")])),nomnal("star.core*float"))).
   escapeType("_utc2time") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*float"),nomnal("star.core*integer")])),nomnal("star.core*float"))).
-  escapeType("_uniCodeCategory") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*integer"))).
-  escapeType("_isCcChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isCfChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isCnChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isCoChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isCsChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isLlChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isLmChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isLoChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isLtChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isLuChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isMcChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isMeChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isMnChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isNdChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isNlChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isNoChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isPcChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isPdChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isPeChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isPfChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isPiChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isPoChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isPsChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isScChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isSkChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isSmChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isSoChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isZlChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isZpChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isZsChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isLetterChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_digitCode") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*integer"))).
-  escapeType("_isIDStart") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_isIDContinue") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
+  escapeType("_uniCodeCategory") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*integer"))).
+  escapeType("_isCcChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isCfChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isCnChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isCoChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isCsChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isLlChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isLmChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isLoChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isLtChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isLuChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isMcChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isMeChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isMnChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isNdChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isNlChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isNoChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isPcChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isPdChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isPeChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isPfChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isPiChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isPoChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isPsChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isScChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isSkChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isSmChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isSoChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isZlChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isZpChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isZsChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isLetterChar") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_digitCode") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*integer"))).
+  escapeType("_codePoint") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*integer"))).
+  escapeType("_char") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*char"))).
+  escapeType("_isIDStart") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
+  escapeType("_isIDContinue") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*boolean"))).
   escapeType("_int2str") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*string"))).
   escapeType("_flt2str") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*float"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*boolean")])),nomnal("star.core*string"))).
   escapeType("_int_format") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer"),nomnal("star.core*string")])),nomnal("star.core*string"))).
@@ -184,8 +186,8 @@ star.compiler.escapes{
   escapeType("_str_len") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),nomnal("star.core*integer"))).
   escapeType("_str_gen") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),nomnal("star.core*string"))).
   escapeType("_stringOf") => some(allType(nomnal("t"),tpExp(tpExp(tpFun("=>",2),tplType([nomnal("t"),nomnal("star.core*integer")])),nomnal("star.core*string")))).
-  escapeType("_explode") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),tpExp(tpFun("star.core*cons",1),nomnal("star.core*integer")))).
-  escapeType("_implode") => some(tpExp(tpExp(tpFun("=>",2),tplType([tpExp(tpFun("star.core*cons",1),nomnal("star.core*integer"))])),nomnal("star.core*string"))).
+  escapeType("_explode") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),tpExp(tpFun("star.core*cons",1),nomnal("star.core*char")))).
+  escapeType("_implode") => some(tpExp(tpExp(tpFun("=>",2),tplType([tpExp(tpFun("star.core*cons",1),nomnal("star.core*char"))])),nomnal("star.core*string"))).
   escapeType("_str_find") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*string"),nomnal("star.core*integer")])),nomnal("star.core*integer"))).
   escapeType("_sub_str") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*string"))).
   escapeType("_str_split") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*integer")])),tplType([nomnal("star.core*string"),nomnal("star.core*string")]))).
@@ -194,11 +196,11 @@ star.compiler.escapes{
   escapeType("_str_start") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*string")])),nomnal("star.core*boolean"))).
   escapeType("_str_splice") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*string")])),nomnal("star.core*string"))).
   escapeType("_str_multicat") => some(tpExp(tpExp(tpFun("=>",2),tplType([tpExp(tpFun("star.core*cons",1),nomnal("star.core*string"))])),nomnal("star.core*string"))).
-  escapeType("_str_hdtl") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),tplType([nomnal("star.core*integer"),nomnal("star.core*string")]))).
-  escapeType("_str_back") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),tplType([nomnal("star.core*string"),nomnal("star.core*integer")]))).
-  escapeType("_str_cons") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer"),nomnal("star.core*string")])),nomnal("star.core*string"))).
-  escapeType("_code2str") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*string"))).
-  escapeType("_str_apnd") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*integer")])),nomnal("star.core*string"))).
+  escapeType("_str_hdtl") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),tplType([nomnal("star.core*char"),nomnal("star.core*string")]))).
+  escapeType("_str_back") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),tplType([nomnal("star.core*string"),nomnal("star.core*char")]))).
+  escapeType("_str_cons") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char"),nomnal("star.core*string")])),nomnal("star.core*string"))).
+  escapeType("_code2str") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*string"))).
+  escapeType("_str_apnd") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*char")])),nomnal("star.core*string"))).
   escapeType("_str_quote") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string")])),nomnal("star.core*string"))).
   escapeType("_str_format") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*string")])),nomnal("star.core*string"))).
   escapeType("_getenv") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*string")])),nomnal("star.core*string"))).
@@ -216,7 +218,7 @@ star.compiler.escapes{
   escapeType("_waitLock") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.thread*lock"),nomnal("star.core*float")])),tpExp(tpFun("star.core*result",2),nomnal("star.core*string")))).
   escapeType("_releaseLock") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.thread*lock")])),tpExp(tpFun("star.core*result",2),nomnal("star.core*string")))).
   escapeType("_ins_debug") => some(tpExp(tpExp(tpFun("=>",2),tplType([])),tplType([]))).
-  escapeType("_stackTrace") => some(tpExp(tpExp(tpFun("=>",2),tplType([])),tplType([]))).
+  escapeType("_stackTrace") => some(tpExp(tpExp(tpFun("=>",2),tplType([])),nomnal("star.core*string"))).
   escapeType(_) default => .none.
 
   public isEscape:(string)=>option[integer].
@@ -379,58 +381,60 @@ star.compiler.escapes{
   isEscape("_isZsChar") => some(156).
   isEscape("_isLetterChar") => some(157).
   isEscape("_digitCode") => some(158).
-  isEscape("_isIDStart") => some(159).
-  isEscape("_isIDContinue") => some(160).
-  isEscape("_int2str") => some(161).
-  isEscape("_flt2str") => some(162).
-  isEscape("_int_format") => some(163).
-  isEscape("_flt_format") => some(164).
-  isEscape("_str2flt") => some(165).
-  isEscape("_str2int") => some(166).
-  isEscape("_chr_eq") => some(167).
-  isEscape("_chr_lt") => some(168).
-  isEscape("_chr_ge") => some(169).
-  isEscape("_chr_hash") => some(170).
-  isEscape("_chr_quote") => some(171).
-  isEscape("_str_eq") => some(172).
-  isEscape("_str_lt") => some(173).
-  isEscape("_str_ge") => some(174).
-  isEscape("_str_hash") => some(175).
-  isEscape("_str_len") => some(176).
-  isEscape("_str_gen") => some(177).
-  isEscape("_stringOf") => some(178).
-  isEscape("_explode") => some(179).
-  isEscape("_implode") => some(180).
-  isEscape("_str_find") => some(181).
-  isEscape("_sub_str") => some(182).
-  isEscape("_str_split") => some(183).
-  isEscape("_str_concat") => some(184).
-  isEscape("_str_reverse") => some(185).
-  isEscape("_str_start") => some(186).
-  isEscape("_str_splice") => some(187).
-  isEscape("_str_multicat") => some(188).
-  isEscape("_str_hdtl") => some(189).
-  isEscape("_str_back") => some(190).
-  isEscape("_str_cons") => some(191).
-  isEscape("_code2str") => some(192).
-  isEscape("_str_apnd") => some(193).
-  isEscape("_str_quote") => some(194).
-  isEscape("_str_format") => some(195).
-  isEscape("_getenv") => some(196).
-  isEscape("_setenv") => some(197).
-  isEscape("_envir") => some(198).
-  isEscape("_getlogin") => some(199).
-  isEscape("_fork") => some(200).
-  isEscape("_thread") => some(201).
-  isEscape("_kill") => some(202).
-  isEscape("_thread_state") => some(203).
-  isEscape("_waitfor") => some(204).
-  isEscape("_shell") => some(205).
-  isEscape("_newLock") => some(206).
-  isEscape("_acquireLock") => some(207).
-  isEscape("_waitLock") => some(208).
-  isEscape("_releaseLock") => some(209).
-  isEscape("_ins_debug") => some(210).
-  isEscape("_stackTrace") => some(211).
+  isEscape("_codePoint") => some(159).
+  isEscape("_char") => some(160).
+  isEscape("_isIDStart") => some(161).
+  isEscape("_isIDContinue") => some(162).
+  isEscape("_int2str") => some(163).
+  isEscape("_flt2str") => some(164).
+  isEscape("_int_format") => some(165).
+  isEscape("_flt_format") => some(166).
+  isEscape("_str2flt") => some(167).
+  isEscape("_str2int") => some(168).
+  isEscape("_chr_eq") => some(169).
+  isEscape("_chr_lt") => some(170).
+  isEscape("_chr_ge") => some(171).
+  isEscape("_chr_hash") => some(172).
+  isEscape("_chr_quote") => some(173).
+  isEscape("_str_eq") => some(174).
+  isEscape("_str_lt") => some(175).
+  isEscape("_str_ge") => some(176).
+  isEscape("_str_hash") => some(177).
+  isEscape("_str_len") => some(178).
+  isEscape("_str_gen") => some(179).
+  isEscape("_stringOf") => some(180).
+  isEscape("_explode") => some(181).
+  isEscape("_implode") => some(182).
+  isEscape("_str_find") => some(183).
+  isEscape("_sub_str") => some(184).
+  isEscape("_str_split") => some(185).
+  isEscape("_str_concat") => some(186).
+  isEscape("_str_reverse") => some(187).
+  isEscape("_str_start") => some(188).
+  isEscape("_str_splice") => some(189).
+  isEscape("_str_multicat") => some(190).
+  isEscape("_str_hdtl") => some(191).
+  isEscape("_str_back") => some(192).
+  isEscape("_str_cons") => some(193).
+  isEscape("_code2str") => some(194).
+  isEscape("_str_apnd") => some(195).
+  isEscape("_str_quote") => some(196).
+  isEscape("_str_format") => some(197).
+  isEscape("_getenv") => some(198).
+  isEscape("_setenv") => some(199).
+  isEscape("_envir") => some(200).
+  isEscape("_getlogin") => some(201).
+  isEscape("_fork") => some(202).
+  isEscape("_thread") => some(203).
+  isEscape("_kill") => some(204).
+  isEscape("_thread_state") => some(205).
+  isEscape("_waitfor") => some(206).
+  isEscape("_shell") => some(207).
+  isEscape("_newLock") => some(208).
+  isEscape("_acquireLock") => some(209).
+  isEscape("_waitLock") => some(210).
+  isEscape("_releaseLock") => some(211).
+  isEscape("_ins_debug") => some(212).
+  isEscape("_stackTrace") => some(213).
   isEscape(_) default => .none.
 }.
