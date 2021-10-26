@@ -473,30 +473,34 @@ void addLineToHistory(strBufferPo lineBuff) {
   }
 }
 
+static void saveHistory();
+
 /* Load history from the history file */
 retCode initHistory(char *filename) {
   historyFileName = filename;
   history = vector(0);
 
-   atexit(saveHistory);
+  if (filename != Null) {
+    atexit(saveHistory);
 
-  ioPo historyFile = openInFile(historyFileName, utf8Encoding);
-  if (historyFile != Null) {
-    strBufferPo lineBuffer = newStringBuffer();
+    ioPo historyFile = openInFile(historyFileName, utf8Encoding);
+    if (historyFile != Null) {
+      strBufferPo lineBuffer = newStringBuffer();
 
-    retCode ret = Ok;
-    while (ret == Ok && isFileAtEof(historyFile) != Eof) {
-      ret = inLine(historyFile, lineBuffer, "\n");
-      if (ret == Ok) {
-        if (!isTrivialBuffer(lineBuffer))
-          addLineToHistory(lineBuffer);
+      retCode ret = Ok;
+      while (ret == Ok && isFileAtEof(historyFile) != Eof) {
+        ret = inLine(historyFile, lineBuffer, "\n");
+        if (ret == Ok) {
+          if (!isTrivialBuffer(lineBuffer))
+            addLineToHistory(lineBuffer);
+        }
       }
+      closeFile(historyFile);
+      closeFile(O_IO(lineBuffer));
+      return ret;
     }
-    closeFile(historyFile);
-    closeFile(O_IO(lineBuffer));
-    return ret;
-  } else
-    return Ok;
+  }
+  return Ok;
 }
 
 /* Save history in the history file. */

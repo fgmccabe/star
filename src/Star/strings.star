@@ -12,6 +12,10 @@ star.strings{
     disp(Cp) => "`#(_chr_quote(Cp))`".
   .}
 
+  public implementation format[char] => {.
+    frmt(S,Fmt) => _chr_format(S,Fmt).
+  .}
+
   -- and strings ...
   public implementation equality[string] => {
     X==Y => _str_eq(X,Y).

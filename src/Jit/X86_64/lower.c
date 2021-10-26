@@ -55,21 +55,21 @@ x64Op formX64Operand(vOperand v) {
           return op;
         }
         default: {
-          x64Op op = {.mode=Based, .op.based.base=RBP, .op.based.disp=(int)(v.ix * LONG_COUNT + FRAME_SIZE)};
+          x64Op op = {.mode=Based, .op.based.base=RBP, .op.based.disp=(int) (v.ix * LONG_COUNT + FRAME_SIZE)};
           return op;
         }
       }
     }
-    case literal:{
-      x64Op op = {.mode=Based, .op.based.base=R10, .op.based.disp=(int)(v.ix * LONG_COUNT)};
+    case literal: {
+      x64Op op = {.mode=Based, .op.based.base=R10, .op.based.disp=(int) (v.ix * LONG_COUNT)};
       return op;
     }
-    case local:{
-      x64Op op = {.mode=Based, .op.based.base=RBP, .op.based.disp=(int)(-v.ix * LONG_COUNT)};
+    case local: {
+      x64Op op = {.mode=Based, .op.based.base=RBP, .op.based.disp=(int) (-v.ix * LONG_COUNT)};
       return op;
     }
-    case immediate:{
-      x64Op op = {.mode=Immediate,  .op.imm=(int)(v.ix)};
+    case immediate: {
+      x64Op op = {.mode=Immediate, .op.imm=(int) (v.ix)};
       return op;
     }
     case mcReg: {
@@ -219,6 +219,10 @@ retCode jit_Escape(insPo code, integer *pc, jitCompPo jitCtx) {
 }
 
 retCode jit_Ret(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_RtG(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 

@@ -128,9 +128,9 @@ static void dumpFollows(char *prefix, codePoint last, void *V, void *cl) {
       break;
     case genStar:
       if (uniCmp(prefix, "") == same)
-        outMsg(c->first, "  first(0c%#c) => some(\"%P%#c\").\n", last, prefix, last);
+        outMsg(c->first, "  first(`%#c`) => some(\"%P%#c\").\n", last, prefix, last);
       else
-        outMsg(c->follow, "  follows(\"%P\",0c%#c) => some(\"%P%#c\").\n", prefix, last, prefix, last);
+        outMsg(c->follow, "  follows(\"%P\",`%#c`) => some(\"%P%#c\").\n", prefix, last, prefix, last);
       break;
     case genTexi:
     default:

@@ -37,6 +37,12 @@ static retCode quoteChar(ioPo f, codePoint ch) {
     case '\\':
       ret = outStr(f, "\\\\");
       break;
+    case '\'':
+      ret = outStr(f, "\\\'");
+      break;
+    case '`':
+      ret = outStr(f, "\\`");
+      break;
     case '\"':
       ret = outStr(f, "\\\"");
       break;
@@ -53,6 +59,12 @@ static retCode quoteChar(ioPo f, codePoint ch) {
         ret = outChar(f, ch);
   }
   return ret;
+}
+
+retCode genQuotedChr(ioPo f, void *data, long depth, long precision, logical alt) {
+  codePoint cp = (codePoint) (integer) data;
+
+  return quoteChar(f, cp);
 }
 
 retCode genQuotedStr(ioPo f, void *data, long depth, long precision, logical alt) {
@@ -83,7 +95,7 @@ static logical needsQuote(codePoint ch) {
     case '\"':
       return True;
     default:
-      if (ch < ' ' || ch>=128)
+      if (ch < ' ' || ch >= 128)
         return True;
       else
         return False;
