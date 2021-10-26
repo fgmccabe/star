@@ -245,7 +245,7 @@ A @var{CharacterCode} has type @code{integer}.
 @cindex character reference
 
 @menu
-* Character Reference::
+* Character Literals::
 * String Literals::
 * Block String::
 @end menu
@@ -261,19 +261,21 @@ The reasons for this are due to the fact that Unicode @code{string}
 values cannot be easily represented as a unique sequence of code points.
 @end quotation
 
-@node Character Reference
-@subsection Character Reference
-@cindex character reference
-@cindex syntax, character reference
+@node Character Literals
+@subsection Character Literals
+@cindex character literal
+@cindex syntax, character literal
 @noindent
 A @refer{CharRef} is a denotation of a single character.
 
 @float BNF,charRefFig
-@caption{Character Reference}
+@caption{Character Literal}
 @display
 @anchored{CharRef} ::= @refer{Char} | @refer{Escape}
 
 @anchored{Char} ::= @var{CodePoint}
+
+@anchored{CharLiteral} ::= @code{`} @var{CharRef} @code{`}
 
 @anchored{Escape} ::= @code{'\b'} | @code{'\d'} | @code{'\e'} | @code{'\f'} | @code{'\n'} | @code{'\r'} | @code{'\t'} | @code{'\v'} |
    @code{'\'}@refer{Char} | @code{'\u'} @refer{Hex}@dots{}@refer{Hex}@code{';'}

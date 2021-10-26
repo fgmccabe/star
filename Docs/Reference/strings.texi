@@ -3,63 +3,30 @@
 @cindex strings
 A string is a sequence of Unicode characters that denotes a fragment
 of text. This chapter focuses on the built-in functions that are based
-on the @code{string} type. 
+on the @code{string} type.
 
-@node The Structured String @code{ss} Type
-@section The Structured String @code{ss} Type
+@node The Character Type
+@section The Character Type
+@cindex type,char
 
-@cindex ss type
-The @code{ss} type -- as defined in @ref{ppTypeProg} -- denotes a
-@emph{structured} string value where the structure may be used to
-represent lines, sub sequences and so on.
+The @code{char} type is the standard type that is used to denote character literals.
+
+@node The String Type
+@section The String Type
+
+The @code{string} type is the standard type that is used to denote
+string literals. A string literal is defined to be a sequence of
+characters.
 
 @quotation
-A primary purpose of the @code{ss} type is to permit simple formatting
-policies to be applied after the generation of the displayed form of a
-value.
+For most applications, the relationship between character literals and
+string literals remains implicit. Most applications manipulate strings
+by concatenating them or by splitting them. One common way is to use
+string interpolation expressions.
+
+However, there are coercions available between string values and lists
+of characters.
 @end quotation
-
-@float Program,ppTypeProg
-@caption{The Structured String @code{ss} type}
-@example
-ss ::=
-     ss(string)
-   | sc(integer)
-   | ssSeq(list[ss])
-@end example
-@end float
-
-The @code{ss} type is a useful way of representing complex string
-values without requiring extraneous string concatenation. It is
-especially useful when constructing strings that display, for example,
-complex results.
-
-@quotation Note
-Normally, a @code{ss} value is flattened immediately prior to actual display or output. The @code{coercion} contract is implemented so that this flattening is simply a coercion to @code{string}:
-@example
-ssSeq([ss("my"),ssSeq([" "]),ss("string"),sc(0c\n)]) :: string
-@end example
-is equal to:
-@example
-"my string\n"
-@end example
-@end quotation
-
-The intended semantics of the constructors are:
-@table @code
-@item ss
-A literal string. For example, if the display of a value calls for an
-opening parenthesis, then the term:
-@example
-ss("(")
-@end example
-may be used to denote that.
-@item sc
-A unicode code point.
-@item ssSeq
-The @code{ssSeq} constructor signals a subsequence in the display. Its
-argument is a @code{list} of @code{ss} terms.
-@end table
 
 @node Implemented Contracts
 @section Implemented Contracts
