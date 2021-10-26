@@ -226,6 +226,10 @@ and
 @end example
 respectively.
 
+There are three forms of interpolation expression: a display
+interpolation, a formatted interpolation and an embedded
+interpolation.
+
 @quotation Note
 If a @code{string} interpolation expression itself contains a string,
 the various quoting mechanisms for strings apply to that string

@@ -157,8 +157,7 @@ X > Y => Y< X.
 @anchor{displayContract}
 
 The standard contract @code{display}, shown in
-Program~@ref{displayContractProg} together with the @code{ss} type
-shown in Program~@ref{ppTypeProg}, is at the core of the standard
+Program~@ref{displayContractProg}, is at the core of the standard
 method for displaying values.
 
 @quotation Note
@@ -170,7 +169,7 @@ The @code{display} contract is also used as part of
 @caption{The Standard @code{display} Contract}
 @example
 public contract all t ~~ display[t] ::= @{
-  disp:(t)=>ss.
+  disp:(t)=>string.
 @}
 @end example
 @end float
@@ -202,10 +201,10 @@ then the following implementation of @code{display} would ensure that
 such trees were displayed more conveniently:
 @example
 implementation all t ~~ display[t] |: display[tree[t]] => let@{
-  treeDisplay(empty) => ss(" ").
-  treeDisplay(node(L,Lb,R)) => ssSeq([treeDisplay(L),disp(Lb),treeDisplay(R)])
+  treeDisplay(empty) => " ".
+  treeDisplay(node(L,Lb,R)) => "#(treeDisplay(L)) $(Lb) #(treeDisplay(R))".
 @} in @{
-  disp(T) => ssSeq([ss("@{"),treeDisplay(T),ss("@}")])
+  disp(T) => "@{#(treeDisplay(T))@}"
 @}
 @end example
 
@@ -213,6 +212,12 @@ Note how the use of @code{disp} within the definition of
 @code{treeDisplay} will ensure that the display of tree labels may
 also be overridden with user-defined implementations of
 @code{display}.
+
+Note also that the @code{treeDisplay} function also uses the
+interpolation expression form to display its left and right
+subtrees. In particular, we use the embedded form of interpolation to
+incorporate the @code{string} result of displaying the left and right
+subtrees.
 
 @node The @code{format} contract
 @section The @code{format} contract
