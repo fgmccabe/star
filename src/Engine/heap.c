@@ -16,6 +16,7 @@ logical validateMemory = False;   // Validate heap after every allocation
 
 HeapRecord heap;
 heapPo currHeap = NULL;
+heapPo globalHeap = Null;
 
 integer numAllocated = 0;
 integer totalAllocated = 0;
@@ -23,14 +24,14 @@ integer totalAllocated = 0;
 static void initHeapLck(heapPo heap);
 
 void initHeap(long heapSize) {
-  if (currHeap == NULL) {
+  if (globalHeap == NULL) {
     heap.curr = heap.old = heap.base = heap.start =
       (termPo) malloc(sizeof(ptrPo) * heapSize); /* Allocate heap */
     heap.outerLimit = heap.base + heapSize;  /* The actual outer limit */
     heap.limit = heap.split = heap.base + heapSize / 2;
     heap.allocMode = lowerHalf;
     initHeapLck(&heap);
-    currHeap = &heap;
+    globalHeap = &heap;
 
 #ifdef TRACEMEM
     if (traceMemory) {
@@ -65,10 +66,10 @@ retCode reserveSpace(heapPo H, integer amnt) {
     return Error;
 }
 
-termPo allocateObject(heapPo H, clssPo clss, integer amnt) {
-  if ((((ptrPo) currHeap->curr) + amnt) < ((ptrPo) (currHeap->limit))) {
-    termPo t = currHeap->curr;
-    H->curr = H->curr + amnt;
+termPo allocateObject(heapPo h, clssPo clss, integer amnt) {
+  if ((((ptrPo) h->curr) + amnt) < ((ptrPo) (h->limit))) {
+    termPo t = h->curr;
+    h->curr = h->curr + amnt;
     t->clss = clss;
 #ifdef TRACEMEM
     if (traceMemory) {
@@ -77,8 +78,8 @@ termPo allocateObject(heapPo H, clssPo clss, integer amnt) {
     }
 #endif
     return t;
-  } else if (gcCollect(H, amnt) == Ok)
-    return allocateObject(H, clss, amnt);
+  } else if (gcCollect(h, amnt) == Ok)
+    return allocateObject(h, clss, amnt);
   else
     return Null;
 }

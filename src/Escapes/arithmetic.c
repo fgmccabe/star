@@ -15,114 +15,114 @@
 #include "errorCodes.h"
 #include "arithmetic.h"
 
-ReturnStatus g__int_plus(processPo p, ptrPo tos) {
+ReturnStatus g__int_plus(processPo p, heapPo h, ptrPo tos) {
   termPo Lhs = tos[0];
   termPo Rhs = tos[1];
 
-  termPo Rs = (termPo) allocateInteger(processHeap(p), integerVal(Lhs) + integerVal(Rhs));
+  termPo Rs = (termPo) allocateInteger(h, integerVal(Lhs) + integerVal(Rhs));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__int_minus(processPo p, ptrPo tos) {
+ReturnStatus g__int_minus(processPo p, heapPo h, ptrPo tos) {
   termPo Lhs = tos[0];
   termPo Rhs = tos[1];
 
-  termPo Rs = (termPo) allocateInteger(processHeap(p), integerVal(Lhs) - integerVal(Rhs));
+  termPo Rs = (termPo) allocateInteger(h, integerVal(Lhs) - integerVal(Rhs));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__int_times(processPo p, ptrPo tos) {
+ReturnStatus g__int_times(processPo p, heapPo h, ptrPo tos) {
   integer Lhs = integerVal(tos[0]);
   integer Rhs = integerVal(tos[1]);
 
-  termPo Rs = (termPo) allocateInteger(processHeap(p), Lhs * Rhs);
+  termPo Rs = (termPo) allocateInteger(h, Lhs * Rhs);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__int_div(processPo p, ptrPo tos) {
+ReturnStatus g__int_div(processPo p, heapPo h, ptrPo tos) {
   integer Lhs = integerVal(tos[0]);
   integer Rhs = integerVal(tos[1]);
 
-  termPo Rs = (termPo) allocateInteger(processHeap(p), Lhs / Rhs);
+  termPo Rs = (termPo) allocateInteger(h, Lhs / Rhs);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__int_mod(processPo p, ptrPo tos) {
+ReturnStatus g__int_mod(processPo p, heapPo h, ptrPo tos) {
   integer denom = integerVal(tos[0]);
   integer numerator = integerVal(tos[1]);
 
   integer reslt = denom % numerator;
 
-  termPo Rs = (termPo) allocateInteger(processHeap(p), reslt);
+  termPo Rs = (termPo) allocateInteger(h, reslt);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__band(processPo p, ptrPo tos) {
+ReturnStatus g__band(processPo p, heapPo h, ptrPo tos) {
   uint64 Lhs = (uint64) integerVal(tos[0]);
   uint64 Rhs = (uint64) integerVal(tos[1]);
 
-  termPo Rs = (termPo) allocateInteger(processHeap(p), Lhs & Rhs);
+  termPo Rs = (termPo) allocateInteger(h, Lhs & Rhs);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__basr(processPo p, ptrPo tos) {
+ReturnStatus g__basr(processPo p, heapPo h, ptrPo tos) {
   integer Lhs = integerVal(tos[0]);
   integer Rhs = integerVal(tos[1]);
 
-  termPo Rs = (termPo) allocateInteger(processHeap(p), Lhs >> Rhs);
+  termPo Rs = (termPo) allocateInteger(h, Lhs >> Rhs);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__blsl(processPo p, ptrPo tos) {
+ReturnStatus g__blsl(processPo p, heapPo h, ptrPo tos) {
   uint64 Lhs = (uint64) integerVal(tos[0]);
   uint64 Rhs = (uint64) integerVal(tos[1]);
 
-  termPo Rs = (termPo) allocateInteger(processHeap(p), Lhs << Rhs);
+  termPo Rs = (termPo) allocateInteger(h, Lhs << Rhs);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__blsr(processPo p, ptrPo tos) {
+ReturnStatus g__blsr(processPo p, heapPo h, ptrPo tos) {
   uint64 Lhs = (uint64) integerVal(tos[0]);
   uint64 Rhs = (uint64) integerVal(tos[1]);
 
-  termPo Rs = (termPo) allocateInteger(processHeap(p), Lhs >> Rhs);
+  termPo Rs = (termPo) allocateInteger(h, Lhs >> Rhs);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__bor(processPo p, ptrPo tos) {
+ReturnStatus g__bor(processPo p, heapPo h, ptrPo tos) {
   uint64 Lhs = (uint64) integerVal(tos[0]);
   uint64 Rhs = (uint64) integerVal(tos[1]);
 
-  termPo Rs = (termPo) allocateInteger(processHeap(p), Lhs | Rhs);
+  termPo Rs = (termPo) allocateInteger(h, Lhs | Rhs);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__bxor(processPo p, ptrPo tos) {
+ReturnStatus g__bxor(processPo p, heapPo h, ptrPo tos) {
   uint64 Lhs = (uint64) integerVal(tos[0]);
   uint64 Rhs = (uint64) integerVal(tos[1]);
 
-  termPo Rs = (termPo) allocateInteger(processHeap(p), Lhs ^ Rhs);
+  termPo Rs = (termPo) allocateInteger(h, Lhs ^ Rhs);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__bnot(processPo p, ptrPo tos) {
-  termPo Rs = (termPo) allocateInteger(processHeap(p), ~(unsigned) integerVal(tos[0]));
+ReturnStatus g__bnot(processPo p, heapPo h, ptrPo tos) {
+  termPo Rs = (termPo) allocateInteger(h, ~(unsigned) integerVal(tos[0]));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__nthb(processPo p, ptrPo tos) {
+ReturnStatus g__nthb(processPo p, heapPo h, ptrPo tos) {
   uint64 Lhs = (uint64) integerVal(tos[0]);
   uint64 Rhs = (uint64) integerVal(tos[1]);
 
@@ -131,7 +131,7 @@ ReturnStatus g__nthb(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__int_eq(processPo p, ptrPo tos) {
+ReturnStatus g__int_eq(processPo p, heapPo h, ptrPo tos) {
   termPo Lhs = tos[0];
   termPo Rhs = tos[1];
 
@@ -140,7 +140,7 @@ ReturnStatus g__int_eq(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__int_ge(processPo p, ptrPo tos) {
+ReturnStatus g__int_ge(processPo p, heapPo h, ptrPo tos) {
   termPo Lhs = tos[0];
   termPo Rhs = tos[1];
 
@@ -149,7 +149,7 @@ ReturnStatus g__int_ge(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__int_lt(processPo p, ptrPo tos) {
+ReturnStatus g__int_lt(processPo p, heapPo h, ptrPo tos) {
   termPo Lhs = tos[0];
   termPo Rhs = tos[1];
 
@@ -158,18 +158,18 @@ ReturnStatus g__int_lt(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__int_abs(processPo p, ptrPo tos) {
+ReturnStatus g__int_abs(processPo p, heapPo h, ptrPo tos) {
   termPo Lhs = tos[0];
   integer Arg = integerVal(Lhs);
-  termPo Rs = (Arg < 0 ? (termPo) allocateInteger(processHeap(p), -Arg) : Lhs);
+  termPo Rs = (Arg < 0 ? (termPo) allocateInteger(h, -Arg) : Lhs);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__int_hash(processPo p, ptrPo tos) {
+ReturnStatus g__int_hash(processPo p, heapPo h, ptrPo tos) {
   termPo Lhs = tos[0];
   integer Arg = integerVal(Lhs);
-  termPo Rs = (Arg < 0 ? (termPo) allocateInteger(processHeap(p), hash64(Arg)) : Lhs);
+  termPo Rs = (Arg < 0 ? (termPo) allocateInteger(h, hash64(Arg)) : Lhs);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
@@ -193,25 +193,25 @@ static integer countBits(integer ix) {
   return ux;
 }
 
-ReturnStatus g__bcount(processPo p, ptrPo tos) {
+ReturnStatus g__bcount(processPo p, heapPo h, ptrPo tos) {
   integer Arg = integerVal(tos[0]);
 
   return (ReturnStatus) {.ret=Ok,
-            .result=(termPo) allocateInteger(processHeap(p), countBits(Arg))};
+    .result=(termPo) allocateInteger(h, countBits(Arg))};
 }
 
-ReturnStatus g__int2str(processPo p, ptrPo tos) {
+ReturnStatus g__int2str(processPo p, heapPo h, ptrPo tos) {
   termPo Lhs = tos[0];
   integer ix = integerVal(Lhs);
   char buff[64];
 
   integer len = int2StrByBase(buff, ix, 0, 10);
-  termPo str = (termPo) allocateString(processHeap(p), buff, len);
+  termPo str = (termPo) allocateString(h, buff, len);
 
-  return (ReturnStatus){.result = str, .ret=Ok};
+  return (ReturnStatus) {.result = str, .ret=Ok};
 }
 
-ReturnStatus g__int_format(processPo p, ptrPo tos) {
+ReturnStatus g__int_format(processPo p, heapPo h, ptrPo tos) {
   termPo Lhs = tos[0];
   integer ix = integerVal(Lhs);
   integer length;
@@ -222,12 +222,12 @@ ReturnStatus g__int_format(processPo p, ptrPo tos) {
   retCode ret = formattedLong(ix, buff, &pos, NumberOf(buff), fmt, length);
 
   if (ret == Ok) {
-    return (ReturnStatus){.result = (termPo) allocateString(processHeap(p), buff, pos), .ret=Ok};
+    return (ReturnStatus) {.result = (termPo) allocateString(h, buff, pos), .ret=Ok};
   } else
-    return liberror(p, "_int_format", eINVAL);
+    return liberror(p, h, "_int_format", eINVAL);
 }
 
-ReturnStatus g__flt_eq(processPo p, ptrPo tos) {
+ReturnStatus g__flt_eq(processPo p, heapPo h, ptrPo tos) {
   termPo Lhs = tos[0];
   termPo Rhs = tos[1];
   termPo Eps = tos[2];
@@ -237,7 +237,7 @@ ReturnStatus g__flt_eq(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__flt_ge(processPo p, ptrPo tos) {
+ReturnStatus g__flt_ge(processPo p, heapPo h, ptrPo tos) {
   termPo Lhs = tos[0];
   termPo Rhs = tos[1];
 
@@ -246,7 +246,7 @@ ReturnStatus g__flt_ge(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__flt_lt(processPo p, ptrPo tos) {
+ReturnStatus g__flt_lt(processPo p, heapPo h, ptrPo tos) {
   termPo Lhs = tos[0];
   termPo Rhs = tos[1];
 
@@ -255,68 +255,68 @@ ReturnStatus g__flt_lt(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__flt_plus(processPo p, ptrPo tos) {
+ReturnStatus g__flt_plus(processPo p, heapPo h, ptrPo tos) {
   termPo Lhs = tos[0];
   termPo Rhs = tos[1];
 
-  termPo Rs = (termPo) allocateFloat(processHeap(p), floatVal(Lhs) + floatVal(Rhs));
+  termPo Rs = (termPo) allocateFloat(h, floatVal(Lhs) + floatVal(Rhs));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__flt_minus(processPo p, ptrPo tos) {
+ReturnStatus g__flt_minus(processPo p, heapPo h, ptrPo tos) {
   termPo Lhs = tos[0];
   termPo Rhs = tos[1];
 
-  termPo Rs = (termPo) allocateFloat(processHeap(p), floatVal(Lhs) - floatVal(Rhs));
+  termPo Rs = (termPo) allocateFloat(h, floatVal(Lhs) - floatVal(Rhs));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__flt_times(processPo p, ptrPo tos) {
+ReturnStatus g__flt_times(processPo p, heapPo h, ptrPo tos) {
   termPo Lhs = tos[0];
   termPo Rhs = tos[1];
 
-  termPo Rs = (termPo) allocateFloat(processHeap(p), floatVal(Lhs) * floatVal(Rhs));
+  termPo Rs = (termPo) allocateFloat(h, floatVal(Lhs) * floatVal(Rhs));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__flt_div(processPo p, ptrPo tos) {
+ReturnStatus g__flt_div(processPo p, heapPo h, ptrPo tos) {
   termPo Lhs = tos[0];
   termPo Rhs = tos[1];
 
-  termPo Rs = (termPo) allocateFloat(processHeap(p), floatVal(Lhs) / floatVal(Rhs));
+  termPo Rs = (termPo) allocateFloat(h, floatVal(Lhs) / floatVal(Rhs));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__flt_mod(processPo p, ptrPo tos) {
+ReturnStatus g__flt_mod(processPo p, heapPo h, ptrPo tos) {
   termPo Lhs = tos[0];
   termPo Rhs = tos[1];
 
-  termPo Rs = (termPo) allocateFloat(processHeap(p), fmod(floatVal(Lhs), floatVal(Rhs)));
+  termPo Rs = (termPo) allocateFloat(h, fmod(floatVal(Lhs), floatVal(Rhs)));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__flt_pwr(processPo p, ptrPo tos) {
+ReturnStatus g__flt_pwr(processPo p, heapPo h, ptrPo tos) {
   termPo Lhs = tos[0];
   termPo Rhs = tos[1];
 
-  termPo Rs = (termPo) allocateFloat(processHeap(p), pow(floatVal(Lhs), floatVal(Rhs)));
+  termPo Rs = (termPo) allocateFloat(h, pow(floatVal(Lhs), floatVal(Rhs)));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__flt_abs(processPo p, ptrPo tos) {
+ReturnStatus g__flt_abs(processPo p, heapPo h, ptrPo tos) {
   double Arg = floatVal(tos[0]);
-  termPo Rs = (Arg < 0 ? (termPo) allocateFloat(processHeap(p), -Arg) : tos[0]);
+  termPo Rs = (Arg < 0 ? (termPo) allocateFloat(h, -Arg) : tos[0]);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g_exp(processPo P, ptrPo tos) {
+ReturnStatus g_exp(processPo P, heapPo h, ptrPo tos) {
   double x = floatVal(tos[0]);
 
   errno = 0;    /* clear errno prior to computation */
@@ -324,30 +324,30 @@ ReturnStatus g_exp(processPo P, ptrPo tos) {
 
   if (errno != 0) {
     if (errno == EDOM || errno == ERANGE)
-      return liberror(P, "_exp", eRANGE);
+      return liberror(P, h, "_exp", eRANGE);
     else
-      return liberror(P, "_exp", eINVAL);
+      return liberror(P, h, "_exp", eINVAL);
   } else {
-    return (ReturnStatus){.ret=Ok,
-              .result=(termPo) allocateFloat(processHeap(P), ans)};
+    return (ReturnStatus) {.ret=Ok,
+      .result=(termPo) allocateFloat(h, ans)};
   }
 }
 
-ReturnStatus g__ldexp(processPo p, ptrPo tos) {
+ReturnStatus g__ldexp(processPo p, heapPo h, ptrPo tos) {
   termPo Lhs = tos[0];
   termPo Rhs = tos[1];
   double x = floatVal(Lhs);
   integer e = integerVal(Rhs);
 
   return (ReturnStatus) {.ret=Ok,
-            .result=(termPo) allocateFloat(processHeap(p), ldexp(x, (int) e))};
+    .result=(termPo) allocateFloat(h, ldexp(x, (int) e))};
 }
 
-ReturnStatus g__frexp(processPo p, ptrPo tos) {
+ReturnStatus g__frexp(processPo p, heapPo h, ptrPo tos) {
   double Arg = floatVal(tos[0]);
   int exp;
   double frac = frexp(Arg, &exp);
-  heapPo H = processHeap(p);
+  heapPo H = h;
 
   termPo man = (termPo) allocateFloat(H, frac);
   int root = gcAddRoot(H, &man);
@@ -359,12 +359,12 @@ ReturnStatus g__frexp(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__modf(processPo p, ptrPo tos) {
+ReturnStatus g__modf(processPo p, heapPo h, ptrPo tos) {
   termPo Lhs = tos[0];
   double Arg = floatVal(Lhs);
   double intgrl;
   double frac = modf(Arg, &intgrl);
-  heapPo H = processHeap(p);
+  heapPo H = h;
 
   termPo man = (termPo) allocateFloat(H, frac);
   int root = gcAddRoot(H, &man);
@@ -376,43 +376,43 @@ ReturnStatus g__modf(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__int2flt(processPo p, ptrPo tos) {
+ReturnStatus g__int2flt(processPo p, heapPo h, ptrPo tos) {
   integer Arg = integerVal(tos[0]);
-  termPo Rs = (termPo) allocateFloat(processHeap(p), (double) Arg);
+  termPo Rs = (termPo) allocateFloat(h, (double) Arg);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__flt2int(processPo p, ptrPo tos) {
+ReturnStatus g__flt2int(processPo p, heapPo h, ptrPo tos) {
   double Arg = floatVal(tos[0]);
-  termPo Rs = (termPo) allocateInteger(processHeap(p), (integer) Arg);
+  termPo Rs = (termPo) allocateInteger(h, (integer) Arg);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__bits_float(processPo p, ptrPo tos) {
+ReturnStatus g__bits_float(processPo p, heapPo h, ptrPo tos) {
   union {
     integer Ix;
     double Dx;
   } Arg;
   Arg.Ix = integerVal(tos[0]);
-  termPo Rs = (termPo) allocateFloat(processHeap(p), Arg.Dx);
+  termPo Rs = (termPo) allocateFloat(h, Arg.Dx);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__float_bits(processPo p, ptrPo tos) {
+ReturnStatus g__float_bits(processPo p, heapPo h, ptrPo tos) {
   union {
     integer Ix;
     double Dx;
   } Arg;
   Arg.Dx = floatVal(tos[0]);
-  termPo Rs = (termPo) allocateInteger(processHeap(p), Arg.Ix);
+  termPo Rs = (termPo) allocateInteger(h, Arg.Ix);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__flt2str(processPo p, ptrPo tos) {
+ReturnStatus g__flt2str(processPo p, heapPo h, ptrPo tos) {
   termPo Lhs = tos[0];
   double Arg = floatVal(Lhs);
   char buff[64];
@@ -420,12 +420,12 @@ ReturnStatus g__flt2str(processPo p, ptrPo tos) {
   retCode ret = formatDouble(buff, NumberOf(buff), Arg, general, 0, False);
   if (ret == Ok) {
     return (ReturnStatus) {.ret=Ok,
-              .result = (termPo) allocateString(processHeap(p), buff, uniStrLen(buff))};
+      .result = (termPo) allocateString(h, buff, uniStrLen(buff))};
   } else
-    return liberror(p, "_fltstr", eINVAL);
+    return liberror(p, h, "_fltstr", eINVAL);
 }
 
-ReturnStatus g__flt_format(processPo p, ptrPo tos) {
+ReturnStatus g__flt_format(processPo p, heapPo h, ptrPo tos) {
   termPo Lhs = tos[0];
   termPo Rhs = tos[1];
   double Arg = floatVal(Lhs);
@@ -437,133 +437,133 @@ ReturnStatus g__flt_format(processPo p, ptrPo tos) {
   retCode ret = formattedFloat(Arg, buff, &pos, NumberOf(buff), fmt, length);
 
   if (ret == Ok) {
-    return (ReturnStatus) {.result = (termPo) allocateString(processHeap(p), buff, uniStrLen(buff)), .ret=Ok};
+    return (ReturnStatus) {.result = (termPo) allocateString(h, buff, uniStrLen(buff)), .ret=Ok};
   } else
-    return liberror(p, "_flt_format", eINVAL);
+    return liberror(p, h, "_flt_format", eINVAL);
 }
 
-ReturnStatus g__flt_hash(processPo p, ptrPo tos) {
+ReturnStatus g__flt_hash(processPo p, heapPo h, ptrPo tos) {
   double Arg = floatVal(tos[0]);
 
-  termPo Rs = (termPo) allocateInteger(processHeap(p), floatHash(Arg));
+  termPo Rs = (termPo) allocateInteger(h, floatHash(Arg));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g_cos(processPo p, ptrPo tos) {
+ReturnStatus g_cos(processPo p, heapPo h, ptrPo tos) {
   double Arg = floatVal(tos[0]);
-  termPo Rs = (termPo) allocateFloat(processHeap(p), cos(Arg));
+  termPo Rs = (termPo) allocateFloat(h, cos(Arg));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g_sin(processPo p, ptrPo tos) {
+ReturnStatus g_sin(processPo p, heapPo h, ptrPo tos) {
   double Arg = floatVal(tos[0]);
-  termPo Rs = (termPo) allocateFloat(processHeap(p), sin(Arg));
+  termPo Rs = (termPo) allocateFloat(h, sin(Arg));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g_tan(processPo p, ptrPo tos) {
+ReturnStatus g_tan(processPo p, heapPo h, ptrPo tos) {
   double Arg = floatVal(tos[0]);
-  termPo Rs = (termPo) allocateFloat(processHeap(p), tan(Arg));
+  termPo Rs = (termPo) allocateFloat(h, tan(Arg));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g_acos(processPo p, ptrPo tos) {
+ReturnStatus g_acos(processPo p, heapPo h, ptrPo tos) {
   double Arg = floatVal(tos[0]);
-  termPo Rs = (termPo) allocateFloat(processHeap(p), acos(Arg));
+  termPo Rs = (termPo) allocateFloat(h, acos(Arg));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g_asin(processPo p, ptrPo tos) {
+ReturnStatus g_asin(processPo p, heapPo h, ptrPo tos) {
   double Arg = floatVal(tos[0]);
-  termPo Rs = (termPo) allocateFloat(processHeap(p), asin(Arg));
+  termPo Rs = (termPo) allocateFloat(h, asin(Arg));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g_atan(processPo p, ptrPo tos) {
+ReturnStatus g_atan(processPo p, heapPo h, ptrPo tos) {
   double Arg = floatVal(tos[0]);
-  termPo Rs = (termPo) allocateFloat(processHeap(p), atan(Arg));
+  termPo Rs = (termPo) allocateFloat(h, atan(Arg));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g_floor(processPo p, ptrPo tos) {
+ReturnStatus g_floor(processPo p, heapPo h, ptrPo tos) {
   double Arg = floatVal(tos[0]);
-  termPo Rs = (termPo) allocateFloat(processHeap(p), floor(Arg));
+  termPo Rs = (termPo) allocateFloat(h, floor(Arg));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g_ceil(processPo p, ptrPo tos) {
+ReturnStatus g_ceil(processPo p, heapPo h, ptrPo tos) {
   double Arg = floatVal(tos[0]);
-  termPo Rs = (termPo) allocateFloat(processHeap(p), ceil(Arg));
+  termPo Rs = (termPo) allocateFloat(h, ceil(Arg));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g_trunc(processPo p, ptrPo tos) {
+ReturnStatus g_trunc(processPo p, heapPo h, ptrPo tos) {
   double Arg = floatVal(tos[0]);
-  termPo Rs = (termPo) allocateFloat(processHeap(p), trunc(Arg));
+  termPo Rs = (termPo) allocateFloat(h, trunc(Arg));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g_integral(processPo p, ptrPo tos) {
+ReturnStatus g_integral(processPo p, heapPo h, ptrPo tos) {
   double Arg = floatVal(tos[0]);
 
   return (ReturnStatus) {.ret=Ok,
-            .result=(floor(Arg) == Arg ? trueEnum : falseEnum)};
+    .result=(floor(Arg) == Arg ? trueEnum : falseEnum)};
 }
 
-ReturnStatus g_log(processPo p, ptrPo tos) {
+ReturnStatus g_log(processPo p, heapPo h, ptrPo tos) {
   double Arg = floatVal(tos[0]);
-  termPo Rs = (termPo) allocateFloat(processHeap(p), log(Arg));
+  termPo Rs = (termPo) allocateFloat(h, log(Arg));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g_log10(processPo p, ptrPo tos) {
+ReturnStatus g_log10(processPo p, heapPo h, ptrPo tos) {
   double Arg = floatVal(tos[0]);
-  termPo Rs = (termPo) allocateFloat(processHeap(p), log10(Arg));
+  termPo Rs = (termPo) allocateFloat(h, log10(Arg));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g_sqrt(processPo p, ptrPo tos) {
+ReturnStatus g_sqrt(processPo p, heapPo h, ptrPo tos) {
   double Arg = floatVal(tos[0]);
-  termPo Rs = (termPo) allocateFloat(processHeap(p), sqrt(Arg));
+  termPo Rs = (termPo) allocateFloat(h, sqrt(Arg));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g_pi(processPo p, ptrPo tos) {
-  termPo Rs = (termPo) allocateFloat(processHeap(p), M_PI);
+ReturnStatus g_pi(processPo p, heapPo h, ptrPo tos) {
+  termPo Rs = (termPo) allocateFloat(h, M_PI);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__irand(processPo P, ptrPo tos) {
+ReturnStatus g__irand(processPo P, heapPo h, ptrPo tos) {
   integer mx = integerVal(tos[0]);
   integer rnd = randomInt();
 
   return (ReturnStatus) {.ret=Ok,
-            .result=(termPo) allocateInteger(processHeap(P), rnd % mx)};
+    .result=(termPo) allocateInteger(h, rnd % mx)};
 }
 
-ReturnStatus g__random(processPo P, ptrPo tos) {
-  double rnd = random()/(double)LARGE_INT32;
+ReturnStatus g__random(processPo P, heapPo h, ptrPo tos) {
+  double rnd = random() / (double) LARGE_INT32;
 
   return (ReturnStatus) {.ret=Ok,
-            .result=(termPo) allocateFloat(processHeap(P), rnd)};
+    .result=(termPo) allocateFloat(h, rnd)};
 }
 
-ReturnStatus g__seed(processPo P,ptrPo tos){
-  srandom((unsigned int)integerVal(tos[0]));
+ReturnStatus g__seed(processPo P, ptrPo tos) {
+  srandom((unsigned int) integerVal(tos[0]));
   return (ReturnStatus) {.ret=Ok, .result=unitEnum};
 }
 

@@ -37,7 +37,7 @@ void initTime(void) {
  * reset the interval timer for the new period
  */
 
-ReturnStatus g__delay(processPo P, ptrPo tos) {
+ReturnStatus g__delay(processPo p, heapPo h, ptrPo tos) {
   double dx = floatVal(tos[0]);
 
   struct timespec tm;
@@ -48,24 +48,24 @@ ReturnStatus g__delay(processPo P, ptrPo tos) {
 
   tm.tv_sec = (long) seconds;
   tm.tv_nsec = (long) (fraction * NANO);  /* Convert microseconds to nanoseconds */
-  switchProcessState(P, wait_timer);
+  switchProcessState(p, wait_timer);
   if (nanosleep(&tm, NULL) != 0) {
-    setProcessRunnable(P);
+    setProcessRunnable(p);
     switch (errno) {
       case EINTR:
-        return liberror(P, "delay", eINTRUPT);
+        return liberror(p, h, "delay", eINTRUPT);
       case EINVAL:
       case ENOSYS:
       default:
-        return liberror(P, "delay", eINVAL);
+        return liberror(p, h, "delay", eINVAL);
     }
   } else {
-    setProcessRunnable(P);
-    return (ReturnStatus){.ret = Ok, .result = voidEnum};
+    setProcessRunnable(p);
+    return (ReturnStatus) {.ret = Ok, .result = voidEnum};
   }
 }
 
-ReturnStatus g__sleep(processPo P, ptrPo tos) {
+ReturnStatus g__sleep(processPo p, heapPo h, ptrPo tos) {
   double f = floatVal(*tos);
 
   struct timeval now;
@@ -76,7 +76,7 @@ ReturnStatus g__sleep(processPo P, ptrPo tos) {
 
   if (seconds < now.tv_sec ||
       (seconds == now.tv_sec && (fraction * 1000000) < now.tv_usec)) {
-    return (ReturnStatus){.ret = Ok, .result = voidEnum};
+    return (ReturnStatus) {.ret = Ok, .result = voidEnum};
   } else {
     struct timespec tm;
 
@@ -93,40 +93,40 @@ ReturnStatus g__sleep(processPo P, ptrPo tos) {
       tm.tv_sec--;
     }
 
-    switchProcessState(P, wait_timer);
+    switchProcessState(p, wait_timer);
     if (nanosleep(&tm, NULL) != 0) {
-      setProcessRunnable(P);
+      setProcessRunnable(p);
       switch (errno) {
         case EINTR:
-          return liberror(P, "sleep", eINTRUPT);
+          return liberror(p, h, "sleep", eINTRUPT);
         case EINVAL:
         case ENOSYS:
         default:
-          return liberror(P, "sleep", eINVAL);
+          return liberror(p, h, "sleep", eINVAL);
       }
     } else {
-      setProcessRunnable(P);
-      return (ReturnStatus){.ret = Ok, .result = voidEnum};
+      setProcessRunnable(p);
+      return (ReturnStatus) {.ret = Ok, .result = voidEnum};
     }
   }
 }
 
 /* Return the current time */
-ReturnStatus g__now(processPo P, ptrPo tos) {
-  termPo now = (termPo) allocateFloat(processHeap(P), get_time());
+ReturnStatus g__now(processPo p, heapPo h, ptrPo tos) {
+  termPo now = (termPo) allocateFloat(h, get_time());
 
   return (ReturnStatus) {.ret=now != Null ? Ok : Error, .result=now};
 }
 
 /* Return the time at midnight */
-ReturnStatus g__today(processPo P, ptrPo tos) {
-  termPo now = (termPo) allocateFloat(processHeap(P), get_date());
+ReturnStatus g__today(processPo p, heapPo h, ptrPo tos) {
+  termPo now = (termPo) allocateFloat(h, get_date());
 
   return (ReturnStatus) {.ret=now != Null ? Ok : Error, .result=now};
 }
 
-ReturnStatus g__ticks(processPo P, ptrPo tos) {
-  termPo now = (termPo) allocateInteger(currHeap, clock());
+ReturnStatus g__ticks(processPo p, heapPo h, ptrPo tos) {
+  termPo now = (termPo) allocateInteger(h, (integer) clock());
 
   return (ReturnStatus) {.ret=now != Null ? Ok : Error, .result=now};
 }

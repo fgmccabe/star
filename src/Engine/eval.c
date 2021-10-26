@@ -42,7 +42,7 @@
 
 #define bail() STMT_WRAP({\
   saveRegisters();\
-  stackTrace(P, logFile, STK, True);\
+  stackTrace(P,NULL, logFile, STK, True);\
   return Error;\
   })
 
@@ -100,8 +100,8 @@ retCode run(processPo P) {
 
         logMsg(logFile, "Abort %T at %L", msg, lc);
         saveRegisters();
-        verifyProc(P, processHeap(P));
-        stackTrace(P, logFile, P->stk, True);
+        verifyProc(P, H);
+        stackTrace(P, H, logFile, P->stk, True);
 
         return Error;
       }
@@ -205,7 +205,7 @@ retCode run(processPo P) {
         escapePo esc = getEscape(escNo);
         saveRegisters();
         assert(H->topRoot == 0);
-        ReturnStatus ret = esc->fun(P, SP);  /* invoke the escape */
+        ReturnStatus ret = esc->fun(P, H, SP);  /* invoke the escape */
         assert(H->topRoot == 0);
         restoreRegisters();
         SP += esc->arity;
@@ -366,6 +366,11 @@ retCode run(processPo P) {
 #endif
 
         continue;       /* Were done */
+      }
+
+      case RtG: {
+        H = processHeap(P);
+        // Fall through
       }
 
       case Ret: {        /* return from function */
@@ -584,6 +589,7 @@ retCode run(processPo P) {
           FP = pushFrame(STK, glbThnk, FP, SP);
           PC = entryPoint(glbThnk);
           LITS = codeLits(glbThnk);
+          H = globalHeap;
 
           integer lclCnt = lclCount(glbThnk);  /* How many locals do we have */
           SP = ((ptrPo) FP) - lclCnt;

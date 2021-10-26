@@ -313,6 +313,7 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
       case Halt:
       case Abort:
       case Ret:
+      case RtG:
       case Underflow:
       case TResume:
       case Cut:
@@ -536,6 +537,7 @@ checkTgt(vectorPo blocks, methodPo mtd, insPo code, integer oPc, integer *pc, Op
         case Abort:
         case Throw:
         case Ret:
+        case RtG:
           break;
         default:
           updateEntryPoint(current, next);
@@ -840,6 +842,7 @@ retCode checkSegment(segPo seg, char *errorMsg, long msgLen) {
     if (ret == Ok && vectIsEmpty(seg->seg.exits)) {
       switch (lastOp) {
         case Ret:
+        case RtG:
         case Halt:
         case Abort:
         case TCall:

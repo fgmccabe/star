@@ -264,17 +264,17 @@ retCode showLbl(ioPo out, labelPo lbl, integer depth, integer prec, logical alt)
     integer hashOff = uniLastIndexOf(lbl->name, lblLen, (codePoint) '#');
 
     if (hashOff > 0 && hashOff < lblLen - 1)
-      ret = outMsg(out, "…%S/%d", &lbl->name[hashOff + 1], lblLen - hashOff - 1, lbl->arity);
+      ret = outMsg(out, "…%S", &lbl->name[hashOff + 1], lblLen - hashOff - 1, lbl->arity);
     else if (lblLen > prec) {
       integer half = prec / 2;
       integer hwp = backCodePoint(lbl->name, lblLen, half);
-      ret = outMsg(out, "%S…%S/%d", lbl->name, half, &lbl->name[hwp], lblLen - hwp, lbl->arity);
+      ret = outMsg(out, "%S…%S", lbl->name, half, &lbl->name[hwp], lblLen - hwp, lbl->arity);
     } else
-      ret = outMsg(out, "%S/%d", lbl->name, lblLen, lbl->arity);
+      ret = outMsg(out, "%S", lbl->name, lblLen, lbl->arity);
 
     return ret;
   } else
-    return outMsg(out, "%s/%d", lbl->name, lbl->arity);
+    return outMsg(out, "%Q/%d", lbl->name, lbl->arity);
 }
 
 methodPo labelCode(labelPo lbl) {

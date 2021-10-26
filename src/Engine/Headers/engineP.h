@@ -22,6 +22,7 @@ typedef struct processRec_ {
   heapPo heap;        // Local heap for this process
   pthread_t threadID;      /* What is the posix thread ID? */
   char wd[MAXFILELEN]; // Each thread may have its own working directory.
+  capabilityPo processCap;      // What is the root capability for this thread
   ProcessState state;                 /* What is the status of this process? */
   logical pauseRequest;         /* Has a pause of this process been requested? */
   ProcessState savedState;    /* Saved state of this process? */
@@ -39,7 +40,7 @@ extern MethodRec haltMethod;
 extern void initEngine();
 extern retCode run(processPo P);
 
-retCode bootstrap(char *entry, char *rootWd, capabilityPo rootCap);
+retCode bootstrap(heapPo h, char *entry, char *rootWd, capabilityPo rootCap);
 
 extern pthread_key_t processKey;
 pthread_t ps_threadID(processPo p);

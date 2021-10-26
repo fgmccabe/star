@@ -16,7 +16,7 @@
 #include <consP.h>
 #include "pkgops.h"
 
-ReturnStatus g__pkg_is_present(processPo P, ptrPo tos) {
+ReturnStatus g__pkg_is_present(processPo P, heapPo h, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
   char pkgNm[MAX_SYMB_LEN];
@@ -63,7 +63,7 @@ static retCode pickupImport(packagePo p, char *errorMsg, long msgLen, void *cl) 
   return Ok;
 }
 
-ReturnStatus g__install_pkg(processPo P, ptrPo tos) {
+ReturnStatus g__install_pkg(processPo P, heapPo h, ptrPo tos) {
   termPo Arg1 = tos[0];
   integer len;
   const char *text = strVal(Arg1, &len);
@@ -71,25 +71,24 @@ ReturnStatus g__install_pkg(processPo P, ptrPo tos) {
 
   memmove(buffer, text, len);
   char errMsg[MAXLINE];
-  heapPo H = processHeap(P);
 
   termPo imports = (termPo) nilEnum;
-  int root = gcAddRoot(H, &imports);
+  int root = gcAddRoot(h, &imports);
 
-  pickupStruct Cl = {.list=&imports, .H=H};
+  pickupStruct Cl = {.list=&imports, .H=h};
 
-  retCode ret = installPackage(buffer, len, H, errMsg, NumberOf(errMsg), pickupImport, &Cl);
+  retCode ret = installPackage(buffer, len, h, errMsg, NumberOf(errMsg), pickupImport, &Cl);
 
   free(buffer);
-  gcReleaseRoot(H, root);
+  gcReleaseRoot(h, root);
 
   if (ret == Ok) {
     return (ReturnStatus) {.ret=ret, .result= (termPo) imports};
   } else
-    return liberror(P, "_install_pkg", eFAIL);
+    return liberror(P, h, "_install_pkg", eFAIL);
 }
 
-ReturnStatus g__in_manifest(processPo P, ptrPo tos) {
+ReturnStatus g__in_manifest(processPo P, heapPo h, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
   termPo Arg3 = tos[2];
@@ -118,7 +117,7 @@ ReturnStatus g__in_manifest(processPo P, ptrPo tos) {
   }
 }
 
-ReturnStatus g__locate_in_manifest(processPo P, ptrPo tos) {
+ReturnStatus g__locate_in_manifest(processPo P, heapPo h, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
   termPo Arg3 = tos[2];
@@ -141,7 +140,7 @@ ReturnStatus g__locate_in_manifest(processPo P, ptrPo tos) {
       return (ReturnStatus) {.ret=Error, .result= voidEnum};
     } else {
       return (ReturnStatus) {.ret=Ok,
-        .result=(termPo) allocateString(processHeap(P), rsrc, uniStrLen(rsrc))};
+        .result=(termPo) allocateString(h, rsrc, uniStrLen(rsrc))};
     }
   } else {
     return (ReturnStatus) {.ret=ret, .result= voidEnum};

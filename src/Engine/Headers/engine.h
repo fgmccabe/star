@@ -34,11 +34,12 @@ typedef struct return_code_ {
   termPo result;
 } ReturnStatus;
 
-processPo newProcess(methodPo mtd, char *rootWd, capabilityPo processCap, termPo rootArg);
+processPo newProcess(heapPo h, methodPo mtd, char *rootWd, capabilityPo processCap, termPo rootArg);
 void switchProcessState(processPo p, ProcessState state);
 void setProcessRunnable(processPo p);
 ProcessState processState(processPo p);
 integer processNo(processPo p);
+capabilityPo processCap(processPo p);
 
 typedef retCode (*procProc)(processPo p, void *cl);
 retCode processProcesses(procProc p, void *cl);
@@ -49,6 +50,6 @@ heapPo processHeap(processPo p);
 char *processWd(processPo p);
 retCode setProcessWd(processPo p, char *wd, integer len);
 
-ReturnStatus liberror(processPo P, char *name, termPo code);
+ReturnStatus liberror(processPo P, heapPo h, char *name, termPo code);
 termPo commandLine(heapPo H);
 #endif

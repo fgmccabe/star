@@ -169,6 +169,10 @@ normalPo codeLits(methodPo mtd) {
   return mtd->pool;
 }
 
+logical normalCode(methodPo mtd){
+  return (logical)(mtd->pool!=Null);
+}
+
 integer codeLitCount(methodPo mtd) {
   assert(mtd != Null && mtd->pool != Null);
   normalPo lits = mtd->pool;

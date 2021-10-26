@@ -8,19 +8,19 @@
 #include "assigns.h"
 #include "cellP.h"
 
-ReturnStatus g__cell(processPo p, ptrPo tos) {
+ReturnStatus g__cell(processPo p, heapPo h, ptrPo tos) {
   termPo content = tos[0];
-  cellPo cell = newCell(processHeap(p), content);
+  cellPo cell = newCell(h, content);
 
   return (ReturnStatus){.ret=Ok, .result=(termPo) cell};
 }
 
-ReturnStatus g__get(processPo p, ptrPo tos) {
+ReturnStatus g__get(processPo p, heapPo h, ptrPo tos) {
   cellPo cell = C_CELL(tos[0]);
   return (ReturnStatus){.ret=Ok, .result=getCell(cell)};
 }
 
-ReturnStatus g__assign(processPo p, ptrPo tos) {
+ReturnStatus g__assign(processPo p, heapPo h, ptrPo tos) {
   termPo Content = tos[1];
   cellPo Cell = C_CELL(tos[0]);
 
@@ -29,7 +29,7 @@ ReturnStatus g__assign(processPo p, ptrPo tos) {
   return (ReturnStatus){.ret=Ok, .result=unitEnum};
 }
 
-ReturnStatus g__overwrite(processPo p, ptrPo tos) {
+ReturnStatus g__overwrite(processPo p, heapPo h, ptrPo tos) {
   normalPo orig = C_NORMAL(tos[0]);
   normalPo newval = C_NORMAL(tos[1]);
 
