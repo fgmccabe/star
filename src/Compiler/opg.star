@@ -8,6 +8,7 @@ star.compiler.opg{
   import star.compiler.location.
   import star.compiler.misc.
   import star.compiler.token.
+  import star.compiler.wff.
   import star.pkg.
 
   needsTerm ::= .noNeed | .needOne.
@@ -61,6 +62,7 @@ star.compiler.opg{
   legalRight(idQTok(_),_) => .true.
   legalRight(intTok(_),_) => .true.
   legalRight(fltTok(_),_) => .true.
+  legalRight(chrTok(_),_) => .true.
   legalRight(strTok(_),_) => .true.
   legalRight(lftTok(_),_) => .true.
   legalRight(_,_) default => .false.
@@ -68,7 +70,9 @@ star.compiler.opg{
   term0:(cons[token],reports) => (ast,integer,cons[token],reports,needsTerm).
   term0([tok(Lc,intTok(Ix)),..Toks],Rpt) => (int(Lc,Ix),0,Toks,Rpt,.needOne).
   term0([tok(Lc,fltTok(Dx)),..Toks],Rpt) => (num(Lc,Dx),0,Toks,Rpt,.needOne).
-  term0([tok(Lc,strTok(Sx)),..Toks],Rpt) where (Term,Rptx).=handleInterpolation(Sx,Rpt,Lc) => (Term,0,Toks,Rptx,.needOne).
+  term0([tok(Lc,chrTok(Ch)),..Toks],Rpt) => (chr(Lc,Ch),0,Toks,Rpt,.needOne).
+  term0([tok(Lc,strTok(Sx)),..Toks],Rpt) where (Term,Rptx).=interpolateString(Sx,Rpt,Lc) =>
+    (Term,0,Toks,Rptx,.needOne).
   term0([tok(Lc,lftTok("{}")),tok(Lc1,rgtTok("{}")),..Toks],Rpt) => (tpl(mergeLoc(Lc,Lc1),"{}",[]),0,Toks,Rpt,.noNeed).
   term0([tok(Lc,lftTok("{}")),..Toks],Rpt) where
       (Els,Rpt1,Toks1) .= terms(Toks,rgtTok("{}"),Rpt,[]) &&
@@ -149,17 +153,16 @@ star.compiler.opg{
   handleInterpolations:(cons[stringSegment],reports,locn) => (ast,reports).
   handleInterpolations(.nil,Rp,Lc) => (enum(Lc,"nil"),Rp).
   handleInterpolations(cons(H,T),Rp,Lc) where
-      (HH,Rp0) .= handleInterpolation(H,Rp,Lc) &&
+      (HH,Rp0) .= handleInterpolation(H,Rp) &&
       (TT,Rp1) .= handleInterpolations(T,Rp0,Lc) =>
     (binary(Lc,"cons",HH,TT),Rp1).
 
-  handleInterpolation:(stringSegment,reports,locn) => (ast,reports).
-  handleInterpolation(segment(Lc,Str),Rpt,_) => (chrs(Lc,Str),Rpt).
-
+  handleInterpolation:(stringSegment,reports) => (ast,reports).
+  handleInterpolation(segment(Lc,Str),Rpt) => (str(Lc,Str),Rpt).
   handleInterpolation(interpolate(Lc,Toks,""),Rpt) where
       (A,Rpt1,_) .= astParse(Toks,Rpt) => (unary(Lc,"disp",A),Rpt1).
   handleInterpolation(interpolate(Lc,Toks,Frmt),Rpt) where
-      (A,Rpt1,_) .= astParse(Toks,Rpt) => (binary(Lc,"frmt",A,chrs(Lc,Frmt)),Rpt1).
+      (A,Rpt1,_) .= astParse(Toks,Rpt) => (binary(Lc,"frmt",A,str(Lc,Frmt)),Rpt1).
   handleInterpolation(evaluate(Lc,Toks),Rp) where (A,Rpt1,_) .= astParse(Toks,Rp) => (A,Rp).
   
   checkToken:(tk,reports,cons[token]) => (locn,reports,cons[token]).

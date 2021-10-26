@@ -9,7 +9,8 @@ star.compiler.ast{
       | qnm(locn,string)
       | int(locn,integer)
       | num(locn,float)
-      | chrs(locn,string)
+      | chr(locn,char)
+      | str(locn,string)
       | tpl(locn,string,cons[ast])
       | app(locn,ast,ast).
 
@@ -18,7 +19,8 @@ star.compiler.ast{
     eq(qnm(_,I1),qnm(_,I2)) => I1==I2.
     eq(int(_,L1),int(_,L2)) => L1==L2.
     eq(num(_,L1),num(_,L2)) => L1==L2.
-    eq(chrs(_,L1),chrs(_,L2)) => L1==L2.
+    eq(str(_,L1),str(_,L2)) => L1==L2.
+    eq(chr(_,L1),chr(_,L2)) => L1==L2.
     eq(tpl(_,K1,E1),tpl(_,K2,E2)) => K1==K2 && eqList(E1,E2).
     eq(app(_,O1,A1),app(_,O2,A2)) => eq(O1,O2) && eq(A1,A2).
     eq(_,_) default => .false.
@@ -35,7 +37,8 @@ star.compiler.ast{
     locOf(qnm(Lc,_)) => Lc.
     locOf(int(Lc,_)) => Lc.
     locOf(num(Lc,_)) => Lc.
-    locOf(chrs(Lc,_)) => Lc.
+    locOf(chr(Lc,_)) => Lc.
+    locOf(str(Lc,_)) => Lc.
     locOf(tpl(Lc,_,_)) => Lc.
     locOf(app(Lc,_,_)) => Lc.
   .}
@@ -47,7 +50,8 @@ star.compiler.ast{
   public dispAst:(ast,integer,string) => string.
   dispAst(int(_,Ix),_,_) => disp(Ix).
   dispAst(num(_,Dx),_,_) => disp(Dx).
-  dispAst(chrs(_,Sx),_,_) => disp(Sx).
+  dispAst(chr(_,Ch),_,_) => disp(Ch).
+  dispAst(str(_,Sx),_,_) => disp(Sx).
   dispAst(nme(_,Id),_,_) => dispId(Id).
   dispAst(qnm(_,Id),_,_) => "'#(stringQuote(Id))'".
   dispAst(tpl(_,"{}",Els),_,Sp) =>
@@ -78,20 +82,21 @@ star.compiler.ast{
   isInterpolated(A) where _ ^= isUnary(A,"_str_multicat") => .true.
   isInterpolated(A) where _ ^= isUnary(A,"disp") => .true.
   isInterpolated(A) where _ ^= isBinary(A,"frmt") => .true.
-  isInterpolated(A) default => false.
+  isInterpolated(A) default => .false.
 
   deInterpolate:(ast) => string.
   deInterpolate(A) where (_,S) ^= isUnary(A,"_str_multicat") => _str_multicat(deConsPolate(S)).
   deInterpolate(A) where (_,S) ^= isUnary(A,"disp") => dePolate(A).
   deInterpolate(A) where (_,I,F) ^= isBinary(A,"frmt") => dePolate(A).
 
-  deConsPolate(A) where _ ^= isEnum(A,"nil") => .nil.
+  deConsPolate(A) where (_,I) ^= isUnary(A,".") && (_,"nil")^=isNme(I) => .nil.
   deConsPolate(A) where (_,L,R) ^= isBinary(A,"cons") =>
     cons(dePolate(L),deConsPolate(R)).
 
   dePolate(A) where (_,D) ^= isUnary(A,"disp") => "$"++dispAst(D,0,"").
-  dePolate(A) where (_,D,chrs(_,F)) ^= isBinary(A,"frmt") => "$"++dispAst(D,0,"")++":"++F++";".
-  dePolate(A) where (_,D) ^= isUnary(A,"eval") => "#"++dispAst(D,0,"").
+  dePolate(A) where (_,D,str(_,F)) ^= isBinary(A,"frmt") => "$"++dispAst(D,0,"")++":"++F++";".
+  dePolate(A) where (_,S) ^= isStr(A) => S.
+  dePolate(A) default => "#"++dispAst(A,0,"").
   
   public implementation coercion[ast,string] => {.
     _coerce(A) => some("$(A)").
@@ -116,7 +121,7 @@ star.compiler.ast{
   isFlt(_) default => .none.
 
   public isStr:(ast) => option[(locn,string)].
-  isStr(chrs(Lc,Sx)) => some((Lc,Sx)).
+  isStr(str(Lc,Sx)) => some((Lc,Sx)).
   isStr(_) default => .none.
 
   public zeroary:(locn,string)=>ast.

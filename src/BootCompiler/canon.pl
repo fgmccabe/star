@@ -232,7 +232,7 @@ ssTerm(anon(_,_),_,ss("_")).
 ssTerm(void,_,ss("void")).
 ssTerm(intLit(_,Ix),_,ix(Ix)).
 ssTerm(floatLit(_,Dx),_,fx(Dx)).
-ssTerm(charLit(_,Cp),_,sq([ss("#"),cp(Cp)])).
+ssTerm(charLit(_,Cp),_,sq([ss("`"),cp(Cp),ss("`")])).
 ssTerm(stringLit(_,Str),_,sq([ss(""""),ss(Str),ss("""")])).
 ssTerm(apply(_,Op,Args,_),Dp,sq([O,A])) :-
   ssTerm(Op,Dp,O),

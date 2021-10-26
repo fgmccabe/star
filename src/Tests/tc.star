@@ -1,4 +1,4 @@
-test.ta{
+test.tc{
   import star.
   import star.script.
 
@@ -11,9 +11,8 @@ test.ta{
   QQ : ref qc[(())=>>result[(),()]].
   QQ = ref qc([],[]).
 
-  yield:(string)=>result[(),()].
-  yield(Nm) => do{
-    logMsg("yield #(Nm)");
+  yield:()=>result[(),()].
+  yield() => do{
     _ .= (Tg cut K in yieldHandler(K));
     valis ()
   }
@@ -33,12 +32,11 @@ test.ta{
   createHandler(K,F) => do{
     (N,Qs) ^= _hdtl(append(append(QQ!,contFromFun(Tg,(_)=>F())),K));
     QQ := Qs;
---    logMsg("after spawn $(size(QQ!)) entries");
     N.(())
   }
 
-  join:(string)=>result[(),()].
-  join(Nm) => do{
+  join:()=>result[(),()].
+  join() => do{
     _ .= (Tg cut K in joinHandler(K));
     valis () -- never coming here
   }
@@ -81,19 +79,17 @@ test.ta{
     valis ()
   }
 
-  threadMain:(string)=>tsk.
-  threadMain(T) => tsk(() => do{
-      logMsg("A$(T)");
-      yield(T);
-      logMsg("B$(T)");
-      join(T)
-    })
+  countDown:(integer)=>tsk.
+  countDown(0) => tsk(()=>do{valis ()}).
+  countDown(Ix) => tsk(()=>do{
+      logMsg("Count $(Ix)");
+      spawnTask(countDown(Ix-1));
+      yield();
+      logMsg("Counted $(Ix)")
+    }).
 
   main:()=>action[(),()].
   main() => action{
-    eventLoop([("alpha",threadMain("alpha")),
-    	("beta",threadMain("beta")),
-    	("gamma",threadMain("gamma"))]);
-    logMsg("Q is $(size(QQ!))");
+    eventLoop([("count",countDown(1000))])
   }
 }

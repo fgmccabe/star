@@ -179,6 +179,7 @@ star.compiler.escapes{
   escapeType("_chr_ge") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char"),nomnal("star.core*char")])),nomnal("star.core*boolean"))).
   escapeType("_chr_hash") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*integer"))).
   escapeType("_chr_quote") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char")])),nomnal("star.core*string"))).
+  escapeType("_chr_format") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*char"),nomnal("star.core*string")])),nomnal("star.core*string"))).
   escapeType("_str_eq") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*string")])),nomnal("star.core*boolean"))).
   escapeType("_str_lt") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*string")])),nomnal("star.core*boolean"))).
   escapeType("_str_ge") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*string"),nomnal("star.core*string")])),nomnal("star.core*boolean"))).
@@ -396,45 +397,46 @@ star.compiler.escapes{
   isEscape("_chr_ge") => some(171).
   isEscape("_chr_hash") => some(172).
   isEscape("_chr_quote") => some(173).
-  isEscape("_str_eq") => some(174).
-  isEscape("_str_lt") => some(175).
-  isEscape("_str_ge") => some(176).
-  isEscape("_str_hash") => some(177).
-  isEscape("_str_len") => some(178).
-  isEscape("_str_gen") => some(179).
-  isEscape("_stringOf") => some(180).
-  isEscape("_explode") => some(181).
-  isEscape("_implode") => some(182).
-  isEscape("_str_find") => some(183).
-  isEscape("_sub_str") => some(184).
-  isEscape("_str_split") => some(185).
-  isEscape("_str_concat") => some(186).
-  isEscape("_str_reverse") => some(187).
-  isEscape("_str_start") => some(188).
-  isEscape("_str_splice") => some(189).
-  isEscape("_str_multicat") => some(190).
-  isEscape("_str_hdtl") => some(191).
-  isEscape("_str_back") => some(192).
-  isEscape("_str_cons") => some(193).
-  isEscape("_code2str") => some(194).
-  isEscape("_str_apnd") => some(195).
-  isEscape("_str_quote") => some(196).
-  isEscape("_str_format") => some(197).
-  isEscape("_getenv") => some(198).
-  isEscape("_setenv") => some(199).
-  isEscape("_envir") => some(200).
-  isEscape("_getlogin") => some(201).
-  isEscape("_fork") => some(202).
-  isEscape("_thread") => some(203).
-  isEscape("_kill") => some(204).
-  isEscape("_thread_state") => some(205).
-  isEscape("_waitfor") => some(206).
-  isEscape("_shell") => some(207).
-  isEscape("_newLock") => some(208).
-  isEscape("_acquireLock") => some(209).
-  isEscape("_waitLock") => some(210).
-  isEscape("_releaseLock") => some(211).
-  isEscape("_ins_debug") => some(212).
-  isEscape("_stackTrace") => some(213).
+  isEscape("_chr_format") => some(174).
+  isEscape("_str_eq") => some(175).
+  isEscape("_str_lt") => some(176).
+  isEscape("_str_ge") => some(177).
+  isEscape("_str_hash") => some(178).
+  isEscape("_str_len") => some(179).
+  isEscape("_str_gen") => some(180).
+  isEscape("_stringOf") => some(181).
+  isEscape("_explode") => some(182).
+  isEscape("_implode") => some(183).
+  isEscape("_str_find") => some(184).
+  isEscape("_sub_str") => some(185).
+  isEscape("_str_split") => some(186).
+  isEscape("_str_concat") => some(187).
+  isEscape("_str_reverse") => some(188).
+  isEscape("_str_start") => some(189).
+  isEscape("_str_splice") => some(190).
+  isEscape("_str_multicat") => some(191).
+  isEscape("_str_hdtl") => some(192).
+  isEscape("_str_back") => some(193).
+  isEscape("_str_cons") => some(194).
+  isEscape("_code2str") => some(195).
+  isEscape("_str_apnd") => some(196).
+  isEscape("_str_quote") => some(197).
+  isEscape("_str_format") => some(198).
+  isEscape("_getenv") => some(199).
+  isEscape("_setenv") => some(200).
+  isEscape("_envir") => some(201).
+  isEscape("_getlogin") => some(202).
+  isEscape("_fork") => some(203).
+  isEscape("_thread") => some(204).
+  isEscape("_kill") => some(205).
+  isEscape("_thread_state") => some(206).
+  isEscape("_waitfor") => some(207).
+  isEscape("_shell") => some(208).
+  isEscape("_newLock") => some(209).
+  isEscape("_acquireLock") => some(210).
+  isEscape("_waitLock") => some(211).
+  isEscape("_releaseLock") => some(212).
+  isEscape("_ins_debug") => some(213).
+  isEscape("_stackTrace") => some(214).
   isEscape(_) default => .none.
 }.

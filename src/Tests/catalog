@@ -104,6 +104,8 @@
     "test.sy": "sy.star",
     "test.t": "t.star",
     "test.ta": "ta.star",
+    "test.tc": "tc.star",
+    "test.tm": "tm.star",
     "test.tl" : "tl.star",
     "test.tp1": "tp1.star",
     "test.ts": "ts.star",

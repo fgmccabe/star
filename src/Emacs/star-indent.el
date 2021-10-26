@@ -41,6 +41,10 @@
   "\\(\\(?:[a-zA-Z_][a-zA-Z_0-9]*\\)\\|'\\(?:.*\\)*'\\)"
   "regular expression that matches identifiers")
 
+(defconst star-char-regexp
+  "`\\(\\\\u[0-9a-f]*;\\|\\\\.\\|[^\\]\\)`"
+  "regular expression that matches characters")
+
 (defconst star-string-regexp
   "\\(\\(?:\"\"\"\\(?:.\\|\n\\)*\"\"\"\\)\\|\\(?:[0]?\"\\(?:\\\\.\\|[^\"\n]\\)*\"\\)\\)"
   "regular expression that matches basic strings")
@@ -116,6 +120,13 @@
 		  (setq done (list 'prim op start end))
 		  )))
 	     ((looking-at star-string-regexp)
+	      (progn
+		(let* ((op (match-string 0))
+		       (start (point))
+		       (end (+ (point) (length op))))
+		  (setq done (list 'prim op start end))
+		  )))
+	     ((looking-at star-char-regexp)
 	      (progn
 		(let* ((op (match-string 0))
 		       (start (point))

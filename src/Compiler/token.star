@@ -5,12 +5,13 @@ star.compiler.token{
   public token ::= tok(locn,tk) | endTok(locn).
 
   public tk ::= idQTok(string)
-              | idTok(string)
-              | lftTok(string)
-              | rgtTok(string)
-              | intTok(integer)
-              | fltTok(float)
-              | strTok(cons[stringSegment]).
+    | idTok(string)
+    | lftTok(string)
+    | rgtTok(string)
+    | intTok(integer)
+    | fltTok(float)
+    | chrTok(char)
+    | strTok(cons[stringSegment]).
 
   public stringSegment ::= segment(locn,string)
     | interpolate(locn,cons[token],string)
@@ -21,6 +22,7 @@ star.compiler.token{
     disp(idTok(Id)) => "'#(Id)'".
     disp(intTok(Ix)) => disp(Ix).
     disp(fltTok(Dx)) => disp(Dx).
+    disp(chrTok(Ch)) => disp(Ch).
     disp(strTok(S)) => "\"#(dispSegments(S)*)\"".
     disp(lftTok(Id)) => "<#(Id)".
     disp(rgtTok(Id)) => "#(Id)>".
@@ -48,6 +50,7 @@ star.compiler.token{
     idTok(Id1) == idTok(Id2) => Id1==Id2.
     intTok(Ix1) == intTok(Ix2) => Ix1==Ix2.
     fltTok(Dx1) == fltTok(Dx2) => Dx1==Dx2.
+    chrTok(C1) == chrTok(C2) => C1==C2.
     strTok(S1) == strTok(S2) => S1==S2.
     lftTok(S1) == lftTok(S2) => S1==S2.
     rgtTok(S1) == rgtTok(S2) => S1==S2.
