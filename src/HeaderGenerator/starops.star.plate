@@ -48,10 +48,10 @@ star.compiler.operators{
   public isRightBracket:(string) => boolean.
   isRightBracket(S) => bkt(_,_,S,_,_) ^= isBracket(S).
 
-  public first:(integer) => option[string].
+  public first:(char) => option[string].
 #(First)  first(_) default => .none.
 
-  public follows:(string,integer) => option[string].
+  public follows:(string,char) => option[string].
 #(Follows)  follows(_,_) default => .none.
 
   public final:(string) => boolean.

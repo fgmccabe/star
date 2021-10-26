@@ -14,13 +14,11 @@
 typedef retCode (*CompletionCallback)(strBufferPo lineBuff, void *cl, integer ix);
 
 void setEditLineCompletionCallback(CompletionCallback fn, void *cl);
-
 void clearEditLineCompletionCallback();
 
 
 retCode consoleInput(strBufferPo lineBuff);
 
-void saveHistory();
 retCode initHistory(char *filename);
 
 #endif //STAR_EDITLINE_H

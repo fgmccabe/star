@@ -7,6 +7,7 @@
 
 #include "formio.h"
 
+retCode genQuotedChr(ioPo f, void *data, long depth, long precision, logical alt);
 retCode genQuotedStr(ioPo f, void *data, long depth, long precision, logical alt);
 logical needQuoting(char *str, integer len);
 

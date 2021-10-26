@@ -24,6 +24,7 @@ instruction(TCall,sym,nOp,0,"TCall <prog>")
 instruction(TOCall,art,nOp,0,"TOCall")
 
 instruction(Ret,tOs,nOp,0,"return")
+instruction(RtG,tOs,nOp,0,"return rom global")
 
 instruction(Jmp,off,nOp,0,"jump lbl")
 

@@ -158,6 +158,7 @@ voidPtr *allocateBuddy(buddyRegionPo region, integer size) {
       }
     }
   }
+
   return Null;
 }
 

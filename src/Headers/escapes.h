@@ -245,6 +245,7 @@ escape(_chr_ge,"F(cc)l","Character 1 is greater than or equals to character 2")
 
 escape(_chr_hash,"F(c)i","Compute hash of a character")
 escape(_chr_quote,"F(c)s","Display string for a character")
+escape(_chr_format,"F(cs)s","format a character using picture format")
 
 escape(_str_eq,"F(ss)l","String equality")
 escape(_str_lt,"F(ss)l","String 1 is less than string 2")
