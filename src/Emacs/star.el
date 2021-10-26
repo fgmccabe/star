@@ -26,6 +26,7 @@
        ;; \n ends line comments
        (modify-syntax-entry ?\n ">" table)
        ;; - is an operator, -- is a comment starter
+       (modify-syntax-entry ?` "\"" table)
        (modify-syntax-entry ?- ". 12" table)
        (modify-syntax-entry ?/ ". 14" table)
        (modify-syntax-entry ?* ". 23b" table)
@@ -78,9 +79,6 @@
   "Regular expression matching the keywords to highlight in Star mode."
   )
 
-(defvar star-char-regexp
-  "\\(\\\\u[0-9a-f]*;\\|\\\\.\\|[^\\]\\)")
-
 (defvar star-constant-regexp
   (concat "\\<\\("
 	  (star-compose-regexps
@@ -92,7 +90,7 @@
 	     "some"
 	     "zero"
 	     "one"
-	     ,(concat "0c" star-char-regexp)
+	     ,star-char-regexp
 	     "[-]?[0-9]+\\([.][0-9]+\\([eE][-+]?[0-9]+\\)?\\)?"
 	     ))
 	  "\\)\\>")
@@ -190,6 +188,7 @@ Argument N  oprefix."
   (autoload 'star-flymake "star-repo")
   (autoload 'star-run "star-shell")
   (autoload 'star-remote "star-shell")
+  (autoload 'star-dbg "star-debug")
   (add-hook 'flymake-diagnostic-functions 'star-flymake nil t)
   (add-hook 'after-save-hook 'star-compile-maybe nil t)
   (run-hooks 'star-mode-hook)

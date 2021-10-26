@@ -320,8 +320,7 @@ star.compiler.wff{
     (pkgImp(_,_,Im) ^= isImport(I) ?
 	some(pkgImp(Lc,.priVate,Im)) ||
 	.none).
-  isImport(A) where (Lc,I) ^= isUnary(A,"import") && either(Pkg) .= pkgeName(I) =>
-    some(pkgImp(Lc,.priVate,Pkg)).
+  isImport(A) where (Lc,I) ^= isUnary(A,"import") => some(pkgImp(Lc,.priVate,pkgeName(I))).
   isImport(_) default => .none.
 
   public pkgeName:(ast) => pkg.
@@ -386,7 +385,7 @@ star.compiler.wff{
 
   public hasPromotion:(ast) => boolean.
   hasPromotion(A) where (_,_,Els) ^= isRoundTerm(A) =>
-    E in Els && (_,_) ^= isUnary(E,"^").
+    {? E in Els && (_,_) ^= isUnary(E,"^") ?}.
   hasPromotion(_) default => .false.
 
   public isPromotion:(ast) => option[(locn,ast)].
@@ -448,14 +447,13 @@ star.compiler.wff{
 
   public implementedContractName:(ast) => string.
   implementedContractName(A) where
-      (_,O,As) ^= isSquareApply(A) =>
-    ssSeq([ss(O),..surfaceNames(As,markerString(.overMark))])::string.
+      (_,O,As) ^= isSquareApply(A) => "#(O)#(surfaceNames(As,markerString(.overMark))*)".
 
   surfaceNames([],_) => [].
   surfaceNames([T,.._],Sep) where (_,L,_) ^= isBinary(T,"->>") =>
     surfaceNames(deComma(L),Sep).
   surfaceNames([T,..Ts],Sep) =>
-    [ss(Sep),ss(surfaceName(T)),..surfaceNames(Ts,Sep)].
+    [Sep,surfaceName(T),..surfaceNames(Ts,Sep)].
 
   surfaceName(T) where (_,Id) ^= isName(T) => Id.
   surfaceName(T) where (_,Id,_) ^= isSquareApply(T) => Id.
@@ -475,8 +473,8 @@ star.compiler.wff{
   collectImports([],Imp,Oth) => (Imp,reverse(Oth)).
   collectImports([A,..Ss],Imp,Oth) => (
     Spec ^= isImport(A) ?
-      collectImports(Ss,[Spec,..Imp],Oth,Rp) ||
-      collectImports(Ss,Imp,[A,..Oth],Rp)).
+      collectImports(Ss,[Spec,..Imp],Oth) ||
+      collectImports(Ss,Imp,[A,..Oth])).
 
   public ruleName:(ast) => option[(locn,string)].
   ruleName(A) where (_,some(Nm),_,_,_,_) ^= isEquation(A) && (Lc,Id)^=isName(Nm) => some((Lc,Id)).
@@ -553,7 +551,7 @@ star.compiler.wff{
   mkLambdaHead(Lc,Arg,.false,.none) => Arg.
 
   public areEquations:(cons[ast]) => boolean.
-  areEquations(L) => E in L *> _ ^= isEquation(E).
+  areEquations(L) => {? E in L *> _ ^= isEquation(E) ?}.
 
   public equation:(locn,ast,ast)=>ast.
   equation(Lc,Hd,Rep) => binary(Lc,"=>",Hd,Rep).

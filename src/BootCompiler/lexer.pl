@@ -152,10 +152,6 @@ nxTok(St,NxSt,idQTok(Id,Lc)) :-
   readQuoted(St1,NxSt,'''',Id),
   makeLoc(St,NxSt,Lc).
 nxTok(St,NxSt,charTok(Cp,Lc)) :-
-  lookingAt(St,St1,['#'],_),
-  charRef(St1,NxSt,Cp),
-  makeLoc(St,NxSt,Lc).
-nxTok(St,NxSt,charTok(Cp,Lc)) :-
   lookingAt(St,St1,['`'],_),
   charRef(St1,St2,Cp),
   nextSt(St2,NxSt,'`'),

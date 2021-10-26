@@ -26,7 +26,7 @@ isLTerm(anon) :- !.
 isLTerm(voyd) :- !.
 isLTerm(intgr(_)) :- !.
 isLTerm(float(_)) :- !.
-isLTerm(chr()) :- !.
+isLTerm(chr(_)) :- !.
 isLTerm(strg(_)) :- !.
 isLTerm(cll(_,_,_)) :- !.
 isLTerm(ocall(_,_,_)) :- !.
@@ -122,7 +122,7 @@ ssTrm(idnt(Nm),_,id(Nm)) :-!.
 ssTrm(anon,_,ss("_")) :-!.
 ssTrm(intgr(Ix),_,ix(Ix)) :-!.
 ssTrm(float(Dx),_,fx(Dx)) :-!.
-ssTrm(chr(Cp),_,sq([ss("#"),cp(Cp)])) :-!.
+ssTrm(chr(Cp),_,sq([ss("`"),cp(Cp),ss("`")])) :-!.
 ssTrm(strg(Str),_,sq([ss(""""),ss(Str),ss("""")])) :-!.
 ssTrm(cll(_,Op,Args),Dp,sq([OO,lp,AA,rp])) :- !,
   ssTrm(Op,Dp,OO),

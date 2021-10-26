@@ -78,6 +78,6 @@ star.compiler.misc{
   tplLbl(Ar) => "()$(Ar)".
 
   public isTplLbl:(string)=>boolean.
-  isTplLbl(Nm) where [0c(,0c),..Ds].=(Nm::cons[integer]) => .true.
+  isTplLbl(Nm) where [`(`,`)`,..Ds].=(Nm::cons[char]) => .true.
   isTplLbl(_) default => .false.
 }

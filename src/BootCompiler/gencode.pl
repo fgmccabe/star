@@ -61,7 +61,7 @@ genDef(D,Opts,glbDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
   encType(funType(tplType([]),Tp),Sig),
   genLbl([],End,L1),
   genLine(Opts,Lc,C0,C1),
-  compTerm(Value,Lc,bothCont(glbCont(Nm),retCont(Opts)),trapCont(Lc),
+  compTerm(Value,Lc,bothCont(glbCont(Nm),rtgCont(Opts)),trapCont(Lc),
 	   Opts,L1,_Lx,D,Dx,End,C1,[iLbl(End)],some(0),_Stk),
   findMaxLocal(Dx,Mx),
   peepOptimize(C0,Cde),
@@ -77,6 +77,9 @@ glbCont(Nm,Lx,Lx,D,D,_,[iTG(Nm)|Cx],Cx,Stk,Stk).
 
 retCont(Opts,Lx,Lx,D,D,_,C,Cx,_Stk,none) :-
   genDbg(Opts,C,[iRet|Cx]).
+
+rtgCont(Opts,Lx,Lx,D,D,_,C,Cx,_Stk,none) :-
+  genDbg(Opts,C,[iRtG|Cx]).
 
 dropCont(Lx,Lx,D,D,_,[iDrop|Cx],Cx,Stk,Stk1) :-
   dropStk(Stk,1,Stk1).
@@ -573,6 +576,7 @@ contHasLbl(onceCont(_,L,_),Lbl) :- nonvar(L), !, L=(Lbl,_,_).
 contHasLbl(onceCont(_,_,C),Lbl) :- !, contHasLbl(C,Lbl).
 
 isSimpleCont(retCont(_)).
+isSimpleCont(rtgCont(_)).
 isSimpleCont(jmpCont(_)).
 isSimpleCont(contCont(_)).
 isSimpleCont(bothCont(L,R)) :-

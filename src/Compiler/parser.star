@@ -14,7 +14,7 @@ star.compiler.parser{
 
   public parseSrc:(uri,pkg,reports) => (option[ast],reports).
   parseSrc(U,P,Rp) where Txt ^= getResource(U) &&
-      (Toks,Rp1) .= allTokens(initSt(pkgLoc(P),Txt::cons[integer],Rp)) =>
+      (Toks,Rp1) .= allTokens(initSt(pkgLoc(P),Txt::cons[char],Rp)) =>
     (errorFree(Rp1) ?
 	((Trm,Rptx,_) .= astParse(Toks,Rp1) ?
 	    (errorFree(Rptx) ?
@@ -26,7 +26,7 @@ star.compiler.parser{
 
   public parseText:(locn,string,reports) => (option[ast],reports).
   parseText(Lc,Txt,Rpt) =>
-    ( ((Toks,Rp1).=allTokens(initSt(Lc,Txt::cons[integer],Rpt))) &&
+    ( ((Toks,Rp1).=allTokens(initSt(Lc,Txt::cons[char],Rpt))) &&
 	  (Trm,Rptx,_) .= astParse(Toks,Rp1)) ?
       (some(Trm),Rptx) ||
       (.none, reportError(Rpt,"Could not successfully parse",Lc)).

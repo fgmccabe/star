@@ -13,7 +13,7 @@ test.comp.gram{
 
   main:()=>action[(),()].
   main()=>action{
-    lc.=pkgLoc(pkg("test",defltVersion));
+    lc.=pkgLoc(pkg("test",.defltVersion));
 
     show parseText(lc,"X. ",reports([]));
 
@@ -32,7 +32,9 @@ test.comp.gram{
 
     show parseText(lc,"{f(X)=>g(X.foo(Y)). g(Y)=>(X+Y)*Z}",reports([]));
 
-    show parseText(lc,"{f(X,Y)=>g(X.foo(Y)). g(Y)=>(X+Y)*Z}",reports([]))
+    show parseText(lc,"{f(X,Y)=>g(X.foo(Y)). g(Y)=>(X+Y)*Z}",reports([]));
+
+    show parseText(lc,"""{ dsp(X)=> "$(X):c;#(X)" }""",reports([]))
   }
 
 }
