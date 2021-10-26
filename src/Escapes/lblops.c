@@ -9,7 +9,7 @@
 #include "lblops.h"
 #include "engineP.h"
 
-ReturnStatus g__definedLbl(processPo P, ptrPo tos) {
+ReturnStatus g__definedLbl(processPo P, heapPo h, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
   char label[MAX_SYMB_LEN];
@@ -34,7 +34,7 @@ static void pushArgs(processPo P, termPo args) {
   }
 }
 
-ReturnStatus g__callLbl(processPo P, ptrPo tos) {
+ReturnStatus g__callLbl(processPo P, heapPo h, ptrPo tos) {
   integer arity = integerVal(tos[1]);
   termPo args = tos[2];
 

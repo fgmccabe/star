@@ -67,8 +67,8 @@ integer chrHash(specialClassPo cl, termPo o) {
 }
 
 static retCode chrDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
-  charPo ix = C_CHAR(t);
-  return outChar(out, ix->cp);
+  codePoint cp = charVal(t);
+  return outMsg(out, "`%C`",cp);
 }
 
 charPo C_CHAR(termPo t) {

@@ -84,7 +84,7 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
             ret = skipEncoded(O_IO(sigBuffer), errorMsg, msgSize); // Skip local declarations
 
           if (ret == Ok)
-            ret = loadDefs(O_IO(sigBuffer), currHeap, markLoaded(lddPkg.packageName, lddPkg.version), errorMsg,
+            ret = loadDefs(O_IO(sigBuffer), globalHeap, markLoaded(lddPkg.packageName, lddPkg.version), errorMsg,
                            msgSize);
         }
         closeFile(O_IO(sigBuffer));
@@ -432,15 +432,14 @@ retCode decodeIns(ioPo in, wordBufferPo bfr, integer *ix, integer *si, char *err
   return ret;
 }
 
-
 static integer maxDepth(insPo code, integer maxPc, normalPo constPool) {
   integer stackDepth = 0;
   integer maxDepth = 0;
-  for(integer pc=0;pc<maxPc;){
+  for (integer pc = 0; pc < maxPc;) {
     insWord op = code[pc++];
     integer litNo = 0;
 
-    switch(op){
+    switch (op) {
 
 #define collectI32 { uint32 hi32 = (uint32)(code[pc++]); uint32 lo32 = (uint32)(code[pc++]); litNo = ((hi32<<(unsigned)16)|lo32);}
 
@@ -462,7 +461,7 @@ static integer maxDepth(insPo code, integer maxPc, normalPo constPool) {
 #define szlne pc+=2;
 #define szglb pc+=2;
 
-#define instruction(Op,A1,A2,Dl,Cmt) \
+#define instruction(Op, A1, A2, Dl, Cmt) \
 case Op:                       \
 stackDepth+=Dl;              \
 sz##A1                       \
@@ -492,10 +491,10 @@ break;
 #undef sznOp
 #undef sztOs
     }
-    if(op==Unpack){
-      labelPo lbl = C_LBL(nthArg(constPool,litNo));
+    if (op == Unpack) {
+      labelPo lbl = C_LBL(nthArg(constPool, litNo));
       stackDepth += labelArity(lbl);
-      if(stackDepth>maxDepth)
+      if (stackDepth > maxDepth)
         maxDepth = stackDepth;
     }
   }
@@ -586,7 +585,7 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
               } else {
                 gcAddRoot(H, (ptrPo) &lbl);
 
-                integer stackDelta = maxDepth(ins, pcCount, C_NORMAL(pool))+lclCount;
+                integer stackDelta = maxDepth(ins, pcCount, C_NORMAL(pool)) + lclCount;
 
                 methodPo mtd = defineMtd(H, ins, pcCount, lclCount, stackDelta, lbl, C_NORMAL(pool),
                                          C_NORMAL(locals),

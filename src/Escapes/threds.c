@@ -27,19 +27,17 @@ void *forkThread(void *arg) {
 
   pthread_setspecific(processKey, P);
   P->state = runnable;
-//  pthread_cleanup_push(destroyThread, P);
-
-//    runGo(P);        // start the execution of L&O code
-
-//  pthread_cleanup_pop(True);
+  pthread_cleanup_push((void (*)(void *)) ps_kill, P);
+    run(P);        // start the execution of star code
+  pthread_cleanup_pop(True);
   return NULL;
 }
 
-ReturnStatus g__fork(processPo P, ptrPo tos) {
+ReturnStatus g__fork(processPo P, heapPo h, ptrPo tos) {
   labelPo fn = C_LBL(tos[0]);
-  processPo np = newProcess(labelCode(fn), P->wd, Null, NULL);
+  processPo np = newProcess(h, labelCode(fn), P->wd, processCap(P), unitEnum);
 
-  threadPo thread = newThread(np);
+  threadPo thread = newThread(np, globalHeap);
 
   pthread_attr_t detach;
 
@@ -53,7 +51,7 @@ ReturnStatus g__fork(processPo P, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=(termPo) thread};
 }
 
-ReturnStatus g__kill(processPo P, ptrPo tos) {
+ReturnStatus g__kill(processPo P, heapPo h, ptrPo tos) {
   threadPo th = C_THREAD(tos[0]);
 
   processPo tgt = getThreadProcess(th);
@@ -62,14 +60,14 @@ ReturnStatus g__kill(processPo P, ptrPo tos) {
     ps_kill(tgt);
     return (ReturnStatus) {.ret=Ok, .result=voidEnum};
   } else
-    return liberror(P, "kill", eINVAL);
+    return liberror(P, h, "kill", eINVAL);
 }
 
-ReturnStatus g__thread(processPo P, ptrPo tos) {
+ReturnStatus g__thread(processPo P, heapPo h, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=(termPo) P->thread};
 }
 
-ReturnStatus g__thread_state(processPo P, ptrPo tos) {
+ReturnStatus g__thread_state(processPo P, heapPo h, ptrPo tos) {
   threadPo th = C_THREAD(tos[0]);
   processPo tgt = getThreadProcess(th);
 
@@ -78,14 +76,14 @@ ReturnStatus g__thread_state(processPo P, ptrPo tos) {
   termPo st;
 
   if (tgt == NULL)
-    st = declareEnum(state_names[dead], dead, currHeap);
+    st = declareEnum(state_names[dead], dead, globalHeap);
   else
-    st = declareEnum(state_names[tgt->state], dead, currHeap);
+    st = declareEnum(state_names[tgt->state], dead, globalHeap);
   setProcessRunnable(P);
   return (ReturnStatus) {.ret=Ok, .result=st};
 }
 
-ReturnStatus g__waitfor(processPo P, ptrPo tos) {
+ReturnStatus g__waitfor(processPo P, heapPo h, ptrPo tos) {
   threadPo th = C_THREAD(tos[0]);
   processPo tgt = getThreadProcess(th);
 
@@ -104,37 +102,37 @@ ReturnStatus g__waitfor(processPo P, ptrPo tos) {
       setProcessRunnable(P);
       switch (errno) {
         case EINVAL:
-          return liberror(P, "_waitfor", eINVAL);
+          return liberror(P, h, "_waitfor", eINVAL);
         case ESRCH:
-          return liberror(P, "_waitfor", eNOTFND);
+          return liberror(P, h, "_waitfor", eNOTFND);
         case EDEADLK:
-          return liberror(P, "_waitfor", eDEAD);
+          return liberror(P, h, "_waitfor", eDEAD);
         default: {
           return (ReturnStatus) {.ret=Ok, .result=(termPo) voidEnum};
         }
       }
     }
   } else
-    return liberror(P, "_waitfor", eDEAD);
+    return liberror(P, h, "_waitfor", eDEAD);
 }
 
-ReturnStatus g__abort(processPo P, ptrPo tos) {
+ReturnStatus g__abort(processPo P, heapPo h, ptrPo tos) {
   termPo lc = tos[0];
   termPo msg = tos[1];
 
   logMsg(logFile, "Abort %T at %L", msg, lc);
-  verifyProc(P, processHeap(P));
-  stackTrace(P, logFile, P->stk, True);
+  verifyProc(P, h);
+  stackTrace(P, NULL, logFile, P->stk, True);
 
   return (ReturnStatus) {.ret=Error, .result=(termPo) voidEnum};
 }
 
-ReturnStatus g__stackTrace(processPo P, ptrPo tos) {
+ReturnStatus g__stackTrace(processPo P, heapPo h, ptrPo tos) {
   strBufferPo str = newStringBuffer();
 
-  stackTrace(P, O_IO(str), P->stk, False);
+  stackTrace(P, NULL, O_IO(str), P->stk, False);
 
-  ReturnStatus rt = {.ret=Ok, .result=allocateFromStrBuffer(str, processHeap(P))};
+  ReturnStatus rt = {.ret=Ok, .result=allocateFromStrBuffer(str, h)};
   closeFile(O_IO(str));
 
   return rt;

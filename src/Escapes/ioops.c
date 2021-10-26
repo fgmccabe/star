@@ -13,13 +13,13 @@
 #include "ioops.h"
 #include "globals.h"
 
-ReturnStatus g__close(processPo p, ptrPo tos) {
+ReturnStatus g__close(processPo p, heapPo h, ptrPo tos) {
   ioChnnlPo chnl = C_IO(tos[0]);
 
-  return rtnStatus(p, closeFile(ioChannel(chnl)), "_close");
+  return rtnStatus(p, h, closeFile(ioChannel(chnl)), "_close");
 }
 
-ReturnStatus g__end_of_file(processPo p, ptrPo tos) {
+ReturnStatus g__end_of_file(processPo p, heapPo h, ptrPo tos) {
   ioChnnlPo chnl = C_IO(tos[0]);
 
   termPo Rs = (isFileAtEof(ioChannel(chnl)) == Eof ? trueEnum : falseEnum);
@@ -29,7 +29,7 @@ ReturnStatus g__end_of_file(processPo p, ptrPo tos) {
   return ret;
 }
 
-ReturnStatus g__ready_to_read(processPo p, ptrPo tos) {
+ReturnStatus g__ready_to_read(processPo p, heapPo h, ptrPo tos) {
   ioChnnlPo chnl = C_IO(tos[0]);
 
   termPo Rs = (isInReady(O_FILE(ioChannel(chnl))) ? trueEnum : falseEnum);
@@ -39,7 +39,7 @@ ReturnStatus g__ready_to_read(processPo p, ptrPo tos) {
   return ret;
 }
 
-ReturnStatus g__ready_to_write(processPo p, ptrPo tos) {
+ReturnStatus g__ready_to_write(processPo p, heapPo h, ptrPo tos) {
   ioChnnlPo chnl = C_IO(tos[0]);
 
   termPo Rs = (isOutReady(O_FILE(ioChannel(chnl))) ? trueEnum : falseEnum);
@@ -49,13 +49,13 @@ ReturnStatus g__ready_to_write(processPo p, ptrPo tos) {
   return ret;
 }
 
-ReturnStatus g__inchar(processPo p, ptrPo tos) {
+ReturnStatus g__inchar(processPo p, heapPo h, ptrPo tos) {
   ioPo io = ioChannel(C_IO(tos[0]));
 
   codePoint cp;
   retCode ret = inChar(io, &cp);
   if (ret == Ok) {
-    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateInteger(processHeap(p), cp)};
+    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateInteger(h, cp)};
     return rt;
   } else {
     ReturnStatus rt = {.ret=ret, .result=voidEnum};
@@ -63,7 +63,7 @@ ReturnStatus g__inchar(processPo p, ptrPo tos) {
   }
 }
 
-ReturnStatus g__inchars(processPo p, ptrPo tos) {
+ReturnStatus g__inchars(processPo p, heapPo h, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
   ioPo io = ioChannel(C_IO(Arg1));
@@ -83,7 +83,7 @@ ReturnStatus g__inchars(processPo p, ptrPo tos) {
     integer length;
     char *text = getTextFromBuffer(buffer, &length);
 
-    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), text, length)};
+    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(h, text, length)};
     closeFile(O_IO(buffer));
     return rt;
   } else {
@@ -93,13 +93,13 @@ ReturnStatus g__inchars(processPo p, ptrPo tos) {
   }
 }
 
-ReturnStatus g__inbyte(processPo p, ptrPo tos) {
+ReturnStatus g__inbyte(processPo p, heapPo h, ptrPo tos) {
   ioPo io = ioChannel(C_IO(tos[0]));
 
   byte b;
   retCode ret = inByte(io, &b);
   if (ret == Ok) {
-    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateInteger(processHeap(p), b)};
+    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateInteger(h, b)};
     return rt;
   } else {
     ReturnStatus rt = {.ret=ret, .result=voidEnum};
@@ -107,7 +107,7 @@ ReturnStatus g__inbyte(processPo p, ptrPo tos) {
   }
 }
 //
-//ReturnStatus g__inbytes(processPo p, ptrPo tos) {
+//ReturnStatus g__inbytes(processPo p, heapPo h, ptrPo tos) {
 //  termPo Arg1 = tos[0];
 //  termPo Arg2 = tos[1];
 //  ioPo io = ioChannel(C_IO(Arg1));
@@ -130,7 +130,6 @@ ReturnStatus g__inbyte(processPo p, ptrPo tos) {
 //    integer length;
 //    char *text = getTextFromBuffer(buffer, &length);
 //
-//    heapPo H = processHeap(p);
 //    arrayPo lst = allocateArray(H, length);
 //    int root = gcAddRoot(H, (ptrPo) &lst);
 //
@@ -152,7 +151,7 @@ ReturnStatus g__inbyte(processPo p, ptrPo tos) {
 //  }
 //}
 
-ReturnStatus g__intext(processPo p, ptrPo tos) {
+ReturnStatus g__intext(processPo p, heapPo h, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
   ioPo io = ioChannel(C_IO(Arg1));
@@ -177,7 +176,7 @@ ReturnStatus g__intext(processPo p, ptrPo tos) {
     integer length;
     char *text = getTextFromBuffer(buffer, &length);
 
-    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), text, length)};
+    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(h, text, length)};
     closeFile(O_IO(buffer));
     return rt;
   } else {
@@ -187,7 +186,7 @@ ReturnStatus g__intext(processPo p, ptrPo tos) {
   }
 }
 
-ReturnStatus g__inline(processPo p, ptrPo tos) {
+ReturnStatus g__inline(processPo p, heapPo h, ptrPo tos) {
   ioPo io = ioChannel(C_IO(tos[0]));
   const char *match = "\n\r";
   integer mlen = uniStrLen(match);
@@ -210,7 +209,7 @@ ReturnStatus g__inline(processPo p, ptrPo tos) {
     integer length;
     char *text = getTextFromBuffer(buffer, &length);
 
-    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), text, length)};
+    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(h, text, length)};
     closeFile(O_IO(buffer));
     return rt;
   } else {
@@ -220,7 +219,7 @@ ReturnStatus g__inline(processPo p, ptrPo tos) {
   }
 }
 
-ReturnStatus g__get_file(processPo p, ptrPo tos) {
+ReturnStatus g__get_file(processPo p, heapPo h, ptrPo tos) {
   char fn[MAXFILELEN];
 
   copyChars2Buff(C_STR(tos[0]), fn, NumberOf(fn));
@@ -241,7 +240,7 @@ ReturnStatus g__get_file(processPo p, ptrPo tos) {
       integer length;
       char *text = getTextFromBuffer(buffer, &length);
 
-      ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), text, length)};
+      ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(h, text, length)};
       closeFile(O_IO(buffer));
       return rt;
     } else {
@@ -255,25 +254,25 @@ ReturnStatus g__get_file(processPo p, ptrPo tos) {
   }
 }
 
-ReturnStatus g__outchar(processPo p, ptrPo tos) {
+ReturnStatus g__outchar(processPo p, heapPo h, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
   ioPo io = ioChannel(C_IO(Arg1));
   codePoint cp = (codePoint) integerVal(Arg2);
 
-  return rtnStatus(p, outChar(io, cp), "outchar");
+  return rtnStatus(p, h, outChar(io, cp), "outchar");
 }
 
-ReturnStatus g__outbyte(processPo p, ptrPo tos) {
+ReturnStatus g__outbyte(processPo p, heapPo h, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
   ioPo io = ioChannel(C_IO(Arg1));
   integer cp = integerVal(Arg2);
 
-  return rtnStatus(p, outByte(io, (byte) cp), "outbyte");
+  return rtnStatus(p, h, outByte(io, (byte) cp), "outbyte");
 }
 
-ReturnStatus g__outbytes(processPo p, ptrPo tos) {
+ReturnStatus g__outbytes(processPo p, heapPo h, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
   ioPo io = ioChannel(C_IO(Arg1));
@@ -286,10 +285,10 @@ ReturnStatus g__outbytes(processPo p, ptrPo tos) {
     data = consTail(C_NORMAL(data));
   }
 
-  return rtnStatus(p, ret, "outbytes");
+  return rtnStatus(p, h, ret, "outbytes");
 }
 
-ReturnStatus g__outtext(processPo p, ptrPo tos) {
+ReturnStatus g__outtext(processPo p, heapPo h, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
   ioPo io = ioChannel(C_IO(Arg1));
@@ -305,19 +304,19 @@ ReturnStatus g__outtext(processPo p, ptrPo tos) {
     pos += actual;
   }
 
-  return rtnStatus(p, ret, "outtext");
+  return rtnStatus(p, h, ret, "outtext");
 }
 
-ReturnStatus g__show(processPo p, ptrPo tos) {
+ReturnStatus g__show(processPo p, heapPo h, ptrPo tos) {
   termPo Arg = tos[0];
   integer length;
   const char *text = strVal(Arg, &length);
   retCode ret = outMsg(logFile, "%S\n%_", text, length);
 
-  return rtnStatus(p, ret, "_show");
+  return rtnStatus(p, h, ret, "_show");
 }
 
-ReturnStatus g__put_file(processPo p, ptrPo tos) {
+ReturnStatus g__put_file(processPo p, heapPo h, ptrPo tos) {
   char fn[MAXFILELEN];
 
   copyChars2Buff(C_STR(tos[0]), fn, NumberOf(fn));
@@ -338,34 +337,34 @@ ReturnStatus g__put_file(processPo p, ptrPo tos) {
   }
 }
 
-ReturnStatus g__logmsg(processPo p, ptrPo tos) {
+ReturnStatus g__logmsg(processPo p, heapPo h, ptrPo tos) {
   integer length;
   const char *text = strVal(tos[0], &length);
   retCode ret = logMsg(logFile, "%S", (char *) text, length);
 
-  return rtnStatus(p, ret, "logmsg");
+  return rtnStatus(p, h, ret, "logmsg");
 }
 
-ReturnStatus g__stdfile(processPo p, ptrPo tos) {
+ReturnStatus g__stdfile(processPo p, heapPo h, ptrPo tos) {
   integer fNo = integerVal(tos[0]);
 
   ReturnStatus rt = {.ret=Ok};
 
   switch (fNo) {
     case 0:
-      rt.result = (termPo) stdInChnl(processHeap(p));
+      rt.result = (termPo) stdInChnl(h);
       return rt;
     case 1:
-      rt.result = (termPo) stdOutChnl(processHeap(p));
+      rt.result = (termPo) stdOutChnl(h);
       return rt;
     case 2:
     default:
-      rt.result = (termPo) stdErrChnl(processHeap(p));
+      rt.result = (termPo) stdErrChnl(h);
       return rt;
   }
 }
 
-ReturnStatus g__fposition(processPo p, ptrPo tos) {
+ReturnStatus g__fposition(processPo p, heapPo h, ptrPo tos) {
   ioPo io = ioChannel(C_IO(tos[0]));
   integer pos = 0;
 
@@ -380,36 +379,36 @@ ReturnStatus g__fposition(processPo p, ptrPo tos) {
       break;
   }
 
-  ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateInteger(processHeap(p), pos)};
+  ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateInteger(h, pos)};
   return rt;
 }
 
-ReturnStatus g__fseek(processPo p, ptrPo tos) {
+ReturnStatus g__fseek(processPo p, heapPo h, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
   filePo io = O_FILE(ioChannel(C_IO(Arg1)));
   integer pos = integerVal(Arg2);
 
-  return rtnStatus(p, fileSeek(io, pos), "_fseek");
+  return rtnStatus(p, h, fileSeek(io, pos), "_fseek");
 }
 
-ReturnStatus g__setfileencoding(processPo p, ptrPo tos) {
+ReturnStatus g__setfileencoding(processPo p, heapPo h, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
   ioPo io = ioChannel(C_IO(Arg1));
   integer enc = integerVal(Arg2);
   setEncoding(io, (ioEncoding) enc);
 
-  return rtnStatus(p, Ok, "_setfileencoding");
+  return rtnStatus(p, h, Ok, "_setfileencoding");
 }
 
-ReturnStatus g__flush(processPo p, ptrPo tos) {
+ReturnStatus g__flush(processPo p, heapPo h, ptrPo tos) {
   ioChnnlPo chnl = C_IO(tos[0]);
 
-  return rtnStatus(p, flushFile(ioChannel(chnl)), "flushing problem");
+  return rtnStatus(p, h, flushFile(ioChannel(chnl)), "flushing problem");
 }
 
-ReturnStatus g__flushall(processPo p, ptrPo tos) {
+ReturnStatus g__flushall(processPo p, heapPo h, ptrPo tos) {
   flushOut();
   return (ReturnStatus){.ret=Ok, .result=voidEnum};
 }

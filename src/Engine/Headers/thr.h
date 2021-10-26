@@ -23,6 +23,6 @@ processPo getThreadProcess(threadPo t);
 
 void clearProcess(threadPo t);
 
-threadPo newThread(processPo p);
+threadPo newThread(processPo p, heapPo h);
 
 #endif //STAR_THR_H

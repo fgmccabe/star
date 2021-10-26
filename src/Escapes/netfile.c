@@ -15,7 +15,7 @@
 #include <consP.h>
 #include "netfile.h"
 
-ReturnStatus g__listen(processPo P, ptrPo tos) {
+ReturnStatus g__listen(processPo P, heapPo h, ptrPo tos) {
   integer port = integerVal(tos[0]);
   char nBuff[MAXFILELEN];
   ioPo listen;
@@ -26,14 +26,14 @@ ReturnStatus g__listen(processPo P, ptrPo tos) {
   setProcessRunnable(P);
 
   if (listen == NULL)
-    return liberror(P, "_listen", eNOPERM);
+    return liberror(P, h, "_listen", eNOPERM);
   else {
     return (ReturnStatus) {.ret=Ok,
-      .result =(termPo) allocateIOChnnl(processHeap(P), listen)};
+      .result =(termPo) allocateIOChnnl(h, listen)};
   }
 }
 
-ReturnStatus g__accept(processPo P, ptrPo tos) {
+ReturnStatus g__accept(processPo P, heapPo h, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
   ioPo listen = ioChannel(C_IO(Arg1));
@@ -49,7 +49,7 @@ ReturnStatus g__accept(processPo P, ptrPo tos) {
   setProcessRunnable(P);
 
   if (listen == NULL)
-    return liberror(P, "_accept", eNOPERM);
+    return liberror(P, h, "_accept", eNOPERM);
   else {
 
     switch (ret) {
@@ -62,26 +62,25 @@ ReturnStatus g__accept(processPo P, ptrPo tos) {
         if (peerN == NULL || peerI == NULL) {
           closeFile(inC);
           closeFile(outC);
-          return liberror(P, "_accept", eNOTFND);
+          return liberror(P, h, "_accept", eNOTFND);
         }
 
-        heapPo H = processHeap(P);
-        termPo inChnl = (termPo) allocateIOChnnl(H, inC);
-        int root = gcAddRoot(H, &inChnl);
+        termPo inChnl = (termPo) allocateIOChnnl(h, inC);
+        int root = gcAddRoot(h, &inChnl);
 
-        termPo outChnl = (termPo) allocateIOChnnl(H, outC);
-        gcAddRoot(H, &outChnl);
+        termPo outChnl = (termPo) allocateIOChnnl(h, outC);
+        gcAddRoot(h, &outChnl);
 
-        termPo peer = (termPo) allocateString(H, peerN, uniStrLen(peerN));
-        gcAddRoot(H, &peer);
+        termPo peer = (termPo) allocateString(h, peerN, uniStrLen(peerN));
+        gcAddRoot(h, &peer);
 
-        termPo peerIP = (termPo) allocateString(H, peerI, uniStrLen(peerI));
-        gcAddRoot(H, &peerIP);
+        termPo peerIP = (termPo) allocateString(h, peerI, uniStrLen(peerI));
+        gcAddRoot(h, &peerIP);
 
-        termPo prt = (termPo) allocateInteger(H, port);
-        gcAddRoot(H, &prt);
+        termPo prt = (termPo) allocateInteger(h, port);
+        gcAddRoot(h, &prt);
 
-        normalPo reslt = allocateTpl(H, 5);
+        normalPo reslt = allocateTpl(h, 5);
 
         setArg(reslt, 0, inChnl);
         setArg(reslt, 1, outChnl);
@@ -89,17 +88,17 @@ ReturnStatus g__accept(processPo P, ptrPo tos) {
         setArg(reslt, 3, prt);
         setArg(reslt, 4, peerIP);
 
-        gcReleaseRoot(H, root);
+        gcReleaseRoot(h, root);
 
         return (ReturnStatus) {.ret=Ok, .result =(termPo) reslt};
       }
       default:
-        return liberror(P, "_accept", eIOERROR);
+        return liberror(P, h, "_accept", eIOERROR);
     }
   }
 }
 
-ReturnStatus g__connect(processPo P, ptrPo tos) {
+ReturnStatus g__connect(processPo P, heapPo h, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
   termPo Arg3 = tos[2];
@@ -119,7 +118,7 @@ ReturnStatus g__connect(processPo P, ptrPo tos) {
 
   switch (ret) {
     case Ok: {
-      heapPo H = processHeap(P);
+      heapPo H = h;
       termPo inChnl = (termPo) allocateIOChnnl(H, inC);
       int root = gcAddRoot(H, &inChnl);
 
@@ -134,48 +133,46 @@ ReturnStatus g__connect(processPo P, ptrPo tos) {
     }
     default:
       logMsg(logFile, "Failed to establish connection: %S", host, hLen);
-      return liberror(P, "_connect", eCONNECT);
+      return liberror(P, h, "_connect", eCONNECT);
   }
 }
 
 /* Access host name functions */
 /* return IP addresses of a host */
-ReturnStatus g__hosttoip(processPo P, ptrPo tos) {
+ReturnStatus g__hosttoip(processPo P, heapPo h, ptrPo tos) {
   termPo Arg1 = tos[0];
   char host[MAXFILELEN];
   char ip[MAX_SYMB_LEN];
-  heapPo H = processHeap(P);
 
   copyChars2Buff(C_STR(Arg1), host, NumberOf(host));
 
   termPo ipList = (termPo) nilEnum;
   termPo el = voidEnum;
-  int root = gcAddRoot(H, &ipList);
-  gcAddRoot(H, &el);
+  int root = gcAddRoot(h, &ipList);
+  gcAddRoot(h, &el);
 
   for (int i = 0; getNthHostIP(host, (unsigned) i, ip, NumberOf(ip)) != NULL; i++) {
-    el = (termPo) allocateCString(H, ip);
-    ipList = (termPo) allocateCons(H, el, ipList);
+    el = (termPo) allocateCString(h, ip);
+    ipList = (termPo) allocateCons(h, el, ipList);
   }
 
-  gcReleaseRoot(H, root);
+  gcReleaseRoot(h, root);
   return (ReturnStatus) {.ret=Ok, .result =(termPo) ipList};
 }
 
 /* Access host name from IP address */
-ReturnStatus g__iptohost(processPo P, ptrPo tos) {
+ReturnStatus g__iptohost(processPo P, heapPo h, ptrPo tos) {
   char ip[MAX_SYMB_LEN];
-  heapPo H = processHeap(P);
 
   copyChars2Buff(C_STR(tos[0]), ip, NumberOf(ip));
 
   char *host = getHostname(ip);
 
   if (host != NULL) {
-    termPo Host = allocateCString(H, host);
+    termPo Host = allocateCString(h, host);
     return (ReturnStatus) {.ret=Ok, .result =Host};
   } else
-    return liberror(P, "_iptohost", eNOTFND);
+    return liberror(P, h, "_iptohost", eNOTFND);
 }
 
 

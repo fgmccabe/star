@@ -31,4 +31,6 @@ integer mtdCodeSize(methodPo mtd);
 
 integer bumpCallCount(methodPo mtd);
 
+logical normalCode(methodPo mtd);
+
 #endif

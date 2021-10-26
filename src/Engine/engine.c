@@ -41,13 +41,13 @@ void initEngine() {
   haltMethod.clss = methodClass;
 }
 
-retCode bootstrap(char *entry, char *rootWd, capabilityPo rootCap) {
+retCode bootstrap(heapPo h, char *entry, char *rootWd, capabilityPo rootCap) {
   labelPo umain = declareLbl(entry, 1, -1);
   methodPo mainMtd = labelCode(umain);
 
   if (mainMtd != Null) {
-    termPo cmdLine = commandLine(currHeap);
-    processPo p = newProcess(mainMtd, rootWd, rootCap, cmdLine);
+    termPo cmdLine = commandLine(h);
+    processPo p = newProcess(h, mainMtd, rootWd, rootCap, cmdLine);
     integer ret = run(p);
 
     ps_kill(p);
@@ -58,16 +58,17 @@ retCode bootstrap(char *entry, char *rootWd, capabilityPo rootCap) {
   }
 }
 
-processPo newProcess(methodPo mtd, char *rootWd, capabilityPo processCap, termPo rootArg) {
+processPo newProcess(heapPo h, methodPo mtd, char *rootWd, capabilityPo processCap, termPo rootArg) {
   processPo P = (processPo) allocPool(prPool);
-  stackPo stk = P->stk = allocateStack(currHeap, minStackSize, &haltMethod, root, Null, Null);
+  stackPo stk = P->stk = allocateStack(h, minStackSize, &haltMethod, root, Null, Null);
 
   pushStack(stk, rootArg);
   pushFrame(stk, mtd, stk->fp, stk->sp);
 
-  P->heap = currHeap;
+  P->heap = h;
   P->state = P->savedState = quiescent;
   P->pauseRequest = False;
+  P->processCap = processCap;
   if (insDebugging || lineDebugging) {
     if (interactive)
       P->waitFor = stepInto;
@@ -103,17 +104,16 @@ void ps_kill(processPo p) {
 long stkGrow = 0;
 #endif
 
-ReturnStatus liberror(processPo P, char *name, termPo code) {
-  heapPo H = processHeap(P);
-  int root = gcAddRoot(H, &code);
-  termPo msg = allocateCString(H, name);
-  gcAddRoot(H, (ptrPo) &msg);
+ReturnStatus liberror(processPo P, heapPo h, char *name, termPo code) {
+  int root = gcAddRoot(h, &code);
+  termPo msg = allocateCString(h, name);
+  gcAddRoot(h, (ptrPo) &msg);
 
-  normalPo err = allocateStruct(H, errorLbl);
+  normalPo err = allocateStruct(h, errorLbl);
   setArg(err, 0, (termPo) msg);
   setArg(err, 1, code);
 
-  gcReleaseRoot(H, root);
+  gcReleaseRoot(h, root);
 
   ReturnStatus rt = {.ret=Error, .result=(termPo) err};
   return rt;
@@ -137,6 +137,10 @@ ProcessState processState(processPo p) {
 
 integer processNo(processPo p) {
   return p->processNo;
+}
+
+capabilityPo processCap(processPo p) {
+  return p->processCap;
 }
 
 typedef struct {

@@ -94,8 +94,7 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
   if (isSpecialClass(clss)) {
     specialClassPo spec = (specialClassPo) clss;
     return spec->dispFun(out, t, precision, depth, alt);
-  } else if(isStringTerm(t))
-    return dispStringTerm(out,t,precision,depth,alt);
+  }
   else if (isNormalPo(t)) {
     normalPo nml = C_NORMAL(t);
     labelPo lbl = nml->lbl;
@@ -104,7 +103,7 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
     if (isTplLabel(lbl)) {
       return showArgs(out, nml, precision, depth, alt);
     } else if (arity == 0) {
-      return outMsg(out, ".%Q", labelName(lbl));
+      return outMsg(out,".%Q", labelName(lbl));
     } else {
       retCode ret = showLbl(out, lbl, 0, 24, alt);
       if (ret == Ok)
@@ -113,6 +112,33 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
     }
   } else
     return outMsg(out, "<<? 0x%x ?>>", t);
+}
+
+static retCode showId(ioPo out, labelPo lbl, integer depth, integer prec, logical alt);
+
+retCode showIdentifier(ioPo f, void *data, long depth, long precision, logical alt) {
+  return showId(f, C_LBL((termPo) data), depth, depth, alt);
+}
+
+retCode showId(ioPo out, labelPo lbl, integer depth, integer prec, logical alt) {
+  integer lblLen = uniStrLen(lbl->name);
+  if (alt) {
+    retCode ret;
+
+    integer hashOff = uniLastIndexOf(lbl->name, lblLen, (codePoint) '#');
+
+    if (hashOff > 0 && hashOff < lblLen - 1)
+      ret = outMsg(out, "…%S", &lbl->name[hashOff + 1], lblLen - hashOff - 1);
+    else if (lblLen > prec) {
+      integer half = prec / 2;
+      integer hwp = backCodePoint(lbl->name, lblLen, half);
+      ret = outMsg(out, "%S…%S", lbl->name, half, &lbl->name[hwp], lblLen - hwp);
+    } else
+      ret = outMsg(out, "%S", lbl->name, lblLen);
+
+    return ret;
+  } else
+    return outMsg(out, "%S", lbl->name);
 }
 
 logical sameTerm(termPo t1, termPo t2) {

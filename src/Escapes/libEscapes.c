@@ -58,7 +58,7 @@ escapePo getEscape(uint32 escNo) {
   return &escapes[escNo];
 }
 
-ReturnStatus rtnStatus(processPo p, retCode ret, char *msg) {
+ReturnStatus rtnStatus(processPo p, heapPo h, retCode ret, char *msg) {
   ReturnStatus rtn = {.ret = ret};
 
   switch (ret) {
@@ -72,16 +72,15 @@ ReturnStatus rtnStatus(processPo p, retCode ret, char *msg) {
       rtn.result = eofEnum;
       return rtn;
     case Error: {
-      heapPo H = processHeap(p);
-      normalPo err = allocateStruct(H, (labelPo) errorLbl);
-      int root = gcAddRoot(H, (ptrPo) (&err));
-      setArg(err, 0, (termPo) allocateString(H, msg, uniStrLen(msg)));
-      gcReleaseRoot(H, root);
+      normalPo err = allocateStruct(h, (labelPo) errorLbl);
+      int root = gcAddRoot(h, (ptrPo) (&err));
+      setArg(err, 0, (termPo) allocateString(h, msg, uniStrLen(msg)));
+      gcReleaseRoot(h, root);
       rtn.result = (termPo) err;
       return rtn;
     }
     default:
-      return rtnStatus(p, Error, "cannot handle return");
+      return rtnStatus(p, h, Error, "cannot handle return");
   }
 }
 

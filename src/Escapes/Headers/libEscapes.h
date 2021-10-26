@@ -4,7 +4,7 @@
 #include "config.h"
 #include "heap.h"
 
-typedef ReturnStatus (*libFun)(processPo p, ptrPo tos);
+typedef ReturnStatus (*libFun)(processPo p, heapPo h, ptrPo tos);
 
 typedef struct {
   char *name;         /* Name of the escape */
@@ -19,7 +19,7 @@ uint32 lookupEscape(char *name);
 
 escapePo getEscape(uint32 escNo);
 
-extern ReturnStatus rtnStatus(processPo p, retCode ret, char *msg);
+extern ReturnStatus rtnStatus(processPo p, heapPo h, retCode ret, char *msg);
 
 #ifdef TRACESTATS
 void recordEscape(integer escNo);
@@ -27,11 +27,11 @@ void dumpEscapes(ioPo out);
 #endif
 
 #undef escape
-#define escape(Nm,Tp,Cmt) Esc##Nm,
+#define escape(Nm, Tp, Cmt) Esc##Nm,
 
 typedef enum {
 #include "escapes.h"
-}EscapeCode;
+} EscapeCode;
 
 #undef escape
 

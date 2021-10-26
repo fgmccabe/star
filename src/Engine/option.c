@@ -10,7 +10,7 @@ termPo noneEnum;
 labelPo someCons;
 
 void initOption() {
-  noneEnum = declareEnum("star.core#none", 0, currHeap);
+  noneEnum = declareEnum("star.core#none", 0, globalHeap);
   someCons = declareLbl("star.core#some", 1, 1);
 }
 

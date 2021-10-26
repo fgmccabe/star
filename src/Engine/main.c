@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
   if ((narg = getEngineOptions(argc, argv)) < 0) {
     exit(1);
   }
-  initHistory(".star");
+  initHistory(/*".star"*/Null);
   initHeap(initHeapSize);
   initStacks();
   initArith();
@@ -77,6 +77,8 @@ int main(int argc, char **argv) {
   installMsgProc('P', dispPkgNm);
   installMsgProc('B', showStringBuffer);
   installMsgProc('A', showLabel);
+  installMsgProc('I', showIdentifier);
+  installMsgProc('C', genQuotedChr);
   installMsgProc('Q', genQuotedStr);
 
   /* IMPORTANT -- Keep the order of these set up calls */
@@ -98,9 +100,9 @@ int main(int argc, char **argv) {
 
   setupSignals();
 
-  capabilityPo rootCap = allocateCapability(currHeap,rootWd,uniStrLen(rootWd),stdPerms);
+  capabilityPo rootCap = allocateCapability(globalHeap, rootWd, uniStrLen(rootWd), stdPerms);
 
-  switch (bootstrap(bootEntry, rootWd, rootCap)) {
+  switch (bootstrap(globalHeap, bootEntry, rootWd, rootCap)) {
     case Ok:
       return EXIT_SUCCEED;          /* exit the runtime system cleanly */
     case Error:

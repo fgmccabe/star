@@ -8,14 +8,14 @@
 #include "unicode.h"
 #include "char.h"
 
-ReturnStatus g__uniCodeCategory(processPo p, ptrPo tos) {
+ReturnStatus g__uniCodeCategory(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = (codePoint) charVal(tos[0]);
 
-  termPo Rs = (termPo) allocateInteger(processHeap(p), uniCharCategory(ch));
+  termPo Rs = (termPo) allocateInteger(h, uniCharCategory(ch));
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isCcChar(processPo p, ptrPo tos) {
+ReturnStatus g__isCcChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isCcChar(ch) ? trueEnum : falseEnum);
@@ -23,7 +23,7 @@ ReturnStatus g__isCcChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isCfChar(processPo p, ptrPo tos) {
+ReturnStatus g__isCfChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isCfChar(ch) ? trueEnum : falseEnum);
@@ -31,7 +31,7 @@ ReturnStatus g__isCfChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isCnChar(processPo p, ptrPo tos) {
+ReturnStatus g__isCnChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isCnChar(ch) ? trueEnum : falseEnum);
@@ -39,7 +39,7 @@ ReturnStatus g__isCnChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isCoChar(processPo p, ptrPo tos) {
+ReturnStatus g__isCoChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isCoChar(ch) ? trueEnum : falseEnum);
@@ -47,7 +47,7 @@ ReturnStatus g__isCoChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isCsChar(processPo p, ptrPo tos) {
+ReturnStatus g__isCsChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isCsChar(ch) ? trueEnum : falseEnum);
@@ -55,7 +55,7 @@ ReturnStatus g__isCsChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isLlChar(processPo p, ptrPo tos) {
+ReturnStatus g__isLlChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isLlChar(ch) ? trueEnum : falseEnum);
@@ -63,7 +63,7 @@ ReturnStatus g__isLlChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isLmChar(processPo p, ptrPo tos) {
+ReturnStatus g__isLmChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isLmChar(ch) ? trueEnum : falseEnum);
@@ -71,7 +71,7 @@ ReturnStatus g__isLmChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isLoChar(processPo p, ptrPo tos) {
+ReturnStatus g__isLoChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isLoChar(ch) ? trueEnum : falseEnum);
@@ -79,7 +79,7 @@ ReturnStatus g__isLoChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isLtChar(processPo p, ptrPo tos) {
+ReturnStatus g__isLtChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isLtChar(ch) ? trueEnum : falseEnum);
@@ -87,7 +87,7 @@ ReturnStatus g__isLtChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isLuChar(processPo p, ptrPo tos) {
+ReturnStatus g__isLuChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isLuChar(ch) ? trueEnum : falseEnum);
@@ -95,7 +95,7 @@ ReturnStatus g__isLuChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isMcChar(processPo p, ptrPo tos) {
+ReturnStatus g__isMcChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isMcChar(ch) ? trueEnum : falseEnum);
@@ -103,7 +103,7 @@ ReturnStatus g__isMcChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isMeChar(processPo p, ptrPo tos) {
+ReturnStatus g__isMeChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isMeChar(ch) ? trueEnum : falseEnum);
@@ -111,7 +111,7 @@ ReturnStatus g__isMeChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isMnChar(processPo p, ptrPo tos) {
+ReturnStatus g__isMnChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isMnChar(ch) ? trueEnum : falseEnum);
@@ -119,7 +119,7 @@ ReturnStatus g__isMnChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isNdChar(processPo p, ptrPo tos) {
+ReturnStatus g__isNdChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isNdChar(ch) ? trueEnum : falseEnum);
@@ -127,7 +127,7 @@ ReturnStatus g__isNdChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isNlChar(processPo p, ptrPo tos) {
+ReturnStatus g__isNlChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isNlChar(ch) ? trueEnum : falseEnum);
@@ -135,7 +135,7 @@ ReturnStatus g__isNlChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isNoChar(processPo p, ptrPo tos) {
+ReturnStatus g__isNoChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isNoChar(ch) ? trueEnum : falseEnum);
@@ -143,7 +143,7 @@ ReturnStatus g__isNoChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isPcChar(processPo p, ptrPo tos) {
+ReturnStatus g__isPcChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isPcChar(ch) ? trueEnum : falseEnum);
@@ -151,7 +151,7 @@ ReturnStatus g__isPcChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isPdChar(processPo p, ptrPo tos) {
+ReturnStatus g__isPdChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isPdChar(ch) ? trueEnum : falseEnum);
@@ -159,7 +159,7 @@ ReturnStatus g__isPdChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isPeChar(processPo p, ptrPo tos) {
+ReturnStatus g__isPeChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isPeChar(ch) ? trueEnum : falseEnum);
@@ -167,7 +167,7 @@ ReturnStatus g__isPeChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isPfChar(processPo p, ptrPo tos) {
+ReturnStatus g__isPfChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isPfChar(ch) ? trueEnum : falseEnum);
@@ -175,7 +175,7 @@ ReturnStatus g__isPfChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isPiChar(processPo p, ptrPo tos) {
+ReturnStatus g__isPiChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isPiChar(ch) ? trueEnum : falseEnum);
@@ -183,7 +183,7 @@ ReturnStatus g__isPiChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isPoChar(processPo p, ptrPo tos) {
+ReturnStatus g__isPoChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isPoChar(ch) ? trueEnum : falseEnum);
@@ -191,7 +191,7 @@ ReturnStatus g__isPoChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isPsChar(processPo p, ptrPo tos) {
+ReturnStatus g__isPsChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isPsChar(ch) ? trueEnum : falseEnum);
@@ -199,7 +199,7 @@ ReturnStatus g__isPsChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isScChar(processPo p, ptrPo tos) {
+ReturnStatus g__isScChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isScChar(ch) ? trueEnum : falseEnum);
@@ -207,7 +207,7 @@ ReturnStatus g__isScChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isSkChar(processPo p, ptrPo tos) {
+ReturnStatus g__isSkChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isSkChar(ch) ? trueEnum : falseEnum);
@@ -215,7 +215,7 @@ ReturnStatus g__isSkChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isSmChar(processPo p, ptrPo tos) {
+ReturnStatus g__isSmChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isSmChar(ch) ? trueEnum : falseEnum);
@@ -223,7 +223,7 @@ ReturnStatus g__isSmChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isSoChar(processPo p, ptrPo tos) {
+ReturnStatus g__isSoChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isSoChar(ch) ? trueEnum : falseEnum);
@@ -231,7 +231,7 @@ ReturnStatus g__isSoChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isZlChar(processPo p, ptrPo tos) {
+ReturnStatus g__isZlChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isZlChar(ch) ? trueEnum : falseEnum);
@@ -239,7 +239,7 @@ ReturnStatus g__isZlChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isZpChar(processPo p, ptrPo tos) {
+ReturnStatus g__isZpChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isZpChar(ch) ? trueEnum : falseEnum);
@@ -247,7 +247,7 @@ ReturnStatus g__isZpChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isZsChar(processPo p, ptrPo tos) {
+ReturnStatus g__isZsChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isZsChar(ch) ? trueEnum : falseEnum);
@@ -255,7 +255,7 @@ ReturnStatus g__isZsChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isLetterChar(processPo p, ptrPo tos) {
+ReturnStatus g__isLetterChar(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isLetterChar(ch) ? trueEnum : falseEnum);
@@ -263,7 +263,7 @@ ReturnStatus g__isLetterChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isIDStart(processPo p, ptrPo tos) {
+ReturnStatus g__isIDStart(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isIdStart(ch) ? trueEnum : falseEnum);
@@ -271,7 +271,7 @@ ReturnStatus g__isIDStart(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__isIDContinue(processPo p, ptrPo tos) {
+ReturnStatus g__isIDContinue(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   termPo Rs = (isIdContinue(ch) ? trueEnum : falseEnum);
@@ -279,28 +279,28 @@ ReturnStatus g__isIDContinue(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__digitCode(processPo p, ptrPo tos) {
+ReturnStatus g__digitCode(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   if (isNdChar(ch)) {
     return (ReturnStatus) {.ret=Ok,
-      .result=(termPo) allocateInteger(processHeap(p), digitValue(ch))};
+      .result=(termPo) allocateInteger(h, digitValue(ch))};
 
   } else {
     return (ReturnStatus) {.ret=Fail, .result=voidEnum};
   }
 }
 
-ReturnStatus g__codePoint(processPo p, ptrPo tos) {
+ReturnStatus g__codePoint(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = charVal(tos[0]);
 
   return (ReturnStatus) {.ret=Ok,
-    .result=(termPo) allocateInteger(processHeap(p), ch)};
+    .result=(termPo) allocateInteger(h, ch)};
 }
 
-ReturnStatus g__char(processPo p, ptrPo tos) {
+ReturnStatus g__char(processPo p, heapPo h, ptrPo tos) {
   codePoint ch = integerVal(tos[0]);
 
   return (ReturnStatus) {.ret=Ok,
-    .result=(termPo) allocateCharacter(processHeap(p), ch)};
+    .result=(termPo) allocateCharacter(h, ch)};
 }

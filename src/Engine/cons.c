@@ -11,7 +11,7 @@ termPo nilEnum;
 labelPo consCons;
 
 void initCons() {
-  nilEnum = declareEnum("star.core#nil", 1, currHeap);
+  nilEnum = declareEnum("star.core#nil", 1, globalHeap);
   consCons = declareLbl("star.core#cons", 2, 0);
 }
 

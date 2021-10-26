@@ -81,14 +81,14 @@ static inline int32 collect32(insPo pc) {
 #define collectI32(pc) (collI32(pc))
 #define collI32(pc) hi32 = (uint32)(uint16)(*(pc)++), lo32 = *(pc)++, ((hi32<<16)|lo32)
 
-ReturnStatus g__ins_debug(processPo P, ptrPo a) {
+ReturnStatus g__ins_debug(processPo P, heapPo h, ptrPo a) {
   insDebugging = tracing = True;
   P->waitFor = stepInto;
   P->tracing = True;
   P->traceCount = 0;
   P->traceDepth = 0;
 
-  return rtnStatus(P, Ok, "_ins_debug");
+  return rtnStatus(P, h, Ok, "_ins_debug");
 }
 
 static integer cmdCount(char *cmdLine, integer deflt) {
@@ -129,7 +129,8 @@ static logical shouldWeStop(processPo p, stackPo stk, insWord ins, termPo arg) {
       outMsg(logFile, "\n%_");
     }
     switch (ins) {
-      case Ret: {
+      case Ret:
+      case RtG: {
         switch (p->waitFor) {
           case stepInto:
             return True;
@@ -221,8 +222,8 @@ static char *defltLine(char *src, integer srcLen, integer *actLen) {
   static char defltLn[MAXLINE] = {'n'};
 
   if (!uniIsTrivial(src, srcLen)) {
-    uniNCpy(defltLn, NumberOf(defltLn), src, srcLen);
-    *actLen = srcLen;
+    uniTrim(src, srcLen, " \n", " \n", defltLn, NumberOf(defltLn));
+    *actLen = uniStrLen(defltLn);
     return src;
   } else {
     *actLen = uniNStrLen(defltLn, NumberOf(defltLn));
@@ -324,7 +325,8 @@ static DebugWaitFor dbgOver(char *line, processPo p, termPo loc, insWord ins, vo
   p->traceCount = cmdCount(line, 0);
 
   switch (ins) {
-    case Ret: {
+    case Ret:
+    case RtG: {
       p->traceDepth = 0;
       p->tracing = True;
       break;
@@ -379,7 +381,8 @@ static DebugWaitFor dbgUntilRet(char *line, processPo p, termPo loc, insWord ins
   resetDeflt("n");
 
   switch (ins) {
-    case Ret: {
+    case Ret:
+    case RtG: {
       p->traceDepth = 1;
       break;
     }
@@ -522,22 +525,24 @@ static DebugWaitFor dbgShowStack(char *line, processPo p, termPo loc, insWord in
 
 void showStackCall(ioPo out, stackPo stk, framePo fp, integer frameNo) {
   methodPo mtd = fp->prog;
-  insPo pc = fp->pc;
-  integer pcOffset = (integer) (pc - mtd->code);
+  if (normalCode(mtd)) {
+    insPo pc = fp->pc;
+    integer pcOffset = (integer) (pc - mtd->code);
 
-  termPo locn = findPcLocation(mtd, pcOffset);
-  if (locn != Null)
-    outMsg(out, "[%d] %#L: %T(", frameNo, locn, mtd);
-  else
-    outMsg(out, "[%d] (unknown loc): %T[%d](", frameNo, mtd, pcOffset);
+    termPo locn = findPcLocation(mtd, pcOffset);
+    if (locn != Null)
+      outMsg(out, "[%d] %#L: %#T(", frameNo, locn, mtd);
+    else
+      outMsg(out, "[%d] (unknown loc): %#T[%d](", frameNo, mtd, pcOffset);
 
-  integer count = argCount(mtd);
-  char *sep = "";
-  for (integer ix = 0; ix < count; ix++) {
-    outMsg(out, "%s%,*T", sep, displayDepth, *stackArg(stk, fp, ix));
-    sep = ", ";
+    integer count = argCount(mtd);
+    char *sep = "";
+    for (integer ix = 0; ix < count; ix++) {
+      outMsg(out, "%s%#,*T", sep, displayDepth, *stackArg(stk, fp, ix));
+      sep = ", ";
+    }
+    outMsg(out, ")\n%_");
   }
-  outMsg(out, ")\n%_");
 }
 
 void showStackEntry(ioPo out, stackPo stk, framePo fp, integer frameNo, logical showLocals) {
@@ -547,15 +552,13 @@ void showStackEntry(ioPo out, stackPo stk, framePo fp, integer frameNo, logical 
 }
 
 static DebugWaitFor dbgStackTrace(char *line, processPo p, termPo loc, insWord ins, void *cl) {
-  stackTrace(p, debugOutChnnl, p->stk, True);
+  stackTrace(p, NULL, debugOutChnnl, p->stk, True);
 
   resetDeflt("n");
   return moreDebug;
 }
 
-void stackTrace(processPo p, ioPo out, stackPo stk, logical showLocals) {
-  heapPo h = processHeap(p);
-
+void stackTrace(processPo p, heapPo h, ioPo out, stackPo stk, logical showLocals) {
   outMsg(out, "Stack trace for process %d\n", p->processNo);
 #ifdef TRACEEXEC
   if (debugDebugging) {
@@ -591,8 +594,9 @@ void stackTrace(processPo p, ioPo out, stackPo stk, logical showLocals) {
 
     ptrPo sp = stk->sp;
     framePo fp = stk->fp;
-    for (integer fx = 0; sp < stackLimit(stk); fx++) {
-      showStackEntry(out, stk, fp, fx, showLocals);
+    integer frameNo = 0;
+    for (; sp < stackLimit(stk); frameNo++) {
+      showStackEntry(out, stk, fp, frameNo, showLocals);
       sp = (ptrPo) (fp + 1);
       fp = fp->fp;
     }
@@ -737,7 +741,8 @@ static logical shouldWeStopIns(processPo p, stackPo stk, insWord ins) {
     }
 
     switch (ins) {
-      case Ret: {
+      case Ret:
+      case RtG: {
         switch (p->waitFor) {
           case stepOver:
             if (p->traceDepth > 0)
@@ -1067,7 +1072,8 @@ DebugWaitFor enterDebug(processPo p) {
     case TOCall: {
       return lnDebug(p, ins, getLbl(topStack(stk), collect32(pc)), showOTail);
     }
-    case Ret: {
+    case Ret:
+    case RtG: {
       return lnDebug(p, ins, topStack(stk), showRet);
     }
     case Prompt: {

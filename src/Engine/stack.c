@@ -79,6 +79,11 @@ stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, StackState stat
 
   stackPo stk = (stackPo) allocateObject(H, stackClass, StackCellCount);
   stk->stkMem = (ptrPo) allocateBuddy(stackRegion, sze);
+
+  if(stk->stkMem==Null){
+    syserr("Ran out of stack space");
+  }
+
   stk->sze = sze;
   stk->hwm = sze;
   stk->sp = &stk->stkMem[sze];
