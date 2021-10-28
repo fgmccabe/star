@@ -10,39 +10,7 @@ star.compiler.macro{
   import star.compiler.macro.infra.
   import star.compiler.wff.
 
-  macros:map[string,cons[(macroContext,macroRule)]].
-  macros = [ "::=" -> [(.statement,macroAlgebraic)],
-    ":=" -> [(.statement,macroAssignDef)],    
-    "[]" -> [(.pattern,makeSeqPtn),
-      (.expression,macroListComprehension),
-      (.expression,makeSeqExp)],
-    "<||>" -> [(.expression,macroQuote)],
-    "[||]" -> [(.expression,macroTpl)],
-    "(||)" -> [(.expression,macroTpl)],
-    "::" -> [(.expression,macroCoercion)],
-    ":?" -> [(.expression,macroCoercion)],
-    "{}" -> [(.expression,macroComprehension)],
-    "do" -> [(.expression,macroDo)],
-    "action" -> [(.expression,actionMacro)],
-    "task" -> [(.expression,taskAction)],
-    "valof" -> [(.expression,performMacro)],
-    "__pkg__" -> [(.expression,pkgNameMacro)],
-    "-" -> [(.expression, uMinusMacro),(.pattern, uMinusMacro)],
-    "^=" -> [(.expression, optionMatchMacro)],
-    "^" -> [(.pattern, optionPtnMacro)]].
 
-  applyRules:(ast,macroContext,macroState,cons[(macroContext,macroRule)],reports) =>
-    either[reports,macroState].
-  applyRules(A,_,St,[],_) => either(St).
-  applyRules(A,Cxt,St,[(Cxt,R),..Rls],Rp) => do{
-    Rslt <- R(A,Cxt,Rp);
-    if .inactive.=Rslt then
-      applyRules(A,Cxt,St,Rls,Rp)
-    else
-    valis Rslt
-  }
-  applyRules(A,Cxt,St,[_,..Rls],Rp) => 
-    applyRules(A,Cxt,St,Rls,Rp).
 
   macroAst:(ast,macroContext,(ast,reports)=>either[reports,ast],reports) => either[reports,ast].
   macroAst(A,Cxt,Examine,Rp) where Rules^=macros[macroKey(A)] => do{
@@ -503,11 +471,11 @@ star.compiler.macro{
     valis mkTypeExists(Lc,NL,NR)
   }
 
-  macroAlgebraic(St,.statement,Rp) where (Lc,Vz,Q,Cx,H,R) ^= isAlgebraicTypeStmt(St) => do{
+  algebraicMacro(St,.statement,Rp) where (Lc,Vz,Q,Cx,H,R) ^= isAlgebraicTypeStmt(St) => do{
     Rslt <- makeAlgebraic(Lc,Vz,Q,Cx,H,R,Rp);
     valis active(brTuple(Lc,Rslt))
   }
-  macroAlgebraic(_,_,_) default => either(.inactive).
+  algebraicMacro(_,_,_) default => either(.inactive).
 
   /*
   * We generate auto implementations of fields declared for an algebraic type
@@ -676,13 +644,26 @@ star.compiler.macro{
     some((Lc,Nm,Q,Cx,Els)).
   isCon(_,_) default => .none.
 
-  makeSeqPtn(A,.pattern,Rp) where (Lc,Els) ^= isSqTuple(A) =>
-    either(active(macroSquarePtn(Lc,Els))).
-  makeSeqPtn(_,_,_) => either(.inactive).
+  squarePtnMacro(A,.pattern,Rp) where (Lc,Els) ^= isSqTuple(A) =>
+    either(active(listMacro(Lc,Els,genEofTest,genHedTest))).
+  squarePtnMacro(_,_,_) => either(.inactive).
 
-  makeSeqExp(A,.expression,Rp) where (Lc,Els) ^= isSqTuple(A) && ~_^=isListComprehension(A)=>
-    either(active(macroSquareExp(Lc,Els))).
-  makeSeqExp(_,_,_) => either(.inactive).
+  listMacro:(locn,cons[ast],(locn)=>ast,(locn,ast,ast)=>ast) => ast.
+  listMacro(Lc,[],End,_) => End(Lc).
+  listMacro(_,[Cns],_,Hed) where (Lc,H,T) ^= isCons(Cns) =>
+    Hed(Lc,H,T).
+  listMacro(Lc,[El,..Rest],Eof,Hed) =>
+    Hed(Lc,El,listMacro(Lc,Rest,Eof,Hed)).
+
+  genEofTest(Lc) => mkWhereTest(Lc,"_eof").
+  genHedTest(Lc,H,T) => mkWherePtn(Lc,tpl(Lc,"()",[H,T]),nme(Lx,"_hdtl")).
+
+  sequenceMacro(A,.expression,Rp) where (Lc,Els) ^= isSqTuple(A) && ~_^=isListComprehension(A)=>
+    either(active(listMacro(Lc,Els,genNil,genCons))).
+  sequenceMacro(_,_,_) => either(.inactive).
+
+  genNil(Lc) => nme(Lc,"_nil").
+  genCons(Lc,H,T) => binary(Lc,"_cons",H,T).
 
   macroListComprehension(A,.expression,Rp) where (Lc,B,C) ^= isListComprehension(A) => do{
     Q <- makeAbstraction(Lc,B,C,Rp);
@@ -696,23 +677,6 @@ star.compiler.macro{
   }
   macroComprehension(_,_,_) => either(.inactive).
   
-  public macroSquarePtn:(locn,cons[ast]) => ast.
-  macroSquarePtn(Lc,Els) =>
-    macroListEntries(Lc,Els,(Lx)=>mkWhereTest(Lx,"_eof"),
-      (Lx,H,T) => mkWherePtn(Lx,tpl(Lx,"()",[H,T]),nme(Lx,"_hdtl"))).
-
-  public macroSquareExp:(locn,cons[ast]) => ast.
-  macroSquareExp(Lc,Els) =>
-    macroListEntries(Lc,Els,(Lx)=>nme(Lx,"_nil"),
-      (Lx,H,T) => binary(Lx,"_cons",H,T)).
-
-  macroListEntries:(locn,cons[ast],(locn)=>ast,(locn,ast,ast)=>ast) => ast.
-  macroListEntries(Lc,[],End,_) => End(Lc).
-  macroListEntries(_,[Cns],_,Hed) where (Lc,H,T) ^= isCons(Cns) =>
-    Hed(Lc,H,T).
-  macroListEntries(Lc,[El,..Rest],Eof,Hed) =>
-    Hed(Lc,El,macroListEntries(Lc,Rest,Eof,Hed)).
-
   macroCoercion(A,.expression,Rp) where (Lc,L,R) ^= isCoerce(A) =>
     either(active(typeAnnotation(Lc,unary(Lc,"_optval",unary(Lc,"_coerce",L)),R))).
   macroCoercion(A,.expression,Rp) where (Lc,L,R) ^= isOptCoerce(A) =>
@@ -722,6 +686,19 @@ star.compiler.macro{
   macroTpl(tpl(Lc,Lbl,[]),.expression,Rp) => either(active(qnm(Lc,Lbl))).
   macroTpl(tpl(Lc,Lbl,[A]),.expression,Rp) => either(active(unary(Lc,Lbl,A))).
   macroTpl(_,_,_) => either(.inactive).
+
+  indexMacro(A,.expression,Rp) where (Lc,L,R) ^= isIndexTerm(A) =>
+    ((_,Ky,Vl) ^= isBinary(R,"->") ?
+	either(active(ternary(Lc,"_put",L,Ky,Vl))) ||
+	(_,Ky) ^= isNegation(R) ?
+	  either(active(binary(Lc,"_remove",L,Ky))) ||
+	  either(active(binary(Lc,"_index",L,R)))).
+  indexMacro(_,_,_) default => either(.inactive).
+
+  sliceMacro(A,.expression,Rp) where (Lc,Op,F,T) ^= isSlice(A) =>
+    either(active(ternary(Lc,"_slice",Op,F,T))).
+  sliceMacro(_,_,_) default => either(.inactive).
+  
   
   macroQuote(A,.expression,Rp) where (Lc,Trm) ^= isQuoted(A) =>
     either(active(quoteAst(A))).
