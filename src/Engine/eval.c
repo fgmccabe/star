@@ -1118,19 +1118,6 @@ retCode run(processPo P) {
         continue;
       }
 
-      case dLine: {
-        termPo line = nthElem(LITS, collectI32(PC));
-
-#ifdef TRACEEXEC
-        if (lineDebugging) {
-          saveRegisters();
-          lineDebug(P, line);
-          restoreRegisters();
-        }
-#endif
-        continue;
-      }
-
       default:
       case illegalOp:
         syserr("Illegal instruction");

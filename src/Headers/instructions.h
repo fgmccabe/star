@@ -113,7 +113,4 @@ instruction(Cmp,off,nOp,-1,"t1 t2 --> , branch to offset if not same literal")
 
 instruction(Frame,tPe,nOp,0,"frame instruction")
 
-instruction(dLine,lne,nOp,0,"--> debug line")
 instruction(dBug,nOp,nOp,0,"debugging prefix")
-instruction(dBreak,nOp,nOp,0,"special instruction for break points")
-

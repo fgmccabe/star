@@ -40,7 +40,6 @@ extern logical interactive;      /* interactive instruction tracing option */
 termPo getLbl(termPo lbl, int32 arity);
 
 DebugWaitFor insDebug(processPo p, insWord ins);
-DebugWaitFor lineDebug(processPo p, termPo line);
 DebugWaitFor enterDebug(processPo p);
 
 void stackTrace(processPo p, heapPo h, ioPo out, stackPo stk, logical showLocals);
