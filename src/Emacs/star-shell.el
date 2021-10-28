@@ -27,7 +27,7 @@
   "Run in a shell"
   (interactive "sRun with argument: ")
   (let* ((buffer (comint-check-proc "Star"))
-	 (args (append star-flags (list "-r" star-build-repo (star-package) arg))))
+	 (args (append star-flags (list arg))))
     (pop-to-buffer-same-window
      (if (or buffer (not (derived-mode-p 'star-shell-mode))
 	     (comint-check-proc (current-buffer)))
@@ -60,7 +60,7 @@
   (star-clear-debug))
 
 (defconst star-debug-regexp 
-  "\\(line\\|call\\|ocall\\|tail\\|otail\\|return\\): file:\\([a-z0-9A-Z/.]+\\)(\\([0-9]+\\):\\(?:[0-9]+\\)@\\([0-9]+\\),\\([0-9]+\\))"
+  "\\(assign\\|call\\|ocall\\|tail\\|otail\\|return\\|global\\): file:\\([a-z0-9A-Z/.]+\\)(\\([0-9]+\\):\\(?:[0-9]+\\)@\\([0-9]+\\),\\([0-9]+\\))"
   )
 
 (defvar star-overlay nil)
