@@ -267,8 +267,8 @@ compTerm(ltt(Lc,idnt(Nm),Val,Exp),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stk
   genLbl(L,Lb,L1),
   chLine(Opts,OLc,Lc,C,C0),!,
   defineLclVar(Nm,Lb,End,Opts,D,D1,Off,C0,[iStV(Off)|C1]),
-  compTerm(Val,Lc,bothCont(stoCont(Off,Lb),
-			   compTerm(Exp,Lc,Cont,TCont,Opts)),TCont,Opts,
+  compTerm(Val,Lc,stoCont(Off,Lb,Opts,
+			  compTerm(Exp,Lc,Cont,TCont,Opts)),TCont,Opts,
 	   L1,Lx,D1,Dx,End,C1,Cx,Stk,Stkx).
 compTerm(error(Lc,Msg),_OLc,_Cont,_TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-!,
   abortCont(Lc,Msg,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx). % no continuation after an error
@@ -373,7 +373,7 @@ compAction(assignD(Lc,V,E),OLc,Cont,_RCont,_ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,St
   chLine(Opts,OLc,Lc,C,C0),
   compTerm(E,Lc,
 	   compTerm(V,Lc,
-		    bothCont(asmCont(iAssign,Stk),Cont),ECont,Opts),ECont,
+		    bothCont(assignCont(Stk,Opts),Cont),ECont,Opts),ECont,
 	   Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 compAction(bindD(Lc,P,E),OLc,Cont,_RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
@@ -389,8 +389,8 @@ compAction(ltt(Lc,idnt(Nm),Val,Act),OLc,Cont,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx
   genLbl(L,Lb,L1),
   chLine(Opts,OLc,Lc,C,C0),!,
   defineLclVar(Nm,Lb,End,Opts,D,D1,Off,C0,[iStV(Off)|C1]),
-  compTerm(Val,Lc,bothCont(stoCont(Off,Lb),
-			   compAction(Act,Lc,Cont,RCont,ECont,Opts)),ECont,Opts,
+  compTerm(Val,Lc,stoCont(Off,Lb,Opts,
+			  compAction(Act,Lc,Cont,RCont,ECont,Opts)),ECont,Opts,
 	   L1,Lx,D1,Dx,End,C1,Cx,Stk,Stkx).
 compAction(cnd(Lc,T,A,B),OLc,Cont,RCont,ECont,Opts,
 	   L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
@@ -515,8 +515,17 @@ resetCont(Stk,Cont,L,Lx,D,Dx,End,[iDrop|C],Cx,Stk0,Stkx) :-
 resetCont(some(Lvl),Cont,L,Lx,D,Dx,End,[iRst(Lvl)|C],Cx,_,Stkx) :-
   call(Cont,L,Lx,D,Dx,End,C,Cx,some(Lvl),Stkx).
 
-stoCont(Off,Lb,Lx,Lx,Dx,Dx,_End,[iStL(Off),iLbl(Lb)|Cx],Cx,Stk,Stkx) :-
-  dropStk(Stk,1,Stkx).
+stoCont(Off,Lb,_Opts,Cont,L,Lx,D,Dx,End,[iStL(Off),iLbl(Lb)|C],Cx,Stk,Stkx) :-!,
+  dropStk(Stk,1,Stk1),
+  call(Cont,L,Lx,D,Dx,End,C,Cx,Stk1,Stkx).
+
+% stoCont(Off,Lb,Opts,Cont,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-!,
+%   genDbg(Opts,C,[iStL(Off),iLbl(Lb)|C1]),
+%   dropStk(Stk,1,Stk1),
+%   call(Cont,L,Lx,D,Dx,End,C1,Cx,Stk1,Stkx).
+
+assignCont(Stk,Opts,Lx,Lx,Dx,Dx,_End,C,Cx,_,Stk) :-
+  genDbg(Opts,C,[iAssign|Cx]).
 
 releaseCont(Nm,Lx,Lx,D,Dx,_,Cx,Cx,Stk,Stk) :-
   clearLclVar(Nm,D,Dx).

@@ -100,9 +100,7 @@ star.compiler.assem{
     iAlloc(termLbl) |
     iCmp(assemLbl) |
     iFrame(ltipe) |
-    idLine(term) |
     .idBug |
-    .idBreak |
 
     iLbl(assemLbl) |
     iLocal(string,string,string,integer) |
@@ -225,9 +223,7 @@ star.compiler.assem{
   mnem([iAlloc(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (Lt1,LtNo) .= findLit(Lts,symb(U)) => mnem(Ins,Code++[intgr(75),intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).
   mnem([iCmp(al(U)),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where Tgt ^= Lbls[U] => mnem(Ins,Code++[intgr(76),intgr(Tgt-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
   mnem([iFrame(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (Lt1,LtNo) .= findLit(Lts,strg(U::string)) => mnem(Ins,Code++[intgr(77),intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([idLine(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (Lt1,LtNo) .= findLit(Lts,U) => mnem(Ins,Code++[intgr(78),intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([.idBug,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(79)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([.idBreak,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(80)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.idBug,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(78)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
 
 
   genLblTbl:(cons[assemOp],integer,map[string,integer]) => (integer,map[string,integer]).
@@ -315,9 +311,7 @@ star.compiler.assem{
   genLblTbl([iAlloc(A),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([iCmp(al(A)),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([iFrame(A),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
-  genLblTbl([idLine(A),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([.idBug,..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+1,Lbls).
-  genLblTbl([.idBreak,..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+1,Lbls).
 
 
   findEnd:(cons[integer],integer)=>integer.
@@ -432,8 +426,6 @@ star.compiler.assem{
   showMnem([iAlloc(U),..Ins],Pc) => "$(Pc)\: Alloc #(U)\n" ++ showMnem(Ins,Pc+3).
   showMnem([iCmp(al(U)),..Ins],Pc) => "$(Pc)\: Cmp #(U)\n" ++ showMnem(Ins,Pc+3).
   showMnem([iFrame(U),..Ins],Pc) => "$(Pc)\: Frame #(U)\n" ++ showMnem(Ins,Pc+3).
-  showMnem([idLine(U),..Ins],Pc) => "$(Pc)\: dLine #(U)\n" ++ showMnem(Ins,Pc+3).
   showMnem([.idBug,..Ins],Pc) => "$(Pc)\: dBug\n" ++ showMnem(Ins,Pc+1).
-  showMnem([.idBreak,..Ins],Pc) => "$(Pc)\: dBreak\n" ++ showMnem(Ins,Pc+1).
 
 }

@@ -51,7 +51,7 @@ mnem([iLocal(Nm,Frm,End,Off)|Ins],Lbs,Lt,Lts,Lc,Lcx,Ln,Lnx,Pc,Pcx,Ends,Code,Cdx)
 mnem([iLine(Loc)|Ins],Lbs,Lt,Lts,Lc,Lcx,Lns,Lnx,Pc,Pcx,Ends,Code,Cdx) :-
     mkTpl([Loc,intgr(Pc)],LneEntry),
     (is_member(LneEntry,Lns) -> Lns1 = Lns; Lns1=[LneEntry|Lns]),
-    mnem([iDLine(Loc)|Ins],Lbs,Lt,Lts,Lc,Lcx,Lns1,Lnx,Pc,Pcx,Ends,Code,Cdx).
+    mnem(Ins,Lbs,Lt,Lts,Lc,Lcx,Lns1,Lnx,Pc,Pcx,Ends,Code,Cdx).
 #(Mnem)
 
 findLevel(0,[Tgt|_],Tgt) :-!.
@@ -72,7 +72,7 @@ genLblTbl([iLbl(Lbl)|Ins],Pc,Pcx,Lbls,Lbx) :-
   defineLbl(Lbl,Pc,Lbls,Lbli),
   genLblTbl(Ins,Pc,Pcx,Lbli,Lbx).
 genLblTbl([iLocal(_,_,_,_)|Ins],Pc,Pcx,Lbls,Lbx) :- genLblTbl(Ins,Pc,Pcx,Lbls,Lbx).
-genLblTbl([iLine(Lc)|Ins],Pc,Pcx,Lbls,Lbx) :- genLblTbl([iDLine(Lc)|Ins],Pc,Pcx,Lbls,Lbx).
+genLblTbl([iLine(_)|Ins],Pc,Pcx,Lbls,Lbx) :- genLblTbl(Ins,Pc,Pcx,Lbls,Lbx).
 #(Lbls)
 
 pcGap(Pc,Tgt,Off) :- Off is Tgt-Pc.
@@ -116,6 +116,5 @@ showMnem([iLocal(Nm,Frm,End,_Off)|Ins],Pc,Lbs,[sq([ss(Nm),ss("::"),ss(Frm),ss("-
   showMnem(Ins,Pc,Lbs,II).
 showMnem([iLine(Loc)|Ins],Pc,Lbs,[sq([ss("Line "),LL])|II]) :-
   ssTrm(Loc,0,LL),
-  Pc1 is Pc+3,
-  showMnem(Ins,Pc1,Lbs,II).
+  showMnem(Ins,Pc,Lbs,II).
 #(Show)

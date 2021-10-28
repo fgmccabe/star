@@ -20,8 +20,8 @@ static void showCall(ioPo out, stackPo stk, termPo call);
 static void showTail(ioPo out, stackPo stk, termPo call);
 static void showOCall(ioPo out, stackPo stk, termPo call);
 static void showOTail(ioPo out, stackPo stk, termPo call);
-static void showLn(ioPo out, stackPo stk, termPo ln);
 static void showRet(ioPo out, stackPo stk, termPo val);
+static void showAssign(ioPo out, stackPo stk, termPo val);
 static void showPrompt(ioPo out, stackPo stk, termPo prompt);
 static void showCut(ioPo out, stackPo stk, termPo prompt);
 static void showResume(ioPo out, stackPo stk, termPo cont);
@@ -187,32 +187,18 @@ static logical shouldWeStop(processPo p, stackPo stk, insWord ins, termPo arg) {
           }
       }
 
-      case dLine: {
-        breakPointPo bp = lineBreakPointHit(C_NORMAL(arg));
-        if (bp != Null) {
-          p->waitFor = stepInto;
-          p->tracing = True;
-          p->traceDepth = p->traceCount = 0;
-          if (isTempBreakPoint(bp))
-            clearBreakPoint(bp);
-          return True;
-        } else
-          switch (p->waitFor) {
-            case stepInto:
-              return True;
-            case stepOver:
-              if (p->traceDepth == 0) {
-                if (p->traceCount > 0)
-                  p->traceCount--;
-                return (logical) (p->traceCount == 0);
-              } else
-                return False;
-            default:
-              return False;
-          }
+      default: {
+        switch (p->waitFor) {
+          case stepInto:
+            return True;
+          case stepOver:
+            p->traceDepth++;
+            return (logical) (p->traceCount == 0 && p->traceDepth == 1);
+          case nextBreak:
+          default:
+            return False;
+        }
       }
-      default:
-        return False;
     }
   } else
     return False;
@@ -783,20 +769,6 @@ static logical shouldWeStopIns(processPo p, stackPo stk, insWord ins) {
           default:
             return False;
         }
-      case dLine: {
-        termPo loc = getMtdLit(f->prog, collect32(f->pc + 1));
-
-        breakPointPo bp = lineBreakPointHit(C_NORMAL(loc));
-        if (bp != Null) {
-          p->waitFor = stepInto;
-          p->tracing = True;
-          p->traceDepth = p->traceCount = 0;
-          if (isTempBreakPoint(bp))
-            clearBreakPoint(bp);
-          return True;
-        } else
-          return False;
-      }
 
       default:
         return False;
@@ -868,13 +840,6 @@ DebugWaitFor insDebug(processPo p, insWord ins) {
     }
   }
   return p->waitFor;
-}
-
-void showLn(ioPo out, stackPo stk, termPo ln) {
-  if (showColors)
-    outMsg(out, BLUE_ESC_ON"line:"BLUE_ESC_OFF" %#L%_", ln);
-  else
-    outMsg(out, "line: %#L%_", ln);
 }
 
 retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
@@ -982,6 +947,21 @@ void showRet(ioPo out, stackPo stk, termPo val) {
     outMsg(out, "return: %T->%#,*T", f->prog, displayDepth, val);
 }
 
+void showAssign(ioPo out, stackPo stk, termPo vl) {
+  framePo f = currFrame(stk);
+  termPo locn = findPcLocation(f->prog, insOffset(f->prog, f->pc));
+  termPo cell = topStack(stk);
+  termPo val = peekStack(stk, 1);
+
+  if (locn != Null) {
+    if (showColors)
+      outMsg(out, RED_ESC_ON"assign:"RED_ESC_OFF" %#L %T->%#,*T", locn, cell, displayDepth, val);
+    else
+      outMsg(out, "assign: %#L %T->%#,*T", locn, cell, displayDepth, val);
+  } else
+    outMsg(out, "assign: %T->%#,*T", cell, displayDepth, val);
+}
+
 void showPrompt(ioPo out, stackPo stk, termPo prompt) {
   framePo f = currFrame(stk);
   termPo locn = findPcLocation(f->prog, insOffset(f->prog, f->pc));
@@ -1037,7 +1017,7 @@ void showGlobal(ioPo out, stackPo stk, termPo global) {
   if (showColors)
     outMsg(out, BLUE_ESC_ON"global:"BLUE_ESC_OFF "%#L %#,*T", loc, displayDepth, global);
   else
-    outMsg(out, "global:", "%#L %#,*T", loc, displayDepth, global);
+    outMsg(out, "global: %#L %#,*T", loc, displayDepth, global);
 }
 
 typedef void (*showCmd)(ioPo out, stackPo stk, termPo trm);
@@ -1047,11 +1027,7 @@ termPo getLbl(termPo lbl, int32 arity) {
   return (termPo) declareLbl(oLbl->name, arity, -1);
 }
 
-static DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show);
-
-DebugWaitFor lineDebug(processPo p, termPo line) {
-  return lnDebug(p, dLine, line, showLn);
-}
+static DebugWaitFor lnDebug(processPo p, insWord ins, termPo arg, showCmd show);
 
 DebugWaitFor enterDebug(processPo p) {
   stackPo stk = p->stk;
@@ -1076,6 +1052,9 @@ DebugWaitFor enterDebug(processPo p) {
     case RtG: {
       return lnDebug(p, ins, topStack(stk), showRet);
     }
+    case Assign:
+      return lnDebug(p, ins, Null, showAssign);
+
     case Prompt: {
       termPo prompt = peekStack(stk, 1);
       return lnDebug(p, ins, prompt, showPrompt);
@@ -1111,7 +1090,7 @@ DebugWaitFor enterDebug(processPo p) {
   }
 }
 
-DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
+DebugWaitFor lnDebug(processPo p, insWord ins, termPo arg, showCmd show) {
   static DebugOptions opts = {.opts = {
     {.c = 'n', .cmd=dbgSingle, .usage="n step into"},
     {.c = 'N', .cmd=dbgOver, .usage="N step over"},
@@ -1137,7 +1116,7 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
   };
 
   stackPo stk = p->stk;
-  logical stopping = shouldWeStop(p, stk, ins, ln);
+  logical stopping = shouldWeStop(p, stk, ins, arg);
 
 #ifdef TRACE_DBG
   if (debugDebugging) {
@@ -1146,12 +1125,15 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
   }
 #endif
   if (p->tracing || stopping) {
-    if (ln != Null)
-      show(debugOutChnnl, stk, ln);
+    show(debugOutChnnl, stk, arg);
     if (stopping) {
       while (interactive) {
-        if (p->traceCount == 0)
-          p->waitFor = cmder(&opts, p, currFrame(stk)->prog, ln, ins);
+        if (p->traceCount == 0) {
+          framePo f = currFrame(stk);
+          termPo loc = findPcLocation(f->prog, insOffset(f->prog, f->pc));
+
+          p->waitFor = cmder(&opts, p, currFrame(stk)->prog, loc, ins);
+        }
         else {
           outStr(debugOutChnnl, "\n");
           flushFile(debugOutChnnl);

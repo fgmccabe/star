@@ -8,7 +8,7 @@
 :- use_module(astdisp).
 :- use_module(location).
 
-macroRl("[]",pattern,macroRules:macroSquarePtn).
+macroRl("[]",pattern,macroRules:squarePtnMacro).
 macroRl("[]",expression,macroRules:macroListComprehension).
 macroRl("[]",expression,macroRules:macroSquareTuple).
 macroRl("$[]",expression,macroRules:indexMacro).
@@ -103,7 +103,7 @@ putGen(Lc,(F,V),R,Trm) :-
 concGen(Lc,L,(F,V),Trm) :-
   ternary(Lc,"put",L,F,V,Trm).
 
-macroSquarePtn(A,pattern,Ptn) :-
+squarePtnMacro(A,pattern,Ptn) :-
   isSquareTuple(A,Lc,Els),!,
   macroListEntries(Lc,Els,Ptn,genEofTest,genHedTest).
 
@@ -114,9 +114,6 @@ genEofTest(Lc,Trm) :-
 
 genHedTest(Lc,L,R,Trm) :-
   mkWherePtn(Lc,tuple(Lc,"()",[L,R]),name(Lc,"_hdtl"),Trm).
-
-genTailTest(Lc,L,R,Trm) :-
-  mkWherePtn(Lc,tuple(Lc,"()",[L,R]),name(Lc,"_back"),Trm).
 
 macroListEntries(Lc,[],Trm,End,_) :-
   call(End,Lc,Trm).
