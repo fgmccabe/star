@@ -43,7 +43,6 @@ genVrs([Tp|Tps],[(V,Tp)|Vrs]) :-
   genVrs(Tps,Vrs).
 
 matchTriples(_,_,[],Tps,Deflt,_,_,Reslt) :-
-%  reportMsg("conditionalize %s",[Deflt],Lc),
   conditionalize(Tps,Deflt,Reslt).
 matchTriples(Lc,Subber,Vrs,Tpls,Deflt,Map,Dp,Reslt) :-
   partitionTriples(Tpls,Segments),
@@ -84,7 +83,6 @@ conditionalize([(_,(Lc,Bnds,Guard,Test,Val),_)|M],Deflt,Repl) :-!,
    conditionalize(M,Deflt,Other),
    applyBindings(Bnds,Lc,Vl,TVl),
    mkCnd(Lc,TT,TVl,Other,Repl)
-%  ,reportMsg("conditionalized Repl=%s",[ltrm(Repl)],Lc)
   ).
 
 conditionalize(_Vrs,[],Deflt,Deflt).

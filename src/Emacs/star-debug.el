@@ -229,7 +229,7 @@ It is saved for when this flag is not set.")
 
 (defun star-prompt-parse (buffer)
   (with-current-buffer buffer
-    (if (search-forward-regexp "^.*\\(line\\|call\\|ocall\\|tail\\|otail\\|return\\):.*file:\\([^\(]+\\)(\\([0-9]+\\),\\([0-9]+\\),\\([0-9]+\\)) *\\(.*\\)$" nil t)
+    (if (search-forward-regexp "^.*\\(assign\\|call\\|ocall\\|tail\\|otail\\|return\\|global\\):.*file:\\([^\(]+\\)(\\([0-9]+\\),\\([0-9]+\\),\\([0-9]+\\)) *\\(.*\\)$" nil t)
 	(let* ((cmd (intern (match-string 1)))
 	       (file (match-string 2))
 	       (line (string-to-number (match-string 3)))
