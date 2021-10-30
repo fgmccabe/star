@@ -16,7 +16,7 @@ function(add_emacs args)
 	COMMAND ${EMACS_EXECUTABLE} -Q --batch -L . -f batch-byte-compile
 	${emacs_src}
 	DEPENDS ${emacs_src}
-	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+	# WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 	COMMENT "Creating byte-compiled Emacs lisp ${emacs_tgt} from ${emacs_src}")
     endforeach()
 

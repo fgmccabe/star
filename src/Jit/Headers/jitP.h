@@ -68,7 +68,7 @@ uint32 readCtxAtPc(assemCtxPo ctx, integer pc);
 jitCompPo jitContext(methodPo mtd);
 void clearCodeCtxMaps(assemCtxPo ctx);;
 
-void initAssemX64();
+void initAssem();
 assemCtxPo createCtx();
 void discardCtx(assemCtxPo ctx);
 void *createCode(assemCtxPo ctx);

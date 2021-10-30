@@ -4,20 +4,23 @@
 #include <config.h>
 #include "lowerP.h"
 #include "jitOps.h"
-#include "x86_64.h"
+#include "arm64.h"
 
 /* Lower Star VM code to X64 code */
 /*
  *  First four arguments passed in registers:
- *  A0 = RCX
- *  A1 = RDX
- *  A2 = R8
- *  A3 = R9
+ *  A0 = X0
+ *  A1 = X1
+ *  A2 = X2
+ *  A3 = X3
  *
- *  RBP is the frame pointer
- *  R10 points to the literals tuple
+ *  X4-X10 callee saved
+ *  X11 = literals tuple
+ *  X12 = FP
+ *  SP = X13
+ *  X14 (RL) is the link register
  *
- *  RAX is the return value
+ *  X0 is the return value
  */
 
 retCode jit_preamble(methodPo mtd, jitCompPo jitCtx) {
@@ -34,42 +37,42 @@ static int32 collectOperand(insPo base, integer *pc) {
   return (int32) (hi << (uint32) 16 | lo);
 }
 
-x64Op formX64Operand(vOperand v) {
+armOp formOperand(vOperand v) {
   switch (v.loc) {
     case argument: {
       switch (v.ix) {
         case 0: {
-          x64Op op = {.mode=Reg, .op.reg=RCX};
+          armOp op = {.mode=Reg, .op.reg=X0};
           return op;
         }
         case 1: {
-          x64Op op = {.mode=Reg, .op.reg=RDX};
+          armOp op = {.mode=Reg, .op.reg=X1};
           return op;
         }
         case 2: {
-          x64Op op = {.mode=Reg, .op.reg=R8};
+          armOp op = {.mode=Reg, .op.reg=X2};
           return op;
         }
         case 3: {
-          x64Op op = {.mode=Reg, .op.reg=R9};
+          armOp op = {.mode=Reg, .op.reg=X3};
           return op;
         }
         default: {
-          x64Op op = {.mode=Based, .op.based.base=RBP, .op.based.disp=(int)(v.ix * LONG_COUNT + FRAME_SIZE)};
+          armOp op = {.mode=Based, .op.based.base=X12, .op.based.disp=(int) (v.ix * LONG_COUNT + FRAME_SIZE)};
           return op;
         }
       }
     }
-    case literal:{
-      x64Op op = {.mode=Based, .op.based.base=R10, .op.based.disp=(int)(v.ix * LONG_COUNT)};
+    case literal: {
+      armOp op = {.mode=Based, .op.based.base=X11, .op.based.disp=(int) (v.ix * LONG_COUNT)};
       return op;
     }
-    case local:{
-      x64Op op = {.mode=Based, .op.based.base=RBP, .op.based.disp=(int)(-v.ix * LONG_COUNT)};
+    case local: {
+      armOp op = {.mode=Based, .op.based.base=X12, .op.based.disp=(int) (-v.ix * LONG_COUNT)};
       return op;
     }
-    case immediate:{
-      x64Op op = {.mode=Immediate,  .op.imm=(int)(v.ix)};
+    case immediate: {
+      armOp op = {.mode=Immediate, .op.imm=(int) (v.ix)};
       return op;
     }
     case mcReg: {
@@ -78,13 +81,13 @@ x64Op formX64Operand(vOperand v) {
   }
 }
 
-static x64Op popStkOp(jitCompPo jitCtx) {
+static armOp popStkOp(jitCompPo jitCtx) {
   verifyJitCtx(jitCtx, 1, 0);
   vOperand v = jitCtx->vStack[--jitCtx->vTop];
-  return formX64Operand(v);
+  return formOperand(v);
 }
 
-static void pushStkOp(jitCompPo jitCtx, x64Op operand) {
+static void pushStkOp(jitCompPo jitCtx, armOp operand) {
   verifyJitCtx(jitCtx, 0, 1);
   vOperand v = {.loc=mcReg, .mcLoc=operand};
   jitCtx->vStack[jitCtx->vTop++] = v;
@@ -222,6 +225,10 @@ retCode jit_Ret(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
+retCode jit_RtG(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
 retCode jit_Thnk(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
@@ -300,10 +307,10 @@ retCode jit_FLt(insPo code, integer *pc, jitCompPo jitCtx) {
 
 retCode jit_IAdd(insPo code, integer *pc, jitCompPo jitCtx) {
   verifyJitCtx(jitCtx, 1, 0);
-  x64Op a1 = popStkOp(jitCtx);
-  x64Op a2 = popStkOp(jitCtx);
+  armOp a1 = popStkOp(jitCtx);
+  armOp a2 = popStkOp(jitCtx);
 
-  add(a1, a2, jitCtx->assemCtx);
+//  add(a1, a2, jitCtx->assemCtx);
   pushStkOp(jitCtx, a1);
 
   return Error;

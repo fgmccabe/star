@@ -17,7 +17,7 @@ void initJit() {
     contextPool = newPool(sizeof(JitCompilerContext), 8);
     lblPool = newPool(sizeof(AssemLblRecord), 128);
     asmPool = newPool(sizeof(AssemCtxRecord), 128);
-    initAssemX64();
+    initAssem();
   }
 }
 

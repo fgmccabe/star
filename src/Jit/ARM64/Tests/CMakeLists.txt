@@ -16,7 +16,7 @@ set(TEST_HEADER_FILES ../Headers/arm64.h ../Headers/arm64P.h ../../../Util/Heade
 add_executable(armTest EXCLUDE_FROM_ALL ${TEST_SOURCE_FILES} ${TEST_HEADER_FILES})
 target_link_libraries(arm64Test ARM64 ooio m)
 
-add_custom_target(testArm ALL DEPENDS armTest
-        COMMAND armTest)
+add_custom_target(test64Arm ALL DEPENDS arm64Test
+        COMMAND arm64Test)
 
 
