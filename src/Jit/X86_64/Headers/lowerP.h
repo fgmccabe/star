@@ -10,7 +10,7 @@
 #include "jitP.h"
 #include "x86_64P.h"
 
-x64Op formX64Operand(vOperand op);
+x64Op formOperand(vOperand v);
 
 
 #endif //STAR_LOWERP_H

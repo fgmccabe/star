@@ -17,7 +17,7 @@ static int installEscape(EscapeCode code, char *name, char *sig, libFun fun);
 
 #undef escape
 #define escape(Fun, Sig, Cmnt)\
-extern ReturnStatus g_##Fun(processPo p,ptrPo tos);\
+extern ReturnStatus g_##Fun(processPo p,heapPo h, ptrPo tos);\
   installEscape(Esc##Fun,#Fun,Sig,g_##Fun);
 
 void installEscapes() {

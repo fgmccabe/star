@@ -131,7 +131,6 @@ genDebug(Opts,Debug,[Debug|Cx],Cx) :-
   is_member(debugging,Opts),!.
 genDebug(_,_,Cx,Cx).
 
-
 clearLclVar(Nm,scope(Vrs,FreeRg,Mx),scope(NVrs,NFreeRg,NMx)) :-
   subtract((Nm,l(Off),_,_),Vrs,NVrs),
   addToFree(Off,FreeRg,Mx,NFreeRg,NMx).
