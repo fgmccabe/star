@@ -23,6 +23,13 @@
 #define STMT_WRAP(S) do S while(False)
 #endif
 
+static integer inline absolute(integer a){
+  if(a<0)
+    return -a;
+  else
+    return a;
+}
+
 static integer inline minimum(integer a, integer b) {
   if (a < b)
     return a;
