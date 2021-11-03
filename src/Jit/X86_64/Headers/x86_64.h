@@ -55,6 +55,7 @@ typedef struct {
 } x64Op;
 
 typedef x64Op registerSpec;
+#define PLATFORM_PC_DELTA 4
 
 #define RG(Rg) {.mode=Reg, .op.reg=(Rg)}
 #define IM(Vl) {.mode=Immediate, .op.imm=(Vl)}

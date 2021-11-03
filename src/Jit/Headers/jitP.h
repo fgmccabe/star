@@ -55,7 +55,7 @@ typedef struct jit_compiler_ {
 
 typedef struct assem_lbl {
   arrayPo refs;
-  integer pc;
+  uint64 pc;
 } AssemLblRecord;
 
 void emitU8(assemCtxPo ctx, uint8 byte);
@@ -76,11 +76,13 @@ void *createCode(assemCtxPo ctx);
 codeLblPo defineLabel(assemCtxPo ctx, char *lName, integer pc);
 void setLabel(assemCtxPo ctx, codeLblPo lbl);
 logical isLabelDefined(codeLblPo lbl);
+uint64 labelTgt(codeLblPo lbl);
 retCode cleanupLabels(assemCtxPo ctx);
 
 typedef void (*lblRefUpdater)(assemCtxPo ctx, codeLblPo lbl, integer pc);
 retCode addLabelReference(assemCtxPo ctx, codeLblPo lbl, integer pc, lblRefUpdater updater);
 static retCode updateLblEntry(void *entry, integer ix, void *cl);
+integer lblDeltaRef(assemCtxPo ctx, codeLblPo tgt);
 void emitLblRef(assemCtxPo ctx, codeLblPo tgt);
 void labelDisp32(assemCtxPo ctx, codeLblPo lbl, integer pc);
 
