@@ -70,6 +70,53 @@ encodeDPRegImm(uint1 wide, uint8 opc, uint8 op, uint1 sh, uint16 imm, armReg Rn,
   emitU32(ctx, ins);
 }
 
+void encodeAddSubImm(uint1 w, uint1 op, uint1 S, uint1 sh, int16 imm, armReg Rn, armReg Rd, assemCtxPo ctx) {
+  uint32 ins = one_bt(w, 31) | one_bt(op, 30) | one_bt(S, 29) | six_bt(0x22, 23) |
+               one_bt(sh, 22) | twl_bt(imm, 10) |
+               fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
+  emitU32(ctx, ins);
+}
+
+void encodeLogImm(uint1 w, uint8 opc, int16 imm, armReg Rn, armReg Rd, assemCtxPo ctx) {
+  uint32 ins = one_bt(w, 31) | two_bt(opc, 29) | six_bt(0x24, 23) |
+               one_bt(imm >> 12, 22) | six_bt(imm, 16) | six_bt(imm >> 6, 10) |
+               fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
+  emitU32(ctx, ins);
+}
+
+void encodeMovWide(uint1 w, uint8 opc, uint8 hw, int16 imm, armReg Rd, assemCtxPo ctx) {
+  uint32 ins = one_bt(w, 31) | two_bt(opc, 29) | six_bt(0x25, 23) |
+               two_bt(hw, 21) | sxt_bt(imm, 5) | fiv_bt(Rd, 0);
+  emitU32(ctx, ins);
+}
+
+void encodeBitFld(uint1 w, uint8 opc, uint1 N, uint8 immr, uint8 imms, armReg Rn, armReg Rd, assemCtxPo ctx) {
+  uint32 ins = one_bt(w, 31) | two_bt(opc, 29) | six_bt(0x26, 23) | one_bt(N, 22) |
+               six_bt(immr, 16) | sxt_bt(imms, 10) | fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
+  emitU32(ctx, ins);
+}
+
+void encodeExtrct(uint1 w, uint8 opc, uint1 N, uint1 o0, armReg Rm, uint8 imms, armReg Rn, armReg Rd, assemCtxPo ctx) {
+  uint32 ins = one_bt(w, 31) | two_bt(opc, 29) | six_bt(0x27, 23) | one_bt(N, 22) | one_bt(o0, 21) |
+               fiv_bt(Rm, 16) | sxt_bt(imms, 10) | fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
+  emitU32(ctx, ins);
+}
+
+void encodeCondBrnch(uint1 o1, int32 imm, uint1 o0, armCond cond, assemCtxPo ctx) {
+  uint32 ins = six_bt(0x2a, 25) | one_bt(o1, 24) | ntn_bt(imm, 5) | one_bt(o0, 4) | for_bt(cond, 0);
+  emitU32(ctx, ins);
+}
+
+void encodeBranch(uint8 opc, uint8 op2, uint8 op3, armReg Rn, uint8 op4, assemCtxPo ctx) {
+  uint32 ins = six_bt(0x6b, 25) | for_bt(opc, 21) | fiv_bt(op2, 16) | six_bt(op3, 10) | fiv_bt(Rn, 5) | fiv_bt(op4, 0);
+  emitU32(ctx, ins);
+}
+
+void encodeBranchImm(uint1 op, int32 imm, assemCtxPo ctx) {
+  uint32 ins = one_bt(op, 31) | fiv_bt(0x56, 25) | tsx_bt(imm, 0);
+  emitU32(ctx, ins);
+}
+
 static void
 encodeSz2OpcImm2Reg(uint8 sz, uint8 op, uint8 opc, uint1 N, uint16 imm, uint8 o2, armReg R1, armReg R2,
                     assemCtxPo ctx) {
@@ -247,8 +294,8 @@ void add_x(uint1 w, armReg Rd, armReg Rn, armReg Rm, armExtent ex, uint8 shift, 
   encode2SrcExt(w, 0, 0, 0x59, Rm, ex, shift, Rn, Rd, ctx);
 }
 
-void add_imm(uint1 wide, armReg RD, armReg S1, uint1 sh, uint16 imm, uint8 shift, assemCtxPo ctx) {
-  encodeDPRegImm(wide, 0, 0x42, sh, imm, S1, RD, ctx);
+void add_imm(uint1 w, armReg Rd, armReg Rn, uint1 sh, uint16 imm, assemCtxPo ctx) {
+  encodeAddSubImm(w, 0, 0, sh, imm, Rn, Rd, ctx);
 }
 
 void add_sh_(uint1 wide, armReg RD, armReg S1, armShift sh, uint8 imm, armReg S2, assemCtxPo ctx) {
@@ -259,8 +306,8 @@ void adds_x(uint1 w, armReg Rd, armReg Rn, armReg Rm, armExtent ex, uint8 shift,
   encode2SrcExt(w, 0, 1, 0x59, Rm, ex, shift, Rn, Rd, ctx);
 }
 
-void add_imm_s(uint1 wide, armReg RD, armReg S1, uint1 sh, uint16 imm, uint8 shift, assemCtxPo ctx) {
-  encodeDPRegImm(wide, 1, 0x42, sh, imm, S1, RD, ctx);
+void adds_imm(uint1 w, armReg Rd, armReg Rn, uint1 sh, uint16 imm, assemCtxPo ctx) {
+  encodeAddSubImm(w, 0, 1, sh, imm, Rn, Rd, ctx);
 }
 
 void adds_sh_(uint1 wide, armReg RD, armReg S1, armShift sh, uint8 imm, armReg S2, assemCtxPo ctx) {
@@ -275,16 +322,16 @@ void adrp_(armReg Rd, int32 imm, assemCtxPo ctx) {
   encodePCRel(1, two_bt(imm >> 12, 0), (imm >> 2), Rd, ctx);
 }
 
-void and_imm_(uint1 wide, armReg RD, armReg S1, uint32 imm, assemCtxPo ctx) {
-  encodeDPRegLngImm(wide, 0, 0x24, imm, S1, RD, ctx);
+void and_imm(uint1 w, armReg Rd, armReg Rn, uint16 imm, assemCtxPo ctx) {
+  encodeLogImm(w, 0, imm, Rn, Rd, ctx);
 }
 
 void and_sh_(uint1 w, armReg RD, armReg S1, uint8 sh, uint8 imm, armReg S2, assemCtxPo ctx) {
   encodeShift3Reg(w, 0, 0, 0xa, sh, 0, S1, imm, S2, RD, ctx);
 }
 
-void ands_imm_(uint1 wide, armReg RD, armReg S1, uint32 imm, assemCtxPo ctx) {
-  encodeDPRegLngImm(wide, 0x3, 0x24, imm, S1, RD, ctx);
+void ands_imm(uint1 w, armReg Rd, armReg Rn, uint16 imm, assemCtxPo ctx) {
+  encodeLogImm(w, 3, imm, Rn, Rd, ctx);
 }
 
 void ands_sh_(uint1 wide, armReg RD, armReg S1, uint8 sh, uint8 imm, armReg S2, assemCtxPo ctx) {
@@ -295,9 +342,8 @@ void asr_reg_(uint1 w, armReg RD, armReg S1, armReg S2, assemCtxPo ctx) {
   encodeReg2Src(w, 0, 0, 0xd6, S1, 0x0a, S2, RD, ctx);
 }
 
-void asr_imm_(uint1 w, armReg RD, armReg S1, uint8 sh, assemCtxPo ctx) {
-  uint32 imm = six_bt(sh, 6) | one_bt(w, 12) | one_bt(w, 5) | 0x1f;
-  encodeDPRegLngImm(w, 0, 0x26, imm, S1, RD, ctx);
+void asr_imm(uint1 w, armReg Rd, armReg Rn, uint8 sh, assemCtxPo ctx) {
+  sbfm_(w, Rd, Rn, sh, 0x1f | (w << 5), ctx);
 }
 
 void asrv_(uint1 w, armReg RD, armReg S1, armReg S2, assemCtxPo ctx) {
@@ -307,13 +353,13 @@ void asrv_(uint1 w, armReg RD, armReg S1, armReg S2, assemCtxPo ctx) {
 void b_cond_(armCond cond, codeLblPo lbl, assemCtxPo ctx) {
   integer delta = lblDeltaRef(ctx, lbl);
   check(absolute(delta >> 2) < (1 << 19), "label out of range");
-  encodeCondTgt(0x54, (uint32) delta, cond, ctx);
+  encodeCondBrnch(0, (int32) delta, 0, cond, ctx);
 }
 
 void b_(codeLblPo lbl, assemCtxPo ctx) {
   integer delta = lblDeltaRef(ctx, lbl);
   check(absolute(delta >> 2) < (1 << 26), "label out of range");
-  encodeRelTgt(0x5, delta, ctx);
+  encodeBranchImm(0, (int32) delta, ctx);
 }
 
 void bfc_(uint1 w, armReg RD, uint8 width, uint8 bit, assemCtxPo ctx) {
@@ -339,18 +385,15 @@ void bics_(uint1 w, armShift tp, armReg RD, armReg Rn, armReg Rm, uint8 shift, a
 void bl_(codeLblPo lbl, assemCtxPo ctx) {
   integer delta = lblDeltaRef(ctx, lbl);
   check(absolute(delta >> 2) < (1 << 26), "label out of range");
-  encodeRelTgt(0x25, delta, ctx);
+  encodeBranchImm(1, (int32) delta, ctx);
 }
 
 void blr_(armReg Rn, assemCtxPo ctx) {
-  uint32 ins = svn_bt(0x6b, 25) | two_bt(1, 21) |
-               six_bt(0x1f, 16) | fiv_bt(Rn, 5);
-  emitU32(ctx, ins);
+  encodeBranch(1, 0x1f, 0, Rn, 0, ctx);
 }
 
 void br_(armReg Rn, assemCtxPo ctx) {
-  uint32 ins = svn_bt(0x6b, 25) | six_bt(0x1f, 16) | fiv_bt(Rn, 5);
-  emitU32(ctx, ins);
+  encodeBranch(0, 0x1f, 0, Rn, 0, ctx);
 }
 
 void brk_(uint16 bkpt, assemCtxPo ctx) {
@@ -545,12 +588,16 @@ void eon_sh_(uint1 w, armReg Rd, armReg Rm, armReg Rn, armShift sh, uint8 imm, a
   encodeShift3Reg(w, 1, 0, 0xa, sh, 1, Rm, imm, Rn, Rd, ctx);
 }
 
-void eor_imm_(uint1 w, armReg Rd, armReg Rn, uint32 imm, assemCtxPo ctx) {
-  encodeDPRegLngImm(w, 2, 0x24, imm, Rn, Rd, ctx);
+void eor_imm(uint1 w, armReg Rd, armReg Rn, uint16 imm, assemCtxPo ctx) {
+  encodeLogImm(w, 2, imm, Rn, Rd, ctx);
 }
 
 void eor_sh_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armShift sh, uint8 amnt, assemCtxPo ctx) {
   encodeShift3Reg(w, 1, 0, 0xa, sh, 0, Rm, amnt, Rn, Rd, ctx);
+}
+
+void extr_(uint1 w, armReg Rd, armReg Rn, armReg Rm, uint8 lsb, assemCtxPo ctx) {
+  encodeExtrct(w, 0, w, 0, Rm, lsb, Rn, Rd, ctx);
 }
 
 void ld64b_(armReg Rn, armReg Rt, assemCtxPo ctx) {
@@ -768,7 +815,8 @@ void lsl_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
 }
 
 void lsl_imm(uint1 w, armReg Rd, armReg Rn, uint8 shift, assemCtxPo ctx) {
-  encodeDPReg2Imm(w, 2, 0x26, w, (-shift % 32), ((-shift % 32) - 1), Rn, Rd, ctx);
+  uint8 mod = (w ? 64 : 32);
+  ubfm_(w, Rd, Rn, (-shift % mod), (mod - 1 - shift), ctx);
 }
 
 void lsr_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
@@ -776,7 +824,7 @@ void lsr_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
 }
 
 void lsr_imm(uint1 w, armReg Rd, armReg Rn, uint8 shift, assemCtxPo ctx) {
-  encodeDPReg2Imm(w, 2, 0x26, w, shift, (one_bt(w, 5) | 0x1f), Rn, Rd, ctx);
+  ubfm_(w, Rd, Rn, shift, (0x1f | one_bt(w, 5)), ctx);
 }
 
 void madd_(uint1 w, armReg Rd, armReg Rm, armReg Rn, armReg Ra, assemCtxPo ctx) {
@@ -814,15 +862,15 @@ void mov_r(uint1 w, armReg Rd, armReg Rm, assemCtxPo ctx) {
 }
 
 void movk_(uint1 w, armReg Rd, uint8 sh, int16 imm, assemCtxPo ctx) {
-  encodeImm1Reg(w, 3, 0x25, sh, imm, Rd, ctx);
+  encodeMovWide(w, 3, sh, imm, Rd, ctx);
 }
 
-void movn_(uint1 w, armReg Rd, uint8 sh, int16 imm, assemCtxPo ctx) {
-  encodeImm1Reg(w, 0, 0x25, sh, imm, Rd, ctx);
+void movn_imm(uint1 w, armReg Rd, uint8 sh, int16 imm, assemCtxPo ctx) {
+  encodeMovWide(w, 0, sh, imm, Rd, ctx);
 }
 
 void movz_(uint1 w, armReg Rd, uint8 sh, int16 imm, assemCtxPo ctx) {
-  encodeImm1Reg(w, 2, 0x25, sh, imm, Rd, ctx);
+  encodeMovWide(w, 2, sh, imm, Rd, ctx);
 }
 
 void mul_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
@@ -845,8 +893,8 @@ void orn_(uint1 w, armReg Rd, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx)
   encodeShift3Reg(w, 0, 1, 0xa, sh, 1, Rm, amnt, ZR, Rd, ctx);
 }
 
-void orr_(uint1 w, armReg Rd, armReg Rn, int32 imm, assemCtxPo ctx) {
-  encodeDPRegLngImm(w, 1, 0x24, imm, Rn, Rd, ctx);
+void orr_imm(uint1 w, armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx) {
+  encodeLogImm(w, 1, imm, Rn, Rd, ctx);
 }
 
 void orr_sh_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx) {
@@ -858,8 +906,7 @@ void rbit_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx) {
 }
 
 void ret_(armReg Rn, assemCtxPo ctx) {
-  uint32 ins = svn_bt(0x6b, 25) | two_bt(2, 21) | six_bt(0x1f, 16) | fiv_bt(Rn, 5);
-  emitU32(ctx, ins);
+  encodeBranch(2, 0x1f, 0, Rn, 0, ctx);
 }
 
 void rev_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx) {
@@ -878,6 +925,10 @@ void ror_(uint1 w, armReg Rd, armReg Rn, int16 amnt, assemCtxPo ctx) {
   encodeReg2Src(w, 0, 0, (0xc | (w << 1)), Rn, amnt, Rn, Rd, ctx);
 }
 
+void ror_imm(uint1 w, armReg Rd, armReg Rn, int16 amnt, assemCtxPo ctx) {
+  extr_(w, Rd, Rn, Rn, amnt, ctx);
+}
+
 void rorv_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
   encodeImm3Reg(w, 0, 0xd6, Rm, 0xb, Rn, Rd, ctx);
 }
@@ -892,6 +943,18 @@ void sbcs_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
 
 void sbfiz_(uint1 w, armReg Rd, armReg Rn, int8 lsb, int8 width, assemCtxPo ctx) {
   encodeDPReg2Imm(w, 0, 0x26, w, (-lsb % 64), width - 1, Rn, Rd, ctx);
+}
+
+void sbfm_(uint1 w, armReg Rd, armReg Rn, uint8 immr, uint8 imms, assemCtxPo ctx) {
+  encodeBitFld(w, 0, w, immr, imms, Rn, Rd, ctx);
+}
+
+void bfm_(uint1 w, armReg Rd, armReg Rn, uint8 immr, uint8 imms, assemCtxPo ctx) {
+  encodeBitFld(w, 1, w, immr, imms, Rn, Rd, ctx);
+}
+
+void ubfm_(uint1 w, armReg Rd, armReg Rn, uint8 immr, uint8 imms, assemCtxPo ctx) {
+  encodeBitFld(w, 2, w, immr, imms, Rn, Rd, ctx);
 }
 
 void sbfx_(uint1 w, armReg Rd, armReg Rn, int8 lsb, int8 width, assemCtxPo ctx) {
@@ -1063,4 +1126,12 @@ void sub_x(uint1 w, armReg Rd, armReg Rn, armReg Rm, armExtent ex, int8 amnt, as
 
 void sub_sh(uint1 w, armReg Rd, armReg Rn, armReg Rm, armShift sh, int8 imm, assemCtxPo ctx) {
   encodeShift3Reg(w, 1, 0, 0xb, sh, 0, Rm, imm, Rn, Rd, ctx);
+}
+
+void sub_imm(uint1 w, armReg Rd, armReg Rn, uint1 sh, int16 imm, assemCtxPo ctx) {
+  encodeAddSubImm(w, 1, 0, sh, imm, Rn, Rd, ctx);
+}
+
+void subs_imm(uint1 w, armReg Rd, armReg Rn, uint1 sh, int16 imm, assemCtxPo ctx) {
+  encodeAddSubImm(w, 1, 1, sh, imm, Rn, Rd, ctx);
 }

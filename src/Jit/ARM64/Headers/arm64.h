@@ -130,7 +130,7 @@ void sub_(armReg d, armReg s1, armOp s2, assemCtxPo ctx);
 void and_(armReg d, armReg s1, armOp s2, assemCtxPo ctx);
 
 void orn_(uint1 w, armReg Rd, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx);
-void orr_(uint1 w, armReg Rd, armReg Rn, int32 imm, assemCtxPo ctx);
+void orr_imm(uint1 w, armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
 void orr_sh_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx);
 
 void eor_(armReg d, armReg s1, armOp s2, assemCtxPo ctx);
@@ -171,6 +171,8 @@ void isb_(assemCtxPo ctx);
 void csdb_(assemCtxPo ctx);
 void esb_(assemCtxPo ctx);
 
+void extr_(uint1 w,armReg Rd,armReg Rn,armReg Rm,uint8 lsb,assemCtxPo ctx);
+
 void adr(armReg d, armOp src, assemCtxPo ctx);
 
 void ldr_(uint1 w, armReg Rt, armReg Rn, uint16 imm, ixMode ix, assemCtxPo ctx);
@@ -188,6 +190,10 @@ void ldurh_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
 void ldursh_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
 void ldurw_(armReg dst, armOp src, assemCtxPo ctx);
 void ldursw_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
+
+void bfm_(uint1 w, armReg Rd, armReg Rn, uint8 immr, uint8 imms, assemCtxPo ctx);
+void sbfm_(uint1 w, armReg Rd, armReg Rn, uint8 immr, uint8 imms, assemCtxPo ctx);
+void ubfm_(uint1 w, armReg Rd, armReg Rn, uint8 immr, uint8 imms, assemCtxPo ctx);
 
 void str_(uint1 w, armReg Rt, armReg Rn, ixMode ix, int16 imm, assemCtxPo ctx);
 void strb_(armReg Rt, armReg Rn, int16 imm, ixMode ix, assemCtxPo ctx);

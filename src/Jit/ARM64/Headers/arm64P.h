@@ -23,12 +23,6 @@ void encodeSve(assemCtxPo ctx);
 #define BITFIELD 0x6
 #define EXTRACE 0x7
 
-void encodeDataImm(uint8 op0,assemCtxPo ctx);
-
-void encodeBranch(assemCtxPo ctx);
-void encodeDataReg(assemCtxPo ctx);
-void encodeDataFP(assemCtxPo ctx);
-
 #define X0_mask (1u)
 #define X1_mask (1u<<1u)
 #define X2_mask (1u<<2u)
