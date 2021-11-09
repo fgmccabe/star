@@ -1252,7 +1252,7 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
 
   normalPo lits = codeLits(mtd);
   if (lits != Null)
-    outMsg(out, "%,*T [%d] ", displayDepth, nthArg(codeLits(mtd), 0), offset);
+    outMsg(out, "%,*T [%d] ", displayDepth, nthArg(lits, 0), offset);
   else
     outMsg(out, "\?\? [%d] ", offset);
 
