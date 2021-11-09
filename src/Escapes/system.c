@@ -55,8 +55,8 @@ void memerr() {
   exit(99);
 }
 
-ReturnStatus g__exit(processPo p, heapPo h, ptrPo tos) {
-  integer ix = integerVal(tos[0]);
+ReturnStatus g__exit(processPo p, heapPo h, termPo arg1) {
+  integer ix = integerVal(arg1);
 
   exit((int) ix);
 }
@@ -91,7 +91,7 @@ integer countEnviron() {
   return ix;
 }
 
-ReturnStatus g__envir(processPo P, heapPo h, ptrPo tos) {
+ReturnStatus g__envir(processPo P, heapPo h) {
   integer cnt = countEnviron();
   termPo list = (termPo) nilEnum;
   int root = gcAddRoot(h, (ptrPo) &list);
@@ -123,12 +123,10 @@ ReturnStatus g__envir(processPo P, heapPo h, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=(termPo) list};
 }
 
-ReturnStatus g__getenv(processPo P, heapPo h, ptrPo tos) {
-  termPo Arg1 = tos[0];
-  termPo Arg2 = tos[1];
+ReturnStatus g__getenv(processPo P, heapPo h, termPo a1, termPo a2) {
   char key[MAX_SYMB_LEN];
 
-  copyChars2Buff(C_STR(Arg1), key, NumberOf(key));
+  copyChars2Buff(C_STR(a1), key, NumberOf(key));
 
   char *val = getenv((char *) key);
 
@@ -136,18 +134,16 @@ ReturnStatus g__getenv(processPo P, heapPo h, ptrPo tos) {
     return (ReturnStatus) {.ret=Ok,
       .result=(termPo) allocateCString(h, val)};
   } else {
-    return (ReturnStatus) {.ret=Ok, .result=Arg2};
+    return (ReturnStatus) {.ret=Ok, .result=a2};
   }
 }
 
-ReturnStatus g__setenv(processPo P, heapPo h, ptrPo tos) {
-  termPo Arg1 = tos[0];
-  termPo Arg2 = tos[1];
+ReturnStatus g__setenv(processPo P, heapPo h, termPo a1, termPo a2) {
   char key[MAX_SYMB_LEN];
   char val[MAX_SYMB_LEN];
 
-  copyChars2Buff(C_STR(Arg1), key, NumberOf(key));
-  copyChars2Buff(C_STR(Arg2), val, NumberOf(val));
+  copyChars2Buff(C_STR(a1), key, NumberOf(key));
+  copyChars2Buff(C_STR(a2), val, NumberOf(val));
 
   if (setenv((char *) key, val, 1) == 0) {
     return (ReturnStatus) {.ret=Ok, .result=voidEnum};
@@ -155,7 +151,7 @@ ReturnStatus g__setenv(processPo P, heapPo h, ptrPo tos) {
     return liberror(P, h, "_setenv", eFAIL);
 }
 
-ReturnStatus g__repo(processPo p, heapPo h, ptrPo tos) {
+ReturnStatus g__repo(processPo p, heapPo h) {
   char repoBuffer[MAXFILELEN];
   strMsg(repoBuffer, NumberOf(repoBuffer), "%s/", repoDir);
   termPo repo = (termPo) allocateString(h, repoBuffer, uniStrLen(repoBuffer));
@@ -163,23 +159,20 @@ ReturnStatus g__repo(processPo p, heapPo h, ptrPo tos) {
   return (ReturnStatus) {.result = repo, .ret=Ok};
 }
 
-ReturnStatus g__getlogin(processPo P, heapPo h, ptrPo tos) {
+ReturnStatus g__getlogin(processPo P, heapPo h) {
   return (ReturnStatus) {.ret=Ok,
     .result=(termPo) allocateCString(h, getlogin())};
 }
 
-ReturnStatus g__shell(processPo P, heapPo h, ptrPo tos) {
-  termPo Arg1 = tos[0];
-  termPo Arg2 = tos[1];
-  termPo Arg3 = tos[2];
+ReturnStatus g__shell(processPo P, heapPo h, termPo a1, termPo a2, termPo a3) {
   switchProcessState(P, wait_io);
 
   char cmd[MAXFILELEN];
 
-  copyChars2Buff(C_STR(Arg1), cmd, NumberOf(cmd));
+  copyChars2Buff(C_STR(a1), cmd, NumberOf(cmd));
 
-  termPo args = Arg2;
-  termPo env = Arg3;
+  termPo args = a2;
+  termPo env = a3;
 
   integer argCnt = consLength(args);
   integer envCnt = consLength(env);
@@ -269,22 +262,17 @@ ReturnStatus g__shell(processPo P, heapPo h, ptrPo tos) {
   }
 }
 
-ReturnStatus g__popen(processPo P, heapPo h, ptrPo tos) {
-  termPo Arg1 = tos[0];
-  termPo Arg2 = tos[1];
-  termPo Arg3 = tos[2];
+ReturnStatus g__popen(processPo P, heapPo h, termPo a1, termPo a2, termPo a3) {
   switchProcessState(P, wait_io);
   switchProcessState(P, wait_io);
 
   char cmd[MAXFILELEN];
 
-  copyChars2Buff(C_STR(Arg1), cmd, NumberOf(cmd));
+  copyChars2Buff(C_STR(a1), cmd, NumberOf(cmd));
 
-  termPo args = Arg2;
-  termPo env = Arg3;
-
+  termPo args = a2;
   integer argCnt = consLength(args);
-  integer envCnt = consLength(env);
+  integer envCnt = consLength(a3);
 
   if (access((char *) cmd, ((unsigned) F_OK) | ((unsigned) R_OK) | ((unsigned) X_OK)) != 0) {
     setProcessRunnable(P);
@@ -307,6 +295,8 @@ ReturnStatus g__popen(processPo P, heapPo h, ptrPo tos) {
 
     argv[argCnt + 1] = NULL;
     strBufferPo lineBf = newStringBuffer();
+    termPo env = a3;
+
     for (integer ix = 0; ix < envCnt; ix++) {
       normalPo pair = C_NORMAL(consHead(C_NORMAL(env)));
       env = consTail(C_NORMAL(env));

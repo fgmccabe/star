@@ -17,7 +17,7 @@ static int installEscape(EscapeCode code, char *name, char *sig, libFun fun);
 
 #undef escape
 #define escape(Fun, Sig, Cmnt)\
-extern ReturnStatus g_##Fun(processPo p,heapPo h, ptrPo tos);\
+extern ReturnStatus g_##Fun(processPo p,heapPo h);\
   installEscape(Esc##Fun,#Fun,Sig,g_##Fun);
 
 void installEscapes() {
@@ -101,6 +101,10 @@ void dumpEscapes(ioPo out) {
   outMsg(out, "escapes executed\n");
   for (integer ix = 0; ix < NumberOf(escCount); ix++)
     dumpEsc(&escapes[ix], out, ix);
+}
+
+char *escapeName(escapePo esc) {
+  return esc->name;
 }
 
 #endif

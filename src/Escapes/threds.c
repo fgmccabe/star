@@ -33,8 +33,8 @@ void *forkThread(void *arg) {
   return NULL;
 }
 
-ReturnStatus g__fork(processPo P, heapPo h, ptrPo tos) {
-  labelPo fn = C_LBL(tos[0]);
+ReturnStatus g__fork(processPo P, heapPo h, termPo a1) {
+  labelPo fn = C_LBL(a1);
   processPo np = newProcess(h, labelCode(fn), P->wd, processCap(P), unitEnum);
 
   threadPo thread = newThread(np, globalHeap);
@@ -51,8 +51,8 @@ ReturnStatus g__fork(processPo P, heapPo h, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=(termPo) thread};
 }
 
-ReturnStatus g__kill(processPo P, heapPo h, ptrPo tos) {
-  threadPo th = C_THREAD(tos[0]);
+ReturnStatus g__kill(processPo P, heapPo h, termPo a1) {
+  threadPo th = C_THREAD(a1);
 
   processPo tgt = getThreadProcess(th);
 
@@ -63,12 +63,12 @@ ReturnStatus g__kill(processPo P, heapPo h, ptrPo tos) {
     return liberror(P, h, "kill", eINVAL);
 }
 
-ReturnStatus g__thread(processPo P, heapPo h, ptrPo tos) {
+ReturnStatus g__thread(processPo P, heapPo h) {
   return (ReturnStatus) {.ret=Ok, .result=(termPo) P->thread};
 }
 
-ReturnStatus g__thread_state(processPo P, heapPo h, ptrPo tos) {
-  threadPo th = C_THREAD(tos[0]);
+ReturnStatus g__thread_state(processPo P, heapPo h, termPo a1) {
+  threadPo th = C_THREAD(a1);
   processPo tgt = getThreadProcess(th);
 
   switchProcessState(P, in_exclusion);
@@ -83,8 +83,8 @@ ReturnStatus g__thread_state(processPo P, heapPo h, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=st};
 }
 
-ReturnStatus g__waitfor(processPo P, heapPo h, ptrPo tos) {
-  threadPo th = C_THREAD(tos[0]);
+ReturnStatus g__waitfor(processPo P, heapPo h, termPo a1) {
+  threadPo th = C_THREAD(a1);
   processPo tgt = getThreadProcess(th);
 
   if (tgt == NULL) {
@@ -116,10 +116,7 @@ ReturnStatus g__waitfor(processPo P, heapPo h, ptrPo tos) {
     return liberror(P, h, "_waitfor", eDEAD);
 }
 
-ReturnStatus g__abort(processPo P, heapPo h, ptrPo tos) {
-  termPo lc = tos[0];
-  termPo msg = tos[1];
-
+ReturnStatus g__abort(processPo P, heapPo h, termPo lc, termPo msg) {
   logMsg(logFile, "Abort %T at %L", msg, lc);
   verifyProc(P, h);
   stackTrace(P, NULL, logFile, P->stk, True);
@@ -127,7 +124,7 @@ ReturnStatus g__abort(processPo P, heapPo h, ptrPo tos) {
   return (ReturnStatus) {.ret=Error, .result=(termPo) voidEnum};
 }
 
-ReturnStatus g__stackTrace(processPo P, heapPo h, ptrPo tos) {
+ReturnStatus g__stackTrace(processPo P, heapPo h) {
   strBufferPo str = newStringBuffer();
 
   stackTrace(P, NULL, O_IO(str), P->stk, False);

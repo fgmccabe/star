@@ -37,7 +37,7 @@ escape(_flt_div,"F(ff)f","divide two floats")
 escape(_flt_mod,"F(ff)f","modulo remainder")
 
 escape(_int_abs,"F(i)i","integer absolute value")
-escape(_flt_abs,"F(i)i","float absolute value")
+escape(_flt_abs,"F(f)f","float absolute value")
 
 escape(_int_eq,"F(ii)l","integer equality")
 escape(_int_lt,"F(ii)l","integer less than")

@@ -15,8 +15,8 @@
 #include <consP.h>
 #include "netfile.h"
 
-ReturnStatus g__listen(processPo P, heapPo h, ptrPo tos) {
-  integer port = integerVal(tos[0]);
+ReturnStatus g__listen(processPo P, heapPo h, termPo a1) {
+  integer port = integerVal(a1);
   char nBuff[MAXFILELEN];
   ioPo listen;
 
@@ -33,11 +33,9 @@ ReturnStatus g__listen(processPo P, heapPo h, ptrPo tos) {
   }
 }
 
-ReturnStatus g__accept(processPo P, heapPo h, ptrPo tos) {
-  termPo Arg1 = tos[0];
-  termPo Arg2 = tos[1];
-  ioPo listen = ioChannel(C_IO(Arg1));
-  ioEncoding enc = pickEncoding(integerVal(Arg2));
+ReturnStatus g__accept(processPo P, heapPo h, termPo a1, termPo a2) {
+  ioPo listen = ioChannel(C_IO(a1));
+  ioEncoding enc = pickEncoding(integerVal(a2));
 
   switchProcessState(P, wait_io);
 
@@ -98,16 +96,13 @@ ReturnStatus g__accept(processPo P, heapPo h, ptrPo tos) {
   }
 }
 
-ReturnStatus g__connect(processPo P, heapPo h, ptrPo tos) {
-  termPo Arg1 = tos[0];
-  termPo Arg2 = tos[1];
-  termPo Arg3 = tos[2];
-  integer port = integerVal(Arg2);
+ReturnStatus g__connect(processPo P, heapPo h, termPo a1, termPo a2, termPo a3) {
+  integer port = integerVal(a2);
 
   integer hLen;
-  const char *host = strVal(Arg1, &hLen);
+  const char *host = strVal(a1, &hLen);
 
-  ioEncoding enc = pickEncoding(integerVal(Arg3));
+  ioEncoding enc = pickEncoding(integerVal(a3));
 
   switchProcessState(P, wait_io);
 
@@ -139,12 +134,11 @@ ReturnStatus g__connect(processPo P, heapPo h, ptrPo tos) {
 
 /* Access host name functions */
 /* return IP addresses of a host */
-ReturnStatus g__hosttoip(processPo P, heapPo h, ptrPo tos) {
-  termPo Arg1 = tos[0];
+ReturnStatus g__hosttoip(processPo P, heapPo h, termPo a1) {
   char host[MAXFILELEN];
   char ip[MAX_SYMB_LEN];
 
-  copyChars2Buff(C_STR(Arg1), host, NumberOf(host));
+  copyChars2Buff(C_STR(a1), host, NumberOf(host));
 
   termPo ipList = (termPo) nilEnum;
   termPo el = voidEnum;
@@ -161,10 +155,10 @@ ReturnStatus g__hosttoip(processPo P, heapPo h, ptrPo tos) {
 }
 
 /* Access host name from IP address */
-ReturnStatus g__iptohost(processPo P, heapPo h, ptrPo tos) {
+ReturnStatus g__iptohost(processPo P, heapPo h, termPo a1) {
   char ip[MAX_SYMB_LEN];
 
-  copyChars2Buff(C_STR(tos[0]), ip, NumberOf(ip));
+  copyChars2Buff(C_STR(a1), ip, NumberOf(ip));
 
   char *host = getHostname(ip);
 

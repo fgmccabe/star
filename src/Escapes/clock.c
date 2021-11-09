@@ -37,8 +37,8 @@ void initTime(void) {
  * reset the interval timer for the new period
  */
 
-ReturnStatus g__delay(processPo p, heapPo h, ptrPo tos) {
-  double dx = floatVal(tos[0]);
+ReturnStatus g__delay(processPo p, heapPo h, termPo a1) {
+  double dx = floatVal(a1);
 
   struct timespec tm;
   double seconds;
@@ -65,8 +65,8 @@ ReturnStatus g__delay(processPo p, heapPo h, ptrPo tos) {
   }
 }
 
-ReturnStatus g__sleep(processPo p, heapPo h, ptrPo tos) {
-  double f = floatVal(*tos);
+ReturnStatus g__sleep(processPo p, heapPo h, termPo a1) {
+  double f = floatVal(a1);
 
   struct timeval now;
   double seconds;
@@ -112,20 +112,20 @@ ReturnStatus g__sleep(processPo p, heapPo h, ptrPo tos) {
 }
 
 /* Return the current time */
-ReturnStatus g__now(processPo p, heapPo h, ptrPo tos) {
+ReturnStatus g__now(processPo p, heapPo h) {
   termPo now = (termPo) allocateFloat(h, get_time());
 
   return (ReturnStatus) {.ret=now != Null ? Ok : Error, .result=now};
 }
 
 /* Return the time at midnight */
-ReturnStatus g__today(processPo p, heapPo h, ptrPo tos) {
+ReturnStatus g__today(processPo p, heapPo h) {
   termPo now = (termPo) allocateFloat(h, get_date());
 
   return (ReturnStatus) {.ret=now != Null ? Ok : Error, .result=now};
 }
 
-ReturnStatus g__ticks(processPo p, heapPo h, ptrPo tos) {
+ReturnStatus g__ticks(processPo p, heapPo h) {
   termPo now = (termPo) allocateInteger(h, (integer) clock());
 
   return (ReturnStatus) {.ret=now != Null ? Ok : Error, .result=now};
@@ -151,5 +151,5 @@ double get_date(void) {
   gettimeofday(&t, NULL);
 
   t.tv_sec -= t.tv_sec % SECSINDAY;
-  return (t.tv_sec + timezone_offset);
+  return (double)(t.tv_sec + timezone_offset);
 }

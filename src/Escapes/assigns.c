@@ -8,30 +8,28 @@
 #include "assigns.h"
 #include "cellP.h"
 
-ReturnStatus g__cell(processPo p, heapPo h, ptrPo tos) {
-  termPo content = tos[0];
-  cellPo cell = newCell(h, content);
+ReturnStatus g__cell(processPo p, heapPo h, termPo a1) {
+  cellPo cell = newCell(h, a1);
 
   return (ReturnStatus){.ret=Ok, .result=(termPo) cell};
 }
 
-ReturnStatus g__get(processPo p, heapPo h, ptrPo tos) {
-  cellPo cell = C_CELL(tos[0]);
+ReturnStatus g__get(processPo p, heapPo h, termPo a1) {
+  cellPo cell = C_CELL(a1);
   return (ReturnStatus){.ret=Ok, .result=getCell(cell)};
 }
 
-ReturnStatus g__assign(processPo p, heapPo h, ptrPo tos) {
-  termPo Content = tos[1];
-  cellPo Cell = C_CELL(tos[0]);
+ReturnStatus g__assign(processPo p, heapPo h, termPo a1,termPo a2) {
+  cellPo Cell = C_CELL(a1);
 
-  setCell(Cell, Content);
+  setCell(Cell, a2);
 
   return (ReturnStatus){.ret=Ok, .result=unitEnum};
 }
 
-ReturnStatus g__overwrite(processPo p, heapPo h, ptrPo tos) {
-  normalPo orig = C_NORMAL(tos[0]);
-  normalPo newval = C_NORMAL(tos[1]);
+ReturnStatus g__overwrite(processPo p, heapPo h, termPo a1,termPo a2) {
+  normalPo orig = C_NORMAL(a1);
+  normalPo newval = C_NORMAL(a2);
 
   if (termArity(orig) == termArity(newval)) {
     orig->lbl = newval->lbl;

@@ -17,14 +17,12 @@ static MethodRec contMethod = {
   .code = {Swap, OCall, 0, 2, Underflow, 0}
 };
 
-ReturnStatus g__fun2cont(processPo p, heapPo h, ptrPo tos) {
-  termPo prompt = tos[0];
-
+ReturnStatus g__fun2cont(processPo p, heapPo h, termPo prompt,termPo a2) {
   contMethod.clss = methodClass;
 
   stackPo newStack = allocateStack(h, minStackSize, &contMethod, suspended, Null, prompt);
 
-  pushStack(newStack, tos[1]);
+  pushStack(newStack, a2);
 
   return (ReturnStatus) {.ret=Ok, .result=(termPo) newStack};
 }

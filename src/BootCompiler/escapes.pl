@@ -19,7 +19,7 @@ escapeType("_flt_times",funType(tplType([type("star.core*float"),type("star.core
 escapeType("_flt_div",funType(tplType([type("star.core*float"),type("star.core*float")]),type("star.core*float"))).
 escapeType("_flt_mod",funType(tplType([type("star.core*float"),type("star.core*float")]),type("star.core*float"))).
 escapeType("_int_abs",funType(tplType([type("star.core*integer")]),type("star.core*integer"))).
-escapeType("_flt_abs",funType(tplType([type("star.core*integer")]),type("star.core*integer"))).
+escapeType("_flt_abs",funType(tplType([type("star.core*float")]),type("star.core*float"))).
 escapeType("_int_eq",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*boolean"))).
 escapeType("_int_lt",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*boolean"))).
 escapeType("_int_ge",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*boolean"))).

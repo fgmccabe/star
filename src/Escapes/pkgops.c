@@ -16,15 +16,13 @@
 #include <consP.h>
 #include "pkgops.h"
 
-ReturnStatus g__pkg_is_present(processPo P, heapPo h, ptrPo tos) {
-  termPo Arg1 = tos[0];
-  termPo Arg2 = tos[1];
+ReturnStatus g__pkg_is_present(processPo P, heapPo h, termPo a1, termPo a2) {
   char pkgNm[MAX_SYMB_LEN];
   char vers[MAX_SYMB_LEN];
 
-  retCode ret = copyChars2Buff(C_STR(Arg1), pkgNm, NumberOf(pkgNm));
+  retCode ret = copyChars2Buff(C_STR(a1), pkgNm, NumberOf(pkgNm));
   if (ret == Ok)
-    ret = copyChars2Buff(C_STR(Arg2), vers, NumberOf(vers));
+    ret = copyChars2Buff(C_STR(a2), vers, NumberOf(vers));
 
   if (ret == Ok) {
     char *version = loadedVersion(pkgNm);
@@ -63,10 +61,9 @@ static retCode pickupImport(packagePo p, char *errorMsg, long msgLen, void *cl) 
   return Ok;
 }
 
-ReturnStatus g__install_pkg(processPo P, heapPo h, ptrPo tos) {
-  termPo Arg1 = tos[0];
+ReturnStatus g__install_pkg(processPo P, heapPo h, termPo a1) {
   integer len;
-  const char *text = strVal(Arg1, &len);
+  const char *text = strVal(a1, &len);
   char *buffer = (char *) malloc(sizeof(char) * len);
 
   memmove(buffer, text, len);
@@ -88,21 +85,18 @@ ReturnStatus g__install_pkg(processPo P, heapPo h, ptrPo tos) {
     return liberror(P, h, "_install_pkg", eFAIL);
 }
 
-ReturnStatus g__in_manifest(processPo P, heapPo h, ptrPo tos) {
-  termPo Arg1 = tos[0];
-  termPo Arg2 = tos[1];
-  termPo Arg3 = tos[2];
+ReturnStatus g__in_manifest(processPo P, heapPo h, termPo a1, termPo a2, termPo a3) {
   char pkg[MAX_SYMB_LEN];
   char version[MAX_SYMB_LEN];
   char kind[MAX_SYMB_LEN];
   char rsrc[MAXFILELEN];
 
-  retCode ret = copyChars2Buff(C_STR(Arg1), ((char *) (pkg)), NumberOf(pkg));
+  retCode ret = copyChars2Buff(C_STR(a1), ((char *) (pkg)), NumberOf(pkg));
   if (ret == Ok)
-    ret = copyChars2Buff(C_STR(Arg2), ((char *) (version)), NumberOf(version));
+    ret = copyChars2Buff(C_STR(a2), ((char *) (version)), NumberOf(version));
 
   if (ret == Ok)
-    ret = copyChars2Buff(C_STR(Arg3), kind, NumberOf(kind));
+    ret = copyChars2Buff(C_STR(a3), kind, NumberOf(kind));
 
   if (ret == Ok) {
     ret = manifestCompatibleResource(pkg, version, kind, rsrc, NumberOf(rsrc));
@@ -117,21 +111,18 @@ ReturnStatus g__in_manifest(processPo P, heapPo h, ptrPo tos) {
   }
 }
 
-ReturnStatus g__locate_in_manifest(processPo P, heapPo h, ptrPo tos) {
-  termPo Arg1 = tos[0];
-  termPo Arg2 = tos[1];
-  termPo Arg3 = tos[2];
+ReturnStatus g__locate_in_manifest(processPo P, heapPo h, termPo a1, termPo a2, termPo a3) {
   char pkg[MAX_SYMB_LEN];
   char version[MAX_SYMB_LEN];
   char kind[MAX_SYMB_LEN];
   char rsrc[MAXFILELEN];
 
-  retCode ret = copyChars2Buff(C_STR(Arg1), pkg, NumberOf(pkg));
+  retCode ret = copyChars2Buff(C_STR(a1), pkg, NumberOf(pkg));
   if (ret == Ok)
-    ret = copyChars2Buff(C_STR(Arg2), version, NumberOf(version));
+    ret = copyChars2Buff(C_STR(a2), version, NumberOf(version));
 
   if (ret == Ok)
-    ret = copyChars2Buff(C_STR(Arg3), kind, NumberOf(kind));
+    ret = copyChars2Buff(C_STR(a3), kind, NumberOf(kind));
 
   if (ret == Ok) {
     ret = manifestCompatibleResource(pkg, version, kind, rsrc, NumberOf(rsrc));

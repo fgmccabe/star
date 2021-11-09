@@ -21,8 +21,8 @@
 #define DATE_ZONE 8
 #define DATE_LEN 9
 
-ReturnStatus g__date2time(processPo p, heapPo h, ptrPo tos) {
-  normalPo dte = C_NORMAL(tos[0]);
+ReturnStatus g__date2time(processPo p, heapPo h, termPo a1) {
+  normalPo dte = C_NORMAL(a1);
   struct tm now;
 
   now.tm_year = (int) (integerVal(nthArg(dte, DATE_YEAR)) - 1900); /* Extract the year */
@@ -44,8 +44,8 @@ ReturnStatus g__date2time(processPo p, heapPo h, ptrPo tos) {
     .result=(termPo) allocateFloat(h, when + fraction)};
 }
 
-ReturnStatus g__utc2time(processPo p, heapPo h, ptrPo tos) {
-  normalPo dte = C_NORMAL(tos[0]);
+ReturnStatus g__utc2time(processPo p, heapPo h, termPo a1) {
+  normalPo dte = C_NORMAL(a1);
   struct tm now;
 
   now.tm_year = (int) (integerVal(nthArg(dte, DATE_YEAR)) - 1900); /* Extract the year */
@@ -67,15 +67,15 @@ ReturnStatus g__utc2time(processPo p, heapPo h, ptrPo tos) {
     .result=(termPo) allocateFloat(h, when + fraction)};
 }
 
-ReturnStatus g__time2date(processPo p, heapPo h, ptrPo tos) {
-  time_t when = (time_t) floatVal(tos[0]);
+ReturnStatus g__time2date(processPo p, heapPo h, termPo a1) {
+  time_t when = (time_t) floatVal(a1);
 
   struct tm *now = localtime(&when);
   normalPo dte = allocateTpl(h, DATE_LEN);
   int root = gcAddRoot(h, (ptrPo) &dte);
 
   double sec;
-  double fraction = modf(floatVal(tos[0]), &sec);
+  double fraction = modf(floatVal(a1), &sec);
 
   termPo year = allocateInteger(h, now->tm_year + 1900);
   setArg(dte, DATE_YEAR, year);
@@ -108,8 +108,8 @@ ReturnStatus g__time2date(processPo p, heapPo h, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=(termPo) dte};
 }
 
-ReturnStatus g__time2utc(processPo p, heapPo h, ptrPo tos) {
-  time_t when = (time_t) floatVal(tos[0]);
+ReturnStatus g__time2utc(processPo p, heapPo h, termPo a1) {
+  time_t when = (time_t) floatVal(a1);
 
   struct tm *now = gmtime(&when);
 
@@ -117,7 +117,7 @@ ReturnStatus g__time2utc(processPo p, heapPo h, ptrPo tos) {
   int root = gcAddRoot(h, (ptrPo) &dte);
 
   double sec;
-  double fraction = modf(floatVal(tos[0]), &sec);
+  double fraction = modf(floatVal(a1), &sec);
 
   termPo year = allocateInteger(h, now->tm_year + 1900);
   setArg(dte, DATE_YEAR, year);
