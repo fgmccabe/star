@@ -33,6 +33,7 @@
 
 #define pop() (*SP++)
 #define top() (*SP)
+#define peek(Ix) (SP[Ix])
 #define push(T) STMT_WRAP({*--SP=(termPo)(T);})
 #define local(off) (((ptrPo)FP)[-off])
 #define arg(off) (((ptrPo) (FP + 1))[off])
@@ -205,7 +206,28 @@ retCode run(processPo P) {
         escapePo esc = getEscape(escNo);
         saveRegisters();
         assert(H->topRoot == 0);
-        ReturnStatus ret = esc->fun(P, H, SP);  /* invoke the escape */
+        ReturnStatus ret;
+
+        switch (esc->arity) {
+          case 0:
+            ret = ((escFun0) (esc->fun))(P, H);
+            break;
+          case 1:
+            ret = ((escFun1) (esc->fun))(P, H, top());
+            break;
+          case 2:
+            ret = ((escFun2) (esc->fun))(P, H, top(), peek(1));
+            break;
+          case 3:
+            ret = ((escFun3) (esc->fun))(P, H, top(), peek(1), peek(2));
+            break;
+          case 4:
+            ret = ((escFun4) (esc->fun))(P, H, top(), peek(1), peek(2), peek(3));
+            break;
+          default:
+            logMsg(logFile, "invalid arity for escape %s", escapeName(esc));
+            bail();
+        }
         assert(H->topRoot == 0);
         restoreRegisters();
         SP += esc->arity;

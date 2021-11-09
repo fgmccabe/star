@@ -81,7 +81,7 @@ static inline int32 collect32(insPo pc) {
 #define collectI32(pc) (collI32(pc))
 #define collI32(pc) hi32 = (uint32)(uint16)(*(pc)++), lo32 = *(pc)++, ((hi32<<16)|lo32)
 
-ReturnStatus g__ins_debug(processPo P, heapPo h, ptrPo a) {
+ReturnStatus g__ins_debug(processPo P, heapPo h) {
   insDebugging = tracing = True;
   P->waitFor = stepInto;
   P->tracing = True;

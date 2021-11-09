@@ -22,7 +22,7 @@ star.compiler.escapes{
   escapeType("_flt_div") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*float"),nomnal("star.core*float")])),nomnal("star.core*float"))).
   escapeType("_flt_mod") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*float"),nomnal("star.core*float")])),nomnal("star.core*float"))).
   escapeType("_int_abs") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*integer"))).
-  escapeType("_flt_abs") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer")])),nomnal("star.core*integer"))).
+  escapeType("_flt_abs") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*float")])),nomnal("star.core*float"))).
   escapeType("_int_eq") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
   escapeType("_int_lt") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
   escapeType("_int_ge") => some(tpExp(tpExp(tpFun("=>",2),tplType([nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
