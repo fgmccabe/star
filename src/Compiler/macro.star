@@ -8,18 +8,17 @@ star.compiler.macro{
   import star.compiler.location.
   import star.compiler.meta.
   import star.compiler.macro.infra.
+  import star.compiler.macro.rules.
   import star.compiler.wff.
 
-
-
-  macroAst:(ast,macroContext,(ast,reports)=>either[reports,ast],reports) => either[reports,ast].
-  macroAst(A,Cxt,Examine,Rp) where Rules^=macros[macroKey(A)] => do{
-    Rslt <- applyRules(A,Cxt,.inactive,Rules,Rp);
+  macroAst:(ast,macroContext,(ast,reports)=>result[reports,ast],reports) => result[reports,ast].
+  macroAst(A,Cxt,Examine,Rp) => do{
+    Rslt <- applyRules(A,Cxt,.inactive,Rp);
 
     if active(T).=Rslt then
       macroAst(T,Cxt,Examine,Rp)
     else
-    Examine(A,Rp)
+      Examine(A,Rp)
   }
   macroAst(A,_,Examine,Rp) default => Examine(A,Rp).
 
