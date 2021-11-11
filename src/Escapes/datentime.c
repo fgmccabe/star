@@ -21,7 +21,7 @@
 #define DATE_ZONE 8
 #define DATE_LEN 9
 
-ReturnStatus g__date2time(processPo p, heapPo h, termPo a1) {
+ReturnStatus g__date2time(heapPo h, termPo a1) {
   normalPo dte = C_NORMAL(a1);
   struct tm now;
 
@@ -44,7 +44,7 @@ ReturnStatus g__date2time(processPo p, heapPo h, termPo a1) {
     .result=(termPo) allocateFloat(h, when + fraction)};
 }
 
-ReturnStatus g__utc2time(processPo p, heapPo h, termPo a1) {
+ReturnStatus g__utc2time(heapPo h, termPo a1) {
   normalPo dte = C_NORMAL(a1);
   struct tm now;
 
@@ -67,7 +67,7 @@ ReturnStatus g__utc2time(processPo p, heapPo h, termPo a1) {
     .result=(termPo) allocateFloat(h, when + fraction)};
 }
 
-ReturnStatus g__time2date(processPo p, heapPo h, termPo a1) {
+ReturnStatus g__time2date(heapPo h, termPo a1) {
   time_t when = (time_t) floatVal(a1);
 
   struct tm *now = localtime(&when);
@@ -108,7 +108,7 @@ ReturnStatus g__time2date(processPo p, heapPo h, termPo a1) {
   return (ReturnStatus) {.ret=Ok, .result=(termPo) dte};
 }
 
-ReturnStatus g__time2utc(processPo p, heapPo h, termPo a1) {
+ReturnStatus g__time2utc(heapPo h, termPo a1) {
   time_t when = (time_t) floatVal(a1);
 
   struct tm *now = gmtime(&when);

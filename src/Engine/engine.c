@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <lblops.h>
-#include <strings.h>
 
 #include "engineP.h"
 #include "decode.h"
@@ -23,6 +22,7 @@ static comparison sameProcess(void *, void *);
 static integer newProcessNumber();
 
 static LockRecord processLock;
+__thread processPo currentProcess = Null;
 
 MethodRec haltMethod = {
   .clss = Null,
@@ -104,7 +104,7 @@ void ps_kill(processPo p) {
 long stkGrow = 0;
 #endif
 
-ReturnStatus liberror(processPo P, heapPo h, char *name, termPo code) {
+ReturnStatus liberror(heapPo h, char *name, termPo code) {
   int root = gcAddRoot(h, &code);
   termPo msg = allocateCString(h, name);
   gcAddRoot(h, (ptrPo) &msg);

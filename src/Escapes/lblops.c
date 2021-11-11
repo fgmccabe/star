@@ -9,7 +9,7 @@
 #include "lblops.h"
 #include "engineP.h"
 
-ReturnStatus g__definedLbl(processPo P, heapPo h, termPo a1,termPo a2) {
+ReturnStatus g__definedLbl(heapPo h, termPo a1,termPo a2) {
   char label[MAX_SYMB_LEN];
   copyChars2Buff(C_STR(a1), label, NumberOf(label));
   integer arity = integerVal(a2);
@@ -32,7 +32,7 @@ static void pushArgs(processPo P, termPo args) {
   }
 }
 
-ReturnStatus g__callLbl(processPo P, heapPo h, termPo a1, termPo a2, termPo a3) {
+ReturnStatus g__callLbl(heapPo h, termPo a1, termPo a2, termPo a3) {
   integer arity = integerVal(2);
 
   char label[MAX_SYMB_LEN];
@@ -47,9 +47,9 @@ ReturnStatus g__callLbl(processPo P, heapPo h, termPo a1, termPo a2, termPo a3) 
     if (prog == Null) {
       return ret;
     } else {
-      pushArgs(P, a2);
+      pushArgs(currentProcess, a2);
 
-      stackPo stk = P->stk;
+      stackPo stk = currentProcess->stk;
       pushFrame(stk,prog,stk->fp,stk->sp);
 
       integer lclCnt = lclCount(prog);  /* How many locals do we have */

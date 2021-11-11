@@ -16,7 +16,7 @@
 #include <consP.h>
 #include "pkgops.h"
 
-ReturnStatus g__pkg_is_present(processPo P, heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__pkg_is_present(heapPo h, termPo a1, termPo a2) {
   char pkgNm[MAX_SYMB_LEN];
   char vers[MAX_SYMB_LEN];
 
@@ -61,7 +61,7 @@ static retCode pickupImport(packagePo p, char *errorMsg, long msgLen, void *cl) 
   return Ok;
 }
 
-ReturnStatus g__install_pkg(processPo P, heapPo h, termPo a1) {
+ReturnStatus g__install_pkg(heapPo h, termPo a1) {
   integer len;
   const char *text = strVal(a1, &len);
   char *buffer = (char *) malloc(sizeof(char) * len);
@@ -82,10 +82,10 @@ ReturnStatus g__install_pkg(processPo P, heapPo h, termPo a1) {
   if (ret == Ok) {
     return (ReturnStatus) {.ret=ret, .result= (termPo) imports};
   } else
-    return liberror(P, h, "_install_pkg", eFAIL);
+    return liberror(h, "_install_pkg", eFAIL);
 }
 
-ReturnStatus g__in_manifest(processPo P, heapPo h, termPo a1, termPo a2, termPo a3) {
+ReturnStatus g__in_manifest(heapPo h, termPo a1, termPo a2, termPo a3) {
   char pkg[MAX_SYMB_LEN];
   char version[MAX_SYMB_LEN];
   char kind[MAX_SYMB_LEN];
@@ -111,7 +111,7 @@ ReturnStatus g__in_manifest(processPo P, heapPo h, termPo a1, termPo a2, termPo 
   }
 }
 
-ReturnStatus g__locate_in_manifest(processPo P, heapPo h, termPo a1, termPo a2, termPo a3) {
+ReturnStatus g__locate_in_manifest(heapPo h, termPo a1, termPo a2, termPo a3) {
   char pkg[MAX_SYMB_LEN];
   char version[MAX_SYMB_LEN];
   char kind[MAX_SYMB_LEN];

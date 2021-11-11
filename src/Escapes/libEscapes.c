@@ -58,7 +58,7 @@ escapePo getEscape(uint32 escNo) {
   return &escapes[escNo];
 }
 
-ReturnStatus rtnStatus(processPo p, heapPo h, retCode ret, char *msg) {
+ReturnStatus rtnStatus(heapPo h, retCode ret, char *msg) {
   ReturnStatus rtn = {.ret = ret};
 
   switch (ret) {
@@ -80,7 +80,7 @@ ReturnStatus rtnStatus(processPo p, heapPo h, retCode ret, char *msg) {
       return rtn;
     }
     default:
-      return rtnStatus(p, h, Error, "cannot handle return");
+      return rtnStatus(h, Error, "cannot handle return");
   }
 }
 

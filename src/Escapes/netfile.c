@@ -15,39 +15,39 @@
 #include <consP.h>
 #include "netfile.h"
 
-ReturnStatus g__listen(processPo P, heapPo h, termPo a1) {
+ReturnStatus g__listen(heapPo h, termPo a1) {
   integer port = integerVal(a1);
   char nBuff[MAXFILELEN];
   ioPo listen;
 
   strMsg(nBuff, NumberOf(nBuff), "listen@%ld", port);
-  switchProcessState(P, wait_io);
+  switchProcessState(currentProcess, wait_io);
   listen = O_IO(listeningPort(nBuff, (unsigned short) port));
-  setProcessRunnable(P);
+  setProcessRunnable(currentProcess);
 
   if (listen == NULL)
-    return liberror(P, h, "_listen", eNOPERM);
+    return liberror(h, "_listen", eNOPERM);
   else {
     return (ReturnStatus) {.ret=Ok,
       .result =(termPo) allocateIOChnnl(h, listen)};
   }
 }
 
-ReturnStatus g__accept(processPo P, heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__accept(heapPo h, termPo a1, termPo a2) {
   ioPo listen = ioChannel(C_IO(a1));
   ioEncoding enc = pickEncoding(integerVal(a2));
 
-  switchProcessState(P, wait_io);
+  switchProcessState(currentProcess, wait_io);
 
   ioPo inC, outC;
 
-  switchProcessState(P, wait_io);
+  switchProcessState(currentProcess, wait_io);
   retCode ret = acceptConnection(O_SOCK(listen), enc, &inC, &outC);
 
-  setProcessRunnable(P);
+  setProcessRunnable(currentProcess);
 
   if (listen == NULL)
-    return liberror(P, h, "_accept", eNOPERM);
+    return liberror(h, "_accept", eNOPERM);
   else {
 
     switch (ret) {
@@ -60,7 +60,7 @@ ReturnStatus g__accept(processPo P, heapPo h, termPo a1, termPo a2) {
         if (peerN == NULL || peerI == NULL) {
           closeFile(inC);
           closeFile(outC);
-          return liberror(P, h, "_accept", eNOTFND);
+          return liberror(h, "_accept", eNOTFND);
         }
 
         termPo inChnl = (termPo) allocateIOChnnl(h, inC);
@@ -91,12 +91,12 @@ ReturnStatus g__accept(processPo P, heapPo h, termPo a1, termPo a2) {
         return (ReturnStatus) {.ret=Ok, .result =(termPo) reslt};
       }
       default:
-        return liberror(P, h, "_accept", eIOERROR);
+        return liberror(h, "_accept", eIOERROR);
     }
   }
 }
 
-ReturnStatus g__connect(processPo P, heapPo h, termPo a1, termPo a2, termPo a3) {
+ReturnStatus g__connect(heapPo h, termPo a1, termPo a2, termPo a3) {
   integer port = integerVal(a2);
 
   integer hLen;
@@ -104,12 +104,12 @@ ReturnStatus g__connect(processPo P, heapPo h, termPo a1, termPo a2, termPo a3) 
 
   ioEncoding enc = pickEncoding(integerVal(a3));
 
-  switchProcessState(P, wait_io);
+  switchProcessState(currentProcess, wait_io);
 
   ioPo inC, outC;
   retCode ret = connectRemote(host, (int) port, enc, True, &inC, &outC);
 
-  setProcessRunnable(P);
+  setProcessRunnable(currentProcess);
 
   switch (ret) {
     case Ok: {
@@ -128,13 +128,13 @@ ReturnStatus g__connect(processPo P, heapPo h, termPo a1, termPo a2, termPo a3) 
     }
     default:
       logMsg(logFile, "Failed to establish connection: %S", host, hLen);
-      return liberror(P, h, "_connect", eCONNECT);
+      return liberror(h, "_connect", eCONNECT);
   }
 }
 
 /* Access host name functions */
 /* return IP addresses of a host */
-ReturnStatus g__hosttoip(processPo P, heapPo h, termPo a1) {
+ReturnStatus g__hosttoip(heapPo h, termPo a1) {
   char host[MAXFILELEN];
   char ip[MAX_SYMB_LEN];
 
@@ -155,7 +155,7 @@ ReturnStatus g__hosttoip(processPo P, heapPo h, termPo a1) {
 }
 
 /* Access host name from IP address */
-ReturnStatus g__iptohost(processPo P, heapPo h, termPo a1) {
+ReturnStatus g__iptohost(heapPo h, termPo a1) {
   char ip[MAX_SYMB_LEN];
 
   copyChars2Buff(C_STR(a1), ip, NumberOf(ip));
@@ -166,7 +166,7 @@ ReturnStatus g__iptohost(processPo P, heapPo h, termPo a1) {
     termPo Host = allocateCString(h, host);
     return (ReturnStatus) {.ret=Ok, .result =Host};
   } else
-    return liberror(P, h, "_iptohost", eNOTFND);
+    return liberror(h, "_iptohost", eNOTFND);
 }
 
 

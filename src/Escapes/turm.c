@@ -7,7 +7,7 @@
 #include <assert.h>
 #include "turm.h"
 
-ReturnStatus g__tuple_nth(processPo P, heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__tuple_nth(heapPo h, termPo a1, termPo a2) {
   normalPo tpl = C_NORMAL(a1);
   integer ix = integerVal(a2);
 
@@ -16,7 +16,7 @@ ReturnStatus g__tuple_nth(processPo P, heapPo h, termPo a1, termPo a2) {
   return (ReturnStatus) {.ret=Ok, .result=el};
 }
 
-ReturnStatus g__tuple_set_nth(processPo P, heapPo h, termPo a1, termPo a2, termPo a3) {
+ReturnStatus g__tuple_set_nth(heapPo h, termPo a1, termPo a2, termPo a3) {
   normalPo tpl = C_NORMAL(a1);
   integer ix = integerVal(a2);
 

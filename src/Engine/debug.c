@@ -81,14 +81,14 @@ static inline int32 collect32(insPo pc) {
 #define collectI32(pc) (collI32(pc))
 #define collI32(pc) hi32 = (uint32)(uint16)(*(pc)++), lo32 = *(pc)++, ((hi32<<16)|lo32)
 
-ReturnStatus g__ins_debug(processPo P, heapPo h) {
+ReturnStatus g__ins_debug(heapPo h) {
   insDebugging = tracing = True;
-  P->waitFor = stepInto;
-  P->tracing = True;
-  P->traceCount = 0;
-  P->traceDepth = 0;
+  currentProcess->waitFor = stepInto;
+  currentProcess->tracing = True;
+  currentProcess->traceCount = 0;
+  currentProcess->traceDepth = 0;
 
-  return rtnStatus(P, h, Ok, "_ins_debug");
+  return rtnStatus(h, Ok, "_ins_debug");
 }
 
 static integer cmdCount(char *cmdLine, integer deflt) {

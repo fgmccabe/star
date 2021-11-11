@@ -33,9 +33,9 @@ void *forkThread(void *arg) {
   return NULL;
 }
 
-ReturnStatus g__fork(processPo P, heapPo h, termPo a1) {
+ReturnStatus g__fork(heapPo h, termPo a1) {
   labelPo fn = C_LBL(a1);
-  processPo np = newProcess(h, labelCode(fn), P->wd, processCap(P), unitEnum);
+  processPo np = newProcess(h, labelCode(fn), currentProcess->wd, processCap(currentProcess), unitEnum);
 
   threadPo thread = newThread(np, globalHeap);
 
@@ -51,27 +51,27 @@ ReturnStatus g__fork(processPo P, heapPo h, termPo a1) {
   return (ReturnStatus) {.ret=Ok, .result=(termPo) thread};
 }
 
-ReturnStatus g__kill(processPo P, heapPo h, termPo a1) {
+ReturnStatus g__kill(heapPo h, termPo a1) {
   threadPo th = C_THREAD(a1);
 
   processPo tgt = getThreadProcess(th);
 
-  if (tgt != NULL && tgt != P) {
+  if (tgt != NULL && tgt != currentProcess) {
     ps_kill(tgt);
     return (ReturnStatus) {.ret=Ok, .result=voidEnum};
   } else
-    return liberror(P, h, "kill", eINVAL);
+    return liberror(h, "kill", eINVAL);
 }
 
-ReturnStatus g__thread(processPo P, heapPo h) {
-  return (ReturnStatus) {.ret=Ok, .result=(termPo) P->thread};
+ReturnStatus g__thread(heapPo h) {
+  return (ReturnStatus) {.ret=Ok, .result=(termPo) currentProcess->thread};
 }
 
-ReturnStatus g__thread_state(processPo P, heapPo h, termPo a1) {
+ReturnStatus g__thread_state(heapPo h, termPo a1) {
   threadPo th = C_THREAD(a1);
   processPo tgt = getThreadProcess(th);
 
-  switchProcessState(P, in_exclusion);
+  switchProcessState(currentProcess, in_exclusion);
 
   termPo st;
 
@@ -79,55 +79,55 @@ ReturnStatus g__thread_state(processPo P, heapPo h, termPo a1) {
     st = declareEnum(state_names[dead], dead, globalHeap);
   else
     st = declareEnum(state_names[tgt->state], dead, globalHeap);
-  setProcessRunnable(P);
+  setProcessRunnable(currentProcess);
   return (ReturnStatus) {.ret=Ok, .result=st};
 }
 
-ReturnStatus g__waitfor(processPo P, heapPo h, termPo a1) {
+ReturnStatus g__waitfor(heapPo h, termPo a1) {
   threadPo th = C_THREAD(a1);
   processPo tgt = getThreadProcess(th);
 
   if (tgt == NULL) {
     ReturnStatus rt = {.ret=Ok, .result=(termPo) voidEnum};
     return rt;
-  } else if (tgt != P) {
+  } else if (tgt != currentProcess) {
     pthread_t thread = tgt->threadID;
     void *result;      /* This is ignored */
 
-    switchProcessState(P, wait_term);
+    switchProcessState(currentProcess, wait_term);
     if (pthread_join(thread, &result) == 0) {
-      setProcessRunnable(P);
+      setProcessRunnable(currentProcess);
       return (ReturnStatus) {.ret=Ok, .result=(termPo) voidEnum};
     } else {
-      setProcessRunnable(P);
+      setProcessRunnable(currentProcess);
       switch (errno) {
         case EINVAL:
-          return liberror(P, h, "_waitfor", eINVAL);
+          return liberror(h, "_waitfor", eINVAL);
         case ESRCH:
-          return liberror(P, h, "_waitfor", eNOTFND);
+          return liberror(h, "_waitfor", eNOTFND);
         case EDEADLK:
-          return liberror(P, h, "_waitfor", eDEAD);
+          return liberror(h, "_waitfor", eDEAD);
         default: {
           return (ReturnStatus) {.ret=Ok, .result=(termPo) voidEnum};
         }
       }
     }
   } else
-    return liberror(P, h, "_waitfor", eDEAD);
+    return liberror(h, "_waitfor", eDEAD);
 }
 
-ReturnStatus g__abort(processPo P, heapPo h, termPo lc, termPo msg) {
+ReturnStatus g__abort(heapPo h, termPo lc, termPo msg) {
   logMsg(logFile, "Abort %T at %L", msg, lc);
-  verifyProc(P, h);
-  stackTrace(P, NULL, logFile, P->stk, True);
+  verifyProc(currentProcess, h);
+  stackTrace(currentProcess, NULL, logFile, currentProcess->stk, True);
 
   return (ReturnStatus) {.ret=Error, .result=(termPo) voidEnum};
 }
 
-ReturnStatus g__stackTrace(processPo P, heapPo h) {
+ReturnStatus g__stackTrace(heapPo h) {
   strBufferPo str = newStringBuffer();
 
-  stackTrace(P, NULL, O_IO(str), P->stk, False);
+  stackTrace(currentProcess, NULL, O_IO(str), currentProcess->stk, False);
 
   ReturnStatus rt = {.ret=Ok, .result=allocateFromStrBuffer(str, h)};
   closeFile(O_IO(str));

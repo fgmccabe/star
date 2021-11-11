@@ -70,6 +70,8 @@ retCode run(processPo P) {
 
   register uint32 hi32, lo32;    /* Temporary registers */
 
+  currentProcess = P;
+
 #ifdef TRACEMEM
   if (traceMemory)
     verifyProc(P, H);
@@ -210,19 +212,19 @@ retCode run(processPo P) {
 
         switch (esc->arity) {
           case 0:
-            ret = ((escFun0) (esc->fun))(P, H);
+            ret = ((escFun0) (esc->fun))(H);
             break;
           case 1:
-            ret = ((escFun1) (esc->fun))(P, H, top());
+            ret = ((escFun1) (esc->fun))(H, top());
             break;
           case 2:
-            ret = ((escFun2) (esc->fun))(P, H, top(), peek(1));
+            ret = ((escFun2) (esc->fun))(H, top(), peek(1));
             break;
           case 3:
-            ret = ((escFun3) (esc->fun))(P, H, top(), peek(1), peek(2));
+            ret = ((escFun3) (esc->fun))(H, top(), peek(1), peek(2));
             break;
           case 4:
-            ret = ((escFun4) (esc->fun))(P, H, top(), peek(1), peek(2), peek(3));
+            ret = ((escFun4) (esc->fun))(H, top(), peek(1), peek(2), peek(3));
             break;
           default:
             logMsg(logFile, "invalid arity for escape %s", escapeName(esc));
