@@ -55,7 +55,7 @@ void memerr() {
   exit(99);
 }
 
-ReturnStatus g__exit(processPo p, heapPo h, termPo arg1) {
+ReturnStatus g__exit(heapPo h, termPo arg1) {
   integer ix = integerVal(arg1);
 
   exit((int) ix);
@@ -91,7 +91,7 @@ integer countEnviron() {
   return ix;
 }
 
-ReturnStatus g__envir(processPo P, heapPo h) {
+ReturnStatus g__envir(heapPo h) {
   integer cnt = countEnviron();
   termPo list = (termPo) nilEnum;
   int root = gcAddRoot(h, (ptrPo) &list);
@@ -102,7 +102,7 @@ ReturnStatus g__envir(processPo P, heapPo h) {
   gcAddRoot(h, &vl);
   gcAddRoot(h, &pair);
 
-  switchProcessState(P, in_exclusion);
+  switchProcessState(currentProcess, in_exclusion);
 
   for (integer ix = 0; ix < cnt; ix++) {
     char *envPair = environ[ix];
@@ -119,11 +119,11 @@ ReturnStatus g__envir(processPo P, heapPo h) {
     list = (termPo) allocateCons(h, pair, list);
   }
   gcReleaseRoot(NULL, root);
-  setProcessRunnable(P);
+  setProcessRunnable(currentProcess);
   return (ReturnStatus) {.ret=Ok, .result=(termPo) list};
 }
 
-ReturnStatus g__getenv(processPo P, heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__getenv(heapPo h, termPo a1, termPo a2) {
   char key[MAX_SYMB_LEN];
 
   copyChars2Buff(C_STR(a1), key, NumberOf(key));
@@ -138,7 +138,7 @@ ReturnStatus g__getenv(processPo P, heapPo h, termPo a1, termPo a2) {
   }
 }
 
-ReturnStatus g__setenv(processPo P, heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__setenv(heapPo h, termPo a1, termPo a2) {
   char key[MAX_SYMB_LEN];
   char val[MAX_SYMB_LEN];
 
@@ -148,10 +148,10 @@ ReturnStatus g__setenv(processPo P, heapPo h, termPo a1, termPo a2) {
   if (setenv((char *) key, val, 1) == 0) {
     return (ReturnStatus) {.ret=Ok, .result=voidEnum};
   } else
-    return liberror(P, h, "_setenv", eFAIL);
+    return liberror(h, "_setenv", eFAIL);
 }
 
-ReturnStatus g__repo(processPo p, heapPo h) {
+ReturnStatus g__repo(heapPo h) {
   char repoBuffer[MAXFILELEN];
   strMsg(repoBuffer, NumberOf(repoBuffer), "%s/", repoDir);
   termPo repo = (termPo) allocateString(h, repoBuffer, uniStrLen(repoBuffer));
@@ -159,13 +159,13 @@ ReturnStatus g__repo(processPo p, heapPo h) {
   return (ReturnStatus) {.result = repo, .ret=Ok};
 }
 
-ReturnStatus g__getlogin(processPo P, heapPo h) {
+ReturnStatus g__getlogin(heapPo h) {
   return (ReturnStatus) {.ret=Ok,
     .result=(termPo) allocateCString(h, getlogin())};
 }
 
-ReturnStatus g__shell(processPo P, heapPo h, termPo a1, termPo a2, termPo a3) {
-  switchProcessState(P, wait_io);
+ReturnStatus g__shell(heapPo h, termPo a1, termPo a2, termPo a3) {
+  switchProcessState(currentProcess, wait_io);
 
   char cmd[MAXFILELEN];
 
@@ -178,11 +178,11 @@ ReturnStatus g__shell(processPo P, heapPo h, termPo a1, termPo a2, termPo a3) {
   integer envCnt = consLength(env);
 
   if (access((char *) cmd, F_OK | R_OK | X_OK) != 0) {
-    setProcessRunnable(P);
-    return liberror(P, h, "__shell", eNOTFND);
+    setProcessRunnable(currentProcess);
+    return liberror(h, "__shell", eNOTFND);
   } else if (!isExecutableFile(cmd)) {
-    setProcessRunnable(P);
-    return liberror(P, h, "__shell", eNOPERM);
+    setProcessRunnable(currentProcess);
+    return liberror(h, "__shell", eNOPERM);
   } else {
     char **argv = (char **) calloc((size_t) (argCnt + 2), sizeof(char *));
     char **envp = (char **) calloc((size_t) (envCnt + 1), sizeof(char *));
@@ -218,7 +218,7 @@ ReturnStatus g__shell(processPo P, heapPo h, termPo a1, termPo a2, termPo a3) {
 
     envp[envCnt] = NULL;
 
-    switchProcessState(P, wait_child);  /* We are now waiting for a child */
+    switchProcessState(currentProcess, wait_child);  /* We are now waiting for a child */
 
     if ((pid = fork()) == 0) {
       // child process, terminating after execve
@@ -240,14 +240,14 @@ ReturnStatus g__shell(processPo P, heapPo h, termPo a1, termPo a2, termPo a3) {
         int childStatus;
         int res = waitpid(pid, &childStatus, 0);
 
-        setProcessRunnable(P);  /* now we can run */
+        setProcessRunnable(currentProcess);  /* now we can run */
 
         if (res < 0) {
           switch (errno) {
             case ECHILD:
-              return liberror(P, h, "__shell", eNOTFND);
+              return liberror(h, "__shell", eNOTFND);
             case EFAULT:
-              return liberror(P, h, "__shell", eINVAL);
+              return liberror(h, "__shell", eINVAL);
             case EINTR:
             default:
               continue;
@@ -256,15 +256,15 @@ ReturnStatus g__shell(processPo P, heapPo h, termPo a1, termPo a2, termPo a3) {
           return (ReturnStatus) {.ret=Ok,
             .result = (termPo) allocateInteger(h, WEXITSTATUS(childStatus))};
         } else if (WIFSIGNALED(childStatus))
-          return liberror(P, h, "__shell", eINTRUPT);
+          return liberror(h, "__shell", eINTRUPT);
       } while (True);
     }
   }
 }
 
-ReturnStatus g__popen(processPo P, heapPo h, termPo a1, termPo a2, termPo a3) {
-  switchProcessState(P, wait_io);
-  switchProcessState(P, wait_io);
+ReturnStatus g__popen(heapPo h, termPo a1, termPo a2, termPo a3) {
+  switchProcessState(currentProcess, wait_io);
+  switchProcessState(currentProcess, wait_io);
 
   char cmd[MAXFILELEN];
 
@@ -275,11 +275,11 @@ ReturnStatus g__popen(processPo P, heapPo h, termPo a1, termPo a2, termPo a3) {
   integer envCnt = consLength(a3);
 
   if (access((char *) cmd, ((unsigned) F_OK) | ((unsigned) R_OK) | ((unsigned) X_OK)) != 0) {
-    setProcessRunnable(P);
-    return liberror(P, h, "__shell", eNOTFND);
+    setProcessRunnable(currentProcess);
+    return liberror(h, "__shell", eNOTFND);
   } else if (!isExecutableFile(cmd)) {
-    setProcessRunnable(P);
-    return liberror(P, h, "__shell", eNOPERM);
+    setProcessRunnable(currentProcess);
+    return liberror(h, "__shell", eNOPERM);
   } else {
     char **argv = (char **) calloc((size_t) (argCnt + 2), sizeof(char *));
     char **envp = (char **) calloc((size_t) (envCnt + 1), sizeof(char *));
@@ -329,7 +329,7 @@ ReturnStatus g__popen(processPo P, heapPo h, termPo a1, termPo a2, termPo a3) {
         ioChnnlPo err = allocateIOChnnl(h, errPipe);
         gcAddRoot(h, (ptrPo) &err);
 
-        setProcessRunnable(P);
+        setProcessRunnable(currentProcess);
 
         normalPo triple = allocateTpl(h, 3);
         setArg(triple, 0, (termPo) in);
@@ -346,8 +346,8 @@ ReturnStatus g__popen(processPo P, heapPo h, termPo a1, termPo a2, termPo a3) {
         for (integer ix = 0; ix < envCnt; ix++)
           free(envp[ix]);    /* release the strings we allocated */
 
-        setProcessRunnable(P);
-        return liberror(P, h, "__popen", eIOERROR);
+        setProcessRunnable(currentProcess);
+        return liberror(h, "__popen", eIOERROR);
       }
     }
   }
