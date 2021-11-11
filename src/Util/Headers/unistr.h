@@ -126,6 +126,9 @@ retCode uniLower(const char *s, integer sLen, char *d, integer dLen);
 retCode uniTrim(const char *s, integer sLen, char *front, char *trail, char *out, integer outLen);
 logical uniIsTrivial(const char *s, integer len);
 
+logical sameBytes(const byte *s1,integer l1,const byte* s2,integer l2);
+retCode byteMove(byte *dest, integer len, const byte *src, integer sLen);
+integer byteHash(const byte *data, long len);
 integer hash64(integer ix);
 
 typedef retCode (*uniCodeProc)(codePoint ch, integer ix, void *cl);

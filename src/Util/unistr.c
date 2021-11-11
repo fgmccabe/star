@@ -301,7 +301,7 @@ retCode uniNCpy(char *dest, integer len, const char *src, integer sLen) {
   return pos < len ? Ok : Eof;
 }
 
-retCode uniMove(char *dest, integer len, const char *src, integer sLen){
+retCode uniMove(char *dest, integer len, const char *src, integer sLen) {
   integer pos = 0;
   integer max = (sLen < len ? sLen : len);
   char *s = (char *) src;
@@ -309,6 +309,28 @@ retCode uniMove(char *dest, integer len, const char *src, integer sLen){
   while (pos < max)
     dest[pos++] = *s++;
   return pos < len ? Ok : Eof;
+}
+
+retCode byteMove(byte *dest, integer len, const byte *src, integer sLen) {
+  integer pos = 0;
+  integer max = (sLen < len ? sLen : len);
+  byte *s = (byte *) src;
+
+  while (pos < max)
+    dest[pos++] = *s++;
+  return pos < len ? Ok : Eof;
+}
+
+logical sameBytes(const byte *s1,integer l1,const byte* s2,integer l2){
+  if(l1!=l2)
+    return False;
+  else{
+    for(integer ix=0;ix<l1;ix++) {
+      if (s1[ix] != s2[ix])
+        return False;
+    }
+    return True;
+  }
 }
 
 comparison uniCmp(const char *s1, const char *s2) {
@@ -535,8 +557,19 @@ integer uniNHash(const char *name, long len) {
   return hash64(hash);
 }
 
+integer byteHash(const byte *data, long len) {
+  register integer hash = 0;
+  integer fx = 0;
+
+  while (fx < len) {
+    hash = hash * 37 + data[fx++];
+  }
+
+  return hash64(hash);
+}
+
 integer hash64(integer ix) {
-  return (uint64) ix & ((uint64) LARGE_INT64);
+  return (integer) ((uint64) ix & ((uint64) LARGE_INT64));
 }
 
 retCode uniLower(const char *s, integer sLen, char *d, integer dLen) {
