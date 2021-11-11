@@ -40,7 +40,7 @@ typedef enum {
   X29 = 29,
   LR = 30,
   ZR = 31,
-  SP=31
+  SP = 31
 } armReg;
 
 typedef enum {
@@ -160,8 +160,8 @@ void ret_(armReg reg, assemCtxPo ctx);
 
 void cbnz_(uint1 w, armReg Rt, codeLblPo lbl, assemCtxPo ctx);
 void cbz_(uint1 w, armReg Rt, codeLblPo lbl, assemCtxPo ctx);
-void tbnz_(codeLblPo lbl, assemCtxPo ctx);
-void tbz_(codeLblPo lbl, assemCtxPo ctx);
+void tbnz_(uint1 w, armReg Rt, uint8 pos, codeLblPo lbl, assemCtxPo ctx);
+void tbz_(uint1 w, armReg Rt, uint8 pos, codeLblPo lbl, assemCtxPo ctx);
 
 void clrex_(assemCtxPo ctx);
 void dmb_(assemCtxPo ctx);
@@ -171,9 +171,10 @@ void isb_(assemCtxPo ctx);
 void csdb_(assemCtxPo ctx);
 void esb_(assemCtxPo ctx);
 
-void extr_(uint1 w,armReg Rd,armReg Rn,armReg Rm,uint8 lsb,assemCtxPo ctx);
+void extr_(uint1 w, armReg Rd, armReg Rn, armReg Rm, uint8 lsb, assemCtxPo ctx);
 
-void adr(armReg d, armOp src, assemCtxPo ctx);
+void adr_(armReg Rd, codeLblPo lbl, assemCtxPo ctx);
+void adrp_(armReg Rd, codeLblPo lbl, assemCtxPo ctx);
 
 void ldr_(uint1 w, armReg Rt, armReg Rn, uint16 imm, ixMode ix, assemCtxPo ctx);
 void ldrb_imm(armReg Rt, armReg Rn, uint16 imm, ixMode ix, assemCtxPo ctx);
@@ -200,10 +201,11 @@ void strb_(armReg Rt, armReg Rn, int16 imm, ixMode ix, assemCtxPo ctx);
 void strh_(armReg Rt, armReg Rn, int16 imm, ixMode ix, assemCtxPo ctx);
 void strb_r_(armReg Rt, armReg Rn, armReg Rm, armExtent ex, uint1 shft, assemCtxPo ctx);
 
-void stur_(uint1 w,armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
+void stur_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
 void sturb_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
 void sturh_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
 
+void ldnp(uint1 w, armReg Rt, armReg Rt2, armReg Rn, uint8 imm, assemCtxPo ctx);
 void ldp_(uint1 w, armReg Rt, armReg Rt2, armReg Rn, int8 imm, ixMode ix, assemCtxPo ctx);
 void ldpsw_(armReg Rt, armReg Rt2, armReg Rn, int8 imm, ixMode ix, assemCtxPo ctx);
 void stp_(uint1 w, armReg Rt, armReg Rt2, armReg Rn, int8 imm, ixMode ix, assemCtxPo ctx);
@@ -214,43 +216,62 @@ void stnp_(uint1 w, armReg Rt1, armReg Rt2, armReg Rn, uint8 imm, assemCtxPo ctx
 void ldxr_(uint1 w, armReg Rt, armReg Rn, assemCtxPo ctx);
 void ldxrb_(armReg Rt, armReg Rn, assemCtxPo ctx);
 void ldxrh_(armReg Rt, armReg Rn, assemCtxPo ctx);
+void ldxap_(uint1 w, armReg Rd, armReg Rt2, armReg Rn, assemCtxPo ctx);
 void ldxp_(uint1 w, armReg Rt1, armReg Rt2, armReg Rn, assemCtxPo ctx);
-void stxr_(armReg dst, armOp src, assemCtxPo ctx);
-void stxrb_(armReg dst, armOp src, assemCtxPo ctx);
-void stxrh_(armReg dst, armOp src, assemCtxPo ctx);
-void stxp(armReg dst, armOp src, assemCtxPo ctx);
+
+void stxr_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void stxrb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void stxrh_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void stlxr_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void stlxrb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void stlxrh_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void stlxp_(uint1 w, armReg Rd, armReg Rt2, armReg Rn, assemCtxPo ctx);
+void stxp_(uint1 w, armReg Rd, armReg Rt2, armReg Rn, assemCtxPo ctx);
 
 void ldapr_(armReg dst, armOp src, assemCtxPo ctx);
 void ldaprb_(armReg dst, armOp src, assemCtxPo ctx);
 void ldaprh_(armReg dst, armOp src, assemCtxPo ctx);
-void ldapur_(armReg dst, armOp src, assemCtxPo ctx);
-void ldapurb_(armReg dst, armOp src, assemCtxPo ctx);
-void ldapurh_(armReg dst, armOp src, assemCtxPo ctx);
-void ldapursb_(armReg dst, armOp src, assemCtxPo ctx);
-void ldapursh_(armReg dst, armOp src, assemCtxPo ctx);
-void ldapursw_(armReg dst, armOp src, assemCtxPo ctx);
+void ldapur_(uint1 w, armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
+void ldapurb_(armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
+void ldapurh_(armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
+void ldapursb_(uint1 w, armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
+void ldapursh_(uint1 w, armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
+void ldapursw_(armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
 void ldar_(armReg dst, armOp src, assemCtxPo ctx);
-void ldarb_(armReg dst, armOp src, assemCtxPo ctx);
-void ldarh_(armReg dst, armOp src, assemCtxPo ctx);
+void ldarb_(armReg Rt, armReg Rn, assemCtxPo ctx);
+void ldarh_(armReg Rt, armReg Rn, assemCtxPo ctx);
 void stlr_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx);
 void stlrb_(armReg Rd, armReg Rn, assemCtxPo ctx);
 void stlrh_(armReg Rd, armReg Rn, assemCtxPo ctx);
 void stlurb_(armReg Rd, armReg Rn, uint16 imm, assemCtxPo ctx);
 void stlurh_(armReg Rd, armReg Rn, uint16 imm, assemCtxPo ctx);
 
-void ldaxr_(armReg dst, armOp src, assemCtxPo ctx);
-void ldaxrb_(armReg dst, armOp src, assemCtxPo ctx);
-void ldaxrh_(armReg dst, armOp src, assemCtxPo ctx);
-void stlxr_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
-void stlxrb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
-void stlxrh_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
-void stlxp_(uint1 w, armReg Rs, armReg Rt1, armReg Rt2, armReg Rn, assemCtxPo ctx);
+void ldaxr_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx);
+void ldaxrb_(armReg Rt, armReg Rn, assemCtxPo ctx);
+void ldaxrh_(armReg Rt, armReg Rn, assemCtxPo ctx);
 
-void ldlarb_(armReg dst, armOp src, assemCtxPo ctx);
-void ldlarh_(armReg dst, armOp src, assemCtxPo ctx);
-void ldlar_(armReg dst, armOp src, assemCtxPo ctx);
-void stllrb_(armReg Rd, armReg Rn, assemCtxPo ctx);
+void ldlarb_(armReg Rt, armReg Rn, assemCtxPo ctx);
+void ldlarh_(armReg Rt, armReg Rn, assemCtxPo ctx);
+void ldlar_(uint1 w, armReg Rt, armReg Rn, assemCtxPo ctx);
+void stllrb_(armReg Rt, armReg Rn, assemCtxPo ctx);
 void stllrh_(armReg Rd, armReg Rn, assemCtxPo ctx);
-void stllr_(uint1 w,armReg Rd, armReg Rn, assemCtxPo ctx);
+void stllr_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx);
+
+void casab_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void casalb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void casb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void caslb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void casah_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void casalh_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void cash_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void caslh_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void casp_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void caspa_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void caspal_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void caspl_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void casa_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void casal_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void cas_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void casl_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
 
 #endif

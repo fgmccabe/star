@@ -24,8 +24,10 @@ void *createCode(assemCtxPo ctx) {
   return code;
 }
 
-static void encodePCRel(uint1 op, uint8 immio, int32 imm, armReg Rd, assemCtxPo ctx) {
-  uint32 ins = one_bt(op, 31) | two_bt(immio, 29) | one_bt(1, 28) | ntn_bt(imm, 5) | fiv_bt(Rd, 0);
+static void encodePCRel(uint1 op, codeLblPo lbl, armReg Rd, assemCtxPo ctx) {
+  integer delta = lblDeltaRef(ctx, lbl);
+  check(absolute(delta >> 2) < (1 << 19), "label out of range");
+  uint32 ins = one_bt(op, 31) | two_bt(delta, 29) | one_bt(1, 28) | ntn_bt(delta >> 2, 5) | fiv_bt(Rd, 0);
   emitU32(ctx, ins);
 }
 
@@ -112,16 +114,76 @@ void encodeBranch(uint8 opc, uint8 op2, uint8 op3, armReg Rn, uint8 op4, assemCt
   emitU32(ctx, ins);
 }
 
-void encodeBranchImm(uint1 op, int32 imm, assemCtxPo ctx) {
-  uint32 ins = one_bt(op, 31) | fiv_bt(0x56, 25) | tsx_bt(imm, 0);
+void encodeBranchImm(uint1 op, codeLblPo lbl, assemCtxPo ctx) {
+  integer delta = lblDeltaRef(ctx, lbl);
+  check(absolute(delta >> 2) < (1 << 26), "label out of range");
+  uint32 ins = one_bt(op, 31) | fiv_bt(0x56, 25) | tsx_bt(delta, 0);
   emitU32(ctx, ins);
 }
 
-static void
-encodeSz2OpcImm2Reg(uint8 sz, uint8 op, uint8 opc, uint1 N, uint16 imm, uint8 o2, armReg R1, armReg R2,
-                    assemCtxPo ctx) {
-  uint32 ins = two_bt(sz, 30) | six_bt(op, 24) | two_bt(opc, 22) | one_bt(N, 21) |
-               nin_bt(imm, 12) | two_bt(o2, 10) | fiv_bt(R1, 5) | fiv_bt(R2, 0);
+void encodeCmpBr(uint1 b5, uint1 op, codeLblPo lbl, armReg Rt, assemCtxPo ctx) {
+  integer delta = lblDeltaRef(ctx, lbl);
+  check(absolute(delta >> 2) < (1 << 19), "label out of range");
+  uint32 ins = one_bt(b5, 31) | fiv_bt(0x1a, 25) | one_bt(op, 24) |
+               ntn_bt(delta, 5) | fiv_bt(Rt, 0);
+  emitU32(ctx, ins);
+}
+
+void encodeTstBr(uint1 w, uint1 op, uint8 b40, codeLblPo lbl, armReg Rt, assemCtxPo ctx) {
+  integer delta = lblDeltaRef(ctx, lbl);
+  check(absolute(delta >> 2) < (1 << 14), "label out of range");
+  uint32 ins = one_bt(w, 31) | six_bt(0x1b, 25) | one_bt(op, 24) | fiv_bt(b40, 19) |
+               ftn_bt(delta, 5) | fiv_bt(Rt, 0);
+  emitU32(ctx, ins);
+}
+
+static void encodeCasPr(uint8 w, uint1 L, armReg Rs, uint o0, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
+  uint32 ins = one_bt(w, 30) | svn_bt(0x10, 23) | one_bt(L, 22) | one_bt(1, 21) |
+               fiv_bt(Rs, 16) | one_bt(o0, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
+  emitU32(ctx, ins);
+}
+
+static void encodeCas(uint8 w, uint1 L, armReg Rs, uint o0, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
+  uint32 ins = two_bt(w, 30) | svn_bt(0x11, 23) | one_bt(L, 22) | one_bt(1, 21) |
+               fiv_bt(Rs, 16) | one_bt(o0, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
+  emitU32(ctx, ins);
+}
+
+static void encodeExLdStPr(uint1 w, uint1 L, armReg Rs, uint1 o0, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
+  uint32 ins = one_bt(1, 31) | one_bt(w, 30) | svn_bt(0x10, 23) | one_bt(L, 22) | one_bt(1, 21) |
+               fiv_bt(Rs, 16) | one_bt(o0, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
+  emitU32(ctx, ins);
+}
+
+static void encodeExLdStRg(uint8 w, uint1 L, armReg Rs, uint1 o0, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
+  uint32 ins = two_bt(w, 30) | svn_bt(0x10, 23) | one_bt(L, 22) |
+               fiv_bt(Rs, 16) | one_bt(o0, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
+  emitU32(ctx, ins);
+}
+
+static void encodeLdStOrd(uint8 w, uint1 L, armReg Rs, uint1 o0, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
+  uint32 ins = two_bt(w, 30) | svn_bt(0x11, 23) | one_bt(L, 22) |
+               fiv_bt(Rs, 16) | one_bt(o0, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
+  emitU32(ctx, ins);
+}
+
+static void encodeLdStUnscaled(uint8 w, uint8 opc, int16 imm9, armReg Rn, armReg Rt, assemCtxPo ctx) {
+  uint32 ins = two_bt(w, 30) | six_bt(0x19, 24) | two_bt(opc, 22) |
+               nin_bt(imm9, 12) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
+  emitU32(ctx, ins);
+}
+
+static void encodeLdPcLit(uint8 opc, uint1 V, codeLblPo lbl, armReg Rt, assemCtxPo ctx) {
+  integer delta = lblDeltaRef(ctx, lbl);
+  check(absolute(delta >> 2) < (1 << 19), "label out of range");
+  uint32 ins = two_bt(opc, 30) | thr_bt(3, 27) | one_bt(V, 26) |
+               ntn_bt(delta >> 2, 15) | fiv_bt(Rt, 0);
+  emitU32(ctx, ins);
+}
+
+static void encodeLdStNoAl(uint8 opc, uint1 V, uint1 L, uint8 imm7, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
+  uint32 ins = two_bt(opc, 30) | thr_bt(0x5, 27) | one_bt(V, 26) | one_bt(L, 22) | svn_bt(imm7, 15) |
+               fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
   emitU32(ctx, ins);
 }
 
@@ -143,9 +205,15 @@ static void encodeLdStRegPre(uint8 sz, uint1 V, uint8 opc, int16 imm, armReg Rn,
   emitU32(ctx, ins);
 }
 
-static void encodeLdStRegOff(uint8 sz, uint1 V, uint8 opc, int16 imm, armReg Rn, armReg Rt, assemCtxPo ctx) {
-  uint32 ins = two_bt(sz, 30) | thr_bt(0x7, 27) | one_bt(V, 26) | two_bt(opc, 22) |
-               nin_bt(imm, 12) | two_bt(2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
+static void encodeLdRegLit(uint8 sz, uint8 opc, int16 imm9, armReg Rn, armReg Rt, assemCtxPo ctx) {
+  uint32 ins = two_bt(sz, 30) | six_bt(0x19, 24) | two_bt(opc, 22) |
+               nin_bt(imm9, 12) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
+  emitU32(ctx, ins);
+}
+
+static void encodeLdStRegOff(uint8 opc, uint1 V, uint1 L, int8 imm7, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
+  uint32 ins = two_bt(opc, 30) | thr_bt(0x5, 27) | one_bt(V, 26) | two_bt(2, 23) | one_bt(L, 22) |
+               svn_bt(imm7, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
   emitU32(ctx, ins);
 }
 
@@ -160,13 +228,20 @@ void encodeIxReg(uint8 w, uint1 V, int8 opc, int8 imm, armReg Rn, armReg Rt, ixM
       return;
     }
     case signedOff: {
-      encodeLdStRegOff(w, V, opc, imm, Rn, Rt, ctx);
+      encodeLdStRegOff(w, V, opc, imm, ZR, Rn, Rt, ctx);
       return;
     }
     default: {
       check(False, "invalid index mode");
     }
   }
+}
+
+void encodeLdStUnPriv(uint8 sz, uint1 V, uint8 opc, int16 imm9, armReg Rn, armReg Rt, assemCtxPo ctx) {
+  uint32 ins = two_bt(sz, 30) | thr_bt(0x7, 27) | one_bt(V, 26) | two_bt(opc, 22) |
+               nin_bt(imm9, 12) | one_bt(1, 11) |
+               fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
+  emitU32(ctx, ins);
 }
 
 void
@@ -197,14 +272,6 @@ static void
 encodeImm3Reg(uint8 sz, uint8 opc, uint8 op, armReg Rm, uint8 imm, armReg Rn, armReg Rd, assemCtxPo ctx) {
   uint32 ins = one_bt(sz, 31) | two_bt(opc, 29) | ayt_bt(op, 21) |
                fiv_bt(Rm, 16) | six_bt(imm, 10) |
-               fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
-  emitU32(ctx, ins);
-}
-
-static void
-encodeDPRegLngImm(uint1 wide, uint8 opc, uint8 op, uint32 imm, armReg Rn, armReg Rd, assemCtxPo ctx) {
-  uint32 ins = one_bt(wide, 31) | two_bt(opc, 29) | six_bt(op, 23) |
-               one_bt((imm >> 12), 22) | six_bt(imm, 16) | six_bt((imm >> 6), 10) |
                fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
   emitU32(ctx, ins);
 }
@@ -260,13 +327,6 @@ static void encodeRelReg(uint1 wide, uint8 op, uint32 imm, armReg Rt, assemCtxPo
   emitU32(ctx, ins);
 }
 
-static void encodeCas(uint8 size, uint8 op, uint1 L, armReg Rs, uint o0, armReg Rn, armReg Rt, assemCtxPo ctx) {
-  uint32 ins = two_bt(size, 30) | svn_bt(op, 23) | one_bt(L, 22) | one_bt(1, 21) |
-               fiv_bt(Rs, 16) |
-               one_bt(o0, 15) | fiv_bt(0x1f, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
-  emitU32(ctx, ins);
-}
-
 static void
 encodeCmpImm(uint1 w, uint8 o0, uint8 op, uint8 imm, armCond cond, armReg Rn, uint8 nzcv, assemCtxPo ctx) {
   uint32 ins = one_bt(w, 31) | two_bt(o0, 29) | ayt_bt(op, 21) | fiv_bt(imm, 16) |
@@ -314,12 +374,12 @@ void adds_sh_(uint1 wide, armReg RD, armReg S1, armShift sh, uint8 imm, armReg S
   encodeShift3Reg(wide, 0, 1, 0x23, sh, 0, S1, imm, S2, RD, ctx);
 }
 
-void adr_(armReg Rd, int32 imm, assemCtxPo ctx) {
-  encodePCRel(0, two_bt(imm, 0), (imm >> 2), Rd, ctx);
+void adr_(armReg Rd, codeLblPo lbl, assemCtxPo ctx) {
+  encodePCRel(0, lbl, Rd, ctx);
 }
 
-void adrp_(armReg Rd, int32 imm, assemCtxPo ctx) {
-  encodePCRel(1, two_bt(imm >> 12, 0), (imm >> 2), Rd, ctx);
+void adrp_(armReg Rd, codeLblPo lbl, assemCtxPo ctx) {
+  encodePCRel(1, lbl, Rd, ctx);
 }
 
 void and_imm(uint1 w, armReg Rd, armReg Rn, uint16 imm, assemCtxPo ctx) {
@@ -357,9 +417,7 @@ void b_cond_(armCond cond, codeLblPo lbl, assemCtxPo ctx) {
 }
 
 void b_(codeLblPo lbl, assemCtxPo ctx) {
-  integer delta = lblDeltaRef(ctx, lbl);
-  check(absolute(delta >> 2) < (1 << 26), "label out of range");
-  encodeBranchImm(0, (int32) delta, ctx);
+  encodeBranchImm(0, lbl, ctx);
 }
 
 void bfc_(uint1 w, armReg RD, uint8 width, uint8 bit, assemCtxPo ctx) {
@@ -403,79 +461,75 @@ void brk_(uint16 bkpt, assemCtxPo ctx) {
 }
 
 void casab_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeCas(0, 0x11, 1, Rs, 0, Rn, Rt, ctx);
+  encodeCas(0, 1, Rs, 0, ZR, Rn, Rt, ctx);
 }
 
 void casalb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeCas(0, 0x11, 1, Rs, 1, Rn, Rt, ctx);
+  encodeCas(0, 1, Rs, 1, ZR, Rn, Rt, ctx);
 }
 
 void casb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeCas(0, 0x11, 0, Rs, 0, Rn, Rt, ctx);
+  encodeCas(0, 0, Rs, 0, ZR, Rn, Rt, ctx);
 }
 
 void caslb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeCas(0, 0x11, 0, Rs, 1, Rn, Rt, ctx);
+  encodeCas(0, 0, Rs, 1, ZR, Rn, Rt, ctx);
 }
 
 void casah_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeCas(1, 0x11, 1, Rs, 0, Rn, Rt, ctx);
+  encodeCas(1, 0, Rs, 0, ZR, Rn, Rt, ctx);
 }
 
 void casalh_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeCas(1, 0x11, 1, Rs, 1, Rn, Rt, ctx);
+  encodeCas(1, 1, Rs, 1, ZR, Rn, Rt, ctx);
 }
 
 void cash_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeCas(1, 0x11, 0, Rs, 0, Rn, Rt, ctx);
+  encodeCas(1, 1, Rs, 0, ZR, Rn, Rt, ctx);
 }
 
 void caslh_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeCas(1, 0x11, 0, Rs, 1, Rn, Rt, ctx);
-}
-
-void casap_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeCas(w, 0x10, 1, Rs, 0, Rn, Rt, ctx);
-}
-
-void casalp_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeCas(w, 0x10, 1, Rs, 1, Rn, Rt, ctx);
+  encodeCas(1, 1, Rs, 1, ZR, Rn, Rt, ctx);
 }
 
 void casp_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeCas(w, 0x10, 0, Rs, 0, Rn, Rt, ctx);
+  encodeCasPr(w, 0, Rs, 0, ZR, Rn, Rt, ctx);
 }
 
-void caslp_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeCas(w, 0x10, 0, Rs, 1, Rn, Rt, ctx);
+void caspa_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeCasPr(w, 1, Rs, 0, ZR, Rn, Rt, ctx);
+}
+
+void caspal_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeCasPr(w, 1, Rs, 1, ZR, Rn, Rt, ctx);
+}
+
+void caspl_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeCasPr(w, 1, Rs, 1, ZR, Rn, Rt, ctx);
 }
 
 void casa_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeCas(2 | w, 0x10, 1, Rs, 0, Rn, Rt, ctx);
+  encodeCas((2 | w), 1, Rs, 0, ZR, Rn, Rt, ctx);
 }
 
 void casal_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeCas(2 | w, 0x10, 1, Rs, 1, Rn, Rt, ctx);
+  encodeCas((2 | w), 1, Rs, 1, ZR, Rn, Rt, ctx);
 }
 
 void cas_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeCas(2 | w, 0x10, 0, Rs, 0, Rn, Rt, ctx);
+  encodeCas((2 | w), 0, Rs, 0, ZR, Rn, Rt, ctx);
 }
 
 void casl_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeCas(2 | w, 0x10, 0, Rs, 1, Rn, Rt, ctx);
+  encodeCas((2 | w), 0, Rs, 1, ZR, Rn, Rt, ctx);
 }
 
 void cbnz_(uint1 w, armReg Rt, codeLblPo lbl, assemCtxPo ctx) {
-  integer delta = lblDeltaRef(ctx, lbl);
-  check(absolute(delta >> 2) < (1 << 19), "label out of range");
-  encodeRelReg(w, 0x35, delta, Rt, ctx);
+  encodeCmpBr(w, 1, lbl, Rt, ctx);
 }
 
 void cbz_(uint1 w, armReg Rt, codeLblPo lbl, assemCtxPo ctx) {
-  integer delta = lblDeltaRef(ctx, lbl);
-  check(absolute(delta >> 2) < (1 << 19), "label out of range");
-  encodeRelReg(w, 0x34, delta, Rt, ctx);
+  encodeCmpBr(w, 0, lbl, Rt, ctx);
 }
 
 void ccmn_imm_(uint1 w, armReg Rn, uint8 imm, uint8 nzcv, armCond cond, assemCtxPo ctx) {
@@ -624,24 +678,28 @@ void encodeLdStPrOffset(uint8 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armRe
   emitU32(ctx, ins);
 }
 
-void encodeIxRegPr(uint8 w, uint1 V, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, ixMode ix, assemCtxPo ctx) {
+void encodeIxRegPr(uint8 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, ixMode ix, assemCtxPo ctx) {
   switch (ix) {
     case postIndex: {
-      encodeLdStPrPostIx(w, V, L, imm, Rt2, Rn, Rt, ctx);
+      encodeLdStPrPostIx(opc, V, L, imm, Rt2, Rn, Rt, ctx);
       return;
     }
     case preIndex: {
-      encodeLdStPrPreIx(w, V, L, imm, Rt2, Rn, Rt, ctx);
+      encodeLdStPrPreIx(opc, V, L, imm, Rt2, Rn, Rt, ctx);
       return;
     }
     case signedOff: {
-      encodeLdStPrOffset(w, V, L, imm, Rt2, Rn, Rt, ctx);
+      encodeLdStPrOffset(opc, V, L, imm, Rt2, Rn, Rt, ctx);
       return;
     }
     default: {
       check(False, "invalid index mode");
     }
   }
+}
+
+void ldnp(uint1 w, armReg Rt, armReg Rt2, armReg Rn, uint8 imm, assemCtxPo ctx) {
+  encodeLdStNoAl(one_bt(w, 1), 0, 1, imm, Rt2, Rn, Rt, ctx);
 }
 
 void ldp_(uint1 w, armReg Rt, armReg Rt2, armReg Rn, int8 imm, ixMode ix, assemCtxPo ctx) {
@@ -683,10 +741,8 @@ void ldr_(uint1 w, armReg Rt, armReg Rn, uint16 imm, ixMode ix, assemCtxPo ctx) 
   encode2SrcIxImmPrePost((2 | w), 0xe, 0x1, imm, ix, Rn, Rt, ctx);
 }
 
-void ldr_lit(uint1 w, armReg Rt, uint32 imm, assemCtxPo ctx) {
-  uint32 ins = one_bt(w, 30) | six_bt(0x18, 24) |
-               ntn_bt(imm, 5) | fiv_bt(Rt, 0);
-  emitU32(ctx, ins);
+void ldr_lit(uint1 w, armReg Rt, codeLblPo lbl, assemCtxPo ctx) {
+  encodeLdPcLit(w, 0, lbl, Rt, ctx);
 }
 
 void ldr_r_(uint1 w, armReg Rt, armReg Rn, armReg Rm, armExtent ex, logical shft, assemCtxPo ctx) {
@@ -746,9 +802,7 @@ void ldrsw_imm(armReg Rt, armReg Rn, uint16 imm, ixMode ix, assemCtxPo ctx) {
 }
 
 void ldrsw_lit(armReg Rt, codeLblPo lbl, assemCtxPo ctx) {
-  integer delta = lblDeltaRef(ctx, lbl);
-  check(absolute(delta >> 2) < (1 << 19), "label out of range");
-  encodeRelReg(1, 0x18, delta, Rt, ctx);
+  encodeLdPcLit(2, 0, lbl, Rt, ctx);
 }
 
 void ldrsw_r(armReg Rt, armReg Rn, armReg Rm, armExtent ex, uint1 sh, assemCtxPo ctx) {
@@ -779,35 +833,80 @@ void ldursw_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
   encodeLdStRegUnscaled(2, 0, 2, imm, Rn, Rt, ctx);
 }
 
-void ldxp_(uint1 w, armReg Rt1, armReg Rt2, armReg Rn, assemCtxPo ctx) {
-  uint32 ins = one_bt(1, 31) | one_bt(w, 30) | six_bt(8, 24) | one_bt(1, 22) | one_bt(1, 21) |
-               fiv_bt(0x1f, 16) |
-               fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt1, 0);
-  emitU32(ctx, ins);
+void ldxap_(uint1 w, armReg Rd, armReg Rt2, armReg Rn, assemCtxPo ctx) {
+  encodeExLdStPr(w, 1, ZR, 1, Rt2, Rn, Rd, ctx);
 }
 
-void ldxr_(uint1 w, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  uint32 ins = one_bt(1, 31) | one_bt(w, 30) | six_bt(8, 24) |
-               one_bt(1, 22) | fiv_bt(0x1f, 16) |
-               fiv_bt(0x1f, 10) |
-               fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
-  emitU32(ctx, ins);
+void ldxp_(uint1 w, armReg Rd, armReg Rt2, armReg Rn, assemCtxPo ctx) {
+  encodeExLdStPr(w, 1, ZR, 0, Rt2, Rn, Rd, ctx);
+}
+
+void ldxr_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx) {
+  encodeExLdStPr((2 | w), 1, ZR, 0, ZR, Rn, Rd, ctx);
+}
+
+void ldapur_(uint1 w, armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx) {
+  encodeLdStUnscaled((2 | w), 1, imm, Rn, Rd, ctx);
+}
+
+void ldapurb_(armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx) {
+  encodeLdRegLit(0, 1, imm, Rn, Rd, ctx);
+}
+
+void ldapursb_(uint1 w, armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx) {
+  encodeLdRegLit(0, (2 | ~w), imm, Rn, Rd, ctx);
+}
+
+void ldapursw_(armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx) {
+  encodeLdStUnscaled(2, 2, imm, Rn, Rd, ctx);
+}
+
+void ldapurh_(armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx) {
+  encodeLdRegLit(1, 1, imm, Rn, Rd, ctx);
+}
+
+void ldapursh_(uint1 w, armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx) {
+  encodeLdRegLit(0, (2 | ~w), imm, Rn, Rd, ctx);
+}
+
+void ldaxr_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx) {
+  encodeExLdStPr((2 | w), 1, ZR, 1, ZR, Rn, Rd, ctx);
 }
 
 void ldxrb_(armReg Rt, armReg Rn, assemCtxPo ctx) {
-  uint32 ins = six_bt(8, 24) |
-               one_bt(1, 22) | fiv_bt(0x1f, 16) |
-               fiv_bt(0x1f, 10) |
-               fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
-  emitU32(ctx, ins);
+  encodeExLdStRg(0, 1, ZR, 0, ZR, Rn, Rt, ctx);
+}
+
+void ldaxrb_(armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeExLdStRg(0, 1, ZR, 1, ZR, Rn, Rt, ctx);
 }
 
 void ldxrh_(armReg Rt, armReg Rn, assemCtxPo ctx) {
-  uint32 ins = one_bt(1, 30) | six_bt(8, 24) |
-               one_bt(1, 22) | fiv_bt(0x1f, 16) |
-               fiv_bt(0x1f, 10) |
-               fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
-  emitU32(ctx, ins);
+  encodeExLdStRg(1, 1, ZR, 0, ZR, Rn, Rt, ctx);
+}
+
+void ldaxrh_(armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeExLdStRg(1, 1, ZR, 1, ZR, Rn, Rt, ctx);
+}
+
+void ldarb_(armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeLdStOrd(0, 1, ZR, 1, ZR, Rn, Rt, ctx);
+}
+
+void ldlar_(uint1 w, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeLdStOrd((2 | w), 1, ZR, 1, ZR, Rn, Rt, ctx);
+}
+
+void ldlarb_(armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeLdStOrd(0, 1, ZR, 0, ZR, Rn, Rt, ctx);
+}
+
+void ldarh_(armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeLdStOrd(1, 1, ZR, 1, ZR, Rn, Rt, ctx);
+}
+
+void ldlarh_(armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeLdStOrd(1, 1, ZR, 0, ZR, Rn, Rt, ctx);
 }
 
 void lsl_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
@@ -985,44 +1084,40 @@ void smmull_(armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
   encode4Reg(1, 0, 0xda, Rm, 0, ZR, Rn, Rd, ctx);
 }
 
-void stllrb_(armReg Rd, armReg Rn, assemCtxPo ctx) {
-  encodeSz4Reg(0, 0x8, 4, 0x1f, 0, 0x1f, Rn, Rd, ctx);
+void stllrb_(armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeLdStOrd(0, 0, ZR, 0, ZR, Rn, Rt, ctx);
 }
 
-void stllrh_(armReg Rd, armReg Rn, assemCtxPo ctx) {
-  encodeSz4Reg(1, 0x8, 4, 0x1f, 0, 0x1f, Rn, Rd, ctx);
+void stllrh_(armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeLdStOrd(1, 0, ZR, 0, ZR, Rn, Rt, ctx);
 }
 
-void stllr_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx) {
-  encodeSz4Reg((2 | w), 0x8, 4, 0x1f, 0, 0x1f, Rn, Rd, ctx);
+void stllr_(uint1 w, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeLdStOrd((2 | w), 0, ZR, 0, ZR, Rn, Rt, ctx);
 }
 
-void stlr_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx) {
-  encodeSz4Reg((2 | w), 0x8, 4, 0x1f, 1, 0x1f, Rn, Rd, ctx);
+void stlr_(uint1 w, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeLdStOrd((2 | w), 0, ZR, 1, ZR, Rn, Rt, ctx);
 }
 
-void stlrb_(armReg Rd, armReg Rn, assemCtxPo ctx) {
-  encodeSz4Reg(0, 0x8, 4, 0x1f, 1, 0x1f, Rn, Rd, ctx);
+void stlrb_(armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeLdStOrd(0, 0, ZR, 1, ZR, Rn, Rt, ctx);
 }
 
-void stlrh_(armReg Rd, armReg Rn, assemCtxPo ctx) {
-  encodeSz4Reg(1, 0x8, 4, 0x1f, 1, 0x1f, Rn, Rd, ctx);
+void stlrh_(armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeLdStOrd(1, 0, ZR, 1, ZR, Rn, Rt, ctx);
 }
 
 void stlur_(uint1 w, armReg Rd, armReg Rn, uint16 imm, assemCtxPo ctx) {
-  encodeSz2OpcImm2Reg((2 | w), 0x19, 0, 0, imm, 0, Rn, Rd, ctx);
+  encodeLdRegLit((2 | w), 0, imm, Rn, Rd, ctx);
 }
 
 void stlurb_(armReg Rd, armReg Rn, uint16 imm, assemCtxPo ctx) {
-  encodeSz2OpcImm2Reg(0, 0x19, 0, 0, imm, 0, Rn, Rd, ctx);
+  encodeLdRegLit(0, 0, imm, Rn, Rd, ctx);
 }
 
 void stlurh_(armReg Rd, armReg Rn, uint16 imm, assemCtxPo ctx) {
-  encodeSz2OpcImm2Reg(1, 0x19, 0, 0, imm, 0, Rn, Rd, ctx);
-}
-
-void stlxp_(uint1 w, armReg Rs, armReg Rt1, armReg Rt2, armReg Rn, assemCtxPo ctx) {
-  encodeSz4Reg((2 | w), 0x8, 1, Rs, 1, Rt2, Rn, Rt1, ctx);
+  encodeLdRegLit(1, 0, imm, Rn, Rd, ctx);
 }
 
 void stlxr_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
@@ -1030,42 +1125,19 @@ void stlxr_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
 }
 
 void stlxrb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeSz4Reg(0, 0x8, 0, Rs, 1, 0x1f, Rn, Rt, ctx);
+  encodeExLdStPr(0, 0, Rs, 0, ZR, Rn, Rt, ctx);
+}
+
+void stxrh_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeExLdStPr(1, 0, Rs, 1, ZR, Rn, Rt, ctx);
 }
 
 void stlxrh_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeSz4Reg(1, 0x8, 0, Rs, 1, 0x1f, Rn, Rt, ctx);
+  encodeExLdStPr(1, 0, Rs, 1, ZR, Rn, Rt, ctx);
 }
 
-void stnp_(uint1 w, armReg Rt1, armReg Rt2, armReg Rn, uint8 imm, assemCtxPo ctx) {
-  encode3Reg7Imm(one_bt(w, 1), 0x58, 0, imm, Rt2, Rn, Rt1, ctx);
-}
-
-void
-encode2Src7ImmPrePost(uint8 sz, uint8 op, ixMode ix, uint8 imm, armReg Rt2, armReg Rn, armReg Rt,
-                      assemCtxPo ctx) {
-  switch (ix) {
-    case postIndex: {
-      uint32 ins = two_bt(sz, 30) | for_bt(op, 26) | two_bt(1, 23) |
-                   svn_bt(imm, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
-      emitU32(ctx, ins);
-      return;
-    }
-    case preIndex: {
-      uint32 ins = two_bt(sz, 30) | for_bt(op, 26) | two_bt(3, 23) |
-                   svn_bt(imm, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
-      emitU32(ctx, ins);
-      return;
-    }
-    case unsignedOff: {
-      uint32 ins = two_bt(sz, 30) | for_bt(op, 26) | two_bt(2, 23) |
-                   twl_bt(imm, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
-      emitU32(ctx, ins);
-      return;
-    }
-    default:
-      check(False, "invalid prePostindex mode");
-  }
+void stnp_(uint1 w, armReg Rt, armReg Rt2, armReg Rn, uint8 imm, assemCtxPo ctx) {
+  encodeLdStNoAl(one_bt(w, 1), 0, 0, imm, Rt2, Rn, Rt, ctx);
 }
 
 void stp_(uint1 w, armReg Rt, armReg Rt2, armReg Rn, int8 imm, ixMode ix, assemCtxPo ctx) {
@@ -1096,16 +1168,32 @@ void strh_r_(armReg Rt, armReg Rn, armReg Rm, armExtent ex, uint1 shft, assemCtx
   encodeLdSt3Reg(1, 0, 0, Rm, ex, shft, Rn, Rt, ctx);
 }
 
+void ldtr_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
+  encodeLdStUnPriv((2 | w), 0, 1, imm, Rn, Rt, ctx);
+}
+
+void ldtrb_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
+  encodeLdStUnPriv(0, 0, 1, imm, Rn, Rt, ctx);
+}
+
+void ldtrh_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
+  encodeLdStUnPriv(1, 0, 1, imm, Rn, Rt, ctx);
+}
+
+void ldtrsh_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
+  encodeLdStUnPriv(1, 0, (2 | ~w), imm, Rn, Rt, ctx);
+}
+
 void sttr_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
-  encodeLdStRegOff((2 | w), 0, 0, imm, Rn, Rt, ctx);
+  encodeLdStUnPriv((2 | w), 0, 0, imm, Rn, Rt, ctx);
 }
 
 void sttrb_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
-  encodeLdStRegOff(0, 0, 0, imm, Rn, Rt, ctx);
+  encodeLdStUnPriv(0, 0, 0, imm, Rn, Rt, ctx);
 }
 
 void sttrh_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
-  encodeLdStRegOff(1, 0, 0, imm, Rn, Rt, ctx);
+  encodeLdStUnPriv(1, 0, 0, imm, Rn, Rt, ctx);
 }
 
 void stur_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
@@ -1118,6 +1206,22 @@ void sturb_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
 
 void sturh_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
   encodeLdStRegUnscaled(1, 0, 0, imm, Rn, Rt, ctx);
+}
+
+void stlxp_(uint1 w, armReg Rd, armReg Rt2, armReg Rn, assemCtxPo ctx) {
+  encodeExLdStPr(w, 0, ZR, 1, Rt2, Rn, Rd, ctx);
+}
+
+void stxp_(uint1 w, armReg Rd, armReg Rt2, armReg Rn, assemCtxPo ctx) {
+  encodeExLdStPr(w, 0, ZR, 0, Rt2, Rn, Rd, ctx);
+}
+
+void stxr_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeExLdStPr((2 | w), 0, Rs, 0, Rn, Rn, Rt, ctx);
+}
+
+void stxrb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeExLdStPr(0, 0, Rs, 0, ZR, Rn, Rt, ctx);
 }
 
 void sub_x(uint1 w, armReg Rd, armReg Rn, armReg Rm, armExtent ex, int8 amnt, assemCtxPo ctx) {
@@ -1134,4 +1238,12 @@ void sub_imm(uint1 w, armReg Rd, armReg Rn, uint1 sh, int16 imm, assemCtxPo ctx)
 
 void subs_imm(uint1 w, armReg Rd, armReg Rn, uint1 sh, int16 imm, assemCtxPo ctx) {
   encodeAddSubImm(w, 1, 1, sh, imm, Rn, Rd, ctx);
+}
+
+void tbnz_(uint1 w, armReg Rt, uint8 pos, codeLblPo lbl, assemCtxPo ctx) {
+  encodeTstBr(w, 1, pos, lbl, Rt, ctx);
+}
+
+void tbz_(uint1 w, armReg Rt, uint8 pos, codeLblPo lbl, assemCtxPo ctx) {
+  encodeTstBr(w, 0, pos, lbl, Rt, ctx);
 }
