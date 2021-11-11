@@ -33,7 +33,7 @@ static void pushArgs(processPo P, termPo args) {
 }
 
 ReturnStatus g__callLbl(heapPo h, termPo a1, termPo a2, termPo a3) {
-  integer arity = integerVal(2);
+  integer arity = integerVal(a2);
 
   char label[MAX_SYMB_LEN];
   copyChars2Buff(C_STR(a1), label, NumberOf(label));
