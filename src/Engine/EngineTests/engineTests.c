@@ -3,13 +3,15 @@
 //
 
 #include "Headers/engineTests.h"
+#include "bcdTest.h"
 
-static retCode emptyTest(){
+static retCode emptyTest() {
   return Ok;
 }
 
 retCode all_tests() {
   tryRet(run_test(emptyTest));
+  tryRet(run_test(bcdTests));
   return Ok;
 }
 
