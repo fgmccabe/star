@@ -11,6 +11,10 @@
 #define ALIGNED(ptr, size) (((((integer)(ptr))+(size)-1)/(size))*(size)==(integer)(ptr))
 #endif
 
+#ifndef ALIGNVALUE
+#define ALIGNVALUE(count,size) ((((count)+(size)-1)/(size))*(size))
+#endif
+
 #ifndef NumberOf
 #define NumberOf(a) (sizeof(a)/sizeof((a)[0]))
 #endif
@@ -23,8 +27,8 @@
 #define STMT_WRAP(S) do S while(False)
 #endif
 
-static integer inline absolute(integer a){
-  if(a<0)
+static integer inline absolute(integer a) {
+  if (a < 0)
     return -a;
   else
     return a;
@@ -51,6 +55,14 @@ static integer inline clamp(integer min, integer ix, integer max) {
     return max;
   else
     return ix;
+}
+
+static logical inline isEven(integer x) {
+  return x % 2 == 0;
+}
+
+static logical inline isOdd(integer x) {
+  return x % 2 == 1;
 }
 
 extern char *genSym(const char *prefix, char *buffer, integer buffLen);

@@ -49,7 +49,6 @@ typedef struct _pool_item_{
   plPo next;			/* next element in the pool */
 } ppl;
 
-#define ALIGNVALUE(count,size) (((count+size-1)/size)*(size))
 
 static inline size_t computeElSize(size_t s)
 {
