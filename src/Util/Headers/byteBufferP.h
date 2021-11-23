@@ -29,7 +29,7 @@ typedef struct byteBuffer_part_{
   integer in_pos;                       // Position of next read
   integer out_pos;                      // position of next write
   integer size;                         // in_pos <= size <= out_pos
-  logical resizeable;                   /* Is this string object resizeable? */
+  logical resizeable;                   /* Is this buffer resizeable? */
 } ByteBufferPart;
 
 typedef struct byteBuffer_ {

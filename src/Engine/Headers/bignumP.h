@@ -20,8 +20,8 @@ typedef struct bignum_term_ {
 
 void initBignum();
 
-#define BignumCellCount(len) CellCount(sizeof(BignumRecord)+ALIGNVALUE(len,2)*sizeof(char))
+#define BignumCellCount(len) CellCount(sizeof(BignumRecord)+count*sizeof(uint32))
 
-extern termPo allocateBignum(heapPo H, sign sign, integer count, byte data[]);
+extern termPo allocateBignum(heapPo H, integer count, uint32 data[]);
 
 #endif //STAR_BIGNUMP_H

@@ -44,7 +44,7 @@ integer bigLen(bignumPo b) {
   return b->bcd.count;
 }
 
-byte *bigData(bignumPo b) {
+uint32 *bigData(bignumPo b) {
   return b->bcd.data;
 }
 
@@ -53,13 +53,12 @@ static bcdPo bigVal(termPo t) {
   return &big->bcd;
 }
 
-termPo allocateBignum(heapPo H, sign sign, integer count, byte data[]) {
+termPo allocateBignum(heapPo H, integer count, uint32 data[]) {
   bignumPo big = (bignumPo) allocateObject(H, bignumClass, BignumCellCount(count));
 
   big->clss = bignumClass;
   big->hash = 0;
   big->bcd.count = count;
-  big->bcd.sign = sign;
 
   integer bCount = ALIGNVALUE(count, 2);
 
@@ -129,6 +128,6 @@ termPo cbdFromString(heapPo h, char *text, integer tlen) {
   byte data[tlen*2];
   integer dLen =  bigFromText(text,  tlen,  data, tlen*2);
 
-  return allocateBignum(h, positive, dLen, data);
+  return allocateBignum(h, dLen, data);
 }
 

@@ -60,6 +60,7 @@ static retCode intEntry(integer ix, void *cl);
 static retCode fltEntry(double dx, void *cl);
 static retCode badEntry(void *cl);
 static retCode errorEntry(const char *name, void *cl);
+static retCode bignumEntry(uint32 *data,integer count,void *cl);
 
 retCode decodeManifest(ioPo in) {
   ParsingState info = {.state=initial};
@@ -77,7 +78,8 @@ retCode decodeManifest(ioPo in) {
     startEntry,             // decCon
     endEntry,               // End of constructor entry
     startList,
-    endList
+    endList,
+    bignumEntry,            // Should not have any big nums here
   };
 
   return streamDecode(in, &decodeCB, &info, NULL, 0);
@@ -423,6 +425,10 @@ retCode intEntry(integer ix, void *cl) {
 }
 
 retCode fltEntry(double dx, void *cl) {
+  return Error;
+}
+
+retCode bignumEntry(uint32 *data,integer count,void *cl){
   return Error;
 }
 

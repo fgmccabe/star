@@ -6,78 +6,117 @@
 #include "bcdP.h"
 #include "assert.h"
 
-#define hiNibble(X) (((X)>>4)&0xf)
-#define loNibble(X) ((X)&0xf)
+#define DIGITS_PER_WORD 8
 
-static uint8 getDigit(const byte *data, integer cnt) {
-  integer ix = cnt / 2;
-  if (isEven(cnt))
-    return hiNibble(data[ix]);
-  else
-    return loNibble(data[ix]);
-}
+static integer bcdSum(integer len, uint32 reslt[], uint32 lhs[], uint32 rhs[]);
+static integer bcdSubtract(integer len, uint32 reslt[], uint32 lhs[], uint32 rhs[]);
+static integer bcdComplement(integer len, uint32 reslt[], const uint32 digits[]);
 
-static void setDigit(byte *data, integer off, byte val) {
-  integer ix = off / 2;
-  byte curr = data[ix];
-  if (isOdd(off)) {
-    data[ix] = (curr & 0xf0) | (val & 0xf);
-  } else {
-    data[ix] = (curr & 0xf) | ((val & 0xf) << 4);
+static integer bcdTrim(const uint32 *data, integer len) {
+  if (len > 1) {
+    uint32 msw = data[len - 1];
+    if (msw == 0 || msw == 0x99999999) {
+      while (len > 1 && data[len - 1] == msw)
+        len--;
+    }
   }
-}
-
-static void zeroFill(byte *data, integer count) {
-  for (integer ix = 0; ix < ALIGNVALUE(count, 2); ix++) {
-    data[ix] = 0;
-  }
-}
-
-static integer bcdTrim(byte *data, integer len) {
-  while (len > 1 && getDigit(data, len - 1) == 0)
-    len--;
   return len;
 }
 
-// Slow, but sure.
-static void bcdMove(byte *tgt, byte *data, integer count) {
-  for (integer ix = 0; ix < count; ix++) {
-    setDigit(tgt, ix, getDigit(data, ix));
+static uint8 msd(bcdPo bcd) {
+  assert(bcd->count > 0);
+  return ((bcd->data[bcd->count - 1]) >> 28) & 0xf;
+}
+
+sign bcdSign(bcdPo num) {
+  if (msd(num) >= 5)
+    return negative;
+  else
+    return positive;
+}
+
+integer digitCount(bcdPo num) {
+  integer count = (num->count - 1) * DIGITS_PER_WORD;
+  uint32 msw = num->data[num->count - 1];
+  if (msw >= 0x50000000) {
+
+  } else {
+    for (integer ix = 0; ix < DIGITS_PER_WORD; ix++) {
+      if (msw == 0)
+        return count + ix;
+      msw = msw >> 4;
+    }
   }
 }
 
-bcdPo allocBCD(sign sign, integer count, byte *data) {
+// Slow, but sure.
+static integer bcdMove(uint32 *tgt, integer tgtLen, const uint32 *src, integer srcCount) {
+  assert(tgtLen >= srcCount);
+
+  for (integer ix = 0; ix < srcCount; ix++) {
+    tgt[ix] = src[ix];
+  }
+
+  uint32 extend = (src[srcCount - 1] >= 0x5000000 ? 0x99999999 : 0x00000000);
+
+  for (integer ix = srcCount; ix < tgtLen; ix++)
+    tgt[ix] = extend;
+  return tgtLen;
+}
+
+bcdPo allocBCD(integer count, uint32 *data) {
   count = bcdTrim(data, count);
 
-  bcdPo bcd = (bcdPo) malloc(sizeof(BcdNumberRecord) + ALIGNVALUE(count, 2));
-  bcd->sign = sign;
+  size_t size = sizeof(BcdNumberRecord) + (count * sizeof(uint32));
+
+  bcdPo bcd = (bcdPo) malloc(size);
   bcd->count = count;
-  bcdMove(bcd->data, data, count);
+  bcdMove(bcd->data, count, data, count);
   return bcd;
 }
 
 integer textOfBCD(char *text, integer tlen, bcdPo num) {
   integer pos = 0;
-  switch (num->sign) {
-    case positive:
-      text[pos++] = '+';
-      break;
-    case negative:
-      text[pos++] = '-';
-      break;
+  integer max = num->count;
+  uint32 data[max];
+  integer len;
+
+  if (msd(num) > 5) {
+    text[pos++] = '-';
+    len = bcdComplement(num->count, data, num->data);
+  } else {
+    text[pos++] = '+';
+    len = bcdMove(data, max, num->data, num->count);
   }
 
-  for (integer ix = num->count - 1; ix >= 0; ix--) {
-    uint8 nibble = getDigit(num->data, ix);
-    text[pos++] = "0123456789"[nibble];
+  logical leading = True;
+  for (integer ix = len - 1; ix >= 0; ix--) {
+    uint32 segment = data[ix];
+    for (integer cx = DIGITS_PER_WORD - 1; cx >= 0; cx--) {
+      uint8 nibble = (segment >> (4 * cx)) & 0xf;
+      if (nibble == 0 && leading)
+        continue;
+      else {
+        text[pos++] = "0123456789"[nibble];
+        leading = False;
+      }
+    }
   }
   return pos;
 }
 
+retCode showBCD(ioPo out, void *data, long depth, long precision, logical alt) {
+  bcdPo bcd = (bcdPo) data;
+
+  char text[bcd->count + 2];
+  integer tlen = textOfBCD(text, bcd->count + 2, bcd);
+  return outText(out, text, tlen);
+}
+
 bcdPo bcdFromText(char *text, integer tlen) {
   integer px = 0;
-  sign sign = positive;
-  byte data[tlen];
+  sign sign;
+  uint32 data[tlen]; // more than enough
 
   if (text[px] == '-') {
     sign = negative;
@@ -90,188 +129,236 @@ bcdPo bcdFromText(char *text, integer tlen) {
   }
 
   integer txpos = tlen;
-  integer ix = 0;
+  integer cx = 0;
+  uint32 segment = 0;
+  int dx = 0;
   while (txpos > px) {
     codePoint ch = prevCodePoint(text, &txpos, tlen);
     if (isNdChar(ch)) {
       int digit = digitValue(ch);
-      setDigit(data, ix++, digit);
+      segment |= (digit & 0xf) << dx;
+      dx += 4;
+      if (dx == 32) {
+        dx = 0;
+        data[cx++] = segment;
+        segment = 0;
+      }
     }
   }
 
-  return allocBCD(sign, ix, data);
-}
+  data[cx++] = segment;
+  if (segment >= 0x50000000)
+    data[cx++] = 0;  // Add a zero to avoid confusing complementation
 
-logical sameBCD(bcdPo lhs, bcdPo rhs) {
-  integer l1 = lhs->count;
-  if (l1 == rhs->count && lhs->sign == rhs->sign) {
-    byte *d1 = lhs->data;
-    byte *d2 = rhs->data;
-    for (integer ix = 0; ix < l1; ix++)
-      if (getDigit(d1, ix) != getDigit(d2, ix))
-        return False;
-    return True;
+  if (sign == negative) {
+    cx = bcdComplement(cx, data, data);
   }
-  return False;
+
+  return allocBCD(cx, data);
 }
 
-void trimBCD(bcdPo bcd) {
-  integer len = bcd->count;
-  while (len >= 0 && getDigit(bcd->data, len - 1) == 0)
-    len--;
-  bcd->count = len;
-}
-
-static integer bcdSum(byte lhs[], integer llen, byte rhs[], integer rlen, byte sum[], integer slen) {
-  assert(slen > llen && slen > rlen);
-
+integer bcdSum(integer len, uint32 reslt[], uint32 lhs[], uint32 rhs[]) {
   uint8 carry = 0;
-  integer sp = 0;
 
-  for (integer lp = 0, rp = 0; lp < llen && rp < rlen;) {
-    uint8 digit = (lp < llen ? getDigit(lhs, lp++) : 0) + (rp < rlen ? getDigit(rhs, rp++) : 0) + carry;
-    if (digit > 9) {
-      digit = digit - 10;
-      carry = 1;
-    } else
-      carry = 0;
-    setDigit(sum, sp++, digit);
+  for (integer ix = 0; ix < len; ix++) {
+    uint64 block = bcd_add(lhs[ix], rhs[ix]);
+    uint32 c1 = (block >> 32) & 0xf;
+    block = bcd_add(block, carry);
+    carry = c1 | ((block >> 32) & 0xf); // Carry out could come from either addition
+    reslt[ix] = block & 0xffffffff;
   }
-
-  return sp;
+  return len;
 }
 
-static integer bcdSubtract(byte lhs[], integer llen, byte rhs[], integer rlen, byte reslt[], integer slen, sign *sign) {
-  assert(slen > llen && slen > rlen);
-
-  uint8 borrow = 0;
-  integer sp = 0;
-
-  for (integer lp = 0, rp = 0; lp < llen && rp < rlen;) {
-    int digit = (int8) (lp < llen ? getDigit(lhs, lp++) : 0) - (int8) (rp < rlen ? getDigit(rhs, rp++) : 0) - borrow;
-    if (digit < 0) {
-      digit = digit + 10;
-      borrow = 1;
-    } else
-      borrow = 0;
-    setDigit(reslt, sp++, digit);
+integer bcdComplement(integer len, uint32 reslt[], const uint32 digits[]) {
+  for (integer ix = 0; ix < len; ix++) {
+    reslt[ix] = 0x99999999 - digits[ix];
   }
 
-  if (borrow == 0)
-    *sign = positive;
-  else
-    *sign = negative;
+  uint32 one[len];
+  one[0] = 1;
+  for (integer ix = 1; ix < len; ix++)
+    one[ix] = 0;
 
-  return sp;
+  return bcdSum(len, reslt, reslt, one);
+}
+
+static integer bcdSubtract(integer len, uint32 reslt[], uint32 lhs[], uint32 rhs[]) {
+  bcdComplement(len, reslt, rhs);
+  return bcdSum(len, reslt, lhs, reslt);
 }
 
 bcdPo bcdPlus(bcdPo lhs, bcdPo rhs) {
   integer rsize = maximum(lhs->count, rhs->count) + 1;
-  byte data[rsize];
+  uint32 ldata[rsize];
+  uint32 rdata[rsize];
+  uint32 xdata[rsize];
 
-  switch (lhs->sign) {
-    case positive: {
-      switch (rhs->sign) {
-        case positive: {
-          integer len = bcdSum(lhs->data, lhs->count, rhs->data, rhs->count, data, rsize);
-          return allocBCD(positive, len, data);
-        }
-        case negative: {
-          sign sign = positive;
-          integer len = bcdSubtract(lhs->data, lhs->count, rhs->data, rhs->count, data, rsize, &sign);
-          return allocBCD(sign, len, data);
-        }
-      }
-    }
-    case negative: {
-      switch (rhs->sign) {
-        case positive: {
-          sign sign = positive;
-          integer len = bcdSubtract(rhs->data, rhs->count, lhs->data, lhs->count, data, rsize, &sign);
-          return allocBCD(sign, len, data);
-        }
-        case negative: {
-          integer len = bcdSum(lhs->data, lhs->count, rhs->data, rhs->count, data, rsize);
-          return allocBCD(negative, len, data);
-        }
-      }
-    }
-  }
+  bcdMove(ldata, rsize, lhs->data, lhs->count);
+  bcdMove(rdata, rsize, rhs->data, rhs->count);
+
+  integer len = bcdSum(rsize, xdata, ldata, rdata);
+
+  return allocBCD(len, xdata);
 }
 
 bcdPo bcdMinus(bcdPo lhs, bcdPo rhs) {
   integer rsize = maximum(lhs->count, rhs->count) + 1;
-  byte data[rsize];
+  uint32 ldata[rsize];
+  uint32 rdata[rsize];
+  uint32 xdata[rsize];
 
-  switch (lhs->sign) {
+  bcdMove(ldata, rsize, lhs->data, lhs->count);
+  bcdMove(rdata, rsize, rhs->data, rhs->count);
+
+  integer len = bcdSubtract(rsize, xdata, ldata, rdata);
+  return allocBCD(len, xdata);
+}
+
+uint64 bcd_add(uint32 a, uint32 b) {
+  uint64 t1 = a + 0x066666666;
+  uint64 t2 = t1 + b;
+  uint64 t3 = t1 ^ b;
+  uint64 t4 = t2 ^ t3;
+  uint64 t5 = ~t4 & 0x111111110;
+  uint64 t6 = (t5 >> 2) | (t5 >> 3);
+  return t2 - t6;
+}
+
+static uint8 nibble(uint64 a, uint8 cx) {
+  return (a >> (cx << 2)) & 0xf;
+}
+
+uint64 mask[] = {
+  0x000000000000000f,
+  0x00000000000000f0,
+  0x0000000000000f00,
+  0x000000000000f000,
+  0x00000000000f0000,
+  0x0000000000f00000,
+  0x000000000f000000,
+  0x00000000f0000000,
+  0x0000000f00000000,
+  0x000000f000000000,
+  0x00000f0000000000,
+  0x0000f00000000000,
+  0x000f000000000000,
+  0x00f0000000000000,
+  0x0f00000000000000,
+  0xf000000000000000
+};
+
+static uint64 setNibble(uint64 a, uint8 cx, uint8 nibble) {
+  return (((uint64) (nibble & 0xf)) << (cx << 2)) | (a & ~mask[cx]);
+}
+
+static void zeroFill(uint32 *a, integer count) {
+  for (integer ix = 0; ix < count; ix++)
+    a[ix] = 0;
+}
+
+static uint8 nbl(uint32 *src, integer ix) {
+  return nibble(src[ix / DIGITS_PER_WORD], ix % DIGITS_PER_WORD);
+}
+
+static void setNbl(uint32 *tgt, integer i, uint8 d) {
+  integer ix = i / DIGITS_PER_WORD;
+  tgt[ix] = setNibble(tgt[ix], i % DIGITS_PER_WORD, d);
+}
+
+// Assumes both numbers are positive
+static long longMultiply(uint32 *tgt, uint32 *a, integer aCount, uint32 *b, integer bCount) {
+  zeroFill(tgt, aCount + bCount);
+  for (integer i = 0; i < aCount * DIGITS_PER_WORD; i++) {
+    uint8 nA = nbl(a, i);
+    if (nA != 0) {
+      uint8 carry = 0;
+
+      for (integer j = 0; j < bCount * DIGITS_PER_WORD; j++) {
+        uint8 d = carry + nA * nbl(b, j) + nbl(tgt, i + j);
+        carry = d / 10;
+        setNbl(tgt, i + j, d % 10);
+      }
+      setNbl(tgt, i + bCount * DIGITS_PER_WORD, carry);
+    }
+  }
+  return aCount + bCount;
+}
+
+bcdPo bcdTimes(bcdPo lhs, bcdPo rhs) {
+  integer rsize = lhs->count + rhs->count;
+  uint32 prod[rsize];
+
+  switch (bcdSign(lhs)) {
     case positive: {
-      switch (rhs->sign) {
+      switch (bcdSign(rhs)) {
         case positive: {
-          sign sign = positive;
-          integer len = bcdSubtract(lhs->data, lhs->count, rhs->data, rhs->count, data, rsize, &sign);
-          return allocBCD(sign, len, data);
+          longMultiply(prod, lhs->data, lhs->count, rhs->data, rhs->count);
+          return allocBCD(rsize, prod);
         }
         case negative: {
-          integer len = bcdSum(lhs->data, lhs->count, rhs->data, rhs->count, data, rsize);
-          return allocBCD(positive, len, data);
+          uint32 rrhs[rhs->count];
+          bcdComplement(rhs->count, rrhs, rhs->data);
+          longMultiply(prod, lhs->data, lhs->count, rrhs, rhs->count);
+          bcdComplement(rsize, prod, prod);
+          return allocBCD(rsize, prod);
         }
       }
     }
     case negative: {
-      switch (rhs->sign) {
+      uint32 llhs[lhs->count];
+      bcdComplement(lhs->count, llhs, lhs->data);
+      switch (bcdSign(rhs)) {
         case positive: {
-          integer len = bcdSum(lhs->data, lhs->count, rhs->data, rhs->count, data, rsize);
-          return allocBCD(negative, len, data);
+          longMultiply(prod, llhs, lhs->count, rhs->data, rhs->count);
+          bcdComplement(rsize, prod, prod);
+          return allocBCD(rsize, prod);
         }
         case negative: {
-          sign sign = positive;
-          integer len = bcdSubtract(rhs->data, rhs->count, lhs->data, lhs->count, data, rsize, &sign);
-          return allocBCD(sign, len, data);
+          uint32 rrhs[rhs->count];
+          bcdComplement(rhs->count, rrhs, rhs->data);
+          longMultiply(prod, llhs, lhs->count, rrhs, rhs->count);
+          return allocBCD(rsize, prod);
         }
       }
     }
   }
 }
 
-integer bcdMul(byte lhs[], integer llen, byte rhs[], integer rlen, byte prod[], integer plen) {
-  zeroFill(prod, plen);
-  integer pxlen = 0;
-
-  for (integer lp = 0; lp < llen; lp++) {
-    byte scratch[rlen];
-    uint ldigit = getDigit(lhs, lp);
-
-    uint8 carry = 0;
-    integer sp = 0;
-    for (integer rp = 0; rp < rlen; rp++) {
-      uint8 digit = getDigit(rhs, rp) * ldigit + carry;
-      if (digit > 10) {
-        carry = digit / 10;
-        digit = digit % 10;
-      } else
-        carry = 0;
-      setDigit(scratch, sp++, digit);
+// Compare unsigned number strings
+static comparison compareDigits(const uint32 *lhs, integer lCount, const uint32 *rhs, integer rCount) {
+  if (lCount > rCount)
+    return bigger;
+  else if (lCount < rCount)
+    return smaller;
+  else {
+    for (integer ix = lCount - 1; ix >= 0; ix--) {
+      if (lhs[ix] > rhs[ix])
+        return bigger;
+      else if (lhs[ix] < rhs[ix])
+        return smaller;
     }
-    while (carry > 0) {
-      if (carry > 10) {
-        setDigit(scratch, sp++, carry % 10);
-        carry = carry / 10;
-      } else
-        carry = 0;
-    }
-
-    pxlen = bcdSum(prod, pxlen, scratch, sp, prod, pxlen);
-
+    return same;
   }
 }
 
-retCode fillinBCD(sign sign, integer count, integer size, byte *data, bcdPo bcd) {
-  if (count > size)
-    return Error;
-  else {
-    bcd->sign = sign;
-    bcd->count = count;
-    bcdMove(bcd->data, data, count);
-    return Ok;
+comparison bcdCompare(bcdPo a, bcdPo b) {
+  return compareDigits(a->data, a->count, b->data, b->count);
+}
+
+logical sameBCD(bcdPo lhs, bcdPo rhs) {
+  return (logical) (bcdCompare(lhs, rhs) == same);
+}
+
+// compute a/b to give q & r
+static long longDivide(uint32 *q, uint32 *r, integer qCount, uint32 *a, integer aCount, uint32 *b, integer bCount) {
+  zeroFill(q, qCount);
+  zeroFill(r, qCount);
+  uint32 w[aCount];
+  bcdMove(w, aCount, a, aCount);
+
+  for (integer i = aCount * DIGITS_PER_WORD - 1; i >= 0; i--) {
+
   }
+  return aCount + bCount;
 }

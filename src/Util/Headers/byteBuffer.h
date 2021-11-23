@@ -18,7 +18,7 @@
 typedef struct byteBuffer_ *byteBufferPo;
 extern classPo byteBufferClass;
 
-byteBufferPo newByteBuffer(size_t size);
+byteBufferPo newByteBuffer();
 byteBufferPo fixedByteBuffer(char *buffer, long len);
 
 char *getBytesFromBuffer(byteBufferPo s, integer *len);
