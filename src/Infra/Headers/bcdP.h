@@ -8,13 +8,11 @@
 #include "bcd.h"
 
 typedef struct bcd_number_ {
-  sign sign;
   integer count;
-  byte data[ZEROARRAYSIZE];
+  uint32 data[ZEROARRAYSIZE];
 } BcdNumberRecord;
 
-retCode fillinBCD(sign sign, integer count, integer size, byte *data, bcdPo bcd);
-void trimBCD(bcdPo bcd);
-bcdPo allocBCD(sign sign, integer count, byte *data);
+bcdPo allocBCD(integer count, uint32 *data);
+uint64 bcd_add(uint32 a, uint32 b);
 
 #endif //STAR_BCDP_H

@@ -32,6 +32,7 @@ typedef retCode (*charProc)(codePoint cp, void *cl);
 typedef retCode (*stringProc)(char *sx, integer len, void *cl);
 typedef retCode (*consProc)(integer len, void *cl);
 typedef retCode (*flagProc)(void *cl);
+typedef retCode (*bignumProc)(uint32* data,integer count,void *cl);
 
 typedef struct {
   flagProc startDecoding;
@@ -47,6 +48,7 @@ typedef struct {
   flagProc endCons;
   consProc decLst;
   flagProc endLst;
+  bignumProc decBignum;
 } DecodeCallBacks, *decodeCallBackPo;
 
 retCode streamDecode(ioPo in, decodeCallBackPo cb, void *cl, char *errorMsg, integer msgLen);

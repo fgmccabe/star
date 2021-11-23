@@ -5,6 +5,7 @@
 #include <globals.h>
 #include <cons.h>
 #include <consP.h>
+#include "bignumP.h"
 #include <strings.h>
 #include "arithP.h"
 #include "charP.h"
@@ -196,6 +197,13 @@ static retCode endEstimateLst(void *cl) {
   return Ok;
 }
 
+static retCode estimateBignum(uint32 *data,integer count,void *cl){
+  Estimation *info = (Estimation *) cl;
+
+  info->amnt += BignumCellCount(count);
+  return Ok;
+}
+
 /*
  Estimate amount of heap space needed
  */
@@ -215,7 +223,8 @@ retCode estimate(ioPo in, integer *amnt) {
     estimateCns,            // decCon
     endEstimateCns,         // End of constructor
     estimateLst,            // Start of list
-    endEstimateLst          // End of list
+    endEstimateLst,         // End of list
+    estimateBignum,         // A big number
   };
 
   retCode ret = streamDecode(in, &estimateCB, &info, NULL, 0);

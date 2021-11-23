@@ -5,9 +5,10 @@
 #include "streamDecode.h"
 #include <hash.h>
 #include <unistd.h>
+#include <byteBuffer.h>
+#include <base64.h>
 #include "verifyP.h"
 #include "manifest.h"
-#include "pkgP.h"
 #include "streamDecodeP.h"
 #include "signature.h"
 
@@ -164,6 +165,21 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, strBufferPo 
         res = cb->decFlt(dx, cl);
       return res;
     }
+    case bigTrm:{
+      integer count;
+      res = decInt(in,&count);
+      if(res==Ok){
+        byteBufferPo buffer = newByteBuffer();
+        res = decode64(O_IO(buffer),in);
+        if(res==Ok){
+          integer len;
+          uint32* data = (uint32*)getBytesFromBuffer(buffer, &len);
+          res = cb->decBignum(data, count, cl);
+        }
+        closeFile(O_IO(buffer));
+      }
+      return res;
+    }
     case enuTrm: {
       clearStrBuffer(buff);
 
@@ -311,6 +327,10 @@ static retCode endSkipLst(void *cl) {
   return Ok;
 }
 
+static retCode skipBignum(uint32 *data, integer count, void *cl) {
+  return Ok;
+}
+
 static DecodeCallBacks skipCB = {
   skipFlag,           // startDecoding
   skipFlag,           // endDecoding
@@ -324,7 +344,8 @@ static DecodeCallBacks skipCB = {
   skipCns,            // decCons
   endSkipCns,         // End of constructor
   skipLst,            // Start of list
-  endSkipLst          // End of list
+  endSkipLst,         // End of list
+  skipBignum,         // skip over a big number
 };
 
 retCode skipEncoded(ioPo in, char *errorMsg, long msgLen) {
@@ -428,6 +449,17 @@ static retCode endCopyList(void *cl) {
   return Ok;
 }
 
+static retCode copyBignum(uint32 *data, integer count, void *cl) {
+  ioPo out = ((CopyRec *) cl)->out;
+  outChar(out, bigTrm);
+  outInt(out, count);
+
+  byteBufferPo buffer = fixedByteBuffer((char *) data, count * 4);
+  retCode ret = encode64(out, O_IO(buffer));
+  closeFile(O_IO(buffer));
+  return ret;
+}
+
 static DecodeCallBacks copyCB = {
   copyFlag,           // startDecoding
   copyFlag,           // endDecoding
@@ -441,7 +473,8 @@ static DecodeCallBacks copyCB = {
   copyCons,            // decCons
   endCopyCons,        // Copying a structure
   copyList,           // Copy a list
-  endCopyList         // End of copying a list
+  endCopyList,        // End of copying a list
+  copyBignum,         // Copy a big number
 };
 
 retCode decodeLbl(ioPo in, char *nm, long nmLen, integer *arity,

@@ -34,7 +34,7 @@ set(PUBLIC_HEADERS
         Headers/unistr.h Headers/utils.h
         Headers/jsonEvent.h Headers/udp.h Headers/ooio.h
         Headers/cmdOptions.h Headers/template.h Headers/pp.h Headers/ppP.h
-        Headers/strng.h Headers/editline.h Headers/array.h Headers/async.h Headers/promise.h Headers/buddy.h)
+        Headers/strng.h Headers/editline.h Headers/array.h Headers/async.h Headers/promise.h Headers/buddy.h Headers/base64.h)
 
 set(HEADER_FILES
         Headers/ioP.h Headers/fileP.h Headers/formioP.h
@@ -57,6 +57,7 @@ set(HEADER_FILES
 
 set(SOURCE_FILES
         class.c
+        base64.c
         file.c
         formin.c
         formout.c

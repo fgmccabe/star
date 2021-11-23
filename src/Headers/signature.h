@@ -59,6 +59,7 @@ typedef enum {
   vodTrm = 'v',         // Void value
   intTrm = 'x',         // Integer value
   fltTrm = 'd',         // Floating point value
+  bigTrm = 'b',         // A bignum
   chrTrm = 'c',         // Character value
   strTrm = 's',         // String value
   dtaTrm = 'n',         // Constructor data value
