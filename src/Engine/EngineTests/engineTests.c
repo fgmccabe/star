@@ -2,7 +2,7 @@
 // Created by Francis McCabe on 8/23/21.
 //
 
-#include "bcdTest.h"
+#include "engineTests.h"
 
 static retCode emptyTest() {
   return Ok;
@@ -11,6 +11,7 @@ static retCode emptyTest() {
 retCode all_tests() {
   tryRet(run_test(emptyTest));
   tryRet(run_test(bcdTests));
+  tryRet(run_test(multiTests));
   return Ok;
 }
 

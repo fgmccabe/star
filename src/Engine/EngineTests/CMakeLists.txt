@@ -12,7 +12,7 @@ set(TEST_HEADER_FILES
 
 set(TEST_SOURCE_FILES
         engineTests.c
-        ../../Util/unitTests.c bcdTest.c)
+        ../../Util/unitTests.c bcdTest.c Headers/multiTests.h multiTest.c)
 
 add_executable(engineTest EXCLUDE_FROM_ALL ${TEST_SOURCE_FILES} ${TEST_HEADER_FILES})
 target_link_libraries(engineTest ooio m infra)
