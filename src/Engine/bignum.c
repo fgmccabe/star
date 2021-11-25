@@ -41,34 +41,27 @@ bignumPo C_BIGNUM(termPo t) {
 }
 
 integer bigLen(bignumPo b) {
-  return b->bcd.count;
+  return b->count;
 }
 
-uint32 *bigData(bignumPo b) {
-  return b->bcd.data;
+byte *bigData(bignumPo b) {
+  return b->data;
 }
 
-static bcdPo bigVal(termPo t) {
-  bignumPo big = C_BIGNUM(t);
-  return &big->bcd;
-}
-
-termPo allocateBignum(heapPo H, integer count, uint32 data[]) {
+termPo allocateBignum(heapPo H, integer count, byte data[]) {
   bignumPo big = (bignumPo) allocateObject(H, bignumClass, BignumCellCount(count));
 
   big->clss = bignumClass;
   big->hash = 0;
-  big->bcd.count = count;
+  big->count = count;
 
-  integer bCount = ALIGNVALUE(count, 2);
-
-  byteMove(big->data, bCount, data, bCount);
+  byteMove(big->data, count, data, count);
 
   return (termPo) big;
 }
 
 long bigSize(specialClassPo cl, termPo o) {
-  return BignumCellCount(C_BIGNUM(o)->length);
+  return BignumCellCount(C_BIGNUM(o)->count);
 }
 
 termPo bigCopy(specialClassPo cl, termPo dst, termPo src) {
@@ -76,57 +69,52 @@ termPo bigCopy(specialClassPo cl, termPo dst, termPo src) {
   bignumPo di = (bignumPo) dst;
   *di = *si;
 
-  integer bCount = ALIGNVALUE(si->length, 2);
+  integer bCount = si->count;
   byteMove(di->data, bCount, si->data, bCount);
 
-  return ((termPo) di) + BignumCellCount(si->length);
+  return ((termPo) di) + BignumCellCount(si->count);
 }
 
 termPo bigScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   bignumPo big = C_BIGNUM(o);
 
-  return o + BignumCellCount(big->length);
+  return o + BignumCellCount(big->count);
 }
 
 termPo bigFinalizer(specialClassPo class, termPo o) {
   bignumPo big = C_BIGNUM(o);
 
-  return o + BignumCellCount(big->length);
+  return o + BignumCellCount(big->count);
 }
 
 logical bigCmp(specialClassPo cl, termPo o1, termPo o2) {
-  integer l1, l2;
-  const byte *tx1 = bigVal(o1, &l1);
-  const byte *tx2 = bigVal(o2, &l2);
-
-  return sameBytes(tx1, l1, tx2, l2);
+  bignumPo b1 = C_BIGNUM(o1);
+  bignumPo b2 = C_BIGNUM(o2);
+  return sameBytes(b1->data, b1->count, b2->data, b2->count);
 }
 
 static integer bigHash(specialClassPo cl, termPo o) {
   bignumPo b = C_BIGNUM(o);
   if (b->hash == 0) {
-    b->hash = byteHash(b->data, b->length);
+    b->hash = byteHash(b->data, b->count);
   }
   return b->hash;
 }
-
-
-
 
 static retCode bigDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   bignumPo big = C_BIGNUM(t);
   byte *data = big->data;
 
-  integer buffLen = big->length+5;
+  integer buffLen = big->count + 5;
   char buff[buffLen];
-  integer txtLen = textOfBignum(buff,buffLen,big->data,big->length);
+  integer txtLen = textOfBignum(buff, buffLen, big->data, big->length);
 
-  return outMsg(out,"%*Sd", txtLen,buff);
+  return outMsg(out, "%*Sd", txtLen, buff);
 }
 
 termPo cbdFromString(heapPo h, char *text, integer tlen) {
-  byte data[tlen*2];
-  integer dLen =  bigFromText(text,  tlen,  data, tlen*2);
+  byte data[tlen * 2];
+  integer dLen = bigFromText(text, tlen, data, tlen * 2);
 
   return allocateBignum(h, dLen, data);
 }
