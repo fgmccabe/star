@@ -25,7 +25,7 @@ static void tearDownTests() {
 
 retCode parsePositiveMultiTest() {
   char *positiveNum = "+18446744073709551612";
-  byte data[] = {0xfc, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0 };
+  uint32 data[] =  {0xfffffffc, 0xffffffff, 0x0 };
   multiPo check = allocMulti(data,NumberOf(data));
 
   // Check number parses to little endian format
@@ -66,7 +66,7 @@ retCode parsePositiveMultiTest() {
 retCode checkDivBy10() {
   char *positiveNum = "+1234567890";
   multiPo pos = multiFromText(positiveNum, uniStrLen(positiveNum));
-  byte data[] = {0xd2, 0x02, 0x96, 0x49};
+  uint32 data[] = {0x499602D2};
   multiPo check = allocMulti(data, NumberOf(data));
 
   assert(multiCompare(pos, check) == same);
