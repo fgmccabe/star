@@ -12,7 +12,7 @@
 // Multi-precision arithmetic
 typedef struct multi_record_ *multiPo;
 
-byte *multiData(multiPo num);
+uint32 * multiData(multiPo num);
 integer multiSize(multiPo num);
 
 logical multiNegative(multiPo num);
@@ -24,7 +24,7 @@ integer multiQuotient(multiPo lhs, multiPo rhs, multiPo res);
 integer multiRemainder(multiPo lhs, multiPo rhs, multiPo res);
 comparison multiCompare(multiPo a, multiPo b);
 
-multiPo allocMulti(byte *data, integer count);
+multiPo allocMulti(uint32 *data, integer count);
 integer textOfmulti(char *text, integer tlen, multiPo num);
 multiPo multiFromText(char *text, integer tlen);
 
