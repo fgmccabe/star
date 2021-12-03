@@ -7,7 +7,7 @@
 
 #include "ooio.h"
 #include "unitTests.h"
-#include "bcdTest.h"
-#include "multiTests.h"
+#include "../../../Util/UnitTests/Headers/bcdTest.h"
+#include "../../../Util/UnitTests/Headers/multiTests.h"
 
 #endif //STAR_ENGINETESTS_H

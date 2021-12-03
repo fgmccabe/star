@@ -5,7 +5,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "formioP.h"
-#include "bcdTest.h"
+#include "Headers/bcdTest.h"
 #include "bcdP.h"
 
 static bcdPo zeroB, oneB;

@@ -441,9 +441,7 @@ void bics_(uint1 w, armShift tp, armReg RD, armReg Rn, armReg Rm, uint8 shift, a
 }
 
 void bl_(codeLblPo lbl, assemCtxPo ctx) {
-  integer delta = lblDeltaRef(ctx, lbl);
-  check(absolute(delta >> 2) < (1 << 26), "label out of range");
-  encodeBranchImm(1, (int32) delta, ctx);
+  encodeBranchImm(1, lbl, ctx);
 }
 
 void blr_(armReg Rn, assemCtxPo ctx) {

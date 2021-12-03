@@ -12,7 +12,7 @@ typedef struct {
   integer ix;
 } IxObjectRec;
 
-typedef struct _ix_object_ {
+typedef struct ix_object_ {
   ObjectRec object;                     /* object level of the integer structure */
   IxObjectRec ix;
 } IxObjRecord;

@@ -8,10 +8,7 @@
 #include "config.h"
 #include "ooio.h"
 
-typedef enum {
-  positive,
-  negative
-} sign;
+
 
 typedef struct bcd_number_ *bcdPo;
 

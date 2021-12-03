@@ -11,16 +11,14 @@ set(HEADER_FILES
         Headers/formexts.h
         Headers/signals.h
         ../Engine/Headers/engineOptions.h
-        Headers/streamDecodeP.h
-        Headers/bcd.h Headers/bcdP.h)
+        Headers/streamDecode.h
+        Headers/streamDecodeP.h)
 
 set(SOURCE_FILES ${HEADER_FILES} manifest.c
         pkg.c
         encode.c
         signature.c
         signal.c
-        streamDecode.c
-        Headers/streamDecode.h
-        bcd.c)
+        streamDecode.c)
 
 add_library(infra ${SOURCE_FILES} ${HEADER_FILES})

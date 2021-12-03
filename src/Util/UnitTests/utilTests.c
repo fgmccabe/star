@@ -7,5 +7,6 @@
 retCode all_tests() {
   tryRet(run_test(test_buddy));
   tryRet(run_test(test_many_blocks));
+  tryRet(run_test(multiTests));
   return Ok;
 }

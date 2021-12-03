@@ -5,6 +5,7 @@
 
 #include "io.h"
 #include "formioP.h"
+#include "formatted.h"
 
 #include <float.h>    /* For fp conversion */
 #include <limits.h>
@@ -27,11 +28,11 @@ retCode outInt(ioPo f, integer i) {
   return outText(f, buff, len);
 }
 
-static inline byte hxDgit(integer h) {
+static inline char hxDgit(int8 h) {
   if (h < 10)
-    return (byte) ((unsigned) h | (unsigned) '0');
+    return (char) ((unsigned) h | (unsigned) '0');
   else
-    return (byte) (h + 'a' - 10);
+    return (char) (h + 'a' - 10);
 }
 
 static integer natural2StrByBase(char *str, uinteger i, integer pos, uint16 base);
@@ -47,10 +48,10 @@ integer int2StrByBase(char *str, integer i, integer pos, uint16 base) {
 
 static integer natural2StrByBase(char *str, uinteger i, integer pos, uint16 base) {
   if (i < base)
-    str[pos++] = hxDgit(i);
+    str[pos++] = hxDgit((int8) i);
   else {
     pos = natural2StrByBase(str, i / base, pos, base);
-    str[pos++] = hxDgit(i % base);
+    str[pos++] = hxDgit((int8) (i % base));
   }
   return pos;
 }
@@ -111,7 +112,6 @@ static retCode outHex(ioPo f, long i, integer width, integer precision, codePoin
 
   if (!left)
     pad = ' ';      /* We dont put trailing zeroes */
-
 
   retCode ret = outUStr(f, prefix);
 
@@ -192,10 +192,10 @@ static int number2Str(double x, int precision, char *dec, long *exp) {
   }
 }
 
-static int countSignificants(const char *frmt, integer from, integer limit, const char *test) {
+static int countSignificants(const char *frmt, integer limit, const char *test) {
   int cx = 0;
   integer tLen = uniStrLen(test);
-  for (integer ix = from; ix < limit;) {
+  for (integer ix = 0; ix < limit;) {
     codePoint ch = nextCodePoint(frmt, &ix, limit);
     if (uniIndexOf(test, tLen, 0, ch) >= 0)
       cx++;
@@ -203,16 +203,11 @@ static int countSignificants(const char *frmt, integer from, integer limit, cons
   return cx;
 }
 
-static retCode
-formatDigits(logical isSigned, const char *digits, int64 precision, const char *format, integer formatLen, char *out,
-             integer outLen,
-             integer *pos);
-
 retCode formattedFloat(double dx, char *out, integer *endPos, integer outLen, const char *frmt, integer formatLen) {
-  logical isSigned = False;
+  sign sign = positive;
 
   if (dx < 0) {
-    isSigned = True;
+    sign = negative;
     dx = -dx;
   }
 
@@ -224,8 +219,8 @@ retCode formattedFloat(double dx, char *out, integer *endPos, integer outLen, co
     if (ePos < 0)
       ePos = uniIndexOf(frmt, formatLen, 0, 'E');
 
-    int beforePeriod = countSignificants(frmt, 0, (integer) dotPos, (char *) "09 ");
-    int afterPeriod = countSignificants(frmt, (integer) dotPos, ePos >= 0 ? (integer) ePos : formatLen, "09 ");
+    int beforePeriod = countSignificants(frmt, (integer) dotPos, (char *) "09 ");
+    int afterPeriod = countSignificants(frmt, ePos >= 0 ? (integer) ePos : formatLen, "09 ");
     int precision = beforePeriod + afterPeriod;
     char digits[MAXFILELEN];
     long exp10;
@@ -239,14 +234,14 @@ retCode formattedFloat(double dx, char *out, integer *endPos, integer outLen, co
       if (exp10 > beforePeriod || exp10 + afterPeriod < -len)
         return Error;
       else if (exp10 < 0)
-        return formatDigits(isSigned, digits, precision + exp10, frmt, formatLen, out, outLen, endPos);
+        return formatDigits(sign, digits, len, precision + exp10, frmt, formatLen, out, outLen, endPos);
       else
-        return formatDigits(isSigned, digits, precision, frmt, formatLen, out, outLen, endPos);
+        return formatDigits(sign, digits, len, precision, frmt, formatLen, out, outLen, endPos);
     } else {
       char mnBf[128], expBf[128];
       integer mnLn, expLn;
 
-      formatDigits(isSigned, digits, len, frmt, (integer) ePos, mnBf, NumberOf(mnBf), &mnLn);
+      formatDigits(sign, digits, len, len, frmt, (integer) ePos, mnBf, NumberOf(mnBf), &mnLn);
 
       expLn = int2StrByBase(expBf, exp10, 0, 10);
 
@@ -265,130 +260,15 @@ retCode formattedLong(integer ix, char *out, integer *endPos, integer outLen, co
   } else {
     char digits[256];
     uint16 base = (uint16) (uniIndexOf(frmt, formatLen, 0, 'X') >= 0 ? 16 : 10);
-    logical isSigned = False;
+    sign sign = positive;
     if (ix < 0) {
-      isSigned = True;
+      sign = negative;
       ix = -ix;
     }
     integer len = natural2StrByBase(digits, ix, 0, base);
 
-    return formatDigits(isSigned, digits, (long) len, frmt, formatLen, out, outLen, endPos);
+    return formatDigits(sign, digits, len, len, frmt, formatLen, out, outLen, endPos);
   }
-}
-
-#define attachChar(O, P, L, Ch) do{ if((*(P))>=(L)) return Error; else (O)[(*(P))++] = Ch; } while(False)
-
-retCode
-formatDigits(logical isSigned, const char *digits, int64 precision, const char *format, integer formatLen, char *out,
-             integer outLen,
-             integer *pos) {
-  int formSigDigits = countSignificants(format, 0, formatLen, "09X ");
-  logical encounteredSign = False;
-  int zeroDigits = countSignificants(format, 0, formatLen, "0 ");
-
-  char signFmt = (char) (uniIndexOf(format, formatLen, 0, '-') >= 0 ? '-' :
-                         uniIndexOf(format, formatLen, 0, '+') >= 0 ? '+' : ' ');
-
-  if (precision > formSigDigits)
-    return Error;
-
-  *pos = 0;
-
-  for (int64 ix = formatLen - 1, px = (int64) (precision - 1); ix >= 0; ix--) {
-    char formChar = format[ix];
-    switch (formChar) {
-      case '-':
-        if (isSigned)
-          attachChar(out, pos, outLen, '-');
-        else
-          attachChar(out, pos, outLen, ' ');
-        break;
-      case '+':
-        if (isSigned)
-          attachChar(out, pos, outLen, '+');
-        else
-          attachChar(out, pos, outLen, ' ');
-        break;
-      case 'P':
-        if (isSigned) {
-          if (encounteredSign)
-            attachChar(out, pos, outLen, '(');
-          else {
-            attachChar(out, pos, outLen, ')');
-            encounteredSign = True;
-          }
-        } else
-          attachChar(out, pos, outLen, ' ');
-
-        break;
-      case '.':
-      case ',':
-      default:
-        if (px >= 0 || zeroDigits > 0)
-          attachChar(out, pos, outLen, formChar);
-        break;
-      case ' ':
-        if (px >= 0) { // more of the raw result to write out
-          attachChar(out, pos, outLen, digits[px]);
-          px--;
-        } else if (zeroDigits > 0) {
-          switch (signFmt) {
-            case '-':
-              if (isSigned) {
-                attachChar(out, pos, outLen, '-');
-                isSigned = False;
-                signFmt = ' ';
-              } else {
-                attachChar(out, pos, outLen, ' ');
-              }
-              break;
-            case '+': {
-              if (isSigned) {
-                attachChar(out, pos, outLen, '-');
-                isSigned = False;
-              } else {
-                attachChar(out, pos, outLen, '+');
-              }
-              signFmt = ' ';
-              break;
-            }
-            default:
-              attachChar(out, pos, outLen, ' ');
-              break;
-          }
-        }
-
-        zeroDigits--;
-        break;
-      case '0':
-        if (px >= 0) { // more of the raw result to write out
-          attachChar(out, pos, outLen, digits[px]);
-          px--;
-        } else if (zeroDigits > 0)
-          attachChar(out, pos, outLen, '0');
-
-        zeroDigits--;
-        break;
-      case '9':
-      case 'X':
-        if (px >= 0) { // more of the raw result to write out
-          attachChar(out, pos, outLen, digits[px]);
-          px--;
-        }
-        break;
-      case 'U':
-        if (px >= 0) {
-
-        }
-      case 'e':
-      case 'E':
-      case 'L':
-      case 'R':
-        return Error;
-    }
-  }
-
-  return uniReverse(out, *pos);
 }
 
 retCode formatDouble(char *out, integer outLen, double x, FloatDisplayMode displayMode, int precision, logical sign) {
@@ -802,8 +682,7 @@ retCode __voutMsg(ioPo f, char *format, va_list args) {
         }
 
         if (procs[fcp & 0xff] != NULL) {
-          void *data = va_arg(args,
-                              void*); /* pick up a special value */
+          void *data = va_arg(args, void*); /* pick up a special value */
           ret = procs[((unsigned int) fcp) & 0xffu](f, data, depth, precision, alternate);
         } else
           switch (fcp) {

@@ -128,7 +128,10 @@ logical uniIsTrivial(const char *s, integer len);
 
 logical sameBytes(const byte *s1,integer l1,const byte* s2,integer l2);
 retCode byteMove(byte *dest, integer len, const byte *src, integer sLen);
+logical sameWords(const uint32 *s1,integer l1,const uint32* s2,integer l2);
+retCode wordMove(uint32 *dest, integer len, const uint32 *src, integer sLen);
 integer byteHash(const byte *data, long len);
+integer wordHash(const uint32 *data, long len);
 integer hash64(integer ix);
 
 typedef retCode (*uniCodeProc)(codePoint ch, integer ix, void *cl);
