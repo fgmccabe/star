@@ -12,6 +12,7 @@
 #include "ooio.h"
 #include "engine.h"
 #include "arithP.h"
+#include "bignumP.h"
 #include "errorCodes.h"
 #include "arithmetic.h"
 
@@ -504,4 +505,62 @@ integer randomInt() {
   return rnd;
 }
 
+// Arithmetic on big numbers
 
+ReturnStatus g__big_plus(processPo p, heapPo h, termPo a1, termPo a2) {
+  bignumPo lhs = C_BIGNUM(a1);
+  bignumPo rhs = C_BIGNUM(a2);
+  integer cS = bigCount(lhs) + bigCount(rhs) + 1;
+  uint32 sum[cS];
+  integer cC = longAdd(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
+  termPo Rs = (termPo) allocateBignum(h, cC, sum);
+
+  return (ReturnStatus) {.ret=Ok, .result=Rs};
+}
+
+ReturnStatus g__big_minus(processPo p, heapPo h, termPo a1, termPo a2) {
+  bignumPo lhs = C_BIGNUM(a1);
+  bignumPo rhs = C_BIGNUM(a2);
+  integer cS = bigCount(lhs) + bigCount(rhs) + 1;
+  uint32 sum[cS];
+  integer cC = longSubtract(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
+  termPo Rs = (termPo) allocateBignum(h, cC, sum);
+
+  return (ReturnStatus) {.ret=Ok, .result=Rs};
+}
+
+ReturnStatus g__big_times(processPo p, heapPo h, termPo a1, termPo a2) {
+  bignumPo lhs = C_BIGNUM(a1);
+  bignumPo rhs = C_BIGNUM(a2);
+  integer pS = bigCount(lhs) + bigCount(rhs) + 1;
+  uint32 prod[pS];
+  integer cC = longMultiply(prod, pS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
+  termPo Rs = (termPo) allocateBignum(h, cC, prod);
+
+  return (ReturnStatus) {.ret=Ok, .result=Rs};
+}
+
+ReturnStatus g__big_div(processPo p, heapPo h, termPo a1, termPo a2) {
+  bignumPo lhs = C_BIGNUM(a1);
+  bignumPo rhs = C_BIGNUM(a2);
+  integer qS = bigCount(lhs) + bigCount(rhs) + 1;
+  uint32 quot[qS];
+  uint32 rem[qS];
+
+  integer qC = qS;
+  integer rC = qS;
+
+  retCode ret = longDivide(quot, &qC, rem, &rC, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
+  if (ret == Ok) {
+    termPo Qt = (termPo) allocateBignum(h, qC, quot);
+    int root = gcAddRoot(h, &Qt);
+
+    termPo Rt = (termPo) allocateBignum(h, rC, rem);
+    gcAddRoot(h, &Rt);
+    termPo Rs = (termPo) allocatePair(h, Qt, Rt);
+    gcReleaseRoot(h, root);
+    return (ReturnStatus) {.ret=Ok, .result=Rs};
+  } else {
+    return (ReturnStatus) {.ret=Error, .result=voidEnum};
+  }
+}

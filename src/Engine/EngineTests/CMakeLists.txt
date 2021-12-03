@@ -7,15 +7,14 @@ include_directories("../../Headers" "../Headers" "Headers")
 
 set(TEST_HEADER_FILES
         Headers/engineTests.h
-        Headers/bcdTest.h
         )
 
 set(TEST_SOURCE_FILES
         engineTests.c
-        ../../Util/unitTests.c bcdTest.c Headers/multiTests.h multiTest.c)
+        ../../Util/unitTests.c)
 
 add_executable(engineTest EXCLUDE_FROM_ALL ${TEST_SOURCE_FILES} ${TEST_HEADER_FILES})
 target_link_libraries(engineTest ooio m infra)
 
-#add_custom_target(testEngine ALL DEPENDS engineTest
-#        COMMAND engineTest)
+add_custom_target(testEngine ALL DEPENDS engineTest
+        COMMAND engineTest)

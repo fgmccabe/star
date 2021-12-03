@@ -10,8 +10,6 @@ static retCode emptyTest() {
 
 retCode all_tests() {
   tryRet(run_test(emptyTest));
-  tryRet(run_test(bcdTests));
-  tryRet(run_test(multiTests));
   return Ok;
 }
 

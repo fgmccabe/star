@@ -1,0 +1,46 @@
+define abs(n){
+  if(n<0){
+    return -n
+  }
+  return n
+}
+
+define divide(n, d) {
+  auto a, q, r, i
+  a = d - (d % (2^32))
+  print "a=",a,"\n"
+  q = n/a
+  r = d+1
+  print "q=",q,"\n"
+  print "r=",r,"\n"
+  i = 0
+  while(abs(r)>=d){
+    print "loop ",i++,"\n"
+    print "q*d=",q*d,"\n"
+    r = n-(q*d)
+    qn = q+r/a
+    print "r=",r,"\n"
+    print "qn=",qn,"\n"
+    
+    q = (q+qn)/2
+    print "q=",q,"\n"
+  }
+  r = n-(q*d)
+  if(r<0){
+    q = q-1
+    r = r+d
+  }
+  print "q=",q,"\n"
+  print "r=",r,"\n"
+  return q
+}
+
+define fact(n) {
+  auto s
+  s = 1
+  while(n>0){
+    s = s*n
+    n = n-1
+  }
+  return s
+}

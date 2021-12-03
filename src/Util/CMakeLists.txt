@@ -20,71 +20,120 @@ set(UNITABLE.C ${CMAKE_CURRENT_BINARY_DIR}/UnicodeStuff/unitable.c)
 set(UNICODE ${CMAKE_CURRENT_SOURCE_DIR}/UnicodeStuff/UnicodeData.txt)
 
 set(PUBLIC_HEADERS
-        Headers/io.h Headers/file.h Headers/formio.h
-        Headers/hash.h Headers/hosts.h Headers/integer.h
-        Headers/ioTcp.h Headers/iterate.h Headers/ixTree.h Headers/jsonEvent.h
-        Headers/list.h Headers/lockable.h Headers/logical.h
-        Headers/managed.h Headers/object.h
+        Headers/bcd.h
+        Headers/io.h
+        Headers/file.h
+        Headers/formio.h
+        Headers/hash.h
+        Headers/hosts.h
+        Headers/integer.h
+        Headers/ioTcp.h
+        Headers/iterate.h
+        Headers/ixTree.h
+        Headers/jsonEvent.h
+        Headers/list.h
+        Headers/lockable.h
+        Headers/logical.h
+        Headers/managed.h
+        Headers/object.h
         Headers/pair.h
-        Headers/pool.h Headers/retcode.h Headers/pipe.h
+        Headers/pool.h
+        Headers/retcode.h
+        Headers/pipe.h
         Headers/byteBuffer.h
         Headers/wordBuffer.h
         Headers/stringBuffer.h
         Headers/timer.h
-        Headers/unistr.h Headers/utils.h
-        Headers/jsonEvent.h Headers/udp.h Headers/ooio.h
-        Headers/cmdOptions.h Headers/template.h Headers/pp.h Headers/ppP.h
-        Headers/strng.h Headers/editline.h Headers/array.h Headers/async.h Headers/promise.h Headers/buddy.h Headers/base64.h multi.c Headers/multi.h)
+        Headers/unistr.h
+        Headers/utils.h
+        Headers/jsonEvent.h
+        Headers/udp.h
+        Headers/ooio.h
+        Headers/cmdOptions.h
+        Headers/template.h
+        Headers/pp.h
+        Headers/ppP.h
+        Headers/strng.h
+        Headers/editline.h
+        Headers/array.h
+        Headers/async.h
+        Headers/promise.h
+        Headers/buddy.h
+        Headers/base64.h
+        Headers/multi.h)
 
 set(HEADER_FILES
-        Headers/ioP.h Headers/fileP.h Headers/formioP.h
+        Headers/bcdP.h
+        Headers/ioP.h
+        Headers/fileP.h
+        Headers/formioP.h
         Headers/hostsP.h
-        Headers/iosockP.h Headers/ixTreeP.h
-        Headers/listP.h Headers/lockableP.h
-        Headers/managedP.h Headers/objectP.h
+        Headers/iosockP.h
+        Headers/ixTreeP.h
+        Headers/listP.h
+        Headers/lockableP.h
+        Headers/managedP.h
+        Headers/objectP.h
         Headers/pairP.h
         Headers/pipeP.h
         Headers/byteBufferP.h
         Headers/wordBufferP.h
         Headers/stringBufferP.h
+        Headers/topSort.h
         Headers/unistrP.h
         Headers/pp.h
         Headers/vector.h
         Headers/vectorP.h
         Headers/integerP.h
         Headers/strngP.h
-        Headers/topSortP.h Headers/arrayP.h Headers/asyncP.h Headers/promiseP.h Headers/buddyP.h
-        Headers/multi.h)
+        Headers/topSortP.h
+        Headers/arrayP.h
+        Headers/asyncP.h
+        Headers/promiseP.h
+        Headers/buddyP.h
+        Headers/multi.h
+        Headers/formatted.h Headers/multiP.h)
 
 set(SOURCE_FILES
-        class.c
+        arrays.c
+        bcd.c
+        buddy.c
         base64.c
+        class.c
+        cmdOptions.c
+        editline.c
         file.c
+        formatted.c
         formin.c
         formout.c
         hash.c
         hosts.c
+        integer.c
         io.c
         ixTree.c
         list.c
         formexts.c
         locked.c
         managed.c
+        multi.c
         object.c
-        cmdOptions.c
         pair.c
         pipe.c
         pool.c
+        promise.c
         sockets.c
         byteBuffer.c
         wordBuffer.c
         stringBuffer.c
+        strng.c
         template.c
         timer.c
+        topSort.c
         udp.c
         unichar.c
         unistr.c
         utils.c
+        vector.c
 
         json.y
         jtoken.l
@@ -95,8 +144,7 @@ set(SOURCE_FILES
         ${FLEX_JsonTokeniser_OUTPUTS}
 
         ${PUBLIC_HEADERS}
-        ${HEADER_FILES}
-        vector.c integer.c strng.c editline.c topSort.c Headers/topSort.h arrays.c promise.c buddy.c UnitTests/Headers/buddyTest.h multi.c)
+        ${HEADER_FILES})
 
 add_library(ooio STATIC ${SOURCE_FILES})
 target_link_libraries(ooio pthread m)

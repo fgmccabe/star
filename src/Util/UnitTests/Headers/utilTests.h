@@ -8,7 +8,6 @@
 #include "ooio.h"
 #include "buddyTest.h"
 #include "unitTests.h"
-
-
+#include "multiTests.h"
 
 #endif //STAR_UTILTESTS_H

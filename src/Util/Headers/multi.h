@@ -12,25 +12,26 @@
 // Multi-precision arithmetic
 typedef struct multi_record_ *multiPo;
 
-uint32 * multiData(multiPo num);
+
+uint32 *multiData(multiPo num);
 integer multiSize(multiPo num);
+sign multiSign(multiPo num);
 
 logical multiNegative(multiPo num);
 multiPo multiPlus(multiPo lhs, multiPo rhs);
 multiPo multiMinus(multiPo lhs, multiPo rhs);
 multiPo multiTimes(multiPo lhs, multiPo rhs);
-integer multiDivide(multiPo lhs, multiPo rhs, multiPo res);
-integer multiQuotient(multiPo lhs, multiPo rhs, multiPo res);
-integer multiRemainder(multiPo lhs, multiPo rhs, multiPo res);
+retCode multiDivide(multiPo *quot, multiPo *rem, multiPo lhs, multiPo rhs);
 comparison multiCompare(multiPo a, multiPo b);
+logical sameMulti(multiPo a, multiPo b);
 
 multiPo allocMulti(uint32 *data, integer count);
-integer textOfmulti(char *text, integer tlen, multiPo num);
+void freeMulti(multiPo m);
+
+multiPo multiFromStr(char *str);
 multiPo multiFromText(char *text, integer tlen);
 
+integer formatMulti(multiPo num, const char *format, integer formatLen, char *buffer, integer buffLen);
 retCode showMulti(ioPo out, void *data, long depth, long precision, logical alt);
-
-// Testing only
-integer multiText(char *text, integer tLen, multiPo num);
 
 #endif //STAR_MULTI_H

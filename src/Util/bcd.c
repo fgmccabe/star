@@ -35,20 +35,6 @@ sign bcdSign(bcdPo num) {
     return positive;
 }
 
-integer digitCount(bcdPo num) {
-  integer count = (num->count - 1) * DIGITS_PER_WORD;
-  uint32 msw = num->data[num->count - 1];
-  if (msw >= 0x50000000) {
-
-  } else {
-    for (integer ix = 0; ix < DIGITS_PER_WORD; ix++) {
-      if (msw == 0)
-        return count + ix;
-      msw = msw >> 4;
-    }
-  }
-}
-
 // Slow, but sure.
 static integer bcdMove(uint32 *tgt, integer tgtLen, const uint32 *src, integer srcCount) {
   assert(tgtLen >= srcCount);

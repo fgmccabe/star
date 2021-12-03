@@ -40,22 +40,22 @@ bignumPo C_BIGNUM(termPo t) {
   return (bignumPo) t;
 }
 
-integer bigLen(bignumPo b) {
+integer bigCount(bignumPo b) {
   return b->count;
 }
 
-byte *bigData(bignumPo b) {
+uint32 *bigDigits(bignumPo b) {
   return b->data;
 }
 
-termPo allocateBignum(heapPo H, integer count, byte data[]) {
+termPo allocateBignum(heapPo H, integer count, uint32 data[]) {
   bignumPo big = (bignumPo) allocateObject(H, bignumClass, BignumCellCount(count));
 
   big->clss = bignumClass;
   big->hash = 0;
   big->count = count;
 
-  byteMove(big->data, count, data, count);
+  wordMove(big->data, count, data, count);
 
   return (termPo) big;
 }
@@ -70,7 +70,7 @@ termPo bigCopy(specialClassPo cl, termPo dst, termPo src) {
   *di = *si;
 
   integer bCount = si->count;
-  byteMove(di->data, bCount, si->data, bCount);
+  wordMove(di->data, bCount, si->data, bCount);
 
   return ((termPo) di) + BignumCellCount(si->count);
 }
@@ -90,31 +90,28 @@ termPo bigFinalizer(specialClassPo class, termPo o) {
 logical bigCmp(specialClassPo cl, termPo o1, termPo o2) {
   bignumPo b1 = C_BIGNUM(o1);
   bignumPo b2 = C_BIGNUM(o2);
-  return sameBytes(b1->data, b1->count, b2->data, b2->count);
+  return sameWords(b1->data, b1->count, b2->data, b2->count);
 }
 
 static integer bigHash(specialClassPo cl, termPo o) {
   bignumPo b = C_BIGNUM(o);
   if (b->hash == 0) {
-    b->hash = byteHash(b->data, b->count);
+    b->hash = wordHash(b->data, b->count);
   }
   return b->hash;
 }
 
 static retCode bigDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   bignumPo big = C_BIGNUM(t);
-  byte *data = big->data;
+  uint32 *digits = big->data;
 
-  integer buffLen = big->count + 5;
-  char buff[buffLen];
-  integer txtLen = textOfBignum(buff, buffLen, big->data, big->length);
-
-  return outMsg(out, "%*Sd", txtLen, buff);
+  return showLong(out, big->data, big->count);
 }
 
-termPo cbdFromString(heapPo h, char *text, integer tlen) {
-  byte data[tlen * 2];
-  integer dLen = bigFromText(text, tlen, data, tlen * 2);
+termPo bignumFromString(heapPo h, char *text, integer tLen) {
+  integer dS = tLen * 2 + 1;
+  uint32 data[dS];
+  integer dLen = longFromText(text, tLen, data, dS);
 
   return allocateBignum(h, dLen, data);
 }

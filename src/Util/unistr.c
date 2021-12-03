@@ -321,11 +321,32 @@ retCode byteMove(byte *dest, integer len, const byte *src, integer sLen) {
   return pos < len ? Ok : Eof;
 }
 
-logical sameBytes(const byte *s1,integer l1,const byte* s2,integer l2){
-  if(l1!=l2)
+retCode wordMove(uint32 *dest, integer len, const uint32 *s, integer sLen) {
+  integer pos = 0;
+  integer max = (sLen < len ? sLen : len);
+
+  while (pos < max)
+    dest[pos++] = *s++;
+  return pos < len ? Ok : Eof;
+}
+
+logical sameBytes(const byte *s1, integer l1, const byte *s2, integer l2) {
+  if (l1 != l2)
     return False;
-  else{
-    for(integer ix=0;ix<l1;ix++) {
+  else {
+    for (integer ix = 0; ix < l1; ix++) {
+      if (s1[ix] != s2[ix])
+        return False;
+    }
+    return True;
+  }
+}
+
+logical sameWords(const uint32 *s1, integer l1, const uint32 *s2, integer l2) {
+  if (l1 != l2)
+    return False;
+  else {
+    for (integer ix = 0; ix < l1; ix++) {
       if (s1[ix] != s2[ix])
         return False;
     }
@@ -558,6 +579,17 @@ integer uniNHash(const char *name, long len) {
 }
 
 integer byteHash(const byte *data, long len) {
+  register integer hash = 0;
+  integer fx = 0;
+
+  while (fx < len) {
+    hash = hash * 37 + data[fx++];
+  }
+
+  return hash64(hash);
+}
+
+integer wordHash(const uint32 *data, long len) {
   register integer hash = 0;
   integer fx = 0;
 

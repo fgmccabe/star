@@ -7,12 +7,14 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c99")
 include_directories("../../Headers" "../Headers" "Headers")
 
 set(TEST_HEADER_FILES
-        Headers/buddyTest.h)
+        Headers/buddyTest.h
+        Headers/multiTests.h)
 
 set(TEST_SOURCE_FILES
         buddyTest.c
         utilTests.c
-        ../unitTests.c)
+        ../unitTests.c
+        multiTest.c)
 
 add_executable(utilTest EXCLUDE_FROM_ALL ${TEST_SOURCE_FILES} ${TEST_HEADER_FILES})
 target_link_libraries(utilTest ooio m)
