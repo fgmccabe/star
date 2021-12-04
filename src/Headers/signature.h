@@ -16,6 +16,7 @@ typedef enum {
   voidSig = 'v', // Void type
   thisSig = 'h', // this type is a special type
   intSig = 'i', /* An integer */
+  bigSig = 'b', // A bigint
   fltSig = 'f', /* A float */
   logSig = 'l', /* Logical value */
   chrSig = 'c', /* A character */

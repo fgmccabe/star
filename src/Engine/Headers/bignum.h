@@ -21,5 +21,6 @@ extern bignumPo C_BIGNUM(termPo t);
 
 uint32 *bigDigits(bignumPo bg);
 integer bigCount(bignumPo bg);
+integer bignumHash(bignumPo bg);
 
 #endif //STAR_BIGNUM_H
