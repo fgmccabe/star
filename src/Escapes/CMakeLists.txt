@@ -30,9 +30,24 @@ set(HEADER_FILES
 
 set(SOURCE_FILES
         ${HEADER_FILES}
-        libEscapes.c
+        assigns.c
+        bigintops.c
         clock.c
-        system.c arithmetic.c unicode.c assigns.c
-        ioops.c locks.c fileops.c netfile.c stringops.c datentime.c threds.c lblops.c turm.c pkgops.c stkops.c Headers/stkops.h)
+        datentime.c
+        fileops.c
+        fltops.c
+        intops.c
+        ioops.c
+        lblops.c
+        libEscapes.c
+        locks.c
+        system.c
+        netfile.c
+        pkgops.c
+        stkops.c
+        stringops.c
+        threds.c
+        turm.c
+        unicode.c)
 
 add_library(escapes STATIC ${SOURCE_FILES})

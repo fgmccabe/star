@@ -116,3 +116,9 @@ termPo bignumFromString(heapPo h, char *text, integer tLen) {
   return allocateBignum(h, dLen, data);
 }
 
+integer bignumHash(bignumPo bg){
+  if (bg->hash == 0) {
+    bg->hash = wordHash(bg->data, bg->count);
+  }
+  return bg->hash;
+}

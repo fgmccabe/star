@@ -62,6 +62,7 @@ logical validSig(char *sig, integer *start, integer end) {
     case voidSig:
     case thisSig:
     case intSig:
+    case bigSig:
     case fltSig:
     case logSig:
     case chrSig:
@@ -217,6 +218,7 @@ retCode skipSig(char *sig, integer *start, integer end) {
       case voidSig:
       case thisSig:
       case intSig:
+      case bigSig:
       case fltSig:
       case logSig:
       case chrSig:
@@ -412,6 +414,7 @@ retCode skipSignature(ioPo in) {
       case voidSig:
       case thisSig:
       case intSig:
+      case bigSig:
       case fltSig:
       case logSig:
       case chrSig:
@@ -534,6 +537,8 @@ retCode showSignature(ioPo out, char *sig, integer *start, integer end) {
       return outStr(out, "this");
     case intSig:
       return outStr(out, "integer");
+    case bigSig:
+      return outStr(out, "bigint");
     case fltSig:
       return outStr(out, "float");
     case logSig:

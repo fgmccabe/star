@@ -139,6 +139,9 @@ static char *dumpStarSig(char *sig, ioPo out) {
     case intSig:
       outMsg(out, "intType");
       break;
+    case bigSig:
+      outMsg(out, "bigintType");
+      break;
     case fltSig:
       outMsg(out, "fltType");
       break;
@@ -308,6 +311,9 @@ static char *dumpPrologSig(char *sig, ioPo out) {
   switch (*sig++) {
     case intSig:
       dumpPrologStdType("star.core*integer", out);
+      break;
+    case bigSig:
+      dumpPrologStdType("star.core*bigint", out);
       break;
     case fltSig:
       dumpPrologStdType("star.core*float", out);

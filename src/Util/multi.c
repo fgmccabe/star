@@ -7,8 +7,6 @@
 #include "multiP.h"
 #include "formatted.h"
 
-#define SIGN_MASK 0x80000000
-#define ONES_MASK 0xffffffff
 #define WIDTH 32
 
 static uint32 longOne[] = {1};
@@ -109,6 +107,20 @@ static integer longComplement(uint32 *tgt, const uint32 *src, integer sSize) {
   return ix;
 }
 
+comparison longCompare(const uint32 *lhs, integer lSize, const uint32 *rhs, integer rSize) {
+  uint32 tA[lSize + 2];
+  uint32 tB[rSize + 2];
+  integer bSize = longComplement(tB, rhs, rSize);
+  integer aSize = longTrim(tA, longAdd(tA, lSize + 2, lhs, lSize, tB, bSize));
+
+  if ((tA[aSize - 1] & SIGN_MASK) == SIGN_MASK)
+    return smaller;
+  else if (tA[aSize - 1] == 0 && aSize == 1)
+    return same;
+  else
+    return bigger;
+}
+
 comparison multiCompare(multiPo a, multiPo b) {
   uint32 tA[a->size + 2];
   uint32 tB[b->size + 2];
@@ -123,10 +135,10 @@ comparison multiCompare(multiPo a, multiPo b) {
     return bigger;
 }
 
-static logical longSame(uint32 *a, integer aC, uint32 *b, integer bC) {
-  if (aC == bC) {
-    for (integer ix = 0; ix < aC; ix++) {
-      if (a[ix] != b[ix])
+logical longEqual(const uint32 *lhs, integer lSize, const uint32 *rhs, integer rSize) {
+  if (lSize == rSize) {
+    for (integer ix = 0; ix < lSize; ix++) {
+      if (lhs[ix] != rhs[ix])
         return False;
     }
     return True;
@@ -135,7 +147,7 @@ static logical longSame(uint32 *a, integer aC, uint32 *b, integer bC) {
 }
 
 static logical longIsZero(uint32 *a, integer aC) {
-  return longSame(a, aC, longZero, NumberOf(longZero));
+  return longEqual(a, aC, longZero, NumberOf(longZero));
 }
 
 logical sameMulti(multiPo a, multiPo b) {
@@ -281,6 +293,36 @@ static void longTxt(char *text, integer *pos, uint32 *data, integer count, uint8
   }
 }
 
+static integer longText(char *out, uint32 *data, integer count, uint8 base, sign *sign) {
+  uint32 temp[count];
+  integer pos = 0;
+
+  if (longNegative(data, count)) {
+    longComplement(temp, data, count);
+    *sign = negative;
+  } else {
+    dataMove(temp, data, count);
+    *sign = positive;
+  }
+  longTxt(out, &pos, temp, count, base);
+  return pos;
+}
+
+integer textFromlong(char *text, integer tLen, uint32 *data, integer count) {
+  assert(tLen >= count * 10);
+  uint32 temp[count];
+  integer pos = 0;
+
+  if (longNegative(data, count)) {
+    longComplement(temp, data, count);
+    text[pos++] = '-';
+  } else {
+    dataMove(temp, data, count);
+  }
+  longTxt(text, &pos, temp, count, 10);
+  return pos;
+}
+
 static integer multiText(char *text, integer tLen, multiPo num, uint8 base, sign *sign) {
   integer count = num->size;
   uint32 temp[count];
@@ -295,6 +337,21 @@ static integer multiText(char *text, integer tLen, multiPo num, uint8 base, sign
   }
   longTxt(text, &pos, temp, count, base);
   return pos;
+}
+
+integer longFormat(uint32 *data, integer count, const char *format, integer formatLen, char *buffer, integer buffLen) {
+  uint8 base = (uint8) (uniIndexOf(format, formatLen, 0, 'X') >= 0 ? 16 : 10);
+  integer precision = uniIndexOf(format, formatLen, 0, '.');
+  if (precision < 0)
+    precision = formatLen;
+  integer outMax = count * INT32_DIGITS;
+  char digits[outMax];
+  sign sign;
+  integer digitLen = longText(digits, data, count, base, &sign);
+  integer len = 0;
+  formatDigits(sign, digits, digitLen, precision, format, formatLen, buffer, buffLen, &len);
+
+  return len;
 }
 
 integer formatMulti(multiPo num, const char *format, integer formatLen, char *buffer, integer buffLen) {
