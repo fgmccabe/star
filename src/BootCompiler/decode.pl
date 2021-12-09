@@ -22,7 +22,8 @@ decodeValue(Txt,Val) :-
   phrase(decodeTerm(Val),Chrs).
 
 decodeTerm(voyd) --> ['v'].
-decodeTerm(intgr(Ix)) --> ['x'], decInt(Ix).
+decodeTerm(intgr(Nm)) --> ['x'], decInt(Nm).
+decodeTerm(bigx(Ix)) --> ['b'], tdigits(Ix).
 decodeTerm(float(Dx)) --> ['d'], decFloat(Dx).
 decodeTerm(enum(Nm)) --> ['e'], decodeText(Nm).
 decodeTerm(chr(Cp)) --> ['c',Cp].
@@ -52,6 +53,7 @@ decodeSignature(S,Tp) :-
 decodeType(anonType) --> ['_'].
 decodeType(voidType) --> ['v'].
 decodeType(type("star.core*integer")) --> ['i'].
+decodeType(type("star.core*bigint")) --> ['b'].
 decodeType(type("star.core*float")) --> ['f'].
 decodeType(type("star.core*char")) --> ['c'].
 decodeType(type("star.core*string")) --> ['s'].
@@ -97,6 +99,9 @@ decodeConstraint(allType(TV,Con)) --> [':'], decodeType(TV), decodeConstraint(Co
 
 digits(SoFar,Ix) --> digit(D), { Nx is SoFar*10+D}, digits(Nx,Ix).
 digits(Ix,Ix) --> \+ digit(_).
+
+tdigits([D|Nm]) --> digit(D), tdigits(Nm).
+tdigits([]) --> \+ digit(_).
 
 digit(0) --> ['0'].
 digit(1) --> ['1'].
