@@ -22,7 +22,8 @@
 	       sort/3,sortedMerge/4,makeKey/2,
 	       nextPrime/2,sieve/2,
 	       check_implies/2,verify/2,bin_nop/2,
-	       clear_track/0,track/2]).
+	       clear_track/0,track/2,
+	       negateString/2]).
 
 :- use_module(errors).
 
@@ -435,3 +436,10 @@ track(Nm,Lc) :-
 track(Nm,Lc) :-
   reportMsg("track %s",[Nm],Lc),
   assert(trk(Nm)).
+
+negateString(S,S1) :-
+  string_chars(S,['-'|R]),!,
+  string_chars(S1,R).
+negateString(S,S1) :-
+  string_chars(S,R),!,
+  string_chars(S1,['-'|R]).

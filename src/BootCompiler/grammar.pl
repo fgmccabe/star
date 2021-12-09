@@ -66,6 +66,7 @@ term0([stringTok(St,Lc)|Toks],Str,Toks,id) :-
   interpolateString(St,Lc,Str).
 term0([charTok(Cp,Lc)|Toks],char(Lc,Cp),Toks,id).
 term0([integerTok(In,Lc)|Toks],integer(Lc,In),Toks,id).
+term0([bigintTok(In,Lc)|Toks],bigint(Lc,In),Toks,id).
 term0([floatTok(Fl,Lc)|Toks],float(Lc,Fl),Toks,id).
 term0([lftTok("{}",Lc0),rgtTok("{}",Lc2)|Toks],tuple(Lc,"{}",[]),Toks,rbrce) :-
   mergeLoc(Lc0,Lc2,Lc).

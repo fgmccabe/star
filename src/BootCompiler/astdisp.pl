@@ -18,6 +18,7 @@ ast2String(Lc,A,string(Lc,Txt)) :-
 dispAst(name(_,Nm),_,O,E) :- appStr(Nm,O,E).
 dispAst(qnme(_,Nm),_,O,Ox) :- appQuoted(Nm,"\'",O,Ox).
 dispAst(integer(_,Nm),_,O,E) :- number_chars(Nm,Chrs), concat(Chrs,E,O).
+dispAst(bigint(_,Nm),_,O,E) :- string_chars(Nm,Chrs), concat(Chrs,['b'|E],O).
 dispAst(float(_,Nm),_,O,E) :- number_chars(Nm,Chrs), concat(Chrs,E,O).
 dispAst(char(_,Cp),_,O,E) :- appQuoted([Cp],"`",O,E).
 dispAst(string(_,S),_,O,Ox) :- appQuoted(S,"\"",O,Ox).
