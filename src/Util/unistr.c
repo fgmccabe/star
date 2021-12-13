@@ -318,16 +318,16 @@ retCode byteMove(byte *dest, integer len, const byte *src, integer sLen) {
 
   while (pos < max)
     dest[pos++] = *s++;
-  return pos < len ? Ok : Eof;
+  return pos <= len ? Ok : Eof;
 }
 
-retCode wordMove(uint32 *dest, integer len, const uint32 *s, integer sLen) {
+retCode wordMove(uint32 *dest, int32 len, const uint32 *s, int32 sLen) {
   integer pos = 0;
   integer max = (sLen < len ? sLen : len);
 
   while (pos < max)
     dest[pos++] = *s++;
-  return pos < len ? Ok : Eof;
+  return pos <= len ? Ok : Eof;
 }
 
 logical sameBytes(const byte *s1, integer l1, const byte *s2, integer l2) {

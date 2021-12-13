@@ -26,7 +26,7 @@ integer longMultiply(uint32 *tgt, integer tSize, uint32 *a, integer aCount, uint
 retCode longDivide(uint32 *q, integer *qC, uint32 *r, integer *rC, uint32 *n, integer nC, uint32 *d, integer dC);
 
 integer longFormat(uint32 *data, integer count, const char *format, integer formatLen, char *buffer, integer buffLen);
-integer longFromText(char *text, integer tLen, uint32 *data, integer count);
+integer longFromText(const char *text, integer tLen, uint32 *data, integer count);
 integer textFromlong(char *text, integer tLen, uint32 *data, integer count);
 retCode showLong(ioPo out, uint32 *digits, long count);
 

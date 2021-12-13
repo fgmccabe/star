@@ -20,7 +20,7 @@ logical isBignum(termPo t);
 extern bignumPo C_BIGNUM(termPo t);
 
 uint32 *bigDigits(bignumPo bg);
-integer bigCount(bignumPo bg);
+int32 bigCount(bignumPo b);
 integer bignumHash(bignumPo bg);
 
 #endif //STAR_BIGNUM_H

@@ -40,7 +40,7 @@ bignumPo C_BIGNUM(termPo t) {
   return (bignumPo) t;
 }
 
-integer bigCount(bignumPo b) {
+int32 bigCount(bignumPo b) {
   return b->count;
 }
 
@@ -48,7 +48,7 @@ uint32 *bigDigits(bignumPo b) {
   return b->data;
 }
 
-termPo allocateBignum(heapPo H, integer count, uint32 data[]) {
+termPo allocateBignum(heapPo H, int32 count, uint32 data[]) {
   bignumPo big = (bignumPo) allocateObject(H, bignumClass, BignumCellCount(count));
 
   big->clss = bignumClass;
@@ -69,7 +69,7 @@ termPo bigCopy(specialClassPo cl, termPo dst, termPo src) {
   bignumPo di = (bignumPo) dst;
   *di = *si;
 
-  integer bCount = si->count;
+  int32 bCount = si->count;
   wordMove(di->data, bCount, si->data, bCount);
 
   return ((termPo) di) + BignumCellCount(si->count);

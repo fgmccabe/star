@@ -23,6 +23,14 @@ static void tearDownTests() {
   freeMulti(oneM);
 }
 
+retCode lg2Tests(){
+  integer cx = 1;
+  for(integer i=0;i<63;i++){
+    assert(lg2(cx<<i)==i);
+  }
+  return Ok;
+}
+
 retCode parsePositiveMultiTest() {
   char *positiveNum = "18446744073709551612";
   uint32 data[] = {0xfffffffc, 0xffffffff, 0x0};
@@ -225,8 +233,27 @@ retCode multiDivide2Test() {
   return Ok;
 }
 
+
+retCode multiDivideNNgTest() {
+  // 40!/15!
+  multiPo a = multiFromStr("-815915283247897734345611269596115894272000000000");
+  multiPo b = multiFromStr("-1307674368000");
+
+  multiPo checkQuot = multiFromStr("623943776229081622823099695104000000");
+  multiPo checkRem = multiFromStr("0");
+
+  multiPo quot, rem;
+  multiDivide(&quot, &rem, a, b);
+  outMsg(logFile, "%M/%M is %M + %M\n%_", a, b, quot, rem);
+
+  assert(sameMulti(quot, checkQuot));
+  assert(sameMulti(rem, checkRem));
+  return Ok;
+}
+
 retCode multiTests() {
   setupTests();
+  tryRet(run_test(lg2Tests));
   tryRet(run_test(checkDivBy10));
   tryRet(run_test(parsePositiveMultiTest));
   tryRet(run_test(parseNegativeMultiTest));
@@ -238,6 +265,7 @@ retCode multiTests() {
   tryRet(run_test(ePiTest));
   tryRet(run_test(multiDivideTest));
   tryRet(run_test(multiDivide2Test));
+  tryRet(run_test(multiDivideNNgTest));
   tearDownTests();
   return Ok;
 }
