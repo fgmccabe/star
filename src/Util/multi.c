@@ -88,7 +88,7 @@ integer longAdd(uint32 *tgt, integer tSize, const uint32 *lhs, integer lSize, co
     carry = (partial >> WIDTH) & (ONES_MASK >> 1);
     tgt[ix++] = partial & ONES_MASK;
   }
-  if (carry != 0 && sameSign)
+  if (carry != 0 && sameSign && ix<tSize)
     tgt[ix++] = carry & ONES_MASK;
   return longTrim(tgt, ix);
 }
@@ -169,8 +169,9 @@ multiPo multiPlus(multiPo lhs, multiPo rhs) {
 }
 
 integer longSubtract(uint32 *tgt, integer tCount, uint32 *a, integer aCount, uint32 *b, integer bCount) {
-  longComplement(tgt, b, bCount);
-  return longAdd(tgt, tCount, a, aCount, tgt, bCount);
+  uint32 comp[bCount];
+  longComplement(comp, b, bCount);
+  return longAdd(tgt, tCount, a, aCount, comp, bCount);
 }
 
 multiPo multiMinus(multiPo lhs, multiPo rhs) {
@@ -229,7 +230,7 @@ multiPo multiFromText(char *text, integer tlen) {
   }
 }
 
-integer longFromText(char *text, integer tLen, uint32 *data, integer count) {
+integer longFromText(const char *text, integer tLen, uint32 *data, integer count) {
   zeroFill(data, count);
   logical positive = True;
   integer px = 0;
@@ -471,6 +472,80 @@ static comparison absComp(uint32 *lhs, integer lCount, uint32 *rhs, integer rCou
     return bigger;
 }
 
+// Compute left shift
+static integer longShiftLeft(uint32 *tgt, integer tC, const uint32 *src, integer sC, uint8 shift) {
+  uint64 carry = 0;
+  assert(tC > sC);
+  for (integer ix = 0; ix < sC; ix++) {
+    carry = ((uint64) (src[ix]) << shift) | carry;
+    tgt[ix] = (uint32) (carry & ONES_MASK);
+    carry >>= WIDTH;
+  }
+  if (carry != 0) {
+    tgt[sC++] = carry;
+  }
+  return sC;
+}
+
+static integer longShiftRight(uint32 *tgt, integer tC, const uint32 *src, integer sC, uint8 shift) {
+  uint64 carry = 0;
+  assert(tC >= sC);
+  for (integer ix = sC - 1; ix >= 0; ix--) {
+    carry = ((((uint64) src[ix]) << WIDTH) >> shift) | carry;
+    tgt[ix] = (uint32) ((carry >> WIDTH) & ONES_MASK);
+    carry <<= WIDTH;
+  }
+
+  return sC;
+}
+
+// Knuth Algorithm for division
+static void longDv(uint32 *q, integer *qC, uint32 *r, integer *rC, uint32 *u, integer uC, uint32 *v, integer vC) {
+  uint32 normShift = 31 - lg2(v[vC - 1]);
+
+  integer uuS = uC + 2;
+  integer vvS = vC + 2;
+  uint32 uu[uuS];
+  uint32 vv[vvS];
+
+  zeroFill(uu, uuS);
+  zeroFill(vv, vvS);
+
+  integer uuC = longShiftLeft(uu, uC + 1, u, uC, normShift);
+  integer vvC = longShiftLeft(vv, vC + 1, v, vC, normShift);
+
+  integer uJ = uuC;
+  integer vJ = vvC;
+
+  uint32 v1 = vv[vvC - 1];
+  uint32 v2 = vv[vvC - 2];
+
+  integer mExtra = uC-vC;
+
+  while (uJ > vC) {
+    uint64 u0 = ((((uint64) uu[uJ-1]) << WIDTH) | ((uint64) uu[uJ - 2]));
+    uint64 q0 = (uu[uJ-1] == v1 ? ONES_MASK : (u0 / v1));
+    uint64 qrem = u0 - q0 * v1;
+    uint32 u2 = (uJ > 2 ? uu[uJ - 3] : 0);
+    while ((uint64) v2 * q0 > ((qrem << WIDTH) | u2)) {
+      q0--;
+      qrem++;
+    }
+    integer tS = uJ + vJ + 1;
+    uint32 tmp[tS];
+    integer tC = longMult(tmp, &q0, 1, vv, vvC);
+    longSubtract(uu + uJ - tC, tC, uu + uJ - tC, tC, tmp, tC); // little endian math
+
+    if (longNegative(uu + uJ - tC, tC)) {
+      q0--;
+      longAdd(uu + uJ - tC, tC, uu + uJ - tC, vvC, vv, vvC);
+    }
+    q[--uJ - mExtra] = q0; // putting quotient in from the most significant first
+  }
+  *qC = mExtra;
+  *rC = longShiftRight(r, *rC, uu, vC, normShift);
+}
+
 static integer longRemCalc(uint32 *r, integer rC, uint32 *n, integer nC, uint32 *q, integer qC, uint32 *d, integer dC) {
   integer tS = qC + dC + 1;
   uint32 tgt[tS];
@@ -555,7 +630,9 @@ retCode longDivide(uint32 *q, integer *qC, uint32 *r, integer *rC, uint32 *n, in
     if (longNegative(d, dC)) {
       uint32 dd[dC + 1];
       integer ddC = longComplement(dd, d, dC);
-      longDiv(q, qC, r, rC, nn, nnC, dd, ddC);
+//      longDiv(q, qC, r, rC, nn, nnC, dd, ddC);
+      longDv(q, qC, r, rC, nn, nnC, dd, ddC);
+
       return Ok;
     } else {
       integer qqC = nC + dC + 1;

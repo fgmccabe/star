@@ -170,7 +170,7 @@ ReturnStatus g__int2big(heapPo h, termPo a1) {
 
 ReturnStatus g__big2ints(heapPo h, termPo a1) {
   bignumPo bg = C_BIGNUM(a1);
-  integer count = bigCount(bg);
+  int32 count = bigCount(bg);
   uint32 digits[count];
 
   wordMove(digits, count, bigDigits(bg), count); // We copy in case of GC

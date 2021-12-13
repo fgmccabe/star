@@ -38,16 +38,16 @@ retCode homeDir(char *user, char *buffer, integer bufLen) {
 }
 
 integer lg2(integer ix){
-  uint64 v = (unsigned)ix;
+  uint64 v = (uint64)ix;
   uint64 shift;
   uint64 r;
 
-  r = (v>0xffffffff) << 5; v >>= r;
-  shift = (v>0xffff) << 4; v >>= shift; r |=shift;
-  shift = (v>0xff) << 3; v >>= shift; r |=shift;
-  shift = (v>0xf) << 2; v >>= shift; r |=shift;
-  shift = (v>0x3) << 1; v >>= shift; r |=shift;
-  r |= (v>>1);
+  r = (v>0xffffffffu) << 5; v >>= r;
+  shift = (v>0xffffu) << 4; v >>= shift; r |=shift;
+  shift = (v>0xffu) << 3; v >>= shift; r |=shift;
+  shift = (v>0xfu) << 2; v >>= shift; r |=shift;
+  shift = (v>0x3u) << 1; v >>= shift; r |=shift;
+  r |= (v>>1u);
 
   return (integer)r;
 }

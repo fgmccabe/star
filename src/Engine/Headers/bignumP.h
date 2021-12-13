@@ -13,7 +13,7 @@
 typedef struct bignum_term_ {
   clssPo clss;                  // == integerClass
   integer hash;
-  integer count;
+  int32 count;
   uint32 data[ZEROARRAYSIZE];
 } BignumRecord;
 
@@ -21,6 +21,6 @@ void initBignum();
 
 #define BignumCellCount(len) CellCount(sizeof(BignumRecord)+(len)*sizeof(uint32))
 
-extern termPo allocateBignum(heapPo H, integer count, uint32 data[]);
+extern termPo allocateBignum(heapPo H, int32 count, uint32 data[]);
 
 #endif //STAR_BIGNUMP_H
