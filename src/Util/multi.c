@@ -88,7 +88,7 @@ integer longAdd(uint32 *tgt, integer tSize, const uint32 *lhs, integer lSize, co
     carry = (partial >> WIDTH) & (ONES_MASK >> 1);
     tgt[ix++] = partial & ONES_MASK;
   }
-  if (carry != 0 && sameSign && ix<tSize)
+  if (carry != 0 && sameSign && ix < tSize)
     tgt[ix++] = carry & ONES_MASK;
   return longTrim(tgt, ix);
 }
@@ -182,15 +182,15 @@ multiPo multiMinus(multiPo lhs, multiPo rhs) {
   return allocMulti(sum, len);
 }
 
-static integer mulByAndAdd(uint32 *data, integer len, uint32 factor, uint32 carry) {
+static integer mulByAndAdd(uint32 *tgt, uint32 *data, integer len, uint32 factor, uint32 carry) {
   integer ix = 0;
   while (ix < len) {
     uint64 segment = ((uint64) data[ix]) * factor + carry;
     carry = segment >> WIDTH;
-    data[ix++] = segment & ONES_MASK;
+    tgt[ix++] = segment & ONES_MASK;
   }
   if (carry > 0)
-    data[ix++] = carry;
+    tgt[ix++] = carry;
   return ix;
 }
 
@@ -216,7 +216,7 @@ multiPo multiFromText(char *text, integer tlen) {
     codePoint ch = nextCodePoint(text, &px, tlen);
     if (isNdChar(ch)) {
       byte digit = digitValue(ch);
-      dLen = mulByAndAdd(data, dLen, 10, digit);
+      dLen = mulByAndAdd(data, data, dLen, 10, digit);
     }
   }
   // Allow for case where number might look negative
@@ -247,7 +247,7 @@ integer longFromText(const char *text, integer tLen, uint32 *data, integer count
     codePoint ch = nextCodePoint(text, &px, tLen);
     if (isNdChar(ch)) {
       byte digit = digitValue(ch);
-      dLen = mulByAndAdd(data, dLen, 10, digit);
+      dLen = mulByAndAdd(data, data, dLen, 10, digit);
     }
   }
   // Allow for case where number might look negative
@@ -452,26 +452,6 @@ multiPo multiTimes(multiPo lhs, multiPo rhs) {
   return allocMulti(prod, pC);
 }
 
-static comparison absComp(uint32 *lhs, integer lCount, uint32 *rhs, integer rCount) {
-  uint32 tA[lCount];
-  uint32 tB[rCount];
-
-  if (longNegative(lhs, lCount)) {
-    longComplement(tA, lhs, lCount);
-  } else
-    dataMove(tA, lhs, lCount);
-
-  integer bSize = longComplement(tB, rhs, rCount);
-  integer aSize = longAdd(tA, lCount, tA, lCount, tB, bSize);
-
-  if (longNegative(tA, aSize))
-    return smaller;
-  else if (tA[aSize - 1] == 0 && aSize == 1)
-    return same;
-  else
-    return bigger;
-}
-
 // Compute left shift
 static integer longShiftLeft(uint32 *tgt, integer tC, const uint32 *src, integer sC, uint8 shift) {
   uint64 carry = 0;
@@ -500,123 +480,92 @@ static integer longShiftRight(uint32 *tgt, integer tC, const uint32 *src, intege
 }
 
 // Knuth Algorithm for division
-static void longDv(uint32 *q, integer *qC, uint32 *r, integer *rC, uint32 *u, integer uC, uint32 *v, integer vC) {
-  uint32 normShift = 31 - lg2(v[vC - 1]);
+static retCode longDv(uint32 *q, integer *qC, uint32 *r, integer *rC, uint32 *u, integer uC, uint32 *v, integer vC) {
+  assert(uC >= vC && vC > 0);
 
-  integer uuS = uC + 2;
-  integer vvS = vC + 2;
-  uint32 uu[uuS];
-  uint32 vv[vvS];
-
-  zeroFill(uu, uuS);
-  zeroFill(vv, vvS);
-
-  integer uuC = longShiftLeft(uu, uC + 1, u, uC, normShift);
-  integer vvC = longShiftLeft(vv, vC + 1, v, vC, normShift);
-
-  integer uJ = uuC;
-  integer vJ = vvC;
-
-  uint32 v1 = vv[vvC - 1];
-  uint32 v2 = vv[vvC - 2];
-
-  integer mExtra = uC-vC;
-
-  while (uJ > vC) {
-    uint64 u0 = ((((uint64) uu[uJ-1]) << WIDTH) | ((uint64) uu[uJ - 2]));
-    uint64 q0 = (uu[uJ-1] == v1 ? ONES_MASK : (u0 / v1));
-    uint64 qrem = u0 - q0 * v1;
-    uint32 u2 = (uJ > 2 ? uu[uJ - 3] : 0);
-    while ((uint64) v2 * q0 > ((qrem << WIDTH) | u2)) {
-      q0--;
-      qrem++;
+  switch (vC) {
+    case 0:
+      return Error;
+    case 1: {
+      *qC = smallDivide(q, u, uC, r, *v);
+      *rC = 1;
+      return Ok;
     }
-    integer tS = uJ + vJ + 1;
-    uint32 tmp[tS];
-    integer tC = longMult(tmp, &q0, 1, vv, vvC);
-    longSubtract(uu + uJ - tC, tC, uu + uJ - tC, tC, tmp, tC); // little endian math
+    default: {
+      uint32 normShift = 31 - lg2(v[vC - 1]); // Normalization factor
 
-    if (longNegative(uu + uJ - tC, tC)) {
-      q0--;
-      longAdd(uu + uJ - tC, tC, uu + uJ - tC, vvC, vv, vvC);
+      integer uuS = uC + 1;
+      integer vvS = vC + 1;
+      uint32 uu[uuS];
+      uint32 vv[vvS];
+
+      integer vvC = longShiftLeft(vv, vvS, v, vC, normShift);
+      integer uuC = longShiftLeft(uu, uuS, u, uC, normShift);
+
+      if (vvC > uuC) {          // Quotient is zero
+        *q = 0;
+        *qC = 1;
+        *rC = uC;
+        return wordMove(r, *rC, u, uC); // remainder is dividend
+      } else if (vvC == uuC) {  // There will be exactly one quotient digit
+        uint32 v1 = vv[vvC - 1];
+        uint32 v2 = vvC > 1 ? vv[vvC - 2] : 0;
+
+        uint64 u0 = (uint64) uu[uuC - 1];
+        uint64 q0 = u0 / v1;
+        uint64 qrem = u0 - ((uint64) q0) * v1;
+        uint32 u2 = (uuC > 2 ? uu[uuC - 3] : 0);
+        while ((uint64) v2 * q0 > ((qrem << WIDTH) | u2)) {
+          q0--;
+          qrem++;
+        }
+        integer tS = uuC + vvC + 1;
+        uint32 tmp[tS];
+        integer tC = mulByAndAdd(tmp, vv, vvC, q0, 0);
+        longSubtract(uu + uuC - tC, tC, uu + uuC - tC, tC, tmp, tC); // little endian math
+
+        if (longNegative(uu + uuC - tC, tC)) {
+          longAdd(uu + uuC - tC, tC, uu + uuC - tC, tC, vv, vvC); // add one copy back in
+          q0--;
+        }
+
+        *q = q0;
+        *qC = 1; // Just one quotient digit
+        *rC = longShiftRight(r, *rC, uu, vC, normShift);
+        return Ok;
+      } else {
+        uint32 v1 = vv[vvC - 1];
+        uint32 v2 = vvC > 1 ? vv[vvC - 2] : 0;
+
+        integer qP = 0;
+        for (integer uJ = uuC; uJ > vvC; uJ--) {
+          uint64 u0 = (((uint64) uu[uJ - 1]) << WIDTH) | uu[uJ - 2];
+          uint64 q0 = u0 / v1;
+          uint64 qrem = u0 - ((uint64) q0) * v1;
+          uint32 u2 = (uJ > 2 ? uu[uJ - 3] : 0);
+          while ((uint64) v2 * q0 > ((qrem << WIDTH) | u2)) {
+            q0--;
+            qrem++;
+          }
+          integer tS = uJ + vvC + 1;
+          uint32 tmp[tS];
+          integer tC = mulByAndAdd(tmp, vv, vvC, q0, 0);
+          longSubtract(uu + uJ - tC, tC, uu + uJ - tC, tC, tmp, tC); // little endian math
+
+          if (longNegative(uu + uJ - tC, tC)) {
+            longAdd(uu + uJ - tC, tC, uu + uJ - tC, tC, vv, vvC); // add one copy back in
+            q0--;
+          }
+
+          q[qP++] = q0; // putting quotient in from the most significant first
+        }
+
+        *qC = qP; // This is how many digits of quotient we wrote
+        wordReverse(q, qP);
+        *rC = longShiftRight(r, *rC, uu, vC, normShift);
+        return Ok;
+      }
     }
-    q[--uJ - mExtra] = q0; // putting quotient in from the most significant first
-  }
-  *qC = mExtra;
-  *rC = longShiftRight(r, *rC, uu, vC, normShift);
-}
-
-static integer longRemCalc(uint32 *r, integer rC, uint32 *n, integer nC, uint32 *q, integer qC, uint32 *d, integer dC) {
-  integer tS = qC + dC + 1;
-  uint32 tgt[tS];
-  integer tC = longMultiply(tgt, tS, q, qC, d, dC);
-//  showLong(logFile, "(Q*D)=", tgt, tC);
-
-  return longSubtract(r, rC, n, nC, tgt, tC);
-}
-
-static integer
-longQCalc(uint32 *tgt, integer nT, uint32 *q, integer qC, uint32 *r, integer rC, uint32 a, integer aShift) {
-  assert(rC > aShift);
-  uint32 tt[nT];
-  integer rT;
-
-  if (longNegative(r, rC)) {
-    uint32 rr[rC + 1];
-    rC = longComplement(rr, r + aShift, rC - aShift);
-    rC = smallDivide(tt, rr, rC, Null, a);
-    rT = longComplement(tt, tt, rC);
-  } else {
-    rT = smallDivide(tt, r + aShift, rC - aShift, Null, a);
-  }
-//  showLong(logFile, "R/A=", tt, rT);
-  return longAdd(tgt, nT, q, qC, tt, rT);
-}
-
-static integer longAve(uint32 *r, integer rC, uint32 *a, integer aC, uint32 *b, integer bC) {
-  integer rrC = longAdd(r, rC, a, aC, b, bC);
-  return smallDivide(r, r, rrC, Null, 2);
-}
-
-static void longDiv(uint32 *q, integer *qS, uint32 *r, integer *rS, uint32 *n, integer nC, uint32 *d, integer dC) {
-  uint32 a = d[dC - 1];
-  integer aShift = dC - 1;
-
-  // Q = N/A
-  assert(nC > aShift);
-
-  integer qC = smallDivide(q, n + aShift, nC - aShift, Null, a);
-
-  // R = D+1
-  integer rC = longAdd(r, *rS, d, dC, longOne, NumberOf(longOne));
-
-//  showLong(logFile, "Q=", q, qC);
-//  showLong(logFile, "R=", r, rC);
-
-  // While abd(R)>=D
-//  integer loop = 0;
-  while (absComp(r, rC, d, dC) != smaller) {
-    // R = N-(Q*D)
-    rC = longRemCalc(r, *rS, n, nC, q, qC, d, dC);
-    // Qn = Q+R/A
-    if (!longIsZero(r, rC)) {
-      uint32 qn[*qS];
-      integer qnC = longQCalc(qn, *qS, q, qC, r, rC, a, aShift);
-      // Q = (Q+Qn)/2
-      qC = longAve(q, *qS, qn, qnC, q, qC);
-    }
-//    outMsg(logFile,"loop %d\n",loop++);
-//    showLong(logFile, "Q=", q, qC);
-//    showLong(logFile, "R=", r, rC);
-  }
-  // R = N-(Q*D)
-  rC = longRemCalc(r, *rS, n, nC, q, qC, d, dC);
-  if (longNegative(r, rC)) {
-    *qS = longSubtract(q, *qS, q, qC, longOne, NumberOf(longOne));
-    *rS = longAdd(r, *rS, r, rC, d, dC);
-  } else {
-    *qS = qC;
-    *rS = rC;
   }
 }
 
@@ -630,19 +579,16 @@ retCode longDivide(uint32 *q, integer *qC, uint32 *r, integer *rC, uint32 *n, in
     if (longNegative(d, dC)) {
       uint32 dd[dC + 1];
       integer ddC = longComplement(dd, d, dC);
-//      longDiv(q, qC, r, rC, nn, nnC, dd, ddC);
-      longDv(q, qC, r, rC, nn, nnC, dd, ddC);
-
-      return Ok;
+      return longDv(q, qC, r, rC, nn, nnC, dd, ddC);
     } else {
       integer qqC = nC + dC + 1;
       uint32 qq[qqC];
       integer rrC = nC + dC + 1;
       uint32 rr[rrC];
 
-      longDiv(qq, &qqC, rr, &rrC, nn, nnC, d, dC);
+      longDv(qq, &qqC, rr, &rrC, nn, nnC, d, dC);
       *qC = longComplement(q, qq, qqC);
-      *rC = longRemCalc(r, rrC, n, nC, q, *qC, d, dC);
+      *rC = longComplement(r, rr, rrC);
       return Ok;
     }
   } else if (longNegative(d, dC)) {
@@ -651,13 +597,12 @@ retCode longDivide(uint32 *q, integer *qC, uint32 *r, integer *rC, uint32 *n, in
     integer rrC = nC + dC + 1;
     uint32 rr[rrC];
 
-    longDiv(qq, &qqC, rr, &rrC, n, nC, d, dC);
+    longDv(qq, &qqC, rr, &rrC, n, nC, d, dC);
     *qC = longComplement(q, qq, qqC);
-    *rC = longRemCalc(r, rrC, n, nC, q, *qC, d, dC);
+    *rC = longComplement(r, rr, rrC);
     return Ok;
   } else {
-    longDiv(q, qC, r, rC, n, nC, d, dC);
-    return Ok;
+    return longDv(q, qC, r, rC, n, nC, d, dC);
   }
 }
 

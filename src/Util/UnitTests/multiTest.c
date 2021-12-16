@@ -23,10 +23,10 @@ static void tearDownTests() {
   freeMulti(oneM);
 }
 
-retCode lg2Tests(){
+retCode lg2Tests() {
   integer cx = 1;
-  for(integer i=0;i<63;i++){
-    assert(lg2(cx<<i)==i);
+  for (integer i = 0; i < 63; i++) {
+    assert(lg2(cx << i) == i);
   }
   return Ok;
 }
@@ -102,28 +102,6 @@ retCode checkDivBy10() {
   return Ok;
 }
 
-retCode addMultiTest() {
-  char *astr = "1234567890234567891223456";
-  multiPo a = multiFromText(astr, uniStrLen(astr));
-
-  char *bstr = "-1234567890234567891223456";
-  multiPo b = multiFromText(bstr, uniStrLen(bstr));
-
-  multiPo sum = multiPlus(a, b);
-
-  assert(sameMulti(zeroM, sum));
-
-  multiPo c = multiPlus(b, oneM);
-  multiPo s2 = multiPlus(a, c);
-  assert(sameMulti(oneM, s2));
-
-  freeMulti(a);
-  freeMulti(b);
-  freeMulti(sum);
-  freeMulti(s2);
-  return Ok;
-}
-
 retCode minusMultiTest() {
   char *astr = "1234567890234567891223456";
   multiPo a = multiFromText(astr, uniStrLen(astr));
@@ -141,21 +119,87 @@ retCode minusMultiTest() {
   return Ok;
 }
 
-retCode multiMulTest() {
-  char *aStr = "23958233";
-  multiPo bigger = multiFromText(aStr, uniStrLen(aStr));
+typedef struct {
+  char *lhs;
+  char *rhs;
+  char *ans;
+} BinaryTestStruct, *binTestPo;
 
-  char *bStr = "5830";
-  multiPo smaller = multiFromText(bStr, uniStrLen(bStr));
+retCode testAddition(binTestPo tests, integer count) {
+  for (integer cx = 0; cx < count; cx++) {
+    multiPo lhs = multiFromStr(tests[cx].lhs);
+    multiPo rhs = multiFromStr(tests[cx].rhs);
 
-  char *checkNum = "139676498390";
-  multiPo check = multiFromText(checkNum, uniStrLen(checkNum));
+    multiPo ans = multiPlus(lhs, rhs);
 
-  multiPo res = multiTimes(bigger, smaller);
-  outMsg(logFile, "%M*%M is %M\n%_", bigger, smaller, res);
+    outMsg(logFile, "%M+%M is %M \n%_", lhs, rhs, ans);
 
-  assert(sameMulti(res, check));
+    multiPo a = multiFromStr(tests[cx].ans);
+
+    if (!sameMulti(ans, a))
+      return Error;
+    freeMulti(lhs);
+    freeMulti(rhs);
+    freeMulti(ans);
+    freeMulti(a);
+  }
   return Ok;
+}
+
+retCode addMultiTest() {
+  BinaryTestStruct alpha[] = {{.lhs="1234567890234567891223456",
+                                .rhs = "-1234567890234567891223456",
+                                .ans="0"},
+                              {.lhs="0",
+                                .rhs = "1",
+                                .ans="1"}};
+  return testAddition(alpha, NumberOf(alpha));
+}
+
+retCode testSubtract(binTestPo tests, integer count) {
+  for (integer cx = 0; cx < count; cx++) {
+    multiPo lhs = multiFromStr(tests[cx].lhs);
+    multiPo rhs = multiFromStr(tests[cx].rhs);
+
+    multiPo ans = multiMinus(lhs, rhs);
+
+    outMsg(logFile, "%M-%M is %M \n%_", lhs, rhs, ans);
+
+    multiPo a = multiFromStr(tests[cx].ans);
+
+    assert(sameMulti(ans, a));
+    freeMulti(lhs);
+    freeMulti(rhs);
+    freeMulti(ans);
+    freeMulti(a);
+  }
+  return Ok;
+}
+
+retCode testMultiply(binTestPo tests, integer count) {
+  for (integer cx = 0; cx < count; cx++) {
+    multiPo lhs = multiFromStr(tests[cx].lhs);
+    multiPo rhs = multiFromStr(tests[cx].rhs);
+
+    multiPo ans = multiTimes(lhs, rhs);
+
+    outMsg(logFile, "%M*%M is %M \n%_", lhs, rhs, ans);
+
+    multiPo a = multiFromStr(tests[cx].ans);
+
+    if (!sameMulti(ans, a))
+      return Error;
+    freeMulti(lhs);
+    freeMulti(rhs);
+    freeMulti(ans);
+    freeMulti(a);
+  }
+  return Ok;
+}
+
+retCode multiMulTest() {
+  BinaryTestStruct nines[] = {{.lhs="23958233", .rhs = "5830", .ans="139676498390"}};
+  return testMultiply(nines, NumberOf(nines));
 }
 
 retCode factorialTest() {
@@ -197,58 +241,68 @@ retCode ePiTest() {
   return Ok;
 }
 
-retCode multiDivideTest() {
-  char *aStr = "999999999";
-  multiPo a = multiFromText(aStr, uniStrLen(aStr));
+typedef struct {
+  char *dividend;
+  char *divisor;
+  char *quotient;
+  char *remainder;
+} DivTestStruct, *divTestPo;
 
-  char *bStr = "999999";
-  multiPo b = multiFromText(bStr, uniStrLen(bStr));
+retCode testDivide(divTestPo tests, integer count) {
+  for (integer cx = 0; cx < count; cx++) {
+    multiPo a = multiFromStr(tests[cx].dividend);
+    multiPo b = multiFromStr(tests[cx].divisor);
 
-  multiPo checkQuot = multiFromStr("1000");
-  multiPo checkRem = multiFromStr("999");
+    multiPo quot, rem;
+    multiDivide(&quot, &rem, a, b);
 
-  multiPo quot, rem;
-  multiDivide(&quot, &rem, a, b);
-  outMsg(logFile, "%M/%M is %M + %M\n%_", a, b, quot, rem);
+    outMsg(logFile, "%M/%M is %M + %M\n%_", a, b, quot, rem);
 
-  assert(sameMulti(quot, checkQuot));
-  assert(sameMulti(rem, checkRem));
+    multiPo q = multiFromStr(tests[cx].quotient);
+    multiPo r = multiFromStr(tests[cx].remainder);
+
+    if (!sameMulti(quot, q))
+      return Error;
+    if (!sameMulti(rem, r))
+      return Error;
+    freeMulti(a);
+    freeMulti(b);
+    freeMulti(quot);
+    freeMulti(rem);
+    freeMulti(q);
+    freeMulti(r);
+  }
   return Ok;
+}
+
+retCode multiDivideTest() {
+  DivTestStruct nines[] = {{.dividend="999999999", .divisor = "999999", .quotient="1000", .remainder="999"}};
+  return testDivide(nines, NumberOf(nines));
 }
 
 retCode multiDivide2Test() {
   // 40!/15!
-  multiPo a = multiFromStr("815915283247897734345611269596115894272000000000");
-  multiPo b = multiFromStr("1307674368000");
-
-  multiPo checkQuot = multiFromStr("623943776229081622823099695104000000");
-  multiPo checkRem = multiFromStr("0");
-
-  multiPo quot, rem;
-  multiDivide(&quot, &rem, a, b);
-  outMsg(logFile, "%M/%M is %M + %M\n%_", a, b, quot, rem);
-
-  assert(sameMulti(quot, checkQuot));
-  assert(sameMulti(rem, checkRem));
-  return Ok;
+  DivTestStruct facts[] = {{.dividend="815915283247897734345611269596115894272000000000",
+                             .divisor = "1307674368000", .quotient="623943776229081622823099695104000000",
+                             .remainder="0"}};
+  return testDivide(facts, NumberOf(facts));
 }
 
-
 retCode multiDivideNNgTest() {
-  // 40!/15!
-  multiPo a = multiFromStr("-815915283247897734345611269596115894272000000000");
-  multiPo b = multiFromStr("-1307674368000");
-
-  multiPo checkQuot = multiFromStr("623943776229081622823099695104000000");
-  multiPo checkRem = multiFromStr("0");
-
-  multiPo quot, rem;
-  multiDivide(&quot, &rem, a, b);
-  outMsg(logFile, "%M/%M is %M + %M\n%_", a, b, quot, rem);
-
-  assert(sameMulti(quot, checkQuot));
-  assert(sameMulti(rem, checkRem));
-  return Ok;
+  // -40!/-15!
+  DivTestStruct facts[] = {{.dividend="-12884901888",
+                             .divisor = "-2147483648",
+                             .quotient="6", .remainder="0"},
+                           {.dividend="-12884901888",
+                             .divisor = "-8589934592",
+                             .quotient="1", .remainder="4294967296"},
+                           {.dividend="-815915283247897734345611269596115894272000000000",
+                             .divisor = "-1307674368000", .quotient="623943776229081622823099695104000000",
+                             .remainder="0"},
+                           {.dividend="-19134786",
+                             .divisor = "-241",
+                             .quotient="79397", .remainder="109"}};
+  return testDivide(facts, NumberOf(facts));
 }
 
 retCode multiTests() {
