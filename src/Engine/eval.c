@@ -1046,7 +1046,7 @@ retCode run(processPo P) {
       case Case: {      /* case instruction */
         int32 mx = collectI32(PC);
         termPo tos = top();
-        integer hx = hashTermLbl(tos) % mx;
+        integer hx = hashTerm(tos) % mx;
 
         PC = (insPo) ((void *) PC + (sizeof(insWord) * 3) * hx);
         continue;

@@ -21,7 +21,6 @@ typedef enum {
 
 #define LARGE_INT64 ((integer)(((uinteger)-1)>>1u))
 #define LARGE_INT32 ((int32)(((uint32)-1)>>1u))
-#define SMALL_INT64 ((integer) 0x8000000000000000)
 
 #define INT32_DIGITS (10)
 #define INT64_DIGITS (19)

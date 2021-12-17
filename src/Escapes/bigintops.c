@@ -53,7 +53,7 @@ ReturnStatus g__big_times(processPo p, heapPo h, termPo a1, termPo a2) {
 ReturnStatus g__big_div(processPo p, heapPo h, termPo a1, termPo a2) {
   bignumPo lhs = C_BIGNUM(a1);
   bignumPo rhs = C_BIGNUM(a2);
-  integer qS = bigCount(lhs) + bigCount(rhs) + 1;
+  uint32 qS = bigCount(lhs) + bigCount(rhs) + 1;
   uint32 quot[qS];
   uint32 rem[qS];
 
@@ -75,9 +75,27 @@ ReturnStatus g__big_div(processPo p, heapPo h, termPo a1, termPo a2) {
   }
 }
 
+ReturnStatus g__big_gcd(processPo p, heapPo h, termPo a1, termPo a2) {
+  bignumPo lhs = C_BIGNUM(a1);
+  bignumPo rhs = C_BIGNUM(a2);
+  integer qS = maximum(bigCount(lhs), bigCount(rhs)) + 1;
+  uint32 gcd[qS];
+
+  integer qC = qS;
+
+  integer gC = longGCD(gcd, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
+  if (gC > 0) {
+    termPo g = (termPo) allocateBignum(h, (uint32) gC, gcd);
+
+    return (ReturnStatus) {.ret=Ok, .result=g};
+  } else {
+    return (ReturnStatus) {.ret=Error, .result=voidEnum};
+  }
+}
+
 ReturnStatus g__big_format(heapPo h, termPo a1, termPo a2) {
   bignumPo bg = C_BIGNUM(a1);
-  integer bgCount = bigCount(bg);
+  uint32 bgCount = bigCount(bg);
   uint32 *bgData = bigDigits(bg);
 
   integer fmtLen;
@@ -96,7 +114,7 @@ ReturnStatus g__big_format(heapPo h, termPo a1, termPo a2) {
 
 ReturnStatus g__big2str(heapPo h, termPo a1) {
   bignumPo bg = C_BIGNUM(a1);
-  integer bgCount = bigCount(bg);
+  uint32 bgCount = bigCount(bg);
   uint32 *bgData = bigDigits(bg);
 
   integer bufLen = bgCount * 16;
@@ -170,7 +188,7 @@ ReturnStatus g__int2big(heapPo h, termPo a1) {
 
 ReturnStatus g__big2ints(heapPo h, termPo a1) {
   bignumPo bg = C_BIGNUM(a1);
-  int32 count = bigCount(bg);
+  uint32 count = bigCount(bg);
   uint32 digits[count];
 
   wordMove(digits, count, bigDigits(bg), count); // We copy in case of GC

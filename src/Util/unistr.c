@@ -321,21 +321,13 @@ retCode byteMove(byte *dest, integer len, const byte *src, integer sLen) {
   return pos <= len ? Ok : Eof;
 }
 
-retCode wordMove(uint32 *dest, int32 len, const uint32 *s, int32 sLen) {
+retCode wordMove(uint32 *dest, uint32 len, const uint32 *s, uint32 sLen) {
   integer pos = 0;
   integer max = (sLen < len ? sLen : len);
 
   while (pos < max)
     dest[pos++] = *s++;
   return pos <= len ? Ok : Eof;
-}
-
-void wordReverse(uint32 *dest, int32 len) {
-  for (integer pos = 0; pos < len / 2; pos++) {
-    uint32 word = dest[pos];
-    dest[pos] = dest[len - pos - 1];
-    dest[len - pos - 1] = word;
-  }
 }
 
 logical sameBytes(const byte *s1, integer l1, const byte *s2, integer l2) {
