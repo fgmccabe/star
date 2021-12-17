@@ -40,7 +40,7 @@ bignumPo C_BIGNUM(termPo t) {
   return (bignumPo) t;
 }
 
-int32 bigCount(bignumPo b) {
+uint32 bigCount(bignumPo b) {
   return b->count;
 }
 
@@ -48,11 +48,10 @@ uint32 *bigDigits(bignumPo b) {
   return b->data;
 }
 
-termPo allocateBignum(heapPo H, int32 count, uint32 data[]) {
+termPo allocateBignum(heapPo H, uint32 count, uint32 data[]) {
   bignumPo big = (bignumPo) allocateObject(H, bignumClass, BignumCellCount(count));
 
   big->clss = bignumClass;
-  big->hash = 0;
   big->count = count;
 
   wordMove(big->data, count, data, count);
@@ -69,7 +68,7 @@ termPo bigCopy(specialClassPo cl, termPo dst, termPo src) {
   bignumPo di = (bignumPo) dst;
   *di = *si;
 
-  int32 bCount = si->count;
+  uint32 bCount = si->count;
   wordMove(di->data, bCount, si->data, bCount);
 
   return ((termPo) di) + BignumCellCount(si->count);
@@ -95,10 +94,7 @@ logical bigCmp(specialClassPo cl, termPo o1, termPo o2) {
 
 static integer bigHash(specialClassPo cl, termPo o) {
   bignumPo b = C_BIGNUM(o);
-  if (b->hash == 0) {
-    b->hash = wordHash(b->data, b->count);
-  }
-  return b->hash;
+  return wordHash(b->data, b->count);
 }
 
 static retCode bigDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
@@ -116,9 +112,6 @@ termPo bignumFromString(heapPo h, char *text, integer tLen) {
   return allocateBignum(h, dLen, data);
 }
 
-integer bignumHash(bignumPo bg){
-  if (bg->hash == 0) {
-    bg->hash = wordHash(bg->data, bg->count);
-  }
-  return bg->hash;
+integer bignumHash(bignumPo bg) {
+  return wordHash(bg->data,bg->count);
 }

@@ -39,7 +39,7 @@ labelPo termLbl(normalPo t);
 logical hasLabel(normalPo n, char *name, integer arity);
 
 integer termHash(termPo t);
-integer hashTermLbl(termPo t);
+integer hashTerm(termPo t);
 
 integer termSize(normalPo t);
 

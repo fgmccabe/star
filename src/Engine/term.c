@@ -185,13 +185,13 @@ termPo termFinalizer(specialClassPo class, termPo o) {
 
 // Special hash function used in case instruction. Only looks at the label of the term
 
-integer hashTermLbl(termPo t) {
+integer hashTerm(termPo t) {
   clssPo c = classOf(t);
 
   if (isSpecialClass(c))
     return ((specialClassPo) c)->hashFun((specialClassPo) c, t);
   else
-    return hashTermLbl((termPo) (C_NORMAL(t)->lbl));
+    return hashTerm((termPo) (C_NORMAL(t)->lbl));
 }
 
 integer termSize(normalPo t) {

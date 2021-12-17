@@ -24,6 +24,7 @@ multiPo multiTimes(multiPo lhs, multiPo rhs);
 retCode multiDivide(multiPo *quot, multiPo *rem, multiPo lhs, multiPo rhs);
 comparison multiCompare(multiPo a, multiPo b);
 logical sameMulti(multiPo a, multiPo b);
+multiPo multiGCD(multiPo a, multiPo b);
 
 multiPo allocMulti(uint32 *data, integer count);
 void freeMulti(multiPo m);

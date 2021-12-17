@@ -224,6 +224,27 @@ retCode factorialTest() {
   return Ok;
 }
 
+retCode powerTest() {
+  multiPo ix = oneM;
+  multiPo limit = multiFromStr("201");
+  multiPo base = multiFromStr("5");
+  multiPo prod = oneM;
+
+  char *fiveto200 = "62230152778611417071440640537801242405902521687211671331011166147896"
+                    "98834035383441183944823125713616956966589555122482124716043472290039"
+                    "0625";
+  multiPo check = multiFromStr(fiveto200);
+
+  while (multiCompare(ix, limit) == smaller) {
+    prod = multiTimes(prod, base);
+    outMsg(logFile, "%M^^%M is %M\n%_", base, ix, prod);
+    ix = multiPlus(ix, oneM);
+  };
+  assert(sameMulti(prod, check));
+
+  return Ok;
+}
+
 retCode ePiTest() {
   multiPo e = multiFromStr(
     "27182818284590452353602874713526624977572470936999595749669676277240766303535945713821785251664274");
@@ -305,6 +326,21 @@ retCode multiDivideNNgTest() {
   return testDivide(facts, NumberOf(facts));
 }
 
+retCode gcdTest() {
+  multiPo a = multiFromStr("1071");
+  multiPo b = multiFromStr("462");
+
+  multiPo gcd = multiGCD(a, b);
+
+  outMsg(logFile, "gcd(%M,%M) is %M\n%_", a, b, gcd);
+
+  multiPo check = multiFromStr("21");
+
+  assert(sameMulti(gcd, check));
+
+  return Ok;
+}
+
 retCode multiTests() {
   setupTests();
   tryRet(run_test(lg2Tests));
@@ -316,10 +352,12 @@ retCode multiTests() {
   tryRet(run_test(minusMultiTest));
   tryRet(run_test(multiMulTest));
   tryRet(run_test(factorialTest));
+  tryRet(run_test(powerTest));
   tryRet(run_test(ePiTest));
   tryRet(run_test(multiDivideTest));
   tryRet(run_test(multiDivide2Test));
   tryRet(run_test(multiDivideNNgTest));
+  tryRet(run_test(gcdTest));
   tearDownTests();
   return Ok;
 }

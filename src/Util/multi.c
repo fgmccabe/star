@@ -537,7 +537,7 @@ static retCode longDv(uint32 *q, integer *qC, uint32 *r, integer *rC, uint32 *u,
         uint32 v1 = vv[vvC - 1];
         uint32 v2 = vvC > 1 ? vv[vvC - 2] : 0;
 
-        integer qP = 0;
+        integer qP = uuC - vvC;
         for (integer uJ = uuC; uJ > vvC; uJ--) {
           uint64 u0 = (((uint64) uu[uJ - 1]) << WIDTH) | uu[uJ - 2];
           uint64 q0 = u0 / v1;
@@ -557,11 +557,11 @@ static retCode longDv(uint32 *q, integer *qC, uint32 *r, integer *rC, uint32 *u,
             q0--;
           }
 
-          q[qP++] = q0; // putting quotient in from the most significant first
+          q[--qP] = q0; // putting quotient in from the most significant first
         }
 
-        *qC = qP; // This is how many digits of quotient we wrote
-        wordReverse(q, qP);
+        *qC = uuC - vvC; // This is how many digits of quotient we wrote
+        // wordReverse(q, qP);
         *rC = longShiftRight(r, *rC, uu, vC, normShift);
         return Ok;
       }
@@ -618,5 +618,64 @@ retCode multiDivide(multiPo *quot, multiPo *rem, multiPo lhs, multiPo rhs) {
   return Ok;
 }
 
+#define swap(a, b, t) { t tmp = a; a = b; b = tmp; }
+//
+//integer longGCD(uint32 *tgt, uint32 *a, integer aC, uint32 *b, integer bC) {
+//  integer qS = aC + bC + 1; // Leave enough room for everything
+//  uint32 q[qS];
+//  uint32 r[qS];
+//
+//  integer qqC = 0;
+//  integer rrC = 0;
+//
+//  uint32 *aa = a;
+//  integer aaC = aC;
+//  uint32 *bb = b;
+//  integer bbC = bC;
+//
+//  do {
+//    if (longCompare(aa, aaC, bb, bbC) == bigger) {
+//      swap(aa, bb, uint32*);
+//      swap(aaC, bbC, integer);
+//    }
+//    // a is smaller than b
+//    longDv(q, &qqC, r, &rrC, bb, bbC, aa, aaC);
+//    bb = r;
+//    bbC = rrC;
+//  } while (longCompare(r, rrC, longZero, NumberOf(longZero)) != same);
+//  dataMove(tgt, a, aaC);
+//  return qqC;
+//}
 
 
+integer longGCD(uint32 *tgt, uint32 *a, integer aC, uint32 *b, integer bC) {
+  if (longCompare(a, aC, b, bC) == bigger) {
+    uint32 q[aC];
+    uint32 r[aC];
+    integer qC = aC;
+    integer rC = aC;
+    longDv(q, &qC, r, &rC, a, aC, b, bC);
+    if (longIsZero(r, rC)) {
+      dataMove(tgt, b, bC);
+      return bC;
+    } else
+      return longGCD(tgt, b, bC, r, rC);
+  } else {
+    uint32 q[bC];
+    uint32 r[bC];
+    integer qC = bC;
+    integer rC = bC;
+    longDv(q, &qC, r, &rC, b, bC, a, aC);
+    if (longIsZero(r, rC)) {
+      dataMove(tgt, a, aC);
+      return aC;
+    } else
+      return longGCD(tgt, a, aC, r, rC);
+  }
+}
+
+multiPo multiGCD(multiPo a, multiPo b) {
+  uint32 gcd[multiSize(a) + multiSize(b) + 1];
+  integer ggC = longGCD(gcd, multiData(a), multiSize(a), multiData(b), multiSize(b));
+  return allocMulti(gcd, ggC);
+}
