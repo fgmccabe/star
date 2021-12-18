@@ -226,6 +226,18 @@ retCode run(processPo P) {
           case 4:
             ret = ((escFun4) (esc->fun))(H, top(), peek(1), peek(2), peek(3));
             break;
+          case 5:
+            ret = ((escFun5) (esc->fun))(H, top(), peek(1), peek(2), peek(3), peek(4));
+            break;
+          case 6:
+            ret = ((escFun6) (esc->fun))(H, top(), peek(1), peek(2), peek(3), peek(4), peek(5));
+            break;
+          case 7:
+            ret = ((escFun7) (esc->fun))(H, top(), peek(1), peek(2), peek(3), peek(4), peek(5), peek(6));
+            break;
+          case 8:
+            ret = ((escFun8) (esc->fun))(H, top(), peek(1), peek(2), peek(3), peek(4), peek(5), peek(6), peek(7));
+            break;
           default:
             logMsg(logFile, "invalid arity for escape %s", escapeName(esc));
             bail();

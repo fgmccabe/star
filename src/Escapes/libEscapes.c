@@ -40,6 +40,8 @@ int installEscape(EscapeCode code, char *name, char *sig, libFun fun) {
 
   funSigArity(sig, &arity);
   esc->arity = arity;
+  assert(arity <= MAX_ESCAPE_ARITY);
+
   return escIx;
 }
 
