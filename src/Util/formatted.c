@@ -26,25 +26,35 @@ formatDigits(sign sign, const char *digits, integer digitLen, integer precision,
     char formChar = format[ix];
     switch (formChar) {
       case '-':
-        switch (sign) {
-          case positive:
-          default:
-            attachChar(out, pos, outLen, ' ');
-            break;
-          case negative:
-            attachChar(out, pos, outLen, '-');
-            break;
+        if (!encounteredSign) {
+          encounteredSign = True;
+          switch (sign) {
+            case positive:
+            default:
+              attachChar(out, pos, outLen, ' ');
+              break;
+            case negative:
+              attachChar(out, pos, outLen, '-');
+              break;
+          }
+        } else {
+          attachChar(out, pos, outLen, ' ');
         }
         break;
       case '+':
-        switch (sign) {
-          case positive:
-          default:
-            attachChar(out, pos, outLen, '+');
-            break;
-          case negative:
-            attachChar(out, pos, outLen, '-');
-            break;
+        if (!encounteredSign) {
+          encounteredSign = True;
+          switch (sign) {
+            case positive:
+            default:
+              attachChar(out, pos, outLen, '+');
+              break;
+            case negative:
+              attachChar(out, pos, outLen, '-');
+              break;
+          }
+        } else {
+          attachChar(out, pos, outLen, ' ');
         }
         break;
       case '(':
@@ -74,7 +84,8 @@ formatDigits(sign sign, const char *digits, integer digitLen, integer precision,
         } else if (zeroDigits > 0) {
           switch (signFmt) {
             case '-':
-              if (sign == negative) {
+              if (sign == negative && !encounteredSign) {
+                encounteredSign = True;
                 attachChar(out, pos, outLen, '-');
                 sign = positive;
                 signFmt = ' ';
@@ -83,10 +94,15 @@ formatDigits(sign sign, const char *digits, integer digitLen, integer precision,
               }
               break;
             case '+': {
-              if (sign == positive) {
-                attachChar(out, pos, outLen, '-');
+              if (!encounteredSign) {
+                encounteredSign = True;
+                if (sign == positive) {
+                  attachChar(out, pos, outLen, '+');
+                } else {
+                  attachChar(out, pos, outLen, '-');
+                }
               } else {
-                attachChar(out, pos, outLen, '+');
+                attachChar(out, pos, outLen, ' ');
               }
               signFmt = ' ';
               break;
