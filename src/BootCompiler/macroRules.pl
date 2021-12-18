@@ -310,7 +310,7 @@ uminusMacro(T,expression,Tx) :-
   mkInteger(Lc,IIx,Tx).
 uminusMacro(T,expression,Tx) :-
   isUnaryMinus(T,Lc,A),
-  isFloat(A,_,x),!,
+  isFloat(A,_,Dx),!,
   MDx is -Dx,
   mkFloat(Lc,MDx,Tx).
 uminusMacro(T,expression,Tx) :-
