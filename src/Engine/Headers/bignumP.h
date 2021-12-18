@@ -20,6 +20,6 @@ void initBignum();
 
 #define BignumCellCount(len) CellCount(sizeof(BignumRecord)+(len)*sizeof(uint32))
 
-extern termPo allocateBignum(heapPo H, uint32 count, uint32 data[]);
-
+termPo allocateBignum(heapPo H, uint32 count, uint32 data[]);
+termPo bignumFromString(heapPo h, char *text, integer tLen);
 #endif //STAR_BIGNUMP_H

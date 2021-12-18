@@ -8,6 +8,8 @@
 
 int tests_run = 0;
 
+logical debugUnitTests = False;
+
 retCode cmpBytes(byte *lft, byte *rgt, integer count) {
   for (integer ix = 0; ix < count; ix++)
     if (lft[ix] != rgt[ix]) {

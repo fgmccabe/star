@@ -261,6 +261,8 @@ ptnVars(T,E,V,Vx) :-
 ptnVars(T,_,V,V) :-
   isInteger(T,_,_),!.
 ptnVars(T,_,V,V) :-
+  isBigInt(T,_,_),!.
+ptnVars(T,_,V,V) :-
   isFloat(T,_,_),!.
 ptnVars(T,_,V,V) :-
   isString(T,_,_),!.
@@ -302,14 +304,23 @@ multicatMacro(T,expression,Tx) :-
   unary(Lc,"_multicat",I,Tx).
 
 uminusMacro(T,expression,Tx) :-
+  isUnaryMinus(T,Lc,A),
+  isInteger(A,_,Ix),!,
+  IIx is -Ix,
+  mkInteger(Lc,IIx,Tx).
+uminusMacro(T,expression,Tx) :-
+  isUnaryMinus(T,Lc,A),
+  isFloat(A,_,x),!,
+  MDx is -Dx,
+  mkFloat(Lc,MDx,Tx).
+uminusMacro(T,expression,Tx) :-
+  isUnaryMinus(T,Lc,A),
+  isBigInt(A,_,Bx),!,
+  negateString(Bx,Mx),
+  mkBigInt(Lc,Mx,Tx).
+uminusMacro(T,expression,Tx) :-
   isUnaryMinus(T,Lc,A),!,
-  (isInteger(A,LLc,Ix) ->
-   IIx is -Ix,
-   mkInteger(LLc,IIx,Tx);
-   isFloat(A,LLc,Dx) ->
-   MDx is -Dx,
-   mkFloat(LLc,MDx,Tx);
-   unary(Lc,"__minus",A,Tx)).   
+  unary(Lc,"__minus",A,Tx).
 
 optionMatchMacro(T,expression,Tx) :-
   isOptionMatch(T,Lc,P,E),!,

@@ -245,25 +245,16 @@ procNames([K-Vr|More],P,SoFar,Result) :-
   call(P,K,Vr,SoFar,S0),
   procNames(More,P,S0,Result).
 
+declareStdTypes([],D,D).
+declareStdTypes([T|Ts],D,Dx) :-
+  stdType(T,Tp,TpEx),
+  declareType(T,tpDef(std,Tp,TpEx),D,D1),
+  declareStdTypes(Ts,D1,Dx).
+
 stdDict(Base) :-
   pushScope([],B),
-  stdType("integer",IntTp,ITpEx),
-  stdType("char",ChrTp,ChTpEx),
-  stdType("string",StrTp,StpEx),
-  stdType("float",FltTp,FtEx),
-  stdType("cons",ConsTp,ConsEx),
-  stdType("file",FileTp,FileEx),
-  stdType("tag",TagTp,TagEx),
-  stdType("task",TaskTp,TaskEx),
-  declareType("char",tpDef(std,ChrTp,ChTpEx),B,B0),
-  declareType("string",tpDef(std,StrTp,StpEx),B0,B1),
-  declareType("integer",tpDef(std,IntTp,ITpEx),B1,B2),
-  declareType("float",tpDef(std,FltTp,FtEx),B2,B3),
-  declareType("file",tpDef(std,FileTp,FileEx),B3,B4),
-  declareType("cons",tpDef(std,ConsTp,ConsEx),B4,B5),
-  declareType("tag",tpDef(std,TagTp,TagEx),B5,B6),
-  declareType("task",tpDef(std,TaskTp,TaskEx),B6,Bx),
-  Bx=Base.
+  declareStdTypes(["integer","bigint","char","string","float",
+		   "cons","file","tag","task"],B,Base).
 
 dispDictLvl(dict(Types,Nms,_Cns,Impls,Accs,Contracts),Cx,
 	    sq([ix(Cx),ss("-"),

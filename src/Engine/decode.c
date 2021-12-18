@@ -197,7 +197,7 @@ static retCode endEstimateLst(void *cl) {
   return Ok;
 }
 
-static retCode estimateBignum(uint32 *data,integer count,void *cl){
+static retCode estimateBignum(uint32 *data, integer count, void *cl) {
   Estimation *info = (Estimation *) cl;
 
   info->amnt += BignumCellCount(count);
@@ -259,6 +259,13 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo tmpBuffer
         return res;
       *tgt = (termPo) allocateInteger(H, i);
       return Ok;
+    }
+    case bigTrm: {
+      if ((res = decodeText(in, tmpBuffer)) == Ok) {
+        integer len;
+        char *txt = getTextFromBuffer(tmpBuffer, &len);
+        *tgt = bignumFromString(H, txt, len);
+      }
     }
     case fltTrm: {
       double dx;

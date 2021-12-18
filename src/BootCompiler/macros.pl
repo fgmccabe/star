@@ -227,6 +227,8 @@ examineTerm(T,T) :-
 examineTerm(T,T) :-
   isInteger(T,_,_),!.
 examineTerm(T,T) :-
+  isBigInt(T,_,_),!.
+examineTerm(T,T) :-
   isFloat(T,_,_),!.
 examineTerm(T,T) :-
   isChar(T,_,_),!.
@@ -698,6 +700,7 @@ examineActionCase(A,Ax) :-
 macroKey(name(_,Nm),Nm).
 macroKey(qnm(_,Nm),Nm).
 macroKey(integer(_,_),"$integer").
+macroKey(bigint(_,_),"$bigint").
 macroKey(float(_,_),"$float").
 macroKey(string(_,_),"$string").
 macroKey(char(_,_),"$char").
