@@ -618,36 +618,6 @@ retCode multiDivide(multiPo *quot, multiPo *rem, multiPo lhs, multiPo rhs) {
   return Ok;
 }
 
-#define swap(a, b, t) { t tmp = a; a = b; b = tmp; }
-//
-//integer longGCD(uint32 *tgt, uint32 *a, integer aC, uint32 *b, integer bC) {
-//  integer qS = aC + bC + 1; // Leave enough room for everything
-//  uint32 q[qS];
-//  uint32 r[qS];
-//
-//  integer qqC = 0;
-//  integer rrC = 0;
-//
-//  uint32 *aa = a;
-//  integer aaC = aC;
-//  uint32 *bb = b;
-//  integer bbC = bC;
-//
-//  do {
-//    if (longCompare(aa, aaC, bb, bbC) == bigger) {
-//      swap(aa, bb, uint32*);
-//      swap(aaC, bbC, integer);
-//    }
-//    // a is smaller than b
-//    longDv(q, &qqC, r, &rrC, bb, bbC, aa, aaC);
-//    bb = r;
-//    bbC = rrC;
-//  } while (longCompare(r, rrC, longZero, NumberOf(longZero)) != same);
-//  dataMove(tgt, a, aaC);
-//  return qqC;
-//}
-
-
 integer longGCD(uint32 *tgt, uint32 *a, integer aC, uint32 *b, integer bC) {
   if (longCompare(a, aC, b, bC) == bigger) {
     uint32 q[aC];
@@ -678,4 +648,14 @@ multiPo multiGCD(multiPo a, multiPo b) {
   uint32 gcd[multiSize(a) + multiSize(b) + 1];
   integer ggC = longGCD(gcd, multiData(a), multiSize(a), multiData(b), multiSize(b));
   return allocMulti(gcd, ggC);
+}
+
+uinteger longHash(uint32 *data, integer count) {
+  uinteger h = 0;
+  integer chLen = count * INT32_DIGITS + 1;
+  char chs[chLen];
+  for (integer ix = 0; ix < count; ix++) {
+    h = h * 37 + (uinteger) data[ix];
+  }
+  return hash64(h);
 }

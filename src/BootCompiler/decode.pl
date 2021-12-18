@@ -9,6 +9,7 @@
 /*
  Decided by a leading 'flag' byte which encodes a type indicator:
  'x': Integer
+ 'b': Big integer
  'd': Floating point
  'e': Enum symbol
  's': String

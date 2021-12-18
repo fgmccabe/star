@@ -6,6 +6,7 @@
 #include <assert.h>
 #include "multiTests.h"
 #include "bcd.h"
+#include "multiP.h"
 
 static multiPo zeroM, oneM;
 
@@ -132,7 +133,8 @@ retCode testAddition(binTestPo tests, integer count) {
 
     multiPo ans = multiPlus(lhs, rhs);
 
-    outMsg(logFile, "%M+%M is %M \n%_", lhs, rhs, ans);
+    if (debugUnitTests)
+      outMsg(logFile, "%M+%M is %M \n%_", lhs, rhs, ans);
 
     multiPo a = multiFromStr(tests[cx].ans);
 
@@ -163,7 +165,8 @@ retCode testSubtract(binTestPo tests, integer count) {
 
     multiPo ans = multiMinus(lhs, rhs);
 
-    outMsg(logFile, "%M-%M is %M \n%_", lhs, rhs, ans);
+    if (debugUnitTests)
+      outMsg(logFile, "%M-%M is %M \n%_", lhs, rhs, ans);
 
     multiPo a = multiFromStr(tests[cx].ans);
 
@@ -183,7 +186,8 @@ retCode testMultiply(binTestPo tests, integer count) {
 
     multiPo ans = multiTimes(lhs, rhs);
 
-    outMsg(logFile, "%M*%M is %M \n%_", lhs, rhs, ans);
+    if (debugUnitTests)
+      outMsg(logFile, "%M*%M is %M \n%_", lhs, rhs, ans);
 
     multiPo a = multiFromStr(tests[cx].ans);
 
@@ -214,11 +218,13 @@ retCode factorialTest() {
 
   while (!sameMulti(ix, limit)) {
     prod = multiTimes(prod, ix);
-//    outMsg(logFile, "%M! is %M\n%_", ix, prod);
+    if (debugUnitTests)
+      outMsg(logFile, "%M! is %M\n%_", ix, prod);
 
     ix = multiPlus(ix, oneM);
   }
-  outMsg(logFile, "100! is %M\n%_", prod);
+  if (debugUnitTests)
+    outMsg(logFile, "100! is %M\n%_", prod);
   assert(sameMulti(prod, check));
 
   return Ok;
@@ -237,7 +243,8 @@ retCode powerTest() {
 
   while (multiCompare(ix, limit) == smaller) {
     prod = multiTimes(prod, base);
-    outMsg(logFile, "%M^^%M is %M\n%_", base, ix, prod);
+    if (debugUnitTests)
+      outMsg(logFile, "%M^^%M is %M\n%_", base, ix, prod);
     ix = multiPlus(ix, oneM);
   };
   assert(sameMulti(prod, check));
@@ -277,7 +284,8 @@ retCode testDivide(divTestPo tests, integer count) {
     multiPo quot, rem;
     multiDivide(&quot, &rem, a, b);
 
-    outMsg(logFile, "%M/%M is %M + %M\n%_", a, b, quot, rem);
+    if (debugUnitTests)
+      outMsg(logFile, "%M/%M is %M + %M\n%_", a, b, quot, rem);
 
     multiPo q = multiFromStr(tests[cx].quotient);
     multiPo r = multiFromStr(tests[cx].remainder);
@@ -332,12 +340,26 @@ retCode gcdTest() {
 
   multiPo gcd = multiGCD(a, b);
 
-  outMsg(logFile, "gcd(%M,%M) is %M\n%_", a, b, gcd);
+  if (debugUnitTests)
+    outMsg(logFile, "gcd(%M,%M) is %M\n%_", a, b, gcd);
 
   multiPo check = multiFromStr("21");
 
   assert(sameMulti(gcd, check));
 
+  return Ok;
+}
+
+retCode hashTest() {
+  multiPo a = multiFromStr("1071");
+  uinteger h = longHash(multiData(a), multiSize(a));
+  assert(h == 1071);
+
+  a = multiFromStr(
+    "62230152778611417071440640537801242405902521687211671331011166147896988"
+    "340353834411839448231257136169569665895551224821247160434722900390625");
+  h = longHash(multiData(a), multiSize(a));
+  assert(h == 2265565139474280757);
   return Ok;
 }
 
@@ -358,6 +380,7 @@ retCode multiTests() {
   tryRet(run_test(multiDivide2Test));
   tryRet(run_test(multiDivideNNgTest));
   tryRet(run_test(gcdTest));
+  tryRet(run_test(hashTest));
   tearDownTests();
   return Ok;
 }

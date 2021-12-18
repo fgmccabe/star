@@ -60,6 +60,7 @@ legalNextRight([lftTok(_,_)|_],_).
 legalNextRight([stringTok(_,_)|_],_).
 legalNextRight([charTok(_,_)|_],_).
 legalNextRight([integerTok(_,_)|_],_).
+legalNextRight([bigintTok(_,_)|_],_).
 legalNextRight([floatTok(_,_)|_],_).
 
 term0([stringTok(St,Lc)|Toks],Str,Toks,id) :-

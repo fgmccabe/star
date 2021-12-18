@@ -13,6 +13,7 @@ freeVars(anon(_,_),_,_,F,F).
 freeVars(enm(_,_,_),_,_,F,F).
 freeVars(cons(_,_,_),_,_,F,F).
 freeVars(intLit(_,_),_,_,F,F).
+freeVars(bigLit(_,_),_,_,F,F).
 freeVars(floatLit(_,_),_,_,F,F).
 freeVars(charLit(_,_),_,_,F,F).
 freeVars(stringLit(_,_),_,_,F,F).
@@ -195,6 +196,7 @@ frVars(Ex,Q,Trm,F,Fv) :- freeVars(Trm,Ex,Q,F,Fv).
 ptnVars(v(_,Nm,_),Q,Qx) :- add_mem(idnt(Nm),Q,Qx).
 ptnVars(anon(_,_),Q,Q).
 ptnVars(intLit(_,_),Q,Q).
+ptnVars(bigLit(_,_),Q,Q).
 ptnVars(floatLit(_,_),Q,Q).
 ptnVars(charLit(_,_),Q,Q).
 ptnVars(stringLit(_,_),Q,Q).

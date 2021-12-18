@@ -575,6 +575,10 @@ typeOfPtn(Trm,Tp,_ErTp,Env,Env,intLit(Lc,Ix),_) :-
   isLiteralInteger(Trm,Lc,Ix),!,
   findType("integer",Lc,Env,IntTp),
   verifyType(Lc,IntTp,Tp,Env).
+typeOfPtn(T,Tp,_ErTp,Env,Env,bigLit(Lc,Bx),_Path) :-
+  isLiteralBigInt(T,Lc,Bx),!,
+  findType("bigint",Lc,Env,BigTp),
+  verifyType(Lc,BigTp,Tp,Env).
 typeOfPtn(T,Tp,_ErTp,Env,Env,floatLit(Lc,Dx),_Path) :- 
   isLiteralFloat(T,Lc,Dx),!,
   findType("float",Lc,Env,FltTp),
@@ -681,6 +685,10 @@ typeOfExp(T,Tp,_ErTp,Env,Env,intLit(Lc,Ix),_Path) :-
   isLiteralInteger(T,Lc,Ix),!,
   findType("integer",Lc,Env,IntTp),
   verifyType(Lc,IntTp,Tp,Env).
+typeOfExp(T,Tp,_ErTp,Env,Env,bigLit(Lc,Ix),_Path) :-
+  isLiteralBigInt(T,Lc,Ix),!,
+  findType("bigint",Lc,Env,BigTp),
+  verifyType(Lc,BigTp,Tp,Env).
 typeOfExp(T,Tp,_ErTp,Env,Env,floatLit(Lc,Dx),_Path) :-
   isLiteralFloat(T,Lc,Dx),!,
   findType("float",Lc,Env,FltTp),

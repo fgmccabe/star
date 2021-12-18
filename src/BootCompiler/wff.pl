@@ -16,7 +16,7 @@
 	      isEnum/3,mkEnum/3,isAnon/2,mkAnon/2,
 	      isImport/3, isPrivate/3,isPublic/3,mkPrivate/3,mkPublic/3,
 	      isDefault/3,isDefault/4,mkDefault/3,
-	      isLiteralInteger/3,isLiteralFloat/3,
+	      isLiteralInteger/3,isLiteralFloat/3,isLiteralBigInt/3,
 	      isIntegrity/3,isShow/3,isOpen/3,mkOpen/3,
 	      isConditional/5,conditional/5,isOfTerm/4,
 	      isEquation/4,isEquation/5,mkEquation/5,
@@ -614,6 +614,8 @@ isLiteralFloat(float(Lc,Dx),Lc,Dx) :-!.
 isLiteralFloat(T,Lc,Nx) :-
   isUnary(T,Lc,"-",float(_,Dx)),!,
   Nx is -Dx.
+
+isLiteralBigInt(bigint(Lc,Ix),Lc,Ix) :-!.
 
 isConjunct(Trm,Lc,L,R) :-
   isBinary(Trm,Lc,"&&",L,R).

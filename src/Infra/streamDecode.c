@@ -11,6 +11,7 @@
 #include "manifest.h"
 #include "streamDecodeP.h"
 #include "signature.h"
+#include "multiP.h"
 
 static logical isDigit(codePoint ch) {
   return (logical) (ch >= '0' && ch <= '9');
@@ -165,18 +166,16 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, strBufferPo 
         res = cb->decFlt(dx, cl);
       return res;
     }
-    case bigTrm:{
-      integer count;
-      res = decInt(in,&count);
-      if(res==Ok){
-        byteBufferPo buffer = newByteBuffer();
-        res = decode64(O_IO(buffer),in);
-        if(res==Ok){
-          integer len;
-          uint32* data = (uint32*)getBytesFromBuffer(buffer, &len);
-          res = cb->decBignum(data, count, cl);
-        }
-        closeFile(O_IO(buffer));
+    case bigTrm: {
+      clearStrBuffer(buff);
+      res = decodeText(in, buff);
+
+      if (res == Ok) {
+        integer len;
+        char *txt = getTextFromBuffer(buff, &len);
+        uint32 data[len];
+        integer count = longFromText(txt, len, data, len);
+        res = cb->decBignum(data, count, cl);
       }
       return res;
     }
@@ -452,12 +451,11 @@ static retCode endCopyList(void *cl) {
 static retCode copyBignum(uint32 *data, integer count, void *cl) {
   ioPo out = ((CopyRec *) cl)->out;
   outChar(out, bigTrm);
-  outInt(out, count);
+  integer buffLen = count * INT32_DIGITS + 1;
+  char buffer[buffLen];
 
-  byteBufferPo buffer = fixedByteBuffer((char *) data, count * 4);
-  retCode ret = encode64(out, O_IO(buffer));
-  closeFile(O_IO(buffer));
-  return ret;
+  integer textCount = textFromlong(buffer, buffLen,  data,  count);
+  return encodeStr(out, buffer, textCount);
 }
 
 static DecodeCallBacks copyCB = {

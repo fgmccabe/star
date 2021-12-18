@@ -12,6 +12,8 @@ retCode run_test(tester test);
 retCode all_tests();
 extern int tests_run;
 
+extern logical debugUnitTests;
+
 retCode cmpBytes(byte *lft, byte *rgt, integer count);
 retCode checkReslt(int64 test, int64 verify, char *msg);
 

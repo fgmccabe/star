@@ -14,6 +14,7 @@
 		    isIden/1,isIden/2,isIden/3,genIden/2,genIden/3,
 		    isFloat/3,isString/3,
 		    isChar/3,mkChar/3,isInteger/3,mkInteger/3,mkFloat/3,
+		    isBigInt/3,mkBigInt/3,
 		    isConsTerm/4, sameTerm/2]).
 :- use_module(operators).
 :- use_module(misc).
@@ -137,11 +138,15 @@ mkInteger(Lc,Ix,integer(Lc,Ix)).
 isFloat(float(Lc,Dx),Lc,Dx).
 mkFloat(Lc,Dx,float(Lc,Dx)).
 
+isBigInt(bigint(Lc,Ix),Lc,Ix).
+mkBigInt(Lc,Ix,bigint(Lc,Ix)).
+	 
 isAst(A) :- locOfAst(A,_).
 
 locOfAst(name(Lc,_),Lc).
 locOfAst(qnme(Lc,_),Lc).
 locOfAst(integer(Lc,_),Lc).
+locOfAst(bigint(Lc,_),Lc).
 locOfAst(float(Lc,_),Lc).
 locOfAst(char(Lc,_),Lc).
 locOfAst(string(Lc,_),Lc).
@@ -151,6 +156,7 @@ locOfAst(void(Lc),Lc).
 
 sameTerm(name(_,Nm),name(_,Nm)).
 sameTerm(integer(_,Ix),integer(_,Ix)).
+sameTerm(bigint(_,Ix),bigint(_,Ix)).
 sameTerm(float(_,Dx),float(_,Dx)).
 sameTerm(char(_,S),char(_,S)).
 sameTerm(string(_,S),string(_,S)).
@@ -164,8 +170,6 @@ sameTerms([],[]).
 sameTerms([A|L1],[B|L2]) :-
   sameTerm(A,B),
   sameTerms(L1,L2).
-
-makeInt(Lc,Ix,integer(Lc,Ix)).
 
 deParen(T,I) :-
   isRoundTuple(T,_,[I]),!.

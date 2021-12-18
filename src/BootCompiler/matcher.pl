@@ -135,6 +135,7 @@ argMode(idnt(_),inVars).
 argMode(anon,inVars).
 argMode(voyd,inScalars).
 argMode(intgr(_),inScalars).
+argMode(bigx(_),inScalars).
 argMode(float(_),inScalars).
 argMode(chr(_),inScalars).
 argMode(strg(_),inScalars).
@@ -322,6 +323,10 @@ compareScalarTriple(([A|_],_,_),([B|_],_,_)) :-
 
 compareScalar(intgr(A),intgr(B)) :-!,
   A<B.
+compareScalar(bigx(A),bigx(B)) :-!,
+  number_string(Ax,A),
+  number_string(Bx,B),
+  Ax<Bx.
 compareScalar(float(A),float(B)) :-!,
   A<B.
 compareScalar(chr(A),chr(B)) :-!,

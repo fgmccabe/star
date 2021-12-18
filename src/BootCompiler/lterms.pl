@@ -25,6 +25,7 @@ isLTerm(idnt(_)) :- !.
 isLTerm(anon) :- !.
 isLTerm(voyd) :- !.
 isLTerm(intgr(_)) :- !.
+isLTerm(bigx(_)) :- !.
 isLTerm(float(_)) :- !.
 isLTerm(chr(_)) :- !.
 isLTerm(strg(_)) :- !.
@@ -121,6 +122,7 @@ ssTrm(voyd,_,ss("void")) :-!.
 ssTrm(idnt(Nm),_,id(Nm)) :-!.
 ssTrm(anon,_,ss("_")) :-!.
 ssTrm(intgr(Ix),_,ix(Ix)) :-!.
+ssTrm(bigx(Ix),_,ss(Ix)) :-!.
 ssTrm(float(Dx),_,fx(Dx)) :-!.
 ssTrm(chr(Cp),_,sq([ss("`"),cp(Cp),ss("`")])) :-!.
 ssTrm(strg(Str),_,sq([ss(""""),ss(Str),ss("""")])) :-!.
@@ -343,6 +345,7 @@ rewriteTerm(QTst,T,T1) :-
   call(QTst,T,T1),!.
 rewriteTerm(_,voyd,voyd).
 rewriteTerm(_,intgr(Ix),intgr(Ix)).
+rewriteTerm(_,bigx(Ix),bigx(Ix)).
 rewriteTerm(_,idnt(Nm),idnt(Nm)).
 rewriteTerm(_,anon,anon).
 rewriteTerm(_,float(Dx),float(Dx)).
@@ -520,6 +523,7 @@ mkCons(Nm,Els,ctpl(lbl(Nm,Arity),Els)) :-
 isUnit(ctpl(lbl("()0",0),[])).
 
 isLiteral(intgr(_)).
+isLiteral(bigx(_)).
 isLiteral(float(_)).
 isLiteral(chr(_)).
 isLiteral(strg(_)).
@@ -531,6 +535,7 @@ isLiteral(ctpl(Lbl,Args)) :-
 
 termHash(voyd,0).
 termHash(intgr(Ix),Ix).
+termHash(bigx(Bx),Hx) :- bigHash(Bx,Hx).
 termHash(float(Dx),Ix) :- Ix is round(Dx).
 termHash(chr(Cp),Ix) :- charHash(0,Cp,Ix).
 termHash(strg(Sx),Ix) :- stringHash(0,Sx,Ix).
@@ -670,6 +675,7 @@ validTerm(idnt(Nm),Lc,D) :-
 validTerm(anon,_,_).
 validTerm(voyd,_,_).
 validTerm(intgr(_),_,_).
+validTerm(bigx(_),_,_).
 validTerm(float(_),_,_).
 validTerm(chr(_),_,_).
 validTerm(strg(_),_,_).
@@ -772,6 +778,7 @@ validPtn(idnt(Nm),_,D,Dx) :-
 validPtn(anon,_,Dx,Dx).
 validPtn(voyd,_,Dx,Dx).
 validPtn(intgr(_),_,Dx,Dx).
+validPtn(bigx(_),_,Dx,Dx).
 validPtn(float(_),_,Dx,Dx).
 validPtn(chr(_),_,Dx,Dx).
 validPtn(strg(_),_,Dx,Dx).
@@ -881,6 +888,7 @@ ptnVars(idnt(Nm),D,Dx) :-
 ptnVars(anon,Dx,Dx).
 ptnVars(voyd,Dx,Dx).
 ptnVars(intgr(_),Dx,Dx).
+ptnVars(bigx(_),Dx,Dx).
 ptnVars(float(_),Dx,Dx).
 ptnVars(chr(_),Dx,Dx).
 ptnVars(strg(_),Dx,Dx).

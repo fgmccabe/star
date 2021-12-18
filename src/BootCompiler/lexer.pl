@@ -43,6 +43,7 @@ locOfToken(lftTok(_,Lc),Lc).
 locOfToken(rgtTok(_,Lc),Lc).
 locOfToken(idTok(_,Lc),Lc).
 locOfToken(idQTok(_,Lc),Lc).
+locOfToken(bigintTok(_,Lc),Lc).
 locOfToken(integerTok(_,Lc),Lc).
 locOfToken(floatTok(_,Lc),Lc).
 locOfToken(charTok(_,Lc),Lc).
@@ -63,6 +64,8 @@ showToken(idTok(Id,_),St) :-
 showToken(integerTok(Ix,_),Str) :-
   number_string(Ix,St),
   string_chars(St,Str).
+showToken(bigintTok(Ix,_),Str) :-
+  string_chars(Ix,Str).
 showToken(floatTok(Dx,_),Str) :-
   number_string(Dx,St),
   string_chars(St,Str).
@@ -191,35 +194,44 @@ nxTok(St,NxSt,Tk) :-
 nxTok(St,St,terminal) :- isTerminal(St).
 
 readNumber(St,NxSt,Tk) :-
-  readNumber(St,St,NxSt,1,Tk).
+  readNumber(St,St,NxSt,Tk).
 
-readNumber(St0,St,NxSt,Sgn,Tk) :-
-  readNatural(St,St1,0,D),
-  readMoreNumber(St0,St1,NxSt,Sgn,D,Tk).
+readNumber(St0,St,NxSt,Tk) :-
+  readNat(St,St1,D),
+%  readNatural(St,St1,0,D),
+  readMoreNumber(St0,St1,NxSt,D,Tk).
 
-readNatural(St,NxSt,D,N) :-
+readNat(St,NxSt,[Ch|Dx]) :-
   nextSt(St,St1,Ch),
+  isDigit(Ch,_),
+  readNat(St1,NxSt,Dx).
+readNat(St,St,[]).
+
+chars_to_integer(['-'|Cs],N) :-
+  chars_to_integer(0,Cs,P),
+  N is -P.
+chars_to_integer(Cs,N) :-
+  chars_to_integer(0,Cs,N).
+  
+chars_to_integer(D,[],D).
+chars_to_integer(D,[Ch|Cs],N) :-
   isDigit(Ch,Dx),
   D1 is D*10+Dx,
-  readNatural(St1,NxSt,D1,N).
-readNatural(St,St,D,D).
+  chars_to_integer(D1,Cs,N).
 
-readDecimal(St,NxSt,Ng) :-
-  nextSt(St,St1,'-'),
-  readNatural(St1,NxSt,0,N), Ng is -N.
-readDecimal(St,NxSt,N) :-
-  readNatural(St,NxSt,0,N).
-
-readMoreNumber(St0,St,NxSt,Sgn,D,floatTok(FP,Lc)) :-
+readMoreNumber(St0,St,NxSt,DCs,floatTok(FP,Lc)) :-
   nextSt(St,St1,'.'),
   hedChar(St1,Dg),
   isDigit(Dg,_),
-  readFraction(St1,St2,D,0.1,Fr),
-  Mant is Sgn*Fr,
+  chars_to_integer(DCs,D),
+  readFraction(St1,St2,D,0.1,Mant),
   readExponent(St2,NxSt,Mant,FP),
   makeLoc(St0,NxSt,Lc).
-readMoreNumber(St0,St,St,Sgn,D,integerTok(FP,Lc)) :-
-  FP is Sgn*D,
+readMoreNumber(St0,St,NxSt,DCs,bigintTok(DCs,Lc)) :-
+  nextSt(St,NxSt,'b'),
+  makeLoc(St0,NxSt,Lc).
+readMoreNumber(St0,St,St,DCs,integerTok(Ix,Lc)) :-
+  chars_to_integer(DCs,Ix),
   makeLoc(St0,St,Lc).
 
 readFraction(St,NxSt,SF,Fx,Fr) :-
@@ -235,6 +247,19 @@ readExponent(St,NxSt,M,FP) :-
   readDecimal(St1,NxSt,E),
   FP is M*10**E.
 readExponent(St,St,M,M).
+
+readDecimal(St,NxSt,Ng) :-
+  nextSt(St,St1,'-'),
+  readNatural(St1,NxSt,0,N), Ng is -N.
+readDecimal(St,NxSt,N) :-
+  readNatural(St,NxSt,0,N).
+
+readNatural(St,NxSt,D,N) :-
+  nextSt(St,St1,Ch),
+  isDigit(Ch,Dx),
+  D1 is D*10+Dx,
+  readNatural(St1,NxSt,D1,N).
+readNatural(St,St,D,D).
 
 readHex(St,NxSt,SF,Hx) :-
   nextSt(St,St1,D),

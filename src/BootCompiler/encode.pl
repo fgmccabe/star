@@ -12,6 +12,7 @@ encode(T,Str) :-
 
 encodeTerm(voyd, ['v'|O],O).
 encodeTerm(intgr(Ix),['x'|O],Ox) :- encodeInt(Ix,O,Ox).
+encodeTerm(bigx(Ix),['b'|O],Ox) :- encodeText(Ix,O,Ox).
 encodeTerm(float(Dx),['d'|O],Ox) :- encodeFloat(Dx,O,Ox).
 encodeTerm(enum(Nm),['e'|O],Ox) :- encodeText(Nm,O,Ox).
 encodeTerm(chr(Cp),['c'|O],Ox) :- appChr(Cp,O,Ox).

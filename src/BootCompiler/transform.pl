@@ -267,6 +267,7 @@ liftPtn(enm(Lc,Nm,_),Ptn,Q,Qx,Map,Opts,Ex,Ex) :- !,
   trVarPtn(Lc,Nm,Ptn,Q,Qx,Map,Opts).
 liftPtn(void,voyd,Q,Q,_,_,Ex,Ex):-!.
 liftPtn(intLit(_,Ix),intgr(Ix),Q,Q,_,_,Ex,Ex) :-!.
+liftPtn(bigLit(_,Ix),bigx(Ix),Q,Q,_,_,Ex,Ex) :-!.
 liftPtn(floatLit(_,Dx),float(Dx),Q,Q,_,_,Ex,Ex) :-!.
 liftPtn(charLit(_,Sx),chr(Sx),Q,Q,_,_,Ex,Ex) :-!.
 liftPtn(stringLit(_,Sx),strg(Sx),Q,Q,_,_,Ex,Ex) :-!.
@@ -341,6 +342,7 @@ liftExp(enm(Lc,Nm,_),Exp,Q,Qx,Map,Opts,Ex,Ex) :- !,
 liftExp(cons(Lc,Nm,_),Vr,Q,Qx,Map,Opts,Ex,Ex) :- !,
   trVarExp(Lc,Nm,Vr,Map,Opts,Q,Qx).
 liftExp(intLit(_,Ix),intgr(Ix),Q,Q,_,_,Ex,Ex) :-!.
+liftExp(bigLit(_,Ix),bigx(Ix),Q,Q,_,_,Ex,Ex) :-!.
 liftExp(floatLit(_,Dx),float(Dx),Q,Q,_,_,Ex,Ex) :-!.
 liftExp(charLit(_,Cp),chr(Cp),Q,Q,_,_,Ex,Ex) :-!.
 liftExp(stringLit(_,Sx),strg(Sx),Q,Q,_,_,Ex,Ex) :-!.

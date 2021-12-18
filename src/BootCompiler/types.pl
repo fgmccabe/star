@@ -424,6 +424,7 @@ contractTypes(CTs,TPs) :-
   map(CTs,types:contractType,TPs).
 
 stdType("integer",type("star.core*integer"),typeExists(type("star.core*integer"),faceType([],[]))).
+stdType("bigint",type("star.core*bigint"),typeExists(type("star.core*bigint"),faceType([],[]))).
 stdType("float",type("star.core*float"),typeExists(type("star.core*float"),faceType([],[]))).
 stdType("boolean",type("star.core*boolean"),typeExists(type("star.core*boolean"),faceType([],[]))).
 stdType("char",type("star.core*char"),typeExists(type("star.core*char"),faceType([],[]))).

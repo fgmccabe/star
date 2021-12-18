@@ -94,7 +94,7 @@ logical bigCmp(specialClassPo cl, termPo o1, termPo o2) {
 
 static integer bigHash(specialClassPo cl, termPo o) {
   bignumPo b = C_BIGNUM(o);
-  return wordHash(b->data, b->count);
+  return longHash(b->data, b->count);
 }
 
 static retCode bigDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {

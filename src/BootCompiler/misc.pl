@@ -12,7 +12,8 @@
 	       subPath/4,pathSuffix/3,starts_with/2,ends_with/2,
 	       mangleName/3,mangleName/4,splitLocalName/4,getLocalName/2,localName/3,
 	       listShow/5,
-	       charHash/3,stringHash/3,hashSixtyFour/2,stringEndsWith/2,
+	       charHash/3,stringHash/3,hashSixtyFour/2,bigHash/2,
+	       stringEndsWith/2,
 	       marker/2,
 	       packageVarName/3,contractName/3,
 	       thetaName/3,consName/3,packageTypeName/3,genNewName/3,
@@ -284,6 +285,20 @@ hashCodes([],H,H).
 hashCodes([C|More],H0,Hx) :-
   H1 is 37*H0+C,
   hashCodes(More,H1,Hx).
+
+bigHash(Bx,Hx) :-
+  number_string(Nm,Bx),
+  bgH(Nm,0,H1),
+  hashSixtyFour(H1,Hx).
+
+bgH(Nm,H,Hx) :-
+  Nm=<2147483648,!,
+  Hx is H*37+Nm.
+bgH(Nm,H,Hx) :-
+  Rx is Nm mod 4294967296,
+  H1 is H*37+Rx,
+  N1 is Nm // 4294967296,
+  bgH(N1,H1,Hx).
 
 hashSixtyFour(H0,H) :-
   H is H0 /\ 9223372036854775807.
