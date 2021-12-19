@@ -17,7 +17,7 @@
 #include "option.h"
 #include "consP.h"
 
-ReturnStatus g__big_plus(processPo p, heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__big_plus(heapPo h, termPo a1, termPo a2) {
   bignumPo lhs = C_BIGNUM(a1);
   bignumPo rhs = C_BIGNUM(a2);
   integer cS = bigCount(lhs) + bigCount(rhs) + 1;
@@ -28,7 +28,7 @@ ReturnStatus g__big_plus(processPo p, heapPo h, termPo a1, termPo a2) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__big_minus(processPo p, heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__big_minus(heapPo h, termPo a1, termPo a2) {
   bignumPo lhs = C_BIGNUM(a1);
   bignumPo rhs = C_BIGNUM(a2);
   integer cS = bigCount(lhs) + bigCount(rhs) + 1;
@@ -39,7 +39,7 @@ ReturnStatus g__big_minus(processPo p, heapPo h, termPo a1, termPo a2) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__big_times(processPo p, heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__big_times(heapPo h, termPo a1, termPo a2) {
   bignumPo lhs = C_BIGNUM(a1);
   bignumPo rhs = C_BIGNUM(a2);
   integer pS = bigCount(lhs) + bigCount(rhs) + 1;
@@ -50,7 +50,7 @@ ReturnStatus g__big_times(processPo p, heapPo h, termPo a1, termPo a2) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__big_div(processPo p, heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__big_div(heapPo h, termPo a1, termPo a2) {
   bignumPo lhs = C_BIGNUM(a1);
   bignumPo rhs = C_BIGNUM(a2);
   uint32 qS = bigCount(lhs) + bigCount(rhs) + 1;
@@ -75,7 +75,7 @@ ReturnStatus g__big_div(processPo p, heapPo h, termPo a1, termPo a2) {
   }
 }
 
-ReturnStatus g__big_gcd(processPo p, heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__big_gcd(heapPo h, termPo a1, termPo a2) {
   bignumPo lhs = C_BIGNUM(a1);
   bignumPo rhs = C_BIGNUM(a2);
   integer qS = maximum(bigCount(lhs), bigCount(rhs)) + 1;

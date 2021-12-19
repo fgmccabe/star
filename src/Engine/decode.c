@@ -265,7 +265,9 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo tmpBuffer
         integer len;
         char *txt = getTextFromBuffer(tmpBuffer, &len);
         *tgt = bignumFromString(H, txt, len);
-      }
+        return Ok;
+      } else
+        return res;
     }
     case fltTrm: {
       double dx;

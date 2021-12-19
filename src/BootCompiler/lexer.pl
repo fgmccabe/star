@@ -227,8 +227,9 @@ readMoreNumber(St0,St,NxSt,DCs,floatTok(FP,Lc)) :-
   readFraction(St1,St2,D,0.1,Mant),
   readExponent(St2,NxSt,Mant,FP),
   makeLoc(St0,NxSt,Lc).
-readMoreNumber(St0,St,NxSt,DCs,bigintTok(DCs,Lc)) :-
+readMoreNumber(St0,St,NxSt,DCs,bigintTok(Bg,Lc)) :-
   nextSt(St,NxSt,'b'),
+  string_chars(Bg,DCs),
   makeLoc(St0,NxSt,Lc).
 readMoreNumber(St0,St,St,DCs,integerTok(Ix,Lc)) :-
   chars_to_integer(DCs,Ix),
