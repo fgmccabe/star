@@ -5,6 +5,7 @@
 #include <math.h>
 #include "arithP.h"
 #include "assert.h"
+#include "bignumP.h"
 
 static long intSize(specialClassPo cl, termPo o);
 static termPo intCopy(specialClassPo cl, termPo dst, termPo src);
@@ -51,6 +52,7 @@ clssPo floatClass = (clssPo) &FloatClass;
 void initArith() {
   IntegerClass.clss = specialClass;
   FloatClass.clss = specialClass;
+  initBignum();
 }
 
 termPo allocateInteger(heapPo H, integer ix) {

@@ -104,7 +104,7 @@ static integer longComplement(uint32 *tgt, const uint32 *src, integer sSize) {
   if (carry != 0) {
     tgt[ix++] = carry;
   }
-  return ix;
+  return longTrim(tgt,ix);
 }
 
 comparison longCompare(const uint32 *lhs, integer lSize, const uint32 *rhs, integer rSize) {
@@ -254,7 +254,7 @@ integer longFromText(const char *text, integer tLen, uint32 *data, integer count
   dLen++;
 
   if (positive) {
-    return dLen;
+    return longTrim(data,dLen);
   } else {
     return longComplement(data, data, dLen);
   }

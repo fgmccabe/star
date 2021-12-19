@@ -25,7 +25,7 @@ SpecialClass BignumClass = {
   .dispFun = bigDisp
 };
 
-clssPo bignumClass = (clssPo) &bignumClass;
+clssPo bignumClass = (clssPo) &BignumClass;
 
 void initBignum() {
   BignumClass.clss = specialClass;
