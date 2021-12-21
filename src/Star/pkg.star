@@ -12,33 +12,33 @@ star.pkg{
   public pkgVersion:(pkg)=>version.
   pkgVersion(pkg(_,V))=>V.
 
-  public implementation display[pkg] => {.
+  public implementation display[pkg] => {
     disp(pkg(P,V)) => "#(P):$(V)".
-  .}
+  }
 
-  public implementation equality[pkg] => {.
+  public implementation equality[pkg] => {
     pkg(P1,V1) == pkg(P2,V2) => P1==P2 && V1==V2.
-  .}
+  }
 
-  public implementation display[version] => {.
+  public implementation display[version] => {
     disp(.defltVersion) => "*".
     disp(vers(V)) => V.
-  .}
+  }
 
-  public implementation equality[version] => {.
+  public implementation equality[version] => {
     .defltVersion == .defltVersion => .true.
     vers(V) == vers(W) => V==W.
     _ == _ => .false.
-  .}
+  }
 
-  public implementation hash[version] => {.
+  public implementation hash[version] => {
     hash(.defltVersion) => 0.
     hash(vers(V)) => hash(V).
-  .}
+  }
 
-  public implementation hash[pkg] => {.
+  public implementation hash[pkg] => {
     hash(pkg(P,V)) => hash(P)*37+hash(V).
-  .}
+  }
 
   public implementation coercion[string,version] => {
     _coerce("*") => some(.defltVersion).

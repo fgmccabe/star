@@ -6,14 +6,14 @@ star.cons{
   import star.coerce.
   import star.action.
 
-  public implementation all x ~~ equality[x] |: equality[cons[x]] => let{
+  public implementation all x ~~ equality[x] |: equality[cons[x]] => let{.
     smList:all x ~~ equality[x] |: (cons[x],cons[x]) => boolean.
     smList(.nil,.nil) => .true.
     smList(cons(x,xr),cons(y,yr)) => x==y && smList(xr,yr).
     smList(_,_) default => .false.
-  } in {.
+  .} in {
     L1 == L2 => smList(L1,L2).
-  .}
+  }
 
   public implementation all x ~~ hash[x] |: hash[cons[x]] => {
     hash(L) => cHash(L,0).
@@ -23,14 +23,17 @@ star.cons{
   cHash(.nil,X) => X.
   cHash(cons(x,xr),H) => cHash(xr,(H+hash(x))*37).
 
-  public implementation all x ~~ comp[x],equality[x] |: comp[cons[x]] => let{
+  public implementation all x ~~ comp[x],equality[x] |: comp[cons[x]] => let{.
     consLess(.nil,cons(_,_)) => .true.
     consLess(cons(H1,T1),cons(H2,T2)) where H1<H2 => .true.
     consLess(cons(H,T1),cons(H,T2)) => consLess(T1,T2).
     consLess(_,_) default => .false.
 
     consGe(L1,L2) => ~consLess(L2,L1).
-  } in {. (<) = consLess. (>=) = consGe .}
+  .} in {
+    (<) = consLess.
+    (>=) = consGe
+  }
 
   -- stream & sequence contracts
   public implementation all x ~~ stream[cons[x] ->> x] => {
@@ -46,19 +49,19 @@ star.cons{
     _nil = .nil.
   }
 
-  public implementation all e ~~ sizeable[cons[e]] => let{
+  public implementation all e ~~ sizeable[cons[e]] => let{.
     consLength:all e ~~ (cons[e],integer) => integer.
     consLength(.nil,Ln) => Ln.
     consLength(cons(_,T),Ln) => consLength(T,Ln+1).
-  } in {.
+ .} in {
     size(L) => consLength(L,0).
     isEmpty(.nil) => .true.
     isEmpty(_) default => .false.
-  .}
+  }
 
-  public implementation all e ~~ measured[cons[e]->>integer] => {.
+  public implementation all e ~~ measured[cons[e]->>integer] => {
     [|L|] => size(L)
-  .}
+  }
 
   last:all e ~~ (cons[e]) => (cons[e],e).
   last(cons(X,.nil)) => (.nil,X).
@@ -77,13 +80,13 @@ star.cons{
   multicat(.nil) => .nil.
   multicat(cons(H,T)) => concat(H,multicat(T)).
 
-  public implementation all x ~~ reversible[cons[x]] => {
+  public implementation all x ~~ reversible[cons[x]] => {.
     reverse(L) => rev(L,.nil).
 
     private rev:(cons[x],cons[x])=>cons[x].
     rev(.nil,R) => R.
     rev(cons(E,L),R) => rev(L,cons(E,R)).
-  }
+ .}
 
   public implementation all x ~~ head[cons[x]->>x] => {
     head(cons(E,_)) => some(E).
@@ -94,12 +97,12 @@ star.cons{
   }
 
   public front:all e ~~ (cons[e],integer)=>option[(cons[e],cons[e])].
-  front(Els,Ln) => let{
+  front(Els,Ln) => let{.
     ff(Es,So,0) => some((reverse(So),Es)).
     ff([E,..Es],So,Ix) =>
       ff(Es,[E,..So],Ix-1).
     ff(_,_,_) default => .none.
-  } in ff(Els,[],Ln).
+ .} in ff(Els,[],Ln).
 
   public zip: all e,f ~~ (cons[e],cons[f])=>cons[(e,f)].
   zip([],[]) => [].
@@ -111,27 +114,27 @@ star.cons{
       (L,R) .= unzip(Ls) => ([A,..L],[B,..R]).
 
   -- Implement iteration over a cons list
-  public implementation all e,x ~~ iter[cons[e]->>e] => {
+  public implementation all e,x ~~ iter[cons[e]->>e] => {.
     _iter(.nil,S,_) => S.
     _iter(cons(H,T),S,F) => _iter(T,F(H,S),F).
-  }
+ .}
 
-  public implementation all e ~~ display[e] |: display[cons[e]] => let{
+  public implementation all e ~~ display[e] |: display[cons[e]] => let{.
     consDisp(.nil,L) => L.
     consDisp(cons(X,.nil),L) => cons(disp(X), L).
     consDisp(cons(X,R),L) => cons(disp(X), cons(",", consDisp(R,L))).
-  } in {
+ .} in {
     disp(L) => _str_multicat(cons("[",consDisp(L,cons("]",.nil))))
   }
 
-  public implementation functor[cons] => let{
+  public implementation functor[cons] => let{.
     fm:all a,b ~~ ((a)=>b,cons[a])=>cons[b].
     fm(_,.nil) => .nil.
     fm(f,cons(H,T)) => cons(f(H),fm(f,T))
-  } in {.
+ .} in {
     fmap = fm.
     C <$ L => fm((_)=>C,L).
-  .}
+  }
 
   public implementation monad[cons] => {
     (return X) => cons(X,.nil).

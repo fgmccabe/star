@@ -49,6 +49,42 @@ star.arith{
     frmt(X,F) => _int_format(X,F).
   }
 
+  public implementation arith[bigint] => {
+    X+Y => _big_plus(X,Y).
+    X-Y => _big_minus(X,Y).
+    zero = 0b.
+    X*Y => _big_times(X,Y).
+    X/Y where (q,_) .= _big_div(X,Y) => q.
+    X%Y where (_,r) .= _big_div(X,Y) => r.
+    one = 1b.
+    __minus(Ix) => _big_minus(0b,Ix).
+  }
+  
+  public implementation equality[bigint] => {
+    X == Y => _big_eq(X,Y).
+  }
+
+  public implementation hash[bigint] => {
+    hash(X) => _big_hash(X).
+  }
+
+  public implementation comp[bigint] => {
+    X<Y => _big_lt(X,Y).
+    X>=Y => _big_ge(X,Y).
+  }
+
+  public implementation measured[bigint->>integer] => {
+    [|_|] => 1.
+  }
+
+  public implementation display[bigint] => {
+    disp(B) => _big2str(B).
+  }
+
+  public implementation format[bigint] => {
+    frmt(X,F) => _big_format(X,F).
+  }
+
   -- implement standard contracts for floats
   public implementation arith[float] => {
     X+Y => _flt_plus(X,Y).

@@ -34,12 +34,9 @@ star.monad{
   --   (•) : all a,b,c ~~ (cat[b,c],cat[a,b])=>cat[a,c].
   -- }
 
-  public implementation monoid[integer] => {.
+  public implementation monoid[integer] => {
     A ⊕ B => _int_plus(A,B).
     zed = 0.
-  .}
-
-  
-
+  }
   
 }

@@ -16,13 +16,13 @@ star.kdl{
   dispKdl(kNode(L,A),Sp) => "#(L) {\n#((A//(E)=>dispKdl(A,Sp+2))*)}".
   dispKdl(kLbled(L,A),Sp) => "#(L) : #(dispKdl(A,Sp))".
 
-  public implementation coercion[kdl,string] => {.
+  public implementation coercion[kdl,string] => {
     _coerce(K) => some(dispKdl(K)).
-  .}
+  }
 
-  public implementation equality[kdl] => {.
+  public implementation equality[kdl] => {
     T1 == T2 => equalKdl(T1,T2).
-  .}
+  }
 
   equalKdl:(kdl,kdl)=>boolean.
   equalKdl(kTxt(S1),kTxt(S2)) => S1==S2.
@@ -31,9 +31,9 @@ star.kdl{
   equalKdl(kLbled(L1,C1),kLbled(L2,C2)) => L1==L2 && equalKdl(C1,C2).
   equalKdl(_,_) => .false.
 
-  public implementation coercion[string,kdl] => {.
+  public implementation coercion[string,kdl] => {
     _coerce(T) => parseKdl(T).
-  .}
+  }
 
   public parseKdl:(string)=>option[kdl].
   parseKdl(T) where (J,_)^=pK(skpBlnks(T::cons[char])) => some(J).

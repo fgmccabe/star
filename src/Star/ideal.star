@@ -74,7 +74,7 @@ star.ideal{
   reformTree(Tr) default => Tr.
 
   replaceIdeal: all k,v ~~ equality[k],hash[k] |: (map[k,v],k,v) => map[k,v].
-  replaceIdeal(Tr,Ky,Vl) => let{
+  replaceIdeal(Tr,Ky,Vl) => let{.
     replaceInTree(.ihNil,_,Hash) => ihLeaf(Hash,cons(Ky->Vl,.nil)).
     replaceInTree(ihLeaf(Hash,Els),_,Hash) => ihLeaf(Hash,replaceInCons(Els)).
     replaceInTree(ihLeaf(H,Els),Dpth,Hash) =>
@@ -85,7 +85,7 @@ star.ideal{
     replaceInCons(.nil) => cons(Ky->Vl,.nil).
     replaceInCons(cons(Ky->_,T)) => cons(Ky->Vl,T).
     replaceInCons(cons(P,T)) => cons(P,replaceInCons(T)).
-  } in replaceInTree(Tr,0,hash(Ky)).
+ .} in replaceInTree(Tr,0,hash(Ky)).
 
   pickSub:all k,v ~~ (map[k,v],integer)=>map[k,v].
   pickSub(ihNode(El,_,_,_),0) => El.
@@ -112,28 +112,28 @@ star.ideal{
 
   -- Implement some standard contracts
 
-  public implementation all k,v ~~ equality[k],equality[v] |: equality[map[k,v]] => let {
+  public implementation all k,v ~~ equality[k],equality[v] |: equality[map[k,v]] => let {.
     mapPairs(.ihNil,L) => L.
     mapPairs(ihLeaf(_,Lf),L) => Lf++L.
     mapPairs(ihNode(A1,A2,A3,A4),L) => mapPairs(A4,mapPairs(A3,mapPairs(A2,mapPairs(A1,L)))).
-  } in {.
+  .} in {
     T1==T2 => mapPairs(T1,.nil)==mapPairs(T2,.nil).
-  .}
+  }
 
-  public implementation all k,v ~~ sizeable[map[k,v]] => let{
+  public implementation all k,v ~~ sizeable[map[k,v]] => let{.
     countEls(.ihNil,Cnt) => Cnt.
     countEls(ihLeaf(_,Els),Cnt) => countCons(Els,Cnt).
     countEls(ihNode(A1,A2,A3,A4),Cnt) => countEls(A4,countEls(A3,countEls(A2,countEls(A1,Cnt)))).
 
     countCons(.nil,Cnt) => Cnt.
     countCons(cons(_,T),Cnt) => countCons(T,Cnt+1).
-  } in {
+ .} in {
     size(M) => countEls(M,0).
     isEmpty(.ihNil) => .true.
     isEmpty(M) => countEls(M,0)==0.
   }
 
-  public implementation all k,v ~~ display[k],display[v] |: display[map[k,v]] => let{
+  public implementation all k,v ~~ display[k],display[v] |: display[map[k,v]] => let{.
     dispTree:(map[k,v],cons[string])=>cons[string].
     dispTree(.ihNil,SS) => SS.
     dispTree(ihLeaf(_,Els),SS) => dispEls(Els,SS).
@@ -142,9 +142,9 @@ star.ideal{
     dispEls:(cons[keyval[k,v]],cons[string])=>cons[string].
     dispEls(.nil,SS)=>SS.
     dispEls(cons(P,T),SS) => dispEls(T,[disp(P),..SS]).
-  } in {.
+  .} in {
     disp(Tr) => "[#(interleave(dispTree(Tr,[]),", ")*)]".
-  .}
+  }
 
   public implementation all k,v ~~ equality[k],hash[k] |: indexed[map[k,v]->>k,v] => {
     _index(Tr,Ky) => findIdeal(Tr,Ky).
@@ -157,14 +157,14 @@ star.ideal{
     _coerce(L) => some(foldRight(((K,V),M)=>insertIdeal(M,K,V),.ihNil,L)).
   }
 
-  public implementation all k,v ~~ coercion[map[k,v],cons[keyval[k,v]]] => let{
+  public implementation all k,v ~~ coercion[map[k,v],cons[keyval[k,v]]] => let{.
     pairs(.ihNil,L) => L.
     pairs(ihLeaf(_,Els),L) => consPairs(Els,L).
     pairs(ihNode(A1,A2,A3,A4),L) => pairs(A4,pairs(A3,pairs(A2,pairs(A1,L)))).
 
     consPairs(.nil,L) => L.
     consPairs(cons(Pr,T),L) => consPairs(T,[Pr,..L]).
-  } in {
+ .} in {
     _coerce(Tr) => some(pairs(Tr,[]))
   }
 
@@ -177,7 +177,7 @@ star.ideal{
   foldLeafs(.nil,_,u)=>u.
   foldLeafs(cons(k->v,l),f,u) => foldLeafs(l,f,f(k,v,u)).
 
-  public implementation ixmap[map] => let {
+  public implementation ixmap[map] => let {.
     ixMap:all k,v,w ~~ (map[k,v],(k,v)=>w) => map[k,w].
     ixMap(.ihNil,_) => .ihNil.
     ixMap(ihNode(A1,A2,A3,A4),f) => ihNode(ixMap(A1,f),ixMap(A2,f),ixMap(A3,f),ixMap(A4,f)).
@@ -186,7 +186,7 @@ star.ideal{
     private applyF:all k,v,w ~~ (cons[keyval[k,v]],(k,v)=>w)=>cons[keyval[k,w]].
     applyF(.nil,_) => .nil.
     applyF(cons(K->V,L),f) => cons(K->f(K,V),applyF(L,f)).
-  }
+ .}
   in{
     (M///f) => ixMap(M,f).
   }
@@ -202,7 +202,7 @@ star.ideal{
   checkEntry(K,V,So,P) where P(K,V) => insertIdeal(So,K,V).
   checkEntry(_,_,So,_) => So.
 
-  public implementation all k,v ~~ ixfold[map[k,v]->>k,v] => let{
+  public implementation all k,v ~~ ixfold[map[k,v]->>k,v] => let{.
     idealRight(F,U,.ihNil) => U.
     idealRight(F,U,ihLeaf(_,Els)) => consIxRight(F,U,Els).
     idealRight(F,U,ihNode(A1,A2,A3,A4)) => idealRight(F,idealRight(F,idealRight(F,idealRight(F,U,A4),A3),A2),A1).
@@ -216,12 +216,12 @@ star.ideal{
 
     consIxLeft(F,U,.nil) => U.
     consIxLeft(F,U,cons(K->V,T)) => consIxLeft(F,F(K,V,U),T).
-  } in {.
+  .} in {
     ixRight = idealRight.
     ixLeft = idealLeft.
-  .}
+  }
 
-  public implementation all k,v ~~ iter[map[k,v]->>keyval[k,v]] => let{
+  public implementation all k,v ~~ iter[map[k,v]->>keyval[k,v]] => let{.
     iter:all x ~~ (map[k,v],x,(keyval[k,v],x)=>x)=>x.
     iter(.ihNil,St,_) => St.
     iter(ihLeaf(_,Els),St,Fn) => consIter(Els,St,Fn).
@@ -231,7 +231,7 @@ star.ideal{
     consIter:all el,x ~~ (cons[el],x,(el,x)=>x)=>x.
     consIter(.nil,S,_) => S.
     consIter(cons(E,T),S,F) => consIter(T,F(E,S),F).
-  } in {
+ .} in {
     _iter(Tr,St,Fn) => iter(Tr,St,Fn)
   }
 
@@ -240,17 +240,17 @@ star.ideal{
     _cons(K->V,Tr) => insertIdeal(Tr,K,V).
   }
 
-  public implementation all k ~~ hash[k],equality[k] |: functor[map[k]] => let{
+  public implementation all k ~~ hash[k],equality[k] |: functor[map[k]] => let{.
     fm:all a,b ~~ ((a)=>b,map[k,a]) => map[k,b].
     fm(_,.ihNil) => .ihNil.
     fm(F,ihLeaf(H,Els)) => ihLeaf(H,Els//((K->V)=>(K->F(V)))).
     fm(F,ihNode(A1,A2,A3,A4)) => ihNode(fm(F,A1),fm(F,A2),fm(F,A3),fm(F,A4)).
-  } in {.
+  .} in {
     fmap = fm.
     C <$ L => fm((_)=>C,L).
-  .}
+  }
 
-  public implementation all k,v ~~ stream[map[k,v]->>keyval[k,v]] => let{
+  public implementation all k,v ~~ stream[map[k,v]->>keyval[k,v]] => let{.
     drop(ihLeaf(H,[_])) => .ihNil.
     drop(ihLeaf(H,[_,..Es])) => ihLeaf(H,Es).
     drop(ihNode(.ihNil,.ihNil,.ihNil,A4)) => drop(A4).
@@ -267,10 +267,10 @@ star.ideal{
 
     hdtl(Tr) where Hh^=hd(Tr) => some((Hh,drop(Tr))).
     hdtl(_) default => .none.
-  } in {.
+  .} in {
     _eof(.ihNil) => .true.
     _eof(_) default => .false.
 
     _hdtl(Tr) => hdtl(Tr).
-  .}
+  }
 }

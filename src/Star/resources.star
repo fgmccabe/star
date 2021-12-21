@@ -22,7 +22,7 @@ star.resources{
 
   public searchForRsRc:(uri,string)=>option[uri].
   searchForRsRc(U,Pth) where P^=parseUri("../") && R ^= parseUri(Pth) =>
-    let{
+    let{.
       searchFor(C) where
 	  RU ^= resolveUri(C,R) &&
 	  P1 .= getUriPath(RU) &&
@@ -32,5 +32,5 @@ star.resources{
 	  P1 .= getUriPath(PU) && P1~="/" =>
 	searchFor(PU).
       searchFor(_) default => .none
-    } in searchFor(U).
+   .} in searchFor(U).
 }

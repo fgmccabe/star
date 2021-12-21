@@ -14,11 +14,11 @@ star.core {
   public (~=):all x ~~ equality[x] |: (x,x)=>boolean.
   x ~= y => ~x==y.
 
-  public implementation equality[boolean] => {.
+  public implementation equality[boolean] => {
     .true == .true => .true.
     .false == .false => .true.
     _ == _ default => .false
-  .}
+  }
 
   public contract all x ~~ comp[x] ::= {
     (<): (x,x)=>boolean.
@@ -97,10 +97,10 @@ star.core {
     reverse:(t)=>t.
   }
 
-  public implementation display[boolean] => {.
+  public implementation display[boolean] => {
     disp(.true) => "true".
     disp(.false) => "false".
-  .}
+  }
 
   option@"the option type is useful when a value is not always available".
   public all t ~~ option[t] ::= .none | some(t).

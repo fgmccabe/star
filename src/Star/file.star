@@ -22,5 +22,4 @@ star.file{
   public isDir:(string) => boolean.
   isDir(D) => _isdir(D).
   
-  
 }

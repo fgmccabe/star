@@ -29,13 +29,13 @@ star.json{
   dispSeq([],_) => .nil.
   dispSeq([e,..l],Sp) => cons(dispJson(e,Sp),dispSeq(l,Sp)).
 
-  public implementation coercion[json,string] => {.
+  public implementation coercion[json,string] => {
     _coerce(J) => some(disp(J)).
-  .}
+  }
 
-  public implementation equality[json] => {.
+  public implementation equality[json] => {
     T1 == T2 => equalJson(T1,T2).
-  .}
+  }
 
   equalJson:(json,json)=>boolean.
   equalJson(.jTrue,.jTrue) => .true.
@@ -47,9 +47,9 @@ star.json{
   equalJson(jSeq(L1),jSeq(L2)) => {?(E1,E2) in zip(L1,L2) *> equalJson(E1,E2)?}.
   equalJson(_,_) => .false.
 
-  public implementation coercion[string,json] => {.
+  public implementation coercion[string,json] => {
     _coerce(T) => parseJson(T).
-  .}
+  }
 
   public parseJson:(string)=>option[json].
   parseJson(T) where (J,_)^=pJ(skpBlnks(T::cons[char])) => some(J).

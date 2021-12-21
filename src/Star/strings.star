@@ -4,17 +4,17 @@ star.strings{
   import star.coerce.
 
   -- Chars --
-  public implementation equality[char] => {.
+  public implementation equality[char] => {
     X==Y => _chr_eq(X,Y).
-  .}
+  }
 
-  public implementation display[char] => {.
+  public implementation display[char] => {
     disp(Cp) => "`#(_chr_quote(Cp))`".
-  .}
+  }
 
-  public implementation format[char] => {.
+  public implementation format[char] => {
     frmt(S,Fmt) => _chr_format(S,Fmt).
-  .}
+  }
 
   -- and strings ...
   public implementation equality[string] => {
@@ -34,22 +34,22 @@ star.strings{
     X>=Y => _str_ge(X,Y).
   }
 
-  public implementation display[string] => {.
+  public implementation display[string] => {
     disp(S) => "\"#(_str_quote(S))\"".
-  .}
+  }
 
-  public implementation format[string] => {.
+  public implementation format[string] => {
     frmt(S,Fmt) => _str_format(S,Fmt).
-  .}
+  }
 
   public implementation sizeable[string] => {
     size(S) => _str_len(S).
     isEmpty(S) => size(S)==0.
   }
 
-  public implementation  measured[string->>integer] => {.
+  public implementation  measured[string->>integer] => {
     [|L|] => _str_len(L)
-  .}
+  }
 
   public implementation concat[string] => {
     S1++S2 => _str_concat(S1,S2).
@@ -96,10 +96,10 @@ star.strings{
     _hdtl("") => .none.
   }
 
-  public implementation sequence[string->>char] => {.
+  public implementation sequence[string->>char] => {
     _cons(C,S) => _str_cons(C,S).
     _nil = "".
-  .}
+  }
 
   public isDigit:(char)=>boolean.
   isDigit(D) => _isNdChar(D).

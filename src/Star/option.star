@@ -24,16 +24,16 @@ star.option{
   optionEqual(.none,.none) => .true.
   optionEqual(_,_) => .false.
 
-  public implementation all x ~~ hash[x] |: hash[option[x]] => {.
+  public implementation all x ~~ hash[x] |: hash[option[x]] => {
     hash(some(X)) => hash("some")*37+hash(X).
     hash(.none) => hash("none").
-  .}
+  }
 
-  public implementation functor[option] => {
+  public implementation functor[option] => {.
     fmap(_,.none) => .none.
     fmap(F,some(A)) => some(F(A)).
     C <$ L => fmap((_)=>C,L).
-  }
+ .}
 
   public implementation applicative[option] => {
     pure X => some(X).
@@ -48,10 +48,10 @@ star.option{
     (.none >>= _) => .none.
   }
 
-  public implementation all e,f ~~ coercion[e,f] |: coercion[option[e],option[f]] => {.
+  public implementation all e,f ~~ coercion[e,f] |: coercion[option[e],option[f]] => {
     _coerce(some(X)) => some(_coerce(X)).
     _coerce(.none) => .none.
-  .}
+  }
 
   public deflt:all a~~(option[a],()=>a)=>a.
   deflt(some(X),_) => X.

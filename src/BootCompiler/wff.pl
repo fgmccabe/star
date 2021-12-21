@@ -489,18 +489,18 @@ mkDefn(Lc,L,R,Trm) :-
 
 isLetDef(Trm,Lc,Els,Exp) :-
   isBinary(Trm,Lc,"in",app(_,name(_,"let"),Body),Exp),
-  isQBraceTuple(Body,_,Els),!.
+  isBraceTuple(Body,_,Els),!.
 
 isLetRec(Trm,Lc,Els,Exp) :-
   isBinary(Trm,Lc,"in",app(_,name(_,"let"),Body),Exp),
-  isBraceTuple(Body,_,Els),!.
+  isQBraceTuple(Body,_,Els),!.
 
 mkLetDef(Lc,Els,Bnd,Let) :-
-  qbraceTerm(Lc,name(Lc,"let"),Els,Body),
+  braceTerm(Lc,name(Lc,"let"),Els,Body),
   binary(Lc,"in",Body,Bnd,Let).
 
 mkLetRec(Lc,Els,Bnd,Let) :-
-  braceTerm(Lc,name(Lc,"let"),Els,Body),
+  qbraceTerm(Lc,name(Lc,"let"),Els,Body),
   binary(Lc,"in",Body,Bnd,Let).
 
 isCaseExp(Trm,Lc,Exp,Cases) :-

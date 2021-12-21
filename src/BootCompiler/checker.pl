@@ -753,22 +753,29 @@ typeOfExp(Term,Tp,_ErTp,Env,Env,Action,Path) :-
   isTaskTerm(Term,Lc,Stmts),!,
   typeOfTaskExp(Lc,Stmts,Tp,Env,Action,Path).
 typeOfExp(Term,Tp,_ErTp,Env,Env,Val,Path) :-
-  isBraceTuple(Term,Lc,Els),
+  isQBraceTuple(Term,Lc,Els),
   \+isComprehension(Term,_,_,_),
   reportError("anonymous brace expression %s not supported",[ast(Term)],Lc),
   tpName(Tp,Lbl),
   checkThetaBody(Tp,Lbl,Lc,Els,Env,Val,Path).
 typeOfExp(Term,Tp,_ErTp,Env,Env,Val,Path) :-
-  isQBraceTuple(Term,Lc,Els),
+  isBraceTuple(Term,Lc,Els),
   reportError("anonymous brace expression %s not supported",[ast(Term)],Lc),
   tpName(Tp,Lbl),
   checkRecordBody(Tp,Lbl,Lc,Els,Env,Val,Path).
 typeOfExp(Term,Tp,ErTp,Env,Env,Val,Path) :-
   isBraceTerm(Term,Lc,F,Els),
-  typeOfBraceTerm(Lc,F,Els,Tp,ErTp,Env,Env,Val,Path).
+  newTypeVar("F",FnTp),
+  typeOfExp(F,consType(FnTp,Tp),ErTp,Env,E0,Fun,Path),
+  funLbl(Fun,Lbl),
+  checkRecordBody(FnTp,Lbl,Lc,Els,E0,Val,Path).
 typeOfExp(Term,Tp,ErTp,Env,Env,Val,Path) :-
   isQBraceTerm(Term,Lc,F,Els),
-  typeOfQBraceTerm(Lc,F,Els,Tp,ErTp,Env,Env,Val,Path).
+  newTypeVar("F",FnTp),
+  typeOfExp(F,consType(FnTp,Tp),ErTp,Env,E0,Fun,Path),
+  funLbl(Fun,Lbl),
+%  dispType(consType(FnTp,Tp)),
+  checkThetaBody(FnTp,Lbl,Lc,Els,E0,Val,Path).
 typeOfExp(Term,Tp,ErTp,Ev,Ev,LetExp,Path) :-
   isLetDef(Term,Lc,Els,Ex),
   checkLetExp(Tp,ErTp,Lc,Els,Ex,Ev,LetExp,Path).
@@ -877,19 +884,6 @@ typeOfRoundTerm(Lc,F,A,Tp,ErTp,Env,apply(Lc,Fun,Args,Tp),Path) :-
    reportError("type of %s:\n%s\nnot consistent with:\n%s=>%s",[Fun,FnTp,At,Tp],Lc),
    Args = tple(Lc,[])).
 					%   reportMsg("after type of %s:%s (%s)",[F,FnTp,Tp]).
-
-typeOfBraceTerm(Lc,F,Els,Tp,ErTp,Env,Env,Val,Path) :-
-  newTypeVar("F",FnTp),
-  typeOfExp(F,consType(FnTp,Tp),ErTp,Env,E0,Fun,Path),
-  funLbl(Fun,Lbl),
-%  dispType(consType(FnTp,Tp)),
-  checkThetaBody(FnTp,Lbl,Lc,Els,E0,Val,Path).
-
-typeOfQBraceTerm(Lc,F,Els,Tp,ErTp,Env,Env,Val,Path) :-
-  newTypeVar("R",FnTp),
-  typeOfExp(F,consType(FnTp,Tp),ErTp,Env,E0,Fun,Path),
-  funLbl(Fun,Lbl),
-  checkRecordBody(FnTp,Lbl,Lc,Els,E0,Val,Path).
 
 typeOfLambda(Term,Tp,Env,lambda(Lc,Lbl,rule(Lc,Args,Guard,Exp),Tp),Path) :-
 %  reportMsg("expected type of lambda %s = %s",[Term,Tp]),

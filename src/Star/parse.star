@@ -55,21 +55,21 @@ star.parse{
   _str(S) => _literal(S::cons[char]).
 
   public _pKy:all k ~~ (string,k)=>parser[cons[char],k].
-  _pKy(K,V) => let{
+  _pKy(K,V) => let{.
     prs([]) => return V.
     prs([Cx,..L]) => _tk(Cx) >>= (_) => prs(L).
-  } in prs(K::cons[char]).
+ .} in prs(K::cons[char]).
  
-  public implementation all t ~~ monad[parser[t]] => {.
+  public implementation all t ~~ monad[parser[t]] => {
     return a => parser((S)=>[(a,S)]).
 
     (P >>= F) => parser((S)=>(parse(P,S)//(((a,S1))=>parse(F(a),S1)))*).
-  .}
+  }
 
-  public implementation all e,t ~~ concat[parser[t,e]] => {.
+  public implementation all e,t ~~ concat[parser[t,e]] => {
     P1 ++ P2 => parser((S)=>parse(P1,S)++parse(P2,S)).
     _multicat(P) => parserChoice(P).
-  .}
+  }
 
   parserChoice: all e,t ~~ (cons[parser[t,e]])=>parser[t,e].
   parserChoice(.nil) => parser((_)=>[]).
@@ -104,21 +104,21 @@ star.parse{
   chainl(P,Op,A) => chainl1(P,Op)++(return A).
 
   public chainl1:all e,t ~~ (parser[t,e],parser[t,(e,e)=>e])=>parser[t,e].
-  chainl1(P,Op) => let{
+  chainl1(P,Op) => let{.
     rest(A) => (Op >>= (F)=> P >>= (B) => rest(F(A,B))) ++ (return A)
-  } in (P >>= rest).
+ .} in (P >>= rest).
 
   public _pstar:all e,t,u ~~ (parser[t,e],(e,u)=>u,u)=>parser[t,u].
-  _pstar(P,Op,Z) => let{
+  _pstar(P,Op,Z) => let{.
     prs:(u) => parser[t,u].
     prs(A) => (P >>= (O) => prs(Op(O,A))) ++ (return A)
-  } in prs(Z).
+ .} in prs(Z).
 
   public _pplus:all t,u ~~ (parser[t,u],(u,u)=>u)=>parser[t,u].
-  _pplus(P,Op) => let{
+  _pplus(P,Op) => let{.
     prs:(u) => parser[t,u].
     prs(A) => (P >>= (O) => prs(Op(O,A))) ++ (return A)
-  } in (P>>=(Z) => prs(Z)).
+ .} in (P>>=(Z) => prs(Z)).
 
   public spaces:parser[cons[char],()].
   spaces = _star(_sat(isSpace)) >>= (_) => return ().

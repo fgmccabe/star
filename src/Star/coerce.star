@@ -30,10 +30,26 @@ star.coerce{
     _coerce(Dx) => some(_flt2int(Dx)).
   }
 
-  public implementation all a,b,e,f ~~ coercion[a,b], coercion[e,f] |: coercion[(a,e),(b,f)] => let{.
+  public implementation coercion[bigint,string] => {
+    _coerce(B) => some(_big2str(B)).
+  }
+
+  public implementation coercion[string,bigint] => {
+    _coerce(S) => _str2big(S)
+  }
+
+  public implementation coercion[integer,bigint] => {
+    _coerce(Ix) => some(_int2big(Ix)).
+  }
+
+  public implementation coercion[bigint,integer] => {
+    _coerce(Bx) => _big2int(Bx).
+  }
+
+  public implementation all a,b,e,f ~~ coercion[a,b], coercion[e,f] |: coercion[(a,e),(b,f)] => let{
     private coercePair(some(A),some(B)) => some((A,B)).
     coercePair(_,_) default => .none
-  .} in {.
+  } in {
     _coerce((A,B)) => coercePair(_coerce(A),_coerce(B)).
-  .}
+  }
 }

@@ -45,21 +45,21 @@ star.treelist{
     _empty = tlEmpty.
   }
 
-  public implementation all e ~~ display[e] |: display[tl[e]] => let{
+  public implementation all e ~~ display[e] |: display[tl[e]] => let{.
     dispTl(tlEmpty) => ss("").
     dispTl(tlLeaf(E)) => disp(E).
     dispTl(tlRed(L,_,R)) => ssSeq([dispTl(L),ss(","),dispTl(R)]).
     dispTl(tlBlack(L,_,R)) => ssSeq([dispTl(L),ss(","),dispTl(R)]).
-  } in {.
+  .} in {
     disp(L) => ssSeq([ss("["),dispTl(L),ss("]")]).
-  .}
+  }
 
   public implementation all e ~~ sequence[tl[e]->>e] => {
     _cons(E,S) => rebalance(tlLeaf(E),S).
     _nil = tlEmpty
   }
 
-  public implementation all e ~~ stream[tl[e] ->> e] => let{
+  public implementation all e ~~ stream[tl[e] ->> e] => let{.
     eof:(tl[e]) => boolean.
     eof(tlEmpty) => .true.
     eof(_) => .false.
@@ -68,10 +68,10 @@ star.treelist{
     hdtl(tlLeaf(E)) => some((E,tlEmpty)).
     hdtl(tlRed(L,_,R)) where (E,Lr)^=hdtl(L) => some((E,rebalance(Lr,R))).
     hdtl(tlEmpty) => .none.
-  } in {.
+    .} in {
     _eof = eof.
     _hdtl = hdtl.
-  .}
+  }
 
 
   put_by_index(tlEmpty,_,E) => tlLeaf(E).

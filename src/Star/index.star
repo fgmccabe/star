@@ -11,7 +11,7 @@ star.index{
   }.
 
   -- Implement indexed access
-  public implementation all t ~~ indexed[cons[t]->>integer,t] => let{
+  public implementation all t ~~ indexed[cons[t]->>integer,t] => let{.
     indexCons:(cons[t],integer)=>option[t].
     indexCons(.nil,_) => .none.
     indexCons(cons(E,_),0) => some(E).
@@ -27,7 +27,7 @@ star.index{
     remCons(cons(_,L),0) => L.
     remCons(cons(E,L),Ix) where Ix>0 => cons(E,remCons(L,Ix-1)).
     
-  } in {
+ .} in {
     _index(C,Ix) => indexCons(C,Ix).
 
     _put(C,Ix,V) => putCons(C,Ix,V).

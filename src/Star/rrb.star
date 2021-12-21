@@ -125,16 +125,16 @@ star.rrb{
     sz(node2(_,_,C,_,_))=>C.
     sz(node3(_,_,_,C,_,_,_))=>C.
     sz(node4(_,_,_,_,C,_,_,_,_))=>C.
-  } in {.
+  } in {
     isEmpty(.rrbE)=>.true.
     isEmpty(_) default => .false.
 
     size(N) => sz(N)
-  .}
+  }
     
 
-  -- public implementation all e ~~ sequence[rrb[e]->>e] => {.
+  -- public implementation all e ~~ sequence[rrb[e]->>e] => {
   --   _nil = .rrbE.
   --   _cons(H,T) => conc(adjustHeight(0,height(T),lf1(H)),T,0)
-  -- .}
+  -- }
 }

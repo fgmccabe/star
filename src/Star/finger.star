@@ -76,24 +76,24 @@ star.finger{
   }
 
   reducerTree:all a,e ~~ ((e,a)=>a) => ((fingerTree[e],a)=>a).
-  reducerTree(F) => let{
+  reducerTree(F) => let{.
     rdr(.eTree,z) => z.
     rdr(single(u),z) => F(u,z).
     rdr(deep(_,lft,mid,rgt),z) => let{
       F1 = reducerDigits(F).
       F2 = reducerTree(reducerNode(F)).
     } in F1(lft,F2(mid,F1(rgt,z)))
-  } in rdr.
+ .} in rdr.
 
   reducelTree:all e,a ~~ ((e,a)=>a) => (fingerTree[e],a)=>a.
-  reducelTree(F) => let{
+  reducelTree(F) => let{.
     rdl(.eTree,z) => z.
     rdl(single(u),z) => F(u,z).
     rdl(deep(_,lft,mid,rgt),z) => let{
       F1 = reducelDigits(F).
       F2 = reducelTree(reducelNode(F)).
     } in F1(rgt,F2(mid,F1(lft,z))).
-  } in rdl.
+ .} in rdl.
 
   implementation all e ~~ concat[digit[e]] => {
   -- Partial, full implementation not possible.
@@ -158,11 +158,11 @@ star.finger{
   nodes([a,b,c,..l]) => [node3([|a|]⊕[|b|]⊕[|c|],a,b,c),..nodes(l)].
 
   public implementation all e ~~ measured[e->>integer] |:
-    concat[fingerTree[e]] => {.
+    concat[fingerTree[e]] => {
       T1++T2 => app3(T1,[],T2).
       _multicat(.nil) => .eTree.
       _multicat(cons(T,Ts)) => T++_multicat(Ts).
-    .}.
+    }.
 
   public implementation all e ~~ measured[e->>integer] |:
     sequence[fingerTree[e]->>e] => {
@@ -171,30 +171,30 @@ star.finger{
     }.
 
   -- Implement meaasured contract
-  implementation all a ~~ measured[node[a]->>integer] => {.
+  implementation all a ~~ measured[node[a]->>integer] => {
     [|node2(V,_,_)|]=>V.
     [|node3(V,_,_,_)|] => V.
-  .}.
+  }.
 
   implementation all a ~~ measured[a->>integer] |:
-    measured[digit[a]->>integer] => {.
+    measured[digit[a]->>integer] => {
       [|one(A)|] => [|A|].
       [|two(A,B)|] => [|A|]⊕[|B|].
       [|three(A,B,C)|] => [|A|]⊕[|B|]⊕[|C|].
       [|four(A,B,C,D)|] => [|A|]⊕[|B|]⊕[|C|]⊕[|D|].
-    .}.
+    }.
 
   public implementation all a ~~ measured[a->>integer] |:
-    measured[fingerTree[a]->>integer] => {.
+    measured[fingerTree[a]->>integer] => {
       [|.eTree|] => zed.
       [|single(A)|] => [|A|].
       [|deep(V,_,_,_)|] => V
-    .}.
+    }.
   
   -- Implement iter contract
 
   public implementation all t ~~ measured[t->>integer] |:
-    iter[fingerTree[t]->>t] => {
+    iter[fingerTree[t]->>t] => {.
       _iter:all x ~~ (fingerTree[t],x,(t,x)=>x) => x.
       _iter(Lst,St,Fn) => iterOverFinger(Lst,St,Fn).
     
@@ -202,7 +202,7 @@ star.finger{
       iterOverFinger(.eTree,St,_) => St.
       iterOverFinger(Tr,St,Fn) where 
 	  consl(El,tl) .= viewl(Tr) => iterOverFinger(tl,Fn(El,St),Fn).
-    }.
+   .}.
 
   -- Implement display
 
@@ -284,9 +284,9 @@ star.finger{
     _hdtl(_) => .none.
   }
 
-  public implementation all e ~~ display[e] |: display[fingerTree[e]] => {.
+  public implementation all e ~~ display[e] |: display[fingerTree[e]] => {
     disp(T) => "[#(interleave(dispTree(T,(x,L)=>cons(disp(x),L),.nil),", ")*)]".
-  .}
+  }
 
   dispTree:all e ~~ (fingerTree[e],(e,cons[string])=>cons[string],cons[string]) => cons[string].
   dispTree(.eTree,_,L) => L.
