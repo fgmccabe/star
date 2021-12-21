@@ -135,8 +135,11 @@ ReturnStatus g__str2big(heapPo h, termPo a1) {
 
   integer bgSize = longFromText(str, len, digits, gSize);
 
-  return (ReturnStatus) {.ret=Ok,
-    .result=(termPo) wrapSome(h, (termPo) allocateBignum(h, bgSize, digits))};
+  if (bgSize > 0)
+    return (ReturnStatus) {.ret=Ok,
+      .result=(termPo) wrapSome(h, (termPo) allocateBignum(h, bgSize, digits))};
+  else
+    return (ReturnStatus) {.ret=Ok, .result=noneEnum};
 }
 
 ReturnStatus g__big_hash(heapPo h, termPo a1) {
@@ -222,4 +225,26 @@ ReturnStatus g__ints2big(heapPo h, termPo a1) {
   }
 
   return (ReturnStatus) {.ret=Ok, .result=allocateBignum(h, count, digits)};
+}
+
+ReturnStatus g__big2int(heapPo h, termPo a1) {
+  bignumPo bg = C_BIGNUM(a1);
+  uint32 count = bigCount(bg);
+  uint32 *digits = bigDigits(bg);
+
+  switch (count) {
+    case 0:
+      return (ReturnStatus) {.ret=Ok,
+        .result=(termPo) wrapSome(h, (termPo) allocateInteger(h, 0))};
+    case 1:
+      return (ReturnStatus) {.ret=Ok,
+        .result=(termPo) wrapSome(h, (termPo) allocateInteger(h, (integer) digits[0]))};
+    case 2: {
+      uinteger lge = ((uint64) digits[0]) | (((uint64) digits[1]) << 32);
+      return (ReturnStatus) {.ret=Ok,
+        .result=(termPo) wrapSome(h, (termPo) allocateInteger(h, (integer) lge))};
+    }
+    default:
+      return (ReturnStatus) {.ret=Ok, .result=noneEnum};
+  }
 }

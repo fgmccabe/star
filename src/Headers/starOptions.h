@@ -1,5 +1,5 @@
-#ifndef _STAR_OPTIONS_H_
-#define _STAR_OPTIONS_H_
+#ifndef STAR_OPTIONS_H_
+#define STAR_OPTIONS_H_
 
 #ifndef MAX_SYMB_LEN
 #define MAX_SYMB_LEN 1024
