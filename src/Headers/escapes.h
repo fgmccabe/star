@@ -69,11 +69,14 @@ escape(_big_lt, "F(bb)l", "bigint less than")
 escape(_big_ge, "F(bb)l", "bigint greater or equal")
 
 escape(_int2big, "F(i)b", "convert integer to bigint")
+escape(_big2int, "F(b)" optionType("i"), "convert bigint to integer")
 escape(_ints2big, "F(Li)b", "convert list of integers to bigint")
 escape(_big2ints, "F(b)Li", "convert bigint to list of integers")
 
-escape(_str2big, "F(s)b", "convert string to bigint")
+escape(_str2big, "F(s)" optionType("b"), "convert string to bigint")
 escape(_big2str, "F(b)s", "convert bigint to string")
+
+escape(_big_format, "F(bs)s", "format a big integer")
 
 escape(sqrt, "F(f)f", "square root")
 escape(exp, "F(f)f", "exponential")

@@ -1,6 +1,6 @@
-/* Automatically generated, do not edit */
-
 star.compiler.operators{
+  k/* Automatically generated, do not edit */
+
   import star.
 
   operator ::= prefixOp(integer,integer)
