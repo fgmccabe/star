@@ -5,9 +5,9 @@ test.js{
   public json ::=
     jSeq(cons[json]).
 
-  public implementation equality[json] => {.
+  public implementation equality[json] => {
     T1 == T2 => equalJson(T1,T2).
-  .}
+  }
 
   equalJson:(json,json)=>boolean.
   equalJson(jSeq(L1),jSeq(L2)) =>

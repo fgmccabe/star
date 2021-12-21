@@ -5,9 +5,9 @@ test.rc{
   pp[a] ::= pp{C:integer} |
     pq{C:integer. A:a}.
 
-  cont(C) => pp{.
+  cont(C) => pp{
     C=C
-  .}
+  }
 
   main:()=>action[(),()].
   main()=>action{

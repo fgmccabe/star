@@ -25,10 +25,10 @@ test.al{
     '$name':(t)=>e
   }
 
-  implementation all a ~~ '$name'[person[a]->>string] => {.
+  implementation all a ~~ '$name'[person[a]->>string] => {
     '$name':(person[a])=>string.
     '$name'(P) => P.name.
-  .}
+  }
   
   main:()=>action[(),()].
   main()=>action{

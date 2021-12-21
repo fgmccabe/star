@@ -5,9 +5,9 @@ test.xx{
     gimme:(a)=>boolean.
   }
 
-  implementation alpha[(boolean,integer)] => {.
+  implementation alpha[(boolean,integer)] => {
     gimme((X,_)) => X.
-  .}
+  }
 
   face ::= exists a ~~ alpha[a] |: face{get: a. gg:(a) => boolean. type a : a. }
 
@@ -17,10 +17,10 @@ test.xx{
 
     a ~> option[boolean].
   
-    implementation alpha[option[boolean]] => {.
+    implementation alpha[option[boolean]] => {
       gimme(some(X)) => X.
       gimme(.none) => .false.
-    .}
+    }
 
     gg(x) => gimme(x).
  }.

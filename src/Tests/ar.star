@@ -12,31 +12,23 @@ test.ar{
     unum:a.
   }
   
-  implementation four[integer] => {.
+  implementation four[integer] => {
     plus(X,Y) => _int_plus(X,Y).
     minus(X,Y) => _int_minus(X,Y).
     times(X,Y) => _int_times(X,Y).
     div(X,Y) => _int_div(X,Y).
     zer = 0.
     unum = 1.
-  .}.
+  }.
 
-  implementation four[bigint] => {.
+  implementation four[bigint] => {
     plus(X,Y) => _big_plus(X,Y).
     minus(X,Y) => _big_minus(X,Y).
     times(X,Y) => _big_times(X,Y).
     div(X,Y) where (q,_) .= _big_div(X,Y) => q.
     zer = 0b.
     unum = 1b.
-  .}
-
-  implementation equality[bigint] => {.
-    X == Y => _big_eq(X,Y).
-  .}
-
-  implementation display[bigint] => {.
-    disp(B) => _big2str(B).
-  .}
+  }
 
   ff:all x ~~ four[x],equality[x] |:(x)=>x.
   ff(zer)=>unum.

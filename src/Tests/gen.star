@@ -5,7 +5,7 @@ test.gen{
   genState[c] ::= genState().
 
   generator:all c,e ~~ iter[c->>e] |: (c) => genState[c].
-  generator(C) => let{
+  generator(C) => let{.
     Tg = tag().
     Cont = ref .none.
     Current = ref .none.
@@ -17,7 +17,7 @@ test.gen{
     }.
 
     iter = Tg prompt _iter(C,.none,genNext).
-  } in {.
+  } in {
     
     
     

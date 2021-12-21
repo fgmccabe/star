@@ -10,7 +10,7 @@ test.opg{
     _string(string) |
     _apply(ast,ast).
 
-  implementation display[ast] => let{
+  implementation display[ast] => let{.
     dsp(_name(Nm)) => "%#(Nm)".
     dsp(_qnme(Nm)) => "'#(Nm)'".
     dsp(_integer(Ix)) => "$(Ix)".
@@ -21,9 +21,9 @@ test.opg{
     dsp(_tuple("{}",Els)) => "[#(interleave(Els//dsp,". ")*)]".
     dsp(_tuple(B,Els)) => "[#(B)#(interleave(Els//dsp,",")*)]".
     dsp(_apply(O,A)) => "#(dsp(O))#(dsp(A))".
-  } in {.
+  .} in {
     disp(A) => dsp(A)
-  .}
+  }
 
   main:()=>action[(),()].
   main() => action{

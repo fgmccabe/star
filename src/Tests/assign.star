@@ -5,17 +5,17 @@ test.assign{
   person ::= someone{name:ref string. age:integer} | student(string,integer).
 
   rec : (integer)=>person.
-  rec(A) => let{.
+  rec(A) => let{
     nm = ref "".
     foo(X) => X+A.
-  .} in someone{. name=nm. age=foo(10). .}.
+  } in someone{ name=nm. age=foo(10). }.
 
   fred = rec(24).
 
   -- peter:{name:string. age:integer}.
-  peter = let{
+  peter = let{.
     name = "fred" ++ "'s friend".
-  } in someone{.name= ref name. age=23 .}.
+  .} in someone{name= ref name. age=23 }.
 
   main:() => action[(),()].
   main() => action{

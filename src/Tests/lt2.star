@@ -9,9 +9,9 @@ test.lt2{
     eq:(js,js)=>boolean
   }.
   
-  eqr = eqq{.
+  eqr = eqq{
     eq = equalJ
-  .}.
+  }.
 
   equalJ(.jT,.jT) => .true.
   equalJ(.jF,.jF) => .true.

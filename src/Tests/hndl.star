@@ -30,12 +30,12 @@ test.hndl{
   --   retn:(E,(())=>>())=>(s)=>s
   -- }
 
-  -- implementation all e ~~ hdnlr[stateEffect[e]->>e] => {.
+  -- implementation all e ~~ hdnlr[stateEffect[e]->>e] => {
   --   effect(put(X),
 
   -- What works now ..
   main()=>action{
-    let{.
+    let{
       testHdl[X,Y,e] ::= hdlXX{
 	test:((integer)=>>Y,integer)=>integer.
 	check:((boolean)=>>Y,integer)=>Y.
@@ -43,13 +43,13 @@ test.hndl{
 	exc:((X)=>>Y,()=>e)=>Y.
       }
       Tg = tag().
-      HH = hdlXX{.
+      HH = hdlXX{
 	test(K,A) => K.(A+6).
 	check(K,B) => K.(B==10).
 	dflt(K) => K.(42).
 	exc(K,E) => do{ XX.=(E():integer); show "I threw up $(XX)"}.
-      .}
-    .} in 
+      }
+    } in 
     {Tg prompt {
 --	X .= ((Tg cut K in HH.test(K,4)):integer);
 --	assert (Tg cut K in HH.check(K,X));

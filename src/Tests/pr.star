@@ -8,10 +8,10 @@ test.pr{
   }
 
   mkPr(Nm,Rl) =>
-    pr{.
+    pr{
       name = ref Nm.
       role = Rl
-    .}
+    }
 
   main:()=>action[(),()].
   main() => action{
@@ -23,10 +23,10 @@ test.pr{
 
     assert joe.name! == "peter";
 
-    tom .= pr{.
+    tom .= pr{
       name = ref "tom".
       role = "manager".
-    .};
+    };
 
     assert tom.name! == "tom";
 

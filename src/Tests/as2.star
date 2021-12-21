@@ -2,7 +2,7 @@ test.as2{
   import star.
   import star.script.
 
-  checkLists() => let{
+  checkLists() => let{.
     foo : ref integer.
     foo = ref 0.
 
@@ -15,7 +15,7 @@ test.as2{
       foo := X;
       valis .true
     }
-  } in let{
+  .} in let{.
     check:(cons[integer],cons[integer])=>boolean.
     check([],[]) => .true.
     check([E,..Es],[D,..Ds]) =>
@@ -24,7 +24,7 @@ test.as2{
 	  valof reset
       ).
     check(_,_) default => valof reset.
-  } in check.
+  .} in check.
 
   main:()=>action[(),()].
   main()=>action{

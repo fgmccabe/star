@@ -5,14 +5,14 @@ test.lt1{
   l1[integer] ::= l1(integer).
 
   ff:(integer) => (integer)=>integer.
-  ff(X) => let{
+  ff(X) => let{.
     f(0) => 0.
     f(A) => g(X,l1(A)).
 
     exec(l1(Fr)) => f(Fr-1).
 
     g(U,FF) => exec(FF)
-  } in f.
+  .} in f.
 
   main:()=>action[(),()].
   main() => action{

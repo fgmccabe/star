@@ -20,10 +20,10 @@ test.cna{
   }
 
   eq:(integer,integer)=>boolean.
-  eq(X,Y) => let{.
+  eq(X,Y) => let{
     tst(0) => .true.
     tst(_) => .false
-  .} in tst(minus(X,Y)).
+  } in tst(minus(X,Y)).
 
   _main:(cons[string])=>().
   _main(cons(A,.nil)) =>

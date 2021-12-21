@@ -11,13 +11,13 @@ test.cq0{
     foldLeft:all x ~~ (((e,x)=>x),x,c) => x.
   }
 
-  public implementation all e ~~ folding[cons[e]->>e] => {
+  public implementation all e ~~ folding[cons[e]->>e] => {.
     foldRight(F,U,.nil) => U.
     foldRight(F,U,cons(H,T)) => F(H,foldRight(F,U,T)).
 
     foldLeft(F,U,.nil) => U.
     foldLeft(F,U,cons(H,T)) => foldLeft(F,F(H,U),T).
-  }
+  .}
   
 --  gp : (cons[(string,string)])=>cons[(string,string)].
 --  gp(parents) => { (X,Y) | (X,Z) in parents && (Z,Y) in parents}.
@@ -25,10 +25,10 @@ test.cq0{
   /* gp written by hand as folding query */
   Gf : (cons[(string,string)])=>cons[(string,string)].
   Gf(Ps) => foldLeft(((X,Z),U) =>
-      foldLeft(let{.
+      foldLeft(let{
 	  ff((Z,Y),UU) => cons((X,Y),UU).
 	  ff(_,UU) => UU
-	.} in ff(Pr,U),U,Ps),
+	} in ff(Pr,U),U,Ps),
       .nil,Ps).
 
 /*

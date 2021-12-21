@@ -6,7 +6,7 @@ test.co1{
     smList(.nil,.nil) => .true.
     smList(cons(x,xr),cons(y,yr)) => x==y && smList(xr,yr).
     smList(_,_) default => .false.
-  } in {.
+  } in {
     L1 == L2 => smList(L1,L2).
-  .}
+  }
 }  

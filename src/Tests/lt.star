@@ -5,11 +5,11 @@ test.lt{
   genInt:(integer)=>integer.
   genInt(X) => X+10.
 
-  ll(M) => let{
+  ll(M) => let{.
     S = ref genInt(M).
 
     f(A) => (N) => (N>=S! ?  A || f(A*N)(N+1)).
-  } in (f(1)(1),S!).
+  .} in (f(1)(1),S!).
 
 /*  contract all x ~~ zz[x] ::= {
     pl: (x,x)=>x.

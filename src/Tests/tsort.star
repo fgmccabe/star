@@ -7,21 +7,21 @@ test.tsort{
 
   all x,y ~~ df[x,y] ::= df(x,cons[y]).
 
-  implementation all x ~~ equality[x] |: depends[df[x,x]->>x] => {.
+  implementation all x ~~ equality[x] |: depends[df[x,x]->>x] => {
     defined(df(X,_),D)=>X==D.
     references(df(_,R)) => R.
-  .}
+  }
 
-  implementation all x,y ~~ display[x], display[y] |: display[df[x,y]] => {.
+  implementation all x,y ~~ display[x], display[y] |: display[df[x,y]] => {
     disp(D) => dispDf(D).
-  .}
+  }
 
   dispDf: all x,y ~~ display[x], display[y] |: (df[x,y]) => string.
   dispDf(df(X,Y)) => "($(X),$(Y))".
 
-  implementation all x,y ~~ equality[x], equality[y] |: equality[df[x,y]] => {.
+  implementation all x,y ~~ equality[x], equality[y] |: equality[df[x,y]] => {
     df(X1,Y1)==df(X2,Y2) => X1==X2 && Y1==Y2.
-  .}
+  }
 
   -- lots of little groups
 

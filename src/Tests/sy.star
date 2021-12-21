@@ -64,10 +64,10 @@ test.sy{
   }
   
   fact:all e ~~ equality[e], arith[e],comp[e] |: (e)=>e. 
-  fact(N)=>let{
+  fact(N)=>let{.
     ff(zero,F) => F.
     ff(X,F) where X>zero => ff(X-one,F*X).
-  } in ff(N,one).
+  .} in ff(N,one).
 
   main:() => action[(),()].
   main() => action{

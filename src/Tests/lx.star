@@ -14,7 +14,7 @@ test.lx{
 
   main:()=>action[(),()].
   main()=>action{
-    F .= foo{. 'fre$' = "fred" .};
+    F .= foo{ 'fre$' = "fred" };
     assert F.'fre$' == "fred"
   }
 }
