@@ -15,13 +15,13 @@ test.let{
   } in pl.
 
   fg:()=>(integer)=>integer.
-  fg()=>let{
+  fg()=>let{.
     f(0)=>1.
     f(N)=>g(N-1)*N.
 
     g(0)=>1.
     g(N)=>f(N-1)*N
-  } in g.
+  .} in g.
 
   main:()=>action[(),()].
   main()=>action{

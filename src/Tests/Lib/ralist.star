@@ -69,10 +69,10 @@ test.ralist{
 	cons(removeFromTree(Ix,t1),ts) ||
 	cons(one(t1),remove(Ix-sz,ts))).
 
-  public implementation all e ~~ folding[ra[e]->>e] => {.
+  public implementation all e ~~ folding[ra[e]->>e] => {
     foldLeft(F,U,ra(Ds)) => foldDLeft(F,U,Ds).
     foldRight(F,U,ra(Ds)) => foldDRight(F,U,Ds).
-  .}
+  }
 
   foldDLeft:all e,x ~~ ((e,x)=>x,x,cons[digit[e]]) => x.
   foldDLeft(_,X,.nil) => X.
@@ -92,28 +92,28 @@ test.ralist{
   foldTRight(F,X,leaf(E)) => F(E,X).
   foldTRight(F,X,node(_,L,R)) => foldTRight(F,foldTRight(F,X,R),L).
 
-  implementation all e ~~ sizeable[tree[e]] => {.
+  implementation all e ~~ sizeable[tree[e]] => {
     size(leaf(_)) => 1.
     size(node(w,_,_)) => w.
 
     isEmpty(leaf(_))=>.true.
     isEmpty(node(_,_,_))=>.false.
-  .}
+  }
 
-  public implementation all e ~~ sequence[ra[e]->>e] => {.
+  public implementation all e ~~ sequence[ra[e]->>e] => {
     _nil = ra(.nil).
     _cons(E,ra(L)) => ra(consTree(leaf(E),L)).
-  .}
+  }
 
-  public implementation all e ~~ head[ra[e]->>e] => {.
+  public implementation all e ~~ head[ra[e]->>e] => {
     head(ra(.nil)) => .none.
     head(ra(ts)) where (leaf(h),_) ^= unconsTree(ts) => some(h).
 
     tail(ra(.nil)) => .none.
     tail(ra(ts)) where (_,tl) ^= unconsTree(ts) => some(ra(tl)).
-  .}
+  }
 
-  public implementation all e ~~ indexed[ra[e]->>integer,e] => {.
+  public implementation all e ~~ indexed[ra[e]->>integer,e] => {
     _index(ra(ts),Ix) => lookup(Ix,ts).
 
     _put(ra(ts),Ix,V) => ra(update(Ix,V,ts)).
@@ -121,16 +121,16 @@ test.ralist{
     _remove(ra(ts),Ix) => ra(remove(Ix,ts)).
 
     _empty = ra(.nil).
-  .}
+  }
 
-  public implementation all e ~~ reversible[ra[e]] => {.
+  public implementation all e ~~ reversible[ra[e]] => {
     reverse(ra(L)) => foldDLeft((E,So)=>[E,..So],[],L).
-  .}
+  }
 
-  public implementation all e ~~ concat[ra[e]] => {.
+  public implementation all e ~~ concat[ra[e]] => {
     ra(L)++R => foldDRight((E,So)=>[E,..So],R,L).
     _multicat(S) => foldRight(_concat,ra(.nil),S).
-  .}
+  }
 
   _concat(ra(L),R) => foldDRight((E,So)=>[E,..So],R,L).
 
@@ -141,7 +141,7 @@ test.ralist{
     } in foldDRight(ff,[],L)
   }
   
-  public implementation all e ~~ display[e] |: display[ra[e]] => let{
+  public implementation all e ~~ display[e] |: display[ra[e]] => let{.
     dispList:(cons[digit[e]],cons[string])=>cons[string].
     dispList(.nil,L) => L.
     dispList(cons(.zer,ts),L)=>dispList(ts,L).
@@ -151,7 +151,7 @@ test.ralist{
     dispTree:(tree[e],cons[string]) => cons[string].
     dispTree(leaf(x),L) => cons(disp(x),L).
     dispTree(node(_,t1,t2),L) => dispTree(t1,dispTree(t2,L)).
-  } in {
+  .} in {
     disp(ra(ts)) => "[#(interleave(dispList(ts,.nil),", ")*)]".
   }
 }

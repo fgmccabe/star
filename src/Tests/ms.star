@@ -4,11 +4,11 @@ test.ms{
   
   mapOver:all s/1,m/1,a,b ~~ stream[s[a]->>a],sequence[s[b]->>b],monad[m],reversible[s[b]] |:
     ((a)=>m[b],s[a])=>m[s[b]].
-  mapOver(F,S)=>let{
+  mapOver(F,S)=>let{.
     mpOver([],Sf)=> return reverse(Sf).
     mpOver([E,..Es],Sf) =>
       F(E) >>= (E1)=>mpOver(Es,[E1,..Sf]).
-  } in mpOver(S,[]).
+  .} in mpOver(S,[]).
 
 
   doubleOrQuits:(integer)=>option[integer].

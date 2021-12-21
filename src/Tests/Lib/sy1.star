@@ -8,10 +8,10 @@ test.sy1{
     right:tr[e]
   }.
 
-  implementation lS[integer] => {.
+  implementation lS[integer] => {
     large=10.
     small=-10.
-  .}
+  }
 
   nameOf:all x,y ~~ x<~{name:y} |: (x)=>y.
   nameOf(X)=>X.name.
@@ -44,5 +44,5 @@ test.sy1{
     .true.
 
   mkSingle:all a ~~ (a)=>tr[a].
-  mkSingle(A)=>nd{. left=.e. lbl=A. right=.e .}.
+  mkSingle(A)=>nd{ left=.e. lbl=A. right=.e }.
 }

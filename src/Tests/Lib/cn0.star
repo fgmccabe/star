@@ -8,14 +8,14 @@ test.cn0{
     div:(x,x)=>x.
   }
 
-  public implementation ar[integer] => {.
+  public implementation ar[integer] => {
     plus(x,y) => _int_plus(x,y).
     minus(x,y) => _int_minus(x,y).
     times(x,y) => _int_times(x,y).
     div(x,y) => _int_div(x,y).
-  .}
+  }
 
-  public implementation all e ~~ ar[e] |: ar[cons[e]] => let{
+  public implementation all e ~~ ar[e] |: ar[cons[e]] => let{.
     pl(.nil,.nil) => .nil.
     pl(cons(H1,T1),cons(H2,T2)) => cons(plus(H1,H2),pl(T1,T2)).
 
@@ -27,12 +27,12 @@ test.cn0{
 
     dv(.nil,.nil) => .nil.
     dv(cons(H1,T1),cons(H2,T2)) => cons(div(H1,H2),dv(T1,T2)).
-  } in {.
+  .} in {
     plus(L1,L2) => pl(L1,L2).
     minus(L1,L2) => mn(L1,L2).
     times(L1,L2) => tm(L1,L2).
     div(L1,L2) => dv(L1,L2).
-  .}
+  }
 
   public implementation all e,f ~~ ar[e],ar[f] |: ar[(e,f)] => {.
     plus((L1,R1),(L2,R2)) => (plus(L1,L2),plus(R1,R2)).

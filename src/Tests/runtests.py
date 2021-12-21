@@ -32,7 +32,7 @@ def main(argv):
             sys.exit()
         elif opt in ["-t","--test"]:
             pkgs.append(arg)
-        elif opt in ['-c','--compile_only']:
+        elif opt in ['-c','--compile_only','--compile-only']:
             compile_only = True
         elif opt in ['-d','--tracing']:
             tracing = True

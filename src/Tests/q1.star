@@ -4,11 +4,11 @@ test.q1{
 
   visibility ::= .priVate | .pUblic.
 
-  implementation equality[visibility] => {.
+  implementation equality[visibility] => {
     .priVate == .priVate => .true.
     .pUblic == .pUblic => .true.
     _ == _ default => .false.
-  .}
+  }
 
   parent:cons[(string,string)].
   parent = [("a","ab"),("b","ab"),("a","c"),("c","aa"),("ab","abc"),

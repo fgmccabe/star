@@ -37,7 +37,7 @@ test.dl{
     return () >>=
       ((_) =>
         ((Cx)=>
-            let {
+            let {.
               loop:()=>action[(),integer].
               loop() where Cx! =< Lx =>
                 do{
@@ -54,7 +54,7 @@ test.dl{
       ((_) =>
         ((Cx)=>
           ((Fx) =>
-            let {
+            let {.
               loop:()=>action[(),integer].
               loop() where Cx! =< Lx =>
                 do{

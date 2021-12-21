@@ -4,22 +4,22 @@ test.l2{
 
   tree[a] ::= .empty | node(tree[a],a,tree[a]).
 
-  implementation all e ~~ display[e] |: display[tree[e]] => let {
+  implementation all e ~~ display[e] |: display[tree[e]] => let {.
     dTree(.empty) => "e".
     dTree(node(L,Lb,R)) => "<#(dTree(L))$(Lb)#(dTree(R))>".
-  } in {.
+  .} in {
     disp = dTree
-  .}
+  }
 
   splits:(tree[(integer,string)]) => (tree[integer],cons[string]).
-  splits(T) => let{
+  splits(T) => let{.
     spl(.empty) => (.empty,[]).
     spl(node(L,(X,S),R)) => valof action{
       (LL,LX) .= spl(L);
       (RR,RX) .= spl(R);
       valis (node(LL,X,RR),LX++[S,..RX])
     }
-  } in spl(T).
+  .} in spl(T).
 
   main:()=>action[(),()].
   main()=> action{

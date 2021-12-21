@@ -54,9 +54,9 @@ test.sy0{
   qd:all  x ~~ ar[x] |: (x)=>x.
   qd(X) => dbl(double)(X).
 
-  implementation ar[integer] => {.
+  implementation ar[integer] => {
     plus(x,y) => _int_plus(x,y).
-  .}
+  }
 
   dblInt:(integer)=>integer.
   dblInt(X) => plus(X,X).

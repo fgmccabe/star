@@ -13,15 +13,15 @@ test.cng{
   }
 
   mkYield(FC) =>
-    (V) => let{.
+    (V) => let{
       cc = Tg cut K in tgWrap{K=K}.
-    .} in (case V in {
+    } in (case V in {
 	.none => ().
 	some(Vl) => FC.((cc,Vl))
     }).
 
 /*  iterLoop(BF,IT) => let{
-    loop() => let{.
+    loop() => let{
       Tg = tag().
       LC := Tg cut K in K.
 */

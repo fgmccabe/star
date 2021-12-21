@@ -8,9 +8,9 @@ test.c {
 --    spouse default = .none.
   }
     
-  implementation all t ~~ equality[t] |: equality[person[t]] => {.
+  implementation all t ~~ equality[t] |: equality[person[t]] => {
     P1 == P2 => P1.name == P2.name.
-  .}
+  }
 
   foo : string.
   foo = "".

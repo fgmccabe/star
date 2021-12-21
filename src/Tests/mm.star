@@ -3,11 +3,11 @@ test.mm{
   import star.script.
 
   conc:all e ~~ (cons[e],cons[e])=>cons[e].
-  conc(x,y) => let{
+  conc(x,y) => let{.
     cc:(cons[e])=> cons[e].
     cc([]) => y.
     cc([e,..l]) => [e,..cc(l)].
-  } in cc(x).
+  .} in cc(x).
   
   
   main:() => action[(),()].

@@ -5,9 +5,9 @@ test.lt2a{
   js ::=
     .jN | jS(js).
 
-  implementation equality[js] => {.
+  implementation equality[js] => {
     X == Y => equalJ(eqr,X,Y)
-  .}
+  }
 
   eqR ::= eqR((eqR,js,js)=>boolean).
 

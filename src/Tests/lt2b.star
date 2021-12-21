@@ -10,7 +10,7 @@ test.lt2b{
     eq:(js,js)=>boolean
   }.
   
-  test() => let{
+  test() => let{.
     eqr = eqq{
       eq(X,Y) => equalJ(X,Y)
     }.
