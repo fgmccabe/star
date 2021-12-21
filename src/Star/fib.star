@@ -39,11 +39,11 @@ star.fib{
   } in (x>=root(t) ? root(t) || x).
 
   deleteMin:all e ~~ comp[e]|:(cons[fib[e]]) => cons[fib[e]].
-  deleteMin(ts) => let{
+  deleteMin(ts) => let{.
     getMin([t])=>(t,[]).
     getMin([t,..tss]) where (t1,ts1) .= getMin(tss) => (
       root(t1)>=root(t1) ? (t,tss) || (t1,[t,..ts1])).
     (q(x,r,c),ts1) .= getMin(ts)
-  } in meld(reverse(c),ts1).
+ .} in meld(reverse(c),ts1).
 
 }

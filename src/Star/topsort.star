@@ -7,7 +7,7 @@ star.topsort{
   }
 
   public topsort:all d,t ~~ depends[d->>t] |: (cons[d]) => cons[cons[d]].
-  topsort(Defs) => let{
+  topsort(Defs) => let{.
     defEntry::= dE{ df:d. stackPt : integer. }
 
     stTuple ~> (cons[d],cons[defEntry],cons[cons[d]],integer).
@@ -50,5 +50,5 @@ star.topsort{
     popGroup:(cons[defEntry],integer,cons[d]) => (cons[defEntry],cons[d]).
     popGroup([E,..Stk],Low,SoFar) where E.stackPt>=Low => popGroup(Stk,Low,[E.df,..SoFar]).
     popGroup(Stk,_,Grp) => (Stk,Grp)
-  } in reverse(analyseDefs(Defs,[])).
+ .} in reverse(analyseDefs(Defs,[])).
 }

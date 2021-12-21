@@ -16,7 +16,7 @@ star.task{
   
   taskWaitResult[e,a] ::= .taskSleep | taskMicroSleep(task[e,a]).
 
-  public implementation execution[task] => let{
+  public implementation execution[task] => let{.
     taskStep:all e,a,b ~~ (task[e,a],(a)=>task[e,b])=>task[e,b].
     taskStep(_task(B),N) =>
       _task(()=>case B() in {
@@ -67,7 +67,7 @@ star.task{
       start((V)=>do{
 	  resume(k(v))
 	}).
-  } in {
+ .} in {
     _valis(X) => _task(()=>taskDone(X)).
     _sequence = taskStep.
     _handle = taskHandle.

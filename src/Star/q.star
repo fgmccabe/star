@@ -7,7 +7,7 @@ star.q{
 
   public all e ~~ qc[e] ::= qc(cons[e],cons[e]).
 
-  public implementation all x ~~ equality[x] |: equality[qc[x]] => let{
+  public implementation all x ~~ equality[x] |: equality[qc[x]] => let{.
     smQ: all x ~~ equality[x] |: (cons[x],cons[x],cons[x],cons[x]) => boolean.
     smQ(.nil,B1,.nil,B2) => smList(B1,B2).
     smQ(.nil,B1,F2,B2) => smQ(reverse(B1),.nil,F2,B2).
@@ -17,9 +17,9 @@ star.q{
     smList:all x ~~ equality[x] |: (cons[x],cons[x]) => boolean.
     smList(.nil,.nil) => .true.
     smList(cons(x,xr),cons(y,yr)) => x==y && smList(xr,yr).
-  } in {.
+  .} in {
     qc(F1,B1) == qc(F2,B2) => smQ(F1,B1,F2,B2).
-  .}
+  }
 
   -- stream & sequence contracts
   public implementation all x ~~ stream[qc[x] ->> x] => {
@@ -36,10 +36,10 @@ star.q{
     _nil = qc(.nil,.nil).
   }
 
-  public implementation all x ~~ concat[qc[x]] => {.
+  public implementation all x ~~ concat[qc[x]] => {
     qc(F1,B1)++qc(F2,B2) => qc(F1++reverse(B1),B2++reverse(F2)).
     _multicat(Qs) => multiq(Qs).
-  .}
+  }
 
   multiq([]) => qc(.nil,.nil).
   multiq([Q,..Qs]) => Q++multiq(Qs).
@@ -48,18 +48,18 @@ star.q{
     reverse(qc(F,B)) => qc(B,F).
   }
 
-  public implementation all x ~~ sizeable[qc[x]] => {.
+  public implementation all x ~~ sizeable[qc[x]] => {
     size(qc(L,R)) => size(L)+size(R).
     isEmpty(qc(.nil,.nil)) => .true.
     isEmpty(_) default => .false.
-  .}
+  }
 
-  public implementation all x ~~ glue[qc[x]->>x] => {.
+  public implementation all x ~~ glue[qc[x]->>x] => {
     prepend(X,qc(F,T)) => qc(cons(X,F),T).
     append(qc(F,T),X) => qc(F,cons(X,T)).
-  .}
+  }
 
-  public implementation all e ~~ folding[qc[e]->>e] => {
+  public implementation all e ~~ folding[qc[e]->>e] => {.
     foldRight(F,U,qc(.nil,.nil)) => U.
     foldRight(F,U,qc(.nil,B)) => foldLeftR(F,U,B).
     foldRight(F,U,qc(cons(H,T),B)) => F(H,foldRight(F,U,qc(T,B))).
@@ -73,14 +73,14 @@ star.q{
 
     private foldRightR(F,U,.nil) => U.
     foldRightR(F,U,cons(H,T)) => F(H,foldRightR(F,U,T)).
+ .}
+
+  public implementation all e ~~ coercion[cons[e],qc[e]] => {
+    _coerce(L) => some(qc(L,.nil)).
   }
 
-  public implementation all e ~~ coercion[cons[e],qc[e]] => {.
-    _coerce(L) => some(qc(L,.nil)).
-  .}
-
-  public implementation all e ~~ coercion[qc[e],cons[e]] => {.
+  public implementation all e ~~ coercion[qc[e],cons[e]] => {
     _coerce(qc(F,B)) => some(F++reverse(B)).
-  .}
+  }
 
 }

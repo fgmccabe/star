@@ -283,13 +283,13 @@ collectTermRefs(app(_,Op,Args),All,R,Rx) :-
   collectTermRefs(Op,All,R,R0),
   collectTermRefs(Args,All,R0,Rx).
 collectTermRefs(T,All,R,Rx) :-
-  isBraceTuple(T,_,Els),
+  isQBraceTuple(T,_,Els),
   collectClassRefs(Els,All,R,Rx).
 collectTermRefs(T,All,R,Rx) :-
-  isQBraceTuple(T,_,Els),
+  isBraceTuple(T,_,Els),
   collectStmtRefs(Els,All,[],R,Rx).
 collectTermRefs(T,All,R,Rx) :-
-  isBraceTerm(T,_,Op,Els),
+  isQBraceTerm(T,_,Op,Els),
   collectTermRefs(Op,All,R,R0),
   collectClassRefs(Els,All,R0,Rx).
 collectTermRefs(T,All,R,Rx) :-

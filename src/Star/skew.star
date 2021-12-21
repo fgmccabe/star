@@ -128,28 +128,28 @@ star.skew{
     _multicat([S1,..Ss]) => S1++_multicat(Ss).
   }
 
-  public implementation all e ~~ filter[sk[e]->>e] => let {.
+  public implementation all e ~~ filter[sk[e]->>e] => let {
     filter(rl(L),F) => let{
       ff(E,So) where F(E) => [E,..So].
       ff(_,So) => So.
     } in foldDRight(ff,[],L)
-  .} in {.
+  } in {
     (^/)=filter
-  .}
+  }
 
-  public implementation functor[sk] => let{
+  public implementation functor[sk] => let{.
     fm:all a,b ~~ ((a)=>b,tree[a])=>tree[b].
     fm(F,.eTree) => .eTree.
     fm(F,node(X,L,R)) => node(F(X),fm(F,L),fm(F,R)).
 
     fmp:all a,b ~~ ((a)=>b,sk[a])=>sk[b].
     fmp(F,rl(L)) => rl(L//(((Ix,T))=>(Ix,fm(F,T)))).
-  } in {.
+  .} in {
     fmap = fmp.
     C <$ L => fmp((_)=>C,L).
-  .}
+  }
   
-  public implementation all e ~~ display[e] |: display[sk[e]] => let{
+  public implementation all e ~~ display[e] |: display[sk[e]] => let{.
     dispList:all a ~~ display[a] |: (rlist[a],cons[string]) => cons[string].
     dispList(.nil,L) => L.
     dispList(cons((_,T),rs),L) => dispTree(T,dispList(rs,L)).
@@ -162,11 +162,11 @@ star.skew{
     rollup(.nil) => "".
     rollup(cons(S,.nil)) => S.
     rollup(cons(S,R)) => "#(S),#(rollup(R))".
-  } in {
+ .} in {
     disp(rl(L)) => "[#(rollup(dispList(L,.nil)))]".
   }
 
-  public implementation all e ~~ equality[e] |: equality[sk[e]] => let{
+  public implementation all e ~~ equality[e] |: equality[sk[e]] => let{.
     equalList(.nil,.nil) => .true.
     equalList(cons((W1,T1),L1),cons((W2,T2),L2)) =>
       W1==W2 && equalTree(T1,T2) && equalList(L1,L2).
@@ -176,11 +176,11 @@ star.skew{
     equalTree(node(X1,L1,R1),node(X2,L2,R2)) =>
       X1==X2 && equalTree(L1,L2) && equalTree(R1,R2).
     equalTree(_,_) default => .false.
-  } in {
+ .} in {
     rl(L1) == rl(L2) => equalList(L1,L2).
   }
 
-  public implementation all e ~~ sizeable[sk[e]] => {
+  public implementation all e ~~ sizeable[sk[e]] => {.
     isEmpty(rl(.nil)) => .true.
     isEmpty(rl(_)) => .false.
 
@@ -188,9 +188,9 @@ star.skew{
 
     private countSizes(.nil,Sz) => Sz.
     countSizes(cons((W,_),L),Sz) => countSizes(L,Sz+W).
-  }
+ .}
 
-  public implementation all t ~~ iter[sk[t]->>t] => let{
+  public implementation all t ~~ iter[sk[t]->>t] => let{.
     iterList:all x ~~ (rlist[t],x,(t,x)=>x)=>x.
     iterList(.nil,St,_) => St.
     iterList(cons((_,T),R),St,Fn) =>
@@ -202,12 +202,12 @@ star.skew{
       iterTree(T2,
 	iterTree(T1,
 	  Fn(X,St),Fn),Fn).
-  } in {.
+  .} in {
     _iter(rl(L),St,Fn) => iterList(L,St,Fn).
-  .}
+  }
 
-  public implementation all t ~~ coercion[sk[t],cons[t]] => {.
+  public implementation all t ~~ coercion[sk[t],cons[t]] => {
     _coerce(S) => some(foldLeft((e,L) => cons(e,L),.nil,S)).
-  .}
+  }
     
 }

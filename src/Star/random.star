@@ -34,11 +34,11 @@ star.random{
     n .= iLogBase(b, k);
 
     (v, rng1) .=
-      (let {
+      (let {.
 	  f(0, acc, g) => (acc, g).
 	  f(n1, acc, g) where (x, g1) .= next(g) =>
 	    f(n1 - 1, x + acc * b, g1)
-	} in
+.} in
 	f(n, 1, rng));
     valis (l + v % k, rng1)
   }
@@ -51,12 +51,12 @@ star.random{
   max32Bound = 0x7fffffff.
   int32Range = max32Bound - min32Bound.
 
-  public implementation Random[integer] => {.
+  public implementation Random[integer] => {
     randomR(lo, hi, g) => randomIVal(lo, hi, g).
     random(g) => randomIVal(min32Bound, max32Bound, g) -- had to pick something
-  .}
+  }
 
-  public implementation RandomGen[StdGen] => let{
+  public implementation RandomGen[StdGen] => let{.
     stdRange : (StdGen) => (integer, integer).
     stdRange(_) => (0, 2147483562).
 
@@ -89,11 +89,11 @@ star.random{
 	right .= StdGen(t1, new_s2);
 	valis (left, right)
       }
-  } in {.
+ .} in {
     next = stdNext.
     split = stdSplit.
     genRange = stdRange
-  .}
+  }
 }
 
     

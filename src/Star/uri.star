@@ -222,10 +222,10 @@ star.uri{
   drop([_,..L])=>some(L).
   drop(_) default => .none.
 
-  public implementation display[uri] => {.
+  public implementation display[uri] => {
   disp(absUri(Scheme,Rsrc,Query)) => "#(Scheme)\:#(dispRsrc(Rsrc))#(dispQuery(Query))".
   disp(relUri(Rsrc,Query)) => "#(dispRsrc(Rsrc))#(dispQuery(Query))".
-.}
+  }
 
   private dispQuery:(query)=>string.
   dispQuery(.noQ) => "".
@@ -260,13 +260,13 @@ star.uri{
   getUriPath(absUri(_,Pth,_)) => dispRsrc(Pth)::string.
   getUriPath(relUri(Pth,_)) => dispRsrc(Pth)::string.
 
-  public implementation coercion[uri,string] => {.
+  public implementation coercion[uri,string] => {
     _coerce(U) => disp(U):?string.
-  .}
+  }
 
-  public implementation coercion[string,uri] => {.
+  public implementation coercion[string,uri] => {
     _coerce(S) => parseUri(S).
-  .}
+  }
 
   public editUriPath:(uri,(cons[string])=>option[cons[string]])=>option[uri].
   editUriPath(absUri(Scheme,ResNam,Qury),F) where NRes^=editUriResource(ResNam,F) => some(absUri(Scheme,NRes,Qury)).

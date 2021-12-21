@@ -72,9 +72,9 @@ star.repo.file{
   extensionMapping("term") => ".term".
   extensionMapping("code") => ".cafe".
 
-  public implementation display[fileRepo] => {.
+  public implementation display[fileRepo] => {
     disp(repo(Root,Man)) => ssSeq([ss("file repo rooted at "),disp(Root),ss("\nmanifest:"),disp(Man)]).
-  .}
+  }
 
   flushManifest(Url,Man) => putResource(Url,(Man::json)::string).
 

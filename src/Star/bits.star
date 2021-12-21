@@ -21,5 +21,4 @@ star.bits{
 
   public ( .~. ) : (integer) => integer.
   .~. X => _bnot(X).
-
 }

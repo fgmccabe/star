@@ -17,12 +17,12 @@ star.redblack{
 
   color ::= .Red | .Black | .BBlack | .NBlack .
 
-  implementation display[color]=>{.
+  implementation display[color]=>{
     disp(.Red) => "red".
     disp(.Black) => "blk".
     disp(.BBlack) => "bblk".
     disp(.NBlack) => "nblk"
-  .}
+  }
 
   -- Only the type itself is exposed
   public rbtree[k,v] ::=
@@ -164,29 +164,29 @@ star.redblack{
 
   allSame:(cons[integer])=>boolean.
   allSame([])=>.true.
-  allSame([Ix,..Is]) => let{
+  allSame([Ix,..Is]) => let{.
     sme([])=>.true.
     sme([Ix,..II])=>sme(II).
     sme(_) default => .false
-  } in sme(Is).
+ .} in sme(Is).
   
   public implementation all k,v ~~ display[k],display[v] |:
-    display[rbtree[k,v]] => {.
+    display[rbtree[k,v]] => {
       disp(T) => disp(pairs(T,[]))
-    .}.
+    }.
 
   public implementation all k,v ~~ equality[k],equality[v] |:
-    equality[rbtree[k,v]] => {.
+    equality[rbtree[k,v]] => {
       T1==T2 => pairs(T1,[])==pairs(T2,[])
-    .}.
+    }.
 
   public implementation all k,v ~~ equality[k],comp[k] |:
-    indexed[rbtree[k,v]->>k,v] => {.
+    indexed[rbtree[k,v]->>k,v] => {
       _index(Tr,Ky) => find(Tr,Ky).
       _put(Tr,Ky,Vl) => insert(Tr,Ky,Vl).
       _remove(Tr,Ky) => delete(Tr,Ky).
       _empty = .leaf.
-    .}.
+    }.
 
   public implementation all k,v ~~ comp[k], equality[k] |:
     sequence[rbtree[k,v] ->> keyval[k,v]] => {
@@ -195,7 +195,7 @@ star.redblack{
     }.
 
   public implementation all k,v ~~ equality[k],comp[k] |:
-    stream[rbtree[k,v]->>keyval[k,v]] => let{
+    stream[rbtree[k,v]->>keyval[k,v]] => let{.
       hdtl(T) where H^=hd(T) => some((H,drop(T,H))).
       hdtl(_) default => .none.
 
@@ -205,58 +205,58 @@ star.redblack{
       hd(node(_,_,_,L,_)) => hd(L).
 
       drop(T,K->_) => delete(T,K)
-    } in {.
+    .} in {
       _eof(.leaf) => .true.
       _eof(_) default => .false.
 
       _hdtl(T) => hdtl(T)
-    .}.
+    }.
 
-  public implementation all k,v ~~ ixfold[rbtree[k,v]->>k,v] => let{
+  public implementation all k,v ~~ ixfold[rbtree[k,v]->>k,v] => let{.
     right(F,U,.leaf) => U.
     right(F,U,.bleaf) => U.
     right(F,U,node(_,K,V,L,R)) => right(F,F(K,V,right(F,U,R)),L).
 
     left(F,U,.leaf) => U.
     left(F,U,node(_,K,V,L,R)) => left(F,F(K,V,left(F,U,L)),R).
-  } in {.
+  .} in {
     ixRight = right.
     ixLeft = left.
-  .}
+  }
 
-  public implementation all k,v ~~ iter[rbtree[k,v]->>keyval[k,v]] => let{
+  public implementation all k,v ~~ iter[rbtree[k,v]->>keyval[k,v]] => let{.
     iter:all x ~~ (rbtree[k,v],x,(keyval[k,v],x)=>x)=>x.
     iter(.leaf,St,_) => St.
     iter(node(_,K,V,L,R),St,F) =>iter(R,F(K->V,iter(L,St,F)),F).
-  } in {.
+  .} in {
     _iter(Tr,St,Fn) => iter(Tr,St,Fn)
-  .}
+  }
 
-  public implementation all k,v ~~ sizeable[rbtree[k,v]] => let{
+  public implementation all k,v ~~ sizeable[rbtree[k,v]] => let{.
     count(.leaf,Cx)=>Cx.
     count(node(_,_,_,L,R),Cx)=>count(R,count(L,Cx+1)).
-  } in {.
+  .} in {
     size(T)=>count(T,0).
     isEmpty(.leaf)=>.true.
     isEmpty(.bleaf)=>.true.
     isEmpty(_) default => .false
-  .}
+  }
 
   public implementation all k,v ~~ equality[k],comp[k] |:
-    coercion[cons[keyval[k,v]],rbtree[k,v]] => {.
+    coercion[cons[keyval[k,v]],rbtree[k,v]] => {
       _coerce(L) => some(foldRight((K->V,M)=>add(M,K,V),.leaf,L)).
-    .}.
+    }.
 
   public implementation all k,v ~~ equality[k],comp[k] |:
-    coercion[rbtree[k,v],cons[keyval[k,v]]] => {.
+    coercion[rbtree[k,v],cons[keyval[k,v]]] => {
       _coerce(T) => some(pairs(T,[]))
-    .}.
+    }
 
-  public implementation ixmap[rbtree] => let{
+  public implementation ixmap[rbtree] => let{.
     ixMap:all k,v,w ~~ (rbtree[k,v],(k,v)=>w) => rbtree[k,w].
     ixMap(.leaf,_) => .leaf.
     ixMap(node(Cl,K,V,L,R),f) => node(Cl,K,f(K,V),ixMap(L,f),ixMap(R,f)).
-  }
+ .}
   in{
     (M///f) => ixMap(M,f).
   }
@@ -264,9 +264,9 @@ star.redblack{
   public implementation all k,v ~~ equality[k],comp[k] |:
     ixfilter[rbtree[k,v]->>k,v] => let{
       ixFilter(T,P) => ixLeft((K,V,A)=>(P(K,V) ? add(A,K,V) || A),.leaf,T).
-    } in {.
+    } in {
       (^//) = ixFilter
-    .}.
+    }
     
   
 }

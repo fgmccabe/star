@@ -97,6 +97,10 @@ examineStmt(S,Rp) :-
   isBraceTuple(S,Lc,Els),!,
   map(Els,macros:macroStmt,Elx),
   braceTuple(Lc,Elx,Rp).
+examineStmt(S,Rp) :-
+  isQBraceTuple(S,Lc,Els),!,
+  map(Els,macros:macroStmt,Elx),
+  qbraceTuple(Lc,Elx,Rp).
 examineStmt(S,S) :-
   isAnnotation(S,_,_,_),!.
 examineStmt(S,S) :-
@@ -133,6 +137,10 @@ disThroughGroup(S,C,Rp) :-
   isBraceTuple(S,Lc,Els),
   map(Els,C,NEls),
   braceTuple(Lc,NEls,Rp).
+disThroughGroup(S,C,Rp) :-
+  isQBraceTuple(S,Lc,Els),
+  map(Els,C,NEls),
+  qbraceTuple(Lc,NEls,Rp).
 disThroughGroup(S,C,Rp) :-
   call(C,S,Rp).
 

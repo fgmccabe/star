@@ -4,9 +4,9 @@ star.script{
 
   public scriptMsg ::= scriptError(locn,string).
 
-  public implementation coercion[scriptMsg,string] => {.
+  public implementation coercion[scriptMsg,string] => {
     _coerce(scriptError(Lc,Msg)) => some("Failed: #(Msg) at $(Lc)")
-  .}
+  }
 
   public assrt:all e ~~ (()=>boolean,string,locn) => result[e,()].
   assrt(Tst,Msg,Lc) => do{
