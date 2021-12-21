@@ -104,7 +104,7 @@ static integer longComplement(uint32 *tgt, const uint32 *src, integer sSize) {
   if (carry != 0) {
     tgt[ix++] = carry;
   }
-  return longTrim(tgt,ix);
+  return longTrim(tgt, ix);
 }
 
 comparison longCompare(const uint32 *lhs, integer lSize, const uint32 *rhs, integer rSize) {
@@ -217,7 +217,8 @@ multiPo multiFromText(char *text, integer tlen) {
     if (isNdChar(ch)) {
       byte digit = digitValue(ch);
       dLen = mulByAndAdd(data, data, dLen, 10, digit);
-    }
+    } else
+      return Null;
   }
   // Allow for case where number might look negative
   dLen++;
@@ -248,13 +249,14 @@ integer longFromText(const char *text, integer tLen, uint32 *data, integer count
     if (isNdChar(ch)) {
       byte digit = digitValue(ch);
       dLen = mulByAndAdd(data, data, dLen, 10, digit);
-    }
+    } else
+      return -1;
   }
   // Allow for case where number might look negative
   dLen++;
 
   if (positive) {
-    return longTrim(data,dLen);
+    return longTrim(data, dLen);
   } else {
     return longComplement(data, data, dLen);
   }
