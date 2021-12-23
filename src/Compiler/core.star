@@ -44,9 +44,9 @@ star.compiler.core{
   public dispCrProg:(cons[crDefn])=>ss.
   dispCrProg(Defs) => ssSeq(interleave(Defs//disp,ss(".\n"))).
 
-  public implementation display[crDefn] => {.
+  public implementation display[crDefn] => {
     disp(Df) => dspDef(Df,"  ").
-  .}
+  }
 
   dspDef:(crDefn,string) => ss.
   dspDef(fnDef(Lc,Nm,Tp,Args,Rep),Off) =>
@@ -116,15 +116,15 @@ star.compiler.core{
     Ar = size(Args)
   } in crTerm(Lc,tplLbl(Ar), Args, TpTp).
 
-  public implementation equality[crVar] => {.
+  public implementation equality[crVar] => {
     crId(N1,T1) == crId(N2,T2) => N1==N2.
-  .}
+  }
 
-  public implementation hash[crVar] => {.
+  public implementation hash[crVar] => {
     hash(crId(N,T)) => hash(N).
-  .}
+  }
 
-  public implementation equality[crExp] => let{
+  public implementation equality[crExp] => let{.
     eqTerm(crVar(_,V1),crVar(_,V2)) => V1==V2.
     eqTerm(crInt(_,N1),crInt(_,N2)) => N1==N2.
     eqTerm(crFlot(_,N1),crFlot(_,N2)) => N1==N2.
@@ -166,9 +166,9 @@ star.compiler.core{
     eqCs([],[]) => .true.
     eqCs([(_,N1,E1),..S1],[(_,N2,E2),..S2]) => eqTerm(N1,N2) && eqTerm(E1,E2) && eqCs(S1,S2).
     eqCs(_,_) default => .false.
-  } in {.
+  .} in {
     X == Y => eqTerm(X,Y)
-  .}
+  }
 
   public implementation hasLoc[crExp] => {
     locOf(crVar(Lc,_)) => Lc.
@@ -196,7 +196,7 @@ star.compiler.core{
     locOf(crCnd(Lc,_,_,_)) => Lc.
   }
 
-  public implementation hasType[crExp] => let{
+  public implementation hasType[crExp] => let{.
     tpOf(crVar(_,V)) => typeOf(V).
     tpOf(crInt(_,_)) => intType.
     tpOf(crFlot(_,_)) => fltType.
@@ -221,21 +221,21 @@ star.compiler.core{
     tpOf(crDsj(_,_,_)) => boolType.
     tpOf(crNeg(_,_)) => boolType.
     tpOf(crAbort(_,_,Tp)) => Tp.
-  } in {
+  .} in {
     typeOf = tpOf
   }
 
-  public implementation hasType[crVar] => {.
+  public implementation hasType[crVar] => {
     typeOf(crId(_,Tp)) => Tp.
-  .}
+  }
 
   public implementation display[crExp] => {
     disp(T) => dspExp(T,"")
   }
 
-  public implementation display[crVar] => {.
+  public implementation display[crVar] => {
     disp(crId(Nm,_)) => ssSeq([ss("%"),ss(Nm)]).
-  .}
+  }
 
   public implementation coercion[crExp,term] => {
     _coerce(crInt(_,Ix)) => some(intgr(Ix)).
@@ -253,10 +253,10 @@ star.compiler.core{
     mapArgs(_,_) default => .none.
   }
 
-  public implementation coercion[locn,crExp] => {.
+  public implementation coercion[locn,crExp] => {
     _coerce(Lc) where locn(Nm,Line,Col,Off,Len).=Lc =>
       some(mkCrTpl(Lc,[crStrg(Lc,Nm),crInt(Lc,Line),crInt(Lc,Col),crInt(Lc,Off),crInt(Lc,Len)]))
-  .}
+  }
 
   public rwTerm:(crExp,(crExp)=>option[crExp])=>crExp.
   rwTerm(T,Tst) where Rep^=Tst(T) => Rep.
@@ -300,10 +300,10 @@ star.compiler.core{
     crMatch(Lc,rwTerm(P,M),rwTerm(E,M)).
 
   dropVar:(string,(crExp)=>option[crExp])=>(crExp)=>option[crExp].
-  dropVar(Nm,Tst) => let{.
+  dropVar(Nm,Tst) => let{
     test(crVar(_,crId(Nm,_))) => .none.
     test(T) default => Tst(T)
-  .} in test.
+  } in test.
 
   public rwTerms:(cons[crExp],(crExp)=>option[crExp])=>cons[crExp].
   rwTerms(Els,Tst) => (Els//(E)=>rwTerm(E,Tst)).

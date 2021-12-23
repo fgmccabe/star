@@ -16,7 +16,7 @@ star.compiler.macro.infra{
     | .typeterm
     | .constraint.
 
-  public implementation equality[macroContext] => {.
+  public implementation equality[macroContext] => {
     .package == .package => .true.
     .statement == .statement => .true.
     .expression == .expression => .true.
@@ -25,26 +25,26 @@ star.compiler.macro.infra{
     .typeterm == .typeterm => .true.
     .constraint == .constraint => .true.
     _ == _ default => .false
-  .}
+  }
 
-  implementation display[macroContext] => {.
-    disp(.package) => ss("package").
-    disp(.statement) => ss("statement").
-    disp(.expression) => ss("expression").
-    disp(.actn) => ss("action").
-    disp(.pattern) => ss("pattern").
-    disp(.typeterm) => ss("type").
-    disp(.constraint) => ss("constraint").
-  .}
+  implementation display[macroContext] => {
+    disp(.package) => "package".
+    disp(.statement) => "statement".
+    disp(.expression) => "expression".
+    disp(.actn) => "action".
+    disp(.pattern) => "pattern".
+    disp(.typeterm) => "type".
+    disp(.constraint) => "constraint".
+  }
 
-  public macroRule ~> (ast,macroContext,reports) => either[reports,macroState].
+  public macroRule ~> (ast,macroContext,reports) => result[reports,macroState].
 
   public macroState ::= .inactive | active(ast).
 
-  public implementation display[macroState] => {.
-    disp(.inactive) => ss("inactive").
-    disp(active(A)) => ssSeq([ss("active "),disp(A)]).
-  .}
+  public implementation display[macroState] => {
+    disp(.inactive) => "inactive".
+    disp(active(A)) => "active $(A)".
+  }
 
   public macroKey:(ast)=>string.
   macroKey(nme(_,Id)) => Id.

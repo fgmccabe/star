@@ -77,14 +77,14 @@ star.compiler.impawt{
   pickupVis(_) default => .none.
 
   pickupImports:(cons[term],locn) => either[(),cons[importSpec]].
-  pickupImports(Trms,Lc) => let{
+  pickupImports(Trms,Lc) => let{.
     pickupImps([],Imx) => either(Imx).
     pickupImps([term(_,[V,P]),..Imps],Imx) where
 	Vz ^= pickupViz(V) => do{
 	  Pkg <- pickupPkg(P);
 	  pickupImps(Imps,[pkgImp(Lc,Vz,Pkg),..Imx])
 	}.
-  } in pickupImps(Trms,[]).
+  .} in pickupImps(Trms,[]).
 
   pickupConstructors:(cons[term],cons[string]) => either[(),cons[string]].
   pickupConstructors([],Cs) => either(Cs).
@@ -111,35 +111,35 @@ star.compiler.impawt{
     _coerce(pkg(P,vers(V))) => some(term(tLbl("pkg",2),[strg(P),strg(V)])).
   }
 
-  implementation coercion[visibility,term] => {.
+  implementation coercion[visibility,term] => {
     _coerce(.priVate) => some(strg("private")).
     _coerce(.pUblic) => some(strg("public")).
     _coerce(.transItive) => some(strg("transitive")).
-  .}
+  }
 
-  implementation coercion[tipe,term] => {.
+  implementation coercion[tipe,term] => {
     _coerce(Tp) => some(strg(encodeSignature(Tp))).
-  .}
+  }
   
-  implementation coercion[importSpec,term] => {.
+  implementation coercion[importSpec,term] => {
     _coerce(pkgImp(_,Vz,Pk)) => some(term(tLbl("import",2),[Vz::term,Pk::term]))
-  .}
+  }
 
-  implementation coercion[canonDef,term] => {.
+  implementation coercion[canonDef,term] => {
     _coerce(cnsDef(_,Nm,FullNm,Tp)) =>
       some(term(tLbl("constructor",3),[strg(Nm),strg(FullNm),Tp::term])).
     _coerce(conDef(_,Nm,FullNm,Tp)) =>
       some(term(tLbl("contract",3),[strg(Nm),strg(FullNm),Tp::term])).
-  .}
+  }
   
-  implementation all e ~~ coercion[e,term] |: coercion[cons[e],term] => {.
+  implementation all e ~~ coercion[e,term] |: coercion[cons[e],term] => {
     _coerce(L)=>some(mkTpl(L//(e)=>e::term))
-  .}
+  }
 
-  implementation coercion[implSpec,term] => {.
+  implementation coercion[implSpec,term] => {
     _coerce(implSpec(_,ConNm,FullNm,Spec)) =>
       some(term(tLbl("impl",3),[strg(ConNm),strg(FullNm),Spec::term]))
-  .}
+  }
   
   public implementation coercion[pkgSpec,term] => let{
     mkTerm(pkgSpec(Pkg,Imports,Fields,Contracts,Implementations,_)) =>

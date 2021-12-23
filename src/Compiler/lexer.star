@@ -12,10 +12,10 @@ star.compiler.lexer{
   allTokens(St) where (Stx,Toks) .= allTks(St) => (Toks,stateReport(Stx)).
 
   allTks:(tokenState)=>(tokenState,cons[token]).
-  allTks(St) => let{
+  allTks(St) => let{.
     allToks(Strm,SoFr) where (Nx,some(Tk)).=nextToken(Strm) => allToks(Nx,[Tk,..SoFr]).
     allToks(Strm,SoFr) default => (Strm,reverse(SoFr)).
-  } in allToks(St,[]).
+  .} in allToks(St,[]).
   
   public initSt:(locn,cons[char],reports)=>tokenState.
   initSt(locn(P,Line,Col,Start,_),Txt,Rp) => tokenState(P,Line,Col,Start,Txt,Rp).
@@ -61,7 +61,7 @@ star.compiler.lexer{
     (Nx,some(tok(makeLoc(St0,Nx),idTok(". ")))).
   nxxTok(`.`,St,St0) where (Nx,some(`\t`)) .= nextChr(St) =>
     (Nx,some(tok(makeLoc(St0,Nx),idTok(". ")))).
-  nxxTok(Chr,St,St0) where Ld ^= first(Chr) => let{
+  nxxTok(Chr,St,St0) where Ld ^= first(Chr) => let{.
   graphFollow:(tokenState,string,option[token]) => (tokenState,option[token]).
     graphFollow(Strm,SoF,Deflt) where (Nx,some(Ch)) .= nextChr(Strm) && SoF1 ^= follows(SoF,Ch) =>
       graphFollow(Nx,SoF1,finalist(SoF1,Nx,Deflt)).
@@ -72,7 +72,7 @@ star.compiler.lexer{
       bkt(_,Lbl,SoFr,_,_) ^= isBracket(SoFr) ? some(tok(makeLoc(St0,Str),rgtTok(Lbl))) ||
       some(tok(makeLoc(St0,Str),idTok(SoFr)))).
     finalist(_,_,Deflt) => Deflt.
-  } in graphFollow(St,Ld,finalist(Ld,St,.none)).
+  .} in graphFollow(St,Ld,finalist(Ld,St,.none)).
   nxxTok(Chr,St,St0) where isIdentifierStart(Chr) => readIden(St,St0,[Chr]).
   nxxTok(Chr,St,St0) default => nextToken(lexerr(St0,"illegal char in token: '$(Chr):c;'",makeLoc(St,St0))).
 
@@ -173,10 +173,11 @@ star.compiler.lexer{
   hexChars(St,Hx) => (St,some(Hx)).
 
   readNumber:(tokenState) => (tokenState,option[token]).
-  readNumber(St) where (Nx,some(Mn)) .= readNatural(St,0) => readMore(Nx,St,Mn).
+  readNumber(St) where (Nx,some(Mn)) .= readNatural(St,[]) => readMore(Nx,St,Mn).
 
-  readNatural:(tokenState,integer) => (tokenState,option[integer]).
-  readNatural(St,Sf) where (Nx,some(Dg)).=nextChr(St) && isDigit(Dg) => readNatural(Nx,Sf*10+digitVal(Dg)).
+  readNatural:(tokenState,cons[char]) => (tokenState,option[string]).
+  readNatural(St,Sf) where (Nx,some(Dg)).=nextChr(St) && isDigit(Dg) =>
+    readNatural(Nx,[Sf..,Dg]).
   readNatural(St,Sf) => (St,some(Sf)).
 
   readInt:(tokenState) => (tokenState,option[integer]).
@@ -254,11 +255,11 @@ star.compiler.lexer{
   isNonPrint:(char) => boolean.
   isNonPrint(Ch) => (_isZlChar(Ch) || _isZsChar(Ch) || _isZpChar(Ch) || _isCcChar(Ch)).
 
-  public implementation display[tokenState] => {.
+  public implementation display[tokenState] => {
     disp(tokenState(Pk,Line,Col,Off,_,_)) => disp(locn(Pk,Line,Col,Off,0)).
-  .}
+  }
 
-  public implementation hasLoc[tokenState] => {.
+  public implementation hasLoc[tokenState] => {
     locOf(tokenState(Pkg,Line,Col,Start,_,_)) => locn(Pkg,Line,Col,Start,0).
-  .}
+  }
 }

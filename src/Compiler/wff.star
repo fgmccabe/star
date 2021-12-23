@@ -128,11 +128,11 @@ star.compiler.wff{
   public mkFunctionType(Lc,L,R) => binary(Lc,"=>",L,R).
   
   public deComma:(ast) => cons[ast].
-  deComma(Trm) => let{
+  deComma(Trm) => let{.
     deC(T,SoF) where (_,Lh,Rh)^=isBinary(T,",") =>
       deC(Rh,[Lh,..SoF]).
     deC(T,SoF) => reverse([T,..SoF]).
-  } in deC(Trm,[]).
+  .} in deC(Trm,[]).
 
   public reComma:(cons[ast]) => ast.
   reComma([A]) => A.
@@ -230,14 +230,14 @@ star.compiler.wff{
   public mkLetDef(Lc,Els,Bnd) =>
     binary(Lc,"in",braceTerm(Lc,nme(Lc,"let"),Els),Bnd).
 
-  public isQLetDef:(ast) => option[(locn,cons[ast],ast)].
-  isQLetDef(A) where (Lc,Lh,Rh) ^= isBinary(A,"in") &&
+  public isLetRecDef:(ast) => option[(locn,cons[ast],ast)].
+  isLetRecDef(A) where (Lc,Lh,Rh) ^= isBinary(A,"in") &&
       app(_,nme(_,"let"),Body) .= Lh &&
       (_,Els) ^= isQBrTuple(Body) => some((Lc,Els,Rh)).
-  isQLetDef(_) default => .none.
+  isLetRecDef(_) default => .none.
 
-  public mkQLetDef:(locn,cons[ast],ast) => ast.
-  mkQLetDef(Lc,Els,Bnd) =>
+  public mkLetRecDef:(locn,cons[ast],ast) => ast.
+  mkLetRecDef(Lc,Els,Bnd) =>
     binary(Lc,"in",qbraceTerm(Lc,nme(Lc,"let"),Els),Bnd).
   
   public isComprehension:(ast) => option[(locn,ast,ast)].
@@ -249,6 +249,8 @@ star.compiler.wff{
   isListComprehension(A) where (Lc,[T]) ^= isSqTuple(A) &&
       (_,Bnd,Body) ^= isBinary(T,"|") => some((Lc,Bnd,Body)).
   isListComprehension(A) => .none.
+
+  public isTestComprehension(A) => isUnary(A,"{???}").
 
   public isConjunct(A) => isBinary(A,"&&").
 
@@ -633,6 +635,8 @@ star.compiler.wff{
 
   public isPerform:(ast) => option[(locn,ast)].
   isPerform(A) => isUnary(A,"perform").
+
+  public mkPerform(Lc,A) => unary(Lc,"perform",A).
 
   public isTryCatch:(ast) => option[(locn,ast,ast)].
   isTryCatch(A) where (Lc,I) ^= isUnary(A,"try") => isBinary(I,"catch").

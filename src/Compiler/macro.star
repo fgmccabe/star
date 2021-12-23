@@ -139,10 +139,10 @@ star.compiler.macro{
     BB <- macroTerm(B,Rp);
     valis mkLetDef(Lc,DD,BB)
   }
-  examineTerm(A,Rp) where (Lc,D,B) ^= isQLetDef(A) => do{
+  examineTerm(A,Rp) where (Lc,D,B) ^= isLetRecDef(A) => do{
     DD <- macroStmts(D,Rp);
     BB <- macroTerm(B,Rp);
-    valis mkQLetDef(Lc,DD,BB)
+    valis mkLetRecDef(Lc,DD,BB)
   }
   examineTerm(A,Rp) where (Lc,S) ^= isTheta(A) => do{
     SS <- macroStmts(S,Rp);
@@ -480,14 +480,14 @@ star.compiler.macro{
   * We generate auto implementations of fields declared for an algebraic type
   * declaration
   *
-  * RT ::= rc{F:FT..}
+  * RT ::= rc{F:FT.}
   *
   * becomes
   *
   * RT <~ {}
-  * auto_contract '$F'[RT->>FT] => {.
+  * auto_contract '$F'[RT->>FT] => {
   *  '$F'(rc(_,..,F,...,_)) => F
-  *.}
+  *}
   *
   * where auto_contract is an implementation statement that automatically 
   * induces a contract -- with the empty prefix
@@ -676,46 +676,9 @@ star.compiler.macro{
   }
   macroComprehension(_,_,_) => either(.inactive).
   
-  macroCoercion(A,.expression,Rp) where (Lc,L,R) ^= isCoerce(A) =>
-    either(active(typeAnnotation(Lc,unary(Lc,"_optval",unary(Lc,"_coerce",L)),R))).
-  macroCoercion(A,.expression,Rp) where (Lc,L,R) ^= isOptCoerce(A) =>
-    either(active(typeAnnotation(Lc,unary(Lc,"_coerce",L),sqUnary(Lc,"option",R)))).
-  macroCoercion(_,_,_) => either(.inactive).
-
-  macroTpl(tpl(Lc,Lbl,[]),.expression,Rp) => either(active(qnm(Lc,Lbl))).
-  macroTpl(tpl(Lc,Lbl,[A]),.expression,Rp) => either(active(unary(Lc,Lbl,A))).
-  macroTpl(_,_,_) => either(.inactive).
-
-  indexMacro(A,.expression,Rp) where (Lc,L,R) ^= isIndexTerm(A) =>
-    ((_,Ky,Vl) ^= isBinary(R,"->") ?
-	either(active(ternary(Lc,"_put",L,Ky,Vl))) ||
-	(_,Ky) ^= isNegation(R) ?
-	  either(active(binary(Lc,"_remove",L,Ky))) ||
-	  either(active(binary(Lc,"_index",L,R)))).
-  indexMacro(_,_,_) default => either(.inactive).
-
-  sliceMacro(A,.expression,Rp) where (Lc,Op,F,T) ^= isSlice(A) =>
-    either(active(ternary(Lc,"_slice",Op,F,T))).
-  sliceMacro(_,_,_) default => either(.inactive).
-  
-  
-  macroQuote(A,.expression,Rp) where (Lc,Trm) ^= isQuoted(A) =>
-    either(active(quoteAst(A))).
-  macroQuote(_,_,_) => either(.inactive).
-
-  -- quoteAst creates an ast that checks to a quoted form of the ast itself
-  quoteAst(E) where (_,X) ^= isUnary(E,"?") => X.
-  quoteAst(nme(Lc,Nm)) => binary(Lc,"nme",Lc::ast,str(Lc,Nm)).
-  quoteAst(qnm(Lc,Nm)) => binary(Lc,"qnm",Lc::ast,str(Lc,Nm)).
-  quoteAst(int(Lc,Nx)) => binary(Lc,"int",Lc::ast,int(Lc,Nx)).
-  quoteAst(num(Lc,Nx)) => binary(Lc,"num",Lc::ast,num(Lc,Nx)).
-  quoteAst(str(Lc,Sx)) => binary(Lc,"str",Lc::ast,str(Lc,Sx)).
-  quoteAst(tpl(Lc,Nm,Els)) => ternary(Lc,"tpl",Lc::ast,str(Lc,Nm),tpl(Lc,"()",Els//quoteAst)).
-  quoteAst(app(Lc,Op,Arg)) => ternary(Lc,"app",Lc::ast,quoteAst(Op),quoteAst(Arg)).
-  
   
   public reconstructDisp:(ast)=>ast.
-  reconstructDisp(C) where (Lc,Ex,Tp) ^= isCoerce(C) && (_,"string") ^= isName(Tp) => let{
+  reconstructDisp(C) where (Lc,Ex,Tp) ^= isCoerce(C) && (_,"string") ^= isName(Tp) => let{.
     flat:(ast,cons[string])=>cons[string].
     flat(SS,So) where (_,Tx) ^= isUnary(SS,"ss") && (_,Txt) ^= isStr(Tx) => [Txt,..So].
     flat(SS,So) where (_,Tx) ^= isUnary(SS,"ss") => ["$(Tx)",..So].
@@ -725,7 +688,7 @@ star.compiler.macro{
 
     fltList(L,So) => foldRight((E,X)=>flat(E,X),So,L).
     
-  } in str(Lc,_str_multicat(flat(Ex,[]))).
+  .} in str(Lc,_str_multicat(flat(Ex,[]))).
   reconstructDisp(A) where Lc.=locOf(A) => str(Lc,A::string).
 
   public buildMain:(cons[ast])=>cons[ast].
@@ -933,36 +896,7 @@ star.compiler.macro{
     
     valis combine(binary(Lc,"_handle",NB,NH),Cont)
   }
-  /*
-    assert C 
-  becomes
-  try{
-  assrt(()=>C,"failed: C",Loc)
-  } catch(Err) => action{
-    logMsg(Err)
-    raise ()
-  }
-*/
-  makeAction(A,Cont,Rp) where (Lc,C) ^= isIntegrity(A) => do{
-    Unit .= tpl(Lc,"()",[]);
-    Lam .= equation(Lc,Unit,C);
-    Assert .= ternary(Lc,"assrt",Lam,str(Lc,C::string),Lc::ast);
-    B .= brTuple(Lc,[Assert]);
-    Err .= genName(Lc,"E");
-    Thrw <- makeThrow(Lc,Unit,Rp);
-    EH .= combine(unary(Lc,"logMsg",Err),some((Lc,Thrw)));
-    ELam .= equation(Lc,rndTuple(Lc,[Err]),EH);
-      
-    valis combine(binary(Lc,"_handle",Assert,ELam),Cont)
-  }
-  /*
-  show E becomes shwMsg(()=>E,"E",Lc)
-*/
-   makeAction(A,Cont,Rp) where (Lc,E) ^= isShow(A) => do{
-    Lam .= equation(Lc,rndTuple(Lc,[]),E);
 
-    valis combine(ternary(Lc,"shwMsg",Lam,reconstructDisp(E),Lc::ast),Cont)
-  }
   makeAction(A,Cont,Rp) where (Lc,T,Th,El) ^= isIfThenElse(A) => do{
     Then <- makeAction(Th,.none,Rp);
     Else <- makeAction(El,.none,Rp);
@@ -996,9 +930,9 @@ star.compiler.macro{
     valis makeReturn(Lc, rndTuple(Lc,[]))
   }
   /* Construct a local iterator function:
-   let{
+   let{.
   loop() => do{ if C then { B; loop() }}
-   } in loop()
+   .} in loop()
   */
   makeAction(A,Cont,Rp) where (Lc,Tst,Body) ^= isWhileDo(A) => do{
     Unit .= rndTuple(Lc,[]);
@@ -1087,18 +1021,6 @@ star.compiler.macro{
 
   makeThrow(Lc,A,Rp) => either(unary(Lc,"_raise",A)).
 
-  lyfted[a] ::= lyfted(a) | grounded(a).
-
-  public makeAbstraction:(locn,ast,ast,reports) => either[reports,ast].
-  makeAbstraction(Lc,Bnd,Cond,Rp) => do{
-    Zed .= makeReturn(Lc,nme(Lc,"_nil"));
-    Loop <- makeCondition(Cond,makeRtn,
-      makeEl(Lc,Bnd),
-      lyfted(Zed),Rp);
-    valis makePerform(Lc,typeAnnotation(Lc,Loop,
-	sqBinary(Lc,"action",rndTuple(Lc,[]),anon(Lc))))
-  }
-
   makePerform(Lc,Exp) => unary(Lc,"_perform",Exp).
 
   makeSequence(Lc,St,X,Rs) => binary(Lc,"_sequence",makeRtn(X),
@@ -1112,10 +1034,10 @@ star.compiler.macro{
   /*
   * Ptn in Src
   * becomes
-  * let{.
+  * let{
   *  sF(Ptn,St) => AddEl(X,St).
   *  sF(_,St) default => do { return St}.
-  * .} in _iter(Src,Zed,sF)
+  * } in _iter(Src,Zed,sF)
   *
   * where AddEl, Zez are parameters to the conversion
   */
@@ -1205,22 +1127,6 @@ star.compiler.macro{
   pkgNameMacro(A,.expression,Rp) where
       (Lc,"__pkg__") ^= isName(A) && locn(Pkg,_,_,_,_).=Lc =>
     either(active(str(Lc,Pkg))).
-
-  uMinusMacro(A,_,Rp) where (Lc,R) ^= isUnary(A,"-") =>
-    (int(_,Ix) .= R ?
-	either(active(int(Lc,-Ix))) ||
-	num(_,Dx) .= R ?
-	  either(active(num(Lc,-Dx))) ||
-	  either(active(unary(Lc,"__minus",R)))).
-  uMinusMacro(_,_,_) => either(.inactive).
-
-  optionMatchMacro(A,.expression,Rp) where (Lc,L,R) ^= isOptionMatch(A) =>
-    either(active(mkMatch(Lc,unary(Lc,"some",L),R))).
-  optionMatchMacro(_,_,_) default => either(.inactive).
-
-  optionPtnMacro(A,.pattern,Rp) where (Lc,L,R) ^= isOptionPtn(A) => do{
-    valis active(mkWherePtn(Lc,R,L))
-  }.
 
   macroAssignDef(A,.statement,Rp) where (Lc,L,R) ^= isAssignment(A) =>
     either(active(binary(Lc,"=",L,unary(Lc,"_cell",R)))).

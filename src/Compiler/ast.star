@@ -8,13 +8,14 @@ star.compiler.ast{
     nme(locn,string)
       | qnm(locn,string)
       | int(locn,integer)
+      | big(locn,string)
       | num(locn,float)
       | chr(locn,char)
       | str(locn,string)
       | tpl(locn,string,cons[ast])
       | app(locn,ast,ast).
 
-  public implementation equality[ast] => let{
+  public implementation equality[ast] => let{.
     eq(nme(_,I1),nme(_,I2)) => I1==I2.
     eq(qnm(_,I1),qnm(_,I2)) => I1==I2.
     eq(int(_,L1),int(_,L2)) => L1==L2.
@@ -28,27 +29,29 @@ star.compiler.ast{
     eqList([],[]) => .true.
     eqList([E1,..L1],[E2,..L2]) => eq(E1,E2) && eqList(L1,L2).
     eqList(_,_) default => .false.
-  } in {.
+  .} in {
     X == Y => eq(X,Y)
-  .}
+  }
 
-  public implementation hasLoc[ast] => {.
+  public implementation hasLoc[ast] => {
     locOf(nme(Lc,_)) => Lc.
     locOf(qnm(Lc,_)) => Lc.
     locOf(int(Lc,_)) => Lc.
+    locOf(big(Lc,_)) => Lc.
     locOf(num(Lc,_)) => Lc.
     locOf(chr(Lc,_)) => Lc.
     locOf(str(Lc,_)) => Lc.
     locOf(tpl(Lc,_,_)) => Lc.
     locOf(app(Lc,_,_)) => Lc.
-  .}
+  }
 
-  public implementation display[ast] => {.
+  public implementation display[ast] => {
     disp(A) => dispAst(A,2000,"").
-  .}
+  }
 
   public dispAst:(ast,integer,string) => string.
   dispAst(int(_,Ix),_,_) => disp(Ix).
+  dispAst(big(_,Ix),_,_) => disp(Ix).
   dispAst(num(_,Dx),_,_) => disp(Dx).
   dispAst(chr(_,Ch),_,_) => disp(Ch).
   dispAst(str(_,Sx),_,_) => disp(Sx).
@@ -98,9 +101,9 @@ star.compiler.ast{
   dePolate(A) where (_,S) ^= isStr(A) => S.
   dePolate(A) default => "#"++dispAst(A,0,"").
   
-  public implementation coercion[ast,string] => {.
+  public implementation coercion[ast,string] => {
     _coerce(A) => some("$(A)").
-  .}
+  }
 
   public genName:(locn,string) => ast.
   genName(Lc,Pr) => nme(Lc,genSym(Pr)).

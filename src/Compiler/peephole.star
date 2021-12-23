@@ -9,13 +9,13 @@ star.compiler.peephole{
   import star.compiler.location.
   import star.compiler.terms.
 
-  implementation equality[assemLbl] => {.
+  implementation equality[assemLbl] => @<
     al(L1) == al(L2) => L1==L2.
-  .}
+  @>
 
-  implementation hash[assemLbl] => {.
+  implementation hash[assemLbl] => @<
     hash(al(L)) => hash(L).
-  .}
+  @>
 
   public peepOptimize:(cons[assemOp])=>cons[assemOp].
   peepOptimize(Ins) => cleanLbls(peep(Ins,findTgts(Ins,[]))).

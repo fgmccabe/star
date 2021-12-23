@@ -61,7 +61,7 @@ star.compiler{
     usage = "-W dir -- working directory".
     validator = some(isDir).
     setOption(W,Opts) where RW ^= parseUri(W) && NW^=resolveUri(Opts.cwd,RW)=>
-      compilerOptions{.repo=Opts.repo.
+      compilerOptions{repo=Opts.repo.
 	cwd=NW.
 	graph=Opts.graph.
 	optimization=Opts.optimization.
@@ -72,7 +72,7 @@ star.compiler{
 	showCode=Opts.showCode.
 	typeCheckOnly=Opts.typeCheckOnly.
 	doStdin=Opts.doStdin
-      .}.
+      }.
   }
 
   typeCheckOnlyOption:optionsProcessor[compilerOptions].

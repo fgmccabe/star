@@ -90,9 +90,9 @@ star.compiler.term.repo{
   extensionMapping("term") => ".term".
   extensionMapping("code") => ".co".
 
-  public implementation display[termRepo] => {.
+  public implementation display[termRepo] => @<
     disp(repo(Root,Man)) => ssSeq([ss("file repo rooted at "),disp(Root),ss("\nmanifest:"),disp(Man)]).
-  .}
+  @>
 
   termManifest:(term)=>manifest.
   termManifest(term(_,Els)) => man(foldRight(termEntry,[],Els)).
@@ -108,9 +108,9 @@ star.compiler.term.repo{
   termInfo:(term,map[string,string])=>map[string,string].
   termInfo(term(tLbl(Ky,1),[strg(V)]),Is) => Is[Ky->V].
 
-  implementation coercion[term,manifest] => {.
+  implementation coercion[term,manifest] => @<
     _coerce(T) => some(termManifest(T)).
-  .}
+  @>
 
   infoTerm:(mInfo)=>term.
   infoTerm(mInfo(_,Els)) => mkLst(ixRight((Ky,Vl,Mp)=>[mkCons(Ky,[strg(Vl)]),..Mp],[],Els)).
@@ -124,9 +124,9 @@ star.compiler.term.repo{
   manTerm(man(Ps))=>mkLst(ixRight((Pk,Vr,Ms)=>
 	[mkTpl([strg(Pk),versionTerm(Vr)]),..Ms],[],Ps)).
 
-  implementation coercion[manifest,term] => {.
+  implementation coercion[manifest,term] => @<
     _coerce(M)=>some(manTerm(M)).
-  .}
+  @>
 
   flushManifest(Url,Man) => putResource(Url,(Man::term)::string).
 

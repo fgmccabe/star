@@ -11,7 +11,7 @@ star.compiler.unify{
   reset ::= resetVar(tipe) | resetConstraint(tipe,cons[constraint]).
 
   public sameType:(tipe,tipe,dict) => boolean.
-  sameType(Tp1,Tp2,Envir) => let{.
+  sameType(Tp1,Tp2,Envir) => let{
     resets : ref cons[reset].
     resets := [].
 
@@ -36,7 +36,7 @@ star.compiler.unify{
       valis ()
     }
 
-  .} in let{
+  } in let{.
     same(T1,T2,Env) => sm(deRef(T1),deRef(T2),Env).
     
     sm(kFun(Nm,Ar),kFun(Nm,Ar),_) => .true.
@@ -162,12 +162,12 @@ star.compiler.unify{
       (same(Tp,Tp1,Env) ? some(Cs) || .none).
     -- TODO: handle merging implementsFace more gracefully
     mergeConstraint(C,[_,..Rs],Cs,Env) => mergeConstraint(C,Rs,Cs,Env).
-  } in (sm(deRef(Tp1),deRef(Tp2),Envir) ? .true || valof resetBindings).
+  .} in (sm(deRef(Tp1),deRef(Tp2),Envir) ? .true || valof resetBindings).
 
-  subFace(faceType(E1,T1),faceType(E2,T2),Env) => let{.
+  subFace(faceType(E1,T1),faceType(E2,T2),Env) => let{
     subF(Ts1,Ts2) =>
       (Nm,Tp1) in Ts1 *> ((Nm,Tp2) in Ts2 && sameType(Tp1,Tp2,Env)).
-  .} in (subF(E1,E2) && subF(T1,T2)).
+  } in (subF(E1,E2) && subF(T1,T2)).
 
   public faceOfType:(tipe,dict) => tipe.
   faceOfType(T,_) where faceType(_,_).=deRef(T) => T.

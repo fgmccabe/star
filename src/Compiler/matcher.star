@@ -32,7 +32,7 @@ star.compiler.matcher{
   }
 
   genVars:(locn,tipe) => cons[crExp].
-  genVars(Lc,tupleType(L)) => let{
+  genVars(Lc,tupleType(L)) => let{.
     genV([]) => [].
     genV([T,..Ts]) => [crVar(Lc,crId(genSym("_"),T)),..genV(Ts)].
   } in genV(L).
@@ -71,11 +71,11 @@ star.compiler.matcher{
 
   argMode ::= .inVars | .inScalars | .inConstructors.
 
-  implementation display[argMode] => {.
+  implementation display[argMode] => {
     disp(.inVars) => ss("inVars").
     disp(.inScalars) => ss("inScalars").
     disp(.inConstructors) => ss("inConstructors").
-  .}
+  }
 
   implementation equality[argMode] => {
     .inVars == .inVars => .true.
@@ -117,7 +117,7 @@ star.compiler.matcher{
     matchTriples(Lc,Vrs,applyVar(V,Triples),Deflt).
 
   applyVar:(crExp,cons[triple]) => cons[triple].
-  applyVar(V,Triples) where crVar(_,_).=V => let{
+  applyVar(V,Triples) where crVar(_,_).=V => let{.
     applyToTriple:(triple)=>triple.
     applyToTriple(([crVar(VLc,crId(Vr,_)),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof action{
       Mp .= [Vr->V];

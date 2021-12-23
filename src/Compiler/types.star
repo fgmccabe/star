@@ -91,10 +91,10 @@ star.compiler.types{
   deRef(Tp) default => Tp.
 
   public newTypeVar:(string) => tipe.
-  newTypeVar(Pre) => tVar(tv{. binding = ref .none. .},genSym(Pre)).
+  newTypeVar(Pre) => tVar(tv{ binding = ref .none. },genSym(Pre)).
 
   public newTypeFun:(string,integer) => tipe.
-  newTypeFun(Pre,Ax) => tFun(tv{. binding = ref .none. .},Ax,genSym(Pre)).
+  newTypeFun(Pre,Ax) => tFun(tv{ binding = ref .none. },Ax,genSym(Pre)).
 
   public mkTypeExp:(tipe,cons[tipe])=>tipe.
   mkTypeExp(Tp,[]) => Tp.
@@ -143,15 +143,15 @@ star.compiler.types{
     identPrs(_,_) => .false.
   } in identPrs(sortByNm(L1),sortByNm(L2)).
 
-  public implementation equality[constraint] => {.
+  public implementation equality[constraint] => {
     conTract(N1,E1,D1) == conTract(N2,E2,D2) => N1==N2 && E1==E2 && D1==D2.
     fieldConstraint(V1,T1) == fieldConstraint(V2,T2) => V1==V2 && T1==T2.
     _ == _ default => .false.
-  .}
+  }
 
-  public implementation display[tipe] => {.
+  public implementation display[tipe] => {
     disp(T) => showType(T,.true,10000)
-  .}
+  }
 
   public implementation display[constraint] => {
     disp(C) => showConstraint(C,2)
@@ -237,7 +237,7 @@ star.compiler.types{
   showDeps(Els,Dp) => "->>#(showTypes(Els,.false,Dp)*)".
   
   -- in general, hashing types is not reliable because of unification
-  public implementation hash[tipe] => let {
+  public implementation hash[tipe] => let{.
     hsh(kFun(Nm,Ar)) => Ar*37+hash(Nm).
     hsh(tVar(_,Nm)) => hash("V")+hash(Nm).
     hsh(tFun(_,Ar,Nm)) => (hash("F")+Ar)*37+hash(Nm).
@@ -258,16 +258,16 @@ star.compiler.types{
     hshEls(H,Els) => foldLeft((El,Hx)=>Hx*37+hsh(deRef(El)),H,Els).
 
     hshFields(H,Els) => foldLeft(((Nm,Tp),Hx)=>(Hx*37+hash(Nm))*37+hsh(deRef(Tp)),H,Els).
-  } in {.
+  .} in {
     hash(Tp) => hsh(deRef(Tp)).
-  .}
+  }
 
   public contract all c ~~ hasType[c] ::= {
     typeOf:(c)=>tipe.
   }
 
   public tpName:(tipe)=>string.
-  tpName(Tp) => let{
+  tpName(Tp) => let{.
     tName(nomnal(Nm)) => Nm.
     tName(tpExp(O,A)) => tName(deRef(O)).
     tName(kFun(Nm,_)) => Nm.
@@ -281,10 +281,10 @@ star.compiler.types{
     tName(tupleType(A)) => "!()$(size(A))".
     tName(faceType(Fs,Ts)) => "{}".
     tName(valType(T)) => tName(T).
-  } in tName(deRef(Tp)).
+  .} in tName(deRef(Tp)).
 
   public implementationName:(tipe) => string.
-  implementationName(Tp) => let{
+  implementationName(Tp) => let{.
     surfaceName:(tipe,cons[string])=>cons[string].
     surfaceName(nomnal(Nm),R) => [Nm,"!",..R].
     surfaceName(tpExp(O,A),R) => surfaceName(deRef(O),surfaceNm(deRef(A),R)).
@@ -312,22 +312,22 @@ star.compiler.types{
     surfaceNm(constrainedType(T,_),R) => surfaceNm(deRef(T),R).
     surfaceNm(typeLambda(_,T),R) => surfaceNm(deRef(T),R).
     surfaceNm(tupleType(A),R) => ["!()$(size(A))",..R].
-  } in  surfaceName(deRef(Tp),[])*.
+  .} in  surfaceName(deRef(Tp),[])*.
 
   cmpFlds:((string,tipe),(string,tipe))=>boolean.
   cmpFlds((N1,_),(N2,_))=>N1<N2.
 
-  public implementation hasType[constraint] => {.
+  public implementation hasType[constraint] => {
     typeOf(conTract(Nm,Els,Dps)) => mkTypeExp(tpFun(Nm,size(Els)+size(Dps)),Els++Dps).
-  .}
+  }
 
-  public implementation hasType[tipe] => {.
+  public implementation hasType[tipe] => {
     typeOf = id
-  .}
+  }
 
-  public implementation all t ~~ hasType[t] |: hasType[cons[t]] => {.
+  public implementation all t ~~ hasType[t] |: hasType[cons[t]] => {
     typeOf(L) => tupleType(L//typeOf)
-  .}
+  }
 
   public arity:(tipe)=>integer.
   arity(Tp) where (A,_) ^= isFunType(Tp) => arity(A).
@@ -415,10 +415,10 @@ star.compiler.types{
   public isLambdaRule(Tp) where (_,T).=deQuant(Tp) => typeLambda(_,_).=deRef(T).
 
   public deQuant:(tipe) => (cons[tipe],tipe).
-  deQuant(T) => let{
+  deQuant(T) => let{.
     deQ(allType(V,I),Qs) => deQ(I,[V,..Qs]).
     deQ(Tp,Qs) => (reverse(Qs),Tp).
-  } in deQ(T,[]).
+  .} in deQ(T,[]).
 
   public reQuant:(cons[tipe],tipe) => tipe.
   reQuant([],Tp) => Tp.
@@ -429,10 +429,10 @@ star.compiler.types{
   reQuantX([Q,..Qs],Tp) => existType(Q,reQuantX(Qs,Tp)).
 
   public deConstrain:(tipe) => (cons[constraint],tipe).
-  deConstrain(T) => let{
+  deConstrain(T) => let{.
     deC(constrainedType(I,V),Qs) => deC(I,[V,..Qs]).
     deC(Tp,Qs) => (reverse(Qs),Tp).
-  } in deC(T,[]).
+  .} in deC(T,[]).
 
   public reConstrainType:(cons[constraint],tipe) => tipe.
   reConstrainType([],Tp) => Tp.

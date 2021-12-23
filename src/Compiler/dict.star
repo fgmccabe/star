@@ -21,16 +21,16 @@ star.compiler.dict{
   public implementation display[scope] => let{
     dd(scope(Tps,Vrs,Cons,Impls)) =>
       ss("Types:$(Tps),\nVars:$(Vrs),\nContracts:$(Cons),\nImplementations: $(Impls)\n").
-  } in {.
+  } in {
     disp=dd
-  .}
+  }
 
   public implementation display[vrEntry] => let{
     dd(vrEntry(some(Lc),Mk,Tp,_)) => ssSeq([disp(Mk(Lc,emptyDict)),ss("|="),disp(Tp)]).
     dd(vrEntry(.none,_,Tp,_)) => disp(Tp).
-  } in {.
+  } in {
     disp(V) => dd(V)
-  .}
+  }
 
   public implementation display[tpDef] => let{
     dd(tpVar(_,Tp)) => ss("tpvar:$(Tp)").

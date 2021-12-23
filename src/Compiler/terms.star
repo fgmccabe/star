@@ -19,21 +19,21 @@ star.compiler.terms{
     | term(termLbl,cons[term])
     | symb(termLbl).
 
-  public implementation display[termLbl] => {.
+  public implementation display[termLbl] => {
     disp(tLbl(Nm,Ar)) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
     disp(tRec(Nm,Fields)) =>
       ssSeq([ss(Nm),ss("{"),ssSeq(interleave(Fields//((FN,FTp))=>ssSeq([ss(FN),ss(":"),disp(FTp)]),ss(","))),ss("}")]).
-  .}
+  }
 
-  public implementation sizeable[termLbl] => {.
+  public implementation sizeable[termLbl] => {
     size(tLbl(_,Ar))=>Ar.
     size(tRec(_,F))=>size(F).
 
     isEmpty(tLbl(_,Ar))=>Ar==0.
     isEmpty(tRec(_,F))=>F==[].
-  .}
+  }
 
-  public implementation display[term] => let{
+  public implementation display[term] => let{.
     dispT(intgr(Ix)) => disp(Ix).
     dispT(flot(Dx)) => disp(Dx).
     dispT(strg(Sx)) => disp(Sx).
@@ -50,32 +50,32 @@ star.compiler.terms{
 
     isTupleLbl(T) where [0c(,0c),.._] .= T::cons[integer] => .true.
     isTupleLbl(_) default => .false.
-  } in {.
+  .} in {
     disp(T) => dispT(T)
-  .}
+  }
 
-  public implementation hash[termLbl] => {.
+  public implementation hash[termLbl] => {
     hash(tLbl(Nm,Ar))=>hash(Nm)*37+Ar.
     hash(tRec(Nm,Fs))=>foldRight(((FN,_),H)=>H*37+hash(FN),hash(Nm),Fs).
-  .}
+  }
 
-  public implementation hash[term] => let{
+  public implementation hash[term] => let{.
     hsh(intgr(X)) => X.
     hsh(flot(X)) => hash(X).
     hsh(strg(S)) => hash(S).
     hsh(symb(S)) => hash(S).
     hsh(term(Op,Args)) =>
       foldRight((T,H)=>H*37+hsh(T),hash(Op)*37,Args).
-  } in {
+  .} in {
     hash(T) => hsh(T)
   }
 
-  public implementation equality[termLbl] => {.
+  public implementation equality[termLbl] => {
     tLbl(N1,A1)==tLbl(N2,A2) => N1==N2 && A1==A2.
     tRec(N1,F1)==tRec(N2,F2) => N1==N2 && F1==F2
-  .}
+  }
 
-  public implementation equality[term] => let{
+  public implementation equality[term] => let{.
     eq(intgr(X),intgr(Y)) => X==Y.
     eq(flot(X),flot(Y)) => X==Y.
     eq(strg(X),strg(Y)) => X==Y.
@@ -86,9 +86,9 @@ star.compiler.terms{
     eqList(.nil,.nil)=>.true.
     eqList(cons(E1,L1),cons(E2,L2)) => eq(E1,E2) && eqList(L1,L2).
     eqList(_,_) default => .false.
-  } in {.
+  .} in {
     X==Y => eq(X,Y).
-  .}
+  }
 
   public mkTpl:(cons[term]) => term.
   mkTpl(A) where L.=size(A) => term(tLbl(tplLbl(L),L),A).
@@ -106,9 +106,9 @@ star.compiler.terms{
   isScalar(symb(_)) => .true.
   isScalar(_) default => .false.
 
-  public implementation coercion[term,string] => {.
+  public implementation coercion[term,string] => {
     _coerce(T) => some(_implode(reverse(encodeT(T,[])))).
-  .}
+  }
 
   -- Written in this way to maximize potential for tail recursion
 
@@ -129,13 +129,13 @@ star.compiler.terms{
   encodeTerms([],Chs) => Chs.
   encodeTerms([T,..Ts],Chs) => encodeTerms(Ts,encodeT(T,Chs)).
 
-  public implementation coercion[string,term] => {.
+  public implementation coercion[string,term] => {
     _coerce(S) => valof do{
       L.=S::cons[integer];
       (T,_) <- decodeTerm(S::cons[integer]);
       valis some(T)
     }
-  .}
+  }
   
   public decodeTerm:(cons[integer])=>either[(),(term,cons[integer])].
   decodeTerm([0cx,..Ls]) => do{

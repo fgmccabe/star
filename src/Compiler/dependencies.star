@@ -45,9 +45,9 @@ star.compiler.dependencies{
     defined(definition(Sp,_,_,_),Rf) => Sp==Rf.
   }
 
-  implementation display[definitionSpec] => {.
+  implementation display[definitionSpec] => {
     disp(definition(Sp,Lc,Refs,_)) => ssSeq([disp(Sp),ss("->"),disp(Refs)]).
-  .}
+  }
 
   collectDefinitions:(cons[ast],
     reports) => either[reports,(cons[defnSpec],cons[(defnSp,visibility)],
@@ -305,7 +305,7 @@ star.compiler.dependencies{
     Rf1 <- collectTermRefs(Bnd,All,Rf,Rp);
     collectStmtsRefs(Env,All,[],Rf1,Rp)
   }
-  collectTermRefs(T,All,Rf,Rp) where (_,Env,Bnd) ^= isQLetDef(T) => do{
+  collectTermRefs(T,All,Rf,Rp) where (_,Env,Bnd) ^= isLetRecDef(T) => do{
     Rf1 <- collectTermRefs(Bnd,All,Rf,Rp);
     collectStmtsRefs(Env,All,[],Rf1,Rp)
   }
@@ -616,9 +616,9 @@ star.compiler.dependencies{
   collectName(_,_,SoFar) default => SoFar.
 
   filterOut:(map[defnSp,defnSp],cons[ast]) => map[defnSp,defnSp].
-  filterOut(M,Q) => let{
+  filterOut(M,Q) => let{.
     qName(V) where (_,Id) ^= isName(V) => some(Id).
     qName(V) where (_,L,_) ^= isBinary(V,"/") => qName(L).
     qName(_) default => .none.
-  } in foldLeft((V,MM) where Id^=qName(V) => MM[~varSp(Id)],M,Q).
+  .} in foldLeft((V,MM) where Id^=qName(V) => MM[~varSp(Id)],M,Q).
 }

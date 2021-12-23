@@ -1,6 +1,6 @@
-/* Automatically generated, do not edit */
-
 star.compiler.operators{
+  /* Automatically generated, do not edit */
+
   import star.
 
   operator ::= prefixOp(integer,integer)
@@ -327,7 +327,7 @@ star.compiler.operators{
   final(".#.") => .true.  /* test nth bit */
   final(".&.") => .true.  /* bitwise and */
   final(".|.") => .true.  /* bitwise or */
-  final(".}") => .true.  /* non-recursive braces */
+  final(".}") => .true.  /* recursive braces */
   final(".~.") => .true.  /* bitwise 1's complement */
   final(".<<.") => .true.  /* shift left */
   final(".<.") => .true.  /* set membership */
@@ -341,9 +341,9 @@ star.compiler.operators{
   final("/\\") => .true.  /* intersection */
   final("//") => .true.  /* map over */
   final("///") => .true.  /* indexed map over */
-  final("{") => .true.  /* braces */
+  final("{") => .true.  /* non-recursive braces */
   final("{?") => .true.  /* test comprehension */
-  final("{.") => .true.  /* non-recursive braces */
+  final("{.") => .true.  /* recursive braces */
   final("{!") => .true.  /* iota comprehension */
   final("|") => .true.  /* type union and abstraction */
   final("|]") => .true.  /* measure brackets */
@@ -351,7 +351,7 @@ star.compiler.operators{
   final("||") => .true.  /* disjunction */
   final("|>") => .true.  /* meta quote */
   final("|)") => .true.  /* banana brackets */
-  final("}") => .true.  /* braces */
+  final("}") => .true.  /* non-recursive braces */
   final("~") => .true.  /* logical negation */
   final("~~") => .true.  /* quantifier */
   final("~=") => .true.  /* not equals */

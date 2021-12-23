@@ -8,9 +8,9 @@ star.compiler.core.enc{
 
   import star.multi.
 
-  public implementation coercion[crDefn,multi[integer]] => {.
+  public implementation coercion[crDefn,multi[integer]] => {
     _coerce(D) => some(encDef(D))
-  .}
+  }
 
   encDef:(crDefn) => multi[integer].
   encDef(fnDef(Lc,Nm,Tp,Args,Rep)) =>
@@ -37,9 +37,9 @@ star.compiler.core.enc{
   encInt(Ix) where Ix<0 => [0c-]++encNat(-Ix).
   encInt(Ix) => encNat(Ix).
 
-  public implementation coercion[crExp,multi[integer]] => {.
+  public implementation coercion[crExp,multi[integer]] => {
     _coerce(E) => some(encExp(E))
-  .}
+  }
 
   encExp:(crExp) => multi[integer].
   encExp(crVar(_,crId(Nm,Tp))) => [0cv]++encText(Nm)++Tp::multi[integer].
@@ -95,7 +95,7 @@ star.compiler.core.enc{
   decTp([0cf,..Cs]) => some((.flt64,Cs)).
   decTp([0cl,..Cs]) => some((.bool,Cs)).
   decTp([0cp,..Cs]) => some((.ptr,Cs)).
-  decTp([0cT,..Cs]) where (Ar,C0)^=decInt(Cs) => let{
+  decTp([0cT,..Cs]) where (Ar,C0)^=decInt(Cs) => let{.
     lp(0,Chs,So) => some((tplTipe(reverse(So)),Chs)).
     lp(Cx,Chs,So) where (El,C0)^=decTp(Chs) =>
       lp(Cx-1,C0,[El,..So])

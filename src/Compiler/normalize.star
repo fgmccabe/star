@@ -29,11 +29,11 @@ star.compiler.normalize{
 
   nameMap ~> cons[mapLayer].
 
-  implementation display[mapLayer] => {.
+  implementation display[mapLayer] => {
     disp(lyr(V,Entries)) => ssSeq([ss("thV="),disp(V),ss(":"),disp(Entries)]).
-  .}
+  }
 
-  implementation display[nameMapEntry] => {.
+  implementation display[nameMapEntry] => {
     disp(moduleFun(C,V)) => ssSeq([ss("module fun "),disp(V),ss(", closure "),disp(C)]).
     disp(moduleCons(Nm,Tp)) => ssSeq([ss("module cons "),ss(Nm)]).
     disp(localCons(Nm,Tp,Vr)) => ssSeq([ss("local cons "),ss(Nm),ss("["),disp(Vr),ss("]")]).
@@ -44,7 +44,7 @@ star.compiler.normalize{
     disp(memoArg(Nm,Base,Ix)) => ssSeq([ss("memo arg "),ss(Nm),ss("@"),
 	disp(Base),ss("["),disp(Ix),ss("]")]).
     disp(globalVar(Nm,Tp)) => ssSeq([ss("global "),ss(Nm)]).
-  .}
+  }
 
   crFlow ~> (crExp,cons[crDefn]).
 
@@ -603,14 +603,14 @@ star.compiler.normalize{
   findMemoIx(Nm,ThV,Map) => lookup(Map,Nm,isMemoVar(ThV)).
 
   isMemoVar:(crVar)=>(nameMapEntry)=>option[integer].
-  isMemoVar(ThV) => let{.
+  isMemoVar(ThV) => let{
     check(memoArg(_,ThV,Ix))=>some(Ix).
     check(_) default => .none
-  .} in check.
+  } in check.
 
   -- eliminate free variables that can be computed from other free vars
   reduceFreeArgs:(cons[crVar],nameMap,reports) => either[reports,cons[crVar]].
-  reduceFreeArgs(FrVrs,Map,Rp) => let{
+  reduceFreeArgs(FrVrs,Map,Rp) => let{.
     reduceArgs:(cons[crVar],cons[crVar]) => either[reports,cons[crVar]].
     reduceArgs([],Frs) => either(Frs).
     reduceArgs([FrV,..FrArgs],Frs) where
