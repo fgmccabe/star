@@ -109,7 +109,7 @@
   (concat "\\<"
 	  (star-one-of
 	   '(
-	     "boolean" "float" "integer" "char" "string" "ref"
+	     "boolean" "float" "integer" "bigint" "char" "string" "ref"
 	     "result" "action" "task" "list" "set" "cons" "option"
 	     )) "\\>")
   "Regular expression matching the standard types to highlight in Star mode.")
