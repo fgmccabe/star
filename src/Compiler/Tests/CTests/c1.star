@@ -22,7 +22,7 @@ test.c1{
   }
 */
 
-  fooBar() => let{
+  fooBar() => let{.
     A = .nil.
     B = cons(A,.nil).
   } in B.

@@ -4,7 +4,7 @@ test.t1{
   import test.cns.
 
   ff:all v ~~ (v,cons[v])=>cons[v].
-  ff(E,L)=>let{
+  ff(E,L)=>let{.
     fff(.nil,_)=>cons(E,.nil).
     fff(cons(H,T),D)=>ptch(T,(El)=>fff(El,D)).
   } in fff(L,0).

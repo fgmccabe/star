@@ -5,7 +5,7 @@ test.fl{
 --  import test.c.
   
   public fact:(integer)=>integer.
-  fact(N) => let{
+  fact(N) => let{.
     h(K) => f(K).
     
     f(0) => 1.
@@ -18,10 +18,10 @@ test.fl{
   checkOk = fact(3)==6.
 
   public ff:(integer)=>integer.
-  ff(N)=>let{
+  ff(N)=>let{.
     f(0)=>1.
     f(K) => K*f(K-1).
-  } in let{
+  } in let{.
     r = f(N)
   } in r.
 
