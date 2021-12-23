@@ -17,7 +17,7 @@ test.cns{
     _nil = .nil.
   }
 
-  public implementation all e ~~ display[e] |: display[cons[e]] => let{
+  public implementation all e ~~ display[e] |: display[cons[e]] => let{.
     consDisp(.nil) => ss("").
     consDisp(cons(X,.nil)) => disp(X).
     consDisp(cons(X,R)) => ssSeq([disp(X), ss(","), consDisp(R)]).
@@ -33,12 +33,12 @@ test.cns{
   nth(cons(E,_),0) => E.
   nth(cons(_,L),Ix) => nth(L,Ix-1).
 
-  public implementation functor[cons] => let{
+  public implementation functor[cons] => let{.
     fm:all a,b ~~ ((a)=>b,cons[a])=>cons[b].
     fm(_,.nil) => .nil.
     fm(f,cons(H,T)) => cons(f(H),fm(f,T))
-  } in {.
+  } in {
     fmap = fm.
     C <$ L => fm((_)=>C,L).
-  .}
+  }
 }

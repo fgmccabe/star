@@ -61,7 +61,7 @@ test{
 
   public cons[e] ::= nil | cons(e,cons[e]).
 
-  public implementation all e ~~ equality[e] |: equality[cons[e]] => let{
+  public implementation all e ~~ equality[e] |: equality[cons[e]] => let{.
     public consEq:(cons[e],cons[e])=>boolean.
     consEq(nil,nil) => true.
     consEq(cons(E1,L1),cons(E2,L2)) => E1==E2 && consEq(L1,L2).
