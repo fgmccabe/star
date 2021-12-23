@@ -796,7 +796,7 @@ variable definitions. In particular, these are equivalent:
 @example
 let@{
   isS = (X) => X==S
-@} in isS
+.@} in isS
 @end example
 and
 @example
@@ -817,8 +817,8 @@ In short, we would use a @code{let} expression when the function being
 defined is at all complex; and we would use a lambda when the function
 being defined is simple and small.
 
-@node Non-recursive Let Binding
-@subsubsection Non-recursive Let Binding
+@node Recursive Let Binding
+@subsubsection Recursive Let Binding
 
 @noindent
 Assembling functions in this way, either by using anonymous lambdas or
@@ -826,22 +826,28 @@ by using @code{let} expressions, is one of the hallmarks of functional
 programming.
 
 @Star{} actually has @emph{two} forms of let expressions -- the one we
-have used so far allows function definitions to be recursive -- and
-mutually recursive.
+have used so far does not allow function definitions to be recursive -- and
+a potentially mutually recursive form.
 
-Sometimes, it is useful to have let expressions which are not
-recursive. For that we use a special form of brace notation:
+Sometimes, it is useful to have let expressions which allow recursive
+definitions within them. For that we use a special form of
+brace notation:
 @example
 let@{.
-  isS = (X) => X==S
-.@} in isS
+  f(X) => g(X).
+  g(X) => f(X).
+.@} in f
 @end example
 
 The extra periods signal that the definitions within the @emph{let
-environment} may not refer to each other. While that may seem to be
-inconvenient, in fact, there are scenarios when this is more
-convenient; we will see this more when we look more closely at
-contracts.
+environment} may refer to each other. This form of let expression also
+allows type definitions and other forms of definition.
+
+For the most part, where the @emph{let environment} actually contains
+non-recursive definitions, either form may be used. However, there are
+situations -- especially when it comes to implementing contracts --
+where it is important that the contained definitions cannot refer to
+themselves.
 
 @node Generic types
 @subsection Generic types

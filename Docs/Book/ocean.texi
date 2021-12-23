@@ -53,7 +53,7 @@ ss:@{double:(integer)=>integer@}.
 ss = let@{
   double:(integer)=>integer.
   double(X) => X*2
-@} in @{. double=double .@}
+@} in @{ double=double @}
 @end example
 In effect, a package reduces to a variable declaration whose type is a
 record type and whose value is an anonymous record of all the public
@@ -62,16 +62,15 @@ functions defined in the package.
 We have seen this before, but it may be worth taking another look at
 the special form:
 @example
-@{. double=double .@}
+@{ double=double @}
 @end example
-This is a record structure; the periods in the braces signify that the
-record is not @emph{recursive}: the definitions within the record
-cannot reference each other.@footnote{This is somewhat analogous to
-the difference between a let and a letrec form in languages like SML.}
-We use this slightly complicated way of defining the package record
-because not all members of the package are public --- and this
-formulation allows us to be precise in what elements of the package
-record can be seen by others.
+This is a record structure; furthermore, the record is not
+@emph{recursive}: the definitions within the record cannot reference
+each other.@footnote{This is somewhat analogous to the difference
+between a let and a letrec form in languages like SML.}  We use this
+way of defining the package record because not all members of the
+package are public --- and this formulation allows us to be precise in
+what elements of the package record can be seen by others.
 
 What about types though? Like other programming languages @Star{}
 allows us to export types from packages too:

@@ -484,11 +484,11 @@ employee ::= emp@{
        
 A literal @code{emp} value will look like: 
 @example
-E = emp@{. name = "Fred Nice".
+E = emp@{ name = "Fred Nice".
   hireDate = today().
   salary := 23000.
   dept := "mail"
-.@}
+@}
 @end example
   
 @quotation Note
@@ -534,7 +534,7 @@ person ::= someone@{ name : string. age : integer @}
 
 and a @code{person} value bound to @code{P}: 
 @example
-P = someone@{. name="fred". age=32 .@}
+P = someone@{ name="fred". age=32 @}
 @end example
 
 then the expression @code{P.name} has value @code{"fred"}.
@@ -899,9 +899,9 @@ auxiliary definitions.
 A @code{let} expression consists of a body -- which is an
 @refer{LetEnvironment} -- and a bound @refer{Expression}. There are
 two forms of let expressions, recursive and non-recursive. The
-non-recursive form is written using the @code{@{.} and @code{.@}}
-brackets, whereas the recursive environment is written using @code{@{}
-and @code{@}} brackets.
+non-recursive form is written using the @code{@{} and @code{@}}
+brackets, whereas the recursive environment is written using @code{@{.}
+and @code{.@}} brackets.
 
 Both environments support value and type definitions; the recursive
 environment allows mutually recursive definitions to be constructed.
@@ -923,9 +923,9 @@ S = sort(L,myCompare)
 Or, the same may be achieved where the call to @code{sort} is not so
 conveniently close to a definition environment: 
 @example
-sort(L, let@{.
+sort(L, let@{
   pComp(someone@{name=N1@},someone@{name=N2@}) => N1<N2
-.@}
+@}
 in pComp)
 @end example
 
