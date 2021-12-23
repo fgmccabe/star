@@ -278,7 +278,7 @@
   final('.#.',".#.").	 /* test nth bit */
   final('.&.',".&.").	 /* bitwise and */
   final('.|.',".|.").	 /* bitwise or */
-  final('.}',".}").	 /* non-recursive braces */
+  final('.}',".}").	 /* recursive braces */
   final('.~.',".~.").	 /* bitwise 1's complement */
   final('.<<.',".<<.").	 /* shift left */
   final('.<.',".<.").	 /* set membership */
@@ -292,9 +292,9 @@
   final('/\\',"/\\").	 /* intersection */
   final('//',"//").	 /* map over */
   final('///',"///").	 /* indexed map over */
-  final('{',"{").	 /* braces */
+  final('{',"{").	 /* non-recursive braces */
   final('{?',"{?").	 /* test comprehension */
-  final('{.',"{.").	 /* non-recursive braces */
+  final('{.',"{.").	 /* recursive braces */
   final('{!',"{!").	 /* iota comprehension */
   final('|',"|").	 /* type union and abstraction */
   final('|]',"|]").	 /* measure brackets */
@@ -302,7 +302,7 @@
   final('||',"||").	 /* disjunction */
   final('|>',"|>").	 /* meta quote */
   final('|)',"|)").	 /* banana brackets */
-  final('}',"}").	 /* braces */
+  final('}',"}").	 /* non-recursive braces */
   final('~',"~").	 /* logical negation */
   final('~~',"~~").	 /* quantifier */
   final('~=',"~=").	 /* not equals */

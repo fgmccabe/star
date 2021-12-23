@@ -10,12 +10,12 @@
 
 macroRl("[]",pattern,macroRules:squarePtnMacro).
 macroRl("[]",expression,macroRules:macroListComprehension).
-macroRl("[]",expression,macroRules:macroSquareTuple).
+macroRl("[]",expression,macroRules:squareSequenceMacro).
 macroRl("$[]",expression,macroRules:indexMacro).
 macroRl("<||>",expression,macroRules:macroQuote).
-macroRl("{}",expression,macroRules:macroComprehension).
+macroRl("{}",expression,macroRules:comprehensionMacro).
 macroRl("{!!}",expression,macroRules:macroIotaComprehension).
-macroRl("{??}",expression,macroRules:macroIterableGoal).
+macroRl("{??}",expression,macroRules:iterableGoalMacro).
 macroRl("::",expression,macroRules:coercionMacro).
 macroRl(":?",expression,macroRules:coercionMacro).
 macroRl("*",expression,macroRules:multicatMacro).
@@ -78,12 +78,12 @@ list_pttrn(Lc,Ts,Arg) :-
   reComma(Ts,As),
   isSquareTuple(Arg,Lc,[As]).
 
-macroSquareTuple(A,expression,Trm) :-
+squareSequenceMacro(A,expression,Trm) :-
   isSquareTuple(A,Lc,Els),
   \+isMapLiteral(A,_,_),
   \+isListComprehension(A,_,_,_),!,
   macroListEntries(Lc,Els,Trm,nilGen,consGen).
-macroSquareTuple(A,expression,Trm) :-
+squareSequenceMacro(A,expression,Trm) :-
   isMapLiteral(A,Lc,Prs),
   macroListEntries(Lc,Prs,Trm,emptyGen,putGen).
 
@@ -135,7 +135,7 @@ indexMacro(T,expression,Rp) :-
   isSlice(T,Lc,M,Fr,To),
   ternary(Lc,"_slice",M,Fr,To,Rp).
 
-macroComprehension(T,expression,Rp) :-
+comprehensionMacro(T,expression,Rp) :-
   isComprehension(T,Lc,Bnd,Body),!,
   makeComprehension(Lc,Bnd,Body,Rp).
 
@@ -155,7 +155,7 @@ macroIotaComprehension(T,expression,Rp) :-
   mkEnum(Lc,"none",Empty),
   makeCondition(Body,macroRules:passThru,macroRules:rtn(Res),grounded(Empty),Rp).
 
-macroIterableGoal(G,expression,Gx) :-
+iterableGoalMacro(G,expression,Gx) :-
   isTestComprehension(G,_Lc,B),
   makeIterableGoal(B,Gx).
 
@@ -217,76 +217,6 @@ makeCondition(A,Lift,Succ,Zed,Rp) :-
   call(Succ,Zed,ZZ),
   call(Lift,Zed,OO),
   conditional(Lc,A,ZZ,OO,Rp).
-
-glVars(G,E,V,Vx) :-
-  isSearch(G,_,P,_),!,
-  ptnVars(P,E,V,Vx).
-glVars(G,E,V,Vx) :-
-  isMatch(G,_,P,_),!,
-  ptnVars(P,E,V,Vx).
-glVars(G,E,V,Vx) :-
-  isOptionMatch(G,_,P,_),!,
-  ptnVars(P,E,V,Vx).
-glVars(G,E,V,Vx) :-
-  isConjunct(G,_,L,R),!,
-  glVars(L,E,V,V0),
-  glVars(R,E,V0,Vx).
-glVars(G,E,V,Vx) :-
-  isDisjunct(G,_,L,R),!,
-  glVars(L,E,[],V0),
-  glVars(R,E,[],V1),
-  intersect(V0,V1,V2),
-  merge(V2,V,Vx).
-glVars(G,E,V,Vx) :-
-  isConditional(G,_,T,L,R),!,
-  glVars(T,E,[],V0),
-  glVars(L,E,V0,V1),
-  glVars(R,E,[],V2),
-  intersect(V1,V2,V3),
-  merge(V3,V,Vx).
-glVars(G,_,Vx,Vx) :-
-  isForall(G,_,_,_),!.
-glVars(G,_,Vx,Vx) :-
-  isNegation(G,_,_),!.
-glVars(G,E,V,Vx) :-
-  isTuple(G,_,[G0]),!,
-  glVars(G0,E,V,Vx).
-glVars(_,_,Vx,Vx).
-
-ptnVars(T,_,Vx,Vx) :-
-  isAnon(T,_),!.
-ptnVars(T,E,V,Vx) :-
-  isIden(T,_,Nm),!,
-  (is_member(Nm,E) -> V=Vx ; add_mem(Nm,V,Vx)).
-ptnVars(T,_,V,V) :-
-  isInteger(T,_,_),!.
-ptnVars(T,_,V,V) :-
-  isBigInt(T,_,_),!.
-ptnVars(T,_,V,V) :-
-  isFloat(T,_,_),!.
-ptnVars(T,_,V,V) :-
-  isString(T,_,_),!.
-ptnVars(T,_,V,V) :-
-  isEnum(T,_,_),!.
-ptnVars(T,E,V,Vx) :-
-  isRoundTerm(T,_,Args),!,
-  ptnListVars(Args,E,V,Vx).
-ptnVars(T,E,V,Vx) :-
-  isRoundTuple(T,_,Args),!,
-  ptnListVars(Args,E,V,Vx).
-ptnVars(T,E,V,Vx) :-
-  isSquareTuple(T,_,Args),!,
-  ptnListVars(Args,E,V,Vx).
-ptnVars(T,E,V,Vx) :-
-  isWhere(T,_,P,G),!,
-  ptnVars(P,V,V0),
-  glVars(G,E,V0,Vx).
-ptnVars(_,_,V,V).
-
-ptnListVars([],_,Vx,Vx) :-!.
-ptnListVars([T|R],E,V,Vx) :-
-  ptnVars(T,E,V,V0),
-  ptnListVars(R,E,V0,Vx).
 
 coercionMacro(Term,expression,N) :-
   isCoerce(Term,Lc,L,R),!,
