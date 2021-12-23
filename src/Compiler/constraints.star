@@ -14,12 +14,12 @@ star.compiler.constraints{
 
   cnsCheck ::= check(locn,option[canon],dict,tipe).
 
-  implementation display[cnsCheck] => {.
+  implementation display[cnsCheck] => {
     disp(check(Lc,.none,_,Tp)) =>
       ssSeq([ss("unresolved contraint: "),disp(Tp),ss(" at "),disp(Lc)]).
     disp(check(Lc,some(T),_,Tp)) =>
       ssSeq([ss("resolved contraint: "),disp(Tp),ss("|:"),disp(T),ss(" at "),disp(Lc)]).
-  .}
+  }
   
   extractTermConstraints:(canon,dict,cons[cnsCheck])=>cons[cnsCheck].
   extractTermConstraints(vr(Lc,Nm,Tp),_,Cnx) => Cnx.

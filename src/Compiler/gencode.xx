@@ -39,21 +39,21 @@ star.compiler.gencode{
   ctxLbls(codeCtx(Vrs,Lc,Mx1,Lb1),codeCtx(_,_,Mx2,Lb2))=>
     codeCtx(Vrs,Lc,max(Mx1,Mx2),max(Lb1,Lb2)).
 
-  implementation display[codeCtx] => {.
+  implementation display[codeCtx] => {
     disp(codeCtx(Vrs,_,Depth,Stk)) => ssSeq([ss("depth "),disp(Depth),ss(" stack "),disp(Stk)]).
-  .}
+  }
 
-  implementation sizeable[codeCtx] => {.
+  implementation sizeable[codeCtx] => {
     isEmpty(codeCtx(Vars,_,_,_))=>isEmpty(Vars).
     size(codeCtx(Vars,_,_,_))=>size(Vars).
-  .}
+  }
 
-  implementation display[srcLoc] => {.
+  implementation display[srcLoc] => {
     disp(lclVar(Off,Tpe)) =>ssSeq([ss("lcl "),disp(Off),ss(":"),disp(Tpe)]).
     disp(argVar(Off,Tpe)) =>ssSeq([ss("arg "),disp(Off),ss(":"),disp(Tpe)]).
     disp(glbVar(Off,Tpe)) =>ssSeq([ss("glb "),disp(Off),ss(":"),disp(Tpe)]).
     disp(glbFun(Off,Tpe)) =>ssSeq([ss("fun "),disp(Off),ss(":"),disp(Tpe)]).
-  .}
+  }
 
   public compCrProg:(pkg,cons[crDefn],cons[(string,tipe)],compilerOptions,reports)=>
     either[reports,cons[codeSegment]].
@@ -519,19 +519,19 @@ star.compiler.gencode{
   -- continuations
 
   ccont:(boolean,boolean,(codeCtx,multi[assemOp],option[cons[tipe]],reports)=>either[reports,(codeCtx,multi[assemOp],option[cons[tipe]])])=>Cont.
-  ccont(S,J,C)=>cont{.
+  ccont(S,J,C)=>cont{
     C=C.
     L=.none.
     Simple = S.
     IsJump = J.
-  .}
+  }
 
-  nullCont = cont{.
+  nullCont = cont{
     C(Ctx,Cde,Stk,Rp) => either((Ctx,Cde,Stk)).
     L=.none.
     Simple=.true.
     IsJump = .false.
-  .}
+  }
 
   retCont:(locn)=>Cont.
   retCont(Lc) => ccont(.true,.true,(Ctx,Cde,Stk,Rp) => do{
@@ -723,9 +723,9 @@ star.compiler.gencode{
 
   onceCont:(locn,Cont)=>Cont.
   onceCont(_,C) where C.Simple => C.
-  onceCont(Lc,C)=> let{.
+  onceCont(Lc,C)=> let{
     d := .none.
-  .} in ccont(.false,.true,(Ctx,Cde,Stk,Rp) => do{
+  } in ccont(.false,.true,(Ctx,Cde,Stk,Rp) => do{
       if (Lbl,EStk,LStk)^=d! then{
 	XStk <- mergeStack(Lc,EStk,Stk,Rp);
 	valis (Ctx,Cde++[iJmp(Lbl)],LStk)
@@ -823,7 +823,7 @@ star.compiler.gencode{
   argVars([_,..As],Ctx,Arg) => argVars(As,Ctx,Arg+1).
 
   mergeCtx:(codeCtx,codeCtx,codeCtx)=>codeCtx.
-  mergeCtx(codeCtx(LV,_,_,Lb1),codeCtx(RV,_,_,Lb2),Base) => let{
+  mergeCtx(codeCtx(LV,_,_,Lb1),codeCtx(RV,_,_,Lb2),Base) => let{.
     mergeVar:(string,srcLoc,codeCtx) => codeCtx.
     mergeVar(Nm,_,Vrs) where _ ^= locateVar(Nm,Base) => Vrs.
     mergeVar(Nm,_,codeCtx(Vs,Lc,Count,_)) where lclVar(_,Tp) ^= RV[Nm] =>

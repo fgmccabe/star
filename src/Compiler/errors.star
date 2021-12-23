@@ -7,15 +7,14 @@ star.compiler.errors{
 
   public reports ::= reports(cons[reportMsg]).
 
-  public implementation display[reports] => {.
+  public implementation display[reports] => {
     disp(reports(M)) => "$(countErrors(M)) errors\n$(countWarnings(M)) warnings".
+  }
 
-  .}
-
-  public implementation display[reportMsg] => {.
+  public implementation display[reportMsg] => {
     disp(errorMsg(Lc,Msg)) => "error #(Msg) at $(Lc)".
     disp(warnMsg(Lc,Msg)) => "warning #(Msg) at $(Lc)".
-  .}
+  }
 
   public errorFree:(reports)=>boolean.
   errorFree(reports(Ms)) => countErrors(Ms)==0.

@@ -528,7 +528,7 @@ star.compiler.checker{
     valis Gl
   }.
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,G,Cases) ^= isCase(A) &&
-    ETp .= newTypeVar("_e") => let{
+    ETp .= newTypeVar("_e") => let{.
     checkRle(E,RRp) where (CLc,IsDeflt,H,C,R) ^= isLambda(E) => do{
       (Arg,E0) <- typeOfPtn(H,ETp,Env,Path,RRp);
       if Cnd ^= C then {
@@ -561,7 +561,7 @@ star.compiler.checker{
       Trm <- checkRle(Cs,Rp);
       typeOfCases(Ps,[Trm,..SoFar],RRp)
     }
-  } in do{
+  .} in do{
     Gv <- typeOfExp(G,ETp,Env,Path,Rp);
     Gc <- typeOfCases(Cases,[],Rp);
     valis csexp(Lc,Gv,Gc,Tp)
@@ -678,7 +678,7 @@ star.compiler.checker{
     };
     valis update(Lc,Rec,Update)
   }
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els,Bnd) ^= isLetDef(A) => do{
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els,Bnd) ^= isLetRecDef(A) => do{
     (Defs,ThEnv,ThetaTp)<-thetaEnv(Lc,genNewName(Path,"Γ"),Els,faceType([],[]),Env,Rp,.priVate);
     
     BndEnv .= pushFace(ThetaTp,Lc,Env);
@@ -688,7 +688,7 @@ star.compiler.checker{
     
     valis foldRight((Gp,I)=>letRec(Lc,Gp,I),El,Sorted)
   }
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els,Bnd) ^= isQLetDef(A) => do{
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els,Bnd) ^= isLetDef(A) => do{
     (Defs,ThEnv,ThetaTp)<-recordEnv(Lc,genNewName(Path,"Γ"),Els,faceType([],[]),Env,Rp,.priVate);
     
     BndEnv .= pushFace(ThetaTp,Lc,Env);

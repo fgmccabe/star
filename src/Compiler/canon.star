@@ -72,7 +72,7 @@ star.compiler.canon{
     typeOf(update(_,R,_)) => typeOf(R).
   }
 
-  public implementation hasLoc[canon] => {.
+  public implementation hasLoc[canon] => {
     locOf(vr(Lc,_,_)) => Lc.
     locOf(mtd(Lc,_,_,_)) => Lc.
     locOf(over(Lc,_,_,_)) => Lc.
@@ -98,28 +98,28 @@ star.compiler.canon{
     locOf(letRec(Lc,_,_)) => Lc.
     locOf(record(Lc,_,_,_)) => Lc.
     locOf(update(Lc,_,_)) => Lc.
-  .}
+  }
 
-  public implementation hasLoc[equation] => {.
+  public implementation hasLoc[equation] => {
     locOf(eqn(Lc,_,_,_)) => Lc.
-  .}
+  }
 
-  public implementation hasLoc[canonDef] => {.
+  public implementation hasLoc[canonDef] => {
     locOf(varDef(Lc,_,_,_,_,_)) => Lc.
     locOf(typeDef(Lc,_,_,_)) => Lc.
     locOf(conDef(Lc,_,_,_)) => Lc.
     locOf(cnsDef(Lc,_,_,_)) => Lc.
     locOf(implDef(Lc,_,_,_,_,_)) => Lc.
-  .}
+  }
 
-  public implementation display[pkgSpec] => {.
+  public implementation display[pkgSpec] => {
     disp(pkgSpec(Pkg,Imports,Face,Cons,Impls,PkgVrs)) =>
       ss("Package: $(Pkg), imports=$(Imports), Signature=$(Face),Contracts=$(Cons),Implementations:$(Impls), pkg vars:$(PkgVrs)").
-  .}
+  }
 
-  public implementation hasType[pkgSpec] => {.
+  public implementation hasType[pkgSpec] => {
     typeOf(pkgSpec(Pkg,Imports,Face,Cons,Impls,PkgVrs)) => Face
-  .}
+  }
 
   public implementation display[implSpec] => let{
     dispImpl(implSpec(_,Con,Full,Tp)) =>
@@ -128,7 +128,7 @@ star.compiler.canon{
     disp(D) => dispImpl(D)
   }
 
-  public implementation equality[canon] => let{
+  public implementation equality[canon] => let{.
     eq(vr(_,N1,T1),vr(_,N2,T2)) => N1==N2 && T1==T2.
     eq(mtd(_,N1,C1,T1),mtd(_,N2,C2,T2)) => N1==N2 && C1==C2 && T1==T2.
     eq(over(_,N1,T1,C1),over(_,N2,T2,C2)) => eq(N1,N2) && T1==T2 && C1==C2.
@@ -144,11 +144,11 @@ star.compiler.canon{
     eqList([],[]) => .true.
     eqList([E1,..L1],[E2,..L2]) => eq(E1,E2) && eqList(L1,L2).
     eqList(_,_) default => .false.
-  } in {
+  .} in {
     T1==T2 => eq(T1,T2)
   }
 
-  public implementation hash[canon] => let{
+  public implementation hash[canon] => let{.
     hsh(vr(_,N1,_)) => hash(N1).
     hsh(mtd(_,N1,_,_)) => hash(N1).
     hsh(over(_,N1,T1,C1)) => hsh(N1)*37+hash(T1).
@@ -159,7 +159,7 @@ star.compiler.canon{
     hsh(apply(_,O1,A1,T1)) => hsh(O1)*36+hsh(A1).
     hsh(whr(_,T1,C1)) => hsh(T1) *37+hsh(C1).
     hsh(dot(_,T1,F1,_)) => hsh(T1) *37+hash(F1).
-  } in {
+  .} in {
     hash(T1) => hsh(T1)
   }
 
@@ -192,9 +192,9 @@ star.compiler.canon{
   showCanon(letRec(_,Defs,Ep),Sp) where Sp2.=Sp++"  " =>
     ssSeq([ss("letrec "),ss("{\n"),ss(Sp2),showGroup(Defs,Sp2),ss("\n"),ss(Sp),ss("}"),ss(" in "),showCanon(Ep,Sp2)]).
   showCanon(record(_,.none,Fields,_),Sp) =>
-    ssSeq([ss("{."),showFields(Fields,Sp++"  "),ss(".}")]).
+    ssSeq([ss("{"),showFields(Fields,Sp++"  "),ss("}")]).
   showCanon(record(_,some(Lbl),Fields,_),Sp) =>
-    ssSeq([ss(Lbl),ss("{."),showFields(Fields,Sp++"  "),ss(".}")]).
+    ssSeq([ss(Lbl),ss("{"),showFields(Fields,Sp++"  "),ss("}")]).
   showCanon(update(_,L,R),Sp) => ssSeq([showCanon(L,Sp),ss(" <<- "),showCanon(R,Sp)]).
   
   showCases(Cs,Sp) => ssSeq([ss("{"),showRls("",Cs,Sp),ss("}")]).
@@ -225,9 +225,9 @@ star.compiler.canon{
   showRl(Nm,eqn(_,Ptn,some(C),Val),Sp) => ssSeq([
       ss(Nm),showCanon(Ptn,Sp),ss(" where "),showCanon(C,Sp),ss(" => "),showCanon(Val,Sp)]).
 
-  public implementation display[canon] => {.
+  public implementation display[canon] => {
     disp(C) => showCanon(C,"")
-  .}
+  }
 
   public implementation display[canonDef] => {
     disp(D) => showDef(D,"")
@@ -263,7 +263,7 @@ star.compiler.canon{
   pkgImports(pkgSpec(Pkg,Imports,Face,Cons,Impls,PkgVrs)) => Imports.
 
   public splitPtn:(canon) => (canon,option[canon]).
-  splitPtn(P) => let{
+  splitPtn(P) => let{.
     splitPttrn(apply(Lc,Op,Arg,Tp)) => valof action{
       (SOp,OCond) .= splitPttrn(Op);
       (SArg,SCond) .= splitPttrn(Arg);
@@ -285,6 +285,6 @@ star.compiler.canon{
     mergeGl(.none,C) => C.
     mergeGl(C,.none) => C.
     mergeGl(some(A),some(B)) => some(conj(locOf(A),A,B)).
-  } in splitPttrn(P).
+  .} in splitPttrn(P).
 
 }

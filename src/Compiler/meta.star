@@ -59,9 +59,9 @@ star.compiler.meta{
     dispSp(tpSp(Nm)) => "type: $(Nm)".
     dispSp(conSp(Nm)) => "contract: $(Nm)".
     dispSp(implSp(Nm)) => "implementation: $(Nm)".
-  } in {.
+  } in {
     disp = dispSp
-  .}
+  }
 
   public implementation equality[defnSp] => let{
     eql(cnsSp(S1),cnsSp(S2)) => S1==S2.
@@ -74,13 +74,13 @@ star.compiler.meta{
     S1 == S2 => eql(S1,S2)
   }
 
-  public implementation hash[defnSp] => {.
+  public implementation hash[defnSp] => {
     hash(varSp(Nm)) => hash(Nm)*37+hash("var").
     hash(cnsSp(Nm)) => hash(Nm)*37+hash("cns").
     hash(tpSp(Nm)) => hash(Nm)*37+hash("tp").
     hash(conSp(Nm)) => hash(Nm)*37+hash("con").
     hash(implSp(Nm)) => hash(Nm)*37+hash("impl").
-  .}
+  }
 
   public implementation display[defnSpec] => let{
     dispSpec(defnSpec(Sp,Lc,Els)) => "$(Sp)@$(Lc)$(Els)"
@@ -90,30 +90,30 @@ star.compiler.meta{
 
   public implementation display[importSpec] => let{
     dispSpc(pkgImp(Lc,Vi,Pk)) => "$(Vi) import $(Pk)"
-  } in {.
+  } in {
     disp(S) => dispSpc(S)
-  .}
+  }
 
   public optimizationLvl ::= .base | .inlining.
 
-  public implementation equality[optimizationLvl] => {.
+  public implementation equality[optimizationLvl] => {
     .base == .base => .true.
     .inlining == .inlining => .true.
     _ == _ default => .false
-  .}
+  }
 
-  public implementation coercion[string,optimizationLvl] => {.
+  public implementation coercion[string,optimizationLvl] => {
     _coerce("base") => some(.base).
     _coerce("inline") => some(.inlining).
     _coerce("0") => some(.base).
     _coerce("1") => some(.base).
     _coerce(_) default => .none.
-  .}
+  }
 
-  public implementation display[optimizationLvl] => {.
+  public implementation display[optimizationLvl] => {
     disp(.base) => "base".
     disp(.inlining) => "inlining"
-  .}
+  }
 
   public compilerOptions ::=
     compilerOptions{

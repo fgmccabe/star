@@ -61,6 +61,7 @@ star.compiler.opg{
   legalRight(idTok(Op),_) => ~ isOperator(Op).
   legalRight(idQTok(_),_) => .true.
   legalRight(intTok(_),_) => .true.
+  legalRight(bigTok(_),_) => .true.
   legalRight(fltTok(_),_) => .true.
   legalRight(chrTok(_),_) => .true.
   legalRight(strTok(_),_) => .true.
@@ -69,6 +70,7 @@ star.compiler.opg{
 
   term0:(cons[token],reports) => (ast,integer,cons[token],reports,needsTerm).
   term0([tok(Lc,intTok(Ix)),..Toks],Rpt) => (int(Lc,Ix),0,Toks,Rpt,.needOne).
+  term0([tok(Lc,bigTok(Ix)),..Toks],Rpt) => (big(Lc,Ix),0,Toks,Rpt,.needOne).
   term0([tok(Lc,fltTok(Dx)),..Toks],Rpt) => (num(Lc,Dx),0,Toks,Rpt,.needOne).
   term0([tok(Lc,chrTok(Ch)),..Toks],Rpt) => (chr(Lc,Ch),0,Toks,Rpt,.needOne).
   term0([tok(Lc,strTok(Sx)),..Toks],Rpt) where (Term,Rptx).=interpolateString(Sx,Rpt,Lc) =>
@@ -78,11 +80,11 @@ star.compiler.opg{
       (Els,Rpt1,Toks1) .= terms(Toks,rgtTok("{}"),Rpt,[]) &&
       (Lc2,Rpt2,Toksx) .= checkToken(rgtTok("{}"),Rpt1,Toks1) =>
         (tpl(mergeLoc(Lc,Lc2),"{}",Els),0,Toksx,Rpt2,.noNeed).
-  term0([tok(Lc,lftTok("{..}")),tok(Lc1,rgtTok("{..}")),..Toks],Rpt) => (tpl(mergeLoc(Lc,Lc1),"{..}",[]),0,Toks,Rpt,.noNeed).
-  term0([tok(Lc,lftTok("{..}")),..Toks],Rpt) where
-      (Els,Rpt1,Toks1) .= terms(Toks,rgtTok("{..}"),Rpt,[]) &&
-      (Lc2,Rpt2,Toksx) .= checkToken(rgtTok("{..}"),Rpt1,Toks1) =>
-    (tpl(mergeLoc(Lc,Lc2),"{..}",Els),0,Toksx,Rpt2,.noNeed).
+  term0([tok(Lc,lftTok("@<@>")),tok(Lc1,rgtTok("@<@>")),..Toks],Rpt) => (tpl(mergeLoc(Lc,Lc1),"@<@>",[]),0,Toks,Rpt,.noNeed).
+  term0([tok(Lc,lftTok("@<@>")),..Toks],Rpt) where
+      (Els,Rpt1,Toks1) .= terms(Toks,rgtTok("@<@>"),Rpt,[]) &&
+      (Lc2,Rpt2,Toksx) .= checkToken(rgtTok("@<@>"),Rpt1,Toks1) =>
+    (tpl(mergeLoc(Lc,Lc2),"@<@>",Els),0,Toksx,Rpt2,.noNeed).
   term0(Toks,Rpt) => termArgs(term00(Toks,Rpt)).
 
   term00:(cons[token],reports) => (ast,cons[token],reports,needsTerm).
@@ -125,12 +127,12 @@ star.compiler.opg{
       (Els,Rpt1,Toks1) .= terms(Toks,rgtTok("{}"),Rpt,[]) &&
       (Lc2,Rpt2,Toks2) .= checkToken(rgtTok("{}"),Rpt1,Toks1) =>
         (app(mergeLoc(locOf(Lhs),Lc2),Lhs,tpl(mergeLoc(Lc,Lc2),"{}",Els)),0,Toks2,Rpt,.noNeed).
-  termArgs((Lhs,[tok(Lc,lftTok("{..}")),tok(Lcx,rgtTok("{..}")),..Toks],Rpt,_)) =>
-    (app(mergeLoc(locOf(Lhs),Lcx),Lhs,tpl(mergeLoc(Lc,Lcx),"{..}",[])),0,Toks,Rpt,.noNeed).
-  termArgs((Lhs,[tok(Lc,lftTok("{..}")),..Toks],Rpt,_)) where
-      (Els,Rpt1,Toks1) .= terms(Toks,rgtTok("{..}"),Rpt,[]) &&
-      (Lc2,Rpt2,Toks2) .= checkToken(rgtTok("{..}"),Rpt1,Toks1) =>
-        (app(mergeLoc(locOf(Lhs),Lc2),Lhs,tpl(mergeLoc(Lc,Lc2),"{..}",Els)),0,Toks2,Rpt,.noNeed).
+  termArgs((Lhs,[tok(Lc,lftTok("@<@>")),tok(Lcx,rgtTok("@<@>")),..Toks],Rpt,_)) =>
+    (app(mergeLoc(locOf(Lhs),Lcx),Lhs,tpl(mergeLoc(Lc,Lcx),"@<@>",[])),0,Toks,Rpt,.noNeed).
+  termArgs((Lhs,[tok(Lc,lftTok("@<@>")),..Toks],Rpt,_)) where
+      (Els,Rpt1,Toks1) .= terms(Toks,rgtTok("@<@>"),Rpt,[]) &&
+      (Lc2,Rpt2,Toks2) .= checkToken(rgtTok("@<@>"),Rpt1,Toks1) =>
+        (app(mergeLoc(locOf(Lhs),Lc2),Lhs,tpl(mergeLoc(Lc,Lc2),"@<@>",Els)),0,Toks2,Rpt,.noNeed).
   termArgs((Left,[tok(Lc,idTok(".")),tok(Lcx,idTok(Fld)),..Toks],Rpt,_)) =>
     termArgs((binary(mergeLoc(locOf(Left),Lcx),".",Left,nme(Lcx,Fld)),Toks,Rpt,.needOne)).
   termArgs((Left,Toks,Rpt,Needs)) => (Left,0,Toks,Rpt,Needs).
@@ -179,8 +181,8 @@ star.compiler.opg{
   checkTerminator(Rpt,[tok(Lc,rgtTok("{..}")),..Toks],.needOne) => (Rpt,[tok(Lc,rgtTok("{..}")),..Toks]).
   checkTerminator(Rpt,[tok(Lc,T),..Toks],.needOne) default => (reportError(Rpt,"missing terminator",Lc),[tok(Lc,T),..Toks]).
 
-  implementation display[needsTerm] => {.
+  implementation display[needsTerm] => {
     disp(.needOne) => "needs terminator".
     disp(.noNeed) => "terminator optional".
-  .}
+  }
 }

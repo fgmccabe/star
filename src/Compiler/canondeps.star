@@ -18,21 +18,21 @@ star.compiler.canondeps{
 
   defnSp ::= varSp(crVar) | tpSp(tipe).
 
-  implementation equality[defnSp] => {.
+  implementation equality[defnSp] => {
     varSp(V1) == varSp(V2) => V1==V2.
     tpSp(T1) == tpSp(T2) => T1==T2.
     _ == _ default => .false.
-  .}
+  }
 
-  implementation hash[defnSp] => {.
+  implementation hash[defnSp] => {
     hash(varSp(V1)) => hash(V1).
     hash(tpSp(T1)) => hash(T1).
-  .}
+  }
 
-  implementation display[defnSp] => {.
+  implementation display[defnSp] => {
     disp(varSp(V)) => ssSeq([ss("var:"),disp(V)]).
     disp(tpSp(T)) => ssSeq([ss("type:"),disp(T)]).
-  .}
+  }
 
   pickVar(varSp(V),Q) => Q\+V.
   pickVar(_,Q) => Q.
@@ -51,9 +51,9 @@ star.compiler.canondeps{
     defined(defSpec(Sp,_,_),Rf) => Sp==Rf.
   }
 
-  implementation display[defSpec] => {.
+  implementation display[defSpec] => {
     disp(defSpec(V,R,_)) => ssSeq([disp(V),ss(" -> "),disp(R),ss("\n")]).
-  .}
+  }
   
   findRefs:(canonDef,canonDef,set[crVar],set[defnSp])=>defSpec.
   findRefs(varDef(_,Nm,_,Val,_,Tp),D,Q,All) => defSpec(varSp(crId(Nm,Tp)),freeRefs(Val,Q,All),D).

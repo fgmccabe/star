@@ -41,12 +41,12 @@ star.compiler.misc{
   packageName(pkg(P,_))=>P.
 
   public pickFailures:all e,x ~~ (cons[either[e,x]])=>either[e,cons[x]].
-  pickFailures(Ls) => let{
+  pickFailures(Ls) => let{.
     pick:all e,x ~~ (cons[either[e,x]],cons[x])=>either[e,cons[x]].
     pick([],L) => either(reverse(L)).
     pick([either(X),..Els],L) => pick(Els,[X,..L]).
     pick([other(E),.._],_) => other(E).
-  } in pick(Ls,[]).
+  .} in pick(Ls,[]).
 
   somePrimes:cons[integer].
   somePrimes = [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,
