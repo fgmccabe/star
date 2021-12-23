@@ -1245,14 +1245,14 @@
 	"right": "}",
 	"seperator" : ".\n",
 	"priority": 2000,
-	"desc": "braces"
+	"desc": "non-recursive braces"
     },
     {
 	"bracket": "{..}",
 	"left": "{.",
 	"right": ".}",
 	"priority": 2000,
-	"desc": "non-recursive braces"
+	"desc": "recursive braces"
     },
     {
 	"bracket": "(||)",
