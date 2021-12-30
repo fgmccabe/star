@@ -6,7 +6,7 @@ test.phone{
   -- Implement phone encoding algorithm
 
   digitMap:map[integer,cons[char]].
-  digitMap = [0 -> [`e`],
+  digitMap = {0 -> [`e`],
     1 -> [`j`, `n`, `q`],
     2 -> [`r`, `w`, `x`],
     3 -> [`d`, `s`, `y`],
@@ -15,7 +15,7 @@ test.phone{
     6 -> [`c`, `i`, `v`],
     7 -> [`b`, `k`, `u`],
     8 -> [`l`, `o`, `p`],
-    9 -> [`g`, `h`, `z`]].
+    9 -> [`g`, `h`, `z`]}.
 
   parseWord:(string,trie[char,string]) => trie[char,string].
   parseWord(Word,Tr) =>
