@@ -81,18 +81,18 @@ examineStmt(S,Rp) :-
   map(B,macros:macroStmt,Bx),
   map(C,macros:macroType,Cx),
   contractStmt(Lc,Q,Cx,Tx,Bx,Rp).
-examineStmt(S,Sx) :-
-  isAlgebraicTypeStmt(S,Lc,Q,C,H,B),!,
-  macroType(H,Hx),
-  map(C,macros:macroType,Cx),
-  macroConsBody(B,Bx),
-  mkAlgebraicTypeStmt(Lc,Q,Cx,Hx,Bx,Sx).
 examineStmt(S,Rp) :-
   isImplementationStmt(S,Lc,Q,C,T,B),!,
   macroType(T,Tx),
   map(C,macros:macroType,Cx),
   macroTerm(B,Bx),
   implementationStmt(Lc,Q,Cx,Tx,Bx,Rp).
+examineStmt(S,Sx) :-
+  isAlgebraicTypeStmt(S,Lc,Q,C,H,B),!,
+  macroType(H,Hx),
+  map(C,macros:macroType,Cx),
+  macroConsBody(B,Bx),
+  mkAlgebraicTypeStmt(Lc,Q,Cx,Hx,Bx,Sx).
 examineStmt(S,Rp) :-
   isBraceTuple(S,Lc,Els),!,
   map(Els,macros:macroStmt,Elx),
@@ -291,6 +291,10 @@ examineTerm(T,Tx) :-
   macroTerm(Bdy,Bdyx),
   mkTestComprehension(Lc,Bdyx,Tx).
 examineTerm(T,Tx) :-
+  isMapLiteral(T,Lc,D),!,
+  map(D,macros:macroPair(macros:examineTerm),expression,Dx),
+  mkMapLiteral(Lc,Dx,Tx).
+examineTerm(T,Tx) :-
   isSquareTerm(T,Lc,O,D),!,
   map(D,macros:macroTerm,Dx),
   macroTerm(O,Ox),
@@ -451,6 +455,10 @@ macroOpt(none,_,none) :-!.
 macroOpt(some(A),C,some(Ax)) :-
   call(C,A,Ax).
 
+macroPair(Ex,Cxt,(A,B),(Ax,Bx)) :-
+  macroAst(A,Cxt,Ex,Ax),
+  macroAst(B,Cxt,Ex,Bx).
+
 macroLambda(A,Ax) :-
   macroAst(A,rule,macros:examineLambda,Ax).
 
@@ -478,6 +486,8 @@ examinePtn(T,T) :-
 examinePtn(T,T) :-
   isInteger(T,_,_),!.
 examinePtn(T,T) :-
+  isBigInt(T,_,_),!.
+examinePtn(T,T) :-
   isFloat(T,_,_),!.
 examinePtn(T,T) :-
   isString(T,_,_),!.
@@ -489,15 +499,6 @@ examinePtn(T,Tx) :-
   macroType(R,Rx),
   typeAnnotation(Lc,Lx,Rx,Tx).
 examinePtn(T,Tx) :-
-  isCoerce(T,Lc,L,R),!,
-  macroPtn(L,Lx),
-  macroType(R,Rx),
-  coerce(Lc,Lx,Rx,Tx).
-examinePtn(T,Tx) :-
-  isCellRef(T,Lc,L),!,
-  macroPtn(L,Lx),
-  cellRef(Lc,Lx,Tx).
-examinePtn(T,Tx) :-
   isBraceTuple(T,Lc,D),!,
   map(D,macros:macroField,Dx),
   braceTuple(Lc,Dx,Tx).
@@ -506,11 +507,6 @@ examinePtn(T,Tx) :-
   map(D,macros:macroField,Dx),
   macroTerm(O,Ox),
   braceTerm(Lc,Ox,Dx,Tx).
-examinePtn(T,Tx) :-
-  isQBraceTerm(T,Lc,O,D),!,
-  map(D,macros:macroField,Dx),
-  macroTerm(O,Ox),
-  qbraceTerm(Lc,Ox,Dx,Tx).
 examinePtn(T,Tx) :-
   isRoundTerm(T,Lc,O,D),!,
   map(D,macros:macroPtn,Dx),
