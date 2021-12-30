@@ -137,9 +137,8 @@
     (with-current-buffer source
       (if (equal major-mode 'star-mode)
 	  (star-compile
-	   source star-build-repo (star-package)
+	   star-build-repo (star-package)
 	   (file-name-directory (buffer-file-name source))
-	   'star-debug
 	   ))
       )
     )
