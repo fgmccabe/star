@@ -58,4 +58,13 @@ star.action{
     _ .= _show(Msg);
     valis ()
   }
+
+  public seqmap:all x,y,e,c,d ~~ stream[c->>x],sequence[d->>y] |:
+    ((x)=>result[e,y],c)=>result[e,d].
+  seqmap(_,[]) => ok([]).
+  seqmap(F,[A,..As]) => do{
+    B<-F(A);
+    Bs <- seqmap(F,As);
+    valis [B,..Bs]
+  }
 }

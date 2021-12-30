@@ -9,8 +9,8 @@ star.boot{
 
   bootOptions ::= bootOptions(string,string).
 
-  repoOption:optionsProcessor[bootOptions].
-  repoOption = {
+  repoOption:cmdOption[bootOptions].
+  repoOption = cmdOption{
     shortForm = "-r".
     alternatives = [].
     usage = "-r dir -- directory of code repository".
@@ -18,8 +18,8 @@ star.boot{
     setOption(R,bootOptions(_,W)) => bootOptions(R,W).
   }
 
-  wdOption:optionsProcessor[bootOptions].
-  wdOption = {
+  wdOption:cmdOption[bootOptions].
+  wdOption = cmdOption{
     shortForm = "-w".
     alternatives = [].
     usage = "-w dir -- override working directory".

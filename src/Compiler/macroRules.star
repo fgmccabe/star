@@ -29,9 +29,9 @@ star.compiler.macro.rules{
     applyRls(A,Cxt,St,Rls,Rp).
   
   macros:map[string,cons[(macroContext,macroRule)]].
-  macros = [ -- "::=" -> [(.statement,algebraicMacro)],
-    ":=" -> [(.act,spliceAssignMacro),
-      (.actn,indexAssignMacro),
+  macros = { -- "::=" -> [(.statement,algebraicMacro)],
+    ":=" -> [(.actn,spliceAssignMacro),
+      (.actn,indexAssignMacro)],
     "[]" -> [(.pattern,squarePtnMacro),
       (.expression,listComprehensionMacro),
       (.expression,squareSequenceMacro)],
@@ -40,9 +40,9 @@ star.compiler.macro.rules{
     "::" -> [(.expression,coercionMacro)],
     ":?" -> [(.expression,coercionMacro)],
     "*" -> [(.expression,multicatMacro)],
-    "{}" -> [(.expression,comprehensionMacro)],
+    "{}" -> [(.expression,comprehensionMacro),(.expression,mapLiteralMacro)],
     "{!!}" -> [(.expression,iotaComprehensionMacro)],
-    "{??}" -> [(.expression,iterableGoalMacro)],
+    "{??}" -> [(.expression,testComprehensionMacro)],
     "do" -> [(.actn,forLoopMacro)],
     "valof" -> [(.expression,valofMacro)],
     "assert" -> [(.actn,assertMacro)],
@@ -53,181 +53,9 @@ star.compiler.macro.rules{
     "-" -> [(.expression, uMinusMacro),(.pattern, uMinusMacro)],
     "^=" -> [(.expression, optionMatchMacro)],
     "^" -> [(.expression,unwrapMacro)],
-    "!" -> [(.expression,binRefMacro)]
-  ].
-
-  algebraicMacro(St,.statement,Rp) where (Lc,Vz,Q,Cx,H,R) ^= isAlgebraicTypeStmt(St) => do{
-    Rslt <- makeAlgebraic(Lc,Vz,Q,Cx,H,R,Rp);
-    valis active(brTuple(Lc,Rslt))
-  }
-  algebraicMacro(_,_,_) default => do{ valis .inactive}.
-
-  /*
-  * We generate auto implementations of fields declared for an algebraic type
-  * declaration
-  *
-  * RT ::= rc{F:FT.}
-  *
-  * becomes
-  *
-  * RT <~ {F:FT .. }
-  * auto_contract '$F'[RT->>FT] => {
-  *  '$F'(rc(_,..,F,...,_)) => F
-  *}
-  *
-  * where auto_contract is an implementation statement that automatically 
-  * induces a contract -- with the empty prefix
-  */
-
-  makeAlgebraic:(locn,visibility,cons[ast],cons[ast],ast,ast,reports) =>
-    result[reports,cons[ast]].
-  makeAlgebraic(Lc,Vz,Q,Cx,H,R,Rp) => do{
-    Nm .= typeName(H);
-    (Qs,Xs,Face) <- algebraicFace(R,Q,[],Rp);
-    TpExSt .= reveal(reUQuant(Lc,Qs,reConstrain(Cx,binary(Lc,"<~",H,reXQuant(Lc,Xs,brTuple(Lc,sort(Face,compEls)))))),Vz);
-    Cons <- buildConstructors(R,Q,Cx,H,Vz,Rp);
-    valis [TpExSt,..Cons]
-  }
-
-  algebraicFace:(ast,cons[ast],cons[ast],reports) =>
-    result[reports,(cons[ast],cons[ast],cons[ast])].
-  algebraicFace(A,Qs,Xs,Rp) where (_,L,R) ^= isBinary(A,"|") => do{
-    (Q1,X1,Lhs) <- algebraicFace(L,Qs,Xs,Rp);
-    (Qx,Xx,Rhs) <- algebraicFace(R,Q1,X1,Rp);
-    Fs <- combineFaces(Lhs,Rhs,Rp);
-    valis (Qx,Xx,Fs)
-  }
-  algebraicFace(A,Qs,Xs,Rp) where (Lc,_,_) ^= isRoundTerm(A) =>
-    ok((Qs,Xs,[])).
-  algebraicFace(A,Qs,Xs,Rp) where (Lc,_) ^= isEnum(A) => ok((Qs,Xs,[])).
-  algebraicFace(A,Qs,Xs,Rp) where (Lc,_,Els) ^= isBrTerm(A) =>
-    ok((Qs,Xs,Els)).
-  algebraicFace(A,Qs,Xs,Rp) where (_,I) ^= isPrivate(A) =>
-    algebraicFace(I,Qs,Xs,Rp).
-  algebraicFace(A,Qs,Xs,Rp) where (_,I) ^= isPublic(A) =>
-    algebraicFace(I,Qs,Xs,Rp).
-  algebraicFace(A,Qs,Xs,Rp) where (_,X0,I) ^= isXQuantified(A) =>
-    algebraicFace(I,Qs,Xs\/X0,Rp).
-  algebraicFace(A,Qs,Xs,Rp) where (_,A0,I) ^= isQuantified(A) =>
-    algebraicFace(I,Qs\/A0,Xs,Rp).
-  algebraicFace(A,_,_,Rp) default =>
-    err(reportError(Rp,"invalid case in algebraic type",locOf(A))).
-
-  combineFaces([],F2,Rp) => ok(F2).
-  combineFaces(F1,[],Rp) => ok(F1).
-  combineFaces([F,..Fs],Gs,Rp) where (Lc,Id,Tp)^=isTypeAnnotation(F) => do{
-    G1 <- mergeField(Lc,Id,Tp,Gs,Rp);
-    Fs1 <- combineFaces(Fs,G1,Rp);
-    valis [F,..Fs1]
-  }
-
-  mergeField(_,_,_,[],_) => ok([]).
-  mergeField(Lc,Id,Tp,[A,..As],Rp) => do{
-    if (Lc2,Id,Tp2) ^= isTypeAnnotation(A) then {
-      if Tp==Tp2 then
-	valis As
-      else
-      raise reportError(Rp,"type associated with $(Id) at $(Lc) incompatible with $(Tp2)",Lc2)
-    } else{
-      A1 <- mergeField(Lc,Id,Tp,As,Rp);
-      valis [A,..A1]
-    }
-  }
-
-  conArities:(ast,map[string,integer]) => map[string,integer].
-  conArities(A,Axx) where (Lc,L,R) ^= isBinary(A,"|") =>
-    conArities(L,conArities(R,Axx)).
-  conArities(A,Axx) where (_,Nm,_,_,Els) ^= isBraceCon(A) =>
-    Axx[Nm->size(Els)].
-  conArities(_,Axx) default => Axx.
-
-  buildConIndices:(ast,map[string,map[string,integer]]) => map[string,map[string,integer]].
-  buildConIndices(A,Ixx) where (Lc,L,R) ^= isBinary(A,"|") =>
-    buildConIndices(L,buildConIndices(R,Ixx)).
-  buildConIndices(A,Ixx) where (Lc,Nm,XQs,XCx,Els) ^= isBraceCon(A) =>
-    buildConIx(Els,Nm,Ixx).
-  buildConIndices(_,Ixx) default => Ixx.
-
-  buildConIx:(cons[ast],string,map[string,map[string,integer]])=>map[string,map[string,integer]].
-  buildConIx(Els,Nm,Ixx) =>
-    fst(foldLeft((El,(Mp,Ix)) where
-	    (_,FNm,_) ^= isTypeAnnotation(El) =>
-	  (Mp[FNm->recordIx(Mp[FNm],Nm,Ix)],Ix+1),(Ixx,0),sort(Els,compEls))).
-
-  recordIx:(option[map[string,integer]],string,integer) => map[string,integer].
-  recordIx(some(NIx),Rc,Off) => NIx[Rc->Off].
-  recordIx(.none,Rc,Off) => [Rc->Off].
-
-  buildConstructors:(ast,cons[ast],cons[ast],ast,visibility,reports)=>result[reports,cons[ast]].
-  buildConstructors(A,Qs,Cx,Tp,Vz,Rp) where
-      (Lc,L,R) ^= isBinary(A,"|") => do{
-	Dfs1 <- buildConstructors(L,Qs,Cx,Tp,Vz,Rp);
-	Dfs2 <- buildConstructors(R,Qs,Cx,Tp,Vz,Rp);
-	valis Dfs1++Dfs2
-      }.
-  buildConstructors(A,Qs,Cx,Tp,Vz,Rp) where
-      (Lc,Nm,XQs,XCx,Els) ^= isBraceCon(A) => let{
-	Con = typeAnnotation(Lc,nme(Lc,Nm),reUQuant(Lc,Qs,
-	  reConstrain(Cx,
-	      binary(Lc,"<=>",reXQuant(Lc,XQs,
-		  reConstrain(XCx,brTuple(Lc,sort(Els,compEls)))),Tp)))).
-      } in ok([reveal(Con,Vz)]).
-  buildConstructors(A,Qs,Cx,Tp,Vz,Rp) where
-      (Lc,Nm,XQs,XCx,Els) ^= isRoundCon(A) => let{
-	Con = typeAnnotation(Lc,nme(Lc,Nm),reUQuant(Lc,Qs,
-	  reConstrain(Cx,
-	      binary(Lc,"<=>",rndTuple(Lc,Els),Tp)))).
-      } in ok([reveal(Con,Vz)]).
-  buildConstructors(A,Qs,Cx,Tp,Vz,Rp) where
-      (Lc,Nm) ^= isEnumSymb(A) => let{
-	Con = typeAnnotation(Lc,nme(Lc,Nm),reUQuant(Lc,Qs,
-	  reConstrain(Cx,
-	      binary(Lc,"<=>",rndTuple(Lc,[]),Tp)))).
-      } in ok([reveal(Con,Vz)]).
-  buildConstructors(A,Qs,Cx,Tp,_,Rp) where
-      (_,I) ^= isPrivate(A) => 
-    buildConstructors(I,Qs,Cx,Tp,.priVate,Rp).
-  buildConstructors(A,Qs,Cx,Tp,_,Rp) where
-      (_,I) ^= isPublic(A) => 
-    buildConstructors(I,Qs,Cx,Tp,.pUblic,Rp).
-  buildConstructors(A,_,_,_,_,Rp) =>
-    err(reportError(Rp,"cannot fathom constructor $(A)",locOf(A))).
-
-  compEls:(ast,ast)=>boolean.
-  compEls(A,B) where
-      (_,N1,_) ^= isTypeAnnotation(A) &&
-      (_,N2,_) ^= isTypeAnnotation(B) => N1<N2.
-  compEls(_,_) default => .false.
-
-  reveal(A,.priVate) => unary(locOf(A),"private",A).
-  reveal(A,.pUblic) => unary(locOf(A),"public",A).
-  reveal(A,_) default => A.
-
-  visibilityOf:(ast) => (ast,visibility).
-  visibilityOf(A) => visib(A,.deFault).
-
-  visib(A,_) where (_,I) ^= isPrivate(A) => visib(I,.priVate).
-  visib(A,_) where (_,I) ^= isPublic(A) => visib(I,.pUblic).
-  visib(A,Vz) default => (A,Vz).
-
-  isBraceCon:(ast) => option[(locn,string,cons[ast],cons[ast],cons[ast])].
-  isBraceCon(A) => isCon(A,isBrTerm).
-
-  isRoundCon:(ast) => option[(locn,string,cons[ast],cons[ast],cons[ast])].
-  isRoundCon(A) => isCon(A,isRoundTerm).
-
-  isCon:(ast,(ast)=>option[(locn,ast,cons[ast])]) => option[(locn,string,cons[ast],cons[ast],cons[ast])].
-  isCon(A,P) where
-      (Lc,Nm,Els) ^= P(A) && (_,Id) ^= isName(Nm) => some((Lc,Id,[],[],Els)).
-  isCon(A,P) where
-      (Lc,Q,I) ^= isXQuantified(A) &&
-      (_,Nm,_,Cx,Els) ^= isCon(I,P) =>
-    some((Lc,Nm,Q,Cx,Els)).
-  isCon(A,P) where
-      (Lc,Cx,I) ^= isConstrained(A) &&
-      (_,Nm,Q,_,Els) ^= isCon(I,P) =>
-    some((Lc,Nm,Q,Cx,Els)).
-  isCon(_,_) default => .none.
+    "!" -> [(.expression,binRefMacro)],
+    "implementation" -> [(.statement,implementationMacro)]
+  }.
 
   -- Convert assert C to assrt(()=>C,"failed C",Loc)
   assertMacro(A,.actn,Rp) where (Lc,C) ^= isIntegrity(A) => do{
@@ -239,7 +67,7 @@ star.compiler.macro.rules{
   -- Convert show E to shwMsg(()=>E,"E",Lc)
   showMacro(A,.actn,Rp) where (Lc,E) ^= isShow(A) => do{
     Lam .= equation(Lc,tpl(Lc,"()",[]),E);
-    Shw .= ternary(Lc,"shwMsg",Lam,str(Lc,C::string),Lc::ast);
+    Shw .= ternary(Lc,"shwMsg",Lam,str(Lc,A::string),Lc::ast);
     valis active(Shw)
   }
 
@@ -257,12 +85,8 @@ star.compiler.macro.rules{
   -- Convert P^=E to some(P).=E
   optionMatchMacro(A,.expression,Rp) where
       (Lc,L,R) ^= isOptionMatch(A) =>
-    either(active(mkMatch(Lc,unary(Lc,"some",L),R))).
-  optionMatchMacro(_,_,_) default => either(.inactive).
-
-  optionPtnMacro(A,.pattern,Rp) where (Lc,L,R) ^= isOptionPtn(A) => do{
-    valis active(mkWherePtn(Lc,R,L))
-  }.
+    ok(active(mkMatch(Lc,unary(Lc,"some",L),R))).
+  optionMatchMacro(_,_,_) default => ok(.inactive).
 
   mkLoc(Lc) where locn(P,Line,Col,Off,Ln).=Lc =>
     roundTerm(Lc,nme(Lc,"locn"),
@@ -279,19 +103,21 @@ star.compiler.macro.rules{
     ok(active(str(Lc,Pkg))).
 
   -- Convert expression P^E to X where E ^= P(X)
-  -- unwrapMacro(A,.expression,Rp) where
-  --     (Lc,Lhs,Rhs) ^= isOptionPtn(A) => do{
-  -- 	X .= genName(Lc,"X");
-  -- 	valis active(mkWherePtn(Lc,Lhs)
+  unwrapMacroA(A,.expression,Rp) where
+      (Lc,Lhs,Rhs) ^= isOptionPtn(A) && (LLc,Nm) ^= isName(Lhs) => do{
+	X .= genName(LLc,"X");
+   	valis active(mkWhere(Lc,X,mkMatch(LLc,Rhs,unary(LLc,Nm,X))))
+      }.
+  unwrapMacro(_,_,_) default => ok(.inactive).
 	
   -- Convert unary minus to a call to __minus
   uMinusMacro(A,_,Rp) where (Lc,R) ^= isUnary(A,"-") =>
     (int(_,Ix) .= R ?
-	either(active(int(Lc,-Ix))) ||
+	ok(active(int(Lc,-Ix))) ||
 	num(_,Dx) .= R ?
-	  either(active(num(Lc,-Dx))) ||
-	  either(active(unary(Lc,"__minus",R)))).
-  uMinusMacro(_,_,_) => either(.inactive).
+	  ok(active(num(Lc,-Dx))) ||
+	  ok(active(unary(Lc,"__minus",R)))).
+  uMinusMacro(_,_,_) => ok(.inactive).
 
   -- Convert [P,...P] to _hdtl etc.
   squarePtnMacro(A,.pattern,Rp) where (Lc,Els) ^= isSqTuple(A) =>
@@ -306,17 +132,25 @@ star.compiler.macro.rules{
     Hed(Lc,El,macroListEntries(Lc,Rest,Eof,Hed)).
 
   genEofTest(Lc) => mkWhereTest(Lc,"_eof").
-  genHedTest(Lc,H,T) => mkWherePtn(Lc,tpl(Lc,"()",[H,T]),nme(Lx,"_hdtl")).
+  genHedTest(Lc,H,T) => mkWherePtn(Lc,tpl(Lc,"()",[H,T]),nme(Lc,"_hdtl")).
 
   squareSequenceMacro(A,.expression,Rp) where
       (Lc,Els) ^= isSqTuple(A) &&
-      ~ _^=isMapLiteral(A) &&
       ~_^=isListComprehension(A)=>
     ok(active(macroListEntries(Lc,Els,genNil,genCons))).
   squareSequenceMacro(_,_,_) => ok(.inactive).
 
   genNil(Lc) => nme(Lc,"_nil").
   genCons(Lc,H,T) => binary(Lc,"_cons",H,T).
+
+  mapLiteralMacro(A,.expression,Rp) where
+      (Lc,Els) ^= isMapLiteral(A) => do{
+	valis active(macroListEntries(Lc,Els,genEmpty,genPut))
+      }.
+  mapLiteralMacro(_,_,_) default => ok(.inactive).
+
+  genEmpty(Lc) => nme(Lc,"_empty").
+  genPut(Lc,H,T) where (_,L,R) ^= isPair(H) => ternary(Lc,"_put",T,L,R).
 
   listComprehensionMacro(A,.expression,Rp) where (Lc,B,C) ^= isListComprehension(A) => do{
     Q <- makeComprehension(Lc,B,C,Rp);
@@ -332,19 +166,23 @@ star.compiler.macro.rules{
 
   -- Convert {! Bnd | Body !}
   iotaComprehensionMacro(A,.expression,Rp) where
-      (Lc,Bnd,Body) ^= isIotaComprehension(A) => 
-    makeCondition(Body,passThru,
-      genResult(unary(Lc,"some",Bnd)),
-      genResult(enum(Lc,"none")),Rp).
+      (Lc,Bnd,Body) ^= isIotaComprehension(A) => do{
+	CC <- makeCondition(Body,passThru,
+	  genResult(unary(Lc,"some",Bnd)),
+	  lyfted(enum(Lc,"none")),Rp);
+	valis active(CC)
+      }.
   iotaComprehensionMacro(_,_,_) => ok(.inactive).
 
   -- Convert {? Cond ?}
-  iterableGoalMacro(A,.expression,Rp) where
-      (Lc,Cond) ^= isTestComprehension(A) =>
-    makeCondition(Cond,passThru,
-      genResult(enum(Lc,"true")),
-      genResult(enum(Lc,"false")),Rp).
-  iterableGoalMacro(_,_,_) => ok(.inactive).
+  testComprehensionMacro(A,.expression,Rp) where
+      (Lc,Cond) ^= isTestComprehension(A) => do{
+	CC <- makeCondition(Cond,passThru,
+	  genResult(enum(Lc,"true")),
+	  lyfted(enum(Lc,"false")),Rp);
+	valis active(CC)
+      }
+  testComprehensionMacro(_,_,_) => ok(.inactive).
 	
   makeComprehension:(locn,ast,ast,reports) => result[reports,ast].
   makeComprehension(Lc,Bnd,Cond,Rp) => do{
@@ -364,7 +202,7 @@ star.compiler.macro.rules{
 
   genResult(T) => let{
     chk(grounded(_))=>T.
-    chk(lyted(St)) => St.
+    chk(lyfted(St)) => St.
   } in chk.	
 
   /*
@@ -402,10 +240,10 @@ star.compiler.macro.rules{
     St .= genName(Lc,"St");
     SuccCase .= Succ(Zed);
     FalseCase .= Lift(Zed);
-    valis mkConditional(Lc,lyfted(Negated),FalseCase,SuccCase)
+    valis mkConditional(Lc,Negated,FalseCase,SuccCase)
   }
   makeCondition(A,Lift,Succ,Zed,Rp) where (Lc,L,R) ^= isImplies(A) =>
-    mkConditional(negated(Lc,mkConjunct(Lc,L,negated(Lc,R))),Lift,Succ,Zed,Rp).
+    makeCondition(negated(Lc,mkConjunct(Lc,L,negated(Lc,R))),Lift,Succ,Zed,Rp).
   makeCondition(Other,Lift,Succ,Zed,Rp) => do{
     valis mkConditional(locOf(Other),Other,Succ(Zed),Lift(Zed))
   }
@@ -476,5 +314,55 @@ star.compiler.macro.rules{
     ok(active(unary(Lc,"_valof",E))).
   valofMacro(_,_,_) default =>
     ok(.inactive).
+
+  tryCatchMacro(A,.actn,Rp) where
+      (Lc,B,H) ^= isTryCatch(A) &&
+      (LLc,[As]) ^= isBrTuple(H) => do{
+	A .= rndTuple(LLc,[anon(LLc)]);
+	Q .= equation(Lc,A,mkDoTerm(LLc,As));
+	valis active(mkTryCatch(Lc,B,Q))
+      }.
+  tryCatchMacro(_,_,_) default => ok(.inactive).
+
+  /*
+  for X in L do Act
+  becomes
+  ignore _iter(L,ok(()),let{
+    lP(_,err(E)) => err(E).
+    lP(X,_) => do{ Act}
+  } in lP)
+*/
+
+  forLoopMacro(A,.actn,Rp) where (Lc,T,B) ^= isForDo(A) &&
+      (LLc,X,L) ^= isSearch(T) => do{
+	E .= genName(Lc,"E");
+	Lp .= genName(Lc,"Lp");
+	Err .= unary(Lc,"err",E);
+	Eq1 .= equation(Lc,roundTerm(Lc,Lp,[anon(Lc),Err]),Err);
+	Hd2 .= roundTerm(Lc,Lp,[X,anon(Lc)]);
+	V .= mkDoTerm(Lc,actionSeq(Lc,B,mkValis(Lc,unit(Lc))));
+	Eq2 .= equation(Lc,Hd2,V);
+	LLp .= mkLetDef(Lc,[Eq1,Eq2],Lp);
+	valis active(ternary(Lc,"_iter",L,unary(Lc,"ok",unit(Lc)),LLp))
+      }.
+  forLoopMacro(_,_,_) => ok(.inactive).
+
+  implementationMacro(A,.statement,Rp) where
+      (Lc,Q,C,H,E) ^= isImplementationStmt(A) &&
+      (_,Nm,_) ^= isSquareTerm(H) => do{
+	Ex .= labelImplExp(E,Nm);
+	valis active(mkImplementationStmt(Lc,Q,C,H,Ex))
+      }.
+  implementationMacro(_,_,_) default => ok(.inactive).
+
+  labelImplExp(T,Nm) where (Lc,Els) ^= isBrTuple(T) =>
+    braceTerm(Lc,Nm,Els).
+  labelImplExp(T,Nm) where (Lc,Els) ^= isQBrTuple(T) =>
+    qbraceTerm(Lc,Nm,Els).
+  labelImplExp(T,Nm) where (Lc,Els,Exp) ^= isLetDef(T) =>
+    mkLetDef(Lc,Els,labelImplExp(Exp,Nm)).
+  labelImplExp(T,Nm) where (Lc,Els,Exp) ^= isLetRecDef(T) =>
+    mkLetRecDef(Lc,Els,labelImplExp(Exp,Nm)).
+  labelImplExp(T,_) default => T.
     
 }

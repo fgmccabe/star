@@ -3,6 +3,7 @@ star.compiler.macro.infra{
 
   import star.compiler.ast.
   import star.compiler.errors.
+  import star.compiler.meta.
   import star.compiler.misc.
   import star.compiler.location.
 
@@ -50,6 +51,7 @@ star.compiler.macro.infra{
   macroKey(nme(_,Id)) => Id.
   macroKey(qnm(_,Id)) => Id.
   macroKey(int(_,_)) => "$integer".
+  macroKey(big(_,_)) => "$bigint".
   macroKey(num(_,_)) => "$number".
   macroKey(str(_,_)) => "$string".
   macroKey(chr(_,_)) => "$char".
@@ -57,4 +59,11 @@ star.compiler.macro.infra{
   macroKey(tpl(_,"[]",_)) => "\$[]".
   macroKey(tpl(_,"{}",_)) => "\${}".
   macroKey(app(_,O,_)) => macroKey(O).
+
+  public reveal:(ast,visibility) => ast.
+  reveal(A,.priVate) => unary(locOf(A),"private",A).
+  reveal(A,.pUblic) => unary(locOf(A),"public",A).
+  reveal(A,_) default => A.
+
+
 }
