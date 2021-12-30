@@ -13,12 +13,27 @@ trigonometry, bit string manipulation and so on.
 @node Numeric Types
 @section Numeric Types
 
-There are two standard numeric types: @code{integer} and @code{float}.
+There are three standard numeric types: @code{integer}, @code{bigint} and @code{float}.
 
 @node Integer Type
 @subsection Integer Type
 
-Integers are 64 bit. 
+Integers are 64 bit.
+
+@node Arbitrary Precision Integers
+@subsection Arbitrary Precision Integers
+
+As the name suggests, @code{bigint} numbers have no fixed
+precision. They can be used to represent large values -- up to the
+limits of available memory.
+
+@quotation Note
+Operations on @code{bigint} numbers may be significantly more expensive than operations on fixed size integers.
+@end quotation
+
+In addition, the range of operators supported for @code{bigint}
+numbers is smaller than that for @code{integer} values.
+
 
 @node Float Type
 @subsection Float Type

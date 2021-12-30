@@ -363,10 +363,6 @@
 @tab 950
 @tab function arrow
 @item @code{^}
-@tab non-associative prefix
-@tab 100
-@tab Optional propagation
-@item @code{^}
 @tab non-associative infix
 @tab 100
 @tab Apply optional function and match result
