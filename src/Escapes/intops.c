@@ -53,6 +53,23 @@ ReturnStatus g__int_mod(processPo p, heapPo h, termPo a1, termPo a2) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
+
+ReturnStatus g__int_gcd(heapPo h, termPo a1, termPo a2) {
+  integer lhs = integerVal(a1);
+  integer rhs = integerVal(a2);
+
+  uinteger gC = intGCD(absolute(lhs), absolute(rhs));
+  logical sign = (lhs >= 0) ^ (rhs >= 0);
+
+  if (gC > 0) {
+    termPo g = (termPo) allocateInteger(h, (sign ? gC : -gC));
+
+    return (ReturnStatus) {.ret=Ok, .result=g};
+  } else {
+    return (ReturnStatus) {.ret=Error, .result=voidEnum};
+  }
+}
+
 ReturnStatus g__band(heapPo h, termPo a1, termPo a2) {
   uint64 Lhs = (uint64) integerVal(a1);
   uint64 Rhs = (uint64) integerVal(a2);

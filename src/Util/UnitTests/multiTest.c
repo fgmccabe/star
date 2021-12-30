@@ -24,14 +24,6 @@ static void tearDownTests() {
   freeMulti(oneM);
 }
 
-retCode lg2Tests() {
-  integer cx = 1;
-  for (integer i = 0; i < 63; i++) {
-    assert(lg2(cx << i) == i);
-  }
-  return Ok;
-}
-
 retCode parsePositiveMultiTest() {
   char *positiveNum = "18446744073709551612";
   uint32 data[] = {0xfffffffc, 0xffffffff, 0x0};
@@ -365,7 +357,6 @@ retCode hashTest() {
 
 retCode multiTests() {
   setupTests();
-  tryRet(run_test(lg2Tests));
   tryRet(run_test(checkDivBy10));
   tryRet(run_test(parsePositiveMultiTest));
   tryRet(run_test(parseNegativeMultiTest));
