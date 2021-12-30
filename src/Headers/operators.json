@@ -505,15 +505,6 @@
     "keyword": true
   },
   {
-    "prefixOp": "^",
-    "priorities": [
-      100,
-      99
-    ],
-    "desc": "Optional propagation",
-    "keyword": true
-  },
-  {
     "prefixOp": "case",
     "priorities": [
       901,

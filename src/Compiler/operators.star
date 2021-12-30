@@ -118,7 +118,7 @@ star.compiler.operators{
   oper("==") => [infixOp(899,900,899)].
   oper("\\") => [infixOp(700,700,699)].
   oper("=>") => [infixOp(949,950,950)].
-  oper("^") => [prefixOp(100,99), infixOp(99,100,99)].
+  oper("^") => [infixOp(99,100,99)].
   oper("<=>") => [infixOp(949,950,949)].
   oper("perform") => [prefixOp(300,299)].
   oper("valof") => [prefixOp(300,299)].
@@ -363,7 +363,7 @@ star.compiler.operators{
   final("\\-") => .true.  /* remove element from set */
   final("\\/") => .true.  /* union */
   final("]") => .true.  /* square brackets */
-  final("^") => .true.  /* Optional propagation */
+  final("^") => .true.  /* Apply optional function and match result */
   final("^.") => .true.  /* optional object access */
   final("^/") => .true.  /* filter */
   final("^//") => .true.  /* filter map */
