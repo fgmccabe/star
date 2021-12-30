@@ -120,7 +120,7 @@ star.compiler.matcher{
   applyVar(V,Triples) where crVar(_,_).=V => let{.
     applyToTriple:(triple)=>triple.
     applyToTriple(([crVar(VLc,crId(Vr,_)),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof action{
-      Mp .= [Vr->V];
+    Mp .= {Vr->V};
       NArgs .= rewriteTerms(Args,Mp);
       NAG .= fmap((T)=>rewriteTerm(T,Mp),AG);
       NGl .= fmap((T)=>rewriteTerm(T,Mp),Gl);
@@ -128,7 +128,7 @@ star.compiler.matcher{
       valis (NArgs, (CLc,B,NAG,NGl,NExp),Ix)
     }
     applyToTriple(([crWhere(Lc,crVar(VLc,crId(Vr,_)),Cond),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof action{
-      Mp .= [Vr->V];
+    Mp .= {Vr->V};
       NArgs .= rewriteTerms(Args,Mp);
       NAG .= fmap((T)=>rewriteTerm(T,Mp),AG);
       NCond .= rewriteTerm(Cond,Mp);

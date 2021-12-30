@@ -33,8 +33,8 @@ star.compiler{
     _coerce(other(Y)) => some(err(Y))
   }
 
-  repoOption:optionsProcessor[compilerOptions].
-  repoOption = {
+  repoOption:cmdOption[compilerOptions].
+  repoOption = cmdOption{
     shortForm = "-R".
     alternatives = [].
     usage = "-R dir -- directory of repository".
@@ -54,8 +54,8 @@ star.compiler{
       }.
   }
 
-  wdOption:optionsProcessor[compilerOptions].
-  wdOption = {
+  wdOption:cmdOption[compilerOptions].
+  wdOption = cmdOption{
     shortForm = "-W".
     alternatives = [].
     usage = "-W dir -- working directory".
@@ -75,8 +75,8 @@ star.compiler{
       }.
   }
 
-  typeCheckOnlyOption:optionsProcessor[compilerOptions].
-  typeCheckOnlyOption = {
+  typeCheckOnlyOption:cmdOption[compilerOptions].
+  typeCheckOnlyOption = cmdOption{
     shortForm = "-c".
     alternatives = ["--compile-only"].
     usage = "-c -- type check".
@@ -95,8 +95,8 @@ star.compiler{
 	doStdin=Opts.doStdin}.
   }
 
-  stdinOption:optionsProcessor[compilerOptions].
-  stdinOption = {
+  stdinOption:cmdOption[compilerOptions].
+  stdinOption = cmdOption{
     shortForm = "".
     alternatives = ["--stdin"].
     usage = "--stdin -- compile standard input".
@@ -117,8 +117,8 @@ star.compiler{
   }
 
 
-  traceAstOption:optionsProcessor[compilerOptions].
-  traceAstOption = {
+  traceAstOption:cmdOption[compilerOptions].
+  traceAstOption = cmdOption{
     shortForm = "-dA".
     alternatives = [].
     usage = "-dA -- show ast".
@@ -137,8 +137,8 @@ star.compiler{
 	doStdin=Opts.doStdin
       }.
   }
-  traceMacroOption:optionsProcessor[compilerOptions].
-  traceMacroOption = {
+  traceMacroOption:cmdOption[compilerOptions].
+  traceMacroOption = cmdOption{
     shortForm = "-dM".
     alternatives = [].
     usage = "-dM -- show macro".
@@ -157,8 +157,8 @@ star.compiler{
 	doStdin=Opts.doStdin
       }.
   }
-  traceCodeOption:optionsProcessor[compilerOptions].
-  traceCodeOption = {
+  traceCodeOption:cmdOption[compilerOptions].
+  traceCodeOption = cmdOption{
     shortForm = "-di".
     alternatives = [].
     usage = "-di -- show generated instructions".
@@ -176,8 +176,8 @@ star.compiler{
 	typeCheckOnly=Opts.typeCheckOnly.
 	doStdin=Opts.doStdin}.
   }
-  traceNormOption:optionsProcessor[compilerOptions].
-  traceNormOption = {
+  traceNormOption:cmdOption[compilerOptions].
+  traceNormOption = cmdOption{
     shortForm = "-dT".
     alternatives = [].
     usage = "-dT -- show normalized code".
@@ -195,8 +195,8 @@ star.compiler{
 	typeCheckOnly=Opts.typeCheckOnly.
 	doStdin=Opts.doStdin}.
   }
-  traceCheckOption:optionsProcessor[compilerOptions].
-  traceCheckOption = {
+  traceCheckOption:cmdOption[compilerOptions].
+  traceCheckOption = cmdOption{
     shortForm = "-dt".
     alternatives = [].
     usage = "-dt -- show type checkedcode".
@@ -214,8 +214,8 @@ star.compiler{
 	typeCheckOnly=Opts.typeCheckOnly.
 	doStdin=Opts.doStdin}.
   }
-  optimizeLevel:optionsProcessor[compilerOptions].
-  optimizeLevel = {
+  optimizeLevel:cmdOption[compilerOptions].
+  optimizeLevel = cmdOption{
     shortForm = "-O".
     alternatives = ["--optimize"].
     usage = "-O <Lvl> -- set optimization".
@@ -233,8 +233,8 @@ star.compiler{
 	typeCheckOnly=Opts.typeCheckOnly.
 	doStdin=Opts.doStdin}.
   }
-  showPkgGraphOption:optionsProcessor[compilerOptions].
-  showPkgGraphOption = {
+  showPkgGraphOption:cmdOption[compilerOptions].
+  showPkgGraphOption = cmdOption{
     shortForm = "-I".
     alternatives = ["--graph"].
     usage = "-I file -- show package import dot graph".

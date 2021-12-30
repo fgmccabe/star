@@ -28,6 +28,7 @@
     "star.compiler.macro" : "macro.star",
     "star.compiler.macro.infra" : "macroinfra.star",
     "star.compiler.macro.rules" : "macrorules.star",
+    "star.compiler.macro.driver" : "macrodriver.star",
     "star.compiler.meta" : "meta.star",
     "star.compiler.opg": "opg.star",
     "star.compiler.parser": "parser.star",

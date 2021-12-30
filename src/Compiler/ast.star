@@ -19,6 +19,7 @@ star.compiler.ast{
     eq(nme(_,I1),nme(_,I2)) => I1==I2.
     eq(qnm(_,I1),qnm(_,I2)) => I1==I2.
     eq(int(_,L1),int(_,L2)) => L1==L2.
+    eq(big(_,I1),big(_,I2)) => I1==I2.
     eq(num(_,L1),num(_,L2)) => L1==L2.
     eq(str(_,L1),str(_,L2)) => L1==L2.
     eq(chr(_,L1),chr(_,L2)) => L1==L2.
@@ -127,6 +128,10 @@ star.compiler.ast{
   isStr(str(Lc,Sx)) => some((Lc,Sx)).
   isStr(_) default => .none.
 
+  public isZeroary:(ast,string) => option[locn].
+  isZeroary(app(Lc,nme(_,Op),tpl(_,"()",[])),Op) => some(Lc).
+  isZeroary(_,_) default => .none.
+
   public zeroary:(locn,string)=>ast.
   zeroary(Lc,Op) => app(Lc,nme(Lc,Op),tpl(Lc,"()",[])).
 
@@ -164,6 +169,8 @@ star.compiler.ast{
 
   public rndTuple:(locn,cons[ast]) => ast.
   rndTuple(Lc,Els) => tpl(Lc,"()",Els).
+
+  public unit(Lc) => rndTuple(Lc,[]).
 
   public isSqTuple:(ast) => option[(locn,cons[ast])].
   isSqTuple(tpl(Lc,"[]",A)) => some((Lc,A)).

@@ -17,7 +17,8 @@ star.compiler.catalog{
 
   public parseCat:(json,uri) => option[catalog].
   parseCat(jColl(M),U) => some(catalog{
-      parent=M["default"]>>=(jTxt(Ut))=>parseUri(Ut)>>=(PU)=>loadCatalog(^resolveUri(U,PU)).
+      parent=M["default"]>>=(jTxt(Ut))=>parseUri(Ut)>>=(PU)=>
+	(RU^=resolveUri(U,PU) ? loadCatalog(RU) || .none).
       vers=M["version"] >>= (jTxt(V)) => some(V::version).
       base=U.
       entries=deflt(M["content"]>>=(jColl(C))=>some(C///((_,jTxt(E))=>E)),()=>[]).
@@ -29,7 +30,8 @@ star.compiler.catalog{
   parseSubCats:(uri,cons[json],cons[catalog]) => option[cons[catalog]].
   parseSubCats(_,[],So) => some(So).
   parseSubCats(U,[jTxt(CU),..Cs],So) => valof action{
-    SC ^= (parseUri(CU) >>= (PU)=>loadCatalog(^resolveUri(U,PU)));
+    SC ^= (parseUri(CU) >>= (PU)=>
+	(RU^=resolveUri(U,PU) ? loadCatalog(RU) || .none));
     valis parseSubCats(U,Cs,[SC,..So])
   }
 
@@ -50,23 +52,15 @@ star.compiler.catalog{
     some((PU,pkg(Pkg,deflt(Cat.vers,()=>.defltVersion)))).
   findInCat(Cat,Pkg) => findInSubs(Cat.subcats,Pkg).
 
+  findInSubs:(cons[catalog],string) => option[(uri,pkg)].
   findInSubs([],_) => .none.
   findInSubs([Cat,..Cats],Pkg) where R^=findInCat(Cat,Pkg) => some(R).
   findInSubs([_,..Cats],Pkg) => findInSubs(Cats,Pkg).
 
-  public implementation display[catalog] => let{
-    dispCat:(catalog)=>ss.
-    dispCat(Cat) => ssSeq([
-	ss("catalog: at "),
-	disp(Cat.base),
-	ss("\ncontent: "),
-	disp(Cat.entries),
-	ss("\nversion: "),
-	disp(Cat.vers),
-	(Parent^=Cat.parent ? ssSeq([ss("\nparent: "),dispCat(Parent)]) || ss("")),
-	ss("\nsubcats: "),ssSeq(interleave(Cat.subcats//dispCat,ss(";")))
-    ])
-   } in {
+  public implementation display[catalog] => let{.
+    dispCat:(catalog)=>string.
+    dispCat(Cat) => "catalog: at $(Cat.base)\ncontent: $(Cat.entries)\nversion: $(Cat.vers) #(Parent^=Cat.parent ? "\nparent: #(dispCat(Parent))" || "")\nsubcats: #(interleave(Cat.subcats//dispCat,";")*)"
+  .} in {
     disp(Cat) => dispCat(Cat)
   }
 }

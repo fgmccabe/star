@@ -173,16 +173,16 @@ star.compiler.lexer{
   hexChars(St,Hx) => (St,some(Hx)).
 
   readNumber:(tokenState) => (tokenState,option[token]).
-  readNumber(St) where (Nx,some(Mn)) .= readNatural(St,[]) => readMore(Nx,St,Mn).
+  readNumber(St) where (Nx,some(Mn)) .= readNatural(St,[]) => readMore(Nx,St,Mn::integer).
 
   readNatural:(tokenState,cons[char]) => (tokenState,option[string]).
   readNatural(St,Sf) where (Nx,some(Dg)).=nextChr(St) && isDigit(Dg) =>
-    readNatural(Nx,[Sf..,Dg]).
-  readNatural(St,Sf) => (St,some(Sf)).
+    readNatural(Nx,[Dg,..Sf]).
+  readNatural(St,Sf) => (St,some(reverse(Sf)::string)).
 
   readInt:(tokenState) => (tokenState,option[integer]).
-  readInt(St) where Nx^=lookingAt(St,[`-`]) && (St1,some(Nt)).=readNatural(Nx,0) => (St1,some(-Nt)).
-  readInt(St) => readNatural(St,0).
+  readInt(St) where Nx^=lookingAt(St,[`-`]) && (St1,some(Nt)).=readNatural(Nx,[]) => (St1,some(-(Nt::integer))).
+  readInt(St) where (NxSt,some(N)) .= readNatural(St,[]) => (NxSt,some(N::integer)).
 
   readMore:(tokenState,tokenState,integer) => (tokenState,option[token]).
   readMore(St,St0,Sf) where St1^=lookingAt(St,[`.`]) && Hd^=hedChar(St1) && isDigit(Hd) =>
