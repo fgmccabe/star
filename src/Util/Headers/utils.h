@@ -12,7 +12,7 @@
 #endif
 
 #ifndef ALIGNVALUE
-#define ALIGNVALUE(count,size) ((((count)*(size)-1)/(size))*(size))
+#define ALIGNVALUE(count, size) ((((count)*(size)-1)/(size))*(size))
 #endif
 
 #ifndef NumberOf
@@ -67,9 +67,10 @@ static logical inline isOdd(integer x) {
 
 extern char *genSym(const char *prefix, char *buffer, integer buffLen);
 
-extern integer lg2(integer ix);
+integer lg2(integer ix);
+uinteger intGCD(uinteger a, uinteger b);
 
-extern integer nextPrime(integer min);
+integer nextPrime(integer min);
 
 extern void syserr(const char *msg);
 #define check(Tst, Msg) STMT_WRAP(if(!(Tst)){check_(__func__, __FILE__, __LINE__,#Tst,(Msg));})

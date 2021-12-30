@@ -30,6 +30,7 @@ escape(_int_times, "F(ii)i", "multiply two integers")
 escape(_int_div, "F(ii)i", "divide two integers")
 escape(_int_mod, "F(ii)i", "modulo remainder")
 escape(_int_hash, "F(i)i", "compute hash of integer")
+escape(_int_gcd, "F(ii)i", "gcd of two integers")
 
 escape(_flt_plus, "F(ff)f", "add two floats")
 escape(_flt_minus, "F(ff)f", "subtract two floats")

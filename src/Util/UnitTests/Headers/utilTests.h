@@ -9,5 +9,6 @@
 #include "buddyTest.h"
 #include "unitTests.h"
 #include "multiTests.h"
+#include "miscTest.h"
 
 #endif //STAR_UTILTESTS_H
