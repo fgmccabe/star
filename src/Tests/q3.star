@@ -17,14 +17,14 @@ test.q3{
     ("g", ["f"])].
 
   gender:map[string,gender].
-  gender = ["a" -> .male,
+  gender = {"a" -> .male,
     "b" -> .female,
     "ab" -> .male,
     "de" -> .female,
     "d" -> .male,
     "e" -> .female,
     "f" -> .male,
-    "g" -> .male].
+    "g" -> .male}.
 
   maleOff(
 
