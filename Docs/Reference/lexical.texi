@@ -122,6 +122,7 @@ represent the Unicode code points of particular characters.
 @caption{Numeric Literals}
 @display
 @anchored{NumericLiteral} ::= @refer{Decimal}
+  | @refer{BigInteger}
   | @refer{Hexadecimal}
   | @refer{FloatingPoint}
   | @refer{CharacterCode}
@@ -147,7 +148,8 @@ An integer is written using the normal decimal notation (@pxref{decimalFig}):
 @end example
 
 @quotation TIP
-All integers are represented as at least 64 bit values.
+All integers are represented as at least 64 bit values. So-called
+@emph{bigints} have arbitrary precision.
 @end quotation
 
 @float BNF,decimalFig
@@ -155,8 +157,12 @@ All integers are represented as at least 64 bit values.
 @display
 @anchored{Decimal} ::=@refer{Digit} @dots{} @refer{Digit}+
 @anchored{Digit} ::= @code{'0'}|@code{'1'}|@code{'2'}|@code{'3'}|@code{'4'}|@code{'5'}|@code{'6'}|@code{'7'}|@code{'8'}|@code{'9'}
+@anchored{BigInteger} ::=@refer{Decimal} @code{'b'}
 @end display
 @end float
+
+Normal integers have limited (64bit) precision, whereas big integers
+have unlimited precision.
 
 @node Hexadecimal Integers 
 @subsection Hexadecimal Integers
@@ -340,7 +346,6 @@ A string is a sequence of character references (@pxref{CharRef}).
 
 There are two forms of @emph{string literal}: a
 @var{QuotedString} and a @var{BlockString}.
-
 
 @float BNF,quotedStringFig
 @caption{String Literals}

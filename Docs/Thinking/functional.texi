@@ -72,12 +72,24 @@ explicit about the state. For example, the function:
 
 @example
 addAll:(integer,integer)=>integer.
-addAll(from,to) => let@{
+addAll(from,to) => let@{.
   accum(ix,acc) where ix>=to => acc.
   accum(ix,acc) => accum(ix+1,acc+ix).
-@} in accum(from,0).
+.@} in accum(from,0).
 @end example
-is the `functional equivalent' of the normal Java loop:
+The form
+@example
+let@{.
+  accum(ix,acc) where ix>=to => acc.
+  accum(ix,acc) => accum(ix+1,acc+ix).
+.@} in accum(from,0)
+@end example
+is a fairly standard let definition. In this case, this is equivalent
+to a @emph{let rec} -- a fact signalled by the use of @code{@{.} and
+@code{.@}} bracketing the definitions in the body of the @code{let}
+expression.
+
+The @code{addAll} definition is the `functional equivalent' of the normal Java loop:
 @example
 int addAll(int from,int to)@{
   int acc = 0;
@@ -87,7 +99,7 @@ int addAll(int from,int to)@{
 @}
 @end example
 Apart from the use of recursion, the other main difference is that the
-`state' – which in both cases is held in the acc variable – is
+`state' – which in both cases is held in the @code{acc} variable – is
 explicitly handed down the functional program, whereas the Java
 program handles state implicitly.
 

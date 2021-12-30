@@ -230,10 +230,14 @@ such types.
 @table @code
 @item boolean
 used for logical values and conditions
+@item char
+used for character values
 @item float
 type of floating point numbers
 @item integer
-type of integer values
+type of fixed precision integer values
+@item bigint
+type of arbitrary precision integer values
 @item string
 type of string values
 @end table

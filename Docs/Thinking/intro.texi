@@ -285,7 +285,7 @@ As another example, we can see that a dictionary literal is also a
 variation on the collection – except that we have keys as well as
 values:
 @example
-[ "alpha"->1, "beta"->2 ]
+@{ "alpha"->1, "beta"->2 @}
 @end example
 
 @node Comprehensions

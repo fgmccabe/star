@@ -88,6 +88,9 @@ repository} is. If it is not specified explicitly the compiler will
 search the current working directory for a sub-directory called
 @code{.star-repo}; and its parent directories until root, until it
 finds one.
+
+This represents a conventient method for establishing a project-wide
+repository somewhere near the root directory of your project.
 @item -w
 The @code{-w} flag indicates that the compiler should search the
 indicated directory for the appropriate catalog file for the package
