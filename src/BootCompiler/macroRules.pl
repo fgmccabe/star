@@ -14,16 +14,17 @@ macroRl("[]",expression,macroRules:squareSequenceMacro).
 macroRl("$[]",expression,macroRules:indexMacro).
 macroRl("<||>",expression,macroRules:macroQuote).
 macroRl("{}",expression,macroRules:comprehensionMacro).
+macroRl("{}",expression,macroRules:mapLiteralMacro).
 macroRl("{!!}",expression,macroRules:macroIotaComprehension).
 macroRl("{??}",expression,macroRules:iterableGoalMacro).
 macroRl("::",expression,macroRules:coercionMacro).
 macroRl(":?",expression,macroRules:coercionMacro).
 macroRl("*",expression,macroRules:multicatMacro).
+macroRl("?",expression,macroRules:optionalPropagatetMacro).
 macroRl("__pkg__",expression,macroRules:pkgNameMacro).
 macroRl("__loc__",expression,macroRules:macroLocationExp).
 macroRl("-",expression,macroRules:uminusMacro).
 macroRl("^=",expression,macroRules:optionMatchMacro).
-macroRl("^",pattern,macroRules:optionPtnMacro).
 macroRl("^",expression,macroRules:unwrapExpMacro).
 macroRl("!",expression,macroRules:binRefMacro).
 macroRl(":=",action,macroRules:spliceAssignMacro).
@@ -68,8 +69,7 @@ synthesize_coercions([],[],[]).
 synthesize_coercions([T|Ts],[V|Vs],[C|Cs]) :-
   locOfAst(T,Lc),
   genIden(Lc,V),
-  unary(Lc,"chrs_",V,VS),
-  coerce(Lc,VS,T,C),
+  coerce(Lc,V,T,C),
   synthesize_coercions(Ts,Vs,Cs).
 
 list_pttrn(Lc,[],Arg) :-
@@ -83,9 +83,6 @@ squareSequenceMacro(A,expression,Trm) :-
   \+isMapLiteral(A,_,_),
   \+isListComprehension(A,_,_,_),!,
   macroListEntries(Lc,Els,Trm,nilGen,consGen).
-squareSequenceMacro(A,expression,Trm) :-
-  isMapLiteral(A,Lc,Prs),
-  macroListEntries(Lc,Prs,Trm,emptyGen,putGen).
 
 nilGen(Lc,name(Lc,"_nil")).
 
@@ -97,7 +94,8 @@ appndGen(Lc,L,R,Trm) :-
 
 emptyGen(Lc,name(Lc,"_empty")).
 
-putGen(Lc,(F,V),R,Trm) :-
+putGen(Lc,Pr,R,Trm) :-
+  isPair(Pr,_,F,V),
   ternary(Lc,"_put",R,F,V,Trm).
 
 concGen(Lc,L,(F,V),Trm) :-
@@ -134,6 +132,10 @@ indexMacro(T,expression,Rp) :-
 indexMacro(T,expression,Rp) :-
   isSlice(T,Lc,M,Fr,To),
   ternary(Lc,"_slice",M,Fr,To,Rp).
+
+mapLiteralMacro(A,expression,Trm) :-
+  isMapLiteral(A,Lc,Prs),!,
+  macroListEntries(Lc,Prs,Trm,emptyGen,putGen).
 
 comprehensionMacro(T,expression,Rp) :-
   isComprehension(T,Lc,Bnd,Body),!,
@@ -233,6 +235,24 @@ multicatMacro(T,expression,Tx) :-
   isUnary(T,Lc,"*",I),!,
   unary(Lc,"_multicat",I,Tx).
 
+% ?E[^X] (i.e., E containing subexpression ^X) -> (some(V).=X?some(E[^V])||none)
+
+optionalPropagatetMacro(T,expression,Tx) :-
+  isUnary(T,Lc,"?",I),
+  genIden(Lc,V),
+  propFindReplace(I,V,R,X),!,
+  unary(Lc,"some",V,AP),
+  match(Lc,AP,X,PX),
+  mkEnum(Lc,"none",Empty),
+  unary(Lc,"some",R,RO),
+  conditional(Lc,PX,RO,Empty,Tx).
+
+propFindReplace(A,V,R,X) :-
+  astFindReplace(A,macroRules:getProp(V,X),R).
+
+getProp(V,X,A,V) :-
+  isUnary(A,_,"^",X),!.
+
 uminusMacro(T,expression,Tx) :-
   isUnaryMinus(T,Lc,A),
   isInteger(A,_,Ix),!,
@@ -257,10 +277,6 @@ optionMatchMacro(T,expression,Tx) :-
   unary(Lc,"some",P,SP),
   match(Lc,SP,E,Tx).
 
-optionPtnMacro(T,pattern,Tx) :-
-  isOptionPtn(T,Lc,Pt,Ex),
-  mkWherePtn(Lc,Pt,Ex,Tx).
-
 unwrapExpMacro(T,expression,Tx) :-
   isBinary(T,Lc,"^",L,R),isIden(L,_,Con),!,
   genIden(Lc,V),
@@ -281,7 +297,7 @@ macroLocationExp(T,expression,Loc) :-
   becomes
   ignore _iter(L,ok(()),let{
     lP(_,err(E)) => err(E).
-    lP(X,_) => do{ Act}
+    lP(X,_) => do{ Act; valis ()}
   } in lP)
 */
 

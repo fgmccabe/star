@@ -31,11 +31,11 @@
 	      isCoerce/4,coerce/4,isOptCoerce/4,optCoerce/4,
 	      isFieldAcc/4,fieldAcc/4,isIndexTerm/4,mkIndexTerm/4,isRecordUpdate/4,recordUpdate/4,
 	      isSlice/5,isSplice/6,
-	      isOptionPtn/4,isOptionMatch/4,optionMatch/4,
+	      isOptionMatch/4,optionMatch/4,
 	      isConjunct/4,conjunct/4,isDisjunct/4,disjunct/4,
 	      isForall/4,mkForall/4,isNegation/3,negation/3,
 	      isMatch/4,match/4,isSearch/4,search/4,isBind/4,mkBind/4,
-	      isMapLiteral/3,
+	      isMapLiteral/3,mkMapLiteral/3,
 	      isComprehension/4,mkComprehension/4,
 	      isListComprehension/4,mkListComprehension/4,
 	      isIotaComprehension/4,
@@ -582,9 +582,6 @@ whereTerm(_,Lhs,Cond,Lhs) :-
 whereTerm(Lc,Lhs,Rhs,Trm) :-
   binary(Lc,"where",Lhs,Rhs,Trm).
 
-isOptionPtn(Trm,Lc,Ptn,Opt) :-
-  isBinary(Trm,Lc,"^",Opt,Ptn),!.
-
 isOptionMatch(Trm,Lc,Ptn,Vl) :-
   isBinary(Trm,Lc,"^=",Ptn,Vl).
 
@@ -660,9 +657,17 @@ search(Lc,L,R,T) :-
   binary(Lc,"in",L,R,T).
 
 isMapLiteral(T,Lc,Prs) :-
-  isSquareTuple(T,Lc,Els),
-  Els\==[],
-  map(Els,wff:collectPair,Prs).
+  isBraceTuple(T,Lc,[E]),
+  deComma(E,Prs),
+  check_implies(misc:is_member(Pr,Prs),wff:isPair(Pr,_,_,_)),!.
+isMapLiteral(T,Lc,[]) :-
+  isBraceTuple(T,Lc,[]).
+
+mkMapLiteral(Lc,[],M) :-!,
+  braceTuple(Lc,[],M).
+mkMapLiteral(Lc,Prs,M) :-
+  reComma(Prs,I),
+  braceTuple(Lc,[I],M).
 
 collectPair(T,(F,E)) :-
   isPair(T,_,F,E).

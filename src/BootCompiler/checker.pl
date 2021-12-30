@@ -434,7 +434,8 @@ checkThetaBody(Tp,Lbl,Lc,Els,Env,Val,Path) :-
   pushScope(Env,Base),
   declareTypeVars(Q,Lc,Base,E0),
   declareConstraints(Lc,Cx,E0,BaseEnv),
-  thetaEnv(Path,Lc,Els,Face,BaseEnv,_,Defs,Public),
+  genNewName(Path,"Γ",ThPath),
+  thetaEnv(ThPath,Lc,Els,Face,BaseEnv,_,Defs,Public),
   faceOfType(ETp,Lc,Env,TpFace),
   getConstraints(TpFace,_,faceType(Fs,_)),
   completePublic(Public,Public,FullPublic,Path),
@@ -455,7 +456,8 @@ checkRecordBody(Tp,Lbl,Lc,Els,Env,Val,Path) :-
   pushScope(Env,Base),
   declareTypeVars(Q,Lc,Base,E0),
   declareConstraints(Lc,Cx,E0,BaseEnv),
-  recordEnv(Path,Lc,Els,faceType(Fs,Ts),BaseEnv,_,Defs,Public),
+  genNewName(Path,"Γ",ThPath),
+  recordEnv(ThPath,Lc,Els,faceType(Fs,Ts),BaseEnv,_,Defs,Public),
   completePublic(Public,Public,FullPublic,Path),
   computeThetaExport(Defs,Fs,FullPublic,Decls,Defns),!,
   formRecord(Lc,Lbl,Decls,Defns,Fs,Tp,Val).
@@ -607,10 +609,6 @@ typeOfPtn(Trm,Tp,ErTp,Env,Ev,tple(Lc,Els),Path) :-
   genTpVars(A,ArgTps),
   verifyType(Lc,tplType(ArgTps),Tp,Env),
   typeOfPtns(A,ArgTps,ErTp,Env,Ev,Lc,Els,Path).
-typeOfPtn(Term,Tp,ErTp,Env,Ev,Ptn,Path) :-
-  isOptionPtn(Term,Lc,Pt,Ex),
-  mkWherePtn(Lc,Pt,Ex,Trm),
-  typeOfPtn(Trm,Tp,ErTp,Env,Ev,Ptn,Path).
 typeOfPtn(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
   newTypeVar("A",At),
@@ -1305,19 +1303,6 @@ typeOfPtns([A|As],[ETp|ElTypes],ErTp,Env,Ev,_,[Term|Els],Path) :-
   typeOfPtn(A,ElTp,ErTp,Env,E0,Term,Path),
   locOfAst(A,Lc),
   typeOfPtns(As,ElTypes,ErTp,E0,Ev,Lc,Els,Path).
-
-% Analyse a square tuple term to try to disambiguate maps from others.
-
-isMapSequence([E|_]) :-
-  isBinary(E,_,"->",_,_).
-
-isMapType(Tp,Env) :-
-  isType("map",Env,tpDef(_,MpTp,_)),!,
-  deRef(Tp,tpExp(TF1,_)),
-  deRef(TF1,tpExp(MpTp,_)).
-
-isListSequence([E|_]) :-
-  \+isBinary(E,_,"->",_,_).
 
 packageExport(Defs,Public,ExportDecls,LDecls,XDefs) :-
   genDecls(Defs,checker:isPkgPublic(Public),ExportDecls,[],LDecls,[],XDefs,[]).

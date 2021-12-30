@@ -15,7 +15,8 @@
 		    isFloat/3,isString/3,
 		    isChar/3,mkChar/3,isInteger/3,mkInteger/3,mkFloat/3,
 		    isBigInt/3,mkBigInt/3,
-		    isConsTerm/4, sameTerm/2]).
+		    isConsTerm/4, sameTerm/2,
+		    astFindReplace/3]).
 :- use_module(operators).
 :- use_module(misc).
 
@@ -170,6 +171,28 @@ sameTerms([],[]).
 sameTerms([A|L1],[B|L2]) :-
   sameTerm(A,B),
   sameTerms(L1,L2).
+
+astFindReplace(T,C,R) :-
+  findReplace(T,C,R),!.
+
+findReplace(T,C,R) :-
+  call(C,T,R),!.
+findReplace(name(Lc,Nm),_,name(Lc,Nm)).
+findReplace(integer(Lc,Ix),_,integer(Lc,Ix)).
+findReplace(bigint(Lc,Ix),_,bigint(Lc,Ix)).
+findReplace(float(Lc,Dx),_,float(Lc,Dx)).
+findReplace(char(Lc,S),_,char(Lc,S)).
+findReplace(string(Lc,S),_,string(Lc,S)).
+findReplace(tuple(Lc,T,A),C,tuple(Lc,T,B)) :-
+  findInList(A,C,B).
+findReplace(app(Lc,OA,AA),C,app(Lc,OB,BA)) :-
+  findReplace(OA,C,OB),
+  findReplace(AA,C,BA).
+
+findInList([],_,[]).
+findInList([A|L1],C,[B|L2]) :-
+  findReplace(A,C,B),
+  findInList(L1,C,L2).
 
 deParen(T,I) :-
   isRoundTuple(T,_,[I]),!.
