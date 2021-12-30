@@ -11,7 +11,7 @@ test.p{
 
   onlyOk:(cons[string]) => cons[integer].
   onlyOk(.nil) => .nil.
-  onlyOk(cons(isOk^(X),L)) => cons(X,onlyOk(L)).
+  onlyOk(cons(Z where X^=isOk(Z),L)) => cons(X,onlyOk(L)).
   onlyOk(cons(_,L)) => onlyOk(L).
 
   main:() => action[(),()].

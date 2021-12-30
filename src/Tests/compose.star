@@ -4,7 +4,7 @@ test.compose{
   import star.script.
 
   digit:(cons[char]) => option[(cons[char],integer)].
-  digit([digitVal^(D),..L]) => some((L,D)).
+  digit([(Z where D^=digitVal(Z)),..L]) => some((L,D)).
   digit(_) => .none.
 
   digitVal:(char)=>option[integer].
