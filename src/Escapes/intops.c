@@ -53,16 +53,11 @@ ReturnStatus g__int_mod(processPo p, heapPo h, termPo a1, termPo a2) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-
 ReturnStatus g__int_gcd(heapPo h, termPo a1, termPo a2) {
-  integer lhs = integerVal(a1);
-  integer rhs = integerVal(a2);
-
-  uinteger gC = intGCD(absolute(lhs), absolute(rhs));
-  logical sign = (lhs >= 0) ^ (rhs >= 0);
+  integer gC = intGCD(integerVal(a1), integerVal(a2));
 
   if (gC > 0) {
-    termPo g = (termPo) allocateInteger(h, (sign ? gC : -gC));
+    termPo g = (termPo) allocateInteger(h, gC);
 
     return (ReturnStatus) {.ret=Ok, .result=g};
   } else {
