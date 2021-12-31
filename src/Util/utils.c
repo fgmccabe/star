@@ -61,20 +61,24 @@ integer lg2(integer ix) {
   return (integer) r;
 }
 
-uinteger intGCD(uinteger a, uinteger b) {
-  if (a > b) {
-    uinteger r = a % b;
-    if (r == 0) {
-      return b;
-    } else
-      return intGCD(r, b);
-  } else {
-    uinteger r = b % a;
-    if (r == 0) {
-      return a;
-    } else
-      return intGCD(r, a);
-  }
+integer intGCD(integer a, integer b) {
+  a = absolute(a);
+  b = absolute(b);
+  do {
+    if (b > a) {
+      integer w = a;
+      a = b;
+      b = w;
+    }
+    if (a > b) {
+      integer r = a % b;
+      if (r == 0) {
+        return b;
+      } else
+        a = r;
+    }
+  } while (a != b);
+  return a;
 }
 
 static pthread_mutex_t prMutex = PTHREAD_MUTEX_INITIALIZER;

@@ -23,15 +23,12 @@ retCode lg2Tests() {
 }
 
 retCode gcdTests() {
-  integer a = 1071;
-  integer b = 462;
-
-  integer gcd = intGCD(a, b);
-
   if (debugUnitTests)
-    outMsg(logFile, "gcd(%d,%d) is %d\n%_", a, b, gcd);
+    outMsg(logFile, "gcd(%d,%d) is %d\n%_", 1071, 462, intGCD(1071, 462));
 
-  assert(gcd == 21);
+  assert(intGCD(1071, 462) == 21);
+  assert(intGCD(1071, -462) == 21);
+  assert(intGCD(2, 3) == 1);
   return Ok;
 }
 

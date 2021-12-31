@@ -68,7 +68,7 @@ static logical inline isOdd(integer x) {
 extern char *genSym(const char *prefix, char *buffer, integer buffLen);
 
 integer lg2(integer ix);
-uinteger intGCD(uinteger a, uinteger b);
+integer intGCD(integer a, integer b);
 
 integer nextPrime(integer min);
 
