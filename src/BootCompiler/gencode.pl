@@ -251,9 +251,9 @@ compTerm(case(Lc,T,Cases,Deflt),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx)
 compTerm(unpack(Lc,T,Cases),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   genLbl(L,Nxt,L1),
-  compTerm(T,Lc,contCont(Nxt),TCont,Opts,L1,L2,D,D2,End,C0,[iLbl(Nxt)|C1],Stk,_Stk),
+  compTerm(T,Lc,contCont(Nxt),TCont,Opts,L1,L2,D,D2,End,C0,[iLbl(Nxt)|C1],Stk,Stk0),
   compCnsCases(Cases,Lc,gencode:compTermCase(TCont),Cont,TCont,Opts,
-	       L2,Lx,D2,Dx,C1,Cx,Stk,Stkx).
+	       L2,Lx,D2,Dx,C1,Cx,Stk0,Stkx).
 compTerm(varNames(Lc,Vrs,T),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   populateVarNames(Vrs,Lc,D,C0,C1),!,
@@ -399,9 +399,9 @@ compAction(unpack(Lc,T,Cases),OLc,Cont,RCont,ECont,Opts,
 	   L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   genLbl(L,Nxt,L1),
-  compTerm(T,Lc,contCont(Nxt),ECont,Opts,L1,L2,D,D2,End,C0,[iLbl(Nxt)|C1],Stk,_Stk),
+  compTerm(T,Lc,contCont(Nxt),ECont,Opts,L1,L2,D,D2,End,C0,[iLbl(Nxt)|C1],Stk,Stk0),
   compCnsCases(Cases,Lc,gencode:compActionCase(RCont,ECont),
-	       Cont,ECont,Opts,L2,Lx,D2,Dx,C1,Cx,Stk,Stkx).
+	       Cont,ECont,Opts,L2,Lx,D2,Dx,C1,Cx,Stk0,Stkx).
 compAction(rtnDo(Lc,E),_Lc,_Cont,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   compTerm(E,Lc,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 compAction(raisDo(Lc,E),_Lc,_Cont,_RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
