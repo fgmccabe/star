@@ -275,6 +275,10 @@
 @tab 930
 @tab wrap value in monad
 @item @code{?}
+@tab non-associative prefix
+@tab 120
+@tab catch an optional propagation
+@item @code{?}
 @tab right associative infix
 @tab 920
 @tab conditional operator
@@ -362,6 +366,10 @@
 @tab right associative infix
 @tab 950
 @tab function arrow
+@item @code{^}
+@tab non-associative prefix
+@tab 100
+@tab Optional propagation
 @item @code{^}
 @tab non-associative infix
 @tab 100
