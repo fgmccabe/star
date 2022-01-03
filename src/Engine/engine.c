@@ -78,6 +78,7 @@ processPo newProcess(heapPo h, methodPo mtd, char *rootWd, capabilityPo processC
     P->waitFor = never;
 
   P->tracing = tracing;
+  P->waterMark = stk->fp;
 
   setProcessWd(P, rootWd, uniStrLen(rootWd));
 

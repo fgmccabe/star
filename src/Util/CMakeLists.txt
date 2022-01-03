@@ -92,7 +92,7 @@ set(HEADER_FILES
         Headers/promiseP.h
         Headers/buddyP.h
         Headers/multi.h
-        Headers/formatted.h Headers/multiP.h)
+        Headers/formatted.h Headers/multiP.h Headers/match.h)
 
 set(SOURCE_FILES
         arrays.c
@@ -144,7 +144,7 @@ set(SOURCE_FILES
         ${FLEX_JsonTokeniser_OUTPUTS}
 
         ${PUBLIC_HEADERS}
-        ${HEADER_FILES})
+        ${HEADER_FILES} match.c)
 
 add_library(ooio STATIC ${SOURCE_FILES})
 target_link_libraries(ooio pthread m)

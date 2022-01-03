@@ -15,7 +15,6 @@ logical traceAllocs = False;      // trace allocations
 logical validateMemory = False;   // Validate heap after every allocation
 
 HeapRecord heap;
-heapPo currHeap = NULL;
 heapPo globalHeap = Null;
 
 integer numAllocated = 0;

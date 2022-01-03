@@ -10,7 +10,6 @@ typedef struct heap_ *heapPo;
 
 extern void initHeap(long heapSize);
 
-extern heapPo currHeap;
 extern heapPo globalHeap;
 
 #ifdef TRACEMEM

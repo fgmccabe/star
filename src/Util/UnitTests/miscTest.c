@@ -6,7 +6,6 @@
 
 #include <formioP.h>
 #include <assert.h>
-#include "miscTest.h"
 
 static void setupTests() {
 }

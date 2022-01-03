@@ -22,6 +22,7 @@ typedef struct program_label_ {
   methodPo mtd;               // Optimization - is a method defined for this label?
   char *name;                 // LblRecord name
   integer len;                // How long is the label name
+  logical breakPointSet;      // Has a breakpoint been set for this label
   lblTablePo table;           // table of similar labels (different arities)
 } LblRecord;
 

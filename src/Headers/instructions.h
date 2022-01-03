@@ -15,6 +15,8 @@
 */
 
 instruction(Halt,i32,nOp,0,"Stop execution")
+instruction(Nop,nOp,nOp,0,"No operation")
+
 instruction(Abort,tOs,nOp,-2,"abort with message")
 
 instruction(Call,sym,nOp,0,"Call <prog>")
