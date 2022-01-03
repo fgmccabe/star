@@ -28,7 +28,7 @@ star.compiler.macro.infra{
     _ == _ default => .false
   }
 
-  implementation display[macroContext] => {
+  public implementation display[macroContext] => {
     disp(.package) => "package".
     disp(.statement) => "statement".
     disp(.expression) => "expression".
@@ -56,6 +56,7 @@ star.compiler.macro.infra{
   macroKey(str(_,_)) => "$string".
   macroKey(chr(_,_)) => "$char".
   macroKey(tpl(_,"()",[tpl(Lc,Lb,I)])) => macroKey(tpl(Lc,Lb,I)).
+  macroKey(tpl(_,"()",_)) => "\$()".
   macroKey(tpl(_,"[]",_)) => "\$[]".
   macroKey(tpl(_,"{}",_)) => "\${}".
   macroKey(app(_,O,_)) => macroKey(O).

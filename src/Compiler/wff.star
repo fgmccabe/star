@@ -817,12 +817,18 @@ star.compiler.wff{
   public mkQTheta(Lc,Els) => qbrTuple(Lc,Els).
 
   public isLabeledTheta:(ast) => option[(locn,ast,cons[ast])].
-  isLabeledTheta(A) => isQBrTerm(A).
+  isLabeledTheta(A) where (Lc,Op,Els) ^= isQBrTerm(A) &&
+      ~_^=isKeyword(Op) => some((Lc,Op,Els)).
+  isLabeledTheta(_) default => .none.
 
   public mkLabeledTheta(Lc,Lb,Els) => mkQBrTerm(Lc,Lb,Els).
 
   public isLabeledRecord:(ast) => option[(locn,ast,cons[ast])].
-  isLabeledRecord(A) => isBrTerm(A).
+  isLabeledRecord(A) where
+      (Lc,Op,Els) ^= isBrTerm(A) &&
+      ~_^=isKeyword(Op) => some((Lc,Op,Els)).
+  isLabeledRecord(_) default => .none.
+  isLabeledRecord(_) default => .none.
 
   public mkLabeledRecord(Lc,Lb,Els) => mkBrTerm(Lc,Lb,Els).
 
