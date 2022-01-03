@@ -8,13 +8,14 @@ include_directories("../../Headers" "../Headers" "Headers")
 
 set(TEST_HEADER_FILES
         Headers/buddyTest.h
-        Headers/multiTests.h)
+        Headers/multiTests.h
+        Headers/matchTests.h)
 
 set(TEST_SOURCE_FILES
         buddyTest.c
         utilTests.c
         ../unitTests.c
-        multiTest.c miscTest.c Headers/miscTest.h)
+        multiTest.c miscTest.c Headers/miscTest.h matchTests.c)
 
 add_executable(utilTest EXCLUDE_FROM_ALL ${TEST_SOURCE_FILES} ${TEST_HEADER_FILES})
 target_link_libraries(utilTest ooio m)

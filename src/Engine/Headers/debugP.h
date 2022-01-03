@@ -10,7 +10,7 @@
 #include "vector.h"
 #include "stack.h"
 
-typedef DebugWaitFor (*debugCmd)(char *line, processPo p, termPo loc, insWord ins, void *cl);
+typedef DebugWaitFor (*debugCmd)(char *line, processPo p, termPo loc, void *cl);
 
 typedef retCode (*completeCb)(strBufferPo, integer cx);
 
@@ -39,10 +39,10 @@ extern logical interactive;      /* interactive instruction tracing option */
 
 termPo getLbl(termPo lbl, int32 arity);
 
-DebugWaitFor insDebug(processPo p, insWord ins);
+DebugWaitFor insDebug(processPo p);
 DebugWaitFor enterDebug(processPo p);
 
-void stackTrace(processPo p, heapPo h, ioPo out, stackPo stk, logical showLocals);
+void stackTrace(processPo p, ioPo out, stackPo stk, logical showLocals);
 
 insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc);
 #endif //STAR_DEBUGP_H

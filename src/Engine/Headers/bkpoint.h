@@ -7,31 +7,16 @@
 
 #include "debug.h"
 
-typedef enum {
-  lineBreak,
-  callBreak
-} BreakPtType;
 
 typedef struct _break_point_ {
-  BreakPtType bkType;
   char nm[MAX_SYMB_LEN];
-  integer lineNo;
-  integer offset;
-  logical temporary;
+  integer arity;
 } BreakPoint, *breakPointPo;
 
-retCode addBreakPoint(breakPointPo bp);
-retCode createBreakPoint(BreakPtType type,char *name,integer lineNo,integer offset,logical temporary);
-retCode isValidBreakPoint(breakPointPo b);
-breakPointPo lineBreakPointHit(normalPo loc);
-breakPointPo callBreakPointHit(labelPo lbl);
-retCode clearBreakPoint(breakPointPo bp);
-retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp);
-logical sameBreakPoint(breakPointPo b1, breakPointPo b2);
-logical breakPointInUse(breakPointPo b);
-void markBpOutOfUse(breakPointPo b);
-retCode showAllBreakPoints(ioPo outChnnl);
+integer addBreakPoints(breakPointPo bp);
+integer clearBreakPoints(breakPointPo bp);
 
-logical isTempBreakPoint(breakPointPo bp);
+  retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp);
+retCode showAllBreakPoints(ioPo outChnnl);
 
 #endif //STAR_BKPOINT_H

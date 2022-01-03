@@ -16,7 +16,7 @@ integer labelHash(labelPo lbl);
 
 labelPo declareLbl(const char *name, integer arity, integer index);
 termPo declareEnum(const char *name, integer index, heapPo H);
-labelPo otherLbl(labelPo lbl,integer arity);
+labelPo otherLbl(labelPo lbl, integer arity);
 labelPo tplLabel(integer arity);
 logical isTplLabel(labelPo lb);
 logical isALabel(termPo t);
@@ -28,7 +28,15 @@ integer labelIndex(labelPo lbl);
 logical isLabel(labelPo lbl, char *nm, integer arity);
 logical sameLabel(labelPo l1, labelPo l2);
 
-typedef retCode (*fieldProc)(labelPo lbl, integer offset, void *cl);
+logical breakPointSet(labelPo lbl);
+logical setBreakPoint(labelPo lbl,logical set);
+
+integer setLabelBreakPoint(char *srch, integer slen, integer arity);
+integer clearLabelBreakPoint(char *srch, integer slen, integer arity);
+retCode showLabelBreakPoints(ioPo out);
+
+typedef retCode (*labelProc)(labelPo lbl, void *cl);
+retCode iterateLabels(labelProc proc,void *cl);
 
 labelPo objLabel(labelPo lbl, integer arity);
 

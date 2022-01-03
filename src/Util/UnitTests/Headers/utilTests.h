@@ -10,5 +10,6 @@
 #include "unitTests.h"
 #include "multiTests.h"
 #include "miscTest.h"
+#include "matchTests.h"
 
 #endif //STAR_UTILTESTS_H

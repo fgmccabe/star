@@ -32,7 +32,7 @@ typedef struct processRec_ {
   DebugWaitFor waitFor;
   logical tracing;
   integer traceCount;     // How many are we waiting for?
-  integer traceDepth;     // How deep are we into debugging?
+  framePo waterMark;      // Used to devide when to start debugging again
 #endif
 } ProcessRec;
 

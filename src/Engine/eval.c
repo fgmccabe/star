@@ -43,7 +43,7 @@
 
 #define bail() STMT_WRAP({\
   saveRegisters();\
-  stackTrace(P,NULL, logFile, STK, True);\
+  stackTrace(P, logFile, STK, True);\
   return Error;\
   })
 
@@ -83,7 +83,7 @@ retCode run(processPo P) {
 
     if (insDebugging) {
       saveRegisters();
-      insDebug(P, *PC);
+      insDebug(P);
       restoreRegisters();
     }
 #endif
@@ -97,6 +97,9 @@ retCode run(processPo P) {
         }
         return (retCode) exitCode;
       }
+      case Nop:{
+        continue;
+      }
       case Abort: {
         termPo lc = pop();
         termPo msg = pop();
@@ -104,7 +107,7 @@ retCode run(processPo P) {
         logMsg(logFile, "Abort %T at %L", msg, lc);
         saveRegisters();
         verifyProc(P, H);
-        stackTrace(P, H, logFile, P->stk, True);
+        stackTrace(P, logFile, P->stk, False);
 
         return Error;
       }

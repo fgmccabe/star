@@ -93,6 +93,10 @@ static void pushStkOp(jitCompPo jitCtx, armOp operand) {
   jitCtx->vStack[jitCtx->vTop++] = v;
 }
 
+retCode jit_Nop(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
 retCode jit_Halt(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
@@ -436,14 +440,7 @@ retCode jit_Underflow(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
-retCode jit_dBreak(insPo code, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}
-
 retCode jit_dBug(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
-retCode jit_dLine(insPo code, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}

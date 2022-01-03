@@ -4,10 +4,10 @@
 
 #include "labelsP.h"
 #include "codeP.h"
-#include <stdlib.h>    /* access malloc etc. */
+#include "match.h"
 #include <strings.h>
 
-static hashPo tables;
+static hashPo labelTable;
 static poolPo labelPool;
 static poolPo labelTablePool;
 
@@ -45,14 +45,14 @@ typedef struct labelTable_ {
 
 void initLbls() {
   LabelClass.clss = specialClass;
-  tables = newHash(1024, (hashFun) uniHash, (compFun) uniCmp, (destFun) Null);
+  labelTable = newHash(1024, (hashFun) uniHash, (compFun) uniCmp, (destFun) Null);
 
   labelPool = newPool(sizeof(LblRecord), 1024);
   labelTablePool = newPool(sizeof(LabelTableRecord), 1024);
 }
 
 static lblTablePo locateLblTbl(const char *name) {
-  lblTablePo tbl = (lblTablePo) hashGet(tables, (void *) name);
+  lblTablePo tbl = (lblTablePo) hashGet(labelTable, (void *) name);
 
   if (tbl == Null) {
     tbl = (lblTablePo) allocPool(labelTablePool);
@@ -60,13 +60,13 @@ static lblTablePo locateLblTbl(const char *name) {
     for (integer ix = 0; ix < LABELTABLE_COUNT; ix++)
       tbl->arities[ix] = Null;
     tbl->otherEntries = Null;
-    hashPut(tables, tbl->lblName, tbl);
+    hashPut(labelTable, tbl->lblName, tbl);
   }
   return tbl;
 }
 
 static lblTablePo findLblTbl(const char *name) {
-  return (lblTablePo) hashGet(tables, (void *) name);
+  return (lblTablePo) hashGet(labelTable, (void *) name);
 }
 
 static labelPo newLbl(lblTablePo table, const char *name, integer arity, integer index) {
@@ -79,6 +79,7 @@ static labelPo newLbl(lblTablePo table, const char *name, integer arity, integer
   lbl->clss = labelClass;
   lbl->hash = arity * 37 + uniHash(name);
   lbl->table = table;
+  lbl->breakPointSet = False;
   return lbl;
 }
 
@@ -220,7 +221,7 @@ static retCode markLabelTable(void *n, void *r, void *c) {
 }
 
 void markLabels(gcSupportPo G) {
-  processHashTable(markLabelTable, tables, G);
+  processHashTable(markLabelTable, labelTable, G);
 }
 
 long lblSize(specialClassPo cl, termPo o) {
@@ -324,4 +325,87 @@ logical isTplLabel(labelPo lb) {
 
 logical isALabel(termPo t) {
   return hasClass(t, labelClass);
+}
+
+typedef struct {
+  labelProc proc;
+  void *cl;
+} LabelInfo, *labelInfoPo;
+
+static retCode otherArityProc(void *n, void *r, void *c) {
+  labelInfoPo info = (labelInfoPo) c;
+  return info->proc((labelPo) r, info->cl);
+}
+
+static retCode procLabelTable(void *n, void *r, void *c) {
+  labelInfoPo info = (labelInfoPo) c;
+
+  lblTablePo tbl = (lblTablePo) r;
+  retCode ret = Ok;
+
+  for (integer ar = 0; ret == Ok && ar < LABELTABLE_COUNT; ar++) {
+    labelPo lbl = tbl->arities[ar];
+    if (lbl != Null) {
+      ret = info->proc(lbl, info->cl);
+    }
+  }
+  if (tbl->otherEntries != Null)
+    return processHashTable(otherArityProc, tbl->otherEntries, c);
+  return Ok;
+}
+
+retCode iterateLabels(labelProc proc, void *cl) {
+  LabelInfo info = {.proc = proc, .cl = cl};
+  return processHashTable(procLabelTable, labelTable, &info);
+}
+
+logical breakPointSet(labelPo lbl) {
+  return lbl->breakPointSet;
+}
+
+logical setBreakPoint(labelPo lbl, logical set) {
+  logical previous = lbl->breakPointSet;
+  lbl->breakPointSet = set;
+  return previous;
+}
+
+typedef struct {
+  char *search;
+  integer len;
+  integer arity;
+  logical set;
+  integer count;
+} SearchInfo;
+
+static retCode checkLabel(labelPo lbl, void *cl) {
+  SearchInfo *info = (SearchInfo *) cl;
+  if (globMatch(lbl->name, lbl->len, info->search, info->len)) {
+    if (info->arity < 0 || info->arity == lbl->arity) {
+      if (setBreakPoint(lbl, info->set)!=info->set)
+        info->count++;
+    }
+  }
+  return Ok;
+}
+
+integer setLabelBreakPoint(char *srch, integer slen, integer arity) {
+  SearchInfo info = {.search = srch, .len=slen, .arity=arity, .set=True, .count=0};
+  iterateLabels(checkLabel, &info);
+  return info.count;
+}
+
+integer clearLabelBreakPoint(char *srch, integer slen, integer arity) {
+  SearchInfo info = {.search = srch, .len=slen, .arity=arity, .set=False, .count=0};
+  iterateLabels(checkLabel, &info);
+  return info.count;
+}
+
+static retCode showBkPt(labelPo lbl, void *cl) {
+  if (lbl->breakPointSet)
+    return outMsg((ioPo) cl, "bk: %L\n%_", lbl);
+  return Ok;
+}
+
+retCode showLabelBreakPoints(ioPo out) {
+  return iterateLabels(showBkPt, out);
 }
