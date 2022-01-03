@@ -68,6 +68,7 @@ static stringTriePo tokenTrie;
 static poolPo opPool;
 static hashPo operators;
 static hashPo bracketTbl;
+static hashPo keywords;
 
 static void initTries() {
   tokenTrie = emptyStringTrie();
@@ -75,6 +76,7 @@ static void initTries() {
   opPool = newPool(sizeof(TokenRecord), 128);
   operators = newHash(128, (hashFun) uniHash, (compFun) uniCmp, NULL);
   bracketTbl = newHash(128, (hashFun) uniHash, (compFun) uniCmp, NULL);
+  keywords = newHash(128, (hashFun) uniHash, (compFun) uniCmp, NULL);
 }
 
 int getOptions(int argc, char **argv) {
@@ -175,7 +177,7 @@ logical isAlphaNumeric(char *p) {
   return False;
 }
 
-static retCode pickKeywords(void *n, void *r, void *c);
+static retCode genKeyword(void *n, void *r, void *c);
 
 int main(int argc, char **argv) {
   initTries();
@@ -228,7 +230,7 @@ int main(int argc, char **argv) {
     hashPut(vars, "Brackets", allBkts);
 
     strBufferPo keywordsBuff = newStringBuffer();
-    processHashTable(pickKeywords, operators, keywordsBuff);
+    processHashTable(genKeyword, keywords, keywordsBuff);
     char *allKeywords = getTextFromBuffer(keywordsBuff, &len);
     hashPut(vars, "Keywords", allKeywords);
 
@@ -271,7 +273,6 @@ typedef struct operator_ {
   char cmt[MAXLINE];
   OperatorStyle style;
   int left, prior, right;
-  logical isKeyword;
 } Operator, *opPo;
 
 typedef struct pair_ *pairPo;
@@ -281,10 +282,13 @@ typedef struct pair_ {
   pairPo next;
 } Pair;
 
-void genToken(char *op, char *cmt) {
+void genToken(char *op, char *cmt, logical isKeyword) {
   tokenPo tk = (tokenPo) allocPool(opPool);
   uniCpy(tk->name, NumberOf(tk->name), op);
   uniCpy(tk->cmt, NumberOf(tk->cmt), cmt);
+
+  if (isKeyword)
+    hashPut(keywords, tk->name, tk->name);
 
   if (!isAlphaNumeric(op))
     addToStringTrie(op, tk, tokenTrie);
@@ -300,29 +304,31 @@ genOper(char *op, char *ast, char *cmt, OperatorStyle style, int left, int prior
   oper->left = left;
   oper->prior = prior;
   oper->right = right;
-  oper->isKeyword = isKeyword;
 
   pairPo p = (pairPo) malloc(sizeof(Pair));
   p->op = oper;
   p->next = (pairPo) hashGet(operators, oper->name);
 
   hashPut(operators, oper->name, p);
+
+  if (isKeyword)
+    hashPut(keywords, oper->name, oper->name);
   return oper;
 }
 
 void genInfix(char *op, char *ast, int left, int prior, int right, logical isKeyword, char *cmt) {
   opPo oper = genOper(op, ast, cmt, infixOp, left, prior, right, isKeyword);
-  genToken(oper->name, cmt);
+  genToken(oper->name, cmt, isKeyword);
 }
 
 void genPrefix(char *op, char *ast, int prior, int right, logical isKeyword, char *cmt) {
   opPo oper = genOper(op, ast, cmt, prefixOp, 0, prior, right, isKeyword);
-  genToken(oper->name, cmt);
+  genToken(oper->name, cmt, isKeyword);
 }
 
 void genPostfix(char *op, char *ast, int left, int prior, logical isKeyword, char *cmt) {
   opPo oper = genOper(op, ast, cmt, postfixOp, left, prior, 0, isKeyword);
-  genToken(oper->name, cmt);
+  genToken(oper->name, cmt, isKeyword);
 }
 
 void genBracket(char *op, integer prior, char *left, char *right, char *sep, char *cmt) {
@@ -336,8 +342,8 @@ void genBracket(char *op, integer prior, char *left, char *right, char *sep, cha
 
   hashPut(bracketTbl, bkt->name, bkt);
 
-  genToken(bkt->left, cmt);
-  genToken(bkt->right, cmt);
+  genToken(bkt->left, cmt, True);
+  genToken(bkt->right, cmt, True);
 }
 
 static retCode procOper(ioPo out, char *sep, opPo op) {
@@ -491,51 +497,38 @@ retCode procToken(void *n, void *r, void *c) {
   }
 }
 
-static retCode procKey(ioPo out, char *sep, opPo op) {
+retCode genKeyword(void *n, void *r, void *c) {
+  ioPo out = (ioPo) c;
+  char *name = (char *) r;
+
   switch (genMode) {
     case genProlog:
-      if (op->isKeyword)
-        return outMsg(out, "%skeyword(\"%P\").\n", sep, op->name);
-      else
-        return Ok;
+      return outMsg(out, "  keyword(\"%P\").\n", name);
     case genStar:
-      if (op->isKeyword)
-        return outMsg(out, "%skeyword(\"%P\") => .true.\n", sep, op->name);
-      else
-        return Ok;
+      return outMsg(out, "  keyword(\"%P\") => .true.\n", name);
     case genTexi: {
       static int col = 0;
       char *tag = "tab";
 
-      if (op->isKeyword && isUniIdentifier(op->name, uniStrLen(op->name))) {
+      if (isUniIdentifier(name, uniStrLen(name))) {
         if (col % 3 == 0) {
           col = 0;
           tag = "item";
         }
         col++;
-        return outMsg(out, "@%s @code{%I}\n", tag, op->name);
+        return outMsg(out, "@%s @code{%I}\n", tag, name);
       } else
         return Ok;
     }
     case genEmacs: {
-      if (op->isKeyword && isUniIdentifier(op->name, uniStrLen(op->name)))
-        return outMsg(out, "%s\"%P\"\n", sep, op->name);
+      if (isUniIdentifier(name, uniStrLen(name)))
+        return outMsg(out, "\"%P\"\n", name);
       else
         return Ok;
     }
     default:
       return Error;
   }
-}
-
-retCode pickKeywords(void *n, void *r, void *c) {
-  ioPo out = (ioPo) c;
-  pairPo p = (pairPo) r;
-
-  if (p != Null)
-    return procKey(out, "  ", p->op);
-  else
-    return Error;
 }
 
 retCode procBrackets(void *n, void *r, void *c) {
