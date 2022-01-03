@@ -70,167 +70,167 @@
 	"keyword": true
     },
     {
-    "infixOp": "~>",
-    "priorities": [
-      1230,
-      1231,
-      1230
-    ],
-    "desc": "type function",
-    "keyword": true
-  },
-  {
-    "infixOp": "<-",
-    "priorities": [
-      904,
-      905,
-      904
-    ],
-    "desc": "variable bind",
-    "keyword": true
-  },
-  {
-    "prefixOp": "background",
-    "priorities": [
-      950,
-      949
-    ],
-    "desc": "task background",
-    "keyword": false
-  },
-  {
-    "prefixOp": "if",
-    "priorities": [
-      1175,
-      1174
-    ],
-    "desc": "if ... then ... else",
-    "keyword": true
-  },
-  {
-    "infixOp": "then",
-    "priorities": [
-      1179,
-      1180,
-      1179
-    ],
-    "desc": "if ... then ... else",
-    "keyword": true
-  },
-  {
-    "infixOp": "else",
-    "priorities": [
-      1199,
-      1200,
-      1200
-    ],
-    "desc": "if ... then ... else",
-    "keyword": true
-  },
-  {
-    "infixOp": "do",
-    "priorities": [
-      1199,
-      1200,
-      1199
-    ],
-    "desc": "while T do {}",
-    "keyword": true
-  },
-  {
-    "prefixOp": "do",
-    "priorities": [
-      200,
-      199
-    ],
-    "desc": "do {}",
-    "keyword": true
-  },
-  {
-    "prefixOp": "while",
-    "priorities": [
-      1175,
-      1174
-    ],
-    "desc": "while ... do {}",
-    "keyword": true
-  },
-  {
-    "infixOp": "until",
-    "priorities": [
-      1174,
-      1175,
-      1174
-    ],
-    "desc": "do {..} until C",
-    "keyword": true
-  },
-  {
-    "prefixOp": "for",
-    "priorities": [
-      1175,
-      1174
-    ],
-    "desc": "for ... do {}",
-    "keyword": true
-  },
-  {
-    "prefixOp": "try",
-    "priorities": [
-      1200,
-      1199
-    ],
-    "desc": "try {...} catch {...}",
-    "keyword": true
-  },
-  {
-    "infixOp": "catch",
-    "priorities": [
-      1198,
-      1199,
-      1198
-    ],
-    "desc": "try {...} catch {...}",
-    "keyword": true
-  },
-  {
-    "infixOp": "handle",
-    "priorities": [
-      1198,
-      1199,
-      1198
-    ],
-    "desc": "try {...} handle {...}",
-    "keyword": true
-  },
-  {
-    "infixOp": ";",
-    "priorities": [
-      1250,
-      1251,
-      1251
-    ],
-    "desc": "sequencing operator",
-    "keyword": true
-  },
-  {
-    "postfixOp": ";",
-    "priorities": [
-      1250,
-      1251
-    ],
-    "desc": "sequencing operator",
-    "keyword": true
-  },
-  {
-    "prefixOp": "valof",
-    "priorities": [
-      300,
-      299
-    ],
-    "desc": "evaluate an action expression",
-    "keyword": true
-  },
+	"infixOp": "~>",
+	"priorities": [
+	    1230,
+	    1231,
+	    1230
+	],
+	"desc": "type function",
+	"keyword": true
+    },
+    {
+	"infixOp": "<-",
+	"priorities": [
+	    904,
+	    905,
+	    904
+	],
+	"desc": "variable bind",
+	"keyword": true
+    },
+    {
+	"prefixOp": "background",
+	"priorities": [
+	    950,
+	    949
+	],
+	"desc": "task background",
+	"keyword": false
+    },
+    {
+	"prefixOp": "if",
+	"priorities": [
+	    1175,
+	    1174
+	],
+	"desc": "if ... then ... else",
+	"keyword": true
+    },
+    {
+	"infixOp": "then",
+	"priorities": [
+	    1179,
+	    1180,
+	    1179
+	],
+	"desc": "if ... then ... else",
+	"keyword": true
+    },
+    {
+	"infixOp": "else",
+	"priorities": [
+	    1199,
+	    1200,
+	    1200
+	],
+	"desc": "if ... then ... else",
+	"keyword": true
+    },
+    {
+	"infixOp": "do",
+	"priorities": [
+	    1199,
+	    1200,
+	    1199
+	],
+	"desc": "while T do {}",
+	"keyword": true
+    },
+    {
+	"prefixOp": "do",
+	"priorities": [
+	    200,
+	    199
+	],
+	"desc": "do {}",
+	"keyword": true
+    },
+    {
+	"prefixOp": "while",
+	"priorities": [
+	    1175,
+	    1174
+	],
+	"desc": "while ... do {}",
+	"keyword": true
+    },
+    {
+	"infixOp": "until",
+	"priorities": [
+	    1174,
+	    1175,
+	    1174
+	],
+	"desc": "do {..} until C",
+	"keyword": true
+    },
+    {
+	"prefixOp": "for",
+	"priorities": [
+	    1175,
+	    1174
+	],
+	"desc": "for ... do {}",
+	"keyword": true
+    },
+    {
+	"prefixOp": "try",
+	"priorities": [
+	    1200,
+	    1199
+	],
+	"desc": "try {...} catch {...}",
+	"keyword": true
+    },
+    {
+	"infixOp": "catch",
+	"priorities": [
+	    1198,
+	    1199,
+	    1198
+	],
+	"desc": "try {...} catch {...}",
+	"keyword": true
+    },
+    {
+	"infixOp": "handle",
+	"priorities": [
+	    1198,
+	    1199,
+	    1198
+	],
+	"desc": "try {...} handle {...}",
+	"keyword": true
+    },
+    {
+	"infixOp": ";",
+	"priorities": [
+	    1250,
+	    1251,
+	    1251
+	],
+	"desc": "sequencing operator",
+	"keyword": true
+    },
+    {
+	"postfixOp": ";",
+	"priorities": [
+	    1250,
+	    1251
+	],
+	"desc": "sequencing operator",
+	"keyword": true
+    },
+    {
+	"prefixOp": "valof",
+	"priorities": [
+	    300,
+	    299
+	],
+	"desc": "evaluate an action expression",
+	"keyword": true
+    },
     {
 	"prefixOp": "perform",
 	"priorities": [
@@ -286,931 +286,926 @@
 	"keyword": true
     },
     {
-    "infixOp": ",..",
-    "priorities": [
-      999,
-      1000,
-      999
-    ],
-    "desc": "list cons",
-    "keyword": true
-  },
-  {
-    "infixOp": "=",
-    "priorities": [
-      974,
-      975,
-      974
-    ],
-    "desc": "definition",
-    "keyword": true
-  },
-  {
-    "infixOp": ":=",
-    "priorities": [
-      974,
-      975,
-      974
-    ],
-    "desc": "reassignable variable definition",
-    "keyword": false
-  },
-  {
-    "infixOp": "<<-",
-    "priorities": [
-      974,
-      975,
-      974
-    ],
-    "desc": "record replacement",
-    "keyword": true
-  },
-  {
-    "infixOp": "=>",
-    "priorities": [
-      949,
-      950,
-      950
-    ],
-    "desc": "function arrow",
-    "keyword": true
-  },
-  {
-    "infixOp": "=>>",
-    "priorities": [
-      949,
-      950,
-      950
-    ],
-    "desc": "continuation arrow",
-    "keyword": true
-  },
-  {
-    "infixOp": ">>=",
-    "priorities": [
-      949,
-      950,
-      950
-    ],
-    "desc": "monadic bind",
-    "keyword": false
-  },
-  {
-    "infixOp": ">>",
-    "priorities": [
-      949,
-      950,
-      950
-    ],
-    "desc": "monadic bind",
-    "keyword": false
-  },
-  {
-    "infixOp": "<*>",
-    "priorities": [
-      949,
-      950,
-      950
-    ],
-    "desc": "applicative splat",
-    "keyword": false
-  },
-  {
-    "infixOp": "<=>",
-    "priorities": [
-      949,
-      950,
-      949
-    ],
-    "desc": "constructor arrow",
-    "keyword": true
-  },
-  {
-    "infixOp": "where",
-    "priorities": [
-      910,
-      911,
-      910
-    ],
-    "desc": "semantic guard",
-    "keyword": true
-  },
-  {
-    "infixOp": "||",
-    "priorities": [
-      919,
-      920,
-      920
-    ],
-    "desc": "disjunction",
-    "keyword": true
-  },
-  {
-    "infixOp": "?",
-    "priorities": [
-      919,
-      920,
-      920
-    ],
-    "desc": "conditional operator",
-    "keyword": true
-  },
-  {
-    "infixOp": "&&",
-    "priorities": [
-      910,
-      910,
-      909
-    ],
-    "desc": "conjunction",
-    "keyword": true
-  },
-  {
-    "infixOp": "*>",
-    "priorities": [
-      904,
-      905,
-      904
-    ],
-    "desc": "for all",
-    "keyword": true
-  },
-  {
-    "infixOp": "->",
-    "priorities": [
-      889,
-      890,
-      889
-    ],
-    "desc": "map entry",
-    "keyword": false
-  },
-  {
-    "infixOp": "==",
-    "priorities": [
-      899,
-      900,
-      899
-    ],
-    "desc": "equality predicate",
-    "keyword": false
-  },
-  {
-    "infixOp": "~=",
-    "priorities": [
-      899,
-      900,
-      899
-    ],
-    "desc": "not equals",
-    "keyword": false
-  },
-  {
-    "infixOp": ".=",
-    "priorities": [
-      899,
-      900,
-      899
-    ],
-    "desc": "pattern match",
-    "keyword": true
-  },
-  {
-    "infixOp": "^=",
-    "priorities": [
-      899,
-      900,
-      899
-    ],
-    "desc": "optional decomposition match",
-    "keyword": true
-  },
-  {
-    "prefixOp": "ref",
-    "priorities": [
-      899,
-      898
-    ],
-    "desc": "reference type/cell",
-    "keyword": true
-  },
-  {
-    "infixOp": "^",
-    "priorities": [
-      99,
-      100,
-      99
-    ],
-    "desc": "Apply optional function and match result",
-    "keyword": true
-  },
-  {
-    "prefixOp": "?",
-    "priorities": [
-      120,
-      119
-    ],
-    "desc": "catch an optional propagation",
-    "keyword": true
-  },
-  {
-    "prefixOp": "^",
-    "priorities": [
-      100,
-      99
-    ],
-    "desc": "Optional propagation",
-    "keyword": true
-  },
-  {
-    "prefixOp": "case",
-    "priorities": [
-      901,
-      900
-    ],
-    "desc": "case expression",
-    "keyword": true
-  },
-  {
-    "infixOp": "<",
-    "priorities": [
-      899,
-      900,
-      899
-    ],
-    "desc": "less than",
-    "keyword": false
-  },
-  {
-    "infixOp": "=<",
-    "priorities": [
-      899,
-      900,
-      899
-    ],
-    "desc": "less than or equal",
-    "keyword": false
-  },
-  {
-    "infixOp": ">",
-    "priorities": [
-      899,
-      900,
-      899
-    ],
-    "desc": "greater than",
-    "keyword": false
-  },
-  {
-    "infixOp": ">=",
-    "priorities": [
-      899,
-      900,
-      899
-    ],
-    "desc": "greater than or equal",
-    "keyword": false
-  },
-  {
-    "infixOp": "in",
-    "priorities": [
-      899,
-      900,
-      900
-    ],
-    "desc": "list membership",
-    "keyword": true
-  },
-  {
-    "infixOp": "//",
-    "priorities": [
-      960,
-      960,
-      959
-    ],
-    "desc": "map over",
-    "keyword": false
-  },
-  {
-    "infixOp": "///",
-    "priorities": [
-      960,
-      960,
-      959
-    ],
-    "desc": "indexed map over",
-    "keyword": false
-  },
-  {
-    "infixOp": "^/",
-    "priorities": [
-      960,
-      960,
-      959
-    ],
-    "desc": "filter",
-    "keyword": false
-  },
-  {
-    "infixOp": "^//",
-    "priorities": [
-      800,
-      800,
-      799
-    ],
-    "desc": "filter map",
-    "keyword": false
-  },
-  {
-    "infixOp": "#",
-    "priorities": [
-      759,
-      760,
-      759
-    ],
-    "desc": "package separator",
-    "keyword": true
-  },
-  {
-    "infixOp": "++",
-    "priorities": [
-      719,
-      720,
-      720
-    ],
-    "desc": "concatenate",
-    "keyword": false
-  },
-  {
-    "infixOp": "+++",
-    "priorities": [
-      719,
-      720,
-      720
-    ],
-    "desc": "choice",
-    "keyword": false
-  },
-  {
-    "infixOp": "+",
-    "priorities": [
-      720,
-      720,
-      719
-    ],
-    "desc": "addition",
-    "keyword": false
-  },
-  {
-    "infixOp": "-",
-    "priorities": [
-      720,
-      720,
-      719
-    ],
-    "desc": "subtraction",
-    "keyword": false
-  },
-  {
-    "infixOp": ".|.",
-    "priorities": [
-      720,
-      720,
-      719
-    ],
-    "desc": "bitwise or",
-    "keyword": false
-  },
-  {
-    "infixOp": ".^.",
-    "priorities": [
-      720,
-      720,
-      719
-    ],
-    "desc": "bitwise xor",
-    "keyword": false
-  },
-  {
-    "infixOp": "⊕",
-    "priorities": [
-      720,
-      720,
-      719
-    ],
-    "desc": "addition",
-    "keyword": false
-  },
-  {
-    "infixOp": "<$",
-    "priorities": [
-      719,
-      720,
-      720
-    ],
-    "desc": "constant replace",
-    "keyword": false
-  },
-  {
-    "infixOp": "*",
-    "priorities": [
-      700,
-      700,
-      699
-    ],
-    "desc": "multiplication",
-    "keyword": false
-  },
-  {
-    "infixOp": "/",
-    "priorities": [
-      700,
-      700,
-      699
-    ],
-    "desc": "division",
-    "keyword": false
-  },
-  {
-    "infixOp": "\\/",
-    "priorities": [
-      720,
-      720,
-      719
-    ],
-    "desc": "union",
-    "keyword": false
-  },
-  {
-    "infixOp": "/\\",
-    "priorities": [
-      700,
-      700,
-      699
-    ],
-    "desc": "intersection",
-    "keyword": false
-  },
-  {
-    "infixOp": "\\",
-    "priorities": [
-      700,
-      700,
-      699
-    ],
-    "desc": "difference",
-    "keyword": false
-  },
-  {
-    "infixOp": "\\+",
-    "priorities": [
-      700,
-      700,
-      699
-    ],
-    "desc": "add element to set",
-    "keyword": false
-  },
-  {
-    "infixOp": "\\-",
-    "priorities": [
-      700,
-      700,
-      699
-    ],
-    "desc": "remove element from set",
-    "keyword": false
-  },
-  {
-    "infixOp": ".<.",
-    "priorities": [
-      699,
-      700,
-      699
-    ],
-    "desc": "set membership",
-    "keyword": false
-  },
-  {
-    "infixOp": ".&.",
-    "priorities": [
-      700,
-      700,
-      699
-    ],
-    "desc": "bitwise and",
-    "keyword": false
-  },
-  {
-    "prefixOp": ".+.",
-    "priorities": [
-      700,
-      699
-    ],
-    "desc": "count of number of bits",
-    "keyword": false
-  },
-  {
-    "infixOp": "%",
-    "priorities": [
-      700,
-      700,
-      699
-    ],
-    "desc": "modulo",
-    "keyword": false
-  },
-  {
-    "infixOp": "**",
-    "priorities": [
-      600,
-      600,
-      599
-    ],
-    "desc": "exponentiation",
-    "keyword": false
-  },
-  {
-    "infixOp": ".<<.",
-    "priorities": [
-      600,
-      600,
-      599
-    ],
-    "desc": "shift left",
-    "keyword": false
-  },
-  {
-    "infixOp": ".>>.",
-    "priorities": [
-      600,
-      600,
-      599
-    ],
-    "desc": "logical shift right",
-    "keyword": false
-  },
-  {
-    "infixOp": ".>>>.",
-    "priorities": [
-      600,
-      600,
-      599
-    ],
-    "desc": "arithmetic shift right",
-    "keyword": false
-  },
-  {
-    "infixOp": ".#.",
-    "priorities": [
-      600,
-      600,
-      599
-    ],
-    "desc": "test nth bit",
-    "keyword": false
-  },
-  {
-    "infixOp": "•",
-    "priorities": [
-      450,
-      450,
-      449
-    ],
-    "desc": "function composition",
-    "keyword": false
-  },
-  {
-    "infixOp": "^.",
-    "priorities": [
-      450,
-      450,
-      449
-    ],
-    "desc": "optional object access",
-    "keyword": true
-  },
-  {
-    "infixOp": "@",
-    "priorities": [
-      399,
-      400,
-      400
-    ],
-    "desc": "meta annotation",
-    "keyword": true
-  },
-  {
-    "infixOp": "::",
-    "priorities": [
-      399,
-      400,
-      399
-    ],
-    "desc": "type coercion",
-    "keyword": true
-  },
-  {
-    "infixOp": ":?",
-    "priorities": [
-      399,
-      400,
-      399
-    ],
-    "desc": "fallable type coercion",
-    "keyword": true
-  },
-  {
-    "infixOp": ".",
-    "priorities": [
-      100,
-      100,
-      99
-    ],
-    "desc": "object access",
-    "keyword": true
-  },
-  {
-    "prefixOp": ".",
-    "priorities": [
-      10,
-      9
-    ],
-    "desc": "identify enumerator",
-    "keyword": true
-  },
-  {
-    "prefixOp": "#",
-    "priorities": [
-      1750,
-      1749
-    ],
-    "desc": "Macro statement marker",
-    "keyword": true
-  },
-  {
-    "prefixOp": "private",
-    "priorities": [
-      1200,
-      1199
-    ],
-    "desc": "private program",
-    "keyword": true
-  },
-  {
-    "prefixOp": "public",
-    "priorities": [
-      1700,
-      1699
-    ],
-    "desc": "public program",
-    "keyword": true
-  },
-  {
-    "prefixOp": "assert",
-    "priorities": [
-      1240,
-      1239
-    ],
-    "desc": "assert condition",
-    "keyword": false
-  },
-  {
-    "prefixOp": "show",
-    "priorities": [
-      1240,
-      1239
-    ],
-    "desc": "display debug message",
-    "keyword": false
-  },
-  {
-    "prefixOp": "contract",
-    "priorities": [
-      1260,
-      1259
-    ],
-    "desc": "contract definition",
-    "keyword": true
-  },
-  {
-    "prefixOp": "implementation",
-    "priorities": [
-      1260,
-      1259
-    ],
-    "desc": "contract implementation",
-    "keyword": true
-  },
-  {
-    "prefixOp": "type",
-    "priorities": [
-      1251,
-      1250
-    ],
-    "desc": "type marker",
-    "keyword": true
-  },
-  {
-    "prefixOp": "all",
-    "priorities": [
-      1010,
-      1009
-    ],
-    "desc": "universal quantifier",
-    "keyword": true
-  },
-  {
-    "prefixOp": "exists",
-    "priorities": [
-      1010,
-      1009
-    ],
-    "desc": "existential quantifier",
-    "keyword": true
-  },
-  {
-    "prefixOp": "~",
-    "priorities": [
-      905,
-      904
-    ],
-    "desc": "logical negation",
-    "keyword": true
-  },
-  {
-    "prefixOp": "open",
-    "priorities": [
-      900,
-      899
-    ],
-    "desc": "import object",
-    "keyword": true
-  },
-  {
-    "prefixOp": "import",
-    "priorities": [
-      900,
-      899
-    ],
-    "desc": "import module",
-    "keyword": true
-  },
-  {
-    "prefixOp": ".~.",
-    "priorities": [
-      650,
-      649
-    ],
-    "desc": "bitwise 1's complement",
-    "keyword": false
-  },
-  {
-    "prefixOp": "@",
-    "priorities": [
-      400,
-      399
-    ],
-    "desc": "meta annotation",
-    "keyword": true
-  },
-  {
-    "prefixOp": "pure",
-    "priorities": [
-      300,
-      299
-    ],
-    "desc": "wrap value in applicative",
-    "keyword": false
-  },
-  {
-    "prefixOp": "return",
-    "priorities": [
-      930,
-      929
-    ],
-    "desc": "wrap value in monad",
-    "keyword": false
-  },
-  {
-    "prefixOp": "valis",
-    "priorities": [
-      930,
-      929
-    ],
-    "desc": "return value from execution",
-    "keyword": true
-  },
-  {
-    "prefixOp": "throw",
-    "priorities": [
-      930,
-      929
-    ],
-    "desc": "throw an exception",
-    "keyword": true
-  },
-  {
-    "prefixOp": "raise",
-    "priorities": [
-      930,
-      929
-    ],
-    "desc": "raise an exception",
-    "keyword": true
-  },
-  {
-    "prefixOp": "ignore",
-    "priorities": [
-      930,
-      929
-    ],
-    "desc": "ignore result of expression",
-    "keyword": true
-  },
-  {
-    "prefixOp": "-",
-    "priorities": [
-      300,
-      299
-    ],
-    "desc": "arithmetic negation",
-    "keyword": false
-  },
-  {
-    "postfixOp": "*",
-    "priorities": [
-      699,
-      700
-    ],
-    "desc": "multicat",
-    "keyword": false
-  },
-  {
-    "postfixOp": "+",
-    "priorities": [
-      699,
-      700
-    ],
-    "desc": "one or more repetitions",
-    "keyword": false
-  },
-  {
-    "postfixOp": "default",
-    "priorities": [
-      939,
-      940
-    ],
-    "desc": "default value marker",
-    "keyword": true
-  },
-  {
-    "prefixOp": "$$",
-    "priorities": [
-      899,
-      898
-    ],
-    "desc": "wrap value in memo",
-    "keyword": false
-  },
-  {
-    "postfixOp": "!!",
-    "priorities": [
-      99,
-      100
-    ],
-    "desc": "pick up value from a memo",
-    "keyword": false
-  },
-  {
-    "infixOp": "!",
-    "priorities": [
-	99,
-	100,
-	99
-    ],
-    "desc": "pick up value from a ref cell",
-    "keyword": true
-  },
-  {
-    "postfixOp": "!",
-    "priorities": [
-      99,
-      100
-    ],
-    "desc": "pick up value from a ref cell",
-    "keyword": true
-  },
-  {
-    "token": ". ",
-    "desc": "statement terminator",
-    "keyword": true
-  },
-  {
-    "token": "action",
-    "desc": "action expression",
-    "keyword": true
-  },
+	"infixOp": ",..",
+	"priorities": [
+	    999,
+	    1000,
+	    999
+	],
+	"desc": "list cons",
+	"keyword": true
+    },
+    {
+	"infixOp": "=",
+	"priorities": [
+	    974,
+	    975,
+	    974
+	],
+	"desc": "definition",
+	"keyword": true
+    },
+    {
+	"infixOp": ":=",
+	"priorities": [
+	    974,
+	    975,
+	    974
+	],
+	"desc": "reassignable variable definition",
+	"keyword": false
+    },
+    {
+	"infixOp": "<<-",
+	"priorities": [
+	    974,
+	    975,
+	    974
+	],
+	"desc": "record replacement",
+	"keyword": true
+    },
+    {
+	"infixOp": "=>",
+	"priorities": [
+	    949,
+	    950,
+	    950
+	],
+	"desc": "function arrow",
+	"keyword": true
+    },
+    {
+	"infixOp": "=>>",
+	"priorities": [
+	    949,
+	    950,
+	    950
+	],
+	"desc": "continuation arrow",
+	"keyword": true
+    },
+    {
+	"infixOp": ">>=",
+	"priorities": [
+	    949,
+	    950,
+	    950
+	],
+	"desc": "monadic bind",
+	"keyword": false
+    },
+    {
+	"infixOp": ">>",
+	"priorities": [
+	    949,
+	    950,
+	    950
+	],
+	"desc": "monadic bind",
+	"keyword": false
+    },
+    {
+	"infixOp": "<*>",
+	"priorities": [
+	    949,
+	    950,
+	    950
+	],
+	"desc": "applicative splat",
+	"keyword": false
+    },
+    {
+	"infixOp": "<=>",
+	"priorities": [
+	    949,
+	    950,
+	    949
+	],
+	"desc": "constructor arrow",
+	"keyword": true
+    },
+    {
+	"infixOp": "where",
+	"priorities": [
+	    910,
+	    911,
+	    910
+	],
+	"desc": "semantic guard",
+	"keyword": true
+    },
+    {
+	"infixOp": "||",
+	"priorities": [
+	    919,
+	    920,
+	    920
+	],
+	"desc": "disjunction",
+	"keyword": true
+    },
+    {
+	"infixOp": "?",
+	"priorities": [
+	    919,
+	    920,
+	    920
+	],
+	"desc": "conditional operator",
+	"keyword": true
+    },
+    {
+	"infixOp": "&&",
+	"priorities": [
+	    910,
+	    910,
+	    909
+	],
+	"desc": "conjunction",
+	"keyword": true
+    },
+    {
+	"infixOp": "*>",
+	"priorities": [
+	    904,
+	    905,
+	    904
+	],
+	"desc": "for all",
+	"keyword": true
+    },
+    {
+	"infixOp": "->",
+	"priorities": [
+	    889,
+	    890,
+	    889
+	],
+	"desc": "map entry",
+	"keyword": false
+    },
+    {
+	"infixOp": "==",
+	"priorities": [
+	    899,
+	    900,
+	    899
+	],
+	"desc": "equality predicate",
+	"keyword": false
+    },
+    {
+	"infixOp": "~=",
+	"priorities": [
+	    899,
+	    900,
+	    899
+	],
+	"desc": "not equals",
+	"keyword": false
+    },
+    {
+	"infixOp": ".=",
+	"priorities": [
+	    899,
+	    900,
+	    899
+	],
+	"desc": "pattern match",
+	"keyword": true
+    },
+    {
+	"infixOp": "^=",
+	"priorities": [
+	    899,
+	    900,
+	    899
+	],
+	"desc": "optional decomposition match",
+	"keyword": true
+    },
+    {
+	"prefixOp": "ref",
+	"priorities": [
+	    899,
+	    898
+	],
+	"desc": "reference type/cell",
+	"keyword": true
+    },
+    {
+	"infixOp": "^",
+	"priorities": [
+	    99,
+	    100,
+	    99
+	],
+	"desc": "Apply optional function and match result",
+	"keyword": true
+    },
+    {
+	"prefixOp": "?",
+	"priorities": [
+	    120,
+	    119
+	],
+	"desc": "catch an optional propagation",
+	"keyword": true
+    },
+    {
+	"prefixOp": "^",
+	"priorities": [
+	    100,
+	    99
+	],
+	"desc": "Optional propagation",
+	"keyword": true
+    },
+    {
+	"prefixOp": "case",
+	"priorities": [
+	    901,
+	    900
+	],
+	"desc": "case expression",
+	"keyword": true
+    },
+    {
+	"infixOp": "<",
+	"priorities": [
+	    899,
+	    900,
+	    899
+	],
+	"desc": "less than",
+	"keyword": false
+    },
+    {
+	"infixOp": "=<",
+	"priorities": [
+	    899,
+	    900,
+	    899
+	],
+	"desc": "less than or equal",
+	"keyword": false
+    },
+    {
+	"infixOp": ">",
+	"priorities": [
+	    899,
+	    900,
+	    899
+	],
+	"desc": "greater than",
+	"keyword": false
+    },
+    {
+	"infixOp": ">=",
+	"priorities": [
+	    899,
+	    900,
+	    899
+	],
+	"desc": "greater than or equal",
+	"keyword": false
+    },
+    {
+	"infixOp": "in",
+	"priorities": [
+	    899,
+	    900,
+	    900
+	],
+	"desc": "list membership",
+	"keyword": true
+    },
+    {
+	"infixOp": "//",
+	"priorities": [
+	    960,
+	    960,
+	    959
+	],
+	"desc": "map over",
+	"keyword": false
+    },
+    {
+	"infixOp": "///",
+	"priorities": [
+	    960,
+	    960,
+	    959
+	],
+	"desc": "indexed map over",
+	"keyword": false
+    },
+    {
+	"infixOp": "^/",
+	"priorities": [
+	    960,
+	    960,
+	    959
+	],
+	"desc": "filter",
+	"keyword": false
+    },
+    {
+	"infixOp": "^//",
+	"priorities": [
+	    800,
+	    800,
+	    799
+	],
+	"desc": "filter map",
+	"keyword": false
+    },
+    {
+	"infixOp": "#",
+	"priorities": [
+	    759,
+	    760,
+	    759
+	],
+	"desc": "package separator",
+	"keyword": true
+    },
+    {
+	"infixOp": "++",
+	"priorities": [
+	    719,
+	    720,
+	    720
+	],
+	"desc": "concatenate",
+	"keyword": false
+    },
+    {
+	"infixOp": "+++",
+	"priorities": [
+	    719,
+	    720,
+	    720
+	],
+	"desc": "choice",
+	"keyword": false
+    },
+    {
+	"infixOp": "+",
+	"priorities": [
+	    720,
+	    720,
+	    719
+	],
+	"desc": "addition",
+	"keyword": false
+    },
+    {
+	"infixOp": "-",
+	"priorities": [
+	    720,
+	    720,
+	    719
+	],
+	"desc": "subtraction",
+	"keyword": false
+    },
+    {
+	"infixOp": ".|.",
+	"priorities": [
+	    720,
+	    720,
+	    719
+	],
+	"desc": "bitwise or",
+	"keyword": false
+    },
+    {
+	"infixOp": ".^.",
+	"priorities": [
+	    720,
+	    720,
+	    719
+	],
+	"desc": "bitwise xor",
+	"keyword": false
+    },
+    {
+	"infixOp": "⊕",
+	"priorities": [
+	    720,
+	    720,
+	    719
+	],
+	"desc": "addition",
+	"keyword": false
+    },
+    {
+	"infixOp": "<$",
+	"priorities": [
+	    719,
+	    720,
+	    720
+	],
+	"desc": "constant replace",
+	"keyword": false
+    },
+    {
+	"infixOp": "*",
+	"priorities": [
+	    700,
+	    700,
+	    699
+	],
+	"desc": "multiplication",
+	"keyword": false
+    },
+    {
+	"infixOp": "/",
+	"priorities": [
+	    700,
+	    700,
+	    699
+	],
+	"desc": "division",
+	"keyword": false
+    },
+    {
+	"infixOp": "\\/",
+	"priorities": [
+	    720,
+	    720,
+	    719
+	],
+	"desc": "union",
+	"keyword": false
+    },
+    {
+	"infixOp": "/\\",
+	"priorities": [
+	    700,
+	    700,
+	    699
+	],
+	"desc": "intersection",
+	"keyword": false
+    },
+    {
+	"infixOp": "\\",
+	"priorities": [
+	    700,
+	    700,
+	    699
+	],
+	"desc": "difference",
+	"keyword": false
+    },
+    {
+	"infixOp": "\\+",
+	"priorities": [
+	    700,
+	    700,
+	    699
+	],
+	"desc": "add element to set",
+	"keyword": false
+    },
+    {
+	"infixOp": "\\-",
+	"priorities": [
+	    700,
+	    700,
+	    699
+	],
+	"desc": "remove element from set",
+	"keyword": false
+    },
+    {
+	"infixOp": ".<.",
+	"priorities": [
+	    699,
+	    700,
+	    699
+	],
+	"desc": "set membership",
+	"keyword": false
+    },
+    {
+	"infixOp": ".&.",
+	"priorities": [
+	    700,
+	    700,
+	    699
+	],
+	"desc": "bitwise and",
+	"keyword": false
+    },
+    {
+	"prefixOp": ".+.",
+	"priorities": [
+	    700,
+	    699
+	],
+	"desc": "count of number of bits",
+	"keyword": false
+    },
+    {
+	"infixOp": "%",
+	"priorities": [
+	    700,
+	    700,
+	    699
+	],
+	"desc": "modulo",
+	"keyword": false
+    },
+    {
+	"infixOp": "**",
+	"priorities": [
+	    600,
+	    600,
+	    599
+	],
+	"desc": "exponentiation",
+	"keyword": false
+    },
+    {
+	"infixOp": ".<<.",
+	"priorities": [
+	    600,
+	    600,
+	    599
+	],
+	"desc": "shift left",
+	"keyword": false
+    },
+    {
+	"infixOp": ".>>.",
+	"priorities": [
+	    600,
+	    600,
+	    599
+	],
+	"desc": "logical shift right",
+	"keyword": false
+    },
+    {
+	"infixOp": ".>>>.",
+	"priorities": [
+	    600,
+	    600,
+	    599
+	],
+	"desc": "arithmetic shift right",
+	"keyword": false
+    },
+    {
+	"infixOp": ".#.",
+	"priorities": [
+	    600,
+	    600,
+	    599
+	],
+	"desc": "test nth bit",
+	"keyword": false
+    },
+    {
+	"infixOp": "•",
+	"priorities": [
+	    450,
+	    450,
+	    449
+	],
+	"desc": "function composition",
+	"keyword": false
+    },
+    {
+	"infixOp": "^.",
+	"priorities": [
+	    450,
+	    450,
+	    449
+	],
+	"desc": "optional object access",
+	"keyword": true
+    },
+    {
+	"infixOp": "@",
+	"priorities": [
+	    399,
+	    400,
+	    400
+	],
+	"desc": "meta annotation",
+	"keyword": true
+    },
+    {
+	"infixOp": "::",
+	"priorities": [
+	    399,
+	    400,
+	    399
+	],
+	"desc": "type coercion",
+	"keyword": true
+    },
+    {
+	"infixOp": ":?",
+	"priorities": [
+	    399,
+	    400,
+	    399
+	],
+	"desc": "fallable type coercion",
+	"keyword": true
+    },
+    {
+	"infixOp": ".",
+	"priorities": [
+	    100,
+	    100,
+	    99
+	],
+	"desc": "object access",
+	"keyword": true
+    },
+    {
+	"prefixOp": ".",
+	"priorities": [
+	    10,
+	    9
+	],
+	"desc": "identify enumerator",
+	"keyword": true
+    },
+    {
+	"prefixOp": "#",
+	"priorities": [
+	    1750,
+	    1749
+	],
+	"desc": "Macro statement marker",
+	"keyword": true
+    },
+    {
+	"prefixOp": "private",
+	"priorities": [
+	    1200,
+	    1199
+	],
+	"desc": "private program",
+	"keyword": true
+    },
+    {
+	"prefixOp": "public",
+	"priorities": [
+	    1700,
+	    1699
+	],
+	"desc": "public program",
+	"keyword": true
+    },
+    {
+	"prefixOp": "assert",
+	"priorities": [
+	    1240,
+	    1239
+	],
+	"desc": "assert condition",
+	"keyword": false
+    },
+    {
+	"prefixOp": "show",
+	"priorities": [
+	    1240,
+	    1239
+	],
+	"desc": "display debug message",
+	"keyword": false
+    },
+    {
+	"prefixOp": "contract",
+	"priorities": [
+	    1260,
+	    1259
+	],
+	"desc": "contract definition",
+	"keyword": true
+    },
+    {
+	"prefixOp": "implementation",
+	"priorities": [
+	    1260,
+	    1259
+	],
+	"desc": "contract implementation",
+	"keyword": true
+    },
+    {
+	"prefixOp": "type",
+	"priorities": [
+	    1251,
+	    1250
+	],
+	"desc": "type marker",
+	"keyword": true
+    },
+    {
+	"prefixOp": "all",
+	"priorities": [
+	    1010,
+	    1009
+	],
+	"desc": "universal quantifier",
+	"keyword": true
+    },
+    {
+	"prefixOp": "exists",
+	"priorities": [
+	    1010,
+	    1009
+	],
+	"desc": "existential quantifier",
+	"keyword": true
+    },
+    {
+	"prefixOp": "~",
+	"priorities": [
+	    905,
+	    904
+	],
+	"desc": "logical negation",
+	"keyword": true
+    },
+    {
+	"prefixOp": "open",
+	"priorities": [
+	    900,
+	    899
+	],
+	"desc": "import object",
+	"keyword": true
+    },
+    {
+	"prefixOp": "import",
+	"priorities": [
+	    900,
+	    899
+	],
+	"desc": "import module",
+	"keyword": true
+    },
+    {
+	"prefixOp": ".~.",
+	"priorities": [
+	    650,
+	    649
+	],
+	"desc": "bitwise 1's complement",
+	"keyword": false
+    },
+    {
+	"prefixOp": "@",
+	"priorities": [
+	    400,
+	    399
+	],
+	"desc": "meta annotation",
+	"keyword": true
+    },
+    {
+	"prefixOp": "pure",
+	"priorities": [
+	    300,
+	    299
+	],
+	"desc": "wrap value in applicative",
+	"keyword": false
+    },
+    {
+	"prefixOp": "return",
+	"priorities": [
+	    930,
+	    929
+	],
+	"desc": "wrap value in monad",
+	"keyword": false
+    },
+    {
+	"prefixOp": "valis",
+	"priorities": [
+	    930,
+	    929
+	],
+	"desc": "return value from execution",
+	"keyword": true
+    },
+    {
+	"prefixOp": "throw",
+	"priorities": [
+	    930,
+	    929
+	],
+	"desc": "throw an exception",
+	"keyword": true
+    },
+    {
+	"prefixOp": "raise",
+	"priorities": [
+	    930,
+	    929
+	],
+	"desc": "raise an exception",
+	"keyword": true
+    },
+    {
+	"prefixOp": "ignore",
+	"priorities": [
+	    930,
+	    929
+	],
+	"desc": "ignore result of expression",
+	"keyword": true
+    },
+    {
+	"prefixOp": "-",
+	"priorities": [
+	    300,
+	    299
+	],
+	"desc": "arithmetic negation",
+	"keyword": false
+    },
+    {
+	"postfixOp": "*",
+	"priorities": [
+	    699,
+	    700
+	],
+	"desc": "multicat",
+	"keyword": false
+    },
+    {
+	"postfixOp": "+",
+	"priorities": [
+	    699,
+	    700
+	],
+	"desc": "one or more repetitions",
+	"keyword": false
+    },
+    {
+	"postfixOp": "default",
+	"priorities": [
+	    939,
+	    940
+	],
+	"desc": "default value marker",
+	"keyword": true
+    },
+    {
+	"prefixOp": "$$",
+	"priorities": [
+	    899,
+	    898
+	],
+	"desc": "wrap value in memo",
+	"keyword": false
+    },
+    {
+	"postfixOp": "!!",
+	"priorities": [
+	    99,
+	    100
+	],
+	"desc": "pick up value from a memo",
+	"keyword": false
+    },
+    {
+	"infixOp": "!",
+	"priorities": [
+	    99,
+	    100,
+	    99
+	],
+	"desc": "pick up value from a ref cell",
+	"keyword": true
+    },
+    {
+	"postfixOp": "!",
+	"priorities": [
+	    99,
+	    100
+	],
+	"desc": "pick up value from a ref cell",
+	"keyword": true
+    },
+    {
+	"token": ". ",
+	"desc": "statement terminator",
+	"keyword": true
+    },
     {
 	"bracket": "()",
 	"left": "(",

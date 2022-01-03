@@ -139,7 +139,7 @@ retCode endCollection(void *cl) {
           genBracket(info->oper, info->priority, info->left, info->right, info->sep, info->desc);
           return Ok;
         case tokenOnly:
-          genToken(info->oper, info->desc);
+          genToken(info->oper, info->desc, True);
           return Ok;
         default:
           return Error;
