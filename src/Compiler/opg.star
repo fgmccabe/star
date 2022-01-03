@@ -10,6 +10,7 @@ star.compiler.opg{
   import star.compiler.token.
   import star.compiler.wff.
   import star.pkg.
+--  import star.trace.
 
   needsTerm ::= .noNeed | .needOne.
 
@@ -149,6 +150,7 @@ star.compiler.opg{
   deComma(Trm) => [Trm].
 
   interpolateString:(cons[stringSegment],reports,locn) => (ast,reports).
+  interpolateString([Seg],Rp,_) => handleInterpolation(Seg,Rp).
   interpolateString(Els,Rp,Lc) where size(Els)>1 && (Interpolation,Rp1) .= handleInterpolations(Els,Rp,Lc) =>
     (unary(Lc,"_str_multicat",Interpolation),Rp1).
 

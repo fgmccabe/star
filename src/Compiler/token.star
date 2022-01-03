@@ -1,6 +1,7 @@
 star.compiler.token{
   import star.
   import star.compiler.location.
+  import star.compiler.operators.
 
   public token ::= tok(locn,tk) | endTok(locn).
 
@@ -26,8 +27,9 @@ star.compiler.token{
     disp(fltTok(Dx)) => disp(Dx).
     disp(chrTok(Ch)) => disp(Ch).
     disp(strTok(S)) => "\"#(dispSegments(S)*)\"".
-    disp(lftTok(Id)) => "<#(Id)".
-    disp(rgtTok(Id)) => "#(Id)>".
+    disp(lftTok(Id)) where bkt(LId,_,_,_,_) ^= isBracket(Id) => "<#(LId)".
+    disp(rgtTok(Id)) where bkt(_,_,RId,_,_) ^= isBracket(Id) => "<#(RId)".
+--    disp(rgtTok(Id)) => "#(Id)>".
   }
 
   dispSegments:(cons[stringSegment]) => cons[string].

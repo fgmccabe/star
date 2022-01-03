@@ -1,6 +1,7 @@
 star.compiler.macro{
   import star.
   import star.sort.
+  import star.trace.
 
   import star.compiler.ast.
   import star.compiler.errors.
@@ -10,20 +11,26 @@ star.compiler.macro{
   import star.compiler.macro.infra.
   import star.compiler.macro.rules.
   import star.compiler.wff.
+  
 
   macroAst:(ast,macroContext,(ast,reports)=>result[reports,ast],reports) => result[reports,ast].
   macroAst(A,Cxt,Examine,Rp) => do{
     Rslt <- applyRules(A,Cxt,.inactive,Rp);
 
-    if active(T).=Rslt then
+    if active(T).=Rslt then{
+      logMsg("active result $(T)");
       macroAst(T,Cxt,Examine,Rp)
-    else
+    }
+    else{
+      logMsg("examine $(Cxt) $(A)");
       Examine(A,Rp)
+    }
   }
-  macroAst(A,_,Examine,Rp) default => Examine(A,Rp).
 
   public macroPkg:(ast,reports) => result[reports,ast].
-  macroPkg(A,Rp) => macroAst(A,.package,examinePkg,Rp).
+  macroPkg(A,Rp) => let{
+    Rslt = macroAst(A,.package,examinePkg,Rp)
+  } in trace(Rslt,"macroed = $(Rslt)").
 
   examinePkg(A,Rp) where (Lc,O,Els) ^= isBrTerm(A) => do{
     Ss <- macroStmts(buildMain(Els),Rp);
@@ -122,7 +129,7 @@ star.compiler.macro{
     valis brTuple(Lc,Elx)
   }
   examineStmt(A,Rp) =>
-    err(reportError(Rp,"cannot figure out statement $(A)",locOf(A))).
+    err(reportError(Rp,"cannot figure out statement\n$(A)",locOf(A))).
 
   macroConstructor(A,Rp) where (Lc,L,R)^=isBinary(A,"|") => do{
     Lx <- macroConstructor(L,Rp);
@@ -151,7 +158,6 @@ star.compiler.macro{
     Ix <- macroConstructor(I,Rp);
     valis reXQuant(Lc,Qx,Ix)
   }
-
 
   macroAction:(ast,reports) => result[reports,ast].
   macroAction(A,Rp) => macroAst(A,.actn,examineAction,Rp).
@@ -282,7 +288,7 @@ star.compiler.macro{
     valis roundTerm(Lc,OO,EE)
   }
   examineAction(A,Rp) default =>
-    err(reportError(Rp,"cannot figure out action $(A)",locOf(A))).
+    err(reportError(Rp,"cannot figure out action\n$(A)",locOf(A))).
 
   macroTerm(A,Rp) => macroAst(A,.expression,examineTerm,Rp).
 
@@ -341,6 +347,18 @@ star.compiler.macro{
     BB <- macroCond(B,Rp);
     valis mkTestComprehension(Lc,BB)
   }
+  examineTerm(A,Rp) where (Lc,S) ^= isDoTerm(A) => do{
+    Sx <- macroAction(S,Rp);
+    valis mkDoTerm(Lc,Sx)
+  }
+  examineTerm(A,Rp) where (Lc,S) ^= isActionTerm(A) => do{
+    Sx <- macroAction(S,Rp);
+    valis mkActionTerm(Lc,Sx)
+  }
+  examineTerm(A,Rp) where (Lc,S) ^= isTaskTerm(A) => do{
+    Sx <- macroAction(S,Rp);
+    valis mkTaskTerm(Lc,Sx)
+  }
   examineTerm(A,Rp) where (Lc,Lb,S) ^= isLabeledTheta(A) => do{
     SS <- macroStmts(S,Rp);
     valis mkBrTerm(Lc,Lb,SS)
@@ -390,18 +408,6 @@ star.compiler.macro{
     LL <- macroTerm(L,Rp);
     RR <- macroTerm(R,Rp);
     valis mkSequence(Lc,LL,RR)
-  }
-  examineTerm(A,Rp) where (Lc,S) ^= isDoTerm(A) => do{
-    Sx <- macroAction(S,Rp);
-    valis mkDoTerm(Lc,Sx)
-  }
-  examineTerm(A,Rp) where (Lc,S) ^= isActionTerm(A) => do{
-    Sx <- macroAction(S,Rp);
-    valis mkActionTerm(Lc,Sx)
-  }
-  examineTerm(A,Rp) where (Lc,S) ^= isTaskTerm(A) => do{
-    Sx <- macroAction(S,Rp);
-    valis mkTaskTerm(Lc,Sx)
   }
   examineTerm(A,Rp) where _ ^= isTag(A) => do{ valis A}
   examineTerm(A,Rp) where (Lc,L,R) ^= isPrompt(A) => do{
@@ -494,7 +500,7 @@ star.compiler.macro{
     valis mkCaseExp(Lc,EE,CC)
   }
   examineTerm(A,Rp) default =>
-    err(reportError(Rp,"cannot figure out expression $(A), key=$(macroKey(A))",locOf(A))).
+    err(reportError(Rp,"cannot figure out expression\n$(A)",locOf(A))).
 
   macroCond:(ast,reports) => result[reports,ast].
   macroCond(C,Rp) => macroTerm(C,Rp).
@@ -570,7 +576,7 @@ star.compiler.macro{
     valis mkPromotion(Lc,RR)
   }
   examinePtn(A,Rp) default =>
-    err(reportError(Rp,"cannot figure out pattern $(A), key=$(macroKey(A))",locOf(A))).
+    err(reportError(Rp,"cannot figure out pattern\n$(A)",locOf(A))).
 
   macroType(A,Rp) => macroAst(A,.typeterm,examineType,Rp).
 
@@ -635,7 +641,7 @@ star.compiler.macro{
   }
 
   examineType(A,Rp) default =>
-    err(reportError(Rp,"cannot figure out type expression $(A), key=$(macroKey(A))",locOf(A))).
+    err(reportError(Rp,"cannot figure out type expression\n$(A)",locOf(A))).
 
   macroConstraint(A,Rp) => macroAst(A,.constraint,examineConstraint,Rp).
 

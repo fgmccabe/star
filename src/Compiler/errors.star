@@ -1,5 +1,6 @@
 star.compiler.errors{
   import star.
+  import star.trace.
   import star.compiler.location.
 
   public reportMsg ::= errorMsg(locn,string)
@@ -8,7 +9,7 @@ star.compiler.errors{
   public reports ::= reports(cons[reportMsg]).
 
   public implementation display[reports] => {
-    disp(reports(M)) => "$(countErrors(M)) errors\n$(countWarnings(M)) warnings".
+    disp(reports(M)) => "#(interleave(M//disp,"\n")*)\n$(countErrors(M)) errors\n$(countWarnings(M)) warnings".
   }
 
   public implementation display[reportMsg] => {
