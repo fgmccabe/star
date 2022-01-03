@@ -146,7 +146,9 @@ I.e., re-assignability depends only on whether the target is re-assignable.
 @node Numeric Literal Expressions
 @section Numeric Literal Expressions
 @cindex numeric literal
-There are two forms of numeric literal expression: integers (@ref{Integer Literal}) and floats (@ref{FloatingPoint}).
+There are three forms of numeric literal expression: integers
+(@ref{Integer Literal}), arbitrary precision integers
+(@ref{Aritrary Precision Integer}) and floating point numbers (@ref{FloatingPoint}).
 
 @node Integer Literal
 @subsection Integer Literal
@@ -159,6 +161,27 @@ precision.}
 Integers may be written in a variety of styles (see
 @refer{decimalFig}; the most common form is the simple
 @refer{Decimal} notation.
+
+@node Aribitrary Precision Integer
+@subsection Aribitrary Precision Integer
+@cindex integer
+@cindex arbitrary precision integer
+
+Arbitrary precision integers do not have a fixed upper limit in their
+range: in principle, a single number could take the entire memory of
+the computer.@footnote{Not recommended.}
+
+Arbitrary precision integers are written as a sequence of decimal
+digits followed by a @code{'b'} letter:
+
+@example
+815915283247897734345611269596115894272000000000b
+@end example
+
+It is possible to coerce between so-called @emph{bigint}s and regular
+64 bit integers; although it is not guaranteed to be possible in all
+cases.
+
 
 @node Floating Point Literals
 @subsection Floating Point Literals
@@ -187,20 +210,6 @@ enclosed in double-quotes:
 @example
 "A string literal with 35 characters"
 @end example
-
-The @code{string} type is actually defined as a normal algebraic data type:
-@float Program,stringTypeFig
-@caption{String Type}
-@example
-string ::= chrs_(chars) | pair_(string,string).
-@end example
-@end float
-
-This reflects the fact that most strings in @Star{} are so-called
-@emph{structured strings}. Structured strings reflect the ability to
-support efficient string interpolation and string concatenation.
-String interpolation expressions are embedded expressions whose values are
-interpolated into the actual string value.
 
 @node String Interpolation
 @subsection String Interpolation
@@ -285,7 +294,7 @@ An expression of the form:
 
 is interpreted as: 
 @example
-pair_(chrs_(@var{prefix}),pair_(disp(@var{Exp}),chrs_(@var{suffix})))
+_multicat([@var{prefix},disp(@var{Exp}),@var{suffix}])
 @end example
 
 If a @refer{FormattingSpec} is present, then the translation takes
@@ -297,11 +306,18 @@ that into account also. For example, the expression:
 
 is equivalent to the expression: 
 @example
-pair_(chrs_(@var{prefix}),pair_(frmt(@var{Exp},@var{Format}),chrs_(@var{suffix})))
+_multicat([@var{prefix},frmt(@var{Exp},@var{Format}),@var{suffix}])
 @end example
 
 where @code{frmt} is part of the @code{format} contract -- see
 @refer{formatContract}.
+
+The standard @code{_multicat} function takes a list of @code{string}
+values and concatentates them into a single @code{string} value.
+
+@quotation Note
+@code{_multicat} is itself defined via a contract specification: it is
+part of the @code{concat} contract. 
 
 @node String Embedding
 @subsubsection String Embedding
@@ -425,12 +441,12 @@ constructors that are introduced in an algebraic
 @end float
 The valid types of the arguments to a @refer{PositionalConstructorLiteral} are determined by its definition within the appropriate type definition.
 
-For example, the type definition:
+For example, in the type definition:
 @example
-address ::= noWhere | someWhere(string,integer,string)
+address ::= .noWhere | someWhere(string,integer,string)
 @end example
 
-defines @code{someWhere} as the identifier of a
+@code{someWhere} as the identifier of a
 @refer{PositionalConstructorLiteral} and any instance must have
 exactly three arguments: a @code{string}, an @code{integer} and a
 @code{string}.
@@ -460,8 +476,8 @@ constrains the types of the expressions associated with the fields.
 @float BNF,recordConstructorFig
 @caption{Record Literal}
 @display
-@anchored{RecordLiteral}::=@refer{Record} | @refer{ThetaRecord}
-@anchored{Record} ::= @refer{Identifier}@code{'@{.'} @refer{RecordElement} @refer{Terminator} @dots{} @refer{Terminator} @refer{RecordElement} @code{'.@}'}
+@anchored{RecordLiteral}::=@refer{Record} | @refer{RecRecord}
+@anchored{Record} ::= @refer{Identifier}@code{'@{'} @refer{RecordElement} @refer{Terminator} @dots{} @refer{Terminator} @refer{RecordElement} @code{'@}'}
 @anchored{RecordElement} ::= @refer{Identifier} @code{'='} @refer{Expression}
 | @refer{Identifier} @code{':='} @refer{Expression}
 | @code{'type'} @refer{Identifier} @code{'='} @refer{Type}
@@ -469,7 +485,7 @@ constrains the types of the expressions associated with the fields.
 @end float
 
 There are two variants of the @refer{RecordLiteral}: the
-@refer{Record} form and the @refer{ThetaRecord} form. This section
+@refer{Record} form and the @refer{RecRecord} form. This section
 focuses on the former.
 
 For example, given the type definition: 
@@ -539,14 +555,14 @@ P = someone@{ name="fred". age=32 @}
 
 then the expression @code{P.name} has value @code{"fred"}.
 
-@quotation Note
-The (@code{.}) access operator is also used in cases where an anonymous
-record is used; for example given the record: 
-@example
-R = @{ alpha = "a". beta=4 @}
-@end example
-then @code{R.alpha} has value @code{"a"}
-@end quotation
+@c @quotation Note
+@c The (@code{.}) access operator is also used in cases where an anonymous
+@c record is used; for example given the record: 
+@c @example
+@c R = @{ alpha = "a". beta=4 @}
+@c @end example
+@c then @code{R.alpha} has value @code{"a"}
+@c @end quotation
 
 @quotation Note
 The binding of the record access operator (@code{.}) is very strong. Thus,
@@ -562,31 +578,31 @@ and
 respectively.
 @end quotation
 
-@node Theta Record Literals
-@subsection Theta Record Literals
+@node Recursive Record Literals
+@subsection Recursive Record Literals
 @cindex theta record
 
-A @refer{ThetaRecord} is a record whose contents is specified by means
+A @refer{RecRecord} is a record whose contents is specified by means
 of a @refer{ThetaEnvironment}.@footnote{There are variants corresponding to
 labeled and anonymous records.}
 
 @float BNF,thetaRecordFig
 @caption{Theta Record}
 @display
-@anchored{ThetaRecord} ::= @refer{Identifier}@code{'@{'} @refer{Definition}@refer{Terminator} @dots{} @refer{Terminator} @refer{Definition} @code{'@}'}
+@anchored{RecRecord} ::= @refer{Identifier}@code{'@{.'} @refer{Definition}@refer{Terminator} @dots{} @refer{Terminator} @refer{Definition} @code{'.@}'}
 @end display
 @end float
 
-Externally, a @refer{ThetaRecord} is the same as a regular
+Externally, a @refer{RecRecord} is the same as a regular
 @refer{Record}; internally, however, its fields are defined
 differently using @refer{Definition}s. @refer{Definition}s include
 @refer{RecordElement} but may also include @refer{TypeDefinition}s and
 other forms of definition.
 
-Furthermore, @emph{within} a @refer{ThetaRecord}, definitions may be
+Furthermore, @emph{within} a @refer{RecRecord}, definitions may be
 @emph{mutually recursive}.
 
-@refer{ThetaRecord}s are especially convenient when the fields of the
+@refer{RecRecord}s are especially convenient when the fields of the
 record are program values. For example, assuming a type definition
 such as: 
 @example
@@ -597,12 +613,12 @@ onewayQ[t] ::= onewayQ@{
 @end example
 then the literal: 
 @example
-onewayQ@{
+onewayQ@{.
   private Q := [].
   add(X) => action @{
     Q := [Q..,X];
     return ()
-  @}
+  .@}
   take() => valof action@{
     H = head(Q);
     Q := tail(Q);
@@ -619,13 +635,13 @@ which will exclude them from the record's type signature.
 @end quotation
 
 @quotation Note
-A @refer{ThetaRecord} has many of the characteristics of an object in
+A @refer{RecRecord} has many of the characteristics of an object in
 OO languages -- except that there is no concept of inheritance; nor is
 there a direct equivalence of the @code{self} or @code{this} keyword.
 @end quotation
 
 @quotation Note
-A definition within a @refer{ThetaRecord} that is marked
+A definition within a @refer{RecRecord} that is marked
 @code{private} does @emph{not} 'contribute' to the external type of
 the record; and neither can such an attribute be accessed via the
 @refer{RecordAccess} expression.
@@ -726,13 +742,13 @@ Fortunately, singleton tuples are not often required in programs.
 @c record can be accessed using @refer{RecordAccess} expressions.
 
 @c Like the normal @refer{RecordLiteral}, there are two variants: an
-@c @refer{AnonymousRecord} and an @refer{AnonymousThetaRecord}.
+@c @refer{AnonymousRecord} and an @refer{AnonymousRecRecord}.
 
 @c @float BNF,anonRecordFig
 @c @caption{Anonymous Record Literal}
 @c @display
 @c @anchored{AnonymousRecord}::= @code{'@{.'} @refer{RecordElement}@refer{Terminator} @dots{} @refer{Terminator} @refer{RecordElement} @code{'.@}'}
-@c @anchored{AnonymousThetaRecord}::= @code{'@{'} @refer{Definition}@refer{Terminator} @dots{} @refer{Terminator} @refer{Definition} @code{'@}'}
+@c @anchored{AnonymousRecRecord}::= @code{'@{'} @refer{Definition}@refer{Terminator} @dots{} @refer{Terminator} @refer{Definition} @code{'@}'}
 @c @end display
 @c @end float
 
@@ -768,7 +784,7 @@ arguments itself to be the result of a function application. For
 example, given the function @code{double}:
 @example
 double : all s ~~ (((s)=>s))=>((s)=>s)
-double(F) => (X) => is F(F(X))
+double(F) => (X) => F(F(X))
 @end example
 
 we can apply @code{double} to @code{inc}: 
@@ -810,7 +826,8 @@ other expressions and actions.
 @end display
 @end float
 
-The value of a case expression depends on which of the cases match its governing expression.
+The value of a case expression depends on which of the cases match its
+governing expression.
 
 For example, the expression: 
 @example
@@ -891,20 +908,34 @@ auxiliary definitions.
 @caption{Let Expression}
 @display
 @anchored{LetExpression}::=@code{'let'} @refer{LetEnvironment} @code{'in'} @refer{Expression}
-@anchored{LetEnvironment} ::= @code{'@{.'} @refer{RecordElement}@refer{Terminator} @dots{} @refer{Terminator} @refer{RecordElement} @code{'.@}'} |
-  @code{'@{'} @refer{Definition}@refer{Terminator} @dots{} @refer{Terminator} @refer{Definition} @code{'@}'}
+@anchored{LetEnvironment} ::= @code{'@{'} @refer{RecordElement}@refer{Terminator} @dots{} @refer{Terminator} @refer{RecordElement} @code{'@}'} |
+  @code{'@{.'} @refer{Definition}@refer{Terminator} @dots{} @refer{Terminator} @refer{Definition} @code{'.@}'}
 @end display
 @end float
 
 A @code{let} expression consists of a body -- which is an
-@refer{LetEnvironment} -- and a bound @refer{Expression}. There are
-two forms of let expressions, recursive and non-recursive. The
-non-recursive form is written using the @code{@{} and @code{@}}
-brackets, whereas the recursive environment is written using @code{@{.}
-and @code{.@}} brackets.
+@refer{LetEnvironment} -- and a bound @refer{Expression}. The type of
+a @code{let} expression is the type of the bound expression.
+
+There are two forms of let expressions, recursive and
+non-recursive. The non-recursive form is written using the @code{@{}
+and @code{@}} brackets, whereas the recursive environment is written
+using @code{@{.}  and @code{.@}} brackets.
 
 Both environments support value and type definitions; the recursive
 environment allows mutually recursive definitions to be constructed.
+
+Within a non-recursive let environment, the elements being defined are
+not themselves in scope: only variables and types that are defined
+outside the environment are in scope within the environment.
+
+@quotation Note
+This is different to the rule for some languages that allow a form of
+sequential scope within a let environment: i.e., they allow later
+definitions to rely on earlier definitions. However, in @Star{}, a let
+environment is also permitted inside a record expression which would
+result in a significantly confusing situation.
+@end quotation
 
 @quotation Note
 @code{let} expressions are an important program structuring tool for
@@ -929,19 +960,15 @@ sort(L, let@{
 in pComp)
 @end example
 
-@quotation Note
 Of course, in this case, the @code{sort} expression could equally have
 been written using a lambda expression:
 @example
 sort(L, (someone@{name=N1@},someone@{name=N2@}) => N1<N2)
 @end example
-@end quotation
 
 The @code{let} expression has major applications when constructing
 function-returning functions.
 @end quotation
-
-The type of a @code{let} expression is the type of the bound expression.
 
 @node Optional Expressions
 @subsection Optional Expressions
@@ -1146,7 +1173,8 @@ replacing an element in a collection and removing an element from a collection.
 There is a related similar notation -- the @refer{Slice Notation} --
 that is used to denote sub-sequences.
 
-The index notation is based on the @code{indexed} contract (@ref{The indexed Contract}).
+The index notation is based on the @code{indexed} contract (@ref{The
+indexed Contract}).
 
 An expression of the form: 
 @example
@@ -1227,6 +1255,8 @@ _slice(@var{C},@var{F},@var{T})
 @quotation Note
 The result type of a slice expression is the same as the collection type that is being sliced.
 @end quotation
+
+
 
 
 
