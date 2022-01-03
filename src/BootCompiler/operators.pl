@@ -359,6 +359,7 @@
   keyword("&&").
   keyword("~>").
   keyword("throw").
+  keyword("{.").
   keyword("do").
   keyword("import").
   keyword("catch").
@@ -366,21 +367,29 @@
   keyword("valis").
   keyword(",..").
   keyword("for").
+  keyword("{?").
   keyword("ignore").
   keyword("raise").
+  keyword(". ").
+  keyword("(|").
   keyword("then").
   keyword("!").
   keyword("->>").
   keyword("default").
   keyword("#").
+  keyword("!}").
   keyword("<-").
+  keyword("(").
+  keyword(")").
   keyword("<<-").
+  keyword("|)").
   keyword("*>").
   keyword(",").
   keyword("contract").
   keyword(".").
   keyword("try").
   keyword("exists").
+  keyword("tag").
   keyword("if").
   keyword(":").
   keyword(";").
@@ -390,34 +399,45 @@
   keyword("|:").
   keyword("?").
   keyword("@").
+  keyword("|>").
   keyword("in").
   keyword("cut").
   keyword("open").
   keyword("~~").
   keyword("public").
+  keyword("[|").
   keyword("ref").
   keyword("where").
   keyword("case").
+  keyword("[").
   keyword("=>").
+  keyword("]").
   keyword("^").
   keyword("<=>").
+  keyword("|]").
   keyword("perform").
+  keyword("?}").
   keyword("valof").
   keyword("until").
   keyword("while").
   keyword("private").
   keyword("::").
   keyword(":?").
+  keyword("<|").
   keyword("^.").
   keyword("<~").
+  keyword("{").
   keyword("type").
   keyword("implementation").
+  keyword(".}").
   keyword("|").
+  keyword("}").
   keyword("handle").
   keyword("~").
   keyword("||").
   keyword("else").
   keyword("::=").
+  keyword("{!").
 
   isKeyword(X):- keyword(X), !.
 

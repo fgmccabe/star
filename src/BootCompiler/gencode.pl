@@ -423,7 +423,7 @@ compAction(tryDo(Lc,A,H),OLc,Cont,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) 
   chLine(Opts,OLc,Lc,C,C0),
   splitCont(Lc,Cont,SuccCont),
   splitCont(Lc,catchAction(Lc,SuccCont,ECont,H,Opts),ThCont),
-  compAction(A,Lc,SuccCont,RCont,ThCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+  compAction(A,Lc,handleCont(ThCont,SuccCont),RCont,ThCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 
 compIfThen(Lc,T,A,B,OLc,Cont,RCont,ECont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),

@@ -18,7 +18,7 @@ importAll(Imports,Repo,AllImports) :-
 
 importMore(Repo,importPk(Lc,Viz,Pkg),SoFar,[importPk(Lc,Viz,Pkg)|SoFar],Inp,More) :-
   importPkg(Pkg,Repo,spec(_,Imports,_)),
-  addPublicImports(Imports,Lc,Inp,More).
+  addPublicImports(Imports,Lc,Inp,More),!.
 importMore(_,importPk(Lc,_,Pkg),SoFar,SoFar,Inp,Inp) :-
   reportError("could not import package %s",[Pkg],Lc).
 
