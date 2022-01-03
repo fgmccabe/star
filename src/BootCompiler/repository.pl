@@ -53,21 +53,17 @@ getVersion(Vers,V,Vers,Sig,U,Fn) :- is_member((Vers,Sig,U,Fn),V),!.
 getVersion(defltVersion,V,Act,Sig,U,Fn) :- is_member((Act,Sig,U,Fn),V),!.
 
 addCodePackage(repo(Root,Man),U,pkg(Pkg,Vers),Sig,Text,repo(Root,NM)) :-
-  packageHash(Pkg,Vers,Hash),
-  string_concat(Pkg,Hash,Fn),
+  versionName(Vers,VNm),
+  string_concat(".",VNm,H),
+  string_concat(Pkg,H,Fn),
   string_concat(Fn,".cafe",GoFn),
   resolveFile(Root,GoFn,FileNm),
   writeFile(FileNm,Text),!,
   addToManifest(Man,U,Pkg,Vers,Sig,fl(GoFn),NM),
   flushManifest(Root,NM).
 
-packageHash(Pkg,defltVersion,Hash) :-
-  stringHash(0,Pkg,H),
-  hashSixtyFour(H,Hash).
-packageHash(Pkg,ver(V),Hash) :-
-  stringHash(0,Pkg,H1),
-  stringHash(H1,V,H2),
-  hashSixtyFour(H2,Hash).
+versionName(ver(Nm),Nm).
+versionName(defltVersion,"*").
 
 showRepoManifest(repo(Root,Man)) :-
   reportMsg("manifest of repo at %s",[Root]),
