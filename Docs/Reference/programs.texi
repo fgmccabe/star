@@ -17,7 +17,7 @@ contains the source of that package.
 This separation is intended to avoid questions such as file name
 extensions, directory structures and so on. A catalog is able to
 collect together all the sources that are relevant to a project while
-not requiring that they are all physically co-located.
+not requiring that they all be physically co-located.
 @end quotation
 
 @node Structure of a Catalog
@@ -198,7 +198,7 @@ used as data structuring tools; but mathematically they are functions.
 
 For example, the type definition:
 @example
-person ::= noone | someone(string,integer)
+person ::= .noone | someone(string,integer)
 @end example
 induces the constructor function for @code{someone}:
 @example
@@ -227,11 +227,11 @@ An @refer{AlgebraicTypeDefinition} statement for a generic type (i.e.,
 a type with type parameters) may omit the explicit quantifiers. I.e., instead of
 
 @example
-all e ~~ cons[e] ::= nil | cons(e,cons[e])
+all e ~~ cons[e] ::= .nil | cons(e,cons[e])
 @end example
 it is permissable to write:
 @example
-cons[e] ::= nil | cons(e,cons[e])
+cons[e] ::= .nil | cons(e,cons[e])
 @end example
 
 The reason is that the quantifiers in such a definition may be
@@ -691,7 +691,6 @@ Note the extra set of parentheses around both the embedded function type and aro
 Lambda expressions functions may reference free variables.
 @end quotation
 
-
 @node Contract Definition
 @section Contract Definition
 @cindex type,contracts
@@ -933,7 +932,9 @@ For example, in the equation:
 @example
 consLess(cons(H1,T1),cons(H2,T2)) where H1<H2 => true.
 @end example
-we are relying on a definition of inequality for the elements of the @code{cons} list -- whilst we are defining inequality for @code{cons} lists themselves.
+we are relying on a definition of inequality for the elements of the
+@code{cons} list -- whilst we are defining inequality for @code{cons}
+lists themselves.
 
 If we had tried to define @code{<} directly, using, for example:
 @example

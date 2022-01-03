@@ -57,7 +57,8 @@ the type of @code{X}.
 @node Scope of Pattern Variables
 @subsection Scope of Pattern Variables
 @cindex variables,scope of
-A pattern always occurs in the context of a @emph{scope extension} -- a new potential scope for variables. For example, in the equation:
+A pattern always occurs in the context of a @emph{scope extension} --
+a new potential scope for variables. For example, in the equation:
 @example
 fact(N) => N*fact(N-1)
 @end example
@@ -167,7 +168,7 @@ only.
 @float BNF,enumeratedPtnFig
 @caption{Enumerated Symbol Pattern}
 @display
-@anchored{EnumeratedSymbolPattern}::= @refer{Identifier}
+@anchored{EnumeratedSymbolPattern}::= @code{.} @refer{Identifier}
 @end display
 @end float  
 
@@ -254,47 +255,47 @@ $2(X,Y) in R
 Noting, of course, that @code{$2} is not a legal @refer{Identifier}.
 @end quotation
 
-@node Anonymous Record Patterns
-@subsection Anonymous Record Patterns
-@cindex matching anonymous records
-@cindex pattern,anonymous record
-@cindex anonymous record pattern
+@c @node Anonymous Record Patterns
+@c @subsection Anonymous Record Patterns
+@c @cindex matching anonymous records
+@c @cindex pattern,anonymous record
+@c @cindex anonymous record pattern
 
-An anonymous record pattern is written in an analogous form to the
-regular record pattern, except that there is no label prefixed to it.
+@c An anonymous record pattern is written in an analogous form to the
+@c regular record pattern, except that there is no label prefixed to it.
 
-@float BNF,anonRecordPtnFig
-@caption{Anonymous Record Pattern}
-@display
-@anchored{AnonymousRecordPattern} ::= @code{'@{'} @refer{AttributePattern}@code{'.'} @dots{} @code{'.'} @refer{AttributePattern}@code{'@}'}
-@end display
-@end float
+@c @float BNF,anonRecordPtnFig
+@c @caption{Anonymous Record Pattern}
+@c @display
+@c @anchored{AnonymousRecordPattern} ::= @code{'@{'} @refer{AttributePattern}@code{'.'} @dots{} @code{'.'} @refer{AttributePattern}@code{'@}'}
+@c @end display
+@c @end float
 
-For example,
-@example
-@{name=N. address=A @} in R
-@end example
-uses an anonymous record pattern to match elements of the list @code{R}.
+@c For example,
+@c @example
+@c @{name=N. address=A @} in R
+@c @end example
+@c uses an anonymous record pattern to match elements of the list @code{R}.
 
-@quotation Note
-Unlike with most other patterns, the type checker is generally
-@emph{not} able to reliably infer the type of an anonymous record
-pattern. As a result, it must @emph{always} be the case that the
-anonymous record pattern occurs in a context where the type may be
-inferred. In the above example, the type of the anonymous record
-pattern:
+@c @quotation Note
+@c Unlike with most other patterns, the type checker is generally
+@c @emph{not} able to reliably infer the type of an anonymous record
+@c pattern. As a result, it must @emph{always} be the case that the
+@c anonymous record pattern occurs in a context where the type may be
+@c inferred. In the above example, the type of the anonymous record
+@c pattern:
 
-@example
-@{name=N. address=A@}
-@end example
-can be inferred from the context it occurs in, and the type of
-@code{R}. However, if @code{R}'s type is not already known by other
-means, then a syntax error will result.
+@c @example
+@c @{name=N. address=A@}
+@c @end example
+@c can be inferred from the context it occurs in, and the type of
+@c @code{R}. However, if @code{R}'s type is not already known by other
+@c means, then a syntax error will result.
 
-The reason for this is that, like other record patterns, an anonymous
-record pattern need not contain an element for every attribute
-defined.
-@end quotation
+@c The reason for this is that, like other record patterns, an anonymous
+@c record pattern need not contain an element for every attribute
+@c defined.
+@c @end quotation
 
 @node Guarded Patterns
 @section Guarded Patterns
