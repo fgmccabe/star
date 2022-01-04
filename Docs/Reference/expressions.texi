@@ -148,7 +148,7 @@ I.e., re-assignability depends only on whether the target is re-assignable.
 @cindex numeric literal
 There are three forms of numeric literal expression: integers
 (@ref{Integer Literal}), arbitrary precision integers
-(@ref{Aritrary Precision Integer}) and floating point numbers (@ref{FloatingPoint}).
+(@ref{Arbitrary Precision Integer}) and floating point numbers (@ref{FloatingPoint}).
 
 @node Integer Literal
 @subsection Integer Literal
@@ -162,8 +162,8 @@ Integers may be written in a variety of styles (see
 @refer{decimalFig}; the most common form is the simple
 @refer{Decimal} notation.
 
-@node Aribitrary Precision Integer
-@subsection Aribitrary Precision Integer
+@node Arbitrary Precision Integer
+@subsection Arbitrary Precision Integer
 @cindex integer
 @cindex arbitrary precision integer
 
@@ -318,6 +318,7 @@ values and concatentates them into a single @code{string} value.
 @quotation Note
 @code{_multicat} is itself defined via a contract specification: it is
 part of the @code{concat} contract. 
+@end quotation
 
 @node String Embedding
 @subsubsection String Embedding
