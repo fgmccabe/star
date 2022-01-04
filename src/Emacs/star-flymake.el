@@ -53,16 +53,16 @@
 (defun star-parse-errors (source buffer)
   (with-current-buffer buffer
     (goto-char (point-min))
-    (while (search-forward-regexp
-            "^\\(Error\\|Warning\\) \\(?:[0-9]+\\) - \\(.*?\\)\\[\\([0-9]+\\):\\([0-9]+\\)]\\(?:[0-9]+:[0-9]+\\)\n\\(.*\\)$"
+    (cl-loop
+     while (search-forward-regexp
+            "^\\(Error\\|Warning\\) \\(?:[0-9]+\\) - \\(.*?\\)\\(.*?\\)\\[\\([0-9]+\\):\\([0-9]+\\)@\\([0-9]+\\)-\\([0-9]+\\)\\]\n<[.]\\(.*\\)[.]>$"
             nil t)
-     for beg = (string-to-number (match-string 3))
-     for len = (string-to-number (match-string 4))
+     for beg = (string-to-number (match-string 6))
+     for len = (string-to-number (match-string 7))
      for end = (+ beg len)
-     for msg = (match-string 5)
-     collect (flymake-make-diagnostic buffer
-                                      beg
-                                      end)
+     for msg = (match-string 8)
+     for type = (if (string-equal (match-string 1) "Warning") :warning :error)
+     collect (flymake-make-diagnostic source beg end type msg)
      )))
 
 (defun star-flymake (report-fn &rest _args)
