@@ -14,7 +14,6 @@ fundamental mechanisms that can guide the course of a computation.
   | @refer{Variable}
   | @refer{ConstructorPattern}
   | @refer{TuplePattern}
-  | @refer{AnonymousRecordPattern}
   | @refer{GuardedPattern}
   | @refer{SequencePattern}
 @end display
