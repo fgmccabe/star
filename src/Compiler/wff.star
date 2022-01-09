@@ -33,6 +33,10 @@ star.compiler.wff{
 
   public squareTerm:(locn,ast,cons[ast])=>ast.
   squareTerm(Lc,Op,Args) => app(Lc,Op,tpl(Lc,"[]",Args)).
+
+  public squareTermName:(ast) => option[ast].
+  squareTermName(A) where (_,Op,_) ^= isSquareTerm(A) => some(Op).
+  squareTermName(_) default => .none.
   
   public isSquareApply:(ast) => option[(locn,string,cons[ast])].
   isSquareApply(app(Lc,Op,tpl(_,"[]",A))) where
@@ -147,10 +151,12 @@ star.compiler.wff{
   reComma([A,..As]) =>
     binary(locOf(A),",",A,reComma(As)).
 
-  public isDepends:(ast) => option[(cons[ast],cons[ast])].
-  isDepends(T) where (_,Lh,Rh)^=isBinary(T,"->>") =>
-    some((deComma(Lh),deComma(Rh))).
+  public isDepends:(ast) => option[(locn,cons[ast],cons[ast])].
+  isDepends(T) where (Lc,Lh,Rh)^=isBinary(T,"->>") =>
+    some((Lc,deComma(Lh),deComma(Rh))).
   isDepends(_) default => .none.
+
+  public mkDepends(Lc,L,R) => binary(Lc,"->>",reComma(L),reComma(R)).
 
   public isAnnotation:(ast) => option[(locn,ast,ast)].
   isAnnotation(A) where (Lc,L,R) ^= isBinary(A,"@") =>

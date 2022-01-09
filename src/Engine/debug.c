@@ -130,68 +130,71 @@ static logical shouldWeStop(processPo p, termPo arg) {
       outMsg(logFile, "\n%_");
     }
 
-    switch (p->waitFor) {
-      case stepInto:
-        if (p->traceCount > 0)
-          p->traceCount--;
-        return (logical) (p->traceCount == 0);
-
-      case stepOver:
-      case nextBreak:
-        break;
-      default:
-        return False;
-    }
-
     switch (*p->stk->fp->pc) {
       case Ret:
       case RtG: {
         switch (p->waitFor) {
           case stepOver:
             return (logical) (p->waterMark == p->stk->fp->fp && p->traceCount == 0);
+          case stepInto:
+            if (p->traceCount > 0)
+              p->traceCount--;
+            return (logical) (p->traceCount == 0);
           default:
             return False;
         }
       }
       case Call:
-      case OCall: {
-        if (breakPointSet(C_LBL(arg))) {
-          p->waitFor = stepInto;
-          p->tracing = True;
-          p->waterMark = p->stk->fp;
-          return True;
-        } else if (p->waitFor == stepOver) {
-          return (logical) (p->traceCount == 0 && p->waterMark == p->stk->fp);
-        } else
-          return False;
-      }
+      case OCall:
       case TCall:
       case TOCall: {
         if (breakPointSet(C_LBL(arg))) {
           p->waitFor = stepInto;
           p->tracing = True;
-          p->traceCount = 0;
           p->waterMark = Null;
           return True;
-        } else if (p->waitFor == stepOver)
-          return (logical) (p->waterMark == p->stk->fp && p->traceCount == 0);
-        else
-          return False;
+        } else
+          switch (p->waitFor) {
+            case stepInto:
+              if (p->traceCount > 0)
+                p->traceCount--;
+              return (logical) (p->traceCount == 0);
+            case stepOver:
+              return (logical) (p->traceCount == 0 && p->waterMark == p->stk->fp);
+            default:
+              return False;
+          }
       }
-      case LdG:{
-        if(!glbIsSet(C_GLOB(arg))){
-          if (p->waitFor == stepOver)
-            return (logical) (p->waterMark == p->stk->fp && p->traceCount == 0);
-          else
-            return False;
-        }else
+
+      case LdG: {
+        if (debugDebugging) {
+          outMsg(logFile, "debug: global %T\n%_", C_GLOB(arg));
+        }
+        if (!glbIsSet(C_GLOB(arg))) {
+          switch (p->waitFor) {
+            case stepOver:
+              return (logical) (p->waterMark == p->stk->fp && p->traceCount == 0);
+            case stepInto:
+              if (p->traceCount > 0)
+                p->traceCount--;
+              return (logical) (p->traceCount == 0);
+            default:
+              return False;
+          }
+        } else
           return False;
       }
       default: {
-        if (p->waitFor == stepOver)
-          return (logical) (p->waterMark == p->stk->fp && p->traceCount == 0);
-        else
-          return False;
+        switch (p->waitFor) {
+          case stepInto:
+            if (p->traceCount > 0)
+              p->traceCount--;
+            return (logical) (p->traceCount == 0);
+          case stepOver:
+            return (logical) (p->traceCount == 0 && p->waterMark == p->stk->fp);
+          default:
+            return False;
+        }
       }
     }
   } else
@@ -308,19 +311,16 @@ static DebugWaitFor dbgOver(char *line, processPo p, termPo loc, void *cl) {
     case Ret:
     case RtG: {
       p->waterMark = p->stk->fp->fp;
-      p->tracing = True;
       break;
     }
     case Call:
     case OCall: {
       p->waterMark = p->stk->fp;
-      p->tracing = False;
       break;
     }
     case TCall:
     case TOCall: {
       p->waterMark = p->stk->fp->fp;
-      p->tracing = False;
       break;
     }
 
@@ -328,6 +328,7 @@ static DebugWaitFor dbgOver(char *line, processPo p, termPo loc, void *cl) {
       p->waterMark = p->stk->fp;
       break;
   }
+  p->tracing = False;
 
   resetDeflt("n");
   return stepOver;
@@ -718,25 +719,25 @@ static logical shouldWeStopIns(processPo p) {
       case OCall: {
         switch (p->waitFor) {
           case stepOver:
-            return (logical) (p->stk->fp==p->waterMark);
+            return (logical) (p->stk->fp == p->waterMark);
           default:
             return False;
         }
       }
       case LdG: {
-        switch (p->waitFor) {
-          case stepOver: {
-            return (logical) (p->stk->fp==p->waterMark);
-          }
-          default:
+        if (!glbIsSet(C_GLOB(arg))) {
+          if (p->waitFor == stepOver)
+            return (logical) (p->waterMark == p->stk->fp && p->traceCount == 0);
+          else
             return False;
-        }
+        } else
+          return False;
       }
       case TCall:
       case TOCall:
         switch (p->waitFor) {
           case stepOver:
-            return (logical) (p->stk->fp==p->waterMark && p->traceCount == 0);
+            return (logical) (p->stk->fp == p->waterMark && p->traceCount == 0);
           default:
             return False;
         }

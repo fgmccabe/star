@@ -585,6 +585,11 @@ star.compiler.macro{
     NEls <- seqmap((E)=>macroType(E,Rp),Els);
     valis squareTerm(Lc,Op,NEls)
   }
+  examineType(A,Rp) where (Lc,L,R) ^= isDepends(A) => do{
+    NL <- seqmap((X)=>macroType(X,Rp),L);
+    NR <- seqmap((X)=>macroType(X,Rp),R);
+    valis mkDepends(Lc,NL,NR)
+  }
   examineType(A,Rp) where (Lc,L,R) ^= isConstructorType(A) => do{
     NL <- macroType(L,Rp);
     NR <- macroType(R,Rp);

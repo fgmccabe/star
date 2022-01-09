@@ -196,7 +196,7 @@ compTerm(ocall(Lc,Fn,A),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),!,
   length(A,Ar),
   Arity is Ar+1,
-  compTerms(A,Lc,compTerm(Fn,Lc,oclCont(Arity,Cont,Opts),TCont,Opts),TCont,
+  compTerms(A,Lc,compTerm(Fn,Lc,oclCont(Arity,Cont,Opts),TCont,[]/*Opts*/),TCont,
 	    Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 compTerm(tg(Lc,_),OLc,Cont,_TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,[iTag(lbl(H,0))|C1]),
