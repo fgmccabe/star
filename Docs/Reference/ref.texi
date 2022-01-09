@@ -57,6 +57,7 @@ F.G. McCabe).
 * Patterns::
 * Expressions::
 * Conditions::
+* Queries::
 * Actions::
 * Standard Contracts::
 
@@ -86,9 +87,9 @@ F.G. McCabe).
 
 @include conditions.texi
 
-@include actions.texi
+@include queries.texi
 
-@c @include queries.texi
+@include actions.texi
 
 @include standard.texi
 

@@ -19,8 +19,8 @@ function(add_info nm)
 
         add_custom_command(OUTPUT ${out_info}
                 COMMAND ${MAKEINFO} -o ${out_info} ${info_texi}
-                DEPENDS ${info_deps}
                 COMMENT "Creating Info file ${out_info}"
+                DEPENDS ${info_deps}
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                 VERBATIM)
 
