@@ -29,7 +29,7 @@ star.compiler.macro.rules{
     applyRls(A,Cxt,St,Rls,Rp).
   
   macros:map[string,cons[(macroContext,macroRule)]].
-  macros = { -- "::=" -> [(.statement,algebraicMacro)],
+  macros = { "::=" -> [(.statement,algebraicMacro)],
     ":=" -> [(.actn,spliceAssignMacro),
       (.actn,indexAssignMacro)],
     "[]" -> [(.pattern,squarePtnMacro),
@@ -349,22 +349,23 @@ star.compiler.macro.rules{
 
   implementationMacro(A,.statement,Rp) where
       (Lc,Q,C,H,E) ^= isImplementationStmt(A) &&
-      (_,Nm,_) ^= isSquareTerm(H) => do{
-	Ex .= labelImplExp(E,Nm);
+      (_,Nm,_) ^= isSquareTerm(H) &&
+      Ex ^= labelImplExp(E,Nm) => do{
 	valis active(mkImplementationStmt(Lc,Q,C,H,Ex))
       }.
   implementationMacro(_,_,_) default => ok(.inactive).
 
   labelImplExp(T,Nm) where (Lc,Els) ^= isBrTuple(T) =>
-    braceTerm(Lc,Nm,Els).
+    some(braceTerm(Lc,Nm,Els)).
   labelImplExp(T,Nm) where (Lc,Els) ^= isQBrTuple(T) =>
-    qbraceTerm(Lc,Nm,Els).
-  labelImplExp(T,Nm) where (Lc,Els,Exp) ^= isLetDef(T) =>
-    mkLetDef(Lc,Els,labelImplExp(Exp,Nm)).
-  labelImplExp(T,Nm) where (Lc,Els,Exp) ^= isLetRecDef(T) =>
-    mkLetRecDef(Lc,Els,labelImplExp(Exp,Nm)).
-  labelImplExp(T,_) default => T.
-
+    some(qbraceTerm(Lc,Nm,Els)).
+  labelImplExp(T,Nm) where (Lc,Els,Exp) ^= isLetDef(T) &&
+    EE ^= labelImplExp(Exp,Nm) =>
+    some(mkLetDef(Lc,Els,EE)).
+  labelImplExp(T,Nm) where (Lc,Els,Exp) ^= isLetRecDef(T) &&
+      EE ^= labelImplExp(Exp,Nm) =>
+    some(mkLetRecDef(Lc,Els,EE)).
+  labelImplExp(T,_) default => .none.
 
   -- Handle algebraic type definitions
 
@@ -397,9 +398,11 @@ star.compiler.macro.rules{
     Nm .= typeName(H);
     (Qs,Xs,Face) <- algebraicFace(R,Q,[],Rp);
     TpExSt .= reveal(reUQuant(Lc,Qs,reConstrain(Cx,binary(Lc,"<~",H,reXQuant(Lc,Xs,brTuple(Lc,sort(Face,compEls)))))),Vz);
+    logMsg("Type rule is $(TpExSt)");
     Cons <- buildConstructors(R,Q,Cx,H,Vz,Rp);
-    Accs <- buildAccessors(R,Q,Cx,H,Face,Vz,Rp);
-    valis [TpExSt,..Cons++Accs]
+    logMsg("Constructors are $(Cons)");
+--    Accs <- buildAccessors(R,Q,Cx,H,Face,Vz,Rp);
+    valis [TpExSt,..Cons/*++Accs*/]
   }
 
   algebraicFace:(ast,cons[ast],cons[ast],reports) =>
@@ -462,10 +465,14 @@ star.compiler.macro.rules{
   buildConIndices(_,Ixx) default => Ixx.
 
   buildConIx:(cons[ast],string,map[string,map[string,integer]])=>map[string,map[string,integer]].
-  buildConIx(Els,Nm,Ixx) =>
-    fst(foldLeft((El,(Mp,Ix)) where
-	    (_,FNm,_) ^= isTypeAnnotation(El) =>
-	  (Mp[FNm->recordIx(Mp[FNm],Nm,Ix)],Ix+1),(Ixx,0),sort(Els,compEls))).
+  buildConIx(Els,Nm,Ixx) => let{
+    pickCon:(ast,(map[string,map[string,integer]],integer))=>
+      (map[string,map[string,integer]],integer).
+    pickCon(El,(Mp,Ix)) where
+	(_,F,_) ^= isTypeAnnotation(El) && (_,Fld)^=isName(F) =>
+      (Mp[Fld->recordIx(Mp[Fld],Nm,Ix)],Ix+1).
+    pickCon(_,U) default => U.
+  } in fst(foldLeft(pickCon,(Ixx,0),sort(Els,compEls))).
 
   recordIx:(option[map[string,integer]],string,integer) => map[string,integer].
   recordIx(some(NIx),Rc,Off) => NIx[Rc->Off].
