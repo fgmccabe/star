@@ -2,20 +2,14 @@
 @chapter Actions
 
 An action is the specification of an operation -- one that may be
-@emph{performed}.  Actions in @Star{} are realized using the
-@code{execution} contract.
+@emph{performed}. Although actions are often viewed as being performed
+solely for their effect on some shared state, action in @Star{} also
+have a value associated with them. This value embodies the success (or
+failure) of the action as it is performed.
 
-@quotation Note
-We separate the @emph{specification} of an operation from its
-@emph{performance}. There are specific operators that can take an
-@refer{Action} and perform it to extract its value.
-@end quotation
-
-@quotation Note
-The @code{execution} contract is similar in spirit to the @code{monad}
-contract. However, it is somewhat richer as it embodies two additional
-concepts: handling exceptions and performing actions.
-@end quotation
+There are three foundational forms of action expression, as delimited
+in @refer{actionFig}. An action expression is an expression whose
+value is determined by performing an action.
 
 @float BNF,actionFig
 @caption{Types of Action}
@@ -32,197 +26,28 @@ concepts: handling exceptions and performing actions.
 @end display
 @end float
 
-@node The @code{execution} Contract
-@section The @code{execution} Contract
+The differences between the three forms represent a degree of
+separation between the action and the expression:
 
-Action Expressions are expressions that denote an action -- the action
-is performed when the action expression is performed in some way. This
-is mediated by means of the @code{execution} contract.@footnote{The
-@code{execution} contract is strongly related to the @code{monad}
-contract; except that it is somewhat more elaborate.}
-
-@float BNF,executionFig
-@caption{Execution Contract}
-@example
-public contract all m/2 ~~ execution[m] ::= @{
-  _valof:all a,e ~~ (m[e,a])=>a.
-  _valis:all a,e ~~ (a)=>m[e,a].
-  _raise: all a,e ~~ (e) => m[e,a].
-@}
-@end example
-@end float
-
-The @code{execution} contract is over a type function (@code{m/2}) and
-has a dependent type that corresponds to the type of any exception or
-error that may be raised during the computation.
-
-@quotation Note
-There are many potential ways of implementing the @code{execution}
-contract; representing different computation characteristics. The two
-standard implementations are modeled by the @code{action} type and the
-@code{task} type; these also have special syntax associated with them.
-
-However, the most basic implementation of the @code{execution}
-contract is based on the @code{either} type. This reflects the fact
-that computations can return in one of two ways: normally or
-abnormally.
-@end quotation
-
-@quotation Note
-Although computation expressions are based on the functions in this
-contract, most programmers will not use these directly. Instead, there
-is an action notation (see @ref{Do Notation}) that has a more familiar
-style for representing actions.
-@end quotation
-
-@node Exceptions in Computations
-@subsection Exceptions in Computations
-
-There are many cases where a computation can fail. This is accounted
-for in the @code{execution} contract by requiring that the computation
-type is parameterized both by the type of the result of the
-computation but also the type of any exceptions that may arise within
-the computation.
-
-There is a symmetry in the definitions of the @code{_sequence} and
-@code{_handle} methods: in the former, two computations are
-concatenated in the normal sequential case; and in the latter, two
-computations are concatenated where the first computation has failed
-in some sense.
-
-@node @code{_valis} a value as a computation
-@subsection @code{_valis} a value as a computation
-@cindex Lift a value into computation
-
-The @code{_valis} function takes an expression and makes it a computation.
-
-@node @code{_perform} a computation
-@subsection @code{_perform} a computation
-@cindex Perform a computation
-
-The @code{_perform} function takes a computation and performs it. It
-is assumed that the computation does not return any form of error or exception.
-
-@quotation Note
-Use the @code{_handle} function to enable the handling of exceptions.
-@end quotation
-
-@node @code{_sequence} computations
-@subsection @code{_sequence} computations
-@cindex Combine computations
-
-The @code{_sequence} function is a way of combining computations into
-a sequential order. The type signature for @code{_sequence} is:
-@example
-_sequence:all a,b,m/1,e ~~ execution[m->>e] |: (m[a],(a)=>m[b]) => m[b].
-@end example
-Abstractly, the @code{_sequence} function takes two computations and
-creates a new one that is the sequence composition of the two
-computations.
-
-In order to facilitate the flow of information between computations,
-the second computation is modeled as a function from the value of the
-first computation to a new computation.
-
-If an exception arises in the first computation, then the second
-computation is not performed and the exception becomes the value of
-the whole computation.
-
-@node @code{_handle} exceptional computations
-@subsection @code{_handle} exceptional computations
-@cindex Combine exceptional computations
-
-The @code{_handle} function takes a computation that may result in an
-exception and converts it into a potentially exception-free
-computation. It does so by handling any exception that arises.
-
-The type signature for @code{_handle} is:
-@example
-_handle:all a,m/1,e ~~ execution[m->>e] |: (m[a],(e)=>m[a]) => m[a].
-@end example
-
-The second argument to @code{_handle} is the exception handler. It is
-expected to return a computation of the same type as the first
-argument.
-
-The expected semantics of @code{_handle} are that if the first
-computation does not arise in an exception then that is the effective
-computation of the result; otherwise, if the first computation does
-result in an exception then the second argument is expected to take
-that exception and return a new computation.@footnote{That is
-presumably not exceptional.}
-
-@node @code{_raise} an exception
-@subsection @code{_raise} an exception
-@cindex Raise an exception
-
-The @code{_raise} function takes an expression and makes it an
-exceptional computation. One of the effects of this is that the
-exception is propagated through any subsequent computations -- unless
-and until the exception is handled.
-
-@node Expected invariants of computation
-@subsection Expected invariants of computation
-@cindex computation invariants
-The different functions in the @code{execution} contract are expected
-to work together in a coherent way. This is codified in a set of
-invariants that any implementation of the contract is expected to
-obey,
-
-@enumerate
+@itemize @bullet
 @item
-@code{_perform} is a left identity of @code{_valis}.
-
-I.e., for all @emph{E},
-@example
-_perform(_valis(@emph{E})) = @emph{E}
-@end example
+A @code{do} action performs its action at the same time as the expression is evaluated.
 @item
-@code{_valis} is a left identity of @code{_perform}.
-
-I.e., for all non-exceptional @emph{C}:
-@example
-_valis(_perform(@emph{C})) = @emph{C}
-@end example
-This equality is not defined for computations @emph{C} that are the
-result of @code{_raise}.
-
+A @code{action} expression returns a term that can be performed. I.e., the
+value of an @code{action} expression is an action; which, when
+performed, will return a value.
 @item
-Left identity @code{_valis} and @code{_sequence}
+A @code{task} expression returns a computation that can be scheduled independently of other actions.
 
-I.e., an expression of the form:
-@example
-_sequence(_valis @var{E},F)
-@end example
-is equivalent to
-@example
-F(@var{E})
-@end example
-
-@item
-@code{_sequence} is associative.
-
-I.e., a composition of the form:
-@example
-_sequence(_sequence(@var{C},@var{F}),@var{G})
-@end example
-is equivalent to
-@example
-_sequence(@var{C},(X)=>_sequence(F(X),G))
-@end example
-Notice that the form of the associativity is not the same as that for
-arithmetic. This is because the @code{_sequence} function is
-inherently assymetric.
-@end enumerate
+This is analogous to coroutining in other programming languages.
+@end itemize
 
 @node Do Notation
 @section Do Notation
 @cindex Do notation
 @cindex action expressions
 
-The @code{do} notation is a way of writing computation expressions in
-a style that is likely to be familiar to programmers of other
-programming languages.
+The @code{do} notation is the standard syntax for writing actions.
 
 @float BNF,doFig
 @caption{Do Notation}
@@ -230,7 +55,6 @@ programming languages.
 @anchored{Action}::=@refer{NullAction}
   | @refer{BlockAction}
   | @refer{InvokeAction}
-@c  | @refer{IgnoreAction}
   | @refer{ValisAction}
   | @refer{BindAction}
   | @refer{DefnAction}
@@ -253,11 +77,11 @@ or, more accurately, return the empty tuple:
 @float BNF,nothingFig
 @caption{No Operation}
 @display
-@anchored{NullAction} ::= @code{'nothing'}
+@anchored{NullAction} ::= @code{'nothing'} | @code{@{@}}
 @end display
 @end float
 
-The @code{nothing} action is equivalent to
+The @code{nothing} action (or @code{@{@}}) is equivalent to
 @example
 _valis(())
 @end example
@@ -278,20 +102,6 @@ An action block consists of a sequence of actions, enclosed in braces
 
 The empty action block -- @code{@{@}} -- is equivalent to the
 @refer{NullAction}.
-
-Action blocks denote composition of actions using the @code{_sequence}
-function: for example, the actions @var{A}, @var{B} and @var{C} in:
-@example
-@{
-  A; B; C
-@}
-@end example
-
-are equivalent to the expression:
-@example
-_sequence(A,(_)=>_sequence(B,(_)=>C))
-@end example
-assuming that neither of @var{A} or @var{B} are @emph{binding} actions.
 
 @quotation Note
 The last action in an action block is not permitted to be a binding action.
@@ -333,25 +143,6 @@ The @refer{ValisAction} creates a computation from an expression.
 When a @code{valis} action is performed, its expression is evaluated
 and that value is used as the value of the computation.
 
-@node Return Action
-@subsection Return Action
-@cindex return action
-@findex return
-
-The @refer{ReturnAction} creates a computation from an expression.
-
-@float BNF,returnActionFig
-@caption{Return Action}
-@display
-@anchored{ReturnAction} ::= @code{'return'} @refer{Expression}
-@end display
-@end float
-
-@quotation Note
-The @code{return} action, within an action expression, is a synonym of
-a @code{valis} expression.
-@end quotation
-
 @node Bind Action
 @subsection Bind Action
 @cindex bind action
@@ -369,54 +160,6 @@ need not be of the same type -- although the exception types should be.
 
 @quotation Note
 A @refer{BindAction} may not be the last action in an @refer{BlockAction}.
-@end quotation
-
-
-@node Bind Expression
-@subsection Bind Expression
-@cindex bind expression
-
-The @refer{BindExpression} has a similar role to teh
-@refer{BindAction} except that it is used in the context of an
-expression rather than an action.
-
-@float BNF,bindExpressionFig
-@caption{Bind Expression}
-@display
-@anchored{BindExpression} ::= @code{'^'} @refer{Expression}
-@end display
-@end float
-
-@quotation Note
-The @refer{BindExpression} has the effect of moving a computation
-inside an expression to the outside.
-@end quotation
-
-For example, in the fragment:
-@example
-do@{
-  A <- foo(^bar());
-  valis A
-@}
-@end example
-the function @code{foo} should be a suitably typed (i.e., have an
-@code{_execution} contract implemented for it), as should @code{bar}. This code is equivalent to:
-@example
-bar() >>= (XX)=>foo(XX) >>= (A) => _valis(A)
-@end example
-where @code{XX} is a new variable not appearing elsewhere in the program.
-
-@quotation Note
-The above example could have been written
-@example
-do@{
-  XX <- bar();
-  A <- foo(XX);
-  valis A
-@}
-@end example
-except that the @refer{BindExpression} makes it more compact -- and it
-is applicable in non @code{do} expressions also.
 @end quotation
 
 @node Definition Action
@@ -446,7 +189,7 @@ It is an error for a variable to be referenced within its own
 definition. Recursive definitions are not permitted.
 @end quotation
 
-left hand side of a definition is a @refer{Pattern}, not simply an
+The left hand side of a definition is a @refer{Pattern}, not simply an
 @refer{Identifier}.
 
 One primary use for this form is to allow the unpacking of function
@@ -586,6 +329,27 @@ collects grandparents into the re-assignable variable @code{gps}.
 Like @refer{WhileAction}s, the value returned by a @refer{ForAction} is
 always the empty tuple.
 
+@node Let Action
+@subsection Let Action
+@cindex let action
+@findex let
+
+The @refer{LetAction} allows an action to have local definitions
+embedded within it. It plays the same role as let expressions do.
+
+@float BNF,letActionFig
+@caption{Let Action}
+@display
+@anchored{LetAction} ::= @code{'let'} @refer{LetEnvironment} @code{'in'} @refer{Action}
+@end display
+@end float
+
+As with let expressions, there are two forms: the non-recursive form
+-- using regular braces @code{@{@}} -- and the recursive form -- using
+dot-braces (@code{@{..@}}.
+
+
+
 @node Try Catch Action
 @subsection Try Catch Action
 @cindex try catch action
@@ -609,6 +373,27 @@ very simple -- to the point of ignoring the exception itself -- and
 the second where the handler should be a function from the error type
 of the computation to a valid computation.
 
+The first form is useful when the error value is discarded:
+@example
+@end example
+and the second is used when the handler is expected to use the value:
+@example
+do@{
+  try@{
+    throw 10
+  @} catch (E) => do @{
+    logMsg("We got error $(E)")
+  @}
+@}
+@end example
+
+
+
+@quotation Note
+The full form of the catch handler must use a @code{do} expression if
+you want to use an action to respond to the error.
+@end quotation
+
 @node Throw Action
 @subsection Throw Action
 @cindex throw action
@@ -625,11 +410,79 @@ of computation as a whole.
 @end display
 @end float
 
+When a @code{throw} action is performed, all subsequence actions are
+skipped, up to an enclosing try-catch handler.
+
 @quotation Note
 If a computation throws an error value, and that error exception is
 not caught by a @refer{TryCatchAction}, then the execution of the entire
 program is terminated.
 @end quotation
+
+@node The @code{execution} Contract
+@section The @code{execution} Contract
+
+Action Expressions are expressions that denote an action -- the action
+is performed when the action expression is performed in some way. This
+is mediated by means of the @code{execution} contract.
+
+@float BNF,executionFig
+@caption{Execution Contract}
+@example
+public contract all m/2 ~~ execution[m] ::= @{
+  _valof:all a,e ~~ (m[e,a])=>a.
+  _valis:all a,e ~~ (a)=>m[e,a].
+  _raise: all a,e ~~ (e) => m[e,a].
+@}
+@end example
+@end float
+
+The @code{execution} contract is over a type function (@code{m/2}) and
+has a dependent type that corresponds to the type of any exception or
+error that may be raised during the computation.
+
+@quotation Note
+There are many potential ways of implementing the @code{execution}
+contract; representing different computation characteristics. The
+three standard implementations are modeled by the @code{result} type,
+the @code{action} type and the @code{task} type; these also have
+special syntax associated with them.
+@end quotation
+
+@quotation Note
+The @code{execution} contract is reminiscent of the @code{monad}
+contract. However, the focus is different: it is less about combining
+actions and more about transitioning between actions and values.
+@end quotation
+
+@node The @code{result} Type
+@subsection The @code{result} Type
+
+The most basic implementation of the @code{execution} contract is
+based on the @code{result} type. This reflects the fact that
+computations can return in one of two ways: normally or abnormally.
+
+@float BNF,resultTypeFig
+@caption{Result Type}
+@example
+public all e,a ~~ result[e,a] ::= ok(a) | err(e).
+@end example
+@end float
+
+The @code{result} type embodies whether or not a computation
+succeeded, and, in both case, what the value of the computation is.
+
+The implementation of the @code{execution} contract for the
+@code{result} type is especially simple:
+
+@example
+public implementation execution[result] => @{
+  _valof(ok(X)) => X.
+
+  _valis(X) => ok(X).
+  _raise(E) => err(E).
+@}
+@end example
 
 @node Performing Actions
 @section Performing Actions

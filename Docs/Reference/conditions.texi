@@ -19,8 +19,6 @@ example of a condition.
 @display
 @anchored{Condition}::=@refer{MatchesCondition}
   | @refer{HasValueCondition}
-  | @refer{SearchCondition}
-  | @refer{IndexedSearchCondition}
   | @refer{ConjunctionCondition}
   | @refer{DisjunctionCondition}
   | @refer{ImpliesCondition}
@@ -86,83 +84,42 @@ nameOf(P) where PP ^= P => PP.name
 unwraps the optional value of @code{P} into the non-optional @code{PP}.
 
 
-@node Search
-@section Search
+@c @node Indexed Search Condition
+@c @subsection Indexed Search Condition
+@c @anchor{indexedSearchCondition} An @refer{IndexedSearchCondition} 
+@c is satisfied by finding elements of collections that match a pattern
+@c and where the index of the element within the collection is also
+@c matched against.
 
-@node Search Condition
-@subsection Search Condition
-@anchor{searchCondition} A search condition is satisfied by finding
-elements of collections that meet some criterion.
+@c @float BNF,indexedSearchFormFig
+@c @caption{Indexed Search Condition}
+@c @display
+@c @anchored{IndexedSearchCondition}::=@refer{Pattern} @code{'->'} @refer{Pattern} @code{'in'} @refer{Expression}
+@c @end display
+@c @end float
 
-@float BNF,searchFormFig
-@caption{Search Condition}
-@display
-@anchored{SearchCondition}::=@refer{Pattern} @code{'in'} @refer{Expression}
-@end display
-@end float  
+@c The first pattern refers to the @emph{keys} in the collection and the
+@c second refers to the @emph{values}.
 
-@quotation Note
-The collection being searched must implement the @code{iter} contract
--- see Program@ref{iterContractProg}.
-@end quotation
+@c @quotation Note
+@c The collection being searched must implement the @code{indexed_iter}
+@c contract -- see @refer{indexed_iterContractProg}.
+@c @end quotation
 
-For example, the search condition:
-@example
-(X,"john") in parent
-@end example
-is satisfied (potentially multiple times) if there is a pair of the form:
-@example
-(@emph{Val},"john")
-@end example
-in the collection identified as @code{parent}. If @code{parent} were
-defined as the list:
-@example
-[ ("alpha","john"), ("beta","peter"), ("gamma","john") ]
-@end example
-then the search condition has two solutions: one corresponding to
-@code{"alpha"} and the other to @code{"gamma"}.
+@c @refer{IndexedSearchCondition}s allow the programmer to not only
+@c access the element of the collection but also its position within the
+@c collection. For example, the condition:
+@c @example
+@c (Ix->V where V>0 and Ix<10) in L
+@c @end example
+@c is satisfied for those elements in @code{L} which are greater than
+@c zero, and whose index is less than 10.
 
-A search condition is type safe if the type of the pattern corresponds
-to an element of the type of the collection; and if the contract
-@code{iter} has been implemented for the collection.
-
-
-@node Indexed Search Condition
-@subsection Indexed Search Condition
-@anchor{indexedSearchCondition} An @refer{IndexedSearchCondition} 
-is satisfied by finding elements of collections that match a pattern
-and where the index of the element within the collection is also
-matched against.
-
-@float BNF,indexedSearchFormFig
-@caption{Indexed Search Condition}
-@display
-@anchored{IndexedSearchCondition}::=@refer{Pattern} @code{'->'} @refer{Pattern} @code{'in'} @refer{Expression}
-@end display
-@end float
-
-The first pattern refers to the @emph{keys} in the collection and the
-second refers to the @emph{values}.
-
-@quotation Note
-The collection being searched must implement the @code{indexed_iter}
-contract -- see @refer{indexed_iterContractProg}.
-@end quotation
-
-@refer{IndexedSearchCondition}s allow the programmer to not only
-access the element of the collection but also its position within the
-collection. For example, the condition:
-@example
-(Ix->V where V>0 and Ix<10) in L
-@end example
-is satisfied for those elements in @code{L} which are greater than
-zero, and whose index is less than 10.
-
-@quotation Note
-One of the important features of the @refer{IndexedSearchCondition} is
-that it could potentially be satisfied for each element of the
-collection -- depending, of course, on the patterns involved.
-@end quotation
+@c @quotation Note
+@c One of the important features of the @refer{IndexedSearchCondition} is
+@c that it could potentially be satisfied for each element of the
+@c collection -- depending, of course, on the patterns involved.
+@c @end quotation
 
 @node Logical Combinations
 @section Logical Combinations
