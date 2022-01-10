@@ -1,6 +1,5 @@
 star.parse{
   import star.
-  import star.trace.
 
   public all e,s ~~ parser[s,e] ::= parser((s)=>cons[(e,s)]).
 

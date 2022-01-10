@@ -340,13 +340,30 @@ resolveAccess(Lc,Rc,Fld,Tp,Dict,St,Stx,Reslvd) :-
   (sameType(funType(tplType([RcTp]),RTp),FAccTp,Lc,Dict),
 %   reportMsg("accessor defined %s:%s",[Fld,tpe(FAccTp)],Lc),
    /* freshen result type again (special case for method access from contract record) */
-   freshen(RTp,Dict,_,FTp),
+   freshen(RTp,Dict,_,CFTp),
+
+   getConstraints(CFTp,Cx,FTp),
 %   reportMsg("accessor type %s",[tpe(FTp)],Lc),
 %   reportMsg("expected type %s",[tpe(Tp)],Lc),
    sameType(FTp,Tp,Lc,Dict),
    V = v(Lc,FunNm,funType(tplType([RcTp]),FTp)),
-   markResolved(St,Stx),
-   Reslvd = apply(Lc,V,tple(Lc,[Rc]),Tp);
+   Acc = apply(Lc,V,tple(Lc,[Rc]),Tp),
+
+%   reportMsg("base access expression %s",[can(Acc)],Lc),
+
+   resolveContracts(Lc,Cx,Dict,St,St0,DTerms),
+
+%   reportMsg("resolved contracts %s",[can(tple(Lc,DTerms))],Lc),
+   
+   overloadRef(Lc,Acc,DTerms,[],OverOp,Dict,St0,St1,NArgs),
+   overApply(Lc,OverOp,NArgs,Tp,Reslvd),
+   
+%   reportMsg("access expression %s",[can(Reslvd)],Lc),
+   markResolved(St1,Stx);
+
+%   reportMsg("accessor defined for %s:%s",[Fld,tpe(FAccTp)],Lc),
+%   reportMsg("not consistent with %s",[tpe(Tp)],Lc),
+   
    genMsg("accessor defined for %s:%s in %s\nnot consistent with\n%s",
 	  [Fld,tpe(FAccTp),can(dot(Lc,Rc,Fld,Tp)),tpe(Tp)],Msg),
    markActive(St,Lc,Msg,Stx),

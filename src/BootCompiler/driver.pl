@@ -45,6 +45,8 @@ parseFlags(['-r', R|More],CWD,Cx,[repository(Repo)|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-c'|More],CWD,Cx,[compileOnly|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
+parseFlags(['-m'|More],CWD,Cx,[macroOnly|Opts],Files) :-!,
+  parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-v', V|More],CWD,Cx,[ver(Vers)|Opts],Files) :-!,
   atom_string(V,Vers),
   parseFlags(More,CWD,Cx,Opts,Files).
@@ -133,17 +135,19 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
   noErrors,
   macroPkg(Term,Prog),
   (is_member(showAst,Opts) -> dispAst(Prog) ; true),
-  checkProgram(Prog,Pkg,Repo,Opts,PkgDecls,Canon),!,
-  (is_member(showTCCode,Opts) -> dispCanonProg(Canon);true),
-  noErrors,
-  (\+ is_member(compileOnly,Opts) ->
-   transformProg(PkgDecls,Canon,Opts,Rules),!,
-   (is_member(showTrCode,Opts) -> dispProg(Rules),validLProg(PkgDecls,Rules);true),
+  (\+ is_member(macroOnly,Opts) ->
+   checkProgram(Prog,Pkg,Repo,Opts,PkgDecls,Canon),!,
+   (is_member(showTCCode,Opts) -> dispCanonProg(Canon);true),
    noErrors,
-   genPkgSig(Rules,Sig), % goes into the repo manifest
-   genCode(PkgDecls,Rules,Opts,Text),
-   noErrors,
-   addCodePackage(Repo,SrcUri,Pkg,Sig,Text,Rx);
+   (\+ is_member(compileOnly,Opts) ->
+    transformProg(PkgDecls,Canon,Opts,Rules),!,
+    (is_member(showTrCode,Opts) -> dispProg(Rules),validLProg(PkgDecls,Rules);true),
+    noErrors,
+    genPkgSig(Rules,Sig),		% goes into the repo manifest
+    genCode(PkgDecls,Rules,Opts,Text),
+    noErrors,
+    addCodePackage(Repo,SrcUri,Pkg,Sig,Text,Rx);
+    true) ;
    true).
 
 processStdin(Pkg,Repo,Opts) :-
