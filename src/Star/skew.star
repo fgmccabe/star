@@ -191,17 +191,17 @@ star.skew{
  .}
 
   public implementation all t ~~ iter[sk[t]->>t] => let{.
-    iterList:all x ~~ (rlist[t],x,(t,x)=>x)=>x.
+    iterList:all e,m/2,x ~~ execution[m] |: (rlist[t],m[e,x],(t,x)=>m[e,x])=>m[e,x].
     iterList(.nil,St,_) => St.
     iterList(cons((_,T),R),St,Fn) =>
-      iterList(R,iterTree(T,St,Fn),Fn).
+      _sequence(iterTree(T,St,Fn),(SS)=>iterList(R,_valis(SS),Fn)).
 
-    iterTree:all x ~~ (tree[t],x,(t,x)=>x)=>x.
+    iterTree:all e,m/2,x ~~ execution[m] |: (tree[t],m[e,x],(t,x)=>m[e,x])=>m[e,x].
     iterTree(.eTree,St,Fn) => St.
     iterTree(node(X,T1,T2),St,Fn) =>
       iterTree(T2,
 	iterTree(T1,
-	  Fn(X,St),Fn),Fn).
+	  _sequence(St,(SS)=>Fn(X,SS)),Fn),Fn).
   .} in {
     _iter(rl(L),St,Fn) => iterList(L,St,Fn).
   }

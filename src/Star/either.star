@@ -24,6 +24,16 @@ star.either{
     hash(other(B)) => hash(B)*41.
   }
 
+  public implementation execution[either] => {
+    _perform(either(X)) => X.
+    _handle(either(X),_) => either(X).
+    _handle(other(E),F) => F(E).
+    _sequence(either(X),F) => F(X).
+    _sequence(other(E),_) => other(E).
+    _raise(E) => other(E).
+    _valis(E) => either(E).
+  }
+
   public implementation all a ~~ monad[either[a]] => {
     (either(X) >>= F) => F(X).
     (other(E) >>= _) => other(E).
@@ -44,8 +54,7 @@ star.either{
     (_ <*> other(E)) => other(E).
   }
 
-  /*  public implementation all e ~~ injection[option,either[e]] => {
+  public implementation all e ~~ injection[option,either[e]] => {
     _inject(some(X)) => either(X).
   }
-*/
 }

@@ -28,7 +28,8 @@ test.a{
     assert valof p == 4;
     assert valof a == 4
   }
-  
+
+  a:result[(),integer].
   a = do{
     x .= valof p;
     valis x
