@@ -725,7 +725,10 @@ static logical shouldWeStopIns(processPo p) {
         }
       }
       case LdG: {
-        if (!glbIsSet(C_GLOB(arg))) {
+        int32 glbNo = collect32(f->pc);
+        globalPo glb = findGlobalVar(glbNo);
+
+        if (!glbIsSet(glb)) {
           if (p->waitFor == stepOver)
             return (logical) (p->waterMark == p->stk->fp && p->traceCount == 0);
           else
