@@ -3,10 +3,10 @@ test.dd{
   import test.fact.
   import star.script.
 
-  ff:(integer)=>result[(),integer].
+  ff:(integer)=>action[(),integer].
   ff(X) => _valis(fact(X)).
 
-  fc:(integer)=>result[(),()].
+  fc:(integer)=>action[(),()].
   fc(X) => do{
     show fact(X)
   }

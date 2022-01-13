@@ -200,10 +200,6 @@ rewriteTerm(apply(Lc,Op,Args,Tp),Env,apply(Lc,ROp,RArgs,Tp)) :-
   rewriteTerm(Args,Env,RArgs).
 rewriteTerm(lambda(Lc,Lbl,Eqn,Tp),Env,lambda(Lc,Lbl,OEqn,Tp)) :-
   rewriteRule(Eqn,Env,OEqn).
-rewriteTerm(doTerm(Lc,Body,Tp),Env,doTerm(Lc,RBody,Tp)) :-
-  rewriteAction(Body,Env,RBody).
-rewriteTerm(taskTerm(Lc,Lbl,Body,Tp),Env,taskTerm(Lc,Lbl,RBody,Tp)) :-
-  rewriteAction(Body,Env,RBody).
 
 rewriteTerms([],Env,[]) :- !.
 rewriteTerms([L|Ls],Env,[R|Rs]) :-

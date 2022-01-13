@@ -57,6 +57,7 @@ test.sy{
   
   /* Block comment */
 
+  a:result[(),integer].
   a = do{
     x .= valof p;
     y .= valof p;

@@ -1,5 +1,5 @@
-:- module(canon,[dispFunction/3,dispDef/1,dispCanon/1,dispCanonAction/1,dispCanonProg/1,
-		 ssCanonProg/2,ssTerm/3,ssAction/3,ssPkg/2,ssContract/3,
+:- module(canon,[dispFunction/3,dispDef/1,dispCanon/1,dispCanonProg/1,
+		 ssCanonProg/2,ssTerm/3,ssPkg/2,ssContract/3,
 		 dispDecls/1,
 		 typeOfCanon/2,locOfCanon/2,
 		 constructorName/2,constructorType/2,
@@ -54,30 +54,6 @@ isCanon(raise(_,_,_)).
 isCanon(open(_,_,_)).
 isCanon(neg(_,_)).
 isCanon(lambda(_,_,_,_)).
-isCanon(valof(_,_)).
-isCanon(doTerm(_,_,_)).
-isCanon(taskTerm(_,_,_)).
-isCanon(noDo(_)).
-isCanon(seqDo(_,_,_)).
-isCanon(ifThenDo(_,_,_,_)).
-isCanon(whileDo(_,_,_)).
-isCanon(untilDo(_,_,_)).
-isCanon(forDo(_,_,_)).
-isCanon(tryCatchDo(_,_,_)).
-isCanon(letDo(_,_,_,_)).
-isCanon(letRecDo(_,_,_,_)).
-isCanon(caseDo(_,_,_)).
-isCanon(varDo(_,_,_)).
-isCanon(assignDo(_,_,_)).
-isCanon(bindDo(_,_,_)).
-isCanon(promptDo(_,_,_)).
-isCanon(cutDo(_,_,_)).
-isCanon(valisDo(_,_)).
-isCanon(raiseDo(_,_)).
-isCanon(performDo(_,_)).
-isCanon(simpleDo(_,_)).
-isCanon(assertDo(_,_)).
-isCanon(resumeDo(_,_,_,_)).
 isCanon(search(_,_,_,_)).
 
 isSimpleCanon(v(_,_,_)).
@@ -146,8 +122,6 @@ typeOfCanon(over(_,T,_,_),Tp) :- typeOfCanon(T,Tp).
 typeOfCanon(overaccess(V,_,_),Tp) :- typeOfCanon(V,Tp).
 typeOfCanon(mtd(_,_,Tp),Tp) :-!.
 typeOfCanon(case(_,_,_,Tp),Tp) :- !.
-typeOfCanon(valof(_,_,Tp),Tp).
-typeOfCanon(doTerm(_,_,Tp),Tp).
 
 locOfCanon(v(Lc,_,_),Lc) :- !.
 locOfCanon(anon(Lc,_),Lc) :- !.
@@ -180,30 +154,7 @@ locOfCanon(tag(Lc,_),Lc) :-!.
 locOfCanon(prompt(Lc,_,_),Lc) :-!.
 locOfCanon(resume(Lc,_,_,_),Lc) :-!.
 locOfCanon(shift(Lc,_,_),Lc) :-!.
-locOfCanon(valof(Lc,_,_),Lc) :-!.
-locOfCanon(doTerm(Lc,_,_),Lc) :-!.
-locOfCanon(taskTerm(Lc,_,_),Lc) :-!.
-locOfCanon(seqDo(Lc,_,_),Lc) :-!.
-locOfCanon(letDo(Lc,_,_,_),Lc) :-!.
-locOfCanon(letRecDo(Lc,_,_,_),Lc) :-!.
-locOfCanon(ifThenDo(Lc,_,_,_,_,_,_),Lc) :-!.
-locOfCanon(whileDo(Lc,_,_),Lc) :-!.
-locOfCanon(untilDo(Lc,_,_),Lc) :-!.
-locOfCanon(forDo(Lc,_,_),Lc) :-!.
-locOfCanon(caseDo(Lc,_,_),Lc) :-!.
-locOfCanon(tryCatchDo(Lc,_,_),Lc) :-!.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
-locOfCanon(varDo(Lc,_,_),Lc) :-!.
-locOfCanon(assignDo(Lc,_,_),Lc) :-!.
-locOfCanon(bindDo(Lc,_,_),Lc) :-!.
-locOfCanon(promptDo(Lc,_,_),Lc) :-!.
-locOfCanon(cutDo(Lc,_,_),Lc) :-!.
-locOfCanon(valisDo(Lc,_),Lc) :-!.
-locOfCanon(raiseDo(Lc,_),Lc) :-!.
-locOfCanon(performDo(Lc,_,_,_,_),Lc) :-!.
-locOfCanon(simpleDo(Lc,_,_,_),Lc) :-!.
-locOfCanon(resumeDo(Lc,_,_,_),Lc) :-!.
-locOfCanon(noDo(Lc),Lc) :-!.
 
 constructorName(enm(_,Nm,_),Nm) :-!.
 constructorName(cons(_,Nm,_),Nm).
@@ -324,12 +275,6 @@ ssTerm(abstraction(_,Bound,Guard,G,_,_),Dp,
   ssTerm(G,Dp,II).
 ssTerm(neg(_,R),Dp,sq([lp,ss(" ~ "),RR,rp])) :-
   ssTerm(R,Dp,RR).
-ssTerm(doTerm(_,Body,_),Dp,sq([ss(" do "),AA])) :-
-  ssAction(Body,Dp,AA).
-ssTerm(taskTerm(_,Lbl,Body,_),Dp,sq([ss(" task ("),ss(Lbl),ss(")"),AA])) :-
-  ssAction(Body,Dp,AA).
-ssTerm(valof(_,E,_),Dp,sq([ss("valof "),EE])) :-
-  ssTerm(E,Dp,EE).
 ssTerm(noDo(_),_,ss(" nothing ")).
 
 ssTerms([],_,[]).
@@ -341,95 +286,6 @@ ssConstraints([],_,[]).
 ssConstraints([T|More],Dp,[TT|TTs]) :-
   ssConstraint(false,Dp,T,TT),
   ssConstraints(More,Dp,TTs).
-
-dispCanonAction(T) :-
-  displayln(canon:ssAction(T,0)).
-
-ssAction(noDo(Lc),_,sq([ss("no-op at "),LL])) :-
-  ssLoc(Lc,LL).
-ssAction(seqDo(Lc,A,B),Dp,sq([lb,nl(Dp2),iv(sq([ss(";"),nl(Dp2)]),AA),nl(Dp),rb])) :-
-  Dp2 is Dp+2,
-  ssActions(seqDo(Lc,A,B),Dp2,AA).
-ssAction(varDo(_,Ptn,Exp),Dp,sq([PP,ss(" .= "),VV])) :-
-  ssTerm(Ptn,Dp,PP),
-  ssTerm(Exp,Dp,VV).
-ssAction(assignDo(_,Ptn,Exp),Dp,sq([PP,ss(" := "),VV])) :-
-  ssTerm(Ptn,Dp,PP),
-  ssTerm(Exp,Dp,VV).
-ssAction(bindDo(_,Ptn,Exp),Dp,sq([PP,ss(" <- "),VV])) :-
-  ssTerm(Ptn,Dp,PP),
-  ssTerm(Exp,Dp,VV).
-ssAction(promptDo(_,Lb,E,_),Dp,sq([LL,ss(" prompt "),EE])) :-
-  ssTerm(Lb,Dp,LL),
-  ssTerm(E,Dp,EE).
-ssAction(cutDo(_,L,F),Dp,sq([LL,ss(" cut "),FF])) :-
-  ssTerm(L,Dp,LL),
-  ssTerm(F,Dp,FF).
-ssAction(resumeDo(_,K,A,_),Dp,sq([KK,ss("."),lp,AA,rp])) :-
-  ssTerm(K,Dp,KK),
-  ssTerm(A,Dp,AA).
-ssAction(ifThenDo(_,Tst,Th,El),Dp,
-	 sq([ss("if "),CC,ss("then"),nl(Dp2),TT,nl(Dp2),ss("else"),EE])) :-
-  Dp2 is Dp+2,
-  ssTerm(Tst,Dp,CC),
-  ssAction(Th,Dp2,TT),
-  ssAction(El,Dp2,EE).
-ssAction(caseDo(_,Gov,Cses),Dp,
-	 sq([ss("case "),GG,ss("in"),lb,iv(nl(Dp2),CC),rb])) :-
-  Dp2 is Dp+2,
-  ssTerm(Gov,Dp,GG),
-  map(Cses,canon:ssActionCase(Dp2),CC).
-ssAction(whileDo(_,Tst,Bdy),Dp,
-	 sq([ss("while "),CC,ss("do"),nl(Dp2),BB])) :-
-  Dp2 is Dp+2,
-  ssTerm(Tst,Dp,CC),
-  ssAction(Bdy,Dp2,BB).
-ssAction(untilDo(_,Tst,Bdy),Dp,
-	 sq([ss("do"),BB,ss("until"),CC])) :-
-  Dp2 is Dp+2,
-  ssTerm(Tst,Dp,CC),
-  ssAction(Bdy,Dp2,BB).
-ssAction(forDo(_,Tst,Bdy),Dp,
-	 sq([ss("for "),CC,ss("do"),nl(Dp2),BB])) :-
-  Dp2 is Dp+2,
-  ssTerm(Tst,Dp,CC),
-  ssAction(Bdy,Dp2,BB).
-ssAction(tryCatchDo(_,Bdy,Hndlr),Dp,
-	 sq([ss("try "),BB,nl(Dp),ss("catch"),HH])) :-
-  Dp2 is Dp+2,
-  ssTerm(Hndlr,Dp2,HH),
-  ssAction(Bdy,Dp2,BB).
-ssAction(valisDo(_,Exp),Dp,sq([ss("valis "),EE])) :-
-  ssTerm(Exp,Dp,EE).
-ssAction(raiseDo(_,Exp),Dp,sq([ss("raise "),EE])) :-
-  ssTerm(Exp,Dp,EE).
-ssAction(performDo(_,Exp),Dp,sq([ss("perform "),EE])) :-
-  ssTerm(Exp,Dp,EE).
-ssAction(simpleDo(_,Exp),Dp,sq([ss("just "),EE])) :-
-  ssTerm(Exp,Dp,EE).
-ssAction(letDo(_,_Decls,Defs,Ex),Dp,
-	    sq([ss("let {."),nl(Dp2),iv(nl(Dp2),DS),nl(Dp),ss(".} in "),B])) :-
-  Dp2 is Dp+2,
-  map(Defs,canon:ssDf(Dp2),DS),
-  ssAction(Ex,Dp,B).
-ssAction(letRecDo(_,Decls,Defs,Ex),Dp,
-	    sq([ss("let {"),nl(Dp2),iv(nl(Dp2),Ds),nl(Dp),ss("} in "),B])) :-
-  Dp2 is Dp+2,
-  map(Decls,canon:ssDecl(Dp2,ss("rec ")),DD),
-  map(Defs,canon:ssDf(Dp2),XX),
-  flatten([DD,XX],Ds),
-  ssAction(Ex,Dp,B).
-
-ssActions(seqDo(_,A,B),Dp,[AA|BB]) :-
-  ssAction(A,Dp,AA),
-  ssActions(B,Dp,BB).
-ssActions(A,Dp,[AA]) :-
-  ssAction(A,Dp,AA).
-
-ssActionCase(Dp,rule(_,Args,Guard,Value),sq([AA,GG,ss(" => "),VV])) :-
-  ssTerm(Args,Dp,AA),
-  ssGuard(Guard,Dp,GG),
-  ssAction(Value,Dp,VV).
 
 ssRule(Nm,Dp,rule(_,Args,Guard,Value),sq([id(Nm),A,G,ss(" => "),V])) :-
   ssTerm(Args,Dp,A),

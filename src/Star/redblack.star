@@ -227,7 +227,8 @@ star.redblack{
   public implementation all k,v ~~ iter[rbtree[k,v]->>keyval[k,v]] => let{.
     iter:all x ~~ (rbtree[k,v],x,(keyval[k,v],x)=>x)=>x.
     iter(.leaf,St,_) => St.
-    iter(node(_,K,V,L,R),St,F) =>iter(R,F(K->V,iter(L,St,F)),F).
+    iter(node(_,K,V,L,R),St,F) =>
+      iter(R,F(K->V,iter(L,St,F)),F).
   .} in {
     _iter(Tr,St,Fn) => iter(Tr,St,Fn)
   }

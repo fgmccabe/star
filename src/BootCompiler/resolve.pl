@@ -201,12 +201,6 @@ overloadTerm(shift(Lc,L,F),Dict,St,Stx,shift(Lc,LL,FF)) :-
 overloadTerm(resume(Lc,Kont,Arg,Tp),Dict,St,Stx,resume(Lc,KK,AA,Tp)) :-
   overloadTerm(Kont,Dict,St,St0,KK),
   overloadTerm(Arg,Dict,St0,Stx,AA).
-overloadTerm(valof(Lc,T,Tp),Dict,St,Stx,valof(Lc,RT,Tp)) :-
-  overloadTerm(T,Dict,St,Stx,RT).
-overloadTerm(doTerm(Lc,Body,Tp),Dict,St,Stx,doTerm(Lc,RBody,Tp)) :-!,
-  overloadAction(Body,Dict,St,Stx,RBody).
-overloadTerm(taskTerm(Lc,Body,Tp),Dict,St,Stx,taskTerm(Lc,RBody,Tp)) :-
-  overloadAction(Body,Dict,St,Stx,RBody).
 overloadTerm(T,_,St,St,T) :-
   locOfCanon(T,Lc),
   reportError("invalid term to resolve %s",[can(T)],Lc).
@@ -228,72 +222,6 @@ overloadMethod(ALc,Lc,T,Cx,Args,Tp,Dict,St,Stx,apply(ALc,OverOp,tple(LcA,NArgs),
 
 overloadCases(Cses,Resolver,Dict,St,Stx,RCases) :-
   overloadLst(Cses,resolve:overloadRule(Resolver),Dict,St,Stx,RCases).
-
-overloadAction(noDo(Lc),_,St,St,noDo(Lc)).
-overloadAction(seqDo(Lc,A,B),Dict,St,Stx,seqDo(Lc,RA,RB)) :-
-  overloadAction(A,Dict,St,St1,RA),
-  overloadAction(B,Dict,St1,Stx,RB).
-overloadAction(varDo(Lc,Ptn,Exp),Dict,St,Stx,varDo(Lc,RPtn,RExp)) :-
-  overloadTerm(Ptn,Dict,St,St1,RPtn),
-  overloadTerm(Exp,Dict,St1,Stx,RExp).
-overloadAction(assignDo(Lc,Ptn,Exp),Dict,St,Stx,assignDo(Lc,RPtn,RExp)) :-
-  overloadTerm(Ptn,Dict,St,St1,RPtn),
-  overloadTerm(Exp,Dict,St1,Stx,RExp).
-overloadAction(bindDo(Lc,Ptn,Exp),Dict,St,Stx,bindDo(Lc,RPtn,RExp)) :-
-  overloadTerm(Ptn,Dict,St,St1,RPtn),
-  overloadTerm(Exp,Dict,St1,Stx,RExp).
-overloadAction(ifThenDo(Lc,Tst,Th,El),Dict,St,Stx,
-	       ifThenDo(Lc,RTst,RTh,REl)) :-
-  overloadTerm(Tst,Dict,St,St1,RTst),
-  overloadAction(Th,Dict,St1,St2,RTh),
-  overloadAction(El,Dict,St2,Stx,REl).
-overloadAction(whileDo(Lc,Tst,Body),Dict,St,Stx,whileDo(Lc,RTst,RBody)) :-
-  overloadTerm(Tst,Dict,St,St1,RTst),
-  overloadAction(Body,Dict,St1,Stx,RBody).
-overloadAction(untilDo(Lc,Tst,Body),Dict,St,Stx,untilDo(Lc,RTst,RBody)) :-
-  overloadTerm(Tst,Dict,St,St1,RTst),
-  overloadAction(Body,Dict,St1,Stx,RBody).
-overloadAction(forDo(Lc,Tst,Body),Dict,St,Stx,forDo(Lc,RTst,RBody)) :-
-  overloadTerm(Tst,Dict,St,St1,RTst),
-  overloadAction(Body,Dict,St1,Stx,RBody).
-overloadAction(tryCatchDo(Lc,Body,Hndlr),Dict,St,Stx,tryCatchDo(Lc,RBody,RHndlr)) :-
-  overloadAction(Body,Dict,St,St1,RBody),
-  overloadTerm(Hndlr,Dict,St1,Stx,RHndlr).
-overloadAction(valisDo(Lc,Exp),Dict,St,Stx,valisDo(Lc,RExp)) :-
-  overloadTerm(Exp,Dict,St,Stx,RExp).
-overloadAction(raiseDo(Lc,Exp),Dict,St,Stx,raiseDo(Lc,RExp)) :-
-  overloadTerm(Exp,Dict,St,Stx,RExp).
-overloadAction(performDo(Lc,Exp),Dict,St,Stx,performDo(Lc,RExp)) :-
-  overloadTerm(Exp,Dict,St,Stx,RExp).
-overloadAction(simpleDo(Lc,Exp),Dict,St,Stx,simpleDo(Lc,RExp)) :-
-  overloadTerm(Exp,Dict,St,Stx,RExp).
-overloadAction(promptDo(Lc,Lb,Lam,Tp),Dict,St,Stx,promptDo(Lc,RLb,RLam,Tp)) :-
-  overloadTerm(Lb,Dict,St,St0,RLb),
-  overloadTerm(Lam,Dict,St0,Stx,RLam).
-overloadAction(cutDo(Lc,Lb,Lam),Dict,St,Stx,cutDo(Lc,RLb,RLam)) :-
-  overloadTerm(Lb,Dict,St,St0,RLb),
-  overloadTerm(Lam,Dict,St0,Stx,RLam).
-overloadAction(resumeDo(Lc,K,A,Tp),Dict,St,Stx,resumeDo(Lc,RK,RA,Tp)) :-
-  overloadTerm(K,Dict,St,St0,RK),
-  overloadTerm(A,Dict,St0
-,Stx,RA).
-overloadAction(caseDo(Lc,Exp,Cses),Dict,St,Stx,caseDo(Lc,RExp,RCases)) :-
-  overloadTerm(Exp,Dict,St,St0,RExp),
-  overloadCases(Cses,resolve:overloadAction,Dict,St0,Stx,RCases).
-overloadAction(letDo(Lc,Decls,Defs,Bound),Dict,St,Stx,letDo(Lc,Decls,RDefs,RBound)) :-
-  declareAccessors(Lc,Decls,Dict,RDict),
-  overload(Lc,Defs,RDict,RRDict,RDefs),
-  overloadAction(Bound,RRDict,St,Stx,RBound).
-overloadAction(letRecDo(Lc,Decls,Defs,Bound),Dict,St,Stx,letRecDo(Lc,Decls,RDefs,RBound)) :-
-  declareAccessors(Lc,Decls,Dict,RDict),
-  overload(Lc,Defs,RDict,RRDict,RDefs),
-  overloadAction(Bound,RRDict,St,Stx,RBound).
-
-
-overloadActions([],_,St,St,[]).
-overloadActions([A|As],Dict,St,Stx,[RA|RAs]) :-
-  overloadAction(A,Dict,St,St1,RA),
-  overloadActions(As,Dict,St1,Stx,RAs).
 
 overApply(_,OverOp,[],_,OverOp) :-!.
 overApply(Lc,OverOp,Args,Tp,apply(Lc,OverOp,tple(Lc,Args),Tp)) :- \+isProgramType(Tp),!.

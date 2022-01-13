@@ -70,7 +70,7 @@ star.task{
  .} in {
     _valis(X) => _task(()=>taskDone(X)).
     _sequence = taskStep.
-    _handle = taskHandle.
+    _catch = taskHandle.
     _raise(E) => _task(()=>taskFailure(E)).
     _valof(T) => executeTask(T).
   }
