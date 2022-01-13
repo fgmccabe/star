@@ -13,13 +13,15 @@
 	      isTypeAnnotation/4,typeAnnotation/4,isTypeField/4,mkTypeField/4,
 	      isTypeLambda/4,typeLambda/4,typeName/2,
 	      isFuncType/4,funcType/4,isContType/4,mkContType/4,
+	      mkSqType/4,
 	      isEnum/3,mkEnum/3,isAnon/2,mkAnon/2,
 	      isImport/3, isPrivate/3,isPublic/3,mkPrivate/3,mkPublic/3,
 	      isDefault/3,isDefault/4,mkDefault/3,
 	      isLiteralInteger/3,isLiteralFloat/3,isLiteralBigInt/3,
 	      isIntegrity/3,isShow/3,isOpen/3,mkOpen/3,
-	      isConditional/5,conditional/5,isOfTerm/4,
+	      isConditional/5,conditional/5,
 	      isEquation/4,isEquation/5,mkEquation/5,
+	      buildEquation/6,
 	      isPrompt/4,mkPrompt/4,isCut/5,mkCut/5,isTag/2,mkTag/2,isResume/4,mkResume/4,
 	      isDefn/4,isAssignment/4,isRef/3,mkRef/3,isCellRef/3,cellRef/3,
 	      isSequence/4,mkSequence/4,
@@ -59,7 +61,8 @@
 	      isComma/4,comma/4,deComma/2,reComma/2,
 	      isCons/4,mkCons/4,
 	      isPair/4,pair/4,
-	      isUnaryMinus/3]).
+	      isUnaryMinus/3,
+	      unitTpl/2]).
 :- use_module(abstract).
 :- use_module(misc).
 :- use_module(operators).
@@ -302,6 +305,9 @@ isContType(T,Lc,Lh,Rh) :-
 mkContType(Lc,L,R,Tp) :-
   binary(Lc,"=>>",L,R,Tp).
 
+mkSqType(Lc,Nm,Els,Tp) :-
+  squareTerm(Lc,name(Lc,Nm),Els,Tp).
+
 isComma(T,Lc,L,R) :-
   isBinary(T,Lc,",",L,R).
 
@@ -432,11 +438,6 @@ conditional(Lc,Tst,Th,El,Cond) :-
   binary(Lc,"||",Th,El,Rhs),
   binary(Lc,"?",Tst,Rhs,Cond).
 
-isOfTerm(Term,Lc,Lbl,R) :-
-  isBinary(Term,Lc,"of",Lbl,R),
-  isSquareTuple(R,_,_),
-  isIden(Lbl,_,_).
-
 ruleName(St,var(Nm),value) :-
   headOfRule(St,Hd),
   headName(Hd,Nm).
@@ -475,6 +476,10 @@ mkEquation(Lc,Args,some(G),Rhs,Eqn) :-
 isEquation(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,"=>",Lhs,Rhs).
 
+buildEquation(Lc,Nm,Args,Cond,Exp,Eqn) :-
+  roundTerm(Lc,Nm,Args,T),
+  mkEquation(Lc,T,Cond,Exp,Eqn).
+  
 eqn(Lc,Args,Cond,Rhs,Eqn) :-
   whereTerm(Lc,Args,Cond,Lhs),
   binary(Lc,"=>",Lhs,Rhs,Eqn).
@@ -927,3 +932,6 @@ mkLoc(Lc,T) :-
 isQuote(Trm,Lc,Body) :-
   isUnary(Trm,Lc,"<||>",Body).
 
+/* Implement CPS-style transformation on actions */
+unitTpl(Lc,Unit) :-
+  roundTuple(Lc,[],Unit).

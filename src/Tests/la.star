@@ -8,7 +8,7 @@ test.la{
     V .= K;
     let{
       VV = V.
-      UU:(integer) => result[(),()].
+      UU:(integer) => action[(),()].
       UU(U) => do{
 	logMsg("We UU'd $(U)")
       }.

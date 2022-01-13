@@ -19,8 +19,8 @@ star.action{
     _sequence(bad(E),_) => bad(E).
     _sequence(ok(A),F) => F(A).
 
-    _handle(ok(X),_) => ok(X).
-    _handle(bad(X),E) => E(X).
+    _catch(ok(X),_) => ok(X).
+    _catch(bad(X),E) => E(X).
 
     _raise(S) => bad(S).
   }
@@ -58,9 +58,9 @@ star.action{
     _sequence(done(A),F) => delay(()=>F(A)).
     _sequence(delay(G),F) => delay(()=>_sequence(G(),F)).
 
-    _handle(done(X),_) => done(X).
-    _handle(delay(A),E) => _handle(A(),E).
-    _handle(err(X),E) => E(X).
+    _catch(done(X),_) => done(X).
+    _catch(delay(A),E) => _catch(A(),E).
+    _catch(err(X),E) => E(X).
 
     _raise(S) => err(S).
   }

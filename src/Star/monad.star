@@ -23,7 +23,7 @@ star.monad{
     _perform:all a,e ~~ (m[e,a])=>a.
     _valis:all a,e ~~ (a)=>m[e,a].
     _sequence:all a,b,e ~~ (m[e,a],(a)=>m[e,b]) => m[e,b].
-    _handle:all a,e,f ~~ (m[e,a],(e)=>m[f,a]) => m[f,a].
+    _catch:all a,e,f ~~ (m[e,a],(e)=>m[f,a]) => m[f,a].
     _raise: all a,e ~~ (e) => m[e,a].
   }
 

@@ -8,7 +8,7 @@ test.bench{
   timer_start : (integer, string) => (integer, integer, string).
   timer_start(count, msg) => (_ticks(), count, msg).
 
-  timer_finish : ((integer, integer, string)) => result[(),()].
+  timer_finish : ((integer, integer, string)) => action[(),()].
   timer_finish((start, count, msg)) => do {
     stop .= _ticks();
     elapsed .= ((stop - start)::float)/1.0e6;
@@ -24,8 +24,8 @@ test.bench{
   rbiota(Mx,Mx) => [].
   rbiota(Ix,Mx) where Ix<Mx => [Ix->Ix,..rbiota(Ix+1,Mx)].
 
-  empty:all e ~~ (e)=>result[(),()].
-  empty(_) => do{
+  empty:all e ~~ (e)=>action[(),()].
+  empty(_) => action{
     valis ()
   }
 

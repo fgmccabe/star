@@ -7,7 +7,7 @@ test.cng{
   tgWrap[x,y] ::= tgWrap{ K:(x)=>>tgWrap[x,y]}.
 
   consWlk(.nil,Y) => Y(.none).
-  consWlk(cons(H,T),Y) => valof do{
+  consWlk(cons(H,T),Y) => valof{
     Y(some(H));
     valis consWlk(T,Y)
   }

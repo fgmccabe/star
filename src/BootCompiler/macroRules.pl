@@ -1,5 +1,6 @@
 :- module(macroRules,[build_main/2,
-		      macroRl/3]).
+		      macroRl/3,
+		      makeAction/3]).
 
 :- use_module(abstract).
 :- use_module(wff).
@@ -29,16 +30,16 @@ macroRl("^",expression,macroRules:unwrapExpMacro).
 macroRl("!",expression,macroRules:binRefMacro).
 macroRl(":=",action,macroRules:spliceAssignMacro).
 macroRl(":=",action,macroRules:indexAssignMacro).
-macroRl("assert",action,macroRules:assertMacro).
-macroRl("show",action,macroRules:showMacro).
-macroRl("show",expression,macroRules:showMacro).
-macroRl("do",expression,macroRules:doMacro).
+%macroRl("assert",action,macroRules:assertMacro).
+%macroRl("show",action,macroRules:showMacro).
+%macroRl("show",expression,macroRules:showMacro).
+%macroRl("do",expression,macroRules:doMacro).
 macroRl("task",expression,macroRules:taskMacro).
-macroRl("${}",expression,macroRules:actionMacro).
-macroRl("do",action,macroRules:forLoopMacro).
+%macroRl("${}",expression,macroRules:actionMacro).
+%macroRl("do",action,macroRules:forLoopMacro).
 macroRl("valof",expression,macroRules:valofMacro).
-macroRl("try",action,macroRules:tryCatchMacro).
-macroRl("try",action,macroRules:tryHandleMacro).
+%macroRl("try",action,macroRules:tryCatchMacro).
+%macroRl("try",action,macroRules:tryHandleMacro).
 
 build_main(As,Bs) :-
   look_for_signature(As,"main",Lc,Ms),
@@ -296,11 +297,6 @@ macroLocationExp(T,expression,Loc) :-
   isName(T,Lc,"__loc__"),!,
   mkLoc(Lc,Loc).
 
-
-
-/* Implement CPS-style transformation on actions */
-unitTpl(Lc,Unit) :-
-  roundTuple(Lc,[],Unit).
   
 makeReturn(Lc,E,Ex) :-
   unary(Lc,"_valis",E,Ex).
@@ -351,9 +347,12 @@ makeAction(A,none,Ac) :-
   unitTpl(Lc,U),
   makeReturn(Lc,U,Ac).
 makeAction(A,Cont,Ac) :-
-  isSequence(A,Lc,L,R),!,
+  isActionSeq(A,Lc,L,R),!,
   makeAction(R,Cont,Rx),
   makeAction(L,some((Lc,Rx)),Ac).
+makeAction(A,Cont,Ac) :-
+  isActionSeq(A,_,L),!,
+  makeAction(L,Cont,Ac).
 makeAction(A,none,Ac) :-
   isValis(A,Lc,E),!,
   makeReturn(Lc,E,Ac).
@@ -372,7 +371,7 @@ makeAction(A,none,Ac) :-
   reportError("%s may not be last action",[ast(A)],Lc),
   unitTpl(Lc,U),
   makeSequence(Lc,R,L,U,Ac).
-makeAction(A,some((Lc,Cont)),Ac) :-
+makeAction(A,some((_,Cont)),Ac) :-
   isBind(A,Lc,L,R),!,
   makeSequence(Lc,R,L,Cont,Ac).
 makeAction(A,none,Ac) :-
@@ -410,12 +409,11 @@ makeAction(A,Cont,Ac) :-
   nary(Lc,"_splice",[Src,F,T,R],Rep),
   assignment(Lc,S,Rep,As),
   combine(As,Cont,Ac).
-
 makeAction(A,Cont,Ac) :-
   isTryCatch(A,Lc,B,H),!,
   makeAction(B,none,Bx),
   makeHandler(H,Hx),
-  binary(Lc,"_handle",Bx,Hx,HH),
+  binary(Lc,"_catch",Bx,Hx,HH),
   combine(HH,Cont,Ac).
 makeAction(A,Cont,Ac) :-
   isIfThenElse(A,Lc,T,L,R),!,
@@ -430,7 +428,7 @@ makeAction(A,Cont,Ac) :-
   makeReturn(Lc,U,El),
   conditional(Lc,T,Th,El,Cc),
   combine(Cc,Cont,Ac).
-/* Construct a local iterator function:
+/* Construct a local loop function for while:
 let{.
   loop() => do{ if T then { B; loop() }}
 .} in loop()
@@ -445,19 +443,55 @@ makeAction(A,Cont,Ac) :-
   mkEquation(Lc,FnCall,none,Bd,Eqn),
   mkLetRec(Lc,[Eqn],FnCall,Lx),
   combine(Lx,Cont,Ac).
-/*
- for <Cond> do {A}
-  becomes:
-  
-  <iterator>( do{return ()}, (Lcls,St) => do {A; return ()})
+/* Construct a local loop function for until:
+let{.
+  loop() => do{ B; if T then loop()}
+.} in loop()
 */
 makeAction(A,Cont,Ac) :-
-  isForDo(A,Lc,C,B),!,
+  isUntilDo(A,Lc,B,T),!,
+  genstr("loop",Lp),
+  mkZeroary(Lc,Lp,FnCall),
+  mkIfThen(Lc,T,FnCall,Lpx),
+  mkActionSeq(Lc,B,Lpx,Bx),
+  makeAction(Bx,none,Bd),
+  mkEquation(Lc,FnCall,none,Bd,Eqn),
+  mkLetRec(Lc,[Eqn],FnCall,Lx),
+  combine(Lx,Cont,Ac).
+/*
+  for X in L do Act
+  becomes
+  _iter(L,return(),let{
+    lP(X,St) => _sequence(St,(X)=>do{ Act; valis ()})
+    lP(_,St) => St
+
+  } in lP)
+*/
+
+makeAction(A,Cont,Ax) :-
+  isForDo(A,Lc,X,L,Act),!,
   unitTpl(Lc,U),
-  makeReturn(Lc,U,Zed),
-  makeAction(B,some((Lc,Zed)),Bx),
-  makeCondition(C,macroRules:makeRtn,macroRules:runCond(Lc,Bx),lyfted(Zed),Lp),
-  combine(Lc,Lp,Cont,Ac).
+  genIden(Lc,Lp),
+  mkAnon(Lc,Anon),
+  genIden(Lc,St),
+
+  makeReturn(Lc,U,UA),
+  mkSequence(Lc,Act,UA,As),
+  makeAction(As,none,XA),
+
+%  reportMsg("body action %s",[ast(XA)],Lc),
+  
+  mkEquation(Lc,tuple(Lc,"()",[Anon]),none,XA,L1),
+
+  binary(Lc,"_sequence",St,L1,S1),
+  buildEquation(Lc,Lp,[X,St],none,S1,Lp1),
+  buildEquation(Lc,Lp,[Anon,St],none,St,Lp2),
+  
+  mkLetDef(Lc,[Lp1,Lp2],Lp,IFn),
+
+  ternary(Lc,"_iter",L,UA,IFn,IA),
+%  reportMsg("for loop %s becomes %s",[ast(A),ast(IA)],Lc),
+  combine(IA,Cont,Ax).
 makeAction(A,Cont,Ac) :-
   isIntegrity(A,Lc,Tst),!,
   makeAssert(Lc,Tst,Assrt),
@@ -477,17 +511,20 @@ makeAction(A,Cont,Ac) :-
 makeAction(A,Cont,Ac) :-
   isLetDef(A,Lc,D,B),!,
   makeAction(B,Cont,Bc),
-  makeLetDef(Lc,D,Bc,Ac).
+  mkLetDef(Lc,D,Bc,Ac).
 makeAction(A,Cont,Ac) :-
   isLetRec(A,Lc,D,B),!,
   makeAction(B,Cont,Bc),
-  makeLetRec(Lc,D,Bc,Ac).
+  mkLetRec(Lc,D,Bc,Ac).
 makeAction(A,Cont,Ax) :-
   isCaseExp(A,Lc,G,Cs),!,
   map(Cs,macroRules:mkCase(Cont),Csx),
   caseExp(Lc,G,Csx,Ax).
 makeAction(A,Cont,Ac) :-
   isRoundTerm(A,_,_),!,
+  combine(A,Cont,Ac).
+makeAction(A,Cont,Ac) :-
+  isResume(A,_,_,_),!,
   combine(A,Cont,Ac).
 makeAction(A,_,A) :-
   locOfAst(A,Lc),
@@ -595,7 +632,14 @@ indexAssignMacro(A,action,Act) :-
 
 valofMacro(T,expression,Tx) :-
   isValof(T,Lc,A),!,
-  unary(Lc,"_perform",A,Tx).
+  (isBraceTuple(A,_,[As]) ->
+   makeAction(As,none,Ax),
+   mkAnon(Lc,Anon),
+   unitTpl(Lc,U),
+   squareTerm(Lc,name(Lc,"result"),[U,Anon],RTp),
+   typeAnnotation(Lc,Ax,RTp,AA);
+   A=AA),
+  unary(Lc,"_perform",AA,Tx).
   
 macroQuote(T,expression,Rp) :-
   isQuote(T,_,A),!,

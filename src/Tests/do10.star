@@ -6,7 +6,7 @@ test.do10{
     wi : string.
   }
 
-  hndle:(cons[string],pp)=>result[(),()].
+  hndle:all x/2 ~~ execution[x] |: (cons[string],pp)=>x[(),()].
   hndle(_,X) => do{
     logMsg(X.ri)
   }

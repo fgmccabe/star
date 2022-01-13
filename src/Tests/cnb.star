@@ -3,7 +3,7 @@ test.cnb{
   import star.script.
 
   public factU:(integer)=>integer.
-  factU(N) => valof do{
+  factU(N) => valof{
     I .= ref 1;
     R .= ref 1;
 
@@ -18,6 +18,7 @@ test.cnb{
   public factF:(integer)=>integer.
   factF(N) => valof factFF(1,N,1).
 
+  factFF:(integer,integer,integer)=>result[(),integer].
   factFF(F,T,S) => do{
     if F>T then
       valis S

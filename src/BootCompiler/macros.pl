@@ -400,13 +400,16 @@ examineTerm(T,Tx) :-
   map(C,macros:macroLambda,Cx),
   caseExp(Lc,Ex,Cx,Tx).
 examineTerm(T,Tx) :-
-  isDoTerm(T,Lc,S),!,
+  isDoTerm(T,_Lc,S),!,
   macroAction(S,Sx),
-  mkDoTerm(Lc,Sx,Tx).
+  makeAction(Sx,none,Tx).
 examineTerm(T,Tx) :-
   isActionTerm(T,Lc,S),!,
   macroAction(S,Sx),
-  mkActionTerm(Lc,Sx,Tx).
+  makeAction(Sx,none,Mx),
+  unitTpl(Lc,U),
+  mkEquation(Lc,U,none,Mx,Lam),
+  unary(Lc,"delay",Lam,Tx).
 examineTerm(T,Tx) :-
   isTaskTerm(T,Lc,S),!,
   macroAction(S,Sx),
@@ -611,7 +614,14 @@ examineAction(A,Ax) :-
 examineAction(A,Ax) :-
   isTryCatch(A,Lc,B,H),!,
   macroAction(B,Bx),
-  macroTerm(H,Hx),
+%  reportMsg("Macrod action %s",[ast(Bx)],Lc),
+  (isBraceTuple(H,HLc,[Hs]) ->
+   mkAnon(HLc,An),
+   roundTuple(HLc,[An],LArg),
+   mkDoTerm(HLc,Hs,HB),
+   mkEquation(HLc,LArg,none,HB,HH);
+   H=HH),
+  macroTerm(HH,Hx),
   mkTryCatch(Lc,Bx,Hx,Ax).
 examineAction(A,Ax) :-
   isTryHandle(A,Lc,B,H),!,

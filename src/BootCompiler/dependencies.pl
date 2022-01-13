@@ -269,7 +269,9 @@ collectTermRefs(T,A,R0,Rx) :-
   collectTermRefs(E,A,R0,Rx).
 collectTermRefs(T,A,R0,Rx) :-
   isValof(T,_,E),!,
-  collectTermRefs(E,A,R0,Rx).
+  (isBraceTuple(E,_,[St]) ->
+   collectionDoRefs(St,A,R0,Rx);
+   collectTermRefs(E,A,R0,Rx)).
 collectTermRefs(T,A,R0,Rx) :-
   isDoTerm(T,_,Stmts),!,
   collectDoRefs(Stmts,A,R0,Rx).

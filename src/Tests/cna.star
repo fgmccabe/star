@@ -5,7 +5,7 @@ test.cna{
   import test.cn2.
 
   public factW:(integer)=>integer.
-  factW(N) => valof do{
+  factW(N) => valof{
     I := 1;
     R := 1;
     while ~eq(I!,N) do{

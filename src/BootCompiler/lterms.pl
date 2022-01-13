@@ -424,8 +424,6 @@ rewriteTerm(QTest,mtch(Lc,L,R),mtch(Lc,NL,NR)) :-
   rewriteTerm(QTest,R,NR).
 rewriteTerm(QTest,ng(Lc,R),ng(Lc,NR)) :-
   rewriteTerm(QTest,R,NR).
-rewriteTerm(QTest,doAct(Lc,A),doAct(Lc,AA)) :-
-  rewriteAction(QTest,A,AA),!.
 rewriteTerm(QTest,error(Lc,M),error(Lc,MM)) :-!,
   rewriteTerm(QTest,M,MM).
 
@@ -434,64 +432,6 @@ rewriteTerms(QTest,Els,NEls):-
 
 substAction(Q,In,Out) :-
   rewriteAction(lterms:applyQ(Q),In,Out),!.
-
-rewriteAction(_,nop(Lc),nop(Lc)).
-rewriteAction(QTest,rtnDo(Lc,A),rtnDo(Lc,AA)) :-
-  rewriteTerm(QTest,A,AA).
-rewriteAction(QTest,raisDo(Lc,A),raisDo(Lc,AA)) :-
-  rewriteTerm(QTest,A,AA).
-rewriteAction(QTest,seqD(Lc,A,B),seqD(Lc,AA,BB)) :-
-  rewriteAction(QTest,A,AA),
-  rewriteAction(QTest,B,BB).
-rewriteAction(QTest,varD(Lc,P,A),varD(Lc,PP,AA)) :-
-  rewriteTerm(QTest,P,PP),
-  rewriteTerm(QTest,A,AA).
-rewriteAction(QTest,assignD(Lc,P,A),assignD(Lc,PP,AA)) :-
-  rewriteTerm(QTest,P,PP),
-  rewriteTerm(QTest,A,AA).
-rewriteAction(QTest,setix(Lc,P,Ix,A),setix(Lc,PP,Ix,AA)) :-
-  rewriteTerm(QTest,P,PP),
-  rewriteTerm(QTest,A,AA).
-rewriteAction(QTest,ltt(Lc,V,Val,Exp),ltt(Lc,V,Val1,Exp1)) :-
-  rewriteTerm(lterms:checkV(V,QTest),Val,Val1),
-  rewriteAction(lterms:checkV(V,QTest),Exp,Exp1).
-rewriteAction(QTest,bindD(Lc,P,A),bindD(Lc,PP,AA)) :-
-  rewriteTerm(QTest,P,PP),
-  rewriteTerm(QTest,A,AA).
-rewriteAction(QTest,perfDo(Lc,A),perfDo(Lc,AA)) :-
-  rewriteTerm(QTest,A,AA).
-rewriteAction(QTest,promptD(Lc,K,A),promptD(Lc,KK,AA)) :-
-  rewriteTerm(QTest,K,KK),
-  rewriteTerm(QTest,A,AA).
-rewriteAction(QTest,cutD(Lc,K,A),cutD(Lc,KK,AA)) :-
-  rewriteTerm(QTest,K,KK),
-  rewriteTerm(QTest,A,AA).
-rewriteAction(QTest,resumeD(Lc,K,A),resumeD(Lc,KK,AA)) :-
-  rewriteTerm(QTest,K,KK),
-  rewriteTerm(QTest,A,AA).
-rewriteAction(QTest,cnd(Lc,T,A,B),cnd(Lc,TT,AA,BB)) :-
-  rewriteTerm(QTest,T,TT),
-  rewriteAction(QTest,A,AA),
-  rewriteAction(QTest,B,BB).
-rewriteAction(QTest,whle(Lc,T,A),whle(Lc,TT,AA)) :-
-  rewriteTerm(QTest,T,TT),
-  rewriteAction(QTest,A,AA).
-rewriteAction(QTest,untl(Lc,T,A),untl(Lc,TT,AA)) :-
-  rewriteTerm(QTest,T,TT),
-  rewriteAction(QTest,A,AA).
-rewriteAction(QTest,case(Lc,T,C,D),case(Lc,NT,NC,ND)) :-
-  rewriteTerm(QTest,T,NT),
-  map(C,lterms:rewriteCase(QTest,lterms:rewriteAction),NC),
-  rewriteTerm(QTest,D,ND).
-rewriteAction(QTest,unpack(Lc,T,C),unpack(Lc,NT,NC)) :-
-  rewriteTerm(QTest,T,NT),
-  map(C,lterms:rewriteCase(QTest,lterms:rewriteAction),NC).
-rewriteAction(QTest,justDo(Lc,T),justDo(Lc,TT)) :-
-  rewriteTerm(QTest,T,TT).
-rewriteAction(QTest,tryDo(Lc,A,H),tryDo(Lc,AA,HH)) :-
-  rewriteAction(QTest,A,AA),
-  rewriteTerm(QTest,H,HH).
-
 
 rewriteGoal(_,none,none).
 rewriteGoal(QTest,some(T),some(NT)) :-

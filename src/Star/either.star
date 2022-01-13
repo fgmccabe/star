@@ -26,8 +26,8 @@ star.either{
 
   public implementation execution[either] => {
     _perform(either(X)) => X.
-    _handle(either(X),_) => either(X).
-    _handle(other(E),F) => F(E).
+    _catch(either(X),_) => either(X).
+    _catch(other(E),F) => F(E).
     _sequence(either(X),F) => F(X).
     _sequence(other(E),_) => other(E).
     _raise(E) => other(E).

@@ -6,7 +6,7 @@ star.iterable{
   -- The _iter function iterates over the collection composing it
 
   public contract all s,t ~~ iter[s->>t] ::= {
-    _iter:all x,m/2,e ~~ execution[m] |: (s,m[e,x],(t,x)=>m[e,x]) => m[e,x]
+    _iter:all x ~~ (s,x,(t,x)=>x) => x
   }
 
   public contract all coll/1, m/2, k,v ~~ grouping[coll ->> m,k,v] ::=  {

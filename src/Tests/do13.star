@@ -2,7 +2,7 @@ test.do13{
   import star.
   import star.script.
 
-  maybeFail:(integer)=>result[integer,integer].
+--  maybeFail:all e/2 ~~ execution[e] |: (integer)=>e[integer,integer].
   maybeFail(X) => do{
     if X==10 then
       raise 10
