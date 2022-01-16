@@ -1,12 +1,12 @@
 :- module(lterms,[ssTransformed/2,
 		  dispRuleSet/1,dispProg/1,dispEquations/1,
-		  substTerm/3,substGoal/3,substAction/3,
+		  substTerm/3,substGoal/3,
 		  substTerms/3,rewriteTerm/3,
 		  genTplStruct/2,isLiteral/1,isCnd/1,mkTpl/2,
 		  isTplLbl/2,mkCons/3,
 		  isUnit/1,
 		  termHash/2,
-		  ssTrm/3,dispTerm/1,showTerm/4,locTerm/2,ssAct/3,dispAct/1,
+		  ssTrm/3,dispTerm/1,showTerm/4,locTerm/2,
 		  idInTerm/2, isLTerm/1,
 		  mergeGl/4,
 		  validLProg/2]).
@@ -53,7 +53,6 @@ isLTerm(dsj(_,_,_)) :- !.
 isLTerm(mtch(_,_,_)) :- !.
 isLTerm(ng(_,_)) :- !.
 isLTerm(error(_,_)) :- !.
-isLTerm(doAct(_,_)) :- !.
 isLTerm(tg(_,_)) :-!.
 isLTerm(shft(_,_,_)) :-!.
 isLTerm(prmpt(_,_,_)) :-!.
@@ -216,9 +215,6 @@ ssTrm(ng(_,R),Dp,sq([lp,ss("~"),RR,rp])) :-!,
 ssTrm(error(Lc,M),Dp,sq([lp,ss("error "),MM,rp,ss("@"),LL])) :-!,
   ssTrm(M,Dp,MM),
   ssLoc(Lc,LL).
-ssTrm(doAct(_,Act),Dp,sq([ss("do "),lb,nl(Dp1),iv(nl(Dp1),AA),nl(Dp),rb])) :-!,
-  Dp1 is Dp+2,
-  ssActs(Act,Dp1,AA).
 
 ssCnd(cnd(_,T,L,R),Dp,sq([TT,ss(" ? "),nl(Dp),LL,ss("||"),nl(Dp),RR])) :-!,
   Dp1 is Dp+2,
@@ -226,83 +222,6 @@ ssCnd(cnd(_,T,L,R),Dp,sq([TT,ss(" ? "),nl(Dp),LL,ss("||"),nl(Dp),RR])) :-!,
   ssTrm(L,Dp1,LL),
   ssCnd(R,Dp,RR).
 ssCnd(Exp,Dp,XX) :- ssTrm(Exp,Dp,XX).
-
-dispAct(A) :-
-  display:display(lterms:ssAct(A,0)).
-
-ssAct(nop(_),_,ss("{}")) :-!.
-ssAct(rtnDo(_,E),Dp,sq([ss("return "),EE])) :-!,
-  ssTrm(E,Dp,EE).
-ssAct(raisDo(_,E),Dp,sq([ss("raise "),EE])) :-!,
-  ssTrm(E,Dp,EE).
-ssAct(seqD(Lc,L,R),Dp,iv(nl(Dp),AA)) :-!,
-  ssActs(seqD(Lc,L,R),Dp,AA).
-ssAct(varD(_,P,E),Dp,sq([PP,ss(" .= "),EE])) :-!,
-  ssTrm(P,Dp,PP),
-  ssTrm(E,Dp,EE).
-ssAct(setix(_,P,Ix,E),Dp,sq([PP,ss("."),ix(Ix),ss(" := "),EE])) :-!,
-  ssTrm(P,Dp,PP),
-  ssTrm(E,Dp,EE).
-ssAct(assignD(_,P,E),Dp,sq([PP,ss(" := "),EE])) :-!,
-  ssTrm(P,Dp,PP),
-  ssTrm(E,Dp,EE).
-ssAct(bindD(_,P,E),Dp,sq([PP,ss(" <- "),EE])) :-!,
-  ssTrm(P,Dp,PP),
-  ssTrm(E,Dp,EE).
-ssAct(perfDo(_,E),Dp,sq([ss("perform "),EE])) :-!,
-  ssTrm(E,Dp,EE).
-ssAct(promptD(_,Lb,E),Dp,sq([LL,ss(" prompt "),EE])) :-!,
-  ssTrm(Lb,Dp,LL),
-  Dp1 is Dp+2,
-  ssTrm(E,Dp1,EE).
-ssAct(cutD(_,Lb,E),Dp,sq([LL,ss(" cut "),EE])) :-!,
-  ssTrm(Lb,Dp,LL),
-  Dp1 is Dp+2,
-  ssTrm(E,Dp1,EE).
-ssAct(resumeD(_,K,A),Dp,sq([KK,ss("."),lp,AA,rp])) :-
-  ssTrm(K,Dp,KK),
-  ssTrm(A,Dp,AA).
-ssAct(cnd(_,T,Th,El),Dp,sq([ss("if "),TT,ss(" then "),nl(Dp2),
-			    HH,ss("else"),nl(Dp2),EE,nl(Dp),ss("fi")])) :-!,
-  Dp2 is Dp+2,
-  ssTrm(T,Dp,TT),
-  ssAct(Th,Dp2,HH),
-  ssAct(El,Dp2,EE).
-ssAct(ltt(_,Vr,Bnd,Act),Dp,sq([ss("let "),VV,ss("="),BB,ss(" in "),EE])) :-!,
-  Dp1 is Dp+2,
-  ssTrm(Vr,Dp1,VV),
-  ssTrm(Bnd,Dp1,BB),
-  ssAct(Act,Dp1,EE).
-ssAct(whle(_,G,B),Dp,sq([ss("while "),TT,ss(" do "),nl(Dp2),BB])) :-!,
-  Dp2 is Dp+2,
-  ssTrm(G,Dp,TT),
-  ssAct(B,Dp2,BB).
-ssAct(untl(_,G,B),Dp,sq([ss("repeat "),BB,nl(Dp2),ss(" until "),TT])) :-!,
-  Dp2 is Dp+2,
-  ssTrm(G,Dp,TT),
-  ssAct(B,Dp2,BB).
-ssAct(case(_,G,Cases,Deflt),Dp,
-      sq([ss("case "),GG,ss("in"),lb,CC,rb,ss(" else "),DD])) :-!,
-  ssTrm(G,Dp,GG),
-  ssCases(Cases,Dp,lterms:ssAct,CC),
-  ssTrm(Deflt,Dp,DD).
-ssAct(unpack(_,G,Cases),Dp,
-      sq([ss("unpack "),GG,ss(" in"),lb,CC,rb])) :-!,
-  ssTrm(G,Dp,GG),
-  ssCases(Cases,Dp,lterms:ssAct,CC).
-ssAct(justDo(_,E),Dp,sq([ss("just "),EE])) :-!,
-  ssTrm(E,Dp,EE).
-ssAct(tryDo(_,A,H),Dp,sq([ss("try "),
-			  nl(Dp2),AA,nl(Dp2),ss(" catch "),HH])) :-!,
-  Dp2 is Dp+2,
-  ssAct(A,Dp2,AA),
-  ssTrm(H,Dp2,HH).
-
-ssActs(seqD(_,L,R),Dp,[LL|RR]) :-!,
-  ssAct(L,Dp,LL),
-  ssActs(R,Dp,RR).
-ssActs(A,Dp,[AA]) :-
-  ssAct(A,Dp,AA).
 
 ssCases(Cases,Dp,Leaf,sq([lb,nl(Dp2),iv(nl(Dp2),CC),nl(Dp),rb])) :-
   Dp2 is Dp+2,
@@ -429,9 +348,6 @@ rewriteTerm(QTest,error(Lc,M),error(Lc,MM)) :-!,
 
 rewriteTerms(QTest,Els,NEls):-
   map(Els,lterms:rewriteTerm(QTest),NEls).
-
-substAction(Q,In,Out) :-
-  rewriteAction(lterms:applyQ(Q),In,Out),!.
 
 rewriteGoal(_,none,none).
 rewriteGoal(QTest,some(T),some(NT)) :-
@@ -701,8 +617,6 @@ validTerm(ng(Lc,R),_,D) :-
   validTerm(R,Lc,D).
 validTerm(error(Lc,R),_,D) :-
   validTerm(R,Lc,D).
-validTerm(doAct(Lc,Act),_,D) :-
-  validAct(Act,Lc,D).
 validTerm(T,Lc,_) :-
   reportError("(internal) Invalid term %s in scope",[ltrm(T)],Lc).
 
@@ -748,80 +662,6 @@ validCases(Cases,Leaf,D) :-
 validCase(Lc,Ptn,Val,Leaf,D) :-
   validPtn(Ptn,Lc,D,D1),
   call(Leaf,Val,Lc,D1).
-
-validAct(nop(_),_,_).
-validAct(seqD(SLc,varD(Lc,V,B),R),_,D) :-
-  ptnVars(V,D,D0),
-  validTerm(V,Lc,D0),
-  validTerm(B,Lc,D),
-  validAct(R,SLc,D0).
-validAct(seqD(SLc,bindD(Lc,V,B),R),_,D) :-
-  ptnVars(V,D,D0),
-  validTerm(V,Lc,D0),
-  validTerm(B,Lc,D),
-  validAct(R,SLc,D0).
-validAct(seqD(Lc,L,R),_,D) :-
-  validAct(L,Lc,D),
-  validAct(R,Lc,D).
-validAct(varD(Lc,P,E),_,D) :-
-  validPtn(P,Lc,D,D),
-  validTerm(E,Lc,D).
-validAct(setix(Lc,P,_,E),_,D) :-
-  validTerm(P,Lc,D),
-  validTerm(E,Lc,D).
-validAct(assignD(Lc,P,E),_,D) :-
-  validTerm(P,Lc,D),
-  validTerm(E,Lc,D).
-validAct(bindD(Lc,P,E),_,D) :-
-  ptnVars(P,D,D0),
-  validTerm(P,Lc,D0),
-  validTerm(E,Lc,D).
-validAct(ltt(Lc,Vr,Bnd,Act),_,D) :-
-  validTerm(Bnd,Lc,D),
-  ptnVars(Vr,D,D1),
-  validTerm(Vr,Lc,D1),
-  validAct(Act,Lc,D1).
-validAct(rtnDo(Lc,E),_,D) :-
-  validTerm(E,Lc,D).
-validAct(raisDo(Lc,E),_,D) :-
-  validTerm(E,Lc,D).
-validAct(perfDo(Lc,A),_,D) :-
-  validTerm(A,Lc,D).
-validAct(whle(Lc,T,A),_,D) :-
-  glVars(T,D,D0),
-  validTerm(T,Lc,D0),
-  validAct(A,Lc,D0).
-validAct(untl(Lc,T,A),_,D) :-
-  validTerm(T,Lc,D),
-  validAct(A,Lc,D).
-validAct(cnd(Lc,T,A,B),_,D) :-
-  glVars(T,D,D0),
-  validTerm(T,Lc,D0),
-  validAct(A,Lc,D0),
-  validAct(B,Lc,D).
-validAct(case(Lc,T,C,Df),_,D) :-
-  validTerm(T,Lc,D),
-  validAct(Df,Lc,D),
-  validCases(C,lterms:validAct,D).
-validAct(unpack(Lc,T,C),_,D) :-
-  validTerm(T,Lc,D),
-  validCases(C,lterms:validAct,D).
-validAct(justDo(Lc,E),_,D) :-
-  validTerm(E,Lc,D).
-validAct(promptD(Lc,K,A),_,D) :-
-  validTerm(K,Lc,D),
-  validTerm(A,Lc,D).
-validAct(cutD(Lc,K,A),_,D) :-
-  validTerm(K,Lc,D),
-  validTerm(A,Lc,D).
-validAct(resumeD(Lc,K,A),_,D) :-
-  validTerm(K,Lc,D),
-  validTerm(A,Lc,D).
-validAct(tryDo(Lc,B,H),_,D) :-
-  validAct(B,Lc,D),
-  validTerm(H,Lc,D).
-validAct(A,Lc,_) :-
-  reportError("(internal) Invalid action %s",[lact(A)],Lc).
 
 ptnVars(idnt(Nm),D,Dx) :-
   add_mem(Nm,D,Dx).

@@ -22,7 +22,7 @@ test.cnq{
   isF(P) => {! () | ~ P in ms !}.
 
   fatherOf:(string)=>cons[string].
-  fatherOf(A) => [ F | (F,A) in parent && F in ms].
+  fatherOf(A) => { F | (F,A) in parent && F in ms}.
 
   main:()=>action[(),()].
   main() => action{

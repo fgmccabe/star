@@ -5,6 +5,8 @@ star.iterable{
   -- The iter contract is used in query evaluation
   -- The _iter function iterates over the collection composing it
 
+  public all e,x ~~ _iter[e,x] ::= _more(x) | _end(e).
+
   public contract all s,t ~~ iter[s->>t] ::= {
     _iter:all x ~~ (s,x,(t,x)=>x) => x
   }

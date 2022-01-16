@@ -32,6 +32,8 @@ test.dd{
   ZZ : action[(),integer].
   ZZ = action {
     try {
+      A <- ff(6);
+      B <- ff(7);
       raise ()
     } catch {
       valis 10

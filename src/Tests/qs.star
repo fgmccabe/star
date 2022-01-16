@@ -15,9 +15,11 @@ test.qs{
   gp : set[(string,string)].
   gp = { (X,Y) | (X,Z) in parent && (Z,Y) in parent}.
 
-  pp = [X|(X,"ab") in parent || (X,"de") in parent].
+  pp : cons[string].
+  pp = {X|(X,"ab") in parent || (X,"de") in parent}.
 
-  pm = [X | (X,Y) in parent && "ab".=Y] .
+  pm:cons[string].
+  pm = {X | (X,Y) in parent && "ab".=Y}.
 
   -- A different example, filtering positive numbers
   someInts : cons[integer].

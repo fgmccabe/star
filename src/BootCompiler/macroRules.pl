@@ -10,7 +10,6 @@
 :- use_module(location).
 
 macroRl("[]",pattern,macroRules:squarePtnMacro).
-macroRl("[]",expression,macroRules:macroListComprehension).
 macroRl("[]",expression,macroRules:squareSequenceMacro).
 macroRl("$[]",expression,macroRules:indexMacro).
 macroRl("<||>",expression,macroRules:macroQuote).
@@ -35,8 +34,6 @@ macroRl(":=",action,macroRules:indexAssignMacro).
 %macroRl("show",expression,macroRules:showMacro).
 %macroRl("do",expression,macroRules:doMacro).
 macroRl("task",expression,macroRules:taskMacro).
-%macroRl("${}",expression,macroRules:actionMacro).
-%macroRl("do",action,macroRules:forLoopMacro).
 macroRl("valof",expression,macroRules:valofMacro).
 %macroRl("try",action,macroRules:tryCatchMacro).
 %macroRl("try",action,macroRules:tryHandleMacro).
@@ -86,7 +83,6 @@ list_pttrn(Lc,Ts,Arg) :-
 squareSequenceMacro(A,expression,Trm) :-
   isSquareTuple(A,Lc,Els),
   \+isMapLiteral(A,_,_),
-  \+isListComprehension(A,_,_,_),!,
   macroListEntries(Lc,Els,Trm,nilGen,consGen).
 
 nilGen(Lc,name(Lc,"_nil")).
@@ -146,13 +142,6 @@ comprehensionMacro(T,expression,Rp) :-
   isComprehension(T,Lc,Bnd,Body),!,
   makeComprehension(Lc,Bnd,Body,Rp).
 
-macroListComprehension(T,expression,Rp) :-
-  isListComprehension(T,Lc,Bnd,Body),!,
-  makeComprehension(Lc,Bnd,Body,C),
-  mkAnon(Lc,Anon),
-  squareTerm(Lc,name(Lc,"cons"),[Anon],LTp),
-  typeAnnotation(Lc,C,LTp,Rp).
-
 makeComprehension(Lc,Bnd,Body,Rp) :-
   makeCondition(Body,macroRules:passThru,macroRules:consResult(Lc,Bnd),grounded(name(Lc,"_nil")),Rp).
 
@@ -197,6 +186,7 @@ makeCondition(A,Lift,Succ,Zed,Rp) :-
   eqn(Lc,F,Lf,Eq2),
   mkLetDef(Lc,[Eq1,Eq2],Sf,FF),
   call(Lift,Zed,ZZ),
+%  unary(Lc,"_more",ZZ,ZI),
   ternary(Lc,"_iter",Src,ZZ,FF,Rp).
 makeCondition(A,Lift,Succ,Zed,Rp) :-
   isConjunct(A,_,Lhs,Rhs),!,
@@ -320,15 +310,6 @@ doMacro(A,expression,Ax) :-
   isDoTerm(A,_Lc,X),!,
   makeAction(X,none,Ax).
 %  reportMsg("Macro do term becomes %s",[ast(Ax)],Lc).
-
-actionMacro(A,expression,Ax) :-
-  isActionTerm(A,Lc,X),!,
-  makeAction(X,none,Xx),
-  unitTpl(Lc,U),
-  mkEquation(Lc,U,none,Xx,Lam),
-  unary(Lc,"delay",Lam,Ax).
-%  reportMsg("Macro action term %s becomes %s",[ast(A),ast(Ax)],Lc).
-
 
 /* makeAction(A,Cont,Rp) */
 makeAction(A,Cont,Ax) :-
@@ -461,8 +442,9 @@ makeAction(A,Cont,Ac) :-
 /*
   for X in L do Act
   becomes
-  _iter(L,return(),let{
-    lP(X,St) => _sequence(St,(X)=>do{ Act; valis ()})
+  _iter(L,_more(return()),let{
+    lP(X,St) => _sequence(St,(X)=>_sequence(Act,(_)=>_valis(())))
+    lP(X,St) => _inject(_sequence(St,(X)=>_sequence(Act,(_)=>_valis(()))))
     lP(_,St) => St
 
   } in lP)
@@ -542,36 +524,6 @@ makeHandler(H,Hx) :-
   makeAction(A,none,Ah),
   mkEquation(Lc,Arg,none,Ah,Hx).
 makeHandler(H,H).
-
-/*
-  for X in L do Act
-  becomes
-  ignore _iter(L,ok(()),let{
-    lP(_,err(E)) => err(E).
-    lP(X,_) => do{ Act; valis ()}
-  } in lP)
-*/
-
-forLoopMacro(A,action,Ax) :-
-  isForDo(A,Lc,X,L,Act),!,
-  genIden(Lc,E),
-  genIden(Lc,Lp),
-  unary(Lc,"err",E,Err),
-  mkAnon(Lc,Anon),
-  roundTerm(Lc,Lp,[Anon,Err],Hd1),
-  mkEquation(Lc,Hd1,none,Err,Eq1),
-  roundTerm(Lc,Lp,[X,Anon],Hd2),
-  roundTuple(Lc,[],Unit),
-  mkValis(Lc,Unit,Last),
-  mkSequence(Lc,Act,Last,Bdy),
-  mkDoTerm(Lc,Bdy,Rhs2),
-  mkEquation(Lc,Hd2,none,Rhs2,Eq2),
-
-  unary(Lc,"ok",Unit,S0),
-  mkLetDef(Lc,[Eq1,Eq2],Lp,LetFn),
-  ternary(Lc,"_iter",L,S0,LetFn,Ax).
-%  mkIgnore(Lc,Exp,Ax),
-%  reportMsg("for loop %s becomes %s",[ast(A),ast(Ax)],Lc).
 
 /*
  assert C 

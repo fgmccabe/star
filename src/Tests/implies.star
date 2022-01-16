@@ -24,7 +24,7 @@ test.implies{
      } in checkSon,
      .none,pars).
 
-  maleSons = [X | (X,_) in pars && (X,C) in pars *> C in ms].
+  maleSons = ({X | (X,_) in pars && (X,C) in pars *> C in ms}:cons[string]).
 
   main:()=>action[(),()].
   main()=>action{
@@ -38,8 +38,7 @@ test.implies{
 
     assert .none.=onlySons("f");
 
-    show [X | (X,_) in pars];
-    show [X | (X,_) in pars && (X,C) in pars *> C in ms];
+    show ({X | (X,_) in pars && (X,C) in pars *> C in ms}:cons[string]);
     show maleSons;
 
     show foldOnlySons("a");
