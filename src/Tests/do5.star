@@ -11,9 +11,8 @@ test.do5{
 
   main:()=>action[(),()].
   main() => action{
-    show [ X | X in parent];
-    show [ fst(X) | X in parent];
-    show [ snd(X) | X in parent];
-    assert size([ X | X in parent])==size(parent)
+    show ({ fst(X) | X in parent}:cons[string]);
+    show ({ snd(X) | X in parent}:cons[string]);
+    assert size({ X | X in parent}:cons[(string,string)])==size(parent)
   }
 }

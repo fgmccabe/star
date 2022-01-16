@@ -277,11 +277,6 @@ examineTerm(T,Tx) :-
   macroTerm(Bdy,Bdyx),
   mkComprehension(Lc,Bndx,Bdyx,Tx).
 examineTerm(T,Tx) :-
-  isListComprehension(T,Lc,Bnd,Bdy),!,
-  macroTerm(Bnd,Bndx),
-  macroTerm(Bdy,Bdyx),
-  mkListComprehension(Lc,Bndx,Bdyx,Tx).
-examineTerm(T,Tx) :-
   isIotaComprehension(T,Lc,Bnd,Bdy),!,
   macroTerm(Bnd,Bndx),
   macroTerm(Bdy,Bdyx),

@@ -12,7 +12,8 @@ test.q0{
   gp : cons[(string,string)].
   gp = { (X,Y) | (X,Z) in parent && (Z,Y) in parent}.
 
-  pp = [X|(X,"ab") in parent || (X,D) in parent && "de".=D].
+  pp : cons[string].
+  pp = {X|(X,"ab") in parent || (X,D) in parent && "de".=D}.
 
   -- A different example, filtering positive numbers
   someInts : cons[integer].

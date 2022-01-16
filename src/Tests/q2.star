@@ -8,7 +8,8 @@ test.q2{
   parent:cons[(string,string)].
   parent = [("a","ab"),("b","ab")].
 
-  pm = [X | (X,Y) in parent && "ab".=Y] .
+  pm:cons[string].
+  pm = {X | (X,Y) in parent && "ab".=Y}.
 
   main:() => action[(),()].
   main() => action{
