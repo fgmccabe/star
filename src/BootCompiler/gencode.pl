@@ -49,7 +49,7 @@ genDef(D,Opts,fnDef(Lc,Nm,H,Tp,Args,Value),O,[CdTrm|O]) :-
   buildArgs(Args,0,D,D1),
   genLine(Opts,Lc,C0,C1),
   compPtnArgs(Args,Lc,argCont,
-	      trapCont(Lc),0,contCont(Ex),abortCont(Lc,strg("failed"),Opts),Opts,L1,L2,D1,D2,End,
+	      trapCont(Lc),0,contCont(Ex),abortCont(Lc,strg("def failed"),Opts),Opts,L1,L2,D1,D2,End,
 	      C1,[iLbl(Ex)|C2],some(0),Stk0),
   compTerm(Value,Lc,retCont(Opts),trapCont(Lc),Opts,L2,_Lx,D2,Dx,End,C2,[iLbl(End)],Stk0,_Stk),
   findMaxLocal(Dx,Mx),
@@ -468,7 +468,10 @@ insCont(Ins,Lx,Lx,D,D,_,[Ins|C],C,Stk,Stk).
 
 abortCont(Lc,Msg,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   locTerm(Lc,LT),
-  compTerms([LT,Msg],Lc,asmCont(iAbort,none),trapCont(Lc),Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
+  compTerms([LT,Msg],Lc,abrtCont(Opts),trapCont(Lc),Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
+
+abrtCont(Opts,Lx,Lx,D,D,_,C,Cx,_,none) :-
+  genDbg(Opts,C,[iAbort|Cx]).
 
 indexCont(Ix,Lx,Lx,D,D,_,Stk,Stk1,[iDup,iNth(Ix)|Cx],Cx) :-
   bumpStk(Stk,Stk1).
@@ -732,7 +735,7 @@ compCnsCases([(ctpl(Cn,Args),E,Lc)],_,CompRhs,Cont,TCont,Opts,L,Lx,D,Dx,
 	     [iUnpack(Cn,Fl)|C],Cx,Stk,Stkx) :-!,
   genLbl(L,Nxt,L1),
   genLbl(L1,Fl,L2),
-  abortCont(Lc,strg("failed"),Opts,L2,L3,D,D2,Fl,Cy,Cx,Stk,_),
+  abortCont(Lc,strg("unpack failed"),Opts,L2,L3,D,D2,Fl,Cy,Cx,Stk,_),
   length(Args,Ar),
   dropStk(Stk,1-Ar,Stk0),
   compPtnArgs(Args,Lc,stkArgCont,TCont,0,contCont(Nxt),contCont(Fl),
@@ -750,7 +753,7 @@ compArms([(ctpl(Cn,Args),E,Lc)],_Lc,CompRhs,Cont,TCont,Opts,L,Lx,D,Dx,
   genLbl(L,Lbl,L0),
   genLbl(L0,Nxt,L1),
   genLbl(L1,End,L2),
-  abortCont(Lc,strg("failed"),Opts,L2,L3,D,D3,End,Cy,Cx,Stk,_),
+  abortCont(Lc,strg("arm failed"),Opts,L2,L3,D,D3,End,Cy,Cx,Stk,_),
   compPtnArgs(Args,Lc,stkArgCont,TCont,0,contCont(Nxt),contCont(End),
 	      Opts,L3,L4,D3,D4,End,C,[iLbl(Nxt)|A1],Stk,Stk1),
   call(CompRhs,E,Lc,Cont,Opts,L4,Lx,D4,Dx,End,A1,[iLbl(End)|Cy],
@@ -761,7 +764,7 @@ compArms([(ctpl(Cn,Args),E,Lc)|Cases],_Lc,CompRhs,Cont,TCont,Opts,L,Lx,D,Dx,
   genLbl(L,Lbl,L0),
   genLbl(L0,Nxt,L1),
   genLbl(L1,End,L2),
-  abortCont(Lc,strg("failed"),Opts,L2,L3,D,D3,End,Cy,Cz,Stk,_),
+  abortCont(Lc,strg("arm failed"),Opts,L2,L3,D,D3,End,Cy,Cz,Stk,_),
   compPtnArgs(Args,Lc,stkArgCont,TCont,0,contCont(Nxt),contCont(End),
 	      Opts,L3,L4,D3,D4,End,C,[iLbl(Nxt)|A1],Stk,Stk1),
   call(CompRhs,E,Lc,Cont,Opts,L4,L5,D4,D5,End,A1,[iLbl(End)|Cy],Stk1,Stk2),

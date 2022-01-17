@@ -399,6 +399,13 @@ examineTerm(T,Tx) :-
   macroAction(S,Sx),
   makeAction(Sx,none,Tx).
 examineTerm(T,Tx) :-
+  isResultTerm(T,Lc,S),!,
+  macroAction(S,Sx),
+  makeAction(Sx,none,Mx),
+  mkAnon(Lc,An),
+  squareTerm(Lc,name(Lc,"result"),[An,An],RTp),
+  typeAnnotation(Lc,Mx,RTp,Tx).
+examineTerm(T,Tx) :-
   isActionTerm(T,Lc,S),!,
   macroAction(S,Sx),
   makeAction(Sx,none,Mx),
