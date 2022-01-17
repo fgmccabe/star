@@ -1,6 +1,8 @@
-:-module(errors,[reportError/3,reportFatal/3,reportMsg/2,reportMsg/3,genMsg/3,
+:-module(errors,[reportError/3,reportFatal/3,
+		 reportWarning/3,reportMsg/2,reportMsg/3,genMsg/3,
 		 testOpt/2,
-		 errorCount/1,noErrors/0,noNewErrors/1,startCount/0]).
+		 errorCount/1,warningCount/1,
+		 noErrors/0,noNewErrors/1,startCount/0]).
 :- use_module(astdisp).
 :- use_module(abstract).
 :- use_module(display).
@@ -22,6 +24,15 @@ reportError(Msg,A,Lc) :- incErrorCount(),
   writef(Msg,AA),
   writef(".>"),nl(),!.
 
+reportWarning(Msg,A,Lc) :- incWarningCount(),
+  warningCount(E),
+  showLocation(Lc,OLc,[]),
+  writef("\nWarning %w - %s\n",[E,OLc]),
+  genDisplay(A,AA),
+  writef("<."),
+  writef(Msg,AA),
+  writef(".>"),nl(),!.
+
 reportFatal(Msg,A,Lc) :-
   reportError(Msg,A,Lc),
   abort.
@@ -31,7 +42,8 @@ testOpt(some(Msg),Lc) :-
   reportFatal(Msg,[],Lc).
 
 startCount :-
-  nb_setval(errors,0).
+  nb_setval(errors,0),
+  nb_setval(warnings,0).
 
 incErrorCount() :-
   nb_getval(errors,C),
@@ -41,6 +53,14 @@ incErrorCount() :-
 
 errorCount(C) :-
   nb_getval(errors,C).
+
+incWarningCount() :-
+  nb_getval(warnings,C),
+  C1 is C+1,
+  nb_setval(warnings,C1).
+
+warningCount(C) :-
+  nb_getval(warnings,C).
 
 noErrors :-
   errorCount(0),!.
@@ -97,6 +117,8 @@ showTrm(stk(some(N)),O) :-
   ss_to_chrs(sq([ss("Stk "),ix(N)]),O,[]).
 showTrm(stk(nono),O) :-
   ss_to_chrs(ss("Stk empty"),O,[]).
+showTrm(loc(Lc),O) :-
+  showLocation(Lc,O,[]).
 showTrm(ss(S),O) :-
   ss_to_chrs(S,O,[]).
 showTrm(T,O) :-
