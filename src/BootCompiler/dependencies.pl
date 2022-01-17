@@ -276,6 +276,9 @@ collectTermRefs(T,A,R0,Rx) :-
   isDoTerm(T,_,Stmts),!,
   collectDoRefs(Stmts,A,R0,Rx).
 collectTermRefs(T,A,R0,Rx) :-
+  isResultTerm(T,_,Stmts),!,
+  collectDoRefs(Stmts,A,R0,Rx).
+collectTermRefs(T,A,R0,Rx) :-
   isActionTerm(T,_,Stmts),!,
   collectDoRefs(Stmts,A,R0,Rx).
 collectTermRefs(T,A,R0,Rx) :-

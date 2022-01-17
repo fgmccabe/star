@@ -43,6 +43,7 @@
 	      isTestComprehension/3,mkTestComprehension/3,
 	      isCaseExp/4,caseExp/4,
 	      isTaskTerm/3,mkTaskTerm/3,isActionTerm/3,mkActionTerm/3,
+	      isResultTerm/3,mkResultTerm/3,
 	      isDoTerm/3,mkDoTerm/3,
 	      isValof/3,mkValof/3,isPerform/3,mkPerform/3,
 	      isRaise/3,mkRaise/3,isThrow/3,mkThrow/3,isValis/3,mkValis/3,
@@ -782,6 +783,12 @@ packageVersion(T,Pkg) :- isBinary(T,_,".",L,R),
   packageVersion(R,RP),
   string_concat(LP,".",I),
   string_concat(I,RP,Pkg).
+
+isResultTerm(A,Lc,Stmts) :-
+  isBrace(A,Lc,"result",[Stmts]).
+
+mkResultTerm(Lc,S,T) :-
+  braceTerm(Lc,name(Lc,"result"),[S],T).
 
 isActionTerm(A,Lc,Stmts) :-
   isBrace(A,Lc,"action",[Stmts]).

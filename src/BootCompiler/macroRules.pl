@@ -29,10 +29,13 @@ macroRl("^",expression,macroRules:unwrapExpMacro).
 macroRl("!",expression,macroRules:binRefMacro).
 macroRl(":=",action,macroRules:spliceAssignMacro).
 macroRl(":=",action,macroRules:indexAssignMacro).
+macroRl(":=",expression,macroRules:spliceAssignMacro).
+macroRl(":=",expression,macroRules:indexAssignMacro).
+macroRl("assert",expression,macroRules:assertMacro).
 %macroRl("assert",action,macroRules:assertMacro).
 %macroRl("show",action,macroRules:showMacro).
-%macroRl("show",expression,macroRules:showMacro).
-%macroRl("do",expression,macroRules:doMacro).
+macroRl("show",expression,macroRules:showMacro).
+macroRl("do",expression,macroRules:doMacro).
 macroRl("task",expression,macroRules:taskMacro).
 macroRl("valof",expression,macroRules:valofMacro).
 %macroRl("try",action,macroRules:tryCatchMacro).
@@ -444,33 +447,26 @@ makeAction(A,Cont,Ac) :-
   becomes
   _iter(L,_more(return()),let{
     lP(X,St) => _sequence(St,(X)=>_sequence(Act,(_)=>_valis(())))
-    lP(X,St) => _inject(_sequence(St,(X)=>_sequence(Act,(_)=>_valis(()))))
+%    lP(X,St) => _inject(_sequence(St,(X)=>_sequence(Act,(_)=>_valis(()))))
     lP(_,St) => St
 
   } in lP)
 */
-
 makeAction(A,Cont,Ax) :-
   isForDo(A,Lc,X,L,Act),!,
   unitTpl(Lc,U),
   genIden(Lc,Lp),
   mkAnon(Lc,Anon),
   genIden(Lc,St),
-
   makeReturn(Lc,U,UA),
   mkSequence(Lc,Act,UA,As),
   makeAction(As,none,XA),
-
 %  reportMsg("body action %s",[ast(XA)],Lc),
-  
   mkEquation(Lc,tuple(Lc,"()",[Anon]),none,XA,L1),
-
   binary(Lc,"_sequence",St,L1,S1),
   buildEquation(Lc,Lp,[X,St],none,S1,Lp1),
   buildEquation(Lc,Lp,[Anon,St],none,St,Lp2),
-  
   mkLetDef(Lc,[Lp1,Lp2],Lp,IFn),
-
   ternary(Lc,"_iter",L,UA,IFn,IA),
 %  reportMsg("for loop %s becomes %s",[ast(A),ast(IA)],Lc),
   combine(IA,Cont,Ax).
@@ -530,7 +526,7 @@ makeHandler(H,H).
 becomes
  perform assrt(()=>C,"failed: C",Loc)
 */
-assertMacro(T,action,Act) :-
+assertMacro(T,_,Act) :-
   isIntegrity(T,Lc,Cond),!,
   makeAssert(Lc,Cond,Act).
 

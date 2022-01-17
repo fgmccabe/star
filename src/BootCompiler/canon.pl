@@ -208,12 +208,12 @@ ssTerm(cell(_,Vr),Dp,sq([ss("ref "),V])) :-
 ssTerm(deref(_,Vr),Dp,sq([V,ss("!")])) :-
   ssTerm(Vr,Dp,V).
 ssTerm(letExp(_,_Decls,Defs,Ex),Dp,
-	    sq([ss("let {."),nl(Dp2),iv(nl(Dp2),DS),nl(Dp),ss(".} in "),B])) :-
+	    sq([ss("let {"),nl(Dp2),iv(nl(Dp2),DS),nl(Dp),ss("} in "),B])) :-
   Dp2 is Dp+2,
   map(Defs,canon:ssDf(Dp2),DS),
   ssTerm(Ex,Dp,B).
 ssTerm(letRec(_,Decls,Defs,Ex),Dp,
-	    sq([ss("let {"),nl(Dp2),iv(nl(Dp2),Ds),nl(Dp),ss("} in "),B])) :-
+	    sq([ss("let {."),nl(Dp2),iv(nl(Dp2),Ds),nl(Dp),ss(".} in "),B])) :-
   Dp2 is Dp+2,
   map(Decls,canon:ssDecl(Dp2,ss("rec ")),DD),
   map(Defs,canon:ssDf(Dp2),XX),
