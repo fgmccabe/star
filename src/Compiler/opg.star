@@ -10,7 +10,6 @@ star.compiler.opg{
   import star.compiler.token.
   import star.compiler.wff.
   import star.pkg.
---  import star.trace.
 
   needsTerm ::= .noNeed | .needOne.
 

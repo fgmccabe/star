@@ -1,6 +1,5 @@
 star.compiler.errors{
   import star.
-  import star.trace.
   import star.compiler.location.
 
   public reportMsg ::= errorMsg(locn,string)
