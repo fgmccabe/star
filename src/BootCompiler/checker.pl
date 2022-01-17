@@ -212,12 +212,18 @@ importDecl(Lc,contractDec(Nm,CnNm,CnTp,Rule),Ev,Evx) :-
 importDecl(Lc,typeDec(Nm,Tp,Rule),Env,Evx) :-
   declareType(Nm,tpDef(Lc,Tp,Rule),Env,Evx).
 importDecl(Lc,varDec(Nm,_FullNm,Tp),Env,Evx) :-
+  (varLoc(Nm,Env,VTp,VLc),
+   \+sameType(Tp,VTp,Lc,Env) ->
+   reportWarning("%s:%s already declared as %s at %s",[Nm,tpe(Tp),tpe(VTp),loc(VLc)],Lc);true),
   declareVr(Lc,Nm,Tp,none,Env,Evx).
 importDecl(Lc,cnsDec(Nm,FullNm,Tp),Env,Evx) :-
   (isConType(Tp,0) ->
    declareEnum(Lc,Nm,FullNm,Tp,Env,Evx) ;
    declareCns(Lc,Nm,FullNm,Tp,Env,Evx)).
 importDecl(Lc,funDec(Nm,_FullNm,Tp),Env,Evx) :-
+  (varLoc(Nm,Env,VTp,VLc),
+   \+sameType(Tp,VTp,Lc,Env) ->
+   reportWarning("function %s:%s already declared as %s at %s",[Nm,tpe(Tp),tpe(VTp),loc(VLc)],Lc);true),
   declareVr(Lc,Nm,Tp,none,Env,Evx).
 importDecl(Lc,Entry,Env,Env) :-
   reportError("(internal) cannot figure out import entry %s",[Entry],Lc).

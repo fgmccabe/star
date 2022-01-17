@@ -2,7 +2,7 @@
 		declareTypeVars/4,isTypeVar/3,
 		declareVar/4,declareVr/6,declareField/6,declareMtd/5,
 		declareEnum/6,declareCns/6,
-		getVar/5,getVarTypeFace/4,
+		getVar/5,getVarTypeFace/4,varLoc/4,
 		currentVar/3,restoreVar/4,
 		declareContract/4,getContract/3,
 		declareImplementation/5,
@@ -63,6 +63,9 @@ mkMtd(Nm,Lc,Tp,mtd(Lc,Nm,Tp)).
 isVar(Nm,_,vrEntry(std,dict:mkVr(Nm),none,Tp)) :- isIntrinsic(Nm,Tp,_),!.
 isVar(Nm,_,vrEntry(std,dict:mkVr(Nm),none,Tp)) :- escapeType(Nm,Tp),!.
 isVar(Nm,Env,Vr) :- makeKey(Nm,Key), isVr(Key,Env,Vr).
+
+varLoc(Nm,Env,Tp,Lc) :-
+  isVar(Nm,Env,vrEntry(Lc,_,_,Tp)),!.
 
 getVar(Lc,Nm,Env,Vr,ViTp) :-
   isVar(Nm,Env,vrEntry(_,MkTrm,_,VTp)),

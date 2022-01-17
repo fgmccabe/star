@@ -34,18 +34,18 @@ sm(faceType(E1,T1),faceType(E2,T2),Lc,Env) :- sameLength(E1,E2),
 sm(existType(K,T1),existType(K,T2),Lc,Env) :-
   sameType(T1,T2,Lc,Env).
 sm(existType(kVar(K1),T1),existType(kVar(K2),T2),Lc,Env) :-
-  rewriteType(T2,Lc,Env,[(K2,kVar(K1))],[],TT2),
+  rewriteType(T2,Lc,Env,[(K2,kVar(K1))],TT2),
   sameType(T1,TT2,Lc,Env).
 sm(existType(kFun(K1,Ar),T1),existType(kFun(K2,Ar),T2),Lc,Env) :-
-  rewriteType(T2,Lc,Env,[(K2,kFun(K1,Ar))],[],TT2),
+  rewriteType(T2,Lc,Env,[(K2,kFun(K1,Ar))],TT2),
   sameType(T1,TT2,Lc,Env).
 sm(allType(K,T1),allType(K,T2),Lc,Env) :-!,
   sameType(T1,T2,Lc,Env).
 sm(allType(kVar(K1),T1),allType(kVar(K2),T2),Lc,Env) :-
-  rewriteType(T2,Lc,Env,[(K2,kVar(K1))],[],TT2),
+  rewriteType(T2,Lc,Env,[(K2,kVar(K1))],TT2),
   sameType(T1,TT2,Lc,Env).
 sm(allType(kFun(K1,Ar),T1),allType(kFun(K2,Ar),T2),Lc,Env) :-
-  rewriteType(T2,Lc,Env,[(K2,kFun(K1,Ar))],[],TT2),
+  rewriteType(T2,Lc,Env,[(K2,kFun(K1,Ar))],TT2),
   sameType(T1,TT2,Lc,Env).
 sm(constrained(T1,C1),constrained(T2,C2),Lc,Env) :-
   sameType(T1,T2,Lc,Env),
@@ -175,12 +175,12 @@ id(faceType(E1,T1),faceType(E2,T2),Lc,Env) :- sameLength(E1,E2),
 id(existType(K,T1),existType(K,T2),Lc,Env) :-
   idenType(T1,T2,Lc,Env).
 id(existType(kFun(K1,Ar),T1),existType(kFun(K2,Ar),T2),Lc,Env) :-
-  rewriteType(T2,Lc,Env,[(K2,kFun(K1,Ar))],[],TT2),
+  rewriteType(T2,Lc,Env,[(K2,kFun(K1,Ar))],TT2),
   idenType(T1,TT2,Lc,Env).
 id(allType(K,T1),allType(K,T2),Lc,Env) :-!,
   idenType(T1,T2,Lc,Env).
 id(allType(kVar(K1),T1),allType(kVar(K2),T2),Lc,Env) :-
-  rewriteType(T2,Lc,Env,[(K2,kVar(K1))],[],TT2),
+  rewriteType(T2,Lc,Env,[(K2,kVar(K1))],TT2),
   idenType(T1,TT2,Lc,Env).
 
 idList([],[],_).
