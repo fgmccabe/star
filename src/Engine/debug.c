@@ -15,6 +15,7 @@
 integer pcCount = 0;
 static integer lineCount = 0;
 
+static void showAbort(ioPo out, stackPo stk, termPo reason);
 static void showCall(ioPo out, stackPo stk, termPo call);
 static void showTail(ioPo out, stackPo stk, termPo call);
 static void showOCall(ioPo out, stackPo stk, termPo call);
@@ -131,6 +132,8 @@ static logical shouldWeStop(processPo p, termPo arg) {
     }
 
     switch (*p->stk->fp->pc) {
+      case Abort:
+        return True;
       case Ret:
       case RtG: {
         switch (p->waitFor) {
@@ -920,6 +923,19 @@ void showRet(ioPo out, stackPo stk, termPo val) {
     outMsg(out, "return: %T->%#,*T", f->prog, displayDepth, val);
 }
 
+static void showAbort(ioPo out, stackPo stk, termPo reason) {
+  framePo f = currFrame(stk);
+  termPo loc = findPcLocation(f->prog, insOffset(f->prog, f->pc));
+
+  if (loc != Null) {
+    if (showColors)
+      outMsg(out, RED_ESC_ON"abort:"RED_ESC_OFF" %#L %T->%#,*T", loc, f->prog, displayDepth, reason);
+    else
+      outMsg(out, "abort: %#L %T->%#,*T", loc, f->prog, displayDepth, reason);
+  } else
+    outMsg(out, "abort: %T->%#,*T", f->prog, displayDepth, reason);
+}
+
 void showAssign(ioPo out, stackPo stk, termPo vl) {
   framePo f = currFrame(stk);
   termPo locn = findPcLocation(f->prog, insOffset(f->prog, f->pc));
@@ -1009,6 +1025,9 @@ DebugWaitFor enterDebug(processPo p) {
   insWord ins = *pc++;
   lineCount++;
   switch (ins) {
+    case Abort: {
+      return lnDebug(p, peekStack(stk,1), showAbort);
+    }
     case Call: {
       return lnDebug(p, getMtdLit(f->prog, collect32(pc)), showCall);
     }

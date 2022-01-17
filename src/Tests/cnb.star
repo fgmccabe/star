@@ -19,7 +19,7 @@ test.cnb{
   factF(N) => valof factFF(1,N,1).
 
   factFF:(integer,integer,integer)=>result[(),integer].
-  factFF(F,T,S) => do{
+  factFF(F,T,S) => result{
     if F>T then
       valis S
     else
