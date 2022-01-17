@@ -33,7 +33,6 @@ star.compiler.macro.rules{
     ":=" -> [(.actn,spliceAssignMacro),
       (.actn,indexAssignMacro)],
     "[]" -> [(.pattern,squarePtnMacro),
-      (.expression,listComprehensionMacro),
       (.expression,squareSequenceMacro)],
     "$[]" -> [(.expression,indexMacro),(.expression,sliceMacro)],
     "<||>" -> [(.expression,quoteMacro)],
@@ -58,14 +57,14 @@ star.compiler.macro.rules{
   }.
 
   -- Convert assert C to assrt(()=>C,"failed C",Loc)
-  assertMacro(A,.actn,Rp) where (Lc,C) ^= isIntegrity(A) => do{
+  assertMacro(A,.actn,Rp) where (Lc,C) ^= isIntegrity(A) => result{
     Lam .= equation(Lc,tpl(Lc,"()",[]),C);
     Assert .= ternary(Lc,"assrt",Lam,str(Lc,C::string),Lc::ast);
     valis active(Assert)
   }
 
   -- Convert show E to shwMsg(()=>E,"E",Lc)
-  showMacro(A,.actn,Rp) where (Lc,E) ^= isShow(A) => do{
+  showMacro(A,.actn,Rp) where (Lc,E) ^= isShow(A) => result{
     Lam .= equation(Lc,tpl(Lc,"()",[]),E);
     Shw .= ternary(Lc,"shwMsg",Lam,str(Lc,A::string),Lc::ast);
     valis active(Shw)
@@ -78,7 +77,7 @@ star.compiler.macro.rules{
     ok(active(squareTerm(LLc,refCell(Lc,Lhs),[E]))).
   binRefMacro(A,.expression,Rp)  where
       (Lc,_,_) ^= isBinary(A,"!") =>
-    err(reportError(Rp,"illegal use of !",Lc)).
+    bad(reportError(Rp,"illegal use of !",Lc)).
   binRefMacro(A,_,_) =>
     ok(.inactive).
 
@@ -104,7 +103,7 @@ star.compiler.macro.rules{
 
   -- Convert expression P^E to X where E ^= P(X)
   unwrapMacroA(A,.expression,Rp) where
-      (Lc,Lhs,Rhs) ^= isOptionPtn(A) && (LLc,Nm) ^= isName(Lhs) => do{
+      (Lc,Lhs,Rhs) ^= isOptionPtn(A) && (LLc,Nm) ^= isName(Lhs) => result{
 	X .= genName(LLc,"X");
    	valis active(mkWhere(Lc,X,mkMatch(LLc,Rhs,unary(LLc,Nm,X))))
       }.
@@ -135,8 +134,7 @@ star.compiler.macro.rules{
   genHedTest(Lc,H,T) => mkWherePtn(Lc,tpl(Lc,"()",[H,T]),nme(Lc,"_hdtl")).
 
   squareSequenceMacro(A,.expression,Rp) where
-      (Lc,Els) ^= isSqTuple(A) &&
-      ~_^=isListComprehension(A)=>
+      (Lc,Els) ^= isSqTuple(A) =>
     ok(active(macroListEntries(Lc,Els,genNil,genCons))).
   squareSequenceMacro(_,_,_) => ok(.inactive).
 
@@ -151,12 +149,6 @@ star.compiler.macro.rules{
 
   genEmpty(Lc) => nme(Lc,"_empty").
   genPut(Lc,H,T) where (_,L,R) ^= isPair(H) => ternary(Lc,"_put",T,L,R).
-
-  listComprehensionMacro(A,.expression,Rp) where (Lc,B,C) ^= isListComprehension(A) => do{
-    Q <- makeComprehension(Lc,B,C,Rp);
-    valis active(binary(Lc,":",Q,squareTerm(Lc,nme(Lc,"cons"),[anon(Lc)])))
-  }
-  listComprehensionMacro(_,_,_) => ok(.inactive).
 
   comprehensionMacro(A,.expression,Rp) where (Lc,B,C) ^= isComprehension(A) => do{
     Q <- makeComprehension(Lc,B,C,Rp);
@@ -328,7 +320,7 @@ star.compiler.macro.rules{
   for X in L do Act
   becomes
   ignore _iter(L,ok(()),let{
-    lP(_,err(E)) => err(E).
+    lP(_,bad(E)) => bad(E).
     lP(X,_) => do{ Act}
   } in lP)
 */
@@ -427,7 +419,7 @@ star.compiler.macro.rules{
   algebraicFace(A,Qs,Xs,Rp) where (_,A0,I) ^= isQuantified(A) =>
     algebraicFace(I,Qs\/A0,Xs,Rp).
   algebraicFace(A,_,_,Rp) default =>
-    err(reportError(Rp,"invalid case in algebraic type",locOf(A))).
+    bad(reportError(Rp,"invalid case in algebraic type",locOf(A))).
 
   combineFaces([],F2,Rp) => ok(F2).
   combineFaces(F1,[],Rp) => ok(F1).
@@ -511,7 +503,7 @@ star.compiler.macro.rules{
       (_,I) ^= isPublic(A) => 
     buildConstructors(I,Qs,Cx,Tp,.pUblic,Rp).
   buildConstructors(A,_,_,_,_,Rp) =>
-    err(reportError(Rp,"cannot fathom constructor $(A)",locOf(A))).
+    bad(reportError(Rp,"cannot fathom constructor $(A)",locOf(A))).
 
   compEls:(ast,ast)=>boolean.
   compEls(A,B) where
@@ -550,6 +542,7 @@ star.compiler.macro.rules{
   isCon(_,_) default => .none.
 
 
+  
 
 
   

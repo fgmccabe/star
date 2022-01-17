@@ -327,10 +327,6 @@ star.compiler.dependencies{
     Rf1 <- collectTermRefs(Bnd,All,Rf,Rp);
     collectCondRefs(Cond,All,Rf1,Rp)
   }
-  collectTermRefs(T,All,Rf,Rp) where (_,Bnd,Cond) ^= isListComprehension(T) => do{
-    Rf1 <- collectTermRefs(Bnd,All,Rf,Rp);
-    collectCondRefs(Cond,All,Rf1,Rp)
-  }
   collectTermRefs(T,All,Rf,Rp) where (_,Args) ^= isSqTuple(T) => 
     collectTermListRefs(Args,All,Rf,Rp).
   collectTermRefs(T,All,Rf,Rp) where (_,E,C) ^= isCase(T) => do{

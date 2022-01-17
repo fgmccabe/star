@@ -1,7 +1,6 @@
 star.compiler.macro{
   import star.
   import star.sort.
-  import star.trace.
 
   import star.compiler.ast.
   import star.compiler.errors.
@@ -11,7 +10,6 @@ star.compiler.macro{
   import star.compiler.macro.infra.
   import star.compiler.macro.rules.
   import star.compiler.wff.
-  
 
   macroAst:(ast,macroContext,(ast,reports)=>result[reports,ast],reports) => result[reports,ast].
   macroAst(A,Cxt,Examine,Rp) => do{
@@ -30,7 +28,7 @@ star.compiler.macro{
   public macroPkg:(ast,reports) => result[reports,ast].
   macroPkg(A,Rp) => let{
     Rslt = macroAst(A,.package,examinePkg,Rp)
-  } in trace(Rslt,"macroed = $(Rslt)").
+  } in trace("macroed = $(Rslt)",Rslt).
 
   examinePkg(A,Rp) where (Lc,O,Els) ^= isBrTerm(A) => do{
     Ss <- macroStmts(buildMain(Els),Rp);
@@ -129,7 +127,7 @@ star.compiler.macro{
     valis brTuple(Lc,Elx)
   }
   examineStmt(A,Rp) =>
-    err(reportError(Rp,"cannot figure out statement\n$(A)",locOf(A))).
+    bad(reportError(Rp,"cannot figure out statement\n$(A)",locOf(A))).
 
   macroConstructor(A,Rp) where (Lc,L,R)^=isBinary(A,"|") => do{
     Lx <- macroConstructor(L,Rp);
@@ -288,7 +286,7 @@ star.compiler.macro{
     valis roundTerm(Lc,OO,EE)
   }
   examineAction(A,Rp) default =>
-    err(reportError(Rp,"cannot figure out action\n$(A)",locOf(A))).
+    bad(reportError(Rp,"cannot figure out action\n$(A)",locOf(A))).
 
   macroTerm(A,Rp) => macroAst(A,.expression,examineTerm,Rp).
 
@@ -332,11 +330,6 @@ star.compiler.macro{
     DD <- macroTerm(D,Rp);
     BB <- macroTerm(B,Rp);
     valis mkComprehension(Lc,DD,BB)
-  }
-  examineTerm(A,Rp) where (Lc,D,B) ^= isListComprehension(A) => do{
-    DD <- macroTerm(D,Rp);
-    BB <- macroTerm(B,Rp);
-    valis mkListComprehension(Lc,DD,BB)
   }
   examineTerm(A,Rp) where (Lc,D,B) ^= isIotaComprehension(A) => do{
     DD <- macroTerm(D,Rp);
@@ -500,7 +493,7 @@ star.compiler.macro{
     valis mkCaseExp(Lc,EE,CC)
   }
   examineTerm(A,Rp) default =>
-    err(reportError(Rp,"cannot figure out expression\n$(A)",locOf(A))).
+    bad(reportError(Rp,"cannot figure out expression\n$(A)",locOf(A))).
 
   macroCond:(ast,reports) => result[reports,ast].
   macroCond(C,Rp) => macroTerm(C,Rp).
@@ -576,7 +569,7 @@ star.compiler.macro{
     valis mkPromotion(Lc,RR)
   }
   examinePtn(A,Rp) default =>
-    err(reportError(Rp,"cannot figure out pattern\n$(A)",locOf(A))).
+    bad(reportError(Rp,"cannot figure out pattern\n$(A)",locOf(A))).
 
   macroType(A,Rp) => macroAst(A,.typeterm,examineType,Rp).
 
@@ -644,9 +637,8 @@ star.compiler.macro{
     RR <- macroTerm(R,Rp);
     valis mkFieldAcc(Lc,RR,F)
   }
-
   examineType(A,Rp) default =>
-    err(reportError(Rp,"cannot figure out type expression\n$(A)",locOf(A))).
+    bad(reportError(Rp,"cannot figure out type expression\n$(A)",locOf(A))).
 
   macroConstraint(A,Rp) => macroAst(A,.constraint,examineConstraint,Rp).
 
@@ -693,7 +685,7 @@ star.compiler.macro{
   buildMain(Els) default => Els.
 
   lookForSignature:(cons[ast],string)=>cons[(locn,ast)].
-  lookForSignature(Els,Nm) => [(Lc,Tp) | El in Els && (Lc,Nm,Vz,Tp)^=isTypeAnnot(El)].
+  lookForSignature(Els,Nm) => {(Lc,Tp) | El in Els && (Lc,Nm,Vz,Tp)^=isTypeAnnot(El)}.
 
   isTypeAnnot(A) where (Lc,N,Tp) ^= isBinary(A,":") && (Nm,Vz) .= visibilityOf(N) && (_,Id)^=isName(Nm) =>
     some((Lc,Id,Vz,Tp)).
@@ -717,7 +709,7 @@ star.compiler.macro{
 */
 
   synthesizeMain:(locn,ast,cons[ast])=>cons[ast].
-  synthesizeMain(Lc,Tp,Defs) where (_,Lhs,Rhs) ^= isFunctionType(Tp) && (_,ElTps)^=isTuple(Lhs) => valof action{
+  synthesizeMain(Lc,Tp,Defs) where (_,Lhs,Rhs) ^= isFunctionType(Tp) && (_,ElTps)^=isTuple(Lhs) => valof{
     (Action,As) <- synthCoercion(Lc,ElTps,[]);
     
 --    (Vs,Cs) .= synthesizeCoercions(ElTps,Lc);

@@ -6,7 +6,6 @@ star.compiler.lexer{
   import star.compiler.misc.
   import star.compiler.token.
   import star.pkg.
---  import star.trace.
 
   -- The Star compiler lexer
   public allTokens:(tokenState) => (cons[token],reports).

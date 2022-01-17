@@ -278,14 +278,6 @@ star.compiler.wff{
   public mkComprehension(Lc,Exp,Cond) =>
     brTuple(Lc,[binary(Lc,"|",Exp,Cond)]).
 
-  public isListComprehension:(ast) => option[(locn,ast,ast)].
-  isListComprehension(A) where (Lc,[T]) ^= isSqTuple(A) &&
-      (_,Bnd,Body) ^= isBinary(T,"|") => some((Lc,Bnd,Body)).
-  isListComprehension(A) => .none.
-
-  public mkListComprehension(Lc,Exp,Cond) =>
-    sqTuple(Lc,[binary(Lc,"|",Exp,Cond)]).
-
   public isIotaComprehension:(ast) => option[(locn,ast,ast)].
   isIotaComprehension(A) where (Lc,I) ^= isUnary(A,"{!!}") &&
       (_,Bnd,Body) ^= isBinary(I,"|") => some((Lc,Bnd,Body)).

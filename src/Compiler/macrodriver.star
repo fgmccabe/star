@@ -100,7 +100,7 @@ star.compiler.macro.driver{
   }
 
   public _main:(cons[string])=>().
-  _main(Args) => valof action{
+  _main(Args) => valof{
     WI^=parseUri("file:"++_cwd());
     RI^=parseUri("file:"++_repo());
     handleCmds(processOptions(Args,[wdOption,
@@ -137,7 +137,7 @@ star.compiler.macro.driver{
   extractPkgSpec(P) default => pkg(P,.defltVersion).
 
   implementation all e,k ~~ coercion[(option[k],e),result[e,k]] => {
-    _coerce((.none,R)) => some(err(R)).
+    _coerce((.none,R)) => some(bad(R)).
     _coerce((some(A),_)) => some(ok(A)).
   }
 
