@@ -144,9 +144,6 @@ ssTrm(ctpl(Op,A),Dp,sq([ss("."),OO,lp,AA,rp])) :-!,
   ssCOnOp(Op,OO),
   Dp1 is Dp+2,
   showArgs(A,Dp1,AA).
-ssTrm(rais(_,E),Dp,sq([ss("raise "),EE])) :-!,
-  Dp1 is Dp+2,
-  ssTrm(E,Dp1,EE).
 ssTrm(tg(_,_),_,ss("tag()")) :-!.
 ssTrm(shft(_,Lb,E),Dp,sq([LL,ss(" cut "),EE])) :-!,
   ssTrm(Lb,Dp,LL),

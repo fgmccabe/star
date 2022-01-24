@@ -50,7 +50,6 @@ isCanon(disj(_,_,_)).
 isCanon(implies(_,_,_)).
 isCanon(cond(_,_,_,_,_)).
 isCanon(match(_,_,_)).
-isCanon(raise(_,_,_)).
 isCanon(open(_,_,_)).
 isCanon(neg(_,_)).
 isCanon(lambda(_,_,_,_)).
@@ -95,9 +94,7 @@ typeOfCanon(stringLit(_,_),type("star.core*string")) :- !.
 typeOfCanon(enm(_,_,Tp),Tp) :- !.
 typeOfCanon(cons(_,_,Tp),Tp) :- !.
 typeOfCanon(where(_,T,_),Tp) :- !, typeOfCanon(T,Tp).
-typeOfCanon(raise(_,_,Tp),Tp) :-!.
 typeOfCanon(open(_,_,Tp),Tp) :-!.
-typeOfCanon(abstraction(_,_,_,_,_,Tp),Tp) :- !.
 typeOfCanon(search(_,_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(match(_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(sequence(_,_,R),Tp) :-!, typeOfCanon(R,Tp).
@@ -133,9 +130,7 @@ locOfCanon(charLit(Lc,_),Lc) :- !.
 locOfCanon(stringLit(Lc,_),Lc) :- !.
 locOfCanon(enm(Lc,_,_),Lc) :- !.
 locOfCanon(where(Lc,_,_),Lc) :- !.
-locOfCanon(raise(Lc,_,_),Lc) :-!.
 locOfCanon(open(Lc,_,_),Lc) :-!.
-locOfCanon(abstraction(Lc,_,_,_,_,_),Lc) :- !.
 locOfCanon(search(Lc,_,_,_),Lc) :-!.
 locOfCanon(match(Lc,_,_),Lc) :-!.
 locOfCanon(sequence(Lc,_,_),Lc) :-!.
@@ -198,7 +193,6 @@ ssTerm(dot(_,Rc,Fld,_),Dp,sq([R,ss("."),id(Fld)])) :-
 ssTerm(enm(_,Nm,_),_,sq([ss("."),id(Nm)])).
 ssTerm(cons(_,Nm,_),_,sq([ss("."),id(Nm)])).
 ssTerm(open(_,E,_),Dp,sq([ss("open "),EE])) :- ssTerm(E,Dp,EE).
-ssTerm(raise(_,E,_),Dp,sq([ss("raise "),EE])) :- ssTerm(E,Dp,EE).
 ssTerm(case(_,Bound,Cases,_),Dp,
 	    sq([ss("case "),B,ss(" in {"),Rs,ss("}")])) :-
   ssTerm(Bound,Dp,B),
@@ -268,14 +262,8 @@ ssTerm(search(_,P,S,M),Dp,sq([lp,LL,ss(" in "),RR,ss(" using "),II,rp])) :-
   ssTerm(P,Dp,LL),
   ssTerm(S,Dp,RR),
   ssTerm(M,Dp,II).
-ssTerm(abstraction(_,Bound,Guard,G,_,_),Dp,
-	    sq([ss("{"),BB,ss(" | "),CC, ss(" using "),II,ss("}")])) :-
-  ssTerm(Bound,Dp,BB),
-  ssTerm(Guard,Dp,CC),
-  ssTerm(G,Dp,II).
 ssTerm(neg(_,R),Dp,sq([lp,ss(" ~ "),RR,rp])) :-
   ssTerm(R,Dp,RR).
-ssTerm(noDo(_),_,ss(" nothing ")).
 
 ssTerms([],_,[]).
 ssTerms([T|More],Dp,[TT|TTs]) :-

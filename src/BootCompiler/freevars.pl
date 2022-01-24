@@ -21,7 +21,6 @@ freeVars(tple(_,Els),Ex,Q,F,FV) :- freeVarsList(Els,Ex,Q,F,FV).
 freeVars(apply(_,Op,A,_),Ex,Q,F,FV) :- freeVars(Op,Ex,Q,F,F0), freeVars(A,Ex,Q,F0,FV).
 freeVars(dot(_,Rc,_,_),Ex,Q,F,FV) :- freeVars(Rc,Ex,Q,F,FV).
 freeVars(open(_,E,_),Ex,Q,F,Fv) :- freeVars(E,Ex,Q,F,Fv).
-freeVars(raise(_,E,_),Ex,Q,F,Fv) :- freeVars(E,Ex,Q,F,Fv).
 freeVars(cell(_,Cll),Ex,Q,F,FV) :- freeVars(Cll,Ex,Q,F,FV).
 freeVars(deref(_,Cll),Ex,Q,F,FV) :- freeVars(Cll,Ex,Q,F,FV).
 freeVars(where(_,T,C),Ex,Q,F,FV) :- ptnGoalVars(C,Ex,E1),
@@ -61,12 +60,6 @@ freeVars(search(_,L,R,I),Ex,Q,F,FV) :-
   freeVars(L,Ex1,Q,F,F0),
   freeVars(R,Ex1,Q,F0,F1),
   freeVars(I,Ex1,Q,F1,FV).
-freeVars(abstraction(_,B,C,Z,G,_),Ex,Q,F,FV) :-
-  ptnGoalVars(C,Ex,Ex1),
-  freeVars(B,Ex1,Q,F,F0),
-  freeVars(C,Ex1,Q,F0,F1),
-  freeVars(Z,Ex1,Q,F1,F2),
-  freeVars(G,Ex1,Q,F2,FV).
 freeVars(letExp(_,_,Defs,Bnd),Ex,Q,F,Fv) :-
   definedVars(Defs,Ex,Ex1),
   freeVarsInDefs(Defs,Ex1,Q,F,F0),
