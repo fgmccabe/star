@@ -351,8 +351,6 @@ liftExp(tple(_,A),TApl,Q,Qx,Map,Opts,Ex,Exx) :-!,
   mkTpl(TA,TApl).
 liftExp(open(_,E,_),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(raise(Lc,E,_),rais(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(apply(Lc,Op,tple(_,A),_),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
   trExpCallOp(Lc,Op,LA,Exp,Q1,Qx,Map,Opts,Ex1,Exx).
@@ -402,8 +400,6 @@ liftExp(letRec(Lc,Decls,Defs,Bnd),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftLetRec(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(lambda(Lc,Lbl,Rle,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-!,
   liftLambda(lambda(Lc,Lbl,Rle,Tp),Rslt,Q,Map,Opts,Ex,Exx).
-liftExp(abstraction(Lc,Bnd,Cond,Zed,Gen,Tp),Rslt,Q,Qx,Map,Opts,Ex,Exx) :- !,
-  liftAbstraction(abstraction(Lc,Bnd,Cond,Zed,Gen,Tp),Rslt,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(XX,void,Q,Q,_,_,Ex,Ex) :-
   locOfCanon(XX,Lc),
   reportFatal("internal: cannot transform %s as expression",[XX],Lc).

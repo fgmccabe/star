@@ -268,6 +268,22 @@ checkGroup([(open(_),_,[Stmt])|More],Defs,Dx,Env,Ex,Face,Path) :-
   checkGroup(More,Defs,Dx,Ev0,Ex,Face,Path).
 checkGroup([],Defs,Defs,Env,Env,_,_).
 
+extendEnv([],Env,Env).
+extendEnv([D|Dfs],Env,Ex) :-
+  declareFromDefn(D,Env,E0),
+  extendEnv(Dfs,E0,Ex).
+
+declareFromDefn(funDef(Lc,Nm,_,_,Tp,_,_),Env,Ex) :-
+  declareVr(Lc,Nm,Tp,none,Env,Ex).
+declareFromDefn(varDef(Lc,Nm,_,_,Tp,open(_,_,_)),Env,Ex) :-
+  freshen(Tp,Env,_,FTp),
+  faceOfType(FTp,Lc,Env,FaceTp),
+  declareVr(Lc,Nm,Tp,some(FaceTp),Env,Ex).
+declareFromDefn(varDef(Lc,Nm,_,_,Tp,_),Env,Ex) :-
+  declareVr(Lc,Nm,Tp,none,Env,Ex).
+declareFromDefn(conDef(Nm,ConNm,CnType,ConRule),Env,Ex) :-
+  declareContract(Nm,conDef(Nm,ConNm,CnType,ConRule),Env,Ex).
+
 defineContract(N,Lc,Contract,E0,Ex) :-
   declareContract(N,Contract,E0,E1),
   declareMethods(Contract,Lc,E1,Ex).
@@ -679,7 +695,7 @@ typeOfExp(V,Tp,_ErTp,Env,Env,anon(Lc,Tp),_) :-
 typeOfExp(V,Tp,_ErTp,Env,Env,Term,_Path) :-
   isIden(V,Lc,N),!,
   (getVar(Lc,N,Env,Term,VTp) ->
-   verifyType(Lc,ast(V),Tp,VTp,Env);
+   verifyType(Lc,ast(V),VTp,Tp,Env);
    reportError("variable '%s' not defined, expecting a %s",[V,Tp],Lc),
    Term=void).
 typeOfExp(T,Tp,ErTp,Env,Ev,Term,Path) :-
@@ -731,9 +747,6 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,cond(Lc,Test,Then,Else,Tp),Path) :-
 typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isCaseExp(Term,Lc,Bnd,Cases),
   checkCaseExp(Lc,Bnd,Cases,Tp,ErTp,Env,Ev,Exp,Path).
-typeOfExp(Term,Tp,ErTp,Env,Env,raise(Lc,Exp,Tp),Path) :-
-  isRaise(Term,Lc,E),!,
-  typeOfExp(E,ErTp,ErTp,Env,_,Exp,Path).
 typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isOpen(Term,Lc,I),!,
   typeOfOpen(Lc,I,Tp,ErTp,Env,Ev,Exp,Path).

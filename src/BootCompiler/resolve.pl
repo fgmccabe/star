@@ -119,8 +119,6 @@ overloadTerm(tple(Lc,Args),Dict,St,Stx,tple(Lc,RArgs)) :-!,
   overloadLst(Args,resolve:overloadTerm,Dict,St,Stx,RArgs).
 overloadTerm(open(Lc,Er,Tp),Dict,St,Stx,open(Lc,Err,Tp)) :-
   overloadTerm(Er,Dict,St,Stx,Err).
-overloadTerm(raise(Lc,Er,Tp),Dict,St,Stx,raise(Lc,Err,Tp)) :-
-  overloadTerm(Er,Dict,St,Stx,Err).
 overloadTerm(cell(Lc,Inn),Dict,St,Stx,cell(Lc,Inn1)) :-
   overloadTerm(Inn,Dict,St,Stx,Inn1).
 overloadTerm(deref(Lc,Inn),Dict,St,Stx,deref(Lc,Inn1)) :-
@@ -160,12 +158,6 @@ overloadTerm(search(Lc,P,S,I),Dict,St,Stx,search(Lc,RP,RS,RI)) :-
 overloadTerm(case(Lc,B,C,Tp),Dict,St,Stx,case(Lc,RB,RC,Tp)) :-
   overloadTerm(B,Dict,St,St0,RB),
   overloadCases(C,resolve:overloadTerm,Dict,St0,Stx,RC).
-overloadTerm(abstraction(Lc,B,C,Zed,Gen,Tp),
-	     Dict,St,Stx,abstraction(Lc,RB,RC,RZed,RGen,Tp)) :-
-  overloadTerm(B,Dict,St,St0,RB),
-  overloadTerm(C,Dict,St0,St1,RC),
-  overloadTerm(Zed,Dict,St1,St2,RZed),
-  overloadTerm(Gen,Dict,St2,Stx,RGen).
 overloadTerm(apply(ALc,over(Lc,T,_,Cx),Args,Tp),Dict,St,Stx,Term) :-
   overloadMethod(ALc,Lc,T,Cx,Args,Tp,Dict,St,Stx,Term).
 /*overloadTerm(apply(Lc,overaccess(Rc,_,Face),Args,Tp),

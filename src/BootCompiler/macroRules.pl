@@ -445,9 +445,8 @@ makeAction(A,Cont,Ac) :-
 /*
   for X in L do Act
   becomes
-  _iter(L,_more(return()),let{
+  _iter(L,return()),let{
     lP(X,St) => _sequence(St,(X)=>_sequence(Act,(_)=>_valis(())))
-%    lP(X,St) => _inject(_sequence(St,(X)=>_sequence(Act,(_)=>_valis(()))))
     lP(_,St) => St
 
   } in lP)
@@ -571,7 +570,7 @@ spliceAssignMacro(A,action,Act) :-
   becomes
   A := _put(A!,Ix,R)
 */
-indexAssignMacro(A,action,Act) :-
+indexAssignMacro(A,_,Act) :-
   isAssignment(A,Lc,L,R),
   isIndexTerm(L,LLc,C,I),!,
   unary(LLc,"!",C,CC),
