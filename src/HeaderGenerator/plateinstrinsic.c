@@ -205,7 +205,7 @@ static char *dumpStarSig(char *sig, ioPo out) {
       outStr(out, ")");
       break;
     case tplSig:
-      outStr(out, "tplType(");
+      outStr(out, "tupleType(");
       sig = dStarSequence(sig, out);
       outStr(out, ")");
       break;

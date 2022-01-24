@@ -34,7 +34,7 @@ int getOptions(int argc, char **argv) {
 }
 
 static char *dot(opAndSpec A);
-static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, int delta, char *cmt);
+static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, int delta, char *cmt);
 static void starPc(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt);
 static void showStarIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt);
 static void insOp(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt);
@@ -469,7 +469,7 @@ static logical genDisp(ioPo out, opAndSpec A, char *Nm) {
     case lVl:
     case cDe:
     case Es:
-      outMsg(out, " #(%s)", Nm);
+      outMsg(out, " $(%s)", Nm);
       return True;
   }
 }

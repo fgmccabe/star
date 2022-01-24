@@ -13,7 +13,7 @@
 #include "jitP.h"
 
 
-void initAssemX64() {
+void initAssem() {
 }
 
 void *createCode(assemCtxPo ctx) {
