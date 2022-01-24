@@ -4,17 +4,18 @@ star.compiler.assem{
   import star.multi.
   import star.sort.
 
+  import star.compiler.escapes.
   import star.compiler.location.
   import star.compiler.terms.
   import star.compiler.types.
   import star.compiler.ltipe.
 
-  public codePolicy ::= hardDefinition | softDefinition.
+  public codePolicy ::= .hardDefinition | .softDefinition.
 
-  public implementation display[codePolicy] => {.
-    disp(hardDefinition) => "hard".
-    disp(softDefinition) => "soft".
-  .}
+  public implementation display[codePolicy] => {
+    disp(.hardDefinition) => "hard".
+    disp(.softDefinition) => "soft".
+  }
 
   public codeSegment ::= func(termLbl,codePolicy,tipe,cons[assemOp]) |
     global(termLbl,tipe,cons[assemOp]) |
@@ -115,7 +116,7 @@ star.compiler.assem{
     (_,Lbls) .= genLblTbl(Ins,0,[]) &&
     (Code,Lts,Lns,Lcs,_,Max) .= assemBlock(Ins,Lbls,Lt0,[],[],0,0,[]) =>
     mkCons("func",
-      [symb(Nm),encPolicy(H),strg(encodeSignature(Sig)),intgr(Max),mkTpl(Code::cons[term]),litTbl(Lts),mkTpl([Lcl|Lcl in Lcs]),
+      [symb(Nm),encPolicy(H),strg(encodeSignature(Sig)),intgr(Max),mkTpl(Code::cons[term]),litTbl(Lts),mkTpl(Lcs::cons[term]),
             mkTpl(sortLines(Lns))]).
   assem(global(Nm,Sig,Ins)) where
     (Lt0,_) .= findLit([],symb(Nm)) &&
@@ -127,8 +128,8 @@ star.compiler.assem{
   assem(struct(Lbl,Tp,Ix)) =>
     mkCons("struct",[symb(Lbl),strg(encodeSignature(Tp)),intgr(Ix)]).
 
-  encPolicy(hardDefinition) => mkTpl([]).
-  encPolicy(softDefinition) => mkTpl([strg("soft")]).
+  encPolicy(.hardDefinition) => mkTpl([]).
+  encPolicy(.softDefinition) => mkTpl([strg("soft")]).
 
   private assemBlock:(cons[assemOp],map[string,integer],map[term,integer],map[term,integer],
                       set[term],integer,integer,cons[integer]) =>
@@ -145,7 +146,7 @@ star.compiler.assem{
     T ^= Lbls[End] =>
     mnem(Ins,Code,Lbls,Lts,Lns,Lcs\+mkTpl([strg(Nm),intgr(F),intgr(T),intgr(Off)]),Pc,MxLcl,Ends).
   mnem([iLine(Lc),..Ins],Code,Lbs,Lts,Lns,Lcs,Pc,MxLcl,Ends) =>
-        mnem([idLine(Lc),..Ins],Code,Lbs,Lts,Lns[mkTpl([Lc,intgr(Pc)])->Pc],Lcs,Pc,MxLcl,Ends).
+        mnem(Ins,Code,Lbs,Lts,Lns[mkTpl([Lc,intgr(Pc)])->Pc],Lcs,Pc,MxLcl,Ends).
   mnem([iHalt(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(0),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
   mnem([.iNop,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(1)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
   mnem([.iAbort,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(2)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
@@ -234,7 +235,7 @@ star.compiler.assem{
     genLblTbl(Ins,Pc,Lbls[Lbl->Pc]).
   genLblTbl([iLocal(_,_,_,_),..Ins],Pc,Lbls) =>
     genLblTbl(Ins,Pc,Lbls).
-  genLblTbl([iLine(T),..Ins],Pc,Lbs) => genLblTbl([idLine(T),..Ins],Pc,Lbs).
+  genLblTbl([iLine(T),..Ins],Pc,Lbs) => genLblTbl(Ins,Pc,Lbs).
   genLblTbl([iHalt(A),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([.iNop,..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+1,Lbls).
   genLblTbl([.iAbort,..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+1,Lbls).
@@ -334,39 +335,39 @@ star.compiler.assem{
   compLine:(keyval[term,integer],keyval[term,integer])=>boolean.
   compLine(T1->P1,T2->P2) => P1<P2.
 
-  public implementation display[assemLbl] => {.
+  public implementation display[assemLbl] => {
     disp(al(L)) => L
-  .}
+  }
 
-  public implementation display[codeSegment] => {.
+  public implementation display[codeSegment] => {
     disp(func(Nm,H,Sig,Ins)) => "$(H) $(Nm)\:$(Sig)\n"++showMnem(Ins,0).
-    disp(global(Nm,Sig,Ins)) => "global $(nm)\:$(Sig)\n"++showMnem(Ins,0).
-  .}
+    disp(global(Nm,Sig,Ins)) => "global $(Nm)\:$(Sig)\n"++showMnem(Ins,0).
+  }
 
-  public implementation display[assemOp] => {.
+  public implementation display[assemOp] => {
     disp(Op) => showMnem([Op],0).
-  .}
+  }
 
   showMnem:(cons[assemOp],integer) => string.
   showMnem([],_) => "".
   showMnem([iLbl(al(Lb)),..Ins],Pc) => "#(Lb):\n"++showMnem(Ins,Pc).
   showMnem([iLocal(Nm,Frm,End,_Off),..Ins],Pc) => "#(Nm)\::$(Frm)-$(End)\n"++showMnem(Ins,Pc).
-  showMnem([iHalt(U),..Ins],Pc) => "$(Pc)\: Halt #(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iHalt(U),..Ins],Pc) => "$(Pc)\: Halt $(U)\n" ++ showMnem(Ins,Pc+3).
   showMnem([.iNop,..Ins],Pc) => "$(Pc)\: Nop\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iAbort,..Ins],Pc) => "$(Pc)\: Abort\n" ++ showMnem(Ins,Pc+1).
-  showMnem([iCall(U),..Ins],Pc) => "$(Pc)\: Call #(U)\n" ++ showMnem(Ins,Pc+3).
-  showMnem([iOCall(U),..Ins],Pc) => "$(Pc)\: OCall #(U)\n" ++ showMnem(Ins,Pc+3).
-  showMnem([iEscape(U),..Ins],Pc) => "$(Pc)\: Escape #(U)\n" ++ showMnem(Ins,Pc+3).
-  showMnem([iTCall(U),..Ins],Pc) => "$(Pc)\: TCall #(U)\n" ++ showMnem(Ins,Pc+3).
-  showMnem([iTOCall(U),..Ins],Pc) => "$(Pc)\: TOCall #(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iCall(U),..Ins],Pc) => "$(Pc)\: Call $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iOCall(U),..Ins],Pc) => "$(Pc)\: OCall $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iEscape(U),..Ins],Pc) => "$(Pc)\: Escape $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iTCall(U),..Ins],Pc) => "$(Pc)\: TCall $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iTOCall(U),..Ins],Pc) => "$(Pc)\: TOCall $(U)\n" ++ showMnem(Ins,Pc+3).
   showMnem([.iRet,..Ins],Pc) => "$(Pc)\: Ret\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iRtG,..Ins],Pc) => "$(Pc)\: RtG\n" ++ showMnem(Ins,Pc+1).
-  showMnem([iJmp(al(U)),..Ins],Pc) => "$(Pc)\: Jmp #(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iJmp(al(U)),..Ins],Pc) => "$(Pc)\: Jmp $(U)\n" ++ showMnem(Ins,Pc+3).
   showMnem([.iDrop,..Ins],Pc) => "$(Pc)\: Drop\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iDup,..Ins],Pc) => "$(Pc)\: Dup\n" ++ showMnem(Ins,Pc+1).
-  showMnem([iRst(U),..Ins],Pc) => "$(Pc)\: Rst #(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iRst(U),..Ins],Pc) => "$(Pc)\: Rst $(U)\n" ++ showMnem(Ins,Pc+3).
   showMnem([.iSwap,..Ins],Pc) => "$(Pc)\: Swap\n" ++ showMnem(Ins,Pc+1).
-  showMnem([iTag(U),..Ins],Pc) => "$(Pc)\: Tag #(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iTag(U),..Ins],Pc) => "$(Pc)\: Tag $(U)\n" ++ showMnem(Ins,Pc+3).
   showMnem([.iPrompt,..Ins],Pc) => "$(Pc)\: Prompt\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iCut,..Ins],Pc) => "$(Pc)\: Cut\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iHandle,..Ins],Pc) => "$(Pc)\: Handle\n" ++ showMnem(Ins,Pc+1).
@@ -375,31 +376,31 @@ star.compiler.assem{
   showMnem([.iTResume,..Ins],Pc) => "$(Pc)\: TResume\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iUnderflow,..Ins],Pc) => "$(Pc)\: Underflow\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iLdV,..Ins],Pc) => "$(Pc)\: LdV\n" ++ showMnem(Ins,Pc+1).
-  showMnem([iLdC(U),..Ins],Pc) => "$(Pc)\: LdC #(U)\n" ++ showMnem(Ins,Pc+3).
-  showMnem([iLdA(U),..Ins],Pc) => "$(Pc)\: LdA #(U)\n" ++ showMnem(Ins,Pc+3).
-  showMnem([iLdL(U),..Ins],Pc) => "$(Pc)\: LdL #(U)\n" ++ showMnem(Ins,Pc+3).
-  showMnem([iStL(U),..Ins],Pc) => "$(Pc)\: StL #(U)\n" ++ showMnem(Ins,Pc+3).
-  showMnem([iStV(U),..Ins],Pc) => "$(Pc)\: StV #(U)\n" ++ showMnem(Ins,Pc+3).
-  showMnem([iTL(U),..Ins],Pc) => "$(Pc)\: TL #(U)\n" ++ showMnem(Ins,Pc+3).
-  showMnem([iStA(U),..Ins],Pc) => "$(Pc)\: StA #(U)\n" ++ showMnem(Ins,Pc+3).
-  showMnem([iLdG(U),..Ins],Pc) => "$(Pc)\: LdG #(U)\n" ++ showMnem(Ins,Pc+3).
-  showMnem([iStG(U),..Ins],Pc) => "$(Pc)\: StG #(U)\n" ++ showMnem(Ins,Pc+3).
-  showMnem([iTG(U),..Ins],Pc) => "$(Pc)\: TG #(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iLdC(U),..Ins],Pc) => "$(Pc)\: LdC $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iLdA(U),..Ins],Pc) => "$(Pc)\: LdA $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iLdL(U),..Ins],Pc) => "$(Pc)\: LdL $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iStL(U),..Ins],Pc) => "$(Pc)\: StL $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iStV(U),..Ins],Pc) => "$(Pc)\: StV $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iTL(U),..Ins],Pc) => "$(Pc)\: TL $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iStA(U),..Ins],Pc) => "$(Pc)\: StA $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iLdG(U),..Ins],Pc) => "$(Pc)\: LdG $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iStG(U),..Ins],Pc) => "$(Pc)\: StG $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iTG(U),..Ins],Pc) => "$(Pc)\: TG $(U)\n" ++ showMnem(Ins,Pc+3).
   showMnem([.iThnk,..Ins],Pc) => "$(Pc)\: Thnk\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iThGet,..Ins],Pc) => "$(Pc)\: ThGet\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iThSet,..Ins],Pc) => "$(Pc)\: ThSet\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iCell,..Ins],Pc) => "$(Pc)\: Cell\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iGet,..Ins],Pc) => "$(Pc)\: Get\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iAssign,..Ins],Pc) => "$(Pc)\: Assign\n" ++ showMnem(Ins,Pc+1).
-  showMnem([iCLbl(U,al(V)),..Ins],Pc) => "$(Pc)\: CLbl #(U) #(V)\n" ++ showMnem(Ins,Pc+5).
-  showMnem([iCmpVd(U),..Ins],Pc) => "$(Pc)\: CmpVd #(U)\n" ++ showMnem(Ins,Pc+3).
-  showMnem([iNth(U),..Ins],Pc) => "$(Pc)\: Nth #(U)\n" ++ showMnem(Ins,Pc+3).
-  showMnem([iStNth(U),..Ins],Pc) => "$(Pc)\: StNth #(U)\n" ++ showMnem(Ins,Pc+3).
-  showMnem([iIf(al(U)),..Ins],Pc) => "$(Pc)\: If #(U)\n" ++ showMnem(Ins,Pc+3).
-  showMnem([iIfNot(al(U)),..Ins],Pc) => "$(Pc)\: IfNot #(U)\n" ++ showMnem(Ins,Pc+3).
-  showMnem([iCase(U),..Ins],Pc) => "$(Pc)\: Case #(U)\n" ++ showMnem(Ins,Pc+3).
-  showMnem([iIndxJmp(U),..Ins],Pc) => "$(Pc)\: IndxJmp #(U)\n" ++ showMnem(Ins,Pc+3).
-  showMnem([iUnpack(U,al(V)),..Ins],Pc) => "$(Pc)\: Unpack #(U) #(V)\n" ++ showMnem(Ins,Pc+5).
+  showMnem([iCLbl(U,al(V)),..Ins],Pc) => "$(Pc)\: CLbl $(U) $(V)\n" ++ showMnem(Ins,Pc+5).
+  showMnem([iCmpVd(U),..Ins],Pc) => "$(Pc)\: CmpVd $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iNth(U),..Ins],Pc) => "$(Pc)\: Nth $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iStNth(U),..Ins],Pc) => "$(Pc)\: StNth $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iIf(al(U)),..Ins],Pc) => "$(Pc)\: If $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iIfNot(al(U)),..Ins],Pc) => "$(Pc)\: IfNot $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iCase(U),..Ins],Pc) => "$(Pc)\: Case $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iIndxJmp(U),..Ins],Pc) => "$(Pc)\: IndxJmp $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iUnpack(U,al(V)),..Ins],Pc) => "$(Pc)\: Unpack $(U) $(V)\n" ++ showMnem(Ins,Pc+5).
   showMnem([.iIAdd,..Ins],Pc) => "$(Pc)\: IAdd\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iISub,..Ins],Pc) => "$(Pc)\: ISub\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iIMul,..Ins],Pc) => "$(Pc)\: IMul\n" ++ showMnem(Ins,Pc+1).
@@ -409,7 +410,7 @@ star.compiler.assem{
   showMnem([.iIEq,..Ins],Pc) => "$(Pc)\: IEq\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iILt,..Ins],Pc) => "$(Pc)\: ILt\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iIGe,..Ins],Pc) => "$(Pc)\: IGe\n" ++ showMnem(Ins,Pc+1).
-  showMnem([iICmp(U),..Ins],Pc) => "$(Pc)\: ICmp #(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iICmp(U),..Ins],Pc) => "$(Pc)\: ICmp $(U)\n" ++ showMnem(Ins,Pc+3).
   showMnem([.iBAnd,..Ins],Pc) => "$(Pc)\: BAnd\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iBOr,..Ins],Pc) => "$(Pc)\: BOr\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iBXor,..Ins],Pc) => "$(Pc)\: BXor\n" ++ showMnem(Ins,Pc+1).
@@ -426,10 +427,10 @@ star.compiler.assem{
   showMnem([.iFEq,..Ins],Pc) => "$(Pc)\: FEq\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iFLt,..Ins],Pc) => "$(Pc)\: FLt\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iFGe,..Ins],Pc) => "$(Pc)\: FGe\n" ++ showMnem(Ins,Pc+1).
-  showMnem([iFCmp(al(U)),..Ins],Pc) => "$(Pc)\: FCmp #(U)\n" ++ showMnem(Ins,Pc+3).
-  showMnem([iAlloc(U),..Ins],Pc) => "$(Pc)\: Alloc #(U)\n" ++ showMnem(Ins,Pc+3).
-  showMnem([iCmp(al(U)),..Ins],Pc) => "$(Pc)\: Cmp #(U)\n" ++ showMnem(Ins,Pc+3).
-  showMnem([iFrame(U),..Ins],Pc) => "$(Pc)\: Frame #(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iFCmp(al(U)),..Ins],Pc) => "$(Pc)\: FCmp $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iAlloc(U),..Ins],Pc) => "$(Pc)\: Alloc $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iCmp(al(U)),..Ins],Pc) => "$(Pc)\: Cmp $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([iFrame(U),..Ins],Pc) => "$(Pc)\: Frame $(U)\n" ++ showMnem(Ins,Pc+3).
   showMnem([.idBug,..Ins],Pc) => "$(Pc)\: dBug\n" ++ showMnem(Ins,Pc+1).
 
 }

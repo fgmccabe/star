@@ -12,19 +12,16 @@ star.compiler.types{
     nomnal(string) |
     tpFun(string,integer) |
     tpExp(tipe,tipe) |
-    funDep(tipe,tipe) |
     tupleType(cons[tipe]) |
     allType(tipe,tipe) |
     existType(tipe,tipe) |
     faceType(cons[(string,tipe)],cons[(string,tipe)]) |
     typeLambda(tipe,tipe) |
     typeExists(tipe,tipe) |
-    constrainedType(tipe,constraint) |
-    valType(tipe).
+    constrainedType(tipe,constraint).
 
-  public constraint ::=
-    conTract(string,cons[tipe],cons[tipe]) |
-    fieldConstraint(tipe,tipe).
+  public constraint ::= conTract(string,cons[tipe],cons[tipe]) |
+    fieldConstraint(tipe,string,tipe).
 
   tv ::= tv{
     binding : ref option[tipe].
@@ -43,7 +40,6 @@ star.compiler.types{
   hasKind(faceType(_,_)) => 0.
   hasKind(typeLambda(_,_)) => 0.
   hasKind(typeExists(_,_)) => 0.
-  hasKind(valType(T)) => hasKind(T).
   hasKind(constrainedType(T,_)) => hasKind(T).
 
   public isIdenticalVar:(tipe,tipe) => boolean.
@@ -128,24 +124,23 @@ star.compiler.types{
     identNmTypes(V1,V2,Q) && identNmTypes(T1,T2,Q).
   identType(constrainedType(T1,C1),constrainedType(T2,C2),Q) =>
     eqType(T1,T2,Q).
-  identType(valType(T1),valType(T2),Q) => eqType(T1,T2,Q).
   identType(_,_,_) default => .false.
 
   identTypes([],[],_) => .true.
   identTypes([E1,..L1],[E2,..L2],Q) =>
     eqType(E1,E2,Q) && identTypes(L1,L2,Q).
 
-  identNmTypes(L1,L2,Q) => let{
+  identNmTypes(L1,L2,Q) => let{.
     sortByNm(LL) => sort(LL,(((N1,_),(N2,_)) => N1<N2)).
     identPrs([],[]) => .true.
     identPrs([(Nm,E1),..l1],[(Nm,E2),..l2]) =>
       eqType(E1,E2,Q) && identPrs(l1,l2).
     identPrs(_,_) => .false.
-  } in identPrs(sortByNm(L1),sortByNm(L2)).
+  .} in identPrs(sortByNm(L1),sortByNm(L2)).
 
   public implementation equality[constraint] => {
     conTract(N1,E1,D1) == conTract(N2,E2,D2) => N1==N2 && E1==E2 && D1==D2.
-    fieldConstraint(V1,T1) == fieldConstraint(V2,T2) => V1==V2 && T1==T2.
+    fieldConstraint(V1,N1,T1) == fieldConstraint(V2,N2,T2) => N1==N2 && V1==V2 && T1==T2.
     _ == _ default => .false.
   }
 
@@ -230,8 +225,8 @@ star.compiler.types{
 
   showConstraint(conTract(Nm,Els,Deps),Dp) =>
     "#(Nm)[#(showTypes(Els,.false,Dp)*)#(showDeps(Deps,Dp))]".
-  showConstraint(fieldConstraint(Tp,Fc),Dp) =>
-    "#(showType(Tp,.false,Dp)) <~ #(showType(Fc,.false,Dp))".
+  showConstraint(fieldConstraint(Tp,Fld,Fc),Dp) =>
+    "#(showType(Tp,.false,Dp)) <~ #(Fld):#(showType(Fc,.false,Dp))".
 
   showDeps([],_) => "".
   showDeps(Els,Dp) => "->>#(showTypes(Els,.false,Dp)*)".
@@ -252,14 +247,23 @@ star.compiler.types{
     hsh(constrainedType(T,C)) => (hash("|:")*37+hsh(deRef(T)))*37+hshCon(C).
 
     hshCon(conTract(Nm,Els,Dps)) => hshEls(hshEls(hash(Nm)*37,Els),Dps).
-    hshCon(fieldConstraint(V,T)) =>
-      (hash("<~")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
+    hshCon(fieldConstraint(V,F,T)) =>
+      ((hash("<~")*37+hash(F))*37+hsh(deRef(V)))*37+hsh(deRef(T)).
 
     hshEls(H,Els) => foldLeft((El,Hx)=>Hx*37+hsh(deRef(El)),H,Els).
 
     hshFields(H,Els) => foldLeft(((Nm,Tp),Hx)=>(Hx*37+hash(Nm))*37+hsh(deRef(Tp)),H,Els).
   .} in {
     hash(Tp) => hsh(deRef(Tp)).
+  }
+
+  
+  public implementation hash[constraint] => {
+    hshEls(H,Els) => foldLeft((El,Hx)=>Hx*37+hash(deRef(El)),H,Els).
+
+    hash(conTract(Nm,Els,Dps)) => hshEls(hshEls(hash(Nm)*37,Els),Dps).
+    hash(fieldConstraint(V,F,T)) =>
+      ((hash("<~")*37+hash(F))*37+hash(deRef(V)))*37+hash(deRef(T)).
   }
 
   public contract all c ~~ hasType[c] ::= {
@@ -280,7 +284,6 @@ star.compiler.types{
     tName(typeLambda(_,T)) => tName(deRef(T)).
     tName(tupleType(A)) => "!()$(size(A))".
     tName(faceType(Fs,Ts)) => "{}".
-    tName(valType(T)) => tName(T).
   .} in tName(deRef(Tp)).
 
   public implementationName:(tipe) => string.
@@ -299,7 +302,6 @@ star.compiler.types{
     surfaceName(tupleType(A),R) => ["()$(size(A))!",..R].
     surfaceName(faceType(Flds,_),R) =>
       ["{}$(hash(interleave(sort(Flds,cmpFlds)//fst,"|")*))",..R].
-    surfaceName(valType(A),R) => surfaceName(A,R).
 
     surfaceNm(nomnal(Nm),R) => ["!",Nm,..R].
     surfaceNm(tpExp(O,A),R) => surfaceNm(deRef(O),R).
@@ -402,7 +404,9 @@ star.compiler.types{
   ntEnumTp(T) where ET ^= isEnumType(T) => ET.
   
   public unitTp = tupleType([]).
+  public chrType = nomnal("star.core*char").
   public intType = nomnal("star.core*integer").
+  public bigintType = nomnal("star.core*bigint").
   public fltType = nomnal("star.core*float").
   public strType = nomnal("star.core*string").
   public boolType = nomnal("star.core*boolean").

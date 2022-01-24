@@ -51,7 +51,8 @@ star.compiler.meta{
     | cnsSp(string)
     | tpSp(string)
     | conSp(string)
-    | implSp(string).
+    | implSp(string)
+    | accSp(string).
 
   public implementation display[defnSp] => let{
     dispSp(varSp(Nm)) => "var: $(Nm)".
@@ -59,6 +60,7 @@ star.compiler.meta{
     dispSp(tpSp(Nm)) => "type: $(Nm)".
     dispSp(conSp(Nm)) => "contract: $(Nm)".
     dispSp(implSp(Nm)) => "implementation: $(Nm)".
+    dispSp(accSp(Nm)) => "accessor: $(Nm)".
   } in {
     disp = dispSp
   }
@@ -68,6 +70,7 @@ star.compiler.meta{
     eql(tpSp(S1),tpSp(S2)) => S1==S2.
     eql(varSp(S1),varSp(S2)) => S1==S2.
     eql(implSp(S1),implSp(S2)) => S1==S2.
+    eql(accSp(S1),accSp(S2)) => S1==S2.
     eql(conSp(S1),conSp(S2)) => S1==S2.
     eql(_,_) default => .false.
   } in {
@@ -80,6 +83,7 @@ star.compiler.meta{
     hash(tpSp(Nm)) => hash(Nm)*37+hash("tp").
     hash(conSp(Nm)) => hash(Nm)*37+hash("con").
     hash(implSp(Nm)) => hash(Nm)*37+hash("impl").
+    hash(accSp(Nm)) => hash(Nm)*37+hash("access").
   }
 
   public implementation display[defnSpec] => let{

@@ -12,13 +12,13 @@ star.compiler.ltipe{
     tplTipe(cons[ltipe]).
 
   public implementation display[ltipe] => let{.
-    showTp:(ltipe) => ss.
-    showTp(.int64) => ss("int64").
-    showTp(.flt64) => ss("flt64").
-    showTp(.bool) => ss("bool").
-    showTp(.ptr) => ss("ptr").
-    showTp(funTipe(As,R)) => ssSeq([ss("("),showTp(tplTipe(As)),ss(")->"),showTp(R)]).
-    showTp(tplTipe(As)) => ssSeq([ss("("),ssSeq(interleave(As//showTp,ss(","))),ss(")")]).
+    showTp:(ltipe) => string.
+    showTp(.int64) => "int64".
+    showTp(.flt64) => "flt64".
+    showTp(.bool) => "bool".
+    showTp(.ptr) => "ptr".
+    showTp(funTipe(As,R)) => "(#(showTp(tplTipe(As))))->#(showTp(R))".
+    showTp(tplTipe(As)) => "(#(interleave(As//showTp,",")*))".
   .} in {
     disp = showTp
   }
@@ -58,34 +58,34 @@ star.compiler.ltipe{
     _coerce(T) => some(reduceTp(T))
   }
 
-  public implementation coercion[ltipe,multi[integer]] => {
+  public implementation coercion[ltipe,multi[char]] => {
     _coerce(LT) => some(encTp(LT))
   }
 
   public implementation coercion[ltipe,string] => {
-    _coerce(LT) => some((encTp(LT)::cons[integer])::string)
+    _coerce(LT) => some((encTp(LT)::cons[char])::string)
   }
 
-  encTp:(ltipe)=>multi[integer].
-  encTp(.int64) => [0ci].
-  encTp(.flt64) => [0cf].
-  encTp(.bool) => [0cl].
-  encTp(.ptr) => [0cp].
-  encTp(funTipe(As,R)) => [0cF,..encTp(tplTipe(As))]++encTp(R).
-  encTp(tplTipe(As)) => [0c(]++multi(As//encTp)++[0c)].
+  encTp:(ltipe)=>multi[char].
+  encTp(.int64) => [`i`].
+  encTp(.flt64) => [`f`].
+  encTp(.bool) => [`l`].
+  encTp(.ptr) => [`p`].
+  encTp(funTipe(As,R)) => [`F`,..encTp(tplTipe(As))]++encTp(R).
+  encTp(tplTipe(As)) => [`(`]++multi(As//encTp)++[`)`].
 
 
-  decTp:(cons[integer])=>option[(ltipe,cons[integer])].
-  decTp([0ci,..Cs]) => some((.int64,Cs)).
-  decTp([0cf,..Cs]) => some((.flt64,Cs)).
-  decTp([0cl,..Cs]) => some((.bool,Cs)).
-  decTp([0cp,..Cs]) => some((.ptr,Cs)).
-  decTp([0c\(,..Cs]) => let{.
-    decTps:(cons[integer],multi[ltipe])=>option[(ltipe,cons[integer])].
-    decTps([0c\),..Cs],So) => some((tplTipe(So::cons[ltipe]),Cs)).
+  decTp:(cons[char])=>option[(ltipe,cons[char])].
+  decTp([`i`,..Cs]) => some((.int64,Cs)).
+  decTp([`f`,..Cs]) => some((.flt64,Cs)).
+  decTp([`l`,..Cs]) => some((.bool,Cs)).
+  decTp([`p`,..Cs]) => some((.ptr,Cs)).
+  decTp([`(`,..Cs]) => let{.
+    decTps:(cons[char],multi[ltipe])=>option[(ltipe,cons[char])].
+    decTps([`)`,..Cs],So) => some((tplTipe(So::cons[ltipe]),Cs)).
     decTps(C,So) where (E,C1)^=decTp(Cs) => decTps(C1,So++[E]).
   .} in decTps(Cs,[]).
-  decTp([0cF,..Cs]) where (tplTipe(As),C0)^=decTp(Cs) && (Rt,Cx) ^= decTp(C0) =>
+  decTp([`F`,..Cs]) where (tplTipe(As),C0)^=decTp(Cs) && (Rt,Cx) ^= decTp(C0) =>
     some((funTipe(As,Rt),Cx)).
 
   reduceTp:(tipe)=>ltipe.

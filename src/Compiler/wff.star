@@ -43,6 +43,10 @@ star.compiler.wff{
       (_,Id) ^= isName(Op) => some((Lc,Id,A)).
   isSquareApply(_) default => .none.
 
+  public squareApply:(locn,string,cons[ast])=>ast.
+  squareApply(Lc,Nm,Args) =>
+    squareTerm(Lc,nme(Lc,Nm),Args).
+
   public qBrTuple:(locn,cons[ast]) => ast.
   qBrTuple(Lc,Els) => tpl(Lc,"{..}",Els).
 
@@ -509,6 +513,15 @@ star.compiler.wff{
   mkImplementationStmt(Lc,Q,Cx,T,E) =>
     unary(Lc,"implementation",reUQuant(Lc,Q,reConstrain(Cx,binary(Lc,"=>",T,E)))).
 
+  public isAccessorStmt:(ast) => option[(locn,cons[ast],cons[ast],ast,ast)].
+  isAccessorStmt(A) where
+      (Lc,I) ^= isUnary(A,".access") => isImplSpec(Lc,[],[],I).
+  isAccessorStmt(_) default => .none.
+
+  public mkAccessorStmt:(locn,cons[ast],cons[ast],ast,ast) => ast.
+  mkAccessorStmt(Lc,Q,Cx,T,E) =>
+    unary(Lc,".access",reUQuant(Lc,Q,reConstrain(Cx,binary(Lc,"=>",T,E)))).
+
   public typeName:(ast)=>string.
   typeName(Tp) where (_,Id) ^= isName(Tp) => Id.
   typeName(Tp) where (_,Id,_) ^= isSquareApply(Tp) => Id.
@@ -634,23 +647,25 @@ star.compiler.wff{
   isDefault(A) => isUnary(A,"default").
 
   public isDoTerm:(ast) => option[(locn,ast)].
-  isDoTerm(A) where (Lc,Arg) ^= isUnary(A,"do") && _ ^= isBrTuple(Arg) =>
-    some((Lc,Arg)).
+  isDoTerm(A) where (Lc,Arg) ^= isUnary(A,"do") && (_,[El]) ^= isBrTuple(Arg) =>
+    some((Lc,El)).
   isDoTerm(_) default => .none.
 
   public mkDoTerm(Lc,As) => unary(Lc,"do",brTuple(Lc,[As])).
 
+  public isResultTerm:(ast) => option[(locn,ast)].
+  isActionTerm(A) where (Lc,[El]) ^= isBrApply(A,"result") =>
+    some((Lc,El)).
+  isResultTerm(_) default => .none.
+
+  public mkResultTerm(Lc,As) => brApply(Lc,"result",[As]).
+
   public isActionTerm:(ast) => option[(locn,ast)].
-  isActionTerm(A) where (Lc,Args) ^= isBrApply(A,"action") =>
-    some((Lc,brTuple(Lc,Args))).
+  isActionTerm(A) where (Lc,[El]) ^= isBrApply(A,"action") =>
+    some((Lc,El)).
   isActionTerm(_) default => .none.
 
   public mkActionTerm(Lc,As) => brApply(Lc,"action",[As]).
-
-  public isLazyTerm:(ast) => option[(locn,ast)].
-  isLazyTerm(A) where (Lc,Args) ^= isBrApply(A,"lazy") =>
-    some((Lc,brTuple(Lc,Args))).
-  isLazyTerm(_) default => .none.
 
   public isTaskTerm:(ast) => option[(locn,ast)].
   isTaskTerm(A) where (Lc,[Args]) ^= isBrApply(A,"task") =>
@@ -665,7 +680,10 @@ star.compiler.wff{
   public actionSeq(Lc,L,R) => binary(Lc,";",L,R).
 
   public isBind:(ast) => option[(locn,ast,ast)].
-  isBind(A) => isBinary(A,"<-").
+  isBind(A) where R ^= isBinary(A,"<-") => some(R).
+  isBind(A) where (Lc,P,E) ^= isBinary(A,".=") &&
+      (_,V) ^= isUnary(E,"_perform") => some((Lc,P,V)).
+  isBind(_) default => .none.
 
   public mkBind(Lc,L,R) => binary(Lc,"<-",L,R).
 

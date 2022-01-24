@@ -13,7 +13,7 @@ star.compiler.lexer{
 
   allTks:(tokenState)=>(tokenState,cons[token]).
   allTks(St) => let{.
-    allToks(Strm,SoFr) where (Nx,some(Tk)).=nextToken(Strm) => allToks(Nx,[Tk,..SoFr]).
+    allToks(Strm,SoFr) where (Nx,some(Tk)).=nextToken(Strm) => allToks(Nx,[trace("token $(Tk)",Tk),..SoFr]).
     allToks(Strm,SoFr) default => (Strm,reverse(SoFr)).
   .} in allToks(St,[]).
   
@@ -62,17 +62,17 @@ star.compiler.lexer{
   nxxTok(`.`,St,St0) where (Nx,some(`\t`)) .= nextChr(St) =>
     (Nx,some(tok(makeLoc(St0,Nx),idTok(". ")))).
   nxxTok(Chr,St,St0) where Ld ^= first(Chr) => let{.
-  graphFollow:(tokenState,string,option[token]) => (tokenState,option[token]).
+    graphFollow:(tokenState,string,(tokenState,option[token])) => (tokenState,option[token]).
     graphFollow(Strm,SoF,Deflt) where (Nx,some(Ch)) .= nextChr(Strm) && SoF1 ^= follows(SoF,Ch) =>
       graphFollow(Nx,SoF1,finalist(SoF1,Nx,Deflt)).
-    graphFollow(Strm,Id,Deflt) default => (Strm,Deflt).
+    graphFollow(Strm,Id,Deflt) default => Deflt.
 
     finalist(SoFr,Str,Deflt) where final(SoFr) =>
-    ( bkt(SoFr,Lbl,_,_,_) ^= isBracket(SoFr) ? some(tok(makeLoc(St0,Str),lftTok(Lbl))) ||
-      bkt(_,Lbl,SoFr,_,_) ^= isBracket(SoFr) ? some(tok(makeLoc(St0,Str),rgtTok(Lbl))) ||
-      some(tok(makeLoc(St0,Str),idTok(SoFr)))).
+      (Str,( bkt(SoFr,Lbl,_,_,_) ^= isBracket(SoFr) ? some(tok(makeLoc(St0,Str),lftTok(Lbl))) ||
+	bkt(_,Lbl,SoFr,_,_) ^= isBracket(SoFr) ? some(tok(makeLoc(St0,Str),rgtTok(Lbl))) ||
+	  some(tok(makeLoc(St0,Str),idTok(SoFr))))).
     finalist(_,_,Deflt) => Deflt.
-  .} in graphFollow(St,Ld,finalist(Ld,St,.none)).
+  .} in graphFollow(St,Ld,finalist(Ld,St,(St,.none))).
   nxxTok(Chr,St,St0) where isIdentifierStart(Chr) => readIden(St,St0,[Chr]).
   nxxTok(Chr,St,St0) default => nextToken(lexerr(St0,"illegal char in token: '$(Chr):c;'",makeLoc(St,St0))).
 

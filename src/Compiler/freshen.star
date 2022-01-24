@@ -79,8 +79,6 @@ star.compiler.freshen{
   frshn(faceType(Els,Tps),Env) =>
     faceType(Els//(((Nm,E))=>(Nm,rewrite(E,Env))),
       Tps//(((Nm,E))=>(Nm,rewrite(E,Env)))).
-  frshn(funDeps(T,D),Env) => funDeps(rewrite(T,Env),
-    frshnList(D,Env)).
   frshn(allType(K,T),Env) => allType(K,frshn(T,Env)).
   frshn(existType(K,T),Env) => existType(K,rewrite(T,Env)).
   frshn(typeLambda(H,T),Env) => typeLambda(rewrite(H,Env),rewrite(T,Env)).
@@ -92,8 +90,9 @@ star.compiler.freshen{
 
   rewrite(Tp,Env) => frshn(deRef(Tp),Env).
 
-  frshnConstraint(contractConstraint(Tp),Env) => contractConstraint(rewrite(Tp,Env)).
-  frshnConstraint(fieldConstraint(T,I),Env) =>
-    fieldConstraint(rewrite(T,Env),rewrite(I,Env)).
+  frshnConstraint(conTract(Nm,Tps,Deps),Env) =>
+    conTract(Nm,frshnList(Tps,Env),frshnList(Deps,Env)).
+  frshnConstraint(fieldConstraint(V,F,T),Env) =>
+    fieldConstraint(rewrite(V,Env),F,rewrite(T,Env)).
 
 }

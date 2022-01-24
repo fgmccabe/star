@@ -20,7 +20,7 @@ star.compiler.macro{
       macroAst(T,Cxt,Examine,Rp)
     }
     else{
-      logMsg("examine $(Cxt) $(A)");
+--      logMsg("examine $(Cxt) $(A)");
       Examine(A,Rp)
     }
   }
@@ -122,6 +122,13 @@ star.compiler.macro{
   examineStmt(A,Rp) where isConstructorStmt(A) =>
     macroType(A,Rp).
   examineStmt(A,Rp) where _ ^= isAnnotation(A) => ok(A).
+  examineStmt(A,Rp) where (Lc,Q,Cx,Tp,Exp) ^= isAccessorStmt(A) => do{
+    QQ <- seqmap((V)=>macroType(V,Rp),Q);
+    CCx <- seqmap((T)=>macroType(T,Rp),Cx);
+    TT <- macroType(Tp,Rp);
+    EE <- macroTerm(Exp,Rp);
+    valis mkAccessorStmt(Lc,QQ,CCx,TT,EE)
+  }
   examineStmt(A,Rp) where (Lc,Els) ^= isBrTuple(A) => do{
     Elx <- macroStmts(Els,Rp);
     valis brTuple(Lc,Elx)
@@ -342,11 +349,17 @@ star.compiler.macro{
   }
   examineTerm(A,Rp) where (Lc,S) ^= isDoTerm(A) => do{
     Sx <- macroAction(S,Rp);
-    valis mkDoTerm(Lc,Sx)
+    makeAction(Sx,.none,Rp)
+  }
+  examineTerm(A,Rp) where (Lc,S) ^= isResultTerm(A) => do{
+    Sx <- macroAction(S,Rp);
+    Sxx <- makeAction(Sx,.none,Rp);
+    valis typeAnnotation(Lc,Sxx,squareTerm(Lc,nme(Lc,"result"),[anon(Lc),anon(Lc)]))
   }
   examineTerm(A,Rp) where (Lc,S) ^= isActionTerm(A) => do{
     Sx <- macroAction(S,Rp);
-    valis mkActionTerm(Lc,Sx)
+    Sxx <- makeAction(Sx,.none,Rp);
+    valis unary(Lc,"delay",mkLambda(Lc,.false,unit(Lc),.none,Sxx))
   }
   examineTerm(A,Rp) where (Lc,S) ^= isTaskTerm(A) => do{
     Sx <- macroAction(S,Rp);
@@ -450,14 +463,25 @@ star.compiler.macro{
     RR <- macroTerm(R,Rp);
     valis mkSearch(Lc,LL,RR)
   }
-  examineTerm(A,Rp) where _ ^= isConjunct(A) =>
-    macroCond(A,Rp).
-  examineTerm(A,Rp) where _ ^= isDisjunct(A) =>
-    macroCond(A,Rp).
-  examineTerm(A,Rp) where _ ^= isImplies(A) => 
-    macroCond(A,Rp).
-  examineTerm(A,Rp) where _ ^= isNegation(A) => 
-    macroCond(A,Rp).
+  examineTerm(A,Rp) where (Lc,L,R) ^= isConjunct(A) => do{
+    LL <- macroTerm(L,Rp);
+    RR <- macroTerm(R,Rp);
+    valis mkConjunct(Lc,LL,RR)
+  }
+  examineTerm(A,Rp) where (Lc,L,R) ^= isDisjunct(A) => do{
+    LL <- macroTerm(L,Rp);
+    RR <- macroTerm(R,Rp);
+    valis mkDisjunct(Lc,LL,RR)
+  }
+  examineTerm(A,Rp) where (Lc,L,R) ^= isImplies(A) => do{
+    LL <- macroTerm(L,Rp);
+    RR <- macroTerm(R,Rp);
+    valis mkImplies(Lc,LL,RR)
+  }
+  examineTerm(A,Rp) where (Lc,R) ^= isNegation(A) => do{
+    RR <- macroTerm(R,Rp);
+    valis negated(Lc,RR)
+  }
   examineTerm(A,Rp) where (Lc,T,L,R) ^= isConditional(A) => do{
     TT <- macroCond(T,Rp);
     LL <- macroTerm(L,Rp);
@@ -712,12 +736,12 @@ star.compiler.macro{
   synthesizeMain(Lc,Tp,Defs) where (_,Lhs,Rhs) ^= isFunctionType(Tp) && (_,ElTps)^=isTuple(Lhs) => valof{
     (Action,As) <- synthCoercion(Lc,ElTps,[]);
     
---    (Vs,Cs) .= synthesizeCoercions(ElTps,Lc);
     MLhs .= roundTerm(Lc,nme(Lc,"_main"),[mkConsPtn(Lc,As)]);
-    Valof .= unary(Lc,"valof",
-      unary(Lc,"do",brTuple(Lc,[Action])));
+
+    logMsg("main action $(Action)");
+    Valof .= mkValof(Lc,mkDoTerm(Lc,Action));
     Main .= equation(Lc,MLhs,Valof);
-    Annot .= binary(Lc,":",nme(Lc,"_main"),equation(Lc,rndTuple(Lc,[squareTerm(Lc,nme(Lc,"cons"),[nme(Lc,"string")])]),rndTuple(Lc,[])));
+    Annot .= typeAnnotation(Lc,nme(Lc,"_main"),equation(Lc,rndTuple(Lc,[squareTerm(Lc,nme(Lc,"cons"),[nme(Lc,"string")])]),rndTuple(Lc,[])));
     valis [unary(Lc,"public",Annot),Main,..Defs].
   }
 

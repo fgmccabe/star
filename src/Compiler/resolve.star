@@ -116,13 +116,13 @@ star.compiler.resolve{
     A <- resolveContract(Lc,Con,Dict,Rp);
     valis dot(Lc,A,Nm,Tp)
   }
-  resolveTerm(over(Lc,T,Tp,Cx),Dict,Rp) => do{
+  resolveTerm(over(Lc,T,Cx),Dict,Rp) => do{
     [A,..Args] <- resolveContracts(Lc,Cx,[],Dict,Rp);
     if mtd(_,Nm,_,MTp) .= T then{
       if _eof(Args) then
 	valis dot(Lc,A,Nm,Tp)
       else
-      valis apply(Lc,dot(Lc,A,Nm,MTp),tple(Lc,Args),Tp)
+      valis apply(Lc,dot(Lc,A,Nm,MTp),tple(Lc,Args),typeOf(T))
     }
     else
     valis apply(Lc,T,tple(Lc,[A,..Args]),Tp)

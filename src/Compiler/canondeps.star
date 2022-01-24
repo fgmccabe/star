@@ -30,8 +30,8 @@ star.compiler.canondeps{
   }
 
   implementation display[defnSp] => {
-    disp(varSp(V)) => ssSeq([ss("var:"),disp(V)]).
-    disp(tpSp(T)) => ssSeq([ss("type:"),disp(T)]).
+    disp(varSp(V)) => "var: $(V)".
+    disp(tpSp(T)) => "type: $(T)".
   }
 
   pickVar(varSp(V),Q) => Q\+V.
@@ -52,7 +52,7 @@ star.compiler.canondeps{
   }
 
   implementation display[defSpec] => {
-    disp(defSpec(V,R,_)) => ssSeq([disp(V),ss(" -> "),disp(R),ss("\n")]).
+    disp(defSpec(V,R,_)) => "$(V) -> $(R)".
   }
   
   findRefs:(canonDef,canonDef,set[crVar],set[defnSp])=>defSpec.

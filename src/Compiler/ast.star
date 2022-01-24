@@ -59,7 +59,9 @@ star.compiler.ast{
   dispAst(nme(_,Id),_,_) => dispId(Id).
   dispAst(qnm(_,Id),_,_) => "'#(stringQuote(Id))'".
   dispAst(tpl(_,"{}",Els),_,Sp) =>
-    "{#(interleave(Els//((E)=>dispAst(E,2000,Sp++"  ")),".\n")*)}".
+    "{#(interleave(Els//((E)=>dispAst(E,2000,Sp++"  ")),".\n"++Sp)*)}".
+  dispAst(tpl(_,"{..}",Els),_,Sp) =>
+    "{.#(interleave(Els//((E)=>dispAst(E,2000,Sp++"  ")),".\n"++Sp)*).}".
   dispAst(tpl(_,Bk,Els),_,Sp) where bkt(Lft,_,Rgt,Sep,Inn)^=isBracket(Bk) =>
     "#(Lft)#(interleave(Els//((E)=>dispAst(E,Inn,Sp++"  ")),Sep)*)#(Rgt)".
   dispAst(app(_,nme(_,Op),tpl(_,"()",[L,R])),Pr,Sp) where (Lf,P,Rg)^=isInfixOp(Op)=>
@@ -106,8 +108,20 @@ star.compiler.ast{
     _coerce(A) => some("$(A)").
   }
 
+  generated:ref map[string,integer].
+  generated = ref {}.
+
   public genName:(locn,string) => ast.
-  genName(Lc,Pr) => nme(Lc,genSym(Pr)).
+  genName(Lc,Pr) => valof{
+    if Last^=generated![Pr] then{
+      Nxt .= Last+1;
+      generated[Pr] := Nxt;
+      valis nme(Lc,"#(Pr)*$(Nxt)")
+    } else{
+      generated[Pr] := 0;
+      valis nme(Lc,"#(Pr)*0")
+    }
+  }
 
   public anon(Lc) => nme(Lc,"_").
 

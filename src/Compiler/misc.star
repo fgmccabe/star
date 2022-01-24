@@ -10,6 +10,7 @@ star.compiler.misc{
     .conMark |
     .overMark |
     .pkgMark |
+    .fldMark |
     .closMark.
 
   public markerString:(markerType)=>string.
@@ -17,6 +18,7 @@ star.compiler.misc{
   markerString(.closMark) => "^".
   markerString(.valMark)=>"@".
   markerString(.conMark)=>"#".
+  markerString(.fldMark)=>"°".
   markerString(.overMark)=>"!".
   markerString(.pkgMark) => "#".
 
