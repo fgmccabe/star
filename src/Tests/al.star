@@ -6,8 +6,8 @@ test.al{
     friend:a.
     name:string.
     age:(integer)=>integer
-  } |
-    private student{
+  }
+    | private student{
       name:string.
     } |
     employee{

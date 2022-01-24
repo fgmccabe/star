@@ -63,6 +63,7 @@
     "test.js": "js.star",
     "test.l": "l.star",
     "test.la": "la.star",
+    "test.lb": "lb.star",
     "test.l2" : "l2.star",
     "test.let": "letish.star",
     "test.lt": "lt.star",
