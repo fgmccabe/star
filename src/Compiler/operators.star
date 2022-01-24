@@ -131,6 +131,7 @@ star.compiler.operators{
   oper("::") => [infixOp(399,400,399)].
   oper("+++") => [infixOp(719,720,720)].
   oper(":=") => [infixOp(974,975,974)].
+  oper(".access") => [prefixOp(1260,1259)].
   oper(":?") => [infixOp(399,400,399)].
   oper(".<<.") => [infixOp(600,600,599)].
   oper("^.") => [infixOp(450,450,449)].
@@ -159,9 +160,9 @@ star.compiler.operators{
   isBracket("<|") => some(bkt("<|","<||>","|>","",2000)).
   isBracket("|>") => some(bkt("<|","<||>","|>","",2000)).
   isBracket("<||>") => some(bkt("<|","<||>","|>","",2000)).
-  isBracket("{.") => some(bkt("{.","{..}",".}","",2000)).
-  isBracket(".}") => some(bkt("{.","{..}",".}","",2000)).
-  isBracket("{..}") => some(bkt("{.","{..}",".}","",2000)).
+  isBracket("{.") => some(bkt("{.","{..}",".}",".\n",2000)).
+  isBracket(".}") => some(bkt("{.","{..}",".}",".\n",2000)).
+  isBracket("{..}") => some(bkt("{.","{..}",".}",".\n",2000)).
   isBracket("[") => some(bkt("[","[]","]",",",2000)).
   isBracket("]") => some(bkt("[","[]","]",",",2000)).
   isBracket("[]") => some(bkt("[","[]","]",",",2000)).
@@ -242,6 +243,7 @@ star.compiler.operators{
   follows(".",`+`) => some(".+").
   follows(".",`=`) => some(".=").
   follows(".",`>`) => some(".>").
+  follows(".",`a`) => some(".a").
   follows(".",` `) => some(". ").
   follows(".#",`.`) => some(".#.").
   follows(".&",`.`) => some(".&.").
@@ -256,6 +258,11 @@ star.compiler.operators{
   follows(".>>",`.`) => some(".>>.").
   follows(".>>",`>`) => some(".>>>").
   follows(".>>>",`.`) => some(".>>>.").
+  follows(".a",`c`) => some(".ac").
+  follows(".ac",`c`) => some(".acc").
+  follows(".acc",`e`) => some(".acce").
+  follows(".acce",`s`) => some(".acces").
+  follows(".acces",`s`) => some(".access").
   follows("/",`\\`) => some("/\\").
   follows("/",`/`) => some("//").
   follows("//",`/`) => some("///").
@@ -336,6 +343,7 @@ star.compiler.operators{
   final(".=") => .true.  /* pattern match */
   final(".>>.") => .true.  /* logical shift right */
   final(".>>>.") => .true.  /* arithmetic shift right */
+  final(".access") => .true.  /* field access implementation */
   final(". ") => .true.  /* statement terminator */
   final("/") => .true.  /* division */
   final("/\\") => .true.  /* intersection */

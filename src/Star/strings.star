@@ -107,6 +107,18 @@ star.strings{
   public digitVal:(char)=>integer.
   digitVal(D) => _digitCode(D).
 
+  public digitChar:(integer)=>char.
+  digitChar(0)=>`0`.
+  digitChar(1)=>`1`.
+  digitChar(2)=>`2`.
+  digitChar(3)=>`3`.
+  digitChar(4)=>`4`.
+  digitChar(5)=>`5`.
+  digitChar(6)=>`6`.
+  digitChar(7)=>`7`.
+  digitChar(8)=>`8`.
+  digitChar(9)=>`9`.
+
   public isHexDigit:(char) => option[integer].
   isHexDigit(Ch) where isDigit(Ch) => some(digitVal(Ch)).
   isHexDigit(`a`) => some(10).

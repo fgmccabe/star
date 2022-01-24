@@ -18,26 +18,20 @@ star.compiler.dict{
 
   public dict ~> cons[scope].
 
-  public implementation display[scope] => let{
-    dd(scope(Tps,Vrs,Cons,Impls)) =>
-      ss("Types:$(Tps),\nVars:$(Vrs),\nContracts:$(Cons),\nImplementations: $(Impls)\n").
-  } in {
-    disp=dd
+  public implementation display[scope] => {
+    disp(scope(Tps,Vrs,Cons,Impls)) =>
+      "Types:$(Tps),\nVars:$(Vrs),\nContracts:$(Cons),\nImplementations: $(Impls)\n".
   }
 
-  public implementation display[vrEntry] => let{
-    dd(vrEntry(some(Lc),Mk,Tp,_)) => ssSeq([disp(Mk(Lc,emptyDict)),ss("|="),disp(Tp)]).
-    dd(vrEntry(.none,_,Tp,_)) => disp(Tp).
-  } in {
-    disp(V) => dd(V)
+  public implementation display[vrEntry] => {
+    disp(vrEntry(some(Lc),Mk,Tp,_)) => "$(Mk(Lc,emptyDict))|=$(Tp)".
+    disp(vrEntry(.none,_,Tp,_)) => disp(Tp).
   }
 
-  public implementation display[tpDef] => let{
-    dd(tpVar(_,Tp)) => ss("tpvar:$(Tp)").
-    dd(tpDefn(_,_,Tmpl,Rl)) => ssSeq([disp(Tmpl),ss("=="),disp(Rl)]).
-  } in {
-    disp(T) => dd(T)
-  }
+  public implementation display[tpDef] => {
+    disp(tpVar(_,Tp)) => "tpvar:$(Tp)".
+    disp(tpDefn(_,_,Tmpl,Rl)) => "$(Tmpl) == $(Rl)".
+  } 
 
   public vrType:(vrEntry)=>tipe.
   vrType(vrEntry(_,_,Tp,_))=>Tp.
@@ -63,9 +57,9 @@ star.compiler.dict{
   findImplementation([_,..Rest],INm) => findImplementation(Rest,INm).
   findImplementation([],_) => .none.
 
-  public declareImplementation:(string,tipe,dict) => dict.
+  public declareImplementation:(string,constraint,dict) => dict.
   declareImplementation(ImplNm,Con,[scope(Tps,Vrs,Cns,Imps),..Env]) =>
-    [scope(Tps,Vrs,Cns,Imps[ImplNm->contractConstraint(Con)]),..Env].
+    [scope(Tps,Vrs,Cns,Imps[ImplNm->Con]),..Env].
 
   public undeclareImplementation:(string,dict) => dict.
   undeclareImplementation(Nm,[scope(Tps,Vrs,Cns,Imps),..Env]) =>

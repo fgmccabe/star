@@ -13,7 +13,7 @@ star.multi{
     _nil = .null
   }
 
-  public implementation all e ~~ stream[multi[e]->>e] => {
+  public implementation all e ~~ stream[multi[e]->>e] => {.
     _eof(.null) => .true.
     _eof(multi(.nil)) => .true.
     _eof(_) default => .false.
@@ -24,7 +24,7 @@ star.multi{
 
     private push(.null,X) => X.
     push(M,X) => multi(cons(M,cons(X,.nil))).
-  }
+  .}
 
   public implementation all e ~~ concat[multi[e]] => let{
     conc(.null,M) => M.

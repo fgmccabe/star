@@ -39,7 +39,7 @@ star.compiler.macro.rules{
     "::" -> [(.expression,coercionMacro)],
     ":?" -> [(.expression,coercionMacro)],
     "*" -> [(.expression,multicatMacro)],
-    "{}" -> [(.expression,comprehensionMacro),(.expression,mapLiteralMacro)],
+    "${}" -> [(.expression,comprehensionMacro),(.expression,mapLiteralMacro)],
     "{!!}" -> [(.expression,iotaComprehensionMacro)],
     "{??}" -> [(.expression,testComprehensionMacro)],
     "do" -> [(.actn,forLoopMacro)],
@@ -211,7 +211,7 @@ star.compiler.macro.rules{
     (lyfted[ast])=>ast,
     lyfted[ast],reports) => result[reports,ast].
   makeCondition(A,Lift,Succ,Zed,Rp) where (Lc,Ptn,Src) ^= isSearch(A) => do{
-    sF .= nme(Lc,"sF");
+    sF .= genName(Lc,"sF");
     St .= genName(Lc,"St");
 
     Eq1 .= equation(Lc,roundTerm(Lc,sF,[Ptn,St]),Succ(grounded(St)));
@@ -302,7 +302,11 @@ star.compiler.macro.rules{
   quoteAst(app(Lc,Op,Arg)) => binary(Lc,"_apply",quoteAst(Op),quoteAst(Arg)).
   
   -- Handle valof
-  valofMacro(A,.actn,Rp) where (Lc,E) ^= isValof(A) => 
+  valofMacro(A,.actn,Rp) where (Lc,E) ^= isValof(A) =>
+    (LLc,[As]) ^= isBrTuple(E) ?
+    ok(active(unary(Lc,"_valof",
+	  typeAnnotation(Lc,mkDoTerm(LLc,As),
+	    squareTerm(LLc,nme(LLc,"result"),[anon(LLc),anon(LLc)]))))) ||
     ok(active(unary(Lc,"_valof",E))).
   valofMacro(_,_,_) default =>
     ok(.inactive).
@@ -310,8 +314,7 @@ star.compiler.macro.rules{
   tryCatchMacro(A,.actn,Rp) where
       (Lc,B,H) ^= isTryCatch(A) &&
       (LLc,[As]) ^= isBrTuple(H) => do{
-	A .= rndTuple(LLc,[anon(LLc)]);
-	Q .= equation(Lc,A,mkDoTerm(LLc,As));
+	Q .= equation(Lc,rndTuple(LLc,[anon(LLc)]),mkDoTerm(LLc,As));
 	valis active(mkTryCatch(Lc,B,Q))
       }.
   tryCatchMacro(_,_,_) default => ok(.inactive).
@@ -386,15 +389,16 @@ star.compiler.macro.rules{
 
   makeAlgebraic:(locn,visibility,cons[ast],cons[ast],ast,ast,reports) =>
     result[reports,cons[ast]].
-  makeAlgebraic(Lc,Vz,Q,Cx,H,R,Rp) => do{
-    Nm .= typeName(H);
-    (Qs,Xs,Face) <- algebraicFace(R,Q,[],Rp);
-    TpExSt .= reveal(reUQuant(Lc,Qs,reConstrain(Cx,binary(Lc,"<~",H,reXQuant(Lc,Xs,brTuple(Lc,sort(Face,compEls)))))),Vz);
+  makeAlgebraic(Lc,Vz,Q,Cx,H,Rhs,Rp) => do{
+    (Qs,Xs,Face) <- algebraicFace(Rhs,Q,[],Rp);
+--    Fields .= sort(Face,compEls);
+    TpExSt .= reveal(reUQuant(Lc,Qs,reConstrain(Cx,binary(Lc,"<~",H,reXQuant(Lc,Xs,brTuple(Lc,Face))))),Vz);
     logMsg("Type rule is $(TpExSt)");
-    Cons <- buildConstructors(R,Q,Cx,H,Vz,Rp);
+    Cons <- buildConstructors(Rhs,Q,Cx,H,Vz,Rp);
     logMsg("Constructors are $(Cons)");
---    Accs <- buildAccessors(R,Q,Cx,H,Face,Vz,Rp);
-    valis [TpExSt,..Cons/*++Accs*/]
+    Accs <- buildAccessors(Rhs,Q,Cx,H,typeName(H),Face,Vz,Rp);
+    logMsg("Accessors are $(Accs)");
+    valis [TpExSt,..Cons++Accs]
   }
 
   algebraicFace:(ast,cons[ast],cons[ast],reports) =>
@@ -542,6 +546,192 @@ star.compiler.macro.rules{
   isCon(_,_) default => .none.
 
 
+  buildAccessors:(ast,cons[ast],cons[ast],ast,string,cons[ast],
+    visibility,reports)=>result[reports,cons[ast]].
+  buildAccessors(Rhs,Q,Cx,H,TpNm,Fields,Vz,Rp) =>
+    seqmap((F)=>makeAccessor(F,TpNm,Rhs,Q,Cx,H,Vz,Rp),Fields).
+
+  makeAccessor:(ast,string,ast,cons[ast],cons[ast],ast,
+    visibility,reports) => result[reports,ast].
+  makeAccessor(Annot,TpNm,Cns,Q,Cx,H,Vz,Rp) where (Lc,Fld,FldTp)^=isTypeAnnotation(Annot) => do{
+    Eqs <- accessorEqns(Cns,Fld,[],Rp);
+    AccNm .= nme(Lc,".$(Fld)");
+    AccessHead .= squareTerm(Lc,AccNm,[mkDepends(Lc,[H],[FldTp])]);
+    valis mkAccessorStmt(Lc,Q,Cx,AccessHead,mkLetDef(Lc,Eqs,AccNm))
+  }
+
+  accessorEqns:(ast,ast,cons[ast],reports)=>result[reports,cons[ast]].
+  accessorEqns(Cns,Fld,SoFar,Rp) where (Lc,L,R)^=isBinary(Cns,"|") => do{
+    E1 <- accessorEqns(L,Fld,SoFar,Rp);
+    accessorEqns(R,Fld,E1,Rp)
+  }
+  accessorEqns(Cns,Fld,SoFar,Rp) where (Lc,CnNm,Els)^=isBrTerm(Cns) => do{
+    ConArgs .= projectArgTypes(sort(Els,compEls),Fld);
+    Eqn .=mkEquation(Lc,some(nme(Lc,".$(Fld)")),.false,
+      rndTuple(Lc,[roundTerm(Lc,CnNm,ConArgs)]),.none,nme(Lc,"X"));
+    valis [Eqn,..SoFar]
+  }
+  accessorEqns(C,Fld,Eqns,Rp) where (Lc,I) ^= isPrivate(C) =>
+    accessorEqns(I,Fld,Eqns,Rp).
+  accessorEqns(C,Fld,Eqns,_) default => do{
+    valis Eqns
+  }
+
+  projectArgTypes([],_) => [].
+  projectArgTypes([A,..As],F) where
+      (Lc,V,T) ^= isTypeAnnotation(A) && F== V =>
+    [nme(Lc,"X"),..projectArgTypes(As,F)].
+  projectArgTypes([A,..As],F) where (Lc,V,T) ^= isTypeAnnotation(A) =>
+    [anon(Lc),..projectArgTypes(As,F)].
+  projectArgTypes([_,..As],F) => projectArgTypes(As,F).
+    
+
+  
+
+  makeReturn(Lc,E) => unary(Lc,"_valis",E).
+
+  makeRaise(Lc,E) => unary(Lc,"_raise",E).
+
+  makeSequence(Lc,P,E,Cont) =>
+    binary(Lc,"_sequence",
+      E, mkEquation(Lc,.none,.false,rndTuple(Lc,[P]),.none,Cont)).
+
+  combine(A,.none) => A.
+  combine(A,some((Lc,Cont))) =>
+    makeSequence(Lc,anon(Lc),A,Cont).
+
+  public makeAction:(ast,option[(locn,ast)],reports)=>result[reports,ast].
+  makeAction(A,Cont,Rp) where (_,[E]) ^= isBrTuple(A) =>
+    makeAction(E,Cont,Rp).
+  makeAction(A,some((_,Cont)),_) where (_,"nothing") ^= isName(A) => ok(Cont).
+  makeAction(A,.none,_) where (Lc,"nothing") ^= isName(A) =>
+    ok(makeReturn(Lc,unit(Lc))).
+  makeAction(A,some((_,Cont)),_) where (_,[]) ^= isBrTuple(A) => ok(Cont).
+  makeAction(A,.none,_) where (Lc,[]) ^= isBrTuple(A) =>
+    ok(makeReturn(Lc,unit(Lc))).
+  makeAction(A,Cont,Rp) where  (Lc,L,R) ^= isSequence(A) => do{
+    Rr <- makeAction(R,Cont,Rp);
+    makeAction(L,some((Lc,Rr)),Rp)
+  }
+  makeAction(A,Cont,Rp) where  (Lc,L) ^= isUnary(A,";") =>
+    makeAction(L,Cont,Rp).
+  makeAction(A,.none,_) where (Lc,E) ^= isValis(A) =>
+    ok(makeReturn(Lc,E)).
+  makeAction(A,some((OLc,_)),Rp) where (Lc,_) ^= isValis(A) =>
+    bad(reportError(Rp,"$(A) must be the last action, previous action at $(OLc)",Lc)).
+  makeAction(A,_,Rp) where (Lc,E) ^= isThrow(A) =>
+    bad(reportError(Rp,"throe $(E) not supported",Lc)).
+  makeAction(A,_,_) where (Lc,E) ^= isRaise(A) =>
+    ok(makeRaise(Lc,E)).
+  makeAction(A,.none,Rp) where (Lc,L,R) ^= isBind(A) =>
+    bad(reportError(Rp,"$(A) may not be the last action",Lc)).
+  makeAction(A,some((CLc,Cont)),Rp) where (Lc,L,R) ^= isBind(A) =>
+    ok(makeSequence(Lc,L,R,Cont)).
+  makeAction(A,.none,Rp) where (Lc,L,R) ^= isMatch(A) =>
+    bad(reportError(Rp,"$(A) may not be the last action",Lc)).
+  makeAction(A,some((CLc,Cont)),Rp) where (Lc,L,R) ^= isMatch(A) =>
+    ok(roundTerm(Lc,mkEquation(Lc,.none,.false,rndTuple(Lc,[L]),.none,Cont),
+	[R])).
+  makeAction(A,.none,Rp) where (Lc,L,R) ^= isOptionMatch(A) =>
+    bad(reportError(Rp,"$(A) may not be the last action",Lc)).
+  makeAction(A,some((CLc,Cont)),Rp) where (Lc,L,R) ^= isOptionMatch(A) =>
+    ok(roundTerm(Lc,mkEquation(Lc,.none,.false,
+	  rndTuple(Lc,[unary(Lc,"some",L)]),.none,Cont),[R])).
+  makeAction(A,Cont,Rp) where (Lc,S,F,T,R) ^= isSplice(A) =>
+    ok(combine(mkAssignment(Lc,S,
+	  roundTerm(Lc,nme(Lc,"_splice"),[refCell(Lc,S),F,T,R])),Cont)).
+  makeAction(A,Cont,Rp) where (Lc,B,H) ^= isTryCatch(A) => do{
+    Bx <- makeAction(B,.none,Rp);
+    Hx <- makeHandler(H,Rp);
+    valis combine(binary(Lc,"_handle",Bx,Hx),Cont)
+  }
+  makeAction(A,Cont,Rp) where (Lc,T,L,R) ^= isIfThenElse(A) => do{
+    Lx <- makeAction(L,.none,Rp);
+    Rx <- makeAction(R,.none,Rp);
+    valis combine(mkConditional(Lc,T,Lx,Rx),Cont)
+  }
+  makeAction(A,Cont,Rp) where (Lc,T,L) ^= isIfThen(A) => do{
+    Lx <- makeAction(L,.none,Rp);
+    valis combine(mkConditional(Lc,T,Lx,makeReturn(Lc,unit(Lc))),Cont)
+  }
+  /* Construct a local loop function for while:
+  let{.
+    loop() => do{ if T then { B; loop() }}
+  .} in loop()
+  */
+  makeAction(A,Cont,Rp) where (Lc,T,B) ^= isWhileDo(A) => do{
+    LpNm .= genName(Lc,"loop");
+    Lp .= roundTerm(Lc,LpNm,[]);
+    Bx <- makeAction(B,.none,Rp);
+    Body .= makeSequence(Lc,anon(Lc),Bx,Lp);
+    LoopEqn .= mkEquation(Lc,some(LpNm),.true,unit(Lc),.none,
+      mkConditional(Lc,T,Body,makeReturn(Lc,unit(Lc))));
+    valis mkLetRecDef(Lc,[LoopEqn],Lp)
+  }
+  /* Construct a local loop function for until:
+    let{.
+      loop() => do{ B; if T then loop()}
+    .} in loop()
+  */
+  makeAction(A,Cont,Rp) where (Lc,B,T) ^= isUntilDo(A) => do{
+    LpNm .= genName(Lc,"loop");
+    Lp .= roundTerm(Lc,LpNm,[]);
+    Bx <- makeAction(B,.none,Rp);
+    Body .= makeSequence(Lc,anon(Lc),Bx,
+      mkConditional(Lc,T,Lp,makeReturn(Lc,unit(Lc))));
+    LoopEqn .= mkEquation(Lc,some(LpNm),.true,unit(Lc),.none,Body);
+    valis mkLetRecDef(Lc,[LoopEqn],Lp)
+  }
+  /*
+    for X in S do Act
+    becomes
+  _iter(S,_valis(()),let{
+        lP(X,St) => _sequence(St,(X)=>_sequence(Act,(_)=>_valis(())))
+        lP(_,St) => St
+       } in lP)
+  */
+  makeAction(A,Cont,Rp) where (Lc,Q,Act) ^= isForDo(A) && (_,X,S) ^= isSearch(Q) => do{
+    LpNm .= genName(Lc,"lp");
+    St .= genName(Lc,"st");
+    Ax <- makeAction(Act,.none,Rp);
+    UV .= makeReturn(Lc,unit(Lc));
+    Bx .= makeSequence(Lc,X,St,makeSequence(Lc,anon(Lc),Act,UV));
+    Eq1 .= mkEquation(Lc,some(LpNm),.false,rndTuple(Lc,[X,St]),.none,Bx);
+    Eq2 .= mkEquation(Lc,some(LpNm),.true,rndTuple(Lc,[anon(Lc),St]),.none,St);
+    LpDef .= mkLetRecDef(Lc,[Eq1,Eq2],LpNm);
+    valis ternary(Lc,"_iter",S,UV,LpDef)
+  }
+  makeAction(A,Cont,Rp) where (Lc,I) ^= isPerform(A) => do{
+    valis combine(I,Cont)
+  }
+  makeAction(A,Cont,Rp) where (Lc,Defs,B) ^= isLetDef(A) => do{
+    Bx <- makeAction(B,.none,Rp);
+    valis mkLetDef(Lc,Defs,Bx)
+  }
+  makeAction(A,Cont,Rp) where (Lc,Defs,B) ^= isLetRecDef(A) => do{
+    Bx <- makeAction(B,.none,Rp);
+    valis mkLetRecDef(Lc,Defs,Bx)
+  }
+  makeAction(A,Cont,Rp) where (Lc,G,Cases) ^= isCase(A) => do{
+    CC <- seqmap((C)=>makeCase(C,Rp),Cases);
+    valis mkCaseExp(Lc,G,CC)
+  }
+  makeAction(A,Cont,Rp) where (Lc,_,_) ^= isRoundTerm(A) => do{
+    valis combine(A,Cont)
+  }
+  makeAction(A,_,Rp) default =>
+    bad(reportError(Rp,"$(A) is not a valid action",locOf(A))).
+  
+  makeHandler(H,Rp) where (Lc,[S]) ^= isBrTuple(H) => do{
+    Sx <- makeAction(S,.none,Rp);
+    valis mkEquation(Lc,.none,.false,rndTuple(Lc,[anon(Lc)]),.none,Sx)
+  }
+  makeHandler(H,_Rp) => ok(H).
+
+  makeCase(A,Rp) where (Lc,D,L,C,R) ^= isLambda(A) => do{
+    RR <- makeAction(R,.none,Rp);
+    valis mkLambda(Lc,D,L,C,RR)
+  }
   
 
 

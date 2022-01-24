@@ -49,28 +49,20 @@ star.compiler.typeparse{
     else
     raise reportError(Rp,"type $(Nm) not declared",Lc)
   }
-  
   parseType(Q,Tp,Env,Rp) where (Lc,O,Args) ^= isSquareTerm(Tp) && (OLc,Nm)^=isName(O) => do{
     (Op,Rl) <- parseTypeName(Q,OLc,Nm,Env,Rp);
     if (Qx,OOp) .= freshen(Op,Env) then {
-      if [A].=Args && (_,Lhs,Rhs)^=isBinary(A,"->>") then{
-	ArgTps <- parseTypes(Q,deComma(Lhs),Env,Rp);
-	DepTps <- parseTypes(Q,deComma(Rhs),Env,Rp);
-	valis rebind(Qx,funDeps(mkTypeExp(deRef(OOp),ArgTps),DepTps),Env)
-      }
-      else{
-	ArgTps <- parseTypes(Q,Args,Env,Rp);
-	Inn .= mkTypeExp(deRef(OOp),ArgTps);
-	if LmRl^=Rl then{
-	  (_,typeLambda(L,Rhs)) .= freshen(LmRl,Env);
-	  if sameType(L,Inn,Env) then{
-	    valis rebind(Qx,Rhs,Env)
-	  }
-	  else
-	  raise reportError(Rp,"type rule for $(Nm) does not apply to $(Tp)",OLc)
-	} else{
-	  valis rebind(Qx,Inn,Env)
+      ArgTps <- parseTypes(Q,Args,Env,Rp);
+      Inn .= mkTypeExp(deRef(OOp),ArgTps);
+      if LmRl^=Rl then{
+	(_,typeLambda(L,Rhs)) .= freshen(LmRl,Env);
+	if sameType(L,Inn,Env) then{
+	  valis rebind(Qx,Rhs,Env)
 	}
+	else
+	raise reportError(Rp,"type rule for $(Nm) does not apply to $(Tp)",OLc)
+      } else{
+	valis rebind(Qx,Inn,Env)
       }
     } else
     raise reportError(Rp,"Could not freshen $(Op)",Lc)
@@ -79,6 +71,11 @@ star.compiler.typeparse{
     A <- parseArgType(Q,Lhs,Env,Rp);
     R <- parseType(Q,Rhs,Env,Rp);
     valis fnType(A,R)
+  }
+  parseType(Q,T,Env,Rp) where (Lc,Lhs,Rhs) ^= isBinary(T,"=>>") => do{
+    A <- parseArgType(Q,Lhs,Env,Rp);
+    R <- parseType(Q,Rhs,Env,Rp);
+    valis contType(A,R)
   }
   parseType(Q,T,Env,Rp) where (Lc,Lhs,Rhs) ^= isBinary(T,"<=>") => do{
     A <- parseArgType(Q,Lhs,Env,Rp);
@@ -219,10 +216,8 @@ star.compiler.typeparse{
     Face <- parseType(Q,Rh,Env,Rp);
     valis fieldConstraint(Bnd,Face).
   }
-  parseConstraint(A,Q,Env,Rp) where (Lc,Op,Args) ^= isSquareTerm(A) => do{
-    Tp<-parseContractConstraint(Q,A,Env,Rp);
-    valis contractConstraint(Tp)
-  }
+  parseConstraint(A,Q,Env,Rp) =>
+    parseContractConstraint(Q,A,Env,Rp).
 
   public rebind:(tipes,tipe,dict)=>tipe.
   rebind([],T,_) => T.
@@ -244,9 +239,18 @@ star.compiler.typeparse{
   reQuantX([(_,KV),..T],Tp) => reQuantX(T,existType(KV,Tp)).
 
   public parseContractConstraint:(tipes,ast,dict,reports) =>
-    either[reports,tipe].
+    either[reports,constraint].
   parseContractConstraint(Q,A,Env,Rp) where
-      _ ^= isSquareTerm(A) =>  parseType(Q,A,Env,Rp).
+      (Lc,O,As) ^= isSquareTerm(A) && (_,Nm) ^= isName(O) => do{
+	if [AAs].=As && (_,L,R) ^= isBinary(AAs,"->>") then{
+	  Tps <- parseTypes(Q,deComma(L),Env,Rp);
+	  Dps <- parseTypes(Q,deComma(R),Env,Rp);
+	  valis conTract(O,Tps,Dps)
+	} else{
+	  Tps <- parseTypes(As,Env,Rp);
+	  valis conTract(O,Tps,[])
+	}
+      }
   parseContractConstraint(_,A,Env,Rp) =>
     other(reportError(Rp,"$(A) is not a contract constraint",locOf(A))).
 

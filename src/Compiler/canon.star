@@ -4,7 +4,6 @@ star.compiler.canon{
 
   import star.compiler.meta.
   import star.compiler.location.
-  import star.compiler.terms.
   import star.compiler.types.
 
   public pkgSpec::=pkgSpec(pkg,cons[importSpec],tipe,cons[canonDef],cons[implSpec],cons[(string,tipe)]).
@@ -12,9 +11,13 @@ star.compiler.canon{
   public implSpec ::= implSpec(option[locn],string,string,tipe).
 
   public canon ::= vr(locn,string,tipe) |
+    anon(locn,tipe) |
     mtd(locn,string,tipe,tipe) |
-    over(locn,canon,tipe,cons[constraint]) |
+    over(locn,canon,constraint) |
+    overaccess(locn,canon,string,tipe) |
     intr(locn,integer) |
+    bintr(locn,bigint) |
+    kar(locn,char) |
     flt(locn,float) |
     strng(locn,string) |
     enm(locn,string,tipe) |
@@ -29,9 +32,8 @@ star.compiler.canon{
     cond(locn,canon,canon,canon) |
     apply(locn,canon,canon,tipe) |
     tple(locn,cons[canon]) |
-    freeze(locn,string,canon) |
-    thaw(locn,canon,tipe) |
     lambda(string,cons[equation],tipe) |
+    owpen(locn,canon) |
     letExp(locn,cons[canonDef],canon) |
     letRec(locn,cons[canonDef],canon) |
     record(locn,option[string],cons[(string,canon)],tipe) |
@@ -43,19 +45,22 @@ star.compiler.canon{
     typeDef(locn,string,tipe,tipe) |
     conDef(locn,string,string,tipe) |
     cnsDef(locn,string,string,tipe) |
-    implDef(locn,string,string,canon,cons[constraint],tipe).
+    implDef(locn,string,string,canon,cons[constraint],tipe) |
+    accDef(locn,string,string,tipe).
 
-  public implementation hasType[canon] => {
+  public implementation hasType[canon] => {.
     typeOf(vr(_,_,T)) => T.
+    typeOf(anon(_,T)) => T.
     typeOf(mtd(_,_,_,T)) => T.
-    typeOf(over(_,_,Tp,_)) => Tp.
+    typeOf(over(_,T,_)) => typeOf(T).
+    typeOf(overaccess(_,_,_,Tp)) => Tp.
     typeOf(intr(_,_)) => intType.
+    typeOf(bintr(_,_)) => bigintType.
     typeOf(flt(_,_)) => fltType.
+    typeOf(kar(_,_)) => chrType.
     typeOf(strng(_,_)) => strType.
     typeOf(enm(_,_,Tp)) => Tp.
     typeOf(csexp(_,_,_,Tp)) => Tp.
-    typeOf(freeze(_,_,E)) => memoType(typeOf(E)).
-    typeOf(thaw(_,_,Tp)) => Tp.
     typeOf(lambda(_,_,Tp)) => Tp.
     typeOf(letExp(_,_,E)) => typeOf(E).
     typeOf(letRec(_,_,E)) => typeOf(E).
@@ -70,14 +75,18 @@ star.compiler.canon{
     typeOf(implies(_,_,_)) => boolType.
     typeOf(cond(_,_,L,_)) => typeOf(L).
     typeOf(update(_,R,_)) => typeOf(R).
-  }
+  .}
 
   public implementation hasLoc[canon] => {
     locOf(vr(Lc,_,_)) => Lc.
+    locOf(anon(Lc,_)) => Lc.
     locOf(mtd(Lc,_,_,_)) => Lc.
-    locOf(over(Lc,_,_,_)) => Lc.
+    locOf(over(Lc,_,_)) => Lc.
+    locOf(overaccess(Lc,_,_,_)) => Lc.
     locOf(intr(Lc,_)) => Lc.
+    locOf(bintr(Lc,_)) => Lc.
     locOf(flt(Lc,_)) => Lc.
+    locOf(kar(Lc,_)) => Lc.
     locOf(strng(Lc,_)) => Lc.
     locOf(enm(Lc,_,_)) => Lc.
     locOf(whr(Lc,_,_)) => Lc.
@@ -91,8 +100,6 @@ star.compiler.canon{
     locOf(cond(Lc,_,_,_)) => Lc.
     locOf(apply(Lc,_,_,_)) => Lc.
     locOf(tple(Lc,_)) => Lc.
-    locOf(freeze(Lc,_,_)) => Lc.
-    locOf(thaw(Lc,_,_)) => Lc.
     locOf(lambda(_,[E,.._],_)) => locOf(E).
     locOf(letExp(Lc,_,_)) => Lc.
     locOf(letRec(Lc,_,_)) => Lc.
@@ -110,25 +117,24 @@ star.compiler.canon{
     locOf(conDef(Lc,_,_,_)) => Lc.
     locOf(cnsDef(Lc,_,_,_)) => Lc.
     locOf(implDef(Lc,_,_,_,_,_)) => Lc.
+    locOf(accDef(Lc,_,_,_)) => Lc.
   }
 
   public implementation display[pkgSpec] => {
     disp(pkgSpec(Pkg,Imports,Face,Cons,Impls,PkgVrs)) =>
-      ss("Package: $(Pkg), imports=$(Imports), Signature=$(Face),Contracts=$(Cons),Implementations:$(Impls), pkg vars:$(PkgVrs)").
+      "Package: $(Pkg), imports=$(Imports), Signature=$(Face),Contracts=$(Cons),Implementations:$(Impls), pkg vars:$(PkgVrs)".
   }
 
   public implementation hasType[pkgSpec] => {
     typeOf(pkgSpec(Pkg,Imports,Face,Cons,Impls,PkgVrs)) => Face
   }
 
-  public implementation display[implSpec] => let{
-    dispImpl(implSpec(_,Con,Full,Tp)) =>
-      ss("implementation for $(Con), full name $(Full), type: $(Tp)")
-  } in {
-    disp(D) => dispImpl(D)
+  public implementation display[implSpec] => {
+    disp(implSpec(_,Con,Full,Tp)) =>
+      "implementation for $(Con), full name $(Full), type: $(Tp)"
   }
 
-  public implementation equality[canon] => let{.
+/*  public implementation equality[canon] => let{.
     eq(vr(_,N1,T1),vr(_,N2,T2)) => N1==N2 && T1==T2.
     eq(mtd(_,N1,C1,T1),mtd(_,N2,C2,T2)) => N1==N2 && C1==C2 && T1==T2.
     eq(over(_,N1,T1,C1),over(_,N2,T2,C2)) => eq(N1,N2) && T1==T2 && C1==C2.
@@ -147,11 +153,11 @@ star.compiler.canon{
   .} in {
     T1==T2 => eq(T1,T2)
   }
-
+*/
   public implementation hash[canon] => let{.
     hsh(vr(_,N1,_)) => hash(N1).
     hsh(mtd(_,N1,_,_)) => hash(N1).
-    hsh(over(_,N1,T1,C1)) => hsh(N1)*37+hash(T1).
+    hsh(over(_,N1,C1)) => hsh(N1)*37+hash(C1).
     hsh(intr(_,Ix)) => hash(Ix).
     hsh(flt(_,Dx)) => hash(Dx).
     hsh(strng(_,Sx)) => hash(Sx).
@@ -163,67 +169,66 @@ star.compiler.canon{
     hash(T1) => hsh(T1)
   }
 
-  showCanon:(canon,string)=>ss.
-  showCanon(vr(_,Nm,Tp),_) => ssSeq([ss(Nm)]).
-  showCanon(mtd(_,Fld,_,_),_) => ssSeq([ss("µ"),ss(Fld)]).
-  showCanon(over(_,V,_,Cx),Sp) => ssSeq([disp(Cx),ss("|:"),showCanon(V,Sp)]).
+  showCanon:(canon,string)=>string.
+  showCanon(vr(_,Nm,Tp),_) => Nm.
+  showCanon(anon(_,_),_) => "_".
+  showCanon(mtd(_,Fld,_,_),_) => "µ#(Fld)".
+  showCanon(over(_,V,Cx),Sp) => "$(Cx)|:#(showCanon(V,Sp))".
+  showcanon(overaccess(_,V,F,T),Sp) => "($(V)<~#(F):$(T))".
   showCanon(intr(_,Lt),_) => disp(Lt).
+  showCanon(bintr(_,Lt),_) => disp(Lt).
   showCanon(flt(_,Lt),_) => disp(Lt).
   showCanon(strng(_,Lt),_) => disp(Lt).
-  showCanon(enm(_,Nm,Tp),_) => ssSeq([ss("."),ss(Nm)]).
-  showCanon(whr(_,E,C),Sp) => ssSeq([showCanon(E,Sp),ss(" where "),showCanon(C,Sp)]).
-  showCanon(dot(_,R,F,_),Sp) => ssSeq([showCanon(R,Sp),ss("."),ss(F)]).
-  showCanon(csexp(_,Exp,Cs,_),Sp) => ssSeq([ss("case "),showCanon(Exp,Sp),ss(" in "),showCases(Cs,Sp)]).
-  showCanon(match(_,Ptn,Gen),Sp) => ssSeq([showCanon(Ptn,Sp),ss(" .= "),showCanon(Gen,Sp)]).
-  showCanon(conj(_,L,R),Sp) => ssSeq([showCanon(L,Sp),ss(" && "),showCanon(R,Sp)]).
-  showCanon(disj(_,L,R),Sp) => ssSeq([ss("("),showCanon(L,Sp),ss(" || "),showCanon(R,Sp),ss(")")]).
-  showCanon(implies(_,L,R),Sp) => ssSeq([ss("("),showCanon(L,Sp),ss(" *> "),showCanon(R,Sp),ss(")")]).
-  showCanon(neg(_,R),Sp) => ssSeq([ss(" ~ "),showCanon(R,Sp)]).
+  showCanon(enm(_,Nm,Tp),_) => ".#(Nm)".
+  showCanon(whr(_,E,C),Sp) => "#(showCanon(E,Sp)) where #(showCanon(C,Sp))".
+  showCanon(dot(_,R,F,_),Sp) => "#(showCanon(R,Sp)).#(F)".
+  showCanon(csexp(_,Exp,Cs,_),Sp) => "case #(showCanon(Exp,Sp)) in #(showCases(Cs,Sp))".
+  showCanon(match(_,Ptn,Gen),Sp) => "#(showCanon(Ptn,Sp)) .= #(showCanon(Gen,Sp))".
+  showCanon(conj(_,L,R),Sp) => "#(showCanon(L,Sp)) && #(showCanon(R,Sp))".
+  showCanon(disj(_,L,R),Sp) => "(#(showCanon(L,Sp)) || #(showCanon(R,Sp)))".
+  showCanon(implies(_,L,R),Sp) => "(#(showCanon(L,Sp)) *> #(showCanon(R,Sp)))".
+  showCanon(neg(_,R),Sp) => " ~ #(showCanon(R,Sp))".
   showCanon(cond(_,T,L,R),Sp) =>
-    ssSeq([ss("("),showCanon(T,Sp),ss("?"),showCanon(L,Sp),ss(" || "),showCanon(R,Sp),ss(")")]).
-  showCanon(apply(_,L,R,_),Sp) => ssSeq([showCanon(L,Sp),showCanon(R,Sp)]).
+    "(#(showCanon(T,Sp)) ? #(showCanon(L,Sp)) || #(showCanon(R,Sp)))".
+  showCanon(apply(_,L,R,_),Sp) => "#(showCanon(L,Sp))#(showCanon(R,Sp))".
   showCanon(tple(_,Els),Sp) =>
-    ssSeq([ss("("),ssSeq(interleave(Els//(El)=>showCanon(El,Sp),ss(","))),ss(")")]).
-  showCanon(freeze(_,Nm,E),Sp) => ssSeq([ss("freeze "),ss(Nm),ss("."),showCanon(E,Sp)]).
-  showCanon(thaw(_,E,_),Sp) => ssSeq([ss("thaw "),showCanon(E,Sp)]).
-  showCanon(lambda(Nm,Rls,Tp),Sp) => ssSeq([ss("("),showRls(Nm,Rls,Sp++"  "),ss(")")]).
+    "(#(interleave(Els//(El)=>showCanon(El,Sp),",")*))".
+  showCanon(lambda(Nm,Rls,Tp),Sp) => "(#(showRls(Nm,Rls,Sp++"  ")))".
   showCanon(letExp(_,Defs,Ep),Sp) where Sp2.=Sp++"  " =>
-    ssSeq([ss("let "),ss("{\n"),ss(Sp2),showGroup(Defs,Sp2),ss("\n"),ss(Sp),ss("}"),ss(" in "),showCanon(Ep,Sp2)]).
+    "let {\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)} in #(showCanon(Ep,Sp2))".
   showCanon(letRec(_,Defs,Ep),Sp) where Sp2.=Sp++"  " =>
-    ssSeq([ss("letrec "),ss("{\n"),ss(Sp2),showGroup(Defs,Sp2),ss("\n"),ss(Sp),ss("}"),ss(" in "),showCanon(Ep,Sp2)]).
+    "let {.\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp),} in #(showCanon(Ep,Sp2))".
   showCanon(record(_,.none,Fields,_),Sp) =>
-    ssSeq([ss("{"),showFields(Fields,Sp++"  "),ss("}")]).
+    "{#(showFields(Fields,Sp++"  "))}".
   showCanon(record(_,some(Lbl),Fields,_),Sp) =>
-    ssSeq([ss(Lbl),ss("{"),showFields(Fields,Sp++"  "),ss("}")]).
-  showCanon(update(_,L,R),Sp) => ssSeq([showCanon(L,Sp),ss(" <<- "),showCanon(R,Sp)]).
-  
-  showCases(Cs,Sp) => ssSeq([ss("{"),showRls("",Cs,Sp),ss("}")]).
+    "#(Lbl){#(showFields(Fields,Sp++"  "))}".
+  showCanon(update(_,L,R),Sp) => "#(showCanon(L,Sp)) <<- #(showCanon(R,Sp))".
 
-  showFields(Fields,Sp) => ssSeq(interleave(Fields//(Fld)=>showField(Fld,Sp),ss(".\n"++Sp))).
+  showCases(Cs,Sp) => "{#(showRls("",Cs,Sp))}".
 
-  showField((Nm,Val),Sp) => ssSeq([ss(Nm),ss(" = "),showCanon(Val,Sp)]).
+  showFields(Fields,Sp) => interleave(Fields//(Fld)=>showField(Fld,Sp),".\n"++Sp)*.
 
-  showGroup:(cons[canonDef],string) => ss.
-  showGroup(G,Sp) => ssSeq(interleave(G//(D)=>showDef(D,Sp),ss(".\n"++Sp))).
+  showField((Nm,Val),Sp) => "#(Nm) = #(showCanon(Val,Sp))".
 
-  showDef:(canonDef,string)=>ss.
+  showGroup:(cons[canonDef],string) => string.
+  showGroup(G,Sp) => interleave(G//(D)=>showDef(D,Sp),".\n"++Sp)*.
+
+  showDef:(canonDef,string)=>string.
   showDef(varDef(_,Nm,FullNm,lambda(LamNm,Rls,_),_,Tp),Sp) =>
-    ssSeq([ss("Fun: "),ss(Nm),ss(" "),showRls(LamNm,Rls,Sp)]).
-  showDef(varDef(_,Nm,FullNm,V,_,Tp),Sp) => ssSeq([ss("Var: "),ss(Nm),ss(" ["),ss(FullNm),ss("] = "),showCanon(V,Sp)]).
-  showDef(typeDef(_,Nm,T,_),Sp) => ssSeq([ss("Type: "),ss(Nm),ss("~>"),disp(T)]).
-  showDef(conDef(_,_,Nm,Tp),Sp) => ssSeq([ss("Contract: "),ss(Nm),ss("::="),disp(Tp)]).
-  showDef(cnsDef(_,_,Nm,Tp),Sp) => ssSeq([ss("Constructor: "),ss(Nm),ss(":"),disp(Tp)]).
-  showDef(implDef(_,Nm,FullNm,Exp,_,Tp),Sp) =>
-    ssSeq([ss("Implementation: "),ss(Nm),ss(" ["),ss(FullNm),ss("] = "),showCanon(Exp,Sp)]).
+    "Fun: #(Nm) #(showRls(LamNm,Rls,Sp))".
+  showDef(varDef(_,Nm,FullNm,V,_,Tp),Sp) => "Var: #(Nm)[#(FullNm)] = #(showCanon(V,Sp))".
+  showDef(typeDef(_,Nm,T,_),Sp) => "Type: #(Nm)~>$(T)".
+  showDef(conDef(_,_,Nm,Tp),Sp) => "Contract: #(Nm) ::= $(Tp)".
+  showDef(cnsDef(_,_,Nm,Tp),Sp) => "Constructor: #(Nm):$(Tp)".
+  showDef(implDef(_,Nm,FullNm,Exp,_,Tp),Sp) => "Implementation: #(Nm) = $(Exp)".
+  showDef(accDef(_,Fld,Nm,Tp),Sp) => "Access: #(Fld):$(Tp) = $(Nm)".
 
-  showRls:(string,cons[equation],string) => ss.
-  showRls(Nm,Rls,Sp) => ssSeq(interleave(Rls//(Rl)=>showRl(Nm,Rl,Sp),ss(".\n"++Sp))).
+  showRls:(string,cons[equation],string) => string.
+  showRls(Nm,Rls,Sp) => interleave(Rls//(Rl)=>showRl(Nm,Rl,Sp),".\n"++Sp)*.
 
-  showRl:(string,equation,string) => ss.
-  showRl(Nm,eqn(_,Ptn,.none,Val),Sp) => ssSeq([
-      ss(Nm),showCanon(Ptn,Sp),ss(" => "),showCanon(Val,Sp)]).
-  showRl(Nm,eqn(_,Ptn,some(C),Val),Sp) => ssSeq([
-      ss(Nm),showCanon(Ptn,Sp),ss(" where "),showCanon(C,Sp),ss(" => "),showCanon(Val,Sp)]).
+  showRl:(string,equation,string) => string.
+  showRl(Nm,eqn(_,Ptn,.none,Val),Sp) => "#(Nm)#(showCanon(Ptn,Sp)) => #(showCanon(Val,Sp))".
+  showRl(Nm,eqn(_,Ptn,some(C),Val),Sp) => "#(Nm)#(showCanon(Ptn,Sp)) where #(showCanon(C,Sp)) => #(showCanon(Val,Sp))".
 
   public implementation display[canon] => {
     disp(C) => showCanon(C,"")
@@ -264,16 +269,16 @@ star.compiler.canon{
 
   public splitPtn:(canon) => (canon,option[canon]).
   splitPtn(P) => let{.
-    splitPttrn(apply(Lc,Op,Arg,Tp)) => valof action{
+    splitPttrn(apply(Lc,Op,Arg,Tp)) => valof{
       (SOp,OCond) .= splitPttrn(Op);
       (SArg,SCond) .= splitPttrn(Arg);
       valis (apply(Lc,SOp,SArg,Tp),mergeGl(OCond,SCond))
     }
-    splitPttrn(tple(Lc,Els)) => valof action{
+    splitPttrn(tple(Lc,Els)) => valof{
       (SEls,SCond) .= splitPttrns(Els);
       valis (tple(Lc,SEls),SCond)
     }
-    splitPttrn(whr(Lc,Pt,C)) => valof action{
+    splitPttrn(whr(Lc,Pt,C)) => valof{
       (SP,SCond) .= splitPttrn(Pt);
       valis (SP,mergeGl(SCond,some(C)))
     }

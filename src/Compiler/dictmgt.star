@@ -44,7 +44,7 @@ star.compiler.dict.mgt{
   public refreshVr:(locn,tipe,dict,(tipe)=>canon) => canon.
   refreshVr(Lc,Tp,Env,Mkr) => valof action{
     (_,VrTp) .= freshen(Tp,Env);
-    valis manageConstraints(VrTp,[],Lc,Mkr(VrTp),Env)
+    valis manageConstraints(VrTp,Lc,Mkr(VrTp),Env)
   }    
 
   public refreshVar(Lc,Nm,Tp,Env) =>
@@ -69,7 +69,7 @@ star.compiler.dict.mgt{
 --    logMsg("freshen $(Nm)'s type: $(Tp)");
     (_,VrTp) .= freshen(Tp,Env);
 --    logMsg("freshened type of $(Nm) is $(VrTp)");
-    valis manageConstraints(VrTp,[],Lc,enm(Lc,Nm,VrTp),Env)
+    valis manageConstraints(VrTp,Lc,enm(Lc,Nm,VrTp),Env)
   }
 
   public declareEnum:(string,string,option[locn],tipe,dict) => dict.
@@ -77,13 +77,13 @@ star.compiler.dict.mgt{
     declareVr(Nm,Lc,Tp,(L,E)=>pickupEnum(L,FullNm,netEnumType(Tp),Env),.none,Env).
 
   public mergeDict:(dict,dict,dict) => dict.
-  mergeDict(D1,D2,Env) => let{
+  mergeDict(D1,D2,Env) => let{.
     mergeScopes([scope(T1,V1,C1,I1),..Rst],
       [scope(_,V2,_,_),.._]) =>
       [scope(T1,mergeVDefs(V1,V2),C1,I1),..Rst].
     mergeVDefs(V1,V2) => {Nm->E1|Nm->E1 in V1 && E2^=V2[Nm] && sameDesc(E1,E2)}.
     sameDesc(vrEntry(_,_,T1,_),vrEntry(_,_,T2,_)) => sameType(T1,T2,Env)
-  } in mergeScopes(D1,D2).
+  .} in mergeScopes(D1,D2).
   
   public declareVr:(string,option[locn],tipe,(locn,dict)=>canon,option[tipe],dict) => dict.
   declareVr(Nm,Lc,Tp,MkVr,Fc,[scope(Tps,Vrs,Cns,Imps),..Ev]) =>
@@ -104,7 +104,7 @@ star.compiler.dict.mgt{
   formMethods([(Nm,Tp),..Mtds],Lc,Q,Cx,Con,Dict) => valof action{
 --    logMsg("raw method type of $(Nm) is $(Tp), constraints: $(Con)");
     (MQ,MI) .= deQuant(Tp);
-    MT .= reQuant(Q++MQ,reConstrainType([contractConstraint(Con),..Cx],MI));
+    MT .= reQuant(Q++MQ,reConstrainType([conTract(Con),..Cx],MI));
 --    logMsg("actual method type $(MT)");
     valis formMethods(Mtds,Lc,Q,Cx,Con,declareMethod(Nm,Lc,MT,Con,Dict))
   }
@@ -119,7 +119,7 @@ star.compiler.dict.mgt{
     Cn .= refresh(Q,Con,Env);
 --    logMsg("freshened type of $(Nm) is $(VrTp) Q=$(Q)");
 --    logMsg("freshened contract $(Cn)");
-    valis manageConstraints(VrTp,[],Lc,mtd(Lc,Nm,Cn,VrTp),Env)
+    valis manageConstraints(VrTp,Lc,mtd(Lc,Nm,Cn,VrTp),Env)
   }
 
   public pushSig:(tipe,locn,(string,tipe,dict)=>dict,dict) => dict.
@@ -152,24 +152,14 @@ star.compiler.dict.mgt{
   declareConstraints(Lc,[_,..Cx],Env) =>
     declareConstraints(Lc,Cx,Env).
 
-  manageConstraints:(tipe,cons[constraint],locn,canon,dict) => canon.
-  manageConstraints(constrainedType(Tp,Con),Cons,Lc,Term,Env)
-      where C0 .= applyConstraint(Con,Cons) =>
-    manageConstraints(deRef(Tp),C0,Lc,Term,Env).
-  manageConstraints(_,[],_,Term,Env) => Term.
-  manageConstraints(Tp,Cons,Lc,Term,Env) => over(Lc,Term,Tp,reverse(Cons)).
+  manageConstraints:(tipe,locn,canon,dict) => canon.
+  manageConstraints(constrainedType(Tp,Con),Lc,Term,Env) =>
+    applyConstraint(Lc,Con,manageConstraints(deRef(Tp),Lc,Term,Env),Env).
+  manageConstraints(_,_,Term,Env) => Term.
 
-  applyConstraint:(constraint,cons[constraint]) => cons[constraint].
-  applyConstraint(fieldConstraint(T,F),Cons) => valof do{
-    _ <- addConstraint(T,fieldConstraint(T,F));
-    valis Cons
-  }.
-  applyConstraint(Con,Cons) where contractConstraint(A).=Con => valof do{
-    AA .= ref deRef(A);
-    while tpExp(Op,Arg) .= AA! do{
-      _ <- addConstraint(Arg,Con);
-      AA := deRef(Op)
-    };
-    valis [Con,..Cons]
-  }
+  applyConstraint:(locn,constraint,canon,dict) => canon.
+  applyConstraint(Lc,fieldConstraint(V,F,T),Trm,Env)
+      where sameType(typeOf(Trm),V,Env) => overaccess(Lc,Trm,F,T).
+  applyConstraint(Lc,conTract(Nm,Args,Deps),Trm,_) =>
+    over(Lc,Trm,conTract(Nm,Args,Deps)).
 }

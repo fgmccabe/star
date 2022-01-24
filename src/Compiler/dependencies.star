@@ -108,6 +108,10 @@ star.compiler.dependencies{
       Sp .= implSp(implementedContractName(Cn)) =>
     either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn)).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
+      (Lc,_,_,Cn,_) ^= isAccessorStmt(A) &&
+      Sp .= accSp(implementedContractName(Cn)) =>
+    either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn)).
+  collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
       (Lc,_,_,L,R) ^= isTypeExistsStmt(A) && Sp .= tpSp(typeName(L)) =>
     either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn)).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
@@ -397,14 +401,16 @@ star.compiler.dependencies{
     collectTermRefs(L,All,Rf,Rp).
   collectTermRefs(T,All,Rf,Rp) where (_,L) ^= isDoTerm(T) =>
     collectDoRefs(L,All,Rf,Rp).
-  collectTermRefs(T,All,Rf,Rp) where (_,L) ^= isActionTerm(T) =>
+  collectTermRefs(T,All,Rf,Rp) where (_,L) ^= isResultTerm(T) =>
     collectDoRefs(L,All,Rf,Rp).
-  collectTermRefs(T,All,Rf,Rp) where (_,L) ^= isLazyTerm(T) =>
+  collectTermRefs(T,All,Rf,Rp) where (_,L) ^= isActionTerm(T) =>
     collectDoRefs(L,All,Rf,Rp).
   collectTermRefs(T,All,Rf,Rp) where (_,L) ^= isTaskTerm(T) =>
     collectDoRefs(L,All,Rf,Rp).
   collectTermRefs(T,All,Rf,Rp) where (_,L) ^= isValof(T) =>
-    collectTermRefs(L,All,Rf,Rp).
+    ((_,[As]) ^= isBrTuple(L) ?
+      collectDoRefs(As,ALl,Rf,Rp) ||
+      collectTermRefs(L,All,Rf,Rp)).
   collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isAbstraction(T) => do{
     Rf1 <- collectTermRefs(L,All,Rf,Rp);
     collectCondRefs(R,All,Rf1,Rp)
