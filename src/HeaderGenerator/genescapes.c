@@ -186,9 +186,19 @@ static char *dumpSig(char *sig, strBufferPo out) {
       outStr(O_IO(out), ")");
       break;
     case tplSig:
-      outStr(O_IO(out), "tplType(");
-      sig = dSequence(sig, out);
-      outStr(O_IO(out), ")");
+      switch (genMode) {
+        case genStar:
+          outStr(O_IO(out), "tupleType(");
+          sig = dSequence(sig, out);
+          outStr(O_IO(out), ")");
+          break;
+        case genProlog:
+          outStr(O_IO(out), "tplType(");
+          sig = dSequence(sig, out);
+          outStr(O_IO(out), ")");
+          break;
+      }
+
       break;
     case funSig:
       switch (genMode) {

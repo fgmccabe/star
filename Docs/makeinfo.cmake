@@ -14,7 +14,7 @@ function(add_info nm)
         set(info_deps)
 
         foreach (v ${ARGV})
-            set(info_deps ${info_deps} ${v}.texi)
+          set(info_deps ${info_deps} ${v}.texi)
         endforeach ()
 
         add_custom_command(OUTPUT ${out_info}
@@ -24,7 +24,7 @@ function(add_info nm)
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                 VERBATIM)
 
-        add_custom_target(${nm}.info ALL DEPENDS ${out_info})
+        add_custom_target(${nm}.info ALL DEPENDS ${info_deps})
 
         add_custom_command(OUTPUT ${out_html}
                 COMMAND ${MAKEINFO} --html --no-split -o ${out_html} ${info_texi}
@@ -33,7 +33,7 @@ function(add_info nm)
                 COMMENT "Creating HTML file ${out_html}"
                 VERBATIM)
 
-        add_custom_target(${nm}.html ALL DEPENDS ${out_html})
+        add_custom_target(${nm}.html ALL DEPENDS ${info_deps})
 
         add_custom_command(OUTPUT ${out_pdf}
                 COMMAND ${MAKEINFO} --pdf -o ${out_pdf} ${info_texi}
@@ -41,7 +41,7 @@ function(add_info nm)
                 COMMENT "Creating Pdf file ${out_pdf}"
                 VERBATIM)
 
-        add_custom_target(${nm}.pdf ALL DEPENDS ${out_pdf})
+        add_custom_target(${nm}.pdf ALL DEPENDS ${info_deps})
 
     endif (MAKEINFO)
 endfunction(add_info)

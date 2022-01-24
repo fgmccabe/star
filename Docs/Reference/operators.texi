@@ -422,6 +422,10 @@
 @tab non-associative infix
 @tab 975
 @tab reassignable variable definition
+@item @code{.access}
+@tab non-associative prefix
+@tab 1260
+@tab field access implementation
 @item @code{:?}
 @tab non-associative infix
 @tab 400
@@ -607,21 +611,22 @@
   @tab @code{::}
   @tab @code{+++}
   @item @code{:=}
+  @tab @code{.access}
   @tab @code{:?}
   @tab @code{.<<.}
   @tab @code{^.}
-  @tab @code{>>=}
-  @item @code{^/}
+  @item @code{>>=}
+  @tab @code{^/}
   @tab @code{<~}
   @tab @code{|}
   @tab @code{.#.}
-  @tab @code{~}
-  @item @code{^//}
+  @item @code{~}
+  @tab @code{^//}
   @tab @code{||}
   @tab @code{::=}
   @tab @code{/\\}
-  @tab @code{>=}
-  @item @code{>>}
+  @item @code{>=}
+  @tab @code{>>}
 
 @end multitable
 @end float

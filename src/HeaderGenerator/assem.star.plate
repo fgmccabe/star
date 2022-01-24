@@ -4,17 +4,18 @@ star.compiler.assem{
   import star.multi.
   import star.sort.
 
+  import star.compiler.escapes.
   import star.compiler.location.
   import star.compiler.terms.
   import star.compiler.types.
   import star.compiler.ltipe.
 
-  public codePolicy ::= hardDefinition | softDefinition.
+  public codePolicy ::= .hardDefinition | .softDefinition.
 
-  public implementation display[codePolicy] => {.
-    disp(hardDefinition) => "hard".
-    disp(softDefinition) => "soft".
-  .}
+  public implementation display[codePolicy] => {
+    disp(.hardDefinition) => "hard".
+    disp(.softDefinition) => "soft".
+  }
 
   public codeSegment ::= func(termLbl,codePolicy,tipe,cons[assemOp]) |
     global(termLbl,tipe,cons[assemOp]) |
@@ -35,7 +36,7 @@ star.compiler.assem{
     (_,Lbls) .= genLblTbl(Ins,0,[]) &&
     (Code,Lts,Lns,Lcs,_,Max) .= assemBlock(Ins,Lbls,Lt0,[],[],0,0,[]) =>
     mkCons("func",
-      [symb(Nm),encPolicy(H),strg(encodeSignature(Sig)),intgr(Max),mkTpl(Code::cons[term]),litTbl(Lts),mkTpl([Lcl|Lcl in Lcs]),
+      [symb(Nm),encPolicy(H),strg(encodeSignature(Sig)),intgr(Max),mkTpl(Code::cons[term]),litTbl(Lts),mkTpl(Lcs::cons[term]),
             mkTpl(sortLines(Lns))]).
   assem(global(Nm,Sig,Ins)) where
     (Lt0,_) .= findLit([],symb(Nm)) &&
@@ -47,8 +48,8 @@ star.compiler.assem{
   assem(struct(Lbl,Tp,Ix)) =>
     mkCons("struct",[symb(Lbl),strg(encodeSignature(Tp)),intgr(Ix)]).
 
-  encPolicy(hardDefinition) => mkTpl([]).
-  encPolicy(softDefinition) => mkTpl([strg("soft")]).
+  encPolicy(.hardDefinition) => mkTpl([]).
+  encPolicy(.softDefinition) => mkTpl([strg("soft")]).
 
   private assemBlock:(cons[assemOp],map[string,integer],map[term,integer],map[term,integer],
                       set[term],integer,integer,cons[integer]) =>
@@ -65,7 +66,7 @@ star.compiler.assem{
     T ^= Lbls[End] =>
     mnem(Ins,Code,Lbls,Lts,Lns,Lcs\+mkTpl([strg(Nm),intgr(F),intgr(T),intgr(Off)]),Pc,MxLcl,Ends).
   mnem([iLine(Lc),..Ins],Code,Lbs,Lts,Lns,Lcs,Pc,MxLcl,Ends) =>
-        mnem([idLine(Lc),..Ins],Code,Lbs,Lts,Lns[mkTpl([Lc,intgr(Pc)])->Pc],Lcs,Pc,MxLcl,Ends).
+        mnem(Ins,Code,Lbs,Lts,Lns[mkTpl([Lc,intgr(Pc)])->Pc],Lcs,Pc,MxLcl,Ends).
 #(Mnem)
 
   genLblTbl:(cons[assemOp],integer,map[string,integer]) => (integer,map[string,integer]).
@@ -74,7 +75,7 @@ star.compiler.assem{
     genLblTbl(Ins,Pc,Lbls[Lbl->Pc]).
   genLblTbl([iLocal(_,_,_,_),..Ins],Pc,Lbls) =>
     genLblTbl(Ins,Pc,Lbls).
-  genLblTbl([iLine(T),..Ins],Pc,Lbs) => genLblTbl([idLine(T),..Ins],Pc,Lbs).
+  genLblTbl([iLine(T),..Ins],Pc,Lbs) => genLblTbl(Ins,Pc,Lbs).
 #(Lbls)
 
   findEnd:(cons[integer],integer)=>integer.
@@ -94,18 +95,18 @@ star.compiler.assem{
   compLine:(keyval[term,integer],keyval[term,integer])=>boolean.
   compLine(T1->P1,T2->P2) => P1<P2.
 
-  public implementation display[assemLbl] => {.
+  public implementation display[assemLbl] => {
     disp(al(L)) => L
-  .}
+  }
 
-  public implementation display[codeSegment] => {.
+  public implementation display[codeSegment] => {
     disp(func(Nm,H,Sig,Ins)) => "$(H) $(Nm)\:$(Sig)\n"++showMnem(Ins,0).
-    disp(global(Nm,Sig,Ins)) => "global $(nm)\:$(Sig)\n"++showMnem(Ins,0).
-  .}
+    disp(global(Nm,Sig,Ins)) => "global $(Nm)\:$(Sig)\n"++showMnem(Ins,0).
+  }
 
-  public implementation display[assemOp] => {.
+  public implementation display[assemOp] => {
     disp(Op) => showMnem([Op],0).
-  .}
+  }
 
   showMnem:(cons[assemOp],integer) => string.
   showMnem([],_) => "".
