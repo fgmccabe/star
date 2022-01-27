@@ -36,7 +36,7 @@ star.compiler.typeparse{
   parseType(Q,Tp,Env,Rp) where (Lc,Nm) ^= isName(Tp) => do{
     if Nm=="_" then
       valis newTypeVar("_")
-    else if (Nm,VTp) in Q then
+    else if {? (Nm,VTp) in Q ?} then
       valis VTp
     else if (_,T,TpRl) ^= findType(Env,Nm) then{
       if isLambdaRule(TpRl) then{
@@ -51,33 +51,24 @@ star.compiler.typeparse{
   }
   parseType(Q,Tp,Env,Rp) where (Lc,O,Args) ^= isSquareTerm(Tp) && (OLc,Nm)^=isName(O) => do{
     (Op,Rl) <- parseTypeName(Q,OLc,Nm,Env,Rp);
-    if (Qx,OOp) .= freshen(Op,Env) then {
+    if (_,OOp) .= freshen(Op,Env) then {
       ArgTps <- parseTypes(Q,Args,Env,Rp);
-      Inn .= mkTypeExp(deRef(OOp),ArgTps);
-      if LmRl^=Rl then{
-	(_,typeLambda(L,Rhs)) .= freshen(LmRl,Env);
-	if sameType(L,Inn,Env) then{
-	  valis rebind(Qx,Rhs,Env)
-	}
-	else
-	raise reportError(Rp,"type rule for $(Nm) does not apply to $(Tp)",OLc)
-      } else{
-	valis rebind(Qx,Inn,Env)
-      }
-    } else
+      doTypeFun(Lc,OOp,ArgTps,Env,Rp)
+    }
+    else
     raise reportError(Rp,"Could not freshen $(Op)",Lc)
   }
-  parseType(Q,T,Env,Rp) where (Lc,Lhs,Rhs) ^= isBinary(T,"=>") => do{
+  parseType(Q,T,Env,Rp) where (Lc,Lhs,Rhs) ^= isFunctionType(T) => do{
     A <- parseArgType(Q,Lhs,Env,Rp);
     R <- parseType(Q,Rhs,Env,Rp);
     valis fnType(A,R)
   }
-  parseType(Q,T,Env,Rp) where (Lc,Lhs,Rhs) ^= isBinary(T,"=>>") => do{
+  parseType(Q,T,Env,Rp) where (Lc,Lhs,Rhs) ^= isContTp(T) => do{
     A <- parseArgType(Q,Lhs,Env,Rp);
     R <- parseType(Q,Rhs,Env,Rp);
     valis contType(A,R)
   }
-  parseType(Q,T,Env,Rp) where (Lc,Lhs,Rhs) ^= isBinary(T,"<=>") => do{
+  parseType(Q,T,Env,Rp) where (Lc,Lhs,Rhs) ^= isConstructorTyoe(T) => do{
     A <- parseArgType(Q,Lhs,Env,Rp);
     R <- parseType(Q,Rhs,Env,Rp);
     valis consType(A,R)
@@ -123,8 +114,10 @@ star.compiler.typeparse{
     } else
     raise reportError(Rp,"type access to non-var $(Lhs) not supported",Lc)
   }
+  parseType(Q,T,Env,Rp) where (Lc,Op,[L,R]) ^= isRoundTerm(T) =>
+    parseType(Q,squareTerm(Lc,Op,[L,R]),Env,Rp).
   parseType(Q,T,Env,Rp) default =>
-    other(reportError(Rp,"cannot parse type $(T)",locOf(T))).
+    other(reportError(Rp,"cannot understand type $(T)",locOf(T))).
 
   parseArgType(Q,A,Env,Rp) where (_,As) ^= isTuple(A) => do{
     Args <- parseTypes(Q,As,Env,Rp);
@@ -146,6 +139,20 @@ star.compiler.typeparse{
   }
   parseTypeArgs(Lc,_,As,Env,Rp) =>
     other(reportError(Rp,"cannot parse argument types $(As)",Lc)).
+
+  doTypeFun(_,typeLambda(tupleType([]),Tp),[],_,Cx,_) => ok((Cx,Tp)).
+  doTypeFun(Lc,typeLambda(L,R),[A,..As],Env,C,Rp) => do{
+    if sameType(L,A,Env) then{
+      doTypeFun(Lc,R,As,Env,C,Rp)
+    } else {
+      raise reportError(Rp,"Type rule $(typeLambda(L,R)) does not apply to $(A)",Lc)
+    }
+  }
+  doTypeFun(Lc,constrainedType(Tp,C),Args,Env,Cx,Rp) =>
+    doTypeFun(Lc,Tp,Args,Env,[C,..Cx],Rp).
+  doTypeFun(Lc,Op,[A,..As],Env,C,Rp) =>
+    doTypeFun(Lc,tpExp(Op,A),As,Env,C,Rp).
+  doTypeFun(Lc,Tp,[],_,Cx,Rp) => ok((Cx,Tp)).
 
   parseTypeFields:(tipes,cons[ast],tipes,tipes,dict,reports) =>
     either[reports,(tipes,tipes)].
@@ -178,7 +185,7 @@ star.compiler.typeparse{
     other(reportError(Rp,"invalid type field -- $(F)",locOf(F))). -- 
 	  
   parseTypeName(_,_,"_",_,_) => either((newTypeVar("_"),.none)).
-  parseTypeName(Q,_,Nm,_,_) where (Nm,Tp) in Q => either((Tp,.none)).
+  parseTypeName(Q,_,Nm,_,_) where {? (Nm,Tp) in Q ?} => either((Tp,.none)).
   parseTypeName(Q,_,Nm,Env,Rp) where (_,T,TpRl) ^= findType(Env,Nm) => do{
     if isLambdaRule(TpRl) then 
       valis (T,some(TpRl))
@@ -245,10 +252,10 @@ star.compiler.typeparse{
 	if [AAs].=As && (_,L,R) ^= isBinary(AAs,"->>") then{
 	  Tps <- parseTypes(Q,deComma(L),Env,Rp);
 	  Dps <- parseTypes(Q,deComma(R),Env,Rp);
-	  valis conTract(O,Tps,Dps)
+	  valis conTract(funDeps(mkTypeExp(tpFun(Nm,size(Tps)),Tps),Dps))
 	} else{
-	  Tps <- parseTypes(As,Env,Rp);
-	  valis conTract(O,Tps,[])
+	  Tps <- parseTypes(Q,As,Env,Rp);
+	  valis conTract(mkTypeExp(tpFun(Nm,size(Tps)),Tps))
 	}
       }
   parseContractConstraint(_,A,Env,Rp) =>
@@ -281,6 +288,7 @@ star.compiler.typeparse{
   pickTypeTemplate(tpFun(Nm,Ar)) => tpFun(Nm,Ar).
   pickTypeTemplate(kFun(Nm,Ar)) => kFun(Nm,Ar).
   pickTypeTemplate(tpExp(Op,_)) => pickTypeTemplate(Op).
+  pickTypeTemplate(funDeps(T,_)) => pickTypeTemplate(T).
 
   public parseTypeDef:(string,ast,dict,string,reports) => either[reports,(canonDef,dict)].
   parseTypeDef(Nm,St,Env,Path,Rp) where (Lc,V,C,H,B) ^= isTypeExistsStmt(St) => do{

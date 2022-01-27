@@ -380,9 +380,6 @@ star.compiler.types{
   funTypeRes(allType(_,Tp)) => funTypeRes(deRef(Tp)).
   funTypeRes(constrainedType(T,_))=>funTypeRes(T).
 
-  public tplTypes:(tipe)=>cons[tipe].
-  tplTypes(tupleType(Els))=>Els.
-
   public isFunType:(tipe) => option[(tipe,tipe)].
   isFunType(Tp) where
       tpExp(O,B).=deRef(Tp) &&
