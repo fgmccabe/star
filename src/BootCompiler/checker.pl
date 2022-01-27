@@ -733,11 +733,6 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,dot(Lc,Rec,Fld,Tp),Path) :-
   isFieldAcc(Term,Lc,Rc,Fld),!,
   newTypeVar("_R",AT),
   typeOfExp(Rc,AT,ErTp,Env,Ev,Rec,Path).
-typeOfExp(Term,Tp,ErTp,Env,Ev,replace(Lc,LExp,RExp),Path) :-
-  isRecordUpdate(Term,Lc,Lft,Rgt),!,
-  typeOfExp(Lft,Tp,ErTp,Env,Ev,LExp,Path),
-  newTypeVar("_r",R),
-  typeOfExp(Rgt,R,ErTp,Env,_,RExp,Path).
 typeOfExp(Term,Tp,ErTp,Env,Ev,cond(Lc,Test,Then,Else,Tp),Path) :-
   isConditional(Term,Lc,Tst,Th,El),!,
   checkGoal(Tst,ErTp,Env,E0,Test,Path),

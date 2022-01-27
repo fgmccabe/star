@@ -31,7 +31,8 @@
 	      ruleName/3,headName/2,
 	      isWhere/4,mkWhere/4,mkWherePtn/4,mkWhereEquality/3,
 	      isCoerce/4,coerce/4,isOptCoerce/4,optCoerce/4,
-	      isFieldAcc/4,fieldAcc/4,isIndexTerm/4,mkIndexTerm/4,isRecordUpdate/4,recordUpdate/4,
+	      isFieldAcc/4,fieldAcc/4,isIndexTerm/4,mkIndexTerm/4,
+	      isRecordUpdate/4,recordUpdate/4,isUpdate/5,
 	      isSlice/5,isSplice/6,
 	      isOptionMatch/4,optionMatch/4,
 	      isConjunct/4,conjunct/4,isDisjunct/4,disjunct/4,
@@ -710,11 +711,17 @@ isFieldAcc(Trm,Lc,Rc,Fld) :-
 fieldAcc(Lc,Rc,F,T) :-
   binary(Lc,".",Rc,F,T).
 
-isRecordUpdate(Trm,Lc,Lft,Rep) :-
-  isBinary(Trm,Lc,"<<-",Lft,Rep).
+isRecordUpdate(Trm,Lc,Lft,Els) :-
+  isBinary(Trm,Lc,"<<-",Lft,Rep),
+  isBraceTuple(Rep,_,Els).
 
-recordUpdate(Lc,L,R,T) :-
+recordUpdate(Lc,L,Els,T) :-
+  braceTuple(Lc,Els,R),
   binary(Lc,"<<-",L,R,T).
+
+isUpdate(Trm,Lc,R,F,V) :-
+  isBinary(Trm,Lc,"<<-",Lft,V),
+  isBinary(Lft,_,".",R,F).
 
 isIndexTerm(Trm,Lc,Lhs,Rhs) :-
   isSquareTerm(Trm,Lc,Lhs,[Rhs]),
