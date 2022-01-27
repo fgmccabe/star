@@ -17,7 +17,7 @@ star.compiler.dict.mgt{
     some(vrEntry(.none,(L,E)=>refreshVar(L,Nm,Tp,E),Tp,.none)).
   isVar(Nm,_) where Tp ^= escapeType(Nm) => some(vrEntry(.none,(L,E)=>refreshVar(L,Nm,Tp,E),Tp,.none)).
   isVar(Nm,[]) => .none.
-  isVar(Nm,[scope(_,Vrs,_,_),.._]) where Entry^=Vrs[Nm] => some(Entry).
+  isVar(Nm,[scope(_,Vrs,_,_,_,_),.._]) where Entry^=Vrs[Nm] => some(Entry).
   isVar(Nm,[_,..D]) => isVar(Nm,D).
 
   public findVar:(locn,string,dict) => option[canon].
@@ -56,10 +56,10 @@ star.compiler.dict.mgt{
 
   public undeclareVar:(string,dict) => dict.
   undeclareVar(_,[]) => [].
-  undeclareVar(Nm,[scope(Tps,Vrs,Cns,Imps),..Ev]) =>
+  undeclareVar(Nm,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs),..Ev]) =>
     (_ ^= Vrs[Nm] ?
-	[scope(Tps,Vrs[~Nm],Cns,Imps),..Ev] ||
-	[scope(Tps,Vrs,Cns,Imps),..undeclareVar(Nm,Ev)]).
+      [scope(Tps,Vrs[~Nm],Cns,Cnts,Imps,Accs),..Ev] ||
+      [scope(Tps,Vrs,Cns,Cnts,Imps,Accs),..undeclareVar(Nm,Ev)]).
 
   public declareConstructor:(string,string,option[locn],tipe,dict) => dict.
   declareConstructor(Nm,FullNm,Lc,Tp,Env) =>
@@ -78,20 +78,20 @@ star.compiler.dict.mgt{
 
   public mergeDict:(dict,dict,dict) => dict.
   mergeDict(D1,D2,Env) => let{.
-    mergeScopes([scope(T1,V1,C1,I1),..Rst],
-      [scope(_,V2,_,_),.._]) =>
-      [scope(T1,mergeVDefs(V1,V2),C1,I1),..Rst].
+    mergeScopes([scope(T1,V1,C1,X1,I1,A1),..Rst],
+      [scope(_,V2,_,_,_,_),.._]) =>
+      [scope(T1,mergeVDefs(V1,V2),C1,X1,I1,A1),..Rst].
     mergeVDefs(V1,V2) => {Nm->E1|Nm->E1 in V1 && E2^=V2[Nm] && sameDesc(E1,E2)}.
     sameDesc(vrEntry(_,_,T1,_),vrEntry(_,_,T2,_)) => sameType(T1,T2,Env)
   .} in mergeScopes(D1,D2).
   
   public declareVr:(string,option[locn],tipe,(locn,dict)=>canon,option[tipe],dict) => dict.
-  declareVr(Nm,Lc,Tp,MkVr,Fc,[scope(Tps,Vrs,Cns,Imps),..Ev]) =>
-    [scope(Tps,Vrs[Nm->vrEntry(Lc,MkVr,Tp,Fc)],Cns,Imps),..Ev].
+  declareVr(Nm,Lc,Tp,MkVr,Fc,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs),..Ev]) =>
+    [scope(Tps,Vrs[Nm->vrEntry(Lc,MkVr,Tp,Fc)],Cns,Cnts,Imps,Accs),..Ev].
 
   public declareContract:(locn,string,tipe,dict) => dict.
-  declareContract(Lc,Nm,Con,[scope(Tps,Vrs,Cns,Imps),..Rest]) =>
-    declareMethods(Lc,Con,[scope(Tps[Nm->tpDefn(some(Lc),Nm,typeKey(Con),Con)],Vrs,Cns[Nm->Con],Imps),..Rest]).
+  declareContract(Lc,Nm,Con,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs),..Rest]) =>
+    declareMethods(Lc,Con,[scope(Tps[Nm->tpDefn(some(Lc),Nm,typeKey(Con),Con)],Vrs,Cns,Cnts[Nm->Con],Imps,Accs),..Rest]).
 
   declareMethods:(locn,tipe,dict) => dict.
   declareMethods(Lc,Spec,Dict) where
@@ -99,7 +99,8 @@ star.compiler.dict.mgt{
       (MC,typeExists(CT,faceType(Methods,[]))) .= deConstrain(MI) =>
     formMethods(Methods,some(Lc),MQ,MC,CT,Dict).
 
-  formMethods:(cons[(string,tipe)],option[locn],cons[tipe],cons[constraint],tipe,dict) => dict.
+  formMethods:(cons[(string,tipe)],option[locn],cons[tipe],
+    cons[constraint],tipe,dict) => dict.
   formMethods([],_,_,_,_,Dict) => Dict.
   formMethods([(Nm,Tp),..Mtds],Lc,Q,Cx,Con,Dict) => valof action{
 --    logMsg("raw method type of $(Nm) is $(Tp), constraints: $(Con)");
@@ -145,10 +146,12 @@ star.compiler.dict.mgt{
 
   public declareConstraints:(locn,cons[constraint],dict) => dict.
   declareConstraints(_,[],E) => E.
-  declareConstraints(Lc,[contractConstraint(Con),..Cx],Env) where ConNm.=implementationName(Con) =>
+  declareConstraints(Lc,[Con,..Cx],Env)
+      where ConTp .= typeOf(Con) &&
+      ConNm.=implementationName(ConTp) =>
     declareConstraints(Lc,Cx,
-      declareVar(ConNm,some(Lc),Con,.none,
-	declareImplementation(implementationName(Con),Con,Env))).
+      declareVar(ConNm,some(Lc),ConTp,.none,
+	declareImplementation(Lc,ConNm,ConNm,ConTp,Env))).
   declareConstraints(Lc,[_,..Cx],Env) =>
     declareConstraints(Lc,Cx,Env).
 
@@ -160,6 +163,6 @@ star.compiler.dict.mgt{
   applyConstraint:(locn,constraint,canon,dict) => canon.
   applyConstraint(Lc,fieldConstraint(V,F,T),Trm,Env)
       where sameType(typeOf(Trm),V,Env) => overaccess(Lc,Trm,F,T).
-  applyConstraint(Lc,conTract(Nm,Args,Deps),Trm,_) =>
-    over(Lc,Trm,conTract(Nm,Args,Deps)).
+  applyConstraint(Lc,conTract(C),Trm,_) =>
+    over(Lc,Trm,conTract(C)).
 }

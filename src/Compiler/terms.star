@@ -322,7 +322,7 @@ star.compiler.terms{
     (Nm,T0) <- decodeText(T);
     (tupleType(Tps),T1) <- decodeType(T0);
     (tupleType(Dps),T2) <- decodeType(T1);
-    valis (conTract(Nm,Tps,Dps),T2)
+    valis (conTract(mkConType(Nm,Tps,Dps)),T2)
   }
   decodeConstraint([`a`,..T]) => do{
     (BT,T0) <- decodeType(T);
@@ -380,12 +380,18 @@ star.compiler.terms{
   encodeFlds([(Nm,T),..Tps],Chs) =>
     encodeFlds(Tps,encodeType(deRef(T),encodeText(Nm,Chs))).
 
-  encodeConstraint(conTract(Nm,Ts,Ds),Chs) =>
+  encodeConstraint(conTract(C),Chs) where (Nm,Ts,Ds).=pullOut(deRef(C)) =>
     encodeType(tupleType(Ds),
       encodeType(tupleType(Ts),
 	encodeText(Nm,[`c`,..Chs]))).
   encodeConstraint(fieldConstraint(V,F,T),Chs) =>
     encodeType(faceType([(F,deRef(T))],[]),encodeType(deRef(V),[`a`,..Chs])).
+
+  pullOut(funDeps(T,D)) where (Nm,Ts,_) .= pullOut(deRef(T)) =>
+    (Nm,Ts,D).
+  pullOut(tpExp(Op,Arg)) where (Nm,Ts,_) .= pullOut(Op) =>
+    (Nm,[Arg,..Ts],[]).
+  pullOut(tpFun(Nm,_)) => (Nm,[],[]).
   
   encodeText:(string,cons[char]) => cons[char].
   encodeText(Txt,Chs) where Chrs .= Txt::cons[char] &&

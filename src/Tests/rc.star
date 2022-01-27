@@ -11,6 +11,8 @@ test.rc{
 
   main:()=>action[(),()].
   main()=>action{
-    show cont(2).C
+    show cont(2).C;
+--    show cont(2).C<<-4;
+--    show cont(2)<<-{C=4}
   }
 }

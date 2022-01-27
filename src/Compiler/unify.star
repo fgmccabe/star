@@ -64,6 +64,8 @@ star.compiler.unify{
       same(T1,T2,Env).
     smT(allType(V1,T1),allType(V2,T2),Env) =>
       same(T1,rewriteType(T2,[V2->V1]),Env).
+    smT(funDeps(T1,D1),funDeps(T2,D2),Env) =>
+      same(T1,T2,Env) && smTypes(D1,D2,Env).
     smT(constrainedType(T1,C1),constrainedType(T2,C2),Env) =>
       same(T1,T2,Env) && sameConstraint(C1,C2,Env).
     smT(T1,T2,_) default => valof resetBindings .
@@ -80,8 +82,8 @@ star.compiler.unify{
     cmpField:((string,tipe),(string,tipe))=>boolean.
     cmpField((F1,_),(F2,_)) => F1<F2.
 
-    sameConstraint(conTract(N1,T1,D1),conTract(N2,T2,D2),Env) => 
-      N1==N2 && smTypes(T1,T2,Env) && smTypes(D1,D2,Env).
+    sameConstraint(conTract(T1),conTract(T2),Env) => 
+      same(T1,T2,Env).
     sameConstraint(fieldConstraint(V1,F1,T1),fieldConstraint(V2,F2,T2),Env) =>
       same(V1,V2,Env) && F1==F2 && same(T1,T2,Env).
 
@@ -134,6 +136,8 @@ star.compiler.unify{
   occIn(Id,faceType(Flds,Tps)) => occInPrs(Id,Flds) || occInPrs(Id,Tps).
   occIn(Id,typeLambda(A,Ra)) => occIn(Id,deRef(A)) || occIn(Id,deRef(Ra)).
   occIn(Id,typeExists(A,Rb)) => occIn(Id,deRef(A)) || occIn(Id,deRef(Rb)).
+  occIn(Id,funDeps(T,D)) =>
+    occIn(Id,deRef(T)) || {? El in D && occIn(Id,deRef(El)) ?}.
   occIn(Id,constrainedType(T,_)) => occIn(Id,deRef(T)).
   occIn(_,_) default => .false.
 
@@ -159,11 +163,12 @@ star.compiler.unify{
     Tps//((Nm,T))=>(Nm,rewriteType(T,Env))).
   rewr(typeLambda(A,R),_) => typeLambda(A,R). -- fix me
   rewr(typeExists(A,R),_) => typeExists(A,R). -- me too
+  rewr(funDeps(T,D),Env) => funDeps(rewriteType(T,Env),rewriteTps(D,Env)).
   rewr(constrainedType(T,C),Env) => constrainedType(rewriteType(T,Env),rewriteCon(C,Env)).
 
   rewriteTps(Tps,Env) => (Tps//(E)=>rewriteType(E,Env)).
 
-  rewriteCon(conTract(Nm,Tps,Deps),Env) =>
-    conTract(Nm,rewriteTps(Tps,Env),rewriteTps(Deps,Env)).
+  rewriteCon(conTract(T),Env) =>
+    conTract(rewriteType(T,Env)).
   rewriteCon(fieldConstraint(V,F,T),Env) => fieldConstraint(rewriteType(V,Env),F,rewriteType(T,Env)).
 }
