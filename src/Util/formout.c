@@ -597,20 +597,19 @@ void reinstallMsgProc(codePoint key, fileMsgProc proc) {
   procs[(unsigned int) key] = proc;
 }
 
-static codePoint nextDecimal(char *str, integer *pos, integer len, va_list *args, integer *ix) {
-  codePoint fcp = nextCodePoint(str, pos, len);
-  if (fcp == '*') {
-    *ix = (integer) va_arg(*args, integer);
-    fcp = nextCodePoint(str, pos, len);
-  } else {
-    integer val = 0;
-    while (isNdChar(fcp) && *pos < len) { /* extract the width field */
-      val = val * 10 + digitValue(fcp);
-      fcp = nextCodePoint(str, pos, len);
-    }
-    *ix = val;
-  }
-  return fcp;
+#define nextDecimal(format,pos,len,args,ix) {\
+  fcp = nextCodePoint((format), &(pos), (len));\
+  if (fcp == '*') {\
+    ix = (integer) va_arg((args), integer);\
+    fcp = nextCodePoint((format), &(pos), (len));\
+  } else {\
+    integer val = 0;\
+    while (isNdChar(fcp) && (pos) < (len)) { /* extract the width field */\
+      val = val * 10 + digitValue(fcp);\
+      fcp = nextCodePoint((format), &(pos), (len));\
+    }\
+    ix = val;\
+  }\
 }
 
 /* We have our own version of fprintf too */
@@ -671,12 +670,11 @@ retCode __voutMsg(ioPo f, char *format, va_list args) {
         while (strchr(".,", (char) fcp) != NULL) {
           if (fcp == '.') {    /* We have a precision ... */
             overridePrecision = True;
-
-            fcp = nextDecimal(format, &fx, flen, &args, &precision); /* extract the precision field */
+            /* extract the precision field */
+            nextDecimal(format,fx,flen,args,precision);
           } else if (fcp == ',') {
-            depth = 0;
-
-            fcp = nextDecimal(format, &fx, flen, &args, &depth); /* extract the depth field */
+            /* extract the depth field */
+            nextDecimal(format,fx,flen,args,depth); 
           } else
             break;
         }

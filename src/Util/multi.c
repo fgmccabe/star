@@ -199,8 +199,9 @@ multiPo multiFromStr(char *str) {
 }
 
 multiPo multiFromText(char *text, integer tlen) {
-  uint32 data[tlen];
-  zeroFill(data, tlen);
+  integer dataLen = tlen+1;
+  uint32 data[dataLen];
+  zeroFill(data, dataLen);
   logical positive = True;
   integer px = 0;
   if (text[px] == '-') {
@@ -222,6 +223,8 @@ multiPo multiFromText(char *text, integer tlen) {
   }
   // Allow for case where number might look negative
   dLen++;
+
+  assert(dLen<=dataLen);
 
   if (positive) {
     return allocMulti(data, dLen);
