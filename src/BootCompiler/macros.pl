@@ -385,10 +385,10 @@ examineTerm(T,Tx) :-
   macroTerm(E,Ex),
   mkOpen(Lc,Ex,Tx).
 examineTerm(T,Tx) :-
-  isRecordUpdate(T,Lc,L,R),!,
+  isRecordUpdate(T,Lc,L,Els),!,
   macroTerm(L,Lx),
-  macroTerm(R,Rx),
-  recordUpdate(Lc,Lx,Rx,Tx).
+  map(Els,macros:macroStmt,Ex),
+  recordUpdate(Lc,Lx,Ex,Tx).
 examineTerm(T,Tx) :-
   isCaseExp(T,Lc,E,C),!,
   macroTerm(E,Ex),
