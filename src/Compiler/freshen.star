@@ -74,25 +74,26 @@ star.compiler.freshen{
   frshn(tVar(T,N),_) => tVar(T,N).
   frshn(tFun(T,A,N),_) => tFun(T,A,N).
   frshn(tpFun(N,A),_) => tpFun(N,A).
-  frshn(tpExp(O,A),Env) => tpExp(rewrite(O,Env),rewrite(A,Env)).
+  frshn(tpExp(O,A),Env) => tpExp(frshnD(O,Env),frshnD(A,Env)).
   frshn(tupleType(Els),Env) => tupleType(frshnList(Els,Env)).
   frshn(faceType(Els,Tps),Env) =>
-    faceType(Els//(((Nm,E))=>(Nm,rewrite(E,Env))),
-      Tps//(((Nm,E))=>(Nm,rewrite(E,Env)))).
+    faceType(Els//(((Nm,E))=>(Nm,frshnD(E,Env))),
+      Tps//(((Nm,E))=>(Nm,frshnD(E,Env)))).
   frshn(allType(K,T),Env) => allType(K,frshn(T,Env)).
-  frshn(existType(K,T),Env) => existType(K,rewrite(T,Env)).
-  frshn(typeLambda(H,T),Env) => typeLambda(rewrite(H,Env),rewrite(T,Env)).
-  frshn(typeExists(H,T),Env) => typeExists(rewrite(H,Env),rewrite(T,Env)).
-  frshn(constrainedType(T,C),Env) => constrainedType(rewrite(T,Env),frshnConstraint(C,Env)).
+  frshn(existType(K,T),Env) => existType(K,frshnD(T,Env)).
+  frshn(typeLambda(H,T),Env) => typeLambda(frshnD(H,Env),frshnD(T,Env)).
+  frshn(typeExists(H,T),Env) => typeExists(frshnD(H,Env),frshnD(T,Env)).
+  frshn(constrainedType(T,C),Env) => constrainedType(frshnD(T,Env),frshnConstraint(C,Env)).
+  frshn(funDeps(T,D),Env) => funDeps(frshnD(T,Env),frshnList(D,Env)).
 
   frshnList:(cons[tipe],dict) => cons[tipe].
   frshnList(As,Env) => (As//(E)=>frshn(deRef(E),Env)).
 
-  rewrite(Tp,Env) => frshn(deRef(Tp),Env).
+  frshnD(Tp,Env) => frshn(deRef(Tp),Env).
 
-  frshnConstraint(conTract(Nm,Tps,Deps),Env) =>
-    conTract(Nm,frshnList(Tps,Env),frshnList(Deps,Env)).
+  frshnConstraint(conTract(T),Env) =>
+    conTract(frshn(T,Env)).
   frshnConstraint(fieldConstraint(V,F,T),Env) =>
-    fieldConstraint(rewrite(V,Env),F,rewrite(T,Env)).
+    fieldConstraint(frshnD(V,Env),F,frshnD(T,Env)).
 
 }
