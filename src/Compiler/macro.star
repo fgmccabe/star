@@ -617,7 +617,7 @@ star.compiler.macro{
     NR <- macroType(R,Rp);
     valis mkFunctionType(Lc,NL,NR)
   }
-  examineType(A,Rp) where (Lc,L,R) ^= isContType(A) => do{
+  examineType(A,Rp) where (Lc,L,R) ^= isContTp(A) => do{
     NL <- macroType(L,Rp);
     NR <- macroType(R,Rp);
     valis mkContType(Lc,NL,NR)

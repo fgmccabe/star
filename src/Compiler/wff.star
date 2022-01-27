@@ -123,8 +123,8 @@ star.compiler.wff{
   public isFunctionType:(ast) => option[(locn,ast,ast)].
   isFunctionType(A) => isBinary(A,"=>").
 
-  public isContType:(ast) => option[(locn,ast,ast)].
-  isContType(A) => isBinary(A,"=>>").
+  public isContTp:(ast) => option[(locn,ast,ast)].
+  isContTp(A) => isBinary(A,"=>>").
 
   public mkContType:(locn,ast,ast) => ast.
   mkContType(Lc,Lhs,Rhs) => binary(Lc,"=>>",Lhs,Rhs).
