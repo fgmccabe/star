@@ -36,7 +36,7 @@ star.compiler.typeparse{
   parseType(Q,Tp,Env,Rp) where (Lc,Nm) ^= isName(Tp) => do{
     if Nm=="_" then
       valis newTypeVar("_")
-    else if {? (Nm,VTp) in Q ?} then
+    else if VTp ^= {! VTp | (Nm,VTp) in Q !} then
       valis VTp
     else if (_,T,TpRl) ^= findType(Env,Nm) then{
       if isLambdaRule(TpRl) then{
@@ -68,7 +68,7 @@ star.compiler.typeparse{
     R <- parseType(Q,Rhs,Env,Rp);
     valis contType(A,R)
   }
-  parseType(Q,T,Env,Rp) where (Lc,Lhs,Rhs) ^= isConstructorTyoe(T) => do{
+  parseType(Q,T,Env,Rp) where (Lc,Lhs,Rhs) ^= isConstructorType(T) => do{
     A <- parseArgType(Q,Lhs,Env,Rp);
     R <- parseType(Q,Rhs,Env,Rp);
     valis consType(A,R)
@@ -105,7 +105,7 @@ star.compiler.typeparse{
   parseType(Q,T,Env,Rp) where (Lc,Lhs,Rhs) ^= isFieldAcc(T) => do{
     if (_,Id) ^= isName(Lhs) && (_,Fld) ^= isName(Rhs) then{
       if (_,RcType) ^= findVarFace(Lc,Id,Env) && faceType(_,Tps) .= RcType then{
-	if (Fld,Ftp) in Tps then
+	if Ftp ^= {! Ftp | (Fld,Ftp) in Tps !} then
 	  valis Ftp
 	else
 	raise reportError(Rp,"Field $(Rhs) not defined in type $(RcType)",Lc)
@@ -128,7 +128,7 @@ star.compiler.typeparse{
     
   parseTypeArgs:(locn,tipes,cons[ast],dict,reports) =>
     either[reports,(cons[tipe],cons[tipe])].
-  parseTypeArgs(_,Q,[XX],Env,Rp) where (As,Ds)^=isDepends(XX) => do{
+  parseTypeArgs(_,Q,[XX],Env,Rp) where (_,As,Ds)^=isDepends(XX) => do{
     Lhs <- parseTypes(Q,As,Env,Rp);
     Rhs <- parseTypes(Q,Ds,Env,Rp);
     valis (Lhs,Rhs)
@@ -140,19 +140,17 @@ star.compiler.typeparse{
   parseTypeArgs(Lc,_,As,Env,Rp) =>
     other(reportError(Rp,"cannot parse argument types $(As)",Lc)).
 
-  doTypeFun(_,typeLambda(tupleType([]),Tp),[],_,Cx,_) => ok((Cx,Tp)).
-  doTypeFun(Lc,typeLambda(L,R),[A,..As],Env,C,Rp) => do{
+  doTypeFun(_,typeLambda(tupleType([]),Tp),[],_,_) => either(Tp).
+  doTypeFun(Lc,typeLambda(L,R),[A,..As],Env,Rp) => do{
     if sameType(L,A,Env) then{
-      doTypeFun(Lc,R,As,Env,C,Rp)
+      doTypeFun(Lc,R,As,Env,Rp)
     } else {
       raise reportError(Rp,"Type rule $(typeLambda(L,R)) does not apply to $(A)",Lc)
     }
   }
-  doTypeFun(Lc,constrainedType(Tp,C),Args,Env,Cx,Rp) =>
-    doTypeFun(Lc,Tp,Args,Env,[C,..Cx],Rp).
-  doTypeFun(Lc,Op,[A,..As],Env,C,Rp) =>
-    doTypeFun(Lc,tpExp(Op,A),As,Env,C,Rp).
-  doTypeFun(Lc,Tp,[],_,Cx,Rp) => ok((Cx,Tp)).
+  doTypeFun(Lc,Op,[A,..As],Env,Rp) =>
+    doTypeFun(Lc,tpExp(Op,A),As,Env,Rp).
+  doTypeFun(Lc,Tp,[],_,Rp) => either(Tp).
 
   parseTypeFields:(tipes,cons[ast],tipes,tipes,dict,reports) =>
     either[reports,(tipes,tipes)].
@@ -185,7 +183,7 @@ star.compiler.typeparse{
     other(reportError(Rp,"invalid type field -- $(F)",locOf(F))). -- 
 	  
   parseTypeName(_,_,"_",_,_) => either((newTypeVar("_"),.none)).
-  parseTypeName(Q,_,Nm,_,_) where {? (Nm,Tp) in Q ?} => either((Tp,.none)).
+  parseTypeName(Q,_,Nm,_,_) where Tp^={! Tp | (Nm,Tp) in Q !} => either((Tp,.none)).
   parseTypeName(Q,_,Nm,Env,Rp) where (_,T,TpRl) ^= findType(Env,Nm) => do{
     if isLambdaRule(TpRl) then 
       valis (T,some(TpRl))
@@ -221,11 +219,14 @@ star.compiler.typeparse{
   parseConstraint(A,Q,Env,Rp) where (Lc,Lh,Rh) ^= isBinary(A,"<~") => do{
     Bnd <- parseType(Q,Lh,Env,Rp);
     Face <- parseType(Q,Rh,Env,Rp);
-    valis fieldConstraint(Bnd,Face).
+    if faceType([(Fld,FTp)],_).=deRef(Face) then
+      valis fieldConstraint(Bnd,Fld,FTp)
+    else
+    raise reportError(Rp,"invalid rhs:$(Rh) of field constraint, expecting $(Lh)<~{F:T}",Lc)
   }
   parseConstraint(A,Q,Env,Rp) =>
     parseContractConstraint(Q,A,Env,Rp).
-
+  
   public rebind:(tipes,tipe,dict)=>tipe.
   rebind([],T,_) => T.
   rebind([(Nm,TV),..L],T,Env) where
@@ -264,7 +265,7 @@ star.compiler.typeparse{
   parseContractName:(ast,dict,reports)=>either[reports,constraint].
   parseContractName(Op,Env,Rp) where (_,Id) ^= isName(Op) => do{
     if Con ^= findContract(Env,Id) then {
-      valis contractConstraint(snd(freshen(Con,Env)))
+      valis conTract(snd(freshen(Con,Env)))
     }
       else
 	raise reportError(Rp,"contract $(Op) not defined",locOf(Op))
