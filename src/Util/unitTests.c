@@ -4,7 +4,10 @@
 
 #include <ooio.h>
 #include <formioP.h>
+#include <stdlib.h>
 #include "unitTests.h"
+#include "cmdOptions.h"
+#include "version.h"      /* Version ID for the Star system */
 
 int tests_run = 0;
 
@@ -47,7 +50,41 @@ retCode checkReslt(int64 test, int64 verify, char *msg) {
     return Ok;
 }
 
+static retCode debugOption(char *option, logical enable) {
+  char *c = option;
+
+  while (*c) {
+    switch (*c++) {
+      case 'u':    /* debug unit tests */
+        debugUnitTests = True;
+        continue;
+
+      default:
+        return Error;
+    }
+  }
+
+  return Ok;
+}
+
+static retCode debugOptHelp(ioPo out, char opt, char *usage) {
+  return outMsg(out, "    -d|--debug <"
+                     "u"
+                     ">\n%_");
+}
+
+Option options[] = {
+  {'d', "debug", hasArgument, "STAR_UNIT_OPTS", debugOption, "-d|--debug <flags>", debugOptHelp},};
+
+int getUnitTestOptions(int argc, char **argv) {
+  splitFirstArg(argc, argv, &argc, &argv);
+  return processOptions("(c) 2022 and beyind", argc, argv, options, NumberOf(options));
+}
+
 int main(int argc, char **argv) {
+  if ((argc = getUnitTestOptions(argc, argv)) < 0) {
+    exit(1);
+  }
   initLogfile("-");
   installMsgProc('X', showByteSeq);
 

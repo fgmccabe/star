@@ -209,10 +209,11 @@ retCode factorialTest() {
   multiPo check = multiFromText(fact100, uniStrLen(fact100));
 
   while (!sameMulti(ix, limit)) {
-    outMsg(logFile, "%M != %M\n%_", ix, limit);
+    if (debugUnitTests)
+      outMsg(logFile, "%M != %M\n%_", ix, limit);
 
     prod = multiTimes(prod, ix);
-    // if (debugUnitTests)
+    if (debugUnitTests)
       outMsg(logFile, "%M! is %M\n%_", ix, prod);
 
     ix = multiPlus(ix, oneM);
