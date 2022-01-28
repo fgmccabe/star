@@ -597,10 +597,10 @@ void reinstallMsgProc(codePoint key, fileMsgProc proc) {
   procs[(unsigned int) key] = proc;
 }
 
-#define nextDecimal(format,pos,len,args,ix) {\
+#define nextDecimal(format, pos, len, args, ix) {\
   fcp = nextCodePoint((format), &(pos), (len));\
   if (fcp == '*') {\
-    ix = (integer) va_arg((args), integer);\
+    (ix) = (integer) va_arg((args), integer);\
     fcp = nextCodePoint((format), &(pos), (len));\
   } else {\
     integer val = 0;\
@@ -608,7 +608,7 @@ void reinstallMsgProc(codePoint key, fileMsgProc proc) {
       val = val * 10 + digitValue(fcp);\
       fcp = nextCodePoint((format), &(pos), (len));\
     }\
-    ix = val;\
+    (ix) = val;\
   }\
 }
 
@@ -617,198 +617,185 @@ void reinstallMsgProc(codePoint key, fileMsgProc proc) {
 retCode __voutMsg(ioPo f, char *format, va_list args) {
   retCode ret = Ok;
   integer fx = 0;
-  integer flen = uniStrLen(format);
+  integer fmtLen = uniStrLen(format);
 
-  while (ret == Ok && fx < flen) {
-    codePoint fcp = nextCodePoint(format, &fx, flen);
+  while (ret == Ok && fx < fmtLen) {
+    codePoint fcp = nextCodePoint(format, &fx, fmtLen);
 
-    switch (fcp) {
-      case '%': {
-        integer width = 0;    /* Maximum width of field */
-        integer precision = 0;    /* Minimum width or precision of field */
-        integer depth = LONG_MAX;      /* Maximum depth of structure */
-        codePoint pad = ' ';
-        char *prefix = "";
-        logical sign = False;
-        logical alternate = False;
-        logical leftPad = True;
-        logical overridePrecision = False;
-        logical longValue = False;
+    if (fcp == '%') {
+      integer width = 0;    /* Maximum width of field */
+      integer precision = 0;    /* Minimum width or precision of field */
+      integer depth = LONG_MAX;      /* Maximum depth of structure */
+      codePoint pad = ' ';
+      char *prefix = "";
+      logical sign = False;
+      logical alternate = False;
+      logical leftPad = True;
+      logical overridePrecision = False;
+      logical longValue = False;
 
-        while (fx < flen) {
-          fcp = nextCodePoint(format, &fx, flen);
-          switch (fcp) {
-            case '0':
-              pad = '0';
-              continue;
-            case ' ':
-              prefix = " ";
-              continue;
-            case '+':
-              sign = True;
-              continue;
-            case 'l':
-              longValue = True;
-              continue;
-            case '#':
-              alternate = True;
-              continue;
-            case '-':
-              leftPad = False;
-              continue;
-            default:
-              goto getWidth;
-          }
-          break;
+      while (fx < fmtLen) {
+        fcp = nextCodePoint(format, &fx, fmtLen);
+        switch (fcp) {
+          case '0':
+            pad = '0';
+            continue;
+          case ' ':
+            prefix = " ";
+            continue;
+          case '+':
+            sign = True;
+            continue;
+          case 'l':
+            longValue = True;
+            continue;
+          case '#':
+            alternate = True;
+            continue;
+          case '-':
+            leftPad = False;
+            continue;
+          default:
+            goto getWidth;
         }
-        getWidth:
-        while (isNdChar(fcp) && fx < flen) { /* extract the width field */
-          width = width * 10 + digitValue(fcp);
-          fcp = nextCodePoint(format, &fx, flen);
-        }
-
-        while (strchr(".,", (char) fcp) != NULL) {
-          if (fcp == '.') {    /* We have a precision ... */
-            overridePrecision = True;
-            /* extract the precision field */
-            nextDecimal(format,fx,flen,args,precision);
-          } else if (fcp == ',') {
-            /* extract the depth field */
-            nextDecimal(format,fx,flen,args,depth); 
-          } else
-            break;
-        }
-
-        if (procs[fcp & 0xff] != NULL) {
-          void *data = va_arg(args, void*); /* pick up a special value */
-          ret = procs[((unsigned int) fcp) & 0xffu](f, data, depth, precision, alternate);
-        } else
-          switch (fcp) {
-            case '_':
-              ret = flushFile(f);
-              break;
-            case 'c': {    /* Display an integer value as a char */
-              codePoint
-                i = (codePoint) (longValue ? va_arg(args, integer) : va_arg(args, int));
-
-              if (alternate) {
-                integer gaps = 0;
-                ret = quoteChar(f, i, &gaps);
-              } else
-                ret = outChar(f, i);
-              break;
-            }
-            case 'd': {    /* Display an integer value */
-              integer
-                i = (integer) (longValue ? va_arg(args, integer) : va_arg(args, int));
-
-              ret = outInteger(f, i, 10, (int) width, (int) precision, pad, leftPad, prefix, sign);
-              break;
-            }
-            case 'u': {    /* Display a number as unsigned */
-              integer i = va_arg(args, integer);
-              char iBuff[64];
-
-              if (!leftPad)
-                pad = ' ';    /* We dont put trailing zeroes */
-
-              long len = natural2StrByBase(iBuff, i, 0, 10);
-
-              ret = outUStr(f, prefix);
-              if (ret == Ok)
-                ret = outString(f, iBuff, (integer) len, width, (integer) precision, pad, leftPad);
-              break;
-            }
-            case 'o': {    /* Display an octal value */
-              integer
-                i = (integer) (longValue ? va_arg(args, integer) : va_arg(args, long));
-
-              ret = outOctal(f, i, width, precision, pad, leftPad, prefix, sign, alternate);
-              break;
-            }
-            case 'x': {    /* Display a hex value */
-              integer
-                i = (integer) (longValue ? va_arg(args, integer) : va_arg(args, long));
-
-              ret = outHex(f, i, width, precision, pad, leftPad, prefix, sign, alternate);
-              break;
-            }
-            case 'b': {    /* Display a binary value */
-              integer
-                i = (integer) (longValue ? va_arg(args, integer) : va_arg(args, long));
-
-              ret = outInteger(f, i, 2, width, precision, pad, leftPad, prefix, sign);
-              break;
-            }
-            case 'g':
-            case 'G':
-            case 'e':
-            case 'E':
-            case 'F':
-            case 'f': {    /* Display floating point number */
-              double num = (double) va_arg(args, double);
-
-              if (!overridePrecision) /* default precision for floats */
-                precision = 6;
-              ret = outDouble(f, num, (char) fcp, width, precision, pad, leftPad, sign);
-              break;
-            }
-            case 's': {    /* Display a string */
-              char *str = (char *) va_arg(args, char *);
-
-              if (str != NULL) {
-                ret = outUniString(f, str, uniStrLen(str), width, precision, ' ', leftPad, alternate);
-              } else
-                ret = outStr(f, "(NULL)");
-              break;
-            }
-
-            case 'S': {    /* Display a lengthed string */
-              char *str = (char *) va_arg(args, char *);
-              long len = (long) va_arg(args, long);
-
-              if (str != NULL)
-                ret = outUniString(f, str, len, width, precision, ' ', leftPad, alternate);
-              else
-                ret = outStr(f, "(NULL)");
-              break;
-            }
-
-            case 'U': {    /* Display a uniCode string */
-              char *str = (char *) va_arg(args,
-                                          char *);
-
-              if (str != NULL) {
-                ret = outUStr(f, prefix);
-                if (ret == Ok)
-                  ret = outUniString(f, str, uniStrLen(str), width, precision, ' ', leftPad, alternate);
-              } else
-                ret = outStr(f, "(NULL)");
-              break;
-            }
-
-            case 'p': {    /* Display some spaces */
-              integer
-                i = (integer) (longValue ? va_arg(args, integer) : va_arg(args,
-                                                                          int));
-
-              ret = outStr(f, prefix);
-              while (ret == Ok && i-- > 0) {
-                ret = outChar(f, ' ');
-              }
-
-              break;
-            }
-
-            default:
-              ret = outChar(f, fcp);
-          }
         break;
       }
+      getWidth:
+      while (isNdChar(fcp) && fx < fmtLen) { /* extract the width field */
+        width = width * 10 + digitValue(fcp);
+        fcp = nextCodePoint(format, &fx, fmtLen);
+      }
 
-      default:
-        ret = outChar(f, fcp);
-    }
+      while (strchr(".,", (char) fcp) != NULL) {
+        if (fcp == '.') {    /* We have a precision ... */
+          overridePrecision = True;
+          /* extract the precision field */
+          nextDecimal(format, fx, fmtLen, args, precision);
+        } else if (fcp == ',') {
+          /* extract the depth field */
+          nextDecimal(format, fx, fmtLen, args, depth);
+        } else
+          break;
+      }
+
+      if (procs[fcp & 0xff] != NULL) {
+        void *data = va_arg(args, void*); /* pick up a special value */
+        ret = procs[((unsigned int) fcp) & 0xffu](f, data, depth, precision, alternate);
+      } else
+        switch (fcp) {
+          case '_':
+            ret = flushFile(f);
+            break;
+          case 'c': {    /* Display an integer value as a char */
+            codePoint i = (codePoint) (longValue ? va_arg(args, integer) : va_arg(args, int));
+
+            if (alternate) {
+              integer gaps = 0;
+              ret = quoteChar(f, i, &gaps);
+            } else
+              ret = outChar(f, i);
+            break;
+          }
+          case 'd': {    /* Display an integer value */
+            integer i = (integer) (longValue ? va_arg(args, integer) : va_arg(args, int));
+
+            ret = outInteger(f, i, 10, (int) width, (int) precision, pad, leftPad, prefix, sign);
+            break;
+          }
+          case 'u': {    /* Display a number as unsigned */
+            integer i = va_arg(args, integer);
+            char iBuff[64];
+
+            if (!leftPad)
+              pad = ' ';    /* We dont put trailing zeroes */
+
+            long len = natural2StrByBase(iBuff, i, 0, 10);
+
+            ret = outUStr(f, prefix);
+            if (ret == Ok)
+              ret = outString(f, iBuff, (integer) len, width, (integer) precision, pad, leftPad);
+            break;
+          }
+          case 'o': {    /* Display an octal value */
+            integer i = (integer) (longValue ? va_arg(args, integer) : va_arg(args, long));
+
+            ret = outOctal(f, i, width, precision, pad, leftPad, prefix, sign, alternate);
+            break;
+          }
+          case 'x': {    /* Display a hex value */
+            integer i = (integer) (longValue ? va_arg(args, integer) : va_arg(args, long));
+
+            ret = outHex(f, i, width, precision, pad, leftPad, prefix, sign, alternate);
+            break;
+          }
+          case 'b': {    /* Display a binary value */
+            integer i = (integer) (longValue ? va_arg(args, integer) : va_arg(args, long));
+
+            ret = outInteger(f, i, 2, width, precision, pad, leftPad, prefix, sign);
+            break;
+          }
+          case 'g':
+          case 'G':
+          case 'e':
+          case 'E':
+          case 'F':
+          case 'f': {    /* Display floating point number */
+            double num = (double) va_arg(args, double);
+
+            if (!overridePrecision) /* default precision for floats */
+              precision = 6;
+            ret = outDouble(f, num, (char) fcp, (int) width, (int) precision, pad, leftPad, sign);
+            break;
+          }
+          case 's': {    /* Display a string */
+            char *str = (char *) va_arg(args, char *);
+
+            if (str != NULL) {
+              ret = outUniString(f, str, uniStrLen(str), width, precision, ' ', leftPad, alternate);
+            } else
+              ret = outStr(f, "(NULL)");
+            break;
+          }
+
+          case 'S': {    /* Display a lengthed string */
+            char *str = (char *) va_arg(args, char *);
+            long len = (long) va_arg(args, long);
+
+            if (str != NULL)
+              ret = outUniString(f, str, len, width, precision, ' ', leftPad, alternate);
+            else
+              ret = outStr(f, "(NULL)");
+            break;
+          }
+
+          case 'U': {    /* Display a uniCode string */
+            char *str = (char *) va_arg(args, char *);
+
+            if (str != NULL) {
+              ret = outUStr(f, prefix);
+              if (ret == Ok)
+                ret = outUniString(f, str, uniStrLen(str), width, precision, ' ', leftPad, alternate);
+            } else
+              ret = outStr(f, "(NULL)");
+            break;
+          }
+
+          case 'p': {    /* Display some spaces */
+            integer i = (integer) (longValue ? va_arg(args, integer) : va_arg(args, int));
+
+            ret = outStr(f, prefix);
+            while (ret == Ok && i-- > 0) {
+              ret = outChar(f, ' ');
+            }
+
+            break;
+          }
+
+          default:
+            ret = outChar(f, fcp);
+        }
+    } else
+      ret = outChar(f, fcp);
   }
   return ret;
 }
