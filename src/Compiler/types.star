@@ -325,7 +325,7 @@ star.compiler.types{
     surfaceNm(typeLambda(_,T),R) => surfaceNm(deRef(T),R).
     surfaceNm(tupleType(A),R) => ["!()$(size(A))",..R].
     surfaceNm(funDeps(T,_),R) => surfaceNm(deRef(T),R).
-  .} in  surfaceName(deRef(Tp),[])*.
+  .} in surfaceName(deRef(Tp),[])*.
 
   cmpFlds:((string,tipe),(string,tipe))=>boolean.
   cmpFlds((N1,_),(N2,_))=>N1<N2.

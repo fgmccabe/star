@@ -212,8 +212,6 @@ star.compiler.core.ast{
 	Tp.=kFun(Id,Ar);
 	valis (Tp,D[Id->Tp])
       }
-	
-    
 
   typeArgs(L,D,Rp) => seqmap((T)=>astType(T,D,Rp),L).
 

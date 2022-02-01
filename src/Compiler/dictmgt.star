@@ -164,5 +164,5 @@ star.compiler.dict.mgt{
   applyConstraint(Lc,fieldConstraint(V,F,T),Trm,Env)
       where sameType(typeOf(Trm),V,Env) => overaccess(Lc,Trm,F,T).
   applyConstraint(Lc,conTract(C),Trm,_) =>
-    over(Lc,Trm,conTract(C)).
+    over(Lc,Trm,[conTract(C)]).
 }

@@ -14,11 +14,12 @@ star.compiler.resolve{
   public overloadEnvironment:(cons[cons[canonDef]],dict,reports) =>
     either[reports,cons[cons[canonDef]]].
   overloadEnvironment(Gps,Dict,Rp) => do{
-    TDict .= declareImplementations(Gps,Dict);
-    _ <- resolveConstraints(Gps,TDict,Rp);
-    overloadGroups(Gps,[],TDict,Rp)
+--    TDict .= declareImplementations(Gps,Dict);
+--    _ <- resolveConstraints(Gps,Dict,Rp);
+    overloadGroups(Gps,[],Dict,Rp)
   }
 
+  declareImplementations:(cons[cons[canonDef]],dict)=>dict.
   declareImplementations([],Dict) => Dict.
   declareImplementations([Gp,..Gps],Dict) =>
     declareImplementations(Gps,declareImplementationsInGroup(Gp,Dict)).
@@ -28,7 +29,7 @@ star.compiler.resolve{
   declareImplementationsInGroup([implDef(Lc,_,FullNm,_,_,Tp),..Gp],Dict) =>
     declareImplementationsInGroup(Gp,
       declareVar(FullNm,some(Lc),Tp,.none,
-	declareImplementation(FullNm,Tp,Dict))).
+	declareImplementation(Lc,FullNm,FullNm,Tp,Dict))).
   declareImplementationsInGroup([_,..Gp],Dict) => declareImplementationsInGroup(Gp,Dict).
 
   overloadGroups:(cons[cons[canonDef]],cons[cons[canonDef]],dict,reports) =>
@@ -55,9 +56,9 @@ star.compiler.resolve{
 
   overloadDef:(dict,canonDef,reports)=>either[reports,(canonDef,dict)].
   overloadDef(Dict,varDef(Lc,Nm,FullNm,Val,Cx,Tp),Rp) =>
-    overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx//(contractConstraint(CTp))=>CTp,Tp,Rp).
+    overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx//(conTract(CTp))=>CTp,Tp,Rp).
   overloadDef(Dict,implDef(Lc,Nm,FullNm,Val,Cx,Tp),Rp) =>
-    overloadImplDef(Dict,Lc,Nm,FullNm,Val,Cx//(contractConstraint(CTp))=>CTp,Tp,Rp).
+    overloadImplDef(Dict,Lc,Nm,FullNm,Val,Cx//(conTract(CTp))=>CTp,Tp,Rp).
   overloadDef(Dict,typeDef(Lc,Nm,Tp,TpRl),Rp) => do{
     valis (typeDef(Lc,Nm,Tp,TpRl),declareType(Nm,some(Lc),Tp,TpRl,Dict))
   }
@@ -120,12 +121,12 @@ star.compiler.resolve{
     [A,..Args] <- resolveContracts(Lc,Cx,[],Dict,Rp);
     if mtd(_,Nm,_,MTp) .= T then{
       if _eof(Args) then
-	valis dot(Lc,A,Nm,Tp)
+	valis dot(Lc,A,Nm,MTp)
       else
       valis apply(Lc,dot(Lc,A,Nm,MTp),tple(Lc,Args),typeOf(T))
     }
     else
-    valis apply(Lc,T,tple(Lc,[A,..Args]),Tp)
+    valis apply(Lc,T,tple(Lc,[A,..Args]),typeOf(T))
   }
   resolveTerm(apply(lc,Op,Arg,Tp),Dict,Rp) => do{
     ROp <- resolveTerm(Op,Dict,Rp);
@@ -225,7 +226,7 @@ star.compiler.resolve{
   resolveContracts:(locn,cons[constraint],cons[canon],dict,reports) =>
       either[reports,cons[canon]].
   resolveContracts(_,[],Cx,_,_) => either(reverse(Cx)).
-  resolveContracts(Lc,[contractConstraint(C),..Cx],Vs,Dict,Rp) => do{
+  resolveContracts(Lc,[conTract(C),..Cx],Vs,Dict,Rp) => do{
     A <- resolveContract(Lc,C,Dict,Rp);
     resolveContracts(Lc,Cx,[A,..Vs],Dict,Rp)
   }

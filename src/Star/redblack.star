@@ -251,14 +251,13 @@ star.redblack{
   public implementation all k,v ~~ equality[k],comp[k] |:
     coercion[rbtree[k,v],cons[keyval[k,v]]] => {
       _coerce(T) => some(pairs(T,[]))
-    }
+    }.
 
   public implementation ixmap[rbtree] => let{.
     ixMap:all k,v,w ~~ (rbtree[k,v],(k,v)=>w) => rbtree[k,w].
     ixMap(.leaf,_) => .leaf.
     ixMap(node(Cl,K,V,L,R),f) => node(Cl,K,f(K,V),ixMap(L,f),ixMap(R,f)).
- .}
-  in{
+  .} in{
     (M///f) => ixMap(M,f).
   }
 
@@ -268,6 +267,4 @@ star.redblack{
     } in {
       (^//) = ixFilter
     }
-    
-  
 }

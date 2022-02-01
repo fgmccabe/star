@@ -16,9 +16,9 @@ star.compiler.constraints{
 
   implementation display[cnsCheck] => {
     disp(check(Lc,.none,_,Tp)) =>
-      ssSeq([ss("unresolved contraint: "),disp(Tp),ss(" at "),disp(Lc)]).
+      "unresolved contraint: $(Tp) at $(Lc)".
     disp(check(Lc,some(T),_,Tp)) =>
-      ssSeq([ss("resolved contraint: "),disp(Tp),ss("|:"),disp(T),ss(" at "),disp(Lc)]).
+      "resolved contraint: $(Tp)|:$(T)  at $(Lc)".
   }
   
   extractTermConstraints:(canon,dict,cons[cnsCheck])=>cons[cnsCheck].
@@ -32,8 +32,8 @@ star.compiler.constraints{
   extractTermConstraints(whr(_,T,C),Dict,Cnx) =>
     extractTermConstraints(T,Dict,extractTermConstraints(C,Dict,Cnx)).
   extractTermConstraints(mtd(Lc,Nm,Con,Tp),Dict,Cnx) => [check(Lc,.none,Dict,Con),..Cnx].
-  extractTermConstraints(over(Lc,T,Tp,Cx),Dict,Cnx) =>
-    foldRight((Cn,Cons) => extractConstraint(Cn,Lc,Dict,Cons),Cnx,Cx).
+  extractTermConstraints(over(Lc,T,[Cn]),Dict,Cnx) =>
+    extractConstraint(Cn,Lc,Dict,Cnx).
   extractTermConstraints(apply(lc,Op,Arg,_),Dict,Cnx) =>
     extractTermConstraints(Arg,Dict,extractTermConstraints(Op,Dict,Cnx)).
   extractTermConstraints(tple(Lc,Els),Dict,Cnx) =>
@@ -97,7 +97,7 @@ star.compiler.constraints{
   extractDefConstraints(cnsDef(_,_,_,_),_,Cnx) => Cnx.
 
   extractConstraint:(constraint,locn,dict,cons[cnsCheck]) => cons[cnsCheck].
-  extractConstraint(contractConstraint(C),Lc,Dict,Cnx) =>
+  extractConstraint(conTract(C),Lc,Dict,Cnx) =>
     [check(Lc,.none,Dict,C),..Cnx].
   extractConstraint(_,_,_,Cnx) default => Cnx.
 
@@ -110,14 +110,14 @@ star.compiler.constraints{
   declareImplementationsInGroup([implDef(Lc,_,FullNm,_,_,Tp),..Gp],Dict) =>
     declareImplementationsInGroup(Gp,
       declareVar(FullNm,some(Lc),Tp,.none,
-	declareImplementation(FullNm,Tp,Dict))).
+	declareImplementation(Lc,FullNm,FullNm,Tp,Dict))).
   declareImplementationsInGroup([typeDef(Lc,Nm,Tp,TpRl),..Gp],Dict) =>
     declareImplementationsInGroup(Gp,declareType(Nm,some(Lc),Tp,TpRl,Dict)).
   declareImplementationsInGroup([_,..Gp],Dict) => declareImplementationsInGroup(Gp,Dict).
 
   defineCVars:(locn,cons[constraint],dict) => dict.
   defineCVars(_,[],D) => D.
-  defineCVars(Lc,[contractConstraint(T),..Tps],D)
+  defineCVars(Lc,[conTract(T),..Tps],D)
       where TpNm .= implementationName(T) =>
     defineCVars(Lc,Tps,declareVar(TpNm,some(Lc),T,.none,D)).
     

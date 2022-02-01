@@ -37,7 +37,6 @@ star.treelist{
   find_by_index(tlRed(L,_,_,R),Ix) where Lx.=tlSize(L) && Ix>Lx => find_by_index(R,Ix-Lx-1).
   find_by_index(tlBlack(L,_,_,R),Ix) where Lx.=tlSize(L) && Ix>Lx => find_by_index(R,Ix-Lx-1).
   
-
   public implementation all e ~~ indexed[tl[e] ->> integer,e] => {
     _index(R,ix) where ix>=0 => find_by_index(R,ix).
     _put(R,ix,E) => put_by_index(R,ix,E).

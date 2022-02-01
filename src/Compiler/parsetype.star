@@ -21,12 +21,12 @@ star.compiler.typeparse{
   parseType(Q,Tp,Env,Rp) where (Lc,V,BT) ^= isQuantified(Tp) => do{
     BV <- parseBoundTpVars(V,Rp);
     In <- parseType(Q++BV,BT,Env,Rp);
-    valis reQuant(BV,In)
+    valis reQ(BV,In)
   }
   parseType(Q,Tp,Env,Rp) where (Lc,V,BT) ^= isXQuantified(Tp) => do{
     BV <- parseBoundTpVars(V,Rp);
     In <- parseType(Q++BV,BT,Env,Rp);
-    valis reQuantX(BV,In)
+    valis reQX(BV,In)
   }
   parseType(Q,Tp,Env,Rp) where (Lc,C,B) ^= isConstrained(Tp) => do{
     Cx <- parseConstraints(C,Q,Env,Rp);
@@ -238,13 +238,13 @@ star.compiler.typeparse{
   public wrapConstraints([],Tp)=>Tp.
   wrapConstraints([Cx,..Cs],Tp) => wrapConstraints(Cs,constrainedType(Tp,Cx)).
     
-  public reQuant:(tipes,tipe) => tipe.
-  reQuant([],Tp) => Tp.
-  reQuant([(_,KV),..T],Tp) => reQuant(T,allType(KV,Tp)).
+  reQ:(tipes,tipe) => tipe.
+  reQ([],Tp) => Tp.
+  reQ([(_,KV),..T],Tp) => reQ(T,allType(KV,Tp)).
 
-  public reQuantX:(tipes,tipe) => tipe.
-  reQuantX([],Tp) => Tp.
-  reQuantX([(_,KV),..T],Tp) => reQuantX(T,existType(KV,Tp)).
+  reQX:(tipes,tipe) => tipe.
+  reQX([],Tp) => Tp.
+  reQX([(_,KV),..T],Tp) => reQX(T,existType(KV,Tp)).
 
   public parseContractConstraint:(tipes,ast,dict,reports) =>
     either[reports,constraint].
@@ -298,7 +298,7 @@ star.compiler.typeparse{
     Cx <- parseConstraints(C,Q,Env,Rp);
     Tmplte .= pickTypeTemplate(Tp);
     Fce <- parseType(Q,B,declareType(Nm,some(Lc),Tmplte,typeExists(Tp,faceType([],[])),Env),Rp);
-    TpRl .= reQuant(Q,reConstrainType(Cx,typeExists(Tp,Fce)));
+    TpRl .= reQ(Q,reConstrainType(Cx,typeExists(Tp,Fce)));
     valis (typeDef(Lc,Nm,Tmplte,TpRl),declareType(Nm,some(Lc),Tmplte,TpRl,Env))
   }
   parseTypeDef(Nm,St,Env,Path,Rp) where (Lc,V,C,H,B) ^= isTypeFunStmt(St) => do{
@@ -308,7 +308,7 @@ star.compiler.typeparse{
     RTp <- parseType(Q,B,Env,Rp);
     
     Tmplte .= pickTypeTemplate(Tp);
-    TpRl .= reQuant(Q,reConstrainType(Cx,typeLambda(Tp,RTp)));
+    TpRl .= reQ(Q,reConstrainType(Cx,typeLambda(Tp,RTp)));
 
     valis (typeDef(Lc,Nm,Tmplte,TpRl),declareType(Nm,some(Lc),Tmplte,TpRl,Env))
   }
@@ -354,6 +354,6 @@ star.compiler.typeparse{
 	(Flds,Tps) <- parseTypeFields(BV,Els,[],[],Env,Rp);
 	Face .= faceType(Flds,Tps);
 	Con <- parseTypeHead(BV,T,Env,Path,Rp);
-	valis reQuant(BV,typeExists(Con,Face))
+	valis reQ(BV,typeExists(Con,Face))
       }
 }

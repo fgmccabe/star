@@ -331,7 +331,13 @@ star.compiler{
 	    if Opts.showAst then{
 	      logMsg("Ast of $(P) is $(Ast)")
 	    };
-	    (PkgSpec,PkgFun) <- checkPkg(Repp!,CPkg,Ast,stdDict,Opts,Rp) :: action[reports,(pkgSpec,canonDef)];
+	    M <- macroPkg(Ast,Rp);
+	    
+	    if Opts.showMacro then{
+	      logMsg("Macrod package is $(M)");
+	    };
+	    
+	    (PkgSpec,PkgFun) <- checkPkg(Repp!,CPkg,M,stdDict,Opts,Rp) :: action[reports,(pkgSpec,canonDef)];
 	    if Opts.showCanon then {
 	      logMsg("type checked $(PkgFun)")
 	    };
