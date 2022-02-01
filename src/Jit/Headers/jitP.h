@@ -55,7 +55,7 @@ typedef struct jit_compiler_ {
 
 typedef struct assem_lbl {
   arrayPo refs;
-  uint64 pc;
+  integer pc;
 } AssemLblRecord;
 
 void emitU8(assemCtxPo ctx, uint8 byte);
@@ -72,6 +72,8 @@ void initAssem();
 assemCtxPo createCtx();
 void discardCtx(assemCtxPo ctx);
 void *createCode(assemCtxPo ctx);
+
+extern integer undefinedPc;
 
 codeLblPo defineLabel(assemCtxPo ctx, char *lName, integer pc);
 void setLabel(assemCtxPo ctx, codeLblPo lbl);
