@@ -134,7 +134,7 @@ static retCode test_call() {
   assemCtxPo ctx = createCtx();
 
   codeLblPo l0 = defineLabel(ctx, "l0", ctx->pc);
-  codeLblPo l1 = defineLabel(ctx, "l1", -1);
+  codeLblPo l1 = defineLabel(ctx, "l1", undefinedPc);
   call(LB(l0), ctx);
   call(LB(l1), ctx);
   call(RG(R12), ctx);
@@ -317,7 +317,7 @@ static retCode test_jcc() {
   assemCtxPo ctx = createCtx();
 
   codeLblPo l0 = defineLabel(ctx, "l0", ctx->pc);
-  codeLblPo l1 = defineLabel(ctx, "l1", -1);
+  codeLblPo l1 = defineLabel(ctx, "l1", undefinedPc);
   ja(l0, ctx);
   ja(l1, ctx);
   setLabel(ctx, l1);
@@ -332,7 +332,7 @@ static retCode test_jmp() {
   assemCtxPo ctx = createCtx();
 
   codeLblPo l0 = defineLabel(ctx, "l0", ctx->pc);
-  codeLblPo l1 = defineLabel(ctx, "l1", -1);
+  codeLblPo l1 = defineLabel(ctx, "l1", undefinedPc);
   jmp(LB(l0), ctx);
   jmp(LB(l1), ctx);
   jmp(RG(R12), ctx);
@@ -359,7 +359,7 @@ static retCode test_lbl_lea() {
   assemCtxPo ctx = createCtx();
 
   codeLblPo l0 = defineLabel(ctx, "l0", 0);
-  codeLblPo l1 = defineLabel(ctx, "l1", -1);
+  codeLblPo l1 = defineLabel(ctx, "l1", undefinedPc);
   lea(R12, LB(l1), ctx); // lea %r12,l1(%rip)
   lea(R10, LB(l0), ctx); // lea %r10,l0(%rip)
   setLabel(ctx, l1);
@@ -911,8 +911,8 @@ retCode test_factFun() {
   assemCtxPo ctx = createCtx();
 
   codeLblPo fct = preamble(ctx, 0);
-  codeLblPo l0 = defineLabel(ctx, "nonZero", -1);
-  codeLblPo lx = defineLabel(ctx, "exit", -1);
+  codeLblPo l0 = defineLabel(ctx, "nonZero", undefinedPc);
+  codeLblPo lx = defineLabel(ctx, "exit", undefinedPc);
   cmp(RG(RDI), IM(1), ctx);
   jg(l0, ctx);
   mov(RG(RAX), IM(1), ctx);

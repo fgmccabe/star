@@ -12,6 +12,8 @@ static poolPo contextPool = Null;
 static poolPo lblPool = Null;
 static poolPo asmPool = Null;
 
+integer undefinedPc = -1;
+
 void initJit() {
   if (contextPool == Null) {
     contextPool = newPool(sizeof(JitCompilerContext), 8);
@@ -116,7 +118,7 @@ retCode addLabelReference(assemCtxPo ctx, codeLblPo lbl, integer pc, lblRefUpdat
 }
 
 logical isLabelDefined(codeLblPo lbl) {
-  return lbl->pc >= 0;
+  return lbl->pc != undefinedPc;
 }
 
 uint64 labelTgt(codeLblPo lbl){
