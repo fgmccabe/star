@@ -6,14 +6,20 @@ star.compiler.canon{
   import star.compiler.location.
   import star.compiler.types.
 
-  public pkgSpec::=pkgSpec(pkg,cons[importSpec],tipe,cons[canonDef],cons[implSpec],cons[(string,tipe)]).
+  public pkgSpec::=pkgSpec(pkg,cons[importSpec],cons[decl]).
 
-  public implSpec ::= implSpec(option[locn],string,string,tipe).
+  public decl ::= implDec(string,string,tipe) |
+    accDec(tipe,string,string,tipe) |
+    conDec(string,string,tipe,tipe) |
+    tpeDec(string,tipe,tipe) |
+    varDec(string,string,tipe) |
+    funDec(string,string,tipe) |
+    cnsDec(string,string,tipe).
 
   public canon ::= vr(locn,string,tipe) |
     anon(locn,tipe) |
     mtd(locn,string,tipe,tipe) |
-    over(locn,canon,constraint) |
+    over(locn,canon,cons[constraint]) |
     overaccess(locn,canon,string,tipe) |
     intr(locn,integer) |
     bintr(locn,bigint) |
@@ -121,17 +127,25 @@ star.compiler.canon{
   }
 
   public implementation display[pkgSpec] => {
-    disp(pkgSpec(Pkg,Imports,Face,Cons,Impls,PkgVrs)) =>
-      "Package: $(Pkg), imports=$(Imports), Signature=$(Face),Contracts=$(Cons),Implementations:$(Impls), pkg vars:$(PkgVrs)".
+    disp(pkgSpec(Pkg,Imports,Decls)) =>
+      "Package: $(Pkg), imports=$(Imports), Declarations=$(Decls)".
   }
 
-  public implementation hasType[pkgSpec] => {
-    typeOf(pkgSpec(Pkg,Imports,Face,Cons,Impls,PkgVrs)) => Face
-  }
-
-  public implementation display[implSpec] => {
-    disp(implSpec(_,Con,Full,Tp)) =>
-      "implementation for $(Con), full name $(Full), type: $(Tp)"
+  public implementation display[decl] => {
+    disp(implDec(Nm,ImplNm,ImplTp)) =>
+      "Impl #(Nm)~#(ImplNm)\:$(ImplTp)".
+    disp(accDec(Tp,Fld,Fun,FunTp)) =>
+      "Acc $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
+    disp(conDec(Nm,_,_,RlTp)) =>
+      "Contract #(Nm)\:$(RlTp)".
+    disp(tpeDec(Nm,Tp,_)) =>
+      "Type #(Nm)\::$(Tp)".
+    disp(varDec(Nm,_FullNm,Tp)) =>
+      "Var #(Nm)\:$(Tp)".
+    disp(funDec(Nm,_FullNm,Tp)) =>
+      "Fun #(Nm)\:$(Tp)".
+    disp(cnsDec(Nm,_FullNm,Tp)) =>
+      "Con #(Nm)\:$(Tp)".
   }
 
 /*  public implementation equality[canon] => let{.
@@ -265,7 +279,7 @@ star.compiler.canon{
   isFunDef(_) default => .false.
 
   public pkgImports:(pkgSpec)=>cons[importSpec].
-  pkgImports(pkgSpec(Pkg,Imports,Face,Cons,Impls,PkgVrs)) => Imports.
+  pkgImports(pkgSpec(_,Imports,_)) => Imports.
 
   public splitPtn:(canon) => (canon,option[canon]).
   splitPtn(P) => let{.

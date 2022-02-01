@@ -19,21 +19,21 @@ star.compiler.impawt{
   importAll([],_,Env,Imported,Sigs,_) => either((Env,Imported,Sigs)).
   importAll([pkgImp(Lc,Viz,Pkg),..Imports],Repo,Env,Imported,Sigs,Rp) => do{
     PkgVar .= packageVar(Pkg);
-    if (PkgVar,_) in Sigs then
+    if {? (PkgVar,_) in Sigs ?} then
       importAll(Imports,Repo,Env,Imported,Sigs,Rp)
     else{
       try{
-	pkgSpec(_,PkgImps,Sig,Cons,Impls,_) <- importPkg(Pkg,Lc,Repo,Rp);
+	pkgSpec(_,PkgImps,Decls) <- importPkg(Pkg,Lc,Repo,Rp);
 	
 	E0 .= pushSig(Sig,Lc,
 	  (Id,T,E) where (_,DQ).=deQuant(T)=> (_ ^= isConsType(DQ) ?
-	      declareConstructor(Id,qualifiedName(pkgName(Pkg),.conMark,Id),some(Lc),T,E) ||
+	    declareConstructor(Id,qualifiedName(pkgName(Pkg),.conMark,Id),some(Lc),T,E) ||
 	      declareFldAccess(vr(Lc,PkgVar,Sig),Id,some(Lc),T,E)),Env);
 	E1 .= foldRight((conDef(_,CNm,CFNm,CTp),EE)=>
 	    declareContract(Lc,CNm,CTp,EE),E0,Cons);
 	E2 .= foldRight((implSpec(ILc,ConNm,FullNm,Tp),EE)=>
 	    declareFldAccess(vr(Lc,PkgVar,Sig),FullNm,some(Lc),Tp,
-	      declareImplementation(FullNm,Tp,EE)),E1,Impls);
+	      declareImplementation(Lc,FullNm,FullNm,Tp,EE)),E1,Impls);
 	importAll(Imports++PkgImps,Repo,E2,[pkgImp(Lc,Viz,Pkg),..Imported],
 	  [(PkgVar,Sig),..Sigs],Rp)
       }
@@ -49,14 +49,11 @@ star.compiler.impawt{
 
   pickupPkgSpec:(string,locn,reports) => either[(),pkgSpec].
   pickupPkgSpec(Txt,Lc,Rp) => do{
-    (term(_,[Pk,term(_,Imps),strg(FTps),term(_,ConSigs),
-	  term(_,ImplSigs)]),R) <- decodeTerm(Txt::cons[integer]);
-    Pkg <- pickupPkg(Pk);
+    (term(_,[Pk,term(_,Imps),term(_,Decls)]),_)<-decodeTerm(Txt::cons[char]);
+    Pkg <- pickupPkg(Pk);    
     Imports <- pickupImports(Imps,Lc);
-    Fce <- decodeSignature(FTps);
-    Cons <- pickupContracts(ConSigs,Lc,[]);
-    Impls <- pickupImplementations(ImplSigs,[]);
-    valis pkgSpec(Pkg,Imports,Fce,Cons,Impls,[(pkgName(Pkg),Fce)])
+    Decls <- pickupDeclarations(Decls,Lc,Rp);
+    valis pkgSpec(Pkg,Imports,Decls)
   }
 
   pickupPkg:(term) => either[(),pkg].
@@ -85,6 +82,78 @@ star.compiler.impawt{
 	  pickupImps(Imps,[pkgImp(Lc,Vz,Pkg),..Imx])
 	}.
   .} in pickupImps(Trms,[]).
+
+  pickupDeclarations:(cons[term],locn,reports)=>either[reports,cons[decl]].
+  pickupDeclarations(Ts,Lc,Rp) => seqmap((T)=>pickupDeclaration(T,Lc,Rp),Ts).
+
+  pickupDeclaration(term(tLbl("imp",3),[strg(Nm),strg(FNm),strg(Sig)]),Lc,Rp) => do{
+    try{
+      Tp <- decodeSignature(Sig);
+      valis implDec(Nm,FNm,Tp)
+    } catch{
+      raise reportError(Rp,"invalid implementation type signature",Lc)
+    }
+  }
+  pickupDeclaration(term(tLbl("acc",4),
+      [strg(Sig),strg(Fld),strg(FNm),strg(AccSig)]),Lc,Rp) => do{
+    try{
+      Tp <- decodeSignature(Sig);
+      AccTp <- decodeSignature(AccSig);
+      valis accDec(Tp,Nm,FNm,AccTp)
+    } catch{
+      raise reportError(Rp,"invalid accessor signature",Lc)
+    }
+  }
+  pickupDeclaration(term(tLbl("con",4),
+      [strg(Nm),strg(CnNm),strg(TSig),strg(Sig)]),Lc,Rp) => do{
+    try{
+      ConTp <- decodeSignature(TSig);
+      TpRl <- decodeSignature(Sig);
+      valis conDec(Nm,CnNm,ConTp,TpRl)
+    } catch{
+      raise reportError(Rp,"invalid contract signature",Lc)
+    }
+  }
+  pickupDeclaration(term(tLbl("tpe",3),
+      [strg(Nm),strg(TSig),strg(RSig)]),Lc,Rp) => do{
+    try{
+      Tp <- decodeSignature(TSig);
+      RlTp <- decodeSignature(RSig);
+      valis tpeDec(Nm,Tp,RlTp)
+    } catch{
+      raise reportError(Rp,"invalid type signature",Lc)
+    }
+  }
+  pickupDeclaration(term(tLbl("var",3),
+      [strg(Nm),strg(FlNm),strg(Sig)]),Lc,Rp) => do{
+    try{
+      Tp <- decodeSignature(Sig);
+      valis varDec(Nm,FlNm,Tp)
+    } catch{
+      raise reportError(Rp,"invalid var signature",Lc)
+    }
+  }
+  pickupDeclaration(term(tLbl("fun",3),
+      [strg(Nm),strg(FlNm),strg(Sig)]),Lc,Rp) => do{
+    try{
+      Tp <- decodeSignature(Sig);
+      valis funDec(Nm,FlNm,Tp)
+    } catch{
+      raise reportError(Rp,"invalid function signature",Lc)
+    }
+  }
+  pickupDeclaration(term(tLbl("cns",3),
+      [strg(Nm),strg(FlNm),strg(Sig)]),Lc,Rp) => do{
+    try{
+      Tp <- decodeSignature(Sig);
+      valis cnsDec(Nm,FlNm,Tp)
+    } catch{
+      raise reportError(Rp,"invalid constructor signature",Lc)
+    }
+  }
+  pickupDeclaration(T,Lc,Rp) => do{
+    raise reportError(Rp,"invalid declaration",Lc).
+
 
   pickupConstructors:(cons[term],cons[string]) => either[(),cons[string]].
   pickupConstructors([],Cs) => either(Cs).
@@ -142,10 +211,27 @@ star.compiler.impawt{
   }
   
   public implementation coercion[pkgSpec,term] => let{
-    mkTerm(pkgSpec(Pkg,Imports,Fields,Contracts,Implementations,_)) =>
-      term(tLbl("pkgSpec",5),[Pkg::term,
-	  Imports::term,strg(encodeSignature(Fields)),Contracts::term,Implementations::term]).
+    mkTerm(pkgSpec(Pkg,Imports,Decls)) =>
+      term(tLbl("pkgSpec",3),[Pkg::term,Imports::term,Decls//(D)=>(D::term)]).
   } in {
     _coerce(S) => some(mkTerm(S)).
+  }
+
+  public implementation coercion[decl,term] => let{
+    mkTerm(implDec(Nm,FullNm,Tp)) => term(tLbl("imp",3),[strg(Nm),strg(FullNm),Tp::term]).
+    mkTerm(accDec(Tp,Fld,Acc,AccTp)) =>
+      term(tLbl("acc",4),[Tp::term,strg(Fld),strg(Acc),AccTp::term]).
+    mkTerm(conDec(Nm,FlNm,CnTp,CtRl)) =>
+      term(tLbl("con",4),[strg(Nm),strg(FlNm),CnTp::term,CtRl::term]).
+    mkTerm(tpeDec(Nm,Tp,Rl)) =>
+      term(tLbl("tpe",3),[strg(Nm),Tp::term,Rl::term]).
+    mkTerm(varDec(Nm,FlNm,Tp)) =>
+      term(tLbl("var",3),[strg(Nm),strg(FlNm),Tp::term]).
+    mkTerm(funDec(Nm,FlNm,Tp)) =>
+      term(tLbl("fun",3),[strg(Nm),strg(FlNm),Tp::term]).
+    mkTerm(cnsDec(Nm,FlNm,Tp)) =>
+      term(tLbl("cns",3),[strg(Nm),strg(FlNm),Tp::term]).
+  } in {
+    _coerce(D) => some(mkTerm(D)).
   }
 }

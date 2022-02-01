@@ -11,7 +11,7 @@ star.compiler.dependencies{
 
   public dependencies:(cons[ast],reports) =>
     either[reports,
-      (cons[(defnSp,visibility)],cons[ast],cons[(string,ast)],cons[cons[defnSpec]])].
+      (cons[(defnSp,visibility)],cons[ast],map[string,ast],cons[cons[defnSpec]])].
   dependencies(Dfs,Rp) => do{
 --    logMsg("look for dependencies in $(Dfs)");
     (Defs,Pb,As,Opn) <- collectDefinitions(Dfs,Rp);
@@ -32,7 +32,7 @@ star.compiler.dependencies{
 
   public recordDefs:(cons[ast],reports) =>
     either[reports,
-      (cons[(defnSp,visibility)],cons[ast],cons[(string,ast)],cons[defnSpec])].
+      (cons[(defnSp,visibility)],cons[ast],map[string,ast],cons[defnSpec])].
   recordDefs(Dfs,Rp) => do{
     (Defs,Pb,As,Opn) <- collectDefinitions(Dfs,Rp);
     valis (Pb,Opn,As,Defs)
@@ -46,16 +46,16 @@ star.compiler.dependencies{
   }
 
   implementation display[definitionSpec] => {
-    disp(definition(Sp,Lc,Refs,_)) => ssSeq([disp(Sp),ss("->"),disp(Refs)]).
+    disp(definition(Sp,Lc,Refs,_)) => "$(Sp)->$(Refs)".
   }
 
   collectDefinitions:(cons[ast],
     reports) => either[reports,(cons[defnSpec],cons[(defnSp,visibility)],
-      cons[(string,ast)],cons[ast])].
-  collectDefinitions(Stmts,Rp) => collectDefs(Stmts,[],[],[],[],Rp).
+      map[string,ast],cons[ast])].
+  collectDefinitions(Stmts,Rp) => collectDefs(Stmts,[],[],{},[],Rp).
 
-  collectDefs:(cons[ast],cons[defnSpec],cons[(defnSp,visibility)],cons[(string,ast)],cons[ast],reports) => either[reports,(cons[defnSpec],cons[(defnSp,visibility)],
-      cons[(string,ast)],cons[ast])].
+  collectDefs:(cons[ast],cons[defnSpec],cons[(defnSp,visibility)],map[string,ast],cons[ast],reports) => either[reports,(cons[defnSpec],cons[(defnSp,visibility)],
+      map[string,ast],cons[ast])].
   
   collectDefs([],Defs,Pb,As,Opn,Rp) => either((Defs,Pb,As,Opn)).
   collectDefs([A,..Ss],Defs,Pb,As,Opn,Rp) where _ ^= isAnnotation(A) =>
@@ -69,11 +69,11 @@ star.compiler.dependencies{
     cons[ast],
     cons[defnSpec],
     cons[(defnSp,visibility)],
-    cons[(string,ast)],
+    map[string,ast],
     cons[ast],
     visibility,
     reports) => either[reports,(cons[ast],cons[defnSpec],
-      cons[(defnSp,visibility)],cons[(string,ast)],cons[ast])].
+      cons[(defnSp,visibility)],map[string,ast],cons[ast])].
 
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,_,Rp) where
       (_,Ai) ^= isPublic(A) =>
@@ -88,10 +88,10 @@ star.compiler.dependencies{
 	if(ILc,Id) ^= isName(V) then{
 	  if isConstructorStmt(T) then {
 	    valis (Stmts,[defnSpec(cnsSp(Id),Lc,[T]),..Defs],
-	      [(cnsSp(Id),Vz),..Pb],[(Id,T),..As],Opn)
+	      [(cnsSp(Id),Vz),..Pb],As[Id->T],Opn)
 	  }
 	  else
-	  valis (Stmts,Defs,[(varSp(Id),Vz),..Pb],[(Id,T),..As],Opn)
+	  valis (Stmts,Defs,[(varSp(Id),Vz),..Pb],As[Id->T],Opn)
 	}
 	else
 	raise reportError(Rp,"expecting an identifier, not $(V)",locOf(V))
@@ -148,7 +148,7 @@ star.compiler.dependencies{
 
   publishName:(defnSp,visibility,cons[(defnSp,visibility)])=>
     cons[(defnSp,visibility)].
-  publishName(Nm,_,Pb) where (Nm,_) in Pb => Pb.
+  publishName(Nm,_,Pb) where {? (Nm,_) in Pb ?} => Pb.
   publishName(Nm,Vz,Pb) => [(Nm,Vz),..Pb].
 
   collectDefines:(cons[ast],string,cons[ast]) => (cons[ast],cons[ast]).
@@ -156,16 +156,16 @@ star.compiler.dependencies{
       (_,Nm) ^= ruleName(St) => collectDefines(Ss,Nm,[St,..Dfs]).
   collectDefines(Ss,Nm,Dfs) default => (Ss,Dfs).
 	
-  generateAnnotations:(cons[ast],cons[ast],cons[ast],cons[(string,ast)]) =>
-    cons[(string,ast)].
+  generateAnnotations:(cons[ast],cons[ast],cons[ast],map[string,ast]) =>
+    map[string,ast].
   generateAnnotations([],_,_,As) => As.
   generateAnnotations([A,..Ss],Qs,Cs,As) where
       (Lc,V,T) ^= isTypeAnnotation(A) && (_,Id) ^= isName(V) =>
-    generateAnnotations(Ss,Qs,Cs,[(Id,reUQuant(Lc,Qs,reConstrain(Cs,T))),..As]).
+    generateAnnotations(Ss,Qs,Cs,As[Id->reUQuant(Lc,Qs,reConstrain(Cs,T))]).
   generateAnnotations([A,..Ss],Qs,Cs,As) =>
     generateAnnotations(Ss,Qs,Cs,As).
 
-  collectThetaRefs:(cons[defnSpec],map[defnSp,defnSp],cons[(string,ast)],
+  collectThetaRefs:(cons[defnSpec],map[defnSp,defnSp],map[string,ast],
     cons[definitionSpec],reports) =>
     either[reports,cons[definitionSpec]].
   collectThetaRefs([],_,_,DSpecs,_) => either(DSpecs).
@@ -178,7 +178,7 @@ star.compiler.dependencies{
     collectThetaRefs(Defs,AllRefs,Annots,[definition(Defines,Lc,Refs,Stmts),..S],Rp)
   }.
 
-  collectEnvRefs:(cons[ast],map[defnSp,defnSp],cons[(string,ast)],cons[defnSp],reports) =>
+  collectEnvRefs:(cons[ast],map[defnSp,defnSp],map[string,ast],cons[defnSp],reports) =>
     either[reports,cons[defnSp]].
   collectEnvRefs(Defs,All,Annots,Rf,Rp) =>
     collectStmtsRefs(Defs,locallyDefined(Defs,All),Annots,Rf,Rp).
@@ -197,7 +197,7 @@ star.compiler.dependencies{
     collectStmtsRefs(Sts,All,Annots,Rf0,Rp)
   }
 
-  collectStmtRefs:(ast,map[defnSp,defnSp],cons[(string,ast)],cons[defnSp],reports) =>
+  collectStmtRefs:(ast,map[defnSp,defnSp],map[string,ast],cons[defnSp],reports) =>
     either[reports,cons[defnSp]].
   collectStmtRefs(A,All,Annots,Rf,Rp) where (_,_,Tp) ^= isTypeAnnotation(A) =>
     collectTypeRefs(Tp,All,Rf,Rp).
@@ -267,9 +267,9 @@ star.compiler.dependencies{
     collectTermRefs(H,All,Rf,Rp).
     
   collectAnnotRefs(H,All,Annots,Rf,Rp) where Id^=headName(H) =>
-    ((Id,Tp) in Annots ?
-	collectTypeRefs(Tp,All,Rf,Rp) ||
-	either(Rf)).
+    (Tp ^= Annots[Id] ?
+      collectTypeRefs(Tp,All,Rf,Rp) ||
+      either(Rf)).
   collectAnnotRefs(H,_,_,_,Rp) => other(reportError(Rp,"not a head: $(H)",locOf(H))).
 
   collectCondRefs:(ast,map[defnSp,defnSp],cons[defnSp],reports) => either[reports,cons[defnSp]].
@@ -353,10 +353,6 @@ star.compiler.dependencies{
     Rf1 <- collectTermRefs(L,All,Rf,Rp);
     collectTermRefs(R,All,Rf1,Rp)
   }
-  collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isIndex(T) => do{
-    Rf1 <- collectTermRefs(L,All,Rf,Rp);
-    collectTermRefs(R,All,Rf1,Rp)
-  }
   collectTermRefs(T,All,Rf,Rp) where (_,L,M,R) ^= isSlice(T) => do{
     Rf1 <- collectTermRefs(L,All,Rf,Rp);
     Rf2 <- collectTermRefs(L,All,Rf1,Rp);
@@ -409,7 +405,7 @@ star.compiler.dependencies{
     collectDoRefs(L,All,Rf,Rp).
   collectTermRefs(T,All,Rf,Rp) where (_,L) ^= isValof(T) =>
     ((_,[As]) ^= isBrTuple(L) ?
-      collectDoRefs(As,ALl,Rf,Rp) ||
+      collectDoRefs(As,All,Rf,Rp) ||
       collectTermRefs(L,All,Rf,Rp)).
   collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isAbstraction(T) => do{
     Rf1 <- collectTermRefs(L,All,Rf,Rp);
@@ -614,7 +610,7 @@ star.compiler.dependencies{
   collectFaceType(_,All,R,_) => either(R).
 
   collectName:(defnSp,map[defnSp,defnSp],cons[defnSp])=>cons[defnSp].
-  collectName(Sp,All,SoFar) where Rf^=All[Sp] && ~Sp in SoFar => [Sp,..SoFar].
+  collectName(Sp,All,SoFar) where Rf^=All[Sp] && {? ~Sp in SoFar ?} => [Sp,..SoFar].
   collectName(_,_,SoFar) default => SoFar.
 
   filterOut:(map[defnSp,defnSp],cons[ast]) => map[defnSp,defnSp].
