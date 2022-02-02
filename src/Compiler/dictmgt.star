@@ -48,7 +48,7 @@ star.compiler.dict.mgt{
   }    
 
   public refreshVar(Lc,Nm,Tp,Env) =>
-    refreshVr(Lc,Tp,Env,(T)=>vr(Lc,Nm,T)).
+    refreshVr(Lc,Tp,Env,(T)=>vr(some(Lc),Nm,T)).
 
   public declareFldAccess:(canon,string,option[locn],tipe,dict) => dict.
   declareFldAccess(Rc,Nm,Lc,Tp,Env) =>
@@ -89,15 +89,15 @@ star.compiler.dict.mgt{
   declareVr(Nm,Lc,Tp,MkVr,Fc,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs),..Ev]) =>
     [scope(Tps,Vrs[Nm->vrEntry(Lc,MkVr,Tp,Fc)],Cns,Cnts,Imps,Accs),..Ev].
 
-  public declareContract:(locn,string,tipe,dict) => dict.
+  public declareContract:(option[locn],string,tipe,dict) => dict.
   declareContract(Lc,Nm,Con,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs),..Rest]) =>
-    declareMethods(Lc,Con,[scope(Tps[Nm->tpDefn(some(Lc),Nm,typeKey(Con),Con)],Vrs,Cns,Cnts[Nm->Con],Imps,Accs),..Rest]).
+    declareMethods(Lc,Con,[scope(Tps[Nm->tpDefn(Lc,Nm,typeKey(Con),Con)],Vrs,Cns,Cnts[Nm->Con],Imps,Accs),..Rest]).
 
-  declareMethods:(locn,tipe,dict) => dict.
+  declareMethods:(option[locn],tipe,dict) => dict.
   declareMethods(Lc,Spec,Dict) where
       (MQ,MI) .= deQuant(Spec) &&
       (MC,typeExists(CT,faceType(Methods,[]))) .= deConstrain(MI) =>
-    formMethods(Methods,some(Lc),MQ,MC,CT,Dict).
+    formMethods(Methods,Lc,MQ,MC,CT,Dict).
 
   formMethods:(cons[(string,tipe)],option[locn],cons[tipe],
     cons[constraint],tipe,dict) => dict.
@@ -123,6 +123,30 @@ star.compiler.dict.mgt{
     valis manageConstraints(VrTp,Lc,mtd(Lc,Nm,Cn,VrTp),Env)
   }
 
+  public declareDecls:(cons[decl],option[locn],dict,reports)=>either[reports,dict].
+  declareDecls([],_,Dict,_) => do{
+    valis Dict
+  }
+  declareDecls([D,..Ds],Lc,Dict,Rp) => do{
+    declareDecls(Ds,Lc,declareDecl(D,Lc,Dict),Rp)
+  }
+
+  declareDecl(implDec(Nm,ImplNm,Tp),Lc,Dict) => 
+    declareImplementation(Lc,Nm,ImplNm,Tp,Dict).
+  declareDecl(accDec(Tp,Fld,AccFn,AccTp),Lc,Dict) =>
+    declareAccessor(Lc,Tp,Fld,AccFn,AccTp,Dict).
+  declareDecl(conDec(Nm,ConNm,ConTp,ConRl),Lc,Dict) => 
+    declareContract(Lc,ConNm,ConRl,Dict).
+  declareDecl(tpeDec(Nm,Tp,TpRl),Lc,Dict) => 
+    declareType(Nm,Lc,Tp,TpRl,Dict).
+  declareDecl(varDec(Nm,FullNm,Tp),Lc,Dict) =>
+    declareVar(Nm,Lc,Tp,.none,Dict).
+  declareDecl(funDec(Nm,FullNm,Tp),Lc,Dict) =>
+    declareVar(Nm,Lc,Tp,.none,Dict).
+  declareDecl(cnsDec(Nm,FullNm,Tp),Lc,Dict) =>
+    declareConstructor(Nm,FullNm,Lc,Tp,Dict).
+    
+
   public pushSig:(tipe,locn,(string,tipe,dict)=>dict,dict) => dict.
   pushSig(faceType(Vrs,Tps),Lc,Mkr,Env) =>
     pushTypes(Tps,Lc,pushFlds(Vrs,Lc,Mkr,Env)).
@@ -144,13 +168,13 @@ star.compiler.dict.mgt{
   pushTypes([(Nm,Tp),..Tps],Lc,Env) =>
     pushTypes(Tps,Lc,declareType(Nm,some(Lc),typeKey(Tp),Tp,Env)).
 
-  public declareConstraints:(locn,cons[constraint],dict) => dict.
+  public declareConstraints:(option[locn],cons[constraint],dict) => dict.
   declareConstraints(_,[],E) => E.
   declareConstraints(Lc,[Con,..Cx],Env)
       where ConTp .= typeOf(Con) &&
       ConNm.=implementationName(ConTp) =>
     declareConstraints(Lc,Cx,
-      declareVar(ConNm,some(Lc),ConTp,.none,
+      declareVar(ConNm,Lc,ConTp,.none,
 	declareImplementation(Lc,ConNm,ConNm,ConTp,Env))).
   declareConstraints(Lc,[_,..Cx],Env) =>
     declareConstraints(Lc,Cx,Env).

@@ -110,7 +110,7 @@ star.compiler.constraints{
   declareImplementationsInGroup([implDef(Lc,_,FullNm,_,_,Tp),..Gp],Dict) =>
     declareImplementationsInGroup(Gp,
       declareVar(FullNm,some(Lc),Tp,.none,
-	declareImplementation(Lc,FullNm,FullNm,Tp,Dict))).
+	declareImplementation(some(Lc),FullNm,FullNm,Tp,Dict))).
   declareImplementationsInGroup([typeDef(Lc,Nm,Tp,TpRl),..Gp],Dict) =>
     declareImplementationsInGroup(Gp,declareType(Nm,some(Lc),Tp,TpRl,Dict)).
   declareImplementationsInGroup([_,..Gp],Dict) => declareImplementationsInGroup(Gp,Dict).

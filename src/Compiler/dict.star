@@ -12,9 +12,9 @@ star.compiler.dict{
 
   public vrEntry ::= vrEntry(option[locn],(locn,dict)=>canon,tipe,option[tipe]).
 
-  public implEntry ::= implEntry(locn,string,tipe).
+  public implEntry ::= implEntry(option[locn],string,tipe).
 
-  public accEntry ::= accEntry(locn,string,tipe).
+  public accEntry ::= accEntry(option[locn],string,tipe).
 
   public scope ::= scope(
     map[string,tpDef],
@@ -73,7 +73,7 @@ star.compiler.dict{
   findImplementation([_,..Rest],INm) => findImplementation(Rest,INm).
   findImplementation([],_) => .none.
 
-  public declareImplementation:(locn,string,string,tipe,dict) => dict.
+  public declareImplementation:(option[locn],string,string,tipe,dict) => dict.
   declareImplementation(Lc,ImplNm,ImplVr,Tp,
     [scope(Tps,Vrs,Cns,Cnts,Imps,Accs),..Env]) =>
     [scope(Tps,Vrs,Cns,Cnts,Imps[ImplNm->implEntry(Lc,ImplVr,Tp)],Accs),..Env].
@@ -81,6 +81,27 @@ star.compiler.dict{
   public undeclareImplementation:(string,dict) => dict.
   undeclareImplementation(Nm,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs),..Env]) =>
     [scope(Tps,Vrs,Cns,Cnts,Imps[~Nm],Accs),..Env].
+
+  public declareAccessor:(option[locn],tipe,string,string,tipe,dict) => dict.
+  declareAccessor(Lc,Tp,Fld,AccFn,AccTp,
+    [scope(Tps,Vrs,Cns,Cnts,Imps,Accs),..Env]) => valof{
+    Key .= tpName(Tp);
+    Entry .= accEntry(Lc,AccFn,AccTp);
+    if AccOrs ^= Accs[Key] then{
+      valis [scope(Tps,Vrs,Cns,Cnts,Imps,Accs[Key->AccOrs[Fld->Entry]]),..Env]
+    } else{
+      valis [scope(Tps,Vrs,Cns,Cnts,Imps,Accs[Key->{Fld->Entry}]),..Env]
+    }
+  }
+
+  public getFieldAccess:(tipe,string,dict)=>option[accEntry].
+  getFieldAccess(Tp,Fld,Env) => getField(tpName(Tp),Fld,Env).
+
+  getField(_,_,[]) => .none.
+  getField(Key,Fld,[scope(_,_,_,_,_,Accs),.._]) where
+      AccOrs ^= Accs[Key] &&
+      Acc ^= AccOrs[Fld] => some(Acc).
+  getField(Key,Fld,[_,..Env]) => getField(Key,Fld,Env).
 
   public pushScope:(dict)=>dict.
   pushScope(Env) => [scope({},{},[],{},{},{}),..Env].

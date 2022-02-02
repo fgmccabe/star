@@ -29,7 +29,9 @@ star.compiler.checker{
     if (Lc,Pk,Els) ^= isBrTerm(P) && Pkg .= pkgeName(Pk) then{
       if compatiblePkg(Pkg,Pkge) then{
 	(Imports,Stmts) <- collectImports(Els,[],[],Rp);
-	(PkgEnv,AllImports,PkgVars) <- importAll(Imports,Repo,Base,[],[],Rp);
+	(AllImports,Decls) <- importAll(Imports,Repo,[],[],Rp);
+	PkgEnv <- declareDecls(Decls,Lc,Base,Rp);
+	
 	PkgNm .= packageName(Pkg);
 	-- We treat a package specially, buts its essentially a theta record
 	(Vis,Opens,Annots,Gps) <- dependencies(Stmts,Rp);
