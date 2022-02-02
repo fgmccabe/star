@@ -16,7 +16,7 @@ star.compiler.canon{
     funDec(string,string,tipe) |
     cnsDec(string,string,tipe).
 
-  public canon ::= vr(locn,string,tipe) |
+  public canon ::= vr(option[locn],string,tipe) |
     anon(locn,tipe) |
     mtd(locn,string,tipe,tipe) |
     over(locn,canon,cons[constraint]) |
@@ -84,7 +84,7 @@ star.compiler.canon{
   .}
 
   public implementation hasLoc[canon] => {
-    locOf(vr(Lc,_,_)) => Lc.
+    locOf(vr(some(Lc),_,_)) => Lc.
     locOf(anon(Lc,_)) => Lc.
     locOf(mtd(Lc,_,_,_)) => Lc.
     locOf(over(Lc,_,_)) => Lc.

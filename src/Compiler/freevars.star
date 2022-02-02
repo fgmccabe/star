@@ -108,7 +108,7 @@ star.compiler.freevars{
     exclDf(varDef(Lc,Nm,FullNm,Val,Cx,Tp),Excl,Fv).
   exclDf(_,Excl,_) => Excl.
 
-  public goalVars:(locn,canon)=>cons[canon].
+  public goalVars:(option[locn],canon)=>cons[canon].
   goalVars(Lc,Cond) => ((glVars(Cond,[])::cons[crVar])//(crId(Nm,Tp))=>vr(Lc,Nm,Tp)).
 
   public glVars:(canon,set[crVar]) => set[crVar].
