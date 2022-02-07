@@ -20,6 +20,10 @@ test.bench{
   fingeriota(Mx,Mx) => [].
   fingeriota(Ix,Mx) where Ix<Mx => [Ix,..fingeriota(Ix+1,Mx)].
 
+  idealIota:(integer,integer)=>map[integer,integer].
+  idealIota(Mx,Mx) => [].
+  idealIota(Ix,Mx) where Ix<Mx => idealIota(Ix+1,Mx)[Ix->Ix].
+
   rbiota:(integer,integer)=>rbtree[integer,integer].
   rbiota(Mx,Mx) => [].
   rbiota(Ix,Mx) where Ix<Mx => [Ix->Ix,..rbiota(Ix+1,Mx)].
@@ -59,6 +63,30 @@ test.bench{
       };
       timer_finish(timer!)
     };
+
+    logMsg("******* ideal hash ******");
+    timer := timer_start(Count, "Creating ideal tree");
+    id_list .= ref idealIota(0,Count);
+    timer_finish(timer!);
+--    logMsg("ideal map: $(id_list!)");
+
+    timer := timer_start(Count, "Iterating over all elements in ideal");
+    for (i->_) in (id_list!) do {
+--      logMsg(" element: $(i) .= $(El)")
+      empty(some(i))
+    };
+    timer_finish(timer!);
+
+    logMsg("measure $([|id_list!|])");
+
+    if Count =< 100000 then {
+      timer := timer_start(Count, "Changing elements in ideal map");
+      for ix in idxes do {
+        id_list[ix] := ix + 4
+      };
+      timer_finish(timer!)
+    };
+
 
     logMsg("******* finger trees ******");
     timer := timer_start(Count, "Creating finger tree");
@@ -120,13 +148,12 @@ test.bench{
     timer_finish(timer!);
 --    logMsg("red/black tree: $(rb_list!)");
 
-/*    timer := timer_start(Count, "Iterating over all elements in red/black list");
+    timer := timer_start(Count, "Iterating over all elements in red/black list");
     for i->_ in rb_list! do {
       empty(some(i))
 --      logMsg("rb element: $(i)")
     };
     timer_finish(timer!);
-*/
     
     timer := timer_start(Count, "Accessing all elements in red/black list");
     for i in idxes do {

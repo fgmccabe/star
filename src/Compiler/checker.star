@@ -24,37 +24,27 @@ star.compiler.checker{
 
   -- package level of type checker
 
-  public checkPkg:all r ~~ repo[r],display[r]|:(r,pkg,ast,dict,compilerOptions,reports) => either[reports,(pkgSpec,canonDef)].
+  public checkPkg:all r ~~ repo[r],display[r]|:(r,pkg,ast,dict,compilerOptions,reports) => either[reports,(pkgSpec,cons[canonDef])].
   checkPkg(Repo,Pkge,P,Base,Opts,Rp) => do{
     if (Lc,Pk,Els) ^= isBrTerm(P) && Pkg .= pkgeName(Pk) then{
       if compatiblePkg(Pkg,Pkge) then{
-	(Imports,Stmts) <- collectImports(Els,[],[],Rp);
+	(Imports,Stmts) .= collectImports(Els,[],[]);
 	(AllImports,Decls) <- importAll(Imports,Repo,[],[],Rp);
-	PkgEnv <- declareDecls(Decls,Lc,Base,Rp);
+	PkgEnv <- declareDecls(Decls,some(Lc),Base,Rp);
 	
 	PkgNm .= packageName(Pkg);
-	-- We treat a package specially, buts its essentially a theta record
+
 	(Vis,Opens,Annots,Gps) <- dependencies(Stmts,Rp);
 
-	TEnv <- checkTypeGroups(Gps,PkgEnv,PkgNm,Rp);
+	if ~isEmpty(Opens) then
+	  raise reportError(Rp,"open statements $(Opens) not supported",Lc);
+    
+	(Defs,ThEnv) <- checkGroups(Gps,[],faceType([],[]),Annots,PkgEnv,PkgNm,Rp);
+	RDefs <- overloadEnvironment(Defs,ThEnv,Rp);
 	
-	(Defs,ThEnv) <- checkGroups(Gps,[],faceType([],[]),Annots,TEnv,PkgNm,Rp);
-	if [Open,.._] .= Opens then
-	  raise reportError(Rp,"open statement $(Open) not permitted in package",locOf(Open));
+	(ExDecls,LclDecl,PkgDefs).=genDecls(RDefs*,completePublic(Vis,PkgNm));
 
-	Contracts .= { D | DD in Defs && D in DD && conDef(_,Nm,_,_).=D &&
-	      (conSp(Nm), .pUblic) in Vis};
-	Fields .= exportedFields(Defs,Vis,.pUblic);
-	Impls .= { implSpec(some(ILc),INm,FllNm,ITp) |
-	    DD in Defs &&
-		implDef(ILc,INm,FllNm,_,_,ITp) in DD &&
-		(implSp(INm),V) in Vis && V>=.pUblic};
-	Types .= exportedTypes(Defs,Vis,.pUblic);
-	RDefs <- overloadEnvironment(Defs,PkgEnv,Rp);
-	PkgType .= faceType(Fields,Types);
-	PkgTheta <- makePkgTheta(Lc,PkgNm,PkgType,ThEnv,sortDefs(RDefs*),Rp);
-	valis (pkgSpec(Pkge,Imports,PkgType,Contracts,Impls,PkgVars),
-	  varDef(Lc,packageVar(Pkg),packageVar(Pkg),PkgTheta,[],PkgType))
+	valis (pkgSpec(Pkge,Imports,ExDecls),PkgDefs)
       }
       else
       raise reportError(Rp,"package name $(Pkg) does not match expected $(Pkge)",locOf(P))
@@ -62,9 +52,17 @@ star.compiler.checker{
     raise reportError(Rp,"invalid package structure",locOf(P))
   }
 
-  makePkgTheta:(locn,string,tipe,dict,cons[cons[canonDef]],reports)=>either[reports,canon].
-  makePkgTheta(Lc,Nm,Tp,Env,Defs,Rp) =>
-    formTheta(Lc,some(Nm),deRef(Tp),Env,Defs,Tp,Rp).
+  completePublic:(cons[(defnSp,visibility)],string) =>
+    cons[(defnSp,visibility)].
+  completePublic([],_) => [].
+  completePublic([(conSp(Nm),.pUblic),..Ds],Pth) =>
+    [(tpSp(qualifiedName(Pth,.typeMark,Nm)),.pUblic),
+      (varSp(qualifiedName(Pth,.valMark,Nm)),.pUblic),
+      (conSp(Nm),.pUblic),..completePublic(Ds,Pth)].
+  completePublic([S,..Ds],Pth) => [S,..completePublic(Ds,Pth)].
+
+  genDecls:(cons[canonDef],cons[(defnSp,visibility)]) => (cons[decl],cons[decl],cons[canonDef]).
+  genDecls([],_) => ([],[],[]).
 
   exportedFields:(cons[cons[canonDef]],cons[(defnSp,visibility)],visibility) => cons[(string,tipe)].
   exportedFields(Defs,Vis,DVz) =>
@@ -113,34 +111,30 @@ star.compiler.checker{
 
   lookInGroup:(cons[canonDef],string,cons[cons[canonDef]])=>option[canon].
   lookInGroup([],Nm,Gps) => findDefn(Gps,Nm).
-  lookInGroup([varDef(Lc,Nm,_,_,Cx,Tp),..Gp],Nm,_) => some(vr(Lc,Nm,Tp)).
+  lookInGroup([varDef(Lc,Nm,_,_,Cx,Tp),..Gp],Nm,_) => some(vr(some(Lc),Nm,Tp)).
   lookInGroup([cnsDef(Lc,Nm,FullNm,Tp),..Gp],Nm,_) => some(enm(Lc,FullNm,Tp)).
-  lookInGroup([implDef(Lc,Nm,FullNm,Val,Cx,Tp),..Gp],FullNm,_) => some(vr(Lc,FullNm,Tp)).
+  lookInGroup([implDef(Lc,Nm,FullNm,Val,Cx,Tp),..Gp],FullNm,_) =>
+    some(vr(some(Lc),FullNm,Tp)).
   lookInGroup([_,..Gp],Nm,Gps) => lookInGroup(Gp,Nm,Gps).
 
   thetaEnv:(locn,string,cons[ast],tipe,dict,reports,visibility) =>
-    either[reports,(cons[cons[canonDef]],dict,tipe)].
+    either[reports,(cons[cons[canonDef]],dict)].
   thetaEnv(Lc,Pth,Stmts,Face,Env,Rp,DefViz) => do{
     (Vis,Opens,Annots,Gps) <- dependencies(Stmts,Rp);
-    Base .= pushFace(Face,Lc,Env);
-    TEnv <- checkTypeGroups(Gps,Base,Pth,Rp);
-    (Defs,ThEnv) <- checkGroups(Gps,[],Face,Annots,TEnv,Pth,Rp);
 
-    PubVrTps .= exportedFields(Defs,Vis,DefViz);
-    PubTps .= exportedTypes(Defs,Vis,DefViz);
-    valis (Defs,ThEnv,faceType(PubVrTps,PubTps))
+    if ~isEmpty(Opens) then
+      raise reportError(Rp,"open statements $(Opens) not supported",Lc);
+    
+    Base .= pushFace(Face,Lc,Env);
+    checkGroups(Gps,[],Face,Annots,Base,Pth,Rp)
   }
 
   recordEnv:(locn,string,cons[ast],tipe,dict,reports,visibility) =>
-    either[reports,(cons[canonDef],dict,tipe)].
+    either[reports,(cons[canonDef],dict)].
 
   recordEnv(Lc,Pth,Stmts,Face,Env,Rp,DefViz) => do{
     (Vis,Opens,Annots,Gps) <- dependencies(Stmts,Rp);
-    (Defs,ThEnv) <- letGroup(Gps*,[],Pth,Face,Annots,Env,Rp);
-
-    PubVrTps .= exportedFields([Defs],Vis,DefViz);
-    PubTps .= exportedTypes([Defs],Vis,DefViz);
-    valis (Defs,ThEnv,faceType(PubVrTps,PubTps))
+    letGroup(Gps*,[],Pth,Face,Annots,Env,Rp);
   }
 
   letGroup:(cons[defnSpec],cons[canonDef],string,tipe,
@@ -178,13 +172,13 @@ star.compiler.checker{
   }
   checkTypeDefn(defnSpec(conSp(ConNm),Lc,[St]),Env,Path,Rp) => do{
     Contract <- parseContract(St,Env,Path,Rp);
-    valis declareContract(Lc,ConNm,Contract,Env)
+    valis declareContract(some(Lc),ConNm,Contract,Env)
   }
   checkTypeDefn(defnSpec(implSp(Nm),Lc,[St]),Env,Path,Rp) => do {
     if (_,Q,C,H,B) ^= isImplementationStmt(St) then{
       BV <- parseBoundTpVars(Q,Rp);
       Cx <- parseConstraints(C,BV,Env,Rp);
-      conTract(Cn) <- parseContractConstraint(BV,H,Env,Rp);
+      Cn <- parseContractConstraint(BV,H,Env,Rp);
       ConName .= localName(tpName(Cn),.typeMark);
       if Con ^= findContract(Env,ConName) then{
 	(_,typeExists(ConTp,_)) .= freshen(Con,Env);
@@ -192,7 +186,7 @@ star.compiler.checker{
 	  FullNm .= implementationName(ConTp);
 	  ImplTp .= rebind(BV,reConstrainType(Cx,ConTp),Env);
 	  valis declareVar(FullNm,some(Lc),ImplTp,.none,
-	    declareImplementation(Lc,FullNm,FullNm,ImplTp,Env))
+	    declareImplementation(some(Lc),FullNm,FullNm,ImplTp,Env))
 	}
 	else{
 	  raise reportError(Rp,"implementation type $(Cn) not consistent with contract type $(ConTp)",Lc)
@@ -216,11 +210,12 @@ star.compiler.checker{
     checkGroups(Gs,[Gp,..Gx],Face,Annots,Ev,Path,Rp)
   }
 
-  parseAnnotations:(cons[defnSpec],tipe,map[string,ast],dict,reports) => either[reports,dict].
+  parseAnnotations:(cons[defnSpec],tipe,map[string,ast],dict,reports) =>
+    either[reports,dict].
   parseAnnotations([],_,_,Env,_) => either(Env).
   parseAnnotations([defnSpec(varSp(Nm),Lc,Stmts),..Gs],Fields,Annots,Env,Rp) => do{
     Tp <- parseAnnotation(Nm,Lc,Stmts,Fields,Annots,Env,Rp);
-    parseAnnotations(Gs,Fields,Annots,declareVar(Nm,some(Lc),Tp,some(faceOfType(Tp,Env)),Env),Rp)
+    parseAnnotations(Gs,Fields,Annots,declareVar(Nm,some(Lc),Tp,faceOfType(Tp,Env),Env),Rp)
   }
   parseAnnotations([_,..Gs],Fields,Annots,Env,Rp) => parseAnnotations(Gs,Fields,Annots,Env,Rp).
 
@@ -247,7 +242,7 @@ star.compiler.checker{
   }
 
   allFunDefs:(cons[canonDef])=>boolean.
-  allFunDefs(Dfs) => D in Dfs *> varDef(_,_,_,lambda(_,_,_),_,_).=D.
+  allFunDefs(Dfs) => {? D in Dfs *> varDef(_,_,_,lambda(_,_,_),_,_).=D ?}.
 
   checkGroup:(cons[defnSpec],dict,dict,string,reports) =>
     either[reports,(cons[canonDef],dict)].
@@ -269,12 +264,12 @@ star.compiler.checker{
   checkDefn(defnSpec(varSp(Nm),Lc,[Stmt]),Env,Outer,Path,Rp) where Tp ^= varType(Nm,Env) => do{
     (Q,ETp) .= evidence(Tp,Env);
     (Cx,VarTp) .= deConstrain(ETp);
-    Es .= declareConstraints(Lc,Cx,declareTypeVars(Q,Outer));
+    Es .= declareConstraints(some(Lc),Cx,declareTypeVars(Q,Outer));
     if (_,Lhs,R) ^= isDefn(Stmt) then{
       Val <- typeOfExp(R,VarTp,Es,Path,Rp);
       FullNm .= qualifiedName(Path,.valMark,Nm);
       valis (varDef(Lc,Nm,FullNm,Val,Cx,Tp),
-	declareVar(Nm,some(Lc),Tp,some(faceOfType(Tp,Env)),Env))
+	declareVar(Nm,some(Lc),Tp,faceOfType(Tp,Env),Env))
     }
     else{
       raise reportError(Rp,"bad definition $(Stmt)",Lc)
@@ -287,7 +282,7 @@ star.compiler.checker{
   checkDefn(defnSpec(conSp(ConNm),Lc,[St]),Env,_,Path,Rp) => do{
     Contract <- parseContract(St,Env,Path,Rp);
     valis (conDef(Lc,ConNm,ConNm,Contract),
-      declareContract(Lc,ConNm,Contract,Env))
+      declareContract(some(Lc),ConNm,Contract,Env))
   }
   checkDefn(defnSpec(implSp(Nm),Lc,[St]),Env,Outer,Path,Rp) => do {
     if (_,Q,C,H,B) ^= isImplementationStmt(St) then
@@ -301,9 +296,9 @@ star.compiler.checker{
   checkFunction(Nm,Tp,Lc,Stmts,Env,Outer,Path,Rp) => do{
     (Q,ETp) .= evidence(Tp,Env);
     (Cx,ProgramTp) .= deConstrain(ETp);
-    Es .= declareConstraints(Lc,Cx,declareTypeVars(Q,Env));
+    Es .= declareConstraints(some(Lc),Cx,declareTypeVars(Q,Env));
     Rls <- processEqns(Stmts,deRef(ProgramTp),[],.none,Es,
-      declareConstraints(Lc,Cx,declareTypeVars(Q,Outer)),Path,Rp);
+      declareConstraints(some(Lc),Cx,declareTypeVars(Q,Outer)),Path,Rp);
     FullNm .= qualifiedName(Path,.valMark,Nm);
     valis (varDef(Lc,Nm,FullNm,
 	lambda(FullNm,Rls,Tp),Cx,Tp),declareVar(Nm,some(Lc),Tp,.none,Env))
@@ -355,12 +350,13 @@ star.compiler.checker{
     if Con ^= findContract(Env,ConName) then{
       (_,typeExists(ConTp,ConFaceTp)) .= freshen(Con,Env);
       if sameType(ConTp,Cn,Env) then {
-	Es .= declareConstraints(Lc,Cx,declareTypeVars(BV,Outer));
+	Es .= declareConstraints(some(Lc),Cx,declareTypeVars(BV,Outer));
 	Impl <- typeOfExp(B,ConFaceTp,Es,Path,Rp);
 	ImplVrNm .= qualifiedName(Path,.valMark,implementationName(ConTp));
 	ImplTp .= rebind(BV,reConstrainType(Cx,ConTp),Es);
 	valis (implDef(Lc,Nm,ImplVrNm,Impl,Cx,ImplTp),
-	  declareImplementation(ImplVrNm,ImplTp,Env))
+	  declareImplementation(some(Lc),implementationName(ConTp),
+	    ImplVrNm,ImplTp,Env))
       }
       else{
 	raise reportError(Rp,"implementation type $(Cn) not consistent with contract type $(ConTp)",Lc)
@@ -372,13 +368,13 @@ star.compiler.checker{
     
   typeOfPtn:(ast,tipe,dict,string,reports) => either[reports,(canon,dict)].
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,"_") ^= isName(A) =>
-    either((vr(Lc,genSym("_"),Tp),Env)).
+    either((vr(some(Lc),genSym("_"),Tp),Env)).
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) &&
       varDefined(Id,Env) =>
     typeOfPtn(mkWhereEquality(A),Tp,Env,Path,Rp).
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) => do{
-    Ev .= declareVar(Id,some(Lc),Tp,some(faceOfType(Tp,Env)),Env);
-    valis (vr(Lc,Id,Tp),Ev)
+    Ev .= declareVar(Id,some(Lc),Tp,faceOfType(Tp,Env),Env);
+    valis (vr(some(Lc),Id,Tp),Ev)
   }
   typeOfPtn(A,Tp,Env,Path,Rp) where _ ^= isEnum(A) => do{
     Enm <- typeOfExp(A,Tp,Env,Path,Rp);
@@ -470,15 +466,9 @@ star.compiler.checker{
       }.
   typeOfExp(A,Tp,Env,Path,Rp) where
       (Lc,R,F) ^= isFieldAcc(A) && (_,Fld) ^= isName(F) => do{
-	FldTp .= newTypeVar(Fld);
-	TV .= newTVFieldConstraint(Fld,FldTp);
-	Rc <- typeOfExp(R,TV,Env,Path,Rp);
-	Acc .= refreshVr(Lc,FldTp,Env,(T)=>dot(Lc,Rc,Fld,T));
-	if sameType(Tp,typeOf(Acc),Env) then{
-	  valis Acc
-	}
-	else
-	raise reportError(Rp,"field $(Fld)\:$(FldTp) not consistent with expected type: $(Tp)",Lc)
+	RTp .= newTypeVar("R");
+	Rc <- typeOfExp(R,RTp,Env,Path,Rp);
+	valis dot(Lc,Rc,Fld,Tp)
       }
 
   typeOfExp(A,Tp,Env,Path,Rp) where _ ^= isConjunct(A) => do{
@@ -598,13 +588,13 @@ star.compiler.checker{
       valis lambda(LName,[eqn(Lc,As,.none,Rep)],Tp)
     }
   }
-  typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Els) ^= isTheta(A) => do{
+/*  typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Els) ^= isTheta(A) => do{
     (Q,ETp) .= evidence(Tp,Env);
     FaceTp .= faceOfType(ETp,Env);
     (Cx,Face) .= deConstrain(FaceTp);
-    Base .= declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
+  Base .= declareConstraints(some(Lc),Cx,declareTypeVars(Q,pushScope(Env)));
     Path .= genNewName(Pth,"θ");
-    (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,Path,Els,Face,Base,Rp,.deFault);
+    (Defs,ThEnv) <- thetaEnv(Lc,Path,Els,Face,Base,Rp,.deFault);
     if sameType(ThetaTp,ETp,Env) then{
       formTheta(Lc,.none,deRef(faceOfType(Tp,ThEnv)),ThEnv,sortDefs(Defs*),
 	reConstrainType(Cx,ThetaTp),Rp)
@@ -616,7 +606,7 @@ star.compiler.checker{
     (Q,ETp) .= evidence(Tp,Env);
     FaceTp .= faceOfType(ETp,Env);
     (Cx,Face) .= deConstrain(FaceTp);
-    Base .= declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
+  Base .= declareConstraints(some(Lc),Cx,declareTypeVars(Q,pushScope(Env)));
     Path .= genNewName(Pth,"θ");
     (Defs,ThEnv,ThetaTp) <- recordEnv(Lc,Path,Els,Face,Base,Rp,.deFault);
     if sameType(ThetaTp,Tp,Env) then{
@@ -625,6 +615,7 @@ star.compiler.checker{
     else
     raise reportError(Rp,"type of qtheta: $(ThetaTp)\nnot consistent with \n$(Tp)",Lc)
   }
+
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Op,Els) ^= isLabeledTheta(A) && (_,Nm)^=isName(Op) => do{
     FceTp .= newTypeVar("_");
     ConTp .= consType(FceTp,Tp);
@@ -633,7 +624,7 @@ star.compiler.checker{
     (Q,ETp) .= evidence(FceTp,Env);
     FaceTp .= faceOfType(ETp,Env);
     (Cx,Face) .= deConstrain(FaceTp);
-    Base .= declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
+  Base .= declareConstraints(some(Lc),Cx,declareTypeVars(Q,pushScope(Env)));
     
     (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,Rp,.deFault);
     if sameType(ThetaTp,Face,Env) then{
@@ -649,7 +640,7 @@ star.compiler.checker{
     (Q,ETp) .= evidence(FceTp,Env);
     FaceTp .= faceOfType(ETp,Env);
     (Cx,Face) .= deConstrain(FaceTp);
-    Base .= declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
+  Base .= declareConstraints(some(Lc),Cx,declareTypeVars(Q,pushScope(Env)));
     
     (Defs,ThEnv,ThetaTp) <- recordEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,Rp,.deFault);
     if sameType(ThetaTp,Face,Env) then{
@@ -658,12 +649,13 @@ star.compiler.checker{
     else
     raise reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Op)\:$(ConTp) ",Lc)
   }
+
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Rc,Upd) ^= isRecordUpdate(A) => do{
     Rec <- typeOfExp(Rc,Tp,Env,Pth,Rp);
     UpTp .= newTypeVar("_");
     Update <- typeOfExp(Upd,UpTp,Env,Pth,Rp);
-    faceType(RecFlds,_) .= faceOfType(Tp,Env);
-    faceType(UpFlds,_) .= faceOfType(UpTp,Env);
+    faceType(RecFlds,_) ^= faceOfType(Tp,Env);
+    faceType(UpFlds,_) ^= faceOfType(UpTp,Env);
     for (F,TU) in UpFlds do{
       if (F,TR) in RecFlds then{
 	if ~sameType(TU,TR,Env) then
@@ -673,21 +665,20 @@ star.compiler.checker{
     };
     valis update(Lc,Rec,Update)
   }
+*/
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els,Bnd) ^= isLetRecDef(A) => do{
-    (Defs,ThEnv,ThetaTp)<-thetaEnv(Lc,genNewName(Path,"Γ"),Els,faceType([],[]),Env,Rp,.priVate);
+    (Defs,ThEnv)<-thetaEnv(Lc,genNewName(Path,"Γ"),Els,faceType([],[]),Env,Rp,.priVate);
     
-    BndEnv .= pushFace(ThetaTp,Lc,Env);
-    El <- typeOfExp(Bnd,Tp,BndEnv,Path,Rp);
+    El <- typeOfExp(Bnd,Tp,ThEnv,Path,Rp);
 
     Sorted .= sortDefs(Defs*);
     
     valis foldRight((Gp,I)=>letRec(Lc,Gp,I),El,Sorted)
   }
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els,Bnd) ^= isLetDef(A) => do{
-    (Defs,ThEnv,ThetaTp)<-recordEnv(Lc,genNewName(Path,"Γ"),Els,faceType([],[]),Env,Rp,.priVate);
+    (Defs,ThEnv)<-recordEnv(Lc,genNewName(Path,"Γ"),Els,faceType([],[]),Env,Rp,.priVate);
     
-    BndEnv .= pushFace(ThetaTp,Lc,Env);
-    El <- typeOfExp(Bnd,Tp,BndEnv,Path,Rp);
+    El <- typeOfExp(Bnd,Tp,ThEnv,Path,Rp);
 
     Sorted .= sortDefs(Defs);
     

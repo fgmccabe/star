@@ -130,6 +130,7 @@ star.compiler.meta{
       showCanon:boolean.
       showCore:boolean.
       showCode:boolean.
+      macroOnly:boolean.
       typeCheckOnly:boolean.
       doStdin:boolean.
     }.
@@ -143,6 +144,7 @@ star.compiler.meta{
     showCanon=.false.
     showCore=.false.
     showCode=.false.
+    macroOnly=.false.
     typeCheckOnly=.false.
     doStdin=.false.
   }

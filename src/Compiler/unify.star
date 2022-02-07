@@ -101,8 +101,8 @@ star.compiler.unify{
     }.
   .} in (sm(deRef(Tp1),deRef(Tp2),Envir) ? .true || valof resetBindings).
 
-  public faceOfType:(tipe,dict) => tipe.
-  faceOfType(T,_) where faceType(_,_).=deRef(T) => T.
+  public faceOfType:(tipe,dict) => option[tipe].
+  faceOfType(T,_) where faceType(_,_).=deRef(T) => some(T).
   faceOfType(T,Env) => valof action{
     if (_,_,Rl) ^= findType(Env,localName(tpName(T),.typeMark)) then{
       (_,FRl) .= freshen(Rl,Env);
@@ -115,14 +115,14 @@ star.compiler.unify{
 	valis fcTp(RRhs)
       }
       else
-      valis faceType([],[])
+      valis .none
     } else{
-      valis faceType([],[])
+      valis .none
     }
   }.
   
-  fcTp(faceType(Flds,Tps)) => faceType(Flds,Tps).
-  fcTp(_) default => faceType([],[]).
+  fcTp(faceType(Flds,Tps)) => some(faceType(Flds,Tps)).
+  fcTp(_) default => .none.
 
   occursIn(TV,Tp) where ~isIdenticalVar(TV,Tp) =>
       occIn(vrNm(TV),deRef(Tp)).
