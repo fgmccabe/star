@@ -8,6 +8,7 @@
     "star.compiler.canon": "canon.star",
     "star.compiler.canondeps": "canondeps.star",
     "star.compiler.checker": "checker.star",
+    "star.compiler.checker.driver": "checkerdriver.star",
     "star.compiler.constraints": "constraints.star",
     "star.compiler.core" : "core.star",
     "star.compiler.core.ast" : "coreAst.star",

@@ -88,4 +88,10 @@ star.tuples{
     equality[keyval[k,v]] => {
       K1->V1 == K2->V2 => K1==K2 && V1==V2
     }.
+
+  public implementation all k,v ~~ equality[k], comp[k] |:
+    comp[keyval[k,v]] => {
+      (K1 -> _) < (K2 -> _) => K1 < K2.
+      (K1 -> _) >= (K2 -> _) => K1 >= K2.
+    }
 }

@@ -133,6 +133,10 @@ star.ideal{
     isEmpty(M) => countEls(M,0)==0.
   }
 
+  public implementation all k,v ~~ measured[map[k,v]->>integer] => {
+    '[||]'(M) => size(M)
+  }
+
   public implementation all k,v ~~ display[k],display[v] |: display[map[k,v]] => let{.
     dispTree:(map[k,v],cons[string])=>cons[string].
     dispTree(.ihNil,SS) => SS.

@@ -104,7 +104,7 @@ star.compiler.typeparse{
   }
   parseType(Q,T,Env,Rp) where (Lc,Lhs,Rhs) ^= isFieldAcc(T) => do{
     if (_,Id) ^= isName(Lhs) && (_,Fld) ^= isName(Rhs) then{
-      if (_,RcType) ^= findVarFace(Lc,Id,Env) && faceType(_,Tps) .= RcType then{
+      if RcType ^= findVarFace(Id,Env) && faceType(_,Tps).=deRef(RcType) then{
 	if Ftp ^= {! Ftp | (Fld,Ftp) in Tps !} then
 	  valis Ftp
 	else
@@ -224,8 +224,8 @@ star.compiler.typeparse{
     else
     raise reportError(Rp,"invalid rhs:$(Rh) of field constraint, expecting $(Lh)<~{F:T}",Lc)
   }
-  parseConstraint(A,Q,Env,Rp) =>
-    parseContractConstraint(Q,A,Env,Rp).
+  parseConstraint(A,Q,Env,Rp) => 
+    fmap((T)=>conTract(T),parseContractConstraint(Q,A,Env,Rp)).
   
   public rebind:(tipes,tipe,dict)=>tipe.
   rebind([],T,_) => T.
@@ -247,16 +247,16 @@ star.compiler.typeparse{
   reQX([(_,KV),..T],Tp) => reQX(T,existType(KV,Tp)).
 
   public parseContractConstraint:(tipes,ast,dict,reports) =>
-    either[reports,constraint].
+    either[reports,tipe].
   parseContractConstraint(Q,A,Env,Rp) where
       (Lc,O,As) ^= isSquareTerm(A) && (_,Nm) ^= isName(O) => do{
 	if [AAs].=As && (_,L,R) ^= isBinary(AAs,"->>") then{
 	  Tps <- parseTypes(Q,deComma(L),Env,Rp);
 	  Dps <- parseTypes(Q,deComma(R),Env,Rp);
-	  valis conTract(funDeps(mkTypeExp(tpFun(Nm,size(Tps)),Tps),Dps))
+	  valis funDeps(mkTypeExp(tpFun(Nm,size(Tps)),Tps),Dps)
 	} else{
 	  Tps <- parseTypes(Q,As,Env,Rp);
-	  valis conTract(mkTypeExp(tpFun(Nm,size(Tps)),Tps))
+	  valis mkTypeExp(tpFun(Nm,size(Tps)),Tps)
 	}
       }
   parseContractConstraint(_,A,Env,Rp) =>

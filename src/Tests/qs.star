@@ -33,7 +33,7 @@ test.qs{
 
   ff:cons[integer].
   ff = { fact(X) | X in someInts && X>=0}
- 
+
   main:() => action[(),()].
   main() => action{
     show parent;

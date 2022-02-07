@@ -24,10 +24,10 @@ star.compiler.dict.mgt{
   findVar(Lc,Nm,Dict) where vrEntry(_,Mk,Tp,_) ^= isVar(Nm,Dict) => some(Mk(Lc,Dict)).
   findVar(_,_,_) default => .none.
 
-  public findVarFace:(locn,string,dict) => option[(canon,tipe)].
-  findVarFace(Lc,Nm,Env) where vrEntry(_,Mk,Tp,Fc) ^=isVar(Nm,Env) =>
-    some((Mk(Lc,Env),(F^=Fc ? F || faceOfType(Tp,Env)))).
-  findVarFace(_,_,_) default => .none.
+  public findVarFace:(string,dict) => option[tipe].
+  findVarFace(Nm,Env) where vrEntry(_,Mk,Tp,Fc) ^=isVar(Nm,Env) =>
+    (_^=Fc ? Fc || faceOfType(Tp,Env)).
+  findVarFace(_,_) default => .none.
     
   public varDefined:(string,dict) => boolean.
   varDefined(Nm,Dict) where _ ^= isVar(Nm,Dict) => .true.
