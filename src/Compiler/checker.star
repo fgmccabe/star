@@ -24,8 +24,9 @@ star.compiler.checker{
 
   -- package level of type checker
 
-  public checkPkg:all r ~~ repo[r],display[r]|:(r,pkg,ast,dict,compilerOptions,reports) => either[reports,(pkgSpec,cons[canonDef])].
-  checkPkg(Repo,Pkge,P,Base,Opts,Rp) => do{
+  public checkPkg:all r ~~ repo[r],display[r]|:(r,pkg,ast,compilerOptions,reports) => either[reports,(pkgSpec,cons[canonDef])].
+  checkPkg(Repo,Pkge,P,Opts,Rp) => do{
+    Base .= stdDict;
     if (Lc,Pk,Els) ^= isBrTerm(P) && Pkg .= pkgeName(Pk) then{
       if compatiblePkg(Pkg,Pkge) then{
 	(Imports,Stmts) .= collectImports(Els,[],[]);

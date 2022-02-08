@@ -1,5 +1,6 @@
 star.compiler.term.repo{
   import star.
+  import star.file.
   import star.pkg.
   import star.repo.
   import star.repo.manifest.
@@ -62,12 +63,12 @@ star.compiler.term.repo{
       (SrcFile,CodeFile) ^= packageCode(Repo,Pkg) =>
     resourcePresent(CodeFile) &&
     resourcePresent(SrcFile) &&
-        newerFile(CodeFile,SrcFile).
+        newerRsrc(CodeFile,SrcFile).
   packageCodeOk(_,_) default => .false.
 
   public pkgOk:(termRepo,pkg)=>boolean.
   pkgOk(Repo,Pkg) => (SrcUri,CodeUri) ^= packageCode(Repo,Pkg) ?
-    newerFile(CodeUri,SrcUri) || .false.
+    newerRsrc(CodeUri,SrcUri) || .false.
 
   public packageCode:(termRepo,pkg) => option[(uri,uri)].
   packageCode(repo(Root,Man),Pkg) where
@@ -90,9 +91,9 @@ star.compiler.term.repo{
   extensionMapping("term") => ".term".
   extensionMapping("code") => ".co".
 
-  public implementation display[termRepo] => @<
-    disp(repo(Root,Man)) => ssSeq([ss("file repo rooted at "),disp(Root),ss("\nmanifest:"),disp(Man)]).
-  @>
+  public implementation display[termRepo] => {
+    disp(repo(Root,Man)) => "file repo rooted at $(Root)\nmanifest:$(Man)".
+  }
 
   termManifest:(term)=>manifest.
   termManifest(term(_,Els)) => man(foldRight(termEntry,[],Els)).
@@ -108,9 +109,9 @@ star.compiler.term.repo{
   termInfo:(term,map[string,string])=>map[string,string].
   termInfo(term(tLbl(Ky,1),[strg(V)]),Is) => Is[Ky->V].
 
-  implementation coercion[term,manifest] => @<
+  implementation coercion[term,manifest] => {
     _coerce(T) => some(termManifest(T)).
-  @>
+  }
 
   infoTerm:(mInfo)=>term.
   infoTerm(mInfo(_,Els)) => mkLst(ixRight((Ky,Vl,Mp)=>[mkCons(Ky,[strg(Vl)]),..Mp],[],Els)).
@@ -124,9 +125,9 @@ star.compiler.term.repo{
   manTerm(man(Ps))=>mkLst(ixRight((Pk,Vr,Ms)=>
 	[mkTpl([strg(Pk),versionTerm(Vr)]),..Ms],[],Ps)).
 
-  implementation coercion[manifest,term] => @<
+  implementation coercion[manifest,term] => {
     _coerce(M)=>some(manTerm(M)).
-  @>
+  }
 
   flushManifest(Url,Man) => putResource(Url,(Man::term)::string).
 
