@@ -3,6 +3,7 @@ star.compiler.checker.driver{
   import star.cmdOpts.
   import star.pkg.
   import star.resources.
+  import star.file.
   import star.uri.
 
   import star.repo.
@@ -14,7 +15,6 @@ star.compiler.checker.driver{
   import star.compiler.core.
   import star.compiler.dict.
   import star.compiler.errors.
-  import star.compiler.grapher.
   import star.compiler.impawt.
   import star.compiler.macro.
   import star.compiler.meta.
@@ -155,27 +155,6 @@ star.compiler.checker.driver{
 	doStdin=Opts.doStdin}.
   }
 
-  typeCheckOnlyOption:cmdOption[compilerOptions].
-  typeCheckOnlyOption = cmdOption{
-    shortForm = "-c".
-    alternatives = ["--compile-only"].
-    usage = "-c -- type check".
-    validator = .none.
-    setOption(_,Opts) =>
-      compilerOptions{repo=Opts.repo.
-	cwd=Opts.cwd.
-	graph=Opts.graph.
-	optimization=Opts.optimization.
-	showAst = Opts.showAst.
-	showMacro=Opts.showMacro.
-	showCanon=Opts.showCanon.
-	showCore=Opts.showCore.
-	showCode=Opts.showCode.
-	macroOnly=Opts.macroOnly.
-	typeCheckOnly=.true.
-	doStdin=Opts.doStdin}.
-  }
-
   traceCheckOption:cmdOption[compilerOptions].
   traceCheckOption = cmdOption{
     shortForm = "-dt".
@@ -202,11 +181,11 @@ star.compiler.checker.driver{
     RI^=parseUri("file:"++_repo());
     handleCmds(processOptions(Args,[wdOption,
 	  stdinOption,
+	  repoOption,
 	  traceAstOption,
 	  traceMacroOption,
-	  traceCheckerOption,
-	  macroOnlyOption,
-	  typeCheckOnlyOption],
+	  traceCheckOption,
+	  macroOnlyOption],
 	defltOptions(WI,RI)
       ))
   }.
@@ -221,14 +200,8 @@ star.compiler.checker.driver{
 	    ErRp .= reports([]);
 
 	    try{
-	      Sorted <- makeGraph(extractPkgSpec(P),Repo,Cat,ErRp)
-	      ::action[reports,cons[(importSpec,cons[importSpec])]];
-	      if Grph ^= Opts.graph then {
-		ignore(()=>putResource(Grph,makeDotGraph(P,Sorted)))
-	      };
-		
-	      processPkgs(Sorted,Repo,Cat,Opts,ErRp)
-	    } catch (Er) => action{
+	      processPkg(extractPkgSpec(P),Repo,Cat,Opts,ErRp)
+	    } catch (Er) => do{
 	      logMsg("$(Er)");
 	      valis _exit(9)
 	    }
@@ -250,8 +223,8 @@ star.compiler.checker.driver{
     _coerce((some(A),_)) => some(ok(A)).
   }
 
-  processPkg:(pkg,catalog,compilerOptions,reports) => result[reports,()].
-  processPkg(P,Cat,Opts,Rp) => do{
+  processPkg:(pkg,termRepo,catalog,compilerOptions,reports) => result[reports,()].
+  processPkg(P,Repo,Cat,Opts,Rp) => do{
     logMsg("Macro processing $(P)");
     if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
       Ast <- parseSrc(SrcUri,CPkg,Rp)::result[reports,ast];
@@ -262,9 +235,9 @@ star.compiler.checker.driver{
       logMsg("Macrod package is $(M)");
 
       if ~ Opts.macroOnly then{
-	C <- checkPkg(RCPkg);
+	C <- (checkPkg(Repo,CPkg,M,Opts,Rp)::result[reports,(pkgSpec,cons[canonDef])]);
 	if Opts.showCanon then {
-	  logMsg("type checked $(PkgFun)")
+	  logMsg("type checked $(C)")
 	};
       }
     }
@@ -272,14 +245,9 @@ star.compiler.checker.driver{
     raise reportError(Rp,"cannot locate source of $(P)",pkgLoc(P))
   }
 
-  openupRepo:(uri,uri) => action[(), termRepo].
+  openupRepo:(uri,uri) => result[(), termRepo].
   openupRepo(RU,CU) where CRU ^= resolveUri(CU,RU) => do{
     Repo .= openRepository(CRU);
     valis Repo
-  }
-
-  private ignore(F) => action{
-    _ .= F();
-    valis ()
   }
 }
