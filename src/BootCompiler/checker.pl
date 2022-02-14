@@ -733,6 +733,12 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,dot(Lc,Rec,Fld,Tp),Path) :-
   isFieldAcc(Term,Lc,Rc,Fld),!,
   newTypeVar("_R",AT),
   typeOfExp(Rc,AT,ErTp,Env,Ev,Rec,Path).
+typeOfExp(Term,Tp,ErTp,Env,Ev,update(Lc,Rec,Defs),Path) :-
+  isRecordUpdate(Term,Lc,L,Els),!,
+  typeOfExp(L,Tp,ErTp,Env,Ev,Rec,Path),
+  faceOfType(Tp,Lc,Env,faceType(Fs,Ts)),
+  genNewName(Path,"Γ",ThPath),
+  recordEnv(ThPath,Lc,Els,faceType(Fs,Ts),Env,_,Defs,_Public).
 typeOfExp(Term,Tp,ErTp,Env,Ev,cond(Lc,Test,Then,Else,Tp),Path) :-
   isConditional(Term,Lc,Tst,Th,El),!,
   checkGoal(Tst,ErTp,Env,E0,Test,Path),
@@ -1014,7 +1020,6 @@ genTpVars([],[]).
 genTpVars([_|I],[Tp|More]) :-
   newTypeVar("__",Tp),
   genTpVars(I,More).
-
 
 fieldInFace(faceType(Fields,_),Nm,_,Tp) :-
   is_member((Nm,Tp),Fields),!.

@@ -13,8 +13,8 @@ star.compiler.lexer{
 
   allTks:(tokenState)=>(tokenState,cons[token]).
   allTks(St) => let{.
-    allToks(Strm,SoFr) where (Nx,some(Tk)).=nextToken(Strm) => allToks(Nx,[trace("token $(Tk)",Tk),..SoFr]).
-    allToks(Strm,SoFr) default => (Strm,reverse(SoFr)).
+    allToks(Strm,SoFr) where (Nx,some(Tk)).=nextToken(Strm) => allToks(Nx,[Tk,..SoFr]).
+    allToks(Strm,SoFr) default => (Strm,reverse([endTok(makeLoc(Strm,Strm)),..SoFr])).
   .} in allToks(St,[]).
   
   public initSt:(locn,cons[char],reports)=>tokenState.

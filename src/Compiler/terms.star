@@ -223,8 +223,10 @@ star.compiler.terms{
 
   decodeType:(cons[char]) => either[(),(tipe,cons[char])].
   decodeType([`i`,..Ts]) => either((nomnal("star.core*integer"),Ts)).
+  decodeType([`b`,..Ts]) => either((nomnal("star.core*bigint"),Ts)).
   decodeType([`f`,..Ts]) => either((nomnal("star.core*float"),Ts)).
-  decodeType([`S`,..Ts]) => either((nomnal("star.core*string"),Ts)).
+  decodeType([`c`,..Ts]) => either((nomnal("star.core*char"),Ts)).
+  decodeType([`s`,..Ts]) => either((nomnal("star.core*string"),Ts)).
   decodeType([`l`,..Ts]) => either((nomnal("star.core*boolean"),Ts)).
   decodeType([`_`,..Ts]) => either((newTypeVar("_"),Ts)).
   decodeType([`k`,..Ts]) => do {
@@ -301,6 +303,11 @@ star.compiler.terms{
     (A,T0) <- decodeType(Ts);
     (R,T1) <- decodeType(T0);
     valis (typeLambda(A,R),T1)
+  }
+  decodeType([`Z`,..Ts]) => do{
+    (A,T0) <- decodeConstraint(Ts);
+    (R,T1) <- decodeType(T0);
+    valis (contractExists(A,R),T1)
   }
 
   decodeTypes([`)`,..Ts]) => either(([],Ts)). 

@@ -393,12 +393,14 @@ star.compiler.macro.rules{
     (Qs,Xs,Face) <- algebraicFace(Rhs,Q,[],Rp);
 --    Fields .= sort(Face,compEls);
     TpExSt .= reveal(reUQuant(Lc,Qs,reConstrain(Cx,binary(Lc,"<~",H,reXQuant(Lc,Xs,brTuple(Lc,Face))))),Vz);
-    logMsg("Type rule is $(TpExSt)");
+--    logMsg("Type rule is $(TpExSt)");
     Cons <- buildConstructors(Rhs,Q,Cx,H,Vz,Rp);
-    logMsg("Constructors are $(Cons)");
+--    logMsg("Constructors are $(Cons)");
     Accs <- buildAccessors(Rhs,Q,Cx,H,typeName(H),Face,Vz,Rp);
-    logMsg("Accessors are $(Accs)");
-    valis [TpExSt,..Cons++Accs]
+--    logMsg("Accessors are $(Accs)");
+    Ups <- buildUpdaters(Rhs,Q,Cx,H,typeName(H),Face,Vz,Rp);
+--    logMsg("Updaters are $(Ups)");
+    valis [TpExSt,..Cons++Accs++Ups]
   }
 
   algebraicFace:(ast,cons[ast],cons[ast],reports) =>
@@ -551,13 +553,18 @@ star.compiler.macro.rules{
   buildAccessors(Rhs,Q,Cx,H,TpNm,Fields,Vz,Rp) =>
     seqmap((F)=>makeAccessor(F,TpNm,Rhs,Q,Cx,H,Vz,Rp),Fields).
 
+  buildUpdaters:(ast,cons[ast],cons[ast],ast,string,cons[ast],
+    visibility,reports)=>result[reports,cons[ast]].
+  buildUpdaters(Rhs,Q,Cx,H,TpNm,Fields,Vz,Rp) =>
+    seqmap((F)=>makeUpdater(F,TpNm,Rhs,Q,Cx,H,Vz,Rp),Fields).
+  
   makeAccessor:(ast,string,ast,cons[ast],cons[ast],ast,
     visibility,reports) => result[reports,ast].
   makeAccessor(Annot,TpNm,Cns,Q,Cx,H,Vz,Rp) where (Lc,Fld,FldTp)^=isTypeAnnotation(Annot) => do{
-    Eqs <- accessorEqns(Cns,Fld,[],Rp);
+    AcEqs <- accessorEqns(Cns,Fld,[],Rp);
     AccNm .= nme(Lc,".$(Fld)");
     AccessHead .= squareTerm(Lc,AccNm,[mkDepends(Lc,[H],[FldTp])]);
-    valis mkAccessorStmt(Lc,Q,Cx,AccessHead,mkLetDef(Lc,Eqs,AccNm))
+    valis mkAccessorStmt(Lc,Q,Cx,AccessHead,mkLetDef(Lc,AcEqs,AccNm))
   }
 
   accessorEqns:(ast,ast,cons[ast],reports)=>result[reports,cons[ast]].
@@ -566,7 +573,8 @@ star.compiler.macro.rules{
     accessorEqns(R,Fld,E1,Rp)
   }
   accessorEqns(Cns,Fld,SoFar,Rp) where (Lc,CnNm,Els)^=isBrTerm(Cns) => do{
-    ConArgs .= projectArgTypes(sort(Els,compEls),Fld);
+    Sorted .= sort(Els,compEls);
+    ConArgs .= projectArgTypes(Sorted,Fld);
     Eqn .=mkEquation(Lc,some(nme(Lc,".$(Fld)")),.false,
       rndTuple(Lc,[roundTerm(Lc,CnNm,ConArgs)]),.none,nme(Lc,"X"));
     valis [Eqn,..SoFar]
@@ -584,9 +592,45 @@ star.compiler.macro.rules{
   projectArgTypes([A,..As],F) where (Lc,V,T) ^= isTypeAnnotation(A) =>
     [anon(Lc),..projectArgTypes(As,F)].
   projectArgTypes([_,..As],F) => projectArgTypes(As,F).
-    
+
+  makeUpdater:(ast,string,ast,cons[ast],cons[ast],ast,
+    visibility,reports) => result[reports,ast].
+  makeUpdater(Annot,TpNm,Cns,Q,Cx,H,Vz,Rp) where (Lc,Fld,FldTp)^=isTypeAnnotation(Annot) => do{
+    UpEqs <- updaterEqns(Cns,Fld,[],Rp);
+    AccNm .= nme(Lc,":$(Fld)");
+    AccessHead .= squareTerm(Lc,AccNm,[mkDepends(Lc,[H],[FldTp])]);
+    valis mkUpdaterStmt(Lc,Q,Cx,AccessHead,mkLetDef(Lc,UpEqs,AccNm))
+  }
+
+  updaterEqns:(ast,ast,cons[ast],reports)=>result[reports,cons[ast]].
+  updaterEqns(Cns,Fld,SoFar,Rp) where (Lc,L,R)^=isBinary(Cns,"|") => do{
+    E1 <- updaterEqns(L,Fld,SoFar,Rp);
+    updaterEqns(R,Fld,E1,Rp)
+  }
+  updaterEqns(Cns,Fld,SoFar,Rp) where (Lc,CnNm,Els)^=isBrTerm(Cns) => do{
+    Sorted .= sort(Els,compEls);
+    ConArgs .= projectArgTypes(Sorted,Fld);
+    UEqn .= mkEquation(Lc,some(nme(Lc,":$(Fld)")),.false,
+      rndTuple(Lc,[roundTerm(Lc,CnNm,allArgs(Sorted,Fld,0,anon(Lc))),nme(Lc,"XX")]),.none,
+      roundTerm(Lc,CnNm,allArgs(Sorted,Fld,0,nme(Lc,"XX"))));
+    valis [UEqn,..SoFar]
+  }
+  updaterEqns(C,Fld,Eqns,Rp) where (Lc,I) ^= isPrivate(C) =>
+    updaterEqns(I,Fld,Eqns,Rp).
+  updaterEqns(C,Fld,Eqns,_) default => do{
+    valis Eqns
+  }
+  
 
   
+    
+  allArgs([],_,_,_) => [].
+  allArgs([A,..As],F,Ix,Rp) where
+      (Lc,V,T) ^= isTypeAnnotation(A) && F == V =>
+    [Rp,..allArgs(As,F,Ix+1,Rp)].
+  allArgs([A,..As],F,Ix,Rp) where (Lc,V,T) ^= isTypeAnnotation(A) =>
+    [nme(Lc,"X$(Ix)"),..allArgs(As,F,Ix+1,Rp)].
+  allArgs([_,..As],F,Ix,Rp) => allArgs(As,F,Ix,Rp).
 
   makeReturn(Lc,E) => unary(Lc,"_valis",E).
 

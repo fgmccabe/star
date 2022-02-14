@@ -27,7 +27,7 @@ star.compiler.checker{
   public checkPkg:all r ~~ repo[r],display[r]|:(r,pkg,ast,compilerOptions,reports) => either[reports,(pkgSpec,cons[canonDef])].
   checkPkg(Repo,Pkge,P,Opts,Rp) => do{
     Base .= stdDict;
-    if (Lc,Pk,Els) ^= isBrTerm(P) && Pkg .= pkgeName(Pk) then{
+    if (Lc,Pk,Els) ^= isQBrTerm(P) && Pkg .= pkgeName(Pk) then{
       if compatiblePkg(Pkg,Pkge) then{
 	(Imports,Stmts) .= collectImports(Els,[],[]);
 	(AllImports,Decls) <- importAll(Imports,Repo,[],[],Rp);

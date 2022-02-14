@@ -23,5 +23,7 @@ star.location{
   public pkgLoc:(pkg)=>locn.
   pkgLoc(P) => locn(pkgName(P),1,0,0,0).
 
+  public locPos(locn(_,_,_,Pos,_)) => Pos.
+
   
 }

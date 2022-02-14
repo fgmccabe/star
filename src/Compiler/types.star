@@ -18,6 +18,7 @@ star.compiler.types{
     faceType(cons[(string,tipe)],cons[(string,tipe)]) |
     typeLambda(tipe,tipe) |
     typeExists(tipe,tipe) |
+    contractExists(constraint,tipe) |
     funDeps(tipe,cons[tipe]) |
     constrainedType(tipe,constraint).
 
@@ -128,6 +129,8 @@ star.compiler.types{
     eqType(V1,V2,Q) && eqType(T1,T2,Q).
   identType(typeExists(V1,T1),typeExists(V2,T2),Q) =>
     eqType(V1,V2,Q) && eqType(T1,T2,Q).
+  identType(contractExists(V1,T1),contractExists(V2,T2),Q) =>
+    eqConstraint(V1,V2,Q) && eqType(T1,T2,Q).
   identType(faceType(V1,T1),faceType(V2,T2),Q) =>
     identNmTypes(V1,V2,Q) && identNmTypes(T1,T2,Q).
   identType(constrainedType(T1,C1),constrainedType(T2,C2),Q) =>
@@ -137,6 +140,11 @@ star.compiler.types{
   identTypes([],[],_) => .true.
   identTypes([E1,..L1],[E2,..L2],Q) =>
     eqType(E1,E2,Q) && identTypes(L1,L2,Q).
+
+  eqConstraint(conTract(T1),conTract(T2),Q) => eqType(T1,T2,Q).
+  eqConstraint(fieldConstraint(T1,F,R1),fieldConstraint(T2,F,R2),Q) =>
+    eqType(T1,T2,Q) && eqType(R1,R2,Q).
+  eqConstraint(_,_,_) default => .false.
 
   identNmTypes(L1,L2,Q) => let{.
     sortByNm(LL) => sort(LL,(((N1,_),(N2,_)) => N1<N2)).
@@ -180,6 +188,8 @@ star.compiler.types{
     "#(showType(A,Sh,Dp)) ~> #(showType(T,Sh,Dp))".
   shTipe(typeExists(A,T),Sh,Dp) =>
     "#(showType(A,Sh,Dp)) <~ #(showType(T,Sh,Dp))".
+  shTipe(contractExists(C,T),Sh,Dp) =>
+    "#(showConstraint(C,Dp)) ::= #(showType(T,Sh,Dp))".
   shTipe(constrainedType(T,C),Sh,Dp) =>
     "#(showConstraint(C,Dp)) |: #(showType(T,Sh,Dp))".
   shTipe(funDeps(T,D),Sh,Dp) =>

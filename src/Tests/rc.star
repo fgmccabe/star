@@ -5,6 +5,16 @@ test.rc{
   pp[a] ::= pp{C:integer} |
     pq{C:integer. A:a}.
 
+  kk ::= kk{C:integer}.
+
+  aa ::= aa{A:integer}.
+
+  implementation all a ~~ display[a] |: display[pp[a]] => {
+    disp(pp{C=Ix}) => "pp{$(Ix)}".
+    disp(pq{C=Ix. A=A}) => "pq{$(Ix),$(A)}"
+  }
+
+  cont:(integer)=>pp[()].
   cont(C) => pp{
     C=C
   }
@@ -12,7 +22,6 @@ test.rc{
   main:()=>action[(),()].
   main()=>action{
     show cont(2).C;
---    show cont(2).C<<-4;
 --    show cont(2)<<-{C=4}
   }
 }

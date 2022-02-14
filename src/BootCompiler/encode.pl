@@ -85,6 +85,7 @@ encodeT(voidType,['v'|O],O).
 encodeT(T,['_'|O],O) :- isUnbound(T).
 encodeT(type("star.core*boolean"),['l'|O],O).
 encodeT(type("star.core*integer"),['i'|O],O).
+encodeT(type("star.core*bigint"),['b'|O],O).
 encodeT(type("star.core*float"),['f'|O],O).
 encodeT(type("star.core*char"),['c'|O],O).
 encodeT(type("star.core*string"),['s'|O],O).
