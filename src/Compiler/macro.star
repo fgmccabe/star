@@ -16,7 +16,7 @@ star.compiler.macro{
     Rslt <- applyRules(A,Cxt,.inactive,Rp);
 
     if active(T).=Rslt then{
-      logMsg("active result $(T)");
+--      logMsg("active result $(T)");
       macroAst(T,Cxt,Examine,Rp)
     }
     else{
@@ -28,7 +28,7 @@ star.compiler.macro{
   public macroPkg:(ast,reports) => result[reports,ast].
   macroPkg(A,Rp) => let{
     Rslt = macroAst(A,.package,examinePkg,Rp)
-  } in trace("macroed = $(Rslt)",Rslt).
+  } in Rslt.
 
   examinePkg(A,Rp) where (Lc,O,Els) ^= isBrTerm(A) => do{
     Ss <- macroStmts(buildMain(Els),Rp);
@@ -128,6 +128,13 @@ star.compiler.macro{
     TT <- macroType(Tp,Rp);
     EE <- macroTerm(Exp,Rp);
     valis mkAccessorStmt(Lc,QQ,CCx,TT,EE)
+  }
+  examineStmt(A,Rp) where (Lc,Q,Cx,Tp,Exp) ^= isUpdaterStmt(A) => do{
+    QQ <- seqmap((V)=>macroType(V,Rp),Q);
+    CCx <- seqmap((T)=>macroType(T,Rp),Cx);
+    TT <- macroType(Tp,Rp);
+    EE <- macroTerm(Exp,Rp);
+    valis mkUpdaterStmt(Lc,QQ,CCx,TT,EE)
   }
   examineStmt(A,Rp) where (Lc,Els) ^= isBrTuple(A) => do{
     Elx <- macroStmts(Els,Rp);
@@ -738,7 +745,7 @@ star.compiler.macro{
     
     MLhs .= roundTerm(Lc,nme(Lc,"_main"),[mkConsPtn(Lc,As)]);
 
-    logMsg("main action $(Action)");
+--    logMsg("main action $(Action)");
     Valof .= mkValof(Lc,mkDoTerm(Lc,Action));
     Main .= equation(Lc,MLhs,Valof);
     Annot .= typeAnnotation(Lc,nme(Lc,"_main"),equation(Lc,rndTuple(Lc,[squareTerm(Lc,nme(Lc,"cons"),[nme(Lc,"string")])]),rndTuple(Lc,[])));

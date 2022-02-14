@@ -11,7 +11,7 @@
 #include "buddy.h"
 
 logical traceStacks = False;          // stack operation tracing
-integer minStackSize = 128;           /* What is the smallest stack size */
+integer minStackSize = 256;           /* What is the smallest stack size */
 integer stackRegionSize = (1 << 23);     /* 64M cells is default max stack size */
 
 static long stkSize(specialClassPo cl, termPo o);

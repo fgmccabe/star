@@ -522,6 +522,15 @@ star.compiler.wff{
   mkAccessorStmt(Lc,Q,Cx,T,E) =>
     unary(Lc,".access",reUQuant(Lc,Q,reConstrain(Cx,binary(Lc,"=>",T,E)))).
 
+  public isUpdaterStmt:(ast) => option[(locn,cons[ast],cons[ast],ast,ast)].
+  isUpdaterStmt(A) where
+      (Lc,I) ^= isUnary(A,".update") => isImplSpec(Lc,[],[],I).
+  isUpdaterStmt(_) default => .none.
+
+  public mkUpdaterStmt:(locn,cons[ast],cons[ast],ast,ast) => ast.
+  mkUpdaterStmt(Lc,Q,Cx,T,E) =>
+    unary(Lc,".update",reUQuant(Lc,Q,reConstrain(Cx,binary(Lc,"=>",T,E)))).
+
   public typeName:(ast)=>string.
   typeName(Tp) where (_,Id) ^= isName(Tp) => Id.
   typeName(Tp) where (_,Id,_) ^= isSquareApply(Tp) => Id.

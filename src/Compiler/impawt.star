@@ -60,13 +60,13 @@ star.compiler.impawt{
   }
 
   pickupVersion:all e ~~ (term)=>either[e,version].
-  pickupVersion(strg("*")) => either(.defltVersion).
+  pickupVersion(symb(tLbl("*",0))) => either(.defltVersion).
   pickupVersion(strg(V)) => either(vers(V)).
 
   pickupViz:(term)=>option[visibility].
-  pickupViz(strg("private")) => some(.priVate).
-  pickupViz(strg("public")) => some(.pUblic).
-  pickupViz(strg("transitive")) => some(.transItive).
+  pickupViz(symb(tLbl("private",0))) => some(.priVate).
+  pickupViz(symb(tLbl("public",0))) => some(.pUblic).
+  pickupViz(symb(tLbl("transitive",0))) => some(.transItive).
   pickupVis(_) default => .none.
 
   pickupImports:(cons[term],locn) => either[reports,cons[importSpec]].

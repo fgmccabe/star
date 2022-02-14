@@ -41,6 +41,7 @@ star.compiler.checker.driver{
 	showCanon=Opts.showCanon.
 	showCore=Opts.showCore.
 	showCode=Opts.showCode.
+	macroOnly=Opts.macroOnly.
 	typeCheckOnly=Opts.typeCheckOnly.
 	doStdin=Opts.doStdin
       }.
@@ -171,6 +172,7 @@ star.compiler.checker.driver{
 	showCanon=.true.
 	showCore=Opts.showCore.
 	showCode=Opts.showCode.
+	macroOnly=Opts.macroOnly.
 	typeCheckOnly=Opts.typeCheckOnly.
 	doStdin=Opts.doStdin}.
   }
@@ -223,6 +225,11 @@ star.compiler.checker.driver{
     _coerce((some(A),_)) => some(ok(A)).
   }
 
+  implementation all e,k ~~ coercion[either[e,k],result[e,k]] => {
+    _coerce(either(E)) => some(ok(E)).
+    _coerce(other(A)) => some(bad(A)).
+  }
+
   processPkg:(pkg,termRepo,catalog,compilerOptions,reports) => result[reports,()].
   processPkg(P,Repo,Cat,Opts,Rp) => do{
     logMsg("Macro processing $(P)");
@@ -232,7 +239,9 @@ star.compiler.checker.driver{
 	logMsg("Ast of $(P) is $(Ast)")
       };
       M <- macroPkg(Ast,Rp);
-      logMsg("Macrod package is $(M)");
+      if Opts.showMacro then{
+	logMsg("Macroed package $(M)")
+      };
 
       if ~ Opts.macroOnly then{
 	C <- (checkPkg(Repo,CPkg,M,Opts,Rp)::result[reports,(pkgSpec,cons[canonDef])]);

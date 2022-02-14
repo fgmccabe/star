@@ -376,6 +376,20 @@ fillinElementPtns(Els,Lc,Flds,Args,ArgTps) :-
   project1(Elements,Args),
   map(Args,canon:typeOfCanon,ArgTps).
 
+getUpdaterEquation(Lc,ConsNm,Fld,FldTp,Tp,AllElTps,
+		   [rule(Lc,tple(Lc,[apply(Lc,
+					   cons(Lc,ConsNm,
+						consType(ArgTps,Tp)),
+					   tpl(Lc,ArgPtns),Tp),
+				     XX]),
+			 none,
+			 apply(Lc,
+			       cons(Lc,ConsNm,
+				    consType(ArgTps,Tp)),
+			       tpl(Lc,RsltExps),Tp))]) :-
+  XX = v(Lc,"XX",FldTp),
+  fillinPtnsExps(AllElTps,Fld,XX,ArgTps,ArgPtns,RsltExps).
+
 buildBraceAccessors(Lc,Q,Cx,Tp,Defs,Dfx,Imps,Impx) :-
   tpName(Tp,ConNm),
   string_concat(ConNm,"#",Prefix),

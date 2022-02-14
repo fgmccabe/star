@@ -96,7 +96,7 @@ star.compiler.dict.mgt{
   declareMethods:(option[locn],tipe,dict) => dict.
   declareMethods(Lc,Spec,Dict) where
       (MQ,MI) .= deQuant(Spec) &&
-      (MC,typeExists(CT,faceType(Methods,[]))) .= deConstrain(MI) =>
+      (MC,contractExists(conTract(CT),faceType(Methods,[]))) .= deConstrain(MI) =>
     formMethods(Methods,Lc,MQ,MC,CT,Dict).
 
   formMethods:(cons[(string,tipe)],option[locn],cons[tipe],

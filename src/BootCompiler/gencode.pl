@@ -297,8 +297,8 @@ compCondExp(Lc,T,A,B,OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   splitCont(Lc,Cont,OC),!,
   compCond(T,Lc,compTerm(A,Lc,OC,TCont,Opts),
-%	   resetCont(Stk,compTerm(B,Lc,OC,TCont,Opts)),
-	   resetVrCont(D,resetCont(Stk,compTerm(B,Lc,OC,TCont,Opts))),
+	   resetCont(Stk,compTerm(B,Lc,OC,TCont,Opts)),
+%	   resetVrCont(D,resetCont(Stk,compTerm(B,Lc,OC,TCont,Opts))),
 	   TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 
 compVar(a(A),_,Cont,L,Lx,D,Dx,End,[iLdA(A)|C0],Cx,Stk,Stkx) :- !,
@@ -383,7 +383,7 @@ cllCont(Nm,Ar,Cont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   genDbg(Opts,C,[iCall(Nm)|C0]),
   dropStk(Stk,Ar,Stk0),
   bumpStk(Stk0,Stk1),
-  frameIns(Stk1,C0,C1),
+  frameIns(Stk,C0,C1),
   call(Cont,L,Lx,D,Dx,End,C1,Cx,Stk1,Stkx).
 
 oclCont(Arity,retCont(_),Opts,Lx,Lx,Dx,Dx,_End,C,Cx,_,none) :-!,
@@ -392,7 +392,7 @@ oclCont(Arity,Cont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   genDbg(Opts,C,[iOCall(Arity)|C0]),
   dropStk(Stk,Arity,Stk0),
   bumpStk(Stk0,Stk1),
-  frameIns(Stk1,C0,C1),
+  frameIns(Stk,C0,C1),
   call(Cont,L,Lx,D,Dx,End,C1,Cx,Stk1,Stkx).
 
 promptCont(Stk,Cont,Opts,L,Lx,D,Dx,End,C,Cx,_Stk,Stkx) :-
@@ -602,18 +602,19 @@ compCond(cnj(Lc,A,B),OLc,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   splitCont(Lc,Fail,OF),
   compCond(A,Lc,compCond(B,Lc,Succ,OF,TCont,Opts),OF,TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 compCond(dsj(Lc,A,B),OLc,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
-  splitCont(Lc,Succ,OSc),
   chLine(Opts,OLc,Lc,C,C0),
-  compCond(A,Lc,OSc,
-	   resetVrCont(D,compCond(B,Lc,OSc,Fail,TCont,Opts)),TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+  compCond(A,Lc,Succ,
+	   resetVrCont(D,compCond(B,Lc,Succ,Fail,TCont,Opts)),
+	   TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+  % splitCont(Lc,Succ,OSc),
+  % compCond(A,Lc,OSc,
+  % 	   resetVrCont(D,compCond(B,Lc,OSc,Fail,TCont,Opts)),TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 compCond(ng(Lc,Cn),OLc,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   compNeg(Lc,Cn,OLc,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 compCond(cnd(Lc,T,A,B),OLc,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
-  splitCont(Lc,Succ,OSc),
-  splitCont(Lc,Fail,OFl),
   chLine(Opts,OLc,Lc,C,C0),
-  compCond(T,Lc,compCond(A,Lc,OSc,OFl,TCont,Opts),
-	   resetVrCont(D,compCond(B,Lc,OSc,OFl,TCont,Opts)),TCont,
+  compCond(T,Lc,compCond(A,Lc,Succ,Fail,TCont,Opts),
+	   resetVrCont(D,compCond(B,Lc,Succ,Fail,TCont,Opts)),TCont,
 	   Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 compCond(mtch(Lc,P,E),OLc,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),

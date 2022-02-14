@@ -71,7 +71,7 @@ instruction(Nth, i32, nOp, 0, "T --> el, pick up the nth element")
 instruction(StNth, i32, nOp, -2, "T el --> store in nth element")
 
 instruction(If,off,nOp,-1,"break if true")
-instruction(IfNot,off,nOp,-1,"brak if false")
+instruction(IfNot,off,nOp,-1,"break if false")
 
 instruction(Case, i32, nOp, 0, "T --> T, case <Max> ")
 instruction(IndxJmp,i32,nOp,0,"check and jump on index")

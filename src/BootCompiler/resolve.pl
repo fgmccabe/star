@@ -113,6 +113,9 @@ overloadTerm(stringLit(Lx,Sx),_,St,St,stringLit(Lx,Sx)).
 overloadTerm(dot(Lc,Rc,Fld,Tp),Dict,St,Stx,Dot) :-
   overloadTerm(Rc,Dict,St,St0,RRc),
   resolveAccess(Lc,RRc,Fld,Tp,Dict,St0,Stx,Dot).
+overloadTerm(update(Lc,Rc,Ds),Dict,St,Stx,update(Lc,Rx,Dx)) :-
+  overloadTerm(Rc,Dict,St,Stx,Rx),
+  overload(Lc,Ds,Dict,_,Dx).
 overloadTerm(enm(Lc,Rf,Tp),_,St,St,enm(Lc,Rf,Tp)).
 overloadTerm(cons(Lc,Rf,Tp),_,St,St,cons(Lc,Rf,Tp)).
 overloadTerm(tple(Lc,Args),Dict,St,Stx,tple(Lc,RArgs)) :-!,

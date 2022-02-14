@@ -69,11 +69,12 @@ star.compiler.token{
   }
 
   public implementation display[token] => {
-    disp(tok(Lc,Tk)) => "$(Tk)@$(Lc)".
+    disp(tok(Lc,Tk)) => "$(Tk)@$(locPos(Lc))".
     disp(endTok(Lc)) => "end of stream@$(Lc)".
   }
 
   public implementation hasLoc[token] => {
     locOf(tok(Lc,_)) => Lc.
+    locOf(endTok(Lc)) => Lc.
   }
 }
