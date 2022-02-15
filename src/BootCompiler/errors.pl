@@ -117,6 +117,8 @@ showTrm(stk(some(N)),O) :-
   ss_to_chrs(sq([ss("Stk "),ix(N)]),O,[]).
 showTrm(stk(nono),O) :-
   ss_to_chrs(ss("Stk empty"),O,[]).
+showTrm(tok(Tk),O) :-
+  showToken(Tk,O).
 showTrm(loc(Lc),O) :-
   showLocation(Lc,O,[]).
 showTrm(ss(S),O) :-

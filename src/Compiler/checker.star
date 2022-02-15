@@ -32,19 +32,19 @@ star.compiler.checker{
 	(Imports,Stmts) .= collectImports(Els,[],[]);
 	(AllImports,Decls) <- importAll(Imports,Repo,[],[],Rp);
 	PkgEnv <- declareDecls(Decls,some(Lc),Base,Rp);
-	
-	PkgNm .= packageName(Pkg);
+	PkgPth .= packageName(Pkg);
 
 	(Vis,Opens,Annots,Gps) <- dependencies(Stmts,Rp);
 
 	if ~isEmpty(Opens) then
 	  raise reportError(Rp,"open statements $(Opens) not supported",Lc);
     
-	(Defs,ThEnv) <- checkGroups(Gps,[],faceType([],[]),Annots,PkgEnv,PkgNm,Rp);
+	(Defs,ThEnv) <- checkGroups(Gps,[],faceType([],[]),Annots,PkgEnv,
+	  PkgPth,Rp);
+	
 	RDefs <- overloadEnvironment(Defs,ThEnv,Rp);
 	
-	(ExDecls,LclDecl,PkgDefs).=genDecls(RDefs*,completePublic(Vis,PkgNm));
-
+	(ExDecls,LclDecl,PkgDefs).=genDecls(RDefs*,completePublic(Vis,PkgPth));
 	valis (pkgSpec(Pkge,Imports,ExDecls),PkgDefs)
       }
       else
@@ -314,7 +314,7 @@ star.compiler.checker{
     if IsDeflt then{
       if DRl ^= Deflt then{
 	raise reportError(Rp,"cannot have more than one default, other one at $(locOf(DRl))",
-	  locOf(Rl))
+	  locOf(St))
       } else{
 	processEqns(Ss,ProgramType,Rls,some(Rl),Env,Outer,Path,Rp)
       }
