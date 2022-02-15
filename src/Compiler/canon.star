@@ -10,6 +10,7 @@ star.compiler.canon{
 
   public decl ::= implDec(string,string,tipe) |
     accDec(tipe,string,string,tipe) |
+    updDec(tipe,string,string,tipe) |
     conDec(string,string,tipe,tipe) |
     tpeDec(string,tipe,tipe) |
     varDec(string,string,tipe) |
@@ -52,7 +53,8 @@ star.compiler.canon{
     conDef(locn,string,string,tipe) |
     cnsDef(locn,string,string,tipe) |
     implDef(locn,string,string,canon,cons[constraint],tipe) |
-    accDef(locn,string,string,tipe).
+    accDef(locn,string,string,tipe) |
+    updDef(locn,string,string,tipe).
 
   public implementation hasType[canon] => {.
     typeOf(vr(_,_,T)) => T.
@@ -124,6 +126,7 @@ star.compiler.canon{
     locOf(cnsDef(Lc,_,_,_)) => Lc.
     locOf(implDef(Lc,_,_,_,_,_)) => Lc.
     locOf(accDef(Lc,_,_,_)) => Lc.
+    locOf(updDef(Lc,_,_,_)) => Lc.
   }
 
   public implementation display[pkgSpec] => {
@@ -136,6 +139,8 @@ star.compiler.canon{
       "Impl #(Nm)~#(ImplNm)\:$(ImplTp)".
     disp(accDec(Tp,Fld,Fun,FunTp)) =>
       "Acc $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
+    disp(updDec(Tp,Fld,Fun,FunTp)) =>
+      "Update $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
     disp(conDec(Nm,_,_,RlTp)) =>
       "Contract #(Nm)\:$(RlTp)".
     disp(tpeDec(Nm,Tp,_)) =>
@@ -167,7 +172,7 @@ star.compiler.canon{
   .} in {
     T1==T2 => eq(T1,T2)
   }
-*/
+
   public implementation hash[canon] => let{.
     hsh(vr(_,N1,_)) => hash(N1).
     hsh(mtd(_,N1,_,_)) => hash(N1).
@@ -182,7 +187,7 @@ star.compiler.canon{
   .} in {
     hash(T1) => hsh(T1)
   }
-
+*/
   showCanon:(canon,string)=>string.
   showCanon(vr(_,Nm,Tp),_) => Nm.
   showCanon(anon(_,_),_) => "_".
@@ -236,6 +241,7 @@ star.compiler.canon{
   showDef(cnsDef(_,_,Nm,Tp),Sp) => "Constructor: #(Nm):$(Tp)".
   showDef(implDef(_,Nm,FullNm,Exp,_,Tp),Sp) => "Implementation: #(Nm) = $(Exp)".
   showDef(accDef(_,Fld,Nm,Tp),Sp) => "Access: #(Fld):$(Tp) = $(Nm)".
+  showDef(updDef(_,Fld,Nm,Tp),Sp) => "Update: #(Fld):$(Tp) = $(Nm)".
 
   showRls:(string,cons[equation],string) => string.
   showRls(Nm,Rls,Sp) => interleave(Rls//(Rl)=>showRl(Nm,Rl,Sp),".\n"++Sp)*.

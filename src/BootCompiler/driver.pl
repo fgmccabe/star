@@ -165,7 +165,10 @@ packageVersion(_,defltVersion).
 
 parseFile(Pkg,Txt,Term) :-
   allTokens(Pkg,Txt,Toks),
-  parse(Toks,Term,_), !.
+  parse(Toks,Term,Rem), !,
+  (Rem=[Tok|_] ->
+   locOfToken(Tok,Lc),
+   reportError("extra token(s): %s on input",[Tok],Lc);true).
 
 getSrcUri(Fl,WD,FU,FUri) :-
   parseURI(Fl,FU),
