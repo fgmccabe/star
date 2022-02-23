@@ -23,6 +23,7 @@
 checkProgram(Prg,Pkg,Repo,_Opts,PkgDecls,Canon) :-
   stdDict(Base),
   isBraceTerm(Prg,Lc,_,Els),
+%  reportMsg("checking package %s",[pk(Pkg)]),
   Pkg = pkg(Pk,_),
   collectImports(Els,Imports,Stmts),
   importAll(Imports,Repo,AllImports),

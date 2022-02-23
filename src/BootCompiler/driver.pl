@@ -159,10 +159,6 @@ processStdin(Pkg,Repo,Opts) :-
   noErrors,
   checkProgram(Prog,Pkg,Repo,Opts,_,_),!.
 
-packageVersion(Opts,ver(Vers)) :-
-  is_member(ver(Vers),Opts),!.
-packageVersion(_,defltVersion).
-
 parseFile(Pkg,Txt,Term) :-
   allTokens(Pkg,Txt,Toks),
   parse(Toks,Term,Rem), !,

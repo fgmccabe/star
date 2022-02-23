@@ -1,4 +1,7 @@
-:- module(catalog,[locateCatalog/2,resolveCatalog/4,catalogBase/2]).
+:- module(catalog,[locateCatalog/2,
+		   resolveCatalog/4,
+		   catalogBase/2,
+		   catalogVersion/2]).
 
 :- use_module(resource).
 :- use_module(misc).
