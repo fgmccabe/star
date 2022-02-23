@@ -83,6 +83,7 @@ star.compiler.freshen{
   frshn(existType(K,T),Env) => existType(K,frshnD(T,Env)).
   frshn(typeLambda(H,T),Env) => typeLambda(frshnD(H,Env),frshnD(T,Env)).
   frshn(typeExists(H,T),Env) => typeExists(frshnD(H,Env),frshnD(T,Env)).
+  frshn(contractExists(H,T),Env) => contractExists(frshnConstraint(H,Env),frshnD(T,Env)).
   frshn(constrainedType(T,C),Env) => constrainedType(frshnD(T,Env),frshnConstraint(C,Env)).
   frshn(funDeps(T,D),Env) => funDeps(frshnD(T,Env),frshnList(D,Env)).
 

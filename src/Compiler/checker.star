@@ -32,6 +32,9 @@ star.compiler.checker{
 	(Imports,Stmts) .= collectImports(Els,[],[]);
 	(AllImports,Decls) <- importAll(Imports,Repo,[],[],Rp);
 	PkgEnv <- declareDecls(Decls,some(Lc),Base,Rp);
+
+--	logMsg("Dictionary for pkg: $(PkgEnv)");
+	
 	PkgPth .= packageName(Pkg);
 
 	(Vis,Opens,Annots,Gps) <- dependencies(Stmts,Rp);
@@ -90,11 +93,13 @@ star.compiler.checker{
   keepDef(varDef(_,Nm,_,vr(_,Nm,_),_,_)) => .false.
   keepDef(_) default => .true.
   
-  formTheta:(locn,option[string],tipe,dict,cons[cons[canonDef]],tipe,reports) =>
+  formTheta:(locn,string,tipe,dict,cons[cons[canonDef]],tipe,reports) =>
     either[reports,canon].
   formTheta(Lc,Lbl,faceType(Flds,Tps),Env,Defs,Tp,Rp) => do{
     Rc <- findDefs(Lc,Flds,[],Defs,Rp);
-    valis foldRight((Gp,I)=>letRec(Lc,Gp,I),record(Lc,Lbl,Rc,Tp),Defs)
+    valis foldRight((Gp,I)=>letRec(Lc,Gp,I),
+      apply(Lc,vr(.none,Lbl,consType(faceType(Flds,Tps),Tp)),
+	tple(Lc,Flds//((FNm,FTp))=>vr(.none,FNm,FTp)),Tp),Defs)
   }
 
   findDefs:(locn,cons[(string,tipe)],cons[(string,canon)],cons[cons[canonDef]],reports) =>
@@ -177,10 +182,15 @@ star.compiler.checker{
   }
   checkTypeDefn(defnSpec(implSp(Nm),Lc,[St]),Env,Path,Rp) => do {
     if (_,Q,C,H,B) ^= isImplementationStmt(St) then{
+      logMsg("checking implementation stmt $(St) : $(Q)");
       BV <- parseBoundTpVars(Q,Rp);
+      logMsg("bound vars $(BV)");
       Cx <- parseConstraints(C,BV,Env,Rp);
+      logMsg("extra constraints $(Cx)");
       Cn <- parseContractConstraint(BV,H,Env,Rp);
-      ConName .= localName(tpName(Cn),.typeMark);
+      logMsg("contract constraint $(Cn)");
+      ConName .= localName(tpName(Cn),.tractMark);
+      logMsg("Contract name $(ConName)");
       if Con ^= findContract(Env,ConName) then{
 	(_,typeExists(ConTp,_)) .= freshen(Con,Env);
 	if sameType(ConTp,Cn,Env) then {
@@ -291,6 +301,12 @@ star.compiler.checker{
     else
       raise reportError(Rp,"not a valid implementation statement",Lc)
   }
+  checkDefn(defnSpec(accSp(Nm),Lc,[St]),Env,Outer,Path,Rp) => do {
+    if (_,Q,C,H,B) ^= isAccessorStmt(St) then
+      checkAccessor(Lc,Nm,Q,C,H,B,Env,Outer,Path,Rp)
+    else
+      raise reportError(Rp,"not a valid implementation statement",Lc)
+  }
 
   checkFunction:(string,tipe,locn,cons[ast],dict,dict,string,reports) =>
     either[reports,(canonDef,dict)].
@@ -343,15 +359,24 @@ star.compiler.checker{
   checkImplementation:(locn,string,cons[ast],cons[ast],ast,ast,dict,dict,string,reports) =>
     either[reports,(canonDef,dict)].
   checkImplementation(Lc,Nm,Q,C,H,B,Env,Outer,Path,Rp) => do{
+    logMsg("checking implementation stmt at $(Lc)");
+    
     BV <- parseBoundTpVars(Q,Rp);
+    logMsg("bound vars $(BV)");
     Cx <- parseConstraints(C,BV,Env,Rp);
+    logMsg("extra constraints $(Cx)");
     Cn <- parseContractConstraint(BV,H,Env,Rp);
-    ConName .= localName(tpName(Cn),.typeMark);
+    logMsg("contract constraint $(Cn), $(tpName(Cn))");
+    ConName .= localName(tpName(Cn),.tractMark);
+    logMsg("Contract name $(ConName)");
     
     if Con ^= findContract(Env,ConName) then{
-      (_,typeExists(ConTp,ConFaceTp)) .= freshen(Con,Env);
+      (_,contractExists(conTract(ConTp),ConFaceTp)) .= freshen(Con,Env);
+      logMsg("contract exists: $(ConTp) ~ $(Cn)");
       if sameType(ConTp,Cn,Env) then {
 	Es .= declareConstraints(some(Lc),Cx,declareTypeVars(BV,Outer));
+	logMsg("check impementation expression $(B)");
+	logMsg("env $(Env)");
 	Impl <- typeOfExp(B,ConFaceTp,Es,Path,Rp);
 	ImplVrNm .= qualifiedName(Path,.valMark,implementationName(ConTp));
 	ImplTp .= rebind(BV,reConstrainType(Cx,ConTp),Es);
@@ -366,6 +391,17 @@ star.compiler.checker{
       raise reportError(Rp,"Contract $(ConName) not known",Lc)
     }
   }
+
+  checkAccessor:(locn,string,cons[ast],cons[ast],ast,ast,dict,dict,string,reports) =>    either[reports,(canonDef,dict)].
+  checkAccessor(Lc,Nm,Q,C,H,B,Env,Outer,Path,Rp) => do{
+    logMsg("Check accessor: $(Nm) Head:$(H), Body:$(B)");
+    QV <- parseBoundTpVars(Q,Rp);
+    Cx <- parseConstraints(C,QV,Env,Rp);
+    logMsg("Q: $(QV) Constraints:$(Cx)");
+    
+    raise reportError(Rp,"not implemented",Lc)
+  }
+
     
   typeOfPtn:(ast,tipe,dict,string,reports) => either[reports,(canon,dict)].
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,"_") ^= isName(A) =>
@@ -432,6 +468,7 @@ star.compiler.checker{
   typeOfExp:(ast,tipe,dict,string,reports) => either[reports,canon].
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) => do{
     if Var ^= findVar(Lc,Id,Env) then{
+--      logMsg("$(A)\:$(Var)\:$(typeOf(Var)) ~ $(Tp)");
       if sameType(Tp,typeOf(Var),Env) then {
 	valis Var
       } else
@@ -552,16 +589,6 @@ star.compiler.checker{
     Gc <- typeOfCases(Cases,[],Rp);
     valis csexp(Lc,Gv,Gc,Tp)
   }
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,S,F,T) ^= isSlice(A) =>
-    typeOfExp(ternary(Lc,"_slice",S,F,T),Tp,Env,Path,Rp).
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,I) ^= isCellRef(A) => do{
-    RTp .= refType(Tp);
-    Acc <- typeOfExp(nme(Lc,"!"),funType([RTp],Tp),Env,Path,Rp);
-    Cell <- typeOfExp(I,RTp,Env,Path,Rp);
-    valis apply(Lc,Acc,tple(Lc,[Cell]),Tp)
-  }
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,I) ^= isRef(A) =>
-    typeOfExp(roundTerm(Lc,nme(Lc,"_cell"),[I]),Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (_,[El]) ^= isTuple(A) && ~ _ ^= isTuple(El) =>
     typeOfExp(El,Tp,Env,Path,Rp).
 
@@ -571,8 +598,6 @@ star.compiler.checker{
     Ptns <- typeOfExps(Els,Tvs,[],Env,Path,Rp);
     valis tple(Lc,Ptns)
   }
-  typeOfExp(A,Tp,Env,Path,Rp) where hasPromotion(A) =>
-    typeOfExp(promoteOption(A),Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,_,Ar,C,R) ^= isLambda(A) => do{
     At .= newTypeVar("_A");
     Rt .= newTypeVar("_R");
@@ -616,6 +641,7 @@ star.compiler.checker{
     else
     raise reportError(Rp,"type of qtheta: $(ThetaTp)\nnot consistent with \n$(Tp)",Lc)
   }
+*/
 
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Op,Els) ^= isLabeledTheta(A) && (_,Nm)^=isName(Op) => do{
     FceTp .= newTypeVar("_");
@@ -623,34 +649,26 @@ star.compiler.checker{
     Fun <- typeOfExp(Op,ConTp,Env,Pth,Rp);
 
     (Q,ETp) .= evidence(FceTp,Env);
-    FaceTp .= faceOfType(ETp,Env);
+    FaceTp ^= faceOfType(ETp,Env);
     (Cx,Face) .= deConstrain(FaceTp);
   Base .= declareConstraints(some(Lc),Cx,declareTypeVars(Q,pushScope(Env)));
     
-    (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,Rp,.deFault);
-    if sameType(ThetaTp,Face,Env) then{
-      formTheta(Lc,some(Nm),Face,ThEnv,sortDefs(Defs*),Tp,Rp)
-    }
-    else
-    raise reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Op)\:$(ConTp) ",Lc)
+    (Defs,ThEnv) <- thetaEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,Rp,.deFault);
+    formTheta(Lc,Nm,Face,ThEnv,sortDefs(Defs*),Tp,Rp)
   }
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Op,Els) ^= isLabeledRecord(A) && (_,Nm)^=isName(Op) => do{
     FceTp .= newTypeVar("_");
     ConTp .= consType(FceTp,Tp);
     Fun <- typeOfExp(Op,ConTp,Env,Pth,Rp);
     (Q,ETp) .= evidence(FceTp,Env);
-    FaceTp .= faceOfType(ETp,Env);
+    FaceTp ^= faceOfType(ETp,Env);
     (Cx,Face) .= deConstrain(FaceTp);
   Base .= declareConstraints(some(Lc),Cx,declareTypeVars(Q,pushScope(Env)));
     
-    (Defs,ThEnv,ThetaTp) <- recordEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,Rp,.deFault);
-    if sameType(ThetaTp,Face,Env) then{
-      formRecordExp(Lc,some(Nm),Face,ThEnv,sortDefs(Defs),Tp,Rp)
-    }
-    else
-    raise reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Op)\:$(ConTp) ",Lc)
+    (Defs,ThEnv) <- recordEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,Rp,.deFault);
+    formRecordExp(Lc,some(Nm),Face,ThEnv,sortDefs(Defs),Tp,Rp)
   }
-
+/*
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Rc,Upd) ^= isRecordUpdate(A) => do{
     Rec <- typeOfExp(Rc,Tp,Env,Pth,Rp);
     UpTp .= newTypeVar("_");
@@ -687,7 +705,7 @@ star.compiler.checker{
   }
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Op,Args) ^= isRoundTerm(A) =>
     typeOfRoundTerm(Lc,Op,Args,Tp,Env,Path,Rp).
-  typeOfExp(A,_,_,_,Rp) => other(reportError(Rp,"cannot type check $(A)",locOf(A))).
+  typeOfExp(A,_,_,_,Rp) => other(reportError(Rp,"cannot type check expression $(A)",locOf(A))).
 
   typeOfExps:(cons[ast],cons[tipe],cons[canon],dict,string,reports) =>
     either[reports,cons[canon]].

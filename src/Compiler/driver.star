@@ -307,7 +307,7 @@ star.compiler{
     logMsg(Msg)
   }
 
-  extractPkgSpec(P) where Lc .= strFind(P,":",0) && Lc>0 => let{
+  extractPkgSpec(P) where Lc ^= strFind(P,":",0) => let{
     Pkg = pkg(P[0:Lc],P[Lc+1:size(P)]::version).
   } in pkgImp(pkgLoc(Pkg),.priVate,Pkg).
   extractPkgSpec(P) default =>

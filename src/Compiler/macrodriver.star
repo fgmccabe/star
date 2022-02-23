@@ -15,94 +15,6 @@ star.compiler.macro.driver{
   import star.compiler.parser.
   import star.compiler.location.
 
-  wdOption:cmdOption[compilerOptions].
-  wdOption = cmdOption{
-    shortForm = "-W".
-    alternatives = [].
-    usage = "-W dir -- working directory".
-    validator = some(isDir).
-    setOption(W,Opts) where RW ^= parseUri(W) && NW^=resolveUri(Opts.cwd,RW)=>
-      compilerOptions{repo=Opts.repo.
-	cwd=NW.
-	graph=Opts.graph.
-	optimization=Opts.optimization.
-	showAst = Opts.showAst.
-	showMacro=Opts.showMacro.
-	showCanon=Opts.showCanon.
-	showCore=Opts.showCore.
-	showCode=Opts.showCode.
-	macroOnly=Opts.macroOnly.
-	typeCheckOnly=Opts.typeCheckOnly.
-	doStdin=Opts.doStdin
-      }.
-  }
-
-  stdinOption:cmdOption[compilerOptions].
-  stdinOption = cmdOption{
-    shortForm = "".
-    alternatives = ["--stdin"].
-    usage = "--stdin -- compile standard input".
-    validator = .none.
-    setOption(_,Opts) =>
-      compilerOptions{repo=Opts.repo.
-	cwd=Opts.cwd.
-	graph=Opts.graph.
-	optimization=Opts.optimization.
-	showAst = Opts.showAst.
-	showMacro=Opts.showMacro.
-	showCanon=Opts.showCanon.
-	showCore=Opts.showCore.
-	showCode=Opts.showCode.
-	macroOnly=Opts.macroOnly.
-	typeCheckOnly=Opts.typeCheckOnly.
-	doStdin=.true.
-      }.
-  }
-
-  traceAstOption:cmdOption[compilerOptions].
-  traceAstOption = cmdOption{
-    shortForm = "-dA".
-    alternatives = [].
-    usage = "-dA -- show ast".
-    validator = .none.
-    setOption(_,Opts) =>
-      compilerOptions{repo=Opts.repo.
-	cwd=Opts.cwd.
-	graph=Opts.graph.
-	optimization=Opts.optimization.
-	showAst = .true.
-	showMacro=Opts.showMacro.
-	showCanon=Opts.showCanon.
-	showCore=Opts.showCore.
-	showCode=Opts.showCode.
-	macroOnly=Opts.macroOnly.
-	typeCheckOnly=Opts.typeCheckOnly.
-	doStdin=Opts.doStdin
-      }.
-  }
-
-  traceMacroOption:cmdOption[compilerOptions].
-  traceMacroOption = cmdOption{
-    shortForm = "-dM".
-    alternatives = [].
-    usage = "-dM -- show macro".
-    validator = .none.
-    setOption(_,Opts) =>
-      compilerOptions{repo=Opts.repo.
-	cwd=Opts.cwd.
-	graph=Opts.graph.
-	optimization=Opts.optimization.
-	showAst = Opts.showAst.
-	showMacro=.true.
-	showCanon=Opts.showCanon.
-	showCore=Opts.showCore.
-	showCode=Opts.showCode.
-	macroOnly=Opts.macroOnly.
-	typeCheckOnly=Opts.typeCheckOnly.
-	doStdin=Opts.doStdin
-      }.
-  }
-
   public _main:(cons[string])=>().
   _main(Args) => valof{
     WI^=parseUri("file:"++_cwd());
@@ -137,7 +49,7 @@ star.compiler.macro.driver{
     logMsg(Msg)
   }
 
-  extractPkgSpec(P) where Lc .= strFind(P,":",0) && Lc>0 => pkg(P[0:Lc],P[Lc+1:size(P)]::version).
+  extractPkgSpec(P) where Lc ^= strFind(P,":",0) => pkg(P[0:Lc],P[Lc+1:size(P)]::version).
   extractPkgSpec(P) default => pkg(P,.defltVersion).
 
   implementation all e,k ~~ coercion[(option[k],e),result[e,k]] => {
@@ -150,7 +62,7 @@ star.compiler.macro.driver{
     logMsg("Macro processing $(P)");
     if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
       Ast <- parseSrc(SrcUri,CPkg,Rp)::result[reports,ast];
-      if Opts.showAst then{
+      if traceAst! then{
 	logMsg("Ast of $(P) is $(Ast)")
       };
       M <- macroPkg(Ast,Rp);

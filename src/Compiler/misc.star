@@ -11,7 +11,8 @@ star.compiler.misc{
     .overMark |
     .pkgMark |
     .fldMark |
-    .closMark.
+    .closMark |
+    .tractMark.
 
   public markerString:(markerType)=>string.
   markerString(.typeMark)=>"*".
@@ -21,15 +22,16 @@ star.compiler.misc{
   markerString(.fldMark)=>"°".
   markerString(.overMark)=>"!".
   markerString(.pkgMark) => "#".
+  markerString(.tractMark) => "$".
 
   public qualifiedName:(string,markerType,string) => string.
   qualifiedName(_,Mrk,Nm) where Glue.=markerString(Mrk) &&
-      Ix .= strFind(Nm,Glue,0) && Ix>=0 => Nm.
+      Ix ^= strFind(Nm,Glue,0) => Nm.
   qualifiedName(Pth,Mrk,Nm) => Pth++markerString(Mrk)++Nm.
 
   public localName:(string,markerType)=>string.
-  localName(QNm,M) where Ix.=strFind(QNm,markerString(M),0) &&
-      Ix>=0 && MX .= [|markerString(M)|] =>
+  localName(QNm,M) where Ix^=strFind(QNm,markerString(M),0) 
+      && MX .= [|markerString(M)|] =>
     subString(QNm,Ix+MX,[|QNm|]-Ix-MX).
   localName(Nm,_) default => Nm.
 

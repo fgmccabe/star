@@ -1,6 +1,8 @@
 star.compiler.meta{
   import star.
 
+  import star.cmdOpts.
+  import star.file.
   import star.uri.
   import star.pkg.
 
@@ -52,7 +54,8 @@ star.compiler.meta{
     | tpSp(string)
     | conSp(string)
     | implSp(string)
-    | accSp(string).
+    | accSp(string)
+    | updSp(string).
 
   public implementation display[defnSp] => let{
     dispSp(varSp(Nm)) => "var: $(Nm)".
@@ -61,6 +64,7 @@ star.compiler.meta{
     dispSp(conSp(Nm)) => "contract: $(Nm)".
     dispSp(implSp(Nm)) => "implementation: $(Nm)".
     dispSp(accSp(Nm)) => "accessor: $(Nm)".
+    dispSp(updSp(Nm)) => "updater: $(Nm)".
   } in {
     disp = dispSp
   }
@@ -71,6 +75,7 @@ star.compiler.meta{
     eql(varSp(S1),varSp(S2)) => S1==S2.
     eql(implSp(S1),implSp(S2)) => S1==S2.
     eql(accSp(S1),accSp(S2)) => S1==S2.
+    eql(updSp(S1),updSp(S2)) => S1==S2.
     eql(conSp(S1),conSp(S2)) => S1==S2.
     eql(_,_) default => .false.
   } in {
@@ -84,6 +89,7 @@ star.compiler.meta{
     hash(conSp(Nm)) => hash(Nm)*37+hash("con").
     hash(implSp(Nm)) => hash(Nm)*37+hash("impl").
     hash(accSp(Nm)) => hash(Nm)*37+hash("access").
+    hash(updSp(Nm)) => hash(Nm)*37+hash("update").
   }
 
   public implementation display[defnSpec] => let{
@@ -119,19 +125,21 @@ star.compiler.meta{
     disp(.inlining) => "inlining"
   }
 
+  public traceAst = ref .false.
+  public traceDependencies = ref .false.
+  public traceMacro = ref .false.
+  public macroOnly = ref .false.
+  public traceCanon = ref .false.
+  public typeCheckOnly = ref .false.
+  public showCore = ref .false.
+  public showCode = ref .false.
+
   public compilerOptions ::=
     compilerOptions{
       repo:uri.
       cwd:uri.
       graph:option[uri].
       optimization:optimizationLvl.
-      showAst:boolean.
-      showMacro:boolean.
-      showCanon:boolean.
-      showCore:boolean.
-      showCode:boolean.
-      macroOnly:boolean.
-      typeCheckOnly:boolean.
       doStdin:boolean.
     }.
 
@@ -139,13 +147,113 @@ star.compiler.meta{
     cwd=WI.
     optimization = .base.
     graph = .none.
-    showAst = .false.
-    showMacro = .false.
-    showCanon=.false.
-    showCore=.false.
-    showCode=.false.
-    macroOnly=.false.
-    typeCheckOnly=.false.
     doStdin=.false.
+  }
+
+  public traceAstOption:cmdOption[compilerOptions].
+  traceAstOption = cmdOption{
+    shortForm = "-dA".
+    alternatives = [].
+    usage = "-dA -- show ast".
+    validator = .none.
+    setOption(_,Opts) => valof{
+      traceAst := .true;
+      
+      valis Opts
+    }
+  }
+
+  public macroOnlyOption:cmdOption[compilerOptions].
+  macroOnlyOption = cmdOption{
+    shortForm = "-m".
+    alternatives = ["--macro-only"].
+    usage = "-m -- only do macros".
+    validator = .none.
+    setOption(_,Opts) => valof{
+      macroOnly := .true;
+      valis Opts
+    }
+  }
+
+  public traceMacroOption:cmdOption[compilerOptions].
+  traceMacroOption = cmdOption{
+    shortForm = "-dM".
+    alternatives = [].
+    usage = "-dM -- show macro".
+    validator = .none.
+    setOption(_,Opts) => valof{
+      traceMacro := .true;
+      valis Opts
+    }
+  }
+
+  public traceDependencyOption:cmdOption[compilerOptions].
+  traceDependencyOption = cmdOption{
+    shortForm = "-dD".
+    alternatives = [].
+    usage = "-dD -- trace dependencies".
+    validator = .none.
+    setOption(_,Opts) => valof{
+      traceDependencies := .true;
+      valis Opts
+    }
+  }
+
+  public traceCheckOption:cmdOption[compilerOptions].
+  traceCheckOption = cmdOption{
+    shortForm = "-dt".
+    alternatives = [].
+    usage = "-dt -- show type checkedcode".
+    validator = .none.
+    setOption(_,Opts) => valof{
+      traceCanon := .true;
+      
+      valis Opts
+    }
+  }
+
+  public repoOption:cmdOption[compilerOptions].
+  repoOption = cmdOption{
+    shortForm = "-R".
+    alternatives = [].
+    usage = "-R dir -- directory of repository".
+    validator = some(isDir).
+    setOption(R,Opts) where RU ^= parseUri(R) && NR^=resolveUri(Opts.cwd,RU) =>
+      compilerOptions{repo=NR.
+	cwd=Opts.cwd.
+	graph=Opts.graph.
+	optimization=Opts.optimization.
+	doStdin=Opts.doStdin
+      }.
+  }
+
+  public wdOption:cmdOption[compilerOptions].
+  wdOption = cmdOption{
+    shortForm = "-W".
+    alternatives = [].
+    usage = "-W dir -- working directory".
+    validator = some(isDir).
+    setOption(W,Opts) where RW ^= parseUri(W) && NW^=resolveUri(Opts.cwd,RW)=>
+      compilerOptions{repo=Opts.repo.
+	cwd=NW.
+	graph=Opts.graph.
+	optimization=Opts.optimization.
+	doStdin=Opts.doStdin
+      }.
+  }
+
+  public stdinOption:cmdOption[compilerOptions].
+  stdinOption = cmdOption{
+    shortForm = "".
+    alternatives = ["--stdin"].
+    usage = "--stdin -- compile standard input".
+    validator = .none.
+    setOption(_,Opts) =>
+      compilerOptions{repo=Opts.repo.
+	cwd=Opts.cwd.
+	graph=Opts.graph.
+	optimization=Opts.optimization.
+	doStdin=.true.
+      }.
   }
 }

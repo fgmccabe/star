@@ -346,7 +346,7 @@ star.compiler.macro.rules{
       (Lc,Q,C,H,E) ^= isImplementationStmt(A) &&
       (_,Nm,_) ^= isSquareTerm(H) &&
       Ex ^= labelImplExp(E,Nm) => do{
-	valis active(mkImplementationStmt(Lc,Q,C,H,Ex))
+	valis active(trace("impl stat",mkImplementationStmt(Lc,Q,C,H,Ex)))
       }.
   implementationMacro(_,_,_) default => ok(.inactive).
 

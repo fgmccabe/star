@@ -13,13 +13,15 @@ star.compiler.dependencies{
     either[reports,
       (cons[(defnSp,visibility)],cons[ast],map[string,ast],cons[cons[defnSpec]])].
   dependencies(Dfs,Rp) => do{
---    logMsg("look for dependencies in $(Dfs)");
+    if traceDependencies! then
+      logMsg("look for dependencies in $(Dfs)");
     (Defs,Pb,As,Opn) <- collectDefinitions(Dfs,Rp);
 --    logMsg("definitions found: $(Defs)");
     AllRefs .= foldLeft((D,M)=>collectRef(D,M),[],Defs);
     InitDefs <- collectThetaRefs(Defs,AllRefs,As,[],Rp);
     Groups .= (topsort(InitDefs) // (Gp)=>(Gp//((definition(Sp,Lc,_,Els))=>defnSpec(Sp,Lc,Els))));
---    logMsg("groups $(Groups)");
+    if traceDependencies! then
+      logMsg("groups $(Groups)");
     valis (Pb,Opn,As,Groups)
   }
 
@@ -108,10 +110,6 @@ star.compiler.dependencies{
       Sp .= implSp(implementedContractName(Cn)) =>
     either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn)).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
-      (Lc,_,_,Cn,_) ^= isAccessorStmt(A) &&
-      Sp .= accSp(implementedContractName(Cn)) =>
-    either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn)).
-  collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
       (Lc,_,_,L,R) ^= isTypeExistsStmt(A) && Sp .= tpSp(typeName(L)) =>
     either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn)).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
@@ -122,12 +120,15 @@ star.compiler.dependencies{
 	Sp .= varSp(Id);
 	valis (Ss,[defnSpec(Sp,Lc,[A]),..Defs],publishName(Sp,Vz,Pb),As,Opn)
 	}.
-  collectDefinition(A,Ss,Defs,Pb,As,Opn,Vz,Rp) where
-      (Lc,Nm,Rhs) ^= isAssignment(A) && (LLc,Id) ^= isName(Nm) => do{
-	Sp .= varSp(Id); -- map X:=E to X=_cell(E)
-	valis (Ss,[defnSpec(Sp,Lc,[binary(Lc,"=",Nm,unary(Lc,"_cell",Rhs))]),..Defs],
-	  publishName(Sp,Vz,Pb),As,Opn)
-      }.
+  collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
+      (Lc,_,_,Tp,_) ^= isAccessorStmt(A) &&
+      Sp .= accSp(typeName(Tp)) =>
+    either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn)).
+  collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
+      (Lc,_,_,Tp,_) ^= isUpdaterStmt(A) &&
+      Sp .= updSp(typeName(Tp)) =>
+    either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn)).
+    
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
       (Lc,Nm) ^= ruleName(A) => do{
 	if DLc ^= isDefined(varSp(Nm),Defs) then
@@ -228,13 +229,6 @@ star.compiler.dependencies{
 	collectTypeRefs(R,A0,Rf1,Rp)
       }.
   collectStmtRefs(A,All,Annots,Rf,Rp) where
-      (_,_,Q,Cx,H,R) ^= isAlgebraicTypeStmt(A) => do{
-	A0 .= filterOut(All,Q);
-	Rf0 <- collectConstraintRefs(Cx,A0,Rf,Rp);
-	collectTypeRefs(R,A0,Rf0,Rp)
-      }
-
-  collectStmtRefs(A,All,Annots,Rf,Rp) where
       (_,Q,Cx,L,R) ^= isTypeFunStmt(A) => do{
 	A0 .= filterOut(All,Q);
 	Rf0 <- collectConstraintRefs(Cx,A0,Rf,Rp);
@@ -253,9 +247,19 @@ star.compiler.dependencies{
 	collectTermRefs(Exp,A0,Rf1,Rp)
       }.
   collectStmtRefs(A,All,Annots,Rf,Rp) where
-      (_,Cond) ^= isIntegrity(A) => collectCondRefs(Cond,All,Rf,Rp).
+      (_,Q,Cx,Tp,Exp) ^= isAccessorStmt(A) => do{
+	A0 .= filterOut(All,Q);
+	Rf0 <- collectConstraintRefs(Cx,A0,Rf,Rp);
+	Rf1 <- collectTypeRefs(Tp,A0,Rf0,Rp);
+	collectTermRefs(Exp,A0,Rf1,Rp)
+      }.
   collectStmtRefs(A,All,Annots,Rf,Rp) where
-      (_,Exp) ^= isShow(A) => collectTermRefs(Exp,All,Rf,Rp).
+      (_,Q,Cx,Tp,Exp) ^= isUpdaterStmt(A) => do{
+	A0 .= filterOut(All,Q);
+	Rf0 <- collectConstraintRefs(Cx,A0,Rf,Rp);
+	Rf1 <- collectTypeRefs(Tp,A0,Rf0,Rp);
+	collectTermRefs(Exp,A0,Rf1,Rp)
+      }.
   collectStmtRefs(A,All,Annots,Rf,Rp) =>
     other(reportError(Rp,"cannot fathom definition $(A)",locOf(A))).
 
@@ -297,8 +301,9 @@ star.compiler.dependencies{
   collectCondRefs(E,All,Rf,Rp) => collectTermRefs(E,All,Rf,Rp).
     
   collectTermRefs:(ast,map[defnSp,defnSp],cons[defnSp],reports) => either[reports,cons[defnSp]].
-  collectTermRefs(V,All,Rf,Rp) where (_,Id) ^= isName(V) =>
-    either(collectName(varSp(Id),All,Rf)).
+  collectTermRefs(V,All,Rf,Rp) where (_,Id) ^= isName(V) => do{
+    valis collectName(cnsSp(Id),All,collectName(varSp(Id),All,Rf))
+  }
   collectTermRefs(T,All,Rf,Rp) where (_,Id) ^= isEnumSymb(T) =>
     either(collectName(cnsSp(Id),All,Rf)).
   collectTermRefs(T,All,Rf,Rp) where (_,Lhs,Rhs) ^= isTypeAnnotation(T) => do{
@@ -326,10 +331,6 @@ star.compiler.dependencies{
   collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isCons(T) => do{
     Rf1 <- collectTermRefs(L,All,Rf,Rp);
     collectTermRefs(R,All,Rf1,Rp)
-  }
-  collectTermRefs(T,All,Rf,Rp) where (_,Bnd,Cond) ^= isComprehension(T) => do{
-    Rf1 <- collectTermRefs(Bnd,All,Rf,Rp);
-    collectCondRefs(Cond,All,Rf1,Rp)
   }
   collectTermRefs(T,All,Rf,Rp) where (_,Args) ^= isSqTuple(T) => 
     collectTermListRefs(Args,All,Rf,Rp).
@@ -393,8 +394,6 @@ star.compiler.dependencies{
     Rf1 <- collectTermRefs(L,All,Rf,Rp);
     collectCondRefs(R,All,Rf1,Rp)
   }
-  collectTermRefs(T,All,Rf,Rp) where (_,L) ^= isPromotion(T) =>
-    collectTermRefs(L,All,Rf,Rp).
   collectTermRefs(T,All,Rf,Rp) where (_,L) ^= isDoTerm(T) =>
     collectDoRefs(L,All,Rf,Rp).
   collectTermRefs(T,All,Rf,Rp) where (_,L) ^= isResultTerm(T) =>
