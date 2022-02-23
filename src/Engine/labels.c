@@ -243,8 +243,6 @@ termPo lblScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 }
 
 termPo lblFinalizer(specialClassPo class, termPo o) {
-  labelPo lbl = C_LBL(o);
-
   return o + LabelCellCount;
 }
 
@@ -381,7 +379,7 @@ static retCode checkLabel(labelPo lbl, void *cl) {
   SearchInfo *info = (SearchInfo *) cl;
   if (globMatch(lbl->name, lbl->len, info->search, info->len)) {
     if (info->arity < 0 || info->arity == lbl->arity) {
-      if (setBreakPoint(lbl, info->set)!=info->set)
+      if (setBreakPoint(lbl, info->set) != info->set)
         info->count++;
     }
   }

@@ -7,6 +7,8 @@
 #include <labelsP.h>
 #include "formioP.h"
 #include "labels.h"
+#include "consP.h"
+#include "ideal.h"
 
 static termPo termFinalizer(specialClassPo class, termPo o);
 
@@ -94,8 +96,7 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
   if (isSpecialClass(clss)) {
     specialClassPo spec = (specialClassPo) clss;
     return spec->dispFun(out, t, precision, depth, alt);
-  }
-  else if (isNormalPo(t)) {
+  } else if (isNormalPo(t)) {
     normalPo nml = C_NORMAL(t);
     labelPo lbl = nml->lbl;
     integer arity = labelArity(lbl);
@@ -103,8 +104,12 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
     if (isTplLabel(lbl)) {
       return showArgs(out, nml, precision, depth, alt);
     } else if (arity == 0) {
-      return outMsg(out,".%Q", labelName(lbl));
-    } else {
+      return outMsg(out, ".%Q", labelName(lbl));
+    } else if (isCons(t))
+      return dispCons(out, t, precision, depth, alt);
+    else if(isIdealTree(t))
+      return dispIdeal(out,t,precision,depth,alt);
+    else {
       retCode ret = showLbl(out, lbl, 0, 24, alt);
       if (ret == Ok)
         ret = showArgs(out, nml, precision, depth, alt);

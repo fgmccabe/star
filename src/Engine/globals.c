@@ -7,6 +7,7 @@
 #include <tpl.h>
 #include <cons.h>
 #include <option.h>
+#include "ideal.h"
 #include "labels.h"
 #include "globalsP.h"
 
@@ -213,6 +214,8 @@ void markGlobals(gcSupportPo G) {
   noneEnum = markPtr(G, &noneEnum);
 
   unitEnum = markPtr(G, (ptrPo) &unitEnum);
+
+  hNilEnum = markPtr(G, &hNilEnum);
 }
 
 retCode glbDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {

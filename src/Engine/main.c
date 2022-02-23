@@ -9,6 +9,7 @@
 #include <cellP.h>
 #include <iochnnlP.h>
 #include <consP.h>
+#include "ideal.h"
 #include <formexts.h>
 #include <optionP.h>
 #include "capabilityP.h"
@@ -56,6 +57,7 @@ int main(int argc, char **argv) {
   initThunk();
   initGlobals();
   initCons();
+  initIdeal();
   initOption();
   initCell();
   initCode();
