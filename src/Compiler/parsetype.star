@@ -250,22 +250,25 @@ star.compiler.typeparse{
     either[reports,tipe].
   parseContractConstraint(Q,A,Env,Rp) where
       (Lc,O,As) ^= isSquareTerm(A) && (_,Nm) ^= isName(O) => do{
+	contractExists(conTract(Cn),_) <- parseContractName(O,Env,Rp);
+--	logMsg("contract name $(typeKey(Cn))");
 	if [AAs].=As && (_,L,R) ^= isBinary(AAs,"->>") then{
 	  Tps <- parseTypes(Q,deComma(L),Env,Rp);
 	  Dps <- parseTypes(Q,deComma(R),Env,Rp);
-	  valis funDeps(mkTypeExp(tpFun(Nm,size(Tps)),Tps),Dps)
+	  CnTp <- doTypeFun(Lc,typeKey(Cn),Tps,Env,Rp);
+	  valis funDeps(CnTp,Dps)
 	} else{
 	  Tps <- parseTypes(Q,As,Env,Rp);
-	  valis mkTypeExp(tpFun(Nm,size(Tps)),Tps)
+	  doTypeFun(Lc,typeKey(Cn),Tps,Env,Rp)
 	}
       }
   parseContractConstraint(_,A,Env,Rp) =>
     other(reportError(Rp,"$(A) is not a contract constraint",locOf(A))).
 
-  parseContractName:(ast,dict,reports)=>either[reports,constraint].
+  parseContractName:(ast,dict,reports)=>either[reports,tipe].
   parseContractName(Op,Env,Rp) where (_,Id) ^= isName(Op) => do{
     if Con ^= findContract(Env,Id) then {
-      valis conTract(snd(freshen(Con,Env)))
+      valis snd(freshen(Con,Env))
     }
       else
 	raise reportError(Rp,"contract $(Op) not defined",locOf(Op))

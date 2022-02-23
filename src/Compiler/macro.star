@@ -374,11 +374,11 @@ star.compiler.macro{
   }
   examineTerm(A,Rp) where (Lc,Lb,S) ^= isLabeledTheta(A) => do{
     SS <- macroStmts(S,Rp);
-    valis mkBrTerm(Lc,Lb,SS)
+    valis mkQBrTerm(Lc,Lb,SS)
   }
   examineTerm(A,Rp) where (Lc,Lb,S) ^= isLabeledRecord(A) => do{
     SS <- macroStmts(S,Rp);
-    valis mkQBrTerm(Lc,Lb,SS)
+    valis mkBrTerm(Lc,Lb,SS)
   }
   examineTerm(A,Rp) where (Lc,L,R) ^= isRecordUpdate(A) => do{
     LL <- macroTerm(L,Rp);

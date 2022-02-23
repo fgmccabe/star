@@ -325,6 +325,7 @@ star.compiler.terms{
     (Tp,T1) <- decodeType(T0);
     decodeFlds(T1,[(Nm,Tp),..Flds])
   }
+
   decodeConstraint([`c`,..T]) => do{
     (Nm,T0) <- decodeText(T);
     (tupleType(Tps),T1) <- decodeType(T0);

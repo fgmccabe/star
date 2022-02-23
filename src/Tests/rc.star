@@ -9,10 +9,15 @@ test.rc{
 
   aa ::= aa{A:integer}.
 
+  implementation measured[aa->>integer] => {
+    [|_|] => 1
+  }
+
   implementation all a ~~ display[a] |: display[pp[a]] => {
     disp(pp{C=Ix}) => "pp{$(Ix)}".
     disp(pq{C=Ix. A=A}) => "pq{$(Ix),$(A)}"
   }
+  
 
   cont:(integer)=>pp[()].
   cont(C) => pp{

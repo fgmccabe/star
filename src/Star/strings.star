@@ -147,8 +147,9 @@ star.strings{
   public genSym:(string) => string.
   genSym(Pre) => _str_gen(Pre).
 
-  public strFind:(string,string,integer) => integer.
-  strFind(Txt,Ky,Ix) => _str_find(Txt,Ky,Ix).
+  public strFind:(string,string,integer) => option[integer].
+  strFind(Txt,Ky,Ix) where Lc.= _str_find(Txt,Ky,Ix) && Lc>=0 => some(Lc).
+  strFind(_,_,_) default => .none.
 
   public subString:(string,integer,integer)=>string.
   subString(Txt,Fr,Ln) => _sub_str(Txt,Fr,Ln).

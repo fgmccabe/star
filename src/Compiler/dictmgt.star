@@ -41,18 +41,18 @@ star.compiler.dict.mgt{
   declareVar(Nm,Lc,Tp,Fc,Dict) =>
     declareVr(Nm,Lc,Tp,(L,E)=>refreshVar(L,Nm,Tp,E),Fc,Dict).
 
-  public refreshVr:(locn,tipe,dict,(tipe)=>canon) => canon.
-  refreshVr(Lc,Tp,Env,Mkr) => valof action{
+  refreshVr:(locn,tipe,dict,(locn,tipe)=>canon) => canon.
+  refreshVr(Lc,Tp,Env,Mkr) => valof{
     (_,VrTp) .= freshen(Tp,Env);
-    valis manageConstraints(VrTp,Lc,Mkr(VrTp),Env)
+    valis manageConstraints(VrTp,Lc,Mkr,Env)
   }    
 
   public refreshVar(Lc,Nm,Tp,Env) =>
-    refreshVr(Lc,Tp,Env,(T)=>vr(some(Lc),Nm,T)).
+    refreshVr(Lc,Tp,Env,(LLc,T)=>vr(some(LLc),Nm,T)).
 
   public declareFldAccess:(canon,string,option[locn],tipe,dict) => dict.
   declareFldAccess(Rc,Nm,Lc,Tp,Env) =>
-    declareVr(Nm,Lc,Tp,(L,E) => refreshVr(L,Tp,E,(T)=>dot(L,Rc,Nm,T)),.none,Env).
+    declareVr(Nm,Lc,Tp,(L,E) => refreshVr(L,Tp,E,(LLc,T)=>dot(LLc,Rc,Nm,T)),.none,Env).
 
   public undeclareVar:(string,dict) => dict.
   undeclareVar(_,[]) => [].
@@ -65,16 +65,16 @@ star.compiler.dict.mgt{
   declareConstructor(Nm,FullNm,Lc,Tp,Env) =>
     declareVr(Nm,Lc,Tp,(L,E)=>pickupEnum(L,FullNm,Tp,Env),.none,Env).
 
-  pickupEnum(Lc,Nm,Tp,Env) => valof action{
+  pickupEnum(Lc,Nm,Tp,Env) => valof{
 --    logMsg("freshen $(Nm)'s type: $(Tp)");
     (_,VrTp) .= freshen(Tp,Env);
 --    logMsg("freshened type of $(Nm) is $(VrTp)");
-    valis manageConstraints(VrTp,Lc,enm(Lc,Nm,VrTp),Env)
+    valis manageConstraints(VrTp,Lc,(LLc,ETp)=>enm(LLc,Nm,ETp),Env)
   }
 
   public declareEnum:(string,string,option[locn],tipe,dict) => dict.
   declareEnum(Nm,FullNm,Lc,Tp,Env) =>
-    declareVr(Nm,Lc,Tp,(L,E)=>pickupEnum(L,FullNm,netEnumType(Tp),Env),.none,Env).
+    declareVr(Nm,Lc,Tp,(L,E)=>pickupEnum(L,FullNm,Tp,E),.none,Env).
 
   public mergeDict:(dict,dict,dict) => dict.
   mergeDict(D1,D2,Env) => let{.
@@ -102,7 +102,7 @@ star.compiler.dict.mgt{
   formMethods:(cons[(string,tipe)],option[locn],cons[tipe],
     cons[constraint],tipe,dict) => dict.
   formMethods([],_,_,_,_,Dict) => Dict.
-  formMethods([(Nm,Tp),..Mtds],Lc,Q,Cx,Con,Dict) => valof action{
+  formMethods([(Nm,Tp),..Mtds],Lc,Q,Cx,Con,Dict) => valof{
 --    logMsg("raw method type of $(Nm) is $(Tp), constraints: $(Con)");
     (MQ,MI) .= deQuant(Tp);
     MT .= reQuant(Q++MQ,reConstrainType([conTract(Con),..Cx],MI));
@@ -114,13 +114,13 @@ star.compiler.dict.mgt{
   declareMethod(Nm,Lc,Tp,Con,Dict) =>
     declareVr(Nm,Lc,Tp,(L,E)=>pickupMtd(L,Nm,Tp,Con,E),.none,Dict).
 
-  pickupMtd(Lc,Nm,Tp,Con,Env) => valof action{
+  pickupMtd(Lc,Nm,Tp,Con,Env) => valof{
 --    logMsg("pick up method $(Nm) : $(Tp) {$(Con)}");
     (Q,VrTp) .= freshen(Tp,Env);
     Cn .= refresh(Q,Con,Env);
 --    logMsg("freshened type of $(Nm) is $(VrTp) Q=$(Q)");
 --    logMsg("freshened contract $(Cn)");
-    valis manageConstraints(VrTp,Lc,mtd(Lc,Nm,Cn,VrTp),Env)
+    valis manageConstraints(VrTp,Lc,(LLc,MTp)=>mtd(LLc,Nm,Cn,MTp),Env)
   }
 
   public declareDecls:(cons[decl],option[locn],dict,reports)=>either[reports,dict].
@@ -136,7 +136,7 @@ star.compiler.dict.mgt{
   declareDecl(accDec(Tp,Fld,AccFn,AccTp),Lc,Dict) =>
     declareAccessor(Lc,Tp,Fld,AccFn,AccTp,Dict).
   declareDecl(conDec(Nm,ConNm,ConTp,ConRl),Lc,Dict) => 
-    declareContract(Lc,ConNm,ConRl,Dict).
+    declareContract(Lc,Nm,ConRl,Dict).
   declareDecl(tpeDec(Nm,Tp,TpRl),Lc,Dict) => 
     declareType(Nm,Lc,Tp,TpRl,Dict).
   declareDecl(varDec(Nm,FullNm,Tp),Lc,Dict) =>
@@ -179,10 +179,10 @@ star.compiler.dict.mgt{
   declareConstraints(Lc,[_,..Cx],Env) =>
     declareConstraints(Lc,Cx,Env).
 
-  manageConstraints:(tipe,locn,canon,dict) => canon.
+  manageConstraints:(tipe,locn,(locn,tipe)=>canon,dict) => canon.
   manageConstraints(constrainedType(Tp,Con),Lc,Term,Env) =>
     applyConstraint(Lc,Con,manageConstraints(deRef(Tp),Lc,Term,Env),Env).
-  manageConstraints(_,_,Term,Env) => Term.
+  manageConstraints(Tp,Lc,Term,Env) => Term(Lc,Tp).
 
   applyConstraint:(locn,constraint,canon,dict) => canon.
   applyConstraint(Lc,fieldConstraint(V,F,T),Trm,Env)
