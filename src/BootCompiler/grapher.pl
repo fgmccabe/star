@@ -24,7 +24,7 @@ graphPkgs(Pkgs,Groups) :-
 
 scanPkgs([],_,_,_,Pkgs,Pkgs).
 scanPkgs([P|L],Repo,Cat,CWD,SoFar,Pkgs) :-
-  parsePkgName(P,Pkg),
+  parsePkgName(P,Cat,Pkg),
   scanPkg(Pkg,Repo,Cat,CWD,SoFar,P1),
   scanPkgs(L,Repo,Cat,CWD,P1,Pkgs).
 
@@ -46,11 +46,12 @@ consistentVersion(defltVersion,_).
 consistentVersion(_,defltVersion).
 consistentVersion(ver(V),ver(V)).
 
-parsePkgName(P,pkg(Pkg,Version)) :-
+parsePkgName(P,_,pkg(Pkg,Version)) :-
   sub_string(P,Before,_,After,":"),!,
   sub_string(P,0,Before,_,Pkg),
   sub_string(P,_,After,0,Version).
-parsePkgName(P,pkg(P,defltVersion)).
+parsePkgName(P,Cat,pkg(P,V)) :-
+  catalogVersion(Cat,V),!.
 
 checkPkg(spec(Pkg,Imports,_),Repo,Cat,CWD,SrcFn,SoFar,Pkgs) :-
   reformatImports(Imports,Imps),
