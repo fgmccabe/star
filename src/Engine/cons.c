@@ -33,8 +33,8 @@ logical isCons(termPo t) {
     return False;
 }
 
-logical isConsNil(termPo t){
-  return t==(termPo)nilEnum;
+logical isConsNil(termPo t) {
+  return t == (termPo) nilEnum;
 }
 
 termPo consHead(normalPo p) {
@@ -65,6 +65,24 @@ integer consLength(termPo t) {
     t = nthArg(C_NORMAL(t), 1);
     ln++;
   }
-  assert (t == (termPo) nilEnum);
+  assert(sameTerm(t,nilEnum));
   return ln;
+}
+
+retCode dispCons(ioPo out, termPo t, integer precision, integer depth, logical alt) {
+  char *sep = "";
+  retCode ret = outChar(out, '[');
+  while (isCons(t) && ret == Ok) {
+    normalPo pr = C_NORMAL(t);
+
+    ret = outStr(out, sep);
+    if (ret == Ok)
+      ret = dispTerm(out, consHead(pr), precision, depth - 1, alt);
+    sep = ", ";
+    t = consTail(pr);
+  }
+  if (ret == Ok && isConsNil(t)) {
+    return outMsg(out, "]");
+  } else
+    return ret;
 }
