@@ -24,7 +24,7 @@ star.option{
   optionEqual(.none,.none) => .true.
   optionEqual(_,_) => .false.
 
-  public implementation all x ~~ hash[x] |: hash[option[x]] => {
+  public implementation all x ~~ hashable[x] |: hashable[option[x]] => {
     hash(some(X)) => hash("some")*37+hash(X).
     hash(.none) => hash("none").
   }

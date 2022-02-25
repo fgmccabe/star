@@ -19,7 +19,7 @@ star.either{
     _==_ => .false.
   }
 
-  public implementation all x,y ~~ hash[x],hash[y] |: hash[either[x,y]] => {
+  public implementation all x,y ~~ hashable[x],hashable[y] |: hashable[either[x,y]] => {
     hash(either(A)) => hash(A)*37.
     hash(other(B)) => hash(B)*41.
   }

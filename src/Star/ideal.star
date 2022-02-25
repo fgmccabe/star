@@ -19,7 +19,7 @@ star.ideal{
       private ihLeaf(integer,cons[keyval[k,v]]) | 
       private ihNode(map[k,v],map[k,v],map[k,v],map[k,v]). -- non-leaf case
 
-  findIdeal: all k,v ~~ equality[k],hash[k] |: (map[k,v],k) => option[v].
+  findIdeal: all k,v ~~ equality[k],hashable[k] |: (map[k,v],k) => option[v].
   findIdeal(Tr,Ky) => findInTree(0,hash(Ky),Ky,Tr).
 
   findInTree:all k,v ~~ equality[k] |: (integer,integer,k,map[k,v]) => option[v].
@@ -33,7 +33,7 @@ star.ideal{
   findMember(K,cons(_,L)) => findMember(K,L).
   findMember(_,.nil) => .none.
 
-  insertIdeal:all k,v ~~ equality[k],hash[k] |: (map[k,v],k,v)=>map[k,v].
+  insertIdeal:all k,v ~~ equality[k],hashable[k] |: (map[k,v],k,v)=>map[k,v].
   insertIdeal(Tr,K,V) => insertTree(0,hash(K),Tr,K,V).
 
   insertTree:all k,v ~~ equality[k] |: (integer,integer,map[k,v],k,v) => map[k,v].
@@ -49,7 +49,7 @@ star.ideal{
   mergeLf(cons(K->V,T),K,Vl) => cons(K->Vl,T).
   mergeLf(cons(Pr,T),Ky,Vl) => cons(Pr,mergeLf(T,Ky,Vl)).
 
-  removeIdeal:all k,v ~~ equality[k],hash[k] |: (map[k,v],k)=>map[k,v].
+  removeIdeal:all k,v ~~ equality[k],hashable[k] |: (map[k,v],k)=>map[k,v].
   removeIdeal(Tr,K) => deleteTree(Tr,0,hash(K),K).
 
   deleteTree:all k,v ~~ equality[k] |: (map[k,v],integer,integer,k)=>map[k,v].
@@ -73,7 +73,7 @@ star.ideal{
   reformTree(ihNode(.ihNil,.ihNil,.ihNil,Tr)) where ~ihNode(_,_,_,_).=Tr => Tr.
   reformTree(Tr) default => Tr.
 
-  replaceIdeal: all k,v ~~ equality[k],hash[k] |: (map[k,v],k,v) => map[k,v].
+  replaceIdeal: all k,v ~~ equality[k],hashable[k] |: (map[k,v],k,v) => map[k,v].
   replaceIdeal(Tr,Ky,Vl) => let{.
     replaceInTree(.ihNil,_,Hash) => ihLeaf(Hash,cons(Ky->Vl,.nil)).
     replaceInTree(ihLeaf(Hash,Els),_,Hash) => ihLeaf(Hash,replaceInCons(Els)).
@@ -150,14 +150,14 @@ star.ideal{
     disp(Tr) => "[#(interleave(dispTree(Tr,[]),", ")*)]".
   }
 
-  public implementation all k,v ~~ equality[k],hash[k] |: indexed[map[k,v]->>k,v] => {
+  public implementation all k,v ~~ equality[k],hashable[k] |: indexed[map[k,v]->>k,v] => {
     _index(Tr,Ky) => findIdeal(Tr,Ky).
     _put(Tr,Ky,Vl) => insertIdeal(Tr,Ky,Vl).
     _remove(Tr,Ky) => removeIdeal(Tr,Ky).
     _empty = .ihNil.
   }
 
-  public implementation all k,v ~~ equality[k],hash[k] |: coercion[cons[(k,v)],map[k,v]] => {
+  public implementation all k,v ~~ equality[k],hashable[k] |: coercion[cons[(k,v)],map[k,v]] => {
     _coerce(L) => some(foldRight(((K,V),M)=>insertIdeal(M,K,V),.ihNil,L)).
   }
 
@@ -195,14 +195,14 @@ star.ideal{
     (M///f) => ixMap(M,f).
   }
 
-  public implementation all k,v ~~ equality[k],hash[k] |: ixfilter[map[k,v]->>k,v] => {
+  public implementation all k,v ~~ equality[k],hashable[k] |: ixfilter[map[k,v]->>k,v] => {
     M^//p => ixFilter(M,p).
   }
 
-  ixFilter:all k,v ~~ equality[k],hash[k] |: (map[k,v],(k,v)=>boolean) => map[k,v].
+  ixFilter:all k,v ~~ equality[k],hashable[k] |: (map[k,v],(k,v)=>boolean) => map[k,v].
   ixFilter(M,P) => idealFold((k,v,N)=>checkEntry(k,v,N,P),.ihNil,M).
 
-  checkEntry:all k,v ~~ equality[k],hash[k] |: (k,v,map[k,v],(k,v)=>boolean) => map[k,v].
+  checkEntry:all k,v ~~ equality[k],hashable[k] |: (k,v,map[k,v],(k,v)=>boolean) => map[k,v].
   checkEntry(K,V,So,P) where P(K,V) => insertIdeal(So,K,V).
   checkEntry(_,_,So,_) => So.
 
@@ -239,12 +239,12 @@ star.ideal{
     _iter(Tr,St,Fn) => iter(Tr,St,Fn)
   }
 
-  public implementation all k,v ~~ hash[k], equality[k] |: sequence[map[k,v] ->> keyval[k,v]] => {
+  public implementation all k,v ~~ hashable[k], equality[k] |: sequence[map[k,v] ->> keyval[k,v]] => {
     _nil = .ihNil.
     _cons(K->V,Tr) => insertIdeal(Tr,K,V).
   }
 
-  public implementation all k ~~ hash[k],equality[k] |: functor[map[k]] => let{.
+  public implementation all k ~~ hashable[k],equality[k] |: functor[map[k]] => let{.
     fm:all a,b ~~ ((a)=>b,map[k,a]) => map[k,b].
     fm(_,.ihNil) => .ihNil.
     fm(F,ihLeaf(H,Els)) => ihLeaf(H,Els//((K->V)=>(K->F(V)))).

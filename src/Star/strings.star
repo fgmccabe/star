@@ -21,11 +21,11 @@ star.strings{
     X==Y => _str_eq(X,Y).
   }
 
-  public implementation hash[char] => {
+  public implementation hashable[char] => {
     hash(X) => _chr_hash(X).
   }
 
-  public implementation hash[string] => {
+  public implementation hashable[string] => {
     hash(X) => _str_hash(X).
   }
 

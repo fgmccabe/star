@@ -14,7 +14,7 @@ star.tuples{
     () == () => .true.
   }
 
-  public implementation hash[()] => {
+  public implementation hashable[()] => {
     hash(()) => 0.
   }
 
@@ -27,7 +27,7 @@ star.tuples{
     (A1,A2)==(B1,B2) => A1==B1 && A2==B2.
   }
 
-  public implementation all x,y ~~ hash[x], hash[y] |: hash[(x,y)] => {
+  public implementation all x,y ~~ hashable[x], hashable[y] |: hashable[(x,y)] => {
     hash((A,B)) => hash(A)*37+hash(B).
   }
 
@@ -46,7 +46,7 @@ star.tuples{
     (A1,A2,A3)==(B1,B2,B3) => A1==B1 && A2==B2 && A3==B3.
   }
 
-  public implementation all x,y,z ~~ hash[x], hash[y],hash[z] |: hash[(x,y,z)] => {
+  public implementation all x,y,z ~~ hashable[x], hashable[y],hashable[z] |: hashable[(x,y,z)] => {
     hash((A,B,C)) => (hash(A)*37+hash(B))*37+hash(C).
   }
 
@@ -59,7 +59,7 @@ star.tuples{
     (A1,A2,A3,A4)==(B1,B2,B3,B4) => A1==B1 && A2==B2 && A3==B3 && A4==B4.
   }
 
-  public implementation all w,x,y,z ~~ hash[w], hash[x], hash[y],hash[z] |: hash[(w,x,y,z)] => {
+  public implementation all w,x,y,z ~~ hashable[w], hashable[x], hashable[y],hashable[z] |: hashable[(w,x,y,z)] => {
     hash((A,B,C,D)) => ((hash(A)*37+hash(B))*37+hash(C))*37+hash(D).
   }
 
@@ -73,7 +73,7 @@ star.tuples{
       A1==B1 && A2==B2 && A3==B3 && A4==B4 && A5==B5.
   }
 
-  public implementation all u,w,x,y,z ~~ hash[u], hash[w], hash[x], hash[y],hash[z] |: hash[(u,w,x,y,z)] => {
+  public implementation all u,w,x,y,z ~~ hashable[u], hashable[w], hashable[x], hashable[y],hashable[z] |: hashable[(u,w,x,y,z)] => {
     hash((A,B,C,D,E)) => (((hash(A)*37+hash(B))*37+hash(C))*37+hash(D))*37+hash(E).
   }
 

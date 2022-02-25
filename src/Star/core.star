@@ -25,8 +25,8 @@ star.core {
     (>=): (x,x)=>boolean.
   }
 
-  hash@"defines functions associated with hash encoding".
-  public contract all x ~~ hash[x] ::= {
+  hashable@"defines functions associated with hash encoding".
+  public contract all x ~~ hashable[x] ::= {
     hash:(x)=>integer.
   }
 
