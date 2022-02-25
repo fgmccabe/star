@@ -49,6 +49,8 @@ test.rb0{
   unzip:all e ~~ (cons[e],integer,integer,rbtree[integer,e])=>rbtree[integer,e].
   unzip(L,Ix,Inc,T0) => snd(foldLeft((E,(I,T))=>(I+Inc,T[~I]),(Ix,T0),L)).
 
+  u12()=>u1[12].
+
   main:()=>action[(),()].
   main()=>action{
     show t9;
@@ -66,6 +68,7 @@ test.rb0{
     assert u1[5]==.none;
     assert u0[12] == .none;
 
+    show u12();
     assert u1[12] == some("d");
 
     show zip(["a","b","c","d","e","f","g","h","i"],0,1,[]);
