@@ -15,11 +15,11 @@ star.cons{
     L1 == L2 => smList(L1,L2).
   }
 
-  public implementation all x ~~ hash[x] |: hash[cons[x]] => {
+  public implementation all x ~~ hashable[x] |: hashable[cons[x]] => {
     hash(L) => cHash(L,0).
   }
 
-  cHash:all x ~~ hash[x] |: (cons[x],integer) => integer.
+  cHash:all x ~~ hashable[x] |: (cons[x],integer) => integer.
   cHash(.nil,X) => X.
   cHash(cons(x,xr),H) => cHash(xr,(H+hash(x))*37).
 

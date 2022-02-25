@@ -31,12 +31,12 @@ star.pkg{
     _ == _ => .false.
   }
 
-  public implementation hash[version] => {
+  public implementation hashable[version] => {
     hash(.defltVersion) => 0.
     hash(vers(V)) => hash(V).
   }
 
-  public implementation hash[pkg] => {
+  public implementation hashable[pkg] => {
     hash(pkg(P,V)) => hash(P)*37+hash(V).
   }
 

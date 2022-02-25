@@ -28,7 +28,7 @@ star.arith{
     X == Y => _int_eq(X,Y).
   }
 
-  public implementation hash[integer] => {
+  public implementation hashable[integer] => {
     hash(X) => _int_hash(X).
   }
 
@@ -64,7 +64,7 @@ star.arith{
     X == Y => _big_eq(X,Y).
   }
 
-  public implementation hash[bigint] => {
+  public implementation hashable[bigint] => {
     hash(X) => _big_hash(X).
   }
 
@@ -102,7 +102,7 @@ star.arith{
     X == Y => _flt_eq(X,Y,1.0e-20).
   }
 
-  public implementation hash[float] => {
+  public implementation hashable[float] => {
     hash(X) => _flt_hash(X).
   }
 
