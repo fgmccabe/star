@@ -24,7 +24,7 @@ star.compiler.canondeps{
     _ == _ default => .false.
   }
 
-  implementation hash[defnSp] => {
+  implementation hashable[defnSp] => {
     hash(varSp(V1)) => hash(V1).
     hash(tpSp(T1)) => hash(T1).
   }

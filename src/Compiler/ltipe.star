@@ -39,7 +39,7 @@ star.compiler.ltipe{
     X==Y => eq(X,Y)
   }
 
-  public implementation hash[ltipe] => let{.
+  public implementation hashable[ltipe] => let{.
     hsh(.int64)=>hash("int64").
     hsh(.flt64)=>hash("flt64").
     hsh(.bool)=>hash("bool").

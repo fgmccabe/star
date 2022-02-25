@@ -82,7 +82,7 @@ star.compiler.meta{
     S1 == S2 => eql(S1,S2)
   }
 
-  public implementation hash[defnSp] => {
+  public implementation hashable[defnSp] => {
     hash(varSp(Nm)) => hash(Nm)*37+hash("var").
     hash(cnsSp(Nm)) => hash(Nm)*37+hash("cns").
     hash(tpSp(Nm)) => hash(Nm)*37+hash("tp").

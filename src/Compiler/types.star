@@ -251,7 +251,7 @@ star.compiler.types{
   showDeps(Els,Dp) => "->>#(showTypes(Els,.false,Dp)*)".
   
   -- in general, hashing types is not reliable because of unification
-  public implementation hash[tipe] => let{.
+  public implementation hashable[tipe] => let{.
     hsh(kFun(Nm,Ar)) => Ar*37+hash(Nm).
     hsh(tVar(_,Nm)) => hash("V")+hash(Nm).
     hsh(tFun(_,Ar,Nm)) => (hash("F")+Ar)*37+hash(Nm).
@@ -278,7 +278,7 @@ star.compiler.types{
   }
 
   
-  public implementation hash[constraint] => {
+  public implementation hashable[constraint] => {
     hash(conTract(T)) => hash(T).
     hash(fieldConstraint(V,F,T)) =>
       ((hash("<~")*37+hash(F))*37+hash(deRef(V)))*37+hash(deRef(T)).
