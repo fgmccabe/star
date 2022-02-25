@@ -37,6 +37,10 @@ star.redblack{
   find(.leaf,_) => .none.
   find(nbkNd(K,V,_,_),K) => some(V).
   find(bbkNd(K,V,_,_),K) => some(V).
+  find(rdNd(K,V,_,_),K) => some(V).
+  find(bkNd(K,V,_,_),K) => some(V).
+  find(bbkNd(K1,_,L,_),K) where K<K1 => find(L,K).
+  find(nbkNd(K1,_,L,_),K) where K<K1 => find(L,K).
   find(bkNd(K1,_,L,_),K) where K<K1 => find(L,K).
   find(rdNd(K1,_,L,_),K) where K<K1 => find(L,K).
 
@@ -199,6 +203,8 @@ star.redblack{
   validReds(.leaf)=>.true.
   validReds(rdNd(_,_,L,R)) =>
     validReds(L) && validReds(R) && ~isRedNode(L) && ~isRedNode(R).
+  validReds(nbkNd(_,_,L,R)) => validReds(L) && validReds(R).
+  validReds(bbkNd(_,_,L,R)) => validReds(L) && validReds(R).
   validReds(bkNd(_,_,L,R)) => validReds(L) && validReds(R).
   validReds(_) default => .false.
 
@@ -208,6 +214,10 @@ star.redblack{
 	
   blackHeights:all k,v ~~ (rbtree[k,v],integer,cons[integer])=>cons[integer].
   blackHeights(.leaf,H,Hs) => [H,..Hs].
+  blackHeights(nbkNd(_,_,L,R),H,Hs) =>
+    blackHeights(L,H+1,blackHeights(R,H+1,Hs)).
+  blackHeights(bbkNd(_,_,L,R),H,Hs) =>
+    blackHeights(L,H+1,blackHeights(R,H+1,Hs)).
   blackHeights(bkNd(_,_,L,R),H,Hs) =>
     blackHeights(L,H+1,blackHeights(R,H+1,Hs)).
   blackHeights(rdNd(_,_,L,R),H,Hs) =>
