@@ -56,12 +56,12 @@ star.compiler.terms{
     disp(T) => dispT(T)
   }
 
-  public implementation hash[termLbl] => {
+  public implementation hashable[termLbl] => {
     hash(tLbl(Nm,Ar))=>hash(Nm)*37+Ar.
     hash(tRec(Nm,Fs))=>foldRight(((FN,_),H)=>H*37+hash(FN),hash(Nm),Fs).
   }
 
-  public implementation hash[term] => let{.
+  public implementation hashable[term] => let{.
     hsh(intgr(X)) => X.
     hsh(bigi(X)) => hash(X).
     hsh(flot(X)) => hash(X).

@@ -99,7 +99,7 @@ star.compiler.core{
     crId(N1,T1) == crId(N2,T2) => N1==N2.
   }
 
-  public implementation hash[crVar] => {
+  public implementation hashable[crVar] => {
     hash(crId(N,T)) => hash(N).
   }
 
