@@ -269,22 +269,6 @@ checkGroup([(open(_),_,[Stmt])|More],Defs,Dx,Env,Ex,Face,Path) :-
   checkGroup(More,Defs,Dx,Ev0,Ex,Face,Path).
 checkGroup([],Defs,Defs,Env,Env,_,_).
 
-extendEnv([],Env,Env).
-extendEnv([D|Dfs],Env,Ex) :-
-  declareFromDefn(D,Env,E0),
-  extendEnv(Dfs,E0,Ex).
-
-declareFromDefn(funDef(Lc,Nm,_,_,Tp,_,_),Env,Ex) :-
-  declareVr(Lc,Nm,Tp,none,Env,Ex).
-declareFromDefn(varDef(Lc,Nm,_,_,Tp,open(_,_,_)),Env,Ex) :-
-  freshen(Tp,Env,_,FTp),
-  faceOfType(FTp,Lc,Env,FaceTp),
-  declareVr(Lc,Nm,Tp,some(FaceTp),Env,Ex).
-declareFromDefn(varDef(Lc,Nm,_,_,Tp,_),Env,Ex) :-
-  declareVr(Lc,Nm,Tp,none,Env,Ex).
-declareFromDefn(conDef(Nm,ConNm,CnType,ConRule),Env,Ex) :-
-  declareContract(Nm,conDef(Nm,ConNm,CnType,ConRule),Env,Ex).
-
 defineContract(N,Lc,Contract,E0,Ex) :-
   declareContract(N,Contract,E0,E1),
   declareMethods(Contract,Lc,E1,Ex).
@@ -525,7 +509,7 @@ splitHd(Term,"()",Term,notDeflt) :-
 
 checkImplementation(Stmt,INm,[Impl,ImplVar|Dfs],Dfs,Env,Evx,_,Path) :-
   isImplementationStmt(Stmt,Lc,Quants,Cons,Sq,IBody),
-  parseContractConstraint(Quants,Cons,Sq,Env,ConNm,ConSpec),
+  parseContractConstraint(Quants,Cons,Sq,Env,Nm,_ConNm,ConSpec),
 %  dispType(ConSpec),
   evidence(ConSpec,Env,IQ,CnSpec),
 %  dispType(CnSpec),
@@ -535,8 +519,9 @@ checkImplementation(Stmt,INm,[Impl,ImplVar|Dfs],Dfs,Env,Evx,_,Path) :-
   implementationName(Spec,ImplName),
   mangleName(Path,value,ImplName,ImplVrNm),
   contractType(Spec,CnType),
-%  dispType(CnType),
-  labelImplExp(IBody,ConNm,ImpBody),
+					%  dispType(CnType),
+  dollarName(Nm,DlNm),
+  labelImplExp(IBody,DlNm,ImpBody),
 %  reportMsg("implementation %s, expected type %s",[ast(ImpBody),tpe(CnType)]),
   typeOfExp(ImpBody,CnType,tplType([]),ThEnv,_ThEv,ImplTerm,ImplVrNm),
   putConstraints(AC,CnType,SS1),
@@ -1128,9 +1113,10 @@ isLetExport(Private,Nm) :-
   \+is_member(Nm,Private),!.
 
 completePublic([],Pub,Pub,_).
-completePublic([con(Nm)|List],Pub,Px,Path) :-
+completePublic([con(Nm)|List],Pub,[tpe(ConNm),var(DlNm)|Px],Path) :-
   contractName(Path,Nm,ConNm),
-  completePublic(List,[tpe(ConNm),var(ConNm)|Pub],Px,Path).
+  dollarName(Nm,DlNm),
+  completePublic(List,Pub,Px,Path).
 completePublic([_|List],Pub,Px,Path) :-
   completePublic(List,Pub,Px,Path).
 

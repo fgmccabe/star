@@ -10,7 +10,8 @@
 	       appIndx/3,appNl/2,appNwln/3,appMulti/3,
 	       genstr/2,str_lt/2,chr_lt/2,
 	       subPath/4,pathSuffix/3,starts_with/2,ends_with/2,
-	       mangleName/3,mangleName/4,splitLocalName/4,getLocalName/2,localName/3,
+	       mangleName/3,mangleName/4,dollarName/2,
+	       splitLocalName/4,getLocalName/2,localName/3,
 	       listShow/5,
 	       charHash/3,stringHash/3,hashSixtyFour/2,bigHash/2,
 	       stringEndsWith/2,
@@ -333,6 +334,9 @@ marker(over,"!").
 marker(package,"#").
 marker(field,"°").
 marker(closure,"^").
+
+dollarName(Nm,DlNm) :-
+  string_concat("$",Nm,DlNm).
 
 packageVarName(Pkg,Nm,LclName) :-
   mangleName(Pkg,package,Nm,LclName).
