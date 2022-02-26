@@ -28,118 +28,79 @@ star.redblack{
   public rbtree[k,v] ::=
     private .leaf |
       private .bleaf |
-      private bbkNd(k,v,rbtree[k,v],rbtree[k,v]) |
-      private nbkNd(k,v,rbtree[k,v],rbtree[k,v]) |
-      private bkNd(k,v,rbtree[k,v],rbtree[k,v]) |
-      private rdNd(k,v,rbtree[k,v],rbtree[k,v]).
+      private node(color,k,v,rbtree[k,v],rbtree[k,v]).
 
   find:all k,v ~~ comp[k], equality[k] |:(rbtree[k,v],k)=> option[v].
   find(.leaf,_) => .none.
-  find(nbkNd(K,V,_,_),K) => some(V).
-  find(bbkNd(K,V,_,_),K) => some(V).
-  find(rdNd(K,V,_,_),K) => some(V).
-  find(bkNd(K,V,_,_),K) => some(V).
-  find(bbkNd(K1,_,L,_),K) where K<K1 => find(L,K).
-  find(nbkNd(K1,_,L,_),K) where K<K1 => find(L,K).
-  find(bkNd(K1,_,L,_),K) where K<K1 => find(L,K).
-  find(rdNd(K1,_,L,_),K) where K<K1 => find(L,K).
-
-  find(nbkNd(_,_,_,R),K) => find(R,K).
-  find(bbkNd(_,_,_,R),K) => find(R,K).
-  find(bkNd(_,_,_,R),K) => find(R,K).
-  find(rdNd(_,_,_,R),K) => find(R,K).
+  find(node(_,K,V,_,_),K) => some(V).
+  find(node(_,K1,_,L,_),K) where K<K1 => find(L,K).
+  find(node(_,_,_,_,R),K) => find(R,K).
 
   insert:all k,v ~~ comp[k],equality[k] |: (rbtree[k,v],k,v) => rbtree[k,v].
-  insert(T,K,V) => add(T,K,V).
+  insert(T,K,V) => case add(T,K,V) in {
+    node(_,Ky,Vy,A,B) => node(.Black,Ky,Vy,A,B).
+    N => N
+  }
 
   add:all k,v ~~ comp[k],equality[k] |: (rbtree[k,v],k,v) => rbtree[k,v].
-  add(.leaf,K,V) => rdNd(K,V,.leaf,.leaf).
-  add(nbkNd(K,_,L,R),K,V) => nbkNd(K,V,L,R).
-  add(bbkNd(K,_,L,R),K,V) => bbkNd(K,V,L,R).
-  add(bkNd(K,_,L,R),K,V) => bkNd(K,V,L,R).
-  add(rdNd(K,_,L,R),K,V) => rdNd(K,V,L,R).
-  add(bkNd(K1,V1,L,R),K,V) where K<K1 =>
-    balance(.Black,K1,V1,add(L,K,V),R).
-  add(bkNd(K1,V1,L,R),K,V) =>
-    balance(.Black,K1,V1,L,add(R,K,V)).
-  add(rdNd(K1,V1,L,R),K,V) where K<K1 =>
-    balance(.Red,K1,V1,add(L,K,V),R).
-  add(rdNd(K1,V1,L,R),K,V) =>
-    balance(.Red,K1,V1,L,add(R,K,V)).
-  
+  add(.leaf,K,V) => node(.Red,K,V,.leaf,.leaf).
+  add(node(C,K,_,L,R),K,V) => node(C,K,V,L,R).
+  add(node(C,K1,V1,L,R),K,V) where K<K1 =>
+    balance(C,K1,V1,add(L,K,V),R).
+  add(node(C,K1,V1,L,R),K,V) =>
+    balance(C,K1,V1,L,add(R,K,V)).
 
   balance:all k,v ~~ comp[k],equality[k] |:
     (color,k,v,rbtree[k,v],rbtree[k,v])=>rbtree[k,v].
-  balance(Cl,Kz,Vz,rdNd(Ky,Vy,rdNd(Kx,Vx,A,B),C),D) where isBlack(Cl) =>
-    whiten(Cl,Ky,Vy,bkNd(Kx,Vx,A,B),bkNd(Kz,Vz,C,D)).
-  balance(Cl where isBlack(Cl),Kz,Vz,rdNd(Kx,Vx,A,rdNd(Ky,Vy,B,C)),D) =>
-    whiten(Cl,Ky,Vy,bkNd(Kx,Vx,A,B),bkNd(Kz,Vz,C,D)).
-  balance(Cl where isBlack(Cl),Kx,Vx,A,rdNd(Kz,Vz,rdNd(Ky,Vy,B,C),D)) =>
-    whiten(Cl,Ky,Vy,bkNd(Kx,Vx,A,B),bkNd(Kz,Vz,C,D)).
-  balance(Cl where isBlack(Cl),Kx,Vx,A,rdNd(Ky,Vy,B,rdNd(Kz,Vz,C,D))) =>
-    whiten(Cl,Ky,Vy,bkNd(Kx,Vx,A,B),bkNd(Kz,Vz,C,D)).
-  balance(.BBlack,Kz,Vz,nbkNd(Kx,Vx,bkNd(Kw,Vw,A,B),bkNd(Ky,Vy,C,D)),E) =>
-    bkNd(Ky,Vy,balance(.Black,Ky,Vy,redden(bkNd(Kw,Vw,A,B)),C),bkNd(Kz,Vz,D,E)).
-  balance(.BBlack,Kx,Vx,A,nbkNd(Kz,Vz,bkNd(Ky,Vy,B,C),bkNd(Kw,Vw,D,E)))=>
-    bkNd(Ky,Vy,bkNd(Kx,Vx,A,B),balance(.Black,Kz,Vz,C,redden(bkNd(Kw,Vw,D,E)))).
+  balance(Cl,Kz,Vz,node(.Red,Ky,Vy,node(.Red,Kx,Vx,A,B),C),D) where isBlack(Cl) =>
+    node(whiten(Cl),Ky,Vy,node(.Black,Kx,Vx,A,B),node(.Black,Kz,Vz,C,D)).
+  balance(Cl where isBlack(Cl),Kz,Vz,node(.Red,Kx,Vx,A,node(.Red,Ky,Vy,B,C)),D) =>
+    node(whiten(Cl),Ky,Vy,node(.Black,Kx,Vx,A,B),node(.Black,Kz,Vz,C,D)).
+  balance(Cl where isBlack(Cl),Kx,Vx,A,node(.Red,Kz,Vz,node(.Red,Ky,Vy,B,C),D)) =>
+    node(whiten(Cl),Ky,Vy,node(.Black,Kx,Vx,A,B),node(.Black,Kz,Vz,C,D)).
+  balance(Cl where isBlack(Cl),Kx,Vx,A,node(.Red,Ky,Vy,B,node(.Red,Kz,Vz,C,D))) =>
+    node(whiten(Cl),Ky,Vy,node(.Black,Kx,Vx,A,B),node(.Black,Kz,Vz,C,D)).
+  balance(.BBlack,Kz,Vz,node(.NBlack,Kx,Vx,node(.Black,Kw,Vw,A,B),node(.Black,Ky,Vy,C,D)),E) =>
+    node(.Black,Ky,Vy,balance(.Black,Ky,Vy,redden(node(.Black,Kw,Vw,A,B)),C),node(.Black,Kz,Vz,D,E)).
+  balance(.BBlack,Kx,Vx,A,node(.NBlack,Kz,Vz,node(.Black,Ky,Vy,B,C),node(.Black,Kw,Vw,D,E)))=>
+    node(.Black,Ky,Vy,node(.Black,Kx,Vx,A,B),balance(.Black,Kz,Vz,C,redden(node(.Black,Kw,Vw,D,E)))).
 
-  balance(.NBlack,K,V,L,R) => nbkNd(K,V,L,R).
-  balance(.BBlack,K,V,L,R) => bbkNd(K,V,L,R).
-  balance(.Black,K,V,L,R) => bkNd(K,V,L,R).
-  balance(.Red,K,V,L,R) => rdNd(K,V,L,R).
+  balance(C,K,V,L,R) => node(C,K,V,L,R).
 
   delete:all k,v ~~ comp[k],equality[k] |: (rbtree[k,v],k)=>rbtree[k,v].
   delete(T,K) => blacken(del(T,K)).
   
   del:all k,v ~~ comp[k],equality[k] |: (rbtree[k,v],k)=>rbtree[k,v].
   del(.leaf,_) => .leaf.
-  del(nbkNd(K,_,L,R),K) => remove(.NBlack,L,R).
-  del(nbkNd(K,_,L,R),K) => remove(.BBlack,L,R).
-  del(bkNd(K,_,L,R),K) => remove(.Black,L,R).
-  del(rdNd(K,_,L,R),K) => remove(.Red,L,R).
-  del(nbkNd(K1,V1,A,B),K) where K<K1 => bubble(.NBlack,(K1,V1),del(A,K),B).
-  del(bbkNd(K1,V1,A,B),K) where K<K1 => bubble(.BBlack,(K1,V1),del(A,K),B).
-  del(bkNd(K1,V1,A,B),K) where K<K1 => bubble(.Black,(K1,V1),del(A,K),B).
-  del(rdNd(K1,V1,A,B),K) where K<K1 => bubble(.Red,(K1,V1),del(A,K),B).
-  del(nbkNd(K1,V1,A,B),K) where K>K1 => bubble(.NBlack,(K1,V1),A,del(B,K)).
-  del(bbkNd(K1,V1,A,B),K) where K>K1 => bubble(.BBlack,(K1,V1),A,del(B,K)).
-  del(bkNd(K1,V1,A,B),K) where K>K1 => bubble(.Black,(K1,V1),A,del(B,K)).
-  del(rdNd(K1,V1,A,B),K) where K>K1 => bubble(.Red,(K1,V1),A,del(B,K)).
+  del(M where node(C,K,_,L,R).=M,K) => remove(C,L,R).
+  del(node(C,K1,V1,A,B),K) where K<K1 => bubble(C,(K1,V1),del(A,K),B).
+  del(node(C,K1,V1,A,B),K) where K>K1 => bubble(C,(K1,V1),A,del(B,K)).
 
   remove:all k,v ~~ comp[k],equality[k] |: (color,rbtree[k,v],rbtree[k,v])=>rbtree[k,v].
   remove(.Red,.leaf,.leaf)=>.leaf.
   remove(.Black,.leaf,.leaf)=>.bleaf.
-  remove(.Black,rdNd(K,V,L,R),.leaf) => bkNd(K,V,L,R).
-  remove(.Black,.leaf,rdNd(K,V,L,R)) => bkNd(K,V,L,R).
+  remove(.Black,node(.Red,K,V,L,R),.leaf) => node(.Black,K,V,L,R).
+  remove(.Black,.leaf,node(.Red,K,V,L,R)) => node(.Black,K,V,L,R).
   remove(C,A,B) => bubble(C,rightMost(A),removeMax(A),B).
 
   removeMax:all k,v ~~ comp[k],equality[k] |: (rbtree[k,v])=>rbtree[k,v].
-  removeMax(nbkNd(_,_,L,.leaf)) => remove(.NBlack,L,.leaf).
-  removeMax(bbkNd(_,_,L,.leaf)) => remove(.BBlack,L,.leaf).
-  removeMax(bkNd(_,_,L,.leaf)) => remove(.Black,L,.leaf).
-  removeMax(rdNd(_,_,L,.leaf)) => remove(.Red,L,.leaf).
-  removeMax(nbkNd(K,V,L,R)) => bubble(.NBlack,(K,V),L,removeMax(R)).
-  removeMax(bbkNd(K,V,L,R)) => bubble(.BBlack,(K,V),L,removeMax(R)).
-  removeMax(bkNd(K,V,L,R)) => bubble(.Black,(K,V),L,removeMax(R)).
-  removeMax(rdNd(K,V,L,R)) => bubble(.Red,(K,V),L,removeMax(R)).
+  removeMax(node(Cl,_,_,L,.leaf)) => remove(Cl,L,.leaf).
+  removeMax(node(Cl,K,V,L,R)) => bubble(Cl,(K,V),L,removeMax(R)).
 
   bubble:all k,v ~~ comp[k],equality[k] |: (color,(k,v),rbtree[k,v],rbtree[k,v])=>rbtree[k,v].
   bubble(C,(K,V),L,R) where (isBB(L) || isBB(R)) =>
     balance(darken(C),K,V,redder(L),redder(R)).
   bubble(C,(K,V),L,R) => balance(C,K,V,L,R).
 
-  rightMost(nbkNd(K,V,_,.leaf)) => (K,V).
-  rightMost(bbkNd(K,V,_,.leaf)) => (K,V).
-  rightMost(bkNd(K,V,_,.leaf)) => (K,V).
-  rightMost(rdNd(K,V,_,.leaf)) => (K,V).
-  rightMost(nbkNd(_,_,_,T)) => rightMost(T).
-  rightMost(bbkNd(_,_,_,T)) => rightMost(T).
-  rightMost(bkNd(_,_,_,T)) => rightMost(T).
-  rightMost(rdNd(_,_,_,T)) => rightMost(T).
+  leftMost(node(_,K,V,.leaf,_)) => (K,V).
+  leftMost(node(_,_,_,_,T)) => leftMost(T).
+
+  rightMost(node(_,K,V,_,.leaf)) => (K,V).
+  rightMost(node(_,_,_,_,T)) => rightMost(T).
 
   isBB:all k,v ~~ (rbtree[k,v])=>boolean.
   isBB(.bleaf)=>.true.
-  isBB(bbkNd(_,_,_,_))=>.true.
+  isBB(node(.BBlack,_,_,_,_))=>.true.
   isBB(_) default => .false.
   
   isBlack:(color)=>boolean.
@@ -152,75 +113,53 @@ star.redblack{
   darken(.Black)=>.BBlack.
   darken(.NBlack)=>.Red.
 
-  whiten:all k,v ~~ (color,k,v,rbtree[k,v],rbtree[k,v])=>rbtree[k,v].
-  whiten(.Red,K,V,L,R) => nbkNd(K,V,L,R).
-  whiten(.Black,K,V,L,R) => rdNd(K,V,L,R).
-  whiten(.Red,K,V,L,R) => nbkNd(K,V,L,R).
-  whiten(.BBlack,K,V,L,R) => bkNd(K,V,L,R).
+  whiten:(color)=>color.
+  whiten(.Red)=>.NBlack.
+  whiten(.Black)=>.Red.
+  whiten(.BBlack)=>.Black.
 
   redden:all k,v ~~ (rbtree[k,v])=>rbtree[k,v].
-  redden(nbkNd(K,V,L,R))=>rdNd(K,V,L,R).
-  redden(bbkNd(K,V,L,R))=>rdNd(K,V,L,R).
-  redden(bkNd(K,V,L,R))=>rdNd(K,V,L,R).
-  redden(rdNd(K,V,L,R))=>rdNd(K,V,L,R).
+  redden(node(_,K,V,L,R))=>node(.Red,K,V,L,R).
 
   blacken:all k,v ~~ (rbtree[k,v])=>rbtree[k,v].
   blacken(.leaf) => .leaf.
   blacken(.bleaf) => .leaf.
-  blacken(nbkNd(K,V,L,R))=>bkNd(K,V,L,R).
-  blacken(bbkNd(K,V,L,R))=>bkNd(K,V,L,R).
-  blacken(bkNd(K,V,L,R))=>bkNd(K,V,L,R).
-  blacken(rdNd(K,V,L,R))=>bkNd(K,V,L,R).
+  blacken(node(_,K,V,L,R))=>node(.Black,K,V,L,R).
 
   redder:all k,v ~~ (rbtree[k,v])=>rbtree[k,v].
   redder(.bleaf)=>.leaf.
-  redder(nbkNd(K,V,L,R))=>whiten(.NBlack,K,V,L,R).
-  redder(bbkNd(K,V,L,R))=>whiten(.BBlack,K,V,L,R).
-  redder(bkNd(K,V,L,R))=>whiten(.Black,K,V,L,R).
-  redder(rdNd(K,V,L,R))=>whiten(.Red,K,V,L,R).
+  redder(node(Cl,K,V,L,R))=>node(whiten(Cl),K,V,L,R).
   
   -- Implement some of the standard contracts
   pairs:all k,v ~~ (rbtree[k,v],cons[keyval[k,v]]) => cons[keyval[k,v]].
   pairs(.leaf,Ps) => Ps.
   pairs(.bleaf,Ps) => Ps.
-  pairs(bbkNd(K,V,L,R),Ps) => pairs(L,[K->V,..pairs(R,Ps)]).
-  pairs(nbkNd(K,V,L,R),Ps) => pairs(L,[K->V,..pairs(R,Ps)]).
-  pairs(bkNd(K,V,L,R),Ps) => pairs(L,[K->V,..pairs(R,Ps)]).
-  pairs(rdNd(K,V,L,R),Ps) => pairs(L,[K->V,..pairs(R,Ps)]).
+  pairs(node(_,K,V,L,R),Ps) => pairs(L,[K->V,..pairs(R,Ps)]).
 
   dispTree:all k,v ~~ display[k], display[v] |: (rbtree[k,v])=>string.
   dispTree(.leaf)=>"leaf".
   dispTree(.bleaf)=>"bleaf".
-  dispTree(nbkNd(K,V,L,R)) => "(nblk #(dispTree(L))\:$(disp(K))->$(V)\:#(dispTree(R)))".
-  dispTree(bbkNd(K,V,L,R)) => "(bblk #(dispTree(L))\:$(disp(K))->$(V)\:#(dispTree(R)))".
-  dispTree(bkNd(K,V,L,R)) => "(blk #(dispTree(L))\:$(disp(K))->$(V)\:#(dispTree(R)))".
-  dispTree(rdNd(K,V,L,R)) => "(red #(dispTree(L))\:$(disp(K))->$(V)\:#(dispTree(R)))".
+  dispTree(node(Cl,K,V,L,R)) => "($(Cl) #(dispTree(L))\:$(disp(K))->$(V)\:#(dispTree(R)))".
 
   public validRb:all k,v ~~ (rbtree[k,v])=>boolean.
   validRb(T) => validReds(T) && allSame(blackHeights(T,0,[])).
 
   validReds:all k,v ~~ (rbtree[k,v])=>boolean.
   validReds(.leaf)=>.true.
-  validReds(rdNd(_,_,L,R)) =>
+  validReds(node(.Red,_,_,L,R)) =>
     validReds(L) && validReds(R) && ~isRedNode(L) && ~isRedNode(R).
-  validReds(nbkNd(_,_,L,R)) => validReds(L) && validReds(R).
-  validReds(bbkNd(_,_,L,R)) => validReds(L) && validReds(R).
-  validReds(bkNd(_,_,L,R)) => validReds(L) && validReds(R).
+  validReds(node(.Black,_,_,L,R)) => validReds(L) && validReds(R).
   validReds(_) default => .false.
 
   isRedNode:all k,v ~~ (rbtree[k,v])=>boolean.
-  isRedNode(rdNd(_,_,_,_)) => .true.
+  isRedNode(node(.Red,_,_,_,_)) => .true.
   isRedNode(_) default => .false.
 	
   blackHeights:all k,v ~~ (rbtree[k,v],integer,cons[integer])=>cons[integer].
   blackHeights(.leaf,H,Hs) => [H,..Hs].
-  blackHeights(nbkNd(_,_,L,R),H,Hs) =>
+  blackHeights(node(.Black,_,_,L,R),H,Hs) =>
     blackHeights(L,H+1,blackHeights(R,H+1,Hs)).
-  blackHeights(bbkNd(_,_,L,R),H,Hs) =>
-    blackHeights(L,H+1,blackHeights(R,H+1,Hs)).
-  blackHeights(bkNd(_,_,L,R),H,Hs) =>
-    blackHeights(L,H+1,blackHeights(R,H+1,Hs)).
-  blackHeights(rdNd(_,_,L,R),H,Hs) =>
+  blackHeights(node(.Red,_,_,L,R),H,Hs) =>
     blackHeights(L,H,blackHeights(R,H,Hs)).
 
   allSame:(cons[integer])=>boolean.
@@ -262,14 +201,8 @@ star.redblack{
 
       private
       hd(.leaf)=>.none.
-      hd(nbkNd(K,V,.leaf,_)) => some(K->V).
-      hd(bbkNd(K,V,.leaf,_)) => some(K->V).
-      hd(bkNd(K,V,.leaf,_)) => some(K->V).
-      hd(rdNd(K,V,.leaf,_)) => some(K->V).
-      hd(nbkNd(_,_,L,_)) => hd(L).
-      hd(bbkNd(_,_,L,_)) => hd(L).
-      hd(bkNd(_,_,L,_)) => hd(L).
-      hd(rdNd(_,_,L,_)) => hd(L).
+      hd(node(_,K,V,.leaf,_)) => some(K->V).
+      hd(node(_,_,_,L,_)) => hd(L).
 
       drop(T,K->_) => delete(T,K)
     .} in {
@@ -282,17 +215,10 @@ star.redblack{
   public implementation all k,v ~~ ixfold[rbtree[k,v]->>k,v] => let{.
     right(F,U,.leaf) => U.
     right(F,U,.bleaf) => U.
-    right(F,U,nbkNd(K,V,L,R)) => right(F,F(K,V,right(F,U,R)),L).
-    right(F,U,bbkNd(K,V,L,R)) => right(F,F(K,V,right(F,U,R)),L).
-    right(F,U,bkNd(K,V,L,R)) => right(F,F(K,V,right(F,U,R)),L).
-    right(F,U,rdNd(K,V,L,R)) => right(F,F(K,V,right(F,U,R)),L).
-
+    right(F,U,node(_,K,V,L,R)) => right(F,F(K,V,right(F,U,R)),L).
 
     left(F,U,.leaf) => U.
-    left(F,U,nbkNd(K,V,L,R)) => left(F,F(K,V,left(F,U,L)),R).
-    left(F,U,bbkNd(K,V,L,R)) => left(F,F(K,V,left(F,U,L)),R).
-    left(F,U,bkNd(K,V,L,R)) => left(F,F(K,V,left(F,U,L)),R).
-    left(F,U,rdNd(K,V,L,R)) => left(F,F(K,V,left(F,U,L)),R).
+    left(F,U,node(_,K,V,L,R)) => left(F,F(K,V,left(F,U,L)),R).
   .} in {
     ixRight = right.
     ixLeft = left.
@@ -301,13 +227,7 @@ star.redblack{
   public implementation all k,v ~~ iter[rbtree[k,v]->>keyval[k,v]] => let{.
     iter:all x ~~ (rbtree[k,v],x,(keyval[k,v],x)=>x)=>x.
     iter(.leaf,St,_) => St.
-    iter(nbkNd(K,V,L,R),St,F) =>
-      iter(R,F(K->V,iter(L,St,F)),F).
-    iter(bbkNd(K,V,L,R),St,F) =>
-      iter(R,F(K->V,iter(L,St,F)),F).
-    iter(bkNd(K,V,L,R),St,F) =>
-      iter(R,F(K->V,iter(L,St,F)),F).
-    iter(rdNd(K,V,L,R),St,F) =>
+    iter(node(_,K,V,L,R),St,F) =>
       iter(R,F(K->V,iter(L,St,F)),F).
   .} in {
     _iter(Tr,St,Fn) => iter(Tr,St,Fn)
@@ -315,10 +235,7 @@ star.redblack{
 
   public implementation all k,v ~~ sizeable[rbtree[k,v]] => let{.
     count(.leaf,Cx)=>Cx.
-    count(nbkNd(_,_,L,R),Cx)=>count(R,count(L,Cx+1)).
-    count(bbkNd(_,_,L,R),Cx)=>count(R,count(L,Cx+1)).
-    count(bkNd(_,_,L,R),Cx)=>count(R,count(L,Cx+1)).
-    count(rdNd(_,_,L,R),Cx)=>count(R,count(L,Cx+1)).
+    count(node(_,_,_,L,R),Cx)=>count(R,count(L,Cx+1)).
   .} in {
     size(T)=>count(T,0).
     isEmpty(.leaf)=>.true.
@@ -339,10 +256,7 @@ star.redblack{
   public implementation ixmap[rbtree] => let{.
     ixMap:all k,v,w ~~ (rbtree[k,v],(k,v)=>w) => rbtree[k,w].
     ixMap(.leaf,_) => .leaf.
-    ixMap(nbkNd(K,V,L,R),f) => nbkNd(K,f(K,V),ixMap(L,f),ixMap(R,f)).
-    ixMap(bbkNd(K,V,L,R),f) => bbkNd(K,f(K,V),ixMap(L,f),ixMap(R,f)).
-    ixMap(bkNd(K,V,L,R),f) => bkNd(K,f(K,V),ixMap(L,f),ixMap(R,f)).
-    ixMap(rdNd(K,V,L,R),f) => rdNd(K,f(K,V),ixMap(L,f),ixMap(R,f)).
+    ixMap(node(Cl,K,V,L,R),f) => node(Cl,K,f(K,V),ixMap(L,f),ixMap(R,f)).
   .} in{
     (M///f) => ixMap(M,f).
   }
