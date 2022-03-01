@@ -302,10 +302,16 @@ star.compiler.checker{
       raise reportError(Rp,"not a valid implementation statement",Lc)
   }
   checkDefn(defnSpec(accSp(Nm),Lc,[St]),Env,Outer,Path,Rp) => do {
-    if (_,Q,C,H,B) ^= isAccessorStmt(St) then
-      checkAccessor(Lc,Nm,Q,C,H,B,Env,Outer,Path,Rp)
+    if (_,Q,C,T,B) ^= isAccessorStmt(St) then
+      checkAccessor(Lc,Nm,Q,C,T,B,Env,Outer,Path,Rp)
     else
-      raise reportError(Rp,"not a valid implementation statement",Lc)
+      raise reportError(Rp,"not a valid accessor statement",Lc)
+  }
+  checkDefn(defnSpec(updSp(Nm),Lc,[St]),Env,Outer,Path,Rp) => do {
+    if (_,Q,C,H,B) ^= isUpdaterStmt(St) then
+      checkUpdater(Lc,Nm,Q,C,H,B,Env,Outer,Path,Rp)
+    else
+    raise reportError(Rp,"not a valid updater statement",Lc)
   }
 
   checkFunction:(string,tipe,locn,cons[ast],dict,dict,string,reports) =>
@@ -376,8 +382,8 @@ star.compiler.checker{
       if sameType(ConTp,Cn,Env) then {
 	Es .= declareConstraints(some(Lc),Cx,declareTypeVars(BV,Outer));
 	logMsg("check impementation expression $(B)");
-	logMsg("env $(Env)");
-	Impl <- typeOfExp(B,ConFaceTp,Es,Path,Rp);
+--	logMsg("env $(Env)");
+	Impl <- typeOfExp(B,ConTp,Es,Path,Rp);
 	ImplVrNm .= qualifiedName(Path,.valMark,implementationName(ConTp));
 	ImplTp .= rebind(BV,reConstrainType(Cx,ConTp),Es);
 	valis (implDef(Lc,Nm,ImplVrNm,Impl,Cx,ImplTp),
@@ -393,15 +399,32 @@ star.compiler.checker{
   }
 
   checkAccessor:(locn,string,cons[ast],cons[ast],ast,ast,dict,dict,string,reports) =>    either[reports,(canonDef,dict)].
-  checkAccessor(Lc,Nm,Q,C,H,B,Env,Outer,Path,Rp) => do{
-    logMsg("Check accessor: $(Nm) Head:$(H), Body:$(B)");
+  checkAccessor(Lc,Nm,Q,C,T,B,Env,Outer,Path,Rp) => do{
+    logMsg("Check accessor: $(Nm) Type:$(T), Body:$(B)");
+    QV <- parseBoundTpVars(Q,Rp);
+    Cx <- parseConstraints(C,QV,Env,Rp);
+    logMsg("Q: $(QV) Constraints:$(Cx)");
+    (_,_,[TA]) ^= isSquareTerm(T);
+    (_,L,[R]) ^= isDepends(TA);
+    Con <- parseTypeHead(QV,T,Env,Path,Rp);
+    logMsg("acc type head $(Con)");
+    AT <- parseType(QV,mkFunctionType(Lc,rndTuple(Lc,L),R),Env,Rp);
+    logMsg("accessor type $(AT)");
+    AccFn <- typeOfExp(B,AT,Env,Path,Rp);
+    logMsg("accessor $(AccFn)");
+
+    raise reportError(Rp,"not implemented",Lc)
+  }
+
+  checkUpdater:(locn,string,cons[ast],cons[ast],ast,ast,dict,dict,string,reports) =>    either[reports,(canonDef,dict)].
+  checkUpdater(Lc,Nm,Q,C,H,B,Env,Outer,Path,Rp) => do{
+    logMsg("Check updater: $(Nm) Head:$(H), Body:$(B)");
     QV <- parseBoundTpVars(Q,Rp);
     Cx <- parseConstraints(C,QV,Env,Rp);
     logMsg("Q: $(QV) Constraints:$(Cx)");
     
     raise reportError(Rp,"not implemented",Lc)
   }
-
     
   typeOfPtn:(ast,tipe,dict,string,reports) => either[reports,(canon,dict)].
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,"_") ^= isName(A) =>
@@ -447,6 +470,20 @@ star.compiler.checker{
     (Args,Ev) <- typeOfArgPtn(rndTuple(Lc,Els),At,Env,Path,Rp);
     valis (apply(Lc,Fun,Args,Tp),Ev)
   }
+  typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Op,Ss) ^= isLabeledTheta(A) => do{
+    logMsg("labeled record ptn: $(A)");
+    At .= newTypeVar("A");
+    Fun <- typeOfExp(Op,consType(At,Tp),Env,Path,Rp);
+
+    (Q,ETp) .= evidence(deRef(At),Env);
+    FaceTp ^= faceOfType(ETp,Env);
+    (Cx,Face) .= deConstrain(FaceTp);
+    Base .= declareConstraints(some(Lc),Cx,declareTypeVars(Q,pushScope(Env)));
+    (Els,Ev) <- typeOfElementPtns(Ss,Face,Base,Path,[],Rp);
+    Args .= fillinElementPtns(Lc,Els,Face);
+    valis (trace("labeled record ptn ",apply(Lc,Fun,tple(Lc,Args),Tp)),Ev)
+  }
+  
   typeOfPtn(A,Tp,_,_,Rp) => other(reportError(Rp,"illegal pattern: $(A), expecting a $(Tp)",locOf(A))).
 
   typeOfArgPtn:(ast,tipe,dict,string,reports) => either[reports,(canon,dict)].
@@ -456,6 +493,28 @@ star.compiler.checker{
     (Ptns,Ev) <- typeOfPtns(Els,Tvs,[],Env,Path,Rp);
     valis (tple(Lc,Ptns),Ev)
   }
+
+  typeOfElementPtns:(cons[ast],tipe,dict,string,
+    cons[(string,canon)],reports) =>
+    either[reports,(cons[(string,canon)],dict)].
+  typeOfElementPtns([],_,Env,_,Prs,_) => either((Prs,Env)).
+  typeOfElementPtns([D,..Ds],Tp,Env,Pth,SoFr,Rp) => do{
+    (Lc,Lhs,R) ^= isDefn(D);
+    (_,Nm) ^= isName(Lhs);
+    FTp ^= fieldInFace(Tp,Nm);
+    (Ptn,Ev) <- typeOfPtn(R,FTp,Env,Pth,Rp);
+    typeOfElementPtns(Ds,Tp,Ev,Pth,[(Nm,Ptn),..SoFr],Rp)
+  }
+
+  fillinElementPtns:(locn,cons[(string,canon)],tipe) => cons[canon].
+  fillinElementPtns(Lc,Ptns,Tp) =>
+    project1(foldRight(((Nm,Pt),Ps)=>fillinElementPtn(Lc,Nm,Pt,Ps),
+	_optval(fieldTypes(Tp))//((N,T))=>(N,anon(Lc,T)),
+	Ptns)).
+
+  fillinElementPtn(Lc,Nm,Pt,Ps) => replace(Ps,((N,_))=>N==Nm,(Nm,Pt)).
+
+  project1(L) => (L//snd).
 
   typeOfPtns:(cons[ast],cons[tipe],cons[canon],dict,string,reports) =>
     either[reports,(cons[canon],dict)].
@@ -651,7 +710,7 @@ star.compiler.checker{
     (Q,ETp) .= evidence(FceTp,Env);
     FaceTp ^= faceOfType(ETp,Env);
     (Cx,Face) .= deConstrain(FaceTp);
-  Base .= declareConstraints(some(Lc),Cx,declareTypeVars(Q,pushScope(Env)));
+    Base .= declareConstraints(some(Lc),Cx,declareTypeVars(Q,pushScope(Env)));
     
     (Defs,ThEnv) <- thetaEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,Rp,.deFault);
     formTheta(Lc,Nm,Face,ThEnv,sortDefs(Defs*),Tp,Rp)
@@ -659,11 +718,13 @@ star.compiler.checker{
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Op,Els) ^= isLabeledRecord(A) && (_,Nm)^=isName(Op) => do{
     FceTp .= newTypeVar("_");
     ConTp .= consType(FceTp,Tp);
+    logMsg("checking type of $(Op) against $(ConTp)");
     Fun <- typeOfExp(Op,ConTp,Env,Pth,Rp);
+    logMsg("$(Op) |: $(ConTp)");
     (Q,ETp) .= evidence(FceTp,Env);
     FaceTp ^= faceOfType(ETp,Env);
     (Cx,Face) .= deConstrain(FaceTp);
-  Base .= declareConstraints(some(Lc),Cx,declareTypeVars(Q,pushScope(Env)));
+    Base .= declareConstraints(some(Lc),Cx,declareTypeVars(Q,pushScope(Env)));
     
     (Defs,ThEnv) <- recordEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,Rp,.deFault);
     formRecordExp(Lc,some(Nm),Face,ThEnv,sortDefs(Defs),Tp,Rp)

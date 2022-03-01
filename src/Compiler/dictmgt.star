@@ -144,8 +144,7 @@ star.compiler.dict.mgt{
   declareDecl(funDec(Nm,FullNm,Tp),Lc,Dict) =>
     declareVar(Nm,Lc,Tp,.none,Dict).
   declareDecl(cnsDec(Nm,FullNm,Tp),Lc,Dict) =>
-    declareConstructor(trace("declare constructor $(Tp)",Nm),FullNm,Lc,Tp,Dict).
-    
+    declareConstructor(Nm,FullNm,Lc,Tp,Dict).
 
   public pushSig:(tipe,locn,(string,tipe,dict)=>dict,dict) => dict.
   pushSig(faceType(Vrs,Tps),Lc,Mkr,Env) =>

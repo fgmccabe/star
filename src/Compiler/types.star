@@ -354,6 +354,13 @@ star.compiler.types{
     typeOf(L) => tupleType(L//typeOf)
   }
 
+  public fieldTypes:(tipe)=>option[cons[(string,tipe)]].
+  fieldTypes(Tp) where faceType(Fs,_) .= deRef(Tp) => some(Fs).
+  fieldTypes(_) default => .none.
+
+  public fieldInFace:(tipe,string)=>option[tipe].
+  fieldInFace(Tp,Fld) where faceType(Fs,_) .= deRef(Tp) => {! FTp | (Fld,FTp) in Fs !}.
+
   public arity:(tipe)=>integer.
   arity(Tp) where (A,_) ^= isFunType(Tp) => arity(A).
   arity(Tp) where (A,_) ^= isConsType(Tp) => arity(A).
