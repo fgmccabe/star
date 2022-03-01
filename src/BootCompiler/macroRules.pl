@@ -32,8 +32,8 @@ macroRl(":=",action,macroRules:indexAssignMacro).
 macroRl(":=",expression,macroRules:spliceAssignMacro).
 macroRl(":=",expression,macroRules:indexAssignMacro).
 macroRl("assert",expression,macroRules:assertMacro).
-%macroRl("assert",action,macroRules:assertMacro).
-%macroRl("show",action,macroRules:showMacro).
+macroRl("assert",action,macroRules:assertMacro).
+macroRl("show",action,macroRules:showMacro).
 macroRl("show",expression,macroRules:showMacro).
 macroRl("do",expression,macroRules:doMacro).
 macroRl("task",expression,macroRules:taskMacro).

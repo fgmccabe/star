@@ -563,7 +563,7 @@ sameLength(L1,_,Lc) :-
 typeOfArgPtn(T,Tp,ErTp,Env,Ev,tple(Lc,Els),Path) :-
   isTuple(T,Lc,A),
   genTpVars(A,ArgTps),
-  verifyType(Lc,tplType(ArgTps),Tp,Env),
+  verifyType(Lc,ast(T),tplType(ArgTps),Tp,Env),
   typeOfPtns(A,ArgTps,ErTp,Env,Ev,Lc,Els,Path).
 typeOfArgPtn(T,Tp,ErTp,Env,Ev,Exp,Path) :-
   typeOfPtn(T,Tp,ErTp,Env,Ev,Exp,Path).
@@ -584,25 +584,25 @@ typeOfPtn(Trm,Tp,ErTp,Env,Ev,Term,Path) :-
 typeOfPtn(Trm,Tp,_ErTp,Env,Env,intLit(Lc,Ix),_) :-
   isLiteralInteger(Trm,Lc,Ix),!,
   findType("integer",Lc,Env,IntTp),
-  verifyType(Lc,IntTp,Tp,Env).
+  verifyType(Lc,ast(Trm),IntTp,Tp,Env).
 typeOfPtn(T,Tp,_ErTp,Env,Env,bigLit(Lc,Bx),_Path) :-
   isLiteralBigInt(T,Lc,Bx),!,
   findType("bigint",Lc,Env,BigTp),
-  verifyType(Lc,BigTp,Tp,Env).
+  verifyType(Lc,ast(T),BigTp,Tp,Env).
 typeOfPtn(T,Tp,_ErTp,Env,Env,floatLit(Lc,Dx),_Path) :- 
   isLiteralFloat(T,Lc,Dx),!,
   findType("float",Lc,Env,FltTp),
-  verifyType(Lc,FltTp,Tp,Env).
+  verifyType(Lc,ast(T),FltTp,Tp,Env).
 typeOfPtn(char(Lc,Cp),Tp,_ErTp,Env,Env,charLit(Lc,Cp),_Path) :- !,
   findType("char",Lc,Env,StrTp),
-  verifyType(Lc,StrTp,Tp,Env).
+  verifyType(Lc,ast(char(Lc,Cp)),StrTp,Tp,Env).
 typeOfPtn(string(Lc,Sx),Tp,_ErTp,Env,Env,stringLit(Lc,Sx),_Path) :- !,
   findType("string",Lc,Env,StrTp),
-  verifyType(Lc,StrTp,Tp,Env).
+  verifyType(Lc,ss(Sx),StrTp,Tp,Env).
 typeOfPtn(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isTypeAnnotation(Term,Lc,L,R),!,
   parseType(R,Env,RT),
-  verifyType(Lc,RT,Tp,Env),
+  verifyType(Lc,ast(Term),RT,Tp,Env),
   typeOfPtn(L,Tp,ErTp,Env,Ev,Exp,Path).
 typeOfPtn(P,Tp,ErTp,Env,Ev,where(Lc,Ptn,Cond),Path) :-
   isWhere(P,Lc,L,C),
@@ -615,7 +615,7 @@ typeOfPtn(Trm,Tp,ErTp,Env,Ev,Exp,Path) :-
 typeOfPtn(Trm,Tp,ErTp,Env,Ev,tple(Lc,Els),Path) :-
   isTuple(Trm,Lc,A),
   genTpVars(A,ArgTps),
-  verifyType(Lc,tplType(ArgTps),Tp,Env),
+  verifyType(Lc,ast(Trm),tplType(ArgTps),Tp,Env),
   typeOfPtns(A,ArgTps,ErTp,Env,Ev,Lc,Els,Path).
 typeOfPtn(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
@@ -670,7 +670,7 @@ fillinElementPtn(Lc,(Nm,Tp),Els,[(Nm,anon(Lc,Tp))|Els]).
 typeOfArgTerm(T,Tp,ErTp,Env,Ev,tple(Lc,Els),Path) :-
   isTuple(T,Lc,A),
   genTpVars(A,ArgTps),
-  verifyType(Lc,tplType(ArgTps),Tp,Env),
+  verifyType(Lc,ast(T),tplType(ArgTps),Tp,Env),
   typeOfTerms(A,ArgTps,ErTp,Env,Ev,Lc,Els,Path).
 typeOfArgTerm(T,Tp,ErTp,Env,Ev,Exp,Path) :-
   typeOfExp(T,Tp,ErTp,Env,Ev,Exp,Path).
@@ -690,25 +690,25 @@ typeOfExp(T,Tp,ErTp,Env,Ev,Term,Path) :-
 typeOfExp(T,Tp,_ErTp,Env,Env,intLit(Lc,Ix),_Path) :-
   isLiteralInteger(T,Lc,Ix),!,
   findType("integer",Lc,Env,IntTp),
-  verifyType(Lc,IntTp,Tp,Env).
+  verifyType(Lc,ast(T),IntTp,Tp,Env).
 typeOfExp(T,Tp,_ErTp,Env,Env,bigLit(Lc,Ix),_Path) :-
   isLiteralBigInt(T,Lc,Ix),!,
   findType("bigint",Lc,Env,BigTp),
-  verifyType(Lc,BigTp,Tp,Env).
+  verifyType(Lc,ast(T),BigTp,Tp,Env).
 typeOfExp(T,Tp,_ErTp,Env,Env,floatLit(Lc,Dx),_Path) :-
   isLiteralFloat(T,Lc,Dx),!,
   findType("float",Lc,Env,FltTp),
-  verifyType(Lc,FltTp,Tp,Env).
+  verifyType(Lc,ast(T),FltTp,Tp,Env).
 typeOfExp(char(Lc,Cp),Tp,_ErTp,Env,Env,charLit(Lc,Cp),_Path) :- !,
   findType("char",Lc,Env,StrTp),
-  verifyType(Lc,StrTp,Tp,Env).
+  verifyType(Lc,ast(char(Lc,Cp)),StrTp,Tp,Env).
 typeOfExp(string(Lc,Sx),Tp,_ErTp,Env,Env,stringLit(Lc,Sx),_Path) :- !,
   findType("string",Lc,Env,StrTp),
-  verifyType(Lc,StrTp,Tp,Env).
+  verifyType(Lc,ss(Sx),StrTp,Tp,Env).
 typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isTypeAnnotation(Term,Lc,L,R),!,
   parseType(R,Env,PTp),
-  verifyType(Lc,PTp,Tp,Env),
+  verifyType(Lc,ast(Term),PTp,Tp,Env),
   typeOfExp(L,PTp,ErTp,Env,Ev,Exp,Path).
 typeOfExp(P,Tp,ErTp,Env,Ex,where(Lc,Ptn,Cond),Path) :-
   isWhere(P,Lc,L,C),!,
@@ -740,7 +740,7 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
 typeOfExp(Term,Tp,ErTp,Env,Ev,cell(Lc,Exp),Path) :-
   isRef(Term,Lc,I),
   newTypeVar("r",RT),
-  verifyType(Lc,refType(RT),Tp,"expecting a ref type"),
+  verifyType(Lc,ast(Term),refType(RT),Tp,Env),
   typeOfExp(I,RT,ErTp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,ErTp,Env,Ev,deref(Lc,Exp),Path) :-
   isCellRef(Term,Lc,I),
@@ -782,11 +782,14 @@ typeOfExp(Trm,Tp,ErTp,Env,Ev,Exp,Path) :-
 typeOfExp(Trm,Tp,ErTp,Env,Ev,tple(Lc,Els),Path) :-
   isTuple(Trm,Lc,A),!,
   genTpVars(A,ArgTps),
-  verifyType(Lc,tplType(ArgTps),Tp,Env),
+  verifyType(Lc,ast(Trm),tplType(ArgTps),Tp,Env),
   typeOfTerms(A,ArgTps,ErTp,Env,Ev,Lc,Els,Path).
-typeOfExp(Trm,Tp,_ErTp,Env,Env,Exp,_Path) :-
+typeOfExp(Trm,Tp,_ErTp,Env,Env,tag(Lc,Tp),_Path) :-
   isTag(Trm,Lc),!,
-  typeOfTag(Lc,Tp,Env,Exp).
+  newTypeVar("_",Rt),
+  newTypeVar("_",Ct),
+  mkTypeExp(tpFun("tag",2),[Rt,Ct],TTp),
+  verifyType(Lc,ast(Trm),TTp,Tp,Env).
 typeOfExp(Trm,Tp,ErTp,Env,Env,Exp,Path) :-
   isPrompt(Trm,Lc,L,P),!,
   typeOfPrompt(Lc,L,P,Tp,ErTp,Env,Exp,Path).
@@ -818,31 +821,31 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,sequence(Lc,Fst,Snd),Path) :-
 typeOfExp(Term,Tp,ErTp,Env,Ex,conj(Lc,Lhs,Rhs),Path) :-
   isConjunct(Term,Lc,L,R),!,
   findType("boolean",Lc,Env,LogicalTp),
-  verifyType(Lc,LogicalTp,Tp,Env),
+  verifyType(Lc,ast(Term),LogicalTp,Tp,Env),
   typeOfExp(L,LogicalTp,ErTp,Env,E1,Lhs,Path),
   typeOfExp(R,LogicalTp,ErTp,E1,Ex,Rhs,Path).
 typeOfExp(Term,Tp,ErTp,Env,Ev,disj(Lc,Lhs,Rhs),Path) :-
   isDisjunct(Term,Lc,L,R),!,
   findType("boolean",Lc,Env,LogicalTp),
-  verifyType(Lc,LogicalTp,Tp,Env),
+  verifyType(Lc,ast(Term),LogicalTp,Tp,Env),
   typeOfExp(L,LogicalTp,ErTp,Env,E1,Lhs,Path),
   typeOfExp(R,LogicalTp,ErTp,Env,E2,Rhs,Path),
   mergeDict(E1,E2,Env,Ev).
 typeOfExp(Term,Tp,ErTp,Env,Env,implies(Lc,Lhs,Rhs),Path) :-
   isForall(Term,Lc,L,R),!,
   findType("boolean",Lc,Env,LogicalTp),
-  verifyType(Lc,LogicalTp,Tp,Env),
+  verifyType(Lc,ast(Term),LogicalTp,Tp,Env),
   typeOfExp(L,LogicalTp,ErTp,Env,E1,Lhs,Path),
   typeOfExp(R,LogicalTp,ErTp,E1,_Ex,Rhs,Path).
 typeOfExp(Term,Tp,ErTp,Env,Env,neg(Lc,Rhs),Path) :-
   isNegation(Term,Lc,R),!,
   findType("boolean",Lc,Env,LogicalTp),
-  verifyType(Lc,LogicalTp,Tp,Env),
+  verifyType(Lc,ast(Term),LogicalTp,Tp,Env),
   typeOfExp(R,LogicalTp,ErTp,Env,_Ex,Rhs,Path).
 typeOfExp(Term,Tp,ErTp,Env,Ev,match(Lc,Lhs,Rhs),Path) :-
   isMatch(Term,Lc,P,E),!,
   findType("boolean",Lc,Env,LogicalTp),
-  verifyType(Lc,LogicalTp,Tp,Env),
+  verifyType(Lc,ast(Term),LogicalTp,Tp,Env),
   newTypeVar("_#",TV),
   typeOfPtn(P,TV,ErTp,Env,Ev,Lhs,Path),
   typeOfExp(E,TV,ErTp,Env,_,Rhs,Path).
@@ -853,12 +856,7 @@ typeOfExp(Term,Tp,_ErTp,Env,Env,void,_) :-
 verifyType(Lc,_,Actual,Expected,Env) :-
   sameType(Actual,Expected,Lc,Env),!.
 verifyType(Lc,M,S,T,_) :-
-  reportError("type %s:%s not consistent with expected type\n%s",[M,tpe(S),tpe(T)],Lc).
-
-verifyType(Lc,Actual,Expected,Env) :-
-  sameType(Actual,Expected,Lc,Env),!.
-verifyType(Lc,S,T,_) :-
-  reportError("type %s not consistent with expected type\n%s",[tpe(S),tpe(T)],Lc).
+  reportError("%s:%s not consistent with expected type\n%s",[M,tpe(S),tpe(T)],Lc).
 
 funLbl(over(_,T,_,_),L) :- funLbl(T,L).
 funLbl(v(_,L,_),L).
@@ -891,15 +889,9 @@ typeOfLambda(Term,Tp,Env,lambda(Lc,Lbl,rule(Lc,Args,Guard,Exp),Tp),Path) :-
   typeOfArgPtn(H,AT,ErTp,Env,E0,Args,Path),
   checkGuard(C,ErTp,E0,E1,Guard,Path),
   newTypeVar("_E",RT),
-  verifyType(Lc,funType(AT,RT),Tp,Env),
+  verifyType(Lc,ast(Term),funType(AT,RT),Tp,Env),
   lambdaLbl(Path,"λ",Lbl),
   typeOfExp(R,RT,ErTp,E1,_,Exp,Path).
-
-typeOfTag(Lc,Tp,Env,tag(Lc,Tp)) :-
-  newTypeVar("_",Rt),
-  newTypeVar("_",Ct),
-  mkTypeExp(tpFun("tag",2),[Rt,Ct],TTp),
-  verifyType(Lc,TTp,Tp,Env).
 
 typeOfPrompt(Lc,L,P,Tp,ErTp,Env,prompt(Lc,Lb,Lam,Tp),Path) :-
   newTypeVar("_",Ct),

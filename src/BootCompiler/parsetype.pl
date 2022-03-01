@@ -249,7 +249,7 @@ parseTypeField(FS,_,_,Fields,Fields,Types,Types) :-
   reportError("invalid field type %s",[FS],Lc).
 
 parseContract(T,Env,Ev,Path,[conDef(Nm,ConNm,CnType,ConRule),
-			     CnsDef,ConTpDef|Defs],Dfx) :-
+			     ConTpDef|Df],Dfx) :-
   isContractStmt(T,Lc,Quants,C0,Con,Els),
   parseBoundTpVars(Quants,Q),
   parseContractSpec(Con,Q,C0,Cx,Env,SpC,Nm,ConNm,Path),
@@ -265,9 +265,10 @@ parseContract(T,Env,Ev,Path,[conDef(Nm,ConNm,CnType,ConRule),
   ConTpDef = typeDef(Lc,ConNm,CnType,FaceRule),
 					%  reportMsg("contract type  %s",[ConTpDef]),
   dollarName(Nm,DlNm),
-  genBraceConstructor(Lc,SortedFlds,DlNm,ConNm,Q,Cx,ConTp,CnsDef,Env,Ev0),
+  dotName(Nm,DtNm),
+  genBraceConstructor(Lc,SortedFlds,DlNm,DtNm,ConNm,Q,Cx,ConTp,Df,Df0,Env,Ev0),
 %  reportMsg("contract type constructor %s",[CnsDef]),
-  genBraceAccessors(Lc,Q,Cx,ConNm,ConTp,SortedFlds,SortedFlds,Defs,Dfx,Acc,[]),
+  genBraceAccessors(Lc,Q,Cx,ConNm,ConTp,SortedFlds,SortedFlds,Df0,Dfx,Acc,[]),
   declareAccessors(Acc,Ev0,Ev).
 
 parseContractSpec(T,Q,C0,Cx,Env,conTract(ConNm,ArgTps,Deps),Nm,ConNm,Path) :-
@@ -431,19 +432,25 @@ genBraceType(Lc,Tp,Defs,Dfx,Env,Ev) :-
   length(Fs,Ar),
   mkTypeExp(tpFun(TpNm,Ar),ArgQ,Tp0),
   wrapType(Fs,[],[],[],typeExists(Tp0,BareFs),FaceRule),
-  genBraceConstructor(Lc,Fs,TpNm,TpNm,Fs,[],BareFs,ConDef,Env,Ev),
+  dotName(TpNm,DtNm),
+  genBraceConstructor(Lc,Fs,TpNm,DtNm,TpNm,Fs,[],BareFs,Df,Dfx,Env,Ev),
   genBraceAccessors(Lc,Fs,[],TpNm,Tp0,Fs,Fs,Defs,
-		    [typeDef(Lc,TpNm,BrTp,FaceRule),ConDef|Dfx],
+		    [typeDef(Lc,TpNm,BrTp,FaceRule)|Df],
 		    _Imps,[]).
 
 newFieldVar((Nm,_),(Fs,Args),([(Nm,kVar(Nm1))|Fs],[kVar(Nm1)|Args])) :-
   genstr("ϰ",Nm1).
 
-genBraceConstructor(Lc,[],Nm,ConNm,Q,Cx,Tp,cnsDef(Lc,Nm,enm(Lc,Nm,ConTp)),Env,Ev) :-
+genBraceConstructor(Lc,[],Nm,_,ConNm,Q,Cx,Tp,
+		    [cnsDef(Lc,Nm,enm(Lc,Nm,ConTp))|Df],Df,Env,Ev) :-
   wrapType(Q,Cx,[],[],consType(faceType([],[]),Tp),ConTp),
   declareEnum(Lc,Nm,ConNm,ConTp,Env,Ev).
-genBraceConstructor(Lc,Fields,Nm,ConNm,Q,Cx,Tp,cnsDef(Lc,Nm,cons(Lc,ConNm,ConTp)),Env,Ev) :-
+genBraceConstructor(Lc,Fields,Nm,DtNm,ConNm,Q,Cx,Tp,
+		    [cnsDef(Lc,Nm,cons(Lc,ConNm,ConTp)),
+		     cnsDef(Lc,DtNm,cons(Lc,DtNm,CnTp))|Df],Df,Env,Ev) :-
   wrapType(Q,Cx,[],[],consType(faceType(Fields,[]),Tp),ConTp),
+  wrapType(Q,Cx,[],[],consType(tplType(FTps),Tp),CnTp),
+  project1(Fields,FTps),
   declareCns(Lc,Nm,ConNm,ConTp,Env,Ev).
 
 nonConstructorTp((_,Tp)) :- \+ isCnsType(Tp,_).
