@@ -18,8 +18,9 @@ star.collection{
     (^/):(c,(e)=>boolean) => c.
   }
 
-  public contract all c,e ~~ search[c->>e] ::= {
+  public contract all c,e ~~ searchable[c->>e] ::= {
     search:(c,(e)=>boolean) => option[e].
+    replace:(c,(e)=>boolean,e) => c.
   }
 
   public contract all m/1 ~~ mapping[m] ::= {
@@ -98,8 +99,13 @@ star.collection{
    .} in fdl(L,0,Z).
   }
 
-  public implementation all e ~~ search[cons[e]->>e] => {.
+  public implementation all e ~~ searchable[cons[e]->>e] => {.
     search(L,F) => searchList(L,F).
+    replace(L,F,R) => let{.
+      repl([])=>[].
+      repl([E,..Es]) where F(E) => [R,..repl(Es)].
+      repl([E,..Es]) => [E,..repl(Es)].
+    .} in repl(L).
 
     private searchList([],_) => .none.
     searchList([E,..L],F) where F(E) => some(E).
