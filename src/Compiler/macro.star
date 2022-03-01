@@ -159,7 +159,7 @@ star.compiler.macro{
     Qx <- seqmap((V)=>macroType(V,Rp),Q);
     Cx <- seqmap((T)=>macroType(T,Rp),C);
     Ex <- macroStmts(Els,Rp);
-    valis reUQuant(Lc,Qx,reConstrain(Cx,braceTerm(Lc,nme(Lc,O),Ex)))
+    valis reUQuant(Lc,Qx,reConstrain(Cx,braceTerm(Lc,O,Ex)))
   }
   macroConstructor(A,Rp) where (Lc,I) ^= isPrivate(A) => do{
     Ix <- macroConstructor(I,Rp);
@@ -689,25 +689,6 @@ star.compiler.macro{
   visib(A,_) where (_,I) ^= isPrivate(A) => visib(I,.priVate).
   visib(A,_) where (_,I) ^= isPublic(A) => visib(I,.pUblic).
   visib(A,Vz) default => (A,Vz).
-
-  isBraceCon:(ast) => option[(locn,string,cons[ast],cons[ast],cons[ast])].
-  isBraceCon(A) => isCon(A,isBrTerm).
-
-  isRoundCon:(ast) => option[(locn,string,cons[ast],cons[ast],cons[ast])].
-  isRoundCon(A) => isCon(A,isRoundTerm).
-
-  isCon:(ast,(ast)=>option[(locn,ast,cons[ast])]) => option[(locn,string,cons[ast],cons[ast],cons[ast])].
-  isCon(A,P) where
-      (Lc,Nm,Els) ^= P(A) && (_,Id) ^= isName(Nm) => some((Lc,Id,[],[],Els)).
-  isCon(A,P) where
-      (Lc,Q,I) ^= isXQuantified(A) &&
-      (_,Nm,_,Cx,Els) ^= isCon(I,P) =>
-    some((Lc,Nm,Q,Cx,Els)).
-  isCon(A,P) where
-      (Lc,Cx,I) ^= isConstrained(A) &&
-      (_,Nm,Q,_,Els) ^= isCon(I,P) =>
-    some((Lc,Nm,Q,Cx,Els)).
-  isCon(_,_) default => .none.
 
   public buildMain:(cons[ast])=>cons[ast].
   buildMain(Els) where (Lc,Tp) ^= head(lookForSignature(Els,"main")) &&

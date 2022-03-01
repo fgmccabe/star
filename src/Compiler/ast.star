@@ -71,6 +71,9 @@ star.compiler.ast{
   dispAst(app(_,nme(_,Op),tpl(_,"()",[L])),Pr,Sp) where (P,Rg)^=isPostfixOp(Op) =>
     "#(leftPar(P,Pr))#(dispAst(L,Rg,Sp)) #(Op)#(rightPar(P,Pr))".
   dispAst(T,_,_) where isInterpolated(T) => "\"#(deInterpolate(T))\"".
+  dispAst(app(_,nme(_,Op),tpl(_,"()",A)),_,Sp) where
+      bkt(LB,Op,RB,Sep,Pr) ^= isBracket(Op) =>
+    "#(LB) #(interleave(A//((E)=>dispAst(E,2000,Sp++"  ")),Sep)*) #(RB)".
   dispAst(app(_,Op,A),_,Sp) => "$(Op)#(dispAst(A,0,Sp++"  "))".
 
   dispId:(string) => string.

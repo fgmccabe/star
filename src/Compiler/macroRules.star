@@ -345,8 +345,8 @@ star.compiler.macro.rules{
   implementationMacro(A,.statement,Rp) where
       (Lc,Q,C,H,E) ^= isImplementationStmt(A) &&
       (_,Nm,_) ^= isSquareTerm(H) &&
-      Ex ^= labelImplExp(E,Nm) => do{
-	valis active(trace("impl stat",mkImplementationStmt(Lc,Q,C,H,Ex)))
+      Ex ^= labelImplExp(E,dollarName(Nm)) => do{
+	valis active(trace("impl stmt",mkImplementationStmt(Lc,Q,C,H,Ex)))
       }.
   implementationMacro(_,_,_) default => ok(.inactive).
 
@@ -451,15 +451,18 @@ star.compiler.macro.rules{
   conArities:(ast,map[string,integer]) => map[string,integer].
   conArities(A,Axx) where (Lc,L,R) ^= isBinary(A,"|") =>
     conArities(L,conArities(R,Axx)).
-  conArities(A,Axx) where (_,Nm,_,_,Els) ^= isBraceCon(A) =>
-    Axx[Nm->size(Els)].
+  conArities(A,Axx) where
+      (_,Nm,_,_,Els) ^= isBraceCon(A) && (_,Id) ^= isName(Nm)=>
+    Axx[Id->size(Els)].
   conArities(_,Axx) default => Axx.
 
   buildConIndices:(ast,map[string,map[string,integer]]) => map[string,map[string,integer]].
   buildConIndices(A,Ixx) where (Lc,L,R) ^= isBinary(A,"|") =>
     buildConIndices(L,buildConIndices(R,Ixx)).
-  buildConIndices(A,Ixx) where (Lc,Nm,XQs,XCx,Els) ^= isBraceCon(A) =>
-    buildConIx(Els,Nm,Ixx).
+  buildConIndices(A,Ixx) where
+      (Lc,Nm,XQs,XCx,Els) ^= isBraceCon(A) &&
+      (_,Id) ^= isName(Nm) =>
+    buildConIx(Els,Id,Ixx).
   buildConIndices(_,Ixx) default => Ixx.
 
   buildConIx:(cons[ast],string,map[string,map[string,integer]])=>map[string,map[string,integer]].
@@ -485,16 +488,20 @@ star.compiler.macro.rules{
       }.
   buildConstructors(A,Qs,Cx,Tp,Vz,Rp) where
       (Lc,Nm,XQs,XCx,Els) ^= isBraceCon(A) => let{
-	Con = typeAnnotation(Lc,nme(Lc,Nm),reUQuant(Lc,Qs,
+	BCon = typeAnnotation(Lc,Nm,reUQuant(Lc,Qs,
 	  reConstrain(Cx,
 	      binary(Lc,"<=>",reXQuant(Lc,XQs,
 		  reConstrain(XCx,brTuple(Lc,sort(Els,compEls)))),Tp)))).
-      } in ok([reveal(Con,Vz)]).
+	DCon = typeAnnotation(Lc,dotName(Nm),reUQuant(Lc,Qs,
+	  reConstrain(Cx,
+	      binary(Lc,"<=>",reXQuant(Lc,XQs,
+		  reConstrain(XCx,rndTuple(Lc,project1(sort(Els,compEls))))),Tp)))).
+      } in ok([reveal(BCon,Vz),reveal(DCon,Vz)]).
   buildConstructors(A,Qs,Cx,Tp,Vz,Rp) where
       (Lc,Nm,XQs,XCx,Els) ^= isRoundCon(A) => let{
-	Con = typeAnnotation(Lc,nme(Lc,Nm),reUQuant(Lc,Qs,
+	Con = typeAnnotation(Lc,Nm,reUQuant(Lc,Qs,
 	  reConstrain(Cx,
-	      binary(Lc,"<=>",rndTuple(Lc,Els),Tp)))).
+	    binary(Lc,"<=>",rndTuple(Lc,Els),Tp)))).
       } in ok([reveal(Con,Vz)]).
   buildConstructors(A,Qs,Cx,Tp,Vz,Rp) where
       (Lc,Nm) ^= isEnumSymb(A) => let{
@@ -510,6 +517,8 @@ star.compiler.macro.rules{
     buildConstructors(I,Qs,Cx,Tp,.pUblic,Rp).
   buildConstructors(A,_,_,_,_,Rp) =>
     bad(reportError(Rp,"cannot fathom constructor $(A)",locOf(A))).
+
+  project1(L) => (L//(E)where (_,_,T) ^= isTypeAnnotation(E) => T).
 
   compEls:(ast,ast)=>boolean.
   compEls(A,B) where
@@ -528,15 +537,15 @@ star.compiler.macro.rules{
   visib(A,_) where (_,I) ^= isPublic(A) => visib(I,.pUblic).
   visib(A,Vz) default => (A,Vz).
 
-  isBraceCon:(ast) => option[(locn,string,cons[ast],cons[ast],cons[ast])].
+  public isBraceCon:(ast) => option[(locn,ast,cons[ast],cons[ast],cons[ast])].
   isBraceCon(A) => isCon(A,isBrTerm).
 
-  isRoundCon:(ast) => option[(locn,string,cons[ast],cons[ast],cons[ast])].
+  public isRoundCon:(ast) => option[(locn,ast,cons[ast],cons[ast],cons[ast])].
   isRoundCon(A) => isCon(A,isRoundTerm).
 
-  isCon:(ast,(ast)=>option[(locn,ast,cons[ast])]) => option[(locn,string,cons[ast],cons[ast],cons[ast])].
+  isCon:(ast,(ast)=>option[(locn,ast,cons[ast])]) => option[(locn,ast,cons[ast],cons[ast],cons[ast])].
   isCon(A,P) where
-      (Lc,Nm,Els) ^= P(A) && (_,Id) ^= isName(Nm) => some((Lc,Id,[],[],Els)).
+      (Lc,Nm,Els) ^= P(A) && _ ^= isName(Nm) => some((Lc,Nm,[],[],Els)).
   isCon(A,P) where
       (Lc,Q,I) ^= isXQuantified(A) &&
       (_,Nm,_,Cx,Els) ^= isCon(I,P) =>
@@ -576,7 +585,7 @@ star.compiler.macro.rules{
     Sorted .= sort(Els,compEls);
     ConArgs .= projectArgTypes(Sorted,Fld);
     Eqn .=mkEquation(Lc,some(nme(Lc,".$(Fld)")),.false,
-      rndTuple(Lc,[roundTerm(Lc,CnNm,ConArgs)]),.none,nme(Lc,"X"));
+      rndTuple(Lc,[roundTerm(Lc,dotName(CnNm),ConArgs)]),.none,nme(Lc,"X"));
     valis [Eqn,..SoFar]
   }
   accessorEqns(C,Fld,Eqns,Rp) where (Lc,I) ^= isPrivate(C) =>
@@ -611,8 +620,8 @@ star.compiler.macro.rules{
     Sorted .= sort(Els,compEls);
     ConArgs .= projectArgTypes(Sorted,Fld);
     UEqn .= mkEquation(Lc,some(nme(Lc,":$(Fld)")),.false,
-      rndTuple(Lc,[roundTerm(Lc,CnNm,allArgs(Sorted,Fld,0,anon(Lc))),nme(Lc,"XX")]),.none,
-      roundTerm(Lc,CnNm,allArgs(Sorted,Fld,0,nme(Lc,"XX"))));
+      rndTuple(Lc,[roundTerm(Lc,dotName(CnNm),allArgs(Sorted,Fld,0,anon(Lc))),nme(Lc,"XX")]),.none,
+      roundTerm(Lc,dotName(CnNm),allArgs(Sorted,Fld,0,nme(Lc,"XX"))));
     valis [UEqn,..SoFar]
   }
   updaterEqns(C,Fld,Eqns,Rp) where (Lc,I) ^= isPrivate(C) =>

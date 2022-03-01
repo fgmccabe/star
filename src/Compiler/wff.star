@@ -17,6 +17,12 @@ star.compiler.wff{
   isName(tpl(_,"()",[qnm(Lc,Id)])) => some((Lc,Id)).
   isName(_) default => .none.
 
+  public dollarName:(ast) => ast.
+  dollarName(nme(Lc,Id)) => nme(Lc,"$"++Id).
+
+  public dotName:(ast) => ast.
+  dotName(nme(Lc,Id)) => nme(Lc,"."++Id).
+
   public isKeyword:(ast) => option[(locn,string)].
   isKeyword(nme(Lc,Id)) where keyword(Id) => some((Lc,Id)).
   isKeyword(_) default => .none.
