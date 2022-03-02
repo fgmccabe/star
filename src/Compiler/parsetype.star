@@ -274,6 +274,24 @@ star.compiler.typeparse{
 	raise reportError(Rp,"contract $(Op) not defined",locOf(Op))
   }
 
+  public parseAccessorContract:(tipes,ast,dict,reports) =>
+    either[reports,tipe].
+  parseAccessorContract(Q,A,Env,Rp) where
+      (Lc,O,As) ^= isSquareTerm(A) && (_,Nm) ^= isName(O) => do{
+	if [AAs].=As && (_,L,R) ^= isBinary(AAs,"->>") then{
+	  Tps <- parseTypes(Q,deComma(L),Env,Rp);
+	  Dps <- parseTypes(Q,deComma(R),Env,Rp);
+	  CnTp <- doTypeFun(Lc,tpFun(Nm,size(Tps)),Tps,Env,Rp);
+	  valis funDeps(CnTp,Dps)
+	} else{
+	  Tps <- parseTypes(Q,As,Env,Rp);
+	  doTypeFun(Lc,tpFun(Nm,size(Tps)),Tps,Env,Rp)
+	}
+      }
+  parseAccessorContract(_,A,Env,Rp) =>
+    other(reportError(Rp,"$(A) is not a valid accessor contract",locOf(A))).
+
+
   parseTypes:(tipes,cons[ast],dict,reports) => either[reports,cons[tipe]].
   parseTypes(_,[],_,_) => either([]).
   parseTypes(Q,[T,..L],Env,Rp) => do{
