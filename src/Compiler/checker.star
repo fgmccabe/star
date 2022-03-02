@@ -182,15 +182,15 @@ star.compiler.checker{
   }
   checkTypeDefn(defnSpec(implSp(Nm),Lc,[St]),Env,Path,Rp) => do {
     if (_,Q,C,H,B) ^= isImplementationStmt(St) then{
-      logMsg("checking implementation stmt $(St) : $(Q)");
+--      logMsg("checking implementation stmt $(St) : $(Q)");
       BV <- parseBoundTpVars(Q,Rp);
-      logMsg("bound vars $(BV)");
+--      logMsg("bound vars $(BV)");
       Cx <- parseConstraints(C,BV,Env,Rp);
-      logMsg("extra constraints $(Cx)");
+--      logMsg("extra constraints $(Cx)");
       Cn <- parseContractConstraint(BV,H,Env,Rp);
-      logMsg("contract constraint $(Cn)");
+--      logMsg("contract constraint $(Cn)");
       ConName .= localName(tpName(Cn),.tractMark);
-      logMsg("Contract name $(ConName)");
+--      logMsg("Contract name $(ConName)");
       if Con ^= findContract(Env,ConName) then{
 	(_,typeExists(ConTp,_)) .= freshen(Con,Env);
 	if sameType(ConTp,Cn,Env) then {
@@ -404,14 +404,26 @@ star.compiler.checker{
     QV <- parseBoundTpVars(Q,Rp);
     Cx <- parseConstraints(C,QV,Env,Rp);
     logMsg("Q: $(QV) Constraints:$(Cx)");
-    (_,_,[TA]) ^= isSquareTerm(T);
-    (_,L,[R]) ^= isDepends(TA);
-    Con <- parseTypeHead(QV,T,Env,Path,Rp);
-    logMsg("acc type head $(Con)");
-    AT <- parseType(QV,mkFunctionType(Lc,rndTuple(Lc,L),R),Env,Rp);
+    (_,Fn,[TA]) ^= isSquareTerm(T);
+    (_,[L],[R]) ^= isDepends(TA);
+    (_,Fld) ^= isName(Fn);
+    logMsg("acc $(Fld) head $(T)");
+    RcTp <- parseType(QV,L,Env,Rp);
+    FldTp <- parseType(QV,R,Env,Rp);
+    AT .= funType([RcTp],FldTp);
     logMsg("accessor type $(AT)");
     AccFn <- typeOfExp(B,AT,Env,Path,Rp);
+    AccTp .= rebind(QV,reConstrainType(AT));
+    Def .= accDec(rebind(QV,reConstrainType(RcTp)),Fld,AccTp);
     logMsg("accessor $(AccFn)");
+
+    AccVrNm .= qualifiedName(Path,.valMark,accessorName(RcTp,Fld));
+
+    valis (accDef(Lc,Nm,ImplVrNm,Impl,Cx,ImplTp),
+	  declareImplementation(some(Lc),implementationName(ConTp),
+	    ImplVrNm,ImplTp,Env))
+    
+    
 
     raise reportError(Rp,"not implemented",Lc)
   }
