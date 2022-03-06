@@ -36,10 +36,11 @@ typedef struct stack_frame_ *framePo;
 extern long initHeapSize;        /* How much memory to give the heap */
 extern long maxHeapSize;         // Maximum permitted size of heap
 
-
+#ifdef TRACEMEM
 extern logical traceMemory;      /* memory tracing */
-extern logical traceAllocs;      // trace allocations
 extern logical validateMemory;   // Validate heap after every allocation
+extern logical traceAllocs;      // trace allocations
+#endif
 
 extern retCode gcCollect(heapPo H, long amount);
 

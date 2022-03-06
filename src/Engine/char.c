@@ -4,6 +4,11 @@
 
 #include "charP.h"
 #include "assert.h"
+#include "heapP.h"
+
+#ifdef TRACEMEM
+integer allocatedChars = 0;
+#endif
 
 static long chrSize(specialClassPo cl, termPo o);
 static termPo chrCopy(specialClassPo cl, termPo dst, termPo src);
@@ -33,6 +38,10 @@ void initChars() {
 termPo allocateCharacter(heapPo H, codePoint cp) {
   charPo t = (charPo) allocateObject(H, charClass, CharCellCount);
   t->cp = cp;
+#ifdef TRACEMEM
+  if(traceAllocs)
+    allocatedChars++;
+#endif
   return (termPo) t;
 }
 

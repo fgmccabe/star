@@ -389,7 +389,11 @@ static DebugWaitFor dbgUntilRet(char *line, processPo p, termPo loc, void *cl) {
 }
 
 static DebugWaitFor dbgSetDepth(char *line, processPo p, termPo loc, void *cl) {
-  displayDepth = cmdCount(line, 0);
+  integer depth = cmdCount(line, 0);
+  if (depth > 0)
+    displayDepth = cmdCount(line, 0);
+  else
+    outMsg(debugOutChnnl, "display depth %ld\n%_", displayDepth);
 
   resetDeflt("n");
   return moreDebug;
@@ -1026,7 +1030,7 @@ DebugWaitFor enterDebug(processPo p) {
   lineCount++;
   switch (ins) {
     case Abort: {
-      return lnDebug(p, peekStack(stk,1), showAbort);
+      return lnDebug(p, peekStack(stk, 1), showAbort);
     }
     case Call: {
       return lnDebug(p, getMtdLit(f->prog, collect32(pc)), showCall);

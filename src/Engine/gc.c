@@ -268,8 +268,11 @@ void verifyProc(processPo P, heapPo H) {
 
 void dumpGcStats() {
 #ifdef TRACEMEM
-  logMsg(logFile, "%ld allocations, %ld words, %d gc collections, %d heap grows, %d stack extensions",
-         numAllocated, totalAllocated, gcCount, gcGrow, stkGrow);
+  if(traceAllocs)
+    logMsg(logFile, "%ld char allocations, %ld integer allocations, %ld float allocations, %ld total allocations, %ld total words",
+         allocatedChars,allocatedInts,allocatedFloats,numAllocated, totalAllocated);
+  if(traceMemory)
+    logMsg(logFile, "%d gc collections, %d heap grows, %d stack extensions", gcCount, gcGrow, stkGrow);
 #endif
 }
 
