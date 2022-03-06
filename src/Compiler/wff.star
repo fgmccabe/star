@@ -252,7 +252,7 @@ star.compiler.wff{
   isAlgebraic(A,_) default => .none.
 
   public mkAlgebraicTypeStmt(Lc,Q,C,H,B) =>
-    reUQuant(Lc,Q,reConstrain(C,binary(Lc,"::=",H,B))).
+    binary(Lc,"::=",reUQuant(Lc,Q,reConstrain(C,H)),B).
 
   public isLetDef:(ast) => option[(locn,cons[ast],ast)].
   isLetDef(A) where (Lc,Lh,Rh) ^= isBinary(A,"in") &&
@@ -472,6 +472,20 @@ star.compiler.wff{
   public mkContractStmt(Lc,T,Els) =>
     unary(Lc,"contract",binary(Lc,"::=",T,brTuple(Lc,Els))).
 
+  -- Internal version of contract statement to handle macro rules
+  public isCntrctStmt:(ast) =>
+    option[(locn,cons[ast],cons[ast],ast,cons[ast])].
+  isCntrctStmt(A) where
+      (Lc,CN,[Qv,C,T,B]) ^= isRoundTerm(A) &&
+      (_,"cntrct") ^= isName(CN) &&
+      (_,Q) ^= isTuple(Qv) &&
+      (_,Cx) ^= isTuple(C) &&
+      (_,Els) ^= isBrTuple(B) => some((Lc,Q,Cx,T,Els)).
+  isCntrctStmt(A) default => .none.
+  
+  public mkCntrctStmt(Lc,Q,C,T,Els) =>
+    roundTerm(Lc,nme(Lc,"cntrct"),[rndTuple(Lc,Q),rndTuple(Lc,C),T,brTuple(Lc,Els)]).
+
   public isContractSpec:(ast) => option[(locn,string,cons[ast],cons[ast],ast)].
   isContractSpec(A) where
       (Lc,Quants,I) ^= isQuantified(A) &&
@@ -480,8 +494,14 @@ star.compiler.wff{
       (Lc,Lhs,Rhs) ^= isBinary(A,"|:") &&
       (_,Nm,Q,II,T) ^= isContractSpec(Rhs) => some((Lc,Nm,Q,II++deComma(Lhs),T)).
   isContractSpec(A) where
+      (Lc,Nm,[E]) ^= isSquareTerm(A) &&
+      (_,L,R) ^= isDepends(E) &&
+      (_,Id) ^= isName(Nm) =>
+    some((Lc,Id,L++R,[],A)).
+  isContractSpec(A) where
       (Lc,Nm,Els) ^= isSquareTerm(A) &&
-      (_,Id) ^= isName(Nm) => some((Lc,Id,Els,[],A)).
+      (_,Id) ^= isName(Nm) =>
+    some((Lc,Id,Els,[],A)).
   isContractSpec(_) default => .none.
 
   public isImplementationStmt:(ast) => option[(locn,cons[ast],cons[ast],ast,ast)].

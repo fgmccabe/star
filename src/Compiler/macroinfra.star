@@ -40,7 +40,7 @@ star.compiler.macro.infra{
 
   public macroRule ~> (ast,macroContext,reports) => result[reports,macroState].
 
-  public macroState ::= .inactive | active(ast).
+  public macroState ::= .inactive | active(ast) .
 
   public implementation display[macroState] => {
     disp(.inactive) => "inactive".

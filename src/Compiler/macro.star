@@ -105,6 +105,11 @@ star.compiler.macro{
     Elx <- macroStmts(Els,Rp);
     valis mkContractStmt(Lc,Lx,Elx)
   }
+  examineStmt(A,Rp) where (Lc,Q,C,L,Els) ^= isCntrctStmt(A) => do{
+    Lx <- macroType(L,Rp);
+    Elx <- macroStmts(Els,Rp);
+    valis mkCntrctStmt(Lc,Q,C,Lx,Elx)
+  }
   examineStmt(A,Rp) where (Lc,Q,Cx,Tp,Exp) ^= isImplementationStmt(A) => do{
     QQ <- seqmap((V)=>macroType(V,Rp),Q);
     CCx <- seqmap((T)=>macroType(T,Rp),Cx);

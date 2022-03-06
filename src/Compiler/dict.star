@@ -22,13 +22,14 @@ star.compiler.dict{
     cons[constraint],
     map[string,tipe],
     map[string,implEntry],
+    map[string,map[string,accEntry]],
     map[string,map[string,accEntry]]).
 
   public dict ~> cons[scope].
 
   public implementation display[scope] => {
-    disp(scope(Tps,Vrs,_,Cnts,Imps,Accs)) =>
-      "Types:$(Tps),\nVars:$(Vrs),\nContracts:$(Cnts),\nImplementations: $(Imps),\nAccessors: $(Accs)\n".
+    disp(scope(Tps,Vrs,_,Cnts,Imps,Accs,Ups)) =>
+      "Types:$(Tps),\nVars:$(Vrs),\nContracts:$(Cnts),\nImplementations: $(Imps),\nAccessors: $(Accs)\nUpdaters: $(Ups)\n".
   }
 
   public implementation display[vrEntry] => {
@@ -55,42 +56,42 @@ star.compiler.dict{
   public vrFace(vrEntry(_,_,_,Fc))=>Fc.
   
   public declareType:(string,option[locn],tipe,tipe,dict) => dict.
-  declareType(Nm,Lc,Tp,TpRl,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs),..Rest]) =>
-    [scope(Tps[Nm->tpDefn(Lc,Nm,Tp,TpRl)],Vrs,Cns,Cnts,Imps,Accs),..Rest].
+  declareType(Nm,Lc,Tp,TpRl,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..Rest]) =>
+    [scope(Tps[Nm->tpDefn(Lc,Nm,Tp,TpRl)],Vrs,Cns,Cnts,Imps,Accs,Ups),..Rest].
 
   public findType:(dict,string) => option[(option[locn],tipe,tipe)].
   findType([],Nm) => .none.
-  findType([scope(Tps,_,_,_,_,_),.._],Ky) where tpDefn(Lc,_,Tp,Rl)^=Tps[Ky] => some((Lc,Tp,Rl)).
+  findType([scope(Tps,_,_,_,_,_,_),.._],Ky) where tpDefn(Lc,_,Tp,Rl)^=Tps[Ky] => some((Lc,Tp,Rl)).
   findType([_,..Rest],Ky) => findType(Rest,Ky).
 
   public findContract:(dict,string) => option[tipe].
   findContract([],Nm) => .none.
-  findContract([scope(_,_,_,Cns,_,_),.._],Ky) where Con^=Cns[Ky] => some(Con).
+  findContract([scope(_,_,_,Cns,_,_,_),.._],Ky) where Con^=Cns[Ky] => some(Con).
   findContract([_,..Rest],Ky) => findContract(Rest,Ky).
 
   public findImplementation:(dict,string) => option[canon].
-  findImplementation([scope(_,_,_,_,Imps,_),.._],INm) where implEntry(Lc,Vr,Tp) ^= Imps[INm] => some(vr(Lc,Vr,Tp)).
+  findImplementation([scope(_,_,_,_,Imps,_,_),.._],INm) where implEntry(Lc,Vr,Tp) ^= Imps[INm] => some(vr(Lc,Vr,Tp)).
   findImplementation([_,..Rest],INm) => findImplementation(Rest,INm).
   findImplementation([],_) => .none.
 
   public declareImplementation:(option[locn],string,string,tipe,dict) => dict.
   declareImplementation(Lc,ImplNm,ImplVr,Tp,
-    [scope(Tps,Vrs,Cns,Cnts,Imps,Accs),..Env]) =>
-    [scope(Tps,Vrs,Cns,Cnts,Imps[ImplNm->implEntry(Lc,ImplVr,Tp)],Accs),..Env].
+    [scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..Env]) =>
+    [scope(Tps,Vrs,Cns,Cnts,Imps[ImplNm->implEntry(Lc,ImplVr,Tp)],Accs,Ups),..Env].
 
   public undeclareImplementation:(string,dict) => dict.
-  undeclareImplementation(Nm,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs),..Env]) =>
-    [scope(Tps,Vrs,Cns,Cnts,Imps[~Nm],Accs),..Env].
+  undeclareImplementation(Nm,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..Env]) =>
+    [scope(Tps,Vrs,Cns,Cnts,Imps[~Nm],Accs,Ups),..Env].
 
   public declareAccessor:(option[locn],tipe,string,string,tipe,dict) => dict.
   declareAccessor(Lc,Tp,Fld,AccFn,AccTp,
-    [scope(Tps,Vrs,Cns,Cnts,Imps,Accs),..Env]) => valof{
+    [scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..Env]) => valof{
     Key .= tpName(Tp);
     Entry .= accEntry(Lc,AccFn,AccTp);
     if AccOrs ^= Accs[Key] then{
-      valis [scope(Tps,Vrs,Cns,Cnts,Imps,Accs[Key->AccOrs[Fld->Entry]]),..Env]
+      valis [scope(Tps,Vrs,Cns,Cnts,Imps,Accs[Key->AccOrs[Fld->Entry]],Ups),..Env]
     } else{
-      valis [scope(Tps,Vrs,Cns,Cnts,Imps,Accs[Key->{Fld->Entry}]),..Env]
+      valis [scope(Tps,Vrs,Cns,Cnts,Imps,Accs[Key->{Fld->Entry}],Ups),..Env]
     }
   }
 
@@ -98,13 +99,25 @@ star.compiler.dict{
   getFieldAccess(Tp,Fld,Env) => getField(tpName(Tp),Fld,Env).
 
   getField(_,_,[]) => .none.
-  getField(Key,Fld,[scope(_,_,_,_,_,Accs),.._]) where
+  getField(Key,Fld,[scope(_,_,_,_,_,Accs,_),.._]) where
       AccOrs ^= Accs[Key] &&
       Acc ^= AccOrs[Fld] => some(Acc).
   getField(Key,Fld,[_,..Env]) => getField(Key,Fld,Env).
 
+  public declareUpdater:(option[locn],tipe,string,string,tipe,dict) => dict.
+  declareUpdater(Lc,Tp,Fld,UpdFn,UpdTp,
+    [scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..Env]) => valof{
+    Key .= tpName(Tp);
+    Entry .= accEntry(Lc,UpdFn,UpdTp);
+    if AccOrs ^= Ups[Key] then{
+      valis [scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups[Key->AccOrs[Fld->Entry]]),..Env]
+    } else{
+      valis [scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups[Key->{Fld->Entry}]),..Env]
+    }
+  }
+
   public pushScope:(dict)=>dict.
-  pushScope(Env) => [scope({},{},[],{},{},{}),..Env].
+  pushScope(Env) => [scope({},{},[],{},{},{},{}),..Env].
 
   public declareTypeVars:(cons[(string,tipe)],dict) => dict.
   declareTypeVars([],Env) => Env.
@@ -114,7 +127,7 @@ star.compiler.dict{
   emptyFace = faceType([],[]).
 
   public emptyDict:dict.
-  public emptyDict = [scope({},{},[],{},{},{})].
+  public emptyDict = [scope({},{},[],{},{},{},{})].
 
 -- Standard types are predefined by the language
   public stdDict:dict.

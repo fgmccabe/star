@@ -26,7 +26,7 @@ star.compiler.dependencies{
   }
 
   private collectRef:(defnSpec,map[defnSp,defnSp])=>map[defnSp,defnSp].
-  collectRef(defnSpec(conSp(Nm),_,[St]),M) where (_,_,Els) ^= isContractStmt(St) =>
+  collectRef(defnSpec(conSp(Nm),_,[St]),M) where (_,_,_,_,Els) ^= isCntrctStmt(St) =>
     foldLeft((El,MM) => ((_,N,_) ^= isTypeAnnotation(El) && (_,Id)^=isName(N) ?
 	  MM[varSp(Id)->conSp(Nm)] || MM),
       M[conSp(Nm)->conSp(Nm)],Els).
@@ -99,11 +99,10 @@ star.compiler.dependencies{
 	raise reportError(Rp,"expecting an identifier, not $(V)",locOf(V))
       }
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
-      (Lc,S,Els) ^= isContractStmt(A) &&
-      (_,Nm,Qs,Cs,T) ^= isContractSpec(S)  =>
-    either((Stmts,[defnSpec(conSp(Nm),Lc,[A]),..Defs],
-	[(conSp(Nm),Vz),..Pb],
-	generateAnnotations(Qs,Els,Cs,As),
+      (Lc,Q,C,T,Els) ^= isCntrctStmt(A) =>
+    either((Stmts,[defnSpec(conSp(typeName(T)),Lc,[A]),..Defs],
+	[(conSp(typeName(T)),Vz),..Pb],
+	generateAnnotations(Els,Q,C,As),
 	Opn)).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
       (Lc,_,_,Cn,_) ^= isImplementationStmt(A) &&
@@ -236,9 +235,11 @@ star.compiler.dependencies{
 	collectTypeRefs(R,A0,Rf1,Rp)
       }.
   collectStmtRefs(A,All,Annots,Rf,Rp) where
-      (_,Tp,Els) ^= isContractStmt(A) => do{
-	Rf0 <- collectContractRefs(Tp,All,Rf,Rp);
-	collectFaceTypes(Els,All,Rf0,Rp)
+      (_,Q,C,T,Els) ^= isCntrctStmt(A) => do{
+	A0 .= filterOut(All,Q);
+	Rf0 <- collectConstraintRefs(C,A0,Rf,Rp);
+	Rf1 <- collectTypeRefs(T,A0,Rf0,Rp);
+	collectFaceTypes(Els,A0,Rf1,Rp)
       }.
   collectStmtRefs(A,All,Annots,Rf,Rp) where
       (_,Q,Cx,Tp,Exp) ^= isImplementationStmt(A) => do{
