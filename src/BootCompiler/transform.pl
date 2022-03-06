@@ -245,7 +245,7 @@ transformThetaDef(varDef(Lc,Nm,ExtNm,_,Tp,Value),_,Map,OMap,Opts,F,Fx,Dx,Dxx) :-
   transformThetaVarDef(Lc,Nm,ExtNm,Tp,Value,Map,OMap,Opts,F,Fx,Dx,Dxx).
 transformThetaDef(cnsDef(_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 transformThetaDef(typeDef(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
-transformThetaDef(conDef(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
+transformThetaDef(conDef(_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 transformThetaDef(accDec(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 transformThetaDef(implDef(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 

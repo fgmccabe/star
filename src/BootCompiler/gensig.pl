@@ -48,9 +48,8 @@ formatDecl(accDec(Tp,Fld,Fn,AccTp),
 formatDecl(impDec(ConNm,ImplNm,ImplTp),
 	   ctpl(lbl("imp",3),[strg(ConNm),strg(ImplNm),ImplSig])) :-
   encodeSignature(ImplTp,ImplSig).
-formatDecl(contractDec(Nm,CnNm,Tp,Spec),
-	   ctpl(lbl("con",4),[strg(Nm),strg(CnNm),TpSig,SpecSig])) :-
-  encodeSignature(Tp,TpSig),
+formatDecl(contractDec(Nm,CnNm,Spec),
+	   ctpl(lbl("con",3),[strg(Nm),strg(CnNm),SpecSig])) :-
   encodeSignature(Spec,SpecSig).
 formatDecl(cnsDec(Nm,FullNm,Tp),ctpl(lbl("cns",3),
 				     [strg(Nm),strg(FullNm),Sig])) :-
@@ -67,10 +66,9 @@ formatCns((Nm,FlNm,Tp),Fmt) :-
   mkTpl([strg(Nm),strg(FlNm),CnSig],Fmt).
 
 formatContracts([],[]).
-formatContracts([conDef(Nm,CnNm,CnTp,Spec)|M],[ConTpl|R]) :-
+formatContracts([conDef(Nm,CnNm,Spec)|M],[ConTpl|R]) :-
   encodeSignature(Spec,SpecSig),
-  encodeSignature(CnTp,CnSig),
-  mkTpl([strg(Nm),strg(CnNm),CnSig,SpecSig],ConTpl),
+  mkTpl([strg(Nm),strg(CnNm),SpecSig],ConTpl),
   formatContracts(M,R).
 
 formatImpls([],[]).
