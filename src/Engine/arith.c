@@ -6,6 +6,12 @@
 #include "arithP.h"
 #include "assert.h"
 #include "bignumP.h"
+#include "heapP.h"
+
+#ifdef TRACEMEM
+integer allocatedInts = 0;
+integer allocatedFloats = 0;
+#endif
 
 static long intSize(specialClassPo cl, termPo o);
 static termPo intCopy(specialClassPo cl, termPo dst, termPo src);
@@ -58,6 +64,10 @@ void initArith() {
 termPo allocateInteger(heapPo H, integer ix) {
   intPo t = (intPo) allocateObject(H, integerClass, CellCount(sizeof(IntegerRecord)));
   t->ix = ix;
+  #ifdef TRACEMEM
+  if(traceAllocs)
+    allocatedInts++;
+  #endif
   return (termPo) t;
 }
 
@@ -122,6 +132,10 @@ extern fltPo C_FLT(termPo t) {
 termPo allocateFloat(heapPo H, double dx) {
   fltPo t = (fltPo) allocateObject(H, floatClass, CellCount(sizeof(FloatRecord)));
   t->dx = dx;
+#ifdef TRACEMEM
+  if(traceAllocs)
+    allocatedFloats++;
+#endif
   return (termPo) t;
 }
 
@@ -194,4 +208,6 @@ double floatVal(termPo o) {
   return dx->dx;
 }
 
+void dumpArithAllocStats(){
 
+}

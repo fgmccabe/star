@@ -15,6 +15,9 @@ extern heapPo globalHeap;
 #ifdef TRACEMEM
 extern integer numAllocated;
 extern integer totalAllocated;
+extern integer allocatedChars;
+extern integer allocatedInts;
+extern integer allocatedFloats;
 #endif
 
 extern termPo allocateObject(heapPo H, clssPo clss, integer amnt);
