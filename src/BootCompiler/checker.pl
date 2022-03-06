@@ -200,38 +200,38 @@ collectImportDecls([importPk(_Lc,_Viz,Pkg)|More],Repo,Decls,Dcx) :-
 
 declareAllDecls([],_,Env,Env).
 declareAllDecls([D|More],Lc,Env,Evx) :-
-  importDecl(Lc,D,Env,E0),!,
+  declareDecl(Lc,D,Env,E0),!,
   declareAllDecls(More,Lc,E0,Evx).
 
-importDecl(Lc,impDec(ImplNm,FullNm,ImplTp),Ev,Evx) :-
+declareDecl(Lc,impDec(ImplNm,FullNm,ImplTp),Ev,Evx) :-
   declareVr(Lc,FullNm,ImplTp,none,Ev,Ev0),
   declareImplementation(ImplNm,FullNm,ImplTp,Ev0,Evx).
-importDecl(_,accDec(Tp,Fld,FnNm,AccTp),Ev,Evx) :-
+declareDecl(_,accDec(Tp,Fld,FnNm,AccTp),Ev,Evx) :-
   declareFieldAccess(Tp,Fld,FnNm,AccTp,Ev,Evx).
-importDecl(Lc,contractDec(Nm,CnNm,CnTp,Rule),Ev,Evx) :-
-  defineContract(Nm,Lc,conDef(Nm,CnNm,CnTp,Rule),Ev,Evx).
-importDecl(Lc,typeDec(Nm,Tp,Rule),Env,Evx) :-
+declareDecl(Lc,contractDec(Nm,CnNm,Rule),Ev,Evx) :-
+  defineContract(Nm,Lc,conDef(Nm,CnNm,Rule),Ev,Evx).
+declareDecl(Lc,typeDec(Nm,Tp,Rule),Env,Evx) :-
   declareType(Nm,tpDef(Lc,Tp,Rule),Env,Evx).
-importDecl(Lc,varDec(Nm,_FullNm,Tp),Env,Evx) :-
+declareDecl(Lc,varDec(Nm,_FullNm,Tp),Env,Evx) :-
   (varLoc(Nm,Env,VTp,VLc),
    \+sameType(Tp,VTp,Lc,Env) ->
    reportWarning("%s:%s already declared as %s at %s",[Nm,tpe(Tp),tpe(VTp),loc(VLc)],Lc);true),
   declareVr(Lc,Nm,Tp,none,Env,Evx).
-importDecl(Lc,cnsDec(Nm,FullNm,Tp),Env,Evx) :-
+declareDecl(Lc,cnsDec(Nm,FullNm,Tp),Env,Evx) :-
   (isConType(Tp,0) ->
    declareEnum(Lc,Nm,FullNm,Tp,Env,Evx) ;
    declareCns(Lc,Nm,FullNm,Tp,Env,Evx)).
-importDecl(Lc,funDec(Nm,_FullNm,Tp),Env,Evx) :-
+declareDecl(Lc,funDec(Nm,_FullNm,Tp),Env,Evx) :-
   (varLoc(Nm,Env,VTp,VLc),
    \+sameType(Tp,VTp,Lc,Env) ->
    reportWarning("function %s:%s already declared as %s at %s",[Nm,tpe(Tp),tpe(VTp),loc(VLc)],Lc);true),
   declareVr(Lc,Nm,Tp,none,Env,Evx).
-importDecl(Lc,Entry,Env,Env) :-
+declareDecl(Lc,Entry,Env,Env) :-
   reportError("(internal) cannot figure out import entry %s",[Entry],Lc).
 
 importContracts([],_,Env,Env).
 importContracts([C|L],Lc,E,Env) :-
-  C = conDef(Nm,_,_,_),
+  C = conDef(Nm,_,_),
   defineContract(Nm,Lc,C,E,E0),
   importContracts(L,Lc,E0,Env).
 
@@ -273,7 +273,7 @@ defineContract(N,Lc,Contract,E0,Ex) :-
   declareContract(N,Contract,E0,E1),
   declareMethods(Contract,Lc,E1,Ex).
 
-declareMethods(conDef(_,_,_,ConEx),Lc,Env,Ev) :-
+declareMethods(conDef(_,_,ConEx),Lc,Env,Ev) :-
   moveQuants(ConEx,Q,C1),
   getConstraints(C1,Cx,contractExists(CTract,faceType(Methods,[]))),
   formMethods(Methods,Lc,Q,Cx,CTract,Env,Ev).
@@ -933,7 +933,7 @@ typeOfIndex(Lc,Mp,Arg,Tp,ErTp,Env,Ev,Exp,Path) :-
   typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path).
 
 pickupContract(Lc,Env,Nm,StTp,DpTps,Op) :-
-  (getContract(Nm,Env,conDef(_,_,_,Con)) ->
+  (getContract(Nm,Env,conDef(_,_,Con)) ->
    freshen(Con,Env,_,contractExists(conTract(Op,[StTp],DpTps),_));
    reportError("%s contract not defined",[Nm],Lc),
    newTypeVar("_St",StTp),
@@ -1071,11 +1071,11 @@ genDecl(cnsDef(_,Nm,Con),_,Public,[cnsDec(Nm,FullNm,Tp)|Ex],Ex,Lx,Lx,Dfx,Dfx) :-
 genDecl(cnsDef(_,Nm,Con),_,_,Ex,Ex,[cnsDec(Nm,FullNm,Tp)|Lx],Lx,Dfx,Dfx) :-
   constructorName(Con,FullNm),
   typeOfCanon(Con,Tp).
-genDecl(conDef(Nm,CnNm,CnTp,CnSpec),_,Public,
-	[contractDec(Nm,CnNm,CnTp,CnSpec)|Ex],Ex,Lx,Lx,Dfx,Dfx) :-
+genDecl(conDef(Nm,CnNm,CnSpec),_,Public,
+	[contractDec(Nm,CnNm,CnSpec)|Ex],Ex,Lx,Lx,Dfx,Dfx) :-
   call(Public,con(Nm)).
-genDecl(conDef(Nm,CnNm,CnTp,CnSpec),_,_,Ex,Ex,
-	[contractDec(Nm,CnNm,CnTp,CnSpec)|Lx],Lx,Dfx,Dfx).
+genDecl(conDef(Nm,CnNm,CnSpec),_,_,Ex,Ex,
+	[contractDec(Nm,CnNm,CnSpec)|Lx],Lx,Dfx,Dfx).
 genDecl(implDef(TmpNm,ImplName,ImplVrNm,Spec),_,Public,
 	[impDec(ImplName,ImplVrNm,Spec),
 	 varDec(ImplVrNm,ImplVrNm,Spec)|Ex],Ex,Lx,Lx,Dfx,Dfx) :-

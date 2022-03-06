@@ -280,9 +280,8 @@ dispContracts(Cons,sq([ss("Contracts"),nl(4),iv(nl(4),CC)])) :-
   dict_pairs(Cons,_,Pairs),
   map(Pairs,dict:showContractEntry,CC).
 
-showContractEntry(_-conDef(Nm,FullNm,Tp,Rl),sq([id(Nm),ss("~"),id(FullNm),ss(":"),
-						TT,ss("~~"),RR])) :-
-  ssType(Tp,false,2,TT),
+showContractEntry(_-conDef(Nm,FullNm,Rl),sq([id(Nm),ss("~"),id(FullNm),ss(":"),
+						RR])) :-
   ssType(Rl,false,2,RR).
 
 dispVars(Vrs,sq([ss("Vars"),nl(4),iv(nl(4),VV)])) :-

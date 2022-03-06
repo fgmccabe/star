@@ -510,7 +510,7 @@ declareDef(varDec(_,Nm,_Tp),Dct,Dx) :-!,
   add_mem(Nm,Dct,Dx).
 declareDef(typeDec(_,_,_),Dx,Dx).
 declareDef(cnsDec(_,_,_),Dx,Dx).
-declareDef(contractDec(_,_,_,_),Dx,Dx).
+declareDef(contractDec(_,_,_),Dx,Dx).
 declareDef(accDec(_,_,Nm,_),Dct,Dx) :-
   add_mem(Nm,Dct,Dx).
 declareDef(impDec(_,Nm,_),Dct,Dx) :-

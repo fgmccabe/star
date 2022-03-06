@@ -17,7 +17,7 @@ isCanonDef(funDef(_,_,_,_,_,_,_)).
 isCanonDef(varDef(_,_,_,_,_,_)).
 isCanonDef(cnsDef(_,_,_)).
 isCanonDef(typeDef(_,_,_,_)).
-isCanonDef(conDef(_,_,_,_)).
+isCanonDef(conDef(_,_,_)).
 isCanonDef(implDef(_,_,_,_)).
 isCanonDef(accDec(_,_,_,_)).
 
@@ -315,7 +315,7 @@ ssDef(Dp,typeDef(Lc,Nm,_Tp,Rl),
       sq([ss("type "),id(Nm),ss(":"),Ts,ss("@"),Lcs])) :-
   ssLoc(Lc,Lcs),
   ssType(Rl,true,Dp,Ts).
-ssDef(Dp,conDef(Nm,_ConNm,_ConTp,Rl),
+ssDef(Dp,conDef(Nm,_ConNm,Rl),
       sq([ss("contract "),id(Nm),ss(" : "),Ts])) :-
   ssType(Rl,true,Dp,Ts).
 ssDef(Dp,implDef(Nm,_ConNm,ImplNm,ImplTp),
@@ -358,7 +358,7 @@ ssDecl(Dp,X,cnsDec(Nm,LclNme,Tp),
 ssDecl(Dp,X,typeDec(Nm,Tp,_Rl),
        sq([X,ss("type "),id(Nm),ss("::"),Ts])) :-
   ssType(Tp,true,Dp,Ts).
-ssDecl(Dp,X,contractDec(Nm,_ConNm,_ConTp,Rl),
+ssDecl(Dp,X,contractDec(Nm,_ConNm,Rl),
        sq([X,ss("contract "),id(Nm),ss(" :: "),Ts])) :-
   ssType(Rl,true,Dp,Ts).
 ssDecl(Dp,X,impDec(Nm,ImplNm,ImplTp),
@@ -390,7 +390,7 @@ ssImpl(Dp,acc(Tp,Fld,Fn,AccTp),
   ssType(Tp,true,Dp,SS),
   ssType(AccTp,true,Dp,TT).
 
-ssContract(Dp,conDef(Nm,ConNm,_ConTp,ConRule),
+ssContract(Dp,conDef(Nm,ConNm,ConRule),
 	   sq([ss("contract "),
 	       id(Nm),
 	       ss("«"),
