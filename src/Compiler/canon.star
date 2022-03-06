@@ -8,14 +8,14 @@ star.compiler.canon{
 
   public pkgSpec::=pkgSpec(pkg,cons[importSpec],cons[decl]).
 
-  public decl ::= implDec(string,string,tipe) |
-    accDec(tipe,string,string,tipe) |
-    updDec(tipe,string,string,tipe) |
-    conDec(string,string,tipe,tipe) |
-    tpeDec(string,tipe,tipe) |
-    varDec(string,string,tipe) |
-    funDec(string,string,tipe) |
-    cnsDec(string,string,tipe).
+  public decl ::= implDec(option[locn],string,string,tipe) |
+    accDec(option[locn],tipe,string,string,tipe) |
+    updDec(option[locn],tipe,string,string,tipe) |
+    conDec(option[locn],string,string,tipe) |
+    tpeDec(option[locn],string,tipe,tipe) |
+    varDec(option[locn],string,string,tipe) |
+    funDec(option[locn],string,string,tipe) |
+    cnsDec(option[locn],string,string,tipe).
 
   public canon ::= vr(option[locn],string,tipe) |
     anon(locn,tipe) |
@@ -135,21 +135,21 @@ star.compiler.canon{
   }
 
   public implementation display[decl] => {
-    disp(implDec(Nm,ImplNm,ImplTp)) =>
+    disp(implDec(_,Nm,ImplNm,ImplTp)) =>
       "Impl #(Nm)~#(ImplNm)\:$(ImplTp)".
-    disp(accDec(Tp,Fld,Fun,FunTp)) =>
+    disp(accDec(_,Tp,Fld,Fun,FunTp)) =>
       "Acc $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
-    disp(updDec(Tp,Fld,Fun,FunTp)) =>
+    disp(updDec(_,Tp,Fld,Fun,FunTp)) =>
       "Update $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
-    disp(conDec(Nm,_,_,RlTp)) =>
+    disp(conDec(_,Nm,_,RlTp)) =>
       "Contract #(Nm)\:$(RlTp)".
-    disp(tpeDec(Nm,Tp,_)) =>
+    disp(tpeDec(_,Nm,Tp,_)) =>
       "Type #(Nm)\::$(Tp)".
-    disp(varDec(Nm,_FullNm,Tp)) =>
+    disp(varDec(_,Nm,_FullNm,Tp)) =>
       "Var #(Nm)\:$(Tp)".
-    disp(funDec(Nm,_FullNm,Tp)) =>
+    disp(funDec(_,Nm,_FullNm,Tp)) =>
       "Fun #(Nm)\:$(Tp)".
-    disp(cnsDec(Nm,_FullNm,Tp)) =>
+    disp(cnsDec(_,Nm,_FullNm,Tp)) =>
       "Con #(Nm)\:$(Tp)".
   }
 

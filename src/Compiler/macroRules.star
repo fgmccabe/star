@@ -53,6 +53,7 @@ star.compiler.macro.rules{
     "^=" -> [(.expression, optionMatchMacro)],
     "^" -> [(.expression,unwrapMacro)],
     "!" -> [(.expression,binRefMacro)],
+    "contract" -> [(.statement,contractMacro)],
     "implementation" -> [(.statement,implementationMacro)]
   }.
 
@@ -342,11 +343,29 @@ star.compiler.macro.rules{
       }.
   forLoopMacro(_,_,_) => ok(.inactive).
 
+  contractMacro(A,.statement,Rp) where
+      (Lc,Lhs,Els) ^= isContractStmt(A) => do{
+	-- logMsg("contract $(Lhs) -- $(Els)");
+	(_,Nm,Q,C,T) ^= isContractSpec(Lhs);
+	-- logMsg("contract spec $(Nm) -- $(Q) -- $(C) -- $(T)");
+	(SLc,Op,As) ^= isSquareTerm(T);
+	DlNm .= dollarName(Op);
+	CTp .=contractType(SLc,DlNm,As);
+	ConTp .= mkAlgebraicTypeStmt(Lc,Q,C,CTp,braceTerm(SLc,Op,Els));
+	valis active(brTuple(Lc,[ConTp,mkCntrctStmt(Lc,Q,C,T,Els)]))
+      }.
+  contractMacro(A,_,Rp) default => ok(.inactive).
+
+  contractType(Lc,Op,[A]) where (_,L,R) ^= isDepends(A) =>
+    squareTerm(Lc,Op,L++R).
+  contractType(Lc,Op,A) =>
+    squareTerm(Lc,Op,A).
+
   implementationMacro(A,.statement,Rp) where
       (Lc,Q,C,H,E) ^= isImplementationStmt(A) &&
       (_,Nm,_) ^= isSquareTerm(H) &&
       Ex ^= labelImplExp(E,dollarName(Nm)) => do{
-	valis active(trace("impl stmt",mkImplementationStmt(Lc,Q,C,H,Ex)))
+	valis active(mkImplementationStmt(Lc,Q,C,H,Ex))
       }.
   implementationMacro(_,_,_) default => ok(.inactive).
 
@@ -570,29 +589,34 @@ star.compiler.macro.rules{
   makeAccessor:(ast,string,ast,cons[ast],cons[ast],ast,
     visibility,reports) => result[reports,ast].
   makeAccessor(Annot,TpNm,Cns,Q,Cx,H,Vz,Rp) where (Lc,Fld,FldTp)^=isTypeAnnotation(Annot) => do{
-    AcEqs <- accessorEqns(Cns,Fld,[],Rp);
-    AccNm .= nme(Lc,".$(Fld)");
-    AccessHead .= squareTerm(Lc,AccNm,[mkDepends(Lc,[H],[FldTp])]);
+    AccNm .= nme(Lc,"\$$(Fld)");
+    AcEqs <- accessorEqns(Cns,Fld,AccNm,[],Rp);
+    AccessHead .= squareTerm(Lc,dotName(Fld),[mkDepends(Lc,[H],[FldTp])]);
     valis mkAccessorStmt(Lc,Q,Cx,AccessHead,mkLetDef(Lc,AcEqs,AccNm))
   }
 
-  accessorEqns:(ast,ast,cons[ast],reports)=>result[reports,cons[ast]].
-  accessorEqns(Cns,Fld,SoFar,Rp) where (Lc,L,R)^=isBinary(Cns,"|") => do{
-    E1 <- accessorEqns(L,Fld,SoFar,Rp);
-    accessorEqns(R,Fld,E1,Rp)
+  accessorEqns:(ast,ast,ast,cons[ast],reports)=>result[reports,cons[ast]].
+  accessorEqns(Cns,Fld,AccNm,SoFar,Rp) where (Lc,L,R)^=isBinary(Cns,"|") => do{
+    E1 <- accessorEqns(L,Fld,AccNm,SoFar,Rp);
+    accessorEqns(R,Fld,AccNm,E1,Rp)
   }
-  accessorEqns(Cns,Fld,SoFar,Rp) where (Lc,CnNm,Els)^=isBrTerm(Cns) => do{
+  accessorEqns(Cns,Fld,AccNm,SoFar,Rp) where
+      (Lc,CnNm,Els)^=isBrTerm(Cns) && isFieldOfFc(Els,Fld) => do{
     Sorted .= sort(Els,compEls);
     ConArgs .= projectArgTypes(Sorted,Fld);
-    Eqn .=mkEquation(Lc,some(nme(Lc,".$(Fld)")),.false,
+    Eqn .=mkEquation(Lc,some(AccNm),.false,
       rndTuple(Lc,[roundTerm(Lc,dotName(CnNm),ConArgs)]),.none,nme(Lc,"X"));
     valis [Eqn,..SoFar]
   }
-  accessorEqns(C,Fld,Eqns,Rp) where (Lc,I) ^= isPrivate(C) =>
-    accessorEqns(I,Fld,Eqns,Rp).
-  accessorEqns(C,Fld,Eqns,_) default => do{
+  accessorEqns(C,Fld,AccNm,Eqns,Rp) where (Lc,I) ^= isPrivate(C) =>
+    accessorEqns(I,Fld,AccNm,Eqns,Rp).
+  accessorEqns(C,Fld,AccNm,Eqns,_) default => do{
     valis Eqns
   }
+
+  isFieldOfFc([F,..Els],Fld) where (_,Fld,_) ^= isTypeAnnotation(F) => .true.
+  isFieldOfFc([_,..Els],Fld) => isFieldOfFc(Els,Fld).
+  isFieldOfFc([],_) default => .false.
 
   projectArgTypes([],_) => [].
   projectArgTypes([A,..As],F) where
@@ -605,34 +629,32 @@ star.compiler.macro.rules{
   makeUpdater:(ast,string,ast,cons[ast],cons[ast],ast,
     visibility,reports) => result[reports,ast].
   makeUpdater(Annot,TpNm,Cns,Q,Cx,H,Vz,Rp) where (Lc,Fld,FldTp)^=isTypeAnnotation(Annot) => do{
-    UpEqs <- updaterEqns(Cns,Fld,[],Rp);
-    AccNm .= nme(Lc,":$(Fld)");
-    AccessHead .= squareTerm(Lc,AccNm,[mkDepends(Lc,[H],[FldTp])]);
+    AccNm .= dollarName(Fld);
+    UpEqs <- updaterEqns(Cns,Fld,AccNm,[],Rp);
+    AccessHead .= squareTerm(Lc,dotName(Fld),[mkDepends(Lc,[H],[FldTp])]);
     valis mkUpdaterStmt(Lc,Q,Cx,AccessHead,mkLetDef(Lc,UpEqs,AccNm))
   }
 
-  updaterEqns:(ast,ast,cons[ast],reports)=>result[reports,cons[ast]].
-  updaterEqns(Cns,Fld,SoFar,Rp) where (Lc,L,R)^=isBinary(Cns,"|") => do{
-    E1 <- updaterEqns(L,Fld,SoFar,Rp);
-    updaterEqns(R,Fld,E1,Rp)
+  updaterEqns:(ast,ast,ast,cons[ast],reports)=>result[reports,cons[ast]].
+  updaterEqns(Cns,Fld,AccNm,SoFar,Rp) where (Lc,L,R)^=isBinary(Cns,"|") => do{
+    E1 <- updaterEqns(L,Fld,AccNm,SoFar,Rp);
+    updaterEqns(R,Fld,AccNm,E1,Rp)
   }
-  updaterEqns(Cns,Fld,SoFar,Rp) where (Lc,CnNm,Els)^=isBrTerm(Cns) => do{
+  updaterEqns(Cns,Fld,AccNm,SoFar,Rp) where
+      (Lc,CnNm,Els)^=isBrTerm(Cns) && isFieldOfFc(Els,Fld) => do{
     Sorted .= sort(Els,compEls);
     ConArgs .= projectArgTypes(Sorted,Fld);
-    UEqn .= mkEquation(Lc,some(nme(Lc,":$(Fld)")),.false,
+    UEqn .= mkEquation(Lc,some(AccNm),.false,
       rndTuple(Lc,[roundTerm(Lc,dotName(CnNm),allArgs(Sorted,Fld,0,anon(Lc))),nme(Lc,"XX")]),.none,
       roundTerm(Lc,dotName(CnNm),allArgs(Sorted,Fld,0,nme(Lc,"XX"))));
     valis [UEqn,..SoFar]
   }
-  updaterEqns(C,Fld,Eqns,Rp) where (Lc,I) ^= isPrivate(C) =>
-    updaterEqns(I,Fld,Eqns,Rp).
-  updaterEqns(C,Fld,Eqns,_) default => do{
+  updaterEqns(C,Fld,AccNm,Eqns,Rp) where (Lc,I) ^= isPrivate(C) =>
+    updaterEqns(I,Fld,AccNm,Eqns,Rp).
+  updaterEqns(C,_,_,Eqns,_) default => do{
     valis Eqns
   }
   
-
-  
-    
   allArgs([],_,_,_) => [].
   allArgs([A,..As],F,Ix,Rp) where
       (Lc,V,T) ^= isTypeAnnotation(A) && F == V =>

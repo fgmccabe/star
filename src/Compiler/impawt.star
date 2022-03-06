@@ -85,7 +85,7 @@ star.compiler.impawt{
   pickupDeclaration(term(tLbl("imp",3),[strg(Nm),strg(FNm),strg(Sig)]),Lc,Rp) => do{
     try{
       Tp <- decodeSignature(Sig);
-      valis implDec(Nm,FNm,Tp)
+      valis implDec(some(Lc),Nm,FNm,Tp)
     } catch{
       raise reportError(Rp,"invalid implementation type signature",Lc)
     }
@@ -95,17 +95,26 @@ star.compiler.impawt{
     try{
       Tp <- decodeSignature(Sig);
       AccTp <- decodeSignature(AccSig);
-      valis accDec(Tp,Fld,FNm,AccTp)
+      valis accDec(some(Lc),Tp,Fld,FNm,AccTp)
     } catch{
       raise reportError(Rp,"invalid accessor signature",Lc)
     }
   }
-  pickupDeclaration(term(tLbl("con",4),
-      [strg(Nm),strg(CnNm),strg(TSig),strg(Sig)]),Lc,Rp) => do{
+  pickupDeclaration(term(tLbl("upd",4),
+      [strg(Sig),strg(Fld),strg(FNm),strg(AccSig)]),Lc,Rp) => do{
     try{
-      ConTp <- decodeSignature(TSig);
+      Tp <- decodeSignature(Sig);
+      AccTp <- decodeSignature(AccSig);
+      valis updDec(some(Lc),Tp,Fld,FNm,AccTp)
+    } catch{
+      raise reportError(Rp,"invalid updater signature",Lc)
+    }
+  }
+  pickupDeclaration(term(tLbl("con",3),
+      [strg(Nm),strg(CnNm),strg(Sig)]),Lc,Rp) => do{
+    try{
       TpRl <- decodeSignature(Sig);
-      valis conDec(Nm,CnNm,ConTp,TpRl)
+      valis conDec(some(Lc),Nm,CnNm,TpRl)
     } catch{
       raise reportError(Rp,"invalid contract signature",Lc)
     }
@@ -115,7 +124,7 @@ star.compiler.impawt{
     try{
       Tp <- decodeSignature(TSig);
       RlTp <- decodeSignature(RSig);
-      valis tpeDec(Nm,Tp,RlTp)
+      valis tpeDec(some(Lc),Nm,Tp,RlTp)
     } catch{
       raise reportError(Rp,"invalid type signature",Lc)
     }
@@ -124,7 +133,7 @@ star.compiler.impawt{
       [strg(Nm),strg(FlNm),strg(Sig)]),Lc,Rp) => do{
     try{
       Tp <- decodeSignature(Sig);
-      valis varDec(Nm,FlNm,Tp)
+      valis varDec(some(Lc),Nm,FlNm,Tp)
     } catch{
       raise reportError(Rp,"invalid var signature",Lc)
     }
@@ -134,7 +143,7 @@ star.compiler.impawt{
       [strg(Nm),strg(FlNm),strg(Sig)]),Lc,Rp) => do{
     try{
       Tp <- decodeSignature(Sig);
-      valis funDec(Nm,FlNm,Tp)
+      valis funDec(some(Lc),Nm,FlNm,Tp)
     } catch{
       raise reportError(Rp,"invalid function signature",Lc)
     }
@@ -144,7 +153,7 @@ star.compiler.impawt{
       [strg(Nm),strg(FlNm),strg(Sig)]),Lc,Rp) => do{
     try{
       Tp <- decodeSignature(Sig);
-      valis cnsDec(Nm,FlNm,Tp)
+      valis cnsDec(some(Lc),Nm,FlNm,Tp)
     } catch{
       raise reportError(Rp,"invalid constructor signature",Lc)
     }
@@ -192,18 +201,20 @@ star.compiler.impawt{
   }
 
   public implementation coercion[decl,term] => let{
-    mkTerm(implDec(Nm,FullNm,Tp)) => term(tLbl("imp",3),[strg(Nm),strg(FullNm),Tp::term]).
-    mkTerm(accDec(Tp,Fld,Acc,AccTp)) =>
+    mkTerm(implDec(_,Nm,FullNm,Tp)) => term(tLbl("imp",3),[strg(Nm),strg(FullNm),Tp::term]).
+    mkTerm(accDec(_,Tp,Fld,Acc,AccTp)) =>
       term(tLbl("acc",4),[Tp::term,strg(Fld),strg(Acc),AccTp::term]).
-    mkTerm(conDec(Nm,FlNm,CnTp,CtRl)) =>
-      term(tLbl("con",4),[strg(Nm),strg(FlNm),CnTp::term,CtRl::term]).
-    mkTerm(tpeDec(Nm,Tp,Rl)) =>
+    mkTerm(updDec(_,Tp,Fld,Acc,AccTp)) =>
+      term(tLbl("upd",4),[Tp::term,strg(Fld),strg(Acc),AccTp::term]).
+    mkTerm(conDec(_,Nm,FlNm,CtRl)) =>
+      term(tLbl("con",3),[strg(Nm),strg(FlNm),CtRl::term]).
+    mkTerm(tpeDec(_,Nm,Tp,Rl)) =>
       term(tLbl("tpe",3),[strg(Nm),Tp::term,Rl::term]).
-    mkTerm(varDec(Nm,FlNm,Tp)) =>
+    mkTerm(varDec(_,Nm,FlNm,Tp)) =>
       term(tLbl("var",3),[strg(Nm),strg(FlNm),Tp::term]).
-    mkTerm(funDec(Nm,FlNm,Tp)) =>
+    mkTerm(funDec(_,Nm,FlNm,Tp)) =>
       term(tLbl("fun",3),[strg(Nm),strg(FlNm),Tp::term]).
-    mkTerm(cnsDec(Nm,FlNm,Tp)) =>
+    mkTerm(cnsDec(_,Nm,FlNm,Tp)) =>
       term(tLbl("cns",3),[strg(Nm),strg(FlNm),Tp::term]).
   } in {
     _coerce(D) => some(mkTerm(D)).

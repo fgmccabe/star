@@ -17,7 +17,7 @@ star.compiler.dict.mgt{
     some(vrEntry(.none,(L,E)=>refreshVar(L,Nm,Tp,E),Tp,.none)).
   isVar(Nm,_) where Tp ^= escapeType(Nm) => some(vrEntry(.none,(L,E)=>refreshVar(L,Nm,Tp,E),Tp,.none)).
   isVar(Nm,[]) => .none.
-  isVar(Nm,[scope(_,Vrs,_,_,_,_),.._]) where Entry^=Vrs[Nm] => some(Entry).
+  isVar(Nm,[scope(_,Vrs,_,_,_,_,_),.._]) where Entry^=Vrs[Nm] => some(Entry).
   isVar(Nm,[_,..D]) => isVar(Nm,D).
 
   public findVar:(locn,string,dict) => option[canon].
@@ -56,10 +56,10 @@ star.compiler.dict.mgt{
 
   public undeclareVar:(string,dict) => dict.
   undeclareVar(_,[]) => [].
-  undeclareVar(Nm,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs),..Ev]) =>
+  undeclareVar(Nm,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..Ev]) =>
     (_ ^= Vrs[Nm] ?
-      [scope(Tps,Vrs[~Nm],Cns,Cnts,Imps,Accs),..Ev] ||
-      [scope(Tps,Vrs,Cns,Cnts,Imps,Accs),..undeclareVar(Nm,Ev)]).
+      [scope(Tps,Vrs[~Nm],Cns,Cnts,Imps,Accs,Ups),..Ev] ||
+      [scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..undeclareVar(Nm,Ev)]).
 
   public declareConstructor:(string,string,option[locn],tipe,dict) => dict.
   declareConstructor(Nm,FullNm,Lc,Tp,Env) =>
@@ -78,20 +78,20 @@ star.compiler.dict.mgt{
 
   public mergeDict:(dict,dict,dict) => dict.
   mergeDict(D1,D2,Env) => let{.
-    mergeScopes([scope(T1,V1,C1,X1,I1,A1),..Rst],
-      [scope(_,V2,_,_,_,_),.._]) =>
-      [scope(T1,mergeVDefs(V1,V2),C1,X1,I1,A1),..Rst].
+    mergeScopes([scope(T1,V1,C1,X1,I1,A1,U1),..Rst],
+      [scope(_,V2,_,_,_,_,_),.._]) =>
+      [scope(T1,mergeVDefs(V1,V2),C1,X1,I1,A1,U1),..Rst].
     mergeVDefs(V1,V2) => {Nm->E1|Nm->E1 in V1 && E2^=V2[Nm] && sameDesc(E1,E2)}.
     sameDesc(vrEntry(_,_,T1,_),vrEntry(_,_,T2,_)) => sameType(T1,T2,Env)
   .} in mergeScopes(D1,D2).
   
   public declareVr:(string,option[locn],tipe,(locn,dict)=>canon,option[tipe],dict) => dict.
-  declareVr(Nm,Lc,Tp,MkVr,Fc,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs),..Ev]) =>
-    [scope(Tps,Vrs[Nm->vrEntry(Lc,MkVr,Tp,Fc)],Cns,Cnts,Imps,Accs),..Ev].
+  declareVr(Nm,Lc,Tp,MkVr,Fc,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..Ev]) =>
+    [scope(Tps,Vrs[Nm->vrEntry(Lc,MkVr,Tp,Fc)],Cns,Cnts,Imps,Accs,Ups),..Ev].
 
   public declareContract:(option[locn],string,tipe,dict) => dict.
-  declareContract(Lc,Nm,Con,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs),..Rest]) =>
-    declareMethods(Lc,Con,[scope(Tps[Nm->tpDefn(Lc,Nm,typeKey(Con),Con)],Vrs,Cns,Cnts[Nm->Con],Imps,Accs),..Rest]).
+  declareContract(Lc,Nm,Con,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..Rest]) =>
+    declareMethods(Lc,Con,[scope(Tps[Nm->tpDefn(Lc,Nm,typeKey(Con),Con)],Vrs,Cns,Cnts[Nm->Con],Imps,Accs,Ups),..Rest]).
 
   declareMethods:(option[locn],tipe,dict) => dict.
   declareMethods(Lc,Spec,Dict) where
@@ -123,27 +123,29 @@ star.compiler.dict.mgt{
     valis manageConstraints(VrTp,Lc,(LLc,MTp)=>mtd(LLc,Nm,Cn,MTp),Env)
   }
 
-  public declareDecls:(cons[decl],option[locn],dict,reports)=>either[reports,dict].
-  declareDecls([],_,Dict,_) => do{
+  public declareDecls:(cons[decl],dict,reports)=>either[reports,dict].
+  declareDecls([],Dict,_) => do{
     valis Dict
   }
-  declareDecls([D,..Ds],Lc,Dict,Rp) => do{
-    declareDecls(Ds,Lc,declareDecl(D,Lc,Dict),Rp)
+  declareDecls([D,..Ds],Dict,Rp) => do{
+    declareDecls(Ds,declareDecl(D,Dict),Rp)
   }
 
-  declareDecl(implDec(Nm,ImplNm,Tp),Lc,Dict) => 
+  declareDecl(implDec(Lc,Nm,ImplNm,Tp),Dict) => 
     declareImplementation(Lc,Nm,ImplNm,Tp,Dict).
-  declareDecl(accDec(Tp,Fld,AccFn,AccTp),Lc,Dict) =>
+  declareDecl(accDec(Lc,Tp,Fld,AccFn,AccTp),Dict) =>
     declareAccessor(Lc,Tp,Fld,AccFn,AccTp,Dict).
-  declareDecl(conDec(Nm,ConNm,ConTp,ConRl),Lc,Dict) => 
+  declareDecl(updDec(Lc,Tp,Fld,AccFn,AccTp),Dict) =>
+    declareUpdater(Lc,Tp,Fld,AccFn,AccTp,Dict).
+  declareDecl(conDec(Lc,Nm,ConNm,ConRl),Dict) => 
     declareContract(Lc,Nm,ConRl,Dict).
-  declareDecl(tpeDec(Nm,Tp,TpRl),Lc,Dict) => 
+  declareDecl(tpeDec(Lc,Nm,Tp,TpRl),Dict) => 
     declareType(Nm,Lc,Tp,TpRl,Dict).
-  declareDecl(varDec(Nm,FullNm,Tp),Lc,Dict) =>
+  declareDecl(varDec(Lc,Nm,FullNm,Tp),Dict) =>
     declareVar(Nm,Lc,Tp,.none,Dict).
-  declareDecl(funDec(Nm,FullNm,Tp),Lc,Dict) =>
+  declareDecl(funDec(Lc,Nm,FullNm,Tp),Dict) =>
     declareVar(Nm,Lc,Tp,.none,Dict).
-  declareDecl(cnsDec(Nm,FullNm,Tp),Lc,Dict) =>
+  declareDecl(cnsDec(Lc,Nm,FullNm,Tp),Dict) =>
     declareConstructor(Nm,FullNm,Lc,Tp,Dict).
 
   public pushSig:(tipe,locn,(string,tipe,dict)=>dict,dict) => dict.
