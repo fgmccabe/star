@@ -93,7 +93,7 @@ star.compiler.checker.driver{
       };
 
       if ~ macroOnly! then{
-	C <- (checkPkg(Repo,CPkg,M,Opts,Rp)::result[reports,(pkgSpec,cons[canonDef])]);
+	C <- (checkPkg(Repo,CPkg,M,Opts,Rp)::result[reports,(pkgSpec,cons[canonDef],cons[decl])]);
 	if traceCanon! then {
 	  logMsg("type checked $(C)")
 	};

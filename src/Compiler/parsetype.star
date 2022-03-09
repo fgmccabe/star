@@ -379,7 +379,7 @@ star.compiler.typeparse{
     Face .= faceType(Flds,Tps);
     Con <- parseTypeHead(BV,T,Env,Path,Rp);
     ConTp .= reQ(BV,Con);
-    ConRlTp .= reQ(BV,typeExists(Con,Face));
+    ConRlTp .= reQ(BV,contractExists(conTract(Con),Face));
     valis ([conDef(Lc,Id,tpName(Con),ConRlTp)],
       [conDec(some(Lc),Id,tpName(Con),ConRlTp)])
   }
