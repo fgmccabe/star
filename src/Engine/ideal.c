@@ -16,16 +16,20 @@ void initIdeal() {
   hNodeLbl = declareLbl("star.ideal#ihNode", 4, 2);
 }
 
+logical isIdealEmpty(termPo t) {
+  return sameTerm(t, hNilEnum);
+}
+
 logical isIdealTree(termPo t) {
   if (isNormalPo(t)) {
     normalPo c = C_NORMAL(t);
     return (logical) (c->lbl == hLeafLbl || c->lbl == hNodeLbl);
   } else
-    return (logical) (t == hNilEnum);
+    return isIdealEmpty(t);
 }
 
 static retCode dispTree(ioPo out, termPo t, integer precision, integer depth, logical alt, char **sep) {
-  if (sameTerm(t, hNilEnum))
+  if (isIdealEmpty(t))
     return Ok;
   else if (isIdealTree(t)) {
     normalPo node = C_NORMAL(t);

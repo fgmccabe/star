@@ -34,7 +34,7 @@ logical isCons(termPo t) {
 }
 
 logical isConsNil(termPo t) {
-  return t == (termPo) nilEnum;
+  return sameTerm(t, nilEnum);
 }
 
 termPo consHead(normalPo p) {
@@ -65,7 +65,7 @@ integer consLength(termPo t) {
     t = nthArg(C_NORMAL(t), 1);
     ln++;
   }
-  assert(sameTerm(t,nilEnum));
+  assert(sameTerm(t, nilEnum));
   return ln;
 }
 

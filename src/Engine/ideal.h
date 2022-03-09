@@ -12,6 +12,7 @@ extern termPo hNilEnum;
 
 retCode dispIdeal(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
+logical isIdealEmpty(termPo t);
 logical isIdealTree(termPo t);
 void initIdeal();
 
