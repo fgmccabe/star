@@ -24,7 +24,7 @@ star.compiler.checker{
 
   -- package level of type checker
 
-  public checkPkg:all r ~~ repo[r],display[r]|:(r,pkg,ast,compilerOptions,reports) => either[reports,(pkgSpec,cons[canonDef])].
+  public checkPkg:all r ~~ repo[r],display[r]|:(r,pkg,ast,compilerOptions,reports) => either[reports,(pkgSpec,cons[canonDef],cons[decl])].
   checkPkg(Repo,Pkge,P,Opts,Rp) => do{
     Base .= stdDict;
     if (Lc,Pk,Els) ^= isQBrTerm(P) && Pkg .= pkgeName(Pk) then{
@@ -47,8 +47,8 @@ star.compiler.checker{
 
 	RDefs <- overloadEnvironment(Defs,ThEnv,Rp);
 	
-	(ExDecls,LclDecl,PkgDefs).=genDecls(RDefs*,completePublic(Vis,PkgPth));
-	valis (pkgSpec(Pkge,Imports,ExDecls),PkgDefs)
+	ExDecls.=exportDecls(ThDecls*,completePublic(Vis,PkgPth));
+	valis (pkgSpec(Pkge,Imports,ExDecls),RDefs*,ThDecls*)
       }
       else
       raise reportError(Rp,"package name $(Pkg) does not match expected $(Pkge)",locOf(P))
@@ -65,19 +65,22 @@ star.compiler.checker{
       (conSp(Nm),.pUblic),..completePublic(Ds,Pth)].
   completePublic([S,..Ds],Pth) => [S,..completePublic(Ds,Pth)].
 
-  genDecls:(cons[canonDef],cons[(defnSp,visibility)]) => (cons[decl],cons[decl],cons[canonDef]).
-  genDecls([],_) => ([],[],[]).
+  exportDecls:(cons[decl],cons[(defnSp,visibility)]) => cons[decl].
+  exportDecls(Decls,Viz) => let{
+    exported(implDec(_,Nm,FullNm,_)) => isVisible(Viz,implSp(Nm)).
+    exported(accDec(_,Tp,_,_,_)) => isVisible(Viz,accSp(tpName(Tp))).
+    exported(updDec(_,Tp,_,_,_)) => isVisible(Viz,updSp(tpName(Tp))).
+    exported(tpeDec(_,TpNm,_,_)) => isVisible(Viz,tpSp(TpNm)).
+    exported(varDec(_,Nm,_,_)) => isVisible(Viz,varSp(Nm)).
+    exported(funDec(_,Nm,_,_)) => isVisible(Viz,varSp(Nm)).
+    exported(cnsDec(_,Nm,_,_)) => isVisible(Viz,cnsSp(Nm)).
+    exported(conDec(_,Nm,_,_)) => isVisible(Viz,conSp(Nm)).
+  } in (Decls ^/ exported).
 
-  exportedFields:(cons[cons[canonDef]],cons[(defnSp,visibility)],visibility) => cons[(string,tipe)].
-  exportedFields(Defs,Vis,DVz) =>
-    { (Nm,Tp) |
-	DD in Defs && D in DD &&
-	    ((varDef(_,Nm,_,_,_,Tp) .=D && isVisible(varSp(Nm),Vis,DVz)) ||
-	      (cnsDef(_,Nm,_,Tp) .=D && isVisible(cnsSp(Nm),Vis,DVz)) ||
-	      (implDef(_,N,Nm,_,_,Tp) .=D && isVisible(implSp(N),Vis,DVz)))}.
-
-  isVisible:(defnSp,cons[(defnSp,visibility)],visibility) => boolean.
-  isVisible(Sp,Vis,DVz) => {? (Sp,V) in Vis && V >= DVz ?}.
+  isVisible:(cons[(defnSp,visibility)],defnSp)=>boolean.
+  isVisible([],_) => .false.
+  isVisible([(e,V),.._],e) => V>=.transItive.
+  isVisible([_,..l],e) => isVisible(l,e).
 
   exportedTypes:(cons[cons[canonDef]],cons[(defnSp,visibility)],visibility) =>
     cons[(string,tipe)].
@@ -146,7 +149,7 @@ star.compiler.checker{
     if [O,.._].=Opens then{
       raise reportError(Rp,"open statements not implemented",locOf(O))
     };
-    
+
     G .= Gps*; -- Flatten the result
     TmpEnv <- parseAnnotations(G,Face,Annots,Env,Rp);
     (Gp,Ds) <- checkGroup(G,TmpEnv,TmpEnv,Path,Rp);
@@ -344,6 +347,7 @@ star.compiler.checker{
 
   checkAccessor:(locn,string,cons[ast],cons[ast],ast,ast,dict,dict,string,reports) => either[reports,(cons[canonDef],cons[decl])].
   checkAccessor(Lc,Nm,Q,C,T,B,Env,Outer,Path,Rp) => do{
+    logMsg("check accessor $(Nm)");
     QV <- parseBoundTpVars(Q,Rp);
     Cx <- parseConstraints(C,QV,Env,Rp);
     (_,Fn,[TA]) ^= isSquareTerm(T);
@@ -355,8 +359,11 @@ star.compiler.checker{
     AccFn <- typeOfExp(B,AT,Env,Path,Rp);
     AccTp .= rebind(QV,reConstrainType(Cx,AT),Env);
 
+    logMsg("accessor exp $(AccFn)");
+
     AccVrNm .= qualifiedName(Path,.valMark,qualifiedName(tpName(RcTp),.typeMark,Fld));
 
+    logMsg("accessor var $(AccVrNm)");
     Defn .= varDef(Lc,AccVrNm,AccVrNm,AccFn,Cx,AccTp);
     Decl .= accDec(some(Lc),rebind(QV,reConstrainType(Cx,RcTp),Env),Fld,AccVrNm,AccTp);
     logMsg("accessor $(Decl)");
@@ -722,6 +729,7 @@ star.compiler.checker{
     (Defs,ThEnv)<-recordEnv(Lc,genNewName(Path,"Γ"),Els,faceType([],[]),Env,Rp,.priVate);
     
     El <- typeOfExp(Bnd,Tp,ThEnv,Path,Rp);
+    logMsg("bound exp $(El)");
 
     Sorted .= sortDefs(Defs);
 
