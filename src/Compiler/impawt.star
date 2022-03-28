@@ -113,7 +113,7 @@ star.compiler.impawt{
   pickupDeclaration(term(tLbl("con",3),
       [strg(Nm),strg(CnNm),strg(Sig)]),Lc,Rp) => do{
     try{
-      TpRl <- decodeSignature(Sig);
+      TpRl <- decodeTypeRuleSignature(Sig);
       valis conDec(some(Lc),Nm,CnNm,TpRl)
     } catch{
       raise reportError(Rp,"invalid contract signature",Lc)
@@ -123,7 +123,7 @@ star.compiler.impawt{
       [strg(Nm),strg(TSig),strg(RSig)]),Lc,Rp) => do{
     try{
       Tp <- decodeSignature(TSig);
-      RlTp <- decodeSignature(RSig);
+      RlTp <- decodeTypeRuleSignature(RSig);
       valis tpeDec(some(Lc),Nm,Tp,RlTp)
     } catch{
       raise reportError(Rp,"invalid type signature",Lc)
@@ -176,6 +176,10 @@ star.compiler.impawt{
 
   implementation coercion[tipe,term] => {
     _coerce(Tp) => some(strg(encodeSignature(Tp))).
+  }
+
+  implementation coercion[typeRule,term] => {
+    _coerce(Rl) => some(strg(encodeTpRlSignature(Rl))).
   }
   
   implementation coercion[importSpec,term] => {

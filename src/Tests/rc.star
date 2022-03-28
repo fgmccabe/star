@@ -2,7 +2,7 @@ test.rc{
   import star.
   import star.script.
 
-/*  pp[a] ::= pp{C:integer} |
+  pp[a] ::= pp{C:integer} |
     pq{C:integer. A:a}.
 
   kk ::= kk{C:integer}.
@@ -12,12 +12,12 @@ test.rc{
   implementation measured[aa->>integer] => {
     [|_|] => 1
   }
-*/
-  contract lc[a->>b] ::= {
+
+  contract all a,b ~~ lc[a->>b] ::= {
     ll:(a)=>b
   }
 
-/*  implementation all a ~~ display[a] |: display[pp[a]] => {
+  implementation all a ~~ display[a] |: display[pp[a]] => {
     disp(pp{C=Ix}) => "pp{$(Ix)}".
     disp(pq{C=Ix. A=A}) => "pq{$(Ix),$(A)}"
   }
@@ -32,5 +32,5 @@ test.rc{
     show cont(2).C;
 --    show cont(2)<<-{C=4}
   }
-*/
+
 }

@@ -53,12 +53,12 @@ star.compiler.constraints{
 	extractTermConstraints(Rhs,Dict,Cnx))).
   extractTermConstraints(lambda(_,Rls,_),Dict,Cnx) =>
     foldLeft((Eqn,Cs)=>extractEqnConstraints(Eqn,Dict,Cs),Cnx,Rls).
-  extractTermConstraints(letExp(Lc,Gp,Rhs),Dict,Cnx) => valof action{
+  extractTermConstraints(letExp(Lc,Gp,_,Rhs),Dict,Cnx) => valof action{
     DD .= declareImplementationsInGroup(Gp,Dict);
     valis foldLeft((Df,Cs)=>extractDefConstraints(Df,DD,Cs),
       extractTermConstraints(Rhs,DD,Cnx),Gp)
   }
-  extractTermConstraints(letRec(Lc,Gp,Rhs),Dict,Cnx) => valof action{
+  extractTermConstraints(letRec(Lc,Gp,_,Rhs),Dict,Cnx) => valof action{
     DD .= declareImplementationsInGroup(Gp,Dict);
     valis foldRight((Df,Cs)=>extractDefConstraints(Df,DD,Cs),
       extractTermConstraints(Rhs,DD,Cnx),Gp)
@@ -66,9 +66,6 @@ star.compiler.constraints{
   extractTermConstraints(csexp(Lc,Gov,Cases,Tp),Dict,Cnx) =>
     foldLeft((Eqn,Cs)=>extractEqnConstraints(Eqn,Dict,Cs),
       extractTermConstraints(Gov,Dict,Cnx),Cases).
-  extractTermConstraints(record(Lc,Nm,Fields,Tp),Dict,Cnx) =>
-    foldLeft(((_,T),Cs) => extractTermConstraints(T,Dict,Cs),
-      Cnx,Fields).
   extractTermConstraints(update(_,Lhs,Rhs),Dict,Cnx) =>
     extractTermConstraints(Rhs,Dict,extractTermConstraints(Lhs,Dict,Cnx)).
 

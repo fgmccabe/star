@@ -11,15 +11,15 @@ star.compiler.canon{
   public decl ::= implDec(option[locn],string,string,tipe) |
     accDec(option[locn],tipe,string,string,tipe) |
     updDec(option[locn],tipe,string,string,tipe) |
-    conDec(option[locn],string,string,tipe) |
-    tpeDec(option[locn],string,tipe,tipe) |
+    conDec(option[locn],string,string,typeRule) |
+    tpeDec(option[locn],string,tipe,typeRule) |
     varDec(option[locn],string,string,tipe) |
     funDec(option[locn],string,string,tipe) |
     cnsDec(option[locn],string,string,tipe).
 
   public canon ::= vr(option[locn],string,tipe) |
     anon(locn,tipe) |
-    mtd(locn,string,tipe,tipe) |
+    mtd(locn,string,constraint,tipe) |
     over(locn,canon,cons[constraint]) |
     overaccess(locn,canon,string,tipe) |
     intr(locn,integer) |
@@ -41,16 +41,15 @@ star.compiler.canon{
     tple(locn,cons[canon]) |
     lambda(string,cons[equation],tipe) |
     owpen(locn,canon) |
-    letExp(locn,cons[canonDef],canon) |
-    letRec(locn,cons[canonDef],canon) |
-    record(locn,option[string],cons[(string,canon)],tipe) |
+    letExp(locn,cons[canonDef],cons[decl],canon) |
+    letRec(locn,cons[canonDef],cons[decl],canon) |
     update(locn,canon,canon).
 
   public equation ::= eqn(locn,canon,option[canon],canon).
 
   public canonDef ::= varDef(locn,string,string,canon,cons[constraint],tipe) |
-    typeDef(locn,string,tipe,tipe) |
-    conDef(locn,string,string,tipe) |
+    typeDef(locn,string,tipe,typeRule) |
+    conDef(locn,string,string,typeRule) |
     cnsDef(locn,string,string,tipe) |
     implDef(locn,string,string,canon,cons[constraint],tipe) |
     accDef(locn,string,string,tipe) |
@@ -70,11 +69,10 @@ star.compiler.canon{
     typeOf(enm(_,_,Tp)) => Tp.
     typeOf(csexp(_,_,_,Tp)) => Tp.
     typeOf(lambda(_,_,Tp)) => Tp.
-    typeOf(letExp(_,_,E)) => typeOf(E).
-    typeOf(letRec(_,_,E)) => typeOf(E).
+    typeOf(letExp(_,_,_,E)) => typeOf(E).
+    typeOf(letRec(_,_,_,E)) => typeOf(E).
     typeOf(apply(_,_,_,Tp)) => Tp.
     typeOf(tple(_,Els)) => tupleType(Els//typeOf).
-    typeOf(record(_,_,_,Tp)) => Tp.
     typeOf(dot(_,_,_,Tp)) => Tp.
     typeOf(whr(_,E,_)) => typeOf(E).
     typeOf(match(_,_,_)) => boolType.
@@ -109,9 +107,8 @@ star.compiler.canon{
     locOf(apply(Lc,_,_,_)) => Lc.
     locOf(tple(Lc,_)) => Lc.
     locOf(lambda(_,[E,.._],_)) => locOf(E).
-    locOf(letExp(Lc,_,_)) => Lc.
-    locOf(letRec(Lc,_,_)) => Lc.
-    locOf(record(Lc,_,_,_)) => Lc.
+    locOf(letExp(Lc,_,_,_)) => Lc.
+    locOf(letRec(Lc,_,_,_)) => Lc.
     locOf(update(Lc,_,_)) => Lc.
   }
 
@@ -213,14 +210,10 @@ star.compiler.canon{
   showCanon(tple(_,Els),Sp) =>
     "(#(interleave(Els//(El)=>showCanon(El,Sp),",")*))".
   showCanon(lambda(Nm,Rls,Tp),Sp) => "(#(showRls(Nm,Rls,Sp++"  ")))".
-  showCanon(letExp(_,Defs,Ep),Sp) where Sp2.=Sp++"  " =>
+  showCanon(letExp(_,Defs,Dcs,Ep),Sp) where Sp2.=Sp++"  " =>
     "let {\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)} in #(showCanon(Ep,Sp2))".
-  showCanon(letRec(_,Defs,Ep),Sp) where Sp2.=Sp++"  " =>
+  showCanon(letRec(_,Defs,Dcs,Ep),Sp) where Sp2.=Sp++"  " =>
     "let {.\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp),} in #(showCanon(Ep,Sp2))".
-  showCanon(record(_,.none,Fields,_),Sp) =>
-    "{#(showFields(Fields,Sp++"  "))}".
-  showCanon(record(_,some(Lbl),Fields,_),Sp) =>
-    "#(Lbl){#(showFields(Fields,Sp++"  "))}".
   showCanon(update(_,L,R),Sp) => "#(showCanon(L,Sp)) <<- #(showCanon(R,Sp))".
 
   showCases(Cs,Sp) => "{#(showRls("",Cs,Sp))}".
@@ -280,8 +273,8 @@ star.compiler.canon{
 
   public isFunDef:(canon)=>boolean.
   isFunDef(lambda(_,_,_)) => .true.
-  isFunDef(letExp(_,_,Exp)) => isFunDef(Exp).
-  isFunDef(letRec(_,_,Exp)) => isFunDef(Exp).
+  isFunDef(letExp(_,_,_,Exp)) => isFunDef(Exp).
+  isFunDef(letRec(_,_,_,Exp)) => isFunDef(Exp).
   isFunDef(_) default => .false.
 
   public pkgImports:(pkgSpec)=>cons[importSpec].

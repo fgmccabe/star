@@ -53,7 +53,7 @@ star.compiler.typeparse{
     (Op,Rl) <- parseTypeName(Q,OLc,Nm,Env,Rp);
     if (_,OOp) .= freshen(Op,Env) then {
       ArgTps <- parseTypes(Q,Args,Env,Rp);
-      doTypeFun(Lc,OOp,ArgTps,Env,Rp)
+      doTypeFun(OOp,ArgTps,Env,Rp)
     }
     else
     raise reportError(Rp,"Could not freshen $(Op)",Lc)
@@ -91,16 +91,6 @@ star.compiler.typeparse{
   parseType(Q,T,Env,Rp) where (Lc,A) ^= isBrTuple(T) => do{
     (Flds,Tps) <- parseTypeFields(Q,A,[],[],Env,Rp);
     valis faceType(Flds,Tps)
-  }
-  parseType(Q,T,Env,Rp) where (Lc,Lhs,Rhs) ^= isTypeLambda(T) => do{
-    A <- parseArgType(Q,Lhs,Env,Rp);
-    R <- parseType(Q,Rhs,Env,Rp);
-    valis typeLambda(A,R)
-  }
-  parseType(Q,T,Env,Rp) where (Lc,Lhs,Rhs) ^= isTypeExists(T) => do{
-    A <- parseArgType(Q,Lhs,Env,Rp);
-    R <- parseType(Q,Rhs,Env,Rp);
-    valis typeExists(A,R)
   }
   parseType(Q,T,Env,Rp) where (Lc,Lhs,Rhs) ^= isFieldAcc(T) => do{
     if (_,Id) ^= isName(Lhs) && (_,Fld) ^= isName(Rhs) then{
@@ -140,17 +130,20 @@ star.compiler.typeparse{
   parseTypeArgs(Lc,_,As,Env,Rp) =>
     other(reportError(Rp,"cannot parse argument types $(As)",Lc)).
 
-  doTypeFun(_,typeLambda(tupleType([]),Tp),[],_,_) => either(Tp).
-  doTypeFun(Lc,typeLambda(L,R),[A,..As],Env,Rp) => do{
+  applyTypeRule:(locn,typeRule,cons[tipe],dict,reports) => either[reports,tipe].
+  applyTypeRule(_,typeLambda(tupleType([]),Tp),[],_,_) => either(Tp).
+  applyTypeFun(Lc,typeLambda(L,R),[A,..As],Env,Rp) => do{
     if sameType(L,A,Env) then{
-      doTypeFun(Lc,R,As,Env,Rp)
+      doTypeFun(R,As,Env,Rp)
     } else {
       raise reportError(Rp,"Type rule $(typeLambda(L,R)) does not apply to $(A)",Lc)
     }
   }
-  doTypeFun(Lc,Op,[A,..As],Env,Rp) =>
-    doTypeFun(Lc,tpExp(Op,A),As,Env,Rp).
-  doTypeFun(Lc,Tp,[],_,Rp) => either(Tp).
+
+  doTypeFun:(tipe,cons[tipe],dict,reports) => either[reports,tipe].
+  doTypeFun(Op,[A,..As],Env,Rp) =>
+    doTypeFun(tpExp(Op,A),As,Env,Rp).
+  doTypeFun(Tp,[],_,Rp) => either(Tp).
 
   parseTypeFields:(tipes,cons[ast],tipes,tipes,dict,reports) =>
     either[reports,(tipes,tipes)].
@@ -224,8 +217,7 @@ star.compiler.typeparse{
     else
     raise reportError(Rp,"invalid rhs:$(Rh) of field constraint, expecting $(Lh)<~{F:T}",Lc)
   }
-  parseConstraint(A,Q,Env,Rp) => 
-    fmap((T)=>conTract(T),parseContractConstraint(Q,A,Env,Rp)).
+  parseConstraint(A,Q,Env,Rp) => parseContractConstraint(Q,A,Env,Rp).
   
   public rebind:(tipes,tipe,dict)=>tipe.
   rebind([],T,_) => T.
@@ -247,25 +239,24 @@ star.compiler.typeparse{
   reQX([(_,KV),..T],Tp) => reQX(T,existType(KV,Tp)).
 
   public parseContractConstraint:(tipes,ast,dict,reports) =>
-    either[reports,tipe].
+    either[reports,constraint].
   parseContractConstraint(Q,A,Env,Rp) where
       (Lc,O,As) ^= isSquareTerm(A) && (_,Nm) ^= isName(O) => do{
-	contractExists(conTract(Cn),_) <- parseContractName(O,Env,Rp);
+	contractExists(Cn,_,_,_) <- parseContractName(O,Env,Rp);
 --	logMsg("contract name $(typeKey(Cn))");
 	if [AAs].=As && (_,L,R) ^= isBinary(AAs,"->>") then{
 	  Tps <- parseTypes(Q,deComma(L),Env,Rp);
 	  Dps <- parseTypes(Q,deComma(R),Env,Rp);
-	  CnTp <- doTypeFun(Lc,typeKey(Cn),Tps,Env,Rp);
-	  valis funDeps(CnTp,Dps)
+	  valis conTract(Cn,Tps,Dps)
 	} else{
 	  Tps <- parseTypes(Q,As,Env,Rp);
-	  doTypeFun(Lc,typeKey(Cn),Tps,Env,Rp)
+	  valis conTract(Cn,Tps,[])
 	}
       }
   parseContractConstraint(_,A,Env,Rp) =>
     other(reportError(Rp,"$(A) is not a contract constraint",locOf(A))).
 
-  parseContractName:(ast,dict,reports)=>either[reports,tipe].
+  parseContractName:(ast,dict,reports)=>either[reports,typeRule].
   parseContractName(Op,Env,Rp) where (_,Id) ^= isName(Op) => do{
     if Con ^= findContract(Env,Id) then {
       valis snd(freshen(Con,Env))
@@ -275,17 +266,16 @@ star.compiler.typeparse{
   }
 
   public parseAccessorContract:(tipes,ast,dict,reports) =>
-    either[reports,tipe].
+    either[reports,constraint].
   parseAccessorContract(Q,A,Env,Rp) where
       (Lc,O,As) ^= isSquareTerm(A) && (_,Nm) ^= isName(O) => do{
 	if [AAs].=As && (_,L,R) ^= isBinary(AAs,"->>") then{
 	  Tps <- parseTypes(Q,deComma(L),Env,Rp);
 	  Dps <- parseTypes(Q,deComma(R),Env,Rp);
-	  CnTp <- doTypeFun(Lc,tpFun(Nm,size(Tps)),Tps,Env,Rp);
-	  valis funDeps(CnTp,Dps)
+	  valis conTract(Nm,Tps,Dps)
 	} else{
 	  Tps <- parseTypes(Q,As,Env,Rp);
-	  doTypeFun(Lc,tpFun(Nm,size(Tps)),Tps,Env,Rp)
+	  valis conTract(Nm,Tps,[])
 	}
       }
   parseAccessorContract(_,A,Env,Rp) =>
@@ -304,13 +294,10 @@ star.compiler.typeparse{
   pickTypeTemplate(allType(_,Tp)) => pickTypeTemplate(Tp).
   pickTypeTemplate(existType(_,Tp)) => pickTypeTemplate(Tp).
   pickTypeTemplate(constrainedType(Hd,_)) => pickTypeTemplate(Hd).
-  pickTypeTemplate(typeExists(Hd,_)) => pickTypeTemplate(Hd).
-  pickTypeTemplate(typeLambda(Hd,_)) => pickTypeTemplate(Hd).
   pickTypeTemplate(nomnal(Hd)) => nomnal(Hd).
   pickTypeTemplate(tpFun(Nm,Ar)) => tpFun(Nm,Ar).
   pickTypeTemplate(kFun(Nm,Ar)) => kFun(Nm,Ar).
   pickTypeTemplate(tpExp(Op,_)) => pickTypeTemplate(Op).
-  pickTypeTemplate(funDeps(T,_)) => pickTypeTemplate(T).
 
   public parseTypeDef:(string,ast,dict,string,reports) =>
     either[reports,(cons[canonDef],cons[decl])].
@@ -320,7 +307,7 @@ star.compiler.typeparse{
     Cx <- parseConstraints(C,Q,Env,Rp);
     Tmplte .= pickTypeTemplate(Tp);
     Fce <- parseType(Q,B,declareType(Nm,some(Lc),Tmplte,typeExists(Tp,faceType([],[])),Env),Rp);
-    TpRl .= reQ(Q,reConstrainType(Cx,typeExists(Tp,Fce)));
+    TpRl .= foldLeft(((_,QV),Rl)=>allRule(QV,Rl),typeExists(reConstrainType(Cx,Tp),Fce),Q);
     valis ([typeDef(Lc,Nm,Tmplte,TpRl)],[tpeDec(some(Lc),Nm,Tmplte,TpRl)])
   }
   parseTypeDef(Nm,St,Env,Path,Rp) where (Lc,V,C,H,B) ^= isTypeFunStmt(St) => do{
@@ -330,7 +317,7 @@ star.compiler.typeparse{
     RTp <- parseType(Q,B,Env,Rp);
     
     Tmplte .= pickTypeTemplate(Tp);
-    TpRl .= reQ(Q,reConstrainType(Cx,typeLambda(Tp,RTp)));
+    TpRl .= foldLeft(((_,QV),Rl)=>allRule(QV,Rl),typeLambda(reConstrainType(Cx,Tp),RTp),Q);
 
     valis ([typeDef(Lc,Nm,Tmplte,TpRl)],[tpeDec(some(Lc),Nm,Tmplte,TpRl)])
   }
@@ -340,16 +327,8 @@ star.compiler.typeparse{
     either(nomnal(qualifiedName(Path,.typeMark,Nm))).
   parseTypeHead(Q,Tp,Env,Path,Rp) where
       (Lc,O,Args) ^= isSquareTerm(Tp) && (_,Nm) ^= isName(O) => do{
-	if [A].=Args && (_,Lhs,Rhs)^=isBinary(A,"->>") then{
-	  ArgTps <- parseHeadArgs(Q,deComma(Lhs),[],Env,Rp);
-	  DepTps <- parseHeadArgs(Q,deComma(Rhs),[],Env,Rp);
-	  Inn .= mkTypeExp(tpFun(qualifiedName(Path,.typeMark,Nm),size(ArgTps)),ArgTps);
-	  valis funDeps(Inn,DepTps)
-	}
-	else{
-	  ArgTps <- parseHeadArgs(Q,Args,[],Env,Rp);
-	  valis mkTypeExp(tpFun(qualifiedName(Path,.typeMark,Nm),size(ArgTps)),ArgTps)
-	}
+	ArgTps <- parseHeadArgs(Q,Args,[],Env,Rp);
+	valis mkTypeExp(tpFun(qualifiedName(Path,.typeMark,Nm),size(ArgTps)),ArgTps)
       }.
 
   parseHeadArgs:(tipes,cons[ast],cons[tipe],dict,reports) => either[reports,cons[tipe]].
@@ -368,6 +347,20 @@ star.compiler.typeparse{
       [cnsDec(some(Lc),Nm,FullNm,Tp)])
   }
 
+  parseContractHead:(tipes,ast,dict,string,reports) => either[reports,constraint].
+  parseContractHead(Q,Tp,Env,Path,Rp) where
+      (Lc,O,Args) ^= isSquareTerm(Tp) && (_,Nm) ^= isName(O) => do{
+	if [A].=Args && (_,Lhs,Rhs)^=isBinary(A,"->>") then{
+	  ArgTps <- parseHeadArgs(Q,deComma(Lhs),[],Env,Rp);
+	  DepTps <- parseHeadArgs(Q,deComma(Rhs),[],Env,Rp);
+	  valis conTract(qualifiedName(Path,.typeMark,Nm),ArgTps,DepTps)
+	}
+	else{
+	  ArgTps <- parseHeadArgs(Q,Args,[],Env,Rp);
+	  valis conTract(qualifiedName(Path,.typeMark,Nm),ArgTps,[])
+	}
+      }.
+
   public parseContract:(ast,dict,string,reports) => either[reports,
     (cons[canonDef],cons[decl])].
   parseContract(St,Env,Path,Rp) => do{
@@ -377,10 +370,10 @@ star.compiler.typeparse{
     BV <- parseBoundTpVars(Q,Rp);
     (Flds,Tps) <- parseTypeFields(BV,Els,[],[],Env,Rp);
     Face .= faceType(Flds,Tps);
-    Con <- parseTypeHead(BV,T,Env,Path,Rp);
-    ConTp .= reQ(BV,Con);
-    ConRlTp .= reQ(BV,contractExists(conTract(Con),Face));
-    valis ([conDef(Lc,Id,tpName(Con),ConRlTp)],
-      [conDec(some(Lc),Id,tpName(Con),ConRlTp)])
+    conTract(Con,CTps,CDps) <- parseContractHead(BV,T,Env,Path,Rp);
+    ConTp .= reQ(BV,mkConType(Con,CTps,CDps));
+    ConRlTp .= foldLeft(((_,QV),Rl)=>allRule(QV,Rl),contractExists(Con,CTps,CDps,Face),BV);
+    valis ([conDef(Lc,Id,tpName(ConTp),ConRlTp)],
+      [conDec(some(Lc),Id,tpName(ConTp),ConRlTp)])
   }
 }

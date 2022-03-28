@@ -294,27 +294,39 @@ star.compiler.terms{
     (R,T1) <- decodeType(T0);
     valis (consType(A,R),T1)
   }
-  decodeType([`Y`,..Ts]) => do{
-    (A,T0) <- decodeType(Ts);
-    (R,T1) <- decodeType(T0);
-    valis (typeExists(A,R),T1)
-  }
-  decodeType([`y`,..Ts]) => do{
-    (A,T0) <- decodeType(Ts);
-    (R,T1) <- decodeType(T0);
-    valis (typeLambda(A,R),T1)
-  }
-  decodeType([`Z`,..Ts]) => do{
-    (A,T0) <- decodeConstraint(Ts);
-    (R,T1) <- decodeType(T0);
-    valis (contractExists(A,R),T1)
-  }
 
   decodeTypes([`)`,..Ts]) => either(([],Ts)). 
   decodeTypes(Ts) => do{
     (ElTp,T0) <- decodeType(Ts);
     (Tps,T1) <- decodeTypes(T0);
     valis ([ElTp,..Tps],T1)
+  }
+
+  public decodeTypeRuleSignature:(string) => either[(),typeRule].
+  decodeTypeRuleSignature(St) => do{
+    (Tp,_) <- decodeTypeRule(St::cons[char]);
+    valis Tp
+  }
+
+  decodeTypeRule([`:`,..Ts]) => do{
+    (V,T0) <- decodeType(Ts);
+    (R,T1) <- decodeTypeRule(T0);
+    valis (allRule(V,R),T1)
+  }  
+  decodeTypeRule([`Y`,..Ts]) => do{
+    (A,T0) <- decodeType(Ts);
+    (R,T1) <- decodeType(T0);
+    valis (typeExists(A,R),T1)
+  }
+  decodeTypeRule([`Z`,..Ts]) => do{
+    (conTract(N,T,D),T0) <- decodeConstraint(Ts);
+    (R,T1) <- decodeType(T0);
+    valis (contractExists(N,T,D,R),T1)
+  }
+  decodeTypeRule([`y`,..Ts]) => do{
+    (A,T0) <- decodeType(Ts);
+    (R,T1) <- decodeType(T0);
+    valis (typeLambda(A,R),T1)
   }
 
   decodeFields([`{`,..Ts]) => decodeFlds(Ts,[]).
@@ -330,7 +342,7 @@ star.compiler.terms{
     (Nm,T0) <- decodeText(T);
     (tupleType(Tps),T1) <- decodeType(T0);
     (tupleType(Dps),T2) <- decodeType(T1);
-    valis (conTract(mkConType(Nm,Tps,Dps)),T2)
+    valis (conTract(Nm,Tps,Dps),T2)
   }
   decodeConstraint([`a`,..T]) => do{
     (BT,T0) <- decodeType(T);
@@ -369,10 +381,6 @@ star.compiler.terms{
     encodeConstraint(C,encodeType(deRef(T),[`|`,..Chs])).
   encodeType(faceType(Flds,Tps),Chs) =>
     encodeFldTypes(Tps,encodeFldTypes(Flds,[`I`,..Chs])).
-  encodeType(typeExists(H,I),Chs) =>
-    encodeType(deRef(I),encodeType(deRef(H),[`Y`,..Chs])).
-  encodeType(typeLambda(Hd,I),Chs) =>
-    encodeType(deRef(I),encodeType(deRef(Hd),[`y`,..Chs])).
 
   encodeTypes:(cons[tipe],cons[char])=>cons[char].
   encodeTypes([],Chs) => [`)`,..Chs].
@@ -388,19 +396,26 @@ star.compiler.terms{
   encodeFlds([(Nm,T),..Tps],Chs) =>
     encodeFlds(Tps,encodeType(deRef(T),encodeText(Nm,Chs))).
 
-  encodeConstraint(conTract(C),Chs) where (Nm,Ts,Ds).=pullOut(deRef(C)) =>
+  encodeConstraint(conTract(Nm,Ts,Ds),Chs) =>
     encodeType(tupleType(Ds),
       encodeType(tupleType(Ts),
 	encodeText(Nm,[`c`,..Chs]))).
   encodeConstraint(fieldConstraint(V,F,T),Chs) =>
     encodeType(faceType([(F,deRef(T))],[]),encodeType(deRef(V),[`a`,..Chs])).
 
-  pullOut(funDeps(T,D)) where (Nm,Ts,_) .= pullOut(deRef(T)) =>
-    (Nm,Ts,D).
-  pullOut(tpExp(Op,Arg)) where (Nm,Ts,_) .= pullOut(Op) =>
-    (Nm,[Arg,..Ts],[]).
-  pullOut(tpFun(Nm,_)) => (Nm,[],[]).
-  
+  public encodeTypeRule:(typeRule,cons[char])=>cons[char].
+  encodeTypeRule(allRule(V,R),Chs) =>
+    encodeTypeRule(R,encodeType(deRef(V),[`:`,..Chs])).
+  encodeTypeRule(typeExists(H,I),Chs) =>
+    encodeType(deRef(I),encodeType(deRef(H),[`Y`,..Chs])).
+  encodeTypeRule(contractExists(N,T,D,I),Chs) =>
+    encodeType(deRef(I),encodeConstraint(conTract(N,T,D),[`Z`,..Chs])).
+  encodeTypeRule(typeLambda(Hd,I),Chs) =>
+    encodeType(deRef(I),encodeType(deRef(Hd),[`y`,..Chs])).
+
+  public encodeTpRlSignature:(typeRule) => string.
+  encodeTpRlSignature(Rl) => reverse(encodeTypeRule(Rl,[]))::string.
+
   encodeText:(string,cons[char]) => cons[char].
   encodeText(Txt,Chs) where Chrs .= Txt::cons[char] &&
       D.=findDelim(Chrs,[`|`,`/`,`%`]) =>
