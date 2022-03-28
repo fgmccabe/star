@@ -375,15 +375,6 @@ star.compiler.normalize{
     (LEl,Exx) <- liftExp(El,Map,Q,Ex2,Rp);
     valis (crCnd(Lc,LTs,LTh,LEl),Exx)
   }
-  liftExp(record(Lc,some(Nm),Fields,Tp),Map,Q,Ex,Rp) => do{
-    (LFields,Exx) <- liftFields(Fields,Map,Q,Ex,Rp);
-    valis (crRecord(Lc,Nm,LFields,Tp),Exx)
-  }
-  liftExp(record(Lc,.none,Fields,Tp),Map,Q,Ex,Rp) => do{
-    (LFields,Exx) <- liftFields(Fields,Map,Q,Ex,Rp);
-    Path .= genSym("record");
-    valis (crRecord(Lc,Path,LFields,Tp),Exx)
-  }
   liftExp(letExp(Lc,Grp,Bnd),Map,Q,Ex,Rp) => 
     liftLetExp(Lc,Grp,Bnd,Map,Q,Ex,Rp).
   liftExp(letRec(Lc,Grp,Bnd),Map,Q,Ex,Rp) => 

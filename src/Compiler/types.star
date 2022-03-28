@@ -16,13 +16,14 @@ star.compiler.types{
     allType(tipe,tipe) |
     existType(tipe,tipe) |
     faceType(cons[(string,tipe)],cons[(string,tipe)]) |
-    typeLambda(tipe,tipe) |
-    typeExists(tipe,tipe) |
-    contractExists(constraint,tipe) |
-    funDeps(tipe,cons[tipe]) |
     constrainedType(tipe,constraint).
 
-  public constraint ::= conTract(tipe) |
+  public typeRule ::= typeExists(tipe,tipe) |
+    contractExists(string,cons[tipe],cons[tipe],tipe) |
+    typeLambda(tipe,tipe) |
+    allRule(tipe,typeRule).
+
+  public constraint ::= conTract(string,cons[tipe],cons[tipe]) |
     fieldConstraint(tipe,string,tipe).
 
   tv ::= tv{
@@ -40,10 +41,7 @@ star.compiler.types{
   hasKind(allType(_,T)) => hasKind(T).
   hasKind(existType(_,T)) => hasKind(T).
   hasKind(faceType(_,_)) => 0.
-  hasKind(typeLambda(_,_)) => 0.
-  hasKind(typeExists(_,_)) => 0.
   hasKind(constrainedType(T,_)) => hasKind(T).
-  hasKind(funDeps(T,_)) => hasKind(T).
   
   public isIdenticalVar:(tipe,tipe) => boolean.
   isIdenticalVar(T1,T2) => isIdent(deRef(T1),deRef(T2)).
@@ -100,8 +98,7 @@ star.compiler.types{
   mkTypeExp(Tp,[A,..L]) => mkTypeExp(tpExp(Tp,A),L).
 
   public mkConType:(string,cons[tipe],cons[tipe])=>tipe.
-  mkConType(Nm,Ts,[]) => mkTypeExp(tpFun(Nm,size(Ts)),Ts).
-  mkConType(Nm,Ts,Ds) => funDeps(mkTypeExp(tpFun(Nm,size(Ts)),Ts),Ds).
+  mkConType(N,T,D) where L .= T++D => mkTypeExp(tpFun(N,size(L)),L).
 
   public implementation equality[tipe] => {
     T1==T2 => eqType(T1,T2,[]).
@@ -118,19 +115,11 @@ star.compiler.types{
   identType(tpFun(N1,A1),tpFun(N2,A2),_) => N1==N2 && A1==A2.
   identType(tpExp(O1,A1),tpExp(O2,A2),Q) =>
     eqType(O1,O2,Q) && eqType(A1,A2,Q).
-  identType(funDeps(T1,D1),funDeps(T2,D2),Q) =>
-    eqType(T1,T2,Q) && identTypes(D1,D2,Q).
   identType(tupleType(E1),tupleType(E2),Q) where size(E1)==size(E2) => identTypes(E1,E2,Q).
   identType(allType(V1,T1),allType(V2,T2),Q) =>
     eqType(V1,V2,Q) && eqType(T1,T2,Q).
   identType(existType(V1,T1),existType(V2,T2),Q) =>
     eqType(V1,V2,Q) && eqType(T1,T2,Q).
-  identType(typeLambda(V1,T1),typeLambda(V2,T2),Q) =>
-    eqType(V1,V2,Q) && eqType(T1,T2,Q).
-  identType(typeExists(V1,T1),typeExists(V2,T2),Q) =>
-    eqType(V1,V2,Q) && eqType(T1,T2,Q).
-  identType(contractExists(V1,T1),contractExists(V2,T2),Q) =>
-    eqConstraint(V1,V2,Q) && eqType(T1,T2,Q).
   identType(faceType(V1,T1),faceType(V2,T2),Q) =>
     identNmTypes(V1,V2,Q) && identNmTypes(T1,T2,Q).
   identType(constrainedType(T1,C1),constrainedType(T2,C2),Q) =>
@@ -141,7 +130,17 @@ star.compiler.types{
   identTypes([E1,..L1],[E2,..L2],Q) =>
     eqType(E1,E2,Q) && identTypes(L1,L2,Q).
 
-  eqConstraint(conTract(T1),conTract(T2),Q) => eqType(T1,T2,Q).
+  identTypeRule(typeExists(V1,T1),typeExists(V2,T2),Q) =>
+    eqType(V1,V2,Q) && eqType(T1,T2,Q).
+  identTypeRule(contractExists(N1,A1,D1,T1),contractExists(N2,A2,D2,T2),Q) =>
+    N1==N2 && identTypes(A1,A2,Q) && identTypes(D1,D2,Q) && eqType(T1,T2,Q).
+  identTypeRule(allRule(Q1,R1),allRule(Q2,R2),Q) =>
+    eqType(Q1,Q2,[]) && identTypeRule(R1,R2,Q).
+  identTypeRule(typeLambda(V1,T1),typeLambda(V2,T2),Q) =>
+    eqType(V1,V2,Q) && eqType(T1,T2,Q).
+
+  eqConstraint(conTract(N1,T1,D1),conTract(N2,T2,D2),Q) =>
+    N1==N2 && identTypes(T1,T2,Q) && identTypes(D1,D2,Q).
   eqConstraint(fieldConstraint(T1,F,R1),fieldConstraint(T2,F,R2),Q) =>
     eqType(T1,T2,Q) && eqType(R1,R2,Q).
   eqConstraint(_,_,_) default => .false.
@@ -155,7 +154,7 @@ star.compiler.types{
   .} in identPrs(sortByNm(L1),sortByNm(L2)).
 
   public implementation equality[constraint] => {
-    conTract(T1) == conTract(T2) => T1==T2.
+    conTract(N1,T1,D1) == conTract(N2,T2,D2) => N1==N2 && T1==T2 && D1==D2.
     fieldConstraint(V1,N1,T1) == fieldConstraint(V2,N2,T2) => N1==N2 && V1==V2 && T1==T2.
     _ == _ default => .false.
   }
@@ -166,6 +165,10 @@ star.compiler.types{
 
   public implementation display[constraint] => {
     disp(C) => showConstraint(C,2)
+  }
+
+  public implementation display[typeRule] => {
+    disp(T) => shTipeRule(T,.true,10000)
   }
 
   public showType:(tipe,boolean,integer) => string.
@@ -184,20 +187,28 @@ star.compiler.types{
   shTipe(existType(A,T),Sh,Dp) =>
     "exists #(showBound(A,Dp)) #(showMoreQuantified(T,Sh,Dp))".
   shTipe(faceType(Els,Tps),Sh,Dp) => "{#(showTypeEls(Els,Tps,Sh,Dp))}".
-  shTipe(typeLambda(A,T),Sh,Dp) =>
-    "#(showType(A,Sh,Dp)) ~> #(showType(T,Sh,Dp))".
-  shTipe(typeExists(A,T),Sh,Dp) =>
-    "#(showType(A,Sh,Dp)) <~ #(showType(T,Sh,Dp))".
-  shTipe(contractExists(C,T),Sh,Dp) =>
-    "#(showConstraint(C,Dp)) ::= #(showType(T,Sh,Dp))".
   shTipe(constrainedType(T,C),Sh,Dp) =>
     "#(showConstraint(C,Dp)) |: #(showType(T,Sh,Dp))".
-  shTipe(funDeps(T,D),Sh,Dp) =>
-    shTpExp(deRef(T),"->>","#(showTypes(D,Sh,Dp-1)*)]",Sh,Dp-1).
+
+  shContract(Nm,Tps,[],Sh,Dp) => "#(Nm)[#(showTypes(Tps,Sh,Dp)*)]".
+  shContract(Nm,Tps,Dps,Sh,Dp) => "#(Nm)[#(showTypes(Tps,Sh,Dp)*)->>#(showTypes(Dps,Sh,Dp)*)]".
   
   showTypes:(cons[tipe],boolean,integer) => cons[string].
   showTypes(_,_,0) => ["..."].
   showTypes(E,Sh,Dp) => showEls(E,Sh,Dp-1,"").
+
+  shTipeRule(typeExists(A,T),Sh,Dp) =>
+    "#(showType(A,Sh,Dp)) <~ #(showType(T,Sh,Dp))".
+  shTipeRule(contractExists(N,A,D,T),Sh,Dp) => "#(shContract(N,A,D,Sh,Dp)) ::= #(shTipe(T,Sh,Dp))".
+  shTipeRule(allRule(Q,R),Sh,Dp) =>
+    "all #(showBound(Q,Dp)) #(showMoreQRule(R,Sh,Dp))".
+  shTipeRule(typeLambda(A,T),Sh,Dp) =>
+    "#(showType(A,Sh,Dp)) ~> #(showType(T,Sh,Dp))".
+
+  showMoreQRule(allRule(Q,R),Sh,Dp) =>
+    ", #(showBound(Q,Dp))#(showMoreQRule(R,Sh,Dp))".
+  showMoreQRule(R,Sh,Dp) =>
+    " ~~ #(shTipeRule(R,Sh,Dp))".
   
   showEls:(cons[tipe],boolean,integer,string) => cons[string].
   showEls([],_,_,_) => [].
@@ -243,7 +254,7 @@ star.compiler.types{
 
   showBound(V,Dp) => showType(V,.false,Dp).
 
-  showConstraint(conTract(C),Dp) => disp(C).
+  showConstraint(conTract(Nm,T,D),Dp) => shContract(Nm,T,D,.false,Dp).
   showConstraint(fieldConstraint(Tp,Fld,Fc),Dp) =>
     "#(showType(Tp,.false,Dp)) <~ #(Fld):#(showType(Fc,.false,Dp))".
 
@@ -264,9 +275,8 @@ star.compiler.types{
     hsh(allType(V,T)) => (hash("all")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
     hsh(existType(V,T)) => (hash("exist")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
     hsh(constrainedType(T,C)) => (hash("|:")*37+hsh(deRef(T)))*37+hshCon(C).
-    hsh(funDeps(T,D)) => hshEls(hsh(deRef(T)),D).
 
-    hshCon(conTract(C)) => hash(C).
+    hshCon(conTract(N,T,D)) => hshEls(hshEls(hash(N)*37,T),D).
     hshCon(fieldConstraint(V,F,T)) =>
       ((hash("<~")*37+hash(F))*37+hsh(deRef(V)))*37+hsh(deRef(T)).
 
@@ -278,11 +288,12 @@ star.compiler.types{
   }
 
   
-  public implementation hashable[constraint] => {
-    hash(conTract(T)) => hash(T).
+/*  public implementation hashable[constraint] => {
+    hash(conTract(N,T,D)) => hshEls(hshEls(hash(N)*37,T),D).
     hash(fieldConstraint(V,F,T)) =>
       ((hash("<~")*37+hash(F))*37+hash(deRef(V)))*37+hash(deRef(T)).
   }
+  */
 
   public contract all c ~~ hasType[c] ::= {
     typeOf:(c)=>tipe.
@@ -299,55 +310,36 @@ star.compiler.types{
     tName(allType(_,T)) => tName(deRef(T)).
     tName(existType(_,T)) => tName(deRef(T)).
     tName(constrainedType(T,_)) => tName(deRef(T)).
-    tName(typeLambda(_,T)) => tName(deRef(T)).
     tName(tupleType(A)) => "!()$(size(A))".
     tName(faceType(Fs,Ts)) => "{}".
-    tName(funDeps(T,_)) => tName(T).
   .} in tName(deRef(Tp)).
 
-  public implementationName:(tipe) => string.
-  implementationName(Tp) => let{.
-    surfaceName:(tipe,cons[string])=>cons[string].
-    surfaceName(nomnal(Nm),R) => [Nm,"!",..R].
-    surfaceName(tpExp(O,A),R) => surfaceName(deRef(O),surfaceNm(deRef(A),R)).
-    surfaceName(kFun(Nm,_),R) => [Nm,..R].
-    surfaceName(tpFun(Nm,_),R) => [Nm,..R].
-    surfaceName(tVar(_,_),R) => ["!_",..R].
-    surfaceName(tFun(_,_,_),R) => ["!_",..R].
-    surfaceName(allType(_,T),R) => surfaceName(deRef(T),R).
-    surfaceName(existType(_,T),R) => surfaceName(deRef(T),R).
-    surfaceName(constrainedType(T,_),R) => surfaceName(deRef(T),R).
-    surfaceName(typeLambda(_,T),R) => surfaceName(deRef(T),R).
-    surfaceName(tupleType(A),R) => ["()$(size(A))!",..R].
-    surfaceName(faceType(Flds,_),R) =>
-      ["{}$(hash(interleave(sort(Flds,cmpFlds)//fst,"|")*))",..R].
-    surfaceName(funDeps(T,_),R) => surfaceName(deRef(T),R).
-
-    surfaceNm(nomnal(Nm),R) => ["!",Nm,..R].
-    surfaceNm(tpExp(O,A),R) => surfaceNm(deRef(O),R).
-    surfaceNm(kFun(Nm,_),R) => ["!",Nm,..R].
-    surfaceNm(tpFun(Nm,_),R) => ["!",Nm,..R].
-    surfaceNm(tVar(_,_),R) => ["!_",..R].
-    surfaceNm(tFun(_,_,_),R) => ["!_",..R].
-    surfaceNm(allType(_,T),R) => surfaceNm(deRef(T),R).
-    surfaceNm(existType(_,T),R) => surfaceNm(deRef(T),R).
-    surfaceNm(constrainedType(T,_),R) => surfaceNm(deRef(T),R).
-    surfaceNm(typeLambda(_,T),R) => surfaceNm(deRef(T),R).
-    surfaceNm(tupleType(A),R) => ["!()$(size(A))",..R].
-    surfaceNm(funDeps(T,_),R) => surfaceNm(deRef(T),R).
-  .} in surfaceName(deRef(Tp),[])*.
+  public implementationName:(constraint) => string.
+  implementationName(Con) => let{.
+    implName(conTract(Nm,Tps,_)) => interleave([Nm,..(Tps//(T)=>surfaceNm(deRef(T)))],"!")*.
+    surfaceNm(nomnal(Nm)) => Nm.
+    surfaceNm(tpExp(O,A)) => surfaceNm(deRef(O)).
+    surfaceNm(kFun(Nm,_)) => Nm.
+    surfaceNm(tpFun(Nm,_)) => Nm.
+    surfaceNm(tVar(_,_)) => "_".
+    surfaceNm(tFun(_,_,_)) => "_".
+    surfaceNm(allType(_,T)) => surfaceNm(deRef(T)).
+    surfaceNm(existType(_,T)) => surfaceNm(deRef(T)).
+    surfaceNm(constrainedType(T,_)) => surfaceNm(deRef(T)).
+    surfaceNm(tupleType(A)) => "()$(size(A))".
+    surfaceNm(faceType(Flds,_)) =>
+      "{}$(hash(interleave(sort(Flds,cmpFlds)//fst,"|")*))".
+  .} in implName(Con).
 
   cmpFlds:((string,tipe),(string,tipe))=>boolean.
   cmpFlds((N1,_),(N2,_))=>N1<N2.
 
-  public implementation hasType[constraint] => {.
-    typeOf(conTract(C)) => dropTypeDefs(deRef(C)).
-    dropTypeDefs(funDeps(O,D)) => mkTypeExp(O,D).
-    dropTypeDefs(T) => T.
-  .}
-
   public implementation hasType[tipe] => {
     typeOf = id
+  }
+
+  public implementation hasType[constraint] => {
+    typeOf(conTract(Nm,T,D)) => mkConType(Nm,T,D).
   }
 
   public implementation all t ~~ hasType[t] |: hasType[cons[t]] => {
@@ -443,13 +435,20 @@ star.compiler.types{
   public isRefType(Tp) => tpExp(Op,_) .= deRef(Tp) &&
       tpFun("star.core*ref",1).=deRef(Op).
 
-  public isLambdaRule(Tp) where (_,T).=deQuant(Tp) => typeLambda(_,_).=deRef(T).
+  public isLambdaRule(typeLambda(_,_)) => .true.
+  isLambdaRule(_) default => .false.
 
   public deQuant:(tipe) => (cons[tipe],tipe).
   deQuant(T) => let{.
     deQ(allType(V,I),Qs) => deQ(I,[V,..Qs]).
     deQ(Tp,Qs) => (reverse(Qs),Tp).
   .} in deQ(T,[]).
+
+  public deQuantRule:(typeRule) => (cons[tipe],typeRule).
+  deQuantRule(Rl) => let{.
+    deQ(allRule(V,R),Q) => deQ(R,[V,..Q]).
+    deQ(R,Q) => (reverse(Q),R)
+  .} in deQ(Rl,[]).
 
   public reQuant:(cons[tipe],tipe) => tipe.
   reQuant([],Tp) => Tp.
@@ -476,9 +475,16 @@ star.compiler.types{
   typeKey(allType(K,T)) => typeKey(T).
   typeKey(existType(K,T)) => typeKey(T).
   typeKey(constrainedType(T,C)) => typeKey(T).
-  typeKey(typeLambda(T,_)) => typeKey(T).
-  typeKey(typeExists(T,_)) => typeKey(T).
   typeKey(tpExp(O,_)) => typeKey(O).
-  typeKey(funDeps(T,_)) => typeKey(T).
   typeKey(T) default => T.
+
+  public contractType:(typeRule) => tipe.
+  contractType(allRule(Q,R)) => allType(Q,contractType(R)).
+  contractType(contractExists(Nm,Tps,Dps,_)) =>
+    mkTypeExp(tpFun(Nm,size(Tps)+size(Dps)),Tps++Dps).
+
+  public contractTypeRule:(typeRule) => typeRule.
+  contractTypeRule(allRule(Q,R)) => allRule(Q,contractTypeRule(R)).
+  contractTypeRule(contractExists(Nm,Tps,Dps,Face)) =>
+    typeExists(mkTypeExp(tpFun(Nm,size(Tps)+size(Dps)),Tps++Dps),Face).
 }

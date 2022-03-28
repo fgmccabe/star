@@ -8,7 +8,7 @@ star.compiler.dict{
   import star.compiler.location.
   import star.compiler.types.
 
-  public tpDef ::= tpVar(option[locn],tipe) | tpDefn(option[locn],string,tipe,tipe).
+  public tpDef ::= tpDefn(option[locn],string,tipe,typeRule).
 
   public vrEntry ::= vrEntry(option[locn],(locn,dict)=>canon,tipe,option[tipe]).
 
@@ -20,7 +20,7 @@ star.compiler.dict{
     map[string,tpDef],
     map[string,vrEntry],
     cons[constraint],
-    map[string,tipe],
+    map[string,typeRule],
     map[string,implEntry],
     map[string,map[string,accEntry]],
     map[string,map[string,accEntry]]).
@@ -38,7 +38,6 @@ star.compiler.dict{
   }
 
   public implementation display[tpDef] => {
-    disp(tpVar(_,Tp)) => "tpvar:$(Tp)".
     disp(tpDefn(_,_,Tmpl,Rl)) => "$(Tmpl) == $(Rl)".
   }
 
@@ -55,16 +54,17 @@ star.compiler.dict{
 
   public vrFace(vrEntry(_,_,_,Fc))=>Fc.
   
-  public declareType:(string,option[locn],tipe,tipe,dict) => dict.
+  public declareType:(string,option[locn],tipe,typeRule,dict) => dict.
   declareType(Nm,Lc,Tp,TpRl,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..Rest]) =>
     [scope(Tps[Nm->tpDefn(Lc,Nm,Tp,TpRl)],Vrs,Cns,Cnts,Imps,Accs,Ups),..Rest].
 
-  public findType:(dict,string) => option[(option[locn],tipe,tipe)].
+  public findType:(dict,string) => option[(option[locn],tipe,typeRule)].
   findType([],Nm) => .none.
-  findType([scope(Tps,_,_,_,_,_,_),.._],Ky) where tpDefn(Lc,_,Tp,Rl)^=Tps[Ky] => some((Lc,Tp,Rl)).
+  findType([scope(Tps,_,_,_,_,_,_),.._],Ky) where tpDefn(Lc,_,Tp,Rl)^=Tps[Ky] =>
+    some((Lc,Tp,Rl)).
   findType([_,..Rest],Ky) => findType(Rest,Ky).
 
-  public findContract:(dict,string) => option[tipe].
+  public findContract:(dict,string) => option[typeRule].
   findContract([],Nm) => .none.
   findContract([scope(_,_,_,Cns,_,_,_),.._],Ky) where Con^=Cns[Ky] => some(Con).
   findContract([_,..Rest],Ky) => findContract(Rest,Ky).
@@ -122,7 +122,7 @@ star.compiler.dict{
   public declareTypeVars:(cons[(string,tipe)],dict) => dict.
   declareTypeVars([],Env) => Env.
   declareTypeVars([(Nm,Tp),..Q],Env) =>
-    declareTypeVars(Q,declareType(Nm,.none,Tp,Tp,Env)).
+    declareTypeVars(Q,declareType(Nm,.none,Tp,typeExists(Tp,Tp),Env)).
 
   emptyFace = faceType([],[]).
 
@@ -137,7 +137,7 @@ star.compiler.dict{
 	declareType("boolean",.none,boolType,typeExists(boolType,emptyFace),
 	  declareType("string",.none,strType,typeExists(strType,emptyFace),
 	    declareType("cons",.none,tpFun("star.core*cons",1),
-	      allType(nomnal("e"),
+	      allRule(nomnal("e"),
 		typeExists(lstType(nomnal("e")),faceType([],[]))),
 	      emptyDict))))).
 }

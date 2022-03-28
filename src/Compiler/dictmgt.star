@@ -20,9 +20,22 @@ star.compiler.dict.mgt{
   isVar(Nm,[scope(_,Vrs,_,_,_,_,_),.._]) where Entry^=Vrs[Nm] => some(Entry).
   isVar(Nm,[_,..D]) => isVar(Nm,D).
 
+  public showVar:(string,dict) => string.
+  showVar(Nm,Dict) where vrEntry(_,_,Tp,_)^=isVar(Nm,Dict) => "$(Nm)\:$(Tp)".
+  showVar(Nm,_) => "$(Nm) not defined".
+
   public findVar:(locn,string,dict) => option[canon].
   findVar(Lc,Nm,Dict) where vrEntry(_,Mk,Tp,_) ^= isVar(Nm,Dict) => some(Mk(Lc,Dict)).
   findVar(_,_,_) default => .none.
+
+  public findAccess:(locn,tipe,string,dict) => option[canon].
+  findAccess(Lc,Tp,Fld,Env) => valof{
+    if accEntry(_,Nm,T) ^= getFieldAccess(Tp,Fld,Env) then{
+      valis some(refreshVar(Lc,Nm,T,Env))
+    }
+    else
+      valis .none
+  }
 
   public findVarFace:(string,dict) => option[tipe].
   findVarFace(Nm,Env) where vrEntry(_,Mk,Tp,Fc) ^=isVar(Nm,Env) =>
@@ -89,47 +102,45 @@ star.compiler.dict.mgt{
   declareVr(Nm,Lc,Tp,MkVr,Fc,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..Ev]) =>
     [scope(Tps,Vrs[Nm->vrEntry(Lc,MkVr,Tp,Fc)],Cns,Cnts,Imps,Accs,Ups),..Ev].
 
-  public declareContract:(option[locn],string,tipe,dict) => dict.
+  public declareContract:(option[locn],string,typeRule,dict) => dict.
   declareContract(Lc,Nm,Con,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..Rest]) =>
-    declareMethods(Lc,Con,[scope(Tps[Nm->tpDefn(Lc,Nm,typeKey(Con),Con)],Vrs,Cns,Cnts[Nm->Con],Imps,Accs,Ups),..Rest]).
+    declareMethods(Lc,Con,
+      [scope(Tps[Nm->tpDefn(Lc,Nm,contractType(Con),contractTypeRule(Con))],
+	  Vrs,Cns,Cnts[Nm->Con],Imps,Accs,Ups),..Rest]).
 
-  declareMethods:(option[locn],tipe,dict) => dict.
-  declareMethods(Lc,Spec,Dict) where
-      (MQ,MI) .= deQuant(Spec) &&
-      (MC,contractExists(conTract(CT),faceType(Methods,[]))) .= deConstrain(MI) =>
-    formMethods(Methods,Lc,MQ,MC,CT,Dict).
-
-  formMethods:(cons[(string,tipe)],option[locn],cons[tipe],
-    cons[constraint],tipe,dict) => dict.
-  formMethods([],_,_,_,_,Dict) => Dict.
-  formMethods([(Nm,Tp),..Mtds],Lc,Q,Cx,Con,Dict) => valof{
---    logMsg("raw method type of $(Nm) is $(Tp), constraints: $(Con)");
-    (MQ,MI) .= deQuant(Tp);
-    MT .= reQuant(Q++MQ,reConstrainType([conTract(Con),..Cx],MI));
---    logMsg("actual method type $(MT)");
-    valis formMethods(Mtds,Lc,Q,Cx,Con,declareMethod(Nm,Lc,MT,Con,Dict))
+  declareMethods:(option[locn],typeRule,dict) => dict.
+  declareMethods(Lc,Spec,Dict) => valof{
+    (Q,contractExists(Nm,Tps,Dps,faceType(Mts,[]))) .= deQuantRule(Spec);
+    valis formMethods(Mts,Lc,Q,conTract(Nm,Tps,Dps),Dict)
   }
 
-  declareMethod:(string,option[locn],tipe,tipe,dict) => dict.
+  formMethods:(cons[(string,tipe)],option[locn],cons[tipe],constraint,dict) => dict.
+  formMethods([],_,_,_,Dict) => Dict.
+  formMethods([(Nm,Tp),..Mtds],Lc,Q,Con,Dict) => valof{
+    (MQ,MI) .= deQuant(Tp);
+    (MC,MT) .= deConstrain(MI);
+    MT .= reQuant(Q++MQ,reConstrainType([Con,..MC],MT));
+--    logMsg("actual method type of $(Nm) is $(MT)");
+    valis formMethods(Mtds,Lc,Q,Con,declareMethod(Nm,Lc,MT,Con,Dict))
+  }
+
+  declareMethod:(string,option[locn],tipe,constraint,dict) => dict.
   declareMethod(Nm,Lc,Tp,Con,Dict) =>
     declareVr(Nm,Lc,Tp,(L,E)=>pickupMtd(L,Nm,Tp,Con,E),.none,Dict).
 
   pickupMtd(Lc,Nm,Tp,Con,Env) => valof{
 --    logMsg("pick up method $(Nm) : $(Tp) {$(Con)}");
     (Q,VrTp) .= freshen(Tp,Env);
-    Cn .= refresh(Q,Con,Env);
+    Cn .= refreshConstraint(Q,Con,Env);
 --    logMsg("freshened type of $(Nm) is $(VrTp) Q=$(Q)");
 --    logMsg("freshened contract $(Cn)");
     valis manageConstraints(VrTp,Lc,(LLc,MTp)=>mtd(LLc,Nm,Cn,MTp),Env)
   }
 
-  public declareDecls:(cons[decl],dict,reports)=>either[reports,dict].
-  declareDecls([],Dict,_) => do{
-    valis Dict
-  }
-  declareDecls([D,..Ds],Dict,Rp) => do{
-    declareDecls(Ds,declareDecl(D,Dict),Rp)
-  }
+  public declareDecls:(cons[decl],dict)=>dict.
+  declareDecls([],Dict) => Dict.
+  declareDecls([D,..Ds],Dict) => 
+    declareDecls(Ds,declareDecl(D,Dict)).
 
   declareDecl(implDec(Lc,Nm,ImplNm,Tp),Dict) => 
     declareImplementation(Lc,Nm,ImplNm,Tp,Dict).
@@ -167,13 +178,13 @@ star.compiler.dict.mgt{
   pushTypes:(cons[(string,tipe)],locn,dict) => dict.
   pushTypes([],Lc,Env) => Env.
   pushTypes([(Nm,Tp),..Tps],Lc,Env) =>
-    pushTypes(Tps,Lc,declareType(Nm,some(Lc),typeKey(Tp),Tp,Env)).
+    pushTypes(Tps,Lc,declareType(Nm,some(Lc),typeKey(Tp),typeExists(Tp,faceType([],[])),Env)).
 
   public declareConstraints:(option[locn],cons[constraint],dict) => dict.
   declareConstraints(_,[],E) => E.
-  declareConstraints(Lc,[Con,..Cx],Env)
-      where ConTp .= typeOf(Con) &&
-      ConNm.=implementationName(ConTp) =>
+  declareConstraints(Lc,[conTract(N,T,D),..Cx],Env)
+      where ConTp .= mkConType(N,T,D) &&
+      ConNm.=implementationName(conTract(N,T,D)) =>
     declareConstraints(Lc,Cx,
       declareVar(ConNm,Lc,ConTp,.none,
 	declareImplementation(Lc,ConNm,ConNm,ConTp,Env))).
@@ -188,6 +199,6 @@ star.compiler.dict.mgt{
   applyConstraint:(locn,constraint,canon,dict) => canon.
   applyConstraint(Lc,fieldConstraint(V,F,T),Trm,Env)
       where sameType(typeOf(Trm),V,Env) => overaccess(Lc,Trm,F,T).
-  applyConstraint(Lc,conTract(C),Trm,_) =>
-    over(Lc,Trm,[conTract(C)]).
+  applyConstraint(Lc,conTract(N,T,D),Trm,_) =>
+    over(Lc,Trm,[conTract(N,T,D)]).
 }
