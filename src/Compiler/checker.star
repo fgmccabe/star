@@ -82,11 +82,6 @@ star.compiler.checker{
   isVisible([(e,V),.._],e) => V>=.transItive.
   isVisible([_,..l],e) => isVisible(l,e).
 
-  exportedTypes:(cons[cons[canonDef]],cons[(defnSp,visibility)],visibility) =>
-    cons[(string,tipe)].
-  exportedTypes(Defs,Vis,DVz) => { (Nm,ExTp) |
-      DD in Defs && typeDef(_,Nm,_,ExTp) in DD && (tpSp(Nm),V) in Vis && V>=DVz}.
-
   formRecordExp:(locn,string,tipe,cons[canonDef],cons[decl],tipe) => canon.
   formRecordExp(Lc,Lbl,faceType(Flds,Tps),Defs,Decls,Tp) =>
     letExp(Lc,Defs,Decls,apply(Lc,vr(.none,Lbl,consType(tupleType(Flds//snd),Tp)),
@@ -318,33 +313,34 @@ star.compiler.checker{
   checkImplementation:(locn,string,cons[ast],cons[ast],ast,ast,dict,dict,string,reports) =>
     either[reports,(cons[canonDef],cons[decl])].
   checkImplementation(Lc,Nm,Q,C,H,B,Env,Outer,Path,Rp) => do{
-    logMsg("checking implementation stmt at $(Lc)");
+    logMsg("checking implementation for $(Nm) stmt at $(Lc)");
     
     BV <- parseBoundTpVars(Q,Rp);
     Cx <- parseConstraints(C,BV,Env,Rp);
     Cn <- parseContractConstraint(BV,H,Env,Rp);
-    ConName .= localName(tpName(Cn),.tractMark);
+    ConName .= localName(conTractName(Cn),.tractMark);
     logMsg("Contract name $(ConName)");
     
     if Con ^= findContract(Env,ConName) then{
-      (_,contractExists(conTract(ConTp),ConFaceTp)) .= freshen(Con,Env);
+      (_,contractExists(CnNm,CnTps,CnDps,ConFaceTp)) .= freshen(Con,Env);
+      ConTp .= mkConType(CnNm,CnTps,CnDps);
       logMsg("contract exists: $(ConTp) ~ $(Cn)");
-      if sameType(ConTp,Cn,Env) then {
-	
+      if sameType(ConTp,typeOf(Cn),Env) then {
 	Es .= declareConstraints(some(Lc),Cx,declareTypeVars(BV,Outer));
 	Impl <- typeOfExp(B,ConTp,Es,Path,Rp);
-	ImplVrNm .= qualifiedName(Path,.valMark,implementationName(ConTp));
+	ImplNm .= implementationName(conTract(CnNm,CnTps,CnDps));
+	ImplVrNm .= qualifiedName(Path,.valMark,ImplNm);
 	ImplTp .= rebind(BV,reConstrainType(Cx,ConTp),Es);
-	logMsg("impementation definition $(implDef(Lc,Nm,ImplVrNm,Impl,Cx,ImplTp))");
+	logMsg("impementation definition $(implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp))");
 	
-	valis ([implDef(Lc,Nm,ImplVrNm,Impl,Cx,ImplTp)],
-	  [implDec(some(Lc),implementationName(ConTp),ImplVrNm,ImplTp)])
+	valis ([implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp)],
+	  [implDec(some(Lc),ImplNm,ImplVrNm,ImplTp)])
       }
       else{
 	raise reportError(Rp,"implementation type $(Cn) not consistent with contract type $(ConTp)",Lc)
       }
     } else{
-      raise reportError(Rp,"Contract $(ConName) not known",Lc)
+      raise reportError(Rp,"Contract $(Nm) not known",Lc)
     }
   }
 

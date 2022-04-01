@@ -314,6 +314,9 @@ star.compiler.types{
     tName(faceType(Fs,Ts)) => "{}".
   .} in tName(deRef(Tp)).
 
+  public conTractName:(constraint)=>string.
+  conTractName(conTract(Nm,_,_)) => Nm.
+
   public implementationName:(constraint) => string.
   implementationName(Con) => let{.
     implName(conTract(Nm,Tps,_)) => interleave([Nm,..(Tps//(T)=>surfaceNm(deRef(T)))],"!")*.
