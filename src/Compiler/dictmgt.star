@@ -119,9 +119,9 @@ star.compiler.dict.mgt{
   formMethods([(Nm,Tp),..Mtds],Lc,Q,Con,Dict) => valof{
     (MQ,MI) .= deQuant(Tp);
     (MC,MT) .= deConstrain(MI);
-    MT .= reQuant(Q++MQ,reConstrainType([Con,..MC],MT));
---    logMsg("actual method type of $(Nm) is $(MT)");
-    valis formMethods(Mtds,Lc,Q,Con,declareMethod(Nm,Lc,MT,Con,Dict))
+    valis formMethods(Mtds,Lc,Q,Con,
+      declareMethod(Nm,Lc,reQuant(Q++MQ,
+	  reConstrainType([Con,..MC],MT)),Con,Dict))
   }
 
   declareMethod:(string,option[locn],tipe,constraint,dict) => dict.
