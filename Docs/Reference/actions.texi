@@ -17,29 +17,40 @@ value is determined by performing an action.
 @anchored{ActionExpression} ::= @refer{DoAction}
   | @refer{ActionAction}
   | @refer{TaskAction}
+  | @refer{ValofAction}
 
 @anchored{DoAction} ::= @code{'do'} @refer{BlockAction}
 
 @anchored{ActionAction} ::= @code{'action'} @refer{BlockAction}
 
 @anchored{TaskAction} ::= @code{'task'} @refer{BlockAction}
+
+@anchored{ValofAction} ::= @code{'valof'} @refer{BlockAction}
 @end display
 @end float
 
-The differences between the three forms represent a degree of
+The differences between the different forms represent a degree of
 separation between the action and the expression:
 
 @itemize @bullet
 @item
-A @code{do} action performs its action at the same time as the expression is evaluated.
+A @code{valof} action is performed as the @code{valof} expression is
+evaluated: the value of the expression is the value returned by the
+body of the action.
 @item
 A @code{action} expression returns a term that can be performed. I.e., the
 value of an @code{action} expression is an action; which, when
 performed, will return a value.
 @item
-A @code{task} expression returns a computation that can be scheduled independently of other actions.
+A @code{task} expression returns a computation that can be scheduled
+independently of other actions.
 
 This is analogous to coroutining in other programming languages.
+@item
+A @code{do} action is a non-specific form of action expression: its
+semantics depends on whether the type is inferred to be an
+@code{action} expression, @code{task} expression, or even some other
+form of action expression.
 @end itemize
 
 @node Do Notation
@@ -430,8 +441,10 @@ is mediated by means of the @code{execution} contract.
 @caption{Execution Contract}
 @example
 public contract all m/2 ~~ execution[m] ::= @{
-  _valof:all a,e ~~ (m[e,a])=>a.
+  _perform:all a,e ~~ (m[e,a])=>a.
   _valis:all a,e ~~ (a)=>m[e,a].
+  _sequence:all a,b,e ~~ (m[e,a],(a)=>m[e,b]) => m[e,b].
+  _catch:all a,e,f ~~ (m[e,a],(e)=>m[f,a]) => m[f,a].
   _raise: all a,e ~~ (e) => m[e,a].
 @}
 @end example
@@ -465,7 +478,7 @@ computations can return in one of two ways: normally or abnormally.
 @float BNF,resultTypeFig
 @caption{Result Type}
 @example
-public all e,a ~~ result[e,a] ::= ok(a) | err(e).
+public all e,a ~~ result[e,a] ::= ok(a) | bad(e).
 @end example
 @end float
 
@@ -477,10 +490,69 @@ The implementation of the @code{execution} contract for the
 
 @example
 public implementation execution[result] => @{
-  _valof(ok(X)) => X.
+  _perform(ok(X)) => X.
 
   _valis(X) => ok(X).
-  _raise(E) => err(E).
+
+  _sequence(bad(E),_) => bad(E).
+  _sequence(ok(A),F) => F(A).
+
+  _catch(ok(X),_) => ok(X).
+  _catch(bad(X),E) => E(X).
+
+  _raise(S) => bad(S).
+@}
+@end example
+
+
+@node The @code{action} Type
+@subsection The @code{action} Type
+
+As noted above, the @code{action} type denotes a form of action
+expression where the action denoted by the expression may be performed
+separately (and potentially multiply) from the expression itself.
+
+@float BNF,actionTypeFig
+@caption{Action Type}
+@example
+public all e,a ~~ action[e,a] ::= done(a) | delay(()=>action[e,a]) |err(e).
+@end example
+@end float
+
+The delayed nature of an @code{action} type is captured via the
+@code{delay} constructor: it contains a function that, when the action
+is performed, computes the results of the action.
+
+@quotation Note
+It can be difficult to capture the essence of the @code{action}
+type. Perhaps the most direct way is to note that an @code{action}
+expression denotes a (typically) delayed action that can be performed
+at some time.
+@end quotation
+
+The other cases of the @code{action} type denote completed states of
+the action: when the ction is @code{done}, or when the action has
+resulted in an @code{err}or.
+
+The implementation of the @code{execution} contract for the
+@code{action} type is slightly more complex than that for @code{result}
+
+@example
+public implementation execution[action] => @{
+  _perform(done(X)) => X.
+  _perform(delay(F)) => _perform(F()).
+
+  _valis(X) => delay(()=>done(X)).
+
+  _sequence(err(E),_) => err(E).
+  _sequence(done(A),F) => delay(()=>F(A)).
+  _sequence(delay(G),F) => delay(()=>_sequence(G(),F)).
+
+  _catch(done(X),_) => done(X).
+  _catch(delay(A),E) => _catch(A(),E).
+  _catch(err(X),E) => E(X).
+
+  _raise(S) => err(S).
 @}
 @end example
 
