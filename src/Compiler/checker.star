@@ -45,9 +45,10 @@ star.compiler.checker{
 	(Defs,ThDecls,ThEnv) <- checkGroups(Gps,[],[],faceType([],[]),Annots,PkgEnv,
 	  PkgPth,Rp);
 
-	RDefs <- overloadEnvironment(Defs,ThDecls,PkgEnv,Rp);
-	
-	ExDecls.=exportDecls(ThDecls*,completePublic(Vis,PkgPth));
+--	logMsg("overload env $(Defs) using $(ThDecls)");
+	RDefs <- overloadEnvironment(Defs,declareDecls(ThDecls*,PkgEnv),Rp);
+
+	ExDecls.=exportDecls(ThDecls*,completePublic(Vis,PkgPth),.priVate);
 	valis (pkgSpec(Pkge,Imports,ExDecls),RDefs*,ThDecls*)
       }
       else
@@ -65,22 +66,25 @@ star.compiler.checker{
       (conSp(Nm),.pUblic),..completePublic(Ds,Pth)].
   completePublic([S,..Ds],Pth) => [S,..completePublic(Ds,Pth)].
 
-  exportDecls:(cons[decl],cons[(defnSp,visibility)]) => cons[decl].
-  exportDecls(Decls,Viz) => let{
-    exported(implDec(_,Nm,FullNm,_)) => isVisible(Viz,implSp(Nm)).
-    exported(accDec(_,Tp,_,_,_)) => isVisible(Viz,accSp(tpName(Tp))).
-    exported(updDec(_,Tp,_,_,_)) => isVisible(Viz,updSp(tpName(Tp))).
-    exported(tpeDec(_,TpNm,_,_)) => isVisible(Viz,tpSp(TpNm)).
-    exported(varDec(_,Nm,_,_)) => isVisible(Viz,varSp(Nm)).
-    exported(funDec(_,Nm,_,_)) => isVisible(Viz,varSp(Nm)).
-    exported(cnsDec(_,Nm,_,_)) => isVisible(Viz,cnsSp(Nm)).
-    exported(conDec(_,Nm,_,_)) => isVisible(Viz,conSp(Nm)).
+  exportDecls:(cons[decl],cons[(defnSp,visibility)],visibility) => cons[decl].
+  exportDecls(Decls,Viz,Deflt) => let{
+    exported(implDec(_,Nm,FullNm,_)) => isVisible(Viz,Deflt,implSp(Nm)).
+    exported(accDec(_,Tp,_,_,_)) => isVisible(Viz,Deflt,accSp(tpName(Tp))).
+    exported(updDec(_,Tp,_,_,_)) => isVisible(Viz,Deflt,updSp(tpName(Tp))).
+    exported(tpeDec(_,TpNm,_,_)) => isVisible(Viz,Deflt,tpSp(TpNm)).
+    exported(varDec(_,Nm,_,_)) => isVisible(Viz,Deflt,varSp(Nm)).
+    exported(funDec(_,Nm,_,_)) => isVisible(Viz,Deflt,varSp(Nm)).
+    exported(cnsDec(_,Nm,_,_)) => isVisible(Viz,Deflt,cnsSp(Nm)).
+    exported(conDec(_,Nm,_,_)) => isVisible(Viz,Deflt,conSp(Nm)).
   } in (Decls ^/ exported).
 
-  isVisible:(cons[(defnSp,visibility)],defnSp)=>boolean.
-  isVisible([],_) => .false.
-  isVisible([(e,V),.._],e) => V>=.transItive.
-  isVisible([_,..l],e) => isVisible(l,e).
+  pickDefltVis(.deFault,V) => V.
+  pickDefltVis(V,_) => V.
+
+  isVisible:(cons[(defnSp,visibility)],visibility,defnSp)=>boolean.
+  isVisible([],_,_) => .false.
+  isVisible([(e,V),.._],D,e) => pickDefltVis(V,D)>=.transItive.
+  isVisible([_,..l],D,e) => isVisible(l,D,e).
 
   formRecordExp:(locn,string,tipe,cons[canonDef],cons[decl],tipe) => canon.
   formRecordExp(Lc,Lbl,faceType(Flds,Tps),Defs,Decls,Tp) =>
@@ -256,7 +260,7 @@ star.compiler.checker{
   checkFunction:(string,tipe,locn,cons[ast],dict,dict,string,reports) =>
     either[reports,(cons[canonDef],cons[decl])].
   checkFunction(Nm,Tp,Lc,Stmts,Env,Outer,Path,Rp) => do{
-    logMsg("check function $(Nm), type $(Tp), existing #(showVar(Nm,Outer))");
+--    logMsg("check function $(Nm), type $(Tp), existing #(showVar(Nm,Outer))");
     (Q,ETp) .= evidence(Tp,Env);
     (Cx,ProgramTp) .= deConstrain(ETp);
     Es .= declareConstraints(some(Lc),Cx,declareTypeVars(Q,Env));
@@ -288,24 +292,24 @@ star.compiler.checker{
 
   processEqn(St,ProgramType,Env,Outer,Path,Rp) where
       (Lc,_,IsDeflt,Arg,Cnd,R) ^= isEquation(St) => do{
-	logMsg("check equation $(St)");
+--	logMsg("check equation $(St)");
 	Ats .= genArgTps(Arg);
 	RTp .= newTypeVar("_R");
 	checkType(St,funType(Ats,RTp),ProgramType,Env,Rp);
 	(Args,E0) <- typeOfArgPtn(Arg,tupleType(Ats),Outer,Path,Rp);
-	logMsg("equation args $(Args) \: $(tupleType(Ats))");
+--	logMsg("equation args $(Args) \: $(tupleType(Ats))");
 	
 	if Wh^=Cnd then{
 	  (Cond,E1) <- checkCond(Wh,E0,Path,Rp);
-	  logMsg("condition $(Cond)");
+--	  logMsg("condition $(Cond)");
 	  Rep <- typeOfExp(R,RTp,E1,Path,Rp);
-	  logMsg("equation rhs $(Rep) \: $(RTp)");
+--	  logMsg("equation rhs $(Rep) \: $(RTp)");
 	  
 	  valis (eqn(Lc,Args,some(Cond),Rep),IsDeflt)
 	} else{
-	  logMsg("expected type of rhs $(RTp)");
+--	  logMsg("expected type of rhs $(RTp)");
 	  Rep <- typeOfExp(R,RTp,E0,Path,Rp);
-	  logMsg("equation rhs $(Rep) \: $(RTp)");
+--	  logMsg("equation rhs $(Rep) \: $(RTp)");
 	  valis (eqn(Lc,Args,.none,Rep),IsDeflt)
 	}
       }.
@@ -313,25 +317,25 @@ star.compiler.checker{
   checkImplementation:(locn,string,cons[ast],cons[ast],ast,ast,dict,dict,string,reports) =>
     either[reports,(cons[canonDef],cons[decl])].
   checkImplementation(Lc,Nm,Q,C,H,B,Env,Outer,Path,Rp) => do{
-    logMsg("checking implementation for $(Nm) stmt at $(Lc)");
+--    logMsg("checking implementation for $(Nm) stmt at $(Lc)");
     
     BV <- parseBoundTpVars(Q,Rp);
     Cx <- parseConstraints(C,BV,Env,Rp);
     Cn <- parseContractConstraint(BV,H,Env,Rp);
     ConName .= localName(conTractName(Cn),.tractMark);
-    logMsg("Contract name $(ConName)");
+--    logMsg("Contract name $(ConName)");
     
     if Con ^= findContract(Env,ConName) then{
       (_,contractExists(CnNm,CnTps,CnDps,ConFaceTp)) .= freshen(Con,Env);
       ConTp .= mkConType(CnNm,CnTps,CnDps);
-      logMsg("contract exists: $(ConTp) ~ $(Cn)");
+--      logMsg("contract exists: $(ConTp) ~ $(Cn)");
       if sameType(ConTp,typeOf(Cn),Env) then {
 	Es .= declareConstraints(some(Lc),Cx,declareTypeVars(BV,Outer));
 	Impl <- typeOfExp(B,ConTp,Es,Path,Rp);
 	ImplNm .= implementationName(conTract(CnNm,CnTps,CnDps));
 	ImplVrNm .= qualifiedName(Path,.valMark,ImplNm);
 	ImplTp .= rebind(BV,reConstrainType(Cx,ConTp),Es);
-	logMsg("impementation definition $(implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp))");
+--	logMsg("implementation definition $(implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp))");
 	
 	valis ([implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp)],
 	  [implDec(some(Lc),ImplNm,ImplVrNm,ImplTp)])
@@ -340,13 +344,13 @@ star.compiler.checker{
 	raise reportError(Rp,"implementation type $(Cn) not consistent with contract type $(ConTp)",Lc)
       }
     } else{
-      raise reportError(Rp,"Contract $(Nm) not known",Lc)
+      raise reportError(Rp,"Contract $(ConName) not known",Lc)
     }
   }
 
   checkAccessor:(locn,string,cons[ast],cons[ast],ast,ast,dict,dict,string,reports) => either[reports,(cons[canonDef],cons[decl])].
   checkAccessor(Lc,Nm,Q,C,T,B,Env,Outer,Path,Rp) => do{
-    logMsg("check accessor $(Nm)");
+--    logMsg("check accessor $(Nm)");
     QV <- parseBoundTpVars(Q,Rp);
     Cx <- parseConstraints(C,QV,Env,Rp);
     (_,Fn,[TA]) ^= isSquareTerm(T);
@@ -358,20 +362,20 @@ star.compiler.checker{
     AccFn <- typeOfExp(B,AT,Env,Path,Rp);
     AccTp .= rebind(QV,reConstrainType(Cx,AT),Env);
 
-    logMsg("accessor exp $(AccFn)");
+--    logMsg("accessor exp $(AccFn)\:$(AccTp)");
 
     AccVrNm .= qualifiedName(Path,.valMark,qualifiedName(tpName(RcTp),.typeMark,Fld));
 
-    logMsg("accessor var $(AccVrNm)");
+--    logMsg("accessor var $(AccVrNm)");
     Defn .= varDef(Lc,AccVrNm,AccVrNm,AccFn,Cx,AccTp);
     Decl .= accDec(some(Lc),rebind(QV,reConstrainType(Cx,RcTp),Env),Fld,AccVrNm,AccTp);
-    logMsg("accessor $(Decl)");
+--    logMsg("accessor $(Decl)");
     valis ([Defn],[Decl])
   }
 
   checkUpdater:(locn,string,cons[ast],cons[ast],ast,ast,dict,dict,string,reports) => either[reports,(cons[canonDef],cons[decl])].
   checkUpdater(Lc,Nm,Q,C,T,B,Env,Outer,Path,Rp) => do{
-    logMsg("Check updater: $(Nm) Head:$(T), Body:$(B)");
+--    logMsg("Check updater: $(Nm) Head:$(T), Body:$(B)");
     QV <- parseBoundTpVars(Q,Rp);
     Cx <- parseConstraints(C,QV,Env,Rp);
     (_,Fn,[TA]) ^= isSquareTerm(T);
@@ -388,8 +392,8 @@ star.compiler.checker{
     AccVrNm .= qualifiedName(Path,.valMark,qualifiedName(tpName(RcTp),.typeMark,Fld));
 
     Defn .= varDef(Lc,AccVrNm,AccVrNm,AccFn,Cx,AccTp);
-    Decl .= accDec(some(Lc),rebind(QV,reConstrainType(Cx,RcTp),Env),Fld,AccVrNm,AccTp);
-    logMsg("updater $(Decl)");
+    Decl .= updDec(some(Lc),rebind(QV,reConstrainType(Cx,RcTp),Env),Fld,AccVrNm,AccTp);
+--    logMsg("updater $(Decl)");
     valis ([Defn],[Decl])
   }
     
@@ -438,7 +442,7 @@ star.compiler.checker{
     valis (apply(Lc,Fun,Args,Tp),Ev)
   }
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Op,Ss) ^= isLabeledTheta(A) => do{
-    logMsg("labeled record ptn: $(A)");
+--    logMsg("labeled record ptn: $(A)");
     At .= newTypeVar("A");
     Fun <- typeOfExp(Op,consType(At,Tp),Env,Path,Rp);
 
@@ -448,7 +452,7 @@ star.compiler.checker{
     Base .= declareConstraints(some(Lc),Cx,declareTypeVars(Q,pushScope(Env)));
     (Els,Ev) <- typeOfElementPtns(Ss,Face,Base,Path,[],Rp);
     Args .= fillinElementPtns(Lc,Els,Face);
-    valis (trace("labeled record ptn ",apply(Lc,Fun,tple(Lc,Args),Tp)),Ev)
+    valis (apply(Lc,Fun,tple(Lc,Args),Tp),Ev)
   }
   
   typeOfPtn(A,Tp,_,_,Rp) => other(reportError(Rp,"illegal pattern: $(A), expecting a $(Tp)",locOf(A))).
@@ -684,12 +688,12 @@ star.compiler.checker{
     valis formTheta(Lc,Nm,Face,Defs,Decls,Tp)
   }
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Op,Els) ^= isLabeledRecord(A) && (_,Nm)^=isName(Op) => do{
-    logMsg("labeled record expression $(A) should be $(Tp)");
+--    logMsg("labeled record expression $(A) should be $(Tp)");
     FceTp .= newTypeVar("_");
     ConTp .= consType(FceTp,Tp);
-    logMsg("checking type of $(Op) against $(ConTp)");
+--    logMsg("checking type of $(Op) against $(ConTp)");
     Fun <- typeOfExp(Op,ConTp,Env,Pth,Rp);
-    logMsg("$(Op) |: $(ConTp)");
+--    logMsg("$(Op) |: $(ConTp)");
     (Q,ETp) .= evidence(FceTp,Env);
     FaceTp ^= faceOfType(ETp,Env);
     (Cx,Face) .= deConstrain(FaceTp);
@@ -724,11 +728,11 @@ star.compiler.checker{
     valis genLetRec(Defs,Decls,Lc,El).
   }
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els,Bnd) ^= isLetDef(A) => do{
-    logMsg("let exp $(A)");
+--    logMsg("let exp $(A)");
     (Defs,Decls)<-recordEnv(Lc,genNewName(Path,"Γ"),Els,faceType([],[]),Env,Env,Rp,.priVate);
 
     El <- typeOfExp(Bnd,Tp,declareDecls(Decls,Env),Path,Rp);
-    logMsg("bound exp $(El)");
+--    logMsg("bound exp $(El)");
 
     Sorted .= sortDefs(Defs);
 

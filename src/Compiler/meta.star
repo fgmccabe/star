@@ -24,7 +24,7 @@ star.compiler.meta{
     .priVate < .deFault => .true.
     .deFault < .pUblic => .true.
     .deFault < .transItive => .true.
-    .pUblic < .transItive => .true.
+    .transItive < .pUblic => .true.
     _ < _ default => .false.
 
     .priVate >= .priVate => .true.
@@ -32,8 +32,8 @@ star.compiler.meta{
     .deFault >= .deFault => .true.
     .pUblic >= .priVate => .true.
     .pUblic >= .deFault => .true.
+    .pUblic >= .transItive => .true.
     .pUblic >= .pUblic => .true.
-    .transItive >= _ => .true.
     _ >= _ default => .false.
   }
 

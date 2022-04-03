@@ -11,17 +11,17 @@ star.compiler.resolve{
   import star.compiler.types.
   import star.compiler.unify.
 
-  public overloadEnvironment:(cons[cons[canonDef]],cons[cons[decl]],dict,reports) =>
+  public overloadEnvironment:(cons[cons[canonDef]],dict,reports) =>
     either[reports,cons[cons[canonDef]]].
-  overloadEnvironment(Gps,Decls,Dict,Rp) => 
-    overloadGroups(Gps,[],Decls,Dict,Rp).
+  overloadEnvironment(Gps,Dict,Rp) => 
+    overloadGroups(Gps,[],Dict,Rp).
 
-  overloadGroups:(cons[cons[canonDef]],cons[cons[canonDef]],cons[cons[decl]],dict,reports) =>
+  overloadGroups:(cons[cons[canonDef]],cons[cons[canonDef]],dict,reports) =>
     either[reports,cons[cons[canonDef]]].
-  overloadGroups([],Gps,_,_,_) => either(reverse(Gps)).
-  overloadGroups([Gp,..Gps],RG,[D,..Dcs],Dict,Rp) => do{
-    (RGp,NDict) <- overloadGroup(Gp,declareDecls(D,Dict),Rp);
-    overloadGroups(Gps,[RGp,..RG],Dcs,NDict,Rp)
+  overloadGroups([],Gps,_,_) => either(reverse(Gps)).
+  overloadGroups([Gp,..Gps],RG,Dict,Rp) => do{
+    (RGp,NDict) <- overloadGroup(Gp,Dict,Rp);
+    overloadGroups(Gps,[RGp,..RG],NDict,Rp)
   }
 
   overloadGroup:(cons[canonDef],dict,reports)=>either[reports,(cons[canonDef],dict)].
@@ -32,7 +32,9 @@ star.compiler.resolve{
     either[reports,(cons[canonDef],dict)].
   overloadDefs(Dict,[],Dfx,Rp) => either((reverse(Dfx),Dict)).
   overloadDefs(Dict,[D,..Defs],Dfx,Rp) => do{
+--    logMsg("overload definition $(D)");
     (DD,DDict) <- overloadDef(Dict,D,Rp);
+--    logMsg("overloaded definition $(DD)");
     overloadDefs(DDict,Defs,[DD,..Dfx],Rp)
   }
 
@@ -68,21 +70,33 @@ star.compiler.resolve{
 
   overloadImplDef:(dict,locn,string,string,canon,cons[constraint],tipe,reports) =>
     either[reports,(canonDef,dict)].
-  overloadImplDef(Dict,Lc,Nm,FullNm,Val,[],Tp,Rp) => do{
+/*  overloadImplDef(Dict,Lc,Nm,FullNm,Val,[],Tp,Rp) => do{
     logMsg("overload implementation");
     IDict .= undeclareVar(FullNm,Dict);
     RVal <- resolveTerm(Val,IDict,Rp);
     valis (implDef(Lc,Nm,FullNm,RVal,[],Tp),Dict)
   }
-  overloadImplDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp,Rp) => do{
-    logMsg("overload implementation $(Cx)");
+*/
+  overloadImplDef(Dict,Lc,Nm,FullNm,Val,_,Tp,Rp) => do{
+--    logMsg("overload implementation $(Nm) = $(Val)\:$(Tp)");
     
-    (Cvrs,CDict) .= defineCVars(some(Lc),Cx,[],Dict);
-    RVal <- resolveTerm(Val,CDict,Rp);
     (Qx,Qt) .= deQuant(Tp);
-    (_,ITp) .= deConstrain(Qt);
-    CTp .= reQuant(Qx,funType(Cx//genContractType,ITp));
-    valis (implDef(Lc,Nm,FullNm,lambda(FullNm,[eqn(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp),Dict)
+    (Cx,ITp) .= deConstrain(Qt);
+
+--    logMsg("constraints $(Cx)");
+
+    (Cvrs,CDict) .= defineCVars(some(Lc),Cx,[],Dict);
+
+    logMsg("cvars = $(Cvrs)");
+    RVal <- resolveTerm(Val,CDict,Rp);
+
+    if isEmpty(Cvrs) then {
+      CTp .= reQuant(Qx,ITp);
+      valis (implDef(Lc,Nm,FullNm,RVal,[],Tp),Dict)
+    } else {
+      CTp .= reQuant(Qx,funType(Cx//genContractType,ITp));
+      valis (implDef(Lc,Nm,FullNm,lambda(FullNm,[eqn(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp),Dict)
+    }
   }
 
   genContractType(conTract(Nm,Tps,Dps)) => mkConType(Nm,Tps,Dps).
@@ -90,7 +104,9 @@ star.compiler.resolve{
   defineCVars:(option[locn],cons[constraint],cons[canon],dict) => (cons[canon],dict).
   defineCVars(_,[],Vrs,D) => (reverse(Vrs),D).
   defineCVars(Lc,[T,..Tps],Vrs,D) where TpNm .= implementationName(T) && Tp.=typeOf(T) =>
-    defineCVars(Lc,Tps,[vr(Lc,TpNm,Tp),..Vrs],declareVar(TpNm,Lc,Tp,.none,D)).
+    defineCVars(Lc,Tps,[vr(Lc,TpNm,Tp),..Vrs],
+      declareVar(TpNm,Lc,Tp,.none,
+	declareImplementation(Lc,TpNm,TpNm,Tp,D))).
 
   resolveTerm:(canon,dict,reports) => either[reports,canon].
   resolveTerm(vr(Lc,Nm,Tp),_,_) => either(vr(Lc,Nm,Tp)).
@@ -225,8 +241,10 @@ star.compiler.resolve{
   resolveContract(Lc,Con,Dict,Rp) => do{
     ImpNm .= implementationName(Con);
     Tp .= typeOf(Con);
-    if Impl^=findVar(Lc,ImpNm,Dict) then {
+    if Impl^=findImplementation(Dict,ImpNm) then {
+      logMsg("resolve contract $(Con) using $(Impl)");
       if sameType(typeOf(Impl),Tp,Dict) then {
+	logMsg("resolving impl var $(Impl)");
 	resolveTerm(Impl,Dict,Rp)
       } else{
 	raise reportError(Rp,"implementation $(typeOf(Impl)) not consistent with $(Tp)",Lc)
@@ -238,8 +256,10 @@ star.compiler.resolve{
 
   resolveAccess:(locn,canon,string,tipe,dict,reports) => either[reports,canon].
   resolveAccess(Lc,Rc,Fld,Tp,Dict,Rp) => do{
+    logMsg("resolve access at $(Lc) of $(Fld) in $(Rc)\:$(typeOf(Rc)), expected type $(Tp)");
     RcTp .= typeOf(Rc);
     if AccFn ^= findAccess(Lc,RcTp,Fld,Dict) then{
+      logMsg("access fun $(AccFn)\:$(typeOf(AccFn))");
       if sameType(typeOf(AccFn),funType([RcTp],Tp),Dict) then{
 	resolveTerm(apply(Lc,AccFn,tple(Lc,[Rc]),Tp),Dict,Rp)
       } else {
