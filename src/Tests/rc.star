@@ -2,7 +2,7 @@ test.rc{
   import star.
   import star.script.
 
-  pp[a] ::= pp{C:integer} |
+  public pp[a] ::= pp{C:integer} |
     pq{C:integer. A:a}.
 
   kk ::= kk{C:integer}.
@@ -22,12 +22,12 @@ test.rc{
     disp(pq{C=Ix. A=A}) => "pq{$(Ix),$(A)}"
   }
 
-  cont:(integer)=>pp[()].
+  public cont:(integer)=>pp[()].
   cont(C) => pp{
     C=C
   }
 
-  main:()=>action[(),()].
+  public main:()=>action[(),()].
   main()=>action{
     show cont(2).C;
 --    show cont(2)<<-{C=4}

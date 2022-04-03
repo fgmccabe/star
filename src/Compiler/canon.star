@@ -128,7 +128,7 @@ star.compiler.canon{
 
   public implementation display[pkgSpec] => {
     disp(pkgSpec(Pkg,Imports,Decls)) =>
-      "Package: $(Pkg), imports=$(Imports), Declarations=$(Decls)".
+      "Package: $(Pkg), imports=$(Imports), exports=$(Decls)".
   }
 
   public implementation display[decl] => {
@@ -197,7 +197,7 @@ star.compiler.canon{
   showCanon(strng(_,Lt),_) => disp(Lt).
   showCanon(enm(_,Nm,Tp),_) => ".#(Nm)".
   showCanon(whr(_,E,C),Sp) => "#(showCanon(E,Sp)) where #(showCanon(C,Sp))".
-  showCanon(dot(_,R,F,_),Sp) => "#(showCanon(R,Sp)).#(F)".
+  showCanon(dot(_,R,F,_),Sp) => "#(showCanon(R,Sp))°#(F)".
   showCanon(csexp(_,Exp,Cs,_),Sp) => "case #(showCanon(Exp,Sp)) in #(showCases(Cs,Sp))".
   showCanon(match(_,Ptn,Gen),Sp) => "#(showCanon(Ptn,Sp)) .= #(showCanon(Gen,Sp))".
   showCanon(conj(_,L,R),Sp) => "#(showCanon(L,Sp)) && #(showCanon(R,Sp))".
@@ -232,7 +232,7 @@ star.compiler.canon{
   showDef(typeDef(_,Nm,T,_),Sp) => "Type: #(Nm)~>$(T)".
   showDef(conDef(_,_,Nm,Tp),Sp) => "Contract: #(Nm) ::= $(Tp)".
   showDef(cnsDef(_,_,Nm,Tp),Sp) => "Constructor: #(Nm):$(Tp)".
-  showDef(implDef(_,Nm,FullNm,Exp,_,Tp),Sp) => "Implementation: #(Nm) = $(Exp)".
+  showDef(implDef(_,Nm,FullNm,Exp,_,Tp),Sp) => "Implementation: #(Nm)\:$(Tp) = $(Exp)".
   showDef(accDef(_,Fld,Nm,Tp),Sp) => "Access: #(Fld):$(Tp) = $(Nm)".
   showDef(updDef(_,Fld,Nm,Tp),Sp) => "Update: #(Fld):$(Tp) = $(Nm)".
 

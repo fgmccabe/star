@@ -88,6 +88,7 @@ star.compiler.dict{
     [scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..Env]) => valof{
     Key .= tpName(Tp);
     Entry .= accEntry(Lc,AccFn,AccTp);
+--    logMsg("declare accessor for $(Tp)[$(Key)].#(Fld) |:$(AccTp)");
     if AccOrs ^= Accs[Key] then{
       valis [scope(Tps,Vrs,Cns,Cnts,Imps,Accs[Key->AccOrs[Fld->Entry]],Ups),..Env]
     } else{
@@ -96,7 +97,7 @@ star.compiler.dict{
   }
 
   public getFieldAccess:(tipe,string,dict)=>option[accEntry].
-  getFieldAccess(Tp,Fld,Env) => getField(tpName(Tp),Fld,Env).
+  getFieldAccess(Tp,Fld,Env) => getField(tpName(Tp),"."++Fld,Env).
 
   getField(_,_,[]) => .none.
   getField(Key,Fld,[scope(_,_,_,_,_,Accs,_),.._]) where
@@ -109,6 +110,7 @@ star.compiler.dict{
     [scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..Env]) => valof{
     Key .= tpName(Tp);
     Entry .= accEntry(Lc,UpdFn,UpdTp);
+--    logMsg("declare updater for $(Tp)[$(Key)].#(Fld) |:$(UpdTp)");
     if AccOrs ^= Ups[Key] then{
       valis [scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups[Key->AccOrs[Fld->Entry]]),..Env]
     } else{
