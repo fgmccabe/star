@@ -17,6 +17,7 @@ star.compiler.core{
     | crTerm(locn,string,cons[crExp],tipe)
     | crCall(locn,string,cons[crExp],tipe)
     | crECall(locn,string,cons[crExp],tipe)
+    | crIntrinsic(locn,string,cons[crExp],tipe)
     | crOCall(locn,crExp,cons[crExp],tipe)
     | crTplOff(locn,crExp,integer,tipe)
     | crTplUpdate(locn,crExp,integer,crExp)
