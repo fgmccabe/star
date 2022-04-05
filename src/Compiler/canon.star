@@ -43,7 +43,7 @@ star.compiler.canon{
     owpen(locn,canon) |
     letExp(locn,cons[canonDef],cons[decl],canon) |
     letRec(locn,cons[canonDef],cons[decl],canon) |
-    update(locn,canon,canon).
+    update(locn,canon,string,canon).
 
   public equation ::= eqn(locn,canon,option[canon],canon).
 
@@ -80,7 +80,7 @@ star.compiler.canon{
     typeOf(disj(_,_,_)) => boolType.
     typeOf(implies(_,_,_)) => boolType.
     typeOf(cond(_,_,L,_)) => typeOf(L).
-    typeOf(update(_,R,_)) => typeOf(R).
+    typeOf(update(_,R,_,_)) => typeOf(R).
   .}
 
   public implementation hasLoc[canon] => {
@@ -109,7 +109,7 @@ star.compiler.canon{
     locOf(lambda(_,[E,.._],_)) => locOf(E).
     locOf(letExp(Lc,_,_,_)) => Lc.
     locOf(letRec(Lc,_,_,_)) => Lc.
-    locOf(update(Lc,_,_)) => Lc.
+    locOf(update(Lc,_,_,_)) => Lc.
   }
 
   public implementation hasLoc[equation] => {
@@ -214,7 +214,7 @@ star.compiler.canon{
     "let {\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)} in #(showCanon(Ep,Sp2))".
   showCanon(letRec(_,Defs,Dcs,Ep),Sp) where Sp2.=Sp++"  " =>
     "let {.\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp),} in #(showCanon(Ep,Sp2))".
-  showCanon(update(_,L,R),Sp) => "#(showCanon(L,Sp)) <<- #(showCanon(R,Sp))".
+  showCanon(update(_,L,F,R),Sp) => "#(showCanon(L,Sp)).#(F) <<- #(showCanon(R,Sp))".
 
   showCases(Cs,Sp) => "{#(showRls("",Cs,Sp))}".
 

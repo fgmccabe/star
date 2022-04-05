@@ -87,7 +87,7 @@ star.compiler.resolve{
 
     (Cvrs,CDict) .= defineCVars(some(Lc),Cx,[],Dict);
 
-    logMsg("cvars = $(Cvrs)");
+--    logMsg("cvars = $(Cvrs)");
     RVal <- resolveTerm(Val,CDict,Rp);
 
     if isEmpty(Cvrs) then {
@@ -196,10 +196,10 @@ star.compiler.resolve{
     RCases <- overloadRules(Cases,[],Dict,Rp);
     valis csexp(Lc,RGov,RCases,Tp)
   }
-  resolveTerm(update(Lc,T,C),Dict,Rp) => do{
-    OT <- resolveTerm(T,Dict,Rp);
-    OC <- resolveTerm(C,Dict,Rp);
-    valis update(Lc,OT,OC)
+  resolveTerm(update(Lc,R,F,V),Dict,Rp) => do{
+    OR <- resolveTerm(R,Dict,Rp);
+    OV <- resolveTerm(V,Dict,Rp);
+    resolveUpdate(Lc,OR,F,OV,Dict,Rp);
   }
 
   overloadRules([],Els,Dict,_) => either(reverse(Els)).
@@ -242,9 +242,9 @@ star.compiler.resolve{
     ImpNm .= implementationName(Con);
     Tp .= typeOf(Con);
     if Impl^=findImplementation(Dict,ImpNm) then {
-      logMsg("resolve contract $(Con) using $(Impl)");
+--      logMsg("resolve contract $(Con) using $(Impl)");
       if sameType(typeOf(Impl),Tp,Dict) then {
-	logMsg("resolving impl var $(Impl)");
+--	logMsg("resolving impl var $(Impl)");
 	resolveTerm(Impl,Dict,Rp)
       } else{
 	raise reportError(Rp,"implementation $(typeOf(Impl)) not consistent with $(Tp)",Lc)
@@ -256,10 +256,10 @@ star.compiler.resolve{
 
   resolveAccess:(locn,canon,string,tipe,dict,reports) => either[reports,canon].
   resolveAccess(Lc,Rc,Fld,Tp,Dict,Rp) => do{
-    logMsg("resolve access at $(Lc) of $(Fld) in $(Rc)\:$(typeOf(Rc)), expected type $(Tp)");
+--    logMsg("resolve access at $(Lc) of $(Fld) in $(Rc)\:$(typeOf(Rc)), expected type $(Tp)");
     RcTp .= typeOf(Rc);
     if AccFn ^= findAccess(Lc,RcTp,Fld,Dict) then{
-      logMsg("access fun $(AccFn)\:$(typeOf(AccFn))");
+--      logMsg("access fun $(AccFn)\:$(typeOf(AccFn))");
       if sameType(typeOf(AccFn),funType([RcTp],Tp),Dict) then{
 	resolveTerm(apply(Lc,AccFn,tple(Lc,[Rc]),Tp),Dict,Rp)
       } else {
@@ -269,5 +269,22 @@ star.compiler.resolve{
       raise reportError(Rp,"cannot find accessor for field $(Fld) for $(RcTp)",Lc)
     }
   }
+
+  resolveUpdate:(locn,canon,string,canon,dict,reports) => either[reports,canon].
+  resolveUpdate(Lc,Rc,Fld,Vl,Dict,Rp) => do{
+    logMsg("resolve update at $(Lc) of $(Fld) in $(Rc)\:$(typeOf(Rc))");
+    RcTp .= typeOf(Rc);
+    if AccFn ^= findUpdate(Lc,RcTp,Fld,Dict) then{
+--      logMsg("access fun $(AccFn)\:$(typeOf(AccFn))");
+      if sameType(typeOf(AccFn),funType([RcTp,typeOf(Vl)],RcTp),Dict) then{
+	resolveTerm(apply(Lc,AccFn,tple(Lc,[Rc,Vl]),RcTp),Dict,Rp)
+      } else {
+	raise reportError(Rp,"cannot find accessor for field $(Fld) for $(RcTp) not consistent with required type $(typeOf(Vl))",Lc)
+      }
+    } else{
+      raise reportError(Rp,"cannot find updater for field $(Fld) for $(RcTp)",Lc)
+    }
+  }
+  
 }
   

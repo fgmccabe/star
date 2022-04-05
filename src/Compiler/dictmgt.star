@@ -37,6 +37,15 @@ star.compiler.dict.mgt{
       valis .none
   }
 
+  public findUpdate:(locn,tipe,string,dict) => option[canon].
+  findUpdate(Lc,Tp,Fld,Env) => valof{
+    if accEntry(_,Nm,T) ^= getFieldUpdate(Tp,Fld,Env) then{
+      valis some(refreshVar(Lc,Nm,T,Env))
+    }
+    else
+      valis .none
+  }
+
   public findVarFace:(string,dict) => option[tipe].
   findVarFace(Nm,Env) where vrEntry(_,Mk,Tp,Fc) ^=isVar(Nm,Env) =>
     (_^=Fc ? Fc || faceOfType(Tp,Env)).

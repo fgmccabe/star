@@ -701,25 +701,26 @@ star.compiler.checker{
     
     (Defs,Decls) <- recordEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,Env,Rp,.deFault);
     
-    valis formRecordExp(Lc,Nm,Face,Defs,Decls,Tp)
+    valis formRecordExp(Lc,dotName(Nm),Face,Defs,Decls,Tp)
   }
-/*
-  typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Rc,Upd) ^= isRecordUpdate(A) => do{
+
+  typeOfExp(A,Tp,Env,Pth,Rp) where
+      (Lc,Rc,F,Vl) ^= isRecordUpdate(A) &&
+      (_,Fld) ^= isName(F) => do{
     Rec <- typeOfExp(Rc,Tp,Env,Pth,Rp);
     UpTp .= newTypeVar("_");
-    Update <- typeOfExp(Upd,UpTp,Env,Pth,Rp);
+    Val <- typeOfExp(Vl,UpTp,Env,Pth,Rp);
     faceType(RecFlds,_) ^= faceOfType(Tp,Env);
-    faceType(UpFlds,_) ^= faceOfType(UpTp,Env);
-    for (F,TU) in UpFlds do{
-      if (F,TR) in RecFlds then{
-	if ~sameType(TU,TR,Env) then
-	  raise reportError(Rp,"replacement for field $(F)\:$(TU) not consistent with record field $(TR)",Lc)
+    if TR ^= {! TR | (Fld,TR) in RecFlds !} then{
+      if ~sameType(UpTp,TR,Env) then{
+	raise reportError(Rp,"replacement for field $(Fld)\:$(UpTp) not consistent with record field $(TR)",Lc)
       } else
-      raise reportError(Rp,"replacement for field $(F)\:$(TU) does not exist in record $(Rec)",Lc)
-    };
-    valis update(Lc,Rec,Update)
+      valis update(Lc,Rec,Fld,Val)
+    }
+    else
+    raise reportError(Rp,"replacement for field $(Fld)\:$(UpTp) does not exist in record $(Rec)",Lc)
   }
-*/
+
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els,Bnd) ^= isLetRecDef(A) => do{
     (Defs,Decls,ThEnv)<-thetaEnv(Lc,genNewName(Path,"Γ"),Els,faceType([],[]),Env,Rp,.priVate);
     

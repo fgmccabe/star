@@ -411,9 +411,9 @@ star.compiler.dependencies{
     Rf1 <- collectTermRefs(L,All,Rf,Rp);
     collectCondRefs(R,All,Rf1,Rp)
   }
-  collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isRecordUpdate(T) => do{
-    Rf1 <- collectTermRefs(L,All,Rf,Rp);
-    collectTermRefs(R,All,Rf1,Rp)
+  collectTermRefs(T,All,Rf,Rp) where (_,R,_,V) ^= isRecordUpdate(T) => do{
+    Rf1 <- collectTermRefs(R,All,Rf,Rp);
+    collectTermRefs(V,All,Rf1,Rp)
   }
   collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isComma(T) => do{
     Rf1 <- collectTermRefs(L,All,Rf,Rp);

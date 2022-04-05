@@ -131,6 +131,7 @@ star.compiler.meta{
   public macroOnly = ref .false.
   public traceCanon = ref .false.
   public typeCheckOnly = ref .false.
+  public optimization = ref .base.
   public showCore = ref .false.
   public showCode = ref .false.
 
@@ -139,13 +140,11 @@ star.compiler.meta{
       repo:uri.
       cwd:uri.
       graph:option[uri].
-      optimization:optimizationLvl.
       doStdin:boolean.
     }.
 
   public defltOptions(WI,RI) =>compilerOptions{repo=RI.
     cwd=WI.
-    optimization = .base.
     graph = .none.
     doStdin=.false.
   }
@@ -199,6 +198,18 @@ star.compiler.meta{
     }
   }
 
+  public checkOnlyOption:cmdOption[compilerOptions].
+  checkOnlyOption = cmdOption{
+    shortForm = "-c".
+    alternatives = ["--compile-only"].
+    usage = "-c -- type only".
+    validator = .none.
+    setOption(_,Opts) => valof{
+      typeCheckOnly := .true;
+      valis Opts
+    }
+  }
+
   public traceCheckOption:cmdOption[compilerOptions].
   traceCheckOption = cmdOption{
     shortForm = "-dt".
@@ -208,6 +219,18 @@ star.compiler.meta{
     setOption(_,Opts) => valof{
       traceCanon := .true;
       
+      valis Opts
+    }
+  }
+
+  public optimizeLvlOption:cmdOption[compilerOptions].
+  optimizeLvlOption = cmdOption{
+    shortForm = "-O".
+    alternatives = ["--optimize"].
+    usage = "-O <Lvl> -- optimization level".
+    validator = some((O)=> _ ^= O:?optimizationLvl).
+    setOption(L,Opts) where Lvl^=L:?optimizationLvl => valof{
+      optimization := Lvl;
       valis Opts
     }
   }
@@ -222,7 +245,6 @@ star.compiler.meta{
       compilerOptions{repo=NR.
 	cwd=Opts.cwd.
 	graph=Opts.graph.
-	optimization=Opts.optimization.
 	doStdin=Opts.doStdin
       }.
   }
@@ -237,7 +259,6 @@ star.compiler.meta{
       compilerOptions{repo=Opts.repo.
 	cwd=NW.
 	graph=Opts.graph.
-	optimization=Opts.optimization.
 	doStdin=Opts.doStdin
       }.
   }
@@ -252,7 +273,6 @@ star.compiler.meta{
       compilerOptions{repo=Opts.repo.
 	cwd=Opts.cwd.
 	graph=Opts.graph.
-	optimization=Opts.optimization.
 	doStdin=.true.
       }.
   }

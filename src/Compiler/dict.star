@@ -6,6 +6,7 @@ star.compiler.dict{
   import star.compiler.intrinsics.
   import star.compiler.errors.
   import star.compiler.location.
+  import star.compiler.misc.
   import star.compiler.types.
 
   public tpDef ::= tpDefn(option[locn],string,tipe,typeRule).
@@ -97,7 +98,7 @@ star.compiler.dict{
   }
 
   public getFieldAccess:(tipe,string,dict)=>option[accEntry].
-  getFieldAccess(Tp,Fld,Env) => getField(tpName(Tp),"."++Fld,Env).
+  getFieldAccess(Tp,Fld,Env) => getField(tpName(Tp),dotName(Fld),Env).
 
   getField(_,_,[]) => .none.
   getField(Key,Fld,[scope(_,_,_,_,_,Accs,_),.._]) where
@@ -117,6 +118,16 @@ star.compiler.dict{
       valis [scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups[Key->{Fld->Entry}]),..Env]
     }
   }
+
+  public getFieldUpdate:(tipe,string,dict)=>option[accEntry].
+  getFieldUpdate(Tp,Fld,Env) => getUpdate(tpName(Tp),dotName(Fld),Env).
+
+  getUpdate(_,_,[]) => .none.
+  getUpdate(Key,Fld,[scope(_,_,_,_,_,_,Accs),.._]) where
+      AccOrs ^= Accs[Key] &&
+      Acc ^= AccOrs[Fld] => some(Acc).
+  getUpdate(Key,Fld,[_,..Env]) => getUpdate(Key,Fld,Env).
+  
 
   public pushScope:(dict)=>dict.
   pushScope(Env) => [scope({},{},[],{},{},{},{}),..Env].

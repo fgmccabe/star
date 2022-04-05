@@ -385,10 +385,10 @@ star.compiler.macro{
     SS <- macroStmts(S,Rp);
     valis mkBrTerm(Lc,Lb,SS)
   }
-  examineTerm(A,Rp) where (Lc,L,R) ^= isRecordUpdate(A) => do{
-    LL <- macroTerm(L,Rp);
+  examineTerm(A,Rp) where (Lc,R,F,V) ^= isRecordUpdate(A) => do{
     RR <- macroTerm(R,Rp);
-    valis mkRecordUpdate(Lc,LL,RR)
+    VV <- macroTerm(V,Rp);
+    valis mkRecordUpdate(Lc,RR,F,VV)
   }
   examineTerm(A,Rp) where (Lc,O,Els) ^= isRoundTerm(A) => do{
     OO <- macroTerm(O,Rp);
