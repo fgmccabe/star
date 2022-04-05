@@ -30,7 +30,8 @@ test.rc{
   public main:()=>action[(),()].
   main()=>action{
     show cont(2).C;
---    show cont(2)<<-{C=4}
+    show [|aa{A=10}|];
+    show cont(2).C<<-20
   }
 
 }

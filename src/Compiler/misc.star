@@ -35,6 +35,9 @@ star.compiler.misc{
     subString(QNm,Ix+MX,[|QNm|]-Ix-MX).
   localName(Nm,_) default => Nm.
 
+  public dotName:(string)=>string.
+  dotName(N) => "."++N.
+
   public packageVar:(pkg)=>string.
   packageVar(pkg(P,_)) => qualifiedName(P,.pkgMark,"").
 

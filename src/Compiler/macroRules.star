@@ -511,7 +511,7 @@ star.compiler.macro.rules{
 	  reConstrain(Cx,
 	      binary(Lc,"<=>",reXQuant(Lc,XQs,
 		  reConstrain(XCx,brTuple(Lc,sort(Els,compEls)))),Tp)))).
-	DCon = typeAnnotation(Lc,dotName(Nm),reUQuant(Lc,Qs,
+	DCon = typeAnnotation(Lc,dotId(Nm),reUQuant(Lc,Qs,
 	  reConstrain(Cx,
 	      binary(Lc,"<=>",reXQuant(Lc,XQs,
 		  reConstrain(XCx,rndTuple(Lc,project1(sort(Els,compEls))))),Tp)))).
@@ -591,7 +591,7 @@ star.compiler.macro.rules{
   makeAccessor(Annot,TpNm,Cns,Q,Cx,H,Vz,Rp) where (Lc,Fld,FldTp)^=isTypeAnnotation(Annot) => do{
     AccNm .= nme(Lc,"\$$(Fld)");
     AcEqs <- accessorEqns(Cns,Fld,AccNm,[],Rp);
-    AccessHead .= squareTerm(Lc,dotName(Fld),[mkDepends(Lc,[H],[FldTp])]);
+    AccessHead .= squareTerm(Lc,dotId(Fld),[mkDepends(Lc,[H],[FldTp])]);
     valis mkAccessorStmt(Lc,Q,Cx,AccessHead,mkLetDef(Lc,AcEqs,AccNm))
   }
 
@@ -605,7 +605,7 @@ star.compiler.macro.rules{
     Sorted .= sort(Els,compEls);
     ConArgs .= projectArgTypes(Sorted,Fld);
     Eqn .=mkEquation(Lc,some(AccNm),.false,
-      rndTuple(Lc,[roundTerm(Lc,dotName(CnNm),ConArgs)]),.none,nme(Lc,"X"));
+      rndTuple(Lc,[roundTerm(Lc,dotId(CnNm),ConArgs)]),.none,nme(Lc,"X"));
     valis [Eqn,..SoFar]
   }
   accessorEqns(C,Fld,AccNm,Eqns,Rp) where (Lc,I) ^= isPrivate(C) =>
@@ -631,7 +631,7 @@ star.compiler.macro.rules{
   makeUpdater(Annot,TpNm,Cns,Q,Cx,H,Vz,Rp) where (Lc,Fld,FldTp)^=isTypeAnnotation(Annot) => do{
     AccNm .= dollarName(Fld);
     UpEqs <- updaterEqns(Cns,Fld,AccNm,[],Rp);
-    AccessHead .= squareTerm(Lc,dotName(Fld),[mkDepends(Lc,[H],[FldTp])]);
+    AccessHead .= squareTerm(Lc,dotId(Fld),[mkDepends(Lc,[H],[FldTp])]);
     valis mkUpdaterStmt(Lc,Q,Cx,AccessHead,mkLetDef(Lc,UpEqs,AccNm))
   }
 
@@ -645,8 +645,8 @@ star.compiler.macro.rules{
     Sorted .= sort(Els,compEls);
     ConArgs .= projectArgTypes(Sorted,Fld);
     UEqn .= mkEquation(Lc,some(AccNm),.false,
-      rndTuple(Lc,[roundTerm(Lc,dotName(CnNm),allArgs(Sorted,Fld,0,anon(Lc))),nme(Lc,"XX")]),.none,
-      roundTerm(Lc,dotName(CnNm),allArgs(Sorted,Fld,0,nme(Lc,"XX"))));
+      rndTuple(Lc,[roundTerm(Lc,dotId(CnNm),allArgs(Sorted,Fld,0,anon(Lc))),nme(Lc,"XX")]),.none,
+      roundTerm(Lc,dotId(CnNm),allArgs(Sorted,Fld,0,nme(Lc,"XX"))));
     valis [UEqn,..SoFar]
   }
   updaterEqns(C,Fld,AccNm,Eqns,Rp) where (Lc,I) ^= isPrivate(C) =>

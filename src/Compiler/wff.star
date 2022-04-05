@@ -20,8 +20,8 @@ star.compiler.wff{
   public dollarName:(ast) => ast.
   dollarName(nme(Lc,Id)) => nme(Lc,"$"++Id).
 
-  public dotName:(ast) => ast.
-  dotName(nme(Lc,Id)) => nme(Lc,"."++Id).
+  public dotId:(ast) => ast.
+  dotId(nme(Lc,Id)) => nme(Lc,dotName(Id)).
 
   public isKeyword:(ast) => option[(locn,string)].
   isKeyword(nme(Lc,Id)) where keyword(Id) => some((Lc,Id)).
@@ -883,10 +883,13 @@ star.compiler.wff{
 
   public mkLabeledRecord(Lc,Lb,Els) => mkBrTerm(Lc,Lb,Els).
 
-  public isRecordUpdate:(ast) => option[(locn,ast,ast)].
-  isRecordUpdate(A) => isBinary(A,"<<-").
+  public isRecordUpdate:(ast) => option[(locn,ast,ast,ast)].
+  isRecordUpdate(A) where (Lc,Lhs,Vl) ^= isBinary(A,"<<-") &&
+      (_,Rc,Fld) ^= isFieldAcc(Lhs) => some((Lc,Rc,Fld,Vl)).
+  isRecordUpdate(_) default => .none.
 
-  public mkRecordUpdate(Lc,L,R) => binary(Lc,"<<-",L,R).
+  public mkRecordUpdate(Lc,Rc,Fld,Vl) =>
+    binary(Lc,"<<-",mkFieldAcc(Lc,Rc,Fld),Vl).
 
   public implementation coercion[locn,ast]=>{
     _coerce(Lc where locn(Pkg,Line,Col,Off,Ln).=Lc)=>
