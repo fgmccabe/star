@@ -9,6 +9,7 @@ star.compiler.normalize{
   import star.compiler.freevars.
   import star.compiler.intrinsics.
   import star.compiler.matcher.
+  import star.compiler.meta.
   import star.compiler.misc.
   import star.compiler.types.
 
@@ -24,19 +25,18 @@ star.compiler.normalize{
     | memoArg(string,crVar,integer)
     | globalVar(string,tipe).
 
-
   mapLayer ::= lyr(option[crVar],map[string,nameMapEntry]).
 
   nameMap ~> cons[mapLayer].
 
   implementation display[mapLayer] => {
-    disp(lyr(V,Entries)) => ssSeq([ss("thV="),disp(V),ss(":"),disp(Entries)]).
+    disp(lyr(V,Entries)) => "thV=$(V)\:$(Entries)".
   }
 
   implementation display[nameMapEntry] => {
-    disp(moduleFun(C,V)) => ssSeq([ss("module fun "),disp(V),ss(", closure "),disp(C)]).
-    disp(moduleCons(Nm,Tp)) => ssSeq([ss("module cons "),ss(Nm)]).
-    disp(localCons(Nm,Tp,Vr)) => ssSeq([ss("local cons "),ss(Nm),ss("["),disp(Vr),ss("]")]).
+    disp(moduleFun(C,V)) => "module fun $(V), closure $(C)".
+    disp(moduleCons(Nm,Tp)) => "module cons $(Nm)".
+    disp(localCons(Nm,Tp,Vr)) => "local cons "),ss(Nm),ss("["),disp(Vr),ss("]")]).
     disp(localFun(Nm,ClNm,V)) => ssSeq([ss("local fun "),ss(Nm),ss(", closure "),disp(ClNm),
 	ss(" ThV "),disp(V)]).
     disp(localVar(Vr)) => ssSeq([ss("local var "),disp(Vr)]).
@@ -610,7 +610,7 @@ star.compiler.normalize{
 	OTh .<. Frs =>
       reduceArgs(FrArgs,drop(FrV,Frs)).
     reduceArgs([_,..FrArgs],Frs) => reduceArgs(FrArgs,Frs).
-  } in reduceArgs(FrVrs,FrVrs).
+  .} in reduceArgs(FrVrs,FrVrs).
 
   freeParents:(cons[crVar],nameMap) => cons[crVar].
   freeParents(Frs,Map) => foldLeft((F,Fs)=>Fs\+freeParent(F,Map),[],Frs).

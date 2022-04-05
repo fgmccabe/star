@@ -13,7 +13,7 @@ star.compiler.matcher{
   triple ~> (cons[crExp],(locn,cons[(string,crVar)],option[crExp],option[crExp],crExp),integer).
 
   public functionMatcher:(locn,string,tipe,cons[(locn,cons[crExp],option[crExp],crExp)]) => crDefn.
-  functionMatcher(Lc,Nm,Tp,Eqns) => valof action{
+  functionMatcher(Lc,Nm,Tp,Eqns) => valof{
     NVrs .= genVars(Lc,funTypeArg(Tp));
     Trpls .= makeTriples(Eqns);
     Error .= genRaise(Lc,funTypeRes(Tp));
@@ -23,7 +23,7 @@ star.compiler.matcher{
   }
 
   public caseMatcher:(locn,crExp,cons[(locn,cons[crExp],option[crExp],crExp)],tipe)=>crExp.
-  caseMatcher(Lc,Gov,Cs,Tp) => valof action{
+  caseMatcher(Lc,Gov,Cs,Tp) => valof{
 --    logMsg("match cases $(Cs)\ngoverning expression $(Gov)");
     Trpls .= makeTriples(Cs);
 --    logMsg("case triples $(Trpls)");
@@ -35,7 +35,7 @@ star.compiler.matcher{
   genVars(Lc,tupleType(L)) => let{.
     genV([]) => [].
     genV([T,..Ts]) => [crVar(Lc,crId(genSym("_"),T)),..genV(Ts)].
-  } in genV(L).
+  .} in genV(L).
 
   makeTriples:(cons[(locn,cons[crExp],option[crExp],crExp)]) => cons[triple].
   makeTriples(Eqns) => ixRight((Ix,(Lc,Args,Wh,Exp),Ts)=>
@@ -45,7 +45,7 @@ star.compiler.matcher{
 
   matchTriples:(locn,cons[crExp],cons[triple],crExp) => crExp.
   matchTriples(_,[],Triples,Deflt) => conditionalize(Triples,Deflt).
-  matchTriples(Lc,Vrs,Triples,Deflt) => valof action{
+  matchTriples(Lc,Vrs,Triples,Deflt) => valof{
 --    logMsg("matching triples, $(Vrs) --- $(Triples), default = $(Deflt)");
     Parts .= partitionTriples(Triples);
 --    logMsg("partitioned $(Parts)");
@@ -72,9 +72,9 @@ star.compiler.matcher{
   argMode ::= .inVars | .inScalars | .inConstructors.
 
   implementation display[argMode] => {
-    disp(.inVars) => ss("inVars").
-    disp(.inScalars) => ss("inScalars").
-    disp(.inConstructors) => ss("inConstructors").
+    disp(.inVars) => "inVars".
+    disp(.inScalars) => "inScalars".
+    disp(.inConstructors) => "inConstructors".
   }
 
   implementation equality[argMode] => {
@@ -103,7 +103,7 @@ star.compiler.matcher{
   compileMatch(.inVars,Seg,Vrs,Lc,Deflt) =>
     matchVars(Seg,Vrs,Lc,Deflt).
 
-  matchScalars(Seg,[V,..Vrs],Lc,Deflt) => valof action{
+  matchScalars(Seg,[V,..Vrs],Lc,Deflt) => valof{
     ST .= sort(Seg,compareScalarTriple);
     Cases .= formCases(ST,sameScalarTriple,Lc,Vrs,Deflt);
     valis mkCase(Cases,Lc,V,Deflt)
@@ -119,7 +119,7 @@ star.compiler.matcher{
   applyVar:(crExp,cons[triple]) => cons[triple].
   applyVar(V,Triples) where crVar(_,_).=V => let{.
     applyToTriple:(triple)=>triple.
-    applyToTriple(([crVar(VLc,crId(Vr,_)),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof action{
+    applyToTriple(([crVar(VLc,crId(Vr,_)),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof{
     Mp .= {Vr->V};
       NArgs .= rewriteTerms(Args,Mp);
       NAG .= fmap((T)=>rewriteTerm(T,Mp),AG);
@@ -127,7 +127,7 @@ star.compiler.matcher{
       NExp .= rewriteTerm(Exp,Mp);
       valis (NArgs, (CLc,B,NAG,NGl,NExp),Ix)
     }
-    applyToTriple(([crWhere(Lc,crVar(VLc,crId(Vr,_)),Cond),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof action{
+    applyToTriple(([crWhere(Lc,crVar(VLc,crId(Vr,_)),Cond),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof{
     Mp .= {Vr->V};
       NArgs .= rewriteTerms(Args,Mp);
       NAG .= fmap((T)=>rewriteTerm(T,Mp),AG);
@@ -141,7 +141,7 @@ star.compiler.matcher{
   -- we need to be careful to preserve the original order of equations
   formCases:(cons[triple],(triple,triple)=>boolean,locn,cons[crExp],crExp)=> cons[crCase].
   formCases([],_,_,_,_) => [].
-  formCases([Tr,..Triples],Eq,Lc,Vrs,Deflt) => valof action{
+  formCases([Tr,..Triples],Eq,Lc,Vrs,Deflt) => valof{
 --    logMsg("case lead triple $(Tr)");
     (Tx,More) .= pickMoreCases(Tr,Triples,Eq,[],[]);
 --    logMsg("form case from $([Tr,..Tx])");
@@ -158,7 +158,7 @@ star.compiler.matcher{
     (LLc,crStrg(LLc,Sx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt)).
   formCase(([crLbl(LLc,Nm,LTp),.._],_,_),Tpls,Lc,Vars,Deflt) =>
     (LLc,crLbl(LLc,Nm,LTp),matchTriples(Lc,Vars,subTriples(Tpls),Deflt)).
-  formCase(([crTerm(Lc,Lbl,Args,Tp),.._],_,_),Triples,_,Vars,Deflt) => valof action{
+  formCase(([crTerm(Lc,Lbl,Args,Tp),.._],_,_),Triples,_,Vars,Deflt) => valof{
     Vrs .= (Args//(E) => crVar(Lc,crId(genSym("_"),typeOf(E))));
     NTriples .= subTriples(Triples);
     Case .= matchTriples(Lc,Vrs++Vars,NTriples,Deflt);
@@ -184,7 +184,7 @@ star.compiler.matcher{
   subTriple(([_,..Args],V,X)) => (Args,V,X).
 
   conditionalize([],Deflt) => Deflt.
-  conditionalize([(_,(Lc,Bnds,ArgCond,Test,Val),_),..Triples],Deflt) => valof action{
+  conditionalize([(_,(Lc,Bnds,ArgCond,Test,Val),_),..Triples],Deflt) => valof{
     (Vl,Cnd) .= pullWhere(Val,Test);
     EqnCnd .= mergeGoal(Lc,ArgCond,Cnd);
     if Tst ^= EqnCnd then
