@@ -10,43 +10,12 @@ star.compiler.normalize{
   import star.compiler.intrinsics.
   import star.compiler.matcher.
   import star.compiler.meta.
+  import star.compiler.normalize.meta.
   import star.compiler.misc.
   import star.compiler.types.
 
   import star.compiler.location.
   import star.compiler.terms.
-
-  nameMapEntry ::= moduleFun(crExp,string)
-    | localFun(string,string,crVar)
-    | localVar(crExp)
-    | moduleCons(string,tipe)
-    | localCons(string,tipe,crVar)
-    | labelArg(crVar,integer)
-    | memoArg(string,crVar,integer)
-    | globalVar(string,tipe).
-
-  mapLayer ::= lyr(option[crVar],map[string,nameMapEntry]).
-
-  nameMap ~> cons[mapLayer].
-
-  implementation display[mapLayer] => {
-    disp(lyr(V,Entries)) => "thV=$(V)\:$(Entries)".
-  }
-
-  implementation display[nameMapEntry] => {
-    disp(moduleFun(C,V)) => "module fun $(V), closure $(C)".
-    disp(moduleCons(Nm,Tp)) => "module cons $(Nm)".
-    disp(localCons(Nm,Tp,Vr)) => "local cons "),ss(Nm),ss("["),disp(Vr),ss("]")]).
-    disp(localFun(Nm,ClNm,V)) => ssSeq([ss("local fun "),ss(Nm),ss(", closure "),disp(ClNm),
-	ss(" ThV "),disp(V)]).
-    disp(localVar(Vr)) => ssSeq([ss("local var "),disp(Vr)]).
-    disp(labelArg(Base,Ix)) => ssSeq([ss("label arg "),disp(Base),ss("["),disp(Ix),ss("]")]).
-    disp(memoArg(Nm,Base,Ix)) => ssSeq([ss("memo arg "),ss(Nm),ss("@"),
-	disp(Base),ss("["),disp(Ix),ss("]")]).
-    disp(globalVar(Nm,Tp)) => ssSeq([ss("global "),ss(Nm)]).
-  }
-
-  crFlow ~> (crExp,cons[crDefn]).
 
   public normalize:(pkgSpec,canonDef,reports)=>either[reports,cons[crDefn]].
   normalize(PkgSpec,varDef(Lc,Nm,_,PkgVal,_,Tp),Rp) => do{
@@ -210,7 +179,7 @@ star.compiler.normalize{
   transformDef(varDef(Lc,Nm,FullNm,lambda(_,Eqns,Tp),_,_),Map,Outer,Q,Extra,Ex,Rp) => do{
     ATp .= extendFunTp(deRef(Tp),Extra);
     (Eqs,Ex1) <- transformEquations(Eqns,Outer,Q,Extra,Ex,Rp);
-    Func .= functionMatcher(Lc,FullNm,ATp,Eqs);
+    Func .= functionMatcher(Lc,FullNm,ATp,Map,Eqs);
 
     ClosureNm .= closureNm(FullNm);
     ClVar .= (crVar(_,Exv)^=Extra ? Exv || crId("_",unitTp));
@@ -618,31 +587,6 @@ star.compiler.normalize{
   freeParent(V,Map) where ThV ^= lookupThetaVar(Map,crName(V)) =>
     freeParent(ThV,Map).
   freeParent(V,_) default => V.
-
-  lookup:all e ~~ (nameMap,string,(nameMapEntry)=>option[e])=>option[e].
-  lookup([],_,_) => .none.
-  lookup([lyr(_,Entries),..Map],Nm,P) where E ^= Entries[Nm] =>
-    P(E).
-  lookup([_,..Map],Nm,P) => lookup(Map,Nm,P).
-
-  lookupVarName:(nameMap,string)=>option[nameMapEntry].
-  lookupVarName(Map,Nm) => lookup(Map,Nm,anyDef).
-
-  anyDef(D) => some(D).
-
-  lookupThetaVar:(nameMap,string)=>option[crVar].
-  lookupThetaVar(Map,Nm) where E^=lookupVarName(Map,Nm) =>
-    case E in {
-      labelArg(ThV,_) => some(ThV).
-      memoArg(_,ThV,_) => some(ThV).
-      localFun(_,_,ThV) => some(ThV).
-      _ default => .none
-    }.
-  lookupThetaVar(_,_) default => .none.
-
-  layerVar:(nameMap)=>option[crVar].
-  layerVar([lyr(V,_),.._])=>V.
-  layerVar([])=>.none.
 
   genVar:(string,tipe) => crVar.
   genVar(Pr,Tp) => crId(genSym(Pr),Tp).

@@ -1,4 +1,4 @@
-:- module(matcher,[functionMatcher/8,caseMatcher/5,actionCaseMatcher/5]).
+:- module(matcher,[functionMatcher/8,caseMatcher/5]).
 
 :- use_module(canon).
 :- use_module(errors).
@@ -20,11 +20,6 @@ functionMatcher(Lc,_Ar,Nm,H,Tp,_Eqns,_,fnDef(Lc,Nm,H,Tp,[],enum("void"))) :-
 getLocalLblName(lbl(Nm,_),LclNm) :-
   getLocalName(Nm,LclNm).
 
-actionCaseMatcher(Lc,Bnd,Cases,Map,Result) :-
-  makeTriples(Cases,0,Tpls),
-  genRaise(Lc,"case",Error),
-  matchTriples(Lc,lterms:substAction,[Bnd],Tpls,Error,Map,0,Result).
-
 caseMatcher(Lc,Bnd,Cases,Map,Result) :-
   makeTriples(Cases,0,Tpls),
   genRaise(Lc,"case",Error),
@@ -32,10 +27,6 @@ caseMatcher(Lc,Bnd,Cases,Map,Result) :-
 
 genRaise(Lc,Nm,error(Lc,strg(Msg))) :-
   string_concat("no matches in ",Nm,Msg).
-
-genVarPairs(Tp,Vrs) :-
-  progArgTypes(Tp,Tps),
-  genVrs(Tps,Vrs).
 
 genVrs([],[]) :-!.
 genVrs([Tp|Tps],[(V,Tp)|Vrs]) :-

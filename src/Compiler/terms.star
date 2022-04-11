@@ -10,45 +10,37 @@ star.compiler.terms{
   import star.compiler.types.
   import star.compiler.ltipe.
 
-  public termLbl ::= tLbl(string,integer) |
-    tRec(string,cons[(string,tipe)]).
+  public termLbl ::= tLbl(string,integer).
 
   public term ::= intgr(integer)
     | bigi(bigint)
     | flot(float)
+    | chr(char)
     | strg(string)
     | term(termLbl,cons[term])
     | symb(termLbl).
 
   public implementation display[termLbl] => {
     disp(tLbl(Nm,Ar)) => "#(Nm)/$(Ar)".
-    disp(tRec(Nm,Fields)) =>
-      "#(Nm){#(interleave(Fields//((FN,FTp))=>"#(FN):$(FTp)",",")*)}".
   }
 
   public implementation sizeable[termLbl] => {
     size(tLbl(_,Ar))=>Ar.
-    size(tRec(_,F))=>size(F).
 
     isEmpty(tLbl(_,Ar))=>Ar==0.
-    isEmpty(tRec(_,F))=>F==[].
   }
 
   public implementation display[term] => let{.
     dispT(intgr(Ix)) => "$(Ix)".
     dispT(bigi(Ix)) => "$(Ix)".
     dispT(flot(Dx)) => disp(Dx).
+    dispT(chr(Cx)) => disp(Cx).
     dispT(strg(Sx)) => disp(Sx).
     dispT(term(tLbl(T,_),Args)) where isTupleLbl(T) => "(#(dispTs(Args)))".
     dispT(term(tLbl(Op,_),Args)) => "#(Op)(#(dispTs(Args)))".
-    dispT(term(tRec(Nm,Flds),Args)) => "#(Nm){#(dispFs(Flds,Args,"")*)}".
     dispT(symb(Sx)) => "'$(Sx)'".
 
     dispTs(Els) => interleave(Els//dispT,",")*.
-
-    dispFs([],[],_) => [].
-    dispFs([(F,_),..Fs],[A,..As],Sep) =>
-      [Sep,F,"=",dispT(A),..dispFs(Fs,As,",")].
 
     isTupleLbl(T) where [`(`,`)`,.._] .= T::cons[char] => .true.
     isTupleLbl(_) default => .false.
@@ -58,13 +50,13 @@ star.compiler.terms{
 
   public implementation hashable[termLbl] => {
     hash(tLbl(Nm,Ar))=>hash(Nm)*37+Ar.
-    hash(tRec(Nm,Fs))=>foldRight(((FN,_),H)=>H*37+hash(FN),hash(Nm),Fs).
   }
 
   public implementation hashable[term] => let{.
     hsh(intgr(X)) => X.
     hsh(bigi(X)) => hash(X).
     hsh(flot(X)) => hash(X).
+    hsh(chr(C)) => hash(C).
     hsh(strg(S)) => hash(S).
     hsh(symb(S)) => hash(S).
     hsh(term(Op,Args)) =>
@@ -75,13 +67,13 @@ star.compiler.terms{
 
   public implementation equality[termLbl] => {
     tLbl(N1,A1)==tLbl(N2,A2) => N1==N2 && A1==A2.
-    tRec(N1,F1)==tRec(N2,F2) => N1==N2 && F1==F2
   }
 
   public implementation equality[term] => let{.
     eq(intgr(X),intgr(Y)) => X==Y.
     eq(bigi(X),bigi(Y)) => X==Y.
     eq(flot(X),flot(Y)) => X==Y.
+    eq(chr(X),chr(Y)) => X==Y.
     eq(strg(X),strg(Y)) => X==Y.
     eq(symb(X),symb(Y)) => X==Y.
     eq(term(O1,A1),term(O2,A2)) => O1==O2 && eqList(A1,A2).
@@ -105,7 +97,9 @@ star.compiler.terms{
 
   public isScalar:(term)=>boolean.
   isScalar(intgr(_)) => .true.
+  isScalar(bigi(_)) => .true.
   isScalar(flot(_)) => .true.
+  isScalar(chr(_)) => .true.
   isScalar(strg(_)) => .true.
   isScalar(symb(_)) => .true.
   isScalar(_) default => .false.
@@ -118,7 +112,9 @@ star.compiler.terms{
 
   encodeT:(term,cons[char])=>cons[char].
   encodeT(intgr(Ix),Chs) => encodeInt(Ix,[`x`,..Chs]).
+  encodeT(bigi(Ix),Chs) => encodeBig(Ix,[`b`,..Chs]).
   encodeT(flot(Dx),Chs) => encodeText(Dx::string,[`d`,..Chs]).
+  encodeT(chr(Cx),Chs) => encodeChar(Cx,[`c`,..Chs]).
   encodeT(strg(Tx),Chs) => encodeText(Tx,[`s`,..Chs]).
   encodeT(symb(Sym),Chs) => encodeL(Sym,Chs).
   encodeT(term(tLbl("[]",Ar),Els),Chs) => encodeTerms(Els,encodeNat(Ar,[`l`,..Chs])).
@@ -127,11 +123,11 @@ star.compiler.terms{
 
   encodeL:(termLbl,cons[char])=>cons[char].
   encodeL(tLbl(Nm,Ar),Chs) => encodeText(Nm,encodeNat(Ar,[`o`,..Chs])).
-  encodeL(tRec(Nm,Flds),Chs) =>
-    encodeFldTypes(Flds,encodeText(Nm,[`O`,..Chs])).
 
   encodeTerms([],Chs) => Chs.
   encodeTerms([T,..Ts],Chs) => encodeTerms(Ts,encodeT(T,Chs)).
+
+  encodeBig(Bx,Chs) => encodeText(Bx::string,Chs).
 
   public implementation coercion[string,term] => {
     _coerce(S) => valof do{
@@ -157,6 +153,10 @@ star.compiler.terms{
   decodeTerm([`o`,..Ls]) => do{
     (Sym,Lx) <- decodeLabel([`o`,..Ls]);
     valis (symb(Sym),Lx)
+  }
+  decodeTerm([`c`,..Ls]) => do{
+    (Ch,Lx) <- decodeChar(Ls);
+    valis (chr(Ch),Lx)
   }
   decodeTerm([`s`,..Ls]) => do{
     (Txt,Lx) <- decodeText(Ls);
@@ -187,11 +187,6 @@ star.compiler.terms{
     (Nm,Lx) <- decodeText(L0);
     valis (tLbl(Nm,Ar),Lx)
   }
-  decodeLabel([`O`,..Ls]) => do{
-    (Nm,L0) <- decodeText(Ls);
-    (Fs,Lx) <- decodeFields(L0);
-    valis (tRec(Nm,Fs),Lx)
-  }
     
   decodeInt:(cons[char])=>either[(),(integer,cons[char])].
   decodeInt([`-`,..L]) => do{
@@ -203,6 +198,10 @@ star.compiler.terms{
   decodeNat:(cons[char],integer) => either[(),(integer,cons[char])].
   decodeNat([Cx,..Ls],Ix) where isDigit(Cx) => decodeNat(Ls,Ix*10+digitVal(Cx)).
   decodeNat(Ls,Ix) default => either((Ix,Ls)).
+
+  decodeChar:(cons[char]) => either[(),(char,cons[char])].
+  decodeChar([`\\`,X,..L]) => either((X,L)).
+  decodeChar([X,..L]) => either((X,L)).
 
   decodeText:(cons[char]) => either[(),(string,cons[char])].
   decodeText([C,..L]) => do{
@@ -420,6 +419,10 @@ star.compiler.terms{
   encodeText(Txt,Chs) where Chrs .= Txt::cons[char] &&
       D.=findDelim(Chrs,[`|`,`/`,`%`]) =>
     encodeQuoted(Chrs,D,[D,..Chs]).
+
+  encodeChar:(char,cons[char]) => cons[char].
+  encodeChar(`\\`,Chs) => [`\\`,`\\`,..Chs].
+  encodeChar(Ch,Chs) => [Ch,..Chs].
 
   findDelim:(cons[char],cons[char])=>char.
   findDelim(Chrs,[]) => `'`. 

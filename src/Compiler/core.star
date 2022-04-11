@@ -9,6 +9,7 @@ star.compiler.core{
   
   public crExp ::= crVar(locn,crVar)
     | crInt(locn,integer)
+    | crChr(locn,char)
     | crBig(locn,bigint)
     | crFlot(locn,float)
     | crStrg(locn,string)
@@ -21,6 +22,7 @@ star.compiler.core{
     | crOCall(locn,crExp,cons[crExp],tipe)
     | crTplOff(locn,crExp,integer,tipe)
     | crTplUpdate(locn,crExp,integer,crExp)
+    | crSeq(locn,crExp,crExp)
     | crCnj(locn,crExp,crExp)
     | crDsj(locn,crExp,crExp)
     | crNeg(locn,crExp)
@@ -29,7 +31,9 @@ star.compiler.core{
     | crUnpack(locn,crExp,cons[crCase],tipe)
     | crCase(locn,crExp,cons[crCase],crExp,tipe)
     | crWhere(locn,crExp,crExp)
-    | crMatch(locn,crExp,crExp).
+    | crMatch(locn,crExp,crExp)
+    | crVarNames(locn,cons[(string,crVar)],crExp)
+    | crAbort(locn,string,tipe).
   
   public crVar ::= crId(string,tipe).
 
@@ -55,6 +59,7 @@ star.compiler.core{
   dspExp:(crExp,string) => string.
   dspExp(crVar(_,V),_) => disp(V).
   dspExp(crInt(_,Ix),_) => disp(Ix).
+  dspExp(crChr(_,Ix),_) => disp(Ix).
   dspExp(crBig(_,Ix),_) => disp(Ix).
   dspExp(crFlot(_,Dx),_) => disp(Dx).
   dspExp(crStrg(_,Sx),_) => disp(Sx).
@@ -80,12 +85,20 @@ star.compiler.core{
   dspExp(crCnd(_,T,L,R),Off) where Off2 .= Off++"  " =>
     "(#(dspExp(T,Off)) ? #(dspExp(L,Off2)) ||\n #(Off2)#(dspExp(R,Off2)))".
   dspExp(crNeg(_,R),Off) => "~#(dspExp(R,Off))".
+  dspExp(crSeq(Lc,L,R),Off) => "{#(dspSeq(crSeq(Lc,L,R),Off++"  "))}".
+  dspExp(crVarNames(_,V,E),Off) => "<vars #(dspVrs(V)) in #(dspExp(E,Off))>".
+  dspExp(crAbort(_,M,_),Off) => "abort #(M)".
 
   dspCases(Cs,Off) => let{
     Gap = ";\n"++Off.
   } in interleave(Cs//((_,P,V))=>"#(dspExp(P,Off))->#(dspExp(V,Off))",Gap).
 
   dsplyExps(Es,Off) => interleave(Es//(E)=>dspExp(E,Off),", ").
+
+  dspSeq(crSeq(_,L,R),Off) => "#(dspSeq(L,Off));#(dspSeq(R,Off))".
+  dspSeq(T,Off) => dspExp(T,Off).
+
+  dspVrs(V) => interleave(V//(((N,T))=>"$(N)=$(T)"),", ")*.
 
   isTplOp(crLbl(_,Nm,_)) => isTplLbl(Nm).
   isTplOp(_) default => .false.
@@ -107,6 +120,7 @@ star.compiler.core{
   public implementation equality[crExp] => let{.
     eqTerm(crVar(_,V1),crVar(_,V2)) => V1==V2.
     eqTerm(crInt(_,N1),crInt(_,N2)) => N1==N2.
+    eqTerm(crChr(_,N1),crChr(_,N2)) => N1==N2.
     eqTerm(crFlot(_,N1),crFlot(_,N2)) => N1==N2.
     eqTerm(crStrg(_,S1),crStrg(_,S2)) => S1==S2.
     eqTerm(crVoid(_,T1),crVoid(_,T2)) => T1==T2.
@@ -130,6 +144,10 @@ star.compiler.core{
       eqTerm(S1,S2) && eqCs(C1,C2) && eqTerm(D1,D2).
     eqTerm(crWhere(_,E1,C1),crWhere(_,E2,C2)) => eqTerm(E1,E2) && eqTerm(C1,C2).
     eqTerm(crMatch(_,P1,E1),crMatch(_,P2,E2)) => eqTerm(E1,E2) && eqTerm(P1,P2).
+    eqTerm(crSeq(_,L1,R1),crSeq(_,L2,R2)) => eqTerm(L1,L2) && eqTerm(R1,R2).
+    eqTerm(crAbort(_,M1,T1),crAbort(_,M2,T2)) => M1==M2 && T1==T2.
+    eqTerm(crVarNames(_,V1,E1),crVarNames(_,V2,E2)) => eqVs(V1,V2) && eqTerm(E1,E2).
+
     eqTerm(_,_) default => .false.
 
     eqs([],[]) => .true.
@@ -139,6 +157,11 @@ star.compiler.core{
     eqCs([],[]) => .true.
     eqCs([(_,N1,E1),..S1],[(_,N2,E2),..S2]) => eqTerm(N1,N2) && eqTerm(E1,E2) && eqCs(S1,S2).
     eqCs(_,_) default => .false.
+
+    eqVs([],[]) => .true.
+    eqVs([(N1,E1),..S1],[(N2,E2),..S2]) => N1==N2 && E1==E2 && eqVs(S1,S2).
+    eqVs(_,_) default => .false.
+    
   .} in {
     X == Y => eqTerm(X,Y)
   }
@@ -146,6 +169,8 @@ star.compiler.core{
   public implementation hasLoc[crExp] => {
     locOf(crVar(Lc,_)) => Lc.
     locOf(crInt(Lc,_)) => Lc.
+    locOf(crBig(Lc,_)) => Lc.
+    locOf(crChr(Lc,_)) => Lc.
     locOf(crFlot(Lc,_)) => Lc.
     locOf(crStrg(Lc,_)) => Lc.
     locOf(crVoid(Lc,_)) => Lc.
@@ -161,15 +186,20 @@ star.compiler.core{
     locOf(crCall(Lc,_,_,_))=>Lc.
     locOf(crECall(Lc,_,_,_))=>Lc.
     locOf(crOCall(Lc,_,_,_))=>Lc.
+    locOf(crSeq(Lc,_,_)) => Lc.
     locOf(crCnj(Lc,_,_)) => Lc.
     locOf(crDsj(Lc,_,_)) => Lc.
     locOf(crNeg(Lc,_)) => Lc.
     locOf(crCnd(Lc,_,_,_)) => Lc.
+    locOf(crAbort(Lc,_,_)) => Lc.
+    locOf(crVarNames(Lc,_,_)) => Lc.
   }
 
   public implementation hasType[crExp] => let{.
     tpOf(crVar(_,V)) => typeOf(V).
     tpOf(crInt(_,_)) => intType.
+    tpOf(crBig(_,_)) => bigintType.
+    tpOf(crChr(_,_)) => chrType.
     tpOf(crFlot(_,_)) => fltType.
     tpOf(crStrg(_,_)) => strType.
     tpOf(crVoid(_,Tp)) => Tp.
@@ -183,12 +213,15 @@ star.compiler.core{
     tpOf(crLtt(_,_,_,E)) => tpOf(E).
     tpOf(crUnpack(_,_,_,Tp)) => Tp.
     tpOf(crCase(_,_,_,_,Tp)) => Tp.
+    tpOf(crSeq(_,_,R)) => tpOf(R).
     tpOf(crCnd(_,_,L,_)) => tpOf(L).
     tpOf(crWhere(_,T,_)) => tpOf(T).
     tpOf(crMatch(_,_,_)) => boolType.
     tpOf(crCnj(_,_,_)) => boolType.
     tpOf(crDsj(_,_,_)) => boolType.
     tpOf(crNeg(_,_)) => boolType.
+    tpOf(crAbort(_,_,T)) => T.
+    tpOf(crVarNames(_,_,E)) => tpOf(E).
   .} in {
     typeOf = tpOf
   }
@@ -207,6 +240,8 @@ star.compiler.core{
 
   public implementation coercion[crExp,term] => {.
     _coerce(crInt(_,Ix)) => some(intgr(Ix)).
+    _coerce(crBig(_,Ix)) => some(bigi(Ix)).
+    _coerce(crChr(_,Cx)) => some(chr(Cx)).
     _coerce(crFlot(_,Dx)) => some(flot(Dx)).
     _coerce(crStrg(_,Sx)) => some(strg(Sx)).
     _coerce(crVoid(_,_)) => some(symb(tLbl("void",0))).
@@ -244,6 +279,8 @@ star.compiler.core{
     crOCall(Lc,rwTerm(Op,Tst),Args//(A)=>rwTerm(A,Tst),Tp).
   rwTerm(crECall(Lc,Op,Args,Tp),Tst) =>
     crECall(Lc,Op,Args//(A)=>rwTerm(A,Tst),Tp).
+  rwTerm(crSeq(Lc,L,R),Tst) =>
+    crSeq(Lc,rwTerm(L,Tst),rwTerm(R,Tst)).
   rwTerm(crCnj(Lc,L,R),Tst) =>
     crCnj(Lc,rwTerm(L,Tst),rwTerm(R,Tst)).
   rwTerm(crDsj(Lc,L,R),Tst) =>
@@ -262,6 +299,9 @@ star.compiler.core{
     crWhere(Lc,rwTerm(T,M),rwTerm(C,M)).
   rwTerm(crMatch(Lc,P,E),M) =>
     crMatch(Lc,rwTerm(P,M),rwTerm(E,M)).
+  rwTerm(crVarNames(Lc,Vs,E),M) =>
+    crVarNames(Lc,Vs,rwTerm(E,M)).
+  rwTerm(crAbort(Lc,Ms,T),M) => crAbort(Lc,Ms,T).
 
   dropVar:(string,(crExp)=>option[crExp])=>(crExp)=>option[crExp].
   dropVar(Nm,Tst) => let{

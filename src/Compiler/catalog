@@ -38,6 +38,7 @@
     "star.compiler.matcher": "matcher.star",
     "star.compiler.misc": "misc.star",
     "star.compiler.normalize": "normalize.star",
+    "star.compiler.normalize.meta": "normmeta.star",
     "star.compiler.normalize.driver": "normalizedriver.star",
     "star.compiler.operators": "operators.star",
     "star.compiler.peephole": "peephole.star",
