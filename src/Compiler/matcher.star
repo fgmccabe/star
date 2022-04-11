@@ -6,29 +6,31 @@ star.compiler.matcher{
   import star.compiler.errors.
   import star.compiler.freevars.
   import star.compiler.misc.
+  import star.compiler.normalize.meta.
   import star.compiler.types.
 
   import star.compiler.location.
 
   triple ~> (cons[crExp],(locn,cons[(string,crVar)],option[crExp],option[crExp],crExp),integer).
 
-  public functionMatcher:(locn,string,tipe,cons[(locn,cons[crExp],option[crExp],crExp)]) => crDefn.
-  functionMatcher(Lc,Nm,Tp,Eqns) => valof{
+  public functionMatcher:(locn,string,tipe,nameMap,cons[(locn,cons[crExp],option[crExp],crExp)]) => crDefn.
+  functionMatcher(Lc,Nm,Tp,Map,Eqns) => valof{
     NVrs .= genVars(Lc,funTypeArg(Tp));
     Trpls .= makeTriples(Eqns);
-    Error .= genRaise(Lc,funTypeRes(Tp));
---    logMsg("function triples: $(Trpls)");
-    Reslt .= matchTriples(Lc,NVrs,Trpls,Error);
+    Error .= genRaise(Lc,Nm,funTypeRes(Tp));
+    logMsg("function triples: $(Trpls)");
+    Reslt .= matchTriples(Lc,NVrs,Trpls,Error,Map);
     valis fnDef(Lc,Nm,Tp,NVrs//(crVar(_,V))=>V,Reslt)
   }
 
-  public caseMatcher:(locn,crExp,cons[(locn,cons[crExp],option[crExp],crExp)],tipe)=>crExp.
-  caseMatcher(Lc,Gov,Cs,Tp) => valof{
+  public caseMatcher:(locn,nameMap,crExp,
+    cons[(locn,cons[crExp],option[crExp],crExp)],tipe)=>crExp.
+  caseMatcher(Lc,Map,Gov,Cs,Tp) => valof{
 --    logMsg("match cases $(Cs)\ngoverning expression $(Gov)");
     Trpls .= makeTriples(Cs);
 --    logMsg("case triples $(Trpls)");
-    Error .= genRaise(Lc,Tp);
-    valis matchTriples(Lc,[Gov],Trpls,Error)
+    Error .= genRaise(Lc,"no case matches",Tp);
+    valis matchTriples(Lc,[Gov],Trpls,Error,Map)
   }
 
   genVars:(locn,tipe) => cons[crExp].
@@ -41,16 +43,16 @@ star.compiler.matcher{
   makeTriples(Eqns) => ixRight((Ix,(Lc,Args,Wh,Exp),Ts)=>
       [(Args,(Lc,[],.none,Wh,Exp),Ix),..Ts],[],Eqns).
 
-  genRaise(Lc,Tp) => crAbort(Lc,"no matches",Tp).
+  genRaise(Lc,Msg,Tp) => crAbort(Lc,Msg,Tp).
 
-  matchTriples:(locn,cons[crExp],cons[triple],crExp) => crExp.
-  matchTriples(_,[],Triples,Deflt) => conditionalize(Triples,Deflt).
-  matchTriples(Lc,Vrs,Triples,Deflt) => valof{
---    logMsg("matching triples, $(Vrs) --- $(Triples), default = $(Deflt)");
+  matchTriples:(locn,cons[crExp],cons[triple],crExp,nameMap) => crExp.
+  matchTriples(_,[],Triples,Deflt,_) => conditionalize(Triples,Deflt).
+  matchTriples(Lc,Vrs,Triples,Deflt,Map) => valof{
+    logMsg("matching triples, $(Vrs) --- $(Triples), default = $(Deflt)");
     Parts .= partitionTriples(Triples);
---    logMsg("partitioned $(Parts)");
-    Segs .= matchSegments(Parts,Vrs,Lc,Deflt);
---    logMsg("segments = $(Segs)");
+    logMsg("partitioned $(Parts)");
+    Segs .= matchSegments(Parts,Vrs,Lc,Deflt,Map);
+    logMsg("segments = $(Segs)");
     valis Segs
   }.
 
@@ -61,6 +63,7 @@ star.compiler.matcher{
       (P,Ts) .= partTriples(M,Triples,[]) =>
     [(M,[Tr,..P]),..partitionTriples(Ts)].
 
+  partTriples:(argMode,cons[triple],cons[triple])=>(cons[triple],cons[triple]).
   partTriples(_,[],S) => (reverse(S),[]).
   partTriples(M,[Tr,..Ts],S) where tripleArgMode(Tr)==M =>
     partTriples(M,Ts,[Tr,..S]).
@@ -86,38 +89,55 @@ star.compiler.matcher{
 
   argMode(crVar(_,_)) => .inVars.
   argMode(crInt(_,_)) => .inScalars.
+  argMode(crBig(_,_)) => .inScalars.
   argMode(crFlot(_,_)) => .inScalars.
   argMode(crStrg(_,_)) => .inScalars.
   argMode(crLbl(_,_,_)) => .inConstructors.
   argMode(crTerm(_,_,_,_)) => .inConstructors.
   argMode(crWhere(_,T,_)) => argMode(T).
 
-  matchSegments([],_,_,Deflt) => Deflt.
-  matchSegments([(M,Seg),..Segs],Vrs,Lc,Deflt) =>
-    compileMatch(M,Seg,Vrs,Lc,matchSegments(Segs,Vrs,Lc,Deflt)).
+  matchSegments([],_,_,Deflt,_) => Deflt.
+  matchSegments([(M,Seg),..Segs],Vrs,Lc,Deflt,Map) =>
+    compileMatch(M,Seg,Vrs,Lc,matchSegments(Segs,Vrs,Lc,Deflt,Map),Map).
 
-  compileMatch(.inScalars,Seg,Vrs,Lc,Deflt) =>
-    matchScalars(Seg,Vrs,Lc,Deflt).
-  compileMatch(.inConstructors,Seg,Vrs,Lc,Deflt) =>
-    matchConstructors(Seg,Vrs,Lc,Deflt).
-  compileMatch(.inVars,Seg,Vrs,Lc,Deflt) =>
-    matchVars(Seg,Vrs,Lc,Deflt).
+  compileMatch(.inScalars,Seg,Vrs,Lc,Deflt,Map) =>
+    matchScalars(Seg,Vrs,Lc,Deflt,Map).
+  compileMatch(.inConstructors,Seg,Vrs,Lc,Deflt,Map) =>
+    matchConstructors(Seg,Vrs,Lc,Deflt,Map).
+  compileMatch(.inVars,Seg,Vrs,Lc,Deflt,Map) =>
+    matchVars(Seg,Vrs,Lc,Deflt,Map).
 
-  matchScalars(Seg,[V,..Vrs],Lc,Deflt) => valof{
+  matchScalars(Seg,[V,..Vrs],Lc,Deflt,Map) => valof{
     ST .= sort(Seg,compareScalarTriple);
-    Cases .= formCases(ST,sameScalarTriple,Lc,Vrs,Deflt);
+    Cases .= formCases(ST,sameScalarTriple,Lc,Vrs,Deflt,Map);
     valis mkCase(Cases,Lc,V,Deflt)
   }
 
-  matchConstructors(Seg,[V,..Vrs],Lc,Deflt) =>
-    mkCase(formCases(sort(Seg,compareConstructorTriple),sameConstructorTriple,Lc,Vrs,Deflt),
-      Lc,V,Deflt).
+  matchConstructors(Seg,[V,..Vrs],Lc,Deflt,Map) => valof{
+    Cases .= formCases(sort(Seg,compareConstructorTriple),
+      sameConstructorTriple,Lc,Vrs,Deflt,Map);
+    Index .= findIndexMap(typeOf(V),Map);
+    valis crUnpack(Lc,V,populateArms(Index,Cases,Lc,Map,Deflt),typeOf(Deflt))
+  }
 
-  matchVars(Triples,[V,..Vrs],Lc,Deflt) =>
-    matchTriples(Lc,Vrs,applyVar(V,Triples),Deflt).
+  populateArgs([],_,_,_,_) => [].
+  populateArms([(crLbl(Lc,FullNm,Tp),Ix),..Index],Cases,DLc,Map,Deflt) where
+      (Ptn,AExp,ALc) ^= armPresent(FullNm,Cases) =>
+    [(Ptn,AExp,ALc),..populateArms(Index,Cases,DLc,Map,Deflt)].
+  populateArms([(crLbl(Lc,FullNm,Tp),Ix),..Index],Cases,DLc,Map,Deflt) where
+      moduleCons(_,CnsTp)^=lookupVarName(Map,FullNm) =>
+    [(emptyCase(CnsTp,FullNm),Deflt,DLc),..populateArms(Index,Cases,Map,DLc,Deflt)].
+
+  armPresent(Nm,[(crLbl(Lc,Nm,Tp),Exp,CLc),.._]) => some((crLbl(Lc,Nm,Tp),Exp,CLc)).
+  armPresent(Nm,[(crTerm(Lc,Nm,Args,Tp),Exp,CLc),.._]) => some((crTerm(Lc,Nm,Args,Tp),Exp,CLc)).
+  armPresent(Nm,[_,..Cases]) => armPresent(Nm,Cases).
+  armPresent(_,[]) => .none.
+  
+  matchVars(Triples,[V,..Vrs],Lc,Deflt,Map) =>
+    matchTriples(Lc,Vrs,applyVar(V,Triples),Deflt,Map).
 
   applyVar:(crExp,cons[triple]) => cons[triple].
-  applyVar(V,Triples) where crVar(_,_).=V => let{.
+  applyVar(V,Triples) where crVar(_,_).=V => let{
     applyToTriple:(triple)=>triple.
     applyToTriple(([crVar(VLc,crId(Vr,_)),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof{
     Mp .= {Vr->V};
@@ -139,29 +159,30 @@ star.compiler.matcher{
   } in (Triples//applyToTriple).
 
   -- we need to be careful to preserve the original order of equations
-  formCases:(cons[triple],(triple,triple)=>boolean,locn,cons[crExp],crExp)=> cons[crCase].
-  formCases([],_,_,_,_) => [].
-  formCases([Tr,..Triples],Eq,Lc,Vrs,Deflt) => valof{
+  formCases:(cons[triple],(triple,triple)=>boolean,locn,cons[crExp],crExp,nameMap) =>
+    cons[crCase].
+  formCases([],_,_,_,_,_) => [].
+  formCases([Tr,..Triples],Eq,Lc,Vrs,Deflt,Map) => valof{
 --    logMsg("case lead triple $(Tr)");
     (Tx,More) .= pickMoreCases(Tr,Triples,Eq,[],[]);
 --    logMsg("form case from $([Tr,..Tx])");
-    Case .= formCase(Tr,sort([Tr,..Tx],compareTriple),Lc,Vrs,Deflt);
-    valis [Case,..formCases(sort(More,compareTriple),Eq,Lc,Vrs,Deflt)].
+    Case .= formCase(Tr,sort([Tr,..Tx],compareTriple),Lc,Vrs,Deflt,Map);
+    valis [Case,..formCases(sort(More,compareTriple),Eq,Lc,Vrs,Deflt,Map)].
   }
 
-  formCase:(triple,cons[triple],locn,cons[crExp],crExp) => crCase.
-  formCase(([crInt(LLc,Ix),.._],_,_),Tpls,Lc,Vars,Deflt) =>
-    (LLc,crInt(LLc,Ix),matchTriples(Lc,Vars,subTriples(Tpls),Deflt)).
-  formCase(([crFlot(LLc,Dx),.._],_,_),Tpls,Lc,Vars,Deflt) =>
-    (LLc,crFlot(LLc,Dx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt)).
-  formCase(([crStrg(LLc,Sx),.._],_,_),Tpls,Lc,Vars,Deflt) =>
-    (LLc,crStrg(LLc,Sx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt)).
-  formCase(([crLbl(LLc,Nm,LTp),.._],_,_),Tpls,Lc,Vars,Deflt) =>
-    (LLc,crLbl(LLc,Nm,LTp),matchTriples(Lc,Vars,subTriples(Tpls),Deflt)).
-  formCase(([crTerm(Lc,Lbl,Args,Tp),.._],_,_),Triples,_,Vars,Deflt) => valof{
+  formCase:(triple,cons[triple],locn,cons[crExp],crExp,nameMap) => crCase.
+  formCase(([crInt(LLc,Ix),.._],_,_),Tpls,Lc,Vars,Deflt,Map) =>
+    (LLc,crInt(LLc,Ix),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
+  formCase(([crFlot(LLc,Dx),.._],_,_),Tpls,Lc,Vars,Deflt,Map) =>
+    (LLc,crFlot(LLc,Dx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
+  formCase(([crStrg(LLc,Sx),.._],_,_),Tpls,Lc,Vars,Deflt,Map) =>
+    (LLc,crStrg(LLc,Sx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
+  formCase(([crLbl(LLc,Nm,LTp),.._],_,_),Tpls,Lc,Vars,Deflt,Map) =>
+    (LLc,crLbl(LLc,Nm,LTp),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
+  formCase(([crTerm(Lc,Lbl,Args,Tp),.._],_,_),Triples,_,Vars,Deflt,Map) => valof{
     Vrs .= (Args//(E) => crVar(Lc,crId(genSym("_"),typeOf(E))));
     NTriples .= subTriples(Triples);
-    Case .= matchTriples(Lc,Vrs++Vars,NTriples,Deflt);
+    Case .= matchTriples(Lc,Vrs++Vars,NTriples,Deflt,Map);
     valis (Lc,crTerm(Lc,Lbl,Vrs,Tp),Case)
   }.
 
@@ -183,6 +204,7 @@ star.compiler.matcher{
     (CArgs++Args,V,X).
   subTriple(([_,..Args],V,X)) => (Args,V,X).
 
+  conditionalize:(cons[triple],crExp)=>crExp.
   conditionalize([],Deflt) => Deflt.
   conditionalize([(_,(Lc,Bnds,ArgCond,Test,Val),_),..Triples],Deflt) => valof{
     (Vl,Cnd) .= pullWhere(Val,Test);
@@ -200,7 +222,13 @@ star.compiler.matcher{
   mkCond(Lc,Tst,Th,El) =>
     crCnd(Lc,Tst,Th,El).
 
-  applyBindings([],_,Val) => Val.
+  applyBindings(Bnds,Lc,Val) => valof{
+    VBnds .= (Bnds^/(((Nm,_))=>~isUnderscoreName(Nm)));
+    if isEmpty(VBnds) then
+      valis Val
+    else
+    valis crVarNames(Lc,VBnds,Val)
+  }
 
   compareScalarTriple:(triple,triple) => boolean.
   compareScalarTriple(([A,.._],_,_),([B,.._],_,_)) => compareScalar(A,B).
@@ -244,7 +272,13 @@ star.compiler.matcher{
   pullWhere:(crExp,option[crExp]) => (crExp,option[crExp]).
   pullWhere(crWhere(Lc,V,C),G) where (Val,G1) .= pullWhere(V,G) =>
     (Val,mergeGoal(Lc,some(C),G1)).
+  pullWhere(crTerm(Lc,Lbl,Args,Tp),G) where (NArgs,Gx) .= pullWheres(Args,G) =>
+    (crTerm(Lc,Lbl,NArgs,Tp),Gx).
   pullWhere(Exp,G) default => (Exp,G).
+
+  pullWheres([],G) => ([],G).
+  pullWheres([A,..As],G) where (NA,NG).=pullWhere(A,G) && (NAs,Gx) .= pullWheres(As,NG) =>
+    ([NA,..NAs],Gx).
 
   mergeGoal:(locn,option[crExp],option[crExp])=>option[crExp].
   mergeGoal(_,G,.none) => G.

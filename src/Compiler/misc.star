@@ -38,6 +38,9 @@ star.compiler.misc{
   public dotName:(string)=>string.
   dotName(N) => "."++N.
 
+  public isUnderscoreName:(string)=>boolean.
+  isUnderscoreName(T) => T[0:1]=="_".
+
   public packageVar:(pkg)=>string.
   packageVar(pkg(P,_)) => qualifiedName(P,.pkgMark,"").
 
