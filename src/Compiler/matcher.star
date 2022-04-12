@@ -7,6 +7,7 @@ star.compiler.matcher{
   import star.compiler.freevars.
   import star.compiler.misc.
   import star.compiler.normalize.meta.
+  import star.compiler.terms.
   import star.compiler.types.
 
   import star.compiler.location.
@@ -116,22 +117,27 @@ star.compiler.matcher{
   matchConstructors(Seg,[V,..Vrs],Lc,Deflt,Map) => valof{
     Cases .= formCases(sort(Seg,compareConstructorTriple),
       sameConstructorTriple,Lc,Vrs,Deflt,Map);
-    Index .= findIndexMap(typeOf(V),Map);
-    valis crUnpack(Lc,V,populateArms(Index,Cases,Lc,Map,Deflt),typeOf(Deflt))
+    Index ^= findIndexMap(typeOf(V),Map);
+    valis crUnpack(Lc,V,populateArms(Index,Cases,Lc,Deflt,Map),typeOf(Deflt))
   }
 
+  populateArgs:(consEntry,cons[crCase],locn,crExp,nameMap) => cons[crCase].
   populateArgs([],_,_,_,_) => [].
-  populateArms([(crLbl(Lc,FullNm,Tp),Ix),..Index],Cases,DLc,Map,Deflt) where
-      (Ptn,AExp,ALc) ^= armPresent(FullNm,Cases) =>
-    [(Ptn,AExp,ALc),..populateArms(Index,Cases,DLc,Map,Deflt)].
-  populateArms([(crLbl(Lc,FullNm,Tp),Ix),..Index],Cases,DLc,Map,Deflt) where
-      moduleCons(_,CnsTp)^=lookupVarName(Map,FullNm) =>
-    [(emptyCase(CnsTp,FullNm),Deflt,DLc),..populateArms(Index,Cases,Map,DLc,Deflt)].
+  populateArms([(tLbl(FullNm,_),_,Tp),..Index],Cases,DLc,Deflt,Map) where
+      Arm ^= armPresent(FullNm,Cases) =>
+    [Arm,..populateArms(Index,Cases,DLc,Deflt,Map)].
+  populateArms([(tLbl(FullNm,Ar),Ix,CnsTp),..Index],Cases,Lc,Deflt,Map) =>
+    [(Lc,emptyCase(Lc,CnsTp,FullNm),Deflt),..populateArms(Index,Cases,Lc,Deflt,Map)].
 
-  armPresent(Nm,[(crLbl(Lc,Nm,Tp),Exp,CLc),.._]) => some((crLbl(Lc,Nm,Tp),Exp,CLc)).
-  armPresent(Nm,[(crTerm(Lc,Nm,Args,Tp),Exp,CLc),.._]) => some((crTerm(Lc,Nm,Args,Tp),Exp,CLc)).
+  armPresent(Nm,[(CLc,crLbl(Lc,Nm,Tp),Exp),.._]) => some((CLc,crLbl(Lc,Nm,Tp),Exp)).
+  armPresent(Nm,[(CLc,crTerm(Lc,Nm,Args,Tp),Exp),.._]) =>
+    some((CLc,crTerm(Lc,Nm,Args,Tp),Exp)).
   armPresent(Nm,[_,..Cases]) => armPresent(Nm,Cases).
   armPresent(_,[]) => .none.
+
+  emptyCase:(locn,tipe,string)=>crExp.
+  emptyCase(Lc,T,Nm) where (tupleType(ArgTps),ResTp) ^= isConsType(T) =>
+    crTerm(Lc,Nm,ArgTps//(ATp)=>crVar(Lc,crId("_",ATp)),ResTp).
   
   matchVars(Triples,[V,..Vrs],Lc,Deflt,Map) =>
     matchTriples(Lc,Vrs,applyVar(V,Triples),Deflt,Map).
