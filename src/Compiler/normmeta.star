@@ -16,7 +16,7 @@ star.compiler.normalize.meta{
     | memoArg(string,crVar,integer)
     | globalVar(string,tipe).
 
-  public consEntry ::= consEntry(cons[(string,termLbl,integer,tipe)]).
+  public consEntry ~> cons[(termLbl,integer,tipe)].
 
   public mapLayer ::= lyr(option[crVar],map[string,nameMapEntry],map[string,consEntry]).
 
@@ -35,10 +35,6 @@ star.compiler.normalize.meta{
     disp(labelArg(Base,Ix)) => "label arg $(Base)[$(Ix)]".
     disp(memoArg(Nm,Base,Ix)) => "memo arg #(Nm)@$(Base)[$(Ix)]".
     disp(globalVar(Nm,Tp)) => "global #(Nm)".
-  }
-
-  implementation display[consEntry] => {
-    disp(consEntry(Map)) => disp(Map)
   }
 
   public crFlow ~> (crExp,cons[crDefn]).
@@ -67,5 +63,13 @@ star.compiler.normalize.meta{
   lookup([lyr(_,Entries,_),..Map],Nm,P) where E ^= Entries[Nm] =>
     P(E).
   lookup([_,..Map],Nm,P) => lookup(Map,Nm,P).
+
+  public findIndexMap:(tipe,nameMap) => option[consEntry].
+  findIndexMap(Tp,Map) => let{.
+    look([],_) => .none.
+    look([lyr(_,_,Cons),.._],Nm) where E ^= Cons[Nm] => some(E).
+    look([_,..Mp],Nm) => look(Mp,Nm).
+  .} in look(Map,tpName(Tp)).
+    
 }
   
