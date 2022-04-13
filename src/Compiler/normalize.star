@@ -17,16 +17,16 @@ star.compiler.normalize{
   import star.compiler.location.
   import star.compiler.terms.
 
-  public normalize:(pkgSpec,canonDef,reports)=>either[reports,cons[crDefn]].
-  normalize(PkgSpec,varDef(Lc,Nm,_,PkgVal,_,Tp),Rp) => do{
-    Map .= pkgMap(PkgSpec);
+  public normalize:(pkgSpec,cons[canonDef],cons[decl],reports)=>either[reports,cons[crDefn]].
+  normalize(PkgSpec,Defs,Decls,Rp) => do{
+    Map .= pkgMap(PkgSpec,Decls);
     (Vl,Defs) <- liftExp(PkgVal,Map,[],[],Rp);
     valis [glbDef(Lc,Nm,Tp,Vl),..Defs]
   }
 
-  pkgMap:(pkgSpec) => nameMap.
-  pkgMap(pkgSpec(Pkg,Imports,Tp,Cons,Impls,PkgVrs)) =>
-    [lyr(.none,foldRight(((Nm,ITp),D)=>D[Nm->globalVar(Nm,ITp)],[],PkgVrs))].
+  pkgMap:(pkgSpec,cons[decl]) => nameMap.
+  pkgMap(pkgSpec(Pkg,_,_),Decls) =>
+    [lyr(.none,foldRight((Dcl,D)=>declMdlGlobal(Dcl,D),[],Decls),makeConsMap(Decls))].
 
   liftLetExp:(locn,cons[canonDef],canon,nameMap,set[crVar],cons[crDefn],reports) =>
     either[reports,crFlow].
