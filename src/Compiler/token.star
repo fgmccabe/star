@@ -74,7 +74,7 @@ star.compiler.token{
   }
 
   public implementation hasLoc[token] => {
-    locOf(tok(Lc,_)) => Lc.
-    locOf(endTok(Lc)) => Lc.
+    locOf(tok(Lc,_)) => some(Lc).
+    locOf(endTok(Lc)) => some(Lc).
   }
 }

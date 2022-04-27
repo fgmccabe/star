@@ -86,7 +86,7 @@ star.compiler.checker{
   isVisible([(e,V),.._],D,e) => pickDefltVis(V,D)>=.transItive.
   isVisible([_,..l],D,e) => isVisible(l,D,e).
 
-  formRecordExp:(locn,string,tipe,cons[canonDef],cons[decl],tipe) => canon.
+  formRecordExp:(option[locn],string,tipe,cons[canonDef],cons[decl],tipe) => canon.
   formRecordExp(Lc,Lbl,faceType(Flds,Tps),Defs,Decls,Tp) =>
     letExp(Lc,Defs,Decls,apply(Lc,vr(.none,Lbl,consType(tupleType(Flds//snd),Tp)),
 	tple(Lc,Flds//((FNm,FTp))=>vr(.none,FNm,FTp)),Tp)).
@@ -94,13 +94,13 @@ star.compiler.checker{
   genLetRec([],[],_,E) => E.
   genLetRec([G,..Gps],[D,..Ds],Lc,E) => letRec(Lc,G,D,genLetRec(Gps,Ds,Lc,E)).
 
-  formTheta:(locn,string,tipe,cons[cons[canonDef]],cons[cons[decl]],tipe) =>
+  formTheta:(option[locn],string,tipe,cons[cons[canonDef]],cons[cons[decl]],tipe) =>
     canon.
   formTheta(Lc,Lbl,faceType(Flds,Tps),Defs,Decls,Tp) =>
     genLetRec(Defs,Decls,Lc,apply(Lc,vr(.none,Lbl,consType(tupleType(Flds//snd),Tp)),
 	tple(Lc,Flds//((FNm,FTp))=>vr(.none,FNm,FTp)),Tp)).
 
-  findDefs:(locn,cons[(string,tipe)],cons[(string,canon)],cons[cons[canonDef]],reports) =>
+  findDefs:(option[locn],cons[(string,tipe)],cons[(string,canon)],cons[cons[canonDef]],reports) =>
     either[reports,cons[(string,canon)]].
   findDefs(_,[],Flds,_,_) => either(Flds).
   findDefs(Lc,[(Nm,Tp),..Fs],SoF,Defs,Rp) where Val ^= findDefn(Defs,Nm) => do{
@@ -115,13 +115,13 @@ star.compiler.checker{
 
   lookInGroup:(cons[canonDef],string,cons[cons[canonDef]])=>option[canon].
   lookInGroup([],Nm,Gps) => findDefn(Gps,Nm).
-  lookInGroup([varDef(Lc,Nm,_,_,Cx,Tp),..Gp],Nm,_) => some(vr(some(Lc),Nm,Tp)).
+  lookInGroup([varDef(Lc,Nm,_,_,Cx,Tp),..Gp],Nm,_) => some(vr(Lc,Nm,Tp)).
   lookInGroup([cnsDef(Lc,Nm,FullNm,Tp),..Gp],Nm,_) => some(enm(Lc,FullNm,Tp)).
   lookInGroup([implDef(Lc,Nm,FullNm,Val,Cx,Tp),..Gp],FullNm,_) =>
-    some(vr(some(Lc),FullNm,Tp)).
+    some(vr(Lc,FullNm,Tp)).
   lookInGroup([_,..Gp],Nm,Gps) => lookInGroup(Gp,Nm,Gps).
 
-  thetaEnv:(locn,string,cons[ast],tipe,dict,reports,visibility) =>
+  thetaEnv:(option[locn],string,cons[ast],tipe,dict,reports,visibility) =>
     either[reports,(cons[cons[canonDef]],cons[cons[decl]],dict)].
   thetaEnv(Lc,Pth,Stmts,Face,Env,Rp,DefViz) => do{
     (Vis,Opens,Annots,Gps) <- dependencies(Stmts,Rp);
@@ -133,7 +133,7 @@ star.compiler.checker{
     checkGroups(Gps,[],[],Face,Annots,Base,Pth,Rp)
   }
 
-  recordEnv:(locn,string,cons[ast],tipe,dict,dict,reports,visibility) =>
+  recordEnv:(option[locn],string,cons[ast],tipe,dict,dict,reports,visibility) =>
     either[reports,(cons[canonDef],cons[decl])].
   recordEnv(Lc,Path,Stmts,Face,Env,Outer,Rp,DefViz) => do{
     -- We sort for dependencies to get types right
@@ -170,11 +170,11 @@ star.compiler.checker{
   parseAnnotations([],_,_,Env,_) => either(Env).
   parseAnnotations([defnSpec(varSp(Nm),Lc,Stmts),..Gs],Fields,Annots,Env,Rp) => do{
     Tp <- parseAnnotation(Nm,Lc,Stmts,Fields,Annots,Env,Rp);
-    parseAnnotations(Gs,Fields,Annots,declareVar(Nm,some(Lc),Tp,faceOfType(Tp,Env),Env),Rp)
+    parseAnnotations(Gs,Fields,Annots,declareVar(Nm,Lc,Tp,faceOfType(Tp,Env),Env),Rp)
   }
   parseAnnotations([_,..Gs],Fields,Annots,Env,Rp) => parseAnnotations(Gs,Fields,Annots,Env,Rp).
 
-  parseAnnotation:(string,locn,cons[ast],tipe,map[string,ast],dict,reports) =>
+  parseAnnotation:(string,option[locn],cons[ast],tipe,map[string,ast],dict,reports) =>
     either[reports,tipe].
   parseAnnotation(Nm,_,_,_,Annots,Env,Rp) where T ^= Annots[Nm] => do{
     parseType([],T,Env,Rp)
@@ -221,12 +221,12 @@ star.compiler.checker{
   checkDefn(defnSpec(varSp(Nm),Lc,[Stmt]),Env,Outer,Path,Rp) where Tp ^= varType(Nm,Env) => do{
     (Q,ETp) .= evidence(Tp,Env);
     (Cx,VarTp) .= deConstrain(ETp);
-    Es .= declareConstraints(some(Lc),Cx,declareTypeVars(Q,Outer));
+    Es .= declareConstraints(Lc,Cx,declareTypeVars(Q,Outer));
     if (_,Lhs,R) ^= isDefn(Stmt) then{
       Val <- typeOfExp(R,VarTp,Es,Path,Rp);
       FullNm .= qualifiedName(Path,.valMark,Nm);
       valis ([varDef(Lc,Nm,FullNm,Val,Cx,Tp)],
-	[varDec(some(Lc),Nm,FullNm,Tp)])
+	[varDec(Lc,Nm,FullNm,Tp)])
     }
     else{
       raise reportError(Rp,"bad definition $(Stmt)",Lc)
@@ -257,18 +257,18 @@ star.compiler.checker{
     raise reportError(Rp,"not a valid updater statement",Lc)
   }
 
-  checkFunction:(string,tipe,locn,cons[ast],dict,dict,string,reports) =>
+  checkFunction:(string,tipe,option[locn],cons[ast],dict,dict,string,reports) =>
     either[reports,(cons[canonDef],cons[decl])].
   checkFunction(Nm,Tp,Lc,Stmts,Env,Outer,Path,Rp) => do{
 --    logMsg("check function $(Nm), type $(Tp), existing #(showVar(Nm,Outer))");
     (Q,ETp) .= evidence(Tp,Env);
     (Cx,ProgramTp) .= deConstrain(ETp);
-    Es .= declareConstraints(some(Lc),Cx,declareTypeVars(Q,Env));
+    Es .= declareConstraints(Lc,Cx,declareTypeVars(Q,Env));
     Rls <- processEqns(Stmts,deRef(ProgramTp),[],.none,Es,
-      declareConstraints(some(Lc),Cx,declareTypeVars(Q,Outer)),Path,Rp);
+      declareConstraints(Lc,Cx,declareTypeVars(Q,Outer)),Path,Rp);
     FullNm .= qualifiedName(Path,.valMark,Nm);
     valis ([varDef(Lc,Nm,FullNm,lambda(FullNm,Rls,Tp),Cx,Tp)],
-      [funDec(some(Lc),Nm,FullNm,Tp)])
+      [funDec(Lc,Nm,FullNm,Tp)])
   }.
 
   processEqns:(cons[ast],tipe,cons[equation],option[equation],dict,dict,string,reports) =>
@@ -314,7 +314,7 @@ star.compiler.checker{
 	}
       }.
 
-  checkImplementation:(locn,string,cons[ast],cons[ast],ast,ast,dict,dict,string,reports) =>
+  checkImplementation:(option[locn],string,cons[ast],cons[ast],ast,ast,dict,dict,string,reports) =>
     either[reports,(cons[canonDef],cons[decl])].
   checkImplementation(Lc,Nm,Q,C,H,B,Env,Outer,Path,Rp) => do{
 --    logMsg("checking implementation for $(Nm) stmt at $(Lc)");
@@ -330,7 +330,7 @@ star.compiler.checker{
       ConTp .= mkConType(CnNm,CnTps,CnDps);
 --      logMsg("contract exists: $(ConTp) ~ $(Cn)");
       if sameType(ConTp,typeOf(Cn),Env) then {
-	Es .= declareConstraints(some(Lc),Cx,declareTypeVars(BV,Outer));
+	Es .= declareConstraints(Lc,Cx,declareTypeVars(BV,Outer));
 	Impl <- typeOfExp(B,ConTp,Es,Path,Rp);
 	ImplNm .= implementationName(conTract(CnNm,CnTps,CnDps));
 	ImplVrNm .= qualifiedName(Path,.valMark,ImplNm);
@@ -338,7 +338,7 @@ star.compiler.checker{
 --	logMsg("implementation definition $(implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp))");
 	
 	valis ([implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp)],
-	  [implDec(some(Lc),ImplNm,ImplVrNm,ImplTp)])
+	  [implDec(Lc,ImplNm,ImplVrNm,ImplTp)])
       }
       else{
 	raise reportError(Rp,"implementation type $(Cn) not consistent with contract type $(ConTp)",Lc)
@@ -348,7 +348,7 @@ star.compiler.checker{
     }
   }
 
-  checkAccessor:(locn,string,cons[ast],cons[ast],ast,ast,dict,dict,string,reports) => either[reports,(cons[canonDef],cons[decl])].
+  checkAccessor:(option[locn],string,cons[ast],cons[ast],ast,ast,dict,dict,string,reports) => either[reports,(cons[canonDef],cons[decl])].
   checkAccessor(Lc,Nm,Q,C,T,B,Env,Outer,Path,Rp) => do{
 --    logMsg("check accessor $(Nm)");
     QV <- parseBoundTpVars(Q,Rp);
@@ -368,12 +368,12 @@ star.compiler.checker{
 
 --    logMsg("accessor var $(AccVrNm)");
     Defn .= varDef(Lc,AccVrNm,AccVrNm,AccFn,Cx,AccTp);
-    Decl .= accDec(some(Lc),rebind(QV,reConstrainType(Cx,RcTp),Env),Fld,AccVrNm,AccTp);
+    Decl .= accDec(Lc,rebind(QV,reConstrainType(Cx,RcTp),Env),Fld,AccVrNm,AccTp);
 --    logMsg("accessor $(Decl)");
     valis ([Defn],[Decl])
   }
 
-  checkUpdater:(locn,string,cons[ast],cons[ast],ast,ast,dict,dict,string,reports) => either[reports,(cons[canonDef],cons[decl])].
+  checkUpdater:(option[locn],string,cons[ast],cons[ast],ast,ast,dict,dict,string,reports) => either[reports,(cons[canonDef],cons[decl])].
   checkUpdater(Lc,Nm,Q,C,T,B,Env,Outer,Path,Rp) => do{
 --    logMsg("Check updater: $(Nm) Head:$(T), Body:$(B)");
     QV <- parseBoundTpVars(Q,Rp);
@@ -392,20 +392,20 @@ star.compiler.checker{
     AccVrNm .= qualifiedName(Path,.valMark,qualifiedName(tpName(RcTp),.typeMark,Fld));
 
     Defn .= varDef(Lc,AccVrNm,AccVrNm,AccFn,Cx,AccTp);
-    Decl .= updDec(some(Lc),rebind(QV,reConstrainType(Cx,RcTp),Env),Fld,AccVrNm,AccTp);
+    Decl .= updDec(Lc,rebind(QV,reConstrainType(Cx,RcTp),Env),Fld,AccVrNm,AccTp);
 --    logMsg("updater $(Decl)");
     valis ([Defn],[Decl])
   }
     
   typeOfPtn:(ast,tipe,dict,string,reports) => either[reports,(canon,dict)].
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,"_") ^= isName(A) =>
-    either((vr(some(Lc),genSym("_"),Tp),Env)).
+    either((vr(Lc,genSym("_"),Tp),Env)).
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) &&
       varDefined(Id,Env) =>
     typeOfPtn(mkWhereEquality(A),Tp,Env,Path,Rp).
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) => do{
-    Ev .= declareVar(Id,some(Lc),Tp,faceOfType(Tp,Env),Env);
-    valis (vr(some(Lc),Id,Tp),Ev)
+    Ev .= declareVar(Id,Lc,Tp,faceOfType(Tp,Env),Env);
+    valis (vr(Lc,Id,Tp),Ev)
   }
   typeOfPtn(A,Tp,Env,Path,Rp) where _ ^= isEnum(A) => do{
     Enm <- typeOfExp(A,Tp,Env,Path,Rp);
@@ -449,7 +449,7 @@ star.compiler.checker{
     (Q,ETp) .= evidence(deRef(At),Env);
     FaceTp ^= faceOfType(ETp,Env);
     (Cx,Face) .= deConstrain(FaceTp);
-    Base .= declareConstraints(some(Lc),Cx,declareTypeVars(Q,pushScope(Env)));
+    Base .= declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
     (Els,Ev) <- typeOfElementPtns(Ss,Face,Base,Path,[],Rp);
     Args .= fillinElementPtns(Lc,Els,Face);
     valis (apply(Lc,Fun,tple(Lc,Args),Tp),Ev)
@@ -477,10 +477,10 @@ star.compiler.checker{
     typeOfElementPtns(Ds,Tp,Ev,Pth,[(Nm,Ptn),..SoFr],Rp)
   }
 
-  fillinElementPtns:(locn,cons[(string,canon)],tipe) => cons[canon].
+  fillinElementPtns:(option[locn],cons[(string,canon)],tipe) => cons[canon].
   fillinElementPtns(Lc,Ptns,Tp) =>
     project1(foldRight(((Nm,Pt),Ps)=>fillinElementPtn(Lc,Nm,Pt,Ps),
-	_optval(fieldTypes(Tp))//((N,T))=>(N,anon(Lc,T)),
+	_optval(fieldTypes(Tp))//((N,T))=>(N,vr(Lc,genSym("_"),T)),
 	Ptns)).
 
   fillinElementPtn(Lc,Nm,Pt,Ps) => replace(Ps,((N,_))=>N==Nm,(Nm,Pt)).
@@ -603,7 +603,7 @@ star.compiler.checker{
       (Val,mergeGoal(WLc,some(Cn),G1)).
     pullWhere(Exp,Gl) default => (Exp,Gl).
 
-    mergeGoal:(locn,option[canon],option[canon])=>option[canon].
+    mergeGoal:(option[locn],option[canon],option[canon])=>option[canon].
     mergeGoal(_,Gl,.none) => Gl.
     mergeGoal(_,.none,Gl) => Gl.
     mergeGoal(Lc,some(Gl),some(H)) => some(conj(Lc,Gl,H)).
@@ -648,7 +648,7 @@ star.compiler.checker{
     (Q,ETp) .= evidence(Tp,Env);
     FaceTp .= faceOfType(ETp,Env);
     (Cx,Face) .= deConstrain(FaceTp);
-  Base .= declareConstraints(some(Lc),Cx,declareTypeVars(Q,pushScope(Env)));
+  Base .= declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
     Path .= genNewName(Pth,"θ");
     (Defs,ThEnv) <- thetaEnv(Lc,Path,Els,Face,Base,Rp,.deFault);
     if sameType(ThetaTp,ETp,Env) then{
@@ -662,7 +662,7 @@ star.compiler.checker{
     (Q,ETp) .= evidence(Tp,Env);
     FaceTp .= faceOfType(ETp,Env);
     (Cx,Face) .= deConstrain(FaceTp);
-  Base .= declareConstraints(some(Lc),Cx,declareTypeVars(Q,pushScope(Env)));
+  Base .= declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
     Path .= genNewName(Pth,"θ");
     (Defs,ThEnv,ThetaTp) <- recordEnv(Lc,Path,Els,Face,Base,Rp,.deFault);
     if sameType(ThetaTp,Tp,Env) then{
@@ -681,7 +681,7 @@ star.compiler.checker{
     (Q,ETp) .= evidence(FceTp,Env);
     FaceTp ^= faceOfType(ETp,Env);
     (Cx,Face) .= deConstrain(FaceTp);
-    Base .= declareConstraints(some(Lc),Cx,declareTypeVars(Q,pushScope(Env)));
+    Base .= declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
     
     (Defs,Decls,ThEnv) <- thetaEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,Rp,.deFault);
 
@@ -697,7 +697,7 @@ star.compiler.checker{
     (Q,ETp) .= evidence(FceTp,Env);
     FaceTp ^= faceOfType(ETp,Env);
     (Cx,Face) .= deConstrain(FaceTp);
-    Base .= declareConstraints(some(Lc),Cx,declareTypeVars(Q,pushScope(Env)));
+    Base .= declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
     
     (Defs,Decls) <- recordEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,Env,Rp,.deFault);
     
@@ -751,7 +751,7 @@ star.compiler.checker{
     typeOfExps(Ps,Ts,[Trm,..Els],Env,Path,Rp)
   }
 
-  typeOfRoundTerm:(locn,ast,cons[ast],tipe,dict,string,reports) => either[reports,canon].
+  typeOfRoundTerm:(option[locn],ast,cons[ast],tipe,dict,string,reports) => either[reports,canon].
   typeOfRoundTerm(Lc,Op,As,Tp,Env,Path,Rp) => do{
     Vrs .= genTpVars(As);
     At .= tupleType(Vrs);

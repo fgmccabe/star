@@ -24,11 +24,11 @@ star.compiler.dict.mgt{
   showVar(Nm,Dict) where vrEntry(_,_,Tp,_)^=isVar(Nm,Dict) => "$(Nm)\:$(Tp)".
   showVar(Nm,_) => "$(Nm) not defined".
 
-  public findVar:(locn,string,dict) => option[canon].
+  public findVar:(option[locn],string,dict) => option[canon].
   findVar(Lc,Nm,Dict) where vrEntry(_,Mk,Tp,_) ^= isVar(Nm,Dict) => some(Mk(Lc,Dict)).
   findVar(_,_,_) default => .none.
 
-  public findAccess:(locn,tipe,string,dict) => option[canon].
+  public findAccess:(option[locn],tipe,string,dict) => option[canon].
   findAccess(Lc,Tp,Fld,Env) => valof{
     if accEntry(_,Nm,T) ^= getFieldAccess(Tp,Fld,Env) then{
       valis some(refreshVar(Lc,Nm,T,Env))
@@ -37,7 +37,7 @@ star.compiler.dict.mgt{
       valis .none
   }
 
-  public findUpdate:(locn,tipe,string,dict) => option[canon].
+  public findUpdate:(option[locn],tipe,string,dict) => option[canon].
   findUpdate(Lc,Tp,Fld,Env) => valof{
     if accEntry(_,Nm,T) ^= getFieldUpdate(Tp,Fld,Env) then{
       valis some(refreshVar(Lc,Nm,T,Env))
@@ -63,14 +63,14 @@ star.compiler.dict.mgt{
   declareVar(Nm,Lc,Tp,Fc,Dict) =>
     declareVr(Nm,Lc,Tp,(L,E)=>refreshVar(L,Nm,Tp,E),Fc,Dict).
 
-  refreshVr:(locn,tipe,dict,(locn,tipe)=>canon) => canon.
+  refreshVr:(option[locn],tipe,dict,(option[locn],tipe)=>canon) => canon.
   refreshVr(Lc,Tp,Env,Mkr) => valof{
     (_,VrTp) .= freshen(Tp,Env);
     valis manageConstraints(VrTp,Lc,Mkr,Env)
   }    
 
   public refreshVar(Lc,Nm,Tp,Env) =>
-    refreshVr(Lc,Tp,Env,(LLc,T)=>vr(some(LLc),Nm,T)).
+    refreshVr(Lc,Tp,Env,(LLc,T)=>vr(LLc,Nm,T)).
 
   public declareFldAccess:(canon,string,option[locn],tipe,dict) => dict.
   declareFldAccess(Rc,Nm,Lc,Tp,Env) =>
@@ -107,7 +107,7 @@ star.compiler.dict.mgt{
     sameDesc(vrEntry(_,_,T1,_),vrEntry(_,_,T2,_)) => sameType(T1,T2,Env)
   .} in mergeScopes(D1,D2).
   
-  public declareVr:(string,option[locn],tipe,(locn,dict)=>canon,option[tipe],dict) => dict.
+  public declareVr:(string,option[locn],tipe,(option[locn],dict)=>canon,option[tipe],dict) => dict.
   declareVr(Nm,Lc,Tp,MkVr,Fc,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..Ev]) =>
     [scope(Tps,Vrs[Nm->vrEntry(Lc,MkVr,Tp,Fc)],Cns,Cnts,Imps,Accs,Ups),..Ev].
 
@@ -168,26 +168,26 @@ star.compiler.dict.mgt{
   declareDecl(cnsDec(Lc,Nm,FullNm,Tp),Dict) =>
     declareConstructor(Nm,FullNm,Lc,Tp,Dict).
 
-  public pushSig:(tipe,locn,(string,tipe,dict)=>dict,dict) => dict.
+  public pushSig:(tipe,option[locn],(string,tipe,dict)=>dict,dict) => dict.
   pushSig(faceType(Vrs,Tps),Lc,Mkr,Env) =>
     pushTypes(Tps,Lc,pushFlds(Vrs,Lc,Mkr,Env)).
   
-  public pushFace:(tipe,locn,dict) => dict.
+  public pushFace:(tipe,option[locn],dict) => dict.
   pushFace(Tp,Lc,Env) =>
     pushSig(Tp,Lc,(Id,T,E) where (_,DQ).=deQuant(T) => (_ ^= isConsType(DQ) ?
-	  declareConstructor(Id,Id,some(Lc),T,E) ||
-	  declareVar(Id,some(Lc),T,.none,E)),
+	  declareConstructor(Id,Id,Lc,T,E) ||
+	  declareVar(Id,Lc,T,.none,E)),
       Env).
   
-  pushFlds:(cons[(string,tipe)],locn,(string,tipe,dict)=>dict,dict) => dict.
+  pushFlds:(cons[(string,tipe)],option[locn],(string,tipe,dict)=>dict,dict) => dict.
   pushFlds([],Lc,_,Env) => Env.
   pushFlds([(Nm,Tp),..Vrs],Lc,Mkr,Env)  =>
     pushFlds(Vrs,Lc,Mkr,Mkr(Nm,Tp,Env)).
 
-  pushTypes:(cons[(string,tipe)],locn,dict) => dict.
+  pushTypes:(cons[(string,tipe)],option[locn],dict) => dict.
   pushTypes([],Lc,Env) => Env.
   pushTypes([(Nm,Tp),..Tps],Lc,Env) =>
-    pushTypes(Tps,Lc,declareType(Nm,some(Lc),typeKey(Tp),typeExists(Tp,faceType([],[])),Env)).
+    pushTypes(Tps,Lc,declareType(Nm,Lc,typeKey(Tp),typeExists(Tp,faceType([],[])),Env)).
 
   public declareConstraints:(option[locn],cons[constraint],dict) => dict.
   declareConstraints(_,[],E) => E.
@@ -200,12 +200,12 @@ star.compiler.dict.mgt{
   declareConstraints(Lc,[_,..Cx],Env) =>
     declareConstraints(Lc,Cx,Env).
 
-  manageConstraints:(tipe,locn,(locn,tipe)=>canon,dict) => canon.
+  manageConstraints:(tipe,option[locn],(option[locn],tipe)=>canon,dict) => canon.
   manageConstraints(constrainedType(Tp,Con),Lc,Term,Env) =>
     applyConstraint(Lc,Con,manageConstraints(deRef(Tp),Lc,Term,Env),Env).
   manageConstraints(Tp,Lc,Term,Env) => Term(Lc,Tp).
 
-  applyConstraint:(locn,constraint,canon,dict) => canon.
+  applyConstraint:(option[locn],constraint,canon,dict) => canon.
   applyConstraint(Lc,fieldConstraint(V,F,T),Trm,Env)
       where sameType(typeOf(Trm),V,Env) => overaccess(Lc,Trm,F,T).
   applyConstraint(Lc,conTract(N,T,D),Trm,_) =>

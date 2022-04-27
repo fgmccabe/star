@@ -183,9 +183,9 @@ star.compiler.types{
   shTipe(tpExp(O,A),Sh,Dp) => showTpExp(deRef(O),[A],Sh,Dp).
   shTipe(tupleType(A),Sh,Dp) => "(#(showTypes(A,Sh,Dp)*))".
   shTipe(allType(A,T),Sh,Dp) =>
-    "all #(showBound(A,Dp)) #(showMoreQuantified(T,Sh,Dp))".
+    "all #(showBound(A,Dp))#(showMoreQuantified(T,Sh,Dp))".
   shTipe(existType(A,T),Sh,Dp) =>
-    "exists #(showBound(A,Dp)) #(showMoreQuantified(T,Sh,Dp))".
+    "exists #(showBound(A,Dp))#(showMoreQuantified(T,Sh,Dp))".
   shTipe(faceType(Els,Tps),Sh,Dp) => "{#(showTypeEls(Els,Tps,Sh,Dp))}".
   shTipe(constrainedType(T,C),Sh,Dp) =>
     "#(showConstraint(C,Dp)) |: #(showType(T,Sh,Dp))".
@@ -249,7 +249,7 @@ star.compiler.types{
   showMoreConstraints([],_) => "|:".
   showMoreConstraints([C,..Cs],Dp) => ", #(showConstraint(C,Dp))#(showMoreConstraints(Cs,Dp))".
 
-  showMoreQuantified(allType(V,T),Sh,Dp) => ",#(showBound(V,Dp))#(showMoreQuantified(T,Sh,Dp))".
+  showMoreQuantified(allType(V,T),Sh,Dp) => ", #(showBound(V,Dp))#(showMoreQuantified(T,Sh,Dp))".
   showMoreQuantified(T,Sh,Dp) => " ~~ #(showType(T,Sh,Dp))".
 
   showBound(V,Dp) => showType(V,.false,Dp).
@@ -360,6 +360,8 @@ star.compiler.types{
   arity(Tp) where (A,_) ^= isFunType(Tp) => arity(A).
   arity(Tp) where (A,_) ^= isConsType(Tp) => arity(A).
   arity(Tp) where tupleType(A).=deRef(Tp) => size(A).
+  arity(Tp) where allType(_,I) .= deRef(Tp) => arity(I).
+  arity(Tp) where existType(_,I) .= deRef(Tp) => arity(I).
   arity(_) default => 0.
   
   public funType(A,B) => fnType(tupleType(A),B).

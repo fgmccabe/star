@@ -11,7 +11,7 @@ star.compiler.dict{
 
   public tpDef ::= tpDefn(option[locn],string,tipe,typeRule).
 
-  public vrEntry ::= vrEntry(option[locn],(locn,dict)=>canon,tipe,option[tipe]).
+  public vrEntry ::= vrEntry(option[locn],(option[locn],dict)=>canon,tipe,option[tipe]).
 
   public implEntry ::= implEntry(option[locn],string,tipe).
 
@@ -34,8 +34,7 @@ star.compiler.dict{
   }
 
   public implementation display[vrEntry] => {
-    disp(vrEntry(some(Lc),Mk,Tp,_)) => "$(Mk(Lc,emptyDict))|=$(Tp)".
-    disp(vrEntry(.none,_,Tp,_)) => disp(Tp).
+    disp(vrEntry(Lc,Mk,Tp,_)) => "$(Mk(Lc,emptyDict))|=$(Tp)".
   }
 
   public implementation display[tpDef] => {

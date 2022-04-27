@@ -143,7 +143,7 @@ star.compiler.core.ast{
     valis crTerm(Lc,Id,Args,Tp)
   }
   parseExp(app(Lc,Op,tpl(_,"()",Els)),some(Tp),D,Rp) where
-      (_,Id)^=isNme(Op) && isEscape(Id) =>do{
+      (_,Id)^=isNme(Op) && _ ^= isEscape(Id) =>do{
 	Args <- seqmap((E)=>parseExp(E,.none,D,Rp),Els);
 	valis crECall(Lc,Id,Args,Tp)
       }.

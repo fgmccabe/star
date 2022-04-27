@@ -60,7 +60,7 @@ star.compiler.gencode{
 
   defFun(fnDef(Lc,Nm,Tp,_,_),Vrs) => Vrs[Nm->glbFun(tLbl(Nm,arity(Tp)),Tp::ltipe)].
   defFun(glbDef(Lc,Nm,Tp,_),Vrs) => Vrs[Nm->glbVar(Nm,Tp::ltipe)].
-  defFun(rcDef(_,_,_,_),Vrs) => Vrs.
+  defFun(D,Vrs) => Vrs.
   
   compDefs:(cons[crDefn],map[string,srcLoc],compilerOptions,cons[codeSegment],reports)=>
     either[reports,cons[codeSegment]].

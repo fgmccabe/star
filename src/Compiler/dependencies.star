@@ -40,7 +40,7 @@ star.compiler.dependencies{
     valis (Pb,Opn,As,Defs)
   }
 
-  definitionSpec ::= definition(defnSp,locn,cons[defnSp],cons[ast]).
+  definitionSpec ::= definition(defnSp,option[locn],cons[defnSp],cons[ast]).
 
   implementation depends[definitionSpec->>defnSp] => {
     references(definition(_,_,Refs,_)) => Refs.
@@ -143,7 +143,7 @@ star.compiler.dependencies{
 
   isDefined:(defnSp,cons[defnSpec])=>option[locn].
   isDefined(_,[]) => .none.
-  isDefined(Sp,[defnSpec(Sp,Lc,Sts),..Defs]) => some(Lc).
+  isDefined(Sp,[defnSpec(Sp,Lc,Sts),..Defs]) => Lc.
   isDefined(Sp,[_,..Defs]) => isDefined(Sp,Defs).
 
   publishName:(defnSp,visibility,cons[(defnSp,visibility)])=>

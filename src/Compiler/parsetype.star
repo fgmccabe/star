@@ -116,7 +116,7 @@ star.compiler.typeparse{
   parseArgType(Q,A,Env,Rp) =>
     parseType(Q,A,Env,Rp).
     
-  parseTypeArgs:(locn,tipes,cons[ast],dict,reports) =>
+  parseTypeArgs:(option[locn],tipes,cons[ast],dict,reports) =>
     either[reports,(cons[tipe],cons[tipe])].
   parseTypeArgs(_,Q,[XX],Env,Rp) where (_,As,Ds)^=isDepends(XX) => do{
     Lhs <- parseTypes(Q,As,Env,Rp);
@@ -130,7 +130,7 @@ star.compiler.typeparse{
   parseTypeArgs(Lc,_,As,Env,Rp) =>
     other(reportError(Rp,"cannot parse argument types $(As)",Lc)).
 
-  applyTypeRule:(locn,typeRule,cons[tipe],dict,reports) => either[reports,tipe].
+  applyTypeRule:(option[locn],typeRule,cons[tipe],dict,reports) => either[reports,tipe].
   applyTypeRule(_,typeLambda(tupleType([]),Tp),[],_,_) => either(Tp).
   applyTypeFun(Lc,typeLambda(L,R),[A,..As],Env,Rp) => do{
     if sameType(L,A,Env) then{
@@ -306,9 +306,9 @@ star.compiler.typeparse{
     Tp <- parseTypeHead(Q,H,Env,Path,Rp);
     Cx <- parseConstraints(C,Q,Env,Rp);
     Tmplte .= pickTypeTemplate(Tp);
-    Fce <- parseType(Q,B,declareType(Nm,some(Lc),Tmplte,typeExists(Tp,faceType([],[])),Env),Rp);
+    Fce <- parseType(Q,B,declareType(Nm,Lc,Tmplte,typeExists(Tp,faceType([],[])),Env),Rp);
     TpRl .= foldLeft(((_,QV),Rl)=>allRule(QV,Rl),typeExists(reConstrainType(Cx,Tp),Fce),Q);
-    valis ([typeDef(Lc,Nm,Tmplte,TpRl)],[tpeDec(some(Lc),Nm,Tmplte,TpRl)])
+    valis ([typeDef(Lc,Nm,Tmplte,TpRl)],[tpeDec(Lc,Nm,Tmplte,TpRl)])
   }
   parseTypeDef(Nm,St,Env,Path,Rp) where (Lc,V,C,H,B) ^= isTypeFunStmt(St) => do{
     Q <- parseBoundTpVars(V,Rp);
@@ -319,7 +319,7 @@ star.compiler.typeparse{
     Tmplte .= pickTypeTemplate(Tp);
     TpRl .= foldLeft(((_,QV),Rl)=>allRule(QV,Rl),typeLambda(reConstrainType(Cx,Tp),RTp),Q);
 
-    valis ([typeDef(Lc,Nm,Tmplte,TpRl)],[tpeDec(some(Lc),Nm,Tmplte,TpRl)])
+    valis ([typeDef(Lc,Nm,Tmplte,TpRl)],[tpeDec(Lc,Nm,Tmplte,TpRl)])
   }
 
   parseTypeHead:(tipes,ast,dict,string,reports) => either[reports,tipe].
@@ -344,7 +344,7 @@ star.compiler.typeparse{
     Lc .= locOf(St);
     FullNm .= qualifiedName(Path,.conMark,Nm);
     valis ([cnsDef(Lc,Nm,FullNm,Tp)],
-      [cnsDec(some(Lc),Nm,FullNm,Tp)])
+      [cnsDec(Lc,Nm,FullNm,Tp)])
   }
 
   parseContractHead:(tipes,ast,dict,string,reports) => either[reports,constraint].
@@ -374,6 +374,6 @@ star.compiler.typeparse{
     ConTp .= reQ(BV,mkConType(Con,CTps,CDps));
     ConRlTp .= foldLeft(((_,QV),Rl)=>allRule(QV,Rl),contractExists(Con,CTps,CDps,Face),BV);
     valis ([conDef(Lc,Id,tpName(ConTp),ConRlTp)],
-      [conDec(some(Lc),Id,tpName(ConTp),ConRlTp)])
+      [conDec(Lc,Id,tpName(ConTp),ConRlTp)])
   }
 }

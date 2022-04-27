@@ -2,8 +2,8 @@ star.compiler.errors{
   import star.
   import star.compiler.location.
 
-  public reportMsg ::= errorMsg(locn,string)
-                       | warnMsg(locn,string).
+  public reportMsg ::= errorMsg(option[locn],string)
+                       | warnMsg(option[locn],string).
 
   public reports ::= reports(cons[reportMsg]).
 
@@ -12,8 +12,10 @@ star.compiler.errors{
   }
 
   public implementation display[reportMsg] => {
-    disp(errorMsg(Lc,Msg)) => "error #(Msg) at $(Lc)".
-    disp(warnMsg(Lc,Msg)) => "warning #(Msg) at $(Lc)".
+    disp(errorMsg(.none,Msg)) => "error #(Msg)".
+    disp(errorMsg(some(Lc),Msg)) => "error #(Msg) at $(Lc)".
+    disp(warnMsg(.none,Msg)) => "warning #(Msg)".
+    disp(warnMsg(some(Lc),Msg)) => "warning #(Msg) at $(Lc)".
   }
 
   public errorFree:(reports)=>boolean.
@@ -31,9 +33,9 @@ star.compiler.errors{
   countWarning(warnMsg(_,_),Ix)=>Ix+1.
   countWarning(_,Ix) default => Ix.
 
-  public reportError:(reports,string,locn) => reports.
+  public reportError:(reports,string,option[locn]) => reports.
   reportError(reports(Ms),Msg,Lc) => reports([errorMsg(Lc,Msg),..Ms]).
 
-  public reportWarning:(reports,string,locn) => reports.
+  public reportWarning:(reports,string,option[locn]) => reports.
   reportWarning(reports(Ms),Msg,Lc) => reports([warnMsg(Lc,Msg),..Ms]).
 }

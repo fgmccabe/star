@@ -22,12 +22,5 @@ star.compiler.parser{
 		(.none,Rptx)) ||
 	    (.none,Rp1)) ||
 	(.none,Rp1)).
-  parseSrc(U,P,Rp) => (.none,reportError(Rp,"Cannot locate $(P) in $(U)",pkgLoc(P))).
-
-  public parseText:(locn,string,reports) => (option[ast],reports).
-  parseText(Lc,Txt,Rpt) =>
-    ( ((Toks,Rp1).=allTokens(initSt(Lc,Txt::cons[char],Rpt))) &&
-	  (Trm,Rptx,_) .= astParse(Toks,Rp1)) ?
-      (some(Trm),Rptx) ||
-      (.none, reportError(Rpt,"Could not successfully parse",Lc)).
+  parseSrc(U,P,Rp) => (.none,reportError(Rp,"Cannot locate $(P) in $(U)",some(pkgLoc(P)))).
 }

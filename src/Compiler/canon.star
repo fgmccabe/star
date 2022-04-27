@@ -18,46 +18,44 @@ star.compiler.canon{
     cnsDec(option[locn],string,string,tipe).
 
   public canon ::= vr(option[locn],string,tipe) |
-    anon(locn,tipe) |
-    mtd(locn,string,constraint,tipe) |
-    over(locn,canon,cons[constraint]) |
-    overaccess(locn,canon,string,tipe) |
-    intr(locn,integer) |
-    bintr(locn,bigint) |
-    kar(locn,char) |
-    flt(locn,float) |
-    strng(locn,string) |
-    enm(locn,string,tipe) |
-    whr(locn,canon,canon) |
-    dot(locn,canon,string,tipe) |
-    csexp(locn,canon,cons[equation],tipe) |
-    match(locn,canon,canon) |
-    conj(locn,canon,canon) |
-    disj(locn,canon,canon) |
-    implies(locn,canon,canon) |
-    neg(locn,canon) |
-    cond(locn,canon,canon,canon) |
-    apply(locn,canon,canon,tipe) |
-    tple(locn,cons[canon]) |
+    mtd(option[locn],string,constraint,tipe) |
+    over(option[locn],canon,cons[constraint]) |
+    overaccess(option[locn],canon,string,tipe) |
+    intr(option[locn],integer) |
+    bintr(option[locn],bigint) |
+    kar(option[locn],char) |
+    flt(option[locn],float) |
+    strng(option[locn],string) |
+    enm(option[locn],string,tipe) |
+    whr(option[locn],canon,canon) |
+    dot(option[locn],canon,string,tipe) |
+    csexp(option[locn],canon,cons[equation],tipe) |
+    match(option[locn],canon,canon) |
+    conj(option[locn],canon,canon) |
+    disj(option[locn],canon,canon) |
+    implies(option[locn],canon,canon) |
+    neg(option[locn],canon) |
+    cond(option[locn],canon,canon,canon) |
+    apply(option[locn],canon,canon,tipe) |
+    tple(option[locn],cons[canon]) |
     lambda(string,cons[equation],tipe) |
-    owpen(locn,canon) |
-    letExp(locn,cons[canonDef],cons[decl],canon) |
-    letRec(locn,cons[canonDef],cons[decl],canon) |
-    update(locn,canon,string,canon).
+    owpen(option[locn],canon) |
+    letExp(option[locn],cons[canonDef],cons[decl],canon) |
+    letRec(option[locn],cons[canonDef],cons[decl],canon) |
+    update(option[locn],canon,string,canon).
 
-  public equation ::= eqn(locn,canon,option[canon],canon).
+  public equation ::= eqn(option[locn],canon,option[canon],canon).
 
-  public canonDef ::= varDef(locn,string,string,canon,cons[constraint],tipe) |
-    typeDef(locn,string,tipe,typeRule) |
-    conDef(locn,string,string,typeRule) |
-    cnsDef(locn,string,string,tipe) |
-    implDef(locn,string,string,canon,cons[constraint],tipe) |
-    accDef(locn,string,string,tipe) |
-    updDef(locn,string,string,tipe).
+  public canonDef ::= varDef(option[locn],string,string,canon,cons[constraint],tipe) |
+    typeDef(option[locn],string,tipe,typeRule) |
+    conDef(option[locn],string,string,typeRule) |
+    cnsDef(option[locn],string,string,tipe) |
+    implDef(option[locn],string,string,canon,cons[constraint],tipe) |
+    accDef(option[locn],string,string,tipe) |
+    updDef(option[locn],string,string,tipe).
 
   public implementation hasType[canon] => {.
     typeOf(vr(_,_,T)) => T.
-    typeOf(anon(_,T)) => T.
     typeOf(mtd(_,_,_,T)) => T.
     typeOf(over(_,T,_)) => typeOf(T).
     typeOf(overaccess(_,_,_,Tp)) => Tp.
@@ -84,8 +82,7 @@ star.compiler.canon{
   .}
 
   public implementation hasLoc[canon] => {
-    locOf(vr(some(Lc),_,_)) => Lc.
-    locOf(anon(Lc,_)) => Lc.
+    locOf(vr(Lc,_,_)) => Lc.
     locOf(mtd(Lc,_,_,_)) => Lc.
     locOf(over(Lc,_,_)) => Lc.
     locOf(overaccess(Lc,_,_,_)) => Lc.
@@ -187,7 +184,6 @@ star.compiler.canon{
 */
   showCanon:(canon,string)=>string.
   showCanon(vr(_,Nm,Tp),_) => Nm.
-  showCanon(anon(_,_),_) => "_".
   showCanon(mtd(_,Fld,_,_),_) => "µ#(Fld)".
   showCanon(over(_,V,Cx),Sp) => "$(Cx)|:#(showCanon(V,Sp))".
   showcanon(overaccess(_,V,F,T),Sp) => "($(V)<~#(F):$(T))".
@@ -256,7 +252,7 @@ star.compiler.canon{
   }
 
   -- Useful constants
-  public trueEnum:(locn)=>canon.
+  public trueEnum:(option[locn])=>canon.
   trueEnum(Lc) => apply(Lc,enm(Lc,"star.core#true",enumType(boolType)),tple(Lc,[]),boolType).
 
   public isGoal:(canon)=>boolean.
