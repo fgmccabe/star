@@ -60,14 +60,14 @@ star.compiler.macro.rules{
   -- Convert assert C to assrt(()=>C,"failed C",Loc)
   assertMacro(A,.actn,Rp) where (Lc,C) ^= isIntegrity(A) => result{
     Lam .= equation(Lc,tpl(Lc,"()",[]),C);
-    Assert .= ternary(Lc,"assrt",Lam,str(Lc,C::string),Lc::ast);
+    Assert .= ternary(Lc,"assrt",Lam,str(Lc,C::string),mkLoc(Lc));
     valis active(Assert)
   }
 
   -- Convert show E to shwMsg(()=>E,"E",Lc)
   showMacro(A,.actn,Rp) where (Lc,E) ^= isShow(A) => result{
     Lam .= equation(Lc,tpl(Lc,"()",[]),E);
-    Shw .= ternary(Lc,"shwMsg",Lam,str(Lc,A::string),Lc::ast);
+    Shw .= ternary(Lc,"shwMsg",Lam,str(Lc,A::string),mkLoc(Lc));
     valis active(Shw)
   }
 
@@ -88,7 +88,7 @@ star.compiler.macro.rules{
     ok(active(mkMatch(Lc,unary(Lc,"some",L),R))).
   optionMatchMacro(_,_,_) default => ok(.inactive).
 
-  mkLoc(Lc) where locn(P,Line,Col,Off,Ln).=Lc =>
+  mkLoc(Lc) where locn(P,Line,Col,Off,Ln)^=Lc =>
     roundTerm(Lc,nme(Lc,"locn"),
       [str(Lc,P),int(Lc,Line),int(Lc,Col),int(Lc,Off),int(Lc,Ln)]).
 
@@ -99,7 +99,7 @@ star.compiler.macro.rules{
   
   -- Handle occurrences of __pkg__
   pkgNameMacro(A,.expression,Rp) where
-      (Lc,"__pkg__") ^= isName(A) && locn(Pkg,_,_,_,_).=Lc =>
+      (Lc,"__pkg__") ^= isName(A) && locn(Pkg,_,_,_,_)^=Lc =>
     ok(active(str(Lc,Pkg))).
 
   -- Convert expression P^E to X where E ^= P(X)
@@ -124,7 +124,7 @@ star.compiler.macro.rules{
     ok(active(macroListEntries(Lc,Els,genEofTest,genHedTest))).
   squarePtnMacro(_,_,_) => ok(.inactive).
 
-  macroListEntries:(locn,cons[ast],(locn)=>ast,(locn,ast,ast)=>ast) => ast.
+  macroListEntries:(option[locn],cons[ast],(option[locn])=>ast,(option[locn],ast,ast)=>ast) => ast.
   macroListEntries(Lc,[],End,_) => End(Lc).
   macroListEntries(_,[Cns],_,Hed) where (Lc,H,T) ^= isCons(Cns) =>
     Hed(Lc,H,T).
@@ -177,7 +177,7 @@ star.compiler.macro.rules{
       }
   testComprehensionMacro(_,_,_) => ok(.inactive).
 	
-  makeComprehension:(locn,ast,ast,reports) => result[reports,ast].
+  makeComprehension:(option[locn],ast,ast,reports) => result[reports,ast].
   makeComprehension(Lc,Bnd,Cond,Rp) => do{
     makeCondition(Cond,passThru,(St)=>consResult(Lc,Bnd,St),
       grounded(nme(Lc,"_nil")),Rp)
@@ -406,7 +406,7 @@ star.compiler.macro.rules{
   * induces a contract -- with the empty prefix
   */
 
-  makeAlgebraic:(locn,visibility,cons[ast],cons[ast],ast,ast,reports) =>
+  makeAlgebraic:(option[locn],visibility,cons[ast],cons[ast],ast,ast,reports) =>
     result[reports,cons[ast]].
   makeAlgebraic(Lc,Vz,Q,Cx,H,Rhs,Rp) => do{
     (Qs,Xs,Face) <- algebraicFace(Rhs,Q,[],Rp);
@@ -556,13 +556,13 @@ star.compiler.macro.rules{
   visib(A,_) where (_,I) ^= isPublic(A) => visib(I,.pUblic).
   visib(A,Vz) default => (A,Vz).
 
-  public isBraceCon:(ast) => option[(locn,ast,cons[ast],cons[ast],cons[ast])].
+  public isBraceCon:(ast) => option[(option[locn],ast,cons[ast],cons[ast],cons[ast])].
   isBraceCon(A) => isCon(A,isBrTerm).
 
-  public isRoundCon:(ast) => option[(locn,ast,cons[ast],cons[ast],cons[ast])].
+  public isRoundCon:(ast) => option[(option[locn],ast,cons[ast],cons[ast],cons[ast])].
   isRoundCon(A) => isCon(A,isRoundTerm).
 
-  isCon:(ast,(ast)=>option[(locn,ast,cons[ast])]) => option[(locn,ast,cons[ast],cons[ast],cons[ast])].
+  isCon:(ast,(ast)=>option[(option[locn],ast,cons[ast])]) => option[(option[locn],ast,cons[ast],cons[ast],cons[ast])].
   isCon(A,P) where
       (Lc,Nm,Els) ^= P(A) && _ ^= isName(Nm) => some((Lc,Nm,[],[],Els)).
   isCon(A,P) where
@@ -675,7 +675,7 @@ star.compiler.macro.rules{
   combine(A,some((Lc,Cont))) =>
     makeSequence(Lc,anon(Lc),A,Cont).
 
-  public makeAction:(ast,option[(locn,ast)],reports)=>result[reports,ast].
+  public makeAction:(ast,option[(option[locn],ast)],reports)=>result[reports,ast].
   makeAction(A,Cont,Rp) where (_,[E]) ^= isBrTuple(A) =>
     makeAction(E,Cont,Rp).
   makeAction(A,some((_,Cont)),_) where (_,"nothing") ^= isName(A) => ok(Cont).

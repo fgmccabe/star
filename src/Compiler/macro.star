@@ -701,7 +701,7 @@ star.compiler.macro{
     synthesizeMain(Lc,Tp,Els).
   buildMain(Els) default => Els.
 
-  lookForSignature:(cons[ast],string)=>cons[(locn,ast)].
+  lookForSignature:(cons[ast],string)=>cons[(option[locn],ast)].
   lookForSignature(Els,Nm) => {(Lc,Tp) | El in Els && (Lc,Nm,Vz,Tp)^=isTypeAnnot(El)}.
 
   isTypeAnnot(A) where (Lc,N,Tp) ^= isBinary(A,":") && (Nm,Vz) .= visibilityOf(N) && (_,Id)^=isName(Nm) =>
@@ -725,7 +725,7 @@ star.compiler.macro{
   }
 */
 
-  synthesizeMain:(locn,ast,cons[ast])=>cons[ast].
+  synthesizeMain:(option[locn],ast,cons[ast])=>cons[ast].
   synthesizeMain(Lc,Tp,Defs) where (_,Lhs,Rhs) ^= isFunctionType(Tp) && (_,ElTps)^=isTuple(Lhs) => valof{
     (Action,As) <- synthCoercion(Lc,ElTps,[]);
     
@@ -745,7 +745,7 @@ star.compiler.macro{
   logMsg("cannot coerce $(A) to T")
 
 */  
-  synthCoercion:(locn,cons[ast],cons[ast])=>result[(),(ast,cons[ast])].
+  synthCoercion:(option[locn],cons[ast],cons[ast])=>result[(),(ast,cons[ast])].
   synthCoercion(_,[Tp,..Ts],Xs)  => do{
     Lc .= locOf(Tp);
     X .= genName(Lc,"X");
@@ -760,11 +760,11 @@ star.compiler.macro{
     valis (roundTerm(Lc,nme(Lc,"main"),reverse(Xs)),[])
   }
 
-  mkConsPtn:(locn,cons[ast]) => ast.
+  mkConsPtn:(option[locn],cons[ast]) => ast.
   mkConsPtn(Lc,[]) => enum(Lc,"nil").
   mkConsPtn(Lc,[E,..Es]) => binary(Lc,"cons",E,mkConsPtn(Lc,Es)).
 
-  synthesizeCoercions:(cons[ast],locn)=> (ast,cons[ast]).
+  synthesizeCoercions:(cons[ast],option[locn])=> (ast,cons[ast]).
   synthesizeCoercions([],Lc) => (enum(Lc,"nil"),.nil).
   synthesizeCoercions([T,..Ts],Lc) where Nm .= genName(Lc,"X") &&
       (RV,RC) .= synthesizeCoercions(Ts,Lc) =>

@@ -51,7 +51,7 @@ star.compiler.resolve{
     raise reportError(Rp,"cannot overload $(Def)",locOf(Def))
   }
  
-  overloadVarDef:(dict,locn,string,string,canon,cons[constraint],tipe,reports)=>
+  overloadVarDef:(dict,option[locn],string,string,canon,cons[constraint],tipe,reports)=>
     either[reports,(canonDef,dict)].
   overloadVarDef(Dict,Lc,Nm,FullNm,Val,[],Tp,Rp) => do{
     RVal <- resolveTerm(Val,Dict,Rp);
@@ -60,7 +60,7 @@ star.compiler.resolve{
   overloadVarDef(Dict,Lc,Nm,FullNm,lambda(FullNm,Eqns,LTp),Cx,Tp,Rp) =>
     overloadVarDef(Dict,Lc,Nm,FullNm,lambda(genSym(FullNm),Eqns,LTp),Cx,Tp,Rp).
   overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp,Rp) => do{
-    (Cvrs,CDict) .= defineCVars(some(Lc),Cx,[],Dict);
+    (Cvrs,CDict) .= defineCVars(Lc,Cx,[],Dict);
     RVal <- resolveTerm(Val,CDict,Rp);
     (Qx,Qt) .= deQuant(Tp);
     (_,ITp) .= deConstrain(Qt);
@@ -68,7 +68,7 @@ star.compiler.resolve{
     valis (varDef(Lc,Nm,FullNm,lambda(FullNm,[eqn(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp),Dict)
   }
 
-  overloadImplDef:(dict,locn,string,string,canon,cons[constraint],tipe,reports) =>
+  overloadImplDef:(dict,option[locn],string,string,canon,cons[constraint],tipe,reports) =>
     either[reports,(canonDef,dict)].
 /*  overloadImplDef(Dict,Lc,Nm,FullNm,Val,[],Tp,Rp) => do{
     logMsg("overload implementation");
@@ -85,7 +85,7 @@ star.compiler.resolve{
 
 --    logMsg("constraints $(Cx)");
 
-    (Cvrs,CDict) .= defineCVars(some(Lc),Cx,[],Dict);
+    (Cvrs,CDict) .= defineCVars(Lc,Cx,[],Dict);
 
 --    logMsg("cvars = $(Cvrs)");
     RVal <- resolveTerm(Val,CDict,Rp);
@@ -229,7 +229,7 @@ star.compiler.resolve{
     overloadFields(Ts,[(N,RT),..Els],Dict,Rp)
   }
     
-  resolveContracts:(locn,cons[constraint],cons[canon],dict,reports) =>
+  resolveContracts:(option[locn],cons[constraint],cons[canon],dict,reports) =>
       either[reports,cons[canon]].
   resolveContracts(_,[],Cx,_,_) => either(reverse(Cx)).
   resolveContracts(Lc,[C,..Cx],Vs,Dict,Rp) => do{
@@ -237,7 +237,7 @@ star.compiler.resolve{
     resolveContracts(Lc,Cx,[A,..Vs],Dict,Rp)
   }
   
-  resolveContract:(locn,constraint,dict,reports) => either[reports,canon].
+  resolveContract:(option[locn],constraint,dict,reports) => either[reports,canon].
   resolveContract(Lc,Con,Dict,Rp) => do{
     ImpNm .= implementationName(Con);
     Tp .= typeOf(Con);
@@ -254,7 +254,7 @@ star.compiler.resolve{
     }
   }
 
-  resolveAccess:(locn,canon,string,tipe,dict,reports) => either[reports,canon].
+  resolveAccess:(option[locn],canon,string,tipe,dict,reports) => either[reports,canon].
   resolveAccess(Lc,Rc,Fld,Tp,Dict,Rp) => do{
 --    logMsg("resolve access at $(Lc) of $(Fld) in $(Rc)\:$(typeOf(Rc)), expected type $(Tp)");
     RcTp .= typeOf(Rc);
@@ -270,7 +270,7 @@ star.compiler.resolve{
     }
   }
 
-  resolveUpdate:(locn,canon,string,canon,dict,reports) => either[reports,canon].
+  resolveUpdate:(option[locn],canon,string,canon,dict,reports) => either[reports,canon].
   resolveUpdate(Lc,Rc,Fld,Vl,Dict,Rp) => do{
     logMsg("resolve update at $(Lc) of $(Fld) in $(Rc)\:$(typeOf(Rc))");
     RcTp .= typeOf(Rc);

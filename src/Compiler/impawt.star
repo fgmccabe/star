@@ -31,11 +31,11 @@ star.compiler.impawt{
     }
   }
 
-  public importPkg:all r ~~ repo[r] |: (pkg,locn,r,reports) => either[reports,pkgSpec].
+  public importPkg:all r ~~ repo[r] |: (pkg,option[locn],r,reports) => either[reports,pkgSpec].
   importPkg(Pkg,Lc,Repo,Rp) where Sig ^= pkgSignature(Repo,Pkg) => either (valof pickupPkgSpec(Sig,Lc,Rp)).
   importPkg(Pkg,Lc,_,Rp) default => other(reportError(Rp,"cannot import $(Pkg)",Lc)).
 
-  pickupPkgSpec:(string,locn,reports) => either[reports,pkgSpec].
+  pickupPkgSpec:(string,option[locn],reports) => either[reports,pkgSpec].
   pickupPkgSpec(Txt,Lc,Rp) => do{
     try{
       (term(_,[Pk,term(_,Imps),term(_,Ds)]),_)<-decodeTerm(Txt::cons[char]);
@@ -69,7 +69,7 @@ star.compiler.impawt{
   pickupViz(symb(tLbl("transitive",0))) => some(.transItive).
   pickupVis(_) default => .none.
 
-  pickupImports:(cons[term],locn) => either[reports,cons[importSpec]].
+  pickupImports:(cons[term],option[locn]) => either[reports,cons[importSpec]].
   pickupImports(Trms,Lc) => let{.
     pickupImps([],Imx) => either(Imx).
     pickupImps([term(_,[V,P]),..Imps],Imx) where
@@ -79,13 +79,13 @@ star.compiler.impawt{
 	}.
   .} in pickupImps(Trms,[]).
 
-  pickupDeclarations:(cons[term],locn,reports)=>either[reports,cons[decl]].
+  pickupDeclarations:(cons[term],option[locn],reports)=>either[reports,cons[decl]].
   pickupDeclarations(Ts,Lc,Rp) => seqmap((T)=>pickupDeclaration(T,Lc,Rp),Ts).
 
   pickupDeclaration(term(tLbl("imp",3),[strg(Nm),strg(FNm),strg(Sig)]),Lc,Rp) => do{
     try{
       Tp <- decodeSignature(Sig);
-      valis implDec(some(Lc),Nm,FNm,Tp)
+      valis implDec(Lc,Nm,FNm,Tp)
     } catch{
       raise reportError(Rp,"invalid implementation type signature",Lc)
     }
@@ -95,7 +95,7 @@ star.compiler.impawt{
     try{
       Tp <- decodeSignature(Sig);
       AccTp <- decodeSignature(AccSig);
-      valis accDec(some(Lc),Tp,Fld,FNm,AccTp)
+      valis accDec(Lc,Tp,Fld,FNm,AccTp)
     } catch{
       raise reportError(Rp,"invalid accessor signature",Lc)
     }
@@ -105,7 +105,7 @@ star.compiler.impawt{
     try{
       Tp <- decodeSignature(Sig);
       AccTp <- decodeSignature(AccSig);
-      valis updDec(some(Lc),Tp,Fld,FNm,AccTp)
+      valis updDec(Lc,Tp,Fld,FNm,AccTp)
     } catch{
       raise reportError(Rp,"invalid updater signature",Lc)
     }
@@ -114,7 +114,7 @@ star.compiler.impawt{
       [strg(Nm),strg(CnNm),strg(Sig)]),Lc,Rp) => do{
     try{
       TpRl <- decodeTypeRuleSignature(Sig);
-      valis conDec(some(Lc),Nm,CnNm,TpRl)
+      valis conDec(Lc,Nm,CnNm,TpRl)
     } catch{
       raise reportError(Rp,"invalid contract signature",Lc)
     }
@@ -124,7 +124,7 @@ star.compiler.impawt{
     try{
       Tp <- decodeSignature(TSig);
       RlTp <- decodeTypeRuleSignature(RSig);
-      valis tpeDec(some(Lc),Nm,Tp,RlTp)
+      valis tpeDec(Lc,Nm,Tp,RlTp)
     } catch{
       raise reportError(Rp,"invalid type signature",Lc)
     }
@@ -133,7 +133,7 @@ star.compiler.impawt{
       [strg(Nm),strg(FlNm),strg(Sig)]),Lc,Rp) => do{
     try{
       Tp <- decodeSignature(Sig);
-      valis varDec(some(Lc),Nm,FlNm,Tp)
+      valis varDec(Lc,Nm,FlNm,Tp)
     } catch{
       raise reportError(Rp,"invalid var signature",Lc)
     }
@@ -143,7 +143,7 @@ star.compiler.impawt{
       [strg(Nm),strg(FlNm),strg(Sig)]),Lc,Rp) => do{
     try{
       Tp <- decodeSignature(Sig);
-      valis funDec(some(Lc),Nm,FlNm,Tp)
+      valis funDec(Lc,Nm,FlNm,Tp)
     } catch{
       raise reportError(Rp,"invalid function signature",Lc)
     }
@@ -153,7 +153,7 @@ star.compiler.impawt{
       [strg(Nm),strg(FlNm),strg(Sig)]),Lc,Rp) => do{
     try{
       Tp <- decodeSignature(Sig);
-      valis cnsDec(some(Lc),Nm,FlNm,Tp)
+      valis cnsDec(Lc,Nm,FlNm,Tp)
     } catch{
       raise reportError(Rp,"invalid constructor signature",Lc)
     }

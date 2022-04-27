@@ -17,5 +17,6 @@ star{
   public import star.option.
   public import star.sets.
   public import star.strings.
+  public import star.trace.
   public import star.tuples.
 }

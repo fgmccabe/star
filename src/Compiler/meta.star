@@ -45,9 +45,9 @@ star.compiler.meta{
     _ == _ default => .false.
   }
 
-  public importSpec ::= pkgImp(locn,visibility,pkg).
+  public importSpec ::= pkgImp(option[locn],visibility,pkg).
 
-  public defnSpec ::= defnSpec(defnSp,locn,cons[ast]).
+  public defnSpec ::= defnSpec(defnSp,option[locn],cons[ast]).
 
   public defnSp ::= varSp(string)
     | cnsSp(string)
@@ -131,6 +131,7 @@ star.compiler.meta{
   public macroOnly = ref .false.
   public traceCanon = ref .false.
   public typeCheckOnly = ref .false.
+  public traceNormalize = ref .false.
   public optimization = ref .base.
   public showCore = ref .false.
   public showCode = ref .false.
@@ -218,6 +219,19 @@ star.compiler.meta{
     validator = .none.
     setOption(_,Opts) => valof{
       traceCanon := .true;
+      
+      valis Opts
+    }
+  }
+
+  public traceNormalizeOption:cmdOption[compilerOptions].
+  traceNormalizeOption = cmdOption{
+    shortForm = "-dT".
+    alternatives = [].
+    usage = "-dT -- show type normalizes".
+    validator = .none.
+    setOption(_,Opts) => valof{
+      traceNormalize := .true;
       
       valis Opts
     }

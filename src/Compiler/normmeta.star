@@ -1,11 +1,16 @@
 star.compiler.normalize.meta{
   import star.
+  import star.pkg.
+  import star.sort.
 
+  import star.compiler.canon.
   import star.compiler.core.
   import star.compiler.meta.
   import star.compiler.misc.
   import star.compiler.terms.
   import star.compiler.types.
+
+  public consMap ~> cons[(termLbl,tipe,integer)].
 
   public nameMapEntry ::= moduleFun(crExp,string)
     | localFun(string,string,crVar)
@@ -16,14 +21,14 @@ star.compiler.normalize.meta{
     | memoArg(string,crVar,integer)
     | globalVar(string,tipe).
 
-  public consEntry ~> cons[(termLbl,integer,tipe)].
+  public typeMapEntry ::= moduleType(string,tipe,consMap).
 
-  public mapLayer ::= lyr(option[crVar],map[string,nameMapEntry],map[string,consEntry]).
+  public mapLayer ::= lyr(option[crVar],map[string,nameMapEntry],map[string,typeMapEntry]).
 
   public nameMap ~> cons[mapLayer].
 
   public implementation display[mapLayer] => {
-    disp(lyr(V,Entries,ConsMap)) => "thV=$(V)\:$(Entries)\:$(ConsMap)".
+    disp(lyr(V,VEntries,TEntries)) => "thV=$(V)\:$(VEntries)\:$(TEntries)".
   }
 
   public implementation display[nameMapEntry] => {
@@ -37,6 +42,10 @@ star.compiler.normalize.meta{
     disp(globalVar(Nm,Tp)) => "global #(Nm)".
   }
 
+  public implementation display[typeMapEntry] => {
+    disp(moduleType(Nm,Tp,ConsMap)) => "type #(Nm)\:$(Tp) <- $(ConsMap)".
+  }
+  
   public crFlow ~> (crExp,cons[crDefn]).
 
   public lookupVarName:(nameMap,string)=>option[nameMapEntry].
@@ -64,12 +73,85 @@ star.compiler.normalize.meta{
     P(E).
   lookup([_,..Map],Nm,P) => lookup(Map,Nm,P).
 
-  public findIndexMap:(tipe,nameMap) => option[consEntry].
-  findIndexMap(Tp,Map) => let{.
-    look([],_) => .none.
-    look([lyr(_,_,Cons),.._],Nm) where E ^= Cons[Nm] => some(E).
-    look([_,..Mp],Nm) => look(Mp,Nm).
-  .} in look(Map,tpName(Tp)).
+  public findIndexMap:(tipe,nameMap) => option[consMap].
+  findIndexMap(Tp,Map) => lookupTypeMap(Map,tpName(Tp)).
+
+  lookupTypeMap([],_) => .none.
+  lookupTypeMap([lyr(_,_,Entries),..Map],Nm) where moduleType(_,_,E) ^= Entries[Nm] =>
+    some(E).
+  lookupTypeMap([_,..Map],Nm) => lookupTypeMap(Map,Nm).
+
+  public pkgMap:(pkgSpec,cons[decl]) => nameMap.
+  pkgMap(pkgSpec(Pkg,_,_),Decls) =>
+    [lyr(.none,foldRight((Dcl,D)=>declMdlGlobal(Dcl,D),{},Decls),makeGblConsMap(Decls))].
+
+  makeGblConsMap(Decls) => let{.
+    collectConstructors:(cons[decl],map[string,cons[(string,tipe)]]) =>
+      map[string,cons[(string,tipe)]].
+    collectConstructors([],Map) => Map.
+    collectConstructors([cnsDec(Lc,Nm,FullNm,Tp),..Ds],Map) where
+	TpNm ^= collectibleConsType(Tp) =>
+      (E ^= Map[TpNm] ?
+	collectConstructors(Ds,Map[TpNm->[(FullNm,Tp),..E]]) ||
+	collectConstructors(Ds,Map[TpNm->[(FullNm,Tp)]])
+      ).
+    collectConstructors([_,..Ds],Map) => collectConstructors(Ds,Map).
+
+    indexConstructors:(map[string,cons[(string,tipe)]]) => map[string,consMap].
+    indexConstructors(M) =>
+      { TpNm -> { (mkConsLbl(CNm,CTp),CTp,Ix) | ((CNm,CTp),Ix) in indexList(sort(CMp,((N1,_),(N2,_))=>N1<N2),0) } | TpNm->CMp in M }.
+	    
+    indexList:all e ~~ (cons[e],integer)=>cons[(e,integer)].
+    indexList([],_) => [].
+    indexList([E,..Es],Ix) => [(E,Ix),..indexList(Es,Ix+1)].
     
+    collectMdlTypes:(cons[decl],map[string,consMap],
+      map[string,typeMapEntry]) => map[string,typeMapEntry].
+    collectMdlTypes([],Cns,Map) => Map.
+    collectMdlTypes([tpeDec(Lc,Nm,Tp,_),..Ds],Cns,Map) where
+	Entry ^= Cns[tpName(Tp)] =>
+      collectMdlTypes(Ds,Cns,Map[Nm->moduleType(Nm,Tp,Entry)]).
+    collectMdlTypes([_D,..Ds],Cns,Map) => collectMdlTypes(Ds,Cns,Map).
+  .} in collectMdlTypes(Decls,indexConstructors(collectConstructors(Decls,[])),[]).
+
+  collectibleConsType:(tipe) => option[string].
+  collectibleConsType(Tp) where
+      (_,I) .= deQuant(Tp) && (A,R) ^= isConsType(I) &&
+      ~ _ ^= fieldTypes(A) => -- Leave out record constructors
+    some(tpName(R)).
+  collectibleConsType(_) default => .none.
+
+  mkConsLbl(Nm,Tp) => tLbl(Nm,arity(Tp)).
+
+  declMdlGlobal(funDec(Lc,Nm,FullNm,Tp),Map) =>
+    Map[Nm->moduleFun(crVar(Lc,crId(FullNm,Tp)),FullNm)].
+  declMdlGlobal(varDec(Lc,Nm,FullNm,Tp),Map) =>
+    Map[Nm->globalVar(FullNm,Tp)].
+  declMdlGlobal(cnsDec(Lc,Nm,FullNm,Tp),Map) =>
+    Map[Nm->moduleCons(FullNm,Tp)].
+  declMdlGlobal(_,Map) => Map.
+
+  public extendFunTp:all x ~~ hasType[x] |: (tipe,option[x])=>tipe.
+  extendFunTp(Tp,.none) => Tp.
+  extendFunTp(Tp,Vs) where (A,B)^=isFunType(Tp) &&
+      tupleType(Es).=deRef(A) =>
+    funType(extendTplType(Es,Vs),B).
+  extendFunTp(allType(V,B),Vs) => allType(V,extendFunTp(B,Vs)).
+  extendFunTp(existType(V,B),Vs) => existType(V,extendFunTp(B,Vs)).
+  extendFunTp(constrainedType(T,C),Vs) => constrainedType(extendFunTp(T,Vs),C).
+
+  extendTplType:all x ~~ hasType[x] |: (cons[tipe],option[x])=>cons[tipe].
+  extendTplType(Es,.none) => Es.
+  extendTplType(Es,some(E)) => [typeOf(E),..Es].
+
+  public findMemoIx:(string,crVar,nameMap) => option[integer].
+  findMemoIx(Nm,ThV,Map) => lookup(Map,Nm,isMemoVar(ThV)).
+
+  isMemoVar:(crVar)=>(nameMapEntry)=>option[integer].
+  isMemoVar(ThV) => let{
+    check(memoArg(_,ThV,Ix))=>some(Ix).
+    check(_) default => .none
+  } in check.
+  
 }
   

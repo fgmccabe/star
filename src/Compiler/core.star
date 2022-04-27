@@ -7,41 +7,42 @@ star.compiler.core{
   import star.compiler.types.
   import star.pkg.
   
-  public crExp ::= crVar(locn,crVar)
-    | crInt(locn,integer)
-    | crChr(locn,char)
-    | crBig(locn,bigint)
-    | crFlot(locn,float)
-    | crStrg(locn,string)
-    | crVoid(locn,tipe)
-    | crLbl(locn,string,tipe)
-    | crTerm(locn,string,cons[crExp],tipe)
-    | crCall(locn,string,cons[crExp],tipe)
-    | crECall(locn,string,cons[crExp],tipe)
-    | crIntrinsic(locn,string,cons[crExp],tipe)
-    | crOCall(locn,crExp,cons[crExp],tipe)
-    | crTplOff(locn,crExp,integer,tipe)
-    | crTplUpdate(locn,crExp,integer,crExp)
-    | crSeq(locn,crExp,crExp)
-    | crCnj(locn,crExp,crExp)
-    | crDsj(locn,crExp,crExp)
-    | crNeg(locn,crExp)
-    | crCnd(locn,crExp,crExp,crExp)
-    | crLtt(locn,crVar,crExp,crExp)
-    | crUnpack(locn,crExp,cons[crCase],tipe)
-    | crCase(locn,crExp,cons[crCase],crExp,tipe)
-    | crWhere(locn,crExp,crExp)
-    | crMatch(locn,crExp,crExp)
-    | crVarNames(locn,cons[(string,crVar)],crExp)
-    | crAbort(locn,string,tipe).
+  public crExp ::= crVar(option[locn],crVar)
+    | crInt(option[locn],integer)
+    | crChr(option[locn],char)
+    | crBig(option[locn],bigint)
+    | crFlot(option[locn],float)
+    | crStrg(option[locn],string)
+    | crVoid(option[locn],tipe)
+    | crLbl(option[locn],string,tipe)
+    | crTerm(option[locn],string,cons[crExp],tipe)
+    | crCall(option[locn],string,cons[crExp],tipe)
+    | crECall(option[locn],string,cons[crExp],tipe)
+    | crIntrinsic(option[locn],string,cons[crExp],tipe)
+    | crOCall(option[locn],crExp,cons[crExp],tipe)
+    | crTplOff(option[locn],crExp,integer,tipe)
+    | crTplUpdate(option[locn],crExp,integer,crExp)
+    | crSeq(option[locn],crExp,crExp)
+    | crCnj(option[locn],crExp,crExp)
+    | crDsj(option[locn],crExp,crExp)
+    | crNeg(option[locn],crExp)
+    | crCnd(option[locn],crExp,crExp,crExp)
+    | crLtt(option[locn],crVar,crExp,crExp)
+    | crUnpack(option[locn],crExp,cons[crCase],tipe)
+    | crCase(option[locn],crExp,cons[crCase],crExp,tipe)
+    | crWhere(option[locn],crExp,crExp)
+    | crMatch(option[locn],crExp,crExp)
+    | crVarNames(option[locn],cons[(string,crVar)],crExp)
+    | crAbort(option[locn],string,tipe).
   
   public crVar ::= crId(string,tipe).
 
-  public crCase ~> (locn,crExp,crExp).
+  public crCase ~> (option[locn],crExp,crExp).
 
-  public crDefn ::= fnDef(locn,string,tipe,cons[crVar],crExp) |
-    glbDef(locn,string,tipe,crExp)|
-    tpDef(locn,tipe,tipe).
+  public crDefn ::= fnDef(option[locn],string,tipe,cons[crVar],crExp) |
+    glbDef(option[locn],string,tipe,crExp)|
+    tpDef(option[locn],tipe,typeRule,cons[(termLbl,tipe,integer)]) |
+    lblDef(option[locn],termLbl,tipe,integer).
 
   public dispCrProg:(cons[crDefn])=>string.
   dispCrProg(Defs) => interleave(Defs//disp,".\n")*.
@@ -55,6 +56,10 @@ star.compiler.core{
     "fun: $(Lc)\n#(Nm)(#(interleave(Args//disp,",")*)) => #(dspExp(Rep,Off))".
   dspDef(glbDef(Lc,Nm,Tp,Rep),Off) =>
     "glb: $(Lc)\n#(Nm):$(Tp)=#(dspExp(Rep,Off))".
+  dspDef(tpDef(Lc,Tp,TpRl,Map),Off) =>
+    "tpe: $(Lc)\n$(TpRl) with $(Map)".
+  dspDef(lblDef(Lc,Lbl,Tp,Ix),Off) =>
+    "lbl: $(Lc)\n$(Lbl)\:$(Tp)@$(Ix)".
 
   dspExp:(crExp,string) => string.
   dspExp(crVar(_,V),_) => disp(V).
@@ -103,7 +108,7 @@ star.compiler.core{
   isTplOp(crLbl(_,Nm,_)) => isTplLbl(Nm).
   isTplOp(_) default => .false.
 
-  public mkCrTpl:(locn,cons[crExp]) => crExp.
+  public mkCrTpl:(option[locn],cons[crExp]) => crExp.
   mkCrTpl(Lc,Args) => let{
     TpTp = tupleType(Args//typeOf).
     Ar = size(Args)
@@ -257,8 +262,10 @@ star.compiler.core{
   .}
 
   public implementation coercion[locn,crExp] => {
-    _coerce(Lc) where locn(Nm,Line,Col,Off,Len).=Lc =>
-      some(mkCrTpl(Lc,[crStrg(Lc,Nm),crInt(Lc,Line),crInt(Lc,Col),crInt(Lc,Off),crInt(Lc,Len)]))
+    _coerce(Lc) where locn(Nm,Line,Col,Off,Len).=Lc &&
+	OLc .= some(Lc) =>
+      some(mkCrTpl(OLc,[crStrg(OLc,Nm),
+	    crInt(OLc,Line),crInt(OLc,Col),crInt(OLc,Off),crInt(OLc,Len)]))
   }
 
   public rwTerm:(crExp,(crExp)=>option[crExp])=>crExp.
@@ -316,6 +323,7 @@ star.compiler.core{
     fnDef(Lc,Nm,Tp,Args,rwTerm(Val,M)).
   rwDef(glbDef(Lc,Nm,Tp,Val),M) =>
     glbDef(Lc,Nm,Tp,rwTerm(Val,M)).
+  rwDef(D,_) default => D.
 
   rwCase:(crCase,(crExp)=>option[crExp]) => crCase.
   rwCase((Lc,Ptn,Rp),T) => (Lc,rwTerm(Ptn,T),rwTerm(Rp,T)).
@@ -334,6 +342,8 @@ star.compiler.core{
   public implementation hasLoc[crDefn] => {
     locOf(fnDef(Lc,_,_,_,_)) => Lc.
     locOf(glbDef(Lc,_,_,_)) => Lc.
+    locOf(tpDef(Lc,_,_,_)) => Lc.
+    locOf(lblDef(Lc,_,_,_)) => Lc.
   }
 
   public crName:(crVar) => string.

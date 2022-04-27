@@ -5,15 +5,15 @@ star.compiler.ast{
   import star.compiler.operators.
 
   public ast ::=
-    nme(locn,string)
-      | qnm(locn,string)
-      | int(locn,integer)
-      | big(locn,string)
-      | num(locn,float)
-      | chr(locn,char)
-      | str(locn,string)
-      | tpl(locn,string,cons[ast])
-      | app(locn,ast,ast).
+    nme(option[locn],string)
+      | qnm(option[locn],string)
+      | int(option[locn],integer)
+      | big(option[locn],string)
+      | num(option[locn],float)
+      | chr(option[locn],char)
+      | str(option[locn],string)
+      | tpl(option[locn],string,cons[ast])
+      | app(option[locn],ast,ast).
 
   public implementation equality[ast] => let{.
     eq(nme(_,I1),nme(_,I2)) => I1==I2.
@@ -114,7 +114,7 @@ star.compiler.ast{
   generated:ref map[string,integer].
   generated = ref {}.
 
-  public genName:(locn,string) => ast.
+  public genName:(option[locn],string) => ast.
   genName(Lc,Pr) => valof{
     if Last^=generated![Pr] then{
       Nxt .= Last+1;
@@ -128,82 +128,82 @@ star.compiler.ast{
 
   public anon(Lc) => nme(Lc,"_").
 
-  public isNme:(ast) => option[(locn,string)].
+  public isNme:(ast) => option[(option[locn],string)].
   isNme(nme(Lc,Nm)) => some((Lc,Nm)).
   isNme(qnm(Lc,Nm)) => some((Lc,Nm)).
   isNme(_) default => .none.
 
-  public isInt:(ast) => option[(locn,integer)].
+  public isInt:(ast) => option[(option[locn],integer)].
   isInt(int(Lc,Ix)) => some((Lc,Ix)).
   isInt(_) default => .none.
 
-  public isFlt:(ast) => option[(locn,float)].
+  public isFlt:(ast) => option[(option[locn],float)].
   isFlt(num(Lc,Dx)) => some((Lc,Dx)).
   isFlt(_) default => .none.
 
-  public isStr:(ast) => option[(locn,string)].
+  public isStr:(ast) => option[(option[locn],string)].
   isStr(str(Lc,Sx)) => some((Lc,Sx)).
   isStr(_) default => .none.
 
   public isZeroary:(ast,string) => option[locn].
-  isZeroary(app(Lc,nme(_,Op),tpl(_,"()",[])),Op) => some(Lc).
+  isZeroary(app(Lc,nme(_,Op),tpl(_,"()",[])),Op) => Lc.
   isZeroary(_,_) default => .none.
 
-  public zeroary:(locn,string)=>ast.
+  public zeroary:(option[locn],string)=>ast.
   zeroary(Lc,Op) => app(Lc,nme(Lc,Op),tpl(Lc,"()",[])).
 
-  public unary:(locn,string,ast) => ast.
+  public unary:(option[locn],string,ast) => ast.
   unary(Lc,Op,Arg) => app(Lc,nme(Lc,Op),tpl(locOf(Arg),"()",[Arg])).
 
-  public sqUnary:(locn,string,ast) => ast.
+  public sqUnary:(option[locn],string,ast) => ast.
   sqUnary(Lc,Op,Arg) => app(Lc,nme(Lc,Op),tpl(locOf(Arg),"[]",[Arg])).
 
-  public isUnary:(ast,string) => option[(locn,ast)].
+  public isUnary:(ast,string) => option[(option[locn],ast)].
   isUnary(app(Lc,nme(_,Op),tpl(_,"()",[A])),Op) => some((Lc,A)).
   isUnary(_,_) default => .none.
 
-  public binary:(locn,string,ast,ast) => ast.
+  public binary:(option[locn],string,ast,ast) => ast.
   binary(Lc,Op,L,R) => app(Lc,nme(Lc,Op),tpl(Lc,"()",[L,R])).
 
-  public sqBinary:(locn,string,ast,ast) => ast.
+  public sqBinary:(option[locn],string,ast,ast) => ast.
   sqBinary(Lc,Op,L,R) => app(Lc,nme(Lc,Op),tpl(Lc,"[]",[L,R])).
 
-  public isBinary:(ast,string) => option[(locn,ast,ast)].
+  public isBinary:(ast,string) => option[(option[locn],ast,ast)].
   isBinary(app(Lc,nme(_,Op),tpl(_,"()",[L,R])),Op) => some((Lc,L,R)).
   isBinary(_,_) default => .none.
 
-  public ternary:(locn,string,ast,ast,ast) => ast.
+  public ternary:(option[locn],string,ast,ast,ast) => ast.
   ternary(Lc,Op,L,M,R) =>
     app(Lc,nme(Lc,Op),tpl(Lc,"()",[L,M,R])).
 
-  public isTernary:(ast,string) => option[(locn,ast,ast,ast)].
+  public isTernary:(ast,string) => option[(option[locn],ast,ast,ast)].
   isTernary(app(Lc,nme(_,Op),tpl(_,"()",[L,M,R])),Op) => some((Lc,L,M,R)).
   isTernary(_,_) default => .none.
 
-  public isTuple:(ast) => option[(locn,cons[ast])].
+  public isTuple:(ast) => option[(option[locn],cons[ast])].
   isTuple(tpl(Lc,"()",A)) => some((Lc,A)).
   isTuple(_) => .none.
 
-  public rndTuple:(locn,cons[ast]) => ast.
+  public rndTuple:(option[locn],cons[ast]) => ast.
   rndTuple(Lc,Els) => tpl(Lc,"()",Els).
 
   public unit(Lc) => rndTuple(Lc,[]).
 
-  public isSqTuple:(ast) => option[(locn,cons[ast])].
+  public isSqTuple:(ast) => option[(option[locn],cons[ast])].
   isSqTuple(tpl(Lc,"[]",A)) => some((Lc,A)).
   isSqTuple(_) => .none.
 
-  public sqTuple:(locn,cons[ast]) => ast.
+  public sqTuple:(option[locn],cons[ast]) => ast.
   sqTuple(Lc,Els) => tpl(Lc,"[]",Els).
 
-  public isBrTuple:(ast) => option[(locn,cons[ast])].
+  public isBrTuple:(ast) => option[(option[locn],cons[ast])].
   isBrTuple(tpl(Lc,"{}",A)) => some((Lc,A)).
   isBrTuple(_) => .none.
 
-  public brTuple:(locn,cons[ast]) => ast.
+  public brTuple:(option[locn],cons[ast]) => ast.
   brTuple(Lc,Els) => tpl(Lc,"{}",Els).
 
-  public isQBrTuple:(ast) => option[(locn,cons[ast])].
+  public isQBrTuple:(ast) => option[(option[locn],cons[ast])].
   isQBrTuple(tpl(Lc,"{..}",A)) => some((Lc,A)).
   isQBrTuple(_) => .none.
 

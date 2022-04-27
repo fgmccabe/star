@@ -100,12 +100,6 @@ star.action{
     valis ()
   }
 
-  public trace:all x ~~ display[x] |: (string,x)=>x.
-  trace(M,X) => valof action{
-    logMsg("#(M) - $(X)");
-    valis X
-  }
-
   public showMsg:all m/2,e ~~ execution[m] |: (string)=>m[e,()].
   showMsg(Msg) => do{
     _ .= _show(Msg);

@@ -100,7 +100,7 @@ star.compiler.checker.driver{
       }
     }
     else
-    raise reportError(Rp,"cannot locate source of $(P)",pkgLoc(P))
+    raise reportError(Rp,"cannot locate source of $(P)",some(pkgLoc(P)))
   }
 
   openupRepo:(uri,uri) => result[(), termRepo].

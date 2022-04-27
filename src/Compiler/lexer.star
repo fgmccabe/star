@@ -74,7 +74,8 @@ star.compiler.lexer{
     finalist(_,_,Deflt) => Deflt.
   .} in graphFollow(St,Ld,finalist(Ld,St,(St,.none))).
   nxxTok(Chr,St,St0) where isIdentifierStart(Chr) => readIden(St,St0,[Chr]).
-  nxxTok(Chr,St,St0) default => nextToken(lexerr(St0,"illegal char in token: '$(Chr):c;'",makeLoc(St,St0))).
+  nxxTok(Chr,St,St0) default =>
+    nextToken(lexerr(St0,"illegal char in token: '$(Chr):c;'",some(makeLoc(St,St0)))).
 
   isIdentifierStart(Ch) => (Ch==`_` || isLetter(Ch)).
 
@@ -260,6 +261,6 @@ star.compiler.lexer{
   }
 
   public implementation hasLoc[tokenState] => {
-    locOf(tokenState(Pkg,Line,Col,Start,_,_)) => locn(Pkg,Line,Col,Start,0).
+    locOf(tokenState(Pkg,Line,Col,Start,_,_)) => some(locn(Pkg,Line,Col,Start,0)).
   }
 }

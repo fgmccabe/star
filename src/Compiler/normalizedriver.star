@@ -16,7 +16,7 @@ star.compiler.normalize.driver{
   import star.compiler.dict.
   import star.compiler.errors.
   import star.compiler.impawt.
-  import star.compiler.inline.
+--  import star.compiler.inline.
   import star.compiler.macro.
   import star.compiler.meta.
   import star.compiler.misc.
@@ -38,8 +38,9 @@ star.compiler.normalize.driver{
 	  traceDependencyOption,
 	  traceAstOption,
 	  traceMacroOption,
-	  typeCheckOnlyOption,
+	  checkOnlyOption,
 	  traceCheckOption,
+	  traceNormalizeOption,
 	  macroOnlyOption,
 	  optimizeLvlOption],
 	defltOptions(WI,RI)
@@ -98,14 +99,20 @@ star.compiler.normalize.driver{
       };
 
       if ~ macroOnly! then{
-	C <- (checkPkg(Repo,CPkg,M,Opts,Rp)::result[reports,(pkgSpec,cons[canonDef],cons[decl])]);
+	(PkgSpec,Defs,Decls) <- (checkPkg(Repo,CPkg,M,Opts,Rp)::result[reports,(pkgSpec,cons[canonDef],cons[decl])]);
 	if traceCanon! then {
-	  logMsg("type checked $(C)")
+	  logMsg("type checked $(Defs)")
 	};
+	if ~ typeCheckOnly! then {
+	  N <- normalize(PkgSpec,Defs,Decls,Rp);
+	  if traceNormalize! then{
+	    logMsg("normalized code $(N)");
+	  }
+	}
       }
     }
     else
-    raise reportError(Rp,"cannot locate source of $(P)",pkgLoc(P))
+    raise reportError(Rp,"cannot locate source of $(P)",some(pkgLoc(P)))
   }
 
   openupRepo:(uri,uri) => result[(), termRepo].

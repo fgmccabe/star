@@ -88,13 +88,6 @@ declMdlGlobal(_,accDec(_,_,AccName,Tp),_,VMp,VMx,TMx,TMx) :-
 
 declMdlGlobal(_,_,_,Mx,Mx,TMx,TMx).
 
-contractArity(allType(_,Con),Ar) :- contractArity(Con,Ar).
-contractArity(constrained(Con,_),Ar) :- contractArity(Con,A), Ar is A+1.
-contractArity(contractExists(_,_),0).
-
-contractStruct(0,Nm,enum(Nm)).
-contractStruct(Ar,Nm,lbl(Nm,Ar)).
-
 makeConstructorMap(Decls,CnMp,ConsMap) :-
   findAllConstructors(Decls,[],Cons),
   indexConstructors(Cons,CnMp,ConsMap).
@@ -231,9 +224,6 @@ liftGuard(none,none,Q,Q,_,_,Ex,Ex) :-!.
 liftGuard(some(G),some(LG),Q,Qx,Map,Opts,Ex,Exx) :-
   liftGoal(G,LG,Q,Qx,Map,Opts,Ex,Exx).
 
-transformThetaVarDef(_Lc,Nm,_LclName,_Tp,Exp,Map,OMap,Opts,F,[(Nm,Ix,Rep)|F],Dx,Dxx) :-
-  liftExp(Exp,Rep,[],_Qx,OMap,Opts,Dx,Dxx),
-  lookupVar(Map,Nm,labelArg(_,Ix,_ThVr)).
 transformThetaDefs(_,_,_,_,[],Fx,Fx,Dfs,Dfs).
 transformThetaDefs(Map,OMap,Extra,Opts,[Def|Defs],F,Fx,Ex,Exx) :-
   transformThetaDef(Def,Extra,Map,OMap,Opts,F,F1,Ex,Ex1),!,
@@ -241,8 +231,9 @@ transformThetaDefs(Map,OMap,Extra,Opts,[Def|Defs],F,Fx,Ex,Exx) :-
 
 transformThetaDef(funDef(Lc,Nm,ExtNm,H,Tp,_,Eqns),Extra,Map,_OMap,Opts,Fx,Fx,Dx,Dxx) :-
   transformFunction(Lc,Nm,ExtNm,H,Tp,Extra,Eqns,Map,Opts,Dx,Dxx).
-transformThetaDef(varDef(Lc,Nm,ExtNm,_,Tp,Value),_,Map,OMap,Opts,F,Fx,Dx,Dxx) :-
-  transformThetaVarDef(Lc,Nm,ExtNm,Tp,Value,Map,OMap,Opts,F,Fx,Dx,Dxx).
+transformThetaDef(varDef(_Lc,Nm,_LclNm,_,_Tp,Exp),_,Map,OMap,Opts,F,[(Nm,Ix,Rep)|F],Dx,Dxx) :-
+  liftExp(Exp,Rep,[],_Qx,OMap,Opts,Dx,Dxx),
+  lookupVar(Map,Nm,labelArg(_,Ix,_ThVr)).
 transformThetaDef(cnsDef(_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 transformThetaDef(typeDef(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 transformThetaDef(conDef(_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
