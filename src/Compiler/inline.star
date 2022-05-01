@@ -37,7 +37,6 @@ star.compiler.inline{
   ptnMatch(crStrg(_,Sx),crStrg(_,Sx),Env) => matching(Env).
   ptnMatch(crVoid(_,_),_,_) => .insufficient.  -- void on left does not match anything
   ptnMatch(_,crVoid(_,_),_) => .insufficient.  -- void on right does not match anything
-  ptnMatch(crLbl(_,N,_),crLbl(_,N,_),Env) => matching(Env).
   ptnMatch(crTerm(_,N,A1,_),crTerm(_,N,A2,_),Env) => ptnMatchArgs(A1,A2,Env).
   ptnMatch(crRecord(_,N,F1,_),crRecord(_,N,F2,_),Env) => ptnMatchFields(F1,F2,Env).
   ptnMatch(_,_,_) default => .noMatch.
@@ -94,24 +93,24 @@ star.compiler.inline{
     applyMatch(Lc,Ptn,simplifyExp(Exp,Prog,Depth)).
   simplifyExp(Exp,_,_) default => Exp.
 
-  applyWhere(Lc,Ptn,crLbl(_,"star.core#true",_)) => Ptn.
+  applyWhere(Lc,Ptn,crTerm(_,"star.core#true",[],_)) => Ptn.
   applyWhere(Lc,Ptn,Exp) => crWhere(Lc,Ptn,Exp).
 
-  applyCnj(_,crLbl(_,"star.core#true",_),R) => R.
-  applyCnj(_,crLbl(Lc,"star.core#false",Tp),R) => crLbl(Lc,"star.core#false",Tp).
+  applyCnj(_,crTerm(_,"star.core#true",[],_),R) => R.
+  applyCnj(_,crTerm(Lc,"star.core#false",[],Tp),R) => crTerm(Lc,"star.core#false",[],Tp).
   applyCnj(Lc,L,R) => crCnj(Lc,L,R).
 
-  applyDsj(_,crLbl(_,"star.core#false",_),R) => R.
-  applyDsj(_,crLbl(Lc,"star.core#true",Tp),R) => 
-    crLbl(Lc,"star.core#false",Tp).
+  applyDsj(_,crTerm(_,"star.core#false",[],_),R) => R.
+  applyDsj(_,crTerm(Lc,"star.core#true",[],Tp),R) => 
+    crTerm(Lc,"star.core#false",[],Tp).
   applyDsj(Lc,L,R) => crDsj(Lc,L,R).
 
-  applyNeg(_,crLbl(Lc,"star.core#false",Tp)) => crLbl(Lc,"star.core#true",Tp).
-  applyNeg(_,crLbl(Lc,"star.core#true",Tp)) => crLbl(Lc,"star.core#false",Tp).
+  applyNeg(_,crTerm(Lc,"star.core#false",[],Tp)) => crTerm(Lc,"star.core#true",[],Tp).
+  applyNeg(_,crTerm(Lc,"star.core#true",[],Tp)) => crTerm(Lc,"star.core#false",[],Tp).
   applyNeg(Lc,Inner) => crNeg(Lc,Inner).
 
-  applyCnd(_,crLbl(_,"star.core#false",_),L,R) => R.
-  applyCnd(_,crLbl(Lc,"star.core#true",Tp),L,_) => L.
+  applyCnd(_,crTerm(_,"star.core#false",[],_),L,R) => R.
+  applyCnd(_,crTerm(Lc,"star.core#true",[],Tp),L,_) => L.
   applyCnd(Lc,T,L,R) => crCnd(Lc,T,L,R).
 
   applyTplOff(_,crTerm(_,_,Els,_),Ix,Tp) where E^=Els[Ix] => E.

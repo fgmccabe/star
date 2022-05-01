@@ -39,8 +39,8 @@ star.compiler.normalize{
 
   transformDef:(canonDef,nameMap,nameMap,set[crVar],option[crExp],cons[crDefn],reports) =>
     result[reports,cons[crDefn]].
-  transformDef(varDef(Lc,Nm,FullNm,lambda(LNm,Eqns,Tp),_,_),Map,Outer,Q,Extra,Ex,Rp) => do{
-    logMsg("transform $(Nm)$(lambda(LNm,Eqns,Tp))");
+  transformDef(varDef(Lc,Nm,FullNm,lambda(_,LNm,Eqns,Tp),_,_),Map,Outer,Q,Extra,Ex,Rp) => do{
+    logMsg("transform $(Nm)$(lambda(Lc,LNm,Eqns,Tp))");
     ATp .= extendFunTp(deRef(Tp),Extra);
     (Eqs,Ex1) <- transformEquations(Eqns,Outer,Q,Extra,Ex,Rp);
     Func .= functionMatcher(Lc,FullNm,ATp,Map,Eqs);
@@ -254,8 +254,9 @@ star.compiler.normalize{
     liftLetExp(Lc,Grp,Decs,Bnd,Map,Q,Ex,Rp).
   liftExp(letRec(Lc,Grp,Decs,Bnd),Map,Q,Ex,Rp) => 
     liftLetRec(Lc,Grp,Decs,Bnd,Map,Q,Ex,Rp).
-  liftExp(Lam where lambda(FullNm,Eqns,Tp).=Lam,Map,Q,Ex,Rp) where Lc.=locOf(Lam) => do{
-    liftExp(letExp(Lc,[varDef(Lc,FullNm,FullNm,lambda(FullNm,Eqns,Tp),[],Tp)],
+  liftExp(lambda(Lc,FullNm,Eqns,Tp),Map,Q,Ex,Rp) => do{
+    liftExp(letExp(Lc,[varDef(Lc,FullNm,FullNm,lambda(Lc,FullNm,Eqns,Tp),[],Tp)],
+	[funDec(Lc,FullNm,FullNm,Tp)],
 	vr(Lc,FullNm,Tp)),Map,Q,Ex,Rp)
   }
   liftExp(csexp(Lc,Gov,Cses,Tp),Map,Q,Ex,Rp) => do{
@@ -394,22 +395,12 @@ star.compiler.normalize{
     canon,nameMap,set[crVar],cons[crDefn],reports) =>
     result[reports,crFlow].
   liftLetExp(Lc,Defs,Decls,Bnd,Outer,Q,Ex,Rp) => do{
-    logMsg("lift let group $(Grp) @ $(Lc)");
+    logMsg("lift let group $(Defs) @ $(Lc)");
     logMsg("Q=$(Q)");
-
-    thFree .= freeVarsInTerm(letExp(Lc,Defs,Decs,Bnd),[],Q,[]);
 
     (lVars,vrDefs) .= unzip(varDefs(Defs));
 
-    allFree .= lVars++thFree;
-    freeType .= tupleType(allFree//typeOf);
-
-    L .= collectLabelVars(allFree,ThV,0,[]);
-    
-    
-
-    GrpFns .= (Grp^/(D)=>~_^=isVarDef(D));
-    rawGrpFree .= freeLabelVars(freeVarsInTerm(letExp(Lc,Grp,Decs,Bnd),[],Q,[]),Outer)::cons[crVar];
+    rawGrpFree .= freeLabelVars(freeVarsInTerm(letExp(Lc,Defs,Decls,Bnd),[],Q,[]),Outer)::cons[crVar];
 
 --    logMsg("cell vars $(lVars)");
     ffreeVars .= rawGrpFree \ lVars;
@@ -418,55 +409,43 @@ star.compiler.normalize{
     varParents .= freeParents(ffreeVars,Outer);
     freeVars <- reduceFreeArgs(varParents,Outer,Rp);
 --    logMsg("simplified free $(freeVars)\:$(typeOf(freeVars))");
+    
+    allFree .= freeVars++lVars;
+    freeType .= tupleType(allFree//typeOf);
 
-    if isEmpty(lVars) && isEmpty(freeVars) then{
-      M .= [lyr(.none,foldRight((D,LL)=>collectMtd(D,.none,LL),[],Grp)),..Outer];
-      Ex1 <- transformGroup(Grp,M,Outer,Q,.none,Ex,Rp);
-      liftExp(Bnd,M,Q,Ex1,Rp)
-    } else if isEmpty(lVars) && [ThFr].=freeVars && ThFr^=layerVar(Outer) then{
---      logMsg("just one free var $(ThFr)");
-      ThVr .= crVar(Lc,ThFr);
+    ThV .= genVar("_ThVr",freeType);
+    ThVr .= crVar(Lc,ThV);
 
-      M .= [lyr(.none,foldRight((D,LL)=>collectMtd(D,some(ThFr),LL),[],GrpFns)),..Outer];
---      logMsg("single map $(M) for $(letExp(Lc,Grp,Bnd))");
+    L .= collectLabelVars(allFree,ThV,0,[]);
+    CM .= makeConsMap(Decls);
 
-      GrpQ .= foldLeft(collectQ,Q\+ThFr,Grp);
-      Ex2 <- transformGroup(Grp,M,Outer,GrpQ,some(ThVr),Ex,Rp);
-      liftExp(Bnd,M,GrpQ,Ex2,Rp) -- no let needed
-    }
-    else {
-      allFree .= freeVars++lVars;
---      logMsg("free vars in let $(allFree)");
-      ThV .= genVar("_ThVr",typeOf(allFree));
-      ThVr .= crVar(Lc,ThV);
+    GrpFns .= (Defs^/(D)=>~_^=isVarDef(D));
 
-      L .= collectLabelVars(allFree,ThV,0,[]);
-      MM .= [lyr(some(ThV),foldRight((D,LL)=>collectMtd(D,some(ThV),LL),L,GrpFns)),..Outer];
-
+    MM .= [lyr(some(ThV),foldRight((D,LL)=>collectMtd(D,some(ThV),LL),L,GrpFns),CM),..Outer];
+    
 --      logMsg("theta var $(ThV) ~ $(L)");
     
-      M .= [lyr(some(ThV),L),..Outer];
+    M .= [lyr(some(ThV),L,CM),..Outer];
 
 --      logMsg("let map is $(head(MM))");
 
-      GrpQ .= foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q,lVars),Grp);
+    GrpQ .= foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q,lVars),Defs);
       
-      Ex1 <- transformGroup(GrpFns,M,M,GrpQ,some(ThVr),Ex,Rp);
+    Ex1 <- transformGroup(GrpFns,M,M,GrpQ,some(ThVr),Ex,Rp);
       
-      freeArgs <- seqmap((crId(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer,Rp),freeVars);
-      (cellArgs,Ex2) <- liftExps(vrDefs,GrpQ,Outer,Ex1,Rp);
+    freeArgs <- seqmap((crId(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer,Rp),freeVars);
+    (cellArgs,Ex2) <- liftExps(vrDefs,GrpQ,Outer,Ex1,Rp);
 
-      GrpFree .= crTpl(Lc,freeArgs++cellArgs);
+    GrpFree .= crTpl(Lc,freeArgs++cellArgs);
 
 --      logMsg("free term $(ThV) = $(GrpFree)\:$(typeOf(GrpFree))");
-      (BndTrm,Exx) <- liftExp(Bnd,MM,GrpQ,Ex2,Rp);
-      valis (crLtt(Lc,ThV,GrpFree,BndTrm),Exx)
-    }
+    (BndTrm,Exx) <- liftExp(Bnd,MM,GrpQ,Ex2,Rp);
+    valis (crLtt(Lc,ThV,GrpFree,BndTrm),Exx)
   }
 
   varDefs:(cons[canonDef]) => cons[(crVar,canon)].
   varDefs(Defs) =>
-    foldLeft((D,FF) => (V^=isVarDef(D) ? FF\+V || FF),
+    foldLeft((D,FF) => (V^=isVarDef(D) ? [V,..FF] || FF),
       [],Defs).
 
   isVarDef(varDef(_,Nm,FullNm,Vl,_,Tp)) where ~isFunDef(Vl) =>
@@ -482,11 +461,10 @@ star.compiler.normalize{
     collectLabelVars(Vrs,ThV,Ix+1,Entries[Nm->labelArg(ThV,Ix)]).
   
 
-  /*
   -- In a let rec, all the non functions must end up in the free term
 
   liftLetRec:(option[locn],cons[canonDef],cons[decl],canon,nameMap,set[crVar],
-    cons[crDefn],reports) => either[reports,crFlow].
+    cons[crDefn],reports) => result[reports,crFlow].
   liftLetRec(Lc,Grp,Decs,Bnd,Outer,Q,Ex,Rp) => do{
 --    logMsg("lift let rec group $(Grp) @ $(Lc)");
 --    logMsg("Q=$(Q)");
@@ -503,62 +481,59 @@ star.compiler.normalize{
 --    logMsg("free variables $(freeVars)\:$(typeOf(freeVars))");
 --    logMsg("layer var $(layerVar(Outer))");
 
-    if isEmpty(lVars) && isEmpty(freeVars) then {
-      M .= [lyr(.none,foldRight((D,LL)=>collectMtd(D,.none,LL),[],GrpFns)),..Outer];
+    ThV .= genVar("_ThVr",typeOf(freeVars++lVars));
+    ThVr .= crVar(Lc,ThV);
 
-      Ex1 <- transformGroup(Grp,M,M,Q,.none,Ex,Rp);
-      liftExp(Bnd,M,Q,Ex1,Rp)
-    } else if isEmpty(lVars) && [ThFr].=freeVars && ThFr^=layerVar(Outer) then{
---      logMsg("just one free var $(ThFr)");
-      ThVr .= crVar(Lc,ThFr);
+    CM .= makeConsMap(Decs);
 
-      M .= [lyr(.none,foldRight((D,LL)=>collectMtd(D,some(ThFr),LL),[],GrpFns)),..Outer];
---      logMsg("single map $(M) for $(letRec(Lc,Grp,Bnd))");
-
-      GrpQ .= foldLeft(collectQ,Q\+ThFr,Grp);
-      Ex2 <- transformGroup(Grp,M,M,GrpQ,some(ThVr),Ex,Rp);
-      liftExp(Bnd,M,GrpQ,Ex2,Rp) -- no let rec needed
-    } else{
-      ThV .= genVar("_ThVr",typeOf(freeVars++lVars));
-      ThVr .= crVar(Lc,ThV);
-
-      L .= collectVars(GrpVars,ThV,size(freeVars),collectLabelVars(freeVars,ThV,0,[]));
-      M .= [lyr(some(ThV),foldRight((D,LL)=>collectMtd(D,some(ThV),LL),L,GrpFns)),..Outer];
+    L .= collectVars(GrpVars,ThV,size(freeVars),collectLabelVars(freeVars,ThV,0,[]));
+    M .= [lyr(some(ThV),foldRight((D,LL)=>collectMtd(D,some(ThV),LL),L,GrpFns),CM),..Outer];
 
 --      logMsg("theta var $(ThV)\:$(typeOf(ThV)) ~ $(L)");
 --      logMsg("letrec map is $(head(M))");
 
-      freeArgs <- seqmap((crId(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer,Rp),freeVars);
+    freeArgs <- seqmap((crId(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer,Rp),freeVars);
 --      logMsg("free vars lift to $(freeArgs)");
-      cellVoids .= (vrDefs//(E)=>crVoid(Lc,typeOf(E)));
-      GrpFree .= crTpl(Lc,freeArgs++cellVoids);
+    cellVoids .= (vrDefs//(E)=>crVoid(Lc,typeOf(E)));
+    GrpFree .= crTpl(Lc,freeArgs++cellVoids);
       
 --      logMsg("free term $(ThV) = $(GrpFree)\:$(typeOf(GrpFree))");
 
-      GrpQ .= foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q\+ThV,lVars),Grp);
-      Ex2 <- transformGroup(Grp,M,M,GrpQ,some(ThVr),Ex,Rp);
+    GrpQ .= foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q\+ThV,lVars),Grp);
+    Ex2 <- transformGroup(Grp,M,M,GrpQ,some(ThVr),Ex,Rp);
       
-      (BndTrm,Exx) <- liftExp(Bnd,M,GrpQ,Ex2,Rp);
-      valis (crLtt(Lc,ThV,GrpFree,BndTrm),Exx)
-    }
+    (BndTrm,Exx) <- liftExp(Bnd,M,GrpQ,Ex2,Rp);
+    valis (crLtt(Lc,ThV,GrpFree,BndTrm),Exx)
   }
 
-  isFunctions:(cons[canonDef])=>boolean.
-  isFunctions(Defs) => varDef(_,_,_,Vl,_,_) in Defs *> isFunDef(Vl).
+  collectVars:(cons[canonDef],crVar,integer,map[string,nameMapEntry]) =>
+    map[string,nameMapEntry].
+  collectVars([],_,_,LV) => LV.
+  collectVars([varDef(Lc,Nm,FullNm,_,_,Tp),..Vrs],ThV,Ix,Entries) =>
+    collectVars(Vrs,ThV,Ix+1,Entries[Nm->memoArg(varClosureNm(FullNm),ThV,Ix)]).
+  collectVars([implDef(Lc,_,FullNm,_,_,Tp),..Vrs],ThV,Ix,Entries) =>
+    collectVars(Vrs,ThV,Ix+1,Entries[FullNm->memoArg(varClosureNm(FullNm),ThV,Ix)]).
 
 
-  closureType:(cons[tipe],tipe)=>tipe.
-  closureType(Els,T) => consType(tupleType(Els),T).
+  -- eliminate free variables that can be computed from other free vars
+  reduceFreeArgs:(cons[crVar],nameMap,reports) => result[reports,cons[crVar]].
+  reduceFreeArgs(FrVrs,Map,Rp) => let{.
+    reduceArgs:(cons[crVar],cons[crVar]) => result[reports,cons[crVar]].
+    reduceArgs([],Frs) => do{ valis Frs}.
+    reduceArgs([FrV,..FrArgs],Frs) where
+	FrNm .= crName(FrV) &&
+	OTh ^= lookupThetaVar(Map,FrNm) &&
+	OTh .<. Frs =>
+      reduceArgs(FrArgs,drop(FrV,Frs)).
+    reduceArgs([_,..FrArgs],Frs) => reduceArgs(FrArgs,Frs).
+  .} in reduceArgs(FrVrs,FrVrs).
 
+  freeParents:(cons[crVar],nameMap) => cons[crVar].
+  freeParents(Frs,Map) => foldLeft((F,Fs)=>Fs\+freeParent(F,Map),[],Frs).
 
-
-  pathExp:(option[locn],crExp,cons[integer]) => crExp.
-  pathExp(_,Th,[]) => Th.
-  pathExp(Lc,Exp,[Off,..Pth]) where EE.=pathExp(Lc,Exp,Pth) && Tp^=nthTp(typeOf(Exp),Off) =>
-    crTplOff(Lc,EE,Off,Tp).
-
-  nthTp(tupleType(Els),Ix) => Els[Ix].
-
+  freeParent(V,Map) where ThV ^= lookupThetaVar(Map,crName(V)) =>
+    freeParent(ThV,Map).
+  freeParent(V,_) default => V.
 
   collectMtd:(canonDef,option[crVar],map[string,nameMapEntry])=>map[string,nameMapEntry].
 
@@ -585,7 +560,6 @@ star.compiler.normalize{
   collectQ(typeDef(_,_,_,_),Q) => Q.
   collectQ(conDef(_,_,_,_),Q) => Q.
 
-
   freeLabelVars:(set[crVar],nameMap)=>set[crVar].
   freeLabelVars(Fr,Map) => foldLeft((V,So)=>labelVar(V,Map,So),Fr,Fr).
 
@@ -596,37 +570,6 @@ star.compiler.normalize{
       _ => So
     }.
   labelVar(_,_,So) default => So.
-
-  collectVars:(cons[canonDef],crVar,integer,map[string,nameMapEntry]) =>
-    map[string,nameMapEntry].
-  collectVars([],_,_,LV) => LV.
-  collectVars([varDef(Lc,Nm,FullNm,_,_,Tp),..Vrs],ThV,Ix,Entries) =>
-    collectVars(Vrs,ThV,Ix+1,Entries[Nm->memoArg(varClosureNm(FullNm),ThV,Ix)]).
-  collectVars([implDef(Lc,_,FullNm,_,_,Tp),..Vrs],ThV,Ix,Entries) =>
-    collectVars(Vrs,ThV,Ix+1,Entries[FullNm->memoArg(varClosureNm(FullNm),ThV,Ix)]).
-
-
-  -- eliminate free variables that can be computed from other free vars
-  reduceFreeArgs:(cons[crVar],nameMap,reports) => either[reports,cons[crVar]].
-  reduceFreeArgs(FrVrs,Map,Rp) => let{.
-    reduceArgs:(cons[crVar],cons[crVar]) => either[reports,cons[crVar]].
-    reduceArgs([],Frs) => either(Frs).
-    reduceArgs([FrV,..FrArgs],Frs) where
-	FrNm .= crName(FrV) &&
-	OTh ^= lookupThetaVar(Map,FrNm) &&
-	OTh .<. Frs =>
-      reduceArgs(FrArgs,drop(FrV,Frs)).
-    reduceArgs([_,..FrArgs],Frs) => reduceArgs(FrArgs,Frs).
-  .} in reduceArgs(FrVrs,FrVrs).
-
-  freeParents:(cons[crVar],nameMap) => cons[crVar].
-  freeParents(Frs,Map) => foldLeft((F,Fs)=>Fs\+freeParent(F,Map),[],Frs).
-
-  freeParent(V,Map) where ThV ^= lookupThetaVar(Map,crName(V)) =>
-    freeParent(ThV,Map).
-  freeParent(V,_) default => V.
-
-*/
 
   genVar:(string,tipe) => crVar.
   genVar(Pr,Tp) => crId(genSym(Pr),Tp).

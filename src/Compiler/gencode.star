@@ -194,10 +194,10 @@ star.compiler.gencode{
     either((Ctx,[iLdC(flot(Dx))],[],[.flt64,..Stk])).
   compFrTerm(crStrg(Lc,Sx),_,_,_,_,Ctx,Stk,Rp) => 
     either((Ctx,[iLdC(strg(Sx))],[],[.ptr,..Stk])).
-  compFrTerm(crLbl(Lc,Nm,Tp),_,_,_,_,Ctx,Stk,Rp) =>
-    either((Ctx,[iLdC(symb(tLbl(Nm,0)))],[],[.ptr,..Stk])).
   compFrTerm(crVoid(Lc,Tp),_,_,_,_,Ctx,Stk,Rp) => 
     either((Ctx,[.iLdV],[],[.ptr,..Stk])).
+  compFrTerm(crTerm(Lc,Nm,[],Tp),_,_,_,_,Ctx,Stk,Rp) =>
+    either((Ctx,[iLdC(symb(tLbl(Nm,0)))],[],[.ptr,..Stk])).
   compFrTerm(crTerm(Lc,Nm,Args,Tp),Roots,Base,Pth,Opts,Ctx,Stk,Rp) => do{
     (Ctx1,CdeA,FxA,_) <- compFrArgs(Args,Roots,Base,0,Pth,Opts,Ctx,Stk,Rp);
     valis (Ctx1,CdeA++[iAlloc(tLbl(Nm,size(Args)))],FxA,[.ptr,..Stk])
@@ -306,7 +306,6 @@ star.compiler.gencode{
   caseHash(crInt(_,Ix)) => Ix.
   caseHash(crFlot(_,Dx)) => hash(Dx).
   caseHash(crStrg(_,Sx)) => hash(Sx).
-  caseHash(crLbl(_,Nm,Tp)) => arity(Tp)*37+hash(Nm).
   caseHash(crTerm(_,Nm,Args,_)) => size(Args)*37+hash(Nm).
 
   sortCases(Cases) => mergeDuplicates(sort(Cases,((_,_,H1,_),(_,_,H2,_))=>H1<H2)).
@@ -460,7 +459,6 @@ star.compiler.gencode{
   isLiteral(crInt(_,Ix))=>some((intgr(Ix),intType)).
   isLiteral(crFlot(_,Dx))=>some((flot(Dx),fltType)).
   isLiteral(crStrg(_,Sx))=>some((strg(Sx),strType)).
-  isLiteral(crLbl(_,Nm,Tp))=>some((symb(tLbl(Nm,0)),Tp)).
   isLiteral(crTerm(_,Nm,[],Tp)) => some((term(tLbl(Nm,0),[]),Tp)).
   isLiteral(crVoid(Lc,Tp)) => some((symb(tLbl("star.core#void",0)),Tp)).
   isLiteral(_) default => .none.
@@ -559,7 +557,6 @@ star.compiler.gencode{
   ptnVars(crFlot(_,_),Ctx) => Ctx.
   ptnVars(crStrg(_,_),Ctx) => Ctx.
   ptnVars(crVoid(_,_),Ctx) => Ctx.
-  ptnVars(crLbl(_,_,_),Ctx) => Ctx.
   ptnVars(crTerm(_,Op,Els,_),Ctx) => foldRight(ptnVars,Ctx,Els).
   ptnVars(crCall(_,_,_,_),Ctx) => Ctx.
   ptnVars(crECall(_,_,_,_),Ctx) => Ctx.
