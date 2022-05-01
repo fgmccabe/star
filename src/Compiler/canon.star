@@ -38,7 +38,7 @@ star.compiler.canon{
     cond(option[locn],canon,canon,canon) |
     apply(option[locn],canon,canon,tipe) |
     tple(option[locn],cons[canon]) |
-    lambda(string,cons[equation],tipe) |
+    lambda(option[locn],string,cons[equation],tipe) |
     owpen(option[locn],canon) |
     letExp(option[locn],cons[canonDef],cons[decl],canon) |
     letRec(option[locn],cons[canonDef],cons[decl],canon) |
@@ -66,7 +66,7 @@ star.compiler.canon{
     typeOf(strng(_,_)) => strType.
     typeOf(enm(_,_,Tp)) => Tp.
     typeOf(csexp(_,_,_,Tp)) => Tp.
-    typeOf(lambda(_,_,Tp)) => Tp.
+    typeOf(lambda(_,_,_,Tp)) => Tp.
     typeOf(letExp(_,_,_,E)) => typeOf(E).
     typeOf(letRec(_,_,_,E)) => typeOf(E).
     typeOf(apply(_,_,_,Tp)) => Tp.
@@ -103,7 +103,7 @@ star.compiler.canon{
     locOf(cond(Lc,_,_,_)) => Lc.
     locOf(apply(Lc,_,_,_)) => Lc.
     locOf(tple(Lc,_)) => Lc.
-    locOf(lambda(_,[E,.._],_)) => locOf(E).
+    locOf(lambda(Lc,_,_,_)) => Lc.
     locOf(letExp(Lc,_,_,_)) => Lc.
     locOf(letRec(Lc,_,_,_)) => Lc.
     locOf(update(Lc,_,_,_)) => Lc.
@@ -205,7 +205,7 @@ star.compiler.canon{
   showCanon(apply(_,L,R,_),Sp) => "#(showCanon(L,Sp))#(showCanon(R,Sp))".
   showCanon(tple(_,Els),Sp) =>
     "(#(interleave(Els//(El)=>showCanon(El,Sp),",")*))".
-  showCanon(lambda(Nm,Rls,Tp),Sp) => "(#(showRls(Nm,Rls,Sp++"  ")))".
+  showCanon(lambda(_,Nm,Rls,Tp),Sp) => "(#(showRls(Nm,Rls,Sp++"  ")))".
   showCanon(letExp(_,Defs,Dcs,Ep),Sp) where Sp2.=Sp++"  " =>
     "let {\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)} in #(showCanon(Ep,Sp2))".
   showCanon(letRec(_,Defs,Dcs,Ep),Sp) where Sp2.=Sp++"  " =>
@@ -222,7 +222,7 @@ star.compiler.canon{
   showGroup(G,Sp) => interleave(G//(D)=>showDef(D,Sp),".\n"++Sp)*.
 
   showDef:(canonDef,string)=>string.
-  showDef(varDef(_,Nm,FullNm,lambda(LamNm,Rls,_),_,Tp),Sp) =>
+  showDef(varDef(_,Nm,FullNm,lambda(_,LamNm,Rls,_),_,Tp),Sp) =>
     "Fun: #(Nm) #(showRls(LamNm,Rls,Sp))".
   showDef(varDef(_,Nm,FullNm,V,_,Tp),Sp) => "Var: #(Nm)[#(FullNm)] = #(showCanon(V,Sp))".
   showDef(typeDef(_,Nm,T,_),Sp) => "Type: #(Nm)~>$(T)".
@@ -268,7 +268,7 @@ star.compiler.canon{
   isGoal(_) default => .false.
 
   public isFunDef:(canon)=>boolean.
-  isFunDef(lambda(_,_,_)) => .true.
+  isFunDef(lambda(_,_,_,_)) => .true.
   isFunDef(letExp(_,_,_,Exp)) => isFunDef(Exp).
   isFunDef(letRec(_,_,_,Exp)) => isFunDef(Exp).
   isFunDef(_) default => .false.

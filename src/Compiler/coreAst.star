@@ -87,7 +87,7 @@ star.compiler.core.ast{
   
   parseExp(A,Tp,D,Rp) where (_,[E])^=isTuple(A) => parseExp(E,Tp,D,Rp).
   parseExp(A,some(Tp),_,_) where (Lc,nme(_,Id))^=isUnary(A,".") =>
-    either(crLbl(Lc,Id,Tp)).
+    either(crTerm(Lc,Id,[],Tp)).
   parseExp(A,some(Tp),D,Rp) where (Lc,R,F) ^= isBinary(A,".") && (_,Ix)^=isInt(F) => do{
     Rc <- parseExp(R,.none,D,Rp);
     valis  crTplOff(Lc,Rc,Ix,Tp)
@@ -237,8 +237,6 @@ star.compiler.core.ast{
   exprAst(crFlot(Lc,Dx)) => num(Lc,Dx).
   exprAst(crStrg(Lc,Sx)) => str(Lc,Sx).
   exprAst(crVoid(Lc,Tp)) => typedAst(Lc,qnm(Lc,"$void"),Tp).
-  exprAst(crLbl(Lc,Nm,Tp)) => binary(Lc,":",
-    unary(Lc,".",exprId(Lc,Nm)),tpeAst(Lc,Tp)).
   exprAst(crTerm(Lc,Nm,Els,Tp)) =>
     typedAst(Lc,app(Lc,exprId(Lc,Nm),tpl(Lc,"(||)",
 	  Els//exprAst)),Tp).

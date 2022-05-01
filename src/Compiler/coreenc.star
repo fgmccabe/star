@@ -47,7 +47,6 @@ star.compiler.core.enc{
   encExp(crFlot(Dx)) => [0cf]++encInt(_float_bits(Dx)).
   encExp(crStrg(Sx)) => [0cs]++encText(Sx).
   encExp(crVoid(Tp)) => [0cV]++encTp(Tp).
-  encExp(crLbl(Lb)) => [0cb]++encText(Lb).
   encExp(crECall(Lc,Op,As,Tp)) =>
     [0cE]++encLc(Lc)++encText(Op)++encExp(mkCrTpl(As))++encTp(Tp).
   encExp(crOCall(Lc,Op,As,Tp)) =>
@@ -128,7 +127,6 @@ star.compiler.core.enc{
     some((crFlot(_bits_float(Bx)),Cx)).
   decExp([0cs,..Cs]) where (Sx,Cx)^=decText(Cs,(S)=>crStrg(S)) => some((Sx,Cx)).
   decExp([0cV,..Cs]) where (Tp,Cx)^=decTp(Cs) => some((crVoid(Tp),Cx)).
-  decExp([0cb,..Cs]) where (Sx,Cx)^=decText(Cs,(S)=>crLbl(S)) => some((Sx,Cx)).
   decExp([0cE,..Cs]) where (Lc,C0)^=decLc(Cs) &&
       (Op,C1)^=decText(C0,id) &&
       (crTerm(_,As),Cx)^=decExp(C1) &&

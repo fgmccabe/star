@@ -14,11 +14,9 @@ star.compiler.core{
     | crFlot(option[locn],float)
     | crStrg(option[locn],string)
     | crVoid(option[locn],tipe)
-    | crLbl(option[locn],string,tipe)
     | crTerm(option[locn],string,cons[crExp],tipe)
     | crCall(option[locn],string,cons[crExp],tipe)
     | crECall(option[locn],string,cons[crExp],tipe)
-    | crIntrinsic(option[locn],string,cons[crExp],tipe)
     | crOCall(option[locn],crExp,cons[crExp],tipe)
     | crTplOff(option[locn],crExp,integer,tipe)
     | crTplUpdate(option[locn],crExp,integer,crExp)
@@ -69,7 +67,6 @@ star.compiler.core{
   dspExp(crFlot(_,Dx),_) => disp(Dx).
   dspExp(crStrg(_,Sx),_) => disp(Sx).
   dspExp(crVoid(_,_),_) => "void".
-  dspExp(crLbl(_,Lb,_),_) => ".#(Lb)".
   dspExp(crECall(_,Op,As,_),Off) => "#(Op)(#(dsplyExps(As,Off)*))".
   dspExp(crOCall(_,Op,As,_),Off) => "#(dspExp(Op,Off))·(#(dsplyExps(As,Off)*))".
   dspExp(crCall(_,Op,As,_),Off) => "#(Op)(#(dsplyExps(As,Off)*))".
@@ -105,9 +102,6 @@ star.compiler.core{
 
   dspVrs(V) => interleave(V//(((N,T))=>"$(N)=$(T)"),", ")*.
 
-  isTplOp(crLbl(_,Nm,_)) => isTplLbl(Nm).
-  isTplOp(_) default => .false.
-
   public mkCrTpl:(option[locn],cons[crExp]) => crExp.
   mkCrTpl(Lc,Args) => let{
     TpTp = tupleType(Args//typeOf).
@@ -129,7 +123,6 @@ star.compiler.core{
     eqTerm(crFlot(_,N1),crFlot(_,N2)) => N1==N2.
     eqTerm(crStrg(_,S1),crStrg(_,S2)) => S1==S2.
     eqTerm(crVoid(_,T1),crVoid(_,T2)) => T1==T2.
-    eqTerm(crLbl(_,S1,_),crLbl(_,S2,_)) => S1==S2.
     eqTerm(crTerm(_,S1,A1,_),crTerm(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
     eqTerm(crCall(_,S1,A1,_),crCall(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
     eqTerm(crECall(_,S1,A1,_),crECall(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
@@ -179,7 +172,6 @@ star.compiler.core{
     locOf(crFlot(Lc,_)) => Lc.
     locOf(crStrg(Lc,_)) => Lc.
     locOf(crVoid(Lc,_)) => Lc.
-    locOf(crLbl(Lc,_,_)) => Lc.
     locOf(crTplOff(Lc,_,_,_)) => Lc.
     locOf(crTplUpdate(Lc,_,_,_)) => Lc.
     locOf(crTerm(Lc,_,_,_)) => Lc.
@@ -208,7 +200,6 @@ star.compiler.core{
     tpOf(crFlot(_,_)) => fltType.
     tpOf(crStrg(_,_)) => strType.
     tpOf(crVoid(_,Tp)) => Tp.
-    tpOf(crLbl(_,_,Tp)) => Tp.
     tpOf(crTerm(_,_,_,Tp)) => Tp.
     tpOf(crECall(_,_,_,Tp)) => Tp.
     tpOf(crOCall(_,_,_,Tp)) => Tp.
@@ -251,7 +242,7 @@ star.compiler.core{
     _coerce(crStrg(_,Sx)) => some(strg(Sx)).
     _coerce(crVoid(_,_)) => some(symb(tLbl("void",0))).
     _coerce(crInt(_,Ix)) => some(intgr(Ix)).
-    _coerce(crLbl(_,Nm,_)) => some(symb(tLbl(Nm,0))).
+    _coerce(crTerm(_,Nm,[],_)) => some(symb(tLbl(Nm,0))).
     _coerce(crTerm(_,Nm,Args,_)) where NArgs ^= mapArgs(Args,[]) =>
       some(term(tLbl(Nm,size(Args)),NArgs)).
     _coerce(_) default => .none.
@@ -275,7 +266,6 @@ star.compiler.core{
   rwTerm(crFlot(Lc,Dx),_) => crFlot(Lc,Dx).
   rwTerm(crStrg(Lc,Sx),_) => crStrg(Lc,Sx).
   rwTerm(crVoid(Lc,Tp),_) => crVoid(Lc,Tp).
-  rwTerm(crLbl(Lc,Sx,Tp),_) => crLbl(Lc,Sx,Tp).
   rwTerm(crTplOff(Lc,R,Ix,Tp),Tst) => crTplOff(Lc,rwTerm(R,Tst),Ix,Tp).
   rwTerm(crTplUpdate(Lc,R,Ix,E),Tst) => crTplUpdate(Lc,rwTerm(R,Tst),Ix,rwTerm(E,Tst)).
   rwTerm(crTerm(Lc,Op,Args,Tp),Tst) =>
@@ -362,7 +352,6 @@ star.compiler.core{
   isGround(crInt(_,_)) => .true.
   isGround(crFlot(_,_)) => .true.
   isGround(crStrg(_,_)) => .true.
-  isGround(crLbl(_,_,_)) => .true.
   isGround(crTerm(_,_,Els,_)) => {? E in Els *> isGround(E) ?}.
   isGround(_) default => .false.
 }

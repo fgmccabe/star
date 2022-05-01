@@ -51,7 +51,7 @@ star.compiler.constraints{
   extractTermConstraints(cond(Lc,Tst,Lhs,Rhs),Dict,Cnx) =>
     extractTermConstraints(Tst,Dict,extractTermConstraints(Lhs,Dict,
 	extractTermConstraints(Rhs,Dict,Cnx))).
-  extractTermConstraints(lambda(_,Rls,_),Dict,Cnx) =>
+  extractTermConstraints(lambda(_,_,Rls,_),Dict,Cnx) =>
     foldLeft((Eqn,Cs)=>extractEqnConstraints(Eqn,Dict,Cs),Cnx,Rls).
   extractTermConstraints(letExp(Lc,Gp,_,Rhs),Dict,Cnx) => valof action{
     DD .= declareImplementationsInGroup(Gp,Dict);

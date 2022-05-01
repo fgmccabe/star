@@ -83,9 +83,10 @@ star.compiler.normalize.meta{
 
   public pkgMap:(pkgSpec,cons[decl]) => nameMap.
   pkgMap(pkgSpec(Pkg,_,_),Decls) =>
-    [lyr(.none,foldRight((Dcl,D)=>declMdlGlobal(Dcl,D),{},Decls),makeGblConsMap(Decls))].
+    [lyr(.none,foldRight((Dcl,D)=>declMdlGlobal(Dcl,D),{},Decls),makeConsMap(Decls))].
 
-  makeGblConsMap(Decls) => let{.
+  public makeConsMap:(cons[decl]) => map[string,typeMapEntry].
+  makeConsMap(Decls) => let{.
     collectConstructors:(cons[decl],map[string,cons[(string,tipe)]]) =>
       map[string,cons[(string,tipe)]].
     collectConstructors([],Map) => Map.

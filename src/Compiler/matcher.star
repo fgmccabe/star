@@ -93,7 +93,6 @@ star.compiler.matcher{
   argMode(crBig(_,_)) => .inScalars.
   argMode(crFlot(_,_)) => .inScalars.
   argMode(crStrg(_,_)) => .inScalars.
-  argMode(crLbl(_,_,_)) => .inConstructors.
   argMode(crTerm(_,_,_,_)) => .inConstructors.
   argMode(crWhere(_,T,_)) => argMode(T).
 
@@ -139,7 +138,6 @@ star.compiler.matcher{
     [(Lc,emptyCase(Lc,CnsTp,FullNm),Deflt),..populateArms(Index,Cases,Lc,Deflt,Map)].
 */
 
-  armPresent(Nm,[(CLc,crLbl(Lc,Nm,Tp),Exp),.._]) => some((CLc,crLbl(Lc,Nm,Tp),Exp)).
   armPresent(Nm,[(CLc,crTerm(Lc,Nm,Args,Tp),Exp),.._]) =>
     some((CLc,crTerm(Lc,Nm,Args,Tp),Exp)).
   armPresent(Nm,[_,..Cases]) => armPresent(Nm,Cases).
@@ -193,8 +191,6 @@ star.compiler.matcher{
     (LLc,crFlot(LLc,Dx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
   formCase(([crStrg(LLc,Sx),.._],_,_),Tpls,Lc,Vars,Deflt,Map) =>
     (LLc,crStrg(LLc,Sx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
-  formCase(([crLbl(LLc,Nm,LTp),.._],_,_),Tpls,Lc,Vars,Deflt,Map) =>
-    (LLc,crLbl(LLc,Nm,LTp),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
   formCase(([crTerm(Lc,Lbl,Args,Tp),.._],_,_),Triples,_,Vars,Deflt,Map) => valof{
     Vrs .= (Args//(E) => crVar(Lc,crId(genSym("_"),typeOf(E))));
     NTriples .= subTriples(Triples);
@@ -268,13 +264,9 @@ star.compiler.matcher{
     (sameConstructor(A,B) ? IxA<IxB || compareConstructor(A,B)).
 
   compareConstructor(crTerm(_,A,_,_),crTerm(_,B,_,_)) => A<B.
-  compareConstructor(crLbl(_,A,_),crLbl(_,B,_)) => A<B.
-  compareConstructor(crLbl(_,A,_),crTerm(_,B,_,_)) => A<B.
-  compareConstructor(crTerm(_,A,_,_),crLbl(_,B,_)) => A<B.
   
   sameConstructorTriple(([A,.._],_,_),([B,.._],_,_)) => sameConstructor(A,B).
   sameConstructor(crTerm(_,A,_,_), crTerm(_,B,_,_)) => A==B.
-  sameConstructor(crLbl(_,A,Ar),crLbl(_,B,Br)) => A==B && Ar==Br.
   sameConstructor(_,_) default => .false.
 
   pullVarLets:(cons[crExp],crExp)=>(cons[crExp],crExp).

@@ -197,7 +197,7 @@ star.compiler.checker{
   }
 
   allFunDefs:(cons[canonDef])=>boolean.
-  allFunDefs(Dfs) => {? D in Dfs *> varDef(_,_,_,lambda(_,_,_),_,_).=D ?}.
+  allFunDefs(Dfs) => {? D in Dfs *> varDef(_,_,_,lambda(_,_,_,_),_,_).=D ?}.
 
   checkGroup:(cons[defnSpec],dict,dict,string,reports) =>
     either[reports,(cons[canonDef],cons[decl])].
@@ -267,7 +267,7 @@ star.compiler.checker{
     Rls <- processEqns(Stmts,deRef(ProgramTp),[],.none,Es,
       declareConstraints(Lc,Cx,declareTypeVars(Q,Outer)),Path,Rp);
     FullNm .= qualifiedName(Path,.valMark,Nm);
-    valis ([varDef(Lc,Nm,FullNm,lambda(FullNm,Rls,Tp),Cx,Tp)],
+    valis ([varDef(Lc,Nm,FullNm,lambda(Lc,FullNm,Rls,Tp),Cx,Tp)],
       [funDec(Lc,Nm,FullNm,Tp)])
   }.
 
@@ -637,11 +637,11 @@ star.compiler.checker{
       (Cond,E1) <- checkCond(Cnd,E0,Path,Rp);
       Rep <- typeOfExp(R,Rt,E1,Path,Rp);
       checkType(A,fnType(At,Rt),Tp,Env,Rp);
-      valis lambda(LName,[eqn(Lc,As,some(Cond),Rep)],Tp)
+      valis lambda(Lc,LName,[eqn(Lc,As,some(Cond),Rep)],Tp)
     } else{
       Rep <- typeOfExp(R,Rt,E0,Path,Rp);
       checkType(A,fnType(At,Rt),Tp,Env,Rp);
-      valis lambda(LName,[eqn(Lc,As,.none,Rep)],Tp)
+      valis lambda(Lc,LName,[eqn(Lc,As,.none,Rep)],Tp)
     }
   }
 /*  typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Els) ^= isTheta(A) => do{
