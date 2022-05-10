@@ -52,6 +52,7 @@ star.compiler.macro.rules{
     "-" -> [(.expression, uMinusMacro),(.pattern, uMinusMacro)],
     "^=" -> [(.expression, optionMatchMacro)],
     "^" -> [(.expression,unwrapMacro)],
+--    "^?" -> [(.expression, optionPropagateMacro)],
     "!" -> [(.expression,binRefMacro)],
     "contract" -> [(.statement,contractMacro)],
     "implementation" -> [(.statement,implementationMacro)]
@@ -88,6 +89,17 @@ star.compiler.macro.rules{
     ok(active(mkMatch(Lc,unary(Lc,"some",L),R))).
   optionMatchMacro(_,_,_) default => ok(.inactive).
 
+  -- Convert L^?R to (some(X).=L ? some(R) || .none)
+/*
+  optionPropagateMacro(A,.expression,Rp) where
+      (Lc,L,R) ^= isOptionPropagate(A) => result{
+	X .= genName(Lc,"X");
+	valis active(mkConditional(Lc,mkMatch(Lc,unary(Lc,"some",X),L),
+	    unary(Lc,"some",R),
+	    enum(Lc,"none")))
+      }.
+  optionPropagateMacro(_,_,_) default => ok(.inactive).
+*/
   mkLoc(Lc) where locn(P,Line,Col,Off,Ln)^=Lc =>
     roundTerm(Lc,nme(Lc,"locn"),
       [str(Lc,P),int(Lc,Line),int(Lc,Col),int(Lc,Off),int(Lc,Ln)]).
@@ -591,7 +603,7 @@ star.compiler.macro.rules{
   makeAccessor(Annot,TpNm,Cns,Q,Cx,H,Vz,Rp) where (Lc,Fld,FldTp)^=isTypeAnnotation(Annot) => do{
     AccNm .= nme(Lc,"\$$(Fld)");
     AcEqs <- accessorEqns(Cns,Fld,AccNm,[],Rp);
-    AccessHead .= squareTerm(Lc,dotId(Fld),[mkDepends(Lc,[H],[FldTp])]);
+    AccessHead .= squareTerm(Lc,Fld,[mkDepends(Lc,[H],[FldTp])]);
     valis mkAccessorStmt(Lc,Q,Cx,AccessHead,mkLetDef(Lc,AcEqs,AccNm))
   }
 
@@ -631,7 +643,7 @@ star.compiler.macro.rules{
   makeUpdater(Annot,TpNm,Cns,Q,Cx,H,Vz,Rp) where (Lc,Fld,FldTp)^=isTypeAnnotation(Annot) => do{
     AccNm .= dollarName(Fld);
     UpEqs <- updaterEqns(Cns,Fld,AccNm,[],Rp);
-    AccessHead .= squareTerm(Lc,dotId(Fld),[mkDepends(Lc,[H],[FldTp])]);
+    AccessHead .= squareTerm(Lc,Fld,[mkDepends(Lc,[H],[FldTp])]);
     valis mkUpdaterStmt(Lc,Q,Cx,AccessHead,mkLetDef(Lc,UpEqs,AccNm))
   }
 

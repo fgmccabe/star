@@ -137,7 +137,7 @@ star.compiler.terms{
     }
   }
   
-  public decodeTerm:(cons[char])=>either[(),(term,cons[char])].
+  public decodeTerm:(cons[char])=>result[(),(term,cons[char])].
   decodeTerm([`x`,..Ls]) => do{
     (Ix,L0) <- decodeInt(Ls);
     valis (intgr(Ix),L0)
@@ -174,60 +174,60 @@ star.compiler.terms{
     valis (mkLst(Els),Lx)
   }
 
-  decodeTerms:(cons[char],integer,cons[term]) => either[(),(cons[term],cons[char])].
-  decodeTerms(L,0,Args) => either((reverse(Args),L)).
+  decodeTerms:(cons[char],integer,cons[term]) => result[(),(cons[term],cons[char])].
+  decodeTerms(L,0,Args) => do{ valis (reverse(Args),L)}.
   decodeTerms(L,Ix,Args) => do{
     (Arg,L0) <- decodeTerm(L);
     decodeTerms(L0,Ix-1,[Arg,..Args])
   }
 
-  decodeLabel:(cons[char])=>either[(),(termLbl,cons[char])].
+  decodeLabel:(cons[char])=>result[(),(termLbl,cons[char])].
   decodeLabel([`o`,..Ls]) => do{
     (Ar,L0) <- decodeNat(Ls,0);
     (Nm,Lx) <- decodeText(L0);
     valis (tLbl(Nm,Ar),Lx)
   }
     
-  decodeInt:(cons[char])=>either[(),(integer,cons[char])].
+  decodeInt:(cons[char])=>result[(),(integer,cons[char])].
   decodeInt([`-`,..L]) => do{
     (Px,Lx) <- decodeNat(L,0);
     valis (-Px,Lx)
   }
   decodeInt(L) default => decodeNat(L,0).
   
-  decodeNat:(cons[char],integer) => either[(),(integer,cons[char])].
+  decodeNat:(cons[char],integer) => result[(),(integer,cons[char])].
   decodeNat([Cx,..Ls],Ix) where isDigit(Cx) => decodeNat(Ls,Ix*10+digitVal(Cx)).
-  decodeNat(Ls,Ix) default => either((Ix,Ls)).
+  decodeNat(Ls,Ix) default => do{ valis (Ix,Ls)}.
 
-  decodeChar:(cons[char]) => either[(),(char,cons[char])].
-  decodeChar([`\\`,X,..L]) => either((X,L)).
-  decodeChar([X,..L]) => either((X,L)).
+  decodeChar:(cons[char]) => result[(),(char,cons[char])].
+  decodeChar([`\\`,X,..L]) => do{ valis (X,L)}.
+  decodeChar([X,..L]) => do{ valis (X,L) }.
 
-  decodeText:(cons[char]) => either[(),(string,cons[char])].
+  decodeText:(cons[char]) => result[(),(string,cons[char])].
   decodeText([C,..L]) => do{
     (Q,Cs) <- collectQuoted(L,[],C);
     valis (reverse(Q)::string,Cs)
   }
 
-  collectQuoted:(cons[char],cons[char],char) => either[(),(cons[char],cons[char])].
-  collectQuoted([S,..Lx],SoF,S) => either((SoF,Lx)).
+  collectQuoted:(cons[char],cons[char],char) => result[(),(cons[char],cons[char])].
+  collectQuoted([S,..Lx],SoF,S) => do{ valis (SoF,Lx) }.
   collectQuoted([`\\`,X,..L],SoF,S) => collectQuoted(L,[X,..SoF],S).
   collectQuoted([X,..L],SoF,S) => collectQuoted(L,[X,..SoF],S).
 
-  public decodeSignature:(string) => either[(),tipe].
+  public decodeSignature:(string) => result[(),tipe].
   decodeSignature(St) => do{
     (Tp,_) <- decodeType(St::cons[char]);
     valis Tp
   }
 
-  decodeType:(cons[char]) => either[(),(tipe,cons[char])].
-  decodeType([`i`,..Ts]) => either((nomnal("star.core*integer"),Ts)).
-  decodeType([`b`,..Ts]) => either((nomnal("star.core*bigint"),Ts)).
-  decodeType([`f`,..Ts]) => either((nomnal("star.core*float"),Ts)).
-  decodeType([`c`,..Ts]) => either((nomnal("star.core*char"),Ts)).
-  decodeType([`s`,..Ts]) => either((nomnal("star.core*string"),Ts)).
-  decodeType([`l`,..Ts]) => either((nomnal("star.core*boolean"),Ts)).
-  decodeType([`_`,..Ts]) => either((newTypeVar("_"),Ts)).
+  decodeType:(cons[char]) => result[(),(tipe,cons[char])].
+  decodeType([`i`,..Ts]) => do{ valis (nomnal("star.core*integer"),Ts)}.
+  decodeType([`b`,..Ts]) => do{ valis (nomnal("star.core*bigint"),Ts)}.
+  decodeType([`f`,..Ts]) => do{ valis (nomnal("star.core*float"),Ts)}.
+  decodeType([`c`,..Ts]) => do{ valis (nomnal("star.core*char"),Ts)}.
+  decodeType([`s`,..Ts]) => do{ valis (nomnal("star.core*string"),Ts)}.
+  decodeType([`l`,..Ts]) => do{ valis (nomnal("star.core*boolean"),Ts)}.
+  decodeType([`_`,..Ts]) => do{ valis (newTypeVar("_"),Ts)}.
   decodeType([`k`,..Ts]) => do {
     (Nm,T1) <- decodeText(Ts);
     valis (nomnal(Nm),T1)
@@ -294,14 +294,14 @@ star.compiler.terms{
     valis (consType(A,R),T1)
   }
 
-  decodeTypes([`)`,..Ts]) => either(([],Ts)). 
+  decodeTypes([`)`,..Ts]) => do{ valis ([],Ts)}. 
   decodeTypes(Ts) => do{
     (ElTp,T0) <- decodeType(Ts);
     (Tps,T1) <- decodeTypes(T0);
     valis ([ElTp,..Tps],T1)
   }
 
-  public decodeTypeRuleSignature:(string) => either[(),typeRule].
+  public decodeTypeRuleSignature:(string) => result[(),typeRule].
   decodeTypeRuleSignature(St) => do{
     (Tp,_) <- decodeTypeRule(St::cons[char]);
     valis Tp
@@ -330,7 +330,7 @@ star.compiler.terms{
 
   decodeFields([`{`,..Ts]) => decodeFlds(Ts,[]).
 
-  decodeFlds([`}`,..Ts],Flds) => either((reverse(Flds),Ts)).
+decodeFlds([`}`,..Ts],Flds) => do{ valis (reverse(Flds),Ts)}.
   decodeFlds(Ts,Flds) => do{
     (Nm,T0) <- decodeText(Ts);
     (Tp,T1) <- decodeType(T0);

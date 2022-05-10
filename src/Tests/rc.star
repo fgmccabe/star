@@ -31,7 +31,7 @@ test.rc{
   main()=>action{
     show cont(2).C;
     show [|aa{A=10}|];
-    show cont(2).C<<-20
+    show (cont(2).C<<-20)
   }
 
 }

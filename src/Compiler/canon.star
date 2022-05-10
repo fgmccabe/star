@@ -17,7 +17,8 @@ star.compiler.canon{
     funDec(option[locn],string,string,tipe) |
     cnsDec(option[locn],string,string,tipe).
 
-  public canon ::= vr(option[locn],string,tipe) |
+  public canon ::= vd(option[locn],tipe) |
+    vr(option[locn],string,tipe) |
     mtd(option[locn],string,constraint,tipe) |
     over(option[locn],canon,cons[constraint]) |
     overaccess(option[locn],canon,string,tipe) |
@@ -183,6 +184,7 @@ star.compiler.canon{
   }
 */
   showCanon:(canon,string)=>string.
+  showCanon(vd(_,Tp),_) => "void".
   showCanon(vr(_,Nm,Tp),_) => Nm.
   showCanon(mtd(_,Fld,_,_),_) => "µ#(Fld)".
   showCanon(over(_,V,Cx),Sp) => "$(Cx)|:#(showCanon(V,Sp))".
@@ -193,7 +195,7 @@ star.compiler.canon{
   showCanon(strng(_,Lt),_) => disp(Lt).
   showCanon(enm(_,Nm,Tp),_) => ".#(Nm)".
   showCanon(whr(_,E,C),Sp) => "#(showCanon(E,Sp)) where #(showCanon(C,Sp))".
-  showCanon(dot(_,R,F,_),Sp) => "#(showCanon(R,Sp))°#(F)".
+  showCanon(dot(_,R,F,Tp),Sp) => "#(showCanon(R,Sp))°#(F)\:$(Tp)".
   showCanon(csexp(_,Exp,Cs,_),Sp) => "case #(showCanon(Exp,Sp)) in #(showCases(Cs,Sp))".
   showCanon(match(_,Ptn,Gen),Sp) => "#(showCanon(Ptn,Sp)) .= #(showCanon(Gen,Sp))".
   showCanon(conj(_,L,R),Sp) => "#(showCanon(L,Sp)) && #(showCanon(R,Sp))".

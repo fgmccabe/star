@@ -73,8 +73,8 @@ star.compiler.normalize.meta{
     P(E).
   lookup([_,..Map],Nm,P) => lookup(Map,Nm,P).
 
-  public findIndexMap:(tipe,nameMap) => option[consMap].
-  findIndexMap(Tp,Map) => lookupTypeMap(Map,tpName(Tp)).
+  public findIndexMap:(string,nameMap) => option[consMap].
+  findIndexMap(Tp,Map) => lookupTypeMap(Map,Tp).
 
   lookupTypeMap([],_) => .none.
   lookupTypeMap([lyr(_,_,Entries),..Map],Nm) where moduleType(_,_,E) ^= Entries[Nm] =>
@@ -110,8 +110,10 @@ star.compiler.normalize.meta{
       map[string,typeMapEntry]) => map[string,typeMapEntry].
     collectMdlTypes([],Cns,Map) => Map.
     collectMdlTypes([tpeDec(Lc,Nm,Tp,_),..Ds],Cns,Map) where
-	Entry ^= Cns[tpName(Tp)] =>
-      collectMdlTypes(Ds,Cns,Map[Nm->moduleType(Nm,Tp,Entry)]).
+	TpNm .= tpName(Tp) &&
+	Entry ^= Cns[TpNm] =>
+      collectMdlTypes(Ds,Cns,(Map[Nm->moduleType(TpNm,Tp,Entry)])
+	[TpNm->moduleType(TpNm,Tp,Entry)]).
     collectMdlTypes([_D,..Ds],Cns,Map) => collectMdlTypes(Ds,Cns,Map).
   .} in collectMdlTypes(Decls,indexConstructors(collectConstructors(Decls,[])),[]).
 

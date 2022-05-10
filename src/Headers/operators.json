@@ -505,15 +505,6 @@
     "keyword": true
   },
   {
-    "prefixOp": "?",
-    "priorities": [
-      120,
-      119
-    ],
-    "desc": "catch an optional propagation",
-    "keyword": true
-  },
-  {
     "prefixOp": "^",
     "priorities": [
       100,
@@ -619,6 +610,16 @@
       799
     ],
     "desc": "filter map",
+    "keyword": false
+  },
+  {
+    "infixOp": "^?",
+    "priorities": [
+      800,
+      800,
+      799
+    ],
+    "desc": "option propagate",
     "keyword": false
   },
   {

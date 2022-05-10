@@ -202,8 +202,8 @@ star.compiler.meta{
   public checkOnlyOption:cmdOption[compilerOptions].
   checkOnlyOption = cmdOption{
     shortForm = "-c".
-    alternatives = ["--compile-only"].
-    usage = "-c -- type only".
+    alternatives = ["--type-check-only"].
+    usage = "-c -- type check only".
     validator = .none.
     setOption(_,Opts) => valof{
       typeCheckOnly := .true;

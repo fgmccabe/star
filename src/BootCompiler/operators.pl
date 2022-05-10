@@ -25,6 +25,7 @@
   operator(".<.", [infixOp(699, 700, 699)]).
   operator("^=", [infixOp(899, 900, 899)]).
   operator("&&", [infixOp(910, 910, 909)]).
+  operator("^?", [infixOp(800, 800, 799)]).
   operator("pure", [prefixOp(300, 299)]).
   operator("~=", [infixOp(899, 900, 899)]).
   operator("~>", [infixOp(1230, 1231, 1230)]).
@@ -81,7 +82,7 @@
   operator("++", [infixOp(719, 720, 720)]).
   operator(">", [infixOp(899, 900, 899)]).
   operator("return", [prefixOp(930, 929)]).
-  operator("?", [prefixOp(120, 119), infixOp(919, 920, 920)]).
+  operator("?", [infixOp(919, 920, 920)]).
   operator("@", [prefixOp(400, 399), infixOp(399, 400, 400)]).
   operator("in", [infixOp(899, 900, 900)]).
   operator("^|", [infixOp(919, 920, 920)]).
@@ -234,6 +235,7 @@
   follows('\\','+','\\+').
   follows('\\','-','\\-').
   follows('\\','/','\\/').
+  follows('^','?','^?').
   follows('^','.','^.').
   follows('^','/','^/').
   follows('^','=','^=').
@@ -323,6 +325,7 @@
   final('\\/',"\\/").	 /* union */
   final(']',"]").	 /* square brackets */
   final('^',"^").	 /* Optional propagation */
+  final('^?',"^?").	 /* option propagate */
   final('^.',"^.").	 /* optional object access */
   final('^/',"^/").	 /* filter */
   final('^//',"^//").	 /* filter map */
@@ -351,7 +354,7 @@
   final('>=',">=").	 /* greater than or equal */
   final('>>',">>").	 /* monadic bind */
   final('>>=',">>=").	 /* monadic bind */
-  final('?',"?").	 /* catch an optional propagation */
+  final('?',"?").	 /* conditional operator */
   final('?}',"?}").	 /* test comprehension */
   final('@',"@").	 /* meta annotation */
   final('!',"!").	 /* pick up value from a ref cell */

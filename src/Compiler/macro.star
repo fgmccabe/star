@@ -511,10 +511,6 @@ star.compiler.macro{
     CC <- macroOpt(C,macroCond,Rp);
     valis mkLambda(Lc,D,LL,CC,RR)
   } 
-  examineTerm(A,Rp) where (Lc,R) ^= isPromotion(A) => do{
-    RR <- macroTerm(R,Rp);
-    valis mkPromotion(Lc,RR)
-  }
   examineTerm(A,Rp) where (Lc,R) ^= isValof(A) => do{
     RR <- macroTerm(R,Rp);
     valis unary(Lc,"_perform",RR)
@@ -599,10 +595,6 @@ star.compiler.macro{
     LL <- macroPtn(L,Rp);
     RR <- macroTerm(R,Rp);
     valis mkWhere(Lc,LL,RR)
-  }
-  examinePtn(A,Rp) where (Lc,R) ^= isPromotion(A) => do{
-    RR <- macroPtn(R,Rp);
-    valis mkPromotion(Lc,RR)
   }
   examinePtn(A,Rp) default =>
     bad(reportError(Rp,"cannot figure out pattern\n$(A)",locOf(A))).

@@ -41,6 +41,7 @@ star.compiler.operators{
   oper(".<.") => [infixOp(699,700,699)].
   oper("^=") => [infixOp(899,900,899)].
   oper("&&") => [infixOp(910,910,909)].
+  oper("^?") => [infixOp(800,800,799)].
   oper("pure") => [prefixOp(300,299)].
   oper("~=") => [infixOp(899,900,899)].
   oper("~>") => [infixOp(1230,1231,1230)].
@@ -97,7 +98,7 @@ star.compiler.operators{
   oper("++") => [infixOp(719,720,720)].
   oper(">") => [infixOp(899,900,899)].
   oper("return") => [prefixOp(930,929)].
-  oper("?") => [prefixOp(120,119), infixOp(919,920,920)].
+  oper("?") => [infixOp(919,920,920)].
   oper("@") => [prefixOp(400,399), infixOp(399,400,400)].
   oper("in") => [infixOp(899,900,900)].
   oper("^|") => [infixOp(919,920,920)].
@@ -281,6 +282,7 @@ star.compiler.operators{
   follows("\\",`+`) => some("\\+").
   follows("\\",`-`) => some("\\-").
   follows("\\",`/`) => some("\\/").
+  follows("^",`?`) => some("^?").
   follows("^",`.`) => some("^.").
   follows("^",`/`) => some("^/").
   follows("^",`=`) => some("^=").
@@ -372,6 +374,7 @@ star.compiler.operators{
   final("\\/") => .true.  /* union */
   final("]") => .true.  /* square brackets */
   final("^") => .true.  /* Optional propagation */
+  final("^?") => .true.  /* option propagate */
   final("^.") => .true.  /* optional object access */
   final("^/") => .true.  /* filter */
   final("^//") => .true.  /* filter map */
@@ -400,7 +403,7 @@ star.compiler.operators{
   final(">=") => .true.  /* greater than or equal */
   final(">>") => .true.  /* monadic bind */
   final(">>=") => .true.  /* monadic bind */
-  final("?") => .true.  /* catch an optional propagation */
+  final("?") => .true.  /* conditional operator */
   final("?}") => .true.  /* test comprehension */
   final("@") => .true.  /* meta annotation */
   final("!") => .true.  /* pick up value from a ref cell */

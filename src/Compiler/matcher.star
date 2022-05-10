@@ -116,7 +116,9 @@ star.compiler.matcher{
   matchConstructors(Seg,[V,..Vrs],Lc,Deflt,Map) => valof{
     Cases .= formCases(sort(Seg,compareConstructorTriple),
       sameConstructorTriple,Lc,Vrs,Deflt,Map);
-    Index ^= findIndexMap(typeOf(V),Map);
+    logMsg("look for index map of $(tpName(typeOf(V)))");
+    Index ^= findIndexMap(tpName(typeOf(V)),Map);
+    logMsg("index is $(Index)");
     valis crUnpack(Lc,V,populateArms(Index,Cases,Lc,Deflt,Map),typeOf(Deflt))
   }
 
