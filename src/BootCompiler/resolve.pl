@@ -167,7 +167,7 @@ overloadTerm(apply(ALc,over(Lc,T,_,Cx),Args,Tp),Dict,St,Stx,Term) :-
 	     Dict,St,Stx,apply(Lc,OverOp,tple(LcA,NArgs),Tp)) :-
   deRef(Face,faceType([(Fld,FldTp)],[])),
   resolveAccess(Lc,Rc,Fld,FldTp,Dict,St,St1,OverOp),
-  overloadTerm(Args,Dict,St1,St2,tple(LcA,RArgs)),
+  overloadTerm(Args,Dict,St1,St2,T),
   overloadRef(Lc,T,DTerms,RArgs,OverOp,Dict,St2,Stx,NArgs).
   */
 overloadTerm(apply(Lc,Op,Args,Tp),Dict,St,Stx,apply(Lc,ROp,RArgs,Tp)) :-

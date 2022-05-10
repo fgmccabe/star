@@ -333,6 +333,10 @@ star.compiler.wff{
 
   public mkOptionMatch(Lc,L,R) => binary(Lc,"^=",unary(Lc,"some",L),R).
 
+  public isOptionPropagate(A) => isBinary(A,"^?").
+
+  public mkOptionPropagate(Lc,L,R) => binary(Lc,"^?",unary(Lc,"some",L),R).
+
   public isEnum(A) => isUnary(A,".").
 
   public isEnumSymb(A) where (Lc,nme(_,N))^=isUnary(A,".") => some((Lc,N)).
@@ -437,30 +441,6 @@ star.compiler.wff{
   isSplice(A) where (Lc,Lhs,R)^= isAssignment(A) && (_,S,F,T) ^= isSlice(Lhs) =>
     some((Lc,S,F,T,R)).
   isSplice(_) default => .none.
-
-  public hasPromotion:(ast) => boolean.
-  hasPromotion(A) where (_,_,Els) ^= isRoundTerm(A) =>
-    {? E in Els && (_,_) ^= isUnary(E,"^") ?}.
-  hasPromotion(_) default => .false.
-
-  public isPromotion:(ast) => option[(option[locn],ast)].
-  isPromotion(A) => isUnary(A,"^").
-
-  public mkPromotion(Lc,A) => unary(Lc,"^",A).
-
-  public promoteOption:(ast) => ast.
-  promoteOption(A) where (Lc,Op,Els) ^= isRoundTerm(A) => valof action{
-    V .= genName(Lc,"_V");
-    (NEls,XV) .= promoteArgs(Els,[],V);
-    valis binary(Lc,">>=",XV,
-      binary(Lc,"=>",rndTuple(Lc,[V]),roundTerm(Lc,Op,NEls)))
-  }
-
-  promoteArgs:(cons[ast],cons[ast],ast) => (cons[ast],ast).
-  promoteArgs([],Els,V) => (reverse(Els),V).
-  promoteArgs([E,..Es],XEs,V) where (_,A) ^= isUnary(E,"^") =>
-    ([V,..XEs]++Es,A).
-  promoteArgs([E,..Es],XEs,V) => promoteArgs(Es,[E,..XEs],V).
 
   public isContractStmt:(ast) => option[(option[locn],ast,cons[ast])].
   isContractStmt(A) where

@@ -14,8 +14,8 @@ star.compiler.impawt{
 
   public importAll:all r ~~ repo[r]|:
     (cons[importSpec],r,cons[importSpec],
-      cons[decl],reports) => either[reports,(cons[importSpec],cons[decl])].
-  importAll([],_,Imported,Decls,_) => either((Imported,Decls)).
+      cons[decl],reports) => result[reports,(cons[importSpec],cons[decl])].
+  importAll([],_,Imported,Decls,_) => do{ valis (Imported,Decls)}.
   importAll([pkgImp(Lc,Viz,Pkg),..Imports],Repo,Imported,Decls,Rp) => do{
     if {? pkgImp(_,_,Pkg) in Imported ?} then
       importAll(Imports,Repo,Imported,Decls,Rp)
@@ -31,11 +31,14 @@ star.compiler.impawt{
     }
   }
 
-  public importPkg:all r ~~ repo[r] |: (pkg,option[locn],r,reports) => either[reports,pkgSpec].
-  importPkg(Pkg,Lc,Repo,Rp) where Sig ^= pkgSignature(Repo,Pkg) => either (valof pickupPkgSpec(Sig,Lc,Rp)).
-  importPkg(Pkg,Lc,_,Rp) default => other(reportError(Rp,"cannot import $(Pkg)",Lc)).
+  public importPkg:all r ~~ repo[r] |: (pkg,option[locn],r,reports) => result[reports,pkgSpec].
+  importPkg(Pkg,Lc,Repo,Rp) where Sig ^= pkgSignature(Repo,Pkg) => do{
+    valis valof pickupPkgSpec(Sig,Lc,Rp) }.
+  importPkg(Pkg,Lc,_,Rp) default => do{
+    raise reportError(Rp,"cannot import $(Pkg)",Lc)
+  }.
 
-  pickupPkgSpec:(string,option[locn],reports) => either[reports,pkgSpec].
+  pickupPkgSpec:(string,option[locn],reports) => result[reports,pkgSpec].
   pickupPkgSpec(Txt,Lc,Rp) => do{
     try{
       (term(_,[Pk,term(_,Imps),term(_,Ds)]),_)<-decodeTerm(Txt::cons[char]);
@@ -53,15 +56,15 @@ star.compiler.impawt{
     }
   }
 
-  pickupPkg:all e ~~ (term) => either[e,pkg].
+  pickupPkg:all e ~~ (term) => result[e,pkg].
   pickupPkg(term(tLbl("pkg",2),[strg(Nm),V])) => do{
     Vr <- pickupVersion(V);
     valis pkg(Nm,Vr)
   }
 
-  pickupVersion:all e ~~ (term)=>either[e,version].
-  pickupVersion(symb(tLbl("*",0))) => either(.defltVersion).
-  pickupVersion(strg(V)) => either(vers(V)).
+  pickupVersion:all e ~~ (term)=>result[e,version].
+  pickupVersion(symb(tLbl("*",0))) => do{ valis .defltVersion}.
+  pickupVersion(strg(V)) => do{ valis vers(V)}.
 
   pickupViz:(term)=>option[visibility].
   pickupViz(symb(tLbl("private",0))) => some(.priVate).
@@ -69,9 +72,9 @@ star.compiler.impawt{
   pickupViz(symb(tLbl("transitive",0))) => some(.transItive).
   pickupVis(_) default => .none.
 
-  pickupImports:(cons[term],option[locn]) => either[reports,cons[importSpec]].
+  pickupImports:(cons[term],option[locn]) => result[reports,cons[importSpec]].
   pickupImports(Trms,Lc) => let{.
-    pickupImps([],Imx) => either(Imx).
+    pickupImps([],Imx) => do{ valis Imx}.
     pickupImps([term(_,[V,P]),..Imps],Imx) where
 	Vz ^= pickupViz(V) => do{
 	  Pkg <- pickupPkg(P);
@@ -79,7 +82,7 @@ star.compiler.impawt{
 	}.
   .} in pickupImps(Trms,[]).
 
-  pickupDeclarations:(cons[term],option[locn],reports)=>either[reports,cons[decl]].
+  pickupDeclarations:(cons[term],option[locn],reports)=>result[reports,cons[decl]].
   pickupDeclarations(Ts,Lc,Rp) => seqmap((T)=>pickupDeclaration(T,Lc,Rp),Ts).
 
   pickupDeclaration(term(tLbl("imp",3),[strg(Nm),strg(FNm),strg(Sig)]),Lc,Rp) => do{

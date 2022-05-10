@@ -18,6 +18,10 @@
 @tab left associative infix
 @tab 910
 @tab conjunction
+@item @code{^?}
+@tab left associative infix
+@tab 800
+@tab option propagate
 @item @code{pure}
 @tab non-associative prefix
 @tab 300
@@ -274,10 +278,6 @@
 @tab non-associative prefix
 @tab 930
 @tab wrap value in monad
-@item @code{?}
-@tab non-associative prefix
-@tab 120
-@tab catch an optional propagation
 @item @code{?}
 @tab right associative infix
 @tab 920
@@ -553,79 +553,80 @@
   @item @code{.<.}
   @tab @code{^=}
   @tab @code{&&}
+  @tab @code{^?}
   @tab @code{~=}
-  @tab @code{~>}
-  @item @code{.|.}
+  @item @code{~>}
+  @tab @code{.|.}
   @tab @code{,..}
   @tab @code{**}
   @tab @code{->}
-  @tab @code{.+.}
-  @item @code{<$}
+  @item @code{.+.}
+  @tab @code{<$}
   @tab @code{!}
   @tab @code{->>}
   @tab @code{#}
-  @tab @code{%}
-  @item @code{<-}
+  @item @code{%}
+  @tab @code{<-}
   @tab @code{.>>>.}
   @tab @code{\\+}
   @tab @code{<<-}
-  @tab @code{*}
-  @item @code{\\-}
+  @item @code{*}
+  @tab @code{\\-}
   @tab @code{+}
   @tab @code{.>>.}
   @tab @code{*>}
-  @tab @code{,}
-  @item @code{\\/}
+  @item @code{,}
+  @tab @code{\\/}
   @tab @code{-}
   @tab @code{.}
   @tab @code{/}
-  @tab @code{<*>}
-  @item @code{$$}
+  @item @code{<*>}
+  @tab @code{$$}
   @tab @code{:}
   @tab @code{;}
   @tab @code{<}
-  @tab @code{.=}
-  @item @code{=>>}
+  @item @code{.=}
+  @tab @code{=>>}
   @tab @code{=}
   @tab @code{|:}
   @tab @code{++}
-  @tab @code{>}
-  @item @code{?}
+  @item @code{>}
+  @tab @code{?}
   @tab @code{@@}
   @tab @code{^|}
   @tab @code{~~}
-  @tab @code{!!}
-  @item @code{⊕}
+  @item @code{!!}
+  @tab @code{⊕}
   @tab @code{.^.}
   @tab @code{//}
   @tab @code{.~.}
-  @tab @code{=<}
-  @item @code{==}
+  @item @code{=<}
+  @tab @code{==}
   @tab @code{\\}
   @tab @code{=>}
   @tab @code{^}
-  @tab @code{<=>}
-  @item @code{•}
+  @item @code{<=>}
+  @tab @code{•}
   @tab @code{.&.}
   @tab @code{///}
   @tab @code{::}
-  @tab @code{+++}
-  @item @code{:=}
+  @item @code{+++}
+  @tab @code{:=}
   @tab @code{.access}
   @tab @code{:?}
   @tab @code{.<<.}
-  @tab @code{^.}
-  @item @code{>>=}
+  @item @code{^.}
+  @tab @code{>>=}
   @tab @code{^/}
   @tab @code{<~}
   @tab @code{|}
-  @tab @code{.#.}
-  @item @code{~}
+  @item @code{.#.}
+  @tab @code{~}
   @tab @code{^//}
   @tab @code{||}
   @tab @code{::=}
-  @tab @code{/\\}
-  @item @code{>=}
+  @item @code{/\\}
+  @tab @code{>=}
   @tab @code{>>}
 
 @end multitable

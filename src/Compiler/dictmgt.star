@@ -28,6 +28,13 @@ star.compiler.dict.mgt{
   findVar(Lc,Nm,Dict) where vrEntry(_,Mk,Tp,_) ^= isVar(Nm,Dict) => some(Mk(Lc,Dict)).
   findVar(_,_,_) default => .none.
 
+  public findImplementation:(dict,string) => option[canon].
+  findImplementation(Dict,Nm) => findImpl(Dict,Dict,Nm).
+  
+  findImpl([scope(_,_,_,_,Imps,_,_),.._],Env,INm) where implEntry(Lc,Vr,Tp) ^= Imps[INm] => some(refreshVar(Lc,Vr,Tp,Env)).
+  findImpl([_,..Rest],Env,INm) => findImpl(Rest,Env,INm).
+  findImpl([],_,_) => .none.
+
   public findAccess:(option[locn],tipe,string,dict) => option[canon].
   findAccess(Lc,Tp,Fld,Env) => valof{
     if accEntry(_,Nm,T) ^= getFieldAccess(Tp,Fld,Env) then{

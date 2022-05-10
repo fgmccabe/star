@@ -407,6 +407,9 @@ star.compiler.types{
       tpExp(O2,A) .= deRef(O) &&
       tpFun("<=>",2).=deRef(O2) => some((A,B)).
   isConsType(_) default => .none.
+  isConsType(allType(_,Tp)) => isConsType(deRef(Tp)).
+  isConsType(existType(_,Tp)) => isConsType(deRef(Tp)).
+  isConsType(constrainedType(T,_))=>isConsType(T).
 
   public isContType:(tipe) => option[(tipe,tipe)].
   isContType(Tp) where
@@ -414,6 +417,12 @@ star.compiler.types{
       tpExp(O2,A) .= deRef(O) &&
       tpFun("=>>",2).=deRef(O2) => some((A,B)).
   isContType(_) default => .none.
+
+  public isTupleType:(tipe) => option[(integer,cons[tipe])].
+  isTupleType(Tp) =>
+    (tupleType(A) .= deRef(Tp) ?
+      some((size(A),A)) ||
+      .none).
 
   public isEnumType:(tipe)=>option[tipe].
   isEnumType(Tp) where (A,T)^=isConsType(Tp) && deRef(A)==tupleType([]) => some(T).

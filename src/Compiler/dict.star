@@ -69,11 +69,6 @@ star.compiler.dict{
   findContract([scope(_,_,_,Cns,_,_,_),.._],Ky) where Con^=Cns[Ky] => some(Con).
   findContract([_,..Rest],Ky) => findContract(Rest,Ky).
 
-  public findImplementation:(dict,string) => option[canon].
-  findImplementation([scope(_,_,_,_,Imps,_,_),.._],INm) where implEntry(Lc,Vr,Tp) ^= Imps[INm] => some(vr(Lc,Vr,Tp)).
-  findImplementation([_,..Rest],INm) => findImplementation(Rest,INm).
-  findImplementation([],_) => .none.
-
   public declareImplementation:(option[locn],string,string,tipe,dict) => dict.
   declareImplementation(Lc,ImplNm,ImplVr,Tp,
     [scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..Env]) =>
@@ -97,7 +92,7 @@ star.compiler.dict{
   }
 
   public getFieldAccess:(tipe,string,dict)=>option[accEntry].
-  getFieldAccess(Tp,Fld,Env) => getField(tpName(Tp),dotName(Fld),Env).
+  getFieldAccess(Tp,Fld,Env) => getField(tpName(Tp),Fld,Env).
 
   getField(_,_,[]) => .none.
   getField(Key,Fld,[scope(_,_,_,_,_,Accs,_),.._]) where
@@ -119,14 +114,13 @@ star.compiler.dict{
   }
 
   public getFieldUpdate:(tipe,string,dict)=>option[accEntry].
-  getFieldUpdate(Tp,Fld,Env) => getUpdate(tpName(Tp),dotName(Fld),Env).
+  getFieldUpdate(Tp,Fld,Env) => getUpdate(tpName(Tp),Fld,Env).
 
   getUpdate(_,_,[]) => .none.
   getUpdate(Key,Fld,[scope(_,_,_,_,_,_,Accs),.._]) where
       AccOrs ^= Accs[Key] &&
       Acc ^= AccOrs[Fld] => some(Acc).
   getUpdate(Key,Fld,[_,..Env]) => getUpdate(Key,Fld,Env).
-  
 
   public pushScope:(dict)=>dict.
   pushScope(Env) => [scope({},{},[],{},{},{},{}),..Env].

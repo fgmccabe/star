@@ -16,7 +16,7 @@ star.compiler.typeparse{
   -- Convenience type decl
   tipes ~> cons[(string,tipe)].
 
-  public parseType:(tipes,ast,dict,reports) => either[reports,tipe].
+  public parseType:(tipes,ast,dict,reports) => result[reports,tipe].
 
   parseType(Q,Tp,Env,Rp) where (Lc,V,BT) ^= isQuantified(Tp) => do{
     BV <- parseBoundTpVars(V,Rp);
@@ -106,8 +106,9 @@ star.compiler.typeparse{
   }
   parseType(Q,T,Env,Rp) where (Lc,Op,[L,R]) ^= isRoundTerm(T) =>
     parseType(Q,squareTerm(Lc,Op,[L,R]),Env,Rp).
-  parseType(Q,T,Env,Rp) default =>
-    other(reportError(Rp,"cannot understand type $(T)",locOf(T))).
+  parseType(Q,T,Env,Rp) default => do{
+    raise reportError(Rp,"cannot understand type $(T)",locOf(T))
+  }.
 
   parseArgType(Q,A,Env,Rp) where (_,As) ^= isTuple(A) => do{
     Args <- parseTypes(Q,As,Env,Rp);
@@ -117,7 +118,7 @@ star.compiler.typeparse{
     parseType(Q,A,Env,Rp).
     
   parseTypeArgs:(option[locn],tipes,cons[ast],dict,reports) =>
-    either[reports,(cons[tipe],cons[tipe])].
+    result[reports,(cons[tipe],cons[tipe])].
   parseTypeArgs(_,Q,[XX],Env,Rp) where (_,As,Ds)^=isDepends(XX) => do{
     Lhs <- parseTypes(Q,As,Env,Rp);
     Rhs <- parseTypes(Q,Ds,Env,Rp);
@@ -127,11 +128,12 @@ star.compiler.typeparse{
     ATps <- parseTypes(Q,As,Env,Rp);
     valis (ATps,[])
   }
-  parseTypeArgs(Lc,_,As,Env,Rp) =>
-    other(reportError(Rp,"cannot parse argument types $(As)",Lc)).
+  parseTypeArgs(Lc,_,As,Env,Rp) => do{
+    raise reportError(Rp,"cannot parse argument types $(As)",Lc)
+  }.
 
-  applyTypeRule:(option[locn],typeRule,cons[tipe],dict,reports) => either[reports,tipe].
-  applyTypeRule(_,typeLambda(tupleType([]),Tp),[],_,_) => either(Tp).
+  applyTypeRule:(option[locn],typeRule,cons[tipe],dict,reports) => result[reports,tipe].
+  applyTypeRule(_,typeLambda(tupleType([]),Tp),[],_,_) => do{ valis Tp }.
   applyTypeFun(Lc,typeLambda(L,R),[A,..As],Env,Rp) => do{
     if sameType(L,A,Env) then{
       doTypeFun(R,As,Env,Rp)
@@ -140,14 +142,14 @@ star.compiler.typeparse{
     }
   }
 
-  doTypeFun:(tipe,cons[tipe],dict,reports) => either[reports,tipe].
+  doTypeFun:(tipe,cons[tipe],dict,reports) => result[reports,tipe].
   doTypeFun(Op,[A,..As],Env,Rp) =>
     doTypeFun(tpExp(Op,A),As,Env,Rp).
-  doTypeFun(Tp,[],_,Rp) => either(Tp).
+  doTypeFun(Tp,[],_,Rp) => do{ valis Tp }.
 
   parseTypeFields:(tipes,cons[ast],tipes,tipes,dict,reports) =>
-    either[reports,(tipes,tipes)].
-  parseTypeFields(Q,[],Flds,Tps,_,_) => either((Flds,Tps)).
+    result[reports,(tipes,tipes)].
+  parseTypeFields(Q,[],Flds,Tps,_,_) => do{ valis (Flds,Tps) }.
   parseTypeFields(Q,[A,..L],Flds,Tps,Env,Rp) where _ ^= isAnnotation(A) =>
     parseTypeFields(Q,L,Flds,Tps,Env,Rp).
   parseTypeFields(Q,[F,..L],Flds,Tps,Env,Rp) => do{
@@ -155,7 +157,7 @@ star.compiler.typeparse{
     parseTypeFields(Q,L,FF,TT,Env,Rp)
   }
 
-  parseTypeField:(tipes,ast,tipes,tipes,dict,reports) => either[reports,(tipes,tipes)].
+  parseTypeField:(tipes,ast,tipes,tipes,dict,reports) => result[reports,(tipes,tipes)].
   parseTypeField(Q,F,Flds,Tps,Env,Rp) where (_,Lhs,Rhs) ^= isTypeAnnotation(F) => do{
     if (ILc,Nm) ^= isName(Lhs) then {
       FTp<-parseType(Q,Rhs,Env,Rp);
@@ -172,37 +174,40 @@ star.compiler.typeparse{
 	} else
 	raise reportError(Rp,"invalid lhs -- $(Lhs) -- of type annotation",locOf(Lhs)) -- 
       }.
-  parseTypeField(Q,F,Flds,Tps,Env,Rp) =>
-    other(reportError(Rp,"invalid type field -- $(F)",locOf(F))). -- 
+  parseTypeField(Q,F,Flds,Tps,Env,Rp) => do{
+    raise reportError(Rp,"invalid type field -- $(F)",locOf(F))
+  }.
 	  
-  parseTypeName(_,_,"_",_,_) => either((newTypeVar("_"),.none)).
-  parseTypeName(Q,_,Nm,_,_) where Tp^={! Tp | (Nm,Tp) in Q !} => either((Tp,.none)).
+  parseTypeName(_,_,"_",_,_) => do { valis (newTypeVar("_"),.none) }.
+  parseTypeName(Q,_,Nm,_,_) where Tp^={! Tp | (Nm,Tp) in Q !} => do{ valis (Tp,.none)}.
   parseTypeName(Q,_,Nm,Env,Rp) where (_,T,TpRl) ^= findType(Env,Nm) => do{
     if isLambdaRule(TpRl) then 
       valis (T,some(TpRl))
     else
     valis (T,.none)}
-  parseTypeName(_,Lc,Nm,Env,Rp) =>
-    other(reportError(Rp,"type $(Nm) not declared",Lc)).
+  parseTypeName(_,Lc,Nm,Env,Rp) => do{
+    raise reportError(Rp,"type $(Nm) not declared",Lc)
+  }
 
-  public parseBoundTpVars:(cons[ast],reports)=>either[reports,tipes].
-  parseBoundTpVars([],_) => either([]).
+  public parseBoundTpVars:(cons[ast],reports)=>result[reports,tipes].
+  parseBoundTpVars([],_) => do{ valis [] }.
   parseBoundTpVars([V,..R],Rp) => do{
     L <- parseBoundTpVars(R,Rp);
     Vr <- parseBoundTpVar(V,Rp);
     valis [Vr,..L]
   }
     
-  parseBoundTpVar(Nm,_) where (_,Id) ^= isName(Nm) => either((Id,nomnal(Id))).
+  parseBoundTpVar(Nm,_) where (_,Id) ^= isName(Nm) => do{ valis (Id,nomnal(Id)) }.
   parseBoundTpVar(FNm,_) where
       (_,Lhs,Rhs) ^= isBinary(FNm,"/") &&
       (_,Id) ^= isName(Lhs) &&
-      (_,Ar) ^= isInt(Rhs) => either((Id,kFun(Id,Ar))).
-  parseBoundTpVar(O,Rp) default =>
-    other(reportError(Rp,"invalid bound type variable $(O)",locOf(O))).
+      (_,Ar) ^= isInt(Rhs) => do{ valis (Id,kFun(Id,Ar))}.
+  parseBoundTpVar(O,Rp) default => do{
+    raise reportError(Rp,"invalid bound type variable $(O)",locOf(O))
+  }
 
-  public parseConstraints:(cons[ast],tipes,dict,reports)=>either[reports,cons[constraint]].
-  parseConstraints([],_,_,_) => either([]).
+  public parseConstraints:(cons[ast],tipes,dict,reports)=>result[reports,cons[constraint]].
+  parseConstraints([],_,_,_) => do{ valis []}.
   parseConstraints([A,..As],Q,Env,Rp) => do{
     Cn <- parseConstraint(A,Q,Env,Rp);
     Cx <- parseConstraints(As,Q,Env,Rp);
@@ -239,7 +244,7 @@ star.compiler.typeparse{
   reQX([(_,KV),..T],Tp) => reQX(T,existType(KV,Tp)).
 
   public parseContractConstraint:(tipes,ast,dict,reports) =>
-    either[reports,constraint].
+    result[reports,constraint].
   parseContractConstraint(Q,A,Env,Rp) where
       (Lc,O,As) ^= isSquareTerm(A) && (_,Nm) ^= isName(O) => do{
 	contractExists(Cn,_,_,_) <- parseContractName(O,Env,Rp);
@@ -252,21 +257,22 @@ star.compiler.typeparse{
 	  Tps <- parseTypes(Q,As,Env,Rp);
 	  valis conTract(Cn,Tps,[])
 	}
-      }
-  parseContractConstraint(_,A,Env,Rp) =>
-    other(reportError(Rp,"$(A) is not a contract constraint",locOf(A))).
+      }.
+  parseContractConstraint(_,A,Env,Rp) => do{
+    raise reportError(Rp,"$(A) is not a contract constraint",locOf(A))
+  }.
 
-  parseContractName:(ast,dict,reports)=>either[reports,typeRule].
+  parseContractName:(ast,dict,reports)=>result[reports,typeRule].
   parseContractName(Op,Env,Rp) where (_,Id) ^= isName(Op) => do{
     if Con ^= findContract(Env,Id) then {
       valis snd(freshen(Con,Env))
     }
-      else
-	raise reportError(Rp,"contract $(Op) not defined",locOf(Op))
+    else
+    raise reportError(Rp,"contract $(Op) not defined",locOf(Op))
   }
 
   public parseAccessorContract:(tipes,ast,dict,reports) =>
-    either[reports,constraint].
+    result[reports,constraint].
   parseAccessorContract(Q,A,Env,Rp) where
       (Lc,O,As) ^= isSquareTerm(A) && (_,Nm) ^= isName(O) => do{
 	if [AAs].=As && (_,L,R) ^= isBinary(AAs,"->>") then{
@@ -277,13 +283,13 @@ star.compiler.typeparse{
 	  Tps <- parseTypes(Q,As,Env,Rp);
 	  valis conTract(Nm,Tps,[])
 	}
-      }
-  parseAccessorContract(_,A,Env,Rp) =>
-    other(reportError(Rp,"$(A) is not a valid accessor contract",locOf(A))).
+      }.
+  parseAccessorContract(_,A,Env,Rp) => do{
+    raise reportError(Rp,"$(A) is not a valid accessor contract",locOf(A))
+  }.
 
-
-  parseTypes:(tipes,cons[ast],dict,reports) => either[reports,cons[tipe]].
-  parseTypes(_,[],_,_) => either([]).
+  parseTypes:(tipes,cons[ast],dict,reports) => result[reports,cons[tipe]].
+  parseTypes(_,[],_,_) => do{ valis []}.
   parseTypes(Q,[T,..L],Env,Rp) => do{
     Tl <- parseType(Q,T,Env,Rp);
     Tr <- parseTypes(Q,L,Env,Rp);
@@ -300,7 +306,7 @@ star.compiler.typeparse{
   pickTypeTemplate(tpExp(Op,_)) => pickTypeTemplate(Op).
 
   public parseTypeDef:(string,ast,dict,string,reports) =>
-    either[reports,(cons[canonDef],cons[decl])].
+    result[reports,(cons[canonDef],cons[decl])].
   parseTypeDef(Nm,St,Env,Path,Rp) where (Lc,V,C,H,B) ^= isTypeExistsStmt(St) => do{
     Q <- parseBoundTpVars(V,Rp);
     Tp <- parseTypeHead(Q,H,Env,Path,Rp);
@@ -322,23 +328,25 @@ star.compiler.typeparse{
     valis ([typeDef(Lc,Nm,Tmplte,TpRl)],[tpeDec(Lc,Nm,Tmplte,TpRl)])
   }
 
-  parseTypeHead:(tipes,ast,dict,string,reports) => either[reports,tipe].
+  parseTypeHead:(tipes,ast,dict,string,reports) => result[reports,tipe].
   parseTypeHead(Q,Tp,Env,Path,Rp) where (Lc,Nm) ^= isName(Tp) => 
-    either(nomnal(qualifiedName(Path,.typeMark,Nm))).
+    do{ valis nomnal(qualifiedName(Path,.typeMark,Nm))}.
   parseTypeHead(Q,Tp,Env,Path,Rp) where
       (Lc,O,Args) ^= isSquareTerm(Tp) && (_,Nm) ^= isName(O) => do{
 	ArgTps <- parseHeadArgs(Q,Args,[],Env,Rp);
 	valis mkTypeExp(tpFun(qualifiedName(Path,.typeMark,Nm),size(ArgTps)),ArgTps)
       }.
 
-  parseHeadArgs:(tipes,cons[ast],cons[tipe],dict,reports) => either[reports,cons[tipe]].
-  parseHeadArgs(Q,[],ArgTps,_,_) => either(reverse(ArgTps)).
+  parseHeadArgs:(tipes,cons[ast],cons[tipe],dict,reports) => result[reports,cons[tipe]].
+  parseHeadArgs(Q,[],ArgTps,_,_) => do{ valis reverse(ArgTps) }.
   parseHeadArgs(Q,[A,..As],Args,Env,Rp) where (_,Nm) ^= isName(A) =>
     parseHeadArgs(Q,As,[nomnal(Nm),..Args],Env,Rp).
-  parseHeadArgs(Q,[A,.._],_,_,Rp) => other(reportError(Rp,"invalid argument in type: $(A)",locOf(A))).
+  parseHeadArgs(Q,[A,.._],_,_,Rp) => do{
+    raise reportError(Rp,"invalid argument in type: $(A)",locOf(A))
+  }.
       
   parseConstructor:(string,ast,dict,string,reports) =>
-    either[reports,(cons[canonDef],cons[decl])].
+    result[reports,(cons[canonDef],cons[decl])].
   public parseConstructor(Nm,St,Env,Path,Rp) => do{
     Tp <- parseType([],St,Env,Rp);
     Lc .= locOf(St);
@@ -347,7 +355,7 @@ star.compiler.typeparse{
       [cnsDec(Lc,Nm,FullNm,Tp)])
   }
 
-  parseContractHead:(tipes,ast,dict,string,reports) => either[reports,constraint].
+  parseContractHead:(tipes,ast,dict,string,reports) => result[reports,constraint].
   parseContractHead(Q,Tp,Env,Path,Rp) where
       (Lc,O,Args) ^= isSquareTerm(Tp) && (_,Nm) ^= isName(O) => do{
 	if [A].=Args && (_,Lhs,Rhs)^=isBinary(A,"->>") then{
@@ -361,7 +369,7 @@ star.compiler.typeparse{
 	}
       }.
 
-  public parseContract:(ast,dict,string,reports) => either[reports,
+  public parseContract:(ast,dict,string,reports) => result[reports,
     (cons[canonDef],cons[decl])].
   parseContract(St,Env,Path,Rp) => do{
     (Lc,Q,C,T,Els) ^= isCntrctStmt(St);

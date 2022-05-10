@@ -99,7 +99,7 @@ star.compiler.normalize.driver{
       };
 
       if ~ macroOnly! then{
-	(PkgSpec,Defs,Decls) <- (checkPkg(Repo,CPkg,M,Opts,Rp)::result[reports,(pkgSpec,cons[canonDef],cons[decl])]);
+	(PkgSpec,Defs,Decls) <- checkPkg(Repo,CPkg,M,Opts,Rp);
 	if traceCanon! then {
 	  logMsg("type checked $(Defs)")
 	};

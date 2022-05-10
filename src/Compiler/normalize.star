@@ -40,10 +40,12 @@ star.compiler.normalize{
   transformDef:(canonDef,nameMap,nameMap,set[crVar],option[crExp],cons[crDefn],reports) =>
     result[reports,cons[crDefn]].
   transformDef(varDef(Lc,Nm,FullNm,lambda(_,LNm,Eqns,Tp),_,_),Map,Outer,Q,Extra,Ex,Rp) => do{
-    logMsg("transform $(Nm)$(lambda(Lc,LNm,Eqns,Tp))");
+    logMsg("transform $(lambda(Lc,LNm,Eqns,Tp))");
     ATp .= extendFunTp(deRef(Tp),Extra);
     (Eqs,Ex1) <- transformEquations(Eqns,Outer,Q,Extra,Ex,Rp);
+    logMsg("transformed $(Eqns) equations: $(Eqs)");
     Func .= functionMatcher(Lc,FullNm,ATp,Map,Eqs);
+    logMsg("transformed function $(Func)");
 
     ClosureNm .= closureNm(FullNm);
     ClVar .= (crVar(_,Exv)^=Extra ? Exv || crId("_",unitTp));
@@ -84,6 +86,9 @@ star.compiler.normalize{
     transformTypeDef(Lc,Nm,Tp,TpRl,Map,Ex,Rp).
   transformDef(cnsDef(Lc,Nm,FullNm,Tp),Map,_,_,_,Ex,Rp) =>
     transformConsDef(Lc,FullNm,Tp,Map,Ex,Rp).
+  transformDef(conDef(_,_,_,_),_,_,_,_,Ex,_) => do{
+    valis Ex
+  }.
   transformDef(implDef(_,_,_,_,_,_),_,_,_,_,Ex,_) => do{
     valis Ex
   }.
@@ -95,15 +100,28 @@ star.compiler.normalize{
   }.
 
   transformTypeDef(Lc,Nm,Tp,TpRl,Map,Ex,Rp) => do{
-    ConsMap ^= findIndexMap(Tp,Map);
+--    logMsg("look for $(Nm)\:$(Tp) in $(Map)");
+    ConsMap ^= findIndexMap(Nm,Map);
+--    logMsg("constructor map $(ConsMap)");
     valis [tpDef(Lc,Tp,TpRl,ConsMap),..Ex]
   }
 
   transformConsDef(Lc,Nm,Tp,Map,Ex,Rp) => do{
-    (ATp,RTp) ^= isConsType(Tp);
-    ConsMap ^= findIndexMap(RTp,Map);
-    (Lbl,Ix) ^= findLbl(Nm,ConsMap);
-    valis [lblDef(Lc,Lbl,Tp,Ix),..Ex]
+--    logMsg("look for $(Nm)\:$(Tp) constructor");
+    (_,CT) .= deQuant(Tp);
+    (_,IT) .= deConstrain(CT);
+    (ATp,RTp) ^= isConsType(IT);
+    if (Ar,_) ^= isTupleType(ATp) then{
+--    logMsg("look for $(tpName(RTp)) type: $(findIndexMap(tpName(RTp),Map))");
+      ConsMap ^= findIndexMap(tpName(RTp),Map);
+--      logMsg("consmap for $(Nm)\:$(ConsMap)");
+      (Lbl,Ix) ^= findLbl(Nm,ConsMap);
+      valis [lblDef(Lc,Lbl,Tp,Ix),..Ex]
+    }
+    else{
+--      logMsg("ignore $(Nm)");
+      valis Ex
+    }
   }
 
   findLbl(Nm,[]) => .none.
@@ -117,6 +135,7 @@ star.compiler.normalize{
     valis ([],Ex)
   }
   transformEquations([Eqn,..Eqns],Map,Q,Extra,Ex,Rp) => do{
+    logMsg("transform equation $(Eqn)");
     (Trple,Ex1) <- transformEquation(Eqn,Map,Q,Extra,Ex,Rp);
     (Rest,Exx) <- transformEquations(Eqns,Map,Q,Extra,Ex1,Rp);
     valis ([Trple,..Rest],Exx)
@@ -127,6 +146,7 @@ star.compiler.normalize{
   transformEquation(eqn(Lc,tple(ALc,As),.none,Val),Map,Q,Extra,Ex,Rp) => do{
     EQ .= ptnVars(tple(ALc,As),Q,[]);
     (Ptns,Ex1) <- liftPtns(As,Map,Q,Ex,Rp);
+    logMsg("patterns $(As) lifted to $(Ptns)");
     (Rep,Exx) <- liftExp(Val,Map,EQ,Ex1,Rp);
     valis ((Lc,addExtra(Extra,Ptns),.none,Rep),Exx)
   }
@@ -399,6 +419,8 @@ star.compiler.normalize{
     logMsg("Q=$(Q)");
 
     (lVars,vrDefs) .= unzip(varDefs(Defs));
+    CM .= makeConsMap(Decls);
+    GrpFns .= (Defs^/(D)=>~_^=isVarDef(D));
 
     rawGrpFree .= freeLabelVars(freeVarsInTerm(letExp(Lc,Defs,Decls,Bnd),[],Q,[]),Outer)::cons[crVar];
 
@@ -408,39 +430,44 @@ star.compiler.normalize{
 --    logMsg("simplifying $(ffreeVars)");
     varParents .= freeParents(ffreeVars,Outer);
     freeVars <- reduceFreeArgs(varParents,Outer,Rp);
---    logMsg("simplified free $(freeVars)\:$(typeOf(freeVars))");
+    logMsg("simplified free $(freeVars)\:$(typeOf(freeVars))");
     
     allFree .= freeVars++lVars;
-    freeType .= tupleType(allFree//typeOf);
 
-    ThV .= genVar("_ThVr",freeType);
-    ThVr .= crVar(Lc,ThV);
+    if [SFr] .= allFree && isEmpty(lVars) then {
+      M .= [lyr(.none,foldRight((D,LL)=>collectMtd(D,some(SFr),LL),[],GrpFns),CM),..Outer];
+      GrpQ .= foldLeft(collectQ,[SFr,..Q],Defs);
+      Ex1 <- transformGroup(GrpFns,M,Outer,GrpQ,some(crVar(Lc,SFr)),Ex,Rp);
+      liftExp(Bnd,M,GrpQ,Ex1,Rp);
+    } else {
+      freeType .= tupleType(allFree//typeOf);
 
-    L .= collectLabelVars(allFree,ThV,0,[]);
-    CM .= makeConsMap(Decls);
+      ThV .= genVar("_ThVr",freeType);
+      ThVr .= crVar(Lc,ThV);
 
-    GrpFns .= (Defs^/(D)=>~_^=isVarDef(D));
+      L .= collectLabelVars(allFree,ThV,0,[]);
 
-    MM .= [lyr(some(ThV),foldRight((D,LL)=>collectMtd(D,some(ThV),LL),L,GrpFns),CM),..Outer];
+      MM .= [lyr(some(ThV),foldRight((D,LL)=>collectMtd(D,some(ThV),LL),L,GrpFns),CM),..Outer];
     
 --      logMsg("theta var $(ThV) ~ $(L)");
     
-    M .= [lyr(some(ThV),L,CM),..Outer];
+      M .= [lyr(some(ThV),L,CM),..Outer];
 
 --      logMsg("let map is $(head(MM))");
 
-    GrpQ .= foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q,lVars),Defs);
+      GrpQ .= foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q,lVars),Defs);
       
-    Ex1 <- transformGroup(GrpFns,M,M,GrpQ,some(ThVr),Ex,Rp);
+      Ex1 <- transformGroup(GrpFns,M,M,GrpQ,some(ThVr),Ex,Rp);
       
-    freeArgs <- seqmap((crId(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer,Rp),freeVars);
-    (cellArgs,Ex2) <- liftExps(vrDefs,GrpQ,Outer,Ex1,Rp);
+      freeArgs <- seqmap((crId(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer,Rp),freeVars);
+      (cellArgs,Ex2) <- liftExps(vrDefs,GrpQ,Outer,Ex1,Rp);
 
-    GrpFree .= crTpl(Lc,freeArgs++cellArgs);
+      GrpFree .= crTpl(Lc,freeArgs++cellArgs);
 
 --      logMsg("free term $(ThV) = $(GrpFree)\:$(typeOf(GrpFree))");
-    (BndTrm,Exx) <- liftExp(Bnd,MM,GrpQ,Ex2,Rp);
-    valis (crLtt(Lc,ThV,GrpFree,BndTrm),Exx)
+      (BndTrm,Exx) <- liftExp(Bnd,MM,GrpQ,Ex2,Rp);
+      valis (crLtt(Lc,ThV,GrpFree,BndTrm),Exx)
+    }
   }
 
   varDefs:(cons[canonDef]) => cons[(crVar,canon)].

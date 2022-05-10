@@ -24,14 +24,14 @@ star.compiler.checker{
 
   -- package level of type checker
 
-  public checkPkg:all r ~~ repo[r],display[r]|:(r,pkg,ast,compilerOptions,reports) => either[reports,(pkgSpec,cons[canonDef],cons[decl])].
+  public checkPkg:all r ~~ repo[r],display[r]|:(r,pkg,ast,compilerOptions,reports) => result[reports,(pkgSpec,cons[canonDef],cons[decl])].
   checkPkg(Repo,Pkge,P,Opts,Rp) => do{
     Base .= stdDict;
     if (Lc,Pk,Els) ^= isQBrTerm(P) && Pkg .= pkgeName(Pk) then{
       if compatiblePkg(Pkg,Pkge) then{
 	(Imports,Stmts) .= collectImports(Els,[],[]);
-	(AllImports,Decls) <- importAll(Imports,Repo,[],[],Rp);
-	PkgEnv .= declareDecls(Decls,Base);
+	(AllImports,IDecls) <- importAll(Imports,Repo,[],[],Rp);
+	PkgEnv .= declareDecls(IDecls,Base);
 
 --	logMsg("Dictionary for pkg: $(PkgEnv)");
 	
@@ -42,14 +42,16 @@ star.compiler.checker{
 	if ~isEmpty(Opens) then
 	  raise reportError(Rp,"open statements $(Opens) not supported",Lc);
     
-	(Defs,ThDecls,ThEnv) <- checkGroups(Gps,[],[],faceType([],[]),Annots,PkgEnv,
+	(Defs,ThDecls,ThEnv) <- checkGroups(Gps,[],[IDecls],faceType([],[]),Annots,PkgEnv,
 	  PkgPth,Rp);
 
---	logMsg("overload env $(Defs) using $(ThDecls)");
-	RDefs <- overloadEnvironment(Defs,declareDecls(ThDecls*,PkgEnv),Rp);
+	AllDecls .= ThDecls*;
 
-	ExDecls.=exportDecls(ThDecls*,completePublic(Vis,PkgPth),.priVate);
-	valis (pkgSpec(Pkge,Imports,ExDecls),RDefs*,ThDecls*)
+--	logMsg("overload env $(Defs) using $(AllDecls)");
+	RDefs <- overloadProgram(Defs,declareDecls(AllDecls,PkgEnv),Rp);
+
+	ExDecls.=exportDecls(AllDecls,completePublic(Vis,PkgPth),.priVate);
+	valis (pkgSpec(Pkge,Imports,ExDecls),RDefs*,AllDecls)
       }
       else
       raise reportError(Rp,"package name $(Pkg) does not match expected $(Pkge)",locOf(P))
@@ -101,13 +103,14 @@ star.compiler.checker{
 	tple(Lc,Flds//((FNm,FTp))=>vr(.none,FNm,FTp)),Tp)).
 
   findDefs:(option[locn],cons[(string,tipe)],cons[(string,canon)],cons[cons[canonDef]],reports) =>
-    either[reports,cons[(string,canon)]].
-  findDefs(_,[],Flds,_,_) => either(Flds).
+    result[reports,cons[(string,canon)]].
+  findDefs(_,[],Flds,_,_) => do{ valis Flds}.
   findDefs(Lc,[(Nm,Tp),..Fs],SoF,Defs,Rp) where Val ^= findDefn(Defs,Nm) => do{
     findDefs(Lc,Fs,[(Nm,Val),..SoF],Defs,Rp)
   }
-  findDefs(Lc,[(Nm,Tp),.._],_,_,Rp) =>
-    other(reportError(Rp,"cannot locate definition of $(Nm)\:$(Tp)",Lc)).
+  findDefs(Lc,[(Nm,Tp),.._],_,_,Rp) => do{
+    raise reportError(Rp,"cannot locate definition of $(Nm)\:$(Tp)",Lc)
+  }.
 
   findDefn:(cons[cons[canonDef]],string) => option[canon].
   findDefn([],_) => .none.
@@ -122,7 +125,7 @@ star.compiler.checker{
   lookInGroup([_,..Gp],Nm,Gps) => lookInGroup(Gp,Nm,Gps).
 
   thetaEnv:(option[locn],string,cons[ast],tipe,dict,reports,visibility) =>
-    either[reports,(cons[cons[canonDef]],cons[cons[decl]],dict)].
+    result[reports,(cons[cons[canonDef]],cons[cons[decl]],dict)].
   thetaEnv(Lc,Pth,Stmts,Face,Env,Rp,DefViz) => do{
     (Vis,Opens,Annots,Gps) <- dependencies(Stmts,Rp);
 
@@ -134,7 +137,7 @@ star.compiler.checker{
   }
 
   recordEnv:(option[locn],string,cons[ast],tipe,dict,dict,reports,visibility) =>
-    either[reports,(cons[canonDef],cons[decl])].
+    result[reports,(cons[canonDef],cons[decl])].
   recordEnv(Lc,Path,Stmts,Face,Env,Outer,Rp,DefViz) => do{
     -- We sort for dependencies to get types right
     (Vis,Opens,Annots,Gps) <- dependencies(Stmts,Rp);
@@ -156,9 +159,9 @@ star.compiler.checker{
 
   checkGroups:(cons[cons[defnSpec]],cons[cons[canonDef]],cons[cons[decl]],
     tipe,map[string,ast],dict,string,reports) =>
-    either[reports,(cons[cons[canonDef]],cons[cons[decl]],dict)].
+    result[reports,(cons[cons[canonDef]],cons[cons[decl]],dict)].
   checkGroups([],Gps,Dcs,_,_,Env,_,Rp) =>
-    either((reverse(Gps),reverse(Dcs),Env)).
+    do{ valis (reverse(Gps),reverse(Dcs),Env)}.
   checkGroups([G,..Gs],Gx,Dx,Face,Annots,Env,Path,Rp) => do{
     TmpEnv <- parseAnnotations(G,Face,Annots,Env,Rp);
     (Gp,Ds) <- checkGroup(G,TmpEnv,TmpEnv,Path,Rp);
@@ -166,8 +169,8 @@ star.compiler.checker{
   }
 
   parseAnnotations:(cons[defnSpec],tipe,map[string,ast],dict,reports) =>
-    either[reports,dict].
-  parseAnnotations([],_,_,Env,_) => either(Env).
+    result[reports,dict].
+  parseAnnotations([],_,_,Env,_) => do{ valis Env}.
   parseAnnotations([defnSpec(varSp(Nm),Lc,Stmts),..Gs],Fields,Annots,Env,Rp) => do{
     Tp <- parseAnnotation(Nm,Lc,Stmts,Fields,Annots,Env,Rp);
     parseAnnotations(Gs,Fields,Annots,declareVar(Nm,Lc,Tp,faceOfType(Tp,Env),Env),Rp)
@@ -175,16 +178,16 @@ star.compiler.checker{
   parseAnnotations([_,..Gs],Fields,Annots,Env,Rp) => parseAnnotations(Gs,Fields,Annots,Env,Rp).
 
   parseAnnotation:(string,option[locn],cons[ast],tipe,map[string,ast],dict,reports) =>
-    either[reports,tipe].
+    result[reports,tipe].
   parseAnnotation(Nm,_,_,_,Annots,Env,Rp) where T ^= Annots[Nm] => do{
     parseType([],T,Env,Rp)
   }.
-  parseAnnotation(Nm,_,_,faceType(Vrs,_),_,_,_) where Tp^={!Tp|(Nm,Tp) in Vrs!} => either(Tp).
-  parseAnnotation(Nm,_,_,_,_,Env,Rp) where Tp ^= varType(Nm,Env) => either(Tp).
+  parseAnnotation(Nm,_,_,faceType(Vrs,_),_,_,_) where Tp^={!Tp|(Nm,Tp) in Vrs!} => do{ valis Tp}.
+  parseAnnotation(Nm,_,_,_,_,Env,Rp) where Tp ^= varType(Nm,Env) => do{ valis Tp}.
   parseAnnotation(Nm,Lc,Stmts,Fields,Annots,Env,Rp) =>
     guessStmtType(Stmts,Nm,Lc,Rp).
 
-  guessStmtType([],Nm,Lc,Rp) => other(reportError(Rp,"$(Nm) not declared",Lc)).
+  guessStmtType([],Nm,Lc,Rp) => do{ raise reportError(Rp,"$(Nm) not declared",Lc)}.
   guessStmtType([St,.._],Nm,Lc,Rp) => do{
     if (_,_,_,Args,_,_) ^= isEquation(St) then {
       valis funType(genArgTps(Args),newTypeVar("_R"))
@@ -200,21 +203,21 @@ star.compiler.checker{
   allFunDefs(Dfs) => {? D in Dfs *> varDef(_,_,_,lambda(_,_,_,_),_,_).=D ?}.
 
   checkGroup:(cons[defnSpec],dict,dict,string,reports) =>
-    either[reports,(cons[canonDef],cons[decl])].
+    result[reports,(cons[canonDef],cons[decl])].
   checkGroup(Specs,Env,Outer,Path,Rp) => 
     checkDefs(Specs,[],[],Env,Outer,Path,Rp).
 
   checkDefs:(cons[defnSpec],cons[canonDef],cons[decl],
     dict,dict,string,reports) =>
-    either[reports,(cons[canonDef],cons[decl])].
-  checkDefs([],Dfs,Dcs,Env,_,_,_) => either((reverse(Dfs),reverse(Dcs))).
+    result[reports,(cons[canonDef],cons[decl])].
+  checkDefs([],Dfs,Dcs,Env,_,_,_) => do{ valis (reverse(Dfs),reverse(Dcs))}.
   checkDefs([D,..Ds],Defs,Decls,Env,Outer,Path,Rp) => do{
     (Dfs,Dcs) <- checkDefn(D,Env,Outer,Path,Rp);
     checkDefs(Ds,Dfs++Defs,Dcs++Decls,Env,Outer,Path,Rp)
   }
 
   checkDefn:(defnSpec,dict,dict,string,reports) =>
-    either[reports,(cons[canonDef],cons[decl])].
+    result[reports,(cons[canonDef],cons[decl])].
   checkDefn(defnSpec(varSp(Nm),Lc,Stmts),Env,Outer,Path,Rp) where
       Tp ^= varType(Nm,Env) && areEquations(Stmts) =>
     checkFunction(Nm,Tp,Lc,Stmts,Env,Outer,Path,Rp).
@@ -258,7 +261,7 @@ star.compiler.checker{
   }
 
   checkFunction:(string,tipe,option[locn],cons[ast],dict,dict,string,reports) =>
-    either[reports,(cons[canonDef],cons[decl])].
+    result[reports,(cons[canonDef],cons[decl])].
   checkFunction(Nm,Tp,Lc,Stmts,Env,Outer,Path,Rp) => do{
 --    logMsg("check function $(Nm), type $(Tp), existing #(showVar(Nm,Outer))");
     (Q,ETp) .= evidence(Tp,Env);
@@ -272,9 +275,9 @@ star.compiler.checker{
   }.
 
   processEqns:(cons[ast],tipe,cons[equation],option[equation],dict,dict,string,reports) =>
-    either[reports,cons[equation]].
-  processEqns([],_,Rls,.none,_,_,_,_) => either(reverse(Rls)).
-  processEqns([],_,Rls,some(Dflt),_,_,_,_) => either(reverse([Dflt,..Rls])).
+    result[reports,cons[equation]].
+  processEqns([],_,Rls,.none,_,_,_,_) => do{ valis reverse(Rls)}.
+  processEqns([],_,Rls,some(Dflt),_,_,_,_) => do{ valis reverse([Dflt,..Rls])}.
   processEqns([St,..Ss],ProgramType,Rls,Deflt,Env,Outer,Path,Rp) => do{
     (Rl,IsDeflt) <- processEqn(St,ProgramType,Env,Outer,Path,Rp);
     if IsDeflt then{
@@ -315,7 +318,7 @@ star.compiler.checker{
       }.
 
   checkImplementation:(option[locn],string,cons[ast],cons[ast],ast,ast,dict,dict,string,reports) =>
-    either[reports,(cons[canonDef],cons[decl])].
+    result[reports,(cons[canonDef],cons[decl])].
   checkImplementation(Lc,Nm,Q,C,H,B,Env,Outer,Path,Rp) => do{
 --    logMsg("checking implementation for $(Nm) stmt at $(Lc)");
     
@@ -348,7 +351,7 @@ star.compiler.checker{
     }
   }
 
-  checkAccessor:(option[locn],string,cons[ast],cons[ast],ast,ast,dict,dict,string,reports) => either[reports,(cons[canonDef],cons[decl])].
+  checkAccessor:(option[locn],string,cons[ast],cons[ast],ast,ast,dict,dict,string,reports) => result[reports,(cons[canonDef],cons[decl])].
   checkAccessor(Lc,Nm,Q,C,T,B,Env,Outer,Path,Rp) => do{
 --    logMsg("check accessor $(Nm)");
     QV <- parseBoundTpVars(Q,Rp);
@@ -373,9 +376,9 @@ star.compiler.checker{
     valis ([Defn],[Decl])
   }
 
-  checkUpdater:(option[locn],string,cons[ast],cons[ast],ast,ast,dict,dict,string,reports) => either[reports,(cons[canonDef],cons[decl])].
+  checkUpdater:(option[locn],string,cons[ast],cons[ast],ast,ast,dict,dict,string,reports) => result[reports,(cons[canonDef],cons[decl])].
   checkUpdater(Lc,Nm,Q,C,T,B,Env,Outer,Path,Rp) => do{
---    logMsg("Check updater: $(Nm) Head:$(T), Body:$(B)");
+    logMsg("Check updater: $(Nm) Head:$(T), Body:$(B)");
     QV <- parseBoundTpVars(Q,Rp);
     Cx <- parseConstraints(C,QV,Env,Rp);
     (_,Fn,[TA]) ^= isSquareTerm(T);
@@ -393,13 +396,13 @@ star.compiler.checker{
 
     Defn .= varDef(Lc,AccVrNm,AccVrNm,AccFn,Cx,AccTp);
     Decl .= updDec(Lc,rebind(QV,reConstrainType(Cx,RcTp),Env),Fld,AccVrNm,AccTp);
---    logMsg("updater $(Decl)");
+    logMsg("updater $(Decl)");
     valis ([Defn],[Decl])
   }
     
-  typeOfPtn:(ast,tipe,dict,string,reports) => either[reports,(canon,dict)].
+  typeOfPtn:(ast,tipe,dict,string,reports) => result[reports,(canon,dict)].
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,"_") ^= isName(A) =>
-    either((vr(Lc,genSym("_"),Tp),Env)).
+    do{ valis (vr(Lc,genSym("_"),Tp),Env)}.
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) &&
       varDefined(Id,Env) =>
     typeOfPtn(mkWhereEquality(A),Tp,Env,Path,Rp).
@@ -455,9 +458,11 @@ star.compiler.checker{
     valis (apply(Lc,Fun,tple(Lc,Args),Tp),Ev)
   }
   
-  typeOfPtn(A,Tp,_,_,Rp) => other(reportError(Rp,"illegal pattern: $(A), expecting a $(Tp)",locOf(A))).
-
-  typeOfArgPtn:(ast,tipe,dict,string,reports) => either[reports,(canon,dict)].
+  typeOfPtn(A,Tp,_,_,Rp) => do{
+    raise reportError(Rp,"illegal pattern: $(A), expecting a $(Tp)",locOf(A))
+  }
+    
+  typeOfArgPtn:(ast,tipe,dict,string,reports) => result[reports,(canon,dict)].
   typeOfArgPtn(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isTuple(A) => do{
     Tvs .= genTpVars(Els);
     checkType(A,tupleType(Tvs),Tp,Env,Rp);
@@ -467,8 +472,8 @@ star.compiler.checker{
 
   typeOfElementPtns:(cons[ast],tipe,dict,string,
     cons[(string,canon)],reports) =>
-    either[reports,(cons[(string,canon)],dict)].
-  typeOfElementPtns([],_,Env,_,Prs,_) => either((Prs,Env)).
+    result[reports,(cons[(string,canon)],dict)].
+  typeOfElementPtns([],_,Env,_,Prs,_) => do{ valis (Prs,Env)}.
   typeOfElementPtns([D,..Ds],Tp,Env,Pth,SoFr,Rp) => do{
     (Lc,Lhs,R) ^= isDefn(D);
     (_,Nm) ^= isName(Lhs);
@@ -488,14 +493,14 @@ star.compiler.checker{
   project1(L) => (L//snd).
 
   typeOfPtns:(cons[ast],cons[tipe],cons[canon],dict,string,reports) =>
-    either[reports,(cons[canon],dict)].
-  typeOfPtns([],[],Els,Env,_,_) => either((reverse(Els),Env)).
+    result[reports,(cons[canon],dict)].
+  typeOfPtns([],[],Els,Env,_,_) => do{ valis (reverse(Els),Env)}.
   typeOfPtns([P,..Ps],[T,..Ts],Els,Env,Path,Rp) => do{
     (Pt,E0) <- typeOfPtn(P,T,Env,Path,Rp);
     typeOfPtns(Ps,Ts,[Pt,..Els],E0,Path,Rp)
   }
   
-  typeOfExp:(ast,tipe,dict,string,reports) => either[reports,canon].
+  typeOfExp:(ast,tipe,dict,string,reports) => result[reports,canon].
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) => do{
     if Var ^= findVar(Lc,Id,Env) then{
 --      logMsg("$(A)\:$(Var)\:$(typeOf(Var)) ~ $(Tp)");
@@ -581,44 +586,46 @@ star.compiler.checker{
     valis Gl
   }.
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,G,Cases) ^= isCase(A) &&
-    ETp .= newTypeVar("_e") => let{.
-    checkRle(E,RRp) where (CLc,IsDeflt,H,C,R) ^= isLambda(E) => do{
-      (Arg,E0) <- typeOfPtn(H,ETp,Env,Path,RRp);
-      if Cnd ^= C then {
-	(Cond,CE) <- checkCond(Cnd,Env,Path,RRp);
-	Rep <- typeOfExp(R,Tp,CE,Path,RRp);
-	(Ags,ACnd) .= pullWhere(Arg,some(Cond));
-	valis eqn(Lc,tple(Lc,[Ags]),ACnd,Rep)
-      }
-      else{
-	(Ags,ACnd) .= pullWhere(Arg,.none);
-	Rep <- typeOfExp(R,Tp,E0,Path,RRp);
-	valis eqn(CLc,tple(Lc,[Ags]),ACnd,Rep)
-      }
-    }
-    checkRle(E,RRp) => other(reportError(RRp,"invalid case $(E)",locOf(E))).
+      ETp .= newTypeVar("_e") => let{.
+	checkRle(E,RRp) where (CLc,IsDeflt,H,C,R) ^= isLambda(E) => do{
+	  (Arg,E0) <- typeOfPtn(H,ETp,Env,Path,RRp);
+	  if Cnd ^= C then {
+	    (Cond,CE) <- checkCond(Cnd,Env,Path,RRp);
+	    Rep <- typeOfExp(R,Tp,CE,Path,RRp);
+	    (Ags,ACnd) .= pullWhere(Arg,some(Cond));
+	    valis eqn(Lc,tple(Lc,[Ags]),ACnd,Rep)
+	  }
+	  else{
+	    (Ags,ACnd) .= pullWhere(Arg,.none);
+	    Rep <- typeOfExp(R,Tp,E0,Path,RRp);
+	    valis eqn(CLc,tple(Lc,[Ags]),ACnd,Rep)
+	  }
+	}
+	checkRle(E,RRp) => do{
+	  raise reportError(RRp,"invalid case $(E)",locOf(E))
+	}.
 
-    pullWhere:(canon,option[canon]) => (canon,option[canon]).
-    pullWhere(whr(WLc,Vl,Cn),Gl) where (Val,G1) .= pullWhere(Vl,Gl) =>
-      (Val,mergeGoal(WLc,some(Cn),G1)).
-    pullWhere(Exp,Gl) default => (Exp,Gl).
+	pullWhere:(canon,option[canon]) => (canon,option[canon]).
+	pullWhere(whr(WLc,Vl,Cn),Gl) where (Val,G1) .= pullWhere(Vl,Gl) =>
+	  (Val,mergeGoal(WLc,some(Cn),G1)).
+	pullWhere(Exp,Gl) default => (Exp,Gl).
 
-    mergeGoal:(option[locn],option[canon],option[canon])=>option[canon].
-    mergeGoal(_,Gl,.none) => Gl.
-    mergeGoal(_,.none,Gl) => Gl.
-    mergeGoal(Lc,some(Gl),some(H)) => some(conj(Lc,Gl,H)).
-
-    typeOfCases:(cons[ast],cons[equation],reports) => either[reports,cons[equation]].
-    typeOfCases([],Els,_) => either(reverse(Els)).
-    typeOfCases([Cs,..Ps],SoFar,RRp) => do{
-      Trm <- checkRle(Cs,Rp);
-      typeOfCases(Ps,[Trm,..SoFar],RRp)
-    }
-  .} in do{
-    Gv <- typeOfExp(G,ETp,Env,Path,Rp);
-    Gc <- typeOfCases(Cases,[],Rp);
-    valis csexp(Lc,Gv,Gc,Tp)
-  }
+	mergeGoal:(option[locn],option[canon],option[canon])=>option[canon].
+	mergeGoal(_,Gl,.none) => Gl.
+	mergeGoal(_,.none,Gl) => Gl.
+	mergeGoal(Lc,some(Gl),some(H)) => some(conj(Lc,Gl,H)).
+	
+	typeOfCases:(cons[ast],cons[equation],reports) => result[reports,cons[equation]].
+	typeOfCases([],Els,_) => do{ valis reverse(Els)}.
+	typeOfCases([Cs,..Ps],SoFar,RRp) => do{
+	  Trm <- checkRle(Cs,Rp);
+	  typeOfCases(Ps,[Trm,..SoFar],RRp)
+	}
+      .} in do{
+	Gv <- typeOfExp(G,ETp,Env,Path,Rp);
+	Gc <- typeOfCases(Cases,[],Rp);
+	valis csexp(Lc,Gv,Gc,Tp)
+      }.
   typeOfExp(A,Tp,Env,Path,Rp) where (_,[El]) ^= isTuple(A) && ~ _ ^= isTuple(El) =>
     typeOfExp(El,Tp,Env,Path,Rp).
 
@@ -741,17 +748,19 @@ star.compiler.checker{
   }
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Op,Args) ^= isRoundTerm(A) =>
     typeOfRoundTerm(Lc,Op,Args,Tp,Env,Path,Rp).
-  typeOfExp(A,_,_,_,Rp) => other(reportError(Rp,"cannot type check expression $(A)",locOf(A))).
+  typeOfExp(A,_,_,_,Rp) => do{
+    raise reportError(Rp,"cannot type check expression $(A)",locOf(A))
+  }.
 
   typeOfExps:(cons[ast],cons[tipe],cons[canon],dict,string,reports) =>
-    either[reports,cons[canon]].
-  typeOfExps([],[],Els,Env,_,_) => either(reverse(Els)).
+    result[reports,cons[canon]].
+  typeOfExps([],[],Els,Env,_,_) =>do{ valis reverse(Els)}.
   typeOfExps([P,..Ps],[T,..Ts],Els,Env,Path,Rp) => do{
     Trm <- typeOfExp(P,T,Env,Path,Rp);
     typeOfExps(Ps,Ts,[Trm,..Els],Env,Path,Rp)
   }
 
-  typeOfRoundTerm:(option[locn],ast,cons[ast],tipe,dict,string,reports) => either[reports,canon].
+  typeOfRoundTerm:(option[locn],ast,cons[ast],tipe,dict,string,reports) => result[reports,canon].
   typeOfRoundTerm(Lc,Op,As,Tp,Env,Path,Rp) => do{
     Vrs .= genTpVars(As);
     At .= tupleType(Vrs);
@@ -765,7 +774,7 @@ star.compiler.checker{
       raise reportError(Rp,"type of $(Op)\:$(ExTp) not consistent with $(fnType(At,Tp))",Lc)
   }
 
-  typeOfArgExp:(ast,tipe,dict,string,reports) => either[reports,(canon,dict)].
+  typeOfArgExp:(ast,tipe,dict,string,reports) => result[reports,(canon,dict)].
   typeOfArgExp(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isTuple(A) => do{
     Tvs .= genTpVars(Els);
     checkType(A,tupleType(Tvs),Tp,Env,Rp);
@@ -773,10 +782,10 @@ star.compiler.checker{
     valis (tple(Lc,Ptns),Ev)
   }
 
-  checkCond:(ast,dict,string,reports) => either[reports,(canon,dict)].
+  checkCond:(ast,dict,string,reports) => result[reports,(canon,dict)].
   checkCond(A,Env,Path,Rp) => checkGoal(A,Env,Path,Rp).
 
-  checkGoal:(ast,dict,string,reports) => either[reports,(canon,dict)].
+  checkGoal:(ast,dict,string,reports) => result[reports,(canon,dict)].
   checkGoal(A,Env,Path,Rp) where (Lc,L,R) ^= isConjunct(A) => do{
     (Lhs,E0) <- checkGoal(L,Env,Path,Rp);
     (Rhs,E1) <- checkGoal(R,E0,Path,Rp);
@@ -816,10 +825,12 @@ star.compiler.checker{
     valis (Exp,Env)
   }
 
-  checkType:(ast,tipe,tipe,dict,reports) => either[reports,()].
-  checkType(_,Actual,Expected,Env,_) where sameType(Actual,Expected,Env) => either(()).
-  checkType(A,ATp,ETp,_,Rp) => other(reportError(
-      Rp,"$(A)\:$(ATp) not consistent with expected type $(ETp)",locOf(A))).
+  checkType:(ast,tipe,tipe,dict,reports) => result[reports,()].
+  checkType(_,Actual,Expected,Env,_) where sameType(Actual,Expected,Env) => do{ valis ()}.
+  checkType(A,ATp,ETp,_,Rp) => do{
+    raise reportError(
+      Rp,"$(A)\:$(ATp) not consistent with expected type $(ETp)",locOf(A))
+  }.
 
   genTpVars:(cons[ast]) => cons[tipe].
   genTpVars(Els) => (Els//(_)=>newTypeVar("_v")).
