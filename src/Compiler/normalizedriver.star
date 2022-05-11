@@ -16,7 +16,6 @@ star.compiler.normalize.driver{
   import star.compiler.dict.
   import star.compiler.errors.
   import star.compiler.impawt.
---  import star.compiler.inline.
   import star.compiler.macro.
   import star.compiler.meta.
   import star.compiler.misc.

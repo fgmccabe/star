@@ -378,7 +378,7 @@ star.compiler.checker{
 
   checkUpdater:(option[locn],string,cons[ast],cons[ast],ast,ast,dict,dict,string,reports) => result[reports,(cons[canonDef],cons[decl])].
   checkUpdater(Lc,Nm,Q,C,T,B,Env,Outer,Path,Rp) => do{
-    logMsg("Check updater: $(Nm) Head:$(T), Body:$(B)");
+--    logMsg("Check updater: $(Nm) Head:$(T), Body:$(B)");
     QV <- parseBoundTpVars(Q,Rp);
     Cx <- parseConstraints(C,QV,Env,Rp);
     (_,Fn,[TA]) ^= isSquareTerm(T);
@@ -396,7 +396,7 @@ star.compiler.checker{
 
     Defn .= varDef(Lc,AccVrNm,AccVrNm,AccFn,Cx,AccTp);
     Decl .= updDec(Lc,rebind(QV,reConstrainType(Cx,RcTp),Env),Fld,AccVrNm,AccTp);
-    logMsg("updater $(Decl)");
+--    logMsg("updater $(Decl)");
     valis ([Defn],[Decl])
   }
     

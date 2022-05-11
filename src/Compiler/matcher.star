@@ -19,7 +19,7 @@ star.compiler.matcher{
     NVrs .= genVars(Lc,funTypeArg(Tp));
     Trpls .= makeTriples(Eqns);
     Error .= genRaise(Lc,Nm,funTypeRes(Tp));
-    logMsg("function triples: $(Trpls)");
+--    logMsg("function triples: $(Trpls)");
     Reslt .= matchTriples(Lc,NVrs,Trpls,Error,Map);
     valis fnDef(Lc,Nm,Tp,NVrs//(crVar(_,V))=>V,Reslt)
   }
@@ -49,11 +49,11 @@ star.compiler.matcher{
   matchTriples:(option[locn],cons[crExp],cons[triple],crExp,nameMap) => crExp.
   matchTriples(_,[],Triples,Deflt,_) => conditionalize(Triples,Deflt).
   matchTriples(Lc,Vrs,Triples,Deflt,Map) => valof{
-    logMsg("matching triples, $(Vrs) --- $(Triples), default = $(Deflt)");
+--    logMsg("matching triples, $(Vrs) --- $(Triples), default = $(Deflt)");
     Parts .= partitionTriples(Triples);
-    logMsg("partitioned $(Parts)");
+--    logMsg("partitioned $(Parts)");
     Segs .= matchSegments(Parts,Vrs,Lc,Deflt,Map);
-    logMsg("segments = $(Segs)");
+--    logMsg("segments = $(Segs)");
     valis Segs
   }.
 
@@ -116,9 +116,9 @@ star.compiler.matcher{
   matchConstructors(Seg,[V,..Vrs],Lc,Deflt,Map) => valof{
     Cases .= formCases(sort(Seg,compareConstructorTriple),
       sameConstructorTriple,Lc,Vrs,Deflt,Map);
-    logMsg("look for index map of $(tpName(typeOf(V)))");
+--    logMsg("look for index map of $(tpName(typeOf(V)))");
     Index ^= findIndexMap(tpName(typeOf(V)),Map);
-    logMsg("index is $(Index)");
+--    logMsg("index is $(Index)");
     valis crUnpack(Lc,V,populateArms(Index,Cases,Lc,Deflt,Map),typeOf(Deflt))
   }
 

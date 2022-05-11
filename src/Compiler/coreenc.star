@@ -43,23 +43,23 @@ star.compiler.core.enc{
 
   encExp:(crExp) => multi[integer].
   encExp(crVar(_,crId(Nm,Tp))) => [0cv]++encText(Nm)++Tp::multi[integer].
-  encExp(crInt(Ix)) => [0ci]++encInt(Ix).
-  encExp(crFlot(Dx)) => [0cf]++encInt(_float_bits(Dx)).
-  encExp(crStrg(Sx)) => [0cs]++encText(Sx).
-  encExp(crVoid(Tp)) => [0cV]++encTp(Tp).
-  encExp(crECall(Lc,Op,As,Tp)) =>
-    [0cE]++encLc(Lc)++encText(Op)++encExp(mkCrTpl(As))++encTp(Tp).
-  encExp(crOCall(Lc,Op,As,Tp)) =>
-    [0cO]++encLc(Lc)++encExp(Op)++encExp(mkCrTpl(As))++encTp(Tp).
-  encExp(crCall(Lc,Op,As,Tp)) =>
-    [0cC]++encLc(Lc)++encText(Op)++encExp(mkCrTpl(As))++encTp(Tp).
-  encExp(crTerm(Op,As)) =>
+  encExp(crInt(_,Ix)) => [0ci]++encInt(Ix).
+  encExp(crChr(_,Cx)) => [0cc]++encInt(Cx::integer).
+  encExp(crFlot(_,Dx)) => [0cf]++encInt(_float_bits(Dx)).
+  encExp(crBig(_,Bx)) where Sx.=disp(Bx) => [0cb]++Sx.
+  encExp(crStrg(_,Sx)) => [0cs]++encText(Sx).
+  encExp(crVoid(_,Tp)) => [0cV]++encTp(Tp).
+  encExp(crTerm(_,Op,As)) =>
     [0cT]++encText(Op)++encInt(size(As))++multi(As//encExp).
-  encExp(crDot(O,Fl,Tp)) => [0c.]++encExp(O)++encText(Fl)++encTp(Tp).
-  encExp(crTplOff(O,Ix,Tp)) => [0cx]++encExp(O)++encInt(Ix)++encTp(Tp).
-  encExp(crTplUpdate(Lc,O,Ix,E)) =>
-    [0cU]++encLc(Lc)++encExp(O)++encInt(Ix)++encExp(E).
-  encExp(crRecord(Path,Fs)) => [0cr] ++ encText(Path)++encFields(Fs).
+  encExp(crCall(_,Op,As,Tp)) =>
+    [0cC]++encText(Op)++encExp(mkCrTpl(As))++encTp(Tp).
+  encExp(crECall(_,Op,As,Tp)) =>
+    [0cE]++encText(Op)++encExp(mkCrTpl(As))++encTp(Tp).
+  encExp(crOCall(_,Op,As,Tp)) =>
+    [0cO]++encExp(Op)++encExp(mkCrTpl(As))++encTp(Tp).
+  encExp(crTplOff(_,O,Ix,Tp)) => [0cx]++encExp(O)++encInt(Ix)++encTp(Tp).
+  encExp(crTplUpdate(_,O,Ix,E)) =>
+    [0cU]++encExp(O)++encInt(Ix)++encExp(E).
   encExp(crLtt(Lc,V,T,D,I)) =>
     [0cL]++encLc(Lc)++encExp(crVar(V,T))++encExp(D)++encExp(I).
   encExp(crLtRec(Lc,V,T,D,I)) =>

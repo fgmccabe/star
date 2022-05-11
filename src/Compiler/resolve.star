@@ -143,14 +143,14 @@ star.compiler.resolve{
     valis (whr(Lc,OT,OC),St2)
   }
   resolveTerm(mtd(Lc,Nm,Con,Tp),Dict,St) => valof{
-    logMsg("resolve contract $(Con) for $(Nm)");
+--    logMsg("resolve contract $(Con) for $(Nm)");
     (A,St1) .= resolveContract(Lc,Con,Dict,St);
-    valis resolveTerm(dot(Lc,A,Nm,Tp),Dict,trace("contract resolve state ",St1))
+    valis resolveTerm(dot(Lc,A,Nm,Tp),Dict,St1)
   }
   resolveTerm(over(Lc,T,Cx),Dict,St) => valof{
-    logMsg("over $(T)");
+--    logMsg("over $(T)");
     ([A,..Args],St1) .= resolveContracts(Lc,Cx,[],Dict,St);
-    logMsg("contract args $([A,..Args]), St1=$(St1)");
+--    logMsg("contract args $([A,..Args]), St1=$(St1)");
     if mtd(_,Nm,_,MTp) .= T then{
       if _eof(Args) then
 	valis resolveTerm(dot(Lc,A,Nm,MTp),Dict,St1)
@@ -262,13 +262,13 @@ star.compiler.resolve{
   
   resolveContract:(option[locn],constraint,dict,resolveState) => (canon,resolveState).
   resolveContract(Lc,Con,Dict,St) => valof{
-    logMsg("resolve contract $(Con)");
+--    logMsg("resolve contract $(Con)");
     ImpNm .= implementationName(Con);
     Tp .= typeOf(Con);
     if Impl^=findImplementation(Dict,ImpNm) then {
-      logMsg("resolve contract $(Con) using $(Impl)\:$(typeOf(Impl))");
+--      logMsg("resolve contract $(Con) using $(Impl)\:$(typeOf(Impl))");
       if sameType(typeOf(Impl),Tp,Dict) then {
-	logMsg("resolving impl var $(Impl)");
+--	logMsg("resolving impl var $(Impl)");
 	valis resolveTerm(Impl,Dict,markResolved(St))
       } else{
 	valis (vd(Lc,Tp),active(Lc,"implementation $(typeOf(Impl)) not consistent with $(Tp)"))
@@ -313,7 +313,7 @@ star.compiler.resolve{
       if sameType(typeOf(AccFn),funType([RcTp,Ft],RcTp),Dict) then{
 	if sameType(typeOf(Vl),snd(freshen(Ft,Dict)),Dict) then{
 --	  logMsg("update $(update(Lc,Rc,Fld,Vl)) resolved to $(apply(Lc,AccFn,tple(Lc,[Rc,Vl]),RcTp))");
-	  valis resolveTerm(apply(Lc,AccFn,tple(Lc,[Rc,Vl]),RcTp),Dict,trace("resolve state ",markResolved(St)))
+	  valis resolveTerm(apply(Lc,AccFn,tple(Lc,[Rc,Vl]),RcTp),Dict,markResolved(St))
 	} else{
 	  valis (update(Lc,Rc,Fld,Vl),
 	    active(Lc,"field $(Fld)\:$(Ft) not consistent with required type $(typeOf(Vl))"))
