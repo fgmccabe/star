@@ -21,8 +21,8 @@ star.compiler.normalize{
   public normalize:(pkgSpec,cons[canonDef],cons[decl],reports)=>result[reports,cons[crDefn]].
   normalize(PkgSpec,Defs,Decls,Rp) => do{
     Map .= pkgMap(PkgSpec,Decls);
-    if traceNormalize! then
-      logMsg("package map $(Map)");
+--    if traceNormalize! then
+--      logMsg("package map $(Map)");
     transformGroup(Defs,Map,Map,[],.none,[],Rp)
 --    (Vl,Defs) <- liftExp(PkgVal,Map,[],[],Rp);
 --    valis [glbDef(Lc,Nm,Tp,Vl),..Defs]
@@ -40,12 +40,12 @@ star.compiler.normalize{
   transformDef:(canonDef,nameMap,nameMap,set[crVar],option[crExp],cons[crDefn],reports) =>
     result[reports,cons[crDefn]].
   transformDef(varDef(Lc,Nm,FullNm,lambda(_,LNm,Eqns,Tp),_,_),Map,Outer,Q,Extra,Ex,Rp) => do{
-    logMsg("transform $(lambda(Lc,LNm,Eqns,Tp))");
+--    logMsg("transform $(lambda(Lc,LNm,Eqns,Tp))");
     ATp .= extendFunTp(deRef(Tp),Extra);
     (Eqs,Ex1) <- transformEquations(Eqns,Outer,Q,Extra,Ex,Rp);
-    logMsg("transformed $(Eqns) equations: $(Eqs)");
+--    logMsg("transformed $(Eqns) equations: $(Eqs)");
     Func .= functionMatcher(Lc,FullNm,ATp,Map,Eqs);
-    logMsg("transformed function $(Func)");
+--    logMsg("transformed function $(Func)");
 
     ClosureNm .= closureNm(FullNm);
     ClVar .= (crVar(_,Exv)^=Extra ? Exv || crId("_",unitTp));
@@ -135,7 +135,7 @@ star.compiler.normalize{
     valis ([],Ex)
   }
   transformEquations([Eqn,..Eqns],Map,Q,Extra,Ex,Rp) => do{
-    logMsg("transform equation $(Eqn)");
+--    logMsg("transform equation $(Eqn)");
     (Trple,Ex1) <- transformEquation(Eqn,Map,Q,Extra,Ex,Rp);
     (Rest,Exx) <- transformEquations(Eqns,Map,Q,Extra,Ex1,Rp);
     valis ([Trple,..Rest],Exx)
@@ -146,7 +146,7 @@ star.compiler.normalize{
   transformEquation(eqn(Lc,tple(ALc,As),.none,Val),Map,Q,Extra,Ex,Rp) => do{
     EQ .= ptnVars(tple(ALc,As),Q,[]);
     (Ptns,Ex1) <- liftPtns(As,Map,Q,Ex,Rp);
-    logMsg("patterns $(As) lifted to $(Ptns)");
+--    logMsg("patterns $(As) lifted to $(Ptns)");
     (Rep,Exx) <- liftExp(Val,Map,EQ,Ex1,Rp);
     valis ((Lc,addExtra(Extra,Ptns),.none,Rep),Exx)
   }
@@ -415,8 +415,8 @@ star.compiler.normalize{
     canon,nameMap,set[crVar],cons[crDefn],reports) =>
     result[reports,crFlow].
   liftLetExp(Lc,Defs,Decls,Bnd,Outer,Q,Ex,Rp) => do{
-    logMsg("lift let group $(Defs) @ $(Lc)");
-    logMsg("Q=$(Q)");
+--    logMsg("lift let group $(Defs) @ $(Lc)");
+--    logMsg("Q=$(Q)");
 
     (lVars,vrDefs) .= unzip(varDefs(Defs));
     CM .= makeConsMap(Decls);
@@ -430,7 +430,7 @@ star.compiler.normalize{
 --    logMsg("simplifying $(ffreeVars)");
     varParents .= freeParents(ffreeVars,Outer);
     freeVars <- reduceFreeArgs(varParents,Outer,Rp);
-    logMsg("simplified free $(freeVars)\:$(typeOf(freeVars))");
+--    logMsg("simplified free $(freeVars)\:$(typeOf(freeVars))");
     
     allFree .= freeVars++lVars;
 
