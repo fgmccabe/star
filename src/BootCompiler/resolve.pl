@@ -113,9 +113,10 @@ overloadTerm(stringLit(Lx,Sx),_,St,St,stringLit(Lx,Sx)).
 overloadTerm(dot(Lc,Rc,Fld,Tp),Dict,St,Stx,Dot) :-
   overloadTerm(Rc,Dict,St,St0,RRc),
   resolveAccess(Lc,RRc,Fld,Tp,Dict,St0,Stx,Dot).
-overloadTerm(update(Lc,Rc,Ds),Dict,St,Stx,update(Lc,Rx,Dx)) :-
-  overloadTerm(Rc,Dict,St,Stx,Rx),
-  overload(Lc,Ds,Dict,_,Dx).
+overloadTerm(update(Lc,Rc,Fld,Vl),Dict,St,Stx,Update) :-
+  overloadTerm(Rc,Dict,St,St0,Rx),
+  overloadTerm(Vl,Dict,St0,St1,Vx),
+  resolveUpdate(Lc,Rx,Fld,Vx,Dict,St1,Stx,Update).
 overloadTerm(enm(Lc,Rf,Tp),_,St,St,enm(Lc,Rf,Tp)).
 overloadTerm(cons(Lc,Rf,Tp),_,St,St,cons(Lc,Rf,Tp)).
 overloadTerm(tple(Lc,Args),Dict,St,Stx,tple(Lc,RArgs)) :-!,
@@ -261,42 +262,68 @@ resolveAccess(Lc,Rc,Fld,Tp,Dict,St,Stx,Reslvd) :-
   freshen(AccTp,Dict,_,FAccTp),
   newTypeVar("FF",RTp),
   (sameType(funType(tplType([RcTp]),RTp),FAccTp,Lc,Dict),
-%   reportMsg("accessor defined %s:%s",[Fld,tpe(FAccTp)],Lc),
-   /* freshen result type again (special case for method access from contract record) */
    freshen(RTp,Dict,_,CFTp),
-
    getConstraints(CFTp,Cx,FTp),
-%   reportMsg("accessor type %s",[tpe(FTp)],Lc),
-%   reportMsg("expected type %s",[tpe(Tp)],Lc),
    sameType(FTp,Tp,Lc,Dict),
    V = v(Lc,FunNm,funType(tplType([RcTp]),FTp)),
    Acc = apply(Lc,V,tple(Lc,[Rc]),Tp),
-
-%   reportMsg("base access expression %s",[can(Acc)],Lc),
-
    resolveContracts(Lc,Cx,Dict,St,St0,DTerms),
-
-%   reportMsg("resolved contracts %s",[can(tple(Lc,DTerms))],Lc),
-   
    overloadRef(Lc,Acc,DTerms,[],OverOp,Dict,St0,St1,NArgs),
    overApply(Lc,OverOp,NArgs,Tp,Reslvd),
-   
-%   reportMsg("access expression %s",[can(Reslvd)],Lc),
    markResolved(St1,Stx);
-
-%   reportMsg("accessor defined for %s:%s",[Fld,tpe(FAccTp)],Lc),
-%   reportMsg("not consistent with %s",[tpe(Tp)],Lc),
-   
    genMsg("accessor defined for %s:%s in %s\nnot consistent with\n%s",
 	  [Fld,tpe(FAccTp),can(dot(Lc,Rc,Fld,Tp)),tpe(Tp)],Msg),
    markActive(St,Lc,Msg,Stx),
    Reslvd = dot(Lc,Rc,Fld,Tp)).
 resolveAccess(Lc,Rc,Fld,Tp,_Dict,St,Stx,dot(Lc,Rc,Fld,Tp)) :-
   typeOfCanon(Rc,RcTp),
-%  reportMsg("no accessor defined for %s for type %s in %s",
-%	 [Fld,tpe(RcTp),can(dot(Lc,Rc,Fld,Tp))],Lc),
   genMsg("no accessor defined for %s for type %s in %s",
 	 [Fld,tpe(RcTp),can(dot(Lc,Rc,Fld,Tp))],Msg),
+  markActive(St,Lc,Msg,Stx).
+
+resolveUpdate(Lc,Rc,Fld,Vl,Dict,St,Stx,Reslvd) :-
+  typeOfCanon(Rc,RcTp),
+  typeOfCanon(Vl,VlTp),
+  findUpdate(RcTp,Fld,Dict,AccTp,FunNm),
+  freshen(AccTp,Dict,_,FAccTp),
+  newTypeVar("FF",VTp),
+  (sameType(funType(tplType([RcTp,VTp]),RcTp),FAccTp,Lc,Dict),
+%   reportMsg("updater defined %s:%s",[Fld,tpe(FAccTp)],Lc),
+   /* freshen value type again */
+   freshen(VTp,Dict,_,CVTp),
+
+   getConstraints(CVTp,Cx,FTp),
+%   reportMsg("updater type %s",[tpe(FTp)],Lc),
+%   reportMsg("expected type %s",[tpe(VlTp)],Lc),
+   sameType(FTp,VlTp,Lc,Dict),
+   V = v(Lc,FunNm,funType(tplType([RcTp,VlTp]),RcTp)),
+   Acc = apply(Lc,V,tple(Lc,[Rc,Vl]),RcTp),
+
+%   reportMsg("base update expression %s",[can(Acc)],Lc),
+
+   resolveContracts(Lc,Cx,Dict,St,St0,DTerms),
+
+%   reportMsg("resolved contracts %s",[can(tple(Lc,DTerms))],Lc),
+   
+   overloadRef(Lc,Acc,DTerms,[],OverOp,Dict,St0,St1,NArgs),
+   overApply(Lc,OverOp,NArgs,RcTp,Reslvd),
+   
+%   reportMsg("access expression %s",[can(Reslvd)],Lc),
+   markResolved(St1,Stx);
+
+%   reportMsg("updater defined for %s:%s",[Fld,tpe(FAccTp)],Lc),
+%   reportMsg("not consistent with %s",[tpe(RcTp)],Lc),
+   
+   genMsg("updater defined for %s:%s in %s\nnot consistent with\n%s",
+	  [Fld,tpe(FAccTp),can(update(Lc,Rc,Fld,Vl)),tpe(RcTp)],Msg),
+   markActive(St,Lc,Msg,Stx),
+   Reslvd = update(Lc,Rc,Fld,Vl)).
+resolveUpdate(Lc,Rc,Fld,Vl,_Dict,St,Stx,update(Lc,Rc,Fld,Vl)) :-
+  typeOfCanon(Rc,RcTp),
+  reportMsg("no updater defined for %s for type %s in %s",
+	 [Fld,tpe(RcTp),can(update(Lc,Rc,Fld,Vl))],Lc),
+  genMsg("no updater defined for %s for type %s in %s",
+	 [Fld,tpe(RcTp),can(upate(Lc,Rc,Fld,Vl))],Msg),
   markActive(St,Lc,Msg,Stx).
 
 resolveContracts(_,[],_,St,St,[]).
@@ -353,6 +380,11 @@ findAccess(Tp,FldNm,Dict,AccTp,FunNm) :-
   getFieldAccess(Tp,FldNm,FunNm,AccTp,Dict).
 findAccess(_Tp,FldNm,Dict,AccTp,FunNm) :-
   is_member(access(FldNm,v(_,FunNm,AccTp)),Dict),!.
+
+findUpdate(Tp,FldNm,Dict,AccTp,FunNm) :-
+  getFieldUpdater(Tp,FldNm,FunNm,AccTp,Dict).
+findUpdate(_Tp,FldNm,Dict,AccTp,FunNm) :-
+  is_member(update(FldNm,v(_,FunNm,AccTp)),Dict),!.
 
 overloadOthers(Other,Dict,OOthers) :-
   overloadList(Other,resolve:overloadOther,Dict,OOthers).

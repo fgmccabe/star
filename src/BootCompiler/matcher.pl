@@ -175,6 +175,10 @@ mkCase(Lc,V,[(Lbl,Exp,Lc)],Deflt,Cnd) :-!,
   mkCnd(Lc,some(mtch(Lc,Lbl,V)),Exp,Deflt,Cnd).
 mkCase(Lc,V,Cases,Deflt,case(Lc,V,Cases,Deflt)).
 
+mkUnpack(_Lc,V,[(enum(Nm),Exp,Lc)],_Index,Deflt,_Map,Reslt) :-!,
+  mkCond(Lc,some(mtch(Lc,ctpl(lbl(Nm,0),[]),V)),Exp,Deflt,Reslt).
+mkUnpack(_Lc,V,[(Ptn,Exp,Lc)],_Index,Deflt,_Map,Reslt) :-!,
+  mkCond(Lc,some(mtch(Lc,Ptn,V)),Exp,Deflt,Reslt).
 mkUnpack(Lc,V,Cases,Index,Deflt,Map,unpack(Lc,V,Arms)) :-
   populateArms(Index,Cases,Map,Lc,Deflt,Arms).
 

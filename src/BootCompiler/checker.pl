@@ -208,6 +208,8 @@ declareDecl(Lc,impDec(ImplNm,FullNm,ImplTp),Ev,Evx) :-
   declareImplementation(ImplNm,FullNm,ImplTp,Ev0,Evx).
 declareDecl(_,accDec(Tp,Fld,FnNm,AccTp),Ev,Evx) :-
   declareFieldAccess(Tp,Fld,FnNm,AccTp,Ev,Evx).
+declareDecl(_,updDec(Tp,Fld,FnNm,AccTp),Ev,Evx) :-
+  declareFieldUpdater(Tp,Fld,FnNm,AccTp,Ev,Evx).
 declareDecl(Lc,contractDec(Nm,CnNm,Rule),Ev,Evx) :-
   defineContract(Nm,Lc,conDef(Nm,CnNm,Rule),Ev,Evx).
 declareDecl(Lc,typeDec(Nm,Tp,Rule),Env,Evx) :-
@@ -634,12 +636,11 @@ typeOfPtn(Term,Tp,_,Env,Env,void,_) :-
 typeOfRecordPtn(Lc,Tp,ErTp,F,Args,Env,Ev,Exp,Path) :-
   newTypeVar("F",FnTp),
   typeOfExp(F,consType(FnTp,Tp),ErTp,Env,E0,Fun,Path),
-  evidence(Tp,Env,Q,ETp),
-  faceOfType(ETp,Lc,Env,FaceTp),
+  faceOfType(FnTp,Lc,Env,FaceTp),
   getConstraints(FaceTp,Cx,Face),
   pushScope(E0,E1),
-  declareTypeVars(Q,Lc,E1,E2),
-  declareConstraints(Lc,Cx,E2,BaseEnv),
+%  declareTypeVars(Q,Lc,E1,E2),
+  declareConstraints(Lc,Cx,E1,BaseEnv),
   typeOfElementPtns(Args,Face,ErTp,BaseEnv,Ev,PtnDefs,[],Path),
   fillinElementPtns(PtnDefs,Lc,FaceTp,ArgPtns),
   Exp = apply(Lc,Fun,tple(Lc,ArgPtns),Tp).
@@ -719,11 +720,9 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,dot(Lc,Rec,Fld,Tp),Path) :-
   isFieldAcc(Term,Lc,Rc,Fld),!,
   newTypeVar("_R",AT),
   typeOfExp(Rc,AT,ErTp,Env,Ev,Rec,Path).
-typeOfExp(Term,Tp,ErTp,Env,Ev,update(Lc,Rec,Fld,Val),Path) :-
+typeOfExp(Term,Tp,ErTp,Env,Ev,U,Path) :-
   isRecordUpdate(Term,Lc,Rc,Fld,Vl),!,
-  typeOfExp(Rc,Tp,ErTp,Env,Ev,Rec,Path),
-  newTypeVar("_V",VT),
-  typeOfExp(Vl,VT,ErTp,Env,Ev,Val,Path).
+  typeOfRecordUpdate(Lc,Rc,Fld,Vl,Tp,ErTp,Env,Ev,U,Path).
 typeOfExp(Term,Tp,ErTp,Env,Ev,cond(Lc,Test,Then,Else,Tp),Path) :-
   isConditional(Term,Lc,Tst,Th,El),!,
   checkGoal(Tst,ErTp,Env,E0,Test,Path),
@@ -760,13 +759,13 @@ typeOfExp(Term,Tp,ErTp,Env,Env,Val,Path) :-
   newTypeVar("F",FnTp),
   typeOfExp(F,consType(FnTp,Tp),ErTp,Env,E0,Fun,Path),
   funLbl(Fun,Lbl),
+  dispType(consType(FnTp,Tp)),
   checkRecordBody(FnTp,Lbl,Lc,Els,E0,Val,Path).
 typeOfExp(Term,Tp,ErTp,Env,Env,Val,Path) :-
   isQBraceTerm(Term,Lc,F,Els),
   newTypeVar("F",FnTp),
   typeOfExp(F,consType(FnTp,Tp),ErTp,Env,E0,Fun,Path),
   funLbl(Fun,Lbl),
-%  dispType(consType(FnTp,Tp)),
   checkThetaBody(FnTp,Lbl,Lc,Els,E0,Val,Path).
 typeOfExp(Term,Tp,ErTp,Ev,Ev,LetExp,Path) :-
   isLetDef(Term,Lc,Els,Ex),
@@ -862,6 +861,11 @@ funLbl(v(_,L,_),L).
 funLbl(cons(_,Nm,_),Nm).
 funLbl(enm(_,Nm,_),Nm).
 funLbl(mtd(_,Nm,_),Nm).
+
+typeOfRecordUpdate(Lc,Rc,Fld,Vl,Tp,ErTp,Env,Ev,update(Lc,Rec,Fld,Val),Path) :-
+  typeOfExp(Rc,Tp,ErTp,Env,Ev0,Rec,Path),
+  newTypeVar("_V",VT),
+  typeOfExp(Vl,VT,ErTp,Ev0,Ev,Val,Path).
 
 typeOfOpen(Lc,I,Tp,ErTp,Env,Ev,open(Lc,Exp,Tp),Path) :-
   typeOfExp(I,Tp,ErTp,Env,Ev,Exp,Path).
@@ -1086,6 +1090,11 @@ genDecl(accDec(Tp,Fld,AccFn,AccTp),_,Public,
   exportAcc(Tp,Public).
 genDecl(accDec(Tp,Fld,AccFn,AccTp),_,_,Ex,Ex,
 	[accDec(Tp,Fld,AccFn,AccTp)|Lx],Lx,Dfx,Dfx).
+genDecl(updDec(Tp,Fld,AccFn,AccTp),_,Public,
+	[updDec(Tp,Fld,AccFn,AccTp)|Ex],Ex,Lx,Lx,Dfx,Dfx) :-
+  exportAcc(Tp,Public).
+genDecl(updDec(Tp,Fld,AccFn,AccTp),_,_,Ex,Ex,
+	[updDec(Tp,Fld,AccFn,AccTp)|Lx],Lx,Dfx,Dfx).
 
 computeThetaExport(Defs,Fields,Public,Decls,XDefs) :-
   genDecls(Defs,checker:isThetaPublic(Fields,Public),Decls,LDecls,LDecls,[],XDefs,[]).

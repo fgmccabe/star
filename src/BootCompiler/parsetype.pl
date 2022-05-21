@@ -288,7 +288,7 @@ parseTypeDef(St,Defs,Dx,E,Ev,Path) :-
   parseAlgebraicTypeDef(Lc,Quants,Constraints,Hd,Body,Defs,Dx,E,Ev,Path).
 
 parseAlgebraicTypeDef(Lc,Quants,Constraints,Hd,Body,
-		      [typeDef(Lc,Nm,Type,FaceRule)|D0],Dx,E,Ev,Path):-
+		      [typeDef(Lc,Nm,Type,FaceRule)|D1],Dx,E,Ev,Path):-
   algebraicFace(Body,[],EQ,Face),
   parseBoundTpVars(EQ,XQ),
   parseBoundTpVars(Quants,Q),
@@ -305,7 +305,8 @@ parseAlgebraicTypeDef(Lc,Quants,Constraints,Hd,Body,
 %  reportMsg("algebraic face rule %s",[tpe(FaceRule)],Lc),
   declareType(Nm,tpDef(Lc,Type,FaceRule),E,Ev0),
   tpName(Type,TpNm),
-  buildAccessors(Lc,Q,XQ,Cx,Path,TpNm,Tp,FceTp,Body,D0,Dx,Acc,[]),
+  buildAccessors(Lc,Q,XQ,Cx,Path,TpNm,Tp,FceTp,Body,D0,Dx,Acc0,[]),
+  buildUpdaters(Lc,Q,XQ,Cx,Path,TpNm,Tp,FceTp,Body,D1,D0,Acc,Acc0),
   declareAccessors(Acc,Ev0,Ev).
 
 declareAccessors(Acc,Ev,Evx) :-
@@ -313,6 +314,8 @@ declareAccessors(Acc,Ev,Evx) :-
 
 declareAcc(acc(Tp,Fld,AccName,AccFunTp),Env,Ev) :-
   declareFieldAccess(Tp,Fld,AccName,AccFunTp,Env,Ev).
+declareAcc(upd(Tp,Fld,AccName,AccFunTp),Env,Ev) :-
+  declareFieldUpdater(Tp,Fld,AccName,AccFunTp,Env,Ev).
 
 buildAccessors(Lc,Q,XQ,Constraints,Path,TpNm,Tp,faceType(ElTps,_),Body,Defs,Dfx,Acc,Acx) :-
   genAccessors(Lc,Q,XQ,Constraints,Path,TpNm,Tp,ElTps,ElTps,Body,Defs,Dfx,Acc,Acx).
@@ -347,6 +350,69 @@ accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,Eqx) :-
   genAccessorEquation(Lc,ConNm,Fld,FldTp,Tp,ArgTps,Eqns,Eqx).
 accessorEquations(_,_,_,_,_,_,_,Eqx,Eqx).
 
+genAccessorEquation(Lc,ConsNm,Fld,FldTp,Tp,AllElTps,
+		    [rule(Lc,tple(Lc,[apply(Lc,
+					    cons(Lc,ConsNm,
+						 consType(ArgTps,Tp)),
+					    tple(Lc,ArgPtns),Tp)]),
+			  none,
+			  XX)|Eqns],Eqns) :-
+  XX = v(Lc,"XX",FldTp),  
+  fillinElementPtns([(Fld,XX)],Lc,AllElTps,ArgPtns,ArgTps).
+
+buildUpdaters(Lc,Q,XQ,Constraints,Path,TpNm,Tp,faceType(ElTps,_),Body,Defs,Dfx,Acc,Acx) :-
+  genUpdaters(Lc,Q,XQ,Constraints,Path,TpNm,Tp,ElTps,ElTps,Body,Defs,Dfx,Acc,Acx).
+
+genUpdaters(_,_,_,_,_,_,_,[],_,_,Defs,Defs,Acc,Acc).
+genUpdaters(Lc,Q,XQ,Cx,Path,TpNm,Tp,[(Fld,FldTp)|ElTps],AllElTps,Body,Defs,Dfx,Acc,Accx) :-
+  genUpdater(Lc,Q,XQ,Cx,Path,TpNm,Tp,Fld,FldTp,Tp,AllElTps,Body,Defs,Df0,Acc,Ac0),
+  genUpdaters(Lc,Q,XQ,Cx,Path,TpNm,Tp,ElTps,AllElTps,Body,Df0,Dfx,Ac0,Accx).
+
+genUpdater(Lc,Q,XQ,Cx,Path,TpNm,Tp,Fld,FldTp,Tp,AllElTps,Body,
+	    [funDef(Lc,AccName,AccName,soft,AccFunTp,[],Eqns),
+	     updDec(Tp,Fld,AccName,AccFunTp)|Defs],Defs,
+	    [upd(Tp,Fld,AccName,AccFunTp)|Acc],Acc) :-
+  mangleName(TpNm,over,Fld,AccName),
+%  reXQnt(XQ,FldTp,XFldTp),
+  putConstraints(Cx,funType(tplType([Tp,FldTp]),Tp),CxFunTp),
+  concat(Q,XQ,TQ),
+  reUQnt(TQ,CxFunTp,AccFunTp),
+  updaterEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,[]).
+%  reportMsg("updater defined %s:%s",[Fld,tpe(AccFunTp)],Lc),
+%  reportMsg("updater %s",[ss(canon:ssDf(0,funDef(Lc,AccName,AccName,soft,AccFunTp,[],Eqns)))],Lc).
+
+updaterEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,Eqx) :-
+  isBinary(Body,_,"|",L,R),!,
+  updaterEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,L,Eqns,Eq0),
+  updaterEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,R,Eq0,Eqx).
+updaterEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,Eqx) :-
+  isBraceCon(Body,_XQ,_XC,_,Nm,Args),
+  fieldPresent(Fld,Args,_),!,
+  mangleName(Path,class,Nm,ConNm),
+  projectArgTypes(Args,AllElTps,ArgTps),
+  genUpdaterEquation(Lc,ConNm,Fld,FldTp,Tp,ArgTps,Eqns,Eqx).
+updaterEquations(_,_,_,_,_,_,_,Eqx,Eqx).
+
+genUpdaterEquation(Lc,ConsNm,Fld,FldTp,Tp,AllElTps,
+		   [rule(Lc,tple(Lc,[apply(Lc,
+					    cons(Lc,ConsNm,
+						 consType(ArgTps,Tp)),
+					   tple(Lc,ArgPtns),Tp),
+				     XX]),
+			  none,
+			 apply(Lc,
+			       cons(Lc,ConsNm,consType(ArgTps,Tp)),
+			       tple(Lc,ValPtns),Tp)
+			 )|Eqns],Eqns) :-
+  XX = v(Lc,"XX",FldTp),
+  allArgs(AllElTps,Fld,XX,Lc,ArgTps,ArgPtns,ValPtns).
+
+allArgs([],_,_,_,[],[],[]) :- !.
+allArgs([(F,T)|As],F,V,Lc,[T|Ts],[anon(Lc,T)|Ps],[V|AAs]) :-
+  allArgs(As,F,V,Lc,Ts,Ps,AAs).
+allArgs([(Fn,T)|As],F,V,Lc,[T|Ts],[v(Lc,Fn,T)|Ps],[v(Lc,Fn,T)|AAs]) :-
+  allArgs(As,F,V,Lc,Ts,Ps,AAs).
+
 projectArgTypes([],_,[]).
 projectArgTypes([A|As],AllTps,[(Nm,ATp)|Tps]) :-
   isTypeAnnotation(A,_,V,_),
@@ -363,35 +429,11 @@ fieldPresent(Fld,[A|_],T) :-
 fieldPresent(Fld,[_|Args],T) :-
   fieldPresent(Fld,Args,T).
 
-genAccessorEquation(Lc,ConsNm,Fld,FldTp,Tp,AllElTps,
-		    [rule(Lc,tple(Lc,[apply(Lc,
-					    cons(Lc,ConsNm,
-						 consType(ArgTps,Tp)),
-					    tple(Lc,ArgPtns),Tp)]),
-			  none,
-			  XX)|Eqns],Eqns) :-
-  XX = v(Lc,"XX",FldTp),  
-  fillinElementPtns([(Fld,XX)],Lc,AllElTps,ArgPtns,ArgTps).
-
 fillinElementPtns(Els,Lc,Flds,Args,ArgTps) :-
   rfold(Flds,parsetype:fillinElementPtn(Lc),Els,NEls),
   sort(NEls,parsetype:cmpVarDef,Elements),
   project1(Elements,Args),
   map(Args,canon:typeOfCanon,ArgTps).
-
-getUpdaterEquation(Lc,ConsNm,Fld,FldTp,Tp,AllElTps,
-		   [rule(Lc,tple(Lc,[apply(Lc,
-					   cons(Lc,ConsNm,
-						consType(ArgTps,Tp)),
-					   tpl(Lc,ArgPtns),Tp),
-				     XX]),
-			 none,
-			 apply(Lc,
-			       cons(Lc,ConsNm,
-				    consType(ArgTps,Tp)),
-			       tpl(Lc,RsltExps),Tp))]) :-
-  XX = v(Lc,"XX",FldTp),
-  fillinPtnsExps(AllElTps,Fld,XX,ArgTps,ArgPtns,RsltExps).
 
 buildBraceAccessors(Lc,Q,Cx,Tp,Defs,Dfx,Imps,Impx) :-
   tpName(Tp,ConNm),

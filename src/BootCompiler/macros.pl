@@ -387,9 +387,8 @@ examineTerm(T,Tx) :-
 examineTerm(T,Tx) :-
   isRecordUpdate(T,Lc,R,F,V),!,
   macroTerm(R,Rx),
-  macroTerm(F,Fx),
   macroTerm(V,Vx),
-  recordUpdate(Lc,Rx,Fx,Vx,Tx).
+  recordUpdate(Lc,Rx,F,Vx,Tx).
 examineTerm(T,Tx) :-
   isCaseExp(T,Lc,E,C),!,
   macroTerm(E,Ex),

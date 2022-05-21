@@ -45,6 +45,10 @@ formatDecl(accDec(Tp,Fld,Fn,AccTp),
 	   ctpl(lbl("acc",4),[TpSig,strg(Fld),strg(Fn),AccSig])) :-
   encodeSignature(Tp,TpSig),
   encodeSignature(AccTp,AccSig).
+formatDecl(updDec(Tp,Fld,Fn,AccTp),
+	   ctpl(lbl("upd",4),[TpSig,strg(Fld),strg(Fn),AccSig])) :-
+  encodeSignature(Tp,TpSig),
+  encodeSignature(AccTp,AccSig).
 formatDecl(impDec(ConNm,ImplNm,ImplTp),
 	   ctpl(lbl("imp",3),[strg(ConNm),strg(ImplNm),ImplSig])) :-
   encodeSignature(ImplTp,ImplSig).
@@ -77,6 +81,11 @@ formatImpls([imp(Nm,FullNm,Spec)|M],[ctpl(lbl("imp",3),ImplTpl)|R]) :-
   ImplTpl=[strg(Nm),strg(FullNm),SpecSig],
   formatImpls(M,R).
 formatImpls([acc(Tp,Fld,AccFn,AccTp)|M],[ctpl(lbl("acc",3),ImplTpl)|R]) :-
+  encodeSignature(Tp,TpSig),
+  encodeSignature(AccTp,AccSig),
+  ImplTpl=[TpSig,strg(Fld),strg(AccFn),AccSig],
+  formatImpls(M,R).
+formatImpls([upd(Tp,Fld,AccFn,AccTp)|M],[ctpl(lbl("upd",3),ImplTpl)|R]) :-
   encodeSignature(Tp,TpSig),
   encodeSignature(AccTp,AccSig),
   ImplTpl=[TpSig,strg(Fld),strg(AccFn),AccSig],

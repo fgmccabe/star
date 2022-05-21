@@ -25,6 +25,7 @@
     "test.cc": "cc.star",
     "test.compose": "compose.star",
     "test.cstream": "cstr.star",
+    "test.dfr" : "dfr.star",
     "test.do1": "do1.star",
     "test.do2": "do2.star",
     "test.do3": "do3.star",
