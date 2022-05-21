@@ -38,6 +38,7 @@ macroRl("show",expression,macroRules:showMacro).
 macroRl("do",expression,macroRules:doMacro).
 macroRl("task",expression,macroRules:taskMacro).
 macroRl("valof",expression,macroRules:valofMacro).
+macroRl("ignore",action,macroRules:ignoreMacro).
 %macroRl("try",action,macroRules:tryCatchMacro).
 %macroRl("try",action,macroRules:tryHandleMacro).
 
@@ -213,6 +214,9 @@ makeCondition(A,Lift,Succ,Zed,Rp) :-
   negation(Lc,R1,RI),
   makeCondition(RI,Lift,Succ,Zed,Rp).
 makeCondition(A,Lift,Succ,Zed,Rp) :-
+  isTuple(A,[I]),!,
+  makeCondition(I,Lift,Succ,Zed,Rp).
+makeCondition(A,Lift,Succ,Zed,Rp) :-
   locOfAst(A,Lc),
   call(Succ,Zed,ZZ),
   call(Lift,Zed,OO),
@@ -359,6 +363,14 @@ makeAction(A,some((_,Cont)),Ac) :-
   isBind(A,Lc,L,R),!,
   makeSequence(Lc,R,L,Cont,Ac).
 makeAction(A,none,Ac) :-
+  isMatch(A,Lc,L,R),
+  isAnon(L,_),!,
+  roundTuple(Lc,[L],Arg),
+  unitTpl(Lc,U),
+  makeReturn(Lc,U,Cont),
+  mkEquation(Lc,Arg,none,Cont,Lam),
+  roundTerm(Lc,Lam,[R],Ac).
+makeAction(A,none,Ac) :-
   isMatch(A,Lc,L,R),!,
   reportError("%s may not be last action",[ast(A)],Lc),
   roundTuple(Lc,[L],Arg),
@@ -503,6 +515,11 @@ makeAction(A,Cont,Ac) :-
 makeAction(A,Cont,Ac) :-
   isResume(A,_,_,_),!,
   combine(A,Cont,Ac).
+makeAction(A,Cont,Ac) :-
+  isIgnore(A,Lc,I),!,
+  makeIgnore(Lc,I,Ig),
+  makeAction(Ig,Cont,Ac).
+  
 makeAction(A,_,A) :-
   locOfAst(A,Lc),
   reportError("%s is not a valid action",[ast(A)],Lc).
@@ -587,6 +604,14 @@ valofMacro(T,expression,Tx) :-
    typeAnnotation(Lc,Ax,RTp,AA);
    A=AA),
   unary(Lc,"_perform",AA,Tx).
+
+ignoreMacro(T,action,Tx) :-
+  isIgnore(T,Lc,A),!,
+  makeIgnore(Lc,A,Tx).
+
+makeIgnore(Lc,A,Act) :-
+  mkAnon(Lc,An),
+  match(Lc,An,A,Act).
   
 macroQuote(T,expression,Rp) :-
   isQuote(T,_,A),!,

@@ -709,6 +709,7 @@ isFieldAcc(Trm,Lc,Rc,Fld) :-
   unary(Lc,"!",L,Rc).
 
 fieldAcc(Lc,Rc,F,T) :-
+  
   binary(Lc,".",Rc,F,T).
 
 isRecordUpdate(Trm,Lc,Rc,Fld,Vl) :-
@@ -716,7 +717,7 @@ isRecordUpdate(Trm,Lc,Rc,Fld,Vl) :-
   isFieldAcc(Lft,_,Rc,Fld).
 
 recordUpdate(Lc,Rc,Fld,Vl,T) :-
-  fieldAcc(Lc,Rc,Fld,Lhs),
+  fieldAcc(Lc,Rc,name(Lc,Fld),Lhs),
   binary(Lc,"<<-",Lhs,Vl,T).
 
 isIndexTerm(Trm,Lc,Lhs,Rhs) :-

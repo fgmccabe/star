@@ -85,6 +85,11 @@ declMdlGlobal(_,accDec(_,_,AccName,Tp),_,VMp,VMx,TMx,TMx) :-
   makeKey(AccName,Key),
   (get_dict(Key,VMp,_),VMx=VMp;
    declEntry(AccName,moduleFun(AccName,none,Ar),VMp,VMx)).
+declMdlGlobal(_,updDec(_,_,AccName,Tp),_,VMp,VMx,TMx,TMx) :-
+  progTypeArity(Tp,Ar),
+  makeKey(AccName,Key),
+  (get_dict(Key,VMp,_),VMx=VMp;
+   declEntry(AccName,moduleFun(AccName,none,Ar),VMp,VMx)).
 
 declMdlGlobal(_,_,_,Mx,Mx,TMx,TMx).
 
@@ -238,6 +243,7 @@ transformThetaDef(cnsDef(_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 transformThetaDef(typeDef(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 transformThetaDef(conDef(_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 transformThetaDef(accDec(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
+transformThetaDef(updDec(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 transformThetaDef(implDef(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 
 liftArgPtn(tple(_Lc,Els),A,Q,Qx,Map,Opts,Ex,Exx) :-

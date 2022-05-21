@@ -513,6 +513,8 @@ declareDef(cnsDec(_,_,_),Dx,Dx).
 declareDef(contractDec(_,_,_),Dx,Dx).
 declareDef(accDec(_,_,Nm,_),Dct,Dx) :-
   add_mem(Nm,Dct,Dx).
+declareDef(updDec(_,_,Nm,_),Dct,Dx) :-
+  add_mem(Nm,Dct,Dx).
 declareDef(impDec(_,Nm,_),Dct,Dx) :-
   add_mem(Nm,Dct,Dx).
        

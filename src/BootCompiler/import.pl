@@ -78,6 +78,11 @@ pickupDeclaration(ctpl(lbl("acc",4),
 		  accDec(Tp,Fld,Fn,AccTp)) :-
   decodeSignature(Sig,Tp),
   decodeSignature(AccSig,AccTp).
+pickupDeclaration(ctpl(lbl("upd",4),
+		       [strg(Sig),strg(Fld),strg(Fn),strg(AccSig)]),
+		  updDec(Tp,Fld,Fn,AccTp)) :-
+  decodeSignature(Sig,Tp),
+  decodeSignature(AccSig,AccTp).
 pickupDeclaration(ctpl(lbl("con",3),
 		       [strg(Nm),strg(CnNm),strg(Sig)]),
 		  contractDec(Nm,CnNm,Spec)) :-

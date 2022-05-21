@@ -18,8 +18,8 @@ test.rc{
   }
 
   implementation all a ~~ display[a] |: display[pp[a]] => {
-    disp(pp{C=Ix}) => "pp{$(Ix)}".
-    disp(pq{C=Ix. A=A}) => "pq{$(Ix),$(A)}"
+    disp(pp{C=Ix}) => "pp{C=$(Ix)}".
+    disp(pq{C=Ix. A=A}) => "pq{C=$(Ix),A=$(A)}"
   }
 
   public cont:(integer)=>pp[()].
@@ -31,7 +31,11 @@ test.rc{
   main()=>action{
     show cont(2).C;
     show [|aa{A=10}|];
-    show (cont(2).C<<-20)
+
+    CC .= (cont(2).C<<-20);
+    show CC;
+
+    assert CC.C==20
   }
 
 }

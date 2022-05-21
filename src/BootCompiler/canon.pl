@@ -20,6 +20,7 @@ isCanonDef(typeDef(_,_,_,_)).
 isCanonDef(conDef(_,_,_)).
 isCanonDef(implDef(_,_,_,_)).
 isCanonDef(accDec(_,_,_,_)).
+isCanonDef(updDec(_,_,_,_)).
 
 isCanon(prog(_,_,_,_,_)).
 isCanon(v(_,_,_)).
@@ -36,7 +37,7 @@ isCanon(charLit(_,_)).
 isCanon(stringLit(_,_)).
 isCanon(apply(_,_,_,_)).
 isCanon(dot(_,_,_,_)).
-isCanon(update(_,_,_)).
+isCanon(update(_,_,_,_)).
 isCanon(tag(_,_)).
 isCanon(prompt(_,_,_)).
 isCanon(shift(_,_,_)).
@@ -87,7 +88,7 @@ isPkg(pkg(_,_)).
 typeOfCanon(v(_,_,Tp),Tp) :- !.
 typeOfCanon(anon(_,Tp),Tp) :- !.
 typeOfCanon(dot(_,_,_,Tp),Tp) :- !.
-typeOfCanon(update(_,Rc,_),Tp) :- !, typeOfCanon(Rc,Tp).
+typeOfCanon(update(_,Rc,_,_),Tp) :- !, typeOfCanon(Rc,Tp).
 typeOfCanon(intLit(_,_),type("star.core*integer")) :- !.
 typeOfCanon(bigLit(_,_),type("star.core*bigint")) :- !.
 typeOfCanon(floatLit(_,_),type("star.core*float")) :- !.
@@ -125,7 +126,7 @@ typeOfCanon(case(_,_,_,Tp),Tp) :- !.
 locOfCanon(v(Lc,_,_),Lc) :- !.
 locOfCanon(anon(Lc,_),Lc) :- !.
 locOfCanon(dot(Lc,_,_,_),Lc) :- !.
-locOfCanon(update(Lc,_,_),Lc) :- !.
+locOfCanon(update(Lc,_,_,_),Lc) :- !.
 locOfCanon(intLit(Lc,_),Lc) :- !.
 locOfCanon(bigLit(Lc,_),Lc) :- !.
 locOfCanon(floatLit(Lc,_),Lc) :- !.
@@ -193,10 +194,9 @@ ssTerm(apply(_,Op,Args,_),Dp,sq([O,A])) :-
   ssTerm(Args,Dp,A).
 ssTerm(dot(_,Rc,Fld,_),Dp,sq([R,ss("."),id(Fld)])) :-
   ssTerm(Rc,Dp,R).
-ssTerm(update(_,Rc,Defs),Dp,sq([RR,ss("<<-"),lb,sq(DD),rb])) :-
+ssTerm(update(_,Rc,Fld,Vl),Dp,sq([RR,ss("."),id(Fld),ss("<<-"),sq(VV)])) :-
   ssTerm(Rc,Dp,RR),
-  Dp2 is Dp+2,
-  map(Defs,canon:ssDf(Dp2),DD).
+  ssTerm(Vl,Dp,VV).
 ssTerm(enm(_,Nm,_),_,sq([ss("."),id(Nm)])).
 ssTerm(cons(_,Nm,_),_,sq([ss("."),id(Nm)])).
 ssTerm(open(_,E,_),Dp,sq([ss("open "),EE])) :- ssTerm(E,Dp,EE).
@@ -324,6 +324,9 @@ ssDef(Dp,implDef(Nm,_ConNm,ImplNm,ImplTp),
 ssDef(Dp,accDec(Tp,FldNm,FunNm,_),
       sq([ss("acc "),Ts,ss("."),id(FldNm),ss(" = "),id(FunNm)])) :-
   ssType(Tp,false,Dp,Ts).
+ssDef(Dp,updDec(Tp,FldNm,FunNm,_),
+      sq([ss("upd "),Ts,ss("."),id(FldNm),ss(" = "),id(FunNm)])) :-
+  ssType(Tp,false,Dp,Ts).
 
 ssFunction(Dp,Nm,Type,Eqns,
 	   sq([ss("fun "),id(Nm),ss(" : "),Ts,nl(Dp),Rs])) :-
@@ -366,6 +369,11 @@ ssDecl(Dp,X,impDec(Nm,ImplNm,ImplTp),
   ssType(ImplTp,true,Dp,Ts).
 ssDecl(Dp,X,accDec(Tp,FldNm,FunNm,FunTp),
        sq([X,ss("acc "),Ts,ss("."),id(FldNm),
+	   ss(" using "),id(FunNm),ss(" :: "),TT])) :-
+  ssType(Tp,false,Dp,Ts),
+  ssType(FunTp,false,Dp,TT).
+ssDecl(Dp,X,updDec(Tp,FldNm,FunNm,FunTp),
+       sq([X,ss("upd "),Ts,ss("."),id(FldNm),
 	   ss(" using "),id(FunNm),ss(" :: "),TT])) :-
   ssType(Tp,false,Dp,Ts),
   ssType(FunTp,false,Dp,TT).
