@@ -133,8 +133,8 @@ star.compiler.meta{
   public typeCheckOnly = ref .false.
   public traceNormalize = ref .false.
   public optimization = ref .base.
-  public showCore = ref .false.
   public showCode = ref .false.
+  public genCode = ref .true.
 
   public compilerOptions ::=
     compilerOptions{
@@ -237,6 +237,18 @@ star.compiler.meta{
     }
   }
 
+  public noCodeOption:cmdOption[compilerOptions].
+  noCodeOption = cmdOption{
+    shortForm = "-x".
+    alternatives = ["--no-codegen"].
+    usage = "-x -- dont generate code".
+    validator = .none.
+    setOption(_,Opts) => valof{
+      genCode := .false;
+      valis Opts
+    }
+  }
+
   public optimizeLvlOption:cmdOption[compilerOptions].
   optimizeLvlOption = cmdOption{
     shortForm = "-O".
@@ -290,4 +302,19 @@ star.compiler.meta{
 	doStdin=.true.
       }.
   }
+
+  public graphOption:cmdOption[compilerOptions].
+  graphOption = cmdOption{
+    shortForm = "-G".
+    alternatives = ["--genGraph"].
+    usage = "-G uri -- generate dependency graph".
+    validator = some((_)=>.true).
+    setOption(R,Opts) where RU ^= parseUri(R) && NR^=resolveUri(Opts.cwd,RU) =>
+      compilerOptions{repo=Opts.repo.
+	cwd=Opts.cwd.
+	graph=some(NR).
+	doStdin=Opts.doStdin
+      }.
+  }
+  
 }

@@ -29,7 +29,7 @@ star.compiler.core.ast{
       (_,N,T) ^= isBinary(L,":") && (_,Id)^=isNme(N) => do{
 	Tp <- astType(T,D,Rp);
 	Vl <- parseExp(R,some(Tp),D[Id->Tp],Rp);
-	valis glbDef(Lc,Id,Tp,Vl)
+	valis vrDef(Lc,Id,Tp,Vl)
       }.
   parseCrDef(A,D,Rp) where (Lc,L,R) ^= isBinary(A,"<=>") &&
       (_,Op,Els) ^= isBrTerm(R) && (_,Id) ^= isNme(Op) => do{

@@ -3,11 +3,11 @@ star.compiler{
   import star.cmdOpts.
   import star.pkg.
   import star.resources.
+  import star.file.
   import star.uri.
 
   import star.repo.
 
-  import star.compiler.assem.
   import star.compiler.ast.
   import star.compiler.canon.
   import star.compiler.catalog.
@@ -15,287 +15,60 @@ star.compiler{
   import star.compiler.core.
   import star.compiler.dict.
   import star.compiler.errors.
-  import star.compiler.gencode.
+--  import star.compiler.gencode.
   import star.compiler.grapher.
   import star.compiler.impawt.
   import star.compiler.inline.
+  import star.compiler.macro.
   import star.compiler.meta.
   import star.compiler.misc.
+  import star.compiler.normalize.
   import star.compiler.parser.
   import star.compiler.location.
-  import star.compiler.normalize.
   import star.compiler.term.repo.
   import star.compiler.terms.
   import star.compiler.types.
 
-  implementation all e,k ~~ coercion[either[e,k],action[e,k]] => {
-    _coerce(either(X)) => some(done(X)).
-    _coerce(other(Y)) => some(err(Y))
-  }
-
-  repoOption:cmdOption[compilerOptions].
-  repoOption = cmdOption{
-    shortForm = "-R".
-    alternatives = [].
-    usage = "-R dir -- directory of repository".
-    validator = some(isDir).
-    setOption(R,Opts) where RU ^= parseUri(R) && NR^=resolveUri(Opts.cwd,RU) =>
-      compilerOptions{repo=NR.
-	cwd=Opts.cwd.
-	graph=Opts.graph.
-	optimization=Opts.optimization.
-	showAst = Opts.showAst.
-	showMacro=Opts.showMacro.
-	showCanon=Opts.showCanon.
-	showCore=Opts.showCore.
-	showCode=Opts.showCode.
-	typeCheckOnly=Opts.typeCheckOnly.
-	doStdin=Opts.doStdin
-      }.
-  }
-
-  wdOption:cmdOption[compilerOptions].
-  wdOption = cmdOption{
-    shortForm = "-W".
-    alternatives = [].
-    usage = "-W dir -- working directory".
-    validator = some(isDir).
-    setOption(W,Opts) where RW ^= parseUri(W) && NW^=resolveUri(Opts.cwd,RW)=>
-      compilerOptions{repo=Opts.repo.
-	cwd=NW.
-	graph=Opts.graph.
-	optimization=Opts.optimization.
-	showAst = Opts.showAst.
-	showMacro=Opts.showMacro.
-	showCanon=Opts.showCanon.
-	showCore=Opts.showCore.
-	showCode=Opts.showCode.
-	typeCheckOnly=Opts.typeCheckOnly.
-	doStdin=Opts.doStdin
-      }.
-  }
-
-  typeCheckOnlyOption:cmdOption[compilerOptions].
-  typeCheckOnlyOption = cmdOption{
-    shortForm = "-c".
-    alternatives = ["--compile-only"].
-    usage = "-c -- type check".
-    validator = .none.
-    setOption(_,Opts) =>
-      compilerOptions{repo=Opts.repo.
-	cwd=Opts.cwd.
-	graph=Opts.graph.
-	optimization=Opts.optimization.
-	showAst = Opts.showAst.
-	showMacro=Opts.showMacro.
-	showCanon=Opts.showCanon.
-	showCore=Opts.showCore.
-	showCode=Opts.showCode.
-	typeCheckOnly=.true.
-	doStdin=Opts.doStdin}.
-  }
-
-  stdinOption:cmdOption[compilerOptions].
-  stdinOption = cmdOption{
-    shortForm = "".
-    alternatives = ["--stdin"].
-    usage = "--stdin -- compile standard input".
-    validator = .none.
-    setOption(_,Opts) =>
-      compilerOptions{repo=Opts.repo.
-	cwd=Opts.cwd.
-	graph=Opts.graph.
-	optimization=Opts.optimization.
-	showAst = Opts.showAst.
-	showMacro=Opts.showMacro.
-	showCanon=Opts.showCanon.
-	showCore=Opts.showCore.
-	showCode=Opts.showCode.
-	typeCheckOnly=Opts.typeCheckOnly.
-	doStdin=.true.
-      }.
-  }
-
-
-  traceAstOption:cmdOption[compilerOptions].
-  traceAstOption = cmdOption{
-    shortForm = "-dA".
-    alternatives = [].
-    usage = "-dA -- show ast".
-    validator = .none.
-    setOption(_,Opts) =>
-      compilerOptions{repo=Opts.repo.
-	cwd=Opts.cwd.
-	graph=Opts.graph.
-	optimization=Opts.optimization.
-	showAst = .true.
-	showMacro=Opts.showMacro.
-	showCanon=Opts.showCanon.
-	showCore=Opts.showCore.
-	showCode=Opts.showCode.
-	typeCheckOnly=Opts.typeCheckOnly.
-	doStdin=Opts.doStdin
-      }.
-  }
-  traceMacroOption:cmdOption[compilerOptions].
-  traceMacroOption = cmdOption{
-    shortForm = "-dM".
-    alternatives = [].
-    usage = "-dM -- show macro".
-    validator = .none.
-    setOption(_,Opts) =>
-      compilerOptions{repo=Opts.repo.
-	cwd=Opts.cwd.
-	graph=Opts.graph.
-	optimization=Opts.optimization.
-	showAst = Opts.showAst.
-	showMacro=.true.
-	showCanon=Opts.showCanon.
-	showCore=Opts.showCore.
-	showCode=Opts.showCode.
-	typeCheckOnly=Opts.typeCheckOnly.
-	doStdin=Opts.doStdin
-      }.
-  }
-  traceCodeOption:cmdOption[compilerOptions].
-  traceCodeOption = cmdOption{
-    shortForm = "-di".
-    alternatives = [].
-    usage = "-di -- show generated instructions".
-    validator = .none.
-    setOption(_,Opts) =>
-      compilerOptions{repo=Opts.repo.
-	cwd=Opts.cwd.
-	graph=Opts.graph.
-	optimization=Opts.optimization.
-	showAst = Opts.showAst.
-	showMacro=Opts.showMacro.
-	showCanon=Opts.showCanon.
-	showCore=Opts.showCore.
-	showCode=.true.
-	typeCheckOnly=Opts.typeCheckOnly.
-	doStdin=Opts.doStdin}.
-  }
-  traceNormOption:cmdOption[compilerOptions].
-  traceNormOption = cmdOption{
-    shortForm = "-dT".
-    alternatives = [].
-    usage = "-dT -- show normalized code".
-    validator = .none.
-    setOption(_,Opts) =>
-      compilerOptions{repo=Opts.repo.
-	cwd=Opts.cwd.
-	graph=Opts.graph.
-	optimization=Opts.optimization.
-	showAst = Opts.showAst.
-	showMacro=Opts.showMacro.
-	showCanon=Opts.showCanon.
-	showCore=.true.
-	showCode=Opts.showCode.
-	typeCheckOnly=Opts.typeCheckOnly.
-	doStdin=Opts.doStdin}.
-  }
-  traceCheckOption:cmdOption[compilerOptions].
-  traceCheckOption = cmdOption{
-    shortForm = "-dt".
-    alternatives = [].
-    usage = "-dt -- show type checkedcode".
-    validator = .none.
-    setOption(_,Opts) =>
-      compilerOptions{repo=Opts.repo.
-	cwd=Opts.cwd.
-	graph=Opts.graph.
-	optimization=Opts.optimization.
-	showAst = Opts.showAst.
-	showMacro=Opts.showMacro.
-	showCanon=.true.
-	showCore=Opts.showCore.
-	showCode=Opts.showCode.
-	typeCheckOnly=Opts.typeCheckOnly.
-	doStdin=Opts.doStdin}.
-  }
-  optimizeLevel:cmdOption[compilerOptions].
-  optimizeLevel = cmdOption{
-    shortForm = "-O".
-    alternatives = ["--optimize"].
-    usage = "-O <Lvl> -- set optimization".
-    validator = some((O)=> _ ^= O:?optimizationLvl).
-    setOption(L,Opts) where Lvl^=L:?optimizationLvl =>
-      compilerOptions{repo=Opts.repo.
-	cwd=Opts.cwd.
-	graph=Opts.graph.
-	optimization = Lvl.
-	showAst = Opts.showAst.
-	showMacro=Opts.showMacro.
-	showCanon=Opts.showCanon.
-	showCore=Opts.showCore.
-	showCode=Opts.showCode.
-	typeCheckOnly=Opts.typeCheckOnly.
-	doStdin=Opts.doStdin}.
-  }
-  showPkgGraphOption:cmdOption[compilerOptions].
-  showPkgGraphOption = cmdOption{
-    shortForm = "-I".
-    alternatives = ["--graph"].
-    usage = "-I file -- show package import dot graph".
-    validator = some((_)=>.true).
-    setOption(U,Opts) where RW ^= parseUri(U) && NW^=resolveUri(Opts.cwd,RW)=>
-      compilerOptions{repo=Opts.repo.
-	cwd=Opts.cwd.
-	graph=some(NW).
-	optimization=Opts.optimization.
-	showAst = Opts.showAst.
-	showMacro=Opts.showMacro.
-	showCanon=.true.
-	showCore=Opts.showCore.
-	showCode=Opts.showCode.
-	typeCheckOnly=Opts.typeCheckOnly.
-	doStdin=Opts.doStdin}.
-  }
-
   public _main:(cons[string])=>().
-  _main(Args) => valof action{
+  _main(Args) => valof{
     WI^=parseUri("file:"++_cwd());
     RI^=parseUri("file:"++_repo());
-    handleCmds(processOptions(Args,[repoOption,wdOption,
-	  optimizeLevel,stdinOption,
-	  typeCheckOnlyOption,
-	  traceAstOption,showPkgGraphOption,
-	  traceCodeOption,traceMacroOption,
-	  traceNormOption,traceCheckOption],
+    handleCmds(processOptions(Args,[wdOption,
+	  stdinOption,
+	  repoOption,
+	  graphOption,
+	  traceDependencyOption,
+	  traceAstOption,
+	  traceMacroOption,
+	  checkOnlyOption,
+	  traceCheckOption,
+	  traceNormalizeOption,
+	  macroOnlyOption,
+	  optimizeLvlOption],
 	defltOptions(WI,RI)
       ))
   }.
 
-  openupRepo:(uri,uri) => action[(), termRepo].
-  openupRepo(RU,CU) where CRU ^= resolveUri(CU,RU) => do{
-    Repo .= openRepository(CRU);
-    valis Repo
-  }
-
-  private ignore(F) => action{
-    _ .= F();
-    valis ()
-  }
-
-  handleCmds:(either[string,(compilerOptions,cons[string])])=>action[(),()].
+  handleCmds:(either[string,(compilerOptions,cons[string])])=>result[(),()].
   handleCmds(either((Opts,Args))) => do{
     Repo <- openupRepo(Opts.repo,Opts.cwd);
+    
     if CatUri ^= parseUri("catalog") && CatU ^= resolveUri(Opts.cwd,CatUri) &&
 	Cat ^= loadCatalog(CatU) then{
 	  for P in Args do{
-	    ErRp .= reports([]);	
+	    ErRp .= reports([]);
+
 	    try{
-	      Sorted <- makeGraph(extractPkgSpec(P),Repo,Cat,ErRp)
-	      ::action[reports,cons[(importSpec,cons[importSpec])]];
+	      Sorted <- makeGraph(extractPkgSpec(P),Repo,Cat,ErRp);
+
 	      if Grph ^= Opts.graph then {
-		ignore(()=>putResource(Grph,makeDotGraph(P,Sorted)))
+		ignore putResource(Grph,makeDotGraph(P,Sorted))
 	      };
 	      
 	      processPkgs(Sorted,Repo,Cat,Opts,ErRp)
-	    } catch (Er) => action{
+	    } catch (Er) => do{
 	      logMsg("$(Er)");
-	      valis _exit(9)
+	      valis _exit(9);
 	    }
 	  }
 	}
@@ -307,79 +80,104 @@ star.compiler{
     logMsg(Msg)
   }
 
-  extractPkgSpec(P) where Lc ^= strFind(P,":",0) => let{
-    Pkg = pkg(P[0:Lc],P[Lc+1:size(P)]::version).
-  } in pkgImp(pkgLoc(Pkg),.priVate,Pkg).
-  extractPkgSpec(P) default =>
-    pkgImp(pkgLoc(pkg(P,.defltVersion)),.priVate,pkg(P,.defltVersion)).
+  extractPkgSpec(P) where Lc ^= strFind(P,":",0) => pkg(P[0:Lc],P[Lc+1:size(P)]::version).
+  extractPkgSpec(P) default => pkg(P,.defltVersion).
+
+  implementation all e,k ~~ coercion[(option[k],e),result[e,k]] => {
+    _coerce((.none,R)) => some(bad(R)).
+    _coerce((some(A),_)) => some(ok(A)).
+  }
+
+  implementation all e,k ~~ coercion[either[e,k],result[e,k]] => {
+    _coerce(either(E)) => some(ok(E)).
+    _coerce(other(A)) => some(bad(A)).
+  }
+
+  processPkg:(pkg,termRepo,catalog,compilerOptions,reports) => result[reports,termRepo].
+  processPkg(P,Repo,Cat,Opts,Rp) => do{
+    if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
+      Ast <- parseSrc(SrcUri,CPkg,Rp)::result[reports,ast];
+      if traceAst! then{
+	logMsg("Ast of $(P) is $(Ast)")
+      };
+      M <- macroPkg(Ast,Rp);
+      if traceMacro! then{
+	logMsg("Macroed package $(M)")
+      };
+
+      if ~ macroOnly! then{
+	(PkgSpec,Defs,Decls) <- checkPkg(Repo,CPkg,M,Opts,Rp);
+	if traceCanon! then {
+	  logMsg("type checked $(Defs)")
+	};
+	if ~ typeCheckOnly! then {
+	  NormDefs <- normalize(PkgSpec,Defs,Decls,Rp);
+	  if traceNormalize! then{
+	    logMsg("normalized code $(NormDefs)");
+	  };
+
+	  Inlined .= ( optimization! ==.inlining ? simplifyDefs(NormDefs) || NormDefs);
+	  if traceNormalize! then{
+	    logMsg("inlined code $(Inlined)");
+	  };
+
+	  Repo1 .= addSpec(PkgSpec,Repo);
+	  if traceNormalize! then{
+	    logMsg("normalized code $(Inlined)");
+	  };
+	  valis Repo1
+
+/*
+	  if genCode! then{
+	    Ins <- compCrProg(P,Inlined,pkgDecls(PkgSpec),Opts,Rp) :: action[reports,cons[codeSegment]];
+	    if showCode! then
+	      logMsg("Generated instructions $(Ins)");
+	    Code .= mkTpl([pkgTerm(CPkg),strg(encodeSignature(typeOf(PkgSpec))),
+		mkTpl(pkgImports(PkgSpec)//(pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
+		mkTpl(Ins//assem)]);
+	    Bytes .= (strg(Code::string)::string);
+	    Repp := addSource(addPackage(Repp!,CPkg,Bytes),CPkg,SrcUri::string)
+	  }
+*/
+	} else
+	valis Repo
+      }
+      else
+      valis Repo
+    }
+    else
+    raise reportError(Rp,"cannot locate source of $(P)",some(pkgLoc(P)))
+  }
+
+  openupRepo:(uri,uri) => result[(), termRepo].
+  openupRepo(RU,CU) where CRU ^= resolveUri(CU,RU) => do{
+    Repo .= openRepository(CRU);
+    valis Repo
+  }
 
   addSpec:(pkgSpec,termRepo) => termRepo.
-  addSpec(Spec,R) where pkgSpec(Pkg,_,_,_,_,_) .= Spec => addSigToRepo(R,Pkg,(Spec::term)::string).
+  addSpec(Spec,R) where pkgSpec(Pkg,_,_) .= Spec => addSigToRepo(R,Pkg,(Spec::term)::string).
 
-  importVars(pkgSpec(_,_,_,_,_,Vars))=>Vars.
+  importDecls((_,_,Decls))=>Decls.
 
-  processPkgs:(cons[(importSpec,cons[importSpec])],termRepo,catalog,compilerOptions,reports) => action[reports,()].
+  processPkgs:(cons[(pkg,cons[pkg])],termRepo,catalog,compilerOptions,reports) => result[reports,()].
   processPkgs(Pks,Repo,Cat,Opts,Rp) => do{
     Repp .= ref Repo;
+
     try{
-      for (pkgImp(Lc,_,P),Imps) in Pks do{
---	logMsg("$(P) ok? $(~testPkg(P,Repo,Imps))");
-	if ~ (pkgOk(Repo,P) && pkgImp(_,_,I) in Imps *> pkgOk(Repo,I)) then{
+      for (P,Imps) in Pks do{
+--	logMsg("is $(P) ok? $(pkgOk(Repo,P))");
+	if ~ {? (pkgOk(Repo,P) && I in Imps *> pkgOk(Repo,I)) ?} then{
 	  logMsg("Compiling $(P)");
-	  if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
-	    Ast <- parseSrc(SrcUri,CPkg,Rp)::action[reports,ast];
-	    if Opts.showAst then{
-	      logMsg("Ast of $(P) is $(Ast)")
-	    };
-	    M <- macroPkg(Ast,Rp);
-	    
-	    if Opts.showMacro then{
-	      logMsg("Macrod package is $(M)");
-	    };
-	    
-	    (PkgSpec,PkgFun) <- checkPkg(Repp!,CPkg,M,stdDict,Opts,Rp) :: action[reports,(pkgSpec,canonDef)];
-	    if Opts.showCanon then {
-	      logMsg("type checked $(PkgFun)")
-	    };
-
-	    if ~Opts.typeCheckOnly then {
-	      NormDefs <- normalize(PkgSpec,PkgFun,Rp)::action[reports,cons[crDefn]];
-	      Inlined .= ( Opts.optimization==.inlining ? simplifyDefs(NormDefs) || NormDefs);
-
-	      Repp := addSpec(PkgSpec,Repp!);
-	      if Opts.showCore then {
-		logMsg("Normalized package $(P)");
-		logMsg(dispCrProg(Inlined)::string)
-	      };
-
-	      Ins <- compCrProg(P,Inlined,importVars(PkgSpec),Opts,Rp) :: action[reports,cons[codeSegment]];
-	      if Opts.showCode then
-		logMsg("Generated instructions $(Ins)");
-	      Code .= mkTpl([pkgTerm(CPkg),strg(encodeSignature(typeOf(PkgSpec))),
-		  mkTpl(pkgImports(PkgSpec)//(pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
-		  mkTpl(Ins//assem)]);
-	      Bytes .= (strg(Code::string)::string);
-	      Repp := addSource(addPackage(Repp!,CPkg,Bytes),CPkg,SrcUri::string)
-	    }
-	  }
-	  else
-	  raise reportError(Rp,"cannot locate source of $(P)",Lc)
+	  Rep1 <- processPkg(P,Repp!,Cat,Opts,Rp);
+	  Repp := Rep1
 	}
       };
-      valis flushRepo(Repp!)
+      ignore flushRepo(Repp!);
     }catch (Erp) => do{
       logMsg("Errors $(Erp)");
-      _ .= flushRepo(Repp!);
+      ignore flushRepo(Repp!);
       raise Erp
     }
   }
-
-  testPkg:(pkg,termRepo,cons[importSpec])=>boolean.
-  testPkg(P,Repo,Imps) => valof action{
---    logMsg("checking $(P)");
-    if pkgImp(_,_,I) in Imps *> pkgOk(Repo,I) then
-      valis .true
-    else
-    valis .false
-  }.
 }
