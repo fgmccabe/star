@@ -28,15 +28,16 @@ star.compiler.term.repo{
     hasCode(_,_) default => .none.
   }
 
-  public flushRepo:(termRepo)=>().
-  flushRepo(repo(Root,Man)) => valof action{
+  public flushRepo:(termRepo)=>termRepo.
+  flushRepo(repo(Root,Man)) => valof{
     MU ^= parseUri("manifest");
     RepoUri ^= resolveUri(Root,MU);
-    valis flushManifest(RepoUri,Man)
+    _ .= flushManifest(RepoUri,Man);
+    valis repo(Root,Man);
   }
   
   public addToRepo:(termRepo,pkg,string,string) => termRepo.
-  addToRepo(repo(Root,Man),pkg(Pk,Vr),Kind,Text) => valof action{
+  addToRepo(repo(Root,Man),pkg(Pk,Vr),Kind,Text) => valof{
     Ext .= extensionMapping(Kind);
     Fn .= Pk++(hash(Pk)::string)++Ext;
     FUri ^= parseUri(Fn);

@@ -67,10 +67,13 @@ star.compiler.impawt{
   pickupVersion(strg(V)) => do{ valis vers(V)}.
 
   pickupViz:(term)=>option[visibility].
+  pickupViz(strg("private")) => some(.priVate).
+  pickupViz(strg("public")) => some(.pUblic).
+  pickupViz(strg("transitive")) => some(.transItive).
   pickupViz(symb(tLbl("private",0))) => some(.priVate).
   pickupViz(symb(tLbl("public",0))) => some(.pUblic).
   pickupViz(symb(tLbl("transitive",0))) => some(.transItive).
-  pickupVis(_) default => .none.
+--  pickupViz(_) default => .none.
 
   pickupImports:(cons[term],option[locn]) => result[reports,cons[importSpec]].
   pickupImports(Trms,Lc) => let{.

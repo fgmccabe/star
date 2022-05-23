@@ -38,7 +38,7 @@ star.compiler.core{
   public crCase ~> (option[locn],crExp,crExp).
 
   public crDefn ::= fnDef(option[locn],string,tipe,cons[crVar],crExp) |
-    glbDef(option[locn],string,tipe,crExp)|
+    vrDef(option[locn],string,tipe,crExp)|
     tpDef(option[locn],tipe,typeRule,cons[(termLbl,tipe,integer)]) |
     lblDef(option[locn],termLbl,tipe,integer).
 
@@ -52,8 +52,8 @@ star.compiler.core{
   dspDef:(crDefn,string) => string.
   dspDef(fnDef(Lc,Nm,Tp,Args,Rep),Off) =>
     "fun: $(Lc)\n#(Nm)(#(interleave(Args//disp,",")*)) => #(dspExp(Rep,Off))".
-  dspDef(glbDef(Lc,Nm,Tp,Rep),Off) =>
-    "glb: $(Lc)\n#(Nm):$(Tp)=#(dspExp(Rep,Off))".
+  dspDef(vrDef(Lc,Nm,Tp,Rep),Off) =>
+    "glb: $(Lc)\n#(Nm)=#(dspExp(Rep,Off))".
   dspDef(tpDef(Lc,Tp,TpRl,Map),Off) =>
     "tpe: $(Lc)\n$(TpRl) with $(Map)".
   dspDef(lblDef(Lc,Lbl,Tp,Ix),Off) =>
@@ -73,7 +73,7 @@ star.compiler.core{
   dspExp(crTerm(_,Op,As,_),Off) where isTplLbl(Op) => "‹#(dsplyExps(As,Off)*)›".
   dspExp(crTerm(_,Op,As,_),Off) => "#(Op)‹#(dsplyExps(As,Off)*)›".
   dspExp(crTplOff(_,O,Ix,_),Off) => "#(dspExp(O,Off)).$(Ix)".
-  dspExp(crTplUpdate(_,O,Ix,E),Off) => "#(dspExp(O,Off)).$(Ix) := #(dspExp(E,Off))".
+  dspExp(crTplUpdate(_,O,Ix,E),Off) => "(#(dspExp(O,Off)).$(Ix) := #(dspExp(E,Off)))".
   dspExp(crLtt(_,V,D,I),Off) where Off2.=Off++"  " =>
     "let $(V) = #(dspExp(D,Off2)) in\n#(Off2)#(dspExp(I,Off2))".
   dspExp(crCase(_,E,Cs,Dflt,_),Off) where Off2.=Off++"  "=>
@@ -311,8 +311,8 @@ star.compiler.core{
 
   rwDef(fnDef(Lc,Nm,Tp,Args,Val),M) =>
     fnDef(Lc,Nm,Tp,Args,rwTerm(Val,M)).
-  rwDef(glbDef(Lc,Nm,Tp,Val),M) =>
-    glbDef(Lc,Nm,Tp,rwTerm(Val,M)).
+  rwDef(vrDef(Lc,Nm,Tp,Val),M) =>
+    vrDef(Lc,Nm,Tp,rwTerm(Val,M)).
   rwDef(D,_) default => D.
 
   rwCase:(crCase,(crExp)=>option[crExp]) => crCase.
@@ -331,7 +331,7 @@ star.compiler.core{
 
   public implementation hasLoc[crDefn] => {
     locOf(fnDef(Lc,_,_,_,_)) => Lc.
-    locOf(glbDef(Lc,_,_,_)) => Lc.
+    locOf(vrDef(Lc,_,_,_)) => Lc.
     locOf(tpDef(Lc,_,_,_)) => Lc.
     locOf(lblDef(Lc,_,_,_)) => Lc.
   }
@@ -350,7 +350,9 @@ star.compiler.core{
 
   public isGround:(crExp) => boolean.
   isGround(crInt(_,_)) => .true.
+  isGround(crBig(_,_)) => .true.
   isGround(crFlot(_,_)) => .true.
+  isGround(crChr(_,_)) => .true.
   isGround(crStrg(_,_)) => .true.
   isGround(crTerm(_,_,Els,_)) => {? E in Els *> isGround(E) ?}.
   isGround(_) default => .false.

@@ -16,7 +16,7 @@ star.compiler.core.enc{
   encDef(fnDef(Lc,Nm,Tp,Args,Rep)) =>
     [0cF]++encText(Nm)++((Tp::ltipe)::multi[integer])++
     encExp(mkCrTpl(Lc,Args//(V)=>crVar(Lc,V)))++encExp(Rep).
-  encDef(glbDef(Lc,Nm,Tp,Rep)) =>
+  encDef(vrDef(Lc,Nm,Tp,Rep)) =>
     [0cG]++encText(Nm)++((Tp::ltipe)::multi[integer])++
     encExp(Rep).
   encDef(rcDef(Lc,Nm,Tp,Fs)) =>

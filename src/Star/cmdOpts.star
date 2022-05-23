@@ -19,8 +19,8 @@ star.cmdOpts{
   processAll(["--",..A],_,SoFar) => either((SoFar,A)).
   processAll([A,..L],Specs,SoFar) => processOption(A,L,Specs,SoFar).
 
-processOption:all o ~~ (string,cons[string],cons[cmdOption[o]],o) =>
-  either[string,(o,cons[string])].
+  processOption:all o ~~ (string,cons[string],cons[cmdOption[o]],o) =>
+    either[string,(o,cons[string])].
   processOption(A,L,Specs,SoFar) where
       O ^= search(Specs,(e)=>(e.shortForm==A|| _ ^=search(e.alternatives,(o)=>o==A))) => 
 	checkOption(L,O.shortForm,O.validator,O.setOption,Specs,SoFar).

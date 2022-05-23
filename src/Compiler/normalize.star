@@ -25,7 +25,7 @@ star.compiler.normalize{
 --      logMsg("package map $(Map)");
     transformGroup(Defs,Map,Map,[],.none,[],Rp)
 --    (Vl,Defs) <- liftExp(PkgVal,Map,[],[],Rp);
---    valis [glbDef(Lc,Nm,Tp,Vl),..Defs]
+--    valis [vrDef(Lc,Nm,Tp,Vl),..Defs]
   }
 
   transformGroup:(cons[canonDef],nameMap,nameMap,
@@ -68,7 +68,7 @@ star.compiler.normalize{
   }
   transformDef(varDef(Lc,_,FullNm,Val,Cx,Tp),Map,Outer,Q,.none,Ex,Rp) => do{
     (Vl,Defs) <- liftExp(Val,Outer,Q,Ex,Rp);
-    valis [glbDef(Lc,FullNm,Tp,Vl),..Defs]
+    valis [vrDef(Lc,FullNm,Tp,Vl),..Defs]
   }
   transformDef(varDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,some(V),Ex,Rp) => do{
     crVar(_,ThVr).=V;

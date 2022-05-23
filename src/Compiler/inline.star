@@ -14,14 +14,16 @@ star.compiler.inline{
 
   pickupDefn:(crDefn,map[string,crDefn])=>map[string,crDefn].
   pickupDefn(fnDef(Lc,Nm,Tp,Args,Val),Map) => Map[Nm->fnDef(Lc,Nm,Tp,Args,Val)].
-  pickupDefn(glbDef(Lc,Nm,Tp,Val),Map) => Map[Nm->glbDef(Lc,Nm,Tp,Val)].
+  pickupDefn(vrDef(Lc,Nm,Tp,Val),Map) => Map[Nm->vrDef(Lc,Nm,Tp,Val)].
+  pickupDefn(tpDef(_,_,_,_),Map) => Map.
+  pickupDefn(lblDef(_,_,_,_),Map) => Map.
 
   simplifyDefn:(crDefn,map[string,crDefn])=>crDefn.
   simplifyDefn(fnDef(Lc,Nm,Tp,Args,Val),Prog) =>
     fnDef(Lc,Nm,Tp,Args,simplifyExp(Val,Prog,3)).
-  simplifyDefn(glbDef(Lc,Nm,Tp,Val),Prog) =>
-    glbDef(Lc,Nm,Tp,simplifyExp(Val,Prog,3)).
-  simplifyDef(D) default => D.
+  simplifyDefn(vrDef(Lc,Nm,Tp,Val),Prog) =>
+    vrDef(Lc,Nm,Tp,simplifyExp(Val,Prog,3)).
+  simplifyDefn(D,_) default => D.
 
   -- There are three possibilities of a match ...
   match[e] ::= .noMatch | .insufficient | matching(e).
@@ -29,16 +31,17 @@ star.compiler.inline{
   -- ptnMatch tries to match an actual value with a pattern
   
   ptnMatch:(crExp,crExp,map[string,crExp]) => match[map[string,crExp]].
-  ptnMatch(E,crVar(Lc,crId(V,_)),Env) where T^=Env[V] => ptnMatch(E,T,Env).
-  ptnMatch(E,crVar(_,crId(V,_)),Env) => matching(Env[V->E]).
+  ptnMatch(E,crVar(Lc,crId(V,_)),Env) =>
+    (T^=Env[V] ? ptnMatch(E,T,Env) || matching(Env[V->E])).
   ptnMatch(crVar(_,V1),_,_) => .insufficient.  -- variables on left only match vars on right
   ptnMatch(crInt(_,Ix),crInt(_,Ix),Env) => matching(Env).
+  ptnMatch(crBig(_,Bx),crBig(_,Bx),Env) => matching(Env).
   ptnMatch(crFlot(_,Dx),crFlot(_,Dx),Env) => matching(Env).
+  ptnMatch(crChr(_,Cx),crChr(_,Cx),Env) => matching(Env).
   ptnMatch(crStrg(_,Sx),crStrg(_,Sx),Env) => matching(Env).
+  ptnMatch(crTerm(_,N,A1,_),crTerm(_,N,A2,_),Env) => ptnMatchArgs(A1,A2,Env).
   ptnMatch(crVoid(_,_),_,_) => .insufficient.  -- void on left does not match anything
   ptnMatch(_,crVoid(_,_),_) => .insufficient.  -- void on right does not match anything
-  ptnMatch(crTerm(_,N,A1,_),crTerm(_,N,A2,_),Env) => ptnMatchArgs(A1,A2,Env).
-  ptnMatch(crRecord(_,N,F1,_),crRecord(_,N,F2,_),Env) => ptnMatchFields(F1,F2,Env).
   ptnMatch(_,_,_) default => .noMatch.
 
   ptnMatchArgs([],[],Env) => matching(Env).
@@ -49,49 +52,58 @@ star.compiler.inline{
   }
   ptnMatchArgs(_,_,_) default => .noMatch.
 
-  ptnMatchFields(F1,[],Env) => matching(Env).
-  ptnMatchFields(F1,[(N,P2),..F2],Env) where (N,E1) in F1 =>
-    case ptnMatch(E1,P2,Env) in {
-      .noMatch => .noMatch.
-      .insufficient => .insufficient.
-      matching(Ev) =>  ptnMatchFields(F1,F2,Ev)
-    }
-  ptnMatchFields(_,_,_) default => .noMatch.
-
   simplifyExp:(crExp,map[string,crDefn],integer) => crExp.
-  simplifyExp(crCase(Lc,Gov,Cases,Deflt,Tp),Prog,Depth) =>
-    applyCase(Lc,simplifyExp(Gov,Prog,Depth),Cases,simplifyExp(Deflt,Prog,Depth),Tp,Prog,Depth).
-  simplifyExp(crDot(Lc,Rc,Fld,Tp),Prog,Depth) =>
-    applyDot(Lc,simplifyExp(Rc,Prog,Depth),Fld,Tp).
-  simplifyExp(crTplOff(_,crTerm(_,_,Args,_),Ix,_),Prog,Depth) where Exp^=Args[Ix] =>
-    simplifyExp(Exp,Prog,Depth).
-  simplifyExp(crCall(Lc,Fn,Args,Tp),Prog,Depth) where Depth>0 =>
-    inlineCall(Lc,Fn,Args//(A)=>simplifyExp(A,Prog,Depth),Tp,Prog,Depth).
-  simplifyExp(crECall(Lc,Fn,Args,Tp),Prog,Depth) where Depth>0 =>
-    inlineECall(Lc,Fn,Args//(A)=>simplifyExp(A,Prog,Depth),Tp,Depth).
-  simplifyExp(crOCall(Lc,Op,Args,Tp),Prog,Depth) where Depth>0 =>
-    inlineOCall(Lc,simplifyExp(Op,Prog,Depth),Args//(A)=>simplifyExp(A,Prog,Depth),Tp,Prog,Depth).
-  simplifyExp(crTerm(Lc,Fn,Args,Tp),Prog,Depth) =>
+  simplifyExp(E,P,D) => (D>0 ? simExp(E,P,D-1) || E).
+  
+  simExp(crVar(Lc,V),Map,Depth) => inlineVar(Lc,V,Map,Depth).
+  simExp(crInt(Lc,Ix),_,_) => crInt(Lc,Ix).
+  simExp(crBig(Lc,Bx),_,_) => crBig(Lc,Bx).
+  simExp(crChr(Lc,Ix),_,_) => crChr(Lc,Ix).
+  simExp(crFlot(Lc,Dx),_,_) => crFlot(Lc,Dx).
+  simExp(crStrg(Lc,Sx),_,_) => crStrg(Lc,Sx).
+  simExp(crVoid(Lc,Tp),_,_) => crVoid(Lc,Tp).
+  simExp(crTerm(Lc,Fn,Args,Tp),Prog,Depth) =>
     crTerm(Lc,Fn,Args//(A)=>simplifyExp(A,Prog,Depth),Tp).
-  simplifyExp(crCnj(Lc,L,R),Prog,Depth) =>
+  simExp(crCall(Lc,Fn,Args,Tp),Prog,Depth) =>
+    inlineCall(Lc,Fn,Args//(A)=>simplifyExp(A,Prog,Depth),Tp,Prog,Depth).
+  simExp(crECall(Lc,Fn,Args,Tp),Prog,Depth) =>
+    inlineECall(Lc,Fn,Args//(A)=>simplifyExp(A,Prog,Depth),Tp,Depth).
+  simExp(crOCall(Lc,Op,Args,Tp),Prog,Depth) =>
+    inlineOCall(Lc,simplifyExp(Op,Prog,Depth),
+      Args//(A)=>simplifyExp(A,Prog,Depth),Tp,Prog,Depth).
+  simExp(crTplOff(Lc,T,Ix,Tp),Prog,Depth) =>
+    inlineTplOff(Lc,simplifyExp(T,Prog,Depth),Ix,Tp).
+  simExp(crTplUpdate(Lc,T,Ix,Vl),Prog,Depth) =>
+    applyTplUpdate(Lc,simplifyExp(T,Prog,Depth),Ix,simplifyExp(Vl,Prog,Depth)).
+  simExp(crSeq(Lc,L,R),Prog,Depth) =>
+    crSeq(Lc,simplifyExp(L,Prog,Depth),simplifyExp(R,Prog,Depth)).
+  simExp(crCnj(Lc,L,R),Prog,Depth) =>
     applyCnj(Lc,simplifyExp(L,Prog,Depth),simplifyExp(R,Prog,Depth)).
-  simplifyExp(crDsj(Lc,L,R),Prog,Depth) =>
+  simExp(crDsj(Lc,L,R),Prog,Depth) =>
     applyDsj(Lc,simplifyExp(L,Prog,Depth),simplifyExp(R,Prog,Depth)).
-  simplifyExp(crNeg(Lc,R),Prog,Depth) =>
+  simExp(crNeg(Lc,R),Prog,Depth) =>
     applyNeg(Lc,simplifyExp(R,Prog,Depth)).
-  simplifyExp(crCnd(Lc,T,L,R),Prog,Depth) =>
-    applyCnd(Lc,simplifyExp(T,Prog,Depth),simplifyExp(L,Prog,Depth),simplifyExp(R,Prog,Depth)).
-  simplifyExp(crWhere(Lc,Ptn,Exp),Prog,Depth) =>
+  simExp(crCnd(Lc,T,L,R),Prog,Depth) =>
+    applyCnd(Lc,simplifyExp(T,Prog,Depth),
+      simplifyExp(L,Prog,Depth),simplifyExp(R,Prog,Depth)).
+  simExp(crLtt(Lc,Vr,Bnd,Exp),Prog,Depth) =>
+    inlineLtt(Lc,Vr,simplifyExp(Bnd,Prog,Depth),Exp,Prog,Depth).
+  simExp(crUnpack(Lc,Gov,Cases,Tp),Prog,Depth) =>
+    inlineUnpack(Lc,simplifyExp(Gov,Prog,Depth),Cases,Tp,Prog,Depth).
+  simExp(crCase(Lc,Gov,Cases,Deflt,Tp),Prog,Depth) =>
+    inlineCase(Lc,simplifyExp(Gov,Prog,Depth),Cases,
+      simplifyExp(Deflt,Prog,Depth),Tp,Prog,Depth).
+  simExp(crWhere(Lc,Ptn,Exp),Prog,Depth) =>
     applyWhere(Lc,Ptn,simplifyExp(Exp,Prog,Depth)).
-  simplifyExp(crTplOff(Lc,E,Ix,Tp),Prog,Depth) =>
-    applyTplOff(Lc,simplifyExp(E,Prog,Depth),Ix,Tp).
-  simplifyExp(crTplUpdate(Lc,T,Ix,E),Prog,Depth) =>
-    applyTplUpdate(Lc,simplifyExp(T,Prog,Depth),Ix,simplifyExp(E,Prog,Depth)).
-  simplifyExp(crLtt(Lc,Vr,Bnd,Exp),Prog,Depth) =>
-    applyLtt(Lc,Vr,simplifyExp(Bnd,Prog,Depth),Exp,Prog,Depth).
-  simplifyExp(crMatch(Lc,Ptn,Exp),Prog,Depth) =>
+  simExp(crMatch(Lc,Ptn,Exp),Prog,Depth) =>
     applyMatch(Lc,Ptn,simplifyExp(Exp,Prog,Depth)).
-  simplifyExp(Exp,_,_) default => Exp.
+  simExp(crVarNames(Lc,Vrs,Exp),Prog,Depth) =>
+    crVarNames(Lc,Vrs,simplifyExp(Exp,Prog,Depth)).
+  simExp(crAbort(Lc,Txt,Tp),_,_) => crAbort(Lc,Txt,Tp).
+
+  inlineVar(Lc,crId(Id,Tp),Map,_Depth) where
+      vrDef(_,_,_,Vl) ^= Map[Id] && isGround(Vl) => Vl.
+  inlineVar(Lc,V,_,_) => crVar(Lc,V).
 
   applyWhere(Lc,Ptn,crTerm(_,"star.core#true",[],_)) => Ptn.
   applyWhere(Lc,Ptn,Exp) => crWhere(Lc,Ptn,Exp).
@@ -113,8 +125,8 @@ star.compiler.inline{
   applyCnd(_,crTerm(Lc,"star.core#true",[],Tp),L,_) => L.
   applyCnd(Lc,T,L,R) => crCnd(Lc,T,L,R).
 
-  applyTplOff(_,crTerm(_,_,Els,_),Ix,Tp) where E^=Els[Ix] => E.
-  applyTplOff(Lc,T,Ix,Tp) default => crTplOff(Lc,T,Ix,Tp).
+  inlineTplOff(_,crTerm(_,_,Els,_),Ix,Tp) where E^=Els[Ix] => E.
+  inlineTplOff(Lc,T,Ix,Tp) default => crTplOff(Lc,T,Ix,Tp).
   
   applyTplUpdate(_,crTerm(Lc,Nm,Args,Tp),Ix,E) =>
     crTerm(Lc,Nm,Args[Ix->E],Tp).
@@ -123,13 +135,14 @@ star.compiler.inline{
 
   applyMatch(Lc,Ptn,Exp) => crMatch(Lc,Ptn,Exp).
 
-  applyDot(_,crRecord(_,_,Flds,_),Fld,_) where (Fld,Exp) in Flds => Exp.
-  applyDot(Lc,Rc,Fld,Tp) => crDot(Lc,Rc,Fld,Tp).
-
-  applyCase(Lc,Gov,Cases,Deflt,Tp,Prog,Depth) where 
+  inlineCase(Lc,Gov,Cases,Deflt,Tp,Prog,Depth) where 
       matching(Exp) .= matchingCase(Gov,Cases,Prog,Depth) => Exp.
-  applyCase(Lc,Gov,Cases,Deflt,Tp,Prog,Depth) =>
+  inlineCase(Lc,Gov,Cases,Deflt,Tp,Prog,Depth) =>
     crCase(Lc,Gov,Cases,Deflt,Tp).
+
+  inlineUnpack(Lc,Gov,Cases,Tp,Prog,Depth) where
+      matching(Exp) .= matchingCase(Gov,Cases,Prog,Depth) => Exp.
+  inlineUnpack(Lc,Gov,Cases,Tp,_,_) => crUnpack(Lc,Gov,Cases,Tp).
 
   matchingCase:(crExp,cons[crCase],map[string,crDefn],integer) => match[crExp].
   matchingCase(_,[],_,_) => .noMatch.
@@ -146,19 +159,21 @@ star.compiler.inline{
     .insufficient => .insufficient
   }
 
-  applyLtt(Lc,Vr,Bnd,Exp,Prog,Depth) where crVar(_,VV).=Bnd =>
-    simplifyExp(rewriteTerm(Exp,[crName(Vr)->Bnd]),Prog,Depth).
-  applyLtt(Lc,Vr,Bnd,Exp,Prog,Depth) =>
+  inlineLtt(Lc,crId(Vr,Tp),Bnd,Exp,Prog,Depth) where crVar(_,VV).=Bnd =>
+    simplifyExp(Exp,Prog[Vr->vrDef(Lc,Vr,Tp,Bnd)],Depth).
+  inlineLtt(Lc,crId(Vr,Tp),Bnd,Exp,Prog,Depth) where isGround(Bnd) =>
+    simplifyExp(Exp,Prog[Vr->vrDef(Lc,Vr,Tp,Bnd)],Depth).
+  inlineLtt(Lc,Vr,Bnd,Exp,Prog,Depth) =>
     crLtt(Lc,Vr,Bnd,simplifyExp(Exp,Prog,Depth)).
 
-  inlineCall:(locn,string,cons[crExp],tipe,map[string,crDefn],integer) => crExp.
+  inlineCall:(option[locn],string,cons[crExp],tipe,map[string,crDefn],integer) => crExp.
   inlineCall(_,Nm,Args,_,Prog,Depth) where Depth>0 &&
       fnDef(Lc,_,_,Vrs,Rep) ^= Prog[Nm] =>
     simplifyExp(rewriteTerm(Rep,zip(Vrs//crName,Args)::map[string,crExp]),Prog[~Nm],Depth-1).
   inlineCall(Lc,Nm,Args,Tp,_,_) default => crCall(Lc,Nm,Args,Tp).
 
-  inlineECall:(locn,string,cons[crExp],tipe,integer) => crExp.
-  inlineECall(Lc,Nm,Args,Tp,Depth) where Depth>0 && A in Args *> isGround(A) =>
+  inlineECall:(option[locn],string,cons[crExp],tipe,integer) => crExp.
+  inlineECall(Lc,Nm,Args,Tp,Depth) where Depth>0 && {? A in Args *> isGround(A) ?} =>
     rewriteECall(Lc,Nm,Args,Tp).
   inlineECall(Lc,Nm,Args,Tp,_) default => crECall(Lc,Nm,Args,Tp).
 

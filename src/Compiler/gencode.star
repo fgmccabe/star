@@ -33,7 +33,7 @@ star.compiler.gencode{
     codeCtx(Vrs,Lc,max(Mx1,Mx2),max(Lb1,Lb2)).
 
   implementation display[codeCtx] => {
-    disp(codeCtx(Vrs,_,Depth,Stk)) => ssSeq([ss("depth "),disp(Depth),ss(" stack "),disp(Stk)]).
+    disp(codeCtx(Vrs,_,Depth,Stk)) => "depth $(Depth) stack $(Stk)".
   }
 
   implementation sizeable[codeCtx] => {
@@ -42,13 +42,13 @@ star.compiler.gencode{
   }
 
   implementation display[srcLoc] => {
-    disp(lclVar(Off,Tpe)) =>ssSeq([ss("lcl "),disp(Off),ss(":"),disp(Tpe)]).
-    disp(argVar(Off,Tpe)) =>ssSeq([ss("arg "),disp(Off),ss(":"),disp(Tpe)]).
-    disp(glbVar(Off,Tpe)) =>ssSeq([ss("glb "),disp(Off),ss(":"),disp(Tpe)]).
-    disp(glbFun(Off,Tpe)) =>ssSeq([ss("fun "),disp(Off),ss(":"),disp(Tpe)]).
+    disp(lclVar(Off,Tpe)) => "lcl $(Off)\:$(Tpe)".
+    disp(argVar(Off,Tpe)) => "arg $(Off)\:$(Tpe)".
+    disp(glbVar(Off,Tpe)) => "glb $(Off)\:$(Tpe)".
+    disp(glbFun(Off,Tpe)) => "fun $(Off)\:$(Tpe)".
   }
 
-  public compCrProg:(pkg,cons[crDefn],cons[(string,tipe)],compilerOptions,reports)=>
+  public compCrProg:(pkg,cons[crDefn],cons[decl],compilerOptions,reports)=>
     either[reports,cons[codeSegment]].
   compCrProg(Pkg,Defs,Globals,Opts,Rp) => do{
     compDefs(Defs,localFuns(Defs,foldRight(((Pk,Tp),G)=>G[Pk->glbVar(Pk,Tp)],[],Globals)),
@@ -59,7 +59,7 @@ star.compiler.gencode{
   localFuns(Defs,Vars) => foldRight(defFun,Vars,Defs).
 
   defFun(fnDef(Lc,Nm,Tp,_,_),Vrs) => Vrs[Nm->glbFun(tLbl(Nm,arity(Tp)),Tp::ltipe)].
-  defFun(glbDef(Lc,Nm,Tp,_),Vrs) => Vrs[Nm->glbVar(Nm,Tp::ltipe)].
+  defFun(vrDef(Lc,Nm,Tp,_),Vrs) => Vrs[Nm->glbVar(Nm,Tp::ltipe)].
   defFun(D,Vrs) => Vrs.
   
   compDefs:(cons[crDefn],map[string,srcLoc],compilerOptions,cons[codeSegment],reports)=>
@@ -79,12 +79,15 @@ star.compiler.gencode{
     (Ctxx,Code,Stk) <- compExp(Val,Opts,Ctxa,[],Rp);
     valis method(tLbl(Nm,size(Args)),Tp,peepOptimize((Code++[.iRet])::cons[assemOp]))
   }
-  compDefn(glbDef(Lc,Nm,Tp,Val),Glbs,Opts,Rp) => do{
-    if Opts.showCode then
+  compDefn(vrDef(Lc,Nm,Tp,Val),Glbs,Opts,Rp) => do{
+    if showCode! then
       logMsg("compile global $(Nm)\:$(Tp) = $(Val))");
     Ctx .= emptyCtx(Lc,Glbs);
     (Ctxx,Code,Stk) <- compExp(Val,Opts,Ctx,[],Rp);
     valis global(tLbl(Nm,0),Tp,peepOptimize((Code++[iTG(Nm),.iRet])::cons[assemOp]))
+  }
+  compDefn(tpDef(Lc,Tp,TpRl,Index),_,_,Rp) => do{
+    valis tipe(TpRl,Index)
   }
 
   compExp:(crExp,compilerOptions,codeCtx,cons[ltipe],reports) =>
@@ -116,17 +119,6 @@ star.compiler.gencode{
   compExp(crOCall(Lc,Op,Args,Tp),Opts,Ctx,Stk,Rp) => do{
     (Ctx1,CdeA,Stka) <- compExps(Args,Opts,Ctx,Stk,Rp);
     valis (Ctx1,CdeA++[iOCall(size(Args)+1),iFrame(tplTipe(Stka))],[Tp::ltipe,..Stk])
-  }
-  compExp(crRecord(Lc,Nm,Fields,Tp),Opts,Ctx,Stk,Rp) => do{
-    Sorted .= sort(Fields,((F1,_),(F2,_))=>F1<F2);
-    Args .= (Sorted//((_,V))=>V);
-    (Ctx1,CdeA,Stka) <- compExps(Args,Opts,Ctx,[],Rp);
-    Lbl .= tRec(Nm,Sorted//((F,V))=>(F,typeOf(V)));
-    valis (Ctx1,CdeA++[iAlloc(Lbl)],[Tp::ltipe,..Stk])
-  }
-  compExp(crDot(Lc,Rc,Fld,Tp),Opts,Ctx,Stk,Rp) => do{
-    (Ctx1,CdeR,Stka) <- compExp(Rc,Opts,Ctx,Stk,Rp);
-    valis (Ctx1,CdeR++[iGet(tLbl(Fld,0))],[Tp::ltipe,..Stk])
   }
   compExp(crTplOff(Lc,Rc,Ix,Tp),Opts,Ctx,Stk,Rp) => do{
     (Ctx1,CdeR,Stka) <- compExp(Rc,Opts,Ctx,Stk,Rp);
@@ -202,12 +194,6 @@ star.compiler.gencode{
     (Ctx1,CdeA,FxA,_) <- compFrArgs(Args,Roots,Base,0,Pth,Opts,Ctx,Stk,Rp);
     valis (Ctx1,CdeA++[iAlloc(tLbl(Nm,size(Args)))],FxA,[.ptr,..Stk])
   }
-  compFrTerm(crRecord(Lc,Nm,Fields,Tp),Roots,Base,Pth,Opts,Ctx,Stk,Rp) => do{
-    Sorted .= sort(Fields,((F1,_),(F2,_))=>F1<F2);
-    Args .= (Sorted//((_,V))=>V);
-    (Ctx1,CdeA,FxR,_) <- compFrArgs(Args,Roots,Base,0,Pth,Opts,Ctx,Stk,Rp);
-    valis (Ctx1,CdeA++[iAlloc(tRec(Nm,Sorted//((F,V))=>(F,typeOf(V))))],FxR,[.ptr,..Stk])
-  }
   /*
   compFrTerm(crTplOff(Lc,Tpl,Ix,Tp),Roots,Base,Pth,Opts,Ctx,Stk,Rp) => do{
     (Rc,OffPth) .= offPath(Tpl,[other(Ix)]);
@@ -218,17 +204,6 @@ star.compiler.gencode{
     else{
       (Ctx1,Cde,FxCde,Stkx) <- compFrTerm(Rc,Roots,Base,Pth,Opts,
 	bothCont(followPathCont(OffPth,Tp),Cont),Ctx,Cde,some(Stk),Rp)
-    }
-  }
-  compFrTerm(crDot(Lc,Rc,Fld,Tp),Roots,Base,Pth,Opts,Ctx,Stk,Rp) => do{
-    (Rc,OffPth) .= offPath(Rc,[either(Fld)]);
-    if crVar(RLc,V).=Rc && V .<. Roots then{
-      FCont .= fixupCode(Base,Pth,V,OffPth);
-      (Ctx1,Cde1,Stk1) <- Cont.C(Ctx,Cde++[.iLdV],some([Tp,..Stk]),Rp);
-      valis (Ctx1,Cde1,Stk1,FCont)
-    }
-    else{
-      compFrTerm(Rc,Roots,Base,Pth,Opts,bothCont(followPathCont([either(Fld),..OffPth],Tp),Cont),Ctx,Cde,some(Stk),Rp)
     }
   }
   
@@ -255,7 +230,6 @@ star.compiler.gencode{
 
   offPath:(crExp,cons[either[integer,string]])=>(crExp,cons[either[integer,string]]).
   offPath(crTplOff(_,Rc,Ix,_),Pth) => offPath(Rc,[other(Ix),..Pth]).
-  offPath(crDot(_,Rc,Fld,_),Pth) => offPath(Rc,[either(Fld),..Pth]).
   offPath(Exp,Pth) default => (Exp,Pth).
 
   compFrArgs:(cons[crExp],set[crVar],crVar,integer,cons[either[integer,string]],compilerOptions,
@@ -298,7 +272,7 @@ star.compiler.gencode{
   genCaseTable(Cases) where Mx.=nextPrime(size(Cases)) =>
     (sortCases(caseHashes(Cases,Mx)),Mx).
 
-  caseHashes:(cons[crCase],integer)=>cons[(locn,crExp,integer,crExp)].
+  caseHashes:(cons[crCase],integer)=>cons[(option[locn],crExp,integer,crExp)].
   caseHashes(Cases,Mx) => (Cases//((Lc,Pt,Ex))=>(Lc,Pt,caseHash(Pt)%Mx,Ex)).
 
   caseHash:(crExp)=>integer.
@@ -310,7 +284,7 @@ star.compiler.gencode{
 
   sortCases(Cases) => mergeDuplicates(sort(Cases,((_,_,H1,_),(_,_,H2,_))=>H1<H2)).
 
-  mergeDuplicates:(cons[(locn,crExp,integer,crExp)])=>cons[(integer,cons[(locn,crExp,crExp)])].
+  mergeDuplicates:(cons[(option[locn],crExp,integer,crExp)])=>cons[(integer,cons[(option[locn],crExp,crExp)])].
   mergeDuplicates([])=>[].
   mergeDuplicates([(Lc,Pt,Hx,Ex),..M]) where (D,Rs).=mergeDuplicate(M,Hx,[]) =>
     [(Hx,[(Lc,Pt,Ex),..D]),..mergeDuplicates(Rs)].
@@ -319,7 +293,7 @@ star.compiler.gencode{
     mergeDuplicate(M,Hx,SoFar++[(Lc,Pt,Ex)]).
   mergeDuplicate(M,_,SoFar) default => (SoFar,M).
 
-  compCases:(cons[(integer,cons[(locn,crExp,crExp)])],integer,integer,Cont,Cont,assemLbl,compilerOptions,
+  compCases:(cons[(integer,cons[(option[locn],crExp,crExp)])],integer,integer,Cont,Cont,assemLbl,compilerOptions,
     codeCtx,multi[assemOp],option[cons[tipe]],reports) => either[reports,(codeCtx,multi[assemOp],option[cons[tipe]])].
   compCases([],Mx,Mx,_,_,_,_,Ctx,Cde,Stk,_) => either((Ctx,Cde,Stk)).
   compCases([],Ix,Mx,Succ,Fail,Deflt,Opts,Ctx,Cde,Stk,Rp) where Ix<Mx =>
@@ -347,7 +321,7 @@ star.compiler.gencode{
     compMoreCase(More,Off,Succ,Fail,Opts,Ctx5,Cde2++[iLbl(Fl)],Stk,Rp)
   }
 
-  compMoreCase:(cons[(locn,crExp,crExp)],integer,Cont,Cont,compilerOptions,codeCtx,multi[assemOp],option[cons[tipe]],reports) => either[reports,(codeCtx,multi[assemOp],option[cons[tipe]])].
+  compMoreCase:(cons[(option[locn],crExp,crExp)],integer,Cont,Cont,compilerOptions,codeCtx,multi[assemOp],option[cons[tipe]],reports) => either[reports,(codeCtx,multi[assemOp],option[cons[tipe]])].
   compMoreCase([],_,_,Fail,Opts,Ctx,Cde,Stk,Rp) => Fail.C(Ctx,Cde,Stk,Rp).
   compMoreCase([(Lc,Ptn,Exp),..More],Off,Succ,Fail,Opts,Ctx,Cde,Stk,Rp) => do{
     (Fl,Ctx1) .= defineLbl("CM",Ctx);
@@ -355,7 +329,7 @@ star.compiler.gencode{
     compMoreCase(More,Off,Succ,Fail,Opts,Ctx5,Cde2++[iLbl(Fl)],Stk,Rp)
   }
   
-  compVar:(locn,string,srcLoc,compilerOptions,codeCtx,cons[ltipe],reports) =>
+  compVar:(option[locn],string,srcLoc,compilerOptions,codeCtx,cons[ltipe],reports) =>
     either[reports,(codeCtx,multi[assemOp],cons[ltipe])].
   compVar(Lc,Nm,argVar(Off,Tp),Opts,Ctx,Stk,Rp) =>
     either((Ctx,[iLdA(Off)],[Tp,..Stk])).
@@ -434,7 +408,7 @@ star.compiler.gencode{
     other(reportError(Rp,"unreachable pattern $(Ptn)",locOf(Ptn))).  
 
 
-  compPttrnVar:(locn,string,srcLoc,compilerOptions,codeCtx,cons[ltipe],reports) =>
+  compPttrnVar:(option[locn],string,srcLoc,compilerOptions,codeCtx,cons[ltipe],reports) =>
     either[reports,(codeCtx,multi[assemOp],cons[ltipe])].
   compPttrnVar(Lc,Nm,lclVar(Off,Tp),Opts,Ctx,Stk,Rp) => either((Ctx,[iStL(Off)],Stk)).
   compPttrnVar(Lc,Nm,Loc,_,_,_,Rp) => other(reportError(Rp,"cannot target var at $(Loc) in pattern",Lc)).
@@ -448,7 +422,7 @@ star.compiler.gencode{
     valis (Ctx2,Cde1++Cde2,Stk2)
   }
   
-  pttrnTest:(locn,tipe,integer,codeCtx,multi[assemOp],cons[ltipe],reports) =>
+  pttrnTest:(option[locn],tipe,integer,codeCtx,multi[assemOp],cons[ltipe],reports) =>
     either[reports,(codeCtx,multi[assemOp],cons[ltipe])].
   pttrnTest(_,intType,Fail,Ctx,Cde,[_,_,..Stk],Rp) =>
     either((Ctx,Cde++[iICmp(Fail)],Stk)).
@@ -507,10 +481,10 @@ star.compiler.gencode{
       G.C(Ct1,Cd1,Stk1,Rp)
     }).
 
-  onceCont:(locn,Cont)=>Cont.
+  onceCont:(option[locn],Cont)=>Cont.
   onceCont(_,C) where C.Simple => C.
   onceCont(Lc,C)=> let{
-    d := .none.
+    d = ref .none.
   } in ccont(.false,.true,(Ctx,Cde,Stk,Rp) => do{
       if (Lbl,EStk,LStk)^=d! then{
 	XStk <- mergeStack(Lc,EStk,Stk,Rp);
@@ -525,7 +499,7 @@ star.compiler.gencode{
   }).
 
 
-  mergeStack:(locn,option[cons[tipe]],option[cons[tipe]],reports)=>either[reports,option[cons[tipe]]].
+  mergeStack:(option[locn],option[cons[tipe]],option[cons[tipe]],reports)=>either[reports,option[cons[tipe]]].
   mergeStack(Lc,.none,S,_) => either(S).
   mergeStack(Lc,S,.none,_) => either(S).
   mergeStack(Lc,S1,S2,_) where S1==S2 => either(S1).
@@ -541,7 +515,7 @@ star.compiler.gencode{
   defineLbl:(string,codeCtx)=>(assemLbl,codeCtx).
   defineLbl(Pr,codeCtx(Vrs,Lc,Count,Lb))=>(al(Pr++"$(Lb)"),codeCtx(Vrs,Lc,Count,Lb+1)).
 
-  changeLoc:(locn,compilerOptions,codeCtx)=>(multi[assemOp],codeCtx).
+  changeLoc:(option[locn],compilerOptions,codeCtx)=>(multi[assemOp],codeCtx).
   changeLoc(Lc,_,codeCtx(Vars,Lc0,Dp,Lb)) where Lc~=Lc0 =>
     ([iLine(Lc::term)],codeCtx(Vars,Lc,Dp,Lb)).
     changeLoc(_,_,Ctx)=>([],Ctx).
@@ -561,8 +535,6 @@ star.compiler.gencode{
   ptnVars(crCall(_,_,_,_),Ctx) => Ctx.
   ptnVars(crECall(_,_,_,_),Ctx) => Ctx.
   ptnVars(crOCall(_,_,_,_),Ctx) => Ctx.
-  ptnVars(crRecord(_,_,Els,_),Ctx) => foldRight(((_,El),X)=>ptnVars(El,X),Ctx,Els).
-  ptnVars(crDot(_,_,_,_),Ctx) => Ctx.
   ptnVars(crTplOff(_,_,_,_),Ctx) => Ctx.
   ptnVars(crTplUpdate(_,_,_,_),Ctx) => Ctx.
   ptnVars(crCnj(_,L,R),Ctx) => ptnVars(L,ptnVars(R,Ctx)).
@@ -582,7 +554,7 @@ star.compiler.gencode{
   argVars([_,..As],Ctx,Arg) => argVars(As,Ctx,Arg+1).
 
   mergeCtx:(codeCtx,codeCtx,codeCtx)=>codeCtx.
-  mergeCtx(codeCtx(LV,_,_,Lb1),codeCtx(RV,_,_,Lb2),Base) => let{.
+  mergeCtx(codeCtx(LV,_,_,Lb1),codeCtx(RV,_,_,Lb2),Base) => let{
     mergeVar:(string,srcLoc,codeCtx) => codeCtx.
     mergeVar(Nm,_,Vrs) where _ ^= locateVar(Nm,Base) => Vrs.
     mergeVar(Nm,_,codeCtx(Vs,Lc,Count,_)) where lclVar(_,Tp) ^= RV[Nm] =>
@@ -600,14 +572,14 @@ star.compiler.gencode{
   trimStack(.none,_) => .none.
 
   genBoot:(pkg,cons[crDefn])=>cons[codeSegment].
-  genBoot(P,Defs) where Mn .= qualifiedName(pkgName(P),.valMark,"_main") && fnDef(_,Mn,_,_,_) in Defs => 
-    [method(tLbl(qualifiedName(pkgName(P),.pkgMark,"_boot"),0),funType([],unitTp),[
-          iEscape("_command_line"),
-	  iLdG(packageVar(P)),
-	  iGet(tLbl("_main",0)),
-	  iOCall(2),
+  genBoot(P,Defs)
+      where Mn .= qualifiedName(pkgName(P),.valMark,"_main") &&
+      {? fnDef(_,Mn,_,_,_) in Defs ?} => 
+    [func(tLbl(qualifiedName(pkgName(P),.pkgMark,"_boot"),1),.hardDefinition,
+	funType([],unitTp),[
+          iCall(tLbl(Mn,1)),
 	  iFrame(tplTipe([])),
-	  .iHalt])].
+	  iHalt(0)])].
 
   genBoot(_,_) default => [].
 
