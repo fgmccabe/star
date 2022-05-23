@@ -723,17 +723,6 @@ retCode run(processPo P) {
         continue;
       }
 
-      case CmpVd: {
-        termPo t = pop();
-        insPo exit = collectOff(PC);
-        assert(validPC(FP->prog, exit));
-
-        if (t == voidEnum) {
-          PC = exit;
-        }
-        continue;
-      }
-
       case Nth: {
         int32 ix = collectI32(PC);  /* which element */
         termPo t = pop();
