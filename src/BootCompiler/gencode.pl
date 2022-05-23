@@ -78,8 +78,7 @@ glbCont(Nm,Lx,Lx,D,D,_,[iTG(Nm)|Cx],Cx,Stk,Stk).
 retCont(Opts,Lx,Lx,D,D,_,C,Cx,_Stk,none) :-
   genDbg(Opts,C,[iRet|Cx]).
 
-rtgCont(Opts,Lx,Lx,D,D,_,C,Cx,_Stk,none) :-
-  genDbg(Opts,C,[iRtG|Cx]).
+rtgCont(_Opts,Lx,Lx,D,D,_,[iRtG|Cx],Cx,_Stk,none).
 
 dropCont(Lx,Lx,D,D,_,[iDrop|Cx],Cx,Stk,Stk1) :-
   dropStk(Stk,1,Stk1).
@@ -308,8 +307,9 @@ compVar(l(X),_,Cont,L,Lx,D,Dx,End,[iLdL(X)|C0],Cx,Stk,Stkx) :- !,
   call(Cont,L,Lx,D,Dx,End,C0,Cx,Stk1,Stkx).
 compVar(g(GlbNm),Opts,Cont,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   genDbg(Opts,C,[iLdG(GlbNm)|C0]),
+  genRtnDbg(Opts,C0,C1),
   bumpStk(Stk,Stk1),
-  call(Cont,L,Lx,D,Dx,End,C0,Cx,Stk1,Stkx).
+  call(Cont,L,Lx,D,Dx,End,C1,Cx,Stk1,Stkx).
 
 /* Terms are generated in reverse order*/
 compTerms([],_,Cont,_,_,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
@@ -358,9 +358,6 @@ resetCont(some(Lvl),Cont,L,Lx,D,Dx,End,[iRst(Lvl)|C],Cx,_,Stkx) :-
 stoCont(Off,Lb,_Opts,Cont,L,Lx,D,Dx,End,[iStL(Off),iLbl(Lb)|C],Cx,Stk,Stkx) :-!,
   dropStk(Stk,1,Stk1),
   call(Cont,L,Lx,D,Dx,End,C,Cx,Stk1,Stkx).
-
-assignCont(Stk,Opts,Lx,Lx,Dx,Dx,_End,C,Cx,_,Stk) :-
-  genDbg(Opts,C,[iAssign|Cx]).
 
 releaseCont(Nm,Lx,Lx,D,Dx,_,Cx,Cx,Stk,Stk) :-
   clearLclVar(Nm,D,Dx).
@@ -482,6 +479,10 @@ genLine(Opts,Lc,[iLine(Lt)|Cx],Cx) :-
   is_member(debugging,Opts),!,
   locTerm(Lc,Lt).
 genLine(_,_,Cx,Cx).
+
+genRtnDbg(Opts,[iDBug,iNop|Cx],Cx) :-
+  is_member(debugging,Opts),!.
+genRtnDbg(_,Cx,Cx).
 
 genDbg(Opts,[iDBug|Cx],Cx) :-
   is_member(debugging,Opts),!.

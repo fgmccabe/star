@@ -82,18 +82,19 @@ static retCode debugOption(char *option, logical enable) {
       case 'v':    /* turn on verify tracing */
 #ifdef TRACEVERIFY
         traceVerify = True;
+        logMsg(logFile, "Verification tracing enabled\n");
         continue;
 #else
         logMsg(logFile, "code verification not enabled\n");
         return Error;
 #endif
 
-
       case 'a':    /* trace memory allocations  */
 #ifdef TRACEMEM
         traceAllocs = True;
 
         atexit(dumpGcStats);
+        logMsg(logFile, "Memory allocation tracing enabled\n");
         continue;
 #else
         logMsg(logFile,"memory tracing not enabled");
@@ -105,6 +106,7 @@ static retCode debugOption(char *option, logical enable) {
         traceMemory = True;
 
         atexit(dumpGcStats);
+        logMsg(logFile, "GC tracing enabled\n");
         continue;
 #else
         logMsg(logFile,"memory tracing not enabled");
@@ -114,6 +116,7 @@ static retCode debugOption(char *option, logical enable) {
       case 'H':    /* validate heap after allocations  */
 #ifdef TRACEMEM
         validateMemory = True;
+        logMsg(logFile, "Heap validation enabled\n");
         continue;
 #else
         logMsg(logFile,"memory validation not enabled");
@@ -123,6 +126,7 @@ static retCode debugOption(char *option, logical enable) {
       case 'S':    /* trace stack operations  */
 #ifdef TRACESTACK
         traceStacks = True;
+        logMsg(logFile, "Stack tracing enabled\n");
         continue;
 #else
         logMsg(logFile,"stack operation tracing not enabled");
@@ -143,6 +147,7 @@ static retCode debugOption(char *option, logical enable) {
         lineDebugging = True;
         interactive = False;
         tracing = True;
+        logMsg(logFile, "Symbolic tracing enabled\n");
         continue;
 #else
         logMsg(logFile, "tracing not enabled");
@@ -157,8 +162,8 @@ static retCode debugOption(char *option, logical enable) {
 
       case 'j':
 #ifdef TRACEJIT
-       traceJit = True;
-       continue;
+        traceJit = True;
+        continue;
 #else
         logMsg(logFile, "jit tracing not enabled");
         return Error;
@@ -167,6 +172,7 @@ static retCode debugOption(char *option, logical enable) {
       case 's':
 #ifdef TRACESTATS
         atexit(dumpStats);
+        logMsg(logFile, "Statistics collection enabled\n");
         break;
 #else
         logMsg(logFile, "instruction counting not enabled");
@@ -177,6 +183,7 @@ static retCode debugOption(char *option, logical enable) {
 #ifdef TRACEMANIFEST
         if (traceManifest < detailedTracing)
           traceManifest++;
+        logMsg(logFile, "Manifest tracing enabled\n");
 #else
         logMsg(logFile, "Resource tracing not enabled\n");
         return Error;
@@ -187,6 +194,7 @@ static retCode debugOption(char *option, logical enable) {
 #ifdef TRACEPKG
         if (tracePkg < detailedTracing)
           tracePkg++;
+        logMsg(logFile, "Package tracing enabled\n");
         continue;
 #else
         logMsg(logFile,"package tracing not enabled");
@@ -197,6 +205,7 @@ static retCode debugOption(char *option, logical enable) {
 #ifdef TRACEPKG
         if (traceDecode < detailedTracing)
           traceDecode++;
+        logMsg(logFile, "Decoding tracing enabled\n");
         continue;
 #else
         logMsg(logFile,"decode tracing not enabled");
@@ -206,6 +215,7 @@ static retCode debugOption(char *option, logical enable) {
       case 'B':    /* trace stack memory allocations operations  */
 #ifdef TRACE_BUDDY_MEMORY
         traceBuddyMemory = True;
+        logMsg(logFile, "Buddy memory allocator tracing enabled\n");
         continue;
 #else
         logMsg(logFile,"stack memory tracing not enabled");
@@ -214,14 +224,17 @@ static retCode debugOption(char *option, logical enable) {
 
       case 'F':   // Show file name instead of package
         showPkgFile = True;
+        logMsg(logFile, "Show file names enabled\n");
         continue;
 
       case 'C': // Toggle showing colors
         showColors = !showColors;
+        logMsg(logFile, "Show colors %s\n", (showColors ? "enabled" : "disabled"));
         continue;
 
       case 'c': // enable tracing of capability mgt
         traceCapability = True;
+        logMsg(logFile, "Capability tracing enabled\n");
         continue;
 
       default:;
