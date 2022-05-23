@@ -66,7 +66,6 @@ instruction(Get,tOs,nOp,0,"access a R/W cell")
 instruction(Assign,tOs,nOp,-2,"assign to a R/W cell")
 
 instruction(CLbl,sym,off,0,"T,Lbl --> test for a data term, branch if lbl")
-instruction(CmpVd,lVl,nOp,-1,"T --> test for void on the stack, break if void")
 instruction(Nth, i32, nOp, 0, "T --> el, pick up the nth element")
 instruction(StNth, i32, nOp, -2, "T el --> store in nth element")
 
@@ -87,7 +86,7 @@ instruction(IAbs,tOs,nOp,0,"L --> abs(L)")
 instruction(IEq,tOs,nOp,-1,"L R --> L==R")
 instruction(ILt,tOs,nOp,-1,"L R --> L<R")
 instruction(IGe,tOs,nOp,-1,"L R --> L>=R")
-instruction(ICmp,lVl,nOp,-2,"L R --> break if not same integer")
+instruction(ICmp,off,nOp,-2,"L R --> break if not same integer")
 
 instruction(BAnd,tOs,nOp,-1,"L R --> L&R")
 instruction(BOr,tOs,nOp,-1,"L R --> L|R")
