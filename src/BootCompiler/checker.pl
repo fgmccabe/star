@@ -759,7 +759,7 @@ typeOfExp(Term,Tp,ErTp,Env,Env,Val,Path) :-
   newTypeVar("F",FnTp),
   typeOfExp(F,consType(FnTp,Tp),ErTp,Env,E0,Fun,Path),
   funLbl(Fun,Lbl),
-  dispType(consType(FnTp,Tp)),
+%  dispType(consType(FnTp,Tp)),
   checkRecordBody(FnTp,Lbl,Lc,Els,E0,Val,Path).
 typeOfExp(Term,Tp,ErTp,Env,Env,Val,Path) :-
   isQBraceTerm(Term,Lc,F,Els),

@@ -72,14 +72,18 @@ integer consLength(termPo t) {
 retCode dispCons(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   char *sep = "";
   retCode ret = outChar(out, '[');
-  while (isCons(t) && ret == Ok) {
-    normalPo pr = C_NORMAL(t);
+  if (depth > 1) {
+    while (isCons(t) && ret == Ok) {
+      normalPo pr = C_NORMAL(t);
 
-    ret = outStr(out, sep);
-    if (ret == Ok)
-      ret = dispTerm(out, consHead(pr), precision, depth - 1, alt);
-    sep = ", ";
-    t = consTail(pr);
+      ret = outStr(out, sep);
+      if (ret == Ok)
+        ret = dispTerm(out, consHead(pr), precision, depth - 1, alt);
+      sep = ", ";
+      t = consTail(pr);
+    }
+  } else {
+    return outMsg(out, " ... ]");
   }
   if (ret == Ok && isConsNil(t)) {
     return outMsg(out, "]");

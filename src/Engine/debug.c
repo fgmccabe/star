@@ -30,7 +30,7 @@ static void showGlobal(ioPo out, stackPo stk, termPo global);
 
 static void showRegisters(processPo p, heapPo h);
 static void showAllLocals(ioPo out, stackPo stk, framePo fp);
-static retCode showTos(ioPo out, stackPo stk);
+static void showTos(ioPo out, stackPo stk, termPo tos);
 static retCode showLcl(ioPo out, stackPo stk, integer vr);
 static retCode showArg(ioPo out, stackPo stk, integer arg);
 static void showStackCall(ioPo out, stackPo stk, framePo fp, integer frameNo);
@@ -125,8 +125,8 @@ static logical shouldWeStop(processPo p, termPo arg) {
     framePo frame = currFrame(stk);
 
     if (debugDebugging) {
-      outMsg(logFile, "debug: waterMark=%x, traceCount=%d, tracing=%s, ins: ", p->waterMark, p->traceCount,
-             (p->tracing ? "yes" : "no"));
+      outMsg(logFile, "debug: waterMark=0x%x, fp=0x%x, traceCount=%d, tracing=%s, ins: ", p->waterMark, p->stk->fp,
+             p->traceCount, (p->tracing ? "yes" : "no"));
       disass(logFile, stk, frame->prog, frame->pc);
       outMsg(logFile, "\n%_");
     }
@@ -134,6 +134,7 @@ static logical shouldWeStop(processPo p, termPo arg) {
     switch (*p->stk->fp->pc) {
       case Abort:
         return True;
+      case Nop:
       case Ret:
       case RtG: {
         switch (p->waitFor) {
@@ -170,9 +171,6 @@ static logical shouldWeStop(processPo p, termPo arg) {
       }
 
       case LdG: {
-        if (debugDebugging) {
-          outMsg(logFile, "debug: global %T\n%_", C_GLOB(arg));
-        }
         if (!glbIsSet(C_GLOB(arg))) {
           switch (p->waitFor) {
             case stepOver:
@@ -313,16 +311,6 @@ static DebugWaitFor dbgOver(char *line, processPo p, termPo loc, void *cl) {
   switch (*p->stk->fp->pc) {
     case Ret:
     case RtG: {
-      p->waterMark = p->stk->fp->fp;
-      break;
-    }
-    case Call:
-    case OCall: {
-      p->waterMark = p->stk->fp;
-      break;
-    }
-    case TCall:
-    case TOCall: {
       p->waterMark = p->stk->fp->fp;
       break;
     }
@@ -613,6 +601,14 @@ void showMethodCode(ioPo out, char *name, methodPo mtd) {
   flushOut();
 }
 
+static DebugWaitFor dbgDebug(char *line, processPo p, termPo loc, void *cl) {
+  debugDebugging = !debugDebugging;
+
+  logMsg(stdErr, "debug debugging %s\n", (debugDebugging ? "enanbled" : "disabled"));
+  resetDeflt("n");
+  return stepInto;
+}
+
 static DebugWaitFor dbgInsDebug(char *line, processPo p, termPo loc, void *cl) {
   lineDebugging = False;
   insDebugging = True;
@@ -693,8 +689,8 @@ static logical shouldWeStopIns(processPo p) {
     framePo f = currFrame(stk);
 #ifdef TRACE_DBG
     if (debugDebugging) {
-      outMsg(logFile, "debug: waterMark=%x, traceCount=%d, tracing=%s, ins: ", p->waterMark, p->traceCount,
-             (p->tracing ? "yes" : "no"));
+      outMsg(logFile, "debug: waterMark=0x%x, fp=0x%x, traceCount=%d, tracing=%s, ins: ", p->waterMark, p->stk->fp,
+             p->traceCount, (p->tracing ? "yes" : "no"));
       disass(logFile, stk, f->prog, f->pc);
       outMsg(logFile, "\n%_");
     }
@@ -1029,6 +1025,9 @@ DebugWaitFor enterDebug(processPo p) {
   insWord ins = *pc++;
   lineCount++;
   switch (ins) {
+    case Nop: {
+      return lnDebug(p, topStack(stk), showTos);
+    }
     case Abort: {
       return lnDebug(p, peekStack(stk, 1), showAbort);
     }
@@ -1106,8 +1105,9 @@ DebugWaitFor lnDebug(processPo p, termPo arg, showCmd show) {
     {.c = '+', .cmd=dbgAddBreakPoint, .usage="+ add break point"},
     {.c = '-', .cmd=dbgClearBreakPoint, .usage="- clear break point"},
     {.c = 'B', .cmd=dbgShowBreakPoints, .usage="show all break points"},
-    {.c = 'y', .cmd=dbgInsDebug, .usage="y turn on instruction mode"}},
-    .count = 19,
+    {.c = 'y', .cmd=dbgInsDebug, .usage="y turn on instruction mode"},
+    {.c = '&', .cmd=dbgDebug, .usage="& flip debug debugging"}},
+    .count = 20,
     .deflt = Null
   };
 
@@ -1198,11 +1198,11 @@ retCode showGlb(ioPo out, globalPo glb) {
     return outMsg(out, " unknown global");
 }
 
-retCode showTos(ioPo out, stackPo stk) {
+void showTos(ioPo out, stackPo stk, termPo tos) {
   if (stk != Null)
-    return outMsg(out, " <tos> = %,*T", displayDepth, *stk->sp);
+    outMsg(out, " <tos> = %,*T", displayDepth, tos);
   else
-    return outMsg(out, " <tos>");
+    outMsg(out, " <tos>");
 }
 
 static void showTopOfStack(ioPo out, stackPo stk, integer cnt) {
@@ -1255,7 +1255,7 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
 #undef instruction
 
 #define show_nOp
-#define show_tOs showTos(out,stk)
+#define show_tOs showTos(out,stk,topStack(stk))
 #define show_art showTopOfStack(out,stk,collectI32(pc))
 #define show_i32 outMsg(out," #%d",collectI32(pc))
 #define show_lBs outMsg(out," #%d",collectI32(pc))
