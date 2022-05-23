@@ -1,2 +1,2 @@
 #!/bin/bash
-@SWIPL@ @BOOT_COMPILER_DIRECTORY@/sbc.pl $*
+@SWIPL@ --stack-limit=2G @BOOT_COMPILER_DIRECTORY@/sbc.pl $*
