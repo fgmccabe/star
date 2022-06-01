@@ -8,7 +8,7 @@ testDir = "/Users/fgm/Projects/star/src/Tests/"
 sbc = "/Users/fgm/Projects/star/src/BootCompiler/sbc"
 sc = "/Users/fgm/Projects/star/Build/src/Compiler/sc"
 repoDir = "/Users/fgm/Projects/star/Build/.star-repo/"
-usage = "runtests.py -t <testpkg>"
+usage = "runtests.py [-t <testpkg>|--all] --compile_only --tracing --repo <dir>"
 
 tracing = False
 

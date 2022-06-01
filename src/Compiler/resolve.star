@@ -143,7 +143,7 @@ star.compiler.resolve{
     valis (whr(Lc,OT,OC),St2)
   }
   resolveTerm(mtd(Lc,Nm,Con,Tp),Dict,St) => valof{
---    logMsg("resolve contract $(Con) for $(Nm)");
+    logMsg("resolve contract $(Con) for $(Nm)");
     (A,St1) .= resolveContract(Lc,Con,Dict,St);
     valis resolveTerm(dot(Lc,A,Nm,Tp),Dict,St1)
   }

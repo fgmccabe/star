@@ -63,7 +63,8 @@
 	      isCons/4,mkCons/4,
 	      isPair/4,pair/4,
 	      isUnaryMinus/3,
-	      unitTpl/2]).
+	      unitTpl/2,
+	      dlName/2,dtName/2]).
 :- use_module(abstract).
 :- use_module(misc).
 :- use_module(operators).
@@ -709,7 +710,6 @@ isFieldAcc(Trm,Lc,Rc,Fld) :-
   unary(Lc,"!",L,Rc).
 
 fieldAcc(Lc,Rc,F,T) :-
-  
   binary(Lc,".",Rc,F,T).
 
 isRecordUpdate(Trm,Lc,Rc,Fld,Vl) :-
@@ -763,8 +763,6 @@ isIterableGl(C) :-
   (isIterableGl(L) ; isIterableGl(R)).
 isIterableGl(C) :-
   isSearch(C,_,_,_),!.
-
-
 
 packageName(T,Pkg) :- isIden(T,Pkg).
 packageName(T,Pkg) :- isBinary(T,_,".",L,R),
@@ -934,6 +932,11 @@ mkLoc(Lc,T) :-
 isQuote(Trm,Lc,Body) :-
   isUnary(Trm,Lc,"<||>",Body).
 
-/* Implement CPS-style transformation on actions */
 unitTpl(Lc,Unit) :-
   roundTuple(Lc,[],Unit).
+
+dlName(name(Lc,N),name(Lc,DlN)) :- dollarName(N,DlN).
+
+dtName(name(Lc,Nm),name(Lc,DtNm)) :-
+  dotName(Nm,DtNm).
+

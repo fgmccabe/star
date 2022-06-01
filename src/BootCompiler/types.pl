@@ -5,11 +5,12 @@
 	   newTypeVar/2,skolemVar/2,newTypeFun/3,skolemFun/3,deRef/2,
 	   progTypeArity/2,progArgTypes/2,funResType/2,
 	   isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
-	   isFunctionType/1,isFunctionType/2,isCnsType/2,
+	   isFunctionType/1,isFunctionType/2,isCnsType/3,
 	   isProgramType/1,isFixedSizeType/1,
 	   ssConstraint/4,ssType/4,dispType/1,dispConstraint/1,
 	   contractType/2,contractTypes/2,
 	   isUnbound/1,isBound/1,isUnboundFVar/2, isIdenticalVar/2,occursIn/2,
+%	   unwrapType/5,
 	   moveQuants/3,reQuantTps/3,
 	   moveXQuants/3,reQuantX/3,
 	   getConstraints/3,putConstraints/3,
@@ -103,9 +104,18 @@ isUnboundFVar(T,Ar) :- deRef(T,tFun(_,_,_,_,Ar,_)).
 
 isBound(T) :- deRef(T,TV), TV\=tVar(_,_,_,_,_),TV\=tFun(_,_,_,_,_).
 
-moveQuants(allType(B,Tp),[B|Q],Tmpl) :- !,
-  moveQuants(Tp,Q,Tmpl).
-moveQuants(Tp,[],Tp).
+% unwrapType(Tp,Q,X,Cx,Inner) :-
+%   moveQuants(Tp,Q,T1),
+%   moveXQuants(T1,X,T2),
+%   getConstraints(T2,Cx,Inner).
+
+moveQuants(Tp,Q,Tmp) :-
+  deRef(Tp,DTp), mvQuants(DTp,Q,Tmp).
+
+mvQuants(allType(B,Tp),[B|Q],Tmpl) :- !,
+  deRef(Tp,DTp),
+  moveQuants(DTp,Q,Tmpl).
+mvQuants(Tp,[],Tp).
 
 moveXQuants(existType(B,InTp),[B|Q],Tp) :-!,
   moveXQuants(InTp,Q,Tp).
@@ -317,19 +327,18 @@ isFunctionType(T) :- deRef(T,Tp), isFunctionType(Tp,_).
 isFunctionType(allType(_,T),Ar) :- deRef(T,Tp),isFunctionType(Tp,Ar).
 isFunctionType(funType(A,_),Ar) :- progTypeArity(A,Ar).
 
-isCnsType(Tp,Ar) :- deRef(Tp,T), isCnsTp(T,Ar).
+isCnsType(Tp,Arg,Rep) :- deRef(Tp,T), isCnsTp(T,Arg.Rep).
 
-isCnsTp(allType(_,Tp),Ar) :- isCnsTp(Tp,Ar).
-isCnsTp(constrained(Tp,_),Ar) :- isCnsTp(Tp,Ar).
-
-isCnsTp(consType(A,_),Ar) :- progTypeArity(A,Ar).
+isCnsTp(allType(_,Tp),Arg,Rep) :- isCnsTp(Tp,Arg,Rep).
+isCnsTp(constrained(Tp,_),Arg,Rep) :- isCnsTp(Tp,Arg,Rep).
+isCnsTp(consType(A,R),A,R).
 
 isProgramType(Tp) :- deRef(Tp,TT), isProgType(TT).
 
 isProgType(allType(_,Tp)) :- !, isProgType(Tp).
 isProgType(constrained(Tp,_)) :- isProgType(Tp).
 isProgType(Tp) :- isFunctionType(Tp),!.
-isProgType(Tp) :- isCnsType(Tp,_),!.
+isProgType(Tp) :- isCnsType(Tp,_,_),!.
 
 isTypeLam(Tp) :- isTypeLam(Tp,_).
 

@@ -128,6 +128,9 @@ star.compiler.ast{
 
   public anon(Lc) => nme(Lc,"_").
 
+  public isAnon(nme(Lc,"_")) => some(Lc).
+  isAnon(_) default => .none.
+
   public isNme:(ast) => option[(option[locn],string)].
   isNme(nme(Lc,Nm)) => some((Lc,Nm)).
   isNme(qnm(Lc,Nm)) => some((Lc,Nm)).
