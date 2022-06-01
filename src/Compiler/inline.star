@@ -177,6 +177,8 @@ star.compiler.inline{
     rewriteECall(Lc,Nm,Args,Tp).
   inlineECall(Lc,Nm,Args,Tp,_) default => crECall(Lc,Nm,Args,Tp).
 
+  inlineOCall(Lc,crTerm(OLc,Nm,OArgs,_),Args,Tp,Prog,Depth) =>
+    simplifyExp(crCall(Lc,Nm,OArgs++Args,Tp),Prog,Depth).
   inlineOCall(Lc,Op,Args,Tp,Prog,Depth) =>
     crOCall(Lc,Op,Args,Tp).
   

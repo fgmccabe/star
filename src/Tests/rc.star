@@ -17,6 +17,11 @@ test.rc{
     ll:(a)=>b
   }
 
+  implementation all e ~~ lc[pp[e]->>integer] => {
+    ll(pp{C=XX}) => XX.
+    ll(pq{C=YY}) => YY.
+  }
+
   implementation all a ~~ display[a] |: display[pp[a]] => {
     disp(pp{C=Ix}) => "pp{C=$(Ix)}".
     disp(pq{C=Ix. A=A}) => "pq{C=$(Ix),A=$(A)}"
@@ -34,6 +39,7 @@ test.rc{
 
     CC .= (cont(2).C<<-20);
     show CC;
+    show ll(CC);
 
     assert CC.C==20
   }

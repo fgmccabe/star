@@ -170,8 +170,8 @@ collectConstructors(C,Quants,Constraints,Tp,[(cns(Nm),Lc,[St])|Defs],Defs,
 collectConstructors(C,Quants,Constraints,Tp,[(cns(Nm),Lc,[St])|Defs],Defs,
 		    P,Px,Ax,Ax,Export) :-
   isBraceCon(C,XQ,XC,Lc,Nm,Els),!,
-  call(Export,var(Nm),P,Px),
   pullOthers(Els,Entries,_Asserts,_Defaults),
+  call(Export,var(Nm),P,Px),
   braceTuple(Lc,Entries,Hd),
   reConstrain(XC,Hd,XHd),
   reXQuant(XQ,XHd,QHd),
@@ -181,6 +181,18 @@ collectConstructors(C,Quants,Constraints,Tp,[(cns(Nm),Lc,[St])|Defs],Defs,
 collectConstructors(C,Quants,Constraints,Tp,Defs,Dfx,P,Px,A,Ax,_Export) :-
   isPrivate(C,_,I),
   collectConstructors(I,Quants,Constraints,Tp,Defs,Dfx,P,Px,A,Ax,checker:nop).
+
+cmpAstPair(A1,A2) :-
+  isTypeAnnotation(A1,_,N1,_),
+  isTypeAnnotation(A2,_,N2,_),
+  isIden(N1,_,I1),
+  isIden(N2,_,I2),
+  str_lt(I1,I2).
+
+projectAstTps([],[]) :-!.
+projectAstTps([A|As],[T|Ts]) :-
+  isTypeAnnotation(A,_,_,T),!,
+  projectAstTps(As,Ts).
 
 pullOthers([],[],[],[]).
 pullOthers([St|Els],Entries,[St|Asserts],Deflts) :-
@@ -289,12 +301,15 @@ formMethods([(Nm,Tp)|M],Lc,Q,Cx,Con,Env,Ev) :-
   declareMtd(Lc,Nm,MTp,Env,E0),
   formMethods(M,Lc,Q,Cx,Con,E0,Ev).
 
-parseConstructor(Nm,Lc,T,Env,Ev,[cnsDef(Lc,Nm,ConVr)|Defs],Defs,Path) :-
+parseConstructor(Nm,Lc,T,Env,Ev,Dfs,Defs,Path) :-
   parseType(T,Env,Tp),
   mangleName(Path,class,Nm,FullNm),
-  (isConType(Tp,0) ->
-   declareEnum(Lc,Nm,FullNm,Tp,Env,Ev), ConVr=enm(Lc,FullNm,Tp) ;
-   declareCns(Lc,Nm,FullNm,Tp,Env,Ev), ConVr=cons(Lc,FullNm,Tp)).
+  unwrapType(Tp,_Q,_Cx,ITp),
+  (deRef(ITp,consType(tplType([]),_)) ->
+   declareEnum(Lc,Nm,FullNm,Tp,Env,Ev),
+   Dfs=[cnsDef(Lc,Nm,enm(Lc,FullNm,Tp))|Defs];
+   declareCns(Lc,Nm,FullNm,Tp,Env,Ev),
+   Dfs=[cnsDef(Lc,Nm,cons(Lc,FullNm,Tp))|Defs]).
 
 parseAnnotations(Defs,Fields,Annots,Env,Path,faceType(F,T)) :-
   parseAnnots(Defs,Fields,Annots,Env,[],F,[],T,Path).
@@ -458,7 +473,7 @@ formTheta(Lc,Lbl,Decls,Defs,Flds,Tp,letRec(Lc,Decls,Defs,Exp)) :-
   Exp = apply(Lc,cons(Lc,Lbl,consType(tplType(ElTps),Tp)),
 	      tple(Lc,Args),Tp).
 
-checkRecordBody(Tp,Lbl,Lc,Els,Env,Val,Path) :-
+checkRecordBody(Tp,Lbl,Lc,Els,Env,letExp(Lc,Decls,Defs,Exp),Path) :-
   evidence(Tp,Env,Q,ETp),
   faceOfType(ETp,Lc,Env,FaceTp),
   getConstraints(FaceTp,Cx,faceType(Fs,Ts)),
@@ -468,15 +483,10 @@ checkRecordBody(Tp,Lbl,Lc,Els,Env,Val,Path) :-
   genNewName(Path,"Γ",ThPath),
   recordEnv(ThPath,Lc,Els,faceType(Fs,Ts),BaseEnv,_,Defs,Public),
   completePublic(Public,Public,FullPublic,Path),
-  computeThetaExport(Defs,Fs,FullPublic,Decls,Defns),!,
-  formRecord(Lc,Lbl,Decls,Defns,Fs,Tp,Val).
-
-formRecord(Lc,Lbl,Decls,Defs,Flds,Tp,letExp(Lc,Decls,Defs,Exp)) :-
-  sort(Flds,checker:cmpPair,SortedFlds),
+  computeThetaExport(Defs,Fs,FullPublic,Decls,Defs),!,
+  sort(Fs,checker:cmpPair,SortedFlds),
   findExportedDefs(Lc,SortedFlds,Args),
-  project1(SortedFlds,ElTps),
-  Exp = apply(Lc,cons(Lc,Lbl,consType(tplType(ElTps),Tp)),
-	      tple(Lc,Args),Tp).
+  Exp = apply(Lc,Lbl,tple(Lc,Args),Tp).
 
 checkLetRec(Tp,ErTp,Lc,Els,Ex,Env,letRec(Lc,Decls,XDefs,Bound),Path):-
   genNewName(Path,"Γ",ThPath),
@@ -521,11 +531,10 @@ checkImplementation(Stmt,INm,[Impl,ImplVar|Dfs],Dfs,Env,Evx,_,Path) :-
   implementationName(Spec,ImplName),
   mangleName(Path,value,ImplName,ImplVrNm),
   contractType(Spec,CnType),
-					%  dispType(CnType),
   dollarName(Nm,DlNm),
   labelImplExp(IBody,DlNm,ImpBody),
-%  reportMsg("implementation %s, expected type %s",[ast(ImpBody),tpe(CnType)]),
   typeOfExp(ImpBody,CnType,tplType([]),ThEnv,_ThEv,ImplTerm,ImplVrNm),
+  reportMsg("implementation %s:%s",[can(ImplTerm),tpe(CnType)]),
   putConstraints(AC,CnType,SS1),
   reQuantTps(SS1,IQ,ImpType),
   ImplVar = varDef(Lc,ImplVrNm,ImplVrNm,AC,ImpType,ImplTerm),
@@ -639,11 +648,11 @@ typeOfRecordPtn(Lc,Tp,ErTp,F,Args,Env,Ev,Exp,Path) :-
   faceOfType(FnTp,Lc,Env,FaceTp),
   getConstraints(FaceTp,Cx,Face),
   pushScope(E0,E1),
-%  declareTypeVars(Q,Lc,E1,E2),
   declareConstraints(Lc,Cx,E1,BaseEnv),
   typeOfElementPtns(Args,Face,ErTp,BaseEnv,Ev,PtnDefs,[],Path),
   fillinElementPtns(PtnDefs,Lc,FaceTp,ArgPtns),
-  Exp = apply(Lc,Fun,tple(Lc,ArgPtns),Tp).
+  Exp = apply(Lc,Fun,tple(Lc,ArgPtns),Tp),
+  reportMsg("record ptn = %s",[can(Exp)],Lc).
 
 typeOfElementPtns([],_,_,Env,Env,Defs,Defs,_Path).
 typeOfElementPtns([E|Els],Face,ErTp,Env,Ev,Defs,Dfx,Path) :-
@@ -758,14 +767,13 @@ typeOfExp(Term,Tp,ErTp,Env,Env,Val,Path) :-
   isBraceTerm(Term,Lc,F,Els),
   newTypeVar("F",FnTp),
   typeOfExp(F,consType(FnTp,Tp),ErTp,Env,E0,Fun,Path),
-  funLbl(Fun,Lbl),
-%  dispType(consType(FnTp,Tp)),
-  checkRecordBody(FnTp,Lbl,Lc,Els,E0,Val,Path).
+  checkRecordBody(FnTp,Fun,Lc,Els,E0,Val,Path).
+%  reportMsg("labeled record %s:%s",[can(Val),tpe(Tp)],Lc).
 typeOfExp(Term,Tp,ErTp,Env,Env,Val,Path) :-
   isQBraceTerm(Term,Lc,F,Els),
   newTypeVar("F",FnTp),
   typeOfExp(F,consType(FnTp,Tp),ErTp,Env,E0,Fun,Path),
-  funLbl(Fun,Lbl),
+  brceConLbl(Fun,Lbl),
   checkThetaBody(FnTp,Lbl,Lc,Els,E0,Val,Path).
 typeOfExp(Term,Tp,ErTp,Ev,Ev,LetExp,Path) :-
   isLetDef(Term,Lc,Els,Ex),
@@ -856,11 +864,11 @@ verifyType(Lc,_,Actual,Expected,Env) :-
 verifyType(Lc,M,S,T,_) :-
   reportError("%s:%s not consistent with expected type\n%s",[M,tpe(S),tpe(T)],Lc).
 
-funLbl(over(_,T,_,_),L) :- funLbl(T,L).
-funLbl(v(_,L,_),L).
-funLbl(cons(_,Nm,_),Nm).
-funLbl(enm(_,Nm,_),Nm).
-funLbl(mtd(_,Nm,_),Nm).
+brceConLbl(over(_,T,_,_),L) :- brceConLbl(T,L).
+brceConLbl(v(_,L,_),L).
+brceConLbl(cons(_,Nm,_),Nm).
+brceConLbl(enm(_,Nm,_),Nm).
+brceConLbl(mtd(_,Nm,_),Nm).
 
 typeOfRecordUpdate(Lc,Rc,Fld,Vl,Tp,ErTp,Env,Ev,update(Lc,Rec,Fld,Val),Path) :-
   typeOfExp(Rc,Tp,ErTp,Env,Ev0,Rec,Path),
@@ -1113,9 +1121,9 @@ isLetExport(Private,Nm) :-
   \+is_member(Nm,Private),!.
 
 completePublic([],Pub,Pub,_).
-completePublic([con(Nm)|List],Pub,[tpe(ConNm),var(DlNm)|Px],Path) :-
+completePublic([con(Nm)|List],Pub,[tpe(ConNm),var(DtNm)|Px],Path) :-
   contractName(Path,Nm,ConNm),
-  dollarName(Nm,DlNm),
+  dotName(Nm,DtNm),
   completePublic(List,Pub,Px,Path).
 completePublic([_|List],Pub,Px,Path) :-
   completePublic(List,Pub,Px,Path).

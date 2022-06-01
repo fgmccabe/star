@@ -33,7 +33,7 @@ star.compiler.checker{
 	(AllImports,IDecls) <- importAll(Imports,Repo,[],[],Rp);
 	PkgEnv .= declareDecls(IDecls,Base);
 
---	logMsg("Dictionary for pkg: $(PkgEnv)");
+	logMsg("Dictionary for pkg: $(PkgEnv)");
 	
 	PkgPth .= packageName(Pkg);
 
@@ -243,7 +243,7 @@ star.compiler.checker{
     parseContract(St,Env,Path,Rp).
   checkDefn(defnSpec(implSp(Nm),Lc,[St]),Env,Outer,Path,Rp) => do {
     if (_,Q,C,H,B) ^= isImplementationStmt(St) then
-      checkImplementation(Lc,Nm,Q,C,H,B,Env,Outer,Path,Rp)
+      checkImplementation(Lc,Q,C,H,B,Env,Outer,Path,Rp)
     else
       raise reportError(Rp,"not a valid implementation statement",Lc)
   }
@@ -317,28 +317,28 @@ star.compiler.checker{
 	}
       }.
 
-  checkImplementation:(option[locn],string,cons[ast],cons[ast],ast,ast,dict,dict,string,reports) =>
+  checkImplementation:(option[locn],cons[ast],cons[ast],ast,ast,dict,dict,string,reports) =>
     result[reports,(cons[canonDef],cons[decl])].
-  checkImplementation(Lc,Nm,Q,C,H,B,Env,Outer,Path,Rp) => do{
---    logMsg("checking implementation for $(Nm) stmt at $(Lc)");
+  checkImplementation(Lc,Q,C,H,B,Env,Outer,Path,Rp) => do{
+    logMsg("checking implementation for $(H) stmt at $(Lc)");
     
     BV <- parseBoundTpVars(Q,Rp);
     Cx <- parseConstraints(C,BV,Env,Rp);
     Cn <- parseContractConstraint(BV,H,Env,Rp);
     ConName .= localName(conTractName(Cn),.tractMark);
---    logMsg("Contract name $(ConName)");
+    logMsg("Contract name $(ConName)");
     
     if Con ^= findContract(Env,ConName) then{
       (_,contractExists(CnNm,CnTps,CnDps,ConFaceTp)) .= freshen(Con,Env);
       ConTp .= mkConType(CnNm,CnTps,CnDps);
---      logMsg("contract exists: $(ConTp) ~ $(Cn)");
+      logMsg("contract exists: $(ConTp) ~ $(Cn)");
       if sameType(ConTp,typeOf(Cn),Env) then {
 	Es .= declareConstraints(Lc,Cx,declareTypeVars(BV,Outer));
 	Impl <- typeOfExp(B,ConTp,Es,Path,Rp);
 	ImplNm .= implementationName(conTract(CnNm,CnTps,CnDps));
 	ImplVrNm .= qualifiedName(Path,.valMark,ImplNm);
 	ImplTp .= rebind(BV,reConstrainType(Cx,ConTp),Es);
---	logMsg("implementation definition $(implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp))");
+	logMsg("implementation definition $(implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp))");
 	
 	valis ([implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp)],
 	  [implDec(Lc,ImplNm,ImplVrNm,ImplTp)])
@@ -695,13 +695,14 @@ star.compiler.checker{
     valis formTheta(Lc,Nm,Face,Defs,Decls,Tp)
   }
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Op,Els) ^= isLabeledRecord(A) && (_,Nm)^=isName(Op) => do{
---    logMsg("labeled record expression $(A) should be $(Tp)");
+    logMsg("labeled record expression $(A) should be $(Tp)");
     FceTp .= newTypeVar("_");
     ConTp .= consType(FceTp,Tp);
---    logMsg("checking type of $(Op) against $(ConTp)");
+    logMsg("checking type of $(Op) against $(ConTp)");
     Fun <- typeOfExp(Op,ConTp,Env,Pth,Rp);
---    logMsg("$(Op) |: $(ConTp)");
+    logMsg("$(Op) |: $(ConTp)");
     (Q,ETp) .= evidence(FceTp,Env);
+    logMsg("face of type $(ETp)\:$(faceOfType(FceTp,Env))");
     FaceTp ^= faceOfType(ETp,Env);
     (Cx,Face) .= deConstrain(FaceTp);
     Base .= declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));

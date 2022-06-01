@@ -16,9 +16,11 @@ star.compiler.dependencies{
     if traceDependencies! then
       logMsg("look for dependencies in $(Dfs)");
     (Defs,Pb,As,Opn) <- collectDefinitions(Dfs,Rp);
---    logMsg("definitions found: $(Defs)");
+--    logMsg("Defs found: $(Defs)");
     AllRefs .= foldLeft((D,M)=>collectRef(D,M),[],Defs);
+--    logMsg("All refs found: $(AllRefs)");
     InitDefs <- collectThetaRefs(Defs,AllRefs,As,[],Rp);
+--    logMsg("initDefs $(InitDefs)");
     Groups .= (topsort(InitDefs) // (Gp)=>(Gp//((definition(Sp,Lc,_,Els))=>defnSpec(Sp,Lc,Els))));
     if traceDependencies! then
       logMsg("groups $(Groups)");
@@ -100,8 +102,9 @@ star.compiler.dependencies{
       }
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
       (Lc,Q,C,T,Els) ^= isCntrctStmt(A) => do{
-	valis (Stmts,[defnSpec(conSp(typeName(T)),Lc,[A]),..Defs],
-	  [(conSp(typeName(T)),Vz),..Pb],generateAnnotations(Els,Q,C,As),Opn)
+	ConTpNme .= typeName(T);
+	valis (Stmts,[defnSpec(conSp(ConTpNme),Lc,[A]),..Defs],
+	  [(conSp(ConTpNme),Vz),..Pb],generateAnnotations(Els,Q,C,As),Opn)
       }.
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
       (Lc,_,_,Cn,_) ^= isImplementationStmt(A) &&
@@ -140,6 +143,10 @@ star.compiler.dependencies{
   collectDefinition(A,_,_,_,_,_,_,Rp) => do{
     raise reportError(Rp,"cannot understand definition $(A)",locOf(A))
   }.
+
+  -- genConRefs(N,Els,SoFar) =>
+  --   foldLeft((El,Sf) => ((_,V,_) ^= isTypeAnnotation(El) && (_,Vr)^=isName(V) ?
+  -- 	  [(varSp(Vr),N),..Sf] || Sf),SoFar,Els).
 
   isDefined:(defnSp,cons[defnSpec])=>option[locn].
   isDefined(_,[]) => .none.
@@ -235,10 +242,10 @@ star.compiler.dependencies{
 	collectTypeRefs(R,A0,Rf1,Rp)
       }.
   collectStmtRefs(A,All,Annots,Rf,Rp) where
-      (_,Q,C,T,Els) ^= isCntrctStmt(A) => do{
+      (_,Q,C,T,Els) ^= isCntrctStmt(A) && (_,O,_) ^= isSquareTerm(T) => do{
 	A0 .= filterOut(All,Q);
 	Rf0 <- collectConstraintRefs(C,A0,Rf,Rp);
-	Rf1 <- collectTypeRefs(T,A0,Rf0,Rp);
+	Rf1 <- collectTypeRefs(dollarName(O),A0,Rf0,Rp);
 	collectFaceTypes(Els,A0,Rf1,Rp)
       }.
   collectStmtRefs(A,All,Annots,Rf,Rp) where
@@ -305,6 +312,7 @@ star.compiler.dependencies{
   collectCondRefs(E,All,Rf,Rp) => collectTermRefs(E,All,Rf,Rp).
     
   collectTermRefs:(ast,map[defnSp,defnSp],cons[defnSp],reports) => result[reports,cons[defnSp]].
+  collectTermRefs(V,All,Rf,Rp) where _ ^= isAnon(V) => do{ valis Rf }.
   collectTermRefs(V,All,Rf,Rp) where (_,Id) ^= isName(V) => do{
     valis collectName(cnsSp(Id),All,collectName(varSp(Id),All,Rf))
   }
@@ -617,7 +625,7 @@ star.compiler.dependencies{
   collectFaceType(_,All,R,_) => do{ valis R}.
 
   collectName:(defnSp,map[defnSp,defnSp],cons[defnSp])=>cons[defnSp].
-  collectName(Sp,All,SoFar) where Rf^=All[Sp] && {? ~Sp in SoFar ?} => [Sp,..SoFar].
+  collectName(Sp,All,SoFar) where Rf^=All[Sp] => SoFar\+Rf.
   collectName(_,_,SoFar) default => SoFar.
 
   filterOut:(map[defnSp,defnSp],cons[ast]) => map[defnSp,defnSp].

@@ -376,7 +376,7 @@ star.compiler.macro.rules{
   implementationMacro(A,.statement,Rp) where
       (Lc,Q,C,H,E) ^= isImplementationStmt(A) &&
       (_,Nm,_) ^= isSquareTerm(H) &&
-      Ex ^= labelImplExp(E,dollarName(Nm)) => do{
+      Ex ^= labelImplExp(E,Nm) => do{
 	valis active(mkImplementationStmt(Lc,Q,C,H,Ex))
       }.
   implementationMacro(_,_,_) default => ok(.inactive).
@@ -523,7 +523,7 @@ star.compiler.macro.rules{
 	  reConstrain(Cx,
 	      binary(Lc,"<=>",reXQuant(Lc,XQs,
 		  reConstrain(XCx,brTuple(Lc,sort(Els,compEls)))),Tp)))).
-	DCon = typeAnnotation(Lc,dotId(Nm),reUQuant(Lc,Qs,
+	DCon = typeAnnotation(Lc,dollarName(Nm),reUQuant(Lc,Qs,
 	  reConstrain(Cx,
 	      binary(Lc,"<=>",reXQuant(Lc,XQs,
 		  reConstrain(XCx,rndTuple(Lc,project1(sort(Els,compEls))))),Tp)))).
@@ -617,7 +617,7 @@ star.compiler.macro.rules{
     Sorted .= sort(Els,compEls);
     ConArgs .= projectArgTypes(Sorted,Fld);
     Eqn .=mkEquation(Lc,some(AccNm),.false,
-      rndTuple(Lc,[roundTerm(Lc,dotId(CnNm),ConArgs)]),.none,nme(Lc,"X"));
+      rndTuple(Lc,[roundTerm(Lc,dollarName(CnNm),ConArgs)]),.none,nme(Lc,"X"));
     valis [Eqn,..SoFar]
   }
   accessorEqns(C,Fld,AccNm,Eqns,Rp) where (Lc,I) ^= isPrivate(C) =>
@@ -657,8 +657,8 @@ star.compiler.macro.rules{
     Sorted .= sort(Els,compEls);
     ConArgs .= projectArgTypes(Sorted,Fld);
     UEqn .= mkEquation(Lc,some(AccNm),.false,
-      rndTuple(Lc,[roundTerm(Lc,dotId(CnNm),allArgs(Sorted,Fld,0,anon(Lc))),nme(Lc,"XX")]),.none,
-      roundTerm(Lc,dotId(CnNm),allArgs(Sorted,Fld,0,nme(Lc,"XX"))));
+      rndTuple(Lc,[roundTerm(Lc,dollarName(CnNm),allArgs(Sorted,Fld,0,anon(Lc))),nme(Lc,"XX")]),.none,
+      roundTerm(Lc,dollarName(CnNm),allArgs(Sorted,Fld,0,nme(Lc,"XX"))));
     valis [UEqn,..SoFar]
   }
   updaterEqns(C,Fld,AccNm,Eqns,Rp) where (Lc,I) ^= isPrivate(C) =>

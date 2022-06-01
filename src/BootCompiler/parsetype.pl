@@ -3,7 +3,8 @@
 		     parseContract/6,parseTypeDef/6,
 		     typeTemplate/3,
 		     parseContractConstraint/7,
-		     genBraceType/6,buildBraceAccessors/8]).
+		     genBraceType/6,buildBraceAccessors/8,
+		     unwrapType/4,wrapType/4]).
 
 :- use_module(abstract).
 :- use_module(canon).
@@ -148,6 +149,8 @@ parseBoundVar(N,Q,Q) :-
 % reapply quantifiers to a type to get full form
 reUQnt([],Tp,Tp).
 reUQnt([(_,KV)|M],Tp,allType(KV,QTp)) :-
+  reUQnt(M,Tp,QTp).
+reUQnt([KV|M],Tp,allType(KV,QTp)) :-
   reUQnt(M,Tp,QTp).
 
 reXQnt([],Tp,Tp).
@@ -295,7 +298,7 @@ parseAlgebraicTypeDef(Lc,Quants,Constraints,Hd,Body,
   concat(XQ,Q,QV),
   parseTypeHead(Hd,QV,Tp,Nm,_Args,Path),
   parseConstraints(Constraints,E,QV,C0,[]),
-%  reportMsg("algebraic type %s",[tpe(Tp)],Lc),
+%  reportMsg("algebraic type head %s",[tpe(Tp)],Lc),
   pickTypeTemplate(Tp,Type),
   parseType(Face,E,QV,C0,Cx,FceTp),
   wrapType([],[],XQ,[],FceTp,FaceTp),
@@ -437,9 +440,9 @@ fillinElementPtns(Els,Lc,Flds,Args,ArgTps) :-
 
 buildBraceAccessors(Lc,Q,Cx,Tp,Defs,Dfx,Imps,Impx) :-
   tpName(Tp,ConNm),
-  string_concat(ConNm,"#",Prefix),
+  dollarName(ConNm,DlNm),
   deRef(Tp,faceType(ElTps,_)),
-  genBraceAccessors(Lc,Q,Cx,Prefix,Tp,ElTps,ElTps,Defs,Dfx,Imps,Impx).
+  genBraceAccessors(Lc,Q,Cx,DlNm,Tp,ElTps,ElTps,Defs,Dfx,Imps,Impx).
   
 genBraceAccessors(_Lc,_Q,_Cx,_ConNm,_Tp,[],_,Defs,Defs,Imps,Imps).
 genBraceAccessors(Lc,Q,Cx,ConNm,Tp,[(Fld,FldTp)|ElTps],AllElTps,Defs,Dfx,Imps,Imx) :-
@@ -495,8 +498,6 @@ genBraceConstructor(Lc,Fields,Nm,DtNm,ConNm,Q,Cx,Tp,
   project1(Fields,FTps),
   declareCns(Lc,Nm,ConNm,ConTp,Env,Ev).
 
-nonConstructorTp((_,Tp)) :- \+ isCnsType(Tp,_).
-
 cmpVarDef((N1,_),(N2,_)) :-
   str_lt(N1,N2).
 
@@ -527,40 +528,15 @@ findCons(Body,[Id|Cnx],Cnx,Path) :-
   isBraceCon(Body,_,_,_,Nm,_),!,
   mangleName(Path,class,Nm,Id).
   
-parseConstructors(Body,Q,Cx,Tp,Defs,Dfx,Cons,Cnx,Env,Ev) :-
-  isBinary(Body,_,"|",L,R),!,
-  parseConstructors(L,Q,Cx,Tp,Defs,Df0,Cons,C0,Env,E0),
-  parseConstructors(R,Q,Cx,Tp,Df0,Dfx,C0,Cnx,E0,Ev).
-parseConstructors(Body,Q,Cx,Tp,
-		  [cnsDef(Lc,Nm,enm(Lc,Nm,Type))|Dfx],Dfx,
-		  [(Nm,Lc,Type)|Cnx],Cnx,Env,Env) :-
-  isIden(Body,Lc,Nm),!,
-  wrapType(Q,Cx,[],[],consType(tplType([]),Tp),Type).
-parseConstructors(Body,Q,Cx,Tp,
-		  [cnsDef(Lc,Nm,enm(Lc,Nm,Type))|Dfx],Dfx,
-		  [(Nm,Lc,Type)|Cnx],Cnx,Env,Env) :-
-  isEnum(Body,Lc,E),
-  isIden(E,_,Nm),!,
-  wrapType(Q,Cx,[],[],consType(tplType([]),Tp),Type).
-parseConstructors(Body,Q,Cx,Tp,
-		  [cnsDef(Lc,Nm,cons(Lc,Nm,Type))|Dfx],Dfx,
-		  [(Nm,Lc,Type)|Cnx],Cnx,Env,Env) :-
-  isRoundCon(Body,XQ,XC,Lc,Nm,Args),!,
-  parseTypes(Args,Env,Q,Cx,C2,ArgTps),
-  wrapType(Q,C2,XQ,XC,consType(tplType(ArgTps),Tp),Type).
-parseConstructors(Body,Q,Cx,Tp,
-		  [cnsDef(Lc,Nm,cons(Lc,Nm,Type))|Dfx],Dfx,
-		  [(Nm,Lc,Type)|Cnx],Cnx,Env,Env) :-
-  isBraceCon(Body,XQ,XC,Lc,Nm,Args),!,
-  braceTuple(Lc,Args,F),
-  parseType(F,Env,Fce),
-  wrapType(Q,Cx,XQ,XC,consType(Fce,Tp),Type).
- 
 wrapType(Q,Cx,XQ,XC,Tp,WTp) :-
   wrapConstraints(XC,Tp,Tp0),
   reXQnt(XQ,Tp0,Tp1),
   wrapConstraints(Cx,Tp1,CTp),
   reUQnt(Q,CTp,WTp).
+
+wrapType(Q,Cx,ITp,Tp) :-
+  wrapConstraints(Cx,ITp,T1),
+  reUQnt(Q,T1,Tp).
 
 unwrapType(Tp,Q,Cx,ITp) :-
   moveQuants(Tp,Q,Tp0),

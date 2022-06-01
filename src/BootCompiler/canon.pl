@@ -149,11 +149,22 @@ locOfCanon(case(Lc,_,_,_),Lc) :- !.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
 locOfCanon(tple(Lc,_),Lc) :-!.
 locOfCanon(lambda(Lc,_,_,_),Lc) :-!.
-locOfCanon(tag(Lc,_),Lc) :-!.
-locOfCanon(prompt(Lc,_,_),Lc) :-!.
-locOfCanon(resume(Lc,_,_,_),Lc) :-!.
-locOfCanon(shift(Lc,_,_),Lc) :-!.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
+locOfCanon(doExp(Lc,_,_),Lc) :-!.
+locOfCanon(taskExp(Lc,_,_),Lc) :- !.
+locOfCanon(resultExp(Lc,_,_),Lc) :- !.
+locOfCanon(bind(Lc,_,_),Lc) :-!.
+locOfCanon(assign(Lc,_,_),Lc) :-!.
+locOfCanon(ifThenElse(Lc,_,_,_),Lc) :-!.
+locOfCanon(ifThen(Lc,_,_),Lc) :-!.
+locOfCanon(tryCatch(Lc,_,_),Lc) :-!.
+locOfCanon(whileDo(Lc,_,_),Lc) :-!.
+locOfCanon(untilDo(Lc,_,_),Lc) :-!.
+locOfCanon(forDo(Lc,_,_,_),Lc) :-!.
+locOfCanon(valis(Lc,_),Lc) :-!.
+locOfCanon(ignore(Lc,_),Lc) :-!.
+locOfCanon(raise(Lc,_),Lc) :-!.
+locOfCanon(perform(Lc,_),Lc) :-!.
 
 constructorName(enm(_,Nm,_),Nm) :-!.
 constructorName(cons(_,Nm,_),Nm).

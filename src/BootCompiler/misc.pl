@@ -338,8 +338,8 @@ marker(closure,"^").
 dollarName(Nm,DlNm) :-
   string_concat("$",Nm,DlNm).
 
-dotName(Nm,DlNm) :-
-  string_concat(".",Nm,DlNm).
+dotName(Nm,DtNm) :-
+  string_concat(".",Nm,DtNm).
 
 packageVarName(Pkg,Nm,LclName) :-
   mangleName(Pkg,package,Nm,LclName).

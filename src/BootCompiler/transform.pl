@@ -54,7 +54,7 @@
 transformProg(PkgDecls,prog(pkg(Pkg,Vers),Imports,Decls,LDecls,Defs),
 	      Opts,mdule(pkg(Pkg,Vers),Imports,Decls,LDecls,Dfs)) :-
   makePkgMap(Pkg,PkgDecls,Map),
-%  (is_member(showTrCode,Opts) -> dispMap("Package map: ",0,Map);true),
+  (is_member(showTrCode,Opts) -> dispMap("Package map: ",0,Map);true),
   transformModuleDefs(Defs,Pkg,Map,Opts,Dfs,[]).
 
 makePkgMap(Pkg,PkgDecls,[lyr(VarMap,TpMap,ConsMap,void)]) :-
@@ -99,6 +99,7 @@ makeConstructorMap(Decls,CnMp,ConsMap) :-
 
 findAllConstructors([],Cons,Cons) :-!.
 findAllConstructors([cnsDec(Nm,FullNm,CnsTp)|Defs],Cons,Cnx) :-
+  collectibleCons(CnsTp),!,
   consTpName(CnsTp,TpNm),
   (concat(L1,[(TpNm,L)|L2],Cons) ->
    concat(L1,[(TpNm,[(Nm,FullNm,CnsTp)|L])|L2],C0) ;
@@ -106,6 +107,9 @@ findAllConstructors([cnsDec(Nm,FullNm,CnsTp)|Defs],Cons,Cnx) :-
   findAllConstructors(Defs,C0,Cnx).
 findAllConstructors([_|Defs],Cons,Cnx) :-
   findAllConstructors(Defs,Cons,Cnx).
+
+collectibleCons(Tp) :-
+  moveQuants(Tp,_,consType(tplType(_),_)),!.
 
 collectCons(Nm,TpNm,Cons,Cns) :-
   (concat(L1,[(TpNm,L)|L2],Cons) ->
