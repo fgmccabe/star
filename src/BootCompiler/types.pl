@@ -327,7 +327,7 @@ isFunctionType(T) :- deRef(T,Tp), isFunctionType(Tp,_).
 isFunctionType(allType(_,T),Ar) :- deRef(T,Tp),isFunctionType(Tp,Ar).
 isFunctionType(funType(A,_),Ar) :- progTypeArity(A,Ar).
 
-isCnsType(Tp,Arg,Rep) :- deRef(Tp,T), isCnsTp(T,Arg.Rep).
+isCnsType(Tp,Arg,Rep) :- deRef(Tp,T), isCnsTp(T,Arg,Rep).
 
 isCnsTp(allType(_,Tp),Arg,Rep) :- isCnsTp(Tp,Arg,Rep).
 isCnsTp(constrained(Tp,_),Arg,Rep) :- isCnsTp(Tp,Arg,Rep).

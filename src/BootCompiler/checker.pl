@@ -534,7 +534,7 @@ checkImplementation(Stmt,INm,[Impl,ImplVar|Dfs],Dfs,Env,Evx,_,Path) :-
   dollarName(Nm,DlNm),
   labelImplExp(IBody,DlNm,ImpBody),
   typeOfExp(ImpBody,CnType,tplType([]),ThEnv,_ThEv,ImplTerm,ImplVrNm),
-  reportMsg("implementation %s:%s",[can(ImplTerm),tpe(CnType)]),
+%  reportMsg("implementation %s:%s",[can(ImplTerm),tpe(CnType)]),
   putConstraints(AC,CnType,SS1),
   reQuantTps(SS1,IQ,ImpType),
   ImplVar = varDef(Lc,ImplVrNm,ImplVrNm,AC,ImpType,ImplTerm),
@@ -651,8 +651,8 @@ typeOfRecordPtn(Lc,Tp,ErTp,F,Args,Env,Ev,Exp,Path) :-
   declareConstraints(Lc,Cx,E1,BaseEnv),
   typeOfElementPtns(Args,Face,ErTp,BaseEnv,Ev,PtnDefs,[],Path),
   fillinElementPtns(PtnDefs,Lc,FaceTp,ArgPtns),
-  Exp = apply(Lc,Fun,tple(Lc,ArgPtns),Tp),
-  reportMsg("record ptn = %s",[can(Exp)],Lc).
+  Exp = apply(Lc,Fun,tple(Lc,ArgPtns),Tp).
+%  reportMsg("record ptn = %s",[can(Exp)],Lc).
 
 typeOfElementPtns([],_,_,Env,Env,Defs,Defs,_Path).
 typeOfElementPtns([E|Els],Face,ErTp,Env,Ev,Defs,Dfx,Path) :-
@@ -1123,7 +1123,7 @@ isLetExport(Private,Nm) :-
 completePublic([],Pub,Pub,_).
 completePublic([con(Nm)|List],Pub,[tpe(ConNm),var(DtNm)|Px],Path) :-
   contractName(Path,Nm,ConNm),
-  dotName(Nm,DtNm),
+  dollarName(Nm,DtNm),
   completePublic(List,Pub,Px,Path).
 completePublic([_|List],Pub,Px,Path) :-
   completePublic(List,Pub,Px,Path).

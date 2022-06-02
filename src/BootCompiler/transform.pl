@@ -99,7 +99,7 @@ makeConstructorMap(Decls,CnMp,ConsMap) :-
 
 findAllConstructors([],Cons,Cons) :-!.
 findAllConstructors([cnsDec(Nm,FullNm,CnsTp)|Defs],Cons,Cnx) :-
-  collectibleCons(CnsTp),!,
+%  collectibleCons(CnsTp),!,
   consTpName(CnsTp,TpNm),
   (concat(L1,[(TpNm,L)|L2],Cons) ->
    concat(L1,[(TpNm,[(Nm,FullNm,CnsTp)|L])|L2],C0) ;
