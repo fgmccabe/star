@@ -30,17 +30,7 @@ freeVars(cond(_,C,T,E,_),Ex,Q,F,FV) :- ptnGoalVars(C,Ex,E1),
   freeVars(T,E1,Q,F,F0),
   freeVars(C,E1,Q,F0,F1),
   freeVars(E,Ex,Q,F1,FV).
-freeVars(lambda(_,_,Eqn,_),Ex,Q,F,FV) :- freeVarsInRule(Ex,Q,Eqn,F,FV).
-freeVars(prompt(_,L,E),Ex,Q,F,Fv) :-
-  freeVars(L,Ex,Q,F,F0),
-  freeVars(E,Ex,Q,F0,Fv).
-freeVars(shift(_,L,E),Ex,Q,F,Fv) :-
-  freeVars(L,Ex,Q,F,F0),
-  freeVars(E,Ex,Q,F0,Fv).
-freeVars(tag(_,_),_,_,Fv,Fv) :-!.
-freeVars(resume(_,K,A,_),Ex,Q,F,Fv) :-
-  freeVars(K,Ex,Q,F,F0),
-  freeVars(A,Ex,Q,F0,Fv).
+freeVars(lambda(_,_,Eqn,_),Ex,Q,F,FV) :- freeVarsInRule(Ex,Q,freevars:freeVars,Eqn,F,FV).
 freeVars(sequence(_,L,R),Ex,Q,F,Fv) :-
   freeVars(L,Ex,Q,F,F0),
   freeVars(R,Ex,Q,F0,Fv).
@@ -68,9 +58,72 @@ freeVars(letRec(_,_,Defs,Bnd),Ex,Q,F,Fv) :-
   definedVars(Defs,Ex,Ex1),
   freeVarsInDefs(Defs,Ex1,Q,F,F0),
   freeVars(Bnd,Ex1,Q,F0,Fv).
-freeVars(case(_,Gov,Cses,_),Ex,Q,F,Fv) :-
+freeVars(case(_,Gov,Cses,D),Ex,Q,F,Fv) :-
   freeVars(Gov,Ex,Q,F,F0),
-  freeVarsInRules(Cses,Ex,Q,F0,Fv).
+  freeVarsInRules(Cses,Ex,Q,freevars:freeVars,F0,F1),
+  freeVars(D,Ex,Q,F1,Fv).
+freeVars(valof(_,A),Ex,Q,F,Fv) :-
+  freeVarsInAction(A,Ex,Q,F,Fv).
+
+freeVarsInAction(doNop(_),_,_,F,F) :-!.
+freeVarsInAction(doSeq(_,L,R),Ex,Q,F,Fv) :-!,
+  freeVarsInAction(L,Ex,Q,F,F0),
+  freeVarsInAction(R,Ex,Q,F0,Fv).
+freeVarsInAction(doValis(_,E),Ex,Q,F,Fv) :-!,
+  freeVars(E,Ex,Q,F,Fv).
+freeVarsInAction(doRaise(_,E),Ex,Q,F,Fv) :-!,
+  freeVars(E,Ex,Q,F,Fv).
+freeVarsInAction(doPerform(_,E),Ex,Q,F,Fv) :-!,
+  freeVars(E,Ex,Q,F,Fv).
+freeVarsInAction(doBind(_,P,E),Ex,Q,F,Fv) :-!,
+  ptnVars(P,Ex,Ex1),
+  freeVars(P,Ex1,Q,F,F0),
+  freeVars(E,Ex,Q,F0,Fv).
+freeVarsInAction(doMatch(_,P,E),Ex,Q,F,Fv) :-!,
+  ptnVars(P,Ex,Ex1),
+  freeVars(P,Ex1,Q,F,F0),
+  freeVars(E,Ex,Q,F0,Fv).
+freeVarsInAction(doAssign(_,P,E),Ex,Q,F,Fv) :-!,
+  freeVars(P,Ex,Q,F,F0),
+  freeVars(E,Ex,Q,F0,Fv).
+freeVarsInAction(doTryCatch(_,B,H),Ex,Q,F,Fv) :-!,
+  freeVarsInAction(B,Ex,Q,F,F0),
+  freeVars(H,Ex,Q,F0,Fv).
+freeVarsInAction(doIfThenElse(_,T,L,R),Ex,Q,F,Fv) :-!,
+  ptnVars(T,Ex,Ex1),
+  freeVars(T,Ex1,Q,F,F0),
+  freeVarsInAction(L,Ex1,Q,F0,F1),
+  freeVarsInAction(R,Ex,Q,F1,Fv).
+freeVarsInAction(doIfThen(_,T,L),Ex,Q,F,Fv) :-!,
+  ptnVars(T,Ex,Ex1),
+  freeVars(T,Ex1,Q,F,F0),
+  freeVarsInAction(L,Ex1,Q,F0,Fv).
+freeVarsInAction(doWhile(_,T,L),Ex,Q,F,Fv) :-!,
+  ptnVars(T,Ex,Ex1),
+  freeVars(T,Ex1,Q,F,F0),
+  freeVarsInAction(L,Ex1,Q,F0,Fv).
+freeVarsInAction(doUntil(_,L,T),Ex,Q,F,Fv) :-!,
+  freeVars(T,Ex,Q,F,F0),
+  freeVarsInAction(L,Ex,Q,F0,Fv).
+freeVarsInAction(doFor(_,P,S,B),Ex,Q,F,Fv) :-!,
+  ptnVars(P,Ex,Ex1),
+  freeVars(P,Ex1,Q,F,F0),
+  freeVars(S,Ex,Q,F0,F1),
+  freeVarsInAction(B,Ex1,Q,F1,Fv).
+freeVarsInAction(doLet(_,_,Defs,Bnd),Ex,Q,F,Fv) :-
+  definedVars(Defs,Ex,Ex1),
+  freeVarsInDefs(Defs,Ex1,Q,F,F0),
+  freeVarsInAction(Bnd,Ex1,Q,F0,Fv).
+freeVarsInAction(doLetRec(_,_,Defs,Bnd),Ex,Q,F,Fv) :-
+  definedVars(Defs,Ex,Ex1),
+  freeVarsInDefs(Defs,Ex1,Q,F,F0),
+  freeVarsInAction(Bnd,Ex1,Q,F0,Fv).
+freeVarsInAction(doCase(_,G,Cs,_),Ex,Q,F,Fv) :-
+  freeVars(G,Ex,Q,F,F0),
+  freeVarsInRules(Cs,Ex,Q,freevars:freeVarsInAction,F0,Fv).
+freeVarsInAction(A,_,_,F,F) :-
+  locOfCanon(A,Lc),
+  reportMsg("cannot find free vars in %s",[can(A)],Lc).
 
 definedVars(Defs,Q,Qx) :-
   varsInList(Defs,freevars:defVar,Q,Qx).
@@ -87,23 +140,23 @@ freeVarsInDefs(L,Ex,Q,F,Fv) :-
   rfold(L,freevars:freeVarsInDef(Ex,Q),F,Fv).
 
 freeVarsInDef(Ex,Q,funDef(_,_,_,_,_,_,Eqns),F,Fv) :-
-  freeVarsInRules(Eqns,Ex,Q,F,Fv).
+  freeVarsInRules(Eqns,Ex,Q,freevars:freeVars,F,Fv).
 freeVarsInDef(Ex,Q,varDef(_,_,_,_,_Tp,Value),F,Fv) :-
   freeVars(Value,Ex,Q,F,Fv).
 freeVarsInDef(_,_,_,F,F).
 
-freeVarsInRules(Eqns,Ex,Q,F,Fv) :-
-  varsInList(Eqns,freevars:freeVarsInRule(Ex,Q),F,Fv).
+freeVarsInRules(Eqns,Ex,Q,C,F,Fv) :-
+  varsInList(Eqns,freevars:freeVarsInRule(Ex,Q,C),F,Fv).
 
-freeVarsInRule(Ex,Q,rule(_,H,none,Exp),F,FV) :-!,
+freeVarsInRule(Ex,Q,C,rule(_,H,none,Exp),F,FV) :-!,
   ptnVars(H,Ex,Ex1),
   freeVars(H,Ex1,Q,F,F0),
-  freeVars(Exp,Ex1,Q,F0,FV).
-freeVarsInRule(Ex,Q,rule(_,H,some(Cond),Exp),F,FV) :-
+  call(C,Exp,Ex1,Q,F0,FV).
+freeVarsInRule(Ex,Q,C,rule(_,H,some(Cond),Exp),F,FV) :-
   ptnVars(H,Ex,Ex1),
   ptnGoalVars(Cond,Ex1,Ex2),
   freeVars(H,Ex2,Q,F,F0),
-  freeVars(Exp,Ex2,Q,F0,F1),
+  call(C,Exp,Ex2,Q,F0,F1),
   freeVars(Cond,Ex2,Q,F1,FV).
 
 freeVarsList(L,Ex,Q,F,Fv) :- varsInList(L,freevars:frVars(Ex,Q),F,Fv).

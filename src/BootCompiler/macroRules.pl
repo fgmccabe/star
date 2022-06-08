@@ -36,7 +36,7 @@ macroRl("assert",action,macroRules:assertMacro).
 macroRl("show",action,macroRules:showMacro).
 macroRl("show",expression,macroRules:showMacro).
 macroRl("do",expression,macroRules:doMacro).
-macroRl("task",expression,macroRules:taskMacro).
+%macroRl("task",expression,macroRules:taskMacro).
 macroRl("valof",expression,macroRules:valofMacro).
 macroRl("ignore",action,macroRules:ignoreMacro).
 %macroRl("try",action,macroRules:tryCatchMacro).

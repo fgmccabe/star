@@ -38,10 +38,6 @@ isCanon(stringLit(_,_)).
 isCanon(apply(_,_,_,_)).
 isCanon(dot(_,_,_,_)).
 isCanon(update(_,_,_,_)).
-isCanon(tag(_,_)).
-isCanon(prompt(_,_,_)).
-isCanon(shift(_,_,_)).
-isCanon(resume(_,_,_,_)).
 isCanon(enm(_,_,_)).
 isCanon(cons(_,_,_)).
 isCanon(tple(_,_)).
@@ -56,6 +52,7 @@ isCanon(open(_,_,_)).
 isCanon(neg(_,_)).
 isCanon(lambda(_,_,_,_)).
 isCanon(search(_,_,_,_)).
+isCanon(task(_,_,_)).
 
 isSimpleCanon(v(_,_,_)).
 isSimpleCanon(anon(_,_)).
@@ -108,9 +105,6 @@ typeOfCanon(cond(_,_,_,_,Tp),Tp) :-!.
 typeOfCanon(letExp(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(letRec(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(apply(_,_,_,Tp),Tp) :-!.
-typeOfCanon(prompt(_,_,Tp),Tp) :-!.
-typeOfCanon(shift(_,_,F),Tp) :-!, typeOfCanon(F,Tp).
-typeOfCanon(resume(_,_,_,Tp),Tp) :-!.
 typeOfCanon(tple(_,Els),tplType(Tps)) :-!,
   map(Els,canon:typeOfCanon,Tps).
 typeOfCanon(cell(_,Vl),refType(Tp)) :-
@@ -122,6 +116,7 @@ typeOfCanon(over(_,T,_,_),Tp) :- typeOfCanon(T,Tp).
 typeOfCanon(overaccess(V,_,_),Tp) :- typeOfCanon(V,Tp).
 typeOfCanon(mtd(_,_,Tp),Tp) :-!.
 typeOfCanon(case(_,_,_,Tp),Tp) :- !.
+typeOfCanon(task(_,_,Tp),Tp) :-!.
 
 locOfCanon(v(Lc,_,_),Lc) :- !.
 locOfCanon(anon(Lc,_),Lc) :- !.
@@ -165,6 +160,26 @@ locOfCanon(valis(Lc,_),Lc) :-!.
 locOfCanon(ignore(Lc,_),Lc) :-!.
 locOfCanon(raise(Lc,_),Lc) :-!.
 locOfCanon(perform(Lc,_),Lc) :-!.
+locOfCanon(valof(Lc,_),Lc) :-!.
+locOfCanon(task(Lc,_,_),Lc) :-!.
+
+locOfCanon(doNop(Lc),Lc) :-!.
+locOfCanon(doSeq(Lc,_,_),Lc) :-!.
+locOfCanon(doValis(Lc,_),Lc) :-!.
+locOfCanon(doRaise(Lc,_),Lc) :-!.
+locOfCanon(doBind(Lc,_,_),Lc) :-!.
+locOfCanon(doMatch(Lc,_,_),Lc) :-!.
+locOfCanon(doAssign(Lc,_,_),Lc) :-!.
+locOfCanon(doTryCatch(Lc,_,_),Lc) :-!.
+locOfCanon(doIfThenElse(Lc,_,_,_),Lc) :-!.
+locOfCanon(doIfThen(Lc,_,_),Lc) :-!.
+locOfCanon(doWhile(Lc,_,_),Lc) :-!.
+locOfCanon(doUntil(Lc,_,_),Lc) :-!.
+locOfCanon(doFor(Lc,_,_,_),Lc) :-!.
+locOfCanon(doLet(Lc,_,_,_),Lc) :-!.
+locOfCanon(doLetRec(Lc,_,_,_),Lc) :-!.
+locOfCanon(doPerform(Lc,_),Lc) :-!.
+locOfCanon(doCase(Lc,_,_,_),Lc) :-!.
 
 constructorName(enm(_,Nm,_),Nm) :-!.
 constructorName(cons(_,Nm,_),Nm).
@@ -214,7 +229,7 @@ ssTerm(open(_,E,_),Dp,sq([ss("open "),EE])) :- ssTerm(E,Dp,EE).
 ssTerm(case(_,Bound,Cases,_),Dp,
 	    sq([ss("case "),B,ss(" in {"),Rs,ss("}")])) :-
   ssTerm(Bound,Dp,B),
-  ssRls("",Cases,Dp,Rs).
+  ssRls("",Cases,Dp,canon:ssTerm,Rs).
 ssTerm(cell(_,Vr),Dp,sq([ss("ref "),V])) :-
   ssTerm(Vr,Dp,V).
 ssTerm(deref(_,Vr),Dp,sq([V,ss("!")])) :-
@@ -233,17 +248,6 @@ ssTerm(letRec(_,Decls,Defs,Ex),Dp,
   ssTerm(Ex,Dp,B).
 ssTerm(lambda(_,Lbl,Rle,_),Dp,sq([lp,Rl,rp])) :-
   ssRule(Lbl,Dp,Rle,Rl).
-ssTerm(tag(_,Tp),Dp,sq([ss("tag:"),TT])) :-
-  ssType(Tp,false,Dp,TT).
-ssTerm(prompt(_,Lb,E,_),Dp,sq([LL,ss(" prompt "),EE])) :-
-  ssTerm(Lb,Dp,LL),
-  ssTerm(E,Dp,EE).
-ssTerm(shift(_,L,F),Dp,sq([LL,ss(" shift "),FF])) :-
-  ssTerm(L,Dp,LL),
-  ssTerm(F,Dp,FF).
-ssTerm(resume(_,K,A,_),Dp,sq([KK,ss("."),lp,AA,rp])) :-
-  ssTerm(K,Dp,KK),
-  ssTerm(A,Dp,AA).
 ssTerm(tple(_,Els),Dp,sq([lp,iv(ss(", "),SEls),rp])) :-
   ssTerms(Els,Dp,SEls).
 ssTerm(mtd(_,Nm,_),_,sq([ss("°"),id(Nm)])).
@@ -282,11 +286,80 @@ ssTerm(search(_,P,S,M),Dp,sq([lp,LL,ss(" in "),RR,ss(" using "),II,rp])) :-
   ssTerm(M,Dp,II).
 ssTerm(neg(_,R),Dp,sq([lp,ss(" ~ "),RR,rp])) :-
   ssTerm(R,Dp,RR).
+ssTerm(valof(_,A),Dp,sq([ss("valof "),AA])) :-!,
+  ssAction(A,Dp,AA).
+ssTerm(task(_,A,_),Dp,sq([ss("task "),AA])) :-!,
+  ssAction(A,Dp,AA).
 
 ssTerms([],_,[]).
 ssTerms([T|More],Dp,[TT|TTs]) :-
   ssTerm(T,Dp,TT),
   ssTerms(More,Dp,TTs).
+
+ssAction(doNop(_),_,ss("{}")) :-!.
+ssAction(doSeq(Lc,L,R),Dp,sq([ss("{"),Sq,nl(Dp),ss("}")])) :-!,
+  Dp2 is Dp+2,
+  ssActSeq(doSeq(Lc,L,R),Dp2,Sq).
+ssAction(doValis(_,E),Dp,sq([ss("valis "),EE])) :-!,
+  ssTerm(E,Dp,EE).
+ssAction(doRaise(_,E),Dp,sq([ss("raise "),EE])) :-!,
+  ssTerm(E,Dp,EE).
+ssAction(doPerform(_,E),Dp,sq([ss("perform "),EE])) :-!,
+  ssTerm(E,Dp,EE).
+ssAction(doBind(_,P,E),Dp,sq([PP,ss(" <- "),EE])) :-!,
+  ssTerm(P,Dp,PP),
+  ssTerm(E,Dp,EE).
+ssAction(doMatch(_,P,E),Dp,sq([PP,ss(" .= "),EE])) :-!,
+  ssTerm(P,Dp,PP),
+  ssTerm(E,Dp,EE).
+ssAction(doAssign(_,P,E),Dp,sq([PP,ss(" := "),EE])) :-!,
+  ssTerm(P,Dp,PP),
+  ssTerm(E,Dp,EE).
+ssAction(doTryCatch(_,A,H),Dp,sq([ss("try"),nl(Dp2),AA,nl(Dp),ss("catch"),HH])) :-!,
+  Dp2 is Dp+2,
+  ssAction(A,Dp2,AA),
+  ssTerm(H,Dp2,HH).
+ssAction(doIfThenElse(_,T,A,B),Dp,sq([ss("if"),TT,ss("then"),nl(Dp2),AA,nl(Dp),BB])) :-!,
+  Dp2 is Dp+2,
+  ssTerm(T,Dp,TT),
+  ssAction(A,Dp2,AA),
+  ssAction(B,Dp2,BB).
+ssAction(doIfThen(_,T,A),Dp,sq([ss("if"),TT,ss("then"),nl(Dp2),AA])) :-!,
+  Dp2 is Dp+2,
+  ssTerm(T,Dp,TT),
+  ssAction(A,Dp2,AA).
+ssAction(doWhile(_,T,B),Dp,sq([ss("while"),TT,ss("do"),nl(Dp2),BB])) :-!,
+  Dp2 is Dp+2,
+  ssTerm(T,Dp,TT),
+  ssAction(B,Dp2,BB).
+ssAction(doUntil(_,B,T),Dp,sq([ss("do"),BB,nl(Dp2),ss("until"),TT])) :-!,
+  Dp2 is Dp+2,
+  ssTerm(T,Dp,TT),
+  ssAction(B,Dp2,BB).
+ssAction(doFor(_,P,E,B),Dp,sq([ss("for"),PP,ss(" in "),EE,ss("do"),nl(Dp2),BB])) :-!,
+  Dp2 is Dp+2,
+  ssTerm(P,Dp,PP),
+  ssTerm(E,Dp,EE),
+  ssAction(B,Dp2,BB).
+ssAction(doLet(_,_,D,A),Dp,sq([ss("let{"),nl(Dp2),iv(nl(Dp2),DS),nl(Dp),ss("} in"),AA])) :-!,
+  Dp2 is Dp+2,
+  map(D,canon:ssDf(Dp2),DS),
+  ssAction(A,Dp2,AA).
+ssAction(doLetRec(_,_,D,A),Dp,sq([ss("let{."),nl(Dp2),iv(nl(Dp2),DS),nl(Dp),ss(".} in"),AA])) :-!,
+  Dp2 is Dp+2,
+  map(D,canon:ssDf(Dp2),DS),
+  ssAction(A,Dp2,AA).
+ssAction(doCase(_,Bound,Cases,_),Dp,
+	 sq([ss("case "),B,ss(" in {"),Rs,ss("}")])) :-
+  ssTerm(Bound,Dp,B),
+  ssRls("",Cases,Dp,canon:ssAction,Rs).
+ssAction(A,Dp,AA) :- ssTerm(A,Dp,AA).
+
+ssActSeq(doSeq(_,L,R),Dp,sq([LL,ss(";"),nl(Dp),RR])) :-!,
+  ssAction(L,Dp,LL),
+  ssActSeq(R,Dp,RR).
+ssActSeq(A,Dp,S) :-
+  ssAction(A,Dp,S).
 
 ssConstraints([],_,[]).
 ssConstraints([T|More],Dp,[TT|TTs]) :-
@@ -311,7 +384,7 @@ ssDf(Dp,Df,XX) :-
 
 ssDef(Dp,funDef(Lc,Nm,ExtNm,Sft,_Type,_Cx,Eqns),
       sq([ss(SS),ss("fun "),id(Nm),ss("@"),Lcs,nl(Dp),Rs])) :-
-  ssRls(ExtNm,Eqns,Dp,Rs),
+  ssRls(ExtNm,Eqns,Dp,canon:ssTerm,Rs),
   ssLoc(Lc,Lcs),
   (Sft=soft -> SS="soft " ; SS="").
 ssDef(Dp,varDef(_Lc,Nm,_ExtNm,_Cx,_Tp,Value),
@@ -342,18 +415,20 @@ ssDef(Dp,updDec(Tp,FldNm,FunNm,_),
 ssFunction(Dp,Nm,Type,Eqns,
 	   sq([ss("fun "),id(Nm),ss(" : "),Ts,nl(Dp),Rs])) :-
   ssType(Type,true,Dp,Ts),
-  ssRls(Nm,Eqns,Dp,Rs).
+  ssRls(Nm,Eqns,Dp,canon:ssTerm,Rs).
 
-ssRls(Nm,Eqns,Dp,iv(nl(Dp),EE)) :-
-  map(Eqns,canon:ssEqn(Nm,Dp),EE).
+ssRls(Nm,Eqns,Dp,Dsp,iv(nl(Dp),EE)) :-
+  map(Eqns,canon:ssEqn(Nm,Dp,Dsp),EE).
 
-ssEqn("",Dp,rule(_,Args,Guard,Value),
+ssEqn("",Dp,Dsp,rule(_,Args,Guard,Value),
       sq([canon:ssTerm(Args,Dp),canon:ssGuard(Guard,Dp),ss("=>"),
-	  canon:ssTerm(Value,Dp)])).
-ssEqn(Nm,Dp,rule(_,Args,Guard,Value),
+	  VV])) :-
+  call(Dsp,Value,Dp,VV).
+ssEqn(Nm,Dp,Dsp,rule(_,Args,Guard,Value),
       sq([id(Nm),
 	  canon:ssTerm(Args,Dp),canon:ssGuard(Guard,Dp),ss("=>"),
-	  canon:ssTerm(Value,Dp)])).
+	  VV])) :-
+  call(Dsp,Value,Dp,VV).
 
 dispDecls(Decls) :-
   map(Decls,canon:ssDecl(0,ss("")),DD),

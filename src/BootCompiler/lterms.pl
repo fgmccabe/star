@@ -2,6 +2,7 @@
 		  dispRuleSet/1,dispProg/1,dispEquations/1,
 		  substTerm/3,substGoal/3,
 		  substTerms/3,rewriteTerm/3,
+		  rewriteAction/3,
 		  genTplStruct/2,isLiteral/1,isCnd/1,mkTpl/2,
 		  isTplLbl/2,mkCons/3,
 		  isUnit/1,
@@ -58,6 +59,24 @@ isLTerm(shft(_,_,_)) :-!.
 isLTerm(prmpt(_,_,_)) :-!.
 isLTerm(resme(_,_,_)) :-!.
 isLTerm(rais(_,_)) :-!.
+isLTerm(do(_,_)) :-!.
+
+isLAct(nop(_)) :- !.
+isLAct(seq(_,_,_)) :-!.
+isLAct(vlis(_,_)) :-!.
+isLAct(rse(_,_)) :-!.
+isLAct(perf(_,_)) :-!.
+isLAct(mtch(_,_,_)) :-!.
+isLAct(asgn(_,_,_)) :-!.
+isLAct(try(_,_,_)) :-!.
+isLAct(case(_,_,_)) :-!.
+isLAct(unpack(_,_,_)) :-!.
+isLAct(iftte(_,_,_,_)) :-!.
+isLAct(iftt(_,_,_)) :-!.
+isLAct(whle(_,_,_)) :-!.
+isLAct(untl(_,_,_)) :-!.
+isLAct(ffor(_,_,_)) :-!.
+isLAct(ltt(_,_,_,_)) :-!.
 
 mergeGl(none,G,_,G).
 mergeGl(some(G),none,_,some(G)).
@@ -83,13 +102,13 @@ ssRuleSet(lblDef(_Lc,Lbl,_Tp,Ix),
   ssTrm(Lbl,0,LL).
 
 dispEquations(Eqs) :-
-  map(Eqs,lterms:ssEqn,EE),
+  map(Eqs,lterms:ssEqn(lterms:ssTrm),EE),
   displayln(iv(nl(0),EE)).
 
-ssEqn((_Lc,Args,Grd,Val),sq([ss("("),AA,ss(")=>"),GG,VV])) :-
+ssEqn(Dsp,(_Lc,Args,Grd,Val),sq([ss("("),AA,ss(")=>"),GG,VV])) :-
   showArgs(Args,0,AA),
   ssGuard(Grd,GG),
-  ssTrm(Val,0,VV).
+  call(Dsp,ssTrm,Val,0,VV).
 
 ssGuard(none,ss("")).
 ssGuard(some(G),sq([ss(" where "),GG])) :-
@@ -144,18 +163,6 @@ ssTrm(ctpl(Op,A),Dp,sq([ss("."),OO,lp,AA,rp])) :-!,
   ssCOnOp(Op,OO),
   Dp1 is Dp+2,
   showArgs(A,Dp1,AA).
-ssTrm(tg(_,_),_,ss("tag()")) :-!.
-ssTrm(shft(_,Lb,E),Dp,sq([LL,ss(" cut "),EE])) :-!,
-  ssTrm(Lb,Dp,LL),
-  Dp1 is Dp+2,
-  ssTrm(E,Dp1,EE).
-ssTrm(prmpt(_,Lb,E),Dp,sq([LL,ss(" prompt "),EE])) :-!,
-  ssTrm(Lb,Dp,LL),
-  Dp1 is Dp+2,
-  ssTrm(E,Dp1,EE).
-ssTrm(resme(_,K,A),Dp,sq([KK,ss("|"),lp,AA,rp])) :-!,
-  ssTrm(K,Dp,KK),
-  ssTrm(A,Dp,AA).
 ssTrm(enum(Nm),_,sq([ss("."),id(Nm)])) :-!.
 ssTrm(nth(_,Rc,Off),Dp,sq([OO,ss("."),ix(Off)])) :-!,
   ssTrm(Rc,Dp,OO).
@@ -212,6 +219,73 @@ ssTrm(ng(_,R),Dp,sq([lp,ss("~"),RR,rp])) :-!,
 ssTrm(error(Lc,M),Dp,sq([lp,ss("error "),MM,rp,ss("@"),LL])) :-!,
   ssTrm(M,Dp,MM),
   ssLoc(Lc,LL).
+ssTrm(vlof(_,A),Dp,sq([ss("valof "),AA])) :-
+  ssAct(A,Dp,AA).
+
+ssAct(nop(_),_,ss("{}")) :-!.
+ssAct(seq(Lc,A,B),Dp,sq([ss("{"),iv(sq([ss(";"),nl(Dp2)]),AA),ss("}")])) :-!,
+  Dp2 is Dp+2,
+  ssActSeq(seq(Lc,A,B),Dp2,AA).
+ssAct(vls(_,E),Dp,sq([ss("valis "),EE])) :-!,
+  ssTrm(E,Dp,EE).
+ssAct(rse(_,E),Dp,sq([ss("raise "),EE])) :-!,
+  ssTrm(E,Dp,EE).
+ssAct(perf(_,E),Dp,sq([ss("perform "),EE])) :-!,
+  ssTrm(E,Dp,EE).
+ssAct(mtch(_,P,E),Dp,sq([PP,ss(" .= "),EE])) :-!,
+  ssTrm(P,Dp,PP),
+  ssTrm(E,Dp,EE).
+ssAct(asgn(_,P,E),Dp,sq([PP,ss(" := "),EE])) :-!,
+  ssTrm(P,Dp,PP),
+  ssTrm(E,Dp,EE).
+ssAct(case(_,G,Cases,Deflt),Dp,
+      sq([ss("case "),GG,ss("in"),lb,CC,rb,ss(" else "),DD])) :-!,
+  ssTrm(G,Dp,GG),
+  ssCases(Cases,Dp,lterms:ssAct,CC),
+  ssTrm(Deflt,Dp,DD).
+ssAct(unpack(_,G,Cases),Dp,
+      sq([ss("unpack "),GG,ss("in"),lb,CC,rb])) :-!,
+  ssTrm(G,Dp,GG),
+  ssCases(Cases,Dp,lterms:ssAct,CC).
+ssAct(iftte(_,G,T,E),Dp,
+      sq([ss("if "),GG,ss("then"),nl(Dp2),TT,nl(Dp2),ss(" else "),EE])) :-!,
+  Dp2 is Dp+2,
+  ssTrm(G,Dp,GG),
+  ssAct(T,Dp2,TT),
+  ssAct(E,Dp2,EE).
+ssAct(iftt(_,G,T),Dp,
+      sq([ss("if "),GG,ss("then"),nl(Dp2),TT])) :-!,
+  Dp2 is Dp+2,
+  ssTrm(G,Dp,GG),
+  ssAct(T,Dp2,TT).
+ssAct(whle(_,G,B),Dp,
+      sq([ss("while "),GG,ss("do"),nl(Dp2),BB])) :-!,
+  Dp2 is Dp+2,
+  ssTrm(G,Dp,GG),
+  ssAct(B,Dp2,BB).
+ssAct(untl(_,B,G),Dp,
+      sq([ss("do"),nl(Dp2),BB,nl(Dp),ss("until "),GG])) :-!,
+  Dp2 is Dp+2,
+  ssTrm(G,Dp,GG),
+  ssAct(B,Dp2,BB).
+ssAct(ffor(_,P,S,B),Dp,
+      sq([ss("for "),PP,ss(" in "),SS,dd("do"),nl(Dp2),BB])) :-!,
+  Dp2 is Dp+2,
+  ssTrm(P,Dp,PP),
+  ssTrm(S,Dp,SS),
+  ssAct(B,Dp2,BB).
+ssAct(ltt(_,Vr,Bnd,B),Dp,sq([ss("let "),VV,ss("="),BB,ss(" in "),EE])) :-!,
+  Dp1 is Dp+2,
+  ssTrm(Vr,Dp1,VV),
+  ssTrm(Bnd,Dp1,EE),
+  ssAct(B,Dp1,BB).
+
+
+ssActSeq(seq(_,A,B),Dp,[AA|BB]) :-!,
+  ssAct(A,Dp,AA),
+  ssActSeq(B,Dp,BB).
+ssActSeq(A,Dp,[AA]) :-
+  ssAct(A,Dp,AA).
 
 ssCnd(cnd(_,T,L,R),Dp,sq([TT,ss(" ? "),nl(Dp),LL,ss("||"),nl(Dp),RR])) :-!,
   Dp1 is Dp+2,
@@ -274,16 +348,6 @@ rewriteTerm(QTest,rais(Lc,E),rais(Lc,EE)) :-
 rewriteTerm(QTest,ltt(Lc,V,Val,Exp),ltt(Lc,V,Val1,Exp1)) :-
   rewriteTerm(lterms:checkV(V,QTest),Val,Val1),
   rewriteTerm(lterms:checkV(V,QTest),Exp,Exp1).
-rewriteTerm(_,tg(Lc,Tp),tg(Lc,Tp)).
-rewriteTerm(QTest,prmpt(Lc,L,A),prmpt(Lc,LL,AA)) :-
-  rewriteTerm(QTest,L,LL),
-  rewriteTerm(QTest,A,AA).
-rewriteTerm(QTest,shft(Lc,L,A),shft(Lc,LL,AA)) :-
-  rewriteTerm(QTest,L,LL),
-  rewriteTerm(QTest,A,AA).
-rewriteTerm(QTest,resme(Lc,K,A),resme(Lc,KK,AA)) :-
-  rewriteTerm(QTest,K,KK),
-  rewriteTerm(QTest,A,AA).
 rewriteTerm(QTest,cll(Lc,Op,Args),cll(Lc,NOp,NArgs)) :-
   rewriteTerm(QTest,Op,NOp),
   rewriteTerms(QTest,Args,NArgs).
@@ -340,6 +404,8 @@ rewriteTerm(QTest,mtch(Lc,L,R),mtch(Lc,NL,NR)) :-
   rewriteTerm(QTest,R,NR).
 rewriteTerm(QTest,ng(Lc,R),ng(Lc,NR)) :-
   rewriteTerm(QTest,R,NR).
+rewriteTerm(QTest,vlof(Lc,A),vlof(Lc,AA)) :-
+  rewriteAction(QTest,A,AA).
 rewriteTerm(QTest,error(Lc,M),error(Lc,MM)) :-!,
   rewriteTerm(QTest,M,MM).
 
@@ -352,6 +418,49 @@ rewriteGoal(QTest,some(T),some(NT)) :-
 
 rewriteVN(QTest,(T,E),(T,NE)) :-
   rewriteTerm(QTest,E,NE).
+
+rewriteAction(_QTest,nop(Lc),nop(Lc)) :- !.
+rewriteAction(QTest,seq(Lc,L,R),seq(Lc,LL,RR)) :-!,
+  rewriteAction(QTest,L,LL),
+  rewriteAction(QTest,R,RR).
+rewriteAction(QTest,vls(Lc,E),vls(Lc,EE)) :- !,
+  rewriteTerm(QTest,E,EE).
+rewriteAction(QTest,rse(Lc,E),rse(Lc,EE)) :- !,
+  rewriteTerm(QTest,E,EE).
+rewriteAction(QTest,perf(Lc,E),perf(Lc,EE)) :- !,
+  rewriteTerm(QTest,E,EE).
+rewriteAction(QTest,mtch(Lc,P,E),mtch(Lc,PP,EE)) :- !,
+  rewriteTerm(QTest,P,PP),
+  rewriteTerm(QTest,E,EE).
+rewriteAction(QTest,asgn(Lc,P,E),asgn(Lc,PP,EE)) :- !,
+  rewriteTerm(QTest,P,PP),
+  rewriteTerm(QTest,E,EE).
+rewriteAction(QTest,case(Lc,G,C),case(Lc,GG,CC)) :-
+  rewriteTerm(QTest,G,GG),
+  map(C,lterms:rewriteCase(QTest,lterms:rewriteAction),CC).
+rewriteAction(QTest,unpack(Lc,G,C),unpack(Lc,GG,CC)) :-
+  rewriteTerm(QTest,G,GG),
+  map(C,lterms:rewriteCase(QTest,lterms:rewriteAction),CC).
+rewriteAction(QTest,iftte(Lc,G,L,R),iftte(Lc,GG,LL,RR)) :-!,
+  rewriteTerm(QTest,G,GG),
+  rewriteAction(QTest,L,LL),
+  rewriteAction(QTest,R,RR).
+rewriteAction(QTest,iftt(Lc,G,L),iftt(Lc,GG,LL)) :-!,
+  rewriteTerm(QTest,G,GG),
+  rewriteAction(QTest,L,LL).
+rewriteAction(QTest,whle(Lc,G,L),whle(Lc,GG,LL)) :-!,
+  rewriteTerm(QTest,G,GG),
+  rewriteAction(QTest,L,LL).
+rewriteAction(QTest,untl(Lc,L,G),untl(Lc,LL,GG)) :-!,
+  rewriteTerm(QTest,G,GG),
+  rewriteAction(QTest,L,LL).
+rewriteAction(QTest,ffor(Lc,P,S,B),ffor(Lc,PP,SS,BB)) :-!,
+  rewriteTerm(QTest,P,PP),
+  rewriteTerm(QTest,S,SS),
+  rewriteAction(QTest,B,BB).
+rewriteAction(QTest,ltt(Lc,V,E,B),ltt(Lc,V,EE,BB)) :-!,
+  rewriteTerm(lterms:checkV(V,QTest),E,EE),
+  rewriteAction(lterms:checkV(V,QTest),B,BB).
 
 rewriteCase(QTest,BCall,(T,E,Lbl),(NT,NE,Lbl)) :-
   rewriteTerm(QTest,T,NT),
@@ -574,16 +683,6 @@ validTerm(ltt(Lc,Vr,Bnd,Exp),_,D) :-
   ptnVars(Vr,D,D1),
   validTerm(Vr,Lc,D1),
   validTerm(Exp,Lc,D1).
-validTerm(tg(_,_),_,_).
-validTerm(prmpt(Lc,Lb,Exp),_,D) :-
-  validTerm(Lb,Lc,D),
-  validTerm(Exp,Lc,D).
-validTerm(shft(Lc,Lb,Exp),_,D) :-
-  validTerm(Lb,Lc,D),
-  validTerm(Exp,Lc,D).
-validTerm(resme(Lc,K,Arg),_,D) :-
-  validTerm(K,Lc,D),
-  validTerm(Arg,Lc,D).
 validTerm(varNames(Lc,Vars,Value),_,D) :-
   rfold(Vars,lterms:validVr,D,D1),
   validTerm(Value,Lc,D1).
@@ -614,6 +713,8 @@ validTerm(mtch(Lc,L,R),_,D) :-
   validTerm(R,Lc,D0).
 validTerm(ng(Lc,R),_,D) :-
   validTerm(R,Lc,D).
+validTerm(vlof(Lc,A),_,D) :-
+  validAction(A,Lc,D,_).
 validTerm(error(Lc,R),_,D) :-
   validTerm(R,Lc,D).
 validTerm(T,Lc,_) :-
@@ -661,6 +762,59 @@ validCases(Cases,Leaf,D) :-
 validCase(Lc,Ptn,Val,Leaf,D) :-
   validPtn(Ptn,Lc,D,D1),
   call(Leaf,Val,Lc,D1).
+
+validAct(A,Lc,D) :-
+  validAction(A,Lc,D,_).
+
+validAction(nop(_),_,D,D) :- !.
+validAction(seq(Lc,L,R),_,D,Dx) :-!,
+  validAction(L,Lc,D,D0),
+  validAction(R,Lc,D0,Dx).
+validAction(vls(Lc,E),_,D,D) :- !,
+  validTerm(E,Lc,D).
+validAction(rse(Lc,E),_,D,D) :- !,
+  validTerm(E,Lc,D).
+validAction(perf(Lc,E),_,D,D) :- !,
+  validTerm(E,Lc,D).
+validAction(mtch(Lc,P,E),_,D,Dx) :- !,
+  validPtn(P,Lc,D,Dx),
+  validTerm(E,Lc,Dx).
+validAction(asgn(Lc,P,E),_,D,D) :- !,
+  validTerm(P,Lc,D),
+  validTerm(E,Lc,D).
+validAction(case(Lc,G,C),_,D,D) :-
+  validTerm(G,Lc,D),
+  validCases(C,lterms:validAct,D).
+validAction(unpack(Lc,G,C),_,D,D) :-
+  validTerm(G,Lc,D),
+  validCases(C,lterms:validAct,D).
+validAction(iftte(Lc,G,L,R),_,D,D) :-!,
+  glVars(D,D,D0),
+  validTerm(G,Lc,D0),
+  validAction(L,Lc,D0,_),
+  validAction(R,Lc,D,_).
+validAction(iftt(Lc,G,L),_,D,D) :-!,
+  glVars(D,D,D0),
+  validTerm(G,Lc,D0),
+  validAction(L,Lc,D0,_).
+validAction(whle(Lc,G,L),_,D,D) :-!,
+  glVars(D,D,D0),
+  validTerm(G,Lc,D0),
+  validAction(L,Lc,D0,_).
+validAction(untl(Lc,L,G),_,D,D) :-!,
+  validTerm(G,Lc,D),
+  validAction(L,Lc,D,_).
+validAction(ffor(Lc,P,S,B),_,D,D) :-!,
+  validTerm(S,Lc,D),
+  validPtn(P,Lc,D,D0),
+  validAction(B,Lc,D0,_).
+validAction(ltt(Lc,V,E,B),_,D,D) :-!,
+  validTerm(E,Lc,D),
+  ptnVars(V,D,D1),
+  validTerm(V,Lc,D1),
+  validAction(B,Lc,D1,_).
+validAction(T,Lc,D,D) :-
+  reportError("(internal) Invalid action %s",[lact(T)],Lc).
 
 ptnVars(idnt(Nm),D,Dx) :-
   add_mem(Nm,D,Dx).

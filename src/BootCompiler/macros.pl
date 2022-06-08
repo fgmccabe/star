@@ -374,7 +374,10 @@ examineTerm(T,Tx) :-
   mkEquation(Lc,Lx,Gx,Rx,Tx).
 examineTerm(T,Tx) :-
   isValof(T,Lc,A),!,
-  macroTerm(A,Ax),
+  (isBraceTuple(A,_,[As]) ->
+   macroAction(As,A1),
+   braceTuple(Lc,[A1],Ax);
+   macroTerm(A,Ax)),
   mkValof(Lc,Ax,Tx).
 examineTerm(T,Tx) :-
   isFieldAcc(T,Lc,L,F),!,
@@ -401,6 +404,10 @@ examineTerm(T,Tx) :-
 examineTerm(T,Tx) :-
   isResultTerm(T,Lc,S),!,
   macroAction(S,Sx),
+  mkResultTerm(Lc,Sx,Tx).
+examineTerm(T,Tx) :-
+  isResultTerm(T,Lc,S),!,
+  macroAction(S,Sx),
   makeAction(Sx,none,Mx),
   mkAnon(Lc,An),
   squareTerm(Lc,name(Lc,"result"),[An,An],RTp),
@@ -416,24 +423,6 @@ examineTerm(T,Tx) :-
   isTaskTerm(T,Lc,S),!,
   macroAction(S,Sx),
   mkTaskTerm(Lc,Sx,Tx).
-examineTerm(T,T) :-
-  isTag(T,_),!.
-examineTerm(T,Tx) :-
-  isPrompt(T,Lc,L,R),!,
-  macroTerm(L,Lx),
-  macroTerm(R,Rx),
-  mkPrompt(Lc,Lx,Rx,Tx).
-examineTerm(T,Tx) :-
-  isCut(T,Lc,Lb,L,R),!,
-  macroTerm(Lb,Lbx),
-  macroTerm(L,Lx),
-  macroTerm(R,Rx),
-  mkCut(Lc,Lbx,Lx,Rx,Tx).
-examineTerm(T,Tx) :-
-  isResume(T,Lc,L,Args),!,
-  macroTerm(L,Lx),
-  macroTerm(Args,As),
-  mkResume(Lc,Lx,As,Tx).
 examineTerm(T,Tx) :-
   isBraceTuple(T,Lc,D),!,
   map(D,macros:macroStmt,Dx),
@@ -662,22 +651,6 @@ examineAction(A,Ax) :-
   macroTerm(V,Vx),
   mkPerform(Lc,Vx,Ax).
 examineAction(A,Ax) :-
-  isPrompt(A,Lc,L,R),!,
-  macroTerm(L,Lx),
-  macroAction(R,Rx),
-  mkPrompt(Lc,Lx,Rx,Ax).
-examineAction(A,Ax) :-
-  isCut(A,Lc,Lb,L,R),!,
-  macroTerm(Lb,Lbx),
-  macroTerm(L,Lx),
-  macroAction(R,Rx),
-  mkCut(Lc,Lbx,Lx,Rx,Ax).
-examineAction(A,Ax) :-
-  isResume(A,Lc,L,Args),!,
-  macroTerm(L,Lx),
-  macroTerm(Args,As),
-  mkResume(Lc,Lx,As,Ax).
-examineAction(A,Ax) :-
   isLetDef(A,Lc,D,B),!,
   map(D,macros:macroStmt,Dx),
   macroAction(B,Bx),
@@ -687,6 +660,37 @@ examineAction(A,Ax) :-
   map(D,macros:macroStmt,Dx),
   macroAction(B,Bx),
   mkLetRec(Lc,Dx,Bx,Ax).
+examineAction(T,Tx) :-
+  isSuspend(T,Lc,E,C),!,
+  macroTerm(E,Ex),
+  map(C,macros:examineActionCase,Cx),
+  mkSuspend(Lc,Ex,Cx,Tx).
+examineAction(T,Tx) :-
+  isSuspend(T,Lc,Ts,E,C),!,
+  macroTerm(Ts,Tsx),
+  macroTerm(E,Ex),
+  map(C,macros:examineActionCase,Cx),
+  mkSuspend(Lc,Tsx,Ex,Cx,Tx).
+examineAction(T,Tx) :-
+  isResume(T,Lc,E,C),!,
+  macroTerm(E,Ex),
+  map(C,macros:examineActionCase,Cx),
+  mkResume(Lc,Ex,Cx,Tx).
+examineAction(T,Tx) :-
+  isResume(T,Lc,Ts,E,C),!,
+  macroTerm(Ts,Tsx),
+  macroTerm(E,Ex),
+  map(C,macros:examineActionCase,Cx),
+  mkResume(Lc,Tsx,Ex,Cx,Tx).
+examineAction(A,Ax) :-
+  isRetire(A,Lc,V),!,
+  macroTerm(V,Vx),
+  mkRetire(Lc,Vx,Ax).
+examineAction(A,Ax) :-
+  isRetire(A,Lc,T,V),!,
+  macroTerm(T,Tx),
+  macroTerm(V,Vx),
+  mkRetire(Lc,Tx,Vx,Ax).
 examineAction(T,Tx) :-
   isCaseExp(T,Lc,E,C),!,
   macroTerm(E,Ex),

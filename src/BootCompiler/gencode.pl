@@ -51,7 +51,7 @@ genDef(D,Opts,fnDef(Lc,Nm,H,Tp,Args,Value),O,[CdTrm|O]) :-
   compPtnArgs(Args,Lc,argCont,
 	      trapCont(Lc),0,contCont(Ex),abortCont(Lc,strg("def failed"),Opts),Opts,L1,L2,D1,D2,End,
 	      C1,[iLbl(Ex)|C2],some(0),Stk0),
-  compTerm(Value,Lc,retCont(Opts),trapCont(Lc),Opts,L2,_Lx,D2,Dx,End,C2,[iLbl(End)],Stk0,_Stk),
+  compExp(Value,Lc,retCont(Opts),trapCont(Lc),Opts,L2,_Lx,D2,Dx,End,C2,[iLbl(End)],Stk0,_Stk),
   findMaxLocal(Dx,Mx),
 %  (is_member(showGenCode,Opts) -> dispIns(func(Nm,H,Sig,Mx,C0));true ),
   peepOptimize(C0,Cde),
@@ -61,7 +61,7 @@ genDef(D,Opts,glbDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
   encType(funType(tplType([]),Tp),Sig),
   genLbl([],End,L1),
   genLine(Opts,Lc,C0,C1),
-  compTerm(Value,Lc,bothCont(glbCont(Nm),rtgCont(Opts)),trapCont(Lc),
+  compExp(Value,Lc,bothCont(glbCont(Nm),rtgCont(Opts)),trapCont(Lc),
 	   Opts,L1,_Lx,D,Dx,End,C1,[iLbl(End)],some(0),_Stk),
   findMaxLocal(Dx,Mx),
   peepOptimize(C0,Cde),
@@ -164,139 +164,136 @@ findMaxLocal(scope(_,_,Mx),Mx).
 localMx((_,l(Off),_),M,Mx) :- !, Mx is max(Off,M).
 localMx(_,M,M).
 
-compTerm(voyd,_,Cont,_TCont,_Opts,L,Lx,D,Dx,End,[iLdV|C0],Cx,Stk,Stkx) :-
+compExp(voyd,_,Cont,_TCont,_Opts,L,Lx,D,Dx,End,[iLdV|C0],Cx,Stk,Stkx) :-
   bumpStk(Stk,Stk1),
   call(Cont,L,Lx,D,Dx,End,C0,Cx,Stk1,Stkx).
-compTerm(Trm,_Lc,Cont,_ECont,_Opts,L,Lx,D,Dx,End,[iLdC(Trm)|C],Cx,Stk,Stkx) :-
+compExp(Trm,_Lc,Cont,_ECont,_Opts,L,Lx,D,Dx,End,[iLdC(Trm)|C],Cx,Stk,Stkx) :-
   isLiteral(Trm),!,
   bumpStk(Stk,Stk1),
   call(Cont,L,Lx,D,Dx,End,C,Cx,Stk1,Stkx).
-compTerm(idnt(Nm),Lc,Cont,_TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-!,
+compExp(idnt(Nm),Lc,Cont,_TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-!,
   (lclVar(Nm,V,D) -> 
    compVar(V,Opts,Cont,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) ;
    reportError("cannot locate variable %s",[Nm],Lc),
    C=[iLdV|Cx],
    bumpStk(Stk,Stkx),
    D=Dx,L=Lx).
-compTerm(ctpl(St,A),Lc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stk2) :-!,
-  compTerms(A,Lc,bothCont(allocCont(St),Cont),TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stk2).
-compTerm(intrinsic(Lc,Op,A),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-!,
+compExp(ctpl(St,A),Lc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stk2) :-!,
+  compExps(A,Lc,bothCont(allocCont(St),Cont),TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stk2).
+compExp(intrinsic(Lc,Op,A),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   bumpStk(Stk,Stk1),
-  compTerms(A,Lc,bothCont(asmCont(Op,Stk1),Cont),TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
-compTerm(ecll(Lc,Nm,A),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-!,
+  compExps(A,Lc,bothCont(asmCont(Op,Stk1),Cont),TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+compExp(ecll(Lc,Nm,A),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
-  compTerms(A,Lc,bothCont(escCont(Nm,Stk),Cont),TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
-compTerm(cll(Lc,Nm,A),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  compExps(A,Lc,bothCont(escCont(Nm,Stk),Cont),TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+compExp(cll(Lc,Nm,A),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),!,
   length(A,Ar),
-  compTerms(A,Lc,cllCont(Nm,Ar,Cont,Opts),TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
-compTerm(ocall(Lc,Fn,A),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  compExps(A,Lc,cllCont(Nm,Ar,Cont,Opts),TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+compExp(ocall(Lc,Fn,A),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),!,
   length(A,Ar),
   Arity is Ar+1,
-  compTerms(A,Lc,compTerm(Fn,Lc,oclCont(Arity,Cont,Opts),TCont,Opts),TCont,
+  compExps(A,Lc,compExp(Fn,Lc,oclCont(Arity,Cont,Opts),TCont,Opts),TCont,
 	    Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
-compTerm(tg(Lc,_),OLc,Cont,_TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
-  chLine(Opts,OLc,Lc,C,[iTag(lbl(H,0))|C1]),
-  locHash(Lc,H),
-  bumpStk(Stk,Stk1),
-  call(Cont,L,Lx,D,Dx,End,C1,Cx,Stk1,Stkx).
-compTerm(prmpt(Lc,Lb,Lam),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+compExp(prmpt(Lc,Lb,Lam),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
-  compTerm(Lb,Lc,
-	   compTerm(Lam,Lc,
+  compExp(Lb,Lc,
+	   compExp(Lam,Lc,
 		    promptCont(Stk,Cont,Opts),TCont,Opts),TCont,
 	   Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
-compTerm(shft(Lc,Lb,Lam),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+compExp(shft(Lc,Lb,Lam),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
-  compTerm(Lb,Lc,
-	   compTerm(Lam,Lc,cutCont(Stk,Cont,Opts),TCont,Opts),TCont,
+  compExp(Lb,Lc,
+	   compExp(Lam,Lc,cutCont(Stk,Cont,Opts),TCont,Opts),TCont,
 	   Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
-compTerm(resme(Lc,K,A),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+compExp(resme(Lc,K,A),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
-  compTerm(A,Lc,
-	   compTerm(K,Lc,
+  compExp(A,Lc,
+	   compExp(K,Lc,
 		    resumeCont(Cont,Opts),TCont,Opts),TCont,
 	   Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
   
-compTerm(nth(Lc,Exp,Off),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+compExp(nth(Lc,Exp,Off),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),!,
-  compTerm(Exp,Lc,bothCont(idxCont(Off),Cont),TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
-compTerm(setix(Lc,Exp,Off,Vl),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  compExp(Exp,Lc,bothCont(idxCont(Off),Cont),TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+compExp(setix(Lc,Exp,Off,Vl),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),!,
-  compTerm(Exp,Lc,
-	   compTerm(Vl,Lc,
+  compExp(Exp,Lc,
+	   compExp(Vl,Lc,
 		    sxCont(Off,Cont),TCont,Opts),TCont,
 	   Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
-compTerm(cel(Lc,Exp),_,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+compExp(cel(Lc,Exp),_,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   bumpStk(Stk,Stk1),
-  compTerm(Exp,Lc,bothCont(asmCont(iCell,Stk1),Cont),
+  compExp(Exp,Lc,bothCont(asmCont(iCell,Stk1),Cont),
 	   TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
-compTerm(get(Lc,Exp),_,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+compExp(get(Lc,Exp),_,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   bumpStk(Stk,Stk1),
-  compTerm(Exp,Lc,bothCont(asmCont(iGet,Stk1),Cont),
+  compExp(Exp,Lc,bothCont(asmCont(iGet,Stk1),Cont),
 	   TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
-compTerm(set(Lc,Cl,Val),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+compExp(set(Lc,Cl,Val),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
-  compTerm(Val,Lc,
-	   compTerm(Cl,Lc,
+  compExp(Val,Lc,
+	   compExp(Cl,Lc,
 		    bothCont(asmCont(iSet,Stk),Cont),
 		    TCont,Opts),
 	   TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
-compTerm(case(Lc,T,Cases,Deflt),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+compExp(case(Lc,T,Cases,Deflt),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),!,
-  compCase(T,Lc,Cases,Deflt,Cont,TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
-compTerm(unpack(Lc,T,Cases),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  compCase(T,Lc,Cases,Deflt,Cont,TCont,gencode:compExp,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+compExp(unpack(Lc,T,Cases),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   genLbl(L,Nxt,L1),
-  compTerm(T,Lc,contCont(Nxt),TCont,Opts,L1,L2,D,D2,End,C0,[iLbl(Nxt)|C1],Stk,Stk0),
-  compCnsCases(Cases,Lc,gencode:compTermCase(TCont),Cont,TCont,Opts,
+  compExp(T,Lc,contCont(Nxt),TCont,Opts,L1,L2,D,D2,End,C0,[iLbl(Nxt)|C1],Stk,Stk0),
+  compCnsCases(Cases,Lc,gencode:compExpCase(TCont),Cont,TCont,Opts,
 	       L2,Lx,D2,Dx,C1,Cx,Stk0,Stkx).
-compTerm(varNames(Lc,Vrs,T),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+compExp(varNames(Lc,Vrs,T),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   populateVarNames(Vrs,Lc,D,C0,C1),!,
-  compTerm(T,Lc,Cont,TCont,Opts,L,Lx,D,Dx,End,C1,Cx,Stk,Stkx).
-compTerm(whr(Lc,T,Cnd),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  compExp(T,Lc,Cont,TCont,Opts,L,Lx,D,Dx,End,C1,Cx,Stk,Stkx).
+compExp(whr(Lc,T,Cnd),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
-  compCond(Cnd,Lc,compTerm(T,Lc,Cont,TCont,Opts),abortCont(Lc,strg("where fail"),Opts),
+  compCond(Cnd,Lc,compExp(T,Lc,Cont,TCont,Opts),abortCont(Lc,strg("where fail"),Opts),
 	    TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
-compTerm(ltt(Lc,idnt(Nm),Val,Exp),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+compExp(ltt(Lc,idnt(Nm),Val,Exp),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(L,Lb,L1),
   chLine(Opts,OLc,Lc,C,C0),!,
   defineLclVar(Nm,Lb,End,Opts,D,D1,Off,C0,[iStV(Off)|C1]),
-  compTerm(Val,Lc,stoCont(Off,Lb,Opts,
-			  compTerm(Exp,Lc,Cont,TCont,Opts)),TCont,Opts,
+  compExp(Val,Lc,stoCont(Off,Lb,Opts,
+			  compExp(Exp,Lc,Cont,TCont,Opts)),TCont,Opts,
 	   L1,Lx,D1,Dx,End,C1,Cx,Stk,Stkx).
-compTerm(error(Lc,Msg),_OLc,_Cont,_TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-!,
+compExp(error(Lc,Msg),_OLc,_Cont,_TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-!,
   abortCont(Lc,Msg,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx). % no continuation after an error
-compTerm(rais(Lc,E),_,_,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,none) :-
-  compTerm(E,Lc,TCont,trapCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,_).
-compTerm(cnd(Lc,T,A,B),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+compExp(rais(Lc,E),_,_,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,none) :-
+  compExp(E,Lc,TCont,trapCont(Lc),Opts,L,Lx,D,Dx,End,C,Cx,Stk,_).
+compExp(cnd(Lc,T,A,B),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   compCondExp(Lc,T,A,B,OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
-compTerm(seqD(Lc,A,B),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-!,
+compExp(seqD(Lc,A,B),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
-  compTerm(A,Lc,resetCont(Stk,compTerm(B,Lc,Cont,TCont,Opts)),TCont,
-	   Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
-compTerm(Cond,Lc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  compExp(A,Lc,resetCont(Stk,compExp(B,Lc,Cont,TCont,Opts)),TCont,
+	  Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+compExp(vlof(Lc,A),_,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  compAction(A,Lc,Cont,trapCont(Lc),TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
+compExp(Cond,Lc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   isCond(Cond),!,
   genLbl(L,Nx,L0),
   compCond(Cond,Lc,resetCont(Stk,bothCont(trueCont,contCont(Nx))),
 	   resetCont(Stk,bothCont(falseCont,contCont(Nx))),
 	   TCont,Opts,L0,L1,D,D1,End,C,[iLbl(Nx)|C1],Stk,Stk1),
   call(Cont,L1,Lx,D1,Dx,End,C1,Cx,Stk1,Stkx).
-compTerm(T,Lc,_,_,_,Lx,Lx,Dx,Dx,_,C,C,Stk,Stk) :-
+compExp(T,Lc,_,_,_,Lx,Lx,Dx,Dx,_,C,C,Stk,Stk) :-
   reportError("cannot compile %s",[T],Lc),
   abort.
 
-compTermCase(TCont,T,Lc,Cont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
-  compTerm(T,Lc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
+compExpCase(TCont,T,Lc,Cont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  compExp(T,Lc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 
 compCondExp(Lc,T,A,B,OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   splitCont(Lc,Cont,OC),!,
-  compCond(T,Lc,compTerm(A,Lc,OC,TCont,Opts),
-	   resetCont(Stk,compTerm(B,Lc,OC,TCont,Opts)),
+  compCond(T,Lc,compExp(A,Lc,OC,TCont,Opts),
+	   resetCont(Stk,compExp(B,Lc,OC,TCont,Opts)),
 	   TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 
 compVar(a(A),_,Cont,L,Lx,D,Dx,End,[iLdA(A)|C0],Cx,Stk,Stkx) :- !,
@@ -312,12 +309,45 @@ compVar(g(GlbNm),Opts,Cont,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   call(Cont,L,Lx,D,Dx,End,C1,Cx,Stk1,Stkx).
 
 /* Terms are generated in reverse order*/
-compTerms([],_,Cont,_,_,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+compExps([],_,Cont,_,_,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   call(Cont,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
-compTerms([T|Ts],Lc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+compExps([T|Ts],Lc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(L,Nxt,L0),
-  compTerms(Ts,Lc,contCont(Nxt),TCont,Opts,L0,L1,D,D1,End,C,[iLbl(Nxt)|C0],Stk,Stk0),
-  compTerm(T,Lc,Cont,TCont,Opts,L1,Lx,D1,Dx,End,C0,Cx,Stk0,Stkx).
+  compExps(Ts,Lc,contCont(Nxt),TCont,Opts,L0,L1,D,D1,End,C,[iLbl(Nxt)|C0],Stk,Stk0),
+  compExp(T,Lc,Cont,TCont,Opts,L1,Lx,D1,Dx,End,C0,Cx,Stk0,Stkx).
+
+
+/* Compile actions */
+compAction(nop(_),_Lc,Cont,_ACont,_TCont,_Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-!,
+  call(Cont,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
+compAction(seq(Lc,A,B),OLc,Cont,ACont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :- !,
+  chLine(Opts,OLc,Lc,C,C0),!,
+  compAction(A,Lc,Cont,resetCont(Stk,compAction(B,Lc,Cont,ACont,TCont,Opts)),TCont,
+	     Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+compAction(vls(Lc,E),OLc,Cont,_ACont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :- !,
+  chLine(Opts,OLc,Lc,C,C0),
+  compExp(E,Lc,Cont,TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+compAction(rse(Lc,E),OLc,_Cont,_ACont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :- !,
+  chLine(Opts,OLc,Lc,C,C0),
+  compExp(E,Lc,TCont,trapCont(Lc),Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+compAction(perf(Lc,L),OLc,_Cont,ACont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :- !,
+  chLine(Opts,OLc,Lc,C,C0),!,
+  compExp(L,Lc,resetCont(Stk,ACont),TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+compAction(mtch(Lc,P,E),OLc,_Cont,ACont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :- !,
+  chLine(Opts,OLc,Lc,C,C0),
+  compExp(E,Lc,compPtn(P,Lc,ACont,trapCont(Lc),TCont,Opts),
+	  TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+compAction(asgn(Lc,P,E),OLc,_Cont,ACont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :- !,
+  chLine(Opts,OLc,Lc,C,C0),
+  compExp(E,Lc,compExp(P,Lc,bothCont(asmCont(iAssign),ACont),trapCont(Lc),TCont,Opts),
+	  TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+compAction(case(Lc,T,Cases,Deflt),OLc,Cont,ACont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  chLine(Opts,OLc,Lc,C,C0),!,
+  compCase(T,Lc,Cases,Deflt,Cont,TCont,gencode:compAct(ACont),Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
+
+compAct(ACont,A,Lc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  compAction(A,Lc,Cont,ACont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
+  
 
 /* Compile actions as sequences with several possible continuations */
 
@@ -459,7 +489,7 @@ insCont(Ins,Lx,Lx,D,D,_,[Ins|C],C,Stk,Stk).
 
 abortCont(Lc,Msg,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   locTerm(Lc,LT),
-  compTerms([LT,Msg],Lc,abrtCont(Opts),trapCont(Lc),Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
+  compExps([LT,Msg],Lc,abrtCont(Opts),trapCont(Lc),Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 
 abrtCont(Opts,Lx,Lx,D,D,_,C,Cx,_,none) :-
   genDbg(Opts,C,[iAbort|Cx]).
@@ -521,7 +551,7 @@ compPtn(whr(Lc,P,Cnd),OLc,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
 	  TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 compPtn(T,Lc,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(L,Nxt,L0),
-  compTerm(T,Lc,contCont(Nxt),TCont,Opts,L0,L1,D,D1,End,C,[iLbl(Nxt),iCmp(Fl)|C0],Stk,Stk1),
+  compExp(T,Lc,contCont(Nxt),TCont,Opts,L0,L1,D,D1,End,C,[iLbl(Nxt),iCmp(Fl)|C0],Stk,Stk1),
   dropStk(Stk1,2,Stk2),
   verify(gencode:dropStk(Stk,1,Stk2),"Stk2 off"),
   ptnTest(Succ,Fail,Fl,L1,Lx,D1,Dx,End,C0,Cx,Stk2,Stkx).
@@ -616,10 +646,10 @@ compCond(cnd(Lc,T,A,B),OLc,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
 	   Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 compCond(mtch(Lc,P,E),OLc,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
-  compTerm(E,Lc,compPtn(P,Lc,Succ,Fail,TCont,Opts),
+  compExp(E,Lc,compPtn(P,Lc,Succ,Fail,TCont,Opts),
 	   TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 compCond(E,Lc,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
-  compTerm(E,Lc,ifCont(Succ,Fail),TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
+  compExp(E,Lc,ifCont(Succ,Fail),TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 
 ifCont(Succ,Fail,L,Lx,D,Dx,End,[iIfNot(Fl)|C],Cx,Stk,Stkx) :-
   dropStk(Stk,1,Stk0),
@@ -633,16 +663,16 @@ compNeg(Lc,Cn,OLc,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   compCond(Cn,Lc,Fail,Succ,TCont,Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 
-compCase(T,Lc,Cases,Deflt,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+compCase(T,Lc,Cases,Deflt,Cont,TCont,Hndlr,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(L,Nxt,L1),
   splitCont(Lc,Cont,OC),
-  compTerm(T,Lc,contCont(Nxt),TCont,Opts,L1,L2,D,D2,End,C,[iLbl(Nxt),iCase(Mx)|T0],Stk,Stk0),
+  compExp(T,Lc,contCont(Nxt),TCont,Opts,L1,L2,D,D2,End,C,[iLbl(Nxt),iCase(Mx)|T0],Stk,Stk0),
   genLbl(L2,Dflt,L3),
   genCaseTable(Cases,Mx,Table),
   stkLvl(Stk,Lvl),
-  compCases(Table,0,Mx,OC,contCont(Dflt),TCont,Dflt,
+  compCases(Table,0,Mx,OC,contCont(Dflt),TCont,Dflt,Hndlr,
 	    Opts,L3,L4,D2,D4,End,T0,Tx,Tx,[iLbl(Dflt),iRst(Lvl)|C1],Stk0),
-  compTerm(Deflt,Lc,OC,TCont,Opts,L4,Lx,D4,Dx,End,C1,Cx,Stk,Stkx).
+  call(Hndlr,Deflt,Lc,OC,TCont,Opts,L4,Lx,D4,Dx,End,C1,Cx,Stk,Stkx).
 
 genCaseTable(Cases,P,Table) :-
   length(Cases,L),
@@ -682,28 +712,27 @@ mergeDuplicate([(P,H,E)|M],H,[(P,E)|Ds],Rs) :-!,
   mergeDuplicate(M,H,Ds,Rs).
 mergeDuplicate(M,_,[],M).
 
-compCases([],Mx,Mx,_Succ,_,_TCont,_,_Opts,Lx,Lx,D,D,_End,Tc,Tc,C,C,_Stk).
-compCases([],Ix,Mx,Succ,Fail,TCont,Dflt,Opts,L,Lx,D,Dx,End,[iJmp(Dflt)|Tc],Tx,C,Cx,Stk) :-
+compCases([],Mx,Mx,_Succ,_,_TCont,_,_,_Opts,Lx,Lx,D,D,_End,Tc,Tc,C,C,_Stk).
+compCases([],Ix,Mx,Succ,Fail,TCont,Dflt,Hndlr,Opts,L,Lx,D,Dx,End,[iJmp(Dflt)|Tc],Tx,C,Cx,Stk) :-
   Ix1 is Ix+1,
-  compCases([],Ix1,Mx,Succ,Fail,TCont,Dflt,Opts,L,Lx,D,Dx,End,Tc,Tx,C,Cx,Stk).
-compCases([(Ix,Case)|Cs],Ix,Mx,Succ,Fail,TCont,Dflt,
+  compCases([],Ix1,Mx,Succ,Fail,TCont,Dflt,Hndlr,Opts,L,Lx,D,Dx,End,Tc,Tx,C,Cx,Stk).
+compCases([(Ix,Case)|Cs],Ix,Mx,Succ,Fail,TCont,Dflt,Hndlr,
 	  Opts,L,Lx,D,Dx,End,[iJmp(Lbl)|Tc],Tx,C,Cx,Stk) :-!,
   genLbl(L,Lbl,L0),
-  compCaseBranch(Case,Lbl,Succ,Fail,TCont,Opts,L0,L1,D,D1,End,C,C1,Stk,_),
+  compCaseBranch(Case,Lbl,Succ,Fail,TCont,Hndlr,Opts,L0,L1,D,D1,End,C,C1,Stk,_),
   H1 is Ix+1,
-  compCases(Cs,H1,Mx,Succ,Fail,TCont,Dflt,Opts,L1,Lx,D1,Dx,End,Tc,Tx,C1,Cx,Stk).
-compCases(Cs,Ix,Mx,Succ,Fail,TCont,Dflt,Opts,L,Lx,D,Dx,End,[iJmp(Dflt)|Tc],Tx,C,Cx,Stk) :-
+  compCases(Cs,H1,Mx,Succ,Fail,TCont,Dflt,Hndlr,Opts,L1,Lx,D1,Dx,End,Tc,Tx,C1,Cx,Stk).
+compCases(Cs,Ix,Mx,Succ,Fail,TCont,Dflt,Hndlr,Opts,L,Lx,D,Dx,End,[iJmp(Dflt)|Tc],Tx,C,Cx,Stk) :-
   H1 is Ix+1,
-  compCases(Cs,H1,Mx,Succ,Fail,TCont,Dflt,Opts,L,Lx,D,Dx,End,Tc,Tx,C,Cx,Stk).
+  compCases(Cs,H1,Mx,Succ,Fail,TCont,Dflt,Hndlr,Opts,L,Lx,D,Dx,End,Tc,Tx,C,Cx,Stk).
 
 % two cases to consider: hash collision or no hash collision
-compCaseBranch([(P,E,Lc)],Lbl,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,[iLbl(Lbl)|C],Cx,Stk,Stkx) :-!,
+compCaseBranch([(P,E,Lc)],Lbl,Succ,Fail,TCont,Hndlr,Opts,L,Lx,D,Dx,End,[iLbl(Lbl)|C],Cx,Stk,Stkx) :-!,
   genLbl(L,Nxt,L1),
   genLine(Opts,Lc,C,C0),
   compPtn(P,Lc,contCont(Nxt),Fail,TCont,Opts,L1,L2,D,D2,End,C0,[iLbl(Nxt)|C1],Stk,Stk1),
-  compTerm(E,Lc,Succ,TCont,Opts,L2,Lx,D2,Dx,End,C1,Cx,Stk1,Stkx).
-
-compCaseBranch([(P,E,Lc)|SC],Lbl,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,
+  call(Hndlr,E,Lc,Succ,TCont,Opts,L2,Lx,D2,Dx,End,C1,Cx,Stk1,Stkx).
+compCaseBranch([(P,E,Lc)|SC],Lbl,Succ,Fail,TCont,Hndlr,Opts,L,Lx,D,Dx,End,
 	       [iLbl(Lbl),iTL(Off),iLbl(VLb)|C],Cx,Stk,Stkx) :-
   genLbl(L,Fl,L1),
   genLbl(L1,VLb,L2),
@@ -711,24 +740,28 @@ compCaseBranch([(P,E,Lc)|SC],Lbl,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,
   defineLclVar("__",VLb,Opts,End,D,D1,Off,C,C0),
   genLine(Opts,Lc,C0,C1),
   dropStk(Stk,1,Stk0),
-  compPtn(P,Lc,compTerm(E,Lc,Succ,TCont,Opts),resetCont(Stk0,contCont(Fl)),
+  compPtn(P,Lc,compExp(E,Lc,Succ,TCont,Opts),resetCont(Stk0,contCont(Fl)),
 	  TCont,Opts,L3,L4,D1,D2,VLE,C1,[iLbl(Fl)|C2],Stk,Stk1),
   resetVars(D1,D2,D3),
-  compMoreCase(SC,Off,Succ,Fail,TCont,Opts,L4,Lx,
+  compMoreCase(SC,Off,Succ,Fail,TCont,Hndlr,Opts,L4,Lx,
 	       D3,Dx,VLE,C2,[iLbl(VLE)|Cx],Stk0,Stk2),
   mergeStkLvl(Stk1,Stk2,Stkx,"case branch stack").
-compMoreCase([],_,_Succ,Fail,_TCont,_Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+
+compMoreCase([],_,_Succ,Fail,_TCont,_,_Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   call(Fail,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
-compMoreCase([(P,E,Lc)|SC],VLb,Succ,Fail,TCont,Opts,L,Lx,D,Dx,End,[iLdL(VLb)|C],Cx,Stk,Stkx) :-
+compMoreCase([(P,E,Lc)|SC],VLb,Succ,Fail,TCont,Hndlr,Opts,L,Lx,D,Dx,End,[iLdL(VLb)|C],Cx,Stk,Stkx) :-
   genLbl(L,Fl,L1),
   bumpStk(Stk,Stk0),
   genLine(Opts,Lc,C,C0),
-  compPtn(P,Lc,compTerm(E,Lc,Succ,TCont,Opts),
+  compPtn(P,Lc,varCont(Hndlr,E,Lc,Succ,TCont,Opts),
 	  resetCont(Stk,contCont(Fl)),
 	  TCont,Opts,L1,L2,D,D1,End,C0,[iLbl(Fl)|C1],Stk0,Stk1),
   resetVars(D,D1,D2),
-  compMoreCase(SC,VLb,Succ,Fail,TCont,Opts,L2,Lx,D2,Dx,End,C1,Cx,Stk,Stk2),
+  compMoreCase(SC,VLb,Succ,Fail,TCont,Hndlr,Opts,L2,Lx,D2,Dx,End,C1,Cx,Stk,Stk2),
   mergeStkLvl(Stk1,Stk2,Stkx,"more case branch stack").
+
+varCont(H,E,Lc,Succ,TCont,Opts,Cont,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  call(H,E,Lc,Succ,TCont,Opts,Cont,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 
 compCnsCases([(ctpl(Cn,Args),E,Lc)],_,CompRhs,Cont,TCont,Opts,L,Lx,D,Dx,
 	     [iUnpack(Cn,Fl)|C],Cx,Stk,Stkx) :-!,
