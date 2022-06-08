@@ -187,16 +187,10 @@ overloadTerm(mtd(Lc,Nm,Tp),_,St,Stx,mtd(Lc,Nm,Tp)) :-
   markActive(St,Lc,Msg,Stx).
 overloadTerm(lambda(Lc,Lbl,Eqn,Tp),Dict,St,Stx,lambda(Lc,Lbl,OEqn,Tp)) :-
   overloadRule(resolve:overloadTerm,Eqn,Dict,St,Stx,OEqn).
-overloadTerm(tag(Lc,Tp),_,St,St,tag(Lc,Tp)).
-overloadTerm(prompt(Lc,Lb,E,Tp),Dict,St,Stx,prompt(Lc,LL,EE,Tp)) :-
-  overloadTerm(Lb,Dict,St,St0,LL),
-  overloadTerm(E,Dict,St0,Stx,EE).
-overloadTerm(shift(Lc,L,F),Dict,St,Stx,shift(Lc,LL,FF)) :-
-  overloadTerm(L,Dict,St,St0,LL),
-  overloadTerm(F,Dict,St0,Stx,FF).
-overloadTerm(resume(Lc,Kont,Arg,Tp),Dict,St,Stx,resume(Lc,KK,AA,Tp)) :-
-  overloadTerm(Kont,Dict,St,St0,KK),
-  overloadTerm(Arg,Dict,St0,Stx,AA).
+overloadTerm(valof(Lc,A),Dict,St,Stx,valof(Lc,AA)) :-
+  overloadAction(A,Dict,St,Stx,AA).
+overloadTerm(task(Lc,A,Tp),Dict,St,Stx,task(Lc,AA,Tp)) :-
+  overloadAction(A,Dict,St,Stx,AA).
 overloadTerm(T,_,St,St,T) :-
   locOfCanon(T,Lc),
   reportError("invalid term to resolve %s",[can(T)],Lc).
@@ -209,6 +203,55 @@ overloadLet(Lc,Decls,Defs,Bound,Dict,St,Stx,RDefs,RBound) :-
   declareAccessors(Lc,Decls,Dict,RDict),
   overload(Lc,Defs,RDict,RRDict,RDefs),
   overloadTerm(Bound,RRDict,St,Stx,RBound).
+
+overloadAction(doNop(Lc),_,St,St,doNop(Lc)) :-!.
+overloadAction(doSeq(Lc,A,B),Dict,St,Stx,doSeq(Lc,AA,BB)) :-
+  overloadAction(A,Dict,St,St1,AA),
+  overloadAction(B,Dict,St1,Stx,BB).
+overloadAction(doValis(Lc,A),Dict,St,Stx,doValis(Lc,AA)) :-
+  overloadTerm(A,Dict,St,Stx,AA).
+overloadAction(doRaise(Lc,A),Dict,St,Stx,doRaise(Lc,AA)) :-
+  overloadTerm(A,Dict,St,Stx,AA).
+overloadAction(doPerform(Lc,A),Dict,St,Stx,doPerformd(Lc,AA)) :-
+  overloadAction(A,Dict,St,Stx,AA).
+overloadAction(doMatch(Lc,P,A),Dict,St,Stx,doMatch(Lc,PP,AA)) :-
+  overloadTerm(P,Dict,St,St1,PP),
+  overloadTerm(A,Dict,St1,Stx,AA).
+overloadAction(doBind(Lc,P,A),Dict,St,Stx,doBind(Lc,PP,AA)) :-
+  overloadTerm(P,Dict,St,St1,PP),
+  overloadTerm(A,Dict,St1,Stx,AA).
+overloadAction(doAssign(Lc,P,A),Dict,St,Stx,doAssign(Lc,PP,AA)) :-
+  overloadTerm(P,Dict,St,St1,PP),
+  overloadTerm(A,Dict,St1,Stx,AA).
+overloadAction(doTryCatch(Lc,A,H),Dict,St,Stx,doTryCatch(Lc,AA,HH)) :-
+  overloadAction(A,Dict,St,St1,AA),
+  overloadTerm(H,Dict,St1,Stx,HH).
+overloadAction(doIfThenElse(Lc,T,A,B),Dict,St,Stx,doIfThenElse(Lc,TT,AA,BB)) :-
+  overloadTerm(T,Dict,St,St1,TT),
+  overloadAction(A,Dict,St1,St2,AA),
+  overloadAction(B,Dict,St2,Stx,BB).
+overloadAction(doIfThen(Lc,T,A),Dict,St,Stx,doIfThen(Lc,TT,AA)) :-
+  overloadTerm(T,Dict,St,St1,TT),
+  overloadAction(A,Dict,St1,Stx,AA).
+overloadAction(doWhile(Lc,T,A),Dict,St,Stx,doWhile(Lc,TT,AA)) :-
+  overloadTerm(T,Dict,St,St1,TT),
+  overloadAction(A,Dict,St1,Stx,AA).
+overloadAction(doUntil(Lc,A,T),Dict,St,Stx,doUntil(Lc,AA,TT)) :-
+  overloadTerm(T,Dict,St,St1,TT),
+  overloadAction(A,Dict,St1,Stx,AA).
+overloadAction(doFor(Lc,P,S,A),Dict,St,Stx,doFor(Lc,PP,SS,AA)) :-
+  overloadTerm(P,Dict,St,St1,PP),
+  overloadTerm(S,Dict,St1,St2,SS),
+  overloadAction(A,Dict,St2,Stx,AA).
+overloadAction(letExp(Lc,Decls,Defs,Bound),Dict,St,Stx,letExp(Lc,Decls,RDefs,RBound)) :-
+  overloadLet(Lc,Decls,Defs,Bound,Dict,St,Stx,RDefs,RBound).
+overloadAction(letRec(Lc,Decls,Defs,Bound),Dict,St,Stx,letRec(Lc,Decls,RDefs,RBound)) :-
+  overloadLet(Lc,Decls,Defs,Bound,Dict,St,Stx,RDefs,RBound).
+overloadAction(case(Lc,G,C,Tp),Dict,St,Stx,case(Lc,GG,CC,Tp)) :-
+  overloadTerm(G,Dict,St,St1,GG),
+  overloadCases(C,resolve:overloadAction,Dict,St1,Stx,CC).
+overloadAction(O,Dict,St,Stx,OO) :-
+  overloadTerm(O,Dict,St,Stx,OO).
 
 overloadMethod(ALc,Lc,T,Cx,Args,Tp,Dict,St,Stx,apply(ALc,OverOp,tple(LcA,NArgs),Tp)) :-
   resolveContracts(Lc,Cx,Dict,St,St0,DTerms),

@@ -22,7 +22,6 @@
 	      isConditional/5,conditional/5,
 	      isEquation/4,isEquation/5,mkEquation/5,
 	      buildEquation/6,
-	      isPrompt/4,mkPrompt/4,isCut/5,mkCut/5,isTag/2,mkTag/2,isResume/4,mkResume/4,
 	      isDefn/4,isAssignment/4,isRef/3,mkRef/3,isCellRef/3,cellRef/3,
 	      isSequence/4,mkSequence/4,
 	      assignment/4,eqn/4,eqn/5,
@@ -43,6 +42,8 @@
 	      isIotaComprehension/4,
 	      isTestComprehension/3,mkTestComprehension/3,
 	      isCaseExp/4,caseExp/4,
+	      isSuspend/4,isSuspend/5,isResume/4,isResume/5,isRetire/3,isRetire/4,
+	      mkSuspend/4,mkSuspend/5,mkResume/4,mkResume/5,mkRetire/3,mkRetire/4,
 	      isTaskTerm/3,mkTaskTerm/3,isActionTerm/3,mkActionTerm/3,
 	      isResultTerm/3,mkResultTerm/3,
 	      isDoTerm/3,mkDoTerm/3,
@@ -520,34 +521,6 @@ caseExp(Lc,Exp,Cases,Trm) :-
   binary(Lc,"in",Exp,R,C0),
   unary(Lc,"case",C0,Trm).
 
-isTag(Trm,Lc) :-
-  isZeroary(Trm,Lc,"tag").
-
-mkTag(Lc,Trm) :-
-  mkZeroary(Lc,"tag",Trm).
-
-isPrompt(Trm,Lc,Lb,E) :-
-  isBinary(Trm,Lc,"prompt",Lb,E).
-
-mkPrompt(Lc,Lb,E,Trm) :-
-  binary(Lc,"prompt",Lb,E,Trm).
-
-isCut(Trm,Lc,Lb,L,R) :-
-  isBinary(Trm,Lc,"cut",Lb,Rhs),
-  isBinary(Rhs,_,"in",L,R),
-  isIden(L,_).
-
-mkCut(Lc,Lb,L,R,Trm) :-
-  binary(Lc,"in",L,R,Rhs),
-  binary(Lc,"cut",Lb,Rhs,Trm).
-
-isResume(T,Lc,K,A) :-
-  isBinary(T,Lc,".",K,A),
-  isTuple(A,_,_).
-
-mkResume(Lc,K,C,T) :-
-  binary(Lc,".",K,C,T).
-
 isAssignment(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,":=",Lhs,Rhs).
 
@@ -919,6 +892,54 @@ isActionSeq(A,Lc,S) :-
 
 mkActionSeq(Lc,S1,S2,T) :-
   binary(Lc,";",S1,S2,T).
+
+isSuspend(A,Lc,E,C) :-
+  isUnary(A,Lc,"suspend",L),
+  isBinary(L,_,"in",E,R),
+  isBraceTuple(R,_,C).
+
+isSuspend(A,Lc,T,E,C) :-
+  isBinary(A,Lc,"suspend",T,L),
+  isBinary(L,_,"in",E,R),
+  isBraceTuple(R,_,C).
+
+mkSuspend(Lc,E,C,A) :-
+  braceTuple(Lc,C,R),
+  binary(Lc,"in",E,R,L),
+  unary(Lc,"suspend",L,A).
+mkSuspend(Lc,T,E,C,A) :-
+  braceTuple(Lc,C,R),
+  binary(Lc,"in",E,R,L),
+  binary(Lc,"suspend",T,L,A).
+
+isResume(A,Lc,E,C) :-
+  isUnary(A,Lc,"resume",L),
+  isBinary(L,_,"in",E,R),
+  isBraceTuple(R,_,C).
+
+isResume(A,Lc,T,E,C) :-
+  isBinary(A,Lc,"resume",T,L),
+  isBinary(L,_,"in",E,R),
+  isBraceTuple(R,_,C).
+
+mkResume(Lc,E,C,A) :-
+  braceTuple(Lc,C,R),
+  binary(Lc,"in",E,R,L),
+  unary(Lc,"resume",L,A).
+mkResum(Lc,T,E,C,A) :-
+  braceTuple(Lc,C,R),
+  binary(Lc,"in",E,R,L),
+  binary(Lc,"resume",T,L,A).
+
+isRetire(A,Lc,E) :-
+  isUnary(A,Lc,"retire",E).
+isRetire(A,Lc,T,E) :-
+  isBinary(A,Lc,"retire",E).
+
+mkRetire(Lc,E,A) :-
+  unary(Lc,"retire",E,A).
+mkRetire(Lc,T,E,A) :-
+  binary(Lc,"retire",T,E,A).
 
 mkLoc(Lc,T) :-
   Lc=loc(Pk,Line,Col,Off,Ln),

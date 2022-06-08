@@ -1,6 +1,8 @@
 test.c0{
  -- Test program that does not depend on any other package
 
+  public boolean ::= .true | .false.
+
   public pp[a] ::= pp{C:integer} |
     pq{C:integer. A:a}.
 
@@ -24,5 +26,22 @@ test.c0{
   public cont:(integer)=>pp[()].
   cont(C) => pp{
     C=C
+  }
+
+  0 < 1 => .true.
+
+  1 + 1 => 2.
+
+  1 * 1 => 1.
+
+  fact:(integer)=>integer.
+  fact(X) => valof{
+    F .= ref 1;
+    I .= ref 0;
+    while I! < X do{
+      F := F!*I!;
+      I := I!+1;
+    };
+    valis F!
   }
 }

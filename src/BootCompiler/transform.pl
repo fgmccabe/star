@@ -355,16 +355,6 @@ liftExp(open(_,E,_),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftExp(apply(Lc,Op,tple(_,A),_),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
   trExpCallOp(Lc,Op,LA,Exp,Q1,Qx,Map,Opts,Ex1,Exx).
-liftExp(tag(Lc,Tp),tg(Lc,Tp),Q,Q,_,_,Ex,Ex) :-!.
-liftExp(shift(Lc,Lb,E),shft(Lc,LL,EE),Q,Q,Map,Opts,Ex,Exx) :-!,
-  liftExp(Lb,LL,Q,_,Map,Opts,Ex,Ex0),
-  liftExp(E,EE,Q,_,Map,Opts,Ex0,Exx).
-liftExp(prompt(Lc,L,E,_),prmpt(Lc,Lb,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftExp(L,Lb,Q,Q0,Map,Opts,Ex,Ex0),
-  liftExp(E,EE,Q0,Qx,Map,Opts,Ex0,Exx).
-liftExp(resume(Lc,Kont,Arg,_Tp),resme(Lc,KK,AA),Q,Q,Map,Opts,Ex,Exx) :-!,
-  liftExp(Kont,KK,Q,_,Map,Opts,Ex,Ex0),
-  liftExp(Arg,AA,Q,_,Map,Opts,Ex0,Exx).
 liftExp(sequence(Lc,Lb,E),seqD(Lc,LL,EE),Q,Q,Map,Opts,Ex,Exx) :-!,
   liftExp(Lb,LL,Q,_,Map,Opts,Ex,Ex0),
   liftExp(E,EE,Q,_,Map,Opts,Ex0,Exx).
@@ -398,27 +388,89 @@ liftExp(letExp(Lc,Decls,Defs,Bnd),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   (is_member(showTrCode,Opts) -> dispCanon(letExp(Lc,Decls,Defs,Bnd));true),
   liftLetExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(letRec(Lc,Decls,Defs,Bnd),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftLetRec(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
+  liftLetRecExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(lambda(Lc,Lbl,Rle,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-!,
   liftLambda(lambda(Lc,Lbl,Rle,Tp),Rslt,Q,Map,Opts,Ex,Exx).
+liftExp(valof(Lc,A),vlof(Lc,Rslt),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftAction(A,Rslt,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(XX,void,Q,Q,_,_,Ex,Ex) :-
   locOfCanon(XX,Lc),
   reportFatal("internal: cannot transform %s as expression",[XX],Lc).
 
-liftLetExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
+liftAction(doNop(Lc),nop(Lc),Q,Q,_,_,Ex,Ex) :-!.
+liftAction(doSeq(Lc,L,R),seq(Lc,LL,RR),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftAction(L,LL,Q,Q0,Map,Opts,Ex,Ex0),
+  liftAction(R,RR,Q0,Qx,Map,Opts,Ex0,Exx).
+liftAction(doValis(Lc,E),vls(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
+liftAction(doRaise(Lc,E),rse(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
+liftAction(doPerform(Lc,E),perf(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
+liftAction(doMatch(Lc,P,E),mtch(Lc,PP,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftPtn(P,PP,Q,Q0,Map,Opts,Ex,Ex0),
+  liftExp(E,EE,Q0,Qx,Map,Opts,Ex0,Exx).
+liftAction(doBind(Lc,P,E),bnd(Lc,PP,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftPtn(P,PP,Q,Q0,Map,Opts,Ex,Ex0),
+  liftExp(E,EE,Q0,Qx,Map,Opts,Ex0,Exx).
+liftAction(doAssign(Lc,P,E),asgn(Lc,PP,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftPtn(P,PP,Q,Q0,Map,Opts,Ex,Ex0),
+  liftExp(E,EE,Q0,Qx,Map,Opts,Ex0,Exx).
+liftAction(doIfThenElse(Lc,G,L,R),iftte(Lc,GG,LL,RR),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftGoal(G,GG,Q,Q0,Map,Opts,Ex,Ex0),
+  liftAction(L,LL,Q0,Qx,Map,Opts,Ex0,Ex1),
+  liftAction(R,RR,Q,_,Map,Opts,Ex1,Exx).
+liftAction(doIfThen(Lc,G,L),iftt(Lc,GG,LL),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftGoal(G,GG,Q,Q0,Map,Opts,Ex,Ex0),
+  liftAction(L,LL,Q0,Qx,Map,Opts,Ex0,Exx).
+liftAction(doWhile(Lc,G,B),whle(Lc,GG,BB),Q,Q,Map,Opts,Ex,Exx) :-!,
+  liftGoal(G,GG,Q,Q0,Map,Opts,Ex,Ex0),
+  liftAction(B,BB,Q0,_,Map,Opts,Ex0,Exx).
+liftAction(doUntil(Lc,B,G),untl(Lc,BB,GG),Q,Q,Map,Opts,Ex,Exx) :-!,
+  liftGoal(G,GG,Q,Q0,Map,Opts,Ex,Ex0),
+  liftAction(B,BB,Q0,_,Map,Opts,Ex0,Exx).
+liftAction(doFor(Lc,P,S,B),ffor(Lc,PP,SS,BB),Q,Q,Map,Opts,Ex,Exx) :-!,
+  liftExp(S,SS,Q,Q0,Map,Opts,Ex,Ex0),
+  liftPtn(P,PP,Q0,Q1,Map,Opts,Ex0,Ex1),
+  liftAction(B,BB,Q1,_,Map,Opts,Ex1,Exx).
+liftAction(doLet(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
+  (is_member(showTrCode,Opts) -> dispCanon(doLet(Lc,Decls,Defs,B));true),
+  liftLet(Lc,Decls,Defs,transform:liftAction,B,Exp,Q,Qx,Map,Opts,Ex,Exx).
+liftAction(doLetRec(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
+  (is_member(showTrCode,Opts) -> dispCanon(doLetRec(Lc,Decls,Defs,B));true),
+  liftLetRec(Lc,Decls,Defs,transform:liftAction,B,Exp,Q,Qx,Map,Opts,Ex,Exx).
+liftAction(doCase(Lc,B,Cs),Reslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftExp(B,BB,Q,Q0,Map,Opts,Ex,Ex0),
+  liftCases(Cs,Cases,Q0,Qx,Map,Opts,transform:liftAction,Ex0,Exx),
+  (idnt(_)=BB ->
+   caseMatcher(Lc,BB,Cases,Map,Reslt) ;
+   genVar("_C",V),
+   caseMatcher(Lc,V,Cases,Map,Res),
+   Reslt = ltt(Lc,V,BB,Res)).
+liftAction(XX,nop(Lc),Q,Q,_,_,Ex,Ex) :-!,
+  locOfCanon(XX,Lc),
+  reportFatal("internal: cannot transform %s as action",[cnact(XX)],Lc).
+  
+liftLetExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
+  liftLet(Lc,Decls,Defs,Bnd,transform:liftExp,Exp,Q,Qx,Map,Opts,Ex,Exx).
+
+liftLetRecExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftLetRec(Lc,Decls,Defs,transform:liftExp,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
+
+liftLet(Lc,Decls,Defs,Bnd,Cll,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   genVar("_ThR",ThVr),
   letMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,ThMap,RMap,FreeTerm),
   transformThetaDefs(ThMap,RMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
-  liftExp(Bnd,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
+  call(Cll,Bnd,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
   mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
   (is_member(showTrCode,Opts) -> dispTerm(Exp);true).
 
-liftLetRec(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
+liftLetRec(Lc,Decls,Defs,Cll,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   genVar("_ThV",ThVr),
   letRecMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,ThMap,FreeTerm),
   (is_member(showTrCode,Opts) -> dispMap("Letrec map: ",1,ThMap);true),
   transformThetaDefs(ThMap,ThMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
-  liftExp(Bnd,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
+  call(Cll,Bnd,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
   mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
   (is_member(showTrCode,Opts) -> dispTerm(Exp);true).
 

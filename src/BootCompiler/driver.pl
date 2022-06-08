@@ -47,6 +47,8 @@ parseFlags(['-c'|More],CWD,Cx,[compileOnly|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-m'|More],CWD,Cx,[macroOnly|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
+parseFlags(['-t'|More],CWD,Cx,[transformOnly|Opts],Files) :-!,
+  parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-v', V|More],CWD,Cx,[ver(Vers)|Opts],Files) :-!,
   atom_string(V,Vers),
   parseFlags(More,CWD,Cx,Opts,Files).
@@ -143,11 +145,13 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
     transformProg(PkgDecls,Canon,Opts,Rules),!,
     (is_member(showTrCode,Opts) -> dispProg(Rules),validLProg(PkgDecls,Rules);true),
     noErrors,
-    genPkgSig(Rules,Sig),		% goes into the repo manifest
-    genCode(PkgDecls,Rules,Opts,Text),
-    noErrors,
-    addCodePackage(Repo,SrcUri,Pkg,Sig,Text,Rx);
-    true) ;
+    (\+ is_member(transformOnly,Opts) ->
+     genPkgSig(Rules,Sig),		% goes into the repo manifest
+     genCode(PkgDecls,Rules,Opts,Text),
+     noErrors,
+     addCodePackage(Repo,SrcUri,Pkg,Sig,Text,Rx);
+     true);
+    true);
    true).
 
 processStdin(Pkg,Repo,Opts) :-

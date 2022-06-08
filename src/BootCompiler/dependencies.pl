@@ -10,8 +10,8 @@
 dependencies(Dfs,Groups,Annots) :-
   allRefs(Dfs,[],ARefs),
   collectThetaRefs(Dfs,ARefs,Annots,Defs),!,
-  topsort(Defs,Groups,misc:same).
-%  showGroups(Groups).
+  topsort(Defs,Groups,misc:same),
+  showGroups(Groups).
 
 allRefs([(con(N),_,[St])|Defs],SoFar,AllRefs) :-
   conRefs(con(N),St,SoFar,Rf0),
@@ -270,7 +270,7 @@ collectTermRefs(T,A,R0,Rx) :-
 collectTermRefs(T,A,R0,Rx) :-
   isValof(T,_,E),!,
   (isBraceTuple(E,_,[St]) ->
-   collectionDoRefs(St,A,R0,Rx);
+   collectDoRefs(St,A,R0,Rx);
    collectTermRefs(E,A,R0,Rx)).
 collectTermRefs(T,A,R0,Rx) :-
   isDoTerm(T,_,Stmts),!,
@@ -316,21 +316,6 @@ collectTermRefs(T,All,R,Rx) :-
 collectTermRefs(T,All,R,Rx) :-
   isCellRef(T,_,A),!,
   collectTermRefs(A,All,R,Rx).
-collectTermRefs(T,_All,Rx,Rx) :-
-  isTag(T,_),!.
-collectTermRefs(T,All,R,Rx) :-
-  isPrompt(T,_,Lb,A),!,
-  collectTermRefs(Lb,All,R,R0),
-  collectTermRefs(A,All,R0,Rx).
-collectTermRefs(T,All,R,Rx) :-
-  isCut(T,_,Lb,L,E),!,
-  collectTermRefs(Lb,All,R,R0),
-  collectTermRefs(L,All,R0,R1),
-  collectTermRefs(E,All,R1,Rx).
-collectTermRefs(T,A,R0,Rx) :-
-  isResume(T,_,O,Args),
-  collectTermRefs(O,A,R0,R1),
-  collectTermRefs(Args,A,R1,Rx).
 collectTermRefs(_,_,Rx,Rx).
 
 collectTermListRefs([],_,Rx,Rx).
@@ -386,10 +371,6 @@ collectDoRefs(T,All,Rf,Rfx) :-
   collectTermRefs(L,All,Rf,Rf0),
   collectTermRefs(R,All,Rf0,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
-  isDefn(T,_,L,R),!,
-  collectTermRefs(L,All,Rf,Rf0),
-  collectTermRefs(R,All,Rf0,Rfx).
-collectDoRefs(T,All,Rf,Rfx) :-
   isIfThenElse(T,_,Tt,H,E),!,
   collectTermRefs(Tt,All,Rf,Rf0),
   collectDoRefs(H,All,Rf0,Rf1),
@@ -398,6 +379,31 @@ collectDoRefs(T,All,Rf,Rfx) :-
   isIfThen(T,_,Tt,H),!,
   collectTermRefs(Tt,All,Rf,Rf0),
   collectDoRefs(H,All,Rf0,Rfx).
+collectDoRefs(T,A,Rf,Rx) :-
+  isSuspend(T,_,E,C),!,
+  collectTermRefs(E,A,Rf,R0),
+  collectCaseRefs(C,collectDoRefs,A,R0,Rx).
+collectDoRefs(T,A,Rf,Rx) :-
+  isSuspend(T,_,Ts,E,C),!,
+  collectTermRefs(E,A,Rf,R0),
+  collectTermRefs(Ts,A,R0,R1),
+  collectCaseRefs(C,collectDoRefs,A,R1,Rx).
+collectDoRefs(T,A,Rf,Rx) :-
+  isResume(T,_,E,C),!,
+  collectTermRefs(E,A,Rf,R0),
+  collectCaseRefs(C,collectDoRefs,A,R0,Rx).
+collectDoRefs(T,A,Rf,Rx) :-
+  isResume(T,_,Ts,E,C),!,
+  collectTermRefs(E,A,Rf,R0),
+  collectTermRefs(Ts,A,R0,R1),
+  collectCaseRefs(C,collectDoRefs,A,R1,Rx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  isRetire(T,_,E),!,
+  collectTermRefs(E,All,Rf,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  isRetire(T,_,Ts,E),!,
+  collectTermRefs(Ts,All,Rf,R0).
+  collectTermRefs(E,All,R0,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isCaseExp(T,_,Exp,Cases),!,
   collectTermRefs(Exp,All,Rf,R0),
@@ -428,10 +434,6 @@ collectDoRefs(T,A,R,Rx) :-
   collectStmtRefs(S,A,[],R,R0),
   collectDoRefs(B,A,R0,Rx).
 collectDoRefs(T,All,Rf,Rfx) :-
-  isTryHandle(T,_,L,R),!,
-  collectDoRefs(L,All,Rf,Rf1),
-  collectCatchRefs(R,All,Rf1,Rfx).
-collectDoRefs(T,All,Rf,Rfx) :-
   isRaise(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
@@ -441,19 +443,6 @@ collectDoRefs(T,All,Rf,Rfx) :-
   isAssignment(T,_,L,R),!,
   collectTermRefs(L,All,Rf,Rf0),
   collectTermRefs(R,All,Rf0,Rfx).
-collectDoRefs(T,All,Rf,Rfx) :-
-  isPrompt(T,_,L,R),!,
-  collectTermRefs(L,All,Rf,Rf1),
-  collectDoRefs(R,All,Rf1,Rfx).
-collectDoRefs(T,All,Rf,Rfx) :-
-  isCut(T,_,L,K,R),!,
-  collectTermRefs(K,All,Rf,Rf0),
-  collectTermRefs(L,All,Rf0,Rf1),
-  collectDoRefs(R,All,Rf1,Rfx).
-collectDoRefs(T,All,Rf,Rfx) :-
-  isResume(T,_,L,Args),!,
-  collectTermRefs(L,All,Rf,R1),
-  collectTermRefs(Args,All,R1,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   collectTermRefs(T,All,Rf,Rfx).
 

@@ -21,6 +21,7 @@
   is_in(X,[X|_]).
   is_in(X,[_|Y]) :- is_in(X,Y).
 
+  operator("retire", [prefixOp(901, 900), infixOp(900, 901, 900)]).
   operator("all", [prefixOp(1010, 1009)]).
   operator(".<.", [infixOp(699, 700, 699)]).
   operator("^=", [infixOp(899, 900, 899)]).
@@ -34,7 +35,6 @@
   operator("do", [prefixOp(200, 199), infixOp(1199, 1200, 1199)]).
   operator("import", [prefixOp(900, 899)]).
   operator("catch", [infixOp(1198, 1199, 1198)]).
-  operator("prompt", [infixOp(299, 300, 299)]).
   operator("valis", [prefixOp(930, 929)]).
   operator(",..", [infixOp(999, 1000, 999)]).
   operator("for", [prefixOp(1175, 1174)]).
@@ -58,6 +58,7 @@
   operator("\\-", [infixOp(700, 700, 699)]).
   operator("+", [postfixOp(699, 700), infixOp(720, 720, 719)]).
   operator(".>>.", [infixOp(600, 600, 599)]).
+  operator("resume", [prefixOp(901, 900), infixOp(900, 901, 900)]).
   operator("*>", [infixOp(904, 905, 904)]).
   operator(",", [infixOp(999, 1000, 1000)]).
   operator("contract", [prefixOp(1260, 1259)]).
@@ -70,7 +71,6 @@
   operator("exists", [prefixOp(1010, 1009)]).
   operator("if", [prefixOp(1175, 1174)]).
   operator("$$", [prefixOp(899, 898)]).
-  operator("background", [prefixOp(950, 949)]).
   operator(":", [infixOp(1249, 1250, 1249)]).
   operator(";", [postfixOp(1250, 1251), infixOp(1250, 1251, 1251)]).
   operator("<", [infixOp(899, 900, 899)]).
@@ -86,7 +86,7 @@
   operator("@", [prefixOp(400, 399), infixOp(399, 400, 400)]).
   operator("in", [infixOp(899, 900, 900)]).
   operator("^|", [infixOp(919, 920, 920)]).
-  operator("cut", [infixOp(949, 950, 949)]).
+  operator("suspend", [prefixOp(901, 900), infixOp(900, 901, 900)]).
   operator("open", [prefixOp(900, 899)]).
   operator("~~", [infixOp(1239, 1240, 1240)]).
   operator("assert", [prefixOp(1240, 1239)]).
@@ -365,6 +365,7 @@
   final('#',"#").	 /* Macro statement marker */
   final('$$',"$$").	 /* wrap value in memo */
 
+  keyword("retire").
   keyword("all").
   keyword("^=").
   keyword("&&").
@@ -374,7 +375,6 @@
   keyword("do").
   keyword("import").
   keyword("catch").
-  keyword("prompt").
   keyword("valis").
   keyword(",..").
   keyword("for").
@@ -394,13 +394,13 @@
   keyword(")").
   keyword("<<-").
   keyword("|)").
+  keyword("resume").
   keyword("*>").
   keyword(",").
   keyword("contract").
   keyword(".").
   keyword("try").
   keyword("exists").
-  keyword("tag").
   keyword("if").
   keyword(":").
   keyword(";").
@@ -412,7 +412,7 @@
   keyword("@").
   keyword("|>").
   keyword("in").
-  keyword("cut").
+  keyword("suspend").
   keyword("open").
   keyword("~~").
   keyword("public").
