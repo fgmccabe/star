@@ -295,9 +295,14 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
     case i32:
     case art:
     case arg:
-      check(B == nOp, "second operand not nOp");
-      outMsg(out, "=> mnem(Ins,Code++[intgr(%d),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", op);
-      return;
+      switch (B) {
+        case nOp:
+        case tOs:
+          outMsg(out, "=> mnem(Ins,Code++[intgr(%d),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", op);
+          return;
+        default:
+          check(False, "Cannot generate instruction code");
+      }
     case lVl:
       check(B == nOp, "second operand not nOp");
       outMsg(out, "=> mnem(Ins,Code++[intgr(%d),intgr(findEnd(Ends,U)-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n",

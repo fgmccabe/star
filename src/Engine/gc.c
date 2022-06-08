@@ -257,13 +257,13 @@ static retCode markProcess(processPo P, gcSupportPo G) {
   if (traceMemory)
     outMsg(logFile, "Mark process %d\n%_", P->processNo);
 #endif
-  P->stk = C_STACK(markPtr(G, (ptrPo) &P->stk));
+  P->stk = C_TASK(markPtr(G, (ptrPo) &P->stk));
 
   return Ok;
 }
 
 void verifyProc(processPo P, heapPo H) {
-  verifyStack(P->stk, H);
+  verifyTask(P->stk, H);
 }
 
 void dumpGcStats() {

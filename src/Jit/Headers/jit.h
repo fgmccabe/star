@@ -9,7 +9,7 @@
 #include "config.h"
 #include "ooio.h"
 #include "term.h"
-#include "stack.h"
+#include "task.h"
 
 typedef termPo (*jitCode)();
 
@@ -24,7 +24,7 @@ typedef struct jit_compiler_ *jitCompPo;
 void initJit();
 retCode installJitCode(methodPo mtd,jitCode code);
 retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen);
-termPo invokeJitMethod(methodPo mtd, heapPo H, stackPo stk);
+termPo invokeJitMethod(methodPo mtd, heapPo H, taskPo stk);
 
 #ifdef TRACEJIT
 extern logical traceJit;

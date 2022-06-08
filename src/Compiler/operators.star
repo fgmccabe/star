@@ -37,6 +37,7 @@ star.compiler.operators{
   pickPostfix([_,..L]) => pickPrefix(L).
 
   oper:(string)=>cons[operator].
+  oper("retire") => [prefixOp(901,900), infixOp(900,901,900)].
   oper("all") => [prefixOp(1010,1009)].
   oper(".<.") => [infixOp(699,700,699)].
   oper("^=") => [infixOp(899,900,899)].
@@ -50,7 +51,6 @@ star.compiler.operators{
   oper("do") => [prefixOp(200,199), infixOp(1199,1200,1199)].
   oper("import") => [prefixOp(900,899)].
   oper("catch") => [infixOp(1198,1199,1198)].
-  oper("prompt") => [infixOp(299,300,299)].
   oper("valis") => [prefixOp(930,929)].
   oper(",..") => [infixOp(999,1000,999)].
   oper("for") => [prefixOp(1175,1174)].
@@ -74,6 +74,7 @@ star.compiler.operators{
   oper("\\-") => [infixOp(700,700,699)].
   oper("+") => [postfixOp(699,700), infixOp(720,720,719)].
   oper(".>>.") => [infixOp(600,600,599)].
+  oper("resume") => [prefixOp(901,900), infixOp(900,901,900)].
   oper("*>") => [infixOp(904,905,904)].
   oper(",") => [infixOp(999,1000,1000)].
   oper("contract") => [prefixOp(1260,1259)].
@@ -86,7 +87,6 @@ star.compiler.operators{
   oper("exists") => [prefixOp(1010,1009)].
   oper("if") => [prefixOp(1175,1174)].
   oper("$$") => [prefixOp(899,898)].
-  oper("background") => [prefixOp(950,949)].
   oper(":") => [infixOp(1249,1250,1249)].
   oper(";") => [postfixOp(1250,1251), infixOp(1250,1251,1251)].
   oper("<") => [infixOp(899,900,899)].
@@ -102,7 +102,7 @@ star.compiler.operators{
   oper("@") => [prefixOp(400,399), infixOp(399,400,400)].
   oper("in") => [infixOp(899,900,900)].
   oper("^|") => [infixOp(919,920,920)].
-  oper("cut") => [infixOp(949,950,949)].
+  oper("suspend") => [prefixOp(901,900), infixOp(900,901,900)].
   oper("open") => [prefixOp(900,899)].
   oper("~~") => [infixOp(1239,1240,1240)].
   oper("assert") => [prefixOp(1240,1239)].
@@ -416,6 +416,7 @@ star.compiler.operators{
   final(_) default => .false.
 
   public keyword:(string) => boolean.
+  keyword("retire") => .true.
   keyword("all") => .true.
   keyword("^=") => .true.
   keyword("&&") => .true.
@@ -425,7 +426,6 @@ star.compiler.operators{
   keyword("do") => .true.
   keyword("import") => .true.
   keyword("catch") => .true.
-  keyword("prompt") => .true.
   keyword("valis") => .true.
   keyword(",..") => .true.
   keyword("for") => .true.
@@ -445,13 +445,13 @@ star.compiler.operators{
   keyword(")") => .true.
   keyword("<<-") => .true.
   keyword("|)") => .true.
+  keyword("resume") => .true.
   keyword("*>") => .true.
   keyword(",") => .true.
   keyword("contract") => .true.
   keyword(".") => .true.
   keyword("try") => .true.
   keyword("exists") => .true.
-  keyword("tag") => .true.
   keyword("if") => .true.
   keyword(":") => .true.
   keyword(";") => .true.
@@ -463,7 +463,7 @@ star.compiler.operators{
   keyword("@") => .true.
   keyword("|>") => .true.
   keyword("in") => .true.
-  keyword("cut") => .true.
+  keyword("suspend") => .true.
   keyword("open") => .true.
   keyword("~~") => .true.
   keyword("public") => .true.

@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
   }
   initHistory(/*".star"*/Null);
   initHeap(initHeapSize);
-  initStacks();
+  initTasks();
   initArith();
   initChars();
   initStrings();

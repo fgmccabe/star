@@ -62,7 +62,7 @@
  */
 retCode run(processPo P) {
   heapPo H = P->heap;
-  stackPo STK = P->stk;
+  taskPo STK = P->stk;
   framePo FP = STK->fp;
   register insPo PC = FP->pc;    /* Program counter */
   register normalPo LITS = codeLits(FP->prog); /* pool of literals */
@@ -97,7 +97,7 @@ retCode run(processPo P) {
         }
         return (retCode) exitCode;
       }
-      case Nop:{
+      case Nop: {
         continue;
       }
       case Abort: {
@@ -277,7 +277,7 @@ retCode run(processPo P) {
         if (!stackRoom(stackDelta(mtd))) {
           int root = gcAddRoot(H, (ptrPo) &mtd);
 
-          stackPo prevStack = STK;
+          taskPo prevStack = STK;
 
           gcAddRoot(H, (ptrPo) &prevStack);
 
@@ -302,7 +302,7 @@ retCode run(processPo P) {
 #ifdef TRACEEXEC
           SP = (ptrPo) FP;
           saveRegisters();
-          verifyStack(STK, H);
+          verifyTask(STK, H);
 #endif
         } else {
           // Pick up existing frame
@@ -351,7 +351,7 @@ retCode run(processPo P) {
         if (!stackRoom(stackDelta(mtd))) {
           int root = gcAddRoot(H, (ptrPo) &mtd);
 
-          stackPo prevStack = STK;
+          taskPo prevStack = STK;
 
           gcAddRoot(H, (ptrPo) &prevStack);
 
@@ -376,7 +376,7 @@ retCode run(processPo P) {
 #ifdef TRACEEXEC
           SP = (ptrPo) FP;
           saveRegisters();
-          verifyStack(STK, H);
+          verifyTask(STK, H);
 #endif
         } else {
           // Pick up existing frame
@@ -456,124 +456,89 @@ retCode run(processPo P) {
         continue;
       }
 
-      case Tag: {
-        labelPo lbl = C_LBL(nthElem(LITS, collectI32(PC)));
-        static integer tagCount = 0;
+      case Task: {
+        termPo tProg = nthElem(LITS, collectI32(PC));
+        methodPo mtd = labelCode(C_LBL(tProg));   // Which program do we want?
 
-        labelPo nLbl = otherLbl(lbl, tagCount++);
-        push(nLbl);
-        continue;
-      }
-
-      case Prompt: {
-        normalPo thunk = C_NORMAL(pop());
-        termPo prompt = pop();
         saveRegisters();
-
-        STK = P->stk = spinupStack(H, STK, minStackSize, prompt);
-
+        taskPo child = spinupStack(H, STK, minStackSize);
         restoreRegisters();
-        push(nthElem(thunk, 0));                     // Put the free term back on the stack
 
-        labelPo oLbl = termLbl(thunk);
-        methodPo thMtd = labelCode(oLbl);       /* set up for object call */
-
-        if (thMtd == Null) {
-          logMsg(logFile, "no definition for %T", oLbl);
-          bail();
+        integer arity = codeArity(mtd);
+        for (integer ix = arity - 1; ix >= 0; ix--) {
+          termPo arg = peek(ix);
+          pushStack(child, arg);
         }
+        pushStack(child, (termPo) child);
+        pushFrame(child, mtd, child->fp, child->sp);
 
-        FP = pushFrame(STK, thMtd, FP, SP);
-        PC = entryPoint(thMtd);
-        LITS = codeLits(thMtd);
-
-        integer lclCnt = lclCount(thMtd);  /* How many locals do we have */
-        SP = (ptrPo) FP - lclCnt;
-#ifdef TRACEEXEC
-        for (integer ix = 0; ix < lclCnt; ix++)
-          SP[ix] = voidEnum;
-#endif
+        SP += arity;
+        push(child);
 
         continue;
       }
 
-      case Cut: {
-        normalPo handler = C_NORMAL(pop());
-        termPo promptLbl = pop();
-        saveRegisters();
-        stackPo prompt = detachStack(STK, promptLbl);
+      case Suspend: { // Suspend identified task.
+        termPo event = pop();
+        taskPo task = C_TASK(pop());
 
-        if (prompt == Null) {
-          logMsg(logFile, "cannot find prompt associated with %T", promptLbl);
+        if (taskState(task) != active) {
+          logMsg(logFile, "tried to suspend non-active task %T", task);
           bail();
         } else {
-          stackPo suspended = STK;
-
-          STK = P->stk = prompt; // Reset the stack to prompt point
-          restoreRegisters();
-
-          push(suspended);
-
-          labelPo oLbl = objLabel(termLbl(handler), 2);  // Enter the cut handler
-
-          methodPo thMtd = labelCode(oLbl);       /* set up for object call */
-
-          if (thMtd == Null) {
-            logMsg(logFile, "no definition for %T", oLbl);
-            bail();
-          }
-
-          push(nthElem(handler, 0));                     // Put the free term back on the stack
-          FP->pc = PC;
-          FP = pushFrame(STK, thMtd, FP, SP);
-          PC = entryPoint(thMtd);
-          LITS = codeLits(thMtd);
-
-          integer lclCnt = lclCount(thMtd);  /* How many locals do we have */
-          SP = (ptrPo) FP - lclCnt;
-#ifdef TRACEEXEC
-          for (integer ix = 0; ix < lclCnt; ix++)
-            SP[ix] = voidEnum;
-#endif
-
+          saveRegisters();
+          taskPo parent = detachTask(STK, task);
+          push(event);
+          continue;
         }
-        continue;
       }
 
       case Resume: {
-        termPo cont = pop();
-        termPo k = pop();
-        stackPo stk = C_STACK(cont);
+        termPo event = pop();
+        taskPo task = C_TASK(pop());
+
         saveRegisters();
-        STK = P->stk = attachStack(STK, stk);
+        STK = P->stk = attachTask(STK, task);
         restoreRegisters();
-        push(k);
+        push(event);
         continue;
       }
 
-      case TResume: {                         // Tail resumptive entry to continuation
-        termPo cont = pop();
-        termPo k = pop();
-        stackPo stk = C_STACK(cont);
+      case Retire: { // Similar to a suspend, except that we trash the susending stack
+        termPo event = pop();
+        taskPo task = C_TASK(pop());
 
-        assert((ptrPo) FP->fp <= stackLimit(STK) && SP <= (ptrPo) FP);
+        if (taskState(task) != active) {
+          logMsg(logFile, "tried to retire a non-active task %T", task);
+          bail();
+        } else {
+          saveRegisters();
+          taskPo parent = detachTask(STK, task);
+          dropTask(task);
+          push(event);
+          continue;
+        }
+      }
 
-        SP = &arg(argCount(FP->prog)); // Just above arguments to current call
-        FP = FP->fp;
-        PC = FP->pc;
+      case Release: { // Trash a task
+        taskPo task = C_TASK(pop());
 
-        saveRegisters();
-        STK = P->stk = attachStack(STK, stk);
-        restoreRegisters();
-        push(k);
-        continue;
+        if (taskState(task) != suspended) {
+          logMsg(logFile, "tried to release a %s task %T", stackStateName(taskState(task)), task);
+          bail();
+        } else {
+          saveRegisters();
+          taskPo parent = detachTask(STK, task);
+          dropTask(task);
+          continue;
+        }
       }
 
       case Underflow: {
         termPo val = pop();
         saveRegisters();  // Seal off the current stack
-        assert(stackState(STK) == attached);
-        STK = P->stk = dropStack(STK);
+        assert(taskState(STK) == active);
+        STK = P->stk = dropTask(STK);
         restoreRegisters();
         push(val);
         continue;

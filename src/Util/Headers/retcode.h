@@ -7,7 +7,7 @@
 #define RET_CODE_H_
 
 typedef enum {
-  Ok, Fail, Switch, Suspend, Interrupt, Error, Eof, Space
+  Ok, Fail, Switch, Interrupt, Error, Eof, Space
 } retCode;
 
 #define MAX_RETCODE ((int)Space)

@@ -12,7 +12,7 @@
 #include "engineOptions.h"
 #include "streamDecodeP.h"
 #include "heapP.h"
-#include "stackP.h"
+#include "taskP.h"
 #include "manifestP.h"
 #include "verifyP.h"
 #include "debugP.h"
@@ -125,7 +125,7 @@ static retCode debugOption(char *option, logical enable) {
 
       case 'S':    /* trace stack operations  */
 #ifdef TRACESTACK
-        traceStacks = True;
+        traceTasks = True;
         logMsg(logFile, "Stack tracing enabled\n");
         continue;
 #else
