@@ -19,8 +19,8 @@ ReturnStatus g__definedLbl(heapPo h, termPo a1,termPo a2) {
 }
 
 static inline void push(processPo P, termPo t) {
-  stackPo stack = P->stk;
-  stackSanityCheck(P->stk);
+  taskPo stack = P->stk;
+  taskSanityCheck(P->stk);
   *--stack->sp = t;
 }
 
@@ -49,7 +49,7 @@ ReturnStatus g__callLbl(heapPo h, termPo a1, termPo a2, termPo a3) {
     } else {
       pushArgs(currentProcess, a2);
 
-      stackPo stk = currentProcess->stk;
+      taskPo stk = currentProcess->stk;
       pushFrame(stk,prog,stk->fp,stk->sp);
 
       integer lclCnt = lclCount(prog);  /* How many locals do we have */

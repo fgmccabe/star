@@ -4,7 +4,7 @@
 
 #include <codeP.h>
 #include "stkops.h"
-#include "stackP.h"
+#include "taskP.h"
 #include "labels.h"
 
 static MethodRec contMethod = {
@@ -20,7 +20,7 @@ static MethodRec contMethod = {
 ReturnStatus g__fun2cont(heapPo h, termPo prompt,termPo a2) {
   contMethod.clss = methodClass;
 
-  stackPo newStack = allocateStack(h, minStackSize, &contMethod, suspended, Null, prompt);
+  taskPo newStack = allocateTask(h, minStackSize, &contMethod, suspended, Null);
 
   pushStack(newStack, a2);
 

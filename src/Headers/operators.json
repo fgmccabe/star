@@ -90,15 +90,6 @@
     "keyword": true
   },
   {
-    "prefixOp": "background",
-    "priorities": [
-      950,
-      949
-    ],
-    "desc": "task background",
-    "keyword": false
-  },
-  {
     "prefixOp": "if",
     "priorities": [
       1175,
@@ -238,31 +229,6 @@
       299
     ],
     "desc": "perform an action or task",
-    "keyword": true
-  },
-  {
-    "infixOp": "prompt",
-    "priorities": [
-      299,
-      300,
-      299
-    ],
-    "desc": "delimit a continuation",
-    "keyword": true
-  },
-  {
-    "infixOp": "cut",
-    "priorities": [
-      949,
-      950,
-      949
-    ],
-    "desc": "capture continuation",
-    "keyword": true
-  },
-  {
-    "token": "tag",
-    "desc": "continuation delimiter",
     "keyword": true
   },
   {
@@ -520,6 +486,63 @@
       900
     ],
     "desc": "case expression",
+    "keyword": true
+  },
+  {
+    "infixOp": "suspend",
+    "priorities": [
+      900,
+      901,
+      900
+    ],
+    "desc": "suspend computation",
+    "keyword": true
+  },
+  {
+    "infixOp": "resume",
+    "priorities": [
+      900,
+      901,
+      900
+    ],
+    "desc": "suspend computation",
+    "keyword": true
+  },
+  {
+    "prefixOp": "suspend",
+    "priorities": [
+      901,
+      900
+    ],
+    "desc": "suspend computation",
+    "keyword": true
+  },
+  {
+    "prefixOp": "resume",
+    "priorities": [
+      901,
+      900
+    ],
+    "desc": "suspend computation",
+    "keyword": true
+  },
+  {
+    "infixOp": "retire",
+    "priorities": [
+      900,
+      901,
+      900
+    ],
+    "desc": "suspend computation",
+    "keyword": true
+  },
+  {
+    "prefixOp": "retire",
+    "priorities": [
+      901,
+      900
+    ],
+    "desc": "suspend computation",
     "keyword": true
   },
   {

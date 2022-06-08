@@ -60,7 +60,7 @@ retCode bootstrap(heapPo h, char *entry, char *rootWd, capabilityPo rootCap) {
 
 processPo newProcess(heapPo h, methodPo mtd, char *rootWd, capabilityPo processCap, termPo rootArg) {
   processPo P = (processPo) allocPool(prPool);
-  stackPo stk = P->stk = allocateStack(h, minStackSize, &haltMethod, root, Null, Null);
+  taskPo stk = P->stk = allocateTask(h, minStackSize, &haltMethod, active, Null);
 
   pushStack(stk, rootArg);
   pushFrame(stk, mtd, stk->fp, stk->sp);
@@ -90,7 +90,7 @@ processPo newProcess(heapPo h, methodPo mtd, char *rootWd, capabilityPo processC
 
 void ps_kill(processPo p) {
   if (p != NULL) {
-    p->stk = dropStack(p->stk);
+    p->stk = dropTask(p->stk);
 
     pthread_t thread = p->threadID;
 

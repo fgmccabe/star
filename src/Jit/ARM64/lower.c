@@ -396,10 +396,6 @@ retCode jit_Cmp(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
-retCode jit_CmpVd(insPo code, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}
-
 retCode jit_If(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
@@ -408,23 +404,11 @@ retCode jit_IfNot(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
-retCode jit_Tag(insPo code, integer *pc, jitCompPo jitCtx) {
+retCode jit_Task(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
-retCode jit_Cut(insPo code, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}
-
-retCode jit_Prompt(insPo code, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}
-
-retCode jit_Handle(insPo code, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}
-
-retCode jit_Throw(insPo code, integer *pc, jitCompPo jitCtx) {
+retCode jit_Suspend(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
@@ -432,7 +416,11 @@ retCode jit_Resume(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
-retCode jit_TResume(insPo code, integer *pc, jitCompPo jitCtx) {
+retCode jit_Retire(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_Release(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 

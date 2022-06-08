@@ -2,15 +2,15 @@
 // Created by Francis McCabe on 2/19/21.
 //
 
-#ifndef STAR_STACKP_H
-#define STAR_STACKP_H
+#ifndef STAR_TASKP_H
+#define STAR_TASKP_H
 
 #include <assert.h>
-#include "stack.h"
+#include "task.h"
 #include "engine.h"
 #include "heap.h"
 
-extern stackPo C_STACK(termPo t);
+extern taskPo C_TASK(termPo t);
 
 typedef struct stack_frame_ *framePo;
 typedef struct stack_frame_ {
@@ -21,51 +21,52 @@ typedef struct stack_frame_ {
 
 #define STACKFRAME_SIZE 3
 
-typedef struct StackStructure {
+typedef struct TaskStructure {
   clssPo clss;                  // == stackClass
   integer hash;                 // Hash code of stack (== count of created stacks)
   integer sze;                  // Size of stack
   integer hwm;                  // High water mark of stack sizes rooted off this stack
   ptrPo sp;                     // Current stack pointer
   framePo fp;                   // Current frame pointer
-  stackPo attachment;           // Where is the stack attached
-  StackState state;             // is the stack attached, root or detached
-  termPo prompt;                // Prompt label for this stack
+  taskPo attachment;           // Where is the stack attached
+  TaskState state;             // is the stack attached, root, detached or moribund
   ptrPo stkMem;                 // Memory block used for stack
 } StackRecord;
 
 #define StackCellCount CellCount(sizeof(StackRecord))
 
-extern void initStacks();
-extern logical traceStacks;      // stack operation tracing
+extern void initTasks();
+extern logical traceTasks;      // stack operation tracing
 
 extern integer minStackSize;       /* How big is a stack */
 extern integer stackRegionSize;    // How much space for stacks
 
-static inline ptrPo stackLimit(stackPo stk) {
+static inline ptrPo stackLimit(taskPo stk) {
   return stk->stkMem + stk->sze;
 }
 
-static inline logical validStkPtr(stackPo stk, ptrPo p) {
+static inline logical validStkPtr(taskPo stk, ptrPo p) {
   return p >= stk->stkMem && p <= stackLimit(stk);
 }
 
-static inline logical stkHasSpace(stackPo stk, integer amount) {
+static inline logical stkHasSpace(taskPo stk, integer amount) {
   assert(amount >= 0);
   return stk->sp - amount >= stk->stkMem;
 }
 
-extern void stackSanityCheck(stackPo stk);
-extern void verifyStack(stackPo stk, heapPo H);
+extern void taskSanityCheck(taskPo stk);
+extern void verifyTask(taskPo stk, heapPo H);
 
-static inline ptrPo stackArg(stackPo stk, framePo frame, integer arg) {
+static inline ptrPo stackArg(taskPo stk, framePo frame, integer arg) {
   return ((ptrPo) (frame + 1)) + arg;
 }
 
-static inline ptrPo stackLcl(stackPo stk, framePo frame, integer lcl) {
+static inline ptrPo stackLcl(taskPo stk, framePo frame, integer lcl) {
   return ((ptrPo) (frame)) - lcl;
 }
 
-void propagateHwm(stackPo stk);
+char *stackStateName(TaskState ste);
 
-#endif //STAR_STACKP_H
+void propagateHwm(taskPo stk);
+
+#endif //STAR_TASKP_H

@@ -10,6 +10,6 @@
 
 #include "engine.h"
 #include "libEscapes.h"
-#include "stack.h"
+#include "task.h"
 
 #endif //STAR_STKOPS_H
