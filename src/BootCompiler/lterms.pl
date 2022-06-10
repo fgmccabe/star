@@ -1,6 +1,6 @@
 :- module(lterms,[ssTransformed/2,
 		  dispRuleSet/1,dispProg/1,dispEquations/1,
-		  substTerm/3,substGoal/3,
+		  substTerm/3,substGoal/3,substAction/3,
 		  substTerms/3,rewriteTerm/3,
 		  rewriteAction/3,
 		  genTplStruct/2,isLiteral/1,isCnd/1,mkTpl/2,
@@ -219,6 +219,14 @@ ssTrm(ng(_,R),Dp,sq([lp,ss("~"),RR,rp])) :-!,
 ssTrm(error(Lc,M),Dp,sq([lp,ss("error "),MM,rp,ss("@"),LL])) :-!,
   ssTrm(M,Dp,MM),
   ssLoc(Lc,LL).
+ssTrm(tsk(_,A),Dp,sq([ss("task "),AA])) :-
+  ssTrm(A,Dp,AA).
+ssTrm(susp(_,T,E),Dp,sq([TT,ss(" suspend "),EE])) :-
+  ssTrm(T,Dp,TT),
+  ssTrm(E,Dp,EE).
+ssTrm(resme(_,T,E),Dp,sq([TT,ss(" resume "),EE])) :-
+  ssTrm(T,Dp,TT),
+  ssTrm(E,Dp,EE).
 ssTrm(vlof(_,A),Dp,sq([ss("valof "),AA])) :-
   ssAct(A,Dp,AA).
 
@@ -244,17 +252,17 @@ ssAct(case(_,G,Cases,Deflt),Dp,
   ssCases(Cases,Dp,lterms:ssAct,CC),
   ssTrm(Deflt,Dp,DD).
 ssAct(unpack(_,G,Cases),Dp,
-      sq([ss("unpack "),GG,ss("in"),lb,CC,rb])) :-!,
+      sq([ss("unpack "),GG,ss(" in "),lb,CC,rb])) :-!,
   ssTrm(G,Dp,GG),
   ssCases(Cases,Dp,lterms:ssAct,CC).
 ssAct(iftte(_,G,T,E),Dp,
-      sq([ss("if "),GG,ss("then"),nl(Dp2),TT,nl(Dp2),ss(" else "),EE])) :-!,
+      sq([ss("if "),GG,ss(" then "),nl(Dp2),TT,nl(Dp2),ss(" else "),EE])) :-!,
   Dp2 is Dp+2,
   ssTrm(G,Dp,GG),
   ssAct(T,Dp2,TT),
   ssAct(E,Dp2,EE).
 ssAct(iftt(_,G,T),Dp,
-      sq([ss("if "),GG,ss("then"),nl(Dp2),TT])) :-!,
+      sq([ss("if "),GG,ss(" then "),nl(Dp2),TT])) :-!,
   Dp2 is Dp+2,
   ssTrm(G,Dp,GG),
   ssAct(T,Dp2,TT).
@@ -274,12 +282,16 @@ ssAct(ffor(_,P,S,B),Dp,
   ssTrm(P,Dp,PP),
   ssTrm(S,Dp,SS),
   ssAct(B,Dp2,BB).
-ssAct(ltt(_,Vr,Bnd,B),Dp,sq([ss("let "),VV,ss("="),BB,ss(" in "),EE])) :-!,
+ssAct(ltt(_,Vr,B,A),Dp,sq([ss("let "),VV,ss("="),BB,ss(" in "),AA])) :-!,
   Dp1 is Dp+2,
   ssTrm(Vr,Dp1,VV),
-  ssTrm(Bnd,Dp1,EE),
-  ssAct(B,Dp1,BB).
-
+  ssTrm(B,Dp1,BB),
+  ssAct(A,Dp1,AA).
+ssAct(rtire(_,T,E),Dp,sq([TT,ss(" retire "),EE])) :-
+  ssTrm(T,Dp,TT),
+  ssTrm(E,Dp,EE).
+ssAct(error(_,M),Dp,sq([ss(" error "),MM])) :-
+  ssTrm(M,Dp,MM).
 
 ssActSeq(seq(_,A,B),Dp,[AA|BB]) :-!,
   ssAct(A,Dp,AA),
@@ -325,6 +337,9 @@ substTerm(Q,In,Out) :-
 substGoal(_,none,none) :-!.
 substGoal(Q,some(In),some(Out)) :-
   substTerm(Q,In,Out).
+
+substAction(Q,In,Out) :-
+  rewriteAction(lterms:applyQ(Q),In,Out),!.
 
 applyQ(Q,idnt(Nm),Trm) :- is_member((Nm,Trm),Q),!.
 
@@ -406,6 +421,14 @@ rewriteTerm(QTest,ng(Lc,R),ng(Lc,NR)) :-
   rewriteTerm(QTest,R,NR).
 rewriteTerm(QTest,vlof(Lc,A),vlof(Lc,AA)) :-
   rewriteAction(QTest,A,AA).
+rewriteTerm(QTest,tsk(Lc,F),tsk(Lc,FF)) :-
+  rewriteTerm(QTest,F,FF).
+rewriteTerm(QTest,susp(Lc,T,E),susp(Lc,TT,EE)) :-
+  rewriteTerm(QTest,T,TT),
+  rewriteTerm(QTest,E,EE).
+rewriteTerm(QTest,resme(Lc,T,E),resme(Lc,TT,EE)) :-
+  rewriteTerm(QTest,T,TT),
+  rewriteTerm(QTest,E,EE).
 rewriteTerm(QTest,error(Lc,M),error(Lc,MM)) :-!,
   rewriteTerm(QTest,M,MM).
 
@@ -461,6 +484,11 @@ rewriteAction(QTest,ffor(Lc,P,S,B),ffor(Lc,PP,SS,BB)) :-!,
 rewriteAction(QTest,ltt(Lc,V,E,B),ltt(Lc,V,EE,BB)) :-!,
   rewriteTerm(lterms:checkV(V,QTest),E,EE),
   rewriteAction(lterms:checkV(V,QTest),B,BB).
+rewriteAction(QTest,rtire(Lc,T,E),rtire(Lc,TT,EE)) :-!,
+  rewriteTerm(QTest,T,TT),
+  rewriteTerm(QTest,E,EE).
+rewriteAction(QTest,error(Lc,M),error(Lc,MM)) :-!,
+  rewriteTerm(QTest,M,MM).
 
 rewriteCase(QTest,BCall,(T,E,Lbl),(NT,NE,Lbl)) :-
   rewriteTerm(QTest,T,NT),
@@ -717,6 +745,16 @@ validTerm(vlof(Lc,A),_,D) :-
   validAction(A,Lc,D,_).
 validTerm(error(Lc,R),_,D) :-
   validTerm(R,Lc,D).
+validTerm(tsk(Lc,F),_,D) :-
+  validTerm(F,Lc,D).
+validTerm(susp(Lc,T,E),_,D) :-
+  validTerm(T,Lc,D),
+  validTerm(E,Lc,D).
+validTerm(resme(Lc,T,E),_,D) :-
+  validTerm(T,Lc,D),
+  validTerm(E,Lc,D).
+validTerm(error(Lc,M),_,D) :-
+  validTerm(M,Lc,D).
 validTerm(T,Lc,_) :-
   reportError("(internal) Invalid term %s in scope",[ltrm(T)],Lc).
 
@@ -813,6 +851,12 @@ validAction(ltt(Lc,V,E,B),_,D,D) :-!,
   ptnVars(V,D,D1),
   validTerm(V,Lc,D1),
   validAction(B,Lc,D1,_).
+validAction(rtire(Lc,L,G),_,D,D) :-!,
+  validTerm(L,Lc,D),
+  validTerm(G,Lc,D).
+validAction(error(Lc,M),_,D,D) :-
+  validTerm(M,Lc,D).
+
 validAction(T,Lc,D,D) :-
   reportError("(internal) Invalid action %s",[lact(T)],Lc).
 

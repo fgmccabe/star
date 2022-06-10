@@ -1,4 +1,4 @@
-:- module(matcher,[functionMatcher/8,caseMatcher/5]).
+:- module(matcher,[functionMatcher/8,caseMatcher/6]).
 
 :- use_module(canon).
 :- use_module(errors).
@@ -20,10 +20,10 @@ functionMatcher(Lc,_Ar,Nm,H,Tp,_Eqns,_,fnDef(Lc,Nm,H,Tp,[],enum("void"))) :-
 getLocalLblName(lbl(Nm,_),LclNm) :-
   getLocalName(Nm,LclNm).
 
-caseMatcher(Lc,Bnd,Cases,Map,Result) :-
+caseMatcher(Lc,Bnd,Cases,Subber,Map,Result) :-
   makeTriples(Cases,0,Tpls),
   genRaise(Lc,"case",Error),
-  matchTriples(Lc,lterms:substTerm,[Bnd],Tpls,Error,Map,0,Result).
+  matchTriples(Lc,Subber,[Bnd],Tpls,Error,Map,0,Result).
 
 genRaise(Lc,Nm,error(Lc,strg(Msg))) :-
   string_concat("no matches in ",Nm,Msg).

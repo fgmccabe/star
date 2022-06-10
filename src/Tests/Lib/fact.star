@@ -1,5 +1,5 @@
 test.fact{
-  import star.
+  import star.arith.
 
   public fact:(integer)=>integer.
   fact(0)=>1.

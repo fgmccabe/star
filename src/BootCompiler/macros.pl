@@ -672,11 +672,6 @@ examineAction(T,Tx) :-
   map(C,macros:examineActionCase,Cx),
   mkSuspend(Lc,Tsx,Ex,Cx,Tx).
 examineAction(T,Tx) :-
-  isResume(T,Lc,E,C),!,
-  macroTerm(E,Ex),
-  map(C,macros:examineActionCase,Cx),
-  mkResume(Lc,Ex,Cx,Tx).
-examineAction(T,Tx) :-
   isResume(T,Lc,Ts,E,C),!,
   macroTerm(Ts,Tsx),
   macroTerm(E,Ex),

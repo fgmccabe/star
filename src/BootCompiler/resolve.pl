@@ -250,6 +250,18 @@ overloadAction(letRec(Lc,Decls,Defs,Bound),Dict,St,Stx,letRec(Lc,Decls,RDefs,RBo
 overloadAction(case(Lc,G,C,Tp),Dict,St,Stx,case(Lc,GG,CC,Tp)) :-
   overloadTerm(G,Dict,St,St1,GG),
   overloadCases(C,resolve:overloadAction,Dict,St1,Stx,CC).
+overloadAction(doSuspend(Lc,T,E,C),Dict,St,Stx,doSuspend(Lc,TT,EE,CC)) :-
+  overloadTerm(T,Dict,St,St1,TT),
+  overloadTerm(E,Dict,St1,St2,EE),
+  overloadCases(C,resolve:overloadAction,Dict,St2,Stx,CC).
+overloadAction(doResume(Lc,T,E,C),Dict,St,Stx,doResume(Lc,TT,EE,CC)) :-
+  overloadTerm(T,Dict,St,St1,TT),
+  overloadTerm(E,Dict,St1,St2,EE),
+  overloadCases(C,resolve:overloadAction,Dict,St2,Stx,CC).
+overloadAction(doRetire(Lc,T,E),Dict,St,Stx,doRetire(Lc,TT,EE)) :-
+  overloadTerm(T,Dict,St,St1,TT),
+  overloadTerm(E,Dict,St1,Stx,EE).
+
 overloadAction(O,Dict,St,Stx,OO) :-
   overloadTerm(O,Dict,St,Stx,OO).
 

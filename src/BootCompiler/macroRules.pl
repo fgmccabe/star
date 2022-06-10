@@ -37,7 +37,7 @@ macroRl("show",action,macroRules:showMacro).
 macroRl("show",expression,macroRules:showMacro).
 macroRl("do",expression,macroRules:doMacro).
 %macroRl("task",expression,macroRules:taskMacro).
-macroRl("valof",expression,macroRules:valofMacro).
+%macroRl("valof",expression,macroRules:valofMacro).
 macroRl("ignore",action,macroRules:ignoreMacro).
 %macroRl("try",action,macroRules:tryCatchMacro).
 %macroRl("try",action,macroRules:tryHandleMacro).
@@ -61,8 +61,8 @@ synthesize_main(Lc,Ts,As,[MainTp,Main|As]) :-
   synthesize_coercions(Ts,Vs,Cs),
   list_pttrn(Lc,Vs,Arg),
   roundTerm(Lc,name(Lc,"_main"),[Arg],Lhs),
-  roundTerm(Lc,name(Lc,"main"),Cs,Rhs),
-  mkValof(Lc,Rhs,MnCall),
+  roundTerm(Lc,name(Lc,"main"),Cs,MnCall),
+%  mkValof(Lc,Rhs,MnCall),
   eqn(Lc,Lhs,MnCall,Main),
   squareTerm(Lc,name(Lc,"cons"),[name(Lc,"string")],T1),
   roundTuple(Lc,[T1],T3),
@@ -78,11 +78,11 @@ synthesize_coercions([T|Ts],[V|Vs],[C|Cs]) :-
   coerce(Lc,V,T,C),
   synthesize_coercions(Ts,Vs,Cs).
 
-list_pttrn(Lc,[],Arg) :-
-  isSquareTuple(Arg,Lc,[]),!.
-list_pttrn(Lc,Ts,Arg) :-
-  reComma(Ts,As),
-  isSquareTuple(Arg,Lc,[As]).
+list_pttrn(Lc,[],Arg) :-!,
+  mkEnum(Lc,"nil",Arg).
+list_pttrn(Lc,[T|Ts],Arg) :-
+  list_pttrn(Lc,Ts,As),
+  binary(Lc,"cons",T,As,Arg).
 
 squareSequenceMacro(A,expression,Trm) :-
   isSquareTuple(A,Lc,Els),
@@ -511,9 +511,6 @@ makeAction(A,Cont,Ax) :-
   caseExp(Lc,G,Csx,Ax).
 makeAction(A,Cont,Ac) :-
   isRoundTerm(A,_,_),!,
-  combine(A,Cont,Ac).
-makeAction(A,Cont,Ac) :-
-  isResume(A,_,_,_),!,
   combine(A,Cont,Ac).
 makeAction(A,Cont,Ac) :-
   isIgnore(A,Lc,I),!,

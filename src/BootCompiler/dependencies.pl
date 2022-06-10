@@ -10,8 +10,8 @@
 dependencies(Dfs,Groups,Annots) :-
   allRefs(Dfs,[],ARefs),
   collectThetaRefs(Dfs,ARefs,Annots,Defs),!,
-  topsort(Defs,Groups,misc:same),
-  showGroups(Groups).
+  topsort(Defs,Groups,misc:same).
+%  showGroups(Groups).
 
 allRefs([(con(N),_,[St])|Defs],SoFar,AllRefs) :-
   conRefs(con(N),St,SoFar,Rf0),
@@ -389,10 +389,6 @@ collectDoRefs(T,A,Rf,Rx) :-
   collectTermRefs(Ts,A,R0,R1),
   collectCaseRefs(C,collectDoRefs,A,R1,Rx).
 collectDoRefs(T,A,Rf,Rx) :-
-  isResume(T,_,E,C),!,
-  collectTermRefs(E,A,Rf,R0),
-  collectCaseRefs(C,collectDoRefs,A,R0,Rx).
-collectDoRefs(T,A,Rf,Rx) :-
   isResume(T,_,Ts,E,C),!,
   collectTermRefs(E,A,Rf,R0),
   collectTermRefs(Ts,A,R0,R1),
@@ -402,7 +398,7 @@ collectDoRefs(T,All,Rf,Rfx) :-
   collectTermRefs(E,All,Rf,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isRetire(T,_,Ts,E),!,
-  collectTermRefs(Ts,All,Rf,R0).
+  collectTermRefs(Ts,All,Rf,R0),
   collectTermRefs(E,All,R0,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isCaseExp(T,_,Exp,Cases),!,
