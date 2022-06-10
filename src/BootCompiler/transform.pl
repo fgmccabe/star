@@ -258,9 +258,6 @@ liftPtns([P|More],[A|Args],Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtn(P,A,Q,Q0,Map,Opts,Ex,Ex0),
   liftPtns(More,Args,Q0,Qx,Map,Opts,Ex0,Exx).
 
-liftPtn(v(_,"this",_),ThVr,Q,Qx,Map,_,Ex,Ex) :-
-  thisVar(Map,ThVr),!,
-  merge([ThVr],Q,Qx).
 liftPtn(v(Lc,Nm,_),A,Q,Qx,Map,Opts,Ex,Ex) :- !,
   trVarPtn(Lc,Nm,A,Q,Qx,Map,Opts).
 liftPtn(anon(_,_),anon,Q,Q,_,_,Ex,Ex).
@@ -362,9 +359,9 @@ liftExp(case(Lc,Bnd,Cses,_),Result,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(Bnd,Bound,Q,Q0,Map,Opts,Ex,Ex0),
   liftCases(Cses,Cases,Q0,Qx,Map,Opts,transform:liftExp,Ex0,Exx),
   (idnt(_)=Bound ->
-   caseMatcher(Lc,Bound,Cases,Map,Result) ;
+   caseMatcher(Lc,Bound,Cases,lterms:substTerm,Map,Result) ;
    genVar("_C",V),
-   caseMatcher(Lc,V,Cases,Map,Res),
+   caseMatcher(Lc,V,Cases,lterms:substTerm,Map,Res),
    Result = ltt(Lc,V,Bound,Res)).
 liftExp(cell(Lc,In),cel(Lc,CellV),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(In,CellV,Q,Qx,Map,Opts,Ex,Exx).
@@ -393,6 +390,9 @@ liftExp(lambda(Lc,Lbl,Rle,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-!,
   liftLambda(lambda(Lc,Lbl,Rle,Tp),Rslt,Q,Map,Opts,Ex,Exx).
 liftExp(valof(Lc,A),vlof(Lc,Rslt),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftAction(A,Rslt,Q,Qx,Map,Opts,Ex,Exx).
+liftExp(task(Lc,A,_),tsk(Lc,F),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftExp(A,F,Q,Qx,Map,Opts,Ex,Exx).
+  
 liftExp(XX,void,Q,Q,_,_,Ex,Ex) :-
   locOfCanon(XX,Lc),
   reportFatal("internal: cannot transform %s as expression",[XX],Lc).
@@ -443,10 +443,27 @@ liftAction(doCase(Lc,B,Cs),Reslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(B,BB,Q,Q0,Map,Opts,Ex,Ex0),
   liftCases(Cs,Cases,Q0,Qx,Map,Opts,transform:liftAction,Ex0,Exx),
   (idnt(_)=BB ->
-   caseMatcher(Lc,BB,Cases,Map,Reslt) ;
+   caseMatcher(Lc,BB,Cases,lterms:substAction,Map,Reslt) ;
    genVar("_C",V),
-   caseMatcher(Lc,V,Cases,Map,Res),
+   caseMatcher(Lc,V,Cases,lterms:substAction,Map,Res),
    Reslt = ltt(Lc,V,BB,Res)).
+liftAction(doSuspend(Lc,T,E,Cs),Reslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftExp(T,TT,Q,Q0,Map,Opts,Ex,Ex0),
+  liftExp(E,EE,Q0,Q1,Map,Opts,Ex0,Ex1),
+  liftCases(Cs,Cases,Q1,Qx,Map,Opts,transform:liftAction,Ex1,Exx),
+  genVar("_C",V),
+  caseMatcher(Lc,V,Cases,lterms:substAction,Map,Res),
+  Reslt = ltt(Lc,V,susp(Lc,TT,EE),Res).
+liftAction(doResume(Lc,T,E,Cs),Reslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftExp(T,TT,Q,Q0,Map,Opts,Ex,Ex0),
+  liftExp(E,EE,Q0,Q1,Map,Opts,Ex0,Ex1),
+  liftCases(Cs,Cases,Q1,Qx,Map,Opts,transform:liftAction,Ex1,Exx),
+  genVar("_C",V),
+  caseMatcher(Lc,V,Cases,lterms:substAction,Map,Res),
+  Reslt = ltt(Lc,V,resme(Lc,TT,EE),Res).
+liftAction(doRetire(Lc,T,E),rtire(Lc,TT,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftExp(T,TT,Q,Q0,Map,Opts,Ex,Ex0),
+  liftExp(E,EE,Q0,Qx,Map,Opts,Ex0,Exx).
 liftAction(XX,nop(Lc),Q,Q,_,_,Ex,Ex) :-!,
   locOfCanon(XX,Lc),
   reportFatal("internal: cannot transform %s as action",[cnact(XX)],Lc).
@@ -574,12 +591,6 @@ liftSearch(Serch,Rslt,Q,Qx,Map,Opts,Ex,Exx) :-
   layerName(Map,Path),
   genSearch(Serch,Path,AbGl),
   liftExp(AbGl,Rslt,Q,Qx,Map,Opts,Ex,Exx).
-
-mkClosure(Lam,FreeVars,Closure) :-
-  length(FreeVars,Ar),
-  (Ar = 0 ->
-    Closure=enum(Lam) |
-  Closure=ctpl(lbl(Lam,Ar),FreeVars)).
 
 liftGoal(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   liftGl(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx).

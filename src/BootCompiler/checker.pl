@@ -752,6 +752,9 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,cell(Lc,Exp),Path) :-
 typeOfExp(Term,Tp,ErTp,Env,Ev,deref(Lc,Exp),Path) :-
   isCellRef(Term,Lc,I),
   typeOfExp(I,refType(Tp),ErTp,Env,Ev,Exp,Path).
+typeOfExp(Term,Tp,_ErTp,Env,Env,Exp,Path) :-
+  isTaskTerm(Term,Lc,A),!,
+  typeOfTask(Lc,A,Tp,Env,Exp,Path).
 typeOfExp(Term,Tp,_ErTp,Env,Env,Val,Path) :-
   isQBraceTuple(Term,Lc,Els),
   \+isComprehension(Term,_,_,_),
@@ -840,9 +843,6 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,valof(Lc,As),Path) :-
   isValof(Term,Lc,A),
   isBraceTuple(A,_,[Ac]),!,
   checkDo(Ac,Tp,ErTp,Env,Ev,As,Path).
-typeOfExp(Term,Tp,ErTp,Env,Env,Exp,Path) :-
-  isTaskTerm(Term,Lc,A),!,
-  typeOfTask(Lc,A,Tp,ErTp,Env,Exp,Path).
 typeOfExp(Term,Tp,_ErTp,Env,Env,void,_) :-
   locOfAst(Term,Lc),
   reportError("illegal expression: %s, expecting a %s",[Term,Tp],Lc).
@@ -892,15 +892,19 @@ typeOfLambda(Term,Tp,Env,lambda(Lc,Lbl,rule(Lc,Args,Guard,Exp),Tp),Path) :-
   lambdaLbl(Path,"λ",Lbl),
   typeOfExp(R,RT,ErTp,E1,_,Exp,Path).
 
-typeOfTask(Lc,A,Tp,ErTp,Env,task(Lc,As,Tp),Path) :-
+typeOfTask(Lc,A,Tp,Env,task(Lc,TskFun,Tp),Path) :-
   findType("task",Lc,Env,TskTp),
   newTypeVar("Comm",CV),
   applyTypeFun(TskTp,[CV],Lc,Env,TTp),
-  verifyType(Lc,ast(Term),TTp,Tp,Env),
-  declareVr(Lc,"this",TTp,none,Env,Ev0),
-  unitTp(UTp),
-  checkDo(A,UTp,CV,Ev0,_,As,Path).
-
+  roundTuple(Lc,[name(Lc,"this")],Args),
+  braceTuple(Lc,[A],AA),
+  mkValof(Lc,AA,VlOf),
+  mkEquation(Lc,Args,none,VlOf,Lam),
+  verifyType(Lc,ast(A),TTp,Tp,Env),
+  unitTp(UnitTp),
+  LmTp = funType(tplType([Tp]),UnitTp),
+  reportMsg("check task lambda %s:%s",[ast(Lam),tpe(LmTp)],Lc),
+  typeOfLambda(Lam,LmTp,Env,TskFun,Path).
 
 typeOfIndex(Lc,Mp,Arg,Tp,ErTp,Env,Ev,Exp,Path) :-
   isBinary(Arg,_,"->",Ky,Vl),!,
@@ -917,6 +921,9 @@ typeOfIndex(Lc,Mp,Arg,Tp,ErTp,Env,Ev,Exp,Path) :-
 checkDo(A,Tp,ErTp,Env,Ev,As,Path) :-
   isBraceTuple(A,_,[S]),!,
   checkDo(S,Tp,ErTp,Env,Ev,As,Path).
+checkDo(A,Tp,ErTp,Env,Ev,Ax,Path) :-
+  isDoTerm(A,_,AA),!,
+  checkDo(AA,Tp,ErTp,Env,Ev,Ax,Path).
 checkDo(A,Tp,_,Env,Env,doNop(Lc),_) :-
   isIden(A,Lc,"nothing"),!,
   unitTp(UnitTp),
@@ -927,8 +934,7 @@ checkDo(A,Tp,_,Env,Env,doNop(Lc),_) :-
   verifyType(Lc,A,UnitTp,Tp,Env).
 checkDo(A,Tp,ErTp,Env,Ev,doSeq(Lc,L,R),Path) :-
   isActionSeq(A,Lc,A1,A2),!,
-  unitTp(Unit),
-  checkDo(A1,Unit,ErTp,Env,E0,L,Path),
+  checkDo(A1,Tp,ErTp,Env,E0,L,Path),
   checkDo(A2,Tp,ErTp,E0,Ev,R,Path).
 checkDo(A,Tp,ErTp,Env,Ev,Ax,Path) :-
   isActionSeq(A,_,A1),!,
@@ -940,25 +946,19 @@ checkDo(A,_,ErTp,Env,Env,doRaise(Lc,Ex),Path) :-
   isRaise(A,Lc,E),!,
   unitTp(Unit),
   typeOfExp(E,ErTp,Unit,Env,_,Ex,Path).
-checkDo(A,Tp,ErTp,Env,Ev,doIfThenElse(Lc,match(Lc,Ptn,Exp),
+checkDo(A,_Tp,ErTp,Env,Ev,doIfThenElse(Lc,match(Lc,Ptn,Exp),
 				      doNop(Lc),doRaise(Lc,tple(Lc,[]))),Path) :-
   isBind(A,Lc,P,E),!,
-  unitTp(UnitTp),
-  verifyType(Lc,A,UnitTp,Tp,Env),
   newTypeVar("V",TV),
   typeOfPtn(P,TV,ErTp,Env,Ev,Ptn,Path),
   typeOfExp(E,TV,ErTp,Env,_,Exp,Path).
-checkDo(A,Tp,ErTp,Env,Ev,doMatch(Lc,Ptn,Exp),Path) :-
+checkDo(A,_Tp,ErTp,Env,Ev,doMatch(Lc,Ptn,Exp),Path) :-
   isMatch(A,Lc,P,E),!,
-  unitTp(UnitTp),
-  verifyType(Lc,A,UnitTp,Tp,Env),
   newTypeVar("V",TV),
   typeOfPtn(P,TV,ErTp,Env,Ev,Ptn,Path),
   typeOfExp(E,TV,ErTp,Env,_,Exp,Path).
-checkDo(A,Tp,ErTp,Env,Ev,doAssign(Lc,Ptn,Exp),Path) :-
+checkDo(A,_Tp,ErTp,Env,Ev,doAssign(Lc,Ptn,Exp),Path) :-
   isAssignment(A,Lc,P,E),!,
-  unitTp(UnitTp),
-  verifyType(Lc,A,UnitTp,Tp,Env),
   newTypeVar("V",TV),
   typeOfExp(P,refType(TV),ErTp,Env,Ev,Ptn,Path),
   typeOfExp(E,TV,ErTp,Env,_,Exp,Path).
@@ -973,30 +973,22 @@ checkDo(A,Tp,ErTp,Env,Env,doIfThenElse(Lc,Tst,Thn,Els),Path) :-
   checkDo(E,Tp,ErTp,Env,_,Els,Path).
 checkDo(A,Tp,ErTp,Env,Env,doIfThen(Lc,Tst,Thn),Path) :-
   isIfThen(A,Lc,G,T),!,
-  unitTp(UnitTp),
-  verifyType(Lc,A,UnitTp,Tp,Env),
   checkGoal(G,ErTp,Env,E0,Tst,Path),
-  checkDo(T,UnitTp,ErTp,E0,_,Thn,Path).
+  checkDo(T,Tp,ErTp,E0,_,Thn,Path).
 checkDo(A,Tp,ErTp,Env,Env,doWhile(Lc,Tst,Bdy),Path) :-
   isWhileDo(A,Lc,G,B),!,
-  unitTp(UnitTp),
-  verifyType(Lc,A,UnitTp,Tp,Env),
   checkGoal(G,ErTp,Env,E0,Tst,Path),
-  checkDo(B,UnitTp,ErTp,E0,_,Bdy,Path).
+  checkDo(B,Tp,ErTp,E0,_,Bdy,Path).
 checkDo(A,Tp,ErTp,Env,Env,doUntil(Lc,Bdy,Tst),Path) :-
   isUntilDo(A,Lc,B,G),!,
-  unitTp(UnitTp),
-  verifyType(Lc,A,UnitTp,Tp,Env),
   checkGoal(G,ErTp,Env,_,Tst,Path),
-  checkDo(B,UnitTp,ErTp,Env,_,Bdy,Path).
+  checkDo(B,Tp,ErTp,Env,_,Bdy,Path).
 checkDo(A,Tp,ErTp,Env,Env,doFor(Lc,Ptn,Src,Bdy),Path) :-
   isForDo(A,Lc,P,E,B),!,
-  unitTp(UnitTp),
-  verifyType(Lc,A,UnitTp,Tp,Env),
   newTypeVar("V",TV),
   typeOfPtn(P,TV,ErTp,Env,E0,Ptn,Path),
   typeOfExp(E,TV,ErTp,Env,_,Src,Path),
-  checkDo(B,UnitTp,ErTp,E0,_,Bdy,Path).
+  checkDo(B,Tp,ErTp,E0,_,Bdy,Path).
 checkDo(A,Tp,ErTp,Env,Ev,doPerform(Lc,Ac),Path) :-
   isPerform(A,Lc,A0),!,
   typeOfExp(A0,Tp,ErTp,Env,Ev,Ac,Path).
@@ -1019,22 +1011,23 @@ checkDo(A,Tp,ErTp,Env,Env,doCase(Lc,Bound,Eqns,Tp),Path) :-
   checkCaseExp(Lc,Bnd,Cases,Tp,ErTp,Env,_,checker:checkDo,Bound,Eqns,Path).
 checkDo(A,Tp,ErTp,Env,Ev,Susp,Path) :-
   isSuspend(A,Lc,E,C),!,
-  checkSuspend(Lc,nme(Lc,"this"),E,C,Env,Ev,Susp,Path).
+  checkSuspend(Lc,name(Lc,"this"),E,Tp,ErTp,C,Env,Ev,Susp,Path).
 checkDo(A,Tp,ErTp,Env,Ev,Susp,Path) :-
   isSuspend(A,Lc,T,E,C),!,
-  checkSuspend(Lc,T,E,C,Env,Ev,Susp,Path).
+  checkSuspend(Lc,T,E,Tp,ErTp,C,Env,Ev,Susp,Path).
 checkDo(A,Tp,ErTp,Env,Ev,Susp,Path) :-
-  isResume(A,Lc,E,C),!,
-  checkResume(Lc,none,E,C,Env,Ev,Susp,Path).
-checkDo(A,Tp,ErTp,Env,Ev,Susp,Path) :-
-  isResume(A,T,Lc,E,C),!,
-  checkResume(Lc,some(T),E,C,Env,Ev,Susp,Path).
-checkDo(A,Tp,ErTp,Env,Ev,Susp,Path) :-
+  isResume(A,Lc,T,E,C),!,
+  checkResume(Lc,T,E,Tp,ErTp,C,Env,Ev,Susp,Path).
+checkDo(A,Tp,_ErTp,Env,Ev,Susp,Path) :-
   isRetire(A,Lc,E),!,
-  checkRetire(Lc,none,E,Env,Ev,Susp,Path).
-checkDo(A,Tp,ErTp,Env,Ev,Susp,Path) :-
+  unitTp(UnitTp),
+  verifyType(Lc,A,UnitTp,Tp,Env),
+  checkRetire(Lc,name(Lc,"this"),E,Env,Ev,Susp,Path).
+checkDo(A,Tp,_ErTp,Env,Ev,Susp,Path) :-
   isRetire(A,Lc,T,E),!,
-  checkRetire(Lc,some(T),E,Env,Ev,Susp,Path).
+  unitTp(UnitTp),
+  verifyType(Lc,A,UnitTp,Tp,Env),
+  checkRetire(Lc,T,E,Env,Ev,Susp,Path).
 checkDo(A,Tp,ErTp,Env,Env,doPerform(Lc,Call),Path) :-
   isRoundTerm(A,Lc,F,Args),!,
   typeOfRoundTerm(Lc,F,Args,Tp,ErTp,Env,Call,Path).
@@ -1097,13 +1090,30 @@ checkCase(Lc,H,G,R,LhsTp,Tp,ErTp,Env,
   checkGuard(G,ErTp,E1,E2,Guard,Path),
   call(Checker,R,Tp,ErTp,E2,_,Exp,Path).
 
+checkSuspend(Lc,T,E,Tp,ErTp,Cs,Env,Env,doSuspend(Lc,Tsk,Evt,Eqns),Path) :-
+  findType("task",Lc,Env,TskTp),
+  newTypeVar("C",CV),
+  applyTypeFun(TskTp,[CV],Lc,Env,TTp),
+  unitTp(UnitTp),
+  typeOfExp(T,TTp,UnitTp,Env,_,Tsk,Path),
+  typeOfExp(E,CV,UnitTp,Env,_,Evt,Path),
+  checkCases(Cs,CV,Tp,ErTp,Env,Eqns,Eqx,Eqx,[],checker:checkDo,Path),!.
 
-checkSuspend(Lc,T,E,C,Env,Ev,Susp,Path) :-
-  newTypeVar("_L",LhsTp),
-  typeOfExp(Bnd,LhsTp,ErTp,Env,_,Bound,Path),
-%  reportMsg("case governer: %s:%s",[Bound,LhsTp]),
-  checkCases(Cases,LhsTp,Tp,ErTp,Env,Eqns,Eqx,Eqx,[],Checker,Path),!.
+checkResume(Lc,T,E,Tp,ErTp,Cs,Env,Env,doResume(Lc,Tsk,Evt,Eqns),Path) :-
+  findType("task",Lc,Env,TskTp),
+  newTypeVar("C",CV),
+  applyTypeFun(TskTp,[CV],Lc,Env,TTp),
+  unitTp(UnitTp),
+  typeOfExp(T,TTp,UnitTp,Env,_,Tsk,Path),
+  typeOfExp(E,CV,UnitTp,Env,_,Evt,Path),
+  checkCases(Cs,CV,Tp,ErTp,Env,Eqns,Eqx,Eqx,[],checker:checkDo,Path),!.
 
+checkRetire(Lc,T,E,Env,Env,doRetire(Lc,Tsk,Evt),Path) :-
+  findType("task",Lc,Env,TskTp),
+  newTypeVar("C",CV),
+  applyTypeFun(TskTp,[CV],Lc,Env,TTp),
+  typeOfExp(T,TTp,UnitTp,Env,_,Tsk,Path),
+  typeOfExp(E,CV,UnitTp,Env,_,Evt,Path).
 
 genTpVars([],[]).
 genTpVars([_|I],[Tp|More]) :-
