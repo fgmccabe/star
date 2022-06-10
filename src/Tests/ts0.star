@@ -5,11 +5,12 @@ test.ts0{
   
   -- Simple test of task generator pattern
 
-  comm ::= yield(integer) | .end | .next | .cancel.
+  scomm ::= yield(integer) | .end.
+  rcomm ::= .next | .cancel.
 
-  all c ~~ task[c] <~ {}. -- tasks have a type ...
+  all s,r ~~ task[s,r] <~ {}. -- tasks have a type ...
 
-  generator:(integer,integer)=>task[comm].
+  generator:(integer,integer)=>task[scomm,rcomm].
   generator(F,T) => task{
     Ix .= ref F;
     while Ix! < T do{

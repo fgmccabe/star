@@ -894,8 +894,9 @@ typeOfLambda(Term,Tp,Env,lambda(Lc,Lbl,rule(Lc,Args,Guard,Exp),Tp),Path) :-
 
 typeOfTask(Lc,A,Tp,Env,task(Lc,TskFun,Tp),Path) :-
   findType("task",Lc,Env,TskTp),
-  newTypeVar("Comm",CV),
-  applyTypeFun(TskTp,[CV],Lc,Env,TTp),
+  newTypeVar("SComm",SV),
+  newTypeVar("RComm",RV),
+  applyTypeFun(TskTp,[SV,RV],Lc,Env,TTp),
   roundTuple(Lc,[name(Lc,"this")],Args),
   braceTuple(Lc,[A],AA),
   mkValof(Lc,AA,VlOf),
@@ -1092,28 +1093,31 @@ checkCase(Lc,H,G,R,LhsTp,Tp,ErTp,Env,
 
 checkSuspend(Lc,T,E,Tp,ErTp,Cs,Env,Env,doSuspend(Lc,Tsk,Evt,Eqns),Path) :-
   findType("task",Lc,Env,TskTp),
-  newTypeVar("C",CV),
-  applyTypeFun(TskTp,[CV],Lc,Env,TTp),
+  newTypeVar("SComm",SV),
+  newTypeVar("RComm",RV),
+  applyTypeFun(TskTp,[SV,RV],Lc,Env,TTp),
   unitTp(UnitTp),
   typeOfExp(T,TTp,UnitTp,Env,_,Tsk,Path),
-  typeOfExp(E,CV,UnitTp,Env,_,Evt,Path),
-  checkCases(Cs,CV,Tp,ErTp,Env,Eqns,Eqx,Eqx,[],checker:checkDo,Path),!.
+  typeOfExp(E,SV,UnitTp,Env,_,Evt,Path),
+  checkCases(Cs,RV,Tp,ErTp,Env,Eqns,Eqx,Eqx,[],checker:checkDo,Path),!.
 
 checkResume(Lc,T,E,Tp,ErTp,Cs,Env,Env,doResume(Lc,Tsk,Evt,Eqns),Path) :-
   findType("task",Lc,Env,TskTp),
-  newTypeVar("C",CV),
-  applyTypeFun(TskTp,[CV],Lc,Env,TTp),
+  newTypeVar("SComm",SV),
+  newTypeVar("RComm",RV),
+  applyTypeFun(TskTp,[SV,RV],Lc,Env,TTp),
   unitTp(UnitTp),
   typeOfExp(T,TTp,UnitTp,Env,_,Tsk,Path),
-  typeOfExp(E,CV,UnitTp,Env,_,Evt,Path),
-  checkCases(Cs,CV,Tp,ErTp,Env,Eqns,Eqx,Eqx,[],checker:checkDo,Path),!.
+  typeOfExp(E,RV,UnitTp,Env,_,Evt,Path),
+  checkCases(Cs,SV,Tp,ErTp,Env,Eqns,Eqx,Eqx,[],checker:checkDo,Path),!.
 
 checkRetire(Lc,T,E,Env,Env,doRetire(Lc,Tsk,Evt),Path) :-
   findType("task",Lc,Env,TskTp),
-  newTypeVar("C",CV),
-  applyTypeFun(TskTp,[CV],Lc,Env,TTp),
+  newTypeVar("SComm",SV),
+  newTypeVar("RComm",RV),
+  applyTypeFun(TskTp,[SV,RV],Lc,Env,TTp),
   typeOfExp(T,TTp,UnitTp,Env,_,Tsk,Path),
-  typeOfExp(E,CV,UnitTp,Env,_,Evt,Path).
+  typeOfExp(E,SV,UnitTp,Env,_,Evt,Path).
 
 genTpVars([],[]).
 genTpVars([_|I],[Tp|More]) :-
