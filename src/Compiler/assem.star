@@ -38,7 +38,7 @@ star.compiler.assem{
     .iDup |
     iRst(integer) |
     .iSwap |
-    iTask(termLbl) |
+    .iTask |
     iSuspend |
     iResume |
     iRetire |
@@ -159,7 +159,7 @@ star.compiler.assem{
   mnem([.iDup,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(12)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
   mnem([iRst(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(13),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
   mnem([.iSwap,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(14)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
-  mnem([iTask(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (Lt1,LtNo) .= findLit(Lts,symb(U)) => mnem(Ins,Code++[intgr(15),intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([.iTask,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(15)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
   mnem([.iSuspend,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(16)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
   mnem([.iResume,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(17)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
   mnem([.iRetire,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[intgr(18)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
@@ -245,7 +245,7 @@ star.compiler.assem{
   genLblTbl([.iDup,..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+1,Lbls).
   genLblTbl([iRst(A),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([.iSwap,..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+1,Lbls).
-  genLblTbl([iTask(A),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
+  genLblTbl([.iTask,..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+1,Lbls).
   genLblTbl([.iSuspend,..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+1,Lbls).
   genLblTbl([.iResume,..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+1,Lbls).
   genLblTbl([.iRetire,..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+1,Lbls).
@@ -358,7 +358,7 @@ star.compiler.assem{
   showMnem([.iDup,..Ins],Pc) => "$(Pc)\: Dup\n" ++ showMnem(Ins,Pc+1).
   showMnem([iRst(U),..Ins],Pc) => "$(Pc)\: Rst $(U)\n" ++ showMnem(Ins,Pc+3).
   showMnem([.iSwap,..Ins],Pc) => "$(Pc)\: Swap\n" ++ showMnem(Ins,Pc+1).
-  showMnem([iTask(U),..Ins],Pc) => "$(Pc)\: Task $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([.iTask,..Ins],Pc) => "$(Pc)\: Task\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iSuspend,..Ins],Pc) => "$(Pc)\: Suspend\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iResume,..Ins],Pc) => "$(Pc)\: Resume\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iRetire,..Ins],Pc) => "$(Pc)\: Retire\n" ++ showMnem(Ins,Pc+1).

@@ -457,23 +457,27 @@ retCode run(processPo P) {
       }
 
       case Task: {
-        termPo tProg = nthElem(LITS, collectI32(PC));
-        methodPo mtd = labelCode(C_LBL(tProg));   // Which program do we want?
+        // The top of a stack should be a unary lambda
+        normalPo obj = C_NORMAL(pop());
+        labelPo oLbl = objLabel(termLbl(obj), 1);
+
+        if (oLbl == Null) {
+          logMsg(logFile, "program %s/1 not defined", labelName(termLbl(obj)));
+          bail();
+        }
+
+        methodPo mtd = labelCode(oLbl);   // Which program do we want?
+        bumpCallCount(mtd);
 
         saveRegisters();
         taskPo child = spinupStack(H, STK, minStackSize);
         restoreRegisters();
 
-        integer arity = codeArity(mtd);
-        for (integer ix = arity - 1; ix >= 0; ix--) {
-          termPo arg = peek(ix);
-          pushStack(child, arg);
-        }
+        pushStack(child,nthElem(obj, 0));            // Put the free term on the new stack
         pushStack(child, (termPo) child);
         pushFrame(child, mtd, child->fp, child->sp);
 
-        SP += arity;
-        push(child);
+        push(child);                                                 // We return the new stack
 
         continue;
       }
@@ -497,11 +501,16 @@ retCode run(processPo P) {
         termPo event = pop();
         taskPo task = C_TASK(pop());
 
-        saveRegisters();
-        STK = P->stk = attachTask(STK, task);
-        restoreRegisters();
-        push(event);
-        continue;
+        if (taskState(task) != suspended) {
+          logMsg(logFile, "tried to resume non-suspended task %T", task);
+          bail();
+        } else {
+          saveRegisters();
+          STK = P->stk = attachTask(STK, task);
+          restoreRegisters();
+          push(event);
+          continue;
+        }
       }
 
       case Retire: { // Similar to a suspend, except that we trash the susending stack

@@ -788,27 +788,6 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
           return mergeSegVars(seg, alt);
       }
 
-      case Task:{
-        int32 litNo = collect32(base, &iPc); // Collect the task function
-        if (litNo < 0 || litNo >= codeLitCount(seg->seg.mtd)) {
-          strMsg(errorMsg, msgLen, RED_ESC_ON "invalid literal number: %d @ %d" RED_ESC_OFF, litNo, oPc);
-          return Error;
-        }
-        termPo lit = getMtdLit(seg->seg.mtd, litNo);
-        if (isALabel(lit)) {
-          integer arity = labelArity(C_LBL(lit));
-          if (seg->seg.stackDepth < arity) {
-            strMsg(errorMsg, msgLen, RED_ESC_ON "insufficient args on stack: %d @ %d" RED_ESC_OFF, arity, oPc);
-            return Error;
-          }
-          seg->seg.stackDepth -= arity - 1; // Drop arity elements from stack. Leave stack reference behind
-        } else {
-          strMsg(errorMsg, msgLen, RED_ESC_ON "invalid function label: %t @ %d" RED_ESC_OFF, lit, oPc);
-          return Error;
-        }
-        break;
-      }
-
       case Cmp:
       case CLbl:
       case ICmp:
