@@ -252,7 +252,7 @@ ssAct(case(_,G,Cases,Deflt),Dp,
   ssCases(Cases,Dp,lterms:ssAct,CC),
   ssTrm(Deflt,Dp,DD).
 ssAct(unpack(_,G,Cases),Dp,
-      sq([ss("unpack "),GG,ss(" in "),lb,CC,rb])) :-!,
+      sq([ss("unpack "),GG,ss(" in "),CC])) :-!,
   ssTrm(G,Dp,GG),
   ssCases(Cases,Dp,lterms:ssAct,CC).
 ssAct(iftte(_,G,T,E),Dp,

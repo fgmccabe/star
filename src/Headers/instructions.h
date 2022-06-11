@@ -35,7 +35,7 @@ instruction(Dup,tOs,nOp,1,"duplicate top of stack")
 instruction(Rst, i32, nOp, 0, "reset stack height to a fixed height")
 instruction(Swap,tOs,nOp,0,"swap top two elements on stack")
 
-instruction(Task,sym,nOp,1,"Create new task")
+instruction(Task,tOs,nOp,1,"Create new task")
 instruction(Suspend,tOs,tOs,-2,"suspend task")
 instruction(Resume,tOs,tOs,-2,"resume task")
 instruction(Retire,tOs,tOs,-2,"retire a task")
