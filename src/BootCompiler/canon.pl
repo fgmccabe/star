@@ -294,7 +294,7 @@ ssTerms([T|More],Dp,[TT|TTs]) :-
   ssTerms(More,Dp,TTs).
 
 ssAction(doNop(_),_,ss("{}")) :-!.
-ssAction(doSeq(Lc,L,R),Dp,sq([ss("{"),Sq,nl(Dp),ss("}")])) :-!,
+ssAction(doSeq(Lc,L,R),Dp,sq([ss("{"),nl(Dp2),Sq,nl(Dp),ss("}")])) :-!,
   Dp2 is Dp+2,
   ssActSeq(doSeq(Lc,L,R),Dp2,Sq).
 ssAction(doValis(_,E),Dp,sq([ss("valis "),EE])) :-!,
@@ -312,10 +312,10 @@ ssAction(doMatch(_,P,E),Dp,sq([PP,ss(" .= "),EE])) :-!,
 ssAction(doAssign(_,P,E),Dp,sq([PP,ss(" := "),EE])) :-!,
   ssTerm(P,Dp,PP),
   ssTerm(E,Dp,EE).
-ssAction(doTryCatch(_,A,H),Dp,sq([ss("try"),nl(Dp2),AA,nl(Dp),ss("catch"),HH])) :-!,
+ssAction(doTryCatch(_,A,Hs),Dp,sq([ss("try"),AA,ss(" catch "),lb,HH,nl(Dp),rb])) :-!,
   Dp2 is Dp+2,
   ssAction(A,Dp2,AA),
-  ssTerm(H,Dp2,HH).
+  ssRls("",Hs,Dp2,canon:ssAction,HH).
 ssAction(doIfThenElse(_,T,A,B),Dp,sq([ss("if "),TT,ss(" then "),nl(Dp2),AA,nl(Dp),ss("else "),BB])) :-!,
   Dp2 is Dp+2,
   ssTerm(T,Dp,TT),
@@ -432,12 +432,12 @@ ssRls(Nm,Eqns,Dp,Dsp,iv(nl(Dp),EE)) :-
   map(Eqns,canon:ssEqn(Nm,Dp,Dsp),EE).
 
 ssEqn("",Dp,Dsp,rule(_,Args,Guard,Value),
-      sq([canon:ssTerm(Args,Dp),canon:ssGuard(Guard,Dp),ss("=>"),
+      sq([canon:ssTerm(Args,Dp),canon:ssGuard(Guard,Dp),ss(" => "),
 	  VV])) :-
   call(Dsp,Value,Dp,VV).
 ssEqn(Nm,Dp,Dsp,rule(_,Args,Guard,Value),
       sq([id(Nm),
-	  canon:ssTerm(Args,Dp),canon:ssGuard(Guard,Dp),ss("=>"),
+	  canon:ssTerm(Args,Dp),canon:ssGuard(Guard,Dp),ss(" => "),
 	  VV])) :-
   call(Dsp,Value,Dp,VV).
 

@@ -225,7 +225,7 @@ overloadAction(doAssign(Lc,P,A),Dict,St,Stx,doAssign(Lc,PP,AA)) :-
   overloadTerm(A,Dict,St1,Stx,AA).
 overloadAction(doTryCatch(Lc,A,H),Dict,St,Stx,doTryCatch(Lc,AA,HH)) :-
   overloadAction(A,Dict,St,St1,AA),
-  overloadTerm(H,Dict,St1,Stx,HH).
+  overloadCases(H,resolve:overloadAction,Dict,St1,Stx,HH).
 overloadAction(doIfThenElse(Lc,T,A,B),Dict,St,Stx,doIfThenElse(Lc,TT,AA,BB)) :-
   overloadTerm(T,Dict,St,St1,TT),
   overloadAction(A,Dict,St1,St2,AA),

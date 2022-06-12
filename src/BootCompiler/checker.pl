@@ -843,6 +843,20 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,valof(Lc,As),Path) :-
   isValof(Term,Lc,A),
   isBraceTuple(A,_,[Ac]),!,
   checkDo(Ac,Tp,ErTp,Env,Ev,As,Path).
+typeOfExp(Term,Tp,_ErTp,Env,Ev,do(Lc,Act,Tp),Path) :-
+  isDoTerm(Term,Lc,A),!,
+  newTypeVar("ETp",ETp),
+  newTypeVar("VTp",VTp),
+  findType("result",Lc,Env,RsltTp),
+  applyTypeFun(RsltTp,[ETp,VTp],Lc,Env,RTp),
+  verifyType(Lc,ast(Term),Tp,RTp,Env),
+  checkDo(A,VTp,ETp,Env,Ev,Act,Path).
+typeOfExp(Term,Tp,ErTp,Env,Ev,bind(Lc,As,Tp),Path) :-
+  isValof(Term,Lc,A),
+  findType("result",Lc,Env,RsltTp),
+  applyTypeFun(RsltTp,[ErTp,Tp],Lc,Env,RTp),
+  unitTp(UnitTp),
+  typeOfExp(A,RTp,UnitTp,Env,Ev,As,Path).
 typeOfExp(Term,Tp,_ErTp,Env,Env,void,_) :-
   locOfAst(Term,Lc),
   reportError("illegal expression: %s, expecting a %s",[Term,Tp],Lc).
@@ -948,7 +962,7 @@ checkDo(A,_,ErTp,Env,Env,doRaise(Lc,Ex),Path) :-
   unitTp(Unit),
   typeOfExp(E,ErTp,Unit,Env,_,Ex,Path).
 checkDo(A,_Tp,ErTp,Env,Ev,doIfThenElse(Lc,match(Lc,Ptn,Exp),
-				      doNop(Lc),doRaise(Lc,tple(Lc,[]))),Path) :-
+				       doNop(Lc),doRaise(Lc,tple(Lc,[]))),Path) :-
   isBind(A,Lc,P,E),!,
   newTypeVar("V",TV),
   typeOfPtn(P,TV,ErTp,Env,Ev,Ptn,Path),
@@ -963,10 +977,9 @@ checkDo(A,_Tp,ErTp,Env,Ev,doAssign(Lc,Ptn,Exp),Path) :-
   newTypeVar("V",TV),
   typeOfExp(P,refType(TV),ErTp,Env,Ev,Ptn,Path),
   typeOfExp(E,TV,ErTp,Env,_,Exp,Path).
-checkDo(A,Tp,ErTp,Env,Ev,doTryCatch(Lc,Body,Hndlr),Path) :-
+checkDo(A,Tp,ErTp,Env,Ev,Act,Path) :-
   isTryCatch(A,Lc,B,H),!,
-  checkDo(B,Tp,ErTp,Env,Ev,Body,Path),
-  typeOfHandler(H,Tp,ErTp,Env,_,Hndlr,Path).
+  checkTryCatch(Lc,B,H,Tp,ErTp,Env,Ev,Act,Path).
 checkDo(A,Tp,ErTp,Env,Env,doIfThenElse(Lc,Tst,Thn,Els),Path) :-
   isIfThenElse(A,Lc,G,T,E),!,
   checkGoal(G,ErTp,Env,E0,Tst,Path),
@@ -990,9 +1003,9 @@ checkDo(A,Tp,ErTp,Env,Env,doFor(Lc,Ptn,Src,Bdy),Path) :-
   typeOfPtn(P,TV,ErTp,Env,E0,Ptn,Path),
   typeOfExp(E,TV,ErTp,Env,_,Src,Path),
   checkDo(B,Tp,ErTp,E0,_,Bdy,Path).
-checkDo(A,Tp,ErTp,Env,Ev,doPerform(Lc,Ac),Path) :-
+checkDo(A,Tp,ErTp,Env,Ev,Act,Path) :-
   isPerform(A,Lc,A0),!,
-  typeOfExp(A0,Tp,ErTp,Env,Ev,Ac,Path).
+  checkPerform(Lc,A0,Tp,ErTp,Env,Ev,Act,Path).
 checkDo(A,Tp,ErTp,Env,Env,doLet(Lc,Decls,XDefs,Ac),Path) :-
   isLetDef(A,Lc,D,B),!,
   genNewName(Path,"Γ",ThPath),
@@ -1039,6 +1052,17 @@ checkDo(A,Tp,_ErTp,Env,Env,doNop(Lc),_) :-
 checkGuard(none,_,Env,Env,none,_) :-!.
 checkGuard(some(G),ErTp,Env,Ev,some(Goal),Path) :-
   checkGoal(G,ErTp,Env,Ev,Goal,Path).
+
+checkTryCatch(Lc,B,Hs,Tp,ErTp,Env,Ev,doTryCatch(Lc,Body,Hndlr),Path) :-
+  newTypeVar("EE",EETp),
+  checkDo(B,Tp,EETp,Env,Ev,Body,Path),
+  checkCases(Hs,EETp,Tp,ErTp,Env,Hndlr,Eqx,Eqx,[],checker:checkDo,Path),!.
+
+checkPerform(Lc,E,Tp,ErTp,perform(Lc,Act),Env,Ev,Path) :-
+  unitTp(UnitTp),
+  verifyType(Lc,E,UnitTp,Tp,Env),
+  newTypeVar("ATp",ATp),
+  typeOfExp(E,ATp,ErTp,Env,Ev,Act,Path).
 
 checkGoal(Term,ErTp,Env,Ex,conj(Lc,Lhs,Rhs),Path) :-
   isConjunct(Term,Lc,L,R),!,

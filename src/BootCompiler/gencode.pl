@@ -356,7 +356,7 @@ compAction(untl(Lc,B,G),OLc,Cont,ACont,TCont,Opts,L,Lx,D,D,End,
   genLbl(L1,TstLbl,L2),
   compAction(B,Lc,Cont,contCont(TstLbl),TCont,
 	     Opts,L2,L3,D,D1,End,C0,[iLbl(TstLbl)|C2],Stk,Stk1),
-  compCond(G,Lc,contCont(LpLbl),resetCont(Stk,ACont),TCont,
+  compCond(G,Lc,resetCont(Stk,ACont),contCont(LpLbl),TCont,
 	   Opts,L3,Lx,D1,_D1,End,C2,Cx,Stk1,_Stk2).
 compAction(ltt(Lc,idnt(Nm),Val,Act),OLc,Cont,ACont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(L,Lb,L1),

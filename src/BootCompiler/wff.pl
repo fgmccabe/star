@@ -777,9 +777,9 @@ isTaskTerm(A,Lc,Stmts) :-
 mkTaskTerm(Lc,S,T) :-
   braceTerm(Lc,name(Lc,"task"),[S],T).
 
-isDoTerm(A,Lc,Stmts) :-
+isDoTerm(A,Lc,Stmt) :-
   isUnary(A,Lc,"do",I),
-  isBraceTuple(I,_,[Stmts]).
+  isBraceTuple(I,_,[Stmt]).
 
 mkDoTerm(Lc,A,Trm) :-
   braceTuple(Lc,[A],S0),
@@ -821,12 +821,14 @@ isIgnore(A,Lc,E) :-
 mkIgnore(Lc,A,E) :-
   unary(Lc,"ignore",A,E).
 
-isTryCatch(A,Lc,B,H) :-
+isTryCatch(A,Lc,B,Hs) :-
   isUnary(A,Lc,"try",I),
-  isBinary(I,_,"catch",B,H).
+  isBinary(I,_,"catch",B,H),
+  isBraceTuple(H,_,Hs).
 
 mkTryCatch(Lc,B,H,A) :-
-  binary(Lc,"catch",B,H,A0),
+  braceTuple(Lc,H,Hs),
+  binary(Lc,"catch",B,Hs,A0),
   unary(Lc,"try",A0,A).
 
 isTryHandle(A,Lc,B,H) :-

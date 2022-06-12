@@ -267,12 +267,12 @@ ssAct(iftt(_,G,T),Dp,
   ssTrm(G,Dp,GG),
   ssAct(T,Dp2,TT).
 ssAct(whle(_,G,B),Dp,
-      sq([ss("while "),GG,ss("do"),nl(Dp2),BB])) :-!,
+      sq([ss("while "),GG,ss(" do"),nl(Dp2),BB])) :-!,
   Dp2 is Dp+2,
   ssTrm(G,Dp,GG),
   ssAct(B,Dp2,BB).
 ssAct(untl(_,B,G),Dp,
-      sq([ss("do"),nl(Dp2),BB,nl(Dp),ss("until "),GG])) :-!,
+      sq([ss("do "),nl(Dp2),BB,nl(Dp),ss(" until "),GG])) :-!,
   Dp2 is Dp+2,
   ssTrm(G,Dp,GG),
   ssAct(B,Dp2,BB).

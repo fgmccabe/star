@@ -418,9 +418,9 @@ collectDoRefs(T,All,Rf,Rfx) :-
   collectTermRefs(Tt,All,Rf0,Rf1),
   collectDoRefs(B,All,Rf1,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
-  isTryCatch(T,_,L,R),!,
+  isTryCatch(T,_,L,C),!,
   collectDoRefs(L,All,Rf,Rf1),
-  collectCatchRefs(R,All,Rf1,Rfx).
+  collectCaseRefs(C,collectDoRefs,All,Rf1,Rfx).
 collectDoRefs(T,A,R,Rx) :-
   isLetDef(T,_,S,B),!,
   collectStmtRefs(S,A,[],R,R0),
