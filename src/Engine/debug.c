@@ -1172,9 +1172,9 @@ retCode showGlb(ioPo out, globalPo glb) {
     return outMsg(out, " unknown global");
 }
 
-void showTos(ioPo out, taskPo stk, termPo tos) {
+void showTos(ioPo out, taskPo stk, termPo _) {
   if (stk != Null)
-    outMsg(out, " <tos> = %,*T", displayDepth, tos);
+    outMsg(out, " <tos> = %,*T", displayDepth, topStack(stk));
   else
     outMsg(out, " <tos>");
 }
@@ -1229,7 +1229,7 @@ insPo disass(ioPo out, taskPo stk, methodPo mtd, insPo pc) {
 #undef instruction
 
 #define show_nOp
-#define show_tOs showTos(out,stk,topStack(stk))
+#define show_tOs showTos(out,stk,Null)
 #define show_art showTopOfStack(out,stk,collectI32(pc))
 #define show_i32 outMsg(out," #%d",collectI32(pc))
 #define show_lBs outMsg(out," #%d",collectI32(pc))
