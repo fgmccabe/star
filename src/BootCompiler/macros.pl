@@ -603,17 +603,10 @@ examineAction(A,Ax) :-
   macroAction(L,Lx),
   mkIfThen(Lc,Tx,Lx,Ax).
 examineAction(A,Ax) :-
-  isTryCatch(A,Lc,B,H),!,
+  isTryCatch(A,Lc,B,C),!,
   macroAction(B,Bx),
-%  reportMsg("Macrod action %s",[ast(Bx)],Lc),
-  (isBraceTuple(H,HLc,[Hs]) ->
-   mkAnon(HLc,An),
-   roundTuple(HLc,[An],LArg),
-   mkDoTerm(HLc,Hs,HB),
-   mkEquation(HLc,LArg,none,HB,HH);
-   H=HH),
-  macroTerm(HH,Hx),
-  mkTryCatch(Lc,Bx,Hx,Ax).
+  map(C,macros:examineActionCase,Cs),
+  mkTryCatch(Lc,Bx,Cs,Ax).
 examineAction(A,Ax) :-
   isWhileDo(A,Lc,T,B),!,
   macroTerm(T,Tx),
