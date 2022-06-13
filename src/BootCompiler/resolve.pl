@@ -187,9 +187,11 @@ overloadTerm(mtd(Lc,Nm,Tp),_,St,Stx,mtd(Lc,Nm,Tp)) :-
   markActive(St,Lc,Msg,Stx).
 overloadTerm(lambda(Lc,Lbl,Eqn,Tp),Dict,St,Stx,lambda(Lc,Lbl,OEqn,Tp)) :-
   overloadRule(resolve:overloadTerm,Eqn,Dict,St,Stx,OEqn).
-overloadTerm(valof(Lc,A),Dict,St,Stx,valof(Lc,AA)) :-
+overloadTerm(valof(Lc,A,Tp),Dict,St,Stx,valof(Lc,AA,Tp)) :-!,
+  overloadTerm(A,Dict,St,Stx,AA).
+overloadTerm(doExp(Lc,A,Tp),Dict,St,Stx,doExp(Lc,AA,Tp)) :-!,
   overloadAction(A,Dict,St,Stx,AA).
-overloadTerm(task(Lc,A,Tp),Dict,St,Stx,task(Lc,AA,Tp)) :-
+overloadTerm(task(Lc,A,Tp),Dict,St,Stx,task(Lc,AA,Tp)) :-!,
   overloadAction(A,Dict,St,Stx,AA).
 overloadTerm(T,_,St,St,T) :-
   locOfCanon(T,Lc),

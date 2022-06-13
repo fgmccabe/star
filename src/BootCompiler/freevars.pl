@@ -62,10 +62,15 @@ freeVars(case(_,Gov,Cses,D),Ex,Q,F,Fv) :-
   freeVars(Gov,Ex,Q,F,F0),
   freeVarsInRules(Cses,Ex,Q,freevars:freeVars,F0,F1),
   freeVars(D,Ex,Q,F1,Fv).
-freeVars(valof(_,A),Ex,Q,F,Fv) :-
+freeVars(valof(_,A,_),Ex,Q,F,Fv) :-!,
+  freeVars(A,Ex,Q,F,Fv).
+freeVars(doExp(_,A,_),Ex,Q,F,Fv) :-!,
   freeVarsInAction(A,Ex,_,Q,F,Fv).
 freeVars(task(_,A,_),Ex,Q,F,Fv) :-
   freeVars(A,Ex,Q,F,Fv).
+freeVars(T,_,_,F,F) :-
+  locOfCanon(T,Lc),
+  reportError("cannot find free vars in %s",[can(T)],Lc).
 
 freeVarsInAction(doNop(_),Ex,Ex,_,F,F) :-!.
 freeVarsInAction(doSeq(_,L,R),E,Ex,Q,F,Fv) :-!,
@@ -90,7 +95,7 @@ freeVarsInAction(doAssign(_,P,E),Ex,Ex,Q,F,Fv) :-!,
   freeVars(E,Ex,Q,F0,Fv).
 freeVarsInAction(doTryCatch(_,B,H),Ex,Exx,Q,F,Fv) :-!,
   freeVarsInAction(B,Ex,Exx,Q,F,F0),
-  freeVars(H,Ex,Q,F0,Fv).
+  freeVarsInRules(H,Ex,Q,freevars:freeVarsInAct,F0,Fv).
 freeVarsInAction(doIfThenElse(_,T,L,R),Ex,Ex,Q,F,Fv) :-!,
   ptnGoalVars(T,Ex,Ex1),
   freeVars(T,Ex1,Q,F,F0),

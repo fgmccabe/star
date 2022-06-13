@@ -15,8 +15,7 @@ test.ac3{
 	_ .= _logmsg(disp(I));
 	valis 5*X
       }
-    };
-    raise ()
+    }
   }
 
   main:()=>().

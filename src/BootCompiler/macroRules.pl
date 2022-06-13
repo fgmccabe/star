@@ -31,6 +31,7 @@ macroRl(":=",action,macroRules:spliceAssignMacro).
 macroRl(":=",action,macroRules:indexAssignMacro).
 macroRl(":=",expression,macroRules:spliceAssignMacro).
 macroRl(":=",expression,macroRules:indexAssignMacro).
+macroRl("<-",action,macroRules:bindActionMacro).
 macroRl("assert",expression,macroRules:assertMacro).
 macroRl("assert",action,macroRules:assertMacro).
 macroRl("show",action,macroRules:showMacro).
@@ -533,6 +534,20 @@ makeHandler(H,Hx) :-
   makeAction(A,none,Ah),
   mkEquation(Lc,Arg,none,Ah,Hx).
 makeHandler(H,H).
+
+/*
+  P <- E
+  where E is not an identifier
+  becomes
+  let { V = E } in P <- V
+*/
+bindActionMacro(T,action,Act) :-
+  isBind(T,Lc,L,R),
+  \+ isName(R,_,_),!,
+  mkName(Lc,"_vr",Vr),
+  mkBind(Lc,L,Vr,B),
+  mkDefn(Lc,Vr,R,VDf),
+  mkLetDef(Lc,[VDf],B,Act).
 
 /*
  assert C 
