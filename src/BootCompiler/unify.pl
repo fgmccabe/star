@@ -317,9 +317,9 @@ applyTypeFun(Lam,Args,Lc,Env,C,Cx,Tp) :-
 applyTypeFn(kFun(T,Ar),Args,_,_,Cx,Cx,Tp) :-
   length(Args,Ar),!,
   mkTypeExp(kFun(T,Ar),Args,Tp).
-applyTypeFn(tFun(T,B,Ar,Id),Args,_,_,Cx,Cx,Tp) :-
+applyTypeFn(tFun(T,C,Lc,N,Ar,Id),Args,_,_,Cx,Cx,Tp) :-
   length(Args,AAr),AAr=<Ar,!,
-  mkTypeExp(tFun(T,B,Ar,Id),Args,Tp).
+  mkTypeExp(tFun(T,C,Lc,N,Ar,Id),Args,Tp).
 applyTypeFn(tpFun(T,Ar),Args,_,_,Cx,Cx,Tp) :-
   length(Args,AAr),AAr=<Ar,!,
   mkTypeExp(tpFun(T,Ar),Args,Tp).

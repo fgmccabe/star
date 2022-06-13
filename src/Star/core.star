@@ -20,6 +20,16 @@ star.core {
     _ == _ default => .false
   }
 
+  public result[e,a] ::= ok(a) | bad(e).
+
+  public contract all m/2 ~~ execution[m] ::= {
+    _isOk:all a,e ~~ (m[e,a]) => boolean.
+    _perform:all a,e ~~ (m[e,a])=>a.
+    _errval:all a,e ~~ (m[e,a]) => e.
+    _valis:all a,e ~~ (a)=>m[e,a].
+    _raise: all a,e ~~ (e) => m[e,a].
+  }
+
   public contract all x ~~ comp[x] ::= {
     (<): (x,x)=>boolean.
     (>=): (x,x)=>boolean.

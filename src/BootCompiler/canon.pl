@@ -117,6 +117,8 @@ typeOfCanon(overaccess(V,_,_),Tp) :- typeOfCanon(V,Tp).
 typeOfCanon(mtd(_,_,Tp),Tp) :-!.
 typeOfCanon(case(_,_,_,Tp),Tp) :- !.
 typeOfCanon(task(_,_,Tp),Tp) :-!.
+typeOfCanon(doExp(_,_,Tp),Tp) :-!.
+typeOfCanon(valof(_,_,Tp),Tp) :-!.
 
 locOfCanon(v(Lc,_,_),Lc) :- !.
 locOfCanon(anon(Lc,_),Lc) :- !.
@@ -155,14 +157,15 @@ locOfCanon(valis(Lc,_),Lc) :-!.
 locOfCanon(ignore(Lc,_),Lc) :-!.
 locOfCanon(raise(Lc,_),Lc) :-!.
 locOfCanon(perform(Lc,_),Lc) :-!.
-locOfCanon(valof(Lc,_),Lc) :-!.
 locOfCanon(task(Lc,_,_),Lc) :-!.
+locOfCanon(doExp(Lc,_,_),Lc) :-!.
+locOfCanon(valof(Lc,_,_),Lc) :-!.
 
 locOfCanon(doNop(Lc),Lc) :-!.
 locOfCanon(doSeq(Lc,_,_),Lc) :-!.
 locOfCanon(doValis(Lc,_),Lc) :-!.
 locOfCanon(doRaise(Lc,_),Lc) :-!.
-locOfCanon(doBind(Lc,_,_),Lc) :-!.
+locOfCanon(doBind(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(doMatch(Lc,_,_),Lc) :-!.
 locOfCanon(doAssign(Lc,_,_),Lc) :-!.
 locOfCanon(doTryCatch(Lc,_,_),Lc) :-!.
@@ -283,7 +286,9 @@ ssTerm(search(_,P,S,M),Dp,sq([lp,LL,ss(" in "),RR,ss(" using "),II,rp])) :-
   ssTerm(M,Dp,II).
 ssTerm(neg(_,R),Dp,sq([lp,ss(" ~ "),RR,rp])) :-
   ssTerm(R,Dp,RR).
-ssTerm(valof(_,A),Dp,sq([ss("valof "),AA])) :-!,
+ssTerm(valof(_,A,_),Dp,sq([ss("valof "),AA])) :-!,
+  ssTerm(A,Dp,AA).
+ssTerm(doExp(_,A,_),Dp,sq([ss("do "),AA])) :-!,
   ssAction(A,Dp,AA).
 ssTerm(task(_,A,_),Dp,sq([ss("task "),AA])) :-!,
   ssTerm(A,Dp,AA).
@@ -303,7 +308,7 @@ ssAction(doRaise(_,E),Dp,sq([ss("raise "),EE])) :-!,
   ssTerm(E,Dp,EE).
 ssAction(doPerform(_,E),Dp,sq([ss("perform "),EE])) :-!,
   ssTerm(E,Dp,EE).
-ssAction(doBind(_,P,E),Dp,sq([PP,ss(" <- "),EE])) :-!,
+ssAction(doBind(_,P,_,E,_),Dp,sq([PP,ss(" <- "),EE])) :-!,
   ssTerm(P,Dp,PP),
   ssTerm(E,Dp,EE).
 ssAction(doMatch(_,P,E),Dp,sq([PP,ss(" .= "),EE])) :-!,

@@ -11,17 +11,20 @@ star.action{
       disp(bad(E)) => "bad: $(E)".
     }.
 
+  public contract all m/2 ~~ execution[m] ::= {
+    _isOk:all a,e ~~ (m[e,a]) => boolean.
+    _perform:all a,e ~~ (m[e,a])=>a.
+    _errval:all a,e ~~ (m[e,a]) => e.
+    _valis:all a,e ~~ (a)=>m[e,a].
+    _raise: all a,e ~~ (e) => m[e,a].
+  }
+
   public implementation execution[result] => {
+    _isOk(ok(_)) => .true.
+    _isOk(bad(_)) => .false.
     _perform(ok(X)) => X.
-
+    _errval(bad(X)) => X.
     _valis(X) => ok(X).
-
-    _sequence(bad(E),_) => bad(E).
-    _sequence(ok(A),F) => F(A).
-
-    _catch(ok(X),_) => ok(X).
-    _catch(bad(X),E) => E(X).
-
     _raise(S) => bad(S).
   }
 
@@ -30,39 +33,6 @@ star.action{
     (ok(A) >>= F) => F(A).
 
     return X => ok(X).
-  }
-
-  public all a,e ~~ action[e,a] ::= done(a) | delay(()=>action[e,a]) | err(e).
-
-  public implementation all e ~~ monad[action[e]] => {
-    (err(E) >>= _) => err(E).
-    (done(A) >>= F) => delay(()=>F(A)).
-    (delay(G) >>= F) => delay(()=>G()>>=F).
-
-    return X => delay(()=>done(X)).
-  }
-
-  public implementation all e,a ~~ display[e],display[a] |: display[action[e,a]] => {
-    disp(done(O)) => "done: $(O)".
-    disp(err(E)) => "err: $(E)".
-    disp(delay(_)) => "delayed".
-  }
-
-  public implementation execution[action] => {
-    _perform(done(X)) => X.
-    _perform(delay(F)) => _perform(F()).
-
-    _valis(X) => delay(()=>done(X)).
-
-    _sequence(err(E),_) => err(E).
-    _sequence(done(A),F) => delay(()=>F(A)).
-    _sequence(delay(G),F) => delay(()=>_sequence(G(),F)).
-
-    _catch(done(X),_) => done(X).
-    _catch(delay(A),E) => _catch(A(),E).
-    _catch(err(X),E) => E(X).
-
-    _raise(S) => err(S).
   }
 
   public strmap:all x,y,m/1,s/1 ~~ monad[m],stream[s[x]->>x],
@@ -83,16 +53,6 @@ star.action{
     mmm([E,..Es],So) =>
       _sequence(F(E),(X)=>mmm(Es,[X,..So])).
   .} in mmm(S,[]).
-
-  public implementation all e ~~ coercion[option[e],action[(),e]] => {
-    _coerce(.none) => some(err(())).
-    _coerce(some(X)) => some(done(X)).
-  }
-
-  public (:=):all a,m/2,e ~~ execution[m] |: (ref a,a) => m[e,()].
-  (:=)(L,V) => do{
-    valis _assign(L,V)
-  }
 
   public logMsg:all m/2,e ~~ execution[m] |: (string)=>m[e,()].
   logMsg(Msg) => do{

@@ -19,14 +19,6 @@ star.monad{
     (⊕):(e,e)=>e.
   }
 
-  public contract all m/2 ~~ execution[m] ::= {
-    _perform:all a,e ~~ (m[e,a])=>a.
-    _valis:all a,e ~~ (a)=>m[e,a].
-    _sequence:all a,b,e ~~ (m[e,a],(a)=>m[e,b]) => m[e,b].
-    _catch:all a,e,f ~~ (m[e,a],(e)=>m[f,a]) => m[f,a].
-    _raise: all a,e ~~ (e) => m[e,a].
-  }
-
   public contract all m/1,n/1 ~~ injection[m,n] ::= {
     _inject:all t ~~ (m[t])=>n[t].
   }
@@ -40,5 +32,4 @@ star.monad{
     A ⊕ B => _int_plus(A,B).
     zed = 0.
   }
-  
 }
