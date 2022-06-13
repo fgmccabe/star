@@ -331,7 +331,7 @@ retCode tskDisp(ioPo out, termPo t, integer precision, integer depth, logical al
 taskPo glueOnStack(heapPo H, taskPo tsk, integer size, integer saveArity) {
   int root = gcAddRoot(H, (ptrPo) &tsk);
 
-  assert(size >= minStackSize && stackStateName(tsk) != moribund);
+  assert(size >= minStackSize && taskState(tsk) != moribund);
 
   taskPo newStack = allocateTask(H, size, &underFlowMethod, taskState(tsk), tsk);
   moveStack2Stack(newStack, tsk, saveArity);
