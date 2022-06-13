@@ -469,6 +469,12 @@ liftAction(doResume(Lc,T,E,Cs),Reslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftAction(doRetire(Lc,T,E),rtire(Lc,TT,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(T,TT,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(E,EE,Q0,Qx,Map,Opts,Ex0,Exx).
+liftAction(doTryCatch(Lc,B,H),try(Lc,BB,E,HH),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftAction(B,BB,Q,Q0,Map,Opts,Ex,Ex0),
+  liftCases(H,Cases,Q0,Qx,Map,Opts,transform:liftAction,Ex0,Exx),
+  genVar("_E",E),
+  caseMatcher(Lc,E,Cases,lterms:substAction,Map,HH).
+  
 liftAction(XX,nop(Lc),Q,Q,_,_,Ex,Ex) :-!,
   locOfCanon(XX,Lc),
   reportFatal("internal: cannot transform %s as action",[cnact(XX)],Lc).

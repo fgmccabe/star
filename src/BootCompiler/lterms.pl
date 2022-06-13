@@ -68,7 +68,7 @@ isLAct(rse(_,_)) :-!.
 isLAct(perf(_,_)) :-!.
 isLAct(mtch(_,_,_)) :-!.
 isLAct(asgn(_,_,_)) :-!.
-isLAct(try(_,_,_)) :-!.
+isLAct(try(_,_,_,_)) :-!.
 isLAct(case(_,_,_)) :-!.
 isLAct(unpack(_,_,_)) :-!.
 isLAct(iftte(_,_,_,_)) :-!.
@@ -292,6 +292,11 @@ ssAct(rtire(_,T,E),Dp,sq([TT,ss(" retire "),EE])) :-
   ssTrm(E,Dp,EE).
 ssAct(error(_,M),Dp,sq([ss(" error "),MM])) :-
   ssTrm(M,Dp,MM).
+ssAct(try(_,B,E,H),Dp,sq([ss("try "),BB,ss(" catch "),EE,ss(" in "),HH])) :-
+  Dp2 is Dp+2,
+  ssTrm(E,Dp,EE),
+  ssAct(B,Dp2,BB),
+  ssAct(H,Dp2,HH).
 
 ssActSeq(seq(_,A,B),Dp,[AA|BB]) :-!,
   ssAct(A,Dp,AA),
@@ -489,7 +494,11 @@ rewriteAction(QTest,rtire(Lc,T,E),rtire(Lc,TT,EE)) :-!,
   rewriteTerm(QTest,E,EE).
 rewriteAction(QTest,error(Lc,M),error(Lc,MM)) :-!,
   rewriteTerm(QTest,M,MM).
-
+rewriteAction(QTest,try(Lc,B,E,H),try(Lc,BB,EE,HH)) :-!,
+  rewriteTerm(QTest,E,EE),
+  rewriteAction(QTest,B,BB),
+  rewriteAction(QTest,H,HH).
+  
 rewriteCase(QTest,BCall,(T,E,Lbl),(NT,NE,Lbl)) :-
   rewriteTerm(QTest,T,NT),
   call(BCall,QTest,E,NE).
@@ -856,6 +865,10 @@ validAction(rtire(Lc,L,G),_,D,D) :-!,
   validTerm(G,Lc,D).
 validAction(error(Lc,M),_,D,D) :-
   validTerm(M,Lc,D).
+validAction(try(Lc,B,E,H),_,D,D) :-
+  validAction(B,Lc,D,_),
+  ptnVars(E,D,D0),
+  validAction(H,Lc,D0,_).
 
 validAction(T,Lc,D,D) :-
   reportError("(internal) Invalid action %s",[lact(T)],Lc).
