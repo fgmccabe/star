@@ -9,17 +9,21 @@ test.ac3{
   f(X) => valof{
     try{
       _ .= _logmsg("p1");
-      raise 10
+      if X>5 then
+	raise 10
+      else
+      valis 3*X
     } catch {
       (I) => {
-	_ .= _logmsg(disp(I));
-	valis 5*X
+	_ .= _logmsg(disp(I))
       }
-    }
-  }
+    };
+    valis 5*X
+  } * 2.
 
   main:()=>().
   main() => valof{
+    _ .= _logmsg(disp(f(1)));
     _ .= _logmsg(disp(f(10)));
     valis ()
   }
