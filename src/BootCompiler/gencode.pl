@@ -384,6 +384,8 @@ compAction(unpack(Lc,T,Cases),OLc,Cont,ACont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,S
   compExp(T,Lc,contCont(Nxt),TCont,Opts,L1,L2,D,D2,End,C0,[iLbl(Nxt)|C1],Stk,Stk0),
   compCnsCases(Cases,Lc,gencode:compActCase(ACont,TCont),Cont,TCont,Opts,
 	       L2,Lx,D2,Dx,C1,Cx,Stk0,Stkx).
+compAction(try(Lc,B,E,H),OLc,Cont,ACont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stk) :-
+  compTry(Lc,B,E,H,OLc,Cont,ACont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk).
 
 compAction(A,Lc,_,_,_,_,Lx,Lx,Dx,Dx,_,C,C,Stk,Stk) :-
   reportError("cannot compile action %s",[lact(A)],Lc),
@@ -394,6 +396,16 @@ compActCase(ACont,TCont,A,Lc,Cont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
 
 compAct(ACont,A,Lc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   compAction(A,Lc,Cont,ACont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
+
+compTry(Lc,B,idnt(E),H,OLc,Cont,ACont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk) :-
+  chLine(Opts,OLc,Lc,C,C0),
+  genLbl(L,Ctch,L1),
+  compAction(B,Lc,Cont,ACont,jmpCont(Ctch),Opts,L1,L2,D,D0,Ctch,C0,
+	     [iLbl(Ctch),iStL(Off),iLbl(ELb)|C1],Stk,_),
+  genLbl(L2,ELb,L3),
+  defineLclVar(E,ELb,End,Opts,D0,D1,Off,C1,C2),
+  compAction(H,Lc,Cont,ACont,TCont,Opts,L3,Lx,D1,Dx,End,C2,Cx,Stk,_).
+
   
 /* Compile actions as sequences with several possible continuations */
 
