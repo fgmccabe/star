@@ -3,21 +3,11 @@ star.action{
   import star.monad.
   import star.coerce.
 
-  public result[e,a] ::= ok(a) | bad(e).
-
   public implementation all e,a ~~ display[e],display[a] |:
     display[result[e,a]] => {
       disp(ok(O)) => "ok: $(O)".
       disp(bad(E)) => "bad: $(E)".
     }.
-
-  public contract all m/2 ~~ execution[m] ::= {
-    _isOk:all a,e ~~ (m[e,a]) => boolean.
-    _perform:all a,e ~~ (m[e,a])=>a.
-    _errval:all a,e ~~ (m[e,a]) => e.
-    _valis:all a,e ~~ (a)=>m[e,a].
-    _raise: all a,e ~~ (e) => m[e,a].
-  }
 
   public implementation execution[result] => {
     _isOk(ok(_)) => .true.
@@ -45,7 +35,7 @@ star.action{
       F(E) >>= (X)=>mmm(Es,[X,..So]).
   .} in mmm(S,[]).
 
-  public seqmap:all x,y,e,m/2,s/1 ~~ execution[m],stream[s[x]->>x],sequence[s[y]->>y],reversible[s[y]] |:
+/*  public seqmap:all x,y,e,m/2,s/1 ~~ execution[m],stream[s[x]->>x],sequence[s[y]->>y],reversible[s[y]] |:
     ((x)=>m[e,y],s[x]) => m[e,s[y]].
   seqmap(F,S) => let{.
     mmm:(s[x],s[y]) => m[e,s[y]].
@@ -53,6 +43,7 @@ star.action{
     mmm([E,..Es],So) =>
       _sequence(F(E),(X)=>mmm(Es,[X,..So])).
   .} in mmm(S,[]).
+  */
 
   public logMsg:all m/2,e ~~ execution[m] |: (string)=>m[e,()].
   logMsg(Msg) => do{
