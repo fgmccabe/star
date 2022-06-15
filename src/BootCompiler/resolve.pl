@@ -219,9 +219,11 @@ overloadAction(doPerform(Lc,A),Dict,St,Stx,doPerformd(Lc,AA)) :-
 overloadAction(doMatch(Lc,P,A),Dict,St,Stx,doMatch(Lc,PP,AA)) :-
   overloadTerm(P,Dict,St,St1,PP),
   overloadTerm(A,Dict,St1,Stx,AA).
-overloadAction(doBind(Lc,P,A),Dict,St,Stx,doBind(Lc,PP,AA)) :-
+overloadAction(doBind(Lc,P,O,V,R),Dict,St,Stx,doBind(Lc,PP,OO,VV,RR)) :-
   overloadTerm(P,Dict,St,St1,PP),
-  overloadTerm(A,Dict,St1,Stx,AA).
+  overloadTerm(O,Dict,St1,St2,OO),
+  overloadTerm(V,Dict,St2,St3,VV),
+  overloadTerm(R,Dict,St3,Stx,RR).
 overloadAction(doAssign(Lc,P,A),Dict,St,Stx,doAssign(Lc,PP,AA)) :-
   overloadTerm(P,Dict,St,St1,PP),
   overloadTerm(A,Dict,St1,Stx,AA).
@@ -263,9 +265,9 @@ overloadAction(doResume(Lc,T,E,C),Dict,St,Stx,doResume(Lc,TT,EE,CC)) :-
 overloadAction(doRetire(Lc,T,E),Dict,St,Stx,doRetire(Lc,TT,EE)) :-
   overloadTerm(T,Dict,St,St1,TT),
   overloadTerm(E,Dict,St1,Stx,EE).
-
-overloadAction(O,Dict,St,Stx,OO) :-
-  overloadTerm(O,Dict,St,Stx,OO).
+overloadAction(A,_,St,St,A) :-
+  locOfCanon(A,Lc),
+  reportError("cannot resolve action %s",[cnact(A)],Lc).
 
 overloadMethod(ALc,Lc,T,Cx,Args,Tp,Dict,St,Stx,apply(ALc,OverOp,tple(LcA,NArgs),Tp)) :-
   resolveContracts(Lc,Cx,Dict,St,St0,DTerms),

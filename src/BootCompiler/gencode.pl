@@ -258,6 +258,8 @@ compExp(seqD(Lc,A,B),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-!,
 	  Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 compExp(vlof(Lc,A),_,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   compAction(A,Lc,Cont,abortCont(Lc,strg("illegal action"),Opts),TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
+compExp(perf(Lc,A),_,Cont,_TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
+  compAction(A,Lc,Cont,abortCont(Lc,strg("no action permitted after this"),Opts),Cont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 compExp(tsk(Lc,F),_,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   compExp(F,Lc,tskCont(Cont),TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 compExp(susp(Lc,T,E),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stk) :-

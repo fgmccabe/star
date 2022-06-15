@@ -398,9 +398,9 @@ examineTerm(T,Tx) :-
   map(C,macros:macroLambda,Cx),
   caseExp(Lc,Ex,Cx,Tx).
 examineTerm(T,Tx) :-
-  isDoTerm(T,_Lc,S),!,
+  isDoTerm(T,Lc,S),!,
   macroAction(S,Sx),
-  makeAction(Sx,none,Tx).
+  mkDoTerm(Lc,Sx,Tx).
 examineTerm(T,Tx) :-
   isResultTerm(T,Lc,S),!,
   macroAction(S,Sx),
@@ -408,14 +408,14 @@ examineTerm(T,Tx) :-
 examineTerm(T,Tx) :-
   isResultTerm(T,Lc,S),!,
   macroAction(S,Sx),
-  makeAction(Sx,none,Mx),
+  mkDoTerm(Lc,Sx,Mx),
   mkAnon(Lc,An),
   squareTerm(Lc,name(Lc,"result"),[An,An],RTp),
   typeAnnotation(Lc,Mx,RTp,Tx).
 examineTerm(T,Tx) :-
   isActionTerm(T,Lc,S),!,
   macroAction(S,Sx),
-  makeAction(Sx,none,Mx),
+  mkDoTerm(Lc,Sx,Mx),
   unitTpl(Lc,U),
   mkEquation(Lc,U,none,Mx,Lam),
   unary(Lc,"delay",Lam,Tx).

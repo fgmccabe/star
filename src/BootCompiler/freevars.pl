@@ -96,11 +96,12 @@ freeVarsInAction(doAssign(_,P,E),Ex,Ex,Q,F,Fv) :-!,
 freeVarsInAction(doTryCatch(_,B,H),Ex,Exx,Q,F,Fv) :-!,
   freeVarsInAction(B,Ex,Exx,Q,F,F0),
   freeVarsInRules(H,Ex,Q,freevars:freeVarsInAct,F0,Fv).
-freeVarsInAction(doIfThenElse(_,T,L,R),Ex,Ex,Q,F,Fv) :-!,
+freeVarsInAction(doIfThenElse(_,T,L,R),Ex,Exx,Q,F,Fv) :-!,
   ptnGoalVars(T,Ex,Ex1),
   freeVars(T,Ex1,Q,F,F0),
-  freeVarsInAction(L,Ex1,_,Q,F0,F1),
-  freeVarsInAction(R,Ex,_,Q,F1,Fv).
+  freeVarsInAction(L,Ex1,Ex2,Q,F0,F1),
+  freeVarsInAction(R,Ex,Ex3,Q,F1,Fv),
+  mergeVars(Ex2,Ex3,Exx).
 freeVarsInAction(doIfThen(_,T,L),Ex,Ex,Q,F,Fv) :-!,
   ptnGoalVars(T,Ex,Ex1),
   freeVars(T,Ex1,Q,F,F0),
@@ -216,8 +217,10 @@ ptnGoalVars(match(_,L,G),Q,Qx) :-
   ptnGoalVars(G,Q0,Qx).
 ptnGoalVars(cond(_,T,L,R,_),Q,Qx) :-
   ptnGoalVars(T,Q,Q0),
-  ptnGoalVars(L,Q0,Q1),
-  ptnGoalVars(R,Q1,Qx).
+  ptnGoalVars(L,Q0,LQ),
+  ptnGoalVars(R,[],RQ),
+  intersect(LQ,RQ,DQ),
+  merge(Q,DQ,Qx).
 ptnGoalVars(implies(_,_,_),Qx,Qx). % implies does not add to available bound vars
 ptnGoalVars(given(_,P,_),Q,Qx) :-
   ptnVars(P,Q,Qx).
@@ -229,3 +232,7 @@ varsInList([],_,F,F).
 varsInList([T|L],C,F,Fv) :-
   call(C,T,F,F0),
   varsInList(L,C,F0,Fv).
+
+mergeVars(F1,F2,Fv) :-
+  intersect(F1,F2,Fv).
+

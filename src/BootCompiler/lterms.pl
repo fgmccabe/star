@@ -229,6 +229,8 @@ ssTrm(resme(_,T,E),Dp,sq([TT,ss(" resume "),EE])) :-
   ssTrm(E,Dp,EE).
 ssTrm(vlof(_,A),Dp,sq([ss("valof "),AA])) :-
   ssAct(A,Dp,AA).
+ssTrm(perf(_,A),Dp,sq([ss("perform "),AA])) :-
+  ssAct(A,Dp,AA).
 
 ssAct(nop(_),_,ss("{}")) :-!.
 ssAct(seq(Lc,A,B),Dp,sq([ss("{"),iv(sq([ss(";"),nl(Dp2)]),AA),ss("}")])) :-!,
@@ -425,6 +427,8 @@ rewriteTerm(QTest,mtch(Lc,L,R),mtch(Lc,NL,NR)) :-
 rewriteTerm(QTest,ng(Lc,R),ng(Lc,NR)) :-
   rewriteTerm(QTest,R,NR).
 rewriteTerm(QTest,vlof(Lc,A),vlof(Lc,AA)) :-
+  rewriteAction(QTest,A,AA).
+rewriteTerm(QTest,perf(Lc,A),perf(Lc,AA)) :-
   rewriteAction(QTest,A,AA).
 rewriteTerm(QTest,tsk(Lc,F),tsk(Lc,FF)) :-
   rewriteTerm(QTest,F,FF).
@@ -752,6 +756,8 @@ validTerm(ng(Lc,R),_,D) :-
   validTerm(R,Lc,D).
 validTerm(vlof(Lc,A),_,D) :-
   validAction(A,Lc,D,_).
+validTerm(perf(Lc,A),_,D) :-
+  validAction(A,Lc,D,_).
 validTerm(error(Lc,R),_,D) :-
   validTerm(R,Lc,D).
 validTerm(tsk(Lc,F),_,D) :-
@@ -835,11 +841,12 @@ validAction(case(Lc,G,C),_,D,D) :-
 validAction(unpack(Lc,G,C),_,D,D) :-
   validTerm(G,Lc,D),
   validCases(C,lterms:validAct,D).
-validAction(iftte(Lc,G,L,R),_,D,D) :-!,
+validAction(iftte(Lc,G,L,R),_,D,Dx) :-!,
   glVars(D,D,D0),
   validTerm(G,Lc,D0),
-  validAction(L,Lc,D0,_),
-  validAction(R,Lc,D,_).
+  validAction(L,Lc,D0,D1),
+  validAction(R,Lc,D,D2),
+  merge(D1,D2,Dx).
 validAction(iftt(Lc,G,L),_,D,D) :-!,
   glVars(D,D,D0),
   validTerm(G,Lc,D0),

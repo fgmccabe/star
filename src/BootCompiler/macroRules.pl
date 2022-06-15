@@ -32,14 +32,14 @@ macroRl(":=",action,macroRules:indexAssignMacro).
 macroRl(":=",expression,macroRules:spliceAssignMacro).
 macroRl(":=",expression,macroRules:indexAssignMacro).
 macroRl("<-",action,macroRules:bindActionMacro).
-macroRl("assert",expression,macroRules:assertMacro).
+%macroRl("assert",expression,macroRules:assertMacro).
 macroRl("assert",action,macroRules:assertMacro).
 macroRl("show",action,macroRules:showMacro).
-macroRl("show",expression,macroRules:showMacro).
-macroRl("do",expression,macroRules:doMacro).
+%macroRl("show",expression,macroRules:showMacro).
+%macroRl("do",expression,macroRules:doMacro).
 %macroRl("task",expression,macroRules:taskMacro).
 %macroRl("valof",expression,macroRules:valofMacro).
-macroRl("ignore",action,macroRules:ignoreMacro).
+%macroRl("ignore",action,macroRules:ignoreMacro).
 %macroRl("try",action,macroRules:tryCatchMacro).
 %macroRl("try",action,macroRules:tryHandleMacro).
 
@@ -166,7 +166,8 @@ makeIterableGoal(G,Rp) :-
   mkEnum(Lc,"true",True),
   makeCondition(G,macroRules:passThru,macroRules:rtn(True),grounded(False),Rp).
 
-mkName(Lc,Nm,name(Lc,Nm)).
+mkName(Lc,Nm,name(Lc,VrNm)) :-
+  genstr(Nm,VrNm).
 
 rtn(Vl,grounded(_),Vl).
 rtn(_,lyfted(St),St).
@@ -539,15 +540,15 @@ makeHandler(H,H).
   P <- E
   where E is not an identifier
   becomes
-  let { V = E } in P <- V
+  { V .= E ; P <- V }
 */
 bindActionMacro(T,action,Act) :-
   isBind(T,Lc,L,R),
   \+ isName(R,_,_),!,
-  mkName(Lc,"_vr",Vr),
+  mkName(Lc,"ν",Vr),
+  match(Lc,Vr,R,VDf),
   mkBind(Lc,L,Vr,B),
-  mkDefn(Lc,Vr,R,VDf),
-  mkLetDef(Lc,[VDf],B,Act).
+  mkActionSeq(Lc,VDf,B,Act).
 
 /*
  assert C 
