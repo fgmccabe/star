@@ -25,7 +25,7 @@ star.action{
     return X => ok(X).
   }
 
-  public strmap:all x,y,m/1,s/1 ~~ monad[m],stream[s[x]->>x],
+/*  public strmap:all x,y,m/1,s/1 ~~ monad[m],stream[s[x]->>x],
   sequence[s[y]->>y],reversible[s[y]] |:
     ((x)=>m[y],s[x]) => m[s[y]].
   strmap(F,S) => let{.
@@ -35,7 +35,7 @@ star.action{
       F(E) >>= (X)=>mmm(Es,[X,..So]).
   .} in mmm(S,[]).
 
-/*  public seqmap:all x,y,e,m/2,s/1 ~~ execution[m],stream[s[x]->>x],sequence[s[y]->>y],reversible[s[y]] |:
+  public seqmap:all x,y,e,m/2,s/1 ~~ execution[m],stream[s[x]->>x],sequence[s[y]->>y],reversible[s[y]] |:
     ((x)=>m[e,y],s[x]) => m[e,s[y]].
   seqmap(F,S) => let{.
     mmm:(s[x],s[y]) => m[e,s[y]].
@@ -43,7 +43,6 @@ star.action{
     mmm([E,..Es],So) =>
       _sequence(F(E),(X)=>mmm(Es,[X,..So])).
   .} in mmm(S,[]).
-  */
 
   public logMsg:all m/2,e ~~ execution[m] |: (string)=>m[e,()].
   logMsg(Msg) => do{
@@ -56,4 +55,5 @@ star.action{
     _ .= _show(Msg);
     valis ()
   }
+*/
 }
