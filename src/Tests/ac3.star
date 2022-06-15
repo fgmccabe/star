@@ -1,7 +1,6 @@
 test.ac3{
   import star.core.
   import star.arith.
-  import star.coerce.
 
   -- Test basics of actions
 
