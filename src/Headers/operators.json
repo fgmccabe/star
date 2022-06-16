@@ -1153,15 +1153,6 @@
     "keyword": true
   },
   {
-    "prefixOp": "ignore",
-    "priorities": [
-      930,
-      929
-    ],
-    "desc": "ignore result of expression",
-    "keyword": true
-  },
-  {
     "prefixOp": "-",
     "priorities": [
       300,

@@ -12,7 +12,7 @@ star.action{
   public implementation execution[result] => {
     _isOk(ok(_)) => .true.
     _isOk(bad(_)) => .false.
-    _perform(ok(X)) => X.
+    _getval(ok(X)) => X.
     _errval(bad(X)) => X.
     _valis(X) => ok(X).
     _raise(S) => bad(S).

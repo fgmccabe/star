@@ -628,10 +628,6 @@ examineAction(A,Ax) :-
   macroTerm(V,Vx),
   mkValis(Lc,Vx,Ax).
 examineAction(A,Ax) :-
-  isIgnore(A,Lc,V),!,
-  macroAction(V,Vx),
-  mkIgnore(Lc,Vx,Ax).
-examineAction(A,Ax) :-
   isRaise(A,Lc,V),!,
   macroTerm(V,Vx),
   mkRaise(Lc,Vx,Ax).
@@ -643,6 +639,10 @@ examineAction(A,Ax) :-
   isPerform(A,Lc,V),!,
   macroTerm(V,Vx),
   mkPerform(Lc,Vx,Ax).
+examineAction(A,Ax) :-
+  isDo(A,Lc,V),!,
+  macroTerm(V,Vx),
+  mkDo(Lc,Vx,Ax).
 examineAction(A,Ax) :-
   isLetDef(A,Lc,D,B),!,
   map(D,macros:macroStmt,Dx),

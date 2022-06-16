@@ -46,10 +46,9 @@
 	      mkSuspend/4,mkSuspend/5,mkResume/5,mkRetire/3,mkRetire/4,
 	      isTaskTerm/3,mkTaskTerm/3,isActionTerm/3,mkActionTerm/3,
 	      isResultTerm/3,mkResultTerm/3,
-	      isDoTerm/3,mkDoTerm/3,
+	      isDoTerm/3,mkDoTerm/3,isDo/3,mkDo/3,
 	      isValof/3,mkValof/3,isPerform/3,mkPerform/3,
 	      isRaise/3,mkRaise/3,isThrow/3,mkThrow/3,isValis/3,mkValis/3,
-	      isIgnore/3,mkIgnore/3,
 	      isTryCatch/4,mkTryCatch/4,
 	      isTryHandle/4,mkTryHandle/4,
 	      isIfThenElse/5,isIfThen/4,mkIfThenElse/5,mkIfThen/4,
@@ -785,6 +784,13 @@ mkDoTerm(Lc,A,Trm) :-
   braceTuple(Lc,[A],S0),
   unary(Lc,"do",S0,Trm).
 
+isDo(A,Lc,I) :-
+  isUnary(A,Lc,"do",I),
+  \+isBraceTuple(I,_,_).
+
+mkDo(Lc,A,Trm) :-
+  unary(Lc,"do",A,Trm).
+
 isValis(A,Lc,E) :-
   (isUnary(A,Lc,"valis",E) ; isUnary(A,Lc,"return",E)),!.
 
@@ -814,12 +820,6 @@ isThrow(A,Lc,E) :-
 
 mkThrow(Lc,A,E) :-
   unary(Lc,"throw",A,E).
-
-isIgnore(A,Lc,E) :-
-  isUnary(A,Lc,"ignore",E).
-
-mkIgnore(Lc,A,E) :-
-  unary(Lc,"ignore",A,E).
 
 isTryCatch(A,Lc,B,Hs) :-
   isUnary(A,Lc,"try",I),

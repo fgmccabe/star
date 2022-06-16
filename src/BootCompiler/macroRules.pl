@@ -39,7 +39,6 @@ macroRl("show",action,macroRules:showMacro).
 %macroRl("do",expression,macroRules:doMacro).
 %macroRl("task",expression,macroRules:taskMacro).
 %macroRl("valof",expression,macroRules:valofMacro).
-%macroRl("ignore",action,macroRules:ignoreMacro).
 %macroRl("try",action,macroRules:tryCatchMacro).
 %macroRl("try",action,macroRules:tryHandleMacro).
 
@@ -514,10 +513,6 @@ makeAction(A,Cont,Ax) :-
 makeAction(A,Cont,Ac) :-
   isRoundTerm(A,_,_),!,
   combine(A,Cont,Ac).
-makeAction(A,Cont,Ac) :-
-  isIgnore(A,Lc,I),!,
-  makeIgnore(Lc,I,Ig),
-  makeAction(Ig,Cont,Ac).
   
 makeAction(A,_,A) :-
   locOfAst(A,Lc),
@@ -616,16 +611,8 @@ valofMacro(T,expression,Tx) :-
    squareTerm(Lc,name(Lc,"result"),[U,Anon],RTp),
    typeAnnotation(Lc,Ax,RTp,AA);
    A=AA),
-  unary(Lc,"_perform",AA,Tx).
+  unary(Lc,"_getval",AA,Tx).
 
-ignoreMacro(T,action,Tx) :-
-  isIgnore(T,Lc,A),!,
-  makeIgnore(Lc,A,Tx).
-
-makeIgnore(Lc,A,Act) :-
-  mkAnon(Lc,An),
-  match(Lc,An,A,Act).
-  
 macroQuote(T,expression,Rp) :-
   isQuote(T,_,A),!,
   quoteExp(A,Rp).

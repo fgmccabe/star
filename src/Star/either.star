@@ -25,13 +25,12 @@ star.either{
   }
 
   public implementation execution[either] => {
-    _perform(either(X)) => X.
-    _catch(either(X),_) => either(X).
-    _catch(other(E),F) => F(E).
-    _sequence(either(X),F) => F(X).
-    _sequence(other(E),_) => other(E).
-    _raise(E) => other(E).
-    _valis(E) => either(E).
+    _isOk(either(_)) => .true.
+    _isOk(other(_)) => .false.
+    _getval(either(X)) => X.
+    _errval(other(X)) => X.
+    _valis(X) => either(X).
+    _raise(S) => other(S).
   }
 
   public implementation all a ~~ monad[either[a]] => {
