@@ -116,6 +116,7 @@ typeOfCanon(over(_,T,_,_),Tp) :- typeOfCanon(T,Tp).
 typeOfCanon(overaccess(V,_,_),Tp) :- typeOfCanon(V,Tp).
 typeOfCanon(mtd(_,_,Tp),Tp) :-!.
 typeOfCanon(case(_,_,_,Tp),Tp) :- !.
+typeOfCanon(raise(_,_,Tp),Tp) :-!.
 typeOfCanon(task(_,_,Tp),Tp) :-!.
 typeOfCanon(doExp(_,_,Tp),Tp) :-!.
 typeOfCanon(valof(_,_,Tp),Tp) :-!.
@@ -154,11 +155,9 @@ locOfCanon(whileDo(Lc,_,_),Lc) :-!.
 locOfCanon(untilDo(Lc,_,_),Lc) :-!.
 locOfCanon(forDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(valis(Lc,_),Lc) :-!.
-locOfCanon(ignore(Lc,_),Lc) :-!.
 locOfCanon(raise(Lc,_),Lc) :-!.
 locOfCanon(perform(Lc,_),Lc) :-!.
 locOfCanon(task(Lc,_,_),Lc) :-!.
-locOfCanon(doExp(Lc,_,_),Lc) :-!.
 locOfCanon(valof(Lc,_,_),Lc) :-!.
 
 locOfCanon(doNop(Lc),Lc) :-!.
@@ -286,6 +285,8 @@ ssTerm(search(_,P,S,M),Dp,sq([lp,LL,ss(" in "),RR,ss(" using "),II,rp])) :-
   ssTerm(M,Dp,II).
 ssTerm(neg(_,R),Dp,sq([lp,ss(" ~ "),RR,rp])) :-
   ssTerm(R,Dp,RR).
+ssTerm(raise(_,A,_),Dp,sq([ss("raise "),AA])) :-!,
+  ssAction(A,Dp,AA).
 ssTerm(valof(_,A,_),Dp,sq([ss("valof "),AA])) :-!,
   ssTerm(A,Dp,AA).
 ssTerm(doExp(_,A,_),Dp,sq([ss("do "),AA])) :-!,
