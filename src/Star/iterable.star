@@ -1,6 +1,5 @@
 star.iterable{
   import star.core.
-  import star.monad.
 
   -- The iter contract is used in query evaluation
   -- The _iter function iterates over the collection composing it
