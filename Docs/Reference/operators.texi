@@ -90,10 +90,6 @@
 @tab non-associative prefix
 @tab 700
 @tab count of number of bits
-@item @code{ignore}
-@tab non-associative prefix
-@tab 930
-@tab ignore result of expression
 @item @code{<$}
 @tab right associative infix
 @tab 720
@@ -530,30 +526,29 @@
 @tab @code{catch}
 @item @code{valis}
 @tab @code{for}
-@tab @code{ignore}
-@item @code{raise}
-@tab @code{then}
+@tab @code{raise}
+@item @code{then}
 @tab @code{default}
-@item @code{resume}
-@tab @code{contract}
+@tab @code{resume}
+@item @code{contract}
 @tab @code{try}
-@item @code{exists}
-@tab @code{if}
+@tab @code{exists}
+@item @code{if}
 @tab @code{in}
-@item @code{suspend}
-@tab @code{open}
+@tab @code{suspend}
+@item @code{open}
 @tab @code{public}
-@item @code{ref}
-@tab @code{where}
+@tab @code{ref}
+@item @code{where}
 @tab @code{case}
-@item @code{perform}
-@tab @code{valof}
+@tab @code{perform}
+@item @code{valof}
 @tab @code{until}
-@item @code{while}
-@tab @code{private}
+@tab @code{while}
+@item @code{private}
 @tab @code{type}
-@item @code{implementation}
-@tab @code{handle}
+@tab @code{implementation}
+@item @code{handle}
 @tab @code{else}
 
 @end multitable
