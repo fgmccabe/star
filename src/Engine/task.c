@@ -343,7 +343,7 @@ taskPo glueOnStack(heapPo H, taskPo tsk, integer size, integer saveArity) {
 taskPo spinupStack(heapPo H, taskPo tsk, integer size) {
   assert(size >= minStackSize);
 
-  return allocateTask(H, size, &underFlowMethod, suspended, tsk);
+  return allocateTask(H, size, &underFlowMethod, suspended, Null);
 }
 
 taskPo attachTask(taskPo tsk, taskPo seg) {
