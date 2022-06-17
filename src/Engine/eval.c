@@ -459,7 +459,7 @@ retCode run(processPo P) {
       case Task: {
         // The top of a stack should be a unary lambda
         normalPo obj = C_NORMAL(pop());
-        labelPo oLbl = objLabel(termLbl(obj), 1);
+        labelPo oLbl = objLabel(termLbl(obj), 2); // Fixed arity. Arg0 = free vars, arg1 = task ref
 
         if (oLbl == Null) {
           logMsg(logFile, "program %s/1 not defined", labelName(termLbl(obj)));
@@ -467,14 +467,19 @@ retCode run(processPo P) {
         }
 
         methodPo mtd = labelCode(oLbl);   // Which program do we want?
+
+        if (mtd == Null) {
+          logMsg(logFile, "program %s/2 not defined", labelName(termLbl(obj)));
+          bail();
+        }
         bumpCallCount(mtd);
 
         saveRegisters();
         taskPo child = spinupStack(H, STK, minStackSize);
         restoreRegisters();
 
-        pushStack(child,nthElem(obj, 0));            // Put the free term on the new stack
         pushStack(child, (termPo) child);
+        pushStack(child,nthElem(obj, 0));            // Put the free term on the new stack
         pushFrame(child, mtd, child->fp, child->sp);
 
         push(child);                                                 // We return the new stack
@@ -491,7 +496,8 @@ retCode run(processPo P) {
           bail();
         } else {
           saveRegisters();
-          taskPo parent = detachTask(STK, task);
+          P->stk = detachTask(STK, task);
+          restoreRegisters();
           push(event);
           continue;
         }
@@ -522,8 +528,9 @@ retCode run(processPo P) {
           bail();
         } else {
           saveRegisters();
-          taskPo parent = detachTask(STK, task);
+          P->stk = detachTask(STK, task);
           dropTask(task);
+          restoreRegisters();
           push(event);
           continue;
         }
