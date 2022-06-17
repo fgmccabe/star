@@ -924,11 +924,17 @@ checkAction(A,Tp,ErTp,Env,Ev,As,Vls,Rsr,Path) :-
 checkAction(A,Tp,_ErTp,Env,Env,doNop(Lc),_,_,_) :-
   isIden(A,Lc,"nothing"),!,
   unitTp(UnitTp),
-  verifyType(Lc,A,UnitTp,Tp,Env).
-checkAction(A,Tp,_,Env,Env,doNop(Lc),_,_,_) :-
+  newTypeFun("R",2,RsltTp),
+  newTypeVar("_",ErTp),
+  applyTypeFun(RsltTp,[ErTp,UnitTp],Lc,Env,RTp),
+  verifyType(Lc,A,RTp,Tp,Env).
+checkAction(A,Tp,_ErTp,Env,Env,doNop(Lc),_,_,_) :-
   isBraceTuple(A,Lc,[]),!,
   unitTp(UnitTp),
-  verifyType(Lc,A,UnitTp,Tp,Env).
+  newTypeVar("_",ErTp),
+  newTypeFun("R",2,RsltTp),
+  applyTypeFun(RsltTp,[ErTp,UnitTp],Lc,Env,RTp),
+  verifyType(Lc,A,RTp,Tp,Env).
 checkAction(A,Tp,ErTp,Env,Ev,doSeq(Lc,L,R),Vls,Rsr,Path) :-
   isActionSeq(A,Lc,A1,A2),!,
   checkAction(A1,Tp,ErTp,Env,E0,L,Vls,Rsr,Path),
@@ -1027,12 +1033,16 @@ checkAction(A,Tp,ErTp,Env,Ev,Susp,Vls,Rsr,Path) :-
 checkAction(A,Tp,ErTp,Env,Ev,Susp,Vls,Rsr,Path) :-
   isRetire(A,Lc,E),!,
   unitTp(UnitTp),
-  verifyType(Lc,A,UnitTp,Tp,Env),
+  newTypeFun("R",2,RsltTp),
+  applyTypeFun(RsltTp,[ErTp,UnitTp],Lc,Env,RTp),
+  verifyType(Lc,A,RTp,Tp,Env),
   checkRetire(Lc,name(Lc,"this"),E,ErTp,Env,Ev,Susp,Vls,Rsr,Path).
 checkAction(A,Tp,ErTp,Env,Ev,Susp,Vls,Rsr,Path) :-
   isRetire(A,Lc,T,E),!,
   unitTp(UnitTp),
-  verifyType(Lc,A,UnitTp,Tp,Env),
+  newTypeFun("R",2,RsltTp),
+  applyTypeFun(RsltTp,[ErTp,UnitTp],Lc,Env,RTp),
+  verifyType(Lc,A,RTp,Tp,Env),
   checkRetire(Lc,T,E,ErTp,Env,Ev,Susp,Vls,Rsr,Path).
 checkAction(A,Tp,ErTp,Env,Env,Call,_Vls,_Rsr,Path) :-
   isRoundTerm(A,Lc,F,Args),!,
@@ -1192,31 +1202,31 @@ checkCase(Lc,H,G,R,LhsTp,Tp,ErTp,Env,
   checkGuard(G,ErTp,E1,E2,Guard,Path),
   call(Checker,R,Tp,ErTp,E2,_,Exp,Path).
 
-checkSuspend(Lc,T,E,Tp,Cs,Env,Env,doSuspend(Lc,Tsk,Evt,Eqns),_Vls,_Rsr,Path) :-
+checkSuspend(Lc,T,E,Tp,ErTp,Cs,Env,Env,doSuspend(Lc,Tsk,Evt,Eqns),Vls,Rsr,Path) :-
   findType("task",Lc,Env,TskTp),
   newTypeVar("SComm",SV),
   newTypeVar("RComm",RV),
   applyTypeFun(TskTp,[SV,RV],Lc,Env,TTp),
-  typeOfExp(T,TTp,voidType,Env,_,Tsk,Path),
-  typeOfExp(E,SV,voidType,Env,_,Evt,Path),
-  checkCases(Cs,RV,Tp,Env,Eqns,Eqx,Eqx,[],checker:checkAction,Path),!.
+  typeOfExp(T,TTp,ErTp,Env,_,Tsk,Path),
+  typeOfExp(E,SV,ErTp,Env,_,Evt,Path),
+  checkCases(Cs,RV,Tp,ErTp,Env,Eqns,Eqx,Eqx,[],checker:checkDo(Vls,Rsr),Path),!.
 
-checkResume(Lc,T,E,Tp,Cs,Env,Env,doResume(Lc,Tsk,Evt,Eqns),Path) :-
+checkResume(Lc,T,E,Tp,ErTp,Cs,Env,Env,doResume(Lc,Tsk,Evt,Eqns),Vls,Rsr,Path) :-
   findType("task",Lc,Env,TskTp),
   newTypeVar("SComm",SV),
   newTypeVar("RComm",RV),
   applyTypeFun(TskTp,[SV,RV],Lc,Env,TTp),
-  typeOfExp(T,TTp,voidType,Env,_,Tsk,Path),
-  typeOfExp(E,RV,voidType,Env,_,Evt,Path),
-  checkCases(Cs,SV,Tp,Env,Eqns,Eqx,Eqx,[],checker:checkAction,Path),!.
+  typeOfExp(T,TTp,ErTp,Env,_,Tsk,Path),
+  typeOfExp(E,RV,ErTp,Env,_,Evt,Path),
+  checkCases(Cs,SV,Tp,ErTp,Env,Eqns,Eqx,Eqx,[],checker:checkDo(Vls,Rsr),Path),!.
 
-checkRetire(Lc,T,E,Env,Env,doRetire(Lc,Tsk,Evt),Path) :-
+checkRetire(Lc,T,E,ErTp,Env,Env,doRetire(Lc,Tsk,Evt),_Vls,_Rsr,Path) :-
   findType("task",Lc,Env,TskTp),
   newTypeVar("SComm",SV),
   newTypeVar("RComm",RV),
   applyTypeFun(TskTp,[SV,RV],Lc,Env,TTp),
-  typeOfExp(T,TTp,voidType,Env,_,Tsk,Path),
-  typeOfExp(E,SV,voidType,Env,_,Evt,Path).
+  typeOfExp(T,TTp,ErTp,Env,_,Tsk,Path),
+  typeOfExp(E,SV,ErTp,Env,_,Evt,Path).
 
 genTpVars([],[]).
 genTpVars([_|I],[Tp|More]) :-

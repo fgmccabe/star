@@ -192,7 +192,7 @@ overloadTerm(valof(Lc,A,Tp),Dict,St,Stx,valof(Lc,AA,Tp)) :-!,
 overloadTerm(doExp(Lc,A,Tp),Dict,St,Stx,doExp(Lc,AA,Tp)) :-!,
   overloadAction(A,Dict,St,Stx,AA).
 overloadTerm(task(Lc,A,Tp),Dict,St,Stx,task(Lc,AA,Tp)) :-!,
-  overloadAction(A,Dict,St,Stx,AA).
+  overloadTerm(A,Dict,St,Stx,AA).
 overloadTerm(T,_,St,St,T) :-
   locOfCanon(T,Lc),
   reportError("invalid term to resolve %s",[can(T)],Lc).

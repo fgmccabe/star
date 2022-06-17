@@ -313,8 +313,8 @@ compExps([T|Ts],Lc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
 
 
 /* Compile actions */
-compAction(nop(_),_Lc,Cont,_ACont,_TCont,_Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-!,
-  call(Cont,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
+compAction(nop(_),_Lc,_Cont,ACont,_TCont,_Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-!,
+  call(ACont,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 compAction(seq(Lc,A,B),OLc,Cont,ACont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :- !,
   chLine(Opts,OLc,Lc,C,C0),!,
   compAction(A,Lc,Cont,resetCont(Stk,compAction(B,Lc,Cont,ACont,TCont,Opts)),TCont,
@@ -384,7 +384,8 @@ compAction(unpack(Lc,T,Cases),OLc,Cont,ACont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,S
   chLine(Opts,OLc,Lc,C,C0),
   genLbl(L,Nxt,L1),
   compExp(T,Lc,contCont(Nxt),TCont,Opts,L1,L2,D,D2,End,C0,[iLbl(Nxt)|C1],Stk,Stk0),
-  compCnsCases(Cases,Lc,gencode:compActCase(ACont,TCont),Cont,TCont,Opts,
+  splitCont(Lc,ACont,AC),
+  compCnsCases(Cases,Lc,gencode:compActCase(AC,TCont),Cont,TCont,Opts,
 	       L2,Lx,D2,Dx,C1,Cx,Stk0,Stkx).
 compAction(try(Lc,B,E,H),OLc,Cont,ACont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stk) :-
   compTry(Lc,B,E,H,OLc,Cont,ACont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk).
@@ -671,8 +672,8 @@ isCond(dsj(_,_,_)).
 isCond(ng(_,_)).
 isCond(mtch(_,_,_)).
 
-isTrueSymb(enum("star.core#true")).
-isFalseSymb(enum("star.core#false")).
+isTrueSymb("star.core#true").
+isFalseSymb("star.core#false").
 
 compCond(enum(Sy),_Lc,Succ,_Fail,_TCont,_Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   isTrueSymb(Sy),!,

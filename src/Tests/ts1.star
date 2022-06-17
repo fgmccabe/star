@@ -1,4 +1,4 @@
-test.ts0{
+test.ts1{
   import star.core.
   import star.arith.
   import star.coerce.
@@ -38,6 +38,21 @@ test.ts0{
       }
     }
   }
+
+  public result[e,a] ::= ok(a) | bad(e).
+
+  bb:()=>result[string,integer].
+  bb() => 
+
+  aa() => valof{
+    try{
+      DD .= case bb() in {
+	ok(X) => X.
+	bad(E) => raise E
+      }
+    } catch (E) in {
+      .error => valis ()
+    }
 
   main:() => ().
   main() => valof{
