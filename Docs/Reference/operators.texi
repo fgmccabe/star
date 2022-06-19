@@ -310,6 +310,10 @@
 @tab non-associative infix
 @tab 901
 @tab suspend computation
+@item @code{break}
+@tab non-associative prefix
+@tab 100
+@tab break out of a labeled statement
 @item @code{open}
 @tab non-associative prefix
 @tab 900
@@ -536,19 +540,20 @@
 @item @code{if}
 @tab @code{in}
 @tab @code{suspend}
-@item @code{open}
+@item @code{break}
+@tab @code{open}
 @tab @code{public}
-@tab @code{ref}
-@item @code{where}
+@item @code{ref}
+@tab @code{where}
 @tab @code{case}
-@tab @code{perform}
-@item @code{valof}
+@item @code{perform}
+@tab @code{valof}
 @tab @code{until}
-@tab @code{while}
-@item @code{private}
+@item @code{while}
+@tab @code{private}
 @tab @code{type}
-@tab @code{implementation}
-@item @code{handle}
+@item @code{implementation}
+@tab @code{handle}
 @tab @code{else}
 
 @end multitable

@@ -68,6 +68,7 @@
   ("in" ( (infix 899 900 900)))
   ("^|" ( (infix 919 920 920)))
   ("suspend" ( (prefix 901 900) (infix 900 901 900)))
+  ("break" ( (prefix 100 99)))
   ("open" ( (prefix 900 899)))
   ("~~" ( (infix 1239 1240 1240)))
   ("assert" ( (prefix 1240 1239)))
@@ -154,6 +155,7 @@
 "if"
 "in"
 "suspend"
+"break"
 "open"
 "public"
 "ref"
