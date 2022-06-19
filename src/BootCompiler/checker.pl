@@ -529,7 +529,7 @@ checkImplementation(Stmt,INm,[Impl,ImplVar|Dfs],Dfs,Env,Evx,_,Path) :-
   contractType(Spec,CnType),
   dollarName(Nm,DlNm),
   labelImplExp(IBody,DlNm,ImpBody),
-  typeOfExp(ImpBody,CnType,voidType,[],ThEnv,_ThEv,ImplTerm,ImplVrNm),
+  typeOfExp(ImpBody,CnType,voidType,ThEnv,_ThEv,ImplTerm,ImplVrNm),
 %  reportMsg("implementation %s:%s",[can(ImplTerm),tpe(CnType)]),
   putConstraints(AC,CnType,SS1),
   reQuantTps(SS1,IQ,ImpType),
@@ -684,7 +684,7 @@ typeOfArgTerm(T,Tp,ErTp,Env,Ev,Exp,Path) :-
 typeOfExp(V,Tp,_,Env,Env,anon(Lc,Tp),_) :-
   isAnon(V,Lc),
   reportError("anonymous variable not permitted as expression",[],Lc).
-typeOfExp(V,Tp,_,Env,Env,Term,_Path) :-
+typeOfExp(V,Tp,_ErTp,Env,Env,Term,_Path) :-
   isIden(V,Lc,N),!,
   (getVar(Lc,N,Env,Term,VTp) ->
    verifyType(Lc,ast(V),VTp,Tp,Env);
@@ -851,7 +851,7 @@ typeOfExp(Term,Tp,_,Env,Ev,doExp(Lc,Act,Tp),Path) :-
 typeOfExp(Term,Tp,ErTp,Env,Env,Exp,Path) :-
   isValof(Term,Lc,A),!,
   checkValof(Lc,A,Tp,ErTp,Env,Exp,Path).
-typeOfExp(Term,Tp,_,_,Env,Env,void,_) :-
+typeOfExp(Term,Tp,_,Env,Env,void,_) :-
   locOfAst(Term,Lc),
   reportError("illegal expression: %s, expecting a %s",[Term,Tp],Lc).
 
