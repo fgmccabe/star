@@ -1,5 +1,7 @@
-:-module(freevars,[freeVars/5]).
+:-module(freevars,[freeVars/5,freeVarsInAction/5]).
 
+:- use_module(canon).
+:- use_module(errors).
 :- use_module(misc).
 :- use_module(escapes).
 :- use_module(types).
@@ -65,17 +67,23 @@ freeVars(case(_,Gov,Cses,D),Ex,Q,F,Fv) :-
 freeVars(valof(_,A,_),Ex,Q,F,Fv) :-!,
   freeVars(A,Ex,Q,F,Fv).
 freeVars(doExp(_,A,_),Ex,Q,F,Fv) :-!,
-  freeVarsInAction(A,Ex,_,Q,F,Fv).
+  freeVarsInAction(A,Ex,Q,F,Fv).
 freeVars(task(_,A,_),Ex,Q,F,Fv) :-
   freeVars(A,Ex,Q,F,Fv).
 freeVars(T,_,_,F,F) :-
   locOfCanon(T,Lc),
   reportError("cannot find free vars in %s",[can(T)],Lc).
 
+freeVarsInAction(Act,Ex,Q,F,Fv) :-
+  freeVarsInAction(Act,Ex,_,Q,F,Fv).
+
 freeVarsInAction(doNop(_),Ex,Ex,_,F,F) :-!.
 freeVarsInAction(doSeq(_,L,R),E,Ex,Q,F,Fv) :-!,
   freeVarsInAction(L,E,E0,Q,F,F0),
   freeVarsInAction(R,E0,Ex,Q,F0,Fv).
+freeVarsInAction(doLbld(_,_,A),Ex,Exx,Q,F,Fv) :-!,
+  freeVarsInAction(A,Ex,Exx,Q,F,Fv).
+freeVarsInAction(doBreak(_,_),Ex,Ex,_,Fv,Fv) :-!.
 freeVarsInAction(doValis(_,E),Ex,Ex,Q,F,Fv) :-!,
   freeVars(E,Ex,Q,F,Fv).
 freeVarsInAction(doRaise(_,E),Ex,Ex,Q,F,Fv) :-!,

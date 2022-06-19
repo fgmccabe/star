@@ -128,9 +128,9 @@ overloadTerm(cell(Lc,Inn),Dict,St,Stx,cell(Lc,Inn1)) :-
 overloadTerm(deref(Lc,Inn),Dict,St,Stx,deref(Lc,Inn1)) :-
   overloadTerm(Inn,Dict,St,Stx,Inn1).
 overloadTerm(letExp(Lc,Decls,Defs,Bound),Dict,St,Stx,letExp(Lc,Decls,RDefs,RBound)) :-
-  overloadLet(Lc,Decls,Defs,Bound,Dict,St,Stx,RDefs,RBound).
+  overloadLet(Lc,Decls,Defs,Bound,resolve:overloadTerm,Dict,St,Stx,RDefs,RBound).
 overloadTerm(letRec(Lc,Decls,Defs,Bound),Dict,St,Stx,letRec(Lc,Decls,RDefs,RBound)) :-
-  overloadLet(Lc,Decls,Defs,Bound,Dict,St,Stx,RDefs,RBound).
+  overloadLet(Lc,Decls,Defs,Bound,resolve:overloadTerm,Dict,St,Stx,RDefs,RBound).
 overloadTerm(where(Lc,Trm,Cond),Dict,St,Stx,where(Lc,RTrm,RCond)) :-
   overloadTerm(Trm,Dict,St,St0,RTrm),
   overloadTerm(Cond,Dict,St0,Stx,RCond).
@@ -201,15 +201,18 @@ overloadGuard(none,_,Stx,Stx,none) :-!.
 overloadGuard(some(G),Dict,St,Stx,some(RG)) :-
   overloadTerm(G,Dict,St,Stx,RG).
 
-overloadLet(Lc,Decls,Defs,Bound,Dict,St,Stx,RDefs,RBound) :-
+overloadLet(Lc,Decls,Defs,Bound,RR,Dict,St,Stx,RDefs,RBound) :-
   declareAccessors(Lc,Decls,Dict,RDict),
   overload(Lc,Defs,RDict,RRDict,RDefs),
-  overloadTerm(Bound,RRDict,St,Stx,RBound).
+  call(RR,Bound,RRDict,St,Stx,RBound).
 
 overloadAction(doNop(Lc),_,St,St,doNop(Lc)) :-!.
 overloadAction(doSeq(Lc,A,B),Dict,St,Stx,doSeq(Lc,AA,BB)) :-
   overloadAction(A,Dict,St,St1,AA),
   overloadAction(B,Dict,St1,Stx,BB).
+overloadAction(doLbld(Lc,Lb,A),Dict,St,Stx,doLbld(Lc,Lb,AA)) :-
+  overloadAction(A,Dict,St,Stx,AA).
+overloadAction(doBreak(Lc,Lb),_Dict,Stx,Stx,doBreak(Lc,Lb)) :-!.
 overloadAction(doValis(Lc,A),Dict,St,Stx,doValis(Lc,AA)) :-
   overloadTerm(A,Dict,St,Stx,AA).
 overloadAction(doRaise(Lc,A),Dict,St,Stx,doRaise(Lc,AA)) :-
@@ -247,10 +250,10 @@ overloadAction(doFor(Lc,P,S,A),Dict,St,Stx,doFor(Lc,PP,SS,AA)) :-
   overloadTerm(P,Dict,St,St1,PP),
   overloadTerm(S,Dict,St1,St2,SS),
   overloadAction(A,Dict,St2,Stx,AA).
-overloadAction(letExp(Lc,Decls,Defs,Bound),Dict,St,Stx,letExp(Lc,Decls,RDefs,RBound)) :-
-  overloadLet(Lc,Decls,Defs,Bound,Dict,St,Stx,RDefs,RBound).
-overloadAction(letRec(Lc,Decls,Defs,Bound),Dict,St,Stx,letRec(Lc,Decls,RDefs,RBound)) :-
-  overloadLet(Lc,Decls,Defs,Bound,Dict,St,Stx,RDefs,RBound).
+overloadAction(doLet(Lc,Decls,Defs,Bound),Dict,St,Stx,doLet(Lc,Decls,RDefs,RBound)) :-
+  overloadLet(Lc,Decls,Defs,Bound,resolve:overloadAction,Dict,St,Stx,RDefs,RBound).
+overloadAction(doLetRec(Lc,Decls,Defs,Bound),Dict,St,Stx,doLetRec(Lc,Decls,RDefs,RBound)) :-
+  overloadLet(Lc,Decls,Defs,Bound,resolve:overloadAction,Dict,St,Stx,RDefs,RBound).
 overloadAction(case(Lc,G,C,Tp),Dict,St,Stx,case(Lc,GG,CC,Tp)) :-
   overloadTerm(G,Dict,St,St1,GG),
   overloadCases(C,resolve:overloadAction,Dict,St1,Stx,CC).

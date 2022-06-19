@@ -359,9 +359,9 @@ liftExp(case(Lc,Bnd,Cses,_),Result,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(Bnd,Bound,Q,Q0,Map,Opts,Ex,Ex0),
   liftCases(Cses,Cases,Q0,Qx,Map,Opts,transform:liftExp,Ex0,Exx),
   (idnt(_)=Bound ->
-   caseMatcher(Lc,Bound,Cases,lterms:substTerm,Map,Result) ;
+   caseMatcher(Lc,Bound,Cases,Map,Result) ;
    genVar("_C",V),
-   caseMatcher(Lc,V,Cases,lterms:substTerm,Map,Res),
+   caseMatcher(Lc,V,Cases,Map,Res),
    Result = ltt(Lc,V,Bound,Res)).
 liftExp(cell(Lc,In),cel(Lc,CellV),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(In,CellV,Q,Qx,Map,Opts,Ex,Exx).
@@ -405,6 +405,9 @@ liftAction(doNop(Lc),nop(Lc),Q,Q,_,_,Ex,Ex) :-!.
 liftAction(doSeq(Lc,L,R),seq(Lc,LL,RR),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftAction(L,LL,Q,Q0,Map,Opts,Ex,Ex0),
   liftAction(R,RR,Q0,Qx,Map,Opts,Ex0,Exx).
+liftAction(doLbld(Lc,Lb,A),lbld(Lc,Lb,AA),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftAction(A,AA,Q,Qx,Map,Opts,Ex,Exx).
+liftAction(doBreak(Lc,Lb),brk(Lc,Lb),Q,Q,_,_,Ex,Ex) :-!.
 liftAction(doValis(Lc,E),vls(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
 liftAction(doRaise(Lc,E),rse(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
@@ -439,32 +442,37 @@ liftAction(doFor(Lc,P,S,B),ffor(Lc,PP,SS,BB),Q,Q,Map,Opts,Ex,Exx) :-!,
   liftPtn(P,PP,Q0,Q1,Map,Opts,Ex0,Ex1),
   liftAction(B,BB,Q1,_,Map,Opts,Ex1,Exx).
 liftAction(doLet(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
-%  (is_member(showTrCode,Opts) -> dispCanon(doLet(Lc,Decls,Defs,B));true),
-  liftLet(Lc,Decls,Defs,transform:liftAction,B,Exp,Q,Qx,Map,Opts,Ex,Exx).
+  (is_member(showTrCode,Opts) -> dispAction(doLet(Lc,Decls,Defs,B));true),
+  genVar("_ThR",ThVr),
+  letActionMap(Lc,Decls,Defs,B,ThVr,Q,Map,Opts,ThMap,RMap,FreeTerm),
+  transformThetaDefs(ThMap,RMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
+  liftAction(B,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
+  mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
+  (is_member(showTrCode,Opts) -> dispAct(Exp);true).
 liftAction(doLetRec(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
 %  (is_member(showTrCode,Opts) -> dispCanon(doLetRec(Lc,Decls,Defs,B));true),
-  liftLetRec(Lc,Decls,Defs,transform:liftAction,B,Exp,Q,Qx,Map,Opts,Ex,Exx).
+  liftLetRec(Lc,Decls,Defs,B,transform:liftAction,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftAction(doCase(Lc,B,Cs),Reslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(B,BB,Q,Q0,Map,Opts,Ex,Ex0),
   liftCases(Cs,Cases,Q0,Qx,Map,Opts,transform:liftAction,Ex0,Exx),
   (idnt(_)=BB ->
-   caseMatcher(Lc,BB,Cases,lterms:substAction,Map,Reslt) ;
+   actionCaseMatcher(Lc,BB,Cases,Map,Reslt) ;
    genVar("_C",V),
-   caseMatcher(Lc,V,Cases,lterms:substAction,Map,Res),
+   actionCaseMatcher(Lc,V,Cases,Map,Res),
    Reslt = ltt(Lc,V,BB,Res)).
 liftAction(doSuspend(Lc,T,E,Cs),Reslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(T,TT,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(E,EE,Q0,Q1,Map,Opts,Ex0,Ex1),
   liftCases(Cs,Cases,Q1,Qx,Map,Opts,transform:liftAction,Ex1,Exx),
   genVar("_C",V),
-  caseMatcher(Lc,V,Cases,lterms:substAction,Map,Res),
+  actionCaseMatcher(Lc,V,Cases,Map,Res),
   Reslt = ltt(Lc,V,susp(Lc,TT,EE),Res).
 liftAction(doResume(Lc,T,E,Cs),Reslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(T,TT,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(E,EE,Q0,Q1,Map,Opts,Ex0,Ex1),
   liftCases(Cs,Cases,Q1,Qx,Map,Opts,transform:liftAction,Ex1,Exx),
   genVar("_C",V),
-  caseMatcher(Lc,V,Cases,lterms:substAction,Map,Res),
+  actionCaseMatcher(Lc,V,Cases,Map,Res),
   Reslt = ltt(Lc,V,resme(Lc,TT,EE),Res).
 liftAction(doRetire(Lc,T,E),rtire(Lc,TT,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(T,TT,Q,Q0,Map,Opts,Ex,Ex0),
@@ -473,7 +481,7 @@ liftAction(doTryCatch(Lc,B,H),try(Lc,BB,E,HH),Q,Qx,Map,Opts,Ex,Exx) :-
   liftAction(B,BB,Q,Q0,Map,Opts,Ex,Ex0),
   liftCases(H,Cases,Q0,Qx,Map,Opts,transform:liftAction,Ex0,Exx),
   genVar("_E",E),
-  caseMatcher(Lc,E,Cases,lterms:substAction,Map,HH).
+  actionCaseMatcher(Lc,E,Cases,Map,HH).
   
 liftAction(XX,nop(Lc),Q,Q,_,_,Ex,Ex) :-!,
   locOfCanon(XX,Lc),
@@ -654,6 +662,17 @@ letMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,
   collectLabelVars(FreeVars,ThVr,0,V0,Vx),
   makeFreeTerm(CellVars,Lc,ThFree,Map,Opts,FreeTerm).
 
+letActionMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,
+       [lyr(Vx,Tx,ConsMap,ThVr)|Map],[lyr(V0,Tx,ConsMap,ThVr)|Map],FreeTerm) :-
+  findFreeVarsInAction(doLet(Lc,Decls,Defs,Bnd),Map,Q,ThFree),
+  varDefs(Defs,CellVars),
+  concat(CellVars,ThFree,FreeVars),
+  makeConstructorMap(Decls,consMap{},ConsMap),
+  declareThetaVars(Decls,ThVr,CellVars,ConsMap,varMap{},V0,typeMap{},Tx),
+  collectLabelVars(FreeVars,ThVr,0,V0,Vx),
+  makeFreeTerm(CellVars,Lc,ThFree,Map,Opts,FreeTerm).
+
+
 lambdaMap(Lam,ThVr,LamLbl,Q,Map,Opts,ctpl(lbl(LamLbl,1),[FreeTerm]),
 	  [lyr(Vx,typeMap{},consMap{},ThVr)|Map]) :-
   findFreeVars(Lam,Map,Q,LmFree),
@@ -665,7 +684,12 @@ lambdaMap(Lam,ThVr,LamLbl,Q,Map,Opts,ctpl(lbl(LamLbl,1),[FreeTerm]),
 findFreeVars(Exp,Map,_Q,LmFr0) :-
   definedProgs(Map,Df),
   freeVars(Exp,Df,transform:addThFree,[],ThFr),
-  freeLabelVars(ThFr,Map,[],LmFr0).
+  freeLabelVars(ThFr,Map,[],LmFr0),!.
+
+findFreeVarsInAction(Exp,Map,_Q,LmFr0) :-
+  definedProgs(Map,Df),
+  freeVarsInAction(Exp,Df,transform:addThFree,[],ThFr),
+  freeLabelVars(ThFr,Map,[],LmFr0),!.
 
 addThFree(Ex,Nm,Fr,Fx) :-
   \+ is_member(idnt(Nm),Ex),

@@ -7,7 +7,7 @@
 		  isTplLbl/2,mkCons/3,
 		  isUnit/1,
 		  termHash/2,
-		  ssTrm/3,dispTerm/1,showTerm/4,locTerm/2,
+		  ssTrm/3,dispTerm/1,showTerm/4,locTerm/2,dispAct/1,
 		  idInTerm/2, isLTerm/1,
 		  mergeGl/4,
 		  validLProg/2]).
@@ -232,10 +232,16 @@ ssTrm(vlof(_,A),Dp,sq([ss("valof "),AA])) :-
 ssTrm(perf(_,A),Dp,sq([ss("perform "),AA])) :-
   ssAct(A,Dp,AA).
 
+dispAct(A) :-
+  display:display(lterms:ssAct(A,0)).
+
 ssAct(nop(_),_,ss("{}")) :-!.
 ssAct(seq(Lc,A,B),Dp,sq([ss("{"),iv(sq([ss(";"),nl(Dp2)]),AA),ss("}")])) :-!,
   Dp2 is Dp+2,
   ssActSeq(seq(Lc,A,B),Dp2,AA).
+ssAct(lbld(_,Lb,A),Dp,sq([ss(Lb),ss(" : "),AA])) :-!,
+  ssAct(A,Dp,AA).
+ssAct(brk(_,Lb),_,sq([ss("break "),ss(Lb)])) :-!.
 ssAct(vls(_,E),Dp,sq([ss("valis "),EE])) :-!,
   ssTrm(E,Dp,EE).
 ssAct(rse(_,E),Dp,sq([ss("raise "),EE])) :-!,
@@ -455,6 +461,9 @@ rewriteAction(_QTest,nop(Lc),nop(Lc)) :- !.
 rewriteAction(QTest,seq(Lc,L,R),seq(Lc,LL,RR)) :-!,
   rewriteAction(QTest,L,LL),
   rewriteAction(QTest,R,RR).
+rewriteAction(QTest,lbld(Lc,Lb,A),lbld(Lc,Lb,AA)) :-!,
+  rewriteAction(QTest,A,AA).
+rewriteAction(_QTest,brk(Lc,Lb),brk(Lc,Lb)) :-!.
 rewriteAction(QTest,vls(Lc,E),vls(Lc,EE)) :- !,
   rewriteTerm(QTest,E,EE).
 rewriteAction(QTest,rse(Lc,E),rse(Lc,EE)) :- !,
@@ -823,6 +832,9 @@ validAction(nop(_),_,D,D) :- !.
 validAction(seq(Lc,L,R),_,D,Dx) :-!,
   validAction(L,Lc,D,D0),
   validAction(R,Lc,D0,Dx).
+validAction(lbld(Lc,_,A),_,D,Dx) :-!,
+  validAction(A,Lc,D,Dx).
+validAction(brk(_,_),_,D,D) :-!.
 validAction(vls(Lc,E),_,D,D) :- !,
   validTerm(E,Lc,D).
 validAction(rse(Lc,E),_,D,D) :- !,
