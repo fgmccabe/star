@@ -61,7 +61,7 @@ genDef(D,Opts,glbDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
   encType(funType(tplType([]),Tp),Sig),
   genLbl([],End,L1),
   genLine(Opts,Lc,C0,C1),
-  compExp(Value,Lc,[],bothCont(glbCont(Nm),rtgCont(Opts)),trapCont(Lc),
+  compExp(Value,Lc,bothCont(glbCont(Nm),rtgCont(Opts)),trapCont(Lc),
 	   Opts,L1,_Lx,D,Dx,End,C1,[iLbl(End)],some(0),_Stk),
   findMaxLocal(Dx,Mx),
   peepOptimize(C0,Cde),
