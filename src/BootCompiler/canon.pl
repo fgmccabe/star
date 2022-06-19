@@ -1,4 +1,4 @@
-:- module(canon,[dispFunction/3,dispDef/1,dispCanon/1,dispCanonProg/1,
+:- module(canon,[dispFunction/3,dispDef/1,dispCanon/1,dispAction/1,dispCanonProg/1,
 		 ssCanonProg/2,ssTerm/3,ssPkg/2,ssContract/3,
 		 dispDecls/1,
 		 typeOfCanon/2,locOfCanon/2,
@@ -160,6 +160,8 @@ locOfCanon(perform(Lc,_),Lc) :-!.
 locOfCanon(task(Lc,_,_),Lc) :-!.
 locOfCanon(valof(Lc,_,_),Lc) :-!.
 
+locOfCanon(doLbld(Lc,_,_),Lc) :-!.
+locOfCanon(doBreak(Lc,_,_),Lc) :-!.
 locOfCanon(doNop(Lc),Lc) :-!.
 locOfCanon(doSeq(Lc,_,_),Lc) :-!.
 locOfCanon(doValis(Lc,_),Lc) :-!.
@@ -299,10 +301,16 @@ ssTerms([T|More],Dp,[TT|TTs]) :-
   ssTerm(T,Dp,TT),
   ssTerms(More,Dp,TTs).
 
+dispAction(A) :-
+  displayln(canon:ssAction(A,0)).
+
 ssAction(doNop(_),_,ss("{}")) :-!.
 ssAction(doSeq(Lc,L,R),Dp,sq([ss("{"),nl(Dp2),Sq,nl(Dp),ss("}")])) :-!,
   Dp2 is Dp+2,
   ssActSeq(doSeq(Lc,L,R),Dp2,Sq).
+ssAction(doLbld(_,Lb,I),Dp,sq([ss(Lb),ss(" : "),II])) :-!,
+  ssAction(I,Dp,II).
+ssAction(doBreak(_,Lb),_,sq([ss("break "),ss(Lb)])) :-!.
 ssAction(doValis(_,E),Dp,sq([ss("valis "),EE])) :-!,
   ssTerm(E,Dp,EE).
 ssAction(doRaise(_,E),Dp,sq([ss("raise "),EE])) :-!,
