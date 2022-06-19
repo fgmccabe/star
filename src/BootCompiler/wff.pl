@@ -56,7 +56,6 @@
 	      mkWhileDo/4,mkUntilDo/4,mkForDo/5,
 	      isActionSeq/4,isActionSeq/3,mkActionSeq/4,
 	      isLetDef/4,isLetRec/4,mkLetDef/4,mkLetRec/4,
-	      isLabeled/4,mkLabeled/4,isBreak/3,mkBreak/3,
 	      whereTerm/4,
 	      packageName/2,pkgName/2,
 	      collectImports/3,
@@ -803,20 +802,6 @@ isValof(A,Lc,E) :-
 
 mkValof(Lc,A,E) :-
   unary(Lc,"valof",A,E).
-
-isLabeled(A,Lc,Lb,I) :-
-  isBinary(A,Lc,":",Lb,I),
-  isName(Lb,_),!.
-
-mkLabeled(Lc,Lb,I,A) :-
-  binary(Lc,":",Lb,I,A).
-
-isBreak(A,Lc,Lb) :-
-  isUnary(A,Lc,"break",Lb),
-  isName(Lb,_),!.
-
-mkBreak(Lc,Lb,A) :-
-  unary(Lc,"break",Lb,A).
 
 isPerform(A,Lc,E) :-
   isUnary(A,Lc,"perform",E).

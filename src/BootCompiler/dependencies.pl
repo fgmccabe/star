@@ -362,11 +362,6 @@ collectDoRefs(T,All,Rf,Rfx) :-
   collectDoRefs(St,All,Rf,Rfx).
 collectDoRefs(T,_,Rf,Rf) :-
   isBraceTuple(T,_,[]),!.
-collectDoRefs(A,All,Rf,Rfx) :-
-  isLabeled(A,_,_,I),!,
-  collectDoRefs(I,All,Rf,Rfx).
-collectDoRefs(A,_,Rf,Rf) :-
-  isBreak(A,_,_),!.
 collectDoRefs(T,All,Rf,Rfx) :-
   isMatch(T,_,L,R),!,
   collectTermRefs(L,All,Rf,Rf0),
