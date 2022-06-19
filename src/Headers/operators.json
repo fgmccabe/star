@@ -39,11 +39,6 @@
     "desc": "type annotation",
     "keyword": true
   },
-    {"prefixOp":"break",
-     "priorities":[100,99],
-     "desc":"break out of a labeled statement",
-     "keyword":true
-    },
   {
     "infixOp": "~~",
     "priorities": [

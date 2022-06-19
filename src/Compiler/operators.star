@@ -102,7 +102,6 @@ star.compiler.operators{
   oper("in") => [infixOp(899,900,900)].
   oper("^|") => [infixOp(919,920,920)].
   oper("suspend") => [prefixOp(901,900), infixOp(900,901,900)].
-  oper("break") => [prefixOp(100,99)].
   oper("open") => [prefixOp(900,899)].
   oper("~~") => [infixOp(1239,1240,1240)].
   oper("assert") => [prefixOp(1240,1239)].
@@ -463,7 +462,6 @@ star.compiler.operators{
   keyword("|>") => .true.
   keyword("in") => .true.
   keyword("suspend") => .true.
-  keyword("break") => .true.
   keyword("open") => .true.
   keyword("~~") => .true.
   keyword("public") => .true.
