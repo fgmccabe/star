@@ -38,18 +38,21 @@ test.ts1{
     TT .= iterGen(L);
     Tl .= ref 0;
 
-    Lp:while .true do {
-      TT resume .next in {
-	yield(X) where X%2==0 => {
-	  Tl := Tl! + X
-	}.
-	yield(X) default => {
-	  Tl := Tl! * X
-	}.
-	.end => break Lp
+    try{
+      while .true do {
+	TT resume .next in {
+	  yield(X) where X%2==0 => {
+	    Tl := Tl! + X
+	  }.
+	  yield(X) default => {
+	    Tl := Tl! * X
+	  }.
+	  .end => raise ()
+	}
       }
-    };
-    valis Tl!    
+    } catch {
+      () => valis Tl!
+    }
   }
 
   iota:(integer,integer)=>cons[integer].
