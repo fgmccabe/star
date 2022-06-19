@@ -86,6 +86,7 @@
   operator("in", [infixOp(899, 900, 900)]).
   operator("^|", [infixOp(919, 920, 920)]).
   operator("suspend", [prefixOp(901, 900), infixOp(900, 901, 900)]).
+  operator("break", [prefixOp(100, 99)]).
   operator("open", [prefixOp(900, 899)]).
   operator("~~", [infixOp(1239, 1240, 1240)]).
   operator("assert", [prefixOp(1240, 1239)]).
@@ -411,6 +412,7 @@
   keyword("|>").
   keyword("in").
   keyword("suspend").
+  keyword("break").
   keyword("open").
   keyword("~~").
   keyword("public").
