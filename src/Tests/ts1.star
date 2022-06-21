@@ -55,6 +55,38 @@ test.ts1{
     }
   }
 
+  implementation all e ~~ iter[cons[e]->>e] => {.
+    _iter(.nil,X,_) => X.
+    _iter(cons(H,T),X,F) =>
+      _iter(T,F(H,X),F).
+  .}
+
+  iterTask:all c,e ~~ iter[c->>e] |: (c) => task[scomm[e],rcomm].
+  iterTask(L) => task{
+    let{
+      yieldFn(E,Cx) => valof{
+	suspend yield(E) in {
+	  .next => valis Cx
+	}
+      }
+    } in {_ .= _iter(L,(),yieldFn)};
+    retire .end
+  }
+
+  odds:(cons[integer]) => ().
+  odds(L) => valof{
+    try{
+      for (X where X%2==1) in L do{
+	_ .= _logmsg(disp(X));
+	if X>6 then
+	  raise ()
+      }
+    } catch {
+      _ => {}
+    };
+    valis ()
+  }
+
   iota:(integer,integer)=>cons[integer].
   iota(F,F) => .nil.
   iota(F,T) => cons(F,iota(F+1,T)).
@@ -64,6 +96,7 @@ test.ts1{
   main:() => ().
   main() => valof{
     LL .= iota(1,12);
-    valis _logmsg(disp(evens(LL)))
+    _ .= odds(LL);
+    valis _logmsg(disp(evens(LL)));
   }
 }

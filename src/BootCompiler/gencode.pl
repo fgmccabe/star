@@ -53,7 +53,7 @@ genDef(D,Opts,fnDef(Lc,Nm,H,Tp,Args,Value),O,[CdTrm|O]) :-
 	      C1,[iLbl(Ex)|C2],some(0),Stk0),
   compExp(Value,Lc,retCont(Opts),trapCont(Lc),Opts,L2,_Lx,D2,Dx,End,C2,[iLbl(End)],Stk0,_Stk),
   findMaxLocal(Dx,Mx),
-%  (is_member(showGenCode,Opts) -> dispIns(func(Nm,H,Sig,Mx,C0));true ),
+  (is_member(showGenCode,Opts) -> dispIns(func(Nm,H,Sig,Mx,C0));true ),
   peepOptimize(C0,Cde),
   (is_member(showGenCode,Opts) -> dispIns(func(Nm,H,Sig,Mx,Cde));true ),
   assem(func(Nm,H,Sig,Mx,Cde),CdTrm).
@@ -64,6 +64,7 @@ genDef(D,Opts,glbDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
   compExp(Value,Lc,bothCont(glbCont(Nm),rtgCont(Opts)),trapCont(Lc),
 	   Opts,L1,_Lx,D,Dx,End,C1,[iLbl(End)],some(0),_Stk),
   findMaxLocal(Dx,Mx),
+  (is_member(showGenCode,Opts) -> dispIns(func(lbl(Nm,0),hard,Sig,Mx,C0));true ),
   peepOptimize(C0,Cde),
   (is_member(showGenCode,Opts) -> dispIns(func(lbl(Nm,0),hard,Sig,Mx,Cde));true ),
   assem(func(lbl(Nm,0),hard,Sig,Mx,Cde),Cd).
@@ -254,9 +255,12 @@ compExp(seqD(Lc,A,B),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-!,
   compExp(A,Lc,resetCont(Stk,compExp(B,Lc,Cont,TCont,Opts)),TCont,
 	  Opts,L,Lx,D,Dx,End,C0,Cx,Stk,Stkx).
 compExp(vlof(Lc,A),_,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
-  compAction(A,Lc,Cont,abortCont(Lc,strg("illegal action"),Opts),TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
+  splitCont(Lc,Cont,AC),
+  compAction(A,Lc,AC,abortCont(Lc,strg("illegal action"),Opts),
+	     TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 compExp(perf(Lc,A),_,Cont,_TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
-  compAction(A,Lc,Cont,abortCont(Lc,strg("no action permitted after this"),Opts),Cont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
+  splitCont(Lc,abortCont(Lc,strg("no action after this"),Opts),AC),
+  compAction(A,Lc,Cont,AC,Cont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 compExp(tsk(Lc,F),_,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
   compExp(F,Lc,tskCont(Cont),TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
 compExp(susp(Lc,T,E),OLc,Cont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk,Stk) :-
@@ -403,10 +407,12 @@ compTry(Lc,B,idnt(E),H,OLc,Cont,ACont,TCont,Opts,L,Lx,D,Dx,End,C,Cx,Stk) :-
   chLine(Opts,OLc,Lc,C,C0),
   genLbl(L,Ctch,L1),
   genLbl(L1,ELb,L2),
-  compAction(B,Lc,Cont,ACont,stoCont(Off,ELb,jmpCont(Ctch)),Opts,L2,L3,D,D0,Ctch,C0,
+%  splitCont(Lc,ACont,AC),
+  AC=ACont,
+  compAction(B,Lc,Cont,AC,stoCont(Off,ELb,jmpCont(Ctch)),Opts,L2,L3,D,D0,Ctch,C0,
 	     [iLbl(Ctch)|C1],Stk,_),
   defineLclVar(E,ELb,End,Opts,D0,D1,Off,C1,C2),
-  compAction(H,Lc,Cont,ACont,TCont,Opts,L3,Lx,D1,Dx,End,C2,Cx,Stk,_).
+  compAction(H,Lc,Cont,AC,TCont,Opts,L3,Lx,D1,Dx,End,C2,Cx,Stk,_).
 
   
 /* Compile actions as sequences with several possible continuations */
@@ -521,6 +527,8 @@ isSimpleCont(bothCont(L,R)) :-
 isSimpleCont(resetCont(_,C)) :- isSimpleCont(C).
 isSimpleCont(trueCont).
 isSimpleCont(falseCont).
+isSimpleCont(abortCont(_,_,_)).
+isSimpleCont(onceCont(_,_,_)).
 
 splitCont(_,Cont,Cont) :- isSimpleCont(Cont),!.
 splitCont(Lc,Cont,onceCont(Lc,_,Cont)).

@@ -31,6 +31,7 @@ macroRl(":=",action,macroRules:indexAssignMacro).
 macroRl(":=",expression,macroRules:spliceAssignMacro).
 macroRl(":=",expression,macroRules:indexAssignMacro).
 macroRl("<-",action,macroRules:bindActionMacro).
+macroRl("do",action,macroRules:forLoopMacro).
 %macroRl("assert",expression,macroRules:assertMacro).
 macroRl("assert",action,macroRules:assertMacro).
 macroRl("show",action,macroRules:showMacro).
@@ -440,15 +441,76 @@ binRefMacro(T,expression,Rp) :-
   becomes
   {
     I .= iterTask(C);
-    LL:while .true do{
-      I resume .next in {
-        yield(P) => B.
-        yield(_) default => {}.
-        .end => break LL
+    try{
+      while .true do{
+        I resume .next in {
+          yield(P) => B.
+          yield(_) default => {}.
+          .end => raise ()
+        }
       }
+    } catch {
+      _ => {}
     }
   }
 */
-% forLoopMacro(A,action,Ax) :-
-%   isForDo(A,Lc,El,It,Bd),!,
-  
+ forLoopMacro(A,action,Ax) :-
+   isForDo(A,Lc,P,C,Bd),!,
+   genIden(Lc,I),
+
+   /* Build .end => raise () */
+   roundTuple(Lc,[],Unit),
+   mkRaise(Lc,Unit,Rse),
+   mkEnum(Lc,"end",End),
+   mkEquation(Lc,End,none,Rse,EndEq),
+
+   /* build yield(P) => B */
+   unary(Lc,"yield",P,BYld),
+   mkEquation(Lc,BYld,none,Bd,YldEqn),
+
+   /* build yield(_) default => {} */
+   braceTuple(Lc,[],Nop),
+   mkAnon(Lc,Anon),
+   unary(Lc,"yield",Anon,DYld),
+   mkDefault(Lc,DYld,Dflt),
+   mkEquation(Lc,Dflt,none,Nop,DefltEqn),
+
+   /* build I resume .next in .. */
+   mkEnum(Lc,"next",Next),
+   mkResume(Lc,I,Next,[YldEqn,DefltEqn,EndEq],Rsme),
+   braceTuple(Lc,[Rsme],Resume),
+
+   /* Build while loop */
+   mkEnum(Lc,"true",True),
+   
+   mkWhileDo(Lc,True,Resume,Loop),
+
+   /* Build catch handler */
+   mkEquation(Lc,Anon,none,Nop,Catcher),
+
+   /* Build try catch */
+   braceTuple(Lc,[Loop],B),
+   mkTryCatch(Lc,B,[Catcher],Try),
+
+   /* Build call to iterTask */
+   roundTerm(Lc,name(Lc,"iterTask"),[C],IT),
+   match(Lc,I,IT,S1),
+   mkSequence(Lc,S1,Try,Ax).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   
