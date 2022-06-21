@@ -50,7 +50,6 @@ part2(Ls,L,R) :-
   length(Ls,Ln),
   Ln2 is Ln//2,
   front(Ls,Ln2,L,R).
-  
 
 segment(Str,Ch,Segments) :- split_string(Str,Ch,"",Segments).
 

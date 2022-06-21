@@ -12,6 +12,7 @@
 peepOptimize(Ins,Cde) :-
   findLblUsages(Ins,lbls{},Lbs),
   deleteUnused(false,Ins,Lbs,In0),
+%  dispIns(func(lbl("",0),hard,"",0,In0)),
   findTgts(Ins,mp{},Map),
   peep(In0,Map,Cde),!.
 
@@ -34,6 +35,9 @@ findLblUsages([iUnpack(_,Lbl)|Ins],Lb,Lbx) :-
 findLblUsages([iFCmp(Lbl)|Ins],Lb,Lbx) :-
   addJmp(Lbl,Lb,Lb0),
   findLblUsages(Ins,Lb0,Lbx).
+findLblUsages([iICmp(Lbl)|Ins],Lb,Lbx) :-
+  addJmp(Lbl,Lb,Lb0),
+  findLblUsages(Ins,Lb0,Lbx).
 findLblUsages([iCmp(Lbl)|Ins],Lb,Lbx) :-
   addJmp(Lbl,Lb,Lb0),
   findLblUsages(Ins,Lb0,Lbx).
@@ -53,14 +57,39 @@ isUsedLbl(Lb,Lbs) :-
   get_dict(Ky,Lbs,_),!.
 
 deleteUnused(_,[],_,[]).
-deleteUnused(F,[iLbl(Lb)|Ins],Lbs,[iLbl(Lb)|Cde]) :-
+deleteUnused(_,[iLbl(Lb)|Ins],Lbs,[iLbl(Lb)|Cde]) :-
   isUsedLbl(Lb,Lbs),!,
-  deleteUnused(F,Ins,Lbs,Cde).
-deleteUnused(F,[iLbl(Lb)|Ins],Lbs,Cde) :-
+  deleteUnused(false,Ins,Lbs,Cde).
+deleteUnused(true,[iLbl(Lb)|Ins],Lbs,Cde) :-
   \+isUsedLbl(Lb,Lbs),
-  dropUntilLbl(F,Ins,Lbs,Cde).
-deleteUnused(F,[I|Ins],Lbs,[I|Cde]) :-
-  deleteUnused(F,Ins,Lbs,Cde).
+  dropUntilLbl(true,Ins,Lbs,Cde).
+deleteUnused(false,[iLbl(Lb)|Ins],Lbs,Cde) :-
+  \+isUsedLbl(Lb,Lbs),
+  deleteUnused(false,Ins,Lbs,Cde).
+deleteUnused(F,[iIndxJmp(Ar)|Ins],Lbs,[iIndxJmp(Ar)|Cde]) :-
+  copyN(Ins,Ar,Insx,Cde,Rst),!,
+  deleteUnused(F,Insx,Lbs,Rst).
+deleteUnused(F,[iCase(Ar)|Ins],Lbs,[iCase(Ar)|Cde]) :-
+  copyN(Ins,Ar,Insx,Cde,Rst),!,
+  deleteUnused(F,Lbs,Insx,Rst).
+deleteUnused(_,[I|Ins],Lbs,[I|Cde]) :-
+  propagateDrop(I,F1),!,
+  deleteUnused(F1,Ins,Lbs,Cde).
+
+copyN([],_,[],Cde,Cde).
+copyN(Is,0,Is,Cde,Cde).
+copyN([E|Is],Ix,Isx,[E|Cs],Cde) :-
+  Ix1 is Ix-1,
+  copyN(Is,Ix1,Isx,Cs,Cde).
+
+propagateDrop(I,true) :-
+  uncondJump(I),!.
+propagateDrop(_,false).
+
+uncondJump(iJmp(_)).
+uncondJump(iRet).
+uncondJump(iRetire).
+uncondJump(iAbort).
 
 dropUntilLbl(_,[],_,[]).
 dropUntilLbl(F,[iLbl(Lb)|Ins],Lbs,Cde) :-
