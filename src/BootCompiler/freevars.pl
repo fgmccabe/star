@@ -60,10 +60,9 @@ freeVars(letRec(_,_,Defs,Bnd),Ex,Q,F,Fv) :-
   definedVars(Defs,Ex,Ex1),
   freeVarsInDefs(Defs,Ex1,Q,F,F0),
   freeVars(Bnd,Ex1,Q,F0,Fv).
-freeVars(case(_,Gov,Cses,D),Ex,Q,F,Fv) :-
+freeVars(case(_,Gov,Cses,_),Ex,Q,F,Fv) :-
   freeVars(Gov,Ex,Q,F,F0),
-  freeVarsInRules(Cses,Ex,Q,freevars:freeVars,F0,F1),
-  freeVars(D,Ex,Q,F1,Fv).
+  freeVarsInRules(Cses,Ex,Q,freevars:freeVars,F0,Fv).
 freeVars(valof(_,A,_),Ex,Q,F,Fv) :-!,
   freeVars(A,Ex,Q,F,Fv).
 freeVars(doExp(_,A,_),Ex,Q,F,Fv) :-!,
@@ -75,7 +74,7 @@ freeVars(T,_,_,F,F) :-
   reportError("cannot find free vars in %s",[can(T)],Lc).
 
 freeVarsInAction(Act,Ex,Q,F,Fv) :-
-  freeVarsInAction(Act,Ex,_,Q,F,Fv).
+  freeVarsInAction(Act,Ex,_,Q,F,Fv),!.
 
 freeVarsInAction(doNop(_),Ex,Ex,_,F,F) :-!.
 freeVarsInAction(doSeq(_,L,R),E,Ex,Q,F,Fv) :-!,
@@ -123,26 +122,26 @@ freeVarsInAction(doFor(_,P,S,B),Ex,Ex,Q,F,Fv) :-!,
   freeVars(P,Ex1,Q,F,F0),
   freeVars(S,Ex,Q,F0,F1),
   freeVarsInAction(B,Ex1,_,Q,F1,Fv).
-freeVarsInAction(doLet(_,_,Defs,Bnd),Ex,Ex,Q,F,Fv) :-
+freeVarsInAction(doLet(_,_,Defs,Bnd),Ex,Ex,Q,F,Fv) :-!,
   definedVars(Defs,Ex,Ex1),
   freeVarsInDefs(Defs,Ex1,Q,F,F0),
   freeVarsInAction(Bnd,Ex1,_,Q,F0,Fv).
-freeVarsInAction(doLetRec(_,_,Defs,Bnd),Ex,Ex,Q,F,Fv) :-
+freeVarsInAction(doLetRec(_,_,Defs,Bnd),Ex,Ex,Q,F,Fv) :-!,
   definedVars(Defs,Ex,Ex1),
   freeVarsInDefs(Defs,Ex1,Q,F,F0),
   freeVarsInAction(Bnd,Ex1,_,Q,F0,Fv).
-freeVarsInAction(doCase(_,G,Cs,_),Ex,Ex,Q,F,Fv) :-
+freeVarsInAction(doCase(_,G,Cs,_),Ex,Ex,Q,F,Fv) :-!,
   freeVars(G,Ex,Q,F,F0),
   freeVarsInRules(Cs,Ex,Q,freevars:freeVarsInAct,F0,Fv).
-freeVarsInAction(doSuspend(_,T,E,Cs),Ex,Ex,Q,F,Fv) :-
+freeVarsInAction(doSuspend(_,T,E,Cs),Ex,Ex,Q,F,Fv) :-!,
   freeVars(T,Ex,Q,F,F0),
   freeVars(E,Ex,Q,F0,F1),
   freeVarsInRules(Cs,Ex,Q,freevars:freeVarsInAct,F1,Fv).
-freeVarsInAction(doResume(_,T,E,Cs),Ex,Ex,Q,F,Fv) :-
+freeVarsInAction(doResume(_,T,E,Cs),Ex,Ex,Q,F,Fv) :-!,
   freeVars(T,Ex,Q,F,F0),
   freeVars(E,Ex,Q,F0,F1),
   freeVarsInRules(Cs,Ex,Q,freevars:freeVarsInAct,F1,Fv).
-freeVarsInAction(doRetire(_,T,E),Ex,Ex,Q,F,Fv) :-
+freeVarsInAction(doRetire(_,T,E),Ex,Ex,Q,F,Fv) :-!,
   freeVars(T,Ex,Q,F,F0),
   freeVars(E,Ex,Q,F0,Fv).
 freeVarsInAction(A,Ex,Ex,_,F,F) :-

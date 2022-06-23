@@ -1009,7 +1009,9 @@ checkAction(A,Tp,ErTp,Env,Env,doLetRec(Lc,Decls,XDefs,Ac),Vls,Rsr,Path) :-
   checkAction(B,Tp,ErTp,OEnv,_,Ac,Vls,Rsr,ThPath).
 checkAction(A,Tp,ErTp,Env,Env,doCase(Lc,Bound,Eqns,Tp),Vls,Rsr,Path) :-
   isCaseExp(A,Lc,Bnd,Cases),
-  checkCases(Lc,Bnd,Cases,Tp,ErTp,Env,_,checker:checkDo(Vls,Rsr),Bound,Eqns,Vls,Rsr,Path).
+  newTypeVar("B",BVr),
+  typeOfExp(Bnd,BVr,ErTp,Env,_,Bound,Path),
+  checkCases(Cases,BVr,Tp,ErTp,Env,Eqns,Eqx,Eqx,[],checker:checkDo(Vls,Rsr),Path),!.
 checkAction(A,Tp,ErTp,Env,Ev,Susp,Vls,Rsr,Path) :-
   isSuspend(A,Lc,E,C),!,
   checkSuspend(Lc,name(Lc,"this"),E,Tp,ErTp,C,Env,Ev,Susp,Vls,Rsr,Path).
@@ -1033,9 +1035,9 @@ checkAction(A,Tp,ErTp,Env,Ev,Susp,Vls,Rsr,Path) :-
   applyTypeFun(RsltTp,[ErTp,UnitTp],Lc,Env,RTp),
   verifyType(Lc,A,RTp,Tp,Env),
   checkRetire(Lc,T,E,ErTp,Env,Ev,Susp,Vls,Rsr,Path).
-checkAction(A,Tp,ErTp,Env,Env,Call,_Vls,_Rsr,Path) :-
-  isRoundTerm(A,Lc,F,Args),!,
-  typeOfRoundTerm(Lc,F,Args,Tp,ErTp,Env,Call,Path).  
+checkAction(A,Tp,ErTp,Env,Env,Call,_Vls,Rsr,Path) :-
+  isRoundTerm(A,Lc,_F,_Args),!,
+  checkPerform(Lc,A,Tp,ErTp,Env,Call,Rsr,Path).
 checkAction(A,Tp,_,Env,Env,doNop(Lc),_,_,_) :-
   locOfAst(A,Lc),
   reportError("%s:%s illegal form of action",[ast(A),tpe(Tp)],Lc).
@@ -1103,24 +1105,22 @@ checkBind(Lc,P,E,Tp,ErTp,Env,Ev,Action,Rsr,Path) :-
 
   Action = doIfThenElse(Lc,Ok,doMatch(Lc,Ptn,Vl),doRaise(Lc,Raise)).
 
-%  Action = doMatch(Lc,Ptn,where(Lc,cond(Lc,Ok,Vl,raise(Lc,Raise)),match(Lc,V,Exp)))
-
-checkPerform(Lc,Env,Tp,ErTp,Action,Env,Rsr,Path) :-
+checkPerform(Lc,A,Tp,ErTp,Env,Action,Rsr,Path) :-
   newTypeVar("BTp",BTp),
-  typeOfExp(E,BTp,ErTp,Env,_,Exp,Path),
+  typeOfExp(A,BTp,ErTp,Env,_,Exp,Path),
 
   getVar(Lc,"_errval",Env,ErrVlFn,RseTp),
-  verifyType(Lc,ast(E),funType(tplType([BTp]),ErTp),RseTp,Env),
+  verifyType(Lc,ast(A),funType(tplType([BTp]),ErTp),RseTp,Env),
   ErrVl = apply(Lc,ErrVlFn,tple(Lc,[Exp]),ErTp),
 
   findType("boolean",Lc,Env,LogicalTp),
   getVar(Lc,"_isOk",Env,OkFn,OkTp),
-  verifyType(Lc,ast(E),funType(tplType([BTp]),LogicalTp),OkTp,Env),
+  verifyType(Lc,ast(A),funType(tplType([BTp]),LogicalTp),OkTp,Env),
 
   Ok = apply(Lc,OkFn,tple(Lc,[Exp]),LogicalTp),
 
   getVar(Lc,"_raise",Env,RseFn,RaiseFnTp),
-  verifyType(Lc,ast(E),funType(tplType([ErTp]),Tp),RaiseFnTp,Env),
+  verifyType(Lc,ast(A),funType(tplType([ErTp]),Tp),RaiseFnTp,Env),
   call(Rsr,Lc,ErrVl,Tp,RseFn,Raise),
 
   Action = doIfThen(Lc,neg(Lc,Ok),doRaise(Lc,Raise)).

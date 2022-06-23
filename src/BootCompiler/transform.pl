@@ -449,7 +449,7 @@ liftAction(doLet(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftAction(doLetRec(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
 %  (is_member(showTrCode,Opts) -> dispCanon(doLetRec(Lc,Decls,Defs,B));true),
   liftLetRec(Lc,Decls,Defs,B,transform:liftAction,Exp,Q,Qx,Map,Opts,Ex,Exx).
-liftAction(doCase(Lc,B,Cs),Reslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
+liftAction(doCase(Lc,B,Cs,_),Reslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(B,BB,Q,Q0,Map,Opts,Ex,Ex0),
   liftCases(Cs,Cases,Q0,Qx,Map,Opts,transform:liftAction,Ex0,Exx),
   (idnt(_)=BB ->

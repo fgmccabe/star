@@ -237,6 +237,9 @@ overloadAction(doIfThenElse(Lc,T,A,B),Dict,St,Stx,doIfThenElse(Lc,TT,AA,BB)) :-
 overloadAction(doIfThen(Lc,T,A),Dict,St,Stx,doIfThen(Lc,TT,AA)) :-
   overloadTerm(T,Dict,St,St1,TT),
   overloadAction(A,Dict,St1,Stx,AA).
+overloadAction(doCase(Lc,B,C,Tp),Dict,St,Stx,doCase(Lc,RB,RC,Tp)) :-
+  overloadTerm(B,Dict,St,St0,RB),
+  overloadCases(C,resolve:overloadAction,Dict,St0,Stx,RC).
 overloadAction(doWhile(Lc,T,A),Dict,St,Stx,doWhile(Lc,TT,AA)) :-
   overloadTerm(T,Dict,St,St1,TT),
   overloadAction(A,Dict,St1,Stx,AA).

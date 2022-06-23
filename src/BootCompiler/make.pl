@@ -38,9 +38,6 @@ makeAction(A,some((OLc,_)),Ac) :-
   reportError("%s must be last action, previous action at %s",[ast(A),loc(OLc)],Lc),
   makeReturn(Lc,E,Ac).
 makeAction(A,_,Ac) :-
-  isThrow(A,Lc,E),!,
-  makeThrow(Lc,E,Ac).
-makeAction(A,_,Ac) :-
   isRaise(A,Lc,E),!,
   makeThrow(Lc,E,Ac).
 makeAction(A,none,Ac) :-

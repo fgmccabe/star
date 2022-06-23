@@ -48,7 +48,7 @@
 	      isResultTerm/3,mkResultTerm/3,
 	      isDoTerm/3,mkDoTerm/3,isDo/3,mkDo/3,
 	      isValof/3,mkValof/3,isPerform/3,mkPerform/3,
-	      isRaise/3,mkRaise/3,isThrow/3,mkThrow/3,isValis/3,mkValis/3,
+	      isRaise/3,mkRaise/3,isValis/3,mkValis/3,
 	      isTryCatch/4,mkTryCatch/4,
 	      isTryHandle/4,mkTryHandle/4,
 	      isIfThenElse/5,isIfThen/4,mkIfThenElse/5,mkIfThen/4,
@@ -814,12 +814,6 @@ isRaise(A,Lc,E) :-
 
 mkRaise(Lc,A,E) :-
   unary(Lc,"raise",A,E).
-
-isThrow(A,Lc,E) :-
-  isUnary(A,Lc,"throw",E).
-
-mkThrow(Lc,A,E) :-
-  unary(Lc,"throw",A,E).
 
 isTryCatch(A,Lc,B,Hs) :-
   isUnary(A,Lc,"try",I),
