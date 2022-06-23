@@ -845,17 +845,17 @@ validAction(unpack(Lc,G,C),_,D,D) :-
   validTerm(G,Lc,D),
   validCases(C,lterms:validAct,D).
 validAction(iftte(Lc,G,L,R),_,D,Dx) :-!,
-  glVars(D,D,D0),
+  glVars(G,D,D0),
   validTerm(G,Lc,D0),
   validAction(L,Lc,D0,D1),
   validAction(R,Lc,D,D2),
   merge(D1,D2,Dx).
 validAction(iftt(Lc,G,L),_,D,D) :-!,
-  glVars(D,D,D0),
+  glVars(G,D,D0),
   validTerm(G,Lc,D0),
   validAction(L,Lc,D0,_).
 validAction(whle(Lc,G,L),_,D,D) :-!,
-  glVars(D,D,D0),
+  glVars(G,D,D0),
   validTerm(G,Lc,D0),
   validAction(L,Lc,D0,_).
 validAction(untl(Lc,L,G),_,D,D) :-!,

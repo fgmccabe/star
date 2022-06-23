@@ -32,12 +32,15 @@ macroRl(":=",expression,macroRules:spliceAssignMacro).
 macroRl(":=",expression,macroRules:indexAssignMacro).
 macroRl("<-",action,macroRules:bindActionMacro).
 macroRl("do",action,macroRules:forLoopMacro).
+macroRl("perform",action,macroRules:performMacro).
 %macroRl("assert",expression,macroRules:assertMacro).
 macroRl("assert",action,macroRules:assertMacro).
 macroRl("show",action,macroRules:showMacro).
 %macroRl("show",expression,macroRules:showMacro).
 %macroRl("task",expression,macroRules:taskMacro).
 %macroRl("valof",expression,macroRules:valofMacro).
+macroRl("generator",expression,macroRules:generatorMacro).
+macroRl("yield",action,macroRules:yieldMacro).
 
 build_main(As,Bs) :-
   look_for_signature(As,"main",Lc,Ms),
@@ -307,6 +310,28 @@ bindActionMacro(T,action,Act) :-
   mkActionSeq(Lc,VDf,B,Act).
 
 /*
+   perform A
+  becomes
+  case A in {
+    ok(_) => {}
+    bad(E) => raise E
+  }
+*/
+performMacro(T,action,Act) :-
+  isPerform(T,Lc,I),!,
+  /* make ok(_) => {} */
+  mkAnon(Lc,Anon),
+  unary(Lc,"ok",Anon,Lh1),
+  braceTuple(Lc,[],Nop),
+  mkEquation(Lc,Lh1,none,Nop,OkEqn),
+  /* make bad(E) => raise E */
+  genIden(Lc,E),
+  unary(Lc,"bad",E,Lh2),
+  unary(Lc,"raise",E,Rh2),
+  mkEquation(Lc,Lh2,none,Rh2,BadEqn),
+  caseExp(Lc,I,[OkEqn,BadEqn],Act).
+
+/*
  assert C 
 becomes
  perform assrt(()=>C,"failed: C",Loc)
@@ -443,10 +468,10 @@ binRefMacro(T,expression,Rp) :-
     I .= iterTask(C);
     try{
       while .true do{
-        I resume .next in {
-          yield(P) => B.
-          yield(_) default => {}.
-          .end => raise ()
+        I resume ._next in {
+          _yld(P) => B.
+          _yld(_) default => {}.
+          ._all => raise ()
         }
       }
     } catch {
@@ -458,25 +483,25 @@ binRefMacro(T,expression,Rp) :-
    isForDo(A,Lc,P,C,Bd),!,
    genIden(Lc,I),
 
-   /* Build .end => raise () */
+   /* Build ._all => raise () */
    roundTuple(Lc,[],Unit),
    mkRaise(Lc,Unit,Rse),
-   mkEnum(Lc,"end",End),
+   mkEnum(Lc,"_all",End),
    mkEquation(Lc,End,none,Rse,EndEq),
 
    /* build yield(P) => B */
-   unary(Lc,"yield",P,BYld),
+   unary(Lc,"_yld",P,BYld),
    mkEquation(Lc,BYld,none,Bd,YldEqn),
 
    /* build yield(_) default => {} */
    braceTuple(Lc,[],Nop),
    mkAnon(Lc,Anon),
-   unary(Lc,"yield",Anon,DYld),
+   unary(Lc,"_yld",Anon,DYld),
    mkDefault(Lc,DYld,Dflt),
    mkEquation(Lc,Dflt,none,Nop,DefltEqn),
 
-   /* build I resume .next in .. */
-   mkEnum(Lc,"next",Next),
+   /* build I resume ._next in .. */
+   mkEnum(Lc,"_next",Next),
    mkResume(Lc,I,Next,[YldEqn,DefltEqn,EndEq],Rsme),
    braceTuple(Lc,[Rsme],Resume),
 
@@ -497,20 +522,68 @@ binRefMacro(T,expression,Rp) :-
    match(Lc,I,IT,S1),
    mkSequence(Lc,S1,Try,Ax).
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/* generator{A}
+   becomes
+   task{
+     try{
+       A*
+     } catch {
+       ._cancel => {}
+     }
+   };
+   retire .all
+*/
    
+generatorMacro(E,expression,Ex) :-
+  isUnary(E,Lc,"generator",A),
+  isBraceTuple(A,_,[B]),!,
+
+  /* Build try ... catch ... */
+  
+  /* Build .cancel => {} */
+  mkEnum(Lc,"_cancel",CLhs),
+  braceTuple(Lc,[],Nop),
+  mkEquation(Lc,CLhs,none,Nop,Catcher),
+
+  braceTuple(Lc,[B],Bdy),
+  mkTryCatch(Lc,Bdy,[Catcher],Try),
+
+  mkEnum(Lc,"_all",All),
+  mkRetire(Lc,All,Rt),
+
+  mkSequence(Lc,Try,Rt,TB),
+  
+  braceTerm(Lc,name(Lc,"task"),[TB],Ex).
+%  dispAst(Ex).
+
+/* yield E
+   becomes
+   suspend _yld(E) in {
+     ._next => {}.
+     ._cancel => raise ._cancel
+   }
+*/
+yieldMacro(E,action,Ax) :-
+  isUnary(E,Lc,"yield",A),!,
+
+  unary(Lc,"_yld",A,Yld),
+
+  /* build ._next => {} */
+  braceTuple(Lc,[],Nop),
+  mkEnum(Lc,"_next",Nxt),
+  mkEquation(Lc,Nxt,none,Nop,NxtRl),
+
+  /* build ._cancel => raise ._cancel */
+  mkEnum(Lc,"_cancel",Can),
+  unary(Lc,"raise",Can,Rs),
+  mkEquation(Lc,Can,none,Rs,Cancel),
+
+  /* Build suspend */
+  mkSuspend(Lc,Yld,[NxtRl,Cancel],Ax).
+  
+
+  
+  
+  
+
+

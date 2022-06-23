@@ -632,10 +632,6 @@ examineAction(A,Ax) :-
   macroTerm(V,Vx),
   mkRaise(Lc,Vx,Ax).
 examineAction(A,Ax) :-
-  isThrow(A,Lc,V),!,
-  macroTerm(V,Vx),
-  mkThrow(Lc,Vx,Ax).
-examineAction(A,Ax) :-
   isPerform(A,Lc,V),!,
   macroTerm(V,Vx),
   mkPerform(Lc,Vx,Ax).
