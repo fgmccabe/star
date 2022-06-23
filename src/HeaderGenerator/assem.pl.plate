@@ -104,7 +104,7 @@ dispIns(Prog) :-
 showIns(func(Nm,H,Sig,Lx,Ins),sq([HH,ss(" "),NN,ss(":"),ss(Sig),nl(0),iv(nl(0),[sq([ss("locals "),ix(Lx)])|II])])) :-
   ssTrm(Nm,0,NN),
   showMnem(Ins,0,[],II),
-  ssPolicy(H,HH).
+  ssPolicy(H,HH),!.
 
 ssPolicy(soft,ss("soft")).
 ssPolicy(hard,ss("hard")).
@@ -112,7 +112,7 @@ ssPolicy(hard,ss("hard")).
 showMnem([],_,_,[]).
 showMnem([iLbl(Lb)|Ins],Pc,Lbs,[sq([ss(Lb),ss(":")])|II]) :-
   showMnem(Ins,Pc,[(Lb,Pc)|Lbs],II).
-showMnem([iLocal(Nm,Frm,End,_Off)|Ins],Pc,Lbs,[sq([ss(Nm),ss("::"),ss(Frm),ss("-"),ss(End)])|II]) :-
+showMnem([iLocal(Nm,Frm,End,Off)|Ins],Pc,Lbs,[sq([ss(Nm),ss("::"),ss(Frm),ss("-"),ss(End),ss(":"),ix(Off)])|II]) :-
   showMnem(Ins,Pc,Lbs,II).
 showMnem([iLine(Loc)|Ins],Pc,Lbs,[sq([ss("Line "),LL])|II]) :-
   ssTrm(Loc,0,LL),

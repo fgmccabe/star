@@ -342,7 +342,7 @@ star.compiler.assem{
   showMnem:(cons[assemOp],integer) => string.
   showMnem([],_) => "".
   showMnem([iLbl(al(Lb)),..Ins],Pc) => "#(Lb):\n"++showMnem(Ins,Pc).
-  showMnem([iLocal(Nm,Frm,End,_Off),..Ins],Pc) => "#(Nm)\::$(Frm)-$(End)\n"++showMnem(Ins,Pc).
+  showMnem([iLocal(Nm,Frm,End,Off),..Ins],Pc) => "#(Nm)\::$(Frm)-$(End)\:$(Off)\n"++showMnem(Ins,Pc).
   showMnem([iHalt(U),..Ins],Pc) => "$(Pc)\: Halt $(U)\n" ++ showMnem(Ins,Pc+3).
   showMnem([.iNop,..Ins],Pc) => "$(Pc)\: Nop\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iAbort,..Ins],Pc) => "$(Pc)\: Abort\n" ++ showMnem(Ins,Pc+1).
