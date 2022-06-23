@@ -30,10 +30,6 @@
 @tab left associative infix
 @tab 800
 @tab option propagate
-@item @code{pure}
-@tab non-associative prefix
-@tab 300
-@tab wrap value in applicative
 @item @code{~=}
 @tab non-associative infix
 @tab 900
@@ -42,10 +38,6 @@
 @tab non-associative infix
 @tab 1231
 @tab type function
-@item @code{throw}
-@tab non-associative prefix
-@tab 930
-@tab throw an exception
 @item @code{.|.}
 @tab left associative infix
 @tab 720
@@ -386,6 +378,10 @@
 @tab non-associative infix
 @tab 950
 @tab constructor arrow
+@item @code{generator}
+@tab non-associative prefix
+@tab 300
+@tab define a generator expression
 @item @code{perform}
 @tab non-associative prefix
 @tab 300
@@ -394,6 +390,10 @@
 @tab non-associative prefix
 @tab 300
 @tab evaluate an action expression
+@item @code{yield}
+@tab non-associative prefix
+@tab 300
+@tab yield in a generator expression
 @item @code{until}
 @tab non-associative infix
 @tab 1175
@@ -474,10 +474,6 @@
 @tab left associative infix
 @tab 600
 @tab test nth bit
-@item @code{handle}
-@tab non-associative infix
-@tab 1199
-@tab try @{...@} handle @{...@}
 @item @code{~}
 @tab non-associative prefix
 @tab 905
@@ -520,35 +516,35 @@
 @headitem Keyword @tab Keyword @tab Keyword
 @item @code{retire}
 @tab @code{all}
-@tab @code{throw}
-@item @code{do}
-@tab @code{import}
+@tab @code{do}
+@item @code{import}
 @tab @code{catch}
-@item @code{valis}
-@tab @code{for}
+@tab @code{valis}
+@item @code{for}
 @tab @code{raise}
-@item @code{then}
-@tab @code{default}
+@tab @code{then}
+@item @code{default}
 @tab @code{resume}
-@item @code{contract}
-@tab @code{try}
+@tab @code{contract}
+@item @code{try}
 @tab @code{exists}
-@item @code{if}
-@tab @code{in}
+@tab @code{if}
+@item @code{in}
 @tab @code{suspend}
-@item @code{open}
-@tab @code{public}
+@tab @code{open}
+@item @code{public}
 @tab @code{ref}
-@item @code{where}
-@tab @code{case}
+@tab @code{where}
+@item @code{case}
+@tab @code{generator}
 @tab @code{perform}
 @item @code{valof}
+@tab @code{yield}
 @tab @code{until}
-@tab @code{while}
-@item @code{private}
+@item @code{while}
+@tab @code{private}
 @tab @code{type}
-@tab @code{implementation}
-@item @code{handle}
+@item @code{implementation}
 @tab @code{else}
 
 @end multitable

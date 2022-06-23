@@ -9,10 +9,8 @@
   ("^=" ( (infix 899 900 899)))
   ("&&" ( (infix 910 910 909)))
   ("^?" ( (infix 800 800 799)))
-  ("pure" ( (prefix 300 299)))
   ("~=" ( (infix 899 900 899)))
   ("~>" ( (infix 1230 1231 1230)))
-  ("throw" ( (prefix 930 929)))
   (".|." ( (infix 720 720 719)))
   ("do" ( (prefix 200 199) (infix 1199 1200 1199)))
   ("import" ( (prefix 900 899)))
@@ -86,8 +84,10 @@
   ("=>" ( (infix 949 950 950)))
   ("^" ( (prefix 100 99) (infix 99 100 99)))
   ("<=>" ( (infix 949 950 949)))
+  ("generator" ( (prefix 300 299)))
   ("perform" ( (prefix 300 299)))
   ("valof" ( (prefix 300 299)))
+  ("yield" ( (prefix 300 299)))
   ("until" ( (infix 1174 1175 1174)))
   ("while" ( (prefix 1175 1174)))
   ("private" ( (prefix 1200 1199)))
@@ -108,7 +108,6 @@
   ("implementation" ( (prefix 1260 1259)))
   ("|" ( (infix 1248 1248 1247)))
   (".#." ( (infix 600 600 599)))
-  ("handle" ( (infix 1198 1199 1198)))
   ("~" ( (prefix 905 904)))
   ("^//" ( (infix 800 800 799)))
   ("||" ( (infix 919 920 920)))
@@ -138,7 +137,6 @@
 (defconst star-keywords
   '("retire"
 "all"
-"throw"
 "do"
 "import"
 "catch"
@@ -159,14 +157,15 @@
 "ref"
 "where"
 "case"
+"generator"
 "perform"
 "valof"
+"yield"
 "until"
 "while"
 "private"
 "type"
 "implementation"
-"handle"
 "else"
 )
   "Table of standard keywords"

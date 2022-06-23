@@ -27,10 +27,8 @@
   operator("^=", [infixOp(899, 900, 899)]).
   operator("&&", [infixOp(910, 910, 909)]).
   operator("^?", [infixOp(800, 800, 799)]).
-  operator("pure", [prefixOp(300, 299)]).
   operator("~=", [infixOp(899, 900, 899)]).
   operator("~>", [infixOp(1230, 1231, 1230)]).
-  operator("throw", [prefixOp(930, 929)]).
   operator(".|.", [infixOp(720, 720, 719)]).
   operator("do", [prefixOp(200, 199), infixOp(1199, 1200, 1199)]).
   operator("import", [prefixOp(900, 899)]).
@@ -104,8 +102,10 @@
   operator("=>", [infixOp(949, 950, 950)]).
   operator("^", [prefixOp(100, 99), infixOp(99, 100, 99)]).
   operator("<=>", [infixOp(949, 950, 949)]).
+  operator("generator", [prefixOp(300, 299)]).
   operator("perform", [prefixOp(300, 299)]).
   operator("valof", [prefixOp(300, 299)]).
+  operator("yield", [prefixOp(300, 299)]).
   operator("until", [infixOp(1174, 1175, 1174)]).
   operator("while", [prefixOp(1175, 1174)]).
   operator("private", [prefixOp(1200, 1199)]).
@@ -126,7 +126,6 @@
   operator("implementation", [prefixOp(1260, 1259)]).
   operator("|", [infixOp(1248, 1248, 1247)]).
   operator(".#.", [infixOp(600, 600, 599)]).
-  operator("handle", [infixOp(1198, 1199, 1198)]).
   operator("~", [prefixOp(905, 904)]).
   operator("^//", [infixOp(800, 800, 799)]).
   operator("||", [infixOp(919, 920, 920)]).
@@ -369,7 +368,6 @@
   keyword("^=").
   keyword("&&").
   keyword("~>").
-  keyword("throw").
   keyword("{.").
   keyword("do").
   keyword("import").
@@ -424,9 +422,11 @@
   keyword("^").
   keyword("<=>").
   keyword("|]").
+  keyword("generator").
   keyword("perform").
   keyword("?}").
   keyword("valof").
+  keyword("yield").
   keyword("until").
   keyword("while").
   keyword("private").
@@ -441,7 +441,6 @@
   keyword(".}").
   keyword("|").
   keyword("}").
-  keyword("handle").
   keyword("~").
   keyword("||").
   keyword("else").
