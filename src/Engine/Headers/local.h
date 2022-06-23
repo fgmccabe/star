@@ -28,6 +28,16 @@
 #define BLUE_ESC_OFF "\033[0m"
 #endif
 
+#ifndef CYAN_ESC_ON
+#define CYAN_ESC_ON "\033[36m"
+#define CYAN_ESC_OFF "\033[0m"
+#endif
+
+#ifndef MAGENTA_ESC_ON
+#define MAGENTA_ESC_ON "\033[35m"
+#define MAGENT_ESC_OFF "\033[0m"
+#endif
+
 #ifndef ULINE_ESC_ON
 #define ULINE_ESC_ON "\033[7m"
 #define ULINE_ESC_OFF "\033[0m"

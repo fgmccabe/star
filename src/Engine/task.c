@@ -151,7 +151,7 @@ framePo pushFrame(taskPo tsk, methodPo mtd, framePo fp, ptrPo sp) {
   tsk->sp = (ptrPo) f;
 
   integer lclCnt = lclCount(mtd);  /* How many locals do we have */
-  sp = (ptrPo) tsk->fp - lclCnt;
+  sp = tsk->sp = (ptrPo) tsk->fp - lclCnt;
 #ifdef TRACEEXEC
   for (integer ix = 0; ix < lclCnt; ix++)
     sp[ix] = voidEnum;
@@ -187,14 +187,8 @@ void verifyTask(taskPo tsk, heapPo H) {
       fp = fp->fp;
     }
 
-    switch (taskState(tsk)) {
-      case active:
-      case suspended:
-        verifyTask(tsk->attachment, H);
-        break;
-      default:
-        return;
-    }
+    if (tsk->attachment != Null)
+      verifyTask(tsk->attachment, H);
   }
 }
 
@@ -314,18 +308,11 @@ char *stackStateName(TaskState ste) {
 
 retCode tskDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   taskPo tsk = C_TASK(t);
-  framePo first = firstFrame(tsk);
 
-  if (first != Null && first != tsk->fp)
-    return outMsg(out, "(.stack %d:[%s] %M .. %M.)",
-                  tsk->hash,
-                  stackStateName(tsk->state),
-                  tsk->fp->prog, first->prog);
-  else
-    return outMsg(out, "(.stack %d:[%s] %M.)",
-                  tsk->hash,
-                  stackStateName(tsk->state),
-                  tsk->fp->prog);
+  return outMsg(out, "(.stack %d:[%s] %M.)",
+                tsk->hash,
+                stackStateName(tsk->state),
+                tsk->fp->prog);
 }
 
 taskPo glueOnStack(heapPo H, taskPo tsk, integer size, integer saveArity) {
@@ -340,7 +327,7 @@ taskPo glueOnStack(heapPo H, taskPo tsk, integer size, integer saveArity) {
   return newStack;
 }
 
-taskPo spinupStack(heapPo H, taskPo tsk, integer size) {
+taskPo spinupStack(heapPo H, integer size) {
   assert(size >= minStackSize);
 
   return allocateTask(H, size, &underFlowMethod, suspended, Null);
