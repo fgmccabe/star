@@ -22,8 +22,6 @@ static void showOCall(ioPo out, taskPo stk, termPo call);
 static void showOTail(ioPo out, taskPo stk, termPo call);
 static void showRet(ioPo out, taskPo stk, termPo val);
 static void showAssign(ioPo out, taskPo stk, termPo vl);
-static void showPrompt(ioPo out, taskPo stk, termPo prompt);
-static void showCut(ioPo out, taskPo stk, termPo prompt);
 static void showResume(ioPo out, taskPo stk, termPo cont);
 static void showTResume(ioPo out, taskPo stk, termPo cont);
 static void showGlobal(ioPo out, taskPo stk, termPo global);
@@ -946,30 +944,14 @@ void showAssign(ioPo out, taskPo stk, termPo vl) {
     outMsg(out, "assign: %T->%#,*T", cell, displayDepth, val);
 }
 
-void showPrompt(ioPo out, taskPo stk, termPo prompt) {
-  framePo f = currFrame(stk);
-  termPo locn = findPcLocation(f->prog, insOffset(f->prog, f->pc));
-
-  if (locn != Null) {
-    if (showColors)
-      outMsg(out, BLUE_ESC_ON"prompt:"BLUE_ESC_OFF" %#L %#,*T", locn, displayDepth, prompt);
-    else
-      outMsg(out, "prompt: %#L %#,*T", locn, displayDepth, prompt);
-  } else
-    outMsg(out, "prompt: %#,*T", displayDepth, prompt);
-}
-
-void showCut(ioPo out, taskPo stk, termPo prompt) {
+void showSuspend(ioPo out, taskPo stk, termPo cont) {
   framePo f = currFrame(stk);
   termPo loc = findPcLocation(f->prog, insOffset(f->prog, f->pc));
 
-  if (loc != Null) {
-    if (showColors)
-      outMsg(out, BLUE_ESC_ON"cut:"BLUE_ESC_OFF" %#L %#,*T", loc, displayDepth, prompt);
-    else
-      outMsg(out, "cut: %#L %#,*T", loc, displayDepth, prompt);
-  } else
-    outMsg(out, "cut: %#,*T", displayDepth, prompt);
+  if (showColors)
+    outMsg(out, CYAN_ESC_ON"suspend:"CYAN_ESC_OFF "%#L %#,*T", loc, displayDepth, cont);
+  else
+    outMsg(out, "suspend:", "%#L %#,*T", loc, displayDepth, cont);
 }
 
 void showResume(ioPo out, taskPo stk, termPo cont) {
@@ -977,19 +959,19 @@ void showResume(ioPo out, taskPo stk, termPo cont) {
   termPo loc = findPcLocation(f->prog, insOffset(f->prog, f->pc));
 
   if (showColors)
-    outMsg(out, BLUE_ESC_ON"resume:"BLUE_ESC_OFF "%#L %#,*T", loc, displayDepth, cont);
+    outMsg(out, CYAN_ESC_ON"resume:"CYAN_ESC_OFF "%#L %#,*T", loc, displayDepth, cont);
   else
     outMsg(out, "resume:", "%#L %#,*T", loc, displayDepth, cont);
 }
 
-void showTResume(ioPo out, taskPo stk, termPo cont) {
+void showRetire(ioPo out, taskPo stk, termPo cont) {
   framePo f = currFrame(stk);
   termPo loc = findPcLocation(f->prog, insOffset(f->prog, f->pc));
 
   if (showColors)
-    outMsg(out, BLUE_ESC_ON"tresume:"BLUE_ESC_OFF "%#L %#,*T", loc, displayDepth, cont);
+    outMsg(out, CYAN_ESC_ON"retire:"CYAN_ESC_OFF "%#L %#,*T", loc, displayDepth, cont);
   else
-    outMsg(out, "tresume:", "%#L %#,*T", loc, displayDepth, cont);
+    outMsg(out, "retire:", "%#L %#,*T", loc, displayDepth, cont);
 }
 
 void showGlobal(ioPo out, taskPo stk, termPo global) {
@@ -1044,9 +1026,17 @@ DebugWaitFor enterDebug(processPo p) {
     }
     case Assign:
       return lnDebug(p, Null, showAssign);
+    case Suspend: {
+      termPo cont = topStack(stk);
+      return lnDebug(p, cont, showSuspend);
+    }
     case Resume: {
       termPo cont = topStack(stk);
       return lnDebug(p, cont, showResume);
+    }
+    case Retire: {
+      termPo cont = topStack(stk);
+      return lnDebug(p, cont, showRetire);
     }
     case LdG: {
       int32 glbNo = collect32(pc);

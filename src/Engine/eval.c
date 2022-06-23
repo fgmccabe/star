@@ -474,12 +474,14 @@ retCode run(processPo P) {
         }
         bumpCallCount(mtd);
 
+        int root = gcAddRoot(H, (ptrPo) &mtd);
         saveRegisters();
-        taskPo child = spinupStack(H, STK, minStackSize);
+        taskPo child = spinupStack(H, minStackSize);
         restoreRegisters();
+        gcReleaseRoot(H, root);
 
         pushStack(child, (termPo) child);
-        pushStack(child,nthElem(obj, 0));            // Put the free term on the new stack
+        pushStack(child, nthElem(obj, 0));            // Put the free term on the new stack
         pushFrame(child, mtd, child->fp, child->sp);
 
         push(child);                                                 // We return the new stack

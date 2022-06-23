@@ -47,7 +47,7 @@ void pushStack(taskPo stk, termPo ptr);
 void moveStack2Stack(taskPo toStk, taskPo fromStk, integer count);
 
 taskPo glueOnStack(heapPo H, taskPo stk, integer size, integer saveArity);
-taskPo spinupStack(heapPo H, taskPo stk, integer size);
+taskPo spinupStack(heapPo H, integer size);
 
 integer stackHwm(taskPo stk);;
 
