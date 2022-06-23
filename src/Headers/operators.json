@@ -185,16 +185,6 @@
     "keyword": true
   },
   {
-    "infixOp": "handle",
-    "priorities": [
-      1198,
-      1199,
-      1198
-    ],
-    "desc": "try {...} handle {...}",
-    "keyword": true
-  },
-  {
     "infixOp": ";",
     "priorities": [
       1250,
@@ -229,6 +219,24 @@
       299
     ],
     "desc": "perform an action or task",
+    "keyword": true
+  },
+  {
+    "prefixOp": "generator",
+    "priorities": [
+      300,
+      299
+    ],
+    "desc": "define a generator expression",
+    "keyword": true
+  },
+  {
+    "prefixOp": "yield",
+    "priorities": [
+      300,
+      299
+    ],
+    "desc": "yield in a generator expression",
     "keyword": true
   },
   {
@@ -1108,15 +1116,6 @@
     "keyword": true
   },
   {
-    "prefixOp": "pure",
-    "priorities": [
-      300,
-      299
-    ],
-    "desc": "wrap value in applicative",
-    "keyword": false
-  },
-  {
     "prefixOp": "return",
     "priorities": [
       930,
@@ -1132,15 +1131,6 @@
       929
     ],
     "desc": "return value from execution",
-    "keyword": true
-  },
-  {
-    "prefixOp": "throw",
-    "priorities": [
-      930,
-      929
-    ],
-    "desc": "throw an exception",
     "keyword": true
   },
   {

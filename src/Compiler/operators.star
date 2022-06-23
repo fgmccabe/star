@@ -43,10 +43,8 @@ star.compiler.operators{
   oper("^=") => [infixOp(899,900,899)].
   oper("&&") => [infixOp(910,910,909)].
   oper("^?") => [infixOp(800,800,799)].
-  oper("pure") => [prefixOp(300,299)].
   oper("~=") => [infixOp(899,900,899)].
   oper("~>") => [infixOp(1230,1231,1230)].
-  oper("throw") => [prefixOp(930,929)].
   oper(".|.") => [infixOp(720,720,719)].
   oper("do") => [prefixOp(200,199), infixOp(1199,1200,1199)].
   oper("import") => [prefixOp(900,899)].
@@ -120,8 +118,10 @@ star.compiler.operators{
   oper("=>") => [infixOp(949,950,950)].
   oper("^") => [prefixOp(100,99), infixOp(99,100,99)].
   oper("<=>") => [infixOp(949,950,949)].
+  oper("generator") => [prefixOp(300,299)].
   oper("perform") => [prefixOp(300,299)].
   oper("valof") => [prefixOp(300,299)].
+  oper("yield") => [prefixOp(300,299)].
   oper("until") => [infixOp(1174,1175,1174)].
   oper("while") => [prefixOp(1175,1174)].
   oper("private") => [prefixOp(1200,1199)].
@@ -142,7 +142,6 @@ star.compiler.operators{
   oper("implementation") => [prefixOp(1260,1259)].
   oper("|") => [infixOp(1248,1248,1247)].
   oper(".#.") => [infixOp(600,600,599)].
-  oper("handle") => [infixOp(1198,1199,1198)].
   oper("~") => [prefixOp(905,904)].
   oper("^//") => [infixOp(800,800,799)].
   oper("||") => [infixOp(919,920,920)].
@@ -420,7 +419,6 @@ star.compiler.operators{
   keyword("^=") => .true.
   keyword("&&") => .true.
   keyword("~>") => .true.
-  keyword("throw") => .true.
   keyword("{.") => .true.
   keyword("do") => .true.
   keyword("import") => .true.
@@ -475,9 +473,11 @@ star.compiler.operators{
   keyword("^") => .true.
   keyword("<=>") => .true.
   keyword("|]") => .true.
+  keyword("generator") => .true.
   keyword("perform") => .true.
   keyword("?}") => .true.
   keyword("valof") => .true.
+  keyword("yield") => .true.
   keyword("until") => .true.
   keyword("while") => .true.
   keyword("private") => .true.
@@ -492,7 +492,6 @@ star.compiler.operators{
   keyword(".}") => .true.
   keyword("|") => .true.
   keyword("}") => .true.
-  keyword("handle") => .true.
   keyword("~") => .true.
   keyword("||") => .true.
   keyword("else") => .true.
