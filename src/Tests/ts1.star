@@ -58,7 +58,10 @@ test.ts1{
   implementation all e ~~ iter[cons[e]->>e] => {.
     _iter(.nil,X,_) => X.
     _iter(cons(H,T),X,F) =>
-      _iter(T,F(H,X),F).
+      case F(H,X) in {
+	_more(C) => _iter(T,C,F).
+	_end(C) => C
+      }.
   .}
 
   iterTask:all c,e ~~ iter[c->>e] |: (c) => task[scomm[e],rcomm].
@@ -66,7 +69,7 @@ test.ts1{
     let{
       yieldFn(E,Cx) => valof{
 	suspend yield(E) in {
-	  .next => valis Cx
+	  .next => valis _more(Cx)
 	}
       }
     } in {_ .= _iter(L,(),yieldFn)};
