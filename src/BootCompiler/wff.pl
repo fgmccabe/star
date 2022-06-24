@@ -44,7 +44,7 @@
 	      isCaseExp/4,caseExp/4,
 	      isSuspend/4,isSuspend/5,isResume/5,isRetire/3,isRetire/4,
 	      mkSuspend/4,mkSuspend/5,mkResume/5,mkRetire/3,mkRetire/4,
-	      isTaskTerm/3,mkTaskTerm/3,isActionTerm/3,mkActionTerm/3,
+	      isTaskTerm/3,mkTaskTerm/3,isTask/3,mkTask/3,
 	      isResultTerm/3,mkResultTerm/3,
 	      isDoTerm/3,mkDoTerm/3,isDo/3,mkDo/3,
 	      isValof/3,mkValof/3,isPerform/3,mkPerform/3,
@@ -764,17 +764,17 @@ isResultTerm(A,Lc,Stmts) :-
 mkResultTerm(Lc,S,T) :-
   braceTerm(Lc,name(Lc,"result"),[S],T).
 
-isActionTerm(A,Lc,Stmts) :-
-  isBrace(A,Lc,"action",[Stmts]).
-
-mkActionTerm(Lc,S,T) :-
-  braceTerm(Lc,name(Lc,"action"),[S],T).
-
 isTaskTerm(A,Lc,Stmts) :-
-  isBrace(A,Lc,"task",[Stmts]).
+  isBraceTerm(A,Lc,name(_,"task"),[Stmts]),!.
 
 mkTaskTerm(Lc,S,T) :-
   braceTerm(Lc,name(Lc,"task"),[S],T).
+
+isTask(A,Lc,T) :-
+  isUnary(A,Lc,"task",T).
+
+mkTask(Lc,T,A) :-
+  unary(Lc,"task",T,A).
 
 isDoTerm(A,Lc,Stmt) :-
   isUnary(A,Lc,"do",I),

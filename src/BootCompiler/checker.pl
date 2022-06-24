@@ -750,6 +750,9 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,deref(Lc,Exp),Path) :-
 typeOfExp(Term,Tp,_ErTp,Env,Env,Exp,Path) :-
   isTaskTerm(Term,Lc,A),!,
   typeOfTask(Lc,A,Tp,Env,Exp,Path).
+typeOfExp(Term,Tp,_ErTp,Env,Env,Exp,Path) :-
+  isTask(Term,Lc,A),!,
+  taskLambda(Lc,A,Tp,Env,Exp,Path).
 typeOfExp(Term,Tp,_ErTp,Env,Env,Val,Path) :-
   isQBraceTuple(Term,Lc,Els),
   \+isComprehension(Term,_,_,_),
@@ -909,10 +912,19 @@ typeOfTask(Lc,A,Tp,Env,task(Lc,TskFun,Tp),Path) :-
   mkValof(Lc,AA,VlOf),
   mkEquation(Lc,Args,none,VlOf,Lam),
   verifyType(Lc,ast(A),TTp,Tp,Env),
-  unitTp(UnitTp),
-  LmTp = funType(tplType([Tp]),UnitTp),
+%  unitTp(UnitTp),
+  LmTp = funType(tplType([Tp]),voidType),
   reportMsg("check task lambda %s:%s",[ast(Lam),tpe(LmTp)],Lc),
   typeOfLambda(Lam,LmTp,Env,TskFun,Path).
+
+taskLambda(Lc,F,Tp,Env,task(Lc,TskFun,Tp),Path) :-
+  findType("task",Lc,Env,TskTp),
+  newTypeVar("SComm",SV),
+  newTypeVar("RComm",RV),
+  applyTypeFun(TskTp,[SV,RV],Lc,Env,TTp),
+  verifyType(Lc,ast(F),TTp,Tp,Env),
+  LmTp = funType(tplType([Tp]),voidType),
+  typeOfExp(F,LmTp,voidType,Env,_,TskFun,Path).
 
 checkDo(Vls,Rsr,A,Tp,ErTp,Env,Ev,As,Path) :-
   checkAction(A,Tp,ErTp,Env,Ev,As,Vls,Rsr,Path).
@@ -1023,16 +1035,16 @@ checkAction(A,Tp,ErTp,Env,Ev,Susp,Vls,Rsr,Path) :-
   checkResume(Lc,T,E,Tp,ErTp,C,Env,Ev,Susp,Vls,Rsr,Path).
 checkAction(A,Tp,ErTp,Env,Ev,Susp,Vls,Rsr,Path) :-
   isRetire(A,Lc,E),!,
-  unitTp(UnitTp),
+%  unitTp(UnitTp),
   newTypeFun("R",2,RsltTp),
-  applyTypeFun(RsltTp,[ErTp,UnitTp],Lc,Env,RTp),
+  applyTypeFun(RsltTp,[ErTp,voidType],Lc,Env,RTp),
   verifyType(Lc,A,RTp,Tp,Env),
   checkRetire(Lc,name(Lc,"this"),E,ErTp,Env,Ev,Susp,Vls,Rsr,Path).
 checkAction(A,Tp,ErTp,Env,Ev,Susp,Vls,Rsr,Path) :-
   isRetire(A,Lc,T,E),!,
-  unitTp(UnitTp),
+%  unitTp(UnitTp),
   newTypeFun("R",2,RsltTp),
-  applyTypeFun(RsltTp,[ErTp,UnitTp],Lc,Env,RTp),
+  applyTypeFun(RsltTp,[ErTp,voidType],Lc,Env,RTp),
   verifyType(Lc,A,RTp,Tp,Env),
   checkRetire(Lc,T,E,ErTp,Env,Ev,Susp,Vls,Rsr,Path).
 checkAction(A,Tp,ErTp,Env,Env,Call,_Vls,Rsr,Path) :-
