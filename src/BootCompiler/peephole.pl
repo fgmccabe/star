@@ -71,7 +71,7 @@ deleteUnused(F,[iIndxJmp(Ar)|Ins],Lbs,[iIndxJmp(Ar)|Cde]) :-
   deleteUnused(F,Insx,Lbs,Rst).
 deleteUnused(F,[iCase(Ar)|Ins],Lbs,[iCase(Ar)|Cde]) :-
   copyN(Ins,Ar,Insx,Cde,Rst),!,
-  deleteUnused(F,Lbs,Insx,Rst).
+  deleteUnused(F,Insx,Lbs,Rst).
 deleteUnused(_,[I|Ins],Lbs,[I|Cde]) :-
   propagateDrop(I,F1),!,
   deleteUnused(F1,Ins,Lbs,Cde).
