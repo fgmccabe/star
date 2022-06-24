@@ -183,7 +183,7 @@ compExp(idnt(Nm),Lc,Cont,_TCont,End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
    D=Dx,L=Lx).
 compExp(ctpl(St,A),Lc,Cont,TCont,End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk2) :-!,
   compExps(A,Lc,allocCont(St,Cont),TCont,End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk2).
-compExp(intrinsic(Lc,Op,A),OLc,End,Cont,TCont,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+compExp(intrinsic(Lc,Op,A),OLc,Cont,TCont,End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   bumpStk(Stk,Stk1),
   compExps(A,Lc,asmCont(Op,Cont,Stk1),TCont,End,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
