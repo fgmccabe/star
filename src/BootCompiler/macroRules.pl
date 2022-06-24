@@ -552,9 +552,9 @@ generatorMacro(E,expression,Ex) :-
   mkRetire(Lc,All,Rt),
 
   mkSequence(Lc,Try,Rt,TB),
-  
-  braceTerm(Lc,name(Lc,"task"),[TB],Ex).
-%  dispAst(Ex).
+
+  mkTaskTerm(Lc,TB,Ex),
+  dispAst(Ex).
 
 /* yield E
    becomes

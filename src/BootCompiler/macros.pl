@@ -413,13 +413,6 @@ examineTerm(T,Tx) :-
   squareTerm(Lc,name(Lc,"result"),[An,An],RTp),
   typeAnnotation(Lc,Mx,RTp,Tx).
 examineTerm(T,Tx) :-
-  isActionTerm(T,Lc,S),!,
-  macroAction(S,Sx),
-  mkDoTerm(Lc,Sx,Mx),
-  unitTpl(Lc,U),
-  mkEquation(Lc,U,none,Mx,Lam),
-  unary(Lc,"delay",Lam,Tx).
-examineTerm(T,Tx) :-
   isTaskTerm(T,Lc,S),!,
   macroAction(S,Sx),
   mkTaskTerm(Lc,Sx,Tx).
