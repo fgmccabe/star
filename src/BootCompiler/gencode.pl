@@ -745,7 +745,7 @@ compCase(T,Lc,Cases,Deflt,Cont,TCont,Hndlr,End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   stkLvl(Stk,Lvl),
   compCases(Table,0,Mx,OC,contCont(Dflt),TCont,Dflt,Hndlr,
 	    Opts,L3,L4,D2,D4,T0,Tx,Tx,[iLbl(Dflt),iRst(Lvl)|C1],Stk0),
-  call(Hndlr,Deflt,Lc,OC,TCont,Opts,L4,Lx,D4,Dx,End,C1,Cx,Stk,Stkx).
+  call(Hndlr,Deflt,Lc,OC,TCont,End,Opts,L4,Lx,D4,Dx,C1,Cx,Stk,Stkx).
 
 genCaseTable(Cases,P,Table) :-
   length(Cases,L),
@@ -785,7 +785,7 @@ mergeDuplicate([(P,H,E)|M],H,[(P,E)|Ds],Rs) :-!,
   mergeDuplicate(M,H,Ds,Rs).
 mergeDuplicate(M,_,[],M).
 
-compCases([],Mx,Mx,_,_Succ,_,_TCont,_,_,_Opts,Lx,Lx,D,D,Tc,Tc,C,C,_Stk).
+compCases([],Mx,Mx,_Succ,_,_TCont,_,_,_Opts,Lx,Lx,D,D,Tc,Tc,C,C,_Stk).
 compCases([],Ix,Mx,Succ,Fail,TCont,Dflt,Hndlr,Opts,L,Lx,D,Dx,[iJmp(Dflt)|Tc],Tx,C,Cx,Stk) :-
   Ix1 is Ix+1,
   compCases([],Ix1,Mx,Succ,Fail,TCont,Dflt,Hndlr,Opts,L,Lx,D,Dx,Tc,Tx,C,Cx,Stk).

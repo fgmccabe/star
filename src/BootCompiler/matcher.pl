@@ -179,7 +179,7 @@ mkIfThenElse(Lc,some(Tst),Th,El,iftte(Lc,Tst,Th,El)).
 
 mkCase(Lc,V,Conder,[(Lbl,Exp,Lc)],Deflt,Cnd) :-!,
   call(Conder,Lc,some(mtch(Lc,Lbl,V)),Exp,Deflt,Cnd).
-mkCase(Lc,V,Cases,Deflt,case(Lc,V,Cases,Deflt)).
+mkCase(Lc,V,_,Cases,Deflt,case(Lc,V,Cases,Deflt)).
 
 mkUnpack(_Lc,V,Conder,[(enum(Nm),Exp,Lc)],_Index,Deflt,_Map,Reslt) :-!,
   call(Conder,Lc,some(mtch(Lc,ctpl(lbl(Nm,0),[]),V)),Exp,Deflt,Reslt).
