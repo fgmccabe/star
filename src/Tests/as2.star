@@ -6,12 +6,14 @@ test.as2{
     foo : ref integer.
     foo = ref 0.
 
-    reset = action{
+    reset:result[(),boolean].
+    reset = do{
       foo := 0;
       valis .false
     }
 
-    mark(X) => action{
+    mark:(integer)=>result[(),boolean].
+    mark(X) => do{
       foo := X;
       valis .true
     }
@@ -26,9 +28,10 @@ test.as2{
     check(_,_) default => valof reset.
   .} in check.
 
-  main:()=>action[(),()].
-  main()=>action{
+  main:()=>().
+  main()=>valof{
     assert checkLists()([1,2],[1,2]);
-    assert ~checkLists()([],[1])
+    assert ~checkLists()([],[1]);
+    valis ()
   }
 }

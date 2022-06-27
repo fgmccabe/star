@@ -7,14 +7,14 @@ test.ac3{
   f:(integer) => integer.
   f(X) => valof{
     try{
-      _ .= _logmsg("p1");
+      _logmsg("p1");
       if X>5 then
 	raise 10
       else
       valis 3*X
     } catch {
       (I) => {
-	_ .= _logmsg(disp(I))
+	_logmsg(disp(I))
       }
     };
     valis 5*X

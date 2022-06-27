@@ -390,8 +390,8 @@ liftExp(lambda(Lc,Lbl,Rle,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-!,
   liftLambda(lambda(Lc,Lbl,Rle,Tp),Rslt,Q,Map,Opts,Ex,Exx).
 liftExp(valof(Lc,doExp(_,A,_),_),vlof(Lc,Rslt),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftAction(A,Rslt,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(valof(Lc,A,_Tp),vlof(Lc,Rslt),Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftAction(A,Rslt,Q,Qx,Map,Opts,Ex,Exx).
+liftExp(valof(_,A,_Tp),Rslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftExp(A,Rslt,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(doExp(Lc,A,_Tp),perf(Lc,Rslt),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftAction(A,Rslt,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(task(Lc,A,_),tsk(Lc,F),Q,Qx,Map,Opts,Ex,Exx) :-
@@ -405,6 +405,8 @@ liftAction(doNop(Lc),nop(Lc),Q,Q,_,_,Ex,Ex) :-!.
 liftAction(doSeq(Lc,L,R),seq(Lc,LL,RR),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftAction(L,LL,Q,Q0,Map,Opts,Ex,Ex0),
   liftAction(R,RR,Q0,Qx,Map,Opts,Ex0,Exx).
+liftAction(doIgnore(Lc,E),ignre(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
 liftAction(doValis(Lc,E),vls(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
 liftAction(doRaise(Lc,E),rse(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
@@ -419,7 +421,7 @@ liftAction(doBind(Lc,P,E),bnd(Lc,PP,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftPtn(P,PP,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(E,EE,Q0,Qx,Map,Opts,Ex0,Exx).
 liftAction(doAssign(Lc,P,E),asgn(Lc,PP,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftPtn(P,PP,Q,Q0,Map,Opts,Ex,Ex0),
+  liftExp(P,PP,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(E,EE,Q0,Qx,Map,Opts,Ex0,Exx).
 liftAction(doIfThenElse(Lc,G,L,R),iftte(Lc,GG,LL,RR),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftGoal(G,GG,Q,Q0,Map,Opts,Ex,Ex0),

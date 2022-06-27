@@ -33,6 +33,7 @@ macroRl(":=",expression,macroRules:indexAssignMacro).
 macroRl("<-",action,macroRules:bindActionMacro).
 macroRl("do",action,macroRules:forLoopMacro).
 macroRl("perform",action,macroRules:performMacro).
+
 %macroRl("assert",expression,macroRules:assertMacro).
 macroRl("assert",action,macroRules:assertMacro).
 macroRl("show",action,macroRules:showMacro).
@@ -330,11 +331,10 @@ performMacro(T,action,Act) :-
   unary(Lc,"raise",E,Rh2),
   mkEquation(Lc,Lh2,none,Rh2,BadEqn),
   caseExp(Lc,I,[OkEqn,BadEqn],Act).
-
 /*
  assert C 
 becomes
- perform assrt(()=>C,"failed: C",Loc)
+  assrt(()=>C,"failed: C",Loc)
 */
 assertMacro(T,_,Act) :-
   isIntegrity(T,Lc,Cond),!,
@@ -345,8 +345,7 @@ makeAssert(Lc,Cond,Act) :-
   locOfAst(Cond,CLc),
   eqn(Lc,tuple(Lc,"()",[]),Cond,Lam),
   mkLoc(CLc,Loc),
-  roundTerm(Lc,name(Lc,"assrt"),[Lam,Msg,Loc],Assert),
-  mkPerform(Lc,Assert,Act).
+  roundTerm(Lc,name(Lc,"assrt"),[Lam,Msg,Loc],Act).
 
 /*
  show E 
@@ -363,6 +362,7 @@ makeShow(Lc,Exp,Act) :-
   mkLoc(ELc,Loc),
   eqn(Lc,tuple(Lc,"()",[]),Exp,Lam),
   roundTerm(Lc,name(Lc,"shwMsg"),[Lam,Txt,Loc],Act).
+
 
 /*
    A[F:T] := R
@@ -465,7 +465,7 @@ binRefMacro(T,expression,Rp) :-
   for P in C do B
   becomes
   {
-    I .= iterTask(C);
+    I .= _generate(C);
     try{
       while .true do{
         I resume ._next in {
@@ -517,8 +517,8 @@ binRefMacro(T,expression,Rp) :-
    braceTuple(Lc,[Loop],B),
    mkTryCatch(Lc,B,[Catcher],Try),
 
-   /* Build call to iterTask */
-   roundTerm(Lc,name(Lc,"iterTask"),[C],IT),
+   /* Build call to _generate */
+   roundTerm(Lc,name(Lc,"_generate"),[C],IT),
    match(Lc,I,IT,S1),
    mkSequence(Lc,S1,Try,Ax).
 
@@ -553,8 +553,8 @@ generatorMacro(E,expression,Ex) :-
 
   mkSequence(Lc,Try,Rt,TB),
 
-  mkTaskTerm(Lc,TB,Ex),
-  dispAst(Ex).
+  mkTaskTerm(Lc,TB,Ex).
+%  dispAst(Ex).
 
 /* yield E
    becomes

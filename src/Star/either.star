@@ -2,7 +2,6 @@ star.either{
   import star.core.
   import star.arith.
   import star.cons.
-  import star.monad.
 
   -- Either or values
   public all a,b ~~ either[b,a] ::= either(a) | other(b).
@@ -22,38 +21,5 @@ star.either{
   public implementation all x,y ~~ hashable[x],hashable[y] |: hashable[either[x,y]] => {
     hash(either(A)) => hash(A)*37.
     hash(other(B)) => hash(B)*41.
-  }
-
-  public implementation execution[either] => {
-    _isOk(either(_)) => .true.
-    _isOk(other(_)) => .false.
-    _getval(either(X)) => X.
-    _errval(other(X)) => X.
-    _valis(X) => either(X).
-    _raise(S) => other(S).
-  }
-
-  public implementation all a ~~ monad[either[a]] => {
-    (either(X) >>= F) => F(X).
-    (other(E) >>= _) => other(E).
-
-    return X => either(X).
-  }
-
-  public implementation all a ~~ functor[either[a]] => {
-    fmap(F,either(X)) => either(F(X)).
-    fmap(_,other(E)) => other(E).
-    C <$ either(_) => either(C).
-    C <$ other(E) => other(E).
-  }
-
-  public implementation all a ~~ applicative[either[a]] => {
-    pure X => either(X).
-    (either(F) <*> either(X)) => either(F(X)).
-    (_ <*> other(E)) => other(E).
-  }
-
-  public implementation all e ~~ injection[option,either[e]] => {
-    _inject(some(X)) => either(X).
   }
 }

@@ -4,7 +4,6 @@ star.option{
   import star.arith.
   import star.cons.
   import star.strings.
-  import star.monad.
 
   -- display optional values
   public implementation all x ~~ display[x] |: display[option[x]] => {
@@ -27,25 +26,6 @@ star.option{
   public implementation all x ~~ hashable[x] |: hashable[option[x]] => {
     hash(some(X)) => hash("some")*37+hash(X).
     hash(.none) => hash("none").
-  }
-
-  public implementation functor[option] => {.
-    fmap(_,.none) => .none.
-    fmap(F,some(A)) => some(F(A)).
-    C <$ L => fmap((_)=>C,L).
- .}
-
-  public implementation applicative[option] => {
-    pure X => some(X).
-    (.none <*> _) => .none.
-    (_ <*> .none) => .none.
-    (some(F) <*> some(A)) => some(F(A)).
-  }
-
-  public implementation monad[option] => {
-    return x => some(x).
-    (some(x) >>= f) => f(x).
-    (.none >>= _) => .none.
   }
 
   public implementation all e,f ~~ coercion[e,f] |: coercion[option[e],option[f]] => {

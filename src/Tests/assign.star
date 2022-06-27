@@ -17,9 +17,9 @@ test.assign{
     name = "fred" ++ "'s friend".
   .} in someone{name= ref name. age=23 }.
 
-  main:() => action[(),()].
-  main() => action{
-    assert valof action {
+  main:() => ().
+  main() => valof{
+    assert valof {
       fred.name := "fred";
       valis fred.name!
     } == "fred";
@@ -30,7 +30,7 @@ test.assign{
 
     alpha .= ref 23;
 
-    checkInc .= (() where _ .= valof action {alpha := alpha!+1; valis ()} => alpha!==24);
+    checkInc .= (() where _ .= valof {alpha := alpha!+1; valis ()} => alpha!==24);
 
     assert alpha!==23;
 
@@ -38,6 +38,7 @@ test.assign{
 
     assert checkInc();
 
-    assert peter.name!=="fred's friend" && peter.age==23
+    assert peter.name!=="fred's friend" && peter.age==23;
+    valis ()
   }
 }

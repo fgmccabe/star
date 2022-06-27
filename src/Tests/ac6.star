@@ -19,20 +19,20 @@ test.ac6{
 
   dd:(integer) => result[string,()].
   dd(X) => do{
-    _ .= _logmsg(disp(f(X)));
-    valis ()
+    _logmsg(disp(f(X)));
+    raise "hello"
   }
 
   main:()=>().
   main() => valof{
     try{
       F10 <- f(10);
-      _ .= _logmsg(disp(F10));
+      _logmsg(disp(F10));
 
       perform dd(10);
     } catch {
       E => {
-	_ .= _logmsg(E)
+	_logmsg(E)
       }
     };
     valis ()

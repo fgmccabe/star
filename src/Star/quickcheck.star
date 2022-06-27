@@ -6,7 +6,7 @@ star.quickcheck{
 
   sized:all a ~~ ((integer)=>gen[a])=>gen[a].
   sized(f) => Gen(
-    (n,r)=> valof action{
+    (n,r)=> valof{
       Gen(m) .= f(n);
       valis m(n,r)
     }).
@@ -19,7 +19,7 @@ star.quickcheck{
 
   promote:all a,b ~~ ((a)=>gen[b])=>gen[(a)=>b].
   promote(f) => Gen((n,r) =>
-      (a)=>valof action{
+      (a)=>valof {
 	Gen(m).=f(a);
 	valis m(n,r)
       }).

@@ -38,12 +38,13 @@ test.ar{
 
   gcd(A,B) => _big_gcd(A,B).
 
-  public main:()=>action[(),()].
-  main()=>action{
+  public main:()=>().
+  main()=>valof{
     assert sample==5;
     show ff(5);
     show ff(50b);
     assert ff(50b) == 30414093201713378043612608166064768844377641568960512000000000000b;
-    assert gcd(1071b,462b)==21b
+    assert gcd(1071b,462b)==21b;
+    valis ()
   }
 }

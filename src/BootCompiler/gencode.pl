@@ -49,9 +49,10 @@ genDef(D,Opts,fnDef(Lc,Nm,H,Tp,Args,Value),O,[CdTrm|O]) :-
   buildArgs(Args,0,D,D1),
   genLine(Opts,Lc,C0,C1),
   compPtnArgs(Args,Lc,argCont,
-	      trapCont(Lc),0,contCont(Ex),abortCont(Lc,strg("def failed"),Opts),End,
+	      trapCont(Lc,"raise in arg patns"),0,
+	      contCont(Ex),abortCont(Lc,strg("def failed"),Opts),End,
 	      Opts,L1,L2,D1,D2,C1,[iLbl(Ex)|C2],some(0),Stk0),
-  compExp(Value,Lc,retCont(Opts),trapCont(Lc),End,Opts,L2,_Lx,D2,Dx,C2,[iLbl(End)],Stk0,_Stk),
+  compExp(Value,Lc,retCont(Opts),trapCont(Lc,"missing catch handler"),End,Opts,L2,_Lx,D2,Dx,C2,[iLbl(End)],Stk0,_Stk),
   findMaxLocal(Dx,Mx),
 %  (is_member(showGenCode,Opts) -> dispIns(func(Nm,H,Sig,Mx,C0));true ),
   peepOptimize(C0,Cde),
@@ -61,7 +62,8 @@ genDef(D,Opts,glbDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
   encType(funType(tplType([]),Tp),Sig),
   genLbl([],End,L1),
   genLine(Opts,Lc,C0,C1),
-  compExp(Value,Lc,bothCont(glbCont(Nm),rtgCont(Opts)),trapCont(Lc),
+  compExp(Value,Lc,bothCont(glbCont(Nm),rtgCont(Opts)),
+	  trapCont(Lc,"missing catch handler in global defn"),
 	  End,Opts,L1,_Lx,D,Dx,C1,[iLbl(End)],some(0),_Stk),
   findMaxLocal(Dx,Mx),
   (is_member(showGenCode,Opts) -> dispIns(func(lbl(Nm,0),hard,Sig,Mx,C0));true ),
@@ -84,9 +86,9 @@ rtgCont(_Opts,Lx,Lx,D,D,[iRtG|Cx],Cx,_Stk,none).
 dropCont(Lx,Lx,D,D,[iDrop|Cx],Cx,Stk,Stk1) :-
   dropStk(Stk,1,Stk1).
 
-trapCont(_Lc,Lx,Lx,D,D,Cx,Cx,none,none) :- !.
-trapCont(Lc,Lx,Lx,D,D,Cx,Cx,Stk,Stk) :-
-  reportError("not permitted to raise an exception",[],Lc).
+trapCont(_Lc,_,Lx,Lx,D,D,Cx,Cx,none,none) :- !.
+trapCont(Lc,Msg,Lx,Lx,D,D,Cx,Cx,Stk,Stk) :-
+  reportError("not permitted: %s",[ss(Msg)],Lc).
 
 idxCont(Off,Cont,L,Lx,D,Dx,[iNth(Off)|C],Cx,Stk,Stkx) :-
   call(Cont,L,Lx,D,Dx,C,Cx,Stk,Stkx).
@@ -247,7 +249,7 @@ compExp(ltt(Lc,idnt(Nm),Val,Exp),OLc,Cont,TCont,End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx
 compExp(error(Lc,Msg),_OLc,_Cont,_TCont,_End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   abortCont(Lc,Msg,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx). % no continuation after an error
 compExp(rais(Lc,E),_,_,TCont,End,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :-!,
-  compExp(E,Lc,TCont,trapCont(Lc),End,Opts,L,Lx,D,Dx,C,Cx,Stk,_).
+  compExp(E,Lc,TCont,trapCont(Lc,"raise exception in exception"),End,Opts,L,Lx,D,Dx,C,Cx,Stk,_).
 compExp(cnd(Lc,T,A,B),OLc,Cont,TCont,End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compCondExp(Lc,T,A,B,Cont,TCont,End,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
@@ -257,7 +259,7 @@ compExp(seqD(Lc,A,B),OLc,Cont,TCont,End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
 	  End,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compExp(vlof(Lc,A),_,Cont,TCont,End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   splitCont(Lc,Cont,AC),
-  compAction(A,Lc,AC,abortCont(Lc,strg("illegal action"),Opts),
+  compAction(A,Lc,AC,trapCont(Lc,"missing valis action"),
 	     TCont,End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 compExp(perf(Lc,A),_,Cont,_TCont,End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compAction(A,Lc,Cont,abortCont(Lc,strg("no action after this"),Opts),
@@ -325,10 +327,14 @@ compAction(vls(Lc,E),OLc,Cont,_ACont,TCont,_End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   genLbl(L,End,L0),
   compExp(E,Lc,Cont,TCont,End,Opts,L0,Lx,D,Dx,C0,[iLbl(End)|Cx],Stk,Stkx).
+compAction(ignre(Lc,E),OLc,_Cont,ACont,TCont,_End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :- !,
+  chLine(Opts,OLc,Lc,C,C0),
+  genLbl(L,End,L0),
+  compExp(E,Lc,resetCont(Stk,ACont),TCont,End,Opts,L0,Lx,D,Dx,C0,[iLbl(End)|Cx],Stk,Stkx).
 compAction(rse(Lc,E),OLc,_Cont,_ACont,TCont,_End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :- !,
   chLine(Opts,OLc,Lc,C,C0),
   genLbl(L,End,L0),
-  compExp(E,Lc,TCont,trapCont(Lc),End,Opts,L0,Lx,D,Dx,C0,[iLbl(End)|Cx],Stk,Stkx).
+  compExp(E,Lc,TCont,trapCont(Lc,"raise exception in exception"),End,Opts,L0,Lx,D,Dx,C0,[iLbl(End)|Cx],Stk,Stkx).
 compAction(rtire(Lc,T,E),OLc,_Cont,_ACont,TCont,_End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :- !,
   chLine(Opts,OLc,Lc,C,C0),
   genLbl(L,End,L0),
@@ -570,7 +576,7 @@ insCont(Ins,Lx,Lx,D,D,[Ins|C],C,Stk,Stk).
 abortCont(Lc,Msg,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   locTerm(Lc,LT),
   genLbl(L,End,L0),
-  compExps([LT,Msg],Lc,abrtCont(Opts),trapCont(Lc),
+  compExps([LT,Msg],Lc,abrtCont(Opts),trapCont(Lc,"raise exception here"),
 	   End,Opts,L0,Lx,D,Dx,C,[iLbl(End)|Cx],Stk,Stkx).
 
 abrtCont(Opts,Lx,Lx,D,D,C,Cx,_,none) :-
@@ -629,7 +635,7 @@ compPtn(ctpl(St,Args),Lc,Succ,Fail,TCont,End,Opts,L,Lx,D,Dx,[iUnpack(St,Fl)|C],C
 compPtn(whr(Lc,P,Cnd),OLc,Succ,Fail,TCont,End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   splitCont(Lc,Fail,SFail),
-  compPtn(P,Lc,compCond(Cnd,Lc,Succ,SFail,TCont,Opts),SFail,
+  compPtn(P,Lc,compCond(Cnd,Lc,Succ,SFail,TCont,End,Opts),SFail,
 	  TCont,End,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compPtn(T,Lc,Succ,Fail,TCont,End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   genLbl(L,Nxt,L0),

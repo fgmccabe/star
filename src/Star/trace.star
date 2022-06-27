@@ -1,8 +1,6 @@
 star.trace{
-  import star.action.
   import star.core.
-  import star.monad.
-  import star.coerce.
+  import star.action.
 
   public trace:all x ~~ display[x] |: (string,x)=>x.
   trace(M,X) => valof{
@@ -15,6 +13,17 @@ star.trace{
     logMsg("#(M) - $(X)");
     valis Y
   }
+
+  public logMsg:(string)=>().
+  logMsg(Msg) => valof{
+    valis _logmsg(Msg);
+  }
+
+  public showMsg:(string)=>().
+  showMsg(Msg) => valof{
+    valis _show(Msg)
+  }
+  
 
 }
   
