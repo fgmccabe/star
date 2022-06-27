@@ -3,42 +3,33 @@ test.ac5{
   import star.arith.
   import star.action.
   import star.iterable.
+  import star.range.
+  import star.task.
 
   -- test for loops
 
-  all a ~~ range[a]::=range(a,a).
-
-  implementation all a ~~ arith[a],equality[a] |: iter[range[a]->>a] => {.
-    _iter(range(X,X),St,_) => St.
-    _iter(range(X,Y),St,Fn) => _iter(range(X+one,Y),Fn(X,St),Fn)
-  .}
-
   f:(integer) => result[string,integer].
   f(X) => do{
-    if X == 1 then{
-      valis 1
-    } else if X>1 then{
-      XX <- f(X-1);
-      valis XX*X
-    } else
-    raise "illegal arg"
+    F .= ref 1;
+    for Ix in range(1,X,1) do{
+      F := F!*Ix
+    };
+    valis F!
   }
 
   main:()=>().
   main() => valof{
-    _ .= _logmsg(disp(f(10)));
+    _logmsg(disp(f(10)));
     try{
       F10 <- f(10);
-      _ .= _logmsg(disp(F10));
-      _ .= _logmsg(disp(f(-10)));
+      _logmsg(disp(F10));
       F <- f(-10);
-      _ .= _logmsg(disp(F))
+      _logmsg(disp(F))
     } catch {
       E => {
-	_ .= _logmsg(E)
+	_logmsg(E)
       }
     };
     valis ()
   }
-  
 }

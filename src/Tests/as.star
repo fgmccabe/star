@@ -9,10 +9,11 @@ test.as{
     name = "fred" ++ "'s friend".
   .} in pTrm{name=name. age=23 }.
 
-  main:()=> action[(),()].
-  main() => action{
+  main:()=> ().
+  main() => valof{
     show peter.name;
 
-    assert peter.name=="fred's friend" && peter.age==23
+    assert peter.name=="fred's friend" && peter.age==23;
+    valis ()
   }
 }

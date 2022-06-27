@@ -13,13 +13,13 @@ test.al{
     employee{
       name:string.
       friend:a
-    }
+    }.
 
   Pete  = someOne{
     name = "peter".
     friend = 23.
     age(X) => X+30
-    }
+  }
 
   contract all t,e ~~ '$name'[t->>e] ::= {
     '$name':(t)=>e
@@ -30,10 +30,11 @@ test.al{
     '$name'(P) => P.name.
   }
   
-  main:()=>action[(),()].
-  main()=>action{
+  main:()=>().
+  main()=>valof{
     assert Pete.name=="peter";
     assert '$name'(Pete)=="peter";
-    assert Pete.age(3)==33
+    assert Pete.age(3)==33;
+    valis ()
   }
 }

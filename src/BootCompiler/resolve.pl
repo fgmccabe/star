@@ -23,6 +23,7 @@ overloadDef(_,Def,Def).
 overloadFunction(Lc,Nm,ExtNm,H,Tp,[],Eqns,Dict,funDef(Lc,Nm,ExtNm,H,Tp,[],REqns)) :-
   overloadEquations(Eqns,Dict,[],REqns),!.
 overloadFunction(Lc,Nm,ExtNm,H,Tp,Cx,Eqns,Dict,funDef(Lc,Nm,ExtNm,H,Tp,[],REqns)) :-
+%  reportMsg("overloading %s",[canDef(funDef(Lc,Nm,ExtNm,H,Tp,[],Eqns))],Lc),
   defineCVars(Lc,Cx,Dict,CVars,FDict),
   overloadEquations(Eqns,FDict,CVars,REqns),!.
 
@@ -92,7 +93,7 @@ resolveAgain(_,resolved,Term,T,Dict,R) :- !,
   resolveAgain(inactive,St,Term,T0,Dict,R).
 resolveAgain(_,inactive,_,T,_,T) :- !.
 resolveAgain(active(_,_),active(Lc,Msg),Term,_,_,Term) :-
-  reportError(Msg,[],Lc).
+  reportError("cannot resolve %s because %s",[can(Term),ss(Msg)],Lc).
 resolveAgain(_,active(Lc,Msg),Orig,_,Dict,R) :-
   overloadTerm(Orig,Dict,inactive,St,T0),
   resolveAgain(active(Lc,Msg),St,Orig,T0,Dict,R).
@@ -210,6 +211,8 @@ overloadAction(doNop(Lc),_,St,St,doNop(Lc)) :-!.
 overloadAction(doSeq(Lc,A,B),Dict,St,Stx,doSeq(Lc,AA,BB)) :-
   overloadAction(A,Dict,St,St1,AA),
   overloadAction(B,Dict,St1,Stx,BB).
+overloadAction(doIgnore(Lc,A),Dict,St,Stx,doIgnore(Lc,AA)) :-
+  overloadTerm(A,Dict,St,Stx,AA).
 overloadAction(doValis(Lc,A),Dict,St,Stx,doValis(Lc,AA)) :-
   overloadTerm(A,Dict,St,Stx,AA).
 overloadAction(doRaise(Lc,A),Dict,St,Stx,doRaise(Lc,AA)) :-
@@ -402,7 +405,7 @@ resolveContract(Lc,C,Dict,St,Stx,Over) :-
   markResolved(St,St1),
   overloadTerm(Impl,Dict,St1,Stx,Over).
 resolveContract(Lc,C,_,St,Stx,C) :-
-  genMsg("no implementation known for %s",[con(C)],Msg),
+  genMsg("there is no implementation known for %s",[con(C)],Msg),
   markActive(St,Lc,Msg,Stx).
 
 resolveImpl(v(Lc,Nm,Tp),_,_,_,_,St,St,v(Lc,Nm,Tp)) :-!.

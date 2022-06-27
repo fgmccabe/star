@@ -4,7 +4,7 @@ star.cons{
   import star.iterable.
   import star.monad.
   import star.coerce.
-  import star.action.
+  import star.task.
 
   public implementation all x ~~ equality[x] |: equality[cons[x]] => let{.
     smList:all x ~~ equality[x] |: (cons[x],cons[x]) => boolean.
@@ -116,9 +116,24 @@ star.cons{
   -- Implement iteration over a cons list
   public implementation all t ~~ iter[cons[t]->>t] => {.
     _iter(.nil,St,_) => St.
-    _iter(cons(H,T),St,Fn) => _iter(T,Fn(H,St),Fn).
+    _iter(cons(H,T),St,Fn) =>
+      case Fn(H,St) in {
+	_more(St1) => _iter(T,St1,Fn).
+	_end(St1) => St1
+      }
   .}
 
+  -- Implement a generator for cons lists
+  public implementation all e ~~ generate[cons[e]->>e] => {.
+    _generate(L) => generator{
+      LL .= ref L;
+      while cons(H,T) .= LL! do{
+	yield H;
+	LL := T
+      }
+    }
+  .}	
+    
   public implementation all e ~~ display[e] |: display[cons[e]] => let{.
     consDisp(.nil,L) => L.
     consDisp(cons(X,.nil),L) => cons(disp(X), L).

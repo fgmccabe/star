@@ -2,36 +2,34 @@ test.a{
   import star.
   import star.script.
 
-  o : action[(),integer].
-  o = action{
+  o : result[void,integer].
+  o = do{
     valis 1
   }
 
-  p : action[(),integer].
-  p = (o >>= double) >>= double.
-
-
-  double:(integer) => action[(),integer].
-  double(I) => action{
+  double:(integer) => result[void,integer].
+  double(I) => do{
     valis I+I
   }
 
-
-  main:()=>action[(),()].
-  main()=>action{
-    assert 3~=2;
-    show valof o;
-    assert valof o==1;
-
-    show valof p;
-    show valof a;
-    assert valof p == 4;
-    assert valof a == 4
+  main:()=>().
+  main()=>valof{
+    try{
+      assert 3~=2;
+      show valof o;
+      assert valof o==1;
+      
+      show valof a;
+      assert valof a == 1;
+      valis ()
+    } catch {
+      _ => { valis () }
+    };
   }
 
-  a:result[(),integer].
+  a:result[void,integer].
   a = do{
-    x .= valof p;
+    x .= valof o;
     valis x
   }
 }

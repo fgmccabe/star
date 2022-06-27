@@ -629,6 +629,10 @@ examineAction(A,Ax) :-
   macroTerm(V,Vx),
   mkPerform(Lc,Vx,Ax).
 examineAction(A,Ax) :-
+  isIgnore(A,Lc,V),!,
+  macroTerm(V,Vx),
+  mkIgnore(Lc,Vx,Ax).
+examineAction(A,Ax) :-
   isDo(A,Lc,V),!,
   macroTerm(V,Vx),
   mkDo(Lc,Vx,Ax).
@@ -674,10 +678,8 @@ examineAction(T,Tx) :-
   map(C,macros:examineActionCase,Cx),
   caseExp(Lc,Ex,Cx,Tx).
 examineAction(A,Ax) :-
-  isRoundTerm(A,Lc,O,D),!,
-  map(D,macros:macroTerm,Dx),
-  macroTerm(O,Ox),
-  roundTerm(Lc,Ox,Dx,Ax).
+  isRoundTerm(A,_,_,_),!,
+  macroTerm(A,Ax).
 examineAction(T,T) :-
   locOfAst(T,Lc),
   reportError("cannot figure out action %s",[ast(T)],Lc).

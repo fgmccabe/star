@@ -837,7 +837,7 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,match(Lc,Lhs,Rhs),Path) :-
   newTypeVar("_#",TV),
   typeOfPtn(P,TV,ErTp,Env,Ev,Lhs,Path),
   typeOfExp(E,TV,ErTp,Env,_,Rhs,Path).
-typeOfExp(Term,Tp,ErTp,Env,Ev,valof(Lc,doExp(Lc,Act,ResTp),Tp),Path) :-
+typeOfExp(Term,Tp,ErTp,Env,Ev,valof(Lc,doExp(Lc,Act,ATp),Tp),Path) :-
   isValof(Term,Lc,A),
   isBraceTuple(A,_,[Ac]),!,
   findType("result",Lc,Env,ResTp),
@@ -845,15 +845,19 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,valof(Lc,doExp(Lc,Act,ResTp),Tp),Path) :-
   checkAction(Ac,ATp,ErTp,Env,Ev,Act,checker:noBindCall,checker:noBindCall,Path).
 typeOfExp(Term,Tp,_,Env,Ev,doExp(Lc,Act,Tp),Path) :-
   isDoTerm(Term,Lc,A),!,
+%  reportMsg("check do term %s:%s",[ast(Term),tpe(Tp)],Lc),
   newTypeVar("VTp",VTp),
   newTypeVar("E",ErTp),
   newTypeFun("R",2,RsltTp),
   applyTypeFun(RsltTp,[ErTp,VTp],Lc,Env,RTp),
   verifyType(Lc,ast(Term),Tp,RTp,Env),
   checkAction(A,RTp,ErTp,Env,Ev,Act,checker:makeBindCall,checker:makeBindCall,Path).
+%  reportMsg("do term %s:%s",[can(doExp(Lc,Act,Tp)),tpe(Tp)],Lc).
+
 typeOfExp(Term,Tp,ErTp,Env,Env,Exp,Path) :-
   isValof(Term,Lc,A),!,
   checkValof(Lc,A,Tp,ErTp,Env,Exp,Path).
+%  reportMsg("valof exp: %s",[can(Exp)],Lc).
 typeOfExp(Term,Tp,_,Env,Env,void,_) :-
   locOfAst(Term,Lc),
   reportError("illegal expression: %s, expecting a %s",[Term,Tp],Lc).
@@ -914,7 +918,7 @@ typeOfTask(Lc,A,Tp,Env,task(Lc,TskFun,Tp),Path) :-
   verifyType(Lc,ast(A),TTp,Tp,Env),
 %  unitTp(UnitTp),
   LmTp = funType(tplType([Tp]),voidType),
-  reportMsg("check task lambda %s:%s",[ast(Lam),tpe(LmTp)],Lc),
+%  reportMsg("check task lambda %s:%s",[ast(Lam),tpe(LmTp)],Lc),
   typeOfLambda(Lam,LmTp,Env,TskFun,Path).
 
 taskLambda(Lc,F,Tp,Env,task(Lc,TskFun,Tp),Path) :-
@@ -962,6 +966,11 @@ checkAction(A,Tp,ErTp,Env,Env,Act,_Vls,Rsr,Path) :-
 checkAction(A,Tp,ErTp,Env,Env,Act,_Vls,Rsr,Path) :-
   isDo(A,Lc,A0),!,
   checkPerform(Lc,A0,Tp,ErTp,Env,Act,Rsr,Path).
+checkAction(A,_Tp,_ErTp,Env,Ev,doIgnore(Lc,Exp),_Vls,_Rsr,Path) :-
+  isIgnore(A,Lc,I),!,
+  newTypeVar("_V",V),
+  newTypeVar("_E",E),
+  typeOfExp(I,V,E,Env,Ev,Exp,Path).
 checkAction(A,Tp,ErTp,Env,Ev,Exp,_Vls,Rsr,Path) :-
   isBind(A,Lc,P,E),!,
   (\+ isName(E,_,_) ->
@@ -1042,14 +1051,14 @@ checkAction(A,Tp,ErTp,Env,Ev,Susp,Vls,Rsr,Path) :-
   checkRetire(Lc,name(Lc,"this"),E,ErTp,Env,Ev,Susp,Vls,Rsr,Path).
 checkAction(A,Tp,ErTp,Env,Ev,Susp,Vls,Rsr,Path) :-
   isRetire(A,Lc,T,E),!,
-%  unitTp(UnitTp),
   newTypeFun("R",2,RsltTp),
   applyTypeFun(RsltTp,[ErTp,voidType],Lc,Env,RTp),
   verifyType(Lc,A,RTp,Tp,Env),
   checkRetire(Lc,T,E,ErTp,Env,Ev,Susp,Vls,Rsr,Path).
-checkAction(A,Tp,ErTp,Env,Env,Call,_Vls,Rsr,Path) :-
-  isRoundTerm(A,Lc,_F,_Args),!,
-  checkPerform(Lc,A,Tp,ErTp,Env,Call,Rsr,Path).
+checkAction(A,_Tp,_ErTp,Env,Env,doIgnore(Lc,Exp),_Vls,_Rsr,Path) :-
+  isRoundTerm(A,Lc,F,Args),!,
+  unitTp(UnitTp),
+  typeOfRoundTerm(Lc,F,Args,UnitTp,voidType,Env,Exp,Path).
 checkAction(A,Tp,_,Env,Env,doNop(Lc),_,_,_) :-
   locOfAst(A,Lc),
   reportError("%s:%s illegal form of action",[ast(A),tpe(Tp)],Lc).
@@ -1063,32 +1072,39 @@ checkGuard(none,_,Env,Env,none,_) :-!.
 checkGuard(some(G),ErTp,Env,Ev,some(Goal),Path) :-
   checkGoal(G,ErTp,Env,Ev,Goal,Path).
 
-checkValof(Lc,A,Tp,ErTp,Env,valof(Lc,where(Lc,
-					   cond(Lc,Ok,Then,Else,Tp)),
-				  match(Lc,V,Exp)),Path) :-
-  lambdaLbl(Path,"λ",VNm),
+checkValof(Lc,A,Tp,ErTp,Env,valof(Lc,
+				  apply(Lc,
+					lambda(Lc,Lbl,rule(Lc,
+							   tple(Lc,[V]),
+							   none,
+							   cond(Lc,Ok,Then,Else,Tp)),
+					       PerfTp),
+					tple(Lc,[Exp]),Tp),Tp),Path) :-
+  lambdaLbl(Path,"λ",Lbl),
   newTypeVar("ATp",ATp),
+  genstr("V",VNm),
   V = v(Lc,VNm,ATp),
   typeOfExp(A,ATp,voidType,Env,_,Exp,Path),
   
   findType("boolean",Lc,Env,LogicalTp),
   getVar(Lc,"_isOk",Env,OkFn,OkTp),
-  verifyType(Lc,ast(A),funType(tplType([ATp]),LogicalTp),OkTp,Env),
+  verifyType(Lc,ss("_isOk"),funType(tplType([ATp]),LogicalTp),OkTp,Env),
 
   Ok = apply(Lc,OkFn,tple(Lc,[V]),LogicalTp),
   
+  newTypeVar("ETp",ETp),
   getVar(Lc,"_getval",Env,PrfFn,PerfTp),
   getVar(Lc,"_errval",Env,ErrVlFn,ErrVlTp),
-  verifyType(Lc,ast(A),funType(tplType([ATp]),Tp),PerfTp,Env),
-  verifyType(Lc,ast(A),funType(tplType([ATp]),ErTp),ErrVlTp,Env),
+  verifyType(Lc,ss("_getval"),funType(tplType([ATp]),Tp),PerfTp,Env),
+  verifyType(Lc,ss("_errval"),funType(tplType([ATp]),ETp),ErrVlTp,Env),
   
   Then = apply(Lc,PrfFn,tple(Lc,[Exp]),Tp),
 
   getVar(Lc,"_raise",Env,RseFn,RseTp),
-  newTypeVar("ETp",ETp),
-  verifyType(Lc,ast(A),funType(tplType([ErTp]),ETp),RseTp,Env),
 
-  Else = apply(Lc,RseFn,tple(Lc,[apply(Lc,ErrVlFn,tple(Lc,[Exp]),ErTp)]),ETp).
+  verifyType(Lc,ss("_raise"),funType(tplType([ETp]),ATp),RseTp,Env),
+
+  Else = apply(Lc,RseFn,tple(Lc,[apply(Lc,ErrVlFn,tple(Lc,[Exp]),ErTp)]),ATp).
 
 checkBind(Lc,P,E,Tp,ErTp,Env,Ev,Action,Rsr,Path) :-
   newTypeVar("V",TV),

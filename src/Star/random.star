@@ -14,7 +14,7 @@ star.random{
 
   public mkStdGen:(integer)=>StdGen.
   mkStdGen(S) where S<0 => mkStdGen(-S).
-  mkStdGen(S) => valof action{
+  mkStdGen(S) => valof {
     q .= S / 2147483562;
     s1 .= S % 2147483562;
     s2 .= q % 2147483398;
@@ -28,7 +28,7 @@ star.random{
 
   randomIVal:all g ~~ RandomGen[g] |: (integer,integer,g) => (integer,g).
   randomIVal(l,h,rng) where l>h => randomIVal(h,l,rng).
-  randomIVal(l,h,rng) => valof action{
+  randomIVal(l,h,rng) => valof{
     k .= h - l + 1;
     b .= 2147483561;
     n .= iLogBase(b, k);
@@ -63,7 +63,7 @@ star.random{
   /** eturns values in the range stdRange */
     stdNext : (StdGen) => (integer, StdGen).
     stdNext(StdGen(s1, s2))  => 
-      valof action {	
+      valof {	
 	k .= s1 / 53668;
 	s1_1  .= 40014 * (s1 - k * 53668) - k * 12211;
 	s1_2 .= (s1_1 < 0 ? s1_1 + 2147483563 || s1_1);
@@ -80,7 +80,7 @@ star.random{
 
     stdSplit : (StdGen) => (StdGen, StdGen).
     stdSplit(std) where StdGen(s1, s2) .= std =>
-      valof action{
+      valof {
 	/* no statistical foundation for this! */
 	new_s1 .= (s1 == 2147483562 ? 1 || s1 + 1);
 	new_s2 .= (s2 == 1 ? 2147483398 || s2 - 1);

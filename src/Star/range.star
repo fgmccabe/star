@@ -4,8 +4,7 @@ star.range{
   import star.collection.
   import star.cons.
   import star.iterable.
-  import star.monad.
-  import star.action.
+  import star.task.
 
   public all a ~~ range[a]::=range(a,a,a).
 
@@ -35,8 +34,21 @@ star.range{
 
   public implementation all a ~~ arith[a],equality[a] |: iter[range[a]->>a] => {.
     _iter(range(X,X,_),St,_) => St.
-    _iter(range(X,Y,S),St,Fn) => _iter(range(X+S,Y,S),Fn(X,St),Fn)
- .}
+    _iter(range(X,Y,S),St,Fn) => case Fn(X,St) in {
+      _more(St1) => _iter(range(X+S,Y,S),St1,Fn).
+      _end(St1) => St1
+    }
+  .}
+
+  public implementation all a ~~ arith[a],comp[a] |: generate[range[a]->>a] => {.
+    _generate(range(F,T,S)) => generator{
+      XX .= ref F;
+      while XX! < T do{
+	yield XX!;
+	XX := XX! + S
+      }
+    }
+  .}
 
   public implementation all a ~~ display[a] |: display[range[a]] => {
     disp(range(F,T,St)) => "$(F)\:$(T)@$(St)".

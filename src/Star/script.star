@@ -8,23 +8,23 @@ star.script{
     _coerce(scriptError(Lc,Msg)) => some("Failed: #(Msg) at $(Lc)")
   }
 
-  public assrt:all m/2,e ~~ execution[m] |:
-    (()=>boolean,string,locn) => m[e,()].
-  assrt(Tst,Msg,Lc) => do{
+
+  public assrt:(()=>boolean,string,locn) => ().
+  assrt(Tst,Msg,Lc) => valof{
     if Tst() then{
       logMsg("assert #(Msg) at $(Lc)")
     }
     else{
       logMsg("failed assert #(Msg) at $(Lc)");
       _ .= _exit(1);
-      valis ()
-    }
+    };
+    valis ()
   }
 
-  public shwMsg:all m/2,e,t ~~ execution[m], display[t] |:
-    (()=>t,string,locn) => m[e,()].
-  shwMsg(Tst,Msg,Lc) => do{
+  public shwMsg:all t ~~ display[t] |: (()=>t,string,locn) => ().
+  shwMsg(Tst,Msg,Lc) => valof{
     R .= Tst();
-    showMsg("#(Msg) = $(R) at $(Lc)")
+    showMsg("#(Msg) = $(R) at $(Lc)");
+    valis ()
   }
 }

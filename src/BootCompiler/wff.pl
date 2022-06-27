@@ -47,7 +47,7 @@
 	      isTaskTerm/3,mkTaskTerm/3,isTask/3,mkTask/3,
 	      isResultTerm/3,mkResultTerm/3,
 	      isDoTerm/3,mkDoTerm/3,isDo/3,mkDo/3,
-	      isValof/3,mkValof/3,isPerform/3,mkPerform/3,
+	      isValof/3,mkValof/3,isPerform/3,mkPerform/3,isIgnore/3,mkIgnore/3,
 	      isRaise/3,mkRaise/3,isValis/3,mkValis/3,
 	      isTryCatch/4,mkTryCatch/4,
 	      isTryHandle/4,mkTryHandle/4,
@@ -808,6 +808,12 @@ isPerform(A,Lc,E) :-
 
 mkPerform(Lc,A,E) :-
   unary(Lc,"perform",A,E).
+
+isIgnore(A,Lc,E) :-
+  isUnary(A,Lc,"ignore",E).
+
+mkIgnore(Lc,A,E) :-
+  unary(Lc,"ignore",A,E).
 
 isRaise(A,Lc,E) :-
   isUnary(A,Lc,"raise",E).

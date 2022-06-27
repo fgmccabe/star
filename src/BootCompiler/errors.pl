@@ -123,8 +123,10 @@ showTrm(tok(Tk),O) :-
   showToken(Tk,O).
 showTrm(loc(Lc),O) :-
   showLocation(Lc,O,[]).
+showTrm(canDef(T),O) :-
+  ss_to_chrs(canon:ssDef(0,T),O,[]).
 showTrm(ss(S),O) :-
-  ss_to_chrs(S,O,[]).
+  string_chars(S,O).
 showTrm(T,O) :-
   isAst(T), !, dispAst(T,0,O,[]).
 showTrm(L,O) :-
