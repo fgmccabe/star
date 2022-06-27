@@ -50,7 +50,9 @@ PipeClassRec PipeClass = {
   },
   {
     O_INHERIT_DEF,                        // inBytes
+    O_INHERIT_DEF,
     O_INHERIT_DEF,                        // outBytes
+    O_INHERIT_DEF,
     O_INHERIT_DEF,                        // backByte
     O_INHERIT_DEF,                        // atEof
     O_INHERIT_DEF,                        // flush

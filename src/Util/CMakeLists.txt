@@ -22,6 +22,7 @@ set(UNICODE ${CMAKE_CURRENT_SOURCE_DIR}/UnicodeStuff/UnicodeData.txt)
 set(PUBLIC_HEADERS
         Headers/bcd.h
         Headers/io.h
+        Headers/microTask.h
         Headers/file.h
         Headers/formio.h
         Headers/hash.h
@@ -92,7 +93,7 @@ set(HEADER_FILES
         Headers/promiseP.h
         Headers/buddyP.h
         Headers/multi.h
-        Headers/formatted.h Headers/multiP.h Headers/match.h)
+        Headers/formatted.h Headers/multiP.h Headers/match.h Headers/microTaskP.h)
 
 set(SOURCE_FILES
         arrays.c

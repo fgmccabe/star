@@ -47,7 +47,9 @@ BufferClassRec StrBufferClass = {
   },
   {},
   {bufferInBytes,                         /* inByte  */
+    O_INHERIT_DEF,
     bufferOutBytes,                       /* outBytes  */
+    O_INHERIT_DEF,
     bufferBackByte,                       /* backByte */
     bufferAtEof,                          /* at end of file? */
     bufferFlusher,                        /* flush  */

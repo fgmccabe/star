@@ -116,6 +116,11 @@ retCode run(processPo P) {
         termPo nProg = nthElem(LITS, collectI32(PC));
         methodPo mtd = labelCode(C_LBL(nProg));   // Which program do we want?
 
+        if (mtd == Null) {
+          logMsg(logFile, "label %T not defined", nProg);
+          bail();
+        }
+
         if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE)) {
           int root = gcAddRoot(H, &nProg);
           gcAddRoot(H, (ptrPo) &mtd);

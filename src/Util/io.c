@@ -19,9 +19,13 @@ static void IoInit(objectPo o, va_list *args);
 
 static retCode nullInBytes(ioPo f, byte *ch, integer count, integer *actual);
 
+static retCode nullEnqueueRead(ioPo f, integer count, void *cl);
+
 static retCode nullOutBytes(ioPo f, byte *b, integer count, integer *actual);
 
 static retCode nullOutByte(ioPo f, byte b);
+
+static retCode nullEnqueueWrite(ioPo f, byte *buffer, integer count, void *cl);
 
 static retCode nullEof(ioPo f);
 
@@ -47,12 +51,14 @@ IoClassRec IoClass = {
   },
   .lockPart={},
   .ioPart={
-    nullInBytes,          /* inByte, abstract for the io class  */
-    nullOutBytes,         /* outByte, abstract for the io class  */
-    nullOutByte,          /* putbackByte, abstract for the io class  */
-    nullEof,              /* are we at end of file? */
-    nullFlusher,          /* flush, abstract for the io class  */
-    nullClose             /* close, abstract for the io class  */
+    nullInBytes,              /* inByte, abstract for the io class  */
+    nullEnqueueRead,     // Asynchronous read
+    nullOutBytes,             /* outByte, abstract for the io class  */
+    nullEnqueueWrite,    // Asynchronous write
+    nullOutByte,           /* putbackByte, abstract for the io class  */
+    nullEof,                 /* are we at end of file? */
+    nullFlusher,              /* flush, abstract for the io class  */
+    nullClose                 /* close, abstract for the io class  */
   }
 };
 
@@ -75,6 +81,10 @@ static void initIoClass(classPo class, classPo request) {
     req->ioPart.read = template->ioPart.read;
   }
 
+  if (req->ioPart.async_read == O_INHERIT_DEF) {
+    req->ioPart.async_read = template->ioPart.async_read;
+  }
+
   if (req->ioPart.backByte == O_INHERIT_DEF) {
     req->ioPart.backByte = template->ioPart.backByte;
   }
@@ -83,6 +93,9 @@ static void initIoClass(classPo class, classPo request) {
     req->ioPart.write = template->ioPart.write;
   }
 
+  if (req->ioPart.async_write == O_INHERIT_DEF) {
+    req->ioPart.async_write = template->ioPart.async_write;
+  }
   if (req->ioPart.isAtEof == O_INHERIT_DEF) {
     req->ioPart.isAtEof = template->ioPart.isAtEof;
   }
@@ -161,6 +174,14 @@ retCode inBytes(ioPo f, byte *ch, integer count, integer *actual) {
   f->io.inBpos += *actual;
 
   return ret;
+}
+
+retCode enqueueRead(ioPo io, integer count, void *cl) {
+  return ((IoClassRec *) io->object.class)->ioPart.async_read(io, count, cl);
+}
+
+retCode enqueueWrite(ioPo io, byte *buffer, integer count, void *cl) {
+  return ((IoClassRec *) io->object.class)->ioPart.async_write(io, buffer, count, cl);
 }
 
 retCode putBackByte(ioPo f, byte b) {
@@ -492,27 +513,35 @@ void triggerIo(filterProc filter, void *cl) {
   unlockClass(ioClass);
 }
 
-static retCode nullInBytes(ioPo f, byte *ch, integer count, integer *actual) {
+retCode nullInBytes(ioPo f, byte *ch, integer count, integer *actual) {
   return Error;
 }
 
-static retCode nullOutBytes(ioPo f, byte *b, integer count, integer *actual) {
+retCode nullEnqueueRead(ioPo f, integer count, void *cl) {
   return Error;
 }
 
-static retCode nullOutByte(ioPo f, byte b) {
+retCode nullOutBytes(ioPo f, byte *b, integer count, integer *actual) {
   return Error;
 }
 
-static retCode nullFlusher(ioPo f, long count) {
+retCode nullOutByte(ioPo f, byte b) {
+  return Error;
+}
+
+retCode nullEnqueueWrite(ioPo f, byte *buffer, integer count, void *cl) {
+  return Error;
+}
+
+retCode nullFlusher(ioPo f, long count) {
   return Ok;
 }
 
-static retCode nullClose(ioPo f) {
+retCode nullClose(ioPo f) {
   return Ok;
 }
 
-static retCode nullEof(ioPo f) {
+retCode nullEof(ioPo f) {
   return Error;
 }
 

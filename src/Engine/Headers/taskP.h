@@ -10,8 +10,6 @@
 #include "engine.h"
 #include "heap.h"
 
-extern taskPo C_TASK(termPo t);
-
 typedef struct stack_frame_ *framePo;
 typedef struct stack_frame_ {
   insPo pc;           // The current program counter
