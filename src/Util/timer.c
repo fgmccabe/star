@@ -87,7 +87,7 @@ retCode setAlarm(double time, timeFun onWakeup, void *cl) {
 
     sigaction(SIGALRM, &act, NULL);
     setitimer(ITIMER_REAL, &period, NULL);
-    return Fail;
+    return Ok;
   }
 }
 

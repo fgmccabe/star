@@ -65,6 +65,9 @@ retCode flushFile(ioPo f);            /* generic file flush */
 /* file flush */
 void flushOut(void);                    /* flush all files */
 
+retCode enqueueRead(ioPo io,integer count,void *cl);
+retCode enqueueWrite(ioPo io,byte *buffer,integer count,void *cl);
+
 void setEncoding(ioPo f, ioEncoding encoding);
 retCode isFileOpen(ioPo f);
 logical isReadingFile(ioPo f);

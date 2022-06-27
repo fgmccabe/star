@@ -8,8 +8,9 @@
 #include "object.h"
 #include "integer.h"
 #include "retcode.h"
+#include "unistr.h"
 
-typedef struct _async_object_ *asyncPo;
+typedef struct async_object__ *asyncPo;
 extern classPo asyncClass;
 
 typedef enum {
@@ -23,6 +24,6 @@ typedef  retCode (*asyncProc)(asyncPo f);
 
 asyncStatus statusOf(asyncPo);
 
-retCode startRdChar(asyncPo f, asyncProc cb, codePoint *tgt);     /* read a character */
+retCode startRdChars(asyncPo f, asyncProc cb, integer count, codePoint *tgt);     /* read a character */
 
 #endif //STAR_ASYNC_H

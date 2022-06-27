@@ -53,4 +53,6 @@ integer stackHwm(taskPo stk);;
 
 integer stackNo(taskPo stk);
 
+extern taskPo C_TASK(termPo t);
+
 #endif //STAR_TASK_H

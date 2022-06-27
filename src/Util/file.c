@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#include <aio.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -31,6 +32,8 @@
 #ifndef STD_PERMISSIONS
 #define STD_PERMISSIONS (S_IRUSR|S_IRGRP|S_IROTH|S_IWUSR)
 #endif
+
+static void setupSignals();
 
 /* Set up the file class */
 
@@ -52,12 +55,14 @@ FileClassRec FileClass = {
   },
   .lockPart={},
   .ioPart={
-    fileInBytes,                          // inByte
-    fileOutBytes,                         // outBytes
-    fileBackByte,                         // put a byte back in the buffer
-    fileAtEof,                            // Are we at end of file?
+    fileInBytes,                         // inByte
+    fileEnqueueRead,                // Start a read operation
+    fileOutBytes,                        // outBytes
+    fileEnqueueWrite,               // Start a write operation
+    fileBackByte,                     // put a byte back in the buffer
+    fileAtEof,                          // Are we at end of file?
     fileFlusher,                          // flush
-    fileClose                             // close
+    fileClose                            // close
   },
   .filePart={
     fileConfigure,                        // configure a file
@@ -111,11 +116,11 @@ void FileInit(objectPo o, va_list *args) {
   f->io.mode = va_arg(*args, ioDirection);
 }
 
-retCode configureForAsynch(filePo fl,fileCallBackProc cb,void *cl){
-  retCode ret = configureIo(fl,enableAsynch);
-  if(ret==Ok)
-    ret = configureIo(fl,turnOffBlocking);
-  if(ret==Ok){
+retCode configureForAsynch(filePo fl, fileCallBackProc cb, void *cl) {
+  retCode ret = configureIo(fl, enableAsynch);
+  if (ret == Ok)
+    ret = configureIo(fl, turnOffBlocking);
+  if (ret == Ok) {
     fl->file.ioReadyProc = cb;
     fl->file.ioReadClientData = cl;
   }
@@ -240,6 +245,23 @@ logical fileOutReady(filePo io) {
     } else
       return False;
   }
+}
+
+retCode fileEnqueueRead(ioPo io, integer count, void *cl) {
+  filePo f = O_FILE(io);
+
+  if (f->file.ioReadClientData != Null)
+    return Error;         // Already trying to read from this file
+  else if (f->file.in_pos + count > f->file.in_len)
+    return Space;
+  f->file.ioReadClientData = cl;
+  memset(&f->file.aio, 0, sizeof(struct aiocb));
+
+  return Error;
+}
+
+retCode fileEnqueueWrite(ioPo f, byte *buffer, integer count, void *cl) {
+  return Error;
 }
 
 retCode fileFlusher(ioPo io, long count) {

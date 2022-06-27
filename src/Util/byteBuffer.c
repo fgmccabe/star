@@ -46,7 +46,9 @@ ByteBufferClassRec ByteBufferClass = {
   },
   {},
   {byteBufferInBytes,                         /* inByte  */
+    O_INHERIT_DEF,
     byteBufferOutBytes,                       /* outBytes  */
+    O_INHERIT_DEF,
     byteBufferBackByte,                       /* backByte */
     byteBufferAtEof,                          /* at end of file? */
     byteBufferFlusher,                        /* flush  */

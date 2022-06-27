@@ -8,11 +8,12 @@
 
 #include "ioP.h"
 #include "file.h"
+#include <aio.h>
 #include <stdarg.h>
 
 typedef retCode (*fileConfProc)(filePo f, ioConfigOpt mode);
 typedef retCode (*fileProc)(filePo f);
-typedef retCode (*seekProc)(filePo f,integer count);
+typedef retCode (*seekProc)(filePo f, integer count);
 typedef logical (*statusProc)(filePo f);
 
 typedef struct {
@@ -48,6 +49,7 @@ typedef struct file_part_ {
   int16 out_pos;                        // Current position within the output buffer
   fileCallBackProc ioReadyProc;         // Called when i/o is ready (if configured)
   void *ioReadClientData;               // Used as part of the callback
+  struct aiocb aio;                     // Used during asynchronous IO
 } FilePart;
 
 typedef struct file_object_ {
@@ -64,6 +66,8 @@ retCode fileInBytes(ioPo f, byte *ch, integer count, integer *actual);
 retCode fileOutBytes(ioPo f, byte *b, integer count, integer *actual);
 retCode fileBackByte(ioPo f, byte b);
 retCode fileAtEof(ioPo f);
+retCode fileEnqueueRead(ioPo f, integer count, void *cl);
+retCode fileEnqueueWrite(ioPo f, byte *buffer, integer count, void *cl);
 
 logical fileInReady(filePo f);
 logical fileOutReady(filePo f);
