@@ -433,6 +433,15 @@ collectDoRefs(T,All,Rf,Rfx) :-
   isValis(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
+  isPerform(T,_,E),!,
+  collectTermRefs(E,All,Rf,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  isDo(T,_,E),!,
+  collectTermRefs(E,All,Rf,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  isIgnore(T,_,E),!,
+  collectTermRefs(E,All,Rf,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
   isAssignment(T,_,L,R),!,
   collectTermRefs(L,All,Rf,Rf0),
   collectTermRefs(R,All,Rf0,Rfx).

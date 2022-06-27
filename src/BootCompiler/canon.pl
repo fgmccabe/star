@@ -161,6 +161,7 @@ locOfCanon(task(Lc,_,_),Lc) :-!.
 locOfCanon(valof(Lc,_,_),Lc) :-!.
 
 locOfCanon(doNop(Lc),Lc) :-!.
+locOfCanon(doIgnore(Lc,_),Lc) :-!.
 locOfCanon(doSeq(Lc,_,_),Lc) :-!.
 locOfCanon(doValis(Lc,_),Lc) :-!.
 locOfCanon(doRaise(Lc,_),Lc) :-!.
@@ -306,6 +307,8 @@ ssAction(doNop(_),_,ss("{}")) :-!.
 ssAction(doSeq(Lc,L,R),Dp,sq([ss("{"),nl(Dp2),Sq,nl(Dp),ss("}")])) :-!,
   Dp2 is Dp+2,
   ssActSeq(doSeq(Lc,L,R),Dp2,Sq).
+ssAction(doIgnore(_,E),Dp,sq([ss("ignore "),EE])) :-!,
+  ssTerm(E,Dp,EE).
 ssAction(doValis(_,E),Dp,sq([ss("valis "),EE])) :-!,
   ssTerm(E,Dp,EE).
 ssAction(doRaise(_,E),Dp,sq([ss("raise "),EE])) :-!,

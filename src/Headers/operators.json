@@ -222,6 +222,15 @@
     "keyword": true
   },
   {
+    "prefixOp": "ignore",
+    "priorities": [
+      300,
+      299
+    ],
+    "desc": "evaluate and discard expression",
+    "keyword": true
+  },
+  {
     "prefixOp": "generator",
     "priorities": [
       300,
