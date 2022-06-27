@@ -239,6 +239,8 @@ ssAct(nop(_),_,ss("{}")) :-!.
 ssAct(seq(Lc,A,B),Dp,sq([ss("{"),iv(sq([ss(";"),nl(Dp2)]),AA),ss("}")])) :-!,
   Dp2 is Dp+2,
   ssActSeq(seq(Lc,A,B),Dp2,AA).
+ssAct(ignre(_,E),Dp,sq([ss("ignore "),EE])) :-!,
+  ssTrm(E,Dp,EE).
 ssAct(vls(_,E),Dp,sq([ss("valis "),EE])) :-!,
   ssTrm(E,Dp,EE).
 ssAct(rse(_,E),Dp,sq([ss("raise "),EE])) :-!,
@@ -458,6 +460,8 @@ rewriteAction(_QTest,nop(Lc),nop(Lc)) :- !.
 rewriteAction(QTest,seq(Lc,L,R),seq(Lc,LL,RR)) :-!,
   rewriteAction(QTest,L,LL),
   rewriteAction(QTest,R,RR).
+rewriteAction(QTest,ignre(Lc,E),ignre(Lc,EE)) :- !,
+  rewriteTerm(QTest,E,EE).
 rewriteAction(QTest,vls(Lc,E),vls(Lc,EE)) :- !,
   rewriteTerm(QTest,E,EE).
 rewriteAction(QTest,rse(Lc,E),rse(Lc,EE)) :- !,
@@ -632,6 +636,48 @@ inTerm(ltt(_,_,B,_E),Nm) :-
   inTerm(B,Nm).
 inTerm(ltt(_,_,_B,E),Nm) :-
   inTerm(E,Nm).
+inTerm(perf(_,A),Nm) :-
+  inAction(A,Nm).
+
+inAction(nop(_),_) :- !,fail.
+inAction(seq(_,L,R),Nm) :-!,
+  (inAction(L,Nm) ; inAction(R,Nm)).
+inAction(ignre(_,E),Nm) :- !,
+  inTerm(E,Nm).
+inAction(vls(_,E),Nm) :- !,
+  inTerm(E,Nm).
+inAction(rse(_,E),Nm) :- !,
+  inTerm(E,Nm).
+inAction(perf(_,E),Nm) :- !,
+  inTerm(E,Nm).
+inAction(mtch(_,P,E),Nm) :- !,
+  (inTerm(P,Nm) ; inTerm(E,Nm)).
+inAction(asgn(_,P,E),Nm) :- !,
+  (inTerm(P,Nm) ; inTerm(E,Nm)).
+inAction(case(_,T,_C),Nm) :-
+  inTerm(T,Nm),!.
+inAction(case(_,_T,C),Nm) :-
+  is_member((P,V,_),C), (inTerm(P,Nm);inAction(V,Nm)),!.
+inAction(unpack(_,T,_C),Nm) :-
+  inTerm(T,Nm),!.
+inAction(unpack(_,_T,C),Nm) :-
+  is_member((P,V,_),C), (inTerm(P,Nm);inAction(V,Nm)),!.
+inAction(iftte(_,G,L,R),Nm) :-!,
+  (inTerm(G,Nm) ; inTerm(L,Nm) ; inTerm(R,Nm)).
+inAction(iftt(_,G,L),Nm) :-!,
+  (inTerm(G,Nm) ; inTerm(L,Nm)).
+inAction(whle(_,G,L),Nm) :-!,
+  (inTerm(G,Nm) ; inAction(L,Nm)).
+inAction(untl(_,L,G),Nm) :-!,
+  (inTerm(G,Nm) ; inAction(L,Nm)).
+inAction(ltt(_,_,E,B),Nm) :-!,
+  (inTerm(E,Nm) ; inAction(B,Nm)).
+inAction(rtire(_,L,G),Nm) :-!,
+  (inTerm(L,Nm) ; inTerm(G,Nm)).
+inAction(error(_,M),Nm) :-!,
+  inTerm(M,Nm).
+inAction(try(_,B,E,H),Nm) :-!,
+  (inAction(B,Nm) ; inTerm(E,Nm) ; inAction(H,Nm)).
 
 isCnd(cnj(_,_,_)).
 isCnd(dsj(_,_,_)).
@@ -826,6 +872,8 @@ validAction(nop(_),_,D,D) :- !.
 validAction(seq(Lc,L,R),_,D,Dx) :-!,
   validAction(L,Lc,D,D0),
   validAction(R,Lc,D0,Dx).
+validAction(ignre(Lc,E),_,D,D) :- !,
+  validTerm(E,Lc,D).
 validAction(vls(Lc,E),_,D,D) :- !,
   validTerm(E,Lc,D).
 validAction(rse(Lc,E),_,D,D) :- !,

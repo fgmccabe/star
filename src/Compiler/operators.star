@@ -56,6 +56,7 @@ star.compiler.operators{
   oper("->") => [infixOp(889,890,889)].
   oper(".+.") => [prefixOp(700,699)].
   oper("<$") => [infixOp(719,720,720)].
+  oper("ignore") => [prefixOp(300,299)].
   oper("raise") => [prefixOp(930,929)].
   oper("then") => [infixOp(1179,1180,1179)].
   oper("!") => [postfixOp(99,100), infixOp(99,100,99)].
@@ -427,6 +428,7 @@ star.compiler.operators{
   keyword(",..") => .true.
   keyword("for") => .true.
   keyword("{?") => .true.
+  keyword("ignore") => .true.
   keyword("raise") => .true.
   keyword(". ") => .true.
   keyword("(|") => .true.

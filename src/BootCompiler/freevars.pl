@@ -80,11 +80,15 @@ freeVarsInAction(doNop(_),Ex,Ex,_,F,F) :-!.
 freeVarsInAction(doSeq(_,L,R),E,Ex,Q,F,Fv) :-!,
   freeVarsInAction(L,E,E0,Q,F,F0),
   freeVarsInAction(R,E0,Ex,Q,F0,Fv).
+freeVarsInAction(doIgnore(_,E),Ex,Ex,Q,F,Fv) :-!,
+  freeVars(E,Ex,Q,F,Fv).
 freeVarsInAction(doValis(_,E),Ex,Ex,Q,F,Fv) :-!,
   freeVars(E,Ex,Q,F,Fv).
 freeVarsInAction(doRaise(_,E),Ex,Ex,Q,F,Fv) :-!,
   freeVars(E,Ex,Q,F,Fv).
 freeVarsInAction(doPerform(_,E),Ex,Ex,Q,F,Fv) :-!,
+  freeVars(E,Ex,Q,F,Fv).
+freeVarsInAction(doIgnore(_,E),Ex,Ex,Q,F,Fv) :-!,
   freeVars(E,Ex,Q,F,Fv).
 freeVarsInAction(doBind(_,P,E),Ex,Ex1,Q,F,Fv) :-!,
   ptnVars(P,Ex,Ex1),
