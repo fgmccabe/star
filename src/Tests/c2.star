@@ -12,10 +12,11 @@ test.c2{
   testP:all x~~comp[x]|:(x,x)=>string.
   testP(A,B) => A<B ? "fred" || "bill".
 
-  main:()=>action[(),()].
-  main()=>action{
+  main:()=>().
+  main()=>valof{
     assert cP(some(1),some(2)) == some((1,2));
-    assert testP("a","b")=="fred"
+    assert testP("a","b")=="fred";
+    valis ()
   }
 }  
   

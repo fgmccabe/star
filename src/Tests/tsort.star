@@ -38,8 +38,8 @@ test.tsort{
   a3:cons[df[string,string]].
   a3 = [df("alpha",["beta"]),df("beta",["gamma"]),df("gamma",["alpha"]),df("delta",["gamma"])].
 
-  main:()=>action[(),()].
-  main() => action{
+  main:()=>().
+  main() => valof{
     show topsort(a1);
 
     assert size(topsort(a1)) == 4;
@@ -50,6 +50,7 @@ test.tsort{
 
     show topsort(a3);
 
-    assert size(topsort(a3)) == 2
+    assert size(topsort(a3)) == 2;
+    valis ()
   }
 }

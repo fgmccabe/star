@@ -5,9 +5,10 @@ test.chr{
   C1 = `a`.
   C2 = `\n`.
 
-  main:()=>action[(),()].
-  main()=>action{
+  main:()=>().
+  main()=>valof{
     show C1;
-    assert C2==`\n`
+    assert C2==`\n`;
+    valis ()
   }
 }

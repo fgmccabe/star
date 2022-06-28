@@ -34,13 +34,14 @@ test.compose{
   dec(S) where (S1,D)^=digit(S) => iter(S1,digit,(Dg,Nm)=>Nm*10+Dg,D).
   dec(_) => .none.
 
-  main:()=>action[(),()].
-  main()=>action{
+  main:()=>().
+  main()=>valof{
     assert decimal("123"::cons[char])==some(([],123));
     assert ([],1234)^=dec("1234"::cons[char]);
 
     assert ([` `],123)^=dec("123 "::cons[char]);
 
-    show "dec(123) = $(dec("123 "::cons[char]))"
+    show "dec(123) = $(dec("123 "::cons[char]))";
+    valis ()
   }
 }

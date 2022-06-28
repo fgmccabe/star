@@ -24,8 +24,8 @@ test.cnq{
   fatherOf:(string)=>cons[string].
   fatherOf(A) => { F | (F,A) in parent && F in ms}.
 
-  main:()=>action[(),()].
-  main() => action{
+  main:()=>().
+  main() => valof{
     logM("gp(abc)=$(gp("abc"))");
     logM("sibs = $(sibs())");
     logM("father(ab) = $(fatherOf("ab"))");

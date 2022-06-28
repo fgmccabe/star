@@ -451,8 +451,8 @@ liftAction(doLet(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftAction(doLetRec(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   (is_member(showTrCode,Opts) -> dispAction(doLetRec(Lc,Decls,Defs,B));true),
   genVar("_ThR",ThVr),
-  letRecActionMap(Lc,Decls,Defs,B,ThVr,Q,Map,Opts,ThMap,RMap,FreeTerm),
-  transformThetaDefs(ThMap,RMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
+  letRecActionMap(Lc,Decls,Defs,B,ThVr,Q,Map,Opts,ThMap,FreeTerm),
+  transformThetaDefs(ThMap,ThMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
   liftAction(B,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
   mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
   (is_member(showTrCode,Opts) -> dispAct(Exp);true).
@@ -657,7 +657,7 @@ letRecMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,[lyr(Vx,Tx,ConsMap,ThVr)|Map],FreeTe
   makeFreeTerm(CellVars,Lc,ThFree,Map,Opts,FreeTerm).
 
 letMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,
-       [lyr(Vx,Tx,ConsMap,ThVr)|Map],[lyr(V0,Tx,ConsMap,ThVr)|Map],FreeTerm) :-
+       [lyr(Vx,Tx,ConsMap,ThVr)|Map],[lyr(varMap{},Tx,ConsMap,ThVr)|Map],FreeTerm) :-
   findFreeVars(letExp(Lc,Decls,Defs,Bnd),Map,Q,ThFree),
   varDefs(Defs,CellVars),
   concat(CellVars,ThFree,FreeVars),
@@ -667,7 +667,7 @@ letMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,
   makeFreeTerm(CellVars,Lc,ThFree,Map,Opts,FreeTerm).
 
 letActionMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,
-       [lyr(Vx,Tx,ConsMap,ThVr)|Map],[lyr(V0,Tx,ConsMap,ThVr)|Map],FreeTerm) :-
+       [lyr(Vx,Tx,ConsMap,ThVr)|Map],[lyr(varMap{},Tx,ConsMap,ThVr)|Map],FreeTerm) :-
   findFreeVarsInAction(doLet(Lc,Decls,Defs,Bnd),Map,Q,ThFree),
   varDefs(Defs,CellVars),
   concat(CellVars,ThFree,FreeVars),
@@ -677,7 +677,7 @@ letActionMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,
   makeFreeTerm(CellVars,Lc,ThFree,Map,Opts,FreeTerm).
 
 letRecActionMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,
-       [lyr(Vx,Tx,ConsMap,ThVr)|Map],[lyr(V0,Tx,ConsMap,ThVr)|Map],FreeTerm) :-
+       [lyr(Vx,Tx,ConsMap,ThVr)|Map],FreeTerm) :-
   findFreeVarsInAction(doLetRec(Lc,Decls,Defs,Bnd),Map,Q,ThFree),
   varDefs(Defs,CellVars),
   concat(CellVars,ThFree,FreeVars),
