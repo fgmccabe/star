@@ -170,11 +170,22 @@ long tskSize(specialClassPo cl, termPo o) {
 }
 
 void taskSanityCheck(taskPo tsk) {
+  switch (tsk->state) {
+    case active:
+      assert(tsk->bottom == Null);
+      break;
+    case suspended:
+      assert(tsk->bottom != Null &&
+             (tsk->attachment == Null ? isAttachedStar(tsk->bottom, tsk) : True));
+      break;
+    case moribund:
+      assert(tsk->stkMem == Null);
+      return;
+  }
   assert(
-    tsk != Null && tsk->sp >= tsk->stkMem && tsk->sp <= &tsk->stkMem[tsk->sze] && tsk->fp >= (framePo) tsk->stkMem &&
+    tsk->sp >= tsk->stkMem && tsk->sp <= &tsk->stkMem[tsk->sze] && tsk->fp >= (framePo) tsk->stkMem &&
     tsk->fp <= (framePo) &tsk->stkMem[tsk->sze]);
-  if (tsk->stkMem != Null)
-    assert(!inFreeBlock(stackRegion, tsk->stkMem));
+  assert(!inFreeBlock(stackRegion, tsk->stkMem));
 }
 
 void verifyTask(taskPo tsk, heapPo H) {
