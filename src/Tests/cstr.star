@@ -8,10 +8,11 @@ test.cstream{
 
   cc = disp(aa)::string.
 
-  main:()=>action[(),()].
-  main()=>action{
+  main:()=>().
+  main()=>valof{
     show cc::string;
 
-    show disp([0]:cons[_])::string
+    show disp([0]:cons[_])::string;
+    valis ()
   }
 }

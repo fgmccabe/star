@@ -9,13 +9,14 @@ test.cnd{
 
   YY = T prompt (1 + (T cut K in K.(3))).
 
-  main:()=>action[(),()].
-  main()=>action{
+  main:()=>().
+  main()=>valof{
     show UU;
     assert UU == 1;
     show XX;
     assert XX==3;
-    show YY
+    show YY;
+    valis ()
   }
     
 }

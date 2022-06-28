@@ -19,12 +19,13 @@ test.cse{
     _ default => .none.
   }
 
-  main:()=>action[(),()].
-  main()=>action{
+  main:()=>().
+  main()=>valof{
     assert "TT" ^= sVal(foo("TT"));
 
     show sVal(foo("beta"));
 
-    assert sVal(foo("beta")) == some("two")
+    assert sVal(foo("beta")) == some("two");
+    valis ()
   }
 }

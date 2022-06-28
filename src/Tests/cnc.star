@@ -25,8 +25,8 @@ test.cnc{
   gp0:(string) => cons[string].
   gp0(GC) => findGs(findPs(parent,GC,[]),[]).
 
-  main:()=>action[(),()].
-  main() => action{
+  main:()=>().
+  main() => valof{
     logMsg("parent=$(parent)");
     logMsg("gps=$(gp0("abc"))");
     valis ()

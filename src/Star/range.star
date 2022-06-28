@@ -34,10 +34,7 @@ star.range{
 
   public implementation all a ~~ arith[a],equality[a] |: iter[range[a]->>a] => {.
     _iter(range(X,X,_),St,_) => St.
-    _iter(range(X,Y,S),St,Fn) => case Fn(X,St) in {
-      _more(St1) => _iter(range(X+S,Y,S),St1,Fn).
-      _end(St1) => St1
-    }
+    _iter(range(X,Y,S),St,Fn) => _iter(range(X+S,Y,S),Fn(X,St),Fn).
   .}
 
   public implementation all a ~~ arith[a],comp[a] |: generate[range[a]->>a] => {.

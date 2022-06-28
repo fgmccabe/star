@@ -2,7 +2,6 @@ test.co{
   import star.
   import star.script.
   
-
   cns[x] ::= .nl | cns(x,cns[x]).
 
   public implementation all x ~~ sequence[cns[x] ->> x] => {
@@ -33,9 +32,10 @@ test.co{
   
   trpl(([A,.._],_,_)) => A.
 
-  main:()=>action[(),()].
-  main()=>action{
+  main:()=>().
+  main()=>valof{
     assert Pete.name=="peter";
-    assert Pete.age(3)==33
+    assert Pete.age(3)==33;
+    valis ()
   }
 }

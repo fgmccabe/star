@@ -650,7 +650,7 @@ typeOfRecordPtn(Lc,Tp,ErTp,F,Args,Env,Ev,Exp,Path) :-
   Exp = apply(Lc,Fun,tple(Lc,ArgPtns),Tp).
 %  reportMsg("record ptn = %s",[can(Exp)],Lc).
 
-typeOfElementPtns([],_,_,_,_,Env,Env,Defs,Defs,_Path).
+typeOfElementPtns([],_Face,_ErTp,Env,Env,Defs,Defs,_Path).
 typeOfElementPtns([E|Els],Face,ErTp,Env,Ev,Defs,Dfx,Path) :-
   elementPtn(E,Face,ErTp,Env,E0,Defs,Df0,Path),
   typeOfElementPtns(Els,Face,ErTp,E0,Ev,Df0,Dfx,Path).

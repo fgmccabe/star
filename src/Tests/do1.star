@@ -9,11 +9,13 @@ test.do1{
 
     A := A!+A!;
 
-    assert A!==2
+    assert A!==2;
+    valis ()
   }
 
-  main:()=>action[(),()].
-  main() => action{
-    doFirst()
+  main:()=>().
+  main() => valof{
+    do doFirst();
+    valis ();
   }
 }

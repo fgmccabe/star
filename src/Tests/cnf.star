@@ -16,8 +16,8 @@ test.cnf{
   ms : cons[string].
   ms = ["b","c"].
 
-  main:()=>action[(),()].
-  main() => action{
+  main:()=>().
+  main() => valof{
     for (P,C) in parent do{
       logM("Parent is $(P), child is $(C)")
     };

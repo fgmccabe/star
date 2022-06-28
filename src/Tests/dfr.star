@@ -2,7 +2,6 @@ test.dfr{
   import star.
   import star.script.
 
-
   CX : (cons[integer],integer) => result[string,integer].
   CX(Is,Lm) => do{
     Cx .= ref 0;
@@ -20,11 +19,11 @@ test.dfr{
     }
   }
    
-
   IS = [1,2,-3,5,-2,56,10,0].
 
-  main:()=>action[(),()].
-  main()=>action{
+  main:()=>().
+  main()=>valof{
     show valof CX(IS,2);
+    valis ()
   }
 }
