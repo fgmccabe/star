@@ -1,5 +1,6 @@
 star.redblack{
   import star.core.
+  import star.action.
   import star.coerce.
   import star.arith.
   import star.collection.
@@ -10,6 +11,7 @@ star.redblack{
   import star.monad.
   import star.option.
   import star.tuples.
+  import star.task.
 
   -- red/black trees
 
@@ -233,6 +235,22 @@ star.redblack{
     _iter(Tr,St,Fn) => iter(Tr,St,Fn)
   }
 
+  public implementation all k,v ~~ generate[rbtree[k,v]->>keyval[k,v]] => {
+    _generate(T) => generator{
+      let{.
+	loop:(rbtree[k,v]) => result[res_generator,()].
+	loop(.leaf) => do{ valis () }.
+	loop(node(_,K,V,L,R)) => do{
+	  do loop(L);
+	  yield (K->V);
+	  do loop(R);
+	  valis ()
+	}
+      .}
+      in do loop(T);
+    }
+  }
+      
   public implementation all k,v ~~ sizeable[rbtree[k,v]] => let{.
     count(.leaf,Cx)=>Cx.
     count(node(_,_,_,L,R),Cx)=>count(R,count(L,Cx+1)).

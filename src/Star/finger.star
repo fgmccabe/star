@@ -200,12 +200,13 @@ star.finger{
     
       private iterOverFinger:all x ~~ (fingerTree[t],x,(t,x)=>x) => x.
       iterOverFinger(.eTree,St,_) => St.
-      iterOverFinger(Tr,St,Fn) where consl(El,tl) .= viewl(Tr) =>
-	case Fn(El,St) in {
-	  _more(St1) => iterOverFinger(tl,St1,Fn).
-	  _end(St1) => St1
-	}
-   .}.
+      iterOverFinger(Tr,St,Fn) where 
+	  consl(El,tl) .= viewl(Tr) => iterOverFinger(tl,Fn(El,St),Fn).
+    .}.
+
+  public implementation all t ~~ measured[t->>integer] |: generate[fingerTree[t]->>t] => {
+    _generate(T) => iterGenerator(T)
+  }
 
   -- Implement display
 

@@ -116,11 +116,7 @@ star.cons{
   -- Implement iteration over a cons list
   public implementation all t ~~ iter[cons[t]->>t] => {.
     _iter(.nil,St,_) => St.
-    _iter(cons(H,T),St,Fn) =>
-      case Fn(H,St) in {
-	_more(St1) => _iter(T,St1,Fn).
-	_end(St1) => St1
-      }
+    _iter(cons(H,T),St,Fn) => _iter(T,Fn(H,St),Fn).
   .}
 
   -- Implement a generator for cons lists
