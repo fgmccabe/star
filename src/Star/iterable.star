@@ -5,10 +5,8 @@ star.iterable{
   -- The iter contract is used in query evaluation
   -- The _iter function iterates over the collection composing it
 
-  public all x ~~ _step[x] ::= _more(x) | _end(x).
-
   public contract all s,t ~~ iter[s->>t] ::= {
-    _iter:all x ~~ (s,x,(t,x)=>_step[x]) => x
+    _iter:all x ~~ (s,x,(t,x)=>x) => x
   }
 
   public contract all coll/1, m/2, k,v ~~ grouping[coll ->> m,k,v] ::=  {
@@ -21,4 +19,24 @@ star.iterable{
   public contract all c,e ~~ generate[c->>e] ::= {
     _generate:(c)=>task[sus_generator[e],res_generator]
   }
+
+  public iterGenerator:all c,e ~~ iter[c->>e] |: (c) => task[sus_generator[e],res_generator].
+  iterGenerator(L) => task{
+    let{
+      yieldFn:(e,())=>().
+      yieldFn(E,_) => valof{
+	try{
+	  suspend _yld(E) in {
+	    ._next => {}.
+	    ._cancel => raise ()
+	  }
+	} catch {
+	  _ => retire ._all
+	};
+	valis ()
+      }
+    } in {_ .= _iter(L,(),yieldFn)};
+    retire ._all
+  }
+  
 }

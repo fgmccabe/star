@@ -8,12 +8,13 @@ test.bench{
   timer_start : (integer, string) => (integer, integer, string).
   timer_start(count, msg) => (_ticks(), count, msg).
 
-  timer_finish : ((integer, integer, string)) => action[(),()].
-  timer_finish((start, count, msg)) => do {
+  timer_finish : ((integer, integer, string)) => ().
+  timer_finish((start, count, msg)) => valof {
     stop .= _ticks();
     elapsed .= ((stop - start)::float)/1.0e6;
     ops_per_sec .= ((count::float) / elapsed)::integer;
-    logMsg("$(count)\t#(msg)\t$(elapsed) ms\t$(ops_per_sec) ops/sec")
+    logMsg("$(count)\t#(msg)\t$(elapsed) ms\t$(ops_per_sec) ops/sec");
+    valis ()
   }
 
   fingeriota:(integer,integer)=>fingerTree[integer].
@@ -28,12 +29,10 @@ test.bench{
   rbiota(Mx,Mx) => [].
   rbiota(Ix,Mx) where Ix<Mx => [Ix->Ix,..rbiota(Ix+1,Mx)].
 
-  empty:all e ~~ (e)=>action[(),()].
-  empty(_) => action{
-    valis ()
-  }
+  empty:all e ~~ (e)=>().
+  empty(_) => ().
 
-  benchNativeList(Count) => action {
+  benchNativeList(Count) => valof {
     timer .= ref timer_start(Count, "");
     idxes .= (iota(0, Count):cons[integer]);
 
@@ -86,7 +85,6 @@ test.bench{
       };
       timer_finish(timer!)
     };
-
 
     logMsg("******* finger trees ******");
     timer := timer_start(Count, "Creating finger tree");
@@ -172,16 +170,16 @@ test.bench{
     valis ()
   }
 
-  main : (integer,string) => action[(),()].
-  main(Count,Msg) => action {
+  main : (integer,string) => ().
+  main(Count,Msg) => valof {
     logMsg("Do #(Msg) for $(Count) times");
-    XX .= valof benchNativeList(Count);
+    benchNativeList(Count);
     valis ()
   }
 
   public _main:(cons[string])=>().
-  _main([]) => valof main(10,"test").
-  _main([Count]) => valof main(Count::integer,"test").
+  _main([]) => main(10,"test").
+  _main([Count]) => main(Count::integer,"test").
 }
 
 

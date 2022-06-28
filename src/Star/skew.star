@@ -206,6 +206,10 @@ star.skew{
     _iter(rl(L),St,Fn) => iterList(L,St,Fn).
   }
 
+  public implementation all t ~~ generate[sk[t]->>t] => {
+    _generate(T) => iterGenerator(T)
+  }
+
   public implementation all t ~~ coercion[sk[t],cons[t]] => {
     _coerce(S) => some(foldLeft((e,L) => cons(e,L),.nil,S)).
   }
