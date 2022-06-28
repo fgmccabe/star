@@ -449,8 +449,13 @@ liftAction(doLet(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
   (is_member(showTrCode,Opts) -> dispAct(Exp);true).
 liftAction(doLetRec(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
-%  (is_member(showTrCode,Opts) -> dispCanon(doLetRec(Lc,Decls,Defs,B));true),
-  liftLetRec(Lc,Decls,Defs,B,transform:liftAction,Exp,Q,Qx,Map,Opts,Ex,Exx).
+  (is_member(showTrCode,Opts) -> dispAction(doLetRec(Lc,Decls,Defs,B));true),
+  genVar("_ThR",ThVr),
+  letRecActionMap(Lc,Decls,Defs,B,ThVr,Q,Map,Opts,ThMap,RMap,FreeTerm),
+  transformThetaDefs(ThMap,RMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
+  liftAction(B,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
+  mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
+  (is_member(showTrCode,Opts) -> dispAct(Exp);true).
 liftAction(doCase(Lc,B,Cs,_),Reslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(B,BB,Q,Q0,Map,Opts,Ex,Ex0),
   liftCases(Cs,Cases,Q0,Qx,Map,Opts,transform:liftAction,Ex0,Exx),
@@ -646,8 +651,8 @@ letRecMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,[lyr(Vx,Tx,ConsMap,ThVr)|Map],FreeTe
   findFreeVars(letRec(Lc,Decls,Defs,Bnd),Map,Q,ThFree),
   varDefs(Defs,CellVars),
   concat(CellVars,ThFree,FreeVars),
-  collectLabelVars(FreeVars,ThVr,0,varMap{},V0),
   makeConstructorMap(Decls,consMap{},ConsMap),
+  collectLabelVars(FreeVars,ThVr,0,varMap{},V0),
   declareThetaVars(Decls,ThVr,CellVars,ConsMap,V0,Vx,typeMap{},Tx),
   makeFreeTerm(CellVars,Lc,ThFree,Map,Opts,FreeTerm).
 
@@ -657,8 +662,8 @@ letMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,
   varDefs(Defs,CellVars),
   concat(CellVars,ThFree,FreeVars),
   makeConstructorMap(Decls,consMap{},ConsMap),
-  declareThetaVars(Decls,ThVr,CellVars,ConsMap,varMap{},V0,typeMap{},Tx),
-  collectLabelVars(FreeVars,ThVr,0,V0,Vx),
+  collectLabelVars(FreeVars,ThVr,0,varMap{},V0),
+  declareThetaVars(Decls,ThVr,CellVars,ConsMap,V0,Vx,typeMap{},Tx),
   makeFreeTerm(CellVars,Lc,ThFree,Map,Opts,FreeTerm).
 
 letActionMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,
@@ -671,6 +676,15 @@ letActionMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,
   collectLabelVars(FreeVars,ThVr,0,V0,Vx),
   makeFreeTerm(CellVars,Lc,ThFree,Map,Opts,FreeTerm).
 
+letRecActionMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,
+       [lyr(Vx,Tx,ConsMap,ThVr)|Map],[lyr(V0,Tx,ConsMap,ThVr)|Map],FreeTerm) :-
+  findFreeVarsInAction(doLetRec(Lc,Decls,Defs,Bnd),Map,Q,ThFree),
+  varDefs(Defs,CellVars),
+  concat(CellVars,ThFree,FreeVars),
+  makeConstructorMap(Decls,consMap{},ConsMap),
+  declareThetaVars(Decls,ThVr,CellVars,ConsMap,varMap{},V0,typeMap{},Tx),
+  collectLabelVars(FreeVars,ThVr,0,V0,Vx),
+  makeFreeTerm(CellVars,Lc,ThFree,Map,Opts,FreeTerm).
 
 lambdaMap(Lam,ThVr,LamLbl,Q,Map,Opts,ctpl(lbl(LamLbl,1),[FreeTerm]),
 	  [lyr(Vx,typeMap{},consMap{},ThVr)|Map]) :-
