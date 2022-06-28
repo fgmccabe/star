@@ -31,8 +31,8 @@ taskPo allocateTask(heapPo H, integer sze, methodPo underFlow, TaskState state, 
 TaskState taskState(taskPo stk);
 retCode setTaskState(taskPo stk, TaskState state);
 
-taskPo attachTask(taskPo stk, taskPo seg);
-taskPo detachTask(taskPo baseStk, taskPo parent);
+taskPo attachTask(taskPo stk, taskPo top);
+taskPo detachTask(taskPo base, taskPo top);
 taskPo dropTask(taskPo stk);
 
 framePo stackFrame(taskPo stk, integer off);

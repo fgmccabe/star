@@ -526,6 +526,7 @@ retCode run(processPo P) {
         }
       }
 
+
       case Retire: { // Similar to a suspend, except that we trash the susending stack
         termPo event = pop();
         taskPo task = C_TASK(pop());

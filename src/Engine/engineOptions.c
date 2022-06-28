@@ -368,10 +368,14 @@ static retCode setDisplayDepth(char *option, logical enable) {
 
 static retCode setMinStackSize(char *option, logical enable) {
   minStackSize = parseSize(option);
-  if (minStackSize != (1 << lg2(minStackSize))) {
-    outMsg(logFile, "minimum stack size should be a power of 2, suggesting %d", 1 << (lg2(minStackSize) + 1));
+  if (minStackSize < MINMINSTACKSIZE) {
+    outMsg(logFile, "minimum stack size should be at least %d\n",MINMINSTACKSIZE);
+    minStackSize = MINMINSTACKSIZE;
+  } else if (minStackSize != (1 << lg2(minStackSize))) {
+    outMsg(logFile, "minimum stack size should be a power of 2, suggesting %d\n", 1 << (lg2(minStackSize) + 1));
     minStackSize = 1 << (lg2(minStackSize) + 1);
   }
+
   return Ok;
 }
 
