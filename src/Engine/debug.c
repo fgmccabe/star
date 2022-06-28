@@ -790,6 +790,7 @@ DebugWaitFor insDebug(processPo p) {
         }
 
         flushFile(debugOutChnnl);
+        taskSanityCheck(p->stk);
 
         switch (p->waitFor) {
           case moreDebug:
@@ -1289,5 +1290,7 @@ retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bu
 void dumpStats() {
   logMsg(debugOutChnnl, "%ld instructions executed\n", pcCount);
   dumpEscapes(debugOutChnnl);
+  dumpGcStats();
+  dumpStackStats();
 }
 

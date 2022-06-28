@@ -46,9 +46,13 @@ static MethodRec underFlowMethod = {
 clssPo taskClass = (clssPo) &TaskClass;
 
 static integer stackCount = 0;
+#ifdef TRACESTACK
+static integer stackReleases = 0;
+#endif
 static buddyRegionPo stackRegion;
 
 static framePo firstFrame(taskPo tsk);
+static logical isAttachedStar(taskPo base, taskPo tgt);
 
 void initTasks() {
   TaskClass.clss = specialClass;
@@ -88,6 +92,7 @@ taskPo allocateTask(heapPo H, integer sze, methodPo underFlow, TaskState state, 
   tsk->sp = &tsk->stkMem[sze];
   tsk->fp = (framePo) &tsk->stkMem[sze];
   tsk->attachment = attachment;
+  tsk->bottom = (state == active ? Null : tsk);
   tsk->state = state;
   tsk->hash = stackCount++;
 
@@ -280,6 +285,8 @@ termPo tskScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 
   if (tsk->attachment != Null)
     helper((ptrPo) &tsk->attachment, c);
+  if (tsk->bottom != Null)
+    helper((ptrPo) &tsk->bottom, c);
 
   return o + StackCellCount;
 }
@@ -333,53 +340,62 @@ taskPo spinupStack(heapPo H, integer size) {
   return allocateTask(H, size, &underFlowMethod, suspended, Null);
 }
 
-taskPo attachTask(taskPo tsk, taskPo seg) {
+taskPo attachTask(taskPo tsk, taskPo top) {
+  taskPo bottom = top->bottom;
+  assert(bottom != Null && isAttachedStar(bottom, top));
+
 #ifdef TRACESTACK
   if (traceTasks)
-    outMsg(logFile, "attach stack %T to %T\n", seg, tsk);
+    outMsg(logFile, "attach stack %T to %T\n", top, tsk);
 #endif
 
-  assert(taskState(tsk) == active);
+  assert(taskState(tsk) == active && taskState(top) == suspended && taskState(bottom) == suspended);
 
-  taskPo s = seg;
-  taskPo f = s;
-  while (s != Null && taskState(s) == suspended) {
-    setTaskState(s, active);
-    f = s;
-    s = s->attachment;
+  taskPo f = bottom;
+
+  while (f != top) {
+    setTaskState(f, active);
+    f->bottom = Null;
+    f = f->attachment;
   }
-  assert(taskState(f) == active && f->attachment == Null);
-  f->attachment = tsk;
-  return seg;
+  setTaskState(f, active);
+
+  assert(f == top && top->attachment == Null);
+  top->attachment = tsk;
+  top->bottom = Null;
+  return bottom;
 }
 
 // Get the stack immediately below the identified parent
-taskPo detachTask(taskPo basetsk, taskPo parent) {
-
+taskPo detachTask(taskPo base, taskPo top) {
 #ifdef TRACESTACK
   if (traceTasks)
-    outMsg(logFile, "detach %T up to %T\n", basetsk, parent);
+    outMsg(logFile, "detach %T up to %T\n", base, top);
 #endif
-  assert(taskState(parent) == active);
-  taskPo s = basetsk;
-  while (s != Null && s != parent) {
+  assert(taskState(top) == active && top->bottom == Null);
+  top->bottom = base;
+  taskPo s = base;
+  while (s != Null && s != top) {
+    assert(s->state == active);
     s->state = suspended;
-    s = basetsk->attachment;
+    s->bottom = base;
+    s = s->attachment;
   }
-  if (s == Null || s->attachment == Null)
-    return Null;
-  else {
-    taskPo ss = s->attachment;
-    s->attachment = Null;
-    s->state = suspended;
-    return ss;
-  }
+
+  assert(s == top);
+  taskPo parent = top->attachment;
+  s->attachment = Null;
+  s->state = suspended;
+  s->bottom = base;
+  assert(isAttachedStar(base, top));
+  return parent;
 }
 
 taskPo dropTask(taskPo tsk) {
 #ifdef TRACESTACK
   if (traceTasks)
     outMsg(logFile, "drop stack %T\n%_", tsk);
+  stackReleases++;
 #endif
   taskPo previous = tsk->attachment;
   tsk->state = moribund;
@@ -403,4 +419,17 @@ framePo firstFrame(taskPo tsk) {
     return f;
   else
     return Null;
+}
+
+logical isAttachedStar(taskPo base, taskPo tgt) {
+  while (base != Null && base != tgt)
+    base = base->attachment;
+  return base == tgt;
+}
+
+void dumpStackStats() {
+#ifdef TRACESTACK
+  outMsg(logFile, "%d stacks allocated\n", stackCount);
+  outMsg(logFile, "%d stacks dropped\n", stackReleases);
+#endif
 }

@@ -27,6 +27,7 @@ typedef struct TaskStructure {
   ptrPo sp;                     // Current stack pointer
   framePo fp;                   // Current frame pointer
   taskPo attachment;           // Where is the stack attached
+  taskPo bottom;               // What is the actual innermost stack
   TaskState state;             // is the stack attached, root, detached or moribund
   ptrPo stkMem;                 // Memory block used for stack
 } StackRecord;
@@ -36,8 +37,12 @@ typedef struct TaskStructure {
 extern void initTasks();
 extern logical traceTasks;      // stack operation tracing
 
+#define MINMINSTACKSIZE (64)
+
 extern integer minStackSize;       /* How big is a stack */
 extern integer stackRegionSize;    // How much space for stacks
+
+void dumpStackStats();
 
 static inline ptrPo stackLimit(taskPo stk) {
   return stk->stkMem + stk->sze;
