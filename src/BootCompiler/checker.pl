@@ -1046,7 +1046,8 @@ checkAction(A,Tp,ErTp,Env,Ev,Susp,Vls,Rsr,Path) :-
   isRetire(A,Lc,E),!,
 %  unitTp(UnitTp),
   newTypeFun("R",2,RsltTp),
-  applyTypeFun(RsltTp,[ErTp,voidType],Lc,Env,RTp),
+  newTypeVar("V",Vd),
+  applyTypeFun(RsltTp,[ErTp,Vd],Lc,Env,RTp),
   verifyType(Lc,A,RTp,Tp,Env),
   checkRetire(Lc,name(Lc,"this"),E,ErTp,Env,Ev,Susp,Vls,Rsr,Path).
 checkAction(A,Tp,ErTp,Env,Ev,Susp,Vls,Rsr,Path) :-
