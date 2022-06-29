@@ -4,8 +4,8 @@ test.do3{
 
   -- Test action notation (iteration)
 
-  doDupl:(integer,string) => action[(),string].
-  doDupl(Mx,S) => action{
+  doDupl:(integer,string) => result[(),string].
+  doDupl(Mx,S) => do{
     Cx .= ref 0;
     Rs .= ref "";
     
@@ -16,8 +16,13 @@ test.do3{
     valis Rs!
   }
 
-  main:()=>action[(),()].
-  main() => action{
-    assert valof doDupl(3,"ab") == "ababab"
+  main:()=> ().
+  main() => valof{
+    try{
+      assert valof doDupl(3,"ab") == "ababab"
+    } catch {
+      _ => logMsg("huh?")
+    };
+    valis ()
   }
 }

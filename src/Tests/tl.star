@@ -9,8 +9,9 @@ test.tl{
   T1 : cons[integer].
   T1 = foldRight((Ix,L)=>cons(Ix,L),[],range(1,1,100)).
 
-  main:() => action[(),()].
-  main() => action{
-    show T1
+  main:() => ().
+  main() => valof{
+    show T1;
+    valis ()
   }
 }

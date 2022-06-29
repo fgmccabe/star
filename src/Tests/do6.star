@@ -9,10 +9,11 @@ test.do6{
             ("de","abc"),("d","de"),("e","de"),
             ("f","a"),("g","f")].
 
-  main:()=>action[(),()].
-  main() => action{
+  main:()=> ().
+  main() => valof{
     show ({ (X,Y) | (X,Z) in parent && (Z,Y) in parent}:cons[(string,string)]);
 
-    show ({ (X,Y) | (X,Y) in parent || (Y,X) in parent }:cons[(string,string)])
+    show ({ (X,Y) | (X,Y) in parent || (Y,X) in parent }:cons[(string,string)]);
+    valis ()
   }
 }

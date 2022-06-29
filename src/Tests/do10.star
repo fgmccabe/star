@@ -6,15 +6,17 @@ test.do10{
     wi : string.
   }
 
-  hndle:all x/2 ~~ execution[x] |: (cons[string],pp)=>x[(),()].
+  hndle:all x/2 ~~ execution[x] |: (cons[string],pp)=>x[void,()].
   hndle(_,X) => do{
-    logMsg(X.ri)
+    logMsg(X.ri);
+    valis ()
   }
 
   public _main:(cons[string])=>().
-  _main(Args) => valof action{
+  _main(Args) => valof {
     RI ^= some("fred");
     WI ^=  some("file:");
-    hndle(Args,pp{ ri=RI. wi=WI. })
+    do (hndle(Args,pp{ ri=RI. wi=WI. }):result[void,()]);
+    valis ()
   }
 }

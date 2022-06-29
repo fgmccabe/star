@@ -2,6 +2,7 @@ star.option{
   import star.core.
   import star.coerce.
   import star.arith.
+  import star.monad.
   import star.cons.
   import star.strings.
 
@@ -36,6 +37,12 @@ star.option{
   public deflt:all a~~(option[a],()=>a)=>a.
   deflt(some(X),_) => X.
   deflt(.none,F) => F().
+
+  public implementation monad[option] => {
+    return X => some(X).
+    (.none >>= _) => .none.
+    (some(X) >>= F) => F(X)
+  }
 
   public (^|):all a~~(option[a],()=>option[a])=>option[a].
   .none ^| F => F().

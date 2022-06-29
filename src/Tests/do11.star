@@ -12,9 +12,10 @@ test.do11{
     valis V
   }
 
-  main:()=>action[(),()].
-  main()=>action{
-    assert valof multiWhr(foo(23,""))==23
+  main:()=>().
+  main()=>valof{
+    assert valof multiWhr(foo(23,""))==23;
+    valis ()
   }
 }
 

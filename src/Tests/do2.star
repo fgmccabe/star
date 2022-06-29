@@ -4,15 +4,19 @@ test.do2{
 
   -- Test action notation
 
+  doFirst:all e ~~ ()=>result[e,()].
   doFirst() => do{
     A .= ref 1;
 
     A := A!+A!;
 
-    assert A!==2
+    assert A!==2;
+    valis ()
   }
 
-  doIf(X) => action{
+  
+  doIf:all e ~~ (integer)=>result[e,boolean].
+  doIf(X) => do{
     Alpha .= 3;
 
     if Alpha < X then{
@@ -21,7 +25,9 @@ test.do2{
       valis .false
     }
   }
-  doIf2(X) => action{
+
+  doIf2:all e ~~ (integer)=>result[e,boolean].
+  doIf2(X) => do{
     Alpha .= ref .true;
 
     if 2 < X then{
@@ -32,7 +38,8 @@ test.do2{
     valis Alpha!
   }
 
-  doIf3(X) => action{
+  doIf3:all e ~~ (integer)=>result[e,boolean].
+  doIf3(X) => do{
     Alpha .= ref .false;
 
     if 2 < X then{
@@ -42,11 +49,16 @@ test.do2{
   }
   
 
-  main:()=>action[(),()].
-  main() => action{
-    doFirst();
-    assert valof doIf(4);
-    assert valof doIf2(4);
-    assert valof doIf3(4)
+  main:()=>()
+  main() => valof{
+    try{
+      do doFirst();
+      assert valof doIf(4);
+      assert valof doIf2(4);
+      assert valof doIf3(4)
+    } catch {
+      _ => {}
+    };
+    valis ()
   }
 }
