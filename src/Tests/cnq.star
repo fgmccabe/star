@@ -1,6 +1,5 @@
 test.cnq{
   import star.
-  import test.ac0.
 
   parent:cons[(string,string)].
   parent = [("a","ab"),("b","ab"),("a","c"),("c","aa"),("ab","abc"),
@@ -26,10 +25,10 @@ test.cnq{
 
   main:()=>().
   main() => valof{
-    logM("gp(abc)=$(gp("abc"))");
-    logM("sibs = $(sibs())");
-    logM("father(ab) = $(fatherOf("ab"))");
-    logM("hasD(a) = $(hasD("a"))");
+    logMsg("gp(abc)=$(gp("abc"))");
+    logMsg("sibs = $(sibs())");
+    logMsg("father(ab) = $(fatherOf("ab"))");
+    logMsg("hasD(a) = $(hasD("a"))");
     valis ()
   }
 }  

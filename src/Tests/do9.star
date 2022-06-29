@@ -10,9 +10,10 @@ test.do9{
   gen:(string,cons[t])=>cons[integer].
   gen(P,D) where MM .= qName(P) && {? f(MM) in D ?} => [].
 
-  main:()=>action[(),()].
-  main()=>action{
+  main:()=>().
+  main()=>valof{
     show qName("one");
-    show gen("one",[f(3),f(5)])
+    show gen("one",[f(3),f(5)]);
+    valis ()
   }
 }

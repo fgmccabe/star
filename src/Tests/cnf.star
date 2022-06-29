@@ -1,6 +1,5 @@
 test.cnf{
   import star.
-  import test.ac0.
 
   parent:cons[(string,string)].
   parent = [("a","ab"),("b","ab"),("a","c"),("c","aa"),("ab","abc"),
@@ -19,7 +18,7 @@ test.cnf{
   main:()=>().
   main() => valof{
     for (P,C) in parent do{
-      logM("Parent is $(P), child is $(C)")
+      _logmsg("Parent is $(P), child is $(C)")
     };
     valis ()
   }

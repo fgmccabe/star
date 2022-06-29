@@ -1138,21 +1138,22 @@ checkPerform(Lc,A,Tp,ErTp,Env,Action,Rsr,Path) :-
   newTypeVar("BTp",BTp),
   typeOfExp(A,BTp,ErTp,Env,_,Exp,Path),
 
-  getVar(Lc,"_errval",Env,ErrVlFn,RseTp),
-  verifyType(Lc,ast(A),funType(tplType([BTp]),ErTp),RseTp,Env),
-  ErrVl = apply(Lc,ErrVlFn,tple(Lc,[Exp]),ErTp),
+  (sameType(voidType,ErTp,Lc,Env) ->
+   Action = doIgnore(Lc,Exp);
+   getVar(Lc,"_errval",Env,ErrVlFn,RseTp),
+   verifyType(Lc,ss("_errval"),RseTp,funType(tplType([BTp]),ErTp),Env),
+   ErrVl = apply(Lc,ErrVlFn,tple(Lc,[Exp]),ErTp),
 
-  findType("boolean",Lc,Env,LogicalTp),
-  getVar(Lc,"_isOk",Env,OkFn,OkTp),
-  verifyType(Lc,ast(A),funType(tplType([BTp]),LogicalTp),OkTp,Env),
+   findType("boolean",Lc,Env,LogicalTp),
+   getVar(Lc,"_isOk",Env,OkFn,OkTp),
+   verifyType(Lc,ss("_isOk"),OkTp,funType(tplType([BTp]),LogicalTp),Env),
 
-  Ok = apply(Lc,OkFn,tple(Lc,[Exp]),LogicalTp),
+   Ok = apply(Lc,OkFn,tple(Lc,[Exp]),LogicalTp),
 
-  getVar(Lc,"_raise",Env,RseFn,RaiseFnTp),
-  verifyType(Lc,ast(A),funType(tplType([ErTp]),Tp),RaiseFnTp,Env),
-  call(Rsr,Lc,ErrVl,Tp,RseFn,Raise),
-
-  Action = doIfThen(Lc,neg(Lc,Ok),doRaise(Lc,Raise)).
+   getVar(Lc,"_raise",Env,RseFn,RaiseFnTp),
+   verifyType(Lc,ss("_raise"),RaiseFnTp,funType(tplType([ErTp]),Tp),Env),
+   call(Rsr,Lc,ErrVl,Tp,RseFn,Raise),
+   Action = doIfThen(Lc,neg(Lc,Ok),doRaise(Lc,Raise))).
 
 checkTryCatch(Lc,B,Hs,Tp,ErTp,Env,Ev,doTryCatch(Lc,Body,Hndlr),Vls,Rsr,Path) :-
   /*

@@ -9,7 +9,7 @@ test.cnx{
   fib(N) => fib(N-1)+fib(N-2).
 
   main:()=>().
-  main()=>valis{
+  main()=>valof{
     show fib(10);
     valis ()
   }

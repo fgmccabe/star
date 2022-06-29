@@ -2,7 +2,7 @@ test.do13{
   import star.
   import star.script.
 
---  maybeFail:all e/2 ~~ execution[e] |: (integer)=>e[integer,integer].
+  maybeFail:(integer)=>result[integer,integer].
   maybeFail(X) => do{
     if X==10 then
       raise 10
@@ -10,8 +10,8 @@ test.do13{
       valis X
   }
 
-  main:()=>action[(),()].
-  main() => action{
+  main:()=>().
+  main() => valof{
     try{
       AA <- maybeFail(5);
       show AA;
@@ -21,9 +21,12 @@ test.do13{
       assert valof BB == 6;
       XX <- maybeFail(10);
       assert .false  -- never get here
-    } catch (Ix) => do{
-      assert Ix==10
-    }
+    } catch {
+      (Ix) => {
+	assert Ix==10
+      }
+    };
+    valis ()
   }
 }
     

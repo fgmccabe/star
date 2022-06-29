@@ -62,4 +62,7 @@ test.c0{
     };
     valis F!
   }
+
+  main:()=>().
+  main()=>().
 }

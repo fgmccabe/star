@@ -13,9 +13,11 @@ test.dfr{
 	  Cx := Cx!+Ix
       };
       valis Cx!
-    } catch(E) => do{
-      logMsg(E);
-      raise E
+    } catch{
+      (E) => {
+	logMsg(E);
+	raise E
+      }
     }
   }
    
