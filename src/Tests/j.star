@@ -4,8 +4,8 @@ test.j{
   import star.parse.
   import star.script.
 
-  main:()=>action[(),()].
-  main()=>action{
+  main:()=>().
+  main()=>valof{
     assert "11"::json == jNum(11.0);
 
     assert "[1]"::json == jSeq([jNum(1.0)]);
@@ -46,6 +46,7 @@ test.j{
 }
     """;
 
-    show disp(str::json)
-}
+    show disp(str::json);
+    valis ()
+  }
 }

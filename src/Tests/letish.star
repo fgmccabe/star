@@ -23,10 +23,11 @@ test.let{
     g(N)=>f(N-1)*N
   .} in g.
 
-  main:()=>action[(),()].
-  main()=>action{
+  main:()=> ().
+  main()=> valof{
     assert inc(2)(3) == 5 && k.=kk(3) && k() == 3;
 
-    assert fg()(3) == 6
+    assert fg()(3) == 6;
+    valis ()
   }
 }

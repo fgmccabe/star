@@ -21,11 +21,13 @@ test.qi{
   gparentOf:(string)=>option[string].
   gparentOf(X) => {! G | (P,X) in parent && (G,P) in parent !}.
 
-  main:() => action[(),()].
-  main() => action{
+  main:() => ().
+  main() => valof{
     show parent;
     show parentOf("ab");
 
-    show gparentOf("abc")
+    show gparentOf("abc");
+
+    valis ()
   }
 }

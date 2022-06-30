@@ -6,8 +6,8 @@ test.rl{
   T:sk[string].
   T = ["zero","one","two","three","four","five","six","seven","eight","nine","ten"].
 
-  main:() => action[(),()].
-  main() => action{
+  main:() => ().
+  main() => valof{
     show T;
 
     show T[0];

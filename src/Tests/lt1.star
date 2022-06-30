@@ -14,10 +14,11 @@ test.lt1{
     g(U,FF) => exec(FF)
   .} in f.
 
-  main:()=>action[(),()].
-  main() => action{
+  main:()=>().
+  main() => valof{
     K .= ff(2);
 
-    assert K(3)==0.
+    assert K(3)==0;
+    valis ()
   }
 }

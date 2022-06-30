@@ -16,10 +16,12 @@ test.p0{
 
   aa = parse(_item,([0]:cons[integer])).
 
-  main:() => action[(),()].
-  main() => action{
+  main:() => ().
+  main() => valof{
     show aa;
 
-    show parse(_item,([0]:cons[integer]))
+    show parse(_item,([0]:cons[integer]));
+
+    valis ()
   }
 }

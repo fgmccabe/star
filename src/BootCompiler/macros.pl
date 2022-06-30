@@ -132,6 +132,9 @@ macroConsBody(B,Bx) :-
   isXQuantified(B,Q,I),
   macroConsBody(I,Ix),
   reXQuant(Q,Ix,Bx).
+macroConsBody(B,B) :-
+  locOfAst(B,Lc),
+  reportError("%s is an invalid constructor in type definition",[ast(B)],Lc).
 
 disThroughGroup(S,C,Rp) :-
   isBraceTuple(S,Lc,Els),
@@ -690,6 +693,9 @@ examineActionCase(A,Ax) :-
   macroOpt(G,macros:macroTerm,GG),
   macroAction(V,VV),
   mkEquation(Lc,PP,GG,VV,Ax).
+examineActionCase(T,T) :-
+  locOfAst(T,Lc),
+  reportError("'%s' should be an action case",[ast(T)],Lc).
 
 macroKey(name(_,Nm),Nm).
 macroKey(qnm(_,Nm),Nm).

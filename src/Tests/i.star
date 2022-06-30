@@ -8,12 +8,13 @@ test.i{
   ll:map[string,integer].
   ll = _put(kk,"delta",4).
 
-  main:()=>action[(),()].
-  main()=>action{
+  main:()=>().
+  main()=>valof{
     assert 1^=kk["alpha"];
     assert some(1).=_index(ll,"alpha");
     show kk[~"alpha"];
-    show kk["delta"->4]
+    show kk["delta"->4];
+    valis ()
   }
 
   public all k,v ~~ mp[k,v] ::=

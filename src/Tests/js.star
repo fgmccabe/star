@@ -14,9 +14,10 @@ test.js{
     {? (E1,E2) in zip(L1,L2) *> equalJson(E1,E2) ?}.
   equalJson(_,_) => .false.
 
-  main:()=>action[(),()].
-  main() => action{
+  main:()=> ().
+  main() => valof{
     show jSeq([]) == jSeq([]);
     show jSeq([jSeq([])]) == jSeq([jSeq([])]);
+    valis ()
   }
 }  

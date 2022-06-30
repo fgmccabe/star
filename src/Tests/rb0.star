@@ -51,8 +51,8 @@ test.rb0{
 
   u12()=>u1[12].
 
-  main:()=>action[(),()].
-  main()=>action{
+  main:()=>().
+  main()=>valof{
     show t9;
     assert size(t9)==9;
     show a1;
@@ -97,7 +97,8 @@ test.rb0{
 
     show unzip(["a","b","c"],0,4,u1);
 
+    show ([12->"d"]:rbtree[integer,string]);
 
-    show ([12->"d"]:rbtree[integer,string])
+    valis ()
   }
 }  

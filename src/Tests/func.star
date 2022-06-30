@@ -4,11 +4,12 @@ test.func{
 
   import test.fog.
 
-  public main:()=>action[(),()].
-  main()=>action{
+  public main:()=>().
+  main()=>valof{
     X .= (K(3)•id)(4);
 
     show X;
-    assert X==3
+    assert X==3;
+    valis ()
   }
 }

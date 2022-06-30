@@ -4,10 +4,11 @@ test.fg{
   import test.fact.
 
   public _main:(cons[string])=>().
-  _main(_) => valof main(5).
+  _main(_) => main(5).
   
-  public main:(integer)=>action[(),()].
-  main(F) => action{
-    show fact(F)
+  public main:(integer)=>().
+  main(F) => valof{
+    show fact(F);
+    valis ()
   }
 }

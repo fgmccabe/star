@@ -25,9 +25,10 @@ test.opg{
     disp(A) => dsp(A)
   }
 
-  main:()=>action[(),()].
-  main() => action{
+  main:()=>().
+  main() => valof{
     show <|'+'(5,a)|>;
+    valis ()
   }
 }
  

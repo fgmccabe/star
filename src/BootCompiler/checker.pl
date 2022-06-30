@@ -848,7 +848,7 @@ typeOfExp(Term,Tp,_,Env,Ev,doExp(Lc,Act,Tp),Path) :-
 %  reportMsg("check do term %s:%s",[ast(Term),tpe(Tp)],Lc),
   newTypeVar("VTp",VTp),
   newTypeVar("E",ErTp),
-  newTypeFun("R",2,RsltTp),
+  findType("result",Lc,Env,RsltTp),
   applyTypeFun(RsltTp,[ErTp,VTp],Lc,Env,RTp),
   verifyType(Lc,ast(Term),Tp,RTp,Env),
   checkAction(A,RTp,ErTp,Env,Ev,Act,checker:makeBindCall,checker:makeBindCall,Path).
@@ -1138,22 +1138,20 @@ checkPerform(Lc,A,Tp,ErTp,Env,Action,Rsr,Path) :-
   newTypeVar("BTp",BTp),
   typeOfExp(A,BTp,ErTp,Env,_,Exp,Path),
 
-  (sameType(voidType,ErTp,Lc,Env) ->
-   Action = doIgnore(Lc,Exp);
-   getVar(Lc,"_errval",Env,ErrVlFn,RseTp),
-   verifyType(Lc,ss("_errval"),RseTp,funType(tplType([BTp]),ErTp),Env),
-   ErrVl = apply(Lc,ErrVlFn,tple(Lc,[Exp]),ErTp),
+  getVar(Lc,"_errval",Env,ErrVlFn,RseTp),
+  verifyType(Lc,ss("_errval"),RseTp,funType(tplType([BTp]),ErTp),Env),
+  ErrVl = apply(Lc,ErrVlFn,tple(Lc,[Exp]),ErTp),
 
-   findType("boolean",Lc,Env,LogicalTp),
-   getVar(Lc,"_isOk",Env,OkFn,OkTp),
-   verifyType(Lc,ss("_isOk"),OkTp,funType(tplType([BTp]),LogicalTp),Env),
+  findType("boolean",Lc,Env,LogicalTp),
+  getVar(Lc,"_isOk",Env,OkFn,OkTp),
+  verifyType(Lc,ss("_isOk"),OkTp,funType(tplType([BTp]),LogicalTp),Env),
 
-   Ok = apply(Lc,OkFn,tple(Lc,[Exp]),LogicalTp),
+  Ok = apply(Lc,OkFn,tple(Lc,[Exp]),LogicalTp),
 
-   getVar(Lc,"_raise",Env,RseFn,RaiseFnTp),
-   verifyType(Lc,ss("_raise"),RaiseFnTp,funType(tplType([ErTp]),Tp),Env),
-   call(Rsr,Lc,ErrVl,Tp,RseFn,Raise),
-   Action = doIfThen(Lc,neg(Lc,Ok),doRaise(Lc,Raise))).
+  getVar(Lc,"_raise",Env,RseFn,RaiseFnTp),
+  verifyType(Lc,ss("_raise"),RaiseFnTp,funType(tplType([ErTp]),Tp),Env),
+  call(Rsr,Lc,ErrVl,Tp,RseFn,Raise),
+  Action = doIfThen(Lc,neg(Lc,Ok),doRaise(Lc,Raise)).
 
 checkTryCatch(Lc,B,Hs,Tp,ErTp,Env,Ev,doTryCatch(Lc,Body,Hndlr),Vls,Rsr,Path) :-
   /*

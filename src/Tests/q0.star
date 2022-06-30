@@ -22,8 +22,8 @@ test.q0{
   pos : cons[integer].
   pos = { X | X in someInts && X>0 }.
 
-  main:() => action[(),()].
-  main() => action{
+  main:() => ().
+  main() => valof{
     show parent;
 
     assert size(parent)==10;
@@ -32,6 +32,8 @@ test.q0{
 
     show pp;
 
-    show pos
+    show pos;
+
+    valis ()
   }
 }

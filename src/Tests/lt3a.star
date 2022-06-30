@@ -11,10 +11,11 @@ test.lt3a{
 
   genSym(Pr) => _str_gen(Pr).
 
-  main:()=>action[(),()].
-  main()=>action{
+  main:()=>().
+  main()=>valof{
     show foo()();
     show foo()();
-    assert ~foo()()==foo()()
+    assert ~foo()()==foo()();
+    valis ()
   }
 }

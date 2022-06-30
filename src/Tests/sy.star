@@ -4,8 +4,8 @@ test.sy{
 
   -- Test of syntax of star
 
-  CX : (cons[integer],integer) => action[(),integer].
-  CX(Is,Lm) => action{
+  CX : (cons[integer],integer) => result[(),integer].
+  CX(Is,Lm) => do{
     Cx .= ref 0;
     
     for Ix in Is do{
@@ -23,7 +23,7 @@ test.sy{
     small : x.
   }
 
-  bind(X) where X>0 => valof action{
+  bind(X) where X>0 => valof{
     logMsg("trying");
     return .true
   }
@@ -31,7 +31,7 @@ test.sy{
   bind(X) where
       X>0 =>
     (MM ^= some(X) ?
-	valof action{
+	valof{
 	  logMsg("trying");
 	  return .true
 	}
@@ -47,31 +47,19 @@ test.sy{
     | .someone
     | .everyone.
 
-  o : action[string,integer]. 
-  o = return 1.
+  o : result[string,integer]. 
+  o = do{ valis 1}
 
-  p : action[string,integer].
-  p = (o >>= double) >>= double.
-
-  double(X) => action{ valis X+X }.
-  
   /* Block comment */
 
-  a:result[(),integer].
-  a = do{
-    x .= valof p;
-    y .= valof p;
-    return x
-  }
-  
   fact:all e ~~ equality[e], arith[e],comp[e] |: (e)=>e. 
   fact(N)=>let{.
     ff(zero,F) => F.
     ff(X,F) where X>zero => ff(X-one,F*X).
   .} in ff(N,one).
 
-  main:() => action[(),()].
-  main() => action{
+  main:() => ().
+  main() => valof{
     show "fact(3) = $(fact(3))";
     
     show """a multi
@@ -79,10 +67,8 @@ test.sy{
 string\n
     """;
  
-    assert valof a == 4;
-
     assert valof o == 1;		-- End comment
-  
-    assert valof p == 4;
+
+    valis ()
   }
 }

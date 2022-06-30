@@ -341,11 +341,15 @@ collectFaceRefs([St|L],All,R0,Rx) :-
 
 collectCaseRefs([],_,_,Rf,Rf) :-!.
 collectCaseRefs([E|Cs],C,A,Rf,Rx) :-
-  isEquation(E,_,L,Cond,R),
+  isEquation(E,_,L,Cond,R),!,
   collectTermRefs(L,A,Rf,R0),
   collectGuardRefs(Cond,A,R0,R1),
   call(C,R,A,R1,R2),
   collectCaseRefs(Cs,C,A,R2,Rx).
+collectCaseRefs([C|Cs],C,A,R,Rf) :-
+  locOfAst(C,Lc),
+  reportError("Cannot fathom case  %s",[C],Lc),
+  collectCaseRefs(Cs,C,A,R,Rf).
 
 collectDoRefs(T,All,Rf,Rfx) :-
   isActionSeq(T,_,L,R),!,

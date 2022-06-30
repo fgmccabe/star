@@ -11,10 +11,12 @@ test.qx{
   longNmes:map[string,string].
   longNmes = { K->V | K->V in parent && size(V)>1 }
 
-  main:() => action[(),()].
-  main() => action{
+  main:() => ().
+  main() => valof{
     show "long names $(longNmes)";
 
-    assert longNmes=={"a"->"ab","b"->"ab","ab"->"abc", "e"->"de"}
+    assert longNmes=={"a"->"ab","b"->"ab","ab"->"abc", "e"->"de"};
+
+    valis ()
   }
 }

@@ -16,8 +16,9 @@ test.e{
   yy : xx.ee.
   yy = xx.get(.false).
 
-  main:()=>action[(),()].
-  main()=>action{
-    assert xx.test
+  main:()=>().
+  main()=>valof{
+    assert xx.test;
+    valis ()
   }
 }

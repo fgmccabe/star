@@ -13,12 +13,13 @@ test.tp1{
   thd:(triple)=>float.
   thd((_,_,Z))=>Z.
 
-  main:()=>action[(),()].
-  main()=>action{
+  main:()=>().
+  main()=>valof{
     TT .= ("j",2,3.1);
 
     show "triple: $(TT)";
     show "first: $(first(TT))";
-    show "third: $(thd(TT))"
+    show "third: $(thd(TT))";
+    valis ()
   }
 }

@@ -13,8 +13,8 @@ test.pr{
       role = Rl
     }
 
-  main:()=>action[(),()].
-  main() => action{
+    main:()=>().
+  main() => valof{
     joe .= mkPr("fred","janitor");
 
     show joe.name!;
@@ -35,7 +35,8 @@ test.pr{
     assert tom.name! == joe.name!;
 
     assert tom.role == "manager";
-    assert joe.role == "janitor"
+    assert joe.role == "janitor";
+    valis ()
   }
 }
     

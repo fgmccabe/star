@@ -8,10 +8,11 @@ test.inc{
   inc : (integer)=>integer.
   inc(X) => X+1.
 
-  main:()=>action[(),()].
-  main()=>action{
+  main:()=>().
+  main()=>valof{
     show double(inc)(3);
 
-    assert double(inc)(3)==5
+    assert double(inc)(3)==5;
+    valis ()
   }
 }
