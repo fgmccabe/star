@@ -9,8 +9,9 @@ test.l{
     f() => _int_times(N,fact(_int_minus(N,1))).
   } in f().
 
-  main:()=>action[(),()].
-  main()=>action{
-    assert _int_eq(fact(3),6)
+  main:()=>().
+  main()=>valof{
+    assert _int_eq(fact(3),6);
+    valis ()
   }
 }

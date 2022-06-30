@@ -4,18 +4,20 @@ test.di{
 
   Is = cons(1,cons(2,cons(3,cons(4,.nil)))).
 
-  Fc(I) => action{
-	Fx .= ref 1;
-	for E in I do {
-	  Fx := Fx! * E
-	};
-	valis Fx!
-      }
+  Fc:(cons[integer])=>result[(),integer].
+  Fc(I) => do{
+    Fx .= ref 1;
+    for E in I do {
+      Fx := Fx! * E
+    };
+    valis Fx!
+  }
 
-  main:()=>action[(),()].
-  main()=>action{
+  main:()=>().
+  main()=>valof{
     show valof Fc(Is);
 
-    assert valof Fc(Is) == 24
+    assert valof Fc(Is) == 24;
+    valis ()
   }
 }

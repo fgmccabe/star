@@ -11,7 +11,7 @@ test.lt{
     f(A) => (N) => (N>=S! ?  A || f(A*N)(N+1)).
   .} in (f(1)(1),S!).
 
-/*  contract all x ~~ zz[x] ::= {
+  contract all x ~~ zz[x] ::= {
     pl: (x,x)=>x.
     zero: x.
   }.
@@ -20,12 +20,13 @@ test.lt{
     pl(X,Y) => _int_plus(X,Y).
     zero = 0.
   }.
-*/
+
   
-  main:()=>action[(),()].
-  main()=>action{
+  main:()=> ().
+  main()=> valof{
     show ll(1);
     show ll(2);
---    show pl(zero,1)
+    show pl(zero,1);
+    valis ()
   }
 }  

@@ -2,8 +2,8 @@ test.fm{
   import star.
   import star.script.
 
-  main:()=>action[(),()].
-  main()=>action{
+  main:()=>().
+  main()=>valof{
     show "--$(-15):-   0;--";
 
     assert "-- -115--" == "--$(-115):-   0;--"; -- 
@@ -39,6 +39,7 @@ test.fm{
     show "Unicode: $(([C]:cons[char])::string)/$(_codePoint(C)):XXXXX;";
 
     bar .= "bar";
-    show "Foo#(bar)"
+    show "Foo#(bar)";
+    valis ()
   }
 }

@@ -22,10 +22,11 @@ test.lt2{
 
   test() => equalJ(jS(.jT),jS(.jT)).
 
-  main:()=>action[(),()].
-  main() => action{
+  main:()=>().
+  main() => valof{
     assert test();
-    assert ~execQ(.jF,.jT)
+    assert ~execQ(.jF,.jT);
+    valis ()
   }
 }
 

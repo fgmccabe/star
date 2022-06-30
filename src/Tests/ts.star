@@ -10,36 +10,40 @@ test.ts{
     _coerce((X,Y)) => some("("++X::string++","++Y::string++")")
   }
 
-  testl3 = valof action{
+  testl3 = valof{
     try{
       assert fact(3)==5
     } catch {
-      logMsg("fact(3)!=5")
-    }
+      _ => logMsg("fact(3)!=5")
+    };
+    valis ()
   }
 
-  testl4 = valof action{
-    show fact(3)
+  testl4 = valof{
+    show fact(3);
+    valis ()
   }
 
-  testl5 = valof action{
+  testl5 = valof{
     try{
       assert fact(3)==6;
       show fact(5);
-      assert ~fact(2)==fact(4)
+      assert ~fact(2)==fact(4);
+      valis ()
     } catch {
-      logMsg("something went wrong")
+      _ => logMsg("something went wrong")
     }
   }
 
-  main:()=>action[(),()].
-  main() => action{
+  main:()=>().
+  main() => valof{
     try{
       assert fact(3)==6;
       show fact(5);
       assert fact(2)~=fact(4)
     } catch {
-      logMsg("something went wrong")
-    }
+      _ => logMsg("something went wrong")
+    };
+    valis ()
   }
 }

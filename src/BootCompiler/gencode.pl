@@ -811,7 +811,7 @@ compCaseBranch([(P,E,Lc)],Lbl,Succ,Fail,TCont,Hndlr,Opts,L,Lx,D,Dx,[iLbl(Lbl)|C]
   genLbl(L1,End,L2),
   genLine(Opts,Lc,C,C0),
   compPtn(P,Lc,contCont(Nxt),Fail,TCont,End,Opts,L2,L3,D,D2,C0,[iLbl(Nxt)|C1],Stk,Stk1),
-  call(Hndlr,E,Lc,Succ,TCont,End,Opts,L3,Lx,D2,Dx,C1,Cx,Stk1,Stkx).
+  call(Hndlr,E,Lc,Succ,TCont,End,Opts,L3,Lx,D2,Dx,C1,[iLbl(End)|Cx],Stk1,Stkx).
 compCaseBranch([(P,E,Lc)|SC],Lbl,Succ,Fail,TCont,Hndlr,Opts,L,Lx,D,Dx,
 	       [iLbl(Lbl),iTL(Off),iLbl(VLb)|C],Cx,Stk,Stkx) :-
   genLbl(L,Fl,L1),
@@ -826,7 +826,7 @@ compCaseBranch([(P,E,Lc)|SC],Lbl,Succ,Fail,TCont,Hndlr,Opts,L,Lx,D,Dx,
   compMoreCase(SC,Off,Succ,Fail,TCont,Hndlr,Opts,L5,Lx,D3,Dx,C2,Cx,Stk0,Stk2),
   mergeStkLvl(Stk1,Stk2,Stkx,"case branch stack").
 
-compMoreCase([],_,_,_Succ,Fail,_TCont,_,_Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
+compMoreCase([],_Vlb,_Succ,Fail,_TCont,_Hndlr,_Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   call(Fail,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 compMoreCase([(P,E,Lc)|SC],VLb,Succ,Fail,TCont,Hndlr,Opts,L,Lx,D,Dx,
 	     [iLdL(VLb)|C],Cx,Stk,Stkx) :-
@@ -840,8 +840,8 @@ compMoreCase([(P,E,Lc)|SC],VLb,Succ,Fail,TCont,Hndlr,Opts,L,Lx,D,Dx,
   compMoreCase(SC,VLb,Succ,Fail,TCont,Hndlr,Opts,L2,Lx,D2,Dx,C1,Cx,Stk,Stk2),
   mergeStkLvl(Stk1,Stk2,Stkx,"more case branch stack").
 
-varCont(H,E,Lc,Succ,TCont,Opts,Cont,L,Lx,D,Dx,End,C,Cx,Stk,Stkx) :-
-  call(H,E,Lc,Succ,TCont,Opts,Cont,L,Lx,D,Dx,End,C,Cx,Stk,Stkx).
+varCont(H,E,Lc,Succ,TCont,End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
+  call(H,E,Lc,Succ,TCont,End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 
 compCnsCases([(ctpl(Cn,Args),E,Lc)],_,CompRhs,Cont,TCont,Opts,L,Lx,D,Dx,
 	     [iUnpack(Cn,Fl)|C],Cx,Stk,Stkx) :-!,

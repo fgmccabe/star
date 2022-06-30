@@ -137,7 +137,7 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
   noErrors,
   macroPkg(Term,Prog),
   (is_member(showAst,Opts) -> dispAst(Prog) ; true),
-  (\+ is_member(macroOnly,Opts) ->
+  (\+ is_member(macroOnly,Opts), noErrors ->
    checkProgram(Prog,Pkg,Repo,Opts,PkgDecls,Canon),!,
    (is_member(showTCCode,Opts) -> dispCanonProg(Canon);true),
    noErrors,

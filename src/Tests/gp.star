@@ -59,8 +59,8 @@ test.gp{
   qC3:(string)=>cons[string].
   qC3(Y) => { X | (Z,Y) in parent && (X,Z) in parent }.
 
-  main:()=>action[(),()].
-  main()=>action{
+  main:()=>().
+  main()=>valof{
     show parent;
     show qP1();
     show gpF("abc");
@@ -69,6 +69,7 @@ test.gp{
 
     show gp0("abc");
 
-    show qC3("abc")
+    show qC3("abc");
+    valis ()
   }
 }

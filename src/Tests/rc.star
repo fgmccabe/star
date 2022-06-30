@@ -32,8 +32,8 @@ test.rc{
     C=C
   }
 
-  public main:()=>action[(),()].
-  main()=>action{
+  public main:()=>().
+  main()=>valof{
     show cont(2).C;
     show [|aa{A=10}|];
 
@@ -41,7 +41,9 @@ test.rc{
     show CC;
     show ll(CC);
 
-    assert CC.C==20
+    assert CC.C==20;
+
+    valis ()
   }
 
 }

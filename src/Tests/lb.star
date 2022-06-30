@@ -6,18 +6,22 @@ test.lb{
     R : ref integer.
     R = ref 0.
 
-    inc() => result{
+    inc() => do{
       R := R!+1;
       valis ()
     }
 
-    reset() => action{
+    reset() => do{
       R := 0;
       valis ()
     }
   .} in let{.
     ii(N) where N>=0 => valof{
-      inc();
+      try{
+	do inc();
+      } catch {
+	_ => {}
+      };
       valis .true
     }
     ii(N) where N<0 => valof{
@@ -26,9 +30,10 @@ test.lb{
     }
   .} in ii(A).
 
-  main:()=>action[(),()].
-  main()=>action{
-    assert count(10,0)
+  main:()=>().
+  main()=>valof{
+    assert count(10,0);
+    valis ()
   }
 }
   

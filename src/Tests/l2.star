@@ -14,15 +14,16 @@ test.l2{
   splits:(tree[(integer,string)]) => (tree[integer],cons[string]).
   splits(T) => let{.
     spl(.empty) => (.empty,[]).
-    spl(node(L,(X,S),R)) => valof action{
+    spl(node(L,(X,S),R)) => valof{
       (LL,LX) .= spl(L);
       (RR,RX) .= spl(R);
       valis (node(LL,X,RR),LX++[S,..RX])
     }
   .} in spl(T).
 
-  main:()=>action[(),()].
-  main()=> action{
-    show "splits $(splits(node(node(.empty,(1,"a"),.empty),(2,"b"),.empty)))"
+  main:()=>().
+  main()=> valof{
+    show "splits $(splits(node(node(.empty,(1,"a"),.empty),(2,"b"),.empty)))";
+    valis ()
   }
 }

@@ -30,8 +30,8 @@ test.ms{
   sqr(_) default => other("negative").
   
 
-  main:() => action[(),()].
-  main() => action{
+  main:() => ().
+  main() => valof{
     show mapOver(doubleOrQuits,KK);
 
     show mapOver(doubleOrQuits,LL);
@@ -41,5 +41,6 @@ test.ms{
     assert mapOver(doubleOrQuits,LL)==.none;
 
     show (([1.0,2.0,-3.0]//sq):cons[option[float]]);
+    valis ()
   }
 }

@@ -6,8 +6,8 @@ test.ra{
   T:ra[string].
   T = ["one","two","three","four","five","six","seven","eight","nine","ten"].
 
-  main:() => action[(),()].
-  main() => action{
+  main:() => ().
+  main() => valof{
     show T[0];
     show T[1];
     show T[2];
@@ -28,6 +28,8 @@ test.ra{
     show SS++T;
 
     show SS^/((Nm)=>size(Nm)<5);
+
+    valis ()
   }
 
   SS = ["zero",..T].

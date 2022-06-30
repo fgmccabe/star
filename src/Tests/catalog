@@ -8,9 +8,6 @@
     "test.ac4": "ac4.star",
     "test.ac5": "ac5.star",
     "test.ac6": "ac6.star",
-    "test.ac7": "ac7.star",
-    "test.ac8": "ac8.star",
-    "test.ac9": "ac9.star",
 
     "test.ar": "ar.star",
     "test.as": "as.star",
@@ -45,7 +42,6 @@
     "test.do8": "do8.star",
     "test.do8a": "do8a.star",
     "test.do9": "do9.star",
-    "test.do10": "do10.star",
     "test.do11": "do11.star",
     "test.do12": "do12.star",
     "test.do13": "do13.star",

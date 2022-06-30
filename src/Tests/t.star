@@ -9,8 +9,9 @@ test.t{
   t:myKv[string].
   t = pair(3,"fred").
 
-  main:() => action[(),()].
-  main() => action{
-    assert pair(K,V).=t && K==3
+  main:() => ().
+  main() => valof{
+    assert pair(K,V).=t && K==3;
+    valis ()
   }
 }

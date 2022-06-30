@@ -5,8 +5,8 @@ test.fmt{
   TstStr = "theBeginningTheMiddleTheEnd".
   Middle = "theMiddle".
 
-  main:()=>action[(),()].
-  main()=>action{
+  main:()=>().
+  main()=>valof{
     bar .= "bar";
     show "Foo#(bar)";
     show "ten = $(10):9.9;";
@@ -22,5 +22,6 @@ test.fmt{
     assert "$(Middle):-5C15;" == "     iddle     ";
     assert "$(Middle):-5L15;" == "iddle          ";
     assert "$(Middle):-5R15;" == "          iddle";
+    valis ()
   }
 }

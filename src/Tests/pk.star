@@ -4,10 +4,12 @@ test.pk{
   import star.location.
   import star.script.
 
-  main:() => action[(),()].
-  main() => action{
+  main:() => ().
+  main() => valof{
     show __pkg__;
 
-    assert __pkg__ == "test.pk"
+    assert __pkg__ == "test.pk";
+
+    valis ()
   }
 }

@@ -26,8 +26,8 @@ test.implies{
 
   maleSons = ({X | (X,_) in pars && (X,C) in pars *> C in ms}:cons[string]).
 
-  main:()=>action[(),()].
-  main()=>action{
+  main:()=>().
+  main()=>valof{
     show hasD("a");
     show hasD("f");
   
@@ -42,6 +42,7 @@ test.implies{
     show maleSons;
 
     show foldOnlySons("a");
-    show foldOnlySons("f")
+    show foldOnlySons("f");
+    valis ()
   }
 }

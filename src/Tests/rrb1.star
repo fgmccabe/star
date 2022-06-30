@@ -6,8 +6,8 @@ test.rrb{
   T:sk[string].
   T = ["one","two","three","four","five","six","seven","eight","nine","ten"].
 
-  main:() => action[(),()].
-  main() => action{
+  main:() => ().
+  main() => valof{
     show T;
 
     show T[0];
@@ -36,6 +36,7 @@ test.rrb{
 
     XX[5] := "alpha";
     logMsg("XX=$(XX!)");
+    valis ()
   }
 
   SS = ["zero",..T].

@@ -1,9 +1,6 @@
 test.ts2{
-  import star.core.
-  import star.arith.
-  import star.coerce.
-  import star.iterable.
-  import star.action.
+  import star.
+  import star.script.
 
   -- Zero-tuples
   public implementation display[()] => {
@@ -19,11 +16,6 @@ test.ts2{
   }
   
   -- Test generator functions
-
-  scomm[e] ::= _yld(e) | ._all.
-  rcomm ::= ._next | ._cancel.
-
-  all s,r ~~ task[s,r] <~ {}.		-- tasks have a type ...
 
   iterTask(L) => generator {
     LL .= ref L;

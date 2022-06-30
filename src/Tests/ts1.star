@@ -1,35 +1,27 @@
 test.ts1{
-  import star.core.
-  import star.arith.
-  import star.coerce.
-  import star.iterable.
+  import star.
+  import star.script.
   
   -- Simple test of task generator pattern
 
-  scomm[e] ::= yield(e) | .end.
+  scomm[e] ::= yild(e) | .end.
   rcomm ::= .next | .cancel.
 
-  all s,r ~~ task[s,r] <~ {}.		-- tasks have a type ...
-
-  consIter:all e,x ~~ (cons[e],x,(x,e)=>_step[x])=>x.
+  consIter:all e,x ~~ (cons[e],x,(x,e)=>x)=>x.
   consIter(.nil,X,_) => X.
-  consIter(cons(H,T),X,F) =>
-    case F(X,H) in {
-      _more(C) => consIter(T,C,F).
-      _end(C) => C
-    }.
+  consIter(cons(H,T),X,F) => consIter(T,F(X,H),F).
 
   iterGen:all e ~~ (cons[e]) => task[scomm[e],rcomm].
   iterGen(L) => task{
     let{
-      yieldFn:((),e)=>_step[()].
-      yieldFn(_,E) => valof{
-	suspend yield(E) in {
-	  .next => valis _more(()).
-	  .cancel => valis _end(())
+      yildFn:((),e)=>().
+      yildFn(_,E) => valof{
+	suspend yild(E) in {
+	  .next => valis ().
+	  .cancel => valis ()
 	}
       }
-    } in {_ .= consIter(L,(),yieldFn)};
+    } in {_ .= consIter(L,(),yildFn)};
     retire .end
   }
 
@@ -41,10 +33,10 @@ test.ts1{
     try{
       while .true do {
 	TT resume .next in {
-	  yield(X) where X%2==0 => {
+	  yild(X) where X%2==0 => {
 	    Tl := Tl! + X
 	  }.
-	  yield(X) default => {
+	  yild(X) default => {
 	    Tl := Tl! * X
 	  }.
 	  .end => raise ()
@@ -55,24 +47,15 @@ test.ts1{
     }
   }
 
-  implementation all e ~~ iter[cons[e]->>e] => {.
-    _iter(.nil,X,_) => X.
-    _iter(cons(H,T),X,F) =>
-      case F(H,X) in {
-	_more(C) => _iter(T,C,F).
-	_end(C) => C
-      }.
-  .}
-
   iterTask:all c,e ~~ iter[c->>e] |: (c) => task[scomm[e],rcomm].
   iterTask(L) => task{
     let{
-      yieldFn(E,Cx) => valof{
-	suspend yield(E) in {
-	  .next => valis _more(Cx)
+      yildFn(E,Cx) => valof{
+	suspend yild(E) in {
+	  .next => valis Cx
 	}
       }
-    } in {_ .= _iter(L,(),yieldFn)};
+    } in {_ .= _iter(L,(),yildFn)};
     retire .end
   }
 

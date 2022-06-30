@@ -10,11 +10,13 @@ test.u{
 
   tt() => loop(() where _.=parse(uriParse,"http://foo.bar.com?query"::cons[char])=>(),100).
 
-  main:()=> action[(),()].
-  main() => action{
+  main:()=> ().
+  main() => valof{
     assert _.=tt();
 
     assert parse(uriParse,"http://foo.bar.com?query"::cons[char]) ==
-      [(absUri("http",netRsrc(server(.none,host("foo.bar.com")),relPath([""])),qry("query")),[])]
+      [(absUri("http",netRsrc(server(.none,host("foo.bar.com")),relPath([""])),qry("query")),[])];
+
+    valis ()
   }
 }

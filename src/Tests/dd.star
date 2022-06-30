@@ -3,45 +3,46 @@ test.dd{
   import test.fact.
   import star.script.
 
-  ff:(integer)=>action[(),integer].
+  ff:(integer)=>result[(),integer].
   ff(X) => _valis(fact(X)).
 
-  fc:(integer)=>action[(),()].
+  fc:(integer)=> result[(),()].
   fc(X) => do{
-    show fact(X)
+    show fact(X);
+    valis ()
   }
 
-  AA : action[(),integer].
-  AA = action{
+  AA : result[(),integer].
+  AA = do{
     valis 34.
   }.
 
-  XX : action[(),integer].
-  XX = action{
+  XX : result[(),integer].
+  XX = do{
     A .= valof ff(4);
     B .= valof ff(3);
     valis A*B.
   }
 
-  YY : action[(),integer].
-  YY = action{
-    fc(4);
-    ff(5)
+  YY : result[(),integer].
+  YY = do{
+    perform fc(4);
+    valis valof ff(5)
   }
 
-  ZZ : action[(),integer].
-  ZZ = action {
+  ZZ : result[(),integer].
+  ZZ = do {
     try {
       A <- ff(6);
       B <- ff(7);
       raise ()
     } catch {
-      valis 10
+      _ => valis 10
     }
   }
 
-  UU : (integer)=>action[(),integer].
-  UU = (U)=>action {
+  UU : (integer)=>result[(),integer].
+  UU = (U)=> do{
     if valof ZZ == U then
       valis 1
     else
@@ -49,36 +50,45 @@ test.dd{
   }
 
   -- Test different error types across try-catch
-  VV : action[(),integer].
-  VV = action {
+  VV : result[(),integer].
+  VV = do {
     R .= fact(10);
     try{
-      fc(10);
+      do fc(10);
       
       try {
         raise "fred"
-      } catch (F) => do{
-        logMsg("we got exception $(F)");
-	raise ()
+      } catch {
+	(F) => {
+	  logMsg("we got exception $(F)");
+	  raise ()
+	}
       }
-    } catch (E) => do{
-      logMsg("we got exception $(E)");
-      valis R
+    } catch {
+      (E) => {
+	logMsg("we got exception $(E)");
+	valis R
+      }
     }
   }
 
-  main:()=>action[(),()].
-  main()=>action{
-    show valof AA;
-    show valof XX;
-    show valof YY;
+  main:()=>().
+  main()=>valof{
+    try{
+      show valof AA;
+      show valof XX;
+      show valof YY;
 
-    assert valof ZZ == 10;
+      assert valof ZZ == 10;
+      
+      show valof UU(10);
+      show valof UU(9);
 
-    show valof UU(10);
-    show valof UU(9);
-
-    show valof VV;
-    assert valof VV == 3628800
+      show valof VV;
+      assert valof VV == 3628800
+    } catch {
+      _ => logMsg("Huh")
+    };
+    valis ()
   }
 }
