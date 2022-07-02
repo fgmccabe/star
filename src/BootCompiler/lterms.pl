@@ -8,7 +8,7 @@
 		  isUnit/1,
 		  termHash/2,
 		  ssTrm/3,dispTerm/1,showTerm/4,locTerm/2,dispAct/1,
-		  idInTerm/2, isLTerm/1,
+		  idInTerm/2, 
 		  mergeGl/4,
 		  validLProg/2]).
 
@@ -21,62 +21,6 @@
 :- use_module(escapes).
 :- use_module(intrinsics).
 :- use_module(errors).
-
-isLTerm(idnt(_)) :- !.
-isLTerm(anon) :- !.
-isLTerm(voyd) :- !.
-isLTerm(intgr(_)) :- !.
-isLTerm(bigx(_)) :- !.
-isLTerm(float(_)) :- !.
-isLTerm(chr(_)) :- !.
-isLTerm(strg(_)) :- !.
-isLTerm(cll(_,_,_)) :- !.
-isLTerm(ocall(_,_,_)) :- !.
-isLTerm(ecll(_,_,_)) :- !.
-isLTerm(intrinsic(_,_,_)) :- !.
-isLTerm(nth(_,_,_)) :- !.
-isLTerm(cel(_,_)) :- !.
-isLTerm(get(_,_)) :- !.
-isLTerm(set(_,_,_)) :- !.
-isLTerm(setix(_,_,_,_)) :- !.
-isLTerm(ctpl(_,_)) :- !.
-isLTerm(enum(_)) :- !.
-isLTerm(lbl(_,_)) :- !.
-isLTerm(whr(_,_,_)) :- !.
-isLTerm(ltt(_,_,_,_)) :- !.
-isLTerm(varNames(_,_,_)) :- !.
-isLTerm(case(_,_,_,_)) :- !.
-isLTerm(unpack(_,_,_)) :- !.
-isLTerm(seqD(_,_,_)) :- !.
-isLTerm(cnj(_,_,_)) :- !.
-isLTerm(cnd(_,_,_,_)) :- !.
-isLTerm(dsj(_,_,_)) :- !.
-isLTerm(mtch(_,_,_)) :- !.
-isLTerm(ng(_,_)) :- !.
-isLTerm(error(_,_)) :- !.
-isLTerm(tg(_,_)) :-!.
-isLTerm(shft(_,_,_)) :-!.
-isLTerm(prmpt(_,_,_)) :-!.
-isLTerm(resme(_,_,_)) :-!.
-isLTerm(rais(_,_)) :-!.
-isLTerm(do(_,_)) :-!.
-
-isLAct(nop(_)) :- !.
-isLAct(seq(_,_,_)) :-!.
-isLAct(vlis(_,_)) :-!.
-isLAct(rse(_,_)) :-!.
-isLAct(perf(_,_)) :-!.
-isLAct(mtch(_,_,_)) :-!.
-isLAct(asgn(_,_,_)) :-!.
-isLAct(try(_,_,_,_)) :-!.
-isLAct(case(_,_,_)) :-!.
-isLAct(unpack(_,_,_)) :-!.
-isLAct(iftte(_,_,_,_)) :-!.
-isLAct(iftt(_,_,_)) :-!.
-isLAct(whle(_,_,_)) :-!.
-isLAct(untl(_,_,_)) :-!.
-isLAct(ffor(_,_,_)) :-!.
-isLAct(ltt(_,_,_,_)) :-!.
 
 mergeGl(none,G,_,G).
 mergeGl(some(G),none,_,some(G)).
@@ -231,6 +175,11 @@ ssTrm(vlof(_,A),Dp,sq([ss("valof "),AA])) :-
   ssAct(A,Dp,AA).
 ssTrm(perf(_,A),Dp,sq([ss("perform "),AA])) :-
   ssAct(A,Dp,AA).
+ssTrm(try(_,B,E,H),Dp,sq([ss("try "),BB,ss(" catch "),EE,ss(" in "),HH])) :-
+  Dp2 is Dp+2,
+  ssTrm(E,Dp,EE),
+  ssTrm(B,Dp2,BB),
+  ssTrm(H,Dp,HH).
 
 dispAct(A) :-
   display:display(lterms:ssAct(A,0)).
@@ -445,6 +394,10 @@ rewriteTerm(QTest,resme(Lc,T,E),resme(Lc,TT,EE)) :-
   rewriteTerm(QTest,E,EE).
 rewriteTerm(QTest,error(Lc,M),error(Lc,MM)) :-!,
   rewriteTerm(QTest,M,MM).
+rewriteTerm(QTest,try(Lc,B,E,H),try(Lc,BB,EE,HH)) :-!,
+  rewriteTerm(QTest,E,EE),
+  rewriteTerm(QTest,B,BB),
+  rewriteTerm(QTest,H,HH).
 
 rewriteTerms(QTest,Els,NEls):-
   map(Els,lterms:rewriteTerm(QTest),NEls).
@@ -725,7 +678,7 @@ declareArg(idnt(Nm),D,Dx) :-
 
 validTerm(idnt(Nm),Lc,D) :-
   (is_member(Nm,D) -> true ; 
-   reportError("(validate) Variable %s not in scope",[Nm],Lc)).
+   reportError("(validate) Variable %s not in scope",[id(Nm)],Lc)).
 validTerm(anon,_,_).
 validTerm(voyd,_,_).
 validTerm(intgr(_),_,_).
@@ -783,6 +736,10 @@ validTerm(case(Lc,G,Cases,Deflt),_,D) :-
 validTerm(unpack(Lc,G,Cases),_,D) :-
   validTerm(G,Lc,D),
   validCases(Cases,lterms:validTerm,D).
+validTerm(try(Lc,B,E,H),_,D) :-
+  validTerm(B,Lc,D),
+  ptnVars(E,D,D0),
+  validTerm(H,Lc,D0).
 validTerm(seqD(Lc,L,R),_,D) :-
   validTerm(L,Lc,D),
   validTerm(R,Lc,D).

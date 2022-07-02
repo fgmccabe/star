@@ -291,7 +291,7 @@ trVarPtn(Lc,Nm,A,Q,Qx,Map,Opts) :-
   implementVarPtn(V,Nm,Lc,A,Map,Opts,Q,Qx).
 
 implementVarPtn(moduleVar(Vn),_,Lc,cll(Lc,lbl(Vn,0),[]),_,_,Q,Q) :-
-  reportError("not allowed to have globals in patterns: %w",[Vn],Lc). % module variable
+  reportError("not allowed to have globals in patterns: %w",[id(Vn)],Lc). % module variable
 implementVarPtn(labelArg(N,Ix,ThVr),_,Lc,
 		whr(Lc,N,mtch(Lc,N,nth(Lc,Vr,Ix))),Map,Opts,Q,Qx) :- !, % argument from label
   liftVar(Lc,ThVr,Vr,Map,Opts,Q,Q0),
@@ -352,9 +352,6 @@ liftExp(open(_,E,_),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftExp(apply(Lc,Op,tple(_,A),_),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
   trExpCallOp(Lc,Op,LA,Exp,Q1,Qx,Map,Opts,Ex1,Exx).
-liftExp(sequence(Lc,Lb,E),seqD(Lc,LL,EE),Q,Q,Map,Opts,Ex,Exx) :-!,
-  liftExp(Lb,LL,Q,_,Map,Opts,Ex,Ex0),
-  liftExp(E,EE,Q,_,Map,Opts,Ex0,Exx).
 liftExp(case(Lc,Bnd,Cses,_),Result,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(Bnd,Bound,Q,Q0,Map,Opts,Ex,Ex0),
   liftCases(Cses,Cases,Q0,Qx,Map,Opts,transform:liftExp,Ex0,Exx),
@@ -363,6 +360,11 @@ liftExp(case(Lc,Bnd,Cses,_),Result,Q,Qx,Map,Opts,Ex,Exx) :-!,
    genVar("_C",V),
    caseMatcher(Lc,V,Cases,Map,Res),
    Result = ltt(Lc,V,Bound,Res)).
+liftExp(tryCatch(Lc,B,H),try(Lc,BB,E,HH),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftExp(B,BB,Q,Q0,Map,Opts,Ex,Ex0),
+  liftCases(H,Cases,Q0,Qx,Map,Opts,transform:liftExp,Ex0,Exx),
+  genVar("_E",E),
+  caseMatcher(Lc,E,Cases,Map,HH).
 liftExp(cell(Lc,In),cel(Lc,CellV),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(In,CellV,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(deref(Lc,In),get(Lc,CellV),Q,Qx,Map,Opts,Ex,Exx) :- !,
@@ -459,11 +461,15 @@ liftAction(doLetRec(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftAction(doCase(Lc,B,Cs,_),Reslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(B,BB,Q,Q0,Map,Opts,Ex,Ex0),
   liftCases(Cs,Cases,Q0,Qx,Map,Opts,transform:liftAction,Ex0,Exx),
-  (idnt(_)=BB ->
-   actionCaseMatcher(Lc,BB,Cases,Map,Reslt) ;
-   genVar("_C",V),
-   actionCaseMatcher(Lc,V,Cases,Map,Res),
-   Reslt = ltt(Lc,V,BB,Res)).
+  actionCaseMatcher(Lc,BB,Cases,Map,Reslt).
+% liftAction(doCase(Lc,B,Cs,_),Reslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
+%   liftExp(B,BB,Q,Q0,Map,Opts,Ex,Ex0),
+%   liftCases(Cs,Cases,Q0,Qx,Map,Opts,transform:liftAction,Ex0,Exx),
+%   (idnt(_)=BB ->
+%    actionCaseMatcher(Lc,BB,Cases,Map,Reslt) ;
+%    genVar("_C",V),
+%    actionCaseMatcher(Lc,V,Cases,Map,Res),
+%    Reslt = ltt(Lc,V,BB,Res)).
 liftAction(doSuspend(Lc,T,E,Cs),Reslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(T,TT,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(E,EE,Q0,Q1,Map,Opts,Ex0,Ex1),
@@ -530,7 +536,7 @@ trVarExp(Lc,Nm,Exp,Map,Opts,Q,Qx) :-
   lookupVar(Map,Nm,V),!,
   implementVarExp(V,Lc,Nm,Exp,Map,Opts,Q,Qx),!.
 trVarExp(Lc,Nm,idnt("_"),_,_,Q,Q) :-
-  reportError("'%s' not defined",[Nm],Lc).
+  reportError("%s not defined",[id(Nm)],Lc).
 
 liftVar(_,Vr,Vr,Map,_Opts,Q,Qx):-
   thisVar(Map,Vr),!,
@@ -554,7 +560,7 @@ implementVarExp(moduleFun(_,some(Closure),_),_,_,ctpl(lbl(Closure,1),[Unit]),_,_
 implementVarExp(localFun(_Fn,Closure,_,ThVr),Lc,_,ctpl(lbl(Closure,1),[Vr]),Map,Opts,Q,Qx) :-
   liftVar(Lc,ThVr,Vr,Map,Opts,Q,Qx).
 implementVarExp(_Other,Lc,Nm,idnt(Nm),_,_,Q,Q) :-
-  reportError("cannot handle %s in expression",[Nm],Lc).
+  reportError("cannot handle %s in expression",[id(Nm)],Lc).
 
 trExpCallOp(Lc,v(_,Nm,_),Args,intrinsic(Lc,Op,Args),Qx,Qx,_,_,Ex,Ex) :-
   isIntrinsic(Nm,_,Op),!.
@@ -581,7 +587,7 @@ implementFunCall(_,moduleCons(Mdl,_,Ar),_,Args,ctpl(lbl(Mdl,Ar),Args),Q,Q,_,_,Ex
 implementFunCall(Lc,labelArg(_,Ix,ThVr),_,Args,ocall(Lc,nth(Lc,ThV,Ix),Args),Q,Qx,Map,Opts,Ex,Ex) :-
   liftVar(Lc,ThVr,ThV,Map,Opts,Q,Qx).
 implementFunCall(Lc,notInMap,Nm,Args,ocall(Lc,idnt(Nm),Args),Q,Q,_Map,_Opts,Ex,Ex) :-
-  reportError("cannot compile unknown function %s",[Nm],Lc).
+  reportError("cannot compile unknown function %s",[id(Nm)],Lc).
 
 liftCases([],[],Qx,Qx,_Map,_Opts,_,Exx,Exx) :- !.
 liftCases([C|Cses],[Case|Cases],Q,Qx,Map,Opts,Lifter,Ex,Exx) :-

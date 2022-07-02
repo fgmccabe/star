@@ -13,7 +13,6 @@
 #define fileType "t'star.file*fileHandle'"
 #define udpType "t'star.io*udpHandle'"
 #define optionType(T) "Uz1'star.core*option'" T
-#define tagType(F, T) "UUz2'tag'" F T
 
 /* Define the standard escapes */
 escape(_exit, "F(i)()", "terminate engine")
@@ -21,8 +20,6 @@ escape(_abort, ":k'a'F(k'a's)()", "abort process")
 
 escape(_definedLbl, "F(si)l", "test for defined name")
 escape(_callLbl, "F(siLLs)()", "invoke defined name")
-escape(_fun2cont, ":k'a':k'b'F("tagType("k'a'", "k'b'")"F(k'a')k'b')D(k'a')k'b'",
-       "create a continuation from a function")
 
 escape(_int_plus, "F(ii)i", "add two integers")
 escape(_int_minus, "F(ii)i", "subtract two integers")
@@ -120,12 +117,6 @@ escape(_overwrite, ":k't'F(k't'k't')k't'", "overwrite a structure with new struc
 
 escape(_tuple_nth, ":k't':k'e'F(k't'i)k'e'", "Access tuple element")
 escape(_tuple_set_nth, ":k't':k'e'F(k't'ik'e')k't'", "Update tuple element")
-
-/*
-
-escape(_suspend,":k'u'P2k'u'P0","suspend handler if variable not bound")
-
-*/
 
 escape(_cwd, "F()s", "return url of current working directory")
 escape(_cd, "F(s)"sysRet("s"), "change current working directory")
@@ -314,6 +305,8 @@ escape(_thread_state, "F("threadType ")" processState, "state of process")
 escape(_waitfor, "F("threadType")"sysRet("s"), "wait for other thread to terminate")
 
 escape(_shell, "F(sLsL(ss))i", "Run a shell cmd")
+
+
 
 // Lock management
 escape(_newLock, "F()"lockType, "create a new lock")

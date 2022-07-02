@@ -25,7 +25,9 @@ test.lb{
       valis .true
     }
     ii(N) where N<0 => valof{
-      _ .= valof reset();
+      try{
+	_ .= valof reset();
+      } catch { _ => logMsg("bad happening")};
       valis .false
     }
   .} in ii(A).

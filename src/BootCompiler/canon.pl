@@ -3,7 +3,7 @@
 		 dispDecls/1,
 		 typeOfCanon/2,locOfCanon/2,
 		 constructorName/2,constructorType/2,
-		 isCanonDef/1,isCanon/1,isSimpleCanon/1,isAssertion/1,isShow/1,
+		 isCanonDef/1,isCanon/1,isSimpleCanon/1,
 		 isPkg/1,isGoal/1,isIterableGoal/1,
 		 anonVar/3]).
 
@@ -42,7 +42,6 @@ isCanon(enm(_,_,_)).
 isCanon(cons(_,_,_)).
 isCanon(tple(_,_)).
 isCanon(where(_,_,_)).
-isCanon(sequence(_,_,_)).
 isCanon(conj(_,_,_)).
 isCanon(disj(_,_,_)).
 isCanon(implies(_,_,_)).
@@ -53,6 +52,7 @@ isCanon(neg(_,_)).
 isCanon(lambda(_,_,_,_)).
 isCanon(search(_,_,_,_)).
 isCanon(task(_,_,_)).
+isCanon(tryCatch(_,_,_)).
 
 isSimpleCanon(v(_,_,_)).
 isSimpleCanon(anon(_,_)).
@@ -62,9 +62,6 @@ isSimpleCanon(floatLit(_,_)).
 isSimpleCanon(charLit(_,_)).
 isSimpleCanon(stringLit(_,_)).
 isSimpleCanon(enm(_,_,_)).
-
-isAssertion(assertion(_,_)).
-isShow(show(_,_)).
 
 isGoal(match(_,_,_)) :-!.
 isGoal(conj(_,_,_)) :- !.
@@ -97,7 +94,6 @@ typeOfCanon(where(_,T,_),Tp) :- !, typeOfCanon(T,Tp).
 typeOfCanon(open(_,_,Tp),Tp) :-!.
 typeOfCanon(search(_,_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(match(_,_,_),type("star.core*boolean")) :-!.
-typeOfCanon(sequence(_,_,R),Tp) :-!, typeOfCanon(R,Tp).
 typeOfCanon(conj(_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(disj(_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(implies(_,_,_),type("star.core*boolean")) :-!.
@@ -120,6 +116,8 @@ typeOfCanon(raise(_,_,Tp),Tp) :-!.
 typeOfCanon(task(_,_,Tp),Tp) :-!.
 typeOfCanon(doExp(_,_,Tp),Tp) :-!.
 typeOfCanon(valof(_,_,Tp),Tp) :-!.
+typeOfCanon(tryCatch(_,E,_),Tp) :- !,
+  typeOfCanon(E,Tp).
 
 locOfCanon(v(Lc,_,_),Lc) :- !.
 locOfCanon(anon(Lc,_),Lc) :- !.
@@ -135,7 +133,6 @@ locOfCanon(where(Lc,_,_),Lc) :- !.
 locOfCanon(open(Lc,_,_),Lc) :-!.
 locOfCanon(search(Lc,_,_,_),Lc) :-!.
 locOfCanon(match(Lc,_,_),Lc) :-!.
-locOfCanon(sequence(Lc,_,_),Lc) :-!.
 locOfCanon(conj(Lc,_,_),Lc) :-!.
 locOfCanon(disj(Lc,_,_),Lc) :-!.
 locOfCanon(neg(Lc,_),Lc) :-!.
@@ -159,6 +156,8 @@ locOfCanon(raise(Lc,_),Lc) :-!.
 locOfCanon(perform(Lc,_),Lc) :-!.
 locOfCanon(task(Lc,_,_),Lc) :-!.
 locOfCanon(valof(Lc,_,_),Lc) :-!.
+locOfCanon(doExp(Lc,_,_),Lc) :-!.
+locOfCanon(tryCatch(Lc,_,_),Lc) :-!.
 
 locOfCanon(doNop(Lc),Lc) :-!.
 locOfCanon(doIgnore(Lc,_),Lc) :-!.
@@ -261,9 +260,6 @@ ssTerm(overaccess(V,TV,F),Dp,sq([TT,ss("<~"),FF,ss("|:"),VV])) :-
 ssTerm(where(_,Ptn,Cond),Dp,sq([PP,GG])) :-
   ssTerm(Ptn,Dp,PP),
   ssGuard(some(Cond),Dp,GG).
-ssTerm(sequence(_,L,R),Dp,sq([LL,ss(" ; "),RR])) :-
-  ssTerm(L,Dp,LL),
-  ssTerm(R,Dp,RR).
 ssTerm(conj(_,L,R),Dp,sq([LL,ss(" && "),RR])) :-
   ssTerm(L,Dp,LL),
   ssTerm(R,Dp,RR).
@@ -294,6 +290,10 @@ ssTerm(doExp(_,A,_),Dp,sq([ss("do "),AA])) :-!,
   ssAction(A,Dp,AA).
 ssTerm(task(_,A,_),Dp,sq([ss("task "),AA])) :-!,
   ssTerm(A,Dp,AA).
+ssTerm(tryCatch(_,A,Hs),Dp,sq([ss("try "),AA,ss(" catch "),lb,HH,nl(Dp),rb])) :-!,
+  Dp2 is Dp+2,
+  ssTerm(A,Dp2,AA),
+  ssRls("",Hs,Dp2,canon:ssTerm,HH).
 
 ssTerms([],_,[]).
 ssTerms([T|More],Dp,[TT|TTs]) :-

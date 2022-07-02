@@ -16,7 +16,7 @@ test.cnb{
   }
 
   public factF:(integer)=>integer.
-  factF(N) => valof factFF(1,N,1).
+  factF(N) => (try valof factFF(1,N,1) catch { _ => -1}).
 
   factFF:(integer,integer,integer)=>result[(),integer].
   factFF(F,T,S) => do{

@@ -120,6 +120,8 @@ peep([iLine(Lc),iLine(_)|Ins],Map, Out) :-!,
 peep(Ins,Map,Out) :-
   accessorPtn(Ins,Int),!,
   peep(Int,Map,Out).
+peep([iStL(O),iLdL(O)|Ins],Map,Cde) :-
+  peep([iTL(O)|Ins],Map,Cde).
 peep([I|Ins],Map,[I|Cde]) :-
   peep(Ins,Map,Cde).
 

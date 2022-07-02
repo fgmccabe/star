@@ -115,9 +115,11 @@ showTrm(ds(D),O) :-
   ss_to_chrs(D,O,[]).
 showTrm(pk(P),O) :-
   ss_to_chrs(canon:ssPkg(P),O,[]).
+showTrm(id(S),O) :-
+  ss_to_chrs(id(S),O,[]).
 showTrm(stk(some(N)),O) :-
   ss_to_chrs(sq([ss("Stk "),ix(N)]),O,[]).
-showTrm(stk(nono),O) :-
+showTrm(stk(none),O) :-
   ss_to_chrs(ss("Stk empty"),O,[]).
 showTrm(tok(Tk),O) :-
   showToken(Tk,O).
@@ -153,9 +155,6 @@ showTrm(P,O) :-
 showTrm(U,O) :-
   isUri(U),!,
   showUri(U,O,[]).
-showTrm(T,O) :-
-  isLTerm(T),!,
-  showTerm(T,0,O,[]).
 showTrm([],[]).
 showTrm([E|Es],O) :-
   showTrm(E,O0),

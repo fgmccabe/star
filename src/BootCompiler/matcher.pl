@@ -15,7 +15,7 @@ functionMatcher(Lc,Ar,Nm,H,Tp,Eqns,Map,fnDef(Lc,Nm,H,Tp,NVrs,Reslt)) :-
   genRaise(Lc,LclNm,Error),
   matchTriples(Lc,lterms:substTerm,matcher:mkCond,NVrs,Tpls,Error,Map,0,Reslt),!.
 functionMatcher(Lc,_Ar,Nm,H,Tp,_Eqns,_,fnDef(Lc,Nm,H,Tp,[],enum("void"))) :-
-  reportError("(internal) failed to construct function for %s",[Nm],Lc).
+  reportError("(internal) failed to construct function for %s",[ltrm(Nm)],Lc).
 
 getLocalLblName(lbl(Nm,_),LclNm) :-
   getLocalName(Nm,LclNm).
@@ -100,22 +100,6 @@ mkMatchCond([],[],_,none).
 mkMatchCond([V|Vrs],[A|Args],Lc,Cond) :-
   mkMatchCond(Vrs,Args,Lc,C0),
   mergeGl(some(mtch(Lc,A,V)),C0,Lc,Cond).
-/*
-
-mkMatchCond(Vrs,Args,Lc,Cnd) :-
-  mkMtchEls(Vrs,Args,Vs,As),
-  (Vs=[] ->
-   Cnd=none;
-   mkTpl(Vs,VrTpl),
-   mkTpl(As,AgTpl),
-   Cnd = some(mtch(Lc,AgTpl,VrTpl))).
-  
-mkMtchEls([],[],[],[]) :-!.
-mkMtchEls([_V|Vs],[anon|As],Vrs,Args) :-!,
-  mkMtchEls(Vs,As,Vrs,Args).
-mkMtchEls([V|Vs],[A|As],[V|Vrs],[A|Args]) :-
-  mkMtchEls(Vs,As,Vrs,Args).
-  */
   
 mustSucceed(none).
 

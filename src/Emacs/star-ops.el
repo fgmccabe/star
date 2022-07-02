@@ -116,6 +116,7 @@
   ("::=" ( (infix 1249 1250 1249)))
   ("/\\" ( (infix 700 700 699)))
   (">=" ( (infix 899 900 899)))
+  ("throws" ( (infix 948 949 948)))
   (">>" ( (infix 949 950 950)))
 )
   "Table of standard star operators"
@@ -169,6 +170,7 @@
 "type"
 "implementation"
 "else"
+"throws"
 )
   "Table of standard keywords"
 )

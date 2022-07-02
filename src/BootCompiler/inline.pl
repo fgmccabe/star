@@ -84,7 +84,7 @@ inlineExp(letExp(Lc,Defs,Bound),Env,Max,letExp(Lc,RDefs,RBound),Trg,Tx) :-
   inlineExp(Bound,REnv,Max,RBound,T0,Tx).
 inlineExp(T,_,_,T,Trg,Trg) :-
   locOf(T,Lc),
-  reportError("cannot inline handle %s",[T],Lc).
+  reportError("cannot inline handle %s",[ltrm(T)],Lc).
 
 inlineEx(Rep,Env,Max,Rpl,triggered,Trg) :-
   Max > 0,!,

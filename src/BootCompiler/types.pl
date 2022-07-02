@@ -32,13 +32,13 @@ isType(tpExp(_,_)).
 isType(refType(_)).
 isType(tplType(_)).
 isType(funType(_,_)).
-isType(contType(_,_)).
 isType(consType(_,_)).
 isType(allType(_,_)).
 isType(existType(_,_)).
 isType(faceType(_,_)).
 isType(typeLambda(_,_)).
 isType(constrained(_,_)).
+isType(throwsType(_,_)).
 isType(valType(_)).
 
 isConstraint(conTract(_,_,_)).
@@ -184,7 +184,7 @@ ssType(funType(A,R),ShCon,Dp,sq([AA,ss("=>"),RR])) :-
 ssType(consType(A,R),ShCon,Dp,sq([AA,ss("<=>"),RR])) :-
   ssType(A,ShCon,Dp,AA),
   ssType(R,ShCon,Dp,RR).
-ssType(contType(A,R),ShCon,Dp,sq([AA,ss("=>>"),RR])) :-
+ssType(throwsType(A,R),ShCon,Dp,sq([AA,ss(" throws "),RR])) :-
   ssType(A,ShCon,Dp,AA),
   ssType(R,ShCon,Dp,RR).
 ssType(refType(R),ShCon,Dp,sq([ss("ref "),RR])) :- ssType(R,ShCon,Dp,RR).
@@ -296,7 +296,7 @@ tpArity(funType(A,_),Ar) :- !,
   progTypeArity(A,Ar).
 tpArity(consType(A,_),Ar) :- !,
   tpArity(A,Ar).
-tpArity(contType(A,_),Ar) :- !,
+tpArity(throwsType(A,_),Ar) :- !,
   tpArity(A,Ar).
 tpArity(refType(A),Ar) :- !,
   progTypeArity(A,Ar).
@@ -310,7 +310,7 @@ tpArgTypes(allType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(existType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(constrained(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(funType(A,_),ArTps) :- tpArgTypes(A,ArTps).
-tpArgTypes(contType(A,_),ArTps) :- tpArgTypes(A,ArTps).
+tpArgTypes(throwsType(A,_),ArTps) :- tpArgTypes(A,ArTps).
 tpArgTypes(tplType(ArTps),ArTps).
 
 funResType(Tp,ResTp) :- deRef(Tp,TT), resType(TT,ResTp).
@@ -319,7 +319,6 @@ resType(allType(_,Tp),ResTp) :- resType(Tp,ResTp).
 resType(existType(_,Tp),ResTp) :- resType(Tp,ResTp).
 resType(constrained(_,Tp),ResTp) :- resType(Tp,ResTp).
 resType(funType(_,R),R) :- !.
-resType(contType(_,R),R) :- !.
 resType(R,R) :- !.
 
 isFunctionType(T) :- deRef(T,Tp), isFunctionType(Tp,_).
@@ -446,19 +445,6 @@ stdType("cons",
 stdType("package",type("star.pkg*pkg"),typeExists(type("star.pkg*pkg"),faceType([],[]))).
 stdType("version",type("star.pkg*version"),typeExists(type("star.pkg*version"),faceType([],[]))).
 stdType("file",type("star.file*fileHandle"),typeExists(type("star.file*fileHandle"),faceType([],[]))).
-stdType("tag",tpFun("tag",2),
-	allType(kVar("a"),
-		allType(kVar("b"),
-			typeExists(tpExp(tpExp(tpFun("tag",2),kVar("a")),kVar("b")),
-				   faceType([],[]))))).
-/*stdType("action",
-	tpFun("star.core*action",2),
-	allType(kVar("a"),
-		allType(kVar("e"),
-			typeExists(tpExp(tpExp(tpFun("star.core*action",2),kVar("a")),
-					 kVar("e")),
-				   faceType([],[]))))).
-  */
 stdType("task",
 	tpFun("star.core*task",2),
 	allType(kVar("a"),
@@ -485,7 +471,7 @@ toLtp(type("star.core*boolean"),blTipe) :- !.
 toLtp(funType(Args,Res),fnTipe(As,R)) :-
   toLtipe(Args,As),
   toLtipe(Res,R).
-toLtp(contType(Arg,Res),contTipe(A,R)) :-
+toLtp(throwsType(Arg,Res),throwsTipe(A,R)) :-
   toLtipe(Arg,A),
   toLtipe(Res,R).
 toLtp(tplType(Args),tplTipe(As)) :-
@@ -526,8 +512,8 @@ occIn(V,funType(A,_)) :- deRef(A,AA),occIn(V,AA).
 occIn(V,funType(_,R)) :- deRef(R,RR),occIn(V,RR).
 occIn(V,consType(L,_)) :- deRef(L,LL),occIn(V,LL).
 occIn(V,consType(_,R)) :- deRef(R,RR),occIn(V,RR).
-occIn(V,contType(A,_)) :- deRef(A,AA),occIn(V,AA).
-occIn(V,contType(_,R)) :- deRef(R,RR),occIn(V,RR).
+occIn(V,throwsType(A,_)) :- deRef(A,AA),occIn(V,AA).
+occIn(V,throwsType(_,R)) :- deRef(R,RR),occIn(V,RR).
 occIn(V,constrained(_,C)) :- deRef(C,CC),occIn(V,CC),!.
 occIn(V,constrained(T,_)) :- deRef(T,TT),occIn(V,TT),!.
 occIn(V,typeLambda(A,_)) :- deRef(A,AA),occIn(V,AA).

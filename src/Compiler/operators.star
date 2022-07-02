@@ -150,6 +150,7 @@ star.compiler.operators{
   oper("::=") => [infixOp(1249,1250,1249)].
   oper("/\\") => [infixOp(700,700,699)].
   oper(">=") => [infixOp(899,900,899)].
+  oper("throws") => [infixOp(948,949,948)].
   oper(">>") => [infixOp(949,950,950)].
   oper(_) default => [].
 
@@ -498,6 +499,7 @@ star.compiler.operators{
   keyword("||") => .true.
   keyword("else") => .true.
   keyword("::=") => .true.
+  keyword("throws") => .true.
   keyword("{!") => .true.
   keyword(_) default => .false.
 }

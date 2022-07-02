@@ -9,9 +9,9 @@ star.script{
   }
 
 
-  public assrt:(()=>boolean,string,locn) => ().
+  public assrt:(boolean,string,locn) => ().
   assrt(Tst,Msg,Lc) => valof{
-    if Tst() then{
+    if Tst then{
       logMsg("assert #(Msg) at $(Lc)")
     }
     else{
@@ -21,10 +21,9 @@ star.script{
     valis ()
   }
 
-  public shwMsg:all t ~~ display[t] |: (()=>t,string,locn) => ().
-  shwMsg(Tst,Msg,Lc) => valof{
-    R .= Tst();
-    showMsg("#(Msg) = $(R) at $(Lc)");
+  public shwMsg:all t ~~ display[t] |: (t,string,locn) => ().
+  shwMsg(Vl,Msg,Lc) => valof{
+    showMsg("#(Msg) = $(Vl) at $(Lc)");
     valis ()
   }
 }

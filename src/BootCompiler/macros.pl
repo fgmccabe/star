@@ -191,6 +191,11 @@ examineType(T,Tx) :-
   map(C,macros:macroType,Cx),
   macroType(I,Ix),
   reConstrain(Cx,Ix,Tx).
+examineType(T,Tx) :-
+  isThrows(T,Lc,V,E),
+  macroType(V,Vx),
+  macroType(E,Ex),
+  mkThrows(Lc,Vx,Ex,Tx).
 examineType(T,T) :-
   isBinary(T,_,"/",_,_),!.
 examineType(T,Tx) :-
@@ -437,6 +442,11 @@ examineTerm(T,Tx) :-
   map(D,macros:macroStmt,Dx),
   macroTerm(O,Ox),
   qbraceTerm(Lc,Ox,Dx,Tx).
+examineTerm(A,Ax) :-
+  isTryCatch(A,Lc,B,C),!,
+  macroTerm(B,Bx),
+  map(C,macros:macroLambda,Cs),
+  mkTryCatch(Lc,Bx,Cs,Ax).
 examineTerm(T,T) :-
   locOfAst(T,Lc),
   reportError("cannot figure out expression %s",[ast(T)],Lc).
