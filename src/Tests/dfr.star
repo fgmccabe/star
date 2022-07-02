@@ -25,7 +25,11 @@ test.dfr{
 
   main:()=>().
   main()=>valof{
-    show valof CX(IS,2);
+    try{
+      show valof CX(IS,2);
+    } catch {
+      _ => logMsg("something went bad")
+    };
     valis ()
   }
 }

@@ -506,6 +506,10 @@
 @tab non-associative infix
 @tab 900
 @tab greater than or equal
+@item @code{throws}
+@tab non-associative infix
+@tab 949
+@tab type of values that can raise exceptions
 @item @code{>>}
 @tab right associative infix
 @tab 950
@@ -551,6 +555,7 @@
 @item @code{type}
 @tab @code{implementation}
 @tab @code{else}
+@item @code{throws}
 
 @end multitable
 @end float

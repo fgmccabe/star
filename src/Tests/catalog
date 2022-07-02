@@ -8,6 +8,7 @@
     "test.ac4": "ac4.star",
     "test.ac5": "ac5.star",
     "test.ac6": "ac6.star",
+    "test.ac7": "ac7.star",
 
     "test.ar": "ar.star",
     "test.as": "as.star",
@@ -110,6 +111,7 @@
     "test.t": "t.star",
     "test.tl" : "tl.star",
     "test.tp1": "tp1.star",
+    "test.tr": "tr.star",
     "test.ts": "ts.star",
     "test.ts0": "ts0.star",
     "test.ts1": "ts1.star",

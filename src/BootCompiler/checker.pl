@@ -801,11 +801,6 @@ typeOfExp(Term,Tp,ErTp,Env,Env,Exp,Path) :-
 typeOfExp(Term,Tp,_,Env,Env,Lam,Path) :-
   isEquation(Term,_Lc,_H,_R),
   typeOfLambda(Term,Tp,Env,Lam,Path).
-typeOfExp(Term,Tp,ErTp,Env,Ev,sequence(Lc,Fst,Snd),Path) :-
-  isSequence(Term,Lc,L,R),!,
-  newTypeVar("L",LTp),
-  typeOfExp(L,LTp,ErTp,Env,E1,Fst,Path),
-  typeOfExp(R,Tp,ErTp,E1,Ev,Snd,Path).
 typeOfExp(Term,Tp,ErTp,Env,Ev,conj(Lc,Lhs,Rhs),Path) :-
   isConjunct(Term,Lc,L,R),!,
   findType("boolean",Lc,Env,LogicalTp),
@@ -853,11 +848,14 @@ typeOfExp(Term,Tp,_,Env,Ev,doExp(Lc,Act,Tp),Path) :-
   verifyType(Lc,ast(Term),Tp,RTp,Env),
   checkAction(A,RTp,ErTp,Env,Ev,Act,checker:makeBindCall,checker:makeBindCall,Path).
 %  reportMsg("do term %s:%s",[can(doExp(Lc,Act,Tp)),tpe(Tp)],Lc).
+typeOfExp(A,Tp,ErTp,Env,Ev,Act,Path) :-
+  isTryCatch(A,Lc,B,H),!,
+  checkTryCatch(Lc,B,H,Tp,ErTp,Env,Ev,Act,Path).
 
 typeOfExp(Term,Tp,ErTp,Env,Env,Exp,Path) :-
   isValof(Term,Lc,A),!,
   checkValof(Lc,A,Tp,ErTp,Env,Exp,Path).
-%  reportMsg("valof exp: %s",[can(Exp)],Lc).
+%  reportMsg("valof exp: %s",[can(Exp)]).
 typeOfExp(Term,Tp,_,Env,Env,void,_) :-
   locOfAst(Term,Lc),
   reportError("illegal expression: %s, expecting a %s",[Term,Tp],Lc).
@@ -989,7 +987,7 @@ checkAction(A,_Tp,ErTp,Env,Ev,doAssign(Lc,Ptn,Exp),_Vls,_Rsr,Path) :-
   typeOfExp(E,TV,ErTp,Env,_,Exp,Path).
 checkAction(A,Tp,ErTp,Env,Ev,Act,Vls,Rsr,Path) :-
   isTryCatch(A,Lc,B,H),!,
-  checkTryCatch(Lc,B,H,Tp,ErTp,Env,Ev,Act,Vls,Rsr,Path).
+  checkTryCatchAction(Lc,B,H,Tp,ErTp,Env,Ev,Act,Vls,Rsr,Path).
 checkAction(A,Tp,ErTp,Env,Ev,doIfThenElse(Lc,Tst,Thn,Els),Vls,Rsr,Path) :-
   isIfThenElse(A,Lc,G,T,E),!,
   checkGoal(G,ErTp,Env,E0,Tst,Path),
@@ -1074,14 +1072,11 @@ checkGuard(some(G),ErTp,Env,Ev,some(Goal),Path) :-
   checkGoal(G,ErTp,Env,Ev,Goal,Path).
 
 checkValof(Lc,A,Tp,ErTp,Env,valof(Lc,
-				  apply(Lc,
-					lambda(Lc,Lbl,rule(Lc,
-							   tple(Lc,[V]),
-							   none,
-							   cond(Lc,Ok,Then,Else,Tp)),
-					       PerfTp),
-					tple(Lc,[Exp]),Tp),Tp),Path) :-
-  lambdaLbl(Path,"λ",Lbl),
+				  doExp(Lc,
+					doSeq(Lc,
+					      doMatch(Lc,V,Exp),
+					      doIfThenElse(Lc,Ok,Then,Else)),ATp),Tp),
+	   Path) :-
   newTypeVar("ATp",ATp),
   genstr("V",VNm),
   V = v(Lc,VNm,ATp),
@@ -1099,13 +1094,13 @@ checkValof(Lc,A,Tp,ErTp,Env,valof(Lc,
   verifyType(Lc,ss("_getval"),funType(tplType([ATp]),Tp),PerfTp,Env),
   verifyType(Lc,ss("_errval"),funType(tplType([ATp]),ETp),ErrVlTp,Env),
   
-  Then = apply(Lc,PrfFn,tple(Lc,[Exp]),Tp),
+  Then = doValis(Lc,apply(Lc,PrfFn,tple(Lc,[V]),Tp)),
 
   getVar(Lc,"_raise",Env,RseFn,RseTp),
 
   verifyType(Lc,ss("_raise"),funType(tplType([ETp]),ATp),RseTp,Env),
 
-  Else = apply(Lc,RseFn,tple(Lc,[apply(Lc,ErrVlFn,tple(Lc,[Exp]),ErTp)]),ATp).
+  Else = doRaise(Lc,apply(Lc,RseFn,tple(Lc,[apply(Lc,ErrVlFn,tple(Lc,[V]),ErTp)]),ATp)).
 
 checkBind(Lc,P,E,Tp,ErTp,Env,Ev,Action,Rsr,Path) :-
   newTypeVar("V",TV),
@@ -1138,6 +1133,8 @@ checkPerform(Lc,A,Tp,ErTp,Env,Action,Rsr,Path) :-
   newTypeVar("BTp",BTp),
   typeOfExp(A,BTp,ErTp,Env,_,Exp,Path),
 
+%  reportMsg("perform action %s:%s",[can(Exp),tpe(BTp)]),
+
   getVar(Lc,"_errval",Env,ErrVlFn,RseTp),
   verifyType(Lc,ss("_errval"),RseTp,funType(tplType([BTp]),ErTp),Env),
   ErrVl = apply(Lc,ErrVlFn,tple(Lc,[Exp]),ErTp),
@@ -1153,7 +1150,12 @@ checkPerform(Lc,A,Tp,ErTp,Env,Action,Rsr,Path) :-
   call(Rsr,Lc,ErrVl,Tp,RseFn,Raise),
   Action = doIfThen(Lc,neg(Lc,Ok),doRaise(Lc,Raise)).
 
-checkTryCatch(Lc,B,Hs,Tp,ErTp,Env,Ev,doTryCatch(Lc,Body,Hndlr),Vls,Rsr,Path) :-
+checkTryCatch(Lc,B,Hs,Tp,ErTp,Env,Ev,tryCatch(Lc,Body,Hndlr),Path) :-
+  newTypeVar("EE",ETp),
+  typeOfExp(B,Tp,ETp,Env,Ev,Body,Path),
+  checkCases(Hs,ETp,Tp,ErTp,Env,Hndlr,Eqx,Eqx,[],checker:typeOfExp,Path),!.
+
+checkTryCatchAction(Lc,B,Hs,Tp,ErTp,Env,Ev,doTryCatch(Lc,Body,Hndlr),Vls,Rsr,Path) :-
   /*
     We pick up the existing action type, and create a new one with an unbound error
     component
@@ -1167,6 +1169,7 @@ checkTryCatch(Lc,B,Hs,Tp,ErTp,Env,Ev,doTryCatch(Lc,Body,Hndlr),Vls,Rsr,Path) :-
   verifyType(Lc,ast(B),Tp,RRTp,Env),
   checkAction(B,RTp,ETp,Env,Ev,Body,Vls,checker:noBindCall,Path),
   checkCases(Hs,ETp,Tp,ErTp,Env,Hndlr,Eqx,Eqx,[],checker:checkDo(Vls,Rsr),Path),!.
+
 
 checkGoal(Term,ErTp,Env,Ex,conj(Lc,Lhs,Rhs),Path) :-
   isConjunct(Term,Lc,L,R),!,

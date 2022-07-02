@@ -32,7 +32,7 @@ macroRl(":=",expression,macroRules:spliceAssignMacro).
 macroRl(":=",expression,macroRules:indexAssignMacro).
 macroRl("<-",action,macroRules:bindActionMacro).
 macroRl("do",action,macroRules:forLoopMacro).
-macroRl("perform",action,macroRules:performMacro).
+%macroRl("perform",action,macroRules:performMacro).
 
 %macroRl("assert",expression,macroRules:assertMacro).
 macroRl("assert",action,macroRules:assertMacro).
@@ -311,7 +311,7 @@ bindActionMacro(T,action,Act) :-
   mkActionSeq(Lc,VDf,B,Act).
 
 /*
-   perform A
+  perform A
   becomes
   case A in {
     ok(_) => {}
@@ -334,7 +334,7 @@ performMacro(T,action,Act) :-
 /*
  assert C 
 becomes
-  assrt(()=>C,"failed: C",Loc)
+  assrt(C,"failed: C",Loc)
 */
 assertMacro(T,_,Act) :-
   isIntegrity(T,Lc,Cond),!,
@@ -343,14 +343,13 @@ assertMacro(T,_,Act) :-
 makeAssert(Lc,Cond,Act) :-
   ast2String(Lc,Cond,Msg),
   locOfAst(Cond,CLc),
-  eqn(Lc,tuple(Lc,"()",[]),Cond,Lam),
   mkLoc(CLc,Loc),
-  roundTerm(Lc,name(Lc,"assrt"),[Lam,Msg,Loc],Act).
+  roundTerm(Lc,name(Lc,"assrt"),[Cond,Msg,Loc],Act).
 
 /*
  show E 
 becomes
-  shwMsg(()=>E,"E",Lc)
+  shwMsg(E,"E",Lc)
 */
 showMacro(T,_,Act) :-
   isShow(T,Lc,Exp),!,
@@ -360,8 +359,7 @@ makeShow(Lc,Exp,Act) :-
   ast2String(Lc,Exp,Txt),
   locOfAst(Exp,ELc),
   mkLoc(ELc,Loc),
-  eqn(Lc,tuple(Lc,"()",[]),Exp,Lam),
-  roundTerm(Lc,name(Lc,"shwMsg"),[Lam,Txt,Loc],Act).
+  roundTerm(Lc,name(Lc,"shwMsg"),[Exp,Txt,Loc],Act).
 
 
 /*

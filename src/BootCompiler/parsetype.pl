@@ -53,9 +53,9 @@ parseType(F,Env,B,C0,Cx,consType(AT,RT)) :-
   isConstructorType(F,_,_,_,L,R),!, % quantifiers already handled
   parseArgType(L,Env,B,C0,C1,AT),!,
   parseType(R,Env,B,C1,Cx,RT).
-parseType(F,Env,B,C0,Cx,contType(AT,RT)) :-
-  isContType(F,_,L,R),
-  parseArgType(L,Env,B,C0,C1,AT),
+parseType(F,Env,B,C0,Cx,throwsType(AT,RT)) :-
+  isThrows(F,_,L,R),
+  parseType(L,Env,B,C0,C1,AT),
   parseType(R,Env,B,C1,Cx,RT).
 parseType(F,Env,B,C0,Cx,refType(Tp)) :-
   isRef(F,_,L),
@@ -86,14 +86,14 @@ parseType(Trm,Env,B,C,Cx,Tp) :-
   parseType(TT,Env,B,C,Cx,Tp),!.
 parseType(T,_,_,Cx,Cx,anonType) :-
   locOfAst(T,Lc),
-  reportError("cannot understand type %s",[T],Lc).
+  reportError("cannot understand type %s",[ast(T)],Lc).
 
 parseFieldAccType(Lc,L,Fld,Env,Tp) :-
   isIden(L,Nm),
   (getVarTypeFace(Lc,Nm,Env,VTp) ->
    faceOfType(VTp,Lc,Env,faceType(_,Types)),
    (fieldInFace(Types,Fld,VTp,Lc,Tp) ;
-    reportError("%s not part of type of %s:%s",[Fld,ast(L),tpe(VTp)],Lc),
+    reportError("%s not part of type of %s:%s",[id(Fld),ast(L),tpe(VTp)],Lc),
     newTypeVar("_",Tp));
    reportError("%s not a known variable",[ast(L)],Lc),
    newTypeVar("_",Tp)).
@@ -107,7 +107,7 @@ parseArgType(T,Env,Q,C,Cx,Tp) :-
 fieldInFace(Fields,Nm,_,_,Tp) :-
   is_member((Nm,Tp),Fields),!.
 fieldInFace(_,Nm,RcTp,Lc,anonType) :-
-  reportError("type %s not declared in %s",[Nm,RcTp],Lc).
+  reportError("type %s not declared in %s",[id(Nm),tpe(RcTp)],Lc).
 
 parseTypeName(_,"_",_,_,C,C,Tp) :- newTypeVar("_",Tp).
 parseTypeName(_,"void",_,_,C,C,voidType).
@@ -119,7 +119,7 @@ parseTypeName(_,Id,Env,_,C,C,Tp) :-
    (TpL=typeLambda(tplType([]),Tp) ; Tp = TpL);
    Tp=T).
 parseTypeName(Lc,Id,_,_,C,C,anonType) :-
-  reportError("type %s not declared",[Id],Lc).
+  reportError("type %s not declared",[id(Id)],Lc).
 
 doTypeFun(_,typeLambda(tplType([]),Tp),[],_,Cx,Cx,Tp) :-!. % special case
 doTypeFun(_,Op,[],_,Cx,Cx,Op).
@@ -169,7 +169,7 @@ parseTypeFace(T,Env,Bound,AT,FT) :-
   parseTypeFields(L,Env,Bound,[],AT,[],FT).
 parseTypeFace(T,_,_,[],[]) :-
   locOfAst(T,Lc),
-  reportError("%s is not a type interface",[T],Lc).
+  reportError("%s is not a type interface",[ast(T)],Lc).
 
 parseConstraint(T,Env,B,C0,Cx) :-
   isBinary(T,_,"<~",L,R),
@@ -180,11 +180,11 @@ parseConstraint(Sq,Env,B,C0,Cx) :-
   parseContractArgs(Args,Env,B,C0,C1,ArgTps,Deps),
   ( parseContractName(Lc,N,Env,B,contractExists(conTract(Op,_ATs,_Dps),_)) ->
     C1=[conTract(Op,ArgTps,Deps)|Cx];
-    reportError("contract %s not declared",[N],Lc),
+    reportError("contract %s not declared",[id(N)],Lc),
     Cx=C1).
 parseConstraint(T,_,B,B,C,C) :-
   locOfAst(T,Lc),
-  reportError("invalid type constraint %s",[T],Lc).
+  reportError("invalid type constraint %s",[ast(T)],Lc).
 
 parseConstraints([],_,_,C,C).
 parseConstraints([Ct|L],E,Q,C,Cx) :-
@@ -203,9 +203,9 @@ parseContractConstraint(Quants,Cons,Sq,Env,N,Op,ConSpec) :-
           simplifyType(tplType(Dps),Lc,Env,C2,Cx,tplType(Ds)),
           putConstraints(Cx,contractExists(conTract(Op,As,Ds),IFace),CC),
           reUQnt(Q,CC,ConSpec);
-          reportError("implementation does not match contract %s",[Op],Lc),
+          reportError("implementation does not match contract %s",[id(Op)],Lc),
           fail);
-    reportError("contract %s not declared",[N],Lc), fail).
+    reportError("contract %s not declared",[id(N)],Lc), fail).
 
 addConstraint(Con,C0,C0) :- is_member(Con,C0),!.
 addConstraint(Con,C0,[Con|C0]).
@@ -237,19 +237,19 @@ parseTypeField(F,Env,Bound,Flds,[(Fld,FldTp)|Flds],Types,Types) :-
   isTypeAnnotation(F,_,Nm,FT),
   isIden(Nm,Lc,Fld),
   parseType(FT,Env,Bound,[],Cx,FldTp),
-  (Cx=[] -> true ; reportError("unexpected constraints in field type %s",[Nm],Lc)).
+  (Cx=[] -> true ; reportError("unexpected constraints in field type %s",[id(Nm)],Lc)).
 parseTypeField(S,Env,Bound,Flds,Flds,Types,[(Fld,FldTp)|Types]) :-
   isTypeField(S,_,Nm,T),
   isIden(Nm,Lc,Fld),
   parseType(T,Env,Bound,[],Cx,FldTp),
-  (Cx=[] -> true ; reportError("unexpected constraints in field type %s",[Nm],Lc)).
+  (Cx=[] -> true ; reportError("unexpected constraints in field type %s",[id(Nm)],Lc)).
 parseTypeField(F,_,_,Fields,Fields,Types,Types) :-
   isUnary(F,_,"@",_).
 parseTypeField(F,_,_,Fields,Fields,Types,Types) :-
   isBinary(F,_,"@",_,_).
 parseTypeField(FS,_,_,Fields,Fields,Types,Types) :-
   locOfAst(FS,Lc),
-  reportError("invalid field type %s",[FS],Lc).
+  reportError("invalid field type %s",[ast(FS)],Lc).
 
 parseContract(T,Env,Ev,Path,[conDef(Nm,ConNm,ConRule),
 			     ConTpDef|Df],Dfx) :-
@@ -602,7 +602,7 @@ checkFields(Nm,Tp,[B|Bs],Bx) :-
   (isIden(N,Lc,Nm) ->
    Bs=Bx,
    (sameTerm(Tp,Tp2);
-    reportError("type of field %s mismatch, %s!=%s",[Nm,Tp,Tp2],Lc));
+    reportError("type of field %s mismatch, %s!=%s",[id(Nm),tpe(Tp),tpe(Tp2)],Lc));
    Bx=[B|Bx1],
    checkFields(Nm,Tp,Bs,Bx1)).
 checkFields(Nm,Tp,[B|Bs],[B|Bx]) :-
@@ -708,5 +708,5 @@ parseTypeHead(N,B,Tp,Nm,Args,Path) :-
 parseHeadArgs([],_,[]).
 parseHeadArgs([H|L],B,[V|Args]) :-
   isIden(H,Lc,Nm),
-  (is_member((Nm,V),B) ; reportError("type argument %s not quantified ",[H],Lc)),
+  (is_member((Nm,V),B) ; reportError("type argument %s not quantified ",[ast(H)],Lc)),
   parseHeadArgs(L,B,Args).

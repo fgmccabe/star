@@ -66,8 +66,14 @@ test.sy{
   line
 string\n
     """;
- 
-    assert valof o == 1;		-- End comment
+
+    try{
+      assert valof o == 1;		-- End comment
+    } catch {
+      _ => {
+	logMsg("valof raised exception")
+      }
+    };
 
     valis ()
   }

@@ -135,9 +135,6 @@ overloadTerm(letRec(Lc,Decls,Defs,Bound),Dict,St,Stx,letRec(Lc,Decls,RDefs,RBoun
 overloadTerm(where(Lc,Trm,Cond),Dict,St,Stx,where(Lc,RTrm,RCond)) :-
   overloadTerm(Trm,Dict,St,St0,RTrm),
   overloadTerm(Cond,Dict,St0,Stx,RCond).
-overloadTerm(sequence(Lc,L,R),Dict,St,Stx,sequence(Lc,RL,RR)) :-
-  overloadTerm(L,Dict,St,St0,RL),
-  overloadTerm(R,Dict,St0,Stx,RR).
 overloadTerm(conj(Lc,L,R),Dict,St,Stx,conj(Lc,RL,RR)) :-
   overloadTerm(L,Dict,St,St0,RL),
   overloadTerm(R,Dict,St0,Stx,RR).
@@ -194,6 +191,9 @@ overloadTerm(doExp(Lc,A,Tp),Dict,St,Stx,doExp(Lc,AA,Tp)) :-!,
   overloadAction(A,Dict,St,Stx,AA).
 overloadTerm(task(Lc,A,Tp),Dict,St,Stx,task(Lc,AA,Tp)) :-!,
   overloadTerm(A,Dict,St,Stx,AA).
+overloadTerm(tryCatch(Lc,E,H),Dict,St,Stx,tryCatch(Lc,EE,HH)) :-
+  overloadTerm(E,Dict,St,St0,EE),
+  overloadCases(H,resolve:overloadTerm,Dict,St0,Stx,HH).
 overloadTerm(T,_,St,St,T) :-
   locOfCanon(T,Lc),
   reportError("invalid term to resolve %s",[can(T)],Lc).

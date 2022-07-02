@@ -15,9 +15,11 @@ test.di{
 
   main:()=>().
   main()=>valof{
-    show valof Fc(Is);
+    try{
+      show valof Fc(Is);
 
-    assert valof Fc(Is) == 24;
+      assert valof Fc(Is) == 24;
+    } catch { _ => logMsg("bad happening")};
     valis ()
   }
 }

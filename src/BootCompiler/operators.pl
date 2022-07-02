@@ -134,6 +134,7 @@
   operator("::=", [infixOp(1249, 1250, 1249)]).
   operator("/\\", [infixOp(700, 700, 699)]).
   operator(">=", [infixOp(899, 900, 899)]).
+  operator("throws", [infixOp(948, 949, 948)]).
   operator(">>", [infixOp(949, 950, 950)]).
 
   bracket("[||]", "[|", "|]", "", 2000).
@@ -447,6 +448,7 @@
   keyword("||").
   keyword("else").
   keyword("::=").
+  keyword("throws").
   keyword("{!").
 
   isKeyword(X):- keyword(X), !.

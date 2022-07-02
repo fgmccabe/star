@@ -26,9 +26,13 @@ test.do12{
 
   main:()=>().
   main()=>valof{
-    assert valof multiWhr(foo(23))==23;
-    assert valof seqCase(foo(23))==23;
-    assert valof seqCase(bar(""))==0;
+    try{
+      assert valof multiWhr(foo(23))==23;
+      assert valof seqCase(foo(23))==23;
+      assert valof seqCase(bar(""))==0;
+    } catch {
+      _ => logMsg("bad valof")
+    };
     valis ()
   }
 }

@@ -21,12 +21,14 @@ test.df{
     
   main:()=>().
   main()=>valof{
-    show valof CX(IS,2);
+    try{
+      show valof CX(IS,2);
 
-    show valof CC;
-    show valof CC;
+      show valof CC;
+      show valof CC;
 
-    assert valof CC == valof CC;
+      assert valof CC == valof CC;
+    } catch { _ => logMsg("bad happening")};
     valis ()
   }
 }

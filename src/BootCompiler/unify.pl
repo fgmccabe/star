@@ -1,5 +1,5 @@
 :- module(unify,[sameType/4,faceOfType/4,
-    simplifyType/6,applyTypeFun/5]).
+		 simplifyType/6,applyTypeFun/5]).
 
 :- use_module(misc).
 :- use_module(canon).
@@ -24,7 +24,7 @@ sm(refType(A1),refType(A2),Lc,Env) :- sameType(A1,A2,Lc,Env).
 sm(valType(A1),valType(A2),Lc,Env) :- sameType(A1,A2,Lc,Env).
 sm(tplType(A1),tplType(A2),Lc,Env) :- smList(A1,A2,Lc,Env).
 sm(funType(A1,R1),funType(A2,R2),Lc,Env) :- sameType(R1,R2,Lc,Env), sameType(A2,A1,Lc,Env).
-sm(contType(A1,R1),contType(A2,R2),Lc,Env) :- sameType(R1,R2,Lc,Env), sameType(A2,A1,Lc,Env).
+sm(throwsType(A1,R1),throwsType(A2,R2),Lc,Env) :- sameType(R1,R2,Lc,Env), sameType(A2,A1,Lc,Env).
 sm(typeLambda(A1,R1),typeLambda(A2,R2),Lc,Env) :- sameType(R1,R2,Lc,Env), sameType(A2,A1,Lc,Env).
 sm(consType(A1,R1),consType(A2,R2),Lc,Env) :- sameType(R1,R2,Lc,Env), sameType(A1,A2,Lc,Env).
 sm(faceType(E1,T1),faceType(E2,T2),Lc,Env) :- sameLength(E1,E2),
@@ -150,45 +150,6 @@ sameImplements(implementsFace(T1,F1),implementsFace(T2,F2),Lc,Env) :-
   sameType(T1,T2,Lc,Env),
   sameType(F1,F2,Lc,Env).
 
-idenType(T1,T2,Lc,Env) :- deRef(T1,Tp1), deRef(T2,Tp2), id(Tp1,Tp2,Lc,Env), !.
-
-id(_,anonType,_).
-id(anonType,_,_).
-id(voidType,voidType,_).
-id(kVar(Nm),kVar(Nm),_).
-id(kFun(Nm,Ar),kFun(Nm,Ar),_).
-id(V1,V2,_) :- isUnbound(V1), isUnbound(V2), isIdenticalVar(V1,V2).
-id(type(Nm),type(Nm),_).
-id(tpFun(Nm,Ar),tpFun(Nm,Ar),_).
-id(tpExp(O1,A1),tpExp(O2,A2),Lc,Env) :- idenType(O1,O2,Lc,Env),idenType(A1,A2,Lc,Env).
-id(refType(A1),refType(A2),Lc,Env) :- idenType(A1,A2,Lc,Env).
-id(valType(A1),valType(A2),Lc,Env) :- idenType(A1,A2,Lc,Env).
-id(tplType(A1),tplType(A2),Lc,Env) :- idList(A1,A2,Lc,Env).
-id(funType(A1,R1),funType(A2,R2),Lc,Env) :- idenType(R1,R2,Lc,Env), idenType(A2,A1,Lc,Env).
-id(contType(A1,R1),contType(A2,R2),Lc,Env) :- idenType(R1,R2,Lc,Env), idenType(A2,A1,Lc,Env).
-id(typeLambda(A1,R1),typeLambda(A2,R2),Lc,Env) :- idenType(R1,R2,Lc,Env), idenType(A2,A1,Lc,Env).
-id(consType(A1,R1),consType(A2,R2),Lc,Env) :- idenType(R1,R2,Lc,Env), idenType(A1,A2,Lc,Env).
-id(faceType(E1,T1),faceType(E2,T2),Lc,Env) :- sameLength(E1,E2),
-    sameLength(T1,T2),
-    idFields(E1,E2,Lc,Env),
-    idFields(T1,T2,Lc,Env).
-id(existType(K,T1),existType(K,T2),Lc,Env) :-
-  idenType(T1,T2,Lc,Env).
-id(existType(kFun(K1,Ar),T1),existType(kFun(K2,Ar),T2),Lc,Env) :-
-  rewriteType(T2,Lc,Env,[(K2,kFun(K1,Ar))],TT2),
-  idenType(T1,TT2,Lc,Env).
-id(allType(K,T1),allType(K,T2),Lc,Env) :-!,
-  idenType(T1,T2,Lc,Env).
-id(allType(kVar(K1),T1),allType(kVar(K2),T2),Lc,Env) :-
-  rewriteType(T2,Lc,Env,[(K2,kVar(K1))],TT2),
-  idenType(T1,TT2,Lc,Env).
-
-idList([],[],_).
-idList([E1|L1],[E2|L2],Lc,Env) :- idenType(E1,E2,Lc,Env), idList(L1,L2,Lc,Env).
-
-idFields(_,[],_).
-idFields(L1,[(F2,E2)|L2],Lc,Env) :- is_member((F2,E1),L1), idenType(E1,E2,Lc,Env), idFields(L1,L2,Lc,Env).
-
 simplifyType(T,Lc,Env,C,Cx,Tp) :-
   deRef(T,TT),!,
   smpTp(TT,Lc,Env,C,Cx,Tp).
@@ -219,7 +180,7 @@ smpTp(funType(L,R),Lc,Env,C,Cx,funType(Ls,Rs)) :-
 smpTp(consType(L,R),Lc,Env,C,Cx,consType(Ls,Rs)) :-
   simplifyType(L,Lc,Env,C,C0,Ls),
   simplifyType(R,Lc,Env,C0,Cx,Rs).
-smpTp(contType(L,R),Lc,Env,C,Cx,contType(Ls,Rs)) :-
+smpTp(throwsType(L,R),Lc,Env,C,Cx,throwsType(Ls,Rs)) :-
   simplifyType(L,Lc,Env,C,C0,Ls),
   simplifyType(R,Lc,Env,C0,Cx,Rs).
 smpTp(allType(V,typeLambda(V,tpExp(Op,V))),_,_,C,C,Op).
@@ -297,8 +258,8 @@ occIn(Id,funType(A,_)) :- occIn(Id,A).
 occIn(Id,funType(_,R)) :- occIn(Id,R).
 occIn(Id,consType(L,_)) :- occIn(Id,L).
 occIn(Id,consType(_,R)) :- occIn(Id,R).
-occIn(Id,contType(A,_)) :- occIn(Id,A).
-occIn(Id,contType(_,R)) :- occIn(Id,R).
+occIn(Id,throwsType(A,_)) :- occIn(Id,A).
+occIn(Id,throwsType(_,R)) :- occIn(Id,R).
 occIn(Id,constrained(Tp,Con)) :- occIn(Id,Con) ; occIn(Id,Tp).
 occIn(Id,typeLambda(A,_)) :- occIn(Id,A).
 occIn(Id,typeLambda(_,R)) :- occIn(Id,R).

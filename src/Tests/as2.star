@@ -21,17 +21,27 @@ test.as2{
     check:(cons[integer],cons[integer])=>boolean.
     check([],[]) => .true.
     check([E,..Es],[D,..Ds]) =>
-      ( D==E ?
+      ( try D==E ?
 	  valof mark(D) && check(Es,Ds) ||
 	  valof reset
+	catch {
+	  _ => .false
+	}
       ).
-    check(_,_) default => valof reset.
+    check(_,_) default => valof { ignore reset; valis .false }.
   .} in check.
+
+  notMuch:result[(),string].
+  notMuch=do{
+    logMsg("hello there");
+    raise ()
+  }
 
   main:()=>().
   main()=>valof{
     assert checkLists()([1,2],[1,2]);
     assert ~checkLists()([],[1]);
+    show notMuch;
     valis ()
   }
 }

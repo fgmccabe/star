@@ -49,7 +49,7 @@ genDef(D,Opts,fnDef(Lc,Nm,H,Tp,Args,Value),O,[CdTrm|O]) :-
   buildArgs(Args,0,D,D1),
   genLine(Opts,Lc,C0,C1),
   compPtnArgs(Args,Lc,argCont,
-	      trapCont(Lc,"raise in arg patns"),0,
+	      trapCont(Lc,"may not raise in arg patns"),0,
 	      contCont(Ex),abortCont(Lc,strg("def failed"),Opts),End,
 	      Opts,L1,L2,D1,D2,C1,[iLbl(Ex)|C2],some(0),Stk0),
   compExp(Value,Lc,retCont(Opts),trapCont(Lc,"missing catch handler"),End,Opts,L2,_Lx,D2,Dx,C2,[iLbl(End)],Stk0,_Stk),
@@ -88,7 +88,7 @@ dropCont(Lx,Lx,D,D,[iDrop|Cx],Cx,Stk,Stk1) :-
 
 trapCont(_Lc,_,Lx,Lx,D,D,Cx,Cx,none,none) :- !.
 trapCont(Lc,Msg,Lx,Lx,D,D,Cx,Cx,Stk,Stk) :-
-  reportError("not permitted: %s",[ss(Msg)],Lc).
+  reportError("%s",[ss(Msg)],Lc).
 
 idxCont(Off,Cont,L,Lx,D,Dx,[iNth(Off)|C],Cx,Stk,Stkx) :-
   call(Cont,L,Lx,D,Dx,C,Cx,Stk,Stkx).
@@ -158,7 +158,7 @@ populateVarNm(Nw,_,Ex,scope(Vrs,_,_),[iLocal(Nw,Frm,End,Off)|Cx],Cx) :-
 populateVarNm(_,_,Ex,scope(Vrs,_,_),Cx,Cx) :-
   is_member((Ex,a(_),_,_),Vrs),!.
 populateVarNm(_,Lc,Ex,_,C,C) :-
-  reportError("variable %s not known",[Ex],Lc).
+  reportError("variable %s not known",[id(Ex)],Lc).
 
 genLbl(Lbs,Lb,[Lb|Lbs]) :-
   length(Lbs,N),
@@ -179,7 +179,7 @@ compExp(Trm,_Lc,Cont,_ECont,_End,_Opts,L,Lx,D,Dx,[iLdC(Trm)|C],Cx,Stk,Stkx) :-
 compExp(idnt(Nm),Lc,Cont,_TCont,End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   (lclVar(Nm,V,D) -> 
    compVar(V,End,Opts,Cont,L,Lx,D,Dx,C,Cx,Stk,Stkx) ;
-   reportError("cannot locate variable %s",[Nm],Lc),
+   reportError("cannot locate variable %s",[id(Nm)],Lc),
    C=[iLdV|Cx],
    bumpStk(Stk,Stkx),
    D=Dx,L=Lx).
@@ -231,6 +231,8 @@ compExp(unpack(Lc,T,Cases),OLc,Cont,TCont,End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compExp(T,Lc,contCont(Nxt),TCont,End,Opts,L1,L2,D,D2,C0,[iLbl(Nxt)|C1],Stk,Stk0),
   compCnsCases(Cases,Lc,gencode:compExpCase(TCont),Cont,TCont,Opts,
 	       L2,Lx,D2,Dx,C1,Cx,Stk0,Stkx).
+compExp(try(Lc,B,E,H),OLc,Cont,TCont,_End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
+  compTry(Lc,B,E,H,OLc,Cont,TCont,gencode:compExp,Opts,L,Lx,D,Dx,C,Cx,Stk).
 compExp(varNames(Lc,Vrs,T),OLc,Cont,TCont,End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   populateVarNames(Vrs,Lc,D,C0,C1),
@@ -282,7 +284,7 @@ compExp(Cond,Lc,Cont,TCont,End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
 	   TCont,End,Opts,L0,L1,D,D1,C,[iLbl(Nx)|C1],Stk,Stk1),
   call(Cont,L1,Lx,D1,Dx,C1,Cx,Stk1,Stkx).
 compExp(T,Lc,_,_,_,_,Lx,Lx,Dx,Dx,C,C,Stk,Stk) :-
-  reportError("cannot compile %s",[T],Lc),
+  reportError("cannot compile %s",[ltrm(T)],Lc),
   abort.
 
 compExpCase(TCont,T,Lc,Cont,End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
@@ -398,7 +400,7 @@ compAction(iftt(Lc,G,T),OLc,Cont,ACont,TCont,_End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) 
 compAction(unpack(Lc,T,Cases),OLc,Cont,ACont,TCont,_End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
   compUnpackAction(Lc,T,Cases,OLc,Cont,ACont,TCont,Opts,L,Lx,D,Dx,C,Cx,Stk).
 compAction(try(Lc,B,E,H),OLc,Cont,ACont,TCont,_End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
-  compTry(Lc,B,E,H,OLc,Cont,ACont,TCont,Opts,L,Lx,D,Dx,C,Cx,Stk).
+  compTry(Lc,B,E,H,OLc,Cont,TCont,gencode:compAct(ACont),Opts,L,Lx,D,Dx,C,Cx,Stk).
 compAction(error(Lc,Msg),_OLc,_Cont,_,_TCont,_End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   abortCont(Lc,Msg,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx). % no continuation after an error
 compAction(A,Lc,_,_,_,_End,_Opts,Lx,Lx,Dx,Dx,C,C,Stk,Stk) :-
@@ -419,20 +421,20 @@ compActCase(ACont,TCont,A,Lc,Cont,End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
 compAct(ACont,A,Lc,Cont,TCont,End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   compAction(A,Lc,Cont,ACont,TCont,End,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 
-compTry(Lc,B,idnt(E),H,OLc,Cont,ACont,TCont,Opts,L,Lx,D,Dx,C,Cx,Stk) :-
+compTry(Lc,B,idnt(E),H,OLc,Cont,TCont,Hndlr,Opts,L,Lx,D,Dx,C,Cx,Stk) :-
   chLine(Opts,OLc,Lc,C,C0),
   genLbl(L,Ctch,L1),
   genLbl(L1,End,L2),
-  compAction(B,Lc,Cont,ACont,catchCont(E,Ctch,Lc,H,Cont,ACont,TCont,Opts),
+  call(Hndlr,B,Lc,Cont,catchCont(E,Ctch,Lc,H,Cont,TCont,Hndlr,Opts),
 	     End,Opts,L2,Lx,D,Dx,C0,[iLbl(End)|Cx],Stk,_).
 
-catchCont(E,Ctch,Lc,H,Cont,ACont,TCont,Opts,L,Lx,D,Dx,[iLbl(Ctch),iStL(Off),iLbl(ELb)|C],Cx,Stk,Stk0) :-
+catchCont(E,Ctch,Lc,H,Cont,TCont,Hndlr,Opts,L,Lx,D,Dx,[iLbl(Ctch),iStL(Off),iLbl(ELb)|C],Cx,Stk,Stkx) :-
   genLbl(L,ELb,L1),
   genLbl(L1,End,L2),
   dropStk(Stk,1,Stk0),
   
   defineLclVar(E,ELb,End,Opts,D,D1,Off,C,C0), % wrong End ... :(
-  compAction(H,Lc,Cont,ACont,TCont,End,Opts,L2,Lx,D1,Dx,C0,[iLbl(End)|Cx],Stk0,_).
+  call(Hndlr,H,Lc,Cont,TCont,End,Opts,L2,Lx,D1,Dx,C0,[iLbl(End)|Cx],Stk0,Stkx).
   
 /* Compile actions as sequences with several possible continuations */
 
@@ -576,7 +578,7 @@ insCont(Ins,Lx,Lx,D,D,[Ins|C],C,Stk,Stk).
 abortCont(Lc,Msg,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   locTerm(Lc,LT),
   genLbl(L,End,L0),
-  compExps([LT,Msg],Lc,abrtCont(Opts),trapCont(Lc,"raise exception here"),
+  compExps([LT,Msg],Lc,abrtCont(Opts),trapCont(Lc,"may not raise exception here"),
 	   End,Opts,L0,Lx,D,Dx,C,[iLbl(End)|Cx],Stk,Stkx).
 
 abrtCont(Opts,Lx,Lx,D,D,C,Cx,_,none) :-
@@ -878,7 +880,7 @@ compArms([(ctpl(Cn,Args),E,Lc)],_Lc,CompRhs,Cont,TCont,Opts,L,Lx,D,Dx,
   call(CompRhs,E,Lc,Cont,End,Opts,L4,Lx,D4,Dx,A1,[iLbl(End)|Cy],Stk1,Stkx).
 compArms([(ctpl(Cn,Args),E,Lc)|Cases],_Lc,CompRhs,Cont,TCont,Opts,L,Lx,D,Dx,
 	 [iJmp(Lbl)|T1],Tx,
-	 [iLbl(Lbl),iDup,iUnpack(Cn,End)|C],Cx,Stk,Stkx) :-
+	 [iLbl(Lbl),iUnpack(Cn,End)|C],Cx,Stk,Stkx) :-
   genLbl(L,Lbl,L0),
   genLbl(L0,Nxt,L1),
   genLbl(L1,End,L2),

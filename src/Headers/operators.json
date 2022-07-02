@@ -1152,6 +1152,16 @@
     "keyword": true
   },
   {
+    "infixOp": "throws",
+    "priorities": [
+      948,
+      949,
+      948
+    ],
+    "desc": "type of values that can raise exceptions",
+    "keyword": true
+  },
+  {
     "prefixOp": "-",
     "priorities": [
       300,
