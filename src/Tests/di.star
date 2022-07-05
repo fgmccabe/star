@@ -4,8 +4,8 @@ test.di{
 
   Is = cons(1,cons(2,cons(3,cons(4,.nil)))).
 
-  Fc:(cons[integer])=>result[(),integer].
-  Fc(I) => do{
+  Fc:(cons[integer])=>integer.
+  Fc(I) => valof{
     Fx .= ref 1;
     for E in I do {
       Fx := Fx! * E
@@ -16,9 +16,9 @@ test.di{
   main:()=>().
   main()=>valof{
     try{
-      show valof Fc(Is);
+      show Fc(Is);
 
-      assert valof Fc(Is) == 24;
+      assert Fc(Is) == 24;
     } catch { _ => logMsg("bad happening")};
     valis ()
   }

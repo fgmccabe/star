@@ -4,8 +4,8 @@ test.sy{
 
   -- Test of syntax of star
 
-  CX : (cons[integer],integer) => result[(),integer].
-  CX(Is,Lm) => do{
+  CX : (cons[integer],integer) => integer.
+  CX(Is,Lm) => valof{
     Cx .= ref 0;
     
     for Ix in Is do{
@@ -13,7 +13,7 @@ test.sy{
 	Cx:=Cx!+Ix
     };
     
-    return Cx!
+    valis Cx!
   }
 
   -- another line comment
@@ -25,7 +25,7 @@ test.sy{
 
   bind(X) where X>0 => valof{
     logMsg("trying");
-    return .true
+    valis .true
   }
 
   bind(X) where
@@ -33,7 +33,7 @@ test.sy{
     (MM ^= some(X) ?
 	valof{
 	  logMsg("trying");
-	  return .true
+	  valis .true
 	}
 	|| .false).
   
@@ -47,8 +47,8 @@ test.sy{
     | .someone
     | .everyone.
 
-  o : result[string,integer]. 
-  o = do{ valis 1}
+  o : integer. 
+  o = valof{ valis 1}
 
   /* Block comment */
 
@@ -68,7 +68,7 @@ string\n
     """;
 
     try{
-      assert valof o == 1;		-- End comment
+      assert o == 1;		-- End comment
     } catch {
       _ => {
 	logMsg("valof raised exception")

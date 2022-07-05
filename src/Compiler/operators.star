@@ -45,6 +45,7 @@ star.compiler.operators{
   oper("^?") => [infixOp(800,800,799)].
   oper("~=") => [infixOp(899,900,899)].
   oper("~>") => [infixOp(1230,1231,1230)].
+  oper("throw") => [prefixOp(930,929)].
   oper(".|.") => [infixOp(720,720,719)].
   oper("do") => [prefixOp(200,199), infixOp(1199,1200,1199)].
   oper("import") => [prefixOp(900,899)].
@@ -150,7 +151,7 @@ star.compiler.operators{
   oper("::=") => [infixOp(1249,1250,1249)].
   oper("/\\") => [infixOp(700,700,699)].
   oper(">=") => [infixOp(899,900,899)].
-  oper("throws") => [infixOp(948,949,948)].
+  oper("throws") => [infixOp(999,1000,999)].
   oper(">>") => [infixOp(949,950,950)].
   oper(_) default => [].
 
@@ -421,6 +422,7 @@ star.compiler.operators{
   keyword("^=") => .true.
   keyword("&&") => .true.
   keyword("~>") => .true.
+  keyword("throw") => .true.
   keyword("{.") => .true.
   keyword("do") => .true.
   keyword("import") => .true.

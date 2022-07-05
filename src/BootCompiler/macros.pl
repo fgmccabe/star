@@ -169,10 +169,10 @@ examineType(T,Tx) :- isFuncType(T,Lc,L,R),!,
   macroType(L,Lx),
   macroType(R,Rx),
   funcType(Lc,Lx,Rx,Tx).
-examineType(T,Tx) :- isContType(T,Lc,L,R),!,
+examineType(T,Tx) :- isThrows(T,Lc,L,R),!,
   macroType(L,Lx),
   macroType(R,Rx),
-  mkContType(Lc,Lx,Rx,Tx).
+  mkThrows(Lc,Lx,Rx,Tx).
 examineType(T,Tx) :- isRoundTuple(T,Lc,Els),!,
   map(Els,macros:macroType,Elx),
   roundTuple(Lc,Elx,Tx).
@@ -381,11 +381,10 @@ examineTerm(T,Tx) :-
   macroOpt(G,macros:macroTerm,Gx),
   mkEquation(Lc,Lx,Gx,Rx,Tx).
 examineTerm(T,Tx) :-
-  isValof(T,Lc,A),!,
-  (isBraceTuple(A,_,[As]) ->
-   macroAction(As,A1),
-   braceTuple(Lc,[A1],Ax);
-   macroTerm(A,Ax)),
+  isValof(T,Lc,A),
+  isBraceTuple(A,_,[As]),!,
+  macroAction(As,A1),
+  braceTuple(Lc,[A1],Ax),
   mkValof(Lc,Ax,Tx).
 examineTerm(T,Tx) :-
   isFieldAcc(T,Lc,L,F),!,
@@ -405,21 +404,6 @@ examineTerm(T,Tx) :-
   macroTerm(E,Ex),
   map(C,macros:macroLambda,Cx),
   caseExp(Lc,Ex,Cx,Tx).
-examineTerm(T,Tx) :-
-  isDoTerm(T,Lc,S),!,
-  macroAction(S,Sx),
-  mkDoTerm(Lc,Sx,Tx).
-examineTerm(T,Tx) :-
-  isResultTerm(T,Lc,S),!,
-  macroAction(S,Sx),
-  mkResultTerm(Lc,Sx,Tx).
-examineTerm(T,Tx) :-
-  isResultTerm(T,Lc,S),!,
-  macroAction(S,Sx),
-  mkDoTerm(Lc,Sx,Mx),
-  mkAnon(Lc,An),
-  squareTerm(Lc,name(Lc,"result"),[An,An],RTp),
-  typeAnnotation(Lc,Mx,RTp,Tx).
 examineTerm(T,Tx) :-
   isTaskTerm(T,Lc,S),!,
   macroAction(S,Sx),
@@ -447,6 +431,10 @@ examineTerm(A,Ax) :-
   macroTerm(B,Bx),
   map(C,macros:macroLambda,Cs),
   mkTryCatch(Lc,Bx,Cs,Ax).
+examineTerm(A,Ax) :-
+  isThrow(A,Lc,V),!,
+  macroTerm(V,Vx),
+  mkThrow(Lc,Vx,Ax).
 examineTerm(T,T) :-
   locOfAst(T,Lc),
   reportError("cannot figure out expression %s",[ast(T)],Lc).
@@ -560,8 +548,6 @@ examineField(F,Fx) :-
 macroAction(T,Tx) :-
   macroAst(T,action,macros:examineAction,Tx).
 
-examineAction(T,T) :-
-  isName(T,_,_),!.
 examineAction(A,Ax) :-
   isActionSeq(A,Lc,L,R),!,
   macroAction(L,Lx),
@@ -587,11 +573,6 @@ examineAction(A,Ax) :-
   macroTerm(R,Rx),
   unary(Lc,"some",Lx,Lh),
   match(Lc,Lh,Rx,Ax).
-examineAction(A,Ax) :-
-  isBind(A,Lc,L,R),!,
-  macroPtn(L,Lx),
-  macroTerm(R,Rx),
-  mkBind(Lc,Lx,Rx,Ax).
 examineAction(A,Ax) :-
   isAssignment(A,Lc,L,R),!,
   macroTerm(L,Lx),
@@ -634,21 +615,9 @@ examineAction(A,Ax) :-
   macroTerm(V,Vx),
   mkValis(Lc,Vx,Ax).
 examineAction(A,Ax) :-
-  isRaise(A,Lc,V),!,
+  isThrow(A,Lc,V),!,
   macroTerm(V,Vx),
-  mkRaise(Lc,Vx,Ax).
-examineAction(A,Ax) :-
-  isPerform(A,Lc,V),!,
-  macroTerm(V,Vx),
-  mkPerform(Lc,Vx,Ax).
-examineAction(A,Ax) :-
-  isIgnore(A,Lc,V),!,
-  macroTerm(V,Vx),
-  mkIgnore(Lc,Vx,Ax).
-examineAction(A,Ax) :-
-  isDo(A,Lc,V),!,
-  macroTerm(V,Vx),
-  mkDo(Lc,Vx,Ax).
+  mkThrow(Lc,Vx,Ax).
 examineAction(A,Ax) :-
   isLetDef(A,Lc,D,B),!,
   map(D,macros:macroStmt,Dx),

@@ -4,8 +4,8 @@ test.do1{
 
   -- Test action notation
 
-  doFirst:()=>result[void,()].
-  doFirst() => do{
+  doFirst:()=>().
+  doFirst() => valof{
     A .= ref 1;
 
     A := A!+A!;
@@ -17,7 +17,7 @@ test.do1{
   main:()=>().
   main() => valof{
     try{
-      do doFirst();
+      doFirst();
     } catch{
       _ => {}
     };

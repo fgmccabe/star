@@ -39,7 +39,7 @@ test.ts1{
 	  yild(X) default => {
 	    Tl := Tl! * X
 	  }.
-	  .end => raise ()
+	  .end => throw ()
 	}
       }
     } catch {
@@ -65,7 +65,7 @@ test.ts1{
       for (X where X%2==1) in L do{
 	_ .= _logmsg(disp(X));
 	if X>6 then
-	  raise ()
+	  throw ()
       }
     } catch {
       _ => {}
@@ -76,8 +76,6 @@ test.ts1{
   iota:(integer,integer)=>cons[integer].
   iota(F,F) => .nil.
   iota(F,T) => cons(F,iota(F+1,T)).
-
-  public result[e,a] ::= ok(a) | bad(e).
 
   main:() => ().
   main() => valof{

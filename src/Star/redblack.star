@@ -1,6 +1,5 @@
 star.redblack{
   import star.core.
-  import star.action.
   import star.coerce.
   import star.arith.
   import star.collection.
@@ -238,16 +237,16 @@ star.redblack{
   public implementation all k,v ~~ generate[rbtree[k,v]->>keyval[k,v]] => {
     _generate(T) => generator{
       let{.
-	loop:(rbtree[k,v]) => result[res_generator,()].
-	loop(.leaf) => do{ valis () }.
-	loop(node(_,K,V,L,R)) => do{
-	  do loop(L);
+	loop:(rbtree[k,v]) => () throws res_generator.
+	loop(.leaf) => ().
+	loop(node(_,K,V,L,R)) => valof{
+	  loop(L);
 	  yield (K->V);
-	  do loop(R);
+	  loop(R);
 	  valis ()
 	}
       .}
-      in do loop(T);
+      in loop(T);
     }
   }
       

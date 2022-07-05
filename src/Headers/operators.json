@@ -1152,11 +1152,20 @@
     "keyword": true
   },
   {
+    "prefixOp": "throw",
+    "priorities": [
+      930,
+      929
+    ],
+    "desc": "raise an exception",
+    "keyword": true
+  },
+  {
     "infixOp": "throws",
     "priorities": [
-      948,
-      949,
-      948
+      999,
+      1000,
+      999
     ],
     "desc": "type of values that can raise exceptions",
     "keyword": true

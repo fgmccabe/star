@@ -1,6 +1,5 @@
 star.trace{
   import star.core.
-  import star.action.
 
   public trace:all x ~~ display[x] |: (string,x)=>x.
   trace(M,X) => valof{

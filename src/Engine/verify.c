@@ -65,6 +65,7 @@ void segmentInit(objectPo o, va_list *args) {
   s->seg.entries = vector(0);
   s->seg.exits = vector(0);
   s->seg.stackDepth = va_arg(*args, integer);
+  s->seg.fallThru = Null;
 
   logical initVars = va_arg(*args, logical);
 
@@ -145,7 +146,7 @@ static vectorPo getRefs(objectPo def, void *cl) {
 retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
 #ifdef TRACEVERIFY
   if (traceVerify)
-    showMethodCode(logFile, name, mtd);
+    showMethodCode(logFile, "Verify method %s\n", name, mtd);
 #endif
 
   vectorPo blocks = vector(0);
@@ -174,7 +175,6 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
 #ifdef TRACEVERIFY
       if (traceVerify) {
         showGroup(group, gx);
-        flushOut();
       }
 #endif
 
@@ -182,7 +182,7 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
       logical done = False;
       while (!done && ret == Ok) {
         done = True;
-        for (integer sx = 0; ret == Ok && sx < vectLength(group); sx++) {
+        for (integer sx = 0; sx < vectLength(group); sx++) {
           segPo seg = O_SEG(getVectEl(group, sx));
           if (!seg->seg.checked && seg->seg.args != Null) {
             done = False;
@@ -217,6 +217,8 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
 #ifdef TRACEVERIFY
   assert(referenceCount(O_OBJECT(blocks)) == 1);
   assert(referenceCount(O_OBJECT(groups)) == 1);
+  if (traceVerify)
+    logMsg(logFile, "%s verified: %s", name, retCodeNames[ret]);
 #endif
 
   decReference(O_OBJECT(blocks));
@@ -278,7 +280,6 @@ static retCode splitOperand(opAndSpec A, vectorPo blocks, insPo code, integer *p
       return Ok;
     }
     case cDe:           // Range of instructions to skip
-    case lVl:
     case off: {         /* offset within current code */
       integer delta = collect32(code, pc);
       integer nPc = *pc + delta;
@@ -313,6 +314,7 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
       case Halt:
       case Abort:
       case Ret:
+      case RetX:
       case RtG:
       case Underflow:
       case Suspend:
@@ -371,7 +373,7 @@ static retCode
 checkTgt(vectorPo blocks, methodPo mtd, insPo code, integer oPc, integer *pc, OpCode op, opAndSpec A, opAndSpec B,
          integer limit, char *errorMsg, long msgLen);
 
-static retCode checkDest(vectorPo blocks, integer pc, integer tgt, char *errorMsg, long msgLen);
+static retCode checkDest(vectorPo blocks, integer pc, integer tgt, logical fallingThru, char *errorMsg, long msgLen);
 
 retCode findBlocksTgts(vectorPo blocks, methodPo mtd, insPo code, char *errorMsg, long msgLen) {
   retCode ret = Ok;
@@ -399,17 +401,20 @@ retCode findTgts(vectorPo blocks, methodPo mtd, insPo code, integer *pc, integer
     }
 
     switch (ins) {
-      case Cmp:
-      case CLbl:
-      case ICmp:
-      case FCmp:
-      case Unpack:
-      case If:
-      case IfNot: {
-        ret = checkDest(blocks, oPc, *pc, errorMsg, msgLen);
+      case Jmp:
+      case TCall:
+      case TOCall:
+      case Ret:
+      case RtG:
+      case RetX:
+      case Abort:
+      case Halt:
+      case Retire:
+        break;
+      default: {
+        ret = checkDest(blocks, oPc, *pc, True, errorMsg, msgLen);
         break;
       }
-      default:;
     }
   }
 
@@ -437,15 +442,19 @@ static void updateExitPoint(segPo srcSeg, segPo tgtSeg) {
   appendVectEl(srcSeg->seg.exits, O_OBJECT(tgtSeg));
 }
 
-retCode checkDest(vectorPo blocks, integer pc, integer tgt, char *errorMsg, long msgLen) {
+retCode checkDest(vectorPo blocks, integer pc, integer tgt, logical fallingThru, char *errorMsg, long msgLen) {
   segPo tgtSeg = findSeg(blocks, tgt);
 
   if (tgtSeg != Null) {
     segPo srcSeg = findSeg(blocks, pc);
 
     if (srcSeg != Null) {
-      updateEntryPoint(srcSeg, tgtSeg);
-      updateExitPoint(srcSeg, tgtSeg);
+      if (srcSeg != tgtSeg) {
+        updateEntryPoint(srcSeg, tgtSeg);
+        updateExitPoint(srcSeg, tgtSeg);
+        if (fallingThru)
+          srcSeg->seg.fallThru = tgtSeg;
+      }
       return Ok;
     } else {
       strMsg(errorMsg, msgLen, RED_ESC_ON "invalid source pc %d" RED_ESC_OFF, pc);
@@ -475,11 +484,10 @@ retCode checkOprndTgt(methodPo mtd, insPo code, vectorPo blocks, integer oPc, in
       integer delta = collect32(code, pc);
       return Ok;
     }
-    case lVl:
     case off: {         /* offset within current code */
       integer delta = collect32(code, pc);
       integer nPc = *pc + delta;
-      return checkDest(blocks, oPc, nPc, errorMsg, msgLen);
+      return checkDest(blocks, oPc, nPc, False, errorMsg, msgLen);
     }
     case lne:           // Location literal
     case Es:
@@ -532,10 +540,13 @@ checkTgt(vectorPo blocks, methodPo mtd, insPo code, integer oPc, integer *pc, Op
         case Jmp:
         case TCall:
         case TOCall:
+        case Escape:
+        case LdG:
         case Halt:
         case Abort:
         case Retire:
         case Ret:
+        case RetX:
         case RtG:
           break;
         default:
@@ -640,7 +651,6 @@ static retCode checkOperand(segPo seg, integer oPc, integer *pc, opAndSpec A, ch
       int32 delta = collect32(base, pc);
       return Ok;
     }
-    case lVl:
     case off: {                         /* offset within current code */
       int32 delta = collect32(base, pc);
       integer npc = *pc + delta;
@@ -712,15 +722,21 @@ static retCode checkOperand(segPo seg, integer oPc, integer *pc, opAndSpec A, ch
 retCode
 checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, opAndSpec B, integer delta,
                  char *errorMsg, long msgLen) {
+  seg->seg.stackDepth += delta;
+
   retCode ret = checkOperand(seg, oPc, pc, A, errorMsg, msgLen);
 
   if (ret == Ok)
     ret = checkOperand(seg, oPc, pc, B, errorMsg, msgLen);
 
   if (ret == Ok) {
-    seg->seg.stackDepth += delta;
     integer iPc = oPc + 1;
     insPo const base = entryPoint(seg->seg.mtd);
+    if (seg->seg.stackDepth < 0) {
+      strMsg(errorMsg, msgLen, RED_ESC_ON "negative stack depth: %d @ %d" RED_ESC_OFF, seg->seg.stackDepth, oPc);
+      return Error;
+    }
+
     // Special handling for specific instructions
 
     switch (op) {
@@ -745,7 +761,7 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
             strMsg(errorMsg, msgLen, RED_ESC_ON "insufficient args on stack: %d @ %d" RED_ESC_OFF, arity, oPc);
             return Error;
           }
-          seg->seg.stackDepth -= arity - 1;
+          seg->seg.stackDepth -= arity;
         } else {
           strMsg(errorMsg, msgLen, RED_ESC_ON "invalid call label: %t @ %d" RED_ESC_OFF, lit, oPc);
           return Error;
@@ -755,6 +771,18 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
       case TCall:
         seg->seg.stackDepth = 0;
         break;
+      case Escape: {
+        int32 escNo = collect32(base, &iPc);
+        escapePo esc = getEscape(escNo);
+
+        if (esc == Null) {
+          strMsg(errorMsg, msgLen, RED_ESC_ON "invalid escape code: %d @ %d" RED_ESC_OFF, escNo, oPc);
+          return Error;
+        } else {
+          seg->seg.stackDepth -= escapeArity(esc);
+        }
+        break;
+      }
       case Rst: {
         int32 depth = collect32(base, &iPc);
         if (depth > seg->seg.stackDepth) {
@@ -848,6 +876,7 @@ retCode checkSegment(segPo seg, char *errorMsg, long msgLen) {
       switch (lastOp) {
         case Ret:
         case RtG:
+        case RetX:
         case Halt:
         case Abort:
         case TCall:
@@ -867,10 +896,10 @@ retCode checkSegment(segPo seg, char *errorMsg, long msgLen) {
       showSeg(seg);
     }
 #endif
-    for (integer ex = 0; ret == Ok && ex < vectLength(seg->seg.exits); ex++) {
-      segPo exit = O_SEG(getVectEl(seg->seg.exits, ex));
-      ret = mergeSegVars(seg, exit);
-    }
+
+    if (seg->seg.fallThru != Null)
+      ret = mergeSegVars(seg, seg->seg.fallThru);
+
     return ret;
   } else
     return Ok;
@@ -898,6 +927,11 @@ void showSeg(segPo seg) {
     segPo entry = O_SEG(getVectEl(seg->seg.exits, ix));
     outMsg(logFile, ", exit=%d", entry->seg.segNo);
   }
+
+  if (seg->seg.fallThru == Null)
+    outMsg(logFile, "\nNo fall through");
+  else
+    outMsg(logFile, "\nFall through to %d", seg->seg.fallThru->seg.segNo);
 
   if (seg->seg.args != Null || seg->seg.locals != Null) {
     outMsg(logFile, "\n");
@@ -927,5 +961,4 @@ void showGroups(vectorPo groups, char *name) {
     vectorPo group = O_VECT(getVectEl(groups, gx));
     showGroup(group, gx);
   }
-  flushOut();
 }

@@ -30,6 +30,7 @@ uint32 lookupEscape(char *name);
 
 escapePo getEscape(uint32 escNo);
 char *escapeName(escapePo esc);
+integer escapeArity(escapePo esc);
 
 extern ReturnStatus rtnStatus(heapPo h, retCode ret, char *msg);
 

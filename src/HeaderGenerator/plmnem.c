@@ -132,7 +132,6 @@ static integer insSize(OpCode op, opAndSpec A1, opAndSpec A2) {
     case Es:
     case glb:
     case off:
-    case lVl:
     case tPe:
     case cDe:
       sz += 2;
@@ -152,7 +151,6 @@ static integer insSize(OpCode op, opAndSpec A1, opAndSpec A2) {
     case Es:
     case glb:
     case off:
-    case lVl:
     case tPe:
     case cDe:
       sz += 2;
@@ -179,7 +177,6 @@ static char *genArg(ioPo out, char *sep, opAndSpec A, char *var) {
     case lcs:
     case off:
     case cDe:
-    case lVl:
       outMsg(out, "%s%s", sep, var);
       return ",";
     default:
@@ -214,8 +211,15 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
     case nOp:                             // No operand
     case tOs:
       switch (A2) {
-        case i32:{
+        case i32: {
           outMsg(out, ",W|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
+          break;
+        }
+        case off:{
+          outMsg(out, ",Off|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
+          outMsg(out, "      findLbl(W,Lbls,Tgt),\n");
+          outMsg(out, "      pcGap(Pc1,Tgt,Off),\n");
           outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
           break;
         }
@@ -250,13 +254,6 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
           outMsg(out, ",LtNo,Off|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
           outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
           outMsg(out, "      findLbl(W,Lbls,Tgt),\n");
-          outMsg(out, "      pcGap(Pc1,Tgt,Off),\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
-          break;
-        case lVl:
-          outMsg(out, ",LtNo,Off|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
-          outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
-          outMsg(out, "      findLevel(W,Ends,Tgt),\n");
           outMsg(out, "      pcGap(Pc1,Tgt,Off),\n");
           outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
           break;
@@ -319,25 +316,21 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
         case lcl:
         case lcs:
         case glb:
-          outMsg(out, ",V,W|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
+          outMsg(out, ",Cd,W|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
+          outMsg(out, "      isEscape(V,Cd),!,\n");
           outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
           break;
         case off:
-          outMsg(out, ",V,Off|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
+          outMsg(out, ",Cd,Off|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
           outMsg(out, "      findLbl(W,Lbls,Tgt),\n");
           outMsg(out, "      pcGap(Pc1,Tgt,Off),\n");
+          outMsg(out, "      isEscape(V,Cd),!,\n");
           outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
           break;
         default:
           check(False, "Cannot generate instruction");
           exit(1);
       }
-      break;
-    case lVl:
-      outMsg(out, ",Off|M],Cdx) :- Pc1 is Pc+3,\n");
-      outMsg(out, "      findLevel(V,Ends,Tgt),\n");
-      outMsg(out, "      pcGap(Pc1,Tgt,Off),\n");
-      outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
       break;
     case off:                            // program counter relative offset
       outMsg(out, ",Off|M],Cdx) :- Pc1 is Pc+3,\n");
@@ -380,7 +373,6 @@ void prologPc(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cm
     case glb:
     case Es:
     case off:
-    case lVl:
       switch (A2) {
         case nOp:
         case tOs:
@@ -392,8 +384,7 @@ void prologPc(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cm
         case glb:
         case Es:
         case off:
-        case tPe:
-        case lVl: {
+        case tPe: {
           char *sep = genArg(out, "(", A1, "_A");
           sep = genArg(out, sep, A2, "_B");
           if (strcmp(sep, ",") == 0)
@@ -431,8 +422,7 @@ void prologPc(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cm
         case glb:
         case Es:
         case off:
-        case tPe:
-        case lVl: {
+        case tPe: {
           char *sep = genArg(out, "(", A1, "A");
           sep = genArg(out, sep, A2, "_");
           if (strcmp(sep, ",") == 0)
@@ -497,13 +487,12 @@ static void showOperand(ioPo out, opAndSpec A, char *vn, char *Vtxt, OpRes *resI
     case i32:
     case art:
     case arg:
-    case lVl:
       outMsg(out, "  %s=ix(%s),\n", Vtxt, vn);
       outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
       resIn->pcV++;
       break;
     case Es:
-      outMsg(out,"  %s=ss(%s),!,\n",Vtxt,vn);;
+      outMsg(out, "  %s=ss(%s),!,\n", Vtxt, vn);
       outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
       resIn->pcV++;
       break;

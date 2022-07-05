@@ -14,7 +14,7 @@ typedef struct {
   logical read;      //  Has this cell been read?
 } Var, *varPo;
 
-typedef struct _segment_ {
+typedef struct segment_ {
   integer segNo;                    // Segment number
   integer arity;                    //  Arity of the code segment
   varPo args;
@@ -28,9 +28,10 @@ typedef struct _segment_ {
   integer entryPoints;              //  how many unchecked entry points are there here?
   vectorPo entries;                 //  Which other segments enter this segment?
   vectorPo exits;                   //  What other segments does this segment reference?
+  segPo fallThru;                   // Which segment does this segment fall through to
 } SegObjRecord;
 
-typedef struct _code_segment_ {
+typedef struct code_segment_ {
   ObjectRec object;                     /* object level of the code segment structure */
   SegObjRecord seg;
 } SegmentRecord;
@@ -38,7 +39,7 @@ typedef struct _code_segment_ {
 typedef struct {
 } SegmentClassPart;
 
-typedef struct _segment_class_ {
+typedef struct segment_class_ {
   ObjectClassRec objectPart;
   SegmentClassPart segPart;
 } SegmentClassRec;

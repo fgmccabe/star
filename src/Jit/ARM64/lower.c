@@ -229,6 +229,9 @@ retCode jit_Ret(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
+retCode jit_RetX(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
 retCode jit_RtG(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }

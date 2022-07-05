@@ -4,8 +4,8 @@ test.do2{
 
   -- Test action notation
 
-  doFirst:all e ~~ ()=>result[e,()].
-  doFirst() => do{
+  doFirst:()=>().
+  doFirst() => valof{
     A .= ref 1;
 
     A := A!+A!;
@@ -15,8 +15,8 @@ test.do2{
   }
 
   
-  doIf:all e ~~ (integer)=>result[e,boolean].
-  doIf(X) => do{
+  doIf:(integer)=>boolean.
+  doIf(X) => valof{
     Alpha .= 3;
 
     if Alpha < X then{
@@ -26,8 +26,8 @@ test.do2{
     }
   }
 
-  doIf2:all e ~~ (integer)=>result[e,boolean].
-  doIf2(X) => do{
+  doIf2:(integer)=>boolean.
+  doIf2(X) => valof{
     Alpha .= ref .true;
 
     if 2 < X then{
@@ -38,8 +38,8 @@ test.do2{
     valis Alpha!
   }
 
-  doIf3:all e ~~ (integer)=>result[e,boolean].
-  doIf3(X) => do{
+  doIf3:(integer)=>boolean.
+  doIf3(X) => valof{
     Alpha .= ref .false;
 
     if 2 < X then{
@@ -52,10 +52,10 @@ test.do2{
   main:()=>()
   main() => valof{
     try{
-      do doFirst();
-      assert valof doIf(4);
-      assert valof doIf2(4);
-      assert valof doIf3(4)
+      doFirst();
+      assert doIf(4);
+      assert doIf2(4);
+      assert doIf3(4)
     } catch {
       _ => {}
     };

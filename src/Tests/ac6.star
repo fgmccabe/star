@@ -2,7 +2,6 @@ test.ac6{
   import star.
   import star.redblack.
   import star.script.
-
   -- test large stacks
 
   rbiota:(integer,integer)=>rbtree[integer,integer].
@@ -46,6 +45,7 @@ test.ac6{
       El .= (rb_list!)[i];
 --      logMsg(" element: $(i) .= $(El)")
     };
+
     timer_finish(timer!);
 
     if Count =< 100000 then {
@@ -55,6 +55,7 @@ test.ac6{
       };
       timer_finish(timer!)
     };
+
     valis ()
   }
 

@@ -3,65 +3,65 @@ test.dd{
   import test.fact.
   import star.script.
 
-  ff:(integer)=>result[(),integer].
-  ff(X) => _valis(fact(X)).
+  ff:(integer)=>integer.
+  ff(X) => fact(X).
 
-  fc:(integer)=> result[(),()].
-  fc(X) => do{
+  fc:(integer)=> ().
+  fc(X) => valof{
     show fact(X);
     valis ()
   }
 
-  AA : result[(),integer].
-  AA = do{
+  AA : integer.
+  AA = valof{
     valis 34.
   }.
 
-  XX : result[(),integer].
-  XX = do{
-    A .= valof ff(4);
-    B .= valof ff(3);
+  XX : integer.
+  XX = valof{
+    A .= ff(4);
+    B .= ff(3);
     valis A*B.
   }
 
-  YY : result[(),integer].
-  YY = do{
-    perform fc(4);
-    valis valof ff(5)
+  YY : integer.
+  YY = valof{
+    fc(4);
+    valis ff(5)
   }
 
-  ZZ : result[(),integer].
-  ZZ = do {
+  ZZ : integer.
+  ZZ = valof {
     try {
-      A <- ff(6);
-      B <- ff(7);
-      raise ()
+      A .= ff(6);
+      B .= ff(7);
+      throw ()
     } catch {
       _ => valis 10
     }
   }
 
-  UU : (integer)=>result[(),integer].
-  UU = (U)=> do{
-    if valof ZZ == U then
+  UU : (integer)=>integer.
+  UU = (U)=> valof{
+    if ZZ == U then
       valis 1
     else
-      valis valof YY
+      valis YY
   }
 
   -- Test different error types across try-catch
-  VV : result[(),integer].
-  VV = do {
+  VV : integer.
+  VV = valof {
     R .= fact(10);
     try{
-      do fc(10);
+      fc(10);
       
       try {
-        raise "fred"
+        throw "fred"
       } catch {
 	(F) => {
 	  logMsg("we got exception $(F)");
-	  raise ()
+	  throw ()
 	}
       }
     } catch {
@@ -75,17 +75,17 @@ test.dd{
   main:()=>().
   main()=>valof{
     try{
-      show valof AA;
-      show valof XX;
-      show valof YY;
+      show AA;
+      show XX;
+      show YY;
 
-      assert valof ZZ == 10;
+      assert ZZ == 10;
       
-      show valof UU(10);
-      show valof UU(9);
+      show UU(10);
+      show UU(9);
 
-      show valof VV;
-      assert valof VV == 3628800
+      show VV;
+      assert VV == 3628800
     } catch {
       _ => logMsg("Huh")
     };

@@ -11,6 +11,7 @@
   ("^?" ( (infix 800 800 799)))
   ("~=" ( (infix 899 900 899)))
   ("~>" ( (infix 1230 1231 1230)))
+  ("throw" ( (prefix 930 929)))
   (".|." ( (infix 720 720 719)))
   ("do" ( (prefix 200 199) (infix 1199 1200 1199)))
   ("import" ( (prefix 900 899)))
@@ -116,7 +117,7 @@
   ("::=" ( (infix 1249 1250 1249)))
   ("/\\" ( (infix 700 700 699)))
   (">=" ( (infix 899 900 899)))
-  ("throws" ( (infix 948 949 948)))
+  ("throws" ( (infix 999 1000 999)))
   (">>" ( (infix 949 950 950)))
 )
   "Table of standard star operators"
@@ -139,6 +140,7 @@
 (defconst star-keywords
   '("retire"
 "all"
+"throw"
 "do"
 "import"
 "catch"

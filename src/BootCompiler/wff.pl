@@ -1,6 +1,5 @@
 :-module(wff,[isAnnotation/4,isQuote/3,
 	      isAlgebraicTypeStmt/6,mkAlgebraicTypeStmt/6,
-	      isConstructor/3,
 	      isConstructorType/6,constructorType/6,
 	      isRoundCon/6,isBraceCon/6,
 	      isQuantified/3,isXQuantified/3,reUQuant/3,reXQuant/3,
@@ -36,7 +35,7 @@
 	      isOptionMatch/4,optionMatch/4,
 	      isConjunct/4,conjunct/4,isDisjunct/4,disjunct/4,
 	      isForall/4,mkForall/4,isNegation/3,negation/3,
-	      isMatch/4,match/4,isSearch/4,search/4,isBind/4,mkBind/4,
+	      isMatch/4,match/4,isSearch/4,search/4,
 	      isMapLiteral/3,mkMapLiteral/3,
 	      isComprehension/4,mkComprehension/4,
 	      isIotaComprehension/4,
@@ -45,12 +44,11 @@
 	      isSuspend/4,isSuspend/5,isResume/5,isRetire/3,isRetire/4,
 	      mkSuspend/4,mkSuspend/5,mkResume/5,mkRetire/3,mkRetire/4,
 	      isTaskTerm/3,mkTaskTerm/3,isTask/3,mkTask/3,
-	      isResultTerm/3,mkResultTerm/3,
 	      isDoTerm/3,mkDoTerm/3,isDo/3,mkDo/3,
-	      isValof/3,mkValof/3,isPerform/3,mkPerform/3,isIgnore/3,mkIgnore/3,
-	      isRaise/3,mkRaise/3,isValis/3,mkValis/3,isThrows/4,mkThrows/4,
+	      isValof/3,mkValof/3,isValis/3,mkValis/3,
 	      isTryCatch/4,mkTryCatch/4,
-	      isTryHandle/4,mkTryHandle/4,
+	      isThrow/3,mkThrow/3,isThrow/4,mkThrow/4,
+	      isThrows/4,mkThrows/4,
 	      isIfThenElse/5,isIfThen/4,mkIfThenElse/5,mkIfThen/4,
 	      isWhileDo/4,isUntilDo/4,isForDo/4,isForDo/5,
 	      mkWhileDo/4,mkUntilDo/4,mkForDo/5,
@@ -128,31 +126,29 @@ mkAlgebraicTypeStmt(Lc,Q,Cx,Head,Body,S) :-
   reUQuant(Q,H0,H1),
   binary(Lc,"::=",H1,Body,S).
 
-isConstructor(C,Lc,Nm) :-
-  isQuantified(C,_,I),
-  isConstructor(I,Lc,Nm).
-isConstructor(C,Lc,Nm) :-
-  isXQuantified(C,_,I),
-  isConstructor(I,Lc,Nm).
-isConstructor(C,Lc,Nm) :-
-  isIden(C,Lc,Nm).
-isConstructor(C,Lc,Nm) :-
+isConstructor(C,Lc,C,[]) :-
+  isIden(C,Lc,_).
+isConstructor(C,Lc,E,[]) :-
   isEnum(C,Lc,E),
-  isIden(E,_,Nm).
-isConstructor(C,Lc,Nm) :-
-  isRound(C,Lc,Nm,_).
-isConstructor(C,Lc,Nm) :-
-  isBrace(C,Lc,Nm,_).
+  isIden(E,_,_).
+isConstructor(C,Lc,N,Args) :-
+  isRound(C,Lc,N,Args),
+  isIden(N,_).
+isConstructor(C,Lc,Op,Args) :-
+  isEnum(C,Lc,I),
+  isRound(I,_,Op,Args),
+  isIden(Op,_,_).
 
 isRoundCon(C,XQ,XC,Lc,Nm,Els) :-
-  isCon(C,abstract:isRoundTerm,XQ,XC,Lc,Nm,Els).
+  isCon(C,wff:isConstructor,XQ,XC,Lc,N,Els),
+  isIden(N,_,Nm).
 
 isBraceCon(C,XQ,XC,Lc,Nm,Els) :-
-  isCon(C,abstract:isBraceTerm,XQ,XC,Lc,Nm,Els).
+  isCon(C,abstract:isBraceTerm,XQ,XC,Lc,N,Els),
+  isIden(N,_,Nm).
 
 isCon(C,Tst,[],[],Lc,Nm,Els) :-
-  call(Tst,C,Lc,N,Els),
-  isIden(N,Nm).
+  call(Tst,C,Lc,Nm,Els).
 isCon(C,Tst,XQ,XC,Lc,Nm,Els) :-
   isXQuantified(C,XQ,I),
   isCon(I,Tst,_,XC,Lc,Nm,Els).
@@ -623,12 +619,6 @@ isMatch(Trm,Lc,P,E) :-
 match(Lc,L,R,T) :-
   binary(Lc,".=",L,R,T).
 
-isBind(Trm,Lc,L,R) :-
-  isBinary(Trm,Lc,"<-",L,R).
-
-mkBind(Lc,L,R,Trm) :-
-  binary(Lc,"<-",L,R,Trm).
-
 isSearch(Trm,Lc,Ptn,Gen) :-
   isBinary(Trm,Lc,"in",Ptn,Gen).
 
@@ -758,12 +748,6 @@ packageVersion(T,Pkg) :- isBinary(T,_,".",L,R),
   string_concat(LP,".",I),
   string_concat(I,RP,Pkg).
 
-isResultTerm(A,Lc,Stmts) :-
-  isBrace(A,Lc,"result",[Stmts]).
-
-mkResultTerm(Lc,S,T) :-
-  braceTerm(Lc,name(Lc,"result"),[S],T).
-
 isTaskTerm(A,Lc,Stmts) :-
   isBraceTerm(A,Lc,name(_,"task"),[Stmts]),!.
 
@@ -803,29 +787,23 @@ isValof(A,Lc,E) :-
 mkValof(Lc,A,E) :-
   unary(Lc,"valof",A,E).
 
-isPerform(A,Lc,E) :-
-  isUnary(A,Lc,"perform",E).
+isThrow(A,Lc,E) :-
+  isUnary(A,Lc,"throw",E).
 
-mkPerform(Lc,A,E) :-
-  unary(Lc,"perform",A,E).
+isThrow(A,Lc,C,E) :-
+  isBinary(A,Lc,"throw",C,E).
 
-isIgnore(A,Lc,E) :-
-  isUnary(A,Lc,"ignore",E).
+mkThrow(Lc,A,E) :-
+  unary(Lc,"throw",A,E).
 
-mkIgnore(Lc,A,E) :-
-  unary(Lc,"ignore",A,E).
+mkThrow(Lc,C,A,E) :-
+  binary(Lc,"throw",C,A,E).
 
-isRaise(A,Lc,E) :-
-  isUnary(A,Lc,"raise",E).
+isThrows(A,Lc,E,T) :-
+  isBinary(A,Lc,"throws",E,T).
 
-mkRaise(Lc,A,E) :-
-  unary(Lc,"raise",A,E).
-
-isThrows(A,Lc,V,E) :-
-  isBinary(A,Lc,"throws",V,E).
-
-mkThrows(Lc,V,E,T) :-
-  binary(Lc,"throws",V,E,T).
+mkThrows(Lc,E,T,A) :-
+  binary(Lc,"throws",E,T,A).
 
 isTryCatch(A,Lc,B,Hs) :-
   isUnary(A,Lc,"try",I),
@@ -837,13 +815,6 @@ mkTryCatch(Lc,B,H,A) :-
   binary(Lc,"catch",B,Hs,A0),
   unary(Lc,"try",A0,A).
 
-isTryHandle(A,Lc,B,H) :-
-  isUnary(A,Lc,"try",I),
-  isBinary(I,_,"handle",B,H).
-
-mkTryHandle(Lc,B,H,A) :-
-  binary(Lc,"handle",B,H,A0),
-  unary(Lc,"try",A0,A).
 
 isIfThenElse(A,Lc,Ts,Th,El) :-
   isBinary(A,Lc,"else",Lhs,El),!,

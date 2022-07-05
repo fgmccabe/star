@@ -16,14 +16,14 @@ test.cnb{
   }
 
   public factF:(integer)=>integer.
-  factF(N) => (try valof factFF(1,N,1) catch { _ => -1}).
+  factF(N) => (try factFF(1,N,1) catch { _ => -1}).
 
-  factFF:(integer,integer,integer)=>result[(),integer].
-  factFF(F,T,S) => do{
+  factFF:(integer,integer,integer)=>integer throws ().
+  factFF(F,T,S) => valof{
     if F>T then
       valis S
     else
-    valis valof factFF(F+1,T,S*F)
+    valis factFF(F+1,T,S*F)
   }
   
   main:()=>().

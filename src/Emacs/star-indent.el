@@ -146,9 +146,8 @@
   ;; Name Align Hanging Delta
   (let ((l 
 	 '((";"      nil     0)
-	   ("try"    t       star-arrow-indent)
+	   ("try"    t       0)
 	   ("catch"  nil     0)
-	   ("handle"  nil     0)
 	   ("then"   nil     star-query-indent)
 	   ("else"   nil     0)
 	   (":="     nil     star-arrow-indent)

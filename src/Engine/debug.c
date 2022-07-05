@@ -21,6 +21,7 @@ static void showTail(ioPo out, taskPo stk, termPo call);
 static void showOCall(ioPo out, taskPo stk, termPo call);
 static void showOTail(ioPo out, taskPo stk, termPo call);
 static void showRet(ioPo out, taskPo stk, termPo val);
+static void showRetX(ioPo out, taskPo stk, termPo val);
 static void showAssign(ioPo out, taskPo stk, termPo vl);
 static void showResume(ioPo out, taskPo stk, termPo cont);
 static void showTResume(ioPo out, taskPo stk, termPo cont);
@@ -134,6 +135,7 @@ static logical shouldWeStop(processPo p, termPo arg) {
         return True;
       case Nop:
       case Ret:
+      case RetX:
       case RtG: {
         switch (p->waitFor) {
           case stepOver:
@@ -308,6 +310,7 @@ static DebugWaitFor dbgOver(char *line, processPo p, termPo loc, void *cl) {
 
   switch (*p->stk->fp->pc) {
     case Ret:
+    case RetX:
     case RtG: {
       p->waterMark = p->stk->fp->fp;
       break;
@@ -352,6 +355,7 @@ static DebugWaitFor dbgUntilRet(char *line, processPo p, termPo loc, void *cl) {
 
   switch (*p->stk->fp->pc) {
     case Ret:
+    case RetX:
     case RtG: {
       p->waterMark = p->stk->fp->fp;
       break;
@@ -581,11 +585,11 @@ static DebugWaitFor dbgShowCode(char *line, processPo p, termPo loc, void *cl) {
   return moreDebug;
 }
 
-void showMethodCode(ioPo out, char *name, methodPo mtd) {
+void showMethodCode(ioPo out, char *msg, char *name, methodPo mtd) {
   insPo pc = entryPoint(mtd);
   insPo last = entryPoint(mtd) + insCount(mtd);
 
-  outMsg(out, "code for %s\n", name);
+  outMsg(out, msg, name);
 
   while (pc < last) {
     pc = disass(out, NULL, mtd, pc);
@@ -703,6 +707,7 @@ static logical shouldWeStopIns(processPo p) {
 
     switch (*f->pc) {
       case Ret:
+      case RetX:
       case RtG: {
         switch (p->waitFor) {
           case stepOver:
@@ -917,6 +922,19 @@ void showRet(ioPo out, taskPo stk, termPo val) {
     outMsg(out, "return: %T->%#,*T", f->prog, displayDepth, val);
 }
 
+void showRetX(ioPo out, taskPo stk, termPo val) {
+  framePo f = currFrame(stk);
+  termPo locn = findPcLocation(f->prog, insOffset(f->prog, f->pc));
+
+  if (locn != Null) {
+    if (showColors)
+      outMsg(out, RED_ESC_ON"exception return:"RED_ESC_OFF" %#L %T->%#,*T", locn, f->prog, displayDepth, val);
+    else
+      outMsg(out, "exception return: %#L %T->%#,*T", locn, f->prog, displayDepth, val);
+  } else
+    outMsg(out, "exception return: %T->%#,*T", f->prog, displayDepth, val);
+}
+
 static void showAbort(ioPo out, taskPo stk, termPo reason) {
   framePo f = currFrame(stk);
   termPo loc = findPcLocation(f->prog, insOffset(f->prog, f->pc));
@@ -1025,6 +1043,9 @@ DebugWaitFor enterDebug(processPo p) {
     case RtG: {
       return lnDebug(p, topStack(stk), showRet);
     }
+    case RetX:
+      return lnDebug(p, topStack(stk), showRetX);
+
     case Assign:
       return lnDebug(p, Null, showAssign);
     case Suspend: {

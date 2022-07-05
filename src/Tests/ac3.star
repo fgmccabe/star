@@ -9,7 +9,7 @@ test.ac3{
     try{
       _logmsg("p1");
       if X>5 then
-	raise 10
+	throw 10
       else
       valis 3*X
     } catch {

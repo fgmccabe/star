@@ -380,7 +380,7 @@ retCode decodeIns(ioPo in, wordBufferPo bfr, integer *ix, integer *si, char *err
     switch (op) {
 #define sznOp
 #define sztOs
-#define szart return writeIntOperand(in,bfr,ix);
+#define szart if(ret==Ok){ret =  writeIntOperand(in,bfr,ix);}
 #define szi32 if(ret==Ok){ret = writeIntOperand(in,bfr,ix);}
 #define szlBs if(ret==Ok){ret = writeBlocks(in,bfr,ix,si,errorMsg,msgSize);}
 #define szarg if(ret==Ok){ret = writeIntOperand(in,bfr,ix); }

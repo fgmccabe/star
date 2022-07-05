@@ -28,7 +28,7 @@ star.iterable{
 	try{
 	  suspend _yld(E) in {
 	    ._next => {}.
-	    ._cancel => raise ()
+	    ._cancel => throw ()
 	  }
 	} catch {
 	  _ => retire ._all
