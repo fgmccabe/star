@@ -20,7 +20,7 @@ freeVars(floatLit(_,_),_,_,F,F).
 freeVars(charLit(_,_),_,_,F,F).
 freeVars(stringLit(_,_),_,_,F,F).
 freeVars(tple(_,Els),Ex,Q,F,FV) :- freeVarsList(Els,Ex,Q,F,FV).
-freeVars(apply(_,Op,A,_),Ex,Q,F,FV) :- freeVars(Op,Ex,Q,F,F0), freeVars(A,Ex,Q,F0,FV).
+freeVars(apply(_,Op,A,_,_),Ex,Q,F,FV) :- freeVars(Op,Ex,Q,F,F0), freeVars(A,Ex,Q,F0,FV).
 freeVars(dot(_,Rc,_,_),Ex,Q,F,FV) :- freeVars(Rc,Ex,Q,F,FV).
 freeVars(open(_,E,_),Ex,Q,F,Fv) :- freeVars(E,Ex,Q,F,Fv).
 freeVars(cell(_,Cll),Ex,Q,F,FV) :- freeVars(Cll,Ex,Q,F,FV).
@@ -61,9 +61,9 @@ freeVars(case(_,Gov,Cses,_),Ex,Q,F,Fv) :-
   freeVars(Gov,Ex,Q,F,F0),
   freeVarsInRules(Cses,Ex,Q,freevars:freeVars,F0,Fv).
 freeVars(valof(_,A,_),Ex,Q,F,Fv) :-!,
-  freeVars(A,Ex,Q,F,Fv).
-freeVars(doExp(_,A,_),Ex,Q,F,Fv) :-!,
   freeVarsInAction(A,Ex,Q,F,Fv).
+freeVars(throw(_,A,_),Ex,Q,F,Fv) :-!,
+  freeVars(A,Ex,Q,F,Fv).
 freeVars(tryCatch(_,B,H),Ex,Q,F,Fv) :-!,
   freeVars(B,Ex,Q,F,F0),
   freeVarsInRules(H,Ex,Q,freevars:freeVars,F0,Fv).
@@ -80,20 +80,10 @@ freeVarsInAction(doNop(_),Ex,Ex,_,F,F) :-!.
 freeVarsInAction(doSeq(_,L,R),E,Ex,Q,F,Fv) :-!,
   freeVarsInAction(L,E,E0,Q,F,F0),
   freeVarsInAction(R,E0,Ex,Q,F0,Fv).
-freeVarsInAction(doIgnore(_,E),Ex,Ex,Q,F,Fv) :-!,
-  freeVars(E,Ex,Q,F,Fv).
 freeVarsInAction(doValis(_,E),Ex,Ex,Q,F,Fv) :-!,
   freeVars(E,Ex,Q,F,Fv).
-freeVarsInAction(doRaise(_,E),Ex,Ex,Q,F,Fv) :-!,
+freeVarsInAction(doThrow(_,E),Ex,Ex,Q,F,Fv) :-!,
   freeVars(E,Ex,Q,F,Fv).
-freeVarsInAction(doPerform(_,E),Ex,Ex,Q,F,Fv) :-!,
-  freeVars(E,Ex,Q,F,Fv).
-freeVarsInAction(doIgnore(_,E),Ex,Ex,Q,F,Fv) :-!,
-  freeVars(E,Ex,Q,F,Fv).
-freeVarsInAction(doBind(_,P,E),Ex,Ex1,Q,F,Fv) :-!,
-  ptnVars(P,Ex,Ex1),
-  freeVars(P,Ex1,Q,F,F0),
-  freeVars(E,Ex,Q,F0,Fv).
 freeVarsInAction(doMatch(_,P,E),Ex,Ex1,Q,F,Fv) :-!,
   ptnVars(P,Ex,Ex1),
   freeVars(P,Ex1,Q,F,F0),
@@ -148,6 +138,8 @@ freeVarsInAction(doResume(_,T,E,Cs),Ex,Ex,Q,F,Fv) :-!,
 freeVarsInAction(doRetire(_,T,E),Ex,Ex,Q,F,Fv) :-!,
   freeVars(T,Ex,Q,F,F0),
   freeVars(E,Ex,Q,F0,Fv).
+freeVarsInAction(doCall(_,C,_),Ex,Ex,Q,F,Fv) :-!,
+  freeVars(C,Ex,Q,F,Fv).
 freeVarsInAction(A,Ex,Ex,_,F,F) :-
   locOfCanon(A,Lc),
   reportMsg("cannot find free vars in %s",[can(A)],Lc).
@@ -204,7 +196,7 @@ ptnVars(enm(_,_,_),Q,Q).
 ptnVars(cons(_,_,_),Q,Q).
 ptnVars(where(_,Ptn,C),Q,Qx) :- ptnVars(Ptn,Q,Q0), ptnGoalVars(C,Q0,Qx).
 ptnVars(tple(_,Els),Q,Qx) :- ptnVarsInList(Els,Q,Qx).
-ptnVars(apply(_,_,Arg,_),Q,Qx) :- ptnVars(Arg,Q,Qx).
+ptnVars(apply(_,_,Arg,_,_),Q,Qx) :- ptnVars(Arg,Q,Qx).
 ptnVars(dot(_,_,_,_),Q,Q).
 
 ptnVarsInList([],Q,Q).

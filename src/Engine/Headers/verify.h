@@ -11,7 +11,7 @@
 #include "labels.h"
 #include "engineOptions.h"
 
-typedef struct _code_segment_ *segPo;
+typedef struct code_segment_ *segPo;
 
 integer segNo(segPo seg);
 

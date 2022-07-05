@@ -1,7 +1,6 @@
 star{
   public import star.core.
 
-  public import star.action.
   public import star.arith.
   public import star.bits.
   public import star.coerce.

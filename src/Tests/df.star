@@ -2,8 +2,8 @@ test.df{
   import star.
   import star.script.
   
-  CX : (cons[integer],integer) => result[(),integer].
-  CX(Is,Lm) => do{
+  CX : (cons[integer],integer) => integer.
+  CX(Is,Lm) => valof{
     Cx .= ref 0;
 
     logMsg("Cx=$(Cx!), Is=$(Is)");
@@ -22,12 +22,11 @@ test.df{
   main:()=>().
   main()=>valof{
     try{
-      show valof CX(IS,2);
+      show CX(IS,2);
 
-      show valof CC;
-      show valof CC;
+      show CC;
 
-      assert valof CC == valof CC;
+      assert CC == CC;
     } catch { _ => logMsg("bad happening")};
     valis ()
   }

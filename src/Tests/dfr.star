@@ -2,8 +2,8 @@ test.dfr{
   import star.
   import star.script.
 
-  CX : (cons[integer],integer) => result[string,integer].
-  CX(Is,Lm) => do{
+  CX : (cons[integer],integer) => integer throws string.
+  CX(Is,Lm) => valof{
     Cx .= ref 0;
 
     try{
@@ -16,7 +16,7 @@ test.dfr{
     } catch{
       (E) => {
 	logMsg(E);
-	raise E
+	throw E
       }
     }
   }
@@ -26,7 +26,7 @@ test.dfr{
   main:()=>().
   main()=>valof{
     try{
-      show valof CX(IS,2);
+      show CX(IS,2);
     } catch {
       _ => logMsg("something went bad")
     };

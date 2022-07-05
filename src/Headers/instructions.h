@@ -19,13 +19,14 @@ instruction(Nop,nOp,nOp,0,"No operation")
 
 instruction(Abort,tOs,nOp,-2,"abort with message")
 
-instruction(Call,sym,nOp,0,"Call <prog>")
-instruction(OCall,art,nOp,0,"OCall")
-instruction(Escape,Es,nOp,1,"call C escape")
+instruction(Call,sym,off,1,"Call <prog>")
+instruction(OCall,art,off,1,"OCall")
+instruction(Escape,Es,off,1,"call C escape")
 instruction(TCall,sym,nOp,0,"TCall <prog>")
 instruction(TOCall,art,nOp,0,"TOCall")
 
 instruction(Ret,tOs,nOp,0,"return")
+instruction(RetX,tOs,nOp,0,"return with exception")
 instruction(RtG,tOs,nOp,0,"return rom global")
 
 instruction(Jmp,off,nOp,0,"jump lbl")
@@ -36,8 +37,8 @@ instruction(Rst, i32, nOp, 0, "reset stack height to a fixed height")
 instruction(Swap,tOs,nOp,0,"swap top two elements on stack")
 
 instruction(Task,tOs,nOp,1,"Create new task")
-instruction(Suspend,tOs,tOs,-2,"suspend task")
-instruction(Resume,tOs,tOs,-2,"resume task")
+instruction(Suspend,tOs,tOs,-1,"suspend task")
+instruction(Resume,tOs,tOs,-1,"resume task")
 instruction(Retire,tOs,tOs,-2,"retire a task")
 instruction(Release,tOs,nOp,-1,"destroy a task")
 instruction(Underflow,nOp,nOp,0,"underflow from current stack")
@@ -51,12 +52,12 @@ instruction(StV,lcs,nOp,0,"clear a local to void")
 instruction(TL,lcs,nOp,0,"copy tos to local[xx]")
 instruction(StA,arg,nOp,-1,"store tos to args[xx]")
 
-instruction(LdG,glb,nOp,1,"load a global variable")
+instruction(LdG,glb,off,1,"load a global variable")
 instruction(StG,glb,nOp,-1,"store into a global variable")
 instruction(TG,glb,nOp,0,"copy into a global variable")
 
 instruction(Thnk,tOs,nOp,0,"create thunk cell")
-instruction(ThGet,tOs,nOp,0,"access a thunk cell")
+instruction(ThGet,tOs,off,0,"access a thunk cell")
 instruction(ThSet,tOs,nOp,-2,"assign to a thunk cell")
 
 instruction(Cell,tOs,nOp,0,"create R/W cell")

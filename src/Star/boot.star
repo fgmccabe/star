@@ -40,27 +40,26 @@ star.boot{
   }
 
   handleCmdLineOpts:(either[string,(bootOptions,cons[string])])=>
-    result[string,(string,cons[string])].
+    (string,cons[string]).
   handleCmdLineOpts(either((bootOptions(RepoDir,Cwd),[Top,..Args]))) where
       CW ^= parseUri(Cwd) &&
       RU ^= parseUri(RepoDir) &&
       RD ^= resolveUri(CW,RU) &&
-      Pkg ^= parsePkgName(Top) => do{
+      Pkg ^= parsePkgName(Top) => valof{
 	Repo .= btRepo(RD);
 	setupPkg(Repo,Pkg);
 	valis (Top,Args)
       }.
   handleCmdLineOpts(other(E)) => bad(E).
 
-  setupPkg:(repository,pkg) => result[string,()].
-  setupPkg(Repo,Pkg) => do{
-    importPkgs([Pkg],[],Repo)
-  }
+  setupPkg:(repository,pkg) => () throws string.
+  setupPkg(Repo,Pkg) => 
+    importPkgs([Pkg],[],Repo).
 
-  importPkgs:(cons[pkg],cons[pkg],repository)=>result[string,()].
-  importPkgs([],Ld,_) => do {valis ()}.
+  importPkgs:(cons[pkg],cons[pkg],repository)=>() throws string.
+  importPkgs([],Ld,_) => ().
   importPkgs([P,..L],Ld,R) where SubImp ^= importPkg(P,R,Ld) => importPkgs(SubImp++L,[P,..Ld],R).
-  importPkgs(_,_,_) default => err("Could not load $(_command_line())").
+  importPkgs(_,_,_) default => throw "Could not load $(_command_line())".
 
   importPkg:(pkg,repository,cons[pkg])=>option[cons[pkg]].
   importPkg(P,_,Ld) where P .<. Ld => some([]).
@@ -69,13 +68,13 @@ star.boot{
     Imps .= _install_pkg(Code) => some(Imps//(((Pk,V))=>pkg(Pk,V::version))).
   importPkg(_,_,_) default => .none.
 
-  invokeMain:(string,cons[string]) => result[string,()].
-  invokeMain(Top,Args) => do {
+  invokeMain:(string,cons[string]) => () throws string.
+  invokeMain(Top,Args) => valof {
     Pred .= Top++"#_main";
     if _definedLbl(Pred,1) then {
       valis _callLbl(Pred,1,[Args])
     }
     else
-    raise "No _main program: $(Top)".
+    throw "No _main program: $(Top)".
   }
 }

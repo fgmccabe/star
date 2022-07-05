@@ -4,23 +4,23 @@ test.la{
 
   -- Test let actions
 
-  fooBar(K) => do{
+  fooBar(K) => valof{
     V .= K;
     let{
       VV = V.
 
-      UU(U) => do{
+      UU(U) => valof{
 	logMsg("We UU'd $(U)");
 	valis ()
       }.
-    } in do UU(V);
+    } in UU(V);
     valis 5
   }
 
   main:()=>().
   main()=>valof{
     try{
-      FF .= valof fooBar(6);
+      FF .= fooBar(6);
       assert FF == 5;
     } catch { _ => logMsg("bad happening")};
     valis ()

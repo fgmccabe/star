@@ -8,6 +8,9 @@
 #include <memory.h>
 #include "unistrP.h"
 
+
+char* retCodeNames[MaxRetCode] = {"Ok", "Fail", "Switch", "Interrupt", "Error", "Eof", "Space"};
+
 retCode nxtPoint(const char *src, integer *start, integer end, codePoint *code) {
   integer pos = *start;
 

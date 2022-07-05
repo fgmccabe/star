@@ -275,9 +275,9 @@ collectTermRefs(T,A,R0,Rx) :-
 collectTermRefs(T,A,R0,Rx) :-
   isDoTerm(T,_,Stmts),!,
   collectDoRefs(Stmts,A,R0,Rx).
-collectTermRefs(T,A,R0,Rx) :-
-  isResultTerm(T,_,Stmts),!,
-  collectDoRefs(Stmts,A,R0,Rx).
+collectTermRefs(T,All,Rf,Rfx) :-
+  isThrow(T,_,E),!,
+  collectTermRefs(E,All,Rf,Rfx).
 collectTermRefs(T,A,R0,Rx) :-
   isTaskTerm(T,_,Stmts),!,
   collectDoRefs(Stmts,A,R0,Rx).
@@ -368,10 +368,6 @@ collectDoRefs(T,All,Rf,Rfx) :-
   collectTermRefs(L,All,Rf,Rf0),
   collectTermRefs(R,All,Rf0,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
-  isBind(T,_,L,R),!,
-  collectTermRefs(L,All,Rf,Rf0),
-  collectTermRefs(R,All,Rf0,Rfx).
-collectDoRefs(T,All,Rf,Rfx) :-
   isIfThenElse(T,_,Tt,H,E),!,
   collectTermRefs(Tt,All,Rf,Rf0),
   collectDoRefs(H,All,Rf0,Rf1),
@@ -431,19 +427,10 @@ collectDoRefs(T,A,R,Rx) :-
   collectStmtRefs(S,A,[],R,R0),
   collectDoRefs(B,A,R0,Rx).
 collectDoRefs(T,All,Rf,Rfx) :-
-  isRaise(T,_,E),!,
+  isThrow(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isValis(T,_,E),!,
-  collectTermRefs(E,All,Rf,Rfx).
-collectDoRefs(T,All,Rf,Rfx) :-
-  isPerform(T,_,E),!,
-  collectTermRefs(E,All,Rf,Rfx).
-collectDoRefs(T,All,Rf,Rfx) :-
-  isDo(T,_,E),!,
-  collectTermRefs(E,All,Rf,Rfx).
-collectDoRefs(T,All,Rf,Rfx) :-
-  isIgnore(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isAssignment(T,_,L,R),!,

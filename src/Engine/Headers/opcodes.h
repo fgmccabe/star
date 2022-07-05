@@ -52,8 +52,9 @@ typedef enum {
   lne,          // Constant that is a location
   glb,          // Global variable name
   tPe,          // Type signature
-  cDe,          // Code sequence
-  lVl          // Break level
+  cDe           // Code sequence
 } opAndSpec;                    // Specification code for an operand
+
+#define JMP_SIZE (3)            // A jmp is three 16bit words
 #endif
 

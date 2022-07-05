@@ -5,25 +5,24 @@ test.ac4{
 
   -- test action functions
 
-  f:(integer) => result[string,integer].
-  f(X) => do{
+  f:(integer) => integer throws string.
+  f(X) => valof{
     if X == 1 then{
       valis 1
     } else if X>1 then{
-      XX <- f(X-1);
+      XX .= f(X-1);
       valis XX*X
     } else
-    raise "illegal arg"
+    throw "illegal arg"
   }
 
   main:()=>().
   main() => valof{
-    _ .= _logmsg(disp(f(10)));
     try{
-      F10 <- f(10);
+      F10 .= f(10);
       _ .= _logmsg(disp(F10));
       _ .= _logmsg(disp(f(-10)));
-      F <- f(-10);
+      F .= f(-10);
       _ .= _logmsg(disp(F))
     } catch {
       E => {

@@ -6,8 +6,8 @@ test.do11{
 
   locOf(foo(L,_)) => L.
 
-  multiWhr:(foo)=>result[(),integer].
-  multiWhr(X where foo(_,_).=X) where V .= locOf(X) => do{
+  multiWhr:(foo)=>integer.
+  multiWhr(X where foo(_,_).=X) where V .= locOf(X) => valof{
     logMsg("$(V)");
     valis V
   }
@@ -15,7 +15,7 @@ test.do11{
   main:()=>().
   main()=>valof{
     try{
-      assert valof multiWhr(foo(23,""))==23;
+      assert multiWhr(foo(23,""))==23;
     } catch { _ => logMsg("bad happening")};
       
     valis ()

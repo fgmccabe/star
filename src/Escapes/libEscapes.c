@@ -109,4 +109,8 @@ char *escapeName(escapePo esc) {
   return esc->name;
 }
 
+integer escapeArity(escapePo esc) {
+  return esc->arity;
+}
+
 #endif

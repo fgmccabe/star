@@ -29,6 +29,7 @@
   operator("^?", [infixOp(800, 800, 799)]).
   operator("~=", [infixOp(899, 900, 899)]).
   operator("~>", [infixOp(1230, 1231, 1230)]).
+  operator("throw", [prefixOp(930, 929)]).
   operator(".|.", [infixOp(720, 720, 719)]).
   operator("do", [prefixOp(200, 199), infixOp(1199, 1200, 1199)]).
   operator("import", [prefixOp(900, 899)]).
@@ -134,7 +135,7 @@
   operator("::=", [infixOp(1249, 1250, 1249)]).
   operator("/\\", [infixOp(700, 700, 699)]).
   operator(">=", [infixOp(899, 900, 899)]).
-  operator("throws", [infixOp(948, 949, 948)]).
+  operator("throws", [infixOp(999, 1000, 999)]).
   operator(">>", [infixOp(949, 950, 950)]).
 
   bracket("[||]", "[|", "|]", "", 2000).
@@ -370,6 +371,7 @@
   keyword("^=").
   keyword("&&").
   keyword("~>").
+  keyword("throw").
   keyword("{.").
   keyword("do").
   keyword("import").

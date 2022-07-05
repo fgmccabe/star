@@ -203,10 +203,12 @@ closureEntry(Map,Lc,Name,Tp,Arity,Extra,[ClEntry|L],L) :-
 					%  dispRuleSet(ClEntry).
 
 extendFunTp(Tp,[],Tp):-!.
-extendFunTp(funType(tplType(Els),Rt),Extra,funType(tplType(NEls),Rt)) :-
+extendFunTp(throwsType(Tp,ErTp),Extra,throwsType(ETp,ErTp)) :-!,
+  extendFunTp(Tp,Extra,ETp).
+extendFunTp(funType(tplType(Els),Rt),Extra,funType(tplType(NEls),Rt)) :-!,
   extendTplTp(Extra,Anons),!,
   concat(Anons,Els,NEls).
-extendFunTp(allType(V,T),Extra,allType(V,NT)) :-
+extendFunTp(allType(V,T),Extra,allType(V,NT)) :-!,
   extendFunTp(T,Extra,NT).
 extendFunTp(existType(V,T),Extra,existType(V,NT)) :-
   extendFunTp(T,Extra,NT).
@@ -272,10 +274,10 @@ liftPtn(stringLit(_,Sx),strg(Sx),Q,Q,_,_,Ex,Ex) :-!.
 liftPtn(tple(_,Ptns),PTpl,Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtns(Ptns,Ps,Q,Qx,Map,Opts,Ex,Exx),
   mkTpl(Ps,PTpl).
-liftPtn(apply(Lc,v(_,Nm,_),tple(_,A),_),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
+liftPtn(apply(Lc,v(_,Nm,_),tple(_,A),_,_),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtns(A,Args,Q,Q0,Map,Opts,Ex,Ex0),
   trPtnCallOp(Lc,Nm,Args,Ptn,Q0,Qx,Map,Opts,Ex0,Exx).
-liftPtn(apply(Lc,cons(_,Nm,_),tple(_,A),_),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
+liftPtn(apply(Lc,cons(_,Nm,_),tple(_,A),_,_),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtns(A,Args,Q,Q0,Map,Opts,Ex,Ex0),
   trPtnCallOp(Lc,Nm,Args,Ptn,Q0,Qx,Map,Opts,Ex0,Exx).
 liftPtn(where(Lc,P,C),whr(Lc,LP,LC),Q,Qx,Map,Opts,Ex,Exx) :-
@@ -349,9 +351,9 @@ liftExp(tple(_,A),TApl,Q,Qx,Map,Opts,Ex,Exx) :-!,
   mkTpl(TA,TApl).
 liftExp(open(_,E,_),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(apply(Lc,Op,tple(_,A),_),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
+liftExp(apply(Lc,Op,tple(_,A),_,_ErTp),Call,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
-  trExpCallOp(Lc,Op,LA,Exp,Q1,Qx,Map,Opts,Ex1,Exx).
+  trExpCallOp(Lc,Op,LA,Call,Q1,Qx,Map,Opts,Ex1,Exx).
 liftExp(case(Lc,Bnd,Cses,_),Result,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(Bnd,Bound,Q,Q0,Map,Opts,Ex,Ex0),
   liftCases(Cses,Cases,Q0,Qx,Map,Opts,transform:liftExp,Ex0,Exx),
@@ -365,6 +367,8 @@ liftExp(tryCatch(Lc,B,H),try(Lc,BB,E,HH),Q,Qx,Map,Opts,Ex,Exx) :-
   liftCases(H,Cases,Q0,Qx,Map,Opts,transform:liftExp,Ex0,Exx),
   genVar("_E",E),
   caseMatcher(Lc,E,Cases,Map,HH).
+liftExp(throw(Lc,In),thrw(Lc,CellV),Q,Qx,Map,Opts,Ex,Exx) :- !,
+  liftExp(In,CellV,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(cell(Lc,In),cel(Lc,CellV),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(In,CellV,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(deref(Lc,In),get(Lc,CellV),Q,Qx,Map,Opts,Ex,Exx) :- !,
@@ -390,11 +394,7 @@ liftExp(letRec(Lc,Decls,Defs,Bnd),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftLetRecExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(lambda(Lc,Lbl,Rle,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-!,
   liftLambda(lambda(Lc,Lbl,Rle,Tp),Rslt,Q,Map,Opts,Ex,Exx).
-liftExp(valof(Lc,doExp(_,A,_),_),vlof(Lc,Rslt),Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftAction(A,Rslt,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(valof(_,A,_Tp),Rslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftExp(A,Rslt,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(doExp(Lc,A,_Tp),perf(Lc,Rslt),Q,Qx,Map,Opts,Ex,Exx) :-!,
+liftExp(valof(Lc,A,_),vlof(Lc,Rslt),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftAction(A,Rslt,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(task(Lc,A,_),tsk(Lc,F),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(A,F,Q,Qx,Map,Opts,Ex,Exx).
@@ -407,19 +407,11 @@ liftAction(doNop(Lc),nop(Lc),Q,Q,_,_,Ex,Ex) :-!.
 liftAction(doSeq(Lc,L,R),seq(Lc,LL,RR),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftAction(L,LL,Q,Q0,Map,Opts,Ex,Ex0),
   liftAction(R,RR,Q0,Qx,Map,Opts,Ex0,Exx).
-liftAction(doIgnore(Lc,E),ignre(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
 liftAction(doValis(Lc,E),vls(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
-liftAction(doRaise(Lc,E),rse(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
+liftAction(doThrow(Lc,E),thrw(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
-liftAction(doPerform(Lc,E,R),perf(Lc,EE,RR),Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftExp(E,EE,Q,Q1,Map,Opts,Ex,Ex0),
-  liftExp(R,RR,Q1,Qx,Map,Opts,Ex0,Exx).
 liftAction(doMatch(Lc,P,E),mtch(Lc,PP,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftPtn(P,PP,Q,Q0,Map,Opts,Ex,Ex0),
-  liftExp(E,EE,Q0,Qx,Map,Opts,Ex0,Exx).
-liftAction(doBind(Lc,P,E),bnd(Lc,PP,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftPtn(P,PP,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(E,EE,Q0,Qx,Map,Opts,Ex0,Exx).
 liftAction(doAssign(Lc,P,E),asgn(Lc,PP,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
@@ -462,14 +454,6 @@ liftAction(doCase(Lc,B,Cs,_),Reslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(B,BB,Q,Q0,Map,Opts,Ex,Ex0),
   liftCases(Cs,Cases,Q0,Qx,Map,Opts,transform:liftAction,Ex0,Exx),
   actionCaseMatcher(Lc,BB,Cases,Map,Reslt).
-% liftAction(doCase(Lc,B,Cs,_),Reslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
-%   liftExp(B,BB,Q,Q0,Map,Opts,Ex,Ex0),
-%   liftCases(Cs,Cases,Q0,Qx,Map,Opts,transform:liftAction,Ex0,Exx),
-%   (idnt(_)=BB ->
-%    actionCaseMatcher(Lc,BB,Cases,Map,Reslt) ;
-%    genVar("_C",V),
-%    actionCaseMatcher(Lc,V,Cases,Map,Res),
-%    Reslt = ltt(Lc,V,BB,Res)).
 liftAction(doSuspend(Lc,T,E,Cs),Reslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(T,TT,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(E,EE,Q0,Q1,Map,Opts,Ex0,Ex1),
@@ -492,6 +476,8 @@ liftAction(doTryCatch(Lc,B,H),try(Lc,BB,E,HH),Q,Qx,Map,Opts,Ex,Exx) :-
   liftCases(H,Cases,Q0,Qx,Map,Opts,transform:liftAction,Ex0,Exx),
   genVar("_E",E),
   actionCaseMatcher(Lc,E,Cases,Map,HH).
+liftAction(doCall(Lc,E,_ErTp),perf(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
   
 liftAction(XX,nop(Lc),Q,Q,_,_,Ex,Ex) :-!,
   locOfCanon(XX,Lc),

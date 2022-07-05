@@ -4,12 +4,12 @@ test.tr{
   import star.
   import star.script.
 
-  isOdd:(integer) => result[string,boolean].
-  isOdd(X) => (X%2==0 ? bad("not odd") || ok(.true)).
+  isOdd:(integer) => boolean throws string.
+  isOdd(X) => (X%2==0 ? (throw "not odd") || .true).
 
   checkMe:(integer) => boolean.
   checkMe(X) => (try
-    valof isOdd(X)
+    isOdd(X)
     catch {
       _ => .false
     }).

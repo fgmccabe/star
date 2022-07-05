@@ -147,7 +147,6 @@ static char *genArg(ioPo out, char *sep, opAndSpec A, char *V) {
     case lcs:
     case cDe:
     case tPe:
-    case lVl:
       outMsg(out, "%s%s", sep, V);
       return ",";
     case off:
@@ -228,11 +227,6 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
                  "where (Lt1,LtNo) .= findLit(Lts,U) && Tgt ^= Lbls[V] => mnem(Ins,Code++[intgr(%d),intgr(LtNo),intgr(Tgt-Pc-5)],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
                  op);
           return;
-        case lVl:
-          outMsg(out,
-                 "where (Lt1,LtNo) .= findLit(Lts,U) => mnem(Ins,Code++[intgr(%d),intgr(findEnd(Ends,V)-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
-                 op);
-          return;
         case cDe:
           outMsg(out,
                  "where (Lt1,LtNo) .= findLit(Lts,U) && (BlkCde,Lt2,Lns1,Lcs1,Pc1,Lc1) .= mnem(V,[],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl) => mnem(Ins,Code++[intgr(%d),intgr(LtNo),intgr(Pc1-Pc-5),..BlkCde],Lbls,Lt2,Lns1,Lcs1,Pc1,Lc1,Ends).\n",
@@ -252,11 +246,6 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
         case off:
           outMsg(out,
                  "where (Lt1,LtNo) .= findLit(Lts,strg(U::string)) && Tgt ^= Lbls[V] => mnem(Ins,Code++[intgr(%d),intgr(LtNo),intgr(Tgt-Pc-5)],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
-                 op);
-          return;
-        case lVl:
-          outMsg(out,
-                 "where (Lt1,LtNo) .= findLit(Lts,strg(U::string)) => mnem(Ins,Code++[intgr(%d),intgr(findEnd(Ends,V)-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
                  op);
           return;
         case cDe:
@@ -282,12 +271,6 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
                  "%s && Tgt ^= Lbls[V] => mnem(Ins,Code++[intgr(%d),intgr(LtNo),intgr(Tgt-Pc-5)],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
                  cond, op);
           return;
-        case lVl:
-          outMsg(out,
-                 "%s => mnem(Ins,Code++[intgr(%d),intgr(findEnd(Ends,V)-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
-                 cond,
-                 op);
-          return;
         default:
           check(False, "Cannot generate instruction code");
       }
@@ -300,27 +283,49 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
         case tOs:
           outMsg(out, "=> mnem(Ins,Code++[intgr(%d),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", op);
           return;
+        case off:
+          outMsg(out,
+                 " => mnem(Ins,Code++[intgr(%d),intgr(U),intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n", op);
+          return;
         default:
           check(False, "Cannot generate instruction code");
       }
-    case lVl:
-      check(B == nOp, "second operand not nOp");
-      outMsg(out, "=> mnem(Ins,Code++[intgr(%d),intgr(findEnd(Ends,U)-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n",
-             op);
-      return;
     case lcl:
     case lcs:
       check(B == nOp, "second operand not nOp");
       outMsg(out, "=> mnem(Ins,Code++[intgr(%d),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,max(U,MxLcl),Ends).\n", op);
       return;
     case glb:
-      check(B == nOp, "second operand not nOp");
-      outMsg(out, "=> mnem(Ins,Code++[intgr(%d),strg(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", op);
+      switch (B) {
+        case nOp:
+        case tOs:
+          outMsg(out, "=> mnem(Ins,Code++[intgr(%d),strg(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", op);
+          return;
+        case off:
+          outMsg(out, "=> mnem(Ins,Code++[intgr(%d),strg(U),intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n", op);
+          return;
+        default:
+          check(False, "Cannot generate instruction code");
+      }
+
+    case Es: {                              // escape code (0..65535)
+      char *cond = "where Cd^=isEscape(U)";
+
+      switch (B) {
+        case nOp:
+        case tOs:
+          outMsg(out, "%s => mnem(Ins,Code++[intgr(%d),intgr(Cd)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", cond, op);
+          break;
+        case off:
+          outMsg(out,
+                 "%s => mnem(Ins,Code++[intgr(%d),intgr(Cd),intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
+                 cond, op);
+          return;
+        default:
+          check(False, "Cannot generate instruction code");
+      }
       break;
-    case Es:                              // escape code (0..65535)
-      check(B == nOp, "second operand not nOp");
-      outMsg(out, " where Cd^=isEscape(U) => mnem(Ins,Code++[intgr(%d),intgr(Cd)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", op);
-      break;
+    }
     case off:                            // program counter relative offset
       check(B == nOp, "second operand not nOp");
       outMsg(out,
@@ -351,7 +356,6 @@ static integer insSize(OpCode op, opAndSpec A1, opAndSpec A2) {
     case glb:
     case off:
     case cDe:
-    case lVl:
       sz += 2;
       break;
   }
@@ -371,7 +375,6 @@ static integer insSize(OpCode op, opAndSpec A1, opAndSpec A2) {
     case glb:
     case off:
     case cDe:
-    case lVl:
       sz += 2;
       break;
   }
@@ -419,7 +422,6 @@ static char *opAndTp(opAndSpec A) {
     case arg:
     case lcl:
     case lcs:
-    case lVl:
       return "integer";
     case off:
       return "assemLbl";
@@ -437,7 +439,7 @@ static char *opAndTp(opAndSpec A) {
 }
 
 void insOp(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt) {
-  char *dot = ((A1==tOs||A1==nOp)&&(A2==nOp)?".":"");
+  char *dot = ((A1 == tOs || A1 == nOp) && (A2 == nOp) ? "." : "");
   outMsg(out, "    %si%s", dot, mnem);
   char *T1 = opAndTp(A1);
   char *T2 = opAndTp(A2);
@@ -471,7 +473,6 @@ static logical genDisp(ioPo out, opAndSpec A, char *Nm) {
     case lcs:
     case glb:
     case off:
-    case lVl:
     case cDe:
     case Es:
       outMsg(out, " $(%s)", Nm);
@@ -490,7 +491,7 @@ static void showStarIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2
 
   outMsg(out, ",..Ins],Pc) => ");
 
-  outMsg(out, "\"$(Pc)\\: %P",  mnem);
+  outMsg(out, "\"$(Pc)\\: %P", mnem);
 
   genDisp(out, A1, "U");
   genDisp(out, A2, "V");

@@ -19,6 +19,7 @@
 
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<(unsigned)16)|lo32))
 #define collectOff(pc) (hi32 = collectI32(pc), (pc)+(signed)hi32)
+#define pcBeforeOff(pc) (pc-=2, collectOff(pc))
 
 #define checkAlloc(Count) STMT_WRAP({\
   if (reserveSpace(H, Count) != Ok) {\
@@ -115,6 +116,7 @@ retCode run(processPo P) {
       case Call: {
         termPo nProg = nthElem(LITS, collectI32(PC));
         methodPo mtd = labelCode(C_LBL(nProg));   // Which program do we want?
+        insPo exit = collectOff(PC);
 
         if (mtd == Null) {
           logMsg(logFile, "label %T not defined", nProg);
@@ -165,6 +167,7 @@ retCode run(processPo P) {
         int arity = collectI32(PC);
         normalPo obj = C_NORMAL(pop());
         labelPo oLbl = objLabel(termLbl(obj), arity);
+        insPo exit = collectOff(PC);
 
         if (oLbl == Null) {
           logMsg(logFile, "label %s/%d not defined", labelName(termLbl(obj)), arity);
@@ -208,6 +211,7 @@ retCode run(processPo P) {
 
       case Escape: {     /* call escape */
         int32 escNo = collectI32(PC); /* escape number */
+        insPo exit = collectOff(PC);
 
 #ifdef TRACEEXEC
         recordEscape(escNo);
@@ -260,7 +264,12 @@ retCode run(processPo P) {
               push(ret.result);
             continue;
           case Error:
-            return Error;
+            if (ret.result != Null)
+              push(ret.result);
+            else
+              push(unitEnum);
+            PC = exit;
+            continue;
           default:
             continue;
         }
@@ -431,6 +440,21 @@ retCode run(processPo P) {
         continue;       /* and carry on regardless */
       }
 
+      case RetX: {        /* return from function */
+        termPo retVal = *SP;     /* return value */
+
+        assert((ptrPo) FP->fp <= stackLimit(STK) && SP <= (ptrPo) FP);
+
+        SP = &arg(argCount(FP->prog)); // Just above arguments to current call
+        FP = FP->fp;
+        PC = FP->pc;
+        LITS = codeLits(FP->prog);   /* reset pointer to code literals */
+        PC = pcBeforeOff(PC);  // Pick up the exception offset from the previous instruction
+
+        push(retVal);      /* push return value */
+        continue;       /* and carry on regardless */
+      }
+
       case Jmp:       /* jump to local offset */
         PC = collectOff(PC);
         assert(validPC(FP->prog, PC));
@@ -526,7 +550,6 @@ retCode run(processPo P) {
         }
       }
 
-
       case Retire: { // Similar to a suspend, except that we trash the susending stack
         termPo event = pop();
         taskPo task = C_TASK(pop());
@@ -591,6 +614,8 @@ retCode run(processPo P) {
 
       case LdG: {
         int32 glbNo = collectI32(PC);
+        insPo exit = collectOff(PC);
+
         globalPo glb = findGlobalVar(glbNo);
 
         if (glbIsSet(glb)) {
@@ -638,6 +663,7 @@ retCode run(processPo P) {
 
       case ThGet: {
         thunkPo thnk = C_THUNK(pop());
+        insPo exit = collectOff(PC);
 
         if (thunkIsSet(thnk)) {
           termPo vr = thunkVal(thnk);

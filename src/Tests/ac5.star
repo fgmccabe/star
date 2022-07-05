@@ -8,8 +8,8 @@ test.ac5{
 
   -- test for loops
 
-  f:(integer) => result[string,integer].
-  f(X) => do{
+  f:(integer) => integer.
+  f(X) => valof{
     F .= ref 1;
     for Ix in range(1,X,1) do{
       F := F!*Ix
@@ -21,9 +21,9 @@ test.ac5{
   main() => valof{
     _logmsg(disp(f(10)));
     try{
-      F10 <- f(10);
+      F10 .= f(10);
       _logmsg(disp(F10));
-      F <- f(-10);
+      F .= f(-10);
       _logmsg(disp(F))
     } catch {
       E => {

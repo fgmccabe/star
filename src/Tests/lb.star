@@ -6,19 +6,19 @@ test.lb{
     R : ref integer.
     R = ref 0.
 
-    inc() => do{
+    inc() => valof{
       R := R!+1;
       valis ()
     }
 
-    reset() => do{
+    reset() => valof{
       R := 0;
       valis ()
     }
   .} in let{.
     ii(N) where N>=0 => valof{
       try{
-	do inc();
+	inc();
       } catch {
 	_ => {}
       };
@@ -26,7 +26,7 @@ test.lb{
     }
     ii(N) where N<0 => valof{
       try{
-	_ .= valof reset();
+	reset();
       } catch { _ => logMsg("bad happening")};
       valis .false
     }

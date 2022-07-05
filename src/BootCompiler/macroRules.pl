@@ -30,11 +30,8 @@ macroRl(":=",action,macroRules:spliceAssignMacro).
 macroRl(":=",action,macroRules:indexAssignMacro).
 macroRl(":=",expression,macroRules:spliceAssignMacro).
 macroRl(":=",expression,macroRules:indexAssignMacro).
-macroRl("<-",action,macroRules:bindActionMacro).
 macroRl("do",action,macroRules:forLoopMacro).
-%macroRl("perform",action,macroRules:performMacro).
 
-%macroRl("assert",expression,macroRules:assertMacro).
 macroRl("assert",action,macroRules:assertMacro).
 macroRl("show",action,macroRules:showMacro).
 %macroRl("show",expression,macroRules:showMacro).
@@ -297,25 +294,11 @@ macroLocationExp(T,expression,Loc) :-
   mkLoc(Lc,Loc).
 
 /*
-  P <- E
-  where E is not an identifier
-  becomes
-  { V .= E ; P <- V }
-*/
-bindActionMacro(T,action,Act) :-
-  isBind(T,Lc,L,R),
-  \+ isName(R,_,_),!,
-  mkName(Lc,"ν",Vr),
-  match(Lc,Vr,R,VDf),
-  mkBind(Lc,L,Vr,B),
-  mkActionSeq(Lc,VDf,B,Act).
-
-/*
   perform A
   becomes
   case A in {
     ok(_) => {}
-    bad(E) => raise E
+    bad(E) => throw E
   }
 */
 performMacro(T,action,Act) :-
@@ -328,7 +311,7 @@ performMacro(T,action,Act) :-
   /* make bad(E) => raise E */
   genIden(Lc,E),
   unary(Lc,"bad",E,Lh2),
-  unary(Lc,"raise",E,Rh2),
+  mkThrow(Lc,E,Rh2),
   mkEquation(Lc,Lh2,none,Rh2,BadEqn),
   caseExp(Lc,I,[OkEqn,BadEqn],Act).
 /*
@@ -469,7 +452,7 @@ binRefMacro(T,expression,Rp) :-
         I resume ._next in {
           _yld(P) => B.
           _yld(_) default => {}.
-          ._all => raise ()
+          ._all => throw ()
         }
       }
     } catch {
@@ -481,9 +464,9 @@ binRefMacro(T,expression,Rp) :-
    isForDo(A,Lc,P,C,Bd),!,
    genIden(Lc,I),
 
-   /* Build ._all => raise () */
+   /* Build ._all => throw () */
    roundTuple(Lc,[],Unit),
-   mkRaise(Lc,Unit,Rse),
+   mkThrow(Lc,Unit,Rse),
    mkEnum(Lc,"_all",End),
    mkEquation(Lc,End,none,Rse,EndEq),
 
@@ -558,7 +541,7 @@ generatorMacro(E,expression,Ex) :-
    becomes
    suspend _yld(E) in {
      ._next => {}.
-     ._cancel => raise ._cancel
+     ._cancel => throw ._cancel
    }
 */
 yieldMacro(E,action,Ax) :-
@@ -571,9 +554,9 @@ yieldMacro(E,action,Ax) :-
   mkEnum(Lc,"_next",Nxt),
   mkEquation(Lc,Nxt,none,Nop,NxtRl),
 
-  /* build ._cancel => raise ._cancel */
+  /* build ._cancel => throw ._cancel */
   mkEnum(Lc,"_cancel",Can),
-  unary(Lc,"raise",Can,Rs),
+  mkThrow(Lc,Can,Rs),
   mkEquation(Lc,Can,none,Rs,Cancel),
 
   /* Build suspend */

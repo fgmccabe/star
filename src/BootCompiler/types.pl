@@ -10,7 +10,7 @@
 	   ssConstraint/4,ssType/4,dispType/1,dispConstraint/1,
 	   contractType/2,contractTypes/2,
 	   isUnbound/1,isBound/1,isUnboundFVar/2, isIdenticalVar/2,occursIn/2,
-%	   unwrapType/5,
+	   isThrowsType/3,
 	   moveQuants/3,reQuantTps/3,
 	   moveXQuants/3,reQuantX/3,
 	   getConstraints/3,putConstraints/3,
@@ -63,6 +63,9 @@ ntEnumType(constrained(T,C),constrained(T1,C)) :-
   netEnumType(T,T1).
 ntEnumType(consType(_,T),T).
 
+isThrowsType(Tp,T,E) :- isBound(Tp),!,
+  deRef(Tp,throwsType(T,E)).
+
 isFaceType(Tp) :- deRef(Tp,T),!,isFcType(T).
 
 isFcType(faceType(_,_)).
@@ -103,11 +106,6 @@ isUnbound(T) :- deRef(T,Tp),
 isUnboundFVar(T,Ar) :- deRef(T,tFun(_,_,_,_,Ar,_)).
 
 isBound(T) :- deRef(T,TV), TV\=tVar(_,_,_,_,_),TV\=tFun(_,_,_,_,_).
-
-% unwrapType(Tp,Q,X,Cx,Inner) :-
-%   moveQuants(Tp,Q,T1),
-%   moveXQuants(T1,X,T2),
-%   getConstraints(T2,Cx,Inner).
 
 moveQuants(Tp,Q,Tmp) :-
   deRef(Tp,DTp), mvQuants(DTp,Q,Tmp).
@@ -450,6 +448,13 @@ stdType("task",
 	allType(kVar("a"),
 		allType(kVar("e"),
 			typeExists(tpExp(tpExp(tpFun("star.core*task",2),kVar("a")),
+					 kVar("e")),
+				   faceType([],[]))))).
+stdType("catch",
+	tpFun("star.core*catch",2),
+	allType(kVar("a"),
+		allType(kVar("e"),
+			typeExists(tpExp(tpExp(tpFun("star.core*catch",2),kVar("a")),
 					 kVar("e")),
 				   faceType([],[]))))).
 

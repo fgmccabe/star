@@ -6,16 +6,16 @@ test.do12{
 
   foo ::= foo(integer) | bar(string).
 
-  multiWhr:(foo)=>result[(),integer].
-  multiWhr(X) => do{
+  multiWhr:(foo)=>integer.
+  multiWhr(X) => valof{
     case X in {
       foo(Ix) => valis Ix.
       bar(_) => valis 0
     }
   }
 
-  seqCase:(foo)=>result[(),integer].
-  seqCase(X) => do{
+  seqCase:(foo)=>integer.
+  seqCase(X) => valof{
     res .= ref 0;
     case X in {
       foo(Ix) => {res:= Ix}.
@@ -27,9 +27,9 @@ test.do12{
   main:()=>().
   main()=>valof{
     try{
-      assert valof multiWhr(foo(23))==23;
-      assert valof seqCase(foo(23))==23;
-      assert valof seqCase(bar(""))==0;
+      assert multiWhr(foo(23))==23;
+      assert seqCase(foo(23))==23;
+      assert seqCase(bar(""))==0;
     } catch {
       _ => logMsg("bad valof")
     };

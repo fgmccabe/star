@@ -6,14 +6,14 @@ test.as2{
     foo : ref integer.
     foo = ref 0.
 
-    reset:result[(),boolean].
-    reset = do{
+    reset:()=>boolean.
+    reset() => valof{
       foo := 0;
       valis .false
     }
 
-    mark:(integer)=>result[(),boolean].
-    mark(X) => do{
+    mark:(integer)=>boolean.
+    mark(X) => valof{
       foo := X;
       valis .true
     }
@@ -22,26 +22,30 @@ test.as2{
     check([],[]) => .true.
     check([E,..Es],[D,..Ds]) =>
       ( try D==E ?
-	  valof mark(D) && check(Es,Ds) ||
-	  valof reset
+	  mark(D) && check(Es,Ds) ||
+	  reset()
 	catch {
 	  _ => .false
 	}
       ).
-    check(_,_) default => valof { ignore reset; valis .false }.
+    check(_,_) default => valof { reset(); valis .false }.
   .} in check.
 
-  notMuch:result[(),string].
-  notMuch=do{
+  notMuch:()=>() throws ().
+  notMuch()=>valof{
     logMsg("hello there");
-    raise ()
+    throw ()
   }
 
   main:()=>().
   main()=>valof{
-    assert checkLists()([1,2],[1,2]);
-    assert ~checkLists()([],[1]);
-    show notMuch;
+    try{
+      assert checkLists()([1,2],[1,2]);
+      assert ~checkLists()([],[1]);
+      show notMuch();
+    } catch {
+      _ => logMsg("as expected")
+    };
     valis ()
   }
 }
