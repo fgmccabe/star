@@ -16,8 +16,6 @@ static inline logical isTask(termPo p) {
   return hasClass(p, taskClass);
 }
 
-extern taskPo taskVal(termPo o);
-
 typedef enum {
   suspended,
   active,

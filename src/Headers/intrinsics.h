@@ -3,6 +3,7 @@
   Copyright (c) 2016, 2017 and beyond. Francis G. McCabe
  */
 
+#define taskType(S,R) "Uz2'star.core*task'" S R
 
 /* Define the standard intrinsics */
 
@@ -36,3 +37,6 @@ intrinsic(_blsl,"F(ii)i","BLsl","logical left shift")
 intrinsic(_blsr,"F(ii)i","BLsr","logical right shift")
 intrinsic(_basr,"F(ii)i","BAsr","arithmetic right shift")
 intrinsic(_bnot,"F(i)i","BNot","bitwise negate number")
+
+intrinsic(_task_eq,":k's':k'r'F("taskType("k's'","k'r'")taskType("k's'","k'r'")")l","TEq","compare two task identifiers")
+

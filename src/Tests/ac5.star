@@ -1,7 +1,6 @@
 test.ac5{
   import star.core.
   import star.arith.
-  import star.action.
   import star.iterable.
   import star.range.
   import star.task.

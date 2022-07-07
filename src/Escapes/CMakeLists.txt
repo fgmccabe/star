@@ -48,6 +48,6 @@ set(SOURCE_FILES
         stringops.c
         threds.c
         turm.c
-        unicode.c)
+        unicode.c taskops.c)
 
 add_library(escapes STATIC ${SOURCE_FILES})

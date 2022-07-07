@@ -900,13 +900,13 @@ typeOfTask(Lc,A,Tp,Env,task(Lc,TskFun,Tp),Path) :-
   newTypeVar("SComm",SV),
   newTypeVar("RComm",RV),
   applyTypeFun(TskTp,[SV,RV],Lc,Env,TTp),
-  roundTuple(Lc,[name(Lc,"this")],Args),
+  roundTuple(Lc,[name(Lc,"this"),name("first")],Args),
   braceTuple(Lc,[A],AA),
   mkValof(Lc,AA,VlOf),
   mkEquation(Lc,Args,none,VlOf,Lam),
   verifyType(Lc,ast(A),TTp,Tp,Env),
   unitTp(UnitTp),
-  typeOfLambda(Lam,funType(tplType([Tp]),UnitTp),Env,TskFun,Path).
+  typeOfLambda(Lam,funType(tplType([Tp,RV]),UnitTp),Env,TskFun,Path).
 
 taskLambda(Lc,F,Tp,Env,task(Lc,TskFun,Tp),Path) :-
   findType("task",Lc,Env,TskTp),
@@ -915,7 +915,7 @@ taskLambda(Lc,F,Tp,Env,task(Lc,TskFun,Tp),Path) :-
   applyTypeFun(TskTp,[SV,RV],Lc,Env,TTp),
   verifyType(Lc,ast(F),TTp,Tp,Env),
   unitTp(UnitTp),
-  typeOfExp(F,funType(tplType([Tp]),UnitTp),none,Env,_,TskFun,Path).
+  typeOfExp(F,funType(tplType([Tp,RV]),UnitTp),none,Env,_,TskFun,Path).
 
 checkAction(A,Tp,ErTp,Env,Ev,As,Path) :-
   isBraceTuple(A,_,[S]),!,
