@@ -32,6 +32,7 @@ star.compiler.intrinsics{
   intrinsic("_blsr") => some((tpExp(tpExp(tpFun("=>",2),tupleType([intType,intType])),intType),.iBLsr)).  -- logical right shift
   intrinsic("_basr") => some((tpExp(tpExp(tpFun("=>",2),tupleType([intType,intType])),intType),.iBAsr)).  -- arithmetic right shift
   intrinsic("_bnot") => some((tpExp(tpExp(tpFun("=>",2),tupleType([intType])),intType),.iBNot)).  -- bitwise negate number
+  intrinsic("_task_eq") => some((allType(nomnal("s"),allType(nomnal("r"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpFun("star.core*task",2),nomnal("s")),nomnal("r"),tpExp(tpFun("star.core*task",2),nomnal("s")),nomnal("r")])),boolType))),.iTEq)).  -- compare two task identifiers
 
   intrinsic(_) default => .none.
 }

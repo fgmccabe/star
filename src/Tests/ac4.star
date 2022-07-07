@@ -1,7 +1,6 @@
 test.ac4{
   import star.core.
   import star.arith.
-  import star.action.
 
   -- test action functions
 

@@ -590,7 +590,14 @@ retCode run(processPo P) {
         push(val);
         continue;
       }
+      case TEq: {
+        termPo Lhs = pop();
+        termPo Rhs = pop();
 
+        termPo Rs = (C_TASK(Lhs) == C_TASK(Rhs) ? trueEnum : falseEnum);
+        push(Rs);
+        continue;
+      }
       case LdV: {
         push(voidEnum);     /* load void */
         continue;

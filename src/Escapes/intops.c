@@ -4,19 +4,14 @@
 //
 
 
-#include <math.h>
 #include <strings.h>
-#include <tpl.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <globals.h>
 #include "ooio.h"
 #include "engine.h"
 #include "arithP.h"
-#include "bignumP.h"
 #include "errorCodes.h"
 #include "arithmetic.h"
-#include "consP.h"
 
 ReturnStatus g__int_plus(processPo p, heapPo h, termPo a1, termPo a2) {
   termPo Rs = (termPo) allocateInteger(h, integerVal(a1) + integerVal(a2));

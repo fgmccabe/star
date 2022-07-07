@@ -232,6 +232,7 @@ retCode jit_Ret(insPo code, integer *pc, jitCompPo jitCtx) {
 retCode jit_RetX(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
+
 retCode jit_RtG(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
@@ -428,6 +429,10 @@ retCode jit_Release(insPo code, integer *pc, jitCompPo jitCtx) {
 }
 
 retCode jit_Underflow(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_TEq(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 

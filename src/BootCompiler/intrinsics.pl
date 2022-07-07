@@ -27,4 +27,5 @@ isIntrinsic("_blsl",funType(tplType([type("star.core*integer"),type("star.core*i
 isIntrinsic("_blsr",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer")),iBLsr).  % logical right shift
 isIntrinsic("_basr",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer")),iBAsr).  % arithmetic right shift
 isIntrinsic("_bnot",funType(tplType([type("star.core*integer")]),type("star.core*integer")),iBNot).  % bitwise negate number
+isIntrinsic("_task_eq",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpFun("star.core*task",2),kVar("s")),kVar("r"),tpExp(tpFun("star.core*task",2),kVar("s")),kVar("r")]),type("star.core*boolean")))),iTEq).  % compare two task identifiers
 

@@ -42,6 +42,7 @@ instruction(Resume,tOs,tOs,-1,"resume task")
 instruction(Retire,tOs,tOs,-2,"retire a task")
 instruction(Release,tOs,nOp,-1,"destroy a task")
 instruction(Underflow,nOp,nOp,0,"underflow from current stack")
+instruction(TEq,tOs,nOp,-1,"L R --> L==R, where L,R are tasks")
 
 instruction(LdV,nOp,nOp,1,"Place a void value on stack")
 instruction(LdC,lit,nOp,1,"load literal from constant pool")
