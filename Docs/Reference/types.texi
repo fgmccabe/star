@@ -166,6 +166,7 @@ signals that the value is a function.
   | @refer{RecordType}
   | @refer{ReferenceType}
   | @refer{FunctionType} | @refer{ConstructorType}
+  | @refer{ThrowsType}
   | @refer{QuantifiedType}
   | @refer{TypeConstraint} @code{|:} @refer{Type}
   | @code{(} @refer{Type} @code{)}
@@ -493,6 +494,49 @@ takes the form:
 @example
 (integer,string) => cons[string]
 @end example
+
+@node Throwing Types
+@subsection Throwing Types
+@cindex throws type
+@cindex type,throws
+
+@noindent
+The @code{throws} type is used to indicate a function type that may throw an exception.
+
+A function type denotes a function value. It takes the form of a
+possibly empty sequence of argument types -- denoting the types of the
+arguments to the function -- enclosed in parentheses; followed by the
+result type of the function. @refer{functionTypeFig} highlights the form
+of the function type:
+
+@float BNT,throwsTypeFig
+@caption{Throws Type}
+@display
+@anchored{ThrowsType} ::= @refer{Type} @code{throws} @refer{Type}
+@end display
+@end float
+
+For example, an @code{integer} function may throw a @code{string}
+exception; this would be signaled using a type of the form:
+@example
+(integer) => integer throws string
+@end example
+
+Functions that throw exceptions may not be inferred: their type must
+be explicitly declared; for example, the declaration:
+@example
+foo:(integer) => integer throws string
+@end example
+declares that @code{foo} is a function from @code{integer} to
+@code{integer}, and it may throw an exception -- in the form of a
+@code{string}.
+
+If such a function is used in an expression, then it must either be in
+the lexical context of a @refer{TryCatchAction}, @refer{TryCatch}
+expression, or it must be within the definition of a function that is
+also declared to throw @code{string} exceptions.
+
+
 
 @node Constructor Type
 @subsubsection Constructor Type

@@ -1,78 +1,55 @@
 @node Actions
 @chapter Actions
 
-An action is the specification of an operation -- one that may be
-@emph{performed}. Although actions are often viewed as being performed
-solely for their effect on some shared state, action in @Star{} also
-have a value associated with them. This value embodies the success (or
-failure) of the action as it is performed.
+An action is performed for the sake of its effect. @Star{} has a
+normal complement of control flow instructions; although there are
+some departures from some common patterns.
 
-There are three foundational forms of action expression, as delimited
-in @refer{actionFig}. An action expression is an expression whose
-value is determined by performing an action.
+Apart from achieving some effect, actions are associated with a
+value. This is the value of the action that is returned when action is
+completed.
 
-@float BNF,actionFig
-@caption{Types of Action}
-@display
-@anchored{ActionExpression} ::= @refer{DoAction}
-  | @refer{ActionAction}
-  | @refer{TaskAction}
-  | @refer{ValofAction}
+Actions may also be associated with a exception; in the case that the
+action does not complete normally.
 
-@anchored{DoAction} ::= @code{'do'} @refer{BlockAction}
+The @refer{ValofExpression} is used to denote that a value is to be
+computed by performing actions. Similarly, many actions involve the
+evaluation of expressions.
 
-@anchored{ActionAction} ::= @code{'action'} @refer{BlockAction}
+@node Actions and Types
+@section Actions and Types
+@cindex action types
+@cindex action!types
 
-@anchored{TaskAction} ::= @code{'task'} @refer{BlockAction}
+Actions have two types associated with them: their @emph{value} type
+and their @emph{exception} type.  The action's value type is the type
+of any returned value -- i.e., the type of the expression associated
+with any @refer{ValisAction}s within the action. The action's
+exception type is the type of any exception that may be thrown by the
+action.
 
-@anchored{ValofAction} ::= @code{'valof'} @refer{BlockAction}
-@end display
-@end float
+@node Basic Action Forms
+@section Basic Action Forms
+@cindex basic action expressions
 
-The differences between the different forms represent a degree of
-separation between the action and the expression:
-
-@itemize @bullet
-@item
-A @code{valof} action is performed as the @code{valof} expression is
-evaluated: the value of the expression is the value returned by the
-body of the action.
-@item
-A @code{action} expression returns a term that can be performed. I.e., the
-value of an @code{action} expression is an action; which, when
-performed, will return a value.
-@item
-A @code{task} expression returns a computation that can be scheduled
-independently of other actions.
-
-This is analogous to coroutining in other programming languages.
-@item
-A @code{do} action is a non-specific form of action expression: its
-semantics depends on whether the type is inferred to be an
-@code{action} expression, @code{task} expression, or even some other
-form of action expression.
-@end itemize
-
-@node Do Notation
-@section Do Notation
-@cindex Do notation
-@cindex action expressions
-
-The @code{do} notation is the standard syntax for writing actions.
+The basic actions include those in @ref{doFig}. There are additional
+actions, as explained in @ref{Tasks}.
 
 @float BNF,doFig
-@caption{Do Notation}
+@caption{Different forms of action}
 @display
 @anchored{Action}::=@refer{NullAction}
   | @refer{BlockAction}
   | @refer{InvokeAction}
   | @refer{ValisAction}
-  | @refer{BindAction}
   | @refer{DefnAction}
   | @refer{AssignmentAction}
   | @refer{IfThenElseAction}
   | @refer{WhileAction}
+  | @refer{UntilAction}
   | @refer{ForAction}
+  | @refer{CaseAction}
+  | @refer{LetAction}
   | @refer{TryCatchAction}
   | @refer{ThrowAction}
 @end display
@@ -88,14 +65,11 @@ or, more accurately, return the empty tuple:
 @float BNF,nothingFig
 @caption{No Operation}
 @display
-@anchored{NullAction} ::= @code{'nothing'} | @code{@{@}}
+@anchored{NullAction} ::= @code{@{@}}
 @end display
 @end float
 
-The @code{nothing} action (or @code{@{@}}) is equivalent to
-@example
-_valis(())
-@end example
+The @code{@{@}} does nothing. Useful when you don't want to do anything.
 
 @node Block Action
 @subsection Block Action
@@ -114,17 +88,13 @@ An action block consists of a sequence of actions, enclosed in braces
 The empty action block -- @code{@{@}} -- is equivalent to the
 @refer{NullAction}.
 
-@quotation Note
-The last action in an action block is not permitted to be a binding action.
-@end quotation
-
 @node Invoke Action
 @subsection Invoke Action
 @cindex invoke action
 
 The @refer{InvokeAction} denotes the invokation of a
-sub-computation. Typically, an @refer{InvokeAction} takes the form of a
-call to an action returning function:
+sub-computation. Typically, an @refer{InvokeAction} takes the form of
+a call to a function.
 @float BNF,invokeActionFig
 @caption{Invoke Action}
 @display
@@ -132,17 +102,16 @@ call to an action returning function:
 @end display
 @end float
 
-The type of this expression should be one that is consistent with the
-enclosing computation expression. Specifically, if the enclosing
-computation is an @code{action}, then the invoked expression should
-also return an @code{action}.
+Any value that is returned by the function call is discarded; however,
+if the function throws an exception then that exception is propagated
+within the enclosing action.
 
 @node Valis Action
 @subsection Valis Action
 @cindex valis action
 @findex valis
 
-The @refer{ValisAction} creates a computation from an expression.
+The @refer{ValisAction} denotes that the action should terminate and return a value.
 
 @float BNF,valisActionFig
 @caption{Valis Action}
@@ -154,31 +123,52 @@ The @refer{ValisAction} creates a computation from an expression.
 When a @code{valis} action is performed, its expression is evaluated
 and that value is used as the value of the computation.
 
-@node Bind Action
-@subsection Bind Action
-@cindex bind action
+@quotation Note
+It is possible that evaluating the expression of a @refer{ValisAction}
+may cause an exception to be thrown. In that case, the
+@refer{ValisAction} itself aborts and the exception is propagated to
+the designated handler.
+@end quotation
 
-The @refer{BindAction} is used to extract the value of a computation and
-pass it along as the value of this computation. The two computations
-need not be of the same type -- although the exception types should be.
+@node Throw Action
+@subsection Throw Action
+@cindex throw action
+@findex throw
 
-@float BNF,bindActionFig
-@caption{Bind Action}
+The @refer{ThrowAction} denotes that the action should terminate and throw a value.
+
+@float BNF,throwActionFig
+@caption{Throw Action}
 @display
-@anchored{BindAction} ::= @refer{Pattern} @code{'<-'} @refer{Expression}
+@anchored{ThrowAction} ::= @code{'throw'} @refer{Expression}
 @end display
 @end float
 
+When a @code{throw} action is performed, its expression is evaluated
+and that value is raised as an exception. The syntactically enclosing
+action must either be a @refer{TryCatchAction} form, or the action
+must be the top-level of a function and that function must have been
+declared as throwing a value of the appropriate type.
+
 @quotation Note
-A @refer{BindAction} may not be the last action in an @refer{BlockAction}.
+If evaluating the expression that denotes the exception to throw
+itself throws an exception, that is a fatal error and causes overall
+execution of the program to stop.
+@end quotation
+
+@quotation Note
+There is no automatic search for an handling form: every @code{throw}
+must be lexically accounted for.
 @end quotation
 
 @node Definition Action
 @subsection Definition Action
 @cindex definition action
 
-The @refer{DefnAction} is used to bind a variable to a value -- that is
-available to subsequent actions.
+The @refer{DefnAction} is used to bind variables to a value -- that is
+available to subsequent actions. The variables are denoted via a
+@ref{Pattern}; which can be used, for example, to bind more than one
+variable.
 
 @float BNF,defnActionFig
 @caption{Definition Action}
@@ -187,12 +177,7 @@ available to subsequent actions.
 @end display
 @end float
 
-A @refer{DefnAction} differs from a @refer{BindAction} primarily in the
-fact that the latter is used to unwrap a computation whereas the
-@refer{DefnAction} computes any value and does not otherwise touch the
-value.
-
-The scope of a local variable declaration is from the local
+The scope of a variables declared in a definition action is from the
 declaration itself to the end of the containing @emph{BlockAction}.
 
 @quotation Note
@@ -225,8 +210,9 @@ We can unpack the results of a call to @code{ddivide} using a
 which would have the effect of binding @code{Q} to @code{11}, and @code{R} to @code{1}.
 
 @quotation Note
-Like the @refer{BindAction}, it does not make sense for a
-@refer{DefnAction} to be the last action in an @refer{BlockAction}.
+If the expression evaluation resulted in an exception, then the match
+is not attempted. If the match itself fails, then that is a fatal
+error.
 @end quotation
 
 @node Assignment Action
@@ -236,9 +222,6 @@ Like the @refer{BindAction}, it does not make sense for a
 
 The @refer{AssignmentAction} is used to modify the contents of a
 re-assignable variable.
-
-It does not return a useful value (actually returns the empty tuple),
-and so it is not normally part of a bind operation.
 
 Variables that are assigned to must first have been introduced using a
 @refer{DefnAction} of the form:
@@ -268,10 +251,6 @@ The @refer{IfThenElseAction} is used to denote a conditional computation.
 @end display
 @end float
 
-The action expressions of the @code{then} and @code{else} branches
-must be of the same type. I.e., they must be the same computations of
-the same type of value.
-
 The second form of @refer{IfThenElseAction} -- which omits the
 @code{else} branch -- is equivalent to one in which the else branch is
 replaced by the @refer{NullAction}:
@@ -280,12 +259,8 @@ replaced by the @refer{NullAction}:
 if @var{Test} then
   @var{A}
 else
-  nothing
+  @{@}
 @end example
-
-Because of this, and because of the constraint that both arms of an
-@refer{IfThenElseAction} return the same type, the type returned by such
-an action is always the empty tuple -- @code{()}.
 
 @node While Action
 @subsection While Action
@@ -305,40 +280,53 @@ repeats so long as some condition is satisfied.
 The enclosed action will be repeated zero or more times, for so long
 as the test condition is satisfied.
 
-The value returned by a @refer{WhileAction} is always the empty
-tuple. Because of this, @refer{WhileAction}s nearly always achieve their
-result by means of side-effects -- such as by assigning to
-reassignable variables.
+@node Until Action
+@subsection Until Action
+@cindex until action
+@findex until
+
+The @refer{UntilAction} is used to denote an iterative computation that
+repeats until a condition is satisfied.
+
+@float BNF,untilActionFig
+@caption{Until Action}
+@display
+@anchored{UntilAction} ::= @code{'do'} @refer{Action} @code{'until'} @refer{Condition}
+@end display
+@end float
+
+The enclosed action will be performed at least once, and continued
+until the test condition is satisfied.
 
 @node For Action
 @subsection For Action
 @cindex for action
 @findex for
 
-The @refer{ForAction} is used to denote an iterative computation that is governed by alternate solutions to a @refer{Condition}.
+The @refer{ForAction} is used to denote an iterative computation that
+is governed by a @refer{Generator}.
 
 @float BNF,forActionFig
 @caption{For Action}
 @display
-@anchored{ForAction} ::= @code{'for'} @refer{Condition} @code{'do'} @refer{Action}
+@anchored{ForAction} ::= @code{'for'} @refer{Pattern} @code{in} @refer{Expression} @code{'do'} @refer{Action}
 @end display
 @end float
 
-The enclosed action will be repeated zero or more times, for so long
-as the test condition is satisfied. Each such solution to the
-@refer{Condition} may result in different bindings for variables --
-those variables are in scope within the enclosed action.
+The @code{for} loop iterates over a collection and matches each element
+against @emph{Pattern}; which will typically bind one or more variables
+that are in scope for the body of the loop.
+
+The type of the collection must implement the @code{generate} contract.
 
 For example, the action:
 @example
-for (X,Y) in parent && (Y,Z) in parent do @{
-  gps := [(X,Z),..gps!]
+for (X,Y) in parent do @{
+  if (Y,Z) in parent then
+    gps := [(X,Z),..gps!]
 @}
 @end example
 collects grandparents into the re-assignable variable @code{gps}.
-
-Like @refer{WhileAction}s, the value returned by a @refer{ForAction} is
-always the empty tuple.
 
 @node Let Action
 @subsection Let Action
@@ -359,7 +347,25 @@ As with let expressions, there are two forms: the non-recursive form
 -- using regular braces @code{@{@}} -- and the recursive form -- using
 dot-braces (@code{@{..@}}.
 
+@node Case Action
+@subsection Case Action
+@cindex case action
 
+The @code{case} action selects one of a set of arms depending on the
+value of a governing expression. It is the analog of the
+@ref{CaseExpression}; oriented to performing actions.
+
+@float BNF,caseActionFig
+@caption{Case Action}
+@display
+@anchored{CaseAction} ::= @code{'case'} @refer{Expression} @code{'in'} @refer{CaseActionHandler}
+
+@anchored{CaseActionHandler} ::=@code{@{} @refer{CaseActionRule} @code{.} @dots{} @code{.} @refer{CaseActionRule} @code{@}}
+
+@anchored{CaseActionRule} ::= @ref{Pattern} @code{'=>'} @ref{Action}
+  | @ref{Pattern} @code{'default'} @code{'=>'} @ref{Action}
+@end display
+@end float
 
 @node Try Catch Action
 @subsection Try Catch Action
@@ -373,198 +379,27 @@ need to respond to exception situations.
 @float BNF,tryCatchActionFig
 @caption{Try Catch Action}
 @display
-@anchored{TryCatchAction} ::= @code{'try'} @refer{Action} @code{'catch'} @refer{Handler}
-@anchored{Handler} ::= @refer{BlockAction}
-                | @refer{Expression}
+@anchored{TryCatchAction} ::= @code{'try'} @refer{Action} @code{'catch'} @refer{CaseActionHandler}
 @end display
 @end float
 
-There are two forms of @refer{TryCatchAction}s: one where the handler is
-very simple -- to the point of ignoring the exception itself -- and
-the second where the handler should be a function from the error type
-of the computation to a valid computation.
-
-The first form is useful when the error value is discarded:
+The type of any exception thrown within the body of the
+@code{try}@dots{}@code{catch} must be consistent with the handler. For
+example, in:
 @example
-@end example
-and the second is used when the handler is expected to use the value:
-@example
-do@{
-  try@{
-    throw 10
-  @} catch (E) => do @{
+try@{
+  throw 10
+@} catch @{
+  (E) => @{
     logMsg("We got error $(E)")
   @}
 @}
 @end example
-
-
-
-@quotation Note
-The full form of the catch handler must use a @code{do} expression if
-you want to use an action to respond to the error.
-@end quotation
-
-@node Throw Action
-@subsection Throw Action
-@cindex throw action
-@findex throw
-
-The @refer{ThrowAction} is used to denote a failed computation. The
-@refer{ThrowAction} takes an error value which becomes the error value
-of computation as a whole.
-
-@float BNF,throwctionFig
-@caption{Throw Action}
-@display
-@anchored{ThrowAction} ::= @code{'throw'} @refer{Expression}
-@end display
-@end float
-
-When a @code{throw} action is performed, all subsequence actions are
-skipped, up to an enclosing try-catch handler.
-
-@quotation Note
-If a computation throws an error value, and that error exception is
-not caught by a @refer{TryCatchAction}, then the execution of the entire
-program is terminated.
-@end quotation
-
-@node The @code{execution} Contract
-@section The @code{execution} Contract
-
-Action Expressions are expressions that denote an action -- the action
-is performed when the action expression is performed in some way. This
-is mediated by means of the @code{execution} contract.
-
-@float BNF,executionFig
-@caption{Execution Contract}
+the type of @code{E} is @code{integer}; which is consistent with the action
 @example
-public contract all m/2 ~~ execution[m] ::= @{
-  _perform:all a,e ~~ (m[e,a])=>a.
-  _valis:all a,e ~~ (a)=>m[e,a].
-  _sequence:all a,b,e ~~ (m[e,a],(a)=>m[e,b]) => m[e,b].
-  _catch:all a,e,f ~~ (m[e,a],(e)=>m[f,a]) => m[f,a].
-  _raise: all a,e ~~ (e) => m[e,a].
-@}
+throw 10
 @end example
-@end float
-
-The @code{execution} contract is over a type function (@code{m/2}) and
-has a dependent type that corresponds to the type of any exception or
-error that may be raised during the computation.
-
-@quotation Note
-There are many potential ways of implementing the @code{execution}
-contract; representing different computation characteristics. The
-three standard implementations are modeled by the @code{result} type,
-the @code{action} type and the @code{task} type; these also have
-special syntax associated with them.
-@end quotation
-
-@quotation Note
-The @code{execution} contract is reminiscent of the @code{monad}
-contract. However, the focus is different: it is less about combining
-actions and more about transitioning between actions and values.
-@end quotation
-
-@node The @code{result} Type
-@subsection The @code{result} Type
-
-The most basic implementation of the @code{execution} contract is
-based on the @code{result} type. This reflects the fact that
-computations can return in one of two ways: normally or abnormally.
-
-@float BNF,resultTypeFig
-@caption{Result Type}
-@example
-public all e,a ~~ result[e,a] ::= ok(a) | bad(e).
-@end example
-@end float
-
-The @code{result} type embodies whether or not a computation
-succeeded, and, in both case, what the value of the computation is.
-
-The implementation of the @code{execution} contract for the
-@code{result} type is especially simple:
-
-@example
-public implementation execution[result] => @{
-  _perform(ok(X)) => X.
-
-  _valis(X) => ok(X).
-
-  _sequence(bad(E),_) => bad(E).
-  _sequence(ok(A),F) => F(A).
-
-  _catch(ok(X),_) => ok(X).
-  _catch(bad(X),E) => E(X).
-
-  _raise(S) => bad(S).
-@}
-@end example
-
-
-@node The @code{action} Type
-@subsection The @code{action} Type
-
-As noted above, the @code{action} type denotes a form of action
-expression where the action denoted by the expression may be performed
-separately (and potentially multiply) from the expression itself.
-
-@float BNF,actionTypeFig
-@caption{Action Type}
-@example
-public all e,a ~~ action[e,a] ::= done(a) | delay(()=>action[e,a]) |err(e).
-@end example
-@end float
-
-The delayed nature of an @code{action} type is captured via the
-@code{delay} constructor: it contains a function that, when the action
-is performed, computes the results of the action.
-
-@quotation Note
-It can be difficult to capture the essence of the @code{action}
-type. Perhaps the most direct way is to note that an @code{action}
-expression denotes a (typically) delayed action that can be performed
-at some time.
-@end quotation
-
-The other cases of the @code{action} type denote completed states of
-the action: when the ction is @code{done}, or when the action has
-resulted in an @code{err}or.
-
-The implementation of the @code{execution} contract for the
-@code{action} type is slightly more complex than that for @code{result}
-
-@example
-public implementation execution[action] => @{
-  _perform(done(X)) => X.
-  _perform(delay(F)) => _perform(F()).
-
-  _valis(X) => delay(()=>done(X)).
-
-  _sequence(err(E),_) => err(E).
-  _sequence(done(A),F) => delay(()=>F(A)).
-  _sequence(delay(G),F) => delay(()=>_sequence(G(),F)).
-
-  _catch(done(X),_) => done(X).
-  _catch(delay(A),E) => _catch(A(),E).
-  _catch(err(X),E) => E(X).
-
-  _raise(S) => err(S).
-@}
-@end example
-
-@node Performing Actions
-@section Performing Actions
-
-All actions have a value associated with them -- this is the value
-that is returned by the action after it is performed.
-
-There are several situations where actions are performed
-automatically; however, the @refer{ValofExpression} is a principal way
-in which an action can be performed and its value returned.
+action.
 
 @node Valof Expression
 @subsection Valof Expressions
@@ -572,7 +407,10 @@ in which an action can be performed and its value returned.
 @float BNF,valofExpressionFig
 @caption{Valof Expression}
 @display
-@anchored{ValofExpression} ::= @code{'valof'} @refer{Expression}
+
+@refer{Expression} ::+= @refer{ValofExpression}
+
+@anchored{ValofExpression} ::= @code{'valof'} @refer{BlockAction}
 @end display
 @end float
 
@@ -580,9 +418,9 @@ The @refer{ValofExpression} is applied to an @refer{Action}. The
 effect of this is to perform the action and return its value as the
 value of the @refer{ValofExpression}.
 
-@quotation WARNING
-It is a fatal error for the performed action to return exceptionally
--- the performed action should return a value and not exit by means of
-a @refer{ThrowAction}.
-@end quotation
+At least one of the actions within the @refer{BlockAction} must be a
+@refer{ValisAction} -- which determines the value of the
+@refer{ValofExpression} expression.
+
+
 

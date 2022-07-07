@@ -80,7 +80,7 @@ frequently and may not be standard in BNF-style grammars. For example
 the rules for actions contain this rule for block actions:
 
 @display
-@var{BlockAction} ::= '@{' @var{Action} ';' .. ';' @var{Action} '@}'
+@var{BlockAction} ::= '@{' @var{Action} @code{';'} @dots{} @code{';'} @var{Action} '@}'
 @end display
 
 This grammar rule defines a @refer{BlockAction} as a possibly empty
