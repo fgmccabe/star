@@ -34,7 +34,6 @@ instruction(Jmp,off,nOp,0,"jump lbl")
 instruction(Drop,tOs,nOp,-1,"drop top of stack")
 instruction(Dup,tOs,nOp,1,"duplicate top of stack")
 instruction(Rst, i32, nOp, 0, "reset stack height to a fixed height")
-instruction(Swap,tOs,nOp,0,"swap top two elements on stack")
 
 instruction(Task,tOs,nOp,1,"Create new task")
 instruction(Suspend,tOs,tOs,-1,"suspend task")
@@ -56,10 +55,6 @@ instruction(StA,arg,nOp,-1,"store tos to args[xx]")
 instruction(LdG,glb,off,1,"load a global variable")
 instruction(StG,glb,nOp,-1,"store into a global variable")
 instruction(TG,glb,nOp,0,"copy into a global variable")
-
-instruction(Thnk,tOs,nOp,0,"create thunk cell")
-instruction(ThGet,tOs,off,0,"access a thunk cell")
-instruction(ThSet,tOs,nOp,-2,"assign to a thunk cell")
 
 instruction(Cell,tOs,nOp,0,"create R/W cell")
 instruction(Get,tOs,nOp,0,"access a R/W cell")

@@ -8,8 +8,8 @@
 #include "config.h"
 #include "object.h"
 
-typedef struct task_record_* taskPo;
-extern classPo taskClass;
+typedef struct task_record_* stackPo;
+extern classPo stackClass;
 
 typedef enum {
   taskIdle,
@@ -18,12 +18,12 @@ typedef enum {
   taskInError
 } TaskState;
 
-typedef retCode (*taskCBProc)(taskPo f);
+typedef retCode (*taskCBProc)(stackPo f);
 
-taskPo createTask(taskCBProc onStart,taskCBProc onResume,taskCBProc onError,taskCBProc onCleanup,taskCBProc cb,void *cl);
-void suspendTask(taskPo task);
-void scheduleTask(taskPo task);
-void killTask(taskPo task);
+stackPo createTask(taskCBProc onStart, taskCBProc onResume, taskCBProc onError, taskCBProc onCleanup, taskCBProc cb, void *cl);
+void suspendTask(stackPo task);
+void scheduleTask(stackPo task);
+void killTask(stackPo task);
 
 #ifdef VERIFY_OBJECT
 #define O_TASK(c) ((taskPo)(checkCast((c),taskClass)))

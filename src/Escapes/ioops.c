@@ -11,7 +11,7 @@
 #include <errorCodes.h>
 #include <cons.h>
 #include "ioops.h"
-#include "task.h"
+#include "stack.h"
 #include "globals.h"
 
 ReturnStatus g__close(heapPo h, termPo a1) {
@@ -33,7 +33,7 @@ ReturnStatus g__end_of_file(heapPo h, termPo a1) {
 ReturnStatus g_enqueue_read(heapPo h, termPo a1, termPo a2, termPo a3) {
   ioChnnlPo chnl = C_IO(a1);
   integer count = integerVal(a2);
-  taskPo tskRef = C_TASK(a3);
+  stackPo tskRef = C_TASK(a3);
 
   retCode ret = enqueueRead(ioChannel(chnl), count, tskRef);
   ReturnStatus rt = {.ret=ret, .result=voidEnum};

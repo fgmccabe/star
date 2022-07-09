@@ -32,6 +32,6 @@ typedef struct task_class {
   TaskClassPart taskPart;
 } TaskClassRec;
 
-extern TaskClassRec TaskClass;
+extern TaskClassRec StackClass;
 
 #endif //STAR_MICROTASKP_H
