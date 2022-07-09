@@ -60,27 +60,33 @@ task@{
     yildFn(_,E) => valof@{
       suspend yild(E) in @{
        .next => valis ().
-       .cancel => valis ()
       @}
     @}
   @} in @{_iter(L,(),yildFn)@};
   retire .end
 @}
 @end example
-we use a @refer{LetAction} to introduce a local function definition -- @code{yildFn} -- 
-and pass it to the standard contract method -- @code{_iter} -- (which is defined in the @code{iter} contract).
+we use a @refer{LetAction} to introduce a local function definition --
+@code{yildFn} -- and pass it to the standard contract method --
+@code{_iter} -- (which is defined in the @code{iter} contract).
 
-In addition to the actions, there are two special variables defined within the body of the @code{task} expression: @code{this} and @code{first}:
+In addition to the actions, there are two special variables defined
+within the body of the @code{task} expression: @code{this} and
+@code{first}:
 
 @table @code
 @item this
 The @code{this} keyword is bound to the currently executing
 @code{task} (and has the same type). This is one of the primary ways in which a @code{task} is given its own identity.
 @item first
-The @code{first} keyword is bound to the initial event that is passed to the @code{task} when it is first resumed.
+The @code{first} keyword is bound to the initial event that is passed
+to the @code{task} when it is first resumed.
 
 @quotation Note
-When @code{task}s are created, they are in suspended state: i.e., the code within the @code{task} expression is not executed immediately. The @code{task} starts executing only when it is resumed -- using the @refer{ResumeAction}
+When @code{task}s are created, they are in suspended state: i.e., the
+code within the @code{task} expression is not executed
+immediately. The @code{task} starts executing only when it is resumed
+-- using the @refer{ResumeAction}
 @end quotation
 @end table
 
@@ -115,7 +121,8 @@ the incoming event when the task is resumed again:
 @caption{Suspend Action Syntax}
 @display
 @anchored{SuspendAction}::=
-  @refer{Expression} @code{'suspend'} @refer{Expression} @code{'in'} @refer{CaseActionHandler}
+    @refer{Expression} @code{'suspend'} @refer{Expression} @code{'in'} @refer{CaseActionHandler}
+  | @code{'suspend'} @refer{Expression} @code{'in'} @refer{CaseActionHandler}
 @end display
 @end float
 
@@ -203,6 +210,7 @@ is determined by the value of the event it signals.
 @display
 @anchored{RetireAction}::=
   @refer{Expression} @code{'retire'} @refer{Expression}
+  | @code{'retire'} @refer{Expression}
 @end display
 @end float
 
@@ -210,8 +218,11 @@ Note that there is no @refer{CaseActionHandler} specified with this
 action; this is because a task that performs the retire action will
 not be resumed: it is ended.
 
-
-
+In the case where the @refer{RetireAction} ios being performed withing
+the lexical scope of the @code{task} expression, the shorter form --
+which omits the identifier for the task being retired -- may be
+used. As with the @refer{SuspendAction} this is equivalent to using
+the @code{this} keyword to identify the retiring task.
 
 
 
