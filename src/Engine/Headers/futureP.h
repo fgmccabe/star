@@ -14,7 +14,7 @@ void initFuture();
 typedef struct future_record_ {
   clssPo clss;                  // == futureClass
   integer hash;
-  taskPo cont;
+  stackPo cont;
   termPo val;
   futureSetProc set;
   void *cl;

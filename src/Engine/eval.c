@@ -36,15 +36,16 @@
 #define top() (*SP)
 #define peek(Ix) (SP[Ix])
 #define push(T) STMT_WRAP({*--SP=(termPo)(T);})
-#define local(off) (((ptrPo)FP)[-off])
-#define arg(off) (((ptrPo) (FP + 1))[off])
-#define stackRoom(amnt) ((SP-(amnt)) > STK->stkMem)
+#define local(off) (CSP[-off])
+#define arg(off) (CSP[off])
+#define stackRoom(amnt) ((SP-(amnt)) > ((ptrPo)(FP+1)))
 #define saveRegisters() STMT_WRAP({ FP->pc = PC; STK->sp = SP; STK->fp = FP; P->stk = STK;})
-#define restoreRegisters() STMT_WRAP({ STK = P->stk; FP = STK->fp; PC = FP->pc;  SP=STK->sp; LITS=codeLits(FP->prog);})
+#define restoreRegisters() STMT_WRAP({ STK = P->stk; FP = STK->fp; PC = FP->pc;  CSP=FP->csp; SP=STK->sp; LITS=codeLits(FP->prog);})
+#define pushFrme(mtd) STMT_WRAP({FP++; FP->prog=mtd; PC = FP->pc = entryPoint(mtd); FP->csp=CSP = SP;})
 
 #define bail() STMT_WRAP({\
   saveRegisters();\
-  stackTrace(P, logFile, STK, True);\
+  stackTrace(P, logFile, STK, True,displayDepth);\
   return Error;\
   })
 
@@ -63,11 +64,12 @@
  */
 retCode run(processPo P) {
   heapPo H = P->heap;
-  taskPo STK = P->stk;
+  stackPo STK = P->stk;
   framePo FP = STK->fp;
   register insPo PC = FP->pc;    /* Program counter */
   register normalPo LITS = codeLits(FP->prog); /* pool of literals */
   register ptrPo SP = STK->sp;         /* Current 'top' of stack (grows down) */
+  register ptrPo CSP = FP->csp;
 
   register uint32 hi32, lo32;    /* Temporary registers */
 
@@ -81,6 +83,8 @@ retCode run(processPo P) {
   for (;;) {
 #ifdef TRACEEXEC
     pcCount++;        /* increment total number of executed */
+
+    assert(CSP == FP->csp && SP <= CSP- lclCount(FP->prog));
 
     if (insDebugging) {
       saveRegisters();
@@ -108,7 +112,7 @@ retCode run(processPo P) {
         logMsg(logFile, "Abort %T at %L", msg, lc);
         saveRegisters();
         verifyProc(P, H);
-        stackTrace(P, logFile, P->stk, False);
+        stackTrace(P, logFile, P->stk, False, displayDepth);
 
         return Error;
       }
@@ -146,14 +150,13 @@ retCode run(processPo P) {
           push(res);
         } else {
           bumpCallCount(mtd);
-          FP = pushFrame(STK, mtd, FP, SP);
-          PC = entryPoint(mtd);
-          LITS = codeLits(mtd);
+          integer lclCnt = lclCount(mtd);  /* How many locals do we have */
 
+          pushFrme(mtd);
+          LITS = codeLits(mtd);
           incEntryCount(mtd);              // Increment number of times program called
 
-          integer lclCnt = lclCount(mtd);  /* How many locals do we have */
-          SP = (ptrPo) FP - lclCnt;
+          SP -= lclCnt;
 #ifdef TRACEEXEC
           for (integer ix = 0; ix < lclCnt; ix++)
             SP[ix] = voidEnum;
@@ -193,14 +196,13 @@ retCode run(processPo P) {
 
         assert(isPcOfMtd(FP->prog, PC));
         FP->pc = PC;
-        FP = pushFrame(STK, mtd, FP, SP);
-        PC = entryPoint(mtd);
+        pushFrme(mtd);
         LITS = codeLits(mtd);
 
         incEntryCount(mtd);              // Increment number of times program called
 
         integer lclCnt = lclCount(mtd);  /* How many locals do we have */
-        SP = (ptrPo) FP - lclCnt;
+        SP -= lclCnt;
 #ifdef TRACEEXEC
         for (integer ix = 0; ix < lclCnt; ix++)
           SP[ix] = voidEnum;
@@ -291,45 +293,36 @@ retCode run(processPo P) {
         if (!stackRoom(stackDelta(mtd))) {
           int root = gcAddRoot(H, (ptrPo) &mtd);
 
-          taskPo prevStack = STK;
+          stackPo prevStack = STK;
 
           gcAddRoot(H, (ptrPo) &prevStack);
 
           saveRegisters();
           STK = P->stk = glueOnStack(H, STK, (STK->sze * 3) / 2 + stackDelta(mtd), arity);
 
-          SP = STK->sp;
-
-          // Set up new frame on new stack
-          FP = ((framePo) SP) - 1;
-          FP->pc = PC = entryPoint(mtd);
-          FP->fp = STK->fp;
-          FP->prog = mtd;
-          PC = entryPoint(mtd);
+          SP = CSP = STK->sp;
+          FP = STK->fp;
+          pushFrme(mtd);
 
           // drop old frame on old stack
           framePo prevFrame = prevStack->fp;
           prevStack->sp = stackArg(prevStack, prevFrame, argCount(prevFrame->prog));
-          prevStack->fp = prevFrame->fp;
+          prevStack->fp--;
           gcReleaseRoot(H, root);
 
 #ifdef TRACEEXEC
-          SP = (ptrPo) FP;
           saveRegisters();
-          verifyTask(STK, H);
+          verifyStack(STK, H);
 #endif
         } else {
-          // Pick up existing frame
+          // Overwrite existing arguments and locals
           ptrPo tgt = &arg(argCount(FP->prog));
           ptrPo src = SP + arity;                  /* base of argument vector */
-          framePo oldFp = FP->fp;
 
           for (int ix = 0; ix < arity; ix++)
             *--tgt = *--src;    /* copy the argument vector */
-
-          FP = ((framePo) tgt) - 1;
+          FP->csp = CSP = SP = tgt;
           FP->pc = PC = entryPoint(mtd);
-          FP->fp = oldFp;
           FP->prog = mtd;
         }
 
@@ -337,7 +330,7 @@ retCode run(processPo P) {
         LITS = codeLits(mtd);
         integer lclCnt = lclCount(mtd);  /* How many locals do we have */
 
-        SP = ((ptrPo) FP) - lclCnt;
+        SP -= lclCnt;                   // New top of stack
 
 #ifdef TRACEEXEC
         for (integer ix = 0; ix < lclCnt; ix++)
@@ -365,45 +358,36 @@ retCode run(processPo P) {
         if (!stackRoom(stackDelta(mtd))) {
           int root = gcAddRoot(H, (ptrPo) &mtd);
 
-          taskPo prevStack = STK;
+          stackPo prevStack = STK;
 
           gcAddRoot(H, (ptrPo) &prevStack);
 
           saveRegisters();
           STK = P->stk = glueOnStack(H, STK, (STK->sze * 3) / 2 + stackDelta(mtd), arity);
 
-          SP = STK->sp;
-
-          // Set up new frame on new stack
-          FP = ((framePo) SP) - 1;
-          FP->pc = PC = entryPoint(mtd);
-          FP->fp = STK->fp;
-          FP->prog = mtd;
-          PC = entryPoint(mtd);
+          SP = CSP = STK->sp;
+          FP = STK->fp;
+          pushFrme(mtd);
 
           // drop old frame on old stack
           framePo prevFrame = prevStack->fp;
           prevStack->sp = stackArg(prevStack, prevFrame, argCount(prevFrame->prog));
-          prevStack->fp = prevFrame->fp;
+          prevStack->fp--;
           gcReleaseRoot(H, root);
 
 #ifdef TRACEEXEC
-          SP = (ptrPo) FP;
           saveRegisters();
-          verifyTask(STK, H);
+          verifyStack(STK, H);
 #endif
         } else {
-          // Pick up existing frame
+          // Overwrite existing arguments and locals
           ptrPo tgt = &arg(argCount(FP->prog));
           ptrPo src = SP + arity;                  /* base of argument vector */
-          framePo oldFp = FP->fp;
 
           for (int ix = 0; ix < arity; ix++)
             *--tgt = *--src;    /* copy the argument vector */
-
-          FP = ((framePo) tgt) - 1;
+          FP->csp = CSP = SP = tgt;
           FP->pc = PC = entryPoint(mtd);
-          FP->fp = oldFp;
           FP->prog = mtd;
         }
 
@@ -411,7 +395,7 @@ retCode run(processPo P) {
         incEntryCount(mtd);              // Increment number of times program called
         integer lclCnt = lclCount(mtd);  /* How many locals do we have */
 
-        SP = ((ptrPo) FP) - lclCnt;
+        SP -= lclCnt;                   // New top of stack
 
 #ifdef TRACEEXEC
         for (integer ix = 0; ix < lclCnt; ix++)
@@ -429,27 +413,30 @@ retCode run(processPo P) {
       case Ret: {        /* return from function */
         termPo retVal = *SP;     /* return value */
 
-        assert((ptrPo) FP->fp <= stackLimit(STK) && SP <= (ptrPo) FP);
+        assert(FP > baseFrame(STK) && SP <= CSP);
 
         SP = &arg(argCount(FP->prog)); // Just above arguments to current call
-        FP = FP->fp;
+        FP = previousFrame(STK, FP);
+        CSP = FP->csp;
         PC = FP->pc;
         LITS = codeLits(FP->prog);   /* reset pointer to code literals */
-
+        assert(SP <= CSP);
         push(retVal);      /* push return value */
         continue;       /* and carry on regardless */
       }
 
-      case RetX: {        /* return from function */
+      case RetX: {        /* return exceptionally from function */
         termPo retVal = *SP;     /* return value */
 
-        assert((ptrPo) FP->fp <= stackLimit(STK) && SP <= (ptrPo) FP);
+        assert(FP > baseFrame(STK) && SP <= stackLimit(STK));
 
         SP = &arg(argCount(FP->prog)); // Just above arguments to current call
-        FP = FP->fp;
+        FP = previousFrame(STK, FP);
+        CSP = FP->csp;
         PC = FP->pc;
         LITS = codeLits(FP->prog);   /* reset pointer to code literals */
         PC = pcBeforeOff(PC);  // Pick up the exception offset from the previous instruction
+        assert(SP <= CSP);
 
         push(retVal);      /* push return value */
         continue;       /* and carry on regardless */
@@ -473,22 +460,15 @@ retCode run(processPo P) {
       case Rst: {
         int32 height = collectI32(PC);
         assert(height >= 0);
-        SP = (ptrPo) FP - lclCount(FP->prog) - height;
-        continue;
-      }
-
-      case Swap: {
-        termPo t1 = pop();
-        termPo t2 = pop();
-        push(t1);
-        push(t2);
+        SP = &FP->csp[-lclCount(FP->prog)-height];
         continue;
       }
 
       case Task: {
-        // The top of a stack should be a unary lambda
+        // The top of a stack should be a binary lambda
         normalPo obj = C_NORMAL(pop());
-        labelPo oLbl = objLabel(termLbl(obj), 2); // Fixed arity. Arg0 = free vars, arg1 = task ref
+        labelPo oLbl = objLabel(termLbl(obj),
+                                3); // Fixed arity. Arg0 = free vars, arg1 = task ref, arg2 is the first event
 
         if (oLbl == Null) {
           logMsg(logFile, "program %s/1 not defined", labelName(termLbl(obj)));
@@ -505,24 +485,23 @@ retCode run(processPo P) {
 
         int root = gcAddRoot(H, (ptrPo) &mtd);
         saveRegisters();
-        taskPo child = spinupStack(H, minStackSize);
+        stackPo child = spinupStack(H, minStackSize);
         restoreRegisters();
         gcReleaseRoot(H, root);
 
         pushStack(child, (termPo) child);
         pushStack(child, nthElem(obj, 0));            // Put the free term on the new stack
-        pushFrame(child, mtd, child->fp, child->sp);
+        child->fp = pushFrame(child, mtd, child->fp);
 
         push(child);                                                 // We return the new stack
 
         continue;
       }
-
       case Suspend: { // Suspend identified task.
         termPo event = pop();
-        taskPo task = C_TASK(pop());
+        stackPo task = C_TASK(pop());
 
-        if (taskState(task) != active) {
+        if (stackState(task) != active) {
           logMsg(logFile, "tried to suspend non-active task %T", task);
           bail();
         } else {
@@ -533,12 +512,11 @@ retCode run(processPo P) {
           continue;
         }
       }
-
       case Resume: {
         termPo event = pop();
-        taskPo task = C_TASK(pop());
+        stackPo task = C_TASK(pop());
 
-        if (taskState(task) != suspended) {
+        if (stackState(task) != suspended) {
           logMsg(logFile, "tried to resume non-suspended task %T", task);
           bail();
         } else {
@@ -549,43 +527,40 @@ retCode run(processPo P) {
           continue;
         }
       }
-
       case Retire: { // Similar to a suspend, except that we trash the susending stack
         termPo event = pop();
-        taskPo task = C_TASK(pop());
+        stackPo task = C_TASK(pop());
 
-        if (taskState(task) != active) {
+        if (stackState(task) != active) {
           logMsg(logFile, "tried to retire a non-active task %T", task);
           bail();
         } else {
           saveRegisters();
           P->stk = detachTask(STK, task);
-          dropTask(task);
+          dropStack(task);
           restoreRegisters();
           push(event);
           continue;
         }
       }
-
       case Release: { // Trash a task
-        taskPo task = C_TASK(pop());
+        stackPo task = C_TASK(pop());
 
-        if (taskState(task) != suspended) {
-          logMsg(logFile, "tried to release a %s task %T", stackStateName(taskState(task)), task);
+        if (stackState(task) != suspended) {
+          logMsg(logFile, "tried to release a %s task %T", stackStateName(stackState(task)), task);
           bail();
         } else {
           saveRegisters();
-          taskPo parent = detachTask(STK, task);
-          dropTask(task);
+          stackPo parent = detachTask(STK, task);
+          dropStack(task);
           continue;
         }
       }
-
       case Underflow: {
         termPo val = pop();
         saveRegisters();  // Seal off the current stack
-        assert(taskState(STK) == active);
-        STK = P->stk = dropTask(STK);
+        assert(stackState(STK) == active);
+        STK = P->stk = dropStack(STK);
         restoreRegisters();
         push(val);
         continue;
@@ -646,87 +621,18 @@ retCode run(processPo P) {
             assert(stackRoom(stackDelta(glbThnk) + STACKFRAME_SIZE));
           }
           FP->pc = PC;
-          FP = pushFrame(STK, glbThnk, FP, SP);
-          PC = entryPoint(glbThnk);
+          pushFrme(glbThnk);
+
           LITS = codeLits(glbThnk);
           H = globalHeap;
 
           integer lclCnt = lclCount(glbThnk);  /* How many locals do we have */
-          SP = ((ptrPo) FP) - lclCnt;
+          SP -= lclCnt;
 #ifdef TRACEEXEC
           for (integer ix = 0; ix < lclCnt; ix++)
             SP[ix] = voidEnum;
 #endif
         }
-        continue;
-      }
-
-      case Thnk: {
-        normalPo thnkLam = C_NORMAL(pop());
-        thunkPo thnk = thunkVar(H, thnkLam);
-        push(thnk);
-        continue;
-      }
-
-      case ThGet: {
-        thunkPo thnk = C_THUNK(pop());
-        insPo exit = collectOff(PC);
-
-        if (thunkIsSet(thnk)) {
-          termPo vr = thunkVal(thnk);
-
-          check(vr != Null, "undefined thunk");
-
-          push(vr);     /* load a global variable */
-        } else {
-          normalPo lam = thunkLam(thnk);
-          labelPo oLbl = objLabel(termLbl(lam), 2); // 1 for the free vect and 1 for the thnk
-
-          if (oLbl == Null) {
-            logMsg(logFile, "label %s/%d not defined", labelName(termLbl(lam)), 2);
-            bail();
-          }
-
-          methodPo mtd = labelCode(oLbl);       /* set up for object call */
-
-          if (mtd == Null) {
-            logMsg(logFile, "no definition for %T", oLbl);
-            bail();
-          }
-
-          bumpCallCount(mtd);
-
-          push(nthElem(lam, 0));                     // Put the free term back on the stack
-
-          if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE)) {
-            int root = gcAddRoot(H, (ptrPo) &mtd);
-            stackGrow(stackDelta(mtd) + STACKFRAME_SIZE, codeArity(mtd));
-            gcReleaseRoot(H, root);
-          }
-
-          assert(isPcOfMtd(FP->prog, PC));
-          FP->pc = PC;
-          FP = pushFrame(STK, mtd, FP, SP);
-          PC = entryPoint(mtd);
-          LITS = codeLits(mtd);
-
-          incEntryCount(mtd);              // Increment number of times program called
-
-          integer lclCnt = lclCount(mtd);  /* How many locals do we have */
-          SP = (ptrPo) FP - lclCnt;
-#ifdef TRACEEXEC
-          for (integer ix = 0; ix < lclCnt; ix++)
-            SP[ix] = voidEnum;
-#endif
-        }
-
-        continue;
-      }
-
-      case ThSet: {
-        termPo val = pop();
-        thunkPo thnk = C_THUNK(pop());
-        setThunk(thnk, val);      // Update the thunk variable
         continue;
       }
 

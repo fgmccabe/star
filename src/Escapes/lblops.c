@@ -19,8 +19,8 @@ ReturnStatus g__definedLbl(heapPo h, termPo a1,termPo a2) {
 }
 
 static inline void push(processPo P, termPo t) {
-  taskPo stack = P->stk;
-  taskSanityCheck(P->stk);
+  stackPo stack = P->stk;
+  stackSanityCheck(P->stk);
   *--stack->sp = t;
 }
 
@@ -49,8 +49,8 @@ ReturnStatus g__callLbl(heapPo h, termPo a1, termPo a2, termPo a3) {
     } else {
       pushArgs(currentProcess, a2);
 
-      taskPo stk = currentProcess->stk;
-      pushFrame(stk,prog,stk->fp,stk->sp);
+      stackPo stk = currentProcess->stk;
+      stk->fp = pushFrame(stk, prog, stk->fp);
 
       integer lclCnt = lclCount(prog);  /* How many locals do we have */
       ptrPo sp = stk->sp -= lclCnt;
@@ -58,7 +58,7 @@ ReturnStatus g__callLbl(heapPo h, termPo a1, termPo a2, termPo a3) {
       for (integer ix = 0; ix < lclCnt; ix++)
         sp[ix] = voidEnum;
 #endif
-      assert(validStkPtr(stk, stk->sp));
+      assert(validStkValueLoc(stk, stk->sp));
 
       ret.ret = Switch;               // Special flag for dynamic call
       return ret;

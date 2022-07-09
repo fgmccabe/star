@@ -263,7 +263,7 @@ static retCode markProcess(processPo P, gcSupportPo G) {
 }
 
 void verifyProc(processPo P, heapPo H) {
-  verifyTask(P->stk, H);
+  verifyStack(P->stk, H);
 }
 
 void dumpGcStats() {

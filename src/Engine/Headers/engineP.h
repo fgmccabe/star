@@ -6,7 +6,7 @@
 #define STAR_ENGINEP_H
 
 #include "engine.h"
-#include "taskP.h"
+#include "stackP.h"
 #include "termP.h"
 #include "pkgP.h"
 #include "codeP.h"
@@ -18,7 +18,7 @@
 #include "capability.h"
 
 typedef struct processRec_ {
-  taskPo stk;        // Current stack
+  stackPo stk;        // Current stack
   heapPo heap;        // Local heap for this process
   pthread_t threadID;      /* What is the posix thread ID? */
   char wd[MAXFILELEN]; // Each thread may have its own working directory.

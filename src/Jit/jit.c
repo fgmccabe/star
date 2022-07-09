@@ -10,7 +10,7 @@
 #include "jitP.h"
 #include "jitOps.h"
 
-#include "task.h"
+#include "stack.h"
 
 integer jitThreshold = 1000;
 
@@ -47,7 +47,7 @@ retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
   return ret;
 }
 
-termPo invokeJitMethod(methodPo mtd, heapPo H, taskPo stk) {
+termPo invokeJitMethod(methodPo mtd, heapPo H, stackPo stk) {
   switch (codeArity(mtd)) {
     case 0:
       return codeJit(mtd)();

@@ -6,21 +6,9 @@
 #include "jitOps.h"
 #include "arm64.h"
 
-/* Lower Star VM code to X64 code */
+/* Lower Star VM code to Arm64 code */
 /*
- *  First four arguments passed in registers:
- *  A0 = X0
- *  A1 = X1
- *  A2 = X2
- *  A3 = X3
- *
- *  X4-X10 callee saved
- *  X11 = literals tuple
- *  X12 = FP
- *  SP = X13
- *  X14 (RL) is the link register
- *
- *  X0 is the return value
+
  */
 
 retCode jit_preamble(methodPo mtd, jitCompPo jitCtx) {
@@ -234,18 +222,6 @@ retCode jit_RetX(insPo code, integer *pc, jitCompPo jitCtx) {
 }
 
 retCode jit_RtG(insPo code, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}
-
-retCode jit_Thnk(insPo code, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}
-
-retCode jit_ThGet(insPo code, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}
-
-retCode jit_ThSet(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 

@@ -900,7 +900,7 @@ typeOfTask(Lc,A,Tp,Env,task(Lc,TskFun,Tp),Path) :-
   newTypeVar("SComm",SV),
   newTypeVar("RComm",RV),
   applyTypeFun(TskTp,[SV,RV],Lc,Env,TTp),
-  roundTuple(Lc,[name(Lc,"this"),name("first")],Args),
+  roundTuple(Lc,[name(Lc,"this"),name(Lc,"first")],Args),
   braceTuple(Lc,[A],AA),
   mkValof(Lc,AA,VlOf),
   mkEquation(Lc,Args,none,VlOf,Lam),
