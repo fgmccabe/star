@@ -1,8 +1,6 @@
 find_program(MAKEINFO makeinfo
         PATHS ${PATH} NODEFAULT)
-find_program(TEXIPDF texi2pdf
-        PATHS ${PATH} NODEFAULT)
-message("Makeinfo = ${MAKEINFO} $ENV{PATH}")
+#message("Makeinfo = ${MAKEINFO}")
 
 function(add_info nm)
     if (MAKEINFO)
@@ -18,30 +16,27 @@ function(add_info nm)
         endforeach ()
 
         add_custom_command(OUTPUT ${out_info}
-                COMMAND ${MAKEINFO} -o ${out_info} ${info_texi}
-                COMMENT "Creating Info file ${out_info}"
-                DEPENDS ${info_deps}
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                VERBATIM)
+          COMMENT "Creating Info file ${out_info}"
+	  COMMAND ${MAKEINFO} -o ${out_info} ${info_texi}
+	  DEPENDS ${info_deps}
+	  VERBATIM)
 
-        add_custom_target(${nm}.info ALL DEPENDS ${info_deps})
-
-        add_custom_command(OUTPUT ${out_html}
-                COMMAND ${MAKEINFO} --html --no-split -o ${out_html} ${info_texi}
-                DEPENDS ${info_deps}
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                COMMENT "Creating HTML file ${out_html}"
-                VERBATIM)
-
-        add_custom_target(${nm}.html ALL DEPENDS ${info_deps})
+        add_custom_target(${nm}.info ALL DEPENDS ${out_info})
 
         add_custom_command(OUTPUT ${out_pdf}
-                COMMAND ${MAKEINFO} --pdf -o ${out_pdf} ${info_texi}
-                DEPENDS ${info_deps}
-                COMMENT "Creating Pdf file ${out_pdf}"
-                VERBATIM)
+           COMMENT "Creating PDF file ${out_pdf}"
+	   COMMAND ${MAKEINFO} --pdf -o ${out_pdf} ${info_texi}
+	   DEPENDS ${info_deps}
+	   VERBATIM)
 
-        add_custom_target(${nm}.pdf ALL DEPENDS ${info_deps})
+        add_custom_target(${nm}.pdf ALL DEPENDS ${out_pdf})
 
+        add_custom_command(OUTPUT ${out_html}
+           COMMENT "Creating HTML file ${out_html}"
+	   COMMAND ${MAKEINFO} --html --no-split -o ${out_html} ${info_texi}
+	   DEPENDS ${info_deps}
+	   VERBATIM)
+
+        add_custom_target(${nm}.html ALL DEPENDS ${out_html})
     endif (MAKEINFO)
 endfunction(add_info)
