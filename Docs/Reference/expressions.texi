@@ -13,6 +13,8 @@ computational process of realizing the denoted value.
   | @refer{AlgebraicLiteral}
   | @refer{ApplicativeExpression}
   | @refer{CaseExpression}
+  | @refer{TryCatch}
+  | @refer{ThrowExpression}
   | @refer{ConditionalExpression}
   | @refer{Condition}
   | @refer{LetExpression}
@@ -556,15 +558,6 @@ P = someone@{ name="fred". age=32 @}
 
 then the expression @code{P.name} has value @code{"fred"}.
 
-@c @quotation Note
-@c The (@code{.}) access operator is also used in cases where an anonymous
-@c record is used; for example given the record: 
-@c @example
-@c R = @{ alpha = "a". beta=4 @}
-@c @end example
-@c then @code{R.alpha} has value @code{"a"}
-@c @end quotation
-
 @quotation Note
 The binding of the record access operator (@code{.}) is very strong. Thus,
 expressions such as @code{A.L[ix]} and @code{A.F(a,b*3)} are equivalent to
@@ -821,8 +814,11 @@ other expressions and actions.
 @float BNF,caseExpressionFig
 @caption{Case Expression}
 @display
-@anchored{CaseExpression} ::= @code{'case'}@refer{Expression} @code{'in @{'} @refer{Case}@code{'.'} @dots{} @code{'.'} @refer{Case}  @code{'@}'}
-@anchored{Case} ::= @refer{Pattern} @code{'=>'} @refer{Expression} |
+@anchored{CaseExpression} ::= @code{'case'}@refer{Expression} @code{'in'} @refer{CaseHandler}
+
+@anchored{CaseHandler} ::= @code{@{} @refer{CaseRule}@code{'.'} @dots{} @code{'.'} @refer{CaseRule}  @code{'@}'}
+
+@anchored{CaseRule} ::= @refer{Pattern} @code{'=>'} @refer{Expression} |
   @refer{Pattern} @code{default} @code{'=>'} @refer{Expression}
 @end display
 @end float
@@ -848,6 +844,74 @@ The cases of a case expression resemble syntactically the equations of
 a function definition. This is deliberate: a function definition
 expressed as equations is effectively a @code{case} expression.
 @end quotation
+
+@node Try Catch 
+@subsection Try Catch
+@cindex try catch 
+@findex try
+@findex catch
+
+The @refer{TryCatch} expression is used to denote an expression which may
+need to respond to exception situations. 
+
+@float BNF,tryCatchFig
+@caption{Try Catch}
+@display
+@anchored{TryCatch} ::= @code{'try'} @refer{Expression} @code{'catch'} @refer{CaseHandler}
+@end display
+@end float
+
+The type of any exception thrown within the body of the
+@code{try}@dots{}@code{catch} must be consistent with the handler. For
+example, in:
+@example
+try@{
+  throw 10
+@} catch @{
+  (E) => @{
+    E+10
+  @}
+@}
+@end example
+the type of @code{E} is @code{integer}; which is consistent with the expression
+@example
+throw 10
+@end example
+The value of this overall expression is @code{20}.
+
+@node Throw
+@subsection Throw
+@cindex throw
+
+@float BNF,throwFig
+@caption{Throw}
+@display
+@anchored{ThrowExpression} ::= @code{'throw'} @refer{Expression}
+@end display
+@end float
+
+When a @code{throw} expression is evaluated, its expression is
+evaluated and that value is raised as an exception. There must either
+be a @refer{TryCatch} form, a @refer{TryCatchAction} form in the
+enclosing lexical scope, or the function in which it occurs must have
+been declared as throwing a value of the appropriate type.
+
+@quotation Note
+The type of a @code{ThrowExpression} is unconstrained -- because its value is
+never consumed.
+@end quotation
+
+@quotation Note
+If evaluating the expression that denotes the exception to throw
+itself throws an exception, that is a fatal error and causes overall
+execution of the program to stop.
+@end quotation
+
+@quotation Note
+There is no automatic search for an handling form: every @code{throw}
+must be lexically accounted for.
+@end quotation
+
 
 @node Conditional Expression
 @subsection Conditional Expressions

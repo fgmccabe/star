@@ -303,8 +303,8 @@ until the test condition is satisfied.
 @cindex for action
 @findex for
 
-The @refer{ForAction} is used to denote an iterative computation that
-is governed by a @refer{Generator}.
+@c The @refer{ForAction} is used to denote an iterative computation that
+@c is governed by a @refer{Generator}.
 
 @float BNF,forActionFig
 @caption{For Action}
