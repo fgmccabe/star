@@ -15,17 +15,6 @@ found in Concurrent ML @cite{reppy:99}; which, in turn, have similar
 underpinnings as Hoare's Concurrent Sequential Processes
 @cite{hoare:85}.
 
-@node Accessing Concurrency Features
-@section Accessing Concurrency Features
-
-@quotation Note
-In order to access the concurrency features described in this chapter
-it is required to import the concurrency package:
-@example
-import star.concurrency.
-@end example
-@end quotation
-
 @node Tasks
 @section Tasks
 The foundation for concurrency is the @refer{TaskExpression}. A

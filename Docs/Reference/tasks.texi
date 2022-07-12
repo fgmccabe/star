@@ -224,5 +224,3 @@ which omits the identifier for the task being retired -- may be
 used. As with the @refer{SuspendAction} this is equivalent to using
 the @code{this} keyword to identify the retiring task.
 
-
-
