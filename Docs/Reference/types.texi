@@ -165,7 +165,8 @@ signals that the value is a function.
   | @refer{TupleType}
   | @refer{RecordType}
   | @refer{ReferenceType}
-  | @refer{FunctionType} | @refer{ConstructorType}
+  | @refer{FunctionType}
+  | @refer{ConstructorType}
   | @refer{ThrowsType}
   | @refer{QuantifiedType}
   | @refer{TypeConstraint} @code{|:} @refer{Type}
@@ -296,7 +297,7 @@ parameterized type.
 @anchor{algebraicInterface}
 
 Nominal types are associated with a @refer{RecordType} that denotes
-the @emph{interface} to the type.
+nthe @emph{interface} to the type.
 
 This interface contains all the fields that are defined in any of the
 @refer{RecordConstructor}s that are part of the
@@ -532,7 +533,7 @@ declares that @code{foo} is a function from @code{integer} to
 @code{string}.
 
 If such a function is used in an expression, then it must either be in
-the lexical context of a @refer{TryCatchAction}, @refer{TryCatch}
+the lexical context of a @refer{TryCatchAction}, @refer{TryCatchExpression}
 expression, or it must be within the definition of a function that is
 also declared to throw @code{string} exceptions.
 

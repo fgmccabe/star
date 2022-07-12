@@ -651,14 +651,13 @@ building up a key-value collection.
 @node The @code{iter} Contract
 @section The @code{iter} Contract
 
-The @code{iter} contract integrates with the @code{execution} contract
-to allow iteration over collections.
+The @code{iter} contract is an abstraction that represents iteration over collections.
 
 @float Program,iterContractProg
 @caption{The Standard @code{iter} Contract}
 @example
 public contract all s,t ~~ iter[s->>t] ::= @{
-  _iter:all x,m/1,e ~~ execution[m->>e] |: (s,m[x],(t,x)=>m[x]) => m[x]
+  _iter:all x,e ~~ (s,x,(t,x)=>x) => x
 @}
 @end example
 @end float
@@ -674,14 +673,14 @@ handled.
 @node The @code{indexed_iter} Contract
 @section The @code{indexed_iter} Contract
 
-The @code{indexed_iter} contract integrates with the @code{execution} contract
-to allow iteration over key-value collections.
+The @code{indexed_iter} is analogous to the @code{_iter} contract,
+oriented to iteration over key-value collections.
 
 @float Program,indexed_iterContractProg
 @caption{The Standard @code{indexed_iter} Contract}
 @example
 public contract all s,k,v ~~ indexed_iter[s->>k,v] ::= @{
-  _ix_iter:all x,m/1,e ~~ execution[m->>e] |: (s,m[x],(k,v,x)=>m[x]) => m[x]
+  _ix_iter:all x,e ~~ (s,x,(k,v,x)=>x) => x
 @}
 @end example
 @end float

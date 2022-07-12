@@ -13,7 +13,7 @@ computational process of realizing the denoted value.
   | @refer{AlgebraicLiteral}
   | @refer{ApplicativeExpression}
   | @refer{CaseExpression}
-  | @refer{TryCatch}
+  | @refer{TryCatchExpression}
   | @refer{ThrowExpression}
   | @refer{ConditionalExpression}
   | @refer{Condition}
@@ -851,13 +851,13 @@ expressed as equations is effectively a @code{case} expression.
 @findex try
 @findex catch
 
-The @refer{TryCatch} expression is used to denote an expression which may
+The @refer{TryCatchExpression} expression is used to denote an expression which may
 need to respond to exception situations. 
 
 @float BNF,tryCatchFig
 @caption{Try Catch}
 @display
-@anchored{TryCatch} ::= @code{'try'} @refer{Expression} @code{'catch'} @refer{CaseHandler}
+@anchored{TryCatchExpression} ::= @code{'try'} @refer{Expression} @code{'catch'} @refer{CaseHandler}
 @end display
 @end float
 
@@ -892,7 +892,7 @@ The value of this overall expression is @code{20}.
 
 When a @code{throw} expression is evaluated, its expression is
 evaluated and that value is raised as an exception. There must either
-be a @refer{TryCatch} form, a @refer{TryCatchAction} form in the
+be a @refer{TryCatchExpression} form, a @refer{TryCatchAction} form in the
 enclosing lexical scope, or the function in which it occurs must have
 been declared as throwing a value of the appropriate type.
 
