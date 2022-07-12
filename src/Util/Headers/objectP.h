@@ -25,6 +25,7 @@ typedef void (*objectProc)(objectPo o);
 typedef objectPo (*objectCreateProc)(classPo cl);
 typedef void (*objectClassProc)(classPo class);
 typedef void (*classInitProc)(classPo class,classPo request);
+typedef void (*classInheritProc)(classPo class,classPo request,classPo orig);
 typedef integer (*hashProc)(objectPo o);
 typedef logical (*equalityProc)(objectPo o,objectPo p);
 
@@ -41,6 +42,7 @@ typedef struct _class_ {
   classPo parent;                       /* parent class of this object */
   char *className;                      /* name of this class */
   classInitProc classInit;            /* procedure to initialize classes */
+  classInheritProc classInherit;        // Procedure to set up inheritance
   objectCreateProc create;              /* procedure to create an object */
   objectProc destroy;                   /* procedure to destroy an object */
   objectProc erase;                    /* procedure to remove object's memory */

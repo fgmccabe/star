@@ -29,6 +29,7 @@ WordBufferClassRec WordBufferClass = {
   {(classPo) &ObjectClass,                    /* parent class is object */
     "words",                         /* this is the word buffer class */
     initWordBufferClass,                      /* Buffer class initializer */
+    O_INHERIT_DEF,
     O_INHERIT_DEF,                        /* Buffer object element creation */
     wordBufferDestroy,                        /* Buffer objectdestruction */
     O_INHERIT_DEF,                        /* erasure */

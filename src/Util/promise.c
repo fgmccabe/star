@@ -14,6 +14,7 @@ PromiseClassRec PromiseClass = {
     (classPo) &LockedClass,               /* parent class is object */
     "promise",                            /* this is the promise class */
     initPromiseClass,                     /* Promise class initializer */
+    O_INHERIT_DEF,
     O_INHERIT_DEF,                        /* Promise object element creation */
     O_INHERIT_DEF,                        /* Promise objectdestruction */
     O_INHERIT_DEF,                        /* erasure */

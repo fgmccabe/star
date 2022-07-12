@@ -20,6 +20,7 @@
 // Implement the tree leaf class structure
 
 static void initLeafClass(classPo class, classPo request);
+static void inheritLeafClass(classPo class,classPo request,classPo orig);
 static void eraseLeaf(objectPo o);
 static void eraseNode(objectPo o);
 static void leafInit(objectPo o, va_list *args);
@@ -59,6 +60,7 @@ IxTreeClassRec TreeLeafClass = {
     (classPo) &ObjectClass,                 /* parent class is object */
     "leafTree",                             /* this is the tree leaf class */
     initLeafClass,                          /* tree leaf class init */
+    inheritLeafClass,                        // tree leaf inheritance rule
     O_INHERIT_DEF,                          /* Leaf object element creation */
     O_INHERIT_DEF,                          /* Leaf objectdestruction */
     eraseLeaf,                              /* erasure */
@@ -91,7 +93,8 @@ static void initLeafTree(void) {
 
 static void initLeafClass(classPo class, classPo request) {
   pthread_once(&ioOnce, initLeafTree);
-
+}
+void inheritLeafClass(classPo class,classPo request,classPo orig){
   IxTreeClassRec *req = (IxTreeClassRec *) request;
   IxTreeClassRec *template = (IxTreeClassRec *) class;
 
@@ -303,6 +306,7 @@ IxTreeClassRec TreeNodeClass = {
     (classPo) &ObjectClass,                 /* parent class is object */
     "nodeTree",                             /* this is the tree leaf class */
     O_INHERIT_DEF,                          /* tree leaf create */
+    O_INHERIT_DEF,
     O_INHERIT_DEF,                          /* Leaf object element creation */
     O_INHERIT_DEF,                          /* Leaf objectdestruction */
     eraseNode,                              /* erasure */

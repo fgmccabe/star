@@ -12,25 +12,16 @@
 #include <assert.h>
 
 static void initIoClass(classPo class, classPo request);
-
+static void inheritIOClass(classPo class, classPo request, classPo orig);
 static void ioClose(objectPo o);
-
 static void IoInit(objectPo o, va_list *args);
-
 static retCode nullInBytes(ioPo f, byte *ch, integer count, integer *actual);
-
-static retCode nullEnqueueRead(ioPo f, integer count, void *cl);
-
+static retCode nullEnqueueRead(ioPo f, integer count, ioCallBackProc cb, void *cl);
 static retCode nullOutBytes(ioPo f, byte *b, integer count, integer *actual);
-
 static retCode nullOutByte(ioPo f, byte b);
-
 static retCode nullEnqueueWrite(ioPo f, byte *buffer, integer count, void *cl);
-
 static retCode nullEof(ioPo f);
-
 static retCode nullFlusher(ioPo f, long count);
-
 static retCode nullClose(ioPo f);
 
 IoClassRec IoClass = {
@@ -38,6 +29,7 @@ IoClassRec IoClass = {
     (classPo) &LockedClass,                /* parent class is object */
     "io",                                 /* this is the io class */
     initIoClass,                          /* IO class initializer */
+    inheritIOClass,                     // Inherit from IO class
     O_INHERIT_DEF,                        /* IO object element creation */
     ioClose,                              /* IO objectdestruction */
     O_INHERIT_DEF,                        /* erasure */
@@ -73,7 +65,9 @@ static void initIoEtc(void) {
 
 static void initIoClass(classPo class, classPo request) {
   pthread_once(&ioOnce, initIoEtc);
+}
 
+void inheritIOClass(classPo class, classPo request, classPo orig) {
   IoClassRec *req = (IoClassRec *) request;
   IoClassRec *template = (IoClassRec *) class;
 
@@ -176,8 +170,8 @@ retCode inBytes(ioPo f, byte *ch, integer count, integer *actual) {
   return ret;
 }
 
-retCode enqueueRead(ioPo io, integer count, void *cl) {
-  return ((IoClassRec *) io->object.class)->ioPart.async_read(io, count, cl);
+retCode enqueueRead(ioPo io, integer count, ioCallBackProc cb, void *cl) {
+  return ((IoClassRec *) io->object.class)->ioPart.async_read(io, count, cb, cl);
 }
 
 retCode enqueueWrite(ioPo io, byte *buffer, integer count, void *cl) {
@@ -517,7 +511,7 @@ retCode nullInBytes(ioPo f, byte *ch, integer count, integer *actual) {
   return Error;
 }
 
-retCode nullEnqueueRead(ioPo f, integer count, void *cl) {
+retCode nullEnqueueRead(ioPo f, integer count, ioCallBackProc cb, void *cl) {
   return Error;
 }
 

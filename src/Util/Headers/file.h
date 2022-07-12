@@ -16,9 +16,13 @@
 #ifndef _IO_FILE_H_
 #define _IO_FILE_H_
 
+#include <aio.h>
+#include <stdarg.h>
 #include "config.h"
 #include "io.h"
 #include "unistr.h"
+#include "ioP.h"
+#include "signals.h"
 
 extern ioPo stdIn;    /* Standard input  */
 extern ioPo stdOut;    /* Standard output */
@@ -57,8 +61,7 @@ retCode configureIo(filePo f, ioConfigOpt mode);
 logical isFileBlocking(filePo f);
 logical isFileAsynch(filePo f);
 
-typedef retCode (*fileCallBackProc)(filePo f,void *cl);
-retCode configureForAsynch(filePo fl,fileCallBackProc cb,void *cl);
+retCode configureForAsynch(filePo fl, ioCallBackProc cb, void *cl);
 
 retCode fileSeek(filePo f, integer pos);
 
@@ -72,9 +75,11 @@ logical isOutReady(filePo f);
 retCode skipShellPreamble(filePo f);
 extern ioPo logFile;    /* The standard place to write logging msgs */
 
-extern char *
-resolveFileName(char *base, const char *path, integer pathLen, char *buff, integer buffLen);
-extern retCode resolvePath(char *root, integer rootLen, const char *fn, integer fnLen, char *buff, integer buffLen);
+char *resolveFileName(char *base, const char *path, integer pathLen, char *buff, integer buffLen);
+retCode resolvePath(char *root, integer rootLen, const char *fn, integer fnLen, char *buff, integer buffLen);
+
+retCode fileEnqueueRead(ioPo io, integer count, ioCallBackProc signaler, void *cl);
+retCode fileEnqueueWrite(ioPo io, byte *buffer, integer count, void *cl);
 
 #ifdef VERIFY_OBJECT
 #define O_FILE(c) ((filePo)(checkCast((c),ioClass)))

@@ -9,7 +9,7 @@ set(HEADER_FILES
         Headers/manifest.h Headers/manifestP.h Headers/pkg.h Headers/pkgP.h Headers/encoding.h
         ../Headers/signature.h
         Headers/formexts.h
-        Headers/signals.h
+        ../Util/Headers/signals.h
         ../Engine/Headers/engineOptions.h
         Headers/streamDecode.h
         Headers/streamDecodeP.h)
@@ -18,7 +18,6 @@ set(SOURCE_FILES ${HEADER_FILES} manifest.c
         pkg.c
         encode.c
         signature.c
-        signal.c
         streamDecode.c)
 
 add_library(infra ${SOURCE_FILES} ${HEADER_FILES})

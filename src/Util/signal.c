@@ -5,9 +5,7 @@
 #include <stdlib.h>
 #include "ooio.h"      /* Main header file */
 #include "starOptions.h"
-#include "engineOptions.h"
 #include "signals.h"
-#include "debugP.h"
 
 /* 
  * Signal handling functions
@@ -39,22 +37,12 @@ static void interruptMe(int ignored) /* This one is invoked when user presses ^C
   star_exit(EXIT_FAIL);    /* We just abort everything */
 }
 
-/* Handle suspension reasonably ... */
-static void sig_suspend(int sig) {
-  if (!interactive) {
-    reset_stdin();    /* Reset the standard input channel */
-    raise(SIGSTOP);             /* Actually suspend */
-    setup_stdin();              /* Put it back */
-  } else
-    raise(SIGSTOP);             /* Actually suspend */
-}
-
 void setupSimpleHandler(int signal, void (*handler)(int)) {
   struct sigaction sa;
   sa.sa_flags = SA_RESTART;
   sigemptyset(&sa.sa_mask);
   sa.sa_handler = handler;
-  if (sigaction(SIGQUIT, &sa, Null) == -1)
+  if (sigaction(signal, &sa, Null) == -1)
     star_exit(EXIT_FAIL);
 }
 
@@ -63,7 +51,7 @@ void setupIOHandler(int signal, void (*handler)(int, siginfo_t *, void *)) {
   sa.sa_flags = SA_RESTART | SA_SIGINFO;
   sigemptyset(&sa.sa_mask);
   sa.sa_sigaction = handler;
-  if (sigaction(SIGQUIT, &sa, Null) == -1)
+  if (sigaction(signal, &sa, Null) == -1)
     star_exit(EXIT_FAIL);
 }
 
@@ -72,7 +60,6 @@ void setupSignals() {
   setupSimpleHandler(SIGINT, interruptMe);
   setupSimpleHandler(SIGBUS, busErrorHandler);
   setupSimpleHandler(SIGSEGV, busErrorHandler);
-  setupSimpleHandler(SIGTSTP, sig_suspend);
 }
 
 sigset_t stopInterrupts(void)  /* stop control-C from generating a signal */

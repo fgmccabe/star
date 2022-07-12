@@ -42,6 +42,7 @@
 #endif
 
 static void initUDPClass(classPo class, classPo request);
+static void inheritUDPClass(classPo class, classPo request, classPo orig);
 static void UdpInit(objectPo o, va_list *args);
 static retCode udpReadyIn(udpPo f);
 static retCode udpReadyOut(udpPo f);
@@ -54,6 +55,7 @@ UdpClassRec UdpClass = {
     (classPo) &LockedClass,               /* parent class is locked object */
     "udp",                                /* this is the udp class */
     initUDPClass,                         /* UDP class initializer */
+    inheritUDPClass,
     O_INHERIT_DEF,                        /* UDP object element creation */
     O_INHERIT_DEF,                        /* UDP objectdestruction */
     O_INHERIT_DEF,                        /* erasure */
@@ -81,9 +83,11 @@ static void initMutexes(void) {
   initRecursiveMutex(&udpClass->mutex);
 }
 
-static void initUDPClass(classPo class, classPo request) {
+void initUDPClass(classPo class, classPo request) {
   pthread_once(&udpOnce, initMutexes);
+}
 
+void inheritUDPClass(classPo class, classPo request, classPo orig) {
   UdpClassRec *req = (UdpClassRec *) request;
   UdpClassRec *template = (UdpClassRec *) class;
 

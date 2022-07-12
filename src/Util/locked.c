@@ -28,6 +28,7 @@ LockClassRec LockedClass = {
     "locked",
     O_INHERIT_DEF,
     O_INHERIT_DEF,
+    O_INHERIT_DEF,
     lockedDestroy,
     O_INHERIT_DEF,
     lockedObjectInit,

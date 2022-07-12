@@ -31,6 +31,7 @@ HostClassRec HostClass = {
     (classPo) &ObjectClass,    /* parent is managed */
     "host",               /* This is the host class */
     initHostClass,        /* This is what we need to init class */
+    O_INHERIT_DEF,      // No special inheritance
     O_INHERIT_DEF,        /* host class object element creation */
     destroyHost,      /* host class object destruction */
     O_INHERIT_DEF,      /* nothing special for erasure */
