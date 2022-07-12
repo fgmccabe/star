@@ -13,6 +13,7 @@ IxClassRec IxClass = {
     "integer",
     O_INHERIT_DEF,
     O_INHERIT_DEF,
+    O_INHERIT_DEF,      // No special inheritance
     O_INHERIT_DEF,
     O_INHERIT_DEF,
     ixInit,

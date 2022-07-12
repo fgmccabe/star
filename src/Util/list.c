@@ -33,6 +33,7 @@ ConsClassRec ListClass = {
     O_INHERIT_DEF,
     O_INHERIT_DEF,
     O_INHERIT_DEF,
+    O_INHERIT_DEF,
     eraseList,
     listInit,
     sizeof(ConsRecord),

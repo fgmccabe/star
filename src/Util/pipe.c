@@ -35,6 +35,7 @@ PipeClassRec PipeClass = {
     (classPo) &FileClass,                  // parent class is file object
     "pipe",                               // this is the pipe class
     initPipeClass,                        // Pipe class initializer, phase I
+    O_INHERIT_DEF,
     O_INHERIT_DEF,                        // Pipe object element creation
     PipeDestroy,                          // Pipe object destruction
     O_INHERIT_DEF,                        // erasure
@@ -100,7 +101,7 @@ static void PipeDestroy(objectPo o) {
       p->pipe.prev->pipe.next = p->pipe.next;
 
       p->pipe.next = p->pipe.prev = NULL;
-      p->pipe.child = -1;        // we wont be the ones to kill the child off
+      p->pipe.child = -1;        // we won't be the ones to kill the child off
     }
     else {
       int stat;
@@ -171,6 +172,6 @@ retCode openPipe(char *exec, char **argv, char **envv, ioPo *inpipe, ioPo *outpi
       if (execve(exec, argv, envv) < 0)  // Execute the program
         perror("Problem in executing");
     }
-    return Ok;    // We wont get here
+    return Ok;    // We won't get here
   }
 }

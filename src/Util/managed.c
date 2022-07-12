@@ -26,6 +26,7 @@ ManagedClassRec ManagedClass = {
     (classPo)&LockedClass,                /* parent class is lockable */
     "managed",                            /* this is the managed class */
     initManagedClass,                     /* MANAGED class initializer */
+    O_INHERIT_DEF,
     O_INHERIT_DEF,                        /* MANAGED object element creation */
     unmanageObject,                       /* MANAGED objectdestruction */
     O_INHERIT_DEF,                        /* erasure */

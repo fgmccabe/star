@@ -6,6 +6,7 @@
 #include "config.h"    // Invoke configuration header
 #include "fileP.h"
 #include "editline.h"
+#include "io.h"
 
 #include <string.h>
 #include <assert.h>
@@ -33,15 +34,16 @@
 #define STD_PERMISSIONS (S_IRUSR|S_IRGRP|S_IROTH|S_IWUSR)
 #endif
 
-static void setupSignals();
-
 /* Set up the file class */
+
+static void ioSignalHandler(int signal, siginfo_t *si, void *cl);
 
 FileClassRec FileClass = {
   .objectPart={
     (classPo) &IoClass,                   // parent class is io object
     "file",                               // this is the file class
     initFileClass,                        // File class initializer, phase I
+    inheritFileClass,
     O_INHERIT_DEF,                        // File object element creation
     NULL,                                 // File objectdestruction
     O_INHERIT_DEF,                        // erasure
@@ -79,7 +81,10 @@ classPo fileClass = (classPo) &FileClass;
 
 void initFileClass(classPo class, classPo request) {
   assert(request->pool != NULL);
+  setupIOHandler(IO_SIGNAL, ioSignalHandler);
+}
 
+void inheritFileClass(classPo class, classPo request, classPo orig) {
   FileClassRec *req = (FileClassRec *) request;
   FileClassRec *template = (FileClassRec *) class;
 
@@ -100,6 +105,37 @@ void initFileClass(classPo class, classPo request) {
   if (req->filePart.outReady == O_INHERIT_DEF) {
     req->filePart.outReady = template->filePart.outReady;
   }
+
+  if (req->ioPart.read == O_INHERIT_DEF) {
+    req->ioPart.read = fileInBytes;
+  }
+
+  if (req->ioPart.async_read == O_INHERIT_DEF) {
+    req->ioPart.async_read = fileEnqueueRead;
+  }
+
+  if (req->ioPart.backByte == O_INHERIT_DEF) {
+    req->ioPart.backByte = fileBackByte;
+  }
+
+  if (req->ioPart.write == O_INHERIT_DEF) {
+    req->ioPart.write = fileOutBytes;
+  }
+
+  if (req->ioPart.async_write == O_INHERIT_DEF) {
+    req->ioPart.async_write = fileEnqueueWrite;
+  }
+  if (req->ioPart.isAtEof == O_INHERIT_DEF) {
+    req->ioPart.isAtEof = fileAtEof;
+  }
+
+  if (req->ioPart.flush == O_INHERIT_DEF) {
+    req->ioPart.flush = fileFlusher;
+  }
+
+  if (req->ioPart.close == O_INHERIT_DEF) {
+    req->ioPart.close = fileClose;
+  }
 }
 
 // IO initialization should already be done at this point
@@ -116,12 +152,12 @@ void FileInit(objectPo o, va_list *args) {
   f->io.mode = va_arg(*args, ioDirection);
 }
 
-retCode configureForAsynch(filePo fl, fileCallBackProc cb, void *cl) {
+retCode configureForAsynch(filePo fl, ioCallBackProc cb, void *cl) {
   retCode ret = configureIo(fl, enableAsynch);
   if (ret == Ok)
     ret = configureIo(fl, turnOffBlocking);
   if (ret == Ok) {
-    fl->file.ioReadyProc = cb;
+    fl->file.completionSignaler = cb;
     fl->file.ioReadClientData = cl;
   }
   return ret;
@@ -247,7 +283,18 @@ logical fileOutReady(filePo io) {
   }
 }
 
-retCode fileEnqueueRead(ioPo io, integer count, void *cl) {
+void ioSignalHandler(int signal, siginfo_t *si, void *cl) {
+  filePo f = O_FILE(cl);
+
+  if (si->si_code == SI_ASYNCIO) {
+    logMsg(logFile, "I/O Completion signal received for %s\n", fileName(O_IO(f)));
+    if (f->file.completionSignaler != Null) {
+      f->file.completionSignaler(O_IO(f), f->file.ioReadClientData);
+    }
+  }
+}
+
+retCode fileEnqueueRead(ioPo io, integer count, ioCallBackProc signaler, void *cl) {
   filePo f = O_FILE(io);
 
   if (f->file.ioReadClientData != Null)
@@ -255,9 +302,20 @@ retCode fileEnqueueRead(ioPo io, integer count, void *cl) {
   else if (f->file.in_pos + count > f->file.in_len)
     return Space;
   f->file.ioReadClientData = cl;
+  f->file.completionSignaler = signaler;
   memset(&f->file.aio, 0, sizeof(struct aiocb));
+  f->file.aio.aio_fildes = f->file.fno;
+  f->file.aio.aio_nbytes = count;
+  f->file.aio.aio_reqprio = 0;
+  f->file.aio.aio_offset = 0;
+  f->file.aio.aio_sigevent.sigev_notify = SIGEV_SIGNAL;
+  f->file.aio.aio_sigevent.sigev_signo = IO_SIGNAL;
+  f->file.aio.aio_sigevent.sigev_value.sival_ptr = f;
 
-  return Error;
+  int s = aio_read(&f->file.aio);
+  if (s == -1)
+    return Error;
+  return Ok;
 }
 
 retCode fileEnqueueWrite(ioPo f, byte *buffer, integer count, void *cl) {
@@ -486,7 +544,7 @@ retCode fileConfigure(filePo f, ioConfigOpt mode) {
         return ioErrorMsg(O_IO(f),"problem %s (%d) in configuring %s",strerror(errno),errno,fileName(f));
 #else
       if (fno > 2 && fcntl(fno, F_SETOWN, getpid()) < 0)
-        logMsg(logFile, "Warning: couldnt set ownership of fd %d", fno);
+        logMsg(logFile, "Warning: couldn't set ownership of fd %d", fno);
       flag |= O_ASYNC;
 #endif
       break;

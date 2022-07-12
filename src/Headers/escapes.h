@@ -14,6 +14,7 @@
 #define udpType "t'star.io*udpHandle'"
 #define optionType(T) "Uz1'star.core*option'" T
 #define taskType(S,R) "Uz2'star.core*task'" S R
+#define futureType(T) "Uz1'star.core*future'" T
 
 /* Define the standard escapes */
 escape(_exit, "F(i)()", "terminate engine")
@@ -155,6 +156,7 @@ escape(_inchars, "F("fileType"i)s", "read block string")
 escape(_inchar, "F("fileType")i", "read single character")
 escape(_inbyte, "F("fileType")i", "read single byte")
 escape(_inline, "F("fileType")s", "read a line")
+escape(_inline_async, "F("fileType")"futureType("s"), "async read of a line")
 escape(_intext, "F("fileType"s)s", "read until matching character")
 escape(_outchar, "F("fileType"i)"sysRet("s"), "write a single character")
 escape(_outbyte, "F("fileType"i)"sysRet("s"), "write a single byte")

@@ -50,6 +50,7 @@ FileClassRec SocketClass = {
     (classPo) &IoClass,                   /* parent class is io object */
     "socket",                  /* this is the socket class */
     initFileClass,                        /* File class initializer, phase I */
+    O_INHERIT_DEF,
     O_INHERIT_DEF,                        /* File object element creation */
     NULL,                                 /* File objectdestruction */
     O_INHERIT_DEF,                        /* erasure */

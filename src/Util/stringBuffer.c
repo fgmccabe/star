@@ -13,6 +13,7 @@
 /* Set up the buffer file class */
 
 static void initBufferClass(classPo class, classPo req);
+static void inheritBufferClass(classPo class,classPo req,classPo orig);
 
 static void BufferDestroy(objectPo o);
 
@@ -34,6 +35,7 @@ BufferClassRec StrBufferClass = {
   {(classPo) &IoClass,                    /* parent class is io object */
     "buffer",                             /* this is the buffer class */
     initBufferClass,                      /* Buffer class initializer */
+    O_INHERIT_DEF,
     O_INHERIT_DEF,                        /* Buffer object element creation */
     BufferDestroy,                        /* Buffer objectdestruction */
     O_INHERIT_DEF,                        /* erasure */
@@ -59,6 +61,35 @@ BufferClassRec StrBufferClass = {
 classPo strBufferClass = (classPo) &StrBufferClass;
 
 static void initBufferClass(classPo class, classPo req) {
+}
+
+void inheritBufferClass(classPo class,classPo request,classPo orig){
+  BufferClassRec *req = (BufferClassRec *) request;
+  BufferClassRec *template = (BufferClassRec *) class;
+
+  if (req->ioPart.read == O_INHERIT_DEF) {
+    req->ioPart.read = bufferInBytes;
+  }
+
+  if (req->ioPart.backByte == O_INHERIT_DEF) {
+    req->ioPart.backByte = bufferBackByte;
+  }
+
+  if (req->ioPart.write == O_INHERIT_DEF) {
+    req->ioPart.write = bufferOutBytes;
+  }
+
+  if (req->ioPart.isAtEof == O_INHERIT_DEF) {
+    req->ioPart.isAtEof = bufferAtEof;
+  }
+
+  if (req->ioPart.flush == O_INHERIT_DEF) {
+    req->ioPart.flush = bufferFlusher;
+  }
+
+  if (req->ioPart.close == O_INHERIT_DEF) {
+    req->ioPart.close = bufferClose;
+  }
 }
 
 // IO initialization should already be done at this point

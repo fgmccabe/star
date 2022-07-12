@@ -264,7 +264,6 @@ ReturnStatus g__shell(heapPo h, termPo a1, termPo a2, termPo a3) {
 
 ReturnStatus g__popen(heapPo h, termPo a1, termPo a2, termPo a3) {
   switchProcessState(currentProcess, wait_io);
-  switchProcessState(currentProcess, wait_io);
 
   char cmd[MAXFILELEN];
 

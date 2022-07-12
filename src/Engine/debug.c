@@ -49,7 +49,20 @@ logical showColors = True;        // True if we want to show colored output
 
 logical interactive = False;      /* interaction instruction tracing */
 
+
+/* Handle suspension reasonably ... */
+static void sig_suspend(int sig) {
+  if (!interactive) {
+    reset_stdin();    /* Reset the standard input channel */
+    raise(SIGSTOP);             /* Actually suspend */
+    setup_stdin();              /* Put it back */
+  } else
+    raise(SIGSTOP);             /* Actually suspend */
+}
+
 retCode setupDebugChannels() {
+  setupSimpleHandler(SIGTSTP, sig_suspend);
+
   if (debuggerPort > 0 && debugInChnnl == Null) {
     if (debuggerListener == Null) {
       debuggerListener = listeningPort("star-debug", debuggerPort);

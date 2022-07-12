@@ -33,6 +33,7 @@ ByteBufferClassRec ByteBufferClass = {
   {(classPo) &IoClass,                    /* parent class is io object */
     "bytes",                         /* this is the byte buffer class */
     initByteBufferClass,                      /* Buffer class initializer */
+    O_INHERIT_DEF,                    // No special inheritance
     O_INHERIT_DEF,                        /* Buffer object element creation */
     byteBufferDestroy,                        /* Buffer objectdestruction */
     O_INHERIT_DEF,                        /* erasure */

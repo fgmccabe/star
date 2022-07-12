@@ -35,7 +35,7 @@ ReturnStatus g_enqueue_read(heapPo h, termPo a1, termPo a2, termPo a3) {
   integer count = integerVal(a2);
   stackPo tskRef = C_TASK(a3);
 
-  retCode ret = enqueueRead(ioChannel(chnl), count, tskRef);
+  retCode ret = enqueueRead(ioChannel(chnl), count, Null, tskRef);
   ReturnStatus rt = {.ret=ret, .result=voidEnum};
   return rt;
 }
@@ -225,6 +225,43 @@ ReturnStatus g__inline(heapPo h, termPo a1) {
     return rt;
   }
 }
+
+ReturnStatus g__inline_async(heapPo h, termPo a1) {
+  ioPo io = ioChannel(C_IO(a1));
+  retCode ret = configureIo(O_FILE(io) , enableAsynch);
+
+
+  const char *match = "\n\r";
+  integer mlen = uniStrLen(match);
+
+  strBufferPo buffer = newStringBuffer();
+
+  while (ret == Ok) {
+    codePoint cp;
+    ret = inChar(io, &cp);
+    if (ret == Ok) {
+      if (uniIndexOf(match, mlen, 0, cp) >= 0) {
+        break;
+      } else
+        ret = outChar(O_IO(buffer), cp);
+    }
+  }
+
+  if (ret == Ok) {
+    integer length;
+    char *text = getTextFromBuffer(buffer, &length);
+
+    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(h, text, length)};
+    closeFile(O_IO(buffer));
+    return rt;
+  } else {
+    closeFile(O_IO(buffer));
+    ReturnStatus rt = {.ret=ret, .result=voidEnum};
+    return rt;
+  }
+}
+
+
 
 ReturnStatus g__get_file(heapPo h, termPo a1) {
   char fn[MAXFILELEN];

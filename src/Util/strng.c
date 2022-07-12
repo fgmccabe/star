@@ -18,6 +18,7 @@ StrgClassRec StrgClass = {
     "string",
     O_INHERIT_DEF,
     O_INHERIT_DEF,
+    O_INHERIT_DEF,
     strgDestroy,
     O_INHERIT_DEF,
     strgInit,

@@ -61,7 +61,8 @@ set(PUBLIC_HEADERS
         Headers/promise.h
         Headers/buddy.h
         Headers/base64.h
-        Headers/multi.h)
+        Headers/multi.h
+        Headers/signals.h)
 
 set(HEADER_FILES
         Headers/bcdP.h
@@ -93,7 +94,10 @@ set(HEADER_FILES
         Headers/promiseP.h
         Headers/buddyP.h
         Headers/multi.h
-        Headers/formatted.h Headers/multiP.h Headers/match.h Headers/microTaskP.h)
+        Headers/formatted.h
+        Headers/multiP.h
+        Headers/match.h
+        Headers/microTaskP.h)
 
 set(SOURCE_FILES
         arrays.c
@@ -122,6 +126,7 @@ set(SOURCE_FILES
         pipe.c
         pool.c
         promise.c
+        signal.c
         sockets.c
         byteBuffer.c
         wordBuffer.c

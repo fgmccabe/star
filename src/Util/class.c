@@ -11,66 +11,70 @@
 
 static classPo classToInit;
 
-static void revInit(classPo cl,classPo class)
-{
-  if(cl->parent!=NULL)
-    revInit(cl->parent,class);
+static void fwdInherit(classPo cl, classPo class, classPo orig) {
 
-  if(cl->classInit!=NULL&& cl->classInit!=O_INHERIT_DEF)
-    cl->classInit(cl,class);
+  if (cl->classInherit != NULL && cl->classInherit != O_INHERIT_DEF)
+    cl->classInherit(cl, class, orig);
+
+  if (cl->parent != NULL)
+    fwdInherit(cl->parent, class, orig);
 }
 
-static void initClass(void)
-{
-  revInit(classToInit,classToInit);
+static void revInit(classPo cl, classPo class) {
+  if (cl->parent != NULL)
+    revInit(cl->parent, class);
+
+  if (cl->classInit != NULL && cl->classInit != O_INHERIT_DEF)
+    cl->classInit(cl, class);
+}
+
+static void initClass(void) {
+  revInit(classToInit, classToInit);
+  fwdInherit(classToInit, classToInit, classToInit);
 }
 
 /* Initialize an object by calling all the initializers of its class */
-static void initObject(classPo class,objectPo o,va_list *args)
-{
-  if(class->parent!=NULL)
-    initObject(class->parent,o,args);
+static void initObject(classPo class, objectPo o, va_list *args) {
+  if (class->parent != NULL)
+    initObject(class->parent, o, args);
 
-  if(class->init!=NULL)
-    class->init(o,args);
+  if (class->init != NULL)
+    class->init(o, args);
 }
 
 /* Create a new object */
-objectPo newObject(classPo class,...)
-{
+objectPo newObject(classPo class, ...) {
   va_list args;
 
-  va_start(args,class);
+  va_start(args, class);
 
-  return makeObject(class,&args);
+  return makeObject(class, &args);
 }
 
-objectPo makeObject(classPo class,va_list *args)
-{
+objectPo makeObject(classPo class, va_list *args) {
   classToInit = class;
-  pthread_once(&class->inited,initClass);
+  pthread_once(&class->inited, initClass);
 
-  lockClass(class);			/* We sync access to the class */
+  lockClass(class);      /* We sync access to the class */
 
   {
     objectPo o = class->create(class);
 
-    unlockClass(class);			/* and release it after created */
+    unlockClass(class);      /* and release it after created */
 
-    initObject(class,o,args);
+    initObject(class, o, args);
 
     return o;
   }
 }
 
-void destroyObject(objectPo o)
-{
-  assert(o->refCount<=0);
+void destroyObject(objectPo o) {
+  assert(o->refCount <= 0);
 
   classPo class = o->class;
 
-  while(class!=NULL){
-    if(class->destroy!=NULL){
+  while (class != NULL) {
+    if (class->destroy != NULL) {
       lockClass(class);
       class->destroy(o);
       unlockClass(class);
@@ -79,9 +83,9 @@ void destroyObject(objectPo o)
   }
 
   class = o->class;
-  
-  while(class!=NULL){		/* we use the first erasure method we find */
-    if(class->erase!=NULL && class->erase!=O_INHERIT_DEF){
+
+  while (class != NULL) {    /* we use the first erasure method we find */
+    if (class->erase != NULL && class->erase != O_INHERIT_DEF) {
       lockClass(class);
       class->erase(o);
       unlockClass(class);
@@ -91,46 +95,39 @@ void destroyObject(objectPo o)
   }
 }
 
-char *nameOfClass(classPo class)
-{
+char *nameOfClass(classPo class) {
   return class->className;
 }
 
-classPo classOfObject(objectPo o)
-{
+classPo classOfObject(objectPo o) {
   return o->class;
 }
 
-logical isSubClass(classPo class,classPo parent)
-{
-  if(class==parent)
+logical isSubClass(classPo class, classPo parent) {
+  if (class == parent)
     return True;
-  else if(class->parent!=NULL)
-    return isSubClass(class->parent,parent);
+  else if (class->parent != NULL)
+    return isSubClass(class->parent, parent);
   else
     return False;
 }
 
-classPo parentClass(classPo class)
-{
+classPo parentClass(classPo class) {
   return class->parent;
 }
 
-logical objectHasClass(objectPo o, classPo parent)
-{
-  return isSubClass(o->class,parent);
+logical objectHasClass(objectPo o, classPo parent) {
+  return isSubClass(o->class, parent);
 }
 
-logical isObject(objectPo o)
-{
-  return isSubClass(o->class,objClass);
+logical isObject(objectPo o) {
+  return isSubClass(o->class, objClass);
 }
 
-objectPo checkCast(void *c,classPo class)
-{
-  objectPo o = (objectPo)c;
+objectPo checkCast(void *c, classPo class) {
+  objectPo o = (objectPo) c;
 
-  assert(isSubClass(o->class,class));
+  assert(isSubClass(o->class, class));
 
   return o;
 }

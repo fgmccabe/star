@@ -17,7 +17,7 @@ typedef retCode (*filterProc)(ioPo f, void *cl);
 typedef retCode (*flushProc)(ioPo f, long count);
 typedef retCode (*byteOutProc)(ioPo f, byte *cl, integer count, integer *actual);
 typedef retCode (*byteInProc)(ioPo f, byte *ch, integer count, integer *actual);
-typedef retCode (*asyncByteInProc)(ioPo f, integer count, void *cl);
+typedef retCode (*asyncByteInProc)(ioPo f, integer count, ioCallBackProc cb, void *cl);
 typedef retCode (*asyncByteOutProc)(ioPo f, byte *ch, integer count, void *cl);
 
 typedef struct {

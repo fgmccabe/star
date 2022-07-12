@@ -22,6 +22,7 @@
 /* Object base implementation class */
 
 static void objectClassInit(classPo class, classPo request);
+static void objectClassInherit(classPo class, classPo request, classPo orig);
 
 static objectPo objectCreate(classPo class);
 
@@ -39,6 +40,7 @@ ObjectClassRec ObjectClass = {
   NULL,                                 /* has no parent class */
   "object",
   objectClassInit,                      /* standard class initializer */
+  objectClassInherit,
   objectCreate,                         /* object creation */
   objectDestroy,                        /* object destruction */
   objectErase,                          /* object removal */
@@ -53,8 +55,13 @@ ObjectClassRec ObjectClass = {
 
 classPo objClass = &ObjectClass;
 
-static void objectClassInit(classPo class, classPo request) {
+void objectClassInit(classPo class, classPo request) {
   request->pool = newPool(request->size, 8);
+
+  initRecursiveMutex(&request->mutex);
+}
+
+void objectClassInherit(classPo class, classPo request, classPo orig) {
   if (request->create == O_INHERIT_DEF)
     request->create = class->create;
   if (request->destroy == O_INHERIT_DEF)
@@ -65,7 +72,6 @@ static void objectClassInit(classPo class, classPo request) {
     request->hashCode = class->hashCode;
   if (request->equality == O_INHERIT_DEF)
     request->equality = class->equality;
-  initRecursiveMutex(&request->mutex);
 }
 
 /* Generic object create function */
@@ -92,7 +98,7 @@ void decReference(objectPo o) {
 }
 
 void initRecursiveMutex(pthread_mutex_t *mutex) {
-  static  pthread_mutexattr_t attr;
+  static pthread_mutexattr_t attr;
 
   pthread_mutexattr_init(&attr);
   pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
