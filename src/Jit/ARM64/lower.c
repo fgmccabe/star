@@ -193,6 +193,10 @@ retCode jit_Rst(insPo code, integer *pc, jitCompPo jitCtx) {
   return Ok;
 }
 
+retCode jit_Rot(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
 retCode jit_Call(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
@@ -206,6 +210,10 @@ retCode jit_TCall(insPo code, integer *pc, jitCompPo jitCtx) {
 }
 
 retCode jit_TOCall(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_Locals(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 

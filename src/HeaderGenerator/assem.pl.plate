@@ -101,7 +101,7 @@ dispIns(Prog) :-
   showIns(Prog,O),
   displayln(O).
 
-showIns(func(Nm,H,Sig,Lx,Ins),sq([HH,ss(" "),NN,ss(":"),ss(Sig),nl(0),iv(nl(0),[sq([ss("locals "),ix(Lx)])|II])])) :-
+showIns(func(Nm,H,Sig,_Lx,Ins),sq([HH,ss(" "),NN,ss(":"),ss(Sig),nl(0),iv(nl(0),II)])) :-
   ssTrm(Nm,0,NN),
   showMnem(Ins,0,[],II),
   ssPolicy(H,HH),!.

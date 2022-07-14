@@ -43,6 +43,16 @@ static MethodRec underFlowMethod = {
   .code = {Underflow, 0}
 };
 
+static MethodRec newTaskMethod = {
+  .clss = Null,
+  .codeSize = 8,
+  .arity = 0,
+  .lclcnt = 0,
+  .pool = Null,
+  .locals = Null,
+  .code = {Rot, 0, 2, Rot, 0, 1, TOCall, 0, 3}
+};
+
 clssPo stackClass = (clssPo) &StackClass;
 
 static integer stackCount = 0;
@@ -56,6 +66,7 @@ static logical isAttachedStack(stackPo base, stackPo tgt);
 void initTasks() {
   StackClass.clss = specialClass;
   underFlowMethod.clss = methodClass;
+  newTaskMethod.clss = methodClass;
   integer regionSize = (1 << lg2(stackRegionSize));
 
 #ifdef TRACESTACK
@@ -151,19 +162,13 @@ void propagateHwm(stackPo tsk) {
 }
 
 framePo pushFrame(stackPo stk, methodPo mtd, framePo fp) {
-  integer lclCnt = lclCount(mtd);  /* How many locals do we have */
+  /* How many locals do we have */
 
   framePo f = fp + 1;
-  assert(f >= (framePo) (stk->stkMem) && ((ptrPo) (f + 1) < stk->sp - lclCnt));
+  assert(f >= (framePo) (stk->stkMem) && ((ptrPo) (f + 1) < stk->sp - lclCount(mtd)));
   f->prog = mtd;
   f->pc = entryPoint(mtd);
   f->csp = stk->sp;
-
-  ptrPo sp = (stk->sp) -= lclCnt;
-#ifdef TRACEEXEC
-  for (integer ix = 0; ix < lclCnt; ix++)
-    sp[ix] = voidEnum;
-#endif
 
   return f;
 }
@@ -364,7 +369,7 @@ showStackCall(ioPo out, integer displayDepth, logical showLocals, stackPo stk, f
       sep = ", ";
     }
     outMsg(out, ")\n");
-    if (showLocals) {
+    if (showLocals && sp < fp->csp) {
       integer lcls = lclCount(mtd);
       ptrPo lsp = fp->csp - lcls;
       for (integer vx = 0; sp < lsp; vx++, sp++) {
@@ -377,8 +382,6 @@ showStackCall(ioPo out, integer displayDepth, logical showLocals, stackPo stk, f
         ptrPo var = stackLcl(stk, fp, vx);
         if (*var != Null && *var != voidEnum)
           outMsg(out, "  L[%d] = %#,*T\n", vx, displayDepth, *var);
-        else
-          outMsg(out, "  L[%d] (unset)\n", vx);
       }
     }
   }
@@ -433,6 +436,20 @@ stackPo spinupStack(heapPo H, integer size) {
   assert(size >= minStackSize);
 
   return allocateStack(H, size, &underFlowMethod, suspended, Null);
+}
+
+stackPo newTask(processPo P, termPo lam) {
+  heapPo H = P->heap;
+  int root = gcAddRoot(H, (ptrPo) &lam);
+  stackPo child = spinupStack(H, minStackSize);
+  gcReleaseRoot(H, root);
+
+  child->fp = pushFrame(child, &newTaskMethod, child->fp);
+
+  pushStack(child, lam);
+  pushStack(child, (termPo) child);
+
+  return child;                                                 // We return the new stack
 }
 
 stackPo attachTask(stackPo tsk, stackPo top) {

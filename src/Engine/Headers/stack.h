@@ -29,6 +29,7 @@ stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, TaskState state
 TaskState stackState(stackPo tsk);
 retCode setTaskState(stackPo stk, TaskState state);
 
+stackPo newTask(processPo P, termPo lam);
 stackPo attachTask(stackPo stk, stackPo top);
 stackPo detachTask(stackPo base, stackPo top);
 stackPo dropStack(stackPo tsk);
@@ -36,7 +37,7 @@ stackPo dropStack(stackPo tsk);
 framePo currFrame(stackPo stk);
 framePo previousFrame(stackPo stk, framePo fp);
 framePo pushFrame(stackPo stk, methodPo mtd, framePo fp);
-integer frameNo(stackPo stk,framePo fp);
+integer frameNo(stackPo stk, framePo fp);
 
 termPo popStack(stackPo stk);
 termPo peekStack(stackPo stk, integer delta);

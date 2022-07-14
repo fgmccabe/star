@@ -84,8 +84,6 @@ retCode run(processPo P) {
 #ifdef TRACEEXEC
     pcCount++;        /* increment total number of executed */
 
-    assert(CSP == FP->csp && SP <= CSP- lclCount(FP->prog));
-
     if (insDebugging) {
       saveRegisters();
       insDebug(P);
@@ -150,19 +148,10 @@ retCode run(processPo P) {
           push(res);
         } else {
           bumpCallCount(mtd);
-          integer lclCnt = lclCount(mtd);  /* How many locals do we have */
-
           pushFrme(mtd);
           LITS = codeLits(mtd);
           incEntryCount(mtd);              // Increment number of times program called
-
-          SP -= lclCnt;
-#ifdef TRACEEXEC
-          for (integer ix = 0; ix < lclCnt; ix++)
-            SP[ix] = voidEnum;
-#endif
         }
-
         continue;
       }
 
@@ -198,16 +187,7 @@ retCode run(processPo P) {
         FP->pc = PC;
         pushFrme(mtd);
         LITS = codeLits(mtd);
-
         incEntryCount(mtd);              // Increment number of times program called
-
-        integer lclCnt = lclCount(mtd);  /* How many locals do we have */
-        SP -= lclCnt;
-#ifdef TRACEEXEC
-        for (integer ix = 0; ix < lclCnt; ix++)
-          SP[ix] = voidEnum;
-#endif
-
         continue;
       }
 
@@ -328,15 +308,6 @@ retCode run(processPo P) {
 
         incEntryCount(mtd);              // Increment number of times program called
         LITS = codeLits(mtd);
-        integer lclCnt = lclCount(mtd);  /* How many locals do we have */
-
-        SP -= lclCnt;                   // New top of stack
-
-#ifdef TRACEEXEC
-        for (integer ix = 0; ix < lclCnt; ix++)
-          SP[ix] = voidEnum;
-#endif
-
         continue;       /* Were done */
       }
 
@@ -393,17 +364,21 @@ retCode run(processPo P) {
 
         LITS = codeLits(mtd);
         incEntryCount(mtd);              // Increment number of times program called
-        integer lclCnt = lclCount(mtd);  /* How many locals do we have */
-
-        SP -= lclCnt;                   // New top of stack
-
-#ifdef TRACEEXEC
-        for (integer ix = 0; ix < lclCnt; ix++)
-          SP[ix] = voidEnum;
-#endif
-
         continue;       /* Were done */
       }
+
+      case Locals: {
+        int32 height = collectI32(PC);
+        assert(height >= 0);
+        CSP = FP->csp = SP;
+        SP -= height;
+#ifdef TRACEEXEC
+        for (integer ix = 0; ix < height; ix++)
+          SP[ix] = voidEnum;
+#endif
+        assert(SP == CSP - lclCount(FP->prog));
+        continue;
+      };
 
       case RtG: {
         H = processHeap(P);
@@ -447,9 +422,10 @@ retCode run(processPo P) {
         assert(validPC(FP->prog, PC));
         continue;
 
-      case Drop:
+      case Drop: {
         SP++;       /* drop tos */
         continue;
+      }
 
       case Dup: {        /* duplicate tos */
         termPo tos = *SP;
@@ -457,46 +433,34 @@ retCode run(processPo P) {
         continue;
       }
 
+      case Rot: {       // Pull up nth element of stack
+        integer cnt = collectI32(PC);
+        termPo tmp = SP[0];
+
+        for(integer ix=0;ix<cnt;ix++){
+          SP[ix] = SP[ix+1];
+        }
+        SP[cnt] = tmp;
+        continue;
+      }
+
       case Rst: {
         int32 height = collectI32(PC);
         assert(height >= 0);
-        SP = &FP->csp[-lclCount(FP->prog)-height];
+        SP = &FP->csp[-lclCount(FP->prog) - height];
         continue;
       }
 
       case Task: {
         // The top of a stack should be a binary lambda
-        normalPo obj = C_NORMAL(pop());
-        labelPo oLbl = objLabel(termLbl(obj),
-                                3); // Fixed arity. Arg0 = free vars, arg1 = task ref, arg2 is the first event
-
-        if (oLbl == Null) {
-          logMsg(logFile, "program %s/1 not defined", labelName(termLbl(obj)));
-          bail();
-        }
-
-        methodPo mtd = labelCode(oLbl);   // Which program do we want?
-
-        if (mtd == Null) {
-          logMsg(logFile, "program %s/2 not defined", labelName(termLbl(obj)));
-          bail();
-        }
-        bumpCallCount(mtd);
-
-        int root = gcAddRoot(H, (ptrPo) &mtd);
+        termPo tskLambda = pop();
         saveRegisters();
-        stackPo child = spinupStack(H, minStackSize);
+        stackPo child = newTask(P,tskLambda);
         restoreRegisters();
-        gcReleaseRoot(H, root);
-
-        pushStack(child, (termPo) child);
-        pushStack(child, nthElem(obj, 0));            // Put the free term on the new stack
-        child->fp = pushFrame(child, mtd, child->fp);
-
         push(child);                                                 // We return the new stack
-
         continue;
       }
+
       case Suspend: { // Suspend identified task.
         termPo event = pop();
         stackPo task = C_TASK(pop());
@@ -625,13 +589,6 @@ retCode run(processPo P) {
 
           LITS = codeLits(glbThnk);
           H = globalHeap;
-
-          integer lclCnt = lclCount(glbThnk);  /* How many locals do we have */
-          SP -= lclCnt;
-#ifdef TRACEEXEC
-          for (integer ix = 0; ix < lclCnt; ix++)
-            SP[ix] = voidEnum;
-#endif
         }
         continue;
       }

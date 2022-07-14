@@ -10,16 +10,25 @@ star.compiler.macro.rules{
   import star.compiler.macro.infra.
   import star.compiler.wff.
 
-  public applyRules:(ast,macroContext,macroState,reports) => result[reports,macroState].
+  public macroRule ~> (ast,macroContext) => macroState.
+
+  public macroState ::= .inactive | active(ast) .
+
+  public implementation display[macroState] => {
+    disp(.inactive) => "inactive".
+    disp(active(A)) => "active $(A)".
+  }
+
+  public applyRules:(ast,macroContext,macroState,reports) => macroState throws reports.
   applyRules(A,Cxt,St,Rp) where Rules^=macros[macroKey(A)] =>
     applyRls(A,Cxt,St,Rules,Rp).
-  applyRules(A,_,_,_) default => do{ valis .inactive }.
+  applyRules(A,_,_,_) default => .inactive.
 
   applyRls:(ast,macroContext,macroState,cons[(macroContext,macroRule)],reports) =>
-    result[reports,macroState].
-  applyRls(A,_,St,[],_) => do{ valis St}.
+    macroState throws reports.
+  applyRls(A,_,St,[],_) => St.
   applyRls(A,Cxt,St,[(Cxt,R),..Rls],Rp) => do{
-    Rslt <- R(A,Cxt,Rp);
+    Rslt .= R(A,Cxt,Rp);
     if .inactive.=Rslt then
       applyRls(A,Cxt,St,Rls,Rp)
     else
@@ -30,10 +39,8 @@ star.compiler.macro.rules{
   
   macros:map[string,cons[(macroContext,macroRule)]].
   macros = { "::=" -> [(.statement,algebraicMacro)],
-    ":=" -> [(.actn,spliceAssignMacro),
-      (.actn,indexAssignMacro)],
-    "[]" -> [(.pattern,squarePtnMacro),
-      (.expression,squareSequenceMacro)],
+    ":=" -> [(.actn,spliceAssignMacro), (.actn,indexAssignMacro)],
+    "[]" -> [(.pattern,squarePtnMacro), (.expression,squareSequenceMacro)],
     "$[]" -> [(.expression,indexMacro),(.expression,sliceMacro)],
     "<||>" -> [(.expression,quoteMacro)],
     "::" -> [(.expression,coercionMacro)],
@@ -42,64 +49,49 @@ star.compiler.macro.rules{
     "${}" -> [(.expression,comprehensionMacro),(.expression,mapLiteralMacro)],
     "{!!}" -> [(.expression,iotaComprehensionMacro)],
     "{??}" -> [(.expression,testComprehensionMacro)],
-    "do" -> [(.actn,forLoopMacro)],
-    "valof" -> [(.expression,valofMacro)],
-    "assert" -> [(.actn,assertMacro)],
-    "show" -> [(.actn,showMacro)],
-    "try" -> [(.actn,tryCatchMacro)],
     "__pkg__" -> [(.expression,pkgNameMacro)],
     "__loc__" -> [(.expression,locationMacro)],
     "-" -> [(.expression, uMinusMacro),(.pattern, uMinusMacro)],
     "^=" -> [(.expression, optionMatchMacro)],
     "^" -> [(.expression,unwrapMacro)],
---    "^?" -> [(.expression, optionPropagateMacro)],
     "!" -> [(.expression,binRefMacro)],
+    "do" -> [(.actn,forLoopMacro)],
     "contract" -> [(.statement,contractMacro)],
-    "implementation" -> [(.statement,implementationMacro)]
+    "implementation" -> [(.statement,implementationMacro)],
+    "assert" -> [(.actn,assertMacro)],
+    "show" -> [(.actn,showMacro)],
+    "task" -> [(.expression,taskMacro)],
+    "generator" -> [(.expression,generatorMacro)],
+    "yield" -> [(.actn,yieldMacro)]
   }.
 
-  -- Convert assert C to assrt(()=>C,"failed C",Loc)
-  assertMacro(A,.actn,Rp) where (Lc,C) ^= isIntegrity(A) => result{
-    Lam .= equation(Lc,tpl(Lc,"()",[]),C);
-    Assert .= ternary(Lc,"assrt",Lam,str(Lc,C::string),mkLoc(Lc));
+  -- Convert assert C to assrt(C,"failed C",Loc)
+  assertMacro(A,.actn,Rp) where (Lc,C) ^= isIntegrity(A) => valof{
+    Assert .= ternary(Lc,"assrt",C,str(Lc,C::string),mkLoc(Lc));
     valis active(Assert)
   }
 
-  -- Convert show E to shwMsg(()=>E,"E",Lc)
-  showMacro(A,.actn,Rp) where (Lc,E) ^= isShow(A) => result{
-    Lam .= equation(Lc,tpl(Lc,"()",[]),E);
-    Shw .= ternary(Lc,"shwMsg",Lam,str(Lc,A::string),mkLoc(Lc));
+  -- Convert show E to shwMsg(E,"E",Lc)
+  showMacro(A,.actn,Rp) where (Lc,E) ^= isShow(A) => valof{
+    Shw .= ternary(Lc,"shwMsg",E,str(Lc,A::string),mkLoc(Lc));
     valis active(Shw)
   }
 
   -- Convert A![X] to (A!)[X]
-  binRefMacro(A,.expression,Rp) where
-      (Lc,Lhs,Rhs) ^= isBinary(A,"!") &&
+  binRefMacro(A,.expression,Rp) where (Lc,Lhs,Rhs) ^= isBinary(A,"!") &&
       (LLc,[E]) ^= isSqTuple(Rhs) =>
-    ok(active(squareTerm(LLc,refCell(Lc,Lhs),[E]))).
-  binRefMacro(A,.expression,Rp)  where
-      (Lc,_,_) ^= isBinary(A,"!") =>
-    bad(reportError(Rp,"illegal use of !",Lc)).
-  binRefMacro(A,_,_) =>
-    ok(.inactive).
+    active(squareTerm(LLc,refCell(Lc,Lhs),[E])).
+  binRefMacro(A,.expression,Rp)  where (Lc,_,_) ^= isBinary(A,"!") => valof{
+    reportError("illegal use of !",Lc);
+    valis .inactive
+  }
+  binRefMacro(A,_,_) => .inactive.
 
   -- Convert P^=E to some(P).=E
-  optionMatchMacro(A,.expression,Rp) where
-      (Lc,L,R) ^= isOptionMatch(A) =>
-    ok(active(mkMatch(Lc,unary(Lc,"some",L),R))).
-  optionMatchMacro(_,_,_) default => ok(.inactive).
+  optionMatchMacro(A,.expression,Rp) where (Lc,L,R) ^= isOptionMatch(A) =>
+    active(mkMatch(Lc,unary(Lc,"some",L),R)).
+  optionMatchMacro(_,_,_) default => .inactive.
 
-  -- Convert L^?R to (some(X).=L ? some(R) || .none)
-/*
-  optionPropagateMacro(A,.expression,Rp) where
-      (Lc,L,R) ^= isOptionPropagate(A) => result{
-	X .= genName(Lc,"X");
-	valis active(mkConditional(Lc,mkMatch(Lc,unary(Lc,"some",X),L),
-	    unary(Lc,"some",R),
-	    enum(Lc,"none")))
-      }.
-  optionPropagateMacro(_,_,_) default => ok(.inactive).
-*/
   mkLoc(Lc) where locn(P,Line,Col,Off,Ln)^=Lc =>
     roundTerm(Lc,nme(Lc,"locn"),
       [str(Lc,P),int(Lc,Line),int(Lc,Col),int(Lc,Off),int(Lc,Ln)]).
@@ -107,34 +99,34 @@ star.compiler.macro.rules{
   -- Handle __loc__ macro symbol
   locationMacro(A,.expression,Rp) where
       (Lc,"__loc__") ^= isName(A) =>
-    ok(active(mkLoc(Lc))).
+    active(mkLoc(Lc)).
   
   -- Handle occurrences of __pkg__
   pkgNameMacro(A,.expression,Rp) where
       (Lc,"__pkg__") ^= isName(A) && locn(Pkg,_,_,_,_)^=Lc =>
-    ok(active(str(Lc,Pkg))).
+    active(str(Lc,Pkg)).
 
   -- Convert expression P^E to X where E ^= P(X)
   unwrapMacroA(A,.expression,Rp) where
-      (Lc,Lhs,Rhs) ^= isOptionPtn(A) && (LLc,Nm) ^= isName(Lhs) => result{
+      (Lc,Lhs,Rhs) ^= isOptionPtn(A) && (LLc,Nm) ^= isName(Lhs) => valof{
 	X .= genName(LLc,"X");
    	valis active(mkWhere(Lc,X,mkMatch(LLc,Rhs,unary(LLc,Nm,X))))
       }.
-  unwrapMacro(_,_,_) default => ok(.inactive).
+  unwrapMacro(_,_,_) default => .inactive.
 	
   -- Convert unary minus to a call to __minus
   uMinusMacro(A,_,Rp) where (Lc,R) ^= isUnary(A,"-") =>
     (int(_,Ix) .= R ?
-	ok(active(int(Lc,-Ix))) ||
+	active(int(Lc,-Ix)) ||
 	num(_,Dx) .= R ?
-	  ok(active(num(Lc,-Dx))) ||
-	  ok(active(unary(Lc,"__minus",R)))).
-  uMinusMacro(_,_,_) => ok(.inactive).
+	  active(num(Lc,-Dx)) ||
+	  active(unary(Lc,"__minus",R))).
+  uMinusMacro(_,_,_) => .inactive.
 
   -- Convert [P,...P] to _hdtl etc.
   squarePtnMacro(A,.pattern,Rp) where (Lc,Els) ^= isSqTuple(A) =>
-    ok(active(macroListEntries(Lc,Els,genEofTest,genHedTest))).
-  squarePtnMacro(_,_,_) => ok(.inactive).
+    active(macroListEntries(Lc,Els,genEofTest,genHedTest)).
+  squarePtnMacro(_,_,_) => .inactive.
 
   macroListEntries:(option[locn],cons[ast],(option[locn])=>ast,(option[locn],ast,ast)=>ast) => ast.
   macroListEntries(Lc,[],End,_) => End(Lc).
@@ -148,52 +140,49 @@ star.compiler.macro.rules{
 
   squareSequenceMacro(A,.expression,Rp) where
       (Lc,Els) ^= isSqTuple(A) =>
-    ok(active(macroListEntries(Lc,Els,genNil,genCons))).
-  squareSequenceMacro(_,_,_) => ok(.inactive).
+    active(macroListEntries(Lc,Els,genNil,genCons)).
+  squareSequenceMacro(_,_,_) => .inactive.
 
   genNil(Lc) => nme(Lc,"_nil").
   genCons(Lc,H,T) => binary(Lc,"_cons",H,T).
 
   mapLiteralMacro(A,.expression,Rp) where
-      (Lc,Els) ^= isMapLiteral(A) => do{
-	valis active(macroListEntries(Lc,Els,genEmpty,genPut))
-      }.
-  mapLiteralMacro(_,_,_) default => ok(.inactive).
+      (Lc,Els) ^= isMapLiteral(A) => active(macroListEntries(Lc,Els,genEmpty,genPut)).
+  mapLiteralMacro(_,_,_) default => .inactive.
 
   genEmpty(Lc) => nme(Lc,"_empty").
   genPut(Lc,H,T) where (_,L,R) ^= isPair(H) => ternary(Lc,"_put",T,L,R).
 
-  comprehensionMacro(A,.expression,Rp) where (Lc,B,C) ^= isComprehension(A) => do{
-    Q <- makeComprehension(Lc,B,C,Rp);
+  comprehensionMacro(A,.expression,Rp) where (Lc,B,C) ^= isComprehension(A) => valof{
+    Q .= makeComprehension(Lc,B,C,Rp);
     valis active(Q)
   }
-  comprehensionMacro(_,_,_) => ok(.inactive).
+  comprehensionMacro(_,_,_) => .inactive.
 
   -- Convert {! Bnd | Body !}
   iotaComprehensionMacro(A,.expression,Rp) where
-      (Lc,Bnd,Body) ^= isIotaComprehension(A) => do{
-	CC <- makeCondition(Body,passThru,
+      (Lc,Bnd,Body) ^= isIotaComprehension(A) => valof{
+	CC .= makeCondition(Body,passThru,
 	  genResult(unary(Lc,"some",Bnd)),
 	  lyfted(enum(Lc,"none")),Rp);
 	valis active(CC)
       }.
-  iotaComprehensionMacro(_,_,_) => ok(.inactive).
+  iotaComprehensionMacro(_,_,_) default => .inactive.
 
   -- Convert {? Cond ?}
   testComprehensionMacro(A,.expression,Rp) where
-      (Lc,Cond) ^= isTestComprehension(A) => do{
-	CC <- makeCondition(Cond,passThru,
+      (Lc,Cond) ^= isTestComprehension(A) => valof{
+	CC .= makeCondition(Cond,passThru,
 	  genResult(enum(Lc,"true")),
 	  lyfted(enum(Lc,"false")),Rp);
 	valis active(CC)
       }
-  testComprehensionMacro(_,_,_) => ok(.inactive).
+  testComprehensionMacro(_,_,_) => .inactive.
 	
-  makeComprehension:(option[locn],ast,ast,reports) => result[reports,ast].
-  makeComprehension(Lc,Bnd,Cond,Rp) => do{
+  makeComprehension:(option[locn],ast,ast,reports) => ast throws reports.
+  makeComprehension(Lc,Bnd,Cond,Rp) => 
     makeCondition(Cond,passThru,(St)=>consResult(Lc,Bnd,St),
-      grounded(nme(Lc,"_nil")),Rp)
-  }
+      grounded(nme(Lc,"_nil")),Rp).
 
   -- Condition processing
 
@@ -222,7 +211,7 @@ star.compiler.macro.rules{
   */
   makeCondition:(ast,(lyfted[ast])=>ast,
     (lyfted[ast])=>ast,
-    lyfted[ast],reports) => result[reports,ast].
+    lyfted[ast],reports) => ast throws reports.
   makeCondition(A,Lift,Succ,Zed,Rp) where (Lc,Ptn,Src) ^= isSearch(A) => do{
     sF .= genName(Lc,"sF");
     St .= genName(Lc,"St");

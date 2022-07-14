@@ -417,6 +417,21 @@ static DebugWaitFor dbgShowCall(char *line, processPo p, termPo loc, void *cl) {
   return moreDebug;
 }
 
+static DebugWaitFor dbgShowArg(char *line, processPo p, termPo loc, void *cl) {
+  integer argNo = cmdCount(line, 0);
+  stackPo stk = p->stk;
+  framePo fp = stk->fp;
+  methodPo mtd = fp->prog;
+
+  if (argNo >= 0 && argNo < argCount(mtd))
+    showArg(debugOutChnnl, stk, argNo);
+  else
+    outMsg(debugOutChnnl, "invalid argument: %d", argNo);
+
+  resetDeflt("n");
+  return moreDebug;
+}
+
 static DebugWaitFor dbgShowLocal(char *line, processPo p, termPo loc, void *cl) {
   integer lclNo = cmdCount(line, 0);
   stackPo stk = p->stk;
@@ -433,6 +448,7 @@ static DebugWaitFor dbgShowLocal(char *line, processPo p, termPo loc, void *cl) 
   resetDeflt("n");
   return moreDebug;
 }
+
 
 static DebugWaitFor dbgShowGlobal(char *line, processPo p, termPo loc, void *cl) {
   char buff[MAX_SYMB_LEN];
@@ -715,6 +731,7 @@ DebugWaitFor insDebug(processPo p) {
       {.c = 'c', .cmd=dbgCont, .usage="c continue"},
       {.c = 'u', .cmd=dbgUntilRet, .usage="u <count> until next <count> returns"},
       {.c = 'r', .cmd=dbgShowRegisters, .usage="r show registers"},
+      {.c = 'a', .cmd=dbgShowArg, .usage="a show argument variable"},
       {.c = 'l', .cmd=dbgShowLocal, .usage="l show local variable"},
       {.c = 'C', .cmd=dbgShowCall, .usage="C show current call"},
       {.c = 's', .cmd=dbgShowStack, .usage="s show stack"},
@@ -1034,6 +1051,7 @@ DebugWaitFor lnDebug(processPo p, termPo arg, showCmd show) {
     {.c = 'S', .cmd=dbgStackTrace, .usage="S show entire stack"},
     {.c = 'D', .cmd=dbgDropFrame, .usage="D <count> drop stack frame(s)"},
     {.c = 'g', .cmd=dbgShowGlobal, .usage="g <var> show global var"},
+    {.c = 'a', .cmd=dbgShowArg, .usage="a show argument variable"},
     {.c = 'l', .cmd=dbgShowLocal, .usage="l show local variable"},
     {.c = 'i', .cmd=dbgShowCode, .usage="i show instructions"},
     {.c = 'd', .cmd=dbgSetDepth, .usage="d <dpth> set display depth"},

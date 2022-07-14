@@ -8,8 +8,8 @@ star.compiler.lexer{
   import star.pkg.
 
   -- The Star compiler lexer
-  public allTokens:(tokenState) => (cons[token],reports).
-  allTokens(St) where (Stx,Toks) .= allTks(St) => (Toks,stateReport(Stx)).
+  public allTokens:(tokenState) => cons[token].
+  allTokens(St) where (Stx,Toks) .= allTks(St) => Toks.
 
   allTks:(tokenState)=>(tokenState,cons[token]).
   allTks(St) => let{.
@@ -17,13 +17,8 @@ star.compiler.lexer{
     allToks(Strm,SoFr) default => (Strm,reverse([endTok(makeLoc(Strm,Strm)),..SoFr])).
   .} in allToks(St,[]).
   
-  public initSt:(locn,cons[char],reports)=>tokenState.
-  initSt(locn(P,Line,Col,Start,_),Txt,Rp) => tokenState(P,Line,Col,Start,Txt,Rp).
-
-  lexerr(tokenState(P,Line,Col,Start,Txt,Rp),Msg,Lc) =>
-    tokenState(P,Line,Col,Start,Txt,reportError(Rp,Msg,Lc)).
-
-  stateReport(tokenState(_P,_Line,_Col,_Start,_Txt,Rp))=>Rp.
+  public initSt:(locn,cons[char])=>tokenState.
+  initSt(locn(P,Line,Col,Start,_),Txt) => tokenState(P,Line,Col,Start,Txt).
 
   public nextToken:(tokenState) => (tokenState,option[token]).
   nextToken(St) => nxTok(skipToNx(St)).
@@ -74,8 +69,10 @@ star.compiler.lexer{
     finalist(_,_,Deflt) => Deflt.
   .} in graphFollow(St,Ld,finalist(Ld,St,(St,.none))).
   nxxTok(Chr,St,St0) where isIdentifierStart(Chr) => readIden(St,St0,[Chr]).
-  nxxTok(Chr,St,St0) default =>
-    nextToken(lexerr(St0,"illegal char in token: '$(Chr):c;'",some(makeLoc(St,St0)))).
+  nxxTok(Chr,St,St0) default => valof{
+    reportError("illegal char in token: '$(Chr):c;'",some(makeLoc(St,St0)));
+    valis nextToken(St0)
+  }.
 
   isIdentifierStart(Ch) => (Ch==`_` || isLetter(Ch)).
 
@@ -115,14 +112,14 @@ star.compiler.lexer{
     (St2,some(Inter)) .= bracketCount(St,St1,Chr,[],[]) &&
     (St3,some(Format)) .= readFormat(St2) &&
     (St4,IToks) .= allTks(interSt(St2,Inter)) =>
-   (mergeReports(St3,St4),some(interpolate(makeLoc(St,St3),IToks,Format))).
+   (St3,some(interpolate(makeLoc(St,St3),IToks,Format))).
 
   evaluation:(tokenState) => (tokenState,option[stringSegment]).
   evaluation(St) where
     (St1,some(Chr)) .= nextChr(St) &&
     (St2,some(Inter)) .= bracketCount(St,St1,Chr,[],[]) &&
     (St3,IToks) .= allTks(interSt(St2,Inter)) =>
-  (mergeReports(St2,St3),some(evaluate(makeLoc(St,St2),IToks))).
+  (St2,some(evaluate(makeLoc(St,St2),IToks))).
 
   bracketCount:(tokenState,tokenState,char,cons[char],cons[char]) => (tokenState,option[string]).
   bracketCount(_,St1,Cl,[Cl],Chrs) => (St1,some(reverse([Cl,..Chrs])::string)).
@@ -202,32 +199,30 @@ star.compiler.lexer{
   readExponent(St,St0,Mn) => (St,some(tok(makeLoc(St0,St),fltTok(Mn)))).
 
   -- We define a tracking state to allow us to collect locations
-  public tokenState ::= tokenState(string,integer,integer,integer,cons[char],reports).
+  public tokenState ::= tokenState(string,integer,integer,integer,cons[char]).
 
   atEof:(tokenState) => boolean.
-  atEof(tokenState(_,_,_,_,Str,_)) => _eof(Str).
+  atEof(tokenState(_,_,_,_,Str)) => _eof(Str).
 
   nextChr:(tokenState) => (tokenState,option[char]).
-  nextChr(St) where tokenState(_,_,_,_,cons(Ch,_),_).=St  => (nxtSt(St),some(Ch)).
+  nextChr(St) where tokenState(_,_,_,_,cons(Ch,_)).=St  => (nxtSt(St),some(Ch)).
   nextChr(St) default => (St,.none).
 
   hedChar:(tokenState) => option[char].
-  hedChar(tokenState(_,_,_,_,Txt,_)) => head(Txt).
+  hedChar(tokenState(_,_,_,_,Txt)) => head(Txt).
 
   preChar:(tokenState,char) => tokenState.
-  preChar(tokenState(Pkg,Line,Col,Off,Txt,Rp),Chr) =>
-    tokenState(Pkg,Line,Col-1,Off-1,[Chr,..Txt],Rp).
+  preChar(tokenState(Pkg,Line,Col,Off,Txt),Chr) =>
+    tokenState(Pkg,Line,Col-1,Off-1,[Chr,..Txt]).
 
   interSt:(tokenState,string) => tokenState.
-  interSt(tokenState(P,Ln,Cl,Off,_,Rp),Txt) => tokenState(P,Ln,Cl,Off,Txt::cons[char],Rp).
-
-  mergeReports(tokenState(P,Ln,Cl,Off,Txt,_),tokenState(_,_,_,_,_,Rp)) => tokenState(P,Ln,Cl,Off,Txt,Rp).
+  interSt(tokenState(P,Ln,Cl,Off,_),Txt) => tokenState(P,Ln,Cl,Off,Txt::cons[char]).
 
   nxtSt:(tokenState) => tokenState.
-  nxtSt(tokenState(Pk,Line,Col,Off,cons(`\n`,Txt),Rp)) =>
-    tokenState(Pk,Line+1,1,Off+1,Txt,Rp).
-  nxtSt(tokenState(Pk,Line,Col,Off,cons(_,Txt),Rp)) =>
-    tokenState(Pk,Line,Col+1,Off+1,Txt,Rp).
+  nxtSt(tokenState(Pk,Line,Col,Off,cons(`\n`,Txt))) =>
+    tokenState(Pk,Line+1,1,Off+1,Txt).
+  nxtSt(tokenState(Pk,Line,Col,Off,cons(_,Txt))) =>
+    tokenState(Pk,Line,Col+1,Off+1,Txt).
 
   lookingAt:(tokenState,cons[char]) => option[tokenState].
   lookingAt(St,[]) => some(St).
@@ -235,7 +230,7 @@ star.compiler.lexer{
   lookingAt(_,_) default => .none.
 
   makeLoc:(tokenState,tokenState)=>locn.
-  makeLoc(tokenState(Pk,Line,Col,Start,_,_),tokenState(_,_,_,End,_,_)) =>
+  makeLoc(tokenState(Pk,Line,Col,Start,_),tokenState(_,_,_,End,_)) =>
     locn(Pk,Line,Col,Start,End-Start).
 
   skipToNx:(tokenState) => tokenState.
@@ -257,10 +252,10 @@ star.compiler.lexer{
   isNonPrint(Ch) => (_isZlChar(Ch) || _isZsChar(Ch) || _isZpChar(Ch) || _isCcChar(Ch)).
 
   public implementation display[tokenState] => {
-    disp(tokenState(Pk,Line,Col,Off,_,_)) => disp(locn(Pk,Line,Col,Off,0)).
+    disp(tokenState(Pk,Line,Col,Off,_)) => disp(locn(Pk,Line,Col,Off,0)).
   }
 
   public implementation hasLoc[tokenState] => {
-    locOf(tokenState(Pkg,Line,Col,Start,_,_)) => some(locn(Pkg,Line,Col,Start,0)).
+    locOf(tokenState(Pkg,Line,Col,Start,_)) => some(locn(Pkg,Line,Col,Start,0)).
   }
 }
