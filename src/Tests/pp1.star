@@ -6,14 +6,17 @@ test.pp1{
   readFromPipe(Cmd,Args) => valof{
     (StdIn,StdOut,StdErr) .= _popen(Cmd,Args,[]);
 
-    Data .= ref [];
+    valis readLines(StdOut)
+  }
 
-    while ~ _end_of_file(StdOut) do{
-      Seg .= _inline(StdOut);
-      Data := [Seg,..Data!]
-    };
-
-    valis reverse(Data!)
+  readLines(Fl) => valof{
+    if _end_of_file(Fl) then
+      valis []
+    else{
+      Ln.=_inline(Fl);
+      Rst .= readLines(Fl);
+      valis [Ln,..Rst]
+    }
   }
 
   readSomething()=>valof{

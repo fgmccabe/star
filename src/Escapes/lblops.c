@@ -53,11 +53,6 @@ ReturnStatus g__callLbl(heapPo h, termPo a1, termPo a2, termPo a3) {
       stk->fp = pushFrame(stk, prog, stk->fp);
 
       integer lclCnt = lclCount(prog);  /* How many locals do we have */
-      ptrPo sp = stk->sp -= lclCnt;
-#ifdef TRACEEXEC
-      for (integer ix = 0; ix < lclCnt; ix++)
-        sp[ix] = voidEnum;
-#endif
       assert(validStkValueLoc(stk, stk->sp));
 
       ret.ret = Switch;               // Special flag for dynamic call

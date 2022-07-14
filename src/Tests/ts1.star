@@ -11,7 +11,7 @@ test.ts1{
   consIter(.nil,X,_) => X.
   consIter(cons(H,T),X,F) => consIter(T,F(X,H),F).
 
-  iterGen:all e ~~ (cons[e]) => task[scomm[e],rcomm].
+  iterGen:all e ~~ (cons[e]) => task[rcomm,scomm[e]].
   iterGen(L) => task{
     let{
       yildFn:((),e)=>().
@@ -22,7 +22,7 @@ test.ts1{
 	}
       }
     } in {_ .= consIter(L,(),yildFn)};
-    retire .end
+    valis .end
   }
 
   evens:(cons[integer]) => integer.
@@ -47,7 +47,7 @@ test.ts1{
     }
   }
 
-  iterTask:all c,e ~~ iter[c->>e] |: (c) => task[scomm[e],rcomm].
+  iterTask:all c,e ~~ iter[c->>e] |: (c) => task[rcomm,scomm[e]].
   iterTask(L) => task{
     let{
       yildFn(E,Cx) => valof{
@@ -56,7 +56,7 @@ test.ts1{
 	}
       }
     } in {_ .= _iter(L,(),yildFn)};
-    retire .end
+    valis .end
   }
 
   odds:(cons[integer]) => ().

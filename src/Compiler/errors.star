@@ -2,40 +2,50 @@ star.compiler.errors{
   import star.
   import star.compiler.location.
 
-  public reportMsg ::= errorMsg(option[locn],string)
-                       | warnMsg(option[locn],string).
+  reportMsg ::= errorMsg(option[locn],string)
+    | warnMsg(option[locn],string).
 
-  public reports ::= reports(cons[reportMsg]).
-
-  public implementation display[reports] => {
-    disp(reports(M)) => "#(interleave(M//disp,"\n")*)\n$(countErrors(M)) errors\n$(countWarnings(M)) warnings".
-  }
-
-  public implementation display[reportMsg] => {
+  implementation display[reportMsg] => {
     disp(errorMsg(.none,Msg)) => "error #(Msg)".
     disp(errorMsg(some(Lc),Msg)) => "error #(Msg) at $(Lc)".
     disp(warnMsg(.none,Msg)) => "warning #(Msg)".
     disp(warnMsg(some(Lc),Msg)) => "warning #(Msg) at $(Lc)".
   }
 
-  public errorFree:(reports)=>boolean.
-  errorFree(reports(Ms)) => countErrors(Ms)==0.
+  public displayErrorsAndWarnings() => "#(interleave(reports!//disp,"\n")*)\n$(countErrors()) errors\n$(countWarnings()) warnings".
 
-  public countErrors:(cons[reportMsg])=>integer.
-  countErrors(Ms) => foldLeft(countError,0,Ms).
+  reports:ref cons[reportMsg].
+  reports = ref [].
+
+  public resetErrors() => valof{
+    reports := [];
+    valis ()
+  }
+
+  public errorFree:()=>boolean.
+  errorFree() => countErrors()==0.
+
+  public countErrors:()=>integer.
+  countErrors() => foldLeft(countError,0,reports!).
 
   countError(errorMsg(_,_),Ix)=>Ix+1.
   countError(_,Ix) default => Ix.
 
-  public countWarnings:(cons[reportMsg])=>integer.
-  countWarnings(Ms) => foldLeft(countWarning,0,Ms).
+  public countWarnings:()=>integer.
+  countWarnings() => foldLeft(countWarning,0,reports!).
 
   countWarning(warnMsg(_,_),Ix)=>Ix+1.
   countWarning(_,Ix) default => Ix.
 
-  public reportError:(reports,string,option[locn]) => reports.
-  reportError(reports(Ms),Msg,Lc) => reports([errorMsg(Lc,Msg),..Ms]).
+  public reportError:(string,option[locn]) => ().
+  reportError(Msg,Lc) => valof{
+    reports := [errorMsg(Lc,Msg),..reports!];
+    valis ()
+  }
 
-  public reportWarning:(reports,string,option[locn]) => reports.
-  reportWarning(reports(Ms),Msg,Lc) => reports([warnMsg(Lc,Msg),..Ms]).
+  public reportWarning:(string,option[locn]) => ().
+  reportWarning(Msg,Lc) => valof{
+    reports := [warnMsg(Lc,Msg),..reports!];
+    valis ()
+  }
 }

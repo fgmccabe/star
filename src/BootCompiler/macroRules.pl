@@ -19,7 +19,6 @@ macroRl("{??}",expression,macroRules:iterableGoalMacro).
 macroRl("::",expression,macroRules:coercionMacro).
 macroRl(":?",expression,macroRules:coercionMacro).
 macroRl("*",expression,macroRules:multicatMacro).
-macroRl("?",expression,macroRules:optionalPropagatetMacro).
 macroRl("__pkg__",expression,macroRules:pkgNameMacro).
 macroRl("__loc__",expression,macroRules:macroLocationExp).
 macroRl("-",expression,macroRules:uminusMacro).
@@ -34,9 +33,6 @@ macroRl("do",action,macroRules:forLoopMacro).
 
 macroRl("assert",action,macroRules:assertMacro).
 macroRl("show",action,macroRules:showMacro).
-%macroRl("show",expression,macroRules:showMacro).
-%macroRl("task",expression,macroRules:taskMacro).
-%macroRl("valof",expression,macroRules:valofMacro).
 macroRl("generator",expression,macroRules:generatorMacro).
 macroRl("yield",action,macroRules:yieldMacro).
 
@@ -236,24 +232,6 @@ multicatMacro(T,expression,Tx) :-
   isUnary(T,Lc,"*",I),!,
   unary(Lc,"_multicat",I,Tx).
 
-% ?E[^X] (i.e., E containing subexpression ^X) -> (some(V).=X?some(E[^V])||none)
-
-optionalPropagatetMacro(T,expression,Tx) :-
-  isUnary(T,Lc,"?",I),
-  genIden(Lc,V),
-  propFindReplace(I,V,R,X),!,
-  unary(Lc,"some",V,AP),
-  match(Lc,AP,X,PX),
-  mkEnum(Lc,"none",Empty),
-  unary(Lc,"some",R,RO),
-  conditional(Lc,PX,RO,Empty,Tx).
-
-propFindReplace(A,V,R,X) :-
-  astFindReplace(A,macroRules:getProp(V,X),R).
-
-getProp(V,X,A,V) :-
-  isUnary(A,_,"^",X),!.
-
 uminusMacro(T,expression,Tx) :-
   isUnaryMinus(T,Lc,A),
   isInteger(A,_,Ix),!,
@@ -419,62 +397,42 @@ binRefMacro(T,expression,Rp) :-
   squareTerm(Lc,LR,[A],Rp).
   
 /*
- * Synthesize a type from an unnamed brace term
-*/
-% braceTypeMacro(E,Ex) :-
-%   isBraceTuple(E,Lx,Els),!,
-%   collectEntries(Es,TpPairs),
-%   sort(Es,macroRule:cmpTpl,SEs),
-%   project0_3(SEs,Nms),
-%   interleave(Nms,".",Ns),
-%   concateStrings(Ns,TpNm),
-%   braceTerm(Lx,name(Lx,TpNm),SEs,TpBdy),
-%   project2_3(SEs,Vrs),
-%   squareTerm(Lx,name(Lc,TpNm),[Vrs],TpHd).
-
-
-% collectEntries([],[]).
-% collectEntries([E|Els],[(Nm,An,TV)|TVs]) :-
-%   ruleName(E,var(Nm),value),
-%   locOfAst(E,Lc),
-%   genIden(Lc,Nm,TV),
-%   typeAnnotation(Lc,name(Lc,Nm),TV,An),
-%   collectEntries(Els,TVs).
-
-
-/*
   for P in C do B
   becomes
   {
     I .= _generate(C);
-    try{
-      while .true do{
-        I resume ._next in {
-          _yld(P) => B.
-          _yld(_) default => {}.
-          ._all => throw ()
-        }
+    Flg .= ref .true;
+    while Flg! do{
+      I resume ._next in {
+        _yld(P) => B.
+        _yld(_) default => {}.
+        ._all => Flg := .false
       }
-    } catch {
-      _ => {}
     }
   }
 */
  forLoopMacro(A,action,Ax) :-
    isForDo(A,Lc,P,C,Bd),!,
    genIden(Lc,I),
+   genIden(Lc,F),
 
-   /* Build ._all => throw () */
-   roundTuple(Lc,[],Unit),
-   mkThrow(Lc,Unit,Rse),
-   mkEnum(Lc,"_all",End),
-   mkEquation(Lc,End,none,Rse,EndEq),
+   mkEnum(Lc,"false",False),
+   mkEnum(Lc,"true",True),
 
-   /* build yield(P) => B */
+   /* Build F.=ref .true */
+   mkRef(Lc,True,FV),
+   match(Lc,F,FV,S2),
+
+   /* Build ._all => F:=.false */
+   assignment(Lc,F,False,End),
+   mkEnum(Lc,"_all",All),
+   mkEquation(Lc,All,none,End,EndEq),
+
+   /* build _yld(P) => B */
    unary(Lc,"_yld",P,BYld),
    mkEquation(Lc,BYld,none,Bd,YldEqn),
 
-   /* build yield(_) default => {} */
+   /* build _yld(_) default => {} */
    braceTuple(Lc,[],Nop),
    mkAnon(Lc,Anon),
    unary(Lc,"_yld",Anon,DYld),
@@ -486,22 +444,15 @@ binRefMacro(T,expression,Rp) :-
    mkResume(Lc,I,Next,[YldEqn,DefltEqn,EndEq],Rsme),
    braceTuple(Lc,[Rsme],Resume),
 
-   /* Build while loop */
-   mkEnum(Lc,"true",True),
-   
-   mkWhileDo(Lc,True,Resume,Loop),
-
-   /* Build catch handler */
-   mkEquation(Lc,Anon,none,Nop,Catcher),
-
-   /* Build try catch */
-   braceTuple(Lc,[Loop],B),
-   mkTryCatch(Lc,B,[Catcher],Try),
+   /* Build while F! loop */
+   cellRef(Lc,F,FR),
+   mkWhileDo(Lc,FR,Resume,Loop),
 
    /* Build call to _generate */
    roundTerm(Lc,name(Lc,"_generate"),[C],IT),
    match(Lc,I,IT,S1),
-   mkSequence(Lc,S1,Try,Ax).
+
+   mkSequence(Lc,[S1,S2,Loop],Ax).
 
 /* generator{A}
    becomes

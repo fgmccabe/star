@@ -10,7 +10,7 @@ test.ts0{
 
   all s,r ~~ task[s,r] <~ {}. -- tasks have a type ...
 
-  generatr:(integer,integer)=>task[scomm,rcomm].
+  generatr:(integer,integer)=>task[rcomm,scomm].
   generatr(F,T) => task{
     Ix .= ref F;
     while Ix! < T do{
@@ -21,7 +21,7 @@ test.ts0{
       
       Ix := Ix! + 1;
     };
-    retire .end
+    valis .end
   }
 
   adder:(integer,integer) => integer.

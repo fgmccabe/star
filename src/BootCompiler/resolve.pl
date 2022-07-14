@@ -1,4 +1,4 @@
-:- module(resolve,[overload/5,overloadOthers/3]).
+:- module(resolve,[overload/3,overloadOthers/3]).
 
 :- use_module(dict).
 :- use_module(misc).
@@ -9,9 +9,8 @@
 :- use_module(unify).
 :- use_module(location).
 
-overload(Lc,Defs,Dict,RDict,RDefs) :-
-  declareAccessors(Lc,Defs,Dict,RDict),
-  map(Defs,resolve:overloadDef(RDict),RDefs).
+overload(Defs,Dict,RDefs) :-
+  map(Defs,resolve:overloadDef(Dict),RDefs).
 
 overloadDef(Dict,funDef(Lc,Nm,ExtNm,H,Tp,Cx,Eqns),RF) :-!,
 %  dispDef(funDef(Lc,Nm,ExtNm,H,Tp,Cx,Eqns)),
@@ -204,8 +203,8 @@ overloadGuard(some(G),Dict,St,Stx,some(RG)) :-
 
 overloadLet(Lc,Decls,Defs,Bound,RR,Dict,St,Stx,RDefs,RBound) :-
   declareAccessors(Lc,Decls,Dict,RDict),
-  overload(Lc,Defs,RDict,RRDict,RDefs),
-  call(RR,Bound,RRDict,St,Stx,RBound).
+  overload(Defs,RDict,RDefs),
+  call(RR,Bound,RDict,St,Stx,RBound).
 
 overloadAction(doNop(Lc),_,St,St,doNop(Lc)) :-!.
 overloadAction(doSeq(Lc,A,B),Dict,St,Stx,doSeq(Lc,AA,BB)) :-
@@ -431,6 +430,10 @@ declareAccessors(_,[],Dict,Dict) :-!.
 declareAccessors(Lc,[accDec(Tp,FldNm,FunNm,AcTp)|Defs],Dict,Dx) :-!,
   declareFieldAccess(Tp,FldNm,FunNm,AcTp,Dict,D0),
   declareAccessors(Lc,Defs,D0,Dx).
+declareAccessors(Lc,[impDec(ImplNm,FullNm,ImplTp)|Defs],Dict,Dx) :-!,
+  declareImplementation(ImplNm,FullNm,ImplTp,Dict,D0),
+  declareVr(Lc,FullNm,ImplTp,none,D0,D1),
+  declareAccessors(Lc,Defs,D1,Dx).
 declareAccessors(Lc,[_|Defs],Dict,Dx) :-
   declareAccessors(Lc,Defs,Dict,Dx).
 

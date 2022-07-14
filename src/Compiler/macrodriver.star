@@ -19,16 +19,21 @@ star.compiler.macro.driver{
   _main(Args) => valof{
     WI^=parseUri("file:"++_cwd());
     RI^=parseUri("file:"++_repo());
-    handleCmds(processOptions(Args,[wdOption,
-	  stdinOption,
-	  traceAstOption,
-	  traceMacroOption],
-	defltOptions(WI,RI)
-      ))
+    try{
+      handleCmds(processOptions(Args,[wdOption,
+	    stdinOption,
+	    traceAstOption,
+	    traceMacroOption],
+	  defltOptions(WI,RI)
+	));
+    } catch {
+      Msg => logMsg("Fatal issue: #(Msg)");
+    };
+    valis ()
   }.
 
-  handleCmds:(either[string,(compilerOptions,cons[string])])=>result[(),()].
-  handleCmds(either((Opts,Args))) => do{
+  handleCmds:(compilerOptions,cons[string])=>() throws string.
+  handleCmds(either((Opts,Args))) => valof{
     if CatUri ^= parseUri("catalog") && CatU ^= resolveUri(Opts.cwd,CatUri) &&
 	Cat ^= loadCatalog(CatU) then{
 	  for P in Args do{
@@ -42,11 +47,9 @@ star.compiler.macro.driver{
 	  }
 	}
     else{
-      logMsg("could not access catalog")
-    }
-  }
-  handleCmds(other(Msg)) => do{
-    logMsg(Msg)
+      throw "could not access catalog"
+    };
+    valis ()
   }
 
   extractPkgSpec(P) where Lc ^= strFind(P,":",0) => pkg(P[0:Lc],P[Lc+1:size(P)]::version).
@@ -57,18 +60,18 @@ star.compiler.macro.driver{
     _coerce((some(A),_)) => some(ok(A)).
   }
 
-  processPkg:(pkg,catalog,compilerOptions,reports) => result[reports,()].
-  processPkg(P,Cat,Opts,Rp) => do{
+  processPkg:(pkg,catalog,compilerOptions,reports) => () throws reports.
+  processPkg(P,Cat,Opts,Rp) => valof{
     logMsg("Macro processing $(P)");
     if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
-      Ast <- parseSrc(SrcUri,CPkg,Rp)::result[reports,ast];
+      Ast .= parseSrc(SrcUri,CPkg,Rp);
       if traceAst! then{
 	logMsg("Ast of $(P) is $(Ast)")
       };
-      M <- macroPkg(Ast,Rp);
+      M .= macroPkg(Ast,Rp);
       logMsg("Macrod package is $(M)");
     }
     else
-    raise reportError(Rp,"cannot locate source of $(P)",pkgLoc(P))
+    throw reportError(Rp,"cannot locate source of $(P)",pkgLoc(P))
   }
 }

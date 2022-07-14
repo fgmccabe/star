@@ -38,15 +38,6 @@ star.compiler.macro.infra{
     disp(.constraint) => "constraint".
   }
 
-  public macroRule ~> (ast,macroContext,reports) => result[reports,macroState].
-
-  public macroState ::= .inactive | active(ast) .
-
-  public implementation display[macroState] => {
-    disp(.inactive) => "inactive".
-    disp(active(A)) => "active $(A)".
-  }
-
   public macroKey:(ast)=>string.
   macroKey(nme(_,Id)) => Id.
   macroKey(qnm(_,Id)) => Id.

@@ -687,7 +687,7 @@ star.compiler.macro{
   visib(A,_) where (_,I) ^= isPublic(A) => visib(I,.pUblic).
   visib(A,Vz) default => (A,Vz).
 
-  public buildMain:(cons[ast])=>cons[ast].
+  buildMain:(cons[ast])=>cons[ast].
   buildMain(Els) where (Lc,Tp) ^= head(lookForSignature(Els,"main")) &&
       ~_^=head(lookForSignature(Els,"_main")) =>
     synthesizeMain(Lc,Tp,Els).
@@ -704,7 +704,7 @@ star.compiler.macro{
   isTypeAnnot(_) default => .none.
 
   /*
-  _main([A1,..,An]) => valof do{
+  _main([A1,..,An]) => valof{
     if X1^=A1:?T1 then{
       if X2^=A2:?T2 then {
         ...
@@ -724,7 +724,7 @@ star.compiler.macro{
     MLhs .= roundTerm(Lc,nme(Lc,"_main"),[mkConsPtn(Lc,As)]);
 
 --    logMsg("main action $(Action)");
-    Valof .= mkValof(Lc,mkDoTerm(Lc,Action));
+    Valof .= mkValof(Lc,Action);
     Main .= equation(Lc,MLhs,Valof);
     Annot .= typeAnnotation(Lc,nme(Lc,"_main"),equation(Lc,rndTuple(Lc,[squareTerm(Lc,nme(Lc,"cons"),[nme(Lc,"string")])]),rndTuple(Lc,[])));
     valis [unary(Lc,"public",Annot),Main,..Defs].
@@ -737,8 +737,8 @@ star.compiler.macro{
   logMsg("cannot coerce $(A) to T")
 
 */  
-  synthCoercion:(option[locn],cons[ast],cons[ast])=>result[(),(ast,cons[ast])].
-  synthCoercion(_,[Tp,..Ts],Xs)  => do{
+  synthCoercion:(option[locn],cons[ast],cons[ast])=>(ast,cons[ast]).
+  synthCoercion(_,[Tp,..Ts],Xs)  => valof{
     Lc .= locOf(Tp);
     X .= genName(Lc,"X");
     A .= genName(Lc,"A");    
@@ -748,9 +748,8 @@ star.compiler.macro{
     (Inner,As) <- synthCoercion(Lc,Ts,[X,..Xs]);
     valis (mkIfThenElse(Lc,Tst,Inner,Emsg),[A,..As])
   }
-  synthCoercion(Lc,[],Xs) => do{
-    valis (roundTerm(Lc,nme(Lc,"main"),reverse(Xs)),[])
-  }
+  synthCoercion(Lc,[],Xs) => 
+    (roundTerm(Lc,nme(Lc,"main"),reverse(Xs)),[]).
 
   mkConsPtn:(option[locn],cons[ast]) => ast.
   mkConsPtn(Lc,[]) => enum(Lc,"nil").

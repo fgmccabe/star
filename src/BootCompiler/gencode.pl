@@ -57,8 +57,7 @@ genDef(D,Opts,fnDef(Lc,Nm,H,Tp,Args,Value),O,[CdTrm|O]) :-
 	  C2,[iLbl(Abrt)|C3],Stk0,_Stk),
   abortCont(Lc,strg("def failed"),Opts,L4,_,D3,Dx,C3,[iLbl(End),iRetX],Stk0,_),
   findMaxLocal(Dx,Mx),
-%  (is_member(showGenCode,Opts) -> dispIns(func(Nm,H,Sig,Mx,C0));true ),
-  peepOptimize(C0,Cde),
+  peepOptimize([iLocals(Mx)|C0],Cde),
   (is_member(showGenCode,Opts) -> dispIns(func(Nm,H,Sig,Mx,Cde));true ),
   assem(func(Nm,H,Sig,Mx,Cde),CdTrm).
 genDef(D,Opts,glbDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
@@ -71,8 +70,7 @@ genDef(D,Opts,glbDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
 	  End,Opts,L2,L3,D,D1,C1,[iLbl(Abrt)|C2],some(0),_Stk0),
   abortCont(Lc,strg("def failed"),Opts,L3,_,D1,Dx,C2,[iLbl(End)],some(0),_),
   findMaxLocal(Dx,Mx),
-%  (is_member(showGenCode,Opts) -> dispIns(func(lbl(Nm,0),hard,Sig,Mx,C0));true ),
-  peepOptimize(C0,Cde),
+  peepOptimize([iLocals(Mx)|C0],Cde),
   (is_member(showGenCode,Opts) -> dispIns(func(lbl(Nm,0),hard,Sig,Mx,Cde));true ),
   assem(func(lbl(Nm,0),hard,Sig,Mx,Cde),Cd).
 genDef(_,_,lblDef(_,Lbl,Tp,Ix),O,[LblTrm|O]) :-

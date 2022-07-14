@@ -31,9 +31,9 @@ The @code{task} type is used to characterize the type of task expressions. It ta
 @end display
 @end float
 
-The first type argument refers to values that the task may suspend
+The second type argument refers to values that the task may suspend
 with (see @refer{SuspendAction} and @refer{RetireAction}) and the
-second type argument refers to values that the task may be resumed
+first type argument refers to values that the task may be resumed
 with (see @refer{ResumeAction}).
 
 @node Task Expression
@@ -132,7 +132,7 @@ The types of the task, the event and the action case must match up; i.e., given
 @end example
 then @code{@var{T}} must be of type
 @example
-task[@var{S},@var{R}]
+task[@var{R},@var{S}]
 @end example
 for some @code{@var{S}} and @code{@var{R}}; the type of @code{@var{E}}:
 @example
@@ -185,9 +185,9 @@ the action case must match up; i.e., given
 @end example
 then @code{@var{T}} must be of type
 @example
-task[@var{S},@var{R}]
+task[@var{R},@var{S}]
 @end example
-for some @code{@var{S}} and @code{@var{R}}; the type of @code{@var{E}}:
+for some @code{@var{R}} and @code{@var{S}}; the type of @code{@var{E}}:
 @example
 @code{@var{E}} : @code{@var{R}}
 @end example
@@ -218,7 +218,20 @@ Note that there is no @refer{CaseActionHandler} specified with this
 action; this is because a task that performs the retire action will
 not be resumed: it is ended.
 
-In the case where the @refer{RetireAction} ios being performed withing
+The types of the task and the event must match up; i.e., given
+@example
+@var{T} retire @var{E}
+@end example
+then @code{@var{T}} must be of type
+@example
+task[@var{R},@var{S}]
+@end example
+for some @code{@var{S}} and @code{@var{R}}; the type of @code{@var{E}}:
+@example
+@code{@var{E}} : @code{@var{S}}
+@end example
+
+In the case where the @refer{RetireAction} is being performed withing
 the lexical scope of the @code{task} expression, the shorter form --
 which omits the identifier for the task being retired -- may be
 used. As with the @refer{SuspendAction} this is equivalent to using

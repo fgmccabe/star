@@ -876,4 +876,12 @@ star.compiler.wff{
       some(roundTerm(some(Lc),nme(.none,"locn"),[str(.none,Pkg),
 	    int(.none,Line), int(.none,Col), int(.none,Off), int(.none,Ln)])).
   }
+
+  public findReplace:(ast,(ast)=>option[ast])=>ast.
+  findReplace(A,F) => let{.
+    fndRep(T) where B^=F(T) => fndRep(B).
+    fndRep(tpl(Lc,K,Els)) => tpl(Lc,K,Els//fndRep).
+    fndRep(app(Lc,O,A)) => app(Lc,fndRep(O),fndRep(A)).
+    fndRep(T) default => T.
+  .} in fndRep(A).
 }

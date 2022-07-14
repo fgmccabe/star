@@ -24,6 +24,7 @@ instruction(OCall,art,off,1,"OCall")
 instruction(Escape,Es,off,1,"call C escape")
 instruction(TCall,sym,nOp,0,"TCall <prog>")
 instruction(TOCall,art,nOp,0,"TOCall")
+instruction(Locals,i32,nOp,0,"locals definition")
 
 instruction(Ret,tOs,nOp,0,"return")
 instruction(RetX,tOs,nOp,0,"return with exception")
@@ -33,6 +34,7 @@ instruction(Jmp,off,nOp,0,"jump lbl")
 
 instruction(Drop,tOs,nOp,-1,"drop top of stack")
 instruction(Dup,tOs,nOp,1,"duplicate top of stack")
+instruction(Rot,i32,nOp,0,"Pull up nth element of stack")
 instruction(Rst, i32, nOp, 0, "reset stack height to a fixed height")
 
 instruction(Task,tOs,nOp,1,"Create new task")
