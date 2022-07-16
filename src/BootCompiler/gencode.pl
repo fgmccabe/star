@@ -366,6 +366,9 @@ compAction(mtch(Lc,P,E),OLc,_Cont,ACont,TCont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,S
   compExp(E,Lc,compPtn(P,Lc,ACont,abortCont(Lc,strg("match fail"),Brks,Opts),
 		       TCont,End,Brks,Opts),
 	  TCont,End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
+compAction(defn(Lc,idnt(V),E),OLc,_Cont,ACont,TCont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :- !,
+  chLine(Opts,OLc,Lc,C,C0),
+  compExp(E,Lc,declCont(V,ACont,End,Opts),TCont,End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compAction(asgn(Lc,P,E),OLc,_Cont,ACont,TCont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :- !,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(E,Lc,compExp(P,Lc,asmCont(iAssign,ACont,Stk),TCont,End,Brks,Opts),
@@ -487,6 +490,12 @@ resetCont(some(Lvl),Cont,L,Lx,D,Dx,[iRst(Lvl)|C],Cx,_,Stkx) :-
 stoCont(Off,Lb,Cont,L,Lx,D,Dx,[iStL(Off),iLbl(Lb)|C],Cx,Stk,Stkx) :-!,
   dropStk(Stk,1,Stk1),
   call(Cont,L,Lx,D,Dx,C,Cx,Stk1,Stkx).
+
+declCont(Nm,Succ,End,Opts,L,Lx,D,Dx,[iStL(Off),iLbl(Lb)|C],Cx,Stk,Stkx) :-
+  genLbl(L,Lb,L0),
+  defineLclVar(Nm,Lb,End,Opts,D,D1,Off,C,C0),
+  dropStk(Stk,1,Stk1),
+  call(Succ,L0,Lx,D1,Dx,C0,Cx,Stk1,Stkx).
 
 releaseCont(Nm,Lx,Lx,D,Dx,Cx,Cx,Stk,Stk) :-
   clearLclVar(Nm,D,Dx).

@@ -4,7 +4,7 @@ test.ac9{
 
   large:(cons[integer])=>integer.
   large(idxes) => valof {
-    count .= ref 0;
+    count = ref 0;
     for i in idxes do {
       count := count!+i
     };

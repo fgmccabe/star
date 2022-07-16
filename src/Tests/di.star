@@ -6,7 +6,7 @@ test.di{
 
   Fc:(cons[integer])=>integer.
   Fc(I) => valof{
-    Fx .= ref 1;
+    Fx = ref 1;
     for E in I do {
       Fx := Fx! * E
     };

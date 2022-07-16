@@ -217,6 +217,8 @@ overloadAction(doValis(Lc,A),Dict,St,Stx,doValis(Lc,AA)) :-
   overloadTerm(A,Dict,St,Stx,AA).
 overloadAction(doThrow(Lc,A),Dict,St,Stx,doThrow(Lc,AA)) :-
   overloadTerm(A,Dict,St,Stx,AA).
+overloadAction(doDefn(Lc,V,E),Dict,St,Stx,doDefn(Lc,V,EE)) :-
+  overloadTerm(E,Dict,St,Stx,EE).
 overloadAction(doMatch(Lc,P,A),Dict,St,Stx,doMatch(Lc,PP,AA)) :-
   overloadTerm(P,Dict,St,St1,PP),
   overloadTerm(A,Dict,St1,Stx,AA).

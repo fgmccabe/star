@@ -12,7 +12,7 @@ test.u{
 
   main:()=> ().
   main() => valof{
-    assert _.=tt();
+    tt();
 
     assert parse(uriParse,"http://foo.bar.com?query"::cons[char]) ==
       [(absUri("http",netRsrc(server(.none,host("foo.bar.com")),relPath([""])),qry("query")),[])];

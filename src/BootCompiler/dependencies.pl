@@ -369,6 +369,10 @@ collectDoRefs(T,All,Rf,Rfx) :-
 collectDoRefs(T,_,Rfx,Rfx) :-
   isBreak(T,_,_),!.
 collectDoRefs(T,All,Rf,Rfx) :-
+  isDefn(T,_,L,R),!,
+  collectTermRefs(L,All,Rf,Rf0),
+  collectTermRefs(R,All,Rf0,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
   isMatch(T,_,L,R),!,
   collectTermRefs(L,All,Rf,Rf0),
   collectTermRefs(R,All,Rf0,Rfx).

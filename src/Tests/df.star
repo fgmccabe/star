@@ -4,7 +4,7 @@ test.df{
   
   CX : (cons[integer],integer) => integer.
   CX(Is,Lm) => valof{
-    Cx .= ref 0;
+    Cx = ref 0;
 
     logMsg("Cx=$(Cx!), Is=$(Is)");
     for Ix in Is do{

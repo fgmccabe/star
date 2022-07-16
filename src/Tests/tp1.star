@@ -15,7 +15,7 @@ test.tp1{
 
   main:()=>().
   main()=>valof{
-    TT .= ("j",2,3.1);
+    TT = ("j",2,3.1);
 
     show "triple: $(TT)";
     show "first: $(first(TT))";

@@ -414,6 +414,9 @@ liftAction(doValis(Lc,E),vls(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
 liftAction(doThrow(Lc,E),thrw(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
+liftAction(doDefn(Lc,P,E),defn(Lc,PP,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftPtn(P,PP,Q,Q0,Map,Opts,Ex,Ex0), % simplified pattern
+  liftExp(E,EE,Q0,Qx,Map,Opts,Ex0,Exx).
 liftAction(doMatch(Lc,P,E),mtch(Lc,PP,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftPtn(P,PP,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(E,EE,Q0,Qx,Map,Opts,Ex0,Exx).

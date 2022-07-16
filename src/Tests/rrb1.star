@@ -32,7 +32,7 @@ test.rrb{
 
     assert reverse(reverse(SS))==SS;
 
-    XX .= ref SS;
+    XX = ref SS;
 
     XX[5] := "alpha";
     logMsg("XX=$(XX!)");

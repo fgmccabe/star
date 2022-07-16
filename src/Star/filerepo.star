@@ -28,16 +28,18 @@ star.repo.file{
   }
   
   public addToRepo:(fileRepo,pkg,string,string) => fileRepo.
-  addToRepo(repo(Root,Man),pkg(Pk,Vr),Kind,Text) where
-      Ext .= extensionMapping(Kind) &&
-      Fn .= Pk++(hash(Pk)::string)++Ext &&
-      FUri ^= parseUri(Fn) &&
-      FU ^= resolveUri(Root,FUri) &&
-      () .= putResource(FU,Text) &&
-      NM .= addToManifest(Man,pkg(Pk,Vr),Kind,Fn)&&
-      MU ^= parseUri("manifest") &&
-      RepoUri ^= resolveUri(Root,MU) &&
-      () .= flushManifest(RepoUri,NM) => repo(Root,NM).
+  addToRepo(repo(Root,Man),pkg(Pk,Vr),Kind,Text) => valof{
+    Ext = extensionMapping(Kind);
+    Fn = Pk++(hash(Pk)::string)++Ext;
+    FUri ^= parseUri(Fn);
+    FU ^= resolveUri(Root,FUri);
+    putResource(FU,Text);
+    NM = addToManifest(Man,pkg(Pk,Vr),Kind,Fn);
+    MU ^= parseUri("manifest");
+    RepoUri ^= resolveUri(Root,MU);
+    flushManifest(RepoUri,NM);
+    valis repo(Root,NM)
+  }
 
   public addSigToRepo:(fileRepo,pkg,string) => fileRepo.
   addSigToRepo(repo(Root,Man),Pk,Sig) =>

@@ -8,7 +8,7 @@ test.me1{
 
   main:()=>action[(),()].
   main()=>do{
-    XX .= $$ ff!;
+    XX = $$ ff!;
 
     logMsg("XX = $(XX!!)")
   }

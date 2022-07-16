@@ -939,6 +939,12 @@ checkAction(A,Tp,ErTp,Env,Env,doValis(Lc,ValExp),Path) :-
 checkAction(A,_Tp,some(ErTp),Env,Env,doThrow(Lc,ErrExp),Path) :-
   isThrow(A,Lc,E),!,
   typeOfExp(E,ErTp,none,Env,_,ErrExp,Path).
+checkAction(A,_Tp,ErTp,Env,Ev,doDefn(Lc,v(NLc,Nm,TV),Exp),Path) :-
+  isDefn(A,Lc,L,R),
+  isIden(L,NLc,Nm),!,
+  newTypeVar("V",TV),
+  typeOfExp(R,TV,ErTp,Env,_,Exp,Path),
+  declareVr(NLc,Nm,TV,none,Env,Ev).
 checkAction(A,_Tp,ErTp,Env,Ev,doMatch(Lc,Ptn,Exp),Path) :-
   isMatch(A,Lc,P,E),!,
   newTypeVar("V",TV),

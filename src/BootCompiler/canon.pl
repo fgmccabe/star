@@ -160,6 +160,7 @@ locOfCanon(doBrk(Lc,_),Lc) :-!.
 locOfCanon(doValis(Lc,_),Lc) :-!.
 locOfCanon(doThrow(Lc,_),Lc) :-!.
 locOfCanon(doMatch(Lc,_,_),Lc) :-!.
+locOfCanon(doDefn(Lc,_,_),Lc) :-!.
 locOfCanon(doAssign(Lc,_,_),Lc) :-!.
 locOfCanon(doTryCatch(Lc,_,_),Lc) :-!.
 locOfCanon(doIfThenElse(Lc,_,_,_),Lc) :-!.
@@ -313,6 +314,9 @@ ssAction(doThrow(_,E),Dp,sq([ss("throw "),EE])) :-!,
 ssAction(doCall(_,E,_),Dp,sq([ss("call "),EE])) :-!,
   ssTerm(E,Dp,EE).
 ssAction(doMatch(_,P,E),Dp,sq([PP,ss(" .= "),EE])) :-!,
+  ssTerm(P,Dp,PP),
+  ssTerm(E,Dp,EE).
+ssAction(doDefn(_,P,E),Dp,sq([PP,ss(" = "),EE])) :-!,
   ssTerm(P,Dp,PP),
   ssTerm(E,Dp,EE).
 ssAction(doAssign(_,P,E),Dp,sq([PP,ss(" := "),EE])) :-!,

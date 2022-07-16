@@ -17,9 +17,9 @@ test.ac8{
 
   f:(integer) => integer.
   f(X) => valof{
-    TT .= (task{
-      TryTsk .= this;
-      let{
+    TT = (task{
+	TryTsk = this;
+	let{
 	  implementation throwable[integer] => {
 	    _throw(E) => valof{
 	      TryTsk retire err(E)
@@ -45,8 +45,8 @@ test.ac8{
 
   main:()=>().
   main() => valof{
-    _ .= _logmsg(disp(f(1)));
-    _ .= _logmsg(disp(f(10)));
+    _logmsg(disp(f(1)));
+    _logmsg(disp(f(10)));
     valis ()
   }
 }

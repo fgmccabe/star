@@ -28,9 +28,9 @@ test.assign{
     
     show peter.name!;
 
-    alpha .= ref 23;
+    alpha = ref 23;
 
-    checkInc .= (() where _ .= valof {alpha := alpha!+1; valis ()} => alpha!==24);
+    checkInc = (() where _ .= valof {alpha := alpha!+1; valis ()} => alpha!==24);
 
     assert alpha!==23;
 

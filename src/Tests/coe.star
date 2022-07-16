@@ -6,7 +6,9 @@ test.coe{
     logStrs(L).
 
   logMsg:(string)=>().
-  logMsg(M) where _ .= _logmsg(M) =>().
+  logMsg(M) => valof{
+    _logmsg(M);
+    valis ()}
 
   logStrs(.nil) => ().
   logStrs(cons(H,T)) =>

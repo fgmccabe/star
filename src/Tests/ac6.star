@@ -13,9 +13,9 @@ test.ac6{
 
   timer_finish : ((integer, integer, string)) => ().
   timer_finish((start, count, msg)) => valof {
-    stop .= _ticks();
-    elapsed .= ((stop - start)::float)/1.0e6;
-    ops_per_sec .= ((count::float) / elapsed)::integer;
+    stop = _ticks();
+    elapsed = ((stop - start)::float)/1.0e6;
+    ops_per_sec = ((count::float) / elapsed)::integer;
     logMsg("$(count)\t#(msg)\t$(elapsed) ms\t$(ops_per_sec) ops/sec");
     valis ()
   }
@@ -24,26 +24,24 @@ test.ac6{
   empty(_) => ().
 
   large(Count) => valof {
-    timer .= ref timer_start(Count, "");
-    idxes .= (iota(0, Count):cons[integer]);
+    timer = ref timer_start(Count, "");
+    idxes = (iota(0, Count):cons[integer]);
 
     logMsg("******* red/black trees ******");
     timer := timer_start(Count, "Creating red/black tree");
-    rb_list .= ref rbiota(0,Count);
+    rb_list = ref rbiota(0,Count);
     timer_finish(timer!);
     logMsg("red/black tree: $(rb_list!)");
 
     timer := timer_start(Count, "Iterating over all elements in red/black list");
     for i->_ in rb_list! do {
       empty(some(i));
---      logMsg("rb element: $(i)")
     };
     timer_finish(timer!);
     
     timer := timer_start(Count, "Accessing all elements in red/black list");
     for i in idxes do {
-      El .= (rb_list!)[i];
---      logMsg(" element: $(i) .= $(El)")
+      El = (rb_list!)[i];
     };
 
     timer_finish(timer!);

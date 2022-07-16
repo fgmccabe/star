@@ -19,8 +19,8 @@ test.dd{
 
   XX : integer.
   XX = valof{
-    A .= ff(4);
-    B .= ff(3);
+    A = ff(4);
+    B = ff(3);
     valis A*B.
   }
 
@@ -33,8 +33,8 @@ test.dd{
   ZZ : integer.
   ZZ = valof {
     try {
-      A .= ff(6);
-      B .= ff(7);
+      A = ff(6);
+      B = ff(7);
       throw ()
     } catch {
       _ => valis 10
@@ -52,7 +52,7 @@ test.dd{
   -- Test different error types across try-catch
   VV : integer.
   VV = valof {
-    R .= fact(10);
+    R = fact(10);
     try{
       fc(10);
       

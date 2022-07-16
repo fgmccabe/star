@@ -22,8 +22,8 @@ test.ac3{
 
   main:()=>().
   main() => valof{
-    _ .= _logmsg(disp(f(1)));
-    _ .= _logmsg(disp(f(10)));
+    _logmsg(disp(f(1)));
+    _logmsg(disp(f(10)));
     valis ()
   }
 }

@@ -12,7 +12,7 @@ test.ts0{
 
   generatr:(integer,integer)=>task[rcomm,scomm].
   generatr(F,T) => task{
-    Ix .= ref F;
+    Ix = ref F;
     while Ix! < T do{
       suspend yild(Ix!) in {
 	.next => {}.
@@ -26,8 +26,8 @@ test.ts0{
 
   adder:(integer,integer) => integer.
   adder(F,T) => valof{
-    TT .= generatr(F,T);
-    Tl .= ref 0;
+    TT = generatr(F,T);
+    Tl = ref 0;
 
     while .true do {
       TT resume .next in {

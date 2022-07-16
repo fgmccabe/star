@@ -3,8 +3,8 @@ test.do8{
 
   main:()=>().
   main() => valof{
-    A .= "alpha";
-    B .= "beta";
+    A = "alpha";
+    B = "beta";
 
     if A<B then
       logMsg("A wins")
