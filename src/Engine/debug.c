@@ -93,10 +93,10 @@ static inline int32 collect32(insPo pc) {
 
 ReturnStatus g__ins_debug(processPo p, heapPo h) {
   insDebugging = tracing = True;
-  currentProcess->waitFor = stepInto;
-  currentProcess->tracing = True;
-  currentProcess->traceCount = 0;
-  currentProcess->waterMark = p->stk->fp;
+  p->waitFor = stepInto;
+  p->tracing = True;
+  p->traceCount = 0;
+  p->waterMark = p->stk->fp;
 
   return rtnStatus(h, Ok, "_ins_debug");
 }

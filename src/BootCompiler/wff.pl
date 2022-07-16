@@ -49,6 +49,7 @@
 	      isTryCatch/4,mkTryCatch/4,
 	      isThrow/3,mkThrow/3,isThrow/4,mkThrow/4,
 	      isThrows/4,mkThrows/4,
+	      isBreak/3,mkBreak/3,isLbldAction/4,mkLbldAction/4,
 	      isIfThenElse/5,isIfThen/4,mkIfThenElse/5,mkIfThen/4,
 	      isWhileDo/4,isUntilDo/4,isForDo/4,isForDo/5,
 	      mkWhileDo/4,mkUntilDo/4,mkForDo/5,
@@ -820,6 +821,19 @@ mkTryCatch(Lc,B,H,A) :-
   binary(Lc,"catch",B,Hs,A0),
   unary(Lc,"try",A0,A).
 
+isBreak(A,Lc,L) :-
+  isUnary(A,Lc,"break",L),
+  isIden(L,_,_).
+
+mkBreak(Lc,Lb,A) :-
+  unary(Lc,"break",Lb,A).
+
+isLbldAction(A,Lc,L,Ac) :-
+  isBinary(A,Lc,":",L,Ac),
+  isIden(L,_,_).
+
+mkLbldAction(Lc,Lb,Ac,A) :-
+  binary(Lc,":",Lb,Ac,A).
 
 isIfThenElse(A,Lc,Ts,Th,El) :-
   isBinary(A,Lc,"else",Lhs,El),!,

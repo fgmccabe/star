@@ -213,24 +213,6 @@
     "keyword": true
   },
   {
-    "prefixOp": "perform",
-    "priorities": [
-      300,
-      299
-    ],
-    "desc": "perform an action or task",
-    "keyword": true
-  },
-  {
-    "prefixOp": "ignore",
-    "priorities": [
-      300,
-      299
-    ],
-    "desc": "evaluate and discard expression",
-    "keyword": true
-  },
-  {
     "prefixOp": "generator",
     "priorities": [
       300,
@@ -1143,15 +1125,6 @@
     "keyword": true
   },
   {
-    "prefixOp": "raise",
-    "priorities": [
-      930,
-      929
-    ],
-    "desc": "raise an exception",
-    "keyword": true
-  },
-  {
     "prefixOp": "throw",
     "priorities": [
       930,
@@ -1168,6 +1141,15 @@
       999
     ],
     "desc": "type of values that can raise exceptions",
+    "keyword": true
+  },
+  {
+    "prefixOp": "break",
+    "priorities": [
+      10,
+      9
+    ],
+    "desc": "break out of an action (loop or block)",
     "keyword": true
   },
   {

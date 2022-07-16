@@ -37,7 +37,7 @@ void initTime(void) {
  * reset the interval timer for the new period
  */
 
-ReturnStatus g__delay(heapPo h, termPo a1) {
+ReturnStatus g__delay(processPo p, termPo a1) {
   double dx = floatVal(a1);
 
   struct timespec tm;
@@ -48,24 +48,24 @@ ReturnStatus g__delay(heapPo h, termPo a1) {
 
   tm.tv_sec = (long) seconds;
   tm.tv_nsec = (long) (fraction * NANO);  /* Convert microseconds to nanoseconds */
-  switchProcessState(currentProcess, wait_timer);
+  switchProcessState(p, wait_timer);
   if (nanosleep(&tm, NULL) != 0) {
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(p);
     switch (errno) {
       case EINTR:
-        return liberror(h, "delay", eINTRUPT);
+        return liberror(processHeap(p), "delay", eINTRUPT);
       case EINVAL:
       case ENOSYS:
       default:
-        return liberror(h, "delay", eINVAL);
+        return liberror(processHeap(p), "delay", eINVAL);
     }
   } else {
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(p);
     return (ReturnStatus) {.ret = Ok, .result = voidEnum};
   }
 }
 
-ReturnStatus g__sleep(heapPo h, termPo a1) {
+ReturnStatus g__sleep(processPo p, termPo a1) {
   double f = floatVal(a1);
 
   struct timeval now;
@@ -93,19 +93,19 @@ ReturnStatus g__sleep(heapPo h, termPo a1) {
       tm.tv_sec--;
     }
 
-    switchProcessState(currentProcess, wait_timer);
+    switchProcessState(p, wait_timer);
     if (nanosleep(&tm, NULL) != 0) {
-      setProcessRunnable(currentProcess);
+      setProcessRunnable(p);
       switch (errno) {
         case EINTR:
-          return liberror(h, "sleep", eINTRUPT);
+          return liberror(processHeap(p), "sleep", eINTRUPT);
         case EINVAL:
         case ENOSYS:
         default:
-          return liberror(h, "sleep", eINVAL);
+          return liberror(processHeap(p), "sleep", eINVAL);
       }
     } else {
-      setProcessRunnable(currentProcess);
+      setProcessRunnable(p);
       return (ReturnStatus) {.ret = Ok, .result = voidEnum};
     }
   }

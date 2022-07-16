@@ -57,8 +57,6 @@ star.compiler.operators{
   oper("->") => [infixOp(889,890,889)].
   oper(".+.") => [prefixOp(700,699)].
   oper("<$") => [infixOp(719,720,720)].
-  oper("ignore") => [prefixOp(300,299)].
-  oper("raise") => [prefixOp(930,929)].
   oper("then") => [infixOp(1179,1180,1179)].
   oper("!") => [postfixOp(99,100), infixOp(99,100,99)].
   oper("->>") => [infixOp(1199,1200,1199)].
@@ -101,6 +99,7 @@ star.compiler.operators{
   oper("@") => [prefixOp(400,399), infixOp(399,400,400)].
   oper("in") => [infixOp(899,900,900)].
   oper("^|") => [infixOp(919,920,920)].
+  oper("break") => [prefixOp(10,9)].
   oper("suspend") => [prefixOp(901,900), infixOp(900,901,900)].
   oper("open") => [prefixOp(900,899)].
   oper("~~") => [infixOp(1239,1240,1240)].
@@ -121,7 +120,6 @@ star.compiler.operators{
   oper("^") => [prefixOp(100,99), infixOp(99,100,99)].
   oper("<=>") => [infixOp(949,950,949)].
   oper("generator") => [prefixOp(300,299)].
-  oper("perform") => [prefixOp(300,299)].
   oper("valof") => [prefixOp(300,299)].
   oper("yield") => [prefixOp(300,299)].
   oper("until") => [infixOp(1174,1175,1174)].
@@ -431,8 +429,6 @@ star.compiler.operators{
   keyword(",..") => .true.
   keyword("for") => .true.
   keyword("{?") => .true.
-  keyword("ignore") => .true.
-  keyword("raise") => .true.
   keyword(". ") => .true.
   keyword("(|") => .true.
   keyword("then") => .true.
@@ -464,6 +460,7 @@ star.compiler.operators{
   keyword("@") => .true.
   keyword("|>") => .true.
   keyword("in") => .true.
+  keyword("break") => .true.
   keyword("suspend") => .true.
   keyword("open") => .true.
   keyword("~~") => .true.
@@ -479,7 +476,6 @@ star.compiler.operators{
   keyword("<=>") => .true.
   keyword("|]") => .true.
   keyword("generator") => .true.
-  keyword("perform") => .true.
   keyword("?}") => .true.
   keyword("valof") => .true.
   keyword("yield") => .true.

@@ -401,12 +401,11 @@ binRefMacro(T,expression,Rp) :-
   becomes
   {
     I .= _generate(C);
-    Flg .= ref .true;
-    while Flg! do{
+    lb:while .true do{
       I resume ._next in {
         _yld(P) => B.
         _yld(_) default => {}.
-        ._all => Flg := .false
+        ._all => break lb
       }
     }
   }
@@ -414,19 +413,14 @@ binRefMacro(T,expression,Rp) :-
  forLoopMacro(A,action,Ax) :-
    isForDo(A,Lc,P,C,Bd),!,
    genIden(Lc,I),
-   genIden(Lc,F),
+   genIden(Lc,Lb),
 
-   mkEnum(Lc,"false",False),
    mkEnum(Lc,"true",True),
 
-   /* Build F.=ref .true */
-   mkRef(Lc,True,FV),
-   match(Lc,F,FV,S2),
-
-   /* Build ._all => F:=.false */
-   assignment(Lc,F,False,End),
+   /* Build ._all => break Lb */
+   mkBreak(Lc,Lb,Brk),
    mkEnum(Lc,"_all",All),
-   mkEquation(Lc,All,none,End,EndEq),
+   mkEquation(Lc,All,none,Brk,EndEq),
 
    /* build _yld(P) => B */
    unary(Lc,"_yld",P,BYld),
@@ -444,15 +438,17 @@ binRefMacro(T,expression,Rp) :-
    mkResume(Lc,I,Next,[YldEqn,DefltEqn,EndEq],Rsme),
    braceTuple(Lc,[Rsme],Resume),
 
-   /* Build while F! loop */
-   cellRef(Lc,F,FR),
-   mkWhileDo(Lc,FR,Resume,Loop),
+   /* Build while .true loop */
+   mkWhileDo(Lc,True,Resume,Loop),
+
+   /* Build Lb:while .true do .. */
+   mkLbldAction(Lc,Lb,Loop,Lbld),
 
    /* Build call to _generate */
    roundTerm(Lc,name(Lc,"_generate"),[C],IT),
    match(Lc,I,IT,S1),
 
-   mkSequence(Lc,[S1,S2,Loop],Ax).
+   mkSequence(Lc,[S1,Lbld],Ax).
 
 /* generator{A}
    becomes

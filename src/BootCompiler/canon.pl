@@ -156,6 +156,8 @@ locOfCanon(tryCatch(Lc,_,_),Lc) :-!.
 
 locOfCanon(doNop(Lc),Lc) :-!.
 locOfCanon(doSeq(Lc,_,_),Lc) :-!.
+locOfCanon(doLbld(Lc,_,_),Lc) :-!.
+locOfCanon(doBrk(Lc,_),Lc) :-!.
 locOfCanon(doValis(Lc,_),Lc) :-!.
 locOfCanon(doThrow(Lc,_),Lc) :-!.
 locOfCanon(doMatch(Lc,_,_),Lc) :-!.
@@ -172,6 +174,7 @@ locOfCanon(doCall(Lc,_,_),Lc) :-!.
 locOfCanon(doCase(Lc,_,_,_),Lc) :-!.
 locOfCanon(doSuspend(Lc,_,_,_),Lc) :-!.
 locOfCanon(doResume(Lc,_,_,_),Lc) :-!.
+locOfCanon(doRetire(Lc,_,_),Lc) :-!.
 
 constructorName(enm(_,Nm,_),Nm) :-!.
 constructorName(cons(_,Nm,_),Nm).
@@ -302,6 +305,9 @@ ssAction(doNop(_),_,ss("{}")) :-!.
 ssAction(doSeq(Lc,L,R),Dp,sq([ss("{"),nl(Dp2),Sq,nl(Dp),ss("}")])) :-!,
   Dp2 is Dp+2,
   ssActSeq(doSeq(Lc,L,R),Dp2,Sq).
+ssAction(doLbld(_,Lb,A),Dp,sq([ss(Lb),ss(":"),AA])) :-!,
+  ssAction(A,Dp,AA).
+ssAction(doBrk(_,Lb),_,sq([ss("break "),ss(Lb)])) :-!.
 ssAction(doValis(_,E),Dp,sq([ss("valis "),EE])) :-!,
   ssTerm(E,Dp,EE).
 ssAction(doThrow(_,E),Dp,sq([ss("throw "),EE])) :-!,

@@ -210,6 +210,9 @@ overloadAction(doNop(Lc),_,St,St,doNop(Lc)) :-!.
 overloadAction(doSeq(Lc,A,B),Dict,St,Stx,doSeq(Lc,AA,BB)) :-
   overloadAction(A,Dict,St,St1,AA),
   overloadAction(B,Dict,St1,Stx,BB).
+overloadAction(doLbld(Lc,Lb,A),Dict,St,Stx,doLbld(Lc,Lb,AA)) :-!,
+  overloadAction(A,Dict,St,Stx,AA).
+overloadAction(doBrk(Lc,Lb),_,St,St,doBrk(Lc,Lb)) :-!.
 overloadAction(doValis(Lc,A),Dict,St,Stx,doValis(Lc,AA)) :-
   overloadTerm(A,Dict,St,Stx,AA).
 overloadAction(doThrow(Lc,A),Dict,St,Stx,doThrow(Lc,AA)) :-

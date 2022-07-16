@@ -928,6 +928,11 @@ checkAction(A,Tp,ErTp,Env,Ev,doSeq(Lc,L,R),Path) :-
 checkAction(A,Tp,ErTp,Env,Ev,Ax,Path) :-
   isActionSeq(A,_,A1),!,
   checkAction(A1,Tp,ErTp,Env,Ev,Ax,Path).
+checkAction(A,Tp,ErTp,Env,Env,doLbld(Lc,Lb,Ax),Path) :-
+  isLbldAction(A,Lc,L,AA),!,isIden(L,_,Lb),
+  checkAction(AA,Tp,ErTp,Env,_,Ax,Path).
+checkAction(A,_,_,Env,Env,doBrk(Lc,Lb),_Path) :-
+  isBreak(A,Lc,L),!,isIden(L,_,Lb).
 checkAction(A,Tp,ErTp,Env,Env,doValis(Lc,ValExp),Path) :-
   isValis(A,Lc,E),!,
   typeOfExp(E,Tp,ErTp,Env,_,ValExp,Path).

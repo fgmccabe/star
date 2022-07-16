@@ -190,8 +190,9 @@ ssAct(nop(_),_,ss("{}")) :-!.
 ssAct(seq(Lc,A,B),Dp,sq([ss("{"),iv(sq([ss(";"),nl(Dp2)]),AA),ss("}")])) :-!,
   Dp2 is Dp+2,
   ssActSeq(seq(Lc,A,B),Dp2,AA).
-ssAct(ignre(_,E),Dp,sq([ss("ignore "),EE])) :-!,
-  ssTrm(E,Dp,EE).
+ssAct(lbld(_,Lb,A),Dp,sq([ss(Lb),ss(":"),AA])) :-!,
+  ssAct(A,Dp,AA).
+ssAct(brk(_,Lb),_,sq([ss("break "),ss(Lb)])) :-!.
 ssAct(vls(_,E),Dp,sq([ss("valis "),EE])) :-!,
   ssTrm(E,Dp,EE).
 ssAct(thrw(_,E),Dp,sq([ss("throw "),EE])) :-!,
@@ -413,11 +414,10 @@ rewriteAction(_QTest,nop(Lc),nop(Lc)) :- !.
 rewriteAction(QTest,seq(Lc,L,R),seq(Lc,LL,RR)) :-!,
   rewriteAction(QTest,L,LL),
   rewriteAction(QTest,R,RR).
-rewriteAction(QTest,ignre(Lc,E),ignre(Lc,EE)) :- !,
-  rewriteTerm(QTest,E,EE).
+rewriteAction(QTest,lbld(Lc,Lb,A),lbld(Lc,Lb,AA)) :- !,
+  rewriteAction(QTest,A,AA).
+rewriteAction(_,brk(Lc,Lb),brk(Lc,Lb)) :-!.
 rewriteAction(QTest,vls(Lc,E),vls(Lc,EE)) :- !,
-  rewriteTerm(QTest,E,EE).
-rewriteAction(QTest,rse(Lc,E),rse(Lc,EE)) :- !,
   rewriteTerm(QTest,E,EE).
 rewriteAction(QTest,thrw(Lc,E),thrw(Lc,EE)) :- !,
   rewriteTerm(QTest,E,EE).
@@ -592,8 +592,8 @@ inTerm(perf(_,A),Nm) :-
 inAction(nop(_),_) :- !,fail.
 inAction(seq(_,L,R),Nm) :-!,
   (inAction(L,Nm) ; inAction(R,Nm)).
-inAction(ignre(_,E),Nm) :- !,
-  inTerm(E,Nm).
+inAction(lbld(_,_,E),Nm) :- !,
+  inAction(E,Nm).
 inAction(vls(_,E),Nm) :- !,
   inTerm(E,Nm).
 inAction(thrw(_,E),Nm) :- !,
@@ -826,8 +826,9 @@ validAction(nop(_),_,D,D) :- !.
 validAction(seq(Lc,L,R),_,D,Dx) :-!,
   validAction(L,Lc,D,D0),
   validAction(R,Lc,D0,Dx).
-validAction(ignre(Lc,E),_,D,D) :- !,
-  validTerm(E,Lc,D).
+validAction(lbld(Lc,_,A),_,D,Dx) :-!,
+  validAction(A,Lc,D,Dx).
+validAction(brk(_,_),_,D,D) :- !.
 validAction(vls(Lc,E),_,D,D) :- !,
   validTerm(E,Lc,D).
 validAction(rse(Lc,E),_,D,D) :- !,
