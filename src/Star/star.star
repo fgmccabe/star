@@ -15,6 +15,7 @@ star{
   public import star.misc.
   public import star.monad.
   public import star.option.
+  public import star.range.
   public import star.sets.
   public import star.strings.
   public import star.trace.

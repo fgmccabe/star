@@ -52,6 +52,8 @@ actions, as explained in @ref{Tasks}.
   | @refer{LetAction}
   | @refer{TryCatchAction}
   | @refer{ThrowAction}
+  | @refer{LabeledAction}
+  | @refer{BreakAction}
 @end display
 @end float
 
@@ -159,6 +161,81 @@ execution of the program to stop.
 @quotation Note
 There is no automatic search for an handling form: every @code{throw}
 must be lexically accounted for.
+@end quotation
+
+
+@node Labeled Action
+@subsection Labeled Action
+@cindex labeled action
+
+The @refer{LabeledAction} associates a @emph{label} with an
+action. Apart from that label, the semantics of the labeled action is
+not affected -- unless it lexically contains a @refer{BreakAction}.
+
+@float BNF,labeledActionFig
+@caption{Labeled Action}
+@display
+@anchored{LabeledAction} ::= @refer{Identifier} @code{':'} @refer{Action}
+@end display
+@end float
+
+
+@node Break Action
+@subsection Break Action
+@cindex break action
+@findex break
+
+The @refer{BreakAction} denotes that the labeled action should
+terminate. The action that was labeled is terminated, and computation
+proceeds with its natural successor.
+
+@float BNF,breakActionFig
+@caption{Break Action}
+@display
+@anchored{BreakAction} ::= @code{'break'} @refer{Identifier}
+@end display
+@end float
+
+When a @code{break} action is performed, it must refer to the label of
+a syntactically enclosing action. That action is ended -- with no
+further actions taking place within it -- and the labeled action's
+natural successor is entered.
+
+@quotation Example
+Labeled actions and labeled breaks are a straightforward mechanism for
+early exiting loops. For example, in the loop:
+@example
+firstMultiple(X,M) => valof@{
+  L:@{
+    for ix in range(1,X,1) do@{
+      if ix%M==0 then
+        break L
+    @};
+    valis "not found"
+  @};
+  valis "found"
+@}
+@end example
+The @code{firstMultiple} function will return @code{"found"} if a
+multiple of some @code{M} is found in a range; and @code{"not found"}
+otherwise.
+
+This is because, when a multiple is found, we exit the composite
+action labeled @code{L}; which proceeds to the next action which
+returns the @code{"found"} value.
+
+If the loop ended normally, that is because no multiple was found, and
+the action after the loop signals that.
+@end quotation
+
+@quotation Note
+There is no run-time search for an enclosing label; nor are labels
+first class entities. A label is an identifier that is used to
+identify (sic) a specific action.
+
+Labels can be nested, however. In the case that there are multiple
+occurrences of a label in scope, a @code{break} will always refer to
+the lexically innermost labeled action.
 @end quotation
 
 @node Definition Action

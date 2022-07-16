@@ -17,6 +17,17 @@ test.ac10{
     valis -1
   }
 
+  firstMultiple(X,M) => valof{
+    L:{
+      for ix in range(1,X,1) do{
+	if ix%M==0 then
+	  break L
+      };
+      valis "not found"
+    };
+    valis "found"
+  }
+
   main:()=>().
   main()=>valof{
     show labeled(1);
@@ -25,6 +36,12 @@ test.ac10{
     assert labeled(1) == 1;
     assert labeled(-1) == -1;
     assert labeled(0) == 0;
+
+    show firstMultiple(10,3);
+    show firstMultiple(3,10);
+
+    assert firstMultiple(10,3) == "found";
+    assert firstMultiple(3,10) == "not found";
     valis ()
   }
 }  
