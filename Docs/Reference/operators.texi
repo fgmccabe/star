@@ -90,14 +90,6 @@
 @tab right associative infix
 @tab 720
 @tab constant replace
-@item @code{ignore}
-@tab non-associative prefix
-@tab 300
-@tab evaluate and discard expression
-@item @code{raise}
-@tab non-associative prefix
-@tab 930
-@tab raise an exception
 @item @code{then}
 @tab non-associative infix
 @tab 1180
@@ -302,6 +294,10 @@
 @tab right associative infix
 @tab 920
 @tab option or-else operator
+@item @code{break}
+@tab non-associative prefix
+@tab 10
+@tab break out of an action (loop or block)
 @item @code{suspend}
 @tab non-associative prefix
 @tab 901
@@ -390,10 +386,6 @@
 @tab non-associative prefix
 @tab 300
 @tab define a generator expression
-@item @code{perform}
-@tab non-associative prefix
-@tab 300
-@tab perform an action or task
 @item @code{valof}
 @tab non-associative prefix
 @tab 300
@@ -534,32 +526,30 @@
 @tab @code{catch}
 @item @code{valis}
 @tab @code{for}
-@tab @code{ignore}
-@item @code{raise}
 @tab @code{then}
-@tab @code{default}
-@item @code{resume}
+@item @code{default}
+@tab @code{resume}
 @tab @code{contract}
-@tab @code{try}
-@item @code{exists}
+@item @code{try}
+@tab @code{exists}
 @tab @code{if}
-@tab @code{in}
-@item @code{suspend}
-@tab @code{open}
+@item @code{in}
+@tab @code{break}
+@tab @code{suspend}
+@item @code{open}
 @tab @code{public}
-@item @code{ref}
-@tab @code{where}
+@tab @code{ref}
+@item @code{where}
 @tab @code{case}
-@item @code{generator}
-@tab @code{perform}
-@tab @code{valof}
-@item @code{yield}
+@tab @code{generator}
+@item @code{valof}
+@tab @code{yield}
 @tab @code{until}
-@tab @code{while}
-@item @code{private}
+@item @code{while}
+@tab @code{private}
 @tab @code{type}
-@tab @code{implementation}
-@item @code{else}
+@item @code{implementation}
+@tab @code{else}
 @tab @code{throws}
 
 @end multitable

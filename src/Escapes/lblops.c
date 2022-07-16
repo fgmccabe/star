@@ -9,7 +9,7 @@
 #include "lblops.h"
 #include "engineP.h"
 
-ReturnStatus g__definedLbl(heapPo h, termPo a1,termPo a2) {
+ReturnStatus g__definedLbl(heapPo h, termPo a1, termPo a2) {
   char label[MAX_SYMB_LEN];
   copyChars2Buff(C_STR(a1), label, NumberOf(label));
   integer arity = integerVal(a2);
@@ -18,21 +18,15 @@ ReturnStatus g__definedLbl(heapPo h, termPo a1,termPo a2) {
     .result = findLbl(label, arity) != Null ? trueEnum : falseEnum};
 }
 
-static inline void push(processPo P, termPo t) {
-  stackPo stack = P->stk;
-  stackSanityCheck(P->stk);
-  *--stack->sp = t;
-}
-
-static void pushArgs(processPo P, termPo args) {
+static void pushArgs(stackPo stk, termPo args) {
   if (isCons(args)) {
     normalPo p = C_NORMAL(args);
-    pushArgs(P, consTail(p));
-    push(P, consHead(p));
+    pushArgs(stk, consTail(p));
+    pushStack(stk, consHead(p));
   }
 }
 
-ReturnStatus g__callLbl(heapPo h, termPo a1, termPo a2, termPo a3) {
+ReturnStatus g__callLbl(processPo p, termPo a1, termPo a2, termPo a3) {
   integer arity = integerVal(a2);
 
   char label[MAX_SYMB_LEN];
@@ -47,13 +41,10 @@ ReturnStatus g__callLbl(heapPo h, termPo a1, termPo a2, termPo a3) {
     if (prog == Null) {
       return ret;
     } else {
-      pushArgs(currentProcess, a2);
+      stackPo stk = p->stk;
 
-      stackPo stk = currentProcess->stk;
+      pushArgs(stk, a2);
       stk->fp = pushFrame(stk, prog, stk->fp);
-
-      integer lclCnt = lclCount(prog);  /* How many locals do we have */
-      assert(validStkValueLoc(stk, stk->sp));
 
       ret.ret = Switch;               // Special flag for dynamic call
       return ret;

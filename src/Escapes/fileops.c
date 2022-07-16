@@ -26,39 +26,39 @@ ReturnStatus g__cwd(heapPo h) {
   return (ReturnStatus) {.result = cwd, .ret=Ok};
 }
 
-ReturnStatus g__cd(heapPo h, termPo a1) {
+ReturnStatus g__cd(processPo p, termPo a1) {
   integer len;
   const char *cd = strVal(a1, &len);
 
-  return rtnStatus(h, setProcessWd(currentProcess, (char *) cd, len), "cd problem");
+  return rtnStatus(processHeap(p), setProcessWd(p, (char *) cd, len), "cd problem");
 }
 
-ReturnStatus g__rm(heapPo h, termPo a1) {
+ReturnStatus g__rm(processPo p, termPo a1) {
   integer fnLen;
   const char *fn = strVal(a1, &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(currentProcess), fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(p), fn, fnLen, buff, NumberOf(buff));
 
   tryAgain:
-  switchProcessState(currentProcess, wait_io);
+  switchProcessState(p, wait_io);
 
   if (unlink(acFn) != -1) {
-    setProcessRunnable(currentProcess);
-    return rtnStatus(h, Ok, "");
+    setProcessRunnable(p);
+    return rtnStatus(processHeap(p), Ok, "");
   } else {
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(p);
     switch (errno) {
       case EINTR:
         goto tryAgain;
       case EACCES:
       case EPERM:
-        return liberror(h, "__rm", eNOPERM);
+        return liberror(processHeap(p), "__rm", eNOPERM);
       case EBUSY:
-        return liberror(h, "__rm", eFAIL);
+        return liberror(processHeap(p), "__rm", eFAIL);
       case ENOENT:
       default:
-        return liberror(h, "__rm", eIOERROR);
+        return liberror(processHeap(p), "__rm", eIOERROR);
     }
   }
 }

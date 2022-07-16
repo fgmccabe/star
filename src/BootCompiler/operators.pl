@@ -41,8 +41,6 @@
   operator("->", [infixOp(889, 890, 889)]).
   operator(".+.", [prefixOp(700, 699)]).
   operator("<$", [infixOp(719, 720, 720)]).
-  operator("ignore", [prefixOp(300, 299)]).
-  operator("raise", [prefixOp(930, 929)]).
   operator("then", [infixOp(1179, 1180, 1179)]).
   operator("!", [postfixOp(99, 100), infixOp(99, 100, 99)]).
   operator("->>", [infixOp(1199, 1200, 1199)]).
@@ -85,6 +83,7 @@
   operator("@", [prefixOp(400, 399), infixOp(399, 400, 400)]).
   operator("in", [infixOp(899, 900, 900)]).
   operator("^|", [infixOp(919, 920, 920)]).
+  operator("break", [prefixOp(10, 9)]).
   operator("suspend", [prefixOp(901, 900), infixOp(900, 901, 900)]).
   operator("open", [prefixOp(900, 899)]).
   operator("~~", [infixOp(1239, 1240, 1240)]).
@@ -105,7 +104,6 @@
   operator("^", [prefixOp(100, 99), infixOp(99, 100, 99)]).
   operator("<=>", [infixOp(949, 950, 949)]).
   operator("generator", [prefixOp(300, 299)]).
-  operator("perform", [prefixOp(300, 299)]).
   operator("valof", [prefixOp(300, 299)]).
   operator("yield", [prefixOp(300, 299)]).
   operator("until", [infixOp(1174, 1175, 1174)]).
@@ -380,8 +378,6 @@
   keyword(",..").
   keyword("for").
   keyword("{?").
-  keyword("ignore").
-  keyword("raise").
   keyword(". ").
   keyword("(|").
   keyword("then").
@@ -413,6 +409,7 @@
   keyword("@").
   keyword("|>").
   keyword("in").
+  keyword("break").
   keyword("suspend").
   keyword("open").
   keyword("~~").
@@ -428,7 +425,6 @@
   keyword("<=>").
   keyword("|]").
   keyword("generator").
-  keyword("perform").
   keyword("?}").
   keyword("valof").
   keyword("yield").

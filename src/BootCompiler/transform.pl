@@ -407,6 +407,9 @@ liftAction(doNop(Lc),nop(Lc),Q,Q,_,_,Ex,Ex) :-!.
 liftAction(doSeq(Lc,L,R),seq(Lc,LL,RR),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftAction(L,LL,Q,Q0,Map,Opts,Ex,Ex0),
   liftAction(R,RR,Q0,Qx,Map,Opts,Ex0,Exx).
+liftAction(doLbld(Lc,Lb,A),lbld(Lc,Lb,AA),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftAction(A,AA,Q,Qx,Map,Opts,Ex,Exx).
+liftAction(doBrk(Lc,Lb),brk(Lc,Lb),Qx,Qx,_Map,_Opts,Exx,Exx) :-!.
 liftAction(doValis(Lc,E),vls(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
 liftAction(doThrow(Lc,E),thrw(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,

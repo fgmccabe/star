@@ -4,8 +4,6 @@
     "star.arith": "arith.star",
     "star.action": "action.star",
     "star.bintree": "bintree.star",
-    "star.boot": "boot.star",
-    "star.bboot": "bboot.star",
     "star.capabilities" : "capabilities.star",
     "star.cmdOpts": "cmdOpts.star",
     "star.collection": "collection.star",

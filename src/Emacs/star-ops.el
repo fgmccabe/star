@@ -23,8 +23,6 @@
   ("->" ( (infix 889 890 889)))
   (".+." ( (prefix 700 699)))
   ("<$" ( (infix 719 720 720)))
-  ("ignore" ( (prefix 300 299)))
-  ("raise" ( (prefix 930 929)))
   ("then" ( (infix 1179 1180 1179)))
   ("!" ( (postfix 99 100) (infix 99 100 99)))
   ("->>" ( (infix 1199 1200 1199)))
@@ -67,6 +65,7 @@
   ("@" ( (prefix 400 399) (infix 399 400 400)))
   ("in" ( (infix 899 900 900)))
   ("^|" ( (infix 919 920 920)))
+  ("break" ( (prefix 10 9)))
   ("suspend" ( (prefix 901 900) (infix 900 901 900)))
   ("open" ( (prefix 900 899)))
   ("~~" ( (infix 1239 1240 1240)))
@@ -87,7 +86,6 @@
   ("^" ( (prefix 100 99) (infix 99 100 99)))
   ("<=>" ( (infix 949 950 949)))
   ("generator" ( (prefix 300 299)))
-  ("perform" ( (prefix 300 299)))
   ("valof" ( (prefix 300 299)))
   ("yield" ( (prefix 300 299)))
   ("until" ( (infix 1174 1175 1174)))
@@ -146,8 +144,6 @@
 "catch"
 "valis"
 "for"
-"ignore"
-"raise"
 "then"
 "default"
 "resume"
@@ -156,6 +152,7 @@
 "exists"
 "if"
 "in"
+"break"
 "suspend"
 "open"
 "public"
@@ -163,7 +160,6 @@
 "where"
 "case"
 "generator"
-"perform"
 "valof"
 "yield"
 "until"

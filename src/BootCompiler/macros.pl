@@ -563,6 +563,12 @@ examineAction(A,Ax) :-
 examineAction(A,A) :-
   isBraceTuple(A,_,[]),!.
 examineAction(A,Ax) :-
+  isLbldAction(A,Lc,Lb,B),!,
+  macroAction(B,Bx),
+  mkLbldAction(Lc,Lb,Bx,Ax).
+examineAction(A,A) :-
+  isBreak(A,_,_),!.
+examineAction(A,Ax) :-
   isMatch(A,Lc,L,R),!,
   macroPtn(L,Lx),
   macroTerm(R,Rx),
