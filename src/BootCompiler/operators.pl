@@ -67,12 +67,10 @@
   operator("try", [prefixOp(1200, 1199)]).
   operator("exists", [prefixOp(1010, 1009)]).
   operator("if", [prefixOp(1175, 1174)]).
-  operator("$$", [prefixOp(899, 898)]).
   operator(":", [infixOp(1249, 1250, 1249)]).
   operator(";", [postfixOp(1250, 1251), infixOp(1250, 1251, 1251)]).
   operator("<", [infixOp(899, 900, 899)]).
   operator(".=", [infixOp(899, 900, 899)]).
-  operator("=>>", [infixOp(949, 950, 950)]).
   operator("=", [infixOp(974, 975, 974)]).
   operator("|:", [infixOp(1234, 1235, 1234)]).
   operator("show", [prefixOp(1240, 1239)]).
@@ -82,13 +80,11 @@
   operator("?", [infixOp(919, 920, 920)]).
   operator("@", [prefixOp(400, 399), infixOp(399, 400, 400)]).
   operator("in", [infixOp(899, 900, 900)]).
-  operator("^|", [infixOp(919, 920, 920)]).
   operator("break", [prefixOp(10, 9)]).
   operator("suspend", [prefixOp(901, 900), infixOp(900, 901, 900)]).
   operator("open", [prefixOp(900, 899)]).
   operator("~~", [infixOp(1239, 1240, 1240)]).
   operator("assert", [prefixOp(1240, 1239)]).
-  operator("!!", [postfixOp(99, 100)]).
   operator("⊕", [infixOp(720, 720, 719)]).
   operator(".^.", [infixOp(720, 720, 719)]).
   operator("//", [infixOp(960, 960, 959)]).
@@ -106,7 +102,6 @@
   operator("generator", [prefixOp(300, 299)]).
   operator("valof", [prefixOp(300, 299)]).
   operator("yield", [prefixOp(300, 299)]).
-  operator("until", [infixOp(1174, 1175, 1174)]).
   operator("while", [prefixOp(1175, 1174)]).
   operator("private", [prefixOp(1200, 1199)]).
   operator("•", [infixOp(450, 450, 449)]).
@@ -118,7 +113,6 @@
   operator(".access", [prefixOp(1260, 1259)]).
   operator(":?", [infixOp(399, 400, 399)]).
   operator(".<<.", [infixOp(600, 600, 599)]).
-  operator("^.", [infixOp(450, 450, 449)]).
   operator(">>=", [infixOp(949, 950, 950)]).
   operator("^/", [infixOp(960, 960, 959)]).
   operator("<~", [infixOp(1230, 1231, 1230)]).
@@ -142,7 +136,6 @@
   bracket("[]", "[", "]", ",", 2000).
   bracket("()", "(", ")", ",", 2000).
   bracket("{}", "{", "}", ".\n", 2000).
-  bracket("(||)", "(|", "|)", "", 2000).
   bracket("{??}", "{?", "?}", "", 2000).
   bracket("{!!}", "{!", "!}", "", 2000).
 
@@ -175,9 +168,7 @@
   follows('','⊕','⊕').
   follows('','•','•').
   follows('','#','#').
-  follows('','$','$').
   follows('&','&','&&').
-  follows('(','|','(|').
   follows('*','*','**').
   follows('*','>','*>').
   follows('+','+','++').
@@ -226,7 +217,6 @@
   follows('|',':','|:').
   follows('|','|','||').
   follows('|','>','|>').
-  follows('|',')','|)').
   follows('~','~','~~').
   follows('~','=','~=').
   follows('~','>','~>').
@@ -235,10 +225,8 @@
   follows('\\','-','\\-').
   follows('\\','/','\\/').
   follows('^','?','^?').
-  follows('^','.','^.').
   follows('^','/','^/').
   follows('^','=','^=').
-  follows('^','|','^|').
   follows('^/','/','^//').
   follows(':','?',':?').
   follows(':',':','::').
@@ -257,19 +245,15 @@
   follows('=','<','=<').
   follows('=','=','==').
   follows('=','>','=>').
-  follows('=>','>','=>>').
   follows('>','=','>=').
   follows('>','>','>>').
   follows('>>','=','>>=').
   follows('?','}','?}').
-  follows('!','!','!!').
   follows('!','}','!}').
-  follows('$','$','$$').
 
   final('%',"%").	 /* modulo */
   final('&&',"&&").	 /* conjunction */
   final('(',"(").	 /* parentheses */
-  final('(|',"(|").	 /* banana brackets */
   final(')',")").	 /* parentheses */
   final('*',"*").	 /* multicat */
   final('**',"**").	 /* exponentiation */
@@ -310,7 +294,6 @@
   final('|:',"|:").	 /* constrained type */
   final('||',"||").	 /* disjunction */
   final('|>',"|>").	 /* meta quote */
-  final('|)',"|)").	 /* banana brackets */
   final('}',"}").	 /* non-recursive braces */
   final('~',"~").	 /* logical negation */
   final('~~',"~~").	 /* quantifier */
@@ -325,11 +308,9 @@
   final(']',"]").	 /* square brackets */
   final('^',"^").	 /* Optional propagation */
   final('^?',"^?").	 /* option propagate */
-  final('^.',"^.").	 /* optional object access */
   final('^/',"^/").	 /* filter */
   final('^//',"^//").	 /* filter map */
   final('^=',"^=").	 /* optional decomposition match */
-  final('^|',"^|").	 /* option or-else operator */
   final(':',":").	 /* type annotation */
   final(':?',":?").	 /* fallable type coercion */
   final('::',"::").	 /* type coercion */
@@ -348,7 +329,6 @@
   final('=<',"=<").	 /* less than or equal */
   final('==',"==").	 /* equality predicate */
   final('=>',"=>").	 /* function arrow */
-  final('=>>',"=>>").	 /* continuation arrow */
   final('>',">").	 /* greater than */
   final('>=',">=").	 /* greater than or equal */
   final('>>',">>").	 /* monadic bind */
@@ -357,12 +337,10 @@
   final('?}',"?}").	 /* test comprehension */
   final('@',"@").	 /* meta annotation */
   final('!',"!").	 /* pick up value from a ref cell */
-  final('!!',"!!").	 /* pick up value from a memo */
   final('!}',"!}").	 /* iota comprehension */
   final('⊕',"⊕").	 /* addition */
   final('•',"•").	 /* function composition */
   final('#',"#").	 /* Macro statement marker */
-  final('$$',"$$").	 /* wrap value in memo */
 
   keyword("retire").
   keyword("all").
@@ -379,7 +357,6 @@
   keyword("for").
   keyword("{?").
   keyword(". ").
-  keyword("(|").
   keyword("then").
   keyword("!").
   keyword("->>").
@@ -390,7 +367,6 @@
   keyword("(").
   keyword(")").
   keyword("<<-").
-  keyword("|)").
   keyword("resume").
   keyword("*>").
   keyword(",").
@@ -402,7 +378,6 @@
   keyword(":").
   keyword(";").
   keyword(".=").
-  keyword("=>>").
   keyword("=").
   keyword("|:").
   keyword("?").
@@ -428,13 +403,11 @@
   keyword("?}").
   keyword("valof").
   keyword("yield").
-  keyword("until").
   keyword("while").
   keyword("private").
   keyword("::").
   keyword(":?").
   keyword("<|").
-  keyword("^.").
   keyword("<~").
   keyword("{").
   keyword("type").

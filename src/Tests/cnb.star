@@ -2,15 +2,15 @@ test.cnb{
   import star.
   import star.script.
 
-  public factU:(integer)=>integer.
-  factU(N) => valof{
+  public factW:(integer)=>integer.
+  factW(N) => valof{
     I .= ref 1;
     R .= ref 1;
 
-    do{
+    while I!=<N do{
       R := R!*I!;
       I := I!+1
-    } until I!>N;
+    };
 
     valis R!
   }
@@ -28,8 +28,9 @@ test.cnb{
   
   main:()=>().
   main() => valof{
-    show factU(6);
+    show factW(6);
     show factF(6);
+    assert factW(10)==factF(10);
     valis ()
   }
 }

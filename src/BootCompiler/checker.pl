@@ -966,10 +966,6 @@ checkAction(A,Tp,ErTp,Env,Env,doWhile(Lc,Tst,Bdy),Path) :-
   isWhileDo(A,Lc,G,B),!,
   checkGoal(G,ErTp,Env,E0,Tst,Path),
   checkAction(B,Tp,ErTp,E0,_,Bdy,Path).
-checkAction(A,Tp,ErTp,Env,Env,doUntil(Lc,Bdy,Tst),Path) :-
-  isUntilDo(A,Lc,B,G),!,
-  checkGoal(G,ErTp,Env,_,Tst,Path),
-  checkAction(B,Tp,ErTp,Env,_,Bdy,Path).
 checkAction(A,Tp,ErTp,Env,Env,doFor(Lc,Ptn,Src,Bdy),Path) :-
   isForDo(A,Lc,P,E,B),!,
   newTypeVar("V",TV),

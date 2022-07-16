@@ -222,10 +222,6 @@
 @tab non-associative prefix
 @tab 1175
 @tab if ... then ... else
-@item @code{$$}
-@tab non-associative prefix
-@tab 899
-@tab wrap value in memo
 @item @code{:}
 @tab non-associative infix
 @tab 1250
@@ -246,10 +242,6 @@
 @tab non-associative infix
 @tab 900
 @tab pattern match
-@item @code{=>>}
-@tab right associative infix
-@tab 950
-@tab continuation arrow
 @item @code{=}
 @tab non-associative infix
 @tab 975
@@ -290,10 +282,6 @@
 @tab right associative infix
 @tab 900
 @tab list membership
-@item @code{^|}
-@tab right associative infix
-@tab 920
-@tab option or-else operator
 @item @code{break}
 @tab non-associative prefix
 @tab 10
@@ -318,10 +306,6 @@
 @tab non-associative prefix
 @tab 1240
 @tab assert condition
-@item @code{!!}
-@tab non-associative postfix
-@tab 100
-@tab pick up value from a memo
 @item @code{⊕}
 @tab left associative infix
 @tab 720
@@ -394,10 +378,6 @@
 @tab non-associative prefix
 @tab 300
 @tab yield in a generator expression
-@item @code{until}
-@tab non-associative infix
-@tab 1175
-@tab do @{..@} until C
 @item @code{while}
 @tab non-associative prefix
 @tab 1175
@@ -442,10 +422,6 @@
 @tab left associative infix
 @tab 600
 @tab shift left
-@item @code{^.}
-@tab left associative infix
-@tab 450
-@tab optional object access
 @item @code{>>=}
 @tab right associative infix
 @tab 950
@@ -544,12 +520,11 @@
 @tab @code{generator}
 @item @code{valof}
 @tab @code{yield}
-@tab @code{until}
-@item @code{while}
-@tab @code{private}
+@tab @code{while}
+@item @code{private}
 @tab @code{type}
-@item @code{implementation}
-@tab @code{else}
+@tab @code{implementation}
+@item @code{else}
 @tab @code{throws}
 
 @end multitable
@@ -589,41 +564,36 @@
   @tab @code{.}
   @tab @code{/}
   @item @code{<*>}
-  @tab @code{$$}
   @tab @code{:}
   @tab @code{;}
   @tab @code{<}
-  @item @code{.=}
-  @tab @code{=>>}
-  @tab @code{=}
+  @tab @code{.=}
+  @item @code{=}
   @tab @code{|:}
   @tab @code{++}
-  @item @code{>}
+  @tab @code{>}
   @tab @code{?}
-  @tab @code{@@}
-  @tab @code{^|}
+  @item @code{@@}
   @tab @code{~~}
-  @item @code{!!}
   @tab @code{⊕}
   @tab @code{.^.}
   @tab @code{//}
-  @tab @code{.~.}
-  @item @code{=<}
+  @item @code{.~.}
+  @tab @code{=<}
   @tab @code{==}
   @tab @code{\\}
   @tab @code{=>}
-  @tab @code{^}
-  @item @code{<=>}
+  @item @code{^}
+  @tab @code{<=>}
   @tab @code{•}
   @tab @code{.&.}
   @tab @code{///}
-  @tab @code{::}
-  @item @code{+++}
+  @item @code{::}
+  @tab @code{+++}
   @tab @code{:=}
   @tab @code{.access}
   @tab @code{:?}
-  @tab @code{.<<.}
-  @item @code{^.}
+  @item @code{.<<.}
   @tab @code{>>=}
   @tab @code{^/}
   @tab @code{<~}

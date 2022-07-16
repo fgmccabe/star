@@ -382,14 +382,6 @@ compAction(whle(Lc,G,B),OLc,Cont,ACont,TCont,_End,Brks,Opts,L,Lx,D,Dx,
   compCond(G,Lc,contCont(LpLbl),resetCont(Stk,ACont),
 	   TCont,End,Brks,Opts,L3,L4,D,D1,C2,[iLbl(End)|Cx],Stk,Stk1),
   compAction(B,Lc,Cont,contCont(TstLbl),TCont,End,Brks,Opts,L4,Lx,D1,Dx,C0,[iLbl(TstLbl)|C2],Stk1,_).
-compAction(untl(Lc,B,G),OLc,Cont,ACont,TCont,End,Brks,Opts,L,Lx,D,D,[iLbl(LpLbl)|C],Cx,Stk,Stk) :-
-  chLine(Opts,OLc,Lc,C,C0),!,
-  genLbl(L,LpLbl,L1),
-  genLbl(L1,TstLbl,L2),
-  compAction(B,Lc,Cont,contCont(TstLbl),TCont,
-	     TstLbl,Brks,Opts,L2,L3,D,D1,C0,[iLbl(TstLbl)|C2],Stk,Stk1),
-  compCond(G,Lc,resetCont(Stk,ACont),contCont(LpLbl),TCont,
-	   End,Brks,Opts,L3,Lx,D1,_D1,C2,Cx,Stk1,_Stk2).
 compAction(ltt(Lc,idnt(Nm),Val,Act),OLc,Cont,ACont,TCont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   genLbl(L,Lb,L1),
   chLine(Opts,OLc,Lc,C,C0),!,

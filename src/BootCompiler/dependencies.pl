@@ -411,10 +411,6 @@ collectDoRefs(T,All,Rf,Rfx) :-
   collectTermRefs(Tt,All,Rf,Rf0),
   collectDoRefs(B,All,Rf0,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
-  isUntilDo(T,_,B,Tt),!,
-  collectTermRefs(Tt,All,Rf,Rf0),
-  collectDoRefs(B,All,Rf0,Rfx).
-collectDoRefs(T,All,Rf,Rfx) :-
   isForDo(T,_,E,Tt,B),!,
   collectTermRefs(E,All,Rf,Rf0),
   collectTermRefs(Tt,All,Rf0,Rf1),
@@ -463,10 +459,6 @@ collectTypeRefs(St,_,SoFar,SoFar) :-
   isUnary(St,_,"@",_).
 collectTypeRefs(T,All,SoFar,Rx) :-
   isFuncType(T,_,L,R),
-  collectTypeRefs(L,All,SoFar,R0),
-  collectTypeRefs(R,All,R0,Rx).
-collectTypeRefs(T,All,SoFar,Rx) :-
-  isContType(T,_,L,R),
   collectTypeRefs(L,All,SoFar,R0),
   collectTypeRefs(R,All,R0,Rx).
 collectTypeRefs(T,All,SoFar,Rx) :-

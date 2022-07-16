@@ -111,9 +111,6 @@ freeVarsInAction(doWhile(_,T,L),Ex,Ex,Q,F,Fv) :-!,
   ptnGoalVars(T,Ex,Ex1),
   freeVars(T,Ex1,Q,F,F0),
   freeVarsInAction(L,Ex1,_,Q,F0,Fv).
-freeVarsInAction(doUntil(_,L,T),Ex,Ex,Q,F,Fv) :-!,
-  freeVars(T,Ex,Q,F,F0),
-  freeVarsInAction(L,Ex,_,Q,F0,Fv).
 freeVarsInAction(doFor(_,P,S,B),Ex,Ex,Q,F,Fv) :-!,
   ptnVars(P,Ex,Ex1),
   freeVars(P,Ex1,Q,F,F0),

@@ -606,11 +606,6 @@ examineAction(A,Ax) :-
   macroAction(B,Bx),
   mkWhileDo(Lc,Tx,Bx,Ax).
 examineAction(A,Ax) :-
-  isUntilDo(A,Lc,B,T),!,
-  macroTerm(T,Tx),
-  macroAction(B,Bx),
-  mkUntilDo(Lc,Tx,Bx,Ax).
-examineAction(A,Ax) :-
   isForDo(A,Lc,E,T,B),!,
   macroTerm(E,Ex),
   macroTerm(T,Tx),

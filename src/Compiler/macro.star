@@ -238,11 +238,6 @@ star.compiler.macro{
     Bx <- macroAction(B,Rp);
     valis mkWhileDo(Lc,Cx,Bx)
   }
-  examineAction(A,Rp) where (Lc,B,C) ^= isUntilDo(A) => do{
-    Cx <- macroCond(C,Rp);
-    Bx <- macroAction(B,Rp);
-    valis mkUntilDo(Lc,Cx,Bx)
-  }
   examineAction(A,Rp) where (Lc,C,B) ^= isForDo(A) => do{
     Cx <- macroTerm(C,Rp);
     Bx <- macroAction(B,Rp);

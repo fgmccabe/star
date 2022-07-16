@@ -146,7 +146,6 @@ locOfCanon(lambda(Lc,_,_,_),Lc) :-!.
 locOfCanon(assign(Lc,_,_),Lc) :-!.
 locOfCanon(tryCatch(Lc,_,_),Lc) :-!.
 locOfCanon(whileDo(Lc,_,_),Lc) :-!.
-locOfCanon(untilDo(Lc,_,_),Lc) :-!.
 locOfCanon(forDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(valis(Lc,_),Lc) :-!.
 locOfCanon(throw(Lc,_),Lc) :-!.
@@ -166,7 +165,6 @@ locOfCanon(doTryCatch(Lc,_,_),Lc) :-!.
 locOfCanon(doIfThenElse(Lc,_,_,_),Lc) :-!.
 locOfCanon(doIfThen(Lc,_,_),Lc) :-!.
 locOfCanon(doWhile(Lc,_,_),Lc) :-!.
-locOfCanon(doUntil(Lc,_,_),Lc) :-!.
 locOfCanon(doFor(Lc,_,_,_),Lc) :-!.
 locOfCanon(doLet(Lc,_,_,_),Lc) :-!.
 locOfCanon(doLetRec(Lc,_,_,_),Lc) :-!.
@@ -334,10 +332,6 @@ ssAction(doIfThen(_,T,A),Dp,sq([ss("if "),TT,ss(" then "),nl(Dp2),AA])) :-!,
   ssTerm(T,Dp,TT),
   ssAction(A,Dp2,AA).
 ssAction(doWhile(_,T,B),Dp,sq([ss("while "),TT,ss(" do"),nl(Dp2),BB])) :-!,
-  Dp2 is Dp+2,
-  ssTerm(T,Dp,TT),
-  ssAction(B,Dp2,BB).
-ssAction(doUntil(_,B,T),Dp,sq([ss("do"),BB,nl(Dp2),ss("until"),TT])) :-!,
   Dp2 is Dp+2,
   ssTerm(T,Dp,TT),
   ssAction(B,Dp2,BB).

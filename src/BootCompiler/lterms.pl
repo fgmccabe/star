@@ -228,11 +228,6 @@ ssAct(whle(_,G,B),Dp,
   Dp2 is Dp+2,
   ssTrm(G,Dp,GG),
   ssAct(B,Dp2,BB).
-ssAct(untl(_,B,G),Dp,
-      sq([ss("do "),nl(Dp2),BB,nl(Dp),ss(" until "),GG])) :-!,
-  Dp2 is Dp+2,
-  ssTrm(G,Dp,GG),
-  ssAct(B,Dp2,BB).
 ssAct(ffor(_,P,S,B),Dp,
       sq([ss("for "),PP,ss(" in "),SS,dd("do"),nl(Dp2),BB])) :-!,
   Dp2 is Dp+2,
@@ -445,9 +440,6 @@ rewriteAction(QTest,iftt(Lc,G,L),iftt(Lc,GG,LL)) :-!,
 rewriteAction(QTest,whle(Lc,G,L),whle(Lc,GG,LL)) :-!,
   rewriteTerm(QTest,G,GG),
   rewriteAction(QTest,L,LL).
-rewriteAction(QTest,untl(Lc,L,G),untl(Lc,LL,GG)) :-!,
-  rewriteTerm(QTest,G,GG),
-  rewriteAction(QTest,L,LL).
 rewriteAction(QTest,ffor(Lc,P,S,B),ffor(Lc,PP,SS,BB)) :-!,
   rewriteTerm(QTest,P,PP),
   rewriteTerm(QTest,S,SS),
@@ -617,8 +609,6 @@ inAction(iftte(_,G,L,R),Nm) :-!,
 inAction(iftt(_,G,L),Nm) :-!,
   (inTerm(G,Nm) ; inTerm(L,Nm)).
 inAction(whle(_,G,L),Nm) :-!,
-  (inTerm(G,Nm) ; inAction(L,Nm)).
-inAction(untl(_,L,G),Nm) :-!,
   (inTerm(G,Nm) ; inAction(L,Nm)).
 inAction(ltt(_,_,E,B),Nm) :-!,
   (inTerm(E,Nm) ; inAction(B,Nm)).
@@ -863,9 +853,6 @@ validAction(whle(Lc,G,L),_,D,D) :-!,
   glVars(G,D,D0),
   validTerm(G,Lc,D0),
   validAction(L,Lc,D0,_).
-validAction(untl(Lc,L,G),_,D,D) :-!,
-  validTerm(G,Lc,D),
-  validAction(L,Lc,D,_).
 validAction(ffor(Lc,P,S,B),_,D,D) :-!,
   validTerm(S,Lc,D),
   validPtn(P,Lc,D,D0),

@@ -11,7 +11,7 @@
 	      isTypeExistsStmt/6,typeExistsStmt/6,isTypeFunStmt/6,typeFunStmt/6,
 	      isTypeAnnotation/4,typeAnnotation/4,isTypeField/4,mkTypeField/4,
 	      isTypeLambda/4,typeLambda/4,typeName/2,
-	      isFuncType/4,funcType/4,isContType/4,mkContType/4,
+	      isFuncType/4,funcType/4,
 	      mkSqType/4,
 	      isEnum/3,mkEnum/3,isAnon/2,mkAnon/2,
 	      isImport/3, isPrivate/3,isPublic/3,mkPrivate/3,mkPublic/3,
@@ -51,8 +51,8 @@
 	      isThrows/4,mkThrows/4,
 	      isBreak/3,mkBreak/3,isLbldAction/4,mkLbldAction/4,
 	      isIfThenElse/5,isIfThen/4,mkIfThenElse/5,mkIfThen/4,
-	      isWhileDo/4,isUntilDo/4,isForDo/4,isForDo/5,
-	      mkWhileDo/4,mkUntilDo/4,mkForDo/5,
+	      isWhileDo/4,isForDo/4,isForDo/5,
+	      mkWhileDo/4,mkForDo/5,
 	      isActionSeq/4,isActionSeq/3,mkActionSeq/4,
 	      isLetDef/4,isLetRec/4,mkLetDef/4,mkLetRec/4,
 	      whereTerm/4,
@@ -297,12 +297,6 @@ isFuncType(T,Lc,Lh,Rh) :-
 
 funcType(Lc,L,R,Tp) :-
   binary(Lc,"=>",L,R,Tp).
-
-isContType(T,Lc,Lh,Rh) :-
-  isBinary(T,Lc,"=>>",Lh,Rh).
-
-mkContType(Lc,L,R,Tp) :-
-  binary(Lc,"=>>",L,R,Tp).
 
 mkSqType(Lc,Nm,Els,Tp) :-
   squareTerm(Lc,name(Lc,Nm),Els,Tp).
@@ -860,14 +854,6 @@ isWhileDo(A,Lc,Ts,Bd) :-
 mkWhileDo(Lc,T,B,S) :-
   unary(Lc,"while",T,Ts),
   binary(Lc,"do",Ts,B,S).
-
-isUntilDo(A,Lc,Bd,Ts) :-
-  isBinary(A,Lc,"until",B,Ts),
-  isUnary(B,_,"do",Bd),!.
-
-mkUntilDo(Lc,T,B,S) :-
-  unary(Lc,"do",B,B0),
-  binary(Lc,"until",B0,T,S).
 
 isForDo(A,Lc,C,Bd) :-
   isBinary(A,Lc,"do",LL,Bd),

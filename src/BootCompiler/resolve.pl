@@ -239,9 +239,6 @@ overloadAction(doCase(Lc,B,C,Tp),Dict,St,Stx,doCase(Lc,RB,RC,Tp)) :-
 overloadAction(doWhile(Lc,T,A),Dict,St,Stx,doWhile(Lc,TT,AA)) :-
   overloadTerm(T,Dict,St,St1,TT),
   overloadAction(A,Dict,St1,Stx,AA).
-overloadAction(doUntil(Lc,A,T),Dict,St,Stx,doUntil(Lc,AA,TT)) :-
-  overloadTerm(T,Dict,St,St1,TT),
-  overloadAction(A,Dict,St1,Stx,AA).
 overloadAction(doFor(Lc,P,S,A),Dict,St,Stx,doFor(Lc,PP,SS,AA)) :-
   overloadTerm(P,Dict,St,St1,PP),
   overloadTerm(S,Dict,St1,St2,SS),
