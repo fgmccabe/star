@@ -44,7 +44,7 @@ test.rl{
 
     assert rev(rev(SS))==SS;
 
-    XX .= ref SS;
+    XX = ref SS;
 
     XX[5] := "alpha";
     show XX!;

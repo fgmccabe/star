@@ -15,7 +15,7 @@ test.ac1{
 
   main:()=>().
   main() => valof{
-    _ .= _logmsg(disp(f1(10)));
+    _logmsg(disp(f1(10)));
     valis ()
   }
 }

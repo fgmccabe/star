@@ -6,7 +6,7 @@ test.ac7{
     if X == 1 then{
       valis 1
     } else if X>1 then{
-      XX .= f(X-1);
+      XX = f(X-1);
       valis XX*X
     } else
     throw "illegal arg"
@@ -15,7 +15,7 @@ test.ac7{
   main:()=>().
   main() => valof{
     try{
-      F10 .= f(10);
+      F10 = f(10);
       _logmsg(disp(F10));
     } catch {
       E => {

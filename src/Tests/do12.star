@@ -16,7 +16,7 @@ test.do12{
 
   seqCase:(foo)=>integer.
   seqCase(X) => valof{
-    res .= ref 0;
+    res = ref 0;
     case X in {
       foo(Ix) => {res:= Ix}.
       bar(_) => {}

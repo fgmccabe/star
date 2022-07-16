@@ -14,7 +14,7 @@ test.lx{
 
   main:()=>().
   main()=>valof{
-    F .= foo{ 'fre$' = "fred" };
+    F = foo{ 'fre$' = "fred" };
     assert F.'fre$' == "fred";
     valis ()
   }

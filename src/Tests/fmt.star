@@ -7,7 +7,7 @@ test.fmt{
 
   main:()=>().
   main()=>valof{
-    bar .= "bar";
+    bar = "bar";
     show "Foo#(bar)";
     show "ten = $(10):9.9;";
     assert "ten = $(10):00;"=="ten = 10";

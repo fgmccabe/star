@@ -36,8 +36,8 @@ test.c0{
 
   fact:(integer)=>integer.
   fact(X) => valof{
-    F .= ref 1;
-    I .= ref 0;
+    F = ref 1;
+    I = ref 0;
     while I! < X do{
       F := F!*I!;
       I := I!+1;

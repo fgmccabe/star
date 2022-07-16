@@ -10,9 +10,9 @@ test.bench{
 
   timer_finish : ((integer, integer, string)) => ().
   timer_finish((start, count, msg)) => valof {
-    stop .= _ticks();
-    elapsed .= ((stop - start)::float)/1.0e6;
-    ops_per_sec .= ((count::float) / elapsed)::integer;
+    stop = _ticks();
+    elapsed = ((stop - start)::float)/1.0e6;
+    ops_per_sec = ((count::float) / elapsed)::integer;
     logMsg("$(count)\t#(msg)\t$(elapsed) ms\t$(ops_per_sec) ops/sec");
     valis ()
   }
@@ -33,12 +33,12 @@ test.bench{
   empty(_) => ().
 
   benchNativeList(Count) => valof {
-    timer .= ref timer_start(Count, "");
-    idxes .= (iota(0, Count):cons[integer]);
+    timer = ref timer_start(Count, "");
+    idxes = (iota(0, Count):cons[integer]);
 
     logMsg("******* cons lists ******");
     timer := timer_start(Count, "Creating cons list");
-    cn_list .= ref (iota(0,Count):cons[integer]);
+    cn_list = ref (iota(0,Count):cons[integer]);
     timer_finish(timer!);
 
     timer := timer_start(Count, "Iterating over all elements in cons list");
@@ -50,7 +50,7 @@ test.bench{
 
     timer := timer_start(Count, "Accessing all elements in cons list");
     for i in idxes do {
-      El .= cn_list![i]
+      El = cn_list![i]
 --      logMsg("cons element: $(El)");
     };
     timer_finish(timer!);
@@ -65,13 +65,13 @@ test.bench{
 
     logMsg("******* ideal hash ******");
     timer := timer_start(Count, "Creating ideal tree");
-    id_list .= ref idealIota(0,Count);
+    id_list = ref idealIota(0,Count);
     timer_finish(timer!);
 --    logMsg("ideal map: $(id_list!)");
 
     timer := timer_start(Count, "Iterating over all elements in ideal");
     for (i->_) in (id_list!) do {
---      logMsg(" element: $(i) .= $(El)")
+--      logMsg(" element: $(i) = $(El)")
       empty(some(i))
     };
     timer_finish(timer!);
@@ -88,13 +88,13 @@ test.bench{
 
     logMsg("******* finger trees ******");
     timer := timer_start(Count, "Creating finger tree");
-    fn_list .= ref fingeriota(0,Count);
+    fn_list = ref fingeriota(0,Count);
     timer_finish(timer!);
 --    logMsg("finger tree: $(fn_list!)");
 
     timer := timer_start(Count, "Iterating over all elements in finger list");
     for i in (fn_list!) do {
---      logMsg(" element: $(i) .= $(El)")
+--      logMsg(" element: $(i) = $(El)")
       empty(some(i))
     };
     timer_finish(timer!);
@@ -114,7 +114,7 @@ test.bench{
   
     logMsg("******* skew trees ******");
     timer := timer_start(Count, "Creating skew tree");
-    sk_list .= ref (iota(0,Count):sk[integer]);
+    sk_list = ref (iota(0,Count):sk[integer]);
     timer_finish(timer!);
 --    logMsg("finger tree: $(fn_list!)");
 
@@ -127,7 +127,7 @@ test.bench{
 
     timer := timer_start(Count, "Accessing all elements in skew list");
     for i in idxes do {
-      El .= (sk_list!)[i]
+      El = (sk_list!)[i]
 --      logMsg("cons element: $(i)");
     };
     timer_finish(timer!);
@@ -142,7 +142,7 @@ test.bench{
 
     logMsg("******* red/black trees ******");
     timer := timer_start(Count, "Creating red/black tree");
-    rb_list .= ref rbiota(0,Count);
+    rb_list = ref rbiota(0,Count);
     timer_finish(timer!);
 --    logMsg("red/black tree: $(rb_list!)");
 
@@ -155,8 +155,8 @@ test.bench{
     
     timer := timer_start(Count, "Accessing all elements in red/black list");
     for i in idxes do {
-      El .= (rb_list!)[i]
---      logMsg(" element: $(i) .= $(El)")
+      El = (rb_list!)[i]
+--      logMsg(" element: $(i) = $(El)")
     };
     timer_finish(timer!);
 

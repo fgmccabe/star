@@ -18,7 +18,7 @@ test.ts2{
   -- Test generator functions
 
   iterTask(L) => generator {
-    LL .= ref L;
+    LL = ref L;
     while cons(H,T) .= LL! do{
       yield H;
       LL := T
@@ -33,13 +33,13 @@ test.ts2{
   odds(L) => valof{
     try{
       for (X where X%2==1) in L do{
-	_ .= _logmsg(disp(X));
+	_logmsg(disp(X));
 	if X>6 then
 	  throw ()
       }
     } catch {
       _ => {
-	_ .= _logmsg("caught")
+	_logmsg("caught")
       }
     };
     valis ()
@@ -47,8 +47,8 @@ test.ts2{
 
   main:() => ().
   main() => valof{
-    LL .= iota(1,12);
-    _ .= _logmsg(disp(LL));
+    LL = iota(1,12);
+    _logmsg(disp(LL));
     valis _logmsg(disp(odds(LL)));
   }
 }

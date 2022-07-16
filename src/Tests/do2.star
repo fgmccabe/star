@@ -6,7 +6,7 @@ test.do2{
 
   doFirst:()=>().
   doFirst() => valof{
-    A .= ref 1;
+    A = ref 1;
 
     A := A!+A!;
 
@@ -17,7 +17,7 @@ test.do2{
   
   doIf:(integer)=>boolean.
   doIf(X) => valof{
-    Alpha .= 3;
+    Alpha = 3;
 
     if Alpha < X then{
       valis .true
@@ -28,7 +28,7 @@ test.do2{
 
   doIf2:(integer)=>boolean.
   doIf2(X) => valof{
-    Alpha .= ref .true;
+    Alpha = ref .true;
 
     if 2 < X then{
       Alpha := .true
@@ -40,7 +40,7 @@ test.do2{
 
   doIf3:(integer)=>boolean.
   doIf3(X) => valof{
-    Alpha .= ref .false;
+    Alpha = ref .false;
 
     if 2 < X then{
       Alpha := .true

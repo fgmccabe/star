@@ -13,14 +13,14 @@ test.pp1{
     if _end_of_file(Fl) then
       valis []
     else{
-      Ln.=_inline(Fl);
-      Rst .= readLines(Fl);
+      Ln = _inline(Fl);
+      Rst = readLines(Fl);
       valis [Ln,..Rst]
     }
   }
 
   readSomething()=>valof{
-    Text .= readFromPipe("/bin/ls", ["-l"]);
+    Text = readFromPipe("/bin/ls", ["-l"]);
     for Line in Text do{
       logMsg("We have $(Line)");
     };

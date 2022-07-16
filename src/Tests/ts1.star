@@ -21,14 +21,14 @@ test.ts1{
 	  .cancel => valis ()
 	}
       }
-    } in {_ .= consIter(L,(),yildFn)};
+    } in {consIter(L,(),yildFn)};
     valis .end
   }
 
   evens:(cons[integer]) => integer.
   evens(L) => valof{
-    TT .= iterGen(L);
-    Tl .= ref 0;
+    TT = iterGen(L);
+    Tl = ref 0;
 
     try{
       while .true do {
@@ -55,7 +55,7 @@ test.ts1{
 	  .next => valis Cx
 	}
       }
-    } in {_ .= _iter(L,(),yildFn)};
+    } in {_iter(L,(),yildFn)};
     valis .end
   }
 
@@ -63,7 +63,7 @@ test.ts1{
   odds(L) => valof{
     try{
       for (X where X%2==1) in L do{
-	_ .= _logmsg(disp(X));
+	_logmsg(disp(X));
 	if X>6 then
 	  throw ()
       }
@@ -79,8 +79,8 @@ test.ts1{
 
   main:() => ().
   main() => valof{
-    LL .= iota(1,12);
-    _ .= odds(LL);
+    LL = iota(1,12);
+    odds(LL);
     valis _logmsg(disp(evens(LL)));
   }
 }

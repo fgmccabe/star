@@ -569,6 +569,11 @@ examineAction(A,Ax) :-
 examineAction(A,A) :-
   isBreak(A,_,_),!.
 examineAction(A,Ax) :-
+  isDefn(A,Lc,L,R),!,
+  macroPtn(L,Lx),
+  macroTerm(R,Rx),
+  mkDefn(Lc,Lx,Rx,Ax).
+examineAction(A,Ax) :-
   isMatch(A,Lc,L,R),!,
   macroPtn(L,Lx),
   macroTerm(R,Rx),

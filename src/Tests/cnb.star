@@ -4,8 +4,8 @@ test.cnb{
 
   public factW:(integer)=>integer.
   factW(N) => valof{
-    I .= ref 1;
-    R .= ref 1;
+    I = ref 1;
+    R = ref 1;
 
     while I!=<N do{
       R := R!*I!;

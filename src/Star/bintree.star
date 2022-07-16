@@ -31,11 +31,11 @@ star.bintree{
   insert(.e,K,V) => n(.e,K,V,1,.e).
   insert(n(L1,K,D,R1),K,V) => n(L1,K,V,D,R1).
   insert(n(L1,Kl,Vl,_,R1),K,V) where Kl>K => valof{
-    LL .= insert(L1,K,V);
+    LL = insert(L1,K,V);
     valis balance(n(LL,Kl,Vl,max(depth(LL),depth(R1))+1,R1))
   }
   insert(n(L1,Kl,Vl,_,R1),K,V) where Kl<K => valof{
-    RR .= insert(R1,K,V);
+    RR = insert(R1,K,V);
     valis balance(n(L1,Kl,Vl,max(depth(L1),depth(RR))+1,RR))
   }
 

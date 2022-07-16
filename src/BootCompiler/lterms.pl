@@ -200,6 +200,9 @@ ssAct(thrw(_,E),Dp,sq([ss("throw "),EE])) :-!,
 ssAct(mtch(_,P,E),Dp,sq([PP,ss(" .= "),EE])) :-!,
   ssTrm(P,Dp,PP),
   ssTrm(E,Dp,EE).
+ssAct(defn(_,P,E),Dp,sq([PP,ss(" = "),EE])) :-!,
+  ssTrm(P,Dp,PP),
+  ssTrm(E,Dp,EE).
 ssAct(asgn(_,P,E),Dp,sq([PP,ss(" := "),EE])) :-!,
   ssTrm(P,Dp,PP),
   ssTrm(E,Dp,EE).
@@ -421,6 +424,9 @@ rewriteAction(QTest,perf(Lc,E),perf(Lc,EE)) :- !,
 rewriteAction(QTest,mtch(Lc,P,E),mtch(Lc,PP,EE)) :- !,
   rewriteTerm(QTest,P,PP),
   rewriteTerm(QTest,E,EE).
+rewriteAction(QTest,defn(Lc,P,E),defn(Lc,PP,EE)) :- !,
+  rewriteTerm(QTest,P,PP),
+  rewriteTerm(QTest,E,EE).
 rewriteAction(QTest,asgn(Lc,P,E),asgn(Lc,PP,EE)) :- !,
   rewriteTerm(QTest,P,PP),
   rewriteTerm(QTest,E,EE).
@@ -593,6 +599,8 @@ inAction(thrw(_,E),Nm) :- !,
 inAction(perf(_,E),Nm) :- !,
   inTerm(E,Nm).
 inAction(mtch(_,P,E),Nm) :- !,
+  (inTerm(P,Nm) ; inTerm(E,Nm)).
+inAction(defn(_,P,E),Nm) :- !,
   (inTerm(P,Nm) ; inTerm(E,Nm)).
 inAction(asgn(_,P,E),Nm) :- !,
   (inTerm(P,Nm) ; inTerm(E,Nm)).
@@ -827,9 +835,15 @@ validAction(thrw(Lc,E),_,D,D) :- !,
   validTerm(E,Lc,D).
 validAction(perf(Lc,E),_,D,D) :- !,
   validTerm(E,Lc,D).
+validAction(defn(Lc,P,E),_,D,Dx) :- !,
+  validPtn(P,Lc,D,Dx),
+  validTerm(E,Lc,Dx).
 validAction(mtch(Lc,P,E),_,D,Dx) :- !,
   validPtn(P,Lc,D,Dx),
   validTerm(E,Lc,Dx).
+validAction(defn(Lc,P,E),_,D,D) :- !,
+  validTerm(P,Lc,D),
+  validTerm(E,Lc,D).
 validAction(asgn(Lc,P,E),_,D,D) :- !,
   validTerm(P,Lc,D),
   validTerm(E,Lc,D).

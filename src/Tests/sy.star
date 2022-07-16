@@ -6,7 +6,7 @@ test.sy{
 
   CX : (cons[integer],integer) => integer.
   CX(Is,Lm) => valof{
-    Cx .= ref 0;
+    Cx = ref 0;
     
     for Ix in Is do{
       if Ix<Lm then

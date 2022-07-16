@@ -6,7 +6,7 @@ test.do1{
 
   doFirst:()=>().
   doFirst() => valof{
-    A .= ref 1;
+    A = ref 1;
 
     A := A!+A!;
 

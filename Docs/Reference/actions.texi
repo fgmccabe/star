@@ -46,7 +46,6 @@ actions, as explained in @ref{Tasks}.
   | @refer{AssignmentAction}
   | @refer{IfThenElseAction}
   | @refer{WhileAction}
-  | @refer{UntilAction}
   | @refer{ForAction}
   | @refer{CaseAction}
   | @refer{LetAction}
@@ -242,54 +241,22 @@ the lexically innermost labeled action.
 @subsection Definition Action
 @cindex definition action
 
-The @refer{DefnAction} is used to bind variables to a value -- that is
-available to subsequent actions. The variables are denoted via a
-@ref{Pattern}; which can be used, for example, to bind more than one
-variable.
+The @refer{DefnAction} is used to define variable and to give them a value -- that is
+available to subsequent actions. 
 
 @float BNF,defnActionFig
 @caption{Definition Action}
 @display
-@anchored{DefnAction} ::= @refer{Pattern} @code{'.='} @refer{Expression}
+@anchored{DefnAction} ::= @refer{Identifier} @code{'='} @refer{Expression}
 @end display
 @end float
 
-The scope of a variables declared in a definition action is from the
+The scope of a variable declared in a definition actions is from the
 declaration itself to the end of the containing @emph{BlockAction}.
 
 @quotation Note
 It is an error for a variable to be referenced within its own
 definition. Recursive definitions are not permitted.
-@end quotation
-
-The left hand side of a definition is a @refer{Pattern}, not simply an
-@refer{Identifier}.
-
-One primary use for this form is to allow the unpacking of function
-results.
-
-For example, the function @code{ddivide} below returns a pair of values: the
-quotient and the remainder result of dividing the first argument by
-the second:
-
-@example
-ddivide:(integer,integer)=>(integer,integer).
-ddivide(X,Y) => (X/Y,X%Y).
-@end example
-
-We can unpack the results of a call to @code{ddivide} using a
-@refer{TuplePattern} on the left hand side of the declaration:
-
-@example
-(Q,R) .= ddivide(34,3)
-@end example
-
-which would have the effect of binding @code{Q} to @code{11}, and @code{R} to @code{1}.
-
-@quotation Note
-If the expression evaluation resulted in an exception, then the match
-is not attempted. If the match itself fails, then that is a fatal
-error.
 @end quotation
 
 @node Assignment Action
@@ -357,24 +324,6 @@ repeats so long as some condition is satisfied.
 The enclosed action will be repeated zero or more times, for so long
 as the test condition is satisfied.
 
-@node Until Action
-@subsection Until Action
-@cindex until action
-@findex until
-
-The @refer{UntilAction} is used to denote an iterative computation that
-repeats until a condition is satisfied.
-
-@float BNF,untilActionFig
-@caption{Until Action}
-@display
-@anchored{UntilAction} ::= @code{'do'} @refer{Action} @code{'until'} @refer{Condition}
-@end display
-@end float
-
-The enclosed action will be performed at least once, and continued
-until the test condition is satisfied.
-
 @node For Action
 @subsection For Action
 @cindex for action
@@ -399,8 +348,9 @@ The type of the collection must implement the @code{generate} contract.
 For example, the action:
 @example
 for (X,Y) in parent do @{
-  if (Y,Z) in parent then
+  for (Y,Z) in parent do @{
     gps := [(X,Z),..gps!]
+  @}
 @}
 @end example
 collects grandparents into the re-assignable variable @code{gps}.

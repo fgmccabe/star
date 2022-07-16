@@ -6,8 +6,8 @@ test.do3{
 
   doDupl:(integer,string) => string.
   doDupl(Mx,S) => valof{
-    Cx .= ref 0;
-    Rs .= ref "";
+    Cx = ref 0;
+    Rs = ref "";
     
     while Cx! < Mx do{
       Rs := Rs! ++ S;

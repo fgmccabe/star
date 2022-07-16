@@ -4,7 +4,7 @@ test.dfr{
 
   CX : (cons[integer],integer) => integer throws string.
   CX(Is,Lm) => valof{
-    Cx .= ref 0;
+    Cx = ref 0;
 
     try{
       logMsg("Cx=$(Cx!), Is=$(Is)");

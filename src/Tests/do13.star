@@ -13,13 +13,13 @@ test.do13{
   main:()=>().
   main() => valof{
     try{
-      AA .= maybeFail(5);
+      AA = maybeFail(5);
       show AA;
       assert AA==5;
-      BB .= maybeFail(6);
+      BB = maybeFail(6);
       show BB;
       assert BB == 6;
-      XX .= maybeFail(10);
+      XX = maybeFail(10);
       assert .false  -- never get here
     } catch {
       (Ix) => {

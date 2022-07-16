@@ -24,8 +24,8 @@ test.dl{
 
   FF:(integer)=>action[(),integer].
   FF(Lx)=> action{
-    Cx .= ref 1;
-    Fx .= ref 1;
+    Cx = ref 1;
+    Fx = ref 1;
     while Cx!=<Lx do {
       Fx := Fx! * Cx!;
       Cx := Cx! + 1
@@ -72,8 +72,8 @@ test.dl{
   QQ:(integer)=>action[(),integer].
   QQ(Lx) =>
     do{
-      Cx .= ref 1;
-      Fx .= ref 1;
+      Cx = ref 1;
+      Fx = ref 1;
 
       while Cx! =< Lx do{
 	Fx := Fx! * Cx!;
@@ -98,11 +98,11 @@ test.dl{
     show "QQ(4) = $(valof QQ(4))";
     show "QQ(2) = $(valof QQ(2))";
 
-    QR .= QQ(4);
+    QR = QQ(4);
     show "QR = $(valof QR)";
     show "QR = $(valof QR)";
 
-    FR .= FF(4);
+    FR = FF(4);
 
     show "FR = $(valof FR)";
     show "FR = $(valof FR)";

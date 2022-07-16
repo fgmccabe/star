@@ -6,7 +6,7 @@ test.func{
 
   public main:()=>().
   main()=>valof{
-    X .= (K(3)•id)(4);
+    X = (K(3)•id)(4);
 
     show X;
     assert X==3;

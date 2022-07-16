@@ -5,7 +5,7 @@ test.la{
   -- Test let actions
 
   fooBar(K) => valof{
-    V .= K;
+    V = K;
     let{
       VV = V.
 
@@ -20,7 +20,7 @@ test.la{
   main:()=>().
   main()=>valof{
     try{
-      FF .= fooBar(6);
+      FF = fooBar(6);
       assert FF == 5;
     } catch { _ => logMsg("bad happening")};
     valis ()

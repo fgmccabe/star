@@ -27,18 +27,18 @@ test.fm{
     assert "--$(120345567):999,999,999,999;--" == "--120,345,567--";
     show "--$(120345567):999,999,999,999;--";
 
-    Amnt .= -563;
+    Amnt = -563;
     assert "Balance: $(Amnt):(999900.00); ---" == "Balance: (05.63) ---";
     show "Balance: $(Amnt):(999900.00); ---";
 
     assert "Balance: $(Amnt):(999900.00); ---" == "Balance: (05.63) ---";
     show "Balance: $(-Amnt):(999900.00); ---";
 
-    C .= `\u22a6;` ;
+    C = `\u22a6;` ;
 
     show "Unicode: $(([C]:cons[char])::string)/$(_codePoint(C)):XXXXX;";
 
-    bar .= "bar";
+    bar = "bar";
     show "Foo#(bar)";
     valis ()
   }

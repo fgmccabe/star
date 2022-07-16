@@ -7,7 +7,7 @@ test.do4{
 
   doFact:(integer) => integer.
   doFact(X) => valof{
-    Fx .= ref 1;
+    Fx = ref 1;
     for Ix in range(1,X+1,1) do{
       Fx := Fx!*Ix
     };

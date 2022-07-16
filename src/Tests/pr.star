@@ -15,7 +15,7 @@ test.pr{
 
     main:()=>().
   main() => valof{
-    joe .= mkPr("fred","janitor");
+    joe = mkPr("fred","janitor");
 
     show joe.name!;
 
@@ -23,7 +23,7 @@ test.pr{
 
     assert joe.name! == "peter";
 
-    tom .= pr{
+    tom = pr{
       name = ref "tom".
       role = "manager".
     };

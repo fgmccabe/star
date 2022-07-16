@@ -122,7 +122,7 @@ star.cons{
   -- Implement a generator for cons lists
   public implementation all e ~~ generate[cons[e]->>e] => {.
     _generate(L) => generator{
-      LL .= ref L;
+      LL = ref L;
       while cons(H,T) .= LL! do{
 	yield H;
 	LL := T

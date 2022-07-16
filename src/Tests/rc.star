@@ -37,7 +37,7 @@ test.rc{
     show cont(2).C;
     show [|aa{A=10}|];
 
-    CC .= (cont(2).C<<-20);
+    CC = (cont(2).C<<-20);
     show CC;
     show ll(CC);
 

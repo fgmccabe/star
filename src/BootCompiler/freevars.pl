@@ -87,6 +87,9 @@ freeVarsInAction(doValis(_,E),Ex,Ex,Q,F,Fv) :-!,
   freeVars(E,Ex,Q,F,Fv).
 freeVarsInAction(doThrow(_,E),Ex,Ex,Q,F,Fv) :-!,
   freeVars(E,Ex,Q,F,Fv).
+freeVarsInAction(doDefn(_,V,E),Ex,Ex1,Q,F,Fv) :-!,
+  ptnVars(V,Ex,Ex1),
+  freeVars(E,Ex,Q,F,Fv).
 freeVarsInAction(doMatch(_,P,E),Ex,Ex1,Q,F,Fv) :-!,
   ptnVars(P,Ex,Ex1),
   freeVars(P,Ex1,Q,F,F0),

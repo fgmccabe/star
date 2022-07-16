@@ -16,7 +16,7 @@ test.lt1{
 
   main:()=>().
   main() => valof{
-    K .= ff(2);
+    K = ff(2);
 
     assert K(3)==0;
     valis ()
