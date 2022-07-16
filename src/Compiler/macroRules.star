@@ -744,20 +744,6 @@ star.compiler.macro.rules{
       mkConditional(Lc,T,Body,makeReturn(Lc,unit(Lc))));
     valis mkLetRecDef(Lc,[LoopEqn],Lp)
   }
-  /* Construct a local loop function for until:
-    let{.
-      loop() => do{ B; if T then loop()}
-    .} in loop()
-  */
-  makeAction(A,Cont,Rp) where (Lc,B,T) ^= isUntilDo(A) => do{
-    LpNm .= genName(Lc,"loop");
-    Lp .= roundTerm(Lc,LpNm,[]);
-    Bx <- makeAction(B,.none,Rp);
-    Body .= makeSequence(Lc,anon(Lc),Bx,
-      mkConditional(Lc,T,Lp,makeReturn(Lc,unit(Lc))));
-    LoopEqn .= mkEquation(Lc,some(LpNm),.true,unit(Lc),.none,Body);
-    valis mkLetRecDef(Lc,[LoopEqn],Lp)
-  }
   /*
     for X in S do Act
     becomes

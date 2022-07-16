@@ -421,10 +421,6 @@ star.compiler.wff{
   public refCell:(option[locn],ast) => ast.
   refCell(Lc,I) => unary(Lc,"!",I).
 
-  public isMemo(A) => isUnary(A,"$$").
-
-  public isFetch(A) => isUnary(A,"!!").
-
   public isIndexTerm:(ast) => option[(option[locn],ast,ast)].
   isIndexTerm(A) where (Lc,Op,[Ix]) ^= isSquareTerm(A) &&
       ~ _^=isBinary(Ix,":") => some((Lc,Op,Ix)).
@@ -788,14 +784,6 @@ star.compiler.wff{
   isWhileDo(_) default => .none.
 
   public mkWhileDo(Lc,C,B) => binary(Lc,"do",unary(Lc,"while",C),B).
-
-  public isUntilDo:(ast) => option[(option[locn],ast,ast)].
-  isUntilDo(A) where
-      (Lc,LL,C) ^= isBinary(A,"until") &&
-      (_,B) ^= isUnary(LL,"do") => some((Lc,B,C)).
-  isUntilDo(_) default => .none.
-
-  public mkUntilDo(Lc,B,C) => binary(Lc,"until",unary(Lc,"do",B),C).
 
   public isForDo:(ast) => option[(option[locn],ast,ast)].
   isForDo(A) where

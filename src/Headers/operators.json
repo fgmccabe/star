@@ -20,16 +20,6 @@
     "keyword": true
   },
   {
-    "infixOp": "^|",
-    "priorities": [
-      919,
-      920,
-      920
-    ],
-    "desc": "option or-else operator",
-    "keyword": false
-  },
-  {
     "infixOp": ":",
     "priorities": [
       1249,
@@ -144,16 +134,6 @@
       1174
     ],
     "desc": "while ... do {}",
-    "keyword": true
-  },
-  {
-    "infixOp": "until",
-    "priorities": [
-      1174,
-      1175,
-      1174
-    ],
-    "desc": "do {..} until C",
     "keyword": true
   },
   {
@@ -298,16 +278,6 @@
       950
     ],
     "desc": "function arrow",
-    "keyword": true
-  },
-  {
-    "infixOp": "=>>",
-    "priorities": [
-      949,
-      950,
-      950
-    ],
-    "desc": "continuation arrow",
     "keyword": true
   },
   {
@@ -904,16 +874,6 @@
     "keyword": false
   },
   {
-    "infixOp": "^.",
-    "priorities": [
-      450,
-      450,
-      449
-    ],
-    "desc": "optional object access",
-    "keyword": true
-  },
-  {
     "infixOp": "@",
     "priorities": [
       399,
@@ -1189,24 +1149,6 @@
     "keyword": true
   },
   {
-    "prefixOp": "$$",
-    "priorities": [
-      899,
-      898
-    ],
-    "desc": "wrap value in memo",
-    "keyword": false
-  },
-  {
-    "postfixOp": "!!",
-    "priorities": [
-      99,
-      100
-    ],
-    "desc": "pick up value from a memo",
-    "keyword": false
-  },
-  {
     "infixOp": "!",
     "priorities": [
       99,
@@ -1282,13 +1224,6 @@
     "priority": 2000,
     "seperator": ".\n",
     "desc": "recursive braces"
-  },
-  {
-    "bracket": "(||)",
-    "left": "(|",
-    "right": "|)",
-    "priority": 2000,
-    "desc": "banana brackets"
   },
   {
     "bracket": "<||>",

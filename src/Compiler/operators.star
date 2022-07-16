@@ -83,12 +83,10 @@ star.compiler.operators{
   oper("try") => [prefixOp(1200,1199)].
   oper("exists") => [prefixOp(1010,1009)].
   oper("if") => [prefixOp(1175,1174)].
-  oper("$$") => [prefixOp(899,898)].
   oper(":") => [infixOp(1249,1250,1249)].
   oper(";") => [postfixOp(1250,1251), infixOp(1250,1251,1251)].
   oper("<") => [infixOp(899,900,899)].
   oper(".=") => [infixOp(899,900,899)].
-  oper("=>>") => [infixOp(949,950,950)].
   oper("=") => [infixOp(974,975,974)].
   oper("|:") => [infixOp(1234,1235,1234)].
   oper("show") => [prefixOp(1240,1239)].
@@ -98,13 +96,11 @@ star.compiler.operators{
   oper("?") => [infixOp(919,920,920)].
   oper("@") => [prefixOp(400,399), infixOp(399,400,400)].
   oper("in") => [infixOp(899,900,900)].
-  oper("^|") => [infixOp(919,920,920)].
   oper("break") => [prefixOp(10,9)].
   oper("suspend") => [prefixOp(901,900), infixOp(900,901,900)].
   oper("open") => [prefixOp(900,899)].
   oper("~~") => [infixOp(1239,1240,1240)].
   oper("assert") => [prefixOp(1240,1239)].
-  oper("!!") => [postfixOp(99,100)].
   oper("⊕") => [infixOp(720,720,719)].
   oper(".^.") => [infixOp(720,720,719)].
   oper("//") => [infixOp(960,960,959)].
@@ -122,7 +118,6 @@ star.compiler.operators{
   oper("generator") => [prefixOp(300,299)].
   oper("valof") => [prefixOp(300,299)].
   oper("yield") => [prefixOp(300,299)].
-  oper("until") => [infixOp(1174,1175,1174)].
   oper("while") => [prefixOp(1175,1174)].
   oper("private") => [prefixOp(1200,1199)].
   oper("•") => [infixOp(450,450,449)].
@@ -134,7 +129,6 @@ star.compiler.operators{
   oper(".access") => [prefixOp(1260,1259)].
   oper(":?") => [infixOp(399,400,399)].
   oper(".<<.") => [infixOp(600,600,599)].
-  oper("^.") => [infixOp(450,450,449)].
   oper(">>=") => [infixOp(949,950,950)].
   oper("^/") => [infixOp(960,960,959)].
   oper("<~") => [infixOp(1230,1231,1230)].
@@ -172,9 +166,6 @@ star.compiler.operators{
   isBracket("{") => some(bkt("{","{}","}",".\n",2000)).
   isBracket("}") => some(bkt("{","{}","}",".\n",2000)).
   isBracket("{}") => some(bkt("{","{}","}",".\n",2000)).
-  isBracket("(|") => some(bkt("(|","(||)","|)","",2000)).
-  isBracket("|)") => some(bkt("(|","(||)","|)","",2000)).
-  isBracket("(||)") => some(bkt("(|","(||)","|)","",2000)).
   isBracket("{?") => some(bkt("{?","{??}","?}","",2000)).
   isBracket("?}") => some(bkt("{?","{??}","?}","",2000)).
   isBracket("{??}") => some(bkt("{?","{??}","?}","",2000)).
@@ -219,12 +210,10 @@ star.compiler.operators{
   first(`⊕`) => some("⊕").
   first(`•`) => some("•").
   first(`#`) => some("#").
-  first(`$`) => some("$").
   first(_) default => .none.
 
   public follows:(string,char) => option[string].
   follows("&",`&`) => some("&&").
-  follows("(",`|`) => some("(|").
   follows("*",`*`) => some("**").
   follows("*",`>`) => some("*>").
   follows("+",`+`) => some("++").
@@ -273,7 +262,6 @@ star.compiler.operators{
   follows("|",`:`) => some("|:").
   follows("|",`|`) => some("||").
   follows("|",`>`) => some("|>").
-  follows("|",`)`) => some("|)").
   follows("~",`~`) => some("~~").
   follows("~",`=`) => some("~=").
   follows("~",`>`) => some("~>").
@@ -282,10 +270,8 @@ star.compiler.operators{
   follows("\\",`-`) => some("\\-").
   follows("\\",`/`) => some("\\/").
   follows("^",`?`) => some("^?").
-  follows("^",`.`) => some("^.").
   follows("^",`/`) => some("^/").
   follows("^",`=`) => some("^=").
-  follows("^",`|`) => some("^|").
   follows("^/",`/`) => some("^//").
   follows(":",`?`) => some(":?").
   follows(":",`:`) => some("::").
@@ -304,21 +290,17 @@ star.compiler.operators{
   follows("=",`<`) => some("=<").
   follows("=",`=`) => some("==").
   follows("=",`>`) => some("=>").
-  follows("=>",`>`) => some("=>>").
   follows(">",`=`) => some(">=").
   follows(">",`>`) => some(">>").
   follows(">>",`=`) => some(">>=").
   follows("?",`}`) => some("?}").
-  follows("!",`!`) => some("!!").
   follows("!",`}`) => some("!}").
-  follows("$",`$`) => some("$$").
   follows(_,_) default => .none.
 
   public final:(string) => boolean.
   final("%") => .true.  /* modulo */
   final("&&") => .true.  /* conjunction */
   final("(") => .true.  /* parentheses */
-  final("(|") => .true.  /* banana brackets */
   final(")") => .true.  /* parentheses */
   final("*") => .true.  /* multicat */
   final("**") => .true.  /* exponentiation */
@@ -359,7 +341,6 @@ star.compiler.operators{
   final("|:") => .true.  /* constrained type */
   final("||") => .true.  /* disjunction */
   final("|>") => .true.  /* meta quote */
-  final("|)") => .true.  /* banana brackets */
   final("}") => .true.  /* non-recursive braces */
   final("~") => .true.  /* logical negation */
   final("~~") => .true.  /* quantifier */
@@ -374,11 +355,9 @@ star.compiler.operators{
   final("]") => .true.  /* square brackets */
   final("^") => .true.  /* Optional propagation */
   final("^?") => .true.  /* option propagate */
-  final("^.") => .true.  /* optional object access */
   final("^/") => .true.  /* filter */
   final("^//") => .true.  /* filter map */
   final("^=") => .true.  /* optional decomposition match */
-  final("^|") => .true.  /* option or-else operator */
   final(":") => .true.  /* type annotation */
   final(":?") => .true.  /* fallable type coercion */
   final("::") => .true.  /* type coercion */
@@ -397,7 +376,6 @@ star.compiler.operators{
   final("=<") => .true.  /* less than or equal */
   final("==") => .true.  /* equality predicate */
   final("=>") => .true.  /* function arrow */
-  final("=>>") => .true.  /* continuation arrow */
   final(">") => .true.  /* greater than */
   final(">=") => .true.  /* greater than or equal */
   final(">>") => .true.  /* monadic bind */
@@ -406,12 +384,10 @@ star.compiler.operators{
   final("?}") => .true.  /* test comprehension */
   final("@") => .true.  /* meta annotation */
   final("!") => .true.  /* pick up value from a ref cell */
-  final("!!") => .true.  /* pick up value from a memo */
   final("!}") => .true.  /* iota comprehension */
   final("⊕") => .true.  /* addition */
   final("•") => .true.  /* function composition */
   final("#") => .true.  /* Macro statement marker */
-  final("$$") => .true.  /* wrap value in memo */
   final(_) default => .false.
 
   public keyword:(string) => boolean.
@@ -430,7 +406,6 @@ star.compiler.operators{
   keyword("for") => .true.
   keyword("{?") => .true.
   keyword(". ") => .true.
-  keyword("(|") => .true.
   keyword("then") => .true.
   keyword("!") => .true.
   keyword("->>") => .true.
@@ -441,7 +416,6 @@ star.compiler.operators{
   keyword("(") => .true.
   keyword(")") => .true.
   keyword("<<-") => .true.
-  keyword("|)") => .true.
   keyword("resume") => .true.
   keyword("*>") => .true.
   keyword(",") => .true.
@@ -453,7 +427,6 @@ star.compiler.operators{
   keyword(":") => .true.
   keyword(";") => .true.
   keyword(".=") => .true.
-  keyword("=>>") => .true.
   keyword("=") => .true.
   keyword("|:") => .true.
   keyword("?") => .true.
@@ -479,13 +452,11 @@ star.compiler.operators{
   keyword("?}") => .true.
   keyword("valof") => .true.
   keyword("yield") => .true.
-  keyword("until") => .true.
   keyword("while") => .true.
   keyword("private") => .true.
   keyword("::") => .true.
   keyword(":?") => .true.
   keyword("<|") => .true.
-  keyword("^.") => .true.
   keyword("<~") => .true.
   keyword("{") => .true.
   keyword("type") => .true.

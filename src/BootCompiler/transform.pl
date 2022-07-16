@@ -430,9 +430,6 @@ liftAction(doIfThen(Lc,G,L),iftt(Lc,GG,LL),Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftAction(doWhile(Lc,G,B),whle(Lc,GG,BB),Q,Q,Map,Opts,Ex,Exx) :-!,
   liftGoal(G,GG,Q,Q0,Map,Opts,Ex,Ex0),
   liftAction(B,BB,Q0,_,Map,Opts,Ex0,Exx).
-liftAction(doUntil(Lc,B,G),untl(Lc,BB,GG),Q,Q,Map,Opts,Ex,Exx) :-!,
-  liftGoal(G,GG,Q,Q0,Map,Opts,Ex,Ex0),
-  liftAction(B,BB,Q0,_,Map,Opts,Ex0,Exx).
 liftAction(doFor(Lc,P,S,B),ffor(Lc,PP,SS,BB),Q,Q,Map,Opts,Ex,Exx) :-!,
   liftExp(S,SS,Q,Q0,Map,Opts,Ex,Ex0),
   liftPtn(P,PP,Q0,Q1,Map,Opts,Ex0,Ex1),
