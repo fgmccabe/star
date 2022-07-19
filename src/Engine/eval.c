@@ -42,7 +42,7 @@
 #define saveRegisters() STMT_WRAP({ FP->pc = PC; STK->sp = SP; STK->fp = FP; P->stk = STK;})
 #define restoreRegisters() STMT_WRAP({ STK = P->stk; FP = STK->fp; PC = FP->pc;  CSP=FP->csp; SP=STK->sp; LITS=codeLits(FP->prog);})
 #define pushFrme(mtd) STMT_WRAP({FP++; FP->prog=mtd; PC = FP->pc = entryPoint(mtd); FP->csp=CSP = SP;})
-
+#define prevFrme() STMT_WRAP({assert(FP >= baseFrame(STK) && ((ptrPo) FP + 1) < SP); FP--; CSP = FP->csp; PC = FP->pc; assert(SP <= CSP);LITS = codeLits(FP->prog);})
 #define bail() STMT_WRAP({\
   saveRegisters();\
   stackTrace(P, logFile, STK, True,displayDepth);\
@@ -344,6 +344,7 @@ retCode run(processPo P) {
           framePo prevFrame = prevStack->fp;
           prevStack->sp = stackArg(prevStack, prevFrame, argCount(prevFrame->prog));
           prevStack->fp--;
+
           gcReleaseRoot(H, root);
 
 #ifdef TRACEEXEC
@@ -388,14 +389,8 @@ retCode run(processPo P) {
       case Ret: {        /* return from function */
         termPo retVal = *SP;     /* return value */
 
-        assert(FP > baseFrame(STK) && SP <= CSP);
-
         SP = &arg(argCount(FP->prog)); // Just above arguments to current call
-        FP = previousFrame(STK, FP);
-        CSP = FP->csp;
-        PC = FP->pc;
-        LITS = codeLits(FP->prog);   /* reset pointer to code literals */
-        assert(SP <= CSP);
+        prevFrme();
         push(retVal);      /* push return value */
         continue;       /* and carry on regardless */
       }
@@ -403,16 +398,9 @@ retCode run(processPo P) {
       case RetX: {        /* return exceptionally from function */
         termPo retVal = *SP;     /* return value */
 
-        assert(FP > baseFrame(STK) && SP <= stackLimit(STK));
-
         SP = &arg(argCount(FP->prog)); // Just above arguments to current call
-        FP = previousFrame(STK, FP);
-        CSP = FP->csp;
-        PC = FP->pc;
-        LITS = codeLits(FP->prog);   /* reset pointer to code literals */
+        prevFrme();
         PC = pcBeforeOff(PC);  // Pick up the exception offset from the previous instruction
-        assert(SP <= CSP);
-
         push(retVal);      /* push return value */
         continue;       /* and carry on regardless */
       }
@@ -437,8 +425,8 @@ retCode run(processPo P) {
         integer cnt = collectI32(PC);
         termPo tmp = SP[0];
 
-        for(integer ix=0;ix<cnt;ix++){
-          SP[ix] = SP[ix+1];
+        for (integer ix = 0; ix < cnt; ix++) {
+          SP[ix] = SP[ix + 1];
         }
         SP[cnt] = tmp;
         continue;
@@ -455,7 +443,7 @@ retCode run(processPo P) {
         // The top of a stack should be a binary lambda
         termPo tskLambda = pop();
         saveRegisters();
-        stackPo child = newTask(P,tskLambda);
+        stackPo child = newTask(P, tskLambda);
         restoreRegisters();
         push(child);                                                 // We return the new stack
         continue;

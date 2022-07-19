@@ -37,8 +37,6 @@ extern logical showPkgFile;       // True if we show file instead of package dur
 extern logical showColors;
 extern logical interactive;      /* interactive instruction tracing option */
 
-termPo getLbl(termPo lbl, int32 arity);
-
 DebugWaitFor insDebug(processPo p);
 DebugWaitFor enterDebug(processPo p);
 

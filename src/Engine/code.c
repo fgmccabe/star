@@ -101,6 +101,14 @@ retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical al
   }
 }
 
+labelPo mtdLabel(methodPo mtd) {
+  normalPo pool = codeLits(mtd);
+  if (pool != Null) {
+    return C_LBL(nthArg(pool, 0));
+  }
+  return Null;
+}
+
 integer insOffset(methodPo m, insPo pc) {
   return (integer) (pc - &m->code[0]);
 }
@@ -168,6 +176,8 @@ normalPo codeLits(methodPo mtd) {
   assert(mtd != Null);
   return mtd->pool;
 }
+
+
 
 logical normalCode(methodPo mtd){
   return (logical)(mtd->pool!=Null);
