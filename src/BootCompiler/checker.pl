@@ -950,11 +950,9 @@ checkAction(A,_Tp,ErTp,Env,Ev,doMatch(Lc,Ptn,Exp),Path) :-
   newTypeVar("V",TV),
   typeOfPtn(P,TV,ErTp,Env,Ev,Ptn,Path),
   typeOfExp(E,TV,ErTp,Env,_,Exp,Path).
-checkAction(A,_Tp,ErTp,Env,Ev,doAssign(Lc,Ptn,Exp),Path) :-
+checkAction(A,_Tp,ErTp,Env,Ev,Act,Path) :-
   isAssignment(A,Lc,P,E),!,
-  newTypeVar("V",TV),
-  typeOfExp(P,refType(TV),ErTp,Env,Ev,Ptn,Path),
-  typeOfExp(E,TV,ErTp,Env,_,Exp,Path).
+  checkAssignment(Lc,P,E,ErTp,Env,Ev,Act,Path).
 checkAction(A,Tp,ErTp,Env,Ev,Act,Path) :-
   isTryCatch(A,Lc,B,H),!,
   checkTryCatchAction(Lc,B,H,Tp,ErTp,Env,Ev,Act,Path).
@@ -1019,6 +1017,17 @@ checkAction(A,_Tp,ErTp,Env,Env,doCall(Lc,Exp,ErTp),Path) :-
 checkAction(A,Tp,_,Env,Env,doNop(Lc),_) :-
   locOfAst(A,Lc),
   reportError("%s:%s illegal form of action",[ast(A),tpe(Tp)],Lc).
+
+checkAssignment(Lc,P,E,ErTp,Env,Ev,doDefn(Lc,Ptn,cell(Lc,Exp)),Path) :-
+  isIden(P,Nm),
+  \+  getVar(Lc,Nm,Env,_,_),!,
+  newTypeVar("V",TV),
+  typeOfPtn(P,refType(TV),ErTp,Env,Ev,Ptn,Path),
+  typeOfExp(E,TV,ErTp,Env,_,Exp,Path).
+checkAssignment(Lc,P,E,ErTp,Env,Ev,doAssign(Lc,Ptn,Exp),Path) :-
+  newTypeVar("V",TV),
+  typeOfExp(P,refType(TV),ErTp,Env,Ev,Ptn,Path),
+  typeOfExp(E,TV,ErTp,Env,_,Exp,Path).
 
 checkGuard(none,_,Env,Env,none,_) :-!.
 checkGuard(some(G),ErTp,Env,Ev,some(Goal),Path) :-
