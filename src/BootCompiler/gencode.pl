@@ -55,9 +55,11 @@ genDef(D,Opts,fnDef(Lc,Nm,H,Tp,Args,Value),O,[CdTrm|O]) :-
 	      [],Opts,L2,L3,D1,D2,C1,[iLbl(Ex)|C2],some(0),Stk0),
   compExp(Value,Lc,retCont(Opts),jmpCont(End,none),End,[],Opts,L3,L4,D2,D3,
 	  C2,[iLbl(Abrt)|C3],Stk0,_Stk),
-  abortCont(Lc,strg("def failed"),[],Opts,L4,_,D3,Dx,C3,[iLbl(End),iRetX],Stk0,_),
+  abortCont(Lc,strg("def failed"),[],Opts,L4,_,D3,Dx,C3,[iLbl(End)|C4],Stk0,_),
+  genDbg(Opts,C4,[iRetX]),
   findMaxLocal(Dx,Mx),
-  peepOptimize([iLocals(Mx)|C0],Cde),
+  genDbg(Opts,C,[iLocals(Mx)|C0]),
+  peepOptimize(C,Cde),
   (is_member(showGenCode,Opts) -> dispIns(func(Nm,H,Sig,Mx,Cde));true ),
   assem(func(Nm,H,Sig,Mx,Cde),CdTrm).
 genDef(D,Opts,glbDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
@@ -70,7 +72,8 @@ genDef(D,Opts,glbDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
 	  End,[],Opts,L2,L3,D,D1,C1,[iLbl(Abrt)|C2],some(0),_Stk0),
   abortCont(Lc,strg("def failed"),[],Opts,L3,_,D1,Dx,C2,[iLbl(End)],some(0),_),
   findMaxLocal(Dx,Mx),
-  peepOptimize([iLocals(Mx)|C0],Cde),
+  genDbg(Opts,C,[iLocals(Mx)|C0]),
+  peepOptimize(C,Cde),
   (is_member(showGenCode,Opts) -> dispIns(func(lbl(Nm,0),hard,Sig,Mx,Cde));true ),
   assem(func(lbl(Nm,0),hard,Sig,Mx,Cde),Cd).
 genDef(_,_,lblDef(_,Lbl,Tp,Ix),O,[LblTrm|O]) :-
@@ -87,7 +90,8 @@ retCont(Opts,Lx,Lx,D,D,C,Cx,_Stk,none) :-
 retXCont(Opts,Lx,Lx,D,D,C,Cx,_Stk,none) :-
   genDbg(Opts,C,[iRetX|Cx]).
 
-rtgCont(_Opts,Lx,Lx,D,D,[iRtG|Cx],Cx,_Stk,none).
+rtgCont(Opts,Lx,Lx,D,D,C,Cx,_Stk,none) :-
+  genDbg(Opts,C,[iRtG|Cx]).
 
 dropCont(Lx,Lx,D,D,[iDrop|Cx],Cx,Stk,Stk1) :-
   dropStk(Stk,1,Stk1).
@@ -179,9 +183,9 @@ compExp(Trm,_Lc,Cont,_ECont,_End,_Brks,_Opts,L,Lx,D,Dx,[iLdC(Trm)|C],Cx,Stk,Stkx
   isLiteral(Trm),!,
   bumpStk(Stk,Stk1),
   call(Cont,L,Lx,D,Dx,C,Cx,Stk1,Stkx).
-compExp(idnt(Nm),Lc,Cont,TCont,End,_Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+compExp(idnt(Nm),Lc,Cont,TCont,End,_Brks,_Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   (lclVar(Nm,V,D) -> 
-   compVar(V,End,Opts,Cont,TCont,L,Lx,D,Dx,C,Cx,Stk,Stkx) ;
+   compVar(V,End,Cont,TCont,L,Lx,D,Dx,C,Cx,Stk,Stkx) ;
    reportError("cannot locate variable %s",[id(Nm)],Lc),
    abort).
 compExp(ctpl(St,A),Lc,Cont,TCont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk2) :-!,
@@ -198,13 +202,13 @@ compExp(ecll(Lc,Nm,A),OLc,Cont,TCont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
 compExp(cll(Lc,Nm,A),OLc,Cont,TCont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   length(A,Ar),
-  compExps(A,Lc,cllCont(Nm,Ar,XLbl,Cont,Opts),TCont,End,Brks,Opts,L,L1,D,D1,C0,C1,Stk,Stkx),
+  compExps(A,Lc,cllCont(Nm,Ar,XLbl,Cont),TCont,End,Brks,Opts,L,L1,D,D1,C0,C1,Stk,Stkx),
   throwTest(TCont,XLbl,L1,Lx,D1,Dx,C1,Cx,Stk,_).
 compExp(ocall(Lc,Fn,A),OLc,Cont,TCont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   length(A,Ar),
   Arity is Ar+1,
-  compExps(A,Lc,compExp(Fn,Lc,oclCont(Arity,XLbl,Cont,Opts),TCont,End,Brks,Opts),TCont,
+  compExps(A,Lc,compExp(Fn,Lc,oclCont(Arity,XLbl,Cont),TCont,End,Brks,Opts),TCont,
 	   End,Brks,Opts,L,L1,D,D1,C0,C1,Stk,Stkx),
   throwTest(TCont,XLbl,L1,Lx,D1,Dx,C1,Cx,Stk,_).
 compExp(nth(Lc,Exp,Off),OLc,Cont,TCont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
@@ -303,17 +307,15 @@ compCondExp(Lc,T,A,B,Cont,TCont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
 	   resetCont(Stk,compExp(B,Lc,OC,TC,End,Brks,Opts)),
 	   TC,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 
-compVar(a(A),_End,_Opts,Cont,_TCont,L,Lx,D,Dx,[iLdA(A)|C0],Cx,Stk,Stkx) :- !,
+compVar(a(A),_End,Cont,_TCont,L,Lx,D,Dx,[iLdA(A)|C0],Cx,Stk,Stkx) :- !,
   bumpStk(Stk,Stk1),
   call(Cont,L,Lx,D,Dx,C0,Cx,Stk1,Stkx).
-compVar(l(X),_End,_Opts,Cont,_TCont,L,Lx,D,Dx,[iLdL(X)|C0],Cx,Stk,Stkx) :- !,
+compVar(l(X),_End,Cont,_TCont,L,Lx,D,Dx,[iLdL(X)|C0],Cx,Stk,Stkx) :- !,
   bumpStk(Stk,Stk1),
   call(Cont,L,Lx,D,Dx,C0,Cx,Stk1,Stkx).
-compVar(g(GlbNm),_End,Opts,Cont,TCont,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
-  genDbg(Opts,C,[iLdG(GlbNm,XLbl)|C0]),
-  genRtnDbg(Opts,C0,C1),
+compVar(g(GlbNm),_End,Cont,TCont,L,Lx,D,Dx,[iLdG(GlbNm,XLbl)|C],Cx,Stk,Stkx) :-
   bumpStk(Stk,Stk1),
-  call(Cont,L,L1,D,D1,C1,C2,Stk1,Stkx),
+  call(Cont,L,L1,D,D1,C,C2,Stk1,Stkx),
   throwTest(TCont,XLbl,L1,Lx,D1,Dx,C2,Cx,Stk,_).
 
 /* Terms are generated in reverse order*/
@@ -507,22 +509,18 @@ escCont(Nm,XLbl,Stk0,Lx,Lx,D,D,[iEscape(Nm,XLbl)|C],Cx,_Stk,Stkx) :-
   bumpStk(Stk0,Stkx),
   frameIns(Stkx,C,Cx).
 
-cllCont(Nm,_Ar,_,retCont(_),Opts,Lx,Lx,Dx,Dx,C,Cx,_Stk,none) :-!,
-  genDbg(Opts,C,[iTCall(Nm)|Cx]).
-cllCont(Nm,Ar,XLbl,Cont,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
-  genDbg(Opts,C,[iCall(Nm,XLbl)|C0]),
+cllCont(Nm,_Ar,_,retCont(_),Lx,Lx,Dx,Dx,[iTCall(Nm)|Cx],Cx,_Stk,none) :-!.
+cllCont(Nm,Ar,XLbl,Cont,L,Lx,D,Dx,[iCall(Nm,XLbl)|C],Cx,Stk,Stkx) :-
   dropStk(Stk,Ar,Stk0),
   bumpStk(Stk0,Stk1),
-  frameIns(Stk,C0,C1),
+  frameIns(Stk,C,C1),
   call(Cont,L,Lx,D,Dx,C1,Cx,Stk1,Stkx).
 
-oclCont(Arity,_,retCont(_),Opts,Lx,Lx,Dx,Dx,C,Cx,_,none) :-!,
-  genDbg(Opts,C,[iTOCall(Arity)|Cx]).
-oclCont(Arity,XLbl,Cont,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
-  genDbg(Opts,C,[iOCall(Arity,XLbl)|C0]),
+oclCont(Arity,_,retCont(_),Lx,Lx,Dx,Dx,[iTOCall(Arity)|C],C,_,none) :-!.
+oclCont(Arity,XLbl,Cont,L,Lx,D,Dx,[iOCall(Arity,XLbl)|C],Cx,Stk,Stkx) :-
   dropStk(Stk,Arity,Stk0),
   bumpStk(Stk0,Stk1),
-  frameIns(Stk,C0,C1),
+  frameIns(Stk,C,C1),
   call(Cont,L,Lx,D,Dx,C1,Cx,Stk1,Stkx).
 
 tskCont(Cont,L,Lx,D,Dx,[iTask|C],Cx,Stk,Stkx) :-
@@ -617,10 +615,6 @@ genLine(Opts,Lc,[iLine(Lt)|Cx],Cx) :-
   is_member(debugging,Opts),!,
   locTerm(Lc,Lt).
 genLine(_,_,Cx,Cx).
-
-genRtnDbg(Opts,[iDBug,iNop|Cx],Cx) :-
-  is_member(debugging,Opts),!.
-genRtnDbg(_,Cx,Cx).
 
 genDbg(Opts,[iDBug|Cx],Cx) :-
   is_member(debugging,Opts),!.

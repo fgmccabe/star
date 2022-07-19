@@ -15,16 +15,12 @@
 integer pcCount = 0;
 static integer lineCount = 0;
 
+static void showEntry(ioPo out, stackPo stk, termPo call);
 static void showAbort(ioPo out, stackPo stk, termPo reason);
-static void showCall(ioPo out, stackPo stk, termPo call);
-static void showTail(ioPo out, stackPo stk, termPo call);
-static void showOCall(ioPo out, stackPo stk, termPo call);
-static void showOTail(ioPo out, stackPo stk, termPo call);
 static void showRet(ioPo out, stackPo stk, termPo val);
 static void showRetX(ioPo out, stackPo stk, termPo val);
 static void showAssign(ioPo out, stackPo stk, termPo vl);
 static void showResume(ioPo out, stackPo stk, termPo cont);
-static void showGlobal(ioPo out, stackPo stk, termPo global);
 
 static void showRegisters(processPo p, heapPo h);
 static void showAllLocals(ioPo out, stackPo stk, framePo fp);
@@ -144,13 +140,12 @@ static logical shouldWeStop(processPo p, termPo arg) {
     switch (*p->stk->fp->pc) {
       case Abort:
         return True;
-      case Nop:
       case Ret:
       case RetX:
       case RtG: {
         switch (p->waitFor) {
           case stepOver:
-            return (logical) (p->waterMark == previousFrame(stk, stk->fp) && p->traceCount == 0);
+            return (logical) (p->waterMark == stk->fp && p->traceCount == 0);
           case stepInto:
             if (p->traceCount > 0)
               p->traceCount--;
@@ -159,11 +154,8 @@ static logical shouldWeStop(processPo p, termPo arg) {
             return False;
         }
       }
-      case Call:
-      case OCall:
-      case TCall:
-      case TOCall: {
-        if (breakPointSet(C_LBL(arg))) {
+      case Locals: {
+        if (breakPointSet(mtdLabel(p->stk->fp->prog))) {
           p->waitFor = stepInto;
           p->tracing = True;
           p->waterMark = Null;
@@ -181,21 +173,6 @@ static logical shouldWeStop(processPo p, termPo arg) {
           }
       }
 
-      case LdG: {
-        if (!glbIsSet(C_GLOB(arg))) {
-          switch (p->waitFor) {
-            case stepOver:
-              return (logical) (p->waterMark == p->stk->fp && p->traceCount == 0);
-            case stepInto:
-              if (p->traceCount > 0)
-                p->traceCount--;
-              return (logical) (p->traceCount == 0);
-            default:
-              return False;
-          }
-        } else
-          return False;
-      }
       default: {
         switch (p->waitFor) {
           case stepInto:
@@ -373,16 +350,6 @@ static DebugWaitFor dbgUntilRet(char *line, processPo p, termPo loc, void *cl) {
       p->waterMark = previousFrame(stk, stk->fp);
       break;
     }
-    case Call:
-    case OCall: {
-      p->waterMark = p->stk->fp;
-      break;
-    }
-    case TCall:
-    case TOCall: {
-      p->waterMark = previousFrame(stk, stk->fp);
-      break;
-    }
 
     default:
       p->waterMark = p->stk->fp;
@@ -448,7 +415,6 @@ static DebugWaitFor dbgShowLocal(char *line, processPo p, termPo loc, void *cl) 
   resetDeflt("n");
   return moreDebug;
 }
-
 
 static DebugWaitFor dbgShowGlobal(char *line, processPo p, termPo loc, void *cl) {
   char buff[MAX_SYMB_LEN];
@@ -684,35 +650,24 @@ static logical shouldWeStopIns(processPo p) {
             return False;
         }
       }
-      case Call:
-      case OCall: {
-        switch (p->waitFor) {
-          case stepOver:
-            return (logical) (f == p->waterMark);
-          default:
-            return False;
-        }
-      }
-      case LdG: {
-        int32 glbNo = collect32(f->pc);
-        globalPo glb = findGlobalVar(glbNo);
-
-        if (!glbIsSet(glb)) {
-          if (p->waitFor == stepOver)
-            return (logical) (p->waterMark == f && p->traceCount == 0);
-          else
-            return False;
+      case Locals: {
+        if (breakPointSet(mtdLabel(p->stk->fp->prog))) {
+          p->waitFor = stepInto;
+          p->tracing = True;
+          p->waterMark = Null;
+          return True;
         } else
-          return False;
+          switch (p->waitFor) {
+            case stepInto:
+              if (p->traceCount > 0)
+                p->traceCount--;
+              return (logical) (p->traceCount == 0);
+            case stepOver:
+              return (logical) (p->traceCount == 0 && p->waterMark == p->stk->fp);
+            default:
+              return False;
+          }
       }
-      case TCall:
-      case TOCall:
-        switch (p->waitFor) {
-          case stepOver:
-            return (logical) (previousFrame(stk, f) == p->waterMark && p->traceCount == 0);
-          default:
-            return False;
-        }
 
       default:
         return False;
@@ -826,56 +781,15 @@ static retCode shCall(ioPo out, char *msg, termPo locn, methodPo mtd, stackPo st
   return shArgs(out, displayDepth, stk->sp, 0, codeArity(mtd));
 }
 
-void showCall(ioPo out, stackPo stk, termPo call) {
-  framePo f = currFrame(stk);
-
-  termPo locn = findPcLocation(f->prog, insOffset(f->prog, f->pc));
-  if (showColors)
-    shCall(out, GREEN_ESC_ON"call:"GREEN_ESC_OFF, locn, labelCode(C_LBL(call)), stk);
-  else
-    shCall(out, "call:", locn, labelCode(C_LBL(call)), stk);
-}
-
-void showTail(ioPo out, stackPo stk, termPo call) {
+void showEntry(ioPo out, stackPo stk, termPo _call) {
   framePo f = currFrame(stk);
   termPo locn = findPcLocation(f->prog, insOffset(f->prog, f->pc));
 
+  f->csp = stk->sp;
   if (showColors)
-    shCall(out, GREEN_ESC_ON"tail:"GREEN_ESC_OFF, locn, labelCode(C_LBL(call)), stk);
+    shCall(out, GREEN_ESC_ON"entry:"GREEN_ESC_OFF, locn, f->prog, stk);
   else
-    shCall(out, "tail:", locn, labelCode(C_LBL(call)), stk);
-}
-
-static retCode shOCall(ioPo out, char *msg, stackPo stk, termPo call) {
-  framePo f = currFrame(stk);
-  labelPo oLbl = C_LBL(call);
-  integer arity = labelArity(oLbl);
-
-  termPo locn = findPcLocation(stk->fp->prog, insOffset(stk->fp->prog, f->pc));
-  methodPo mtd = labelCode(oLbl);       /* set up for object call */
-
-  if (locn != Null) {
-    tryRet(outMsg(out, "%s %#L ", msg, locn));
-  } else
-    tryRet(outMsg(out, "%s ", msg));
-
-  tryRet(outMsg(out, "%#,*T", displayDepth, topStack(stk)));
-  return shArgs(out, displayDepth, stk->sp, 1, arity);
-}
-
-void showOCall(ioPo out, stackPo stk, termPo call) {
-  if (showColors)
-    shOCall(out, GREEN_ESC_ON"ocall:"GREEN_ESC_OFF, stk, call);
-  else
-    shOCall(out, "ocall:", stk, call);
-}
-
-void showOTail(ioPo out, stackPo stk, termPo call) {
-  if (showColors)
-    shOCall(out, GREEN_ESC_ON"otail:"GREEN_ESC_OFF, stk, call);
-  else
-    shOCall(out, "otail:", stk, call);
-
+    shCall(out, "entry:", locn, f->prog, stk);
 }
 
 void showRet(ioPo out, stackPo stk, termPo val) {
@@ -962,24 +876,7 @@ void showRetire(ioPo out, stackPo stk, termPo cont) {
     outMsg(out, "retire:", "%#L %#,*T", loc, displayDepth, cont);
 }
 
-void showGlobal(ioPo out, stackPo stk, termPo global) {
-  framePo f = currFrame(stk);
-  termPo loc = findPcLocation(f->prog, insOffset(f->prog, f->pc));
-
-  globalPo glb = C_GLOB(global);
-
-  if (showColors)
-    outMsg(out, BLUE_ESC_ON"global:"BLUE_ESC_OFF "%#L %#,*T", loc, displayDepth, global);
-  else
-    outMsg(out, "global: %#L %#,*T", loc, displayDepth, global);
-}
-
 typedef void (*showCmd)(ioPo out, stackPo stk, termPo trm);
-
-termPo getLbl(termPo lbl, int32 arity) {
-  labelPo oLbl = isNormalPo(lbl) ? termLbl(C_NORMAL(lbl)) : C_LBL(lbl);
-  return (termPo) declareLbl(oLbl->name, arity, -1);
-}
 
 static DebugWaitFor lnDebug(processPo p, termPo arg, showCmd show);
 
@@ -990,48 +887,23 @@ DebugWaitFor enterDebug(processPo p) {
   insWord ins = *pc++;
   lineCount++;
   switch (ins) {
-    case Nop: {
-      return lnDebug(p, topStack(stk), showTos);
-    }
-    case Abort: {
+    case Abort:
       return lnDebug(p, peekStack(stk, 1), showAbort);
-    }
-    case Call: {
-      return lnDebug(p, getMtdLit(f->prog, collect32(pc)), showCall);
-    }
-    case TCall: {
-      return lnDebug(p, getMtdLit(f->prog, collect32(pc)), showTail);
-    }
-    case OCall: {
-      return lnDebug(p, getLbl(topStack(stk), collect32(pc)), showOCall);
-    }
-    case TOCall: {
-      return lnDebug(p, getLbl(topStack(stk), collect32(pc)), showOTail);
-    }
+    case Locals:
+      return lnDebug(p, Null, showEntry);
     case Ret:
-    case RtG: {
+    case RtG:
       return lnDebug(p, topStack(stk), showRet);
-    }
     case RetX:
       return lnDebug(p, topStack(stk), showRetX);
-
     case Assign:
       return lnDebug(p, Null, showAssign);
-    case Suspend: {
+    case Suspend:
       return lnDebug(p, topStack(stk), showSuspend);
-    }
-    case Resume: {
+    case Resume:
       return lnDebug(p, topStack(stk), showResume);
-    }
-    case Retire: {
+    case Retire:
       return lnDebug(p, topStack(stk), showRetire);
-    }
-    case LdG: {
-      int32 glbNo = collect32(pc);
-      globalPo glb = findGlobalVar(glbNo);
-
-      return lnDebug(p, (termPo) glb, showGlobal);
-    }
     default:
       return stepOver;
   }
@@ -1241,7 +1113,7 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
 
 void showRegisters(processPo p, heapPo h) {
   stackPo stk = p->stk;
-  showStackEntry(debugOutChnnl, stk, stk->fp, stk->fp-((framePo)stk->stkMem), False);
+  showStackEntry(debugOutChnnl, stk, stk->fp, stk->fp - ((framePo) stk->stkMem), False);
 
 #ifdef TRACEEXEC
   if (debugDebugging) {
@@ -1278,6 +1150,5 @@ retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bu
 void dumpStats() {
   logMsg(debugOutChnnl, "%ld instructions executed\n", pcCount);
   dumpEscapes(debugOutChnnl);
-  dumpGcStats();
   dumpStackStats();
 }
