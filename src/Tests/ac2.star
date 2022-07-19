@@ -10,7 +10,7 @@ test.ac2{
 
   gps:(cons[(string,string)])=>cons[(string,string)].
   gps(Ps) => valof{
-    gs = ref [];
+    gs := [];
     for (X,Y) in Ps do{
       for (Y,Z) in Ps do{
 	gs := [(X,Z),..gs!]

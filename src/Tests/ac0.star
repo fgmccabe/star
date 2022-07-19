@@ -7,8 +7,8 @@ test.ac0{
 
   ff:(integer) => integer.
   ff(X) => valof{
-    F = ref 1;
-    Ix = ref 1;
+    F := 1;
+    Ix := 1;
     while Ix! =< X do{
       F := F! * Ix!;
       Ix := Ix! + 1

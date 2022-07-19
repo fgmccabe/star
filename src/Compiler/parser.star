@@ -12,15 +12,18 @@ star.compiler.parser{
   import star.compiler.opg.
   import star.compiler.token.
 
-  public parseSrc:(uri,pkg,reports) => (option[ast],reports).
-  parseSrc(U,P,Rp) where Txt ^= getResource(U) &&
-      (Toks,Rp1) .= allTokens(initSt(pkgLoc(P),Txt::cons[char],Rp)) =>
-    (errorFree(Rp1) ?
-	((Trm,Rptx,_) .= astParse(Toks,Rp1) ?
-	    (errorFree(Rptx) ?
-		(some(Trm),Rptx) ||
-		(.none,Rptx)) ||
-	    (.none,Rp1)) ||
-	(.none,Rp1)).
-  parseSrc(U,P,Rp) => (.none,reportError(Rp,"Cannot locate $(P) in $(U)",some(pkgLoc(P)))).
+  public parseSrc:(uri,pkg) => option[ast].
+  parseSrc(U,P) where Txt ^= getResource(U) &&
+      (Toks) .= allTokens(initSt(pkgLoc(P),Txt::cons[char])) =>
+    (errorFree() ?
+	((Trm,_) .= astParse(Toks) ?
+	    (errorFree() ?
+		some(Trm) ||
+		.none) ||
+	    .none) ||
+	.none).
+  parseSrc(U,P) => valof{
+    reportError("Cannot locate $(P) in $(U)",some(pkgLoc(P)));
+    valis .none
+  }
 }

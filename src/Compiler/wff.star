@@ -30,6 +30,7 @@ star.compiler.wff{
   public isLitAst:(ast) => boolean.
   isLitAst(int(_,_)) => .true.
   isLitAst(num(_,_)) => .true.
+  isLitAst(big(_,_)) => .true.
   isLitAst(str(_,_)) => .true.
   isLitAst(_) default => .false.
 
@@ -167,6 +168,11 @@ star.compiler.wff{
   isDepends(_) default => .none.
 
   public mkDepends(Lc,L,R) => binary(Lc,"->>",reComma(L),reComma(R)).
+
+  public isThrows:(ast) => option[(option[locn],ast,ast)].
+  isThrows(T) => isBinary(T,"throws").
+
+  public mkThrows(Lc,L,R) => binary(Lc,"throws",L,R).
 
   public isAnnotation:(ast) => option[(option[locn],ast,ast)].
   isAnnotation(A) where (Lc,L,R) ^= isBinary(A,"@") =>
@@ -331,7 +337,7 @@ star.compiler.wff{
 
   public isOptionMatch(A) => isBinary(A,"^=").
 
-  public mkOptionMatch(Lc,L,R) => binary(Lc,"^=",unary(Lc,"some",L),R).
+  public mkOptionMatch(Lc,L,R) => mkMatch(Lc,unary(Lc,"some",L),R).
 
   public isOptionPropagate(A) => isBinary(A,"^?").
 
@@ -427,6 +433,8 @@ star.compiler.wff{
   isIndexTerm(A) where (Lc,L,R) ^= isBinary(A,"!") && (_,[Ix]) ^= isSqTuple(R) =>
     some((Lc,unary(Lc,"!",L),Ix)).
   isIndexTerm(_) default => .none.
+
+  public mkIndexTerm(Lc,O,A) => squareTerm(Lc,O,[A]).
 
   public isSlice:(ast) => option[(option[locn],ast,ast,ast)].
   isSlice(A) where (Lc,Op,[Ix]) ^= isSquareTerm(A) && (_,F,T) ^= isBinary(Ix,":") =>
@@ -657,27 +665,6 @@ star.compiler.wff{
   public isDefault:(ast) => option[(option[locn],ast)].
   isDefault(A) => isUnary(A,"default").
 
-  public isDoTerm:(ast) => option[(option[locn],ast)].
-  isDoTerm(A) where (Lc,Arg) ^= isUnary(A,"do") && (_,[El]) ^= isBrTuple(Arg) =>
-    some((Lc,El)).
-  isDoTerm(_) default => .none.
-
-  public mkDoTerm(Lc,As) => unary(Lc,"do",brTuple(Lc,[As])).
-
-  public isResultTerm:(ast) => option[(option[locn],ast)].
-  isActionTerm(A) where (Lc,[El]) ^= isBrApply(A,"result") =>
-    some((Lc,El)).
-  isResultTerm(_) default => .none.
-
-  public mkResultTerm(Lc,As) => brApply(Lc,"result",[As]).
-
-  public isActionTerm:(ast) => option[(option[locn],ast)].
-  isActionTerm(A) where (Lc,[El]) ^= isBrApply(A,"action") =>
-    some((Lc,El)).
-  isActionTerm(_) default => .none.
-
-  public mkActionTerm(Lc,As) => brApply(Lc,"action",[As]).
-
   public isTaskTerm:(ast) => option[(option[locn],ast)].
   isTaskTerm(A) where (Lc,[Args]) ^= isBrApply(A,"task") =>
     some((Lc,Args)).
@@ -723,40 +710,42 @@ star.compiler.wff{
 
   public mkPerform(Lc,A) => unary(Lc,"perform",A).
 
-  public isTryCatch:(ast) => option[(option[locn],ast,ast)].
-  isTryCatch(A) where (Lc,I) ^= isUnary(A,"try") => isBinary(I,"catch").
+  public isTryCatch:(ast) => option[(option[locn],ast,cons[ast])].
+  isTryCatch(A) where (Lc,I) ^= isUnary(A,"try") &&
+      (_,B,H) ^= isBinary(I,"catch") &&
+      (_,Hs) ^= isBrTuple(H) => some((Lc,B,Hs)).
   isTryCatch(_) default => .none.
 
-  public mkTryCatch(Lc,B,H) =>
-    unary(Lc,"try",binary(Lc,"catch",B,H)).
+  public mkTryCatch(Lc,B,Hs) =>
+    unary(Lc,"try",binary(Lc,"catch",B,brTuple(Lc,Hs))).
 
-  public isTryHandle:(ast) => option[(option[locn],ast,ast)].
-  isTryHandle(A) where (Lc,I) ^= isUnary(A,"try") => isBinary(I,"handle").
-  isTryHandle(_) default => .none.
+  public isSuspend(A) where
+      (Lc,T,L) ^= isBinary(A,"suspend") &&
+      (_,E,R) ^= isBinary(L,"in") &&
+      (_,C) ^= isBrTuple(R) => some((Lc,T,E,C)).
+  isSuspend(A) where
+      (Lc,L) ^= isUnary(A,"suspend") &&
+      (_,E,R) ^= isBinary(L,"in") &&
+      (_,C) ^= isBrTuple(R) => some((Lc,nme(Lc,"this"),E,C)).
+  isSuspend(_) default => .none.
 
-  public mkTryHandle(Lc,B,H) =>
-    unary(Lc,"try",binary(Lc,"handle",B,H)).
-
-  public isTag(A) => isZeroary(A,"tag").
-
-  public isPrompt(A) => isBinary(A,"prompt").
-
-  public mkPrompt(Lc,L,R) => binary(Lc,"prompt",L,R).
-
-  public isCut(A) where
-      (Lc,Lb,Rh) ^= isBinary(A,"cut") &&
-      (_,L,R) ^= isBinary(Rh,"in") => some((Lc,Lb,L,R)).
-  isCut(_) default => .none.
-
-  public mkCut(Lc,Lb,L,R) =>
-    binary(Lc,"cut",binary(Lc,"in",Lb,L),R).
+  public mkSuspend(Lc,T,E,H) => binary(Lc,"suspend",T,binary(Lc,"in",E,brTuple(Lc,H))).
 
   public isResume(A) where
-      (Lc,K,As) ^= isBinary(A,".") &&
-      (_,[Arg]) ^= isTuple(As) => some((Lc,K,As)).
+      (Lc,T,L) ^= isBinary(A,"resume") &&
+      (_,E,R) ^= isBinary(L,"in") &&
+      (_,C) ^= isBrTuple(R) => some((Lc,T,E,C)).
   isResume(_) default => .none.
 
-  public mkResume(Lc,L,R) => binary(Lc,".",L,rndTuple(Lc,[R])).
+  public mkResume(Lc,T,E,H) => binary(Lc,"resume",T,binary(Lc,"in",E,brTuple(Lc,H))).
+
+  public isRetire(A) where
+      (Lc,T,E) ^= isBinary(A,"retire") => some((Lc,T,E)).
+  isRetire(A) where
+      (Lc,E) ^= isUnary(A,"retire") => some((Lc,nme(Lc,"this"),E)).
+  isRetire(_) default => .none.
+
+  public mkRetire(Lc,T,E) => binary(Lc,"retire",T,E).
 
   public isIfThenElse:(ast) => option[(option[locn],ast,ast,ast)].
   isIfThenElse(A) where
@@ -785,18 +774,15 @@ star.compiler.wff{
 
   public mkWhileDo(Lc,C,B) => binary(Lc,"do",unary(Lc,"while",C),B).
 
-  public isForDo:(ast) => option[(option[locn],ast,ast)].
+  public isForDo:(ast) => option[(option[locn],ast,ast,ast)].
   isForDo(A) where
       (Lc,LL,Bd) ^= isBinary(A,"do") &&
-      (_, Ts) ^= isUnary(LL,"for") => some((Lc,Ts,Bd)).
+      (_, Ts) ^= isUnary(LL,"for") &&
+      (_,El,It) ^= isBinary(Ts,"in") =>
+    some((Lc,El,It,Bd)).
   isForDo(_) default => .none.
 
-  public mkForDo(Lc,G,B) => binary(Lc,"do",unary(Lc,"for",G),B).
-
-  public isIgnore:(ast) => option[(option[locn],ast)].
-  isIgnore(A) => isUnary(A,"ignore").
-
-  public mkIgnore(Lc,C) => unary(Lc,"ignore",C).
+  public mkForDo(Lc,El,It,B) => binary(Lc,"do",unary(Lc,"for",binary(Lc,"in",El,It)),B).
 
   public isCons:(ast) => option[(option[locn],ast,ast)].
   isCons(A) => isBinary(A,",..").
@@ -817,6 +803,15 @@ star.compiler.wff{
   isSequence(A) => isBinary(A,";").
 
   public mkSequence(Lc,L,R) => binary(Lc,";",L,R).
+
+  public isLbldAction:(ast)=>option[(option[locn],ast,ast)].
+  isLbldAction(A) => isBinary(A,":").
+
+  public mkLbldAction(Lc,L,R) => binary(Lc,":",L,R).
+
+  public isBreak(A) => isUnary(A,"break").
+
+  public mkBreak(Lc,Lb) => unary(Lc,"break",Lb).
 
   public isAbstraction:(ast) => option[(option[locn],ast,ast)].
   isAbstraction(A) where (Lc,[T]) ^= isBrTuple(A) &&

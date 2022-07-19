@@ -29,7 +29,6 @@ star.compiler.token{
     disp(strTok(S)) => "\"#(dispSegments(S)*)\"".
     disp(lftTok(Id)) where bkt(LId,_,_,_,_) ^= isBracket(Id) => "<#(LId)".
     disp(rgtTok(Id)) where bkt(_,_,RId,_,_) ^= isBracket(Id) => "<#(RId)".
---    disp(rgtTok(Id)) => "#(Id)>".
   }
 
   dispSegments:(cons[stringSegment]) => cons[string].
