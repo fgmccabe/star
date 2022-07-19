@@ -27,23 +27,18 @@ star.compiler.macro.driver{
 	  defltOptions(WI,RI)
 	));
     } catch {
-      Msg => logMsg("Fatal issue: #(Msg)");
+      Msg => logMsg("Fatal issue: #(Msg)")
     };
     valis ()
   }.
 
-  handleCmds:(compilerOptions,cons[string])=>() throws string.
-  handleCmds(either((Opts,Args))) => valof{
+  handleCmds:((compilerOptions,cons[string]))=>() throws string.
+  handleCmds((Opts,Args)) => valof{
     if CatUri ^= parseUri("catalog") && CatU ^= resolveUri(Opts.cwd,CatUri) &&
 	Cat ^= loadCatalog(CatU) then{
 	  for P in Args do{
-	    ErRp .= reports([]);	
-	    try{
-	      processPkg(extractPkgSpec(P),Cat,Opts,ErRp)
-	    } catch (Er) => do{
-	      logMsg("$(Er)");
-	      valis _exit(9)
-	    }
+	    resetErrors();
+	    processPkg(extractPkgSpec(P),Cat,Opts)
 	  }
 	}
     else{
@@ -55,23 +50,20 @@ star.compiler.macro.driver{
   extractPkgSpec(P) where Lc ^= strFind(P,":",0) => pkg(P[0:Lc],P[Lc+1:size(P)]::version).
   extractPkgSpec(P) default => pkg(P,.defltVersion).
 
-  implementation all e,k ~~ coercion[(option[k],e),result[e,k]] => {
-    _coerce((.none,R)) => some(bad(R)).
-    _coerce((some(A),_)) => some(ok(A)).
-  }
-
-  processPkg:(pkg,catalog,compilerOptions,reports) => () throws reports.
-  processPkg(P,Cat,Opts,Rp) => valof{
+  processPkg:(pkg,catalog,compilerOptions) => ()
+  processPkg(P,Cat,Opts) => valof{
     logMsg("Macro processing $(P)");
     if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
-      Ast .= parseSrc(SrcUri,CPkg,Rp);
+      Ast ^= parseSrc(SrcUri,CPkg);
       if traceAst! then{
 	logMsg("Ast of $(P) is $(Ast)")
       };
-      M .= macroPkg(Ast,Rp);
-      logMsg("Macrod package is $(M)");
+      M = macroPkg(Ast);
+      valis logMsg("Macrod package is $(M)");
     }
-    else
-    throw reportError(Rp,"cannot locate source of $(P)",pkgLoc(P))
+    else{
+      reportError("cannot locate source of $(P)",some(pkgLoc(P)));
+      valis ()
+    }
   }
 }

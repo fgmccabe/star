@@ -47,15 +47,13 @@ star.compiler.macro.infra{
   macroKey(str(_,_)) => "$string".
   macroKey(chr(_,_)) => "$char".
   macroKey(tpl(_,"()",[tpl(Lc,Lb,I)])) => macroKey(tpl(Lc,Lb,I)).
-  macroKey(tpl(_,"()",_)) => "\$()".
-  macroKey(tpl(_,"[]",_)) => "\$[]".
-  macroKey(tpl(_,"{}",_)) => "\${}".
-  macroKey(app(_,O,_)) => macroKey(O).
+  macroKey(tpl(_,Op,_)) => Op.
+  macroKey(app(_,O,tpl(_,"()",_))) => macroKey(O).
+  macroKey(app(_,O,tpl(_,"[]",_))) => "\$[]".
+  macroKey(app(_,O,tpl(_,"{}",_))) => "\${}".
 
   public reveal:(ast,visibility) => ast.
   reveal(A,.priVate) => unary(locOf(A),"private",A).
   reveal(A,.pUblic) => unary(locOf(A),"public",A).
   reveal(A,_) default => A.
-
-
 }
