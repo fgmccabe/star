@@ -265,6 +265,10 @@ examineTerm(T,Tx) :-
   macroTerm(L,Lx),
   cellRef(Lc,Lx,Tx).
 examineTerm(T,Tx) :-
+  isRef(T,Lc,R),!,
+  macroTerm(R,Rx),
+  mkRef(Lc,Rx,Tx).
+examineTerm(T,Tx) :-
   isLetDef(T,Lc,D,B),!,
   map(D,macros:macroStmt,Dx),
   macroTerm(B,Bx),
@@ -330,10 +334,6 @@ examineTerm(T,Tx) :-
   macroTerm(L,Lx),
   macroTerm(R,Rx),
   mkSequence(Lc,Lx,Rx,Tx).
-examineTerm(T,Tx) :-
-  isRef(T,Lc,R),!,
-  macroTerm(R,Rx),
-  mkRef(Lc,Rx,Tx).
 examineTerm(T,Tx) :-
   isWhere(T,Lc,L,R),!,
   macroTerm(L,Lx),
