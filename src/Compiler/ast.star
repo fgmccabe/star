@@ -4,16 +4,15 @@ star.compiler.ast{
   import star.compiler.misc.
   import star.compiler.operators.
 
-  public ast ::=
-    nme(option[locn],string)
-      | qnm(option[locn],string)
-      | int(option[locn],integer)
-      | big(option[locn],string)
-      | num(option[locn],float)
-      | chr(option[locn],char)
-      | str(option[locn],string)
-      | tpl(option[locn],string,cons[ast])
-      | app(option[locn],ast,ast).
+  public ast ::= nme(option[locn],string)
+    | qnm(option[locn],string)
+    | int(option[locn],integer)
+    | big(option[locn],string)
+    | num(option[locn],float)
+    | chr(option[locn],char)
+    | str(option[locn],string)
+    | tpl(option[locn],string,cons[ast])
+    | app(option[locn],ast,ast).
 
   public implementation equality[ast] => let{.
     eq(nme(_,I1),nme(_,I2)) => I1==I2.
@@ -88,13 +87,14 @@ star.compiler.ast{
   rightPar(P,Pr) where P>Pr => ")".
   rightPar(_,_) default => "".
 
-  isInterpolated(A) where _ ^= isUnary(A,"_str_multicat") => .true.
-  isInterpolated(A) where _ ^= isUnary(A,"disp") => .true.
-  isInterpolated(A) where _ ^= isBinary(A,"frmt") => .true.
+  isInterpolated(A) where (_,I) ^= isUnary(A,"_str_multicat") => isDispCons(I).
+  isInterpolated(A) where (_,I) ^= isUnary(A,"disp") => isDisp(I).
+  isInterpolated(A) where (_,I,_) ^= isBinary(A,"frmt") => isDisp(I).
   isInterpolated(A) default => .false.
 
   deInterpolate:(ast) => string.
-  deInterpolate(A) where (_,S) ^= isUnary(A,"_str_multicat") => _str_multicat(deConsPolate(S)).
+  deInterpolate(A) where (_,S) ^= isUnary(A,"_str_multicat") =>
+    _str_multicat(deConsPolate(S)).
   deInterpolate(A) where (_,S) ^= isUnary(A,"disp") => dePolate(A).
   deInterpolate(A) where (_,I,F) ^= isBinary(A,"frmt") => dePolate(A).
 
@@ -106,7 +106,16 @@ star.compiler.ast{
   dePolate(A) where (_,D,str(_,F)) ^= isBinary(A,"frmt") => "$"++dispAst(D,0,"")++":"++F++";".
   dePolate(A) where (_,S) ^= isStr(A) => S.
   dePolate(A) default => "#"++dispAst(A,0,"").
-  
+
+  isDispCons(A) where (_,I) ^= isUnary(A,".") && (_,"nil")^=isNme(I) => .true.
+  isDispCons(A) where (_,L,R) ^= isBinary(A,"cons") => isDisp(L) && isDispCons(R).
+  isDispCons(_) default => .false.
+
+  isDisp(A) where (_,S) ^= isUnary(A,"_str_multicat") => isDispCons(S).
+  isDisp(A) where (_,S) ^= isUnary(A,"disp") => .true.
+  isDisp(A) where (_,I,F) ^= isBinary(A,"frmt") => .true.
+  isDisp(_) default => .false.
+
   public implementation coercion[ast,string] => {
     _coerce(A) => some("$(A)").
   }
