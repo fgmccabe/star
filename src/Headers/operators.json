@@ -977,15 +977,6 @@
     "keyword": true
   },
   {
-    "prefixOp": ".access",
-    "priorities": [
-      1260,
-      1259
-    ],
-    "desc": "field access implementation",
-    "keyword": false
-  },
-  {
     "prefixOp": "implementation",
     "priorities": [
       1260,
