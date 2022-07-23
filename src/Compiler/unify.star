@@ -15,7 +15,7 @@ star.compiler.unify{
     resets : ref cons[reset].
     resets = ref [].
 
-    resetBindings = action{
+    resetBindings() => valof{
       for Rx in resets! do{
 	if resetVar(BndVr) .= Rx then {
 	  resetBinding(BndVr)
@@ -24,7 +24,7 @@ star.compiler.unify{
       valis .false
     }
 
-    addVarBinding(TV) => result{
+    addVarBinding(TV) => valof{
       resets := [resetVar(TV),..resets!];
       valis ()
     }
@@ -62,12 +62,12 @@ star.compiler.unify{
       same(T1,rewriteType(T2,[V2->V1]),Env).
     smT(constrainedType(T1,C1),constrainedType(T2,C2),Env) =>
       same(T1,T2,Env) && sameConstraint(C1,C2,Env).
-    smT(T1,T2,_) default => valof resetBindings .
+    smT(T1,T2,_) default => resetBindings().
 
     smTypes([],[],_) => .true.
     smTypes([E1,..L1],[E2,..L2],Env) =>
       same(E1,E2,Env) && smTypes(L1,L2,Env).
-    smTypes(_,_,_) default => valof resetBindings.
+    smTypes(_,_,_) default => resetBindings().
 
     smFields([],[],_) => .true.
     smFields([(F1,T1),..FS1],[(F2,T2),..FS2],Env) =>
@@ -84,7 +84,7 @@ star.compiler.unify{
     varBinding(T1,T2,_) where isIdenticalVar(T1,T2) => .true.
     varBinding(T1,T2,Env) where ~ occursIn(T1,T2) => 
       bind(T1,T2,Env).
-    varBinding(_,_,_) default => valof resetBindings.
+    varBinding(_,_,_) default => resetBindings().
 
     bind(V,T,Env) where ~identical(V,T) => valof{
       if ~identical(V,T) then{
@@ -93,11 +93,11 @@ star.compiler.unify{
       };
       valis .true
     }.
-  .} in (sm(deRef(Tp1),deRef(Tp2),Envir) ? .true || valof resetBindings).
+  .} in (sm(deRef(Tp1),deRef(Tp2),Envir) ? .true || resetBindings()).
 
   public faceOfType:(tipe,dict) => option[tipe].
   faceOfType(T,_) where faceType(_,_).=deRef(T) => some(T).
-  faceOfType(T,Env) => valof action{
+  faceOfType(T,Env) => valof{
     if (_,_,Rl) ^= findType(Env,localName(tpName(T),.typeMark)) then{
       (_,FRl) .= freshen(Rl,Env);
       if typeExists(Lhs,Rhs) .= FRl && sameType(Lhs,T,Env) then{

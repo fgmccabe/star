@@ -17,7 +17,7 @@ star.compiler.dict.mgt{
     some(vrEntry(.none,(L,E)=>refreshVar(L,Nm,Tp,E),Tp,.none)).
   isVar(Nm,_) where Tp ^= escapeType(Nm) => some(vrEntry(.none,(L,E)=>refreshVar(L,Nm,Tp,E),Tp,.none)).
   isVar(Nm,[]) => .none.
-  isVar(Nm,[scope(_,Vrs,_,_,_,_,_),.._]) where Entry^=Vrs[Nm] => some(Entry).
+  isVar(Nm,[Sc,.._]) where Entry^=Sc.vars[Nm] => some(Entry).
   isVar(Nm,[_,..D]) => isVar(Nm,D).
 
   public showVar:(string,dict) => string.
@@ -31,7 +31,7 @@ star.compiler.dict.mgt{
   public findImplementation:(dict,string) => option[canon].
   findImplementation(Dict,Nm) => findImpl(Dict,Dict,Nm).
   
-  findImpl([scope(_,_,_,_,Imps,_,_),.._],Env,INm) where implEntry(Lc,Vr,Tp) ^= Imps[INm] => some(refreshVar(Lc,Vr,Tp,Env)).
+  findImpl([Sc,.._],Env,INm) where implEntry(Lc,Vr,Tp) ^= Sc.impls[INm] => some(refreshVar(Lc,Vr,Tp,Env)).
   findImpl([_,..Rest],Env,INm) => findImpl(Rest,Env,INm).
   findImpl([],_,_) => .none.
 
@@ -85,10 +85,10 @@ star.compiler.dict.mgt{
 
   public undeclareVar:(string,dict) => dict.
   undeclareVar(_,[]) => [].
-  undeclareVar(Nm,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..Ev]) =>
-    (_ ^= Vrs[Nm] ?
-      [scope(Tps,Vrs[~Nm],Cns,Cnts,Imps,Accs,Ups),..Ev] ||
-      [scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..undeclareVar(Nm,Ev)]).
+  undeclareVar(Nm,[Sc,..Ev]) =>
+    (_ ^= Sc.vars[Nm] ?
+	[Sc.vars<<-Sc.vars[~Nm],..Ev] ||
+	[Sc,..undeclareVar(Nm,Ev)]).
 
   public declareConstructor:(string,string,option[locn],tipe,dict) => dict.
   declareConstructor(Nm,FullNm,Lc,Tp,Env) =>
@@ -105,24 +105,17 @@ star.compiler.dict.mgt{
   declareEnum(Nm,FullNm,Lc,Tp,Env) =>
     declareVr(Nm,Lc,Tp,(L,E)=>pickupEnum(L,FullNm,Tp,E),.none,Env).
 
-  public mergeDict:(dict,dict,dict) => dict.
-  mergeDict(D1,D2,Env) => let{.
-    mergeScopes([scope(T1,V1,C1,X1,I1,A1,U1),..Rst],
-      [scope(_,V2,_,_,_,_,_),.._]) =>
-      [scope(T1,mergeVDefs(V1,V2),C1,X1,I1,A1,U1),..Rst].
-    mergeVDefs(V1,V2) => {Nm->E1|Nm->E1 in V1 && E2^=V2[Nm] && sameDesc(E1,E2)}.
-    sameDesc(vrEntry(_,_,T1,_),vrEntry(_,_,T2,_)) => sameType(T1,T2,Env)
-  .} in mergeScopes(D1,D2).
-  
   public declareVr:(string,option[locn],tipe,(option[locn],dict)=>canon,option[tipe],dict) => dict.
-  declareVr(Nm,Lc,Tp,MkVr,Fc,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..Ev]) =>
-    [scope(Tps,Vrs[Nm->vrEntry(Lc,MkVr,Tp,Fc)],Cns,Cnts,Imps,Accs,Ups),..Ev].
+  declareVr(Nm,Lc,Tp,MkVr,Fc,[Sc,..Ev]) =>
+    [Sc.vars<<-Sc.vars[Nm->vrEntry(Lc,MkVr,Tp,Fc)],..Ev].
 
   public declareContract:(option[locn],string,typeRule,dict) => dict.
-  declareContract(Lc,Nm,Con,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..Rest]) =>
-    declareMethods(Lc,Con,
-      [scope(Tps[Nm->tpDefn(Lc,Nm,contractType(Con),contractTypeRule(Con))],
-	  Vrs,Cns,Cnts[Nm->Con],Imps,Accs,Ups),..Rest]).
+  declareContract(Lc,Nm,Con,[Sc,..Rest]) => valof{
+    NTps = Sc.types[Nm->tpDefn(Lc,Nm,contractType(Con),contractTypeRule(Con))];
+    NCts = Sc.contracts[Nm->Con];
+    valis declareMethods(Lc,Con,
+      [(Sc.types<<-NTps).contracts<<-NCts,..Rest]).
+  }
 
   declareMethods:(option[locn],typeRule,dict) => dict.
   declareMethods(Lc,Spec,Dict) => valof{
@@ -152,6 +145,17 @@ star.compiler.dict.mgt{
 --    logMsg("freshened contract $(Cn)");
     valis manageConstraints(VrTp,Lc,(LLc,MTp)=>mtd(LLc,Nm,Cn,MTp),Env)
   }
+
+  public mergeDict:(dict,dict,dict) => dict.
+  mergeDict(D1,D2,Env) => let{.
+    mergeScopes([Sc1,..Rst], [Sc2,.._]) =>
+      [Sc1.vars<<-mergeVDefs(Sc1.vars,Sc2.vars),..Rst].
+
+    mergeVDefs:(map[string,vrEntry],map[string,vrEntry])=>map[string,vrEntry].
+    mergeVDefs(V1,V2) => {Nm->E1|Nm->E1 in V1 && E2^=V2[Nm] && sameDesc(E1,E2)}.
+    sameDesc(vrEntry(_,_,T1,_),vrEntry(_,_,T2,_)) => sameType(T1,T2,Env)
+
+  .} in mergeScopes(D1,D2). 
 
   public declareDecls:(cons[decl],dict)=>dict.
   declareDecls([],Dict) => Dict.
