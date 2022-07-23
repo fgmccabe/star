@@ -110,7 +110,6 @@
   operator("::", [infixOp(399, 400, 399)]).
   operator("+++", [infixOp(719, 720, 720)]).
   operator(":=", [infixOp(974, 975, 974)]).
-  operator(".access", [prefixOp(1260, 1259)]).
   operator(":?", [infixOp(399, 400, 399)]).
   operator(".<<.", [infixOp(600, 600, 599)]).
   operator(">>=", [infixOp(949, 950, 950)]).
@@ -187,7 +186,6 @@
   follows('.','+','.+').
   follows('.','=','.=').
   follows('.','>','.>').
-  follows('.','a','.a').
   follows('.',' ','. ').
   follows('.#','.','.#.').
   follows('.&','.','.&.').
@@ -202,11 +200,6 @@
   follows('.>>','.','.>>.').
   follows('.>>','>','.>>>').
   follows('.>>>','.','.>>>.').
-  follows('.a','c','.ac').
-  follows('.ac','c','.acc').
-  follows('.acc','e','.acce').
-  follows('.acce','s','.acces').
-  follows('.acces','s','.access').
   follows('/','\\','/\\').
   follows('/','/','//').
   follows('//','/','///').
@@ -279,7 +272,6 @@
   final('.=',".=").	 /* pattern match */
   final('.>>.',".>>.").	 /* logical shift right */
   final('.>>>.',".>>>.").	 /* arithmetic shift right */
-  final('.access',".access").	 /* field access implementation */
   final('. ',". ").	 /* statement terminator */
   final('/',"/").	 /* division */
   final('/\\',"/\\").	 /* intersection */
