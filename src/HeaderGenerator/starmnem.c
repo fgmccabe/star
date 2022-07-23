@@ -248,11 +248,6 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
                  "where (Lt1,LtNo) .= findLit(Lts,strg(U::string)) && Tgt ^= Lbls[V] => mnem(Ins,Code++[intgr(%d),intgr(LtNo),intgr(Tgt-Pc-5)],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
                  op);
           return;
-        case cDe:
-          outMsg(out,
-                 "where (Lt1,LtNo) .= findLit(Lts,strg(U::string)) && (BlkCde,Lt2,Lns1,Lcs1,Pc1,Lc1) .= assemBlock(V,Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl,Ends) => mnem(Ins,Code++[intgr(%d),intgr(LtNo),intgr(Pc1-Pc-5),..BlkCde],Lbls,Lt2,Lns1,Lcs1,Pc1,Lc1,Ends).\n",
-                 op);
-          return;
         default:
           check(False, "Cannot generate instruction code");
       }
@@ -285,7 +280,7 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
           return;
         case off:
           outMsg(out,
-                 " => mnem(Ins,Code++[intgr(%d),intgr(U),intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n", op);
+                 "where Tgt ^= Lbls[V] =>  mnem(Ins,Code++[intgr(%d),intgr(U),intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n", op);
           return;
         default:
           check(False, "Cannot generate instruction code");
@@ -302,7 +297,7 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
           outMsg(out, "=> mnem(Ins,Code++[intgr(%d),strg(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", op);
           return;
         case off:
-          outMsg(out, "=> mnem(Ins,Code++[intgr(%d),strg(U),intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n", op);
+          outMsg(out, "where Tgt ^= Lbls[V] => mnem(Ins,Code++[intgr(%d),strg(U),intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n", op);
           return;
         default:
           check(False, "Cannot generate instruction code");
@@ -318,7 +313,7 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
           break;
         case off:
           outMsg(out,
-                 "%s => mnem(Ins,Code++[intgr(%d),intgr(Cd),intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
+                 "%s && Tgt ^= Lbls[V] => mnem(Ins,Code++[intgr(%d),intgr(Cd),intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
                  cond, op);
           return;
         default:
