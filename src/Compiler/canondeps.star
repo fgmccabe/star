@@ -2,17 +2,17 @@ star.compiler.canondeps{
   import star.
 
   import star.compiler.canon.
-  import star.compiler.core.
-  import star.compiler.freevars.
+--  import star.compiler.core.
+--  import star.compiler.freevars.
   import star.compiler.types.
   import star.topsort.
 
   public sortDefs:(cons[canonDef])=>cons[cons[canonDef]].
-  sortDefs(Defs) => valof action{
-    Defined .= foldRight((D,S)=>S\+definedName(D),[],Defs);
-    Q .= foldRight(pickVar,[],Defined);
-    AllRefs .= foldRight((D,A) => [findRefs(D,D,Q,Defined),..A],([]:cons[defSpec]),Defs);
-    Sorted .= topsort(AllRefs);
+  sortDefs(Defs) => valof{
+    Defined = foldRight((D,S)=>S\+definedName(D),[],Defs);
+    Q = foldRight(pickVar,[],Defined);
+    AllRefs = foldRight((D,A) => [findRefs(D,D,Q,Defined),..A],([]:cons[defSpec]),Defs);
+    Sorted = topsort(AllRefs);
     valis (Sorted // ((Gp)=>(Gp//((defSpec(_,_,Df))=>Df))))
   }
 

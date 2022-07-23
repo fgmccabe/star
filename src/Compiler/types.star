@@ -6,7 +6,8 @@ star.compiler.types{
   import star.compiler.location.
   import star.compiler.misc.
 
-  public tipe ::= kFun(string,integer) |
+  public tipe ::= voidType |
+    kFun(string,integer) |
     tVar(tv,string) |
     tFun(tv,integer,string) |
     nomnal(string) |
@@ -15,6 +16,7 @@ star.compiler.types{
     tupleType(cons[tipe]) |
     allType(tipe,tipe) |
     existType(tipe,tipe) |
+    throwsType(tipe,tipe) |
     faceType(cons[(string,tipe)],cons[(string,tipe)]) |
     constrainedType(tipe,constraint).
 
@@ -40,6 +42,7 @@ star.compiler.types{
   hasKind(tupleType(_)) => 0.
   hasKind(allType(_,T)) => hasKind(T).
   hasKind(existType(_,T)) => hasKind(T).
+  hasKind(throwsType(T,_)) => hasKind(T).
   hasKind(faceType(_,_)) => 0.
   hasKind(constrainedType(T,_)) => hasKind(T).
   
@@ -61,23 +64,23 @@ star.compiler.types{
     ((T^=B.binding!) ? isUnboundFVar(T) || some(Ar)).
   isUnboundFVar(_) default => .none.
 
-  public setBinding:(tipe,tipe) => result[(),()].
+  public setBinding:(tipe,tipe) => ().
   setBinding(tVar(B,_),T) where 0==hasKind(T) => bnd(B,T).
   setBinding(tFun(B,Ar,_),T) where hasKind(T)==Ar => bnd(B,T).
 
-  bnd:(tv,tipe) => result[(),()].
-  bnd(B,T) where B.binding! == .none => do {
+  bnd:(tv,tipe) => ().
+  bnd(B,T) where B.binding! == .none => valof {
     B.binding := some(T);
     valis ()
   }
-  bnd(_,_) default => ok(()).
+  bnd(_,_) default => ().
 
-  public resetBinding:(tipe) => action[(),()].
-  resetBinding(tVar(B,_)) => action {
+  public resetBinding:(tipe) => ().
+  resetBinding(tVar(B,_)) => valof {
     B.binding := .none;
     valis ()
   }
-  resetBinding(tFun(B,_,_)) => action{
+  resetBinding(tFun(B,_,_)) => valof{
     B.binding := .none;
     valis ()
   }
@@ -108,6 +111,7 @@ star.compiler.types{
   eqType(T1,T2,L) => identType(deRef(T1),deRef(T2),L).
 
   identType:(tipe,tipe,cons[(tipe,tipe)]) => boolean.
+  identType(.voidType,.voidType,_) => .true.
   identType(kFun(N1,A1),kFun(N2,A2),_) => N1==N2 && A1==A2.
   identType(tVar(_,N1),tVar(_,N2),_) => N1==N2.
   identType(tFun(_,A1,N1),tFun(_,A2,N2),_) => N1==N2 && A1==A2.
@@ -120,6 +124,7 @@ star.compiler.types{
     eqType(V1,V2,Q) && eqType(T1,T2,Q).
   identType(existType(V1,T1),existType(V2,T2),Q) =>
     eqType(V1,V2,Q) && eqType(T1,T2,Q).
+  identType(throwsType(N1,A1),throwsType(N2,A2),_) => N1==N2 && A1==A2.
   identType(faceType(V1,T1),faceType(V2,T2),Q) =>
     identNmTypes(V1,V2,Q) && identNmTypes(T1,T2,Q).
   identType(constrainedType(T1,C1),constrainedType(T2,C2),Q) =>
@@ -175,6 +180,7 @@ star.compiler.types{
   showType(T,Sh,Dp) => shTipe(deRef(T),Sh,Dp).
 
   shTipe:(tipe,boolean,integer) => string.
+  shTipe(.voidType,_,_) => "void".
   shTipe(kFun(Nm,Ar),_,_) => "#(Nm)/$(Ar)".
   shTipe(tVar(V,Nm),_,Dp) => "%#(Nm)".
   shTipe(tFun(_,Ar,Nm),_,_) => "%#(Nm)/$(Ar)".
@@ -186,6 +192,8 @@ star.compiler.types{
     "all #(showBound(A,Dp))#(showMoreQuantified(T,Sh,Dp))".
   shTipe(existType(A,T),Sh,Dp) =>
     "exists #(showBound(A,Dp))#(showMoreQuantified(T,Sh,Dp))".
+  shTipe(throwsType(A,T),Sh,Dp) =>
+    "#(showType(A,Sh,Dp)) throws #(showType(T,Sh,Dp))".
   shTipe(faceType(Els,Tps),Sh,Dp) => "{#(showTypeEls(Els,Tps,Sh,Dp))}".
   shTipe(constrainedType(T,C),Sh,Dp) =>
     "#(showConstraint(C,Dp)) |: #(showType(T,Sh,Dp))".
@@ -287,26 +295,20 @@ star.compiler.types{
     hash(Tp) => hsh(deRef(Tp)).
   }
 
-  
-/*  public implementation hashable[constraint] => {
-    hash(conTract(N,T,D)) => hshEls(hshEls(hash(N)*37,T),D).
-    hash(fieldConstraint(V,F,T)) =>
-      ((hash("<~")*37+hash(F))*37+hash(deRef(V)))*37+hash(deRef(T)).
-  }
-  */
-
   public contract all c ~~ hasType[c] ::= {
     typeOf:(c)=>tipe.
   }
 
   public tpName:(tipe)=>string.
   tpName(Tp) => let{.
+    tName(.voidType) => "void".
     tName(nomnal(Nm)) => Nm.
     tName(tpExp(O,A)) => tName(deRef(O)).
     tName(kFun(Nm,_)) => Nm.
     tName(tpFun(Nm,_)) => Nm.
     tName(tVar(_,_)) => "_".
     tName(tFun(_,_,_)) => "!_".
+    tName(throwsType(T,_)) => tName(deRef(T)).
     tName(allType(_,T)) => tName(deRef(T)).
     tName(existType(_,T)) => tName(deRef(T)).
     tName(constrainedType(T,_)) => tName(deRef(T)).
@@ -320,12 +322,14 @@ star.compiler.types{
   public implementationName:(constraint) => string.
   implementationName(Con) => let{.
     implName(conTract(Nm,Tps,_)) => interleave([Nm,..(Tps//(T)=>surfaceNm(deRef(T)))],"!")*.
+    surfaceNm(.voidType) => "void".
     surfaceNm(nomnal(Nm)) => Nm.
     surfaceNm(tpExp(O,A)) => surfaceNm(deRef(O)).
     surfaceNm(kFun(Nm,_)) => Nm.
     surfaceNm(tpFun(Nm,_)) => Nm.
     surfaceNm(tVar(_,_)) => "_".
     surfaceNm(tFun(_,_,_)) => "_".
+    surfaceNm(throwsType(T,_)) => surfaceNm(deRef(T)).
     surfaceNm(allType(_,T)) => surfaceNm(deRef(T)).
     surfaceNm(existType(_,T)) => surfaceNm(deRef(T)).
     surfaceNm(constrainedType(T,_)) => surfaceNm(deRef(T)).
@@ -370,7 +374,6 @@ star.compiler.types{
   public contType(A,B) => tpExp(tpExp(tpFun("=>>",2),A),B).
   public cnsType(A,B) => tpExp(tpExp(tpFun("<=>",2),tupleType(A)),B).
   public enumType(A) => tpExp(tpExp(tpFun("<=>",2),tupleType([])),A).
-  public memoType(A) => tpExp(tpFun("memo",1),A).
 
   public funTypeArg(Tp) where
       tpExp(O,_) .= deRef(Tp) &&
@@ -445,6 +448,7 @@ star.compiler.types{
   public boolType = nomnal("star.core*boolean").
   public lstType(Tp) => tpExp(tpFun("star.core*cons",1),Tp).
   public refType(Tp) => tpExp(tpFun("star.core*ref",1),Tp).
+  public taskType(R,S) => mkTypeExp(tpFun("star.core*task",2),[R,S]).
 
   public isRefType(Tp) => tpExp(Op,_) .= deRef(Tp) &&
       tpFun("star.core*ref",1).=deRef(Op).
@@ -489,7 +493,8 @@ star.compiler.types{
   typeKey(allType(K,T)) => typeKey(T).
   typeKey(existType(K,T)) => typeKey(T).
   typeKey(constrainedType(T,C)) => typeKey(T).
-  typeKey(tpExp(O,_)) => typeKey(O).
+  typeKey(throwsType(T,_)) => typeKey(deRef(T)).
+  typeKey(tpExp(O,_)) => typeKey(deRef(O)).
   typeKey(T) default => T.
 
   public contractType:(typeRule) => tipe.

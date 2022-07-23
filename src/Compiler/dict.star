@@ -17,20 +17,26 @@ star.compiler.dict{
 
   public accEntry ::= accEntry(option[locn],string,tipe).
 
-  public scope ::= scope(
-    map[string,tpDef],
-    map[string,vrEntry],
-    cons[constraint],
-    map[string,typeRule],
-    map[string,implEntry],
-    map[string,map[string,accEntry]],
-    map[string,map[string,accEntry]]).
+  public scope ::= scope{
+    types:map[string,tpDef].
+    vars:map[string,vrEntry].
+    contracts:map[string,typeRule].
+    impls:map[string,implEntry].
+    accessors:map[string,map[string,accEntry]].
+    updaters:map[string,map[string,accEntry]].
+    labels:map[string,(option[locn],string)]}.
 
   public dict ~> cons[scope].
 
   public implementation display[scope] => {
-    disp(scope(Tps,Vrs,_,Cnts,Imps,Accs,Ups)) =>
-      "Types:$(Tps),\nVars:$(Vrs),\nContracts:$(Cnts),\nImplementations: $(Imps),\nAccessors: $(Accs)\nUpdaters: $(Ups)\n".
+    disp(scope{types=Tps.
+	vars=Vrs.
+	contracts=Cnts.
+	impls=Imps.
+	accessors=Accs.
+	updaters=Ups.
+	labels=Lbls}) =>
+      "Types:$(Tps),\nVars:$(Vrs),\nContracts:$(Cnts),\nImplementations: $(Imps),\nAccessors: $(Accs)\nUpdaters: $(Ups)\nLabels: $(Lbls)".
   }
 
   public implementation display[vrEntry] => {
@@ -55,39 +61,38 @@ star.compiler.dict{
   public vrFace(vrEntry(_,_,_,Fc))=>Fc.
   
   public declareType:(string,option[locn],tipe,typeRule,dict) => dict.
-  declareType(Nm,Lc,Tp,TpRl,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..Rest]) =>
-    [scope(Tps[Nm->tpDefn(Lc,Nm,Tp,TpRl)],Vrs,Cns,Cnts,Imps,Accs,Ups),..Rest].
+  declareType(Nm,Lc,Tp,TpRl,[Level,..Rest]) =>
+    [Level.types<<-Level.types[Nm->tpDefn(Lc,Nm,Tp,TpRl)],..Rest].
 
   public findType:(dict,string) => option[(option[locn],tipe,typeRule)].
   findType([],Nm) => .none.
-  findType([scope(Tps,_,_,_,_,_,_),.._],Ky) where tpDefn(Lc,_,Tp,Rl)^=Tps[Ky] =>
+  findType([Lvl,.._],Ky) where tpDefn(Lc,_,Tp,Rl)^=Lvl.types[Ky] =>
     some((Lc,Tp,Rl)).
   findType([_,..Rest],Ky) => findType(Rest,Ky).
 
   public findContract:(dict,string) => option[typeRule].
   findContract([],Nm) => .none.
-  findContract([scope(_,_,_,Cns,_,_,_),.._],Ky) where Con^=Cns[Ky] => some(Con).
+  findContract([scope{contracts=Cns},.._],Ky) where Con^=Cns[Ky] => some(Con).
   findContract([_,..Rest],Ky) => findContract(Rest,Ky).
 
   public declareImplementation:(option[locn],string,string,tipe,dict) => dict.
-  declareImplementation(Lc,ImplNm,ImplVr,Tp,
-    [scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..Env]) =>
-    [scope(Tps,Vrs,Cns,Cnts,Imps[ImplNm->implEntry(Lc,ImplVr,Tp)],Accs,Ups),..Env].
+  declareImplementation(Lc,ImplNm,ImplVr,Tp,[Scope,..Env]) =>
+    [Scope.impls<<-Scope.impls[ImplNm->implEntry(Lc,ImplVr,Tp)],..Env].
 
   public undeclareImplementation:(string,dict) => dict.
-  undeclareImplementation(Nm,[scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..Env]) =>
-    [scope(Tps,Vrs,Cns,Cnts,Imps[~Nm],Accs,Ups),..Env].
+  undeclareImplementation(Nm,[Scope,..Env]) =>
+    [Scope.impls<<-Scope.impls[~Nm],..Env].
 
   public declareAccessor:(option[locn],tipe,string,string,tipe,dict) => dict.
-  declareAccessor(Lc,Tp,Fld,AccFn,AccTp,
-    [scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..Env]) => valof{
-    Key .= tpName(Tp);
-    Entry .= accEntry(Lc,AccFn,AccTp);
+  declareAccessor(Lc,Tp,Fld,AccFn,AccTp,[Scope,..Env]) => valof{
+    Key = tpName(Tp);
+    Entry = accEntry(Lc,AccFn,AccTp);
+    Accs = Scope.accessors;
 --    logMsg("declare accessor for $(Tp)[$(Key)].#(Fld) |:$(AccTp)");
     if AccOrs ^= Accs[Key] then{
-      valis [scope(Tps,Vrs,Cns,Cnts,Imps,Accs[Key->AccOrs[Fld->Entry]],Ups),..Env]
+      valis [Scope.accessors<<-Accs[Key->AccOrs[Fld->Entry]],..Env]
     } else{
-      valis [scope(Tps,Vrs,Cns,Cnts,Imps,Accs[Key->{Fld->Entry}],Ups),..Env]
+      valis [Scope.accessors<<-Accs[Key->{Fld->Entry}],..Env]
     }
   }
 
@@ -95,21 +100,21 @@ star.compiler.dict{
   getFieldAccess(Tp,Fld,Env) => getField(tpName(Tp),Fld,Env).
 
   getField(_,_,[]) => .none.
-  getField(Key,Fld,[scope(_,_,_,_,_,Accs,_),.._]) where
-      AccOrs ^= Accs[Key] &&
+  getField(Key,Fld,[Scope,.._]) where
+      AccOrs ^= Scope.accessors[Key] &&
       Acc ^= AccOrs[Fld] => some(Acc).
   getField(Key,Fld,[_,..Env]) => getField(Key,Fld,Env).
 
   public declareUpdater:(option[locn],tipe,string,string,tipe,dict) => dict.
-  declareUpdater(Lc,Tp,Fld,UpdFn,UpdTp,
-    [scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups),..Env]) => valof{
-    Key .= tpName(Tp);
-    Entry .= accEntry(Lc,UpdFn,UpdTp);
+  declareUpdater(Lc,Tp,Fld,UpdFn,UpdTp,[Scope,..Env]) => valof{
+    Key = tpName(Tp);
+    Entry = accEntry(Lc,UpdFn,UpdTp);
+    Ups = Scope.updaters;
 --    logMsg("declare updater for $(Tp)[$(Key)].#(Fld) |:$(UpdTp)");
     if AccOrs ^= Ups[Key] then{
-      valis [scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups[Key->AccOrs[Fld->Entry]]),..Env]
+      valis [Scope.updaters<<-Ups[Key->AccOrs[Fld->Entry]],..Env]
     } else{
-      valis [scope(Tps,Vrs,Cns,Cnts,Imps,Accs,Ups[Key->{Fld->Entry}]),..Env]
+      valis [Scope.updaters<<-Ups[Key->{Fld->Entry}],..Env]
     }
   }
 
@@ -117,23 +122,41 @@ star.compiler.dict{
   getFieldUpdate(Tp,Fld,Env) => getUpdate(tpName(Tp),Fld,Env).
 
   getUpdate(_,_,[]) => .none.
-  getUpdate(Key,Fld,[scope(_,_,_,_,_,_,Accs),.._]) where
-      AccOrs ^= Accs[Key] &&
+  getUpdate(Key,Fld,[Scope,.._]) where
+      AccOrs ^= Scope.accessors[Key] &&
       Acc ^= AccOrs[Fld] => some(Acc).
   getUpdate(Key,Fld,[_,..Env]) => getUpdate(Key,Fld,Env).
 
+  public declareLabel:(option[locn],string,dict) => dict.
+  declareLabel(Lc,Lb,[Scope,..Env]) => [Scope.labels<<-Scope.labels[Lb->(Lc,Lb)],..Env].
+
+  public isLabel:(string,dict) => option[(option[locn],string)].
+  isLabel(Lb,[Sc,.._]) where Tgt^=Sc.labels[Lb] => some(Tgt).
+  isLabel(Lb,[_,..Env]) => isLabel(Lb,Env).
+  isLabel(_,_) default => .none.
+
   public pushScope:(dict)=>dict.
-  pushScope(Env) => [scope({},{},[],{},{},{},{}),..Env].
+  pushScope(Env) => [scope{
+      types={}.
+      vars={}.
+      contracts={}.
+      impls={}.
+      accessors={}.
+      updaters={}.
+      labels=[]},..Env].
 
   public declareTypeVars:(cons[(string,tipe)],dict) => dict.
   declareTypeVars([],Env) => Env.
   declareTypeVars([(Nm,Tp),..Q],Env) =>
     declareTypeVars(Q,declareType(Nm,.none,Tp,typeExists(Tp,Tp),Env)).
 
+
+  
+
   emptyFace = faceType([],[]).
 
   public emptyDict:dict.
-  public emptyDict = [scope({},{},[],{},{},{},{})].
+  public emptyDict = pushScope([]).
 
 -- Standard types are predefined by the language
   public stdDict:dict.

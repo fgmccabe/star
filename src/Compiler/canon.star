@@ -17,8 +17,9 @@ star.compiler.canon{
     funDec(option[locn],string,string,tipe) |
     cnsDec(option[locn],string,string,tipe).
 
-  public canon ::= vd(option[locn],tipe) |
+  public canon ::= vd(option[locn]) |
     vr(option[locn],string,tipe) |
+    cns(option[locn],string,tipe) |
     mtd(option[locn],string,constraint,tipe) |
     over(option[locn],canon,cons[constraint]) |
     overaccess(option[locn],canon,string,tipe) |
@@ -30,7 +31,8 @@ star.compiler.canon{
     enm(option[locn],string,tipe) |
     whr(option[locn],canon,canon) |
     dot(option[locn],canon,string,tipe) |
-    csexp(option[locn],canon,cons[equation],tipe) |
+    csexp(option[locn],canon,cons[rule[canon]],tipe) |
+    trycatch(option[locn],canon,cons[rule[canon]],tipe) |
     match(option[locn],canon,canon) |
     conj(option[locn],canon,canon) |
     disj(option[locn],canon,canon) |
@@ -39,14 +41,35 @@ star.compiler.canon{
     cond(option[locn],canon,canon,canon) |
     apply(option[locn],canon,canon,tipe) |
     tple(option[locn],cons[canon]) |
-    lambda(option[locn],string,cons[equation],tipe) |
+    lambda(option[locn],string,cons[rule[canon]],tipe) |
     owpen(option[locn],canon) |
     letExp(option[locn],cons[canonDef],cons[decl],canon) |
     letRec(option[locn],cons[canonDef],cons[decl],canon) |
-    update(option[locn],canon,string,canon).
+    update(option[locn],canon,string,canon) |
+    vlof(option[locn],canonAction).
 
-  public equation ::= eqn(option[locn],canon,option[canon],canon).
+  public canonAction ::= doNop(option[locn]) |
+    doSeq(option[locn],canonAction,canonAction) |
+    doLbld(option[locn],string,canonAction) |
+    doBrk(option[locn],string) |
+    doValis(option[locn],canon) |
+    doThrow(option[locn],canon) |
+    doDefn(option[locn],canon,canon) |
+    doMatch(option[locn],canon,canon) |
+    doAssign(option[locn],canon,canon) |
+    doTryCatch(option[locn],canon,cons[rule[canonAction]]) |
+    doIfThen(option[locn],canon,canonAction,canonAction) |
+    doCase(option[locn],canon,cons[rule[canonAction]]) |
+    doWhile(option[locn],canon,canonAction) |
+    doLet(option[locn],cons[canonDef],cons[decl],canonAction) |
+    doLetRec(option[locn],cons[canonDef],cons[decl],canonAction) |
+    doSuspend(option[locn],canon,canon,cons[rule[canonAction]]) |
+    doResume(option[locn],canon,canon,cons[rule[canonAction]]) |
+    doRetire(option[locn],canon,canon) |
+    doCall(option[locn],canon).
 
+  public rule[t] ::= rule(option[locn],boolean,canon,option[canon],t).
+    
   public canonDef ::= varDef(option[locn],string,string,canon,cons[constraint],tipe) |
     typeDef(option[locn],string,tipe,typeRule) |
     conDef(option[locn],string,string,typeRule) |
@@ -56,7 +79,9 @@ star.compiler.canon{
     updDef(option[locn],string,string,tipe).
 
   public implementation hasType[canon] => {.
+    typeOf(vd(_)) => .voidType.
     typeOf(vr(_,_,T)) => T.
+    typeOf(cns(_,_,T)) => T.
     typeOf(mtd(_,_,_,T)) => T.
     typeOf(over(_,T,_)) => typeOf(T).
     typeOf(overaccess(_,_,_,Tp)) => Tp.
@@ -67,6 +92,7 @@ star.compiler.canon{
     typeOf(strng(_,_)) => strType.
     typeOf(enm(_,_,Tp)) => Tp.
     typeOf(csexp(_,_,_,Tp)) => Tp.
+    typeOf(trycatch(_,_,_,Tp)) => Tp.
     typeOf(lambda(_,_,_,Tp)) => Tp.
     typeOf(letExp(_,_,_,E)) => typeOf(E).
     typeOf(letRec(_,_,_,E)) => typeOf(E).
@@ -83,7 +109,9 @@ star.compiler.canon{
   .}
 
   public implementation hasLoc[canon] => {
+    locOf(vd(Lc)) => Lc.
     locOf(vr(Lc,_,_)) => Lc.
+    locOf(cns(Lc,_,_)) => Lc.
     locOf(mtd(Lc,_,_,_)) => Lc.
     locOf(over(Lc,_,_)) => Lc.
     locOf(overaccess(Lc,_,_,_)) => Lc.
@@ -96,6 +124,7 @@ star.compiler.canon{
     locOf(whr(Lc,_,_)) => Lc.
     locOf(dot(Lc,_,_,_)) => Lc.
     locOf(csexp(Lc,_,_,_)) => Lc.
+    locOf(trycatch(Lc,_,_,_)) => Lc.
     locOf(match(Lc,_,_)) => Lc.
     locOf(conj(Lc,_,_)) => Lc.
     locOf(disj(Lc,_,_)) => Lc.
@@ -110,8 +139,8 @@ star.compiler.canon{
     locOf(update(Lc,_,_,_)) => Lc.
   }
 
-  public implementation hasLoc[equation] => {
-    locOf(eqn(Lc,_,_,_)) => Lc.
+  public implementation all x ~~ hasLoc[rule[x]] => {
+    locOf(rule(Lc,_,_,_,_)) => Lc.
   }
 
   public implementation hasLoc[canonDef] => {
@@ -130,62 +159,20 @@ star.compiler.canon{
   }
 
   public implementation display[decl] => {
-    disp(implDec(_,Nm,ImplNm,ImplTp)) =>
-      "Impl #(Nm)~#(ImplNm)\:$(ImplTp)".
-    disp(accDec(_,Tp,Fld,Fun,FunTp)) =>
-      "Acc $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
-    disp(updDec(_,Tp,Fld,Fun,FunTp)) =>
-      "Update $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
-    disp(conDec(_,Nm,_,RlTp)) =>
-      "Contract #(Nm)\:$(RlTp)".
-    disp(tpeDec(_,Nm,Tp,_)) =>
-      "Type #(Nm)\::$(Tp)".
-    disp(varDec(_,Nm,_FullNm,Tp)) =>
-      "Var #(Nm)\:$(Tp)".
-    disp(funDec(_,Nm,_FullNm,Tp)) =>
-      "Fun #(Nm)\:$(Tp)".
-    disp(cnsDec(_,Nm,_FullNm,Tp)) =>
-      "Con #(Nm)\:$(Tp)".
+    disp(implDec(_,Nm,ImplNm,ImplTp)) => "Impl #(Nm)~#(ImplNm)\:$(ImplTp)".
+    disp(accDec(_,Tp,Fld,Fun,FunTp)) => "Acc $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
+    disp(updDec(_,Tp,Fld,Fun,FunTp)) => "Update $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
+    disp(conDec(_,Nm,_,RlTp)) => "Contract #(Nm)\:$(RlTp)".
+    disp(tpeDec(_,Nm,Tp,_)) => "Type #(Nm)\::$(Tp)".
+    disp(varDec(_,Nm,_FullNm,Tp)) => "Var #(Nm)\:$(Tp)".
+    disp(funDec(_,Nm,_FullNm,Tp)) => "Fun #(Nm)\:$(Tp)".
+    disp(cnsDec(_,Nm,_FullNm,Tp)) => "Con #(Nm)\:$(Tp)".
   }
 
-/*  public implementation equality[canon] => let{.
-    eq(vr(_,N1,T1),vr(_,N2,T2)) => N1==N2 && T1==T2.
-    eq(mtd(_,N1,C1,T1),mtd(_,N2,C2,T2)) => N1==N2 && C1==C2 && T1==T2.
-    eq(over(_,N1,T1,C1),over(_,N2,T2,C2)) => eq(N1,N2) && T1==T2 && C1==C2.
-    eq(intr(_,L1),intr(_,L2)) => L1==L2.
-    eq(flt(_,L1),flt(_,L2)) => L1==L2.
-    eq(strng(_,L1),strng(_,L2)) => L1==L2.
-    eq(enm(_,N1,T1),enm(_,N2,T2)) => N1==N2 && T1==T2.
-    eq(tple(_,L1),tple(_,L2)) => eqList(L1,L2).
-    eq(apply(_,O1,A1,T1),apply(_,O2,A2,T2)) => eq(O1,O2) && eq(A1,A2) && T1==T2.
-    eq(whr(_,T1,C1),whr(_,T2,C2)) => eq(T1,T2) && eq(C1,C2).
-    eq(dot(_,T1,F1,_),dot(_,T2,F2,_)) => eq(T1,T2) && F1==F2.
-
-    eqList([],[]) => .true.
-    eqList([E1,..L1],[E2,..L2]) => eq(E1,E2) && eqList(L1,L2).
-    eqList(_,_) default => .false.
-  .} in {
-    T1==T2 => eq(T1,T2)
-  }
-
-  public implementation hash[canon] => let{.
-    hsh(vr(_,N1,_)) => hash(N1).
-    hsh(mtd(_,N1,_,_)) => hash(N1).
-    hsh(over(_,N1,C1)) => hsh(N1)*37+hash(C1).
-    hsh(intr(_,Ix)) => hash(Ix).
-    hsh(flt(_,Dx)) => hash(Dx).
-    hsh(strng(_,Sx)) => hash(Sx).
-    hsh(enm(_,N1,_)) => hash(N1).
-    hsh(apply(_,O1,A1,T1)) => hsh(O1)*36+hsh(A1).
-    hsh(whr(_,T1,C1)) => hsh(T1) *37+hsh(C1).
-    hsh(dot(_,T1,F1,_)) => hsh(T1) *37+hash(F1).
-  .} in {
-    hash(T1) => hsh(T1)
-  }
-*/
   showCanon:(canon,string)=>string.
-  showCanon(vd(_,Tp),_) => "void".
+  showCanon(vd(_),_) => "void".
   showCanon(vr(_,Nm,Tp),_) => Nm.
+  showCanon(cns(_,Nm,Tp),_) => ".#(Nm)".
   showCanon(mtd(_,Fld,_,_),_) => "µ#(Fld)".
   showCanon(over(_,V,Cx),Sp) => "$(Cx)|:#(showCanon(V,Sp))".
   showcanon(overaccess(_,V,F,T),Sp) => "($(V)<~#(F):$(T))".
@@ -197,6 +184,7 @@ star.compiler.canon{
   showCanon(whr(_,E,C),Sp) => "#(showCanon(E,Sp)) where #(showCanon(C,Sp))".
   showCanon(dot(_,R,F,Tp),Sp) => "#(showCanon(R,Sp))°#(F)\:$(Tp)".
   showCanon(csexp(_,Exp,Cs,_),Sp) => "case #(showCanon(Exp,Sp)) in #(showCases(Cs,Sp))".
+  showCanon(trycatch(_,Exp,Cs,_),Sp) => "try #(showCanon(Exp,Sp)) catch {\n#(showCases(Cs,Sp))\n}".
   showCanon(match(_,Ptn,Gen),Sp) => "#(showCanon(Ptn,Sp)) .= #(showCanon(Gen,Sp))".
   showCanon(conj(_,L,R),Sp) => "#(showCanon(L,Sp)) && #(showCanon(R,Sp))".
   showCanon(disj(_,L,R),Sp) => "(#(showCanon(L,Sp)) || #(showCanon(R,Sp)))".
@@ -234,12 +222,15 @@ star.compiler.canon{
   showDef(accDef(_,Fld,Nm,Tp),Sp) => "Access: #(Fld):$(Tp) = $(Nm)".
   showDef(updDef(_,Fld,Nm,Tp),Sp) => "Update: #(Fld):$(Tp) = $(Nm)".
 
-  showRls:(string,cons[equation],string) => string.
+  showRls:all x ~~ display[x] |: (string,cons[rule[x]],string) => string.
   showRls(Nm,Rls,Sp) => interleave(Rls//(Rl)=>showRl(Nm,Rl,Sp),".\n"++Sp)*.
 
-  showRl:(string,equation,string) => string.
-  showRl(Nm,eqn(_,Ptn,.none,Val),Sp) => "#(Nm)#(showCanon(Ptn,Sp)) => #(showCanon(Val,Sp))".
-  showRl(Nm,eqn(_,Ptn,some(C),Val),Sp) => "#(Nm)#(showCanon(Ptn,Sp)) where #(showCanon(C,Sp)) => #(showCanon(Val,Sp))".
+  showRl:all x ~~ display[x] |: (string,rule[x],string) => string.
+  showRl(Nm,rule(_,Dflt,Ptn,.none,Val),Sp) => "#(Nm)#(showCanon(Ptn,Sp))#(shDeflt(Dflt)) => $(Val)".
+  showRl(Nm,rule(_,Dflt,Ptn,some(C),Val),Sp) => "#(Nm)#(showCanon(Ptn,Sp))#(shDeflt(Dflt)) where #(showCanon(C,Sp)) => $(Val)".
+
+  shDeflt(.true) => "default ".
+  shDeflt(.false) => "".
 
   public implementation display[canon] => {
     disp(C) => showCanon(C,"")
@@ -249,7 +240,7 @@ star.compiler.canon{
     disp(D) => showDef(D,"")
   }
 
-  public implementation display[equation] => {
+  public implementation all x ~~ display[x] |: display[rule[x]] => {
     disp(Eq) => showRl("λ",Eq,"").
   }
 

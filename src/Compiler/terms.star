@@ -130,222 +130,229 @@ star.compiler.terms{
   encodeBig(Bx,Chs) => encodeText(Bx::string,Chs).
 
   public implementation coercion[string,term] => {
-    _coerce(S) => valof do{
-      L.=S::cons[char];
-      (T,_) <- decodeTerm(S::cons[char]);
+    _coerce(S) => valof{
+      L=S::cons[char];
+      (T,_) = decodeTerm(S::cons[char]);
       valis some(T)
     }
   }
   
-  public decodeTerm:(cons[char])=>result[(),(term,cons[char])].
-  decodeTerm([`x`,..Ls]) => do{
-    (Ix,L0) <- decodeInt(Ls);
+  public decodeTerm:(cons[char])=>(term,cons[char]).
+  decodeTerm([`x`,..Ls]) => valof{
+    (Ix,L0) = decodeInt(Ls);
     valis (intgr(Ix),L0)
   }.
-  decodeTerm([`d`,..Ls]) => do{
-    (Txt,Lx) <- decodeText(Ls);
+  decodeTerm([`d`,..Ls]) => valof{
+    (Txt,Lx) = decodeText(Ls);
     valis (flot(Txt::float),Lx)
   }
-  decodeTerm([`e`,..Ls]) => do{
-    (Sym,Lx) <- decodeText(Ls);
+  decodeTerm([`e`,..Ls]) => valof{
+    (Sym,Lx) = decodeText(Ls);
     valis (symb(tLbl(Sym,0)),Lx)
   }
-  decodeTerm([`o`,..Ls]) => do{
-    (Sym,Lx) <- decodeLabel([`o`,..Ls]);
+  decodeTerm([`o`,..Ls]) => valof{
+    (Sym,Lx) = decodeLabel([`o`,..Ls]);
     valis (symb(Sym),Lx)
   }
-  decodeTerm([`c`,..Ls]) => do{
-    (Ch,Lx) <- decodeChar(Ls);
+  decodeTerm([`c`,..Ls]) => valof{
+    (Ch,Lx) = decodeChar(Ls);
     valis (chr(Ch),Lx)
   }
-  decodeTerm([`s`,..Ls]) => do{
-    (Txt,Lx) <- decodeText(Ls);
+  decodeTerm([`s`,..Ls]) => valof{
+    (Txt,Lx) = decodeText(Ls);
     valis (strg(Txt),Lx)
   }
-  decodeTerm([`n`,..Ls]) => do{
-    (Ax,L0) <- decodeNat(Ls,0);
-    (Op,LL1) <- decodeLabel(L0);
-    (Args,Lx) <- decodeTerms(LL1,Ax,[]);
+  decodeTerm([`n`,..Ls]) => valof{
+    (Ax,L0) = decodeNat(Ls,0);
+    (Op,LL1) = decodeLabel(L0);
+    (Args,Lx) = decodeTerms(LL1,Ax,[]);
     valis (term(Op,Args),Lx)
   }
-  decodeTerm([`l`,..Ls]) => do{
-    (Ax,L0) <- decodeNat(Ls,0);
-    (Els,Lx) <- decodeTerms(L0,Ax,[]);
+  decodeTerm([`l`,..Ls]) => valof{
+    (Ax,L0) = decodeNat(Ls,0);
+    (Els,Lx) = decodeTerms(L0,Ax,[]);
     valis (mkLst(Els),Lx)
   }
 
-  decodeTerms:(cons[char],integer,cons[term]) => result[(),(cons[term],cons[char])].
-  decodeTerms(L,0,Args) => do{ valis (reverse(Args),L)}.
-  decodeTerms(L,Ix,Args) => do{
-    (Arg,L0) <- decodeTerm(L);
-    decodeTerms(L0,Ix-1,[Arg,..Args])
+  decodeTerms:(cons[char],integer,cons[term]) => (cons[term],cons[char]).
+  decodeTerms(L,0,Args) => (reverse(Args),L).
+  decodeTerms(L,Ix,Args) => valof{
+    (Arg,L0) = decodeTerm(L);
+    valis decodeTerms(L0,Ix-1,[Arg,..Args])
   }
 
-  decodeLabel:(cons[char])=>result[(),(termLbl,cons[char])].
-  decodeLabel([`o`,..Ls]) => do{
-    (Ar,L0) <- decodeNat(Ls,0);
-    (Nm,Lx) <- decodeText(L0);
+  decodeLabel:(cons[char])=>(termLbl,cons[char]).
+  decodeLabel([`o`,..Ls]) => valof{
+    (Ar,L0) = decodeNat(Ls,0);
+    (Nm,Lx) = decodeText(L0);
     valis (tLbl(Nm,Ar),Lx)
   }
     
-  decodeInt:(cons[char])=>result[(),(integer,cons[char])].
-  decodeInt([`-`,..L]) => do{
-    (Px,Lx) <- decodeNat(L,0);
+  decodeInt:(cons[char])=>(integer,cons[char]).
+  decodeInt([`-`,..L]) => valof{
+    (Px,Lx) = decodeNat(L,0);
     valis (-Px,Lx)
   }
   decodeInt(L) default => decodeNat(L,0).
   
-  decodeNat:(cons[char],integer) => result[(),(integer,cons[char])].
+  decodeNat:(cons[char],integer) => (integer,cons[char]).
   decodeNat([Cx,..Ls],Ix) where isDigit(Cx) => decodeNat(Ls,Ix*10+digitVal(Cx)).
-  decodeNat(Ls,Ix) default => do{ valis (Ix,Ls)}.
+  decodeNat(Ls,Ix) default => (Ix,Ls).
 
-  decodeChar:(cons[char]) => result[(),(char,cons[char])].
-  decodeChar([`\\`,X,..L]) => do{ valis (X,L)}.
-  decodeChar([X,..L]) => do{ valis (X,L) }.
+  decodeChar:(cons[char]) => (char,cons[char]).
+  decodeChar([`\\`,X,..L]) => (X,L).
+  decodeChar([X,..L]) => (X,L).
 
-  decodeText:(cons[char]) => result[(),(string,cons[char])].
-  decodeText([C,..L]) => do{
-    (Q,Cs) <- collectQuoted(L,[],C);
+  decodeText:(cons[char]) => (string,cons[char]).
+  decodeText([C,..L]) => valof{
+    (Q,Cs) = collectQuoted(L,[],C);
     valis (reverse(Q)::string,Cs)
   }
 
-  collectQuoted:(cons[char],cons[char],char) => result[(),(cons[char],cons[char])].
-  collectQuoted([S,..Lx],SoF,S) => do{ valis (SoF,Lx) }.
+  collectQuoted:(cons[char],cons[char],char) => (cons[char],cons[char]).
+  collectQuoted([S,..Lx],SoF,S) => (SoF,Lx).
   collectQuoted([`\\`,X,..L],SoF,S) => collectQuoted(L,[X,..SoF],S).
   collectQuoted([X,..L],SoF,S) => collectQuoted(L,[X,..SoF],S).
 
-  public decodeSignature:(string) => result[(),tipe].
-  decodeSignature(St) => do{
-    (Tp,_) <- decodeType(St::cons[char]);
+  public decodeSignature:(string) => tipe throws ().
+  decodeSignature(St) => valof{
+    (Tp,_) = decodeType(St::cons[char]);
     valis Tp
   }
 
-  decodeType:(cons[char]) => result[(),(tipe,cons[char])].
-  decodeType([`i`,..Ts]) => do{ valis (nomnal("star.core*integer"),Ts)}.
-  decodeType([`b`,..Ts]) => do{ valis (nomnal("star.core*bigint"),Ts)}.
-  decodeType([`f`,..Ts]) => do{ valis (nomnal("star.core*float"),Ts)}.
-  decodeType([`c`,..Ts]) => do{ valis (nomnal("star.core*char"),Ts)}.
-  decodeType([`s`,..Ts]) => do{ valis (nomnal("star.core*string"),Ts)}.
-  decodeType([`l`,..Ts]) => do{ valis (nomnal("star.core*boolean"),Ts)}.
-  decodeType([`_`,..Ts]) => do{ valis (newTypeVar("_"),Ts)}.
-  decodeType([`k`,..Ts]) => do {
-    (Nm,T1) <- decodeText(Ts);
+  decodeType:(cons[char]) => (tipe,cons[char]) throws ().
+  decodeType([`i`,..Ts]) => (nomnal("star.core*integer"),Ts).
+  decodeType([`b`,..Ts]) => (nomnal("star.core*bigint"),Ts).
+  decodeType([`f`,..Ts]) => (nomnal("star.core*float"),Ts).
+  decodeType([`c`,..Ts]) => (nomnal("star.core*char"),Ts).
+  decodeType([`s`,..Ts]) => (nomnal("star.core*string"),Ts).
+  decodeType([`l`,..Ts]) => (nomnal("star.core*boolean"),Ts).
+  decodeType([`_`,..Ts]) => (newTypeVar("_"),Ts).
+  decodeType([`k`,..Ts]) => valof{
+    (Nm,T1) = decodeText(Ts);
     valis (nomnal(Nm),T1)
   }
-  decodeType([`K`,..Ts]) => do {
-    (Ar,T0) <- decodeNat(Ts,0);
-    (Nm,T1) <- decodeText(T0);
+  decodeType([`K`,..Ts]) => valof{
+    (Ar,T0) = decodeNat(Ts,0);
+    (Nm,T1) = decodeText(T0);
     valis (kFun(Nm,Ar),T1)
   }
-  decodeType([`t`,..Ts]) => do {
-    (Nm,T1) <- decodeText(Ts);
+  decodeType([`t`,..Ts]) => valof{
+    (Nm,T1) = decodeText(Ts);
     valis (nomnal(Nm),T1)
   }
-  decodeType([`z`,..Ts]) => do {
-    (Ar,T0) <- decodeNat(Ts,0);
-    (Nm,T1) <- decodeText(T0);
+  decodeType([`z`,..Ts]) => valof{
+    (Ar,T0) = decodeNat(Ts,0);
+    (Nm,T1) = decodeText(T0);
     valis (tpFun(Nm,Ar),T1)
   }
-  decodeType([`L`,..Ts]) => do {
-    (ElTp,T0) <- decodeType(Ts);
+  decodeType([`L`,..Ts]) => valof{
+    (ElTp,T0) = decodeType(Ts);
     valis (lstType(ElTp),T0)
   }
-  decodeType([`U`,..Ts]) => do {
-    (OpTp,T0) <- decodeType(Ts);
-    (ElTp,T1) <- decodeType(T0);
+  decodeType([`U`,..Ts]) => valof{
+    (OpTp,T0) = decodeType(Ts);
+    (ElTp,T1) = decodeType(T0);
     valis (tpExp(OpTp,ElTp),T1)
   }
-  decodeType([`r`,..Ts]) => do {
-    (ElTp,T0) <- decodeType(Ts);
+  decodeType([`r`,..Ts]) => valof{
+    (ElTp,T0) = decodeType(Ts);
     valis (refType(ElTp),T0)
   }
-  decodeType([`(`,..Ts]) => do {
-    (Tps,T0) <- decodeTypes(Ts);
+  decodeType([`(`,..Ts]) => valof{
+    (Tps,T0) = decodeTypes(Ts);
     valis (tupleType(Tps),T0)
   }
-  decodeType([`:`,..Ts]) => do{
-    (V,T0) <- decodeType(Ts);
-    (B,T1) <- decodeType(T0);
+  decodeType([`:`,..Ts]) => valof{
+    (V,T0) = decodeType(Ts);
+    (B,T1) = decodeType(T0);
     valis (allType(V,B),T1)
   }
-  decodeType([`e`,..Ts]) => do{
-    (V,T0) <- decodeType(Ts);
-    (B,T1) <- decodeType(T0);
+  decodeType([`e`,..Ts]) => valof{
+    (V,T0) = decodeType(Ts);
+    (B,T1) = decodeType(T0);
     valis (existType(V,B),T1)
   }
-  decodeType([`|`,..Ts]) => do{
-    (V,T0) <- decodeType(Ts);
-    (B,T1) <- decodeConstraint(T0);
+  decodeType([`|`,..Ts]) => valof{
+    (V,T0) = decodeType(Ts);
+    (B,T1) = decodeConstraint(T0);
     valis (constrainedType(V,B),T1)
   }
-  decodeType([`I`,..Ts]) => do{
-    (F1,T0) <- decodeFields(Ts);
-    (F2,T1) <- decodeFields(T0);
+  decodeType([`I`,..Ts]) => valof{
+    (F1,T0) = decodeFields(Ts);
+    (F2,T1) = decodeFields(T0);
     valis (faceType(F1,F2),T1)
   }
-  decodeType([`F`,..Ts]) => do{
-    (A,T0) <- decodeType(Ts);
-    (R,T1) <- decodeType(T0);
+  decodeType([`F`,..Ts]) => valof{
+    (A,T0) = decodeType(Ts);
+    (R,T1) = decodeType(T0);
     valis (fnType(A,R),T1)
   }
-  decodeType([`C`,..Ts]) => do{
-    (A,T0) <- decodeType(Ts);
-    (R,T1) <- decodeType(T0);
+  decodeType([`C`,..Ts]) => valof{
+    (A,T0) = decodeType(Ts);
+    (R,T1) = decodeType(T0);
     valis (consType(A,R),T1)
   }
+  decodeType(_) default => throw ().
 
-  decodeTypes([`)`,..Ts]) => do{ valis ([],Ts)}. 
-  decodeTypes(Ts) => do{
-    (ElTp,T0) <- decodeType(Ts);
-    (Tps,T1) <- decodeTypes(T0);
+  decodeTypes:(cons[char])=> (cons[tipe],cons[char]) throws ().
+  decodeTypes([`)`,..Ts]) => ([],Ts). 
+  decodeTypes(Ts) => valof{
+    (ElTp,T0) = decodeType(Ts);
+    (Tps,T1) = decodeTypes(T0);
     valis ([ElTp,..Tps],T1)
   }
 
-  public decodeTypeRuleSignature:(string) => result[(),typeRule].
-  decodeTypeRuleSignature(St) => do{
-    (Tp,_) <- decodeTypeRule(St::cons[char]);
+  public decodeTypeRuleSignature:(string) => typeRule throws ().
+  decodeTypeRuleSignature(St) => valof{
+    (Tp,_) = decodeTypeRule(St::cons[char]);
     valis Tp
   }
 
-  decodeTypeRule([`:`,..Ts]) => do{
-    (V,T0) <- decodeType(Ts);
-    (R,T1) <- decodeTypeRule(T0);
+  decodeTypeRule:(cons[char])=>(typeRule,cons[char]) throws ().
+  decodeTypeRule([`:`,..Ts]) => valof{
+    (V,T0) = decodeType(Ts);
+    (R,T1) = decodeTypeRule(T0);
     valis (allRule(V,R),T1)
   }  
-  decodeTypeRule([`Y`,..Ts]) => do{
-    (A,T0) <- decodeType(Ts);
-    (R,T1) <- decodeType(T0);
+  decodeTypeRule([`Y`,..Ts]) => valof{
+    (A,T0) = decodeType(Ts);
+    (R,T1) = decodeType(T0);
     valis (typeExists(A,R),T1)
   }
-  decodeTypeRule([`Z`,..Ts]) => do{
-    (conTract(N,T,D),T0) <- decodeConstraint(Ts);
-    (R,T1) <- decodeType(T0);
+  decodeTypeRule([`Z`,..Ts]) => valof{
+    (conTract(N,T,D),T0) = decodeConstraint(Ts);
+    (R,T1) = decodeType(T0);
     valis (contractExists(N,T,D,R),T1)
   }
-  decodeTypeRule([`y`,..Ts]) => do{
-    (A,T0) <- decodeType(Ts);
-    (R,T1) <- decodeType(T0);
+  decodeTypeRule([`y`,..Ts]) => valof{
+    (A,T0) = decodeType(Ts);
+    (R,T1) = decodeType(T0);
     valis (typeLambda(A,R),T1)
   }
 
+  decodeFields:(cons[char])=>(cons[(string,tipe)],cons[char]) throws ().
   decodeFields([`{`,..Ts]) => decodeFlds(Ts,[]).
 
-decodeFlds([`}`,..Ts],Flds) => do{ valis (reverse(Flds),Ts)}.
-  decodeFlds(Ts,Flds) => do{
-    (Nm,T0) <- decodeText(Ts);
-    (Tp,T1) <- decodeType(T0);
-    decodeFlds(T1,[(Nm,Tp),..Flds])
+  decodeFlds:(cons[char],cons[(string,tipe)])=>
+    (cons[(string,tipe)],cons[char]) throws ().
+  decodeFlds([`}`,..Ts],Flds) => (reverse(Flds),Ts).
+  decodeFlds(Ts,Flds) => valof{
+    (Nm,T0) = decodeText(Ts);
+    (Tp,T1) = decodeType(T0);
+    valis decodeFlds(T1,[(Nm,Tp),..Flds])
   }
 
-  decodeConstraint([`c`,..T]) => do{
-    (Nm,T0) <- decodeText(T);
-    (tupleType(Tps),T1) <- decodeType(T0);
-    (tupleType(Dps),T2) <- decodeType(T1);
+  decodeConstraint:(cons[char])=>(constraint,cons[char]) throws ().
+  decodeConstraint([`c`,..T]) => valof{
+    (Nm,T0) = decodeText(T);
+    (tupleType(Tps),T1) = decodeType(T0);
+    (tupleType(Dps),T2) = decodeType(T1);
     valis (conTract(Nm,Tps,Dps),T2)
   }
-  decodeConstraint([`a`,..T]) => do{
-    (BT,T0) <- decodeType(T);
-    (faceType([(Fld,FT)],_),T1) <- decodeType(T0);
+  decodeConstraint([`a`,..T]) => valof{
+    (BT,T0) = decodeType(T);
+    (faceType([(Fld,FT)],_),T1) = decodeType(T0);
     valis (fieldConstraint(BT,Fld,FT),T1)
   }
 
