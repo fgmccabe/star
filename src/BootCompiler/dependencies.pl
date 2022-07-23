@@ -1,4 +1,4 @@
-:- module(dependencies,[dependencies/3]).
+:- module(dependencies,[dependencies/4]).
 
 :- use_module(topsort).
 :- use_module(abstract).
@@ -7,11 +7,11 @@
 :- use_module(operators).
 :- use_module(wff).
 
-dependencies(Dfs,Groups,Annots) :-
+dependencies(Dfs,Opts,Groups,Annots) :-
   allRefs(Dfs,[],ARefs),
   collectThetaRefs(Dfs,ARefs,Annots,Defs),!,
-  topsort(Defs,Groups,misc:same).
-%  showGroups(Groups).
+  topsort(Defs,Groups,misc:same),
+  (is_member(showGroups,Opts) -> showGroups(Groups) ; true).
 
 allRefs([(con(N),_,[St])|Defs],SoFar,AllRefs) :-
   conRefs(con(N),St,SoFar,Rf0),
@@ -66,9 +66,9 @@ collStmtRefs(St,All,Annots,SoFar,Refs) :-
   collectGuardRefs(Cond,All,R1,R2),
   collectTermRefs(Exp,All,R2,Refs).
 collStmtRefs(C,All,_,R,Refs) :-
-  isAlgebraicTypeStmt(C,_,_,Cx,_,_Body),
-  collConstraints(Cx,All,R,Refs).
-%  collectConstructorRefs(Body,All,Rf0,Refs).
+  isAlgebraicTypeStmt(C,_,_,Cx,_,Body),
+  collConstraints(Cx,All,R,Rf0),
+  collectConstructorRefs(Body,All,Rf0,Refs).
 collStmtRefs(C,All,_,R,Refs) :-
   isConstructorStmt(C),
   collectTypeRefs(C,All,R,Refs).
@@ -272,9 +272,10 @@ collectTermRefs(T,A,R0,Rx) :-
   (isBraceTuple(E,_,[St]) ->
    collectDoRefs(St,A,R0,Rx);
    collectTermRefs(E,A,R0,Rx)).
-collectTermRefs(T,A,R0,Rx) :-
-  isDoTerm(T,_,Stmts),!,
-  collectDoRefs(Stmts,A,R0,Rx).
+collectTermRefs(T,All,Rf,Rfx) :-
+  isTryCatch(T,_,L,C),!,
+  collectTermRefs(L,All,Rf,Rf1),
+  collectCaseRefs(C,collectTermRefs,All,Rf1,Rfx).
 collectTermRefs(T,All,Rf,Rfx) :-
   isThrow(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
@@ -415,11 +416,6 @@ collectDoRefs(T,All,Rf,Rfx) :-
   collectTermRefs(Tt,All,Rf,Rf0),
   collectDoRefs(B,All,Rf0,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
-  isForDo(T,_,E,Tt,B),!,
-  collectTermRefs(E,All,Rf,Rf0),
-  collectTermRefs(Tt,All,Rf0,Rf1),
-  collectDoRefs(B,All,Rf1,Rfx).
-collectDoRefs(T,All,Rf,Rfx) :-
   isTryCatch(T,_,L,C),!,
   collectDoRefs(L,All,Rf,Rf1),
   collectCaseRefs(C,collectDoRefs,All,Rf1,Rfx).
@@ -442,12 +438,6 @@ collectDoRefs(T,All,Rf,Rfx) :-
   collectTermRefs(L,All,Rf,Rf0),
   collectTermRefs(R,All,Rf0,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
-  collectTermRefs(T,All,Rf,Rfx).
-
-collectCatchRefs(T,All,Rf,Rfx) :-
-  isBraceTuple(T,_,[St]),!,
-  collectDoRefs(St,All,Rf,Rfx).
-collectCatchRefs(T,All,Rf,Rfx) :-
   collectTermRefs(T,All,Rf,Rfx).
 
 collectTypeRefs(V,All,SoFar,Rx) :-

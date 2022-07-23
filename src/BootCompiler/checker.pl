@@ -17,7 +17,7 @@
 :- use_module(import).
 :- use_module(resolve).
 
-checkProgram(Prg,Pkg,Repo,_Opts,PkgDecls,Canon) :-
+checkProgram(Prg,Pkg,Repo,Opts,PkgDecls,Canon) :-
   stdDict(Base),
   isBraceTerm(Prg,Lc,_,Els),
   Pkg = pkg(Pk,_),
@@ -26,7 +26,7 @@ checkProgram(Prg,Pkg,Repo,_Opts,PkgDecls,Canon) :-
   collectImportDecls(AllImports,Repo,[],IDecls),
   declareAllDecls(IDecls,Lc,Base,Env0),
 %  dispEnv(Env0),
-  thetaEnv(Pk,Lc,Stmts,faceType([],[]),Env0,OEnv,Defs,Public),
+  thetaEnv(Pk,Lc,Stmts,faceType([],[]),Opts,Env0,OEnv,Defs,Public),
   overload(Defs,OEnv,ODefs),
   completePublic(Public,Public,FllPb,Pk),
   packageExport(ODefs,FllPb,EDecls,LDecls,XDefs),
@@ -40,9 +40,9 @@ findExportedDefs(Lc,Flds,Els) :-
 
 mkFieldArg(Lc,(Nm,Tp),v(Lc,Nm,Tp)).
 
-thetaEnv(Pkg,Lc,Stmts,Fields,Base,TheEnv,Defs,Public) :-
+thetaEnv(Pkg,Lc,Stmts,Fields,Opts,Base,TheEnv,Defs,Public) :-
   collectDefinitions(Stmts,Dfs,Public,Annots),!,
-  dependencies(Dfs,Groups,Annots),
+  dependencies(Dfs,Opts,Groups,Annots),
   pushFace(Fields,Lc,Base,Env),
   checkGroups(Groups,Fields,Annots,Defs,[],Env,TheEnv,Pkg).
 
@@ -462,7 +462,7 @@ checkThetaBody(Tp,Lbl,Lc,Els,Env,Val,Path) :-
   declareTypeVars(Q,Lc,Base,E0),
   declareConstraints(Lc,Cx,E0,BaseEnv),
   genNewName(Path,"Γ",ThPath),
-  thetaEnv(ThPath,Lc,Els,Face,BaseEnv,_,Defs,Public),
+  thetaEnv(ThPath,Lc,Els,Face,[],BaseEnv,_,Defs,Public),
   faceOfType(ETp,Lc,Env,TpFace),
   getConstraints(TpFace,_,faceType(Fs,_)),
   completePublic(Public,Public,FullPublic,Path),
@@ -494,7 +494,7 @@ checkRecordBody(Tp,Lbl,Lc,Els,Env,letExp(Lc,Decls,Defs,Exp),Path) :-
 checkLetRec(Tp,ErTp,Lc,Els,Ex,Env,letRec(Lc,Decls,XDefs,Bound),Path):-
   genNewName(Path,"Γ",ThPath),
   pushScope(Env,ThEnv),
-  thetaEnv(ThPath,Lc,Els,faceType([],[]),ThEnv,OEnv,Defs,_Public),
+  thetaEnv(ThPath,Lc,Els,faceType([],[]),[],ThEnv,OEnv,Defs,_Public),
   computeLetExport(Defs,[],Decls,XDefs),
   typeOfExp(Ex,Tp,ErTp,OEnv,_,Bound,Path).
 
@@ -722,10 +722,9 @@ typeOfExp(P,Tp,ErTp,Env,Ex,where(Lc,Ptn,Cond),Path) :-
   isWhere(P,Lc,L,C),!,
   typeOfExp(L,Tp,ErTp,Env,E0,Ptn,Path),
   checkGuard(some(C),ErTp,E0,Ex,some(Cond),Path).
-typeOfExp(Term,Tp,ErTp,Env,Ev,dot(Lc,Rec,Fld,Tp),Path) :-
+typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isFieldAcc(Term,Lc,Rc,Fld),!,
-  newTypeVar("_R",AT),
-  typeOfExp(Rc,AT,ErTp,Env,Ev,Rec,Path).
+  typeOfFieldAcc(Lc,Rc,Fld,Tp,ErTp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,ErTp,Env,Ev,U,Path) :-
   isRecordUpdate(Term,Lc,Rc,Fld,Vl),!,
   typeOfRecordUpdate(Lc,Rc,Fld,Vl,Tp,ErTp,Env,Ev,U,Path).
@@ -858,6 +857,12 @@ brceConLbl(cons(_,Nm,_),Nm).
 brceConLbl(enm(_,Nm,_),Nm).
 brceConLbl(mtd(_,Nm,_),Nm).
 
+% We only do partial type checking at this stage
+typeOfFieldAcc(Lc,Rc,Fld,Tp,ErTp,Env,Ev,dot(Lc,Rec,Fld,Tp),Path) :-
+  newTypeVar("_R",AT),
+  typeOfExp(Rc,AT,ErTp,Env,Ev,Rec,Path).
+
+% We only do partial type checking at this stage
 typeOfRecordUpdate(Lc,Rc,Fld,Vl,Tp,ErTp,Env,Ev,update(Lc,Rec,Fld,Val),Path) :-
   typeOfExp(Rc,Tp,ErTp,Env,Ev0,Rec,Path),
   newTypeVar("_V",VT),
@@ -946,6 +951,12 @@ checkAction(A,_Tp,ErTp,Env,Ev,doDefn(Lc,v(NLc,Nm,TV),Exp),Path) :-
   typeOfExp(R,TV,ErTp,Env,_,Exp,Path),
   declareVr(NLc,Nm,TV,none,Env,Ev).
 checkAction(A,_Tp,ErTp,Env,Ev,doMatch(Lc,Ptn,Exp),Path) :-
+  isDefn(A,Lc,P,E),
+  isTuple(P,_,_),!,
+  newTypeVar("V",TV),
+  typeOfPtn(P,TV,ErTp,Env,Ev,Ptn,Path),
+  typeOfExp(E,TV,ErTp,Env,_,Exp,Path).
+checkAction(A,_Tp,ErTp,Env,Ev,doMatch(Lc,Ptn,Exp),Path) :-
   isMatch(A,Lc,P,E),!,
   newTypeVar("V",TV),
   typeOfPtn(P,TV,ErTp,Env,Ev,Ptn,Path),
@@ -962,19 +973,13 @@ checkAction(A,Tp,ErTp,Env,Ev,doIfThenElse(Lc,Tst,Thn,Els),Path) :-
   checkAction(T,Tp,ErTp,E0,E1,Thn,Path),
   checkAction(E,Tp,ErTp,Env,E2,Els,Path),
   mergeDict(E1,E2,Env,Ev).
-checkAction(A,Tp,ErTp,Env,Env,doIfThen(Lc,Tst,Thn),Path) :-
+checkAction(A,Tp,ErTp,Env,Env,doIfThenElse(Lc,Tst,Thn,doNop(Lc)),Path) :-
   isIfThen(A,Lc,G,T),!,
   checkGoal(G,ErTp,Env,E0,Tst,Path),
   checkAction(T,Tp,ErTp,E0,_,Thn,Path).
 checkAction(A,Tp,ErTp,Env,Env,doWhile(Lc,Tst,Bdy),Path) :-
   isWhileDo(A,Lc,G,B),!,
   checkGoal(G,ErTp,Env,E0,Tst,Path),
-  checkAction(B,Tp,ErTp,E0,_,Bdy,Path).
-checkAction(A,Tp,ErTp,Env,Env,doFor(Lc,Ptn,Src,Bdy),Path) :-
-  isForDo(A,Lc,P,E,B),!,
-  newTypeVar("V",TV),
-  typeOfPtn(P,TV,ErTp,Env,E0,Ptn,Path),
-  typeOfExp(E,TV,ErTp,Env,_,Src,Path),
   checkAction(B,Tp,ErTp,E0,_,Bdy,Path).
 checkAction(A,Tp,ErTp,Env,Env,doLet(Lc,Decls,XDefs,Ac),Path) :-
   isLetDef(A,Lc,D,B),!,
@@ -987,7 +992,7 @@ checkAction(A,Tp,ErTp,Env,Env,doLetRec(Lc,Decls,XDefs,Ac),Path) :-
   isLetRec(A,Lc,D,B),!,
   genNewName(Path,"Γ",ThPath),
   pushScope(Env,ThEnv),
-  thetaEnv(ThPath,Lc,D,faceType([],[]),ThEnv,OEnv,Defs,_Public),
+  thetaEnv(ThPath,Lc,D,faceType([],[]),[],ThEnv,OEnv,Defs,_Public),
   computeLetExport(Defs,[],Decls,XDefs),
   checkAction(B,Tp,ErTp,OEnv,_,Ac,ThPath).
 checkAction(A,Tp,ErTp,Env,Env,doCase(Lc,Bound,Eqns,Tp),Path) :-

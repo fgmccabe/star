@@ -68,10 +68,6 @@ inlineExp(match(Lc,L,R),Env,Max,Rep,Trg,Tx) :-!,
   inlinePtn(L,Env,Max,RL,Trg,T0),
   inlineExp(R,Env,Max,RR,T0,T1),
   applyMatch(Lc,RL,RR,Env,Max,Reg,T1,Tx).
-inlineExp(search(Lc,L,R),Env,Max,Rep,Trg,Tx) :-!,
-  inlinePtn(L,Env,Max,RL,Trg,T0),
-  inlineExp(R,Env,Max,RR,T0,T1),
-  applySearch(Lc,RL,RR,Env,Max,Reg,T1,Tx).
 inlineExp(lambda(Lc,Lbl,Rle,Tp),Env,Max,lambda(Lc,Lbl,RRle,Tp),Trg,Tx) :- !,
   inlineRule(Rle,Env,Max,RRle,Trg,Tx).
 inlineExp(theta(Lc,Path,Defs,Tp),Env,Max,theta(Lc,Path,RDefs,Tp),Trg,Tx) :-
@@ -182,10 +178,6 @@ rewriteTerm(neg(Lc,T),Env,neg(Lc,RT)) :-
 rewriteTerm(match(Lc,L,R),Env,match(Lc,RL,RR)) :-
   rewriteTerm(L,Env,RL),
   rewriteTerm(R,Env,RR).
-rewriteTerm(search(Lc,P,S,I),Env,search(Lc,RP,RS,RI)) :-
-  rewriteTerm(P,Env,RP),
-  rewriteTerm(S,Env,RS),
-  rewriteTerm(I,Env,RI).
 rewriteTerm(case(Lc,B,C,Tp),Env,case(Lc,RB,RC,Tp)) :-
   rewriteTerm(B,Env,RB),
   rewriteCases(C,Env,RC).

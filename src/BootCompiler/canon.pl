@@ -50,7 +50,6 @@ isCanon(match(_,_,_)).
 isCanon(open(_,_,_)).
 isCanon(neg(_,_)).
 isCanon(lambda(_,_,_,_)).
-isCanon(search(_,_,_,_)).
 isCanon(task(_,_,_)).
 isCanon(tryCatch(_,_,_)).
 
@@ -68,14 +67,12 @@ isGoal(conj(_,_,_)) :- !.
 isGoal(implies(_,_,_)) :- !.
 isGoal(disj(_,_,_)) :- !.
 isGoal(neg(_,_)) :- !.
-isGoal(search(_,_,_,_)) :- !.
 isGoal(cond(_,_,L,R,_)) :- !, isGoal(L),isGoal(R).
 
 isIterableGoal(conj(_,L,R)) :- !, (isIterableGoal(L) ; isIterableGoal(R)).
 isIterableGoal(implies(_,L,R)) :- !, (isIterableGoal(L) ; isIterableGoal(R)).
 isIterableGoal(disj(_,L,R)) :- !,  (isIterableGoal(L) ; isIterableGoal(R)).
 isIterableGoal(neg(_,R)) :- !, isIterableGoal(R).
-isIterableGoal(search(_,_,_,_)) :- !.
 
 isPkg(pkg(_,_)).
 
@@ -92,7 +89,6 @@ typeOfCanon(enm(_,_,Tp),Tp) :- !.
 typeOfCanon(cons(_,_,Tp),Tp) :- !.
 typeOfCanon(where(_,T,_),Tp) :- !, typeOfCanon(T,Tp).
 typeOfCanon(open(_,_,Tp),Tp) :-!.
-typeOfCanon(search(_,_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(match(_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(conj(_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(disj(_,_,_),type("star.core*boolean")) :-!.
@@ -130,7 +126,6 @@ locOfCanon(stringLit(Lc,_),Lc) :- !.
 locOfCanon(enm(Lc,_,_),Lc) :- !.
 locOfCanon(where(Lc,_,_),Lc) :- !.
 locOfCanon(open(Lc,_,_),Lc) :-!.
-locOfCanon(search(Lc,_,_,_),Lc) :-!.
 locOfCanon(match(Lc,_,_),Lc) :-!.
 locOfCanon(conj(Lc,_,_),Lc) :-!.
 locOfCanon(disj(Lc,_,_),Lc) :-!.
@@ -164,9 +159,7 @@ locOfCanon(doDefn(Lc,_,_),Lc) :-!.
 locOfCanon(doAssign(Lc,_,_),Lc) :-!.
 locOfCanon(doTryCatch(Lc,_,_),Lc) :-!.
 locOfCanon(doIfThenElse(Lc,_,_,_),Lc) :-!.
-locOfCanon(doIfThen(Lc,_,_),Lc) :-!.
 locOfCanon(doWhile(Lc,_,_),Lc) :-!.
-locOfCanon(doFor(Lc,_,_,_),Lc) :-!.
 locOfCanon(doLet(Lc,_,_,_),Lc) :-!.
 locOfCanon(doLetRec(Lc,_,_,_),Lc) :-!.
 locOfCanon(doCall(Lc,_,_),Lc) :-!.
@@ -218,7 +211,7 @@ ssTerm(apply(_,Op,Args,_,some(ErTp)),Dp,sq([O,A,ss(" throws "),TT])) :-
   ssType(ErTp,false,Dp,TT).
 ssTerm(dot(_,Rc,Fld,_),Dp,sq([R,ss("."),id(Fld)])) :-
   ssTerm(Rc,Dp,R).
-ssTerm(update(_,Rc,Fld,Vl),Dp,sq([RR,ss("."),id(Fld),ss("<<-"),sq(VV)])) :-
+ssTerm(update(_,Rc,Fld,Vl),Dp,sq([RR,ss("."),id(Fld),ss("<<-"),VV])) :-
   ssTerm(Rc,Dp,RR),
   ssTerm(Vl,Dp,VV).
 ssTerm(enm(_,Nm,_),_,sq([ss("."),id(Nm)])).
@@ -275,10 +268,6 @@ ssTerm(cond(_,Test,Either,Or,_),Dp,sq([lp,TT,ss("?"),LL,ss(" || "),RR,rp])) :-
 ssTerm(match(_,P,E),Dp,sq([lp,LL,ss(" .= "),RR,rp])) :-
   ssTerm(P,Dp,LL),
   ssTerm(E,Dp,RR).
-ssTerm(search(_,P,S,M),Dp,sq([lp,LL,ss(" in "),RR,ss(" using "),II,rp])) :-
-  ssTerm(P,Dp,LL),
-  ssTerm(S,Dp,RR),
-  ssTerm(M,Dp,II).
 ssTerm(neg(_,R),Dp,sq([lp,ss(" ~ "),RR,rp])) :-
   ssTerm(R,Dp,RR).
 ssTerm(throw(_,A),Dp,sq([ss("throw "),AA])) :-!,
@@ -326,23 +315,18 @@ ssAction(doTryCatch(_,A,Hs),Dp,sq([ss("try"),AA,ss(" catch "),lb,HH,nl(Dp),rb]))
   Dp2 is Dp+2,
   ssAction(A,Dp2,AA),
   ssRls("",Hs,Dp2,canon:ssAction,HH).
+ssAction(doIfThenElse(_,T,A,doNop(_)),Dp,sq([ss("if "),TT,ss(" then "),nl(Dp2),AA])) :-!,
+  Dp2 is Dp+2,
+  ssTerm(T,Dp,TT),
+  ssAction(A,Dp2,AA).
 ssAction(doIfThenElse(_,T,A,B),Dp,sq([ss("if "),TT,ss(" then "),nl(Dp2),AA,nl(Dp),ss("else "),BB])) :-!,
   Dp2 is Dp+2,
   ssTerm(T,Dp,TT),
   ssAction(A,Dp2,AA),
   ssAction(B,Dp2,BB).
-ssAction(doIfThen(_,T,A),Dp,sq([ss("if "),TT,ss(" then "),nl(Dp2),AA])) :-!,
-  Dp2 is Dp+2,
-  ssTerm(T,Dp,TT),
-  ssAction(A,Dp2,AA).
 ssAction(doWhile(_,T,B),Dp,sq([ss("while "),TT,ss(" do"),nl(Dp2),BB])) :-!,
   Dp2 is Dp+2,
   ssTerm(T,Dp,TT),
-  ssAction(B,Dp2,BB).
-ssAction(doFor(_,P,E,B),Dp,sq([ss("for "),PP,ss(" in "),EE,ss(" do"),nl(Dp2),BB])) :-!,
-  Dp2 is Dp+2,
-  ssTerm(P,Dp,PP),
-  ssTerm(E,Dp,EE),
   ssAction(B,Dp2,BB).
 ssAction(doLet(_,_,D,A),Dp,sq([ss("let{"),nl(Dp2),iv(nl(Dp2),DS),nl(Dp),ss("} in "),AA])) :-!,
   Dp2 is Dp+2,
