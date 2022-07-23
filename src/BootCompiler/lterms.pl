@@ -206,6 +206,9 @@ ssAct(defn(_,P,E),Dp,sq([PP,ss(" = "),EE])) :-!,
 ssAct(asgn(_,P,E),Dp,sq([PP,ss(" := "),EE])) :-!,
   ssTrm(P,Dp,PP),
   ssTrm(E,Dp,EE).
+ssAct(setix(_,Rc,Off,Vl),Dp,sq([OO,ss("."),ix(Off),ss(":="),VV])) :-!,
+  ssTrm(Rc,Dp,OO),
+  ssTrm(Vl,Dp,VV).
 ssAct(case(_,G,Cases,Deflt),Dp,
       sq([ss("case "),GG,ss("in"),lb,CC,rb,ss(" else "),DD])) :-!,
   ssTrm(G,Dp,GG),
@@ -215,17 +218,17 @@ ssAct(unpack(_,G,Cases),Dp,
       sq([ss("unpack "),GG,ss(" in "),CC])) :-!,
   ssTrm(G,Dp,GG),
   ssCases(Cases,Dp,lterms:ssAct,CC).
+ssAct(iftte(_,G,T,nop(_)),Dp,
+      sq([ss("if "),GG,ss(" then "),nl(Dp2),TT])) :-!,
+  Dp2 is Dp+2,
+  ssTrm(G,Dp,GG),
+  ssAct(T,Dp2,TT).
 ssAct(iftte(_,G,T,E),Dp,
       sq([ss("if "),GG,ss(" then "),nl(Dp2),TT,nl(Dp2),ss(" else "),EE])) :-!,
   Dp2 is Dp+2,
   ssTrm(G,Dp,GG),
   ssAct(T,Dp2,TT),
   ssAct(E,Dp2,EE).
-ssAct(iftt(_,G,T),Dp,
-      sq([ss("if "),GG,ss(" then "),nl(Dp2),TT])) :-!,
-  Dp2 is Dp+2,
-  ssTrm(G,Dp,GG),
-  ssAct(T,Dp2,TT).
 ssAct(whle(_,G,B),Dp,
       sq([ss("while "),GG,ss(" do"),nl(Dp2),BB])) :-!,
   Dp2 is Dp+2,
@@ -430,6 +433,9 @@ rewriteAction(QTest,defn(Lc,P,E),defn(Lc,PP,EE)) :- !,
 rewriteAction(QTest,asgn(Lc,P,E),asgn(Lc,PP,EE)) :- !,
   rewriteTerm(QTest,P,PP),
   rewriteTerm(QTest,E,EE).
+rewriteAction(QTest,setix(Lc,P,Ix,E),setix(Lc,PP,Ix,EE)) :- !,
+  rewriteTerm(QTest,P,PP),
+  rewriteTerm(QTest,E,EE).
 rewriteAction(QTest,case(Lc,G,C),case(Lc,GG,CC)) :-
   rewriteTerm(QTest,G,GG),
   map(C,lterms:rewriteCase(QTest,lterms:rewriteAction),CC).
@@ -440,9 +446,6 @@ rewriteAction(QTest,iftte(Lc,G,L,R),iftte(Lc,GG,LL,RR)) :-!,
   rewriteTerm(QTest,G,GG),
   rewriteAction(QTest,L,LL),
   rewriteAction(QTest,R,RR).
-rewriteAction(QTest,iftt(Lc,G,L),iftt(Lc,GG,LL)) :-!,
-  rewriteTerm(QTest,G,GG),
-  rewriteAction(QTest,L,LL).
 rewriteAction(QTest,whle(Lc,G,L),whle(Lc,GG,LL)) :-!,
   rewriteTerm(QTest,G,GG),
   rewriteAction(QTest,L,LL).
@@ -602,6 +605,8 @@ inAction(mtch(_,P,E),Nm) :- !,
   (inTerm(P,Nm) ; inTerm(E,Nm)).
 inAction(defn(_,P,E),Nm) :- !,
   (inTerm(P,Nm) ; inTerm(E,Nm)).
+inAction(setix(_,Op,_,_),Nm) :-!,
+  inTerm(Op,Nm).
 inAction(asgn(_,P,E),Nm) :- !,
   (inTerm(P,Nm) ; inTerm(E,Nm)).
 inAction(case(_,T,_C),Nm) :-
@@ -614,8 +619,6 @@ inAction(unpack(_,_T,C),Nm) :-
   is_member((P,V,_),C), (inTerm(P,Nm);inAction(V,Nm)),!.
 inAction(iftte(_,G,L,R),Nm) :-!,
   (inTerm(G,Nm) ; inTerm(L,Nm) ; inTerm(R,Nm)).
-inAction(iftt(_,G,L),Nm) :-!,
-  (inTerm(G,Nm) ; inTerm(L,Nm)).
 inAction(whle(_,G,L),Nm) :-!,
   (inTerm(G,Nm) ; inAction(L,Nm)).
 inAction(ltt(_,_,E,B),Nm) :-!,
@@ -844,6 +847,10 @@ validAction(mtch(Lc,P,E),_,D,Dx) :- !,
 validAction(defn(Lc,P,E),_,D,D) :- !,
   validTerm(P,Lc,D),
   validTerm(E,Lc,D).
+validAction(setix(Lc,Rc,Off,Vl),_,D,D) :-
+  integer(Off),
+  validTerm(Rc,Lc,D),
+  validTerm(Vl,Lc,D).
 validAction(asgn(Lc,P,E),_,D,D) :- !,
   validTerm(P,Lc,D),
   validTerm(E,Lc,D).
@@ -859,10 +866,6 @@ validAction(iftte(Lc,G,L,R),_,D,Dx) :-!,
   validAction(L,Lc,D0,D1),
   validAction(R,Lc,D,D2),
   merge(D1,D2,Dx).
-validAction(iftt(Lc,G,L),_,D,D) :-!,
-  glVars(G,D,D0),
-  validTerm(G,Lc,D0),
-  validAction(L,Lc,D0,_).
 validAction(whle(Lc,G,L),_,D,D) :-!,
   glVars(G,D,D0),
   validTerm(G,Lc,D0),

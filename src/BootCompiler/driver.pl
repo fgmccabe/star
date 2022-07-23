@@ -58,6 +58,8 @@ parseFlags(['-di'|More],CWD,Cx,[showGenCode|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-da'|More],CWD,Cx,[showAst|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
+parseFlags(['-dd'|More],CWD,Cx,[showGroups|Opts],Files) :-!,
+  parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-dt'|More],CWD,Cx,[showTCCode|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-dT'|More],CWD,Cx,[showTrCode|Opts],Files) :-!,

@@ -371,6 +371,12 @@ compAction(mtch(Lc,P,E),OLc,_Cont,ACont,TCont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,S
 compAction(defn(Lc,idnt(V),E),OLc,_Cont,ACont,TCont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :- !,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(E,Lc,declCont(V,ACont,End,Opts),TCont,End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
+compAction(setix(Lc,Exp,Off,Vl),OLc,_Cont,ACont,TCont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+  chLine(Opts,OLc,Lc,C,C0),
+  compExp(Exp,Lc,
+	  compExp(Vl,Lc,
+		  sxCont(Off,ACont),TCont,End,Brks,Opts),TCont,
+	  End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compAction(asgn(Lc,P,E),OLc,_Cont,ACont,TCont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :- !,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(E,Lc,compExp(P,Lc,asmCont(iAssign,ACont,Stk),TCont,End,Brks,Opts),
@@ -403,14 +409,6 @@ compAction(iftte(Lc,G,T,E),OLc,Cont,ACont,TCont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk
   compCond(G,Lc,compAction(T,Lc,CC,AC,TCont,TEnd,Brks,Opts),
 	   resetCont(Stk,compAction(E,Lc,CC,AC,TCont,End,Brks,Opts)),
 	   TCont,TEnd,Brks,Opts,L0,Lx,D,Dx,C0,[iLbl(TEnd)|Cx],Stk,Stkx).
-compAction(iftt(Lc,G,T),OLc,Cont,ACont,TCont,_End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  chLine(Opts,OLc,Lc,C,C0),
-  splitCont(Lc,ACont,AC),
-  splitCont(Lc,Cont,CC),
-  genLbl(L,End,L0),
-  compCond(G,Lc,compAction(T,Lc,CC,AC,TCont,End,Brks,Opts),
-	   resetCont(Stk,AC),
-	   TCont,End,Brks,Opts,L0,Lx,D,Dx,C0,[iLbl(End)|Cx],Stk,Stkx).
 compAction(unpack(Lc,T,Cases),OLc,Cont,ACont,TCont,_End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
   compUnpackAction(Lc,T,Cases,OLc,Cont,ACont,TCont,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk).
 compAction(try(Lc,B,E,H),OLc,Cont,ACont,TCont,_End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,

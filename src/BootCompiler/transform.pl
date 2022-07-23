@@ -427,23 +427,16 @@ liftAction(doIfThenElse(Lc,G,L,R),iftte(Lc,GG,LL,RR),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftGoal(G,GG,Q,Q0,Map,Opts,Ex,Ex0),
   liftAction(L,LL,Q0,Qx,Map,Opts,Ex0,Ex1),
   liftAction(R,RR,Q,_,Map,Opts,Ex1,Exx).
-liftAction(doIfThen(Lc,G,L),iftt(Lc,GG,LL),Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftGoal(G,GG,Q,Q0,Map,Opts,Ex,Ex0),
-  liftAction(L,LL,Q0,Qx,Map,Opts,Ex0,Exx).
 liftAction(doWhile(Lc,G,B),whle(Lc,GG,BB),Q,Q,Map,Opts,Ex,Exx) :-!,
   liftGoal(G,GG,Q,Q0,Map,Opts,Ex,Ex0),
   liftAction(B,BB,Q0,_,Map,Opts,Ex0,Exx).
-liftAction(doFor(Lc,P,S,B),ffor(Lc,PP,SS,BB),Q,Q,Map,Opts,Ex,Exx) :-!,
-  liftExp(S,SS,Q,Q0,Map,Opts,Ex,Ex0),
-  liftPtn(P,PP,Q0,Q1,Map,Opts,Ex0,Ex1),
-  liftAction(B,BB,Q1,_,Map,Opts,Ex1,Exx).
 liftAction(doLet(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   (is_member(showTrCode,Opts) -> dispAction(doLet(Lc,Decls,Defs,B));true),
   genVar("_ThR",ThVr),
   letActionMap(Lc,Decls,Defs,B,ThVr,Q,Map,Opts,ThMap,RMap,FreeTerm),
   transformThetaDefs(ThMap,RMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
   liftAction(B,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
-  mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
+  mkFreeActionLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
   (is_member(showTrCode,Opts) -> dispAct(Exp);true).
 liftAction(doLetRec(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   (is_member(showTrCode,Opts) -> dispAction(doLetRec(Lc,Decls,Defs,B));true),
@@ -451,7 +444,7 @@ liftAction(doLetRec(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   letRecActionMap(Lc,Decls,Defs,B,ThVr,Q,Map,Opts,ThMap,FreeTerm),
   transformThetaDefs(ThMap,ThMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
   liftAction(B,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
-  mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
+  mkFreeActionLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
   (is_member(showTrCode,Opts) -> dispAct(Exp);true).
 liftAction(doCase(Lc,B,Cs,_),Reslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(B,BB,Q,Q0,Map,Opts,Ex,Ex0),
@@ -510,16 +503,24 @@ liftLetRec(Lc,Decls,Defs,Cll,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
 %  (is_member(showTrCode,Opts) -> dispTerm(Exp);true).
 
 mkFreeLet(Lc,Vr,Fr,Ups,Exp,AExp) :-
-  computeFreeVect(Lc,Vr,Fr,Ups,Exp,AExp).
+  computeFreeVect(Lc,Vr,Fr,Ups,transform:combineUpdate,Exp,AExp).
 
-computeFreeVect(Lc,Vr,Fr,[],Exp,ltt(Lc,Vr,Fr,Exp)).
-computeFreeVect(Lc,Vr,ctpl(Lbl,Args),[(_,Ix,Term)|Ups],Exp,Reslt) :-
+mkFreeActionLet(Lc,Vr,Fr,Ups,Exp,AExp) :-
+  computeFreeVect(Lc,Vr,Fr,Ups,transform:combineActionUpdate,Exp,AExp).
+
+combineUpdate(Lc,Vr,Ix,Term,SoFar,seqD(Lc,setix(Lc,Vr,Ix,Term),SoFar)).
+
+combineActionUpdate(Lc,Vr,Ix,Term,SoFar,seq(Lc,setix(Lc,Vr,Ix,Term),SoFar)).
+
+computeFreeVect(Lc,Vr,Fr,[],_,Exp,ltt(Lc,Vr,Fr,Exp)).
+computeFreeVect(Lc,Vr,ctpl(Lbl,Args),[(_,Ix,Term)|Ups],Update,Exp,Reslt) :-
   \+idInTerm(Vr,Term),!,
   split_list(Ix,Args,F,[voyd|R]),
   concat(F,[Term|R],NArgs),
-  computeFreeVect(Lc,Vr,ctpl(Lbl,NArgs),Ups,Exp,Reslt).
-computeFreeVect(Lc,Vr,Fr,[(_,Ix,Term)|Ups],Exp,Reslt) :-
-  computeFreeVect(Lc,Vr,Fr,Ups,seqD(Lc,setix(Lc,Vr,Ix,Term),Exp),Reslt).
+  computeFreeVect(Lc,Vr,ctpl(Lbl,NArgs),Ups,Update,Exp,Reslt).
+computeFreeVect(Lc,Vr,Fr,[(_,Ix,Term)|Ups],Update,Exp,Reslt) :-
+  call(Update,Lc,Vr,Ix,Term,Exp,SoFar),
+  computeFreeVect(Lc,Vr,Fr,Ups,Update,SoFar,Reslt).
   
 trVarExp(Lc,Nm,Exp,Map,Opts,Q,Qx) :-
   lookupVar(Map,Nm,V),!,
@@ -605,11 +606,6 @@ liftAbstraction(Ab,Rslt,Q,Qx,Map,Opts,Ex,Exx) :-
   genAbstraction(Ab,Path,AbExp),
   liftExp(AbExp,Rslt,Q,Qx,Map,Opts,Ex,Exx).
 
-liftSearch(Serch,Rslt,Q,Qx,Map,Opts,Ex,Exx) :-
-  layerName(Map,Path),
-  genSearch(Serch,Path,AbGl),
-  liftExp(AbGl,Rslt,Q,Qx,Map,Opts,Ex,Exx).
-
 liftGoal(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   liftGl(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx).
 
@@ -630,8 +626,6 @@ liftGl(match(Lc,L,R),mtch(Lc,Lx,Rx),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(R,Rx,Q0,Qx,Map,Opts,Ex0,Exx).
 liftGl(neg(Lc,R),ng(Lc,Rx),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftGl(R,Rx,Q,Qx,Map,Opts,Ex,Exx).
-liftGl(search(Lc,Ptn,Src,Iterator),Exp,Q,Qx,Map,Opts,Ex,Exx) :-
-  liftSearch(search(Lc,Ptn,Src,Iterator),Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftGl(G,Gx,Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(G,Gx,Q,Qx,Map,Opts,Ex,Exx).
 

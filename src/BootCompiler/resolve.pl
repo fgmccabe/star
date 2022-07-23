@@ -152,10 +152,6 @@ overloadTerm(neg(Lc,T),Dict,St,Stx,neg(Lc,RT)) :-
 overloadTerm(match(Lc,L,R),Dict,St,Stx,match(Lc,RL,RR)) :-
   overloadTerm(L,Dict,St,St0,RL),
   overloadTerm(R,Dict,St0,Stx,RR).
-overloadTerm(search(Lc,P,S,I),Dict,St,Stx,search(Lc,RP,RS,RI)) :-
-  overloadTerm(P,Dict,St,St0,RP),
-  overloadTerm(S,Dict,St0,St1,RS),
-  overloadTerm(I,Dict,St1,Stx,RI).
 overloadTerm(case(Lc,B,C,Tp),Dict,St,Stx,case(Lc,RB,RC,Tp)) :-
   overloadTerm(B,Dict,St,St0,RB),
   overloadCases(C,resolve:overloadTerm,Dict,St0,Stx,RC).
@@ -176,9 +172,9 @@ overloadTerm(over(Lc,T,IsFn,Cx),Dict,St,Stx,Over) :-
     overloadRef(Lc,T,DTerms,[],OverOp,Dict,St0,St1,NArgs),
     overApply(Lc,OverOp,NArgs,IsFn,Over),
     markResolved(St1,Stx);
-      genMsg("cannot find implementation for contracts %s",[Cx],Msg),
-      markActive(St,Lc,Msg,Stx),
-      Over = over(Lc,T,IsFn,Cx)).
+    genMsg("cannot find implementation for contracts %s",[Cx],Msg),
+    markActive(St,Lc,Msg,Stx),
+    Over = over(Lc,T,IsFn,Cx)).
 overloadTerm(mtd(Lc,Nm,Tp),_,St,Stx,mtd(Lc,Nm,Tp)) :-
   genMsg("cannot find implementation for %s",[Nm],Msg),
   markActive(St,Lc,Msg,Stx).
@@ -232,19 +228,12 @@ overloadAction(doIfThenElse(Lc,T,A,B),Dict,St,Stx,doIfThenElse(Lc,TT,AA,BB)) :-
   overloadTerm(T,Dict,St,St1,TT),
   overloadAction(A,Dict,St1,St2,AA),
   overloadAction(B,Dict,St2,Stx,BB).
-overloadAction(doIfThen(Lc,T,A),Dict,St,Stx,doIfThen(Lc,TT,AA)) :-
-  overloadTerm(T,Dict,St,St1,TT),
-  overloadAction(A,Dict,St1,Stx,AA).
 overloadAction(doCase(Lc,B,C,Tp),Dict,St,Stx,doCase(Lc,RB,RC,Tp)) :-
   overloadTerm(B,Dict,St,St0,RB),
   overloadCases(C,resolve:overloadAction,Dict,St0,Stx,RC).
 overloadAction(doWhile(Lc,T,A),Dict,St,Stx,doWhile(Lc,TT,AA)) :-
   overloadTerm(T,Dict,St,St1,TT),
   overloadAction(A,Dict,St1,Stx,AA).
-overloadAction(doFor(Lc,P,S,A),Dict,St,Stx,doFor(Lc,PP,SS,AA)) :-
-  overloadTerm(P,Dict,St,St1,PP),
-  overloadTerm(S,Dict,St1,St2,SS),
-  overloadAction(A,Dict,St2,Stx,AA).
 overloadAction(doLet(Lc,Decls,Defs,Bound),Dict,St,Stx,doLet(Lc,Decls,RDefs,RBound)) :-
   overloadLet(Lc,Decls,Defs,Bound,resolve:overloadAction,Dict,St,Stx,RDefs,RBound).
 overloadAction(doLetRec(Lc,Decls,Defs,Bound),Dict,St,Stx,doLetRec(Lc,Decls,RDefs,RBound)) :-
@@ -398,9 +387,6 @@ resolveContract(Lc,C,Dict,St,Stx,Over) :-
   sameType(ITp,CTp,Lc,Dict),
   markResolved(St,St1),
   overloadTerm(Impl,Dict,St1,Stx,Over).
-resolveContract(Lc,C,_,St,Stx,C) :-
-  genMsg("there is no implementation known for %s",[con(C)],Msg),
-  markActive(St,Lc,Msg,Stx).
 
 resolveImpl(v(Lc,Nm,Tp),_,_,_,_,St,St,v(Lc,Nm,Tp)) :-!.
 resolveImpl(I,C,ImpNm,Lc,Dict,St,Stx,Over) :-

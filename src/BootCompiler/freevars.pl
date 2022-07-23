@@ -44,11 +44,6 @@ freeVars(match(_,L,R),Ex,Q,F,FV) :-
   ptnVars(L,Ex,Ex1),
   freeVars(L,Ex1,Q,F,F0),
   freeVars(R,Ex,Q,F0,FV).
-freeVars(search(_,L,R,I),Ex,Q,F,FV) :-
-  ptnVars(L,Ex,Ex1),
-  freeVars(L,Ex1,Q,F,F0),
-  freeVars(R,Ex1,Q,F0,F1),
-  freeVars(I,Ex1,Q,F1,FV).
 freeVars(letExp(_,_,Defs,Bnd),Ex,Q,F,Fv) :-
   definedVars(Defs,Ex,Ex1),
   freeVarsInDefs(Defs,Ex1,Q,F,F0),
@@ -106,19 +101,10 @@ freeVarsInAction(doIfThenElse(_,T,L,R),Ex,Exx,Q,F,Fv) :-!,
   freeVarsInAction(L,Ex1,Ex2,Q,F0,F1),
   freeVarsInAction(R,Ex,Ex3,Q,F1,Fv),
   mergeVars(Ex2,Ex3,Exx).
-freeVarsInAction(doIfThen(_,T,L),Ex,Ex,Q,F,Fv) :-!,
-  ptnGoalVars(T,Ex,Ex1),
-  freeVars(T,Ex1,Q,F,F0),
-  freeVarsInAction(L,Ex1,_,Q,F0,Fv).
 freeVarsInAction(doWhile(_,T,L),Ex,Ex,Q,F,Fv) :-!,
   ptnGoalVars(T,Ex,Ex1),
   freeVars(T,Ex1,Q,F,F0),
   freeVarsInAction(L,Ex1,_,Q,F0,Fv).
-freeVarsInAction(doFor(_,P,S,B),Ex,Ex,Q,F,Fv) :-!,
-  ptnVars(P,Ex,Ex1),
-  freeVars(P,Ex1,Q,F,F0),
-  freeVars(S,Ex,Q,F0,F1),
-  freeVarsInAction(B,Ex1,_,Q,F1,Fv).
 freeVarsInAction(doLet(_,_,Defs,Bnd),Ex,Ex,Q,F,Fv) :-!,
   definedVars(Defs,Ex,Ex1),
   freeVarsInDefs(Defs,Ex1,Q,F,F0),
@@ -227,8 +213,6 @@ ptnGoalVars(cond(_,T,L,R,_),Q,Qx) :-
 ptnGoalVars(implies(_,_,_),Qx,Qx). % implies does not add to available bound vars
 ptnGoalVars(given(_,P,_),Q,Qx) :-
   ptnVars(P,Q,Qx).
-ptnGoalVars(search(_,K,_,_),Q,Qx) :-
-  ptnVars(K,Q,Qx).
 ptnGoalVars(_,Q,Q).
 
 varsInList([],_,F,F).
