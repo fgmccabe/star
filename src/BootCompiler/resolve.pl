@@ -112,7 +112,7 @@ overloadTerm(charLit(Lx,Sx),_,St,St,charLit(Lx,Sx)).
 overloadTerm(stringLit(Lx,Sx),_,St,St,stringLit(Lx,Sx)).
 overloadTerm(dot(Lc,Rc,Fld,Tp),Dict,St,Stx,Dot) :-
   overloadTerm(Rc,Dict,St,St0,RRc),
-  resolveAccess(Lc,RRc,Fld,Tp,Dict,St0,Stx,Dot).
+  resolveDot(Lc,RRc,Fld,Tp,Dict,St0,Stx,Dot).
 overloadTerm(update(Lc,Rc,Fld,Vl),Dict,St,Stx,Update) :-
   overloadTerm(Rc,Dict,St,St0,Rx),
   overloadTerm(Vl,Dict,St0,St1,Vx),
@@ -157,13 +157,8 @@ overloadTerm(case(Lc,B,C,Tp),Dict,St,Stx,case(Lc,RB,RC,Tp)) :-
   overloadCases(C,resolve:overloadTerm,Dict,St0,Stx,RC).
 overloadTerm(apply(ALc,over(Lc,T,_,Cx),Args,Tp,ErTp),Dict,St,Stx,Term) :-
   overloadMethod(ALc,Lc,T,Cx,Args,Tp,ErTp,Dict,St,Stx,Term).
-/*overloadTerm(apply(Lc,overaccess(Rc,_,Face),Args,Tp),
-	     Dict,St,Stx,apply(Lc,OverOp,tple(LcA,NArgs),Tp)) :-
-  deRef(Face,faceType([(Fld,FldTp)],[])),
-  resolveAccess(Lc,Rc,Fld,FldTp,Dict,St,St1,OverOp),
-  overloadTerm(Args,Dict,St1,St2,T),
-  overloadRef(Lc,T,DTerms,RArgs,OverOp,Dict,St2,Stx,NArgs).
-  */
+overloadTerm(apply(ALc,overaccess(Lc,T,RcTp,Fld,FTp),Args,ATp,ErTp),Dict,St,Stx,Term) :-
+  overloadAccess(ALc,Lc,T,RcTp,Fld,FTp,Args,ATp,ErTp,Dict,St,Stx,Term).
 overloadTerm(apply(Lc,Op,Args,Tp,ErTp),Dict,St,Stx,apply(Lc,ROp,RArgs,Tp,ErTp)) :-
   overloadTerm(Op,Dict,St,St0,ROp),
   overloadTerm(Args,Dict,St0,Stx,RArgs).
@@ -175,9 +170,18 @@ overloadTerm(over(Lc,T,IsFn,Cx),Dict,St,Stx,Over) :-
     genMsg("cannot find implementation for contracts %s",[Cx],Msg),
     markActive(St,Lc,Msg,Stx),
     Over = over(Lc,T,IsFn,Cx)).
+overloadTerm(overaccess(Lc,T,RcTp,Fld,FTp),Dict,St,Stx,Over) :-
+  resolveAccess(Lc,RcTp,Fld,FTp,Dict,St,St1,AccessOp),
+  overloadRef(Lc,T,[AccessOp],[],OverOp,Dict,St1,St2,NArgs),
+  curryOver(Lc,OverOp,NArgs,funType(tplType([RcTp]),FTp),Over),
+  markResolved(St2,Stx);
+  genMsg("cannot find accessor for %s of type %s",[ss(Fld),tpe(RcTp)],Msg),
+  markActive(St,Lc,Msg,Stx),
+  Over = overaccess(Lc,T,RcTp,Fld,FTp).
 overloadTerm(mtd(Lc,Nm,Tp),_,St,Stx,mtd(Lc,Nm,Tp)) :-
   genMsg("cannot find implementation for %s",[Nm],Msg),
   markActive(St,Lc,Msg,Stx).
+
 overloadTerm(lambda(Lc,Lbl,Eqn,Tp),Dict,St,Stx,lambda(Lc,Lbl,OEqn,Tp)) :-
   overloadRule(resolve:overloadTerm,Eqn,Dict,St,Stx,OEqn).
 overloadTerm(valof(Lc,A,Tp),Dict,St,Stx,valof(Lc,AA,Tp)) :-!,
@@ -264,6 +268,12 @@ overloadMethod(ALc,Lc,T,Cx,Args,Tp,ErTp,Dict,St,Stx,apply(ALc,OverOp,tple(LcA,NA
   overloadTerm(Args,Dict,St1,St2,tple(LcA,RArgs)),
   overloadRef(Lc,T,DTerms,RArgs,OverOp,Dict,St2,Stx,NArgs).
 
+overloadAccess(ALc,Lc,T,RcTp,Fld,Tp,Args,ATp,ErTp,Dict,St,Stx,
+	       apply(ALc,Op,tple(LcA,NArgs),ATp,ErTp)) :-
+  resolveAccess(Lc,RcTp,Fld,Tp,Dict,St,St1,AccessOp),
+  overloadTerm(Args,Dict,St1,St2,tple(LcA,RArgs)),
+  overloadRef(Lc,T,[AccessOp],RArgs,Op,Dict,St2,Stx,NArgs).
+  
 overloadCases(Cses,Resolver,Dict,St,Stx,RCases) :-
   overloadLst(Cses,resolve:overloadRule(Resolver),Dict,St,Stx,RCases).
 
@@ -298,13 +308,13 @@ overloadList([T|L],C,D,[RT|RL]) :-
 
 overloadRef(_,mtd(Lc,Nm,Tp),[DT|Ds],RArgs,MtdCall,Dict,St,Stx,Args) :-
   concat(Ds,RArgs,Args),
-  resolveAccess(Lc,DT,Nm,Tp,Dict,St,Stx,MtdCall),!.
+  resolveDot(Lc,DT,Nm,Tp,Dict,St,Stx,MtdCall),!.
 overloadRef(_,v(Lc,Nm,Tp),DT,RArgs,v(Lc,Nm,Tp),_,Stx,Stx,Args) :- !,
   concat(DT,RArgs,Args).
 overloadRef(_,C,DT,RArgs,C,_,Stx,Stx,Args) :-
   concat(DT,RArgs,Args).
 
-resolveAccess(Lc,Rc,Fld,Tp,Dict,St,Stx,Reslvd) :-
+resolveDot(Lc,Rc,Fld,Tp,Dict,St,Stx,Reslvd) :-
   typeOfCanon(Rc,RcTp),
   findAccess(RcTp,Fld,Dict,AccTp,FunNm),
   freshen(AccTp,Dict,_,FAccTp),
@@ -323,12 +333,27 @@ resolveAccess(Lc,Rc,Fld,Tp,Dict,St,Stx,Reslvd) :-
 	  [Fld,tpe(FAccTp),can(dot(Lc,Rc,Fld,Tp)),tpe(Tp)],Msg),
    markActive(St,Lc,Msg,Stx),
    Reslvd = dot(Lc,Rc,Fld,Tp)).
-resolveAccess(Lc,Rc,Fld,Tp,_Dict,St,Stx,dot(Lc,Rc,Fld,Tp)) :-
+resolveDot(Lc,Rc,Fld,Tp,_Dict,St,Stx,dot(Lc,Rc,Fld,Tp)) :-
   typeOfCanon(Rc,RcTp),
   genMsg("no accessor defined for %s for type %s in %s",
 	 [Fld,tpe(RcTp),can(dot(Lc,Rc,Fld,Tp))],Msg),
   markActive(St,Lc,Msg,Stx).
 
+resolveAccess(Lc,RcTp,Fld,Tp,Dict,St,Stx,Reslvd) :-
+  findAccess(RcTp,Fld,Dict,AccTp,FunNm),
+  freshen(AccTp,Dict,_,FAccTp),
+  newTypeVar("FF",RTp),
+  (sameType(funType(tplType([RcTp]),RTp),FAccTp,Lc,Dict),
+   freshen(RTp,Dict,_,CFTp),
+   getConstraints(CFTp,Cx,FTp),
+   sameType(FTp,Tp,Lc,Dict),
+   V = v(Lc,FunNm,funType(tplType([RcTp]),FTp)),
+   manageConstraints(Cx,Lc,V,Reslvd),
+   markResolved(St,Stx);
+   genMsg("no accessor for %s defined for type %s",[ss(Fld),tpe(RcTp)],Msg),
+   Reslvd=void,
+   markActive(St,Lc,Msg,Stx)).
+   
 resolveUpdate(Lc,Rc,Fld,Vl,Dict,St,Stx,Reslvd) :-
   typeOfCanon(Rc,RcTp),
   typeOfCanon(Vl,VlTp),

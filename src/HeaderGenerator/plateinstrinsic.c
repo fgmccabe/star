@@ -223,8 +223,8 @@ static char *dumpStarSig(char *sig, ioPo out) {
       sig = dumpStarSig(sig, out);
       outStr(out, ")");
       break;
-    case contSig:
-      outStr(out, "tpExp(tpExp(tpFun(\"=>>\",2),");
+    case throwsSig:
+      outStr(out, "throwsType(");
       sig = dumpStarSig(sig, out);
       outStr(out, "),");
       sig = dumpStarSig(sig, out);
@@ -396,8 +396,8 @@ static char *dumpPrologSig(char *sig, ioPo out) {
       sig = dumpPrologSig(sig, out);
       outStr(out, ")");
       return sig;
-    case contSig:
-      outStr(out, "contType(");
+    case throwsSig:
+      outStr(out, "throwsType(");
       sig = dPrologTple(sig, out);
       outStr(out, ",");
       sig = dumpPrologSig(sig, out);

@@ -234,23 +234,24 @@ static char *dumpSig(char *sig, strBufferPo out) {
           outStr(O_IO(out), ")");
           return sig;
       }
-    case contSig:
+    case throwsSig: {
       switch (genMode) {
         case genStar:
-          outStr(O_IO(out), "tpExp(tpExp(tpFun(\"=>>\",2),");
+          outStr(O_IO(out), "throwsType(");
           sig = dumpSig(sig, out);
           outStr(O_IO(out), "),");
           sig = dumpSig(sig, out);
           outStr(O_IO(out), ")");
           break;
         case genProlog:
-          outStr(O_IO(out), "contType(");
+          outStr(O_IO(out), "throwsType(");
           sig = dumpSig(sig, out);
           outStr(O_IO(out), ",");
           sig = dumpSig(sig, out);
           outStr(O_IO(out), ")");
       }
       return sig;
+    }
     case faceSig:
       outStr(O_IO(out), "faceType(");
       sig = dFields(sig, out);
