@@ -9,6 +9,7 @@
 		declareFieldAccess/6,getFieldAccess/5,
 		declareFieldUpdater/6,getFieldUpdater/5,
 		getImplementation/4,
+		manageConstraints/4,
 		declareConstraint/4,declareConstraints/4,allConstraints/2,
 		pushScope/2,mergeDict/4,pushFace/4,makeKey/2,stdDict/1,
 		dispEnv/1
@@ -89,11 +90,16 @@ declareCns(Lc,Nm,FullNm,Tp,Env,Ev) :-
 mkCns(Nm,Lc,Tp,cons(Lc,Nm,Tp)).
 mkEnum(Nm,Lc,Tp,enm(Lc,Nm,ETp)) :- netEnumType(Tp,ETp).
 
-manageConstraints([],_,Exp,Exp).
-manageConstraints([implementsFace(TV,Fc)|Cx],Lc,Term,Exp) :-
-  manageConstraints(Cx,Lc,overaccess(Term,TV,Fc),Exp).
+manageConstraints([],_,V,V).
+manageConstraints([implementsFace(RTp,faceType(Flds,_))|Cx],Lc,Term,Exp) :-
+  manageFieldAccess(Flds,Lc,RTp,Term,Dot),
+  manageConstraints(Cx,Lc,Dot,Exp).
 manageConstraints([Con|Cx],Lc,V,over(Lc,V,Tp,[Con|Cx])) :-
   typeOfCanon(V,Tp).
+
+manageFieldAccess([],_,_,Term,Term) :-!.
+manageFieldAccess([(Fld,Ftp)|Flds],Lc,RTp,Term,Exp) :-
+  manageFieldAccess(Flds,Lc,RTp,overaccess(Lc,Term,RTp,Fld,Ftp),Exp).
 
 mkVr(Nm,Lc,Tp,v(Lc,Nm,Tp)).
 noFace(_,faceType([],[])).
