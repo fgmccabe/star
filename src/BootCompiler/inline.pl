@@ -38,7 +38,7 @@ inlineExp(deref(Lc,Vl),Env,Max,deref(Lc,RVl),Trg,Tx) :-!,
   inlineExp(Vl,Env,Max,RVl,Trg,Tx).
 inlineExp(mtd(Lc,Nm,Tp),Env,Max,mtd(Lc,Nm,Tp),T,T) :-!,
   reportWarning("unresolved method %s",[Nm],Lc).
-inlineExp(over(Lc,Nm,Cx,Tp),Env,Max,over(Lc,Nm,Cx,Tp),T,T) :-!,
+inlineExp(over(Lc,Nm,Cx),Env,Max,over(Lc,Nm,Cx),T,T) :-!,
   reportWarning("unresolved expression %s",[Nm],Lc).
 inlineExp(where(Lc,T,C),Env,Max,Rep,Trg,Tx) :- !,
   inlineExp(T,Env,Max,RT,Trg,T0),

@@ -94,8 +94,7 @@ manageConstraints([],_,V,V).
 manageConstraints([implementsFace(RTp,faceType(Flds,_))|Cx],Lc,Term,Exp) :-
   manageFieldAccess(Flds,Lc,RTp,Term,Dot),
   manageConstraints(Cx,Lc,Dot,Exp).
-manageConstraints([Con|Cx],Lc,V,over(Lc,V,Tp,[Con|Cx])) :-
-  typeOfCanon(V,Tp).
+manageConstraints([Con|Cx],Lc,V,over(Lc,V,[Con|Cx])).
 
 manageFieldAccess([],_,_,Term,Term) :-!.
 manageFieldAccess([(Fld,Ftp)|Flds],Lc,RTp,Term,Exp) :-

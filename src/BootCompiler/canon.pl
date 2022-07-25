@@ -27,7 +27,7 @@ isCanon(v(_,_,_)).
 isCanon(anon(_,_)).
 isCanon(deref(_,_)).
 isCanon(cell(_,_)).
-isCanon(over(_,_,_,_)).
+isCanon(over(_,_,_)).
 isCanon(overaccess(_,_,_,_)).
 isCanon(mtd(_,_,_)).
 isCanon(intLit(_,_)).
@@ -104,7 +104,7 @@ typeOfCanon(cell(_,Vl),refType(Tp)) :-
 typeOfCanon(deref(_,Vl),Tp) :-
   typeOfCanon(Vl,refType(Tp)).
 typeOfCanon(lambda(_,_,_,Tp),Tp) :-!.
-typeOfCanon(over(_,T,_,_),Tp) :- typeOfCanon(T,Tp).
+typeOfCanon(over(_,T,_),Tp) :- typeOfCanon(T,Tp).
 typeOfCanon(overaccess(_,_,_,Tp),Tp) :- !.
 typeOfCanon(mtd(_,_,Tp),Tp) :-!.
 typeOfCanon(case(_,_,_,Tp),Tp) :- !.
@@ -242,7 +242,7 @@ ssTerm(lambda(_,Lbl,Rle,_),Dp,sq([lp,Rl,rp])) :-
 ssTerm(tple(_,Els),Dp,sq([lp,iv(ss(", "),SEls),rp])) :-
   ssTerms(Els,Dp,SEls).
 ssTerm(mtd(_,Nm,_),_,sq([ss("°"),id(Nm)])).
-ssTerm(over(_,V,_,Cons),Dp,sq([iv(ss(","),CCs),ss("|:"),VV])) :-
+ssTerm(over(_,V,Cons),Dp,sq([iv(ss(","),CCs),ss("|:"),VV])) :-
   map(Cons,types:ssConstraint(false,Dp),CCs),
   ssTerm(V,Dp,VV).
 ssTerm(overaccess(_,R,Fld,F),Dp,sq([RR,ss("<~{"),ss(Fld),ss(":"),FF,ss("}")])) :-

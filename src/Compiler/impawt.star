@@ -17,12 +17,12 @@ star.compiler.impawt{
   importAll([],_,Imported,Decls) => (Imported,Decls).
   importAll([pkgImp(Lc,Viz,Pkg),..Imports],Repo,Imported,Decls) => valof{
     if {? pkgImp(_,_,Pkg) in Imported ?} then
-      valis importAll(Imports,Repo,Imported,Decls,Rp)
-    else if pkgSpec(_,PkgImps,PDecls) ^= importPkg(Pkg,Lc,Repo,Rp) then{
+      valis importAll(Imports,Repo,Imported,Decls)
+    else if pkgSpec(_,PkgImps,PDecls) ^= importPkg(Pkg,Lc,Repo) then{
       valis importAll(Imports++PkgImps,Repo,[pkgImp(Lc,Viz,Pkg),..Imported],
-	Decls++PDecls,Rp)
+	Decls++PDecls)
     }
-    else valof{
+    else {
       reportError("cannot import $(Pkg)",Lc);
       valis (Imports,Decls)
     }
@@ -30,17 +30,17 @@ star.compiler.impawt{
 
   public importPkg:all r ~~ repo[r] |: (pkg,option[locn],r) => option[pkgSpec].
   importPkg(Pkg,Lc,Repo) where Sig ^= pkgSignature(Repo,Pkg) => 
-    pickupPkgSpec(Sig,Lc,Rp).
+    pickupPkgSpec(Sig,Lc).
   importPkg(Pkg,Lc,_) default => .none.
 
   pickupPkgSpec:(string,option[locn]) => option[pkgSpec].
-  pickupPkgSpec(Txt,Lc,Rp) => valof{
+  pickupPkgSpec(Txt,Lc) => valof{
     try{
       (term(_,[Pk,term(_,Imps),term(_,Ds)]),_).=decodeTerm(Txt::cons[char]);
-      Pkg = pickupPkg(Pk);
+      Pkg ^= pickupPkg(Pk);
       Imports = pickupImports(Imps,Lc);
-      Decls = pickupDeclarations(Ds,Lc,Rp);
-      valis pkgSpec(Pkg,Imports,Decls)
+      Decls = pickupDeclarations(Ds,Lc);
+      valis some(pkgSpec(Pkg,Imports,Decls))
     }
     catch{
       (_) => {
@@ -50,15 +50,15 @@ star.compiler.impawt{
     }
   }
 
-  pickupPkg:all e ~~ (term) => result[e,pkg].
-  pickupPkg(term(tLbl("pkg",2),[strg(Nm),V])) => do{
-    Vr <- pickupVersion(V);
-    valis pkg(Nm,Vr)
-  }
+  pickupPkg:(term) => option[pkg].
+  pickupPkg(term(tLbl("pkg",2),[strg(Nm),V])) where Ver^=pickupVersion(V) =>
+    some(pkg(Nm,Ver)).
+  pickupPkg(_) default => .none.
 
-  pickupVersion:all e ~~ (term)=>result[e,version].
-  pickupVersion(symb(tLbl("*",0))) => do{ valis .defltVersion}.
-  pickupVersion(strg(V)) => do{ valis vers(V)}.
+  pickupVersion:(term)=>option[version].
+  pickupVersion(symb(tLbl("*",0))) => some(.defltVersion).
+  pickupVersion(strg(V)) => some(vers(V)).
+  pickupVersion(_) default => .none.
 
   pickupViz:(term)=>option[visibility].
   pickupViz(strg("private")) => some(.priVate).
@@ -67,26 +67,28 @@ star.compiler.impawt{
   pickupViz(symb(tLbl("private",0))) => some(.priVate).
   pickupViz(symb(tLbl("public",0))) => some(.pUblic).
   pickupViz(symb(tLbl("transitive",0))) => some(.transItive).
---  pickupViz(_) default => .none.
+  pickupViz(_) default => .none.
 
   pickupImports:(cons[term],option[locn]) => cons[importSpec].
   pickupImports(Trms,Lc) => let{.
     pickupImps([],Imx) => Imx.
-    pickupImps([term(_,[V,P]),..Imps],Imx) where
-	Vz ^= pickupViz(V) => valof{
-	  Pkg = pickupPkg(P);
-	  valis pickupImps(Imps,[pkgImp(Lc,Vz,Pkg),..Imx])
-	}.
+    pickupImps([term(O,[V,P]),..Imps],Imx) => valof{
+      if Pkg^=pickupPkg(P) && Vz ^= pickupViz(V) then
+	valis pickupImps(Imps,[pkgImp(Lc,Vz,Pkg),..Imx])
+      else{
+	reportError("Ignoring invalid pkg import spec $(term(O,[V,P]))",Lc);
+	valis pickupImps(Imps,Imx)
+      }
+    }
   .} in pickupImps(Trms,[]).
 
-  pickupDeclarations:(cons[term],option[locn])=cons[decl].
+  pickupDeclarations:(cons[term],option[locn])=>cons[decl].
   pickupDeclarations([],_Lc) => [].
   pickupDeclarations([T,..Ts],Lc) => (
-    D ^= pickupDeclaration(T,Lc,Rp) ?
+    D ^= pickupDeclaration(T,Lc) ?
       [D,..pickupDeclarations(Ts,Lc)] ||
       pickupDeclarations(Ts,Lc)).
 	
-
   pickupDeclaration:(term,option[locn])=>option[decl].
   pickupDeclaration(term(tLbl("imp",3),[strg(Nm),strg(FNm),strg(Sig)]),Lc) => valof{
     try{
@@ -99,87 +101,93 @@ star.compiler.impawt{
     }
   }
   pickupDeclaration(term(tLbl("acc",4),
-      [strg(Sig),strg(Fld),strg(FNm),strg(AccSig)]),Lc,Rp) => valof{
+      [strg(Sig),strg(Fld),strg(FNm),strg(AccSig)]),Lc) => valof{
     try{
       Tp = decodeSignature(Sig);
       AccTp = decodeSignature(AccSig);
-      valis accDec(Lc,Tp,Fld,FNm,AccTp)
+      valis some(accDec(Lc,Tp,Fld,FNm,AccTp))
     } catch{
       _ => {
 	reportError("invalid accessor signature",Lc);
-	throw ()
+	valis .none
       }
     }
   }
   pickupDeclaration(term(tLbl("upd",4),
-      [strg(Sig),strg(Fld),strg(FNm),strg(AccSig)]),Lc,Rp) => valof{
+      [strg(Sig),strg(Fld),strg(FNm),strg(AccSig)]),Lc) => valof{
     try{
       Tp = decodeSignature(Sig);
       AccTp = decodeSignature(AccSig);
-      valis updDec(Lc,Tp,Fld,FNm,AccTp)
+      valis some(updDec(Lc,Tp,Fld,FNm,AccTp))
     } catch{
       _ => {
 	reportError("invalid updater signature",Lc);
-	throw ()
+	valis .none
       }
     }
   }
   pickupDeclaration(term(tLbl("con",3),
-      [strg(Nm),strg(CnNm),strg(Sig)]),Lc,Rp) => valof{
+      [strg(Nm),strg(CnNm),strg(Sig)]),Lc) => valof{
     try{
-      valis conDec(Lc,Nm,CnNm,decodeTypeRuleSignature(Sig))
+      valis some(conDec(Lc,Nm,CnNm,decodeTypeRuleSignature(Sig)))
     } catch{
       _ => {
 	reportError("invalid contract signature",Lc);
-	throw ()
+	valis .none
       }
     }
   }
   pickupDeclaration(term(tLbl("tpe",3),
-      [strg(Nm),strg(TSig),strg(RSig)]),Lc,Rp) => valof{
+      [strg(Nm),strg(TSig),strg(RSig)]),Lc) => valof{
     try{
       Tp = decodeSignature(TSig);
       RlTp = decodeTypeRuleSignature(RSig);
-      valis tpeDec(Lc,Nm,Tp,RlTp)
+      valis some(tpeDec(Lc,Nm,Tp,RlTp))
     } catch{
       _ => {
 	reportError("invalid type signature",Lc);
-	throw ()
+	valis .none
       }
     }
   }
   pickupDeclaration(term(tLbl("var",3),
-      [strg(Nm),strg(FlNm),strg(Sig)]),Lc,Rp) => do{
+      [strg(Nm),strg(FlNm),strg(Sig)]),Lc) => valof{
     try{
-      Tp <- decodeSignature(Sig);
-      valis varDec(Lc,Nm,FlNm,Tp)
+      valis some(varDec(Lc,Nm,FlNm,decodeSignature(Sig)))
     } catch{
-      raise reportError(Rp,"invalid var signature",Lc)
+      _ => {
+	reportError("invalid var signature",Lc);
+	valis .none
+      }
     }
   }
 
   pickupDeclaration(term(tLbl("fun",3),
-      [strg(Nm),strg(FlNm),strg(Sig)]),Lc,Rp) => do{
+      [strg(Nm),strg(FlNm),strg(Sig)]),Lc) => valof{
     try{
-      Tp <- decodeSignature(Sig);
-      valis funDec(Lc,Nm,FlNm,Tp)
+      valis some(funDec(Lc,Nm,FlNm,decodeSignature(Sig)))
     } catch{
-      raise reportError(Rp,"invalid function signature",Lc)
+      _ => {
+	reportError("invalid function signature",Lc);
+	valis .none
+      }
     }
   }
 
   pickupDeclaration(term(tLbl("cns",3),
-      [strg(Nm),strg(FlNm),strg(Sig)]),Lc,Rp) => do{
+      [strg(Nm),strg(FlNm),strg(Sig)]),Lc) => valof{
     try{
-      Tp <- decodeSignature(Sig);
-      valis cnsDec(Lc,Nm,FlNm,Tp)
+      valis some(cnsDec(Lc,Nm,FlNm,decodeSignature(Sig)))
     } catch{
-      raise reportError(Rp,"invalid constructor signature",Lc)
+      _ => {
+	reportError("invalid constructor signature",Lc);
+	valis .none
+      }
     }
   }
-
-  pickupDeclaration(T,Lc,Rp) => do{
-    raise reportError(Rp,"invalid declaration",Lc).
+  pickupDeclaration(T,Lc) => valof{
+    reportError("invalid declaration",Lc);
+    valis .none
   }
 
   implementation coercion[pkg,term] => {

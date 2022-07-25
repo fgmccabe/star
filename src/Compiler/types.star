@@ -374,6 +374,7 @@ star.compiler.types{
   public contType(A,B) => tpExp(tpExp(tpFun("=>>",2),A),B).
   public cnsType(A,B) => tpExp(tpExp(tpFun("<=>",2),tupleType(A)),B).
   public enumType(A) => tpExp(tpExp(tpFun("<=>",2),tupleType([])),A).
+  public refType(A) => tpExp(tpFun("star.core*ref",1),A).
 
   public funTypeArg(Tp) where
       tpExp(O,_) .= deRef(Tp) &&

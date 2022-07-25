@@ -109,6 +109,12 @@ collectConstructorRefs(Body,All,Rf,Refs) :-
 collectConstructorRefs(Body,All,Rf,Refs) :-
   isBraceCon(Body,_,_,_,_,Entries),!,
   collectFaceTypes(Entries,All,Rf,Refs).
+collectConstructorRefs(Body,All,Rf,Refs) :-
+  isPublic(Body,_,C),!,
+collectConstructorRefs(C,All,Rf,Refs).
+collectConstructorRefs(Body,All,Rf,Refs) :-
+  isPrivate(Body,_,C),!,
+collectConstructorRefs(C,All,Rf,Refs).
 
 collImplementationRefs(C,Con,B,All,R0,Refs) :-
   collConstraints(C,All,R0,R1),
