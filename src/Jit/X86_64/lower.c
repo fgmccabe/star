@@ -195,6 +195,10 @@ retCode jit_Swap(insPo code, integer *pc, jitCompPo jitCtx) {
   return Ok;
 }
 
+retCode jit_Rot(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
 retCode jit_Rst(insPo code, integer *pc, jitCompPo jitCtx) {
   int32 height = collectOperand(code, pc);
   check(height >= 0 && height <= jitCtx->vTop, "reset alignment");
@@ -230,15 +234,11 @@ retCode jit_RtG(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
-retCode jit_Thnk(insPo code, integer *pc, jitCompPo jitCtx) {
+retCode jit_RetX(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
-retCode jit_ThGet(insPo code, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}
-
-retCode jit_ThSet(insPo code, integer *pc, jitCompPo jitCtx) {
+retCode jit_Locals(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
@@ -422,6 +422,10 @@ retCode jit_Release(insPo code, integer *pc, jitCompPo jitCtx) {
 }
 
 retCode jit_Underflow(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_TEq(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
