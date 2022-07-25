@@ -20,9 +20,9 @@ star.compiler.canon{
   public canon ::= vd(option[locn]) |
     vr(option[locn],string,tipe) |
     cns(option[locn],string,tipe) |
-    mtd(option[locn],string,constraint,tipe) |
+    mtd(option[locn],string,tipe) |
     over(option[locn],canon,cons[constraint]) |
-    overaccess(option[locn],canon,string,tipe) |
+    overaccess(option[locn],canon,tipe,string,tipe) |
     intr(option[locn],integer) |
     bintr(option[locn],bigint) |
     kar(option[locn],char) |
@@ -31,6 +31,7 @@ star.compiler.canon{
     enm(option[locn],string,tipe) |
     whr(option[locn],canon,canon) |
     dot(option[locn],canon,string,tipe) |
+    update(option[locn],canon,string,canon) |
     csexp(option[locn],canon,cons[rule[canon]],tipe) |
     trycatch(option[locn],canon,cons[rule[canon]],tipe) |
     match(option[locn],canon,canon) |
@@ -45,7 +46,6 @@ star.compiler.canon{
     owpen(option[locn],canon) |
     letExp(option[locn],cons[canonDef],cons[decl],canon) |
     letRec(option[locn],cons[canonDef],cons[decl],canon) |
-    update(option[locn],canon,string,canon) |
     vlof(option[locn],canonAction).
 
   public canonAction ::= doNop(option[locn]) |
@@ -82,9 +82,9 @@ star.compiler.canon{
     typeOf(vd(_)) => .voidType.
     typeOf(vr(_,_,T)) => T.
     typeOf(cns(_,_,T)) => T.
-    typeOf(mtd(_,_,_,T)) => T.
+    typeOf(mtd(_,_,T)) => T.
     typeOf(over(_,T,_)) => typeOf(T).
-    typeOf(overaccess(_,_,_,Tp)) => Tp.
+    typeOf(overaccess(_,_,_,_,Tp)) => Tp.
     typeOf(intr(_,_)) => intType.
     typeOf(bintr(_,_)) => bigintType.
     typeOf(flt(_,_)) => fltType.
@@ -112,9 +112,9 @@ star.compiler.canon{
     locOf(vd(Lc)) => Lc.
     locOf(vr(Lc,_,_)) => Lc.
     locOf(cns(Lc,_,_)) => Lc.
-    locOf(mtd(Lc,_,_,_)) => Lc.
+    locOf(mtd(Lc,_,_)) => Lc.
     locOf(over(Lc,_,_)) => Lc.
-    locOf(overaccess(Lc,_,_,_)) => Lc.
+    locOf(overaccess(Lc,_,_,_,_)) => Lc.
     locOf(intr(Lc,_)) => Lc.
     locOf(bintr(Lc,_)) => Lc.
     locOf(flt(Lc,_)) => Lc.
@@ -173,9 +173,9 @@ star.compiler.canon{
   showCanon(vd(_),_) => "void".
   showCanon(vr(_,Nm,Tp),_) => Nm.
   showCanon(cns(_,Nm,Tp),_) => ".#(Nm)".
-  showCanon(mtd(_,Fld,_,_),_) => "µ#(Fld)".
+  showCanon(mtd(_,Fld,_),_) => "µ#(Fld)".
   showCanon(over(_,V,Cx),Sp) => "$(Cx)|:#(showCanon(V,Sp))".
-  showcanon(overaccess(_,V,F,T),Sp) => "($(V)<~#(F):$(T))".
+  showcanon(overaccess(_,_,RcTp,F,T),Sp) => "($(RcTp)<~#(F):$(T))".
   showCanon(intr(_,Lt),_) => disp(Lt).
   showCanon(bintr(_,Lt),_) => disp(Lt).
   showCanon(flt(_,Lt),_) => disp(Lt).

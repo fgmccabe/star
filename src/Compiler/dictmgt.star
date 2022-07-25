@@ -73,7 +73,7 @@ star.compiler.dict.mgt{
   refreshVr:(option[locn],tipe,dict,(option[locn],tipe)=>canon) => canon.
   refreshVr(Lc,Tp,Env,Mkr) => valof{
     (_,VrTp) .= freshen(Tp,Env);
-    valis manageConstraints(VrTp,Lc,Mkr,Env)
+    valis manageConstraints(VrTp,Lc,Mkr)
   }    
 
   public refreshVar(Lc,Nm,Tp,Env) =>
@@ -98,7 +98,7 @@ star.compiler.dict.mgt{
 --    logMsg("freshen $(Nm)'s type: $(Tp)");
     (_,VrTp) .= freshen(Tp,Env);
 --    logMsg("freshened type of $(Nm) is $(VrTp)");
-    valis manageConstraints(VrTp,Lc,(LLc,ETp)=>enm(LLc,Nm,ETp),Env)
+    valis manageConstraints(VrTp,Lc,(LLc,ETp)=>enm(LLc,Nm,ETp))
   }
 
   public declareEnum:(string,string,option[locn],tipe,dict) => dict.
@@ -130,20 +130,19 @@ star.compiler.dict.mgt{
     (MC,MT) .= deConstrain(MI);
     valis formMethods(Mtds,Lc,Q,Con,
       declareMethod(Nm,Lc,reQuant(Q++MQ,
-	  reConstrainType([Con,..MC],MT)),Con,Dict))
+	  reConstrainType([Con,..MC],MT)),Dict))
   }
 
-  declareMethod:(string,option[locn],tipe,constraint,dict) => dict.
-  declareMethod(Nm,Lc,Tp,Con,Dict) =>
-    declareVr(Nm,Lc,Tp,(L,E)=>pickupMtd(L,Nm,Tp,Con,E),.none,Dict).
+  declareMethod:(string,option[locn],tipe,dict) => dict.
+  declareMethod(Nm,Lc,Tp,Dict) =>
+    declareVr(Nm,Lc,Tp,(L,E)=>pickupMtd(L,Nm,Tp,E),.none,Dict).
 
-  pickupMtd(Lc,Nm,Tp,Con,Env) => valof{
+  pickupMtd(Lc,Nm,Tp,Env) => valof{
 --    logMsg("pick up method $(Nm) : $(Tp) {$(Con)}");
-    (Q,VrTp) .= freshen(Tp,Env);
-    Cn .= refreshConstraint(Q,Con,Env);
+    (Q,VrTp) = freshen(Tp,Env);
 --    logMsg("freshened type of $(Nm) is $(VrTp) Q=$(Q)");
 --    logMsg("freshened contract $(Cn)");
-    valis manageConstraints(VrTp,Lc,(LLc,MTp)=>mtd(LLc,Nm,Cn,MTp),Env)
+    valis manageConstraints(VrTp,Lc,(LLc,MTp)=>mtd(LLc,Nm,MTp))
   }
 
   public mergeDict:(dict,dict,dict) => dict.
@@ -211,14 +210,13 @@ star.compiler.dict.mgt{
   declareConstraints(Lc,[_,..Cx],Env) =>
     declareConstraints(Lc,Cx,Env).
 
-  manageConstraints:(tipe,option[locn],(option[locn],tipe)=>canon,dict) => canon.
-  manageConstraints(constrainedType(Tp,Con),Lc,Term,Env) =>
-    applyConstraint(Lc,Con,manageConstraints(deRef(Tp),Lc,Term,Env),Env).
-  manageConstraints(Tp,Lc,Term,Env) => Term(Lc,Tp).
+  manageConstraints:(tipe,option[locn],(option[locn],tipe)=>canon) => canon.
+  manageConstraints(constrainedType(Tp,Con),Lc,Term) =>
+    applyConstraint(Lc,Con,manageConstraints(deRef(Tp),Lc,Term)).
+  manageConstraints(Tp,Lc,Term) => Term(Lc,Tp).
 
-  applyConstraint:(option[locn],constraint,canon,dict) => canon.
-  applyConstraint(Lc,fieldConstraint(V,F,T),Trm,Env)
-      where sameType(typeOf(Trm),V,Env) => overaccess(Lc,Trm,F,T).
-  applyConstraint(Lc,conTract(N,T,D),Trm,_) =>
+  applyConstraint:(option[locn],constraint,canon) => canon.
+  applyConstraint(Lc,fieldConstraint(V,F,T),Trm) => overaccess(Lc,Trm,V,F,T).
+  applyConstraint(Lc,conTract(N,T,D),Trm) =>
     over(Lc,Trm,[conTract(N,T,D)]).
 }

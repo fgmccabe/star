@@ -60,6 +60,8 @@ star.compiler.unify{
       same(T1,T2,Env).
     smT(allType(V1,T1),allType(V2,T2),Env) =>
       same(T1,rewriteType(T2,[V2->V1]),Env).
+    smT(throwsType(T1,E1),throwsType(T2,E2),Env) =>
+      same(T1,T2,Env) && sameType(E1,E2,Env).
     smT(constrainedType(T1,C1),constrainedType(T2,C2),Env) =>
       same(T1,T2,Env) && sameConstraint(C1,C2,Env).
     smT(T1,T2,_) default => resetBindings().
@@ -124,6 +126,7 @@ star.compiler.unify{
   occIn(Id,allType(_,B)) => occIn(Id,deRef(B)).
   occIn(Id,existType(_,B)) => occIn(Id,deRef(B)).
   occIn(Id,faceType(Flds,Tps)) => occInPrs(Id,Flds) || occInPrs(Id,Tps).
+  occIn(Id,throwsType(T,E)) => occIn(Id,deRef(T)) || occIn(Id,deRef(E)).
   occIn(Id,constrainedType(T,_)) => occIn(Id,deRef(T)).
   occIn(_,_) default => .false.
 
@@ -142,6 +145,7 @@ star.compiler.unify{
   rewr(nomnal(Nm),Env) => nomnal(Nm).
   rewr(tpFun(Nm,Ar),_) => tpFun(Nm,Ar).
   rewr(tpExp(Op,A),Env) => tpExp(rewriteType(Op,Env),rewriteType(A,Env)).
+  rewr(throwsType(T,E),Env) => throwsType(rewriteType(T,Env),rewriteType(E,Env)).
   rewr(tupleType(Els),Env) => tupleType(rewriteTps(Els,Env)).
   rewr(allType(V,B),Env) => _ ^= Env[V] ? allType(V,B) || allType(V,rewriteType(B,Env)).
   rewr(existType(V,B),Env) => _ ^= Env[V] ? existType(V,B) || existType(V,rewriteType(B,Env)).

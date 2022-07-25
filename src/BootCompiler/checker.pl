@@ -851,7 +851,7 @@ verifyType(Lc,_,Actual,Expected,Env) :-
 verifyType(Lc,M,S,T,_) :-
   reportError("%s:%s not consistent with expected type\n%s",[M,tpe(S),tpe(T)],Lc).
 
-brceConLbl(over(_,T,_,_),L) :- brceConLbl(T,L).
+brceConLbl(over(_,T,_),L) :- brceConLbl(T,L).
 brceConLbl(v(_,L,_),L).
 brceConLbl(cons(_,Nm,_),Nm).
 brceConLbl(enm(_,Nm,_),Nm).
