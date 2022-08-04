@@ -372,7 +372,7 @@ star.compiler.macro{
 
   synthesizeMain:(option[locn],ast,cons[ast])=>cons[ast].
   synthesizeMain(Lc,Tp,Defs) where (_,Lhs,Rhs) ^= isFunctionType(Tp) && (_,ElTps)^=isTuple(Lhs) => valof{
-    (Action,As) .= synthCoercion(Lc,ElTps,[]);
+    (Action,As) = synthCoercion(Lc,ElTps,[]);
     
     MLhs = roundTerm(Lc,nme(Lc,"_main"),[mkConsPtn(Lc,As)]);
 
@@ -392,13 +392,13 @@ star.compiler.macro{
 */  
   synthCoercion:(option[locn],cons[ast],cons[ast])=>(ast,cons[ast]).
   synthCoercion(_,[Tp,..Ts],Xs)  => valof{
-    Lc .= locOf(Tp);
+    Lc = locOf(Tp);
     X = genName(Lc,"X");
     A = genName(Lc,"A");    
     PRhs = binary(Lc,":?",A,Tp);
     Tst = binary(Lc,"^=",X,PRhs); -- some(X).=_coerce(A):T
     Emsg = unary(Lc,"logMsg",str(Lc,"cannot coerce \$(#(A::string)) to #(Tp::string)"));
-    (Inner,As) .= synthCoercion(Lc,Ts,[X,..Xs]);
+    (Inner,As) = synthCoercion(Lc,Ts,[X,..Xs]);
     valis (mkIfThenElse(Lc,Tst,Inner,Emsg),[A,..As])
   }
   synthCoercion(Lc,[],Xs) => 

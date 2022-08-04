@@ -25,5 +25,7 @@ star.location{
 
   public locPos(locn(_,_,_,Pos,_)) => Pos.
 
+  public locPkg(locn(P,_,_,_,_)) => P.
+
   
 }

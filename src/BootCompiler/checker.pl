@@ -734,12 +734,40 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,cond(Lc,Test,Then,Else,Tp),Path) :-
   typeOfExp(Th,Tp,ErTp,E0,E1,Then,Path),
   typeOfExp(El,Tp,ErTp,Env,E2,Else,Path),
   mergeDict(E1,E2,Env,Ev).
+typeOfExp(Term,Tp,ErTp,Env,Ev,conj(Lc,Lhs,Rhs),Path) :-
+  isConjunct(Term,Lc,L,R),!,
+  findType("boolean",Lc,Env,LogicalTp),
+  verifyType(Lc,ast(Term),LogicalTp,Tp,Env),
+  typeOfExp(L,LogicalTp,ErTp,Env,E1,Lhs,Path),
+  typeOfExp(R,LogicalTp,ErTp,E1,Ev,Rhs,Path).
+typeOfExp(Term,Tp,ErTp,Env,Ev,disj(Lc,Lhs,Rhs),Path) :-
+  isDisjunct(Term,Lc,L,R),!,
+  findType("boolean",Lc,Env,LogicalTp),
+  verifyType(Lc,ast(Term),LogicalTp,Tp,Env),
+  typeOfExp(L,LogicalTp,ErTp,Env,E1,Lhs,Path),
+  typeOfExp(R,LogicalTp,ErTp,Env,E2,Rhs,Path),
+  mergeDict(E1,E2,Env,Ev).
+typeOfExp(Term,Tp,ErTp,Env,Env,implies(Lc,Lhs,Rhs),Path) :-
+  isForall(Term,Lc,L,R),!,
+  findType("boolean",Lc,Env,LogicalTp),
+  verifyType(Lc,ast(Term),LogicalTp,Tp,Env),
+  typeOfExp(L,LogicalTp,ErTp,Env,E1,Lhs,Path),
+  typeOfExp(R,LogicalTp,ErTp,E1,_Ev,Rhs,Path).
+typeOfExp(Term,Tp,ErTp,Env,Env,neg(Lc,Rhs),Path) :-
+  isNegation(Term,Lc,R),!,
+  findType("boolean",Lc,Env,LogicalTp),
+  verifyType(Lc,ast(Term),LogicalTp,Tp,Env),
+  typeOfExp(R,LogicalTp,ErTp,Env,_Ex,Rhs,Path).
+typeOfExp(Term,Tp,ErTp,Env,Ev,match(Lc,Lhs,Rhs),Path) :-
+  isMatch(Term,Lc,P,E),!,
+  findType("boolean",Lc,Env,LogicalTp),
+  verifyType(Lc,ast(Term),LogicalTp,Tp,Env),
+  newTypeVar("_#",TV),
+  typeOfPtn(P,TV,ErTp,Env,Ev,Lhs,Path),
+  typeOfExp(E,TV,ErTp,Env,_,Rhs,Path).
 typeOfExp(Term,Tp,ErTp,Env,Ev,case(Lc,Bound,Eqns,Tp),Path) :-
   isCaseExp(Term,Lc,Bnd,Cases),
   checkCaseExp(Lc,Bnd,Cases,Tp,ErTp,Env,Ev,checker:typeOfExp,Bound,Eqns,Path).
-typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
-  isOpen(Term,Lc,I),!,
-  typeOfOpen(Lc,I,Tp,ErTp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,ErTp,Env,Ev,cell(Lc,Exp),Path) :-
   isRef(Term,Lc,I),
   newTypeVar("r",RT),
@@ -756,7 +784,6 @@ typeOfExp(Term,Tp,_ErTp,Env,Env,Exp,Path) :-
   taskLambda(Lc,A,Tp,Env,Exp,Path).
 typeOfExp(Term,Tp,_ErTp,Env,Env,Val,Path) :-
   isQBraceTuple(Term,Lc,Els),
-  \+isComprehension(Term,_,_,_),
   reportError("anonymous brace expression %s not supported",[ast(Term)],Lc),
   tpName(Tp,Lbl),
   checkThetaBody(Tp,Lbl,Lc,Els,Env,Val,Path).
@@ -798,37 +825,6 @@ typeOfExp(Term,Tp,ErTp,Env,Env,Exp,Path) :-
 typeOfExp(Term,Tp,_ErTp,Env,Env,Lam,Path) :-
   isEquation(Term,_Lc,_H,_R),
   typeOfLambda(Term,Tp,Env,Lam,Path).
-typeOfExp(Term,Tp,ErTp,Env,Ev,conj(Lc,Lhs,Rhs),Path) :-
-  isConjunct(Term,Lc,L,R),!,
-  findType("boolean",Lc,Env,LogicalTp),
-  verifyType(Lc,ast(Term),LogicalTp,Tp,Env),
-  typeOfExp(L,LogicalTp,ErTp,Env,E1,Lhs,Path),
-  typeOfExp(R,LogicalTp,ErTp,E1,Ev,Rhs,Path).
-typeOfExp(Term,Tp,ErTp,Env,Ev,disj(Lc,Lhs,Rhs),Path) :-
-  isDisjunct(Term,Lc,L,R),!,
-  findType("boolean",Lc,Env,LogicalTp),
-  verifyType(Lc,ast(Term),LogicalTp,Tp,Env),
-  typeOfExp(L,LogicalTp,ErTp,Env,E1,Lhs,Path),
-  typeOfExp(R,LogicalTp,ErTp,Env,E2,Rhs,Path),
-  mergeDict(E1,E2,Env,Ev).
-typeOfExp(Term,Tp,ErTp,Env,Env,implies(Lc,Lhs,Rhs),Path) :-
-  isForall(Term,Lc,L,R),!,
-  findType("boolean",Lc,Env,LogicalTp),
-  verifyType(Lc,ast(Term),LogicalTp,Tp,Env),
-  typeOfExp(L,LogicalTp,ErTp,Env,E1,Lhs,Path),
-  typeOfExp(R,LogicalTp,ErTp,E1,_Ev,Rhs,Path).
-typeOfExp(Term,Tp,ErTp,Env,Env,neg(Lc,Rhs),Path) :-
-  isNegation(Term,Lc,R),!,
-  findType("boolean",Lc,Env,LogicalTp),
-  verifyType(Lc,ast(Term),LogicalTp,Tp,Env),
-  typeOfExp(R,LogicalTp,ErTp,Env,_Ex,Rhs,Path).
-typeOfExp(Term,Tp,ErTp,Env,Ev,match(Lc,Lhs,Rhs),Path) :-
-  isMatch(Term,Lc,P,E),!,
-  findType("boolean",Lc,Env,LogicalTp),
-  verifyType(Lc,ast(Term),LogicalTp,Tp,Env),
-  newTypeVar("_#",TV),
-  typeOfPtn(P,TV,ErTp,Env,Ev,Lhs,Path),
-  typeOfExp(E,TV,ErTp,Env,_,Rhs,Path).
 typeOfExp(Term,Tp,ErTp,Env,Ev,valof(Lc,Act,Tp),Path) :-
   isValof(Term,Lc,A),
   isBraceTuple(A,_,[Ac]),!,
@@ -867,10 +863,6 @@ typeOfRecordUpdate(Lc,Rc,Fld,Vl,Tp,ErTp,Env,Ev,update(Lc,Rec,Fld,Val),Path) :-
   typeOfExp(Rc,Tp,ErTp,Env,Ev0,Rec,Path),
   newTypeVar("_V",VT),
   typeOfExp(Vl,VT,ErTp,Ev0,Ev,Val,Path).
-
-typeOfOpen(Lc,I,Tp,ErTp,Env,Ev,open(Lc,Exp,Tp),Path) :-
-  typeOfExp(I,Tp,ErTp,Env,Ev,Exp,Path).
-%  reportMsg("opened value %s:%s",[can(Exp),tpe(Tp)],Lc).
 
 typeOfRoundTerm(Lc,F,A,Tp,ErTp,Env,Call,Path) :-
   newTypeVar("F",FnTp),
@@ -958,6 +950,7 @@ checkAction(A,_Tp,ErTp,Env,Ev,doMatch(Lc,Ptn,Exp),Path) :-
   typeOfExp(E,TV,ErTp,Env,_,Exp,Path).
 checkAction(A,_Tp,ErTp,Env,Ev,doMatch(Lc,Ptn,Exp),Path) :-
   isMatch(A,Lc,P,E),!,
+  reportWarning("Use of .= in actions is deprecated",[],Lc),
   newTypeVar("V",TV),
   typeOfPtn(P,TV,ErTp,Env,Ev,Ptn,Path),
   typeOfExp(E,TV,ErTp,Env,_,Exp,Path).

@@ -37,11 +37,11 @@ star.compiler.freshen{
   
   genQuants:(typeRule,cons[(string,tipe)],dict)=>(cons[(string,tipe)],typeRule,dict).
   genQuants(allRule(nomnal(V),R),Q,E) => valof{
-    NV.=newTypeVar(V);
+    NV = newTypeVar(V);
     valis genQuants(R,[(V,NV),..Q],declareType(V,.none,NV,typeExists(NV,faceType([],[])),E))
   }
   genQuants(allRule(kFun(V,Ar),R),Q,E) => valof{
-    NV.=newTypeFun(V,Ar);
+    NV = newTypeFun(V,Ar);
     valis genQuants(R,[(V,NV),..Q],declareType(V,.none,NV,typeExists(NV,faceType([],[])),E))
   }
   genQuants(R,Q,E) => (Q,R,E).

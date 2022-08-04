@@ -52,7 +52,7 @@ star.compiler.macro.rules{
     "__loc__" -> [(.expression,locationMacro)],
     "-" -> [(.expression, uMinusMacro),(.pattern, uMinusMacro)],
     "^=" -> [(.expression, optionMatchMacro)],
-    "^" -> [(.expression,unwrapMacro)],
+    "^" -> [(.expression,unwrapMacro),(.expression,optvalMacro)],
     "!" -> [(.expression,binRefMacro)],
     "do" -> [(.actn,forLoopMacro)],
     "contract" -> [(.statement,contractMacro)],
@@ -61,6 +61,7 @@ star.compiler.macro.rules{
     "show" -> [(.actn,showMacro)],
     "\${}" -> [(.expression,taskMacro)],
     "generator" -> [(.expression,generatorMacro)],
+    "task" -> [(.expression,taskMacro)],
     "yield" -> [(.actn,yieldMacro)]
   }.
 
@@ -73,7 +74,7 @@ star.compiler.macro.rules{
 
   -- Convert show E to shwMsg(E,"E",Lc)
   showMacro(A,.actn) where (Lc,E) ^= isShow(A) => valof{
-    Shw .= ternary(Lc,"shwMsg",E,str(Lc,E::string),mkLoc(Lc));
+    Shw = ternary(Lc,"shwMsg",E,str(Lc,E::string),mkLoc(Lc));
     valis active(Shw)
   }
   showMacro(_,.actn) default => .inactive.
@@ -108,13 +109,18 @@ star.compiler.macro.rules{
     active(str(Lc,Pkg)).
 
   -- Convert expression P^E to X where E ^= P(X)
-  unwrapMacroA(A,.expression) where
+  unwrapMacro(A,.expression) where
       (Lc,Lhs,Rhs) ^= isOptionPtn(A) && (LLc,Nm) ^= isName(Lhs) => valof{
 	X = genName(LLc,"X");
    	valis active(mkWhere(Lc,X,mkMatch(LLc,Rhs,unary(LLc,Nm,X))))
       }.
   unwrapMacro(_,_) default => .inactive.
-	
+
+  -- Convert expression ^E to _optval(E)
+  optvalMacro(A,.expression) where (Lc,Rhs) ^= isOptVal(A) =>
+    active(unary(Lc,"_optval",Rhs)).
+  optvalMacro(_,_) default => .inactive.
+  
   -- Convert unary minus to a call to __minus
   uMinusMacro(A,_) where (Lc,R) ^= isUnary(A,"-") =>
     (int(_,Ix) .= R ?
@@ -155,7 +161,7 @@ star.compiler.macro.rules{
   genPut(Lc,H,T) where (_,L,R) ^= isPair(H) => ternary(Lc,"_put",T,L,R).
 
   comprehensionMacro(A,.expression) where (Lc,B,C) ^= isComprehension(A) => valof{
-    Q .= makeComprehension(Lc,B,C);
+    Q = makeComprehension(Lc,B,C);
     valis active(Q)
   }
   comprehensionMacro(_,_) => .inactive.
@@ -163,7 +169,7 @@ star.compiler.macro.rules{
   -- Convert {! Bnd | Body !}
   iotaComprehensionMacro(A,.expression) where
       (Lc,Bnd,Body) ^= isIotaComprehension(A) => valof{
-	CC .= makeCondition(Body,passThru,
+	CC = makeCondition(Body,passThru,
 	  genResult(unary(Lc,"some",Bnd)),
 	  lyfted(enum(Lc,"none")));
 	valis active(CC)
@@ -173,7 +179,7 @@ star.compiler.macro.rules{
   -- Convert {? Cond ?}
   testComprehensionMacro(A,.expression) where
       (Lc,Cond) ^= isTestComprehension(A) => valof{
-	CC .= makeCondition(Cond,passThru,
+	CC = makeCondition(Cond,passThru,
 	  genResult(enum(Lc,"true")),
 	  lyfted(enum(Lc,"false")));
 	valis active(CC)
@@ -212,13 +218,13 @@ star.compiler.macro.rules{
   */
   makeCondition:(ast,(lyfted[ast])=>ast,(lyfted[ast])=>ast,lyfted[ast]) => ast.
   makeCondition(A,Lift,Succ,Zed) where (Lc,Ptn,Src) ^= isSearch(A) => valof{
-    sF .= genName(Lc,"sF");
-    St .= genName(Lc,"St");
+    sF = genName(Lc,"sF");
+    St = genName(Lc,"St");
 
-    Eq1 .= equation(Lc,roundTerm(Lc,sF,[Ptn,St]),Succ(grounded(St)));
-    Eq2 .= equation(Lc,roundTerm(Lc,sF,[anon(Lc),St]),Lift(grounded(St)));
+    Eq1 = equation(Lc,roundTerm(Lc,sF,[Ptn,St]),Succ(grounded(St)));
+    Eq2 = equation(Lc,roundTerm(Lc,sF,[anon(Lc),St]),Lift(grounded(St)));
     
-    FF .= mkLetDef(Lc,[Eq1,Eq2],sF);
+    FF = mkLetDef(Lc,[Eq1,Eq2],sF);
     valis ternary(Lc,"_iter",Src,Lift(Zed),FF)
   }
   makeCondition(A,Lift,Succ,Zed) where (Lc,L,R) ^= isConjunct(A) =>
@@ -316,7 +322,7 @@ star.compiler.macro.rules{
 
   forLoopMacro(A,.actn) where (Lc,P,C,B) ^= isForDo(A) => valof{
     I = genName(Lc,"I");
-    Lb = genName(Lc,"Lb");
+    Lb = genId("Lb");
 
     /* Build ._all => break Lb */
     End = mkLambda(Lc,.false,enum(Lc,"_all"),.none,mkBreak(Lc,Lb));
@@ -393,14 +399,11 @@ star.compiler.macro.rules{
   }
 
   contractMacro(A,.statement) where
-      (Lc,Lhs,Els) ^= isContractStmt(A) => valof{
-	-- logMsg("contract $(Lhs) -- $(Els)");
-	(_,Nm,Q,C,T) ^= isContractSpec(Lhs);
-	-- logMsg("contract spec $(Nm) -- $(Q) -- $(C) -- $(T)");
-	(SLc,Op,As) ^= isSquareTerm(T);
-	DlNm .= dollarName(Op);
-	CTp .=contractType(SLc,DlNm,As);
-	ConTp .= mkAlgebraicTypeStmt(Lc,Q,C,CTp,braceTerm(SLc,Op,Els));
+      (Lc,Lhs,Els) ^= isContractStmt(A) && (_,Nm,Q,C,T) ^= isContractSpec(Lhs) &&
+      (SLc,Op,As) ^= isSquareTerm(T) => valof{
+	DlNm = dollarName(Op);
+	CTp =contractType(SLc,DlNm,As);
+	ConTp = mkAlgebraicTypeStmt(Lc,Q,C,CTp,braceTerm(SLc,Op,Els));
 	valis active(brTuple(Lc,[ConTp,mkCntrctStmt(Lc,Q,C,T,Els)]))
       }.
   contractMacro(A,_) default => .inactive.
@@ -454,23 +457,23 @@ star.compiler.macro.rules{
 
   makeAlgebraic:(option[locn],visibility,cons[ast],cons[ast],ast,ast) => cons[ast].
   makeAlgebraic(Lc,Vz,Q,Cx,H,Rhs) => valof{
-    (Qs,Xs,Face) .= algebraicFace(Rhs,Q,[]);
---    Fields .= sort(Face,compEls);
+    (Qs,Xs,Face) = algebraicFace(Rhs,Q,[]);
+--    Fields = sort(Face,compEls);
     TpExSt = reveal(reUQuant(Lc,Qs,reConstrain(Cx,binary(Lc,"<~",H,reXQuant(Lc,Xs,brTuple(Lc,Face))))),Vz);
 --    logMsg("Type rule is $(TpExSt)");
-    Cons .= buildConstructors(Rhs,Q,Cx,H,Vz);
+    Cons = buildConstructors(Rhs,Q,Cx,H,Vz);
 --    logMsg("Constructors are $(Cons)");
-    Accs .= buildAccessors(Rhs,Q,Cx,H,typeName(H),Face,Vz);
+    Accs = buildAccessors(Rhs,Q,Cx,H,typeName(H),Face,Vz);
 --    logMsg("Accessors are $(Accs)");
-    Ups .= buildUpdaters(Rhs,Q,Cx,H,typeName(H),Face,Vz);
+    Ups = buildUpdaters(Rhs,Q,Cx,H,typeName(H),Face,Vz);
 --    logMsg("Updaters are $(Ups)");
     valis [TpExSt,..Cons++Accs++Ups]
   }
 
   algebraicFace:(ast,cons[ast],cons[ast]) => (cons[ast],cons[ast],cons[ast]).
   algebraicFace(A,Qs,Xs) where (_,L,R) ^= isBinary(A,"|") => valof{
-    (Q1,X1,Lhs) .= algebraicFace(L,Qs,Xs);
-    (Qx,Xx,Rhs) .= algebraicFace(R,Q1,X1);
+    (Q1,X1,Lhs) = algebraicFace(L,Qs,Xs);
+    (Qx,Xx,Rhs) = algebraicFace(R,Q1,X1);
     Fs = combineFaces(Lhs,Rhs);
     valis (Qx,Xx,Fs)
   }

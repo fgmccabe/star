@@ -36,7 +36,7 @@ star.iterable{
 	};
 	valis ()
       }
-    } in {_ .= _iter(L,(),yieldFn)};
+    } in {_ = _iter(L,(),yieldFn)};
     retire ._all
   }
   

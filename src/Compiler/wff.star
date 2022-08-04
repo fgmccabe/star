@@ -661,6 +661,9 @@ star.compiler.wff{
 
   public isOptionPtn:(ast) => option[(option[locn],ast,ast)].
   isOptionPtn(A) => isBinary(A,"^").
+
+  public isOptVal:(ast) => option[(option[locn],ast)].
+  isOptVal(A) => isUnary(A,"^").
     
   public isDefault:(ast) => option[(option[locn],ast)].
   isDefault(A) => isUnary(A,"default").
@@ -672,18 +675,15 @@ star.compiler.wff{
 
   public mkTaskTerm(Lc,As) => brApply(Lc,"task",[As]).
 
+  public isTask(A) => isUnary(A,"task").
+
   public isActionSeq:(ast) => option[(option[locn],ast,ast)].
   isActionSeq(A) => isBinary(A,";").
 
   public actionSeq(Lc,L,R) => binary(Lc,";",L,R).
 
-  public isBind:(ast) => option[(option[locn],ast,ast)].
-  isBind(A) where R ^= isBinary(A,"<-") => some(R).
-  isBind(A) where (Lc,P,E) ^= isBinary(A,".=") &&
-      (_,V) ^= isUnary(E,"_perform") => some((Lc,P,V)).
-  isBind(_) default => .none.
-
-  public mkBind(Lc,L,R) => binary(Lc,"<-",L,R).
+  public isSoloSeq:(ast) => option[(option[locn],ast)].
+  isSoloSeq(A) => isUnary(A,";").
 
   public isValis:(ast) => option[(option[locn],ast)].
   isValis(A) => isUnary(A,"valis").
@@ -804,14 +804,17 @@ star.compiler.wff{
 
   public mkSequence(Lc,L,R) => binary(Lc,";",L,R).
 
-  public isLbldAction:(ast)=>option[(option[locn],ast,ast)].
-  isLbldAction(A) => isBinary(A,":").
+  public isLbldAction:(ast)=>option[(option[locn],string,ast)].
+  isLbldAction(A) where
+      (Lc,L,R) ^= isBinary(A,":") && (_,Lbl) ^= isName(L) => some((Lc,Lbl,R)).
+  isLbldAction(_) default => .none.
 
-  public mkLbldAction(Lc,L,R) => binary(Lc,":",L,R).
+  public mkLbldAction(Lc,Lb,R) => binary(Lc,":",nme(Lc,Lb),R).
 
-  public isBreak(A) => isUnary(A,"break").
+  public isBreak(A) where (Lc,L) ^= isUnary(A,"break") && (_,Lbl) ^= isName(L) =>
+    some((Lc,Lbl)).
 
-  public mkBreak(Lc,Lb) => unary(Lc,"break",Lb).
+  public mkBreak(Lc,Lb) => unary(Lc,"break",nme(Lc,Lb)).
 
   public isAbstraction:(ast) => option[(option[locn],ast,ast)].
   isAbstraction(A) where (Lc,[T]) ^= isBrTuple(A) &&
@@ -846,13 +849,14 @@ star.compiler.wff{
 
   public mkLabeledRecord(Lc,Lb,Els) => mkBrTerm(Lc,Lb,Els).
 
-  public isRecordUpdate:(ast) => option[(option[locn],ast,ast,ast)].
+  public isRecordUpdate:(ast) => option[(option[locn],ast,string,ast)].
   isRecordUpdate(A) where (Lc,Lhs,Vl) ^= isBinary(A,"<<-") &&
-      (_,Rc,Fld) ^= isFieldAcc(Lhs) => some((Lc,Rc,Fld,Vl)).
+      (_,Rc,F) ^= isFieldAcc(Lhs) &&
+      (_,Fld) ^= isName(F) => some((Lc,Rc,Fld,Vl)).
   isRecordUpdate(_) default => .none.
 
   public mkRecordUpdate(Lc,Rc,Fld,Vl) =>
-    binary(Lc,"<<-",mkFieldAcc(Lc,Rc,Fld),Vl).
+    binary(Lc,"<<-",mkFieldAcc(Lc,Rc,nme(Lc,Fld)),Vl).
 
   public implementation coercion[locn,ast]=>{
     _coerce(Lc where locn(Pkg,Line,Col,Off,Ln).=Lc)=>

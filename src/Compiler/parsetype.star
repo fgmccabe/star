@@ -40,7 +40,7 @@ star.compiler.typeparse{
       valis VTp
     else if (_,T,TpRl) ^= findType(Env,Nm) then{
       if isLambdaRule(TpRl) then{
-	(_,typeLambda(_,Rhs)) .= freshen(TpRl,Env);
+	(_,typeLambda(_,Rhs)) = freshen(TpRl,Env);
 	valis Rhs
       }
       else
@@ -263,8 +263,8 @@ star.compiler.typeparse{
 
   public parseContractConstraint:(tipes,ast,dict) => constraint.
   parseContractConstraint(Q,A,Env) where
-      (Lc,O,As) ^= isSquareTerm(A) && (_,Nm) ^= isName(O) => valof{
-	contractExists(Cn,_,_,_) .= parseContractName(O,Env);
+      (Lc,O,As) ^= isSquareTerm(A) && (OLc,Nm) ^= isName(O) => valof{
+	Cn = parseContractName(OLc,Nm,Env);
 --	logMsg("contract name $(typeKey(Cn))");
 	if [AAs].=As && (_,L,R) ^= isBinary(AAs,"->>") then{
 	  Tps = parseTypes(Q,deComma(L),Env);
@@ -280,14 +280,14 @@ star.compiler.typeparse{
     valis conTract("",[],[])
   }.
 
-  parseContractName:(ast,dict)=>typeRule.
-  parseContractName(Op,Env) where (_,Id) ^= isName(Op) => valof{
-    if Con ^= findContract(Env,Id) then {
-      valis snd(freshen(Con,Env))
-    }
+  parseContractName:(option[locn],string,dict)=>string.
+  parseContractName(Lc,Id,Env) => valof{
+    if Con ^= findContract(Env,Id) &&
+	contractExists(Cn,_,_,_) .= snd(freshen(Con,Env)) then
+      valis Cn
     else{
-      reportError("contract $(Op) not defined",locOf(Op));
-      valis typeExists(.voidType,.voidType)
+      reportError("contract $(Id) not defined",Lc);
+      valis Id
     }
   }
 
@@ -377,33 +377,33 @@ star.compiler.typeparse{
       [cnsDec(Lc,Nm,FullNm,Tp)])
   }
 
-  parseContractHead:(tipes,ast,dict,string) => constraint.
+  parseContractHead:(tipes,ast,dict,string) => (string,cons[tipe],cons[tipe]).
   parseContractHead(Q,Tp,Env,Path) where
       (Lc,O,Args) ^= isSquareTerm(Tp) => valof{
 	ConTp = parseType(Q,dollarName(O),Env);
 	if [A].=Args && (_,Lhs,Rhs)^=isBinary(A,"->>") then{
 	  ArgTps = parseHeadArgs(Q,deComma(Lhs),[],Env);
 	  DepTps = parseHeadArgs(Q,deComma(Rhs),[],Env);
-	  valis conTract(tpName(ConTp),ArgTps,DepTps)
+	  valis (tpName(ConTp),ArgTps,DepTps)
 	}
 	else{
 	  ArgTps = parseHeadArgs(Q,Args,[],Env);
-	  valis conTract(tpName(ConTp),ArgTps,[])
+	  valis (tpName(ConTp),ArgTps,[])
 	}
       }.
 
   public parseContract:(ast,dict,string) => (cons[canonDef],cons[decl]).
   parseContract(St,Env,Path) => valof{
-    (Lc,Q,C,T,Els) ^= isCntrctStmt(St);
-    (_,Op,As) ^= isSquareTerm(T);
-    (_,Id) ^= isName(Op);
+    (Lc,Q,C,T,Els) = ^isCntrctStmt(St);
+    (_,Op,As) = ^isSquareTerm(T);
+    (_,Id) = ^isName(Op);
     BV = parseBoundTpVars(Q);
     (Flds,Tps) = parseTypeFields(BV,Els,[],[],Env);
-    Face .= faceType(Flds,Tps);
-    conTract(Con,CTps,CDps) .= parseContractHead(BV,T,Env,Path);
+    Face = faceType(Flds,Tps);
+    (Con,CTps,CDps) = parseContractHead(BV,T,Env,Path);
     logMsg("contract head $(mkConType(Con,CTps,CDps))");
-    ConTp .= reQ(BV,mkConType(Con,CTps,CDps));
-    ConRlTp .= foldLeft(((_,QV),Rl)=>allRule(QV,Rl),contractExists(Con,CTps,CDps,Face),BV);
+    ConTp = reQ(BV,mkConType(Con,CTps,CDps));
+    ConRlTp = foldLeft(((_,QV),Rl)=>allRule(QV,Rl),contractExists(Con,CTps,CDps,Face),BV);
     valis ([conDef(Lc,Id,tpName(ConTp),ConRlTp)],
       [conDec(Lc,Id,tpName(ConTp),ConRlTp)])
   }
