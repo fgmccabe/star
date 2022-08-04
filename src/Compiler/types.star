@@ -374,7 +374,9 @@ star.compiler.types{
   public contType(A,B) => tpExp(tpExp(tpFun("=>>",2),A),B).
   public cnsType(A,B) => tpExp(tpExp(tpFun("<=>",2),tupleType(A)),B).
   public enumType(A) => tpExp(tpExp(tpFun("<=>",2),tupleType([])),A).
-  public refType(A) => tpExp(tpFun("star.core*ref",1),A).
+  public lstType(Tp) => tpExp(tpFun("star.core*cons",1),Tp).
+  public refType(Tp) => tpExp(tpFun("star.core*ref",1),Tp).
+  public taskType(R,S) => mkTypeExp(tpFun("star.core*task",2),[R,S]).
 
   public funTypeArg(Tp) where
       tpExp(O,_) .= deRef(Tp) &&
@@ -415,13 +417,6 @@ star.compiler.types{
   isConsType(existType(_,Tp)) => isConsType(deRef(Tp)).
   isConsType(constrainedType(T,_))=>isConsType(T).
 
-  public isContType:(tipe) => option[(tipe,tipe)].
-  isContType(Tp) where
-      tpExp(O,B).=deRef(Tp) &&
-      tpExp(O2,A) .= deRef(O) &&
-      tpFun("=>>",2).=deRef(O2) => some((A,B)).
-  isContType(_) default => .none.
-
   public isTupleType:(tipe) => option[(integer,cons[tipe])].
   isTupleType(Tp) =>
     (tupleType(A) .= deRef(Tp) ?
@@ -447,9 +442,6 @@ star.compiler.types{
   public fltType = nomnal("star.core*float").
   public strType = nomnal("star.core*string").
   public boolType = nomnal("star.core*boolean").
-  public lstType(Tp) => tpExp(tpFun("star.core*cons",1),Tp).
-  public refType(Tp) => tpExp(tpFun("star.core*ref",1),Tp).
-  public taskType(R,S) => mkTypeExp(tpFun("star.core*task",2),[R,S]).
 
   public isRefType(Tp) => tpExp(Op,_) .= deRef(Tp) &&
       tpFun("star.core*ref",1).=deRef(Op).

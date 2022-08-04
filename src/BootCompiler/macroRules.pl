@@ -24,6 +24,7 @@ macroRl("__loc__",expression,macroRules:macroLocationExp).
 macroRl("-",expression,macroRules:uminusMacro).
 macroRl("^=",expression,macroRules:optionMatchMacro).
 macroRl("^",expression,macroRules:unwrapExpMacro).
+macroRl("^",expression,macroRules:optvalMacro).
 macroRl("!",expression,macroRules:binRefMacro).
 macroRl(":=",action,macroRules:spliceAssignMacro).
 macroRl(":=",action,macroRules:indexAssignMacro).
@@ -256,6 +257,10 @@ optionMatchMacro(T,expression,Tx) :-
   unary(Lc,"some",P,SP),
   match(Lc,SP,E,Tx).
 
+optvalMacro(T,expression,Tx) :-
+  isOptVal(T,Lc,E),!,
+  unary(Lc,"_optval",E,Tx).
+
 unwrapExpMacro(T,expression,Tx) :-
   isBinary(T,Lc,"^",L,R),isIden(L,_,Con),!,
   genIden(Lc,V),
@@ -446,7 +451,7 @@ binRefMacro(T,expression,Rp) :-
 
    /* Build call to _generate */
    roundTerm(Lc,name(Lc,"_generate"),[C],IT),
-   match(Lc,I,IT,S1),
+   mkDefn(Lc,I,IT,S1),
 
    mkSequence(Lc,[S1,Lbld],Ax).
 

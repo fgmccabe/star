@@ -101,9 +101,9 @@ star.compiler.unify{
   faceOfType(T,_) where faceType(_,_).=deRef(T) => some(T).
   faceOfType(T,Env) => valof{
     if (_,_,Rl) ^= findType(Env,localName(tpName(T),.typeMark)) then{
-      (_,FRl) .= freshen(Rl,Env);
+      (_,FRl) = freshen(Rl,Env);
       if typeExists(Lhs,Rhs) .= FRl && sameType(Lhs,T,Env) then{
-	(_,RRhs) .= freshen(deRef(Rhs),Env);
+	(_,RRhs) = freshen(deRef(Rhs),Env);
 	valis fcTp(RRhs)
       }
       else

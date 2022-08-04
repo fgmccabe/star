@@ -72,7 +72,7 @@ star.compiler.dict.mgt{
 
   refreshVr:(option[locn],tipe,dict,(option[locn],tipe)=>canon) => canon.
   refreshVr(Lc,Tp,Env,Mkr) => valof{
-    (_,VrTp) .= freshen(Tp,Env);
+    (_,VrTp) = freshen(Tp,Env);
     valis manageConstraints(VrTp,Lc,Mkr)
   }    
 
@@ -96,7 +96,7 @@ star.compiler.dict.mgt{
 
   pickupEnum(Lc,Nm,Tp,Env) => valof{
 --    logMsg("freshen $(Nm)'s type: $(Tp)");
-    (_,VrTp) .= freshen(Tp,Env);
+    (_,VrTp) = freshen(Tp,Env);
 --    logMsg("freshened type of $(Nm) is $(VrTp)");
     valis manageConstraints(VrTp,Lc,(LLc,ETp)=>enm(LLc,Nm,ETp))
   }
@@ -119,15 +119,15 @@ star.compiler.dict.mgt{
 
   declareMethods:(option[locn],typeRule,dict) => dict.
   declareMethods(Lc,Spec,Dict) => valof{
-    (Q,contractExists(Nm,Tps,Dps,faceType(Mts,[]))) .= deQuantRule(Spec);
+    (Q,contractExists(Nm,Tps,Dps,faceType(Mts,[]))) = deQuantRule(Spec);
     valis formMethods(Mts,Lc,Q,conTract(Nm,Tps,Dps),Dict)
   }
 
   formMethods:(cons[(string,tipe)],option[locn],cons[tipe],constraint,dict) => dict.
   formMethods([],_,_,_,Dict) => Dict.
   formMethods([(Nm,Tp),..Mtds],Lc,Q,Con,Dict) => valof{
-    (MQ,MI) .= deQuant(Tp);
-    (MC,MT) .= deConstrain(MI);
+    (MQ,MI) = deQuant(Tp);
+    (MC,MT) = deConstrain(MI);
     valis formMethods(Mtds,Lc,Q,Con,
       declareMethod(Nm,Lc,reQuant(Q++MQ,
 	  reConstrainType([Con,..MC],MT)),Dict))

@@ -39,7 +39,7 @@ star.range{
 
   public implementation all a ~~ arith[a],comp[a] |: generate[range[a]->>a] => {.
     _generate(range(F,T,S)) => generator{
-      XX .= ref F;
+      XX := F;
       while XX! < T do{
 	yield XX!;
 	XX := XX! + S

@@ -30,7 +30,7 @@ star.compiler.catalog{
   parseSubCats:(uri,cons[json],cons[catalog]) => option[cons[catalog]].
   parseSubCats(_,[],So) => some(So).
   parseSubCats(U,[jTxt(CU),..Cs],So) => valof{
-    SC ^= (parseUri(CU) >>= (PU)=>
+    SC = ^(parseUri(CU) >>= (PU)=>
 	(RU^=resolveUri(U,PU) ? loadCatalog(RU) || .none));
     valis parseSubCats(U,Cs,[SC,..So])
   }

@@ -33,6 +33,7 @@
 	      isRecordUpdate/5,recordUpdate/5,
 	      isSlice/5,isSplice/6,
 	      isOptionMatch/4,optionMatch/4,
+	      isOptVal/3,mkOptVal/3,
 	      isConjunct/4,conjunct/4,isDisjunct/4,disjunct/4,
 	      isForall/4,mkForall/4,isNegation/3,negation/3,
 	      isMatch/4,match/4,isSearch/4,search/4,
@@ -557,6 +558,12 @@ isOptionMatch(Trm,Lc,Ptn,Vl) :-
 
 optionMatch(Lc,Ptn,Exp,Term) :-
   binary(Lc,"^=",Ptn,Exp,Term).
+
+isOptVal(Trm,Lc,E) :-
+  isUnary(Trm,Lc,"^",E).
+
+mkOptVal(Lc,E,Trm) :-
+  unary(Lc,"^",E,Trm).
 
 isCoerce(Trm,Lc,Lhs,Rhs) :-  isBinary(Trm,Lc,"::",Lhs,Rhs).
 

@@ -4,7 +4,6 @@ star.compiler.freevars{
 
   import star.compiler.canon.
   import star.compiler.location.
---  import star.compiler.core.
   import star.compiler.escapes.
   import star.compiler.intrinsics.
   import star.compiler.misc.
@@ -23,8 +22,9 @@ star.compiler.freevars{
   freeVarsInTerm(strng(_,_),_,_,Fv) => Fv.
   freeVarsInTerm(enm(_,_,_),_,_,Fv) => Fv.
   freeVarsInTerm(dot(_,Rc,_,_),Excl,Q,Fv) => freeVarsInTerm(Rc,Excl,Q,Fv).
-  freeVarsInTerm(mtd(_,_,_,_),_,_,Fv) => Fv.
+  freeVarsInTerm(mtd(_,_,_),_,_,Fv) => Fv.
   freeVarsInTerm(over(_,V,_),Excl,Q,Fv) => freeVarsInTerm(V,Excl,Q,Fv).
+  freeVarsInTerm(overaccess(_,V,_,_,_),Excl,Q,Fv) => freeVarsInTerm(V,Excl,Q,Fv).
   freeVarsInTerm(csexp(_,G,Cs,_),Excl,Q,Fv) =>
     foldLeft((Rl,F)=>freeVarsInRule(Rl,Excl,Q,F),
       freeVarsInTerm(G,Excl,Q,Fv),
@@ -66,9 +66,9 @@ star.compiler.freevars{
   freeVarsInCond(neg(Lc,R),Excl,Q,Fv) => freeVarsInCond(R,Excl,Q,Fv).
   freeVarsInCond(T,Excl,Q,Fv) => freeVarsInTerm(T,Excl,Q,Fv).
 
-  freeVarsInRule(rule(_,_,Ptn,.none,Exp),Excl,Q,Fv) =>
+  freeVarsInRule(rule(_,Ptn,.none,Exp),Excl,Q,Fv) =>
     freeVarsInTerm(Ptn,Excl,Q,freeVarsInTerm(Exp,Excl,Q,Fv)).
-  freeVarsInRule(rule(_,_,Ptn,some(Wh),Exp),Excl,Q,Fv) =>
+  freeVarsInRule(rule(_,Ptn,some(Wh),Exp),Excl,Q,Fv) =>
     freeVarsInTerm(Ptn,Excl,Q,freeVarsInTerm(Exp,Excl,Q,freeVarsInCond(Wh,Excl,Q,Fv))).
 
   public freeVarsInGroup:(cons[canonDef],set[frVr])=>set[frVr].
@@ -133,8 +133,9 @@ star.compiler.freevars{
   ptnVars(strng(_,_),Excl,_) => Excl.
   ptnVars(enm(_,_,_),Excl,Fv) => Excl.
   ptnVars(dot(_,Rc,_,_),Excl,Fv) => Excl.
-  ptnVars(mtd(_,_,_,_),Excl,Fv) => Excl.
+  ptnVars(mtd(_,_,_),Excl,Fv) => Excl.
   ptnVars(over(_,V,_),Excl,Fv) => ptnVars(V,Excl,Fv).
+  ptnVars(overaccess(_,V,_,_,_),Excl,Fv) => ptnVars(V,Excl,Fv).
   ptnVars(whr(_,E,C),Excl,Fv) =>
     glVars(C,ptnVars(E,Excl,Fv)).
   ptnVars(cond(_,T,L,R),Excl,Fv) => ptnVars(L,ptnVars(T,Excl,Fv),Fv)/\

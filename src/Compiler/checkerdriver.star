@@ -27,85 +27,75 @@ star.compiler.checker.driver{
 
   public _main:(cons[string])=>().
   _main(Args) => valof{
-    WI^=parseUri("file:"++_cwd());
-    RI^=parseUri("file:"++_repo());
-    handleCmds(processOptions(Args,[wdOption,
-	  stdinOption,
-	  repoOption,
-	  traceDependencyOption,
-	  traceAstOption,
-	  traceMacroOption,
-	  traceCheckOption,
-	  macroOnlyOption],
-	defltOptions(WI,RI)
-      ))
+    WI=^parseUri("file:"++_cwd());
+    RI=^parseUri("file:"++_repo());
+    try{
+      valis handleCmds(processOptions(Args,[wdOption,
+	    stdinOption,
+	    repoOption,
+	    traceDependencyOption,
+	    traceAstOption,
+	    traceMacroOption,
+	    traceCheckOption,
+	    macroOnlyOption],
+	  defltOptions(WI,RI)
+	))
+    } catch {
+      Msg => { logMsg(Msg);
+	valis ()
+      }
+    };
   }.
 
-  handleCmds:(either[string,(compilerOptions,cons[string])])=>result[(),()].
-  handleCmds(either((Opts,Args))) => do{
-    Repo <- openupRepo(Opts.repo,Opts.cwd);
+  handleCmds:((compilerOptions,cons[string]))=>().
+  handleCmds((Opts,Args)) => valof{
+    Repo = openupRepo(Opts.repo,Opts.cwd);
     
     if CatUri ^= parseUri("catalog") && CatU ^= resolveUri(Opts.cwd,CatUri) &&
 	Cat ^= loadCatalog(CatU) then{
 	  for P in Args do{
-	    ErRp .= reports([]);
+	    resetErrors();
 
-	    try{
-	      processPkg(extractPkgSpec(P),Repo,Cat,Opts,ErRp)
-	    } catch (Er) => do{
-	      logMsg("$(Er)");
-	      valis _exit(9)
-	    }
+	    processPkg(extractPkgSpec(P),Repo,Cat,Opts)
 	  }
 	}
     else{
       logMsg("could not access catalog")
     }
   }
-  handleCmds(other(Msg)) => do{
-    logMsg(Msg)
-  }
 
   extractPkgSpec(P) where Lc ^= strFind(P,":",0) => pkg(P[0:Lc],P[Lc+1:size(P)]::version).
   extractPkgSpec(P) default => pkg(P,.defltVersion).
 
-  implementation all e,k ~~ coercion[(option[k],e),result[e,k]] => {
-    _coerce((.none,R)) => some(bad(R)).
-    _coerce((some(A),_)) => some(ok(A)).
-  }
-
-  implementation all e,k ~~ coercion[either[e,k],result[e,k]] => {
-    _coerce(either(E)) => some(ok(E)).
-    _coerce(other(A)) => some(bad(A)).
-  }
-
-  processPkg:(pkg,termRepo,catalog,compilerOptions,reports) => result[reports,()].
-  processPkg(P,Repo,Cat,Opts,Rp) => do{
+  processPkg:(pkg,termRepo,catalog,compilerOptions) => ().
+  processPkg(P,Repo,Cat,Opts) => valof{
     logMsg("Macro processing $(P)");
     if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
-      Ast <- parseSrc(SrcUri,CPkg,Rp)::result[reports,ast];
+      Ast = ^parseSrc(SrcUri,CPkg);
       if traceAst! then{
 	logMsg("Ast of $(P) is $(Ast)")
       };
-      M <- macroPkg(Ast,Rp);
+      M = macroPkg(Ast);
       if traceMacro! then{
 	logMsg("Macroed package $(M)")
       };
 
       if ~ macroOnly! then{
-	C <- (checkPkg(Repo,CPkg,M,Opts,Rp)::result[reports,(pkgSpec,cons[canonDef],cons[decl])]);
+	C = checkPkg(Repo,CPkg,M,Opts);
 	if traceCanon! then {
 	  logMsg("type checked $(C)")
 	};
       }
     }
-    else
-    raise reportError(Rp,"cannot locate source of $(P)",some(pkgLoc(P)))
+    else{
+      reportError("cannot locate source of $(P)",some(pkgLoc(P)));
+      valis ()
+    }
   }
 
-  openupRepo:(uri,uri) => result[(), termRepo].
-  openupRepo(RU,CU) where CRU ^= resolveUri(CU,RU) => do{
-    Repo .= openRepository(CRU);
+  openupRepo:(uri,uri) => termRepo.
+  openupRepo(RU,CU) where CRU ^= resolveUri(CU,RU) => valof{
+    Repo = openRepository(CRU);
     valis Repo
   }
 }

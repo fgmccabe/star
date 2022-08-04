@@ -126,12 +126,24 @@ star.compiler.ast{
   public genName:(option[locn],string) => ast.
   genName(Lc,Pr) => valof{
     if Last^=generated![Pr] then{
-      Nxt .= Last+1;
+      Nxt = Last+1;
       generated[Pr] := Nxt;
       valis nme(Lc,"#(Pr)*$(Nxt)")
     } else{
       generated[Pr] := 0;
       valis nme(Lc,"#(Pr)*0")
+    }
+  }
+  
+  public genId:(string) => string.
+  genId(Pr) => valof{
+    if Last^=generated![Pr] then{
+      Nxt = Last+1;
+      generated[Pr] := Nxt;
+      valis "#(Pr)*$(Nxt)"
+    } else{
+      generated[Pr] := 0;
+      valis "#(Pr)*0"
     }
   }
 
@@ -149,9 +161,17 @@ star.compiler.ast{
   isInt(int(Lc,Ix)) => some((Lc,Ix)).
   isInt(_) default => .none.
 
+  public isBig:(ast) => option[(option[locn],string)].
+  isBig(big(Lc,Ix)) => some((Lc,Ix)).
+  isBig(_) default => .none.
+
   public isFlt:(ast) => option[(option[locn],float)].
   isFlt(num(Lc,Dx)) => some((Lc,Dx)).
   isFlt(_) default => .none.
+
+  public isChr:(ast) => option[(option[locn],char)].
+  isChr(chr(Lc,Cx)) => some((Lc,Cx)).
+  isChr(_) default => .none.
 
   public isStr:(ast) => option[(option[locn],string)].
   isStr(str(Lc,Sx)) => some((Lc,Sx)).

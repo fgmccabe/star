@@ -30,26 +30,26 @@ star.compiler.term.repo{
 
   public flushRepo:(termRepo)=>termRepo.
   flushRepo(repo(Root,Man)) => valof{
-    MU ^= parseUri("manifest");
-    RepoUri ^= resolveUri(Root,MU);
-    _ .= flushManifest(RepoUri,Man);
+    if MU ^= parseUri("manifest") && RepoUri ^= resolveUri(Root,MU) then{
+      flushManifest(RepoUri,Man)
+    };
     valis repo(Root,Man);
   }
   
   public addToRepo:(termRepo,pkg,string,string) => termRepo.
   addToRepo(repo(Root,Man),pkg(Pk,Vr),Kind,Text) => valof{
-    Ext .= extensionMapping(Kind);
-    Fn .= Pk++(hash(Pk)::string)++Ext;
-    FUri ^= parseUri(Fn);
-    FU ^= resolveUri(Root,FUri);
+    Ext = extensionMapping(Kind);
+    Fn = Pk++(hash(Pk)::string)++Ext;
+    FUri = ^parseUri(Fn);
+    FU = ^resolveUri(Root,FUri);
 --    logMsg("dest uri $(FU)");
-    _ .= putResource(FU,Text);
+    putResource(FU,Text);
 --    logMsg("written");
-    NM .= addToManifest(Man,pkg(Pk,Vr),Kind,Fn);
+    NM = addToManifest(Man,pkg(Pk,Vr),Kind,Fn);
 --    logMsg("added to manifest");
-    MU ^= parseUri("manifest");
-    RepoUri ^= resolveUri(Root,MU);
-    () .= flushManifest(RepoUri,NM);
+    MU = ^parseUri("manifest");
+    RepoUri = ^resolveUri(Root,MU);
+    flushManifest(RepoUri,NM);
 --    logMsg("manifest flushed");
     valis repo(Root,NM)
   }

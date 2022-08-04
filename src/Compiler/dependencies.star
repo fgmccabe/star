@@ -495,8 +495,8 @@ star.compiler.dependencies{
   }
 
   collectContractRefs:(ast,map[defnSp,defnSp],cons[defnSp]) => cons[defnSp].
-  collectContractRefs(T,All,Rf) where (_,Op,Args) ^= isSquareTerm(T) => valof {
-    (_,Id) ^= isName(Op);
+  collectContractRefs(T,All,Rf) where
+      (_,Op,Args) ^= isSquareTerm(T) && (_,Id)^=isName(Op) => valof {
     R0 = collectName(conSp(Id),All,Rf);
     valis collectTypeList(Args,All,R0)
   }
