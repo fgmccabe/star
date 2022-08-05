@@ -234,10 +234,6 @@ static retCode cmdComplete(strBufferPo b, void *cl, integer cx) {
   }
 }
 
-static void dbgPrompt(processPo p) {
-  outMsg(debugOutChnnl, "\n[%d]>>%_", processNo(p));
-}
-
 static DebugWaitFor cmder(debugOptPo opts, processPo p, methodPo mtd, termPo loc) {
   static strBufferPo cmdBuffer = Null;
 
@@ -245,7 +241,7 @@ static DebugWaitFor cmder(debugOptPo opts, processPo p, methodPo mtd, termPo loc
     cmdBuffer = newStringBuffer();
 
   while (interactive) {
-    dbgPrompt(p);
+    outMsg(debugOutChnnl, "\n[%d]>%s %_", processNo(p), (insDebugging ? "i" : lineDebugging ? "$" : ""));
     clearStrBuffer(cmdBuffer);
 
     setEditLineCompletionCallback(cmdComplete, (void *) opts);
@@ -1113,7 +1109,21 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
 
 void showRegisters(processPo p, heapPo h) {
   stackPo stk = p->stk;
-  showStackEntry(debugOutChnnl, stk, stk->fp, stk->fp - ((framePo) stk->stkMem), False);
+  framePo fp = stk->fp;
+  methodPo mtd = fp->prog;
+  ptrPo limit = stackLcl(stk, fp, lclCount(fp->prog));
+  ptrPo sp = stk->sp;
+
+  for (integer ix = 0; sp < limit; ix++, sp++) {
+    outMsg(debugOutChnnl, "SP[%d]=%,*T\n", ix, displayDepth, *sp);
+  }
+
+  integer count = argCount(mtd);
+  for (integer ix = 0; ix < count; ix++) {
+    outMsg(debugOutChnnl, "A[%d]=%,*T\n", ix, displayDepth, *stackArg(stk, fp, ix));
+  }
+
+  showAllLocals(debugOutChnnl, stk, fp);
 
 #ifdef TRACEEXEC
   if (debugDebugging) {

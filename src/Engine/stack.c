@@ -358,30 +358,24 @@ showStackCall(ioPo out, integer displayDepth, logical showLocals, stackPo stk, f
 
     termPo locn = findPcLocation(mtd, pcOffset);
     if (locn != Null)
-      outMsg(out, "[%d] %#L: %#T(", frameNo, locn, mtd);
+      outMsg(out, "[%d] %#L: %T(", frameNo, locn, mtd);
     else
-      outMsg(out, "[%d] (unknown loc): %#T[%d](", frameNo, mtd, pcOffset);
+      outMsg(out, "[%d] (unknown loc): %T[%d](", frameNo, mtd, pcOffset);
 
     integer count = argCount(mtd);
     char *sep = "";
     for (integer ix = 0; ix < count; ix++) {
-      outMsg(out, "%s%#,*T", sep, displayDepth, *stackArg(stk, fp, ix));
+      outMsg(out, "%s%,*T", sep, displayDepth, *stackArg(stk, fp, ix));
       sep = ", ";
     }
     outMsg(out, ")\n");
     if (showLocals && sp < fp->csp) {
-      integer lcls = lclCount(mtd);
-      ptrPo lsp = fp->csp - lcls;
-      for (integer vx = 0; sp < lsp; vx++, sp++) {
-        if (*sp != Null) {
-          outMsg(out, "  S[%d] = %#,*T\n", vx, displayDepth, *sp);
-        }
-      }
+      count = lclCount(mtd);
 
-      for (integer vx = 1; vx <= lcls; vx++) {
+      for (integer vx = 1; vx <= count; vx++) {
         ptrPo var = stackLcl(stk, fp, vx);
         if (*var != Null && *var != voidEnum)
-          outMsg(out, "  L[%d] = %#,*T\n", vx, displayDepth, *var);
+          outMsg(out, "  L[%d] = %,*T\n", vx, displayDepth, *var);
       }
     }
   }

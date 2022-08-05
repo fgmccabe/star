@@ -61,7 +61,8 @@ star.compiler.checker.driver{
 	}
     else{
       logMsg("could not access catalog")
-    }
+    };
+    valis ()
   }
 
   extractPkgSpec(P) where Lc ^= strFind(P,":",0) => pkg(P[0:Lc],P[Lc+1:size(P)]::version).
@@ -85,7 +86,8 @@ star.compiler.checker.driver{
 	if traceCanon! then {
 	  logMsg("type checked $(C)")
 	};
-      }
+      };
+      valis ()
     }
     else{
       reportError("cannot locate source of $(P)",some(pkgLoc(P)));
