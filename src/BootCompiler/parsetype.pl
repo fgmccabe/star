@@ -408,7 +408,8 @@ genUpdaterEquation(Lc,ConsNm,Fld,FldTp,Tp,AllElTps,
 			       tple(Lc,ValPtns),Tp,none)
 			 )|Eqns],Eqns) :-
   XX = v(Lc,"XX",FldTp),
-  allArgs(AllElTps,Fld,XX,Lc,ArgTps,ArgPtns,ValPtns).
+  sort(AllElTps,parsetype:cmpVarDef,SortedTps),
+  allArgs(SortedTps,Fld,XX,Lc,ArgTps,ArgPtns,ValPtns).
 
 allArgs([],_,_,_,[],[],[]) :- !.
 allArgs([(F,T)|As],F,V,Lc,[T|Ts],[anon(Lc,T)|Ps],[V|AAs]) :-
