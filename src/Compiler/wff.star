@@ -813,6 +813,7 @@ star.compiler.wff{
 
   public isBreak(A) where (Lc,L) ^= isUnary(A,"break") && (_,Lbl) ^= isName(L) =>
     some((Lc,Lbl)).
+  isBreak(_) default => .none.
 
   public mkBreak(Lc,Lb) => unary(Lc,"break",nme(Lc,Lb)).
 

@@ -9,7 +9,7 @@ star.script{
     }
     else{
       logMsg("failed assert #(Msg) at $(Lc)");
-      _ .= _exit(1);
+      _exit(1)
     };
     valis ()
   }

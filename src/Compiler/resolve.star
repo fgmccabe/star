@@ -155,9 +155,9 @@ star.compiler.resolve{
       valis (overaccess(Lc,T,RcTp,Fld,FldTp),active(Lc,"cannot find accessor for #(Fld)"))
     }
   }
-  overloadTerm(apply(lc,over(OLc,T,Cx),Args,Tp),Dict,St) => valof{
+  overloadTerm(apply(lc,over(OLc,T,Cx),tple(ALc,Args),Tp),Dict,St) => valof{
     (DArgs,St1) = resolveContracts(OLc,Cx,[],Dict,St);
-    (tple(ALc,RArgs),St2) .= overloadTerm(Args,Dict,St1);
+    (RArgs,St2) = overloadTplEls(Args,Dict,St1);
     (OverOp,NArgs,St3) = resolveRef(T,DArgs,RArgs,Dict,St2);
     valis (apply(lc,OverOp,tple(ALc,NArgs),Tp),markResolved(St3))
   }

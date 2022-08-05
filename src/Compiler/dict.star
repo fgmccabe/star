@@ -88,7 +88,7 @@ star.compiler.dict{
     Key = tpName(Tp);
     Entry = accEntry(Lc,AccFn,AccTp);
     Accs = Scope.accessors;
---    logMsg("declare accessor for $(Tp)[$(Key)].#(Fld) |:$(AccTp)");
+    
     if AccOrs ^= Accs[Key] then{
       valis [Scope.accessors<<-Accs[Key->AccOrs[Fld->Entry]],..Env]
     } else{

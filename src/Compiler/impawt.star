@@ -35,18 +35,14 @@ star.compiler.impawt{
 
   pickupPkgSpec:(string,option[locn]) => option[pkgSpec].
   pickupPkgSpec(Txt,Lc) => valof{
-    try{
-      (term(_,[Pk,term(_,Imps),term(_,Ds)]),_).=decodeTerm(Txt::cons[char]);
+    if (term(_,[Pk,term(_,Imps),term(_,Ds)]),_).=decodeTerm(Txt::cons[char]) then{
       Pkg = ^pickupPkg(Pk);
       Imports = pickupImports(Imps,Lc);
       Decls = pickupDeclarations(Ds,Lc);
       valis some(pkgSpec(Pkg,Imports,Decls))
-    }
-    catch{
-      (_) => {
-	reportError("count not decode package spec",Lc);
-	valis .none
-      }
+    } else {
+      reportError("count not decode package spec",Lc);
+      valis .none
     }
   }
 

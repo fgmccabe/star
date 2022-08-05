@@ -17,8 +17,8 @@ star.compiler.macro.driver{
 
   public _main:(cons[string])=>().
   _main(Args) => valof{
-    WI^=parseUri("file:"++_cwd());
-    RI^=parseUri("file:"++_repo());
+    WI=^parseUri("file:"++_cwd());
+    RI=^parseUri("file:"++_repo());
     try{
       handleCmds(processOptions(Args,[wdOption,
 	    stdinOption,
@@ -54,7 +54,7 @@ star.compiler.macro.driver{
   processPkg(P,Cat,Opts) => valof{
     logMsg("Macro processing $(P)");
     if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
-      Ast ^= parseSrc(SrcUri,CPkg);
+      Ast = ^parseSrc(SrcUri,CPkg);
       if traceAst! then{
 	logMsg("Ast of $(P) is $(Ast)")
       };
