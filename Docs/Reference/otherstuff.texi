@@ -432,7 +432,7 @@ constructed manually.
 of all the fields in any of the @var{RecordConstructor}s that are
 defined within the definition.
 
-This interface -- which takes the form of a @var{RecordType} --
+This interface -- which takes the form of a @var{FaceType} --
 contains a @var{Annotation} for every @var{Annotation} that is present
 in a @var{RecordConstructor}.
 

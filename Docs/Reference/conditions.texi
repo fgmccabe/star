@@ -24,7 +24,7 @@ example of a condition.
   | @refer{ImpliesCondition}
   | @refer{NegatedCondition}
   | @refer{ConditionalCondition}
-  | @code{'('} @refer{Condition} @code{')'}
+  | @code{(} @refer{Condition} @code{)}
   | @refer{Expression}
 @end display
 @end float
@@ -41,8 +41,8 @@ the expression.
 @float BNF,matchesPredicateFig
 @caption{Matches Condition}
 @display
-@anchored{MatchesCondition}::=@refer{Pattern} @code{'.='} @refer{Expression}
-@anchored{HasValueCondition} ::= @refer{Pattern} @code{'^='} @refer{Expression}
+@anchored{MatchesCondition}::=@refer{Pattern} @code{.=} @refer{Expression}
+@anchored{HasValueCondition} ::= @refer{Pattern} @code{^=} @refer{Expression}
 @end display
 @end float  
 
@@ -94,7 +94,7 @@ unwraps the optional value of @code{P} into the non-optional @code{PP}.
 @c @float BNF,indexedSearchFormFig
 @c @caption{Indexed Search Condition}
 @c @display
-@c @anchored{IndexedSearchCondition}::=@refer{Pattern} @code{'->'} @refer{Pattern} @code{'in'} @refer{Expression}
+@c @anchored{IndexedSearchCondition}::=@refer{Pattern} @code{->} @refer{Pattern} @code{in} @refer{Expression}
 @c @end display
 @c @end float
 
@@ -132,7 +132,7 @@ the left and right `arms' of the conjunction are satisfied.
 @float BNF,conjunctionConditionFig
 @caption{Conjunction Condition}
 @display
-@anchored{ConjunctionCondition}::=@refer{Condition} @code{'&&'} @refer{Condition}
+@anchored{ConjunctionCondition}::=@refer{Condition} @code{&&} @refer{Condition}
 @end display
 @end float
 
@@ -160,7 +160,7 @@ A disjunction -- using the @code{||} operator -- is satisfied if either the left
 @float BNF,disjunctionConditionFig
 @caption{Disjunction Condition}
 @display
-@anchored{DisjunctionCondition}::=@refer{Condition} @code{'||'} @refer{Condition}
+@anchored{DisjunctionCondition}::=@refer{Condition} @code{||} @refer{Condition}
 @end display
 @end float
 
@@ -182,7 +182,7 @@ A negation is satisfied iff the operand is @emph{not} satisfied.
 @float BNF,negationConditionFig
 @caption{Negation Condition}
 @display
-@anchored{NegatedCondition}::= @code{'~'} @refer{Condition}
+@anchored{NegatedCondition}::= @code{~} @refer{Condition}
 @end display
 @end float
 
@@ -200,7 +200,7 @@ every solution to the left hand side.
 @float BNF,impliesConditionFig
 @caption{Implies Condition}
 @display
-@anchored{ImpliesCondition}::=@refer{Condition} @code{'*>'} @refer{Condition}
+@anchored{ImpliesCondition}::=@refer{Condition} @code{*>} @refer{Condition}
 @end display
 @end float
 
@@ -237,7 +237,7 @@ depends on a test.
 @float BNF,conditionConditionFig
 @caption{Condition Condition}
 @display
-@anchored{ConditionalCondition}::= @code{'('} @refer{Condition} @code{'?'} @refer{Condition} @code{'||'} @refer{Condition} @code{')'}
+@anchored{ConditionalCondition}::= @code{(} @refer{Condition} @code{?} @refer{Condition} @code{||} @refer{Condition} @code{)}
 @end display
 @end float
 

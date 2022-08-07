@@ -8,7 +8,7 @@ determinable by inspecting the text of the program -- effectively at
 @emph{compile time}.
 
 The type system consists of a method for declaring new types, for
-annotating variables (and by extension programs) with their types and
+annotating expressions (and by extension programs) with their types and
 a system of verifying the type consistency of programs.
 
 This chapter focuses on the type language itself and the semantics of
@@ -18,7 +18,7 @@ types.
 @section What is a Type?
 
 @quotation
-A Type is an expression that denotes a set of values.
+A Type is an expression that denotes a collection of values.
 @end quotation
 
 @quotation TIP
@@ -27,9 +27,9 @@ confused with normal expressions. Types generally play no part in
 evaluation.
 @end quotation
 
-Viewed as sets, types have some particular properties: no value may be
-a member of more than one type set; all values are members of exactly
-one type set.
+Viewed as collections, types have some particular properties: no value may be
+a member of more than one type collection; all values are members of exactly
+one type collection.
 
 A @refer{TypeDefinition} introduces a new type and defines what values
 belong to the type. A @refer{TypeAnnotation} is an assertion that a
@@ -113,9 +113,9 @@ denotes a list type of some unspecified element type -- identified by
 the type variable @code{t}.
 
 @quotation TIP
-The value set associated with this type expression is a little more
+The collection of values associated with this type expression is a little more
 difficult to visualize than the set of lists of integers
-(say). @code{cons[t]} denotes a set of cons values; but without more
+(say). @code{cons[t]} denotes a set of @code{cons} values; but without more
 information @emph{we cannot say} what the complete values look like --
 it is dependent on the meaning of the type variable @code{t}.
 @end quotation
@@ -163,7 +163,7 @@ signals that the value is a function.
 @anchored{Type}::=@refer{NominalType}
   | @refer{TypeVariable}
   | @refer{TupleType}
-  | @refer{RecordType}
+  | @refer{FaceType}
   | @refer{ReferenceType}
   | @refer{FunctionType}
   | @refer{ConstructorType}
@@ -214,13 +214,13 @@ nodes of the tree are typically themselves trees.
 
 @anchored{TypeConstructor} ::= @refer{Identifier}
 
-@anchored{TypeArgument} ::= @refer{Type} | @refer{Type} ,@dots{}, @refer{Type}
+@anchored{TypeArgument} ::= @refer{Type} | @refer{Type} @code{,}@dots{}@code{,} @refer{Type}
 
 @end display
 @end float
 
-@node Simple Types
-@subsection Simple Types
+@node Predefined Simple Types
+@subsection Predefined Simple Types
 @cindex simple type
 
 A simple type is a @ref{NominalType} with no type arguments. Some
@@ -296,7 +296,7 @@ parameterized type.
 @subsection Type Interface
 @anchor{algebraicInterface}
 
-Nominal types are associated with a @refer{RecordType} that denotes
+Nominal types are associated with a @refer{FaceType} that denotes
 nthe @emph{interface} to the type.
 
 This interface contains all the fields that are defined in any of the
@@ -308,7 +308,7 @@ For example, given the type definition:
 person ::= layPerson@{name : string. address:string @}
   | student@{name:string. study:string @}
 @end example
-the interface to @code{person} is determined to be the @refer{RecordType}:
+the interface to @code{person} is determined to be the @refer{FaceType}:
 @example
 @{
   name : string.
@@ -423,14 +423,14 @@ have a dual role: to group expressions and as a notation for tuples.}
 @cindex type,record type
 @cindex record type
 @noindent
-A @refer{RecordType} is a type expression that denotes a named
+A @refer{FaceType} is a type expression that denotes a named
 association of fields and types. A record type is written as a
 sequence of type annotations enclosed in braces.
 
 @float BNF,recordTypeFig
 @caption{Record Type}
 @display
-@anchored{RecordType} ::= @code{@{}@refer{Annotation} @dots{} @refer{Annotation} @code{@}}
+@anchored{FaceType} ::= @code{@{}@refer{Annotation} @dots{} @refer{Annotation} @code{@}}
 
 @anchored{Annotation} ::= @refer{TypeAnnotation}
   | @refer{TypeEquality}
@@ -463,11 +463,11 @@ these types unify -- assuming that @code{t} is a bound type variable --
 provided that @code{t} is unifiable with @code{string}.
 
 @quotation NOTE
-All nomimal types have a @refer{RecordType} interface associated with
+All nomimal types have a @refer{FaceType} interface associated with
 them. This, as is detailed in @refer{algebraicInterface}, defines a type
 for all of the fields in any of the constructors for the type. In
-turn, this permits a @refer{RecordAccess} expression to apply to a
-user-defined type as well as a @refer{RecordType}.
+turn, this permits a @refer{FieldAccess} expression to apply to a
+user-defined type as well as a @refer{FaceType}.
 @end quotation
 
 @node Function Types
@@ -537,8 +537,6 @@ the lexical context of a @refer{TryCatchAction}, @refer{TryCatchExpression}
 expression, or it must be within the definition of a function that is
 also declared to throw @code{string} exceptions.
 
-
-
 @node Constructor Type
 @subsubsection Constructor Type
 @cindex constructor type
@@ -561,7 +559,7 @@ reflects that bidirectionality.
 @end float
 
 The left hand side of a constructor type should either be a
-@refer{TupleType} or an @refer{RecordType} -- depending on whether the
+@refer{TupleType} or an @refer{FaceType} -- depending on whether the
 denoted constructor is a term constructor constructor or a record
 constructor.
 
@@ -675,9 +673,8 @@ denotes a variable which may only be bound to type constructors that
 take one argument -- for example @code{cons}.
 
 @quotation WARNING
-It is a type error to bind @code{c} to a regular (complete) type
-expression; or to a type constructor that takes more than one type
-argument.
+A regular type variable only unifies with regular types, and a type
+constructor type variable only unifies with type constructors.
 @end quotation
 
 There is also a short hand form of the universally quantified type
@@ -796,7 +793,7 @@ type constructor of appropriate arity.
 
 For example, given:
 @example
-all t ~~ cons[t] ::= nil | cons(t, cons[t]).
+all t ~~ cons[t] ::= .nil | cons(t, cons[t]).
 @end example
 
 The type variable @code{t} may be bound to a type expression such as
@@ -1115,7 +1112,7 @@ r <~ @{ alpha : string. beta : integer @}
 @end example
 
 if @code{r} is unified against a concrete type then that type's
-@refer{RecordType} interface (see @refer{algebraicInterface}) must contain
+@refer{FaceType} interface (see @refer{algebraicInterface}) must contain
 both of @code{alpha} and @code{beta}. In addition, the fields must be
 of the right types.
 
@@ -1133,7 +1130,6 @@ requires that any actual binding for type
 @section Type Semantics
 @cindex semantics of types
 
-
 @node Type Rules
 @subsection Type Rules
 @cindex type safety
@@ -1146,21 +1142,17 @@ expressions and statements in the language to the types associated
 with that statement. For example, the rule:
 
 @display
-@typeprod{E,@var{El}@sub{1},@var{T}},@dots{},@typeprod{E,El@sub{n},@var{T}}
+@typeprod{E,@var{El},@var{T}}
 @result{}
-@typeprod{E,@code{cons of[@var{El}@sub{1}@comma{}@dots{}@comma{}@var{El}@sub{n}]},@code{cons[@var{T}]}}
+@typeprod{E,@code{cons(@var{El},.nil)},@code{cons[@var{T}]}}
 @end display
-says that if the expressions @var{El@sub{1}} through @var{El@sub{n}}
-all have type @var{T}, then the list expression
+says that if the expression @var{El}
+has type @var{T}, then the expression
 @example
-cons of [@emph{El@sub{1}}@comma{}@dots{}@comma{}@emph{El@sub{n}}]
+cons(@emph{El@sub{1}},.nil)
 @end example
 has type @code{cons[@var{T}]}. This is the formal way of stating that
-all elements of a list must have the same type -- in this case because all the elements of the list have the same type:
-
-@display
-@typeprod{E,@var{El}@sub{i},@var{T}}
-@end display
+all elements of a @code{cons} list must have the same type.
 
 The general form of a type inference rule that is determining a type
 (sometimes called a type judgment) is:
@@ -1226,21 +1218,24 @@ Freshening is closely connected to the logical inference step of
 @emph{standardizing apart}; which involves renaming bound variables so
 that they are unique and moving the associated quantifier @emph{all
 the way outside}. In effect, the new type variable becomes free in the
-logical formula.
+logical formula that represents the type of the entire program.
 @end quotation
 
 The most common situation that freshening occurs when inferring the
-type of an identifier occurrence. Informally, freshening corresponds
-to the intuition that a generic type may be used in many ways; and
-this is realized in type inference by freshening the recorded type of
-an identifier for each occurrence of the identifier in the program.
+type of an identifier occurrence: the type ascribed to an identifier
+@emph{occurrence} is the recorded type of the identifier --
+freshened. Informally, freshening corresponds to the intuition that a
+generic type may be used in many ways; and this is realized in type
+inference by freshening the recorded type of an identifier for each
+occurrence of the identifier in the program.
 
 @node Skolemization
 @subsubsection Skolemization
 
 Skolemization refers to the process of copying a quantified type
 expression and replacing the bound type variable with a @emph{new}
-type; crucially, one that is @emph{not} equal to any existing type.
+unique type; crucially, one that is @emph{not} equal to any other
+type.
 
 The most common situation that skolemization occurs is when validating
 that a variable's definition is consistent with its declared type.
@@ -1251,20 +1246,21 @@ certain constraints: specifically the definition may not further
 constrain the type by any entanglement with additional
 constraints.
 
-This is acheived by marking the type variable as
-effectively read-only within the definition; or equivalently, by using
-a new type that does not appear anywhere and therefore has no
-knowledge of functions that may be defined for it.
+This is acheived by marking the type variable as effectively read-only
+within the definition; or equivalently, by using a new type that does
+not appear anywhere and therefore has no knowledge of functions that
+may be defined for it.
 
 @node Type Unification
 @subsection Type Unification
 @cindex type,unification
 
 @noindent
-The type system is based on the concept of type
-@emph{equality}. Unification is an algorithm that can be used to
-determine if two terms can be made to be identical to each other --
-typically by replacing variables with values.
+The type system is based on the concept of type @emph{equality} --
+specifically two types are considered equal iff they are syntactically
+identical. Unification is an algorithm that can be used to determine
+if two terms can be made to be identical to each other -- typically by
+replacing variables with values.
 
 @node Unifying Nominal Types
 @subsubsection  Unifying Nominal Types
@@ -1283,6 +1279,12 @@ but,
 integer @noteq{} string
 @end example
 
+@quotation Note
+@Star{} distinguishes between types declared in different scopes. So,
+two types in different packages or in different scopes within the same
+package will not unify.
+@end quotation
+
 @item
 Two @ref{ParameterizedType}s unify if their @refer{TypeConstructor}s
 unify, they have the same number of @ref{TypeArgument}s, and those
@@ -1291,10 +1293,6 @@ arguments pairwise unify.
 For example,
 @example
 cons[integer] = cons[integer]
-@end example
-and
-@example
-action[string,()] = action[string,()]
 @end example
 but,
 @example
@@ -1309,6 +1307,12 @@ and
 cons[integer] @noteq cons[integer,string]
 @end example
 @end itemize
+
+@quotation Note
+In fact, the @code{cons} example -- with two type arguments instead of
+one -- is not a valid type expression. This is because it is not
+consistent with the type definition for @code{cons}.
+@end quotation
 
 @node Unifying Reference Types
 @subsubsection  Unifying Reference Types
@@ -1345,7 +1349,7 @@ and
 @example
 (integer,string) = (integer,t)
 @end example
-where @code{t} is an arity-0 type variable, with the additional effect
+where @code{t} is a type variable, with the additional effect
 that @code{t} will be bound to the @code{string} type.
 
 However,
@@ -1358,19 +1362,19 @@ because the second is actually a unary tuple containing a zero-tuple; and
 @end example
 because elements must unify in a pairwise way.
 
-@node Unifying Record Types
-@subsubsection Unifying Record Types
+@node Unifying Face Types
+@subsubsection Unifying Face Types
 
 Fields in a record are not intrinsically ordered, but the spirit of
 unification for records is similar to that of tuples:
 
-Two record types unify iff:
+Two face types unify iff:
 @itemize @bullet
 @item
 they have the same fields and embedded types
 @item
-each field's type in one record type unifies with the corresponding
-field of the other record type
+each field's type in one face type unifies with the corresponding
+field of the other face type
 @item
 each embedded type in one record unifies with the corresponding
 embedded type of the other record type.
@@ -1465,7 +1469,6 @@ if there is a field constraint in @code{t@sub{a}}, it is merged with
 the corresponding field constraint for @code{t@sub{b}}.
 @end enumerate
 @end enumerate
-
 
 @node Unifying Quantified Types
 @subsubsection Unifying Quantified Types

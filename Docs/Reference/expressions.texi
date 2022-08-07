@@ -2,7 +2,9 @@
 @chapter Expressions
 
 An expression is a form that denotes a @emph{value}. Evaluation is the
-computational process of realizing the denoted value.
+computational process of realizing the denoted value. Associated with
+all expressions is a @refer{Type} -- which governs the valid
+expressions and actions that the expression itself may be part of.
 
 @float BNF,expressionFig
 @caption{Expression}
@@ -12,6 +14,8 @@ computational process of realizing the denoted value.
   | @refer{StringLiteral}
   | @refer{AlgebraicLiteral}
   | @refer{ApplicativeExpression}
+  | @refer{FieldAccess}
+  | @refer{RecordUpdate}
   | @refer{CaseExpression}
   | @refer{TryCatchExpression}
   | @refer{ThrowExpression}
@@ -91,16 +95,6 @@ value. Instead use:
 Cx!+3
 @end example
 
-@node Variable Assignment
-@subsection Variable Assignment
-@cindex assignment to variables
-@cindex variables,assignment to
-
-Assignment is an @refer{Action} that replaces the value of a
-re-assignable variable with another value. The variable being
-re-assigned must have a @code{ref} type -- there is no `implicit'
-assignability of a variable or field.
-
 @node Modifying Fields of Records
 @subsection Modifying Fields of Records
 
@@ -145,6 +139,11 @@ P is someone@{ name="fred". age := 23 @}
 I.e., re-assignability depends only on whether the target is re-assignable.
 @end quotation
 
+In addition to modifying the contents of a re-assignable variable,
+there is a @refer{RecordUpdate} expression which does not modify a
+record but can be used to construct a new record value by replacing a
+field in the record.
+
 @node Numeric Literal Expressions
 @section Numeric Literal Expressions
 @cindex numeric literal
@@ -174,7 +173,7 @@ range: in principle, a single number could take the entire memory of
 the computer.@footnote{Not recommended.}
 
 Arbitrary precision integers are written as a sequence of decimal
-digits followed by a @code{'b'} letter:
+digits followed by a @code{b} letter:
 
 @example
 815915283247897734345611269596115894272000000000b
@@ -183,7 +182,6 @@ digits followed by a @code{'b'} letter:
 It is possible to coerce between so-called @emph{bigint}s and regular
 64 bit integers; although it is not guaranteed to be possible in all
 cases.
-
 
 @node Floating Point Literals
 @subsection Floating Point Literals
@@ -360,9 +358,7 @@ In addition, @var{BlockString}s can span multiple lines whereas
 @section Algebraic Constructor Expressions
 
 The @refer{AlgebraicConstructor} expressions are those that refer to
-constructors that are defined in @refer{AlgebraicTypeDefinition}s --
-@emph{or those that arise from standard type schemas such as tuples and
-anonymous records}.
+constructors that are defined in @refer{AlgebraicTypeDefinition}s.
 
 There are three primary forms of @refer{AlgebraicConstructor}s:
 @itemize
@@ -439,7 +435,7 @@ constructors that are introduced in an algebraic
 @float BNF,positionalConstructorFig
 @caption{Positional Constructor Literal}
 @display
-@anchored{PositionalConstructorLiteral} ::= @refer{Identifier}@code{'('}@refer{Expression}@code{','} @dots{} @code{','}@refer{Expression}@code{')'}
+@anchored{PositionalConstructorLiteral} ::= @refer{Identifier}@code{(}@refer{Expression}@code{,} @dots{} @code{,}@refer{Expression}@code{)}
 @end display
 @end float
 The valid types of the arguments to a @refer{PositionalConstructorLiteral} are determined by its definition within the appropriate type definition.
@@ -480,10 +476,10 @@ constrains the types of the expressions associated with the fields.
 @caption{Record Literal}
 @display
 @anchored{RecordLiteral}::=@refer{Record} | @refer{RecRecord}
-@anchored{Record} ::= @refer{Identifier}@code{'@{'} @refer{RecordElement} @refer{Terminator} @dots{} @refer{Terminator} @refer{RecordElement} @code{'@}'}
-@anchored{RecordElement} ::= @refer{Identifier} @code{'='} @refer{Expression}
-| @refer{Identifier} @code{':='} @refer{Expression}
-| @code{'type'} @refer{Identifier} @code{'='} @refer{Type}
+@anchored{Record} ::= @refer{Identifier}@code{@{} @refer{RecordElement} @refer{Terminator} @dots{} @refer{Terminator} @refer{RecordElement} @code{@}}
+@anchored{RecordElement} ::= @refer{Identifier} @code{=} @refer{Expression}
+| @refer{Identifier} @code{:=} @refer{Expression}
+| @code{type} @refer{Identifier} @code{=} @refer{Type}
 @end display
 @end float
 
@@ -533,9 +529,9 @@ Record access expressions access the value associated with a field of
 a record value. 
 
 @float BNF,recordAccessFig
-@caption{Record Access}
+@caption{Field Access}
 @display
-@anchored{RecordAccess}::=@refer{Expression} @refer{Terminator} @refer{Identifier}
+@anchored{FieldAccess}::=@refer{Expression} @code{.} @refer{Identifier}
 @end display
 @end float
 
@@ -572,18 +568,67 @@ and
 respectively.
 @end quotation
 
+@node Updating Fields of a Record
+@subsection Updating Fields of a Record
+@cindex record update
+@findex . operator
+@findex <<- operator
+
+A record cannot be updated in the normal sense -- unless one or more
+of the fields of teh record is marked as being a reference
+variable. However, there is a notation for constructing a new literal
+from an existing record, replacing one or more of the fields with new
+values.
+
+@float BNF,recordUpdateFig
+@caption{Record Update}
+@display
+@anchored{RecordUpdate}::=@refer{Expression} @code{.} @refer{Identifier} @code{<<-} @refer{Expression}
+@end display
+@end float
+
+An expression of the form 
+@example
+A.F<<-B
+@end example
+
+where @code{F} is the name of an attribute of the record @code{A}
+denotes a version of @code{A} with the @code{F} field replaced by
+@code{B}.
+
+The type of the overall expression is the same as the type of
+@code{A}; since we are essentially creating a variant of @code{A}.
+
+@example
+person ::= someone@{ name : string. age : integer @}
+@end example
+
+and a @code{person} value bound to @code{P}: 
+@example
+P = someone@{ name="fred". age=32 @}
+@end example
+
+then the expression @code{P.name<<-"peter"} has value
+@example
+someone@{ name="peter". age=32 @}
+@end example
+
+@quotation Note
+The old version of the record -- @code{P} -- is still available, if it
+is still accessible.
+@end quotation
+
 @node Recursive Record Literals
 @subsection Recursive Record Literals
 @cindex theta record
 
 A @refer{RecRecord} is a record whose contents is specified by means
-of a @refer{ThetaEnvironment}.@footnote{There are variants corresponding to
-labeled and anonymous records.}
+of a @refer{ThetaEnvironment}.
 
 @float BNF,thetaRecordFig
 @caption{Theta Record}
 @display
-@anchored{RecRecord} ::= @refer{Identifier}@code{'@{.'} @refer{Definition}@refer{Terminator} @dots{} @refer{Terminator} @refer{Definition} @code{'.@}'}
+@anchored{RecRecord} ::= @refer{Identifier}@code{@{.} @refer{Definition}@refer{Terminator} @dots{} @refer{Terminator} @refer{Definition} @code{.@}}
 @end display
 @end float
 
@@ -638,7 +683,7 @@ there a direct equivalence of the @code{self} or @code{this} keyword.
 A definition within a @refer{RecRecord} that is marked
 @code{private} does @emph{not} 'contribute' to the external type of
 the record; and neither can such an attribute be accessed via the
-@refer{RecordAccess} expression.
+@refer{FieldAccess} expression.
 @end quotation
 
 @node Tuples
@@ -652,7 +697,7 @@ omitted.
 @float BNF,tupleFig
 @caption{Tuple Literal}
 @display
-@anchored{TupleLiteral}::= @code{'('} @refer{Expression}@code{','} @dots{} @code{','} @refer{Expression} @code{')'}
+@anchored{TupleLiteral}::= @code{(} @refer{Expression}@code{,} @dots{} @code{,} @refer{Expression} @code{)}
 @end display
 @end float
 
@@ -728,37 +773,6 @@ denotes a singleton tuple with the integer @code{34} in it.
 Fortunately, singleton tuples are not often required in programs.
 @end quotation
 
-@c @node Anonymous Records
-@c @section Anonymous Records
-
-@c An anonymous record is one which does not have an explicit label. It
-@c is the counterpart to the tuple, except that elements of an anonymous
-@c record can be accessed using @refer{RecordAccess} expressions.
-
-@c Like the normal @refer{RecordLiteral}, there are two variants: an
-@c @refer{AnonymousRecord} and an @refer{AnonymousRecRecord}.
-
-@c @float BNF,anonRecordFig
-@c @caption{Anonymous Record Literal}
-@c @display
-@c @anchored{AnonymousRecord}::= @code{'@{.'} @refer{RecordElement}@refer{Terminator} @dots{} @refer{Terminator} @refer{RecordElement} @code{'.@}'}
-@c @anchored{AnonymousRecRecord}::= @code{'@{'} @refer{Definition}@refer{Terminator} @dots{} @refer{Terminator} @refer{Definition} @code{'@}'}
-@c @end display
-@c @end float
-
-@c For example, an anonymous record consisting of a @code{name} and an
-@c @code{address} may be written: 
-@c @example
-@c @{. name="Fred. address="1 Main St" .@}
-@c @end example
-
-@c Anonymous records have, as their type, a @refer{RecordType}. The type of this record would be represented by:
-
-@c @example
-@c @{ name : string. address : string @}
-@c @end example
-
-
 @node Function Application Expressions
 @section Function Application Expressions
 @cindex expressions,function application
@@ -769,7 +783,7 @@ arguments.
 @float BNF,applicationFig
 @caption{Function Application Expression}
 @display
-@anchored{ApplicativeExpression} ::= @refer{Expression} @code{'('} @refer{Expression}@code{','} @dots{} @code{','} @refer{Expression}@code{')'}
+@anchored{ApplicativeExpression} ::= @refer{Expression} @code{(} @refer{Expression}@code{,} @dots{} @code{,} @refer{Expression}@code{)}
 @end display
 @end float
 
@@ -814,12 +828,12 @@ other expressions and actions.
 @float BNF,caseExpressionFig
 @caption{Case Expression}
 @display
-@anchored{CaseExpression} ::= @code{'case'}@refer{Expression} @code{'in'} @refer{CaseHandler}
+@anchored{CaseExpression} ::= @code{case}@refer{Expression} @code{in} @refer{CaseHandler}
 
-@anchored{CaseHandler} ::= @code{@{} @refer{CaseRule}@code{'.'} @dots{} @code{'.'} @refer{CaseRule}  @code{'@}'}
+@anchored{CaseHandler} ::= @code{@{} @refer{CaseRule}@code{.} @dots{} @code{.} @refer{CaseRule}  @code{@}}
 
-@anchored{CaseRule} ::= @refer{Pattern} @code{'=>'} @refer{Expression} |
-  @refer{Pattern} @code{default} @code{'=>'} @refer{Expression}
+@anchored{CaseRule} ::= @refer{Pattern} @code{=>} @refer{Expression} |
+  @refer{Pattern} @code{default} @code{=>} @refer{Expression}
 @end display
 @end float
 
@@ -857,7 +871,7 @@ need to respond to exception situations.
 @float BNF,tryCatchFig
 @caption{Try Catch}
 @display
-@anchored{TryCatchExpression} ::= @code{'try'} @refer{Expression} @code{'catch'} @refer{CaseHandler}
+@anchored{TryCatchExpression} ::= @code{try} @refer{Expression} @code{catch} @refer{CaseHandler}
 @end display
 @end float
 
@@ -886,7 +900,7 @@ The value of this overall expression is @code{20}.
 @float BNF,throwFig
 @caption{Throw}
 @display
-@anchored{ThrowExpression} ::= @code{'throw'} @refer{Expression}
+@anchored{ThrowExpression} ::= @code{throw} @refer{Expression}
 @end display
 @end float
 
@@ -920,7 +934,7 @@ must be lexically accounted for.
 @float BNF,conditionalExpressionFig
 @caption{Conditional Expression}
 @display
-@anchored{ConditionalExpression} ::= @code{'('}@refer{Condition} @code{'?'} @refer{Expression} @code{'||'} @refer{Expression}@code{')'}
+@anchored{ConditionalExpression} ::= @code{(}@refer{Condition} @code{?} @refer{Expression} @code{||} @refer{Expression}@code{)}
 @end display
 @end float
 
@@ -972,9 +986,9 @@ auxiliary definitions.
 @float BNF,letExpressionFig
 @caption{Let Expression}
 @display
-@anchored{LetExpression}::=@code{'let'} @refer{LetEnvironment} @code{'in'} @refer{Expression}
-@anchored{LetEnvironment} ::= @code{'@{'} @refer{RecordElement}@refer{Terminator} @dots{} @refer{Terminator} @refer{RecordElement} @code{'@}'} |
-  @code{'@{.'} @refer{Definition}@refer{Terminator} @dots{} @refer{Terminator} @refer{Definition} @code{'.@}'}
+@anchored{LetExpression}::=@code{let} @refer{LetEnvironment} @code{in} @refer{Expression}
+@anchored{LetEnvironment} ::= @code{@{} @refer{RecordElement}@refer{Terminator} @dots{} @refer{Terminator} @refer{RecordElement} @code{@}} |
+  @code{@{.} @refer{Definition}@refer{Terminator} @dots{} @refer{Terminator} @refer{Definition} @code{.@}}
 @end display
 @end float
 
@@ -1096,7 +1110,7 @@ with a @refer{Type}. The annotation amounts to an assertion that the
 @float BNF,typeAnnotationExpressionFig
 @caption{Type Annotation Expressions}
 @display
-@anchored{TypeAnnotationExpression} ::= @code{'('}@refer{Expression} @code{':'} @refer{Type}@code{')'}
+@anchored{TypeAnnotationExpression} ::= @code{(}@refer{Expression} @code{:} @refer{Type}@code{)}
 @end display
 @end float
 
@@ -1117,8 +1131,8 @@ analogously to the @refer{TypeAnnotation}s found in
 @float BNF,typeCoercionFig
 @caption{Type Coercion}
 @display
-@anchored{TypeCoercion} ::= @refer{Expression} @code{'::'} @refer{Type}
-  | @refer{Expression} @code{':?'} @refer{Type} 
+@anchored{TypeCoercion} ::= @refer{Expression} @code{::} @refer{Type}
+  | @refer{Expression} @code{:?} @refer{Type} 
 @end display
 @end float
 
@@ -1188,9 +1202,9 @@ notation.
 @float BNF,sequenceExpressionFig
 @caption{Sequence Expressions}
 @display
-@anchored{SequenceExpression} ::= @code{'['} @refer{ExpSequence} @code{']'}
+@anchored{SequenceExpression} ::= @code{[} @refer{ExpSequence} @code{]}
 
-@anchored{ExpSequence} ::= @refer{Expression}@code{','} @dots{} @code{','} @refer{Expression}[@code{',..'}@refer{Expression}
+@anchored{ExpSequence} ::= @refer{Expression}@code{,} @dots{} @code{,} @refer{Expression}[@code{,..}@refer{Expression}
 @end display
 @end float
 
@@ -1214,7 +1228,7 @@ _cons(@var{E@sub{1}}, @dots{} , _cons(@var{E@sub{n}},_nil) @dots{} )
 where @code{_cons} and @code{_nil} are elements of the @code{sequence} contract.
 
 @quotation
-There is a corresponding contract for sequence terms as patterns;
+There is a corresponding contract for sequence terms as @refer{SequencePattern}s;
 which uses the @code{stream} contract to signal the underlying
 semantics.
 @end quotation
@@ -1225,9 +1239,9 @@ semantics.
 @float BNF,indexExpressionFig
 @caption{Index Expressions}
 @display
-@anchored{IndexExpression} ::= @refer{Expression} @code{'['} @refer{Expression} @code{']'}
- | @refer{Expression} @code{'['} @code{~} @refer{Expression} @code{']'}
- | @refer{Expression} @code{'['} @refer{Expression} @code{->} @refer{Expression} @code{']'}
+@anchored{IndexExpression} ::= @refer{Expression} @code{[} @refer{Expression} @code{]}
+ | @refer{Expression} @code{[} @code{~} @refer{Expression} @code{]}
+ | @refer{Expression} @code{[} @refer{Expression} @code{->} @refer{Expression} @code{]}
 @end display
 @end float
 
@@ -1299,7 +1313,7 @@ is the collection with any value associated with @code{@var{K}} removed.
 @float BNF,sliceExpressionFig
 @caption{Slice Expressions}
 @display
-@anchored{SliceExpression} ::= @refer{Expression} @code{'['} @refer{Expression} @code{:} @refer{Expression} @code{']'}
+@anchored{SliceExpression} ::= @refer{Expression} @code{[} @refer{Expression} @code{:} @refer{Expression} @code{]}
 @end display
 @end float
 
@@ -1320,8 +1334,4 @@ _slice(@var{C},@var{F},@var{T})
 @quotation Note
 The result type of a slice expression is the same as the collection type that is being sliced.
 @end quotation
-
-
-
-
 

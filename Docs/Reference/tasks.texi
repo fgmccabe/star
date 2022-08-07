@@ -27,7 +27,7 @@ The @code{task} type is used to characterize the type of task expressions. It ta
 @display
 @refer{Type}::+=@refer{TaskType}
 
-@anchored{TaskType} ::= @code{'task'} @code{'['} @refer{Type} @code{','} @refer{Type} @code{']}
+@anchored{TaskType} ::= @code{task} @code{[} @refer{Type} @code{,} @refer{Type} @code{]}
 @end display
 @end float
 
@@ -47,8 +47,8 @@ actions to perform as the task.
 @display
 @refer{Expression}::+=@refer{TaskExpression}
 
-@anchored{TaskExpression} ::= @code{'task'} @refer{BlockAction}
-  | @code{'task'} @refer{Expression}
+@anchored{TaskExpression} ::= @code{task} @refer{BlockAction}
+  | @code{task} @refer{Expression}
 @end display
 @end float
 
@@ -121,8 +121,8 @@ the incoming event when the task is resumed again:
 @caption{Suspend Action Syntax}
 @display
 @anchored{SuspendAction}::=
-    @refer{Expression} @code{'suspend'} @refer{Expression} @code{'in'} @refer{CaseActionHandler}
-  | @code{'suspend'} @refer{Expression} @code{'in'} @refer{CaseActionHandler}
+    @refer{Expression} @code{suspend} @refer{Expression} @code{in} @refer{CaseActionHandler}
+  | @code{suspend} @refer{Expression} @code{in} @refer{CaseActionHandler}
 @end display
 @end float
 
@@ -153,7 +153,7 @@ suspend @var{E} in @{@var{P@sub{1}} => @var{A@sub{1}}. .. @var{P@sub{n}} => @var
 This may be used when a task is directly suspending itself within the
 @code{task} expression. This action is equivalent to:
 @example
-@code{'this'} @code{suspend} @var{E} @code{in} @{@var{P@sub{1}} => @var{A@sub{1}}. .. @var{P@sub{n}} => @var{A@sub{n}}@}
+@code{this} @code{suspend} @var{E} @code{in} @{@var{P@sub{1}} => @var{A@sub{1}}. .. @var{P@sub{n}} => @var{A@sub{n}}@}
 @end example
 
 The @code{this} keyword is established within the scope of a
@@ -174,7 +174,7 @@ the incoming event when the resumed task is suspended again:
 @caption{Resume Action Syntax}
 @display
 @anchored{ResumeAction}::=
-  @refer{Expression} @code{'resume'} @refer{Expression} @code{'in'} @refer{CaseActionHandler}
+  @refer{Expression} @code{resume} @refer{Expression} @code{in} @refer{CaseActionHandler}
 @end display
 @end float
 
@@ -209,8 +209,8 @@ is determined by the value of the event it signals.
 @caption{Retire Action Syntax}
 @display
 @anchored{RetireAction}::=
-  @refer{Expression} @code{'retire'} @refer{Expression}
-  | @code{'retire'} @refer{Expression}
+  @refer{Expression} @code{retire} @refer{Expression}
+  | @code{retire} @refer{Expression}
 @end display
 @end float
 
