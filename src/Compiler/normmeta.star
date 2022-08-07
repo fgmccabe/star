@@ -4,10 +4,10 @@ star.compiler.normalize.meta{
   import star.sort.
 
   import star.compiler.canon.
-  import star.compiler.core.
+  import star.compiler.term.
   import star.compiler.meta.
   import star.compiler.misc.
-  import star.compiler.terms.
+  import star.compiler.data.
   import star.compiler.types.
 
   public consMap ~> cons[(termLbl,tipe,integer)].
@@ -127,7 +127,7 @@ star.compiler.normalize.meta{
   mkConsLbl(Nm,Tp) => tLbl(Nm,arity(Tp)).
 
   declMdlGlobal(funDec(Lc,Nm,FullNm,Tp),Map) =>
-    Map[Nm->moduleFun(crVar(Lc,crId(FullNm,Tp)),FullNm)].
+    Map[Nm->moduleFun(idnt(Lc,crId(FullNm,Tp)),FullNm)].
   declMdlGlobal(varDec(Lc,Nm,FullNm,Tp),Map) =>
     Map[Nm->globalVar(FullNm,Tp)].
   declMdlGlobal(cnsDec(Lc,Nm,FullNm,Tp),Map) =>

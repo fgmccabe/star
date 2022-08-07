@@ -126,6 +126,8 @@ star.compiler.macro{
     mkWhileDo(Lc,macroCond(C),macroAction(B)).
   examineAction(A) where (Lc,El,C,B) ^= isForDo(A) => 
     mkForDo(Lc,macroPtn(El),macroTerm(C),macroAction(B)).
+  examineAction(A) where (Lc,T) ^= isValis(A) =>
+    mkValis(Lc,macroTerm(T)).
   examineAction(A) where (Lc,T) ^= isThrow(A) =>
     mkThrow(Lc,macroTerm(T)).
   examineAction(A) where (Lc,T,E,Hs) ^= isSuspend(A) => 

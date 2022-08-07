@@ -7,7 +7,7 @@ star.compiler.term.repo{
   import star.uri.
   import star.resources.
   import star.compiler.misc.
-  import star.compiler.terms.
+  import star.compiler.data.
   
   public termRepo ::= repo(uri,manifest).
 
@@ -96,44 +96,44 @@ star.compiler.term.repo{
     disp(repo(Root,Man)) => "file repo rooted at $(Root)\nmanifest:$(Man)".
   }
 
-  termManifest:(term)=>manifest.
+  termManifest:(data)=>manifest.
   termManifest(term(_,Els)) => man(foldRight(termEntry,[],Els)).
 
-  termEntry:(term,map[string,pEntry]) => map[string,pEntry].
+  termEntry:(data,map[string,pEntry]) => map[string,pEntry].
   termEntry(term(_,[strg(P),term(_,Els)]),Map) => 
     Map[P->pEntry(P,foldRight(termVersion,[],Els))].
 
-  termVersion:(term,cons[(version,mInfo)])=>cons[(version,mInfo)].
+  termVersion:(data,cons[(version,mInfo)])=>cons[(version,mInfo)].
   termVersion(term(_,[strg(V),term(_,Es)]),Vs) where Vr.=V::version =>
     [(Vr,mInfo(Vr,foldRight(termInfo,[],Es))),..Vs].
 
-  termInfo:(term,map[string,string])=>map[string,string].
+  termInfo:(data,map[string,string])=>map[string,string].
   termInfo(term(tLbl(Ky,1),[strg(V)]),Is) => Is[Ky->V].
 
-  implementation coercion[term,manifest] => {
+  implementation coercion[data,manifest] => {
     _coerce(T) => some(termManifest(T)).
   }
 
-  infoTerm:(mInfo)=>term.
+  infoTerm:(mInfo)=>data.
   infoTerm(mInfo(_,Els)) => mkLst(ixRight((Ky,Vl,Mp)=>[mkCons(Ky,[strg(Vl)]),..Mp],[],Els)).
 
-  versionTerm:(pEntry)=>term.
+  versionTerm:(pEntry)=>data.
   versionTerm(pEntry(Pk,Vs)) => mkLst(
 	foldRight(((V,Is),Es)=>
 	[mkTpl([strg(V::string),infoTerm(Is)]),..Es],[],Vs)).
 
-  manTerm:(manifest)=>term.
+  manTerm:(manifest)=>data.
   manTerm(man(Ps))=>mkLst(ixRight((Pk,Vr,Ms)=>
 	[mkTpl([strg(Pk),versionTerm(Vr)]),..Ms],[],Ps)).
 
-  implementation coercion[manifest,term] => {
+  implementation coercion[manifest,data] => {
     _coerce(M)=>some(manTerm(M)).
   }
 
-  flushManifest(Url,Man) => putResource(Url,(Man::term)::string).
+  flushManifest(Url,Man) => putResource(Url,(Man::data)::string).
 
   readManifest(Url) where
       Txt ^= getResource(Url) &&
-      J.=Txt::term => some(J::manifest).
+      J.=Txt::data => some(J::manifest).
   readManifest(_) default => .none.
 }

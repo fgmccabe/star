@@ -12,7 +12,7 @@ star.compiler.checker.driver{
   import star.compiler.canon.
   import star.compiler.catalog.
   import star.compiler.checker.
-  import star.compiler.core.
+  import star.compiler.term.
   import star.compiler.dict.
   import star.compiler.errors.
   import star.compiler.impawt.
@@ -36,6 +36,7 @@ star.compiler.checker.driver{
 	    traceDependencyOption,
 	    traceAstOption,
 	    traceMacroOption,
+	    showCheckOption,
 	    traceCheckOption,
 	    macroOnlyOption],
 	  defltOptions(WI,RI)
@@ -70,7 +71,7 @@ star.compiler.checker.driver{
 
   processPkg:(pkg,termRepo,catalog,compilerOptions) => ().
   processPkg(P,Repo,Cat,Opts) => valof{
-    logMsg("Macro processing $(P)");
+    logMsg("Processing $(P)");
     if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
       Ast = ^parseSrc(SrcUri,CPkg);
       if traceAst! then{
@@ -83,8 +84,8 @@ star.compiler.checker.driver{
 
       if ~ macroOnly! then{
 	C = checkPkg(Repo,CPkg,M,Opts);
-	if traceCanon! then {
-	  logMsg("type checked $(C)")
+	if showCanon! then {
+	  logMsg("type checked $(fmap(fst,C)), $(fmap(snd,C))")
 	};
       };
       valis ()

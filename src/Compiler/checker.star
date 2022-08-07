@@ -34,7 +34,8 @@ star.compiler.checker{
 	(AllImports,IDecls) = importAll(Imports,Repo,[],[]);
 	PkgEnv = declareDecls(IDecls,Base);
 
-	logMsg("Dictionary for pkg: $(PkgEnv)");
+--	if traceCanon! then
+--	  logMsg("Dictionary for pkg: $(PkgEnv)");
 	
 	PkgPth = packageName(Pkg);
 
@@ -201,6 +202,9 @@ star.compiler.checker{
       Tp ^= varType(Nm,Env) && areEquations(Stmts) =>
     checkFunction(Nm,Tp,Lc,Stmts,Env,Outer,Path).
   checkDefn(defnSpec(varSp(Nm),Lc,[Stmt]),Env,Outer,Path) where Tp ^= varType(Nm,Env) => valof{
+    if traceCanon! then
+      logMsg("check definition $(Stmt)\:$(Tp)");
+    
     (Q,ETp) = evidence(Tp,Env);
     (Cx,VarTp) = deConstrain(ETp);
     Es = declareConstraints(Lc,Cx,declareTypeVars(Q,Outer));
@@ -245,7 +249,9 @@ star.compiler.checker{
   checkFunction:(string,tipe,option[locn],cons[ast],dict,dict,string) =>
     (cons[canonDef],cons[decl]).
   checkFunction(Nm,Tp,Lc,Stmts,Env,Outer,Path) => valof{
---    logMsg("check function $(Nm), type $(Tp), existing #(showVar(Nm,Outer))");
+    if traceCanon! then
+      logMsg("check function $(Stmts)\:$(Tp), existing #(showVar(Nm,Outer))");
+
     (Q,ETp) = evidence(Tp,Env);
     (Cx,ProgTp) = deConstrain(ETp);
     Es = declareConstraints(Lc,Cx,declareTypeVars(Q,Env));
@@ -253,6 +259,10 @@ star.compiler.checker{
     Rls = processEqns(Stmts,ProgramType,ErTp,[],.none,Es,
       declareConstraints(Lc,Cx,declareTypeVars(Q,Outer)),Path);
     FullNm = qualifiedName(Path,.valMark,Nm);
+
+    if traceCanon! then
+      logMsg("function $(Nm) is bound to $(lambda(Lc,FullNm,Rls,Tp))");
+    
     valis ([varDef(Lc,Nm,FullNm,lambda(Lc,FullNm,Rls,Tp),Cx,Tp)],
       [funDec(Lc,Nm,FullNm,Tp)])
   }
@@ -767,12 +777,8 @@ star.compiler.checker{
       valis (doNop(Lc),Env)
     }
   }
-  checkAction(A,_,ErTp,Env,Path) where (Lc,Lhs,Rhs) ^= isAssignment(A) => valof{
-    Tp = newTypeVar("_V");
-    Val = typeOfExp(Rhs,Tp,ErTp,Env,Path);
-    Var = typeOfExp(Lhs,refType(Tp),ErTp,Env,Path);
-    valis (doAssign(Lc,Var,Val),Env)
-  }
+  checkAction(A,_,ErTp,Env,Path) where (Lc,Lhs,Rhs) ^= isAssignment(A) =>
+    checkAssignment(Lc,Lhs,Rhs,ErTp,Env,Path).
   checkAction(A,Tp,ErTp,Env,Path) where (Lc,Body,Rls) ^= isTryCatch(A) => valof{
     NErTp = newTypeVar("_E");
     (NB,_) = checkAction(Body,Tp,some(NErTp),Env,Path);
@@ -866,6 +872,20 @@ star.compiler.checker{
     Lc = locOf(A);
     reportError("invalid action $(A)",Lc);
     valis (doNop(Lc),Env)
+  }
+
+  checkAssignment(Lc,Lhs,Rhs,ErTp,Env,Path) where (ILc,Id) ^= isName(Lhs) => valof{
+    if ~ varDefined(Id,Env) then {
+      Tp = newTypeVar("_V");
+      Val = typeOfExp(Rhs,Tp,ErTp,Env,Path);
+      Ev = declareVar(Id,ILc,refType(Tp),.none,Env);
+      valis (doDefn(Lc,vr(ILc,Id,refType(Tp)),Val),Ev)
+    } else{
+      Tp = newTypeVar("_V");
+      Val = typeOfExp(Rhs,Tp,ErTp,Env,Path);
+      Var = typeOfExp(Lhs,refType(Tp),ErTp,Env,Path);
+      valis (doAssign(Lc,Var,Val),Env)
+    }
   }
 
   checkRules:all t ~~ (cons[ast],tipe,tipe,option[tipe],dict,string,

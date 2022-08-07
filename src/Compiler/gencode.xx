@@ -5,7 +5,7 @@ star.compiler.gencode{
   import star.sort.
 
   import star.compiler.assem.
-  import star.compiler.core.
+  import star.compiler.term.
   import star.compiler.errors.
   import star.compiler.escapes.
   import star.compiler.intrinsics.
@@ -507,7 +507,7 @@ star.compiler.gencode{
     valis (Ctx3,Cde2,Stkx)
   }
 
-  isLiteral:(crExp)=>option[(term,tipe)].
+  isLiteral:(crExp)=>option[(data,tipe)].
   isLiteral(crInt(_,Ix))=>some((intgr(Ix),intType)).
   isLiteral(crFlot(_,Dx))=>some((flot(Dx),fltType)).
   isLiteral(crStrg(_,Sx))=>some((strg(Sx),strType)).
@@ -681,7 +681,7 @@ star.compiler.gencode{
   followPath([other(Off),..Pth]) => [iNth(Off)]++followPath(Pth).
   followPath([either(Fld),..Pth]) => [iGet(tLbl(Fld,0))]++followPath(Pth).
 
-  litCont:(term,tipe)=>Cont.
+  litCont:(data,tipe)=>Cont.
   litCont(T,Tp) =>
     ccont(.true,.false,(Ctx,Cde,some(Stk),Rp) => do{
       valis (Ctx,Cde++[iLdC(T)],some([Tp,..Stk]))
@@ -783,7 +783,7 @@ star.compiler.gencode{
 
   changeLoc:(locn,compilerOptions,codeCtx)=>(multi[assemOp],codeCtx).
   changeLoc(Lc,_,codeCtx(Vars,Lc0,Dp,Lb)) where Lc=~=Lc0 =>
-    ([iLine(Lc::term)],codeCtx(Vars,Lc,Dp,Lb)).
+    ([iLine(Lc::data)],codeCtx(Vars,Lc,Dp,Lb)).
     changeLoc(_,_,Ctx)=>([],Ctx).
 
   implementation hasLoc[codeCtx] => {
@@ -852,9 +852,9 @@ star.compiler.gencode{
 
   genBoot(_,_) default => [].
 
-  frameSig:(cons[tipe])=>term.
+  frameSig:(cons[tipe])=>data.
   frameSig(Tps) => strg((tupleType(Tps)::ltipe)::string).
 
-  enum:(string)=>term.
+  enum:(string)=>data.
   enum(Nm)=>term(tLbl(Nm,0),[]).
 }

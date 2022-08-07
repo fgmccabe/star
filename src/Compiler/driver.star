@@ -12,7 +12,7 @@ star.compiler{
   import star.compiler.canon.
   import star.compiler.catalog.
   import star.compiler.checker.
-  import star.compiler.core.
+  import star.compiler.term.
   import star.compiler.dict.
   import star.compiler.errors.
 --  import star.compiler.gencode.
@@ -26,7 +26,7 @@ star.compiler{
   import star.compiler.parser.
   import star.compiler.location.
   import star.compiler.term.repo.
-  import star.compiler.terms.
+  import star.compiler.data.
   import star.compiler.types.
 
   public _main:(cons[string])=>().
@@ -156,7 +156,7 @@ star.compiler{
   }
 
   addSpec:(pkgSpec,termRepo) => termRepo.
-  addSpec(Spec,R) where pkgSpec(Pkg,_,_) .= Spec => addSigToRepo(R,Pkg,(Spec::term)::string).
+  addSpec(Spec,R) where pkgSpec(Pkg,_,_) .= Spec => addSigToRepo(R,Pkg,(Spec::data)::string).
 
   importDecls((_,_,Decls))=>Decls.
 

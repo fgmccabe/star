@@ -4,7 +4,7 @@ star.compiler.normalize{
   import star.sort.
 
   import star.compiler.canon.
-  import star.compiler.core.
+  import star.compiler.term.
   import star.compiler.errors.
   import star.compiler.escapes.
   import star.compiler.freevars.
@@ -16,7 +16,7 @@ star.compiler.normalize{
   import star.compiler.types.
 
   import star.compiler.location.
-  import star.compiler.terms.
+  import star.compiler.data.
 
   public normalize:(pkgSpec,cons[canonDef],cons[decl],reports)=>result[reports,cons[crDefn]].
   normalize(PkgSpec,Defs,Decls,Rp) => do{
@@ -48,7 +48,7 @@ star.compiler.normalize{
 --    logMsg("transformed function $(Func)");
 
     ClosureNm .= closureNm(FullNm);
-    ClVar .= (crVar(_,Exv)^=Extra ? Exv || crId("_",unitTp));
+    ClVar .= (idnt(_,Exv)^=Extra ? Exv || crId("_",unitTp));
     ClVars .= makeFunVars(Tp);
     ClArgs .= [ClVar,..ClVars];
 
@@ -57,12 +57,12 @@ star.compiler.normalize{
     if Exv^=Extra then {
       ClosEntry .=
 	fnDef(Lc,ClosureNm,ClosTp,ClArgs,
-	  crCall(Lc,FullNm,ClArgs//(V)=>crVar(Lc,V),funTypeRes(Tp)));
+	  crCall(Lc,FullNm,ClArgs//(V)=>idnt(Lc,V),funTypeRes(Tp)));
       valis [Func,ClosEntry,..Ex1]
     } else {
       ClosEntry .=
 	fnDef(Lc,ClosureNm,ClosTp,
-	  ClArgs,crCall(Lc,FullNm,ClVars//(V)=>crVar(Lc,V),funTypeRes(Tp)));
+	  ClArgs,crCall(Lc,FullNm,ClVars//(V)=>idnt(Lc,V),funTypeRes(Tp)));
       valis [Func,ClosEntry,..Ex1]
     }
   }
@@ -71,7 +71,7 @@ star.compiler.normalize{
     valis [vrDef(Lc,FullNm,Tp,Vl),..Defs]
   }
   transformDef(varDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,some(V),Ex,Rp) => do{
-    crVar(_,ThVr).=V;
+    idnt(_,ThVr).=V;
     ThIx ^= findMemoIx(Nm,ThVr,Map);
     (Vl,Defs) <- liftExp(Val,Outer,Q,Ex,Rp);
     Body .= crTplOff(Lc,crCnd(Lc,crMatch(Lc,crVoid(Lc,Tp),crTplOff(Lc,V,ThIx,Tp)),
@@ -166,11 +166,11 @@ star.compiler.normalize{
   liftPtn:(canon,nameMap,set[crVar],cons[crDefn],reports) => result[reports,crFlow].
   liftPtn(vr(Lc,Nm,Tp),Map,_,Ex,Rp) => trVarPtn(Lc,Nm,Tp,Map,Ex,Rp).
   liftPtn(enm(Lc,FullNm,Tp),Map,_,Ex,Rp) => do{ valis (crTerm(Lc,FullNm,[],Tp),Ex)}.
-  liftPtn(intr(Lc,Ix),Map,_,Ex,Rp) => do{ valis (crInt(Lc,Ix),Ex)}.
-  liftPtn(bintr(Lc,Ix),Map,_,Ex,Rp) => do{ valis (crBig(Lc,Ix),Ex)}.
-  liftPtn(flt(Lc,Dx),Map,_,Ex,Rp) => do{ valis (crFlot(Lc,Dx),Ex)}.
-  liftPtn(kar(Lc,Cx),Map,_,Ex,Rp) => do{ valis (crChr(Lc,Cx),Ex)}.
-  liftPtn(strng(Lc,Sx),Map,_,Ex,Rp) => do{ valis (crStrg(Lc,Sx),Ex)}.
+  liftPtn(intr(Lc,Ix),Map,_,Ex,Rp) => do{ valis (intgr(Lc,Ix),Ex)}.
+  liftPtn(bintr(Lc,Ix),Map,_,Ex,Rp) => do{ valis (bigx(Lc,Ix),Ex)}.
+  liftPtn(flt(Lc,Dx),Map,_,Ex,Rp) => do{ valis (flot(Lc,Dx),Ex)}.
+  liftPtn(kar(Lc,Cx),Map,_,Ex,Rp) => do{ valis (chr(Lc,Cx),Ex)}.
+  liftPtn(strng(Lc,Sx),Map,_,Ex,Rp) => do{ valis (strg(Lc,Sx),Ex)}.
   liftPtn(whr(Lc,Ptn,Cond),Map,Q,Ex,Rp) => do{
     (LPtn,Ex1) <- liftPtn(Ptn,Map,Q,Ex,Rp);
     (LCond,Exx) <- liftGoal(Cond,Map,ptnVars(Ptn,Q,[]),Ex,Rp);
@@ -209,24 +209,24 @@ star.compiler.normalize{
   implementPtnCall(Lc,moduleCons(Nm,CTp),Args,Tp,_,_,Ex,_) =>
     do{ valis (crTerm(Lc,Nm,Args,Tp),Ex)}.
   implementPtnCall(Lc,localCons(Nm,CTp,Vr),Args,Tp,_,_,Ex,_) =>
-    do{ valis (crTerm(Lc,Nm,[crVar(Lc,Vr),..Args],Tp),Ex)}.
+    do{ valis (crTerm(Lc,Nm,[idnt(Lc,Vr),..Args],Tp),Ex)}.
   
   trVarPtn(Lc,Nm,Tp,Map,Ex,Rp) =>
     implementVarPtn(Lc,Nm,lookupVarName(Map,Nm),Tp,Map,Ex,Rp).
 
-  implementVarPtn(Lc,Nm,.none,Tp,_,Ex,_) => do{ valis (crVar(Lc,crId(Nm,Tp)),Ex)}.
+  implementVarPtn(Lc,Nm,.none,Tp,_,Ex,_) => do{ valis (idnt(Lc,crId(Nm,Tp)),Ex)}.
   implementVarPtn(Lc,Nm,some(moduleCons(Enum,CTp)),Tp,_,Ex,_) where ETp^=isEnumType(CTp) =>
     do{ valis (crTerm(Lc,Enum,[],ETp),Ex)}.
   implementVarPtn(Lc,Nm,some(localCons(Enum,CTp,Vr)),Tp,_,Ex,_) =>
-    do{ valis (crTerm(Lc,Enum,[crVar(Lc,Vr)],Tp),Ex)}.
+    do{ valis (crTerm(Lc,Enum,[idnt(Lc,Vr)],Tp),Ex)}.
   implementVarPtn(Lc,Nm,some(labelArg(Base,Ix)),Tp,Map,Ex,Rp) => do{
     V <- liftVarExp(Lc,crName(Base),typeOf(Base),Map,Rp);
-    NN .= crVar(Lc,crId(Nm,Tp));
+    NN .= idnt(Lc,crId(Nm,Tp));
     valis (crWhere(Lc,NN,crMatch(Lc,NN,crTplOff(Lc,V,Ix,Tp))),Ex)
   }
   implementVarPtn(Lc,Nm,some(memoArg(ClNm,Base,Ix)),Tp,Map,Ex,Rp) => do{
     V <- liftVarExp(Lc,crName(Base),typeOf(Base),Map,Rp);
-    NN .= crVar(Lc,crId(Nm,Tp));
+    NN .= idnt(Lc,crId(Nm,Tp));
     valis (crWhere(Lc,NN,crMatch(Lc,NN,crCall(Lc,ClNm,[V],Tp))),Ex)
   }
   implementVarPtn(Lc,Nm,some(V),Tp,Map,_,Rp) => do{
@@ -238,11 +238,11 @@ star.compiler.normalize{
     VV <- liftVarExp(Lc,Nm,Tp,Map,Rp);
     valis (VV,Ex)
   }
-  liftExp(intr(Lc,Ix),_,Map,Ex,Rp) => do{ valis (crInt(Lc,Ix),Ex)}.
-  liftExp(bintr(Lc,Ix),_,Map,Ex,Rp) => do{ valis (crBig(Lc,Ix),Ex)}.
-  liftExp(flt(Lc,Dx),_,Map,Ex,Rp) => do{ valis (crFlot(Lc,Dx),Ex)}.
-  liftExp(kar(Lc,Cx),_,Map,Ex,Rp) => do{ valis (crChr(Lc,Cx),Ex) }.
-  liftExp(strng(Lc,Sx),_,Map,Ex,Rp) => do{ valis (crStrg(Lc,Sx),Ex)}.
+  liftExp(intr(Lc,Ix),_,Map,Ex,Rp) => do{ valis (intgr(Lc,Ix),Ex)}.
+  liftExp(bintr(Lc,Ix),_,Map,Ex,Rp) => do{ valis (bigx(Lc,Ix),Ex)}.
+  liftExp(flt(Lc,Dx),_,Map,Ex,Rp) => do{ valis (flot(Lc,Dx),Ex)}.
+  liftExp(kar(Lc,Cx),_,Map,Ex,Rp) => do{ valis (chr(Lc,Cx),Ex) }.
+  liftExp(strng(Lc,Sx),_,Map,Ex,Rp) => do{ valis (strg(Lc,Sx),Ex)}.
   liftExp(enm(Lc,FullNm,Tp),_,Map,Ex,Rp) => do{ valis (crTerm(Lc,FullNm,[],Tp),Ex)}.
   liftExp(tple(Lc,Els),Q,Map,Ex,Rp) => do{
     (LEls,Exx) <- liftExps(Els,Map,Q,Ex,Rp);
@@ -282,12 +282,12 @@ star.compiler.normalize{
   liftExp(csexp(Lc,Gov,Cses,Tp),Map,Q,Ex,Rp) => do{
     (LGov,Ex1) <- liftExp(Gov,Map,Q,Ex,Rp);
     (Cs,Ex2) <- transformEquations(Cses,Map,Q,.none,Ex1,Rp);
-    if crVar(_,_).=LGov then{
+    if idnt(_,_).=LGov then{
       Reslt .= caseMatcher(Lc,Map,LGov,Cs,Tp);
       valis (Reslt,Ex2)
     } else {
       V .= genVar("C",typeOf(LGov));
-      Res .= caseMatcher(Lc,Map,crVar(Lc,V),Cs,Tp);
+      Res .= caseMatcher(Lc,Map,idnt(Lc,V),Cs,Tp);
       valis (crLtt(Lc,V,LGov,Res),Ex2)
     }
   }
@@ -305,7 +305,7 @@ star.compiler.normalize{
   liftVarExp(Lc,Nm,Tp,Map,Rp) where Entry ^= lookupVarName(Map,Nm) =>
     implementVarExp(Lc,Entry,Map,Tp,Rp).
   liftVarExp(Lc,Nm,Tp,Map,Rp) => do{
-    valis crVar(Lc,crId(Nm,Tp))
+    valis idnt(Lc,crId(Nm,Tp))
   }
 
   implementVarExp:(option[locn],nameMapEntry,nameMap,tipe,reports) => result[reports,crExp].
@@ -328,7 +328,7 @@ star.compiler.normalize{
     valis crTerm(Lc,Enum,[V],Tp)
   }
   implementVarExp(Lc,moduleFun(V,_),_,Tp,Rp) => do{ valis V}.
-  implementVarExp(Lc,globalVar(Nm,GTp),_,Tp,Rp) => do{ valis crVar(Lc,crId(Nm,GTp))}.
+  implementVarExp(Lc,globalVar(Nm,GTp),_,Tp,Rp) => do{ valis idnt(Lc,crId(Nm,GTp))}.
   implementVarExp(Lc,E,_,_,Rp) =>
     do{
       raise reportError(Rp,"cannot transform variable $(E)",Lc)
@@ -375,7 +375,7 @@ star.compiler.normalize{
   implementFunCall(Lc,localVar(Vr),_,Args,Tp,Map,Ex,Rp) =>
     do{ valis (crOCall(Lc,Vr,Args,Tp),Ex)}.
   implementFunCall(Lc,globalVar(Nm,GTp),_,Args,Tp,Map,Ex,Rp) =>
-    do{ valis (crOCall(Lc,crVar(Lc,crId(Nm,GTp)),Args,Tp),Ex)}.
+    do{ valis (crOCall(Lc,idnt(Lc,crId(Nm,GTp)),Args,Tp),Ex)}.
   implementFunCall(Lc,V,Vr,Args,Tp,Map,Ex,Rp) =>
     do{
       raise reportError(Rp,"illegal variable $(Vr) - $(V)",Lc)
@@ -437,13 +437,13 @@ star.compiler.normalize{
     if [SFr] .= allFree && isEmpty(lVars) then {
       M .= [lyr(.none,foldRight((D,LL)=>collectMtd(D,some(SFr),LL),[],GrpFns),CM),..Outer];
       GrpQ .= foldLeft(collectQ,[SFr,..Q],Defs);
-      Ex1 <- transformGroup(GrpFns,M,Outer,GrpQ,some(crVar(Lc,SFr)),Ex,Rp);
+      Ex1 <- transformGroup(GrpFns,M,Outer,GrpQ,some(idnt(Lc,SFr)),Ex,Rp);
       liftExp(Bnd,M,GrpQ,Ex1,Rp);
     } else {
       freeType .= tupleType(allFree//typeOf);
 
       ThV .= genVar("_ThVr",freeType);
-      ThVr .= crVar(Lc,ThV);
+      ThVr .= idnt(Lc,ThV);
 
       L .= collectLabelVars(allFree,ThV,0,[]);
 
@@ -464,7 +464,7 @@ star.compiler.normalize{
 
       GrpFree .= crTpl(Lc,freeArgs++cellArgs);
 
---      logMsg("free term $(ThV) = $(GrpFree)\:$(typeOf(GrpFree))");
+--      logMsg("free data $(ThV) = $(GrpFree)\:$(typeOf(GrpFree))");
       (BndTrm,Exx) <- liftExp(Bnd,MM,GrpQ,Ex2,Rp);
       valis (crLtt(Lc,ThV,GrpFree,BndTrm),Exx)
     }
@@ -488,7 +488,7 @@ star.compiler.normalize{
     collectLabelVars(Vrs,ThV,Ix+1,Entries[Nm->labelArg(ThV,Ix)]).
   
 
-  -- In a let rec, all the non functions must end up in the free term
+  -- In a let rec, all the non functions must end up in the free data
 
   liftLetRec:(option[locn],cons[canonDef],cons[decl],canon,nameMap,set[crVar],
     cons[crDefn],reports) => result[reports,crFlow].
@@ -509,7 +509,7 @@ star.compiler.normalize{
 --    logMsg("layer var $(layerVar(Outer))");
 
     ThV .= genVar("_ThVr",typeOf(freeVars++lVars));
-    ThVr .= crVar(Lc,ThV);
+    ThVr .= idnt(Lc,ThV);
 
     CM .= makeConsMap(Decs);
 
@@ -524,7 +524,7 @@ star.compiler.normalize{
     cellVoids .= (vrDefs//(E)=>crVoid(Lc,typeOf(E)));
     GrpFree .= crTpl(Lc,freeArgs++cellVoids);
       
---      logMsg("free term $(ThV) = $(GrpFree)\:$(typeOf(GrpFree))");
+--      logMsg("free data $(ThV) = $(GrpFree)\:$(typeOf(GrpFree))");
 
     GrpQ .= foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q\+ThV,lVars),Grp);
     Ex2 <- transformGroup(Grp,M,M,GrpQ,some(ThVr),Ex,Rp);
@@ -572,7 +572,7 @@ star.compiler.normalize{
     LL[Nm->globalVar(FullNm,Tp)].
   collectMtd(varDef(Lc,Nm,FullNm,Val,_,Tp),some(ThVr),LL) => LL.
   collectMtd(varDef(Lc,Nm,FullNm,Val,_,Tp),some(ThVr),LL) =>
-    LL[Nm->localVar(crCall(Lc,varClosureNm(FullNm),[crVar(Lc,ThVr)],Tp))].
+    LL[Nm->localVar(crCall(Lc,varClosureNm(FullNm),[idnt(Lc,ThVr)],Tp))].
   collectMtd(implDef(Lc,_,FullNm,Val,Cx,Tp),ThVr,LL) =>
     collectMtd(varDef(Lc,FullNm,FullNm,Val,Cx,Tp),ThVr,LL).
   collectMtd(cnsDef(Lc,Nm,FullNm,Tp),.none,LL) => LL[Nm->moduleCons(FullNm,Tp)].

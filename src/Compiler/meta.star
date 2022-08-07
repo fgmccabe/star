@@ -129,6 +129,7 @@ star.compiler.meta{
   public traceDependencies = ref .false.
   public traceMacro = ref .false.
   public macroOnly = ref .false.
+  public showCanon = ref .false.
   public traceCanon = ref .false.
   public typeCheckOnly = ref .false.
   public traceNormalize = ref .false.
@@ -213,12 +214,25 @@ star.compiler.meta{
 
   public traceCheckOption:cmdOption[compilerOptions].
   traceCheckOption = cmdOption{
+    shortForm = "-dc".
+    alternatives = [].
+    usage = "-dc -- trace typechecking".
+    validator = .none.
+    setOption(_,Opts) => valof{
+      traceCanon := .true;
+      
+      valis Opts
+    }
+  }
+
+  public showCheckOption:cmdOption[compilerOptions].
+  showCheckOption = cmdOption{
     shortForm = "-dt".
     alternatives = [].
     usage = "-dt -- show type checkedcode".
     validator = .none.
     setOption(_,Opts) => valof{
-      traceCanon := .true;
+      showCanon := .true;
       
       valis Opts
     }

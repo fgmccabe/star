@@ -409,7 +409,7 @@ static char *opAndTp(opAndSpec A) {
       return Null;
     case lit:
     case lne:
-      return "term";
+      return "data";
     case sym:
       return "termLbl";
     case i32:

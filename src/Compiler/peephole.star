@@ -7,7 +7,7 @@ star.compiler.peephole{
   import star.compiler.misc.
 
   import star.compiler.location.
-  import star.compiler.terms.
+  import star.compiler.data.
 
   implementation equality[assemLbl] => {
     al(L1) == al(L2) => L1==L2.

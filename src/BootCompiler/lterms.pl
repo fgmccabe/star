@@ -175,8 +175,6 @@ ssTrm(resme(_,T,E),Dp,sq([TT,ss(" resume "),EE])) :-
   ssTrm(E,Dp,EE).
 ssTrm(vlof(_,A),Dp,sq([ss("valof "),AA])) :-
   ssAct(A,Dp,AA).
-ssTrm(perf(_,A),Dp,sq([ss("perform "),AA])) :-
-  ssAct(A,Dp,AA).
 ssTrm(try(_,B,E,H),Dp,sq([ss("try "),BB,ss(" catch "),EE,ss(" in "),HH])) :-
   Dp2 is Dp+2,
   ssTrm(E,Dp,EE),
@@ -587,8 +585,6 @@ inTerm(ltt(_,_,B,_E),Nm) :-
   inTerm(B,Nm).
 inTerm(ltt(_,_,_B,E),Nm) :-
   inTerm(E,Nm).
-inTerm(perf(_,A),Nm) :-
-  inAction(A,Nm).
 
 inAction(nop(_),_) :- !,fail.
 inAction(seq(_,L,R),Nm) :-!,
@@ -759,8 +755,6 @@ validTerm(mtch(Lc,L,R),_,D) :-
 validTerm(ng(Lc,R),_,D) :-
   validTerm(R,Lc,D).
 validTerm(vlof(Lc,A),_,D) :-
-  validAction(A,Lc,D,_).
-validTerm(perf(Lc,A),_,D) :-
   validAction(A,Lc,D,_).
 validTerm(error(Lc,R),_,D) :-
   validTerm(R,Lc,D).
