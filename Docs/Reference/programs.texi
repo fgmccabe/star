@@ -73,7 +73,7 @@ The functions and other variables defined
 @display
 @anchored{Package} ::= @refer{PackageName} @refer{ThetaEnvironment}
 
-@anchored{PackageName} ::= @refer{Identifier} @refer{Terminator} @dots{} @code{'.'} @refer{Identifier}
+@anchored{PackageName} ::= @refer{Identifier} @refer{Terminator} @dots{} @code{.} @refer{Identifier}
 @end display
 @end float
 
@@ -96,7 +96,7 @@ programs and variables.
 @float BNF,statementFig
 @caption{Definition}
 @display
-@anchored{ThetaEnvironment} ::= @code{'@{'} @refer{Definition} @refer{Terminator} ... @refer{Terminator} @refer{Definition} @code{'@}'}
+@anchored{ThetaEnvironment} ::= @code{@{} @refer{Definition} @refer{Terminator} @dots{} @refer{Terminator} @refer{Definition} @code{@}}
 
 @anchored{Definition} ::= @refer{TypeDefinition}
   | @refer{Annotation}
@@ -125,7 +125,7 @@ variable is intended to be generic.
 @float BNF,typeAnnotationFig
 @caption{Type Annotation}
 @display
-@anchored{TypeAnnotation} ::= @refer{Variable} @code{':'} @refer{Type}
+@anchored{TypeAnnotation} ::= @refer{Variable} @code{:} @refer{Type}
 @end display
 @end float
 
@@ -160,15 +160,15 @@ terms of different constructors for the type.
 @float BNF,algebraicTypeDefFig
 @caption{Algebraic Type Definition}
 @display
-@anchored{AlgebraicTypeDefinition} ::= @refer{Type} @code{'::='} @refer{AlgebraicConstructor} @code{'|'} @dots{}  @code{'|'} @refer{AlgebraicConstructor}
+@anchored{AlgebraicTypeDefinition} ::= @refer{Type} @code{::=} @refer{AlgebraicConstructor} @code{|} @dots{}  @code{|} @refer{AlgebraicConstructor}
 
 @anchored{AlgebraicConstructor} ::= @refer{EnumeratedSymbol}
   | @refer{PositionalConstructor}
   | @refer{RecordConstructor}
 
-@anchored{PositionalConstructor} ::= @refer{Identifier} @code{'('} @refer{Type} @code{','}  @dots{}  @code{','} @refer{Type} @code{')'}
+@anchored{PositionalConstructor} ::= @refer{Identifier} @code{(} @refer{Type} @code{,}  @dots{}  @code{,} @refer{Type} @code{)}
 
-@anchored{RecordConstructor} ::= @refer{Identifier} @code{'@{'} @refer{Annotation} @refer{Terminator} @dots{}  @refer{Terminator} @refer{Annotation} @code{'@}'}
+@anchored{RecordConstructor} ::= @refer{Identifier} @code{@{} @refer{Annotation} @refer{Terminator} @dots{}  @refer{Terminator} @refer{Annotation} @code{@}}
 @end display
 @end float
 
@@ -177,7 +177,7 @@ type; it also defines the possible values associated with the type.
 
 As illustrated in @refer{algebraicTypeDefFig}, an algebraic type
 definition introduces the new type and defines one or more
-@refer{AlgebraicConstructor}s -- separated by the @code{'|'} operator.
+@refer{AlgebraicConstructor}s -- separated by the @code{|} operator.
 
 An @var{AlgebraicConstructor} is a specification of a value of a type;
 i.e., constructors @emph{paint a picture} of the shape of potential
@@ -259,7 +259,7 @@ reliably inferred without being explicitly identified.
 @float BNF,typeExistsFig
 @caption{Type Exists Statement}
 @display
-@anchored{TypeExistsStmt} ::= [@refer{UniversalQuantifier}] @refer{Type} @code{'<~'} @refer{RecordType}
+@anchored{TypeExistsStmt} ::= [@refer{UniversalQuantifier}] @refer{Type} @code{<~} @refer{FaceType}
 @end display
 @end float
 
@@ -282,7 +282,7 @@ it to an existing type expression.
 @float BNF,typeAliasFig
 @caption{Type Alias Statement}
 @display
-@anchored{TypeAliasStmt} ::= [@refer{UniversalQuantifier}] @refer{Type} @code{'~>'} @refer{Type}
+@anchored{TypeAliasStmt} ::= [@refer{UniversalQuantifier}] @refer{Type} @code{~>} @refer{Type}
 @end display
 @end float
 
@@ -333,8 +333,8 @@ variable. @refer{VariableDefinition}s may appear in
 @float BNF,variableDeclararionFig
 @caption{Variable Definition}
 @display
-@anchored{VariableDefinition}::=@refer{Variable} @code{'='} @refer{Expression}
- | @refer{Variable} @code{':='} @refer{Expression}
+@anchored{VariableDefinition}::=@refer{Variable} @code{=} @refer{Expression}
+ | @refer{Variable} @code{:=} @refer{Expression}
 @end display
 @end float
 
@@ -490,14 +490,14 @@ A function is a program for computing values; organized as a set of equations.
 @display
 @anchored{FunctionDefinition} ::= @refer{Equation} ... @refer{Equation}
 
-@anchored{Equation} ::= @refer{RuleHead} [@refer{GuardCondition}]] @code{'=>'} @refer{Expression}
+@anchored{Equation} ::= @refer{RuleHead} [@refer{GuardCondition}]] @code{=>} @refer{Expression}
   | @refer{DefltEquation}
 
-@anchored{DefltEquation} ::= @refer{RuleHead} @code{'default'} @code{'=>'} @refer{Expression}
+@anchored{DefltEquation} ::= @refer{RuleHead} @code{default} @code{=>} @refer{Expression}
 
-@anchored{RuleHead} ::= @refer{Identifier}@code{'('}@refer{Pattern}@code{','}...@code{','}@refer{Pattern}@code{')'}
+@anchored{RuleHead} ::= @refer{Identifier}@code{(}@refer{Pattern}@code{,}...@code{,}@refer{Pattern}@code{)}
 
-@anchored{GuardCondition} ::= @code{'where'} @refer{Condition}
+@anchored{GuardCondition} ::= @code{where} @refer{Condition}
 @end display
 @end float
 
@@ -671,7 +671,7 @@ Lambda expressions may appear anywhere a function value is permitted.
 @float BNF,anonymousFunctionFig
 @caption{Anonymous Function}
 @display
-@anchored{LambdaExpression} ::= @refer{TuplePattern} @code{'=>'} @refer{Expression}
+@anchored{LambdaExpression} ::= @refer{TuplePattern} @code{=>} @refer{Expression}
 @end display
 @end float
 
@@ -721,11 +721,11 @@ type(s) in the contract head.
 @float BNF,contractFig
 @caption{Contract Definition}
 @display
-@anchored{ContractDefinition} ::= @code{'contract'} @var{ContractSpec} @code{'::='} @var{RecordType}
+@anchored{ContractDefinition} ::= @code{contract} @var{ContractSpec} @code{::=} @var{FaceType}
 
-@anchored{ContractSpec} ::= [ @refer{UniversalQuantifier} ] @refer{Identifier} @code{'['} @refer{TypeArgSpec} [@code{'->>'} @refer{TypeArgSpec}] @code{']'}
+@anchored{ContractSpec} ::= [ @refer{UniversalQuantifier} ] @refer{Identifier} @code{[} @refer{TypeArgSpec} [@code{->>} @refer{TypeArgSpec}] @code{]}
 
-@anchored{TypeArgSpec} ::= @refer{TypeVariable} @code{','} @dots{} @code{','} @refer{TypeVariable}
+@anchored{TypeArgSpec} ::= @refer{TypeVariable} @code{,} @dots{} @code{,} @refer{TypeVariable}
 @end display
 @end float
 
@@ -820,8 +820,8 @@ implemented for a specific type combination.
 @float BNF,contractImplementationFig
 @caption{Contract Implementation Statement}
 @display
-@anchored{ContractImplementation} ::= @code{'implementation'}
-@refer{ContractSpec} @code{'=>'} @refer{Expression}
+@anchored{ContractImplementation} ::= @code{implementation}
+@refer{ContractSpec} @code{=>} @refer{Expression}
 @end display
 @end float
 
@@ -1005,9 +1005,9 @@ the named import.
 @anchored{ImportStatement} ::= @refer{OpenImportStatement}
   | @refer{NamedImportStatement}
 
-@anchored{OpenImportStatement} ::= [@code{'public'}] @code{'import'} @refer{PackageName}
+@anchored{OpenImportStatement} ::= [@code{public}] @code{import} @refer{PackageName}
 
-@anchored{NamedImportStatement} ::= @refer{Variable} @code{'import'} @refer{PackageName}
+@anchored{NamedImportStatement} ::= @refer{Variable} @code{import} @refer{PackageName}
 @end display
 @end float
 
@@ -1059,7 +1059,7 @@ and whose name is used to access the imported package.
 
 Definitions that are imported as a named import are not immediately
 defined to be in scope. Instead, they must be accessed via the package
-variable -- using @refer{RecordAccess} expressions.
+variable -- using @refer{FieldAccess} expressions.
 
 For example, if @code{Pkg} exports a type @code{person} and a function
 @code{someone}, then to use the type and function they are referenced from
@@ -1071,7 +1071,7 @@ Joe = P.someone("Joe")
 
 Using named imports in this way is a convenient way to establish
 different name spaces. Since all the definitions within the package
-must be accessed via the @refer{RecordAccess} operator, the name used
+must be accessed via the @refer{FieldAccess} operator, the name used
 to import the package effectively becomes a local name space for that
 package and will not clash with neither other imported packages nor
 locally defined functions and types.
@@ -1090,7 +1090,7 @@ an @code{import} of the record.
 @float BNF,openStatementFig
 @caption{Open Statement}
 @display
-@anchored{OpenStatement} ::= @code{'open'} @refer{Expression}
+@anchored{OpenStatement} ::= @code{open} @refer{Expression}
 @end display
 @end float
 

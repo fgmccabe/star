@@ -72,7 +72,7 @@ Horizontal Tab.
 @float BNF,lineCommentFig
 @caption{Line Comment}
 @display
-@anchored{LineComment} ::= (@code{'--@spce{}'} | @code{'--\t'}) @refer{Char} @dots{} @refer{Char} @code{'\n'}
+@anchored{LineComment} ::= (@code{--@spce{}} | @code{--\t}) @refer{Char} @dots{} @refer{Char} @code{\n}
 @end display
 @end float
 
@@ -86,7 +86,7 @@ characters and terminated by the characters @code{*/}.
 @float BNF,blockCommentFig
 @caption{Block Comment}
 @display
-@anchored{BlockComment} ::= @code{'/*'} @refer{Char} @dots{} @refer{Char} @code{'*/'}
+@anchored{BlockComment} ::= @code{/*} @refer{Char} @dots{} @refer{Char} @code{*/}
 @end display
 @end float
 
@@ -105,7 +105,7 @@ tokens. Except when they occur in a @refer{StringLiteral} or in a
 @float BNF,whiteSpaceFig
 @caption{White Space}
 @display
-@anchored{WhiteSpace} ::= @code{' '} | @code{'\n'} |@code{'\r'} | @code{'\f'} |@code{'\t'}
+@anchored{WhiteSpace} ::= @code{ } | @code{\n} |@code{\r} | @code{\f} |@code{\t}
 @end display
 @end float
 
@@ -156,8 +156,8 @@ All integers are represented as at least 64 bit values. So-called
 @caption{Decimal Literals}
 @display
 @anchored{Decimal} ::=@refer{Digit} @dots{} @refer{Digit}+
-@anchored{Digit} ::= @code{'0'}|@code{'1'}|@code{'2'}|@code{'3'}|@code{'4'}|@code{'5'}|@code{'6'}|@code{'7'}|@code{'8'}|@code{'9'}
-@anchored{BigInteger} ::=@refer{Decimal} @code{'b'}
+@anchored{Digit} ::= @code{0}|@code{1}|@code{2}|@code{3}|@code{4}|@code{5}|@code{6}|@code{7}|@code{8}|@code{9}
+@anchored{BigInteger} ::=@refer{Decimal} @code{b}
 @end display
 @end float
 
@@ -184,8 +184,8 @@ are all hexadecimals.
 @float BNF,hexadecimalFig
 @caption{Hexadecimal numbers}
 @display
-@anchored{Hexadecimal}::= @code{'0x'} @refer{Hex} @dots{} @refer{Hex}+
-@anchored{Hex}::= @code{'0'}|@code{'1'}|@code{'2'}|@code{'3'}|@code{'4'}|@code{'5'}|@code{'6'}|@code{'7'}|@code{'8'}|@code{'9'}|@code{'a'}|@code{'b'}|@code{'c'}|@code{'d'}|@code{'e'}|@code{'f'}
+@anchored{Hexadecimal}::= @code{0x} @refer{Hex} @dots{} @refer{Hex}+
+@anchored{Hex}::= @code{0}|@code{1}|@code{2}|@code{3}|@code{4}|@code{5}|@code{6}|@code{7}|@code{8}|@code{9}|@code{a}|@code{b}|@code{c}|@code{d}|@code{e}|@code{f}
 @end display
 @end float
 
@@ -207,7 +207,7 @@ See @ref{floatingPointFig} for a complete syntax diagram for floating point numb
 @float BNF,floatingPointFig
 @caption{Floating Point numbers}
 @display
-@anchored{FloatingPoint} ::= @refer{Digit}@dots{}@refer{Digit}+ @code{'.'} @refer{Digit}@dots{}@refer{Digit}+ [@code{'e'}[@code{'-'}]@refer{Digit}@dots{}@refer{Digit}+]]
+@anchored{FloatingPoint} ::= @refer{Digit}@dots{}@refer{Digit}+ @code{.} @refer{Digit}@dots{}@refer{Digit}+ [@code{e}[@code{-}]@refer{Digit}@dots{}@refer{Digit}+]]
 @end display
 @end float
 
@@ -240,7 +240,7 @@ Unicode has the capability to represent up to one million character code points.
 @float BNF,characterCodeFig
 @caption{Character Codes}
 @display
-@anchored{CharacterCode} ::= @code{'0c'} @refer{CharRef}
+@anchored{CharacterCode} ::= @code{0c} @refer{CharRef}
 @end display
 @end float
 
@@ -283,8 +283,8 @@ A @refer{CharRef} is a denotation of a single character.
 
 @anchored{CharLiteral} ::= @code{`} @var{CharRef} @code{`}
 
-@anchored{Escape} ::= @code{'\b'} | @code{'\d'} | @code{'\e'} | @code{'\f'} | @code{'\n'} | @code{'\r'} | @code{'\t'} | @code{'\v'} |
-   @code{'\'}@refer{Char} | @code{'\u'} @refer{Hex}@dots{}@refer{Hex}@code{';'}
+@anchored{Escape} ::= @code{\b} | @code{\d} | @code{\e} | @code{\f} | @code{\n} | @code{\r} | @code{\t} | @code{\v} |
+   @code{\}@refer{Char} | @code{\u} @refer{Hex}@dots{}@refer{Hex}@code{;}
 @end display
 @end float
 
@@ -352,15 +352,15 @@ There are two forms of @emph{string literal}: a
 @display
 @anchored{StringLiteral} ::= @var{QuotedString} | @var{BlockString}
 
-@anchored{QuotedString} ::= @code{'"'} @var{StrChar} @dots{} @var{StrChar} @code{'"'}
+@anchored{QuotedString} ::= @code{"} @var{StrChar} @dots{} @var{StrChar} @code{"}
 
 @anchored{StrChar} ::= @var{CharRef} | @var{Interpolation} | @var{Embedding}
 
-@anchored{Interpolation} ::= @code{'$'} @code{'('} @var{Expression} @code{')'} [ @code{':'} @var{FormattingSpec} @code{';'} ] 
+@anchored{Interpolation} ::= @code{$} @code{(} @var{Expression} @code{)} [ @code{:} @var{FormattingSpec} @code{;} ] 
 
 @anchored{FormattingSpec} ::= @var{CharRef} @dots{} @var{CharRef}
 
-@anchored{Embedding} ::= @code{'#'} @code{'('} @var{Expression} @code{')'}
+@anchored{Embedding} ::= @code{#} @code{(} @var{Expression} @code{)}
 
 @end display
 @end float
@@ -391,7 +391,7 @@ of string that permits raw character data to be processed as a string.
 @float BNF,blockStringFig
 @caption{Block String Literal}
 @display
-@anchored{BlockString} ::= @code{'"""'} @var{Char} @dots{} @var{Char} @code{'"""'}
+@anchored{BlockString} ::= @code{"""} @var{Char} @dots{} @var{Char} @code{"""}
 @end display
 @end float
 
@@ -518,7 +518,7 @@ in single quotes. Recall that strings are enclosed in double quotes.
 @float BNF quotedIdentFig
 @caption{Quoted Identifier}
 @display
-@anchored{QuotedIdentifier} ::= @code{'''} @var{CharRef}@dots{}@var{CharRef} @code{'''}
+@anchored{QuotedIdentifier} ::= @code{'} @var{CharRef}@dots{}@var{CharRef} @code{'}
 @end display
 @end float
 
@@ -546,7 +546,7 @@ a keyword it is possible to achieve this by enclosing the keyword in
 single quotes.
 
 For example, while @code{type} is a keyword in the language; enclosing
-the word in parentheses: @code{'type'} has the effect of suppressing
+the word in parentheses: @code{type} has the effect of suppressing
 the keyword interpretation -- even though the printed representations
 are the same.
 
@@ -581,7 +581,7 @@ statements in @Star{} always declare some fact.} are terminated by the @var{Term
 @float BNF,terminatorFig
 @caption{Statement Terminator}
 @display
-@anchored{Terminator} ::= @code{'.'} @refer{WhiteSpace}
+@anchored{Terminator} ::= @code{.} @refer{WhiteSpace}
 @end display
 @end float
 
@@ -625,7 +625,7 @@ There are two forms of braces: with and without a period character.
 @float BNF bracesFig
 @caption{Braces}
 @display
-@anchored{Brace} ::= @code{'@{'} | @code{'@}'} | @code{'@{.'} | @code{'.@}'}
+@anchored{Brace} ::= @code{@{} | @code{@}} | @code{@{.} | @code{.@}}
 @end display
 @end float
 
@@ -641,16 +641,16 @@ There are several @emph{special} sets of brackets:
 @float BNF specialBrFig
 @caption{Special Brackets}
 @display
-@anchored{SpecialBracket} ::= @code{'(|'} | @code{'|)'} |
-  @code{'[|'} | @code{'|]'} |
-  @code{'<|'} | @code{'|>'} |
-  @code{'@{!'} | @code{'!@}'} | @code{'@{?'} | @code{'?@}'}
+@anchored{SpecialBracket} ::= @code{(|} | @code{|)} |
+  @code{[|} | @code{|]} |
+  @code{<|} | @code{|>} |
+  @code{@{!} | @code{!@}} | @code{@{?} | @code{?@}}
 @end display
 @end float
 
 As with other brackets, these must be appropriately paired. Each one
 of these special bracket pairs takes a single term as argument --
-unlike the @code{'()'} and @code{'[]'} brackets which take comma
+unlike the @code{()} and @code{[]} brackets which take comma
 separated sequences.
 
 
