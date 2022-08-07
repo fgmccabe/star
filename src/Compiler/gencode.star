@@ -5,7 +5,7 @@ star.compiler.gencode{
   import star.sort.
 
   import star.compiler.assem.
-  import star.compiler.core.
+  import star.compiler.term.
   import star.compiler.errors.
   import star.compiler.escapes.
   import star.compiler.intrinsics.
@@ -16,7 +16,7 @@ star.compiler.gencode{
   import star.compiler.types.
 
   import star.compiler.location.
-  import star.compiler.terms.
+  import star.compiler.data.
 
   srcLoc ::= lclVar(integer,ltipe) |
     argVar(integer,ltipe) |
@@ -94,7 +94,7 @@ star.compiler.gencode{
     either[reports,(codeCtx,multi[assemOp],cons[ltipe])].
   compExp(Exp,_,Ctx,Stk,Rp) where (Const,Tp)^=isLiteral(Exp) =>
     either((Ctx,[iLdC(Const)],[Tp::ltipe,..Stk])).
-  compExp(crVar(Lc,crId(Vr,Tp)),Opts,Ctx,Stk,Rp) => do{
+  compExp(idnt(Lc,crId(Vr,Tp)),Opts,Ctx,Stk,Rp) => do{
     if Loc^=locateVar(Vr,Ctx) then {
       compVar(Lc,Vr,Loc,Opts,Ctx,Stk,Rp)
     } else
@@ -156,7 +156,7 @@ star.compiler.gencode{
   compExp(crCase(Lc,Exp,Cases,Deflt,Tp),Opts,Ctx,Stk,Rp) =>
     compCase(Lc,Exp,Cases,Deflt,Tp,Opts,Cont,Ctx,Cde,Stk,Rp).
   compExp(crAbort(Lc,Msg,Tp),Opts,Ctx,Stk,Rp) => do{
-    (Ctxx,Acde,AStk) <- compExps([Lc::crExp,crStrg(Lc,Msg)],Opts,Ctx,Stk,Rp);
+    (Ctxx,Acde,AStk) <- compExps([Lc::crExp,strg(Lc,Msg)],Opts,Ctx,Stk,Rp);
     valis (Ctxx,Acde++[iEscape("_abort"),iFrame(tplTipe(Stk))],Stk)
   }
 
@@ -170,21 +170,21 @@ star.compiler.gencode{
   compFrTerm:(crExp,set[crVar],crVar,cons[either[integer,string]],compilerOptions,codeCtx,
     cons[ltipe],reports) =>
     either[reports,(codeCtx,multi[assemOp],multi[assemOp],cons[ltipe])].
-  compFrTerm(crVar(Lc,Vr),Roots,Base,Pth,Opts,Ctx,Stk,Rp) => do{
+  compFrTerm(idnt(Lc,Vr),Roots,Base,Pth,Opts,Ctx,Stk,Rp) => do{
     if Vr.<.Roots then {
       FCode .= fixupCode(Base,Pth,Vr,Ctx,[]);
       valis (Ctx,[.iLdV],FCode,[typeOf(Vr)::ltipe,..Stk])
     }
     else{
-      (Ctxx,Cdex,Stkx) <- compExp(crVar(Lc,Vr),Opts,Ctx,Stk,Rp);
+      (Ctxx,Cdex,Stkx) <- compExp(idnt(Lc,Vr),Opts,Ctx,Stk,Rp);
       valis (Ctxx,Cdex,[],Stkx)
     }
   }
-  compFrTerm(crInt(Lc,Ix),_,_,_,_,Ctx,Stk,Rp) =>
+  compFrTerm(intgr(Lc,Ix),_,_,_,_,Ctx,Stk,Rp) =>
     either((Ctx,[iLdC(intgr(Ix))],[],[.int64,..Stk])).
-  compFrTerm(crFlot(Lc,Dx),_,_,_,_,Ctx,Stk,Rp) =>
+  compFrTerm(flot(Lc,Dx),_,_,_,_,Ctx,Stk,Rp) =>
     either((Ctx,[iLdC(flot(Dx))],[],[.flt64,..Stk])).
-  compFrTerm(crStrg(Lc,Sx),_,_,_,_,Ctx,Stk,Rp) => 
+  compFrTerm(strg(Lc,Sx),_,_,_,_,Ctx,Stk,Rp) => 
     either((Ctx,[iLdC(strg(Sx))],[],[.ptr,..Stk])).
   compFrTerm(crVoid(Lc,Tp),_,_,_,_,Ctx,Stk,Rp) => 
     either((Ctx,[.iLdV],[],[.ptr,..Stk])).
@@ -197,7 +197,7 @@ star.compiler.gencode{
   /*
   compFrTerm(crTplOff(Lc,Tpl,Ix,Tp),Roots,Base,Pth,Opts,Ctx,Stk,Rp) => do{
     (Rc,OffPth) .= offPath(Tpl,[other(Ix)]);
-    if crVar(RLc,V).=Rc && V .<. Roots then{
+    if idnt(RLc,V).=Rc && V .<. Roots then{
       FCode .= fixupCode(Base,Pth,V,Ctx,OffPth);
       valis (Ctx,[.iLdV],FCode,[Tp::ltipe,..Stk])
     }
@@ -225,7 +225,7 @@ star.compiler.gencode{
   }
 */
   compFrTerm(Exp,_,_,_,Opts,Ctx,Stk,Rp) => 
-    other(reportError(Rp,"cannot generate code for free term $(Exp)",locOf(Exp))).
+    other(reportError(Rp,"cannot generate code for free data $(Exp)",locOf(Exp))).
 
 
   offPath:(crExp,cons[either[integer,string]])=>(crExp,cons[either[integer,string]]).
@@ -276,10 +276,10 @@ star.compiler.gencode{
   caseHashes(Cases,Mx) => (Cases//((Lc,Pt,Ex))=>(Lc,Pt,caseHash(Pt)%Mx,Ex)).
 
   caseHash:(crExp)=>integer.
-  caseHash(crVar(_,_)) => 0.
-  caseHash(crInt(_,Ix)) => Ix.
-  caseHash(crFlot(_,Dx)) => hash(Dx).
-  caseHash(crStrg(_,Sx)) => hash(Sx).
+  caseHash(idnt(_,_)) => 0.
+  caseHash(intgr(_,Ix)) => Ix.
+  caseHash(flot(_,Dx)) => hash(Dx).
+  caseHash(strg(_,Sx)) => hash(Sx).
   caseHash(crTerm(_,Nm,Args,_)) => size(Args)*37+hash(Nm).
 
   sortCases(Cases) => mergeDuplicates(sort(Cases,((_,_,H1,_),(_,_,H2,_))=>H1<H2)).
@@ -383,7 +383,7 @@ star.compiler.gencode{
 
   compPttrn:(crExp,compilerOptions,integer,codeCtx,cons[ltipe],reports) =>
     either[reports,(codeCtx,multi[assemOp],cons[ltipe])].
-  compPttrn(crVar(Lc,crId(Vr,Tp)),Opts,Fail,Ctx,[LTp,..Stk],Rp) => do{
+  compPttrn(idnt(Lc,crId(Vr,Tp)),Opts,Fail,Ctx,[LTp,..Stk],Rp) => do{
     if Loc ^= locateVar(Vr,Ctx) then 
       compPttrnVar(Lc,Vr,Loc,Opts,Ctx,Stk,Rp)
     else{
@@ -429,10 +429,10 @@ star.compiler.gencode{
   pttrnTest(_,Tp,Fail,Ctx,Cde,[_,_,..Stk],Rp) =>
     either((Ctx,Cde++[iComp(Fail)],Stk)).
 
-  isLiteral:(crExp)=>option[(term,tipe)].
-  isLiteral(crInt(_,Ix))=>some((intgr(Ix),intType)).
-  isLiteral(crFlot(_,Dx))=>some((flot(Dx),fltType)).
-  isLiteral(crStrg(_,Sx))=>some((strg(Sx),strType)).
+  isLiteral:(crExp)=>option[(data,tipe)].
+  isLiteral(intgr(_,Ix))=>some((intgr(Ix),intType)).
+  isLiteral(flot(_,Dx))=>some((flot(Dx),fltType)).
+  isLiteral(strg(_,Sx))=>some((strg(Sx),strType)).
   isLiteral(crTerm(_,Nm,[],Tp)) => some((term(tLbl(Nm,0),[]),Tp)).
   isLiteral(crVoid(Lc,Tp)) => some((symb(tLbl("star.core#void",0)),Tp)).
   isLiteral(_) default => .none.
@@ -517,7 +517,7 @@ star.compiler.gencode{
 
   changeLoc:(option[locn],compilerOptions,codeCtx)=>(multi[assemOp],codeCtx).
   changeLoc(Lc,_,codeCtx(Vars,Lc0,Dp,Lb)) where Lc~=Lc0 =>
-    ([iLine(Lc::term)],codeCtx(Vars,Lc,Dp,Lb)).
+    ([iLine(Lc::data)],codeCtx(Vars,Lc,Dp,Lb)).
     changeLoc(_,_,Ctx)=>([],Ctx).
 
   implementation hasLoc[codeCtx] => {
@@ -525,11 +525,11 @@ star.compiler.gencode{
   }
 
   ptnVars:(crExp,codeCtx) => codeCtx.
-  ptnVars(crVar(_,crId(Nm,Tp)),codeCtx(Vars,CLc,Count,Lb)) where _ ^= Vars[Nm] => codeCtx(Vars,CLc,Count,Lb).
-  ptnVars(crVar(_,crId(Nm,Tp)),codeCtx(Vars,CLc,Count,Lb)) => codeCtx(Vars[Nm->lclVar(Count+1,Tp::ltipe)],CLc,Count+1,Lb).
-  ptnVars(crInt(_,_),Ctx) => Ctx.
-  ptnVars(crFlot(_,_),Ctx) => Ctx.
-  ptnVars(crStrg(_,_),Ctx) => Ctx.
+  ptnVars(idnt(_,crId(Nm,Tp)),codeCtx(Vars,CLc,Count,Lb)) where _ ^= Vars[Nm] => codeCtx(Vars,CLc,Count,Lb).
+  ptnVars(idnt(_,crId(Nm,Tp)),codeCtx(Vars,CLc,Count,Lb)) => codeCtx(Vars[Nm->lclVar(Count+1,Tp::ltipe)],CLc,Count+1,Lb).
+  ptnVars(intgr(_,_),Ctx) => Ctx.
+  ptnVars(flot(_,_),Ctx) => Ctx.
+  ptnVars(strg(_,_),Ctx) => Ctx.
   ptnVars(crVoid(_,_),Ctx) => Ctx.
   ptnVars(crTerm(_,Op,Els,_),Ctx) => foldRight(ptnVars,Ctx,Els).
   ptnVars(crCall(_,_,_,_),Ctx) => Ctx.
@@ -583,9 +583,9 @@ star.compiler.gencode{
 
   genBoot(_,_) default => [].
 
-  frameSig:(cons[tipe])=>term.
+  frameSig:(cons[tipe])=>data.
   frameSig(Tps) => strg((tupleType(Tps)::ltipe)::string).
 
-  enum:(string)=>term.
+  enum:(string)=>data.
   enum(Nm)=>term(tLbl(Nm,0),[]).
 }

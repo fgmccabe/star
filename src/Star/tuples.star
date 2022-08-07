@@ -31,12 +31,34 @@ star.tuples{
     hash((A,B)) => hash(A)*37+hash(B).
   }
 
-  public fst:all x,y ~~ ((x,y)) => x.
-  fst((X,_)) => X.
+  public contract all t,e ~~ fst[t->>e] ::= {
+    fst:(t)=>e
+  }
 
-  public snd:all x,y ~~ ((x,y)) => y.
-  snd((_,Y)) => Y.
+  public implementation all a ~~ fst[((a))->>a] => {
+    fst(((X))) => X
+  }
+    
+  public implementation all a,b ~~ fst[(a,b)->>a] => {
+    fst((X,_)) => X
+  }
+    
+  public implementation all a,b,c ~~ fst[(a,b,c)->>a] => {
+    fst((X,_,_)) => X
+  }
+    
+  public contract all t,e ~~ snd[t->>e] ::= {
+    snd:(t)=>e
+  }
 
+  public implementation all a,b ~~ snd[(a,b)->>b] => {
+    snd((_,X)) => X
+  }
+    
+  public implementation all a,b,c ~~ snd[(a,b,c)->>b] => {
+    snd((_,X,_)) => X
+  }
+    
   -- 3-tuples
   public implementation all x,y,z ~~ display[x], display[y], display[z] |: display[(x,y,z)] => {
     disp((a,b,c)) => "($(a),$(b),$(c))".

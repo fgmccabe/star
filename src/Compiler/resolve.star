@@ -133,6 +133,14 @@ star.compiler.resolve{
     (Rc1,St1) = overloadTerm(Rc,Dict,St);
     valis (owpen(Lc,Rc1),St1);
   }
+  overloadTerm(cell(Lc,T),Dict,St) => valof{
+    (T1,St1) = overloadTerm(T,Dict,St);
+    valis (cell(Lc,T1),St1)
+  }
+  overloadTerm(cellref(Lc,T,Tp),Dict,St) => valof{
+    (T1,St1) = overloadTerm(T,Dict,St);
+    valis (cellref(Lc,T1,Tp),St1)
+  }
   overloadTerm(whr(Lc,T,C),Dict,St) => valof{
     (OT,St1) = overloadTerm(T,Dict,St);
     (OC,St2) = overloadTerm(C,Dict,St1);

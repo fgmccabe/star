@@ -1,7 +1,7 @@
-star.compiler.core.ast{
+star.compiler.term.ast{
   import star.
   import star.compiler.ast.
-  import star.compiler.core.
+  import star.compiler.term.
   import star.compiler.errors.
   import star.compiler.escapes.
   import star.compiler.location.
@@ -74,9 +74,9 @@ star.compiler.core.ast{
   declareArgs([crId(Nm,Tp),..Ags],D) => declareArgs(Ags,D[Nm->Tp]).
 
   parseExp:(ast,option[tipe],map[string,tipe],reports)=>either[reports,crExp].
-  parseExp(int(Lc,Ix),_,_,_) => either(crInt(Lc,Ix)).
-  parseExp(num(Lc,Dx),_,_,_) => either(crFlot(Lc,Dx)).
-  parseExp(str(Lc,Sx),_,_,_) => either(crStrg(Lc,Sx)).
+  parseExp(int(Lc,Ix),_,_,_) => either(intgr(Lc,Ix)).
+  parseExp(num(Lc,Dx),_,_,_) => either(flot(Lc,Dx)).
+  parseExp(str(Lc,Sx),_,_,_) => either(strg(Lc,Sx)).
   parseExp(nme(Lc,Id),.none,D,_) where Tp^=D[Id] => either(crVar(Lc,crId(Id,Tp))).
   parseExp(nme(Lc,Id),some(Tp),D,_) => either(crVar(Lc,crId(Id,Tp))).
   parseExp(nme(Lc,Id),.none,D,Rp) => other(reportError(Rp,"$(Id) not declared",Lc)).
@@ -133,7 +133,7 @@ star.compiler.core.ast{
   }
   parseExp(A,Tp,D,Rp) where (Lc,L,R) ^= isBinary(A,"in") &&
       (_,N,B) ^= isBinary(L,"=") => do{
-	crVar(Lc,Vr) <- parseExp(N,.none,D,Rp);
+	idnt(Lc,Vr) <- parseExp(N,.none,D,Rp);
 	EB <- parseExp(B,some(typeOf(Vr)),D,Rp);
 	ER <- parseExp(R,Tp,D[crName(Vr)->typeOf(Vr)],Rp);
 	valis crLtt(Lc,Vr,EB,ER)
@@ -232,10 +232,10 @@ star.compiler.core.ast{
   }
 
   exprAst:(crExp)=>ast.
-  exprAst(crVar(Lc,crId(Id,_))) => exprId(Lc,Id).
-  exprAst(crInt(Lc,Ix)) => int(Lc,Ix).
-  exprAst(crFlot(Lc,Dx)) => num(Lc,Dx).
-  exprAst(crStrg(Lc,Sx)) => str(Lc,Sx).
+  exprAst(idnt(Lc,crId(Id,_))) => exprId(Lc,Id).
+  exprAst(intgr(Lc,Ix)) => int(Lc,Ix).
+  exprAst(flot(Lc,Dx)) => num(Lc,Dx).
+  exprAst(strg(Lc,Sx)) => str(Lc,Sx).
   exprAst(crVoid(Lc,Tp)) => typedAst(Lc,qnm(Lc,"$void"),Tp).
   exprAst(crTerm(Lc,Nm,Els,Tp)) =>
     typedAst(Lc,app(Lc,exprId(Lc,Nm),tpl(Lc,"(||)",

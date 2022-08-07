@@ -2,7 +2,7 @@ star.compiler.inline{
   import star.
   import star.sort.
 
-  import star.compiler.core.
+  import star.compiler.term.
   import star.compiler.freevars.
   import star.compiler.misc.
   import star.compiler.types.
@@ -31,14 +31,14 @@ star.compiler.inline{
   -- ptnMatch tries to match an actual value with a pattern
   
   ptnMatch:(crExp,crExp,map[string,crExp]) => match[map[string,crExp]].
-  ptnMatch(E,crVar(Lc,crId(V,_)),Env) =>
+  ptnMatch(E,idnt(Lc,crId(V,_)),Env) =>
     (T^=Env[V] ? ptnMatch(E,T,Env) || matching(Env[V->E])).
-  ptnMatch(crVar(_,V1),_,_) => .insufficient.  -- variables on left only match vars on right
-  ptnMatch(crInt(_,Ix),crInt(_,Ix),Env) => matching(Env).
-  ptnMatch(crBig(_,Bx),crBig(_,Bx),Env) => matching(Env).
-  ptnMatch(crFlot(_,Dx),crFlot(_,Dx),Env) => matching(Env).
-  ptnMatch(crChr(_,Cx),crChr(_,Cx),Env) => matching(Env).
-  ptnMatch(crStrg(_,Sx),crStrg(_,Sx),Env) => matching(Env).
+  ptnMatch(idnt(_,V1),_,_) => .insufficient.  -- variables on left only match vars on right
+  ptnMatch(intgr(_,Ix),intgr(_,Ix),Env) => matching(Env).
+  ptnMatch(bigx(_,Bx),bigx(_,Bx),Env) => matching(Env).
+  ptnMatch(flot(_,Dx),flot(_,Dx),Env) => matching(Env).
+  ptnMatch(chr(_,Cx),chr(_,Cx),Env) => matching(Env).
+  ptnMatch(strg(_,Sx),strg(_,Sx),Env) => matching(Env).
   ptnMatch(crTerm(_,N,A1,_),crTerm(_,N,A2,_),Env) => ptnMatchArgs(A1,A2,Env).
   ptnMatch(crVoid(_,_),_,_) => .insufficient.  -- void on left does not match anything
   ptnMatch(_,crVoid(_,_),_) => .insufficient.  -- void on right does not match anything
@@ -55,12 +55,12 @@ star.compiler.inline{
   simplifyExp:(crExp,map[string,crDefn],integer) => crExp.
   simplifyExp(E,P,D) => (D>0 ? simExp(E,P,D-1) || E).
   
-  simExp(crVar(Lc,V),Map,Depth) => inlineVar(Lc,V,Map,Depth).
-  simExp(crInt(Lc,Ix),_,_) => crInt(Lc,Ix).
-  simExp(crBig(Lc,Bx),_,_) => crBig(Lc,Bx).
-  simExp(crChr(Lc,Ix),_,_) => crChr(Lc,Ix).
-  simExp(crFlot(Lc,Dx),_,_) => crFlot(Lc,Dx).
-  simExp(crStrg(Lc,Sx),_,_) => crStrg(Lc,Sx).
+  simExp(idnt(Lc,V),Map,Depth) => inlineVar(Lc,V,Map,Depth).
+  simExp(intgr(Lc,Ix),_,_) => intgr(Lc,Ix).
+  simExp(bigx(Lc,Bx),_,_) => bigx(Lc,Bx).
+  simExp(chr(Lc,Ix),_,_) => chr(Lc,Ix).
+  simExp(flot(Lc,Dx),_,_) => flot(Lc,Dx).
+  simExp(strg(Lc,Sx),_,_) => strg(Lc,Sx).
   simExp(crVoid(Lc,Tp),_,_) => crVoid(Lc,Tp).
   simExp(crTerm(Lc,Fn,Args,Tp),Prog,Depth) =>
     crTerm(Lc,Fn,Args//(A)=>simplifyExp(A,Prog,Depth),Tp).
@@ -97,13 +97,13 @@ star.compiler.inline{
     applyWhere(Lc,Ptn,simplifyExp(Exp,Prog,Depth)).
   simExp(crMatch(Lc,Ptn,Exp),Prog,Depth) =>
     applyMatch(Lc,Ptn,simplifyExp(Exp,Prog,Depth)).
-  simExp(crVarNames(Lc,Vrs,Exp),Prog,Depth) =>
+  simExp(idntNames(Lc,Vrs,Exp),Prog,Depth) =>
     crVarNames(Lc,Vrs,simplifyExp(Exp,Prog,Depth)).
   simExp(crAbort(Lc,Txt,Tp),_,_) => crAbort(Lc,Txt,Tp).
 
   inlineVar(Lc,crId(Id,Tp),Map,_Depth) where
       vrDef(_,_,_,Vl) ^= Map[Id] && isGround(Vl) => Vl.
-  inlineVar(Lc,V,_,_) => crVar(Lc,V).
+  inlineVar(Lc,V,_,_) => idnt(Lc,V).
 
   applyWhere(Lc,Ptn,crTerm(_,"star.core#true",[],_)) => Ptn.
   applyWhere(Lc,Ptn,Exp) => crWhere(Lc,Ptn,Exp).
@@ -182,9 +182,9 @@ star.compiler.inline{
   inlineOCall(Lc,Op,Args,Tp,Prog,Depth) =>
     crOCall(Lc,Op,Args,Tp).
   
-  rewriteECall(Lc,"_int_plus",[crInt(_,A),crInt(_,B)],_) => crInt(Lc,A+B).
-  rewriteECall(Lc,"_int_minus",[crInt(_,A),crInt(_,B)],_) => crInt(Lc,A-B).
-  rewriteECall(Lc,"_int_times",[crInt(_,A),crInt(_,B)],_) => crInt(Lc,A*B).
+  rewriteECall(Lc,"_int_plus",[intgr(_,A),intgr(_,B)],_) => intgr(Lc,A+B).
+  rewriteECall(Lc,"_int_minus",[intgr(_,A),intgr(_,B)],_) => intgr(Lc,A-B).
+  rewriteECall(Lc,"_int_times",[intgr(_,A),intgr(_,B)],_) => intgr(Lc,A*B).
   rewriteECall(Lc,Op,Args,Tp) default => crECall(Lc,Op,Args,Tp).
   
 }

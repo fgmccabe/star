@@ -1,9 +1,9 @@
-star.compiler.core.enc{
+star.compiler.term.enc{
   import star.
 
-  import star.compiler.core.
+  import star.compiler.term.
   import star.compiler.location.
-  import star.compiler.terms.
+  import star.compiler.data.
   import star.compiler.ltipe.
 
   import star.multi.
@@ -15,7 +15,7 @@ star.compiler.core.enc{
   encDef:(crDefn) => multi[integer].
   encDef(fnDef(Lc,Nm,Tp,Args,Rep)) =>
     [0cF]++encText(Nm)++((Tp::ltipe)::multi[integer])++
-    encExp(mkCrTpl(Lc,Args//(V)=>crVar(Lc,V)))++encExp(Rep).
+    encExp(mkCrTpl(Lc,Args//(V)=>idnt(Lc,V)))++encExp(Rep).
   encDef(vrDef(Lc,Nm,Tp,Rep)) =>
     [0cG]++encText(Nm)++((Tp::ltipe)::multi[integer])++
     encExp(Rep).
@@ -42,12 +42,12 @@ star.compiler.core.enc{
   }
 
   encExp:(crExp) => multi[integer].
-  encExp(crVar(_,crId(Nm,Tp))) => [0cv]++encText(Nm)++Tp::multi[integer].
-  encExp(crInt(_,Ix)) => [0ci]++encInt(Ix).
-  encExp(crChr(_,Cx)) => [0cc]++encInt(Cx::integer).
-  encExp(crFlot(_,Dx)) => [0cf]++encInt(_float_bits(Dx)).
-  encExp(crBig(_,Bx)) where Sx.=disp(Bx) => [0cb]++Sx.
-  encExp(crStrg(_,Sx)) => [0cs]++encText(Sx).
+  encExp(idnt(_,crId(Nm,Tp))) => [0cv]++encText(Nm)++Tp::multi[integer].
+  encExp(intgr(_,Ix)) => [0ci]++encInt(Ix).
+  encExp(chr(_,Cx)) => [0cc]++encInt(Cx::integer).
+  encExp(flot(_,Dx)) => [0cf]++encInt(_float_bits(Dx)).
+  encExp(bigx(_,Bx)) where Sx.=disp(Bx) => [0cb]++Sx.
+  encExp(strg(_,Sx)) => [0cs]++encText(Sx).
   encExp(crVoid(_,Tp)) => [0cV]++encTp(Tp).
   encExp(crTerm(_,Op,As)) =>
     [0cT]++encText(Op)++encInt(size(As))++multi(As//encExp).
@@ -61,9 +61,9 @@ star.compiler.core.enc{
   encExp(crTplUpdate(_,O,Ix,E)) =>
     [0cU]++encExp(O)++encInt(Ix)++encExp(E).
   encExp(crLtt(Lc,V,T,D,I)) =>
-    [0cL]++encLc(Lc)++encExp(crVar(V,T))++encExp(D)++encExp(I).
+    [0cL]++encLc(Lc)++encExp(idnt(V,T))++encExp(D)++encExp(I).
   encExp(crLtRec(Lc,V,T,D,I)) =>
-    [0cR]++encLc(Lc)++encExp(crVar(V,T))++encExp(D)++encExp(I).
+    [0cR]++encLc(Lc)++encExp(idnt(V,T))++encExp(D)++encExp(I).
   encExp(crCase(Lc,E,Cs,Dflt,Tp)) =>
     [0cC]++encLc(Lc)++encExp(E)++encCases(Cs)++encExp(Dflt)++encTp(Tp).
   encExp(crMatch(Lc,P,E)) => [0c=]++encLc(Lc)++encExp(P)++encExp(E).
@@ -121,11 +121,11 @@ star.compiler.core.enc{
 
   decExp:(cons[integer])=>option[(crExp,cons[integer])].
   decExp([0cv,..Cs]) where (Nm,C0)^=decText(Cs,id) && (Tp,Cx)^=decTp(C0) =>
-    some((crVar(Nm,Tp),Cx)).
-  decExp([0ci,..Cs]) where (Ix,Cx)^=decInt(Cs) => some((crInt(Ix),Cx)).
+    some((idnt(Nm,Tp),Cx)).
+  decExp([0ci,..Cs]) where (Ix,Cx)^=decInt(Cs) => some((intgr(Ix),Cx)).
   decExp([0cf,..Cs]) where (Bx,Cx)^=decInt(Cs) =>
-    some((crFlot(_bits_float(Bx)),Cx)).
-  decExp([0cs,..Cs]) where (Sx,Cx)^=decText(Cs,(S)=>crStrg(S)) => some((Sx,Cx)).
+    some((flot(_bits_float(Bx)),Cx)).
+  decExp([0cs,..Cs]) where (Sx,Cx)^=decText(Cs,(S)=>strg(S)) => some((Sx,Cx)).
   decExp([0cV,..Cs]) where (Tp,Cx)^=decTp(Cs) => some((crVoid(Tp),Cx)).
   decExp([0cE,..Cs]) where (Lc,C0)^=decLc(Cs) &&
       (Op,C1)^=decText(C0,id) &&

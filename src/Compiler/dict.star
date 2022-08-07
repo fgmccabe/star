@@ -150,9 +150,6 @@ star.compiler.dict{
   declareTypeVars([(Nm,Tp),..Q],Env) =>
     declareTypeVars(Q,declareType(Nm,.none,Tp,typeExists(Tp,Tp),Env)).
 
-
-  
-
   emptyFace = faceType([],[]).
 
   public emptyDict:dict.
@@ -162,11 +159,13 @@ star.compiler.dict{
   public stdDict:dict.
   stdDict =
     declareType("integer",.none,intType,typeExists(intType,emptyFace),
-      declareType("float",.none,fltType,typeExists(fltType,emptyFace),
-	declareType("boolean",.none,boolType,typeExists(boolType,emptyFace),
-	  declareType("string",.none,strType,typeExists(strType,emptyFace),
-	    declareType("cons",.none,tpFun("star.core*cons",1),
-	      allRule(nomnal("e"),
-		typeExists(lstType(nomnal("e")),faceType([],[]))),
-	      emptyDict))))).
+      declareType("bigint",.none,bigintType,typeExists(bigintType,emptyFace),
+	declareType("float",.none,fltType,typeExists(fltType,emptyFace),
+	  declareType("boolean",.none,boolType,typeExists(boolType,emptyFace),
+	    declareType("char",.none,chrType,typeExists(chrType,emptyFace),
+	      declareType("string",.none,strType,typeExists(strType,emptyFace),
+		declareType("cons",.none,tpFun("star.core*cons",1),
+		  allRule(nomnal("e"),
+		    typeExists(lstType(nomnal("e")),faceType([],[]))),
+		  emptyDict))))))).
 }

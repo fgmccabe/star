@@ -273,9 +273,6 @@ compExp(vlof(Lc,A),_,Cont,TCont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   splitCont(Lc,Cont,AC),
   compAction(A,Lc,AC,abortCont(Lc,strg("missing valis action"),Brks,Opts),
 	     TCont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
-compExp(perf(Lc,A),_,Cont,_TCont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  compAction(A,Lc,Cont,abortCont(Lc,strg("no action after this"),Brks,Opts),
-	     Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 compExp(tsk(Lc,F),_,Cont,TCont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compExp(F,Lc,tskCont(Cont),TCont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 compExp(susp(Lc,T,E),OLc,Cont,TCont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,

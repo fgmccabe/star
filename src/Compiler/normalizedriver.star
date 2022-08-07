@@ -12,7 +12,7 @@ star.compiler.normalize.driver{
   import star.compiler.canon.
   import star.compiler.catalog.
   import star.compiler.checker.
-  import star.compiler.core.
+  import star.compiler.term.
   import star.compiler.dict.
   import star.compiler.errors.
   import star.compiler.impawt.
@@ -23,7 +23,7 @@ star.compiler.normalize.driver{
   import star.compiler.parser.
   import star.compiler.location.
   import star.compiler.term.repo.
-  import star.compiler.terms.
+  import star.compiler.data.
   import star.compiler.types.
 
 

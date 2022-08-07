@@ -6,7 +6,7 @@ star.compiler.assem{
 
   import star.compiler.escapes.
   import star.compiler.location.
-  import star.compiler.terms.
+  import star.compiler.data.
   import star.compiler.types.
   import star.compiler.ltipe.
 
@@ -48,7 +48,7 @@ star.compiler.assem{
     .iUnderflow |
     .iTEq |
     .iLdV |
-    iLdC(term) |
+    iLdC(data) |
     iLdA(integer) |
     iLdL(integer) |
     iStL(integer) |
@@ -103,24 +103,24 @@ star.compiler.assem{
 
     iLbl(assemLbl) |
     iLocal(string,string,string,integer) |
-    iLine(term).
+    iLine(data).
 
   public assemLbl ::= al(string).
 
-  public assem:(codeSegment) => term.
+  public assem:(codeSegment) => data.
   assem(func(Nm,H,Sig,Ins)) where
     (Lt0,_) .= findLit([],symb(Nm)) &&
     (_,Lbls) .= genLblTbl(Ins,0,[]) &&
     (Code,Lts,Lns,Lcs,_,Max) .= assemBlock(Ins,Lbls,Lt0,[],[],0,0,[]) =>
     mkCons("func",
-      [symb(Nm),encPolicy(H),strg(encodeSignature(Sig)),intgr(Max),mkTpl(Code::cons[term]),litTbl(Lts),mkTpl(Lcs::cons[term]),
+      [symb(Nm),encPolicy(H),strg(encodeSignature(Sig)),intgr(Max),mkTpl(Code::cons[data]),litTbl(Lts),mkTpl(Lcs::cons[data]),
             mkTpl(sortLines(Lns))]).
   assem(global(Nm,Sig,Ins)) where
     (Lt0,_) .= findLit([],symb(Nm)) &&
     (_,Lbls) .= genLblTbl(Ins,0,[]) &&
     (Code,Lts,Lns,Lcs,_,Max) .= assemBlock(Ins,Lbls,Lt0,[],[],0,0,[]) =>
     mkCons("global",
-       [symb(Nm),strg(encodeSignature(Sig)),intgr(Max),mkTpl(Code::cons[term]),litTbl(Lts),mkTpl({Lcl|Lcl in Lcs}),
+       [symb(Nm),strg(encodeSignature(Sig)),intgr(Max),mkTpl(Code::cons[data]),litTbl(Lts),mkTpl({Lcl|Lcl in Lcs}),
             mkTpl(sortLines(Lns))]).
   assem(struct(Lbl,Tp,Ix)) =>
     mkCons("struct",[symb(Lbl),strg(encodeSignature(Tp)),intgr(Ix)]).
@@ -128,14 +128,14 @@ star.compiler.assem{
   encPolicy(.hardDefinition) => mkTpl([]).
   encPolicy(.softDefinition) => mkTpl([strg("soft")]).
 
-  private assemBlock:(cons[assemOp],map[string,integer],map[term,integer],map[term,integer],
-                      set[term],integer,integer,cons[integer]) =>
-                                        (multi[term],map[term,integer],map[term,integer],set[term],integer,integer).
+  private assemBlock:(cons[assemOp],map[string,integer],map[data,integer],map[data,integer],
+                      set[data],integer,integer,cons[integer]) =>
+                                        (multi[data],map[data,integer],map[data,integer],set[data],integer,integer).
   assemBlock(Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (End,_).=genLblTbl(Code,Pc,[])
     => mnem(Code,[],Lbls,Lts,Lns,Lcs,Pc,MxLcl,[End,..Ends]).
 
-  private mnem:(cons[assemOp],multi[term],map[string,integer],map[term,integer],map[term,integer],set[term],integer,integer,cons[integer]) =>
-    (multi[term],map[term,integer],map[term,integer],set[term],integer,integer).
+  private mnem:(cons[assemOp],multi[data],map[string,integer],map[data,integer],map[data,integer],set[data],integer,integer,cons[integer]) =>
+    (multi[data],map[data,integer],map[data,integer],set[data],integer,integer).
   mnem([],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,_) => (Code,Lts,Lns,Lcs,Pc,MxLcl).
   mnem([iLbl(_),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends).
   mnem([iLocal(Nm,Frm,End,Off),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where
@@ -313,17 +313,17 @@ star.compiler.assem{
   findEnd([E,.._],0) => E.
   findEnd([_,..Ends],Lvl) => findEnd(Ends,Lvl-1).
 
-  findLit:(map[term,integer],term) => (map[term,integer],integer).
+  findLit:(map[data,integer],data) => (map[data,integer],integer).
   findLit(Lts,T) where O ^= Lts[T] => (Lts,O).
   findLit(Lts,T) where O .= size(Lts) => (Lts[T->O],O).
 
-  litTbl:(map[term,integer]) => term.
-  litTbl(Lts) => mkTpl(sort(Lts::cons[keyval[term,integer]],((T1->Ix1), (T2->Ix2)) => Ix1<Ix2)//(K->_)=>K).
+  litTbl:(map[data,integer]) => data.
+  litTbl(Lts) => mkTpl(sort(Lts::cons[keyval[data,integer]],((T1->Ix1), (T2->Ix2)) => Ix1<Ix2)//(K->_)=>K).
 
-  sortLines:(map[term,integer]) => cons[term].
-  sortLines(Lns) => (sort(Lns::cons[keyval[term,integer]],compLine)//(K->_)=>K).
+  sortLines:(map[data,integer]) => cons[data].
+  sortLines(Lns) => (sort(Lns::cons[keyval[data,integer]],compLine)//(K->_)=>K).
 
-  compLine:(keyval[term,integer],keyval[term,integer])=>boolean.
+  compLine:(keyval[data,integer],keyval[data,integer])=>boolean.
   compLine(T1->P1,T2->P2) => P1<P2.
 
   public implementation display[assemLbl] => {

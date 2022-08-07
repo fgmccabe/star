@@ -2,7 +2,7 @@ star.compiler.intrinsics{
   -- Automatically Generated Listing of intrinsics -- Do NOT Edit
   import star.
 
-  import star.compiler.terms.
+  import star.compiler.data.
   import star.compiler.types.
   import star.compiler.assem.
 

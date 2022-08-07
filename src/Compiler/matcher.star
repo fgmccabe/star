@@ -2,12 +2,12 @@ star.compiler.matcher{
   import star.
   import star.sort.
 
-  import star.compiler.core.
+  import star.compiler.term.
   import star.compiler.errors.
   import star.compiler.freevars.
   import star.compiler.misc.
   import star.compiler.normalize.meta.
-  import star.compiler.terms.
+  import star.compiler.data.
   import star.compiler.types.
 
   import star.compiler.location.
@@ -21,7 +21,7 @@ star.compiler.matcher{
     Error .= genRaise(Lc,Nm,funTypeRes(Tp));
 --    logMsg("function triples: $(Trpls)");
     Reslt .= matchTriples(Lc,NVrs,Trpls,Error,Map);
-    valis fnDef(Lc,Nm,Tp,NVrs//(crVar(_,V))=>V,Reslt)
+    valis fnDef(Lc,Nm,Tp,NVrs//(idnt(_,V))=>V,Reslt)
   }
 
   public caseMatcher:(option[locn],nameMap,crExp,
@@ -37,7 +37,7 @@ star.compiler.matcher{
   genVars:(option[locn],tipe) => cons[crExp].
   genVars(Lc,tupleType(L)) => let{.
     genV([]) => [].
-    genV([T,..Ts]) => [crVar(Lc,crId(genSym("_"),T)),..genV(Ts)].
+    genV([T,..Ts]) => [idnt(Lc,crId(genSym("_"),T)),..genV(Ts)].
   .} in genV(L).
 
   makeTriples:(cons[(option[locn],cons[crExp],option[crExp],crExp)]) => cons[triple].
@@ -88,11 +88,11 @@ star.compiler.matcher{
     _ == _ default => .false.
   }
 
-  argMode(crVar(_,_)) => .inVars.
-  argMode(crInt(_,_)) => .inScalars.
-  argMode(crBig(_,_)) => .inScalars.
-  argMode(crFlot(_,_)) => .inScalars.
-  argMode(crStrg(_,_)) => .inScalars.
+  argMode(idnt(_,_)) => .inVars.
+  argMode(intgr(_,_)) => .inScalars.
+  argMode(bigx(_,_)) => .inScalars.
+  argMode(flot(_,_)) => .inScalars.
+  argMode(strg(_,_)) => .inScalars.
   argMode(crTerm(_,_,_,_)) => .inConstructors.
   argMode(crWhere(_,T,_)) => argMode(T).
 
@@ -147,15 +147,15 @@ star.compiler.matcher{
 
   emptyCase:(option[locn],tipe,string)=>crExp.
   emptyCase(Lc,T,Nm) where (tupleType(ArgTps),ResTp) ^= isConsType(T) =>
-    crTerm(Lc,Nm,ArgTps//(ATp)=>crVar(Lc,crId("_",ATp)),ResTp).
+    crTerm(Lc,Nm,ArgTps//(ATp)=>idnt(Lc,crId("_",ATp)),ResTp).
   
   matchVars(Triples,[V,..Vrs],Lc,Deflt,Map) =>
     matchTriples(Lc,Vrs,applyVar(V,Triples),Deflt,Map).
 
   applyVar:(crExp,cons[triple]) => cons[triple].
-  applyVar(V,Triples) where crVar(_,_).=V => let{
+  applyVar(V,Triples) where idnt(_,_).=V => let{
     applyToTriple:(triple)=>triple.
-    applyToTriple(([crVar(VLc,crId(Vr,_)),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof{
+    applyToTriple(([idnt(VLc,crId(Vr,_)),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof{
     Mp .= {Vr->V};
       NArgs .= rewriteTerms(Args,Mp);
       NAG .= fmap((T)=>rewriteTerm(T,Mp),AG);
@@ -163,7 +163,7 @@ star.compiler.matcher{
       NExp .= rewriteTerm(Exp,Mp);
       valis (NArgs, (CLc,B,NAG,NGl,NExp),Ix)
     }
-    applyToTriple(([crWhere(Lc,crVar(VLc,crId(Vr,_)),Cond),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof{
+    applyToTriple(([crWhere(Lc,idnt(VLc,crId(Vr,_)),Cond),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof{
     Mp .= {Vr->V};
       NArgs .= rewriteTerms(Args,Mp);
       NAG .= fmap((T)=>rewriteTerm(T,Mp),AG);
@@ -187,14 +187,14 @@ star.compiler.matcher{
   }
 
   formCase:(triple,cons[triple],option[locn],cons[crExp],crExp,nameMap) => crCase.
-  formCase(([crInt(LLc,Ix),.._],_,_),Tpls,Lc,Vars,Deflt,Map) =>
-    (LLc,crInt(LLc,Ix),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
-  formCase(([crFlot(LLc,Dx),.._],_,_),Tpls,Lc,Vars,Deflt,Map) =>
-    (LLc,crFlot(LLc,Dx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
-  formCase(([crStrg(LLc,Sx),.._],_,_),Tpls,Lc,Vars,Deflt,Map) =>
-    (LLc,crStrg(LLc,Sx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
+  formCase(([intgr(LLc,Ix),.._],_,_),Tpls,Lc,Vars,Deflt,Map) =>
+    (LLc,intgr(LLc,Ix),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
+  formCase(([flot(LLc,Dx),.._],_,_),Tpls,Lc,Vars,Deflt,Map) =>
+    (LLc,flot(LLc,Dx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
+  formCase(([strg(LLc,Sx),.._],_,_),Tpls,Lc,Vars,Deflt,Map) =>
+    (LLc,strg(LLc,Sx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
   formCase(([crTerm(Lc,Lbl,Args,Tp),.._],_,_),Triples,_,Vars,Deflt,Map) => valof{
-    Vrs .= (Args//(E) => crVar(Lc,crId(genSym("_"),typeOf(E))));
+    Vrs .= (Args//(E) => idnt(Lc,crId(genSym("_"),typeOf(E))));
     NTriples .= subTriples(Triples);
     Case .= matchTriples(Lc,Vrs++Vars,NTriples,Deflt,Map);
     valis (Lc,crTerm(Lc,Lbl,Vrs,Tp),Case)
@@ -247,15 +247,15 @@ star.compiler.matcher{
   compareScalarTriple:(triple,triple) => boolean.
   compareScalarTriple(([A,.._],_,_),([B,.._],_,_)) => compareScalar(A,B).
 
-  compareScalar(crInt(_,A),crInt(_,B)) => A=<B.
-  compareScalar(crFlot(_,A),crFlot(_,B)) => A=<B.
-  compareScalar(crStrg(_,A),crStrg(_,B)) => A=<B.
+  compareScalar(intgr(_,A),intgr(_,B)) => A=<B.
+  compareScalar(flot(_,A),flot(_,B)) => A=<B.
+  compareScalar(strg(_,A),strg(_,B)) => A=<B.
   compareScalar(_,_) default => .false.
 
   sameScalarTriple:(triple,triple) => boolean.
-  sameScalarTriple(([crInt(_,A),.._],_,_),([crInt(_,B),.._],_,_)) => A==B.
-  sameScalarTriple(([crFlot(_,A),.._],_,_),([crFlot(_,B),.._],_,_)) => A==B.
-  sameScalarTriple(([crStrg(_,A),.._],_,_),([crStrg(_,B),.._],_,_)) => A==B.
+  sameScalarTriple(([intgr(_,A),.._],_,_),([intgr(_,B),.._],_,_)) => A==B.
+  sameScalarTriple(([flot(_,A),.._],_,_),([flot(_,B),.._],_,_)) => A==B.
+  sameScalarTriple(([strg(_,A),.._],_,_),([strg(_,B),.._],_,_)) => A==B.
   sameScalarTriple(_,_) default => .false.
 
   compareTriple:(triple,triple) => boolean.
@@ -273,7 +273,7 @@ star.compiler.matcher{
 
   pullVarLets:(cons[crExp],crExp)=>(cons[crExp],crExp).
   pullVarLets(Vrs,crLtt(Lc,V,A,Exp)) =>
-    pullVarLets(Vrs//replaceWith(A,crVar(Lc,V)),Exp).
+    pullVarLets(Vrs//replaceWith(A,idnt(Lc,V)),Exp).
   pullVarLets(Vrs,Exp) => (Vrs,Exp).
 
   replaceWith:(crExp,crExp) => (crExp)=>crExp.
