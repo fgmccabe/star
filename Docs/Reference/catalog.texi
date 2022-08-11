@@ -1,9 +1,19 @@
 @node Source Catalogs
 @appendix Source Catalogs
 
-Source catalogs and code repositories are responses to two related but
-distinct problems: how to organize and access sources of programs and
-how to organize access to executable code.
+Star source code is managed by means of @emph{catalogs}. A catalog is
+a document that gives the mapping from a package name to the file that
+contains the source of that package.
+
+@quotation Note
+This separation is intended to avoid questions such as file name
+extensions, directory structures and so on. A catalog is able to
+collect together all the sources that are relevant to a project while
+not requiring that they all be physically co-located.
+
+Indeed, it would be fairly straightforward to extend the catalog
+system to allow compilation of non file-based source units.
+@end quotation
 
 @node Catalogs and Sources
 @section Catalogs and Sources
@@ -38,7 +48,30 @@ implement versioned access to resources. In addition, catalogs serve
 the role of pulling together the resources that a program or
 application needs into a coherent set.
 
-Catalogs may be in any of a number of formats -- depending on whether
+
+@node Structure of a Catalog
+@subsection Structure of a Catalog
+
+Catalogs are contained in json files@footnote{Subject to change}. The
+general structure of a catalog json file looks like:
+
+@example
+@{
+  "content" : @{
+    @emph{PkgName} : @emph{FileName},
+    @dots{}
+    @emph{PkgName} : @emph{FileName}
+  @},
+  "version" : @emph{Semantic Version String},
+  "subcatalogs" : [@emph{CatalogPath}, @dots{} @emph{CatalogPath}]
+@}
+@end example
+where @emph{PkgName} is a valid Star package name -- written as a
+string because it's JSON.
+
+@emph{FileName}s and @emph{CatalogPath}s are relative file names -- or URLs.
+
+Catalogs may actually be in any of a number of formats -- depending on whether
 there is a way of coercing the format to the standard catalog type --
 as shown in @ref{catalogType}.
 
@@ -47,15 +80,37 @@ as shown in @ref{catalogType}.
 @example
 public catalog ::= catalog@{
   base : uri.
-  parent : option[catalog].
-  vers : option[version].
-  entries : map[string,uri].
+  parent:option[catalog].
+  version : option[version].
+  subcats : option[cons[catalog]].
+  content : map[string,uri].
 @}
 @end example
 @end float
 
-The standard format of a @code{catalog} is in JSON. For example, a
-fragment of the catalog for the standard core library is:
+The elements of the @code{catalog} @refer{RecordConstructor} are:
+@itemize
+@item @code{base}
+This is the base uri of the catalog: if not overridden, all URIs
+referenced in the catalog should be interpreted as being
+@emph{relative} to the base URI.
+
+@item @code{version}
+This is the default version of all the entries in the catalog.
+
+@item @code{content}
+This is a mapping from package names to URIs. Each entry shows how
+to obtain the source of a given package.
+
+@item @code{subcatalogs}
+If specified, the list of catalogs in @code{subcatalogs} form
+additional places to locate the source of a package. If a package
+could not be located within this catalog, the compiler will search in
+the list of subcatalogs, in order.
+@end itemize
+
+For example, a fragment of the catalog for the standard core library
+is:
 
 @example
 @{
@@ -67,29 +122,9 @@ fragment of the catalog for the standard core library is:
     "star.cmdOpts": "cmdOpts.star",
     @dots{}
   @},
-  "version": "1.0.0"
+  "version": "1.0.0",
 @}
 @end example
-
-
-The elements of the @code{catalog} @refer{RecordConstructor} are:
-@itemize
-@item @code{base}
-This is the base url of the catalog: if not overridden, all URIs
-referenced in the catalog should be interpreted as being
-@emph{relative} to the base URI.
-
-@item @code{parent}
-This is the file location of the parent catalog. This is used by the
-compiler to locate packages that are not defined in this catalog.
-
-@item @code{vers}
-This is the default version of all the entries in the catalog.
-
-@item @code{entries}
-This is a mapping from package names to URIs. Each entry shows how
-to obtain the source of a given package.
-@end itemize
 
 @node Accessing Packages Using Catalogs
 @subsection Accessing Packages Using Catalogs
@@ -125,7 +160,8 @@ The catalog uri:
 is resolved against the URI of the package containing the reference.
 @enumerate
 @item
-If a catalog exists in this location then that catalog is used to resolve references within the target resource.
+If a catalog exists in this location then that catalog is used to
+resolve references within the target resource.
 @item
 If there is no catalog, then a catalog @emph{may} be synthesized by
 @emph{exploring} the space around the target URI.
@@ -146,3 +182,10 @@ fixed during the compilation of the package. I.e., when a package is
 compiled, it is compiled against specific versions of imported
 packages. When the package is later executed, the specific versions
 that were accessed at compile time are also used at run-time.
+
+@quotation Note
+Source catalogs and code repositories are responses to two related but
+distinct problems: how to organize and access sources of programs and
+how to organize access to executable code.
+@end quotation
+

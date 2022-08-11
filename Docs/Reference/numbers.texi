@@ -28,12 +28,12 @@ precision. They can be used to represent large values -- up to the
 limits of available memory.
 
 @quotation Note
-Operations on @code{bigint} numbers may be significantly more expensive than operations on fixed size integers.
+Operations on @code{bigint} numbers may be significantly more
+expensive than operations on fixed size integers.
 @end quotation
 
 In addition, the range of operators supported for @code{bigint}
 numbers is smaller than that for @code{integer} values.
-
 
 @node Float Type
 @subsection Float Type
