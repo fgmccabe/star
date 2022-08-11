@@ -4,76 +4,39 @@
 This chapter focuses on the organization of programs using functions,
 types and other computational forms. Apart from program values
 themselves, a key concept is the @refer{ThetaEnvironment}. This is
-where many programs, types etc. are defined. 
+where many functions, types etc. are defined.
 
-@node Sources and Catalogs
-@section Sources and Catalogs
-
-Star source code is managed by means of @emph{catalogs}. A catalog is
-a document that gives the mapping from a package name to the file that
-contains the source of that package.
-
-@quotation Note
-This separation is intended to avoid questions such as file name
-extensions, directory structures and so on. A catalog is able to
-collect together all the sources that are relevant to a project while
-not requiring that they all be physically co-located.
-@end quotation
-
-@node Structure of a Catalog
-@subsection Structure of a Catalog
-
-Catalogs are contained in json files@footnote{Subject to change}. The
-general structure of a catalog json file looks like:
-
-@example
-@{
-  "content" : @{
-    @emph{PkgName} : @emph{FileName},
-    @dots{}
-    @emph{PkgName} : @emph{FileName}
-  @},
-  "version" : @emph{Semantic Version String},
-  "default" : @emph{CatalogPath},
-  "subcatalogs" : [@emph{CatalogPath}, @dots{} @emph{CatalogPath}]
-@}
-@end example
-where @emph{PkgName} is a valid Star package name -- written as a
-string because it's JSON.
-
-@emph{FileName}s and @emph{CatalogPath}s are relative file names -- or URLs.
 
 @node Package Structure
 @section Package Structure
 
-A @refer{Package} consists of the identification of the package and a
-set of @refer{Definition}s enclosed in braces. For example, the text:
+A @refer{Package} consists of the package identifier and a set of
+@refer{Definition}s enclosed in braces. For example, the text:
 @example
 hello@{
   hello() => "hello".
 @}
 @end example
-
 defines a @code{package} -- called @code{hello} -- that contains a
 single function -- also called @code{hello}.
 
+Typically, however, package identifiers take the form of a dotted
+sequence of identifiers:
+@example
+hello.example@{
+  hello() => "hello".
+@}
+@end example
+
 The body of a @refer{Package} may contain @refer{Definition}s which
 may also include @refer{ImportStatement}s.
-
-A @refer{Package} consists of all the elements that are defined in a package source:
-@itemize
-@item
-The types defined with the source unit
-@item
-The functions and other variables defined
-@end itemize
 
 @float BNF,packageFig
 @caption{Package Structure}
 @display
 @anchored{Package} ::= @refer{PackageName} @refer{ThetaEnvironment}
 
-@anchored{PackageName} ::= @refer{Identifier} @refer{Terminator} @dots{} @code{.} @refer{Identifier}
+@anchored{PackageName} ::= @refer{Identifier} @code{.} @dots{} @code{.} @refer{Identifier}
 @end display
 @end float
 
@@ -112,6 +75,43 @@ programs and variables.
 
 Many of the definitions in a @refer{ThetaEnvironment} define entities
 that may be recursive and mutually recursive.
+
+There are two variants of @refer{ThetaEnvironment}: recursive and
+non-recursive. Definitions within a recursive environment may
+reference each other as well as definitions from an outer
+scope. Conversely, definitions in a non-recursive environment may only
+access definitions from the outer scope.
+
+In most cases, a recursive environment is distinguished from a
+non-recursive environment by special @code{@{..@}} brackets. So, for example:
+@example
+let@{.
+  f(0)=>1.
+  f(N)=>N*f(N-1)
+.} in f
+@end example
+defines a recursive function @code{f}. However, in:
+@example
+foo(N) => let@{
+  g(X) => X*N
+@} in g(N)
+@end example
+the definition of @code{g} is not permitted to be recursive. A fragment such as:
+@example
+foo(K) => let@{
+  f(0)=>1.
+  f(N)=>N*f(N-1)
+@} in f(K)
+@end example
+would result in an undefined variable error -- because the recursive
+reference to @code{f} would not be recognized.
+
+@quotation Note
+Although, as noted, most recursive environments are introduced using
+@code{@{..@}} brackets, the @refer{ThetaEnvironment} that makes up a
+package is recursive. This is partly because a non-recursive package
+environment is mostly meaningless.
+@end quotation
 
 @node Type Annotations
 @section Type Annotations
@@ -235,7 +235,6 @@ and the @code{employee} constructor.
 In the event of defining the same field in multiple constructors, the
 types associated with them @emph{must be identical}.
 @end quotation
-
 
 @quotation NOTE
 An @refer{AlgebraicTypeDefinition} statement for a generic type (i.e.,
@@ -500,7 +499,6 @@ A function is a program for computing values; organized as a set of equations.
 @anchored{GuardCondition} ::= @code{where} @refer{Condition}
 @end display
 @end float
-
 
 @quotation Note
 Functions and other program values are first class values; as a result

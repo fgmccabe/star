@@ -64,7 +64,6 @@ query expression.
 @end display
 @end float
 
-
 For example, the search condition:
 @example
 (X,"john") in parent

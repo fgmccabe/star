@@ -1270,10 +1270,11 @@ The result type of an index expression is @code{option}al. This reflects the
 fact that accessing a collection for an element may not be succesfull.
 @end quotation
 
-The @code{indexed} contract (and therefore the index notation) is supported for lists, maps.
+The @code{indexed} contract (and therefore the index notation) is
+supported for lists, maps.
 
-Replacing elements in a collection is denoted using a variant of the index
-notation where the index takes the form of:
+Replacing elements in a collection is denoted using a variant of the
+index notation where the index takes the form of:
 
 @example
 @var{C}[@var{K} -> @var{E}]
