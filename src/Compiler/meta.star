@@ -132,6 +132,7 @@ star.compiler.meta{
   public showCanon = ref .false.
   public traceCanon = ref .false.
   public typeCheckOnly = ref .false.
+  public showNormalize = ref .false.
   public traceNormalize = ref .false.
   public optimization = ref .base.
   public showCode = ref .false.
@@ -238,11 +239,24 @@ star.compiler.meta{
     }
   }
 
-  public traceNormalizeOption:cmdOption[compilerOptions].
-  traceNormalizeOption = cmdOption{
+  public showNormalizeOption:cmdOption[compilerOptions].
+  showNormalizeOption = cmdOption{
     shortForm = "-dT".
     alternatives = [].
     usage = "-dT -- show type normalizes".
+    validator = .none.
+    setOption(_,Opts) => valof{
+      showNormalize := .true;
+      
+      valis Opts
+    }
+  }
+
+  public traceNormalizeOption:cmdOption[compilerOptions].
+  traceNormalizeOption = cmdOption{
+    shortForm = "-tT".
+    alternatives = [].
+    usage = "-tT -- trace normalize".
     validator = .none.
     setOption(_,Opts) => valof{
       traceNormalize := .true;

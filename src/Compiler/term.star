@@ -10,21 +10,20 @@ star.compiler.term{
   public cExp ::= cVoid(option[locn],tipe)
     | cAnon(option[locn],tipe)
     | cVar(option[locn],cId)
-    | cLbl(option[locn],string,integer,tipe)
     | cInt(option[locn],integer)
     | cChar(option[locn],char)
     | cBig(option[locn],bigint)
     | cFloat(option[locn],float)
     | cString(option[locn],string)
     | cTerm(option[locn],string,cons[cExp],tipe)
-    | cCall(option[locn],string,cons[cExp],tipe)
-    | cECall(option[locn],string,cons[cExp],tipe)
-    | cOCall(option[locn],cExp,cons[cExp],tipe)
-    | cThrow(option[locn],cExp,tipe)
     | cGet(option[locn],cExp,tipe)
     | cCell(option[locn],cExp,tipe)
     | cNth(option[locn],cExp,integer,tipe)
     | cSetNth(option[locn],cExp,integer,cExp)
+    | cCall(option[locn],string,cons[cExp],tipe)
+    | cECall(option[locn],string,cons[cExp],tipe)
+    | cOCall(option[locn],cExp,cons[cExp],tipe)
+    | cThrow(option[locn],cExp,tipe)
     | cSeq(option[locn],cExp,cExp)
     | cCnj(option[locn],cExp,cExp)
     | cDsj(option[locn],cExp,cExp)
@@ -32,12 +31,11 @@ star.compiler.term{
     | cCnd(option[locn],cExp,cExp,cExp)
     | cLtt(option[locn],cId,cExp,cExp)
     | cUnpack(option[locn],cExp,cons[cCase[cExp]],tipe)
-    | cCase(option[locn],cExp,cons[cCase[cExp]],tipe)
+    | cCase(option[locn],cExp,cons[cCase[cExp]],cExp,tipe)
     | cWhere(option[locn],cExp,cExp)
     | cMatch(option[locn],cExp,cExp)
     | cVarNmes(option[locn],cons[(string,cId)],cExp)
     | cAbort(option[locn],string,tipe)
-    | cError(option[locn],string,tipe)
     | cTask(option[locn],cExp,tipe)
     | cSusp(option[locn],cExp,cExp,tipe)
     | cResume(option[locn],cExp,cExp,tipe)
@@ -57,12 +55,13 @@ star.compiler.term{
     | aPerf(option[locn],cExp)
     | aDefn(option[locn],cExp,cExp)
     | aAsgn(option[locn],cExp,cExp)
-    | aCase(option[locn],cExp,cons[cCase[aAction]])
+    | aCase(option[locn],cExp,cons[cCase[aAction]],aAction)
     | aUnpack(option[locn],cExp,cons[cCase[aAction]])
     | aIftte(option[locn],cExp,aAction,aAction)
     | aWhile(option[locn],cExp,aAction)
     | aRetire(option[locn],cExp,cExp)
-    | aTry(option[locn],aAction,cons[cCase[aAction]]).
+    | aTry(option[locn],aAction,cons[cCase[aAction]])
+    | aVarNmes(option[locn],cons[(string,cId)],aAction).
 
   public cDefn ::= fnDef(option[locn],string,tipe,cons[cId],cExp) |
     vrDef(option[locn],string,tipe,cExp)|
@@ -94,7 +93,6 @@ star.compiler.term{
   dspExp(cFloat(_,Dx),_) => disp(Dx).
   dspExp(cString(_,Sx),_) => disp(Sx).
   dspExp(cVoid(_,_),_) => "void".
-  dspExp(cLbl(_,Nm,Ar,_),_) => "#(Nm)/$(Ar)".
   dspExp(cECall(_,Op,As,_),Off) => "#(Op)ε(#(dsplyExps(As,Off)*))".
   dspExp(cOCall(_,Op,As,_),Off) => "#(dspExp(Op,Off))·(#(dsplyExps(As,Off)*))".
   dspExp(cCall(_,Op,As,_),Off) => "#(Op)(#(dsplyExps(As,Off)*))".
@@ -107,8 +105,8 @@ star.compiler.term{
   dspExp(cThrow(_,E,_),Off) => "throw #(dspExp(E,Off))".
   dspExp(cLtt(_,V,D,I),Off) where Off2.=Off++"  " =>
     "let $(V) = #(dspExp(D,Off2)) in\n#(Off2)#(dspExp(I,Off2))".
-  dspExp(cCase(_,E,Cs,_),Off) where Off2.=Off++"  "=>
-    "case #(dspExp(E,Off)) in { #(dspCases(Cs,dspExp,Off2)*) }".
+  dspExp(cCase(_,E,Cs,D,_),Off) where Off2.=Off++"  "=>
+    "case #(dspExp(E,Off)) in { #(dspCases(Cs,dspExp,Off2)*) } else #(dspExp(D,Off))".
   dspExp(cUnpack(_,E,Cs,_),Off) where Off2.=Off++"  "=>
     "unpack #(dspExp(E,Off)) in { #(dspCases(Cs,dspExp,Off2)*) }".
   dspExp(cMatch(_,P,E),Off) => "#(dspExp(P,Off)).=#(dspExp(E,Off))".
@@ -121,7 +119,6 @@ star.compiler.term{
   dspExp(cSeq(Lc,L,R),Off) => "{#(dspSeq(cSeq(Lc,L,R),Off++"  "))}".
   dspExp(cVarNmes(_,V,E),Off) => "<vars #(dspVrs(V)) in #(dspExp(E,Off))>".
   dspExp(cAbort(_,M,_),Off) => "abort #(M)".
-  dspExp(cError(_,M,_),Off) => "error #(M)".
   dspExp(cTask(_,A,_),Off) => "task #(dspExp(A,Off))".
   dspExp(cSusp(_,T,E,_),Off) => "#(dspExp(T,Off)) suspend #(dspExp(E,Off))".
   dspExp(cResume(_,T,E,_),Off) => "#(dspExp(T,Off)) resume #(dspExp(E,Off))".
@@ -140,8 +137,8 @@ star.compiler.term{
   dspAct(aPerf(_,E),Off) => "perform #(dspExp(E,Off))".
   dspAct(aDefn(_,P,E),Off) => "#(dspExp(P,Off)) = #(dspExp(E,Off))".
   dspAct(aAsgn(_,P,E),Off) => "#(dspExp(P,Off)) := #(dspExp(E,Off))".
-  dspAct(aCase(_,E,Cs),Off) where Off2.=Off++"  "=>
-    "case #(dspExp(E,Off)) in { #(dspCases(Cs,dspAct,Off2)*) }".
+  dspAct(aCase(_,E,Cs,Df),Off) where Off2.=Off++"  "=>
+    "case #(dspExp(E,Off)) in { #(dspCases(Cs,dspAct,Off2)*) } else #(dspAct(Df,Off))".
   dspAct(aUnpack(_,E,Cs),Off) where Off2.=Off++"  " =>
     "unpack #(dspExp(E,Off)) in { #(dspCases(Cs,dspAct,Off2)*) }".
   dspAct(aIftte(_,C,T,E),Off)  where Off2.=Off++"  " =>
@@ -152,6 +149,7 @@ star.compiler.term{
     "#(dspExp(T,Off)) retire #(dspExp(E,Off))".
   dspAct(aTry(_,E,H),Off) where Off2.=Off++"  " =>
     "try #(dspAct(E,Off)) catch { #(dspCases(H,dspAct,Off2)*) }".
+  dspAct(aVarNmes(_,V,A),Off) => "<vars #(dspVrs(V)) in #(dspAct(A,Off))>".
 
   dspActSeq(aSeq(_,L,R),Off) => "\n#(Off)#(dspAct(L,Off));#(dspActSeq(R,Off))".
   dspActSeq(A,Off) => dspAct(A,Off).
@@ -168,11 +166,15 @@ star.compiler.term{
 
   dspVrs(V) => interleave(V//(((N,T))=>"$(N)=$(T)"),", ")*.
 
-  public mkCrTpl:(option[locn],cons[cExp]) => cExp.
-  mkCrTpl(Lc,Args) => let{
+  public mcTpl:(option[locn],cons[cExp]) => cExp.
+  mcTpl(Lc,Args) => let{
     TpTp = tupleType(Args//typeOf).
     Ar = size(Args)
   } in cTerm(Lc,tplLbl(Ar), Args, TpTp).
+
+  public contract all e ~~ rewrite[e] ::= {
+    rewrite:(e,map[string,cExp])=>e
+  }
 
   public implementation equality[cId] => {
     cId(N1,T1) == cId(N2,T2) => N1==N2.
@@ -182,51 +184,81 @@ star.compiler.term{
     hash(cId(N,T)) => hash(N).
   }
 
-  public implementation equality[cExp] => let{.
-    eqTerm(cVar(_,V1),cVar(_,V2)) => V1==V2.
-    eqTerm(cInt(_,N1),cInt(_,N2)) => N1==N2.
-    eqTerm(cChar(_,N1),cChar(_,N2)) => N1==N2.
-    eqTerm(cFloat(_,N1),cFloat(_,N2)) => N1==N2.
-    eqTerm(cString(_,S1),cString(_,S2)) => S1==S2.
-    eqTerm(cVoid(_,T1),cVoid(_,T2)) => T1==T2.
-    eqTerm(cTerm(_,S1,A1,_),cTerm(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
-    eqTerm(cCall(_,S1,A1,_),cCall(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
-    eqTerm(cECall(_,S1,A1,_),cECall(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
-    eqTerm(cOCall(_,S1,A1,_),cOCall(_,S2,A2,_)) => eqTerm(S1,S2) && eqs(A1,A2).
-    eqTerm(cNth(_,R1,F1,_),cNth(_,R2,F2,_)) => eqTerm(R1,R2) && F1==F2.
-    eqTerm(cSetNth(_,R1,Ix,E1),cSetNth(_,R2,Ix,E2)) => eqTerm(R1,R2) && eqTerm(E1,E2).
-    eqTerm(cCnj(_,L1,R1),cCnj(_,L2,R2)) => eqTerm(L1,L2) && eqTerm(R1,R2).
-    eqTerm(cDsj(_,L1,R1),cDsj(_,L2,R2)) => eqTerm(L1,L2) && eqTerm(R1,R2).
-    eqTerm(cNeg(_,R1),cNeg(_,R2)) => eqTerm(R1,R2).
-    eqTerm(cCnd(_,T1,L1,R1),cCnd(_,T2,L2,R2)) =>
-      eqTerm(T1,T2) && eqTerm(L1,L2) && eqTerm(R1,R2).
-    eqTerm(cLtt(_,T1,L1,R1),cLtt(_,T2,L2,R2)) =>
-      T1==T2 && eqTerm(L1,L2) && eqTerm(R1,R2).
-    eqTerm(cUnpack(_,S1,C1,_),cUnpack(_,S2,C2,_)) =>
-      eqTerm(S1,S2) && eqCs(C1,C2).
-    eqTerm(cCase(_,S1,C1,_),cCase(_,S2,C2,_)) =>
-      eqTerm(S1,S2) && eqCs(C1,C2).
-    eqTerm(cWhere(_,E1,C1),cWhere(_,E2,C2)) => eqTerm(E1,E2) && eqTerm(C1,C2).
-    eqTerm(cMatch(_,P1,E1),cMatch(_,P2,E2)) => eqTerm(E1,E2) && eqTerm(P1,P2).
-    eqTerm(cSeq(_,L1,R1),cSeq(_,L2,R2)) => eqTerm(L1,L2) && eqTerm(R1,R2).
-    eqTerm(cAbort(_,M1,T1),cAbort(_,M2,T2)) => M1==M2 && T1==T2.
-    eqTerm(cVarNmes(_,V1,E1),cVarNmes(_,V2,E2)) => eqVs(V1,V2) && eqTerm(E1,E2).
+  eqTerm(cAnon(_,T1),cAnon(_,T2)) => T1==T2.
+  eqTerm(cVoid(_,T1),cVoid(_,T2)) => T1==T2.
+  eqTerm(cVar(_,V1),cVar(_,V2)) => V1==V2.
+  eqTerm(cInt(_,N1),cInt(_,N2)) => N1==N2.
+  eqTerm(cChar(_,N1),cChar(_,N2)) => N1==N2.
+  eqTerm(cFloat(_,N1),cFloat(_,N2)) => N1==N2.
+  eqTerm(cString(_,S1),cString(_,S2)) => S1==S2.
+  eqTerm(cTerm(_,S1,A1,_),cTerm(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
+  eqTerm(cCall(_,S1,A1,_),cCall(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
+  eqTerm(cECall(_,S1,A1,_),cECall(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
+  eqTerm(cOCall(_,S1,A1,_),cOCall(_,S2,A2,_)) => eqTerm(S1,S2) && eqs(A1,A2).
+  eqTerm(cThrow(_,S1,_),cThrow(_,S2,_)) => S1==S2.
+  eqTerm(cGet(_,S1,_),cGet(_,S2,_)) => S1==S2.
+  eqTerm(cCell(_,S1,_),cCell(_,S2,_)) => S1==S2.
+  eqTerm(cNth(_,R1,F1,_),cNth(_,R2,F2,_)) => eqTerm(R1,R2) && F1==F2.
+  eqTerm(cSetNth(_,R1,Ix,E1),cSetNth(_,R2,Ix,E2)) => eqTerm(R1,R2) && eqTerm(E1,E2).
+  eqTerm(cSeq(_,L1,R1),cSeq(_,L2,R2)) => eqTerm(L1,L2) && eqTerm(R1,R2).
+  eqTerm(cCnj(_,L1,R1),cCnj(_,L2,R2)) => eqTerm(L1,L2) && eqTerm(R1,R2).
+  eqTerm(cDsj(_,L1,R1),cDsj(_,L2,R2)) => eqTerm(L1,L2) && eqTerm(R1,R2).
+  eqTerm(cNeg(_,R1),cNeg(_,R2)) => eqTerm(R1,R2).
+  eqTerm(cCnd(_,T1,L1,R1),cCnd(_,T2,L2,R2)) =>
+    eqTerm(T1,T2) && eqTerm(L1,L2) && eqTerm(R1,R2).
+  eqTerm(cLtt(_,T1,L1,R1),cLtt(_,T2,L2,R2)) =>
+    T1==T2 && eqTerm(L1,L2) && eqTerm(R1,R2).
+  eqTerm(cUnpack(_,S1,C1,_),cUnpack(_,S2,C2,_)) =>
+    eqTerm(S1,S2) && eqCs(C1,eqTerm,C2).
+  eqTerm(cCase(_,S1,C1,D1,_),cCase(_,S2,C2,D2,_)) =>
+    eqTerm(S1,S2) && eqCs(C1,eqTerm,C2) && eqTerm(D1,D2).
+  eqTerm(cWhere(_,E1,C1),cWhere(_,E2,C2)) => eqTerm(E1,E2) && eqTerm(C1,C2).
+  eqTerm(cMatch(_,P1,E1),cMatch(_,P2,E2)) => eqTerm(E1,E2) && eqTerm(P1,P2).
+  eqTerm(cSeq(_,L1,R1),cSeq(_,L2,R2)) => eqTerm(L1,L2) && eqTerm(R1,R2).
+  eqTerm(cAbort(_,M1,T1),cAbort(_,M2,T2)) => M1==M2 && T1==T2.
+  eqTerm(cTask(_,M1,_),cTask(_,M2,_)) => eqTerm(M1,M2).
+  eqTerm(cSusp(_,T1,E1,_),cSusp(_,T2,E2,_)) => eqTerm(T1,T2) && eqTerm(E1,E2).
+  eqTerm(cResume(_,T1,E1,_),cResume(_,T2,E2,_)) => eqTerm(T1,T2) && eqTerm(E1,E2).
+  eqTerm(cTry(_,M1,H1,_),cTry(_,M2,H2,_)) => eqTerm(M1,M2) && eqCs(H1,eqTerm,H2).
+  eqTerm(cValof(_,A1,_),cValof(_,A2,_)) => eqAct(A1,A2).
+  eqTerm(cVarNmes(_,V1,E1),cVarNmes(_,V2,E2)) => eqVs(V1,V2) && eqTerm(E1,E2).
+  eqTerm(_,_) default => .false.
+  
+  eqs([],[]) => .true.
+  eqs([E1,..S1],[E2,..S2]) => eqTerm(E1,E2) && eqs(S1,S2).
+  eqs(_,_) default => .false.
 
-    eqTerm(_,_) default => .false.
+  eqCs:all e ~~ (cons[cCase[e]],(e,e)=>boolean,cons[cCase[e]])=>boolean.
+  eqCs([],_,[]) => .true.
+  eqCs([(_,N1,E1),..S1],P,[(_,N2,E2),..S2]) => eqTerm(N1,N2) && P(E1,E2) && eqCs(S1,P,S2).
+  eqCs(_,_,_) default => .false.
 
-    eqs([],[]) => .true.
-    eqs([E1,..S1],[E2,..S2]) => eqTerm(E1,E2) && eqs(S1,S2).
-    eqs(_,_) default => .false.
+  eqVs([],[]) => .true.
+  eqVs([(N1,E1),..S1],[(N2,E2),..S2]) => N1==N2 && E1==E2 && eqVs(S1,S2).
+  eqVs(_,_) default => .false.
 
-    eqCs([],[]) => .true.
-    eqCs([(_,N1,E1),..S1],[(_,N2,E2),..S2]) => eqTerm(N1,N2) && eqTerm(E1,E2) && eqCs(S1,S2).
-    eqCs(_,_) default => .false.
+  eqAct(aNop(_),aNop(_)) => .true.
+  eqAct(aSeq(_,L1,R1),aSeq(_,L2,R2)) => eqAct(L1,L2) && eqAct(R1,R2).
+  eqAct(aLbld(_,L1,A1),aLbld(_,L2,A2)) => L1==L2 && eqAct(A1,A2).
+  eqAct(aBreak(_,L1),aBreak(_,L2)) => L1==L2.
+  eqAct(aValis(_,E1),aValis(_,E2)) => eqTerm(E1,E2).
+  eqAct(aThrow(_,E1),aThrow(_,E2)) => eqTerm(E1,E2).
+  eqAct(aPerf(_,E1),aPerf(_,E2)) => eqTerm(E1,E2).
+  eqAct(aDefn(_,E1,V1),aDefn(_,E2,V2)) => eqTerm(E1,E2) && eqTerm(V1,V2).
+  eqAct(aAsgn(_,E1,V1),aAsgn(_,E2,V2)) => eqTerm(E1,E2) && eqTerm(V1,V2).
+  eqAct(aCase(_,S1,C1,D1),aCase(_,S2,C2,D2)) =>
+    eqTerm(S1,S2) && eqCs(C1,eqAct,C2) && eqAct(D1,D2).
+  eqAct(aUnpack(_,S1,C1),aUnpack(_,S2,C2)) =>
+    eqTerm(S1,S2) && eqCs(C1,eqAct,C2).
+  eqAct(aIftte(_,C1,L1,R1),aIftte(_,C2,L2,R2)) =>
+    eqTerm(C1,C2) && eqAct(L1,L2) && eqAct(R1,R2).
+  eqAct(aWhile(_,C1,L1),aWhile(_,C2,L2)) =>
+    eqTerm(C1,C2) && eqAct(L1,L2).
+  eqAct(aRetire(_,E1,V1),aRetire(_,E2,V2)) => eqTerm(E1,E2) && eqTerm(V1,V2).
+  eqAct(aTry(_,M1,H1),aTry(_,M2,H2)) => eqAct(M1,M2) && eqCs(H1,eqAct,H2).
+  eqAct(aVarNmes(_,V1,A1),aVarNmes(_,V2,A2)) => eqVs(V1,V2) && eqAct(A1,A2).
 
-    eqVs([],[]) => .true.
-    eqVs([(N1,E1),..S1],[(N2,E2),..S2]) => N1==N2 && E1==E2 && eqVs(S1,S2).
-    eqVs(_,_) default => .false.
-    
-  .} in {
+  public implementation equality[cExp] => {
     X == Y => eqTerm(X,Y)
   }
 
@@ -247,7 +279,7 @@ star.compiler.term{
     locOf(cMatch(Lc,_,_)) => Lc.
     locOf(cLtt(Lc,_,_,_)) => Lc.
     locOf(cUnpack(Lc,_,_,_)) => Lc.
-    locOf(cCase(Lc,_,_,_)) => Lc.
+    locOf(cCase(Lc,_,_,_,_)) => Lc.
     locOf(cCall(Lc,_,_,_))=>Lc.
     locOf(cECall(Lc,_,_,_))=>Lc.
     locOf(cOCall(Lc,_,_,_))=>Lc.
@@ -258,7 +290,6 @@ star.compiler.term{
     locOf(cCnd(Lc,_,_,_)) => Lc.
     locOf(cAbort(Lc,_,_)) => Lc.
     locOf(cVarNmes(Lc,_,_)) => Lc.
-    locOf(cError(Lc,_,_)) => Lc.
     locOf(cTask(Lc,_,_)) => Lc.
     locOf(cSusp(Lc,_,_,_)) => Lc.
     locOf(cResume(Lc,_,_,_)) => Lc.
@@ -267,29 +298,37 @@ star.compiler.term{
   }
 
   public implementation hasType[cExp] => let{.
+    tpOf(cVoid(_,Tp)) => Tp.
+    tpOf(cAnon(_,Tp)) => Tp.
     tpOf(cVar(_,V)) => typeOf(V).
     tpOf(cInt(_,_)) => intType.
     tpOf(cBig(_,_)) => bigintType.
     tpOf(cChar(_,_)) => chrType.
     tpOf(cFloat(_,_)) => fltType.
     tpOf(cString(_,_)) => strType.
-    tpOf(cVoid(_,Tp)) => Tp.
     tpOf(cTerm(_,_,_,Tp)) => Tp.
     tpOf(cECall(_,_,_,Tp)) => Tp.
     tpOf(cOCall(_,_,_,Tp)) => Tp.
     tpOf(cCall(_,_,_,Tp)) => Tp.
+    tpOf(cThrow(_,_,Tp)) => Tp.
+    tpOf(cGet(_,_,Tp)) => Tp.
+    tpOf(cCell(_,_,Tp)) => Tp.
     tpOf(cNth(_,_,_,Tp)) => Tp.
     tpOf(cSetNth(_,T,_,_)) => tpOf(T).
-    tpOf(cLtt(_,_,_,E)) => tpOf(E).
-    tpOf(cUnpack(_,_,_,Tp)) => Tp.
-    tpOf(cCase(_,_,_,Tp)) => Tp.
     tpOf(cSeq(_,_,R)) => tpOf(R).
-    tpOf(cCnd(_,_,L,_)) => tpOf(L).
-    tpOf(cWhere(_,T,_)) => tpOf(T).
-    tpOf(cMatch(_,_,_)) => boolType.
     tpOf(cCnj(_,_,_)) => boolType.
     tpOf(cDsj(_,_,_)) => boolType.
     tpOf(cNeg(_,_)) => boolType.
+    tpOf(cLtt(_,_,_,E)) => tpOf(E).
+    tpOf(cUnpack(_,_,_,Tp)) => Tp.
+    tpOf(cCase(_,_,_,_,Tp)) => Tp.
+    tpOf(cCnd(_,_,L,_)) => tpOf(L).
+    tpOf(cWhere(_,T,_)) => tpOf(T).
+    tpOf(cMatch(_,_,_)) => boolType.
+    tpOf(cSusp(_,_,_,T)) => T.
+    tpOf(cResume(_,_,_,T)) => T.
+    tpOf(cTry(_,_,_,T)) => T.
+    tpOf(cValof(_,_,T)) => T.
     tpOf(cAbort(_,_,T)) => T.
     tpOf(cVarNmes(_,_,E)) => tpOf(E).
   .} in {
@@ -307,6 +346,25 @@ star.compiler.term{
   public implementation display[cId] => {
     disp(cId(Nm,_)) => "%#(Nm)".
   }
+
+  public implementation hasLoc[aAction] => {
+    locOf(aNop(Lc)) => Lc.
+    locOf(aSeq(Lc,_,_)) => Lc.
+    locOf(aLbld(Lc,_,_)) => Lc.
+    locOf(aBreak(Lc,_)) => Lc.
+    locOf(aValis(Lc,_)) => Lc.
+    locOf(aThrow(Lc,_)) => Lc.
+    locOf(aPerf(Lc,_)) => Lc.
+    locOf(aDefn(Lc,_,_)) => Lc.
+    locOf(aAsgn(Lc,_,_)) => Lc.
+    locOf(aCase(Lc,_,_,_)) => Lc.
+    locOf(aUnpack(Lc,_,_)) => Lc.
+    locOf(aIftte(Lc,_,_,_)) => Lc.
+    locOf(aWhile(Lc,_,_)) => Lc.
+    locOf(aRetire(Lc,_,_)) => Lc.
+    locOf(aTry(Lc,_,_)) => Lc.
+    locOf(aVarNmes(Lc,_,_)) => Lc.
+  }  
 
   public implementation coercion[cExp,data] => {.
     _coerce(cInt(_,Ix)) => some(intgr(Ix)).
@@ -329,50 +387,72 @@ star.compiler.term{
   public implementation coercion[locn,cExp] => {
     _coerce(Lc) where locn(Nm,Line,Col,Off,Len).=Lc &&
 	OLc .= some(Lc) =>
-      some(mkCrTpl(OLc,[cString(OLc,Nm),
+      some(mcTpl(OLc,[cString(OLc,Nm),
 	    cInt(OLc,Line),cInt(OLc,Col),cInt(OLc,Off),cInt(OLc,Len)]))
   }
 
   public rwTerm:(cExp,(cExp)=>option[cExp])=>cExp.
   rwTerm(T,Tst) where Rep^=Tst(T) => Rep.
+  rwTerm(cVoid(Lc,T),_) => cVoid(Lc,T).
+  rwTerm(cAnon(Lc,T),_) => cAnon(Lc,T).
   rwTerm(cVar(Lc,V),_) => cVar(Lc,V).
   rwTerm(cInt(Lc,Ix),_) => cInt(Lc,Ix).
+  rwTerm(cBig(Lc,Ix),_) => cBig(Lc,Ix).
   rwTerm(cFloat(Lc,Dx),_) => cFloat(Lc,Dx).
+  rwTerm(cChar(Lc,Cx),_) => cChar(Lc,Cx).
   rwTerm(cString(Lc,Sx),_) => cString(Lc,Sx).
-  rwTerm(cVoid(Lc,Tp),_) => cVoid(Lc,Tp).
-  rwTerm(cNth(Lc,R,Ix,Tp),Tst) => cNth(Lc,rwTerm(R,Tst),Ix,Tp).
-  rwTerm(cSetNth(Lc,R,Ix,E),Tst) => cSetNth(Lc,rwTerm(R,Tst),Ix,rwTerm(E,Tst)).
   rwTerm(cTerm(Lc,Op,Args,Tp),Tst) =>
     cTerm(Lc,Op,rwTerms(Args,Tst),Tp).
+  rwTerm(cGet(Lc,C,Tp),Tst) => cGet(Lc,rwTerm(C,Tst),Tp).
+  rwTerm(cCell(Lc,C,Tp),Tst) => cCell(Lc,rwTerm(C,Tst),Tp).
+  rwTerm(cNth(Lc,R,Ix,Tp),Tst) => cNth(Lc,rwTerm(R,Tst),Ix,Tp).
+  rwTerm(cSetNth(Lc,R,Ix,E),Tst) => cSetNth(Lc,rwTerm(R,Tst),Ix,rwTerm(E,Tst)).
   rwTerm(cCall(Lc,Op,Args,Tp),Tst) =>
     cCall(Lc,Op,Args//(A)=>rwTerm(A,Tst),Tp).
   rwTerm(cOCall(Lc,Op,Args,Tp),Tst) =>
     cOCall(Lc,rwTerm(Op,Tst),Args//(A)=>rwTerm(A,Tst),Tp).
   rwTerm(cECall(Lc,Op,Args,Tp),Tst) =>
     cECall(Lc,Op,Args//(A)=>rwTerm(A,Tst),Tp).
-  rwTerm(cSeq(Lc,L,R),Tst) =>
-    cSeq(Lc,rwTerm(L,Tst),rwTerm(R,Tst)).
-  rwTerm(cCnj(Lc,L,R),Tst) =>
-    cCnj(Lc,rwTerm(L,Tst),rwTerm(R,Tst)).
-  rwTerm(cDsj(Lc,L,R),Tst) =>
-    cDsj(Lc,rwTerm(L,Tst),rwTerm(R,Tst)).
-  rwTerm(cNeg(Lc,R),Tst) =>
-    cNeg(Lc,rwTerm(R,Tst)).
-  rwTerm(cCnd(Lc,T,L,R),Tst) =>
-    cCnd(Lc,rwTerm(T,Tst),rwTerm(L,Tst),rwTerm(R,Tst)).
-  rwTerm(cLtt(Lc,V,D,E),Tst) =>
-    cLtt(Lc,V,rwTerm(D,Tst),rwTerm(E,dropVar(cName(V),Tst))).
+  rwTerm(cThrow(Lc,E,Tp),Tst) => cThrow(Lc,rwTerm(E,Tst),Tp).
+  rwTerm(cSeq(Lc,L,R),Tst) => cSeq(Lc,rwTerm(L,Tst),rwTerm(R,Tst)).
+  rwTerm(cCnj(Lc,L,R),Tst) => cCnj(Lc,rwTerm(L,Tst),rwTerm(R,Tst)).
+  rwTerm(cDsj(Lc,L,R),Tst) => cDsj(Lc,rwTerm(L,Tst),rwTerm(R,Tst)).
+  rwTerm(cNeg(Lc,R),Tst) => cNeg(Lc,rwTerm(R,Tst)).
+  rwTerm(cCnd(Lc,T,L,R),Tst) => cCnd(Lc,rwTerm(T,Tst),rwTerm(L,Tst),rwTerm(R,Tst)).
+  rwTerm(cLtt(Lc,V,D,E),Tst) => cLtt(Lc,V,rwTerm(D,Tst),rwTerm(E,dropVar(cName(V),Tst))).
   rwTerm(cUnpack(Lc,Sel,Cases,Tp),M) =>
     cUnpack(Lc,rwTerm(Sel,M),Cases//(C)=>rwCase(C,M,rwTerm),Tp).
-  rwTerm(cCase(Lc,Sel,Cases,Tp),M) =>
-    cCase(Lc,rwTerm(Sel,M),Cases//(C)=>rwCase(C,M,rwTerm),Tp).
+  rwTerm(cCase(Lc,Sel,Cases,Dflt,Tp),M) =>
+    cCase(Lc,rwTerm(Sel,M),Cases//(C)=>rwCase(C,M,rwTerm),rwTerm(Dflt,M),Tp).
   rwTerm(cWhere(Lc,T,C),M) =>
     cWhere(Lc,rwTerm(T,M),rwTerm(C,M)).
   rwTerm(cMatch(Lc,P,E),M) =>
     cMatch(Lc,rwTerm(P,M),rwTerm(E,M)).
-  rwTerm(cVarNmes(Lc,Vs,E),M) =>
-    cVarNmes(Lc,Vs,rwTerm(E,M)).
+  rwTerm(cTask(Lc,A,T),M) => cTask(Lc,rwTerm(A,M),T).
+  rwTerm(cSusp(Lc,T,E,Tp),M) => cSusp(Lc,rwTerm(T,M),rwTerm(E,M),Tp).
+  rwTerm(cResume(Lc,T,E,Tp),M) => cResume(Lc,rwTerm(T,M),rwTerm(E,M),Tp).
+  rwTerm(cTry(Lc,E,H,Tp),M) => cTry(Lc,rwTerm(E,M),H//(C)=>rwCase(C,M,rwTerm),Tp).
+  rwTerm(cVarNmes(Lc,Vs,E),M) => cVarNmes(Lc,Vs,rwTerm(E,M)).
+  rwTerm(cValof(Lc,A,Tp),M) => cValof(Lc,rwAct(A,M),Tp).
   rwTerm(cAbort(Lc,Ms,T),M) => cAbort(Lc,Ms,T).
+
+  public rwAct:(aAction,(cExp)=>option[cExp])=>aAction.
+  rwAct(aNop(Lc),_) => aNop(Lc).
+  rwAct(aSeq(Lc,L,R),M) => aSeq(Lc,rwAct(L,M),rwAct(R,M)).
+  rwAct(aLbld(Lc,L,A),M) => aLbld(Lc,L,rwAct(A,M)).
+  rwAct(aBreak(Lc,L),M) => aBreak(Lc,L).
+  rwAct(aValis(Lc,E),M) => aValis(Lc,rwTerm(E,M)).
+  rwAct(aThrow(Lc,E),M) => aThrow(Lc,rwTerm(E,M)).
+  rwAct(aPerf(Lc,E),M) => aPerf(Lc,rwTerm(E,M)).
+  rwAct(aDefn(Lc,V,E),M) => aDefn(Lc,rwTerm(V,M),rwTerm(E,M)).
+  rwAct(aAsgn(Lc,V,E),M) => aAsgn(Lc,rwTerm(V,M),rwTerm(E,M)).
+  rwAct(aCase(Lc,G,Cs,D),M) => aCase(Lc,rwTerm(G,M),Cs//(C)=>rwCase(C,M,rwAct),rwAct(D,M)).
+  rwAct(aUnpack(Lc,G,Cs),M) => aUnpack(Lc,rwTerm(G,M),Cs//(C)=>rwCase(C,M,rwAct)).
+  rwAct(aIftte(Lc,C,L,R),M) => aIftte(Lc,rwTerm(C,M),rwAct(L,M),rwAct(R,M)).
+  rwAct(aWhile(Lc,C,B),M) => aWhile(Lc,rwTerm(C,M),rwAct(B,M)).
+  rwAct(aRetire(Lc,T,E),M) => aRetire(Lc,rwTerm(T,M),rwTerm(E,M)).
+  rwAct(aTry(Lc,B,H),M) => aTry(Lc,rwAct(B,M),H//(C)=>rwCase(C,M,rwAct)).
+  rwAct(aVarNmes(Lc,Vs,E),M) => aVarNmes(Lc,Vs,rwAct(E,M)).
 
   dropVar:(string,(cExp)=>option[cExp])=>(cExp)=>option[cExp].
   dropVar(Nm,Tst) => let{
@@ -392,11 +472,19 @@ star.compiler.term{
   rwCase:all e ~~ (cCase[e],(cExp)=>option[cExp],(e,(cExp)=>option[cExp])=>e) => cCase[e].
   rwCase((Lc,Ptn,Rep),T,F) => (Lc,rwTerm(Ptn,T),F(Rep,T)).
 
+  public implementation rewrite[cExp] => {
+    rewrite(E,M) => rwTerm(E,rwVar(M)).
+  }
+
+  public implementation rewrite[aAction] => {
+    rewrite(E,M) => rwAct(E,rwVar(M)).
+  }
+
   public rewriteTerm:(cExp,map[string,cExp])=>cExp.
   rewriteTerm(T,Map) => rwTerm(T,rwVar(Map)).
 
-  public rewriteTerms:(cons[cExp],map[string,cExp])=>cons[cExp].
-  rewriteTerms(T,Map) => rwTerms(T,rwVar(Map)).
+  public rewriteTerms:all e ~~ rewrite[e] |: (cons[e],map[string,cExp])=>cons[e].
+  rewriteTerms(Els,Map) => (Els//(E)=>rewrite(E,Map)).
 
   rwVar(M) => let{
     test(cVar(Lc,cId(Nm,Tp))) => M[Nm].

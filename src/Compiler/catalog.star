@@ -11,7 +11,7 @@ star.compiler.catalog{
     base : uri.
     parent:option[catalog].
     vers:option[version].
-    entries:map[string,string].
+    content:map[string,string].
     subcats:cons[catalog].
   }
 
@@ -21,7 +21,7 @@ star.compiler.catalog{
 	(RU^=resolveUri(U,PU) ? loadCatalog(RU) || .none).
       vers=M["version"] >>= (jTxt(V)) => some(V::version).
       base=U.
-      entries=deflt(M["content"]>>=(jColl(C))=>some(C///((_,jTxt(E))=>E)),()=>[]).
+      content=deflt(M["content"]>>=(jColl(C))=>some(C///((_,jTxt(E))=>E)),()=>[]).
       subcats = deflt(M["subcatalogs"] >>=
 	  (jSeq(L)) => parseSubCats(U,L,[]),()=>[]).
   }).
@@ -46,7 +46,7 @@ star.compiler.catalog{
 
   findInCat:(catalog,string) => option[(uri,pkg)].
   findInCat(Cat,Pkg) where
-    E ^= Cat.entries[Pkg] &&
+    E ^= Cat.content[Pkg] &&
       CU ^= parseUri(E) &&
       PU ^= resolveUri(Cat.base,CU) =>
     some((PU,pkg(Pkg,deflt(Cat.vers,()=>.defltVersion)))).
@@ -59,7 +59,7 @@ star.compiler.catalog{
 
   public implementation display[catalog] => let{.
     dispCat:(catalog)=>string.
-    dispCat(Cat) => "catalog: at $(Cat.base)\ncontent: $(Cat.entries)\nversion: $(Cat.vers) #(Parent^=Cat.parent ? "\nparent: #(dispCat(Parent))" || "")\nsubcats: #(interleave(Cat.subcats//dispCat,";")*)"
+    dispCat(Cat) => "catalog: at $(Cat.base)\ncontent: $(Cat.content)\nversion: $(Cat.vers) #(Parent^=Cat.parent ? "\nparent: #(dispCat(Parent))" || "")\nsubcats: #(interleave(Cat.subcats//dispCat,";")*)"
   .} in {
     disp(Cat) => dispCat(Cat)
   }

@@ -12,18 +12,18 @@ star.compiler.normalize.meta{
 
   public consMap ~> cons[(termLbl,tipe,integer)].
 
-  public nameMapEntry ::= moduleFun(crExp,string)
-    | localFun(string,string,crVar)
-    | localVar(crExp)
+  public nameMapEntry ::= moduleFun(cExp,string)
+    | localFun(string,string,cId)
+    | localVar(cExp)
     | moduleCons(string,tipe)
-    | localCons(string,tipe,crVar)
-    | labelArg(crVar,integer)
-    | memoArg(string,crVar,integer)
+    | localCons(string,tipe,cId)
+    | labelArg(cId,integer)
+    | memoArg(string,cId,integer)
     | globalVar(string,tipe).
 
   public typeMapEntry ::= moduleType(string,tipe,consMap).
 
-  public mapLayer ::= lyr(option[crVar],map[string,nameMapEntry],map[string,typeMapEntry]).
+  public mapLayer ::= lyr(option[cId],map[string,nameMapEntry],map[string,typeMapEntry]).
 
   public nameMap ~> cons[mapLayer].
 
@@ -45,15 +45,14 @@ star.compiler.normalize.meta{
   public implementation display[typeMapEntry] => {
     disp(moduleType(Nm,Tp,ConsMap)) => "type #(Nm)\:$(Tp) <- $(ConsMap)".
   }
-  
-  public crFlow ~> (crExp,cons[crDefn]).
+public crFlow ~> (cExp,cons[cDefn]).
 
   public lookupVarName:(nameMap,string)=>option[nameMapEntry].
   lookupVarName(Map,Nm) => lookup(Map,Nm,anyDef).
 
   anyDef(D) => some(D).
 
-  public lookupThetaVar:(nameMap,string)=>option[crVar].
+  public lookupThetaVar:(nameMap,string)=>option[cId].
   lookupThetaVar(Map,Nm) where E^=lookupVarName(Map,Nm) =>
     case E in {
       labelArg(ThV,_) => some(ThV).
@@ -63,7 +62,7 @@ star.compiler.normalize.meta{
     }.
   lookupThetaVar(_,_) default => .none.
 
-  public layerVar:(nameMap)=>option[crVar].
+  public layerVar:(nameMap)=>option[cId].
   layerVar([lyr(V,_,_),.._])=>V.
   layerVar([])=>.none.
 
@@ -127,7 +126,7 @@ star.compiler.normalize.meta{
   mkConsLbl(Nm,Tp) => tLbl(Nm,arity(Tp)).
 
   declMdlGlobal(funDec(Lc,Nm,FullNm,Tp),Map) =>
-    Map[Nm->moduleFun(idnt(Lc,crId(FullNm,Tp)),FullNm)].
+    Map[Nm->moduleFun(cVar(Lc,cId(FullNm,Tp)),FullNm)].
   declMdlGlobal(varDec(Lc,Nm,FullNm,Tp),Map) =>
     Map[Nm->globalVar(FullNm,Tp)].
   declMdlGlobal(cnsDec(Lc,Nm,FullNm,Tp),Map) =>
@@ -147,10 +146,10 @@ star.compiler.normalize.meta{
   extendTplType(Es,.none) => Es.
   extendTplType(Es,some(E)) => [typeOf(E),..Es].
 
-  public findMemoIx:(string,crVar,nameMap) => option[integer].
+  public findMemoIx:(string,cId,nameMap) => option[integer].
   findMemoIx(Nm,ThV,Map) => lookup(Map,Nm,isMemoVar(ThV)).
 
-  isMemoVar:(crVar)=>(nameMapEntry)=>option[integer].
+  isMemoVar:(cId)=>(nameMapEntry)=>option[integer].
   isMemoVar(ThV) => let{
     check(memoArg(_,ThV,Ix))=>some(Ix).
     check(_) default => .none
