@@ -262,6 +262,10 @@ star.compiler.term{
     X == Y => eqTerm(X,Y)
   }
 
+  public implementation equality[aAction] => {
+    X == Y => eqAct(X,Y)
+  }
+
   public implementation hasLoc[cExp] => {
     locOf(cVar(Lc,_)) => Lc.
     locOf(cVoid(Lc,_)) => Lc.
