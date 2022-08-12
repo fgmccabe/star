@@ -42,13 +42,15 @@ star.compiler.matcher{
     genV([T,..Ts]) => [cVar(Lc,cId(genSym("_"),T)),..genV(Ts)].
   .} in genV(L).
 
-  makeTriples:all e ~~ (cons[(option[locn],cons[cExp],option[cExp],e)]) => cons[triple[e]].
-  makeTriples(Eqns) => ixRight((Ix,(Lc,Args,Wh,Exp),Ts)=>
-      [(Args,(Lc,[],.none,Wh,Exp),Ix),..Ts],[],Eqns).
+  makeTriples:all e ~~ reform[e] |: (cons[(option[locn],cons[cExp],option[cExp],e)]) => cons[triple[e]].
+  makeTriples(Eqns) => ixRight((Ix,(Lc,Args,Wh,Exp),Ts)=> valof{
+      (Vl,Cnd) = pullWhere(Exp,.none);
+      valis [(Args,(Lc,[],Cnd,Wh,Vl),Ix),..Ts]
+    },[],Eqns).
 
   genRaise(Lc,Msg,Tp) => cAbort(Lc,Msg,Tp).
 
-  matchTriples:all e~~reform[e] |: (option[locn],cons[cExp],cons[triple[e]],e,nameMap) => e.
+  matchTriples:all e~~reform[e],rewrite[e] |: (option[locn],cons[cExp],cons[triple[e]],e,nameMap) => e.
   matchTriples(_,[],Triples,Deflt,_) => conditionalize(Triples,Deflt).
   matchTriples(Lc,Vrs,Triples,Deflt,Map) => valof{
 --    logMsg("matching triples, $(Vrs) --- $(Triples), default = $(Deflt)");
@@ -99,13 +101,13 @@ star.compiler.matcher{
   argMode(cTerm(_,_,_,_)) => .inConstructors.
   argMode(cWhere(_,T,_)) => argMode(T).
 
-  matchSegments:all e ~~ reform[e] |:
+  matchSegments:all e ~~ reform[e],rewrite[e] |:
     (cons[(argMode,cons[triple[e]])],cons[cExp],option[locn],e,nameMap) => e.
   matchSegments([],_,_,Deflt,_) => Deflt.
   matchSegments([(M,Seg),..Segs],Vrs,Lc,Deflt,Map) =>
     compileMatch(M,Seg,Vrs,Lc,matchSegments(Segs,Vrs,Lc,Deflt,Map),Map).
 
-  compileMatch:all e ~~ reform[e] |:
+  compileMatch:all e ~~ reform[e],rewrite[e] |:
     (argMode,cons[triple[e]],cons[cExp],option[locn],e,nameMap)=>e.
   compileMatch(.inScalars,Seg,Vrs,Lc,Deflt,Map) =>
     matchScalars(Seg,Vrs,Lc,Deflt,Map).
@@ -114,15 +116,15 @@ star.compiler.matcher{
   compileMatch(.inVars,Seg,Vrs,Lc,Deflt,Map) =>
     matchVars(Seg,Vrs,Lc,Deflt,Map).
 
-  matchScalars:all e ~~ reform[e] |:
+  matchScalars:all e ~~ reform[e],rewrite[e] |:
     (cons[triple[e]],cons[cExp],option[locn],e,nameMap)=>e.
   matchScalars(Seg,[V,..Vrs],Lc,Deflt,Map) => valof{
     ST = sort(Seg,compareScalarTriple);
     Cases = formCases(ST,sameScalarTriple,Lc,Vrs,Deflt,Map);
-    valis mkCase(Cases,Lc,V,Deflt)
+    valis mkCase(Lc,V,Cases,Deflt)
   }
 
-  matchConstructors:all e ~~ reform[e], hasType[e] |:
+  matchConstructors:all e ~~ reform[e],rewrite[e] |:
     (cons[triple[e]],cons[cExp],option[locn],e,nameMap)=>e.
   matchConstructors(Seg,[V,..Vrs],Lc,Deflt,Map) => valof{
     Cases = formCases(sort(Seg,compareConstructorTriple),
@@ -130,7 +132,7 @@ star.compiler.matcher{
 --    logMsg("look for index map of $(tpName(typeOf(V)))");
     Index = ^findIndexMap(tpName(typeOf(V)),Map);
 --    logMsg("index is $(Index)");
-    valis mkUnpack(Lc,V,populateArms(Index,Cases,Lc,Deflt,Map),typeOf(Deflt))
+    valis mkUnpack(Lc,V,populateArms(Index,Cases,Lc,Deflt,Map))
   }
 
   populateArms:all e ~~ (consMap,cons[cCase[e]],option[locn],e,nameMap) => cons[cCase[e]].
@@ -179,7 +181,7 @@ star.compiler.matcher{
   } in (Triples//applyToTriple).
 
   -- we need to be careful to preserve the original order of equations
-  formCases:all e ~~ reform[e] |: (cons[triple[e]],(triple[e],triple[e])=>boolean,
+  formCases:all e ~~ reform[e],rewrite[e] |: (cons[triple[e]],(triple[e],triple[e])=>boolean,
     option[locn],cons[cExp],e,nameMap) => cons[cCase[e]].
   formCases([],_,_,_,_,_) => [].
   formCases([Tr,..Triples],Eq,Lc,Vrs,Deflt,Map) => valof{
@@ -190,7 +192,7 @@ star.compiler.matcher{
     valis [Case,..formCases(sort(More,compareTriple),Eq,Lc,Vrs,Deflt,Map)].
   }
 
-  formCase:all e ~~ reform[e] |: (triple[e],cons[triple[e]],option[locn],cons[cExp],e,nameMap) => cCase[e].
+  formCase:all e ~~ reform[e],rewrite[e] |: (triple[e],cons[triple[e]],option[locn],cons[cExp],e,nameMap) => cCase[e].
   formCase(([cInt(LLc,Ix),.._],_,_),Tpls,Lc,Vars,Deflt,Map) =>
     (LLc,cInt(LLc,Ix),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
   formCase(([cFloat(LLc,Dx),.._],_,_),Tpls,Lc,Vars,Deflt,Map) =>
@@ -281,8 +283,8 @@ star.compiler.matcher{
 
   contract all e ~~ reform[e] ::= {
     mkCond:(option[locn],cExp,e,e)=>e.
-    mkCase:(cons[cCase[e]],option[locn],cExp,e) => e.
-    mkUnpack:(option[locn],cExp,cons[cCase[e]],tipe) => e.
+    mkCase:(option[locn],cExp,cons[cCase[e]],e) => e.
+    mkUnpack:(option[locn],cExp,cons[cCase[e]]) => e.
     varNames:(option[locn],cons[(string,cId)],e)=>e.
     pullWhere:(e,option[cExp]) => (e,option[cExp]).
   }
@@ -304,10 +306,10 @@ star.compiler.matcher{
     pullWheres([A,..As],G) where (NA,NG).=pullWhere(A,G) && (NAs,Gx) .= pullWheres(As,NG) =>
       ([NA,..NAs],Gx).
 
-    mkCase([(PLc,Ptn,Val)],Lc,Tst,Deflt) => mkCond(Lc,cMatch(PLc,Ptn,Tst),Val,Deflt).
-    mkCase(Cases,Lc,V,Deflt) => cCase(Lc,V,Cases,Deflt,typeOf(Deflt)).
+    mkCase(Lc,Tst,[(PLc,Ptn,Val)],Deflt) => mkCond(Lc,cMatch(PLc,Ptn,Tst),Val,Deflt).
+    mkCase(Lc,V,Cases,Deflt) => cCase(Lc,V,Cases,Deflt,typeOf(Deflt)).
 
-    mkUnpack(Lc,V,Arms,Tp) => cUnpack(Lc,V,Arms,Tp).
+    mkUnpack(Lc,V,Arms) => cUnpack(Lc,V,Arms,typeOf(V)).
   .}
 
   implementation reform[aAction] => {
@@ -316,6 +318,11 @@ star.compiler.matcher{
     mkCond(Lc,Tst,Th,El) => aIftte(Lc,Tst,Th,El).
 
     varNames(Lc,Bnds,Val) => aVarNmes(Lc,Bnds,Val).
+
+    pullWhere(A,Cond) => (A,Cond).
+
+    mkCase(Lc,V,Cases,Deflt) => aCase(Lc,V,Cases,Deflt).
+    mkUnpack(Lc,V,Arms) => aUnpack(Lc,V,Arms).
   }
   
 }

@@ -94,7 +94,7 @@ resolveAgain(_,inactive,_,T,_,T) :- !.
 resolveAgain(active(_,Msg),active(Lc,Msg),Term,_,_,Term) :-
   reportError("cannot resolve %s because %s",[can(Term),ss(Msg)],Lc).
 resolveAgain(_,active(Lc,Msg),Orig,_,Dict,R) :-
-  overloadTerm(Orig,Dict,inactive,St,T0),
+  overloadTerm(Orig,Dict,inactive,St,T0),!,
   resolveAgain(active(Lc,Msg),St,Orig,T0,Dict,R).
 
 markActive(_,Lc,Msg,active(Lc,Msg)).
@@ -402,7 +402,7 @@ resolveUpdate(Lc,Rc,Fld,Vl,_Dict,St,Stx,update(Lc,Rc,Fld,Vl)) :-
 
 resolveContracts(_,[],_,St,St,[]).
 resolveContracts(Lc,[Con|C],Dict,St,Stx,[CV|Vs]) :-
-  resolveContract(Lc,Con,Dict,St,St0,CV),
+  resolveContract(Lc,Con,Dict,St,St0,CV),!,
   resolveContracts(Lc,C,Dict,St0,Stx,Vs).
 
 resolveContract(Lc,C,Dict,St,Stx,Over) :-
