@@ -38,7 +38,7 @@ star.compiler.macro.driver{
 	Cat ^= loadCatalog(CatU) then{
 	  for P in Args do{
 	    resetErrors();
-	    processPkg(extractPkgSpec(P),Cat,Opts)
+	    processPkg(extractPkgSpec(P),Cat)
 	  }
 	}
     else{
@@ -50,8 +50,8 @@ star.compiler.macro.driver{
   extractPkgSpec(P) where Lc ^= strFind(P,":",0) => pkg(P[0:Lc],P[Lc+1:size(P)]::version).
   extractPkgSpec(P) default => pkg(P,.defltVersion).
 
-  processPkg:(pkg,catalog,compilerOptions) => ()
-  processPkg(P,Cat,Opts) => valof{
+  processPkg:(pkg,catalog) => ()
+  processPkg(P,Cat) => valof{
     logMsg("Macro processing $(P)");
     if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
       Ast = ^parseSrc(SrcUri,CPkg);

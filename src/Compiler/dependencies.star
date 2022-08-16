@@ -271,8 +271,6 @@ star.compiler.dependencies{
     collectCondRefs(R,All,collectCondRefs(L,All,Rf)).
   collectCondRefs(A,All,Rf) where (_,L,R) ^= isDisjunct(A) =>
     collectCondRefs(R,All,collectCondRefs(L,All,Rf)).
-  collectCondRefs(A,All,Rf) where (_,L,R) ^= isImplies(A) =>
-    collectCondRefs(R,All,collectCondRefs(L,All,Rf)).
   collectCondRefs(A,All,Rf) where (_,R) ^= isNegation(A) => 
     collectCondRefs(R,All,Rf).
   collectCondRefs(A,All,Rf) where (_,T,L,R) ^= isConditional(A) => valof{
@@ -327,8 +325,6 @@ star.compiler.dependencies{
   collectTermRefs(A,All,Rf) where (_,L,R) ^= isConjunct(A) =>
     collectCondRefs(R,All,collectCondRefs(L,All,Rf)).
   collectTermRefs(A,All,Rf) where (_,L,R) ^= isDisjunct(A) =>
-    collectCondRefs(R,All,collectCondRefs(L,All,Rf)).
-  collectTermRefs(A,All,Rf) where (_,L,R) ^= isImplies(A) =>
     collectCondRefs(R,All,collectCondRefs(L,All,Rf)).
   collectTermRefs(A,All,Rf) where (_,R) ^= isNegation(A) => 
     collectCondRefs(R,All,Rf).

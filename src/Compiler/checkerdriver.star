@@ -56,8 +56,11 @@ star.compiler.checker.driver{
 	Cat ^= loadCatalog(CatU) then{
 	  for P in Args do{
 	    resetErrors();
-
-	    processPkg(extractPkgSpec(P),Repo,Cat,Opts)
+	    if Pk ^= P:?pkg then{
+	      processPkg(Pk,Repo,Cat)
+	    } else{
+	      logMsg("cannot parse $(P) as a package name")
+	    }
 	  }
 	}
     else{
@@ -69,8 +72,8 @@ star.compiler.checker.driver{
   extractPkgSpec(P) where Lc ^= strFind(P,":",0) => pkg(P[0:Lc],P[Lc+1:size(P)]::version).
   extractPkgSpec(P) default => pkg(P,.defltVersion).
 
-  processPkg:(pkg,termRepo,catalog,compilerOptions) => ().
-  processPkg(P,Repo,Cat,Opts) => valof{
+  processPkg:(pkg,termRepo,catalog) => ().
+  processPkg(P,Repo,Cat) => valof{
     logMsg("Processing $(P)");
     if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
       Ast = ^parseSrc(SrcUri,CPkg);
@@ -83,9 +86,9 @@ star.compiler.checker.driver{
       };
 
       if ~ macroOnly! then{
-	C = checkPkg(Repo,CPkg,M,Opts);
+	C = checkPkg(Repo,CPkg,M);
 	if showCanon! then {
-	  logMsg("type checked $(fmap(fst,C)), $(fmap(snd,C))")
+	  logMsg("type checked $(fst(C)), $(snd(C))")
 	};
       };
       valis ()

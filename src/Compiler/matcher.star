@@ -26,14 +26,13 @@ star.compiler.matcher{
     valis fnDef(Lc,Nm,Tp,NVrs//(cVar(_,V))=>V,Reslt)
   }
 
-  public caseMatcher:(option[locn],nameMap,cExp,
-    cons[(option[locn],cons[cExp],option[cExp],cExp)],tipe)=>cExp.
-  caseMatcher(Lc,Map,Gov,Cs,Tp) => valof{
+  public caseMatcher:all e ~~ reform[e],rewrite[e] |: (option[locn],nameMap,cExp,e,
+    cons[(option[locn],cons[cExp],option[cExp],e)])=>e.
+  caseMatcher(Lc,Map,Gov,Deflt,Cs) => valof{
 --    logMsg("match cases $(Cs)\ngoverning expression $(Gov)");
     Trpls = makeTriples(Cs);
 --    logMsg("case triples $(Trpls)");
-    Error = genRaise(Lc,"no case matches",Tp);
-    valis matchTriples(Lc,[Gov],Trpls,Error,Map)
+    valis matchTriples(Lc,[Gov],Trpls,Deflt,Map)
   }
 
   genVars:(option[locn],tipe) => cons[cExp].
@@ -281,7 +280,7 @@ star.compiler.matcher{
   mergeGoal(_,.none,G) => G.
   mergeGoal(Lc,some(G),some(H)) => some(cCnj(Lc,G,H)).
 
-  contract all e ~~ reform[e] ::= {
+  public contract all e ~~ reform[e] ::= {
     mkCond:(option[locn],cExp,e,e)=>e.
     mkCase:(option[locn],cExp,cons[cCase[e]],e) => e.
     mkUnpack:(option[locn],cExp,cons[cCase[e]]) => e.
@@ -289,7 +288,7 @@ star.compiler.matcher{
     pullWhere:(e,option[cExp]) => (e,option[cExp]).
   }
 
-  implementation reform[cExp] => {.
+  public implementation reform[cExp] => {.
     mkCond(Lc,Tst,Th,El) where 
 	cCnd(_,T1,Th1,El1).=Th && El1==El => cCnd(Lc,cCnj(Lc,Tst,T1),Th1,El1).
     mkCond(Lc,Tst,Th,El) => cCnd(Lc,Tst,Th,El).
@@ -312,7 +311,7 @@ star.compiler.matcher{
     mkUnpack(Lc,V,Arms) => cUnpack(Lc,V,Arms,typeOf(V)).
   .}
 
-  implementation reform[aAction] => {
+  public implementation reform[aAction] => {
     mkCond(Lc,Tst,Th,El) where
 	aIftte(Lc0,T1,Th1,El1).=Th && El1==El => aIftte(Lc0,cCnj(Lc,Tst,T1),Th1,El1).
     mkCond(Lc,Tst,Th,El) => aIftte(Lc,Tst,Th,El).

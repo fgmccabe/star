@@ -133,14 +133,6 @@ star.compiler.resolve{
     (Rc1,St1) = overloadTerm(Rc,Dict,St);
     valis (owpen(Lc,Rc1),St1);
   }
-  overloadTerm(cell(Lc,T),Dict,St) => valof{
-    (T1,St1) = overloadTerm(T,Dict,St);
-    valis (cell(Lc,T1),St1)
-  }
-  overloadTerm(cellref(Lc,T,Tp),Dict,St) => valof{
-    (T1,St1) = overloadTerm(T,Dict,St);
-    valis (cellref(Lc,T1,Tp),St1)
-  }
   overloadTerm(whr(Lc,T,C),Dict,St) => valof{
     (OT,St1) = overloadTerm(T,Dict,St);
     (OC,St2) = overloadTerm(C,Dict,St1);
@@ -163,25 +155,25 @@ star.compiler.resolve{
       valis (overaccess(Lc,T,RcTp,Fld,FldTp),active(Lc,"cannot find accessor for #(Fld)"))
     }
   }
-  overloadTerm(apply(lc,over(OLc,T,Cx),tple(ALc,Args),Tp),Dict,St) => valof{
+  overloadTerm(apply(lc,over(OLc,T,Cx),Args,Tp),Dict,St) => valof{
     (DArgs,St1) = resolveContracts(OLc,Cx,[],Dict,St);
     (RArgs,St2) = overloadTplEls(Args,Dict,St1);
     (OverOp,NArgs,St3) = resolveRef(T,DArgs,RArgs,Dict,St2);
-    valis (apply(lc,OverOp,tple(ALc,NArgs),Tp),markResolved(St3))
+    valis (apply(lc,OverOp,NArgs,Tp),markResolved(St3))
   }
-  overloadTerm(apply(lc,overaccess(Lc,T,RcTp,Fld,FldTp),tple(ALc,Args),Tp),Dict,St) => valof{
+  overloadTerm(apply(lc,overaccess(Lc,T,RcTp,Fld,FldTp),Args,Tp),Dict,St) => valof{
     if (AccessOp,St1) ^= resolveAccess(Lc,RcTp,Fld,FldTp,Dict,St) then{
       (RArgs,St2) = overloadTplEls(Args,Dict,St1);
       (OverOp,NArgs,St3) = resolveRef(T,[AccessOp],RArgs,Dict,St2);
-      valis (apply(lc,OverOp,tple(ALc,NArgs),Tp),St3)
+      valis (apply(lc,OverOp,NArgs,Tp),St3)
     } else {
-      valis (apply(lc,overaccess(Lc,T,RcTp,Fld,FldTp),tple(ALc,Args),Tp),
+      valis (apply(lc,overaccess(Lc,T,RcTp,Fld,FldTp),Args,Tp),
 	active(Lc,"cannot find accessor for #(Fld)"))
     }
   }
-  overloadTerm(apply(lc,Op,Arg,Tp),Dict,St) => valof{
+  overloadTerm(apply(lc,Op,Args,Tp),Dict,St) => valof{
     (ROp,St1) = overloadTerm(Op,Dict,St);
-    (RArgs,St2) = overloadTerm(Arg,Dict,St1);
+    (RArgs,St2) = overloadTplEls(Args,Dict,St1);
     valis (apply(lc,ROp,RArgs,Tp),St2)
   }
   overloadTerm(match(Lc,Ptn,Src),Dict,St) => valof{
@@ -198,11 +190,6 @@ star.compiler.resolve{
     (RLhs,St1) = overloadTerm(Lhs,Dict,St);
     (RRhs,St2) = overloadTerm(Rhs,Dict,St1);
     valis (disj(Lc,RLhs,RRhs),St2)
-  }
-  overloadTerm(implies(Lc,Lhs,Rhs),Dict,St) => valof{
-    (RLhs,St1) = overloadTerm(Lhs,Dict,St);
-    (RRhs,St2) = overloadTerm(Rhs,Dict,St1);
-    valis (implies(Lc,RLhs,RRhs),St2)
   }
   overloadTerm(neg(Lc,Rhs),Dict,St) => valof{
     (RRhs,St1) = overloadTerm(Rhs,Dict,St);
@@ -236,7 +223,7 @@ star.compiler.resolve{
   }
   overloadTerm(trycatch(Lc,A,H,Tp),Dict,St) => valof{
     (AA,St1) = overloadTerm(A,Dict,St);
-    (HH,St2) = overloadRules(H,[],overloadTerm,Dict,St1);
+    (HH,St2) = overloadTerm(H,Dict,St1);
     valis (trycatch(Lc,AA,HH,Tp),St2)
   }
   overloadTerm(vlof(Lc,Act,Tp),Dict,St) => valof{
@@ -258,7 +245,7 @@ star.compiler.resolve{
 
   overApply(_,OverOp,[],_) => OverOp.
   overApply(Lc,OverOp,Args,Tp) where ~ _ ^= isFunType(Tp) =>
-    apply(Lc,OverOp,tple(Lc,Args),Tp).
+    apply(Lc,OverOp,Args,Tp).
   overApply(Lc,OverOp,Args,Tp) =>
     curryOver(Lc,OverOp,Args,Tp).
 
@@ -267,7 +254,7 @@ star.compiler.resolve{
     NArgs = Args++Vrs;
     LamLbl = genSym((some(ALc).=Lc?locPkg(ALc)||"")++"λ");
     valis lambda(Lc,LamLbl,
-      [rule(Lc,tple(Lc,Vrs),.none,apply(Lc,OverOp,tple(Lc,NArgs),Tp))],
+      [rule(Lc,tple(Lc,Vrs),.none,apply(Lc,OverOp,NArgs,Tp))],
       funType(ArgTps,Tp))
   }
 
@@ -366,11 +353,11 @@ star.compiler.resolve{
       if _eof(Args) then
 	valis overloadTerm(dot(Lc,A,Nm,MTp),Dict,St1)
       else
-      valis overloadTerm(apply(Lc,dot(Lc,A,Nm,MTp),tple(Lc,Args),typeOf(T)),Dict,St1)
+      valis overloadTerm(apply(Lc,dot(Lc,A,Nm,MTp),Args,typeOf(T)),Dict,St1)
     }
     else{
       (Tr,St2) = overloadTerm(T,Dict,St1);
-      valis (apply(Lc,Tr,tple(Lc,[A,..Args]),typeOf(T)),St2)
+      valis (apply(Lc,Tr,[A,..Args],typeOf(T)),St2)
     }
   }
 */
@@ -454,7 +441,7 @@ star.compiler.resolve{
       Ft = newTypeVar("F");
       if sameType(typeOf(AccFn),funType([RcTp],Ft),Dict) then{
 	if sameType(Tp,snd(freshen(Ft,Dict)),Dict) then{
-	  valis overloadTerm(apply(Lc,AccFn,tple(Lc,[Rc]),Tp),Dict,markResolved(St))
+	  valis overloadTerm(apply(Lc,AccFn,[Rc],Tp),Dict,markResolved(St))
 	} else{
 	  valis (dot(Lc,Rc,Fld,Tp),
 	    active(Lc,"field $(Rc).$(Fld)\:$(Ft) not consistent with required type $(Tp)")).
@@ -479,8 +466,8 @@ star.compiler.resolve{
       Ft = newTypeVar("F");
       if sameType(typeOf(AccFn),funType([RcTp,Ft],RcTp),Dict) then{
 	if sameType(typeOf(Vl),snd(freshen(Ft,Dict)),Dict) then{
---	  logMsg("update $(update(Lc,Rc,Fld,Vl)) resolved to $(apply(Lc,AccFn,tple(Lc,[Rc,Vl]),RcTp))");
-	  valis overloadTerm(apply(Lc,AccFn,tple(Lc,[Rc,Vl]),RcTp),Dict,markResolved(St))
+--	  logMsg("update $(update(Lc,Rc,Fld,Vl)) resolved to $(apply(Lc,AccFn,[Rc,Vl],RcTp))");
+	  valis overloadTerm(apply(Lc,AccFn,[Rc,Vl],RcTp),Dict,markResolved(St))
 	} else{
 	  valis (update(Lc,Rc,Fld,Vl),
 	    active(Lc,"field $(Fld)\:$(Ft) not consistent with required type $(typeOf(Vl))"))

@@ -39,7 +39,7 @@ star.compiler.term{
     | cTask(option[locn],cExp,tipe)
     | cSusp(option[locn],cExp,cExp,tipe)
     | cResume(option[locn],cExp,cExp,tipe)
-    | cTry(option[locn],cExp,cons[cCase[cExp]],tipe)
+    | cTry(option[locn],cExp,cExp,tipe)
     | cValof(option[locn],aAction,tipe).
   
   public cId ::= cId(string,tipe).
@@ -60,8 +60,10 @@ star.compiler.term{
     | aIftte(option[locn],cExp,aAction,aAction)
     | aWhile(option[locn],cExp,aAction)
     | aRetire(option[locn],cExp,cExp)
-    | aTry(option[locn],aAction,cons[cCase[aAction]])
-    | aVarNmes(option[locn],cons[(string,cId)],aAction).
+    | aTry(option[locn],aAction,aAction)
+    | aLtt(option[locn],cId,cExp,aAction)
+    | aVarNmes(option[locn],cons[(string,cId)],aAction)
+    | aAbort(option[locn],string).
 
   public cDefn ::= fnDef(option[locn],string,tipe,cons[cId],cExp) |
     vrDef(option[locn],string,tipe,cExp)|
@@ -106,9 +108,9 @@ star.compiler.term{
   dspExp(cLtt(_,V,D,I),Off) where Off2.=Off++"  " =>
     "let $(V) = #(dspExp(D,Off2)) in\n#(Off2)#(dspExp(I,Off2))".
   dspExp(cCase(_,E,Cs,D,_),Off) where Off2.=Off++"  "=>
-    "case #(dspExp(E,Off)) in { #(dspCases(Cs,dspExp,Off2)*) } else #(dspExp(D,Off))".
+    "case #(dspExp(E,Off)) in {\n#(Off2)#(dspCases(Cs,dspExp,Off2)*)\n#(Off)} else #(dspExp(D,Off))".
   dspExp(cUnpack(_,E,Cs,_),Off) where Off2.=Off++"  "=>
-    "unpack #(dspExp(E,Off)) in { #(dspCases(Cs,dspExp,Off2)*) }".
+    "unpack #(dspExp(E,Off)) in {\n#(Off2)#(dspCases(Cs,dspExp,Off2)*)\n#(Off)}".
   dspExp(cMatch(_,P,E),Off) => "#(dspExp(P,Off)).=#(dspExp(E,Off))".
   dspExp(cWhere(_,T,C),Off) => "#(dspExp(T,Off)) where #(dspExp(C,Off++"  "))".
   dspExp(cCnj(_,L,R),Off) => "#(dspExp(L,Off))&&#(dspExp(R,Off))".
@@ -123,7 +125,7 @@ star.compiler.term{
   dspExp(cSusp(_,T,E,_),Off) => "#(dspExp(T,Off)) suspend #(dspExp(E,Off))".
   dspExp(cResume(_,T,E,_),Off) => "#(dspExp(T,Off)) resume #(dspExp(E,Off))".
   dspExp(cTry(_,E,H,_),Off) where Off2.=Off++"  " =>
-    "try #(dspExp(E,Off)) catch { #(dspCases(H,dspExp,Off2)*) }".
+    "try #(dspExp(E,Off)) catch #(dspExp(H,Off2))".
   dspExp(cValof(_,A,_),Off) => "valof #(dspAct(A,Off))".
 
   dspAct:(aAction,string)=>string.
@@ -138,9 +140,9 @@ star.compiler.term{
   dspAct(aDefn(_,P,E),Off) => "#(dspExp(P,Off)) = #(dspExp(E,Off))".
   dspAct(aAsgn(_,P,E),Off) => "#(dspExp(P,Off)) := #(dspExp(E,Off))".
   dspAct(aCase(_,E,Cs,Df),Off) where Off2.=Off++"  "=>
-    "case #(dspExp(E,Off)) in { #(dspCases(Cs,dspAct,Off2)*) } else #(dspAct(Df,Off))".
+    "case #(dspExp(E,Off)) in {\n#(Off2)#(dspCases(Cs,dspAct,Off2)*)\n#(Off)} else #(dspAct(Df,Off))".
   dspAct(aUnpack(_,E,Cs),Off) where Off2.=Off++"  " =>
-    "unpack #(dspExp(E,Off)) in { #(dspCases(Cs,dspAct,Off2)*) }".
+    "unpack #(dspExp(E,Off)) in {\n#(Off2)#(dspCases(Cs,dspAct,Off2)*)\n#(Off)}".
   dspAct(aIftte(_,C,T,E),Off)  where Off2.=Off++"  " =>
     "if #(dspExp(C,Off)) then\n#(Off2)#(dspAct(T,Off2))else\n#(Off2)#(dspAct(E,Off2))".
   dspAct(aWhile(_,C,A),Off)  where Off2.=Off++"  " =>
@@ -148,8 +150,11 @@ star.compiler.term{
   dspAct(aRetire(_,T,E),Off) =>
     "#(dspExp(T,Off)) retire #(dspExp(E,Off))".
   dspAct(aTry(_,E,H),Off) where Off2.=Off++"  " =>
-    "try #(dspAct(E,Off)) catch { #(dspCases(H,dspAct,Off2)*) }".
+    "try #(dspAct(E,Off)) catch #(dspAct(H,Off))".
+  dspAct(aLtt(_,V,D,I),Off) where Off2.=Off++"  " =>
+    "let $(V) = #(dspExp(D,Off2)) in\n#(Off2)#(dspAct(I,Off2))".
   dspAct(aVarNmes(_,V,A),Off) => "<vars #(dspVrs(V)) in #(dspAct(A,Off))>".
+  dspAct(aAbort(_,M),Off) => "abort #(M)".
 
   dspActSeq(aSeq(_,L,R),Off) => "\n#(Off)#(dspAct(L,Off));#(dspActSeq(R,Off))".
   dspActSeq(A,Off) => dspAct(A,Off).
@@ -157,7 +162,7 @@ star.compiler.term{
   dspCases:all e ~~ (cons[cCase[e]],(e,string)=>string,string)=>cons[string].
   dspCases(Cs,F,Off) => let{
     Gap = ";\n"++Off.
-  } in interleave(Cs//((_,P,V))=>"#(dspExp(P,Off))->#(F(V,Off))",Gap).
+  } in interleave(Cs//((_,P,V))=>"#(dspExp(P,Off))=>#(F(V,Off))",Gap).
 
   dsplyExps(Es,Off) => interleave(Es//(E)=>dspExp(E,Off),", ").
 
@@ -219,7 +224,7 @@ star.compiler.term{
   eqTerm(cTask(_,M1,_),cTask(_,M2,_)) => eqTerm(M1,M2).
   eqTerm(cSusp(_,T1,E1,_),cSusp(_,T2,E2,_)) => eqTerm(T1,T2) && eqTerm(E1,E2).
   eqTerm(cResume(_,T1,E1,_),cResume(_,T2,E2,_)) => eqTerm(T1,T2) && eqTerm(E1,E2).
-  eqTerm(cTry(_,M1,H1,_),cTry(_,M2,H2,_)) => eqTerm(M1,M2) && eqCs(H1,eqTerm,H2).
+  eqTerm(cTry(_,M1,H1,_),cTry(_,M2,H2,_)) => eqTerm(M1,M2) && eqTerm(H1,H2).
   eqTerm(cValof(_,A1,_),cValof(_,A2,_)) => eqAct(A1,A2).
   eqTerm(cVarNmes(_,V1,E1),cVarNmes(_,V2,E2)) => eqVs(V1,V2) && eqTerm(E1,E2).
   eqTerm(_,_) default => .false.
@@ -255,8 +260,10 @@ star.compiler.term{
   eqAct(aWhile(_,C1,L1),aWhile(_,C2,L2)) =>
     eqTerm(C1,C2) && eqAct(L1,L2).
   eqAct(aRetire(_,E1,V1),aRetire(_,E2,V2)) => eqTerm(E1,E2) && eqTerm(V1,V2).
-  eqAct(aTry(_,M1,H1),aTry(_,M2,H2)) => eqAct(M1,M2) && eqCs(H1,eqAct,H2).
+  eqAct(aTry(_,M1,H1),aTry(_,M2,H2)) => eqAct(M1,M2) && eqAct(H1,H2).
+  eqAct(aLtt(_,V1,D1,A1),aLtt(_,V2,D2,A2)) => V1==V2 && eqTerm(D1,D2) && eqAct(A1,A2).
   eqAct(aVarNmes(_,V1,A1),aVarNmes(_,V2,A2)) => eqVs(V1,V2) && eqAct(A1,A2).
+  eqAct(aAbort(_,M1),aAbort(_,M2)) => M1==M2.
 
   public implementation equality[cExp] => {
     X == Y => eqTerm(X,Y)
@@ -367,7 +374,9 @@ star.compiler.term{
     locOf(aWhile(Lc,_,_)) => Lc.
     locOf(aRetire(Lc,_,_)) => Lc.
     locOf(aTry(Lc,_,_)) => Lc.
+    locOf(aLtt(Lc,_,_,_)) => Lc.
     locOf(aVarNmes(Lc,_,_)) => Lc.
+    locOf(aAbort(Lc,_)) => Lc.
   }  
 
   public implementation coercion[cExp,data] => {.
@@ -435,7 +444,7 @@ star.compiler.term{
   rwTerm(cTask(Lc,A,T),M) => cTask(Lc,rwTerm(A,M),T).
   rwTerm(cSusp(Lc,T,E,Tp),M) => cSusp(Lc,rwTerm(T,M),rwTerm(E,M),Tp).
   rwTerm(cResume(Lc,T,E,Tp),M) => cResume(Lc,rwTerm(T,M),rwTerm(E,M),Tp).
-  rwTerm(cTry(Lc,E,H,Tp),M) => cTry(Lc,rwTerm(E,M),H//(C)=>rwCase(C,M,rwTerm),Tp).
+  rwTerm(cTry(Lc,E,H,Tp),M) => cTry(Lc,rwTerm(E,M),rwTerm(H,M),Tp).
   rwTerm(cVarNmes(Lc,Vs,E),M) => cVarNmes(Lc,Vs,rwTerm(E,M)).
   rwTerm(cValof(Lc,A,Tp),M) => cValof(Lc,rwAct(A,M),Tp).
   rwTerm(cAbort(Lc,Ms,T),M) => cAbort(Lc,Ms,T).
@@ -455,8 +464,10 @@ star.compiler.term{
   rwAct(aIftte(Lc,C,L,R),M) => aIftte(Lc,rwTerm(C,M),rwAct(L,M),rwAct(R,M)).
   rwAct(aWhile(Lc,C,B),M) => aWhile(Lc,rwTerm(C,M),rwAct(B,M)).
   rwAct(aRetire(Lc,T,E),M) => aRetire(Lc,rwTerm(T,M),rwTerm(E,M)).
-  rwAct(aTry(Lc,B,H),M) => aTry(Lc,rwAct(B,M),H//(C)=>rwCase(C,M,rwAct)).
+  rwAct(aTry(Lc,B,H),M) => aTry(Lc,rwAct(B,M),rwAct(H,M)).
+  rwAct(aLtt(Lc,V,D,A),Tst) => aLtt(Lc,V,rwTerm(D,Tst),rwAct(A,dropVar(cName(V),Tst))).
   rwAct(aVarNmes(Lc,Vs,E),M) => aVarNmes(Lc,Vs,rwAct(E,M)).
+  rwAct(aAbort(Lc,Ms),M) => aAbort(Lc,Ms).
 
   dropVar:(string,(cExp)=>option[cExp])=>(cExp)=>option[cExp].
   dropVar(Nm,Tst) => let{

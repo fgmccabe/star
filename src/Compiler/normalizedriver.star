@@ -19,13 +19,12 @@ star.compiler.normalize.driver{
   import star.compiler.macro.
   import star.compiler.meta.
   import star.compiler.misc.
-  import star.compiler.normalize.
   import star.compiler.parser.
   import star.compiler.location.
   import star.compiler.term.repo.
-  import star.compiler.data.
   import star.compiler.types.
-
+  import star.compiler.normalize.
+  import star.compiler.data.
 
   public _main:(cons[string])=>().
   _main(Args) => valof{
@@ -38,21 +37,19 @@ star.compiler.normalize.driver{
 	    traceDependencyOption,
 	    traceAstOption,
 	    traceMacroOption,
-	    checkOnlyOption,
 	    showCheckOption,
 	    traceCheckOption,
-	    showNormalizeOption,
-	    traceNormalizeOption,
 	    macroOnlyOption,
-	    optimizeLvlOption],
+	    showNormalizeOption,
+	    traceNormalizeOption],
 	  defltOptions(WI,RI)
 	))
     } catch {
       Msg => { logMsg(Msg);
 	valis ()
       }
-    }
-  }
+    };
+  }.
 
   handleCmds:((compilerOptions,cons[string]))=>().
   handleCmds((Opts,Args)) => valof{
@@ -62,8 +59,11 @@ star.compiler.normalize.driver{
 	Cat ^= loadCatalog(CatU) then{
 	  for P in Args do{
 	    resetErrors();
-
-	    processPkg(extractPkgSpec(P),Repo,Cat,Opts)
+	    if Pk ^= P:?pkg then{
+	      processPkg(Pk,Repo,Cat)
+	    } else{
+	      logMsg("cannot parse $(P) as a package name")
+	    }
 	  }
 	}
     else{
@@ -75,11 +75,11 @@ star.compiler.normalize.driver{
   extractPkgSpec(P) where Lc ^= strFind(P,":",0) => pkg(P[0:Lc],P[Lc+1:size(P)]::version).
   extractPkgSpec(P) default => pkg(P,.defltVersion).
 
-  processPkg:(pkg,termRepo,catalog,compilerOptions) => ().
-  processPkg(P,Repo,Cat,Opts) => valof{
+  processPkg:(pkg,termRepo,catalog) => ().
+  processPkg(P,Repo,Cat) => valof{
     logMsg("Processing $(P)");
     if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
-      Ast = ^parseSrc(SrcUri,CPkg,Rp);
+      Ast = ^parseSrc(SrcUri,CPkg);
       if traceAst! then{
 	logMsg("Ast of $(P) is $(Ast)")
       };
@@ -88,28 +88,27 @@ star.compiler.normalize.driver{
 	logMsg("Macroed package $(M)")
       };
 
-      if ~ macroOnly! then{
-	if (PkgSpec,Defs,Decls) ^=checkPkg(Repo,CPkg,M,Opts) then{
-	  if showCanon! then {
-	    logMsg("type checked $(Defs)")
-	  };
-	  if ~ typeCheckOnly! then {
-	    N = normalize(PkgSpec,Defs,Decls);
-	    if showNormalize! then{
-	      logMsg("normalized code $(N)");
-	    }
+      if errorFree() && ~ macroOnly! then{
+	(PkgSpec,Defs,Decls) =checkPkg(Repo,CPkg,M);
+	if showCanon! then {
+	  logMsg("type checked #(displayDefs(Defs))")
+	};
+
+	if errorFree() && ~ typeCheckOnly! then {
+	  N = normalize(PkgSpec,Defs,Decls);
+	  if showNormalize! then{
+	    logMsg("normalized code $(N)");
 	  }
 	}
-      }
+      };
+      valis ()
     }
-    else
-    reportError("cannot locate source of $(P)",some(pkgLoc(P)));
-    valis ()
+    else{
+      reportError("cannot locate source of $(P)",some(pkgLoc(P)));
+      valis ()
+    }
   }
 
   openupRepo:(uri,uri) => termRepo.
-  openupRepo(RU,CU) where CRU ^= resolveUri(CU,RU) => valof{
-    Repo .= openRepository(CRU);
-    valis Repo
-  }
+  openupRepo(RU,CU) where CRU ^= resolveUri(CU,RU) => openRepository(CRU).
 }
