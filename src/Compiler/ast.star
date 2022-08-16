@@ -7,7 +7,7 @@ star.compiler.ast{
   public ast ::= nme(option[locn],string)
     | qnm(option[locn],string)
     | int(option[locn],integer)
-    | big(option[locn],string)
+    | big(option[locn],bigint)
     | num(option[locn],float)
     | chr(option[locn],char)
     | str(option[locn],string)
@@ -161,7 +161,7 @@ star.compiler.ast{
   isInt(int(Lc,Ix)) => some((Lc,Ix)).
   isInt(_) default => .none.
 
-  public isBig:(ast) => option[(option[locn],string)].
+  public isBig:(ast) => option[(option[locn],bigint)].
   isBig(big(Lc,Ix)) => some((Lc,Ix)).
   isBig(_) default => .none.
 

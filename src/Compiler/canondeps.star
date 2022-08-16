@@ -3,6 +3,7 @@ star.compiler.canondeps{
 
   import star.compiler.canon.
   import star.compiler.freevars.
+  import star.compiler.term.
   import star.compiler.types.
   import star.topsort.
 
@@ -33,7 +34,7 @@ star.compiler.canondeps{
     disp(tpSp(T)) => "type: $(T)".
   }
 
-  pickVar(varSp(V,T),Q) => Q\+(V,T).
+  pickVar(varSp(V,T),Q) => Q\+cId(V,T).
   pickVar(_,Q) => Q.
     
   definedName:(canonDef)=>defnSp.
@@ -54,7 +55,7 @@ star.compiler.canondeps{
     disp(defSpec(V,R,_)) => "$(V) -> $(R)".
   }
   
-  findRefs:(canonDef,canonDef,set[(string,tipe)],set[defnSp])=>defSpec.
+  findRefs:(canonDef,canonDef,set[cId],set[defnSp])=>defSpec.
   findRefs(varDef(_,Nm,_,Val,_,Tp),D,Q,All) => defSpec(varSp(Nm,Tp),freeRefs(Val,Q,All),D).
   findRefs(typeDef(_,Nm,_,_),D,_,All) => defSpec(tpSp(nomnal(Nm)),[],D).
   findRefs(conDef(_,Nm,_,_),D,_,All) => defSpec(tpSp(nomnal(Nm)),[],D).
@@ -63,5 +64,5 @@ star.compiler.canondeps{
 
   freeRefs(Val,Q,All) => let{
     Free = freeVarsInTerm(Val,[],Q,[]).
-  } in {varSp(V,T) | (V,T) in Free}.
+  } in {varSp(V,T) | cId(V,T) in Free}.
 }

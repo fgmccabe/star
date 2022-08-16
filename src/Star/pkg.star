@@ -20,6 +20,10 @@ star.pkg{
     pkg(P1,V1) == pkg(P2,V2) => P1==P2 && V1==V2.
   }
 
+  public implementation coercion[string,pkg] => {
+    _coerce(Txt) => parsePkgName(Txt)
+  }
+
   public implementation display[version] => {
     disp(.defltVersion) => "*".
     disp(vers(V)) => V.
@@ -83,5 +87,5 @@ star.pkg{
   isSegChr(Ch) => isAlphaNum(Ch).
 
   parseVersion:parser[cons[char],version].
-  parseVersion = ((_str("#") >>= (_) => segment >>= (Seg) => (return vers(Seg))) +++ (return .defltVersion)).
+  parseVersion = ((_str(":") >>= (_) => segment >>= (Seg) => (return vers(Seg))) +++ (return .defltVersion)).
 }

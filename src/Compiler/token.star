@@ -10,7 +10,7 @@ star.compiler.token{
     | lftTok(string)
     | rgtTok(string)
     | intTok(integer)
-    | bigTok(string)
+    | bigTok(bigint)
     | fltTok(float)
     | chrTok(char)
     | strTok(cons[stringSegment]).
