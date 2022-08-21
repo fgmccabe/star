@@ -19,8 +19,8 @@ typedef struct {
 } TaskObjectRec;
 
 typedef struct task_record_ {
-  ObjectRec object;                     /* object level of the task structure */
-  TaskObjectRec task;                   // Task part of object
+  ObjectRec object;                     /* object level of the fiber structure */
+  TaskObjectRec fiber;                   // Task part of object
 } TaskRecord;
 
 typedef struct {

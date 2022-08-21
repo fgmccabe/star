@@ -4,7 +4,7 @@ star.range{
   import star.collection.
   import star.cons.
   import star.iterable.
-  import star.task.
+  import star.fiber.
 
   public all a ~~ range[a]::=range(a,a,a).
 

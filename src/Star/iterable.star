@@ -1,6 +1,6 @@
 star.iterable{
   import star.core.
-  import star.task.
+  import star.fiber.
 
   -- The iter contract is used in query evaluation
   -- The _iter function iterates over the collection composing it
@@ -17,12 +17,12 @@ star.iterable{
   public res_generator ::= ._next | ._cancel.
 
   public contract all c,e ~~ generate[c->>e] ::= {
-    _generate:(c)=>task[res_generator,sus_generator[e]]
+    _generate:(c)=>fiber[res_generator,sus_generator[e]]
   }
 
   public iterGenerator:all c,e ~~ iter[c->>e] |: (c) =>
-    task[res_generator,sus_generator[e]].
-  iterGenerator(L) => task{
+    fiber[res_generator,sus_generator[e]].
+  iterGenerator(L) => fiber{
     let{
       yieldFn:(e,())=>().
       yieldFn(E,_) => valof{

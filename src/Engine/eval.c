@@ -439,26 +439,26 @@ retCode run(processPo P) {
         continue;
       }
 
-      case Task: {
+      case Fiber: {
         // The top of a stack should be a binary lambda
-        termPo tskLambda = pop();
+        termPo fiberLambda = pop();
         saveRegisters();
-        stackPo child = newTask(P, tskLambda);
+        stackPo child = newFiber(P, fiberLambda);
         restoreRegisters();
         push(child);                                                 // We return the new stack
         continue;
       }
 
-      case Suspend: { // Suspend identified task.
+      case Suspend: { // Suspend identified fiber.
         termPo event = pop();
-        stackPo task = C_TASK(pop());
+        stackPo fiber = C_FIBER(pop());
 
-        if (stackState(task) != active) {
-          logMsg(logFile, "tried to suspend non-active task %T", task);
+        if (stackState(fiber) != active) {
+          logMsg(logFile, "tried to suspend non-active fiber %T", fiber);
           bail();
         } else {
           saveRegisters();
-          P->stk = detachTask(STK, task);
+          P->stk = detachFiber(STK, fiber);
           restoreRegisters();
           push(event);
           continue;
@@ -466,14 +466,14 @@ retCode run(processPo P) {
       }
       case Resume: {
         termPo event = pop();
-        stackPo task = C_TASK(pop());
+        stackPo fiber = C_FIBER(pop());
 
-        if (stackState(task) != suspended) {
-          logMsg(logFile, "tried to resume non-suspended task %T", task);
+        if (stackState(fiber) != suspended) {
+          logMsg(logFile, "tried to resume non-suspended fiber %T", fiber);
           bail();
         } else {
           saveRegisters();
-          STK = P->stk = attachTask(STK, task);
+          STK = P->stk = attachFiber(STK, fiber);
           restoreRegisters();
           push(event);
           continue;
@@ -481,30 +481,30 @@ retCode run(processPo P) {
       }
       case Retire: { // Similar to a suspend, except that we trash the susending stack
         termPo event = pop();
-        stackPo task = C_TASK(pop());
+        stackPo fiber = C_FIBER(pop());
 
-        if (stackState(task) != active) {
-          logMsg(logFile, "tried to retire a non-active task %T", task);
+        if (stackState(fiber) != active) {
+          logMsg(logFile, "tried to retire a non-active fiber %T", fiber);
           bail();
         } else {
           saveRegisters();
-          P->stk = detachTask(STK, task);
-          dropStack(task);
+          P->stk = detachFiber(STK, fiber);
+          dropFiber(fiber);
           restoreRegisters();
           push(event);
           continue;
         }
       }
-      case Release: { // Trash a task
-        stackPo task = C_TASK(pop());
+      case Release: { // Trash a fiber
+        stackPo fiber = C_FIBER(pop());
 
-        if (stackState(task) != suspended) {
-          logMsg(logFile, "tried to release a %s task %T", stackStateName(stackState(task)), task);
+        if (stackState(fiber) != suspended) {
+          logMsg(logFile, "tried to release a %s fiber %T", stackStateName(stackState(fiber)), fiber);
           bail();
         } else {
           saveRegisters();
-          stackPo parent = detachTask(STK, task);
-          dropStack(task);
+          stackPo parent = detachFiber(STK, fiber);
+          dropFiber(fiber);
           continue;
         }
       }
@@ -512,7 +512,7 @@ retCode run(processPo P) {
         termPo val = pop();
         saveRegisters();  // Seal off the current stack
         assert(stackState(STK) == active);
-        STK = P->stk = dropStack(STK);
+        STK = P->stk = dropFiber(STK);
         restoreRegisters();
         push(val);
         continue;
@@ -521,7 +521,7 @@ retCode run(processPo P) {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
-        termPo Rs = (C_TASK(Lhs) == C_TASK(Rhs) ? trueEnum : falseEnum);
+        termPo Rs = (C_FIBER(Lhs) == C_FIBER(Rhs) ? trueEnum : falseEnum);
         push(Rs);
         continue;
       }

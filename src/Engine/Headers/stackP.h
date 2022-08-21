@@ -34,7 +34,7 @@ typedef struct StackStructure {
 
 #define StackCellCount CellCount(sizeof(StackRecord))
 
-extern void initTasks();
+extern void initFibers();
 extern logical traceStack;      // stack operation tracing
 
 #define MINMINSTACKSIZE (64)
@@ -56,7 +56,7 @@ static inline logical validStkValueLoc(stackPo stk, ptrPo p) {
   return p >= ((ptrPo) (stk->fp + 1)) && p <= stackLimit(stk);
 }
 
-static inline logical stkHasSpace(stackPo stk, integer amount) {
+static inline logical fiberHasSpace(stackPo stk, integer amount) {
   assert(amount >= 0);
   return stk->sp - amount >= (ptrPo) (stk->fp + 1);
 }

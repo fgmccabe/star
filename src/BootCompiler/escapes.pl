@@ -48,7 +48,7 @@ escapeType("_big2ints",funType(tplType([type("star.core*bigint")]),tpExp(tpFun("
 escapeType("_str2big",funType(tplType([type("star.core*string")]),tpExp(tpFun("star.core*option",1),type("star.core*bigint")))).
 escapeType("_big2str",funType(tplType([type("star.core*bigint")]),type("star.core*string"))).
 escapeType("_big_format",funType(tplType([type("star.core*bigint"),type("star.core*string")]),type("star.core*string"))).
-escapeType("_task_eq",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpFun("star.core*task",2),kVar("s")),kVar("r"),tpExp(tpFun("star.core*task",2),kVar("s")),kVar("r")]),type("star.core*boolean"))))).
+escapeType("_fiber_eq",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpFun("star.core*fiber",2),kVar("s")),kVar("r"),tpExp(tpFun("star.core*fiber",2),kVar("s")),kVar("r")]),type("star.core*boolean"))))).
 escapeType("sqrt",funType(tplType([type("star.core*float")]),type("star.core*float"))).
 escapeType("exp",funType(tplType([type("star.core*float")]),type("star.core*float"))).
 escapeType("log",funType(tplType([type("star.core*float")]),type("star.core*float"))).
@@ -281,7 +281,7 @@ isEscape("_big2ints",42).
 isEscape("_str2big",43).
 isEscape("_big2str",44).
 isEscape("_big_format",45).
-isEscape("_task_eq",46).
+isEscape("_fiber_eq",46).
 isEscape("sqrt",47).
 isEscape("exp",48).
 isEscape("log",49).

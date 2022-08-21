@@ -21,9 +21,9 @@ typedef enum {
 typedef retCode (*taskCBProc)(stackPo f);
 
 stackPo createTask(taskCBProc onStart, taskCBProc onResume, taskCBProc onError, taskCBProc onCleanup, taskCBProc cb, void *cl);
-void suspendTask(stackPo task);
-void scheduleTask(stackPo task);
-void killTask(stackPo task);
+void suspendTask(stackPo fiber);
+void scheduleTask(stackPo fiber);
+void killTask(stackPo fiber);
 
 #ifdef VERIFY_OBJECT
 #define O_TASK(c) ((taskPo)(checkCast((c),taskClass)))

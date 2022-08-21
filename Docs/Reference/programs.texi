@@ -88,7 +88,7 @@ non-recursive environment by special @code{@{..@}} brackets. So, for example:
 let@{.
   f(0)=>1.
   f(N)=>N*f(N-1)
-.} in f
+.@} in f
 @end example
 defines a recursive function @code{f}. However, in:
 @example

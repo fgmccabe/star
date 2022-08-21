@@ -10,7 +10,7 @@ star{
   public import star.ideal.
   public import star.index.
   public import star.iterable.
-  public import star.task.
+  public import star.fiber.
   public import star.either.
   public import star.misc.
   public import star.monad.

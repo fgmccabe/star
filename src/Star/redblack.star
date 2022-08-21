@@ -10,7 +10,7 @@ star.redblack{
   import star.monad.
   import star.option.
   import star.tuples.
-  import star.task.
+  import star.fiber.
 
   -- red/black trees
 
