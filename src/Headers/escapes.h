@@ -13,7 +13,7 @@
 #define fileType "t'star.file*fileHandle'"
 #define udpType "t'star.io*udpHandle'"
 #define optionType(T) "Uz1'star.core*option'" T
-#define taskType(S,R) "Uz2'star.core*task'" S R
+#define fiberType(S,R) "Uz2'star.core*fiber'" S R
 #define futureType(T) "Uz1'star.core*future'" T
 
 /* Define the standard escapes */
@@ -78,7 +78,7 @@ escape(_big2str, "F(b)s", "convert bigint to string")
 
 escape(_big_format, "F(bs)s", "format a big integer")
 
-escape(_task_eq,":k's':k'r'F("taskType("k's'","k'r'")taskType("k's'","k'r'")")l","compare two task identifiers")
+escape(_fiber_eq,":k's':k'r'F("fiberType("k's'","k'r'")fiberType("k's'","k'r'")")l","compare two fiber identifiers")
 
 escape(sqrt, "F(f)f", "square root")
 escape(exp, "F(f)f", "exponential")

@@ -21,13 +21,13 @@ The foundation for concurrency is the @refer{TaskExpression}. A
 @code{task} is a @refer{ComputationExpression} that denotes a
 computation that may be performed in parallel with other computations.
 
-@node Task Expressions
-@subsection Task Expressions
+@node Fiber Expressions
+@subsection Fiber Expressions
 
 A @code{task} expression consists of a @code{task}-labeled @refer{BlockAction}.
 
 @float BNF,taskExpressionFig
-@caption{Task Expression}
+@caption{Fiber Expression}
 @display
 @var{ActionExpression} ::+ @refer{TaskExpression}
 @anchored{TaskExpression} ::= @code{task} @refer{BlockAction}
@@ -107,12 +107,12 @@ statement rather than with a @refer{AlgebraicTypeDefinition}
 statement.
 @end quotation
 
-@node Task-related Functions
-@section Task-related Functions
+@node Fiber-related Functions
+@section Fiber-related Functions
 @cindex task functions
 
-@node Background Task
-@subsection Background Task
+@node Background Fiber
+@subsection Background Fiber
 The @code{background} function takes a @code{task} and performs it in
 the background (i.e., in parallel with the invoking call). The value
 of the @code{background} task is the same as the value of the

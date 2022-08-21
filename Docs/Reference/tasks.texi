@@ -1,14 +1,18 @@
-@node Tasks
-@chapter Tasks
+@node Fibers
+@chapter Fibers
 
-A task is a computation whose execution can be managed. Tasks can be
-created, suspended and resumed. Tasks also have identity which allows
-correlation of tasks when managing sets of tasks.
+A fiber is a computation whose execution can be managed. Fibers can be
+created, suspended and resumed. Fibers also have identity which allows
+correlation of fibers when managing sets of fibers.
 
+@quotation Note
+The @code{fiber} concept is a relatively low-level feature of
+@Star{}. Other, higher-level, features are constructed as a layer on
+top of fibers; including:
 
 @itemize @bullet
 @item
-A @code{task} expression denotes a computation that can be scheduled
+A @code{fiber} expression denotes a computation that can be scheduled
 independently of other actions.
 
 This is analogous to coroutining in other programming languages.
@@ -16,45 +20,48 @@ This is analogous to coroutining in other programming languages.
 A @code{generator} expression is used to define so-called yield-style generators.
 @end itemize
 
-@node Task Type
-@section Task Type
-@cindex type, task
-@cindex task type
+@end quotation
 
-The @code{task} type is used to characterize the type of task expressions. It takes the form:
-@float BNF,taskTypeFig
-@caption{Task Type Syntax}
+
+@node Fiber Type
+@section Fiber Type
+@cindex type, fiber
+@cindex fiber type
+
+The @code{fiber} type is used to characterize the type of fiber expressions. It takes the form:
+@float BNF,fiberTypeFig
+@caption{Fiber Type Syntax}
 @display
-@refer{Type}::+=@refer{TaskType}
+@refer{Type}::+=@refer{FiberType}
 
-@anchored{TaskType} ::= @code{task} @code{[} @refer{Type} @code{,} @refer{Type} @code{]}
+@anchored{FiberType} ::= @code{fiber} @code{[} @refer{Type} @code{,} @refer{Type} @code{]}
 @end display
 @end float
 
-The second type argument refers to values that the task may suspend
+The second type argument refers to values that the fiber may suspend
 with (see @refer{SuspendAction} and @refer{RetireAction}) and the
-first type argument refers to values that the task may be resumed
+first type argument refers to values that the fiber may be resumed
 with (see @refer{ResumeAction}).
 
-@node Task Expression
-@section Task Expression
+@node Fiber Expression
+@section Fiber Expression
 
-A @code{task} expression evaluates to a new task. It contains a set of
-actions to perform as the task.
+A @code{fiber} expression evaluates to a new fiber. It contains a set of
+actions to perform as the fiber.
 
-@float BNF,taskFig
-@caption{Task Expression Syntax}
+@float BNF,fiberFig
+@caption{Fiber Expression Syntax}
 @display
-@refer{Expression}::+=@refer{TaskExpression}
+@refer{Expression}::+=@refer{FiberExpression}
 
-@anchored{TaskExpression} ::= @code{task} @refer{BlockAction}
-  | @code{task} @refer{Expression}
+@anchored{FiberExpression} ::= @code{fiber} @refer{BlockAction}
+  | @code{fiber} @refer{Expression}
 @end display
 @end float
 
-For example, in the @code{task} expression:
+For example, in the @code{fiber} expression:
 @example
-task@{
+fiber@{
   let@{
     yildFn:((),e)=>().
     yildFn(_,E) => valof@{
@@ -71,37 +78,37 @@ we use a @refer{LetAction} to introduce a local function definition --
 @code{_iter} -- (which is defined in the @code{iter} contract).
 
 In addition to the actions, there are two special variables defined
-within the body of the @code{task} expression: @code{this} and
+within the body of the @code{fiber} expression: @code{this} and
 @code{first}:
 
 @table @code
 @item this
 The @code{this} keyword is bound to the currently executing
-@code{task} (and has the same type). This is one of the primary ways in which a @code{task} is given its own identity.
+@code{fiber} (and has the same type). This is one of the primary ways in which a @code{fiber} is given its own identity.
 @item first
 The @code{first} keyword is bound to the initial event that is passed
-to the @code{task} when it is first resumed.
+to the @code{fiber} when it is first resumed.
 
 @quotation Note
-When @code{task}s are created, they are in suspended state: i.e., the
-code within the @code{task} expression is not executed
-immediately. The @code{task} starts executing only when it is resumed
+When @code{fiber}s are created, they are in suspended state: i.e., the
+code within the @code{fiber} expression is not executed
+immediately. The @code{fiber} starts executing only when it is resumed
 -- using the @refer{ResumeAction}
 @end quotation
 @end table
 
 
-@node Task Actions
-@section Task Actions
+@node Fiber Actions
+@section Fiber Actions
 
-The primary actions associated with tasks are suspend, resume and retire.
+The primary actions associated with fibers are suspend, resume and retire.
 
-@float BNF,taskActionFig
-@caption{Task Action Syntax}
+@float BNF,fiberActionFig
+@caption{Fiber Action Syntax}
 @display
-@refer{Action}::+=@refer{TaskAction}
+@refer{Action}::+=@refer{FiberAction}
 
-@anchored{TaskAction}::= @refer{SuspendAction}
+@anchored{FiberAction}::= @refer{SuspendAction}
   | @refer{ResumeAction}
   | @refer{RetireAction}
 @c  | @refer{YieldAction}
@@ -111,11 +118,11 @@ The primary actions associated with tasks are suspend, resume and retire.
 @node Suspend Action
 @subsection Suspend Action
 
-The @refer{SuspendAction} is used when a task wishes to suspend
+The @refer{SuspendAction} is used when a fiber wishes to suspend
 itself. There are three arguments to the @refer{SuspendAction}: the
-identity of the task to be suspended, a value that determines the
+identity of the fiber to be suspended, a value that determines the
 @emph{suspension event} and a @refer{CaseActionHandler} to respond to
-the incoming event when the task is resumed again:
+the incoming event when the fiber is resumed again:
 
 @float BNF,suspendActionFig
 @caption{Suspend Action Syntax}
@@ -126,13 +133,13 @@ the incoming event when the task is resumed again:
 @end display
 @end float
 
-The types of the task, the event and the action case must match up; i.e., given
+The types of the fiber, the event and the action case must match up; i.e., given
 @example
 @var{T} suspend @var{E} in @{@var{P@sub{1}} => @var{A@sub{1}}. .. @var{P@sub{n}} => @var{A@sub{n}}@}
 @end example
 then @code{@var{T}} must be of type
 @example
-task[@var{R},@var{S}]
+fiber[@var{R},@var{S}]
 @end example
 for some @code{@var{S}} and @code{@var{R}}; the type of @code{@var{E}}:
 @example
@@ -140,35 +147,35 @@ for some @code{@var{S}} and @code{@var{R}}; the type of @code{@var{E}}:
 @end example
 and the left hand sides of the response case -- @code{@var{P@sub{i}}} -- must have type @code{@var{R}}.
 
-In effect, the task type determines the legal events that the task may
-be suspended with (and the legal events that the task may be resumed
+In effect, the fiber type determines the legal events that the fiber may
+be suspended with (and the legal events that the fiber may be resumed
 with).
 
 @quotation Note
-When used directly within the text of a @code{task} expression, there
+When used directly within the text of a @code{fiber} expression, there
 is a slightly shorter form of @code{suspend}:
 @example
 suspend @var{E} in @{@var{P@sub{1}} => @var{A@sub{1}}. .. @var{P@sub{n}} => @var{A@sub{n}}@}
 @end example
-This may be used when a task is directly suspending itself within the
-@code{task} expression. This action is equivalent to:
+This may be used when a fiber is directly suspending itself within the
+@code{fiber} expression. This action is equivalent to:
 @example
 @code{this} @code{suspend} @var{E} @code{in} @{@var{P@sub{1}} => @var{A@sub{1}}. .. @var{P@sub{n}} => @var{A@sub{n}}@}
 @end example
 
 The @code{this} keyword is established within the scope of a
-@code{task} expression; it allows tasks to discover their own
+@code{fiber} expression; it allows fibers to discover their own
 identity.
 @end quotation
 
 @node Resume Action
 @subsection Resume Action
 
-The @refer{ResumeAction} is used when a task wishes to resume another task.
+The @refer{ResumeAction} is used when a fiber wishes to resume another fiber.
 There are three arguments to the @refer{ResumeAction}: the
-identity of the task to be resumed, a value that determines the
+identity of the fiber to be resumed, a value that determines the
 @emph{resumption event} and a @refer{CaseActionHandler} to respond to
-the incoming event when the resumed task is suspended again:
+the incoming event when the resumed fiber is suspended again:
 
 @float BNF,resumeActionFig
 @caption{Resume Action Syntax}
@@ -178,14 +185,14 @@ the incoming event when the resumed task is suspended again:
 @end display
 @end float
 
-As with the @code{SuspendAction}, the types of the task, the event and
+As with the @code{SuspendAction}, the types of the fiber, the event and
 the action case must match up; i.e., given
 @example
 @var{T} @code{resume} @var{E} @code{in} @{@var{P@sub{1}} => @var{A@sub{1}}. .. @var{P@sub{n}} => @var{A@sub{n}}@}
 @end example
 then @code{@var{T}} must be of type
 @example
-task[@var{R},@var{S}]
+fiber[@var{R},@var{S}]
 @end example
 for some @code{@var{R}} and @code{@var{S}}; the type of @code{@var{E}}:
 @example
@@ -200,9 +207,9 @@ The @refer{SuspendAction} and @refer{ResumeAction} are quite symmetric.
 @node Retire Action
 @subsection Retire Action
 
-The @refer{RetireAction} is used when a task wishes to retire and no
-longer continue execution. This is the primary means by which a task
-designates that it is completed. Whether the task is successful or not
+The @refer{RetireAction} is used when a fiber wishes to retire and no
+longer continue execution. This is the primary means by which a fiber
+designates that it is completed. Whether the fiber is successful or not
 is determined by the value of the event it signals.
 
 @float BNF,retireActionFig
@@ -215,16 +222,16 @@ is determined by the value of the event it signals.
 @end float
 
 Note that there is no @refer{CaseActionHandler} specified with this
-action; this is because a task that performs the retire action will
+action; this is because a fiber that performs the retire action will
 not be resumed: it is ended.
 
-The types of the task and the event must match up; i.e., given
+The types of the fiber and the event must match up; i.e., given
 @example
 @var{T} retire @var{E}
 @end example
 then @code{@var{T}} must be of type
 @example
-task[@var{R},@var{S}]
+fiber[@var{R},@var{S}]
 @end example
 for some @code{@var{S}} and @code{@var{R}}; the type of @code{@var{E}}:
 @example
@@ -232,8 +239,8 @@ for some @code{@var{S}} and @code{@var{R}}; the type of @code{@var{E}}:
 @end example
 
 In the case where the @refer{RetireAction} is being performed withing
-the lexical scope of the @code{task} expression, the shorter form --
-which omits the identifier for the task being retired -- may be
+the lexical scope of the @code{fiber} expression, the shorter form --
+which omits the identifier for the fiber being retired -- may be
 used. As with the @refer{SuspendAction} this is equivalent to using
-the @code{this} keyword to identify the retiring task.
+the @code{this} keyword to identify the retiring fiber.
 

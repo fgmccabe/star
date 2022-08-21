@@ -10,6 +10,7 @@
     "star.compiler.checker": "checker.star",
     "star.compiler.checker.driver": "checkerdriver.star",
     "star.compiler.constraints": "constraints.star",
+    "star.compiler.coverage": "coverage.star",
     "star.compiler.term" : "term.star",
     "star.compiler.term.ast" : "coreAst.star",
     "star.compiler.term.enc" : "coreenc.star",

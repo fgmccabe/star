@@ -103,7 +103,7 @@ value will be 3 -- the value returned by the action:
 valis X+Y
 @end example
 
-Task expressions have a type: @code{task[t]} where @code{t} is the
+Fiber expressions have a type: @code{task[t]} where @code{t} is the
 type of the value returned by the task. So, for example, the type of
 @code{T} above is given by
 
@@ -303,7 +303,7 @@ parmap(F,L) => let@{
 @node Computation expressions
 @section Computation expressions
 
-Task expressions are instances of a more general @strong{Star} feature: the @emph{computation expression}. Task expressions are oriented towards the concurrent execution of computations; other forms of computation expression have different purposes. In particular, the simple valof expression:
+Fiber expressions are instances of a more general @strong{Star} feature: the @emph{computation expression}. Fiber expressions are oriented towards the concurrent execution of computations; other forms of computation expression have different purposes. In particular, the simple valof expression:
 
 valof\{
 

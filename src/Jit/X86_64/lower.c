@@ -401,7 +401,7 @@ retCode jit_IfNot(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
-retCode jit_Task(insPo code, integer *pc, jitCompPo jitCtx) {
+retCode jit_Fiber(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 

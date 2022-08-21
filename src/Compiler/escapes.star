@@ -51,7 +51,7 @@ star.compiler.escapes{
   escapeType("_str2big") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string")])),tpExp(tpFun("star.core*option",1),nomnal("star.core*bigint")))).
   escapeType("_big2str") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*bigint")])),nomnal("star.core*string"))).
   escapeType("_big_format") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*bigint"),nomnal("star.core*string")])),nomnal("star.core*string"))).
-  escapeType("_task_eq") => some(allType(nomnal("s"),allType(nomnal("r"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpFun("star.core*task",2),nomnal("s")),nomnal("r"),tpExp(tpFun("star.core*task",2),nomnal("s")),nomnal("r")])),nomnal("star.core*boolean"))))).
+  escapeType("_fiber_eq") => some(allType(nomnal("s"),allType(nomnal("r"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpFun("star.core*fiber",2),nomnal("s")),nomnal("r"),tpExp(tpFun("star.core*fiber",2),nomnal("s")),nomnal("r")])),nomnal("star.core*boolean"))))).
   escapeType("sqrt") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float")])),nomnal("star.core*float"))).
   escapeType("exp") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float")])),nomnal("star.core*float"))).
   escapeType("log") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float")])),nomnal("star.core*float"))).
@@ -287,7 +287,7 @@ star.compiler.escapes{
   isEscape("_str2big") => some(43).
   isEscape("_big2str") => some(44).
   isEscape("_big_format") => some(45).
-  isEscape("_task_eq") => some(46).
+  isEscape("_fiber_eq") => some(46).
   isEscape("sqrt") => some(47).
   isEscape("exp") => some(48).
   isEscape("log") => some(49).

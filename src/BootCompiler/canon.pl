@@ -50,7 +50,7 @@ isCanon(match(_,_,_)).
 isCanon(open(_,_,_)).
 isCanon(neg(_,_)).
 isCanon(lambda(_,_,_,_)).
-isCanon(task(_,_,_)).
+isCanon(fiber(_,_,_)).
 isCanon(tryCatch(_,_,_)).
 
 isSimpleCanon(v(_,_,_)).
@@ -109,7 +109,7 @@ typeOfCanon(overaccess(_,_,_,Tp),Tp) :- !.
 typeOfCanon(mtd(_,_,Tp),Tp) :-!.
 typeOfCanon(case(_,_,_,Tp),Tp) :- !.
 typeOfCanon(throw(_,_,Tp),Tp) :-!.
-typeOfCanon(task(_,_,Tp),Tp) :-!.
+typeOfCanon(fiber(_,_,Tp),Tp) :-!.
 typeOfCanon(valof(_,_,Tp),Tp) :-!.
 typeOfCanon(tryCatch(_,E,_),Tp) :- !,
   typeOfCanon(E,Tp).
@@ -144,7 +144,7 @@ locOfCanon(whileDo(Lc,_,_),Lc) :-!.
 locOfCanon(forDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(valis(Lc,_),Lc) :-!.
 locOfCanon(throw(Lc,_),Lc) :-!.
-locOfCanon(task(Lc,_,_),Lc) :-!.
+locOfCanon(fiber(Lc,_,_),Lc) :-!.
 locOfCanon(valof(Lc,_,_),Lc) :-!.
 locOfCanon(tryCatch(Lc,_,_),Lc) :-!.
 
@@ -273,7 +273,7 @@ ssTerm(throw(_,A),Dp,sq([ss("throw "),AA])) :-!,
   ssTerm(A,Dp,AA).
 ssTerm(valof(_,A,_),Dp,sq([ss("valof "),AA])) :-!,
   ssAction(A,Dp,AA).
-ssTerm(task(_,A,_),Dp,sq([ss("task "),AA])) :-!,
+ssTerm(fiber(_,A,_),Dp,sq([ss("fiber "),AA])) :-!,
   ssTerm(A,Dp,AA).
 ssTerm(tryCatch(_,A,Hs),Dp,sq([ss("try "),AA,ss(" catch "),lb,HH,nl(Dp),rb])) :-!,
   Dp2 is Dp+2,

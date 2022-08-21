@@ -90,7 +90,7 @@ processPo newProcess(heapPo h, methodPo mtd, char *rootWd, capabilityPo processC
 
 void ps_kill(processPo p) {
   if (p != NULL) {
-    p->stk = dropStack(p->stk);
+    p->stk = dropFiber(p->stk);
 
     pthread_t thread = p->threadID;
 
