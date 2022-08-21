@@ -34,7 +34,7 @@ action.
 @cindex basic action expressions
 
 The basic actions include those in @ref{doFig}. There are additional
-actions, as explained in @ref{Tasks}.
+actions, as explained in @ref{Fibers}.
 
 @float BNF,doFig
 @caption{Different forms of action}

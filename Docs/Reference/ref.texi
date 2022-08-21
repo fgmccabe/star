@@ -59,7 +59,7 @@ F.G. McCabe).
 * Conditions::
 * Queries::
 * Actions::
-* Tasks::
+* Fibers::
 * Standard Contracts::
 
 * Numbers::
@@ -92,7 +92,7 @@ F.G. McCabe).
 
 @include actions.texi
 
-@include tasks.texi
+@include fibers.texi
 
 @include standard.texi
 
