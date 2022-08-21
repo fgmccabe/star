@@ -518,7 +518,7 @@ oclCont(Arity,XLbl,Cont,L,Lx,D,Dx,[iOCall(Arity,XLbl)|C],Cx,Stk,Stkx) :-
   frameIns(Stk,C,C1),
   call(Cont,L,Lx,D,Dx,C1,Cx,Stk1,Stkx).
 
-tskCont(Cont,L,Lx,D,Dx,[iTask|C],Cx,Stk,Stkx) :-
+tskCont(Cont,L,Lx,D,Dx,[iFiber|C],Cx,Stk,Stkx) :-
   call(Cont,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 
 suspendCont(Cont,Stk,Opts,L,Lx,D,Dx,C,Cx,_Stk,Stkx) :-

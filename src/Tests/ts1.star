@@ -2,7 +2,7 @@ test.ts1{
   import star.
   import star.script.
   
-  -- Simple test of task generator pattern
+  -- Simple test of fiber generator pattern
 
   scomm[e] ::= yild(e) | .end.
   rcomm ::= .next | .cancel.
@@ -11,8 +11,8 @@ test.ts1{
   consIter(.nil,X,_) => X.
   consIter(cons(H,T),X,F) => consIter(T,F(X,H),F).
 
-  iterGen:all e ~~ (cons[e]) => task[rcomm,scomm[e]].
-  iterGen(L) => task{
+  iterGen:all e ~~ (cons[e]) => fiber[rcomm,scomm[e]].
+  iterGen(L) => fiber{
     let{
       yildFn:((),e)=>().
       yildFn(_,E) => valof{
@@ -47,8 +47,8 @@ test.ts1{
     }
   }
 
-  iterTask:all c,e ~~ iter[c->>e] |: (c) => task[rcomm,scomm[e]].
-  iterTask(L) => task{
+  iterTask:all c,e ~~ iter[c->>e] |: (c) => fiber[rcomm,scomm[e]].
+  iterTask(L) => fiber{
     let{
       yildFn(E,Cx) => valof{
 	suspend yild(E) in {

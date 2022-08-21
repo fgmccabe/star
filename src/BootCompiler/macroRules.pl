@@ -457,7 +457,7 @@ binRefMacro(T,expression,Rp) :-
 
 /* generator{A}
    becomes
-   task{
+   fiber{
      try{
        A*
      } catch {
@@ -486,7 +486,7 @@ generatorMacro(E,expression,Ex) :-
 
   mkSequence(Lc,Try,Rt,TB),
 
-  mkTaskTerm(Lc,TB,Ex).
+  mkFiberTerm(Lc,TB,Ex).
 %  dispAst(Ex).
 
 /* yield E

@@ -296,7 +296,9 @@ formMethods([(Nm,Tp)|M],Lc,Q,Cx,Con,Env,Ev) :-
   formMethods(M,Lc,Q,Cx,Con,E0,Ev).
 
 parseConstructor(Nm,Lc,T,Env,Ev,Dfs,Defs,Path) :-
+%  reportMsg("parse constructor type %s:%s",[id(Nm),ast(T)],Lc),
   parseType(T,Env,Tp),
+%  reportMsg("constructor %s:%s",[id(Nm),tpe(Tp)],Lc),
   mangleName(Path,class,Nm,FullNm),
   unwrapType(Tp,_Q,_Cx,ITp),
   (deRef(ITp,consType(tplType([]),_)) ->
@@ -630,8 +632,8 @@ typeOfPtn(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
   newTypeVar("A",At),
   typeOfExp(F,consType(At,Tp),none,Env,E0,Fun,Path),
-  evidence(At,E0,_,AT),
-  typeOfArgPtn(tuple(Lc,"()",A),AT,ErTp,E0,Ev,Args,Path),
+%  reportMsg("con type = %s",[tpe(consType(At,Tp))],Lc),
+  typeOfArgPtn(tuple(Lc,"()",A),At,ErTp,E0,Ev,Args,Path),
   Exp = apply(Lc,Fun,Args,Tp,ErTp).
 typeOfPtn(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   (isBraceTerm(Term,Lc,F,Args);isQBraceTerm(Term,Lc,F,Args)),
@@ -679,7 +681,7 @@ typeOfArgTerm(T,Tp,ErTp,Env,Ev,tple(Lc,Els),Path) :-
   isTuple(T,Lc,A),
   genTpVars(A,ArgTps),
   verifyType(Lc,ast(T),tplType(ArgTps),Tp,Env),
-  typeOfTerms(A,ArgTps,ErTp,Env,Ev,Lc,Els,Path).
+  typeOfExps(A,ArgTps,ErTp,Env,Ev,Lc,Els,Path).
 typeOfArgTerm(T,Tp,ErTp,Env,Ev,Exp,Path) :-
   typeOfExp(T,Tp,ErTp,Env,Ev,Exp,Path).
 
@@ -777,11 +779,11 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,deref(Lc,Exp),Path) :-
   isCellRef(Term,Lc,I),
   typeOfExp(I,refType(Tp),ErTp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,_ErTp,Env,Env,Exp,Path) :-
-  isTaskTerm(Term,Lc,A),!,
-  typeOfTask(Lc,A,Tp,Env,Exp,Path).
+  isFiberTerm(Term,Lc,A),!,
+  typeOfFiber(Lc,A,Tp,Env,Exp,Path).
 typeOfExp(Term,Tp,_ErTp,Env,Env,Exp,Path) :-
-  isTask(Term,Lc,A),!,
-  taskLambda(Lc,A,Tp,Env,Exp,Path).
+  isFiber(Term,Lc,A),!,
+  fiberLambda(Lc,A,Tp,Env,Exp,Path).
 typeOfExp(Term,Tp,_ErTp,Env,Env,Val,Path) :-
   isQBraceTuple(Term,Lc,Els),
   reportError("anonymous brace expression %s not supported",[ast(Term)],Lc),
@@ -818,7 +820,7 @@ typeOfExp(Trm,Tp,ErTp,Env,Ev,tple(Lc,Els),Path) :-
   isTuple(Trm,Lc,A),!,
   genTpVars(A,ArgTps),
   verifyType(Lc,ast(Trm),tplType(ArgTps),Tp,Env),
-  typeOfTerms(A,ArgTps,ErTp,Env,Ev,Lc,Els,Path).
+  typeOfExps(A,ArgTps,ErTp,Env,Ev,Lc,Els,Path).
 typeOfExp(Term,Tp,ErTp,Env,Env,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
   typeOfRoundTerm(Lc,F,A,Tp,ErTp,Env,Exp,Path).  
@@ -893,8 +895,8 @@ typeOfLambda(Term,Tp,Env,lambda(Lc,Lbl,rule(Lc,Args,Guard,Exp),Tp),Path) :-
   lambdaLbl(Path,"λ",Lbl),
   typeOfExp(R,RT,ErTp,E1,_,Exp,Path).
 
-typeOfTask(Lc,A,Tp,Env,task(Lc,TskFun,Tp),Path) :-
-  findType("task",Lc,Env,TskTp),
+typeOfFiber(Lc,A,Tp,Env,fiber(Lc,TskFun,Tp),Path) :-
+  findType("fiber",Lc,Env,TskTp),
   newTypeVar("SComm",SV),
   newTypeVar("RComm",RV),
   applyTypeFun(TskTp,[RV,SV],Lc,Env,TTp),
@@ -905,8 +907,8 @@ typeOfTask(Lc,A,Tp,Env,task(Lc,TskFun,Tp),Path) :-
   verifyType(Lc,ast(A),TTp,Tp,Env),
   typeOfLambda(Lam,funType(tplType([Tp,RV]),SV),Env,TskFun,Path).
 
-taskLambda(Lc,F,Tp,Env,task(Lc,TskFun,Tp),Path) :-
-  findType("task",Lc,Env,TskTp),
+fiberLambda(Lc,F,Tp,Env,fiber(Lc,TskFun,Tp),Path) :-
+  findType("fiber",Lc,Env,TskTp),
   newTypeVar("SComm",SV),
   newTypeVar("RComm",RV),
   applyTypeFun(TskTp,[RV,SV],Lc,Env,TTp),
@@ -1093,7 +1095,7 @@ checkCase(Lc,H,G,R,LhsTp,Tp,ErTp,Env,
   call(Checker,R,Tp,ErTp,E2,_,Exp,Path).
 
 checkSuspend(Lc,T,E,Cs,Tp,ErTp,Env,Env,doSuspend(Lc,Tsk,Evt,Eqns),Path) :-
-  findType("task",Lc,Env,TskTp),
+  findType("fiber",Lc,Env,TskTp),
   newTypeVar("SComm",SV),
   newTypeVar("RComm",RV),
   applyTypeFun(TskTp,[RV,SV],Lc,Env,TTp),
@@ -1102,7 +1104,7 @@ checkSuspend(Lc,T,E,Cs,Tp,ErTp,Env,Env,doSuspend(Lc,Tsk,Evt,Eqns),Path) :-
   checkCases(Cs,RV,Tp,ErTp,Env,Eqns,Eqx,Eqx,[],checker:checkAction,Path),!.
 
 checkResume(Lc,T,E,Cs,Tp,ErTp,Env,Env,doResume(Lc,Tsk,Evt,Eqns),Path) :-
-  findType("task",Lc,Env,TskTp),
+  findType("fiber",Lc,Env,TskTp),
   newTypeVar("SComm",SV),
   newTypeVar("RComm",RV),
   applyTypeFun(TskTp,[RV,SV],Lc,Env,TTp),
@@ -1111,7 +1113,7 @@ checkResume(Lc,T,E,Cs,Tp,ErTp,Env,Env,doResume(Lc,Tsk,Evt,Eqns),Path) :-
   checkCases(Cs,SV,Tp,ErTp,Env,Eqns,Eqx,Eqx,[],checker:checkAction,Path),!.
 
 checkRetire(Lc,T,E,ErTp,Env,Env,doRetire(Lc,Tsk,Evt),Path) :-
-  findType("task",Lc,Env,TskTp),
+  findType("fiber",Lc,Env,TskTp),
   newTypeVar("SComm",SV),
   newTypeVar("RComm",RV),
   applyTypeFun(TskTp,[RV,SV],Lc,Env,TTp),
@@ -1128,19 +1130,19 @@ fieldInFace(faceType(Fields,_),Nm,_,Tp) :-
 fieldInFace(Tp,Nm,Lc,anonType) :-
   reportError("field %s not declared in %s",[Nm,Tp],Lc).
 
-typeOfTerms([],[],_ErTp,Env,Env,_,[],_).
-typeOfTerms([],[T|_],_ErTp,Env,Env,Lc,[],_) :-
+typeOfExps([],[],_ErTp,Env,Env,_,[],_).
+typeOfExps([],[T|_],_ErTp,Env,Env,Lc,[],_) :-
   reportError("insufficient arguments, expecting a %s",[T],Lc).
-typeOfTerms([A|_],[],_,Env,Env,_,[],_) :-
+typeOfExps([A|_],[],_,Env,Env,_,[],_) :-
   locOfAst(A,Lc),
   reportError("too many arguments: %s",[A],Lc).
-typeOfTerms([A|As],[ETp|ElTypes],ErTp,Env,Ev,_,[Term|Els],Path) :-
-  deRef(ETp,ElTp),
+typeOfExps([A|As],[ETp|ElTypes],ErTp,Env,Ev,_,[Term|Els],Path) :-
+  evidence(ETp,Env,_Q,ElTp),
   typeOfExp(A,ElTp,ErTp,Env,E0,Term,Path),
   % reportMsg("type of argument %s |= %s",[A,ETp]),
   % dispEnv(Env),
   locOfAst(A,Lc),
-  typeOfTerms(As,ElTypes,ErTp,E0,Ev,Lc,Els,Path).
+  typeOfExps(As,ElTypes,ErTp,E0,Ev,Lc,Els,Path).
 
 typeOfPtns([],[],_,Env,Env,_,[],_).
 typeOfPtns([],[T|_],_,Env,Env,Lc,[],_) :-

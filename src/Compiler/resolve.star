@@ -108,7 +108,6 @@ star.compiler.resolve{
     resolveAgain(active(Lc,Msg),O,overloadTerm(O,D,.inactive),D).
 
   overloadTerm:(canon,dict,resolveState) => (canon,resolveState).
-  overloadTerm(vd(Lc,Tp),_,St) => (vd(Lc,Tp),St).
   overloadTerm(vr(Lc,Nm,Tp),_,St) => (vr(Lc,Nm,Tp),St).
   overloadTerm(intr(Lc,Ix),_,St) => (intr(Lc,Ix),St).
   overloadTerm(bintr(Lc,Ix),_,St) => (bintr(Lc,Ix),St).
@@ -405,10 +404,10 @@ star.compiler.resolve{
 --	logMsg("resolving impl var $(Impl)");
 	valis overloadTerm(Impl,Dict,markResolved(St))
       } else{
-	valis (vd(Lc,Tp),active(Lc,"implementation $(typeOf(Impl)) not consistent with $(Tp)"))
+	valis (vr(Lc,"_",Tp),active(Lc,"implementation $(typeOf(Impl)) not consistent with $(Tp)"))
       }
     } else{
-      valis (vd(Lc,Tp),active(Lc,"cannot find an implementation for $(Tp)"))
+      valis (vr(Lc,"_",Tp),active(Lc,"cannot find an implementation for $(Tp)"))
     }
   }
 

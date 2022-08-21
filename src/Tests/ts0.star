@@ -3,15 +3,15 @@ test.ts0{
   import star.arith.
   import star.coerce.
   
-  -- Simple test of task generator pattern
+  -- Simple test of fiber generator pattern
 
   scomm ::= yild(integer) | .end.
   rcomm ::= .next | .cancel.
 
-  all s,r ~~ task[s,r] <~ {}. -- tasks have a type ...
+  all s,r ~~ fiber[s,r] <~ {}. -- fibers have a type ...
 
-  generatr:(integer,integer)=>task[rcomm,scomm].
-  generatr(F,T) => task{
+  generatr:(integer,integer)=>fiber[rcomm,scomm].
+  generatr(F,T) => fiber{
     Ix = ref F;
     while Ix! < T do{
       suspend yild(Ix!) in {

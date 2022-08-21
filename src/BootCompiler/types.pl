@@ -443,11 +443,11 @@ stdType("cons",
 stdType("package",type("star.pkg*pkg"),typeExists(type("star.pkg*pkg"),faceType([],[]))).
 stdType("version",type("star.pkg*version"),typeExists(type("star.pkg*version"),faceType([],[]))).
 stdType("file",type("star.file*fileHandle"),typeExists(type("star.file*fileHandle"),faceType([],[]))).
-stdType("task",
-	tpFun("star.core*task",2),
+stdType("fiber",
+	tpFun("star.core*fiber",2),
 	allType(kVar("a"),
 		allType(kVar("e"),
-			typeExists(tpExp(tpExp(tpFun("star.core*task",2),kVar("a")),
+			typeExists(tpExp(tpExp(tpFun("star.core*fiber",2),kVar("a")),
 					 kVar("e")),
 				   faceType([],[]))))).
 stdType("catch",
@@ -509,8 +509,8 @@ occursIn(V,Tp) :-
   occIn(DV,DTp).
 
 occIn(V,VV) :- isIdenticalVar(V,VV),!.
-occIn(V,tpExp(O,_)) :- deRef(O,OO),!,occIn(V,OO),!.
-occIn(V,tpExp(_,A)) :- deRef(A,AA),!,occIn(V,AA),!.
+occIn(V,tpExp(O,_)) :- deRef(O,OO),occIn(V,OO),!.
+occIn(V,tpExp(_,A)) :- deRef(A,AA),occIn(V,AA),!.
 occIn(V,refType(I)) :- deRef(I,II),occIn(V,II).
 occIn(V,tplType(L)) :- is_member(A,L), deRef(A,AA),occIn(V,AA).
 occIn(V,funType(A,_)) :- deRef(A,AA),occIn(V,AA).
@@ -527,3 +527,12 @@ occIn(V,existType(VV,T)) :- \+isIdenticalVar(V,VV),deRef(T,TT),occIn(V,TT).
 occIn(V,allType(VV,T)) :- \+isIdenticalVar(V,VV),deRef(T,TT),occIn(V,TT).
 occIn(V,faceType(L,_)) :- is_member((_,A),L), deRef(A,AA),occIn(V,AA),!.
 occIn(V,faceType(_,T)) :- is_member((_,A),T), deRef(A,AA),occIn(V,AA),!.
+occIn(V,contractExists(C,_)) :- deRef(C,Con),occIn(V,Con),!.
+occIn(V,contractExists(_,T)) :- deRef(T,Tp),occIn(V,Tp),!.
+occIn(V,typeExists(C,_)) :- deRef(C,Con),occIn(V,Con),!.
+occIn(V,typeExists(_,T)) :- deRef(T,Tp),occIn(V,Tp),!.
+occIn(V,conTract(_,T,_)) :- is_member(A,T), deRef(A,AA),occIn(V,AA).
+occIn(V,conTract(_,_,D)) :- is_member(A,D), deRef(A,AA),occIn(V,AA).
+occIn(V,implementsFace(T,_)) :- deRef(T,TT),occIn(V,TT),!.
+occIn(V,implementsFace(_,F)) :- deRef(F,FF),occIn(V,FF),!.
+

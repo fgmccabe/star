@@ -14,6 +14,7 @@
 	      isFuncType/4,funcType/4,
 	      mkSqType/4,
 	      isEnum/3,mkEnum/3,isAnon/2,mkAnon/2,
+	      isConApply/4,mkConApply/4,
 	      isImport/3, isPrivate/3,isPublic/3,mkPrivate/3,mkPublic/3,
 	      isDefault/3,isDefault/4,mkDefault/3,
 	      isLiteralInteger/3,isLiteralFloat/3,isLiteralBigInt/3,
@@ -44,7 +45,7 @@
 	      isCaseExp/4,caseExp/4,
 	      isSuspend/4,isSuspend/5,isResume/5,isRetire/3,isRetire/4,
 	      mkSuspend/4,mkSuspend/5,mkResume/5,mkRetire/3,mkRetire/4,
-	      isTaskTerm/3,mkTaskTerm/3,isTask/3,mkTask/3,
+	      isFiberTerm/3,mkFiberTerm/3,isFiber/3,mkFiber/3,
 	      isDoTerm/3,mkDoTerm/3,isDo/3,mkDo/3,
 	      isValof/3,mkValof/3,isValis/3,mkValis/3,
 	      isTryCatch/4,mkTryCatch/4,
@@ -177,6 +178,14 @@ isEnum(C,Lc,Id) :-
 
 mkEnum(Lc,Id,E) :-
   unary(Lc,".",name(Lc,Id),E).
+
+isConApply(T,Lc,Op,Args) :-
+  isUnary(T,Lc,".",I),
+  isRoundTerm(I,Op,Args).
+
+mkConApply(Lc,Op,Args,T) :-
+  roundTerm(Lc,Op,Args,I),
+  unary(Lc,".",I,T).
 
 isAnon(name(Lc,"_"),Lc).
 
@@ -755,17 +764,17 @@ packageVersion(T,Pkg) :- isBinary(T,_,".",L,R),
   string_concat(LP,".",I),
   string_concat(I,RP,Pkg).
 
-isTaskTerm(A,Lc,Stmts) :-
-  isBraceTerm(A,Lc,name(_,"task"),[Stmts]),!.
+isFiberTerm(A,Lc,Stmts) :-
+  isBraceTerm(A,Lc,name(_,"fiber"),[Stmts]),!.
 
-mkTaskTerm(Lc,S,T) :-
-  braceTerm(Lc,name(Lc,"task"),[S],T).
+mkFiberTerm(Lc,S,T) :-
+  braceTerm(Lc,name(Lc,"fiber"),[S],T).
 
-isTask(A,Lc,T) :-
-  isUnary(A,Lc,"task",T).
+isFiber(A,Lc,T) :-
+  isUnary(A,Lc,"fiber",T).
 
-mkTask(Lc,T,A) :-
-  unary(Lc,"task",T,A).
+mkFiber(Lc,T,A) :-
+  unary(Lc,"fiber",T,A).
 
 isDoTerm(A,Lc,Stmt) :-
   isUnary(A,Lc,"do",I),

@@ -149,8 +149,9 @@ parseBoundVar(N,Q,Q) :-
 % reapply quantifiers to a type to get full form
 reUQnt([],Tp,Tp).
 reUQnt([(_,KV)|M],Tp,allType(KV,QTp)) :-
+  occursIn(KV,Tp),!,
   reUQnt(M,Tp,QTp).
-reUQnt([KV|M],Tp,allType(KV,QTp)) :-
+reUQnt([_|M],Tp,QTp) :-
   reUQnt(M,Tp,QTp).
 
 reXQnt([],Tp,Tp).
@@ -495,8 +496,8 @@ genBraceConstructor(Lc,Fields,Nm,DtNm,ConNm,Q,Cx,Tp,
 		    [cnsDef(Lc,Nm,cons(Lc,ConNm,ConTp)),
 		     cnsDef(Lc,DtNm,cons(Lc,DtNm,CnTp))|Df],Df,Env,Ev) :-
   wrapType(Q,Cx,[],[],consType(faceType(Fields,[]),Tp),ConTp),
-  wrapType(Q,Cx,[],[],consType(tplType(FTps),Tp),CnTp),
   project1(Fields,FTps),
+  wrapType(Q,Cx,[],[],consType(tplType(FTps),Tp),CnTp),
   declareCns(Lc,Nm,ConNm,ConTp,Env,Ev).
 
 cmpVarDef((N1,_),(N2,_)) :-

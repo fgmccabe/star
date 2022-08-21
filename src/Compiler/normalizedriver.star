@@ -37,6 +37,7 @@ star.compiler.normalize.driver{
 	    traceDependencyOption,
 	    traceAstOption,
 	    traceMacroOption,
+	    checkOnlyOption,
 	    showCheckOption,
 	    traceCheckOption,
 	    macroOnlyOption,

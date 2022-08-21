@@ -7,6 +7,7 @@ star.compiler.checker{
   import star.compiler.ast.
   import star.compiler.canon.
   import star.compiler.canondeps.
+  import star.compiler.coverage.
   import star.compiler.dependencies.
   import star.compiler.dict.
   import star.compiler.dict.mgt.
@@ -456,7 +457,7 @@ star.compiler.checker{
   typeOfPtn(A,Tp,_,Env,_) => valof{
     Lc = locOf(A);
     reportError("illegal pattern: $(A), expecting a $(Tp)",Lc);
-    valis (vd(Lc,Tp),Env)
+    valis (vr(Lc,genSym("_"),Tp),Env)    
   }
     
   typeOfArgPtn:(ast,tipe,option[tipe],dict,string) => (canon,dict).
@@ -466,6 +467,7 @@ star.compiler.checker{
     (Ptns,Ev) = typeOfPtns(Els,Tvs,ErTp,[],Env,Path);
     valis (tple(Lc,Ptns),Ev)
   }
+  typeOfArgPtn(A,Tp,ErTp,Env,Path) => typeOfPtn(A,Tp,ErTp,Env,Path).
 
   typeOfArgsPtn:(cons[ast],cons[tipe],option[tipe],dict,string) => (cons[canon],dict).
   typeOfArgsPtn(Els,Tps,ErTp,Env,Path) => typeOfPtns(Els,Tps,ErTp,[],Env,Path).
@@ -505,7 +507,7 @@ star.compiler.checker{
   typeOfExp:(ast,tipe,option[tipe],dict,string) => canon.
   typeOfExp(A,Tp,_,Env,Path) where Lc ^= isAnon(A) => valof{
     reportError("anonymous variable not permitted in expression",Lc);
-    valis vd(Lc,Tp)
+    valis vr(Lc,"_",Tp)
   }
   typeOfExp(A,Tp,_,Env,Path) where (Lc,Id) ^= isName(A) => valof{
     if Var ^= findVar(Lc,Id,Env) then{
@@ -514,12 +516,12 @@ star.compiler.checker{
 	valis Var
       } else{
 	reportError("variable $(Id)\:$(typeOf(Var)) not consistent with expected type: $(Tp)",Lc);
-	valis vd(Lc,Tp)
+	valis vr(Lc,"_",Tp)
       }
     }
     else{
       reportError("variable $(Id) not defined. Expecting a $(Tp)",locOf(A));
-      valis vd(locOf(A),Tp)
+      valis vr(locOf(A),"_",Tp)
     }
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Nm) ^= isEnumSymb(A) =>
@@ -595,6 +597,7 @@ star.compiler.checker{
     ETp = newTypeVar("_e");
     Gv = typeOfExp(G,ETp,ErTp,Env,Path);
     Rules = checkRules(Cases,ETp,Tp,ErTp,Env,Path,typeOfExp,[],.none);
+    checkPtnCoverage(Rules//((rule(_,tple(_,[Ptn]),_,_))=>Ptn),Env,ETp);
     valis csexp(Lc,Gv,Rules,Tp)
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,C) ^= isCellRef(A) => valof{
@@ -607,7 +610,7 @@ star.compiler.checker{
     checkType(V,refType(VTp),Tp,Env);
     valis apply(Lc,vr(Lc,"_cell",funType([VTp],Tp)),[Vl],Tp)
   }
-  typeOfExp(A,Tp,_ErTp,Env,Path) where (Lc,L) ^= isTask(A) => valof{
+  typeOfExp(A,Tp,_ErTp,Env,Path) where (Lc,L) ^= isFiber(A) => valof{
     RT = newTypeVar("_R");
     ST = newTypeVar("_S");
     TskTp = taskType(RT,ST);
@@ -704,7 +707,7 @@ star.compiler.checker{
   }
   typeOfExp(A,Tp,_,_,_) => valof{
     reportError("cannot type check expression $(A)",locOf(A));
-    valis vd(locOf(A),Tp)
+    valis vr(locOf(A),"_",Tp)
   }.
 
   typeOfExps:(cons[ast],cons[tipe],option[tipe],cons[canon],dict,string) => cons[canon].
@@ -727,7 +730,7 @@ star.compiler.checker{
     }
     else{
       reportError("type of $(Op)\:$(ExTp) not consistent with $(fnType(At,Tp))",Lc);
-      valis vd(Lc,Tp)
+      valis vr(Lc,"_",Tp)
     }
   }
 
