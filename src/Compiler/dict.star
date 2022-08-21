@@ -9,7 +9,7 @@ star.compiler.dict{
   import star.compiler.misc.
   import star.compiler.types.
 
-  public tpDef ::= tpDefn(option[locn],string,tipe,typeRule).
+  public tpDef ::= tpDefn(option[locn],string,tipe,typeRule,map[string,tipe]).
 
   public vrEntry ::= vrEntry(option[locn],(option[locn],dict)=>canon,tipe,option[tipe]).
 
@@ -44,7 +44,7 @@ star.compiler.dict{
   }
 
   public implementation display[tpDef] => {
-    disp(tpDefn(_,_,Tmpl,Rl)) => "$(Tmpl) == $(Rl)".
+    disp(tpDefn(_,_,Tmpl,Rl,Mp)) => "$(Rl)\:$(Mp)".
   }
 
   public implementation display[implEntry] => {
@@ -62,12 +62,12 @@ star.compiler.dict{
   
   public declareType:(string,option[locn],tipe,typeRule,dict) => dict.
   declareType(Nm,Lc,Tp,TpRl,[Level,..Rest]) =>
-    [Level.types<<-Level.types[Nm->tpDefn(Lc,Nm,Tp,TpRl)],..Rest].
+    [Level.types<<-Level.types[Nm->tpDefn(Lc,Nm,Tp,TpRl,{})],..Rest].
 
-  public findType:(dict,string) => option[(option[locn],tipe,typeRule)].
+  public findType:(dict,string) => option[(option[locn],tipe,typeRule,map[string,tipe])].
   findType([],Nm) => .none.
-  findType([Lvl,.._],Ky) where tpDefn(Lc,_,Tp,Rl)^=Lvl.types[Ky] =>
-    some((Lc,Tp,Rl)).
+  findType([Lvl,.._],Ky) where tpDefn(Lc,_,Tp,Rl,Cns)^=Lvl.types[Ky] =>
+    some((Lc,Tp,Rl,Cns)).
   findType([_,..Rest],Ky) => findType(Rest,Ky).
 
   public findContract:(dict,string) => option[typeRule].

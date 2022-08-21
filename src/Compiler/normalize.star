@@ -106,7 +106,7 @@ star.compiler.normalize{
 --    logMsg("look for $(tpName(RTp)) type: $(findIndexMap(tpName(RTp),Map))");
       ConsMap = ^ findIndexMap(tpName(RTp),Map);
 --      logMsg("consmap for $(Nm)\:$(ConsMap)");
-      (Lbl,Ix) = ^ findLbl(Nm,ConsMap);
+      (Lbl,_,Ix) = ^ findLbl(Nm,ConsMap);
       valis [lblDef(Lc,Lbl,Tp,Ix),..Ex]
     }
     else{
@@ -116,7 +116,7 @@ star.compiler.normalize{
   }
 
   findLbl(Nm,[]) => .none.
-  findLbl(Nm,[(tLbl(Nm,Ar),_,Ix),.._]) => some((tLbl(Nm,Ar),Ix)).
+  findLbl(Nm,[(tLbl(Nm,Ar),Tp,Ix),.._]) => some((tLbl(Nm,Ar),Tp,Ix)).
   findLbl(Nm,[_,..Ms]) => findLbl(Nm,Ms).
 
   contract all e,t ~~ transform[e->>t] ::= {
@@ -239,7 +239,6 @@ star.compiler.normalize{
   }.
 
   liftExp:(canon,nameMap,set[cId],cons[cDefn]) => crFlow.
-  liftExp(vd(Lc,Tp),_,_,Ex) => (cVoid(Lc,Tp),Ex).
   liftExp(vr(Lc,Nm,Tp),Map,Q,Ex) => valof{
     VV = liftVarExp(Lc,Nm,Tp,Map);
     valis (VV,Ex)

@@ -91,8 +91,31 @@ star.compiler.dict.mgt{
 	[Sc,..undeclareVar(Nm,Ev)]).
 
   public declareConstructor:(string,string,option[locn],tipe,dict) => dict.
-  declareConstructor(Nm,FullNm,Lc,Tp,Env) =>
-    declareVr(Nm,Lc,Tp,(L,E)=>pickupEnum(L,FullNm,Tp,Env),.none,Env).
+  declareConstructor(Nm,FullNm,Lc,Tp,Env) => valof{
+    AbtTpNm = localName(tpName(funTypeRes(Tp)),.typeMark);
+    valis declareCns(Lc,FullNm,Tp,AbtTpNm,
+      declareVr(Nm,Lc,Tp,(L,E)=>pickupEnum(L,FullNm,Tp,Env),.none,Env)).
+  }
+
+  declareCns(CLc,Nm,Tp,TpNm,Dict) => valof{
+    if [Level,..Rest] .= Dict then {
+--      logMsg("declare constructor $(Nm) for $(TpNm) in $(Level.types)");
+      if tpDefn(Lc,TNm,TTp,TpRl,Cons)^=Level.types[TpNm] then{
+	valis [Level.types<<-Level.types[TpNm->tpDefn(Lc,TNm,TTp,TpRl,Cons[Nm->Tp])],..Rest]
+      } else{
+	valis [Level,..declareCns(CLc,Nm,Tp,TpNm,Rest)]
+      }
+    }
+    else{
+      reportError("cannot declare constructor $(Tp)",CLc);
+      valis Dict
+    }
+  }
+
+  public findConstructors:(tipe,dict)=>option[map[string,tipe]].
+  findConstructors(Tp,Dict) where (_,_,_,Mp) ^=
+    findType(Dict,localName(tpName(Tp),.typeMark)) => some(Mp).
+  findConstructors(_,_) default => .none.
 
   pickupEnum(Lc,Nm,Tp,Env) => valof{
 --    logMsg("freshen $(Nm)'s type: $(Tp)");
@@ -111,7 +134,7 @@ star.compiler.dict.mgt{
 
   public declareContract:(option[locn],string,typeRule,dict) => dict.
   declareContract(Lc,Nm,Con,[Sc,..Rest]) => valof{
-    NTps = Sc.types[Nm->tpDefn(Lc,Nm,contractType(Con),contractTypeRule(Con))];
+    NTps = Sc.types[Nm->tpDefn(Lc,Nm,contractType(Con),contractTypeRule(Con),{})];
     NCts = Sc.contracts[Nm->Con];
     valis declareMethods(Lc,Con,
       [(Sc.types<<-NTps).contracts<<-NCts,..Rest]).

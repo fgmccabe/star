@@ -165,7 +165,7 @@ ssTrm(ng(_,R),Dp,sq([lp,ss("~"),RR,rp])) :-!,
 ssTrm(error(Lc,M),Dp,sq([lp,ss("error "),MM,rp,ss("@"),LL])) :-!,
   ssTrm(M,Dp,MM),
   ssLoc(Lc,LL).
-ssTrm(tsk(_,A),Dp,sq([ss("task "),AA])) :-
+ssTrm(tsk(_,A),Dp,sq([ss("fiber "),AA])) :-
   ssTrm(A,Dp,AA).
 ssTrm(susp(_,T,E),Dp,sq([TT,ss(" suspend "),EE])) :-
   ssTrm(T,Dp,TT),

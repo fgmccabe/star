@@ -71,7 +71,9 @@ varLoc(Nm,Env,Tp,Lc) :-
 
 getVar(Lc,Nm,Env,Vr,ViTp) :-
   isVar(Nm,Env,vrEntry(_,MkTrm,_,VTp)),
+%  reportMsg("type of %s is %s",[id(Nm),tpe(VTp)],Lc),
   freshen:freshen(VTp,Env,_Q,VrTp),
+%  reportMsg("freshened type of %s is %s",[id(Nm),tpe(VrTp)],Lc),
   getConstraints(VrTp,Cx,ViTp),
   call(MkTrm,Lc,ViTp,VExp),
   manageConstraints(Cx,Lc,VExp,Vr).
@@ -282,7 +284,7 @@ declareStdTypes([T|Ts],D,Dx) :-
 stdDict(Base) :-
   pushScope([],B),
   declareStdTypes(["integer","bigint","char","string","float",
-		   "cons","file","task"],B,Base).
+		   "cons","file","fiber"],B,Base).
 
 dispDictLvl(dict(Types,Nms,_Cns,Impls,Accs,Ups,Contracts),Cx,
 	    sq([ix(Cx),ss("-"),

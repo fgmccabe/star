@@ -100,7 +100,7 @@ star.compiler.unify{
   public faceOfType:(tipe,dict) => option[tipe].
   faceOfType(T,_) where faceType(_,_).=deRef(T) => some(T).
   faceOfType(T,Env) => valof{
-    if (_,_,Rl) ^= findType(Env,localName(tpName(T),.typeMark)) then{
+    if (_,_,Rl,_) ^= findType(Env,localName(tpName(T),.typeMark)) then{
       (_,FRl) = freshen(Rl,Env);
       if typeExists(Lhs,Rhs) .= FRl && sameType(Lhs,T,Env) then{
 	(_,RRhs) = freshen(deRef(Rhs),Env);

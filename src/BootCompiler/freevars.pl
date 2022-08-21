@@ -62,7 +62,7 @@ freeVars(throw(_,A,_),Ex,Q,F,Fv) :-!,
 freeVars(tryCatch(_,B,H),Ex,Q,F,Fv) :-!,
   freeVars(B,Ex,Q,F,F0),
   freeVarsInRules(H,Ex,Q,freevars:freeVars,F0,Fv).
-freeVars(task(_,A,_),Ex,Q,F,Fv) :-
+freeVars(fiber(_,A,_),Ex,Q,F,Fv) :-
   freeVars(A,Ex,Q,F,Fv).
 freeVars(T,_,_,F,F) :-
   locOfCanon(T,Lc),

@@ -241,8 +241,8 @@ collectTermRefs(V,A,Rfs,Rx) :-
   collectNmRef(var(Nm),A,Rfs,Rf0),
   collectNmRef(cns(Nm),A,Rf0,Rx).
 collectTermRefs(T,A,Rfs,Rx) :-
-  isEnum(T,_,I),!,
-  isIden(I,Nm),
+  isEnum(T,_,I),
+  isIden(I,Nm),!,
   collectNmRef(cns(Nm),A,Rfs,Rx).
 collectTermRefs(T,A,R,Rx) :-
   isLetDef(T,_,S,B),!,
@@ -261,6 +261,10 @@ collectTermRefs(T,A,R0,Rx) :-
   collectTermRefs(O,A,R0,R1),
   collectTermListRefs(Args,A,R1,Rx).
 collectTermRefs(T,A,R0,Rx) :-
+  isConApply(T,_Lc,O,Args),
+  collectTermRefs(O,A,R0,R1),
+  collectTermListRefs(Args,A,R1,Rx).
+collectTermRefs(T,A,R0,Rx) :-
   isTuple(T,Els),
   collectTermListRefs(Els,A,R0,Rx).
 collectTermRefs(T,A,R0,Rx) :-
@@ -275,9 +279,7 @@ collectTermRefs(T,A,R0,Rx) :-
   collectTermRefs(E,A,R0,Rx).
 collectTermRefs(T,A,R0,Rx) :-
   isValof(T,_,E),!,
-  (isBraceTuple(E,_,[St]) ->
-   collectDoRefs(St,A,R0,Rx);
-   collectTermRefs(E,A,R0,Rx)).
+  collectDoRefs(E,A,R0,Rx).
 collectTermRefs(T,All,Rf,Rfx) :-
   isTryCatch(T,_,L,C),!,
   collectTermRefs(L,All,Rf,Rf1),
@@ -286,7 +288,7 @@ collectTermRefs(T,All,Rf,Rfx) :-
   isThrow(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
 collectTermRefs(T,A,R0,Rx) :-
-  isTaskTerm(T,_,Stmts),!,
+  isFiberTerm(T,_,Stmts),!,
   collectDoRefs(Stmts,A,R0,Rx).
 collectTermRefs(app(_,Op,Args),All,R,Rx) :-
   collectTermRefs(Op,All,R,R0),

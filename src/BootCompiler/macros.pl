@@ -405,9 +405,9 @@ examineTerm(T,Tx) :-
   map(C,macros:macroLambda,Cx),
   caseExp(Lc,Ex,Cx,Tx).
 examineTerm(T,Tx) :-
-  isTaskTerm(T,Lc,S),!,
+  isFiberTerm(T,Lc,S),!,
   macroAction(S,Sx),
-  mkTaskTerm(Lc,Sx,Tx).
+  mkFiberTerm(Lc,Sx,Tx).
 examineTerm(T,Tx) :-
   isBraceTuple(T,Lc,D),!,
   map(D,macros:macroStmt,Dx),

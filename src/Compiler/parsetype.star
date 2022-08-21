@@ -38,7 +38,7 @@ star.compiler.typeparse{
       valis newTypeVar("_")
     else if VTp ^= {! VTp | (Nm,VTp) in Q !} then
       valis VTp
-    else if (_,T,TpRl) ^= findType(Env,Nm) then{
+    else if (_,T,TpRl,_) ^= findType(Env,Nm) then{
       if isLambdaRule(TpRl) then{
 	(_,typeLambda(_,Rhs)) = freshen(TpRl,Env);
 	valis Rhs
@@ -194,7 +194,7 @@ star.compiler.typeparse{
 	  
   parseTypeName(_,_,"_",_) => (newTypeVar("_"),.none).
   parseTypeName(Q,_,Nm,_) where Tp^={! Tp | (Nm,Tp) in Q !} => (Tp,.none).
-  parseTypeName(Q,_,Nm,Env) where (_,T,TpRl) ^= findType(Env,Nm) => valof{
+  parseTypeName(Q,_,Nm,Env) where (_,T,TpRl,_) ^= findType(Env,Nm) => valof{
     if isLambdaRule(TpRl) then 
       valis (T,some(TpRl))
     else
@@ -328,7 +328,7 @@ star.compiler.typeparse{
 
   public parseTypeDef:(string,ast,dict,string) => (cons[canonDef],cons[decl]).
   parseTypeDef(Nm,St,Env,Path) where (Lc,V,C,H,B) ^= isTypeExistsStmt(St) => valof{
-    logMsg("parse type exists $(St)");
+--    logMsg("parse type exists $(St)");
     Q = parseBoundTpVars(V);
     Tp = parseTypeHead(Q,H,Env,Path);
     Cx = parseConstraints(C,Q,Env);
@@ -338,7 +338,7 @@ star.compiler.typeparse{
     valis ([typeDef(Lc,Nm,Tmplte,TpRl)],[tpeDec(Lc,Nm,Tmplte,TpRl)])
   }
   parseTypeDef(Nm,St,Env,Path) where (Lc,V,C,H,B) ^= isTypeFunStmt(St) => valof{
-    logMsg("parse type fun $(St)");
+--    logMsg("parse type fun $(St)");
     Q = parseBoundTpVars(V);
     Tp = parseTypeHead(Q,H,Env,Path);
     Cx = parseConstraints(C,Q,Env);
@@ -401,7 +401,7 @@ star.compiler.typeparse{
     (Flds,Tps) = parseTypeFields(BV,Els,[],[],Env);
     Face = faceType(Flds,Tps);
     (Con,CTps,CDps) = parseContractHead(BV,T,Env,Path);
-    logMsg("contract head $(mkConType(Con,CTps,CDps))");
+--    logMsg("contract head $(mkConType(Con,CTps,CDps))");
     ConTp = reQ(BV,mkConType(Con,CTps,CDps));
     ConRlTp = foldLeft(((_,QV),Rl)=>allRule(QV,Rl),contractExists(Con,CTps,CDps,Face),BV);
     valis ([conDef(Lc,Id,tpName(ConTp),ConRlTp)],

@@ -18,8 +18,7 @@ star.compiler.canon{
     funDec(option[locn],string,string,tipe) |
     cnsDec(option[locn],string,string,tipe).
 
-  public canon ::= vd(option[locn],tipe) |
-    vr(option[locn],string,tipe) |
+  public canon ::= vr(option[locn],string,tipe) |
     mtd(option[locn],string,tipe) |
     over(option[locn],canon,cons[constraint]) |
     overaccess(option[locn],canon,tipe,string,tipe) |
@@ -79,7 +78,6 @@ star.compiler.canon{
     updDef(option[locn],string,string,tipe).
 
   public implementation hasType[canon] => {.
-    typeOf(vd(_,T)) => T.
     typeOf(vr(_,_,T)) => T.
     typeOf(mtd(_,_,T)) => T.
     typeOf(over(_,T,_)) => typeOf(T).
@@ -109,7 +107,6 @@ star.compiler.canon{
   .}
 
   public implementation hasLoc[canon] => {
-    locOf(vd(Lc,_)) => Lc.
     locOf(vr(Lc,_,_)) => Lc.
     locOf(mtd(Lc,_,_)) => Lc.
     locOf(over(Lc,_,_)) => Lc.
@@ -192,7 +189,6 @@ star.compiler.canon{
   }
 
   showCanon:(canon,integer,string)=>string.
-  showCanon(vd(_,_),_,_) => "void".
   showCanon(vr(_,Nm,Tp),_,_) => Nm.
   showCanon(mtd(_,Fld,_),_,_) => "µ#(Fld)".
   showCanon(over(_,V,Cx),Pr,Sp) => "$(Cx)|:#(showCanon(V,Pr,Sp))".

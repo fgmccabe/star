@@ -675,7 +675,7 @@ star.compiler.wff{
 
   public mkTaskTerm(Lc,As) => brApply(Lc,"task",[As]).
 
-  public isTask(A) => isUnary(A,"task").
+  public isFiber(A) => isUnary(A,"task").
 
   public isActionSeq:(ast) => option[(option[locn],ast,ast)].
   isActionSeq(A) => isBinary(A,";").

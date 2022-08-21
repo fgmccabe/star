@@ -187,7 +187,7 @@ overloadTerm(lambda(Lc,Lbl,Eqn,Tp),Dict,St,Stx,lambda(Lc,Lbl,OEqn,Tp)) :-
   overloadRule(resolve:overloadTerm,Eqn,Dict,St,Stx,OEqn).
 overloadTerm(valof(Lc,A,Tp),Dict,St,Stx,valof(Lc,AA,Tp)) :-!,
   overloadAction(A,Dict,St,Stx,AA).
-overloadTerm(task(Lc,A,Tp),Dict,St,Stx,task(Lc,AA,Tp)) :-!,
+overloadTerm(fiber(Lc,A,Tp),Dict,St,Stx,fiber(Lc,AA,Tp)) :-!,
   overloadTerm(A,Dict,St,Stx,AA).
 overloadTerm(tryCatch(Lc,E,H),Dict,St,Stx,tryCatch(Lc,EE,HH)) :-
   overloadTerm(E,Dict,St,St0,EE),
