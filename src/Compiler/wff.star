@@ -348,6 +348,10 @@ star.compiler.wff{
   public isEnumSymb(A) where (Lc,nme(_,N))^=isUnary(A,".") => some((Lc,N)).
   isEnumSymb(_) default => .none.
 
+  public isEnumCon(A) where (Lc,I) ^= isUnary(A,".") && (_,Op,Els) ^= isRoundTerm(I) =>
+    some((Lc,Op,Els)).
+  isEnumCon(_) default => .none.
+
   public enum(Lc,Nm) => unary(Lc,".",nme(Lc,Nm)).
 
   public

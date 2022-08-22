@@ -344,5 +344,4 @@ star.compiler.meta{
 	doStdin=Opts.doStdin
       }.
   }
-  
 }

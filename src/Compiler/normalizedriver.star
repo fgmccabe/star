@@ -16,6 +16,7 @@ star.compiler.normalize.driver{
   import star.compiler.dict.
   import star.compiler.errors.
   import star.compiler.impawt.
+  import star.compiler.inline.
   import star.compiler.macro.
   import star.compiler.meta.
   import star.compiler.misc.
@@ -42,7 +43,8 @@ star.compiler.normalize.driver{
 	    traceCheckOption,
 	    macroOnlyOption,
 	    showNormalizeOption,
-	    traceNormalizeOption],
+	    traceNormalizeOption,
+	    optimizeLvlOption],
 	  defltOptions(WI,RI)
 	))
     } catch {
@@ -73,9 +75,6 @@ star.compiler.normalize.driver{
     valis ()
   }
 
-  extractPkgSpec(P) where Lc ^= strFind(P,":",0) => pkg(P[0:Lc],P[Lc+1:size(P)]::version).
-  extractPkgSpec(P) default => pkg(P,.defltVersion).
-
   processPkg:(pkg,termRepo,catalog) => ().
   processPkg(P,Repo,Cat) => valof{
     logMsg("Processing $(P)");
@@ -97,9 +96,13 @@ star.compiler.normalize.driver{
 
 	if errorFree() && ~ typeCheckOnly! then {
 	  N = normalize(PkgSpec,Defs,Decls);
-	  if showNormalize! then{
+	  if traceNormalize! then{
 	    logMsg("normalized code $(N)");
-	  }
+	  };
+	  Inlined = ( optimization! ==.inlining ? simplifyDefs(N) || N);
+	  if showNormalize! then{
+	    logMsg("inlined code $(Inlined)");
+	  };
 	}
       };
       valis ()

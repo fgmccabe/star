@@ -16,8 +16,6 @@ star.compiler.term{
     | cFloat(option[locn],float)
     | cString(option[locn],string)
     | cTerm(option[locn],string,cons[cExp],tipe)
-    | cGet(option[locn],cExp,tipe)
-    | cCell(option[locn],cExp,tipe)
     | cNth(option[locn],cExp,integer,tipe)
     | cSetNth(option[locn],cExp,integer,cExp)
     | cCall(option[locn],string,cons[cExp],tipe)
@@ -100,8 +98,6 @@ star.compiler.term{
   dspExp(cCall(_,Op,As,_),Off) => "#(Op)(#(dsplyExps(As,Off)*))".
   dspExp(cTerm(_,Op,As,_),Off) where isTplLbl(Op) => "‹#(dsplyExps(As,Off)*)›".
   dspExp(cTerm(_,Op,As,_),Off) => "#(Op)‹#(dsplyExps(As,Off)*)›".
-  dspExp(cGet(_,O,_),Off) => "#(dspExp(O,Off))!".
-  dspExp(cCell(_,O,_),Off) => "$#(dspExp(O,Off))".
   dspExp(cNth(_,O,Ix,_),Off) => "#(dspExp(O,Off)).$(Ix)".
   dspExp(cSetNth(_,O,Ix,E),Off) => "(#(dspExp(O,Off)).$(Ix) := #(dspExp(E,Off)))".
   dspExp(cThrow(_,E,_),Off) => "throw #(dspExp(E,Off))".
@@ -201,8 +197,6 @@ star.compiler.term{
   eqTerm(cECall(_,S1,A1,_),cECall(_,S2,A2,_)) => S1==S2 && eqs(A1,A2).
   eqTerm(cOCall(_,S1,A1,_),cOCall(_,S2,A2,_)) => eqTerm(S1,S2) && eqs(A1,A2).
   eqTerm(cThrow(_,S1,_),cThrow(_,S2,_)) => S1==S2.
-  eqTerm(cGet(_,S1,_),cGet(_,S2,_)) => S1==S2.
-  eqTerm(cCell(_,S1,_),cCell(_,S2,_)) => S1==S2.
   eqTerm(cNth(_,R1,F1,_),cNth(_,R2,F2,_)) => eqTerm(R1,R2) && F1==F2.
   eqTerm(cSetNth(_,R1,Ix,E1),cSetNth(_,R2,Ix,E2)) => eqTerm(R1,R2) && eqTerm(E1,E2).
   eqTerm(cSeq(_,L1,R1),cSeq(_,L2,R2)) => eqTerm(L1,L2) && eqTerm(R1,R2).
@@ -219,7 +213,6 @@ star.compiler.term{
     eqTerm(S1,S2) && eqCs(C1,eqTerm,C2) && eqTerm(D1,D2).
   eqTerm(cWhere(_,E1,C1),cWhere(_,E2,C2)) => eqTerm(E1,E2) && eqTerm(C1,C2).
   eqTerm(cMatch(_,P1,E1),cMatch(_,P2,E2)) => eqTerm(E1,E2) && eqTerm(P1,P2).
-  eqTerm(cSeq(_,L1,R1),cSeq(_,L2,R2)) => eqTerm(L1,L2) && eqTerm(R1,R2).
   eqTerm(cAbort(_,M1,T1),cAbort(_,M2,T2)) => M1==M2 && T1==T2.
   eqTerm(cTask(_,M1,_),cTask(_,M2,_)) => eqTerm(M1,M2).
   eqTerm(cSusp(_,T1,E1,_),cSusp(_,T2,E2,_)) => eqTerm(T1,T2) && eqTerm(E1,E2).
@@ -281,8 +274,6 @@ star.compiler.term{
     locOf(cChar(Lc,_)) => Lc.
     locOf(cFloat(Lc,_)) => Lc.
     locOf(cString(Lc,_)) => Lc.
-    locOf(cGet(Lc,_,_)) => Lc.
-    locOf(cCell(Lc,_,_)) => Lc.
     locOf(cNth(Lc,_,_,_)) => Lc.
     locOf(cSetNth(Lc,_,_,_)) => Lc.
     locOf(cTerm(Lc,_,_,_)) => Lc.
@@ -322,8 +313,6 @@ star.compiler.term{
     tpOf(cOCall(_,_,_,Tp)) => Tp.
     tpOf(cCall(_,_,_,Tp)) => Tp.
     tpOf(cThrow(_,_,Tp)) => Tp.
-    tpOf(cGet(_,_,Tp)) => Tp.
-    tpOf(cCell(_,_,Tp)) => Tp.
     tpOf(cNth(_,_,_,Tp)) => Tp.
     tpOf(cSetNth(_,T,_,_)) => tpOf(T).
     tpOf(cSeq(_,_,R)) => tpOf(R).
@@ -416,8 +405,6 @@ star.compiler.term{
   rwTerm(cString(Lc,Sx),_) => cString(Lc,Sx).
   rwTerm(cTerm(Lc,Op,Args,Tp),Tst) =>
     cTerm(Lc,Op,rwTerms(Args,Tst),Tp).
-  rwTerm(cGet(Lc,C,Tp),Tst) => cGet(Lc,rwTerm(C,Tst),Tp).
-  rwTerm(cCell(Lc,C,Tp),Tst) => cCell(Lc,rwTerm(C,Tst),Tp).
   rwTerm(cNth(Lc,R,Ix,Tp),Tst) => cNth(Lc,rwTerm(R,Tst),Ix,Tp).
   rwTerm(cSetNth(Lc,R,Ix,E),Tst) => cSetNth(Lc,rwTerm(R,Tst),Ix,rwTerm(E,Tst)).
   rwTerm(cCall(Lc,Op,Args,Tp),Tst) =>
@@ -533,4 +520,131 @@ star.compiler.term{
   isGround(cString(_,_)) => .true.
   isGround(cTerm(_,_,Els,_)) => {? E in Els *> isGround(E) ?}.
   isGround(_) default => .false.
+
+  public mergeGoal:(option[locn],option[cExp],option[cExp])=>option[cExp].
+  mergeGoal(_,G,.none) => G.
+  mergeGoal(_,.none,G) => G.
+  mergeGoal(Lc,some(G),some(H)) => some(cCnj(Lc,G,H)).
+  
+  public contract all e ~~ reform[e] ::= {
+    mkCond:(option[locn],cExp,e,e)=>e.
+    mkCase:(option[locn],cExp,cons[cCase[e]],e) => e.
+    mkUnpack:(option[locn],cExp,cons[cCase[e]]) => e.
+    varNames:(option[locn],cons[(string,cId)],e)=>e.
+    pullWhere:(e,option[cExp]) => (e,option[cExp]).
+    mkLtt:(option[locn],cId,cExp,e) => e.
+  }
+
+  public implementation reform[cExp] => {.
+    mkCond(Lc,Tst,Th,El) where 
+	cCnd(_,T1,Th1,El1).=Th && El1==El => cCnd(Lc,cCnj(Lc,Tst,T1),Th1,El1).
+    mkCond(Lc,Tst,Th,El) => cCnd(Lc,Tst,Th,El).
+
+    varNames(Lc,Bnds,Val) => cVarNmes(Lc,Bnds,Val).
+
+    pullWhere(cWhere(Lc,V,C),G) where (Val,G1) .= pullWhere(V,G) =>
+      (Val,mergeGoal(Lc,some(C),G1)).
+    pullWhere(cTerm(Lc,Lbl,Args,Tp),G) where (NArgs,Gx) .= pullWheres(Args,G) =>
+      (cTerm(Lc,Lbl,NArgs,Tp),Gx).
+    pullWhere(Exp,G) default => (Exp,G).
+
+    pullWheres([],G) => ([],G).
+    pullWheres([A,..As],G) where (NA,NG).=pullWhere(A,G) && (NAs,Gx) .= pullWheres(As,NG) =>
+      ([NA,..NAs],Gx).
+
+    mkCase(Lc,Tst,[(PLc,Ptn,Val)],Deflt) => mkCond(Lc,cMatch(PLc,Ptn,Tst),Val,Deflt).
+    mkCase(Lc,V,Cases,Deflt) => cCase(Lc,V,Cases,Deflt,typeOf(Deflt)).
+
+    mkUnpack(Lc,V,Arms) => cUnpack(Lc,V,Arms,typeOf(V)).
+
+    mkLtt(Lc,V,E,X) => cLtt(Lc,V,E,X).
+  .}
+
+  public implementation reform[aAction] => {
+    mkCond(Lc,Tst,Th,El) where
+	aIftte(Lc0,T1,Th1,El1).=Th && El1==El => aIftte(Lc0,cCnj(Lc,Tst,T1),Th1,El1).
+    mkCond(Lc,Tst,Th,El) => aIftte(Lc,Tst,Th,El).
+
+    varNames(Lc,Bnds,Val) => aVarNmes(Lc,Bnds,Val).
+
+    pullWhere(A,Cond) => (A,Cond).
+
+    mkCase(Lc,V,Cases,Deflt) => aCase(Lc,V,Cases,Deflt).
+    mkUnpack(Lc,V,Arms) => aUnpack(Lc,V,Arms).
+
+    mkLtt(Lc,V,E,X) => aLtt(Lc,V,E,X).
+  }
+
+  public lblUsed:(aAction,string) => boolean.
+  lblUsed(aNop(_),_) => .false.
+  lblUsed(aSeq(_,A1,A2),Lb) => lblUsed(A1,Lb) || lblUsed(A2,Lb).
+  lblUsed(aLbld(_,Lb,_),Lb) => .false.
+  lblUsed(aLbld(_,_,A),Lb) => lblUsed(A,Lb).
+  lblUsed(aBreak(_,L),Lb) => L==Lb.
+  lblUsed(aValis(_,E),Lb) => lblUsedInExp(E,Lb).
+  lblUsed(aThrow(_,E),Lb) => lblUsedInExp(E,Lb).
+  lblUsed(aPerf(_,E),Lb) => lblUsedInExp(E,Lb).
+  lblUsed(aDefn(_,_,E),Lb) => lblUsedInExp(E,Lb).
+  lblUsed(aAsgn(_,L,V),Lb) => lblUsedInExp(L,Lb) || lblUsedInExp(V,Lb).
+  lblUsed(aCase(_,G,Cs,D),Lb) =>
+    lblUsedInExp(G,Lb) || lblUsedInCases(Cs,lblUsed,Lb) || lblUsed(D,Lb).
+  lblUsed(aUnpack(_,G,Cs),Lb) =>
+    lblUsedInExp(G,Lb) || lblUsedInCases(Cs,lblUsed,Lb).
+  lblUsed(aIftte(_,G,T,E),Lb) =>
+    lblUsedInExp(G,Lb) || lblUsed(T,Lb) || lblUsed(E,Lb).
+  lblUsed(aWhile(_,G,A),Lb) =>
+    lblUsedInExp(G,Lb) || lblUsed(A,Lb).
+  lblUsed(aRetire(_,T,E),Lb) => lblUsedInExp(T,Lb) || lblUsedInExp(E,Lb).
+  lblUsed(aTry(_,T,H),Lb) => lblUsed(T,Lb) || lblUsed(H,Lb).
+  lblUsed(aLtt(_,_,T,A),Lb) => lblUsedInExp(T,Lb) || lblUsed(A,Lb).
+  lblUsed(aVarNmes(_,_,A),Lb) => lblUsed(A,Lb).
+  lblUsed(aAbort(_,_),_) => .false.
+
+  lblUsedInExp:(cExp,string) => boolean.
+  lblUsedInExp(cVoid(_,_),_) => .false.
+  lblUsedInExp(cAnon(_,_),_) => .false.
+  lblUsedInExp(cVar(_,_),_) => .false.
+  lblUsedInExp(cInt(_,_),_) => .false.
+  lblUsedInExp(cBig(_,_),_) => .false.
+  lblUsedInExp(cChar(_,_),_) => .false.
+  lblUsedInExp(cString(_,_),_) => .false.
+  lblUsedInExp(cFloat(_,_),_) => .false.
+  lblUsedInExp(cTerm(_,_,Args,_),Lb) => {? E in Args && lblUsedInExp(E,Lb) ?}.
+  lblUsedInExp(cNth(_,T,_,_),Lb) => lblUsedInExp(T,Lb).
+  lblUsedInExp(cSetNth(_,T,_,V),Lb) => lblUsedInExp(T,Lb) || lblUsedInExp(V,Lb).
+  lblUsedInExp(cCall(_,_,Args,_),Lb) => {? E in Args && lblUsedInExp(E,Lb) ?}.
+  lblUsedInExp(cECall(_,_,Args,_),Lb) => {? E in Args && lblUsedInExp(E,Lb) ?}.
+  lblUsedInExp(cOCall(_,Op,Args,_),Lb) =>
+    lblUsedInExp(Op,Lb) || {? E in Args && lblUsedInExp(E,Lb) ?}.
+  lblUsedInExp(cThrow(_,E,_),Lb) => lblUsedInExp(E,Lb).
+  lblUsedInExp(cSeq(_,L,R),Lb) => lblUsedInExp(L,Lb) || lblUsedInExp(R,Lb).
+  lblUsedInExp(cCnj(_,L,R),Lb) => lblUsedInExp(L,Lb) || lblUsedInExp(R,Lb).
+  lblUsedInExp(cDsj(_,L,R),Lb) => lblUsedInExp(L,Lb) || lblUsedInExp(R,Lb).
+  lblUsedInExp(cNeg(_,R),Lb) => lblUsedInExp(R,Lb).
+  lblUsedInExp(cCnd(_,T,L,R),Lb) =>
+    lblUsedInExp(T,Lb) || lblUsedInExp(L,Lb) || lblUsedInExp(R,Lb).
+  lblUsedInExp(cLtt(_,_,V,T),Lb) =>
+    lblUsedInExp(V,Lb) || lblUsedInExp(T,Lb).
+  lblUsedInExp(cCase(_,G,Cs,D,_),Lb) =>
+    lblUsedInExp(G,Lb) || lblUsedInCases(Cs,lblUsedInExp,Lb) || lblUsedInExp(D,Lb).
+  lblUsedInExp(cUnpack(_,G,Cs,_),Lb) =>
+    lblUsedInExp(G,Lb) || lblUsedInCases(Cs,lblUsedInExp,Lb).
+  lblUsedInExp(cWhere(_,V,T),Lb) =>
+    lblUsedInExp(V,Lb) || lblUsedInExp(T,Lb).
+  lblUsedInExp(cMatch(_,V,T),Lb) =>
+    lblUsedInExp(V,Lb) || lblUsedInExp(T,Lb).
+  lblUsedInExp(cVarNmes(_,_,T),Lb) =>
+    lblUsedInExp(T,Lb).
+  lblUsedInExp(cAbort(_,_,_),_) => .false.
+  lblUsedInExp(cTask(_,T,_),Lb) => lblUsedInExp(T,Lb).
+  lblUsedInExp(cSusp(_,T,E,_),Lb) => lblUsedInExp(T,Lb) || lblUsedInExp(E,Lb).
+  lblUsedInExp(cResume(_,T,E,_),Lb) => lblUsedInExp(T,Lb) || lblUsedInExp(E,Lb).
+  lblUsedInExp(cTry(_,T,E,_),Lb) => lblUsedInExp(T,Lb) || lblUsedInExp(E,Lb).
+  lblUsedInExp(cValof(_,A,_),Lb) => lblUsed(A,Lb).
+
+  lblUsedInCases:all e ~~ (cons[cCase[e]],(e,string)=>boolean,string)=>boolean.
+  lblUsedInCases([],_,_) => .false.
+  lblUsedInCases([(_,A,E),..Cs],P,Lb) =>
+    lblUsedInExp(A,Lb) || P(E,Lb) || lblUsedInCases(Cs,P,Lb).
+  
 }

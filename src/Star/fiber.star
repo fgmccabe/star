@@ -7,7 +7,7 @@ star.fiber{
 
   public all e ~~ channel[e] ::= .quiescent |
     hasData(e) |
-    waitingFor(exists e ~~ task[e]).
+    .waitingFor(exists e ~~ task[e]).
 
   public all e ~~ suspendProtocol[e] ::= .yield_ |
     .blocked |
@@ -25,7 +25,7 @@ star.fiber{
 	}
       }.
       .quiescent => {
-	Ch := hasData(D);
+	Ch := .hasData(D);
 	T suspend .yield_ in {
 	  .go_ahead =>
 	    valis ()

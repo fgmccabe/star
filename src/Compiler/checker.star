@@ -405,7 +405,7 @@ star.compiler.checker{
     Ev = declareVar(Id,Lc,Tp,faceOfType(Tp,Env),Env);
     valis (vr(Lc,Id,Tp),Ev)
   }
-  typeOfPtn(A,Tp,ErTp,Env,Path) where _ ^= isEnum(A) => valof{
+  typeOfPtn(A,Tp,ErTp,Env,Path) where _ ^= isEnumSymb(A) => valof{
     Enm = typeOfExp(A,Tp,ErTp,Env,Path);
     valis (Enm,Env)
   }
@@ -432,6 +432,14 @@ star.compiler.checker{
     checkType(A,tupleType(Tvs),Tp,Env);
     (Ptns,Ev) = typeOfPtns(Els,Tvs,ErTp,[],Env,Path);
     valis (tple(Lc,Ptns),Ev)
+  }
+  typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Op,Els) ^= isEnumCon(A) => valof{
+    At = newTypeVar("A");
+    Fun = typeOfExp(Op,consType(At,Tp),ErTp,Env,Path);
+    Tps = genTpVars(Els);
+    checkType(A,tupleType(Tps),At,Env);
+    (Args,Ev) = typeOfArgsPtn(Els,Tps,ErTp,Env,Path);
+    valis (apply(Lc,Fun,Args,Tp),Ev)
   }
   typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Op,Els) ^= isRoundTerm(A) => valof{
     At = newTypeVar("A");
@@ -689,6 +697,14 @@ star.compiler.checker{
     Sorted = sortDefs(Defs);
 
     valis foldRight((Gp,I)=>letExp(Lc,Gp,Decls,I),El,Sorted)
+  }
+  typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Op,Args) ^= isEnumCon(A) => valof{
+    Vrs = genTpVars(Args);
+    At = tupleType(Vrs);
+    FFTp = newTypeFun("_F",2);
+    Fun = typeOfExp(Op,consType(At,Tp),ErTp,Env,Path);
+    Args = typeOfExps(Args,Vrs,ErTp,[],Env,Path);
+    valis apply(Lc,Fun,Args,Tp)
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Op,Args) ^= isRoundTerm(A) =>
     typeOfRoundTerm(Lc,Op,Args,Tp,ErTp,Env,Path).
