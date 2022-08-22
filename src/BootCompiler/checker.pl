@@ -590,7 +590,7 @@ typeOfPtn(V,Tp,_ErTp,Ev,Env,v(Lc,N,Tp),_Path) :-
   isIden(V,Lc,N),
   declareVr(Lc,N,Tp,none,Ev,Env).
 typeOfPtn(Trm,Tp,ErTp,Env,Ev,Term,Path) :-
-  isEnum(Trm,_,_),
+  isEnum(Trm,_,N),isIden(N,_,_),!,
   typeOfExp(Trm,Tp,ErTp,Env,Ev,Term,Path).
 typeOfPtn(Trm,Tp,_,Env,Env,intLit(Lc,Ix),_) :-
   isLiteralInteger(Trm,Lc,Ix),!,
@@ -628,6 +628,14 @@ typeOfPtn(Trm,Tp,ErTp,Env,Ev,tple(Lc,Els),Path) :-
   genTpVars(A,ArgTps),
   verifyType(Lc,ast(Trm),tplType(ArgTps),Tp,Env),
   typeOfPtns(A,ArgTps,ErTp,Env,Ev,Lc,Els,Path).
+typeOfPtn(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
+  isEnum(Term,Lc,I),
+  isRoundTerm(I,_,F,A),!,
+  newTypeVar("A",At),
+  typeOfExp(F,consType(At,Tp),none,Env,E0,Fun,Path),
+%  reportMsg("con type = %s",[tpe(consType(At,Tp))],Lc),
+  typeOfArgPtn(tuple(Lc,"()",A),At,ErTp,E0,Ev,Args,Path),
+  Exp = apply(Lc,Fun,Args,Tp,ErTp).
 typeOfPtn(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
   newTypeVar("A",At),
@@ -695,7 +703,7 @@ typeOfExp(V,Tp,_ErTp,Env,Env,Term,_Path) :-
    reportError("variable '%s' not defined, expecting a %s",[V,Tp],Lc),
    Term=void).
 typeOfExp(T,Tp,_ErTp,Env,Ev,Term,Path) :-
-  isEnum(T,_,N),
+  isEnum(T,_,N),isIden(N,_,_),!,
   typeOfExp(N,consType(tplType([]),Tp),none,Env,Ev,Term,Path),!.
 typeOfExp(T,Tp,_,Env,Env,intLit(Lc,Ix),_Path) :-
   isLiteralInteger(T,Lc,Ix),!,
@@ -821,6 +829,13 @@ typeOfExp(Trm,Tp,ErTp,Env,Ev,tple(Lc,Els),Path) :-
   genTpVars(A,ArgTps),
   verifyType(Lc,ast(Trm),tplType(ArgTps),Tp,Env),
   typeOfExps(A,ArgTps,ErTp,Env,Ev,Lc,Els,Path).
+typeOfExp(Term,Tp,ErTp,Env,Env,apply(Lc,Fun,Args,Tp,none),Path) :-
+  isEnum(Term,Lc,I),
+  isRoundTerm(I,_,F,A),!,
+  genTpVars(A,Vrs),
+  At = tplType(Vrs),
+  typeOfExp(F,consType(At,Tp),ErTp,Env,E0,Fun,Path),
+  typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Path).
 typeOfExp(Term,Tp,ErTp,Env,Env,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
   typeOfRoundTerm(Lc,F,A,Tp,ErTp,Env,Exp,Path).  
