@@ -371,8 +371,6 @@ star.compiler.types{
   public funType(A,B) => fnType(tupleType(A),B).
   public fnType(A,B) => tpExp(tpExp(tpFun("=>",2),A),B).
   public consType(A,B) => tpExp(tpExp(tpFun("<=>",2),A),B).
-  public contType(A,B) => tpExp(tpExp(tpFun("=>>",2),A),B).
-  public cnsType(A,B) => tpExp(tpExp(tpFun("<=>",2),tupleType(A)),B).
   public enumType(A) => tpExp(tpExp(tpFun("<=>",2),tupleType([])),A).
   public lstType(Tp) => tpExp(tpFun("star.core*cons",1),Tp).
   public refType(Tp) => tpExp(tpFun("star.core*ref",1),Tp).
