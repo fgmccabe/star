@@ -34,6 +34,7 @@ int getOptions(int argc, char **argv) {
 
 static char *dot(opAndSpec A);
 static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt);
+static void genPrologHwm(ioPo out, char *mnem, int op, int delta, opAndSpec A1, opAndSpec A2, char *cmt);
 static void prologPc(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt);
 static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt);
 static integer insSize(OpCode op, opAndSpec A1, opAndSpec A2);
@@ -71,6 +72,21 @@ int main(int argc, char **argv) {
     // Template variables
     hashPo vars = newHash(8, (hashFun) uniHash, (compFun) uniCmp, NULL);
     hashPut(vars, "Date", date);
+
+    {
+      // Set up the hwm calculator
+      strBufferPo hwmBuff = newStringBuffer();
+
+#undef instruction
+#define instruction(M, A1, A2, Dl, cmt) genPrologHwm(O_IO(hwmBuff),#M,M,Dl,A1,A2,cmt);
+
+#include "instructions.h"
+
+      integer insLen;
+      char *allCode = getTextFromBuffer(hwmBuff, &insLen);
+      hashPut(vars, "Hwm", allCode);
+    }
+
 
     // Set up the assembler proper
     strBufferPo mnemBuff = newStringBuffer();
@@ -216,7 +232,7 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
           outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
           break;
         }
-        case off:{
+        case off: {
           outMsg(out, ",Off|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
           outMsg(out, "      findLbl(W,Lbls,Tgt),\n");
           outMsg(out, "      pcGap(Pc1,Tgt,Off),\n");
@@ -344,196 +360,218 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
   }
 }
 
-char *dot(opAndSpec A) {
-  switch (A) {
-    case nOp:
-    case tOs:
-      return ".";
-    default:
-      return "";
+// Construct the HWM calculator
+static void genPrologHwm(ioPo out, char *mnem, int op, int delta, opAndSpec A1, opAndSpec A2, char *cmt) {
+  char *sep = "(";
+
+  outMsg(out, "hwm([i%s", capitalize(mnem));
+
+  sep = genArg(out, sep, A1, "V");
+  sep = genArg(out, sep, A2, "W");
+
+  if (strcmp(sep, ",") == 0)
+    outStr(out, ")");
+
+  outMsg(out, "|Ins],Cur,H,Hwm) :-\n");
+  if (delta != 0) {
+    outMsg(out, "  Cur1 is Cur%s%d,\n", (delta > 0 ? "+" : ""), delta);
+    outMsg(out, "  (Cur1>H -> H1 = Cur1 ; H1 = H),\n");
+    outMsg(out, "  hwm(Ins,Cur1,H1,Hwm).\n");
+  } else {
+    outMsg(out, "  hwm(Ins,Cur,H,Hwm).\n");
   }
 }
 
-void prologPc(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt) {
-  outMsg(out, "genLblTbl([i%s", capitalize(mnem));
+  char *dot(opAndSpec A) {
+    switch (A) {
+      case nOp:
+      case tOs:
+        return ".";
+      default:
+        return "";
+    }
+  }
 
-  // Mega hack :(
-  switch (A1) {
-    case nOp:                             // No operand
-    case tOs:
-    case lne:
-    case lit:
-    case sym:
-    case tPe:
-    case i32:
-    case art:
-    case arg:
-    case lcl:
-    case lcs:
-    case glb:
-    case Es:
-    case off:
-      switch (A2) {
-        case nOp:
-        case tOs:
-        case i32:
-        case art:
-        case arg:
-        case lcl:
-        case lcs:
-        case glb:
-        case Es:
-        case off:
-        case tPe: {
-          char *sep = genArg(out, "(", A1, "_A");
-          sep = genArg(out, sep, A2, "_B");
-          if (strcmp(sep, ",") == 0)
-            outStr(out, ")");
+  void prologPc(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt) {
+    outMsg(out, "genLblTbl([i%s", capitalize(mnem));
 
-          outMsg(out, "|Ins],Pc,Pcx,Lbls,Lbx) :- !, ");
-          outMsg(out, "Pc1 is Pc+%d, ", insSize(op, A1, A2));
-          outMsg(out, " genLblTbl(Ins,Pc1,Pcx,Lbls,Lbx).\n");
-          break;
+    // Mega hack :(
+    switch (A1) {
+      case nOp:                             // No operand
+      case tOs:
+      case lne:
+      case lit:
+      case sym:
+      case tPe:
+      case i32:
+      case art:
+      case arg:
+      case lcl:
+      case lcs:
+      case glb:
+      case Es:
+      case off:
+        switch (A2) {
+          case nOp:
+          case tOs:
+          case i32:
+          case art:
+          case arg:
+          case lcl:
+          case lcs:
+          case glb:
+          case Es:
+          case off:
+          case tPe: {
+            char *sep = genArg(out, "(", A1, "_A");
+            sep = genArg(out, sep, A2, "_B");
+            if (strcmp(sep, ",") == 0)
+              outStr(out, ")");
+
+            outMsg(out, "|Ins],Pc,Pcx,Lbls,Lbx) :- !, ");
+            outMsg(out, "Pc1 is Pc+%d, ", insSize(op, A1, A2));
+            outMsg(out, " genLblTbl(Ins,Pc1,Pcx,Lbls,Lbx).\n");
+            break;
+            case cDe: { // code in second argument
+              char *sep = genArg(out, "(", A1, "_");
+              sep = genArg(out, sep, A2, "B");
+              if (strcmp(sep, ",") == 0)
+                outStr(out, ")");
+
+              outMsg(out, "|Ins],Pc,Pcx,Lbls,Lbx) :- !, ");
+              outMsg(out, "Pc1 is Pc+%d, ", insSize(op, A1, A2));
+              outMsg(out, "  genLblTbl(B,Pc1,Pc2,Lbls,Lb1), genLblTbl(Ins,Pc2,Pcx,Lb1,Lbx).\n");
+            }
+            break;
+            default:
+              check(False, "Cannot generate instruction");
+          }
+        }
+        break;
+      case cDe:
+        switch (A2) {
+          case nOp:
+          case tOs:
+          case i32:
+          case art:
+          case arg:
+          case lcl:
+          case lcs:
+          case glb:
+          case Es:
+          case off:
+          case tPe: {
+            char *sep = genArg(out, "(", A1, "A");
+            sep = genArg(out, sep, A2, "_");
+            if (strcmp(sep, ",") == 0)
+              outStr(out, ")");
+
+            outMsg(out, "|Ins],Pc,Pcx,Lbls,Lbx) :- !, ");
+            outMsg(out, "Pc1 is Pc+%d, ", insSize(op, A1, A2));
+            outMsg(out, "  genLblTbl(A,Pc1,Pc2,Lbls,Lb1), genLblTbl(Ins,Pc2,Pcx,Lb1,Lbx).\n");
+            break;
+          }
           case cDe: { // code in second argument
-            char *sep = genArg(out, "(", A1, "_");
+            char *sep = genArg(out, "(", A1, "A");
             sep = genArg(out, sep, A2, "B");
             if (strcmp(sep, ",") == 0)
               outStr(out, ")");
 
             outMsg(out, "|Ins],Pc,Pcx,Lbls,Lbx) :- !, ");
             outMsg(out, "Pc1 is Pc+%d, ", insSize(op, A1, A2));
-            outMsg(out, "  genLblTbl(B,Pc1,Pc2,Lbls,Lb1), genLblTbl(Ins,Pc2,Pcx,Lb1,Lbx).\n");
+            outMsg(out,
+                   "  genLblTbl(A,Pc1,Pc2,Lbls,Lb1), genLblTbl(B,Pc2,Pc3,Lb1,Lb2), genLblTbl(Ins,Pc3,Pcx,Lb2,Lbx).\n");
+            break;
           }
-          break;
           default:
             check(False, "Cannot generate instruction");
         }
-      }
-      break;
-    case cDe:
-      switch (A2) {
-        case nOp:
-        case tOs:
-        case i32:
-        case art:
-        case arg:
-        case lcl:
-        case lcs:
-        case glb:
-        case Es:
-        case off:
-        case tPe: {
-          char *sep = genArg(out, "(", A1, "A");
-          sep = genArg(out, sep, A2, "_");
-          if (strcmp(sep, ",") == 0)
-            outStr(out, ")");
-
-          outMsg(out, "|Ins],Pc,Pcx,Lbls,Lbx) :- !, ");
-          outMsg(out, "Pc1 is Pc+%d, ", insSize(op, A1, A2));
-          outMsg(out, "  genLblTbl(A,Pc1,Pc2,Lbls,Lb1), genLblTbl(Ins,Pc2,Pcx,Lb1,Lbx).\n");
-          break;
-        }
-        case cDe: { // code in second argument
-          char *sep = genArg(out, "(", A1, "A");
-          sep = genArg(out, sep, A2, "B");
-          if (strcmp(sep, ",") == 0)
-            outStr(out, ")");
-
-          outMsg(out, "|Ins],Pc,Pcx,Lbls,Lbx) :- !, ");
-          outMsg(out, "Pc1 is Pc+%d, ", insSize(op, A1, A2));
-          outMsg(out,
-                 "  genLblTbl(A,Pc1,Pc2,Lbls,Lb1), genLblTbl(B,Pc2,Pc3,Lb1,Lb2), genLblTbl(Ins,Pc3,Pcx,Lb2,Lbx).\n");
-          break;
-        }
-        default:
-          check(False, "Cannot generate instruction");
-      }
-  }
-}
-
-typedef struct {
-  integer pcV;
-  char *sep;
-} OpRes;
-
-static void showOperand(ioPo out, opAndSpec A, char *vn, char *Vtxt, OpRes *resIn) {
-  switch (A) {
-    case nOp:                             // No operand
-    case tOs:
-      break;
-    case lne:
-    case lit:
-    case sym:
-    case tPe:
-      outMsg(out, "  ssTrm(%s,0,%s),\n", vn, Vtxt);
-      outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
-      resIn->pcV++;
-      break;
-    case lcl:
-    case lcs:
-    case glb:
-    case off:
-      outMsg(out, "  %s=ss(%s),\n", Vtxt, vn);
-      outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
-      resIn->pcV++;
-      break;
-    case cDe:
-      outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
-      outMsg(out, "  %s=iv(nl(2),TT),\n", Vtxt);
-      outMsg(out, "  showMnem(%s,0,Lbls,TT),\n", vn);
-      resIn->pcV++;
-      break;
-
-    case i32:
-    case art:
-    case arg:
-      outMsg(out, "  %s=ix(%s),\n", Vtxt, vn);
-      outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
-      resIn->pcV++;
-      break;
-    case Es:
-      outMsg(out, "  %s=ss(%s),!,\n", Vtxt, vn);
-      outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
-      resIn->pcV++;
-      break;
-  }
-}
-
-static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt) {
-  outMsg(out, "showMnem([i%s", capitalize(mnem));
-
-  char *sep = genArg(out, "(", A1, "U");
-  sep = genArg(out, sep, A2, "V");
-
-  if (strcmp(sep, ",") == 0)
-    outStr(out, ")");
-
-  char *sep1 = "";
-  char *sep2 = "";
-  char *V1 = "";
-  char *V2 = "";
-
-  if (A1 != nOp) {
-    if (A1 != tOs) {
-      sep1 = ", ss(\" \"), ";
-      V1 = "UU";
-    }
-
-    if (A2 != nOp) {
-      if (A2 != tOs) {
-        sep2 = ", ss(\",\"), ";
-        V2 = "VV";
-      }
     }
   }
 
-  outMsg(out, "|Ins],Pc,Lbls,[sq([ix(Pc),ss(\":\"),ss(\"%P\")%s%s%s%s])|II]) :- !,\n", mnem, sep1, V1, sep2, V2);
-  outMsg(out, "  Pc0 is Pc+1,\n");
+  typedef struct {
+    integer pcV;
+    char *sep;
+  } OpRes;
 
-  OpRes res1 = {.pcV=0};
+  static void showOperand(ioPo out, opAndSpec A, char *vn, char *Vtxt, OpRes *resIn) {
+    switch (A) {
+      case nOp:                             // No operand
+      case tOs:
+        break;
+      case lne:
+      case lit:
+      case sym:
+      case tPe:
+        outMsg(out, "  ssTrm(%s,0,%s),\n", vn, Vtxt);
+        outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
+        resIn->pcV++;
+        break;
+      case lcl:
+      case lcs:
+      case glb:
+      case off:
+        outMsg(out, "  %s=ss(%s),\n", Vtxt, vn);
+        outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
+        resIn->pcV++;
+        break;
+      case cDe:
+        outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
+        outMsg(out, "  %s=iv(nl(2),TT),\n", Vtxt);
+        outMsg(out, "  showMnem(%s,0,Lbls,TT),\n", vn);
+        resIn->pcV++;
+        break;
 
-  showOperand(out, A1, "U", "UU", &res1);
-  showOperand(out, A2, "V", "VV", &res1);
+      case i32:
+      case art:
+      case arg:
+        outMsg(out, "  %s=ix(%s),\n", Vtxt, vn);
+        outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
+        resIn->pcV++;
+        break;
+      case Es:
+        outMsg(out, "  %s=ss(%s),!,\n", Vtxt, vn);
+        outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
+        resIn->pcV++;
+        break;
+    }
+  }
 
-  outMsg(out, "  showMnem(Ins,Pc%ld,Lbls,II).\n", res1.pcV);
-}
+  static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt) {
+    outMsg(out, "showMnem([i%s", capitalize(mnem));
+
+    char *sep = genArg(out, "(", A1, "U");
+    sep = genArg(out, sep, A2, "V");
+
+    if (strcmp(sep, ",") == 0)
+      outStr(out, ")");
+
+    char *sep1 = "";
+    char *sep2 = "";
+    char *V1 = "";
+    char *V2 = "";
+
+    if (A1 != nOp) {
+      if (A1 != tOs) {
+        sep1 = ", ss(\" \"), ";
+        V1 = "UU";
+      }
+
+      if (A2 != nOp) {
+        if (A2 != tOs) {
+          sep2 = ", ss(\",\"), ";
+          V2 = "VV";
+        }
+      }
+    }
+
+    outMsg(out, "|Ins],Pc,Lbls,[sq([ix(Pc),ss(\":\"),ss(\"%P\")%s%s%s%s])|II]) :- !,\n", mnem, sep1, V1, sep2, V2);
+    outMsg(out, "  Pc0 is Pc+1,\n");
+
+    OpRes res1 = {.pcV=0};
+
+    showOperand(out, A1, "U", "UU", &res1);
+    showOperand(out, A2, "V", "VV", &res1);
+
+    outMsg(out, "  showMnem(Ins,Pc%ld,Lbls,II).\n", res1.pcV);
+  }

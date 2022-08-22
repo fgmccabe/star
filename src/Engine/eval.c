@@ -556,10 +556,16 @@ retCode run(processPo P) {
           termPo vr = getGlobal(glb);
 
           check(vr != Null, "undefined global");
+          check(SP> (ptrPo)(FP+1),"not enough room");
 
           push(vr);     /* load a global variable */
         } else {
-          methodPo glbThnk = labelCode(findLbl(globalVarName(glb), 0));       /* set up for object call */
+          labelPo glbLbl = findLbl(globalVarName(glb), 0);
+          if(glbLbl==Null){
+            logMsg(logFile, "no definition for global %s", globalVarName(glb));
+            bail();
+          }
+          methodPo glbThnk = labelCode(glbLbl);       /* set up for object call */
 
           if (glbThnk == Null) {
             logMsg(logFile, "no definition for global %s", globalVarName(glb));
