@@ -76,8 +76,15 @@ char *stackStateName(TaskState ste);
 
 void propagateHwm(stackPo stk);
 
+typedef enum{
+  showPrognames,
+  showArguments,
+  showLocalVars
+} StackTraceLevel;
+
 void
-showStackCall(ioPo out, integer displayDepth, logical showLocals, stackPo stk, framePo fp, ptrPo sp, integer frameNo);
-void stackTrace(processPo p, ioPo out, stackPo stk, logical showLocals, integer displayDepth);
+showStackCall(ioPo out, integer displayDepth, framePo fp, stackPo stk, ptrPo sp, integer frameNo,
+              StackTraceLevel tracing);
+void stackTrace(processPo p, ioPo out, stackPo stk, integer displayDepth, StackTraceLevel tracing);
 
 #endif //STAR_STACKP_H

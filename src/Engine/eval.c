@@ -45,7 +45,7 @@
 #define prevFrme() STMT_WRAP({assert(FP >= baseFrame(STK) && ((ptrPo) FP + 1) < SP); FP--; CSP = FP->csp; PC = FP->pc; assert(SP <= CSP);LITS = codeLits(FP->prog);})
 #define bail() STMT_WRAP({\
   saveRegisters();\
-  stackTrace(P, logFile, STK, True,displayDepth);\
+  stackTrace(P, logFile, STK,displayDepth,showLocalVars);\
   return Error;\
   })
 
@@ -110,7 +110,7 @@ retCode run(processPo P) {
         logMsg(logFile, "Abort %T at %L", msg, lc);
         saveRegisters();
         verifyProc(P, H);
-        stackTrace(P, logFile, P->stk, False, displayDepth);
+        stackTrace(P, logFile, P->stk, displayDepth, showPrognames);
 
         return Error;
       }
