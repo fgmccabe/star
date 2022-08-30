@@ -11,6 +11,10 @@ test.ar{
     zer:a.
     unum:a.
   }
+
+  contract all e ~~ eqq[e] ::= {
+    eqq:(e,e)=>boolean.
+  }
   
   implementation four[integer] => {
     plus(X,Y) => _int_plus(X,Y).
@@ -21,30 +25,31 @@ test.ar{
     unum = 1.
   }.
 
-  implementation four[bigint] => {
-    plus(X,Y) => _big_plus(X,Y).
-    minus(X,Y) => _big_minus(X,Y).
-    times(X,Y) => _big_times(X,Y).
-    div(X,Y) where (q,_) .= _big_div(X,Y) => q.
-    zer = 0b.
-    unum = 1b.
+  implementation eqq[integer] => {
+    eqq(X,Y) => _int_eq(X,Y)
   }
 
-  ff:all x ~~ four[x],equality[x] |:(x)=>x.
-  ff(zer)=>unum.
+/*  person ::= someOne{
+    name:string
+  }
+
+  ff:all x ~~ four[x],eqq[x] |:(x)=>x.
+  ff(X) where eqq(X,zer) =>unum.
   ff(N) => times(N,ff(minus(N,unum))).
+  */
 
-  sample = times(plus(2,3),unum).
+  fi:(integer)=>integer.
+  fi(X) where eqq(X,zer) =>unum.
+  fi(N) => times(N,fi(minus(N,unum))).
 
-  gcd(A,B) => _big_gcd(A,B).
+--  sample = times(plus(2,3),unum).
 
   public main:()=>().
   main()=>valof{
-    assert sample==5;
-    show ff(5);
-    show ff(50b);
-    assert ff(50b) == 30414093201713378043612608166064768844377641568960512000000000000b;
-    assert gcd(1071b,462b)==21b;
+--    Peter = someOne{name="peter"};
+--    show Peter.name;
+--    assert sample==5;
+    show fi(5);
     valis ()
   }
 }
