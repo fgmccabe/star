@@ -89,22 +89,29 @@ star.compiler.normalize.driver{
       };
 
       if errorFree() && ~ macroOnly! then{
-	(PkgSpec,Defs,Decls) =checkPkg(Repo,CPkg,M);
+	(PkgSpec,Defs,IDecls,Decls) =checkPkg(Repo,CPkg,M);
 	if showCanon! then {
 	  logMsg("type checked #(displayDefs(Defs))")
 	};
 
 	if errorFree() && ~ typeCheckOnly! then {
 	  N = normalize(PkgSpec,Defs,Decls);
+	  validProg(N,IDecls++Decls);
 	  if traceNormalize! then{
 	    logMsg("normalized code $(N)");
 	  };
 	  Inlined = ( optimization! ==.inlining ? simplifyDefs(N) || N);
+	  validProg(Inlined,IDecls++Decls);
 	  if showNormalize! then{
 	    logMsg("inlined code $(Inlined)");
 	  };
 	}
       };
+      if ~errorFree() then{
+	logMsg("$(countErrors()) errors found");
+      };
+      if ~warningFree() then
+	logMsg("$(countWarnings()) warnings found");
       valis ()
     }
     else{

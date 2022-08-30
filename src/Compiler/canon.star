@@ -7,17 +7,6 @@ star.compiler.canon{
   import star.compiler.types.
   import star.compiler.operators.
 
-  public pkgSpec::=pkgSpec(pkg,cons[importSpec],cons[decl]).
-
-  public decl ::= implDec(option[locn],string,string,tipe) |
-    accDec(option[locn],tipe,string,string,tipe) |
-    updDec(option[locn],tipe,string,string,tipe) |
-    conDec(option[locn],string,string,typeRule) |
-    tpeDec(option[locn],string,tipe,typeRule) |
-    varDec(option[locn],string,string,tipe) |
-    funDec(option[locn],string,string,tipe) |
-    cnsDec(option[locn],string,string,tipe).
-
   public canon ::= vr(option[locn],string,tipe) |
     mtd(option[locn],string,tipe) |
     over(option[locn],canon,cons[constraint]) |
@@ -172,21 +161,6 @@ star.compiler.canon{
     locOf(updDef(Lc,_,_,_)) => Lc.
   }
 
-  public implementation display[pkgSpec] => {
-    disp(pkgSpec(Pkg,Imports,Decls)) =>
-      "Package: $(Pkg), imports=$(Imports), exports=$(Decls)".
-  }
-
-  public implementation display[decl] => {
-    disp(implDec(_,Nm,ImplNm,ImplTp)) => "Impl #(Nm)~#(ImplNm)\:$(ImplTp)".
-    disp(accDec(_,Tp,Fld,Fun,FunTp)) => "Acc $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
-    disp(updDec(_,Tp,Fld,Fun,FunTp)) => "Update $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
-    disp(conDec(_,Nm,_,RlTp)) => "Contract #(Nm)\:$(RlTp)".
-    disp(tpeDec(_,Nm,Tp,_)) => "Type #(Nm)\::$(Tp)".
-    disp(varDec(_,Nm,_FullNm,Tp)) => "Var #(Nm)\:$(Tp)".
-    disp(funDec(_,Nm,_FullNm,Tp)) => "Fun #(Nm)\:$(Tp)".
-    disp(cnsDec(_,Nm,_FullNm,Tp)) => "Con #(Nm)\:$(Tp)".
-  }
 
   showCanon:(canon,integer,string)=>string.
   showCanon(vr(_,Nm,Tp),_,_) => Nm.
@@ -197,7 +171,7 @@ star.compiler.canon{
   showCanon(bintr(_,Lt),_,_) => disp(Lt).
   showCanon(flt(_,Lt),_,_) => disp(Lt).
   showCanon(strng(_,Lt),_,_) => disp(Lt).
-  showCanon(enm(_,Nm,Tp),_,_) => ".#(Nm)".
+  showCanon(enm(_,Nm,Tp),_,_) => "°#(Nm)".
   showCanon(whr(_,E,C),Pr,Sp) where (Lp,OPr,Rp) ^= isInfixOp("where") =>
     "#(leftParen(OPr,Pr))#(showCanon(E,Lp,Sp)) where #(showCanon(C,Rp,Sp))#(rgtParen(OPr,Pr))".
   showCanon(dot(_,R,F,Tp),_,Sp) => "#(showCanon(R,0,Sp))°#(F)\:$(Tp)".
@@ -290,9 +264,9 @@ star.compiler.canon{
   showGroup(G,Sp) => interleave(G//(D)=>showDef(D,Sp),".\n"++Sp)*.
 
   showDef:(canonDef,string)=>string.
-  showDef(varDef(_,Nm,FullNm,lambda(_,LamNm,Rls,_),_,Tp),Sp) =>
+  showDef(varDef(_,Nm,_FullNm,lambda(_,LamNm,Rls,_),_,Tp),Sp) =>
     "Fun: #(Nm) #(showRls(LamNm,Rls,showCanon,Sp))".
-  showDef(varDef(_,Nm,FullNm,V,_,Tp),Sp) => "Var: #(Nm)[#(FullNm)] = #(showCanon(V,0,Sp))".
+  showDef(varDef(_,Nm,_FullNm,V,_,Tp),Sp) => "Var: #(Nm) = #(showCanon(V,0,Sp))".
   showDef(typeDef(_,Nm,T,_),Sp) => "Type: #(Nm)~>$(T)".
   showDef(conDef(_,_,Nm,Tp),Sp) => "Contract: #(Nm) ::= $(Tp)".
   showDef(cnsDef(_,_,Nm,Tp),Sp) => "Constructor: #(Nm):$(Tp)".

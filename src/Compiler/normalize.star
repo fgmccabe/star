@@ -376,8 +376,7 @@ star.compiler.normalize{
     (cECall(Lc,Nm,Args,Tp),Ex).
   liftExpCallOp(Lc,vr(_,Nm,_),Args,Tp,Map,_,Ex) where Entry ^= lookupVarName(Map,Nm) =>
     implementFunCall(Lc,Entry,Nm,Args,Tp,Map,Ex).
-  liftExpCallOp(Lc,enm(_,FullNm,_),Args,Tp,Map,_,Ex) =>
-    (cTerm(Lc,FullNm,Args,Tp),Ex).
+  liftExpCallOp(Lc,enm(_,FullNm,_),Args,Tp,Map,_,Ex) => (cTerm(Lc,FullNm,Args,Tp),Ex).
   liftExpCallOp(Lc,Op,Args,Tp,Map,Q,Ex) => valof{
     (LOp,Ex0) = liftExp(Op,Map,Q,Ex);
     valis (cOCall(Lc,LOp,Args,Tp),Ex0)

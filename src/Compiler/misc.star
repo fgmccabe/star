@@ -25,8 +25,8 @@ star.compiler.misc{
   markerString(.tractMark) => "$".
 
   public qualifiedName:(string,markerType,string) => string.
-  qualifiedName(_,Mrk,Nm) where Glue.=markerString(Mrk) &&
-      Ix ^= strFind(Nm,Glue,0) => Nm.
+--  qualifiedName(_,Mrk,Nm) where Glue.=markerString(Mrk) &&
+--      Ix ^= strFind(Nm,Glue,0) => Nm.
   qualifiedName(Pth,Mrk,Nm) => Pth++markerString(Mrk)++Nm.
 
   public localName:(string,markerType)=>string.
@@ -37,6 +37,9 @@ star.compiler.misc{
 
   public dotName:(string)=>string.
   dotName(N) => "."++N.
+
+  public dlrName:(string)=>string.
+  dlrName(N) => "$"++N.
 
   public isUnderscoreName:(string)=>boolean.
   isUnderscoreName(T) => T[0:1]=="_".

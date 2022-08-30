@@ -1,7 +1,10 @@
 star.compiler.term{
   import star.
 
+  import star.compiler.data.
+  import star.compiler.errors.
   import star.compiler.location.
+  import star.compiler.meta.
   import star.compiler.misc.
   import star.compiler.data.
   import star.compiler.types.
@@ -174,7 +177,7 @@ star.compiler.term{
   } in cTerm(Lc,tplLbl(Ar), Args, TpTp).
 
   public contract all e ~~ rewrite[e] ::= {
-    rewrite:(e,map[string,cExp])=>e
+    rewrite:(e,map[termLbl,cExp])=>e
   }
 
   public implementation equality[cId] => {
@@ -482,14 +485,14 @@ star.compiler.term{
     rewrite(E,M) => rwAct(E,rwVar(M)).
   }
 
-  public rewriteTerm:(cExp,map[string,cExp])=>cExp.
+  public rewriteTerm:(cExp,map[termLbl,cExp])=>cExp.
   rewriteTerm(T,Map) => rwTerm(T,rwVar(Map)).
 
-  public rewriteTerms:all e ~~ rewrite[e] |: (cons[e],map[string,cExp])=>cons[e].
+  public rewriteTerms:all e ~~ rewrite[e] |: (cons[e],map[termLbl,cExp])=>cons[e].
   rewriteTerms(Els,Map) => (Els//(E)=>rewrite(E,Map)).
 
   rwVar(M) => let{
-    test(cVar(Lc,cId(Nm,Tp))) => M[Nm].
+    test(cVar(Lc,cId(Nm,Tp))) => M[tLbl(Nm,0)].
     test(_) => .none.
   } in test.
 
@@ -502,6 +505,9 @@ star.compiler.term{
 
   public cName:(cId) => string.
   cName(cId(Nm,_))=>Nm.
+
+  public cType:(cId) => tipe.
+  cType(cId(_,Tp)) => Tp.
 
   public isCrCond:(cExp)=>boolean.
   isCrCond(cCnj(_,_,_))=>.true.
@@ -557,7 +563,7 @@ star.compiler.term{
 
     mkUnpack(Lc,V,Arms) => cUnpack(Lc,V,Arms,typeOf(V)).
 
-    mkLtt(Lc,V,E,X) => cLtt(Lc,V,E,X).
+    mkLtt(Lc,V,E,X) => trace("making ltt ",cLtt(Lc,V,E,X)).
   .}
 
   public implementation reform[aAction] => {
@@ -575,76 +581,252 @@ star.compiler.term{
     mkLtt(Lc,V,E,X) => aLtt(Lc,V,E,X).
   }
 
-  public lblUsed:(aAction,string) => boolean.
-  lblUsed(aNop(_),_) => .false.
-  lblUsed(aSeq(_,A1,A2),Lb) => lblUsed(A1,Lb) || lblUsed(A2,Lb).
-  lblUsed(aLbld(_,Lb,_),Lb) => .false.
-  lblUsed(aLbld(_,_,A),Lb) => lblUsed(A,Lb).
-  lblUsed(aBreak(_,L),Lb) => L==Lb.
-  lblUsed(aValis(_,E),Lb) => lblUsedInExp(E,Lb).
-  lblUsed(aThrow(_,E),Lb) => lblUsedInExp(E,Lb).
-  lblUsed(aPerf(_,E),Lb) => lblUsedInExp(E,Lb).
-  lblUsed(aDefn(_,_,E),Lb) => lblUsedInExp(E,Lb).
-  lblUsed(aAsgn(_,L,V),Lb) => lblUsedInExp(L,Lb) || lblUsedInExp(V,Lb).
-  lblUsed(aCase(_,G,Cs,D),Lb) =>
-    lblUsedInExp(G,Lb) || lblUsedInCases(Cs,lblUsed,Lb) || lblUsed(D,Lb).
-  lblUsed(aUnpack(_,G,Cs),Lb) =>
-    lblUsedInExp(G,Lb) || lblUsedInCases(Cs,lblUsed,Lb).
-  lblUsed(aIftte(_,G,T,E),Lb) =>
-    lblUsedInExp(G,Lb) || lblUsed(T,Lb) || lblUsed(E,Lb).
-  lblUsed(aWhile(_,G,A),Lb) =>
-    lblUsedInExp(G,Lb) || lblUsed(A,Lb).
-  lblUsed(aRetire(_,T,E),Lb) => lblUsedInExp(T,Lb) || lblUsedInExp(E,Lb).
-  lblUsed(aTry(_,T,H),Lb) => lblUsed(T,Lb) || lblUsed(H,Lb).
-  lblUsed(aLtt(_,_,T,A),Lb) => lblUsedInExp(T,Lb) || lblUsed(A,Lb).
-  lblUsed(aVarNmes(_,_,A),Lb) => lblUsed(A,Lb).
-  lblUsed(aAbort(_,_),_) => .false.
+  dfVars:(cons[cDefn],set[cId])=>set[cId].
+  dfVars([fnDef(_,Nm,Tp,_,_),..Ds],D) =>
+    dfVars(Ds,D\+cId(Nm,Tp)).
+  dfVars([vrDef(_,Nm,Tp,_),..Ds],D) =>
+    dfVars(Ds,D\+cId(Nm,Tp)).
+  dfVars([_,..Ds],D) => dfVars(Ds,D).
+  dfVars([],D) => D.
 
-  lblUsedInExp:(cExp,string) => boolean.
-  lblUsedInExp(cVoid(_,_),_) => .false.
-  lblUsedInExp(cAnon(_,_),_) => .false.
-  lblUsedInExp(cVar(_,_),_) => .false.
-  lblUsedInExp(cInt(_,_),_) => .false.
-  lblUsedInExp(cBig(_,_),_) => .false.
-  lblUsedInExp(cChar(_,_),_) => .false.
-  lblUsedInExp(cString(_,_),_) => .false.
-  lblUsedInExp(cFloat(_,_),_) => .false.
-  lblUsedInExp(cTerm(_,_,Args,_),Lb) => {? E in Args && lblUsedInExp(E,Lb) ?}.
-  lblUsedInExp(cNth(_,T,_,_),Lb) => lblUsedInExp(T,Lb).
-  lblUsedInExp(cSetNth(_,T,_,V),Lb) => lblUsedInExp(T,Lb) || lblUsedInExp(V,Lb).
-  lblUsedInExp(cCall(_,_,Args,_),Lb) => {? E in Args && lblUsedInExp(E,Lb) ?}.
-  lblUsedInExp(cECall(_,_,Args,_),Lb) => {? E in Args && lblUsedInExp(E,Lb) ?}.
-  lblUsedInExp(cOCall(_,Op,Args,_),Lb) =>
-    lblUsedInExp(Op,Lb) || {? E in Args && lblUsedInExp(E,Lb) ?}.
-  lblUsedInExp(cThrow(_,E,_),Lb) => lblUsedInExp(E,Lb).
-  lblUsedInExp(cSeq(_,L,R),Lb) => lblUsedInExp(L,Lb) || lblUsedInExp(R,Lb).
-  lblUsedInExp(cCnj(_,L,R),Lb) => lblUsedInExp(L,Lb) || lblUsedInExp(R,Lb).
-  lblUsedInExp(cDsj(_,L,R),Lb) => lblUsedInExp(L,Lb) || lblUsedInExp(R,Lb).
-  lblUsedInExp(cNeg(_,R),Lb) => lblUsedInExp(R,Lb).
-  lblUsedInExp(cCnd(_,T,L,R),Lb) =>
-    lblUsedInExp(T,Lb) || lblUsedInExp(L,Lb) || lblUsedInExp(R,Lb).
-  lblUsedInExp(cLtt(_,_,V,T),Lb) =>
-    lblUsedInExp(V,Lb) || lblUsedInExp(T,Lb).
-  lblUsedInExp(cCase(_,G,Cs,D,_),Lb) =>
-    lblUsedInExp(G,Lb) || lblUsedInCases(Cs,lblUsedInExp,Lb) || lblUsedInExp(D,Lb).
-  lblUsedInExp(cUnpack(_,G,Cs,_),Lb) =>
-    lblUsedInExp(G,Lb) || lblUsedInCases(Cs,lblUsedInExp,Lb).
-  lblUsedInExp(cWhere(_,V,T),Lb) =>
-    lblUsedInExp(V,Lb) || lblUsedInExp(T,Lb).
-  lblUsedInExp(cMatch(_,V,T),Lb) =>
-    lblUsedInExp(V,Lb) || lblUsedInExp(T,Lb).
-  lblUsedInExp(cVarNmes(_,_,T),Lb) =>
-    lblUsedInExp(T,Lb).
-  lblUsedInExp(cAbort(_,_,_),_) => .false.
-  lblUsedInExp(cTask(_,T,_),Lb) => lblUsedInExp(T,Lb).
-  lblUsedInExp(cSusp(_,T,E,_),Lb) => lblUsedInExp(T,Lb) || lblUsedInExp(E,Lb).
-  lblUsedInExp(cResume(_,T,E,_),Lb) => lblUsedInExp(T,Lb) || lblUsedInExp(E,Lb).
-  lblUsedInExp(cTry(_,T,E,_),Lb) => lblUsedInExp(T,Lb) || lblUsedInExp(E,Lb).
-  lblUsedInExp(cValof(_,A,_),Lb) => lblUsed(A,Lb).
+  dclVrs:(cons[decl],set[cId])=>set[cId].
+  dclVrs([funDec(_,_,Nm,Tp),..Ds],D) =>
+    dclVrs(Ds,D\+cId(Nm,Tp)).
+  dclVrs([varDec(_,_,Nm,Tp),..Ds],D) =>
+    dclVrs(Ds,D\+cId(Nm,Tp)).
+  dclVrs([cnsDec(_,_,Nm,Tp),..Ds],D) =>
+    dclVrs(Ds,D\+cId(Nm,Tp)).
+  dclVrs([accDec(_,_,_,Nm,Tp),..Ds],D) => 
+    dclVrs(Ds,D\+cId(Nm,Tp)).
+  dclVrs([updDec(_,_,_,Nm,Tp),..Ds],D) =>
+    dclVrs(Ds,D\+cId(Nm,Tp)).
+  dclVrs([implDec(_,_,Nm,Tp),..Ds],D) =>
+    dclVrs(Ds,D\+cId(Nm,Tp)).
+  dclVrs([_,..Ds],D) => dclVrs(Ds,D).
+  dclVrs([],D) => D.
 
-  lblUsedInCases:all e ~~ (cons[cCase[e]],(e,string)=>boolean,string)=>boolean.
-  lblUsedInCases([],_,_) => .false.
-  lblUsedInCases([(_,A,E),..Cs],P,Lb) =>
-    lblUsedInExp(A,Lb) || P(E,Lb) || lblUsedInCases(Cs,P,Lb).
+  public validProg:(cons[cDefn],cons[decl]) => ().
+  validProg(Defs,Decls) => valof{
+    
+    D = dfVars(Defs,dclVrs(Decls,[]));
+
+    for Df in Defs do{
+      case Df in {
+	fnDef(Lc,Nm,Tp,Args,Val) => {
+	  D1 = foldLeft((V,D1)=>D1\+V,D,Args);
+	  if ~validE(Val,D1) then{
+	    reportError("$(fnDef(Lc,Nm,Tp,Args,Val)) not valid",Lc)
+	  }
+	}
+	vrDef(Lc,Nm,Tp,Val) => {
+	  if ~validE(Val,D) then{
+	    reportError("$(vrDef(Lc,Nm,Tp,Val)) not valid",Lc)
+	  }
+	}
+	_ default => {}
+      }
+    };
+    valis ()
+  }
+
+  validE:(cExp,set[cId]) => boolean.
+  validE(cVoid(Lc,Tp),_) => .true.
+  validE(cAnon(_,_),_) => .true.
+  validE(cVar(Lc,V),D) => ( V .<. D ? .true || valof{
+      reportError("$(V) not defined",Lc);
+      valis .false
+    }).
+  validE(cInt(_,_),_) => .true.
+  validE(cBig(_,_),_) => .true.
+  validE(cChar(_,_),_) => .true.
+  validE(cString(_,_),_) => .true.
+  validE(cFloat(_,_),_) => .true.
+  validE(cTerm(_,_,Args,_),D) => {? E in Args *> validE(E,D) ?}.
+  validE(cNth(_,R,_,_),D) => validE(R,D).
+  validE(cSetNth(_,R,_,V),D) => validE(R,D) && validE(V,D).
+  validE(cCall(_,_,Args,_),D) => {? E in Args *> validE(E,D) ?}.
+  validE(cECall(_,_,Args,_),D) => {? E in Args *> validE(E,D) ?}.
+  validE(cOCall(_,Op,Args,_),D) =>
+    validE(Op,D) && {? E in Args *> validE(E,D) ?}.
+  validE(cThrow(_,E,_),D) => validE(E,D).
+  validE(cSeq(_,L,R),D) => validE(L,D) && validE(R,D).
+  validE(cCnj(_,L,R),D) => validE(L,D) && validE(R,D).
+  validE(cDsj(_,L,R),D) => validE(L,D) && validE(R,D).
+  validE(cNeg(_,R),D) => validE(R,D).
+  validE(cCnd(_,Ts,L,R),D) => valof{
+    D1 = glVars(Ts,D);
+    valis validE(Ts,D1) && validE(L,D1) && validE(R,D)
+  }
+  validE(cLtt(_,B,V,E),D) => validE(V,D) && validE(E,D\+B).
+  validE(cCase(_,G,Cs,Df,_),D) => validE(G,D) && validCases(Cs,validE,D) && validE(Df,D).
+  validE(cUnpack(_,G,Cs,_),D) => validE(G,D) && validCases(Cs,validE,D).
+  validE(cWhere(_,V,E),D) =>
+    validE(V,D) && validE(E,D).
+  validE(cMatch(_,V,E),D) =>
+    validE(V,D) && validE(E,D).
+  validE(cVarNmes(_,_,E),D) => validE(E,D).
+  validE(cAbort(_,_,_),_) => .true.
+  validE(cTask(_,Ts,_),D) => validE(Ts,D).
+  validE(cSusp(_,Ts,E,_),D) => validE(Ts,D) && validE(E,D).
+  validE(cResume(_,Ts,E,_),D) => validE(Ts,D) && validE(E,D).
+  validE(cTry(_,Ts,E,_),D) => validE(Ts,D) && validE(E,D).
+  validE(cValof(_,A,_),D) => validA(A,D).
+
+  validCases:all e ~~ (cons[cCase[e]],(e,set[cId])=>boolean,set[cId]) => boolean.
+  validCases([],_,_) => .true.
+  validCases([(_,A,E),..Cs],P,D) => valof{
+    D1 = ptnVars(A,D);
+    valis validE(A,D1) && P(E,D1) && validCases(Cs,P,D)
+  }
+
+  validA:(aAction,set[cId])=>boolean.
+  validA(aNop(_),_) => .true.
+  validA(aSeq(_,A1,A2),D) => valof{
+    if aDefn(_,P,V) .= A1 then{
+      D1 = ptnVars(P,D);
+      valis validE(P,D1) && validE(V,D) && validA(A2,D1);
+    } else {
+      valis validA(A1,D) && validA(A2,D)
+    }
+  }
+  validA(aLbld(_,_,A),D) => validA(A,D).
+  validA(aBreak(_,L),D) => .true.
+  validA(aValis(_,E),D) => validE(E,D).
+  validA(aThrow(_,E),D) => validE(E,D).
+  validA(aPerf(_,E),D) => validE(E,D).
+  validA(aDefn(_,P,E),D) => validE(P,ptnVars(P,D)) && validE(E,D).
+  validA(aAsgn(_,L,V),D) => validE(L,D) && validE(V,D).
+  validA(aCase(_,G,Cs,Df),D) =>
+    validE(G,D) && validCases(Cs,validA,D) && validA(Df,D).
+  validA(aUnpack(_,G,Cs),D) =>
+    validE(G,D) && validCases(Cs,validA,D).
+  validA(aIftte(_,G,Th,E),D) => valof{
+    D1 = glVars(G,D);
+    valis validE(G,D1) && validA(Th,D1) && validA(E,D)
+  }
+  validA(aWhile(_,G,A),D) => valof{
+    D1 = glVars(G,D);
+    valis validE(G,D1) && validA(A,D1)
+  }
+  validA(aRetire(_,Ts,E),D) => validE(Ts,D) && validE(E,D).
+  validA(aTry(_,A,H),D) => validA(A,D) && validA(H,D).
+  validA(aLtt(_,B,V,A),D) => validE(V,D) && validA(A,D\+B).
+  validA(aVarNmes(_,_,A),D) => validA(A,D).
+  validA(aAbort(_,_),_) => .true.
+
+  ptnVars:(cExp,set[cId]) => set[cId].
+  ptnVars(cVoid(_,_),D) => D.
+  ptnVars(cAnon(_,_),D) => D.
+  ptnVars(cVar(_,V),D) => D\+V.
+  ptnVars(cInt(_,_),D) => D.
+  ptnVars(cBig(_,_),D) => D.
+  ptnVars(cChar(_,_),D) => D.
+  ptnVars(cString(_,_),D) => D.
+  ptnVars(cFloat(_,_),D) => D.
+  ptnVars(cTerm(_,_,Args,_),D) => foldLeft(ptnVars,D,Args).
+  ptnVars(cNth(_,R,_,_),D) => ptnVars(R,D).
+  ptnVars(cWhere(_,V,E),D) => ptnVars(V,glVars(E,D)).
+
+  glVars:(cExp,set[cId])=>set[cId].
+  glVars(cCnj(_,L,R),D) => glVars(R,glVars(L,D)).
+  glVars(cDsj(_,L,R),D) => valof{
+    D1 = glVars(L,[]);
+    D2 = glVars(R,[]);
+    valis D\/(D1/\D2)
+  }
+  glVars(cNeg(_,R),D) => D.
+  glVars(cCnd(_,Ts,L,R),D) => valof{
+    D1 = glVars(Ts,glVars(L,[]));
+    D2 = glVars(R,[]);
+    valis D\/(D1/\D2)
+  }
+  glVars(cWhere(_,V,C),D) => glVars(C,glVars(V,D)).
+  glVars(cMatch(_,P,_),D) => ptnVars(P,D).
+  glVars(_,D) default => D.
   
+
+  public lblUsed:(aAction,string) => boolean.
+  lblUsed(A,Lb) => presentInA(A,(T)=>isBreak(T,Lb),(_)=>.false).
+
+  isBreak(aBreak(_,Lb),Lb) => .true.
+  isBreak(_,_) default => .false.
+
+  presentInA(A,C,_) where C(A) => .true.
+  presentInA(aNop(_),_,_) => .false.
+  presentInA(aSeq(_,A1,A2),C,T) => presentInA(A1,C,T) || presentInA(A2,C,T).
+  presentInA(aLbld(_,_,A),C,T) => presentInA(A,C,T).
+  presentInA(aBreak(_,L),C,T) => .false.
+  presentInA(aValis(_,E),C,T) => presentInE(E,C,T).
+  presentInA(aThrow(_,E),C,T) => presentInE(E,C,T).
+  presentInA(aPerf(_,E),C,T) => presentInE(E,C,T).
+  presentInA(aDefn(_,_,E),C,T) => presentInE(E,C,T).
+  presentInA(aAsgn(_,L,V),C,T) => presentInE(L,C,T) || presentInE(V,C,T).
+  presentInA(aCase(_,G,Cs,D),C,T) =>
+    presentInE(G,C,T) || presentInCases(Cs,presentInA,C,T) || presentInA(D,C,T).
+  presentInA(aUnpack(_,G,Cs),C,T) =>
+    presentInE(G,C,T) || presentInCases(Cs,presentInA,C,T).
+  presentInA(aIftte(_,G,Th,E),C,T) =>
+    presentInE(G,C,T) || presentInA(Th,C,T) || presentInA(E,C,T).
+  presentInA(aWhile(_,G,A),C,T) =>
+    presentInE(G,C,T) || presentInA(A,C,T).
+  presentInA(aRetire(_,Ts,E),C,T) => presentInE(Ts,C,T) || presentInE(E,C,T).
+  presentInA(aTry(_,A,H),C,T) => presentInA(A,C,T) || presentInA(H,C,T).
+  presentInA(aLtt(_,_,V,A),C,T) => presentInE(V,C,T) || presentInA(A,C,T).
+  presentInA(aVarNmes(_,_,A),C,T) => presentInA(A,C,T).
+  presentInA(aAbort(_,_),_,_) => .false.
+
+  public varPresent:(cExp,string)=>boolean.
+  varPresent(E,Nm) => presentInE(E,(_)=>.false,(V)=>sameVar(V,Nm)).
+
+  sameVar(cVar(_,cId(Nm,_)),Nm) => .true.
+  sameVar(_,_) default => .false.
+
+  presentInE:(cExp,(aAction)=>boolean,(cExp)=>boolean) => boolean.
+  presentInE(T,_,C) where C(T) => .true.
+  presentInE(cVoid(_,_),_,_) => .false.
+  presentInE(cAnon(_,_),_,_) => .false.
+  presentInE(cVar(_,_),_,_) => .false.
+  presentInE(cInt(_,_),_,_) => .false.
+  presentInE(cBig(_,_),_,_) => .false.
+  presentInE(cChar(_,_),_,_) => .false.
+  presentInE(cString(_,_),_,_) => .false.
+  presentInE(cFloat(_,_),_,_) => .false.
+  presentInE(cTerm(_,_,Args,_),C,T) => {? E in Args && presentInE(E,C,T) ?}.
+  presentInE(cNth(_,R,_,_),C,T) => presentInE(R,C,T).
+  presentInE(cSetNth(_,R,_,V),C,T) => presentInE(R,C,T) || presentInE(V,C,T).
+  presentInE(cCall(_,_,Args,_),C,T) => {? E in Args && presentInE(E,C,T) ?}.
+  presentInE(cECall(_,_,Args,_),C,T) => {? E in Args && presentInE(E,C,T) ?}.
+  presentInE(cOCall(_,Op,Args,_),C,T) =>
+    presentInE(Op,C,T) || {? E in Args && presentInE(E,C,T) ?}.
+  presentInE(cThrow(_,E,_),C,T) => presentInE(E,C,T).
+  presentInE(cSeq(_,L,R),C,T) => presentInE(L,C,T) || presentInE(R,C,T).
+  presentInE(cCnj(_,L,R),C,T) => presentInE(L,C,T) || presentInE(R,C,T).
+  presentInE(cDsj(_,L,R),C,T) => presentInE(L,C,T) || presentInE(R,C,T).
+  presentInE(cNeg(_,R),C,T) => presentInE(R,C,T).
+  presentInE(cCnd(_,Ts,L,R),C,T) =>
+    presentInE(Ts,C,T) || presentInE(L,C,T) || presentInE(R,C,T).
+  presentInE(cLtt(_,_,V,E),C,T) =>
+    presentInE(V,C,T) || presentInE(E,C,T).
+  presentInE(cCase(_,G,Cs,D,_),C,T) =>
+    presentInE(G,C,T) || presentInCases(Cs,presentInE,C,T) || presentInE(D,C,T).
+  presentInE(cUnpack(_,G,Cs,_),C,T) =>
+    presentInE(G,C,T) || presentInCases(Cs,presentInE,C,T).
+  presentInE(cWhere(_,V,E),C,T) =>
+    presentInE(V,C,T) || presentInE(E,C,T).
+  presentInE(cMatch(_,V,E),C,T) =>
+    presentInE(V,C,T) || presentInE(E,C,T).
+  presentInE(cVarNmes(_,_,E),C,T) =>
+    presentInE(E,C,T).
+  presentInE(cAbort(_,_,_),_,_) => .false.
+  presentInE(cTask(_,Ts,_),C,T) => presentInE(Ts,C,T).
+  presentInE(cSusp(_,Ts,E,_),C,T) => presentInE(Ts,C,T) || presentInE(E,C,T).
+  presentInE(cResume(_,Ts,E,_),C,T) => presentInE(Ts,C,T) || presentInE(E,C,T).
+  presentInE(cTry(_,Ts,E,_),C,T) => presentInE(Ts,C,T) || presentInE(E,C,T).
+  presentInE(cValof(_,A,_),C,T) => presentInA(A,C,T).
+
+  presentInCases:all e ~~ (cons[cCase[e]],(e,(aAction)=>boolean,(cExp)=>boolean)=>boolean,
+    (aAction)=>boolean,(cExp)=>boolean)=>boolean.
+  presentInCases([],_,_,_) => .false.
+  presentInCases([(_,A,E),..Cs],P,C,T) =>
+    presentInE(A,C,T) || P(E,C,T) || presentInCases(Cs,P,C,T).
 }

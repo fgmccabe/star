@@ -26,17 +26,21 @@ star.compiler.checker{
   -- package level of type checker
 
   public checkPkg:all r ~~ repo[r],display[r]|:(r,pkg,ast) =>
-    (pkgSpec,cons[canonDef],cons[decl]).
+    (pkgSpec,cons[canonDef],cons[decl],cons[decl]).
   checkPkg(Repo,Pkge,P) => valof{
     Base = stdDict;
     if (Lc,Pk,Els) ^= isQBrTerm(P) && Pkg .= pkgeName(Pk) then{
       if compatiblePkg(Pkg,Pkge) then{
 	(Imports,Stmts) = collectImports(Els,[],[]);
 	(AllImports,IDecls) = importAll(Imports,Repo,[],[]);
+
+	if traceCanon! then
+	  logMsg("Imported decls $(IDecls)");
+	
 	PkgEnv = declareDecls(IDecls,Base);
 
---	if traceCanon! then
---	  logMsg("Dictionary for pkg: $(PkgEnv)");
+	if traceCanon! then
+	  logMsg("Dictionary for pkg: $(PkgEnv)");
 	
 	PkgPth = packageName(Pkg);
 
@@ -55,13 +59,13 @@ star.compiler.checker{
 
 	ExDecls = exportDecls(AllDecls,completePublic(Vis,PkgPth),.priVate);
 
-	valis (pkgSpec(Pkge,Imports,ExDecls),RDefs,AllDecls)
+	valis (pkgSpec(Pkge,Imports,ExDecls),RDefs,IDecls,AllDecls)
       }
       else
       reportError("package name $(Pkg) does not match expected $(Pkge)",locOf(P))
     } else
     reportError("invalid package structure",locOf(P));
-    valis (pkgSpec(Pkge,[],[]),[],[])
+    valis (pkgSpec(Pkge,[],[]),[],[],[])
   }
 
   completePublic:(cons[(defnSp,visibility)],string) => cons[(defnSp,visibility)].
@@ -290,23 +294,27 @@ star.compiler.checker{
   }
 
   processEqn(St,ProgramType,ErTp,Env,Outer,Path) where (Lc,_,IsDeflt,Arg,Cnd,R) ^= isEquation(St) => valof{
-    
---	logMsg("check equation $(St)");
+    if traceCanon! then
+      logMsg("check equation $(St)");
     Ats = genArgTps(Arg);
     RTp = newTypeVar("_R");
     checkType(St,funType(Ats,RTp),ProgramType,Env);
     (Args,E0) = typeOfArgPtn(Arg,tupleType(Ats),ErTp,Outer,Path);
---	logMsg("equation args $(Args) \: $(tupleType(Ats))");
+    if traceCanon! then
+      logMsg("equation args $(Args) \: $(tupleType(Ats))");
 	
     if Wh^=Cnd then{
       (Cond,E1) = checkCond(Wh,ErTp,E0,Path);
---	  logMsg("condition $(Cond)");
+      if traceCanon! then
+	logMsg("condition $(Cond)");
       Rep = typeOfExp(R,RTp,ErTp,E1,Path);
---	  logMsg("equation rhs $(Rep) \: $(RTp)");
+      if traceCanon! then
+	logMsg("equation rhs $(Rep) \: $(RTp)");
 	  
       valis (rule(Lc,Args,some(Cond),Rep),IsDeflt)
     } else{
---	  logMsg("expected type of rhs $(RTp)");
+      if traceCanon! then
+	logMsg("expected type of rhs $(RTp)");
       valis (rule(Lc,Args,.none,typeOfExp(R,RTp,ErTp,E0,Path)),IsDeflt)
     }
   }
@@ -314,25 +322,31 @@ star.compiler.checker{
   checkImplementation:(option[locn],cons[ast],cons[ast],ast,ast,dict,dict,string) =>
     (cons[canonDef],cons[decl]).
   checkImplementation(Lc,Q,C,H,B,Env,Outer,Path) => valof{
-    logMsg("checking implementation for $(H) stmt at $(Lc)");
+    if traceCanon! then
+      logMsg("checking implementation for $(H) = $(B) at $(Lc)");
     
     BV = parseBoundTpVars(Q);
     Cx = parseConstraints(C,BV,Env);
     Cn = parseContractConstraint(BV,H,Env);
-    ConName = localName(conTractName(Cn),.tractMark);
-    logMsg("Contract name $(ConName)");
+    ConName = localName(conTractName(Cn),.pkgMark);
+    if traceCanon! then
+      logMsg("Contract name $(ConName)");
     
     if Con ^= findContract(Env,ConName) then{
       (_,contractExists(CnNm,CnTps,CnDps,ConFaceTp)) = freshen(Con,Env);
       ConTp = mkConType(CnNm,CnTps,CnDps);
-      logMsg("contract exists: $(ConTp) ~ $(Cn)");
+      if traceCanon! then
+	logMsg("contract exists: $(ConTp) ~ $(Cn)");
       if sameType(ConTp,typeOf(Cn),Env) then {
 	Es = declareConstraints(Lc,Cx,declareTypeVars(BV,Outer));
 	Impl = typeOfExp(B,ConTp,.none,Es,Path);
+	if traceCanon! then
+	  logMsg("implementation expression $(Impl)");
 	ImplNm = implementationName(conTract(CnNm,CnTps,CnDps));
 	ImplVrNm = qualifiedName(Path,.valMark,ImplNm);
 	ImplTp = rebind(BV,reConstrainType(Cx,ConTp),Es);
-	logMsg("implementation definition $(implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp))");
+	if traceCanon! then
+	  logMsg("implementation definition $(implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp))");
 	
 	valis ([implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp)],
 	  [implDec(Lc,ImplNm,ImplVrNm,ImplTp)])
@@ -349,7 +363,8 @@ star.compiler.checker{
 
   checkAccessor:(option[locn],string,cons[ast],cons[ast],ast,ast,dict,dict,string) => (cons[canonDef],cons[decl]).
   checkAccessor(Lc,Nm,Q,C,T,B,Env,Outer,Path) => valof{
---    logMsg("check accessor $(Nm)");
+    if traceCanon! then
+      logMsg("check accessor $(Nm)");
     QV = parseBoundTpVars(Q);
     Cx = parseConstraints(C,QV,Env);
     (_,Fn,[TA]) = ^isSquareTerm(T);
@@ -361,20 +376,24 @@ star.compiler.checker{
     AccFn = typeOfExp(B,AT,.none,Env,Path);
     AccTp = rebind(QV,reConstrainType(Cx,AT),Env);
 
---    logMsg("accessor exp $(AccFn)\:$(AccTp)");
+    if traceCanon! then
+      logMsg("accessor exp $(AccFn)\:$(AccTp)");
 
     AccVrNm = qualifiedName(Path,.valMark,qualifiedName(tpName(RcTp),.typeMark,Fld));
 
---    logMsg("accessor var $(AccVrNm)");
+    if traceCanon! then
+      logMsg("accessor var $(AccVrNm)");
     Defn = varDef(Lc,AccVrNm,AccVrNm,AccFn,Cx,AccTp);
     Decl = accDec(Lc,rebind(QV,reConstrainType(Cx,RcTp),Env),Fld,AccVrNm,AccTp);
---    logMsg("accessor $(Decl)");
+    if traceCanon! then
+      logMsg("accessor $(Decl)");
     valis ([Defn],[Decl])
   }
 
   checkUpdater:(option[locn],string,cons[ast],cons[ast],ast,ast,dict,dict,string) => (cons[canonDef],cons[decl]).
   checkUpdater(Lc,Nm,Q,C,T,B,Env,Outer,Path) => valof{
---    logMsg("Check updater: $(Nm) Head:$(T), Body:$(B)");
+    if traceCanon! then
+      logMsg("Check updater: $(Nm) Head:$(T), Body:$(B)");
     QV = parseBoundTpVars(Q);
     Cx = parseConstraints(C,QV,Env);
     (_,Fn,[TA]) = ^isSquareTerm(T);
@@ -382,9 +401,11 @@ star.compiler.checker{
     (_,Fld) = ^isName(Fn);
     RcTp = parseType(QV,L,Env);
     FldTp = parseType(QV,R,Env);
---    logMsg("Bound vars: $(QV), Field type $(FldTp), Record type $(RcTp)");
+    if traceCanon! then
+      logMsg("Bound vars: $(QV), Field type $(FldTp), Record type $(RcTp)");
     AT = funType([RcTp,FldTp],RcTp);
---    logMsg("Updater type: $(AT)");
+    if traceCanon! then
+      logMsg("Updater type: $(AT)");
     AccFn = typeOfExp(B,AT,.none,Env,Path);
     AccTp = rebind(QV,reConstrainType(Cx,AT),Env);
 
@@ -392,7 +413,8 @@ star.compiler.checker{
 
     Defn = varDef(Lc,AccVrNm,AccVrNm,AccFn,Cx,AccTp);
     Decl = updDec(Lc,rebind(QV,reConstrainType(Cx,RcTp),Env),Fld,AccVrNm,AccTp);
---    logMsg("updater $(Decl)");
+    if traceCanon! then
+      logMsg("updater $(Decl)");
     valis ([Defn],[Decl])
   }
     
@@ -450,7 +472,8 @@ star.compiler.checker{
     valis (apply(Lc,Fun,Args,Tp),Ev)
   }
   typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Op,Ss) ^= isLabeledTheta(A) => valof{
---    logMsg("labeled record ptn: $(A)");
+    if traceCanon! then
+      logMsg("labeled record ptn: $(A)");
     At = newTypeVar("A");
     Fun = typeOfExp(Op,consType(At,Tp),ErTp,Env,Path);
 
@@ -519,7 +542,8 @@ star.compiler.checker{
   }
   typeOfExp(A,Tp,_,Env,Path) where (Lc,Id) ^= isName(A) => valof{
     if Var ^= findVar(Lc,Id,Env) then{
---      logMsg("$(A)\:$(Var)\:$(typeOf(Var)) ~ $(Tp)");
+      if traceCanon! then
+	logMsg("$(A)\:$(Var)\:$(typeOf(Var)) ~ $(Tp)");
       if sameType(Tp,typeOf(Var),Env) then {
 	valis Var
       } else{
@@ -664,21 +688,21 @@ star.compiler.checker{
     valis formTheta(Lc,Nm,Face,Defs,Decls,Tp)
   }
   typeOfExp(A,Tp,ErTp,Env,Pth) where (Lc,Op,Els) ^= isLabeledRecord(A) && (_,Nm)^=isName(Op) => valof{
-    logMsg("labeled record expression $(A) should be $(Tp)");
+--    logMsg("labeled record expression $(A) should be $(Tp)");
     FceTp = newTypeVar("_");
     ConTp = consType(FceTp,Tp);
-    logMsg("checking type of $(Op) against $(ConTp)");
+--    logMsg("checking type of $(Op) against $(ConTp)");
     Fun = typeOfExp(Op,ConTp,ErTp,Env,Pth);
-    logMsg("$(Op) |: $(ConTp)");
+--    logMsg("$(Op) |: $(ConTp)");
     (Q,ETp) = evidence(FceTp,Env);
-    logMsg("face of type $(ETp)\:$(faceOfType(FceTp,Env))");
+--    logMsg("face of type $(ETp)\:$(faceOfType(FceTp,Env))");
     FaceTp = ^faceOfType(ETp,Env);
     (Cx,Face) = deConstrain(FaceTp);
     Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
     
     (Defs,Decls) = recordEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,Env,.deFault);
     
-    valis formRecordExp(Lc,dotName(Nm),Face,Defs,Decls,Tp)
+    valis formRecordExp(Lc,dlrName(Nm),Face,Defs,Decls,Tp)
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Els,Bnd) ^= isLetRecDef(A) => valof{
     (Defs,Decls,ThEnv)=thetaEnv(Lc,genNewName(Path,"Γ"),Els,faceType([],[]),Env,.priVate);

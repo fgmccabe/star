@@ -28,7 +28,7 @@ star.compiler.normalize.meta{
   public nameMap ~> cons[mapLayer].
 
   public implementation display[mapLayer] => {
-    disp(lyr(V,VEntries,TEntries)) => "thV=$(V)\:$(VEntries)\:$(TEntries)".
+    disp(lyr(V,VEntries,TEntries)) => "<thV=$(V)\:$(VEntries)\:$(TEntries)>".
   }
 
   public implementation display[nameMapEntry] => {
