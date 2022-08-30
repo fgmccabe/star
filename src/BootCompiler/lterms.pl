@@ -3,7 +3,7 @@
 		  substTerm/3,substGoal/3,substAction/3,
 		  substTerms/3,rewriteTerm/3,
 		  rewriteAction/3,
-		  genTplStruct/2,isLiteral/1,isCnd/1,mkTpl/2,
+		  genTplStruct/2,isLiteral/1,isCnd/1,mkTpl/2,isTpl/1,
 		  isTplLbl/2,mkCons/3,
 		  isUnit/1,
 		  termHash/2,
@@ -480,6 +480,8 @@ isTplLbl(Nm,Ar) :- string_concat("()",A,Nm),number_string(Ar,A).
 mkTpl(Els,ctpl(C,Els)) :-
   length(Els,Cnt),
   genTplStruct(Cnt,C).
+
+isTpl(ctpl(lbl(Lb,Ar),_)) :- isTplLbl(Lb,Ar).
 
 mkCons(Nm,Els,ctpl(lbl(Nm,Arity),Els)) :-
   length(Els,Arity).
