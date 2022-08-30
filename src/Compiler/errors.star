@@ -31,6 +31,9 @@ star.compiler.errors{
   countError(errorMsg(_,_),Ix)=>Ix+1.
   countError(_,Ix) default => Ix.
 
+  public warningFree:()=>boolean.
+  warningFree() => countWarnings()==0.
+
   public countWarnings:()=>integer.
   countWarnings() => foldLeft(countWarning,0,reports!).
 

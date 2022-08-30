@@ -8,6 +8,7 @@ star.compiler.dict.mgt{
   import star.compiler.intrinsics.
   import star.compiler.freshen.
   import star.compiler.location.
+  import star.compiler.meta.
   import star.compiler.misc.
   import star.compiler.types.
   import star.compiler.unify.
@@ -129,8 +130,10 @@ star.compiler.dict.mgt{
     declareVr(Nm,Lc,Tp,(L,E)=>pickupEnum(L,FullNm,Tp,E),.none,Env).
 
   public declareVr:(string,option[locn],tipe,(option[locn],dict)=>canon,option[tipe],dict) => dict.
-  declareVr(Nm,Lc,Tp,MkVr,Fc,[Sc,..Ev]) =>
-    [Sc.vars<<-Sc.vars[Nm->vrEntry(Lc,MkVr,Tp,Fc)],..Ev].
+  declareVr(Nm,Lc,Tp,MkVr,Fc,[Sc,..Ev]) => valof{
+--    logMsg("declare $(Nm)\:$(Tp)");
+    valis [Sc.vars<<-Sc.vars[Nm->vrEntry(Lc,MkVr,Tp,Fc)],..Ev]
+  }.
 
   public declareContract:(option[locn],string,typeRule,dict) => dict.
   declareContract(Lc,Nm,Con,[Sc,..Rest]) => valof{

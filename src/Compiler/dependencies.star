@@ -226,7 +226,7 @@ star.compiler.dependencies{
       (_,Q,C,T,Els) ^= isCntrctStmt(A) && (_,O,_) ^= isSquareTerm(T) => valof{
 	A0 = filterOut(All,Q);
 	Rf0 = collectConstraintRefs(C,A0,Rf);
-	Rf1 = collectTypeRefs(dollarName(O),A0,Rf0);
+	Rf1 = collectTypeRefs(hashName(O),A0,Rf0);
 	valis collectFaceTypes(Els,A0,Rf1)
       }.
   collectStmtRefs(A,All,Annots,Rf) where
@@ -358,7 +358,7 @@ star.compiler.dependencies{
   }
   collectTermRefs(T,All,Rf) where (_,L,Stmts) ^= isLabeledRecord(T) => valof{
     Rf1 = collectStmtsRefs(Stmts,All,[],Rf);
-    collectTermRefs(L,All,Rf1)
+    valis collectTermRefs(L,All,Rf1)
   }
   collectTermRefs(int(_,_),_,Rf) => Rf.
   collectTermRefs(str(_,_),_,Rf) => Rf.

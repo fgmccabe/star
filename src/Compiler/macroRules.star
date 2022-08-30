@@ -401,9 +401,9 @@ star.compiler.macro.rules{
   contractMacro(A,.statement) where
       (Lc,Lhs,Els) ^= isContractStmt(A) && (_,Nm,Q,C,T) ^= isContractSpec(Lhs) &&
       (SLc,Op,As) ^= isSquareTerm(T) => valof{
-	DlNm = dollarName(Op);
+	DlNm = hashName(Op);
 	CTp =contractType(SLc,DlNm,As);
-	ConTp = mkAlgebraicTypeStmt(Lc,Q,C,CTp,braceTerm(SLc,Op,Els));
+	ConTp = mkAlgebraicTypeStmt(Lc,Q,C,CTp,braceTerm(SLc,DlNm,Els));
 	valis active(brTuple(Lc,[ConTp,mkCntrctStmt(Lc,Q,C,T,Els)]))
       }.
   contractMacro(A,_) default => .inactive.
@@ -421,9 +421,9 @@ star.compiler.macro.rules{
   implementationMacro(_,_) default => .inactive.
 
   labelImplExp(T,Nm) where (Lc,Els) ^= isBrTuple(T) =>
-    some(braceTerm(Lc,Nm,Els)).
+    some(braceTerm(Lc,hashName(Nm),Els)).
   labelImplExp(T,Nm) where (Lc,Els) ^= isQBrTuple(T) =>
-    some(qbraceTerm(Lc,Nm,Els)).
+    some(qbraceTerm(Lc,hashName(Nm),Els)).
   labelImplExp(T,Nm) where (Lc,Els,Exp) ^= isLetDef(T) &&
     EE ^= labelImplExp(Exp,Nm) =>
     some(mkLetDef(Lc,Els,EE)).

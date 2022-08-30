@@ -140,13 +140,13 @@ star.compiler.resolve{
   overloadTerm(mtd(Lc,Nm,Tp),Dict,St) => 
     (mtd(Lc,Nm,Tp),active(Lc,"cannot resolve unconstrained method #(Nm)\:$(Tp)")).
   overloadTerm(over(Lc,T,Cx),Dict,St) => valof{
-    logMsg("over $(over(Lc,T,Cx))");
+--    logMsg("over $(over(Lc,T,Cx))");
     (DArgs,St1) = resolveContracts(Lc,Cx,[],Dict,St);
     (OverOp,NArgs,St2) = resolveRef(T,DArgs,[],Dict,St1);
     valis (overApply(Lc,OverOp,NArgs,typeOf(T)),markResolved(St2))
   }
   overloadTerm(overaccess(Lc,T,RcTp,Fld,FldTp),Dict,St) => valof{
-    logMsg("over access $(T)");
+--    logMsg("over access $(T)");
     if (AccessOp,St1) ^= resolveAccess(Lc,RcTp,Fld,FldTp,Dict,St) then{
       (OverOp,NArgs,St2) = resolveRef(T,[AccessOp],[],Dict,St1);
       valis (curryOver(Lc,OverOp,NArgs,funType([RcTp],FldTp)),St2)

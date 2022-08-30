@@ -2,6 +2,7 @@ star.compiler.inline{
   import star.
   import star.sort.
 
+  import star.compiler.data.
   import star.compiler.term.
   import star.compiler.freevars.
   import star.compiler.misc.
@@ -12,39 +13,43 @@ star.compiler.inline{
   public simplifyDefs:(cons[cDefn]) => cons[cDefn].
   simplifyDefs(Dfs) where Prog .= foldLeft(pickupDefn,[],Dfs) => (Dfs//(D)=>simplifyDefn(D,Prog)).
 
-  pickupDefn:(cDefn,map[string,cDefn])=>map[string,cDefn].
-  pickupDefn(fnDef(Lc,Nm,Tp,Args,Val),Map) => Map[Nm->fnDef(Lc,Nm,Tp,Args,Val)].
-  pickupDefn(vrDef(Lc,Nm,Tp,Val),Map) => Map[Nm->vrDef(Lc,Nm,Tp,Val)].
+  pickupDefn:(cDefn,map[termLbl,cDefn])=>map[termLbl,cDefn].
+  pickupDefn(fnDef(Lc,Nm,Tp,Args,Val),Map) =>
+    Map[tLbl(Nm,arity(Tp))->fnDef(Lc,Nm,Tp,Args,Val)].
+  pickupDefn(vrDef(Lc,Nm,Tp,Val),Map) => Map[tLbl(Nm,arity(Tp))->vrDef(Lc,Nm,Tp,Val)].
   pickupDefn(tpDef(_,_,_,_),Map) => Map.
   pickupDefn(lblDef(_,_,_,_),Map) => Map.
 
-  simplifyDefn:(cDefn,map[string,cDefn])=>cDefn.
-  simplifyDefn(fnDef(Lc,Nm,Tp,Args,Val),Prog) =>
-    fnDef(Lc,Nm,Tp,Args,simplifyExp(Val,Prog,3)).
-  simplifyDefn(vrDef(Lc,Nm,Tp,Val),Prog) =>
-    vrDef(Lc,Nm,Tp,simplifyExp(Val,Prog,3)).
+  simplifyDefn:(cDefn,map[termLbl,cDefn])=>cDefn.
+  simplifyDefn(fnDef(Lc,Nm,Tp,Args,Val),Map) => valof{
+    logMsg("simplify $(fnDef(Lc,Nm,Tp,Args,Val))");
+    FF = fnDef(Lc,Nm,Tp,Args,simplifyExp(Val,Map,10));
+    logMsg("simplified $(FF)");
+    valis FF}
+  simplifyDefn(vrDef(Lc,Nm,Tp,Val),Map) =>
+    trace("simplify $(vrDef(Lc,Nm,Tp,Val)) to ",vrDef(Lc,Nm,Tp,simplifyExp(Val,Map,10))).
   simplifyDefn(D,_) default => D.
 
   -- There are three possibilities of a match ...
   match[e] ::= .noMatch | .insufficient | matching(e).
 
   -- ptnMatch tries to match an actual value with a pattern
-  ptnMatch:(cExp,cExp,map[string,cExp]) => match[map[string,cExp]].
-  ptnMatch(E,cVar(Lc,cId(V,_)),Env) =>
-    (T^=Env[V] ? ptnMatch(E,T,Env) || matching(Env[V->E])).
+  ptnMatch:(cExp,cExp,map[termLbl,cExp]) => match[map[termLbl,cExp]].
+  ptnMatch(E,cVar(Lc,cId(V,VTp)),Map) where VNm .= tLbl(V,arity(VTp)) =>
+    (T^=Map[VNm] ? ptnMatch(E,T,Map) || matching(Map[VNm->E])).
   ptnMatch(cVar(_,V1),_,_) => .insufficient.  -- variables on left only match vars on right
-  ptnMatch(cInt(_,Ix),cInt(_,Ix),Env) => matching(Env).
-  ptnMatch(cBig(_,Bx),cBig(_,Bx),Env) => matching(Env).
-  ptnMatch(cFloat(_,Dx),cFloat(_,Dx),Env) => matching(Env).
-  ptnMatch(cChar(_,Cx),cChar(_,Cx),Env) => matching(Env).
-  ptnMatch(cString(_,Sx),cString(_,Sx),Env) => matching(Env).
-  ptnMatch(cTerm(_,N,A1,_),cTerm(_,N,A2,_),Env) => ptnMatchArgs(A1,A2,Env).
+  ptnMatch(cInt(_,Ix),cInt(_,Ix),Map) => matching(Map).
+  ptnMatch(cBig(_,Bx),cBig(_,Bx),Map) => matching(Map).
+  ptnMatch(cFloat(_,Dx),cFloat(_,Dx),Map) => matching(Map).
+  ptnMatch(cChar(_,Cx),cChar(_,Cx),Map) => matching(Map).
+  ptnMatch(cString(_,Sx),cString(_,Sx),Map) => matching(Map).
+  ptnMatch(cTerm(_,N,A1,_),cTerm(_,N,A2,_),Map) => ptnMatchArgs(A1,A2,Map).
   ptnMatch(cVoid(_,_),_,_) => .insufficient.  -- void on left does not match anything
   ptnMatch(_,cVoid(_,_),_) => .insufficient.  -- void on right does not match anything
   ptnMatch(_,_,_) default => .noMatch.
 
-  ptnMatchArgs([],[],Env) => matching(Env).
-  ptnMatchArgs([E1,..L1],[E2,..L2],Env) => case ptnMatch(E1,E2,Env) in {
+  ptnMatchArgs([],[],Map) => matching(Map).
+  ptnMatchArgs([E1,..L1],[E2,..L2],Map) => case ptnMatch(E1,E2,Map) in {
     .noMatch => .noMatch.
     .insufficient => .insufficient.
     .matching(Ev) => ptnMatchArgs(L1,L2,Ev)
@@ -52,14 +57,14 @@ star.compiler.inline{
   ptnMatchArgs(_,_,_) default => .noMatch.
 
   contract all e ~~ simplify[e] ::= {
-    simplify:(e,map[string,cDefn],integer) => e.
+    simplify:(e,map[termLbl,cDefn],integer) => e.
   }
 
   implementation simplify[cExp] => {
     simplify(E,Map,Dp) => simplifyExp(E,Map,Dp)
   }
 
-  simplifyExp:(cExp,map[string,cDefn],integer) => cExp.
+  simplifyExp:(cExp,map[termLbl,cDefn],integer) => cExp.
   simplifyExp(E,P,D) => (D>0 ? simExp(E,P,D-1) || E).
   
   simExp(cVar(Lc,V),Map,Depth) => inlineVar(Lc,V,Map,Depth).
@@ -69,60 +74,60 @@ star.compiler.inline{
   simExp(cFloat(Lc,Dx),_,_) => cFloat(Lc,Dx).
   simExp(cString(Lc,Sx),_,_) => cString(Lc,Sx).
   simExp(cVoid(Lc,Tp),_,_) => cVoid(Lc,Tp).
-  simExp(cTerm(Lc,Fn,Args,Tp),Prog,Depth) =>
-    cTerm(Lc,Fn,Args//(A)=>simplifyExp(A,Prog,Depth),Tp).
-  simExp(cCall(Lc,Fn,Args,Tp),Prog,Depth) =>
-    inlineCall(Lc,Fn,Args//(A)=>simplifyExp(A,Prog,Depth),Tp,Prog,Depth).
-  simExp(cECall(Lc,Fn,Args,Tp),Prog,Depth) =>
-    inlineECall(Lc,Fn,Args//(A)=>simplifyExp(A,Prog,Depth),Tp,Depth).
-  simExp(cOCall(Lc,Op,Args,Tp),Prog,Depth) =>
-    inlineOCall(Lc,simplifyExp(Op,Prog,Depth),
-      Args//(A)=>simplifyExp(A,Prog,Depth),Tp,Prog,Depth).
-  simExp(cNth(Lc,T,Ix,Tp),Prog,Depth) =>
-    inlineTplOff(Lc,simplifyExp(T,Prog,Depth),Ix,Tp).
-  simExp(cSetNth(Lc,T,Ix,Vl),Prog,Depth) =>
-    applyTplUpdate(Lc,simplifyExp(T,Prog,Depth),Ix,simplifyExp(Vl,Prog,Depth)).
-  simExp(cSeq(Lc,L,R),Prog,Depth) =>
-    cSeq(Lc,simplifyExp(L,Prog,Depth),simplifyExp(R,Prog,Depth)).
-  simExp(cCnj(Lc,L,R),Prog,Depth) =>
-    applyCnj(Lc,simplifyExp(L,Prog,Depth),simplifyExp(R,Prog,Depth)).
-  simExp(cDsj(Lc,L,R),Prog,Depth) =>
-    applyDsj(Lc,simplifyExp(L,Prog,Depth),simplifyExp(R,Prog,Depth)).
-  simExp(cNeg(Lc,R),Prog,Depth) =>
-    applyNeg(Lc,simplifyExp(R,Prog,Depth)).
-  simExp(cCnd(Lc,T,L,R),Prog,Depth) =>
-    applyCnd(Lc,simplifyExp(T,Prog,Depth),
-      simplifyExp(L,Prog,Depth),simplifyExp(R,Prog,Depth)).
-  simExp(cLtt(Lc,Vr,Bnd,Exp),Prog,Depth) =>
-    inlineLtt(Lc,Vr,simplifyExp(Bnd,Prog,Depth),Exp,Prog,Depth).
-  simExp(cUnpack(Lc,Gov,Cases,Tp),Prog,Depth) =>
-    inlineUnpack(Lc,simplifyExp(Gov,Prog,Depth),Cases,Prog,Depth).
-  simExp(cCase(Lc,Gov,Cases,Deflt,Tp),Prog,Depth) =>
-    inlineCase(Lc,simplifyExp(Gov,Prog,Depth),Cases,
-      simplifyExp(Deflt,Prog,Depth),Prog,Depth).
-  simExp(cWhere(Lc,Ptn,Exp),Prog,Depth) =>
-    applyWhere(Lc,Ptn,simplifyExp(Exp,Prog,Depth)).
-  simExp(cMatch(Lc,Ptn,Exp),Prog,Depth) =>
-    applyMatch(Lc,Ptn,simplifyExp(Exp,Prog,Depth)).
-  simExp(cVarNmes(Lc,Vrs,Exp),Prog,Depth) =>
-    cVarNmes(Lc,Vrs,simplifyExp(Exp,Prog,Depth)).
+  simExp(cTerm(Lc,Fn,Args,Tp),Map,Depth) =>
+    cTerm(Lc,Fn,Args//(A)=>simplifyExp(A,Map,Depth),Tp).
+  simExp(cCall(Lc,Fn,Args,Tp),Map,Depth) =>
+    inlineCall(Lc,Fn,Args//(A)=>simplifyExp(A,Map,Depth),Tp,Map,Depth).
+  simExp(cECall(Lc,Fn,Args,Tp),Map,Depth) =>
+    inlineECall(Lc,Fn,Args//(A)=>simplifyExp(A,Map,Depth),Tp,Depth).
+  simExp(cOCall(Lc,Op,Args,Tp),Map,Depth) =>
+    inlineOCall(Lc,simplifyExp(Op,Map,Depth),
+      Args//(A)=>simplifyExp(A,Map,Depth),Tp,Map,Depth).
+  simExp(cNth(Lc,T,Ix,Tp),Map,Depth) =>
+    inlineTplOff(Lc,simplifyExp(T,Map,Depth),Ix,Tp).
+  simExp(cSetNth(Lc,T,Ix,Vl),Map,Depth) =>
+    applyTplUpdate(Lc,simplifyExp(T,Map,Depth),Ix,simplifyExp(Vl,Map,Depth)).
+  simExp(cSeq(Lc,L,R),Map,Depth) =>
+    cSeq(Lc,simplifyExp(L,Map,Depth),simplifyExp(R,Map,Depth)).
+  simExp(cCnj(Lc,L,R),Map,Depth) =>
+    applyCnj(Lc,simplifyExp(L,Map,Depth),simplifyExp(R,Map,Depth)).
+  simExp(cDsj(Lc,L,R),Map,Depth) =>
+    applyDsj(Lc,simplifyExp(L,Map,Depth),simplifyExp(R,Map,Depth)).
+  simExp(cNeg(Lc,R),Map,Depth) =>
+    applyNeg(Lc,simplifyExp(R,Map,Depth)).
+  simExp(cCnd(Lc,T,L,R),Map,Depth) =>
+    applyCnd(Lc,simplifyExp(T,Map,Depth),
+      simplifyExp(L,Map,Depth),simplifyExp(R,Map,Depth)).
+  simExp(cLtt(Lc,Vr,Bnd,Exp),Map,Depth) =>
+    inlineLtt(Lc,Vr,simplifyExp(Bnd,Map,Depth),Exp,Map,Depth).
+  simExp(cUnpack(Lc,Gov,Cases,Tp),Map,Depth) =>
+    inlineUnpack(Lc,simplifyExp(Gov,Map,Depth),Cases,Map,Depth).
+  simExp(cCase(Lc,Gov,Cases,Deflt,Tp),Map,Depth) =>
+    inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases,
+      simplifyExp(Deflt,Map,Depth),Map,Depth).
+  simExp(cWhere(Lc,Ptn,Exp),Map,Depth) =>
+    applyWhere(Lc,Ptn,simplifyExp(Exp,Map,Depth)).
+  simExp(cMatch(Lc,Ptn,Exp),Map,Depth) =>
+    applyMatch(Lc,Ptn,simplifyExp(Exp,Map,Depth)).
+  simExp(cVarNmes(Lc,Vrs,Exp),Map,Depth) =>
+    cVarNmes(Lc,Vrs,simplifyExp(Exp,Map,Depth)).
   simExp(cAbort(Lc,Txt,Tp),_,_) => cAbort(Lc,Txt,Tp).
-  simExp(cTask(Lc,Exp,Tp),Prog,Depth) =>
-    cTask(Lc,simplifyExp(Exp,Prog,Depth),Tp).
-  simExp(cSusp(Lc,Tsk,Evt,Tp),Prog,Depth) =>
-    cSusp(Lc,simplifyExp(Tsk,Prog,Depth),simplifyExp(Evt,Prog,Depth),Tp).
-  simExp(cResume(Lc,Tsk,Evt,Tp),Prog,Depth) =>
-    cResume(Lc,simplifyExp(Tsk,Prog,Depth),simplifyExp(Evt,Prog,Depth),Tp).
-  simExp(cTry(Lc,Exp,H,Tp),Prog,Depth) =>
-    cTry(Lc,simplifyExp(Exp,Prog,Depth),simplifyExp(H,Prog,Depth),Tp).
-  simExp(cValof(Lc,Act,Tp),Prog,Depth) =>
-    cValof(Lc,simplifyAct(Act,Prog,Depth),Tp).
+  simExp(cTask(Lc,Exp,Tp),Map,Depth) =>
+    cTask(Lc,simplifyExp(Exp,Map,Depth),Tp).
+  simExp(cSusp(Lc,Tsk,Evt,Tp),Map,Depth) =>
+    cSusp(Lc,simplifyExp(Tsk,Map,Depth),simplifyExp(Evt,Map,Depth),Tp).
+  simExp(cResume(Lc,Tsk,Evt,Tp),Map,Depth) =>
+    cResume(Lc,simplifyExp(Tsk,Map,Depth),simplifyExp(Evt,Map,Depth),Tp).
+  simExp(cTry(Lc,Exp,H,Tp),Map,Depth) =>
+    cTry(Lc,simplifyExp(Exp,Map,Depth),simplifyExp(H,Map,Depth),Tp).
+  simExp(cValof(Lc,Act,Tp),Map,Depth) =>
+    cValof(Lc,simplifyAct(Act,Map,Depth),Tp).
 
   implementation simplify[aAction] => {
     simplify(A,Map,Dp) => simplifyAct(A,Map,Dp)
   }
 
-  simplifyAct:(aAction,map[string,cDefn],integer) => aAction.
+  simplifyAct:(aAction,map[termLbl,cDefn],integer) => aAction.
   simplifyAct(A,P,D) => (D>0 ? simAct(A,P,D-1) || A).
 
   simAct(aNop(Lc),_,_) => aNop(Lc).
@@ -143,34 +148,34 @@ star.compiler.inline{
     aDefn(Lc,simplifyExp(V,Map,Depth),simplifyExp(E,Map,Depth)).
   simAct(aAsgn(Lc,V,E),Map,Depth) =>
     aAsgn(Lc,simplifyExp(V,Map,Depth),simplifyExp(E,Map,Depth)).
-  simAct(aCase(Lc,Gov,Cases,Deflt),Prog,Depth) =>
-    inlineCase(Lc,simplifyExp(Gov,Prog,Depth),Cases,
-      simplifyAct(Deflt,Prog,Depth),Prog,Depth).
-  simAct(aUnpack(Lc,Gov,Cases),Prog,Depth) =>
-    inlineUnpack(Lc,simplifyExp(Gov,Prog,Depth),Cases,Prog,Depth).
-  simAct(aIftte(Lc,T,L,R),Prog,Depth) =>
-    applyCnd(Lc,simplifyExp(T,Prog,Depth),
-      simplifyAct(L,Prog,Depth),simplifyAct(R,Prog,Depth)).
-  simAct(aWhile(Lc,T,A),Prog,Depth) =>
-    aWhile(Lc,simplifyExp(T,Prog,Depth),
-      simplifyAct(A,Prog,Depth)).
-  simAct(aRetire(Lc,T,E),Prog,Depth) =>
-    aRetire(Lc,simplifyExp(T,Prog,Depth),
-      simplifyExp(E,Prog,Depth)).
-  simAct(aTry(Lc,T,H),Prog,Depth) =>
-    aTry(Lc,simplifyAct(T,Prog,Depth),simplifyAct(H,Prog,Depth)).
-  simAct(aLtt(Lc,Vr,Bnd,A),Prog,Depth) =>
-    inlineLtt(Lc,Vr,simplifyExp(Bnd,Prog,Depth),A,Prog,Depth).
-  simAct(aVarNmes(Lc,Vrs,X),Prog,Depth) =>
-    aVarNmes(Lc,Vrs,simplifyAct(X,Prog,Depth)).
+  simAct(aCase(Lc,Gov,Cases,Deflt),Map,Depth) =>
+    inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases,
+      simplifyAct(Deflt,Map,Depth),Map,Depth).
+  simAct(aUnpack(Lc,Gov,Cases),Map,Depth) =>
+    inlineUnpack(Lc,simplifyExp(Gov,Map,Depth),Cases,Map,Depth).
+  simAct(aIftte(Lc,T,L,R),Map,Depth) =>
+    applyCnd(Lc,simplifyExp(T,Map,Depth),
+      simplifyAct(L,Map,Depth),simplifyAct(R,Map,Depth)).
+  simAct(aWhile(Lc,T,A),Map,Depth) =>
+    aWhile(Lc,simplifyExp(T,Map,Depth),
+      simplifyAct(A,Map,Depth)).
+  simAct(aRetire(Lc,T,E),Map,Depth) =>
+    aRetire(Lc,simplifyExp(T,Map,Depth),
+      simplifyExp(E,Map,Depth)).
+  simAct(aTry(Lc,T,H),Map,Depth) =>
+    aTry(Lc,simplifyAct(T,Map,Depth),simplifyAct(H,Map,Depth)).
+  simAct(aLtt(Lc,Vr,Bnd,A),Map,Depth) =>
+    inlineLtt(Lc,Vr,simplifyExp(Bnd,Map,Depth),A,Map,Depth).
+  simAct(aVarNmes(Lc,Vrs,X),Map,Depth) =>
+    aVarNmes(Lc,Vrs,simplifyAct(X,Map,Depth)).
   simAct(aAbort(Lc,Txt),_,_) => aAbort(Lc,Txt).
 
   dropNops(_,aNop(_),A) => A.
   dropNops(_,A,aNop(_)) => A.
   dropNops(Lc,L,R) => aSeq(Lc,L,R).
   
-  inlineVar(Lc,cId(Id,Tp),Map,_Depth) where
-      vrDef(_,_,_,Vl) ^= Map[Id] && isGround(Vl) => Vl.
+  inlineVar(Lc,cId(Id,Tp),Map,Depth) where
+      vrDef(_,_,_,Vl) ^= Map[tLbl(Id,arity(Tp))]/* && isGround(Vl) */ => simplify(Vl,Map,Depth-1).
   inlineVar(Lc,V,_,_) => cVar(Lc,V).
 
   applyWhere(Lc,Ptn,cTerm(_,"star.core#true",[],_)) => Ptn.
@@ -205,25 +210,25 @@ star.compiler.inline{
   applyMatch(Lc,Ptn,Exp) => cMatch(Lc,Ptn,Exp).
 
   inlineCase:all e ~~ rewrite[e], reform[e], simplify[e] |:
-    (option[locn],cExp,cons[cCase[e]],e,map[string,cDefn],integer) => e.
-  inlineCase(Lc,Gov,Cases,Deflt,Prog,Depth) where 
-      matching(Exp) .= matchingCase(Gov,Cases,Prog,Depth) => Exp.
-  inlineCase(Lc,Gov,Cases,Deflt,Prog,Depth) =>
+    (option[locn],cExp,cons[cCase[e]],e,map[termLbl,cDefn],integer) => e.
+  inlineCase(Lc,Gov,Cases,Deflt,Map,Depth) where 
+      matching(Exp) .= matchingCase(Gov,Cases,Map,Depth) => Exp.
+  inlineCase(Lc,Gov,Cases,Deflt,Map,Depth) =>
     mkCase(Lc,Gov,Cases,Deflt).
 
   inlineUnpack:all e ~~ rewrite[e], reform[e], simplify[e] |:
-    (option[locn],cExp,cons[cCase[e]],map[string,cDefn],integer) => e.
-  inlineUnpack(Lc,Gov,Cases,Prog,Depth) where
-      matching(Exp) .= matchingCase(Gov,Cases,Prog,Depth) => Exp.
+    (option[locn],cExp,cons[cCase[e]],map[termLbl,cDefn],integer) => e.
+  inlineUnpack(Lc,Gov,Cases,Map,Depth) where
+      matching(Exp) .= matchingCase(Gov,Cases,Map,Depth) => Exp.
   inlineUnpack(Lc,Gov,Cases,_,_) => mkUnpack(Lc,Gov,Cases).
 
   matchingCase:all e ~~ rewrite[e], reform[e], simplify[e] |:
-    (cExp,cons[cCase[e]],map[string,cDefn],integer) => match[e].
+    (cExp,cons[cCase[e]],map[termLbl,cDefn],integer) => match[e].
   matchingCase(_,[],_,_) => .noMatch.
-  matchingCase(Gov,[C,..Cs],Prog,Depth) => case candidate(Gov,C) in {
+  matchingCase(Gov,[C,..Cs],Map,Depth) => case candidate(Gov,C) in {
     .insufficient => .insufficient.
-    .noMatch => matchingCase(Gov,Cs,Prog,Depth).
-    matching(Rep) => matching(simplify(Rep,Prog,Depth))
+    .noMatch => matchingCase(Gov,Cs,Map,Depth).
+    matching(Rep) => matching(simplify(Rep,Map,Depth))
   }
 
   candidate:all e ~~ rewrite[e] |: (cExp,cCase[e]) => match[e].
@@ -234,18 +239,19 @@ star.compiler.inline{
   }
 
   inlineLtt:all e ~~ simplify[e],reform[e] |:
-    (option[locn],cId,cExp,e,map[string,cDefn],integer) => e.
-  inlineLtt(Lc,cId(Vr,Tp),Bnd,Exp,Prog,Depth) where cVar(_,VV).=Bnd =>
-    simplify(Exp,Prog[Vr->vrDef(Lc,Vr,Tp,Bnd)],Depth).
-  inlineLtt(Lc,cId(Vr,Tp),Bnd,Exp,Prog,Depth) where isGround(Bnd) =>
-    simplify(Exp,Prog[Vr->vrDef(Lc,Vr,Tp,Bnd)],Depth).
-  inlineLtt(Lc,Vr,Bnd,Exp,Prog,Depth) =>
-    mkLtt(Lc,Vr,Bnd,simplify(Exp,Prog,Depth)).
+    (option[locn],cId,cExp,e,map[termLbl,cDefn],integer) => e.
+  inlineLtt(Lc,cId(Vr,Tp),Bnd,Exp,Map,Depth) where cVar(_,VV).=Bnd =>
+    simplify(Exp,Map[tLbl(Vr,arity(Tp))->vrDef(Lc,Vr,Tp,Bnd)],Depth).
+  inlineLtt(Lc,cId(Vr,Tp),Bnd,Exp,Map,Depth) where isGround(Bnd) =>
+    simplify(Exp,Map[tLbl(Vr,arity(Tp))->vrDef(Lc,Vr,Tp,Bnd)],Depth).
+  inlineLtt(Lc,Vr,Bnd,Exp,Map,Depth) =>
+    mkLtt(Lc,Vr,Bnd,simplify(Exp,Map,Depth)).
 
-  inlineCall:(option[locn],string,cons[cExp],tipe,map[string,cDefn],integer) => cExp.
-  inlineCall(_,Nm,Args,_,Prog,Depth) where Depth>0 &&
-      fnDef(Lc,_,_,Vrs,Rep) ^= Prog[Nm] =>
-    simplifyExp(rewriteTerm(Rep,zip(Vrs//cName,Args)::map[string,cExp]),Prog[~Nm],Depth-1).
+  inlineCall:(option[locn],string,cons[cExp],tipe,map[termLbl,cDefn],integer) => cExp.
+  inlineCall(_,Nm,Args,_,Map,Depth) where Depth>0 &&
+      PrgLbl .= tLbl(Nm,[|Args|]) &&
+      fnDef(Lc,_,_,Vrs,Rep) ^= Map[PrgLbl] =>
+    simplifyExp(rewriteTerm(Rep,zip(Vrs//((V)=>tLbl(cName(V),arity(cType(V)))),Args)::map[termLbl,cExp]),Map[~PrgLbl],Depth-1).
   inlineCall(Lc,Nm,Args,Tp,_,_) default => cCall(Lc,Nm,Args,Tp).
 
   inlineECall:(option[locn],string,cons[cExp],tipe,integer) => cExp.
@@ -253,14 +259,82 @@ star.compiler.inline{
     rewriteECall(Lc,Nm,Args,Tp).
   inlineECall(Lc,Nm,Args,Tp,_) default => cECall(Lc,Nm,Args,Tp).
 
-  inlineOCall(Lc,cTerm(OLc,Nm,OArgs,_),Args,Tp,Prog,Depth) =>
-    simplifyExp(cCall(Lc,Nm,OArgs++Args,Tp),Prog,Depth).
-  inlineOCall(Lc,Op,Args,Tp,Prog,Depth) =>
+  inlineOCall(Lc,cTerm(OLc,Nm,OArgs,_),Args,Tp,Map,Depth) =>
+    simplifyExp(cCall(Lc,Nm,OArgs++Args,Tp),Map,Depth).
+  inlineOCall(Lc,cVar(_,cId(Nm,VTp)),Args,Tp,Map,Depth) where Depth>0 &&
+      Prg .= tLbl(Nm,arity(VTp)) &&
+      vrDef(VLc,Nm,_,Rep) ^= trace("$(Prg) present ",Map[Prg]) =>
+    inlineOCall(Lc,simplifyExp(Rep,Map[~Prg],Depth-1),Args,Tp,Map,Depth).
+  inlineOCall(Lc,Op,Args,Tp,Map,Depth) =>
     cOCall(Lc,Op,Args,Tp).
   
   rewriteECall(Lc,"_int_plus",[cInt(_,A),cInt(_,B)],_) => cInt(Lc,A+B).
   rewriteECall(Lc,"_int_minus",[cInt(_,A),cInt(_,B)],_) => cInt(Lc,A-B).
   rewriteECall(Lc,"_int_times",[cInt(_,A),cInt(_,B)],_) => cInt(Lc,A*B).
   rewriteECall(Lc,Op,Args,Tp) default => cECall(Lc,Op,Args,Tp).
-  
+
+  countOccs(cVoid(_,_),_Id,Cnt) => Cnt.
+  countOccs(cAbort(_,_,_),_Id,Cnt) => Cnt.
+  countOccs(cAnon(_,_),_Id,Cnt) => Cnt.
+  countOccs(cVar(_,Vr),V,Cnt) => (V==Vr?Cnt+1||Cnt).
+  countOccs(cInt(_,_),_Id,Cnt) => Cnt.
+  countOccs(cChar(_,_),_Id,Cnt) => Cnt.
+  countOccs(cBig(_,_),_Id,Cnt) => Cnt.
+  countOccs(cFloat(_,_),_Id,Cnt) => Cnt.
+  countOccs(cString(_,_),_Id,Cnt) => Cnt.
+  countOccs(cTerm(_,_,Els,_),Id,Cnt) => countEls(Els,Id,Cnt).
+  countOccs(cNth(_,E,_,_),Id,Cnt) => countOccs(E,Id,Cnt).
+  countOccs(cSetNth(_,E,_,V),Id,Cnt) => countOccs(V,Id,countOccs(E,Id,Cnt)).
+  countOccs(cCall(_,_,Els,_),Id,Cnt) => countEls(Els,Id,Cnt).
+  countOccs(cECall(_,_,Els,_),Id,Cnt) => countEls(Els,Id,Cnt).
+  countOccs(cOCall(_,Op,Els,_),Id,Cnt) => countEls(Els,Id,countOccs(Op,Id,Cnt)).
+  countOccs(cThrow(_,E,_),Id,Cnt) => countOccs(E,Id,Cnt).
+  countOccs(cSeq(_,L,R),Id,Cnt) => countOccs(R,Id,countOccs(L,Id,Cnt)).
+  countOccs(cCnj(_,L,R),Id,Cnt) => countOccs(R,Id,countOccs(L,Id,Cnt)).
+  countOccs(cDsj(_,L,R),Id,Cnt) => countOccs(R,Id,countOccs(L,Id,Cnt)).
+  countOccs(cNeg(_,R),Id,Cnt) => countOccs(R,Id,Cnt).
+  countOccs(cCnd(_,T,L,R),Id,Cnt) => countOccs(T,Id,countOccs(R,Id,countOccs(L,Id,Cnt))).
+  countOccs(cLtt(_,V,L,R),Id,Cnt) => (V==Id ? Cnt || countOccs(L,Id,countOccs(R,Id,Cnt))).
+  countOccs(cUnpack(_,G,Cs,_),Id,Cnt) => countCases(Cs,Id,countOccs(G,Id,Cnt),countOccs).
+  countOccs(cCase(_,G,Cs,D,_),Id,Cnt) =>
+    countCases(Cs,Id,countOccs(G,Id,countOccs(D,Id,Cnt)),countOccs).
+  countOccs(cWhere(_,L,R),Id,Cnt) => countOccs(R,Id,countOccs(L,Id,Cnt)).
+  countOccs(cMatch(_,L,R),Id,Cnt) => countOccs(R,Id,countOccs(L,Id,Cnt)).
+  countOccs(cVarNmes(_,_,R),Id,Cnt) => countOccs(R,Id,Cnt).
+  countOccs(cTask(_,E,_),Id,Cnt) => countOccs(E,Id,Cnt).
+  countOccs(cSusp(_,L,R,_),Id,Cnt) => countOccs(R,Id,countOccs(L,Id,Cnt)).
+  countOccs(cResume(_,L,R,_),Id,Cnt) => countOccs(R,Id,countOccs(L,Id,Cnt)).
+  countOccs(cTry(_,L,R,_),Id,Cnt) => countOccs(R,Id,countOccs(L,Id,Cnt)).
+  countOccs(cValof(_,A,_),Id,Cnt) => countAOccs(A,Id,Cnt).
+
+  countAOccs(aNop(_),_,Cnt) => Cnt.
+  countAOccs(aAbort(_,_),_,Cnt) => Cnt.
+  countAOccs(aSeq(_,L,R),Id,Cnt) => countAOccs(R,Id,countAOccs(L,Id,Cnt)).
+  countAOccs(aLbld(_,_,A),Id,Cnt) => countAOccs(A,Id,Cnt).
+  countAOccs(aBreak(_,_),_,Cnt) => Cnt.
+  countAOccs(aValis(_,E),Id,Cnt) => countOccs(E,Id,Cnt).
+  countAOccs(aThrow(_,E),Id,Cnt) => countOccs(E,Id,Cnt).
+  countAOccs(aPerf(_,E),Id,Cnt) => countOccs(E,Id,Cnt).
+  countAOccs(aDefn(_,L,_),Id,Cnt) where countOccs(L,Id,0)>0 => Cnt.
+  countAOccs(aDefn(_,_,R),Id,Cnt) => countOccs(R,Id,Cnt).
+  countAOccs(aAsgn(_,L,R),Id,Cnt) => countOccs(R,Id,countOccs(L,Id,Cnt)).
+  countAOccs(aCase(_,L,Cs,D),Id,Cnt) =>
+    countCases(Cs,Id,countAOccs(D,Id,countOccs(L,Id,Cnt)),countAOccs).
+  countAOccs(aUnpack(_,L,Cs),Id,Cnt) =>
+    countCases(Cs,Id,countOccs(L,Id,Cnt),countAOccs).
+  countAOccs(aIftte(_,T,L,R),Id,Cnt) =>
+    countAOccs(R,Id,countAOccs(L,Id,countOccs(T,Id,Cnt))).
+  countAOccs(aWhile(_,T,L),Id,Cnt) =>
+    countAOccs(L,Id,countOccs(T,Id,Cnt)).
+  countAOccs(aRetire(_,L,R),Id,Cnt) => countOccs(R,Id,countOccs(L,Id,Cnt)).
+  countAOccs(aTry(_,L,R),Id,Cnt) => countAOccs(R,Id,countAOccs(L,Id,Cnt)).
+  countAOccs(aLtt(_,V,L,R),Id,Cnt) => (V==Id ? Cnt || countOccs(L,Id,countAOccs(R,Id,Cnt))).
+  countAOccs(aVarNmes(_,_,R),Id,Cnt) => countAOccs(R,Id,Cnt).
+
+  countEls([],_,Cnt) => Cnt.
+  countEls([E,..Es],Id,Cnt) => countEls(Es,Id,countOccs(E,Id,Cnt)).
+
+  countCases:all e ~~ (cons[cCase[e]],cId,integer,(e,cId,integer)=>integer)=>integer.
+  countCases([],_,Cnt,_) => Cnt.
+  countCases([(_,P,A),..As],Id,Cnt,F) => countCases(As,Id,countOccs(P,Id,F(A,Id,Cnt)),F).
 }

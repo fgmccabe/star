@@ -40,7 +40,7 @@ star.compiler.dict{
   }
 
   public implementation display[vrEntry] => {
-    disp(vrEntry(Lc,Mk,Tp,_)) => "$(Mk(Lc,emptyDict))|=$(Tp)".
+    disp(vrEntry(Lc,Mk,Tp,_)) => "|=$(Tp)".
   }
 
   public implementation display[tpDef] => {

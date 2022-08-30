@@ -23,6 +23,9 @@ star.compiler.wff{
   public dotId:(ast) => ast.
   dotId(nme(Lc,Id)) => nme(Lc,dotName(Id)).
 
+  public hashName:(ast) => ast.
+  hashName(nme(Lc,Id)) => nme(Lc,"#"++Id).
+
   public isKeyword:(ast) => option[(option[locn],string)].
   isKeyword(nme(Lc,Id)) where keyword(Id) => some((Lc,Id)).
   isKeyword(_) default => .none.
@@ -354,8 +357,8 @@ star.compiler.wff{
 
   public enum(Lc,Nm) => unary(Lc,".",nme(Lc,Nm)).
 
-  public
-  isSearch(A) where (Lc,P,G) ^= isBinary(A,"in") && ~ app(_,nme(_,"let"),Body) .= P => some((Lc,P,G)).
+  public isSearch(A) where (Lc,P,G) ^= isBinary(A,"in") &&
+      ~ app(_,nme(_,"let"),Body) .= P => some((Lc,P,G)).
   isSearch(_) default => .none.
 
   public mkSearch(Lc,P,S) => binary(Lc,"in",P,S).

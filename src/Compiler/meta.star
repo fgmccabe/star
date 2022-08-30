@@ -8,6 +8,7 @@ star.compiler.meta{
 
   import star.compiler.ast.
   import star.compiler.location.
+  import star.compiler.types.
 
   public visibility ::= .priVate | .deFault | .pUblic | .transItive.
 
@@ -44,6 +45,17 @@ star.compiler.meta{
     .transItive == .transItive => .true.
     _ == _ default => .false.
   }
+
+  public pkgSpec::=pkgSpec(pkg,cons[importSpec],cons[decl]).
+
+  public decl ::= implDec(option[locn],string,string,tipe) |
+    accDec(option[locn],tipe,string,string,tipe) |
+    updDec(option[locn],tipe,string,string,tipe) |
+    conDec(option[locn],string,string,typeRule) |
+    tpeDec(option[locn],string,tipe,typeRule) |
+    varDec(option[locn],string,string,tipe) |
+    funDec(option[locn],string,string,tipe) |
+    cnsDec(option[locn],string,string,tipe).
 
   public importSpec ::= pkgImp(option[locn],visibility,pkg).
 
@@ -102,6 +114,22 @@ star.compiler.meta{
     dispSpc(pkgImp(Lc,Vi,Pk)) => "$(Vi) import $(Pk)"
   } in {
     disp(S) => dispSpc(S)
+  }
+
+  public implementation display[pkgSpec] => {
+    disp(pkgSpec(Pkg,Imports,Decls)) =>
+      "Package: $(Pkg), imports=$(Imports), exports=$(Decls)".
+  }
+
+  public implementation display[decl] => {
+    disp(implDec(_,Nm,ImplNm,ImplTp)) => "Impl #(Nm)~#(ImplNm)\:$(ImplTp)".
+    disp(accDec(_,Tp,Fld,Fun,FunTp)) => "Acc $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
+    disp(updDec(_,Tp,Fld,Fun,FunTp)) => "Update $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
+    disp(conDec(_,Nm,_,RlTp)) => "Contract #(Nm)\:$(RlTp)".
+    disp(tpeDec(_,Nm,Tp,_)) => "Type #(Nm)\::$(Tp)".
+    disp(varDec(_,Nm,FullNm,Tp)) => "Var #(FullNm)\:$(Tp)".
+    disp(funDec(_,Nm,FullNm,Tp)) => "Fun #(FullNm)\:$d(Tp)".
+    disp(cnsDec(_,Nm,FullNm,Tp)) => "Con #(FullNm)\:$(Tp)".
   }
 
   public optimizationLvl ::= .base | .inlining.
@@ -215,9 +243,9 @@ star.compiler.meta{
 
   public traceCheckOption:cmdOption[compilerOptions].
   traceCheckOption = cmdOption{
-    shortForm = "-dc".
+    shortForm = "-tc".
     alternatives = [].
-    usage = "-dc -- trace typechecking".
+    usage = "-tc -- trace typechecking".
     validator = .none.
     setOption(_,Opts) => valof{
       traceCanon := .true;
@@ -228,9 +256,9 @@ star.compiler.meta{
 
   public showCheckOption:cmdOption[compilerOptions].
   showCheckOption = cmdOption{
-    shortForm = "-dt".
+    shortForm = "-dc".
     alternatives = [].
-    usage = "-dt -- show type checkedcode".
+    usage = "-dc -- show type checkedcode".
     validator = .none.
     setOption(_,Opts) => valof{
       showCanon := .true;

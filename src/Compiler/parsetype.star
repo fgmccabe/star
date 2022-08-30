@@ -5,6 +5,7 @@ star.compiler.typeparse{
   import star.compiler.canon.
   import star.compiler.dict.
   import star.compiler.dict.mgt.
+  import star.compiler.meta.
   import star.compiler.misc.
   import star.compiler.errors.
   import star.compiler.freshen.
@@ -163,7 +164,7 @@ star.compiler.typeparse{
     parseTypeFields(Q,L,Flds,Tps,Env).
   parseTypeFields(Q,[F,..L],Flds,Tps,Env) => valof{
     (FF,TT) = parseTypeField(Q,F,Flds,Tps,Env);
-    parseTypeFields(Q,L,FF,TT,Env)
+    valis parseTypeFields(Q,L,FF,TT,Env)
   }
 
   parseTypeField:(tipes,ast,tipes,tipes,dict) => (tipes,tipes).
@@ -328,7 +329,7 @@ star.compiler.typeparse{
 
   public parseTypeDef:(string,ast,dict,string) => (cons[canonDef],cons[decl]).
   parseTypeDef(Nm,St,Env,Path) where (Lc,V,C,H,B) ^= isTypeExistsStmt(St) => valof{
---    logMsg("parse type exists $(St)");
+    -- logMsg("parse type exists $(St)");
     Q = parseBoundTpVars(V);
     Tp = parseTypeHead(Q,H,Env,Path);
     Cx = parseConstraints(C,Q,Env);
@@ -338,7 +339,7 @@ star.compiler.typeparse{
     valis ([typeDef(Lc,Nm,Tmplte,TpRl)],[tpeDec(Lc,Nm,Tmplte,TpRl)])
   }
   parseTypeDef(Nm,St,Env,Path) where (Lc,V,C,H,B) ^= isTypeFunStmt(St) => valof{
---    logMsg("parse type fun $(St)");
+    -- logMsg("parse type fun $(St)");
     Q = parseBoundTpVars(V);
     Tp = parseTypeHead(Q,H,Env,Path);
     Cx = parseConstraints(C,Q,Env);
@@ -380,7 +381,7 @@ star.compiler.typeparse{
   parseContractHead:(tipes,ast,dict,string) => (string,cons[tipe],cons[tipe]).
   parseContractHead(Q,Tp,Env,Path) where
       (Lc,O,Args) ^= isSquareTerm(Tp) => valof{
-	ConTp = parseType(Q,dollarName(O),Env);
+	ConTp = parseType(Q,hashName(O),Env);
 	if [A].=Args && (_,Lhs,Rhs)^=isBinary(A,"->>") then{
 	  ArgTps = parseHeadArgs(Q,deComma(Lhs),[],Env);
 	  DepTps = parseHeadArgs(Q,deComma(Rhs),[],Env);
@@ -401,7 +402,7 @@ star.compiler.typeparse{
     (Flds,Tps) = parseTypeFields(BV,Els,[],[],Env);
     Face = faceType(Flds,Tps);
     (Con,CTps,CDps) = parseContractHead(BV,T,Env,Path);
---    logMsg("contract head $(mkConType(Con,CTps,CDps))");
+    -- logMsg("contract head $(mkConType(Con,CTps,CDps))");
     ConTp = reQ(BV,mkConType(Con,CTps,CDps));
     ConRlTp = foldLeft(((_,QV),Rl)=>allRule(QV,Rl),contractExists(Con,CTps,CDps,Face),BV);
     valis ([conDef(Lc,Id,tpName(ConTp),ConRlTp)],
