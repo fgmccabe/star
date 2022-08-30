@@ -144,9 +144,14 @@ static logical shouldWeStop(processPo p, termPo arg) {
       case RetX:
       case RtG: {
         switch (p->waitFor) {
-          case stepOver:
-            return (logical) (p->waterMark == stk->fp && p->traceCount == 0);
+          case stepOut:
+            if ((p->waterMark == frame && p->traceCount == 0)) {
+              p->waterMark = Null;
+              return True;
+            } else
+              return False;
           case stepInto:
+          case stepOver:
             if (p->traceCount > 0)
               p->traceCount--;
             return (logical) (p->traceCount == 0);
@@ -155,7 +160,7 @@ static logical shouldWeStop(processPo p, termPo arg) {
         }
       }
       case Locals: {
-        if (breakPointSet(mtdLabel(p->stk->fp->prog))) {
+        if (p->waterMark==Null && breakPointSet(mtdLabel(p->stk->fp->prog))) {
           p->waitFor = stepInto;
           p->tracing = True;
           p->waterMark = Null;
@@ -167,7 +172,7 @@ static logical shouldWeStop(processPo p, termPo arg) {
                 p->traceCount--;
               return (logical) (p->traceCount == 0);
             case stepOver:
-              return (logical) (p->traceCount == 0 && p->waterMark == p->stk->fp);
+              return (logical) (p->traceCount == 0);
             default:
               return False;
           }
@@ -180,7 +185,7 @@ static logical shouldWeStop(processPo p, termPo arg) {
               p->traceCount--;
             return (logical) (p->traceCount == 0);
           case stepOver:
-            return (logical) (p->traceCount == 0 && p->waterMark == p->stk->fp);
+            return (logical) (p->traceCount == 0);
           default:
             return False;
         }
@@ -339,7 +344,7 @@ static DebugWaitFor dbgUntilRet(char *line, processPo p, termPo loc, void *cl) {
   resetDeflt("n");
   stackPo stk = p->stk;
 
-  switch (*p->stk->fp->pc) {
+  switch (*stk->fp->pc) {
     case Ret:
     case RetX:
     case RtG: {
@@ -351,15 +356,15 @@ static DebugWaitFor dbgUntilRet(char *line, processPo p, termPo loc, void *cl) {
       p->waterMark = p->stk->fp;
       break;
   }
-  return stepOver;
+  return stepOut;
 }
 
 static DebugWaitFor dbgSetDepth(char *line, processPo p, termPo loc, void *cl) {
-  integer depth = cmdCount(line, 0);
-  if (depth > 0)
+  integer depth = cmdCount(line, -1);
+  if (depth >= 0)
     displayDepth = cmdCount(line, 0);
-  else
-    outMsg(debugOutChnnl, "display depth %ld\n%_", displayDepth);
+
+  outMsg(debugOutChnnl, "display depth %ld\n%_", displayDepth);
 
   resetDeflt("n");
   return moreDebug;
@@ -374,7 +379,7 @@ static DebugWaitFor dbgShowRegisters(char *line, processPo p, termPo loc, void *
 
 static DebugWaitFor dbgShowCall(char *line, processPo p, termPo loc, void *cl) {
   stackPo stk = p->stk;
-  showStackCall(debugOutChnnl, displayDepth, True, stk, stk->fp, stk->sp, 0);
+  showStackCall(debugOutChnnl, displayDepth, stk->fp, stk, stk->sp, 0, showLocalVars);
 
   resetDeflt("n");
   return moreDebug;
@@ -481,14 +486,8 @@ static DebugWaitFor dbgShowStack(char *line, processPo p, termPo loc, void *cl) 
   return moreDebug;
 }
 
-void showStackEntry(ioPo out, stackPo stk, framePo fp, integer frameNo, logical showLocals) {
-  showStackCall(out, displayDepth, showLocals, stk, fp, stk->sp, frameNo);
-  if (showLocals)
-    showAllLocals(out, stk, fp);
-}
-
 static DebugWaitFor dbgStackTrace(char *line, processPo p, termPo loc, void *cl) {
-  stackTrace(p, debugOutChnnl, p->stk, True, displayDepth);
+  stackTrace(p, debugOutChnnl, p->stk, displayDepth, showArguments);
 
   resetDeflt("n");
   return moreDebug;
@@ -531,9 +530,9 @@ void showMethodCode(ioPo out, char *msg, char *name, methodPo mtd) {
 static DebugWaitFor dbgDebug(char *line, processPo p, termPo loc, void *cl) {
   debugDebugging = !debugDebugging;
 
-  logMsg(stdErr, "debug debugging %s\n", (debugDebugging ? "enanbled" : "disabled"));
+  logMsg(stdErr, "debug debugging %s\n", (debugDebugging ? "enabled" : "disabled"));
   resetDeflt("n");
-  return stepInto;
+  return moreDebug;
 }
 
 static DebugWaitFor dbgInsDebug(char *line, processPo p, termPo loc, void *cl) {
@@ -604,7 +603,7 @@ static DebugWaitFor dbgDropFrame(char *line, processPo p, termPo loc, void *cl) 
   stk->fp->pc = entryPoint(stk->fp->prog);
 
   outMsg(debugOutChnnl, "Dropped %d frames\n%_", frameNo);
-  showStackCall(debugOutChnnl, displayDepth, False, stk, stk->fp, stk->sp, 0);
+  showStackCall(debugOutChnnl, displayDepth, stk->fp, stk, stk->sp, 0, showPrognames);
 
   resetDeflt("n");
   return moreDebug;
@@ -616,8 +615,8 @@ static logical shouldWeStopIns(processPo p) {
     framePo f = currFrame(stk);
 #ifdef TRACE_DBG
     if (debugDebugging) {
-      outMsg(logFile, "debug: waterMark=0x%x, fp=0x%x, traceCount=%d, tracing=%s, ins: ", p->waterMark, p->stk->fp,
-             p->traceCount, (p->tracing ? "yes" : "no"));
+      outMsg(logFile, "debug: waterMark=0x%x, fp=0x%x, traceCount=%d, tracing=%s, displayDepth=%d, ins: ", p->waterMark,
+             p->stk->fp, p->traceCount, (p->tracing ? "yes" : "no"), displayDepth);
       disass(logFile, stk, f->prog, f->pc);
       outMsg(logFile, "\n%_");
     }
@@ -640,14 +639,18 @@ static logical shouldWeStopIns(processPo p) {
       case RetX:
       case RtG: {
         switch (p->waitFor) {
-          case stepOver:
-            return (logical) (p->waterMark == previousFrame(stk, f) && p->traceCount == 0);
+          case stepOut:
+            if ((p->waterMark == f && p->traceCount == 0)) {
+              p->waterMark = Null;
+              return True;
+            } else
+              return False;
           default:
             return False;
         }
       }
       case Locals: {
-        if (breakPointSet(mtdLabel(p->stk->fp->prog))) {
+        if (p->waterMark == Null && breakPointSet(mtdLabel(p->stk->fp->prog))) {
           p->waitFor = stepInto;
           p->tracing = True;
           p->waterMark = Null;
@@ -695,8 +698,9 @@ DebugWaitFor insDebug(processPo p) {
       {.c = '-', .cmd=dbgClearBreakPoint, .usage="- clear break point"},
       {.c = 'B', .cmd=dbgShowBreakPoints, .usage="show all break points"},
       {.c = 'y', .cmd=dbgSymbolDebug, .usage="y turn on symbolic mode"},
-      {.c = 'v', .cmd=dbgVerifyProcess, .usage="v verify process"}},
-    .count = 20,
+      {.c = 'v', .cmd=dbgVerifyProcess, .usage="v verify process"},
+      {.c = '&', .cmd=dbgDebug, .usage="& flip debug debugging"}},
+    .count = 22,
     .deflt = Null
   };
 
@@ -722,6 +726,7 @@ DebugWaitFor insDebug(processPo p) {
             continue;
           case stepInto:
           case stepOver:
+          case stepOut:
           case nextBreak:
           case never:
             return p->waitFor;
@@ -928,7 +933,7 @@ DebugWaitFor lnDebug(processPo p, termPo arg, showCmd show) {
     {.c = 'B', .cmd=dbgShowBreakPoints, .usage="show all break points"},
     {.c = 'y', .cmd=dbgInsDebug, .usage="y turn on instruction mode"},
     {.c = '&', .cmd=dbgDebug, .usage="& flip debug debugging"}},
-    .count = 20,
+    .count = 21,
     .deflt = Null
   };
 
@@ -960,6 +965,7 @@ DebugWaitFor lnDebug(processPo p, termPo arg, showCmd show) {
             continue;
           case stepInto:
           case stepOver:
+          case stepOut:
           case nextBreak:
           case never:
             return p->waitFor;

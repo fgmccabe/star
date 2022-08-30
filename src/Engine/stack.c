@@ -350,7 +350,8 @@ retCode stkDisp(ioPo out, termPo t, integer precision, integer depth, logical al
 }
 
 void
-showStackCall(ioPo out, integer displayDepth, logical showLocals, stackPo stk, framePo fp, ptrPo sp, integer frameNo) {
+showStackCall(ioPo out, integer displayDepth, framePo fp, stackPo stk, ptrPo sp, integer frameNo,
+              StackTraceLevel tracing) {
   methodPo mtd = fp->prog;
   if (normalCode(mtd)) {
     insPo pc = fp->pc;
@@ -358,30 +359,54 @@ showStackCall(ioPo out, integer displayDepth, logical showLocals, stackPo stk, f
 
     termPo locn = findPcLocation(mtd, pcOffset);
     if (locn != Null)
-      outMsg(out, "[%d] %#L: %T(", frameNo, locn, mtd);
+      outMsg(out, "[%d] %#L: %T", frameNo, locn, mtd);
     else
-      outMsg(out, "[%d] (unknown loc): %T[%d](", frameNo, mtd, pcOffset);
+      outMsg(out, "[%d] (unknown loc): %T[%d]", frameNo, mtd, pcOffset);
 
     integer count = argCount(mtd);
-    char *sep = "";
-    for (integer ix = 0; ix < count; ix++) {
-      outMsg(out, "%s%,*T", sep, displayDepth, *stackArg(stk, fp, ix));
-      sep = ", ";
-    }
-    outMsg(out, ")\n");
-    if (showLocals && sp < fp->csp) {
-      count = lclCount(mtd);
 
-      for (integer vx = 1; vx <= count; vx++) {
-        ptrPo var = stackLcl(stk, fp, vx);
-        if (*var != Null && *var != voidEnum)
-          outMsg(out, "  L[%d] = %,*T\n", vx, displayDepth, *var);
+    switch (tracing) {
+      default:
+      case showPrognames: {
+        outMsg(out, "\n");
+        break;
+      }
+      case showArguments: {
+        if (displayDepth > 0) {
+          outMsg(out, "(");
+          char *sep = "";
+          for (integer ix = 0; ix < count; ix++) {
+            outMsg(out, "%s%,*T", sep, displayDepth, *stackArg(stk, fp, ix));
+            sep = ", ";
+          }
+          outMsg(out, ")\n");
+        } else
+          outMsg(out, "\n");
+        break;
+      }
+      case showLocalVars: {
+        outMsg(out, "(");
+        char *sep = "";
+        for (integer ix = 0; ix < count; ix++) {
+          outMsg(out, "%s%,*T", sep, displayDepth, *stackArg(stk, fp, ix));
+          sep = ", ";
+        }
+        outMsg(out, ")\n");
+        if (sp < fp->csp) {
+          count = lclCount(mtd);
+
+          for (integer vx = 1; vx <= count; vx++) {
+            ptrPo var = stackLcl(stk, fp, vx);
+            if (*var != Null && *var != voidEnum)
+              outMsg(out, "  L[%d] = %,*T\n", vx, displayDepth, *var);
+          }
+        }
       }
     }
   }
 }
 
-void stackTrace(processPo p, ioPo out, stackPo stk, logical showLocals, integer displayDepth) {
+void stackTrace(processPo p, ioPo out, stackPo stk, integer displayDepth, StackTraceLevel tracing) {
   outMsg(out, "Stack trace for process %d\n", p->processNo);
 
   do {
@@ -403,7 +428,7 @@ void stackTrace(processPo p, ioPo out, stackPo stk, logical showLocals, integer 
     ptrPo sp = stk->sp;
 
     while (fp >= baseFrame(stk)) {
-      showStackCall(out, displayDepth, showLocals, stk, fp, sp, frameNo(stk, fp));
+      showStackCall(out, displayDepth, fp, stk, sp, frameNo(stk, fp), tracing);
       sp = fp->csp + argCount(fp->prog);
       fp--;
     }

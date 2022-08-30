@@ -298,7 +298,6 @@ static retCode setRepoDir(char *option, logical enable) {
 static retCode symbolDebug(char *option, logical enable) {
   lineDebugging = True;  /* turn on symbolic insDebugging */
   interactive = True;       // Initially its also interactive
-  displayDepth = 10;    // Set up larger display depth
   return Ok;
 }
 
