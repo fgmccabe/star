@@ -40,6 +40,10 @@ star.collection{
     ixLeft:all x ~~ (((k,v,x)=>x),x,c) => x.
   }
 
+  public contract all c,t ~~ visitor[c->>t] ::= {
+    visit:all a ~~ (c,(t,a)=>a,a) => a
+  }
+
   public contract all k,e ~~ membership[k->>e] ::= {
     (\+):(k,e)=>k.
     (\-):(k,e)=>k.

@@ -79,10 +79,6 @@ star.core {
     frmt:(t,string) => string.
   }
 
-  public implementation display[string] => {
-    disp(X) => X
-  }
-
   public contract all k ~~ concat[k] ::= {
     (++) : (k,k)=>k.
     _multicat : (cons[k]) => k.
