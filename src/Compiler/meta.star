@@ -155,7 +155,7 @@ star.compiler.meta{
 
   public traceAst = ref .false.
   public traceDependencies = ref .false.
-  public traceMacro = ref .false.
+  public macroTracing = ref .false.
   public macroOnly = ref .false.
   public showCanon = ref .false.
   public traceCanon = ref .false.
@@ -163,6 +163,7 @@ star.compiler.meta{
   public showNormalize = ref .false.
   public traceNormalize = ref .false.
   public optimization = ref .base.
+  public traceCodegen = ref .false.
   public showCode = ref .false.
   public genCode = ref .true.
 
@@ -205,23 +206,23 @@ star.compiler.meta{
     }
   }
 
-  public traceMacroOption:cmdOption[compilerOptions].
-  traceMacroOption = cmdOption{
+  public macroTracingOption:cmdOption[compilerOptions].
+  macroTracingOption = cmdOption{
     shortForm = "-dM".
     alternatives = [].
     usage = "-dM -- show macro".
     validator = .none.
     setOption(_,Opts) => valof{
-      traceMacro := .true;
+      macroTracing := .true;
       valis Opts
     }
   }
 
   public traceDependencyOption:cmdOption[compilerOptions].
   traceDependencyOption = cmdOption{
-    shortForm = "-dD".
+    shortForm = "-tD".
     alternatives = [].
-    usage = "-dD -- trace dependencies".
+    usage = "-tD -- trace dependencies".
     validator = .none.
     setOption(_,Opts) => valof{
       traceDependencies := .true;
@@ -288,6 +289,19 @@ star.compiler.meta{
     validator = .none.
     setOption(_,Opts) => valof{
       traceNormalize := .true;
+      
+      valis Opts
+    }
+  }
+
+  public traceCodegenOption:cmdOption[compilerOptions].
+  traceCodegenOption = cmdOption{
+    shortForm = "-ti".
+    alternatives = [].
+    usage = "-ti -- trace code generation".
+    validator = .none.
+    setOption(_,Opts) => valof{
+      traceCodegen := .true;
       
       valis Opts
     }

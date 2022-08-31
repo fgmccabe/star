@@ -7,7 +7,6 @@ test.comp.lx{
   import star.compiler.token.
   import star.compiler.location.
   import star.pkg.
-  import star.trace.
 
   lc=pkgLoc(pkg("test",.defltVersion)).
 

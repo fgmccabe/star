@@ -23,7 +23,7 @@ star.compiler.macro.driver{
       handleCmds(processOptions(Args,[wdOption,
 	    stdinOption,
 	    traceAstOption,
-	    traceMacroOption],
+	    macroTracingOption],
 	  defltOptions(WI,RI)
 	));
     } catch {
