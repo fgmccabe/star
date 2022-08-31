@@ -1,5 +1,5 @@
 :- module(location,[locOf/2, mergeLoc/3,
-		    showLocation/3,
+		    showLocation/3,dispLocation/2,
 		    ssLoc/2,
 		    ssLc/2,
 		    lcPk/2,lcLine/2,lcColumn/2,lcSize/2,lcOff/2,isLocation/1,locHash/2,
@@ -18,6 +18,10 @@ locOf(terminal,missing).
 mergeLoc(Lc1,Lc2,Lc1) :- var(Lc2),!.
 mergeLoc(Lc1,Lc2,Lc2) :- var(Lc1),!.
 mergeLoc(loc(Pk,Ln,Pos,Co1,_),loc(_,_,_,Co2,Len),loc(Pk,Ln,Pos,Co1,Len1)) :- Len1 is Co2-Co1+Len.
+
+dispLocation(Lc,Str) :-
+  showLocation(Lc,Chrs,[]),
+  string_chars(Str,Chrs).
 
 showLocation(loc(Pk,Ln,Col,Pos,Sz),O,E) :-
   appStr(Pk,O,O0),

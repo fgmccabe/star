@@ -1,9 +1,9 @@
-star.trace{
+star.log{
   import star.core.
 
-  public trace:all x ~~ display[x] |: (string,x)=>x.
-  trace(M,X) => valof{
-    logMsg("#(M) - $(X)");
+  public traceCall:all x ~~ display[x] |: (string,x) => x.
+  traceCall(M,X) => valof{
+    _show("#(M) - $(X)");
     valis X
   }
 

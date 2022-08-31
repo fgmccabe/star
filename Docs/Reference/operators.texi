@@ -298,6 +298,10 @@
 @tab non-associative prefix
 @tab 900
 @tab import object
+@item @code{trace}
+@tab non-associative prefix
+@tab 940
+@tab display tracing message
 @item @code{~~}
 @tab right associative infix
 @tab 1240

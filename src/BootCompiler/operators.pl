@@ -83,6 +83,7 @@
   operator("break", [prefixOp(10, 9)]).
   operator("suspend", [prefixOp(901, 900), infixOp(900, 901, 900)]).
   operator("open", [prefixOp(900, 899)]).
+  operator("trace", [prefixOp(940, 939)]).
   operator("~~", [infixOp(1239, 1240, 1240)]).
   operator("assert", [prefixOp(1240, 1239)]).
   operator("⊕", [infixOp(720, 720, 719)]).

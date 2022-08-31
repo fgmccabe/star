@@ -968,6 +968,15 @@
     "keyword": false
   },
   {
+    "prefixOp": "trace",
+    "priorities": [
+      940,
+      939
+    ],
+    "desc": "display tracing message",
+    "keyword": false
+  },
+  {
     "prefixOp": "contract",
     "priorities": [
       1260,

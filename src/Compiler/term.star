@@ -369,7 +369,11 @@ star.compiler.term{
     locOf(aLtt(Lc,_,_,_)) => Lc.
     locOf(aVarNmes(Lc,_,_)) => Lc.
     locOf(aAbort(Lc,_)) => Lc.
-  }  
+  }
+
+  public implementation display[aAction] => {
+    disp(A) => dspAct(A,"")
+  }
 
   public implementation coercion[cExp,data] => {.
     _coerce(cInt(_,Ix)) => some(intgr(Ix)).
@@ -563,7 +567,7 @@ star.compiler.term{
 
     mkUnpack(Lc,V,Arms) => cUnpack(Lc,V,Arms,typeOf(V)).
 
-    mkLtt(Lc,V,E,X) => trace("making ltt ",cLtt(Lc,V,E,X)).
+    mkLtt(Lc,V,E,X) => cLtt(Lc,V,E,X).
   .}
 
   public implementation reform[aAction] => {
@@ -743,7 +747,18 @@ star.compiler.term{
   glVars(cWhere(_,V,C),D) => glVars(C,glVars(V,D)).
   glVars(cMatch(_,P,_),D) => ptnVars(P,D).
   glVars(_,D) default => D.
-  
+
+  public contract all e ~~ present[e] ::= {
+    present:(e,(cExp)=>boolean)=>boolean
+  }
+
+  public implementation present[cExp] => {
+    present(E,F) => presentInE(E,(_)=>.false,F)
+  }
+
+  public implementation present[aAction] => {
+    present(A,F) => presentInA(A,(_)=>.false,F)
+  }
 
   public lblUsed:(aAction,string) => boolean.
   lblUsed(A,Lb) => presentInA(A,(T)=>isBreak(T,Lb),(_)=>.false).
@@ -775,8 +790,8 @@ star.compiler.term{
   presentInA(aVarNmes(_,_,A),C,T) => presentInA(A,C,T).
   presentInA(aAbort(_,_),_,_) => .false.
 
-  public varPresent:(cExp,string)=>boolean.
-  varPresent(E,Nm) => presentInE(E,(_)=>.false,(V)=>sameVar(V,Nm)).
+  public varPresent:all e ~~ present[e] |: (e,string)=>boolean.
+  varPresent(E,Nm) => present(E,(V)=>sameVar(V,Nm)).
 
   sameVar(cVar(_,cId(Nm,_)),Nm) => .true.
   sameVar(_,_) default => .false.
