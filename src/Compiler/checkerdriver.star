@@ -35,7 +35,7 @@ star.compiler.checker.driver{
 	    repoOption,
 	    traceDependencyOption,
 	    traceAstOption,
-	    traceMacroOption,
+	    macroTracingOption,
 	    showCheckOption,
 	    traceCheckOption,
 	    macroOnlyOption],
@@ -81,7 +81,7 @@ star.compiler.checker.driver{
 	logMsg("Ast of $(P) is $(Ast)")
       };
       M = macroPkg(Ast);
-      if traceMacro! then{
+      if macroTracing! then{
 	logMsg("Macroed package $(M)")
       };
 

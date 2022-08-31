@@ -59,6 +59,7 @@ star.compiler.macro.rules{
     "implementation" -> [(.statement,implementationMacro)],
     "assert" -> [(.actn,assertMacro)],
     "show" -> [(.actn,showMacro)],
+    "trace" -> [(.expression,traceMacro)],
     "\${}" -> [(.expression,taskMacro)],
     "generator" -> [(.expression,generatorMacro)],
     "task" -> [(.expression,taskMacro)],
@@ -78,6 +79,13 @@ star.compiler.macro.rules{
     valis active(Shw)
   }
   showMacro(_,.actn) default => .inactive.
+
+  -- Convert trace E to traceCall("value of "E" is ",E)
+  traceMacro(T,.expression) where (Lc,Exp) ^= isTrace(T) => valof{
+    Tr = binary(Lc,"traceCall",str(Lc,"$(Lc)\: #(Exp::string)"),Exp);
+    valis active(Tr)
+  }
+  traceMacro(_,_) default => .inactive.
 
   -- Convert A![X] to (A!)[X]
   binRefMacro(A,.expression) where (Lc,Lhs,Rhs) ^= isBinary(A,"!") &&

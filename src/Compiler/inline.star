@@ -23,11 +23,15 @@ star.compiler.inline{
   simplifyDefn:(cDefn,map[termLbl,cDefn])=>cDefn.
   simplifyDefn(fnDef(Lc,Nm,Tp,Args,Val),Map) => valof{
     logMsg("simplify $(fnDef(Lc,Nm,Tp,Args,Val))");
-    FF = fnDef(Lc,Nm,Tp,Args,simplifyExp(Val,Map,10));
+    FF = fnDef(Lc,Nm,Tp,Args,simplifyExp(Val,Map,100));
     logMsg("simplified $(FF)");
     valis FF}
-  simplifyDefn(vrDef(Lc,Nm,Tp,Val),Map) =>
-    trace("simplify $(vrDef(Lc,Nm,Tp,Val)) to ",vrDef(Lc,Nm,Tp,simplifyExp(Val,Map,10))).
+  simplifyDefn(vrDef(Lc,Nm,Tp,Val),Map) => valof{
+    logMsg("simplify $(vrDef(Lc,Nm,Tp,Val))");
+    VV = vrDef(Lc,Nm,Tp,simplifyExp(Val,Map,100));
+    logMsg("simplified $(VV)");
+    valis VV
+  }
   simplifyDefn(D,_) default => D.
 
   -- There are three possibilities of a match ...
@@ -238,12 +242,17 @@ star.compiler.inline{
     .insufficient => .insufficient
   }
 
-  inlineLtt:all e ~~ simplify[e],reform[e] |:
+  inlineLtt:all e ~~ simplify[e],reform[e],present[e] |:
     (option[locn],cId,cExp,e,map[termLbl,cDefn],integer) => e.
-  inlineLtt(Lc,cId(Vr,Tp),Bnd,Exp,Map,Depth) where cVar(_,VV).=Bnd =>
-    simplify(Exp,Map[tLbl(Vr,arity(Tp))->vrDef(Lc,Vr,Tp,Bnd)],Depth).
-  inlineLtt(Lc,cId(Vr,Tp),Bnd,Exp,Map,Depth) where isGround(Bnd) =>
-    simplify(Exp,Map[tLbl(Vr,arity(Tp))->vrDef(Lc,Vr,Tp,Bnd)],Depth).
+  inlineLtt(Lc,cId(Vr,Tp),Bnd,Exp,Map,Depth) where isGround(Bnd) => valof{
+    EE = simplify(Exp,Map[tLbl(Vr,arity(Tp))->vrDef(Lc,Vr,Tp,Bnd)],Depth);
+
+    if varPresent(EE,Vr) then
+      valis mkLtt(Lc,cId(Vr,Tp),Bnd,EE)
+    else
+    valis EE
+  }
+--    simplify(Exp,Map[tLbl(Vr,arity(Tp))->vrDef(Lc,Vr,Tp,Bnd)],Depth).
   inlineLtt(Lc,Vr,Bnd,Exp,Map,Depth) =>
     mkLtt(Lc,Vr,Bnd,simplify(Exp,Map,Depth)).
 
@@ -263,7 +272,7 @@ star.compiler.inline{
     simplifyExp(cCall(Lc,Nm,OArgs++Args,Tp),Map,Depth).
   inlineOCall(Lc,cVar(_,cId(Nm,VTp)),Args,Tp,Map,Depth) where Depth>0 &&
       Prg .= tLbl(Nm,arity(VTp)) &&
-      vrDef(VLc,Nm,_,Rep) ^= trace("$(Prg) present ",Map[Prg]) =>
+      vrDef(VLc,Nm,_,Rep) ^= Map[Prg] =>
     inlineOCall(Lc,simplifyExp(Rep,Map[~Prg],Depth-1),Args,Tp,Map,Depth).
   inlineOCall(Lc,Op,Args,Tp,Map,Depth) =>
     cOCall(Lc,Op,Args,Tp).
