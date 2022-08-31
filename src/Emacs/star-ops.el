@@ -65,6 +65,7 @@
   ("break" ( (prefix 10 9)))
   ("suspend" ( (prefix 901 900) (infix 900 901 900)))
   ("open" ( (prefix 900 899)))
+  ("trace" ( (prefix 940 939)))
   ("~~" ( (infix 1239 1240 1240)))
   ("assert" ( (prefix 1240 1239)))
   ("⊕" ( (infix 720 720 719)))

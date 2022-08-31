@@ -52,7 +52,7 @@
     "star.sort": "sort.star",
     "star.thread": "threads.star",
     "star.topsort": "topsort.star",
-    "star.trace": "trace.star",
+    "star.log": "log.star",
     "star.treelist" : "treelist.star",
     "star.trie": "trie.star",
     "star.tuples": "tuples.star",

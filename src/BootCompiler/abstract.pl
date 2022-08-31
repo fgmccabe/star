@@ -16,6 +16,7 @@
 		    isChar/3,mkChar/3,isInteger/3,mkInteger/3,mkFloat/3,
 		    isBigInt/3,mkBigInt/3,
 		    isConsTerm/4, sameTerm/2,
+		    validAst/1,
 		    astFindReplace/3]).
 :- use_module(operators).
 :- use_module(misc).
@@ -200,3 +201,15 @@ deParen(T,T).
 
 isParen(T,I) :-
   isRoundTuple(T,_,[I]).
+
+validAst(name(_,I)) :- !, string(I).
+validAst(qnme(_,I)) :- !, string(I).
+validAst(integer(_,Ix)) :- !, integer(Ix).
+validAst(bigint(_,_)) :- !.
+validAst(float(_,Dx)) :- float(Dx).
+validAst(char(_,_)) :- !.
+validAst(string(_,Sx)) :- !, string(Sx).
+validAst(tuple(_,B,Els)) :- !, string(B),
+  check_implies(is_member(E,Els),abstract:validAst(E)).
+validAst(app(_,O,A)) :- validAst(O), validAst(A).
+

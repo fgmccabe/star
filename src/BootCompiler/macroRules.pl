@@ -2,6 +2,7 @@
 		      macroRl/3]).
 
 :- use_module(abstract).
+:- use_module(display).
 :- use_module(wff).
 :- use_module(misc).
 :- use_module(errors).
@@ -34,6 +35,7 @@ macroRl("do",action,macroRules:forLoopMacro).
 
 macroRl("assert",action,macroRules:assertMacro).
 macroRl("show",action,macroRules:showMacro).
+macroRl("trace",expression,macroRules:traceMacro).
 macroRl("generator",expression,macroRules:generatorMacro).
 macroRl("yield",action,macroRules:yieldMacro).
 
@@ -327,6 +329,40 @@ makeShow(Lc,Exp,Act) :-
   mkLoc(ELc,Loc),
   roundTerm(Lc,name(Lc,"shwMsg"),[Exp,Txt,Loc],Act).
 
+/*
+  trace E
+becomes
+  traceCall("Lc: "E"",E)
+  */
+
+traceMacro(T,expression,Exp) :-
+  isTrace(T,Lc,E),!,
+/*  (isRound(E,OLc,Op,Els) ->
+   dispLocation(OLc,Loc),
+   unary(OLc,"disp",Op,OO),
+   genArgsDisplay(Els,OLc,AA),
+   interleave(AA,string(OLc,","),AAA),
+   concat([string(OLc,Loc),string(OLc," "),OO,string(OLc,"(")|AAA],[string(OLc,")")],A2),
+   mkConses(A2,OLc,CC),
+   unary(OLc,"_str_multicat",CC,DD),
+   roundTerm(Lc,name(Lc,"traceCall"),[DD,E],Exp) ;
+*/
+   ast2String(Lc,E,string(_,Txt)),
+   locOfAst(E,ELc),
+   dispLocation(ELc,Loc),
+   ss_to_str(sq([ss(Loc),ss(":"),ss(Txt)]),Msg),
+   roundTerm(Lc,name(Lc,"traceCall"),[string(Lc,Msg),E],Exp).
+
+mkConses([],Lc,Nl) :-
+  mkEnum(Lc,"nil",Nl).
+mkConses([E|Es],Lc,L) :-
+  mkConses(Es,Lc,LL),
+  mkConApply(Lc,name(Lc,"cons"),[E,LL],L).
+  
+genArgsDisplay([],_,[]) :- !.
+genArgsDisplay([A|As],Lc,[AA|Ls]) :-
+  unary(Lc,"disp",A,AA),
+  genArgsDisplay(As,Lc,Ls).
 
 /*
    A[F:T] := R
