@@ -97,7 +97,7 @@ star.compiler.normalize.driver{
 	if errorFree() && ~ typeCheckOnly! then {
 	  N = normalize(PkgSpec,Defs,Decls);
 	  validProg(N,IDecls++Decls);
-	  if traceNormalize! then{
+	  if showNormalize! then{
 	    logMsg("normalized code $(N)");
 	  };
 	  Inlined = ( optimization! ==.inlining ? simplifyDefs(N) || N);

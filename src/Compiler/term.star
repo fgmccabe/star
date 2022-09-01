@@ -80,16 +80,16 @@ star.compiler.term{
 
   dspDef:(cDefn,string) => string.
   dspDef(fnDef(Lc,Nm,Tp,Args,Rep),Off) =>
-    "fun: $(Lc)\n#(Nm)(#(interleave(Args//disp,",")*)) => #(dspExp(Rep,Off))".
+    "fun: $(Lc) #(Nm)(#(interleave(Args//disp,",")*)) => #(dspExp(Rep,Off))".
   dspDef(vrDef(Lc,Nm,Tp,Rep),Off) =>
-    "glb: $(Lc)\n#(Nm)=#(dspExp(Rep,Off))".
+    "var: $(Lc) #(Nm)=#(dspExp(Rep,Off))".
   dspDef(tpDef(Lc,Tp,TpRl,Map),Off) =>
-    "tpe: $(Lc)\n$(TpRl) with $(Map)".
+    "tpe: $(Lc) $(TpRl) with $(Map)".
   dspDef(lblDef(Lc,Lbl,Tp,Ix),Off) =>
-    "lbl: $(Lc)\n$(Lbl)\:$(Tp)@$(Ix)".
+    "lbl: $(Lc) $(Lbl)\:$(Tp)@$(Ix)".
 
   dspExp:(cExp,string) => string.
-  dspExp(cVar(_,V),_) => disp(V).
+  dspExp(cVar(_,cId(V,VTp)),_) => "%#(V)/$(arity(VTp))".
   dspExp(cInt(_,Ix),_) => disp(Ix).
   dspExp(cChar(_,Ix),_) => disp(Ix).
   dspExp(cBig(_,Ix),_) => disp(Ix).
@@ -177,7 +177,7 @@ star.compiler.term{
   } in cTerm(Lc,tplLbl(Ar), Args, TpTp).
 
   public contract all e ~~ rewrite[e] ::= {
-    rewrite:(e,map[termLbl,cExp])=>e
+    rewrite:(e,map[termLbl,cDefn])=>e
   }
 
   public implementation equality[cId] => {
@@ -400,8 +400,8 @@ star.compiler.term{
 	    cInt(OLc,Line),cInt(OLc,Col),cInt(OLc,Off),cInt(OLc,Len)]))
   }
 
-  public rwTerm:(cExp,(cExp)=>option[cExp])=>cExp.
-  rwTerm(T,Tst) where Rep^=Tst(T) => Rep.
+  public rwTerm:(cExp,(cExp)=>option[cDefn])=>cExp.
+  rwTerm(T,Tst) where vrDef(_,_,_,Vl) ^= Tst(T) => Vl.
   rwTerm(cVoid(Lc,T),_) => cVoid(Lc,T).
   rwTerm(cAnon(Lc,T),_) => cAnon(Lc,T).
   rwTerm(cVar(Lc,V),_) => cVar(Lc,V).
@@ -443,7 +443,7 @@ star.compiler.term{
   rwTerm(cValof(Lc,A,Tp),M) => cValof(Lc,rwAct(A,M),Tp).
   rwTerm(cAbort(Lc,Ms,T),M) => cAbort(Lc,Ms,T).
 
-  public rwAct:(aAction,(cExp)=>option[cExp])=>aAction.
+  public rwAct:(aAction,(cExp)=>option[cDefn])=>aAction.
   rwAct(aNop(Lc),_) => aNop(Lc).
   rwAct(aSeq(Lc,L,R),M) => aSeq(Lc,rwAct(L,M),rwAct(R,M)).
   rwAct(aLbld(Lc,L,A),M) => aLbld(Lc,L,rwAct(A,M)).
@@ -463,13 +463,13 @@ star.compiler.term{
   rwAct(aVarNmes(Lc,Vs,E),M) => aVarNmes(Lc,Vs,rwAct(E,M)).
   rwAct(aAbort(Lc,Ms),M) => aAbort(Lc,Ms).
 
-  dropVar:(string,(cExp)=>option[cExp])=>(cExp)=>option[cExp].
+  dropVar:(string,(cExp)=>option[cDefn])=>(cExp)=>option[cDefn].
   dropVar(Nm,Tst) => let{
     test(cVar(_,cId(Nm,_))) => .none.
     test(T) default => Tst(T)
   } in test.
 
-  public rwTerms:(cons[cExp],(cExp)=>option[cExp])=>cons[cExp].
+  public rwTerms:(cons[cExp],(cExp)=>option[cDefn])=>cons[cExp].
   rwTerms(Els,Tst) => (Els//(E)=>rwTerm(E,Tst)).
 
   rwDef(fnDef(Lc,Nm,Tp,Args,Val),M) =>
@@ -478,7 +478,7 @@ star.compiler.term{
     vrDef(Lc,Nm,Tp,rwTerm(Val,M)).
   rwDef(D,_) default => D.
 
-  rwCase:all e ~~ (cCase[e],(cExp)=>option[cExp],(e,(cExp)=>option[cExp])=>e) => cCase[e].
+  rwCase:all e ~~ (cCase[e],(cExp)=>option[cDefn],(e,(cExp)=>option[cDefn])=>e) => cCase[e].
   rwCase((Lc,Ptn,Rep),T,F) => (Lc,rwTerm(Ptn,T),F(Rep,T)).
 
   public implementation rewrite[cExp] => {
@@ -489,14 +489,14 @@ star.compiler.term{
     rewrite(E,M) => rwAct(E,rwVar(M)).
   }
 
-  public rewriteTerm:(cExp,map[termLbl,cExp])=>cExp.
+  public rewriteTerm:(cExp,map[termLbl,cDefn])=>cExp.
   rewriteTerm(T,Map) => rwTerm(T,rwVar(Map)).
 
-  public rewriteTerms:all e ~~ rewrite[e] |: (cons[e],map[termLbl,cExp])=>cons[e].
+  public rewriteTerms:all e ~~ rewrite[e] |: (cons[e],map[termLbl,cDefn])=>cons[e].
   rewriteTerms(Els,Map) => (Els//(E)=>rewrite(E,Map)).
 
   rwVar(M) => let{
-    test(cVar(Lc,cId(Nm,Tp))) => M[tLbl(Nm,0)].
+    test(cVar(Lc,cId(Nm,Tp))) => M[tLbl(Nm,arity(Tp))].
     test(_) => .none.
   } in test.
 
@@ -637,7 +637,7 @@ star.compiler.term{
   validE(cVoid(Lc,Tp),_) => .true.
   validE(cAnon(_,_),_) => .true.
   validE(cVar(Lc,V),D) => ( V .<. D ? .true || valof{
-      reportError("$(V) not defined",Lc);
+      reportError("$(V)/$(arity(typeOf(V)))",Lc);
       valis .false
     }).
   validE(cInt(_,_),_) => .true.

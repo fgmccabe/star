@@ -346,7 +346,7 @@ star.compiler.normalize{
 
   implementVarExp:(option[locn],nameMapEntry,nameMap,tipe) => cExp.
   implementVarExp(Lc,localFun(_,ClNm,ThVr),Map,Tp) => valof{
-    V = liftVarExp(Lc,cName(ThVr),Tp,Map);
+    V = liftVarExp(Lc,cName(ThVr),typeOf(ThVr),Map);
     valis cTerm(Lc,ClNm,[V],Tp)
   }
   implementVarExp(Lc,labelArg(Base,Ix),Map,Tp) => valof{
@@ -449,6 +449,8 @@ star.compiler.normalize{
       ThV = genVar("_ThVr",freeType);
       ThVr = cVar(Lc,ThV);
 
+--      logMsg("ThVr = $(ThVr)");
+
       L = collectLabelVars(allFree,ThV,0,[]);
 
       MM = [lyr(some(ThV),foldRight((D,LL)=>collectMtd(D,some(ThV),LL),L,GrpFns),CM),..Outer];
@@ -470,6 +472,7 @@ star.compiler.normalize{
 
 --      logMsg("free data $(ThV) = $(GrpFree)\:$(typeOf(GrpFree))");
       (BndTrm,Exx) = liftExp(Bnd,MM,GrpQ,Ex2);
+--      logMsg("lifted let $(ThVr) bound $(BndTrm)");
       valis (cLtt(Lc,ThV,GrpFree,BndTrm),Exx)
     }
   }
@@ -630,6 +633,7 @@ star.compiler.normalize{
     Ex2 = transformGroup(Grp,M,M,GrpQ,some(ThVr),Ex);
       
     (BndTrm,Exx) = liftExp(Bnd,M,GrpQ,Ex2);
+--    logMsg("lifted letrec $(cVar(Lc,ThV)) bound $(BndTrm)");
     valis (cLtt(Lc,ThV,GrpFree,BndTrm),Exx)
   }
 
