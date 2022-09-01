@@ -21,27 +21,19 @@ star.compiler.inline{
   pickupDefn(lblDef(_,_,_,_),Map) => Map.
 
   simplifyDefn:(cDefn,map[termLbl,cDefn])=>cDefn.
-  simplifyDefn(fnDef(Lc,Nm,Tp,Args,Val),Map) => valof{
-    logMsg("simplify $(fnDef(Lc,Nm,Tp,Args,Val))");
-    FF = fnDef(Lc,Nm,Tp,Args,simplifyExp(Val,Map,100));
-    logMsg("simplified $(FF)");
-    valis FF}
-  simplifyDefn(vrDef(Lc,Nm,Tp,Val),Map) => valof{
-    logMsg("simplify $(vrDef(Lc,Nm,Tp,Val))");
-    VV = vrDef(Lc,Nm,Tp,simplifyExp(Val,Map,100));
-    logMsg("simplified $(VV)");
-    valis VV
-  }
+  simplifyDefn(fnDef(Lc,Nm,Tp,Args,Val),Map) => 
+    fnDef(Lc,Nm,Tp,Args,simplifyExp(Val,Map,100)).
+  simplifyDefn(vrDef(Lc,Nm,Tp,Val),Map) => 
+    vrDef(Lc,Nm,Tp,simplifyExp(Val,Map,100)).
   simplifyDefn(D,_) default => D.
 
   -- There are three possibilities of a match ...
   match[e] ::= .noMatch | .insufficient | matching(e).
 
   -- ptnMatch tries to match an actual value with a pattern
-  ptnMatch:(cExp,cExp,map[termLbl,cExp]) => match[map[termLbl,cExp]].
-  ptnMatch(E,cVar(Lc,cId(V,VTp)),Map) where VNm .= tLbl(V,arity(VTp)) =>
-    (T^=Map[VNm] ? ptnMatch(E,T,Map) || matching(Map[VNm->E])).
-  ptnMatch(cVar(_,V1),_,_) => .insufficient.  -- variables on left only match vars on right
+  ptnMatch:(cExp,cExp,map[termLbl,cDefn]) => match[map[termLbl,cDefn]].
+  ptnMatch(cVar(Lc1,cId(V1,T1)),E,Map) =>
+    matching(Map[tLbl(V1,arity(T1))->vrDef(Lc1,V1,T1,E)]).
   ptnMatch(cInt(_,Ix),cInt(_,Ix),Map) => matching(Map).
   ptnMatch(cBig(_,Bx),cBig(_,Bx),Map) => matching(Map).
   ptnMatch(cFloat(_,Dx),cFloat(_,Dx),Map) => matching(Map).
@@ -236,31 +228,29 @@ star.compiler.inline{
   }
 
   candidate:all e ~~ rewrite[e] |: (cExp,cCase[e]) => match[e].
-  candidate(E,(_,Ptn,Rep)) => case ptnMatch(E,Ptn,[]) in {
+  candidate(E,(_,Ptn,Rep)) => case ptnMatch(Ptn,E,[]) in {
     matching(Theta) => matching(rewrite(Rep,Theta)).
     .noMatch => .noMatch.
     .insufficient => .insufficient
   }
 
-  inlineLtt:all e ~~ simplify[e],reform[e],present[e] |:
+  inlineLtt:all e ~~ simplify[e],reform[e],present[e],rewrite[e],display[e] |:
     (option[locn],cId,cExp,e,map[termLbl,cDefn],integer) => e.
   inlineLtt(Lc,cId(Vr,Tp),Bnd,Exp,Map,Depth) where isGround(Bnd) => valof{
-    EE = simplify(Exp,Map[tLbl(Vr,arity(Tp))->vrDef(Lc,Vr,Tp,Bnd)],Depth);
-
-    if varPresent(EE,Vr) then
-      valis mkLtt(Lc,cId(Vr,Tp),Bnd,EE)
-    else
-    valis EE
+    LttM = {tLbl(Vr,arity(Tp))->vrDef(Lc,Vr,Tp,Bnd)};
+    valis simplify(rewrite(Exp,LttM),Map,Depth)
   }
---    simplify(Exp,Map[tLbl(Vr,arity(Tp))->vrDef(Lc,Vr,Tp,Bnd)],Depth).
   inlineLtt(Lc,Vr,Bnd,Exp,Map,Depth) =>
     mkLtt(Lc,Vr,Bnd,simplify(Exp,Map,Depth)).
 
   inlineCall:(option[locn],string,cons[cExp],tipe,map[termLbl,cDefn],integer) => cExp.
-  inlineCall(_,Nm,Args,_,Map,Depth) where Depth>0 &&
+  inlineCall(Lc,Nm,Args,_Tp,Map,Depth) where Depth>0 &&
       PrgLbl .= tLbl(Nm,[|Args|]) &&
-      fnDef(Lc,_,_,Vrs,Rep) ^= Map[PrgLbl] =>
-    simplifyExp(rewriteTerm(Rep,zip(Vrs//((V)=>tLbl(cName(V),arity(cType(V)))),Args)::map[termLbl,cExp]),Map[~PrgLbl],Depth-1).
+      fnDef(_,_,_,Vrs,Rep) ^= Map[PrgLbl] => valof{
+	RwMap = { tLbl(VNm,arity(VTp))->vrDef(Lc,Nm,VTp,A) | (cId(VNm,VTp),A) in zip(Vrs,Args)};
+	RwTerm = rewriteTerm(Rep,RwMap);
+	valis simplifyExp(RwTerm,Map[~PrgLbl],Depth-1)
+      }
   inlineCall(Lc,Nm,Args,Tp,_,_) default => cCall(Lc,Nm,Args,Tp).
 
   inlineECall:(option[locn],string,cons[cExp],tipe,integer) => cExp.

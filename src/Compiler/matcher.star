@@ -160,16 +160,16 @@ star.compiler.matcher{
   applyVar:all e ~~ rewrite[e] |: (cExp,cons[triple[e]]) => cons[triple[e]].
   applyVar(V,Triples) where cVar(_,_).=V => let{
     applyToTriple:(triple[e])=>triple[e].
-    applyToTriple(([cVar(VLc,cId(Vr,_)),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof{
-      Mp = {tLbl(Vr,0)->V};
+    applyToTriple(([cVar(VLc,cId(Vr,VTp)),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof{
+      Mp = {tLbl(Vr,arity(VTp))->vrDef(VLc,Vr,VTp,V)};
       NArgs = rewriteTerms(Args,Mp);
       NAG = fmap((T)=>rewrite(T,Mp),AG);
       NGl = fmap((T)=>rewrite(T,Mp),Gl);
       NExp = rewrite(Exp,Mp);
       valis (NArgs, (CLc,B,NAG,NGl,NExp),Ix)
     }
-    applyToTriple(([cWhere(Lc,cVar(VLc,cId(Vr,_)),Cond),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof{
-      Mp = {tLbl(Vr,0)->V};
+    applyToTriple(([cWhere(Lc,cVar(VLc,cId(Vr,VTp)),Cond),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof{
+      Mp = {tLbl(Vr,arity(VTp))->vrDef(VLc,Vr,VTp,V)};
       NArgs = rewriteTerms(Args,Mp);
       NAG = fmap((T)=>rewrite(T,Mp),AG);
       NCond = rewrite(Cond,Mp);
