@@ -360,6 +360,9 @@ star.compiler.types{
   public fieldInFace:(tipe,string)=>option[tipe].
   fieldInFace(Tp,Fld) where faceType(Fs,_) .= deRef(Tp) => {! FTp | (Fld,FTp) in Fs !}.
 
+  public sortFieldTypes:(cons[(string,tipe)])=>cons[(string,tipe)].
+  sortFieldTypes(Tps) => sort(Tps,(((N1,_),(N2,_))=>N1<N2)).
+
   public arity:(tipe)=>integer.
   arity(Tp) where (A,_) ^= isFunType(Tp) => arity(A).
   arity(Tp) where (A,_) ^= isConsType(Tp) => arity(A).

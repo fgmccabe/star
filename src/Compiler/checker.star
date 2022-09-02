@@ -97,9 +97,11 @@ star.compiler.checker{
   isVisible([_,..l],D,e) => isVisible(l,D,e).
 
   formRecordExp:(option[locn],string,tipe,cons[canonDef],cons[decl],tipe) => canon.
-  formRecordExp(Lc,Lbl,faceType(Flds,Tps),Defs,Decls,Tp) =>
-    letExp(Lc,Defs,Decls,apply(Lc,vr(.none,Lbl,consType(tupleType(Flds//snd),Tp)),
-	(Flds//((FNm,FTp))=>vr(.none,FNm,FTp)),Tp)).
+  formRecordExp(Lc,Lbl,faceType(Flds,Tps),Defs,Decls,Tp) => valof{
+    sortedFlds = sortFieldTypes(Flds);
+    valis letExp(Lc,Defs,Decls,apply(Lc,vr(.none,Lbl,consType(tupleType(sortedFlds//snd),Tp)),
+	(sortedFlds//((FNm,FTp))=>vr(.none,FNm,FTp)),Tp))
+  }
 
   genLetRec:all e,g,d ~~ (cons[g],cons[d],(g,d,e)=>e,e) => e.
   genLetRec([],[],_,E) => E.
@@ -107,10 +109,12 @@ star.compiler.checker{
 
   formTheta:(option[locn],string,tipe,cons[cons[canonDef]],cons[cons[decl]],tipe) =>
     canon.
-  formTheta(Lc,Lbl,faceType(Flds,Tps),Defs,Decls,Tp) =>
-    genLetRec(Defs,Decls,(G,D,E) => letRec(Lc,G,D,E),
-      apply(Lc,vr(Lc,Lbl,consType(tupleType(Flds//snd),Tp)),
-	(Flds//((FNm,FTp))=>vr(Lc,FNm,FTp)),Tp)).
+  formTheta(Lc,Lbl,faceType(Flds,Tps),Defs,Decls,Tp) => valof{
+    sortedFlds = sortFieldTypes(Flds);
+    valis genLetRec(Defs,Decls,(G,D,E) => letRec(Lc,G,D,E),
+      apply(Lc,vr(Lc,Lbl,consType(tupleType(sortedFlds//snd),Tp)),
+	(sortedFlds//((FNm,FTp))=>vr(Lc,FNm,FTp)),Tp))
+  }
 
   thetaEnv:(option[locn],string,cons[ast],tipe,dict,visibility) =>
     (cons[cons[canonDef]],cons[cons[decl]],dict).
