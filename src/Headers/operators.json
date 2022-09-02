@@ -970,8 +970,8 @@
   {
     "prefixOp": "trace",
     "priorities": [
-      940,
-      939
+      140,
+      139
     ],
     "desc": "display tracing message",
     "keyword": false

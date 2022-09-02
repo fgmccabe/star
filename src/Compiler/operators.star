@@ -99,7 +99,7 @@ star.compiler.operators{
   oper("break") => [prefixOp(10,9)].
   oper("suspend") => [prefixOp(901,900), infixOp(900,901,900)].
   oper("open") => [prefixOp(900,899)].
-  oper("trace") => [prefixOp(940,939)].
+  oper("trace") => [prefixOp(140,139)].
   oper("~~") => [infixOp(1239,1240,1240)].
   oper("assert") => [prefixOp(1240,1239)].
   oper("⊕") => [infixOp(720,720,719)].

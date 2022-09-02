@@ -22,13 +22,19 @@ star.compiler.inline{
 
   simplifyDefn:(cDefn,map[termLbl,cDefn])=>cDefn.
   simplifyDefn(fnDef(Lc,Nm,Tp,Args,Val),Map) => 
-    fnDef(Lc,Nm,Tp,Args,simplifyExp(Val,Map,100)).
+    fnDef(Lc,Nm,Tp,Args,simplifyExp(Val,Map,10)).
   simplifyDefn(vrDef(Lc,Nm,Tp,Val),Map) => 
-    vrDef(Lc,Nm,Tp,simplifyExp(Val,Map,100)).
+    vrDef(Lc,Nm,Tp,simplifyExp(Val,Map,10)).
   simplifyDefn(D,_) default => D.
 
   -- There are three possibilities of a match ...
   match[e] ::= .noMatch | .insufficient | matching(e).
+
+  implementation all e ~~ display[e] |: display[match[e]] => {
+    disp(.noMatch) => "noMatch".
+    disp(.insufficient) => "insufficient".
+    disp(matching(X)) => "matching $(X)"
+  }
 
   -- ptnMatch tries to match an actual value with a pattern
   ptnMatch:(cExp,cExp,map[termLbl,cDefn]) => match[map[termLbl,cDefn]].
@@ -234,7 +240,7 @@ star.compiler.inline{
     .insufficient => .insufficient
   }
 
-  inlineLtt:all e ~~ simplify[e],reform[e],present[e],rewrite[e],display[e] |:
+  inlineLtt:all e ~~ simplify[e],reform[e],present[e],rewrite[e] |:
     (option[locn],cId,cExp,e,map[termLbl,cDefn],integer) => e.
   inlineLtt(Lc,cId(Vr,Tp),Bnd,Exp,Map,Depth) where isGround(Bnd) => valof{
     LttM = {tLbl(Vr,arity(Tp))->vrDef(Lc,Vr,Tp,Bnd)};
@@ -249,7 +255,7 @@ star.compiler.inline{
       fnDef(_,_,_,Vrs,Rep) ^= Map[PrgLbl] => valof{
 	RwMap = { tLbl(VNm,arity(VTp))->vrDef(Lc,Nm,VTp,A) | (cId(VNm,VTp),A) in zip(Vrs,Args)};
 	RwTerm = rewriteTerm(Rep,RwMap);
-	valis simplifyExp(RwTerm,Map[~PrgLbl],Depth-1)
+	valis (simplifyExp(RwTerm,Map[~PrgLbl],Depth-1))
       }
   inlineCall(Lc,Nm,Args,Tp,_,_) default => cCall(Lc,Nm,Args,Tp).
 
@@ -270,6 +276,8 @@ star.compiler.inline{
   rewriteECall(Lc,"_int_plus",[cInt(_,A),cInt(_,B)],_) => cInt(Lc,A+B).
   rewriteECall(Lc,"_int_minus",[cInt(_,A),cInt(_,B)],_) => cInt(Lc,A-B).
   rewriteECall(Lc,"_int_times",[cInt(_,A),cInt(_,B)],_) => cInt(Lc,A*B).
+  rewriteECall(Lc,"_int_eq",[cInt(_,A),cInt(_,B)],_) =>
+    cTerm(Lc,(A == B?"star.core#true"||"star.core#false"),[],boolType).
   rewriteECall(Lc,Op,Args,Tp) default => cECall(Lc,Op,Args,Tp).
 
   countOccs(cVoid(_,_),_Id,Cnt) => Cnt.
