@@ -66,7 +66,6 @@ def main(argv):
                 sys.exit(1)
             else:
                 run_failures.append(pkg)
-		
         elif not compile_only:
             return_code = runPkg(pkg)
             if return_code!=0:
@@ -104,7 +103,7 @@ def runPkg(Pkg):
             print(out)
         return 0
     except subprocess.CalledProcessError as err:
-        print (err.output)
+        print(err.output)
         return err.returncode
 
 if __name__ == "__main__":

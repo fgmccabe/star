@@ -9,6 +9,7 @@ star.redblack{
   import star.iterable.
   import star.monad.
   import star.option.
+  import star.strings.
   import star.tuples.
   import star.fiber.
 
