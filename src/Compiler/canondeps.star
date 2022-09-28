@@ -63,6 +63,6 @@ star.compiler.canondeps{
   findRefs(implDef(_,_,Nm,Val,_,Tp),D,Q,All) => defSpec(varSp(Nm,Tp),freeRefs(Val,Q,All),D).
 
   freeRefs(Val,Q,All) => let{
-    Free = freeVarsInTerm(Val,[],Q,[]).
+    Free = freeVarsInExp(Val,[],Q,[]).
   } in {varSp(V,T) | cId(V,T) in Free}.
 }

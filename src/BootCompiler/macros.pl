@@ -113,13 +113,17 @@ macroConsBody(B,Bx) :-
   macroConsBody(R,Rx),
   binary(Lc,"|",Lx,Rx,Bx).
 macroConsBody(B,B) :-
-  isEnum(B,_,_),!.
+  isEnum(B,_,N),isIden(N,_,_),!.
 macroConsBody(B,B) :-
   isName(B,_,_),!.
 macroConsBody(B,Bx) :-
   isRoundTerm(B,Lc,O,E),!,
   map(E,macros:macroType,Ex),
   roundTerm(Lc,O,Ex,Bx).
+macroConsBody(B,Bx) :-
+  isConApply(B,Lc,O,E),!,
+  map(E,macros:macroType,Ex),
+  mkConApply(Lc,O,Ex,Bx).
 macroConsBody(B,Bx) :-
   isBraceTerm(B,Lc,O,E),!,
   map(E,macros:macroStmt,Ex),
@@ -239,7 +243,7 @@ macroTerm(T,Tx) :-
 examineTerm(T,T) :-
   isIden(T,_,_),!.
 examineTerm(T,T) :-
-  isEnum(T,_,_),!.
+  isEnum(T,_,N),isIden(N,_,_),!.
 examineTerm(T,T) :-
   isInteger(T,_,_),!.
 examineTerm(T,T) :-
@@ -278,6 +282,11 @@ examineTerm(T,Tx) :-
   map(D,macros:macroStmt,Dx),
   macroTerm(B,Bx),
   mkLetRec(Lc,Dx,Bx,Tx).
+examineTerm(T,Tx) :-
+  isConApply(T,Lc,O,As),!,
+  map(As,macros:macroTerm,Ax),
+  macroTerm(O,Ox),
+  mkConApply(Lc,Ox,Ax,Tx).
 examineTerm(T,Tx) :-
   isRoundTerm(T,Lc,O,D),!,
   map(D,macros:macroTerm,Dx),
@@ -470,7 +479,7 @@ macroPtn(T,Tx) :-
 examinePtn(T,T) :-
   isIden(T,_,_),!.
 examinePtn(T,T) :-
-  isEnum(T,_,_),!.
+  isEnum(T,_,N),isIden(N,_,_),!.
 examinePtn(T,T) :-
   isInteger(T,_,_),!.
 examinePtn(T,T) :-
@@ -495,6 +504,11 @@ examinePtn(T,Tx) :-
   map(D,macros:macroField,Dx),
   macroTerm(O,Ox),
   braceTerm(Lc,Ox,Dx,Tx).
+examinePtn(T,Tx) :-
+  isConApply(T,Lc,O,D),!,
+  map(D,macros:macroPtn,Dx),
+  macroTerm(O,Ox),
+  mkConApply(Lc,Ox,Dx,Tx).
 examinePtn(T,Tx) :-
   isRoundTerm(T,Lc,O,D),!,
   map(D,macros:macroPtn,Dx),

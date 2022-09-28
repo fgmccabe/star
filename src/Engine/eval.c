@@ -252,6 +252,8 @@ retCode run(processPo P) {
               push(unitEnum);
             PC = exit;
             continue;
+          case Fail:
+            bail();
           default:
             continue;
         }
@@ -473,7 +475,7 @@ retCode run(processPo P) {
           bail();
         } else {
           saveRegisters();
-          STK = P->stk = attachFiber(STK, fiber);
+          P->stk = attachFiber(STK, fiber);
           restoreRegisters();
           push(event);
           continue;

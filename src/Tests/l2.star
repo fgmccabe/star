@@ -15,8 +15,8 @@ test.l2{
   splits(T) => let{.
     spl(.empty) => (.empty,[]).
     spl(node(L,(X,S),R)) => valof{
-      (LL,LX) .= spl(L);
-      (RR,RX) .= spl(R);
+      (LL,LX) = spl(L);
+      (RR,RX) = spl(R);
       valis (node(LL,X,RR),LX++[S,..RX])
     }
   .} in spl(T).

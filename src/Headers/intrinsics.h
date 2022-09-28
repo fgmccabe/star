@@ -39,4 +39,12 @@ intrinsic(_basr,"F(ii)i","BAsr","arithmetic right shift")
 intrinsic(_bnot,"F(i)i","BNot","bitwise negate number")
 
 intrinsic(_fiber_eq,":k's':k'r'F("fiberType("k's'","k'r'")fiberType("k's'","k'r'")")l","TEq","compare two fiber identifiers")
+intrinsic(_new_fiber,":k's':k'r'F(F("fiberType("k's'","k'r'")")k's')"fiberType("k's'","k'r'"),"Fiber","create a new fiber")
+intrinsic(_suspend_fiber,":k's':k'r'F("fiberType("k's'","k'r'")"k's')k'r'","Suspend", "suspend a fiber")
+intrinsic(_retire_fiber,":k's':k'r'F("fiberType("k's'","k'r'")"k's')()","Retire","retire a fiber")
+intrinsic(_resume_fiber,":k's':k'r'F("fiberType("k's'","k'r'")"k'r')k's'","Resume" ,"resume a fiber")
+
+intrinsic(_cell, ":k't'F(k't')rk't'", "Cell", "create a reference cell")
+intrinsic(_get, ":k't'F(rk't')k't'", "Get", "access contents of reference cell")
+intrinsic(_assign, ":k't'F(rk't'k't')()", "Assign", "update contents of reference cell")
 

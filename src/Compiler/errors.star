@@ -17,13 +17,15 @@ star.compiler.errors{
   reports:ref cons[reportMsg].
   reports = ref [].
 
+  trapCount = ref 0.
+
   public resetErrors() => valof{
     reports := [];
     valis ()
   }
 
   public errorFree:()=>boolean.
-  errorFree() => countErrors()==0.
+  errorFree() => countErrors()==0 && trapCount! == 0.
 
   public countErrors:()=>integer.
   countErrors() => foldLeft(countError,0,reports!).
@@ -53,4 +55,12 @@ star.compiler.errors{
     reports := [warnMsg(Lc,Msg),..reports!];
     valis ()
   }
+
+  public reportTrap:(string) => ().
+  reportTrap(Msg) => valof{ 
+    logMsg("internal trap: #(Msg)");
+    trapCount := trapCount!+1;
+    valis ()
+  }
+    
 }

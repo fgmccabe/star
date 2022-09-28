@@ -46,6 +46,7 @@
     "star.compiler.peephole": "peephole.star",
     "star.compiler.resolve": "resolve.star",
     "star.compiler.term.repo" : "termrepo.star",
+    "star.compiler.term.deps" : "termdeps.star",
     "star.compiler.token": "token.star",
     "star.compiler.typeparse": "parsetype.star",
     "star.compiler.types": "types.star",

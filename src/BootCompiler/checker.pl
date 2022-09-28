@@ -629,8 +629,7 @@ typeOfPtn(Trm,Tp,ErTp,Env,Ev,tple(Lc,Els),Path) :-
   verifyType(Lc,ast(Trm),tplType(ArgTps),Tp,Env),
   typeOfPtns(A,ArgTps,ErTp,Env,Ev,Lc,Els,Path).
 typeOfPtn(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
-  isEnum(Term,Lc,I),
-  isRoundTerm(I,_,F,A),!,
+  isConApply(Term,Lc,F,A),!,
   newTypeVar("A",At),
   typeOfExp(F,consType(At,Tp),none,Env,E0,Fun,Path),
 %  reportMsg("con type = %s",[tpe(consType(At,Tp))],Lc),
@@ -638,6 +637,9 @@ typeOfPtn(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   Exp = apply(Lc,Fun,Args,Tp,ErTp).
 typeOfPtn(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
+  mkConApply(Lc,F,A,TT),
+  reportWarning("this form of pattern: %s is deprecated, use %s",
+		[ast(Term),ast(TT)],Lc),
   newTypeVar("A",At),
   typeOfExp(F,consType(At,Tp),none,Env,E0,Fun,Path),
 %  reportMsg("con type = %s",[tpe(consType(At,Tp))],Lc),

@@ -25,7 +25,7 @@ star.compiler.assem{
   public assemOp ::=
 #(OpCodes)
     iLbl(assemLbl) |
-    iLocal(string,string,string,integer) |
+    iLocal(string,assemLbl,assemLbl,integer) |
     iLine(data).
 
   public assemLbl ::= al(string).
@@ -61,7 +61,7 @@ star.compiler.assem{
     (multi[data],map[data,integer],map[data,integer],set[data],integer,integer).
   mnem([],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,_) => (Code,Lts,Lns,Lcs,Pc,MxLcl).
   mnem([iLbl(_),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends).
-  mnem([iLocal(Nm,Frm,End,Off),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where
+  mnem([iLocal(Nm,al(Frm),al(End),Off),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where
     F ^= Lbls[Frm] &&
     T ^= Lbls[End] =>
     mnem(Ins,Code,Lbls,Lts,Lns,Lcs\+mkTpl([strg(Nm),intgr(F),intgr(T),intgr(Off)]),Pc,MxLcl,Ends).
@@ -110,7 +110,7 @@ star.compiler.assem{
 
   showMnem:(cons[assemOp],integer) => string.
   showMnem([],_) => "".
-  showMnem([iLbl(al(Lb)),..Ins],Pc) => "\#(Lb):\n"++showMnem(Ins,Pc).
-  showMnem([iLocal(Nm,Frm,End,Off),..Ins],Pc) => "\#(Nm)\::$(Frm)-$(End)\:$(Off)\n"++showMnem(Ins,Pc).
+  showMnem([.iLbl(al(Lb)),..Ins],Pc) => "\#(Lb):\n"++showMnem(Ins,Pc).
+  showMnem([.iLocal(Nm,al(Frm),al(End),Off),..Ins],Pc) => "\#(Nm)\::$(Frm)-$(End)\:$(Off)\n"++showMnem(Ins,Pc).
 #(Show)
 }

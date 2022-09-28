@@ -437,7 +437,6 @@ compTry(Lc,B,idnt(E),H,OLc,Cont,TCont,Hndlr,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk) :-
   genLbl(L,End,L2),
   call(Hndlr,B,Lc,Cont,catchCont(E,Lc,H,Cont,TCont,Hndlr,Brks,Opts),
 	     End,Brks,Opts,L2,Lx,D,Dx,C0,[iLbl(End)|Cx],Stk,_).
-%  catchCont(E,Ctch,Lc,H,Cont,TCont,Hndlr,Opts,L3,Lx,D1,Dx,C1,Cx,Stk,Stkx).
 
 catchCont(E,Lc,H,Cont,TCont,Hndlr,Brks,Opts,L,Lx,D,Dx,
 	  [iStL(Off),iLbl(ELb)|C],Cx,Stk,Stkx) :-
@@ -538,7 +537,6 @@ retireCont(Opts,Lx,Lx,Dx,Dx,C,Cx,_Stk,none) :-
 
 jmpCont(Lbl,Stk,Lx,Lx,D,D,[iJmp(Lbl)|Cx],Cx,_,Stk).
 
-contHasLbl(lblCont(Lbl,_),Lbl) :-!.
 contHasLbl(jmpCont(Lbl,_),Lbl) :-!.
 contHasLbl(contCont(Lbl),Lbl) :- !, nonvar(Lbl).
 contHasLbl(bothCont(C1,_),Lbl) :- !, contHasLbl(C1,Lbl).
