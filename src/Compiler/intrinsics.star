@@ -33,6 +33,13 @@ star.compiler.intrinsics{
   intrinsic("_basr") => some((tpExp(tpExp(tpFun("=>",2),tupleType([intType,intType])),intType),.iBAsr)).  -- arithmetic right shift
   intrinsic("_bnot") => some((tpExp(tpExp(tpFun("=>",2),tupleType([intType])),intType),.iBNot)).  -- bitwise negate number
   intrinsic("_fiber_eq") => some((allType(nomnal("s"),allType(nomnal("r"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpFun("star.core*fiber",2),nomnal("s")),nomnal("r"),tpExp(tpFun("star.core*fiber",2),nomnal("s")),nomnal("r")])),boolType))),.iTEq)).  -- compare two fiber identifiers
+  intrinsic("_new_fiber") => some((allType(nomnal("s"),allType(nomnal("r"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpFun("star.core*fiber",2),nomnal("s")),nomnal("r")])),nomnal("s"))])),tpExp(tpFun("star.core*fiber",2),nomnal("s"))))),.iFiber)).  -- create a new fiber
+  intrinsic("_suspend_fiber") => some((allType(nomnal("s"),allType(nomnal("r"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpFun("star.core*fiber",2),nomnal("s")),nomnal("r"),nomnal("s")])),nomnal("r")))),.iSuspend)).  -- suspend a fiber
+  intrinsic("_retire_fiber") => some((allType(nomnal("s"),allType(nomnal("r"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpFun("star.core*fiber",2),nomnal("s")),nomnal("r"),nomnal("s")])),tupleType([])))),.iRetire)).  -- retire a fiber
+  intrinsic("_resume_fiber") => some((allType(nomnal("s"),allType(nomnal("r"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpFun("star.core*fiber",2),nomnal("s")),nomnal("r"),nomnal("r")])),nomnal("s")))),.iResume)).  -- resume a fiber
+  intrinsic("_cell") => some((allType(nomnal("t"),tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("t")])),tpExp(tpFun("ref",1),nomnal("t")))),.iCell)).  -- create a reference cell
+  intrinsic("_get") => some((allType(nomnal("t"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpFun("ref",1),nomnal("t"))])),nomnal("t"))),.iGet)).  -- access contents of reference cell
+  intrinsic("_assign") => some((allType(nomnal("t"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpFun("ref",1),nomnal("t")),nomnal("t")])),tupleType([]))),.iAssign)).  -- update contents of reference cell
 
   intrinsic(_) default => .none.
 }

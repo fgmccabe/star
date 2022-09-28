@@ -426,7 +426,7 @@ star.compiler.normalize{
     CM = makeConsMap(Decls);
     GrpFns = (Defs^/(D)=>~_^=isVarDef(D));
 
-    rawGrpFree = freeLabelVars(freeVarsInTerm(letExp(Lc,Defs,Decls,Bnd),[],Q,[]),Outer)::cons[cId];
+    rawGrpFree = freeLabelVars(freeVarsInExp(letExp(Lc,Defs,Decls,Bnd),[],Q,[]),Outer)::cons[cId];
 
 --    logMsg("cell vars $(lVars)");
     ffreeVars = rawGrpFree \ lVars;
@@ -604,7 +604,7 @@ star.compiler.normalize{
 --    logMsg("lVars = $(lVars)");
 --    logMsg("vrDefs = $(vrDefs)");
     
-    rawGrpFree = freeLabelVars(freeVarsInTerm(letRec(Lc,Grp,Decs,Bnd),[],Q,[]),Outer)::cons[cId];
+    rawGrpFree = freeLabelVars(freeVarsInExp(letRec(Lc,Grp,Decs,Bnd),[],Q,[]),Outer)::cons[cId];
 --    logMsg("raw free vars $(rawGrpFree)");
     varParents = freeParents(rawGrpFree \ lVars,Outer);
     freeVars = reduceFreeArgs(varParents,Outer);

@@ -37,7 +37,6 @@ star.compiler.term{
     | cMatch(option[locn],cExp,cExp)
     | cVarNmes(option[locn],cons[(string,cId)],cExp)
     | cAbort(option[locn],string,tipe)
-    | cTask(option[locn],cExp,tipe)
     | cSusp(option[locn],cExp,cExp,tipe)
     | cResume(option[locn],cExp,cExp,tipe)
     | cTry(option[locn],cExp,cExp,tipe)
@@ -120,7 +119,6 @@ star.compiler.term{
   dspExp(cSeq(Lc,L,R),Off) => "{#(dspSeq(cSeq(Lc,L,R),Off++"  "))}".
   dspExp(cVarNmes(_,V,E),Off) => "<vars #(dspVrs(V)) in #(dspExp(E,Off))>".
   dspExp(cAbort(_,M,_),Off) => "abort #(M)".
-  dspExp(cTask(_,A,_),Off) => "task #(dspExp(A,Off))".
   dspExp(cSusp(_,T,E,_),Off) => "#(dspExp(T,Off)) suspend #(dspExp(E,Off))".
   dspExp(cResume(_,T,E,_),Off) => "#(dspExp(T,Off)) resume #(dspExp(E,Off))".
   dspExp(cTry(_,E,H,_),Off) where Off2.=Off++"  " =>
@@ -217,7 +215,6 @@ star.compiler.term{
   eqTerm(cWhere(_,E1,C1),cWhere(_,E2,C2)) => eqTerm(E1,E2) && eqTerm(C1,C2).
   eqTerm(cMatch(_,P1,E1),cMatch(_,P2,E2)) => eqTerm(E1,E2) && eqTerm(P1,P2).
   eqTerm(cAbort(_,M1,T1),cAbort(_,M2,T2)) => M1==M2 && T1==T2.
-  eqTerm(cTask(_,M1,_),cTask(_,M2,_)) => eqTerm(M1,M2).
   eqTerm(cSusp(_,T1,E1,_),cSusp(_,T2,E2,_)) => eqTerm(T1,T2) && eqTerm(E1,E2).
   eqTerm(cResume(_,T1,E1,_),cResume(_,T2,E2,_)) => eqTerm(T1,T2) && eqTerm(E1,E2).
   eqTerm(cTry(_,M1,H1,_),cTry(_,M2,H2,_)) => eqTerm(M1,M2) && eqTerm(H1,H2).
@@ -295,7 +292,6 @@ star.compiler.term{
     locOf(cCnd(Lc,_,_,_)) => Lc.
     locOf(cAbort(Lc,_,_)) => Lc.
     locOf(cVarNmes(Lc,_,_)) => Lc.
-    locOf(cTask(Lc,_,_)) => Lc.
     locOf(cSusp(Lc,_,_,_)) => Lc.
     locOf(cResume(Lc,_,_,_)) => Lc.
     locOf(cTry(Lc,_,_,_)) => Lc.
@@ -435,7 +431,6 @@ star.compiler.term{
     cWhere(Lc,rwTerm(T,M),rwTerm(C,M)).
   rwTerm(cMatch(Lc,P,E),M) =>
     cMatch(Lc,rwTerm(P,M),rwTerm(E,M)).
-  rwTerm(cTask(Lc,A,T),M) => cTask(Lc,rwTerm(A,M),T).
   rwTerm(cSusp(Lc,T,E,Tp),M) => cSusp(Lc,rwTerm(T,M),rwTerm(E,M),Tp).
   rwTerm(cResume(Lc,T,E,Tp),M) => cResume(Lc,rwTerm(T,M),rwTerm(E,M),Tp).
   rwTerm(cTry(Lc,E,H,Tp),M) => cTry(Lc,rwTerm(E,M),rwTerm(H,M),Tp).
@@ -513,14 +508,14 @@ star.compiler.term{
   public cType:(cId) => tipe.
   cType(cId(_,Tp)) => Tp.
 
-  public isCrCond:(cExp)=>boolean.
-  isCrCond(cCnj(_,_,_))=>.true.
-  isCrCond(cDsj(_,_,_))=>.true.
-  isCrCond(cNeg(_,_))=>.true.
-  isCrCond(cCnd(_,_,L,R))=>isCrCond(L)||isCrCond(R).
-  isCrCond(cWhere(_,L,_)) => isCrCond(L).
-  isCrCond(cMatch(_,_,_))=>.true.
-  isCrCond(_) default => .false.
+  public isCond:(cExp)=>boolean.
+  isCond(cCnj(_,_,_))=>.true.
+  isCond(cDsj(_,_,_))=>.true.
+  isCond(cNeg(_,_))=>.true.
+  isCond(cCnd(_,_,L,R))=>isCond(L)&&isCond(R).
+  isCond(cWhere(_,L,_)) => isCond(L).
+  isCond(cMatch(_,_,_))=>.true.
+  isCond(_) default => .false.
 
   public isGround:(cExp) => boolean.
   isGround(cInt(_,_)) => .true.
@@ -670,7 +665,6 @@ star.compiler.term{
     validE(V,D) && validE(E,D).
   validE(cVarNmes(_,_,E),D) => validE(E,D).
   validE(cAbort(_,_,_),_) => .true.
-  validE(cTask(_,Ts,_),D) => validE(Ts,D).
   validE(cSusp(_,Ts,E,_),D) => validE(Ts,D) && validE(E,D).
   validE(cResume(_,Ts,E,_),D) => validE(Ts,D) && validE(E,D).
   validE(cTry(_,Ts,E,_),D) => validE(Ts,D) && validE(E,D).
@@ -718,7 +712,7 @@ star.compiler.term{
   validA(aVarNmes(_,_,A),D) => validA(A,D).
   validA(aAbort(_,_),_) => .true.
 
-  ptnVars:(cExp,set[cId]) => set[cId].
+  public ptnVars:(cExp,set[cId]) => set[cId].
   ptnVars(cVoid(_,_),D) => D.
   ptnVars(cAnon(_,_),D) => D.
   ptnVars(cVar(_,V),D) => D\+V.
@@ -833,7 +827,6 @@ star.compiler.term{
   presentInE(cVarNmes(_,_,E),C,T) =>
     presentInE(E,C,T).
   presentInE(cAbort(_,_,_),_,_) => .false.
-  presentInE(cTask(_,Ts,_),C,T) => presentInE(Ts,C,T).
   presentInE(cSusp(_,Ts,E,_),C,T) => presentInE(Ts,C,T) || presentInE(E,C,T).
   presentInE(cResume(_,Ts,E,_),C,T) => presentInE(Ts,C,T) || presentInE(E,C,T).
   presentInE(cTry(_,Ts,E,_),C,T) => presentInE(Ts,C,T) || presentInE(E,C,T).
@@ -844,4 +837,95 @@ star.compiler.term{
   presentInCases([],_,_,_) => .false.
   presentInCases([(_,A,E),..Cs],P,C,T) =>
     presentInE(A,C,T) || P(E,C,T) || presentInCases(Cs,P,C,T).
+
+  public visitE:all a ~~ (cExp,(cExp,a)=>a,(aAction,a)=>a,a) => a.
+  visitE(T,V,_,X) default => V(T,X).
+  visitE(cTerm(Lc,Nm,Args,Tp),V,VA,X) =>
+    visitEls(Args,V,VA,V(cTerm(Lc,Nm,Args,Tp),X)).
+  visitE(cNth(Lc,R,Ix,Tp),V,VA,X) =>
+    visitE(R,V,VA,V(cNth(Lc,R,Ix,Tp),X)).
+  visitE(cSetNth(Lc,R,F,N),V,VA,X) =>
+    visitE(R,V,VA,visitE(N,V,VA,V(cSetNth(Lc,R,F,N),X))).
+  visitE(cCall(Lc,Nm,Args,Tp),V,VA,X) =>
+    visitEls(Args,V,VA,V(cCall(Lc,Nm,Args,Tp),X)).
+  visitE(cECall(Lc,Nm,Args,Tp),V,VA,X) =>
+    visitEls(Args,V,VA,V(cECall(Lc,Nm,Args,Tp),X)).
+  visitE(cOCall(Lc,Op,Args,Tp),V,VA,X) =>
+    visitEls(Args,V,VA,visitE(Op,V,VA,V(cOCall(Lc,Op,Args,Tp),X))).
+  visitE(cThrow(Lc,E,Tp),V,VA,X) =>
+    visitE(E,V,VA,V(cThrow(Lc,E,Tp),X)).
+  visitE(cSeq(Lc,L,R),V,VA,X) =>
+    visitE(R,V,VA,visitE(L,V,VA,V(cSeq(Lc,L,R),X))).
+  visitE(cCnj(Lc,L,R),V,VA,X) =>
+    visitE(R,V,VA,visitE(L,V,VA,V(cCnj(Lc,L,R),X))).
+  visitE(cDsj(Lc,L,R),V,VA,X) =>
+    visitE(R,V,VA,visitE(L,V,VA,V(cDsj(Lc,L,R),X))).
+  visitE(cNeg(Lc,R),V,VA,X) =>
+    visitE(R,V,VA,V(cNeg(Lc,R),X)).
+  visitE(cCnd(Lc,T,L,R),V,VA,X) =>
+    visitE(R,V,VA,visitE(L,V,VA,visitE(T,V,VA,V(cCnd(Lc,T,L,R),X)))).
+  visitE(cWhere(Lc,L,R),V,VA,X) =>
+    visitE(R,V,VA,visitE(L,V,VA,V(cWhere(Lc,L,R),X))).
+  visitE(cMatch(Lc,L,R),V,VA,X) =>
+    visitE(R,V,VA,visitE(L,V,VA,V(cMatch(Lc,L,R),X))).
+  visitE(cLtt(Lc,Vr,B,E),V,VA,X) =>
+    visitE(E,V,VA,visitE(B,V,VA,V(cLtt(Lc,Vr,B,E),X))).
+  visitE(cCase(Lc,G,Cs,D,Tp),V,VA,X) =>
+    visitE(D,V,VA,
+      visitCases(Cs,V,VA,visitE,
+	visitE(G,V,VA,
+	  V(cCase(Lc,G,Cs,D,Tp),X)))).
+  visitE(cUnpack(Lc,G,Cs,Tp),V,VA,X) =>
+    visitCases(Cs,V,VA,visitE,
+      visitE(G,V,VA,
+	V(cUnpack(Lc,G,Cs,Tp),X))).
+  visitE(cVarNmes(Lc,Vs,E),V,VA,X) =>
+    visitE(E,V,VA,V(cVarNmes(Lc,Vs,E),X)).
+  visitE(cSusp(Lc,T,E,Tp),V,VA,X) =>
+    visitE(T,V,VA,visitE(E,V,VA,V(cSusp(Lc,T,E,Tp),X))).
+  visitE(cResume(Lc,T,E,Tp),V,VA,X) =>
+    visitE(T,V,VA,visitE(E,V,VA,V(cResume(Lc,T,E,Tp),X))).
+  visitE(cTry(Lc,E,H,Tp),V,VA,X) =>
+    visitE(H,V,VA,visitE(E,V,VA,V(cTry(Lc,E,H,Tp),X))).
+  visitE(cValof(Lc,A,Tp),V,VA,X) =>
+    visitA(A,V,VA,V(cValof(Lc,A,Tp),X)).
+
+  visitEls:all a ~~ (cons[cExp],(cExp,a)=>a,(aAction,a)=>a,a) => a.
+  visitEls([],_,_,X) => X.
+  visitEls([E,..Els],V,VA,X) =>
+    visitEls(Els,V,VA,visitE(E,V,VA,X)).
+
+  public visitA:all a ~~ (aAction,(cExp,a)=>a,(aAction,a)=>a,a) => a.
+  visitA(A,V,VA,X) default => VA(A,X).
+  visitA(aSeq(Lc,A1,A2),V,VA,X) => visitA(A2,V,VA,visitA(A1,V,VA,VA(aSeq(Lc,A1,A2),X))).
+  visitA(aLbld(Lc,Lb,A),V,VA,X) => visitA(A,V,VA,VA(aLbld(Lc,Lb,A),X)).
+  visitA(aValis(Lc,E),V,VA,X) => visitE(E,V,VA,X).
+  visitA(aThrow(Lc,E),V,VA,X) => visitE(E,V,VA,X).
+  visitA(aPerf(Lc,E),V,VA,X) => visitE(E,V,VA,X).
+  visitA(aDefn(Lc,Vr,E),V,VA,X) => visitE(E,V,VA,VA(aDefn(Lc,Vr,E),X)).
+  visitA(aAsgn(Lc,L,E),V,VA,X) => visitE(L,V,VA,visitE(E,V,VA,VA(aAsgn(Lc,L,E),X))).
+  visitA(aCase(Lc,G,Cs,D),V,VA,X) =>
+    visitA(D,V,VA,
+      visitCases(Cs,V,VA,visitA,
+	visitE(G,V,VA,VA(aCase(Lc,G,Cs,D),X)))).
+  visitA(aUnpack(Lc,G,Cs),V,VA,X) =>
+    visitCases(Cs,V,VA,visitA,
+      visitE(G,V,VA,VA(aUnpack(Lc,G,Cs),X))).
+  visitA(aIftte(Lc,G,T,E),V,VA,X) =>
+    visitA(E,V,VA,visitA(T,V,VA,visitE(G,V,VA,VA(aIftte(Lc,G,T,E),X)))).
+  visitA(aWhile(Lc,G,A),V,VA,X) =>
+    visitA(A,V,VA,visitE(G,V,VA,VA(aWhile(Lc,G,A),X))).
+  visitA(aRetire(Lc,T,E),V,VA,X) =>
+    visitE(E,V,VA,visitE(T,V,VA,VA(aRetire(Lc,T,E),X))).
+  visitA(aTry(Lc,A,H),V,VA,X) =>
+    visitA(H,V,VA,visitA(A,V,VA,VA(aTry(Lc,A,H),X))).
+  visitA(aLtt(Lc,Vr,B,A),V,VA,X) =>
+    visitA(A,V,VA,visitE(B,V,VA,VA(aLtt(Lc,Vr,B,A),X))).
+  visitA(aVarNmes(Lc,Vs,A),V,VA,X) => visitA(A,V,VA,VA(aVarNmes(Lc,Vs,A),X)).
+
+  visitCases:all e,a ~~
+  (cons[cCase[e]],(cExp,a)=>a,(aAction,a)=>a,(e,(cExp,a)=>a,(aAction,a)=>a,a)=>a,a)=>a.
+  visitCases([],_,_,_,X) => X.
+  visitCases([(Lc,A,E),..Cs],V,VA,VC,X) =>
+    visitCases(Cs,V,VA,VC,V(A,VC(E,V,VA,X))).
 }

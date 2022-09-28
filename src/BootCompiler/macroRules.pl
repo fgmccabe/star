@@ -148,7 +148,7 @@ makeComprehension(Lc,Bnd,Body,Rp) :-
 
 macroIotaComprehension(T,expression,Rp) :-
   isIotaComprehension(T,Lc,Bnd,Body),!,
-  unary(Lc,"some",Bnd,Res),
+  mkConApply(Lc,name(Lc,"some"),[Bnd],Res),
   mkEnum(Lc,"none",Empty),
   makeCondition(Body,macroRules:passThru,macroRules:rtn(Res),grounded(Empty),Rp).
 
@@ -256,7 +256,7 @@ uminusMacro(T,expression,Tx) :-
 
 optionMatchMacro(T,expression,Tx) :-
   isOptionMatch(T,Lc,P,E),!,
-  unary(Lc,"some",P,SP),
+  mkConApply(Lc,name(Lc,"some"),[P],SP),
   match(Lc,SP,E,Tx).
 
 optvalMacro(T,expression,Tx) :-

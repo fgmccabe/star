@@ -114,8 +114,6 @@ star.compiler.inline{
   simExp(cVarNmes(Lc,Vrs,Exp),Map,Depth) =>
     cVarNmes(Lc,Vrs,simplifyExp(Exp,Map,Depth)).
   simExp(cAbort(Lc,Txt,Tp),_,_) => cAbort(Lc,Txt,Tp).
-  simExp(cTask(Lc,Exp,Tp),Map,Depth) =>
-    cTask(Lc,simplifyExp(Exp,Map,Depth),Tp).
   simExp(cSusp(Lc,Tsk,Evt,Tp),Map,Depth) =>
     cSusp(Lc,simplifyExp(Tsk,Map,Depth),simplifyExp(Evt,Map,Depth),Tp).
   simExp(cResume(Lc,Tsk,Evt,Tp),Map,Depth) =>
@@ -308,7 +306,6 @@ star.compiler.inline{
   countOccs(cWhere(_,L,R),Id,Cnt) => countOccs(R,Id,countOccs(L,Id,Cnt)).
   countOccs(cMatch(_,L,R),Id,Cnt) => countOccs(R,Id,countOccs(L,Id,Cnt)).
   countOccs(cVarNmes(_,_,R),Id,Cnt) => countOccs(R,Id,Cnt).
-  countOccs(cTask(_,E,_),Id,Cnt) => countOccs(E,Id,Cnt).
   countOccs(cSusp(_,L,R,_),Id,Cnt) => countOccs(R,Id,countOccs(L,Id,Cnt)).
   countOccs(cResume(_,L,R,_),Id,Cnt) => countOccs(R,Id,countOccs(L,Id,Cnt)).
   countOccs(cTry(_,L,R,_),Id,Cnt) => countOccs(R,Id,countOccs(L,Id,Cnt)).

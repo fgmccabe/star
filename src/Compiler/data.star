@@ -10,35 +10,35 @@ star.compiler.data{
   import star.compiler.types.
   import star.compiler.ltipe.
 
-  public termLbl ::= tLbl(string,integer).
+  public termLbl ::= .tLbl(string,integer).
 
-  public data ::= intgr(integer)
-    | bigi(bigint)
-    | flot(float)
-    | chr(char)
-    | strg(string)
-    | term(termLbl,cons[data])
-    | symb(termLbl).
+  public data ::= .intgr(integer)
+    | .bigi(bigint)
+    | .flot(float)
+    | .chr(char)
+    | .strg(string)
+    | .term(termLbl,cons[data])
+    | .symb(termLbl).
 
   public implementation display[termLbl] => {
-    disp(tLbl(Nm,Ar)) => "#(Nm)/$(Ar)".
+    disp(.tLbl(Nm,Ar)) => "#(Nm)/$(Ar)".
   }
 
   public implementation sizeable[termLbl] => {
-    size(tLbl(_,Ar))=>Ar.
+    size(.tLbl(_,Ar))=>Ar.
 
-    isEmpty(tLbl(_,Ar))=>Ar==0.
+    isEmpty(.tLbl(_,Ar))=>Ar==0.
   }
 
   public implementation display[data] => let{.
-    dispT(intgr(Ix)) => "$(Ix)".
-    dispT(bigi(Ix)) => "$(Ix)".
-    dispT(flot(Dx)) => disp(Dx).
-    dispT(chr(Cx)) => disp(Cx).
-    dispT(strg(Sx)) => disp(Sx).
-    dispT(term(tLbl(T,_),Args)) where isTupleLbl(T) => "(#(dispTs(Args)))".
-    dispT(term(tLbl(Op,_),Args)) => "#(Op)(#(dispTs(Args)))".
-    dispT(symb(Sx)) => "'$(Sx)'".
+    dispT(.intgr(Ix)) => "$(Ix)".
+    dispT(.bigi(Ix)) => "$(Ix)".
+    dispT(.flot(Dx)) => disp(Dx).
+    dispT(.chr(Cx)) => disp(Cx).
+    dispT(.strg(Sx)) => disp(Sx).
+    dispT(.term(.tLbl(T,_),Args)) where isTupleLbl(T) => "(#(dispTs(Args)))".
+    dispT(.term(.tLbl(Op,_),Args)) => "#(Op)(#(dispTs(Args)))".
+    dispT(.symb(Sx)) => "'$(Sx)'".
 
     dispTs(Els) => interleave(Els//dispT,",")*.
 
@@ -49,80 +49,86 @@ star.compiler.data{
   }
 
   public implementation hashable[termLbl] => {
-    hash(tLbl(Nm,Ar))=>hash(Nm)*37+Ar.
+    hash(.tLbl(Nm,Ar))=>hash(Nm)*37+Ar.
   }
 
   public implementation hashable[data] => let{.
-    hsh(intgr(X)) => X.
-    hsh(bigi(X)) => hash(X).
-    hsh(flot(X)) => hash(X).
-    hsh(chr(C)) => hash(C).
-    hsh(strg(S)) => hash(S).
-    hsh(symb(S)) => hash(S).
-    hsh(term(Op,Args)) =>
+    hsh(.intgr(X)) => X.
+    hsh(.bigi(X)) => hash(X).
+    hsh(.flot(X)) => hash(X).
+    hsh(.chr(C)) => hash(C).
+    hsh(.strg(S)) => hash(S).
+    hsh(.symb(S)) => hash(S).
+    hsh(.term(Op,Args)) =>
       foldRight((T,H)=>H*37+hsh(T),hash(Op)*37,Args).
   .} in {
     hash(T) => hsh(T)
   }
 
   public implementation equality[termLbl] => {
-    tLbl(N1,A1)==tLbl(N2,A2) => N1==N2 && A1==A2.
+    .tLbl(N1,A1)==.tLbl(N2,A2) => N1==N2 && A1==A2.
   }
 
   public implementation equality[data] => let{.
-    eq(intgr(X),intgr(Y)) => X==Y.
-    eq(bigi(X),bigi(Y)) => X==Y.
-    eq(flot(X),flot(Y)) => X==Y.
-    eq(chr(X),chr(Y)) => X==Y.
-    eq(strg(X),strg(Y)) => X==Y.
-    eq(symb(X),symb(Y)) => X==Y.
-    eq(term(O1,A1),term(O2,A2)) => O1==O2 && eqList(A1,A2).
+    eq(.intgr(X),.intgr(Y)) => X==Y.
+    eq(.bigi(X),.bigi(Y)) => X==Y.
+    eq(.flot(X),.flot(Y)) => X==Y.
+    eq(.chr(X),.chr(Y)) => X==Y.
+    eq(.strg(X),.strg(Y)) => X==Y.
+    eq(.symb(X),.symb(Y)) => X==Y.
+    eq(.term(O1,A1),.term(O2,A2)) => O1==O2 && eqList(A1,A2).
     eq(_,_) default => .false.
 
     eqList(.nil,.nil)=>.true.
-    eqList(cons(E1,L1),cons(E2,L2)) => eq(E1,E2) && eqList(L1,L2).
+    eqList(.cons(E1,L1),.cons(E2,L2)) => eq(E1,E2) && eqList(L1,L2).
     eqList(_,_) default => .false.
   .} in {
     X==Y => eq(X,Y).
   }
 
   public mkTpl:(cons[data]) => data.
-  mkTpl(A) where L.=size(A) => term(tLbl(tplLbl(L),L),A).
+  mkTpl(A) where L.=size(A) => .term(.tLbl(tplLbl(L),L),A).
 
   public mkLst:(cons[data]) => data.
-  mkLst(Els) => term(tLbl("[]",size(Els)),Els).
+  mkLst(Els) => .term(.tLbl("[]",size(Els)),Els).
 
   public mkCons:(string,cons[data])=>data.
-  mkCons(Nm,Args) => term(tLbl(Nm,size(Args)),Args).
+  mkCons(Nm,Args) => .term(.tLbl(Nm,size(Args)),Args).
 
   public isScalar:(data)=>boolean.
-  isScalar(intgr(_)) => .true.
-  isScalar(bigi(_)) => .true.
-  isScalar(flot(_)) => .true.
-  isScalar(chr(_)) => .true.
-  isScalar(strg(_)) => .true.
-  isScalar(symb(_)) => .true.
+  isScalar(.intgr(_)) => .true.
+  isScalar(.bigi(_)) => .true.
+  isScalar(.flot(_)) => .true.
+  isScalar(.chr(_)) => .true.
+  isScalar(.strg(_)) => .true.
+  isScalar(.symb(_)) => .true.
   isScalar(_) default => .false.
 
   public implementation coercion[data,string] => {
     _coerce(T) => some(_implode(reverse(encodeT(T,[])))).
   }
 
+  public trueEnum:data.
+  trueEnum = .symb(.tLbl("star.core*true",0)).
+
+  public falseEnum:data.
+  falseEnum = .symb(.tLbl("star.core*false",0)).
+
   -- Written in this way to maximize potential for tail recursion
 
   encodeT:(data,cons[char])=>cons[char].
-  encodeT(intgr(Ix),Chs) => encodeInt(Ix,[`x`,..Chs]).
-  encodeT(bigi(Ix),Chs) => encodeBig(Ix,[`b`,..Chs]).
-  encodeT(flot(Dx),Chs) => encodeText(Dx::string,[`d`,..Chs]).
-  encodeT(chr(Cx),Chs) => encodeChar(Cx,[`c`,..Chs]).
-  encodeT(strg(Tx),Chs) => encodeText(Tx,[`s`,..Chs]).
-  encodeT(symb(Sym),Chs) => encodeL(Sym,Chs).
-  encodeT(term(tLbl("[]",Ar),Els),Chs) => encodeTerms(Els,encodeNat(Ar,[`l`,..Chs])).
-  encodeT(term(Op,Args),Chs) =>
+  encodeT(.intgr(Ix),Chs) => encodeInt(Ix,[`x`,..Chs]).
+  encodeT(.bigi(Ix),Chs) => encodeBig(Ix,[`b`,..Chs]).
+  encodeT(.flot(Dx),Chs) => encodeText(Dx::string,[`d`,..Chs]).
+  encodeT(.chr(Cx),Chs) => encodeChar(Cx,[`c`,..Chs]).
+  encodeT(.strg(Tx),Chs) => encodeText(Tx,[`s`,..Chs]).
+  encodeT(.symb(Sym),Chs) => encodeL(Sym,Chs).
+  encodeT(.term(.tLbl("[]",Ar),Els),Chs) => encodeTerms(Els,encodeNat(Ar,[`l`,..Chs])).
+  encodeT(.term(Op,Args),Chs) =>
     encodeTerms(Args,encodeL(Op,encodeNat(size(Args),[`n`,..Chs]))).
 
   encodeL:(termLbl,cons[char])=>cons[char].
-  encodeL(tLbl(Nm,Ar),Chs) => encodeText(Nm,encodeNat(Ar,[`o`,..Chs])).
+  encodeL(.tLbl(Nm,Ar),Chs) => encodeText(Nm,encodeNat(Ar,[`o`,..Chs])).
 
   encodeTerms([],Chs) => Chs.
   encodeTerms([T,..Ts],Chs) => encodeTerms(Ts,encodeT(T,Chs)).
@@ -321,14 +327,14 @@ star.compiler.data{
     valis (typeExists(A,R),T1)
   }
   decodeTypeRule([`Z`,..Ts]) => valof{
-    (conTract(N,T,D),T0) = decodeConstraint(Ts);
+    (.conTract(N,T,D),T0) = decodeConstraint(Ts);
     (R,T1) = decodeType(T0);
-    valis (contractExists(N,T,D,R),T1)
+    valis (.contractExists(N,T,D,R),T1)
   }
   decodeTypeRule([`y`,..Ts]) => valof{
     (A,T0) = decodeType(Ts);
     (R,T1) = decodeType(T0);
-    valis (typeLambda(A,R),T1)
+    valis (.typeLambda(A,R),T1)
   }
 
   decodeFields:(cons[char])=>(cons[(string,tipe)],cons[char]) throws ().
@@ -346,14 +352,14 @@ star.compiler.data{
   decodeConstraint:(cons[char])=>(constraint,cons[char]) throws ().
   decodeConstraint([`c`,..T]) => valof{
     (Nm,T0) = decodeText(T);
-    (tupleType(Tps),T1) = decodeType(T0);
-    (tupleType(Dps),T2) = decodeType(T1);
-    valis (conTract(Nm,Tps,Dps),T2)
+    (.tupleType(Tps),T1) = decodeType(T0);
+    (.tupleType(Dps),T2) = decodeType(T1);
+    valis (.conTract(Nm,Tps,Dps),T2)
   }
   decodeConstraint([`a`,..T]) => valof{
     (BT,T0) = decodeType(T);
-    (faceType([(Fld,FT)],_),T1) = decodeType(T0);
-    valis (fieldConstraint(BT,Fld,FT),T1)
+    (.faceType([(Fld,FT)],_),T1) = decodeType(T0);
+    valis (.fieldConstraint(BT,Fld,FT),T1)
   }
 
   public encodeSignature:(tipe) => string.
@@ -361,31 +367,31 @@ star.compiler.data{
 
   encodeType:(tipe,cons[char]) => cons[char].
   encodeType(V,Chs) where isUnbound(V) => [`_`,..Chs].
-  encodeType(nomnal("star.core*integer"),Chs) => [`i`,..Chs].
-  encodeType(nomnal("star.core*float"),Chs) => [`f`,..Chs].
-  encodeType(nomnal("star.core*string"),Chs) => [`s`,..Chs].
-  encodeType(nomnal("star.core*boolean"),Chs) => [`l`,..Chs].
-  encodeType(nomnal(Nm),Chs) => encodeText(Nm,[`t`,..Chs]).
-  encodeType(kFun(Nm,Ar),Chs) => encodeText(Nm,encodeNat(Ar,[`K`,..Chs])).
-  encodeType(tpFun(Nm,Ar),Chs) => encodeText(Nm,encodeNat(Ar,[`z`,..Chs])).
-  encodeType(tpExp(tpFun("star.core*cons",1),El),Chs) =>
+  encodeType(.nomnal("star.core*integer"),Chs) => [`i`,..Chs].
+  encodeType(.nomnal("star.core*float"),Chs) => [`f`,..Chs].
+  encodeType(.nomnal("star.core*string"),Chs) => [`s`,..Chs].
+  encodeType(.nomnal("star.core*boolean"),Chs) => [`l`,..Chs].
+  encodeType(.nomnal(Nm),Chs) => encodeText(Nm,[`t`,..Chs]).
+  encodeType(.kFun(Nm,Ar),Chs) => encodeText(Nm,encodeNat(Ar,[`K`,..Chs])).
+  encodeType(.tpFun(Nm,Ar),Chs) => encodeText(Nm,encodeNat(Ar,[`z`,..Chs])).
+  encodeType(.tpExp(.tpFun("star.core*cons",1),El),Chs) =>
     encodeType(deRef(El),[`L`,..Chs]).
-  encodeType(tpExp(tpFun("star.core*ref",1),El),Chs) =>
+  encodeType(.tpExp(.tpFun("star.core*ref",1),El),Chs) =>
     encodeType(deRef(El),[`r`,..Chs]).
-  encodeType(tpExp(tpExp(tpFun("=>",2),A),R),Chs) =>
+  encodeType(.tpExp(.tpExp(.tpFun("=>",2),A),R),Chs) =>
     encodeType(deRef(R),encodeType(deRef(A),[`F`,..Chs])).
-  encodeType(tpExp(tpExp(tpFun("<=>",2),A),R),Chs) =>
+  encodeType(.tpExp(.tpExp(.tpFun("<=>",2),A),R),Chs) =>
     encodeType(deRef(R),encodeType(deRef(A),[`C`,..Chs])).
-  encodeType(tpExp(Op,A),Chs) =>
+  encodeType(.tpExp(Op,A),Chs) =>
     encodeType(deRef(A),encodeType(deRef(Op),[`U`,..Chs])).
-  encodeType(tupleType(Els),Chs) => encodeTypes(Els,[`(`,..Chs]).
-  encodeType(allType(V,T),Chs) =>
+  encodeType(.tupleType(Els),Chs) => encodeTypes(Els,[`(`,..Chs]).
+  encodeType(.allType(V,T),Chs) =>
     encodeType(deRef(T),encodeType(deRef(V),[`:`,..Chs])).
-  encodeType(existType(V,T),Chs) =>
+  encodeType(.existType(V,T),Chs) =>
     encodeType(deRef(T),encodeType(deRef(V),[`e`,..Chs])).
-  encodeType(constrainedType(T,C),Chs) =>
+  encodeType(.constrainedType(T,C),Chs) =>
     encodeConstraint(C,encodeType(deRef(T),[`|`,..Chs])).
-  encodeType(faceType(Flds,Tps),Chs) =>
+  encodeType(.faceType(Flds,Tps),Chs) =>
     encodeFldTypes(Tps,encodeFldTypes(Flds,[`I`,..Chs])).
 
   encodeTypes:(cons[tipe],cons[char])=>cons[char].
@@ -402,21 +408,21 @@ star.compiler.data{
   encodeFlds([(Nm,T),..Tps],Chs) =>
     encodeFlds(Tps,encodeType(deRef(T),encodeText(Nm,Chs))).
 
-  encodeConstraint(conTract(Nm,Ts,Ds),Chs) =>
-    encodeType(tupleType(Ds),
-      encodeType(tupleType(Ts),
+  encodeConstraint(.conTract(Nm,Ts,Ds),Chs) =>
+    encodeType(.tupleType(Ds),
+      encodeType(.tupleType(Ts),
 	encodeText(Nm,[`c`,..Chs]))).
-  encodeConstraint(fieldConstraint(V,F,T),Chs) =>
-    encodeType(faceType([(F,deRef(T))],[]),encodeType(deRef(V),[`a`,..Chs])).
+  encodeConstraint(.fieldConstraint(V,F,T),Chs) =>
+    encodeType(.faceType([(F,deRef(T))],[]),encodeType(deRef(V),[`a`,..Chs])).
 
   public encodeTypeRule:(typeRule,cons[char])=>cons[char].
-  encodeTypeRule(allRule(V,R),Chs) =>
+  encodeTypeRule(.allRule(V,R),Chs) =>
     encodeTypeRule(R,encodeType(deRef(V),[`:`,..Chs])).
-  encodeTypeRule(typeExists(H,I),Chs) =>
+  encodeTypeRule(.typeExists(H,I),Chs) =>
     encodeType(deRef(I),encodeType(deRef(H),[`Y`,..Chs])).
-  encodeTypeRule(contractExists(N,T,D,I),Chs) =>
+  encodeTypeRule(.contractExists(N,T,D,I),Chs) =>
     encodeType(deRef(I),encodeConstraint(conTract(N,T,D),[`Z`,..Chs])).
-  encodeTypeRule(typeLambda(Hd,I),Chs) =>
+  encodeTypeRule(.typeLambda(Hd,I),Chs) =>
     encodeType(deRef(I),encodeType(deRef(Hd),[`y`,..Chs])).
 
   public encodeTpRlSignature:(typeRule) => string.
@@ -451,13 +457,13 @@ star.compiler.data{
   encodeInt(Ix,Chs) => encodeNat(Ix,Chs).
 
   public implementation coercion[locn,data]=>{
-    _coerce(locn(Pkg,Line,Col,Off,Ln))=>some(mkTpl([strg(Pkg),intgr(Line),intgr(Col),intgr(Off),intgr(Ln)])).
+    _coerce(.locn(Pkg,Line,Col,Off,Ln))=>some(mkTpl([.strg(Pkg),.intgr(Line),.intgr(Col),.intgr(Off),.intgr(Ln)])).
   }
 
   public pkgTerm:(pkg)=>data.
-  pkgTerm(pkg(Pk,Ver))=>mkCons("pkg",[strg(Pk),versTerm(Ver)]).
+  pkgTerm(.pkg(Pk,Ver))=>mkCons("pkg",[.strg(Pk),versTerm(Ver)]).
 
   public versTerm:(version)=>data.
-  versTerm(.defltVersion) => symb(tLbl("*",0)).
-  versTerm(vers(V)) => strg(V).
+  versTerm(.defltVersion) => .symb(tLbl("*",0)).
+  versTerm(.vers(V)) => .strg(V).
 }

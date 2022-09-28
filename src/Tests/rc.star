@@ -7,10 +7,11 @@ test.rc{
 
   kk ::= kk{C:integer}.
 
-  aa ::= aa{A:integer}.
+  aa ::= aa{A:integer. ii:map[integer,boolean]}.
+  
 
   implementation measured[aa->>integer] => {
-    [|_|] => 1
+    [|A|] => [|A.ii|]
   }
 
   contract all a,b ~~ lc[a->>b] ::= {
@@ -35,7 +36,12 @@ test.rc{
   public main:()=>().
   main()=>valof{
     show cont(2).C;
-    show [|aa{A=10}|];
+    AA = aa{A=10. ii=[1->.false, 2->.true]};
+
+    show [|AA|];
+
+    assert ^AA.ii[2];
+    assert ~_^=AA.ii[3];
 
     CC = (cont(2).C<<-20);
     show CC;

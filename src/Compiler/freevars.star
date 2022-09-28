@@ -10,64 +10,64 @@ star.compiler.freevars{
   import star.compiler.term.
   import star.compiler.types.
 
-  public freeVarsInTerm:(canon,set[cId],set[cId],set[cId]) => set[cId].
-  freeVarsInTerm(vr(Lc,Nm,Tp),Excl,_,Fv) where {? cId(Nm,_) in Excl ?} => Fv.
-  freeVarsInTerm(vr(Lc,Nm,Tp),Excl,_,Fv) where {? cId(Nm,_) in Fv ?} => Fv.
-  freeVarsInTerm(vr(_,Nm,_),_,_,Fv) where _ ^= isEscape(Nm) => Fv.
-  freeVarsInTerm(vr(_,Nm,_),_,_,Fv) where _ ^= intrinsic(Nm) => Fv.
-  freeVarsInTerm(vr(Lc,Nm,Tp),_,Q,Fv) => ({? cId(Nm,_) in Q ?} ? Fv\+cId(Nm,Tp) || Fv).
-  freeVarsInTerm(intr(_,_),_,_,Fv) => Fv.
-  freeVarsInTerm(flt(_,_),_,_,Fv) => Fv.
-  freeVarsInTerm(strng(_,_),_,_,Fv) => Fv.
-  freeVarsInTerm(enm(_,_,_),_,_,Fv) => Fv.
-  freeVarsInTerm(dot(_,Rc,_,_),Excl,Q,Fv) => freeVarsInTerm(Rc,Excl,Q,Fv).
-  freeVarsInTerm(mtd(_,_,_),_,_,Fv) => Fv.
-  freeVarsInTerm(over(_,V,_),Excl,Q,Fv) => freeVarsInTerm(V,Excl,Q,Fv).
-  freeVarsInTerm(overaccess(_,V,_,_,_),Excl,Q,Fv) => freeVarsInTerm(V,Excl,Q,Fv).
-  freeVarsInTerm(csexp(_,G,Cs,_),Excl,Q,Fv) =>
+  public freeVarsInExp:(canon,set[cId],set[cId],set[cId]) => set[cId].
+  freeVarsInExp(vr(Lc,Nm,Tp),Excl,_,Fv) where {? cId(Nm,_) in Excl ?} => Fv.
+  freeVarsInExp(vr(Lc,Nm,Tp),Excl,_,Fv) where {? cId(Nm,_) in Fv ?} => Fv.
+  freeVarsInExp(vr(_,Nm,_),_,_,Fv) where _ ^= isEscape(Nm) => Fv.
+  freeVarsInExp(vr(_,Nm,_),_,_,Fv) where _ ^= intrinsic(Nm) => Fv.
+  freeVarsInExp(vr(Lc,Nm,Tp),_,Q,Fv) => ({? cId(Nm,_) in Q ?} ? Fv\+cId(Nm,Tp) || Fv).
+  freeVarsInExp(intr(_,_),_,_,Fv) => Fv.
+  freeVarsInExp(flt(_,_),_,_,Fv) => Fv.
+  freeVarsInExp(strng(_,_),_,_,Fv) => Fv.
+  freeVarsInExp(enm(_,_,_),_,_,Fv) => Fv.
+  freeVarsInExp(dot(_,Rc,_,_),Excl,Q,Fv) => freeVarsInExp(Rc,Excl,Q,Fv).
+  freeVarsInExp(mtd(_,_,_),_,_,Fv) => Fv.
+  freeVarsInExp(over(_,V,_),Excl,Q,Fv) => freeVarsInExp(V,Excl,Q,Fv).
+  freeVarsInExp(overaccess(_,V,_,_,_),Excl,Q,Fv) => freeVarsInExp(V,Excl,Q,Fv).
+  freeVarsInExp(csexp(_,G,Cs,_),Excl,Q,Fv) =>
     foldLeft((Rl,F)=>freeVarsInRule(Rl,Excl,Q,F),
-      freeVarsInTerm(G,Excl,Q,Fv),
+      freeVarsInExp(G,Excl,Q,Fv),
       Cs).
-  freeVarsInTerm(whr(_,E,C),Excl,Q,Fv) =>
-    freeVarsInTerm(C,Excl,Q,freeVarsInTerm(E,Excl,Q,Fv)).
-  freeVarsInTerm(cond(_,T,L,R),Excl,Q,Fv) where Fv1 .= freeVarsInCond(T,Excl,Q,Fv) =>
-    freeVarsInTerm(L,Excl,Q,freeVarsInTerm(R,Excl,Q,Fv1)).
-  freeVarsInTerm(apply(_,O,A,_),Excl,Q,Fv) =>
-    freeVarsInTuple(A,Excl,Q,freeVarsInTerm(O,Excl,Q,Fv)).
-  freeVarsInTerm(tple(_,Els),Excl,Q,Fv) => freeVarsInTuple(Els,Excl,Q,Fv).
-  freeVarsInTerm(match(_,P,S),Excl,Q,Fv) where Excl1 .= extendExcl(P,Excl,Fv) =>
-    freeVarsInTerm(S,Excl1,Q,freeVarsInTerm(P,Excl1,Q,Fv)).
-  freeVarsInTerm(conj(Lc,L,R),Excl,Q,Fv) => freeVarsInCond(conj(Lc,L,R),Excl,Q,Fv).
-  freeVarsInTerm(disj(Lc,L,R),Excl,Q,Fv) => freeVarsInCond(disj(Lc,L,R),Excl,Q,Fv).
-  freeVarsInTerm(neg(Lc,R),Excl,Q,Fv) => freeVarsInCond(neg(Lc,R),Excl,Q,Fv).
-  freeVarsInTerm(lambda(_,_,Eqns,_),Excl,Q,Fv) =>
+  freeVarsInExp(whr(_,E,C),Excl,Q,Fv) =>
+    freeVarsInExp(C,Excl,Q,freeVarsInExp(E,Excl,Q,Fv)).
+  freeVarsInExp(cond(_,T,L,R),Excl,Q,Fv) where Fv1 .= freeVarsInCond(T,Excl,Q,Fv) =>
+    freeVarsInExp(L,Excl,Q,freeVarsInExp(R,Excl,Q,Fv1)).
+  freeVarsInExp(apply(_,O,A,_),Excl,Q,Fv) =>
+    freeVarsInTuple(A,Excl,Q,freeVarsInExp(O,Excl,Q,Fv)).
+  freeVarsInExp(tple(_,Els),Excl,Q,Fv) => freeVarsInTuple(Els,Excl,Q,Fv).
+  freeVarsInExp(match(_,P,S),Excl,Q,Fv) where Excl1 .= extendExcl(P,Excl,Fv) =>
+    freeVarsInExp(S,Excl1,Q,freeVarsInExp(P,Excl1,Q,Fv)).
+  freeVarsInExp(conj(Lc,L,R),Excl,Q,Fv) => freeVarsInCond(conj(Lc,L,R),Excl,Q,Fv).
+  freeVarsInExp(disj(Lc,L,R),Excl,Q,Fv) => freeVarsInCond(disj(Lc,L,R),Excl,Q,Fv).
+  freeVarsInExp(neg(Lc,R),Excl,Q,Fv) => freeVarsInCond(neg(Lc,R),Excl,Q,Fv).
+  freeVarsInExp(lambda(_,_,Eqns,_),Excl,Q,Fv) =>
     foldRight((Rl,F)=>freeVarsInRule(Rl,Excl,Q,F),Fv,Eqns).
-  freeVarsInTerm(letExp(_,D,_,E),Excl,Q,Fv) => let{
+  freeVarsInExp(letExp(_,D,_,E),Excl,Q,Fv) => let{
     XX = exclDfs(D,Excl,Fv)
-  } in freeVarsInTerm(E,XX,Q,freeVarsInDefs(D,Excl,Q,Fv)).
-  freeVarsInTerm(letRec(_,D,_,E),Excl,Q,Fv) => let{
+  } in freeVarsInExp(E,XX,Q,freeVarsInDefs(D,Excl,Q,Fv)).
+  freeVarsInExp(letRec(_,D,_,E),Excl,Q,Fv) => let{
     XX = exclDfs(D,Excl,Fv)
-  } in freeVarsInTerm(E,XX,Q,freeVarsInDefs(D,XX,Q,Fv)).
+  } in freeVarsInExp(E,XX,Q,freeVarsInDefs(D,XX,Q,Fv)).
 
   freeVarsInTuple(Els,Excl,Q,Fv) =>
-    foldRight((E,F)=>freeVarsInTerm(E,Excl,Q,F),Fv,Els).
+    foldRight((E,F)=>freeVarsInExp(E,Excl,Q,F),Fv,Els).
   
   freeVarsInCond:(canon,set[cId],set[cId],set[cId]) => set[cId].
   freeVarsInCond(cond(_,T,L,R),Excl,Q,Fv) =>
-    freeVarsInCond(T,Excl,Q,freeVarsInTerm(L,Excl,Q,freeVarsInTerm(R,Excl,Q,Fv))).
+    freeVarsInCond(T,Excl,Q,freeVarsInExp(L,Excl,Q,freeVarsInExp(R,Excl,Q,Fv))).
   freeVarsInCond(match(_,P,S),Excl,Q,Fv) =>
-    freeVarsInTerm(P,Excl,Q,freeVarsInTerm(S,Excl,Q,Fv)).
+    freeVarsInExp(P,Excl,Q,freeVarsInExp(S,Excl,Q,Fv)).
   freeVarsInCond(conj(Lc,L,R),Excl,Q,Fv) =>
     freeVarsInCond(L,Excl,Q,freeVarsInCond(R,Excl,Q,Fv)).
   freeVarsInCond(disj(Lc,L,R),Excl,Q,Fv) =>
     freeVarsInCond(L,Excl,Q,freeVarsInCond(R,Excl,Q,Fv)).
   freeVarsInCond(neg(Lc,R),Excl,Q,Fv) => freeVarsInCond(R,Excl,Q,Fv).
-  freeVarsInCond(T,Excl,Q,Fv) => freeVarsInTerm(T,Excl,Q,Fv).
+  freeVarsInCond(T,Excl,Q,Fv) => freeVarsInExp(T,Excl,Q,Fv).
 
   freeVarsInRule(rule(_,Ptn,.none,Exp),Excl,Q,Fv) =>
-    freeVarsInTerm(Ptn,Excl,Q,freeVarsInTerm(Exp,Excl,Q,Fv)).
+    freeVarsInExp(Ptn,Excl,Q,freeVarsInExp(Exp,Excl,Q,Fv)).
   freeVarsInRule(rule(_,Ptn,some(Wh),Exp),Excl,Q,Fv) =>
-    freeVarsInTerm(Ptn,Excl,Q,freeVarsInTerm(Exp,Excl,Q,freeVarsInCond(Wh,Excl,Q,Fv))).
+    freeVarsInExp(Ptn,Excl,Q,freeVarsInExp(Exp,Excl,Q,freeVarsInCond(Wh,Excl,Q,Fv))).
 
   public freeVarsInGroup:(cons[canonDef],set[cId])=>set[cId].
   freeVarsInGroup(Defs,Q) => let{
@@ -78,18 +78,18 @@ star.compiler.freevars{
   freeVarsInLetRec(Defs,Bnd,Q) => let{
     Excl1 = exclDfs(Defs,[],[])
   } in foldLeft((D,F)=>freeVarsInDef(D,Excl1,Q,F),
-    freeVarsInTerm(Bnd,Excl1,Q,[]),Defs).
+    freeVarsInExp(Bnd,Excl1,Q,[]),Defs).
 
   public freeVarsInLetGroup:(cons[canonDef],canon,set[cId])=>set[cId].
   freeVarsInLetGroup(Defs,Bnd,Q) =>let{
     Excl1 = exclDfs(Defs,[],[])
-  } in foldLeft((D,F)=>freeVarsInDef(D,[],Q,F),freeVarsInTerm(Bnd,Excl1,Q,[]),Defs).
+  } in foldLeft((D,F)=>freeVarsInDef(D,[],Q,F),freeVarsInExp(Bnd,Excl1,Q,[]),Defs).
 
   freeVarsInDef:(canonDef,set[cId],set[cId],set[cId])=>set[cId].
   freeVarsInDef(varDef(_,_,_,E,_,_),Excl,Q,Fv) =>
-    freeVarsInTerm(E,Excl,Q,Fv).
+    freeVarsInExp(E,Excl,Q,Fv).
   freeVarsInDef(implDef(_,_,_,Val,_,_),Excl,Q,Fv) =>
-    freeVarsInTerm(Val,Excl,Q,Fv).
+    freeVarsInExp(Val,Excl,Q,Fv).
   freeVarsInDef(_,_,_,Fv) default => Fv.
 
   freeVarsInDefs:(cons[canonDef],set[cId],set[cId],set[cId])=>set[cId].

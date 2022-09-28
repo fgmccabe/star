@@ -33,8 +33,8 @@ star.compiler.canon{
     owpen(option[locn],canon) |
     letExp(option[locn],cons[canonDef],cons[decl],canon) |
     letRec(option[locn],cons[canonDef],cons[decl],canon) |
-    vlof(option[locn],canonAction,tipe) |
-    tsk(option[locn],canon,tipe).
+    vlof(option[locn],canonAction,tipe).
+
 
   public canonAction ::= doNop(option[locn]) |
     doSeq(option[locn],canonAction,canonAction) |
@@ -92,7 +92,6 @@ star.compiler.canon{
     typeOf(disj(_,_,_)) => boolType.
     typeOf(cond(_,_,L,_)) => typeOf(L).
     typeOf(vlof(_,_,Tp)) => Tp.
-    typeOf(tsk(_,_,Tp)) => Tp.
   .}
 
   public implementation hasLoc[canon] => {
@@ -122,7 +121,6 @@ star.compiler.canon{
     locOf(letExp(Lc,_,_,_)) => Lc.
     locOf(letRec(Lc,_,_,_)) => Lc.
     locOf(vlof(Lc,_,_)) => Lc.
-    locOf(tsk(Lc,_,_)) => Lc.
   }
 
   public implementation all x ~~ hasLoc[rule[x]] => {
@@ -200,8 +198,6 @@ star.compiler.canon{
     "#(leftParen(OPr,Pr))let {.\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp).} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))".
   showCanon(vlof(_,A,_),Pr,Sp) where (OPr,Rp) ^= isPrefixOp("valof") =>
     "#(leftParen(OPr,Pr))valof #(showAct(A,Rp,Sp))#(rgtParen(OPr,Pr))".
-  showCanon(tsk(_,A,_),Pr,Sp) where (OPr,Rp) ^= isPrefixOp("task") =>
-    "#(leftParen(OPr,Pr))task #(showCanon(A,Rp,Sp))#(rgtParen(OPr,Pr))".
 
   showApply(vr(_,Op,_),[L,R],Pr,Sp) where (Lp,OPr,Rp) ^= isInfixOp(Op) =>
     "#(leftParen(OPr,Pr))#(showCanon(L,Lp,Sp)) #(Op) #(showCanon(R,Rp,Sp)) #(rgtParen(OPr,Pr))".

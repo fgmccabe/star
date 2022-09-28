@@ -650,8 +650,15 @@ star.compiler.checker{
     RT = newTypeVar("_R");
     ST = newTypeVar("_S");
     TskTp = taskType(RT,ST);
-    checkType(A,funType([TskTp,RT],ST),Tp,Env);
-    valis tsk(Lc,typeOfExp(L,Tp,.none,Env,Path),TskTp)
+    if NwFbr ^= findVar(Lc,"_new_fiber",Env) then{
+      checkType(A,funType([funType([TskTp,RT],ST),RT],Tp),typeOf(NwFbr),Env);
+      FbrFn = typeOfExp(L,funType([TskTp,RT],ST),.none,Env,Path);
+      valis apply(Lc,NwFbr,[FbrFn],Tp)
+    }
+    else{
+      reportError("cannot find _new_fiber type",Lc);
+      valis vr(Lc,"void",Tp)
+    }
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (_,[El]) ^= isTuple(A) && ~ _ ^= isTuple(El) =>
     typeOfExp(El,Tp,ErTp,Env,Path).

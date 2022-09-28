@@ -61,11 +61,11 @@ star.skew{
   removeTree(0,w,node(_,t1,t2)) => (w-1,mergeTree(t1,t2)).
   removeTree(Ix,w,node(x,t1,t2)) where w2 .= w/2 =>
     (Ix=<w2 ? valof{
-	(_,NL) .= removeTree(Ix-1,w2,t1);
+	(_,NL) = removeTree(Ix-1,w2,t1);
 	valis (w-1,node(x,NL,t2))
       } ||
       valof{
-	(_,NR) .= removeTree(Ix-1-w2,w2,t2);
+	(_,NR) = removeTree(Ix-1-w2,w2,t2);
 	valis (w-1,node(x,t1,NR))
       }).
 

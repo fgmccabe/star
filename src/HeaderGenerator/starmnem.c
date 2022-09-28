@@ -181,7 +181,7 @@ char *dot(opAndSpec A) {
 static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, int delta, char *cmt) {
   char *sep = "(";
 
-  outMsg(out, "  mnem([%si%s", dot(A), mnem);
+  outMsg(out, "  mnem([.i%s", mnem);
 
   sep = genArg(out, sep, A, "U");
 
@@ -280,7 +280,8 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
           return;
         case off:
           outMsg(out,
-                 "where Tgt ^= Lbls[V] =>  mnem(Ins,Code++[intgr(%d),intgr(U),intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n", op);
+                 "where Tgt ^= Lbls[V] =>  mnem(Ins,Code++[intgr(%d),intgr(U),intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
+                 op);
           return;
         default:
           check(False, "Cannot generate instruction code");
@@ -297,7 +298,9 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
           outMsg(out, "=> mnem(Ins,Code++[intgr(%d),strg(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", op);
           return;
         case off:
-          outMsg(out, "where Tgt ^= Lbls[V] => mnem(Ins,Code++[intgr(%d),strg(U),intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n", op);
+          outMsg(out,
+                 "where Tgt ^= Lbls[V] => mnem(Ins,Code++[intgr(%d),strg(U),intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
+                 op);
           return;
         default:
           check(False, "Cannot generate instruction code");
@@ -377,7 +380,7 @@ static integer insSize(OpCode op, opAndSpec A1, opAndSpec A2) {
 }
 
 void starPc(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt) {
-  outMsg(out, "  genLblTbl([%si%s", dot(A1), mnem);
+  outMsg(out, "  genLblTbl([.i%s", mnem);
 
   char *sep = genArg(out, "(", A1, "A");
   sep = genArg(out, sep, A2, "B");
@@ -434,8 +437,7 @@ static char *opAndTp(opAndSpec A) {
 }
 
 void insOp(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt) {
-  char *dot = ((A1 == tOs || A1 == nOp) && (A2 == nOp) ? "." : "");
-  outMsg(out, "    %si%s", dot, mnem);
+  outMsg(out, "    .i%s", mnem);
   char *T1 = opAndTp(A1);
   char *T2 = opAndTp(A2);
 
@@ -476,7 +478,7 @@ static logical genDisp(ioPo out, opAndSpec A, char *Nm) {
 }
 
 static void showStarIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt) {
-  outMsg(out, "  showMnem([%si%s", dot(A1), mnem);
+  outMsg(out, "  showMnem([.i%s", mnem);
 
   char *sep = genArg(out, "(", A1, "U");
   sep = genArg(out, sep, A2, "V");
@@ -485,6 +487,27 @@ static void showStarIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2
     outStr(out, ")");
 
   outMsg(out, ",..Ins],Pc) => ");
+
+  outMsg(out, "\"$(Pc)\\: %P", mnem);
+
+  genDisp(out, A1, "U");
+  genDisp(out, A2, "V");
+  outMsg(out, "\\n\" ++ showMnem(Ins,Pc+%d).\n", insSize(op, A1, A2));
+}
+
+// Create an entry of the form:
+// insEffect([.ins(O),..Ins],[_,..Stk]) => [Tp,..Stk] -- Comment
+
+static void starInsEffect(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt) {
+  outMsg(out, "  insEffect([.i%s", mnem);
+
+  char *sep = genArg(out, "(", A1, "U");
+  sep = genArg(out, sep, A2, "V");
+
+  if (strcmp(sep, ",") == 0)
+    outStr(out, ")");
+
+  outMsg(out, ",..Ins],) => ");
 
   outMsg(out, "\"$(Pc)\\: %P", mnem);
 
