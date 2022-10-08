@@ -39,18 +39,20 @@ star.compiler.macro.infra{
   }
 
   public macroKey:(ast)=>string.
-  macroKey(nme(_,Id)) => Id.
-  macroKey(qnm(_,Id)) => Id.
-  macroKey(int(_,_)) => "$integer".
-  macroKey(big(_,_)) => "$bigint".
-  macroKey(num(_,_)) => "$number".
-  macroKey(str(_,_)) => "$string".
-  macroKey(chr(_,_)) => "$char".
-  macroKey(tpl(_,"()",[tpl(Lc,Lb,I)])) => macroKey(tpl(Lc,Lb,I)).
-  macroKey(tpl(_,Op,_)) => Op.
-  macroKey(app(_,O,tpl(_,"()",_))) => macroKey(O).
-  macroKey(app(_,O,tpl(_,"[]",_))) => "\$[]".
-  macroKey(app(_,O,tpl(_,"{}",_))) => "\${}".
+  macroKey(A) => case A in {
+    .nme(_,Id) => Id.
+    .qnm(_,Id) => Id.
+    .int(_,_) => "$integer".
+    .big(_,_) => "$bigint".
+    .num(_,_) => "$number".
+    .str(_,_) => "$string".
+    .chr(_,_) => "$char".
+    .tpl(_,"()",[.tpl(Lc,Lb,I)]) => macroKey(.tpl(Lc,Lb,I)).
+    .tpl(_,Op,_) => Op.
+    .app(_,O,.tpl(_,"()",_)) => macroKey(O).
+    .app(_,O,.tpl(_,"[]",_)) => "\$[]".
+    .app(_,O,.tpl(_,"{}",_)) => "\${}".
+  }
 
   public reveal:(ast,visibility) => ast.
   reveal(A,.priVate) => unary(locOf(A),"private",A).

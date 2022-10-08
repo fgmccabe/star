@@ -15,31 +15,31 @@ star.compiler.dict.mgt{
 
   isVar:(string,dict) => option[vrEntry].
   isVar(Nm,_) where (Tp,_) ^= intrinsic(Nm) =>
-    some(vrEntry(.none,(L,E)=>refreshVar(L,Nm,Tp,E),Tp,.none)).
-  isVar(Nm,_) where Tp ^= escapeType(Nm) => some(vrEntry(.none,(L,E)=>refreshVar(L,Nm,Tp,E),Tp,.none)).
+    .some(.vrEntry(.none,(L,E)=>refreshVar(L,Nm,Tp,E),Tp,.none)).
+  isVar(Nm,_) where Tp ^= escapeType(Nm) => .some(.vrEntry(.none,(L,E)=>refreshVar(L,Nm,Tp,E),Tp,.none)).
   isVar(Nm,[]) => .none.
-  isVar(Nm,[Sc,.._]) where Entry^=Sc.vars[Nm] => some(Entry).
+  isVar(Nm,[Sc,.._]) where Entry^=Sc.vars[Nm] => .some(Entry).
   isVar(Nm,[_,..D]) => isVar(Nm,D).
 
   public showVar:(string,dict) => string.
-  showVar(Nm,Dict) where vrEntry(_,_,Tp,_)^=isVar(Nm,Dict) => "$(Nm)\:$(Tp)".
+  showVar(Nm,Dict) where .vrEntry(_,_,Tp,_)^=isVar(Nm,Dict) => "$(Nm)\:$(Tp)".
   showVar(Nm,_) => "$(Nm) not defined".
 
   public findVar:(option[locn],string,dict) => option[canon].
-  findVar(Lc,Nm,Dict) where vrEntry(_,Mk,Tp,_) ^= isVar(Nm,Dict) => some(Mk(Lc,Dict)).
+  findVar(Lc,Nm,Dict) where .vrEntry(_,Mk,Tp,_) ^= isVar(Nm,Dict) => .some(Mk(Lc,Dict)).
   findVar(_,_,_) default => .none.
 
   public findImplementation:(dict,string) => option[canon].
   findImplementation(Dict,Nm) => findImpl(Dict,Dict,Nm).
   
-  findImpl([Sc,.._],Env,INm) where implEntry(Lc,Vr,Tp) ^= Sc.impls[INm] => some(refreshVar(Lc,Vr,Tp,Env)).
+  findImpl([Sc,.._],Env,INm) where .implEntry(Lc,Vr,Tp) ^= Sc.impls[INm] => .some(refreshVar(Lc,Vr,Tp,Env)).
   findImpl([_,..Rest],Env,INm) => findImpl(Rest,Env,INm).
   findImpl([],_,_) => .none.
 
   public findAccess:(option[locn],tipe,string,dict) => option[canon].
   findAccess(Lc,Tp,Fld,Env) => valof{
-    if accEntry(_,Nm,T) ^= getFieldAccess(Tp,Fld,Env) then{
-      valis some(refreshVar(Lc,Nm,T,Env))
+    if .accEntry(_,Nm,T) ^= getFieldAccess(Tp,Fld,Env) then{
+      valis .some(refreshVar(Lc,Nm,T,Env))
     }
     else
       valis .none
@@ -47,15 +47,15 @@ star.compiler.dict.mgt{
 
   public findUpdate:(option[locn],tipe,string,dict) => option[canon].
   findUpdate(Lc,Tp,Fld,Env) => valof{
-    if accEntry(_,Nm,T) ^= getFieldUpdate(Tp,Fld,Env) then{
-      valis some(refreshVar(Lc,Nm,T,Env))
+    if .accEntry(_,Nm,T) ^= getFieldUpdate(Tp,Fld,Env) then{
+      valis .some(refreshVar(Lc,Nm,T,Env))
     }
     else
       valis .none
   }
 
   public findVarFace:(string,dict) => option[tipe].
-  findVarFace(Nm,Env) where vrEntry(_,Mk,Tp,Fc) ^=isVar(Nm,Env) =>
+  findVarFace(Nm,Env) where .vrEntry(_,Mk,Tp,Fc) ^=isVar(Nm,Env) =>
     (_^=Fc ? Fc || faceOfType(Tp,Env)).
   findVarFace(_,_) default => .none.
     
@@ -64,7 +64,7 @@ star.compiler.dict.mgt{
   varDefined(_,_) default => .false.
 
   public varType:(string,dict) => option[tipe].
-  varType(Nm,Dict) where vrEntry(_,_,Tp,_) ^= isVar(Nm,Dict) => some(Tp).
+  varType(Nm,Dict) where .vrEntry(_,_,Tp,_) ^= isVar(Nm,Dict) => .some(Tp).
   varType(_,_) default => .none.
 
   public declareVar:(string,option[locn],tipe,option[tipe],dict) => dict.
@@ -101,8 +101,8 @@ star.compiler.dict.mgt{
   declareCns(CLc,Nm,Tp,TpNm,Dict) => valof{
     if [Level,..Rest] .= Dict then {
 --      logMsg("declare constructor $(Nm) for $(TpNm) in $(Level.types)");
-      if tpDefn(Lc,TNm,TTp,TpRl,Cons)^=Level.types[TpNm] then{
-	valis [Level.types<<-Level.types[TpNm->tpDefn(Lc,TNm,TTp,TpRl,Cons[Nm->Tp])],..Rest]
+      if .tpDefn(Lc,TNm,TTp,TpRl,Cons)^=Level.types[TpNm] then{
+	valis [Level.types<<-Level.types[TpNm->.tpDefn(Lc,TNm,TTp,TpRl,Cons[Nm->Tp])],..Rest]
       } else{
 	valis [Level,..declareCns(CLc,Nm,Tp,TpNm,Rest)]
       }
@@ -115,7 +115,7 @@ star.compiler.dict.mgt{
 
   public findConstructors:(tipe,dict)=>option[map[string,tipe]].
   findConstructors(Tp,Dict) where (_,_,_,Mp) ^=
-    findType(Dict,localName(tpName(Tp),.typeMark)) => some(Mp).
+    findType(Dict,localName(tpName(Tp),.typeMark)) => .some(Mp).
   findConstructors(_,_) default => .none.
 
   pickupEnum(Lc,Nm,Tp,Env) => valof{
@@ -132,7 +132,7 @@ star.compiler.dict.mgt{
   public declareVr:(string,option[locn],tipe,(option[locn],dict)=>canon,option[tipe],dict) => dict.
   declareVr(Nm,Lc,Tp,MkVr,Fc,[Sc,..Ev]) => valof{
 --    logMsg("declare $(Nm)\:$(Tp)");
-    valis [Sc.vars<<-Sc.vars[Nm->vrEntry(Lc,MkVr,Tp,Fc)],..Ev]
+    valis [Sc.vars<<-Sc.vars[Nm->.vrEntry(Lc,MkVr,Tp,Fc)],..Ev]
   }.
 
   public declareContract:(option[locn],string,typeRule,dict) => dict.
@@ -145,8 +145,8 @@ star.compiler.dict.mgt{
 
   declareMethods:(option[locn],typeRule,dict) => dict.
   declareMethods(Lc,Spec,Dict) => valof{
-    (Q,contractExists(Nm,Tps,Dps,faceType(Mts,[]))) = deQuantRule(Spec);
-    valis formMethods(Mts,Lc,Q,conTract(Nm,Tps,Dps),Dict)
+    (Q,.contractExists(Nm,Tps,Dps,.faceType(Mts,[]))) = deQuantRule(Spec);
+    valis formMethods(Mts,Lc,Q,.conTract(Nm,Tps,Dps),Dict)
   }
 
   formMethods:(cons[(string,tipe)],option[locn],cons[tipe],constraint,dict) => dict.
@@ -178,7 +178,7 @@ star.compiler.dict.mgt{
 
     mergeVDefs:(map[string,vrEntry],map[string,vrEntry])=>map[string,vrEntry].
     mergeVDefs(V1,V2) => {Nm->E1|Nm->E1 in V1 && E2^=V2[Nm] && sameDesc(E1,E2)}.
-    sameDesc(vrEntry(_,_,T1,_),vrEntry(_,_,T2,_)) => sameType(T1,T2,Env)
+    sameDesc(.vrEntry(_,_,T1,_),.vrEntry(_,_,T2,_)) => sameType(T1,T2,Env)
 
   .} in mergeScopes(D1,D2). 
 
@@ -187,25 +187,27 @@ star.compiler.dict.mgt{
   declareDecls([D,..Ds],Dict) => 
     declareDecls(Ds,declareDecl(D,Dict)).
 
-  declareDecl(implDec(Lc,Nm,ImplNm,Tp),Dict) => 
-    declareImplementation(Lc,Nm,ImplNm,Tp,Dict).
-  declareDecl(accDec(Lc,Tp,Fld,AccFn,AccTp),Dict) =>
-    declareAccessor(Lc,Tp,Fld,AccFn,AccTp,Dict).
-  declareDecl(updDec(Lc,Tp,Fld,AccFn,AccTp),Dict) =>
-    declareUpdater(Lc,Tp,Fld,AccFn,AccTp,Dict).
-  declareDecl(conDec(Lc,Nm,ConNm,ConRl),Dict) => 
-    declareContract(Lc,Nm,ConRl,Dict).
-  declareDecl(tpeDec(Lc,Nm,Tp,TpRl),Dict) => 
-    declareType(Nm,Lc,Tp,TpRl,Dict).
-  declareDecl(varDec(Lc,Nm,FullNm,Tp),Dict) =>
-    declareVar(Nm,Lc,Tp,.none,Dict).
-  declareDecl(funDec(Lc,Nm,FullNm,Tp),Dict) =>
-    declareVar(Nm,Lc,Tp,.none,Dict).
-  declareDecl(cnsDec(Lc,Nm,FullNm,Tp),Dict) =>
-    declareConstructor(Nm,FullNm,Lc,Tp,Dict).
+  declareDecl(Dc,Dict) => case Dc in {
+    .implDec(Lc,Nm,ImplNm,Tp) => 
+      declareImplementation(Lc,Nm,ImplNm,Tp,Dict).
+    .accDec(Lc,Tp,Fld,AccFn,AccTp) =>
+      declareAccessor(Lc,Tp,Fld,AccFn,AccTp,Dict).
+    .updDec(Lc,Tp,Fld,AccFn,AccTp) =>
+      declareUpdater(Lc,Tp,Fld,AccFn,AccTp,Dict).
+    .conDec(Lc,Nm,ConNm,ConRl) => 
+      declareContract(Lc,Nm,ConRl,Dict).
+    .tpeDec(Lc,Nm,Tp,TpRl) => 
+      declareType(Nm,Lc,Tp,TpRl,Dict).
+    .varDec(Lc,Nm,FullNm,Tp) =>
+      declareVar(Nm,Lc,Tp,.none,Dict).
+    .funDec(Lc,Nm,FullNm,Tp) =>
+      declareVar(Nm,Lc,Tp,.none,Dict).
+    .cnsDec(Lc,Nm,FullNm,Tp) =>
+      declareConstructor(Nm,FullNm,Lc,Tp,Dict).
+  }
 
   public pushSig:(tipe,option[locn],(string,tipe,dict)=>dict,dict) => dict.
-  pushSig(faceType(Vrs,Tps),Lc,Mkr,Env) =>
+  pushSig(.faceType(Vrs,Tps),Lc,Mkr,Env) =>
     pushTypes(Tps,Lc,pushFlds(Vrs,Lc,Mkr,Env)).
   
   public pushFace:(tipe,option[locn],dict) => dict.
@@ -227,7 +229,7 @@ star.compiler.dict.mgt{
 
   public declareConstraints:(option[locn],cons[constraint],dict) => dict.
   declareConstraints(_,[],E) => E.
-  declareConstraints(Lc,[conTract(N,T,D),..Cx],Env)
+  declareConstraints(Lc,[.conTract(N,T,D),..Cx],Env)
       where ConTp .= mkConType(N,T,D) &&
       ConNm.=implementationName(conTract(N,T,D)) =>
     declareConstraints(Lc,Cx,
@@ -237,12 +239,12 @@ star.compiler.dict.mgt{
     declareConstraints(Lc,Cx,Env).
 
   manageConstraints:(tipe,option[locn],(option[locn],tipe)=>canon) => canon.
-  manageConstraints(constrainedType(Tp,Con),Lc,Term) =>
+  manageConstraints(.constrainedType(Tp,Con),Lc,Term) =>
     applyConstraint(Lc,Con,manageConstraints(deRef(Tp),Lc,Term)).
   manageConstraints(Tp,Lc,Term) => Term(Lc,Tp).
 
   applyConstraint:(option[locn],constraint,canon) => canon.
-  applyConstraint(Lc,fieldConstraint(V,F,T),Trm) => overaccess(Lc,Trm,V,F,T).
-  applyConstraint(Lc,conTract(N,T,D),Trm) =>
-    over(Lc,Trm,[conTract(N,T,D)]).
+  applyConstraint(Lc,.fieldConstraint(V,F,T),Trm) => overaccess(Lc,Trm,V,F,T).
+  applyConstraint(Lc,.conTract(N,T,D),Trm) =>
+    .over(Lc,Trm,[.conTract(N,T,D)]).
 }

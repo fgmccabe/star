@@ -9,10 +9,12 @@ star.bintree{
   public bin[k,v] ::= private .e | private n(bin[k,v],k,v,integer,bin[k,v]).
 
   findInTree:all k,v ~~ equality[k], comp[k] |: (bin[k,v],k)=>option[v].
-  findInTree(n(_,K,V,_,_),K) => some(V).
-  findInTree(n(L,K,_,_,_),Ky) where Ky<K => findInTree(L,Ky).
-  findInTree(n(_,K,_,_,R),Ky) where Ky>K => findInTree(R,Ky).
-  findInTree(.e,_) => .none.
+  findInTree(T,Ky) => case T in {
+    .n(_,Ky,V,_,_) => .some(V).
+    .n(L,K,_,_,_) where Ky<K => findInTree(L,Ky).
+    .n(_,K,_,_,R) where Ky>K => findInTree(R,Ky).
+    .e => .none.
+  }
 
   depth(.e) => 0.
   depth(n(_,_,_,D,_)) => D.
@@ -56,10 +58,6 @@ star.bintree{
     .leftHeavy => shiftRight(T).
     .rightHeavy => shiftLeft(T).
   }
-
-  shiftRight(n(n(n(T1,Xk,Xv,Xd,T2),Yk,Yv,Yd,T3),Zk,Zv,T4)) =>
-    
-
 }  
   
   

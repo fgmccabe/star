@@ -299,7 +299,7 @@ implementVarPtn(labelArg(N,Ix,ThVr),_,Lc,
   liftVar(Lc,ThVr,Vr,Map,Opts,Q,Q0),
   merge([N],Q0,Qx).
 implementVarPtn(moduleCons(Enum,_,0),_,_,enum(Enum),_,_,Q,Q).
-implementVarPtn(notInMap,Nm,_,idnt(Nm),_,_,Q,Qx) :-                 % variable local to rule
+implementVarPtn(_,Nm,_,idnt(Nm),_,_,Q,Qx) :-                 % variable local to rule
   merge([idnt(Nm)],Q,Qx).
 
 trPtnCallOp(Lc,Nm,Args,whr(Lc,X,mtch(Lc,X,intrinsic(Lc,Op,Args))),

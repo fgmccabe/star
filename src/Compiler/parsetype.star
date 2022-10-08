@@ -41,7 +41,7 @@ star.compiler.typeparse{
       valis VTp
     else if (_,T,TpRl,_) ^= findType(Env,Nm) then{
       if isLambdaRule(TpRl) then{
-	(_,typeLambda(_,Rhs)) = freshen(TpRl,Env);
+	(_,.typeLambda(_,Rhs)) = freshen(TpRl,Env);
 	valis Rhs
       }
       else
@@ -97,7 +97,7 @@ star.compiler.typeparse{
   }
   parseType(Q,T,Env) where (Lc,Lhs,Rhs) ^= isFieldAcc(T) => valof{
     if (_,Id) ^= isName(Lhs) && (_,Fld) ^= isName(Rhs) then{
-      if RcType ^= findVarFace(Id,Env) && faceType(_,Tps).=deRef(RcType) then{
+      if RcType ^= findVarFace(Id,Env) && .faceType(_,Tps).=deRef(RcType) then{
 	if Ftp ^= {! Ftp | (Fld,Ftp) in Tps !} then
 	  valis Ftp
 	else{
@@ -143,8 +143,8 @@ star.compiler.typeparse{
   }.
 
   applyTypeRule:(option[locn],typeRule,cons[tipe],dict) => tipe.
-  applyTypeRule(_,typeLambda(tupleType([]),Tp),[],_) => Tp.
-  applyTypeFun(Lc,typeLambda(L,R),[A,..As],Env) => valof{
+  applyTypeRule(_,.typeLambda(.tupleType([]),Tp),[],_) => Tp.
+  applyTypeFun(Lc,.typeLambda(L,R),[A,..As],Env) => valof{
     if sameType(L,A,Env) then{
       valis doTypeFun(R,As,Env)
     } else {
@@ -234,11 +234,11 @@ star.compiler.typeparse{
   parseConstraint(A,Q,Env) where (Lc,Lh,Rh) ^= isBinary(A,"<~") => valof{
     Bnd = parseType(Q,Lh,Env);
     Face = parseType(Q,Rh,Env);
-    if faceType([(Fld,FTp)],_).=deRef(Face) then
-      valis fieldConstraint(Bnd,Fld,FTp)
+    if .faceType([(Fld,FTp)],_).=deRef(Face) then
+      valis .fieldConstraint(Bnd,Fld,FTp)
     else{
       reportError("invalid rhs:$(Rh) of field constraint, expecting $(Lh)<~{F:T}",Lc);
-      valis fieldConstraint(.voidType,"",.voidType)
+      valis .fieldConstraint(.voidType,"",.voidType)
     }
   }
   parseConstraint(A,Q,Env) => parseContractConstraint(Q,A,Env).
@@ -246,21 +246,21 @@ star.compiler.typeparse{
   public rebind:(tipes,tipe,dict)=>tipe.
   rebind([],T,_) => T.
   rebind([(Nm,TV),..L],T,Env) where
-      Ar ^= isUnboundFVar(TV) && sameType(TV,kFun(Nm,Ar),Env) =>
-    rebind(L,allType(kFun(Nm,Ar),T),Env).
-  rebind([(Nm,TV),..L],T,Env) where sameType(TV,nomnal(Nm),Env) =>
-    rebind(L,allType(nomnal(Nm),T),Env).
+      Ar ^= isUnboundFVar(TV) && sameType(TV,.kFun(Nm,Ar),Env) =>
+    rebind(L,.allType(kFun(Nm,Ar),T),Env).
+  rebind([(Nm,TV),..L],T,Env) where sameType(TV,.nomnal(Nm),Env) =>
+    rebind(L,.allType(.nomnal(Nm),T),Env).
 
   public wrapConstraints([],Tp)=>Tp.
-  wrapConstraints([Cx,..Cs],Tp) => wrapConstraints(Cs,constrainedType(Tp,Cx)).
+  wrapConstraints([Cx,..Cs],Tp) => wrapConstraints(Cs,.constrainedType(Tp,Cx)).
     
   reQ:(tipes,tipe) => tipe.
   reQ([],Tp) => Tp.
-  reQ([(_,KV),..T],Tp) => reQ(T,allType(KV,Tp)).
+  reQ([(_,KV),..T],Tp) => reQ(T,.allType(KV,Tp)).
 
   reQX:(tipes,tipe) => tipe.
   reQX([],Tp) => Tp.
-  reQX([(_,KV),..T],Tp) => reQX(T,existType(KV,Tp)).
+  reQX([(_,KV),..T],Tp) => reQX(T,.existType(KV,Tp)).
 
   public parseContractConstraint:(tipes,ast,dict) => constraint.
   parseContractConstraint(Q,A,Env) where
@@ -270,21 +270,21 @@ star.compiler.typeparse{
 	if [AAs].=As && (_,L,R) ^= isBinary(AAs,"->>") then{
 	  Tps = parseTypes(Q,deComma(L),Env);
 	  Dps = parseTypes(Q,deComma(R),Env);
-	  valis conTract(Cn,Tps,Dps)
+	  valis .conTract(Cn,Tps,Dps)
 	} else{
 	  Tps = parseTypes(Q,As,Env);
-	  valis conTract(Cn,Tps,[])
+	  valis .conTract(Cn,Tps,[])
 	}
       }.
   parseContractConstraint(_,A,Env) => valof{
     reportError("$(A) is not a contract constraint",locOf(A));
-    valis conTract("",[],[])
+    valis .conTract("",[],[])
   }.
 
   parseContractName:(option[locn],string,dict)=>string.
   parseContractName(Lc,Id,Env) => valof{
     if Con ^= findContract(Env,Id) &&
-	contractExists(Cn,_,_,_) .= snd(freshen(Con,Env)) then
+	.contractExists(Cn,_,_,_) .= snd(freshen(Con,Env)) then
       valis Cn
     else{
       reportError("contract $(Id) not defined",Lc);
@@ -318,14 +318,14 @@ star.compiler.typeparse{
   }
 
   pickTypeTemplate:(tipe) => tipe.
-  pickTypeTemplate(allType(_,Tp)) => pickTypeTemplate(Tp).
-  pickTypeTemplate(existType(_,Tp)) => pickTypeTemplate(Tp).
-  pickTypeTemplate(constrainedType(Hd,_)) => pickTypeTemplate(Hd).
-  pickTypeTemplate(nomnal(Hd)) => nomnal(Hd).
-  pickTypeTemplate(tpFun(Nm,Ar)) => tpFun(Nm,Ar).
-  pickTypeTemplate(kFun(Nm,Ar)) => kFun(Nm,Ar).
-  pickTypeTemplate(tpExp(Op,_)) => pickTypeTemplate(Op).
-  pickTypeTemplate(throwsType(T,_)) => pickTypeTemplate(T).
+  pickTypeTemplate(.allType(_,Tp)) => pickTypeTemplate(Tp).
+  pickTypeTemplate(.existType(_,Tp)) => pickTypeTemplate(Tp).
+  pickTypeTemplate(.constrainedType(Hd,_)) => pickTypeTemplate(Hd).
+  pickTypeTemplate(.nomnal(Hd)) => .nomnal(Hd).
+  pickTypeTemplate(.tpFun(Nm,Ar)) => .tpFun(Nm,Ar).
+  pickTypeTemplate(.kFun(Nm,Ar)) => .kFun(Nm,Ar).
+  pickTypeTemplate(.tpExp(Op,_)) => pickTypeTemplate(Op).
+  pickTypeTemplate(.throwsType(T,_)) => pickTypeTemplate(T).
 
   public parseTypeDef:(string,ast,dict,string) => (cons[canonDef],cons[decl]).
   parseTypeDef(Nm,St,Env,Path) where (Lc,V,C,H,B) ^= isTypeExistsStmt(St) => valof{
@@ -405,7 +405,7 @@ star.compiler.typeparse{
     -- logMsg("contract head $(mkConType(Con,CTps,CDps))");
     ConTp = reQ(BV,mkConType(Con,CTps,CDps));
     ConRlTp = foldLeft(((_,QV),Rl)=>allRule(QV,Rl),contractExists(Con,CTps,CDps,Face),BV);
-    valis ([conDef(Lc,Id,tpName(ConTp),ConRlTp)],
-      [conDec(Lc,Id,tpName(ConTp),ConRlTp)])
+    valis ([.conDef(Lc,Id,tpName(ConTp),ConRlTp)],
+      [.conDec(Lc,Id,tpName(ConTp),ConRlTp)])
   }
 }

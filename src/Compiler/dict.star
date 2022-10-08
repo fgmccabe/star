@@ -9,13 +9,13 @@ star.compiler.dict{
   import star.compiler.misc.
   import star.compiler.types.
 
-  public tpDef ::= tpDefn(option[locn],string,tipe,typeRule,map[string,tipe]).
+  public tpDef ::= .tpDefn(option[locn],string,tipe,typeRule,map[string,tipe]).
 
-  public vrEntry ::= vrEntry(option[locn],(option[locn],dict)=>canon,tipe,option[tipe]).
+  public vrEntry ::= .vrEntry(option[locn],(option[locn],dict)=>canon,tipe,option[tipe]).
 
-  public implEntry ::= implEntry(option[locn],string,tipe).
+  public implEntry ::= .implEntry(option[locn],string,tipe).
 
-  public accEntry ::= accEntry(option[locn],string,tipe).
+  public accEntry ::= .accEntry(option[locn],string,tipe).
 
   public scope ::= scope{
     types:map[string,tpDef].
@@ -40,39 +40,39 @@ star.compiler.dict{
   }
 
   public implementation display[vrEntry] => {
-    disp(vrEntry(Lc,Mk,Tp,_)) => "|=$(Tp)".
+    disp(.vrEntry(Lc,Mk,Tp,_)) => "|=$(Tp)".
   }
 
   public implementation display[tpDef] => {
-    disp(tpDefn(_,_,Tmpl,Rl,Mp)) => "$(Rl)\:$(Mp)".
+    disp(.tpDefn(_,_,Tmpl,Rl,Mp)) => "$(Rl)\:$(Mp)".
   }
 
   public implementation display[implEntry] => {
-    disp(implEntry(Lc,ImplNm,FnTp))=>"Impl:#(ImplNm)\:$(FnTp)@$(Lc)"
+    disp(.implEntry(Lc,ImplNm,FnTp))=>"Impl:#(ImplNm)\:$(FnTp)@$(Lc)"
   }
 
   public implementation display[accEntry] => {
-    disp(accEntry(Lc,Fn,FnTp))=>"Acc:#(Fn)\:$(FnTp)@$(Lc)"
+    disp(.accEntry(Lc,Fn,FnTp))=>"Acc:#(Fn)\:$(FnTp)@$(Lc)"
   }
 
   public vrType:(vrEntry)=>tipe.
-  vrType(vrEntry(_,_,Tp,_))=>Tp.
+  vrType(.vrEntry(_,_,Tp,_))=>Tp.
 
-  public vrFace(vrEntry(_,_,_,Fc))=>Fc.
+  public vrFace(.vrEntry(_,_,_,Fc))=>Fc.
   
   public declareType:(string,option[locn],tipe,typeRule,dict) => dict.
   declareType(Nm,Lc,Tp,TpRl,[Level,..Rest]) =>
-    [Level.types<<-Level.types[Nm->tpDefn(Lc,Nm,Tp,TpRl,{})],..Rest].
+    [Level.types<<-Level.types[Nm->.tpDefn(Lc,Nm,Tp,TpRl,{})],..Rest].
 
   public findType:(dict,string) => option[(option[locn],tipe,typeRule,map[string,tipe])].
   findType([],Nm) => .none.
-  findType([Lvl,.._],Ky) where tpDefn(Lc,_,Tp,Rl,Cns)^=Lvl.types[Ky] =>
-    some((Lc,Tp,Rl,Cns)).
+  findType([Lvl,.._],Ky) where .tpDefn(Lc,_,Tp,Rl,Cns)^=Lvl.types[Ky] =>
+    .some((Lc,Tp,Rl,Cns)).
   findType([_,..Rest],Ky) => findType(Rest,Ky).
 
   public findContract:(dict,string) => option[typeRule].
   findContract([],Nm) => .none.
-  findContract([scope{contracts=Cns},.._],Ky) where Con^=Cns[Ky] => some(Con).
+  findContract([scope{contracts=Cns},.._],Ky) where Con^=Cns[Ky] => .some(Con).
   findContract([_,..Rest],Ky) => findContract(Rest,Ky).
 
   public declareImplementation:(option[locn],string,string,tipe,dict) => dict.
@@ -102,7 +102,7 @@ star.compiler.dict{
   getField(_,_,[]) => .none.
   getField(Key,Fld,[Scope,.._]) where
       AccOrs ^= Scope.accessors[Key] &&
-      Acc ^= AccOrs[Fld] => some(Acc).
+      Acc ^= AccOrs[Fld] => .some(Acc).
   getField(Key,Fld,[_,..Env]) => getField(Key,Fld,Env).
 
   public declareUpdater:(option[locn],tipe,string,string,tipe,dict) => dict.
@@ -124,14 +124,14 @@ star.compiler.dict{
   getUpdate(_,_,[]) => .none.
   getUpdate(Key,Fld,[Scope,.._]) where
       AccOrs ^= Scope.accessors[Key] &&
-      Acc ^= AccOrs[Fld] => some(Acc).
+      Acc ^= AccOrs[Fld] => .some(Acc).
   getUpdate(Key,Fld,[_,..Env]) => getUpdate(Key,Fld,Env).
 
   public declareLabel:(option[locn],string,dict) => dict.
   declareLabel(Lc,Lb,[Scope,..Env]) => [Scope.labels<<-Scope.labels[Lb->(Lc,Lb)],..Env].
 
   public isLabel:(string,dict) => option[(option[locn],string)].
-  isLabel(Lb,[Sc,.._]) where Tgt^=Sc.labels[Lb] => some(Tgt).
+  isLabel(Lb,[Sc,.._]) where Tgt^=Sc.labels[Lb] => .some(Tgt).
   isLabel(Lb,[_,..Env]) => isLabel(Lb,Env).
   isLabel(_,_) default => .none.
 

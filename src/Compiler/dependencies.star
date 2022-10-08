@@ -20,28 +20,28 @@ star.compiler.dependencies{
 --    logMsg("All refs found: $(AllRefs)");
     InitDefs = collectThetaRefs(Defs,AllRefs,As,[]);
 --    logMsg("initDefs $(InitDefs)");
-    Groups = (topsort(InitDefs) // (Gp)=>(Gp//((definition(Sp,Lc,_,Els))=>defnSpec(Sp,Lc,Els))));
+    Groups = (topsort(InitDefs) // (Gp)=>(Gp//((.definition(Sp,Lc,_,Els))=>.defnSpec(Sp,Lc,Els))));
     if traceDependencies! then
       logMsg("groups $(Groups)");
     valis (Pb,Opn,As,Groups)
   }
 
   private collectRef:(defnSpec,map[defnSp,defnSp])=>map[defnSp,defnSp].
-  collectRef(defnSpec(conSp(Nm),_,[St]),M) where (_,_,_,_,Els) ^= isCntrctStmt(St) =>
+  collectRef(.defnSpec(.conSp(Nm),_,[St]),M) where (_,_,_,_,Els) ^= isCntrctStmt(St) =>
     foldLeft((El,MM) => ((_,N,_) ^= isTypeAnnotation(El) && (_,Id)^=isName(N) ?
-	  MM[varSp(Id)->conSp(Nm)] || MM),
-      M[conSp(Nm)->conSp(Nm)],Els).
-  collectRef(defnSpec(N,_,_),M) => M[N->N].
+	  MM[.varSp(Id)->.conSp(Nm)] || MM),
+      M[.conSp(Nm)->.conSp(Nm)],Els).
+  collectRef(.defnSpec(N,_,_),M) => M[N->N].
 
   definitionSpec ::= definition(defnSp,option[locn],cons[defnSp],cons[ast]).
 
   implementation depends[definitionSpec->>defnSp] => {
-    references(definition(_,_,Refs,_)) => Refs.
-    defined(definition(Sp,_,_,_),Rf) => Sp==Rf.
+    references(.definition(_,_,Refs,_)) => Refs.
+    defined(.definition(Sp,_,_,_),Rf) => Sp==Rf.
   }
 
   implementation display[definitionSpec] => {
-    disp(definition(Sp,Lc,Refs,_)) => "$(Sp)->$(Refs)".
+    disp(.definition(Sp,Lc,Refs,_)) => "$(Sp)->$(Refs)".
   }
 
   collectDefinitions:(cons[ast]) => (cons[defnSpec],cons[(defnSp,visibility)],
@@ -74,11 +74,11 @@ star.compiler.dependencies{
       (Lc,V,T) ^= isTypeAnnotation(A) => valof{
 	if(ILc,Id) ^= isName(V) then{
 	  if isConstructorStmt(T) then {
-	    valis (Stmts,[defnSpec(cnsSp(Id),Lc,[T]),..Defs],
-	      [(cnsSp(Id),Vz),..Pb],As[Id->T],Opn)
+	    valis (Stmts,[defnSpec(.cnsSp(Id),Lc,[T]),..Defs],
+	      [(.cnsSp(Id),Vz),..Pb],As[Id->T],Opn)
 	  }
 	  else
-	  valis (Stmts,Defs,[(varSp(Id),Vz),..Pb],As[Id->T],Opn)
+	  valis (Stmts,Defs,[(.varSp(Id),Vz),..Pb],As[Id->T],Opn)
 	}
 	else{
 	  reportError("expecting an identifier, not $(V)",locOf(V));
@@ -88,8 +88,8 @@ star.compiler.dependencies{
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
       (Lc,Q,C,T,Els) ^= isCntrctStmt(A) => valof{
 	ConTpNme = typeName(T);
-	valis (Stmts,[defnSpec(conSp(ConTpNme),Lc,[A]),..Defs],
-	  [(conSp(ConTpNme),Vz),..Pb],generateAnnotations(Els,Q,C,As),Opn)
+	valis (Stmts,[defnSpec(.conSp(ConTpNme),Lc,[A]),..Defs],
+	  [(.conSp(ConTpNme),Vz),..Pb],generateAnnotations(Els,Q,C,As),Opn)
       }.
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
       (Lc,_,_,Cn,_) ^= isImplementationStmt(A) &&
@@ -103,12 +103,12 @@ star.compiler.dependencies{
     (Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn).
   collectDefinition(A,Ss,Defs,Pb,As,Opn,Vz) where
       (Lc,Nm,Rhs) ^= isDefn(A) && (_,Id) ^= isName(Nm) => valof{
-	Sp = varSp(Id);
+	Sp = .varSp(Id);
 	valis (Ss,[defnSpec(Sp,Lc,[A]),..Defs],publishName(Sp,Vz,Pb),As,Opn)
       }.
   collectDefinition(A,Ss,Defs,Pb,As,Opn,Vz) where
       (Lc,Nm,Rhs) ^= isAssignment(A) && (_,Id) ^= isName(Nm) => valof{
-	Sp = varSp(Id);
+	Sp = .varSp(Id);
 	valis (Ss,[defnSpec(Sp,Lc,[A]),..Defs],publishName(Sp,Vz,Pb),As,Opn)
       }.
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
@@ -121,13 +121,13 @@ star.compiler.dependencies{
     (Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
       (Lc,Nm) ^= ruleName(A) => valof{
-	if DLc ^= isDefined(varSp(Nm),Defs) then{
+	if DLc ^= isDefined(.varSp(Nm),Defs) then{
 	  reportError("$(Nm) already defined at $(DLc)",Lc);
 	  valis (Stmts,Defs,Pb,As,Opn)
 	}
 	else{
 	  (Ss,Dfs) = collectDefines(Stmts,Nm,[A]);
-	  Sp = varSp(Nm);
+	  Sp = .varSp(Nm);
 	  valis (Ss,[defnSpec(Sp,Lc,reverse(Dfs)),..Defs],publishName(Sp,Vz,Pb),As,Opn)
 	}
       }.
@@ -138,7 +138,7 @@ star.compiler.dependencies{
 
   isDefined:(defnSp,cons[defnSpec])=>option[locn].
   isDefined(_,[]) => .none.
-  isDefined(Sp,[defnSpec(Sp,Lc,Sts),..Defs]) => Lc.
+  isDefined(Sp,[.defnSpec(Sp,Lc,Sts),..Defs]) => Lc.
   isDefined(Sp,[_,..Defs]) => isDefined(Sp,Defs).
 
   publishName:(defnSp,visibility,cons[(defnSp,visibility)])=>
@@ -162,11 +162,11 @@ star.compiler.dependencies{
 
   collectThetaRefs:(cons[defnSpec],map[defnSp,defnSp],map[string,ast],cons[definitionSpec]) => cons[definitionSpec].
   collectThetaRefs([],_,_,DSpecs) => DSpecs.
-  collectThetaRefs([defnSpec(cnsSp(Nm),Lc,[Def]),..Defs],AllRefs,Annots,S) => valof{
+  collectThetaRefs([.defnSpec(.cnsSp(Nm),Lc,[Def]),..Defs],AllRefs,Annots,S) => valof{
     Refs = collectTypeRefs(Def,AllRefs,[]);
-    valis collectThetaRefs(Defs,AllRefs,Annots,[definition(cnsSp(Nm),Lc,Refs,[Def]),..S])
+    valis collectThetaRefs(Defs,AllRefs,Annots,[definition(.cnsSp(Nm),Lc,Refs,[Def]),..S])
   }
-  collectThetaRefs([defnSpec(Defines,Lc,Stmts),..Defs],AllRefs,Annots,S) => valof{
+  collectThetaRefs([.defnSpec(Defines,Lc,Stmts),..Defs],AllRefs,Annots,S) => valof{
     Refs = collectStmtsRefs(Stmts,AllRefs,Annots,[]);
     valis collectThetaRefs(Defs,AllRefs,Annots,[definition(Defines,Lc,Refs,Stmts),..S])
   }.
@@ -182,7 +182,7 @@ star.compiler.dependencies{
     locallyDefined(Stmts,removeLocalDef(St,All)).
 
   removeLocalDef(St,All) where (_,Id) ^= ruleName(St) =>
-    All[~varSp(Id)].
+    All[~.varSp(Id)].
 
   collectStmtsRefs([],_,_,Rf) => Rf.
   collectStmtsRefs([St,..Sts],All,Annots,Rf) => valof{
@@ -201,7 +201,7 @@ star.compiler.dependencies{
     collectTermRefs(D,All,collectAnnotRefs(V,All,Annots,Rf)).
   collectStmtRefs(A,All,Annots,Rf) where (_,V,D) ^= isAssignment(A) =>
     collectTermRefs(D,All,collectAnnotRefs(V,All,Annots,Rf)).
-  collectStmtRefs(A,All,Annots,Rf) where (_,some(Nm),_,H,C,R) ^= isEquation(A) => valof{
+  collectStmtRefs(A,All,Annots,Rf) where (_,.some(Nm),_,H,C,R) ^= isEquation(A) => valof{
     Rf0 = collectAnnotRefs(Nm,All,Annots,Rf);
     Rf1 = collectHeadRefs(H,C,All,Rf0);
     valis collectTermRefs(R,All,Rf1)
@@ -254,7 +254,7 @@ star.compiler.dependencies{
     valis Rf
   }.
 
-  collectHeadRefs(H,some(C),All,Rf) => 
+  collectHeadRefs(H,.some(C),All,Rf) => 
     collectCondRefs(C,All,collectTermRefs(H,All,Rf)).
   collectHeadRefs(H,.none,All,Rf) =>
     collectTermRefs(H,All,Rf).
@@ -285,9 +285,9 @@ star.compiler.dependencies{
   collectTermRefs:(ast,map[defnSp,defnSp],cons[defnSp]) => cons[defnSp].
   collectTermRefs(V,All,Rf) where _ ^= isAnon(V) => Rf.
   collectTermRefs(V,All,Rf) where (_,Id) ^= isName(V) => 
-    collectName(cnsSp(Id),All,collectName(varSp(Id),All,Rf)).
+    collectName(.cnsSp(Id),All,collectName(.varSp(Id),All,Rf)).
   collectTermRefs(T,All,Rf) where (_,Id) ^= isEnumSymb(T) =>
-    collectName(cnsSp(Id),All,Rf).
+    collectName(.cnsSp(Id),All,Rf).
   collectTermRefs(T,All,Rf) where (_,Lhs,Rhs) ^= isTypeAnnotation(T) =>
     collectTypeRefs(Rhs,All,collectTermRefs(Lhs,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,Env,Bnd) ^= isLetDef(T) =>
@@ -360,9 +360,9 @@ star.compiler.dependencies{
     Rf1 = collectStmtsRefs(Stmts,All,[],Rf);
     valis collectTermRefs(L,All,Rf1)
   }
-  collectTermRefs(int(_,_),_,Rf) => Rf.
-  collectTermRefs(str(_,_),_,Rf) => Rf.
-  collectTermRefs(num(_,_),_,Rf) => Rf.
+  collectTermRefs(.int(_,_),_,Rf) => Rf.
+  collectTermRefs(.str(_,_),_,Rf) => Rf.
+  collectTermRefs(.num(_,_),_,Rf) => Rf.
   collectTermRefs(T,_,Rf) => valof{
     reportError("cant parse $(T) for references",locOf(T));
     valis Rf
@@ -493,7 +493,7 @@ star.compiler.dependencies{
   collectContractRefs:(ast,map[defnSp,defnSp],cons[defnSp]) => cons[defnSp].
   collectContractRefs(T,All,Rf) where
       (_,Op,Args) ^= isSquareTerm(T) && (_,Id)^=isName(Op) => valof {
-    R0 = collectName(conSp(Id),All,Rf);
+    R0 = collectName(.conSp(Id),All,Rf);
     valis collectTypeList(Args,All,R0)
   }
   collectContractRefs(T,All,Rf) where (_,Q,I) ^= isQuantified(T) =>
@@ -519,8 +519,8 @@ star.compiler.dependencies{
 
   filterOut:(map[defnSp,defnSp],cons[ast]) => map[defnSp,defnSp].
   filterOut(M,Q) => let{.
-    qName(V) where (_,Id) ^= isName(V) => some(Id).
+    qName(V) where (_,Id) ^= isName(V) => .some(Id).
     qName(V) where (_,L,_) ^= isBinary(V,"/") => qName(L).
     qName(_) default => .none.
-  .} in foldLeft((V,MM) where Id^=qName(V) => MM[~varSp(Id)],M,Q).
+  .} in foldLeft((V,MM) where Id^=qName(V) => MM[~.varSp(Id)],M,Q).
 }

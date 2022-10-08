@@ -12,63 +12,65 @@ star.compiler.normalize.meta{
 
   public consMap ~> cons[(termLbl,tipe,integer)].
 
-  public nameMapEntry ::= moduleFun(cExp,string)
-    | localFun(string,string,cId)
-    | localVar(cExp)
-    | moduleCons(string,tipe)
-    | localCons(string,tipe,cId)
-    | labelArg(cId,integer)
-    | memoArg(string,cId,integer)
-    | globalVar(string,tipe).
+  public nameMapEntry ::= .moduleFun(cExp,string)
+    | .localFun(string,string,cId)
+    | .localVar(cExp)
+    | .moduleCons(string,tipe)
+    | .localCons(string,tipe,cId)
+    | .labelArg(cId,integer)
+    | .memoArg(string,cId,integer)
+    | .globalVar(string,tipe).
 
-  public typeMapEntry ::= moduleType(string,tipe,consMap).
+  public typeMapEntry ::= .moduleType(string,tipe,consMap).
 
-  public mapLayer ::= lyr(option[cId],map[string,nameMapEntry],map[string,typeMapEntry]).
+  public mapLayer ::= .lyr(option[cId],map[string,nameMapEntry],map[string,typeMapEntry]).
 
   public nameMap ~> cons[mapLayer].
 
   public implementation display[mapLayer] => {
-    disp(lyr(V,VEntries,TEntries)) => "<thV=$(V)\:$(VEntries)\:$(TEntries)>".
+    disp(.lyr(V,VEntries,TEntries)) => "<thV=$(V)\:$(VEntries)\:$(TEntries)>".
   }
 
   public implementation display[nameMapEntry] => {
-    disp(moduleFun(C,V)) => "module fun $(V), closure $(C)".
-    disp(moduleCons(Nm,Tp)) => "module cons $(Nm)".
-    disp(localCons(Nm,Tp,Vr)) => "local cons #(Nm)[$(Vr)]".
-    disp(localFun(Nm,ClNm,V)) => "local fun #(Nm), closure $(ClNm), ThV $(V)".
-    disp(localVar(Vr)) => "local var $(Vr)".
-    disp(labelArg(Base,Ix)) => "label arg $(Base)[$(Ix)]".
-    disp(memoArg(Nm,Base,Ix)) => "memo arg #(Nm)@$(Base)[$(Ix)]".
-    disp(globalVar(Nm,Tp)) => "global #(Nm)".
+    disp(En) => case En in {
+      .moduleFun(C,V) => "module fun $(V), closure $(C)".
+      .moduleCons(Nm,Tp) => "module cons $(Nm)".
+      .localCons(Nm,Tp,Vr) => "local cons #(Nm)[$(Vr)]".
+      .localFun(Nm,ClNm,V) => "local fun #(Nm), closure $(ClNm), ThV $(V)".
+      .localVar(Vr) => "local var $(Vr)".
+      .labelArg(Base,Ix) => "label arg $(Base)[$(Ix)]".
+      .memoArg(Nm,Base,Ix) => "memo arg #(Nm)@$(Base)[$(Ix)]".
+      .globalVar(Nm,Tp) => "global #(Nm)".
+    }
   }
 
   public implementation display[typeMapEntry] => {
-    disp(moduleType(Nm,Tp,ConsMap)) => "type #(Nm)\:$(Tp) <- $(ConsMap)".
+    disp(.moduleType(Nm,Tp,ConsMap)) => "type #(Nm)\:$(Tp) <- $(ConsMap)".
   }
 public crFlow ~> (cExp,cons[cDefn]).
 
   public lookupVarName:(nameMap,string)=>option[nameMapEntry].
   lookupVarName(Map,Nm) => lookup(Map,Nm,anyDef).
 
-  anyDef(D) => some(D).
+  anyDef(D) => .some(D).
 
   public lookupThetaVar:(nameMap,string)=>option[cId].
   lookupThetaVar(Map,Nm) where E^=lookupVarName(Map,Nm) =>
     case E in {
-      labelArg(ThV,_) => some(ThV).
-      memoArg(_,ThV,_) => some(ThV).
-      localFun(_,_,ThV) => some(ThV).
+      .labelArg(ThV,_) => .some(ThV).
+      .memoArg(_,ThV,_) => .some(ThV).
+      .localFun(_,_,ThV) => .some(ThV).
       _ default => .none
     }.
   lookupThetaVar(_,_) default => .none.
 
   public layerVar:(nameMap)=>option[cId].
-  layerVar([lyr(V,_,_),.._])=>V.
+  layerVar([.lyr(V,_,_),.._])=>V.
   layerVar([])=>.none.
 
   public lookup:all e ~~ (nameMap,string,(nameMapEntry)=>option[e])=>option[e].
   lookup([],_,_) => .none.
-  lookup([lyr(_,Entries,_),..Map],Nm,P) where E ^= Entries[Nm] =>
+  lookup([.lyr(_,Entries,_),..Map],Nm,P) where E ^= Entries[Nm] =>
     P(E).
   lookup([_,..Map],Nm,P) => lookup(Map,Nm,P).
 
@@ -76,20 +78,20 @@ public crFlow ~> (cExp,cons[cDefn]).
   findIndexMap(Tp,Map) => lookupTypeMap(Map,Tp).
 
   lookupTypeMap([],_) => .none.
-  lookupTypeMap([lyr(_,_,Entries),..Map],Nm) where moduleType(_,_,E) ^= Entries[Nm] =>
-    some(E).
+  lookupTypeMap([.lyr(_,_,Entries),..Map],Nm) where .moduleType(_,_,E) ^= Entries[Nm] =>
+    .some(E).
   lookupTypeMap([_,..Map],Nm) => lookupTypeMap(Map,Nm).
 
   public pkgMap:(pkgSpec,cons[decl]) => nameMap.
-  pkgMap(pkgSpec(Pkg,_,_),Decls) =>
-    [lyr(.none,foldRight((Dcl,D)=>declMdlGlobal(Dcl,D),{},Decls),makeConsMap(Decls))].
+  pkgMap(.pkgSpec(Pkg,_,_),Decls) =>
+    [.lyr(.none,foldRight((Dcl,D)=>declMdlGlobal(Dcl,D),{},Decls),makeConsMap(Decls))].
 
   public makeConsMap:(cons[decl]) => map[string,typeMapEntry].
   makeConsMap(Decls) => let{.
     collectConstructors:(cons[decl],map[string,cons[(string,tipe)]]) =>
       map[string,cons[(string,tipe)]].
     collectConstructors([],Map) => Map.
-    collectConstructors([cnsDec(Lc,Nm,FullNm,Tp),..Ds],Map) where
+    collectConstructors([.cnsDec(Lc,Nm,FullNm,Tp),..Ds],Map) where
 	TpNm ^= collectibleConsType(Tp) =>
       (E ^= Map[TpNm] ?
 	collectConstructors(Ds,Map[TpNm->[(FullNm,Tp),..E]]) ||
@@ -108,7 +110,7 @@ public crFlow ~> (cExp,cons[cDefn]).
     collectMdlTypes:(cons[decl],map[string,consMap],
       map[string,typeMapEntry]) => map[string,typeMapEntry].
     collectMdlTypes([],Cns,Map) => Map.
-    collectMdlTypes([tpeDec(Lc,Nm,Tp,_),..Ds],Cns,Map) where
+    collectMdlTypes([.tpeDec(Lc,Nm,Tp,_),..Ds],Cns,Map) where
 	TpNm .= tpName(Tp) &&
 	Entry ^= Cns[TpNm] =>
       collectMdlTypes(Ds,Cns,(Map[Nm->moduleType(TpNm,Tp,Entry)])
@@ -125,33 +127,33 @@ public crFlow ~> (cExp,cons[cDefn]).
 
   mkConsLbl(Nm,Tp) => tLbl(Nm,arity(Tp)).
 
-  declMdlGlobal(funDec(Lc,Nm,FullNm,Tp),Map) =>
+  declMdlGlobal(.funDec(Lc,Nm,FullNm,Tp),Map) =>
     Map[Nm->moduleFun(cVar(Lc,cId(FullNm,Tp)),FullNm)].
-  declMdlGlobal(varDec(Lc,Nm,FullNm,Tp),Map) =>
+  declMdlGlobal(.varDec(Lc,Nm,FullNm,Tp),Map) =>
     Map[Nm->globalVar(FullNm,Tp)].
-  declMdlGlobal(cnsDec(Lc,Nm,FullNm,Tp),Map) =>
+  declMdlGlobal(.cnsDec(Lc,Nm,FullNm,Tp),Map) =>
     Map[Nm->moduleCons(FullNm,Tp)].
   declMdlGlobal(_,Map) => Map.
 
   public extendFunTp:all x ~~ hasType[x] |: (tipe,option[x])=>tipe.
   extendFunTp(Tp,.none) => Tp.
   extendFunTp(Tp,Vs) where (A,B)^=isFunType(Tp) &&
-      tupleType(Es).=deRef(A) =>
+      .tupleType(Es).=deRef(A) =>
     funType(extendTplType(Es,Vs),B).
-  extendFunTp(allType(V,B),Vs) => allType(V,extendFunTp(B,Vs)).
-  extendFunTp(existType(V,B),Vs) => existType(V,extendFunTp(B,Vs)).
-  extendFunTp(constrainedType(T,C),Vs) => constrainedType(extendFunTp(T,Vs),C).
+  extendFunTp(.allType(V,B),Vs) => .allType(V,extendFunTp(B,Vs)).
+  extendFunTp(.existType(V,B),Vs) => .existType(V,extendFunTp(B,Vs)).
+  extendFunTp(.constrainedType(T,C),Vs) => .constrainedType(extendFunTp(T,Vs),C).
 
   extendTplType:all x ~~ hasType[x] |: (cons[tipe],option[x])=>cons[tipe].
   extendTplType(Es,.none) => Es.
-  extendTplType(Es,some(E)) => [typeOf(E),..Es].
+  extendTplType(Es,.some(E)) => [typeOf(E),..Es].
 
   public findMemoIx:(string,cId,nameMap) => option[integer].
   findMemoIx(Nm,ThV,Map) => lookup(Map,Nm,isMemoVar(ThV)).
 
   isMemoVar:(cId)=>(nameMapEntry)=>option[integer].
   isMemoVar(ThV) => let{
-    check(memoArg(_,ThV,Ix))=>some(Ix).
+    check(.memoArg(_,ThV,Ix))=>.some(Ix).
     check(_) default => .none
   } in check.
   

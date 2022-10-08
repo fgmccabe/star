@@ -18,10 +18,10 @@ star.compiler.grapher{
   import star.compiler.term.repo.
   import star.compiler.wff.
 
-  public makeGraph:(pkg,termRepo,catalog,reports) => result[reports,cons[(pkg,cons[pkg])]].
-  makeGraph(Pkg,Repo,Cat,Rp) => do{
-    Defs <- scanPkgs([Pkg],Repo,Cat,[],Rp);
-    Gps .= topsort(Defs);
+  public makeGraph:(pkg,termRepo,catalog) => cons[(pkg,cons[pkg])].
+  makeGraph(Pkg,Repo,Cat) => valof{
+    Defs = scanPkgs([Pkg],Repo,Cat,[]);
+    Gps = topsort(Defs);
 --    logMsg("pkg graph $(Gps)");
     valis Gps*
   }
@@ -31,69 +31,66 @@ star.compiler.grapher{
     references((_,R)) => R
   }
 
-  scanPkgs:(cons[pkg],termRepo,catalog,cons[(pkg,cons[pkg])],reports)=>
-    result[reports,cons[(pkg,cons[pkg])]].
-  scanPkgs([],_,_,SoFar,_) => do{ valis SoFar}.
-  scanPkgs([Pkg,..Pkgs],Repo,Cat,SoFar,Rp) => do{
+  scanPkgs:(cons[pkg],termRepo,catalog,cons[(pkg,cons[pkg])])=> cons[(pkg,cons[pkg])].
+  scanPkgs([],_,_,SoFar) => SoFar.
+  scanPkgs([Pkg,..Pkgs],Repo,Cat,SoFar) => valof{
     if {? (Pk,_) in SoFar && compatiblePkg(Pk,Pkg) ?} then{
-      scanPkgs(Pkgs,Repo,Cat,SoFar,Rp)
+      valis scanPkgs(Pkgs,Repo,Cat,SoFar)
     } else if (SrcUri,CodeUri) ^= packageCode(Repo,Pkg) then {
       if newerRsrc(CodeUri,SrcUri) then {
-	try{
-	  pkgSpec(_,Imps,_) <- importPkg(Pkg,.none,Repo,Rp);
-	  try{
-	    ImpPks .= (Imps//(pkgImp(_,_,Pk))=>Pk);
-	    scanPkgs(Pkgs++ImpPks,Repo,Cat,[(Pkg,ImpPks),..SoFar],Rp)
-	  } catch {
-	    raise reportError(Rp,"cannot graph $(Pkg)",.none) -- This is kind of ugly.
-	  }
-	} catch{
-	  raise reportError(Rp,"cannot import $(Pkg)",.none)
+	if .pkgSpec(_,Imps,_) ^= importPkg(Pkg,.none,Repo) then{
+	  ImpPks = (Imps//(.pkgImp(_,_,Pk))=>Pk);
+	  valis scanPkgs(Pkgs++ImpPks,Repo,Cat,[(Pkg,ImpPks),..SoFar])
 	}
-      } else
-      scanCat(Pkg,Pkgs,Repo,Cat,SoFar,Rp)
+      };
+      valis scanCat(Pkg,Pkgs,Repo,Cat,SoFar)
     } else
-    scanCat(Pkg,Pkgs,Repo,Cat,SoFar,Rp)
+    valis scanCat(Pkg,Pkgs,Repo,Cat,SoFar)
   }
 
-  scanCat:(pkg,cons[pkg],termRepo,catalog,cons[(pkg,cons[pkg])],reports) =>
-    result[reports,cons[(pkg,cons[pkg])]].
-  scanCat(Pkg,Pkgs,Repo,Cat,SoFar,Rp) => do{
+  scanCat:(pkg,cons[pkg],termRepo,catalog,cons[(pkg,cons[pkg])]) => cons[(pkg,cons[pkg])].
+  scanCat(Pkg,Pkgs,Repo,Cat,SoFar) => valof{
     if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(Pkg)) then{
       if compatiblePkg(CPkg,Pkg) then{
-	(some(Ast),Rp1) .= parseSrc(SrcUri,CPkg,Rp);
-	SubImps <- scanForImports(Ast,Rp1);
-	scanPkgs(Pkgs++SubImps,Repo,Cat,[(CPkg,SubImps),..SoFar],Rp)
-      } else
-      raise reportError(Rp,"package in catalog $(CPkg) not compatible with requested package $(Pkg)",.none)
-    } else
-    raise reportError(Rp,"package $(Pkg) not in catalog",.none)
+	Ast = ^parseSrc(SrcUri,CPkg);
+	SubImps = scanForImports(Ast);
+	valis scanPkgs(Pkgs++SubImps,Repo,Cat,[(CPkg,SubImps),..SoFar])
+      } else{
+	reportError("package in catalog $(CPkg) not compatible with requested package $(Pkg)",.none);
+	valis []
+      }
+    } else{
+      reportError("package $(Pkg) not in catalog",.none);
+      valis []
+    }
   }
 
-  scanForImports:(ast,reports) => result[reports,cons[pkg]].
-  scanForImports(Term,Rp) => do{
+  scanForImports:(ast) => cons[pkg].
+  scanForImports(Term) => valof{
     if (Lc,_,Els) ^= isBrTerm(Term) then {
-      Imps .= ref ([]:cons[pkg]);
+      Imps = ref ([]:cons[pkg]);
       for St in Els do{
-	if pkgImp(_,_,Imp) ^= isImport(St) then{
+	if .pkgImp(_,_,Imp) ^= isImport(St) then{
 	  Imps := [Imp,..Imps!]
 	}
       };
       valis Imps!
-    } else
-    raise reportError(Rp,"not a valid package $(Term)",locOf(Term))
+    } else{
+      reportError("not a valid package $(Term)",locOf(Term));
+      valis []
+    }
   }
 
   scanToks:(cons[token])=>cons[string].
   scanToks([]) => [].
-  scanToks([tok(_,idTok("import")),..Tks]) => scanPkg(Tks,[]).
+  scanToks([.tok(_,.idTok("import")),..Tks]) => scanPkg(Tks,[]).
   scanToks([_,..Tks]) => scanToks(Tks).
 
   scanPkg:(cons[token],cons[string])=>cons[string].
   scanPkg([],[]) => [].
   scanPkg([],So) => [pkgNme(reverse(So))].
-  scanPkg([tok(_,idTok(". ")),..Tks],So) => [pkgNme(reverse(So)),..scanToks(Tks)].
-  scanPkg([tok(_,idTok(Seg)),..Tks],So) => scanPkg(Tks,[Seg,..So]).
+  scanPkg([.tok(_,.idTok(". ")),..Tks],So) => [pkgNme(reverse(So)),..scanToks(Tks)].
+  scanPkg([.tok(_,.idTok(Seg)),..Tks],So) => scanPkg(Tks,[Seg,..So]).
 
   pkgNme(Strs) => _str_multicat(Strs).
 

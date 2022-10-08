@@ -130,9 +130,9 @@ static void dumpFollows(char *prefix, codePoint last, void *V, void *cl) {
       break;
     case genStar:
       if (uniCmp(prefix, "") == same)
-        outMsg(c->first, "  first(`%#c`) => some(\"%P%#c\").\n", last, prefix, last);
+        outMsg(c->first, "    `%#c` => .some(\"%P%#c\").\n", last, prefix, last);
       else
-        outMsg(c->follow, "  follows(\"%P\",`%#c`) => some(\"%P%#c\").\n", prefix, last, prefix, last);
+        outMsg(c->follow, "    (\"%P\",`%#c`) => .some(\"%P%#c\").\n", prefix, last, prefix, last);
       break;
     case genTexi:
     default:
@@ -156,7 +156,7 @@ static void dumpFinal(char *prefix, codePoint last, void *V, void *cl) {
         outMsg(out, "  final('%P',\"%P\").\t /* %s */\n", op->name, op->name, op->cmt);
         break;
       case genStar:
-        outMsg(out, "  final(\"%P\") => .true.  /* %s */\n", op->name, op->cmt);
+        outMsg(out, "    \"%P\" => .true.  /* %s */\n", op->name, op->cmt);
         break;
       case genTexi:
       default:
@@ -408,7 +408,7 @@ static retCode procOperator(void *n, void *r, void *c) {
       return ret;
     }
     case genStar: {
-      retCode ret = outMsg(out, "  oper(\"%P\") => [", nm);
+      retCode ret = outMsg(out, "    \"%P\" => [", nm);
       while (ret == Ok && p != NULL) {
         ret = procOper(out, sep, p->op);
         p = p->next;
@@ -505,7 +505,7 @@ retCode genKeyword(void *n, void *r, void *c) {
     case genProlog:
       return outMsg(out, "  keyword(\"%P\").\n", name);
     case genStar:
-      return outMsg(out, "  keyword(\"%P\") => .true.\n", name);
+      return outMsg(out, "    \"%P\" => .true.\n", name);
     case genTexi: {
       static int col = 0;
       char *tag = "tab";
@@ -543,13 +543,13 @@ retCode procBrackets(void *n, void *r, void *c) {
       ret = outMsg(out, "  bracket(\"%P\", \"%P\", \"%P\", \"%P\", %d).\n", nm, b->left, b->right, b->sep, b->priority);
       break;
     case genStar:
-      ret = outMsg(out, "  isBracket(\"%P\") => some(bkt(\"%P\",\"%P\",\"%P\",\"%P\",%d)).\n", b->left, b->left,
+      ret = outMsg(out, "    \"%P\" => .some(.bkt(\"%P\",\"%P\",\"%P\",\"%P\",%d)).\n", b->left, b->left,
                    b->name, b->right, b->sep, b->priority);
       if (ret == Ok)
-        ret = outMsg(out, "  isBracket(\"%P\") => some(bkt(\"%P\",\"%P\",\"%P\",\"%P\",%d)).\n", b->right, b->left,
+        ret = outMsg(out, "    \"%P\" => .some(.bkt(\"%P\",\"%P\",\"%P\",\"%P\",%d)).\n", b->right, b->left,
                      b->name, b->right, b->sep, b->priority);
       if (ret == Ok)
-        ret = outMsg(out, "  isBracket(\"%P\") => some(bkt(\"%P\",\"%P\",\"%P\",\"%P\",%d)).\n",
+        ret = outMsg(out, "    \"%P\" => .some(.bkt(\"%P\",\"%P\",\"%P\",\"%P\",%d)).\n",
                      b->name, b->left, b->name, b->right, b->sep, b->priority);
       break;
     case genEmacs:

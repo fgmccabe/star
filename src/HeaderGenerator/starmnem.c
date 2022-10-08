@@ -150,7 +150,7 @@ static char *genArg(ioPo out, char *sep, opAndSpec A, char *V) {
       outMsg(out, "%s%s", sep, V);
       return ",";
     case off:
-      outMsg(out, "%sal(%s)", sep, V);
+      outMsg(out, "%s.al(%s)", sep, V);
       return ",";
     default:
       assert(False);

@@ -15,14 +15,16 @@ star.compiler.misc{
     .tractMark.
 
   public markerString:(markerType)=>string.
-  markerString(.typeMark)=>"*".
-  markerString(.closMark) => "^".
-  markerString(.valMark)=>"@".
-  markerString(.conMark)=>"#".
-  markerString(.fldMark)=>"°".
-  markerString(.overMark)=>"!".
-  markerString(.pkgMark) => "#".
-  markerString(.tractMark) => "$".
+  markerString(M) => case M in {
+    .typeMark=>"*".
+    .closMark => "^".
+    .valMark=>"@".
+    .conMark=>"#".
+    .fldMark=>"°".
+    .overMark=>"!".
+    .pkgMark => "#".
+    .tractMark => "$".
+  }
 
   public qualifiedName:(string,markerType,string) => string.
 --  qualifiedName(_,Mrk,Nm) where Glue.=markerString(Mrk) &&
@@ -45,20 +47,20 @@ star.compiler.misc{
   isUnderscoreName(T) => T[0:1]=="_".
 
   public packageVar:(pkg)=>string.
-  packageVar(pkg(P,_)) => qualifiedName(P,.pkgMark,"").
+  packageVar(.pkg(P,_)) => qualifiedName(P,.pkgMark,"").
 
   public packageVarName:(string,string)=>string.
   packageVarName(P,L) => qualifiedName(P,.pkgMark,L).
 
   public packageName:(pkg)=>string.
-  packageName(pkg(P,_))=>P.
+  packageName(.pkg(P,_))=>P.
 
   public pickFailures:all e,x ~~ (cons[either[e,x]])=>either[e,cons[x]].
   pickFailures(Ls) => let{.
     pick:all e,x ~~ (cons[either[e,x]],cons[x])=>either[e,cons[x]].
-    pick([],L) => either(reverse(L)).
-    pick([either(X),..Els],L) => pick(Els,[X,..L]).
-    pick([other(E),.._],_) => other(E).
+    pick([],L) => .either(reverse(L)).
+    pick([.either(X),..Els],L) => pick(Els,[X,..L]).
+    pick([.other(E),.._],_) => .other(E).
   .} in pick(Ls,[]).
 
   somePrimes:cons[integer].

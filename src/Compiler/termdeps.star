@@ -76,7 +76,7 @@ star.compiler.term.deps{
     checkTerm(_,Fr) default => Fr.
     
     checkAct:(aAction,(set[cId],set[cId])) => (set[cId],set[cId]).
-    checkAct(aDefn(_,P,_),(FF,QQ)) => (FF,QQ\ptnVars(P,[])).
+    checkAct(aDefn(_,P,_),(FF,QQ)) => (FF,QQ\ptnVrs(P,[])).
     checkAct(aLtt(_,Vr,_,_),(FF,QQ)) => (FF,QQ\-Vr).
     checkAct(_,Fr) default => Fr.
   } in fst(visitE(Val,checkTerm,checkAct,([],Q))).

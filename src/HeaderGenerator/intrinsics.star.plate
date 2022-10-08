@@ -7,6 +7,8 @@ star.compiler.intrinsics{
   import star.compiler.assem.
 
   public intrinsic:(string) => option[(tipe,assemOp)].
+  intrinsic(Es) => case Es in {
 #(Intrinsics)
-  intrinsic(_) default => .none.
+    _ default => .none.
+  }
 }

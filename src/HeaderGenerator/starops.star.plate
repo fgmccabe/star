@@ -3,11 +3,11 @@ star.compiler.operators{
 
   import star.
 
-  operator ::= prefixOp(integer,integer)
-             | infixOp(integer,integer,integer)
-             | postfixOp(integer,integer).
+  operator ::= .prefixOp(integer,integer)
+             | .infixOp(integer,integer,integer)
+             | .postfixOp(integer,integer).
 
-  public bracket ::= bkt(string,string,string,string,integer).
+  public bracket ::= .bkt(string,string,string,string,integer).
 
   public isOperator:(string)=>boolean.
   isOperator(Nm) => size(oper(Nm))>0.
@@ -17,7 +17,7 @@ star.compiler.operators{
 
   pickInfix:(cons[operator]) => option[(integer,integer,integer)].
   pickInfix([]) => .none.
-  pickInfix([infixOp(Lf,Pr,Rg),.._]) => some((Lf,Pr,Rg)).
+  pickInfix([.infixOp(Lf,Pr,Rg),.._]) => .some((Lf,Pr,Rg)).
   pickInfix([_,..L]) => pickInfix(L).
 
   public isPrefixOp:(string) => option[(integer,integer)].
@@ -25,7 +25,7 @@ star.compiler.operators{
 
   pickPrefix:(cons[operator]) => option[(integer,integer)].
   pickPrefix([]) => .none.
-  pickPrefix([prefixOp(Pr,Rg),.._]) => some((Pr,Rg)).
+  pickPrefix([.prefixOp(Pr,Rg),.._]) => .some((Pr,Rg)).
   pickPrefix([_,..L]) => pickPrefix(L).
 
   public isPostfixOp:(string) => option[(integer,integer)].
@@ -33,30 +33,42 @@ star.compiler.operators{
 
   pickPostfix:(cons[operator]) => option[(integer,integer)].
   pickPostfix([]) => .none.
-  pickPostfix([postfixOp(Pr,Rg),.._]) => some((Pr,Rg)).
+  pickPostfix([.postfixOp(Pr,Rg),.._]) => .some((Pr,Rg)).
   pickPostfix([_,..L]) => pickPrefix(L).
 
   oper:(string)=>cons[operator].
-#(Operators)  oper(_) default => [].
+  oper(Op) => case Op in {
+#(Operators)    _ default => [].
+  }
 
   public isBracket:(string) => option[bracket].
-#(Brackets)  isBracket(_) default => .none.
+  isBracket(Str) => case Str in {
+#(Brackets)    _ default => .none.
+  }
 
   public isLeftBracket:(string) => boolean.
-  isLeftBracket(S) => bkt(S,_,_,_,_) ^= isBracket(S).
+  isLeftBracket(S) => .bkt(S,_,_,_,_) ^= isBracket(S).
 
   public isRightBracket:(string) => boolean.
-  isRightBracket(S) => bkt(_,_,S,_,_) ^= isBracket(S).
+  isRightBracket(S) => .bkt(_,_,S,_,_) ^= isBracket(S).
 
   public first:(char) => option[string].
-#(First)  first(_) default => .none.
+  first(Op) => case Op in {
+#(First)    _ default => .none.
+  }
 
   public follows:(string,char) => option[string].
-#(Follows)  follows(_,_) default => .none.
+  follows(Op,Ch) => case (Op,Ch) in {
+#(Follows)    (_,_) default => .none.
+  }
 
   public final:(string) => boolean.
-#(Final)  final(_) default => .false.
+  final(Op) => case Op in {
+#(Final)    _ default => .false.
+  }
 
   public keyword:(string) => boolean.
-#(Keywords)  keyword(_) default => .false.
+  keyword(Op) => case Op in {
+#(Keywords)    _ default => .false.
+  }
 }

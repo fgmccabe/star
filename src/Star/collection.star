@@ -75,15 +75,15 @@ star.collection{
 
     private mapOverList:all e,f ~~ (cons[e],(e)=>f)=>cons[f].
     mapOverList(.nil,_) => .nil.
-    mapOverList(cons(H,T),F) => cons(F(H),mapOverList(T,F)).
+    mapOverList(.cons(H,T),F) => .cons(F(H),mapOverList(T,F)).
  .}
 
   public implementation all e ~~ folding[cons[e]->>e] => {.
     foldRight(F,U,.nil) => U.
-    foldRight(F,U,cons(H,T)) => F(H,foldRight(F,U,T)).
+    foldRight(F,U,.cons(H,T)) => F(H,foldRight(F,U,T)).
 
     foldLeft(F,U,.nil) => U.
-    foldLeft(F,U,cons(H,T)) => foldLeft(F,F(H,U),T).
+    foldLeft(F,U,.cons(H,T)) => foldLeft(F,F(H,U),T).
  .}
 
   public implementation all e ~~ reduce[cons[e]->>e] => {
@@ -94,12 +94,12 @@ star.collection{
   public implementation all e ~~ ixfold[cons[e] ->> integer,e] => {
     ixRight(F,Z,L) => let{.
       fdr(.nil,_) => Z.
-      fdr(cons(H,T),Ix) => F(Ix,H,fdr(T,Ix+1)).
+      fdr(.cons(H,T),Ix) => F(Ix,H,fdr(T,Ix+1)).
    .} in fdr(L,0).
 
     ixLeft(F,Z,L) => let{.
       fdl(.nil,Ix,Ac) => Ac.
-      fdl(cons(H,T),Ix,Ac) => fdl(T,Ix+1,F(Ix,H,Ac)).
+      fdl(.cons(H,T),Ix,Ac) => fdl(T,Ix+1,F(Ix,H,Ac)).
    .} in fdl(L,0,Z).
   }
 
@@ -112,45 +112,57 @@ star.collection{
     .} in repl(L).
 
     private searchList([],_) => .none.
-    searchList([E,..L],F) where F(E) => some(E).
+    searchList([E,..L],F) where F(E) => .some(E).
     searchList([_,..L],F) => searchList(L,F).
  .}
 
   public implementation all t ~~ filter[cons[t]->>t] => let{.
-    filter([],F) => [].
-    filter([E,..Es],F) where F(E) => [E,..filter(Es,F)].
-    filter([_,..Es],F) => filter(Es,F).
+    filter(L,F) => case L in {
+      [] => [].
+      [E,..Es] where F(E) => [E,..filter(Es,F)].
+      [_,..Es] => filter(Es,F)
+    }
  .} in {
     (LL ^/ F) => filter(LL,F)
   }
 
   public implementation all e ~~ equality[e] |: membership[cons[e]->>e] => let{.
-    _mem(K,cons(K,_)) => .true.
-    _mem(K,cons(_,L)) => _mem(K,L).
-    _mem(_,.nil) => .false.
+    _mem(K,Ls) => case Ls in {
+      .cons(K,_) => .true.
+      .cons(_,L) => _mem(K,L).
+      .nil => .false
+    }
 
-    _rem(_,.nil) => .nil.
-    _rem(K,cons(K,L)) => L.
-    _rem(K,cons(E,L)) => cons(E,_rem(K,L)).
+    _rem(K,Ls) => case Ls in {
+      .nil => .nil.
+      .cons(K,L) => L.
+      .cons(E,L) => .cons(E,_rem(K,L)).
+    }
   .} in {
     L\+E where _mem(E,L) => L.
-    L\+E => cons(E,L).
+    L\+E => .cons(E,L).
     L\-E => _rem(E,L).
     E .<. L => _mem(E,L)
   }
 
   public implementation all e ~~ equality[e] |: setops[cons[e]] => let{.
-    merge(.nil,C) => C.
-    merge(cons(H,T),C) where H.<.C => merge(T,C).
-    merge(cons(H,T),C) default => [H,..merge(T,C)].
+    merge(L,R) => case L in {
+      .nil => R.
+      .cons(H,T) where H.<.R => merge(T,R).
+      .cons(H,T) default => [H,..merge(T,R)].
+    }
 
-    intersect(.nil,C) => .nil.
-    intersect(cons(H,T),C) where H.<.C => [H,..intersect(T,C)].
-    intersect(cons(H,T),C) default => intersect(T,C).
+    intersect(L,C) => case L in {
+      .nil => .nil.
+      .cons(H,T) where H.<.C => [H,..intersect(T,C)].
+      .cons(H,T) default => intersect(T,C).
+    }
 
-    diff(.nil,C) => .nil.
-    diff(cons(H,T),C) where H.<.C => diff(T,C).
-    diff(cons(H,T),C) default => [H,..diff(T,C)].
+    diff(L,C) => case L in {
+      .nil => .nil.
+      .cons(H,T) where H.<.C => diff(T,C).
+      .cons(H,T) default => [H,..diff(T,C)].
+    }
   .} in {
     L1 \/ L2 => merge(L1,L2).
     L1 /\ L2 => intersect(L1,L2).
@@ -158,7 +170,6 @@ star.collection{
   }
 
   public iota: all c ~~ sequence[c->>integer] |: (integer,integer)=>c.
-  iota(Mx,Mx) => [].
-  iota(Ix,Mx) where Ix<Mx => [Ix,..iota(Ix+1,Mx)].
+  iota(Ix,Mx) => Ix==Mx ? [] || [Ix,..iota(Ix+1,Mx)].
 
 }

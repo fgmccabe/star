@@ -9,175 +9,161 @@ star.compiler{
   import star.repo.
 
   import star.compiler.ast.
+  import star.compiler.assem.
   import star.compiler.canon.
   import star.compiler.catalog.
   import star.compiler.checker.
+  import star.compiler.grapher.
   import star.compiler.term.
   import star.compiler.dict.
   import star.compiler.errors.
---  import star.compiler.gencode.
-  import star.compiler.grapher.
+  import star.compiler.gencode.
   import star.compiler.impawt.
   import star.compiler.inline.
   import star.compiler.macro.
   import star.compiler.meta.
   import star.compiler.misc.
-  import star.compiler.normalize.
   import star.compiler.parser.
   import star.compiler.location.
   import star.compiler.term.repo.
-  import star.compiler.data.
   import star.compiler.types.
+  import star.compiler.normalize.
+  import star.compiler.data.
 
   public _main:(cons[string])=>().
   _main(Args) => valof{
-    WI^=parseUri("file:"++_cwd());
-    RI^=parseUri("file:"++_repo());
-    handleCmds(processOptions(Args,[wdOption,
-	  stdinOption,
-	  repoOption,
-	  graphOption,
-	  traceDependencyOption,
-	  traceAstOption,
-	  macroTracingOption,
-	  checkOnlyOption,
-	  traceCheckOption,
-	  traceNormalizeOption,
-	  macroOnlyOption,
-	  optimizeLvlOption],
-	defltOptions(WI,RI)
-      ))
+    WI=^parseUri("file:"++_cwd());
+    RI=^parseUri("file:"++_repo());
+    try{
+      valis handleCmds(processOptions(Args,[wdOption,
+	    stdinOption,
+	    repoOption,
+	    graphOption,
+	    traceDependencyOption,
+	    traceAstOption,
+	    macroTracingOption,
+	    checkOnlyOption,
+	    showCheckOption,
+	    traceCheckOption,
+	    macroOnlyOption,
+	    showNormalizeOption,
+	    traceNormalizeOption,
+	    optimizeLvlOption],
+	  defltOptions(WI,RI)
+	))
+    } catch {
+      Msg => { logMsg(Msg);
+	valis ()
+      }
+    };
   }.
 
-  handleCmds:(either[string,(compilerOptions,cons[string])])=>result[(),()].
-  handleCmds(either((Opts,Args))) => do{
-    Repo <- openupRepo(Opts.repo,Opts.cwd);
+  handleCmds:((compilerOptions,cons[string]))=>().
+  handleCmds((Opts,Args)) => valof{
+    Repo = openupRepo(Opts.repo,Opts.cwd);
     
     if CatUri ^= parseUri("catalog") && CatU ^= resolveUri(Opts.cwd,CatUri) &&
 	Cat ^= loadCatalog(CatU) then{
 	  for P in Args do{
-	    ErRp .= reports([]);
+	    resetErrors();
+	    Sorted = makeGraph(extractPkgSpec(P),Repo,Cat);
 
-	    try{
-	      Sorted <- makeGraph(extractPkgSpec(P),Repo,Cat,ErRp);
-
-	      if Grph ^= Opts.graph then {
-		ignore putResource(Grph,makeDotGraph(P,Sorted))
-	      };
+	    if Grph ^= Opts.graph then {
+	      putResource(Grph,makeDotGraph(P,Sorted))
+	    };
 	      
-	      processPkgs(Sorted,Repo,Cat,Opts,ErRp)
-	    } catch (Er) => do{
-	      logMsg("$(Er)");
-	      valis _exit(9);
-	    }
+	    processPkgs(Sorted,Repo,Cat)
 	  }
 	}
     else{
       logMsg("could not access catalog")
-    }
-  }
-  handleCmds(other(Msg)) => do{
-    logMsg(Msg)
+    };
+    valis ()
   }
 
   extractPkgSpec(P) where Lc ^= strFind(P,":",0) => pkg(P[0:Lc],P[Lc+1:size(P)]::version).
   extractPkgSpec(P) default => pkg(P,.defltVersion).
 
-  implementation all e,k ~~ coercion[(option[k],e),result[e,k]] => {
-    _coerce((.none,R)) => some(bad(R)).
-    _coerce((some(A),_)) => some(ok(A)).
-  }
-
-  implementation all e,k ~~ coercion[either[e,k],result[e,k]] => {
-    _coerce(either(E)) => some(ok(E)).
-    _coerce(other(A)) => some(bad(A)).
-  }
-
-  processPkg:(pkg,termRepo,catalog,compilerOptions,reports) => result[reports,termRepo].
-  processPkg(P,Repo,Cat,Opts,Rp) => do{
+  processPkg:(pkg,termRepo,catalog) => termRepo.
+  processPkg(P,Repo,Cat) => valof{
+    logMsg("Processing $(P)");
     if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
-      Ast <- parseSrc(SrcUri,CPkg,Rp)::result[reports,ast];
+      Ast = ^parseSrc(SrcUri,CPkg);
       if traceAst! then{
 	logMsg("Ast of $(P) is $(Ast)")
       };
-      M <- macroPkg(Ast,Rp);
+      M = macroPkg(Ast);
       if macroTracing! then{
 	logMsg("Macroed package $(M)")
       };
 
-      if ~ macroOnly! then{
-	(PkgSpec,Defs,Decls) <- checkPkg(Repo,CPkg,M,Opts,Rp);
-	if traceCanon! then {
-	  logMsg("type checked $(Defs)")
+      if errorFree() && ~ macroOnly! then{
+	(PkgSpec,Defs,IDecls,Decls) = checkPkg(Repo,CPkg,M);
+	if showCanon! then {
+	  logMsg("type checked #(displayDefs(Defs))")
 	};
-	if ~ typeCheckOnly! then {
-	  NormDefs <- normalize(PkgSpec,Defs,Decls,Rp);
-	  if traceNormalize! then{
-	    logMsg("normalized code $(NormDefs)");
-	  };
 
-	  Inlined .= ( optimization! ==.inlining ? simplifyDefs(NormDefs) || NormDefs);
-	  if traceNormalize! then{
+	if errorFree() && ~ typeCheckOnly! then {
+	  N = normalize(PkgSpec,Defs,Decls);
+	  validProg(N,IDecls++Decls);
+	  if showNormalize! then{
+	    logMsg("normalized code $(N)");
+	  };
+	  Inlined = ( optimization! ==.inlining ? simplifyDefs(N) || N);
+	  validProg(Inlined,IDecls++Decls);
+	  if showNormalize! then{
 	    logMsg("inlined code $(Inlined)");
 	  };
+	  if errorFree() && genCode! then{
+	    Segs = compProg(P,Inlined,Decls);
 
-	  Repo1 .= addSpec(PkgSpec,Repo);
-	  if traceNormalize! then{
-	    logMsg("normalized code $(Inlined)");
-	  };
-	  valis Repo1
-
-/*
-	  if genCode! then{
-	    Ins <- compCrProg(P,Inlined,pkgDecls(PkgSpec),Opts,Rp) :: action[reports,cons[codeSegment]];
 	    if showCode! then
-	      logMsg("Generated instructions $(Ins)");
-	    Code .= mkTpl([pkgTerm(CPkg),strg(encodeSignature(typeOf(PkgSpec))),
-		mkTpl(pkgImports(PkgSpec)//(pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
-		mkTpl(Ins//assem)]);
-	    Bytes .= (strg(Code::string)::string);
-	    Repp := addSource(addPackage(Repp!,CPkg,Bytes),CPkg,SrcUri::string)
+	      logMsg("Generated instructions $(Segs)");
+
+	    valis Repo;
+	    
+	    -- PkgSig = mkTpl([pkgTerm(CPkg),
+	    -- 	mkTpl(pkgImports(PkgSpec)//(.pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
+	    -- 	mkTpl(Decls//((D)=>DD:data)),
+	    --   ]);
+	    -- Code = mkTpl(Segs//assem);
+	    -- Bytes = (strg(Code::string)::string);
+	    -- valis addSource(addPackage(Repo,CPkg,Bytes),CPkg,SrcUri::string)
 	  }
-*/
-	} else
-	valis Repo
-      }
-      else
+	}
+      };
+      if ~errorFree() then{
+	logMsg("$(countErrors()) errors found");
+      };
+      if ~warningFree() then
+	logMsg("$(countWarnings()) warnings found");
       valis Repo
     }
-    else
-    raise reportError(Rp,"cannot locate source of $(P)",some(pkgLoc(P)))
+    else{
+      reportError("cannot locate source of $(P)",some(pkgLoc(P)));
+      valis Repo
+    }
   }
 
-  openupRepo:(uri,uri) => result[(), termRepo].
-  openupRepo(RU,CU) where CRU ^= resolveUri(CU,RU) => do{
-    Repo .= openRepository(CRU);
-    valis Repo
-  }
+  openupRepo:(uri,uri) => termRepo.
+  openupRepo(RU,CU) where CRU ^= resolveUri(CU,RU) => openRepository(CRU).
 
   addSpec:(pkgSpec,termRepo) => termRepo.
-  addSpec(Spec,R) where pkgSpec(Pkg,_,_) .= Spec => addSigToRepo(R,Pkg,(Spec::data)::string).
+  addSpec(Spec,R) where .pkgSpec(Pkg,_,_) .= Spec => addSigToRepo(R,Pkg,(Spec::data)::string).
 
   importDecls((_,_,Decls))=>Decls.
 
-  processPkgs:(cons[(pkg,cons[pkg])],termRepo,catalog,compilerOptions,reports) => result[reports,()].
-  processPkgs(Pks,Repo,Cat,Opts,Rp) => do{
-    Repp .= ref Repo;
+  processPkgs:(cons[(pkg,cons[pkg])],termRepo,catalog) => ().
+  processPkgs(Pks,Repo,Cat) => valof{
+    Repp = ref Repo;
 
-    try{
-      for (P,Imps) in Pks do{
---	logMsg("is $(P) ok? $(pkgOk(Repo,P))");
-	if ~ {? (pkgOk(Repo,P) && I in Imps *> pkgOk(Repo,I)) ?} then{
-	  logMsg("Compiling $(P)");
-	  Rep1 <- processPkg(P,Repp!,Cat,Opts,Rp);
-	  Repp := Rep1
-	}
-      };
-      ignore flushRepo(Repp!);
-    }catch (Erp) => do{
-      logMsg("Errors $(Erp)");
-      ignore flushRepo(Repp!);
-      raise Erp
-    }
+    for (P,Imps) in Pks do{
+      logMsg("is $(P) ok? $(pkgOk(Repo,P))");
+      if ~ {? (pkgOk(Repo,P) && I in Imps *> pkgOk(Repo,I)) ?} then{
+	logMsg("Compiling $(P)");
+	Repp := processPkg(P,Repp!,Cat);
+      }
+    };
+    flushRepo(Repp!);
   }
 }

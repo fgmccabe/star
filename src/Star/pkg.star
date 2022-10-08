@@ -2,22 +2,22 @@ star.pkg{
   import star.
   import star.parse.
 
-  public pkg ::= pkg(string,version).
+  public pkg ::= .pkg(string,version).
 
-  public version ::= .defltVersion | vers(string).
+  public version ::= .defltVersion | .vers(string).
 
   public pkgName:(pkg)=>string.
-  pkgName(pkg(Nm,_))=>Nm.
+  pkgName(.pkg(Nm,_))=>Nm.
 
   public pkgVersion:(pkg)=>version.
-  pkgVersion(pkg(_,V))=>V.
+  pkgVersion(.pkg(_,V))=>V.
 
   public implementation display[pkg] => {
-    disp(pkg(P,V)) => "#(P):$(V)".
+    disp(.pkg(P,V)) => "#(P):$(V)".
   }
 
   public implementation equality[pkg] => {
-    pkg(P1,V1) == pkg(P2,V2) => P1==P2 && V1==V2.
+    .pkg(P1,V1) == .pkg(P2,V2) => P1==P2 && V1==V2.
   }
 
   public implementation coercion[string,pkg] => {
@@ -26,42 +26,42 @@ star.pkg{
 
   public implementation display[version] => {
     disp(.defltVersion) => "*".
-    disp(vers(V)) => V.
+    disp(.vers(V)) => V.
   }
 
   public implementation equality[version] => {
     .defltVersion == .defltVersion => .true.
-    vers(V) == vers(W) => V==W.
+    .vers(V) == .vers(W) => V==W.
     _ == _ => .false.
   }
 
   public implementation hashable[version] => {
     hash(.defltVersion) => 0.
-    hash(vers(V)) => hash(V).
+    hash(.vers(V)) => hash(V).
   }
 
   public implementation hashable[pkg] => {
-    hash(pkg(P,V)) => hash(P)*37+hash(V).
+    hash(.pkg(P,V)) => hash(P)*37+hash(V).
   }
 
   public implementation coercion[string,version] => {
     _coerce("*") => some(.defltVersion).
-    _coerce(V) => some(vers(V)).
+    _coerce(V) => some(.vers(V)).
   }
 
   public implementation coercion[version,string] => {
     _coerce(.defltVersion) => some("*").
-    _coerce(vers(V)) => some(V).
+    _coerce(.vers(V)) => some(V).
   }
 
   public compatiblePkg:(pkg,pkg)=>boolean.
-  compatiblePkg(pkg(P,V1),pkg(P,V2)) => compatibleVersion(V1,V2).
+  compatiblePkg(.pkg(P,V1),.pkg(P,V2)) => compatibleVersion(V1,V2).
   compatiblePkg(_,_) default => .false.
 
   public compatibleVersion:(version,version)=>boolean.
   compatibleVersion(.defltVersion,_)=>.true.
   compatibleVersion(_,.defltVersion)=>.true.
-  compatibleVersion(vers(V1),vers(V2))=>V1==V2.
+  compatibleVersion(.vers(V1),.vers(V2))=>V1==V2.
   compatibleVersion(_,_) => .false.
 
   public parsePkgName:(string) => option[pkg].

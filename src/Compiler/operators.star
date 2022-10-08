@@ -3,11 +3,11 @@ star.compiler.operators{
 
   import star.
 
-  operator ::= prefixOp(integer,integer)
-             | infixOp(integer,integer,integer)
-             | postfixOp(integer,integer).
+  operator ::= .prefixOp(integer,integer)
+             | .infixOp(integer,integer,integer)
+             | .postfixOp(integer,integer).
 
-  public bracket ::= bkt(string,string,string,string,integer).
+  public bracket ::= .bkt(string,string,string,string,integer).
 
   public isOperator:(string)=>boolean.
   isOperator(Nm) => size(oper(Nm))>0.
@@ -17,7 +17,7 @@ star.compiler.operators{
 
   pickInfix:(cons[operator]) => option[(integer,integer,integer)].
   pickInfix([]) => .none.
-  pickInfix([infixOp(Lf,Pr,Rg),.._]) => some((Lf,Pr,Rg)).
+  pickInfix([.infixOp(Lf,Pr,Rg),.._]) => .some((Lf,Pr,Rg)).
   pickInfix([_,..L]) => pickInfix(L).
 
   public isPrefixOp:(string) => option[(integer,integer)].
@@ -25,7 +25,7 @@ star.compiler.operators{
 
   pickPrefix:(cons[operator]) => option[(integer,integer)].
   pickPrefix([]) => .none.
-  pickPrefix([prefixOp(Pr,Rg),.._]) => some((Pr,Rg)).
+  pickPrefix([.prefixOp(Pr,Rg),.._]) => .some((Pr,Rg)).
   pickPrefix([_,..L]) => pickPrefix(L).
 
   public isPostfixOp:(string) => option[(integer,integer)].
@@ -33,435 +33,447 @@ star.compiler.operators{
 
   pickPostfix:(cons[operator]) => option[(integer,integer)].
   pickPostfix([]) => .none.
-  pickPostfix([postfixOp(Pr,Rg),.._]) => some((Pr,Rg)).
+  pickPostfix([.postfixOp(Pr,Rg),.._]) => .some((Pr,Rg)).
   pickPostfix([_,..L]) => pickPrefix(L).
 
   oper:(string)=>cons[operator].
-  oper("retire") => [prefixOp(901,900), infixOp(900,901,900)].
-  oper("all") => [prefixOp(1010,1009)].
-  oper(".<.") => [infixOp(699,700,699)].
-  oper("^=") => [infixOp(899,900,899)].
-  oper("&&") => [infixOp(910,910,909)].
-  oper("^?") => [infixOp(800,800,799)].
-  oper("~=") => [infixOp(899,900,899)].
-  oper("~>") => [infixOp(1230,1231,1230)].
-  oper("throw") => [prefixOp(930,929)].
-  oper(".|.") => [infixOp(720,720,719)].
-  oper("do") => [prefixOp(200,199), infixOp(1199,1200,1199)].
-  oper("import") => [prefixOp(900,899)].
-  oper("catch") => [infixOp(1198,1199,1198)].
-  oper("valis") => [prefixOp(930,929)].
-  oper(",..") => [infixOp(999,1000,999)].
-  oper("for") => [prefixOp(1175,1174)].
-  oper("**") => [infixOp(600,600,599)].
-  oper("->") => [infixOp(889,890,889)].
-  oper(".+.") => [prefixOp(700,699)].
-  oper("<$") => [infixOp(719,720,720)].
-  oper("then") => [infixOp(1179,1180,1179)].
-  oper("!") => [postfixOp(99,100), infixOp(99,100,99)].
-  oper("->>") => [infixOp(1199,1200,1199)].
-  oper("default") => [postfixOp(939,940)].
-  oper("#") => [prefixOp(1750,1749), infixOp(759,760,759)].
-  oper("%") => [infixOp(700,700,699)].
-  oper("<-") => [infixOp(904,905,904)].
-  oper(".>>>.") => [infixOp(600,600,599)].
-  oper("\\+") => [infixOp(700,700,699)].
-  oper("<<-") => [infixOp(974,975,974)].
-  oper("*") => [postfixOp(699,700), infixOp(700,700,699)].
-  oper("\\-") => [infixOp(700,700,699)].
-  oper("+") => [postfixOp(699,700), infixOp(720,720,719)].
-  oper(".>>.") => [infixOp(600,600,599)].
-  oper("resume") => [prefixOp(901,900), infixOp(900,901,900)].
-  oper("*>") => [infixOp(904,905,904)].
-  oper(",") => [infixOp(999,1000,1000)].
-  oper("contract") => [prefixOp(1260,1259)].
-  oper("\\/") => [infixOp(720,720,719)].
-  oper("-") => [prefixOp(300,299), infixOp(720,720,719)].
-  oper(".") => [prefixOp(10,9), infixOp(100,100,99)].
-  oper("/") => [infixOp(700,700,699)].
-  oper("<*>") => [infixOp(949,950,950)].
-  oper("try") => [prefixOp(1200,1199)].
-  oper("exists") => [prefixOp(1010,1009)].
-  oper("if") => [prefixOp(1175,1174)].
-  oper(":") => [infixOp(1249,1250,1249)].
-  oper(";") => [postfixOp(1250,1251), infixOp(1250,1251,1251)].
-  oper("<") => [infixOp(899,900,899)].
-  oper(".=") => [infixOp(899,900,899)].
-  oper("=") => [infixOp(974,975,974)].
-  oper("|:") => [infixOp(1234,1235,1234)].
-  oper("show") => [prefixOp(1240,1239)].
-  oper("++") => [infixOp(719,720,720)].
-  oper(">") => [infixOp(899,900,899)].
-  oper("return") => [prefixOp(930,929)].
-  oper("?") => [infixOp(919,920,920)].
-  oper("@") => [prefixOp(400,399), infixOp(399,400,400)].
-  oper("in") => [infixOp(899,900,900)].
-  oper("break") => [prefixOp(10,9)].
-  oper("suspend") => [prefixOp(901,900), infixOp(900,901,900)].
-  oper("open") => [prefixOp(900,899)].
-  oper("trace") => [prefixOp(140,139)].
-  oper("~~") => [infixOp(1239,1240,1240)].
-  oper("assert") => [prefixOp(1240,1239)].
-  oper("⊕") => [infixOp(720,720,719)].
-  oper(".^.") => [infixOp(720,720,719)].
-  oper("//") => [infixOp(960,960,959)].
-  oper("public") => [prefixOp(1700,1699)].
-  oper("ref") => [prefixOp(899,898)].
-  oper(".~.") => [prefixOp(650,649)].
-  oper("where") => [infixOp(910,911,910)].
-  oper("=<") => [infixOp(899,900,899)].
-  oper("case") => [prefixOp(901,900)].
-  oper("==") => [infixOp(899,900,899)].
-  oper("\\") => [infixOp(700,700,699)].
-  oper("=>") => [infixOp(949,950,950)].
-  oper("^") => [prefixOp(100,99), infixOp(99,100,99)].
-  oper("<=>") => [infixOp(949,950,949)].
-  oper("generator") => [prefixOp(300,299)].
-  oper("valof") => [prefixOp(300,299)].
-  oper("yield") => [prefixOp(300,299)].
-  oper("while") => [prefixOp(1175,1174)].
-  oper("private") => [prefixOp(1200,1199)].
-  oper("•") => [infixOp(450,450,449)].
-  oper(".&.") => [infixOp(700,700,699)].
-  oper("///") => [infixOp(960,960,959)].
-  oper("::") => [infixOp(399,400,399)].
-  oper("+++") => [infixOp(719,720,720)].
-  oper(":=") => [infixOp(974,975,974)].
-  oper(":?") => [infixOp(399,400,399)].
-  oper(".<<.") => [infixOp(600,600,599)].
-  oper(">>=") => [infixOp(949,950,950)].
-  oper("^/") => [infixOp(960,960,959)].
-  oper("<~") => [infixOp(1230,1231,1230)].
-  oper("type") => [prefixOp(1251,1250)].
-  oper("implementation") => [prefixOp(1260,1259)].
-  oper("|") => [infixOp(1248,1248,1247)].
-  oper(".#.") => [infixOp(600,600,599)].
-  oper("~") => [prefixOp(905,904)].
-  oper("^//") => [infixOp(800,800,799)].
-  oper("||") => [infixOp(919,920,920)].
-  oper("else") => [infixOp(1199,1200,1200)].
-  oper("::=") => [infixOp(1249,1250,1249)].
-  oper("/\\") => [infixOp(700,700,699)].
-  oper(">=") => [infixOp(899,900,899)].
-  oper("throws") => [infixOp(999,1000,999)].
-  oper(">>") => [infixOp(949,950,950)].
-  oper(_) default => [].
+  oper(Op) => case Op in {
+    "retire" => [prefixOp(901,900), infixOp(900,901,900)].
+    "all" => [prefixOp(1010,1009)].
+    ".<." => [infixOp(699,700,699)].
+    "^=" => [infixOp(899,900,899)].
+    "&&" => [infixOp(910,910,909)].
+    "^?" => [infixOp(800,800,799)].
+    "~=" => [infixOp(899,900,899)].
+    "~>" => [infixOp(1230,1231,1230)].
+    "throw" => [prefixOp(930,929)].
+    ".|." => [infixOp(720,720,719)].
+    "do" => [prefixOp(200,199), infixOp(1199,1200,1199)].
+    "import" => [prefixOp(900,899)].
+    "catch" => [infixOp(1198,1199,1198)].
+    "valis" => [prefixOp(930,929)].
+    ",.." => [infixOp(999,1000,999)].
+    "for" => [prefixOp(1175,1174)].
+    "**" => [infixOp(600,600,599)].
+    "->" => [infixOp(889,890,889)].
+    ".+." => [prefixOp(700,699)].
+    "<$" => [infixOp(719,720,720)].
+    "then" => [infixOp(1179,1180,1179)].
+    "!" => [postfixOp(99,100), infixOp(99,100,99)].
+    "->>" => [infixOp(1199,1200,1199)].
+    "default" => [postfixOp(939,940)].
+    "#" => [prefixOp(1750,1749), infixOp(759,760,759)].
+    "%" => [infixOp(700,700,699)].
+    "<-" => [infixOp(904,905,904)].
+    ".>>>." => [infixOp(600,600,599)].
+    "\\+" => [infixOp(700,700,699)].
+    "<<-" => [infixOp(974,975,974)].
+    "*" => [postfixOp(699,700), infixOp(700,700,699)].
+    "\\-" => [infixOp(700,700,699)].
+    "+" => [postfixOp(699,700), infixOp(720,720,719)].
+    ".>>." => [infixOp(600,600,599)].
+    "resume" => [prefixOp(901,900), infixOp(900,901,900)].
+    "*>" => [infixOp(904,905,904)].
+    "," => [infixOp(999,1000,1000)].
+    "contract" => [prefixOp(1260,1259)].
+    "\\/" => [infixOp(720,720,719)].
+    "-" => [prefixOp(300,299), infixOp(720,720,719)].
+    "." => [prefixOp(10,9), infixOp(100,100,99)].
+    "/" => [infixOp(700,700,699)].
+    "<*>" => [infixOp(949,950,950)].
+    "try" => [prefixOp(1200,1199)].
+    "exists" => [prefixOp(1010,1009)].
+    "if" => [prefixOp(1175,1174)].
+    ":" => [infixOp(1249,1250,1249)].
+    ";" => [postfixOp(1250,1251), infixOp(1250,1251,1251)].
+    "<" => [infixOp(899,900,899)].
+    ".=" => [infixOp(899,900,899)].
+    "=" => [infixOp(974,975,974)].
+    "|:" => [infixOp(1234,1235,1234)].
+    "show" => [prefixOp(1240,1239)].
+    "++" => [infixOp(719,720,720)].
+    ">" => [infixOp(899,900,899)].
+    "return" => [prefixOp(930,929)].
+    "?" => [infixOp(919,920,920)].
+    "@" => [prefixOp(400,399), infixOp(399,400,400)].
+    "in" => [infixOp(899,900,900)].
+    "break" => [prefixOp(10,9)].
+    "suspend" => [prefixOp(901,900), infixOp(900,901,900)].
+    "open" => [prefixOp(900,899)].
+    "trace" => [prefixOp(140,139)].
+    "~~" => [infixOp(1239,1240,1240)].
+    "assert" => [prefixOp(1240,1239)].
+    "⊕" => [infixOp(720,720,719)].
+    ".^." => [infixOp(720,720,719)].
+    "//" => [infixOp(960,960,959)].
+    "public" => [prefixOp(1700,1699)].
+    "ref" => [prefixOp(899,898)].
+    ".~." => [prefixOp(650,649)].
+    "where" => [infixOp(910,911,910)].
+    "=<" => [infixOp(899,900,899)].
+    "case" => [prefixOp(901,900)].
+    "==" => [infixOp(899,900,899)].
+    "\\" => [infixOp(700,700,699)].
+    "=>" => [infixOp(949,950,950)].
+    "^" => [prefixOp(100,99), infixOp(99,100,99)].
+    "<=>" => [infixOp(949,950,949)].
+    "generator" => [prefixOp(300,299)].
+    "valof" => [prefixOp(300,299)].
+    "yield" => [prefixOp(300,299)].
+    "while" => [prefixOp(1175,1174)].
+    "private" => [prefixOp(1200,1199)].
+    "•" => [infixOp(450,450,449)].
+    ".&." => [infixOp(700,700,699)].
+    "///" => [infixOp(960,960,959)].
+    "::" => [infixOp(399,400,399)].
+    "+++" => [infixOp(719,720,720)].
+    ":=" => [infixOp(974,975,974)].
+    ":?" => [infixOp(399,400,399)].
+    ".<<." => [infixOp(600,600,599)].
+    ">>=" => [infixOp(949,950,950)].
+    "^/" => [infixOp(960,960,959)].
+    "<~" => [infixOp(1230,1231,1230)].
+    "type" => [prefixOp(1251,1250)].
+    "implementation" => [prefixOp(1260,1259)].
+    "|" => [infixOp(1248,1248,1247)].
+    ".#." => [infixOp(600,600,599)].
+    "~" => [prefixOp(905,904)].
+    "^//" => [infixOp(800,800,799)].
+    "||" => [infixOp(919,920,920)].
+    "else" => [infixOp(1199,1200,1200)].
+    "::=" => [infixOp(1249,1250,1249)].
+    "/\\" => [infixOp(700,700,699)].
+    ">=" => [infixOp(899,900,899)].
+    "throws" => [infixOp(999,1000,999)].
+    ">>" => [infixOp(949,950,950)].
+    _ default => [].
+  }
 
   public isBracket:(string) => option[bracket].
-  isBracket("[|") => some(bkt("[|","[||]","|]","",2000)).
-  isBracket("|]") => some(bkt("[|","[||]","|]","",2000)).
-  isBracket("[||]") => some(bkt("[|","[||]","|]","",2000)).
-  isBracket("<|") => some(bkt("<|","<||>","|>","",2000)).
-  isBracket("|>") => some(bkt("<|","<||>","|>","",2000)).
-  isBracket("<||>") => some(bkt("<|","<||>","|>","",2000)).
-  isBracket("{.") => some(bkt("{.","{..}",".}",".\n",2000)).
-  isBracket(".}") => some(bkt("{.","{..}",".}",".\n",2000)).
-  isBracket("{..}") => some(bkt("{.","{..}",".}",".\n",2000)).
-  isBracket("[") => some(bkt("[","[]","]",",",2000)).
-  isBracket("]") => some(bkt("[","[]","]",",",2000)).
-  isBracket("[]") => some(bkt("[","[]","]",",",2000)).
-  isBracket("(") => some(bkt("(","()",")",",",2000)).
-  isBracket(")") => some(bkt("(","()",")",",",2000)).
-  isBracket("()") => some(bkt("(","()",")",",",2000)).
-  isBracket("{") => some(bkt("{","{}","}",".\n",2000)).
-  isBracket("}") => some(bkt("{","{}","}",".\n",2000)).
-  isBracket("{}") => some(bkt("{","{}","}",".\n",2000)).
-  isBracket("{?") => some(bkt("{?","{??}","?}","",2000)).
-  isBracket("?}") => some(bkt("{?","{??}","?}","",2000)).
-  isBracket("{??}") => some(bkt("{?","{??}","?}","",2000)).
-  isBracket("{!") => some(bkt("{!","{!!}","!}","",2000)).
-  isBracket("!}") => some(bkt("{!","{!!}","!}","",2000)).
-  isBracket("{!!}") => some(bkt("{!","{!!}","!}","",2000)).
-  isBracket(_) default => .none.
+  isBracket(Str) => case Str in {
+    "[|" => .some(.bkt("[|","[||]","|]","",2000)).
+    "|]" => .some(.bkt("[|","[||]","|]","",2000)).
+    "[||]" => .some(.bkt("[|","[||]","|]","",2000)).
+    "<|" => .some(.bkt("<|","<||>","|>","",2000)).
+    "|>" => .some(.bkt("<|","<||>","|>","",2000)).
+    "<||>" => .some(.bkt("<|","<||>","|>","",2000)).
+    "{." => .some(.bkt("{.","{..}",".}",".\n",2000)).
+    ".}" => .some(.bkt("{.","{..}",".}",".\n",2000)).
+    "{..}" => .some(.bkt("{.","{..}",".}",".\n",2000)).
+    "[" => .some(.bkt("[","[]","]",",",2000)).
+    "]" => .some(.bkt("[","[]","]",",",2000)).
+    "[]" => .some(.bkt("[","[]","]",",",2000)).
+    "(" => .some(.bkt("(","()",")",",",2000)).
+    ")" => .some(.bkt("(","()",")",",",2000)).
+    "()" => .some(.bkt("(","()",")",",",2000)).
+    "{" => .some(.bkt("{","{}","}",".\n",2000)).
+    "}" => .some(.bkt("{","{}","}",".\n",2000)).
+    "{}" => .some(.bkt("{","{}","}",".\n",2000)).
+    "{?" => .some(.bkt("{?","{??}","?}","",2000)).
+    "?}" => .some(.bkt("{?","{??}","?}","",2000)).
+    "{??}" => .some(.bkt("{?","{??}","?}","",2000)).
+    "{!" => .some(.bkt("{!","{!!}","!}","",2000)).
+    "!}" => .some(.bkt("{!","{!!}","!}","",2000)).
+    "{!!}" => .some(.bkt("{!","{!!}","!}","",2000)).
+    _ default => .none.
+  }
 
   public isLeftBracket:(string) => boolean.
-  isLeftBracket(S) => bkt(S,_,_,_,_) ^= isBracket(S).
+  isLeftBracket(S) => .bkt(S,_,_,_,_) ^= isBracket(S).
 
   public isRightBracket:(string) => boolean.
-  isRightBracket(S) => bkt(_,_,S,_,_) ^= isBracket(S).
+  isRightBracket(S) => .bkt(_,_,S,_,_) ^= isBracket(S).
 
   public first:(char) => option[string].
-  first(`%`) => some("%").
-  first(`&`) => some("&").
-  first(`(`) => some("(").
-  first(`)`) => some(")").
-  first(`*`) => some("*").
-  first(`+`) => some("+").
-  first(`,`) => some(",").
-  first(`-`) => some("-").
-  first(`.`) => some(".").
-  first(`/`) => some("/").
-  first(`{`) => some("{").
-  first(`|`) => some("|").
-  first(`}`) => some("}").
-  first(`~`) => some("~").
-  first(`[`) => some("[").
-  first(`\\`) => some("\\").
-  first(`]`) => some("]").
-  first(`^`) => some("^").
-  first(`:`) => some(":").
-  first(`;`) => some(";").
-  first(`<`) => some("<").
-  first(`=`) => some("=").
-  first(`>`) => some(">").
-  first(`?`) => some("?").
-  first(`@`) => some("@").
-  first(`!`) => some("!").
-  first(`⊕`) => some("⊕").
-  first(`•`) => some("•").
-  first(`#`) => some("#").
-  first(_) default => .none.
+  first(Op) => case Op in {
+    `%` => .some("%").
+    `&` => .some("&").
+    `(` => .some("(").
+    `)` => .some(")").
+    `*` => .some("*").
+    `+` => .some("+").
+    `,` => .some(",").
+    `-` => .some("-").
+    `.` => .some(".").
+    `/` => .some("/").
+    `{` => .some("{").
+    `|` => .some("|").
+    `}` => .some("}").
+    `~` => .some("~").
+    `[` => .some("[").
+    `\\` => .some("\\").
+    `]` => .some("]").
+    `^` => .some("^").
+    `:` => .some(":").
+    `;` => .some(";").
+    `<` => .some("<").
+    `=` => .some("=").
+    `>` => .some(">").
+    `?` => .some("?").
+    `@` => .some("@").
+    `!` => .some("!").
+    `⊕` => .some("⊕").
+    `•` => .some("•").
+    `#` => .some("#").
+    _ default => .none.
+  }
 
   public follows:(string,char) => option[string].
-  follows("&",`&`) => some("&&").
-  follows("*",`*`) => some("**").
-  follows("*",`>`) => some("*>").
-  follows("+",`+`) => some("++").
-  follows("++",`+`) => some("+++").
-  follows(",",`.`) => some(",.").
-  follows(",.",`.`) => some(",..").
-  follows("-",`>`) => some("->").
-  follows("->",`>`) => some("->>").
-  follows(".",`#`) => some(".#").
-  follows(".",`&`) => some(".&").
-  follows(".",`|`) => some(".|").
-  follows(".",`}`) => some(".}").
-  follows(".",`~`) => some(".~").
-  follows(".",`<`) => some(".<").
-  follows(".",`^`) => some(".^").
-  follows(".",`+`) => some(".+").
-  follows(".",`=`) => some(".=").
-  follows(".",`>`) => some(".>").
-  follows(".",` `) => some(". ").
-  follows(".#",`.`) => some(".#.").
-  follows(".&",`.`) => some(".&.").
-  follows(".|",`.`) => some(".|.").
-  follows(".~",`.`) => some(".~.").
-  follows(".<",`<`) => some(".<<").
-  follows(".<",`.`) => some(".<.").
-  follows(".<<",`.`) => some(".<<.").
-  follows(".^",`.`) => some(".^.").
-  follows(".+",`.`) => some(".+.").
-  follows(".>",`>`) => some(".>>").
-  follows(".>>",`.`) => some(".>>.").
-  follows(".>>",`>`) => some(".>>>").
-  follows(".>>>",`.`) => some(".>>>.").
-  follows("/",`\\`) => some("/\\").
-  follows("/",`/`) => some("//").
-  follows("//",`/`) => some("///").
-  follows("{",`?`) => some("{?").
-  follows("{",`.`) => some("{.").
-  follows("{",`!`) => some("{!").
-  follows("|",`]`) => some("|]").
-  follows("|",`:`) => some("|:").
-  follows("|",`|`) => some("||").
-  follows("|",`>`) => some("|>").
-  follows("~",`~`) => some("~~").
-  follows("~",`=`) => some("~=").
-  follows("~",`>`) => some("~>").
-  follows("[",`|`) => some("[|").
-  follows("\\",`+`) => some("\\+").
-  follows("\\",`-`) => some("\\-").
-  follows("\\",`/`) => some("\\/").
-  follows("^",`?`) => some("^?").
-  follows("^",`/`) => some("^/").
-  follows("^",`=`) => some("^=").
-  follows("^/",`/`) => some("^//").
-  follows(":",`?`) => some(":?").
-  follows(":",`:`) => some("::").
-  follows(":",`=`) => some(":=").
-  follows("::",`=`) => some("::=").
-  follows("<",`*`) => some("<*").
-  follows("<",`~`) => some("<~").
-  follows("<",`$`) => some("<$").
-  follows("<",`-`) => some("<-").
-  follows("<",`<`) => some("<<").
-  follows("<",`|`) => some("<|").
-  follows("<",`=`) => some("<=").
-  follows("<*",`>`) => some("<*>").
-  follows("<<",`-`) => some("<<-").
-  follows("<=",`>`) => some("<=>").
-  follows("=",`<`) => some("=<").
-  follows("=",`=`) => some("==").
-  follows("=",`>`) => some("=>").
-  follows(">",`=`) => some(">=").
-  follows(">",`>`) => some(">>").
-  follows(">>",`=`) => some(">>=").
-  follows("?",`}`) => some("?}").
-  follows("!",`}`) => some("!}").
-  follows(_,_) default => .none.
+  follows(Op,Ch) => case (Op,Ch) in {
+    ("&",`&`) => .some("&&").
+    ("*",`*`) => .some("**").
+    ("*",`>`) => .some("*>").
+    ("+",`+`) => .some("++").
+    ("++",`+`) => .some("+++").
+    (",",`.`) => .some(",.").
+    (",.",`.`) => .some(",..").
+    ("-",`>`) => .some("->").
+    ("->",`>`) => .some("->>").
+    (".",`#`) => .some(".#").
+    (".",`&`) => .some(".&").
+    (".",`|`) => .some(".|").
+    (".",`}`) => .some(".}").
+    (".",`~`) => .some(".~").
+    (".",`<`) => .some(".<").
+    (".",`^`) => .some(".^").
+    (".",`+`) => .some(".+").
+    (".",`=`) => .some(".=").
+    (".",`>`) => .some(".>").
+    (".",` `) => .some(". ").
+    (".#",`.`) => .some(".#.").
+    (".&",`.`) => .some(".&.").
+    (".|",`.`) => .some(".|.").
+    (".~",`.`) => .some(".~.").
+    (".<",`<`) => .some(".<<").
+    (".<",`.`) => .some(".<.").
+    (".<<",`.`) => .some(".<<.").
+    (".^",`.`) => .some(".^.").
+    (".+",`.`) => .some(".+.").
+    (".>",`>`) => .some(".>>").
+    (".>>",`.`) => .some(".>>.").
+    (".>>",`>`) => .some(".>>>").
+    (".>>>",`.`) => .some(".>>>.").
+    ("/",`\\`) => .some("/\\").
+    ("/",`/`) => .some("//").
+    ("//",`/`) => .some("///").
+    ("{",`?`) => .some("{?").
+    ("{",`.`) => .some("{.").
+    ("{",`!`) => .some("{!").
+    ("|",`]`) => .some("|]").
+    ("|",`:`) => .some("|:").
+    ("|",`|`) => .some("||").
+    ("|",`>`) => .some("|>").
+    ("~",`~`) => .some("~~").
+    ("~",`=`) => .some("~=").
+    ("~",`>`) => .some("~>").
+    ("[",`|`) => .some("[|").
+    ("\\",`+`) => .some("\\+").
+    ("\\",`-`) => .some("\\-").
+    ("\\",`/`) => .some("\\/").
+    ("^",`?`) => .some("^?").
+    ("^",`/`) => .some("^/").
+    ("^",`=`) => .some("^=").
+    ("^/",`/`) => .some("^//").
+    (":",`?`) => .some(":?").
+    (":",`:`) => .some("::").
+    (":",`=`) => .some(":=").
+    ("::",`=`) => .some("::=").
+    ("<",`*`) => .some("<*").
+    ("<",`~`) => .some("<~").
+    ("<",`$`) => .some("<$").
+    ("<",`-`) => .some("<-").
+    ("<",`<`) => .some("<<").
+    ("<",`|`) => .some("<|").
+    ("<",`=`) => .some("<=").
+    ("<*",`>`) => .some("<*>").
+    ("<<",`-`) => .some("<<-").
+    ("<=",`>`) => .some("<=>").
+    ("=",`<`) => .some("=<").
+    ("=",`=`) => .some("==").
+    ("=",`>`) => .some("=>").
+    (">",`=`) => .some(">=").
+    (">",`>`) => .some(">>").
+    (">>",`=`) => .some(">>=").
+    ("?",`}`) => .some("?}").
+    ("!",`}`) => .some("!}").
+    (_,_) default => .none.
+  }
 
   public final:(string) => boolean.
-  final("%") => .true.  /* modulo */
-  final("&&") => .true.  /* conjunction */
-  final("(") => .true.  /* parentheses */
-  final(")") => .true.  /* parentheses */
-  final("*") => .true.  /* multicat */
-  final("**") => .true.  /* exponentiation */
-  final("*>") => .true.  /* for all */
-  final("+") => .true.  /* one or more repetitions */
-  final("++") => .true.  /* concatenate */
-  final("+++") => .true.  /* choice */
-  final(",") => .true.  /* tupling operator */
-  final(",..") => .true.  /* list cons */
-  final("-") => .true.  /* arithmetic negation */
-  final("->") => .true.  /* map entry */
-  final("->>") => .true.  /* dependent type marker */
-  final(".") => .true.  /* identify enumerator */
-  final(".#.") => .true.  /* test nth bit */
-  final(".&.") => .true.  /* bitwise and */
-  final(".|.") => .true.  /* bitwise or */
-  final(".}") => .true.  /* recursive braces */
-  final(".~.") => .true.  /* bitwise 1's complement */
-  final(".<<.") => .true.  /* shift left */
-  final(".<.") => .true.  /* set membership */
-  final(".^.") => .true.  /* bitwise xor */
-  final(".+.") => .true.  /* count of number of bits */
-  final(".=") => .true.  /* pattern match */
-  final(".>>.") => .true.  /* logical shift right */
-  final(".>>>.") => .true.  /* arithmetic shift right */
-  final(". ") => .true.  /* statement terminator */
-  final("/") => .true.  /* division */
-  final("/\\") => .true.  /* intersection */
-  final("//") => .true.  /* map over */
-  final("///") => .true.  /* indexed map over */
-  final("{") => .true.  /* non-recursive braces */
-  final("{?") => .true.  /* test comprehension */
-  final("{.") => .true.  /* recursive braces */
-  final("{!") => .true.  /* iota comprehension */
-  final("|") => .true.  /* type union and abstraction */
-  final("|]") => .true.  /* measure brackets */
-  final("|:") => .true.  /* constrained type */
-  final("||") => .true.  /* disjunction */
-  final("|>") => .true.  /* meta quote */
-  final("}") => .true.  /* non-recursive braces */
-  final("~") => .true.  /* logical negation */
-  final("~~") => .true.  /* quantifier */
-  final("~=") => .true.  /* not equals */
-  final("~>") => .true.  /* type function */
-  final("[") => .true.  /* square brackets */
-  final("[|") => .true.  /* measure brackets */
-  final("\\") => .true.  /* difference */
-  final("\\+") => .true.  /* add element to set */
-  final("\\-") => .true.  /* remove element from set */
-  final("\\/") => .true.  /* union */
-  final("]") => .true.  /* square brackets */
-  final("^") => .true.  /* Optional propagation */
-  final("^?") => .true.  /* option propagate */
-  final("^/") => .true.  /* filter */
-  final("^//") => .true.  /* filter map */
-  final("^=") => .true.  /* optional decomposition match */
-  final(":") => .true.  /* type annotation */
-  final(":?") => .true.  /* fallable type coercion */
-  final("::") => .true.  /* type coercion */
-  final("::=") => .true.  /* algebraic type definition */
-  final(":=") => .true.  /* reassignable variable definition */
-  final(";") => .true.  /* sequencing operator */
-  final("<") => .true.  /* less than */
-  final("<*>") => .true.  /* applicative splat */
-  final("<~") => .true.  /* type interface rule */
-  final("<$") => .true.  /* constant replace */
-  final("<-") => .true.  /* variable bind */
-  final("<<-") => .true.  /* record replacement */
-  final("<|") => .true.  /* meta quote */
-  final("<=>") => .true.  /* constructor arrow */
-  final("=") => .true.  /* definition */
-  final("=<") => .true.  /* less than or equal */
-  final("==") => .true.  /* equality predicate */
-  final("=>") => .true.  /* function arrow */
-  final(">") => .true.  /* greater than */
-  final(">=") => .true.  /* greater than or equal */
-  final(">>") => .true.  /* monadic bind */
-  final(">>=") => .true.  /* monadic bind */
-  final("?") => .true.  /* conditional operator */
-  final("?}") => .true.  /* test comprehension */
-  final("@") => .true.  /* meta annotation */
-  final("!") => .true.  /* pick up value from a ref cell */
-  final("!}") => .true.  /* iota comprehension */
-  final("⊕") => .true.  /* addition */
-  final("•") => .true.  /* function composition */
-  final("#") => .true.  /* Macro statement marker */
-  final(_) default => .false.
+  final(Op) => case Op in {
+    "%" => .true.  /* modulo */
+    "&&" => .true.  /* conjunction */
+    "(" => .true.  /* parentheses */
+    ")" => .true.  /* parentheses */
+    "*" => .true.  /* multicat */
+    "**" => .true.  /* exponentiation */
+    "*>" => .true.  /* for all */
+    "+" => .true.  /* one or more repetitions */
+    "++" => .true.  /* concatenate */
+    "+++" => .true.  /* choice */
+    "," => .true.  /* tupling operator */
+    ",.." => .true.  /* list cons */
+    "-" => .true.  /* arithmetic negation */
+    "->" => .true.  /* map entry */
+    "->>" => .true.  /* dependent type marker */
+    "." => .true.  /* identify enumerator */
+    ".#." => .true.  /* test nth bit */
+    ".&." => .true.  /* bitwise and */
+    ".|." => .true.  /* bitwise or */
+    ".}" => .true.  /* recursive braces */
+    ".~." => .true.  /* bitwise 1's complement */
+    ".<<." => .true.  /* shift left */
+    ".<." => .true.  /* set membership */
+    ".^." => .true.  /* bitwise xor */
+    ".+." => .true.  /* count of number of bits */
+    ".=" => .true.  /* pattern match */
+    ".>>." => .true.  /* logical shift right */
+    ".>>>." => .true.  /* arithmetic shift right */
+    ". " => .true.  /* statement terminator */
+    "/" => .true.  /* division */
+    "/\\" => .true.  /* intersection */
+    "//" => .true.  /* map over */
+    "///" => .true.  /* indexed map over */
+    "{" => .true.  /* non-recursive braces */
+    "{?" => .true.  /* test comprehension */
+    "{." => .true.  /* recursive braces */
+    "{!" => .true.  /* iota comprehension */
+    "|" => .true.  /* type union and abstraction */
+    "|]" => .true.  /* measure brackets */
+    "|:" => .true.  /* constrained type */
+    "||" => .true.  /* disjunction */
+    "|>" => .true.  /* meta quote */
+    "}" => .true.  /* non-recursive braces */
+    "~" => .true.  /* logical negation */
+    "~~" => .true.  /* quantifier */
+    "~=" => .true.  /* not equals */
+    "~>" => .true.  /* type function */
+    "[" => .true.  /* square brackets */
+    "[|" => .true.  /* measure brackets */
+    "\\" => .true.  /* difference */
+    "\\+" => .true.  /* add element to set */
+    "\\-" => .true.  /* remove element from set */
+    "\\/" => .true.  /* union */
+    "]" => .true.  /* square brackets */
+    "^" => .true.  /* Optional propagation */
+    "^?" => .true.  /* option propagate */
+    "^/" => .true.  /* filter */
+    "^//" => .true.  /* filter map */
+    "^=" => .true.  /* optional decomposition match */
+    ":" => .true.  /* type annotation */
+    ":?" => .true.  /* fallable type coercion */
+    "::" => .true.  /* type coercion */
+    "::=" => .true.  /* algebraic type definition */
+    ":=" => .true.  /* reassignable variable definition */
+    ";" => .true.  /* sequencing operator */
+    "<" => .true.  /* less than */
+    "<*>" => .true.  /* applicative splat */
+    "<~" => .true.  /* type interface rule */
+    "<$" => .true.  /* constant replace */
+    "<-" => .true.  /* variable bind */
+    "<<-" => .true.  /* record replacement */
+    "<|" => .true.  /* meta quote */
+    "<=>" => .true.  /* constructor arrow */
+    "=" => .true.  /* definition */
+    "=<" => .true.  /* less than or equal */
+    "==" => .true.  /* equality predicate */
+    "=>" => .true.  /* function arrow */
+    ">" => .true.  /* greater than */
+    ">=" => .true.  /* greater than or equal */
+    ">>" => .true.  /* monadic bind */
+    ">>=" => .true.  /* monadic bind */
+    "?" => .true.  /* conditional operator */
+    "?}" => .true.  /* test comprehension */
+    "@" => .true.  /* meta annotation */
+    "!" => .true.  /* pick up value from a ref cell */
+    "!}" => .true.  /* iota comprehension */
+    "⊕" => .true.  /* addition */
+    "•" => .true.  /* function composition */
+    "#" => .true.  /* Macro statement marker */
+    _ default => .false.
+  }
 
   public keyword:(string) => boolean.
-  keyword("retire") => .true.
-  keyword("all") => .true.
-  keyword("^=") => .true.
-  keyword("&&") => .true.
-  keyword("~>") => .true.
-  keyword("throw") => .true.
-  keyword("{.") => .true.
-  keyword("do") => .true.
-  keyword("import") => .true.
-  keyword("catch") => .true.
-  keyword("valis") => .true.
-  keyword(",..") => .true.
-  keyword("for") => .true.
-  keyword("{?") => .true.
-  keyword(". ") => .true.
-  keyword("then") => .true.
-  keyword("!") => .true.
-  keyword("->>") => .true.
-  keyword("default") => .true.
-  keyword("#") => .true.
-  keyword("!}") => .true.
-  keyword("<-") => .true.
-  keyword("(") => .true.
-  keyword(")") => .true.
-  keyword("<<-") => .true.
-  keyword("resume") => .true.
-  keyword("*>") => .true.
-  keyword(",") => .true.
-  keyword("contract") => .true.
-  keyword(".") => .true.
-  keyword("try") => .true.
-  keyword("exists") => .true.
-  keyword("if") => .true.
-  keyword(":") => .true.
-  keyword(";") => .true.
-  keyword(".=") => .true.
-  keyword("=") => .true.
-  keyword("|:") => .true.
-  keyword("?") => .true.
-  keyword("@") => .true.
-  keyword("|>") => .true.
-  keyword("in") => .true.
-  keyword("break") => .true.
-  keyword("suspend") => .true.
-  keyword("open") => .true.
-  keyword("~~") => .true.
-  keyword("public") => .true.
-  keyword("[|") => .true.
-  keyword("ref") => .true.
-  keyword("where") => .true.
-  keyword("case") => .true.
-  keyword("[") => .true.
-  keyword("=>") => .true.
-  keyword("]") => .true.
-  keyword("^") => .true.
-  keyword("<=>") => .true.
-  keyword("|]") => .true.
-  keyword("generator") => .true.
-  keyword("?}") => .true.
-  keyword("valof") => .true.
-  keyword("yield") => .true.
-  keyword("while") => .true.
-  keyword("private") => .true.
-  keyword("::") => .true.
-  keyword(":?") => .true.
-  keyword("<|") => .true.
-  keyword("<~") => .true.
-  keyword("{") => .true.
-  keyword("type") => .true.
-  keyword("implementation") => .true.
-  keyword(".}") => .true.
-  keyword("|") => .true.
-  keyword("}") => .true.
-  keyword("~") => .true.
-  keyword("||") => .true.
-  keyword("else") => .true.
-  keyword("::=") => .true.
-  keyword("throws") => .true.
-  keyword("{!") => .true.
-  keyword(_) default => .false.
+  keyword(Op) => case Op in {
+    "retire" => .true.
+    "all" => .true.
+    "^=" => .true.
+    "&&" => .true.
+    "~>" => .true.
+    "throw" => .true.
+    "{." => .true.
+    "do" => .true.
+    "import" => .true.
+    "catch" => .true.
+    "valis" => .true.
+    ",.." => .true.
+    "for" => .true.
+    "{?" => .true.
+    ". " => .true.
+    "then" => .true.
+    "!" => .true.
+    "->>" => .true.
+    "default" => .true.
+    "#" => .true.
+    "!}" => .true.
+    "<-" => .true.
+    "(" => .true.
+    ")" => .true.
+    "<<-" => .true.
+    "resume" => .true.
+    "*>" => .true.
+    "," => .true.
+    "contract" => .true.
+    "." => .true.
+    "try" => .true.
+    "exists" => .true.
+    "if" => .true.
+    ":" => .true.
+    ";" => .true.
+    ".=" => .true.
+    "=" => .true.
+    "|:" => .true.
+    "?" => .true.
+    "@" => .true.
+    "|>" => .true.
+    "in" => .true.
+    "break" => .true.
+    "suspend" => .true.
+    "open" => .true.
+    "~~" => .true.
+    "public" => .true.
+    "[|" => .true.
+    "ref" => .true.
+    "where" => .true.
+    "case" => .true.
+    "[" => .true.
+    "=>" => .true.
+    "]" => .true.
+    "^" => .true.
+    "<=>" => .true.
+    "|]" => .true.
+    "generator" => .true.
+    "?}" => .true.
+    "valof" => .true.
+    "yield" => .true.
+    "while" => .true.
+    "private" => .true.
+    "::" => .true.
+    ":?" => .true.
+    "<|" => .true.
+    "<~" => .true.
+    "{" => .true.
+    "type" => .true.
+    "implementation" => .true.
+    ".}" => .true.
+    "|" => .true.
+    "}" => .true.
+    "~" => .true.
+    "||" => .true.
+    "else" => .true.
+    "::=" => .true.
+    "throws" => .true.
+    "{!" => .true.
+    _ default => .false.
+  }
 }

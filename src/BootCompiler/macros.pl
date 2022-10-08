@@ -465,6 +465,9 @@ examineLambda(S,Rp) :-
   macroOpt(G,macros:macroTerm,GG),
   macroTerm(V,VV),
   mkEquation(Lc,PP,GG,VV,Rp).
+examineLambda(S,S) :-
+  locOfAst(S,Lc),!,
+  reportError("cannot figure out equation %s",[ast(S)],Lc).
 
 macroHead(H,Hx) :-
   isDefault(H,Lc,P),!,

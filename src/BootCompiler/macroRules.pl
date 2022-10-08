@@ -32,6 +32,8 @@ macroRl(":=",action,macroRules:indexAssignMacro).
 macroRl(":=",expression,macroRules:spliceAssignMacro).
 macroRl(":=",expression,macroRules:indexAssignMacro).
 macroRl("do",action,macroRules:forLoopMacro).
+macroRl("->",expression,macroRules:arrowMacro).
+macroRl("->",pattern,macroRules:arrowMacro).
 
 macroRl("assert",action,macroRules:assertMacro).
 macroRl("show",action,macroRules:showMacro).
@@ -458,19 +460,19 @@ binRefMacro(T,expression,Rp) :-
 
    mkEnum(Lc,"true",True),
 
-   /* Build ._all => break Lb */
+   /* Build :_all => break Lb */
    mkBreak(Lc,Lb,Brk),
    mkEnum(Lc,"_all",All),
    mkEquation(Lc,All,none,Brk,EndEq),
 
-   /* build _yld(P) => B */
-   unary(Lc,"_yld",P,BYld),
+   /* build :_yld(P) => B */
+   mkConApply(Lc,name(Lc,"_yld"),[P],BYld),
    mkEquation(Lc,BYld,none,Bd,YldEqn),
 
-   /* build _yld(_) default => {} */
+   /* build :_yld(_) default => {} */
    braceTuple(Lc,[],Nop),
    mkAnon(Lc,Anon),
-   unary(Lc,"_yld",Anon,DYld),
+   mkConApply(Lc,name(Lc,"_yld"),[Anon],DYld),
    mkDefault(Lc,DYld,Dflt),
    mkEquation(Lc,Dflt,none,Nop,DefltEqn),
 
@@ -551,8 +553,13 @@ yieldMacro(E,action,Ax) :-
   mkSuspend(Lc,Yld,[NxtRl,Cancel],Ax).
   
 
-  
-  
-  
+/*
+  K -> V
+becomes
+  .kv(K,V)
+*/
+arrowMacro(E,Md,Rp) :- (Md=expression;Md=pattern),
+  isBinary(E,Lc,"->",K,V),!,
+  mkConApply(Lc,name(Lc,"kv"),[K,V],Rp).
 
-
+	     

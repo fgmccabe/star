@@ -14,7 +14,7 @@ star.compiler.macro{
   macroAst:(ast,macroContext,(ast)=>ast) => ast.
   macroAst(A,Cxt,Examine) => 
     case applyRules(A,Cxt,.inactive) in {
-      active(T) => macroAst(T,Cxt,Examine).
+      .active(T) => macroAst(T,Cxt,Examine).
       .inactive => Examine(A)
     }.
 
@@ -162,11 +162,11 @@ star.compiler.macro{
 
   examineTerm(A) where _ ^= isName(A) => A.
   examineTerm(A) where _ ^= isEnum(A) => A.
-  examineTerm(A) where int(_,_) .= A => A.
-  examineTerm(A) where big(_,_) .= A => A.
-  examineTerm(A) where chr(_,_) .= A => A.
-  examineTerm(A) where num(_,_) .= A => A.
-  examineTerm(A) where str(_,_) .= A => A.
+  examineTerm(A) where .int(_,_) .= A => A.
+  examineTerm(A) where .big(_,_) .= A => A.
+  examineTerm(A) where .chr(_,_) .= A => A.
+  examineTerm(A) where .num(_,_) .= A => A.
+  examineTerm(A) where .str(_,_) .= A => A.
   examineTerm(A) where (Lc,L,R) ^= isTypeAnnotation(A) => 
     typeAnnotation(Lc,macroTerm(L),macroType(R)).
   examineTerm(A) where (Lc,L,R) ^= isCoerce(A) => 
@@ -251,7 +251,7 @@ star.compiler.macro{
 
   macroOpt:(option[ast],(ast)=>ast) =>option[ast].
   macroOpt(.none,_) => .none.
-  macroOpt(some(A),E) => some(E(A)).
+  macroOpt(.some(A),E) => .some(E(A)).
 
   macroLambda(A) where (Lc,D,L,C,R) ^= isLambda(A) =>
     mkLambda(Lc,D,macroTerm(L),macroOpt(C,macroTerm),macroTerm(R)).
@@ -263,11 +263,11 @@ star.compiler.macro{
   macroPtn(A) => macroAst(A,.pattern,examinePtn).
 
   examinePtn(A) where _ ^= isName(A) => A.
-  examinePtn(A) where int(_,_) .= A => A.
-  examinePtn(A) where big(_,_) .= A => A.
-  examinePtn(A) where num(_,_) .= A => A.
-  examinePtn(A) where str(_,_) .= A => A.
-  examinePtn(A) where chr(_,_) .= A => A.
+  examinePtn(A) where .int(_,_) .= A => A.
+  examinePtn(A) where .big(_,_) .= A => A.
+  examinePtn(A) where .num(_,_) .= A => A.
+  examinePtn(A) where .str(_,_) .= A => A.
+  examinePtn(A) where .chr(_,_) .= A => A.
   examinePtn(A) where _ ^= isEnum(A) => A.
   examinePtn(A) where (Lc,L,R) ^= isTypeAnnotation(A) =>
     typeAnnotation(Lc,macroPtn(L),macroType(R)).
@@ -352,10 +352,10 @@ star.compiler.macro{
   lookForSignature(Els,Nm) => {(Lc,Tp) | El in Els && (Lc,Nm,Vz,Tp)^=isTypeAnnot(El)}.
 
   isTypeAnnot(A) where (Lc,N,Tp) ^= isBinary(A,":") && (Nm,Vz) .= visibilityOf(N) && (_,Id)^=isName(Nm) =>
-    some((Lc,Id,Vz,Tp)).
+    .some((Lc,Id,Vz,Tp)).
   isTypeAnnot(A) where (Lc,I) ^= isPublic(A) &&
       (_,N,Tp) ^= isBinary(I,":") &&
-      (_,Id) ^= isName(N) => some((Lc,Id,.pUblic,Tp)).
+      (_,Id) ^= isName(N) => .some((Lc,Id,.pUblic,Tp)).
   isTypeAnnot(_) default => .none.
 
   /*
@@ -398,7 +398,7 @@ star.compiler.macro{
     X = genName(Lc,"X");
     A = genName(Lc,"A");    
     PRhs = binary(Lc,":?",A,Tp);
-    Tst = binary(Lc,"^=",X,PRhs); -- some(X).=_coerce(A):T
+    Tst = binary(Lc,"^=",X,PRhs); -- .some(X).=_coerce(A):T
     Emsg = unary(Lc,"logMsg",str(Lc,"cannot coerce \$(#(A::string)) to #(Tp::string)"));
     (Inner,As) = synthCoercion(Lc,Ts,[X,..Xs]);
     valis (mkIfThenElse(Lc,Tst,Inner,Emsg),[A,..As])

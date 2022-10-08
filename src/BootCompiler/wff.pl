@@ -174,14 +174,14 @@ constructorType(Lc,U,X,L,R,Tp) :-
   reUQuant(U,T1,Tp).
 
 isEnum(C,Lc,Id) :-
-  isUnary(C,Lc,".",Id).
+  isUnary(C,Lc,".",Id),!.
 
 mkEnum(Lc,Id,E) :-
   unary(Lc,".",name(Lc,Id),E).
 
 isConApply(T,Lc,Op,Args) :-
   isUnary(T,Lc,".",I),
-  isRoundTerm(I,Op,Args).
+  isRoundTerm(I,Op,Args),!.
 
 mkConApply(Lc,Op,Args,T) :-
   roundTerm(Lc,Op,Args,I),

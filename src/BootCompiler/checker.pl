@@ -105,6 +105,8 @@ collectDefinition(St,Stmts,Stx,[(Nm,Lc,[St|Defn])|Defs],Defs,P,Px,A,A,Export) :-
   ruleName(St,Nm,Kind),
   locOfAst(St,Lc),
   collectDefines(Stmts,Kind,Stx,Nm,Defn),
+%  ([_,_,_,_|_]=Defn ->
+%   reportWarning("multi-equation functions deprecated",[ast(St)],Lc); true),
   call(Export,Nm,P,Px).
 collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,_) :-
   locOfAst(St,Lc),
