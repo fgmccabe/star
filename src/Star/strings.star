@@ -108,32 +108,37 @@ star.strings{
   digitVal(D) => _digitCode(D).
 
   public digitChar:(integer)=>char.
-  digitChar(0)=>`0`.
-  digitChar(1)=>`1`.
-  digitChar(2)=>`2`.
-  digitChar(3)=>`3`.
-  digitChar(4)=>`4`.
-  digitChar(5)=>`5`.
-  digitChar(6)=>`6`.
-  digitChar(7)=>`7`.
-  digitChar(8)=>`8`.
-  digitChar(9)=>`9`.
+  digitChar(Ch) => case Ch in {
+    0=>`0`.
+    1=>`1`.
+    2=>`2`.
+    3=>`3`.
+    4=>`4`.
+    5=>`5`.
+    6=>`6`.
+    7=>`7`.
+    8=>`8`.
+    9=>`9`.
+  }
 
   public isHexDigit:(char) => option[integer].
-  isHexDigit(Ch) where isDigit(Ch) => some(digitVal(Ch)).
-  isHexDigit(`a`) => some(10).
-  isHexDigit(`b`) => some(11).
-  isHexDigit(`c`) => some(12).
-  isHexDigit(`d`) => some(13).
-  isHexDigit(`e`) => some(14).
-  isHexDigit(`f`) => some(15).
-  isHexDigit(`A`) => some(10).
-  isHexDigit(`B`) => some(11).
-  isHexDigit(`C`) => some(12).
-  isHexDigit(`D`) => some(13).
-  isHexDigit(`E`) => some(14).
-  isHexDigit(`F`) => some(15).
-  isHexDigit(_) default => .none.
+  isHexDigit(Ch) => isDigit(Ch) ?
+    .some(digitVal(Ch)) ||
+    case Ch in {
+      `a` => some(10).
+      `b` => some(11).
+      `c` => some(12).
+      `d` => some(13).
+      `e` => some(14).
+      `f` => some(15).
+      `A` => some(10).
+      `B` => some(11).
+      `C` => some(12).
+      `D` => some(13).
+      `E` => some(14).
+      `F` => some(15).
+      _ default => .none.
+    }
 
   public isSpace:(char) => boolean.
   isSpace(Ch) => (_isZsChar(Ch) || _isZlChar(Ch) || Ch==`\n` || Ch==`\t`).

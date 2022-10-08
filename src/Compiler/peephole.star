@@ -10,11 +10,11 @@ star.compiler.peephole{
   import star.compiler.data.
 
   implementation equality[assemLbl] => {
-    al(L1) == al(L2) => L1==L2.
+    .al(L1) == .al(L2) => L1==L2.
   }
 
   implementation hashable[assemLbl] => {
-    hash(al(L)) => hash(L).
+    hash(.al(L)) => hash(L).
   }
 
   public peepOptimize:(cons[assemOp])=>cons[assemOp].
@@ -30,7 +30,7 @@ star.compiler.peephole{
     pullJmps(Ins,findTgts(Ins,{})).
 
   pullJmps([],_) => [].
-  pullJmps([iJmp(Lbl),..Ins],Map) =>
+  pullJmps([.iJmp(Lbl),..Ins],Map) =>
     pullJump(Lbl,Map,Ins).
   pullJmps([I,..Ins],Map) =>
     [I,..pullJmps(Ins,Map)].
@@ -56,22 +56,22 @@ star.compiler.peephole{
   findLblUsages([I,..Ins],Lbls) =>
     findLblUsages(Ins,lblUsage(I,addLbl,Lbls)).
 
-  lblUsage:(assemOp,
-    (assemLbl,labelMap)=>labelMap,
-    labelMap)=>labelMap.
-  lblUsage(.iJmp(Lbl),H,Lbs) => H(Lbl,Lbs).
-  lblUsage(.iCLbl(_,Lbl),H,Lbs) => H(Lbl,Lbs).
-  lblUsage(.iIf(Lbl),H,Lbs) => H(Lbl,Lbs).
-  lblUsage(.iIfNot(Lbl),H,Lbs) => H(Lbl,Lbs).
-  lblUsage(.iUnpack(_,Lbl),H,Lbs) => H(Lbl,Lbs).
-  lblUsage(.iFCmp(Lbl),H,Lbs) => H(Lbl,Lbs).
-  lblUsage(.iICmp(Lbl),H,Lbs) => H(Lbl,Lbs).
-  lblUsage(.iCall(_,Lbl),H,Lbs) => H(Lbl,Lbs).
-  lblUsage(.iOCall(_,Lbl),H,Lbs) => H(Lbl,Lbs).
-  lblUsage(.iEscape(_,Lbl),H,Lbs) => H(Lbl,Lbs).
-  lblUsage(.iLdG(_,Lbl),H,Lbs) => H(Lbl,Lbs).
-  lblUsage(.iLocal(_,St,En,_),H,Lbs) => softAdd(En,softAdd(St,Lbs)).
-  lblUsage(_,_,Lbs) => Lbs.
+  lblUsage:(assemOp, (assemLbl,labelMap)=>labelMap, labelMap)=>labelMap.
+  lblUsage(Op,H,Lbs) => case Op in {
+    .iJmp(Lbl) => H(Lbl,Lbs).
+    .iCLbl(_,Lbl) => H(Lbl,Lbs).
+    .iIf(Lbl) => H(Lbl,Lbs).
+    .iIfNot(Lbl) => H(Lbl,Lbs).
+    .iUnpack(_,Lbl) => H(Lbl,Lbs).
+    .iFCmp(Lbl) => H(Lbl,Lbs).
+    .iICmp(Lbl) => H(Lbl,Lbs).
+    .iCall(_,Lbl) => H(Lbl,Lbs).
+    .iOCall(_,Lbl) => H(Lbl,Lbs).
+    .iEscape(_,Lbl) => H(Lbl,Lbs).
+    .iLdG(_,Lbl) => H(Lbl,Lbs).
+    .iLocal(_,St,En,_) => softAdd(En,softAdd(St,Lbs)).
+    _ default => Lbs
+  }
 
   addLbl:(assemLbl,labelMap)=>labelMap.
   addLbl(Lbl,Lbs) where (L,Cnt) ^= Lbs[Lbl] => Lbs[Lbl->(L,Cnt+1)].
@@ -82,7 +82,7 @@ star.compiler.peephole{
 
   deleteUnused:(boolean,cons[assemOp],labelMap)=>cons[assemOp].
   deleteUnused(_,[],_) => [].
-  deleteUnused(.true,[iLbl(Lb),..Ins],Lbs) where (.true,0) ^= Lbs[Lb] =>
+  deleteUnused(.true,[.iLbl(Lb),..Ins],Lbs) where (.true,0) ^= Lbs[Lb] =>
     [.iLbl(Lb),..dropUntilLbl(.true,Ins,Lbs)].
   deleteUnused(_,[.iLbl(Lb),..Ins],Lbs) where _ ^= Lbs[Lb] =>
     [.iLbl(Lb),..deleteUnused(.false,Ins,Lbs)].
@@ -118,18 +118,20 @@ star.compiler.peephole{
 	Lbs[~Lb]).
   dropLbl(_,Lbs) default => Lbs.
 
-  uncondJmp(.iJmp(_)) => .true.
-  uncondJmp(.iRet) => .true.
-  uncondJmp(.iRetX) => .true.
-  uncondJmp(.iRtG) => .true.
-  uncondJmp(.iAbort) => .true.
-  uncondJmp(.iTCall(_)) => .true.
-  uncondJmp(.iTOCall(_)) => .true.
-  uncondJmp(_) default => .false.
+  uncondJmp(Op) => case Op in {
+    .iJmp(_) => .true.
+    .iRet => .true.
+    .iRetX => .true.
+    .iRtG => .true.
+    .iAbort => .true.
+    .iTCall(_) => .true.
+    .iTOCall(_) => .true.
+    _ default => .false.
+  }
 
   findTgts:(cons[assemOp],map[assemLbl,cons[assemOp]]) => map[assemLbl,cons[assemOp]].
   findTgts([],M) => M.
-  findTgts([iLbl(Lb),..Ins],Tgts) => findTgts(Ins,Tgts[Lb->Ins]).
+  findTgts([.iLbl(Lb),..Ins],Tgts) => findTgts(Ins,Tgts[Lb->Ins]).
   findTgts([I,..Ins],Tgts) => findTgts(Ins,Tgts).
   
   -- Low-level optimizations.

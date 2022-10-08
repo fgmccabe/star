@@ -103,7 +103,7 @@ int main(int argc, char **argv) {
     char *allCode = getTextFromBuffer(mnemBuff, &insLen);
     hashPut(vars, "Intrinsics", allCode);
 
-    retCode ret = processTemplate(out, plate, vars, NULL, NULL);
+    processTemplate(out, plate, vars, NULL, NULL);
 
     closeFile(out);
     exit(0);
@@ -122,7 +122,7 @@ static void genPrologIntrinsic(ioPo out, char *name, char *tipe, char *op, char 
 static char *dumpStarSig(char *sig, ioPo out);
 
 static void genStarIntrinsic(ioPo out, char *name, char *tipe, char *op, char *cmt) {
-  outMsg(out, "  intrinsic(\"%s\") => some((", name);
+  outMsg(out, "    \"%s\" => .some((", name);
   dumpStarSig(tipe, out);
   outMsg(out, ",.i%s)).  -- %s\n", capitalize(op), cmt);
 }

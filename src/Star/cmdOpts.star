@@ -29,7 +29,7 @@ star.cmdOpts{
   checkOption:all o ~~ (cons[string],string,option[(string)=>boolean],(string,o) => o,cons[cmdOption[o]],o) =>
     (o,cons[string]) throws string.
   checkOption(Args,O,.none,setter,Specs,SoFar) => processAll(Args,Specs,setter(O,SoFar)).
-  checkOption([A,..Args],O,some(V),Setter,Specs,SoFar)
+  checkOption([A,..Args],O,.some(V),Setter,Specs,SoFar)
       where V(A) => processAll(Args,Specs,Setter(A,SoFar)).
   checkOption(_,_,_,_,Specs,_) => throw collectUsage(Specs).
 

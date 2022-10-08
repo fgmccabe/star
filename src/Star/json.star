@@ -13,17 +13,19 @@ star.json{
   }
 
   private dispJson:(json,integer) => string.
-  dispJson(.jTrue,_) => "true".
-  dispJson(.jFalse,_) => "false".
-  dispJson(.jNull,_) => "null".
-  dispJson(jTxt(T),_) => disp(T).
-  dispJson(jNum(D),_) => disp(D).
-  dispJson(jColl(M),Sp) => "{#(dispColl(M::cons[keyval[string,json]],Sp+2,""))}".
-  dispJson(jSeq(L),Sp) => "[#(interleave(dispSeq(L,Sp),", ")*)]".
+  dispJson(J,Sp) => case J in {
+    .jTrue => "true".
+    .jFalse => "false".
+    .jNull => "null".
+    .jTxt(T) => disp(T).
+    .jNum(D) => disp(D).
+    .jColl(M) => "{#(dispColl(M::cons[(string,json)],Sp+2,""))}".
+    .jSeq(L) => "[#(interleave(dispSeq(L,Sp),", ")*)]".
+  }
 
-  dispColl:(cons[keyval[string,json]],integer,string) => string.
+  dispColl:(cons[(string,json)],integer,string) => string.
   dispColl([],_,_) => "".
-  dispColl([f->e,..l],Sp,s) => "#(s)$(f)\:#(dispJson(e,Sp))#(dispColl(l,Sp,","))".
+  dispColl([(f,e),..l],Sp,s) => "#(s)$(f)\:#(dispJson(e,Sp))#(dispColl(l,Sp,","))".
 
   dispSeq:(cons[json],integer) => cons[string].
   dispSeq([],_) => .nil.
@@ -38,14 +40,15 @@ star.json{
   }
 
   equalJson:(json,json)=>boolean.
-  equalJson(.jTrue,.jTrue) => .true.
-  equalJson(.jFalse,.jFalse) => .true.
-  equalJson(.jNull,.jNull) => .true.
-  equalJson(jTxt(S1),jTxt(S2)) => S1==S2.
-  equalJson(jNum(D1),jNum(D2)) => D1==D2.
-  equalJson(jColl(C1),jColl(C2)) => C1==C2.
-  equalJson(jSeq(L1),jSeq(L2)) => {?(E1,E2) in zip(L1,L2) *> equalJson(E1,E2)?}.
-  equalJson(_,_) => .false.
+  equalJson(J1,J2) => case J1 in {
+    .jTrue => .jTrue.=J2.
+    .jFalse => .jFalse.=J2.
+    .jNull => .jNull.=J2.
+    .jTxt(S1) => .jTxt(S2).=J2 && S1==S2.
+    .jNum(D1) => .jNum(D2).=J2 && D1==D2.
+    .jColl(C1) => .jColl(C2).=J2 && C1==C2.
+    .jSeq(L1) => .jSeq(L2).=J2 && {?(E1,E2) in zip(L1,L2) *> equalJson(E1,E2)?}.
+  }
 
   public implementation coercion[string,json] => {
     _coerce(T) => parseJson(T).
@@ -59,12 +62,12 @@ star.json{
   pJ([Ch,..L]) => ppJ(Ch,L).
 
   ppJ:(char,cons[char]) => option[(json,cons[char])].
-  ppJ(`t`,[`r`,`u`,`e`,..L]) => some((.jTrue,L)).
-  ppJ(`f`,[`a`,`a`,`l`,`s`,`e`,..L]) => some((.jFalse,L)).
-  ppJ(`n`,[`u`,`l`,`l`,..L]) => some((.jNull,L)).
-  ppJ(`-`,L) where (Dx,LL) .= psNum(L) => some((jNum(-Dx),LL)).
-  ppJ(D,L) where isDigit(D) && (Dx,LL).=psNum([D,..L]) => some((jNum(Dx),LL)).
-  ppJ(`\"`,L) where (Txt,LL) .= psStrng(L,[]) => some((jTxt(Txt),LL)).
+  ppJ(`t`,[`r`,`u`,`e`,..L]) => .some((.jTrue,L)).
+  ppJ(`f`,[`a`,`a`,`l`,`s`,`e`,..L]) => .some((.jFalse,L)).
+  ppJ(`n`,[`u`,`l`,`l`,..L]) => .some((.jNull,L)).
+  ppJ(`-`,L) where (Dx,LL) .= psNum(L) => .some((.jNum(-Dx),LL)).
+  ppJ(D,L) where isDigit(D) && (Dx,LL).=psNum([D,..L]) => .some((.jNum(Dx),LL)).
+  ppJ(`\"`,L) where (Txt,LL) .= psStrng(L,[]) => .some((.jTxt(Txt),LL)).
   ppJ(`[`,L) => psSeq(skpBlnks(L)).
   ppJ(`{`,L) => psColl(skpBlnks(L)).
 

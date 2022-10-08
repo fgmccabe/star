@@ -11,95 +11,95 @@ star.compiler.wff{
   import star.compiler.operators.
 
   public isName:(ast) => option[(option[locn],string)].
-  isName(nme(Lc,Id)) where ~ keyword(Id) => some((Lc,Id)).
-  isName(qnm(Lc,Id)) => some((Lc,Id)).
-  isName(tpl(_,"()",[nme(Lc,Id)])) => some((Lc,Id)).
-  isName(tpl(_,"()",[qnm(Lc,Id)])) => some((Lc,Id)).
+  isName(.nme(Lc,Id)) where ~ keyword(Id) => .some((Lc,Id)).
+  isName(.qnm(Lc,Id)) => .some((Lc,Id)).
+  isName(.tpl(_,"()",[.nme(Lc,Id)])) => .some((Lc,Id)).
+  isName(.tpl(_,"()",[.qnm(Lc,Id)])) => .some((Lc,Id)).
   isName(_) default => .none.
 
   public dollarName:(ast) => ast.
-  dollarName(nme(Lc,Id)) => nme(Lc,"$"++Id).
+  dollarName(.nme(Lc,Id)) => .nme(Lc,"$"++Id).
 
   public dotId:(ast) => ast.
-  dotId(nme(Lc,Id)) => nme(Lc,dotName(Id)).
+  dotId(.nme(Lc,Id)) => .nme(Lc,dotName(Id)).
 
   public hashName:(ast) => ast.
-  hashName(nme(Lc,Id)) => nme(Lc,"#"++Id).
+  hashName(.nme(Lc,Id)) => .nme(Lc,"#"++Id).
 
   public isKeyword:(ast) => option[(option[locn],string)].
-  isKeyword(nme(Lc,Id)) where keyword(Id) => some((Lc,Id)).
+  isKeyword(.nme(Lc,Id)) where keyword(Id) => .some((Lc,Id)).
   isKeyword(_) default => .none.
   
   public isLitAst:(ast) => boolean.
-  isLitAst(int(_,_)) => .true.
-  isLitAst(num(_,_)) => .true.
-  isLitAst(big(_,_)) => .true.
-  isLitAst(str(_,_)) => .true.
+  isLitAst(.int(_,_)) => .true.
+  isLitAst(.num(_,_)) => .true.
+  isLitAst(.big(_,_)) => .true.
+  isLitAst(.str(_,_)) => .true.
   isLitAst(_) default => .false.
 
   public isSquareTerm:(ast) => option[(option[locn],ast,cons[ast])].
-  isSquareTerm(app(Lc,Op,tpl(_,"[]",A))) => some((Lc,Op,A)).
+  isSquareTerm(.app(Lc,Op,.tpl(_,"[]",A))) => .some((Lc,Op,A)).
   isSquareTerm(_) default => .none.
 
   public squareTerm:(option[locn],ast,cons[ast])=>ast.
-  squareTerm(Lc,Op,Args) => app(Lc,Op,tpl(Lc,"[]",Args)).
+  squareTerm(Lc,Op,Args) => .app(Lc,Op,.tpl(Lc,"[]",Args)).
 
   public squareTermName:(ast) => option[ast].
-  squareTermName(A) where (_,Op,_) ^= isSquareTerm(A) => some(Op).
+  squareTermName(A) where (_,Op,_) ^= isSquareTerm(A) => .some(Op).
   squareTermName(_) default => .none.
   
   public isSquareApply:(ast) => option[(option[locn],string,cons[ast])].
-  isSquareApply(app(Lc,Op,tpl(_,"[]",A))) where
-      (_,Id) ^= isName(Op) => some((Lc,Id,A)).
+  isSquareApply(.app(Lc,Op,.tpl(_,"[]",A))) where
+      (_,Id) ^= isName(Op) => .some((Lc,Id,A)).
   isSquareApply(_) default => .none.
 
   public squareApply:(option[locn],string,cons[ast])=>ast.
   squareApply(Lc,Nm,Args) =>
-    squareTerm(Lc,nme(Lc,Nm),Args).
+    squareTerm(Lc,.nme(Lc,Nm),Args).
 
   public qBrTuple:(option[locn],cons[ast]) => ast.
-  qBrTuple(Lc,Els) => tpl(Lc,"{..}",Els).
+  qBrTuple(Lc,Els) => .tpl(Lc,"{..}",Els).
 
   public isBrTerm:(ast) => option[(option[locn],ast,cons[ast])].
-  isBrTerm(app(Lc,Op,tpl(_,"{}",A))) => some((Lc,Op,A)).
+  isBrTerm(.app(Lc,Op,.tpl(_,"{}",A))) => .some((Lc,Op,A)).
   isBrTerm(_) default => .none.
 
-  public mkBrTerm(Lc,Op,Els) => app(Lc,Op,tpl(Lc,"{}",Els)).
+  public mkBrTerm(Lc,Op,Els) => .app(Lc,Op,.tpl(Lc,"{}",Els)).
 
   public isBrApply:(ast,string) => option[(option[locn],cons[ast])].
-  isBrApply(app(Lc,Op,tpl(_,"{}",A)),Id) where
-      (_,Id) ^= isName(Op) => some((Lc,A)).
+  isBrApply(.app(Lc,Op,.tpl(_,"{}",A)),Id) where
+      (_,Id) ^= isName(Op) => .some((Lc,A)).
   isBrApply(_,_) default => .none.
 
-  public brApply(Lc,Nm,Els) => app(Lc,nme(Lc,Nm),tpl(Lc,"{}",Els)).
+  public brApply(Lc,Nm,Els) => .app(Lc,.nme(Lc,Nm),.tpl(Lc,"{}",Els)).
 
   public isQBrTerm:(ast) => option[(option[locn],ast,cons[ast])].
-  isQBrTerm(app(Lc,Op,tpl(_,"{..}",A))) => some((Lc,Op,A)).
+  isQBrTerm(.app(Lc,Op,.tpl(_,"{..}",A))) => .some((Lc,Op,A)).
   isQBrTerm(_) default => .none.
 
-  public mkQBrTerm(Lc,Op,Els) => app(Lc,Op,tpl(Lc,"{..}",Els)).
+  public mkQBrTerm(Lc,Op,Els) => .app(Lc,Op,.tpl(Lc,"{..}",Els)).
 
   public isQBrApply:(ast) => option[(option[locn],string,cons[ast])].
-  isQBrApply(app(Lc,Op,tpl(_,"{..}",A))) where
-      (_,Id) ^= isName(Op) => some((Lc,Id,A)).
+  isQBrApply(.app(Lc,Op,.tpl(_,"{..}",A))) where
+      (_,Id) ^= isName(Op) => .some((Lc,Id,A)).
   isQBrApply(_) default => .none.
 
   public isRoundTerm:(ast) => option[(option[locn],ast,cons[ast])].
-  isRoundTerm(app(Lc,Op,tpl(_,"()",A))) where ~_^=isKeyword(Op) => some((Lc,Op,A)).
+  isRoundTerm(.app(Lc,Op,.tpl(_,"()",A))) where ~_^=isKeyword(Op) => .some((Lc,Op,A)).
   isRoundTerm(_) default => .none.
 
   public roundTerm:(option[locn],ast,cons[ast]) => ast.
-  roundTerm(Lc,Op,Els) => app(Lc,Op,tpl(Lc,"()",Els)).
+  roundTerm(Lc,Op,Els) => .app(Lc,Op,.tpl(Lc,"()",Els)).
 
   public braceTerm:(option[locn],ast,cons[ast]) => ast.
-  braceTerm(Lc,Op,Els) => app(Lc,Op,tpl(Lc,"{}",Els)).
+  braceTerm(Lc,Op,Els) => .app(Lc,Op,.tpl(Lc,"{}",Els)).
 
-  public qbraceTerm(Lc,Op,Els) => app(Lc,Op,tpl(Lc,"{..}",Els)).
+  public qbraceTerm(Lc,Op,Els) => .app(Lc,Op,.tpl(Lc,"{..}",Els)).
 
   public isQuantified:(ast)=>option[(option[locn],cons[ast],ast)].
   isQuantified(T) where
       (Lc,Lh,B)^=isBinary(T,"~~") && (_,V)^=isUnary(Lh,"all") =>
-    some((Lc,deComma(V),B)).
+    .some((Lc,deComma(V),B)).
   isQuantified(_) default => .none.
 
   public reUQuant:(option[locn],cons[ast],ast) => ast.
@@ -110,7 +110,7 @@ star.compiler.wff{
   public isXQuantified:(ast)=>option[(option[locn],cons[ast],ast)].
   isXQuantified(T) where
       (Lc,Lh,B)^=isBinary(T,"~~") && (_,V)^=isUnary(Lh,"exists") =>
-    some((Lc,deComma(V),B)).
+    .some((Lc,deComma(V),B)).
   isXQuantified(_) default => .none.
 
   public reXQuant:(option[locn],cons[ast],ast) => ast.
@@ -120,7 +120,7 @@ star.compiler.wff{
 
   public isConstrained:(ast) => option[(option[locn],cons[ast],ast)].
   isConstrained(T) where
-      (Lc,Lh,B) ^= isBinary(T,"|:") => some((Lc,deComma(Lh),B)).
+      (Lc,Lh,B) ^= isBinary(T,"|:") => .some((Lc,deComma(Lh),B)).
   isConstrained(_) default => .none.
 
   public reConstrain:(cons[ast],ast) => ast.
@@ -167,7 +167,7 @@ star.compiler.wff{
 
   public isDepends:(ast) => option[(option[locn],cons[ast],cons[ast])].
   isDepends(T) where (Lc,Lh,Rh)^=isBinary(T,"->>") =>
-    some((Lc,deComma(Lh),deComma(Rh))).
+    .some((Lc,deComma(Lh),deComma(Rh))).
   isDepends(_) default => .none.
 
   public mkDepends(Lc,L,R) => binary(Lc,"->>",reComma(L),reComma(R)).
@@ -179,8 +179,8 @@ star.compiler.wff{
 
   public isAnnotation:(ast) => option[(option[locn],ast,ast)].
   isAnnotation(A) where (Lc,L,R) ^= isBinary(A,"@") =>
-    some((Lc,L,R)).
-  isAnnotation(A) where (Lc,Rh) ^= isUnary(A,"@") => some((Lc,str(Lc,""),Rh)).
+    .some((Lc,L,R)).
+  isAnnotation(A) where (Lc,Rh) ^= isUnary(A,"@") => .some((Lc,str(Lc,""),Rh)).
   isAnnotation(_) default => .none.
 
   public isTypeLambda:(ast) => option[(option[locn],ast,ast)].
@@ -202,14 +202,14 @@ star.compiler.wff{
   public isTypeExistsStmt:(ast) => option[(option[locn],cons[ast],cons[ast],ast,ast)].
   isTypeExistsStmt(A) where
       (Lc,Q,I) ^= isQuantified(A) &&
-      (_,_,Cx,L,R) ^= isTypeExistsStmt(I) => some((Lc,Q,Cx,L,R)).
+      (_,_,Cx,L,R) ^= isTypeExistsStmt(I) => .some((Lc,Q,Cx,L,R)).
   isTypeExistsStmt(A) where
       (Lc,C,I) ^= isBinary(A,"|:") &&
-      (_,Q,_,L,R) ^= isTypeExistsStmt(I) => some((Lc,Q,deComma(C),L,R)).
+      (_,Q,_,L,R) ^= isTypeExistsStmt(I) => .some((Lc,Q,deComma(C),L,R)).
   isTypeExistsStmt(A) where
       (Lc,H,I) ^= isBinary(A,"<~") &&
       (Q,T) .= getQuantifiers(H) =>
-    some((Lc,Q,[],T,I)).
+    .some((Lc,Q,[],T,I)).
   isTypeExistsStmt(A) default => .none.
 
   public mkTypeExistsStmt(Lc,Q,C,L,R) =>
@@ -218,14 +218,14 @@ star.compiler.wff{
   public isTypeFunStmt:(ast) => option[(option[locn],cons[ast],cons[ast],ast,ast)].
   isTypeFunStmt(A) where
       (Lc,Q,I) ^= isQuantified(A) &&
-      (_,_,Cx,L,R) ^= isTypeFunStmt(I) => some((Lc,Q,Cx,L,R)).
+      (_,_,Cx,L,R) ^= isTypeFunStmt(I) => .some((Lc,Q,Cx,L,R)).
   isTypeFunStmt(A) where
       (Lc,C,I) ^= isBinary(A,"|:") &&
-      (_,Q,_,L,R) ^= isTypeFunStmt(I) => some((Lc,Q,deComma(C),L,R)).
+      (_,Q,_,L,R) ^= isTypeFunStmt(I) => .some((Lc,Q,deComma(C),L,R)).
   isTypeFunStmt(A) where
       (Lc,H,I) ^= isBinary(A,"~>") &&
       (Q,T) .= getQuantifiers(H) =>
-    some((Lc,Q,[],T,I)).
+    .some((Lc,Q,[],T,I)).
   isTypeFunStmt(A) default => .none.
 
   public mkTypeFunStmt(Lc,Q,C,L,R) =>
@@ -233,7 +233,7 @@ star.compiler.wff{
 
   public isTypeStatement:(ast) => option[(option[locn],ast,ast)].
   isTypeStatement(A) where (Lc,R) ^= isUnary(A,"type") &&
-      (_,V,T) ^= isTypeAnnotation(R) => some((Lc,V,T)).
+      (_,V,T) ^= isTypeAnnotation(R) => .some((Lc,V,T)).
   isTypeStatement(_) default => .none.
 
   public mkTypeStatement(Lc,V,T) => unary(Lc,"type",typeAnnotation(Lc,V,T)).
@@ -246,14 +246,14 @@ star.compiler.wff{
     option[(option[locn],visibility,cons[ast],cons[ast],ast,ast)].
   isAlgebraic(A,Vz) where
       (Lc,Q,I) ^= isQuantified(A) &&
-      (_,Viz,_,Cx,L,R) ^= isAlgebraic(I,Vz) => some((Lc,Viz,Q,Cx,L,R)).
+      (_,Viz,_,Cx,L,R) ^= isAlgebraic(I,Vz) => .some((Lc,Viz,Q,Cx,L,R)).
   isAlgebraic(A,Vz) where
       (Lc,C,I) ^= isBinary(A,"|:") &&
-      (_,Viz,Q,_,L,R) ^= isAlgebraic(I,Vz) => some((Lc,Viz,Q,deComma(C),L,R)).
+      (_,Viz,Q,_,L,R) ^= isAlgebraic(I,Vz) => .some((Lc,Viz,Q,deComma(C),L,R)).
   isAlgebraic(A,Vz) where
       (Lc,H,I) ^= isBinary(A,"::=") &&
       (Q,T) .= getQuantifiers(H) =>
-    some((Lc,Vz,Q,[],T,I)).
+    .some((Lc,Vz,Q,[],T,I)).
   isAlgebraic(A,Vz) where (_,I) ^= isPrivate(A) =>
     isAlgebraic(I,.priVate).
   isAlgebraic(A,Vz) where (_,I) ^= isPublic(A) =>
@@ -265,33 +265,33 @@ star.compiler.wff{
 
   public isLetDef:(ast) => option[(option[locn],cons[ast],ast)].
   isLetDef(A) where (Lc,Lh,Rh) ^= isBinary(A,"in") &&
-      app(_,nme(_,"let"),Body) .= Lh &&
-      (_,Els) ^= isBrTuple(Body) => some((Lc,Els,Rh)).
+      .app(_,.nme(_,"let"),Body) .= Lh &&
+      (_,Els) ^= isBrTuple(Body) => .some((Lc,Els,Rh)).
   isLetDef(_) default => .none.
 
   public mkLetDef(Lc,Els,Bnd) =>
-    binary(Lc,"in",braceTerm(Lc,nme(Lc,"let"),Els),Bnd).
+    binary(Lc,"in",braceTerm(Lc,.nme(Lc,"let"),Els),Bnd).
 
   public isLetRecDef:(ast) => option[(option[locn],cons[ast],ast)].
   isLetRecDef(A) where (Lc,Lh,Rh) ^= isBinary(A,"in") &&
-      app(_,nme(_,"let"),Body) .= Lh &&
-      (_,Els) ^= isQBrTuple(Body) => some((Lc,Els,Rh)).
+      .app(_,.nme(_,"let"),Body) .= Lh &&
+      (_,Els) ^= isQBrTuple(Body) => .some((Lc,Els,Rh)).
   isLetRecDef(_) default => .none.
 
   public mkLetRecDef:(option[locn],cons[ast],ast) => ast.
   mkLetRecDef(Lc,Els,Bnd) =>
-    binary(Lc,"in",qbraceTerm(Lc,nme(Lc,"let"),Els),Bnd).
+    binary(Lc,"in",qbraceTerm(Lc,.nme(Lc,"let"),Els),Bnd).
 
   public isMapLiteral:(ast)=>option[(option[locn],cons[ast])].
   isMapLiteral(A) where (Lc,[I]) ^= isBrTuple(A) &&
-      {? Pr in deComma(I) *> _ ^= isPair(Pr) ?} => some((Lc,deComma(I))).
+      {? Pr in deComma(I) *> _ ^= isPair(Pr) ?} => .some((Lc,deComma(I))).
   isMapLiteral(_) default => .none.
 
   public mkMapLiteral(Lc,Els) => brTuple(Lc,[reComma(Els)]).
   
   public isComprehension:(ast) => option[(option[locn],ast,ast)].
   isComprehension(A) where (Lc,[T]) ^= isBrTuple(A) &&
-      (_,Bnd,Body) ^= isBinary(T,"|") => some((Lc,Bnd,Body)).
+      (_,Bnd,Body) ^= isBinary(T,"|") => .some((Lc,Bnd,Body)).
   isComprehension(A) => .none.
 
   public mkComprehension(Lc,Exp,Cond) =>
@@ -299,7 +299,7 @@ star.compiler.wff{
 
   public isIotaComprehension:(ast) => option[(option[locn],ast,ast)].
   isIotaComprehension(A) where (Lc,I) ^= isUnary(A,"{!!}") &&
-      (_,Bnd,Body) ^= isBinary(I,"|") => some((Lc,Bnd,Body)).
+      (_,Bnd,Body) ^= isBinary(I,"|") => .some((Lc,Bnd,Body)).
   isIotaComprehension(A) => .none.
 
   public mkIotaComprehension(Lc,Exp,Cond) =>
@@ -327,7 +327,7 @@ star.compiler.wff{
 
   public isConditional(A) where
       (Lc,Tst,Rhs) ^= isBinary(A,"?") &&
-      (_,Th,El) ^= isBinary(Rhs,"||") => some((Lc,Tst,Th,El)).
+      (_,Th,El) ^= isBinary(Rhs,"||") => .some((Lc,Tst,Th,El)).
   isConditional(_) => .none.
 
   public mkConditional:(option[locn],ast,ast,ast) => ast.
@@ -348,17 +348,17 @@ star.compiler.wff{
 
   public isEnum(A) => isUnary(A,".").
 
-  public isEnumSymb(A) where (Lc,nme(_,N))^=isUnary(A,".") => some((Lc,N)).
+  public isEnumSymb(A) where (Lc,.nme(_,N))^=isUnary(A,".") => .some((Lc,N)).
   isEnumSymb(_) default => .none.
 
   public isEnumCon(A) where (Lc,I) ^= isUnary(A,".") && (_,Op,Els) ^= isRoundTerm(I) =>
-    some((Lc,Op,Els)).
+    .some((Lc,Op,Els)).
   isEnumCon(_) default => .none.
 
-  public enum(Lc,Nm) => unary(Lc,".",nme(Lc,Nm)).
+  public enum(Lc,Nm) => unary(Lc,".",.nme(Lc,Nm)).
 
   public isSearch(A) where (Lc,P,G) ^= isBinary(A,"in") &&
-      ~ app(_,nme(_,"let"),Body) .= P => some((Lc,P,G)).
+      ~ .app(_,.nme(_,"let"),Body) .= P => .some((Lc,P,G)).
   isSearch(_) default => .none.
 
   public mkSearch(Lc,P,S) => binary(Lc,"in",P,S).
@@ -382,14 +382,14 @@ star.compiler.wff{
 
   public isImport:(ast)=> option[importSpec].
   isImport(A) where (Lc,I) ^= isPublic(A) =>
-    (pkgImp(_,_,Im) ^= isImport(I) ?
-      some(pkgImp(Lc,.pUblic,Im)) ||
+    (.pkgImp(_,_,Im) ^= isImport(I) ?
+      .some(.pkgImp(Lc,.pUblic,Im)) ||
 	.none).
   isImport(A) where (Lc,I) ^= isPrivate(A) =>
-    (pkgImp(_,_,Im) ^= isImport(I) ?
-	some(pkgImp(Lc,.priVate,Im)) ||
+    (.pkgImp(_,_,Im) ^= isImport(I) ?
+	.some(pkgImp(Lc,.priVate,Im)) ||
 	.none).
-  isImport(A) where (Lc,I) ^= isUnary(A,"import") => some(pkgImp(Lc,.priVate,pkgeName(I))).
+  isImport(A) where (Lc,I) ^= isUnary(A,"import") => .some(pkgImp(Lc,.priVate,pkgeName(I))).
   isImport(_) default => .none.
 
   public pkgeName:(ast) => pkg.
@@ -436,28 +436,28 @@ star.compiler.wff{
 
   public isIndexTerm:(ast) => option[(option[locn],ast,ast)].
   isIndexTerm(A) where (Lc,Op,[Ix]) ^= isSquareTerm(A) &&
-      ~ _^=isBinary(Ix,":") => some((Lc,Op,Ix)).
+      ~ _^=isBinary(Ix,":") => .some((Lc,Op,Ix)).
   isIndexTerm(A) where (Lc,L,R) ^= isBinary(A,"!") && (_,[Ix]) ^= isSqTuple(R) =>
-    some((Lc,unary(Lc,"!",L),Ix)).
+    .some((Lc,unary(Lc,"!",L),Ix)).
   isIndexTerm(_) default => .none.
 
   public mkIndexTerm(Lc,O,A) => squareTerm(Lc,O,[A]).
 
   public isSlice:(ast) => option[(option[locn],ast,ast,ast)].
   isSlice(A) where (Lc,Op,[Ix]) ^= isSquareTerm(A) && (_,F,T) ^= isBinary(Ix,":") =>
-    some((Lc,Op,F,T)).
+    .some((Lc,Op,F,T)).
   isSlice(_) default => .none.
 
   public isSplice:(ast) => option[(option[locn],ast,ast,ast,ast)]. -- S[F:T] := R
   isSplice(A) where (Lc,Lhs,R)^= isAssignment(A) && (_,S,F,T) ^= isSlice(Lhs) =>
-    some((Lc,S,F,T,R)).
+    .some((Lc,S,F,T,R)).
   isSplice(_) default => .none.
 
   public isContractStmt:(ast) => option[(option[locn],ast,cons[ast])].
   isContractStmt(A) where
       (Lc,I) ^= isUnary(A,"contract") &&
       (_,Lhs,B) ^= isBinary(I,"::=") &&
-      (_,Els) ^= isBrTuple(B) => some((Lc,Lhs,Els)).
+      (_,Els) ^= isBrTuple(B) => .some((Lc,Lhs,Els)).
   isContractStmt(A) default => .none.
 
   public mkContractStmt(Lc,T,Els) =>
@@ -471,28 +471,28 @@ star.compiler.wff{
       (_,"cntrct") ^= isName(CN) &&
       (_,Q) ^= isTuple(Qv) &&
       (_,Cx) ^= isTuple(C) &&
-      (_,Els) ^= isBrTuple(B) => some((Lc,Q,Cx,T,Els)).
+      (_,Els) ^= isBrTuple(B) => .some((Lc,Q,Cx,T,Els)).
   isCntrctStmt(A) default => .none.
   
   public mkCntrctStmt(Lc,Q,C,T,Els) =>
-    roundTerm(Lc,nme(Lc,"cntrct"),[rndTuple(Lc,Q),rndTuple(Lc,C),T,brTuple(Lc,Els)]).
+    roundTerm(Lc,.nme(Lc,"cntrct"),[rndTuple(Lc,Q),rndTuple(Lc,C),T,brTuple(Lc,Els)]).
 
   public isContractSpec:(ast) => option[(option[locn],string,cons[ast],cons[ast],ast)].
   isContractSpec(A) where
       (Lc,Quants,I) ^= isQuantified(A) &&
-      (_,Nm,_,II,T) ^= isContractSpec(I) => some((Lc,Nm,Quants,II,T)).
+      (_,Nm,_,II,T) ^= isContractSpec(I) => .some((Lc,Nm,Quants,II,T)).
   isContractSpec(A) where
       (Lc,Lhs,Rhs) ^= isBinary(A,"|:") &&
-      (_,Nm,Q,II,T) ^= isContractSpec(Rhs) => some((Lc,Nm,Q,II++deComma(Lhs),T)).
+      (_,Nm,Q,II,T) ^= isContractSpec(Rhs) => .some((Lc,Nm,Q,II++deComma(Lhs),T)).
   isContractSpec(A) where
       (Lc,Nm,[E]) ^= isSquareTerm(A) &&
       (_,L,R) ^= isDepends(E) &&
       (_,Id) ^= isName(Nm) =>
-    some((Lc,Id,L++R,[],A)).
+    .some((Lc,Id,L++R,[],A)).
   isContractSpec(A) where
       (Lc,Nm,Els) ^= isSquareTerm(A) &&
       (_,Id) ^= isName(Nm) =>
-    some((Lc,Id,Els,[],A)).
+    .some((Lc,Id,Els,[],A)).
   isContractSpec(_) default => .none.
 
   public isImplementationStmt:(ast) => option[(option[locn],cons[ast],cons[ast],ast,ast)].
@@ -508,7 +508,7 @@ star.compiler.wff{
     isImplSpec(Lc,Qs,deComma(Lhs),Rhs).
   isImplSpec(_,Qs,Cs,T) where
       (Lc,Cn,Exp) ^= isBinary(T,"=>") =>
-    some((Lc,Qs,Cs,Cn,Exp)).
+    .some((Lc,Qs,Cs,Cn,Exp)).
   isImplSpec(_,_,_,_) default => .none.
 
   public implementedContractName:(ast) => string.
@@ -561,14 +561,14 @@ star.compiler.wff{
       collectImports(Ss,Imp,[A,..Oth])).
 
   public ruleName:(ast) => option[(option[locn],string)].
-  ruleName(A) where (_,some(Nm),_,_,_,_) ^= isEquation(A) && (Lc,Id)^=isName(Nm) => some((Lc,Id)).
+  ruleName(A) where (_,.some(Nm),_,_,_,_) ^= isEquation(A) && (Lc,Id)^=isName(Nm) => .some((Lc,Id)).
   ruleName(_) default => .none.
 
   public headName:(ast) => option[string].
   headName(A) where
       (_,Nm,_) ^= isRoundTerm(A) => headName(Nm).
   headName(A) where
-      (_,Id) ^= isName(A) => some(Id).
+      (_,Id) ^= isName(A) => .some(Id).
   headName(A) where
       (_,D) ^= isDefault(A) => headName(D).
   headName(A) where (_,H,_) ^= isWhere(A) => headName(H).
@@ -587,51 +587,51 @@ star.compiler.wff{
 
   public isEquation:(ast) => option[(option[locn],option[ast],boolean,ast,option[ast],ast)].
   isEquation(A) where (Lc,L,R) ^= isBinary(A,"=>") &&
-      (N,H,C,D) ^= splitHead(L,.none,.none,.false) => some((Lc,N,D,H,C,R)).
+      (N,H,C,D) ^= splitHead(L,.none,.none,.false) => .some((Lc,N,D,H,C,R)).
   isEquation(_) default => .none.
 
   public mkEquation:(option[locn],option[ast],boolean,ast,option[ast],ast)=>ast.
   mkEquation(Lc,Nm,Deflt,Args,Cond,Rep) =>
     binary(Lc,"=>",mkLhs(Lc,Nm,Deflt,Args,Cond),Rep).
 
-  mkHed(Lc,some(Nm),Args) => app(Lc,Nm,Args).
+  mkHed(Lc,.some(Nm),Args) => .app(Lc,Nm,Args).
   mkHed(_,.none,Args) => Args.
 
   mkLhs(Lc,Nm,.true,Args,.none) => unary(Lc,"default",mkHed(Lc,Nm,Args)).
-  mkLhs(Lc,Nm,.true,Args,some(C)) =>
+  mkLhs(Lc,Nm,.true,Args,.some(C)) =>
     unary(Lc,"default",binary(Lc,"where",mkHed(Lc,Nm,Args),C)).
   mkLhs(Lc,Nm,.false,Args,.none) => mkHed(Lc,Nm,Args).
-  mkLhs(Lc,Nm,.false,Args,some(C)) => binary(Lc,"where",mkHed(Lc,Nm,Args),C).
+  mkLhs(Lc,Nm,.false,Args,.some(C)) => binary(Lc,"where",mkHed(Lc,Nm,Args),C).
 
   splitHead:(ast,option[ast],option[ast],boolean) => option[(option[ast],ast,option[ast],boolean)].
   splitHead(A,N,C,_) where (_,I) ^= isDefault(A) => splitHead(I,N,C,.true).
-  splitHead(A,_,C,D) where (Lc,Nm,As) ^= isRoundTerm(A) => some((some(Nm),rndTuple(Lc,As),C,D)).
+  splitHead(A,_,C,D) where (Lc,Nm,As) ^= isRoundTerm(A) => .some((.some(Nm),rndTuple(Lc,As),C,D)).
   splitHead(A,N,C,D) where (Lc,[E]) ^= isTuple(A) => splitHead(E,N,C,D).
-  splitHead(A,N,_,D) where (Lc,L,C) ^= isWhere(A) => splitHead(L,N,some(C),D).
-  splitHead(A,N,C,D) => some((N,A,C,D)).
+  splitHead(A,N,_,D) where (Lc,L,C) ^= isWhere(A) => splitHead(L,N,.some(C),D).
+  splitHead(A,N,C,D) => .some((N,A,C,D)).
 
   splitHd:(ast,option[ast],option[ast],boolean) => option[(option[ast],ast,option[ast],boolean)].
   splitHd(A,N,C,_) where (_,I) ^= isDefault(A) => splitHd(I,N,C,.true).
-  splitHd(A,_,C,D) where (Lc,Nm,As) ^= isRoundTerm(A) => some((some(Nm),rndTuple(Lc,As),C,D)).
-  splitHd(A,N,_,D) where (Lc,L,C) ^= isWhere(A) => splitHd(L,N,some(C),D).
-  splitHd(A,N,C,D) => some((N,A,C,D)).
+  splitHd(A,_,C,D) where (Lc,Nm,As) ^= isRoundTerm(A) => .some((.some(Nm),rndTuple(Lc,As),C,D)).
+  splitHd(A,N,_,D) where (Lc,L,C) ^= isWhere(A) => splitHd(L,N,.some(C),D).
+  splitHd(A,N,C,D) => .some((N,A,C,D)).
 
   public isLambda:(ast) => option[(option[locn],boolean,ast,option[ast],ast)].
   isLambda(A) where (Lc,L,R) ^= isBinary(A,"=>") &&
-      (H,C,D) ^= splitLHead(L,.none,.false) => some((Lc,D,H,C,R)).
+      (H,C,D) ^= splitLHead(L,.none,.false) => .some((Lc,D,H,C,R)).
   isLambda(_) default => .none.
 
   splitLHead:(ast,option[ast],boolean) => option[(ast,option[ast],boolean)].
   splitLHead(A,C,_) where (_,I) ^= isDefault(A) => splitLHead(I,C,.true).
-  splitLHead(A,_,D) where (Lc,L,C) ^= isWhere(A) => splitLHead(L,some(C),D).
-  splitLHead(A,C,D) => some((A,C,D)).
+  splitLHead(A,_,D) where (Lc,L,C) ^= isWhere(A) => splitLHead(L,.some(C),D).
+  splitLHead(A,C,D) => .some((A,C,D)).
 
   public mkLambda:(option[locn],boolean,ast,option[ast],ast) => ast.
   mkLambda(Lc,Deflt,Arg,Cond,Rep) =>
     binary(Lc,"=>",mkLambdaHead(Lc,Arg,Deflt,Cond),Rep).
 
   mkLambdaHead(Lc,Arg,.true,.none) => unary(Lc,"default",Arg).
-  mkLambdaHead(Lc,Arg,.false,some(C)) => binary(Lc,"where",Arg,C).
+  mkLambdaHead(Lc,Arg,.false,.some(C)) => binary(Lc,"where",Arg,C).
   mkLambdaHead(Lc,Arg,.false,.none) => Arg.
 
   public areEquations:(cons[ast]) => boolean.
@@ -643,7 +643,7 @@ star.compiler.wff{
   public isCase:(ast) => option[(option[locn],ast,cons[ast])].
   isCase(A) where (Lc,L) ^= isUnary(A,"case") &&
       (_,Lhs,Rhs) ^= isBinary(L,"in") &&
-      (_,Els) ^= isBrTuple(Rhs) => some((Lc,Lhs,Els)).
+      (_,Els) ^= isBrTuple(Rhs) => .some((Lc,Lhs,Els)).
   isCase(_) => .none.
 
   public mkCaseExp(Lc,E,C) =>
@@ -677,7 +677,7 @@ star.compiler.wff{
 
   public isTaskTerm:(ast) => option[(option[locn],ast)].
   isTaskTerm(A) where (Lc,[Args]) ^= isBrApply(A,"task") =>
-    some((Lc,Args)).
+    .some((Lc,Args)).
   isTaskTerm(_) default => .none.
 
   public mkTaskTerm(Lc,As) => brApply(Lc,"task",[As]).
@@ -720,7 +720,7 @@ star.compiler.wff{
   public isTryCatch:(ast) => option[(option[locn],ast,cons[ast])].
   isTryCatch(A) where (Lc,I) ^= isUnary(A,"try") &&
       (_,B,H) ^= isBinary(I,"catch") &&
-      (_,Hs) ^= isBrTuple(H) => some((Lc,B,Hs)).
+      (_,Hs) ^= isBrTuple(H) => .some((Lc,B,Hs)).
   isTryCatch(_) default => .none.
 
   public mkTryCatch(Lc,B,Hs) =>
@@ -729,11 +729,11 @@ star.compiler.wff{
   public isSuspend(A) where
       (Lc,T,L) ^= isBinary(A,"suspend") &&
       (_,E,R) ^= isBinary(L,"in") &&
-      (_,C) ^= isBrTuple(R) => some((Lc,T,E,C)).
+      (_,C) ^= isBrTuple(R) => .some((Lc,T,E,C)).
   isSuspend(A) where
       (Lc,L) ^= isUnary(A,"suspend") &&
       (_,E,R) ^= isBinary(L,"in") &&
-      (_,C) ^= isBrTuple(R) => some((Lc,nme(Lc,"this"),E,C)).
+      (_,C) ^= isBrTuple(R) => .some((Lc,.nme(Lc,"this"),E,C)).
   isSuspend(_) default => .none.
 
   public mkSuspend(Lc,T,E,H) => binary(Lc,"suspend",T,binary(Lc,"in",E,brTuple(Lc,H))).
@@ -741,15 +741,15 @@ star.compiler.wff{
   public isResume(A) where
       (Lc,T,L) ^= isBinary(A,"resume") &&
       (_,E,R) ^= isBinary(L,"in") &&
-      (_,C) ^= isBrTuple(R) => some((Lc,T,E,C)).
+      (_,C) ^= isBrTuple(R) => .some((Lc,T,E,C)).
   isResume(_) default => .none.
 
   public mkResume(Lc,T,E,H) => binary(Lc,"resume",T,binary(Lc,"in",E,brTuple(Lc,H))).
 
   public isRetire(A) where
-      (Lc,T,E) ^= isBinary(A,"retire") => some((Lc,T,E)).
+      (Lc,T,E) ^= isBinary(A,"retire") => .some((Lc,T,E)).
   isRetire(A) where
-      (Lc,E) ^= isUnary(A,"retire") => some((Lc,nme(Lc,"this"),E)).
+      (Lc,E) ^= isUnary(A,"retire") => .some((Lc,.nme(Lc,"this"),E)).
   isRetire(_) default => .none.
 
   public mkRetire(Lc,T,E) => binary(Lc,"retire",T,E).
@@ -758,7 +758,7 @@ star.compiler.wff{
   isIfThenElse(A) where
       (Lc,Lhs,El) ^= isBinary(A,"else") &&
       (_,LL,Th) ^= isBinary(Lhs,"then") &&
-      (_, Ts) ^= isUnary(LL,"if") => some((Lc,Ts,Th,El)).
+      (_, Ts) ^= isUnary(LL,"if") => .some((Lc,Ts,Th,El)).
   isIfThenElse(_) default => .none.
 
   public mkIfThenElse(Lc,T,Th,El) =>
@@ -767,7 +767,7 @@ star.compiler.wff{
   public isIfThen:(ast) => option[(option[locn],ast,ast)].
   isIfThen(A) where
       (Lc,LL,Th) ^= isBinary(A,"then") &&
-      (_, Ts) ^= isUnary(LL,"if") => some((Lc,Ts,Th)).
+      (_, Ts) ^= isUnary(LL,"if") => .some((Lc,Ts,Th)).
   isIfThen(_) default => .none.
 
   public mkIfThen(Lc,T,Th) =>
@@ -776,7 +776,7 @@ star.compiler.wff{
   public isWhileDo:(ast) => option[(option[locn],ast,ast)].
   isWhileDo(A) where
       (Lc,LL,Bd) ^= isBinary(A,"do") &&
-      (_, Ts) ^= isUnary(LL,"while") => some((Lc,Ts,Bd)).
+      (_, Ts) ^= isUnary(LL,"while") => .some((Lc,Ts,Bd)).
   isWhileDo(_) default => .none.
 
   public mkWhileDo(Lc,C,B) => binary(Lc,"do",unary(Lc,"while",C),B).
@@ -786,7 +786,7 @@ star.compiler.wff{
       (Lc,LL,Bd) ^= isBinary(A,"do") &&
       (_, Ts) ^= isUnary(LL,"for") &&
       (_,El,It) ^= isBinary(Ts,"in") =>
-    some((Lc,El,It,Bd)).
+    .some((Lc,El,It,Bd)).
   isForDo(_) default => .none.
 
   public mkForDo(Lc,El,It,B) => binary(Lc,"do",unary(Lc,"for",binary(Lc,"in",El,It)),B).
@@ -813,25 +813,25 @@ star.compiler.wff{
 
   public isLbldAction:(ast)=>option[(option[locn],string,ast)].
   isLbldAction(A) where
-      (Lc,L,R) ^= isBinary(A,":") && (_,Lbl) ^= isName(L) => some((Lc,Lbl,R)).
+      (Lc,L,R) ^= isBinary(A,":") && (_,Lbl) ^= isName(L) => .some((Lc,Lbl,R)).
   isLbldAction(_) default => .none.
 
-  public mkLbldAction(Lc,Lb,R) => binary(Lc,":",nme(Lc,Lb),R).
+  public mkLbldAction(Lc,Lb,R) => binary(Lc,":",.nme(Lc,Lb),R).
 
   public isBreak(A) where (Lc,L) ^= isUnary(A,"break") && (_,Lbl) ^= isName(L) =>
-    some((Lc,Lbl)).
+    .some((Lc,Lbl)).
   isBreak(_) default => .none.
 
-  public mkBreak(Lc,Lb) => unary(Lc,"break",nme(Lc,Lb)).
+  public mkBreak(Lc,Lb) => unary(Lc,"break",.nme(Lc,Lb)).
 
   public isAbstraction:(ast) => option[(option[locn],ast,ast)].
   isAbstraction(A) where (Lc,[T]) ^= isBrTuple(A) &&
-      (_,B,C) ^= isBinary(T,"|") => some((Lc,B,C)).
+      (_,B,C) ^= isBinary(T,"|") => .some((Lc,B,C)).
   isAbstraction(_) default => .none.
 
   public isTheta:(ast) => option[(option[locn],cons[ast])].
   isTheta(A) where (Lc,Els) ^= isBrTuple(A) && ~ _ ^= isAbstraction(A) =>
-    some((Lc,Els)).
+    .some((Lc,Els)).
   isTheta(_) default => .none.
 
   public mkTheta(Lc,Els) => brTuple(Lc,Els).
@@ -843,7 +843,7 @@ star.compiler.wff{
 
   public isLabeledTheta:(ast) => option[(option[locn],ast,cons[ast])].
   isLabeledTheta(A) where (Lc,Op,Els) ^= isQBrTerm(A) &&
-      ~_^=isKeyword(Op) => some((Lc,Op,Els)).
+      ~_^=isKeyword(Op) => .some((Lc,Op,Els)).
   isLabeledTheta(_) default => .none.
 
   public mkLabeledTheta(Lc,Lb,Els) => mkQBrTerm(Lc,Lb,Els).
@@ -851,7 +851,7 @@ star.compiler.wff{
   public isLabeledRecord:(ast) => option[(option[locn],ast,cons[ast])].
   isLabeledRecord(A) where
       (Lc,Op,Els) ^= isBrTerm(A) &&
-      ~_^=isKeyword(Op) => some((Lc,Op,Els)).
+      ~_^=isKeyword(Op) => .some((Lc,Op,Els)).
   isLabeledRecord(_) default => .none.
   isLabeledRecord(_) default => .none.
 
@@ -860,19 +860,18 @@ star.compiler.wff{
   public isRecordUpdate:(ast) => option[(option[locn],ast,string,ast)].
   isRecordUpdate(A) where (Lc,Lhs,Vl) ^= isBinary(A,"<<-") &&
       (_,Rc,F) ^= isFieldAcc(Lhs) &&
-      (_,Fld) ^= isName(F) => some((Lc,Rc,Fld,Vl)).
+      (_,Fld) ^= isName(F) => .some((Lc,Rc,Fld,Vl)).
   isRecordUpdate(_) default => .none.
 
   public mkRecordUpdate(Lc,Rc,Fld,Vl) =>
-    binary(Lc,"<<-",mkFieldAcc(Lc,Rc,nme(Lc,Fld)),Vl).
+    binary(Lc,"<<-",mkFieldAcc(Lc,Rc,.nme(Lc,Fld)),Vl).
 
   public implementation coercion[locn,ast]=>{
-    _coerce(Lc where locn(Pkg,Line,Col,Off,Ln).=Lc)=>
-      some(roundTerm(some(Lc),nme(.none,"locn"),[str(.none,Pkg),
-	    int(.none,Line), int(.none,Col), int(.none,Off), int(.none,Ln)])).
+    _coerce(Lc where .locn(Pkg,Line,Col,Off,Ln).=Lc)=>
+      .some(roundTerm(.some(Lc),.nme(.none,"locn"),[.str(.none,Pkg),
+	    .int(.none,Line), .int(.none,Col), .int(.none,Off), .int(.none,Ln)])).
   }
 
   public isTrace:(ast) => option[(option[locn],ast)].
   isTrace(A) => isUnary(A,"trace").
-
 }

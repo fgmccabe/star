@@ -1,17 +1,17 @@
 star.parse{
   import star.
 
-  public all e,s ~~ parser[s,e] ::= parser((s)=>cons[(e,s)]).
+  public all e,s ~~ parser[s,e] ::= .parser((s)=>cons[(e,s)]).
 
   public parse:all e,s ~~ (parser[s,e],s) => cons[(e,s)].
-  parse(parser(P),S) => P(S).
+  parse(.parser(P),S) => P(S).
 
   pick:all s,t ~~ stream[s->>t] |: (s) => cons[(t,s)].
   pick([C,..L]) => [(C,L)].
   pick([]) => [].
 
   public _item:all s,t ~~ stream[s->>t] |: parser[s,t].
-  _item=parser(pick).
+  _item=.parser(pick).
 
   public _hed:all e,t ~~ (parser[t,e])=>parser[t,e].
   _hed(P) => let{
@@ -42,13 +42,13 @@ star.parse{
   _ahead(P) => let{
     hd([],_) => [].
     hd([(F,_),.._],S) => [(F,S)].
-    } in parser((S)=>hd(parse(P,S),S)).
+    } in .parser((S)=>hd(parse(P,S),S)).
 
   public _neg:all s,t,v ~~ stream[s->>t] |: (parser[s,v]) => parser[s,()].
   _neg(P) => let{
     ng([],S) => [((),S)].
     ng([_,.._],S) => [].
-    } in parser((S)=>ng(parse(P,S),S)).
+    } in .parser((S)=>ng(parse(P,S),S)).
 
   public _str:(string) => parser[cons[char],()].
   _str(S) => _literal(S::cons[char]).
@@ -66,22 +66,22 @@ star.parse{
   }
 
   public implementation all e,t ~~ concat[parser[t,e]] => {
-    P1 ++ P2 => parser((S)=>parse(P1,S)++parse(P2,S)).
+    P1 ++ P2 => .parser((S)=>parse(P1,S)++parse(P2,S)).
     _multicat(P) => parserChoice(P).
   }
 
   parserChoice: all e,t ~~ (cons[parser[t,e]])=>parser[t,e].
-  parserChoice(.nil) => parser((_)=>[]).
-  parserChoice(cons(P,Ps)) => P++parserChoice(Ps).
+  parserChoice(.nil) => .parser((_)=>[]).
+  parserChoice(.cons(P,Ps)) => P++parserChoice(Ps).
 
   public (+++): all e,t ~~ (parser[t,e],parser[t,e])=>parser[t,e].
   p+++q => let{
     first([])=>[].
     first([E,.._])=>[E].
-  } in parser((S)=>first(parse(p++q,S))).
+  } in .parser((S)=>first(parse(p++q,S))).
 
   epsilon:all e,t ~~ parser[e,t].
-  epsilon = parser((_)=>[]).
+  epsilon = .parser((_)=>[]).
 
   public _opt:all e,t ~~ (parser[t,e]) => parser[t,e].
   _opt(P) => P +++ epsilon.

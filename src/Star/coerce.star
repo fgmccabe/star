@@ -47,7 +47,7 @@ star.coerce{
   }
 
   public implementation all a,b,e,f ~~ coercion[a,b], coercion[e,f] |: coercion[(a,e),(b,f)] => let{
-    private coercePair(some(A),some(B)) => some((A,B)).
+    coercePair(.some(A),.some(B)) => .some((A,B)).
     coercePair(_,_) default => .none
   } in {
     _coerce((A,B)) => coercePair(_coerce(A),_coerce(B)).

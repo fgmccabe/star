@@ -19,7 +19,7 @@ star.compiler.coverage{
       for CnNm->CnTp in CnsMap do{
 --	logMsg("Look for covereage of $(CnNm)->$(CnTp)");
 
-	ArgSet = { Args | Ptn in Ptns && apply(_,enm(_,CnNm,_),Args,_) .= Ptn };
+	ArgSet = { Args | Ptn in Ptns && .apply(_,.enm(_,CnNm,_),Args,_) .= Ptn };
 --	logMsg("$(ArgSet)");
 	checkPtnsCoverage(ArgSet,Map);
       }

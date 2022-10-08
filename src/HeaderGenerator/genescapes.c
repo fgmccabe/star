@@ -391,9 +391,9 @@ static char *dName(char *sig, strBufferPo out) {
 #define escape(name, type, cmt) genStarEsc(out,buffer,#name,type,cmt);
 
 static void genStarEsc(FILE *out, strBufferPo buffer, char *name, char *sig, char *cmt) {
-  outStr(O_IO(buffer), "  escapeType(");
+  outStr(O_IO(buffer), "    ");
   dumpStr(name, buffer);
-  outStr(O_IO(buffer), ") => some(");
+  outStr(O_IO(buffer), " => .some(");
   dumpSig(sig, buffer);
   outStr(O_IO(buffer), ").\n");
 
@@ -407,10 +407,12 @@ static void starEscapeTypes(FILE *out) {
   strBufferPo buffer = newStringBuffer();
 
   fprintf(out, "  public escapeType:(string)=>option[tipe].\n");
+  fprintf(out, "  escapeType(Es) => case Es in {\n");
 
 #include "escapes.h"
 
-  fprintf(out, "  escapeType(_) default => .none.\n");
+  fprintf(out, "    _ default => .none.\n");
+  fprintf(out, "  }\n");
 
   closeFile(O_IO(buffer));
 }
@@ -441,9 +443,9 @@ static void prologIsEscape(FILE *out) {
 #define escape(name, type, cmt) genStarIsEsc(out,buffer,#name,Esc##name);
 
 static void genStarIsEsc(FILE *out, strBufferPo buffer, char *name, EscapeCode code) {
-  outStr(O_IO(buffer), "  isEscape(");
+  outStr(O_IO(buffer), "    ");
   dumpStr(name, buffer);
-  outMsg(O_IO(buffer), ") => some(%d).\n", code);
+  outMsg(O_IO(buffer), " => some(%d).\n", code);
 
   integer len;
   char *text = (char *) getTextFromBuffer(buffer, &len);
@@ -455,10 +457,12 @@ static void starIsEscape(FILE *out) {
   strBufferPo buffer = newStringBuffer();
 
   fprintf(out, "\n  public isEscape:(string)=>option[integer].\n");
+  fprintf(out, "  isEscape(Es) => case Es in {\n");
 
 #include "escapes.h"
 
-  fprintf(out, "  isEscape(_) default => .none.\n");
+  fprintf(out, "    _ default => .none.\n");
+  fprintf(out, "  }\n");
 
   closeFile(O_IO(buffer));
 }

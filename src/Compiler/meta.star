@@ -46,90 +46,98 @@ star.compiler.meta{
     _ == _ default => .false.
   }
 
-  public pkgSpec::=pkgSpec(pkg,cons[importSpec],cons[decl]).
+  public pkgSpec::= .pkgSpec(pkg,cons[importSpec],cons[decl]).
 
-  public decl ::= implDec(option[locn],string,string,tipe) |
-    accDec(option[locn],tipe,string,string,tipe) |
-    updDec(option[locn],tipe,string,string,tipe) |
-    conDec(option[locn],string,string,typeRule) |
-    tpeDec(option[locn],string,tipe,typeRule) |
-    varDec(option[locn],string,string,tipe) |
-    funDec(option[locn],string,string,tipe) |
-    cnsDec(option[locn],string,string,tipe).
+  public decl ::= .implDec(option[locn],string,string,tipe) |
+    .accDec(option[locn],tipe,string,string,tipe) |
+    .updDec(option[locn],tipe,string,string,tipe) |
+    .conDec(option[locn],string,string,typeRule) |
+    .tpeDec(option[locn],string,tipe,typeRule) |
+    .varDec(option[locn],string,string,tipe) |
+    .funDec(option[locn],string,string,tipe) |
+    .cnsDec(option[locn],string,string,tipe).
 
-  public importSpec ::= pkgImp(option[locn],visibility,pkg).
+  public importSpec ::= .pkgImp(option[locn],visibility,pkg).
 
-  public defnSpec ::= defnSpec(defnSp,option[locn],cons[ast]).
+  public defnSpec ::= .defnSpec(defnSp,option[locn],cons[ast]).
 
-  public defnSp ::= varSp(string)
-    | cnsSp(string)
-    | tpSp(string)
-    | conSp(string)
-    | implSp(string)
-    | accSp(string)
-    | updSp(string).
+  public defnSp ::= .varSp(string)
+    | .cnsSp(string)
+    | .tpSp(string)
+    | .conSp(string)
+    | .implSp(string)
+    | .accSp(string)
+    | .updSp(string).
 
   public implementation display[defnSp] => let{
-    dispSp(varSp(Nm)) => "var: $(Nm)".
-    dispSp(cnsSp(Nm)) => "constructor: $(Nm)".
-    dispSp(tpSp(Nm)) => "type: $(Nm)".
-    dispSp(conSp(Nm)) => "contract: $(Nm)".
-    dispSp(implSp(Nm)) => "implementation: $(Nm)".
-    dispSp(accSp(Nm)) => "accessor: $(Nm)".
-    dispSp(updSp(Nm)) => "updater: $(Nm)".
+    dispSp(S) => case S in {
+      .varSp(Nm) => "var: $(Nm)".
+      .cnsSp(Nm) => "constructor: $(Nm)".
+      .tpSp(Nm) => "type: $(Nm)".
+      .conSp(Nm) => "contract: $(Nm)".
+      .implSp(Nm) => "implementation: $(Nm)".
+      .accSp(Nm) => "accessor: $(Nm)".
+      .updSp(Nm) => "updater: $(Nm)".
+    }
   } in {
     disp = dispSp
   }
 
   public implementation equality[defnSp] => let{
-    eql(cnsSp(S1),cnsSp(S2)) => S1==S2.
-    eql(tpSp(S1),tpSp(S2)) => S1==S2.
-    eql(varSp(S1),varSp(S2)) => S1==S2.
-    eql(implSp(S1),implSp(S2)) => S1==S2.
-    eql(accSp(S1),accSp(S2)) => S1==S2.
-    eql(updSp(S1),updSp(S2)) => S1==S2.
-    eql(conSp(S1),conSp(S2)) => S1==S2.
-    eql(_,_) default => .false.
+    eql(Sp1,Sp2) => case Sp1 in {
+      .cnsSp(S1) => .cnsSp(S2).=Sp2 && S1==S2.
+      .tpSp(S1) => .tpSp(S2).=Sp2 && S1==S2.
+      .varSp(S1) => .varSp(S2).=Sp2 && S1==S2.
+      .implSp(S1) => .implSp(S2).=Sp2 && S1==S2.
+      .accSp(S1) => .accSp(S2).=Sp2 && S1==S2.
+      .updSp(S1) => .updSp(S2).=Sp2 && S1==S2.
+      .conSp(S1) => .conSp(S2).=Sp2 && S1==S2.
+      _ default => .false.
+    }
   } in {
     S1 == S2 => eql(S1,S2)
   }
 
   public implementation hashable[defnSp] => {
-    hash(varSp(Nm)) => hash(Nm)*37+hash("var").
-    hash(cnsSp(Nm)) => hash(Nm)*37+hash("cns").
-    hash(tpSp(Nm)) => hash(Nm)*37+hash("tp").
-    hash(conSp(Nm)) => hash(Nm)*37+hash("con").
-    hash(implSp(Nm)) => hash(Nm)*37+hash("impl").
-    hash(accSp(Nm)) => hash(Nm)*37+hash("access").
-    hash(updSp(Nm)) => hash(Nm)*37+hash("update").
+    hash(Sp) => case Sp in {
+      .varSp(Nm) => hash(Nm)*37+hash("var").
+      .cnsSp(Nm) => hash(Nm)*37+hash("cns").
+      .tpSp(Nm) => hash(Nm)*37+hash("tp").
+      .conSp(Nm) => hash(Nm)*37+hash("con").
+      .implSp(Nm) => hash(Nm)*37+hash("impl").
+      .accSp(Nm) => hash(Nm)*37+hash("access").
+      .updSp(Nm) => hash(Nm)*37+hash("update").
+    }
   }
 
   public implementation display[defnSpec] => let{
-    dispSpec(defnSpec(Sp,Lc,Els)) => "$(Sp)@$(Lc)$(Els)"
+    dispSpec(.defnSpec(Sp,Lc,Els)) => "$(Sp)@$(Lc)$(Els)"
   } in {
     disp = dispSpec
   }
 
   public implementation display[importSpec] => let{
-    dispSpc(pkgImp(Lc,Vi,Pk)) => "$(Vi) import $(Pk)"
+    dispSpc(.pkgImp(Lc,Vi,Pk)) => "$(Vi) import $(Pk)"
   } in {
     disp(S) => dispSpc(S)
   }
 
   public implementation display[pkgSpec] => {
-    disp(pkgSpec(Pkg,Imports,Decls)) =>
+    disp(.pkgSpec(Pkg,Imports,Decls)) =>
       "Package: $(Pkg), imports=$(Imports), exports=$(Decls)".
   }
 
   public implementation display[decl] => {
-    disp(implDec(_,Nm,ImplNm,ImplTp)) => "Impl #(Nm)~#(ImplNm)\:$(ImplTp)".
-    disp(accDec(_,Tp,Fld,Fun,FunTp)) => "Acc $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
-    disp(updDec(_,Tp,Fld,Fun,FunTp)) => "Update $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
-    disp(conDec(_,Nm,_,RlTp)) => "Contract #(Nm)\:$(RlTp)".
-    disp(tpeDec(_,Nm,Tp,_)) => "Type #(Nm)\::$(Tp)".
-    disp(varDec(_,Nm,FullNm,Tp)) => "Var #(FullNm)\:$(Tp)".
-    disp(funDec(_,Nm,FullNm,Tp)) => "Fun #(FullNm)\:$d(Tp)".
-    disp(cnsDec(_,Nm,FullNm,Tp)) => "Con #(FullNm)\:$(Tp)".
+    disp(Dc) => case Dc in {
+      .implDec(_,Nm,ImplNm,ImplTp) => "Impl #(Nm)~#(ImplNm)\:$(ImplTp)".
+      .accDec(_,Tp,Fld,Fun,FunTp) => "Acc $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
+      .updDec(_,Tp,Fld,Fun,FunTp) => "Update $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
+      .conDec(_,Nm,_,RlTp) => "Contract #(Nm)\:$(RlTp)".
+      .tpeDec(_,Nm,Tp,_) => "Type #(Nm)\::$(Tp)".
+      .varDec(_,Nm,FullNm,Tp) => "Var #(FullNm)\:$(Tp)".
+      .funDec(_,Nm,FullNm,Tp) => "Fun #(FullNm)\:$d(Tp)".
+      .cnsDec(_,Nm,FullNm,Tp) => "Con #(FullNm)\:$(Tp)".
+    }
   }
 
   public optimizationLvl ::= .base | .inlining.
@@ -141,11 +149,13 @@ star.compiler.meta{
   }
 
   public implementation coercion[string,optimizationLvl] => {
-    _coerce("base") => some(.base).
-    _coerce("inline") => some(.inlining).
-    _coerce("0") => some(.base).
-    _coerce("1") => some(.base).
-    _coerce(_) default => .none.
+    _coerce(Lvl) => case Lvl in {
+      "base" => some(.base).
+      "inline" => some(.inlining).
+      "0" => some(.base).
+      "1" => some(.base).
+      _ default => .none.
+    }
   }
 
   public implementation display[optimizationLvl] => {

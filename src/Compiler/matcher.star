@@ -23,7 +23,7 @@ star.compiler.matcher{
     Error = genRaise(Lc,Nm,funTypeRes(Tp));
 --    logMsg("function triples: $(Trpls)");
     Reslt = matchTriples(Lc,NVrs,Trpls,Error,Map);
-    valis fnDef(Lc,Nm,Tp,NVrs//(cVar(_,V))=>V,Reslt)
+    valis fnDef(Lc,Nm,Tp,NVrs//(.cVar(_,V))=>V,Reslt)
   }
 
   public caseMatcher:all e ~~ reform[e],rewrite[e] |: (option[locn],nameMap,cExp,e,
@@ -36,9 +36,9 @@ star.compiler.matcher{
   }
 
   genVars:(option[locn],tipe) => cons[cExp].
-  genVars(Lc,tupleType(L)) => let{.
+  genVars(Lc,.tupleType(L)) => let{.
     genV([]) => [].
-    genV([T,..Ts]) => [cVar(Lc,cId(genSym("_"),T)),..genV(Ts)].
+    genV([T,..Ts]) => [.cVar(Lc,.cId(genSym("_"),T)),..genV(Ts)].
   .} in genV(L).
 
   makeTriples:all e ~~ reform[e] |: (cons[(option[locn],cons[cExp],option[cExp],e)]) => cons[triple[e]].
@@ -92,13 +92,13 @@ star.compiler.matcher{
     _ == _ default => .false.
   }
 
-  argMode(cVar(_,_)) => .inVars.
-  argMode(cInt(_,_)) => .inScalars.
-  argMode(cBig(_,_)) => .inScalars.
-  argMode(cFloat(_,_)) => .inScalars.
-  argMode(cString(_,_)) => .inScalars.
-  argMode(cTerm(_,_,_,_)) => .inConstructors.
-  argMode(cWhere(_,T,_)) => argMode(T).
+  argMode(.cVar(_,_)) => .inVars.
+  argMode(.cInt(_,_)) => .inScalars.
+  argMode(.cBig(_,_)) => .inScalars.
+  argMode(.cFloat(_,_)) => .inScalars.
+  argMode(.cString(_,_)) => .inScalars.
+  argMode(.cTerm(_,_,_,_)) => .inConstructors.
+  argMode(.cWhere(_,T,_)) => argMode(T).
 
   matchSegments:all e ~~ reform[e],rewrite[e] |:
     (cons[(argMode,cons[triple[e]])],cons[cExp],option[locn],e,nameMap) => e.
@@ -138,19 +138,19 @@ star.compiler.matcher{
   populateArms(Index,Cases,Lc,Deflt,Map) =>
     { populateArm(Entry,Cases,Lc,Deflt,Map) | Entry in Index}.
 
-  populateArm((tLbl(FullNm,_),Tp,_),Cases,DLc,Deflt,Map) where
+  populateArm((.tLbl(FullNm,_),Tp,_),Cases,DLc,Deflt,Map) where
       Arm ^= armPresent(FullNm,Cases) => Arm.
-  populateArm((tLbl(FullNm,Ar),CnsTp,_),Cases,Lc,Deflt,Map) =>
+  populateArm((.tLbl(FullNm,Ar),CnsTp,_),Cases,Lc,Deflt,Map) =>
     (Lc,emptyCase(Lc,CnsTp,FullNm),Deflt).
     
-  armPresent(Nm,[(CLc,cTerm(Lc,Nm,Args,Tp),Exp),.._]) =>
-    some((CLc,cTerm(Lc,Nm,Args,Tp),Exp)).
+  armPresent(Nm,[(CLc,.cTerm(Lc,Nm,Args,Tp),Exp),.._]) =>
+    .some((CLc,.cTerm(Lc,Nm,Args,Tp),Exp)).
   armPresent(Nm,[_,..Cases]) => armPresent(Nm,Cases).
   armPresent(_,[]) => .none.
 
   emptyCase:(option[locn],tipe,string)=>cExp.
-  emptyCase(Lc,T,Nm) where (tupleType(ArgTps),ResTp) ^= isConsType(T) =>
-    cTerm(Lc,Nm,ArgTps//(ATp)=>cVar(Lc,cId("_",ATp)),ResTp).
+  emptyCase(Lc,T,Nm) where (.tupleType(ArgTps),ResTp) ^= isConsType(T) =>
+    .cTerm(Lc,Nm,ArgTps//(ATp)=>.cVar(Lc,.cId("_",ATp)),ResTp).
   
   matchVars:all e ~~ reform[e],rewrite[e] |:
     (cons[triple[e]],cons[cExp],option[locn],e,nameMap)=>e.
@@ -158,24 +158,24 @@ star.compiler.matcher{
     matchTriples(Lc,Vrs,applyVar(V,Triples),Deflt,Map).
 
   applyVar:all e ~~ rewrite[e] |: (cExp,cons[triple[e]]) => cons[triple[e]].
-  applyVar(V,Triples) where cVar(_,_).=V => let{
+  applyVar(V,Triples) where .cVar(_,_).=V => let{
     applyToTriple:(triple[e])=>triple[e].
-    applyToTriple(([cVar(VLc,cId(Vr,VTp)),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof{
-      Mp = {tLbl(Vr,arity(VTp))->vrDef(VLc,Vr,VTp,V)};
+    applyToTriple(([.cVar(VLc,.cId(Vr,VTp)),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof{
+      Mp = { .tLbl(Vr,arity(VTp))->.vrDef(VLc,Vr,VTp,V)};
       NArgs = rewriteTerms(Args,Mp);
       NAG = fmap((T)=>rewrite(T,Mp),AG);
       NGl = fmap((T)=>rewrite(T,Mp),Gl);
       NExp = rewrite(Exp,Mp);
       valis (NArgs, (CLc,B,NAG,NGl,NExp),Ix)
     }
-    applyToTriple(([cWhere(Lc,cVar(VLc,cId(Vr,VTp)),Cond),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof{
-      Mp = {tLbl(Vr,arity(VTp))->vrDef(VLc,Vr,VTp,V)};
+    applyToTriple(([.cWhere(Lc,.cVar(VLc,.cId(Vr,VTp)),Cond),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof{
+      Mp = { .tLbl(Vr,arity(VTp))->vrDef(VLc,Vr,VTp,V)};
       NArgs = rewriteTerms(Args,Mp);
       NAG = fmap((T)=>rewrite(T,Mp),AG);
       NCond = rewrite(Cond,Mp);
       NGl = fmap((T)=>rewrite(T,Mp),Gl);
       NExp = rewrite(Exp,Mp);
-      valis (NArgs, (CLc,B,mergeGoal(VLc,NAG,some(NCond)),NGl,NExp),Ix)
+      valis (NArgs, (CLc,B,mergeGoal(VLc,NAG,.some(NCond)),NGl,NExp),Ix)
     }
   } in (Triples//applyToTriple).
 
@@ -192,14 +192,14 @@ star.compiler.matcher{
   }
 
   formCase:all e ~~ reform[e],rewrite[e] |: (triple[e],cons[triple[e]],option[locn],cons[cExp],e,nameMap) => cCase[e].
-  formCase(([cInt(LLc,Ix),.._],_,_),Tpls,Lc,Vars,Deflt,Map) =>
-    (LLc,cInt(LLc,Ix),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
-  formCase(([cFloat(LLc,Dx),.._],_,_),Tpls,Lc,Vars,Deflt,Map) =>
-    (LLc,cFloat(LLc,Dx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
-  formCase(([cString(LLc,Sx),.._],_,_),Tpls,Lc,Vars,Deflt,Map) =>
-    (LLc,cString(LLc,Sx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
-  formCase(([cTerm(Lc,Lbl,Args,Tp),.._],_,_),Triples,_,Vars,Deflt,Map) => valof{
-    Vrs = (Args//(E) => cVar(Lc,cId(genSym("_"),typeOf(E))));
+  formCase(([.cInt(LLc,Ix),.._],_,_),Tpls,Lc,Vars,Deflt,Map) =>
+    (LLc,.cInt(LLc,Ix),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
+  formCase(([.cFloat(LLc,Dx),.._],_,_),Tpls,Lc,Vars,Deflt,Map) =>
+    (LLc,.cFloat(LLc,Dx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
+  formCase(([.cString(LLc,Sx),.._],_,_),Tpls,Lc,Vars,Deflt,Map) =>
+    (LLc,.cString(LLc,Sx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
+  formCase(([.cTerm(Lc,Lbl,Args,Tp),.._],_,_),Triples,_,Vars,Deflt,Map) => valof{
+    Vrs = (Args//(E) => .cVar(Lc,.cId(genSym("_"),typeOf(E))));
     NTriples = subTriples(Triples);
     Case = matchTriples(Lc,Vrs++Vars,NTriples,Deflt,Map);
     valis (Lc,cTerm(Lc,Lbl,Vrs,Tp),Case)
@@ -215,7 +215,7 @@ star.compiler.matcher{
 
   subTriples(Tpls) => (Tpls//subTriple).
     
-  subTriple(([cTerm(_,_,CArgs,_),..Args],V,X)) =>
+  subTriple(([.cTerm(_,_,CArgs,_),..Args],V,X)) =>
     (CArgs++Args,V,X).
   subTriple(([_,..Args],V,X)) => (Args,V,X).
 
@@ -243,15 +243,15 @@ star.compiler.matcher{
   compareScalarTriple:all e ~~ (triple[e],triple[e]) => boolean.
   compareScalarTriple(([A,.._],_,_),([B,.._],_,_)) => compareScalar(A,B).
 
-  compareScalar(cInt(_,A),cInt(_,B)) => A=<B.
-  compareScalar(cFloat(_,A),cFloat(_,B)) => A=<B.
-  compareScalar(cString(_,A),cString(_,B)) => A=<B.
+  compareScalar(.cInt(_,A),.cInt(_,B)) => A=<B.
+  compareScalar(.cFloat(_,A),.cFloat(_,B)) => A=<B.
+  compareScalar(.cString(_,A),.cString(_,B)) => A=<B.
   compareScalar(_,_) default => .false.
 
   sameScalarTriple:all e ~~ (triple[e],triple[e]) => boolean.
-  sameScalarTriple(([cInt(_,A),.._],_,_),([cInt(_,B),.._],_,_)) => A==B.
-  sameScalarTriple(([cFloat(_,A),.._],_,_),([cFloat(_,B),.._],_,_)) => A==B.
-  sameScalarTriple(([cString(_,A),.._],_,_),([cString(_,B),.._],_,_)) => A==B.
+  sameScalarTriple(([.cInt(_,A),.._],_,_),([.cInt(_,B),.._],_,_)) => A==B.
+  sameScalarTriple(([.cFloat(_,A),.._],_,_),([.cFloat(_,B),.._],_,_)) => A==B.
+  sameScalarTriple(([.cString(_,A),.._],_,_),([.cString(_,B),.._],_,_)) => A==B.
   sameScalarTriple(_,_) default => .false.
 
   compareTriple:all e ~~ (triple[e],triple[e]) => boolean.
@@ -261,15 +261,15 @@ star.compiler.matcher{
   compareConstructorTriple(([A,.._],_,IxA),([B,.._],_,IxB)) =>
     (sameConstructor(A,B) ? IxA<IxB || compareConstructor(A,B)).
 
-  compareConstructor(cTerm(_,A,_,_),cTerm(_,B,_,_)) => A<B.
+  compareConstructor(.cTerm(_,A,_,_),.cTerm(_,B,_,_)) => A<B.
   
   sameConstructorTriple(([A,.._],_,_),([B,.._],_,_)) => sameConstructor(A,B).
-  sameConstructor(cTerm(_,A,_,_), cTerm(_,B,_,_)) => A==B.
+  sameConstructor(.cTerm(_,A,_,_), .cTerm(_,B,_,_)) => A==B.
   sameConstructor(_,_) default => .false.
 
   pullVarLets:(cons[cExp],cExp)=>(cons[cExp],cExp).
-  pullVarLets(Vrs,cLtt(Lc,V,A,Exp)) =>
-    pullVarLets(Vrs//replaceWith(A,cVar(Lc,V)),Exp).
+  pullVarLets(Vrs,.cLtt(Lc,V,A,Exp)) =>
+    pullVarLets(Vrs//replaceWith(A,.cVar(Lc,V)),Exp).
   pullVarLets(Vrs,Exp) => (Vrs,Exp).
 
   replaceWith:(cExp,cExp) => (cExp)=>cExp.
