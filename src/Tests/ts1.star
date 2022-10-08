@@ -4,19 +4,19 @@ test.ts1{
   
   -- Simple test of fiber generator pattern
 
-  scomm[e] ::= yild(e) | .end.
+  scomm[e] ::= .yild(e) | .end.
   rcomm ::= .next | .cancel.
 
   consIter:all e,x ~~ (cons[e],x,(x,e)=>x)=>x.
   consIter(.nil,X,_) => X.
-  consIter(cons(H,T),X,F) => consIter(T,F(X,H),F).
+  consIter(.cons(H,T),X,F) => consIter(T,F(X,H),F).
 
   iterGen:all e ~~ (cons[e]) => fiber[rcomm,scomm[e]].
   iterGen(L) => fiber{
     let{
       yildFn:((),e)=>().
       yildFn(_,E) => valof{
-	suspend yild(E) in {
+	suspend .yild(E) in {
 	  .next => valis ().
 	  .cancel => valis ()
 	}
@@ -33,10 +33,10 @@ test.ts1{
     try{
       while .true do {
 	TT resume .next in {
-	  yild(X) where X%2==0 => {
+	  .yild(X) where X%2==0 => {
 	    Tl := Tl! + X
 	  }.
-	  yild(X) default => {
+	  .yild(X) default => {
 	    Tl := Tl! * X
 	  }.
 	  .end => throw ()
@@ -51,7 +51,7 @@ test.ts1{
   iterTask(L) => fiber{
     let{
       yildFn(E,Cx) => valof{
-	suspend yild(E) in {
+	suspend .yild(E) in {
 	  .next => valis Cx
 	}
       }
@@ -75,7 +75,7 @@ test.ts1{
 
   iota:(integer,integer)=>cons[integer].
   iota(F,F) => .nil.
-  iota(F,T) => cons(F,iota(F+1,T)).
+  iota(F,T) => .cons(F,iota(F+1,T)).
 
   main:() => ().
   main() => valof{

@@ -5,7 +5,7 @@ test.ts0{
   
   -- Simple test of fiber generator pattern
 
-  scomm ::= yild(integer) | .end.
+  scomm ::= .yild(integer) | .end.
   rcomm ::= .next | .cancel.
 
   all s,r ~~ fiber[s,r] <~ {}. -- fibers have a type ...
@@ -14,7 +14,7 @@ test.ts0{
   generatr(F,T) => fiber{
     Ix = ref F;
     while Ix! < T do{
-      suspend yild(Ix!) in {
+      suspend .yild(Ix!) in {
 	.next => {}.
 	.cancel => retire .end
       };
@@ -31,7 +31,7 @@ test.ts0{
 
     while .true do {
       TT resume .next in {
-	yild(X) => {
+	.yild(X) => {
 	  Tl := Tl! + X
 	}.
 	.end => valis Tl!

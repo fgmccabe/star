@@ -4,13 +4,13 @@ test.do12{
 
   -- test case actions
 
-  foo ::= foo(integer) | bar(string).
+  foo ::= .foo(integer) | .bar(string).
 
   multiWhr:(foo)=>integer.
   multiWhr(X) => valof{
     case X in {
-      foo(Ix) => valis Ix.
-      bar(_) => valis 0
+      .foo(Ix) => valis Ix.
+      .bar(_) => valis 0
     }
   }
 
@@ -18,8 +18,8 @@ test.do12{
   seqCase(X) => valof{
     res = ref 0;
     case X in {
-      foo(Ix) => {res:= Ix}.
-      bar(_) => {}
+      .foo(Ix) => {res:= Ix}.
+      .bar(_) => {}
     };
     valis res!
   }
@@ -27,9 +27,9 @@ test.do12{
   main:()=>().
   main()=>valof{
     try{
-      assert multiWhr(foo(23))==23;
-      assert seqCase(foo(23))==23;
-      assert seqCase(bar(""))==0;
+      assert multiWhr(.foo(23))==23;
+      assert seqCase(.foo(23))==23;
+      assert seqCase(.bar(""))==0;
     } catch {
       _ => logMsg("bad valof")
     };

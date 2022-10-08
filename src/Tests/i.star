@@ -11,7 +11,7 @@ test.i{
   main:()=>().
   main()=>valof{
     assert 1^=kk["alpha"];
-    assert some(1).=_index(ll,"alpha");
+    assert .some(1).=_index(ll,"alpha");
     show kk[~"alpha"];
     show kk["delta"->4];
     valis ()
@@ -19,8 +19,8 @@ test.i{
 
   public all k,v ~~ mp[k,v] ::=
     private .ihE |
-    private ihL(integer,cons[(k,v)]).
+    private .ihL(integer,cons[(k,v)]).
 
-  foo = ihL(3,([("al",2)]:cons[_])).
+  foo = .ihL(3,([("al",2)]:cons[_])).
   ef = .ihE.
 }

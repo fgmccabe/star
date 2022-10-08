@@ -5,7 +5,7 @@ test.nm{
 
   first:all e,k ~~ (cons[(e,k)])=>option[e].
   first([])=>.none.
-  first([(E,_),.._])=>some(E).
+  first([(E,_),.._])=>.some(E).
 
   main:() => ().
   main() => valof{
@@ -37,7 +37,7 @@ test.nm{
   }
   
   optInt:(option[float])=>option[integer].
-  optInt(some(F)) => some(F::integer).
+  optInt(.some(F)) => .some(F::integer).
   optInt(.none) => .none.
 
 }
