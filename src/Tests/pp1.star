@@ -4,7 +4,7 @@ test.pp1{
 
   readFromPipe:(string,cons[string])=>cons[string].
   readFromPipe(Cmd,Args) => valof{
-    (StdIn,StdOut,StdErr) .= _popen(Cmd,Args,[]);
+    (StdIn,StdOut,StdErr) = _popen(Cmd,Args,[]);
 
     valis readLines(StdOut)
   }

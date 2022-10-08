@@ -9,17 +9,17 @@ test.ts2{
 
   public implementation all e ~~ display[e] |: display[cons[e]] => let{.
     consDisp(.nil,L) => L.
-    consDisp(cons(X,.nil),L) => cons(disp(X), L).
-    consDisp(cons(X,R),L) => cons(disp(X), cons(",", consDisp(R,L))).
+    consDisp(.cons(X,.nil),L) => .cons(disp(X), L).
+    consDisp(.cons(X,R),L) => .cons(disp(X), .cons(",", consDisp(R,L))).
  .} in {
-    disp(L) => _str_multicat(cons("[",consDisp(L,cons("]",.nil))))
+    disp(L) => _str_multicat(.cons("[",consDisp(L,.cons("]",.nil))))
   }
   
   -- Test generator functions
 
   iterTask(L) => generator {
     LL = ref L;
-    while cons(H,T) .= LL! do{
+    while .cons(H,T) .= LL! do{
       yield H;
       LL := T
     }
@@ -27,7 +27,7 @@ test.ts2{
     
   iota:(integer,integer)=>cons[integer].
   iota(F,F) => .nil.
-  iota(F,T) => cons(F,iota(F+1,T)).
+  iota(F,T) => .cons(F,iota(F+1,T)).
 
   odds:(cons[integer]) => ().
   odds(L) => valof{

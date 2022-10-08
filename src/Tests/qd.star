@@ -2,10 +2,10 @@ test.qd{
   import star.
   import star.script.
 
-  ast ::= nme(integer,string).
+  ast ::= .nme(integer,string).
   
   isName:(ast) => option[(integer,string)].
-  isName(nme(L,S)) => some((L,S)).
+  isName(.nme(L,S)) => .some((L,S)).
   isName(_) default => .none.
   
   filterOut:(cons[string],cons[ast]) => cons[string].
@@ -17,10 +17,10 @@ test.qd{
   main:() => ().
   main() => valof{
     show filterOut(["alpha","beta","one","gamma","two"],
-      [nme(1,"one"),nme(2,"two"),nme(3,"three")]);
+      [.nme(1,"one"),.nme(2,"two"),.nme(3,"three")]);
 
     assert filterOut(["alpha","beta","one","gamma","two"],
-      [nme(1,"one"),nme(2,"two"),nme(3,"three")]) == ["alpha","beta","gamma"];
+      [.nme(1,"one"),.nme(2,"two"),.nme(3,"three")]) == ["alpha","beta","gamma"];
 
     valis ()
   }
