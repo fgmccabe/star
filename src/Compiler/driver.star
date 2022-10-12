@@ -48,6 +48,8 @@ star.compiler{
 	    macroOnlyOption,
 	    showNormalizeOption,
 	    traceNormalizeOption,
+	    noCodeOption,
+	    traceCodegenOption,	    
 	    optimizeLvlOption],
 	  defltOptions(WI,RI)
 	))
@@ -158,12 +160,12 @@ star.compiler{
     Repp = ref Repo;
 
     for (P,Imps) in Pks do{
-      logMsg("is $(P) ok? $(pkgOk(Repo,P))");
+--      logMsg("is $(P) ok? $(pkgOk(Repo,P))");
       if ~ {? (pkgOk(Repo,P) && I in Imps *> pkgOk(Repo,I)) ?} then{
-	logMsg("Compiling $(P)");
 	Repp := processPkg(P,Repp!,Cat);
       }
     };
     flushRepo(Repp!);
+    valis ()
   }
 }

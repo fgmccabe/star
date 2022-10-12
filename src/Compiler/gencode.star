@@ -40,20 +40,32 @@ star.compiler.gencode{
   genDef:(cDefn,map[string,srcLoc]) => codeSegment.
   genDef(Defn,Glbs) => case Defn in {
     .fnDef(Lc,Nm,Tp,Args,Val) => valof{
-      if showCode! then
+      if traceCodegen! then
 	logMsg("compile $(fnDef(Lc,Nm,Tp,Args,Val))");
       Ctx = emptyCtx(argVars(Args,Glbs,0));
       (_Stk,Code) = compExp(Val,retCont,abortCont(Lc,"function: $(Nm)"),Ctx,.some([]));
-      valis func(tLbl(Nm,size(Args)),.hardDefinition,Tp,peepOptimize(Code::cons[assemOp]))
+--      if traceCodegen! then
+--	logMsg("non-peep code for function $(Nm) is $(Code)");
+      Peeped = peepOptimize((Code++[.iLbl(Ctx.escape)])::cons[assemOp]);
+      if traceCodegen! then
+	logMsg("peep code for function $(Nm) is $(Peeped)");
+      valis .func(tLbl(Nm,size(Args)),.hardDefinition,Tp,Peeped)
     }.
     .vrDef(Lc,Nm,Tp,Val) => valof{
-      if showCode! then
+      if traceCodegen! then
 	logMsg("compile global $(Nm)\:$(Tp) = $(Val))");
       Ctx = emptyCtx(Glbs);
       (_Stk,Code) = compExp(Val,glbRetCont(Nm),abortCont(Lc,"global: $(Nm)"),Ctx,.some([]));
-      valis global(tLbl(Nm,0),Tp,peepOptimize(Code::cons[assemOp]))
+--      if traceCodegen! then
+--	logMsg("non-peep code for global $(Nm) is $(Code)");
+      Peeped = peepOptimize((Code++[.iLbl(Ctx.escape)])::cons[assemOp]);
+      if traceCodegen! then
+	logMsg("peep code for function $(Nm) is $(Peeped)");
+
+      valis .global(tLbl(Nm,0),Tp,Peeped)
     }.
-    .tpDef(Lc,Tp,_TpRl,Index) => tipe(Tp,Index).
+    .tpDef(Lc,Tp,_TpRl,Index) => .tipe(Tp,Index).
+    .lblDef(_Lc,Lbl,Tp,Ix) => .struct(Lbl,Tp,Ix).
   }
 
   compExp:(cExp,Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).

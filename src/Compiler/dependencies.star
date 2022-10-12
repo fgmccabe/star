@@ -288,6 +288,8 @@ star.compiler.dependencies{
     collectName(.cnsSp(Id),All,collectName(.varSp(Id),All,Rf)).
   collectTermRefs(T,All,Rf) where (_,Id) ^= isEnumSymb(T) =>
     collectName(.cnsSp(Id),All,Rf).
+  collectTermRefs(T,All,Rf) where (_,Op,Args) ^= isEnumCon(T) =>
+    collectTermListRefs(Args,All,collectTermRefs(Op,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,Lhs,Rhs) ^= isTypeAnnotation(T) =>
     collectTypeRefs(Rhs,All,collectTermRefs(Lhs,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,Env,Bnd) ^= isLetDef(T) =>

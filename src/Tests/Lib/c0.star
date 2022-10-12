@@ -19,9 +19,9 @@ test.c0{
     ll(pq{C=YY}) => YY.
   }
 
-  tt ::= tt(integer).
+  tt ::= .tt(integer).
 
-  unTT(tt(X)) => X.
+  unTT(.tt(X)) => X.
 
   public cont:(integer)=>pp[()].
   cont(C) => pp{
@@ -45,6 +45,6 @@ test.c0{
     valis F!
   }
 
-  main:()=>().
-  main()=>().
+--  main:()=>().
+--  main()=>().
 }

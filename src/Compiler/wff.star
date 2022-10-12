@@ -346,8 +346,6 @@ star.compiler.wff{
 
   public mkOptionPropagate(Lc,L,R) => binary(Lc,"^?",unary(Lc,"some",L),R).
 
-  public isEnum(A) => isUnary(A,".").
-
   public isEnumSymb(A) where (Lc,.nme(_,N))^=isUnary(A,".") => .some((Lc,N)).
   isEnumSymb(_) default => .none.
 
@@ -356,6 +354,8 @@ star.compiler.wff{
   isEnumCon(_) default => .none.
 
   public enum(Lc,Nm) => unary(Lc,".",.nme(Lc,Nm)).
+
+  public mkEnumCon(Lc,Op,Args) => unary(Lc,".",roundTerm(Lc,Op,Args)).
 
   public isSearch(A) where (Lc,P,G) ^= isBinary(A,"in") &&
       ~ .app(_,.nme(_,"let"),Body) .= P => .some((Lc,P,G)).

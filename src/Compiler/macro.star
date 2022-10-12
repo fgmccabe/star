@@ -84,10 +84,12 @@ star.compiler.macro{
 
   macroConstructor(A) where (Lc,L,R)^=isBinary(A,"|") =>
     binary(Lc,"|",macroConstructor(L),macroConstructor(R)).
-  macroConstructor(A) where _ ^= isEnum(A) => A.
+  macroConstructor(A) where _ ^= isEnumSymb(A) => A.
   macroConstructor(A) where _ ^= isName(A) => A.
   macroConstructor(A) where (Lc,O,Els) ^= isRoundTerm(A) =>
     roundTerm(Lc,macroTerm(O),Els//macroType).
+  macroConstructor(A) where (Lc,O,Els) ^= isEnumCon(A) =>
+    mkEnumCon(Lc,macroTerm(O),Els//macroType).
   macroConstructor(A) where (Lc,O,Q,C,Els) ^= isBraceCon(A) => 
     reUQuant(Lc,Q//macroType,reConstrain(C//macroType,braceTerm(Lc,O,macroStmts(Els)))).
   macroConstructor(A) where (Lc,I) ^= isPrivate(A) =>
@@ -161,7 +163,7 @@ star.compiler.macro{
   macroTerm(A) => macroAst(A,.expression,examineTerm).
 
   examineTerm(A) where _ ^= isName(A) => A.
-  examineTerm(A) where _ ^= isEnum(A) => A.
+  examineTerm(A) where _ ^= isEnumSymb(A) => A.
   examineTerm(A) where .int(_,_) .= A => A.
   examineTerm(A) where .big(_,_) .= A => A.
   examineTerm(A) where .chr(_,_) .= A => A.
@@ -231,6 +233,8 @@ star.compiler.macro{
     mkBrTerm(Lc,Lb,macroStmts(S)).
   examineTerm(A) where (Lc,R,F,V) ^= isRecordUpdate(A) =>
     mkRecordUpdate(Lc,macroTerm(R),F,macroTerm(V)).
+  examineTerm(A) where (Lc,O,Els) ^= isEnumCon(A) => 
+    mkEnumCon(Lc,macroTerm(O),Els//macroTerm).
   examineTerm(A) where (Lc,O,Els) ^= isRoundTerm(A) => 
     roundTerm(Lc,macroTerm(O),Els//macroTerm).
   examineTerm(A) where (Lc,L,R) ^= isIndexTerm(A) =>
@@ -268,13 +272,15 @@ star.compiler.macro{
   examinePtn(A) where .num(_,_) .= A => A.
   examinePtn(A) where .str(_,_) .= A => A.
   examinePtn(A) where .chr(_,_) .= A => A.
-  examinePtn(A) where _ ^= isEnum(A) => A.
+  examinePtn(A) where _ ^= isEnumSymb(A) => A.
   examinePtn(A) where (Lc,L,R) ^= isTypeAnnotation(A) =>
     typeAnnotation(Lc,macroPtn(L),macroType(R)).
   examinePtn(A) where (Lc,Lb,S) ^= isLabeledRecord(A) => 
     mkQBrTerm(Lc,Lb,macroStmts(S)).
   examinePtn(A) where (Lc,O,Els) ^= isRoundTerm(A) => 
     roundTerm(Lc,macroTerm(O),Els//macroPtn).
+  examinePtn(A) where (Lc,O,Els) ^= isEnumCon(A) => 
+    mkEnumCon(Lc,macroTerm(O),Els//macroPtn).
   examinePtn(A) where (Lc,Els) ^= isTuple(A) =>
     rndTuple(Lc,Els//macroPtn).
   examinePtn(A) where (Lc,Els) ^= isSqTuple(A) =>
