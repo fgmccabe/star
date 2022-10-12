@@ -63,7 +63,8 @@ star.compiler.macro.rules{
     "\${}" -> [(.expression,taskMacro)],
     "generator" -> [(.expression,generatorMacro)],
     "task" -> [(.expression,taskMacro)],
-    "yield" -> [(.actn,yieldMacro)]
+    "yield" -> [(.actn,yieldMacro)],
+    "->" -> [(.expression,arrowMacro),(.pattern,arrowMacro)]
   }.
 
   -- Convert assert C to assrt(C,"failed C",Loc)
@@ -440,6 +441,10 @@ star.compiler.macro.rules{
     some(mkLetRecDef(Lc,Els,EE)).
   labelImplExp(T,_) default => .none.
 
+  arrowMacro(E,_) where (Lc,Lhs,Rhs) ^= isBinary(E,"->") =>
+    .active(mkEnumCon(Lc,.nme(Lc,"kv"),[Lhs,Rhs])).
+  arrowMacro(_,_) default => .inactive.
+
   -- Handle algebraic type definitions
 
   algebraicMacro(St,.statement) where (Lc,Vz,Q,Cx,H,R) ^= isAlgebraicTypeStmt(St) => 
@@ -486,7 +491,8 @@ star.compiler.macro.rules{
     valis (Qx,Xx,Fs)
   }
   algebraicFace(A,Qs,Xs) where (Lc,_,_) ^= isRoundTerm(A) => (Qs,Xs,[]).
-  algebraicFace(A,Qs,Xs) where (Lc,_) ^= isEnum(A) => (Qs,Xs,[]).
+  algebraicFace(A,Qs,Xs) where (Lc,_) ^= isEnumSymb(A) => (Qs,Xs,[]).
+  algebraicFace(A,Qs,Xs) where (Lc,_,_) ^= isEnumCon(A) => (Qs,Xs,[]).
   algebraicFace(A,Qs,Xs) where (Lc,_,Els) ^= isBrTerm(A) => (Qs,Xs,Els).
   algebraicFace(A,Qs,Xs) where (_,I) ^= isPrivate(A) =>
     algebraicFace(I,Qs,Xs).
@@ -569,7 +575,7 @@ star.compiler.macro.rules{
 	      binary(Lc,"<=>",reXQuant(Lc,XQs,
 		  reConstrain(XCx,brTuple(Lc,sort(Els,compEls)))),Tp)))).
 	DCon = typeAnnotation(Lc,dollarName(Nm),reUQuant(Lc,Qs,
-	  reConstrain(Cx,
+	    reConstrain(Cx,
 	      binary(Lc,"<=>",reXQuant(Lc,XQs,
 		  reConstrain(XCx,rndTuple(Lc,project1(sort(Els,compEls))))),Tp)))).
       } in [reveal(BCon,Vz),reveal(DCon,Vz)].
@@ -619,7 +625,7 @@ star.compiler.macro.rules{
   isBraceCon(A) => isCon(A,isBrTerm).
 
   public isRoundCon:(ast) => option[(option[locn],ast,cons[ast],cons[ast],cons[ast])].
-  isRoundCon(A) => isCon(A,isRoundTerm).
+  isRoundCon(A) => isCon(A,isEnumCon).
 
   isCon:(ast,(ast)=>option[(option[locn],ast,cons[ast])]) => option[(option[locn],ast,cons[ast],cons[ast],cons[ast])].
   isCon(A,P) where
@@ -658,11 +664,12 @@ star.compiler.macro.rules{
     accessorEqns(R,Fld,AccNm,accessorEqns(L,Fld,AccNm,SoFar)).
   accessorEqns(Cns,Fld,AccNm,SoFar) where
       (Lc,CnNm,Els)^=isBrTerm(Cns) && isFieldOfFc(Els,Fld) => valof{
-    Sorted = sort(Els,compEls);
-    ConArgs = projectArgTypes(Sorted,Fld);
-    Eqn = mkEquation(Lc,some(AccNm),.false,
-      rndTuple(Lc,[roundTerm(Lc,dollarName(CnNm),ConArgs)]),.none,nme(Lc,"X"));
-    valis [Eqn,..SoFar]
+	Sorted = sort(Els,compEls);
+	ConArgs = projectArgTypes(Sorted,Fld);
+	
+	Eqn = mkEquation(Lc,some(AccNm),.false,
+	  rndTuple(Lc,[mkEnumCon(Lc,dollarName(CnNm),ConArgs)]),.none,nme(Lc,"X"));
+	valis [Eqn,..SoFar]
   }
   accessorEqns(C,Fld,AccNm,Eqns) where (Lc,I) ^= isPrivate(C) =>
     accessorEqns(I,Fld,AccNm,Eqns).
@@ -693,13 +700,12 @@ star.compiler.macro.rules{
     updaterEqns(R,Fld,AccNm,updaterEqns(L,Fld,AccNm,SoFar)).
   updaterEqns(Cns,Fld,AccNm,SoFar) where
       (Lc,CnNm,Els)^=isBrTerm(Cns) && isFieldOfFc(Els,Fld) => valof{
-    Sorted = sort(Els,compEls);
-    ConArgs = projectArgTypes(Sorted,Fld);
-    UEqn = mkEquation(Lc,some(AccNm),.false,
-      rndTuple(Lc,[roundTerm(Lc,dollarName(CnNm),allArgs(Sorted,Fld,0,anon(Lc))),nme(Lc,"XX")]),.none,
-      roundTerm(Lc,dollarName(CnNm),allArgs(Sorted,Fld,0,nme(Lc,"XX"))));
-    valis [UEqn,..SoFar]
-  }
+	Sorted = sort(Els,compEls);
+	UEqn = mkEquation(Lc,some(AccNm),.false,
+	  rndTuple(Lc,[mkEnumCon(Lc,dollarName(CnNm),allArgs(Sorted,Fld,0,anon(Lc))),nme(Lc,"XX")]),.none,
+	  mkEnumCon(Lc,dollarName(CnNm),allArgs(Sorted,Fld,0,nme(Lc,"XX"))));
+	valis [UEqn,..SoFar]
+      }
   updaterEqns(C,Fld,AccNm,Eqns) where (Lc,I) ^= isPrivate(C) =>
     updaterEqns(I,Fld,AccNm,Eqns).
   updaterEqns(C,_,_,Eqns) default => Eqns.

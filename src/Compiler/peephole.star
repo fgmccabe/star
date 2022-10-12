@@ -140,6 +140,10 @@ star.compiler.peephole{
   peep([.iLine(Lc),.iLine(_),..Ins]) => peep([.iLine(Lc),..Ins]).
   peep(Ins) where Inx ^= accessorPtn(Ins) => peep(Inx).
   peep([.iStL(Off),.iLdL(Off),..Ins]) => peep([.iTL(Off),..Ins]).
+  peep([.iCall(Fn,Lbl),.iFrame(_),.iRet,..Ins]) =>
+    [.iTCall(Fn),..peep(Ins)].
+  peep([.iOCall(O,Lbl),.iFrame(_),.iRet,..Ins]) =>
+    [.iTOCall(O),..peep(Ins)].
   peep([I,..Ins]) => [I,..peep(Ins)].
 
   accessorPtn([.iUnpack(Lb,Fl),..Ins]) => valof{
@@ -150,6 +154,7 @@ star.compiler.peephole{
     else
     valis .none
   }
+  accessorPtn(_) default => .none.
 
   dropSeq([.iDrop,..Ins],Dz) => dropSeq(Ins,[.iDrop,..Dz]).
   dropSeq(Ins,Dz) => (Dz,Ins).

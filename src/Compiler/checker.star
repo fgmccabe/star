@@ -468,14 +468,14 @@ star.compiler.checker{
     (Args,Ev) = typeOfArgsPtn(Els,Tps,ErTp,Env,Path);
     valis (apply(Lc,Fun,Args,Tp),Ev)
   }
-  typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Op,Els) ^= isRoundTerm(A) => valof{
-    At = newTypeVar("A");
-    Fun = typeOfExp(Op,consType(At,Tp),ErTp,Env,Path);
-    Tps = genTpVars(Els);
-    checkType(A,.tupleType(Tps),At,Env);
-    (Args,Ev) = typeOfArgsPtn(Els,Tps,ErTp,Env,Path);
-    valis (apply(Lc,Fun,Args,Tp),Ev)
-  }
+  -- typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Op,Els) ^= isRoundTerm(A) => valof{
+  --   At = newTypeVar("A");
+  --   Fun = typeOfExp(Op,consType(At,Tp),ErTp,Env,Path);
+  --   Tps = genTpVars(Els);
+  --   checkType(A,.tupleType(Tps),At,Env);
+  --   (Args,Ev) = typeOfArgsPtn(Els,Tps,ErTp,Env,Path);
+  --   valis (apply(Lc,Fun,Args,Tp),Ev)
+  -- }
   typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Op,Ss) ^= isLabeledTheta(A) => valof{
     if traceCanon! then
       logMsg("labeled record ptn: $(A)");
@@ -561,8 +561,10 @@ star.compiler.checker{
       valis vr(locOf(A),"_",Tp)
     }
   }
-  typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Nm) ^= isEnumSymb(A) =>
-    typeOfExp(zeroary(Lc,Nm),Tp,ErTp,Env,Path).
+  typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Nm) ^= isEnumSymb(A) => valof{
+    Fun = typeOfExp(.nme(Lc,Nm),consType(tupleType([]),Tp),ErTp,Env,Path);
+    valis apply(Lc,Fun,[],Tp)
+  }
   typeOfExp(A,Tp,_,Env,Path) where (Lc,Ix) ^= isInt(A)  => valof{
     checkType(A,intType,Tp,Env);
     valis intr(Lc,Ix)
@@ -611,7 +613,8 @@ star.compiler.checker{
     valis cond(Lc,Tst,Thn,Els)
   }.
   typeOfExp(A,Tp,ErTp,Env,Path) where _ ^= isConjunct(A) => valof{
-    checkType(A,boolType,Tp,Env);
+    (_,boolTp,_,_) = ^findType(Env,"boolean");
+    checkType(A,boolTp,Tp,Env);
     (Gl,_) = checkCond(A,ErTp,Env,Path);
     valis Gl
   }.
@@ -775,7 +778,7 @@ star.compiler.checker{
     ExTp = mkTypeExp(FFTp,[At,Tp]);
     Fun = typeOfExp(Op,ExTp,ErTp,Env,Path);
     Args = typeOfExps(As,Vrs,ErTp,[],Env,Path);
-    if sameType(FFTp,tpFun("=>",2),Env) || sameType(FFTp,tpFun("<=>",2),Env) then{
+    if sameType(FFTp,tpFun("=>",2),Env) then{
       valis apply(Lc,Fun,Args,Tp)
     } else if ETp^=ErTp && sameType(FFTp,throwsType(ExTp,ETp),Env) then{
       valis apply(Lc,Fun,Args,Tp)
@@ -1029,7 +1032,8 @@ star.compiler.checker{
   checkGoal(A,ErTp,Env,Path) where (_,[Inner]) ^= isTuple(A) =>
     checkGoal(Inner,ErTp,Env,Path).
   checkGoal(A,ErTp,Env,Path) => valof{
-    Exp = typeOfExp(A,boolType,ErTp,Env,Path);
+    (_,boolTp,_,_) = ^findType(Env,"boolean");
+    Exp = typeOfExp(A,boolTp,ErTp,Env,Path);
     valis (Exp,Env)
   }
 

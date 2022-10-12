@@ -115,7 +115,7 @@
 		  reConstrain(XCx,brTuple(Lc,sort(Els,compEls)))),Tp)))).
       } in ok([reveal(Con,Vz)]).
   buildConstructors(A,Qs,Cx,Tp,Vz,Rp) where
-      (Lc,Nm,XQs,XCx,Els) ^= isRoundCon(A) => let{
+      (Lc,Nm,XQs,XCx,Els) ^= isEnumCon(A) => let{
 	Con = typeAnnotation(Lc,nme(Lc,Nm),reUQuant(Lc,Qs,
 	  reConstrain(Cx,
 	      binary(Lc,"<=>",rndTuple(Lc,Els),Tp)))).
