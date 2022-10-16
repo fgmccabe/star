@@ -231,7 +231,7 @@ star.compiler.macro.rules{
     St = genName(Lc,"St");
 
     Eq1 = equation(Lc,roundTerm(Lc,sF,[Ptn,St]),Succ(.grounded(St)));
-    Eq2 = equation(Lc,roundTerm(Lc,sF,[anon(Lc),St]),Lift(.grounded(St)));
+    Eq2 = equation(Lc,roundTerm(Lc,sF,[mkAnon(Lc),St]),Lift(.grounded(St)));
     
     FF = mkLetDef(Lc,[Eq1,Eq2],sF);
     valis ternary(Lc,"_iter",Src,Lift(Zed),FF)
@@ -340,7 +340,7 @@ star.compiler.macro.rules{
     Yld = mkLambda(Lc,.false,unary(Lc,"_yld",P),.none,B);
 
     /* build _yld(_) default => {} */
-    Deflt = mkEquation(Lc,.none,.true,unary(Lc,"_yld",anon(Lc)),.none,brTuple(Lc,[]));
+    Deflt = mkEquation(Lc,.none,.true,unary(Lc,"_yld",mkAnon(Lc)),.none,brTuple(Lc,[]));
 
     /* build I resume ._next in .. */
     Resume = mkResume(Lc,I,enum(Lc,"_next"),[Yld,Deflt,End]);
@@ -684,7 +684,7 @@ star.compiler.macro.rules{
       (Lc,V,T) ^= isTypeAnnotation(A) && F== V =>
     [nme(Lc,"X"),..projectArgTypes(As,F)].
   projectArgTypes([A,..As],F) where (Lc,V,T) ^= isTypeAnnotation(A) =>
-    [anon(Lc),..projectArgTypes(As,F)].
+    [mkAnon(Lc),..projectArgTypes(As,F)].
   projectArgTypes([_,..As],F) => projectArgTypes(As,F).
 
   makeUpdater:(ast,string,ast,cons[ast],cons[ast],ast,visibility) => ast.
@@ -702,7 +702,7 @@ star.compiler.macro.rules{
       (Lc,CnNm,Els)^=isBrTerm(Cns) && isFieldOfFc(Els,Fld) => valof{
 	Sorted = sort(Els,compEls);
 	UEqn = mkEquation(Lc,some(AccNm),.false,
-	  rndTuple(Lc,[mkEnumCon(Lc,dollarName(CnNm),allArgs(Sorted,Fld,0,anon(Lc))),nme(Lc,"XX")]),.none,
+	  rndTuple(Lc,[mkEnumCon(Lc,dollarName(CnNm),allArgs(Sorted,Fld,0,mkAnon(Lc))),nme(Lc,"XX")]),.none,
 	  mkEnumCon(Lc,dollarName(CnNm),allArgs(Sorted,Fld,0,nme(Lc,"XX"))));
 	valis [UEqn,..SoFar]
       }

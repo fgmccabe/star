@@ -166,6 +166,7 @@ star.compiler.normalize{
   addExtra(.some(P),Args) => [P,..Args].
 
   liftPtn:(canon,nameMap,set[cId],cons[cDefn]) => crFlow.
+  liftPtn(.anon(Lc,Tp),Map,_,Ex) => (.cAnon(Lc,Tp),Ex).
   liftPtn(.vr(Lc,Nm,Tp),Map,_,Ex) => trVarPtn(Lc,Nm,Tp,Map,Ex).
   liftPtn(.enm(Lc,FullNm,Tp),Map,_,Ex) => (.cTerm(Lc,FullNm,[],Tp),Ex).
   liftPtn(.intr(Lc,Ix),Map,_,Ex) =>  (.cInt(Lc,Ix),Ex).
@@ -239,6 +240,7 @@ star.compiler.normalize{
   }.
 
   liftExp:(canon,nameMap,set[cId],cons[cDefn]) => crFlow.
+  liftExp(.anon(Lc,Tp),Map,Q,Ex) => (.cAnon(Lc,Tp),Ex).
   liftExp(.vr(Lc,Nm,Tp),Map,Q,Ex) => valof{
     VV = liftVarExp(Lc,Nm,Tp,Map);
     valis (VV,Ex)

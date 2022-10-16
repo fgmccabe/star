@@ -12,6 +12,7 @@ star.compiler.freevars{
 
   public freeVarsInExp:(canon,set[cId],set[cId],set[cId]) => set[cId].
   freeVarsInExp(Cn,Excl,Q,Fv) => case Cn in {
+    .anon(_,_) => Fv.
     .vr(Lc,Nm,Tp) where {? .cId(Nm,_) in Excl ?} => Fv.
     .vr(Lc,Nm,Tp) where {? .cId(Nm,_) in Fv ?} => Fv.
     .vr(_,Nm,_) where _ ^= isEscape(Nm) => Fv.
@@ -166,6 +167,7 @@ star.compiler.freevars{
   
   public ptnVars:(canon,set[cId],set[cId]) => set[cId].
   ptnVars(Cn,Excl,Fv) => case Cn in {
+    .anon(_,_) => Fv.
     .vr(Lc,Nm,Tp) => ({? .cId(Nm,Tp) in Excl ?} || {? .cId(Nm,_) in Fv ?}) ?
       Excl ||
       Excl\+.cId(Nm,Tp).
@@ -192,5 +194,4 @@ star.compiler.freevars{
 
   ptnTplVars(Els,Excl,Fv) => 
     foldRight((E,F)=>ptnVars(E,F,Fv),Excl,Els).
-  
 }
