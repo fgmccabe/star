@@ -59,6 +59,14 @@ star.tuples{
     snd((_,X,_)) => X
   }
     
+  public contract all t,e ~~ thd[t->>e] ::= {
+    thd:(t)=>e
+  }
+
+  public implementation all a,b,c ~~ thd[(a,b,c)->>c] => {
+    thd((_,_,X)) => X
+  }
+
   -- 3-tuples
   public implementation all x,y,z ~~ display[x], display[y], display[z] |: display[(x,y,z)] => {
     disp((a,b,c)) => "($(a),$(b),$(c))".
