@@ -34,6 +34,8 @@ test.c0{
 
   1 * 1 => 1.
 
+  1 - 1 => 0.
+
   fact:(integer)=>integer.
   fact(X) => valof{
     F = ref 1;
@@ -44,6 +46,10 @@ test.c0{
     };
     valis F!
   }
+
+  rcf:(integer)=>integer.
+  rcf(1) => 1.
+  rcf(X) => X*rcf(X-1).
 
 --  main:()=>().
 --  main()=>().

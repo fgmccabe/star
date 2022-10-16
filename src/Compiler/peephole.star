@@ -19,9 +19,8 @@ star.compiler.peephole{
 
   public peepOptimize:(cons[assemOp])=>cons[assemOp].
   peepOptimize(Ins) => valof{
-    InsJ = pullJumps(Ins);
-    In0 = deleteUnused(.false, InsJ, findLblUsages(InsJ,{}));
-    valis peep(In0)
+    InsJ = peep(pullJumps(Ins));
+    valis deleteUnused(.false, InsJ, findLblUsages(InsJ,{}));
   }
 
   labelMap ~> map[assemLbl,(boolean,integer)].
@@ -82,21 +81,38 @@ star.compiler.peephole{
 
   deleteUnused:(boolean,cons[assemOp],labelMap)=>cons[assemOp].
   deleteUnused(_,[],_) => [].
-  deleteUnused(.true,[.iLbl(Lb),..Ins],Lbs) where (.true,0) ^= Lbs[Lb] =>
-    [.iLbl(Lb),..dropUntilLbl(.true,Ins,Lbs)].
-  deleteUnused(_,[.iLbl(Lb),..Ins],Lbs) where _ ^= Lbs[Lb] =>
-    [.iLbl(Lb),..deleteUnused(.false,Ins,Lbs)].
-  deleteUnused(F,[.iLbl(Lb),..Ins],Lbs) where ~ _^= Lbs[Lb] =>
-    dropUntilLbl(F,Ins,Lbs).
-  deleteUnused(F,[.iCase(Ar),..Ins],Lbs) => valof{
-    (Hd,Tl) = copyN(Ins,Ar);
-    valis [iCase(Ar),..(Hd++deleteUnused(F,Tl,Lbs))]
+  deleteUnused(F,[I,..Ins],Lbs) => case I in {
+    .iLbl(Lb) => valof{
+      if F then{
+	case Lbs[Lb] in {
+	  .some(Rslt) => {
+	    if (.true,0).=Rslt then
+	      valis [.iLbl(Lb),..dropUntilLbl(.true,Ins,Lbs)]
+	    else
+	    valis [.iLbl(Lb),..deleteUnused(.false,Ins,Lbs)]
+	  }.
+	  .none => valis dropUntilLbl(.true,Ins,Lbs).
+	}
+      }
+      else 
+	valis [.iLbl(Lb),..deleteUnused(.false,Ins,Lbs)]
+    }.
+    .iCase(Ar) => valof{
+      (Hd,Tl) = copyN(Ins,Ar);
+      valis [iCase(Ar),..(Hd++deleteUnused(F,Tl,Lbs))]
+    }.
+    .iIndxJmp(Ar) => valof{
+      (Hd,Tl) = copyN(Ins,Ar);
+      valis [.iIndxJmp(Ar),..(Hd++deleteUnused(F,Tl,Lbs))]
+    }.
+    _ default => valof{
+      if uncondJmp(I) then
+	valis [I,..dropUntilLbl(.true,Ins,Lbs)]
+      else
+      valis [I,..deleteUnused(F,Ins,Lbs)]
+    }
   }
-  deleteUnused(_,[I,..Ins],Lbs) where uncondJmp(I) =>
-    [I,..dropUntilLbl(.true,Ins,Lbs)].
-  deleteUnused(F,[I,..Ins],Lbs) =>
-    [I,..deleteUnused(F,Ins,Lbs)].
-
+      
   copyN:all e ~~ (cons[e],integer) => (cons[e],cons[e]).
   copyN(L,X) => let{.
     copy([],_,H) => (reverse(H),[]).
@@ -126,6 +142,8 @@ star.compiler.peephole{
     .iAbort => .true.
     .iTCall(_) => .true.
     .iTOCall(_) => .true.
+    .iCase(_) => .true.
+    .iIndxJmp(_) => .true.
     _ default => .false.
   }
 
