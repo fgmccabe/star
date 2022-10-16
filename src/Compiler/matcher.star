@@ -4,7 +4,6 @@ star.compiler.matcher{
 
   import star.compiler.term.
   import star.compiler.errors.
---  import star.compiler.freevars.
   import star.compiler.meta.
   import star.compiler.misc.
   import star.compiler.normalize.meta.
@@ -92,6 +91,7 @@ star.compiler.matcher{
     _ == _ default => .false.
   }
 
+  argMode(.cAnon(_,_)) => .inVars.
   argMode(.cVar(_,_)) => .inVars.
   argMode(.cInt(_,_)) => .inScalars.
   argMode(.cBig(_,_)) => .inScalars.
@@ -136,7 +136,7 @@ star.compiler.matcher{
 
   populateArms:all e ~~ (consMap,cons[cCase[e]],option[locn],e,nameMap) => cons[cCase[e]].
   populateArms(Index,Cases,Lc,Deflt,Map) =>
-    { populateArm(Entry,Cases,Lc,Deflt,Map) | Entry in Index}.
+    { populateArm(Entry,Cases,Lc,Deflt,Map) | Entry in sort(Index,((_,_,I1),(_,_,I2))=>I1>I2)}.
 
   populateArm((.tLbl(FullNm,_),Tp,_),Cases,DLc,Deflt,Map) where
       Arm ^= armPresent(FullNm,Cases) => Arm.
@@ -158,8 +158,11 @@ star.compiler.matcher{
     matchTriples(Lc,Vrs,applyVar(V,Triples),Deflt,Map).
 
   applyVar:all e ~~ rewrite[e] |: (cExp,cons[triple[e]]) => cons[triple[e]].
-  applyVar(V,Triples) where .cVar(_,_).=V => let{
+  applyVar(V,Triples) => let{
     applyToTriple:(triple[e])=>triple[e].
+    applyToTriple(([.cAnon(VLc,VTp),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof{
+      valis (Args, (CLc,B,AG,Gl,Exp),Ix)
+    }
     applyToTriple(([.cVar(VLc,.cId(Vr,VTp)),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof{
       Mp = { .tLbl(Vr,arity(VTp))->.vrDef(VLc,Vr,VTp,V)};
       NArgs = rewriteTerms(Args,Mp);
@@ -199,11 +202,17 @@ star.compiler.matcher{
   formCase(([.cString(LLc,Sx),.._],_,_),Tpls,Lc,Vars,Deflt,Map) =>
     (LLc,.cString(LLc,Sx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
   formCase(([.cTerm(Lc,Lbl,Args,Tp),.._],_,_),Triples,_,Vars,Deflt,Map) => valof{
-    Vrs = (Args//(E) => .cVar(Lc,.cId(genSym("_"),typeOf(E))));
+    Vrs = (Args//genTplVar);
     NTriples = subTriples(Triples);
     Case = matchTriples(Lc,Vrs++Vars,NTriples,Deflt,Map);
     valis (Lc,cTerm(Lc,Lbl,Vrs,Tp),Case)
   }.
+
+  genTplVar(Arg) => case Arg in {
+    .cAnon(_,_) => Arg.
+    .cVar(Lc,cId(V,T)) => .cVar(Lc,cId(genSym(V),T)).
+    _ default => .cVar(locOf(Arg),cId(genSym("V"),typeOf(Arg))).
+  }
 
   pickMoreCases:all e ~~ (triple[e],cons[triple[e]],(triple[e],triple[e])=>boolean,
     cons[triple[e]],cons[triple[e]])=> (cons[triple[e]],cons[triple[e]]).

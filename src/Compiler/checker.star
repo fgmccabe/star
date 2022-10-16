@@ -424,7 +424,7 @@ star.compiler.checker{
   }
     
   typeOfPtn:(ast,tipe,option[tipe],dict,string) => (canon,dict).
-  typeOfPtn(A,Tp,_ErTp,Env,Path) where (Lc,"_") ^= isName(A) => (vr(Lc,genSym("_"),Tp),Env).
+  typeOfPtn(A,Tp,_,Env,_) where Lc^=isAnon(A) => (anon(Lc,Tp),Env).
   typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Id) ^= isName(A) &&
       varDefined(Id,Env) =>
     typeOfPtn(mkWhereEquality(A),Tp,ErTp,Env,Path).
@@ -493,7 +493,7 @@ star.compiler.checker{
   typeOfPtn(A,Tp,_,Env,_) => valof{
     Lc = locOf(A);
     reportError("illegal pattern: $(A), expecting a $(Tp)",Lc);
-    valis (vr(Lc,genSym("_"),Tp),Env)    
+    valis (anon(Lc,Tp),Env)    
   }
     
   typeOfArgPtn:(ast,tipe,option[tipe],dict,string) => (canon,dict).
@@ -543,7 +543,7 @@ star.compiler.checker{
   typeOfExp:(ast,tipe,option[tipe],dict,string) => canon.
   typeOfExp(A,Tp,_,Env,Path) where Lc ^= isAnon(A) => valof{
     reportError("anonymous variable not permitted in expression",Lc);
-    valis vr(Lc,"_",Tp)
+    valis anon(Lc,Tp)
   }
   typeOfExp(A,Tp,_,Env,Path) where (Lc,Id) ^= isName(A) => valof{
     if Var ^= findVar(Lc,Id,Env) then{
@@ -553,12 +553,12 @@ star.compiler.checker{
 	valis Var
       } else{
 	reportError("variable $(Id)\:$(typeOf(Var)) not consistent with expected type: $(Tp)",Lc);
-	valis vr(Lc,"_",Tp)
+	valis anon(Lc,Tp)
       }
     }
     else{
       reportError("variable $(Id) not defined. Expecting a $(Tp)",locOf(A));
-      valis vr(locOf(A),"_",Tp)
+      valis anon(locOf(A),Tp)
     }
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Nm) ^= isEnumSymb(A) => valof{
@@ -661,7 +661,7 @@ star.compiler.checker{
     }
     else{
       reportError("cannot find _new_fiber type",Lc);
-      valis vr(Lc,"void",Tp)
+      valis anon(Lc,Tp)
     }
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (_,[El]) ^= isTuple(A) && ~ _ ^= isTuple(El) =>
@@ -762,7 +762,7 @@ star.compiler.checker{
   }
   typeOfExp(A,Tp,_,_,_) => valof{
     reportError("cannot type check expression $(A)",locOf(A));
-    valis vr(locOf(A),"_",Tp)
+    valis anon(locOf(A),Tp)
   }.
 
   typeOfExps:(cons[ast],cons[tipe],option[tipe],cons[canon],dict,string) => cons[canon].

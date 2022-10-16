@@ -152,7 +152,7 @@ star.compiler.ast{
     }
   }
 
-  public anon(Lc) => nme(Lc,"_").
+  public mkAnon(Lc) => nme(Lc,"_").
 
   public isAnon(.nme(Lc,"_")) => some(Lc).
   isAnon(_) default => .none.

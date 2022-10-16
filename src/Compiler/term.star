@@ -91,6 +91,7 @@ star.compiler.term{
 
   dspExp:(cExp,string) => string.
   dspExp(Exp,Off) => case Exp in {
+    .cAnon(_,_) => "_".
     .cVar(_,.cId(V,VTp)) => "%#(V)/$(arity(VTp))".
     .cInt(_,Ix) => disp(Ix).
     .cChar(_,Ix) => disp(Ix).
