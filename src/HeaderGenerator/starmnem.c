@@ -469,10 +469,12 @@ static logical genDisp(ioPo out, opAndSpec A, char *Nm) {
     case lcl:
     case lcs:
     case glb:
-    case off:
     case cDe:
     case Es:
       outMsg(out, " $(%s)", Nm);
+      return True;
+    case off:
+      outMsg(out, " #(%s):", Nm);
       return True;
   }
 }

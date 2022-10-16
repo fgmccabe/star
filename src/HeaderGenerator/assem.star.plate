@@ -104,8 +104,8 @@ star.compiler.assem{
   }
 
   public implementation display[codeSegment] => {
-    disp(.func(Nm,H,Sig,Ins)) => "$(H) $(Nm)\:$(Sig)\n"++showMnem(Ins,0).
-    disp(.global(Nm,Sig,Ins)) => "global $(Nm)\:$(Sig)\n"++showMnem(Ins,0).
+    disp(.func(Nm,_,Sig,Ins)) => "fun $(Nm)\:$(Sig)\n"++showMnem(Ins,0).
+    disp(.global(Nm,Sig,Ins)) => "glb $(Nm)\:$(Sig)\n"++showMnem(Ins,0).
   }
 
   public implementation display[assemOp] => {
