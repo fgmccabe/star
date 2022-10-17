@@ -74,6 +74,10 @@
 @tab non-associative prefix
 @tab 1175
 @tab for ... do @{@}
+@item @code{••}
+@tab left associative infix
+@tab 450
+@tab binary function composition
 @item @code{**}
 @tab left associative infix
 @tab 600
@@ -541,69 +545,70 @@
   @item @code{~>}
   @tab @code{.|.}
   @tab @code{,..}
+  @tab @code{••}
   @tab @code{**}
-  @tab @code{->}
-  @item @code{.+.}
+  @item @code{->}
+  @tab @code{.+.}
   @tab @code{<$}
   @tab @code{!}
   @tab @code{->>}
-  @tab @code{#}
-  @item @code{%}
+  @item @code{#}
+  @tab @code{%}
   @tab @code{<-}
   @tab @code{.>>>.}
   @tab @code{\\+}
-  @tab @code{<<-}
-  @item @code{*}
+  @item @code{<<-}
+  @tab @code{*}
   @tab @code{\\-}
   @tab @code{+}
   @tab @code{.>>.}
-  @tab @code{*>}
-  @item @code{,}
+  @item @code{*>}
+  @tab @code{,}
   @tab @code{\\/}
   @tab @code{-}
   @tab @code{.}
-  @tab @code{/}
-  @item @code{<*>}
+  @item @code{/}
+  @tab @code{<*>}
   @tab @code{:}
   @tab @code{;}
   @tab @code{<}
-  @tab @code{.=}
-  @item @code{=}
+  @item @code{.=}
+  @tab @code{=}
   @tab @code{|:}
   @tab @code{++}
   @tab @code{>}
-  @tab @code{?}
-  @item @code{@@}
+  @item @code{?}
+  @tab @code{@@}
   @tab @code{~~}
   @tab @code{⊕}
   @tab @code{.^.}
-  @tab @code{//}
-  @item @code{.~.}
+  @item @code{//}
+  @tab @code{.~.}
   @tab @code{=<}
   @tab @code{==}
   @tab @code{\\}
-  @tab @code{=>}
-  @item @code{^}
+  @item @code{=>}
+  @tab @code{^}
   @tab @code{<=>}
   @tab @code{•}
   @tab @code{.&.}
-  @tab @code{///}
-  @item @code{::}
+  @item @code{///}
+  @tab @code{::}
   @tab @code{+++}
   @tab @code{:=}
   @tab @code{:?}
-  @tab @code{.<<.}
-  @item @code{>>=}
+  @item @code{.<<.}
+  @tab @code{>>=}
   @tab @code{^/}
   @tab @code{<~}
   @tab @code{|}
-  @tab @code{.#.}
-  @item @code{~}
+  @item @code{.#.}
+  @tab @code{~}
   @tab @code{^//}
   @tab @code{||}
   @tab @code{::=}
-  @tab @code{/\\}
-  @item @code{>=}
+  @item @code{/\\}
+  @tab @code{>=}
   @tab @code{>>}
 
 @end multitable

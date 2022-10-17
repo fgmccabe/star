@@ -874,6 +874,16 @@
     "keyword": false
   },
   {
+    "infixOp": "••",
+    "priorities": [
+      450,
+      450,
+      449
+    ],
+    "desc": "binary function composition",
+    "keyword": false
+  },
+  {
     "infixOp": "@",
     "priorities": [
       399,
