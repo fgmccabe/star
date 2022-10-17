@@ -30,11 +30,11 @@ test.c0{
 
   0 < 1 => .true.
 
-  1 + 1 => 2.
+  x + y => _int_plus(x,y).
 
-  1 * 1 => 1.
+  x - y => _int_minus(x,y).
 
-  1 - 1 => 0.
+  x * y => _int_times(x,y).
 
   fact:(integer)=>integer.
   fact(X) => valof{

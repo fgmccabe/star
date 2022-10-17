@@ -20,7 +20,7 @@ star.compiler.peephole{
   public peepOptimize:(cons[assemOp])=>cons[assemOp].
   peepOptimize(Ins) => valof{
     InsJ = peep(pullJumps(Ins));
-    valis deleteUnused(.false, InsJ, findLblUsages(InsJ,{}));
+    valis peep(deleteUnused(.false, InsJ, findLblUsages(InsJ,{})));
   }
 
   labelMap ~> map[assemLbl,(boolean,integer)].
@@ -94,8 +94,10 @@ star.compiler.peephole{
 	  .none => valis dropUntilLbl(.true,Ins,Lbs).
 	}
       }
-      else 
-	valis [.iLbl(Lb),..deleteUnused(.false,Ins,Lbs)]
+      else if _^=Lbs[Lb] then
+	valis [.iLbl(Lb),..deleteUnused(F,Ins,Lbs)]
+      else
+	valis deleteUnused(F,Ins,Lbs)
     }.
     .iCase(Ar) => valof{
       (Hd,Tl) = copyN(Ins,Ar);
