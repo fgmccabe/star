@@ -193,9 +193,9 @@ star.compiler.meta{
 
   public traceAstOption:cmdOption[compilerOptions].
   traceAstOption = cmdOption{
-    shortForm = "-dA".
+    shortForm = "-da".
     alternatives = [].
-    usage = "-dA -- show ast".
+    usage = "-da -- show ast".
     validator = .none.
     setOption(_,Opts) => valof{
       traceAst := .true;
@@ -218,9 +218,9 @@ star.compiler.meta{
 
   public macroTracingOption:cmdOption[compilerOptions].
   macroTracingOption = cmdOption{
-    shortForm = "-dM".
+    shortForm = "-dm".
     alternatives = [].
-    usage = "-dM -- show macro".
+    usage = "-dm -- show macro".
     validator = .none.
     setOption(_,Opts) => valof{
       macroTracing := .true;

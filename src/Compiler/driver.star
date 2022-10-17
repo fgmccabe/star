@@ -108,13 +108,13 @@ star.compiler{
 	if errorFree() && ~ typeCheckOnly! then {
 	  N = normalize(PkgSpec,Defs,Decls);
 	  validProg(N,IDecls++Decls);
-	  if showNormalize! then{
+	  if traceNormalize! then{
 	    logMsg("normalized code $(N)");
 	  };
 	  Inlined = ( optimization! ==.inlining ? simplifyDefs(N) || N);
 	  validProg(Inlined,IDecls++Decls);
 	  if showNormalize! then{
-	    logMsg("inlined code $(Inlined)");
+	    logMsg("normalized code $(Inlined)");
 	  };
 	  if errorFree() && genCode! then{
 	    Segs = compProg(P,Inlined,Decls);
@@ -122,8 +122,6 @@ star.compiler{
 	    if showCode! then
 	      logMsg("Generated instructions $(Segs)");
 
-	    valis Repo;
-	    
 	    -- PkgSig = mkTpl([pkgTerm(CPkg),
 	    -- 	mkTpl(pkgImports(PkgSpec)//(.pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
 	    -- 	mkTpl(Decls//((D)=>DD:data)),

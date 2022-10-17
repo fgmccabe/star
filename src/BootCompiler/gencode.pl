@@ -59,6 +59,7 @@ genDef(D,Opts,fnDef(Lc,Nm,H,Tp,Args,Value),O,[CdTrm|O]) :-
   genDbg(Opts,C4,[iRetX]),
   findMaxLocal(Dx,Mx),
   genDbg(Opts,C,[iLocals(Mx)|C0]),
+  (is_member(showGenCode,Opts) -> dispIns(func(Nm,H,Sig,Mx,C));true ),
   peepOptimize(C,Cde),
   (is_member(showGenCode,Opts) -> dispIns(func(Nm,H,Sig,Mx,Cde));true ),
   assem(func(Nm,H,Sig,Mx,Cde),CdTrm).

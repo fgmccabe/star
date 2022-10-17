@@ -468,15 +468,8 @@ star.compiler.checker{
     (Args,Ev) = typeOfArgsPtn(Els,Tps,ErTp,Env,Path);
     valis (apply(Lc,Fun,Args,Tp),Ev)
   }
-  -- typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Op,Els) ^= isRoundTerm(A) => valof{
-  --   At = newTypeVar("A");
-  --   Fun = typeOfExp(Op,consType(At,Tp),ErTp,Env,Path);
-  --   Tps = genTpVars(Els);
-  --   checkType(A,.tupleType(Tps),At,Env);
-  --   (Args,Ev) = typeOfArgsPtn(Els,Tps,ErTp,Env,Path);
-  --   valis (apply(Lc,Fun,Args,Tp),Ev)
-  -- }
-  typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Op,Ss) ^= isLabeledTheta(A) => valof{
+  typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Op,Ss) ^= isLabeledRecord(A) &&
+      (OLc,Nm)^=isName(Op) => valof{
     if traceCanon! then
       logMsg("labeled record ptn: $(A)");
     At = newTypeVar("A");
@@ -488,7 +481,22 @@ star.compiler.checker{
     Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
     (Els,Ev) = typeOfElementPtns(Ss,Face,ErTp,Base,Path,[]);
     Args = fillinElementPtns(Lc,Els,Face);
-    valis (apply(Lc,Fun,Args,Tp),Ev)
+    valis (apply(Lc,vr(OLc,dlrName(Nm),typeOf(Fun)),Args,Tp),Ev)
+  }
+  typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Op,Ss) ^= isLabeledTheta(A) &&
+      (OLc,Nm)^=isName(Op) => valof{
+    if traceCanon! then
+      logMsg("labeled theta ptn: $(A)");
+    At = newTypeVar("A");
+    Fun = typeOfExp(Op,consType(At,Tp),ErTp,Env,Path);
+
+    (Q,ETp) = evidence(deRef(At),Env);
+    FaceTp = ^faceOfType(ETp,Env);
+    (Cx,Face) = deConstrain(FaceTp);
+    Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
+    (Els,Ev) = typeOfElementPtns(Ss,Face,ErTp,Base,Path,[]);
+    Args = fillinElementPtns(Lc,Els,Face);
+    valis (apply(Lc,vr(OLc,dlrName(Nm),typeOf(Fun)),Args,Tp),Ev)
   }
   typeOfPtn(A,Tp,_,Env,_) => valof{
     Lc = locOf(A);
@@ -700,7 +708,7 @@ star.compiler.checker{
     
     (Defs,Decls,ThEnv) = thetaEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,.deFault);
 
-    valis formTheta(Lc,Nm,Face,Defs,Decls,Tp)
+    valis formTheta(Lc,dlrName(Nm),Face,Defs,Decls,Tp)
   }
   typeOfExp(A,Tp,ErTp,Env,Pth) where (Lc,Op,Els) ^= isLabeledRecord(A) && (_,Nm)^=isName(Op) => valof{
 --    logMsg("labeled record expression $(A) should be $(Tp)");
