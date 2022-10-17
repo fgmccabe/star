@@ -54,6 +54,7 @@ star.compiler.operators{
     "valis" => [prefixOp(930,929)].
     ",.." => [infixOp(999,1000,999)].
     "for" => [prefixOp(1175,1174)].
+    "••" => [infixOp(450,450,449)].
     "**" => [infixOp(600,600,599)].
     "->" => [infixOp(889,890,889)].
     ".+." => [prefixOp(700,699)].
@@ -296,6 +297,7 @@ star.compiler.operators{
     (">>",`=`) => .some(">>=").
     ("?",`}`) => .some("?}").
     ("!",`}`) => .some("!}").
+    ("•",`•`) => .some("••").
     (_,_) default => .none.
   }
 
@@ -389,6 +391,7 @@ star.compiler.operators{
     "!}" => .true.  /* iota comprehension */
     "⊕" => .true.  /* addition */
     "•" => .true.  /* function composition */
+    "••" => .true.  /* binary function composition */
     "#" => .true.  /* Macro statement marker */
     _ default => .false.
   }

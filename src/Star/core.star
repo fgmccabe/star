@@ -67,7 +67,7 @@ star.core {
     _nil:S.
   }
 
-  public all t ~~ cons[t] ::= .nil | cons(t,cons[t]).
+  public all t ~~ cons[t] ::= .nil | .cons(t,cons[t]).
 
   -- Displayable contract
   public contract all t ~~ display[t] ::= {
@@ -99,11 +99,14 @@ star.core {
   }
 
   option@"the option type is useful when a value is not always available".
-  public all t ~~ option[t] ::= .none | some(t).
+  public all t ~~ option[t] ::= .none | .some(t).
 
   public id:all a ~~ (a)=>a.
   id(X)=>X.
 
   public (•):all a,b,c ~~ ((b)=>c,(a)=>b)=>(a)=>c.
   F • G => (x)=>F(G(x)).
+
+  public (••):all a,b,c ~~ ((b,b)=>c,(a)=>b)=>(a,a)=>c.
+  F •• G => (x,y)=>F(G(x),G(y)).
 }

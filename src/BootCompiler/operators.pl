@@ -37,6 +37,7 @@
   operator("valis", [prefixOp(930, 929)]).
   operator(",..", [infixOp(999, 1000, 999)]).
   operator("for", [prefixOp(1175, 1174)]).
+  operator("••", [infixOp(450, 450, 449)]).
   operator("**", [infixOp(600, 600, 599)]).
   operator("->", [infixOp(889, 890, 889)]).
   operator(".+.", [prefixOp(700, 699)]).
@@ -244,6 +245,7 @@
   follows('>>','=','>>=').
   follows('?','}','?}').
   follows('!','}','!}').
+  follows('•','•','••').
 
   final('%',"%").	 /* modulo */
   final('&&',"&&").	 /* conjunction */
@@ -333,6 +335,7 @@
   final('!}',"!}").	 /* iota comprehension */
   final('⊕',"⊕").	 /* addition */
   final('•',"•").	 /* function composition */
+  final('••',"••").	 /* binary function composition */
   final('#',"#").	 /* Macro statement marker */
 
   keyword("retire").
