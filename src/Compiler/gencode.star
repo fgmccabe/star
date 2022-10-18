@@ -120,7 +120,7 @@ star.compiler.gencode{
       compExp(Fb,expCont(Ev,resumeCont(Stk,Tp::ltipe,Cont),ECont),ECont,Ctx,Stk).
     .cTry(Lc,B,H,Tp) => valof{
       (CLb,CtxB) = defineExitLbl("C",Ctx);
-      valis compExp(B,Cont,catchCont(H,CLb,Cont,ECont,Ctx,Stk,Tp::ltipe),CtxB,Stk)
+      valis compExp(B,Cont,catchCont(CLb,()=>compExp(H,Cont,ECont,Ctx,Stk)),CtxB,Stk)
     }.
     .cValof(Lc,A,Tp) =>
       compAction(A,abortCont(Lc,"missing valis action"),Cont,ECont,Ctx,Stk).
@@ -202,6 +202,42 @@ star.compiler.gencode{
       compExp(E,ptnCont(P,ACont,abortCont(Lc,"define error"),ECont),ECont,Ctx,Stk).
     .aAsgn(Lc,P,E) =>
       compExp(E,expCont(P,asgnCont(ACont,Ctx,Stk),ECont),ECont,Ctx,Stk).
+    .aCase(Lc,G,Cs,D) =>
+      compCase(Lc,G,Cs,D,(Ac,C1,C2)=>actionCont(Ac,ACont,C1,C2),Cont,ECont,Ctx,Stk).
+    .aUnpack(Lc,G,Cs) =>
+      compCnsCase(Lc,G,Cs,(Ac,C1,C2)=>actionCont(Ac,ACont,C1,C2),Cont,ECont,Ctx,Stk).
+    .aIftte(Lc,G,L,R) => valof{
+      AC = splitCont(Lc,Ctx,ACont);
+      CC = splitCont(Lc,Ctx,Cont);
+      EE = splitCont(Lc,Ctx,ECont);
+      valis compCond(G,actionCont(L,AC,CC,EE),
+	resetCont(Stk,actionCont(R,AC,CC,EE)),ECont,Ctx,Stk)
+    }.
+    .aWhile(Lc,G,B) => valof{
+      EE = splitCont(Lc,Ctx,ECont);
+      Lp = defineLbl("Lp",Ctx);
+
+      (Stk1,WCde) = compCond(G,actionCont(B,jmpCont(Lp,Stk),Cont,EE),ACont,EE,Ctx,Stk);
+      valis (reconcileStack(Stk,Stk1),[.iLbl(Lp)]++WCde)
+    }.
+    .aLtt(Lc,.cId(Vr,VTp),Val,Bnd) => valof{
+      (Off,Ctx1) = defineLclVar(Vr,VTp::ltipe,Ctx);
+      (EX,Ctx2) = defineExitLbl("_",Ctx1);
+      valis compExp(Val,stoCont(Off,Stk,actionCont(Bnd,ACont,Cont,ECont)),ECont,Ctx2,Stk)
+    }.
+    .aTry(Lc,B,H) => valof{
+      (CLb,CtxB) = defineExitLbl("C",Ctx);
+      valis compAction(B,ACont,Cont,
+	catchCont(CLb,()=>compAction(H,ACont,Cont,ECont,Ctx,Stk)),CtxB,Stk)
+    }.
+    .aRetire(Lc,F,E) => compExp(F,expCont(E,retireCont(ACont),
+	abortCont(Lc,"retire")),ECont,Ctx,Stk).
+    .aAbort(Lc,Msg) =>
+      abortCont(Lc,Msg).C(Ctx,Stk,[]).
+    _ => valof{
+      reportError("cannot compile action $(A)",locOf(A));
+      valis ACont.C(Ctx,Stk,[])
+    }
   }.
 
   compCase:all e ~~ (option[locn],cExp,cons[cCase[e]],e,
@@ -495,9 +531,9 @@ star.compiler.gencode{
     C(Ctx,AStk,Cde) => Cont.C(Ctx,pushStack(Tp,Stk),Cde++[.iResume,frameIns(AStk)]).
   }
 
-  retireCont:(stack,ltipe,Cont) => Cont.
-  retireCont(Stk,Tp,Cont) => cont{
-    C(Ctx,AStk,Cde) => Cont.C(Ctx,pushStack(Tp,Stk),Cde++[.iRetire,frameIns(AStk)]).
+  retireCont:(Cont) => Cont.
+  retireCont(Cont) => cont{
+    C(Ctx,_AStk,Cde) => Cont.C(Ctx,.none,Cde++[.iRetire]).
   }
 
   nullCont = cont{
@@ -568,22 +604,19 @@ star.compiler.gencode{
     }
   }
 
-  catchCont:(cExp,assemLbl,Cont,Cont,codeCtx,stack,ltipe) => Cont.
-  catchCont(H,CLb,Cont,ECont,Ctx,Stk,Tp) => cont{
+  catchCont:all e ~~ (assemLbl,()=>(stack,multi[assemOp])) => Cont.
+  catchCont(CLb,HComp) => cont{
     C(_,_,Cde) => valof{
-      (SStk,HCde) = compExp(H,Cont,ECont,Ctx,Stk);
+      (SStk,HCde) = HComp();
       valis (SStk,Cde++[.iLbl(CLb)]++HCde)
     }
   }
 
   asgnCont:(Cont,codeCtx,stack) => Cont.
   asgnCont(ACont,Ctx,Stk) => cont{
-    C(_,XStk,Cde) => valof{
-      (NStk,SCde) = resetStack([|Stk|],XStk);
-      valis ACont.C(Ctx,NStk,Cde++SCde)
-    }
+    C(_,_,Cde) => 
+      ACont.C(Ctx,Stk,Cde++[.iAssign])
   }
-
 
   abortCont:(option[locn],string) => Cont.
   abortCont(.some(Lc),Msg) => cont{
