@@ -16,7 +16,8 @@ ReturnStatus g__new_fiber(heapPo h, termPo fiberLambda) {
   return (ReturnStatus) {.ret=Ok, .result = (termPo) child};
 }
 
-ReturnStatus g__suspend_fiber(heapPo h, termPo fiber, termPo event) {
+ReturnStatus g__suspend_fiber(heapPo h, termPo f, termPo event) {
+  stackPo fiber = C_FIBER(f);
   if (stackState(fiber) != active) {
     logMsg(logFile, "tried to suspend non-active fiber %T", fiber);
     return (ReturnStatus) {.ret=Fail, .result = Null};
@@ -26,7 +27,8 @@ ReturnStatus g__suspend_fiber(heapPo h, termPo fiber, termPo event) {
   }
 }
 
-ReturnStatus g__resume_fiber(heapPo h, termPo fiber, termPo event) {
+ReturnStatus g__resume_fiber(heapPo h, termPo f, termPo event) {
+  stackPo fiber = C_FIBER(f);
   if (stackState(fiber) != suspended) {
     logMsg(logFile, "tried to resume non-suspended fiber %T", fiber);
     return (ReturnStatus) {.ret=Fail, .result = Null};
@@ -36,7 +38,8 @@ ReturnStatus g__resume_fiber(heapPo h, termPo fiber, termPo event) {
   }
 }
 
-ReturnStatus g__retire_fiber(heapPo h, termPo fiber, termPo event) {
+ReturnStatus g__retire_fiber(heapPo h, termPo f, termPo event) {
+  stackPo fiber = C_FIBER(f);
   if (stackState(fiber) != active) {
     logMsg(logFile, "tried to retire non-active fiber %T", fiber);
     return (ReturnStatus) {.ret=Fail, .result = Null};
