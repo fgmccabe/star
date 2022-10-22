@@ -66,8 +66,8 @@ star.compiler.assem{
   mnem([],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,_) => (Code,Lts,Lns,Lcs,Pc,MxLcl).
   mnem([.iLbl(_),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends).
   mnem([.iLocal(Nm,.al(Frm),.al(End),Off),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where
-    F ^= Lbls[Frm] &&
-    T ^= Lbls[End] =>
+    F ?= Lbls[Frm] &&
+    T ?= Lbls[End] =>
     mnem(Ins,Code,Lbls,Lts,Lns,Lcs\+mkTpl([strg(Nm),intgr(F),intgr(T),intgr(Off)]),Pc,MxLcl,Ends).
   mnem([.iLine(Lc),..Ins],Code,Lbs,Lts,Lns,Lcs,Pc,MxLcl,Ends) =>
         mnem(Ins,Code,Lbs,Lts,Lns[mkTpl([Lc,intgr(Pc)])->Pc],Lcs,Pc,MxLcl,Ends).
@@ -87,7 +87,7 @@ star.compiler.assem{
   findEnd([_,..Ends],Lvl) => findEnd(Ends,Lvl-1).
 
   findLit:(map[data,integer],data) => (map[data,integer],integer).
-  findLit(Lts,T) where O ^= Lts[T] => (Lts,O).
+  findLit(Lts,T) where O ?= Lts[T] => (Lts,O).
   findLit(Lts,T) where O .= size(Lts) => (Lts[T->O],O).
 
   litTbl:(map[data,integer]) => data.
@@ -104,8 +104,10 @@ star.compiler.assem{
   }
 
   public implementation display[codeSegment] => {
-    disp(.func(Nm,_,Sig,Ins)) => "fun $(Nm)\:$(Sig)\n"++showMnem(Ins,0).
-    disp(.global(Nm,Sig,Ins)) => "glb $(Nm)\:$(Sig)\n"++showMnem(Ins,0).
+    disp(.func(Nm,_,Tp,Ins)) => "fun $(Nm)\:$(Tp)\n"++showMnem(Ins,0).
+    disp(.global(Nm,Tp,Ins)) => "glb $(Nm)\:$(Tp)\n"++showMnem(Ins,0).
+    disp(.struct(Lbl,Tp,Ix)) => "struct $(Lbl)\:$(Tp) @ $(Ix)".
+    disp(.tipe(Tp,Map)) => "type $(Tp), map = $(Map)".
   }
 
   public implementation display[assemOp] => {

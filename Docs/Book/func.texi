@@ -1392,18 +1392,18 @@ of defining and binding the variable @code{JJ} to the matched spouse.
 Of course, the code above @emph{is} kind of clumsy. There is a range
 of operators to make using @code{option} values more pleasant.
 
-The most important of these is the @code{^=} operator which combines
+The most important of these is the @code{?=} operator which combines
 the @code{.=} with the @code{some} match. Using this, the
 @code{isMarriedTo} function becomes:
 @example
-isMarriedTo(P,J) where JJ^=P.spouse => J==JJ.
+isMarriedTo(P,J) where JJ?=P.spouse => J==JJ.
 isMarriedTo(_,_) default => .false.
 @end example
-The meaning of @code{^=} is similar to the pattern match condition
+The meaning of @code{?=} is similar to the pattern match condition
 @code{.=}; except that the pattern is assumed to be for a @code{some}
 value.
 
-While the @code{^=} operator@footnote{Read as `has a value'.} is very
+While the @code{?=} operator@footnote{Read as `has a value'.} is very
 useful in unpacking an optional value, the @code{^|} operator allows
 us to handle cases where we always need to be able to give some kind
 of value. For example, normally a @code{map} returns none if an entry

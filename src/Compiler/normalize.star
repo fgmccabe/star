@@ -47,13 +47,13 @@ star.compiler.normalize{
       logMsg("transformed function $(Func)");
 
     ClosureNm = closureNm(FullNm);
-    ClVar = (.cVar(_,Exv)^=Extra ? Exv || .cId("_",unitTp));
+    ClVar = (.cVar(_,Exv)?=Extra ? Exv || .cId("_",unitTp));
     ClVars = makeFunVars(Tp);
     ClArgs = [ClVar,..ClVars];
 
     ClosTp = extendFunTp(deRef(Tp),.some(ClVar));
 
-    if Exv^=Extra then {
+    if Exv?=Extra then {
       ClosEntry =
 	.fnDef(Lc,ClosureNm,ClosTp,ClArgs,
 	  .cCall(Lc,FullNm,ClArgs//(V)=>.cVar(Lc,V),funTypeRes(Tp)));
@@ -102,7 +102,7 @@ star.compiler.normalize{
     (_,CT) = deQuant(Tp);
     (_,IT) = deConstrain(CT);
     (ATp,RTp) = ^ isConsType(IT);
-    if (Ar,_) ^= isTupleType(ATp) then{
+    if (Ar,_) ?= isTupleType(ATp) then{
 --    logMsg("look for $(tpName(RTp)) type: $(findIndexMap(tpName(RTp),Map))");
       ConsMap = ^ findIndexMap(tpName(RTp),Map);
 --      logMsg("consmap for $(Nm)\:$(ConsMap)");
@@ -208,7 +208,7 @@ star.compiler.normalize{
 
   liftPtnCallOp:(option[locn],string,cons[cExp],tipe,nameMap,set[cId],cons[cDefn]) =>
     (cExp,cons[cDefn]).
-  liftPtnCallOp(Lc,Nm,Args,Tp,Map,Q,Ex) where Entry^= lookupVarName(Map,Nm) =>
+  liftPtnCallOp(Lc,Nm,Args,Tp,Map,Q,Ex) where Entry?= lookupVarName(Map,Nm) =>
     implementPtnCall(Lc,Entry,Args,Tp,Map,Q,Ex).
 
   implementPtnCall(Lc,.moduleCons(Nm,CTp),Args,Tp,_,_,Ex) =>
@@ -220,7 +220,7 @@ star.compiler.normalize{
     implementVarPtn(Lc,Nm,lookupVarName(Map,Nm),Tp,Map,Ex).
 
   implementVarPtn(Lc,Nm,.none,Tp,_,Ex) => (.cVar(Lc,.cId(Nm,Tp)),Ex).
-  implementVarPtn(Lc,Nm,.some(.moduleCons(Enum,CTp)),Tp,_,Ex) where ETp^=isEnumType(CTp) =>
+  implementVarPtn(Lc,Nm,.some(.moduleCons(Enum,CTp)),Tp,_,Ex) where ETp?=isEnumType(CTp) =>
     (.cTerm(Lc,Enum,[],ETp),Ex).
   implementVarPtn(Lc,Nm,.some(.localCons(Enum,CTp,Vr)),Tp,_,Ex) =>
     (.cTerm(Lc,Enum,[.cVar(Lc,Vr)],Tp),Ex).
@@ -342,7 +342,7 @@ star.compiler.normalize{
   }
 
   liftVarExp:(option[locn],string,tipe,nameMap) => cExp.
-  liftVarExp(Lc,Nm,Tp,Map) where Entry ^= lookupVarName(Map,Nm) =>
+  liftVarExp(Lc,Nm,Tp,Map) where Entry ?= lookupVarName(Map,Nm) =>
     implementVarExp(Lc,Entry,Map,Tp).
   liftVarExp(Lc,Nm,Tp,Map) => .cVar(Lc,.cId(Nm,Tp)).
 
@@ -374,9 +374,9 @@ star.compiler.normalize{
 
   liftExpCallOp:(option[locn],canon,cons[cExp],tipe,nameMap,set[cId],cons[cDefn]) =>
     crFlow.
-  liftExpCallOp(Lc,.vr(_,Nm,_),Args,Tp,Map,_,Ex) where _ ^= isEscape(Nm) =>
+  liftExpCallOp(Lc,.vr(_,Nm,_),Args,Tp,Map,_,Ex) where _ ?= isEscape(Nm) =>
     (.cECall(Lc,Nm,Args,Tp),Ex).
-  liftExpCallOp(Lc,.vr(_,Nm,_),Args,Tp,Map,_,Ex) where Entry ^= lookupVarName(Map,Nm) =>
+  liftExpCallOp(Lc,.vr(_,Nm,_),Args,Tp,Map,_,Ex) where Entry ?= lookupVarName(Map,Nm) =>
     implementFunCall(Lc,Entry,Nm,Args,Tp,Map,Ex).
   liftExpCallOp(Lc,.enm(_,FullNm,_),Args,Tp,Map,_,Ex) => (.cTerm(Lc,FullNm,Args,Tp),Ex).
   liftExpCallOp(Lc,Op,Args,Tp,Map,Q,Ex) => valof{
@@ -426,7 +426,7 @@ star.compiler.normalize{
 
     (lVars,vrDefs) = unzip(varDefs(Defs));
     CM = makeConsMap(Decls);
-    GrpFns = (Defs^/(D)=>~_^=isVarDef(D));
+    GrpFns = (Defs^/(D)=>~_?=isVarDef(D));
 
     rawGrpFree = freeLabelVars(freeVarsInExp(.letExp(Lc,Defs,Decls,Bnd),[],Q,[]),Outer)::cons[cId];
 
@@ -572,7 +572,7 @@ star.compiler.normalize{
   
   varDefs:(cons[canonDef]) => cons[(cId,canon)].
   varDefs(Defs) =>
-    foldLeft((D,FF) => (V^=isVarDef(D) ? [V,..FF] || FF),
+    foldLeft((D,FF) => (V?=isVarDef(D) ? [V,..FF] || FF),
       [],Defs).
 
   isVarDef(.varDef(_,Nm,FullNm,Vl,_,Tp)) where ~isFunDef(Vl) =>
@@ -594,8 +594,8 @@ star.compiler.normalize{
   liftLetRec(Lc,Grp,Decs,Bnd,Outer,Q,Ex) => valof{
 --    logMsg("lift let rec group $(Grp) @ $(Lc)");
 --    logMsg("Q=$(Q)");
-    GrpFns = (Grp^/(D)=>~_^=isVarDef(D));
-    GrpVars = (Grp^/(D)=>_^=isVarDef(D));
+    GrpFns = (Grp^/(D)=>~_?=isVarDef(D));
+    GrpVars = (Grp^/(D)=>_?=isVarDef(D));
     (lVars,vrDefs) = unzip(varDefs(Grp));
 --    logMsg("lVars = $(lVars)");
 --    logMsg("vrDefs = $(vrDefs)");
@@ -648,7 +648,7 @@ star.compiler.normalize{
     reduceArgs([],Frs) => Frs.
     reduceArgs([FrV,..FrArgs],Frs) where
 	FrNm .= cName(FrV) &&
-	OTh ^= lookupThetaVar(Map,FrNm) &&
+	OTh ?= lookupThetaVar(Map,FrNm) &&
 	OTh .<. Frs =>
       reduceArgs(FrArgs,drop(FrV,Frs)).
     reduceArgs([_,..FrArgs],Frs) => reduceArgs(FrArgs,Frs).
@@ -657,7 +657,7 @@ star.compiler.normalize{
   freeParents:(cons[cId],nameMap) => cons[cId].
   freeParents(Frs,Map) => foldLeft((F,Fs)=>Fs\+freeParent(F,Map),[],Frs).
 
-  freeParent(V,Map) where ThV ^= lookupThetaVar(Map,cName(V)) =>
+  freeParent(V,Map) where ThV ?= lookupThetaVar(Map,cName(V)) =>
     freeParent(ThV,Map).
   freeParent(V,_) default => V.
 
@@ -690,7 +690,7 @@ star.compiler.normalize{
   freeLabelVars(Fr,Map) => foldLeft((V,So)=>labelVar(V,Map,So),Fr,Fr).
 
   labelVar:(cId,nameMap,set[cId])=>set[cId].
-  labelVar(.cId(Nm,_),Map,So) where Entry^=lookupVarName(Map,Nm) =>
+  labelVar(.cId(Nm,_),Map,So) where Entry?=lookupVarName(Map,Nm) =>
     case Entry in {
       .labelArg(ThVr,_) => So\+ThVr.
       .localFun(_,_,ThVr) => So\+ThVr.

@@ -13,24 +13,24 @@ star.compiler.term.repo{
 
   public openRepository:(uri) => termRepo.
   openRepository(Root) where
-      ManUri ^= parseUri("manifest") &&
-      MU ^= resolveUri(Root,ManUri) &&
-      Man ^= readManifest(MU) => repo(Root,Man).
+      ManUri ?= parseUri("manifest") &&
+      MU ?= resolveUri(Root,ManUri) &&
+      Man ?= readManifest(MU) => repo(Root,Man).
   openRepository(Root) => .repo(Root,man([])).
 
   public implementation repo[termRepo] => {
     pkgSignature(.repo(_,Man),Pkg) => locateInManifest(Man,Pkg,"signature").
 
     hasCode(.repo(Root,Man),Pkg) where
-	U ^= locateInManifest(Man,Pkg,"code") &&
-	Uri ^= parseUri(U) &&
-	RU ^= resolveUri(Root,Uri)  => getResource(RU).
+	U ?= locateInManifest(Man,Pkg,"code") &&
+	Uri ?= parseUri(U) &&
+	RU ?= resolveUri(Root,Uri)  => getResource(RU).
     hasCode(_,_) default => .none.
   }
 
   public flushRepo:(termRepo)=>termRepo.
   flushRepo(.repo(Root,Man)) => valof{
-    if MU ^= parseUri("manifest") && RepoUri ^= resolveUri(Root,MU) then{
+    if MU ?= parseUri("manifest") && RepoUri ?= resolveUri(Root,MU) then{
       flushManifest(RepoUri,Man)
     };
     valis .repo(Root,Man);
@@ -61,24 +61,24 @@ star.compiler.term.repo{
 
   public packageCodeOk:(termRepo,pkg) => boolean.
   packageCodeOk(Repo,Pkg) where
-      (SrcFile,CodeFile) ^= packageCode(Repo,Pkg) =>
+      (SrcFile,CodeFile) ?= packageCode(Repo,Pkg) =>
     resourcePresent(CodeFile) &&
     resourcePresent(SrcFile) &&
         newerRsrc(CodeFile,SrcFile).
   packageCodeOk(_,_) default => .false.
 
   public pkgOk:(termRepo,pkg)=>boolean.
-  pkgOk(Repo,Pkg) => (SrcUri,CodeUri) ^= packageCode(Repo,Pkg) ?
+  pkgOk(Repo,Pkg) => (SrcUri,CodeUri) ?= packageCode(Repo,Pkg) ?
     newerRsrc(CodeUri,SrcUri) || .false.
 
   public packageCode:(termRepo,pkg) => option[(uri,uri)].
   packageCode(.repo(Root,Man),Pkg) where
-      U ^= locateInManifest(Man,Pkg,"code") &&
-      S ^= locateInManifest(Man,Pkg,"source") &&
-      CU ^= parseUri(U) &&
-      CodeFile ^= resolveUri(Root,CU) &&
-      SU ^= parseUri(S) &&
-      SrcFile ^= resolveUri(Root,SU) => some((SrcFile,CodeFile)).
+      U ?= locateInManifest(Man,Pkg,"code") &&
+      S ?= locateInManifest(Man,Pkg,"source") &&
+      CU ?= parseUri(U) &&
+      CodeFile ?= resolveUri(Root,CU) &&
+      SU ?= parseUri(S) &&
+      SrcFile ?= resolveUri(Root,SU) => some((SrcFile,CodeFile)).
   packageCode(_,_) default => .none.
     
   public addPackage:(termRepo,pkg,string) => termRepo.
@@ -133,7 +133,7 @@ star.compiler.term.repo{
   flushManifest(Url,Man) => putResource(Url,(Man::data)::string).
 
   readManifest(Url) where
-      Txt ^= getResource(Url) &&
+      Txt ?= getResource(Url) &&
       J.=Txt::data => some(J::manifest).
   readManifest(_) default => .none.
 }

@@ -189,7 +189,7 @@ _hdtl^(1,_hdtl^(2,X))
 @end example
 where the @code{^} is syntactic sugar for the more elaborate form:
 @example
-S0 where (1,S1) ^= _hdtl(S0) && (2,X)^=_hdtl(S1)
+S0 where (1,S1) ?= _hdtl(S0) && (2,X)?=_hdtl(S1)
 @end example
 which is, in turn, syntactic sugar for:
 @example
@@ -405,12 +405,12 @@ As might be expected, given the discussion above, the type of an index
 expression is optional.
 
 The most natural way of making use of an index expression is to use it
-in combination with a @code{^=} condition or an @code{^|} expression
+in combination with a @code{?=} condition or an @code{^|} expression
 -- which allows for smooth handling of the case where the index
 fails. For example, we might have:
 
 @example
-nameOf(F) where N ^= names[F] => N.
+nameOf(F) where N ?= names[F] => N.
 nameOf(F) default => ...
 @end example
 
@@ -504,9 +504,9 @@ With this statement in scope, we can treat appropriate @code{tree}
 expressions as though they were regular arrays or dictionaries:
 @example
 T = tNode(tEmpty,("alpha","one"),tEmpty)
-assert "one" ^= T["alpha"].
+assert "one" ?= T["alpha"].
 U = T["beta"->"two"]. -- Add in "beta"
-assert "one" ^= U["alpha"].
+assert "one" ?= U["alpha"].
 @end example
 The implementation statement relies on another feature of the
 type system -- we need to constrain the implementation of indexed to a

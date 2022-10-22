@@ -55,7 +55,7 @@ public crFlow ~> (cExp,cons[cDefn]).
   anyDef(D) => .some(D).
 
   public lookupThetaVar:(nameMap,string)=>option[cId].
-  lookupThetaVar(Map,Nm) where E^=lookupVarName(Map,Nm) =>
+  lookupThetaVar(Map,Nm) where E?=lookupVarName(Map,Nm) =>
     case E in {
       .labelArg(ThV,_) => .some(ThV).
       .memoArg(_,ThV,_) => .some(ThV).
@@ -70,7 +70,7 @@ public crFlow ~> (cExp,cons[cDefn]).
 
   public lookup:all e ~~ (nameMap,string,(nameMapEntry)=>option[e])=>option[e].
   lookup([],_,_) => .none.
-  lookup([.lyr(_,Entries,_),..Map],Nm,P) where E ^= Entries[Nm] =>
+  lookup([.lyr(_,Entries,_),..Map],Nm,P) where E ?= Entries[Nm] =>
     P(E).
   lookup([_,..Map],Nm,P) => lookup(Map,Nm,P).
 
@@ -78,7 +78,7 @@ public crFlow ~> (cExp,cons[cDefn]).
   findIndexMap(Tp,Map) => lookupTypeMap(Map,Tp).
 
   lookupTypeMap([],_) => .none.
-  lookupTypeMap([.lyr(_,_,Entries),..Map],Nm) where .moduleType(_,_,E) ^= Entries[Nm] =>
+  lookupTypeMap([.lyr(_,_,Entries),..Map],Nm) where .moduleType(_,_,E) ?= Entries[Nm] =>
     .some(E).
   lookupTypeMap([_,..Map],Nm) => lookupTypeMap(Map,Nm).
 
@@ -92,8 +92,8 @@ public crFlow ~> (cExp,cons[cDefn]).
       map[string,cons[(string,tipe)]].
     collectConstructors([],Map) => Map.
     collectConstructors([.cnsDec(Lc,Nm,FullNm,Tp),..Ds],Map) where
-	TpNm ^= collectibleConsType(Tp) =>
-      (E ^= Map[TpNm] ?
+	TpNm ?= collectibleConsType(Tp) =>
+      (E ?= Map[TpNm] ?
 	collectConstructors(Ds,Map[TpNm->[(FullNm,Tp),..E]]) ||
 	collectConstructors(Ds,Map[TpNm->[(FullNm,Tp)]])
       ).
@@ -112,7 +112,7 @@ public crFlow ~> (cExp,cons[cDefn]).
     collectMdlTypes([],Cns,Map) => Map.
     collectMdlTypes([.tpeDec(Lc,Nm,Tp,_),..Ds],Cns,Map) where
 	TpNm .= tpName(Tp) &&
-	Entry ^= Cns[TpNm] =>
+	Entry ?= Cns[TpNm] =>
       collectMdlTypes(Ds,Cns,(Map[Nm->moduleType(TpNm,Tp,Entry)])
 	[TpNm->moduleType(TpNm,Tp,Entry)]).
     collectMdlTypes([_D,..Ds],Cns,Map) => collectMdlTypes(Ds,Cns,Map).
@@ -120,8 +120,8 @@ public crFlow ~> (cExp,cons[cDefn]).
 
   collectibleConsType:(tipe) => option[string].
   collectibleConsType(Tp) where
-      (_,I) .= deQuant(Tp) && (A,R) ^= isConsType(I) &&
-      ~ _ ^= fieldTypes(A) => -- Leave out record constructors
+      (_,I) .= deQuant(Tp) && (A,R) ?= isConsType(I) &&
+      ~ _ ?= fieldTypes(A) => -- Leave out record constructors
     some(tpName(R)).
   collectibleConsType(_) default => .none.
 
@@ -137,7 +137,7 @@ public crFlow ~> (cExp,cons[cDefn]).
 
   public extendFunTp:all x ~~ hasType[x] |: (tipe,option[x])=>tipe.
   extendFunTp(Tp,.none) => Tp.
-  extendFunTp(Tp,Vs) where (A,B)^=isFunType(Tp) &&
+  extendFunTp(Tp,Vs) where (A,B)?=isFunType(Tp) &&
       .tupleType(Es).=deRef(A) =>
     funType(extendTplType(Es,Vs),B).
   extendFunTp(.allType(V,B),Vs) => .allType(V,extendFunTp(B,Vs)).

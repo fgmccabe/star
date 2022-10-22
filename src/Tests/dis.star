@@ -9,8 +9,8 @@ test.dis{
 
   main:()=>().
   main()=>valof{
-    assert 3 ^= check(.some((3,1)));
-    assert 3 ^= check(.some((2,3)));
+    assert 3 ?= check(.some((3,1)));
+    assert 3 ?= check(.some((2,3)));
     valis ()
   }
 }

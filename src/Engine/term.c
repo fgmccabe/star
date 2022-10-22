@@ -30,12 +30,15 @@ logical isSpecialClass(clssPo p) {
 }
 
 normalPo C_NORMAL(termPo t) {
+#ifdef TRACEEXEC
   assert(isNormalPo(t));
+#endif
+
   return (normalPo) t;
 }
 
 logical isNormalPo(termPo t) {
-  return hasClass((termPo) t->clss, labelClass);
+  return hasClass((termPo)classOf(t), labelClass);
 }
 
 logical hasLabel(normalPo n, char *name, integer arity) {
@@ -92,7 +95,7 @@ static retCode showArgs(ioPo out, normalPo nml, integer precision, integer depth
 }
 
 retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical alt) {
-  clssPo clss = t->clss;
+  clssPo clss = classOf(t);
   if (isSpecialClass(clss)) {
     specialClassPo spec = (specialClassPo) clss;
     return spec->dispFun(out, t, precision, depth, alt);
@@ -183,7 +186,7 @@ integer termHash(termPo t) {
 }
 
 termPo termFinalizer(specialClassPo class, termPo o) {
-  labelPo lbl = C_LBL((termPo) o->clss);
+  labelPo lbl = C_LBL((termPo) classOf(o));
 
   return o + NormalCellCount(lbl->arity);
 }

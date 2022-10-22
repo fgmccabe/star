@@ -18,7 +18,7 @@ test.ralist{
   unconsTree(.nil) => .none.
   unconsTree(.cons(.one(t),.nil)) => .some((t,.nil)).
   unconsTree(.cons(.one(t),ts)) => some((t,.cons(.zer,ts))).
-  unconsTree(.cons(.zer,ts)) where (.node(_,t1,t2),ts1) ^= unconsTree(ts) =>
+  unconsTree(.cons(.zer,ts)) where (.node(_,t1,t2),ts1) ?= unconsTree(ts) =>
     some((t1,.cons(.one(t2),ts1))).
 
   lookupTree:all e ~~ (integer,tree[e]) => option[e].
@@ -107,10 +107,10 @@ test.ralist{
 
   public implementation all e ~~ head[ra[e]->>e] => {
     head(.ra(.nil)) => .none.
-    head(.ra(ts)) where (.leaf(h),_) ^= unconsTree(ts) => some(h).
+    head(.ra(ts)) where (.leaf(h),_) ?= unconsTree(ts) => some(h).
 
     tail(.ra(.nil)) => .none.
-    tail(.ra(ts)) where (_,tl) ^= unconsTree(ts) => some(.ra(tl)).
+    tail(.ra(ts)) where (_,tl) ?= unconsTree(ts) => some(.ra(tl)).
   }
 
   public implementation all e ~~ indexed[ra[e]->>integer,e] => {

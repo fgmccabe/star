@@ -36,9 +36,9 @@ star.compiler.grapher{
   scanPkgs([Pkg,..Pkgs],Repo,Cat,SoFar) => valof{
     if {? (Pk,_) in SoFar && compatiblePkg(Pk,Pkg) ?} then{
       valis scanPkgs(Pkgs,Repo,Cat,SoFar)
-    } else if (SrcUri,CodeUri) ^= packageCode(Repo,Pkg) then {
+    } else if (SrcUri,CodeUri) ?= packageCode(Repo,Pkg) then {
       if newerRsrc(CodeUri,SrcUri) then {
-	if .pkgSpec(_,Imps,_) ^= importPkg(Pkg,.none,Repo) then{
+	if .pkgSpec(_,Imps,_) ?= importPkg(Pkg,.none,Repo) then{
 	  ImpPks = (Imps//(.pkgImp(_,_,Pk))=>Pk);
 	  valis scanPkgs(Pkgs++ImpPks,Repo,Cat,[(Pkg,ImpPks),..SoFar])
 	}
@@ -50,7 +50,7 @@ star.compiler.grapher{
 
   scanCat:(pkg,cons[pkg],termRepo,catalog,cons[(pkg,cons[pkg])]) => cons[(pkg,cons[pkg])].
   scanCat(Pkg,Pkgs,Repo,Cat,SoFar) => valof{
-    if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(Pkg)) then{
+    if (SrcUri,CPkg) ?= resolveInCatalog(Cat,pkgName(Pkg)) then{
       if compatiblePkg(CPkg,Pkg) then{
 	Ast = ^parseSrc(SrcUri,CPkg);
 	SubImps = scanForImports(Ast);
@@ -67,10 +67,10 @@ star.compiler.grapher{
 
   scanForImports:(ast) => cons[pkg].
   scanForImports(Term) => valof{
-    if (Lc,_,Els) ^= isBrTerm(Term) then {
+    if (Lc,_,Els) ?= isBrTerm(Term) then {
       Imps = ref ([]:cons[pkg]);
       for St in Els do{
-	if .pkgImp(_,_,Imp) ^= isImport(St) then{
+	if .pkgImp(_,_,Imp) ?= isImport(St) then{
 	  Imps := [Imp,..Imps!]
 	}
       };

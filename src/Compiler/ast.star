@@ -65,17 +65,17 @@ star.compiler.ast{
       "{#(interleave(Els//((E)=>dispAst(E,2000,Sp++"  ")),".\n"++Sp)*)}".
     .tpl(_,"{..}",Els) =>
       "{.#(interleave(Els//((E)=>dispAst(E,2000,Sp++"  ")),".\n"++Sp)*).}".
-    .tpl(_,Bk,Els) where .bkt(Lft,_,Rgt,Sep,Inn)^=isBracket(Bk) =>
+    .tpl(_,Bk,Els) where .bkt(Lft,_,Rgt,Sep,Inn)?=isBracket(Bk) =>
       "#(Lft)#(interleave(Els//((E)=>dispAst(E,Inn,Sp++"  ")),Sep)*)#(Rgt)".
-    .app(_,.nme(_,Op),.tpl(_,"()",[L,R])) where (Lf,P,Rg)^=isInfixOp(Op)=>
+    .app(_,.nme(_,Op),.tpl(_,"()",[L,R])) where (Lf,P,Rg)?=isInfixOp(Op)=>
       "#(leftPar(P,Pr))#(dispAst(L,Lf,Sp)) #(Op) #(dispAst(R,Rg,Sp))#(rightPar(P,Pr))".
-    .app(_,.nme(_,Op),.tpl(_,"()",[R])) where (P,Rg)^=isPrefixOp(Op) =>
+    .app(_,.nme(_,Op),.tpl(_,"()",[R])) where (P,Rg)?=isPrefixOp(Op) =>
       "#(leftPar(P,Pr))#(Op) #(dispAst(R,Rg,Sp))#(rightPar(P,Pr))".
-    .app(_,.nme(_,Op),.tpl(_,"()",[L])) where (P,Rg)^=isPostfixOp(Op) =>
+    .app(_,.nme(_,Op),.tpl(_,"()",[L])) where (P,Rg)?=isPostfixOp(Op) =>
       "#(leftPar(P,Pr))#(dispAst(L,Rg,Sp)) #(Op)#(rightPar(P,Pr))".
     T where isInterpolated(T) => "\"#(deInterpolate(T))\"".
     .app(_,.nme(_,Op),.tpl(_,"()",A)) where
-	.bkt(LB,Op,RB,Sep,Pr) ^= isBracket(Op) =>
+	.bkt(LB,Op,RB,Sep,Pr) ?= isBracket(Op) =>
       "#(LB) #(interleave(A//((E)=>dispAst(E,2000,Sp++"  ")),Sep)*) #(RB)".
     .app(_,Op,A) => "$(Op)#(dispAst(A,0,Sp++"  "))".
   }
@@ -92,33 +92,33 @@ star.compiler.ast{
   rightPar(P,Pr) where P>Pr => ")".
   rightPar(_,_) default => "".
 
-  isInterpolated(A) where (_,I) ^= isUnary(A,"_str_multicat") => isDispCons(I).
-  isInterpolated(A) where (_,I) ^= isUnary(A,"disp") => isDisp(I).
-  isInterpolated(A) where (_,I,_) ^= isBinary(A,"frmt") => isDisp(I).
+  isInterpolated(A) where (_,I) ?= isUnary(A,"_str_multicat") => isDispCons(I).
+  isInterpolated(A) where (_,I) ?= isUnary(A,"disp") => isDisp(I).
+  isInterpolated(A) where (_,I,_) ?= isBinary(A,"frmt") => isDisp(I).
   isInterpolated(A) default => .false.
 
   deInterpolate:(ast) => string.
-  deInterpolate(A) where (_,S) ^= isUnary(A,"_str_multicat") =>
+  deInterpolate(A) where (_,S) ?= isUnary(A,"_str_multicat") =>
     _str_multicat(deConsPolate(S)).
-  deInterpolate(A) where (_,S) ^= isUnary(A,"disp") => dePolate(A).
-  deInterpolate(A) where (_,I,F) ^= isBinary(A,"frmt") => dePolate(A).
+  deInterpolate(A) where (_,S) ?= isUnary(A,"disp") => dePolate(A).
+  deInterpolate(A) where (_,I,F) ?= isBinary(A,"frmt") => dePolate(A).
 
-  deConsPolate(A) where (_,I) ^= isUnary(A,".") && (_,"nil")^=isNme(I) => .nil.
-  deConsPolate(A) where (_,L,R) ^= isBinary(A,"cons") =>
+  deConsPolate(A) where (_,I) ?= isUnary(A,".") && (_,"nil")?=isNme(I) => .nil.
+  deConsPolate(A) where (_,L,R) ?= isBinary(A,"cons") =>
     cons(dePolate(L),deConsPolate(R)).
 
-  dePolate(A) where (_,D) ^= isUnary(A,"disp") => "$"++dispAst(D,0,"").
-  dePolate(A) where (_,D,.str(_,F)) ^= isBinary(A,"frmt") => "$"++dispAst(D,0,"")++":"++F++";".
-  dePolate(A) where (_,S) ^= isStr(A) => S.
+  dePolate(A) where (_,D) ?= isUnary(A,"disp") => "$"++dispAst(D,0,"").
+  dePolate(A) where (_,D,.str(_,F)) ?= isBinary(A,"frmt") => "$"++dispAst(D,0,"")++":"++F++";".
+  dePolate(A) where (_,S) ?= isStr(A) => S.
   dePolate(A) default => "#"++dispAst(A,0,"").
 
-  isDispCons(A) where (_,I) ^= isUnary(A,".") && (_,"nil")^=isNme(I) => .true.
-  isDispCons(A) where (_,L,R) ^= isBinary(A,"cons") => isDisp(L) && isDispCons(R).
+  isDispCons(A) where (_,I) ?= isUnary(A,".") && (_,"nil")?=isNme(I) => .true.
+  isDispCons(A) where (_,L,R) ?= isBinary(A,"cons") => isDisp(L) && isDispCons(R).
   isDispCons(_) default => .false.
 
-  isDisp(A) where (_,S) ^= isUnary(A,"_str_multicat") => isDispCons(S).
-  isDisp(A) where (_,S) ^= isUnary(A,"disp") => .true.
-  isDisp(A) where (_,I,F) ^= isBinary(A,"frmt") => .true.
+  isDisp(A) where (_,S) ?= isUnary(A,"_str_multicat") => isDispCons(S).
+  isDisp(A) where (_,S) ?= isUnary(A,"disp") => .true.
+  isDisp(A) where (_,I,F) ?= isBinary(A,"frmt") => .true.
   isDisp(_) default => .false.
 
   public implementation coercion[ast,string] => {
@@ -130,7 +130,7 @@ star.compiler.ast{
 
   public genName:(option[locn],string) => ast.
   genName(Lc,Pr) => valof{
-    if Last^=generated![Pr] then{
+    if Last?=generated![Pr] then{
       Nxt = Last+1;
       generated[Pr] := Nxt;
       valis nme(Lc,"#(Pr)*$(Nxt)")
@@ -142,7 +142,7 @@ star.compiler.ast{
   
   public genId:(string) => string.
   genId(Pr) => valof{
-    if Last^=generated![Pr] then{
+    if Last?=generated![Pr] then{
       Nxt = Last+1;
       generated[Pr] := Nxt;
       valis "#(Pr)*$(Nxt)"

@@ -134,10 +134,10 @@ star.compiler.matcher{
 
   populateArms:all e ~~ display[e] |: (consMap,cons[cCase[e]],option[locn],e,nameMap) => cons[cCase[e]].
   populateArms(Index,Cases,Lc,Deflt,Map) =>
-    { populateArm(trace Entry,Cases,Lc,Deflt,Map) | Entry in sort(Index,((_,_,I1),(_,_,I2))=>I1>I2)}.
+    { populateArm(Entry,Cases,Lc,Deflt,Map) | Entry in sort(Index,((_,_,I1),(_,_,I2))=>I1>I2)}.
 
   populateArm((.tLbl(FullNm,_),Tp,_),Cases,DLc,Deflt,Map) where
-      Arm ^= armPresent(FullNm,Cases) => Arm.
+      Arm ?= armPresent(FullNm,Cases) => Arm.
   populateArm((.tLbl(FullNm,Ar),CnsTp,_),Cases,Lc,Deflt,Map) => 
     (Lc,emptyCase(Lc,CnsTp,FullNm),Deflt).
     
@@ -147,7 +147,7 @@ star.compiler.matcher{
   armPresent(_,[]) => .none.
 
   emptyCase:(option[locn],tipe,string)=>cExp.
-  emptyCase(Lc,T,Nm) where (.tupleType(ArgTps),ResTp) ^= isConsType(T) =>
+  emptyCase(Lc,T,Nm) where (.tupleType(ArgTps),ResTp) ?= isConsType(T) =>
     .cTerm(Lc,Nm,ArgTps//(ATp)=>.cVar(Lc,.cId("_",ATp)),ResTp).
   
   matchVars:all e ~~ reform[e],rewrite[e],display[e] |:
@@ -231,7 +231,7 @@ star.compiler.matcher{
   conditionalize([(_,(Lc,Bnds,ArgCond,Test,Val),_),..Triples],Deflt) => valof{
     (Vl,Cnd) = pullWhere(Val,Test);
     EqnCnd = mergeGoal(Lc,ArgCond,Cnd);
-    if Tst ^= EqnCnd then
+    if Tst ?= EqnCnd then
       valis applyBindings(Lc,Bnds,
 	mkCond(Lc,Tst,Vl,conditionalize(Triples,Deflt)))
     else

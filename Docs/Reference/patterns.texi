@@ -354,9 +354,9 @@ A pattern of the form:
 
 is equivalent to the pattern:
 @example
-Str where (@var{Ptn@sub{1}},X1) ^= _hdtl(Str) &&
+Str where (@var{Ptn@sub{1}},X1) ?= _hdtl(Str) &&
     @dots{}
-    (@var{Ptn@sub{n}},Xn) ^= _hdtl(Xn-1) &&
+    (@var{Ptn@sub{n}},Xn) ?= _hdtl(Xn-1) &&
     _eof(Xn)
 @end example
 

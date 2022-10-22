@@ -18,7 +18,7 @@ star.compiler.impawt{
   importAll([.pkgImp(Lc,Viz,Pkg),..Imports],Repo,Imported,Decls) => valof{
     if {? .pkgImp(_,_,Pkg) in Imported ?} then
       valis importAll(Imports,Repo,Imported,Decls)
-    else if .pkgSpec(_,PkgImps,PDecls) ^= importPkg(Pkg,Lc,Repo) then{
+    else if .pkgSpec(_,PkgImps,PDecls) ?= importPkg(Pkg,Lc,Repo) then{
       valis importAll(Imports++PkgImps,Repo,[.pkgImp(Lc,Viz,Pkg),..Imported],
 	Decls++PDecls)
     }
@@ -29,7 +29,7 @@ star.compiler.impawt{
   }
 
   public importPkg:all r ~~ repo[r] |: (pkg,option[locn],r) => option[pkgSpec].
-  importPkg(Pkg,Lc,Repo) where Sig ^= pkgSignature(Repo,Pkg) => 
+  importPkg(Pkg,Lc,Repo) where Sig ?= pkgSignature(Repo,Pkg) => 
     pickupPkgSpec(Sig,Lc).
   importPkg(Pkg,Lc,_) default => .none.
 
@@ -47,7 +47,7 @@ star.compiler.impawt{
   }
 
   pickupPkg:(data) => option[pkg].
-  pickupPkg(.term(.tLbl("pkg",2),[.strg(Nm),V])) where Ver^=pickupVersion(V) =>
+  pickupPkg(.term(.tLbl("pkg",2),[.strg(Nm),V])) where Ver?=pickupVersion(V) =>
     .some(.pkg(Nm,Ver)).
   pickupPkg(_) default => .none.
 
@@ -69,7 +69,7 @@ star.compiler.impawt{
   pickupImports(Trms,Lc) => let{.
     pickupImps([],Imx) => Imx.
     pickupImps([.term(O,[V,P]),..Imps],Imx) => valof{
-      if Pkg^=pickupPkg(P) && Vz ^= pickupViz(V) then
+      if Pkg?=pickupPkg(P) && Vz ?= pickupViz(V) then
 	valis pickupImps(Imps,[.pkgImp(Lc,Vz,Pkg),..Imx])
       else{
 	reportError("Ignoring invalid pkg import spec $(term(O,[V,P]))",Lc);
@@ -81,7 +81,7 @@ star.compiler.impawt{
   pickupDeclarations:(cons[data],option[locn])=>cons[decl].
   pickupDeclarations([],_Lc) => [].
   pickupDeclarations([T,..Ts],Lc) => (
-    D ^= pickupDeclaration(T,Lc) ?
+    D ?= pickupDeclaration(T,Lc) ?
       [D,..pickupDeclarations(Ts,Lc)] ||
       pickupDeclarations(Ts,Lc)).
 	

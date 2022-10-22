@@ -204,7 +204,7 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
           return;
         case off:
           outMsg(out,
-                 "where Tgt ^= Lbls[V] => mnem(Ins,Code++[intgr(%d),intgr(Tgt-Pc-3)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).\n",
+                 "where Tgt ?= Lbls[V] => mnem(Ins,Code++[intgr(%d),intgr(Tgt-Pc-3)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).\n",
                  op);
           return;
         case i32:
@@ -224,7 +224,7 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
           return;
         case off:
           outMsg(out,
-                 "where (Lt1,LtNo) .= findLit(Lts,U) && Tgt ^= Lbls[V] => mnem(Ins,Code++[intgr(%d),intgr(LtNo),intgr(Tgt-Pc-5)],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
+                 "where (Lt1,LtNo) .= findLit(Lts,U) && Tgt ?= Lbls[V] => mnem(Ins,Code++[intgr(%d),intgr(LtNo),intgr(Tgt-Pc-5)],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
                  op);
           return;
         case cDe:
@@ -245,7 +245,7 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
           return;
         case off:
           outMsg(out,
-                 "where (Lt1,LtNo) .= findLit(Lts,strg(U::string)) && Tgt ^= Lbls[V] => mnem(Ins,Code++[intgr(%d),intgr(LtNo),intgr(Tgt-Pc-5)],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
+                 "where (Lt1,LtNo) .= findLit(Lts,strg(U::string)) && Tgt ?= Lbls[V] => mnem(Ins,Code++[intgr(%d),intgr(LtNo),intgr(Tgt-Pc-5)],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
                  op);
           return;
         default:
@@ -263,7 +263,7 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
           return;
         case off:
           outMsg(out,
-                 "%s && Tgt ^= Lbls[V] => mnem(Ins,Code++[intgr(%d),intgr(LtNo),intgr(Tgt-Pc-5)],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
+                 "%s && Tgt ?= Lbls[V] => mnem(Ins,Code++[intgr(%d),intgr(LtNo),intgr(Tgt-Pc-5)],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
                  cond, op);
           return;
         default:
@@ -280,7 +280,7 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
           return;
         case off:
           outMsg(out,
-                 "where Tgt ^= Lbls[V] =>  mnem(Ins,Code++[intgr(%d),intgr(U),intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
+                 "where Tgt ?= Lbls[V] =>  mnem(Ins,Code++[intgr(%d),intgr(U),intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
                  op);
           return;
         default:
@@ -299,7 +299,7 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
           return;
         case off:
           outMsg(out,
-                 "where Tgt ^= Lbls[V] => mnem(Ins,Code++[intgr(%d),strg(U),intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
+                 "where Tgt ?= Lbls[V] => mnem(Ins,Code++[intgr(%d),strg(U),intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
                  op);
           return;
         default:
@@ -307,7 +307,7 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
       }
 
     case Es: {                              // escape code (0..65535)
-      char *cond = "where Cd^=isEscape(U)";
+      char *cond = "where Cd?=isEscape(U)";
 
       switch (B) {
         case nOp:
@@ -316,7 +316,7 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
           break;
         case off:
           outMsg(out,
-                 "%s && Tgt ^= Lbls[V] => mnem(Ins,Code++[intgr(%d),intgr(Cd),intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
+                 "%s && Tgt ?= Lbls[V] => mnem(Ins,Code++[intgr(%d),intgr(Cd),intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
                  cond, op);
           return;
         default:
@@ -327,7 +327,7 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
     case off:                            // program counter relative offset
       check(B == nOp, "second operand not nOp");
       outMsg(out,
-             "where Tgt ^= Lbls[U] => mnem(Ins,Code++[intgr(%d),intgr(Tgt-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n",
+             "where Tgt ?= Lbls[U] => mnem(Ins,Code++[intgr(%d),intgr(Tgt-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n",
              op);
       return;
     default:

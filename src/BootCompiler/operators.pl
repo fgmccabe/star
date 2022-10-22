@@ -24,7 +24,6 @@
   operator("retire", [prefixOp(901, 900), infixOp(900, 901, 900)]).
   operator("all", [prefixOp(1010, 1009)]).
   operator(".<.", [infixOp(699, 700, 699)]).
-  operator("^=", [infixOp(899, 900, 899)]).
   operator("&&", [infixOp(910, 910, 909)]).
   operator("^?", [infixOp(800, 800, 799)]).
   operator("~=", [infixOp(899, 900, 899)]).
@@ -45,6 +44,7 @@
   operator("then", [infixOp(1179, 1180, 1179)]).
   operator("!", [postfixOp(99, 100), infixOp(99, 100, 99)]).
   operator("->>", [infixOp(1199, 1200, 1199)]).
+  operator("?=", [infixOp(899, 900, 899)]).
   operator("default", [postfixOp(939, 940)]).
   operator("#", [prefixOp(1750, 1749), infixOp(759, 760, 759)]).
   operator("%", [infixOp(700, 700, 699)]).
@@ -78,7 +78,7 @@
   operator("++", [infixOp(719, 720, 720)]).
   operator(">", [infixOp(899, 900, 899)]).
   operator("return", [prefixOp(930, 929)]).
-  operator("?", [infixOp(919, 920, 920)]).
+  operator("?", [prefixOp(820, 819), infixOp(919, 920, 920)]).
   operator("@", [prefixOp(400, 399), infixOp(399, 400, 400)]).
   operator("in", [infixOp(899, 900, 900)]).
   operator("break", [prefixOp(10, 9)]).
@@ -221,7 +221,6 @@
   follows('\\','/','\\/').
   follows('^','?','^?').
   follows('^','/','^/').
-  follows('^','=','^=').
   follows('^/','/','^//').
   follows(':','?',':?').
   follows(':',':','::').
@@ -243,6 +242,7 @@
   follows('>','=','>=').
   follows('>','>','>>').
   follows('>>','=','>>=').
+  follows('?','=','?=').
   follows('?','}','?}').
   follows('!','}','!}').
   follows('•','•','••').
@@ -305,7 +305,6 @@
   final('^?',"^?").	 /* option propagate */
   final('^/',"^/").	 /* filter */
   final('^//',"^//").	 /* filter map */
-  final('^=',"^=").	 /* optional decomposition match */
   final(':',":").	 /* type annotation */
   final(':?',":?").	 /* fallable type coercion */
   final('::',"::").	 /* type coercion */
@@ -328,7 +327,8 @@
   final('>=',">=").	 /* greater than or equal */
   final('>>',">>").	 /* monadic bind */
   final('>>=',">>=").	 /* monadic bind */
-  final('?',"?").	 /* conditional operator */
+  final('?',"?").	 /* mark expression as optionally there */
+  final('?=',"?=").	 /* optional decomposition match */
   final('?}',"?}").	 /* test comprehension */
   final('@',"@").	 /* meta annotation */
   final('!',"!").	 /* pick up value from a ref cell */
@@ -340,7 +340,6 @@
 
   keyword("retire").
   keyword("all").
-  keyword("^=").
   keyword("&&").
   keyword("~>").
   keyword("throw").
@@ -356,6 +355,7 @@
   keyword("then").
   keyword("!").
   keyword("->>").
+  keyword("?=").
   keyword("default").
   keyword("#").
   keyword("!}").

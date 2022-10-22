@@ -23,7 +23,7 @@ test.cse{
 
   main:()=>().
   main()=>valof{
-    assert "TT" ^= sVal(foo("TT"));
+    assert "TT" ?= sVal(foo("TT"));
 
     show sVal(foo("beta"));
 

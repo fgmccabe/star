@@ -65,7 +65,7 @@ star.treelist{
 
     hdlt:(tl[e])=>option[(e,tl[e])].
     hdtl(tlLeaf(E)) => some((E,tlEmpty)).
-    hdtl(tlRed(L,_,R)) where (E,Lr)^=hdtl(L) => some((E,rebalance(Lr,R))).
+    hdtl(tlRed(L,_,R)) where (E,Lr)?=hdtl(L) => some((E,rebalance(Lr,R))).
     hdtl(tlEmpty) => .none.
     .} in {
     _eof = eof.

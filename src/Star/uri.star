@@ -212,15 +212,15 @@ star.uri{
   public resolveUri:(uri,uri) => option[uri].
   resolveUri(_,U) where .absUri(_,_,_).=U => .some(U).
   resolveUri(.absUri(Scheme,Base,_),.relUri(Path,Query)) where
-    Pth ^= resolvePath(Base,Path) => .some(.absUri(Scheme,Pth,Query)).
+    Pth ?= resolvePath(Base,Path) => .some(.absUri(Scheme,Pth,Query)).
 
   resolvePath:(rsrcName,rsrcName)=>option[rsrcName].
   resolvePath(_,.netRsrc(A,P)) => .some(.netRsrc(A,P)).
   resolvePath(.netRsrc(A,_),.localRsrc(.absPath(P))) => .some(.netRsrc(A,.absPath(P))).
-  resolvePath(.netRsrc(A,.absPath(B)),.localRsrc(.relPath(P))) where Dr ^= drop(reverse(B)) =>
+  resolvePath(.netRsrc(A,.absPath(B)),.localRsrc(.relPath(P))) where Dr ?= drop(reverse(B)) =>
     .some(.netRsrc(A,.absPath(edit(P,Dr)))).
   resolvePath(.localRsrc(_),.localRsrc(.absPath(P))) => .some(.localRsrc(.absPath(P))).
-  resolvePath(.localRsrc(.absPath(B)),.localRsrc(.relPath(P))) where Dr ^= drop(reverse(B)) => .some(.localRsrc(.absPath(edit(P,Dr)))).
+  resolvePath(.localRsrc(.absPath(B)),.localRsrc(.relPath(P))) where Dr ?= drop(reverse(B)) => .some(.localRsrc(.absPath(edit(P,Dr)))).
 
   edit: (cons[string],cons[string]) => cons[string].
   edit([".",..Segs],R) => edit(Segs,R).
@@ -278,19 +278,19 @@ star.uri{
   }
 
   public editUriPath:(uri,(cons[string])=>option[cons[string]])=>option[uri].
-  editUriPath(.absUri(Scheme,ResNam,Qury),F) where NRes^=editUriResource(ResNam,F) =>
+  editUriPath(.absUri(Scheme,ResNam,Qury),F) where NRes?=editUriResource(ResNam,F) =>
     .some(absUri(Scheme,NRes,Qury)).
-  editUriPath(.relUri(ResNam,Qury),F) where NRes^=editUriResource(ResNam,F) =>
+  editUriPath(.relUri(ResNam,Qury),F) where NRes?=editUriResource(ResNam,F) =>
     .some(relUri(NRes,Qury)).
   editUriPath(_,_) default => .none.
 
   editUriResource:(rsrcName,(cons[string])=>option[cons[string]])=>option[rsrcName].
-  editUriResource(.netRsrc(Auth,Path),F) where NPath^=editPath(Path,F) => .some(.netRsrc(Auth,NPath)).
-  editUriResource(.localRsrc(Path),F) where NPath^=editPath(Path,F) => .some(.localRsrc(NPath)).
+  editUriResource(.netRsrc(Auth,Path),F) where NPath?=editPath(Path,F) => .some(.netRsrc(Auth,NPath)).
+  editUriResource(.localRsrc(Path),F) where NPath?=editPath(Path,F) => .some(.localRsrc(NPath)).
   editUriResource(_,_) default => .none.
 
   editPath:(resourcePath,(cons[string])=>option[cons[string]])=>option[resourcePath].
-  editPath(.absPath(Els),F) where NEls^=F(Els) => .some(.absPath(NEls)).
-  editPath(.relPath(Els),F) where NEls^=F(Els) => .some(.relPath(NEls)).
+  editPath(.absPath(Els),F) where NEls?=F(Els) => .some(.absPath(NEls)).
+  editPath(.relPath(Els),F) where NEls?=F(Els) => .some(.relPath(NEls)).
   editPath(_,_) default => .none.
 }

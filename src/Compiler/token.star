@@ -28,8 +28,8 @@ star.compiler.token{
       .fltTok(Dx) => disp(Dx).
       .chrTok(Ch) => disp(Ch).
       .strTok(S) => "\"#(dispSegments(S)*)\"".
-      .lftTok(Id) where .bkt(LId,_,_,_,_) ^= isBracket(Id) => "<#(LId)".
-      .rgtTok(Id) where .bkt(_,_,RId,_,_) ^= isBracket(Id) => "<#(RId)".
+      .lftTok(Id) where .bkt(LId,_,_,_,_) ?= isBracket(Id) => "<#(LId)".
+      .rgtTok(Id) where .bkt(_,_,RId,_,_) ?= isBracket(Id) => "<#(RId)".
     }
   }
 

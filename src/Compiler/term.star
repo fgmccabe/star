@@ -426,13 +426,13 @@ star.compiler.term{
       .cVoid(_,_) => .some(symb(tLbl("void",0))).
       .cInt(_,Ix) => .some(intgr(Ix)).
       .cTerm(_,Nm,[],_) => .some(symb(tLbl(Nm,0))).
-      .cTerm(_,Nm,Args,_) where NArgs ^= mapArgs(Args,[]) =>
+      .cTerm(_,Nm,Args,_) where NArgs ?= mapArgs(Args,[]) =>
 	.some(term(tLbl(Nm,size(Args)),NArgs)).
       _ default => .none.
     }.
 
     private mapArgs([],So) => .some(reverse(So)).
-    mapArgs([A,..As],So) where NA^=_coerce(A) => mapArgs(As,[NA,..So]).
+    mapArgs([A,..As],So) where NA?=_coerce(A) => mapArgs(As,[NA,..So]).
     mapArgs(_,_) default => .none.
   .}
 
@@ -444,7 +444,7 @@ star.compiler.term{
   }
 
   public rwTerm:(cExp,(cExp)=>option[cDefn])=>cExp.
-  rwTerm(T,Tst) => .vrDef(_,_,_,Vl) ^= Tst(T) ?
+  rwTerm(T,Tst) => .vrDef(_,_,_,Vl) ?= Tst(T) ?
     Vl ||
     case T in {
       .cVoid(Lc,Tp) => .cVoid(Lc,Tp).
@@ -466,7 +466,7 @@ star.compiler.term{
       .cCnj(Lc,L,R) =>.cCnj(Lc,rwTerm(L,Tst),rwTerm(R,Tst)).
       .cDsj(Lc,L,R) =>.cDsj(Lc,rwTerm(L,Tst),rwTerm(R,Tst)).
       .cNeg(Lc,R) =>.cNeg(Lc,rwTerm(R,Tst)).
-      .cCnd(Lc,T,L,R) =>.cCnd(Lc,rwTerm(T,Tst),rwTerm(L,Tst),rwTerm(R,Tst)).
+      .cCnd(Lc,G,L,R) =>.cCnd(Lc,rwTerm(G,Tst),rwTerm(L,Tst),rwTerm(R,Tst)).
       .cLtt(Lc,V,D,E) =>.cLtt(Lc,V,rwTerm(D,Tst),rwTerm(E,dropVar(cName(V),Tst))).
       .cUnpack(Lc,Sel,Cases,Tp) => .cUnpack(Lc,
 	rwTerm(Sel,Tst),Cases//(C)=>rwCase(C,Tst,rwTerm),Tp).

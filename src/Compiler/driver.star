@@ -49,6 +49,7 @@ star.compiler{
 	    showNormalizeOption,
 	    traceNormalizeOption,
 	    noCodeOption,
+	    showCodegenOption,	    
 	    traceCodegenOption,	    
 	    optimizeLvlOption],
 	  defltOptions(WI,RI)
@@ -64,13 +65,13 @@ star.compiler{
   handleCmds((Opts,Args)) => valof{
     Repo = openupRepo(Opts.repo,Opts.cwd);
     
-    if CatUri ^= parseUri("catalog") && CatU ^= resolveUri(Opts.cwd,CatUri) &&
-	Cat ^= loadCatalog(CatU) then{
+    if CatUri ?= parseUri("catalog") && CatU ?= resolveUri(Opts.cwd,CatUri) &&
+	Cat ?= loadCatalog(CatU) then{
 	  for P in Args do{
 	    resetErrors();
 	    Sorted = makeGraph(extractPkgSpec(P),Repo,Cat);
 
-	    if Grph ^= Opts.graph then {
+	    if Grph ?= Opts.graph then {
 	      putResource(Grph,makeDotGraph(P,Sorted))
 	    };
 	      
@@ -83,13 +84,13 @@ star.compiler{
     valis ()
   }
 
-  extractPkgSpec(P) where Lc ^= strFind(P,":",0) => pkg(P[0:Lc],P[Lc+1:size(P)]::version).
+  extractPkgSpec(P) where Lc ?= strFind(P,":",0) => pkg(P[0:Lc],P[Lc+1:size(P)]::version).
   extractPkgSpec(P) default => pkg(P,.defltVersion).
 
   processPkg:(pkg,termRepo,catalog) => termRepo.
   processPkg(P,Repo,Cat) => valof{
-    logMsg("Processing $(P)");
-    if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
+    logMsg("Compiling $(P)");
+    if (SrcUri,CPkg) ?= resolveInCatalog(Cat,pkgName(P)) then{
       Ast = ^parseSrc(SrcUri,CPkg);
       if traceAst! then{
 	logMsg("Ast of $(P) is $(Ast)")
@@ -119,9 +120,12 @@ star.compiler{
 	  if errorFree() && genCode! then{
 	    Segs = compProg(P,Inlined,Decls);
 
-	    if showCode! then
-	      logMsg("Generated instructions $(Segs)");
-
+	    if showCode! then{
+	      logMsg("Generated code:");
+	      for Sg in Segs do{
+	        showMsg("$(Sg)");
+	      }
+	    };
 	    -- PkgSig = mkTpl([pkgTerm(CPkg),
 	    -- 	mkTpl(pkgImports(PkgSpec)//(.pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
 	    -- 	mkTpl(Decls//((D)=>DD:data)),
@@ -133,7 +137,7 @@ star.compiler{
 	}
       };
       if ~errorFree() then{
-	logMsg("$(countErrors()) errors found");
+	logMsg("$(countErrors()+countTraps()) errors found");
       };
       if ~warningFree() then
 	logMsg("$(countWarnings()) warnings found");
@@ -146,12 +150,10 @@ star.compiler{
   }
 
   openupRepo:(uri,uri) => termRepo.
-  openupRepo(RU,CU) where CRU ^= resolveUri(CU,RU) => openRepository(CRU).
+  openupRepo(RU,CU) where CRU ?= resolveUri(CU,RU) => openRepository(CRU).
 
   addSpec:(pkgSpec,termRepo) => termRepo.
   addSpec(Spec,R) where .pkgSpec(Pkg,_,_) .= Spec => addSigToRepo(R,Pkg,(Spec::data)::string).
-
-  importDecls((_,_,Decls))=>Decls.
 
   processPkgs:(cons[(pkg,cons[pkg])],termRepo,catalog) => ().
   processPkgs(Pks,Repo,Cat) => valof{

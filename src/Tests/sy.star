@@ -36,7 +36,7 @@ test.sy{
 
   bind(X) where
       X>0 =>
-    (MM ^= some(X) ?
+    (MM ?= some(X) ?
 	valof{
 	  logMsg("trying");
 	  valis .true

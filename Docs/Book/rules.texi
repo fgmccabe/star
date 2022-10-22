@@ -328,7 +328,7 @@ some(X) .= opValue
 is a match condition that is satisfied if the value of @code{opValue}
 matches the pattern @code{some(X)}. A successful match has the
 additional effect of binding @code{X} to the value embedded in the
-@code{some} value.@footnote{The form @code{X^=opValue} is actually a
+@code{some} value.@footnote{The form @code{X?=opValue} is actually a
 short form of the same condition.}
 
 Where a match condition has at most one way of being satisfied, a

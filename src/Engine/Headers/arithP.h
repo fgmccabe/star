@@ -12,8 +12,6 @@
 
 typedef struct integer_term *intPo;
 
-extern intPo C_INT(termPo t);
-
 typedef struct integer_term {
   clssPo clss;                  // == integerClass
   integer ix;

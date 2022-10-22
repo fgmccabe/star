@@ -97,7 +97,7 @@ star.compiler.gencode{
   compExp:(crExp,compilerOptions,Cont,codeCtx,multi[assemOp],option[cons[tipe]],reports) =>
     either[reports,(codeCtx,multi[assemOp],option[cons[tipe]])].
   compExp(Exp,_,_,_,_,.none,Rp) => other(reportError(Rp,"$(Exp) is dead code",locOf(Exp))).
-  compExp(Exp,_,Cont,Ctx,Cde,some(Stk),Rp) where (Const,Tp)^=isLiteral(Exp) =>
+  compExp(Exp,_,Cont,Ctx,Cde,some(Stk),Rp) where (Const,Tp)?=isLiteral(Exp) =>
     Cont.C(Ctx,Cde++[iLdC(Const)],some([typeOf(Exp),..Stk]),Rp).
   compExp(crInt(Lc,Ix),_,Cont,Ctx,Cde,some(Stk),Rp) =>
     Cont.C(Ctx,Cde++[iLdC(intgr(Ix))],some([intType,..Stk]),Rp).
@@ -110,14 +110,14 @@ star.compiler.gencode{
   compExp(crLbl(Lc,Nm,Tp),_,Cont,Ctx,Cde,some(Stk),Rp) =>
     Cont.C(Ctx,Cde++[iLdC(symb(tLbl(Nm,0)))],some([Tp,..Stk]),Rp).
   compExp(crVar(Lc,crId(Vr,Tp)),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
-    if Loc^=locateVar(Vr,Ctx) then {
+    if Loc?=locateVar(Vr,Ctx) then {
       compVar(Lc,Vr,Loc,Opts,Cont,Ctx,Cde,Stk,Rp)
     } else
     throw reportError(Rp,"cannot locate variable $(Vr)\:$(Tp)",Lc)
   }
   compExp(crTerm(Lc,Nm,Args,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
     compExps(Args,Opts,bothCont(allocCont(tLbl(Nm,size(Args)),Tp,Stk),Cont),Ctx,Cde,Stk,Rp).
-  compExp(crECall(Lc,Op,Args,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) where (_,Ins)^=intrinsic(Op) =>
+  compExp(crECall(Lc,Op,Args,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) where (_,Ins)?=intrinsic(Op) =>
     compExps(Args,Opts,bothCont(asmCont(Ins,size(Args),Tp,Stk),Cont),Ctx,Cde,Stk,Rp).
   compExp(crECall(Lc,Nm,Args,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
     compExps(Args,Opts,bothCont(escCont(Nm,size(Args),Tp,Stk),Cont),Ctx,Cde,Stk,Rp).
@@ -424,7 +424,7 @@ star.compiler.gencode{
   compPtn:(crExp,compilerOptions,Cont,Cont,codeCtx,multi[assemOp],option[cons[tipe]],reports) =>
     either[reports,(codeCtx,multi[assemOp],option[cons[tipe]])].
   compPtn(crVar(Lc,crId(Vr,Tp)),Opts,Succ,Fail,Ctx,Cde,Stk,Rp) => do{
-    if Loc ^= locateVar(Vr,Ctx) then 
+    if Loc ?= locateVar(Vr,Ctx) then 
       compPtnVar(Lc,Vr,Loc,Opts,Succ,Ctx,Cde,Stk,Rp)
     else{
       (Off,Ctx1) .= defineLclVar(crId(Vr,Tp),Ctx);
@@ -432,7 +432,7 @@ star.compiler.gencode{
     }
   }
   compPtn(crVoid(Lc,Tp),Opts,Succ,Fail,Ctx,Cde,some([_,..Stk]),Rp) => do{
-    if Fl^=Succ.L then{
+    if Fl?=Succ.L then{
       Fail.C(Ctx,Cde++[iCV(Fl)],some(Stk),Rp)
     } else{
       (Fl,Ctx1) .= defineLbl("PV",Ctx);
@@ -442,7 +442,7 @@ star.compiler.gencode{
       valis (Ctx3,Cde3,Stkx)
     }
   }
-  compPtn(L,Opts,Succ,Fail,Ctx,Cde,some(Stk),Rp) where (T,Tp)^=isLiteral(L) =>
+  compPtn(L,Opts,Succ,Fail,Ctx,Cde,some(Stk),Rp) where (T,Tp)?=isLiteral(L) =>
     ptnTest(locOf(L),Tp,Succ,Fail,Ctx,Cde++[iLdC(T)],some([Tp,..Stk]),Rp).
   compPtn(crTerm(Lc,Nm,Args,Tp),Opts,Succ,Fail,Ctx,Cde,some([_,..Stk]),Rp) => do{
     (FLb,Ctx1) .= defineLbl("U",Ctx);
@@ -495,9 +495,9 @@ star.compiler.gencode{
 
   ptnTest:(locn,tipe,Cont,Cont,codeCtx,multi[assemOp],option[cons[tipe]],reports) =>
     either[reports,(codeCtx,multi[assemOp],option[cons[tipe]])].
-  ptnTest(_,intType,Succ,Fail,Ctx,Cde,some([_,_,..Stk]),Rp) where Fl^=Fail.L =>
+  ptnTest(_,intType,Succ,Fail,Ctx,Cde,some([_,_,..Stk]),Rp) where Fl?=Fail.L =>
     Succ.C(Ctx,Cde++[iICmp(Fl)],some(Stk),Rp).
-  ptnTest(_,Tp,Succ,Fail,Ctx,Cde,some([_,_,..Stk]),Rp) where Fl^=Fail.L =>
+  ptnTest(_,Tp,Succ,Fail,Ctx,Cde,some([_,_,..Stk]),Rp) where Fl?=Fail.L =>
     Succ.C(Ctx,Cde++[iCmp(Fl)],some(Stk),Rp).
   ptnTest(Lc,Tp,Succ,Fail,Ctx,Cde,some([_,_,..Stk]),Rp) => do{
     (Fl,Ctx1) .= defineLbl("TF",Ctx);
@@ -535,7 +535,7 @@ star.compiler.gencode{
 
   retCont:(locn)=>Cont.
   retCont(Lc) => ccont(.true,.true,(Ctx,Cde,Stk,Rp) => do{
-      if [Top]^=Stk then
+      if [Top]?=Stk then
 	valis (Ctx,Cde++[.iRet],.none)
       else if Stk==.none then
 	valis (Ctx,Cde,.none)
@@ -659,8 +659,8 @@ star.compiler.gencode{
   fixupCont:(crVar,cons[either[integer,string]],crVar,cons[either[integer,string]]) => Cont.
   fixupCont(Base,[Off,..Pth],Src,SrcPth) => ccont(.false,.false,(Ctx,Cde,Stk,Rp)=>do{
       BNm.=crName(Base);
-      lclVar(BLoc,_)^=locateVar(BNm,Ctx);
-      lclVar(SLoc,_)^=locateVar(crName(Src),Ctx);
+      lclVar(BLoc,_)?=locateVar(BNm,Ctx);
+      lclVar(SLoc,_)?=locateVar(crName(Src),Ctx);
       Update.=[iLdL(BLoc),..followPath(Pth)]++[iLdL(SLoc),..followPath(SrcPth)]++storeField(Off);
       valis (Ctx,Cde++Update,Stk)
     }).
@@ -726,7 +726,7 @@ star.compiler.gencode{
   onceCont(Lc,C)=> let{
     d := .none.
   } in ccont(.false,.true,(Ctx,Cde,Stk,Rp) => do{
-      if (Lbl,EStk,LStk)^=d! then{
+      if (Lbl,EStk,LStk)?=d! then{
 	XStk <- mergeStack(Lc,EStk,Stk,Rp);
 	valis (Ctx,Cde++[iJmp(Lbl)],LStk)
       }
@@ -791,7 +791,7 @@ star.compiler.gencode{
   }
 
   ptnVars:(crExp,codeCtx) => codeCtx.
-  ptnVars(crVar(_,crId(Nm,Tp)),codeCtx(Vars,CLc,Count,Lb)) where _ ^= Vars[Nm] => codeCtx(Vars,CLc,Count,Lb).
+  ptnVars(crVar(_,crId(Nm,Tp)),codeCtx(Vars,CLc,Count,Lb)) where _ ?= Vars[Nm] => codeCtx(Vars,CLc,Count,Lb).
   ptnVars(crVar(_,crId(Nm,Tp)),codeCtx(Vars,CLc,Count,Lb)) => codeCtx(Vars[Nm->lclVar(Count+1,Tp)],CLc,Count+1,Lb).
   ptnVars(crInt(_,_),Ctx) => Ctx.
   ptnVars(crFlot(_,_),Ctx) => Ctx.
@@ -825,8 +825,8 @@ star.compiler.gencode{
   mergeCtx:(codeCtx,codeCtx,codeCtx)=>codeCtx.
   mergeCtx(codeCtx(LV,_,_,Lb1),codeCtx(RV,_,_,Lb2),Base) => let{.
     mergeVar:(string,srcLoc,codeCtx) => codeCtx.
-    mergeVar(Nm,_,Vrs) where _ ^= locateVar(Nm,Base) => Vrs.
-    mergeVar(Nm,_,codeCtx(Vs,Lc,Count,_)) where lclVar(_,Tp) ^= RV[Nm] =>
+    mergeVar(Nm,_,Vrs) where _ ?= locateVar(Nm,Base) => Vrs.
+    mergeVar(Nm,_,codeCtx(Vs,Lc,Count,_)) where lclVar(_,Tp) ?= RV[Nm] =>
       codeCtx(Vs[Nm->lclVar(Count+1,Tp)],Lc,Count+1,max(Lb1,Lb2)).
     mergeVar(Nm,lclVar(_,Tp),codeCtx(Vs,Lc,Count,_)) =>
       codeCtx(Vs[Nm->lclVar(Count+1,Tp)],Lc,Count+1,max(Lb1,Lb2)).

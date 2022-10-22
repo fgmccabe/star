@@ -13,7 +13,7 @@ star.compiler.parser{
   import star.compiler.token.
 
   public parseSrc:(uri,pkg) => option[ast].
-  parseSrc(U,P) where Txt ^= getResource(U) &&
+  parseSrc(U,P) where Txt ?= getResource(U) &&
       (Toks) .= allTokens(initSt(pkgLoc(P),Txt::cons[char])) =>
     (errorFree() ?
 	((Trm,_) .= astParse(Toks) ?

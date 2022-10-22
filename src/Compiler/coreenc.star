@@ -94,16 +94,16 @@ star.compiler.term.enc{
   decTp([0cf,..Cs]) => some((.flt64,Cs)).
   decTp([0cl,..Cs]) => some((.bool,Cs)).
   decTp([0cp,..Cs]) => some((.ptr,Cs)).
-  decTp([0cT,..Cs]) where (Ar,C0)^=decInt(Cs) => let{.
+  decTp([0cT,..Cs]) where (Ar,C0)?=decInt(Cs) => let{.
     lp(0,Chs,So) => some((tplTipe(reverse(So)),Chs)).
-    lp(Cx,Chs,So) where (El,C0)^=decTp(Chs) =>
+    lp(Cx,Chs,So) where (El,C0)?=decTp(Chs) =>
       lp(Cx-1,C0,[El,..So])
   } in lp(Ar,C0,[]).
-  decTp([0cF,..Cs]) where (tplTipe(As),C0)^=decTp(Cs) && (Rt,Cx) ^= decTp(C0) =>
+  decTp([0cF,..Cs]) where (tplTipe(As),C0)?=decTp(Cs) && (Rt,Cx) ?= decTp(C0) =>
     some((funTipe(As,Rt),Cx)).
 
   decInt:(cons[integer])=>option[(integer,cons[integer])].
-  decInt([0c-,..Chrs]) where (N,Rst)^=decNat(Chrs,0) =>
+  decInt([0c-,..Chrs]) where (N,Rst)?=decNat(Chrs,0) =>
     some((-N,Rst)).
   decInt(Chrs) => decNat(Chrs,0).
 
@@ -114,62 +114,62 @@ star.compiler.term.enc{
   decNat(_,_) default => .none.
 
   decText:all e ~~ (cons[integer],(string)=>e)=>option[(e,cons[integer])].
-  decText(Cs,F) where (Lx,C0)^=decInt(Cs) &&
-      (Nm,Cx)^=front(C0,Lx) =>
+  decText(Cs,F) where (Lx,C0)?=decInt(Cs) &&
+      (Nm,Cx)?=front(C0,Lx) =>
     some((F(Nm::string),Cx)).
   decText(_,_) default => .none.
 
   decExp:(cons[integer])=>option[(crExp,cons[integer])].
-  decExp([0cv,..Cs]) where (Nm,C0)^=decText(Cs,id) && (Tp,Cx)^=decTp(C0) =>
+  decExp([0cv,..Cs]) where (Nm,C0)?=decText(Cs,id) && (Tp,Cx)?=decTp(C0) =>
     some((idnt(Nm,Tp),Cx)).
-  decExp([0ci,..Cs]) where (Ix,Cx)^=decInt(Cs) => some((intgr(Ix),Cx)).
-  decExp([0cf,..Cs]) where (Bx,Cx)^=decInt(Cs) =>
+  decExp([0ci,..Cs]) where (Ix,Cx)?=decInt(Cs) => some((intgr(Ix),Cx)).
+  decExp([0cf,..Cs]) where (Bx,Cx)?=decInt(Cs) =>
     some((flot(_bits_float(Bx)),Cx)).
-  decExp([0cs,..Cs]) where (Sx,Cx)^=decText(Cs,(S)=>strg(S)) => some((Sx,Cx)).
-  decExp([0cV,..Cs]) where (Tp,Cx)^=decTp(Cs) => some((crVoid(Tp),Cx)).
-  decExp([0cE,..Cs]) where (Lc,C0)^=decLc(Cs) &&
-      (Op,C1)^=decText(C0,id) &&
-      (crTerm(_,As),Cx)^=decExp(C1) &&
-      (Tp,Cx) ^= decTp(C1) => some((crECall(Lc,Op,As,Tp),Cx)).
-  decExp([0cO,..Cs]) where (Lc,C0)^=decLc(Cs) &&
-      (Op,C1)^=decExp(C0) &&
-      (crTerm(_,As),Cx)^=decExp(C1) &&
-      (Tp,Cx) ^= decTp(C1) => some((crOCall(Lc,Op,As,Tp),Cx)).
-  decExp([0cC,..Cs]) where (Lc,C0)^=decLc(Cs) &&
-      (Op,C1)^=decText(C0,id) &&
-      (crTerm(_,As),Cx)^=decExp(C1) &&
-      (Tp,Cx) ^= decTp(C1) => some((crCall(Lc,Op,As,Tp),Cx)).
+  decExp([0cs,..Cs]) where (Sx,Cx)?=decText(Cs,(S)=>strg(S)) => some((Sx,Cx)).
+  decExp([0cV,..Cs]) where (Tp,Cx)?=decTp(Cs) => some((crVoid(Tp),Cx)).
+  decExp([0cE,..Cs]) where (Lc,C0)?=decLc(Cs) &&
+      (Op,C1)?=decText(C0,id) &&
+      (crTerm(_,As),Cx)?=decExp(C1) &&
+      (Tp,Cx) ?= decTp(C1) => some((crECall(Lc,Op,As,Tp),Cx)).
+  decExp([0cO,..Cs]) where (Lc,C0)?=decLc(Cs) &&
+      (Op,C1)?=decExp(C0) &&
+      (crTerm(_,As),Cx)?=decExp(C1) &&
+      (Tp,Cx) ?= decTp(C1) => some((crOCall(Lc,Op,As,Tp),Cx)).
+  decExp([0cC,..Cs]) where (Lc,C0)?=decLc(Cs) &&
+      (Op,C1)?=decText(C0,id) &&
+      (crTerm(_,As),Cx)?=decExp(C1) &&
+      (Tp,Cx) ?= decTp(C1) => some((crCall(Lc,Op,As,Tp),Cx)).
   decExp([0cT,..Cs]) where
-      (Op,C0)^=decText(Cs,id) &&
-      (Ar,C1)^=decInt(C0) &&
-      (As,Cx)^=decExps(Ar,[],C1) =>some((crTerm(Op,As),Cx)).
+      (Op,C0)?=decText(Cs,id) &&
+      (Ar,C1)?=decInt(C0) &&
+      (As,Cx)?=decExps(Ar,[],C1) =>some((crTerm(Op,As),Cx)).
   decExp([0c.,..Cs]) where
-      (O,C0)^=decExp(Cs)&&
-      (Fld,C1)^=decText(C0,id) &&
-      (Tp,Cx) ^= decTp(C1) => some((crDot(O,Fld,Tp),Cx)).
+      (O,C0)?=decExp(Cs)&&
+      (Fld,C1)?=decText(C0,id) &&
+      (Tp,Cx) ?= decTp(C1) => some((crDot(O,Fld,Tp),Cx)).
   decExp([0cx,..Cs]) where
-      (O,C0)^=decExp(Cs)&&
-      (Ix,C1)^=decInt(C0) &&
-      (Tp,Cx) ^= decTp(C1) => some((crTplOff(O,Ix,Tp),Cx)).
+      (O,C0)?=decExp(Cs)&&
+      (Ix,C1)?=decInt(C0) &&
+      (Tp,Cx) ?= decTp(C1) => some((crTplOff(O,Ix,Tp),Cx)).
   decExp([0cU,..Cs]) where
-      (Lc,C0) ^= decLc(Cs) &&
-      (O,C1)^=decExp(C0)&&
-      (Ix,C2)^=decInt(C0) &&
-      (E,Cx) ^= decExp(C2) => some((crTplUpdate(Lc,O,Ix,E),Cx)).
+      (Lc,C0) ?= decLc(Cs) &&
+      (O,C1)?=decExp(C0)&&
+      (Ix,C2)?=decInt(C0) &&
+      (E,Cx) ?= decExp(C2) => some((crTplUpdate(Lc,O,Ix,E),Cx)).
   decExp([0cr,..Cs]) where 
-      (Nm,C0)^=decText(Cs,id) &&
-      (Ar,C1)^=decInt(C0) &&
-      (Fs,Cx)^=decFields(Ar,[],C1) =>some((crRecord(Nm,Fs),Cx)).
+      (Nm,C0)?=decText(Cs,id) &&
+      (Ar,C1)?=decInt(C0) &&
+      (Fs,Cx)?=decFields(Ar,[],C1) =>some((crRecord(Nm,Fs),Cx)).
 
 
   decExps(0,So,Cx) => some((reverse(So),Cx)).
-  decExps(Ar,So,Cs) where (A,C0)^=decExp(Cs) => decExps(Ar-1,[A,..So],C0).
+  decExps(Ar,So,Cs) where (A,C0)?=decExp(Cs) => decExps(Ar-1,[A,..So],C0).
 
   decFields(0,So,Cx) => some((So,Cx)).
-  decFields(Ar,So,Cs) where (F,C0) ^= decText(Cs,id) && (A,C1)^=decExp(C0) =>
+  decFields(Ar,So,Cs) where (F,C0) ?= decText(Cs,id) && (A,C1)?=decExp(C0) =>
     decFields(Ar-1,[(F,A),..So],C1).
 
   decLc:(cons[integer])=>option[(locn,cons[integer])].
-  decLc(Cs) where (E,Cx)^=decExp(Cs) => some((E::locn,Cx)).
+  decLc(Cs) where (E,Cx)?=decExp(Cs) => some((E::locn,Cx)).
 }
 

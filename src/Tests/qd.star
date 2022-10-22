@@ -10,7 +10,7 @@ test.qd{
   
   filterOut:(cons[string],cons[ast]) => cons[string].
   filterOut([],_) => [].
-  filterOut([Nm,..As],Q) where {? (V where (_,Nm)^=isName(V)) in Q ?} =>
+  filterOut([Nm,..As],Q) where {? (V where (_,Nm)?=isName(V)) in Q ?} =>
     filterOut(As,Q).
   filterOut([Sp,..As],Q) => [Sp,..filterOut(As,Q)].
 

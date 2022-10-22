@@ -41,7 +41,6 @@ star.compiler.operators{
     "retire" => [prefixOp(901,900), infixOp(900,901,900)].
     "all" => [prefixOp(1010,1009)].
     ".<." => [infixOp(699,700,699)].
-    "^=" => [infixOp(899,900,899)].
     "&&" => [infixOp(910,910,909)].
     "^?" => [infixOp(800,800,799)].
     "~=" => [infixOp(899,900,899)].
@@ -62,6 +61,7 @@ star.compiler.operators{
     "then" => [infixOp(1179,1180,1179)].
     "!" => [postfixOp(99,100), infixOp(99,100,99)].
     "->>" => [infixOp(1199,1200,1199)].
+    "?=" => [infixOp(899,900,899)].
     "default" => [postfixOp(939,940)].
     "#" => [prefixOp(1750,1749), infixOp(759,760,759)].
     "%" => [infixOp(700,700,699)].
@@ -95,7 +95,7 @@ star.compiler.operators{
     "++" => [infixOp(719,720,720)].
     ">" => [infixOp(899,900,899)].
     "return" => [prefixOp(930,929)].
-    "?" => [infixOp(919,920,920)].
+    "?" => [prefixOp(820,819), infixOp(919,920,920)].
     "@" => [prefixOp(400,399), infixOp(399,400,400)].
     "in" => [infixOp(899,900,900)].
     "break" => [prefixOp(10,9)].
@@ -180,10 +180,10 @@ star.compiler.operators{
   }
 
   public isLeftBracket:(string) => boolean.
-  isLeftBracket(S) => .bkt(S,_,_,_,_) ^= isBracket(S).
+  isLeftBracket(S) => .bkt(S,_,_,_,_) ?= isBracket(S).
 
   public isRightBracket:(string) => boolean.
-  isRightBracket(S) => .bkt(_,_,S,_,_) ^= isBracket(S).
+  isRightBracket(S) => .bkt(_,_,S,_,_) ?= isBracket(S).
 
   public first:(char) => option[string].
   first(Op) => case Op in {
@@ -273,7 +273,6 @@ star.compiler.operators{
     ("\\",`/`) => .some("\\/").
     ("^",`?`) => .some("^?").
     ("^",`/`) => .some("^/").
-    ("^",`=`) => .some("^=").
     ("^/",`/`) => .some("^//").
     (":",`?`) => .some(":?").
     (":",`:`) => .some("::").
@@ -295,6 +294,7 @@ star.compiler.operators{
     (">",`=`) => .some(">=").
     (">",`>`) => .some(">>").
     (">>",`=`) => .some(">>=").
+    ("?",`=`) => .some("?=").
     ("?",`}`) => .some("?}").
     ("!",`}`) => .some("!}").
     ("•",`•`) => .some("••").
@@ -361,7 +361,6 @@ star.compiler.operators{
     "^?" => .true.  /* option propagate */
     "^/" => .true.  /* filter */
     "^//" => .true.  /* filter map */
-    "^=" => .true.  /* optional decomposition match */
     ":" => .true.  /* type annotation */
     ":?" => .true.  /* fallable type coercion */
     "::" => .true.  /* type coercion */
@@ -384,7 +383,8 @@ star.compiler.operators{
     ">=" => .true.  /* greater than or equal */
     ">>" => .true.  /* monadic bind */
     ">>=" => .true.  /* monadic bind */
-    "?" => .true.  /* conditional operator */
+    "?" => .true.  /* mark expression as optionally there */
+    "?=" => .true.  /* optional decomposition match */
     "?}" => .true.  /* test comprehension */
     "@" => .true.  /* meta annotation */
     "!" => .true.  /* pick up value from a ref cell */
@@ -400,7 +400,6 @@ star.compiler.operators{
   keyword(Op) => case Op in {
     "retire" => .true.
     "all" => .true.
-    "^=" => .true.
     "&&" => .true.
     "~>" => .true.
     "throw" => .true.
@@ -416,6 +415,7 @@ star.compiler.operators{
     "then" => .true.
     "!" => .true.
     "->>" => .true.
+    "?=" => .true.
     "default" => .true.
     "#" => .true.
     "!}" => .true.

@@ -411,13 +411,22 @@
     "keyword": true
   },
   {
-    "infixOp": "^=",
+    "infixOp": "?=",
     "priorities": [
       899,
       900,
       899
     ],
     "desc": "optional decomposition match",
+    "keyword": true
+  },
+  {
+    "prefixOp": "?",
+    "priorities": [
+      820,
+      819
+    ],
+    "desc": "mark expression as optionally there",
     "keyword": true
   },
   {

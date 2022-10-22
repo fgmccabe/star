@@ -25,7 +25,7 @@ star.compiler.opg{
   termLeft([.tok(Lc,.idTok(Id)),.tok(Lc1,.rgtTok(Par)),..Toks],_) =>
     (nme(.some(Lc),Id),0,[.tok(Lc1,.rgtTok(Par)),..Toks],.needOne).
   termLeft([.tok(Lc,.idTok(Op)),..Toks],Priority) where
-      (PPr,PRgt)^=isPrefixOp(Op) && PPr=<Priority &&
+      (PPr,PRgt)?=isPrefixOp(Op) && PPr=<Priority &&
       (Arg,_,RToks,Needs) .= term(Toks,PRgt) =>
     (unary(mergeLoc(.some(Lc),locOf(Arg)),Op,Arg),PPr,RToks,Needs).
   termLeft([.endTok(Lc),..Toks],_) => valof{
@@ -37,18 +37,18 @@ star.compiler.opg{
 
   termRight:((ast,integer,cons[token],needsTerm),integer) => (ast,integer,cons[token],needsTerm).
   termRight((Lhs,LeftPriority,[.tok(Lc,.idTok(Op)),..Toks],LeftNeed),Priority) where
-      (ILft,IPr,IRgt) ^= isInfixOp(Op) && IPr=<Priority && ILft>=LeftPriority &&
-      (PLft,PPr) ^= isPostfixOp(Op) && PPr=<Priority && PLft>=LeftPriority &&
+      (ILft,IPr,IRgt) ?= isInfixOp(Op) && IPr=<Priority && ILft>=LeftPriority &&
+      (PLft,PPr) ?= isPostfixOp(Op) && PPr=<Priority && PLft>=LeftPriority &&
       legalNextRight(Toks,IRgt) &&	-- Use infix
       (Rhs,RPriority,RToks,Needs) .= term(Toks,IRgt) =>
     termRight((binary(mergeLoc(locOf(Lhs),locOf(Rhs)),Op,Lhs,Rhs),RPriority,RToks,Needs),Priority).
   termRight((Lhs,LeftPriority,[.tok(Lc,.idTok(Op)),..Toks],LeftNeed),Priority) where
-      (ILft,IPr,IRgt) ^= isInfixOp(Op) && IPr=<Priority && ILft>=LeftPriority &&
+      (ILft,IPr,IRgt) ?= isInfixOp(Op) && IPr=<Priority && ILft>=LeftPriority &&
       legalNextRight(Toks,IRgt) &&
     (Rhs,RPriority,RToks,Needs) .= term(Toks,IRgt) =>
     termRight((binary(mergeLoc(locOf(Lhs),locOf(Rhs)),Op,Lhs,Rhs),RPriority,RToks,Needs),Priority).
   termRight((Lhs,LeftPriority,[.tok(Lc,.idTok(Op)),..Toks],LeftNeed),Priority) where
-      (PLft,PPr) ^= isPostfixOp(Op) &&
+      (PLft,PPr) ?= isPostfixOp(Op) &&
       PPr=<Priority && PLft>=LeftPriority &&
       ~legalNextRight(Toks,PPr) =>
     termRight((unary(mergeLoc(locOf(Lhs),.some(Lc)),Op,Lhs),PPr,Toks,.needOne),Priority).
@@ -60,7 +60,7 @@ star.compiler.opg{
 
   legalRight:(tk,integer) => boolean.
   legalRight(.idTok(". "),_) => .false.
-  legalRight(.idTok(Op),Pr) where (PPr,_) ^= isPrefixOp(Op) => PPr=<Pr.
+  legalRight(.idTok(Op),Pr) where (PPr,_) ?= isPrefixOp(Op) => PPr=<Pr.
   legalRight(.idTok(Op),_) => ~ isOperator(Op).
   legalRight(.idQTok(_),_) => .true.
   legalRight(.intTok(_),_) => .true.
@@ -101,7 +101,7 @@ star.compiler.opg{
   term00([.tok(Lc,.lftTok(Lbl)),.tok(Lc1,.rgtTok(Lbl)),..Toks]) =>
     (.tpl(mergeLoc(.some(Lc),.some(Lc1)),Lbl,[]),Toks,.needOne).
   term00([.tok(Lc,.lftTok(Lbl)),..Toks]) where
-      .bkt(_,Lbl,_,_,Inner) ^= isBracket(Lbl) &&
+      .bkt(_,Lbl,_,_,Inner) ?= isBracket(Lbl) &&
     (Arg,_,Toks1,_) .= term(Toks,Inner) &&
     (Lc2,Toks2) .= checkToken(.rgtTok(Lbl),Toks1) =>
     (genBkt(mergeLoc(.some(Lc),Lc2),Lbl,Arg),Toks2,.needOne).
@@ -153,7 +153,7 @@ star.compiler.opg{
   terms(Toks,_,SoFar) => (SoFar,Toks).
 
   deComma:(ast)=>cons[ast].
-  deComma(Trm) where (_,Lhs,Rhs) ^= isBinary(Trm,",") => [Lhs,..deComma(Rhs)].
+  deComma(Trm) where (_,Lhs,Rhs) ?= isBinary(Trm,",") => [Lhs,..deComma(Rhs)].
   deComma(Trm) => [Trm].
 
   interpolateString:(cons[stringSegment],option[locn]) => ast.

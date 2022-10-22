@@ -99,7 +99,7 @@
 (defvar star-symbol-regexp
   (star-one-of '(
 		 "=>" "->" "<=>" ".." ":=" ".="
-		 "^=" "<-" "=" "<~" "*>" "::=" "::" ":" "&&" "|" "||"
+		 "?=" "<-" "=" "<~" "*>" "::=" "::" ":" "&&" "|" "||"
 		 "~~" "@@" "@" "#" "^" "^^" "\\+" "\\=" ",.." "."
 		 ))
   "Regular expression matching the symbols to highlight in Star mode."

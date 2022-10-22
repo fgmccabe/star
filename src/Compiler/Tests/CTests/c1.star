@@ -29,6 +29,6 @@ test.c1{
 
   main:()=>action[(),()].
   main()=>do{
-    assert .nil ^= head(fooBar())
+    assert .nil ?= head(fooBar())
   }
 }

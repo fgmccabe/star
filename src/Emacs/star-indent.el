@@ -167,7 +167,7 @@
 	   ("->"     nil     star-arrow-indent)
 	   ("=="     nil     star-pred-indent)
 	   (".="     nil     star-pred-indent)
-	   ("^="     nil     star-pred-indent)
+	   ("?="     nil     star-pred-indent)
 	   ("assert" nil     0)
 	   ))
 	(i (make-hash-table :test 'equal)))

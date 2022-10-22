@@ -22,9 +22,9 @@ star.topsort{
     pushDf(Df,Pt,Stk) => [dE{df=Df. stackPt=Pt},..Stk].
 
     analyse:(t,cons[d],cons[defEntry],cons[cons[d]],integer) => stTuple.
-    analyse(Ref,Dfs,Stk,Gps,Low) where X^=inStack(Ref,Stk) => (Dfs,Stk,Gps,min(X,Low)).
+    analyse(Ref,Dfs,Stk,Gps,Low) where X?=inStack(Ref,Stk) => (Dfs,Stk,Gps,min(X,Low)).
     analyse(Ref,Dfs,Stk,Gps,Low) where
-      (Df,RDefs) ^= pickDef(Ref,Dfs,[]) &&
+      (Df,RDefs) ?= pickDef(Ref,Dfs,[]) &&
       (ODefs,OStk,OGps,DfPt) .= analyseDef(Df,Stk,RDefs,Gps) => (ODefs,OStk,OGps,min(Low,DfPt)).
     analyse(_,Dfs,Stk,Gps,Low) default => (Dfs,Stk,Gps,Low).
 

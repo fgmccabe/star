@@ -4,7 +4,6 @@
 
 #include "cellP.h"
 #include <assert.h>
-#include <globals.h>
 #include "heapP.h"
 
 static long cellSize(specialClassPo cl, termPo o);

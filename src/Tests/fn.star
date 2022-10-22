@@ -8,8 +8,8 @@ test.fn{
 
   main:()=>().
   main()=>valof{
-    assert "one"^=head(S);
-    assert "ten"^=last(S);
+    assert "one"?=head(S);
+    assert "ten"?=last(S);
 
     show S;
     show lead(S);

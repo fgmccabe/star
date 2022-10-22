@@ -317,6 +317,19 @@ star.compiler.meta{
     }
   }
 
+  public showCodegenOption:cmdOption[compilerOptions].
+  showCodegenOption = cmdOption{
+    shortForm = "-di".
+    alternatives = [].
+    usage = "-di -- show generated code".
+    validator = .none.
+    setOption(_,Opts) => valof{
+      showCode := .true;
+      
+      valis Opts
+    }
+  }
+
   public noCodeOption:cmdOption[compilerOptions].
   noCodeOption = cmdOption{
     shortForm = "-x".
@@ -334,8 +347,8 @@ star.compiler.meta{
     shortForm = "-O".
     alternatives = ["--optimize"].
     usage = "-O <Lvl> -- optimization level".
-    validator = some((O)=> _ ^= O:?optimizationLvl).
-    setOption(L,Opts) where Lvl^=L:?optimizationLvl => valof{
+    validator = some((O)=> _ ?= O:?optimizationLvl).
+    setOption(L,Opts) where Lvl?=L:?optimizationLvl => valof{
       optimization := Lvl;
       valis Opts
     }
@@ -347,7 +360,7 @@ star.compiler.meta{
     alternatives = [].
     usage = "-R dir -- directory of repository".
     validator = some(isDir).
-    setOption(R,Opts) where RU ^= parseUri(R) && NR^=resolveUri(Opts.cwd,RU) =>
+    setOption(R,Opts) where RU ?= parseUri(R) && NR?=resolveUri(Opts.cwd,RU) =>
       compilerOptions{repo=NR.
 	cwd=Opts.cwd.
 	graph=Opts.graph.
@@ -361,7 +374,7 @@ star.compiler.meta{
     alternatives = [].
     usage = "-W dir -- working directory".
     validator = some(isDir).
-    setOption(W,Opts) where RW ^= parseUri(W) && NW^=resolveUri(Opts.cwd,RW)=>
+    setOption(W,Opts) where RW ?= parseUri(W) && NW?=resolveUri(Opts.cwd,RW)=>
       compilerOptions{repo=Opts.repo.
 	cwd=NW.
 	graph=Opts.graph.
@@ -389,7 +402,7 @@ star.compiler.meta{
     alternatives = ["--genGraph"].
     usage = "-G uri -- generate dependency graph".
     validator = some((_)=>.true).
-    setOption(R,Opts) where RU ^= parseUri(R) && NR^=resolveUri(Opts.cwd,RU) =>
+    setOption(R,Opts) where RU ?= parseUri(R) && NR?=resolveUri(Opts.cwd,RU) =>
       compilerOptions{repo=Opts.repo.
 	cwd=Opts.cwd.
 	graph=some(NR).

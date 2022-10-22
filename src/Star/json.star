@@ -55,7 +55,7 @@ star.json{
   }
 
   public parseJson:(string)=>option[json].
-  parseJson(T) where (J,_)^=pJ(skpBlnks(T::cons[char])) => some(J).
+  parseJson(T) where (J,_)?=pJ(skpBlnks(T::cons[char])) => some(J).
   parseJson(_) default => .none.
 
   pJ:(cons[char]) => option[(json,cons[char])].
@@ -120,15 +120,15 @@ star.json{
 
   psHex:(cons[char],integer,integer) => (char,cons[char]).
   psHex(L,So,0) => (So::char,L).
-  psHex([H,..L],So,Cn) where Hx^=isHexDigit(H) && Cn>0 => psHex(L,So*16+Hx,Cn-1).
+  psHex([H,..L],So,Cn) where Hx?=isHexDigit(H) && Cn>0 => psHex(L,So*16+Hx,Cn-1).
   psHex(L,So,_) default => (So::char,L).
 
   psSeq:(cons[char]) => option[(json,cons[char])].
   psSeq([`]`,..L]) => some((jSeq([]),L)).
-  psSeq(L) where (El,LL)^=pJ(L) => psMoreSeq(skpBlnks(LL),[El]).
+  psSeq(L) where (El,LL)?=pJ(L) => psMoreSeq(skpBlnks(LL),[El]).
 
   psMoreSeq([`]`,..L],SoF) => some((jSeq(reverse(SoF)),L)).
-  psMoreSeq([`,`,..L],SoF) where (El,LL)^=pJ(L) =>
+  psMoreSeq([`,`,..L],SoF) where (El,LL)?=pJ(L) =>
     psMoreSeq(skpBlnks(LL),[El,..SoF]).
 
   psColl:(cons[char]) => option[(json,cons[char])].
@@ -140,5 +140,5 @@ star.json{
 
   psEntry(L) where (Ky,L1) .= psString(skpBlnks(L)) &&
       [`:`,..L2].=skpBlnks(L1) &&
-      (Vl,LL) ^= pJ(skpBlnks(L2)) => (Ky,Vl,LL).
+      (Vl,LL) ?= pJ(skpBlnks(L2)) => (Ky,Vl,LL).
 }

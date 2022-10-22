@@ -16,9 +16,9 @@ star.repo.boot{
     hasSignature(P) => locateInBootRepo(P,"signature").
 
     hasCode(Pkg) where 
-	U ^= locateInBootRepo(Pkg,"code") &&
-	Uri ^= parseUri(U) &&
-	RU ^= resolveUri(Root,Uri) => getResource(RU).
+	U ?= locateInBootRepo(Pkg,"code") &&
+	Uri ?= parseUri(U) &&
+	RU ?= resolveUri(Root,Uri) => getResource(RU).
     hasCode(_) default => .none.
   }.
     

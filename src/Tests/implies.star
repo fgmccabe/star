@@ -31,7 +31,7 @@ test.implies{
     show hasD("a");
     show hasD("f");
   
-    assert _^=onlySons("a");
+    assert _?=onlySons("a");
 
     show onlySons("a");
     show onlySons("f");

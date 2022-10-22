@@ -6,7 +6,6 @@
 #define STAR_CELLP_H
 
 #include "cell.h"
-#include "code.h"
 #include "termP.h"
 
 typedef struct _cell_record_ {

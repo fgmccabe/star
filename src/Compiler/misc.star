@@ -28,11 +28,11 @@ star.compiler.misc{
 
   public qualifiedName:(string,markerType,string) => string.
 --  qualifiedName(_,Mrk,Nm) where Glue.=markerString(Mrk) &&
---      Ix ^= strFind(Nm,Glue,0) => Nm.
+--      Ix ?= strFind(Nm,Glue,0) => Nm.
   qualifiedName(Pth,Mrk,Nm) => Pth++markerString(Mrk)++Nm.
 
   public localName:(string,markerType)=>string.
-  localName(QNm,M) where Ix^=strFind(QNm,markerString(M),0) 
+  localName(QNm,M) where Ix?=strFind(QNm,markerString(M),0) 
       && MX .= [|markerString(M)|] =>
     subString(QNm,Ix+MX,[|QNm|]-Ix-MX).
   localName(Nm,_) default => Nm.
@@ -75,7 +75,7 @@ star.compiler.misc{
     937,941,947,953,967,971,977,983,991,997].
 
   public nextPrime:(integer)=>integer.
-  nextPrime(X) where Nxt ^= head(somePrimes^/(P)=>P>=X) => Nxt.
+  nextPrime(X) where Nxt ?= head(somePrimes^/(P)=>P>=X) => Nxt.
 
   sieve:(cons[integer]) => cons[integer].
   sieve([]) => [].

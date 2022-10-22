@@ -171,8 +171,9 @@ termPo markPtr(gcSupportPo G, ptrPo p) {
     if (hasMoved(t))
       return movedTo(t);
     else if (inSwappedHeap(G, t)) {
-      if (isSpecialClass(t->clss)) {
-        specialClassPo special = (specialClassPo) t->clss;
+      clssPo clss = classOf(t);
+      if (isSpecialClass(clss)) {
+        specialClassPo special = (specialClassPo) clss;
         termPo nn = G->H->curr;
         G->H->curr = special->copyFun(special, nn, t);
         G->oCnt++;
@@ -181,7 +182,7 @@ termPo markPtr(gcSupportPo G, ptrPo p) {
       } else {
         G->oCnt++;
 
-        labelPo lbl = C_LBL((termPo) t->clss);
+        labelPo lbl = C_LBL((termPo) clss);
         integer size = NormalCellCount(lbl->arity);
         termPo nn = G->H->curr;
         memcpy(nn, t, termSize(C_NORMAL(t)) * sizeof(termPo));
@@ -220,8 +221,9 @@ static retCode markScanHelper(ptrPo arg, void *c) {
 }
 
 termPo scanTerm(gcSupportPo G, termPo x) {
-  if (isSpecialClass(x->clss)) {
-    specialClassPo sClass = (specialClassPo) classOf(x);
+  clssPo clss = classOf(x);
+  if (isSpecialClass(clss)) {
+    specialClassPo sClass = (specialClassPo) clss;
     return sClass->scanFun(sClass, markScanHelper, G, x);
   } else {
     normalPo nml = C_NORMAL(x);
@@ -235,14 +237,14 @@ termPo scanTerm(gcSupportPo G, termPo x) {
 termPo finalizeTerm(gcSupportPo G, termPo x) {
   if (hasMoved(x)) {
     termPo n = movedTo(x);
-    if (isSpecialClass(n->clss)) {
+    if (isSpecialClass(classOf(n))) {
       specialClassPo sClass = (specialClassPo) classOf(n);
 
       return x + sClass->sizeFun(sClass, n);
     } else {
       return x + NormalCellCount(termArity(C_NORMAL(n)));
     }
-  } else if (isSpecialClass(x->clss)) {
+  } else if (isSpecialClass(classOf(x))) {
     specialClassPo sClass = (specialClassPo) classOf(x);
     sClass->finalizer(sClass, x);
     return x + sClass->sizeFun(sClass, x);

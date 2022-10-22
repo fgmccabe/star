@@ -148,7 +148,7 @@ star.compiler.resolve{
   }
   overloadTerm(.overaccess(Lc,T,RcTp,Fld,FldTp),Dict,St) => valof{
 --    logMsg("over access $(T)");
-    if (AccessOp,St1) ^= resolveAccess(Lc,RcTp,Fld,FldTp,Dict,St) then{
+    if (AccessOp,St1) ?= resolveAccess(Lc,RcTp,Fld,FldTp,Dict,St) then{
       (OverOp,NArgs,St2) = resolveRef(T,[AccessOp],[],Dict,St1);
       valis (curryOver(Lc,OverOp,NArgs,funType([RcTp],FldTp)),St2)
     } else{
@@ -162,7 +162,7 @@ star.compiler.resolve{
     valis (.apply(lc,OverOp,NArgs,Tp),markResolved(St3))
   }
   overloadTerm(.apply(lc,.overaccess(Lc,T,RcTp,Fld,FldTp),Args,Tp),Dict,St) => valof{
-    if (AccessOp,St1) ^= resolveAccess(Lc,RcTp,Fld,FldTp,Dict,St) then{
+    if (AccessOp,St1) ?= resolveAccess(Lc,RcTp,Fld,FldTp,Dict,St) then{
       (RArgs,St2) = overloadTplEls(Args,Dict,St1);
       (OverOp,NArgs,St3) = resolveRef(T,[AccessOp],RArgs,Dict,St2);
       valis (.apply(lc,OverOp,NArgs,Tp),St3)
@@ -244,7 +244,7 @@ star.compiler.resolve{
     (C,DArgs++Args,St).
 
   overApply(_,OverOp,[],_) => OverOp.
-  overApply(Lc,OverOp,Args,Tp) where ~ _ ^= isFunType(Tp) =>
+  overApply(Lc,OverOp,Args,Tp) where ~ _ ?= isFunType(Tp) =>
     apply(Lc,OverOp,Args,Tp).
   overApply(Lc,OverOp,Args,Tp) =>
     curryOver(Lc,OverOp,Args,Tp).
@@ -399,7 +399,7 @@ star.compiler.resolve{
 --    logMsg("resolve contract $(Con)");
     ImpNm = implementationName(Con);
     Tp = typeOf(Con);
-    if Impl^=findImplementation(Dict,ImpNm) then {
+    if Impl?=findImplementation(Dict,ImpNm) then {
 --      logMsg("resolve contract $(Con) using $(Impl)\:$(typeOf(Impl))");
       if sameType(typeOf(Impl),Tp,Dict) then {
 --	logMsg("resolving impl var $(Impl)");
@@ -415,7 +415,7 @@ star.compiler.resolve{
   resolveAccess:(option[locn],tipe,string,tipe,dict,resolveState) => option[(canon,resolveState)].
   resolveAccess(Lc,RcTp,Fld,Tp,Dict,St) => valof{
 --    logMsg("resolve access $(RcTp).$(Fld)\:$(Tp)");
-    if AccFn ^= findAccess(Lc,RcTp,Fld,Dict) then{
+    if AccFn ?= findAccess(Lc,RcTp,Fld,Dict) then{
 --      logMsg("access fun $(AccFn)\:$(typeOf(AccFn))");
       Ft = newTypeVar("F");
       if sameType(typeOf(AccFn),funType([RcTp],Ft),Dict) then{
@@ -436,7 +436,7 @@ star.compiler.resolve{
   resolveDot(Lc,Rc,Fld,Tp,Dict,St) => valof{
 --    logMsg("resolve access at $(Lc) of $(Rc).$(Fld), expected type $(Tp)");
     RcTp = typeOf(Rc);
-    if AccFn ^= findAccess(Lc,RcTp,Fld,Dict) then{
+    if AccFn ?= findAccess(Lc,RcTp,Fld,Dict) then{
 --      logMsg("access fun $(AccFn)\:$(typeOf(AccFn))");
       Ft = newTypeVar("F");
       if sameType(typeOf(AccFn),funType([RcTp],Ft),Dict) then{
@@ -460,7 +460,7 @@ star.compiler.resolve{
   resolveUpdate(Lc,Rc,Fld,Vl,Dict,St) => valof{
 --    logMsg("resolve update at $(Lc) of $(Rc).$(Fld)");
     RcTp = typeOf(Rc);
-    if AccFn ^= findUpdate(Lc,RcTp,Fld,Dict) then{
+    if AccFn ?= findUpdate(Lc,RcTp,Fld,Dict) then{
 --      logMsg("updater fun $(AccFn)\:$(typeOf(AccFn))");
 
       Ft = newTypeVar("F");
