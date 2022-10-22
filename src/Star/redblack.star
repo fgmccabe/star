@@ -200,7 +200,7 @@ star.redblack{
 
   public implementation all k,v ~~ equality[k],comp[k] |:
     stream[rbtree[k,v]->>keyval[k,v]] => let{.
-      hdtl(T) where H^=hd(T) => .some((H,drop(T,H))).
+      hdtl(T) where H?=hd(T) => .some((H,drop(T,H))).
       hdtl(_) default => .none.
 
       private

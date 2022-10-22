@@ -127,7 +127,7 @@ star.compiler.constraints{
 --    logMsg("trying to resolve constraint $(check(Lc,.none,Dict,Tp))");
     ImpNm .= implementationName(Tp);
 --    logMsg("looking for implementation $(Tp) - $(ImpNm)");
-    if Impl^=findVar(Lc,ImpNm,Dict) then {
+    if Impl?=findVar(Lc,ImpNm,Dict) then {
 --      logMsg("we have implementation $(Impl)\:$(typeOf(Impl))");
       if sameType(typeOf(Impl),Tp,Dict) then {
 	valis (some(check(Lc,some(Impl),Dict,Tp)),extractTermConstraints(Impl,Dict,[])).
@@ -145,7 +145,7 @@ star.compiler.constraints{
   solvePass([C,..Cnx],So,Done,Rp) => do{
     (Cn,More) <- resolveConstraint(C,Rp);
 --    logMsg("result of looking at constraint $(C) is $(Cn)");
-    if Solved^=Cn then
+    if Solved?=Cn then
       solvePass(More++Cnx,So,[Solved,..Done],Rp)
     else{
       solvePass(Cnx,[C,..So],Done,Rp)

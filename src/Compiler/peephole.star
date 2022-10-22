@@ -34,7 +34,7 @@ star.compiler.peephole{
   pullJmps([I,..Ins],Map) =>
     [I,..pullJmps(Ins,Map)].
 
-  pullJump(Lbl,Map,Ins) where TIns ^= Map[Lbl] =>
+  pullJump(Lbl,Map,Ins) where TIns ?= Map[Lbl] =>
     pickupIns(TIns,Lbl,Map,Ins).
   pullJump(Lbl,Map,Ins) =>
     [.iJmp(Lbl),..pullJmps(Ins,Map)].
@@ -62,6 +62,7 @@ star.compiler.peephole{
     .iIf(Lbl) => H(Lbl,Lbs).
     .iIfNot(Lbl) => H(Lbl,Lbs).
     .iUnpack(_,Lbl) => H(Lbl,Lbs).
+    .iCmp(Lbl) => H(Lbl,Lbs).
     .iFCmp(Lbl) => H(Lbl,Lbs).
     .iICmp(Lbl) => H(Lbl,Lbs).
     .iCall(_,Lbl) => H(Lbl,Lbs).
@@ -73,10 +74,10 @@ star.compiler.peephole{
   }
 
   addLbl:(assemLbl,labelMap)=>labelMap.
-  addLbl(Lbl,Lbs) where (L,Cnt) ^= Lbs[Lbl] => Lbs[Lbl->(L,Cnt+1)].
+  addLbl(Lbl,Lbs) where (L,Cnt) ?= Lbs[Lbl] => Lbs[Lbl->(L,Cnt+1)].
   addLbl(Lbl,Lbs) => Lbs[Lbl->(.false,1)].
 
-  softAdd(Lb,Lbs) where (_,Cnt) ^= Lbs[Lb] => Lbs[Lb->(.true,Cnt)].
+  softAdd(Lb,Lbs) where (_,Cnt) ?= Lbs[Lb] => Lbs[Lb->(.true,Cnt)].
   softAdd(Lb,Lbs) => Lbs[Lb->(.true,0)].
 
   deleteUnused:(boolean,cons[assemOp],labelMap)=>cons[assemOp].
@@ -94,7 +95,7 @@ star.compiler.peephole{
 	  .none => valis dropUntilLbl(.true,Ins,Lbs).
 	}
       }
-      else if _^=Lbs[Lb] then
+      else if _?=Lbs[Lb] then
 	valis [.iLbl(Lb),..deleteUnused(F,Ins,Lbs)]
       else
 	valis deleteUnused(F,Ins,Lbs)
@@ -107,6 +108,13 @@ star.compiler.peephole{
       (Hd,Tl) = copyN(Ins,Ar);
       valis [.iIndxJmp(Ar),..(Hd++deleteUnused(F,Tl,Lbs))]
     }.
+    .iJmp(Lb) => valof{
+      if onlyLbls(Ins,Lb) then
+	valis Ins
+      else{
+	valis [I,..dropUntilLbl(.true,Ins,Lbs)]
+      }
+    }.
     _ default => valof{
       if uncondJmp(I) then
 	valis [I,..dropUntilLbl(.true,Ins,Lbs)]
@@ -114,6 +122,10 @@ star.compiler.peephole{
       valis [I,..deleteUnused(F,Ins,Lbs)]
     }
   }
+
+  onlyLbls([.iLbl(Lb),.._],Lb) => .true.
+  onlyLbls([.iLbl(_),..Ins],Lb) => onlyLbls(Ins,Lb).
+  onlyLbls(_,_) default => .false.
       
   copyN:all e ~~ (cons[e],integer) => (cons[e],cons[e]).
   copyN(L,X) => let{.
@@ -130,7 +142,7 @@ star.compiler.peephole{
   dropUntilLbl(.false,[I,..Ins],Lbs) =>
     [I,..deleteUnused(.false,Ins,Lbs)].
 
-  dropLbl(Lb,Lbs) where (L,Cnt) ^= Lbs[Lb] =>
+  dropLbl(Lb,Lbs) where (L,Cnt) ?= Lbs[Lb] =>
     ((Cnt>0 || L==.true)?
 	Lbs[Lb->(L,Cnt-1)] ||
 	Lbs[~Lb]).
@@ -151,14 +163,18 @@ star.compiler.peephole{
 
   findTgts:(cons[assemOp],map[assemLbl,cons[assemOp]]) => map[assemLbl,cons[assemOp]].
   findTgts([],M) => M.
-  findTgts([.iLbl(Lb),..Ins],Tgts) => findTgts(Ins,Tgts[Lb->Ins]).
+  findTgts([.iLbl(Lb),..Ins],Tgts) => findTgts(Ins,Tgts[Lb->skipLbls(Ins)]).
   findTgts([I,..Ins],Tgts) => findTgts(Ins,Tgts).
+
+  skipLbls([])=>[].
+  skipLbls([.iLbl(_),..Ins]) => skipLbls(Ins).
+  skipLbls(Ins) => Ins.
   
   -- Low-level optimizations.
   peep:(cons[assemOp])=>cons[assemOp].
   peep([]) => [].
   peep([.iLine(Lc),.iLine(_),..Ins]) => peep([.iLine(Lc),..Ins]).
-  peep(Ins) where Inx ^= accessorPtn(Ins) => peep(Inx).
+  peep(Ins) where Inx ?= accessorPtn(Ins) => peep(Inx).
   peep([.iStL(Off),.iLdL(Off),..Ins]) => peep([.iTL(Off),..Ins]).
   peep([.iCall(Fn,Lbl),.iFrame(_),.iRet,..Ins]) =>
     [.iTCall(Fn),..peep(Ins)].

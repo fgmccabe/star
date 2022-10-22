@@ -36,7 +36,7 @@ test.ms{
 
     show mapOver(doubleOrQuits,LL);
 
-    assert [2,4,6,8,10] ^= mapOver(doubleOrQuits,KK);
+    assert [2,4,6,8,10] ?= mapOver(doubleOrQuits,KK);
 
     assert mapOver(doubleOrQuits,LL)==.none;
 

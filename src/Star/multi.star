@@ -19,7 +19,7 @@ star.multi{
     _eof(_) default => .false.
 
     _hdtl(.single(X)) => some((X,.null)).
-    _hdtl(.multi(.cons(H,T))) where (F,R) ^= _hdtl(H) =>
+    _hdtl(.multi(.cons(H,T))) where (F,R) ?= _hdtl(H) =>
       .some((F,push(R,.multi(T)))).
 
     private push(.null,X) => X.

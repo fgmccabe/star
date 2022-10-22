@@ -18,9 +18,7 @@ typedef struct term_record **ptrPo, *termPo;      /* pointer to a structured val
 
 typedef struct class_record *clssPo;
 
-extern clssPo labelClass, normalClass, classClass;
-
-typedef termPo (*gcWalkPo)(clssPo clss, termPo term, void *cl);
+extern clssPo labelClass;
 
 typedef struct term_record {
   clssPo clss;
@@ -57,7 +55,7 @@ static inline clssPo classOf(termPo obj) {
 }
 
 static inline logical hasClass(termPo obj, clssPo clss) {
-  return (logical) (obj != Null && (clssPo) obj->clss == clss);
+  return (logical) (obj != Null && classOf(obj) == clss);
 }
 
 retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical alt);

@@ -15,7 +15,7 @@ test.qp{
   main:()=>().
   main()=>valof{
     show fatherOf("ab");
-    assert "a"^=fatherOf("ab");
+    assert "a"?=fatherOf("ab");
     valis ()
   }
 }

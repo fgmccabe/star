@@ -132,20 +132,20 @@ ptnVars(string(_,_),Vrs,Vrs).
 ptnVars(char(_,_),Vrs,Vrs).
 
 condVars(C,V,Vx) :-
-  isBinary(C,_,"&&",L,R),!,
+  isConjunct(C,_,L,R),!,
   condVars(L,V,V0),
   condVars(R,V0,Vx).
 condVars(C,V,Vx) :-
-  isBinary(C,_,"||",L,R),!,
+  isDisjunct(C,_,L,R),!,
   condVars(L,V,V0),
   condVars(R,V0,Vx).
 condVars(C,V,Vx) :-
-  isBinary(C,_,".=",L,_),!,
+  isMatch(C,_,L,_),!,
   ptnVars(L,V,Vx).
 condVars(C,V,Vx) :-
-  isBinary(C,_,"^=",L,_),!,
+  isOptionMatch(C,_,L,_),!,
   ptnVars(L,V,Vx).
 condVars(C,V,Vx) :-
-  isBinary(C,_,"in",L,_),!,
+  isSearch(C,_,L,_),!,
   condVars(L,V,Vx).
 condVars(_,V,V).

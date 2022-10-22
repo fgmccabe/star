@@ -78,9 +78,9 @@ test.rb0{
     show zip(["a","b","c","d","e","f","g","h","i","j","k","l","m"],0,1,[]);
 
     show aa0;
-    show chek(["a","b","c","d"],0,4,(Ix,V)=>V^=u1[Ix]);
+    show chek(["a","b","c","d"],0,4,(Ix,V)=>V?=u1[Ix]);
 
-    assert chek(letters,0,1,(Ix,V)=>V^=aa0[Ix]);
+    assert chek(letters,0,1,(Ix,V)=>V?=aa0[Ix]);
 
 /*    for K->V in u1 do{
       show K->V

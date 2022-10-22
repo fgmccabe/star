@@ -27,8 +27,8 @@ star.compiler.dependencies{
   }
 
   private collectRef:(defnSpec,map[defnSp,defnSp])=>map[defnSp,defnSp].
-  collectRef(.defnSpec(.conSp(Nm),_,[St]),M) where (_,_,_,_,Els) ^= isCntrctStmt(St) =>
-    foldLeft((El,MM) => ((_,N,_) ^= isTypeAnnotation(El) && (_,Id)^=isName(N) ?
+  collectRef(.defnSpec(.conSp(Nm),_,[St]),M) where (_,_,_,_,Els) ?= isCntrctStmt(St) =>
+    foldLeft((El,MM) => ((_,N,_) ?= isTypeAnnotation(El) && (_,Id)?=isName(N) ?
 	  MM[.varSp(Id)->.conSp(Nm)] || MM),
       M[.conSp(Nm)->.conSp(Nm)],Els).
   collectRef(.defnSpec(N,_,_),M) => M[N->N].
@@ -51,7 +51,7 @@ star.compiler.dependencies{
   collectDefs:(cons[ast],cons[defnSpec],cons[(defnSp,visibility)],map[string,ast],cons[ast]) => (cons[defnSpec],cons[(defnSp,visibility)],map[string,ast],cons[ast]).
   
   collectDefs([],Defs,Pb,As,Opn) => (Defs,Pb,As,Opn).
-  collectDefs([A,..Ss],Defs,Pb,As,Opn) where _ ^= isAnnotation(A) =>
+  collectDefs([A,..Ss],Defs,Pb,As,Opn) where _ ?= isAnnotation(A) =>
     collectDefs(Ss,Defs,Pb,As,Opn).
   collectDefs([A,..Ss],Defs,Pb,As,Opn) => valof{
     (SS1,Dfs1,Pb1,As1,Opn1) = collectDefinition(A,Ss,Defs,Pb,As,Opn,.deFault);
@@ -63,16 +63,16 @@ star.compiler.dependencies{
     (cons[ast],cons[defnSpec], cons[(defnSp,visibility)],map[string,ast],cons[ast]).
 
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,_) where
-      (_,Ai) ^= isPublic(A) =>
+      (_,Ai) ?= isPublic(A) =>
     collectDefinition(Ai,Stmts,Defs,Pb,As,Opn,.pUblic).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,_) where
-      (_,Ai) ^= isPrivate(A) =>
+      (_,Ai) ?= isPrivate(A) =>
     collectDefinition(Ai,Stmts,Defs,Pb,As,Opn,.priVate).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,_) where
-      Spec ^= isOpen(A) => (Stmts,Defs,Pb,As,[A,..Opn]).
+      Spec ?= isOpen(A) => (Stmts,Defs,Pb,As,[A,..Opn]).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
-      (Lc,V,T) ^= isTypeAnnotation(A) => valof{
-	if(ILc,Id) ^= isName(V) then{
+      (Lc,V,T) ?= isTypeAnnotation(A) => valof{
+	if(ILc,Id) ?= isName(V) then{
 	  if isConstructorStmt(T) then {
 	    valis (Stmts,[defnSpec(.cnsSp(Id),Lc,[T]),..Defs],
 	      [(.cnsSp(Id),Vz),..Pb],As[Id->T],Opn)
@@ -86,42 +86,42 @@ star.compiler.dependencies{
 	}
       }
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
-      (Lc,Q,C,T,Els) ^= isCntrctStmt(A) => valof{
+      (Lc,Q,C,T,Els) ?= isCntrctStmt(A) => valof{
 	ConTpNme = typeName(T);
 	valis (Stmts,[defnSpec(.conSp(ConTpNme),Lc,[A]),..Defs],
 	  [(.conSp(ConTpNme),Vz),..Pb],generateAnnotations(Els,Q,C,As),Opn)
       }.
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
-      (Lc,_,_,Cn,_) ^= isImplementationStmt(A) &&
+      (Lc,_,_,Cn,_) ?= isImplementationStmt(A) &&
       Sp .= implSp(implementedContractName(Cn)) =>
     (Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
-      (Lc,_,_,L,R) ^= isTypeExistsStmt(A) && Sp .= tpSp(typeName(L)) =>
+      (Lc,_,_,L,R) ?= isTypeExistsStmt(A) && Sp .= tpSp(typeName(L)) =>
     (Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
-      (Lc,_,_,L,R) ^= isTypeFunStmt(A) && Sp .= tpSp(typeName(L)) =>
+      (Lc,_,_,L,R) ?= isTypeFunStmt(A) && Sp .= tpSp(typeName(L)) =>
     (Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn).
   collectDefinition(A,Ss,Defs,Pb,As,Opn,Vz) where
-      (Lc,Nm,Rhs) ^= isDefn(A) && (_,Id) ^= isName(Nm) => valof{
+      (Lc,Nm,Rhs) ?= isDefn(A) && (_,Id) ?= isName(Nm) => valof{
 	Sp = .varSp(Id);
 	valis (Ss,[defnSpec(Sp,Lc,[A]),..Defs],publishName(Sp,Vz,Pb),As,Opn)
       }.
   collectDefinition(A,Ss,Defs,Pb,As,Opn,Vz) where
-      (Lc,Nm,Rhs) ^= isAssignment(A) && (_,Id) ^= isName(Nm) => valof{
+      (Lc,Nm,Rhs) ?= isAssignment(A) && (_,Id) ?= isName(Nm) => valof{
 	Sp = .varSp(Id);
 	valis (Ss,[defnSpec(Sp,Lc,[A]),..Defs],publishName(Sp,Vz,Pb),As,Opn)
       }.
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
-      (Lc,_,_,Tp,_) ^= isAccessorStmt(A) &&
+      (Lc,_,_,Tp,_) ?= isAccessorStmt(A) &&
       Sp .= accSp(typeName(Tp)) =>
     (Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
-      (Lc,_,_,Tp,_) ^= isUpdaterStmt(A) &&
+      (Lc,_,_,Tp,_) ?= isUpdaterStmt(A) &&
       Sp .= updSp(typeName(Tp)) =>
     (Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
-      (Lc,Nm) ^= ruleName(A) => valof{
-	if DLc ^= isDefined(.varSp(Nm),Defs) then{
+      (Lc,Nm) ?= ruleName(A) => valof{
+	if DLc ?= isDefined(.varSp(Nm),Defs) then{
 	  reportError("$(Nm) already defined at $(DLc)",Lc);
 	  valis (Stmts,Defs,Pb,As,Opn)
 	}
@@ -148,14 +148,14 @@ star.compiler.dependencies{
 
   collectDefines:(cons[ast],string,cons[ast]) => (cons[ast],cons[ast]).
   collectDefines([St,..Ss],Nm,Dfs) where
-      (_,Nm) ^= ruleName(St) => collectDefines(Ss,Nm,[St,..Dfs]).
+      (_,Nm) ?= ruleName(St) => collectDefines(Ss,Nm,[St,..Dfs]).
   collectDefines(Ss,Nm,Dfs) default => (Ss,Dfs).
 	
   generateAnnotations:(cons[ast],cons[ast],cons[ast],map[string,ast]) =>
     map[string,ast].
   generateAnnotations([],_,_,As) => As.
   generateAnnotations([A,..Ss],Qs,Cs,As) where
-      (Lc,V,T) ^= isTypeAnnotation(A) && (_,Id) ^= isName(V) =>
+      (Lc,V,T) ?= isTypeAnnotation(A) && (_,Id) ?= isName(V) =>
     generateAnnotations(Ss,Qs,Cs,As[Id->reUQuant(Lc,Qs,reConstrain(Cs,T))]).
   generateAnnotations([A,..Ss],Qs,Cs,As) =>
     generateAnnotations(Ss,Qs,Cs,As).
@@ -181,7 +181,7 @@ star.compiler.dependencies{
   locallyDefined([St,..Stmts],All) =>
     locallyDefined(Stmts,removeLocalDef(St,All)).
 
-  removeLocalDef(St,All) where (_,Id) ^= ruleName(St) =>
+  removeLocalDef(St,All) where (_,Id) ?= ruleName(St) =>
     All[~.varSp(Id)].
 
   collectStmtsRefs([],_,_,Rf) => Rf.
@@ -191,17 +191,17 @@ star.compiler.dependencies{
   }
 
   collectStmtRefs:(ast,map[defnSp,defnSp],map[string,ast],cons[defnSp]) => cons[defnSp].
-  collectStmtRefs(A,All,Annots,Rf) where (_,_,Tp) ^= isTypeAnnotation(A) =>
+  collectStmtRefs(A,All,Annots,Rf) where (_,_,Tp) ?= isTypeAnnotation(A) =>
     collectTypeRefs(Tp,All,Rf).
-  collectStmtRefs(A,All,Annots,Rf) where (_,I) ^= isPublic(A) =>
+  collectStmtRefs(A,All,Annots,Rf) where (_,I) ?= isPublic(A) =>
     collectStmtRefs(I,All,Annots,Rf).
-  collectStmtRefs(A,All,Annots,Rf) where (_,I) ^= isPrivate(A) =>
+  collectStmtRefs(A,All,Annots,Rf) where (_,I) ?= isPrivate(A) =>
     collectStmtRefs(I,All,Annots,Rf).
-  collectStmtRefs(A,All,Annots,Rf) where (_,V,D) ^= isDefn(A) =>
+  collectStmtRefs(A,All,Annots,Rf) where (_,V,D) ?= isDefn(A) =>
     collectTermRefs(D,All,collectAnnotRefs(V,All,Annots,Rf)).
-  collectStmtRefs(A,All,Annots,Rf) where (_,V,D) ^= isAssignment(A) =>
+  collectStmtRefs(A,All,Annots,Rf) where (_,V,D) ?= isAssignment(A) =>
     collectTermRefs(D,All,collectAnnotRefs(V,All,Annots,Rf)).
-  collectStmtRefs(A,All,Annots,Rf) where (_,.some(Nm),_,H,C,R) ^= isEquation(A) => valof{
+  collectStmtRefs(A,All,Annots,Rf) where (_,.some(Nm),_,H,C,R) ?= isEquation(A) => valof{
     Rf0 = collectAnnotRefs(Nm,All,Annots,Rf);
     Rf1 = collectHeadRefs(H,C,All,Rf0);
     valis collectTermRefs(R,All,Rf1)
@@ -209,41 +209,41 @@ star.compiler.dependencies{
   collectStmtRefs(A,All,Annots,Rf) where isConstructorStmt(A) =>
     collectTypeRefs(A,All,Rf).
   collectStmtRefs(A,All,Annots,Rf) where
-      (_,Q,Cx,L,R) ^= isTypeExistsStmt(A) => valof{
+      (_,Q,Cx,L,R) ?= isTypeExistsStmt(A) => valof{
 	A0 = filterOut(All,Q);
 	Rf0 = collectConstraintRefs(Cx,A0,Rf);
 	Rf1 = collectTypeRefs(L,A0,Rf0);
 	valis collectTypeRefs(R,A0,Rf1)
       }.
   collectStmtRefs(A,All,Annots,Rf) where
-      (_,Q,Cx,L,R) ^= isTypeFunStmt(A) => valof{
+      (_,Q,Cx,L,R) ?= isTypeFunStmt(A) => valof{
 	A0 = filterOut(All,Q);
 	Rf0 = collectConstraintRefs(Cx,A0,Rf);
 	Rf1 = collectTypeRefs(L,A0,Rf0);
 	valis collectTypeRefs(R,A0,Rf1)
       }.
   collectStmtRefs(A,All,Annots,Rf) where
-      (_,Q,C,T,Els) ^= isCntrctStmt(A) && (_,O,_) ^= isSquareTerm(T) => valof{
+      (_,Q,C,T,Els) ?= isCntrctStmt(A) && (_,O,_) ?= isSquareTerm(T) => valof{
 	A0 = filterOut(All,Q);
 	Rf0 = collectConstraintRefs(C,A0,Rf);
 	Rf1 = collectTypeRefs(hashName(O),A0,Rf0);
 	valis collectFaceTypes(Els,A0,Rf1)
       }.
   collectStmtRefs(A,All,Annots,Rf) where
-      (_,Q,Cx,Tp,Exp) ^= isImplementationStmt(A) => valof{
+      (_,Q,Cx,Tp,Exp) ?= isImplementationStmt(A) => valof{
 	A0 = filterOut(All,Q);
 	Rf1 = collectConstraintRefs([Tp,..Cx],A0,Rf);
 	valis collectTermRefs(Exp,A0,Rf1)
       }.
   collectStmtRefs(A,All,Annots,Rf) where
-      (_,Q,Cx,Tp,Exp) ^= isAccessorStmt(A) => valof{
+      (_,Q,Cx,Tp,Exp) ?= isAccessorStmt(A) => valof{
 	A0 = filterOut(All,Q);
 	Rf0 = collectConstraintRefs(Cx,A0,Rf);
 	Rf1 = collectTypeRefs(Tp,A0,Rf0);
 	valis collectTermRefs(Exp,A0,Rf1)
       }.
   collectStmtRefs(A,All,Annots,Rf) where
-      (_,Q,Cx,Tp,Exp) ^= isUpdaterStmt(A) => valof{
+      (_,Q,Cx,Tp,Exp) ?= isUpdaterStmt(A) => valof{
 	A0 = filterOut(All,Q);
 	Rf0 = collectConstraintRefs(Cx,A0,Rf);
 	Rf1 = collectTypeRefs(Tp,A0,Rf0);
@@ -259,106 +259,106 @@ star.compiler.dependencies{
   collectHeadRefs(H,.none,All,Rf) =>
     collectTermRefs(H,All,Rf).
     
-  collectAnnotRefs(H,All,Annots,Rf) where Id^=headName(H) =>
-    (Tp ^= Annots[Id] ? collectTypeRefs(Tp,All,Rf) || Rf).
+  collectAnnotRefs(H,All,Annots,Rf) where Id?=headName(H) =>
+    (Tp ?= Annots[Id] ? collectTypeRefs(Tp,All,Rf) || Rf).
   collectAnnotRefs(H,_,_,Rf) => valof{
     reportError("not a head: $(H)",locOf(H));
     valis Rf
   }.
 
   collectCondRefs:(ast,map[defnSp,defnSp],cons[defnSp]) => cons[defnSp].
-  collectCondRefs(A,All,Rf) where (_,L,R) ^= isConjunct(A) =>
+  collectCondRefs(A,All,Rf) where (_,L,R) ?= isConjunct(A) =>
     collectCondRefs(R,All,collectCondRefs(L,All,Rf)).
-  collectCondRefs(A,All,Rf) where (_,L,R) ^= isDisjunct(A) =>
+  collectCondRefs(A,All,Rf) where (_,L,R) ?= isDisjunct(A) =>
     collectCondRefs(R,All,collectCondRefs(L,All,Rf)).
-  collectCondRefs(A,All,Rf) where (_,R) ^= isNegation(A) => 
+  collectCondRefs(A,All,Rf) where (_,R) ?= isNegation(A) => 
     collectCondRefs(R,All,Rf).
-  collectCondRefs(A,All,Rf) where (_,T,L,R) ^= isConditional(A) => valof{
+  collectCondRefs(A,All,Rf) where (_,T,L,R) ?= isConditional(A) => valof{
     Rf0 = collectCondRefs(T,All,Rf);
     Rf1 = collectCondRefs(L,All,Rf0);
     valis collectCondRefs(R,All,Rf1)
   }
-  collectCondRefs(A,All,Rf) where (_,[C]) ^= isTuple(A) => 
+  collectCondRefs(A,All,Rf) where (_,[C]) ?= isTuple(A) => 
     collectCondRefs(C,All,Rf).
   collectCondRefs(E,All,Rf) => collectTermRefs(E,All,Rf).
     
   collectTermRefs:(ast,map[defnSp,defnSp],cons[defnSp]) => cons[defnSp].
-  collectTermRefs(V,All,Rf) where _ ^= isAnon(V) => Rf.
-  collectTermRefs(V,All,Rf) where (_,Id) ^= isName(V) => 
+  collectTermRefs(V,All,Rf) where _ ?= isAnon(V) => Rf.
+  collectTermRefs(V,All,Rf) where (_,Id) ?= isName(V) => 
     collectName(.cnsSp(Id),All,collectName(.varSp(Id),All,Rf)).
-  collectTermRefs(T,All,Rf) where (_,Id) ^= isEnumSymb(T) =>
+  collectTermRefs(T,All,Rf) where (_,Id) ?= isEnumSymb(T) =>
     collectName(.cnsSp(Id),All,Rf).
-  collectTermRefs(T,All,Rf) where (_,Op,Args) ^= isEnumCon(T) =>
+  collectTermRefs(T,All,Rf) where (_,Op,Args) ?= isEnumCon(T) =>
     collectTermListRefs(Args,All,collectTermRefs(Op,All,Rf)).
-  collectTermRefs(T,All,Rf) where (_,Lhs,Rhs) ^= isTypeAnnotation(T) =>
+  collectTermRefs(T,All,Rf) where (_,Lhs,Rhs) ?= isTypeAnnotation(T) =>
     collectTypeRefs(Rhs,All,collectTermRefs(Lhs,All,Rf)).
-  collectTermRefs(T,All,Rf) where (_,Env,Bnd) ^= isLetDef(T) =>
+  collectTermRefs(T,All,Rf) where (_,Env,Bnd) ?= isLetDef(T) =>
     collectStmtsRefs(Env,All,[],collectTermRefs(Bnd,All,Rf)).
-  collectTermRefs(T,All,Rf) where (_,Env,Bnd) ^= isLetRecDef(T) =>
+  collectTermRefs(T,All,Rf) where (_,Env,Bnd) ?= isLetRecDef(T) =>
     collectStmtsRefs(Env,All,[],collectTermRefs(Bnd,All,Rf)).
-  collectTermRefs(T,All,Rf) where (_,I) ^= isCellRef(T) =>
+  collectTermRefs(T,All,Rf) where (_,I) ?= isCellRef(T) =>
     collectTermRefs(I,All,Rf).
-  collectTermRefs(T,All,Rf) where (_,I) ^= isRef(T) =>
+  collectTermRefs(T,All,Rf) where (_,I) ?= isRef(T) =>
     collectTermRefs(I,All,Rf).
-  collectTermRefs(T,All,Rf) where (_,Op,Args) ^= isRoundTerm(T) =>
+  collectTermRefs(T,All,Rf) where (_,Op,Args) ?= isRoundTerm(T) =>
     collectTermListRefs(Args,All,collectTermRefs(Op,All,Rf)).
-  collectTermRefs(T,All,Rf) where (_,Args) ^= isTuple(T) => 
+  collectTermRefs(T,All,Rf) where (_,Args) ?= isTuple(T) => 
     collectTermListRefs(Args,All,Rf).
-  collectTermRefs(T,All,Rf) where (_,L,R) ^= isCons(T) =>
+  collectTermRefs(T,All,Rf) where (_,L,R) ?= isCons(T) =>
     collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
-  collectTermRefs(T,All,Rf) where (_,Args) ^= isSqTuple(T) => 
+  collectTermRefs(T,All,Rf) where (_,Args) ?= isSqTuple(T) => 
     collectTermListRefs(Args,All,Rf).
-  collectTermRefs(T,All,Rf) where (_,E,C) ^= isCase(T) =>
+  collectTermRefs(T,All,Rf) where (_,E,C) ?= isCase(T) =>
     collectCasesRefs(C,collectTermRefs,All,collectTermRefs(E,All,Rf)).
-  collectTermRefs(T,All,Rf) where (_,Sts) ^= isTheta(T) =>
+  collectTermRefs(T,All,Rf) where (_,Sts) ?= isTheta(T) =>
     collectStmtsRefs(Sts,All,[],Rf).
-  collectTermRefs(T,All,Rf) where (_,Sts) ^= isQTheta(T) =>
+  collectTermRefs(T,All,Rf) where (_,Sts) ?= isQTheta(T) =>
     collectStmtsRefs(Sts,All,[],Rf).
-  collectTermRefs(T,All,Rf) where (_,L,R) ^= isMatch(T) =>
+  collectTermRefs(T,All,Rf) where (_,L,R) ?= isMatch(T) =>
     collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
-  collectTermRefs(T,All,Rf) where (_,L,R) ^= isOptionMatch(T) => 
+  collectTermRefs(T,All,Rf) where (_,L,R) ?= isOptionMatch(T) => 
     collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
-  collectTermRefs(T,All,Rf) where (_,L,R) ^= isSearch(T) =>
+  collectTermRefs(T,All,Rf) where (_,L,R) ?= isSearch(T) =>
     collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
-  collectTermRefs(T,All,Rf) where (_,L,M,R) ^= isSlice(T) =>
+  collectTermRefs(T,All,Rf) where (_,L,M,R) ?= isSlice(T) =>
     collectTermRefs(R,All,collectTermRefs(L,All,collectTermRefs(L,All,Rf))).
-  collectTermRefs(T,All,Rf) where (_,L,R) ^= isCoerce(T) =>
+  collectTermRefs(T,All,Rf) where (_,L,R) ?= isCoerce(T) =>
     collectTypeRefs(R,All,collectTermRefs(L,All,Rf)).
-  collectTermRefs(A,All,Rf) where (_,L,R) ^= isConjunct(A) =>
+  collectTermRefs(A,All,Rf) where (_,L,R) ?= isConjunct(A) =>
     collectCondRefs(R,All,collectCondRefs(L,All,Rf)).
-  collectTermRefs(A,All,Rf) where (_,L,R) ^= isDisjunct(A) =>
+  collectTermRefs(A,All,Rf) where (_,L,R) ?= isDisjunct(A) =>
     collectCondRefs(R,All,collectCondRefs(L,All,Rf)).
-  collectTermRefs(A,All,Rf) where (_,R) ^= isNegation(A) => 
+  collectTermRefs(A,All,Rf) where (_,R) ?= isNegation(A) => 
     collectCondRefs(R,All,Rf).
-  collectTermRefs(A,All,Rf) where (_,T,L,R) ^= isConditional(A) =>
+  collectTermRefs(A,All,Rf) where (_,T,L,R) ?= isConditional(A) =>
     collectTermRefs(R,All,collectTermRefs(L,All,collectCondRefs(T,All,Rf))).
-  collectTermRefs(T,All,Rf) where (_,_,L,C,R) ^= isLambda(T) =>
+  collectTermRefs(T,All,Rf) where (_,_,L,C,R) ?= isLambda(T) =>
     collectTermRefs(R,All,collectHeadRefs(L,C,All,Rf)).
-  collectTermRefs(T,All,Rf) where (_,L,R) ^= isWhere(T) =>
+  collectTermRefs(T,All,Rf) where (_,L,R) ?= isWhere(T) =>
     collectCondRefs(R,All,collectTermRefs(L,All,Rf)).
-  collectTermRefs(A,All,Rf) where (_,R) ^= isOpen(A) => 
+  collectTermRefs(A,All,Rf) where (_,R) ?= isOpen(A) => 
     collectTermRefs(R,All,Rf).
-  collectTermRefs(T,All,Rf) where (_,L) ^= isValof(T) =>
-    ((_,[As]) ^= isBrTuple(L) ?
+  collectTermRefs(T,All,Rf) where (_,L) ?= isValof(T) =>
+    ((_,[As]) ?= isBrTuple(L) ?
       collectDoRefs(As,All,Rf) ||
 	collectTermRefs(L,All,Rf)).
-  collectTermRefs(A,All,Rf) where (_,R) ^= isThrow(A) => 
+  collectTermRefs(A,All,Rf) where (_,R) ?= isThrow(A) => 
     collectTermRefs(R,All,Rf).
-  collectTermRefs(A,All,Rf) where (_,L,H) ^= isTryCatch(A) => 
+  collectTermRefs(A,All,Rf) where (_,L,H) ?= isTryCatch(A) => 
     collectCasesRefs(H,collectTermRefs,All,collectTermRefs(L,All,Rf)).
-  collectTermRefs(T,All,Rf) where (_,L,R) ^= isAbstraction(T) =>
+  collectTermRefs(T,All,Rf) where (_,L,R) ?= isAbstraction(T) =>
     collectCondRefs(R,All,collectTermRefs(L,All,Rf)).
-  collectTermRefs(T,All,Rf) where (_,R,_,V) ^= isRecordUpdate(T) => 
+  collectTermRefs(T,All,Rf) where (_,R,_,V) ?= isRecordUpdate(T) => 
     collectTermRefs(V,All,collectTermRefs(R,All,Rf)).
-  collectTermRefs(T,All,Rf) where (_,L,R) ^= isComma(T) =>
+  collectTermRefs(T,All,Rf) where (_,L,R) ?= isComma(T) =>
     collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
-  collectTermRefs(T,All,Rf) where (_,L,_) ^= isFieldAcc(T) => 
+  collectTermRefs(T,All,Rf) where (_,L,_) ?= isFieldAcc(T) => 
     collectTermRefs(L,All,Rf).
-  collectTermRefs(T,All,Rf) where (_,L,Stmts) ^= isLabeledTheta(T) => valof{
+  collectTermRefs(T,All,Rf) where (_,L,Stmts) ?= isLabeledTheta(T) => valof{
     Rf1 = collectStmtsRefs(Stmts,All,[],Rf);
     valis collectTermRefs(L,All,Rf1)
   }
-  collectTermRefs(T,All,Rf) where (_,L,Stmts) ^= isLabeledRecord(T) => valof{
+  collectTermRefs(T,All,Rf) where (_,L,Stmts) ?= isLabeledRecord(T) => valof{
     Rf1 = collectStmtsRefs(Stmts,All,[],Rf);
     valis collectTermRefs(L,All,Rf1)
   }
@@ -371,56 +371,56 @@ star.compiler.dependencies{
   }.
 
   collectDoRefs:(ast,map[defnSp,defnSp],cons[defnSp]) => cons[defnSp].
-  collectDoRefs(A,All,Rf) where (_,L,R) ^= isActionSeq(A) =>
+  collectDoRefs(A,All,Rf) where (_,L,R) ?= isActionSeq(A) =>
     collectDoRefs(R,All,collectDoRefs(L,All,Rf)).
-  collectDoRefs(A,All,Rf) where (_,_,In) ^= isLbldAction(A) =>
+  collectDoRefs(A,All,Rf) where (_,_,In) ?= isLbldAction(A) =>
     collectDoRefs(In,All,Rf).
-  collectDoRefs(A,_All,Rf) where _ ^= isBreak(A) => Rf.
-  collectDoRefs(A,All,Rf) where (_,L,R) ^= isDefn(A) => 
+  collectDoRefs(A,_All,Rf) where _ ?= isBreak(A) => Rf.
+  collectDoRefs(A,All,Rf) where (_,L,R) ?= isDefn(A) => 
     collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
-  collectDoRefs(A,All,Rf) where (_,L,R) ^= isMatch(A) =>
+  collectDoRefs(A,All,Rf) where (_,L,R) ?= isMatch(A) =>
     collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
-  collectDoRefs(A,All,Rf) where (_,L,R) ^= isAssignment(A) =>
+  collectDoRefs(A,All,Rf) where (_,L,R) ?= isAssignment(A) =>
     collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
-  collectDoRefs(A,All,Rf) where (_,R) ^= isValis(A) => 
+  collectDoRefs(A,All,Rf) where (_,R) ?= isValis(A) => 
     collectTermRefs(R,All,Rf).
-  collectDoRefs(A,All,Rf) where (_,R) ^= isThrow(A) => 
+  collectDoRefs(A,All,Rf) where (_,R) ?= isThrow(A) => 
     collectTermRefs(R,All,Rf).
-  collectDoRefs(A,All,Rf) where (_,L,H) ^= isTryCatch(A) =>
+  collectDoRefs(A,All,Rf) where (_,L,H) ?= isTryCatch(A) =>
     collectCasesRefs(H,collectDoRefs,All,collectTermRefs(L,All,Rf)).
-  collectDoRefs(T,All,Rf) where (_,Env,Bnd) ^= isLetDef(T) =>
+  collectDoRefs(T,All,Rf) where (_,Env,Bnd) ?= isLetDef(T) =>
     collectStmtsRefs(Env,All,[],collectDoRefs(Bnd,All,Rf)).
-  collectDoRefs(T,All,Rf) where (_,Env,Bnd) ^= isLetRecDef(T) =>
+  collectDoRefs(T,All,Rf) where (_,Env,Bnd) ?= isLetRecDef(T) =>
     collectStmtsRefs(Env,All,[],collectDoRefs(Bnd,All,Rf)).
-  collectDoRefs(A,All,Rf) where (_,T,L,R) ^= isIfThenElse(A) => valof{
+  collectDoRefs(A,All,Rf) where (_,T,L,R) ?= isIfThenElse(A) => valof{
     Rf0 = collectTermRefs(T,All,Rf);
     Rf1 = collectDoRefs(L,All,Rf0);
     valis collectDoRefs(R,All,Rf1)
   }
-  collectDoRefs(A,All,Rf) where (_,T,L) ^= isIfThen(A) => valof{
+  collectDoRefs(A,All,Rf) where (_,T,L) ?= isIfThen(A) => valof{
     Rf0 = collectCondRefs(T,All,Rf);
     valis collectDoRefs(L,All,Rf0)
   }
-  collectDoRefs(A,All,Rf) where (_,T,L) ^= isWhileDo(A) => valof{
+  collectDoRefs(A,All,Rf) where (_,T,L) ?= isWhileDo(A) => valof{
     Rf0 = collectCondRefs(T,All,Rf);
     valis collectDoRefs(L,All,Rf0)
   }
-  collectDoRefs(A,All,Rf) where (_,[S]) ^= isBrTuple(A) =>
+  collectDoRefs(A,All,Rf) where (_,[S]) ?= isBrTuple(A) =>
     collectDoRefs(S,All,Rf).
-  collectDoRefs(A,All,Rf) where (_,T,E,H) ^= isSuspend(A) => 
+  collectDoRefs(A,All,Rf) where (_,T,E,H) ?= isSuspend(A) => 
     collectCasesRefs(H,collectDoRefs,All,
       collectTermRefs(E,All,collectTermRefs(T,All,Rf))).
-  collectDoRefs(A,All,Rf) where (_,T,E,H) ^= isResume(A) => 
+  collectDoRefs(A,All,Rf) where (_,T,E,H) ?= isResume(A) => 
     collectCasesRefs(H,collectDoRefs,All,
       collectTermRefs(E,All,collectTermRefs(T,All,Rf))).
-  collectDoRefs(A,All,Rf) where (_,T,E) ^= isRetire(A) => 
+  collectDoRefs(A,All,Rf) where (_,T,E) ?= isRetire(A) => 
     collectTermRefs(E,All,collectTermRefs(T,All,Rf)).
   collectDoRefs(A,All,Rf) => collectTermRefs(A,All,Rf).
 
   collectCasesRefs([],_,_,Rf) => Rf.
   collectCasesRefs([St,..Sts],F,All,Rf) =>
     collectCasesRefs(Sts,F,All,collectCaseRefs(St,F,All,Rf)).
-  collectCaseRefs(Cse,F,All,Rf) where (_,_,A,C,Rhs) ^= isLambda(Cse) =>
+  collectCaseRefs(Cse,F,All,Rf) where (_,_,A,C,Rhs) ?= isLambda(Cse) =>
     F(Rhs,All,collectHeadRefs(A,C,All,Rf)).
   collectCaseRefs(Cse,_,_,Rf) => valof{
     reportError("invalid case in case expression $(Cse)",locOf(Cse));
@@ -433,43 +433,43 @@ star.compiler.dependencies{
     collectTermListRefs(Ts,All,collectTermRefs(T,All,Rf)).
 
   collectTypeRefs:(ast,map[defnSp,defnSp],cons[defnSp]) => cons[defnSp].
-  collectTypeRefs(V,All,SoFar) where (_,Id) ^= isName(V) =>
+  collectTypeRefs(V,All,SoFar) where (_,Id) ?= isName(V) =>
     collectName(tpSp(Id),All,SoFar).
-  collectTypeRefs(T,All,SoFar) where (_,Op,Els) ^= isSquareTerm(T) => 
+  collectTypeRefs(T,All,SoFar) where (_,Op,Els) ?= isSquareTerm(T) => 
     collectTypeList(Els,All,collectTypeRefs(Op,All,SoFar)).
-  collectTypeRefs(T,All,SoFar) where (_,L,R) ^= isConstructorType(T) =>
+  collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isConstructorType(T) =>
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
-  collectTypeRefs(T,All,SoFar) where (_,L,R) ^= isFunctionType(T) =>
+  collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isFunctionType(T) =>
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
-  collectTypeRefs(T,All,SoFar) where (_,L,R) ^= isBinary(T,"->>") =>
+  collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isBinary(T,"->>") =>
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
-  collectTypeRefs(T,All,SoFar) where (_,L,R) ^= isComma(T) =>
+  collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isComma(T) =>
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
-  collectTypeRefs(T,All,SoFar) where (_,R) ^= isUnary(T,"ref") => 
+  collectTypeRefs(T,All,SoFar) where (_,R) ?= isUnary(T,"ref") => 
     collectTypeRefs(R,All,SoFar).
-  collectTypeRefs(T,All,SoFar) where (_,L,R) ^= isBinary(T,"~>") =>
+  collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isBinary(T,"~>") =>
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
-  collectTypeRefs(T,All,SoFar) where (_,L,R) ^= isBinary(T,"<~") =>
+  collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isBinary(T,"<~") =>
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
-  collectTypeRefs(T,All,SoFar) where (_,L,R) ^= isBinary(T,"|") =>
+  collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isBinary(T,"|") =>
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
-  collectTypeRefs(T,All,SoFar) where (_,L,R) ^= isThrows(T) =>
+  collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isThrows(T) =>
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
-  collectTypeRefs(T,All,SoFar) where (_,Q,I) ^= isQuantified(T) =>
+  collectTypeRefs(T,All,SoFar) where (_,Q,I) ?= isQuantified(T) =>
     collectTypeRefs(I,filterOut(All,Q),SoFar).
-  collectTypeRefs(T,All,SoFar) where (_,Q,I) ^= isXQuantified(T) =>
+  collectTypeRefs(T,All,SoFar) where (_,Q,I) ?= isXQuantified(T) =>
     collectTypeRefs(I,filterOut(All,Q),SoFar).
-  collectTypeRefs(T,All,Rf) where (_,Cx,Tp) ^= isConstrained(T) =>
+  collectTypeRefs(T,All,Rf) where (_,Cx,Tp) ?= isConstrained(T) =>
     collectConstraintRefs(Cx,All,collectTypeRefs(Tp,All,Rf)).
-  collectTypeRefs(T,All,SoFar) where (_,Els) ^= isTuple(T) =>
+  collectTypeRefs(T,All,SoFar) where (_,Els) ?= isTuple(T) =>
     collectTypeList(Els,All,SoFar).
-  collectTypeRefs(T,All,SoFar) where (_,Els) ^= isBrTuple(T) =>
+  collectTypeRefs(T,All,SoFar) where (_,Els) ?= isBrTuple(T) =>
     collectFaceTypes(Els,All,SoFar).
-  collectTypeRefs(T,All,SoFar) where (_,Op,Els) ^= isBrTerm(T) =>
+  collectTypeRefs(T,All,SoFar) where (_,Op,Els) ?= isBrTerm(T) =>
     collectFaceTypes(Els,All,collectTermRefs(Op,All,SoFar)).
-  collectTypeRefs(T,All,SoFar) where (_,Rc,_) ^= isFieldAcc(T) => 
+  collectTypeRefs(T,All,SoFar) where (_,Rc,_) ?= isFieldAcc(T) => 
     collectTermRefs(Rc,All,SoFar).
-  collectTypeRefs(T,All,SoFar) where (_,Op,Els) ^= isRoundTerm(T) =>
+  collectTypeRefs(T,All,SoFar) where (_,Op,Els) ?= isRoundTerm(T) =>
     collectTypeList(Els,All,collectTypeRefs(Op,All,SoFar)).
   collectTypeRefs(T,_,Rf) default => valof{
     reportError("cannot fathom type $(T)",locOf(T));
@@ -483,7 +483,7 @@ star.compiler.dependencies{
 
   collectConstraintRefs:(cons[ast],map[defnSp,defnSp],cons[defnSp]) => cons[defnSp].
   collectConstraintRefs([],_,Rf) => Rf.
-  collectConstraintRefs([T,..Ts],All,Rf) where _ ^= isSquareTerm(T) => valof {
+  collectConstraintRefs([T,..Ts],All,Rf) where _ ?= isSquareTerm(T) => valof {
     R1 = collectContractRefs(T,All,Rf);
     valis collectConstraintRefs(Ts,All,R1)
   }
@@ -494,13 +494,13 @@ star.compiler.dependencies{
 
   collectContractRefs:(ast,map[defnSp,defnSp],cons[defnSp]) => cons[defnSp].
   collectContractRefs(T,All,Rf) where
-      (_,Op,Args) ^= isSquareTerm(T) && (_,Id)^=isName(Op) => valof {
+      (_,Op,Args) ?= isSquareTerm(T) && (_,Id)?=isName(Op) => valof {
     R0 = collectName(.conSp(Id),All,Rf);
     valis collectTypeList(Args,All,R0)
   }
-  collectContractRefs(T,All,Rf) where (_,Q,I) ^= isQuantified(T) =>
+  collectContractRefs(T,All,Rf) where (_,Q,I) ?= isQuantified(T) =>
     collectContractRefs(I,filterOut(All,Q),Rf).
-  collectContractRefs(T,All,Rf) where (_,Q,I) ^= isXQuantified(T) =>
+  collectContractRefs(T,All,Rf) where (_,Q,I) ?= isXQuantified(T) =>
     collectContractRefs(I,filterOut(All,Q),Rf).
 
   collectFaceTypes([],_,Rf) => Rf.
@@ -509,20 +509,20 @@ star.compiler.dependencies{
     valis collectFaceTypes(Ds,All,R1)
   }
 
-  collectFaceType(P,All,R) where (_,I) ^= isUnary(P,"type") =>
+  collectFaceType(P,All,R) where (_,I) ?= isUnary(P,"type") =>
     collectFaceType(I,All,R).
-  collectFaceType(P,All,R) where (_,L,T) ^= isTypeAnnotation(P) =>
+  collectFaceType(P,All,R) where (_,L,T) ?= isTypeAnnotation(P) =>
     collectTypeRefs(T,All,R).
   collectFaceType(_,All,R) => R.
 
   collectName:(defnSp,map[defnSp,defnSp],cons[defnSp])=>cons[defnSp].
-  collectName(Sp,All,SoFar) where Rf^=All[Sp] => SoFar\+Rf.
+  collectName(Sp,All,SoFar) where Rf?=All[Sp] => SoFar\+Rf.
   collectName(_,_,SoFar) default => SoFar.
 
   filterOut:(map[defnSp,defnSp],cons[ast]) => map[defnSp,defnSp].
   filterOut(M,Q) => let{.
-    qName(V) where (_,Id) ^= isName(V) => .some(Id).
-    qName(V) where (_,L,_) ^= isBinary(V,"/") => qName(L).
+    qName(V) where (_,Id) ?= isName(V) => .some(Id).
+    qName(V) where (_,L,_) ?= isBinary(V,"/") => qName(L).
     qName(_) default => .none.
-  .} in foldLeft((V,MM) where Id^=qName(V) => MM[~.varSp(Id)],M,Q).
+  .} in foldLeft((V,MM) where Id?=qName(V) => MM[~.varSp(Id)],M,Q).
 }

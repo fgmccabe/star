@@ -276,7 +276,7 @@ star.ideal{
     hd(.ihNode(A1,A2,A3,A4)) => hd(A1).
     hd(_) default => .none.
 
-    hdtl(Tr) where Hh^=hd(Tr) => .some((Hh,drop(Tr))).
+    hdtl(Tr) where Hh?=hd(Tr) => .some((Hh,drop(Tr))).
     hdtl(_) default => .none.
   .} in {
     _eof(.ihNil) => .true.

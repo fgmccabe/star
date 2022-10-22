@@ -215,7 +215,7 @@ star.finger{
   viewl:all e ~~ measured[e->>integer] |: (fingerTree[e])=>viewL[fingerTree,e].
   viewl(.eTree) => .nill.
   viewl(.single(E)) => .consl(E,.eTree).
-  viewl(.deep(M,Lft,Md,Rgt)) where H^=head(Lft) =>
+  viewl(.deep(M,Lft,Md,Rgt)) where H?=head(Lft) =>
     .consl(H,deepL(tail(Lft),Md,Rgt)).
 
   toDigit:all e ~~ (node[e])=>digit[e].
@@ -250,7 +250,7 @@ star.finger{
   viewr:all e ~~ measured[e->>integer] |: (fingerTree[e])=>viewR[fingerTree,e].
   viewr(.eTree) => .nilr.
   viewr(.single(E)) => .consr(E,.eTree).
-  viewr(.deep(M,Lft,Md,Rgt)) where L^=last(Rgt) => .consr(L,deepR(lead(Rgt),Md,Lft)).
+  viewr(.deep(M,Lft,Md,Rgt)) where L?=last(Rgt) => .consr(L,deepR(lead(Rgt),Md,Lft)).
 
   deepR:all e ~~ measured[e->>integer] |:
     (option[digit[e]],fingerTree[node[e]],digit[e]) => fingerTree[e].

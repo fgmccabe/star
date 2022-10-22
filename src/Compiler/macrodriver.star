@@ -34,8 +34,8 @@ star.compiler.macro.driver{
 
   handleCmds:((compilerOptions,cons[string]))=>() throws string.
   handleCmds((Opts,Args)) => valof{
-    if CatUri ^= parseUri("catalog") && CatU ^= resolveUri(Opts.cwd,CatUri) &&
-	Cat ^= loadCatalog(CatU) then{
+    if CatUri ?= parseUri("catalog") && CatU ?= resolveUri(Opts.cwd,CatUri) &&
+	Cat ?= loadCatalog(CatU) then{
 	  for P in Args do{
 	    resetErrors();
 	    processPkg(extractPkgSpec(P),Cat)
@@ -47,13 +47,13 @@ star.compiler.macro.driver{
     valis ()
   }
 
-  extractPkgSpec(P) where Lc ^= strFind(P,":",0) => pkg(P[0:Lc],P[Lc+1:size(P)]::version).
+  extractPkgSpec(P) where Lc ?= strFind(P,":",0) => pkg(P[0:Lc],P[Lc+1:size(P)]::version).
   extractPkgSpec(P) default => pkg(P,.defltVersion).
 
   processPkg:(pkg,catalog) => ()
   processPkg(P,Cat) => valof{
     logMsg("Macro processing $(P)");
-    if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
+    if (SrcUri,CPkg) ?= resolveInCatalog(Cat,pkgName(P)) then{
       Ast = ^parseSrc(SrcUri,CPkg);
       if traceAst! then{
 	logMsg("Ast of $(P) is $(Ast)")

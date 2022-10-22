@@ -18,10 +18,6 @@
 @tab non-associative infix
 @tab 700
 @tab set membership
-@item @code{^=}
-@tab non-associative infix
-@tab 900
-@tab optional decomposition match
 @item @code{&&}
 @tab left associative infix
 @tab 910
@@ -110,6 +106,10 @@
 @tab non-associative infix
 @tab 1200
 @tab dependent type marker
+@item @code{?=}
+@tab non-associative infix
+@tab 900
+@tab optional decomposition match
 @item @code{default}
 @tab non-associative postfix
 @tab 940
@@ -270,6 +270,10 @@
 @tab non-associative prefix
 @tab 930
 @tab wrap value in monad
+@item @code{?}
+@tab non-associative prefix
+@tab 820
+@tab mark expression as optionally there
 @item @code{?}
 @tab right associative infix
 @tab 920
@@ -538,20 +542,20 @@
 @caption{Standard Graphical Tokens}
 @multitable |{Graphic}|{Graphic}|{Graphic}|{Graphic}|{Graphic}|
   @item @code{.<.}
-  @tab @code{^=}
   @tab @code{&&}
   @tab @code{^?}
   @tab @code{~=}
-  @item @code{~>}
-  @tab @code{.|.}
+  @tab @code{~>}
+  @item @code{.|.}
   @tab @code{,..}
   @tab @code{••}
   @tab @code{**}
-  @item @code{->}
-  @tab @code{.+.}
+  @tab @code{->}
+  @item @code{.+.}
   @tab @code{<$}
   @tab @code{!}
   @tab @code{->>}
+  @tab @code{?=}
   @item @code{#}
   @tab @code{%}
   @tab @code{<-}

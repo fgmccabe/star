@@ -90,9 +90,9 @@ star.compiler.ltipe{
     `(` => let{.
       decTps:(cons[char],multi[ltipe])=>option[(ltipe,cons[char])].
       decTps([`)`,..Cs],So) => .some((.tplTipe(So::cons[ltipe]),Cs)).
-      decTps(C,So) where (E,C1)^=decTp(Cs) => decTps(C1,So++[E]).
+      decTps(C,So) where (E,C1)?=decTp(Cs) => decTps(C1,So++[E]).
     .} in decTps(Cs,[]).
-    `F` where (.tplTipe(As),C0)^=decTp(Cs) && (Rt,Cx) ^= decTp(C0) =>
+    `F` where (.tplTipe(As),C0)?=decTp(Cs) && (Rt,Cx) ?= decTp(C0) =>
       .some((funTipe(As,Rt),Cx)).
   }
 
@@ -104,7 +104,7 @@ star.compiler.ltipe{
     .nomnal("star.core*float") => .flt64.
     .nomnal("star.core*boolean") => .bool.
     .nomnal(_) => .ptr.
-    _ where (A,R) ^= isFunType(Tp) && .tupleType(As).=deRef(A) =>
+    _ where (A,R) ?= isFunType(Tp) && .tupleType(As).=deRef(A) =>
       funTipe(As//reduceTp,reduceTp(R)).
     .tupleType(A) => tplTipe(A//reduceTp).
     _ default => .ptr.

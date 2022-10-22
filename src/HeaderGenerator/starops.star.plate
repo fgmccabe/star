@@ -47,10 +47,10 @@ star.compiler.operators{
   }
 
   public isLeftBracket:(string) => boolean.
-  isLeftBracket(S) => .bkt(S,_,_,_,_) ^= isBracket(S).
+  isLeftBracket(S) => .bkt(S,_,_,_,_) ?= isBracket(S).
 
   public isRightBracket:(string) => boolean.
-  isRightBracket(S) => .bkt(_,_,S,_,_) ^= isBracket(S).
+  isRightBracket(S) => .bkt(_,_,S,_,_) ?= isBracket(S).
 
   public first:(char) => option[string].
   first(Op) => case Op in {

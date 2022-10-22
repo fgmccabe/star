@@ -45,7 +45,7 @@ int getOptions(int argc, char **argv) {
 }
 
 static void genPrologIntrinsic(ioPo out, char *name, char *tipe, char *op, char *cmt);
-static void genStarIntrinsic(ioPo out, char *name, char *tipe, char *op, char *cmt);
+static void genStarIntrinsic(ioPo out, char *name, char *tipe, char *op, logical Alloc, char *cmt);
 
 int main(int argc, char **argv) {
   initLogfile("-");
@@ -88,13 +88,13 @@ int main(int argc, char **argv) {
       case genProlog:
 
 #undef intrinsic
-#define intrinsic(NM, Tp, Op, cmt) genPrologIntrinsic(O_IO(mnemBuff),#NM,Tp,Op,cmt);
+#define intrinsic(NM, Tp, Op, Alloc, cmt) genPrologIntrinsic(O_IO(mnemBuff),#NM,Tp,Op,cmt);
 
 #include "intrinsics.h"
         break;
       case genStar:
 #undef intrinsic
-#define intrinsic(NM, Tp, Op, cmt) genStarIntrinsic(O_IO(mnemBuff),#NM,Tp,Op,cmt);
+#define intrinsic(NM, Tp, Op, Alloc, cmt) genStarIntrinsic(O_IO(mnemBuff),#NM,Tp,Op,Alloc,cmt);
 
 #include "intrinsics.h"
     }
@@ -121,10 +121,10 @@ static void genPrologIntrinsic(ioPo out, char *name, char *tipe, char *op, char 
 
 static char *dumpStarSig(char *sig, ioPo out);
 
-static void genStarIntrinsic(ioPo out, char *name, char *tipe, char *op, char *cmt) {
-  outMsg(out, "    \"%s\" => .some((", name);
+static void genStarIntrinsic(ioPo out, char *name, char *tipe, char *op, logical Alloc,char *cmt) {
+  outMsg(out, "    \"%s\" => ? (", name);
   dumpStarSig(tipe, out);
-  outMsg(out, ",.i%s)).  -- %s\n", capitalize(op), cmt);
+  outMsg(out, ",.i%s, %s).  -- %s\n", capitalize(op), (Alloc?".true":".false"), cmt);
 }
 
 static char *dName(char *sig, ioPo out);

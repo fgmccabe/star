@@ -11,7 +11,7 @@ test.nm{
   main() => valof{
     show first(parse(real(),"34.56e10"::cons[char]));
 
-    assert 34.56e10 ^= first(parse(real(),"34.56e10"::cons[char]));
+    assert 34.56e10 ?= first(parse(real(),"34.56e10"::cons[char]));
 
     show first(parse(real(),"34.56"::cons[char]));
 
@@ -26,11 +26,11 @@ test.nm{
 
     show optInt(first(parse(real(),"-34"::cons[char])));
     
-    assert -34 ^= optInt(first(parse(real(),"-34"::cons[char])));
+    assert -34 ?= optInt(first(parse(real(),"-34"::cons[char])));
 
-    assert XX ^= optInt(first(parse(real(),"-34"::cons[char]))) && XX==-34;
+    assert XX ?= optInt(first(parse(real(),"-34"::cons[char]))) && XX==-34;
 
-    assert XX ^= optInt(first(parse(real(),"-34"::cons[char]))) && -XX==34;
+    assert XX ?= optInt(first(parse(real(),"-34"::cons[char]))) && -XX==34;
 
     show first(parse(decimal,"-34"::cons[char]));
     valis ()

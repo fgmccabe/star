@@ -4,7 +4,7 @@ test.compose{
   import star.script.
 
   digit:(cons[char]) => option[(cons[char],integer)].
-  digit([(Z where D^=digitVal(Z)),..L]) => some((L,D)).
+  digit([(Z where D?=digitVal(Z)),..L]) => some((L,D)).
   digit(_) => .none.
 
   digitVal:(char)=>option[integer].
@@ -21,25 +21,25 @@ test.compose{
   digitVal(_) => .none.
 
   decimal:(cons[char]) => option[(cons[char],integer)].
-  decimal(S) where (S1,D)^=digit(S) => moreDecimal(S1,D).
+  decimal(S) where (S1,D)?=digit(S) => moreDecimal(S1,D).
   decimal(_) => .none.
 
   moreDecimal:(cons[char],integer) => option[(cons[char],integer)].
-  moreDecimal(S,D) where (S1,D1)^=digit(S) =>
+  moreDecimal(S,D) where (S1,D1)?=digit(S) =>
     moreDecimal(S1,D*10+D1).
   moreDecimal(S,D) => some((S,D)).
 
 
   dec:(cons[char]) => option[(cons[char],integer)].
-  dec(S) where (S1,D)^=digit(S) => iter(S1,digit,(Dg,Nm)=>Nm*10+Dg,D).
+  dec(S) where (S1,D)?=digit(S) => iter(S1,digit,(Dg,Nm)=>Nm*10+Dg,D).
   dec(_) => .none.
 
   main:()=>().
   main()=>valof{
     assert decimal("123"::cons[char])==some(([],123));
-    assert ([],1234)^=dec("1234"::cons[char]);
+    assert ([],1234)?=dec("1234"::cons[char]);
 
-    assert ([` `],123)^=dec("123 "::cons[char]);
+    assert ([` `],123)?=dec("123 "::cons[char]);
 
     show "dec(123) = $(dec("123 "::cons[char]))";
     valis ()

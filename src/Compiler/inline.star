@@ -22,7 +22,7 @@ star.compiler.inline{
 
   simplifyDefn:(cDefn,map[termLbl,cDefn])=>cDefn.
   simplifyDefn(.fnDef(Lc,Nm,Tp,Args,Val),Map) => 
-    .fnDef(Lc,Nm,Tp,Args,simplifyExp(Val,Map,10)).
+    .fnDef(Lc,Nm,Tp,Args,simplifyExp(Val,Map[~.tLbl(Nm,[|Args|])],10)).
   simplifyDefn(.vrDef(Lc,Nm,Tp,Val),Map) => 
     .vrDef(Lc,Nm,Tp,simplifyExp(Val,Map,10)).
   simplifyDefn(D,_) default => D.
@@ -175,7 +175,7 @@ star.compiler.inline{
   dropNops(Lc,L,R) => .aSeq(Lc,L,R).
   
   inlineVar(Lc,.cId(Id,Tp),Map,Depth) where
-      .vrDef(_,_,_,Vl) ^= Map[.tLbl(Id,arity(Tp))]/* && isGround(Vl) */ => simplify(Vl,Map,Depth-1).
+      .vrDef(_,_,_,Vl) ?= Map[.tLbl(Id,arity(Tp))]/* && isGround(Vl) */ => simplify(Vl,Map,Depth-1).
   inlineVar(Lc,V,_,_) => .cVar(Lc,V).
 
   applyWhere(Lc,Ptn,.cTerm(_,"star.core#true",[],_)) => Ptn.
@@ -199,7 +199,7 @@ star.compiler.inline{
   applyCnd(_,.cTerm(Lc,"star.core#true",[],Tp),L,_) => L.
   applyCnd(Lc,T,L,R) => mkCond(Lc,T,L,R).
 
-  inlineTplOff(_,.cTerm(_,_,Els,_),Ix,Tp) where E^=Els[Ix] => E.
+  inlineTplOff(_,.cTerm(_,_,Els,_),Ix,Tp) where E?=Els[Ix] => E.
   inlineTplOff(Lc,T,Ix,Tp) default => .cNth(Lc,T,Ix,Tp).
   
   applyTplUpdate(_,.cTerm(Lc,Nm,Args,Tp),Ix,E) =>
@@ -250,7 +250,7 @@ star.compiler.inline{
   inlineCall:(option[locn],string,cons[cExp],tipe,map[termLbl,cDefn],integer) => cExp.
   inlineCall(Lc,Nm,Args,_Tp,Map,Depth) where Depth>0 &&
       PrgLbl .= .tLbl(Nm,[|Args|]) &&
-      .fnDef(_,_,_,Vrs,Rep) ^= Map[PrgLbl] => valof{
+      .fnDef(_,_,_,Vrs,Rep) ?= Map[PrgLbl] => valof{
 	RwMap = { .tLbl(VNm,arity(VTp))->.vrDef(Lc,Nm,VTp,A) | (.cId(VNm,VTp),A) in zip(Vrs,Args)};
 	RwTerm = rewriteTerm(Rep,RwMap);
 	valis (simplifyExp(RwTerm,Map[~PrgLbl],Depth-1))
@@ -266,7 +266,7 @@ star.compiler.inline{
     simplifyExp(.cCall(Lc,Nm,OArgs++Args,Tp),Map,Depth).
   inlineOCall(Lc,.cVar(_,.cId(Nm,VTp)),Args,Tp,Map,Depth) where Depth>0 &&
       Prg .= .tLbl(Nm,arity(VTp)) &&
-      .vrDef(VLc,Nm,_,Rep) ^= Map[Prg] =>
+      .vrDef(VLc,Nm,_,Rep) ?= Map[Prg] =>
     inlineOCall(Lc,simplifyExp(Rep,Map[~Prg],Depth-1),Args,Tp,Map,Depth).
   inlineOCall(Lc,Op,Args,Tp,Map,Depth) =>
     .cOCall(Lc,Op,Args,Tp).

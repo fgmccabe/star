@@ -66,13 +66,13 @@ star.compiler.dict{
 
   public findType:(dict,string) => option[(option[locn],tipe,typeRule,map[string,tipe])].
   findType([],Nm) => .none.
-  findType([Lvl,.._],Ky) where .tpDefn(Lc,_,Tp,Rl,Cns)^=Lvl.types[Ky] =>
+  findType([Lvl,.._],Ky) where .tpDefn(Lc,_,Tp,Rl,Cns)?=Lvl.types[Ky] =>
     .some((Lc,Tp,Rl,Cns)).
   findType([_,..Rest],Ky) => findType(Rest,Ky).
 
   public findContract:(dict,string) => option[typeRule].
   findContract([],Nm) => .none.
-  findContract([scope{contracts=Cns},.._],Ky) where Con^=Cns[Ky] => .some(Con).
+  findContract([scope{contracts=Cns},.._],Ky) where Con?=Cns[Ky] => .some(Con).
   findContract([_,..Rest],Ky) => findContract(Rest,Ky).
 
   public declareImplementation:(option[locn],string,string,tipe,dict) => dict.
@@ -89,7 +89,7 @@ star.compiler.dict{
     Entry = accEntry(Lc,AccFn,AccTp);
     Accs = Scope.accessors;
     
-    if AccOrs ^= Accs[Key] then{
+    if AccOrs ?= Accs[Key] then{
       valis [Scope.accessors<<-Accs[Key->AccOrs[Fld->Entry]],..Env]
     } else{
       valis [Scope.accessors<<-Accs[Key->{Fld->Entry}],..Env]
@@ -101,8 +101,8 @@ star.compiler.dict{
 
   getField(_,_,[]) => .none.
   getField(Key,Fld,[Scope,.._]) where
-      AccOrs ^= Scope.accessors[Key] &&
-      Acc ^= AccOrs[Fld] => .some(Acc).
+      AccOrs ?= Scope.accessors[Key] &&
+      Acc ?= AccOrs[Fld] => .some(Acc).
   getField(Key,Fld,[_,..Env]) => getField(Key,Fld,Env).
 
   public declareUpdater:(option[locn],tipe,string,string,tipe,dict) => dict.
@@ -111,7 +111,7 @@ star.compiler.dict{
     Entry = accEntry(Lc,UpdFn,UpdTp);
     Ups = Scope.updaters;
 --    logMsg("declare updater for $(Tp)[$(Key)].#(Fld) |:$(UpdTp)");
-    if AccOrs ^= Ups[Key] then{
+    if AccOrs ?= Ups[Key] then{
       valis [Scope.updaters<<-Ups[Key->AccOrs[Fld->Entry]],..Env]
     } else{
       valis [Scope.updaters<<-Ups[Key->{Fld->Entry}],..Env]
@@ -123,15 +123,15 @@ star.compiler.dict{
 
   getUpdate(_,_,[]) => .none.
   getUpdate(Key,Fld,[Scope,.._]) where
-      AccOrs ^= Scope.accessors[Key] &&
-      Acc ^= AccOrs[Fld] => .some(Acc).
+      AccOrs ?= Scope.accessors[Key] &&
+      Acc ?= AccOrs[Fld] => .some(Acc).
   getUpdate(Key,Fld,[_,..Env]) => getUpdate(Key,Fld,Env).
 
   public declareLabel:(option[locn],string,dict) => dict.
   declareLabel(Lc,Lb,[Scope,..Env]) => [Scope.labels<<-Scope.labels[Lb->(Lc,Lb)],..Env].
 
   public isLabel:(string,dict) => option[(option[locn],string)].
-  isLabel(Lb,[Sc,.._]) where Tgt^=Sc.labels[Lb] => .some(Tgt).
+  isLabel(Lb,[Sc,.._]) where Tgt?=Sc.labels[Lb] => .some(Tgt).
   isLabel(Lb,[_,..Env]) => isLabel(Lb,Env).
   isLabel(_,_) default => .none.
 

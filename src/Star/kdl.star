@@ -36,7 +36,7 @@ star.kdl{
   }
 
   public parseKdl:(string)=>option[kdl].
-  parseKdl(T) where (J,_)^=pK(skpBlnks(T::cons[char])) => some(J).
+  parseKdl(T) where (J,_)?=pK(skpBlnks(T::cons[char])) => some(J).
   parseKdl(_) default => .none.
 
   pK:(cons[char]) => option[(kdl,cons[char])].
@@ -111,15 +111,15 @@ star.kdl{
 
   psHex:(cons[char],integer,integer) => (integer,cons[char]).
   psHex(L,So,0) => (So,L).
-  psHex([H,..L],So,Cn) where Hx^=isHexDigit(H) && Cn>0 => psHex(L,So*16+Hx,Cn-1).
+  psHex([H,..L],So,Cn) where Hx?=isHexDigit(H) && Cn>0 => psHex(L,So*16+Hx,Cn-1).
   psHex(L,So,_) default => (So,L).
 
   psSeq:(cons[char]) => option[(kdl,cons[char])].
   psSeq([`]`,..L]) => some((jSeq([]),L)).
-  psSeq(L) where (El,LL)^=pK(L) => psMoreSeq(skpBlnks(LL),[El]).
+  psSeq(L) where (El,LL)?=pK(L) => psMoreSeq(skpBlnks(LL),[El]).
 
   psMoreSeq([`]`,..L],SoF) => some((jSeq(reverse(SoF)),L)).
-  psMoreSeq([`,`,..L],SoF) where (El,LL)^=pK(L) =>
+  psMoreSeq([`,`,..L],SoF) where (El,LL)?=pK(L) =>
     psMoreSeq(skpBlnks(LL),[El,..SoF]).
 
   psColl:(cons[char]) => option[(kdl,cons[char])].
@@ -131,5 +131,5 @@ star.kdl{
 
   psEntry(L) where (Ky,L1) .= psString(skpBlnks(L)) &&
       [`:`,..L2].=skpBlnks(L1) &&
-      (Vl,LL) ^= pK(skpBlnks(L2)) => (Ky,Vl,LL).
+      (Vl,LL) ?= pK(skpBlnks(L2)) => (Ky,Vl,LL).
 }

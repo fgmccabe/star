@@ -23,11 +23,11 @@ star.parse{
   _sat(T) => _item >>= (Ch) => (T(Ch) ? (return Ch) || epsilon).
 
   public _test:all p,s,t ~~ stream[s->>t] |: ((t)=>option[p]) => parser[s,p].
-  _test(P) => _item >>= (Ch) => (X^=P(Ch) ? (return X) || epsilon).
+  _test(P) => _item >>= (Ch) => (X?=P(Ch) ? (return X) || epsilon).
 
   public _pred:all p,s,t ~~ stream[s->>t] |: (()=>option[p]) => parser[s,p].
   _pred(P) => let{
-    check(S) where X^=P() => [(X,S)].
+    check(S) where X?=P() => [(X,S)].
     check(_) => [].
   } in parser(check).
 

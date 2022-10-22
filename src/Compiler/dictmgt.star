@@ -14,31 +14,31 @@ star.compiler.dict.mgt{
   import star.compiler.unify.
 
   isVar:(string,dict) => option[vrEntry].
-  isVar(Nm,_) where (Tp,_) ^= intrinsic(Nm) =>
+  isVar(Nm,_) where (Tp,_,_) ?= intrinsic(Nm) =>
     .some(.vrEntry(.none,(L,E)=>refreshVar(L,Nm,Tp,E),Tp,.none)).
-  isVar(Nm,_) where Tp ^= escapeType(Nm) => .some(.vrEntry(.none,(L,E)=>refreshVar(L,Nm,Tp,E),Tp,.none)).
+  isVar(Nm,_) where Tp ?= escapeType(Nm) => .some(.vrEntry(.none,(L,E)=>refreshVar(L,Nm,Tp,E),Tp,.none)).
   isVar(Nm,[]) => .none.
-  isVar(Nm,[Sc,.._]) where Entry^=Sc.vars[Nm] => .some(Entry).
+  isVar(Nm,[Sc,.._]) where Entry?=Sc.vars[Nm] => .some(Entry).
   isVar(Nm,[_,..D]) => isVar(Nm,D).
 
   public showVar:(string,dict) => string.
-  showVar(Nm,Dict) where .vrEntry(_,_,Tp,_)^=isVar(Nm,Dict) => "$(Nm)\:$(Tp)".
+  showVar(Nm,Dict) where .vrEntry(_,_,Tp,_)?=isVar(Nm,Dict) => "$(Nm)\:$(Tp)".
   showVar(Nm,_) => "$(Nm) not defined".
 
   public findVar:(option[locn],string,dict) => option[canon].
-  findVar(Lc,Nm,Dict) where .vrEntry(_,Mk,Tp,_) ^= isVar(Nm,Dict) => .some(Mk(Lc,Dict)).
+  findVar(Lc,Nm,Dict) where .vrEntry(_,Mk,Tp,_) ?= isVar(Nm,Dict) => .some(Mk(Lc,Dict)).
   findVar(_,_,_) default => .none.
 
   public findImplementation:(dict,string) => option[canon].
   findImplementation(Dict,Nm) => findImpl(Dict,Dict,Nm).
   
-  findImpl([Sc,.._],Env,INm) where .implEntry(Lc,Vr,Tp) ^= Sc.impls[INm] => .some(refreshVar(Lc,Vr,Tp,Env)).
+  findImpl([Sc,.._],Env,INm) where .implEntry(Lc,Vr,Tp) ?= Sc.impls[INm] => .some(refreshVar(Lc,Vr,Tp,Env)).
   findImpl([_,..Rest],Env,INm) => findImpl(Rest,Env,INm).
   findImpl([],_,_) => .none.
 
   public findAccess:(option[locn],tipe,string,dict) => option[canon].
   findAccess(Lc,Tp,Fld,Env) => valof{
-    if .accEntry(_,Nm,T) ^= getFieldAccess(Tp,Fld,Env) then{
+    if .accEntry(_,Nm,T) ?= getFieldAccess(Tp,Fld,Env) then{
       valis .some(refreshVar(Lc,Nm,T,Env))
     }
     else
@@ -47,7 +47,7 @@ star.compiler.dict.mgt{
 
   public findUpdate:(option[locn],tipe,string,dict) => option[canon].
   findUpdate(Lc,Tp,Fld,Env) => valof{
-    if .accEntry(_,Nm,T) ^= getFieldUpdate(Tp,Fld,Env) then{
+    if .accEntry(_,Nm,T) ?= getFieldUpdate(Tp,Fld,Env) then{
       valis .some(refreshVar(Lc,Nm,T,Env))
     }
     else
@@ -55,16 +55,16 @@ star.compiler.dict.mgt{
   }
 
   public findVarFace:(string,dict) => option[tipe].
-  findVarFace(Nm,Env) where .vrEntry(_,Mk,Tp,Fc) ^=isVar(Nm,Env) =>
-    (_^=Fc ? Fc || faceOfType(Tp,Env)).
+  findVarFace(Nm,Env) where .vrEntry(_,Mk,Tp,Fc) ?=isVar(Nm,Env) =>
+    (_?=Fc ? Fc || faceOfType(Tp,Env)).
   findVarFace(_,_) default => .none.
     
   public varDefined:(string,dict) => boolean.
-  varDefined(Nm,Dict) where _ ^= isVar(Nm,Dict) => .true.
+  varDefined(Nm,Dict) where _ ?= isVar(Nm,Dict) => .true.
   varDefined(_,_) default => .false.
 
   public varType:(string,dict) => option[tipe].
-  varType(Nm,Dict) where .vrEntry(_,_,Tp,_) ^= isVar(Nm,Dict) => .some(Tp).
+  varType(Nm,Dict) where .vrEntry(_,_,Tp,_) ?= isVar(Nm,Dict) => .some(Tp).
   varType(_,_) default => .none.
 
   public declareVar:(string,option[locn],tipe,option[tipe],dict) => dict.
@@ -87,7 +87,7 @@ star.compiler.dict.mgt{
   public undeclareVar:(string,dict) => dict.
   undeclareVar(_,[]) => [].
   undeclareVar(Nm,[Sc,..Ev]) =>
-    (_ ^= Sc.vars[Nm] ?
+    (_ ?= Sc.vars[Nm] ?
 	[Sc.vars<<-Sc.vars[~Nm],..Ev] ||
 	[Sc,..undeclareVar(Nm,Ev)]).
 
@@ -101,7 +101,7 @@ star.compiler.dict.mgt{
   declareCns(CLc,Nm,Tp,TpNm,Dict) => valof{
     if [Level,..Rest] .= Dict then {
 --      logMsg("declare constructor $(Nm) for $(TpNm) in $(Level.types)");
-      if .tpDefn(Lc,TNm,TTp,TpRl,Cons)^=Level.types[TpNm] then{
+      if .tpDefn(Lc,TNm,TTp,TpRl,Cons)?=Level.types[TpNm] then{
 	valis [Level.types<<-Level.types[TpNm->.tpDefn(Lc,TNm,TTp,TpRl,Cons[Nm->Tp])],..Rest]
       } else{
 	valis [Level,..declareCns(CLc,Nm,Tp,TpNm,Rest)]
@@ -114,7 +114,7 @@ star.compiler.dict.mgt{
   }
 
   public findConstructors:(tipe,dict)=>option[map[string,tipe]].
-  findConstructors(Tp,Dict) where (_,_,_,Mp) ^=
+  findConstructors(Tp,Dict) where (_,_,_,Mp) ?=
     findType(Dict,localName(tpName(Tp),.typeMark)) => .some(Mp).
   findConstructors(_,_) default => .none.
 
@@ -177,7 +177,7 @@ star.compiler.dict.mgt{
       [Sc1.vars<<-mergeVDefs(Sc1.vars,Sc2.vars),..Rst].
 
     mergeVDefs:(map[string,vrEntry],map[string,vrEntry])=>map[string,vrEntry].
-    mergeVDefs(V1,V2) => {Nm->E1|Nm->E1 in V1 && E2^=V2[Nm] && sameDesc(E1,E2)}.
+    mergeVDefs(V1,V2) => {Nm->E1|Nm->E1 in V1 && E2?=V2[Nm] && sameDesc(E1,E2)}.
     sameDesc(.vrEntry(_,_,T1,_),.vrEntry(_,_,T2,_)) => sameType(T1,T2,Env)
 
   .} in mergeScopes(D1,D2). 
@@ -212,7 +212,7 @@ star.compiler.dict.mgt{
   
   public pushFace:(tipe,option[locn],dict) => dict.
   pushFace(Tp,Lc,Env) =>
-    pushSig(Tp,Lc,(Id,T,E) where (_,DQ).=deQuant(T) => (_ ^= isConsType(DQ) ?
+    pushSig(Tp,Lc,(Id,T,E) where (_,DQ).=deQuant(T) => (_ ?= isConsType(DQ) ?
 	  declareConstructor(Id,Id,Lc,T,E) ||
 	  declareVar(Id,Lc,T,.none,E)),
       Env).

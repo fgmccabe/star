@@ -58,11 +58,11 @@ star.compiler.normalize.driver{
   handleCmds((Opts,Args)) => valof{
     Repo = openupRepo(Opts.repo,Opts.cwd);
     
-    if CatUri ^= parseUri("catalog") && CatU ^= resolveUri(Opts.cwd,CatUri) &&
-	Cat ^= loadCatalog(CatU) then{
+    if CatUri ?= parseUri("catalog") && CatU ?= resolveUri(Opts.cwd,CatUri) &&
+	Cat ?= loadCatalog(CatU) then{
 	  for P in Args do{
 	    resetErrors();
-	    if Pk ^= P:?pkg then{
+	    if Pk ?= P:?pkg then{
 	      processPkg(Pk,Repo,Cat)
 	    } else{
 	      logMsg("cannot parse $(P) as a package name")
@@ -78,7 +78,7 @@ star.compiler.normalize.driver{
   processPkg:(pkg,termRepo,catalog) => ().
   processPkg(P,Repo,Cat) => valof{
     logMsg("Processing $(P)");
-    if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
+    if (SrcUri,CPkg) ?= resolveInCatalog(Cat,pkgName(P)) then{
       Ast = ^parseSrc(SrcUri,CPkg);
       if traceAst! then{
 	logMsg("Ast of $(P) is $(Ast)")
@@ -121,5 +121,5 @@ star.compiler.normalize.driver{
   }
 
   openupRepo:(uri,uri) => termRepo.
-  openupRepo(RU,CU) where CRU ^= resolveUri(CU,RU) => openRepository(CRU).
+  openupRepo(RU,CU) where CRU ?= resolveUri(CU,RU) => openRepository(CRU).
 }

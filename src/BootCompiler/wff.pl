@@ -33,7 +33,7 @@
 	      isFieldAcc/4,fieldAcc/4,isIndexTerm/4,mkIndexTerm/4,
 	      isRecordUpdate/5,recordUpdate/5,
 	      isSlice/5,isSplice/6,
-	      isOptionMatch/4,optionMatch/4,
+	      isOption/3,mkOption/3,isOptionMatch/4,optionMatch/4,
 	      isOptVal/3,mkOptVal/3,
 	      isConjunct/4,conjunct/4,isDisjunct/4,disjunct/4,
 	      isForall/4,mkForall/4,isNegation/3,negation/3,
@@ -565,11 +565,17 @@ whereTerm(_,Lhs,Cond,Lhs) :-
 whereTerm(Lc,Lhs,Rhs,Trm) :-
   binary(Lc,"where",Lhs,Rhs,Trm).
 
+isOption(Trm,Lc,Vl) :-
+  isUnary(Trm,Lc,"?",Vl).
+
+mkOption(Lc,Vl,Trm) :-
+  unary(Lc,"?",Vl,Trm).
+
 isOptionMatch(Trm,Lc,Ptn,Vl) :-
-  isBinary(Trm,Lc,"^=",Ptn,Vl).
+  isBinary(Trm,Lc,"?=",Ptn,Vl).
 
 optionMatch(Lc,Ptn,Exp,Term) :-
-  binary(Lc,"^=",Ptn,Exp,Term).
+  binary(Lc,"?=",Ptn,Exp,Term).
 
 isOptVal(Trm,Lc,E) :-
   isUnary(Trm,Lc,"^",E).

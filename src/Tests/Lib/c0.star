@@ -29,7 +29,8 @@ test.c0{
   }
 
   0 < 1 => .true.
-
+  _ < _ default => .false.
+  
   x + y => _int_plus(x,y).
 
   x - y => _int_minus(x,y).

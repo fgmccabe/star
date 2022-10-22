@@ -15,7 +15,7 @@ test.comp.macro{
 
   getAst((some(A),_)) => A.
 
-  getBrEls(A) where (_,Els) ^= isBrTuple(A) => Els.
+  getBrEls(A) where (_,Els) ?= isBrTuple(A) => Els.
 
   S1 = """
 {

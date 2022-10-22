@@ -20,7 +20,7 @@ star.compiler.macro.rules{
   }
 
   public applyRules:(ast,macroContext,macroState) => macroState.
-  applyRules(A,Cxt,St) where Rules^=macros[macroKey(A)] =>
+  applyRules(A,Cxt,St) where Rules?=macros[macroKey(A)] =>
     applyRls(A,Cxt,St,Rules).
   applyRules(A,_,_) default => .inactive.
 
@@ -51,7 +51,8 @@ star.compiler.macro.rules{
     "__pkg__" -> [(.expression,pkgNameMacro)],
     "__loc__" -> [(.expression,locationMacro)],
     "-" -> [(.expression, uMinusMacro),(.pattern, uMinusMacro)],
-    "^=" -> [(.expression, optionMatchMacro)],
+    "?=" -> [(.expression, optionMatchMacro)],
+    "?" -> [(.expression, optionMacro), (.pattern, optionMacro)],
     "^" -> [(.expression,unwrapMacro),(.expression,optvalMacro)],
     "!" -> [(.expression,binRefMacro)],
     "do" -> [(.actn,forLoopMacro)],
@@ -68,70 +69,77 @@ star.compiler.macro.rules{
   }.
 
   -- Convert assert C to assrt(C,"failed C",Loc)
-  assertMacro(A,.actn) where (Lc,C) ^= isIntegrity(A) => valof{
+  assertMacro(A,.actn) where (Lc,C) ?= isIntegrity(A) => valof{
     Assert = ternary(Lc,"assrt",C,.str(Lc,C::string),mkLoc(Lc));
     valis .active(Assert)
   }
   assertMacro(_,_) default => .inactive.
 
   -- Convert show E to shwMsg(E,"E",Lc)
-  showMacro(A,.actn) where (Lc,E) ^= isShow(A) => valof{
+  showMacro(A,.actn) where (Lc,E) ?= isShow(A) => valof{
     Shw = ternary(Lc,"shwMsg",E,.str(Lc,E::string),mkLoc(Lc));
     valis .active(Shw)
   }
   showMacro(_,.actn) default => .inactive.
 
   -- Convert trace E to traceCall("value of "E" is ",E)
-  traceMacro(T,.expression) where (Lc,Exp) ^= isTrace(T) => valof{
+  traceMacro(T,.expression) where (Lc,Exp) ?= isTrace(T) => valof{
     Tr = binary(Lc,"traceCall",.str(Lc,"$(Lc)\: #(Exp::string)"),Exp);
     valis .active(Tr)
   }
   traceMacro(_,_) default => .inactive.
 
   -- Convert A![X] to (A!)[X]
-  binRefMacro(A,.expression) where (Lc,Lhs,Rhs) ^= isBinary(A,"!") &&
-      (LLc,[E]) ^= isSqTuple(Rhs) =>
+  binRefMacro(A,.expression) where (Lc,Lhs,Rhs) ?= isBinary(A,"!") &&
+      (LLc,[E]) ?= isSqTuple(Rhs) =>
     .active(squareTerm(LLc,refCell(Lc,Lhs),[E])).
-  binRefMacro(A,.expression)  where (Lc,_,_) ^= isBinary(A,"!") => valof{
+  binRefMacro(A,.expression)  where (Lc,_,_) ?= isBinary(A,"!") => valof{
     reportError("illegal use of !",Lc);
     valis .inactive
   }
   binRefMacro(A,_) default => .inactive.
 
-  -- Convert P^=E to some(P).=E
-  optionMatchMacro(A,.expression) where (Lc,L,R) ^= isOptionMatch(A) =>
+  -- Convert ?E to .some(E)
+  optionMacro(A,.pattern) where (Lc,R) ?= isOption(A) =>
+    .active(mkOption(Lc,R)).
+  optionMacro(A,.expression) where (Lc,R) ?= isOption(A) =>
+    .active(mkOption(Lc,R)).
+  optionMacro(_,_) default => .inactive.
+
+  -- Convert P?=E to some(P).=E
+  optionMatchMacro(A,.expression) where (Lc,L,R) ?= isOptionMatch(A) =>
     .active(mkMatch(Lc,unary(Lc,"some",L),R)).
   optionMatchMacro(_,_) default => .inactive.
 
-  mkLoc(Lc) where .locn(P,Line,Col,Off,Ln)^=Lc =>
+  mkLoc(Lc) where .locn(P,Line,Col,Off,Ln)?=Lc =>
     roundTerm(Lc,.nme(Lc,"locn"),
       [.str(Lc,P),.int(Lc,Line),.int(Lc,Col),.int(Lc,Off),.int(Lc,Ln)]).
 
   -- Handle __loc__ macro symbol
   locationMacro(A,.expression) where
-      (Lc,"__loc__") ^= isName(A) =>
+      (Lc,"__loc__") ?= isName(A) =>
     .active(mkLoc(Lc)).
   
   -- Handle occurrences of __pkg__
   pkgNameMacro(A,.expression) where
-      (Lc,"__pkg__") ^= isName(A) && .locn(Pkg,_,_,_,_)^=Lc =>
+      (Lc,"__pkg__") ?= isName(A) && .locn(Pkg,_,_,_,_)?=Lc =>
     .active(str(Lc,Pkg)).
 
-  -- Convert expression P^E to X where E ^= P(X)
+  -- Convert expression P^E to X where E ?= P(X)
   unwrapMacro(A,.expression) where
-      (Lc,Lhs,Rhs) ^= isOptionPtn(A) && (LLc,Nm) ^= isName(Lhs) => valof{
+      (Lc,Lhs,Rhs) ?= isOptionPtn(A) && (LLc,Nm) ?= isName(Lhs) => valof{
 	X = genName(LLc,"X");
    	valis .active(mkWhere(Lc,X,mkMatch(LLc,Rhs,unary(LLc,Nm,X))))
       }.
   unwrapMacro(_,_) default => .inactive.
 
   -- Convert expression ^E to _optval(E)
-  optvalMacro(A,.expression) where (Lc,Rhs) ^= isOptVal(A) =>
+  optvalMacro(A,.expression) where (Lc,Rhs) ?= isOptVal(A) =>
     .active(unary(Lc,"_optval",Rhs)).
   optvalMacro(_,_) default => .inactive.
   
   -- Convert unary minus to a call to __minus
-  uMinusMacro(A,_) where (Lc,R) ^= isUnary(A,"-") =>
+  uMinusMacro(A,_) where (Lc,R) ?= isUnary(A,"-") =>
     (.int(_,Ix) .= R ?
 	.active(int(Lc,-Ix)) ||
 	.num(_,Dx) .= R ?
@@ -140,13 +148,13 @@ star.compiler.macro.rules{
   uMinusMacro(_,_) => .inactive.
 
   -- Convert [P,...P] to _hdtl etc.
-  squarePtnMacro(A,.pattern) where (Lc,Els) ^= isSqTuple(A) =>
+  squarePtnMacro(A,.pattern) where (Lc,Els) ?= isSqTuple(A) =>
     .active(macroListEntries(Lc,Els,genEofTest,genHedTest)).
   squarePtnMacro(_,_) => .inactive.
 
   macroListEntries:(option[locn],cons[ast],(option[locn])=>ast,(option[locn],ast,ast)=>ast) => ast.
   macroListEntries(Lc,[],End,_) => End(Lc).
-  macroListEntries(_,[Cns],_,Hed) where (Lc,H,T) ^= isCons(Cns) =>
+  macroListEntries(_,[Cns],_,Hed) where (Lc,H,T) ?= isCons(Cns) =>
     Hed(Lc,H,T).
   macroListEntries(Lc,[El,..Rest],Eof,Hed) =>
     Hed(Lc,El,macroListEntries(Lc,Rest,Eof,Hed)).
@@ -155,7 +163,7 @@ star.compiler.macro.rules{
   genHedTest(Lc,H,T) => mkWherePtn(Lc,.tpl(Lc,"()",[H,T]),nme(Lc,"_hdtl")).
 
   squareSequenceMacro(A,.expression) where
-      (Lc,Els) ^= isSqTuple(A) =>
+      (Lc,Els) ?= isSqTuple(A) =>
     .active(macroListEntries(Lc,Els,genNil,genCons)).
   squareSequenceMacro(_,_) => .inactive.
 
@@ -163,13 +171,13 @@ star.compiler.macro.rules{
   genCons(Lc,H,T) => binary(Lc,"_cons",H,T).
 
   mapLiteralMacro(A,.expression) where
-      (Lc,Els) ^= isMapLiteral(A) => .active(macroListEntries(Lc,Els,genEmpty,genPut)).
+      (Lc,Els) ?= isMapLiteral(A) => .active(macroListEntries(Lc,Els,genEmpty,genPut)).
   mapLiteralMacro(_,_) default => .inactive.
 
   genEmpty(Lc) => nme(Lc,"_empty").
-  genPut(Lc,H,T) where (_,L,R) ^= isPair(H) => ternary(Lc,"_put",T,L,R).
+  genPut(Lc,H,T) where (_,L,R) ?= isPair(H) => ternary(Lc,"_put",T,L,R).
 
-  comprehensionMacro(A,.expression) where (Lc,B,C) ^= isComprehension(A) => valof{
+  comprehensionMacro(A,.expression) where (Lc,B,C) ?= isComprehension(A) => valof{
     Q = makeComprehension(Lc,B,C);
     valis .active(Q)
   }
@@ -177,7 +185,7 @@ star.compiler.macro.rules{
 
   -- Convert {! Bnd | Body !}
   iotaComprehensionMacro(A,.expression) where
-      (Lc,Bnd,Body) ^= isIotaComprehension(A) => valof{
+      (Lc,Bnd,Body) ?= isIotaComprehension(A) => valof{
 	CC = makeCondition(Body,passThru,
 	  genResult(unary(Lc,"some",Bnd)),
 	  lyfted(enum(Lc,"none")));
@@ -187,7 +195,7 @@ star.compiler.macro.rules{
 
   -- Convert {? Cond ?}
   testComprehensionMacro(A,.expression) where
-      (Lc,Cond) ^= isTestComprehension(A) => valof{
+      (Lc,Cond) ?= isTestComprehension(A) => valof{
 	CC = makeCondition(Cond,passThru,
 	  genResult(enum(Lc,"true")),
 	  .lyfted(enum(Lc,"false")));
@@ -226,7 +234,7 @@ star.compiler.macro.rules{
   * where Succ, Lift & Zed are parameters to the conversion
   */
   makeCondition:(ast,(lyfted[ast])=>ast,(lyfted[ast])=>ast,lyfted[ast]) => ast.
-  makeCondition(A,Lift,Succ,Zed) where (Lc,Ptn,Src) ^= isSearch(A) => valof{
+  makeCondition(A,Lift,Succ,Zed) where (Lc,Ptn,Src) ?= isSearch(A) => valof{
     sF = genName(Lc,"sF");
     St = genName(Lc,"St");
 
@@ -236,13 +244,13 @@ star.compiler.macro.rules{
     FF = mkLetDef(Lc,[Eq1,Eq2],sF);
     valis ternary(Lc,"_iter",Src,Lift(Zed),FF)
   }
-  makeCondition(A,Lift,Succ,Zed) where (Lc,L,R) ^= isConjunct(A) =>
+  makeCondition(A,Lift,Succ,Zed) where (Lc,L,R) ?= isConjunct(A) =>
     makeCondition(L,Lift,(Lf) => makeCondition(R,Lift,Succ,Lf),Zed).
-  makeCondition(A,Lift,Succ,Zed) where (Lc,L,R) ^= isDisjunct(A) => valof{
+  makeCondition(A,Lift,Succ,Zed) where (Lc,L,R) ?= isDisjunct(A) => valof{
     E1 =makeCondition(L,Lift,Succ,Zed);
     valis makeCondition(R,Lift,Succ,.lyfted(E1))
   }
-  makeCondition(A,Lift,Succ,Zed) where (Lc,R) ^= isNegation(A) => valof{
+  makeCondition(A,Lift,Succ,Zed) where (Lc,R) ?= isNegation(A) => valof{
     Negated = makeCondition(R,Lift,(_)=>Lift(.grounded(enum(Lc,"true"))),
       .grounded(enum(Lc,"false")));
     St = genName(Lc,"St");
@@ -250,7 +258,7 @@ star.compiler.macro.rules{
     FalseCase = Lift(Zed);
     valis mkConditional(Lc,Negated,FalseCase,SuccCase)
   }
-  makeCondition(A,Lift,Succ,Zed) where (Lc,L,R) ^= isImplies(A) =>
+  makeCondition(A,Lift,Succ,Zed) where (Lc,L,R) ?= isImplies(A) =>
     makeCondition(negated(Lc,mkConjunct(Lc,L,negated(Lc,R))),Lift,Succ,Zed).
   makeCondition(Other,Lift,Succ,Zed) => 
     mkConditional(locOf(Other),Other,Succ(Zed),Lift(Zed)).
@@ -258,16 +266,16 @@ star.compiler.macro.rules{
   -- Convert E::T to _optval(_coerce(E)):T
   -- Convert E:?T to _coerce(E):option[T]
 
-  coercionMacro(A,.expression) where (Lc,L,R) ^= isCoerce(A) =>
+  coercionMacro(A,.expression) where (Lc,L,R) ?= isCoerce(A) =>
     .active(typeAnnotation(Lc,unary(Lc,"_optval",unary(Lc,"_coerce",L)),R)).
-  coercionMacro(A,.expression) where (Lc,L,R) ^= isOptCoerce(A) =>
+  coercionMacro(A,.expression) where (Lc,L,R) ?= isOptCoerce(A) =>
     active(typeAnnotation(Lc,unary(Lc,"_coerce",L),sqUnary(Lc,"option",R))).
   coercionMacro(_,_) => .inactive.
 
-  indexMacro(A,.expression) where (Lc,L,R) ^= isIndexTerm(A) =>
-    ((_,Ky,Vl) ^= isBinary(R,"->") ?
+  indexMacro(A,.expression) where (Lc,L,R) ?= isIndexTerm(A) =>
+    ((_,Ky,Vl) ?= isBinary(R,"->") ?
 	active(ternary(Lc,"_put",L,Ky,Vl)) ||
-	(_,Ky) ^= isNegation(R) ?
+	(_,Ky) ?= isNegation(R) ?
 	  active(binary(Lc,"_remove",L,Ky)) ||
 	  active(binary(Lc,"_index",L,R))).
   indexMacro(_,_) default => .inactive.
@@ -275,35 +283,35 @@ star.compiler.macro.rules{
   -- C[I]:=R becomes C:=_put(C!,I,R)
 
   indexAssignMacro(A,.actn) where
-      (Lc,L,R) ^= isAssignment(A) &&
-      (LLc,S,I) ^= isIndexTerm(L) =>
+      (Lc,L,R) ?= isAssignment(A) &&
+      (LLc,S,I) ?= isIndexTerm(L) =>
     active(mkAssignment(Lc,S,
 	  ternary(Lc,"_put",refCell(Lc,S),I,R))).
   indexAssignMacro(_,_) default => .inactive.
   
-  sliceMacro(A,.expression) where (Lc,Op,F,T) ^= isSlice(A) =>
+  sliceMacro(A,.expression) where (Lc,Op,F,T) ?= isSlice(A) =>
     active(ternary(Lc,"_slice",Op,F,T)).
   sliceMacro(_,_) default => .inactive.
 
   spliceAssignMacro(A,.expression) where
-      (Lc,S,F,T,R) ^= isSplice(A) =>
+      (Lc,S,F,T,R) ?= isSplice(A) =>
     active(mkAssignment(Lc,S,
 	  roundTerm(Lc,nme(Lc,"_splice"),
 	    [refCell(Lc,S),F,T,R]))).
   spliceAssignMacro(_,_) default => .inactive.
   
-  multicatMacro(A,.expression) where (Lc,E) ^= isUnary(A,"*") =>
+  multicatMacro(A,.expression) where (Lc,E) ?= isUnary(A,"*") =>
     active(unary(Lc,"_multicat",E)).
   multicatMacro(_,.expression) => .inactive.
 
   -- Convert <| E |> to a quote expression
   -- which relies on the quote contract
-  quoteMacro(A,.expression) where (Lc,Trm) ^= isQuoted(A) =>
+  quoteMacro(A,.expression) where (Lc,Trm) ?= isQuoted(A) =>
     active(quoteAst(A)).
   quoteMacro(_,_) => .inactive.
 
   -- quoteAst creates an ast that checks to a quoted form of the ast itself
-  quoteAst(E) where (_,X) ^= isUnary(E,"?") => X.
+  quoteAst(E) where (_,X) ?= isUnary(E,"?") => X.
   quoteAst(.nme(Lc,Nm)) => unary(Lc,"_name",.str(Lc,Nm)).
   quoteAst(.qnm(Lc,Nm)) => unary(Lc,"_qnme",.str(Lc,Nm)).
   quoteAst(.int(Lc,Nx)) => unary(Lc,"_integer",.int(Lc,Nx)).
@@ -329,7 +337,7 @@ star.compiler.macro.rules{
   }
   */
 
-  forLoopMacro(A,.actn) where (Lc,P,C,B) ^= isForDo(A) => valof{
+  forLoopMacro(A,.actn) where (Lc,P,C,B) ?= isForDo(A) => valof{
     I = genName(Lc,"I");
     Lb = genId("Lb");
 
@@ -360,7 +368,7 @@ star.compiler.macro.rules{
   forLoopMacro(_,.actn) default => .inactive.
 
   /* task{A} becomes task((this,first)=>A) */
-  taskMacro(E,.expression) where (Lc,A) ^= isTaskTerm(E) =>
+  taskMacro(E,.expression) where (Lc,A) ?= isTaskTerm(E) =>
     active(unary(Lc,"task",
 	mkLambda(Lc,.false,rndTuple(Lc,[nme(Lc,"this"),nme(Lc,"first")]),
 	  .none,mkValof(Lc,brTuple(Lc,[A]))))).
@@ -375,8 +383,8 @@ star.compiler.macro.rules{
   */
    
   generatorMacro(E,.expression) where
-    (Lc,A) ^= isUnary(E,"generator") &&
-    (_,[B]) ^= isBrTuple(A) => valof{
+    (Lc,A) ?= isUnary(E,"generator") &&
+    (_,[B]) ?= isBrTuple(A) => valof{
 	/* Build try ... catch ... */
   
 	/* Build .cancel => {} */
@@ -396,7 +404,7 @@ star.compiler.macro.rules{
      ._cancel => throw ._cancel
    }
   */
-  yieldMacro(A,.actn) where (Lc,E) ^= isUnary(A,"yield") => valof{
+  yieldMacro(A,.actn) where (Lc,E) ?= isUnary(A,"yield") => valof{
     /* build ._next => {} */
     Nxt = mkLambda(Lc,.false,enum(Lc,"_next"),.none,brTuple(Lc,[]));
 
@@ -408,8 +416,8 @@ star.compiler.macro.rules{
   }
 
   contractMacro(A,.statement) where
-      (Lc,Lhs,Els) ^= isContractStmt(A) && (_,Nm,Q,C,T) ^= isContractSpec(Lhs) &&
-      (SLc,Op,As) ^= isSquareTerm(T) => valof{
+      (Lc,Lhs,Els) ?= isContractStmt(A) && (_,Nm,Q,C,T) ?= isContractSpec(Lhs) &&
+      (SLc,Op,As) ?= isSquareTerm(T) => valof{
 	DlNm = hashName(Op);
 	CTp =contractType(SLc,DlNm,As);
 	ConTp = mkAlgebraicTypeStmt(Lc,Q,C,CTp,braceTerm(SLc,DlNm,Els));
@@ -417,37 +425,37 @@ star.compiler.macro.rules{
       }.
   contractMacro(A,_) default => .inactive.
 
-  contractType(Lc,Op,[A]) where (_,L,R) ^= isDepends(A) =>
+  contractType(Lc,Op,[A]) where (_,L,R) ?= isDepends(A) =>
     squareTerm(Lc,Op,L++R).
   contractType(Lc,Op,A) =>
     squareTerm(Lc,Op,A).
 
   implementationMacro(A,.statement) where
-      (Lc,Q,C,H,E) ^= isImplementationStmt(A) &&
-      (_,Nm,_) ^= isSquareTerm(H) &&
-      Ex ^= labelImplExp(E,Nm) => 
+      (Lc,Q,C,H,E) ?= isImplementationStmt(A) &&
+      (_,Nm,_) ?= isSquareTerm(H) &&
+      Ex ?= labelImplExp(E,Nm) => 
     active(mkImplementationStmt(Lc,Q,C,H,Ex)).
   implementationMacro(_,_) default => .inactive.
 
-  labelImplExp(T,Nm) where (Lc,Els) ^= isBrTuple(T) =>
+  labelImplExp(T,Nm) where (Lc,Els) ?= isBrTuple(T) =>
     some(braceTerm(Lc,hashName(Nm),Els)).
-  labelImplExp(T,Nm) where (Lc,Els) ^= isQBrTuple(T) =>
+  labelImplExp(T,Nm) where (Lc,Els) ?= isQBrTuple(T) =>
     some(qbraceTerm(Lc,hashName(Nm),Els)).
-  labelImplExp(T,Nm) where (Lc,Els,Exp) ^= isLetDef(T) &&
-    EE ^= labelImplExp(Exp,Nm) =>
+  labelImplExp(T,Nm) where (Lc,Els,Exp) ?= isLetDef(T) &&
+    EE ?= labelImplExp(Exp,Nm) =>
     some(mkLetDef(Lc,Els,EE)).
-  labelImplExp(T,Nm) where (Lc,Els,Exp) ^= isLetRecDef(T) &&
-      EE ^= labelImplExp(Exp,Nm) =>
+  labelImplExp(T,Nm) where (Lc,Els,Exp) ?= isLetRecDef(T) &&
+      EE ?= labelImplExp(Exp,Nm) =>
     some(mkLetRecDef(Lc,Els,EE)).
   labelImplExp(T,_) default => .none.
 
-  arrowMacro(E,_) where (Lc,Lhs,Rhs) ^= isBinary(E,"->") =>
+  arrowMacro(E,_) where (Lc,Lhs,Rhs) ?= isBinary(E,"->") =>
     .active(mkEnumCon(Lc,.nme(Lc,"kv"),[Lhs,Rhs])).
   arrowMacro(_,_) default => .inactive.
 
   -- Handle algebraic type definitions
 
-  algebraicMacro(St,.statement) where (Lc,Vz,Q,Cx,H,R) ^= isAlgebraicTypeStmt(St) => 
+  algebraicMacro(St,.statement) where (Lc,Vz,Q,Cx,H,R) ?= isAlgebraicTypeStmt(St) => 
     active(brTuple(Lc,makeAlgebraic(Lc,Vz,Q,Cx,H,R))).
   algebraicMacro(_,_) default => .inactive.
 
@@ -484,23 +492,23 @@ star.compiler.macro.rules{
   }
 
   algebraicFace:(ast,cons[ast],cons[ast]) => (cons[ast],cons[ast],cons[ast]).
-  algebraicFace(A,Qs,Xs) where (_,L,R) ^= isBinary(A,"|") => valof{
+  algebraicFace(A,Qs,Xs) where (_,L,R) ?= isBinary(A,"|") => valof{
     (Q1,X1,Lhs) = algebraicFace(L,Qs,Xs);
     (Qx,Xx,Rhs) = algebraicFace(R,Q1,X1);
     Fs = combineFaces(Lhs,Rhs);
     valis (Qx,Xx,Fs)
   }
-  algebraicFace(A,Qs,Xs) where (Lc,_,_) ^= isRoundTerm(A) => (Qs,Xs,[]).
-  algebraicFace(A,Qs,Xs) where (Lc,_) ^= isEnumSymb(A) => (Qs,Xs,[]).
-  algebraicFace(A,Qs,Xs) where (Lc,_,_) ^= isEnumCon(A) => (Qs,Xs,[]).
-  algebraicFace(A,Qs,Xs) where (Lc,_,Els) ^= isBrTerm(A) => (Qs,Xs,Els).
-  algebraicFace(A,Qs,Xs) where (_,I) ^= isPrivate(A) =>
+  algebraicFace(A,Qs,Xs) where (Lc,_,_) ?= isRoundTerm(A) => (Qs,Xs,[]).
+  algebraicFace(A,Qs,Xs) where (Lc,_) ?= isEnumSymb(A) => (Qs,Xs,[]).
+  algebraicFace(A,Qs,Xs) where (Lc,_,_) ?= isEnumCon(A) => (Qs,Xs,[]).
+  algebraicFace(A,Qs,Xs) where (Lc,_,Els) ?= isBrTerm(A) => (Qs,Xs,Els).
+  algebraicFace(A,Qs,Xs) where (_,I) ?= isPrivate(A) =>
     algebraicFace(I,Qs,Xs).
-  algebraicFace(A,Qs,Xs) where (_,I) ^= isPublic(A) =>
+  algebraicFace(A,Qs,Xs) where (_,I) ?= isPublic(A) =>
     algebraicFace(I,Qs,Xs).
-  algebraicFace(A,Qs,Xs) where (_,X0,I) ^= isXQuantified(A) =>
+  algebraicFace(A,Qs,Xs) where (_,X0,I) ?= isXQuantified(A) =>
     algebraicFace(I,Qs,Xs\/X0).
-  algebraicFace(A,Qs,Xs) where (_,A0,I) ^= isQuantified(A) =>
+  algebraicFace(A,Qs,Xs) where (_,A0,I) ?= isQuantified(A) =>
     algebraicFace(I,Qs\/A0,Xs).
   algebraicFace(A,Qs,Xs) default => valof{
     reportError("invalid case in algebraic type",locOf(A));
@@ -509,7 +517,7 @@ star.compiler.macro.rules{
 
   combineFaces([],F2) => F2.
   combineFaces(F1,[]) => F1.
-  combineFaces([F,..Fs],Gs) where (Lc,Id,Tp)^=isTypeAnnotation(F) => valof{
+  combineFaces([F,..Fs],Gs) where (Lc,Id,Tp)?=isTypeAnnotation(F) => valof{
     G1 = mergeField(Lc,Id,Tp,Gs);
     Fs1 = combineFaces(Fs,G1);
     valis [F,..Fs1]
@@ -517,7 +525,7 @@ star.compiler.macro.rules{
 
   mergeField(_,_,_,[]) => [].
   mergeField(Lc,Id,Tp,[A,..As]) => valof{
-    if (Lc2,Id,Tp2) ^= isTypeAnnotation(A) then {
+    if (Lc2,Id,Tp2) ?= isTypeAnnotation(A) then {
       if Tp==Tp2 then
 	valis As
       else{
@@ -531,19 +539,19 @@ star.compiler.macro.rules{
   }
 
   conArities:(ast,map[string,integer]) => map[string,integer].
-  conArities(A,Axx) where (Lc,L,R) ^= isBinary(A,"|") =>
+  conArities(A,Axx) where (Lc,L,R) ?= isBinary(A,"|") =>
     conArities(L,conArities(R,Axx)).
   conArities(A,Axx) where
-      (_,Nm,_,_,Els) ^= isBraceCon(A) && (_,Id) ^= isName(Nm)=>
+      (_,Nm,_,_,Els) ?= isBraceCon(A) && (_,Id) ?= isName(Nm)=>
     Axx[Id->size(Els)].
   conArities(_,Axx) default => Axx.
 
   buildConIndices:(ast,map[string,map[string,integer]]) => map[string,map[string,integer]].
-  buildConIndices(A,Ixx) where (Lc,L,R) ^= isBinary(A,"|") =>
+  buildConIndices(A,Ixx) where (Lc,L,R) ?= isBinary(A,"|") =>
     buildConIndices(L,buildConIndices(R,Ixx)).
   buildConIndices(A,Ixx) where
-      (Lc,Nm,XQs,XCx,Els) ^= isBraceCon(A) &&
-      (_,Id) ^= isName(Nm) =>
+      (Lc,Nm,XQs,XCx,Els) ?= isBraceCon(A) &&
+      (_,Id) ?= isName(Nm) =>
     buildConIx(Els,Id,Ixx).
   buildConIndices(_,Ixx) default => Ixx.
 
@@ -552,7 +560,7 @@ star.compiler.macro.rules{
     pickCon:(ast,(map[string,map[string,integer]],integer))=>
       (map[string,map[string,integer]],integer).
     pickCon(El,(Mp,Ix)) where
-	(_,F,_) ^= isTypeAnnotation(El) && (_,Fld)^=isName(F) =>
+	(_,F,_) ?= isTypeAnnotation(El) && (_,Fld)?=isName(F) =>
       (Mp[Fld->recordIx(Mp[Fld],Nm,Ix)],Ix+1).
     pickCon(_,U) default => U.
   } in fst(foldLeft(pickCon,(Ixx,0),sort(Els,compEls))).
@@ -563,13 +571,13 @@ star.compiler.macro.rules{
 
   buildConstructors:(ast,cons[ast],cons[ast],ast,visibility)=>cons[ast].
   buildConstructors(A,Qs,Cx,Tp,Vz) where
-      (Lc,L,R) ^= isBinary(A,"|") => valof{
+      (Lc,L,R) ?= isBinary(A,"|") => valof{
 	Dfs1 = buildConstructors(L,Qs,Cx,Tp,Vz);
 	Dfs2 = buildConstructors(R,Qs,Cx,Tp,Vz);
 	valis Dfs1++Dfs2
       }.
   buildConstructors(A,Qs,Cx,Tp,Vz) where
-      (Lc,Nm,XQs,XCx,Els) ^= isBraceCon(A) => let{
+      (Lc,Nm,XQs,XCx,Els) ?= isBraceCon(A) => let{
 	BCon = typeAnnotation(Lc,Nm,reUQuant(Lc,Qs,
 	  reConstrain(Cx,
 	      binary(Lc,"<=>",reXQuant(Lc,XQs,
@@ -580,34 +588,34 @@ star.compiler.macro.rules{
 		  reConstrain(XCx,rndTuple(Lc,project1(sort(Els,compEls))))),Tp)))).
       } in [reveal(BCon,Vz),reveal(DCon,Vz)].
   buildConstructors(A,Qs,Cx,Tp,Vz) where
-      (Lc,Nm,XQs,XCx,Els) ^= isRoundCon(A) => let{
+      (Lc,Nm,XQs,XCx,Els) ?= isRoundCon(A) => let{
 	Con = typeAnnotation(Lc,Nm,reUQuant(Lc,Qs,
 	  reConstrain(Cx,
 	    binary(Lc,"<=>",rndTuple(Lc,Els),Tp)))).
       } in [reveal(Con,Vz)].
   buildConstructors(A,Qs,Cx,Tp,Vz) where
-      (Lc,Nm) ^= isEnumSymb(A) => let{
+      (Lc,Nm) ?= isEnumSymb(A) => let{
 	Con = typeAnnotation(Lc,nme(Lc,Nm),reUQuant(Lc,Qs,
 	  reConstrain(Cx,
 	      binary(Lc,"<=>",rndTuple(Lc,[]),Tp)))).
       } in [reveal(Con,Vz)].
   buildConstructors(A,Qs,Cx,Tp,_) where
-      (_,I) ^= isPrivate(A) => 
+      (_,I) ?= isPrivate(A) => 
     buildConstructors(I,Qs,Cx,Tp,.priVate).
   buildConstructors(A,Qs,Cx,Tp,_) where
-      (_,I) ^= isPublic(A) => 
+      (_,I) ?= isPublic(A) => 
     buildConstructors(I,Qs,Cx,Tp,.pUblic).
   buildConstructors(A,_,_,_,_) => valof{
     reportError("cannot fathom constructor $(A)",locOf(A));
     valis []
   }
 
-  project1(L) => (L//(E)where (_,_,T) ^= isTypeAnnotation(E) => T).
+  project1(L) => (L//(E)where (_,_,T) ?= isTypeAnnotation(E) => T).
 
   compEls:(ast,ast)=>boolean.
   compEls(A,B) where
-      (_,N1,_) ^= isTypeAnnotation(A) && (_,Nm1) ^= isName(N1) &&
-      (_,N2,_) ^= isTypeAnnotation(B) && (_,Nm2) ^= isName(N2) => Nm1<Nm2.
+      (_,N1,_) ?= isTypeAnnotation(A) && (_,Nm1) ?= isName(N1) &&
+      (_,N2,_) ?= isTypeAnnotation(B) && (_,Nm2) ?= isName(N2) => Nm1<Nm2.
   compEls(_,_) default => .false.
 
   reveal(A,.priVate) => unary(locOf(A),"private",A).
@@ -617,8 +625,8 @@ star.compiler.macro.rules{
   visibilityOf:(ast) => (ast,visibility).
   visibilityOf(A) => visib(A,.deFault).
 
-  visib(A,_) where (_,I) ^= isPrivate(A) => visib(I,.priVate).
-  visib(A,_) where (_,I) ^= isPublic(A) => visib(I,.pUblic).
+  visib(A,_) where (_,I) ?= isPrivate(A) => visib(I,.priVate).
+  visib(A,_) where (_,I) ?= isPublic(A) => visib(I,.pUblic).
   visib(A,Vz) default => (A,Vz).
 
   public isBraceCon:(ast) => option[(option[locn],ast,cons[ast],cons[ast],cons[ast])].
@@ -629,14 +637,14 @@ star.compiler.macro.rules{
 
   isCon:(ast,(ast)=>option[(option[locn],ast,cons[ast])]) => option[(option[locn],ast,cons[ast],cons[ast],cons[ast])].
   isCon(A,P) where
-      (Lc,Nm,Els) ^= P(A) && _ ^= isName(Nm) => some((Lc,Nm,[],[],Els)).
+      (Lc,Nm,Els) ?= P(A) && _ ?= isName(Nm) => some((Lc,Nm,[],[],Els)).
   isCon(A,P) where
-      (Lc,Q,I) ^= isXQuantified(A) &&
-      (_,Nm,_,Cx,Els) ^= isCon(I,P) =>
+      (Lc,Q,I) ?= isXQuantified(A) &&
+      (_,Nm,_,Cx,Els) ?= isCon(I,P) =>
     some((Lc,Nm,Q,Cx,Els)).
   isCon(A,P) where
-      (Lc,Cx,I) ^= isConstrained(A) &&
-      (_,Nm,Q,_,Els) ^= isCon(I,P) =>
+      (Lc,Cx,I) ?= isConstrained(A) &&
+      (_,Nm,Q,_,Els) ?= isCon(I,P) =>
     some((Lc,Nm,Q,Cx,Els)).
   isCon(_,_) default => .none.
 
@@ -651,7 +659,7 @@ star.compiler.macro.rules{
     (Fields//((F)=>makeUpdater(F,TpNm,Rhs,Q,Cx,H,Vz))).
   
   makeAccessor:(ast,string,ast,cons[ast],cons[ast],ast,visibility) => ast.
-  makeAccessor(Annot,TpNm,Cns,Q,Cx,H,Vz) where (Lc,Fld,FldTp)^=isTypeAnnotation(Annot) =>
+  makeAccessor(Annot,TpNm,Cns,Q,Cx,H,Vz) where (Lc,Fld,FldTp)?=isTypeAnnotation(Annot) =>
     valof{
       AccNm = nme(Lc,"\$$(Fld)");
       AcEqs = accessorEqns(Cns,Fld,AccNm,[]);
@@ -660,10 +668,10 @@ star.compiler.macro.rules{
     }
 
   accessorEqns:(ast,ast,ast,cons[ast])=>cons[ast].
-  accessorEqns(Cns,Fld,AccNm,SoFar) where (Lc,L,R)^=isBinary(Cns,"|") =>
+  accessorEqns(Cns,Fld,AccNm,SoFar) where (Lc,L,R)?=isBinary(Cns,"|") =>
     accessorEqns(R,Fld,AccNm,accessorEqns(L,Fld,AccNm,SoFar)).
   accessorEqns(Cns,Fld,AccNm,SoFar) where
-      (Lc,CnNm,Els)^=isBrTerm(Cns) && isFieldOfFc(Els,Fld) => valof{
+      (Lc,CnNm,Els)?=isBrTerm(Cns) && isFieldOfFc(Els,Fld) => valof{
 	Sorted = sort(Els,compEls);
 	ConArgs = projectArgTypes(Sorted,Fld);
 	
@@ -671,24 +679,24 @@ star.compiler.macro.rules{
 	  rndTuple(Lc,[mkEnumCon(Lc,dollarName(CnNm),ConArgs)]),.none,nme(Lc,"X"));
 	valis [Eqn,..SoFar]
   }
-  accessorEqns(C,Fld,AccNm,Eqns) where (Lc,I) ^= isPrivate(C) =>
+  accessorEqns(C,Fld,AccNm,Eqns) where (Lc,I) ?= isPrivate(C) =>
     accessorEqns(I,Fld,AccNm,Eqns).
   accessorEqns(C,Fld,AccNm,Eqns) default => Eqns.
 
-  isFieldOfFc([F,..Els],Fld) where (_,Fld,_) ^= isTypeAnnotation(F) => .true.
+  isFieldOfFc([F,..Els],Fld) where (_,Fld,_) ?= isTypeAnnotation(F) => .true.
   isFieldOfFc([_,..Els],Fld) => isFieldOfFc(Els,Fld).
   isFieldOfFc([],_) default => .false.
 
   projectArgTypes([],_) => [].
   projectArgTypes([A,..As],F) where
-      (Lc,V,T) ^= isTypeAnnotation(A) && F== V =>
+      (Lc,V,T) ?= isTypeAnnotation(A) && F== V =>
     [nme(Lc,"X"),..projectArgTypes(As,F)].
-  projectArgTypes([A,..As],F) where (Lc,V,T) ^= isTypeAnnotation(A) =>
+  projectArgTypes([A,..As],F) where (Lc,V,T) ?= isTypeAnnotation(A) =>
     [mkAnon(Lc),..projectArgTypes(As,F)].
   projectArgTypes([_,..As],F) => projectArgTypes(As,F).
 
   makeUpdater:(ast,string,ast,cons[ast],cons[ast],ast,visibility) => ast.
-  makeUpdater(Annot,TpNm,Cns,Q,Cx,H,Vz) where (Lc,Fld,FldTp)^=isTypeAnnotation(Annot) => valof{
+  makeUpdater(Annot,TpNm,Cns,Q,Cx,H,Vz) where (Lc,Fld,FldTp)?=isTypeAnnotation(Annot) => valof{
     AccNm = dollarName(Fld);
     UpEqs = updaterEqns(Cns,Fld,AccNm,[]);
     AccessHead = squareTerm(Lc,Fld,[mkDepends(Lc,[H],[FldTp])]);
@@ -696,25 +704,25 @@ star.compiler.macro.rules{
   }
 
   updaterEqns:(ast,ast,ast,cons[ast])=>cons[ast].
-  updaterEqns(Cns,Fld,AccNm,SoFar) where (Lc,L,R)^=isBinary(Cns,"|") =>
+  updaterEqns(Cns,Fld,AccNm,SoFar) where (Lc,L,R)?=isBinary(Cns,"|") =>
     updaterEqns(R,Fld,AccNm,updaterEqns(L,Fld,AccNm,SoFar)).
   updaterEqns(Cns,Fld,AccNm,SoFar) where
-      (Lc,CnNm,Els)^=isBrTerm(Cns) && isFieldOfFc(Els,Fld) => valof{
+      (Lc,CnNm,Els)?=isBrTerm(Cns) && isFieldOfFc(Els,Fld) => valof{
 	Sorted = sort(Els,compEls);
 	UEqn = mkEquation(Lc,some(AccNm),.false,
 	  rndTuple(Lc,[mkEnumCon(Lc,dollarName(CnNm),allArgs(Sorted,Fld,0,mkAnon(Lc))),nme(Lc,"XX")]),.none,
 	  mkEnumCon(Lc,dollarName(CnNm),allArgs(Sorted,Fld,0,nme(Lc,"XX"))));
 	valis [UEqn,..SoFar]
       }
-  updaterEqns(C,Fld,AccNm,Eqns) where (Lc,I) ^= isPrivate(C) =>
+  updaterEqns(C,Fld,AccNm,Eqns) where (Lc,I) ?= isPrivate(C) =>
     updaterEqns(I,Fld,AccNm,Eqns).
   updaterEqns(C,_,_,Eqns) default => Eqns.
   
   allArgs([],_,_,_) => [].
   allArgs([A,..As],F,Ix,Rep) where
-      (Lc,V,T) ^= isTypeAnnotation(A) && F == V =>
+      (Lc,V,T) ?= isTypeAnnotation(A) && F == V =>
     [Rep,..allArgs(As,F,Ix+1,Rep)].
-  allArgs([A,..As],F,Ix,Rep) where (Lc,V,T) ^= isTypeAnnotation(A) =>
+  allArgs([A,..As],F,Ix,Rep) where (Lc,V,T) ?= isTypeAnnotation(A) =>
     [nme(Lc,"X$(Ix)"),..allArgs(As,F,Ix+1,Rep)].
   allArgs([_,..As],F,Ix,Rep) => allArgs(As,F,Ix,Rep).
 }

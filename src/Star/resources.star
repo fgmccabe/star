@@ -18,17 +18,17 @@ star.resources{
   newerRsrc(U1,U2) => newerFile(getUriPath(U1),getUriPath(U2)).
 
   public cwd:()=>uri.
-  cwd() where U^=parseUri(_cwd()) => U.
+  cwd() where U?=parseUri(_cwd()) => U.
 
   public searchForRsRc:(uri,string)=>option[uri].
-  searchForRsRc(U,Pth) where P^=parseUri("../") && R ^= parseUri(Pth) =>
+  searchForRsRc(U,Pth) where P?=parseUri("../") && R ?= parseUri(Pth) =>
     let{.
       searchFor(C) where
-	  RU ^= resolveUri(C,R) &&
+	  RU ?= resolveUri(C,R) &&
 	  P1 .= getUriPath(RU) &&
 	  filePresent(P1) => some(RU).
       searchFor(C) where
-	  PU ^= resolveUri(C,P) &&
+	  PU ?= resolveUri(C,P) &&
 	  P1 .= getUriPath(PU) && P1~="/" =>
 	searchFor(PU).
       searchFor(_) default => .none

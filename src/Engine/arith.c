@@ -21,6 +21,8 @@ static integer intHash(specialClassPo cl, termPo o);
 static logical intCmp(specialClassPo cl, termPo t1, termPo t2);
 static termPo intFinalizer(specialClassPo class, termPo o);
 
+static intPo C_INT(termPo t);
+
 SpecialClass IntegerClass = {
   .clss = Null,
   .sizeFun = intSize,
@@ -102,8 +104,7 @@ integer intHash(specialClassPo cl, termPo o) {
 }
 
 static retCode intDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
-  intPo ix = C_INT(t);
-  return outInteger(out, ix->ix, 10, 0, precision, 0, False, "", alt);
+  return outInteger(out, integerVal(t), 10, 0, precision, 0, False, "", alt);
 }
 
 intPo C_INT(termPo t) {

@@ -182,41 +182,41 @@ star.compiler.canon{
     .flt(_,Lt) => disp(Lt).
     .strng(_,Lt) => disp(Lt).
     .enm(_,Nm,Tp) => "°#(Nm)".
-    .whr(_,E,C) where (Lp,OPr,Rp) ^= isInfixOp("where") =>
+    .whr(_,E,C) where (Lp,OPr,Rp) ?= isInfixOp("where") =>
       "#(leftParen(OPr,Pr))#(showCanon(E,Lp,Sp)) where #(showCanon(C,Rp,Sp))#(rgtParen(OPr,Pr))".
     .dot(_,R,F,Tp) => "#(showCanon(R,0,Sp))°#(F)\:$(Tp)".
-    .update(_,L,F,R) where (Lp,OPr,Rp) ^= isInfixOp("<<-") =>
+    .update(_,L,F,R) where (Lp,OPr,Rp) ?= isInfixOp("<<-") =>
       "#(leftParen(OPr,Pr))#(showCanon(L,Lp,Sp)).#(F) <<- #(showCanon(R,Rp,Sp))#(rgtParen(OPr,Pr))".
-    .csexp(_,Exp,Cs,_) where (OPr,Rp) ^= isPrefixOp("case") =>
+    .csexp(_,Exp,Cs,_) where (OPr,Rp) ?= isPrefixOp("case") =>
       "#(leftParen(OPr,Pr))case #(showCanon(Exp,Rp,Sp)) in #(showCases(Cs,showCanon,Sp))#(rgtParen(OPr,Pr))".
-    .trycatch(_,Exp,H,_)  where (OPr,Rp) ^= isPrefixOp("try") =>
+    .trycatch(_,Exp,H,_)  where (OPr,Rp) ?= isPrefixOp("try") =>
       "#(leftParen(OPr,Pr))try #(showCanon(Exp,Rp,Sp)) catch #(showCanon(H,Rp,Sp++"  "))#(rgtParen(OPr,Pr))".
-    .match(_,Ptn,Gen) where (Lp,OPr,Rp) ^= isInfixOp(".=") =>
+    .match(_,Ptn,Gen) where (Lp,OPr,Rp) ?= isInfixOp(".=") =>
       "#(leftParen(OPr,Pr))#(showCanon(Ptn,Lp,Sp)) .= #(showCanon(Gen,Rp,Sp))#(rgtParen(OPr,Pr))".
-    .conj(_,L,R) where (Lp,OPr,Rp) ^= isInfixOp("&&") =>
+    .conj(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp("&&") =>
       "#(leftParen(OPr,Pr))#(showCanon(L,Lp,Sp)) && #(showCanon(R,Rp,Sp))#(rgtParen(OPr,Pr))".
-    .disj(_,L,R) where (Lp,OPr,Rp) ^= isInfixOp("||") =>
+    .disj(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp("||") =>
       "#(leftParen(OPr,Pr))#(showCanon(L,Lp,Sp)) || #(showCanon(R,Rp,Sp))#(rgtParen(OPr,Pr))".
-    .neg(_,R)  where (OPr,Rp) ^= isPrefixOp("~") =>
+    .neg(_,R)  where (OPr,Rp) ?= isPrefixOp("~") =>
       "#(leftParen(OPr,Pr))~ #(showCanon(R,Rp,Sp))#(rgtParen(OPr,Pr))".
-    .cond(_,T,L,R) where (Lp,OPr,Rp) ^= isInfixOp("?") =>
+    .cond(_,T,L,R) where (Lp,OPr,Rp) ?= isInfixOp("?") =>
       "(#(showCanon(T,Lp,Sp)) ? #(showCanon(L,Rp,Sp)) || #(showCanon(R,Rp,Sp)))".
     .apply(_,L,R,_) => showApply(L,R,Pr,Sp).
     .tple(_,Els) => showTuple(Els,Sp).
     .lambda(_,Nm,Rls,Tp) => "(#(showRls(Nm,Rls,showCanon,Sp++"  ")))".
-    .letExp(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ^= isInfixOp("in") =>
+    .letExp(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
       "#(leftParen(OPr,Pr))let {\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))".
-    .letRec(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ^= isInfixOp("in") =>
+    .letRec(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
       "#(leftParen(OPr,Pr))let {.\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp).} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))".
-    .vlof(_,A,_) where (OPr,Rp) ^= isPrefixOp("valof") =>
+    .vlof(_,A,_) where (OPr,Rp) ?= isPrefixOp("valof") =>
       "#(leftParen(OPr,Pr))valof #(showAct(A,Rp,Sp))#(rgtParen(OPr,Pr))".
   }
 
-  showApply(.vr(_,Op,_),[L,R],Pr,Sp) where (Lp,OPr,Rp) ^= isInfixOp(Op) =>
+  showApply(.vr(_,Op,_),[L,R],Pr,Sp) where (Lp,OPr,Rp) ?= isInfixOp(Op) =>
     "#(leftParen(OPr,Pr))#(showCanon(L,Lp,Sp)) #(Op) #(showCanon(R,Rp,Sp)) #(rgtParen(OPr,Pr))".
-  showApply(.vr(_,Op,_),[R],Pr,Sp) where (OPr,Rp) ^= isPrefixOp(Op) =>
+  showApply(.vr(_,Op,_),[R],Pr,Sp) where (OPr,Rp) ?= isPrefixOp(Op) =>
     "#(leftParen(OPr,Pr)) #(Op) #(showCanon(R,Rp,Sp)) #(rgtParen(OPr,Pr))".
-  showApply(.vr(_,Op,_),[L],Pr,Sp) where (Lp,OPr) ^= isPostfixOp(Op) =>
+  showApply(.vr(_,Op,_),[L],Pr,Sp) where (Lp,OPr) ?= isPostfixOp(Op) =>
     "#(leftParen(OPr,Pr))#(showCanon(L,Lp,Sp)) #(Op) #(rgtParen(OPr,Pr))".
   showApply(Op,Args,_,Sp) => "#(showCanon(Op,0,Sp))#(showTuple(Args,Sp))".
 
@@ -225,38 +225,38 @@ star.compiler.canon{
 
   showAct(Ac,Pr,Sp) => case Ac in {
     .doNop(_) => "{}".
-    .doSeq(Lc,L,R)  where (Lp,OPr,Rp) ^= isInfixOp(";") =>
+    .doSeq(Lc,L,R)  where (Lp,OPr,Rp) ?= isInfixOp(";") =>
       "{\n#(Sp++"  ")#(showActSeq(doSeq(Lc,L,R),Rp,Sp++"  "))\n#(Sp)}".
     .doLbld(_,Lb,A) => "#(Lb)\:#(showAct(A,Pr,Sp))".
     .doBrk(_,Lb) => "break #(Lb)".
-    .doValis(_,E) where (OPr,Rp) ^= isPrefixOp("valis") =>
+    .doValis(_,E) where (OPr,Rp) ?= isPrefixOp("valis") =>
       "valis #(showCanon(E,Rp,Sp))".
-    .doThrow(_,E) where (OPr,Rp) ^= isPrefixOp("throw") =>
+    .doThrow(_,E) where (OPr,Rp) ?= isPrefixOp("throw") =>
       "throw #(showCanon(E,Rp,Sp))".
-    .doDefn(_,L,R) where (Lp,OPr,Rp) ^= isInfixOp("=") =>
+    .doDefn(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp("=") =>
       "#(showCanon(L,Lp,Sp)) = #(showCanon(R,Rp,Sp))".
-    .doMatch(_,L,R) where (Lp,OPr,Rp) ^= isInfixOp(".=") =>
+    .doMatch(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp(".=") =>
       "#(showCanon(L,Lp,Sp)) .= #(showCanon(R,Rp,Sp))".
-    .doAssign(_,L,R)  where (Lp,OPr,Rp) ^= isInfixOp(":=") =>
+    .doAssign(_,L,R)  where (Lp,OPr,Rp) ?= isInfixOp(":=") =>
       "#(showCanon(L,Lp,Sp)) := #(showCanon(R,Rp,Sp))".
     .doTryCatch(_,A,H) =>
       "try #(showAct(A,Pr,Sp)) catch {\n#(showCases(H,showAct,Sp))\n}".
-    .doIfThen(_,T,Th,El) where (Lp,OPr,Rp) ^= isInfixOp("then") =>
+    .doIfThen(_,T,Th,El) where (Lp,OPr,Rp) ?= isInfixOp("then") =>
       "if #(showCanon(T,Lp,Sp)) then #(showAct(Th,Pr,Sp)) else #(showAct(El,Pr,Sp))".
-    .doCase(Lc,G,C) where (Lp,OPr,Rp) ^= isInfixOp("in") =>
+    .doCase(Lc,G,C) where (Lp,OPr,Rp) ?= isInfixOp("in") =>
       "case #(showCanon(G,Lp,Sp)) in #(showCases(C,showAct,Sp))".
-    .doWhile(_,G,B) where (OPr,Rp) ^= isPrefixOp("while") =>
+    .doWhile(_,G,B) where (OPr,Rp) ?= isPrefixOp("while") =>
       "while #(showCanon(G,Rp,Sp)) do #(showAct(B,0,Sp))".
-    .doLet(Lc,Defs,_Decs,B) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ^= isInfixOp("in") =>
+    .doLet(Lc,Defs,_Decs,B) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
       "let {\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)} in #(showAct(B,Rp,Sp2))".
     .doLetRec(Lc,Defs,Decs,B) where Sp2.=Sp++"  " &&
-	(Lp,OPr,Rp) ^= isInfixOp("in") =>
+	(Lp,OPr,Rp) ?= isInfixOp("in") =>
       "let {.\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp).} in #(showAct(B,Rp,Sp2))". 
-    .doSuspend(Lc,T,E,C) where (Lp,OPr,Rp) ^= isInfixOp("suspend") =>
+    .doSuspend(Lc,T,E,C) where (Lp,OPr,Rp) ?= isInfixOp("suspend") =>
       "#(showCanon(T,Lp,Sp)) suspend #(showCanon(E,Rp,Sp)) in #(showCases(C,showAct,Sp))".
-    .doResume(Lc,T,E,C)  where (Lp,OPr,Rp) ^= isInfixOp("resume") =>
+    .doResume(Lc,T,E,C)  where (Lp,OPr,Rp) ?= isInfixOp("resume") =>
       "#(showCanon(T,Lp,Sp)) resume #(showCanon(E,Rp,Sp)) in #(showCases(C,showAct,Sp))".
-    .doRetire(Lc,T,E)  where (Lp,OPr,Rp) ^= isInfixOp("retire") =>
+    .doRetire(Lc,T,E)  where (Lp,OPr,Rp) ?= isInfixOp("retire") =>
       "#(showCanon(T,Lp,Sp)) retire #(showCanon(E,Rp,Sp))".
     .doCall(_,E) => "call #(showCanon(E,Pr,Sp))".
   }
@@ -291,9 +291,9 @@ star.compiler.canon{
   showRls(Nm,Rls,Shw,Sp) => interleave(Rls//(Rl)=>showRl(Nm,Rl,Shw,Sp),".\n"++Sp)*.
 
   showRl:all x ~~ (string,rule[x],(x,integer,string)=>string,string) => string.
-  showRl(Nm,.rule(_,Ptn,.none,Val),Shw,Sp) where (Lp,OPr,Rp) ^= isInfixOp("=>") =>
+  showRl(Nm,.rule(_,Ptn,.none,Val),Shw,Sp) where (Lp,OPr,Rp) ?= isInfixOp("=>") =>
     "#(Nm)#(showCanon(Ptn,Lp,Sp)) => #(Shw(Val,Rp,Sp))".
-  showRl(Nm,.rule(_,Ptn,.some(C),Val),Shw,Sp) where (Lp,OPr,Rp) ^= isInfixOp("=>") =>
+  showRl(Nm,.rule(_,Ptn,.some(C),Val),Shw,Sp) where (Lp,OPr,Rp) ?= isInfixOp("=>") =>
     "#(Nm)#(showCanon(Ptn,Lp,Sp)) where #(showCanon(C,Lp,Sp)) => #(Shw(Val,Rp,Sp))".
 
   shDeflt(.true) => "default ".

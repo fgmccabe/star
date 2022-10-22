@@ -10,7 +10,7 @@ test.i{
 
   main:()=>().
   main()=>valof{
-    assert 1^=kk["alpha"];
+    assert 1?=kk["alpha"];
     assert .some(1).=_index(ll,"alpha");
     show kk[~"alpha"];
     show kk["delta"->4];

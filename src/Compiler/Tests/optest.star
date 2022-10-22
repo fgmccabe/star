@@ -6,5 +6,5 @@ test.comp.op{
 
   assert ~ isOperator("foo").
 
-  assert (720,720,719) ^= isInfixOp("-").
+  assert (720,720,719) ?= isInfixOp("-").
 }

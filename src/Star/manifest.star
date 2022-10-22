@@ -58,7 +58,7 @@ star.repo.manifest{
 
   public locateInManifest:(manifest,pkg,string) => option[string].
   locateInManifest(.man(M),.pkg(P,V),K) where
-      .pEntry(_,Vs) ^= M[P] =>
+      .pEntry(_,Vs) ?= M[P] =>
     hasCompatibleVersion(Vs,V,K).
   locateInManifest(_,_,_) => .none.
 
@@ -69,7 +69,7 @@ star.repo.manifest{
 
   public addToManifest:(manifest,pkg,string,string) => manifest.
   addToManifest(.man(M),.pkg(P,V),K,R) where
-      .pEntry(Pk,Vs) ^= M[P] => .man(M[P->.pEntry(Pk,updateVersion(Vs,V,K,R))]).
+      .pEntry(Pk,Vs) ?= M[P] => .man(M[P->.pEntry(Pk,updateVersion(Vs,V,K,R))]).
   addToManifest(.man(M),.pkg(P,V),K,R) => man(M[P->.pEntry(P,[(V,.mInfo(V,[K->R]))])]).
 
   updateVersion:(cons[(version,mInfo)],version,string,string) => cons[(version,mInfo)].

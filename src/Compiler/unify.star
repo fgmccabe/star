@@ -100,7 +100,7 @@ star.compiler.unify{
   public faceOfType:(tipe,dict) => option[tipe].
   faceOfType(T,_) where .faceType(_,_).=deRef(T) => some(T).
   faceOfType(T,Env) => valof{
-    if (_,_,Rl,_) ^= findType(Env,localName(tpName(T),.typeMark)) then{
+    if (_,_,Rl,_) ?= findType(Env,localName(tpName(T),.typeMark)) then{
       (_,FRl) = freshen(Rl,Env);
       if .typeExists(Lhs,Rhs) .= FRl && sameType(Lhs,T,Env) then{
 	(_,RRhs) = freshen(deRef(Rhs),Env);
@@ -138,8 +138,8 @@ star.compiler.unify{
   rewriteType:(tipe,map[tipe,tipe])=>tipe.
   rewriteType(Tp,Env) => rewr(deRef(Tp),Env).
   
-  rewr(.kFun(Nm,Ar),Env) where T^=Env[.kFun(Nm,Ar)] => T.
-  rewr(.nomnal(Nm),Env) where T^=Env[.nomnal(Nm)] => T.
+  rewr(.kFun(Nm,Ar),Env) where T?=Env[.kFun(Nm,Ar)] => T.
+  rewr(.nomnal(Nm),Env) where T?=Env[.nomnal(Nm)] => T.
   rewr(V,_) where isUnbound(V) => V.
   rewr(.kFun(Nm,Ar),Env) => .kFun(Nm,Ar).
   rewr(.nomnal(Nm),Env) => .nomnal(Nm).
@@ -147,8 +147,8 @@ star.compiler.unify{
   rewr(.tpExp(Op,A),Env) => .tpExp(rewriteType(Op,Env),rewriteType(A,Env)).
   rewr(.throwsType(T,E),Env) => .throwsType(rewriteType(T,Env),rewriteType(E,Env)).
   rewr(.tupleType(Els),Env) => .tupleType(rewriteTps(Els,Env)).
-  rewr(.allType(V,B),Env) => _ ^= Env[V] ? .allType(V,B) || .allType(V,rewriteType(B,Env)).
-  rewr(.existType(V,B),Env) => _ ^= Env[V] ? .existType(V,B) || .existType(V,rewriteType(B,Env)).
+  rewr(.allType(V,B),Env) => _ ?= Env[V] ? .allType(V,B) || .allType(V,rewriteType(B,Env)).
+  rewr(.existType(V,B),Env) => _ ?= Env[V] ? .existType(V,B) || .existType(V,rewriteType(B,Env)).
   rewr(.faceType(Flds,Tps),Env) => .faceType(Flds//((Nm,T))=>(Nm,rewriteType(T,Env)),
     Tps//((Nm,T))=>(Nm,rewriteType(T,Env))).
   rewr(.constrainedType(T,C),Env) => .constrainedType(rewriteType(T,Env),rewriteCon(C,Env)).

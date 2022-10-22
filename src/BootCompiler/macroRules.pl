@@ -23,7 +23,9 @@ macroRl("*",expression,macroRules:multicatMacro).
 macroRl("__pkg__",expression,macroRules:pkgNameMacro).
 macroRl("__loc__",expression,macroRules:macroLocationExp).
 macroRl("-",expression,macroRules:uminusMacro).
-macroRl("^=",expression,macroRules:optionMatchMacro).
+macroRl("?",expression,macroRules:optionMacro).
+macroRl("?",pattern,macroRules:optionMacro).
+macroRl("?=",expression,macroRules:optionMatchMacro).
 macroRl("^",expression,macroRules:unwrapExpMacro).
 macroRl("^",expression,macroRules:optvalMacro).
 macroRl("!",expression,macroRules:binRefMacro).
@@ -255,6 +257,10 @@ uminusMacro(T,expression,Tx) :-
 uminusMacro(T,expression,Tx) :-
   isUnaryMinus(T,Lc,A),!,
   unary(Lc,"__minus",A,Tx).
+
+optionMacro(T,_,Tx) :-
+  isOption(T,Lc,V),!,
+  mkConApply(Lc,name(Lc,"some"),[V],Tx).
 
 optionMatchMacro(T,expression,Tx) :-
   isOptionMatch(T,Lc,P,E),!,

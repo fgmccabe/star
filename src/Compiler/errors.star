@@ -58,6 +58,9 @@ star.compiler.errors{
     valis ()
   }
 
+  public countTraps:() => integer.
+  countTraps() => trapCount!.
+  
   public reportTrap:(string) => ().
   reportTrap(Msg) => valof{ 
     logMsg("internal trap: #(Msg)");

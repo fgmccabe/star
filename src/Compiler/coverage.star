@@ -14,7 +14,7 @@ star.compiler.coverage{
 
   public checkPtnCoverage:(cons[canon],dict,tipe) => ().
   checkPtnCoverage(Ptns,Map,Tp) => valof{
-    if CnsMap ^= findConstructors(Tp,Map) then{
+    if CnsMap ?= findConstructors(Tp,Map) then{
 --      logMsg("Check $(Ptns) against constructors $(CnsMap) for $(Tp)");
       for CnNm->CnTp in CnsMap do{
 --	logMsg("Look for covereage of $(CnNm)->$(CnTp)");

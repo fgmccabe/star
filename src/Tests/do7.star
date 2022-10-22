@@ -11,7 +11,7 @@ test.do7{
 
   parentOf(X) => {!Y | (Y,X) in parent !}.
 
-  check(X) where _ ^= {! () | (X,_) in parent !} => .true.
+  check(X) where _ ?= {! () | (X,_) in parent !} => .true.
   check(_) default => .false.
   
   main:()=>().
@@ -19,8 +19,8 @@ test.do7{
     show parentOf("ab");
     show parentOf("a");
 
-    assert ("a" ^= parentOf("ab") || "b" ^= parentOf("ab"));
-    assert ("ab" ^= parentOf("abc") || "de" ^= parentOf("abc"));
+    assert ("a" ?= parentOf("ab") || "b" ?= parentOf("ab"));
+    assert ("ab" ?= parentOf("abc") || "de" ?= parentOf("abc"));
 
     assert check("a");
     assert ~check("z");

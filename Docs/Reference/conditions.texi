@@ -42,7 +42,7 @@ the expression.
 @caption{Matches Condition}
 @display
 @anchored{MatchesCondition}::=@refer{Pattern} @code{.=} @refer{Expression}
-@anchored{HasValueCondition} ::= @refer{Pattern} @code{^=} @refer{Expression}
+@anchored{HasValueCondition} ::= @refer{Pattern} @code{?=} @refer{Expression}
 @end display
 @end float  
 
@@ -55,7 +55,7 @@ The first form succeeds if the @refer{Pattern} exactly matches the
 as a @refer{Condition} to 'unwrap' an @code{option}al to access its
 contents in a safe way. I.e., a @refer{Condition} of the form:
 @example
-@refer{Pattern} ^= @refer{Expression}
+@refer{Pattern} ?= @refer{Expression}
 @end example
 is equivalent to:
 @example
@@ -69,7 +69,7 @@ condition -- depending on whether the matching condition is embedded
 in a deeper condition that masks the variables.
 @end quotation
 
-One common use of the @code{^=} condition is to 'bring into scope' a
+One common use of the @code{?=} condition is to 'bring into scope' a
 variable which represents the wrapped content of the @code{option}al
 value.
 
@@ -79,7 +79,7 @@ P : Person
 @end example
 then the condition in the equation:
 @example
-nameOf(P) where PP ^= P => PP.name
+nameOf(P) where PP ?= P => PP.name
 @end example
 unwraps the optional value of @code{P} into the non-optional @code{PP}.
 

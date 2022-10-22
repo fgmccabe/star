@@ -56,14 +56,14 @@ star.compiler.types{
   isIdent(_,_) default => .false.
 
   public isUnbound:(tipe) => boolean.
-  isUnbound(.tVar(B,_)) => ((T^=B.binding!) ? isUnbound(T) || .true).
-  isUnbound(.tFun(B,_,_)) => ((T^=B.binding!) ? isUnbound(T) || .true).
+  isUnbound(.tVar(B,_)) => ((T?=B.binding!) ? isUnbound(T) || .true).
+  isUnbound(.tFun(B,_,_)) => ((T?=B.binding!) ? isUnbound(T) || .true).
   isUnbound(_) default => .false.
 
   public isUnboundFVar:(tipe) => option[integer].
-  isUnboundFVar(.tVar(B,_)) => ((T^=B.binding!) ? isUnboundFVar(T) || .none).
+  isUnboundFVar(.tVar(B,_)) => ((T?=B.binding!) ? isUnboundFVar(T) || .none).
   isUnboundFVar(.tFun(B,Ar,_)) =>
-    ((T^=B.binding!) ? isUnboundFVar(T) || some(Ar)).
+    ((T?=B.binding!) ? isUnboundFVar(T) || some(Ar)).
   isUnboundFVar(_) default => .none.
 
   public setBinding:(tipe,tipe) => ().
@@ -88,8 +88,8 @@ star.compiler.types{
   }
 
   public deRef:(tipe) => tipe.
-  deRef(.tVar(B,_)) where T^=B.binding! => deRef(T).
-  deRef(.tFun(B,_,_)) where T^=B.binding! => deRef(T).
+  deRef(.tVar(B,_)) where T?=B.binding! => deRef(T).
+  deRef(.tFun(B,_,_)) where T?=B.binding! => deRef(T).
   deRef(Tp) default => Tp.
 
   public newTypeVar:(string) => tipe.
@@ -370,8 +370,8 @@ star.compiler.types{
   sortFieldTypes(Tps) => sort(Tps,(((N1,_),(N2,_))=>N1<N2)).
 
   public arity:(tipe)=>integer.
-  arity(Tp) where (A,_) ^= isFunType(Tp) => arity(A).
-  arity(Tp) where (A,_) ^= isConsType(Tp) => arity(A).
+  arity(Tp) where (A,_) ?= isFunType(Tp) => arity(A).
+  arity(Tp) where (A,_) ?= isConsType(Tp) => arity(A).
   arity(Tp) where .tupleType(A).=deRef(Tp) => size(A).
   arity(Tp) where .allType(_,I) .= deRef(Tp) => arity(I).
   arity(Tp) where .existType(_,I) .= deRef(Tp) => arity(I).
@@ -431,7 +431,7 @@ star.compiler.types{
       .none).
 
   public isEnumType:(tipe)=>option[tipe].
-  isEnumType(Tp) where (A,T)^=isConsType(Tp) && deRef(A)==tupleType([]) => some(T).
+  isEnumType(Tp) where (A,T)?=isConsType(Tp) && deRef(A)==tupleType([]) => some(T).
   isEnumType(_) default => .none.
 
   public netEnumType:(tipe)=>tipe.
@@ -440,7 +440,7 @@ star.compiler.types{
   ntEnumTp(.allType(V,T))=>.allType(V,netEnumType(T)).
   ntEnumTp(.existType(V,T))=>.existType(V,netEnumType(T)).
   ntEnumTp(.constrainedType(T,C))=>.constrainedType(netEnumType(T),C).
-  ntEnumTp(T) where ET ^= isEnumType(T) => ET.
+  ntEnumTp(T) where ET ?= isEnumType(T) => ET.
   
   public unitTp = .tupleType([]).
   public chrType = .nomnal("star.core*char").
