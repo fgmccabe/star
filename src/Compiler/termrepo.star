@@ -39,18 +39,19 @@ star.compiler.term.repo{
   public addToRepo:(termRepo,pkg,string,string) => termRepo.
   addToRepo(.repo(Root,Man),.pkg(Pk,Vr),Kind,Text) => valof{
     Ext = extensionMapping(Kind);
-    Fn = Pk++(hash(Pk)::string)++Ext;
+    Fn = "#(Pk).$(Vr)#(Ext)";
+--    Fn = Pk++(hash(Pk)::string)++Ext;
     FUri = ^parseUri(Fn);
     FU = ^resolveUri(Root,FUri);
---    logMsg("dest uri $(FU)");
+    logMsg("dest uri $(FU)");
     putResource(FU,Text);
---    logMsg("written");
+    logMsg("written");
     NM = addToManifest(Man,pkg(Pk,Vr),Kind,Fn);
---    logMsg("added to manifest");
+    logMsg("added to manifest");
     MU = ^parseUri("manifest");
     RepoUri = ^resolveUri(Root,MU);
     flushManifest(RepoUri,NM);
---    logMsg("manifest flushed");
+    logMsg("manifest flushed");
     valis .repo(Root,NM)
   }
 

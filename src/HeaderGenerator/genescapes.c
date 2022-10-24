@@ -393,9 +393,9 @@ static char *dName(char *sig, strBufferPo out) {
 static void genStarEsc(FILE *out, strBufferPo buffer, char *name, char *sig, char *cmt) {
   outStr(O_IO(buffer), "    ");
   dumpStr(name, buffer);
-  outStr(O_IO(buffer), " => .some(");
+  outStr(O_IO(buffer), " => ? ");
   dumpSig(sig, buffer);
-  outStr(O_IO(buffer), ").\n");
+  outStr(O_IO(buffer), ".\n");
 
   integer len;
   char *text = (char *) getTextFromBuffer(buffer, &len);
@@ -445,7 +445,7 @@ static void prologIsEscape(FILE *out) {
 static void genStarIsEsc(FILE *out, strBufferPo buffer, char *name, EscapeCode code) {
   outStr(O_IO(buffer), "    ");
   dumpStr(name, buffer);
-  outMsg(O_IO(buffer), " => some(%d).\n", code);
+  outMsg(O_IO(buffer), " => ?%d.\n", code);
 
   integer len;
   char *text = (char *) getTextFromBuffer(buffer, &len);

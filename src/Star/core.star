@@ -34,7 +34,7 @@ star.core {
     _slice : (s,k,k)=>s.
     _splice : (s,k,k,s)=>s.
   }
-    
+
   public contract all c ~~ sizeable[c] ::= {
     size:(c) => integer.
     isEmpty:(c) => boolean.

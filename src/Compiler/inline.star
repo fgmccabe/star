@@ -195,8 +195,8 @@ star.compiler.inline{
   applyNeg(Lc,Inner) => cNeg(Lc,Inner).
 
   applyCnd:all e ~~ reform[e] |: (option[locn],cExp,e,e) => e.
-  applyCnd(_,.cTerm(_,"star.core#false",[],_),L,R) => R.
-  applyCnd(_,.cTerm(Lc,"star.core#true",[],Tp),L,_) => L.
+  applyCnd(_,.cTerm(_,"star.core#false",[],_),_L,R) => R.
+  applyCnd(_,.cTerm(_,"star.core#true",[],_),L,_R) => L.
   applyCnd(Lc,T,L,R) => mkCond(Lc,T,L,R).
 
   inlineTplOff(_,.cTerm(_,_,Els,_),Ix,Tp) where E?=Els[Ix] => E.

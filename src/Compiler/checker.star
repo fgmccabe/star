@@ -58,14 +58,15 @@ star.compiler.checker{
 	RDefs = overloadProgram(Defs,declareDecls(AllDecls,PkgEnv))*;
 
 	ExDecls = exportDecls(AllDecls,completePublic(Vis,PkgPth),.priVate);
+	-- logMsg("export decls $(ExDecls)");
 
-	valis (pkgSpec(Pkge,Imports,ExDecls),RDefs,IDecls,AllDecls)
+	valis (pkgSpec{pkg=Pkge. imports=Imports. exports=ExDecls},RDefs,IDecls,AllDecls)
       }
       else
       reportError("package name $(Pkg) does not match expected $(Pkge)",locOf(P))
     } else
     reportError("invalid package structure",locOf(P));
-    valis (pkgSpec(Pkge,[],[]),[],[],[])
+    valis (pkgSpec{pkg=Pkge. imports=[]. exports=[]},[],[],[])
   }
 
   completePublic:(cons[(defnSp,visibility)],string) => cons[(defnSp,visibility)].
@@ -79,9 +80,9 @@ star.compiler.checker{
   exportDecls:(cons[decl],cons[(defnSp,visibility)],visibility) => cons[decl].
   exportDecls(Decls,Viz,Deflt) => let{
     exported(Dc) => case Dc in {
-      .implDec(_,Nm,FullNm,_) => isVisible(Viz,Deflt,implSp(Nm)).
-      .accDec(_,Tp,_,_,_) => isVisible(Viz,Deflt,accSp(tpName(Tp))).
-      .updDec(_,Tp,_,_,_) => isVisible(Viz,Deflt,updSp(tpName(Tp))).
+      .implDec(_,Nm,_,_) => isVisible(Viz,Deflt,implSp(Nm)).
+      .accDec(_,Tp,_,_,_) => isVisible(Viz,Deflt,tpSp(localName(tpName(Tp),.typeMark))).
+      .updDec(_,Tp,_,_,_) => isVisible(Viz,Deflt,tpSp(localName(tpName(Tp),.typeMark))).
       .tpeDec(_,TpNm,_,_) => isVisible(Viz,Deflt,tpSp(TpNm)).
       .varDec(_,Nm,_,_) => isVisible(Viz,Deflt,varSp(Nm)).
       .funDec(_,Nm,_,_) => isVisible(Viz,Deflt,varSp(Nm)).
@@ -237,7 +238,7 @@ star.compiler.checker{
       valis ([],[])
     }
   }
-  checkDefn(.defnSpec(.accSp(Nm),Lc,[St]),Env,Outer,Path) => valof {
+  checkDefn(.defnSpec(.accSp(Nm,_),Lc,[St]),Env,Outer,Path) => valof {
     if (_,Q,C,T,B) ?= isAccessorStmt(St) then
       valis checkAccessor(Lc,Nm,Q,C,T,B,Env,Outer,Path)
     else{
@@ -245,7 +246,7 @@ star.compiler.checker{
       valis ([],[])
     }
   }
-  checkDefn(.defnSpec(.updSp(Nm),Lc,[St]),Env,Outer,Path) => valof {
+  checkDefn(.defnSpec(.updSp(Nm,_),Lc,[St]),Env,Outer,Path) => valof {
     if (_,Q,C,H,B) ?= isUpdaterStmt(St) then
       valis checkUpdater(Lc,Nm,Q,C,H,B,Env,Outer,Path)
     else{
@@ -269,7 +270,7 @@ star.compiler.checker{
     FullNm = qualifiedName(Path,.valMark,Nm);
 
     if traceCanon! then
-      logMsg("function $(Nm) is bound to $(lambda(Lc,FullNm,Rls,Tp))");
+      logMsg("function $(Nm) is bound to $(lambda(Lc,FullNm,Rls,Tp))\:$(Tp)");
     
     valis ([varDef(Lc,Nm,FullNm,lambda(Lc,FullNm,Rls,Tp),Cx,Tp)],
       [funDec(Lc,Nm,FullNm,Tp)])
@@ -369,7 +370,7 @@ star.compiler.checker{
   checkAccessor:(option[locn],string,cons[ast],cons[ast],ast,ast,dict,dict,string) => (cons[canonDef],cons[decl]).
   checkAccessor(Lc,Nm,Q,C,T,B,Env,Outer,Path) => valof{
     if traceCanon! then
-      logMsg("check accessor $(Nm)");
+      logMsg("check accessor $(Nm) q = $(Q), C=$(C), t = $(T), B=$(B)");
     QV = parseBoundTpVars(Q);
     Cx = parseConstraints(C,QV,Env);
     (_,Fn,[TA]) = ^isSquareTerm(T);
@@ -378,8 +379,8 @@ star.compiler.checker{
     RcTp = parseType(QV,L,Env);
     FldTp = parseType(QV,R,Env);
     AT = funType([RcTp],FldTp);
-    AccFn = typeOfExp(B,AT,.none,Env,Path);
     AccTp = rebind(QV,reConstrainType(Cx,AT),Env);
+    AccFn = typeOfExp(B,AT,.none,Env,Path);
 
     if traceCanon! then
       logMsg("accessor exp $(AccFn)\:$(AccTp)");

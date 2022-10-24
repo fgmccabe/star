@@ -994,4 +994,88 @@ star.compiler.term{
   visitCases([],_,_,_,X) => X.
   visitCases([(Lc,A,E),..Cs],V,VA,VC,X) =>
     visitCases(Cs,V,VA,VC,V(A,VC(E,V,VA,X))).
+
+
+  freezeTerm:(cExp)=>data.
+  freezeTerm(E) => case E in {
+    .cVoid(Lc,Tp) => mkCons("void",[Lc::data,encodeSig(Tp)]).
+    .cAnon(Lc,Tp) => mkCons("anon",[Lc::data,encodeSig(Tp)]).
+    .cVar(Lc,.cId(V,Tp)) => mkCons("var",[Lc::data,.strg(V),encodeSig(Tp)]).
+  }
+
+  thawTerm:(data) => cExp.
+  thawTerm(D) => case D in {
+    .term(.tLbl("void",2),[Lc,.strg(Sig)]) =>
+      .cVoid(Lc::option[locn],decodeSignature(Sig)).
+    .term(.tLbl("anon",2),[Lc,.strg(Sig)]) =>
+      .cAnon(Lc::option[locn],decodeSignature(Sig)).
+    .term(.tLbl("var",3),[Lc,.strg(V),.strg(Sig)]) =>
+      .cVar(Lc::option[locn],.cId(V,decodeSignature(Sig))).
+  }
+
+  
+
+/*    public cExp ::= 
+    | .cVar(option[locn],cId)
+    | .cInt(option[locn],integer)
+    | .cChar(option[locn],char)
+    | .cBig(option[locn],bigint)
+    | .cFloat(option[locn],float)
+    | .cString(option[locn],string)
+    | .cTerm(option[locn],string,cons[cExp],tipe)
+    | .cNth(option[locn],cExp,integer,tipe)
+    | .cSetNth(option[locn],cExp,integer,cExp)
+    | .cCall(option[locn],string,cons[cExp],tipe)
+    | .cECall(option[locn],string,cons[cExp],tipe)
+    | .cOCall(option[locn],cExp,cons[cExp],tipe)
+    | .cThrow(option[locn],cExp,tipe)
+    | .cSeq(option[locn],cExp,cExp)
+    | .cCnj(option[locn],cExp,cExp)
+    | .cDsj(option[locn],cExp,cExp)
+    | .cNeg(option[locn],cExp)
+    | .cCnd(option[locn],cExp,cExp,cExp)
+    | .cLtt(option[locn],cId,cExp,cExp)
+    | .cUnpack(option[locn],cExp,cons[cCase[cExp]],tipe)
+    | .cCase(option[locn],cExp,cons[cCase[cExp]],cExp,tipe)
+    | .cWhere(option[locn],cExp,cExp)
+    | .cMatch(option[locn],cExp,cExp)
+    | .cVarNmes(option[locn],cons[(string,cId)],cExp)
+    | .cAbort(option[locn],string,tipe)
+    | .cSusp(option[locn],cExp,cExp,tipe)
+    | .cResume(option[locn],cExp,cExp,tipe)
+    | .cTry(option[locn],cExp,cExp,tipe)
+    | .cValof(option[locn],aAction,tipe).
+  
+  public cId ::= cId(string,tipe).
+
+  public all e ~~ cCase[e] ~> (option[locn],cExp,e).
+
+  public aAction ::= .aNop(option[locn])
+    | .aSeq(option[locn],aAction,aAction)
+    | .aLbld(option[locn],string,aAction)
+    | .aBreak(option[locn],string)
+    | .aValis(option[locn],cExp)
+    | .aThrow(option[locn],cExp)
+    | .aPerf(option[locn],cExp)
+    | .aDefn(option[locn],cExp,cExp)
+    | .aAsgn(option[locn],cExp,cExp)
+    | .aCase(option[locn],cExp,cons[cCase[aAction]],aAction)
+    | .aUnpack(option[locn],cExp,cons[cCase[aAction]])
+    | .aIftte(option[locn],cExp,aAction,aAction)
+    | .aWhile(option[locn],cExp,aAction)
+    | .aRetire(option[locn],cExp,cExp)
+    | .aTry(option[locn],aAction,aAction)
+    | .aLtt(option[locn],cId,cExp,aAction)
+    | .aVarNmes(option[locn],cons[(string,cId)],aAction)
+    | .aAbort(option[locn],string).
+
+  public cDefn ::= fnDef(option[locn],string,tipe,cons[cId],cExp) |
+    vrDef(option[locn],string,tipe,cExp)|
+    tpDef(option[locn],tipe,typeRule,cons[(termLbl,tipe,integer)]) |
+    lblDef(option[locn],termLbl,tipe,integer).
+
+*/
+
+
+  
 }

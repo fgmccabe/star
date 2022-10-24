@@ -46,7 +46,10 @@ star.compiler.meta{
     _ == _ default => .false.
   }
 
-  public pkgSpec::= .pkgSpec(pkg,cons[importSpec],cons[decl]).
+  public pkgSpec::= pkgSpec{
+    pkg : pkg.
+    imports : cons[importSpec].
+    exports: cons[decl]}.
 
   public decl ::= .implDec(option[locn],string,string,tipe) |
     .accDec(option[locn],tipe,string,string,tipe) |
@@ -66,8 +69,8 @@ star.compiler.meta{
     | .tpSp(string)
     | .conSp(string)
     | .implSp(string)
-    | .accSp(string)
-    | .updSp(string).
+    | .accSp(string,string)
+    | .updSp(string,string).
 
   public implementation display[defnSp] => let{
     dispSp(S) => case S in {
@@ -76,8 +79,8 @@ star.compiler.meta{
       .tpSp(Nm) => "type: $(Nm)".
       .conSp(Nm) => "contract: $(Nm)".
       .implSp(Nm) => "implementation: $(Nm)".
-      .accSp(Nm) => "accessor: $(Nm)".
-      .updSp(Nm) => "updater: $(Nm)".
+      .accSp(Tp,Nm) => "accessor: $(Tp).$(Nm)".
+      .updSp(Tp,Nm) => "updater: $(Tp).$(Nm)".
     }
   } in {
     disp = dispSp
@@ -89,8 +92,8 @@ star.compiler.meta{
       .tpSp(S1) => .tpSp(S2).=Sp2 && S1==S2.
       .varSp(S1) => .varSp(S2).=Sp2 && S1==S2.
       .implSp(S1) => .implSp(S2).=Sp2 && S1==S2.
-      .accSp(S1) => .accSp(S2).=Sp2 && S1==S2.
-      .updSp(S1) => .updSp(S2).=Sp2 && S1==S2.
+      .accSp(T1,F1) => .accSp(T2,F2).=Sp2 && T1==T2 && F1==F2.
+      .updSp(T1,F1) => .updSp(T2,F2).=Sp2 && T1==T2 && F1==F2.
       .conSp(S1) => .conSp(S2).=Sp2 && S1==S2.
       _ default => .false.
     }
@@ -105,8 +108,8 @@ star.compiler.meta{
       .tpSp(Nm) => hash(Nm)*37+hash("tp").
       .conSp(Nm) => hash(Nm)*37+hash("con").
       .implSp(Nm) => hash(Nm)*37+hash("impl").
-      .accSp(Nm) => hash(Nm)*37+hash("access").
-      .updSp(Nm) => hash(Nm)*37+hash("update").
+      .accSp(Tp,Fl) => (hash(Tp)*37+hash(Fl))*37+hash("access").
+      .updSp(Tp,Fl) => (hash(Tp)*37+hash(Fl))*37+hash("update").
     }
   }
 
@@ -123,8 +126,8 @@ star.compiler.meta{
   }
 
   public implementation display[pkgSpec] => {
-    disp(.pkgSpec(Pkg,Imports,Decls)) =>
-      "Package: $(Pkg), imports=$(Imports), exports=$(Decls)".
+    disp(P) =>
+      "Package: $(P.pkg), imports=$(P.imports), exports=$(P.exports)".
   }
 
   public implementation display[decl] => {

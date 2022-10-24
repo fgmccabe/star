@@ -148,9 +148,9 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
     (is_member(showTrCode,Opts) -> dispProg(Rules),validLProg(PkgDecls,Rules);true),
     noErrors,
     (\+ is_member(transformOnly,Opts) ->
-     genPkgSig(Rules,Sig),		% goes into the repo manifest
      genCode(PkgDecls,Rules,Opts,Text),
      noErrors,
+     genPkgSig(Rules,Sig),		% goes into the repo manifest
      addCodePackage(Repo,SrcUri,Pkg,Sig,Text,Rx);
      true);
     true);

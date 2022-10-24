@@ -18,7 +18,7 @@ star.compiler.wff{
   isName(_) default => .none.
 
   public dollarName:(ast) => ast.
-  dollarName(.nme(Lc,Id)) => .nme(Lc,"$"++Id).
+  dollarName(N) where (Lc,Id) ?= isName(N) => .nme(Lc,"$"++Id).
 
   public dotId:(ast) => ast.
   dotId(.nme(Lc,Id)) => .nme(Lc,dotName(Id)).

@@ -341,9 +341,6 @@ star.compiler.canon{
     _ default => .false.
   }
 
-  public pkgImports:(pkgSpec)=>cons[importSpec].
-  pkgImports(.pkgSpec(_,Imports,_)) => Imports.
-
   public splitPtn:(canon) => (canon,option[canon]).
   splitPtn(P) => let{.
     splitPttrn(.apply(Lc,Op,Args,Tp)) => valof{
