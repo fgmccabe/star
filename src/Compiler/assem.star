@@ -20,7 +20,7 @@ star.compiler.assem{
   public codeSegment ::= .func(termLbl,codePolicy,tipe,cons[assemOp]) |
     .global(termLbl,tipe,cons[assemOp]) |
     .struct(termLbl,tipe,integer) |
-    .tipe(tipe,cons[(termLbl,tipe,integer)]).
+    .tipe(tipe,typeRule,cons[(termLbl,tipe,integer)]).
 
   public assemOp ::=
     .iHalt(integer) |
@@ -113,9 +113,10 @@ star.compiler.assem{
       (Lt0,_) = findLit([],symb(Nm));
       (_,Lbls) = genLblTbl(Ins,0,[]);
       (Code,Lts,Lns,Lcs,_,Max) = assemBlock(Ins,Lbls,Lt0,[],[],0,0,[]);
-      valis mkCons("func",
-          [.symb(Nm),encPolicy(H),.strg(encodeSignature(Sig)),.intgr(Max),mkTpl(Code::cons[data]),litTbl(Lts),mkTpl(Lcs::cons[data]),
-              mkTpl(sortLines(Lns))])
+      valis trace mkCons("func",
+	[.symb(Nm),encPolicy(H),.strg(encodeSignature(Sig)),.intgr(Max),
+	  mkTpl(Code::cons[data]),litTbl(Lts),mkTpl(Lcs::cons[data]),
+	  mkTpl(sortLines(Lns))])
     }.
     .global(Nm,Sig,Ins) => valof{
       (Lt0,_) = findLit([],symb(Nm));
@@ -127,7 +128,11 @@ star.compiler.assem{
     }.
     .struct(Lbl,Tp,Ix) =>
       mkCons("struct",[.symb(Lbl),strg(encodeSignature(Tp)),intgr(Ix)]).
+    .tipe(Tp,TpRl,Map) =>
+      mkCons("type",[.strg(encodeSignature(Tp)),.strg(encodeTpRlSignature(TpRl)),.strg(encodeMap(Map))]).
   }.
+
+  encodeMap(Entries) => mkTpl(Entries//((Lbl,_,Ix))=>mkTpl([.symb(Lbl),.intgr(Ix)]))::string.
 
   encPolicy(.hardDefinition) => mkTpl([]).
   encPolicy(.softDefinition) => mkTpl([strg("soft")]).
@@ -338,7 +343,7 @@ star.compiler.assem{
     disp(.func(Nm,_,Tp,Ins)) => "fun $(Nm)\:$(Tp)\n"++showMnem(Ins,0).
     disp(.global(Nm,Tp,Ins)) => "glb $(Nm)\:$(Tp)\n"++showMnem(Ins,0).
     disp(.struct(Lbl,Tp,Ix)) => "struct $(Lbl)\:$(Tp) @ $(Ix)".
-    disp(.tipe(Tp,Map)) => "type $(Tp), map = $(Map)".
+    disp(.tipe(_Tp,TpRl,Map)) => "type $(TpRl), map = $(Map)".
   }
 
   public implementation display[assemOp] => {

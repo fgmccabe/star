@@ -82,8 +82,8 @@ public crFlow ~> (cExp,cons[cDefn]).
     .some(E).
   lookupTypeMap([_,..Map],Nm) => lookupTypeMap(Map,Nm).
 
-  public pkgMap:(pkgSpec,cons[decl]) => nameMap.
-  pkgMap(.pkgSpec(Pkg,_,_),Decls) =>
+  public pkgMap:(cons[decl]) => nameMap.
+  pkgMap(Decls) =>
     [.lyr(.none,foldRight((Dcl,D)=>declMdlGlobal(Dcl,D),{},Decls),makeConsMap(Decls))].
 
   public makeConsMap:(cons[decl]) => map[string,typeMapEntry].

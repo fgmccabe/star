@@ -233,13 +233,13 @@ star.compiler.data{
   collectQuoted([`\\`,X,..L],SoF,S) => collectQuoted(L,[X,..SoF],S).
   collectQuoted([X,..L],SoF,S) => collectQuoted(L,[X,..SoF],S).
 
-  public decodeSignature:(string) => tipe throws ().
+  public decodeSignature:(string) => tipe.
   decodeSignature(St) => valof{
     (Tp,_) = decodeType(St::cons[char]);
     valis Tp
   }
 
-  decodeType:(cons[char]) => (tipe,cons[char]) throws ().
+  decodeType:(cons[char]) => (tipe,cons[char]).
   decodeType([Ch,..Ts]) => case Ch in {
     `i` => (nomnal("star.core*integer"),Ts).
     `b` => (nomnal("star.core*bigint"),Ts).
@@ -315,7 +315,7 @@ star.compiler.data{
     }
   }
 
-  decodeTypes:(cons[char])=> (cons[tipe],cons[char]) throws ().
+  decodeTypes:(cons[char])=> (cons[tipe],cons[char]).
   decodeTypes([`)`,..Ts]) => ([],Ts). 
   decodeTypes(Ts) => valof{
     (ElTp,T0) = decodeType(Ts);
@@ -323,13 +323,13 @@ star.compiler.data{
     valis ([ElTp,..Tps],T1)
   }
 
-  public decodeTypeRuleSignature:(string) => typeRule throws ().
+  public decodeTypeRuleSignature:(string) => typeRule.
   decodeTypeRuleSignature(St) => valof{
     (Tp,_) = decodeTypeRule(St::cons[char]);
     valis Tp
   }
 
-  decodeTypeRule:(cons[char])=>(typeRule,cons[char]) throws ().
+  decodeTypeRule:(cons[char])=>(typeRule,cons[char]).
   decodeTypeRule([`:`,..Ts]) => valof{
     (V,T0) = decodeType(Ts);
     (R,T1) = decodeTypeRule(T0);
@@ -351,11 +351,11 @@ star.compiler.data{
     valis (.typeLambda(A,R),T1)
   }
 
-  decodeFields:(cons[char])=>(cons[(string,tipe)],cons[char]) throws ().
+  decodeFields:(cons[char])=>(cons[(string,tipe)],cons[char]).
   decodeFields([`{`,..Ts]) => decodeFlds(Ts,[]).
 
   decodeFlds:(cons[char],cons[(string,tipe)])=>
-    (cons[(string,tipe)],cons[char]) throws ().
+    (cons[(string,tipe)],cons[char]).
   decodeFlds([`}`,..Ts],Flds) => (reverse(Flds),Ts).
   decodeFlds(Ts,Flds) => valof{
     (Nm,T0) = decodeText(Ts);
@@ -363,7 +363,7 @@ star.compiler.data{
     valis decodeFlds(T1,[(Nm,Tp),..Flds])
   }
 
-  decodeConstraint:(cons[char])=>(constraint,cons[char]) throws ().
+  decodeConstraint:(cons[char])=>(constraint,cons[char]).
   decodeConstraint([`c`,..T]) => valof{
     (Nm,T0) = decodeText(T);
     (.tupleType(Tps),T1) = decodeType(T0);
@@ -477,7 +477,22 @@ star.compiler.data{
     _coerce(.locn(Pkg,Line,Col,Off,Ln))=>some(mkTpl([.strg(Pkg),.intgr(Line),.intgr(Col),.intgr(Off),.intgr(Ln)])).
   }
 
-  encodeSig:(tipe)=>data.
+  public implementation coercion[data,locn]=>{
+    _coerce(.term(.tLbl("()5",5),[.strg(P),.intgr(L),.intgr(C),.intgr(O),.intgr(N)])) =>
+	?.locn(P,L,C,O,N).
+  }
+
+  public implementation all e ~~ coercion[e,data] |: coercion[option[e],data] => {
+    _coerce(.none) => ?.symb(.tLbl("none",0)).
+    _coerce(.some(E)) => ?mkCons("some",[E::data])
+  }
+
+  public implementation all e ~~ coercion[data,e] |: coercion[data,option[e]] => {
+    _coerce(.symb(.tLbl("none",0))) => ?.none.
+    _coerce(.term(.tLbl("some",1),[T])) => ?.some(T::e)
+  }
+
+  public encodeSig:(tipe)=>data.
   encodeSig(Tp) => strg(encodeSignature(Tp)).
 
   public implementation coercion[decl,data] => {

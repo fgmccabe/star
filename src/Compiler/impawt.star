@@ -18,9 +18,9 @@ star.compiler.impawt{
   importAll([.pkgImp(Lc,Viz,Pkg),..Imports],Repo,Imported,Decls) => valof{
     if {? .pkgImp(_,_,Pkg) in Imported ?} then
       valis importAll(Imports,Repo,Imported,Decls)
-    else if .pkgSpec(_,PkgImps,PDecls) ?= importPkg(Pkg,Lc,Repo) then{
-      valis importAll(Imports++PkgImps,Repo,[.pkgImp(Lc,Viz,Pkg),..Imported],
-	Decls++PDecls)
+    else if P ?= importPkg(Pkg,Lc,Repo) then{
+      valis importAll(Imports++P.imports,Repo,[.pkgImp(Lc,Viz,Pkg),..Imported],
+	Decls++P.exports)
     }
     else {
       reportError("cannot import $(Pkg)",Lc);
@@ -39,7 +39,7 @@ star.compiler.impawt{
       Pkg = ^pickupPkg(Pk);
       Imports = pickupImports(Imps,Lc);
       Decls = pickupDeclarations(Ds,Lc);
-      valis .some(pkgSpec(Pkg,Imports,Decls))
+      valis ? pkgSpec{pkg=Pkg. imports=Imports. exports=Decls}
     } else {
       reportError("count not decode package spec",Lc);
       valis .none
@@ -221,7 +221,7 @@ star.compiler.impawt{
   }
 
   public implementation coercion[pkgSpec,data] => let{
-    mkTerm(.pkgSpec(Pkg,Imports,Decls)) =>
+    mkTerm(pkgSpec{pkg=Pkg. imports=Imports. exports=Decls}) =>
       .term(.tLbl("pkgSpec",3),[Pkg::data,Imports::data,mkTpl(Decls//(D)=>(D::data))]).
   } in {
     _coerce(S) => .some(mkTerm(S)).

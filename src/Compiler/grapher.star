@@ -38,8 +38,8 @@ star.compiler.grapher{
       valis scanPkgs(Pkgs,Repo,Cat,SoFar)
     } else if (SrcUri,CodeUri) ?= packageCode(Repo,Pkg) then {
       if newerRsrc(CodeUri,SrcUri) then {
-	if .pkgSpec(_,Imps,_) ?= importPkg(Pkg,.none,Repo) then{
-	  ImpPks = (Imps//(.pkgImp(_,_,Pk))=>Pk);
+	if ImpPkg ?= importPkg(Pkg,.none,Repo) then{
+	  ImpPks = (ImpPkg.imports//(.pkgImp(_,_,Pk))=>Pk);
 	  valis scanPkgs(Pkgs++ImpPks,Repo,Cat,[(Pkg,ImpPks),..SoFar])
 	}
       };

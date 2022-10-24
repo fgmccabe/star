@@ -479,14 +479,15 @@ star.compiler.macro.rules{
   makeAlgebraic:(option[locn],visibility,cons[ast],cons[ast],ast,ast) => cons[ast].
   makeAlgebraic(Lc,Vz,Q,Cx,H,Rhs) => valof{
     (Qs,Xs,Face) = algebraicFace(Rhs,Q,[]);
---    Fields = sort(Face,compEls);
-    TpExSt = reveal(reUQuant(Lc,Qs,reConstrain(Cx,binary(Lc,"<~",H,reXQuant(Lc,Xs,brTuple(Lc,Face))))),Vz);
+    Fields = sort(Face,compEls);
+    logMsg("algebraic fields $(Fields)");
+    TpExSt = reveal(reUQuant(Lc,Qs,reConstrain(Cx,binary(Lc,"<~",H,reXQuant(Lc,Xs,brTuple(Lc,Fields))))),Vz);
 --    logMsg("Type rule is $(TpExSt)");
     Cons = buildConstructors(Rhs,Q,Cx,H,Vz);
 --    logMsg("Constructors are $(Cons)");
-    Accs = buildAccessors(Rhs,Q,Cx,H,typeName(H),Face,Vz);
+    Accs = buildAccessors(Rhs,Q,Cx,H,typeName(H),Fields,Vz);
 --    logMsg("Accessors are $(Accs)");
-    Ups = buildUpdaters(Rhs,Q,Cx,H,typeName(H),Face,Vz);
+    Ups = buildUpdaters(Rhs,Q,Cx,H,typeName(H),Fields,Vz);
 --    logMsg("Updaters are $(Ups)");
     valis [TpExSt,..Cons++Accs++Ups]
   }
@@ -501,7 +502,7 @@ star.compiler.macro.rules{
   algebraicFace(A,Qs,Xs) where (Lc,_,_) ?= isRoundTerm(A) => (Qs,Xs,[]).
   algebraicFace(A,Qs,Xs) where (Lc,_) ?= isEnumSymb(A) => (Qs,Xs,[]).
   algebraicFace(A,Qs,Xs) where (Lc,_,_) ?= isEnumCon(A) => (Qs,Xs,[]).
-  algebraicFace(A,Qs,Xs) where (Lc,_,Els) ?= isBrTerm(A) => (Qs,Xs,Els).
+  algebraicFace(A,Qs,Xs) where (Lc,_,Els) ?= isBrTerm(A) => (Qs,Xs,Els^/((E)=>_?=isTypeAnnotation(E))).
   algebraicFace(A,Qs,Xs) where (_,I) ?= isPrivate(A) =>
     algebraicFace(I,Qs,Xs).
   algebraicFace(A,Qs,Xs) where (_,I) ?= isPublic(A) =>
@@ -577,16 +578,19 @@ star.compiler.macro.rules{
 	valis Dfs1++Dfs2
       }.
   buildConstructors(A,Qs,Cx,Tp,Vz) where
-      (Lc,Nm,XQs,XCx,Els) ?= isBraceCon(A) => let{
+      (Lc,Nm,XQs,XCx,Es) ?= isBraceCon(A) => valof{
+	Els = sort(Es^/((E)=>_?=isTypeAnnotation(E)),compEls);
+	logMsg("constructor els $(Els)");
 	BCon = typeAnnotation(Lc,Nm,reUQuant(Lc,Qs,
 	  reConstrain(Cx,
 	      binary(Lc,"<=>",reXQuant(Lc,XQs,
-		  reConstrain(XCx,brTuple(Lc,sort(Els,compEls)))),Tp)))).
+		  reConstrain(XCx,brTuple(Lc,Els))),Tp))));
 	DCon = typeAnnotation(Lc,dollarName(Nm),reUQuant(Lc,Qs,
 	    reConstrain(Cx,
 	      binary(Lc,"<=>",reXQuant(Lc,XQs,
-		  reConstrain(XCx,rndTuple(Lc,project1(sort(Els,compEls))))),Tp)))).
-      } in [reveal(BCon,Vz),reveal(DCon,Vz)].
+		  reConstrain(XCx,rndTuple(Lc,projectTps(Els)))),Tp))));
+	valis [reveal(BCon,Vz),reveal(DCon,Vz)]
+      }
   buildConstructors(A,Qs,Cx,Tp,Vz) where
       (Lc,Nm,XQs,XCx,Els) ?= isRoundCon(A) => let{
 	Con = typeAnnotation(Lc,Nm,reUQuant(Lc,Qs,
@@ -610,7 +614,9 @@ star.compiler.macro.rules{
     valis []
   }
 
-  project1(L) => (L//(E)where (_,_,T) ?= isTypeAnnotation(E) => T).
+  projectTps([])=>[].
+  projectTps([E,..Es]) where (_,_,T)?=isTypeAnnotation(E) => [T,..projectTps(Es)].
+  projectTps([_,..Es]) => projectTps(Es).
 
   compEls:(ast,ast)=>boolean.
   compEls(A,B) where

@@ -126,13 +126,15 @@ star.compiler{
 	        showMsg("$(Sg)");
 	      }
 	    };
-	    -- PkgSig = mkTpl([pkgTerm(CPkg),
-	    -- 	mkTpl(pkgImports(PkgSpec)//(.pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
-	    -- 	mkTpl(Decls//((D)=>DD:data)),
-	    --   ]);
-	    -- Code = mkTpl(Segs//assem);
-	    -- Bytes = (strg(Code::string)::string);
-	    -- valis addSource(addPackage(Repo,CPkg,Bytes),CPkg,SrcUri::string)
+	    PkgSig = mkTpl([pkgTerm(CPkg),
+		mkTpl(PkgSpec.imports//(.pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
+		mkTpl(PkgSpec.exports//((D)=>D::data))])::string;
+	    logMsg("pkg sig $(PkgSig)");
+
+	    Code = mkTpl(Segs//assem);
+	    Bytes = (strg(Code::string)::string);
+
+	    valis addSource(addPackage(Repo,CPkg,Bytes),CPkg,SrcUri::string)
 	  }
 	}
       };
@@ -153,7 +155,7 @@ star.compiler{
   openupRepo(RU,CU) where CRU ?= resolveUri(CU,RU) => openRepository(CRU).
 
   addSpec:(pkgSpec,termRepo) => termRepo.
-  addSpec(Spec,R) where .pkgSpec(Pkg,_,_) .= Spec => addSigToRepo(R,Pkg,(Spec::data)::string).
+  addSpec(Spec,R) => addSigToRepo(R,Spec.pkg,(Spec::data)::string).
 
   processPkgs:(cons[(pkg,cons[pkg])],termRepo,catalog) => ().
   processPkgs(Pks,Repo,Cat) => valof{

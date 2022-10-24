@@ -113,11 +113,15 @@ star.compiler.dependencies{
       }.
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
       (Lc,_,_,Tp,_) ?= isAccessorStmt(A) &&
-      Sp .= accSp(typeName(Tp)) =>
+      (_,_,[Arg]) ?= isSquareApply(Tp) &&
+      (_,[ATp],_) ?= isDepends(Arg) &&
+      Sp .= accSp(typeName(ATp),typeName(Tp)) =>
     (Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
       (Lc,_,_,Tp,_) ?= isUpdaterStmt(A) &&
-      Sp .= updSp(typeName(Tp)) =>
+      (_,_,[Arg]) ?= isSquareApply(Tp) &&
+      (_,[ATp],_) ?= isDepends(Arg) &&
+      Sp .= updSp(typeName(ATp),typeName(Tp)) =>
     (Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
       (Lc,Nm) ?= ruleName(A) => valof{
