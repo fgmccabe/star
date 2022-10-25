@@ -18,7 +18,7 @@ star.compiler.data{
     | .flot(float)
     | .chr(char)
     | .strg(string)
-    | .term(termLbl,cons[data])
+    | .term(string,cons[data])
     | .symb(termLbl).
 
   public implementation display[termLbl] => {
@@ -38,8 +38,8 @@ star.compiler.data{
       .flot(Dx) => disp(Dx).
       .chr(Cx) => disp(Cx).
       .strg(Sx) => disp(Sx).
-      .term(.tLbl(T,_),Args) where isTupleLbl(T) => "(#(dispTs(Args)))".
-      .term(.tLbl(Op,_),Args) => "#(Op)(#(dispTs(Args)))".
+      .term(T,Args) where isTupleLbl(T) => "(#(dispTs(Args)))".
+      .term(Op,Args) => "#(Op)(#(dispTs(Args)))".
       .symb(Sx) => "'$(Sx)'".
     }
 
@@ -94,13 +94,13 @@ star.compiler.data{
   }
 
   public mkTpl:(cons[data]) => data.
-  mkTpl(A) where L.=size(A) => .term(.tLbl(tplLbl(L),L),A).
+  mkTpl(A) where L.=size(A) => .term(tplLbl(L),A).
 
   public mkLst:(cons[data]) => data.
-  mkLst(Els) => .term(.tLbl("[]",size(Els)),Els).
+  mkLst(Els) => .term("[]",Els).
 
   public mkCons:(string,cons[data])=>data.
-  mkCons(Nm,Args) => .term(.tLbl(Nm,size(Args)),Args).
+  mkCons(Nm,Args) => .term(Nm,Args).
 
   public isScalar:(data)=>boolean.
   isScalar(D) => case D in {
@@ -133,9 +133,9 @@ star.compiler.data{
     .chr(Cx) => encodeChar(Cx,[`c`,..Chs]).
     .strg(Tx) => encodeText(Tx,[`s`,..Chs]).
     .symb(Sym) => encodeL(Sym,Chs).
-    .term(.tLbl("[]",Ar),Els) => encodeTerms(Els,encodeNat(Ar,[`l`,..Chs])).
+    .term("[]",Els) => encodeTerms(Els,encodeNat(size(Els),[`l`,..Chs])).
     .term(Op,Args) =>
-      encodeTerms(Args,encodeL(Op,encodeNat(size(Args),[`n`,..Chs]))).
+      encodeTerms(Args,encodeL(.tLbl(Op,size(Args)),encodeNat(size(Args),[`n`,..Chs]))).
   }
 
   encodeL:(termLbl,cons[char])=>cons[char].
@@ -182,7 +182,7 @@ star.compiler.data{
     }
     `n` => valof{
       (Ax,L0) = decodeNat(Ls,0);
-      (Op,LL1) = decodeLabel(L0);
+      (.tLbl(Op,_),LL1) = decodeLabel(L0);
       (Args,Lx) = decodeTerms(LL1,Ax,[]);
       valis (term(Op,Args),Lx)
     }
@@ -478,7 +478,7 @@ star.compiler.data{
   }
 
   public implementation coercion[data,locn]=>{
-    _coerce(.term(.tLbl("()5",5),[.strg(P),.intgr(L),.intgr(C),.intgr(O),.intgr(N)])) =>
+    _coerce(.term("()5",[.strg(P),.intgr(L),.intgr(C),.intgr(O),.intgr(N)])) =>
 	?.locn(P,L,C,O,N).
   }
 
@@ -489,7 +489,7 @@ star.compiler.data{
 
   public implementation all e ~~ coercion[data,e] |: coercion[data,option[e]] => {
     _coerce(.symb(.tLbl("none",0))) => ?.none.
-    _coerce(.term(.tLbl("some",1),[T])) => ?.some(T::e)
+    _coerce(.term("some",[T])) => ?.some(T::e)
   }
 
   public encodeSig:(tipe)=>data.

@@ -109,7 +109,7 @@ star.compiler.term.repo{
     [(Vr,.mInfo(Vr,foldRight(termInfo,[],Es))),..Vs].
 
   termInfo:(data,map[string,string])=>map[string,string].
-  termInfo(.term(.tLbl(Ky,1),[.strg(V)]),Is) => Is[Ky->V].
+  termInfo(.term(Ky,[.strg(V)]),Is) => Is[Ky->V].
 
   implementation coercion[data,manifest] => {
     _coerce(T) => some(termManifest(T)).
