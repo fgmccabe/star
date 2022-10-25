@@ -113,10 +113,9 @@ star.compiler.assem{
       (Lt0,_) = findLit([],symb(Nm));
       (_,Lbls) = genLblTbl(Ins,0,[]);
       (Code,Lts,Lns,Lcs,_,Max) = assemBlock(Ins,Lbls,Lt0,[],[],0,0,[]);
-      valis trace mkCons("func",
-	[.symb(Nm),encPolicy(H),.strg(encodeSignature(Sig)),.intgr(Max),
-	  mkTpl(Code::cons[data]),litTbl(Lts),mkTpl(Lcs::cons[data]),
-	  mkTpl(sortLines(Lns))])
+      valis mkCons("func",
+          [.symb(Nm),encPolicy(H),.strg(encodeSignature(Sig)),.intgr(Max),mkTpl(Code::cons[data]),litTbl(Lts),mkTpl(Lcs::cons[data]),
+              mkTpl(sortLines(Lns))])
     }.
     .global(Nm,Sig,Ins) => valof{
       (Lt0,_) = findLit([],symb(Nm));

@@ -418,16 +418,16 @@ star.compiler.term{
 
   public implementation coercion[cExp,data] => {.
     _coerce(Tr) => case Tr in {
-      .cInt(_,Ix) => .some(intgr(Ix)).
-      .cBig(_,Ix) => .some(bigi(Ix)).
-      .cChar(_,Cx) => .some(chr(Cx)).
-      .cFloat(_,Dx) => .some(flot(Dx)).
-      .cString(_,Sx) => .some(strg(Sx)).
-      .cVoid(_,_) => .some(symb(tLbl("void",0))).
-      .cInt(_,Ix) => .some(intgr(Ix)).
-      .cTerm(_,Nm,[],_) => .some(symb(tLbl(Nm,0))).
+      .cInt(_,Ix) => .some(.intgr(Ix)).
+      .cBig(_,Ix) => .some(.bigi(Ix)).
+      .cChar(_,Cx) => .some(.chr(Cx)).
+      .cFloat(_,Dx) => .some(.flot(Dx)).
+      .cString(_,Sx) => .some(.strg(Sx)).
+      .cVoid(_,_) => .some(.symb(tLbl("void",0))).
+      .cInt(_,Ix) => .some(.intgr(Ix)).
+      .cTerm(_,Nm,[],_) => .some(.symb(tLbl(Nm,0))).
       .cTerm(_,Nm,Args,_) where NArgs ?= mapArgs(Args,[]) =>
-	.some(term(tLbl(Nm,size(Args)),NArgs)).
+	.some(.term(Nm,NArgs)).
       _ default => .none.
     }.
 
@@ -1005,11 +1005,11 @@ star.compiler.term{
 
   thawTerm:(data) => cExp.
   thawTerm(D) => case D in {
-    .term(.tLbl("void",2),[Lc,.strg(Sig)]) =>
+    .term("void",[Lc,.strg(Sig)]) =>
       .cVoid(Lc::option[locn],decodeSignature(Sig)).
-    .term(.tLbl("anon",2),[Lc,.strg(Sig)]) =>
+    .term("anon",[Lc,.strg(Sig)]) =>
       .cAnon(Lc::option[locn],decodeSignature(Sig)).
-    .term(.tLbl("var",3),[Lc,.strg(V),.strg(Sig)]) =>
+    .term("var",[Lc,.strg(V),.strg(Sig)]) =>
       .cVar(Lc::option[locn],.cId(V,decodeSignature(Sig))).
   }
 
