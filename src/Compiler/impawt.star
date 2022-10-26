@@ -86,9 +86,9 @@ star.compiler.impawt{
       pickupDeclarations(Ts,Lc)).
 	
   pickupDeclaration:(data,option[locn])=>option[decl].
-  pickupDeclaration(.term("imp",[.strg(Nm),.strg(FNm),.strg(Sig)]),Lc) => valof{
+  pickupDeclaration(.term("imp",[.strg(Nm),.strg(FNm),Sig]),Lc) => valof{
     try{
-      valis .some(.implDec(Lc,Nm,FNm,decodeSignature(Sig)))
+      valis .some(.implDec(Lc,Nm,FNm,decodeSig(Sig)))
     } catch{
       _ => {
 	reportError("invalid implementation type signature",Lc);
@@ -97,10 +97,10 @@ star.compiler.impawt{
     }
   }
   pickupDeclaration(.term("acc",
-      [.strg(Sig),.strg(Fld),.strg(FNm),.strg(AccSig)]),Lc) => valof{
+      [Sig,.strg(Fld),.strg(FNm),AccSig]),Lc) => valof{
     try{
-      Tp = decodeSignature(Sig);
-      AccTp = decodeSignature(AccSig);
+      Tp = decodeSig(Sig);
+      AccTp = decodeSig(AccSig);
       valis .some(.accDec(Lc,Tp,Fld,FNm,AccTp))
     } catch{
       _ => {

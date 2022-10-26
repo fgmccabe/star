@@ -233,6 +233,9 @@ star.compiler.data{
   collectQuoted([`\\`,X,..L],SoF,S) => collectQuoted(L,[X,..SoF],S).
   collectQuoted([X,..L],SoF,S) => collectQuoted(L,[X,..SoF],S).
 
+  public decodeSig:(data) => tipe.
+  decodeSig(.strg(Sig)) => decodeSignature(Sig).
+
   public decodeSignature:(string) => tipe.
   decodeSignature(St) => valof{
     (Tp,_) = decodeType(St::cons[char]);
