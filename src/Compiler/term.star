@@ -995,86 +995,196 @@ star.compiler.term{
   visitCases([(Lc,A,E),..Cs],V,VA,VC,X) =>
     visitCases(Cs,V,VA,VC,V(A,VC(E,V,VA,X))).
 
+  freezeDefn:(cDefn) => data.
+  freezeDefn(D) => case D in {
+    .fnDef(Lc,Nm,Tp,Vrs,Vl) => mkCons("fun",[Lc::data,.strg(Nm),encodeSig(Tp),
+	mkTpl(Vrs//(.cId(Vn,VTp))=>mkTpl([.strg(Vn),encodeSig(VTp)])),
+	freezeTerm(Vl)]).
+    .vrDef(Lc,Nm,Tp,Vl) => mkCons("glb",[Lc::data,.strg(Nm),encodeSig(Tp),
+	freezeTerm(Vl)]).
+    .tpDef(Lc,Tp,TpRl,Map) => mkCons("tpe",[Lc::data,encodeSig(Tp),
+	.strg(encodeTpRlSignature(TpRl)),
+	mkTpl(Map//((Lbl,CTp,Ix))=>mkTpl([.symb(Lbl),encodeSig(CTp),.intgr(Ix)]))]).
+    .lblDef(Lc,Lbl,Tp,Ix) => mkCons("cns",[Lc::data,.symb(Lbl),encodeSig(Tp),.intgr(Ix)]).
+  }
 
   freezeTerm:(cExp)=>data.
   freezeTerm(E) => case E in {
     .cVoid(Lc,Tp) => mkCons("void",[Lc::data,encodeSig(Tp)]).
     .cAnon(Lc,Tp) => mkCons("anon",[Lc::data,encodeSig(Tp)]).
     .cVar(Lc,.cId(V,Tp)) => mkCons("var",[Lc::data,.strg(V),encodeSig(Tp)]).
+    .cInt(Lc,Ix) => mkCons("int",[Lc::data,.intgr(Ix)]).
+    .cChar(Lc,Cx) => mkCons("chr",[Lc::data,.chr(Cx)]).
+    .cFloat(Lc,Dx) => mkCons("flt",[Lc::data,.flot(Dx)]).
+    .cBig(Lc,Bx) => mkCons("big",[Lc::data,.strg(Bx::string)]).
+    .cString(Lc,Sx) => mkCons("str",[Lc::data,.strg(Sx)]).
+    .cTerm(Lc,Nm,Args,Tp) => mkCons("term",[Lc::data,.strg(Nm),mkTpl(Args//freezeTerm),
+	.strg(encodeSignature(Tp))]).
+    .cNth(Lc,E,Ix,Tp) => mkCons("nth",[Lc::data,freezeTerm(E),.intgr(Ix),
+	.strg(encodeSignature(Tp))]).
+    .cSetNth(Lc,E,Ix,R) => mkCons("setnth",[Lc::data,freezeTerm(E),.intgr(Ix),
+	freezeTerm(R)]).
+    .cCall(Lc,Nm,Args,Tp) => mkCons("call",[Lc::data,.strg(Nm),mkTpl(Args//freezeTerm),
+	.strg(encodeSignature(Tp))]).
+    .cECall(Lc,Nm,Args,Tp) => mkCons("ecll",[Lc::data,.strg(Nm),mkTpl(Args//freezeTerm),
+	.strg(encodeSignature(Tp))]).
+    .cOCall(Lc,Op,Args,Tp) => mkCons("ocll",[Lc::data,freezeTerm(Op),
+	mkTpl(Args//freezeTerm),.strg(encodeSignature(Tp))]).
+    .cThrow(Lc,X,Tp) => mkCons("thrw",[Lc::data,freezeTerm(X),.strg(encodeSignature(Tp))]).
+    .cSeq(Lc,L,R) => mkCons("seq",[Lc::data,freezeTerm(L),freezeTerm(R)]).
+    .cCnj(Lc,L,R) => mkCons("cnj",[Lc::data,freezeTerm(L),freezeTerm(R)]).
+    .cDsj(Lc,L,R) => mkCons("dsj",[Lc::data,freezeTerm(L),freezeTerm(R)]).
+    .cNeg(Lc,R) => mkCons("neg",[Lc::data,freezeTerm(R)]).
+    .cCnd(Lc,T,L,R) => mkCons("cnd",[Lc::data,freezeTerm(T),freezeTerm(L),freezeTerm(R)]).
+    .cWhere(Lc,L,R) => mkCons("whr",[Lc::data,freezeTerm(L),freezeTerm(R)]).
+    .cMatch(Lc,L,R) => mkCons("mtch",[Lc::data,freezeTerm(L),freezeTerm(R)]).
+    .cLtt(Lc,.cId(V,Tp),B,X) => mkCons("ltt",[Lc::data,.strg(V),encodeSig(Tp),
+	freezeTerm(B),freezeTerm(X)]).
+    .cUnpack(Lc,G,Cs,Tp) => mkCons("unpck",[Lc::data,freezeTerm(G),
+	freezeCases(Cs,freezeTerm),encodeSig(Tp)]).
+    .cCase(Lc,G,Cs,Df,Tp) => mkCons("case",[Lc::data,freezeTerm(G),
+	freezeCases(Cs,freezeTerm),freezeTerm(Df),encodeSig(Tp)]).
+    .cAbort(Lc,Msg,Tp) => mkCons("abrt",[Lc::data,.strg(Msg),encodeSig(Tp)]).
+    .cSusp(Lc,F,V,Tp) => mkCons("susp",[Lc::data,freezeTerm(F),freezeTerm(V),encodeSig(Tp)]).
+    .cResume(Lc,F,V,Tp) => mkCons("resme",[Lc::data,freezeTerm(F),freezeTerm(V),encodeSig(Tp)]).
+    .cTry(Lc,G,H,Tp) => mkCons("try",[Lc::data,freezeTerm(G),freezeTerm(H),encodeSig(Tp)]).
+    .cVarNmes(Lc,Vs,B) => mkCons("vrs",[Lc::data,freezeNames(Vs),freezeTerm(B)]).
+    .cValof(Lc,A,Tp) => mkCons("valf",[Lc::data,freezeAct(A),encodeSig(Tp)]).
   }
+
+  freezeCases:all e ~~ (cons[cCase[e]],(e)=>data) => data.
+  freezeCases(Cs,F) => mkTpl(Cs//((Lc,Pt,E))=>mkTpl([Lc::data,freezeTerm(Pt),F(E)])).
+
+  freezeNames(Vs) => mkTpl(Vs//((Nm,.cId(Vn,VTp)))=>
+      mkTpl([.strg(Nm),.strg(Vn),encodeSig(VTp)])).
+
+  freezeAct:(aAction)=>data.
+  freezeAct(A) => case A in {
+    .aNop(Lc) => mkCons("nop",[Lc::data]).
+    .aSeq(Lc,L,R) => mkCons("seq",[Lc::data,freezeAct(L),freezeAct(R)]).
+    .aLbld(Lc,L,I) => mkCons("lbld",[Lc::data,.strg(L),freezeAct(I)]).
+    .aBreak(Lc,L) => mkCons("brek",[Lc::data,.strg(L)]).
+    .aValis(Lc,V) => mkCons("vls",[Lc::data,freezeTerm(V)]).
+    .aThrow(Lc,V) => mkCons("thrw",[Lc::data,freezeTerm(V)]).
+    .aPerf(Lc,V) => mkCons("perf",[Lc::data,freezeTerm(V)]).
+    .aDefn(Lc,P,V) => mkCons("defn",[Lc::data,freezeTerm(P),freezeTerm(V)]).
+    .aAsgn(Lc,P,V) => mkCons("asgn",[Lc::data,freezeTerm(P),freezeTerm(V)]).
+    .aCase(Lc,G,C,D) => mkCons("case",[Lc::data,freezeTerm(G),
+	freezeCases(C,freezeAct),freezeAct(D)]).
+    .aUnpack(Lc,G,C) => mkCons("unpk",[Lc::data,freezeTerm(G),freezeCases(C,freezeAct)]).
+    .aIftte(Lc,T,L,R) => mkCons("iftt",[Lc::data,freezeTerm(T),freezeAct(L),freezeAct(R)]).
+    .aWhile(Lc,T,I) => mkCons("whle",[Lc::data,freezeTerm(T),freezeAct(I)]).
+    .aRetire(Lc,F,V) => mkCons("rtre",[Lc::data,freezeTerm(F),freezeTerm(V)]).
+    .aTry(Lc,B,H) => mkCons("try",[Lc::data,freezeAct(B),freezeAct(H)]).
+    .aLtt(Lc,.cId(V,Tp),B,X) => mkCons("ltt",[Lc::data,.strg(V),encodeSig(Tp),
+	freezeTerm(B),freezeAct(X)]).
+    .aVarNmes(Lc,Vs,B) => mkCons("vrs",[Lc::data,freezeNames(Vs),freezeAct(B)]).
+    .aAbort(Lc,Msg) => mkCons("abrt",[Lc::data,.strg(Msg)]).
+  }
+
+  thawDefn:(data) => cDefn.
+  thawDefn(D) => case D in {
+    .term("fun",[Lc,.strg(Nm),Sig,.term(_,Vrs),Vl]) =>
+      .fnDef(thawLoc(Lc),Nm,decodeSig(Sig),
+	Vrs//(.term(_,[.strg(Vn),VSig]))=>.cId(Vn,decodeSig(VSig)),thawTerm(Vl)).
+    .term("glb",[Lc,.strg(V),Sig,Vl]) =>
+      .vrDef(thawLoc(Lc),V,decodeSig(Sig),thawTerm(Vl)).
+    .term("tpe",[Lc,Sig,.strg(RlSig),.term(_,Map)]) =>
+      .tpDef(thawLoc(Lc),decodeSig(Sig),decodeTypeRuleSignature(RlSig),
+	Map//(.term(_,[.symb(Lbl),LSig,.intgr(Ix)]))=>(Lbl,decodeSig(LSig),Ix)).
+    .term("lbl",[Lc,.symb(Lbl),Sig,.intgr(Ix)]) =>
+      .lblDef(thawLoc(Lc),Lbl,decodeSig(Sig),Ix).
+  }
+  
 
   thawTerm:(data) => cExp.
   thawTerm(D) => case D in {
-    .term("void",[Lc,.strg(Sig)]) =>
-      .cVoid(Lc::option[locn],decodeSignature(Sig)).
-    .term("anon",[Lc,.strg(Sig)]) =>
-      .cAnon(Lc::option[locn],decodeSignature(Sig)).
-    .term("var",[Lc,.strg(V),.strg(Sig)]) =>
-      .cVar(Lc::option[locn],.cId(V,decodeSignature(Sig))).
+    .term("void",[Lc,Sig]) =>
+      .cVoid(thawLoc(Lc),decodeSig(Sig)).
+    .term("anon",[Lc,Sig]) =>
+      .cAnon(thawLoc(Lc),decodeSig(Sig)).
+    .term("var",[Lc,.strg(V),Sig]) =>
+      .cVar(thawLoc(Lc),.cId(V,decodeSig(Sig))).
+    .term("int",[Lc,.intgr(Ix)]) => .cInt(thawLoc(Lc),Ix).
+    .term("chr",[Lc,.chr(Ix)]) => .cChar(thawLoc(Lc),Ix).
+    .term("flt",[Lc,.flot(Dx)]) => .cFloat(thawLoc(Lc),Dx).
+    .term("big",[Lc,.strg(Bx)]) => .cBig(thawLoc(Lc),Bx::bigint).
+    .term("str",[Lc,.strg(Sx)]) => .cString(thawLoc(Lc),Sx).
+    .term("term",[Lc,.strg(Nm),.term(_,Args),Sig]) =>
+      .cTerm(thawLoc(Lc),Nm,Args//thawTerm,decodeSig(Sig)).
+    .term("nth",[Lc,E,.intgr(Ix),Sig]) =>
+      .cNth(thawLoc(Lc),thawTerm(E),Ix,decodeSig(Sig)).
+    .term("setnth",[Lc,E,.intgr(Ix),R]) =>
+      .cSetNth(thawLoc(Lc),thawTerm(E),Ix,thawTerm(R)).
+    .term("call",[Lc,.strg(Nm),.term(_,Args),Sig]) =>
+      .cCall(thawLoc(Lc),Nm,Args//thawTerm,decodeSig(Sig)).
+    .term("ecll",[Lc,.strg(Nm),.term(_,Args),Sig]) =>
+      .cECall(thawLoc(Lc),Nm,Args//thawTerm,decodeSig(Sig)).
+    .term("ocll",[Lc,Op,.term(_,Args),Sig]) =>
+      .cOCall(thawLoc(Lc),thawTerm(Op),Args//thawTerm,decodeSig(Sig)).
+    .term("thrw",[Lc,Op,Sig]) =>
+      .cThrow(thawLoc(Lc),thawTerm(Op),decodeSig(Sig)).
+    .term("seq",[Lc,L,R]) =>
+      .cSeq(thawLoc(Lc),thawTerm(L),thawTerm(R)).
+    .term("cnj",[Lc,L,R]) =>
+      .cCnj(thawLoc(Lc),thawTerm(L),thawTerm(R)).
+    .term("dsj",[Lc,L,R]) =>
+      .cDsj(thawLoc(Lc),thawTerm(L),thawTerm(R)).
+    .term("neg",[Lc,R]) =>
+      .cNeg(thawLoc(Lc),thawTerm(R)).
+    .term("cnd",[Lc,T,L,R]) =>
+      .cCnd(thawLoc(Lc),thawTerm(T),thawTerm(L),thawTerm(R)).
+    .term("whr",[Lc,L,R]) =>
+      .cWhere(thawLoc(Lc),thawTerm(L),thawTerm(R)).
+    .term("mtch",[Lc,L,R]) =>
+      .cMatch(thawLoc(Lc),thawTerm(L),thawTerm(R)).
+    .term("ltt",[Lc,.strg(V),Sig,B,X]) =>
+      .cLtt(thawLoc(Lc),.cId(V,decodeSig(Sig)),thawTerm(B),thawTerm(X)).
+    .term("unpck",[Lc,G,Cs,Sig]) => .cUnpack(thawLoc(Lc),thawTerm(G),
+      thawCases(Cs,thawTerm),decodeSig(Sig)).
+    .term("case",[Lc,G,Cs,D,Sig]) => .cCase(thawLoc(Lc),thawTerm(G),
+      thawCases(Cs,thawTerm),thawTerm(D),decodeSig(Sig)).
+    .term("abrt",[Lc,.strg(M),Sig]) => .cAbort(thawLoc(Lc),M,decodeSig(Sig)).
+    .term("susp",[Lc,F,E,Sig]) => .cSusp(thawLoc(Lc),thawTerm(F),thawTerm(E),decodeSig(Sig)).
+    .term("resme",[Lc,F,E,Sig]) => .cResume(thawLoc(Lc),thawTerm(F),thawTerm(E),decodeSig(Sig)).
+    .term("try",[Lc,E,H,Sig]) => .cTry(thawLoc(Lc),thawTerm(E),thawTerm(H),decodeSig(Sig)).
+    .term("vrs",[Lc,Vs,B]) => .cVarNmes(thawLoc(Lc),thawVars(Vs),thawTerm(B)).
   }
 
+  thawLoc(L:data) => L::option[locn].
+
+  thawCases:all e ~~ (data,(data)=>e) => cons[cCase[e]].
+  thawCases(.term(_,Args),T) => (Args//(.term(_,[Lc,P,E]))=>
+      (thawLoc(Lc),thawTerm(P),T(E))).
+
+  thawVars(.term(_,Vs)) => (Vs//(.term(_,[.strg(Nm),.strg(Vn),Sig]))=>
+      (Nm,.cId(Vn,decodeSig(Sig)))).
+
+  thawAct:(data) => aAction.
+  thawAct(A) => case A in {
+    .term("nop",[Lc]) => .aNop(thawLoc(Lc)).
+    .term("seq",[Lc,L,R]) => .aSeq(thawLoc(Lc),thawAct(L),thawAct(R)).
+    .term("lbld",[Lc,.strg(L),I]) => .aLbld(thawLoc(Lc),L,thawAct(I)).
+    .term("brek",[Lc,.strg(L)]) => .aBreak(thawLoc(Lc),L).
+    .term("vls",[Lc,V]) => .aValis(thawLoc(Lc),thawTerm(V)).
+    .term("thrw",[Lc,V]) => .aThrow(thawLoc(Lc),thawTerm(V)).
+    .term("perf",[Lc,V]) => .aPerf(thawLoc(Lc),thawTerm(V)).
+    .term("defn",[Lc,P,V]) => .aDefn(thawLoc(Lc),thawTerm(P),thawTerm(V)).
+    .term("asgn",[Lc,P,V]) => .aAsgn(thawLoc(Lc),thawTerm(P),thawTerm(V)).
+    .term("case",[Lc,G,C,D]) => .aCase(thawLoc(Lc),thawTerm(G),thawCases(C,thawAct),
+      thawAct(D)).
+    .term("unpk",[Lc,G,C]) => .aUnpack(thawLoc(Lc),thawTerm(G),thawCases(C,thawAct)).
+    .term("iftt",[Lc,T,L,R]) => .aIftte(thawLoc(Lc),thawTerm(T),thawAct(L),thawAct(R)).
+    .term("whle",[Lc,T,I]) => .aWhile(thawLoc(Lc),thawTerm(T),thawAct(I)).
+    .term("rtre",[Lc,F,V]) => .aRetire(thawLoc(Lc),thawTerm(F),thawTerm(V)).
+    .term("try",[Lc,B,H]) => .aTry(thawLoc(Lc),thawAct(B),thawAct(H)).
+    .term("vrs",[Lc,Vs,B]) => .aVarNmes(thawLoc(Lc),thawVars(Vs),thawAct(B)).
+    .term("ltt",[Lc,.strg(V),Sig,B,X]) =>
+      .aLtt(thawLoc(Lc),.cId(V,decodeSig(Sig)),thawTerm(B),thawAct(X)).
+    .term("abrt",[Lc,.strg(M)]) => .aAbort(thawLoc(Lc),M).
+  }
   
 
-/*    public cExp ::= 
-    | .cVar(option[locn],cId)
-    | .cInt(option[locn],integer)
-    | .cChar(option[locn],char)
-    | .cBig(option[locn],bigint)
-    | .cFloat(option[locn],float)
-    | .cString(option[locn],string)
-    | .cTerm(option[locn],string,cons[cExp],tipe)
-    | .cNth(option[locn],cExp,integer,tipe)
-    | .cSetNth(option[locn],cExp,integer,cExp)
-    | .cCall(option[locn],string,cons[cExp],tipe)
-    | .cECall(option[locn],string,cons[cExp],tipe)
-    | .cOCall(option[locn],cExp,cons[cExp],tipe)
-    | .cThrow(option[locn],cExp,tipe)
-    | .cSeq(option[locn],cExp,cExp)
-    | .cCnj(option[locn],cExp,cExp)
-    | .cDsj(option[locn],cExp,cExp)
-    | .cNeg(option[locn],cExp)
-    | .cCnd(option[locn],cExp,cExp,cExp)
-    | .cLtt(option[locn],cId,cExp,cExp)
-    | .cUnpack(option[locn],cExp,cons[cCase[cExp]],tipe)
-    | .cCase(option[locn],cExp,cons[cCase[cExp]],cExp,tipe)
-    | .cWhere(option[locn],cExp,cExp)
-    | .cMatch(option[locn],cExp,cExp)
-    | .cVarNmes(option[locn],cons[(string,cId)],cExp)
-    | .cAbort(option[locn],string,tipe)
-    | .cSusp(option[locn],cExp,cExp,tipe)
-    | .cResume(option[locn],cExp,cExp,tipe)
-    | .cTry(option[locn],cExp,cExp,tipe)
-    | .cValof(option[locn],aAction,tipe).
-  
-  public cId ::= cId(string,tipe).
-
-  public all e ~~ cCase[e] ~> (option[locn],cExp,e).
-
-  public aAction ::= .aNop(option[locn])
-    | .aSeq(option[locn],aAction,aAction)
-    | .aLbld(option[locn],string,aAction)
-    | .aBreak(option[locn],string)
-    | .aValis(option[locn],cExp)
-    | .aThrow(option[locn],cExp)
-    | .aPerf(option[locn],cExp)
-    | .aDefn(option[locn],cExp,cExp)
-    | .aAsgn(option[locn],cExp,cExp)
-    | .aCase(option[locn],cExp,cons[cCase[aAction]],aAction)
-    | .aUnpack(option[locn],cExp,cons[cCase[aAction]])
-    | .aIftte(option[locn],cExp,aAction,aAction)
-    | .aWhile(option[locn],cExp,aAction)
-    | .aRetire(option[locn],cExp,cExp)
-    | .aTry(option[locn],aAction,aAction)
-    | .aLtt(option[locn],cId,cExp,aAction)
-    | .aVarNmes(option[locn],cons[(string,cId)],aAction)
-    | .aAbort(option[locn],string).
-
-  public cDefn ::= fnDef(option[locn],string,tipe,cons[cId],cExp) |
-    vrDef(option[locn],string,tipe,cExp)|
-    tpDef(option[locn],tipe,typeRule,cons[(termLbl,tipe,integer)]) |
-    lblDef(option[locn],termLbl,tipe,integer).
-
-*/
 
 
   
