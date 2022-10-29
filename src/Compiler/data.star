@@ -524,5 +524,6 @@ star.compiler.data{
 
   public versTerm:(version)=>data.
   versTerm(.defltVersion) => .symb(tLbl("*",0)).
+  versTerm(.vers("*")) => .symb(tLbl("*",0)).
   versTerm(.vers(V)) => .strg(V).
 }

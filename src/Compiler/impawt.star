@@ -4,12 +4,14 @@ star.compiler.impawt{
   import star.pkg.
   import star.repo.
 
+  import star.compiler.term.repo.
   import star.compiler.canon.
   import star.compiler.errors.
   import star.compiler.location.
   import star.compiler.misc.
   import star.compiler.meta.
   import star.compiler.data.
+  import star.compiler.term.
   import star.compiler.types.
 
   public importAll:all r ~~ repo[r]|:
@@ -41,7 +43,7 @@ star.compiler.impawt{
       Decls = pickupDeclarations(Ds,Lc);
       valis ? pkgSpec{pkg=Pkg. imports=Imports. exports=Decls}
     } else {
-      reportError("count not decode package spec",Lc);
+      reportError("could not decode package spec",Lc);
       valis .none
     }
   }
@@ -187,7 +189,7 @@ star.compiler.impawt{
   }
 
   implementation coercion[pkg,data] => {
-    _coerce(.pkg(P,.defltVersion)) => .some(.term("pkg",[.strg(P),.strg("*")])).
+    _coerce(.pkg(P,.defltVersion)) => .some(.term("pkg",[.strg(P),.symb(.tLbl("*",0))])).
     _coerce(.pkg(P,.vers(V))) => .some(.term("pkg",[.strg(P),.strg(V)])).
   }
 
@@ -247,4 +249,29 @@ star.compiler.impawt{
   } in {
     _coerce(D) => .some(mkTerm(D)).
   }
+
+  public importLowered:(pkg,termRepo) => option[cons[cDefn]].
+  importLowered(Pkg,R) => valof{
+    if Txt ?= packageLowered(R,Pkg) then{
+      if .term(_,Dta) ?= Txt:?data then{
+	valis ? (Dta//(D)=>thawDefn(D));
+      }
+    };
+      
+    valis .none
+  }
+
+  pickupPkgSpec:(string,option[locn]) => option[pkgSpec].
+  pickupPkgSpec(Txt,Lc) => valof{
+    if (.term(_,[Pk,.term(_,Imps),.term(_,Ds)]),_).=decodeTerm(Txt::cons[char]) then{
+      Pkg = ^pickupPkg(Pk);
+      Imports = pickupImports(Imps,Lc);
+      Decls = pickupDeclarations(Ds,Lc);
+      valis ? pkgSpec{pkg=Pkg. imports=Imports. exports=Decls}
+    } else {
+      reportError("count not decode package spec",Lc);
+      valis .none
+    }
+  }
+
 }

@@ -28,29 +28,15 @@ test.c0{
     C=C
   }
 
-  0 < 1 => .true.
+  public 0 < 1 => .true.
   _ < _ default => .false.
   
-  x + y => _int_plus(x,y).
+  public x + y => _int_plus(x,y).
+  
+  public x - y => _int_minus(x,y).
 
-  x - y => _int_minus(x,y).
+  public x * y => _int_times(x,y).
 
-  x * y => _int_times(x,y).
-
-  fact:(integer)=>integer.
-  fact(X) => valof{
-    F := 1;
-    I := 0;
-    while I! < X do{
-      F := F!*I!;
-      I := I!+1;
-    };
-    valis F!
-  }
-
-  rcf:(integer)=>integer.
-  rcf(1) => 1.
-  rcf(X) => X*rcf(X-1).
 
 --  main:()=>().
 --  main()=>().

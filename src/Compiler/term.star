@@ -550,6 +550,11 @@ star.compiler.term{
     }
   }
 
+  public dfLbl:(cDefn)=>option[termLbl].
+  dfLbl(.fnDef(_,Nm,_,Args,_)) => ?.tLbl(Nm,[|Args|]).
+  dfLbl(.vrDef(_,Nm,Tp,_)) => ?.tLbl(Nm,arity(Tp)).
+  dfLbl(_) default => .none.
+
   public cName:(cId) => string.
   cName(.cId(Nm,_))=>Nm.
 
@@ -995,7 +1000,7 @@ star.compiler.term{
   visitCases([(Lc,A,E),..Cs],V,VA,VC,X) =>
     visitCases(Cs,V,VA,VC,V(A,VC(E,V,VA,X))).
 
-  freezeDefn:(cDefn) => data.
+  public freezeDefn:(cDefn) => data.
   freezeDefn(D) => case D in {
     .fnDef(Lc,Nm,Tp,Vrs,Vl) => mkCons("fun",[Lc::data,.strg(Nm),encodeSig(Tp),
 	mkTpl(Vrs//(.cId(Vn,VTp))=>mkTpl([.strg(Vn),encodeSig(VTp)])),
@@ -1020,9 +1025,9 @@ star.compiler.term{
     .cString(Lc,Sx) => mkCons("str",[Lc::data,.strg(Sx)]).
     .cTerm(Lc,Nm,Args,Tp) => mkCons("term",[Lc::data,.strg(Nm),mkTpl(Args//freezeTerm),
 	.strg(encodeSignature(Tp))]).
-    .cNth(Lc,E,Ix,Tp) => mkCons("nth",[Lc::data,freezeTerm(E),.intgr(Ix),
+    .cNth(Lc,T,Ix,Tp) => mkCons("nth",[Lc::data,freezeTerm(T),.intgr(Ix),
 	.strg(encodeSignature(Tp))]).
-    .cSetNth(Lc,E,Ix,R) => mkCons("setnth",[Lc::data,freezeTerm(E),.intgr(Ix),
+    .cSetNth(Lc,T,Ix,R) => mkCons("setnth",[Lc::data,freezeTerm(T),.intgr(Ix),
 	freezeTerm(R)]).
     .cCall(Lc,Nm,Args,Tp) => mkCons("call",[Lc::data,.strg(Nm),mkTpl(Args//freezeTerm),
 	.strg(encodeSignature(Tp))]).
@@ -1082,7 +1087,7 @@ star.compiler.term{
     .aAbort(Lc,Msg) => mkCons("abrt",[Lc::data,.strg(Msg)]).
   }
 
-  thawDefn:(data) => cDefn.
+  public thawDefn:(data) => cDefn.
   thawDefn(D) => case D in {
     .term("fun",[Lc,.strg(Nm),Sig,.term(_,Vrs),Vl]) =>
       .fnDef(thawLoc(Lc),Nm,decodeSig(Sig),
@@ -1092,10 +1097,9 @@ star.compiler.term{
     .term("tpe",[Lc,Sig,.strg(RlSig),.term(_,Map)]) =>
       .tpDef(thawLoc(Lc),decodeSig(Sig),decodeTypeRuleSignature(RlSig),
 	Map//(.term(_,[.symb(Lbl),LSig,.intgr(Ix)]))=>(Lbl,decodeSig(LSig),Ix)).
-    .term("lbl",[Lc,.symb(Lbl),Sig,.intgr(Ix)]) =>
+    .term("cns",[Lc,.symb(Lbl),Sig,.intgr(Ix)]) =>
       .lblDef(thawLoc(Lc),Lbl,decodeSig(Sig),Ix).
   }
-  
 
   thawTerm:(data) => cExp.
   thawTerm(D) => case D in {

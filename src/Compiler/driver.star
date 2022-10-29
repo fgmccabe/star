@@ -112,7 +112,13 @@ star.compiler{
 	  if traceNormalize! then{
 	    logMsg("normalized code $(N)");
 	  };
-	  Inlined = ( optimization! ==.inlining ? simplifyDefs(N) || N);
+
+	  Inlined = ( optimization! ==.inlining ? valof{
+	      Priors = { Lb->Df | .pkgImp(_,_,I) in PkgSpec.imports &&
+		    Dfs ?= importLowered(I,Repo) &&
+		    Df in Dfs && Lb?=dfLbl(Df)};
+	      valis simplifyDefs(N,Priors);
+	    } || N);
 	  validProg(Inlined,IDecls++Decls);
 	  if showNormalize! then{
 	    logMsg("normalized code $(Inlined)");
@@ -134,7 +140,11 @@ star.compiler{
 	    Code = mkTpl(Segs//assem);
 	    Bytes = (strg(Code::string)::string);
 
-	    valis addSource(addPackage(Repo,CPkg,Bytes),CPkg,SrcUri::string)
+	    InlineBytes = (mkTpl(Inlined//((I)=>freezeDefn(I))))::string;
+
+	    valis addSpec(PkgSpec,
+	      addSource(addLoweredSource(
+		  addPackage(Repo,CPkg,Bytes),CPkg,InlineBytes),CPkg,SrcUri::string))
 	  }
 	}
       };

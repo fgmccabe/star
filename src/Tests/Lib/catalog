@@ -2,6 +2,7 @@
   "content": {
     "test.ac0": "ac0.star",
     "test.c0" : "c0.star",
+    "test.c0a" : "c0a.star",
     "test.cn0": "cn0.star",
     "test.cn1": "cn1.star",
     "star.core0" : "core0.star",
