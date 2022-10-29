@@ -100,7 +100,7 @@ star.compiler.normalize.driver{
 	  if showNormalize! then{
 	    logMsg("normalized code $(N)");
 	  };
-	  Inlined = ( optimization! ==.inlining ? simplifyDefs(N) || N);
+	  Inlined = ( optimization! ==.inlining ? simplifyDefs(N,[]) || N);
 	  validProg(Inlined,IDecls++Decls);
 	  if showNormalize! then{
 	    logMsg("inlined code $(Inlined)");

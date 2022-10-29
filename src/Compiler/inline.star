@@ -10,8 +10,9 @@ star.compiler.inline{
 
   import star.compiler.location.
 
-  public simplifyDefs:(cons[cDefn]) => cons[cDefn].
-  simplifyDefs(Dfs) where Prog .= foldLeft(pickupDefn,[],Dfs) => (Dfs//(D)=>simplifyDefn(D,Prog)).
+  public simplifyDefs:(cons[cDefn],map[termLbl,cDefn]) => cons[cDefn].
+  simplifyDefs(Dfs,Prior) where Prog .= foldLeft(pickupDefn,Prior,Dfs) =>
+    (Dfs//(D)=>simplifyDefn(D,Prog)).
 
   pickupDefn:(cDefn,map[termLbl,cDefn])=>map[termLbl,cDefn].
   pickupDefn(.fnDef(Lc,Nm,Tp,Args,Val),Map) =>

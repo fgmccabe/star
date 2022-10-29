@@ -22,7 +22,6 @@ star.compiler.grapher{
   makeGraph(Pkg,Repo,Cat) => valof{
     Defs = scanPkgs([Pkg],Repo,Cat,[]);
     Gps = topsort(Defs);
---    logMsg("pkg graph $(Gps)");
     valis Gps*
   }
 

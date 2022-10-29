@@ -39,19 +39,18 @@ star.compiler.term.repo{
   public addToRepo:(termRepo,pkg,string,string) => termRepo.
   addToRepo(.repo(Root,Man),.pkg(Pk,Vr),Kind,Text) => valof{
     Ext = extensionMapping(Kind);
-    Fn = "#(Pk).$(Vr)#(Ext)";
---    Fn = Pk++(hash(Pk)::string)++Ext;
+    Fn = Pk++(Vr::string)++Ext;
     FUri = ^parseUri(Fn);
     FU = ^resolveUri(Root,FUri);
-    logMsg("dest uri $(FU)");
+--    logMsg("dest uri $(FU)");
     putResource(FU,Text);
-    logMsg("written");
+--    logMsg("$(FU) written");
     NM = addToManifest(Man,pkg(Pk,Vr),Kind,Fn);
-    logMsg("added to manifest");
+--    logMsg("added to manifest");
     MU = ^parseUri("manifest");
     RepoUri = ^resolveUri(Root,MU);
     flushManifest(RepoUri,NM);
-    logMsg("manifest flushed");
+--    logMsg("manifest flushed");
     valis .repo(Root,NM)
   }
 
@@ -87,6 +86,18 @@ star.compiler.term.repo{
 
   public addSource:(termRepo,pkg,string) => termRepo.
   addSource(.repo(Root,Man),Pkg,Nm) => .repo(Root,addToManifest(Man,Pkg,"source",Nm)).
+
+  public addLoweredSource:(termRepo,pkg,string) => termRepo.
+  addLoweredSource(Repo,Pkg,Text) => addToRepo(Repo,Pkg,"term",Text).
+
+  public packageLowered:(termRepo,pkg) => option[string].
+  packageLowered(.repo(Root,Man),Pkg) => valof{
+    if U?=locateInManifest(Man,Pkg,"term") && CU ?= parseUri(U) &&
+	LoweredFile ?= resolveUri(Root,CU) then{
+	  valis getResource(LoweredFile)
+	} else
+    valis .none
+  }
 
   extensionMapping:(string) => string.
   extensionMapping("source") => ".star".
