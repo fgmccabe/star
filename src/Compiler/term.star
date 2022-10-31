@@ -117,7 +117,7 @@ star.compiler.term{
     }.
     .cUnpack(_,E,Cs,_) => valof{
       Off2=Off++"  ";
-      valis "unpack #(dspExp(E,Off)) in {\n#(Off2)#(dspCases(Cs,dspExp,Off2)*)\n#(Off)}"
+      valis "unpack (#(dspExp(E,Off))) in {\n#(Off2)#(dspCases(Cs,dspExp,Off2)*)\n#(Off)}"
     }.
     .cMatch(_,P,E) => "#(dspExp(P,Off)).=#(dspExp(E,Off))".
     .cWhere(_,T,C) => "#(dspExp(T,Off)) where #(dspExp(C,Off++"  "))".
@@ -153,11 +153,11 @@ star.compiler.term{
     .aAsgn(_,P,E) => "#(dspExp(P,Off)) := #(dspExp(E,Off))".
     .aCase(_,E,Cs,Df) => valof{
       Off2=Off++"  ";
-      valis "case #(dspExp(E,Off)) in {\n#(Off2)#(dspCases(Cs,dspAct,Off2)*)\n#(Off)} else #(dspAct(Df,Off))"
+      valis "case (#(dspExp(E,Off))) in {\n#(Off2)#(dspCases(Cs,dspAct,Off2)*)\n#(Off)} else #(dspAct(Df,Off))"
     }.
     .aUnpack(_,E,Cs) => valof{
       Off2=Off++"  ";
-      valis "unpack #(dspExp(E,Off)) in {\n#(Off2)#(dspCases(Cs,dspAct,Off2)*)\n#(Off)}"
+      valis "unpack (#(dspExp(E,Off))) in {\n#(Off2)#(dspCases(Cs,dspAct,Off2)*)\n#(Off)}"
     }.
     .aIftte(_,C,T,E) => valof{
       Off2=Off++"  ";
@@ -444,9 +444,8 @@ star.compiler.term{
   }
 
   public rwTerm:(cExp,(cExp)=>option[cDefn])=>cExp.
-  rwTerm(T,Tst) => .vrDef(_,_,_,Vl) ?= Tst(T) ?
-    Vl ||
-    case T in {
+  rwTerm(T,Tst) =>
+    .vrDef(_,_,_,Vl) ?= Tst(T) ? Vl || case T in {
       .cVoid(Lc,Tp) => .cVoid(Lc,Tp).
       .cAnon(Lc,Tp) => .cAnon(Lc,Tp).
       .cVar(Lc,V) => .cVar(Lc,V).
@@ -691,7 +690,7 @@ star.compiler.term{
     .cVoid(Lc,Tp) => .true.
     .cAnon(_,_) => .true.
     .cVar(Lc,V) =>  V .<. Vrs ? .true || valof{
-      reportError("$(V)/$(arity(typeOf(V)))",Lc);
+      reportError("variable $(V)\:$(typeOf(V)) not in scope",Lc);
       valis .false
     }.
     .cInt(_,_) => .true.

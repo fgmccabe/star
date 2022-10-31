@@ -179,6 +179,7 @@ star.compiler.canon{
     .overaccess(_,_,RcTp,F,T) => "($(RcTp)<~#(F):$(T))".
     .intr(_,Lt) => disp(Lt).
     .bintr(_,Lt) => disp(Lt).
+    .kar(_,Ch) => disp(Ch).
     .flt(_,Lt) => disp(Lt).
     .strng(_,Lt) => disp(Lt).
     .enm(_,Nm,Tp) => "°#(Nm)".

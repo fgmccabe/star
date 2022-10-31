@@ -6,13 +6,13 @@ star.fiber{
   public all e ~~ task[e] ~> fiber[resumeProtocol,suspendProtocol[e]].
 
   public all e ~~ channel[e] ::= .quiescent |
-    hasData(e) |
+    .hasData(e) |
     .waitingFor(exists e ~~ task[e]).
 
   public all e ~~ suspendProtocol[e] ::= .yield_ |
     .blocked |
     .wake(exists r ~~ task[r]) |
-    result(e).
+    .result(e).
 
   public resumeProtocol ::= .go_ahead.
 

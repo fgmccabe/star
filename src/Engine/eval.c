@@ -110,7 +110,7 @@ retCode run(processPo P) {
         logMsg(logFile, "Abort %T at %L", msg, lc);
         saveRegisters();
         verifyProc(P, H);
-        stackTrace(P, logFile, P->stk, displayDepth, showPrognames);
+        stackTrace(P, logFile, P->stk, displayDepth, showArguments);
 
         return Error;
       }

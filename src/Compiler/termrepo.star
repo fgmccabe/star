@@ -45,19 +45,13 @@ star.compiler.term.repo{
 --    logMsg("dest uri $(FU)");
     putResource(FU,Text);
 --    logMsg("$(FU) written");
-    NM = addToManifest(Man,pkg(Pk,Vr),Kind,Fn);
---    logMsg("added to manifest");
-    MU = ^parseUri("manifest");
-    RepoUri = ^resolveUri(Root,MU);
-    flushManifest(RepoUri,NM);
---    logMsg("manifest flushed");
-    valis .repo(Root,NM)
+    valis flushRepo(.repo(Root,addToManifest(Man,pkg(Pk,Vr),Kind,Fn)))
   }
 
 
   public addSigToRepo:(termRepo,pkg,string) => termRepo.
   addSigToRepo(.repo(Root,Man),Pk,Sig) =>
-    .repo(Root,addToManifest(Man,Pk,"signature",Sig)).
+    flushRepo(.repo(Root,addToManifest(Man,Pk,"signature",Sig))).
 
   public packageCodeOk:(termRepo,pkg) => boolean.
   packageCodeOk(Repo,Pkg) where
@@ -69,7 +63,7 @@ star.compiler.term.repo{
 
   public pkgOk:(termRepo,pkg)=>boolean.
   pkgOk(Repo,Pkg) => (SrcUri,CodeUri) ?= packageCode(Repo,Pkg) ?
-    newerRsrc(CodeUri,SrcUri) || .false.
+  newerRsrc(CodeUri,SrcUri) || .false.
 
   public packageCode:(termRepo,pkg) => option[(uri,uri)].
   packageCode(.repo(Root,Man),Pkg) where

@@ -71,6 +71,9 @@ star.compiler{
 	    resetErrors();
 	    Sorted = makeGraph(extractPkgSpec(P),Repo,Cat);
 
+	    if traceDependencies! then
+	      logMsg("Process packages in $(Sorted)");
+
 	    if Grph ?= Opts.graph then {
 	      putResource(Grph,makeDotGraph(P,Sorted))
 	    };
@@ -135,7 +138,7 @@ star.compiler{
 	    PkgSig = mkTpl([pkgTerm(CPkg),
 		mkTpl(PkgSpec.imports//(.pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
 		mkTpl(PkgSpec.exports//((D)=>D::data))])::string;
-	    logMsg("pkg sig $(PkgSig)");
+--	    logMsg("pkg sig $(PkgSig)");
 
 	    Code = mkTpl(Segs//assem);
 	    Bytes = (strg(Code::string)::string);
@@ -171,10 +174,12 @@ star.compiler{
   processPkgs(Pks,Repo,Cat) => valof{
     Repp = ref Repo;
 
-    for (P,Imps) in Pks do{
+    pkgLoop: for (P,Imps) in Pks do{
 --      logMsg("is $(P) ok? $(pkgOk(Repo,P))");
       if ~ {? (pkgOk(Repo,P) && I in Imps *> pkgOk(Repo,I)) ?} then{
 	Repp := processPkg(P,Repp!,Cat);
+	if ~errorFree() then
+	  break pkgLoop
       }
     };
     flushRepo(Repp!);
