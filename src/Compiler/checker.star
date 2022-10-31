@@ -662,7 +662,7 @@ star.compiler.checker{
   typeOfExp(A,Tp,_ErTp,Env,Path) where (Lc,L) ?= isFiber(A) => valof{
     RT = newTypeVar("_R");
     ST = newTypeVar("_S");
-    TskTp = taskType(RT,ST);
+    TskTp = fiberType(RT,ST);
     if NwFbr ?= findVar(Lc,"_new_fiber",Env) then{
       checkType(A,funType([funType([TskTp,RT],ST),RT],Tp),typeOf(NwFbr),Env);
       FbrFn = typeOfExp(L,funType([TskTp,RT],ST),.none,Env,Path);
@@ -899,7 +899,7 @@ star.compiler.checker{
   checkAction(A,Tp,ErTp,Env,Path) where (Lc,T,E,Cases) ?= isSuspend(A) => valof{
     STp = newTypeVar("_s");
     RTp = newTypeVar("_r");
-    TT = typeOfExp(T,taskType(RTp,STp),ErTp,Env,Path);
+    TT = typeOfExp(T,fiberType(RTp,STp),ErTp,Env,Path);
     EE = typeOfExp(E,STp,ErTp,Env,Path);
     
     Rules = checkRules(Cases,RTp,Tp,ErTp,Env,Path,
@@ -912,7 +912,7 @@ star.compiler.checker{
   checkAction(A,Tp,ErTp,Env,Path) where (Lc,T,E,Cases) ?= isResume(A) => valof{
     STp = newTypeVar("_s");
     RTp = newTypeVar("_r");
-    TT = typeOfExp(T,taskType(RTp,STp),ErTp,Env,Path);
+    TT = typeOfExp(T,fiberType(RTp,STp),ErTp,Env,Path);
     EE = typeOfExp(E,RTp,ErTp,Env,Path);
     
     Rules = checkRules(Cases,STp,Tp,ErTp,Env,Path,
@@ -925,7 +925,7 @@ star.compiler.checker{
   checkAction(A,Tp,ErTp,Env,Path) where (Lc,T,E) ?= isRetire(A) => valof{
     STp = newTypeVar("_s");
     RTp = newTypeVar("_r");
-    TT = typeOfExp(T,taskType(RTp,STp),ErTp,Env,Path);
+    TT = typeOfExp(T,fiberType(RTp,STp),ErTp,Env,Path);
     EE = typeOfExp(E,STp,ErTp,Env,Path);
 
     valis (doRetire(Lc,TT,EE),Env)

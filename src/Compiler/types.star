@@ -383,7 +383,7 @@ star.compiler.types{
   public enumType(A) => .tpExp(.tpExp(.tpFun("<=>",2),.tupleType([])),A).
   public lstType(Tp) => .tpExp(.tpFun("star.core*cons",1),Tp).
   public refType(Tp) => .tpExp(.tpFun("star.core*ref",1),Tp).
-  public taskType(R,S) => mkTypeExp(.tpFun("star.core*task",2),[R,S]).
+  public fiberType(R,S) => mkTypeExp(.tpFun("star.fiber*fiber",2),[R,S]).
 
   public funTypeArg(Tp) where
       .tpExp(O,_) .= deRef(Tp) &&
@@ -454,6 +454,7 @@ star.compiler.types{
       .tpFun("star.core*ref",1).=deRef(Op).
 
   public isLambdaRule(.typeLambda(_,_)) => .true.
+  isLambdaRule(.allRule(_,T)) => isLambdaRule(T).
   isLambdaRule(_) default => .false.
 
   public deQuant:(tipe) => (cons[tipe],tipe).

@@ -394,6 +394,8 @@ star.compiler.dependencies{
     collectTermRefs(R,All,Rf).
   collectDoRefs(A,All,Rf) where (_,L,H) ?= isTryCatch(A) =>
     collectCasesRefs(H,collectDoRefs,All,collectTermRefs(L,All,Rf)).
+  collectDoRefs(A,All,Rf) where (_,L,H) ?= isCase(A) =>
+    collectCasesRefs(H,collectDoRefs,All,collectTermRefs(L,All,Rf)).
   collectDoRefs(T,All,Rf) where (_,Env,Bnd) ?= isLetDef(T) =>
     collectStmtsRefs(Env,All,[],collectDoRefs(Bnd,All,Rf)).
   collectDoRefs(T,All,Rf) where (_,Env,Bnd) ?= isLetRecDef(T) =>
