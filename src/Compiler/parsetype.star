@@ -53,14 +53,23 @@ star.compiler.typeparse{
     }
   }
   parseType(Q,Tp,Env) where (Lc,O,Args) ?= isSquareTerm(Tp) && (OLc,Nm)?=isName(O) => valof{
+    ArgTps = parseTypes(Q,Args,Env);
     (Op,Rl) = parseTypeName(Q,OLc,Nm,Env);
-    if (_,OOp) .= freshen(Op,Env) then {
-      ArgTps = parseTypes(Q,Args,Env);
-      valis doTypeFun(OOp,ArgTps,Env)
-    }
-    else{
-      reportError("Could not freshen $(Op)",Lc);
-      valis .voidType
+    if TpRl ?= Rl then{
+      if (_,FrshRl) .= freshen(TpRl,Env) && (_,OOp) .= freshen(Op,Env) then{
+	valis applyTypeRule(Lc,FrshRl,doTypeFun(OOp,ArgTps,Env),Env)
+      } else{
+	reportError("Could not freshen type rule $(Rl)",Lc);
+	valis .voidType
+      }
+    } else {
+      if (_,OOp) .= freshen(Op,Env) then {
+	valis doTypeFun(OOp,ArgTps,Env)
+      }
+      else{
+	reportError("Could not freshen $(Op)",Lc);
+	valis .voidType
+      }
     }
   }
   parseType(Q,T,Env) where (Lc,Lhs,Rhs) ?= isFunctionType(T) => valof{
@@ -142,11 +151,11 @@ star.compiler.typeparse{
     valis ([],[])
   }.
 
-  applyTypeRule:(option[locn],typeRule,cons[tipe],dict) => tipe.
-  applyTypeRule(_,.typeLambda(.tupleType([]),Tp),[],_) => Tp.
-  applyTypeFun(Lc,.typeLambda(L,R),[A,..As],Env) => valof{
+  applyTypeRule:(option[locn],typeRule,tipe,dict) => tipe.
+  applyTypeRule(_,.typeLambda(.tupleType([]),Tp),_,_) => Tp.
+  applyTypeRule(Lc,.typeLambda(L,R),A,Env) => valof{
     if sameType(L,A,Env) then{
-      valis doTypeFun(R,As,Env)
+      valis R
     } else {
       reportError("Type rule $(typeLambda(L,R)) does not apply to $(A)",Lc);
       valis .voidType
@@ -196,10 +205,12 @@ star.compiler.typeparse{
   parseTypeName(_,_,"_",_) => (newTypeVar("_"),.none).
   parseTypeName(Q,_,Nm,_) where Tp?={! Tp | (Nm,Tp) in Q !} => (Tp,.none).
   parseTypeName(Q,_,Nm,Env) where (_,T,TpRl,_) ?= findType(Env,Nm) => valof{
+--    logMsg("type $(Nm) has type rule $(TpRl)");
     if isLambdaRule(TpRl) then 
       valis (T,some(TpRl))
     else
-    valis (T,.none)}
+    valis (T,.none)
+  }
   parseTypeName(_,Lc,Nm,Env) => valof{
     reportError("type $(Nm) not declared",Lc);
     valis (.voidType,.none)
@@ -329,7 +340,7 @@ star.compiler.typeparse{
 
   public parseTypeDef:(string,ast,dict,string) => (cons[canonDef],cons[decl]).
   parseTypeDef(Nm,St,Env,Path) where (Lc,V,C,H,B) ?= isTypeExistsStmt(St) => valof{
-    -- logMsg("parse type exists $(St)");
+--    logMsg("parse type exists $(St)");
     Q = parseBoundTpVars(V);
     Tp = parseTypeHead(Q,H,Env,Path);
     Cx = parseConstraints(C,Q,Env);
@@ -339,7 +350,7 @@ star.compiler.typeparse{
     valis ([typeDef(Lc,Nm,Tmplte,TpRl)],[tpeDec(Lc,Nm,Tmplte,TpRl)])
   }
   parseTypeDef(Nm,St,Env,Path) where (Lc,V,C,H,B) ?= isTypeFunStmt(St) => valof{
-    -- logMsg("parse type fun $(St)");
+--    logMsg("parse type fun $(St)");
     Q = parseBoundTpVars(V);
     Tp = parseTypeHead(Q,H,Env,Path);
     Cx = parseConstraints(C,Q,Env);

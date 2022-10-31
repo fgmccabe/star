@@ -33,7 +33,7 @@ star.fiber{
       }.
       .waitingFor(RR) => {
 	Ch := .hasData(D);
-	T suspend wake(RR) in {
+	T suspend .wake(RR) in {
 	  .go_ahead =>
 	    valis ()
 	}
@@ -52,7 +52,7 @@ star.fiber{
 	}
       }.
       .quiescent => {
-	Ch := waitingFor(T);
+	Ch := .waitingFor(T);
 	T suspend .blocked in {
 	  .go_ahead =>
 	    valis collect(T,Ch)

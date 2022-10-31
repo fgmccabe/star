@@ -105,6 +105,7 @@ star.compiler.freshen{
   genTypeFun(Nm,Q) => foldLeft(((_,V),S)=>tpExp(S,V),newTypeFun(Nm,size(Q)),Q).
 
   frshn:(tipe,dict)=>tipe.
+  frshn(.voidType,_) => .voidType.
   frshn(.nomnal(Nm),Env) where (_,Tp,_,_)?=findType(Env,Nm) => Tp.
   frshn(.nomnal(Nm),_) => .nomnal(Nm).
   frshn(.kFun(Nm,Ar),Env) where  (_,Tp,_,_)?=findType(Env,Nm) => Tp.
@@ -113,11 +114,13 @@ star.compiler.freshen{
   frshn(.tFun(T,A,N),_) => .tFun(T,A,N).
   frshn(.tpFun(N,A),_) => .tpFun(N,A).
   frshn(.tpExp(O,A),Env) => .tpExp(frshnD(O,Env),frshnD(A,Env)).
+  frshn(.throwsType(O,A),Env) => .throwsType(frshnD(O,Env),frshnD(A,Env)).
   frshn(.tupleType(Els),Env) => .tupleType(frshnList(Els,Env)).
   frshn(.faceType(Els,Tps),Env) =>
     .faceType(Els//(((Nm,E))=>(Nm,frshnD(E,Env))),
       Tps//(((Nm,E))=>(Nm,frshnD(E,Env)))).
   frshn(.allType(K,T),Env) => .allType(K,frshn(T,Env)).
+  frshn(.existType(K,T),Env) => .existType(K,frshn(T,Env)).
   frshn(.constrainedType(T,C),Env) => .constrainedType(frshnD(T,Env),frshnConstraint(C,Env)).
 
   frshnList:(cons[tipe],dict) => cons[tipe].
