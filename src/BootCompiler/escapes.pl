@@ -188,7 +188,7 @@ escapeType("_char",funType(tplType([type("star.core*integer")]),type("star.core*
 escapeType("_isIDStart",funType(tplType([type("star.core*char")]),type("star.core*boolean"))).
 escapeType("_isIDContinue",funType(tplType([type("star.core*char")]),type("star.core*boolean"))).
 escapeType("_int2str",funType(tplType([type("star.core*integer"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer")]),type("star.core*string"))).
-escapeType("_flt2str",funType(tplType([type("star.core*float"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer"),type("star.core*boolean")]),type("star.core*string"))).
+escapeType("_flt2str",funType(tplType([type("star.core*float"),type("star.core*integer"),type("star.core*char"),type("star.core*boolean")]),type("star.core*string"))).
 escapeType("_int_format",funType(tplType([type("star.core*integer"),type("star.core*string")]),type("star.core*string"))).
 escapeType("_flt_format",funType(tplType([type("star.core*float"),type("star.core*string")]),type("star.core*string"))).
 escapeType("_str2flt",funType(tplType([type("star.core*string")]),tpExp(tpFun("star.core*option",1),type("star.core*float")))).
