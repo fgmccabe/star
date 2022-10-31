@@ -99,7 +99,6 @@ static integer bigHash(specialClassPo cl, termPo o) {
 
 static retCode bigDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   bignumPo big = C_BIGNUM(t);
-  uint32 *digits = big->data;
 
   return showLong(out, big->data, big->count);
 }

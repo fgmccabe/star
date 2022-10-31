@@ -402,7 +402,7 @@ retCode showLong(ioPo out, uint32 *digits, long count) {
 
   integer strLen = 0;
   longTxt(text, &strLen, scratch, count, 10);
-  return outMsg(out, "%s%.*s[%d]\n%_", (sign == negative ? "-" : "+"), strLen, text, count);
+  return outMsg(out, "%s0b%.*s[%d]\n%_", (sign == negative ? "-" : "+"), strLen, text, count);
 }
 
 // Assumes both numbers are positive

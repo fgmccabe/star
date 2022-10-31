@@ -11,6 +11,7 @@
 #include <globals.h>
 #include "ooio.h"
 #include "engine.h"
+#include "char.h"
 #include "arithP.h"
 #include "bignumP.h"
 #include "errorCodes.h"
@@ -163,11 +164,14 @@ ReturnStatus g__float_bits(heapPo h, termPo arg1) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__flt2str(heapPo h, termPo arg1) {
+ReturnStatus g__flt2str(heapPo h, termPo arg1, termPo p,  termPo m,termPo s) {
   double Arg = floatVal(arg1);
+  int precision = (int)integerVal(p);
+  codePoint mdc = charVal(m);
+  FloatDisplayMode mode =  (mdc=='f'?fractional:mdc=='s' ? scientific : general);
   char buff[64];
 
-  retCode ret = formatDouble(buff, NumberOf(buff), Arg, general, 0, False);
+  retCode ret = formatDouble(buff, NumberOf(buff), Arg, mode, precision, s==trueEnum?True:False);
   if (ret == Ok) {
     return (ReturnStatus) {.ret=Ok,
       .result = (termPo) allocateString(h, buff, uniStrLen(buff))};

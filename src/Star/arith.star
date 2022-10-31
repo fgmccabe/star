@@ -52,12 +52,12 @@ star.arith{
   public implementation arith[bigint] => {
     X+Y => _big_plus(X,Y).
     X-Y => _big_minus(X,Y).
-    zero = 0b.
+    zero = 0b0.
     X*Y => _big_times(X,Y).
     X/Y where (q,_) .= _big_div(X,Y) => q.
     X%Y where (_,r) .= _big_div(X,Y) => r.
-    one = 1b.
-    __minus(Ix) => _big_minus(0b,Ix).
+    one = 0b1.
+    __minus(Ix) => _big_minus(0b0,Ix).
   }
   
   public implementation equality[bigint] => {
@@ -127,7 +127,7 @@ star.arith{
   abs(X) => X<zero ? __minus(X) || X.
 
   public implementation display[float] => {
-    disp(X) => _flt2str(X,0,8,0cg,.false).
+    disp(X) => _flt2str(X,8,`g`,.false).
   }
 
   public implementation format[float] => {

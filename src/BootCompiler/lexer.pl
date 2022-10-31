@@ -1,4 +1,6 @@
-:- module(lexer,[nextToken/3,allTokens/3,locOfToken/2,isToken/1,showToken/2,subTokenize/3]).
+:- module(lexer,
+	  [nextToken/3,allTokens/3,
+	   locOfToken/2,isToken/1,showToken/2,subTokenize/3]).
 :- use_module(operators).
 :- use_module(errors).
 :- use_module(location).
@@ -146,6 +148,11 @@ nxTok(St,NxSt,integerTok(Hx,Lc)) :-
   lookingAt(St,St1,['0','x'],_),
   readHex(St1,NxSt,0,Hx),
   makeLoc(St,NxSt,Lc).
+nxTok(St,NxSt,bigintTok(Bg,Lc)) :-
+  lookingAt(St,St1,['0','b'],_),
+  readNat(St1,NxSt,Chrs),
+  string_chars(Bg,Chrs),
+  makeLoc(St,NxSt,Lc).
 nxTok(St,NxSt,Tk) :-
   hedChar(St,Ch),
   isDigit(Ch,_),
@@ -198,7 +205,6 @@ readNumber(St,NxSt,Tk) :-
 
 readNumber(St0,St,NxSt,Tk) :-
   readNat(St,St1,D),
-%  readNatural(St,St1,0,D),
   readMoreNumber(St0,St1,NxSt,D,Tk).
 
 readNat(St,NxSt,[Ch|Dx]) :-
@@ -226,10 +232,6 @@ readMoreNumber(St0,St,NxSt,DCs,floatTok(FP,Lc)) :-
   chars_to_integer(DCs,D),
   readFraction(St1,St2,D,0.1,Mant),
   readExponent(St2,NxSt,Mant,FP),
-  makeLoc(St0,NxSt,Lc).
-readMoreNumber(St0,St,NxSt,DCs,bigintTok(Bg,Lc)) :-
-  nextSt(St,NxSt,'b'),
-  string_chars(Bg,DCs),
   makeLoc(St0,NxSt,Lc).
 readMoreNumber(St0,St,St,DCs,integerTok(Ix,Lc)) :-
   chars_to_integer(DCs,Ix),
