@@ -255,7 +255,7 @@ escape(_isIDContinue, "F(c)l", "is continue char of identifier")
 
 // String handling escapes
 escape(_int2str, "F(iiii)s", "format an integer as a string")
-escape(_flt2str, "F(fiiil)s", "format a floating as a string")
+escape(_flt2str, "F(ficl)s", "format a floating as a string")
 escape(_int_format, "F(is)s", "format an integer using picture format")
 escape(_flt_format, "F(fs)s", "format a floating point using picture format")
 

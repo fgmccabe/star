@@ -192,7 +192,7 @@ star.compiler.escapes{
     "_isIDStart" => ? tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*char")])),nomnal("star.core*boolean")).
     "_isIDContinue" => ? tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*char")])),nomnal("star.core*boolean")).
     "_int2str" => ? tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*string")).
-    "_flt2str" => ? tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*boolean")])),nomnal("star.core*string")).
+    "_flt2str" => ? tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float"),nomnal("star.core*integer"),nomnal("star.core*char"),nomnal("star.core*boolean")])),nomnal("star.core*string")).
     "_int_format" => ? tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*string")])),nomnal("star.core*string")).
     "_flt_format" => ? tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float"),nomnal("star.core*string")])),nomnal("star.core*string")).
     "_str2flt" => ? tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string")])),tpExp(tpFun("star.core*option",1),nomnal("star.core*float"))).
