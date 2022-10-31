@@ -367,6 +367,8 @@ star.compiler.dependencies{
     valis collectTermRefs(L,All,Rf1)
   }
   collectTermRefs(.int(_,_),_,Rf) => Rf.
+  collectTermRefs(.big(_,_),_,Rf) => Rf.
+  collectTermRefs(.chr(_,_),_,Rf) => Rf.
   collectTermRefs(.str(_,_),_,Rf) => Rf.
   collectTermRefs(.num(_,_),_,Rf) => Rf.
   collectTermRefs(T,_,Rf) => valof{

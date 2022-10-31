@@ -26,8 +26,8 @@ test.ar{
     minus(X,Y) => _big_minus(X,Y).
     times(X,Y) => _big_times(X,Y).
     div(X,Y) where (q,_) .= _big_div(X,Y) => q.
-    zer = 0b.
-    unum = 1b.
+    zer = 0b0.
+    unum = 0b1.
   }
 
   ff:all x ~~ four[x],equality[x] |:(x)=>x.
@@ -42,9 +42,9 @@ test.ar{
   main()=>valof{
     assert sample==5;
     show ff(5);
-    show ff(50b);
-    assert ff(50b) == 30414093201713378043612608166064768844377641568960512000000000000b;
-    assert gcd(1071b,462b)==21b;
+    show ff(0b50);
+    assert ff(0b50) == 0b30414093201713378043612608166064768844377641568960512000000000000;
+    assert gcd(0b1071,0b462)==0b21;
     valis ()
   }
 }

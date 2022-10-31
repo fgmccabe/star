@@ -19,6 +19,7 @@ star.compiler.freevars{
     .vr(_,Nm,_) where _ ?= intrinsic(Nm) => Fv.
     .vr(Lc,Nm,Tp) => ({? .cId(Nm,_) in Q ?} ? Fv\+.cId(Nm,Tp) || Fv).
     .intr(_,_) => Fv.
+    .kar(_,_) => Fv.
     .flt(_,_) => Fv.
     .strng(_,_) => Fv.
     .enm(_,_,_) => Fv.
@@ -49,6 +50,10 @@ star.compiler.freevars{
       XX = exclDfs(D,Excl,Fv)
     } in freeVarsInExp(E,XX,Q,freeVarsInDefs(D,XX,Q,Fv)).
     .vlof(_,A,_) => freeVarsInAct(A,Excl,Q,Fv).
+    _ default => valof{
+      logMsg("cant find free vars in $(Cn)");
+      valis Fv
+    }
   }
 
   freeVarsInAct(Ac,Excl,Q,Fv) => case Ac in {

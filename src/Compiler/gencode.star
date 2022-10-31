@@ -481,7 +481,7 @@ star.compiler.gencode{
 
   escapeCont:(string,stack,Cont) => Cont.
   escapeCont(Es,Stk,Cont) => cont{
-    C(Ctx,Stk,Cde) => Cont.C(Ctx,Stk,Cde++[.iEscape(Es,Ctx.escape),frameIns(Stk)]).
+    C(Ctx,_Stk,Cde) => Cont.C(Ctx,Stk,Cde++[.iEscape(Es,Ctx.escape),frameIns(Stk)]).
   }
 
   intrinsicCont:(assemOp,boolean,stack,Cont) => Cont.

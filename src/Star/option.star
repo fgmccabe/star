@@ -12,8 +12,8 @@ star.option{
   }
 
   private dispOptional:all x ~~ display[x] |: (option[x]) => string.
-  dispOptional(.none) => "none".
-  dispOptional(.some(X)) => "some($(X))".
+  dispOptional(.none) => ".none".
+  dispOptional(.some(X)) => "? $(X)".
 
   public implementation all x ~~ equality[x] |: equality[option[x]] => {
     X == Y => optionEqual(X,Y).
@@ -25,7 +25,7 @@ star.option{
   optionEqual(_,_) => .false.
 
   public implementation all x ~~ hashable[x] |: hashable[option[x]] => {
-    hash(.some(X)) => hash("some")*37+hash(X).
+    hash(.some(X)) => hash("?")*37+hash(X).
     hash(.none) => hash("none").
   }
 

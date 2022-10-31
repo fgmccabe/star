@@ -76,18 +76,20 @@ star.compiler.matcher{
   tripleArgMode:all e ~~ (triple[e]) => argMode.
   tripleArgMode(([A,.._],_,_)) => argMode(A).
 
-  argMode ::= .inVars | .inScalars | .inConstructors.
+  argMode ::= .inVars | .inScalars | .inConstructors | .inTuples.
 
   implementation display[argMode] => {
     disp(.inVars) => "inVars".
     disp(.inScalars) => "inScalars".
     disp(.inConstructors) => "inConstructors".
+    disp(.inTuples) => "inTuples".
   }
 
   implementation equality[argMode] => {
     .inVars == .inVars => .true.
     .inScalars == .inScalars => .true.
     .inConstructors == .inConstructors => .true.
+    .inTuples == .inTuples => .true.
     _ == _ default => .false.
   }
 
@@ -96,7 +98,9 @@ star.compiler.matcher{
   argMode(.cInt(_,_)) => .inScalars.
   argMode(.cBig(_,_)) => .inScalars.
   argMode(.cFloat(_,_)) => .inScalars.
+  argMode(.cChar(_,_)) => .inScalars.
   argMode(.cString(_,_)) => .inScalars.
+  argMode(.cTerm(_,Op,_,_)) where isTplLbl(Op) => .inTuples.
   argMode(.cTerm(_,_,_,_)) => .inConstructors.
   argMode(.cWhere(_,T,_)) => argMode(T).
 
@@ -112,6 +116,8 @@ star.compiler.matcher{
     matchScalars(Seg,Vrs,Lc,Deflt,Map).
   compileMatch(.inConstructors,Seg,Vrs,Lc,Deflt,Map) =>
     matchConstructors(Seg,Vrs,Lc,Deflt,Map).
+  compileMatch(.inTuples,Seg,Vrs,Lc,Deflt,Map) =>
+    matchTuples(Seg,Vrs,Lc,Deflt,Map).
   compileMatch(.inVars,Seg,Vrs,Lc,Deflt,Map) =>
     matchVars(Seg,Vrs,Lc,Deflt,Map).
 
@@ -128,8 +134,24 @@ star.compiler.matcher{
   matchConstructors(Seg,[V,..Vrs],Lc,Deflt,Map) => valof{
     Cases = formCases(sort(Seg,compareConstructorTriple),
       sameConstructorTriple,Lc,Vrs,Deflt,Map);
-    Index = ^findIndexMap(tpName(typeOf(V)),Map);
-    valis mkUnpack(Lc,V,populateArms(Index,Cases,Lc,Deflt,Map))
+--    logMsg("map of var type $(tpName(typeOf(V))) is $(findIndexMap(tpName(typeOf(V)),Map))");
+    if Index ?= findIndexMap(tpName(typeOf(V)),Map) then
+      valis mkUnpack(Lc,V,populateArms(Index,Cases,Lc,Deflt,Map))
+    else
+    valis conditionalize(Seg,Deflt)
+  }
+
+  matchTuples:all e ~~ reform[e],rewrite[e],display[e] |:
+    (cons[triple[e]],cons[cExp],option[locn],e,nameMap)=>e.
+  matchTuples(Seg,[V,..Vrs],Lc,Deflt,Map) => valof{
+    Cases = formCases(sort(Seg,compareConstructorTriple),
+      sameConstructorTriple,Lc,Vrs,Deflt,Map);
+--    logMsg("tuple type $(V)\:$(typeOf(V)), ");
+    VTp = typeOf(V);
+    Arity = arity(VTp);
+    Index = [(tLbl(tplLbl(Arity),Arity),consType(VTp,VTp),0)];
+    Arms = populateArms(Index,Cases,Lc,Deflt,Map);
+    valis mkUnpack(Lc,V,Arms)
   }
 
   populateArms:all e ~~ display[e] |: (consMap,cons[cCase[e]],option[locn],e,nameMap) => cons[cCase[e]].
@@ -197,6 +219,8 @@ star.compiler.matcher{
     (LLc,.cInt(LLc,Ix),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
   formCase(([.cFloat(LLc,Dx),.._],_,_),Tpls,Lc,Vars,Deflt,Map) =>
     (LLc,.cFloat(LLc,Dx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
+  formCase(([.cChar(LLc,Cx),.._],_,_),Tpls,Lc,Vars,Deflt,Map) =>
+    (LLc,.cChar(LLc,Cx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
   formCase(([.cString(LLc,Sx),.._],_,_),Tpls,Lc,Vars,Deflt,Map) =>
     (LLc,.cString(LLc,Sx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Map)).
   formCase(([.cTerm(Lc,Lbl,Args,Tp),.._],_,_),Triples,_,Vars,Deflt,Map) => valof{
@@ -250,12 +274,14 @@ star.compiler.matcher{
   compareScalarTriple:all e ~~ (triple[e],triple[e]) => boolean.
   compareScalarTriple(([A,.._],_,_),([B,.._],_,_)) => compareScalar(A,B).
 
+  compareScalar(.cChar(_,A),.cChar(_,B)) => A=<B.
   compareScalar(.cInt(_,A),.cInt(_,B)) => A=<B.
   compareScalar(.cFloat(_,A),.cFloat(_,B)) => A=<B.
   compareScalar(.cString(_,A),.cString(_,B)) => A=<B.
   compareScalar(_,_) default => .false.
 
   sameScalarTriple:all e ~~ (triple[e],triple[e]) => boolean.
+  sameScalarTriple(([.cChar(_,A),.._],_,_),([.cChar(_,B),.._],_,_)) => A==B.
   sameScalarTriple(([.cInt(_,A),.._],_,_),([.cInt(_,B),.._],_,_)) => A==B.
   sameScalarTriple(([.cFloat(_,A),.._],_,_),([.cFloat(_,B),.._],_,_)) => A==B.
   sameScalarTriple(([.cString(_,A),.._],_,_),([.cString(_,B),.._],_,_)) => A==B.
@@ -269,8 +295,10 @@ star.compiler.matcher{
     (sameConstructor(A,B) ? IxA<IxB || compareConstructor(A,B)).
 
   compareConstructor(.cTerm(_,A,_,_),.cTerm(_,B,_,_)) => A<B.
-  
+
+  sameConstructorTriple:all e ~~ (triple[e],triple[e])=>boolean.
   sameConstructorTriple(([A,.._],_,_),([B,.._],_,_)) => sameConstructor(A,B).
+
   sameConstructor(.cTerm(_,A,_,_), .cTerm(_,B,_,_)) => A==B.
   sameConstructor(_,_) default => .false.
 

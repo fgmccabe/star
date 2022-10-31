@@ -8,6 +8,11 @@ star.strings{
     X==Y => _chr_eq(X,Y).
   }
 
+  public implementation comp[char] => {
+    X<Y => _chr_lt(X,Y).
+    X>=Y => _chr_ge(X,Y).
+  }
+
   public implementation display[char] => {
     disp(Cp) => "`#(_chr_quote(Cp))`".
   }

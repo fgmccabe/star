@@ -480,7 +480,7 @@ star.compiler.macro.rules{
   makeAlgebraic(Lc,Vz,Q,Cx,H,Rhs) => valof{
     (Qs,Xs,Face) = algebraicFace(Rhs,Q,[]);
     Fields = sort(Face,compEls);
-    logMsg("algebraic fields $(Fields)");
+--    logMsg("algebraic fields $(Fields)");
     TpExSt = reveal(reUQuant(Lc,Qs,reConstrain(Cx,binary(Lc,"<~",H,reXQuant(Lc,Xs,brTuple(Lc,Fields))))),Vz);
 --    logMsg("Type rule is $(TpExSt)");
     Cons = buildConstructors(Rhs,Q,Cx,H,Vz);
@@ -580,7 +580,7 @@ star.compiler.macro.rules{
   buildConstructors(A,Qs,Cx,Tp,Vz) where
       (Lc,Nm,XQs,XCx,Es) ?= isBraceCon(A) => valof{
 	Els = sort(Es^/((E)=>_?=isTypeAnnotation(E)),compEls);
-	logMsg("constructor els $(Els)");
+--	logMsg("constructor els $(Els)");
 	BCon = typeAnnotation(Lc,Nm,reUQuant(Lc,Qs,
 	  reConstrain(Cx,
 	      binary(Lc,"<=>",reXQuant(Lc,XQs,

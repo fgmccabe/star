@@ -20,8 +20,8 @@ star.compiler.normalize{
   public normalize:(pkgSpec,cons[canonDef],cons[decl])=>cons[cDefn].
   normalize(PkgSpec,Defs,Decls) => valof{
     Map = pkgMap(Decls);
-    if traceNormalize! then
-      logMsg("package map $(Map)");
+--    if traceNormalize! then
+--      logMsg("package map $(Map)");
     valis transformGroup(Defs,Map,Map,[],.none,[])
   }
 
@@ -399,7 +399,7 @@ star.compiler.normalize{
     valis (.cTerm(Lc,Fn,[VV,..Args],Tp),Ex)
   }
   implementFunCall(Lc,.localFun(Nm,ClNm,Th),_,Args,Tp,Map,Ex) => valof{
-    V = liftVarExp(Lc,cName(Th),Tp,Map);
+    V = liftVarExp(Lc,cName(Th),typeOf(Th),Map);
     valis (.cCall(Lc,Nm,[V,..Args],Tp),Ex)
   }
   implementFunCall(Lc,.labelArg(Base,Ix),_,Args,Tp,Map,Ex) => valof{
@@ -421,7 +421,7 @@ star.compiler.normalize{
 
   liftLetExp:(option[locn],cons[canonDef],cons[decl],canon,nameMap,set[cId],cons[cDefn]) => crFlow.
   liftLetExp(Lc,Defs,Decls,Bnd,Outer,Q,Ex) => valof{
---    logMsg("lift let group $(Defs) @ $(Lc)");
+--    logMsg("lift let $(Defs) in $(Bnd) @ $(Lc)");
 --    logMsg("Q=$(Q)");
 
     (lVars,vrDefs) = unzip(varDefs(Defs));
@@ -433,25 +433,27 @@ star.compiler.normalize{
 --    logMsg("cell vars $(lVars)");
     ffreeVars = rawGrpFree \ lVars;
 
---    logMsg("simplifying $(ffreeVars)");
+--    logMsg("ffreeVars= $(ffreeVars), head outer map $(head(Outer))");
     varParents = freeParents(ffreeVars,Outer);
     freeVars = reduceFreeArgs(varParents,Outer);
---    logMsg("simplified free $(freeVars)\:$(typeOf(freeVars))");
     
     allFree = freeVars++lVars;
 
     if [SFr] .= allFree && isEmpty(lVars) then {
-      M = [lyr(.none,foldRight((D,LL)=>collectMtd(D,.some(SFr),LL),[],GrpFns),CM),..Outer];
-      GrpQ = foldLeft(collectQ,[SFr,..Q],Defs);
-      Ex1 = transformGroup(GrpFns,M,Outer,GrpQ,.some(.cVar(Lc,SFr)),Ex);
-      valis liftExp(Bnd,M,GrpQ,Ex1);
+--      logMsg("single free: $(SFr)\:$(typeOf(SFr))");
+      MM = [lyr(? SFr,foldRight((D,LL)=>collectMtd(D,.some(SFr),LL),[],GrpFns),CM),..Outer];
+      M = Outer;
+      GrpQ = foldLeft(collectQ,Q\+SFr,Defs);
+--      logMsg("single $(SFr)\: $(M)");
+      Ex1 = transformGroup(GrpFns,Outer,Outer,GrpQ,.some(.cVar(Lc,SFr)),Ex);
+      valis liftExp(Bnd,MM,GrpQ,Ex1);
     } else {
       freeType = tupleType(allFree//typeOf);
 
       ThV = genVar("_ThVr",freeType);
       ThVr = .cVar(Lc,ThV);
 
---      logMsg("ThVr = $(ThVr)");
+--      logMsg("ThVr = $(ThVr)\:$(typeOf(ThVr))");
 
       L = collectLabelVars(allFree,ThV,0,[]);
 
@@ -472,9 +474,9 @@ star.compiler.normalize{
 
       GrpFree = crTpl(Lc,freeArgs++cellArgs);
 
---      logMsg("free data $(ThV) = $(GrpFree)\:$(typeOf(GrpFree))");
+--      logMsg("free data $(ThV)\:$(typeOf(ThV)) = $(GrpFree), lift $(Bnd)");
       (BndTrm,Exx) = liftExp(Bnd,MM,GrpQ,Ex2);
---      logMsg("lifted let $(ThVr) bound $(BndTrm)");
+--      logMsg("lifted let $(ThV) bound $(BndTrm)");
       valis (.cLtt(Lc,ThV,GrpFree,BndTrm),Exx)
     }
   }
