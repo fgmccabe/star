@@ -32,8 +32,29 @@ star.compiler.lexer{
   nxxTok(`0`,St,St0) where (Nx,.some(Ch)).=nextChr(St) => let{
     numericTok(`x`,St1) where (Nxt,.some(Hx)) .= hexChars(Nx,0) =>
       (Nxt,.some(tok(makeLoc(St0,Nxt),intTok(Hx)))).
+    numericTok(`c`,St1) where (Nxt,.some(ChC)) .= charRef(St1) =>
+      (Nxt,.some(tok(makeLoc(St0,Nxt),intTok(ChC::integer)))).
+    numericTok(`b`,St1) => valof{
+      (Nxt,.some(Bg)) = readNatural(St1,[]);
+      valis (Nxt,?.tok(makeLoc(St0,Nx),.bigTok(Bg::bigint)))
+    }.
     numericTok(_,_) default => readNumber(St0).
   } in numericTok(Ch,Nx).
+  nxxTok(`0`,St,St0) where (Nx,.some(Ch)).=nextChr(St) =>
+    case Ch in {
+      `x` => valof{
+	(Nxt,.some(Hx)) = hexChars(Nx,0);
+	valis (Nxt,?tok(makeLoc(St0,Nxt),intTok(Hx)))
+      }.
+      `c` => valof{
+	(Nxt,?ChC) = charRef(Nx);
+	valis (Nxt,? tok(makeLoc(St0,Nxt),intTok(ChC::integer)))
+      }.
+      `b` => valof{
+	(Nxt,.some(Bg)) = readNatural(Nx,[]);
+	valis (Nxt,?.tok(makeLoc(St0,Nx),.bigTok(Bg::bigint)))
+      }
+    }.
   nxxTok(`1`,_,St0) => readNumber(St0).
   nxxTok(`2`,_,St0) => readNumber(St0).
   nxxTok(`3`,_,St0) => readNumber(St0).

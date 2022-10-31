@@ -124,7 +124,7 @@ ReturnStatus g__big2str(heapPo h, termPo a1) {
   if (actual >= 0) {
     return (ReturnStatus) {.result = (termPo) allocateString(h, buff, actual), .ret=Ok};
   } else
-    return liberror(h, "_big_format", eINVAL);
+    return liberror(h, "_big2str", eINVAL);
 }
 
 ReturnStatus g__str2big(heapPo h, termPo a1) {
