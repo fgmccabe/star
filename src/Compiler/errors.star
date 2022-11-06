@@ -46,7 +46,7 @@ star.compiler.errors{
 
   public reportError:(string,option[locn]) => ().
   reportError(Msg,Lc) => valof{
-    logMsg(disp(.errorMsg(Lc,Msg)));
+    logMsg("error $(countErrors()+1) - #(Msg) at $(Lc)");
     reports := [.errorMsg(Lc,Msg),..reports!];
     valis ()
   }

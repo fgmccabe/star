@@ -65,6 +65,6 @@ star.compiler.canondeps{
   }
 
   freeRefs(Val,Q,All) => let{
-    Free = freeVarsInExp(Val,[],Q,[]).
+    Free = findFree(Val,[],Q).
   } in { .varSp(V,T) | .cId(V,T) in Free}.
 }

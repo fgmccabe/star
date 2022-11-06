@@ -39,12 +39,9 @@ star.compiler.term.repo{
   public addToRepo:(termRepo,pkg,string,string) => termRepo.
   addToRepo(.repo(Root,Man),.pkg(Pk,Vr),Kind,Text) => valof{
     Ext = extensionMapping(Kind);
-    Fn = Pk++(Vr::string)++Ext;
-    FUri = ^parseUri(Fn);
-    FU = ^resolveUri(Root,FUri);
---    logMsg("dest uri $(FU)");
+    Fn = "#(Pk).#(Vr::string)#(Ext)";
+    FU = ^resolveUri(Root,Fn::uri);
     putResource(FU,Text);
---    logMsg("$(FU) written");
     valis flushRepo(.repo(Root,addToManifest(Man,pkg(Pk,Vr),Kind,Fn)))
   }
 

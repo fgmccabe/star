@@ -33,6 +33,8 @@ star.compiler.normalize{
     valis transformGroup(Ds,Map,Outer,Q,Extra,Ex1)
   }
 
+  all e ~~ crFlow[e] ~> (e,cons[cDefn]).
+
   transformDef:(canonDef,nameMap,nameMap,set[cId],option[cExp],cons[cDefn]) =>
     cons[cDefn].
   transformDef(.varDef(Lc,Nm,FullNm,.lambda(_,LNm,Eqns,Tp),_,_),Map,Outer,Q,Extra,Ex) => valof{
@@ -92,9 +94,11 @@ star.compiler.normalize{
 
   transformTypeDef(Lc,Nm,Tp,TpRl,Map,Ex) => valof{
 --    logMsg("look for $(Nm)\:$(Tp) in $(Map)");
-    ConsMap = ^ findIndexMap(Nm,Map);
+    if ConsMap ?= findIndexMap(Nm,Map) then
 --    logMsg("constructor map $(ConsMap)");
-    valis [.tpDef(Lc,Tp,TpRl,ConsMap),..Ex]
+      valis [.tpDef(Lc,Tp,TpRl,ConsMap),..Ex]
+    else
+    valis [.tpDef(Lc,Tp,TpRl,[]),..Ex]
   }
 
   transformConsDef(Lc,Nm,Tp,Map,Ex) => valof{
@@ -120,15 +124,27 @@ star.compiler.normalize{
   findLbl(Nm,[_,..Ms]) => findLbl(Nm,Ms).
 
   contract all e,t ~~ transform[e->>t] ::= {
-    transform:(e,nameMap,set[cId],cons[cDefn]) => (t,cons[cDefn])
+    transform:(e,nameMap,set[cId],cons[cDefn]) => (t,cons[cDefn]).
   }
 
   implementation transform[canon->>cExp] => {
-    transform(E,Map,Q,Ex) => liftExp(E,Map,Q,Ex)
+    transform(E,Map,Q,Ex) => liftExp(E,Map,Q,Ex).
   }
 
   implementation transform[canonAction->>aAction] => {
-    transform(A,Map,Q,Ex) => liftAction(A,Map,Q,Ex)
+    transform(A,Map,Q,Ex) => liftAction(A,Map,Q,Ex).
+  }
+
+  contract all t ~~ letify[t] ::= {
+    letify:(option[locn],cId,cExp,t) => t.
+  }
+
+  implementation letify[cExp] => {
+    letify(Lc,V,Vl,B) => .cLtt(Lc,V,Vl,B).
+  }
+
+  implementation letify[aAction] => {
+    letify(Lc,V,Vl,B) => .aLtt(Lc,V,Vl,B).
   }
 
   transformRules:all e,t ~~ transform[e->>t] |:
@@ -165,7 +181,7 @@ star.compiler.normalize{
   addExtra(.none,Args) => Args.
   addExtra(.some(P),Args) => [P,..Args].
 
-  liftPtn:(canon,nameMap,set[cId],cons[cDefn]) => crFlow.
+  liftPtn:(canon,nameMap,set[cId],cons[cDefn]) => crFlow[cExp].
   liftPtn(.anon(Lc,Tp),Map,_,Ex) => (.cAnon(Lc,Tp),Ex).
   liftPtn(.vr(Lc,Nm,Tp),Map,_,Ex) => trVarPtn(Lc,Nm,Tp,Map,Ex).
   liftPtn(.enm(Lc,FullNm,Tp),Map,_,Ex) => (.cTerm(Lc,FullNm,[],Tp),Ex).
@@ -239,7 +255,7 @@ star.compiler.normalize{
     valis (.cVoid(Lc,Tp),Ex)
   }.
 
-  liftExp:(canon,nameMap,set[cId],cons[cDefn]) => crFlow.
+  liftExp:(canon,nameMap,set[cId],cons[cDefn]) => crFlow[cExp].
   liftExp(.anon(Lc,Tp),Map,Q,Ex) => (.cAnon(Lc,Tp),Ex).
   liftExp(.vr(Lc,Nm,Tp),Map,Q,Ex) => valof{
     VV = liftVarExp(Lc,Nm,Tp,Map);
@@ -303,10 +319,14 @@ star.compiler.normalize{
     (LEl,Exx) = liftExp(El,Map,Q,Ex2);
     valis (.cCnd(Lc,LTs,LTh,LEl),Exx)
   }
-  liftExp(.letExp(Lc,Grp,Decs,Bnd),Map,Q,Ex) => 
-    liftLetExp(Lc,Grp,Decs,Bnd,Map,Q,Ex).
-  liftExp(.letRec(Lc,Grp,Decs,Bnd),Map,Q,Ex) => 
-    liftLetRec(Lc,Grp,Decs,Bnd,Map,Q,Ex).
+  liftExp(.letExp(Lc,Grp,Decs,Bnd),Map,Q,Ex) => valof{
+    Free = findFree(.letExp(Lc,Grp,Decs,Bnd),[],Q);
+    valis liftLet(Lc,Grp,Decs,Bnd,Map,Q,Free,Ex)
+  }
+  liftExp(.letRec(Lc,Grp,Decs,Bnd),Map,Q,Ex) => valof{
+    Free = findFree(.letRec(Lc,Grp,Decs,Bnd),[],Q);
+    liftLetRec(Lc,Grp,Decs,Bnd,Map,Q,Free,Ex).
+  }
   liftExp(.lambda(Lc,FullNm,Eqns,Tp),Map,Q,Ex) => 
     liftExp(.letExp(Lc,[.varDef(Lc,FullNm,FullNm,.lambda(Lc,FullNm,Eqns,Tp),[],Tp)],
 	[.funDec(Lc,FullNm,FullNm,Tp)],
@@ -373,7 +393,7 @@ star.compiler.normalize{
   }
 
   liftExpCallOp:(option[locn],canon,cons[cExp],tipe,nameMap,set[cId],cons[cDefn]) =>
-    crFlow.
+    crFlow[cExp].
   liftExpCallOp(Lc,.vr(_,Nm,_),Args,Tp,Map,_,Ex) where _ ?= isEscape(Nm) =>
     (.cECall(Lc,Nm,Args,Tp),Ex).
   liftExpCallOp(Lc,.vr(_,Nm,_),Args,Tp,Map,_,Ex) where Entry ?= lookupVarName(Map,Nm) =>
@@ -389,7 +409,7 @@ star.compiler.normalize{
   }.
 
   implementFunCall:(option[locn],nameMapEntry,string,cons[cExp],tipe,nameMap,cons[cDefn]) =>
-    crFlow.
+    crFlow[cExp].
   implementFunCall(Lc,.moduleFun(_,Fn),_,Args,Tp,Map,Ex) =>
     (.cCall(Lc,Fn,Args,Tp),Ex).
   implementFunCall(Lc,.moduleCons(Fn,FTp),_,Args,Tp,Map,Ex) =>
@@ -419,16 +439,15 @@ star.compiler.normalize{
     valis (.cVoid(Lc,Tp),[])
   }
 
-  liftLetExp:(option[locn],cons[canonDef],cons[decl],canon,nameMap,set[cId],cons[cDefn]) => crFlow.
-  liftLetExp(Lc,Defs,Decls,Bnd,Outer,Q,Ex) => valof{
---    logMsg("lift let $(Defs) in $(Bnd) @ $(Lc)");
---    logMsg("Q=$(Q)");
-
+  liftLet:all e,x ~~ transform[e->>x],letify[x] |:
+    (option[locn],cons[canonDef],cons[decl],e,nameMap,set[cId],set[cId],cons[cDefn]) =>
+      crFlow[x].
+  liftLet(Lc,Defs,Decls,Bnd,Outer,Q,Free,Ex) => valof{
     (lVars,vrDefs) = unzip(varDefs(Defs));
     CM = makeConsMap(Decls);
     GrpFns = (Defs^/(D)=>~_?=isVarDef(D));
 
-    rawGrpFree = freeLabelVars(freeVarsInExp(.letExp(Lc,Defs,Decls,Bnd),[],Q,[]),Outer)::cons[cId];
+    rawGrpFree = freeLabelVars(Free,Outer)::cons[cId];
 
 --    logMsg("cell vars $(lVars)");
     ffreeVars = rawGrpFree \ lVars;
@@ -446,7 +465,7 @@ star.compiler.normalize{
       GrpQ = foldLeft(collectQ,Q\+SFr,Defs);
 --      logMsg("single $(SFr)\: $(M)");
       Ex1 = transformGroup(GrpFns,Outer,Outer,GrpQ,.some(.cVar(Lc,SFr)),Ex);
-      valis liftExp(Bnd,MM,GrpQ,Ex1);
+      valis transform(Bnd,MM,GrpQ,Ex1);
     } else {
       freeType = tupleType(allFree//typeOf);
 
@@ -474,10 +493,8 @@ star.compiler.normalize{
 
       GrpFree = crTpl(Lc,freeArgs++cellArgs);
 
---      logMsg("free data $(ThV)\:$(typeOf(ThV)) = $(GrpFree), lift $(Bnd)");
-      (BndTrm,Exx) = liftExp(Bnd,MM,GrpQ,Ex2);
---      logMsg("lifted let $(ThV) bound $(BndTrm)");
-      valis (.cLtt(Lc,ThV,GrpFree,BndTrm),Exx)
+      (BndTrm,Exx) = transform(Bnd,MM,GrpQ,Ex2);
+      valis (letify(Lc,ThV,GrpFree,BndTrm),Exx)
     }
   }
 
@@ -550,6 +567,14 @@ star.compiler.normalize{
     (EE,Ex1) = liftExp(E,Map,Q,Ex);
     valis (.aPerf(Lc,EE),Ex1)
   }
+  liftAction(.doLet(Lc,Grp,Dcs,Bnd),Map,Q,Ex) => valof{
+    Free = findFree(.doLet(Lc,Grp,Dcs,Bnd),[],Q);
+    valis liftLet(Lc,Grp,Dcs,Bnd,Map,Q,Free,Ex)
+  }
+  liftAction(.doLetRec(Lc,Grp,Dcs,Bnd),Map,Q,Ex) => valof{
+    Free = findFree(.doLetRec(Lc,Grp,Dcs,Bnd),[],Q);
+    valis liftLetRec(Lc,Grp,Dcs,Bnd,Map,Q,Free,Ex)
+  }
   liftAction(.doSuspend(Lc,T,E,H),Map,Q,Ex) => valof{
     (TT,Ex1) = liftExp(T,Map,Q,Ex);
     (EE,Ex2) = liftExp(E,Map,Q,Ex1);
@@ -591,23 +616,17 @@ star.compiler.normalize{
   
   -- In a let rec, all the non functions must end up in the free data
 
-  liftLetRec:(option[locn],cons[canonDef],cons[decl],canon,nameMap,set[cId],
-    cons[cDefn]) => crFlow.
-  liftLetRec(Lc,Grp,Decs,Bnd,Outer,Q,Ex) => valof{
---    logMsg("lift let rec group $(Grp) @ $(Lc)");
---    logMsg("Q=$(Q)");
+  liftLetRec:all e,x ~~ transform[e->>x],letify[x] |:
+    (option[locn],cons[canonDef],cons[decl],e,nameMap,set[cId],set[cId],
+      cons[cDefn]) => crFlow[x].
+  liftLetRec(Lc,Grp,Decs,Bnd,Outer,Q,Free,Ex) => valof{
     GrpFns = (Grp^/(D)=>~_?=isVarDef(D));
     GrpVars = (Grp^/(D)=>_?=isVarDef(D));
     (lVars,vrDefs) = unzip(varDefs(Grp));
---    logMsg("lVars = $(lVars)");
---    logMsg("vrDefs = $(vrDefs)");
     
-    rawGrpFree = freeLabelVars(freeVarsInExp(.letRec(Lc,Grp,Decs,Bnd),[],Q,[]),Outer)::cons[cId];
---    logMsg("raw free vars $(rawGrpFree)");
+    rawGrpFree = freeLabelVars(Free,Outer)::cons[cId];
     varParents = freeParents(rawGrpFree \ lVars,Outer);
     freeVars = reduceFreeArgs(varParents,Outer);
---    logMsg("free variables $(freeVars)\:$(typeOf(freeVars))");
---    logMsg("layer var $(layerVar(Outer))");
 
     ThV = genVar("_ThVr",typeOf(freeVars++lVars));
     ThVr = .cVar(Lc,ThV);
@@ -617,22 +636,15 @@ star.compiler.normalize{
     L = collectVars(GrpVars,ThV,size(freeVars),collectLabelVars(freeVars,ThV,0,[]));
     M = [.lyr(.some(ThV),foldRight((D,LL)=>collectMtd(D,.some(ThV),LL),L,GrpFns),CM),..Outer];
 
---      logMsg("theta var $(ThV)\:$(typeOf(ThV)) ~ $(L)");
---      logMsg("letrec map is $(head(M))");
-
     freeArgs = (freeVars//(.cId(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer));
---      logMsg("free vars lift to $(freeArgs)");
     cellVoids = (vrDefs//(E)=>.cVoid(Lc,typeOf(E)));
     GrpFree = crTpl(Lc,freeArgs++cellVoids);
       
---      logMsg("free data $(ThV) = $(GrpFree)\:$(typeOf(GrpFree))");
-
     GrpQ = foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q\+ThV,lVars),Grp);
     Ex2 = transformGroup(Grp,M,M,GrpQ,.some(ThVr),Ex);
       
-    (BndTrm,Exx) = liftExp(Bnd,M,GrpQ,Ex2);
---    logMsg("lifted letrec $(cVar(Lc,ThV)) bound $(BndTrm)");
-    valis (.cLtt(Lc,ThV,GrpFree,BndTrm),Exx)
+    (BndTrm,Exx) = transform(Bnd,M,GrpQ,Ex2);
+    valis (letify(Lc,ThV,GrpFree,BndTrm),Exx)
   }
 
   collectVars:(cons[canonDef],cId,integer,map[string,nameMapEntry]) =>

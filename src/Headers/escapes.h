@@ -13,7 +13,7 @@
 #define fileType "t'star.file*fileHandle'"
 #define udpType "t'star.io*udpHandle'"
 #define optionType(T) "Uz1'star.core*option'" T
-#define fiberType(S,R) "UUz2'star.core*fiber'" S R
+#define fiberType(S,R) "UUz2'star.fiber*fiber'" S R
 #define futureType(T) "Uz1'star.core*future'" T
 
 /* Define the standard escapes */
@@ -79,7 +79,7 @@ escape(_big2str, "F(b)s", "convert bigint to string")
 escape(_big_format, "F(bs)s", "format a big integer")
 
 escape(_fiber_eq,":k's':k'r'F("fiberType("k's'","k'r'")fiberType("k's'","k'r'")")l","compare two fiber identifiers")
-escape(_new_fiber,":k's':k'r'F(F("fiberType("k's'","k'r'")")k's')"fiberType("k's'","k'r'"),"create a new fiber")
+escape(_new_fiber,":k's':k'r'F(F("fiberType("k's'","k'r'")"k'r')k's')"fiberType("k's'","k'r'"),"create a new fiber")
 escape(_suspend_fiber,":k's':k'r'F("fiberType("k's'","k'r'")"k's')k'r'","suspend a fiber")
 escape(_retire_fiber,":k's':k'r'F("fiberType("k's'","k'r'")"k's')()","retire a fiber")
 escape(_resume_fiber,":k's':k'r'F("fiberType("k's'","k'r'")"k'r')k's'","resume a fiber")

@@ -383,36 +383,36 @@ star.compiler.data{
   encodeSignature(Tp) => reverse(encodeType(deRef(Tp),[]))::string.
 
   encodeType:(tipe,cons[char]) => cons[char].
-  encodeType(Tp,Chs) => isUnbound(Tp) ?
-    [`_`,..Chs] ||
-    case Tp in {
-      .nomnal("star.core*integer") => [`i`,..Chs].
-      .nomnal("star.core*float") => [`f`,..Chs].
-      .nomnal("star.core*string") => [`s`,..Chs].
-      .nomnal("star.core*boolean") => [`l`,..Chs].
-      .nomnal(Nm) => encodeText(Nm,[`t`,..Chs]).
-      .kFun(Nm,Ar) => encodeText(Nm,encodeNat(Ar,[`K`,..Chs])).
-      .tpFun(Nm,Ar) => encodeText(Nm,encodeNat(Ar,[`z`,..Chs])).
-      .tpExp(.tpFun("star.core*cons",1),El) =>
-	encodeType(deRef(El),[`L`,..Chs]).
-      .tpExp(.tpFun("star.core*ref",1),El) =>
-	encodeType(deRef(El),[`r`,..Chs]).
-      .tpExp(.tpExp(.tpFun("=>",2),A),R) =>
-	encodeType(deRef(R),encodeType(deRef(A),[`F`,..Chs])).
-      .tpExp(.tpExp(.tpFun("<=>",2),A),R) =>
-	encodeType(deRef(R),encodeType(deRef(A),[`C`,..Chs])).
-      .tpExp(Op,A) =>
-	encodeType(deRef(A),encodeType(deRef(Op),[`U`,..Chs])).
-      .tupleType(Els) => encodeTypes(Els,[`(`,..Chs]).
-      .allType(V,T) =>
-	encodeType(deRef(T),encodeType(deRef(V),[`:`,..Chs])).
-      .existType(V,T) =>
-	encodeType(deRef(T),encodeType(deRef(V),[`e`,..Chs])).
-      .constrainedType(T,C) =>
-	encodeConstraint(C,encodeType(deRef(T),[`|`,..Chs])).
-      .faceType(Flds,Tps) =>
-	encodeFldTypes(Tps,encodeFldTypes(Flds,[`I`,..Chs])).
-    }.
+  encodeType(Tp,Chs) => isUnbound(Tp) ? [`_`,..Chs] ||
+  case Tp in {
+    .voidType => [`v`,..Chs].
+    .nomnal("star.core*integer") => [`i`,..Chs].
+    .nomnal("star.core*float") => [`f`,..Chs].
+    .nomnal("star.core*string") => [`s`,..Chs].
+    .nomnal("star.core*boolean") => [`l`,..Chs].
+    .nomnal(Nm) => encodeText(Nm,[`t`,..Chs]).
+    .kFun(Nm,Ar) => encodeText(Nm,encodeNat(Ar,[`K`,..Chs])).
+    .tpFun(Nm,Ar) => encodeText(Nm,encodeNat(Ar,[`z`,..Chs])).
+    .tpExp(.tpFun("star.core*cons",1),El) =>
+      encodeType(deRef(El),[`L`,..Chs]).
+    .tpExp(.tpFun("star.core*ref",1),El) =>
+      encodeType(deRef(El),[`r`,..Chs]).
+    .tpExp(.tpExp(.tpFun("=>",2),A),R) =>
+      encodeType(deRef(R),encodeType(deRef(A),[`F`,..Chs])).
+    .tpExp(.tpExp(.tpFun("<=>",2),A),R) =>
+      encodeType(deRef(R),encodeType(deRef(A),[`C`,..Chs])).
+    .tpExp(Op,A) =>
+      encodeType(deRef(A),encodeType(deRef(Op),[`U`,..Chs])).
+    .tupleType(Els) => encodeTypes(Els,[`(`,..Chs]).
+    .allType(V,T) =>
+      encodeType(deRef(T),encodeType(deRef(V),[`:`,..Chs])).
+    .existType(V,T) =>
+      encodeType(deRef(T),encodeType(deRef(V),[`e`,..Chs])).
+    .constrainedType(T,C) =>
+      encodeConstraint(C,encodeType(deRef(T),[`|`,..Chs])).
+    .faceType(Flds,Tps) =>
+      encodeFldTypes(Tps,encodeFldTypes(Flds,[`I`,..Chs])).
+  }.
 
   encodeTypes:(cons[tipe],cons[char])=>cons[char].
   encodeTypes([],Chs) => [`)`,..Chs].

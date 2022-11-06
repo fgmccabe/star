@@ -154,6 +154,7 @@ star.compiler.peephole{
     .iRetX => .true.
     .iRtG => .true.
     .iAbort => .true.
+    .iRetire => .true.
     .iTCall(_) => .true.
     .iTOCall(_) => .true.
     .iCase(_) => .true.

@@ -634,7 +634,6 @@ typeOfPtn(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   isConApply(Term,Lc,F,A),!,
   newTypeVar("A",At),
   typeOfExp(F,consType(At,Tp),none,Env,E0,Fun,Path),
-%  reportMsg("con type = %s",[tpe(consType(At,Tp))],Lc),
   typeOfArgPtn(tuple(Lc,"()",A),At,ErTp,E0,Ev,Args,Path),
   Exp = apply(Lc,Fun,Args,Tp,ErTp).
 typeOfPtn(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
@@ -650,7 +649,7 @@ typeOfPtn(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
 typeOfPtn(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
   (isBraceTerm(Term,Lc,F,Args);isQBraceTerm(Term,Lc,F,Args)),
   typeOfRecordPtn(Lc,Tp,ErTp,F,Args,Env,Ev,Exp,Path).
-typeOfPtn(Term,Tp,_,_,Env,Env,void,_) :-
+typeOfPtn(Term,Tp,_,Env,Env,void,_) :-
   locOfAst(Term,Lc),
   reportError("illegal pattern: %s, expecting a %s",[ast(Term),tpe(Tp)],Lc).
 

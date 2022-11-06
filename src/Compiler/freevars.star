@@ -10,6 +10,14 @@ star.compiler.freevars{
   import star.compiler.term.
   import star.compiler.types.
 
+  public contract all e ~~ freevars[e] ::= {
+    findFree:(e,set[cId],set[cId]) => set[cId].
+  }
+
+  public implementation freevars[canon] => {
+    findFree(E,Excl,Q) => freeVarsInExp(E,Excl,Q,[])
+  }
+
   public freeVarsInExp:(canon,set[cId],set[cId],set[cId]) => set[cId].
   freeVarsInExp(Cn,Excl,Q,Fv) => case Cn in {
     .anon(_,_) => Fv.
@@ -54,6 +62,10 @@ star.compiler.freevars{
       logMsg("cant find free vars in $(Cn)");
       valis Fv
     }
+  }
+
+  public implementation freevars[canonAction] => {
+    findFree(A,Excl,Q) => freeVarsInAct(A,Excl,Q,[])
   }
 
   freeVarsInAct(Ac,Excl,Q,Fv) => case Ac in {

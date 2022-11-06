@@ -118,6 +118,12 @@ star.compiler.wff{
   reXQuant(Lc,[Q,..Qs],T) =>
     binary(Lc,"~~",unary(Lc,"exists",reComma([Q,..Qs])),T).
 
+  public isTypeFunVar:(ast) => option[(option[locn],ast,ast)].
+  isTypeFunVar(A) => isBinary(A,"/").
+
+  public mkTypeFunVar:(option[locn],ast,ast)=>ast.
+  mkTypeFunVar(Lc,N,A) => binary(Lc,"/",N,A).
+
   public isConstrained:(ast) => option[(option[locn],cons[ast],ast)].
   isConstrained(T) where
       (Lc,Lh,B) ?= isBinary(T,"|:") => .some((Lc,deComma(Lh),B)).
@@ -679,14 +685,14 @@ star.compiler.wff{
   public isDefault:(ast) => option[(option[locn],ast)].
   isDefault(A) => isUnary(A,"default").
 
-  public isTaskTerm:(ast) => option[(option[locn],ast)].
-  isTaskTerm(A) where (Lc,[Args]) ?= isBrApply(A,"task") =>
+  public isFiberTerm:(ast) => option[(option[locn],ast)].
+  isFiberTerm(A) where (Lc,[Args]) ?= isBrApply(A,"fiber") =>
     .some((Lc,Args)).
-  isTaskTerm(_) default => .none.
+  isFiberTerm(_) default => .none.
 
-  public mkTaskTerm(Lc,As) => brApply(Lc,"task",[As]).
+  public mkFiberTerm(Lc,As) => brApply(Lc,"fiber",[As]).
 
-  public isFiber(A) => isUnary(A,"task").
+  public isFiber(A) => isUnary(A,"fiber").
 
   public isActionSeq:(ast) => option[(option[locn],ast,ast)].
   isActionSeq(A) => isBinary(A,";").

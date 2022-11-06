@@ -63,7 +63,8 @@ star.compiler.types{
   public isUnboundFVar:(tipe) => option[integer].
   isUnboundFVar(.tVar(B,_)) => ((T?=B.binding!) ? isUnboundFVar(T) || .none).
   isUnboundFVar(.tFun(B,Ar,_)) =>
-    ((T?=B.binding!) ? isUnboundFVar(T) || some(Ar)).
+    ((T?=B.binding!) ? isUnboundFVar(T) || ?Ar).
+  isUnboundFVar(.kFun(B,Ar)) => ? Ar.
   isUnboundFVar(_) default => .none.
 
   public setBinding:(tipe,tipe) => ().

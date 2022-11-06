@@ -21,7 +21,7 @@ star.fiber{
     case Ch! in {
       .hasData(_) => {
 	T suspend .blocked in {
-	  .go_ahead => post(T,D,Ch)
+	  .go_ahead => valis post(T,D,Ch)
 	}
       }.
       .quiescent => {
@@ -41,7 +41,7 @@ star.fiber{
     }
   }
 
-  collect:all d,e ~~ (task[e],ref channel[d]) => d.
+  collect:all e ~~ (task[e],ref channel[e]) => e.
   collect(T,Ch) => valof{
     case Ch! in {
       .hasData(D) => {

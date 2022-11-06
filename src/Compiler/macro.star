@@ -68,8 +68,7 @@ star.compiler.macro{
     mkImplementationStmt(Lc,Q//macroType,Cx//macroType,macroType(Tp),macroTerm(Exp)).
   examineStmt(A) where (Lc,_,Q,C,Tp,B) ?= isAlgebraicTypeStmt(A) =>
     mkAlgebraicTypeStmt(Lc,Q//macroType,C//macroType,macroType(Tp),macroConstructor(B)).
-  examineStmt(A) where isConstructorStmt(A) =>
-    macroType(A).
+  examineStmt(A) where isConstructorStmt(A) => macroType(A).
   examineStmt(A) where _ ?= isAnnotation(A) => A.
   examineStmt(A) where (Lc,Q,Cx,Tp,Exp) ?= isAccessorStmt(A) =>
     mkAccessorStmt(Lc,Q//macroType,Cx//macroType,macroType(Tp),macroTerm(Exp)).
@@ -225,8 +224,8 @@ star.compiler.macro{
     mkValof(Lc,brTuple(VLc,[macroAction(As)])).
   examineTerm(A) where (Lc,B,Hs) ?= isTryCatch(A) =>
     mkTryCatch(Lc,macroTerm(B),Hs//macroLambda).
-  examineTerm(A) where (Lc,S) ?= isTaskTerm(A) => 
-    mkTaskTerm(Lc,macroAction(S)).
+  examineTerm(A) where (Lc,S) ?= isFiberTerm(A) => 
+    mkFiberTerm(Lc,macroAction(S)).
   examineTerm(A) where (Lc,Lb,S) ?= isLabeledTheta(A) => 
     mkQBrTerm(Lc,Lb,macroStmts(S)).
   examineTerm(A) where (Lc,Lb,S) ?= isLabeledRecord(A) =>
@@ -303,6 +302,7 @@ star.compiler.macro{
   examineType(A) where _ ?= isName(A) => A.
   examineType(A) where (Lc,Op,Els) ?= isSquareTerm(A) => 
     squareTerm(Lc,Op,Els//macroType).
+  examineType(A) where _ ?= isTypeFunVar(A) => A.
   examineType(A) where (Lc,L,R) ?= isDepends(A) =>
     mkDepends(Lc,L//macroType,R//macroType).
   examineType(A) where (Lc,L,R) ?= isThrows(A) =>

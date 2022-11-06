@@ -13,7 +13,7 @@ star.iterable{
     (group_by) : (coll[v], (v)=>k) => m[k,coll[v]]
   }
 
-  public sus_generator[e] ::= _yld(e) | ._all.
+  public sus_generator[e] ::= ._yld(e) | ._all.
   public res_generator ::= ._next | ._cancel.
 
   public contract all c,e ~~ generate[c->>e] ::= {
@@ -27,7 +27,7 @@ star.iterable{
       yieldFn:(e,())=>().
       yieldFn(E,_) => valof{
 	try{
-	  suspend _yld(E) in {
+	  suspend ._yld(E) in {
 	    ._next => {}.
 	    ._cancel => throw ()
 	  }

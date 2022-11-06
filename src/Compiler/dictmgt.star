@@ -14,19 +14,23 @@ star.compiler.dict.mgt{
   import star.compiler.unify.
 
   isVar:(string,dict) => option[vrEntry].
-  isVar(Nm,_) where (Tp,_,_) ?= intrinsic(Nm) =>
-    .some(.vrEntry(.none,(L,E)=>refreshVar(L,Nm,Tp,E),Tp,.none)).
-  isVar(Nm,_) where Tp ?= escapeType(Nm) => .some(.vrEntry(.none,(L,E)=>refreshVar(L,Nm,Tp,E),Tp,.none)).
-  isVar(Nm,[]) => .none.
-  isVar(Nm,[Sc,.._]) where Entry?=Sc.vars[Nm] => .some(Entry).
-  isVar(Nm,[_,..D]) => isVar(Nm,D).
+  isVar(Nm,Env) => valof{
+    if Tp ?= escapeType(Nm) then
+      valis ? .vrEntry(.none,(L,E)=>refreshVar(L,Nm,Tp,E),Tp,.none)
+    else
+    valis dictVar(Nm,Env)
+  }
 
+  dictVar(Nm,[]) => .none.
+  dictVar(Nm,[Sc,.._]) where Entry?=Sc.vars[Nm] => ? Entry.
+  dictVar(Nm,[_,..Env]) => dictVar(Nm,Env).
+	  
   public showVar:(string,dict) => string.
   showVar(Nm,Dict) where .vrEntry(_,_,Tp,_)?=isVar(Nm,Dict) => "$(Nm)\:$(Tp)".
   showVar(Nm,_) => "$(Nm) not defined".
 
   public findVar:(option[locn],string,dict) => option[canon].
-  findVar(Lc,Nm,Dict) where .vrEntry(_,Mk,Tp,_) ?= isVar(Nm,Dict) => .some(Mk(Lc,Dict)).
+  findVar(Lc,Nm,Dict) where .vrEntry(_,Mk,_,_) ?= isVar(Nm,Dict) => .some(Mk(Lc,Dict)).
   findVar(_,_,_) default => .none.
 
   public findImplementation:(dict,string) => option[canon].
@@ -55,7 +59,7 @@ star.compiler.dict.mgt{
   }
 
   public findVarFace:(string,dict) => option[tipe].
-  findVarFace(Nm,Env) where .vrEntry(_,Mk,Tp,Fc) ?=isVar(Nm,Env) =>
+  findVarFace(Nm,Env) where .vrEntry(_,_,Tp,Fc) ?=isVar(Nm,Env) =>
     (_?=Fc ? Fc || faceOfType(Tp,Env)).
   findVarFace(_,_) default => .none.
     
@@ -77,7 +81,7 @@ star.compiler.dict.mgt{
     valis manageConstraints(VrTp,Lc,Mkr)
   }    
 
-  public refreshVar(Lc,Nm,Tp,Env) =>
+  refreshVar(Lc,Nm,Tp,Env) =>
     refreshVr(Lc,Tp,Env,(LLc,T)=>vr(LLc,Nm,T)).
 
   public declareFldAccess:(canon,string,option[locn],tipe,dict) => dict.
