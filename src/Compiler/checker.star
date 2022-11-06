@@ -370,7 +370,7 @@ star.compiler.checker{
   checkAccessor:(option[locn],string,cons[ast],cons[ast],ast,ast,dict,dict,string) => (cons[canonDef],cons[decl]).
   checkAccessor(Lc,Nm,Q,C,T,B,Env,Outer,Path) => valof{
     if traceCanon! then
-      logMsg("check accessor $(Nm) q = $(Q), C=$(C), t = $(T), B=$(B)");
+      logMsg("check accessor $(Nm) B=$(B)");
     QV = parseBoundTpVars(Q);
     Cx = parseConstraints(C,QV,Env);
     (_,Fn,[TA]) = ^isSquareTerm(T);
@@ -380,7 +380,10 @@ star.compiler.checker{
     FldTp = parseType(QV,R,Env);
     AT = funType([RcTp],FldTp);
     AccTp = rebind(QV,reConstrainType(Cx,AT),Env);
-    AccFn = typeOfExp(B,AT,.none,Env,Path);
+    if traceCanon! then
+      logMsg("accessor type $(AccTp)");
+    
+    AccFn = typeOfExp(B,AccTp,.none,Env,Path);
 
     if traceCanon! then
       logMsg("accessor exp $(AccFn)\:$(AccTp)");
@@ -410,10 +413,10 @@ star.compiler.checker{
     if traceCanon! then
       logMsg("Bound vars: $(QV), Field type $(FldTp), Record type $(RcTp)");
     AT = funType([RcTp,FldTp],RcTp);
-    if traceCanon! then
-      logMsg("Updater type: $(AT)");
-    AccFn = typeOfExp(B,AT,.none,Env,Path);
     AccTp = rebind(QV,reConstrainType(Cx,AT),Env);
+    if traceCanon! then
+      logMsg("Updater type: $(AccTp)");
+    AccFn = typeOfExp(B,AccTp,.none,Env,Path);
 
     AccVrNm = qualifiedName(Path,.valMark,qualifiedName(tpName(RcTp),.typeMark,Fld));
 
@@ -441,12 +444,12 @@ star.compiler.checker{
     Exp = typeOfExp(A,Tp,ErTp,Env,Path);
     valis (Exp,Env)
   }
-  typeOfPtn(A,Tp,ErTp,Env,Path) where
-      (Lc,E,T) ?= isTypeAnnotation(A) => valof{
-	ETp = parseType([],T,Env);
-	checkType(E,Tp,ETp,Env);
-	typeOfPtn(E,Tp,ErTp,Env,Path)
-      }.
+  typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,E,T) ?= isTypeAnnotation(A) => valof{
+    ETp = parseType([],T,Env);
+
+    checkType(E,Tp,ETp,Env);
+    valis typeOfPtn(E,snd(evidence(ETp,Env)),ErTp,Env,Path)
+  }.
   typeOfPtn(A,Tp,ErTp,Env,Path) where 
       (Lc,E,C) ?= isWhere(A) => valof{
 	(Ptn,Ev0) = typeOfPtn(E,Tp,ErTp,Env,Path);
@@ -556,8 +559,8 @@ star.compiler.checker{
   }
   typeOfExp(A,Tp,_,Env,Path) where (Lc,Id) ?= isName(A) => valof{
     if Var ?= findVar(Lc,Id,Env) then{
-      if traceCanon! then
-	logMsg("$(A)\:$(Var)\:$(typeOf(Var)) ~ $(Tp)");
+--      if traceCanon! then
+--	logMsg("$(Var)\:$(typeOf(Var)) ~ $(Tp)");
       if sameType(Tp,typeOf(Var),Env) then {
 	valis Var
       } else{
@@ -597,7 +600,7 @@ star.compiler.checker{
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,E,T) ?= isTypeAnnotation(A) => valof{
     ETp = parseType([],T,Env);
     checkType(E,Tp,ETp,Env);
-    typeOfExp(E,Tp,ErTp,Env,Path)
+    valis typeOfExp(E,snd(evidence(ETp,Env)),ErTp,Env,Path)
   }.
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,E,C) ?= isWhere(A) => valof{
     (Cond,Ev0) = checkCond(C,ErTp,Env,Path);
@@ -659,20 +662,6 @@ star.compiler.checker{
     checkType(V,refType(VTp),Tp,Env);
     valis apply(Lc,vr(Lc,"_cell",funType([VTp],Tp)),[Vl],Tp)
   }
-  typeOfExp(A,Tp,_ErTp,Env,Path) where (Lc,L) ?= isFiber(A) => valof{
-    RT = newTypeVar("_R");
-    ST = newTypeVar("_S");
-    TskTp = fiberType(RT,ST);
-    if NwFbr ?= findVar(Lc,"_new_fiber",Env) then{
-      checkType(A,funType([funType([TskTp,RT],ST),RT],Tp),typeOf(NwFbr),Env);
-      FbrFn = typeOfExp(L,funType([TskTp,RT],ST),.none,Env,Path);
-      valis apply(Lc,NwFbr,[FbrFn],Tp)
-    }
-    else{
-      reportError("cannot find _new_fiber type",Lc);
-      valis anon(Lc,Tp)
-    }
-  }
   typeOfExp(A,Tp,ErTp,Env,Path) where (_,[El]) ?= isTuple(A) && ~ _ ?= isTuple(El) =>
     typeOfExp(El,Tp,ErTp,Env,Path).
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Els) ?= isTuple(A) => valof{
@@ -682,6 +671,7 @@ star.compiler.checker{
     valis tple(Lc,Ptns)
   }
   typeOfExp(A,Tp,_,Env,Path) where (Lc,_,Ar,C,R) ?= isLambda(A) => valof{
+--    logMsg("compute lambda $(A) expected type $(Tp)");
     At = newTypeVar("_A");
     Rt = newTypeVar("_R");
     (As,E0) = typeOfArgPtn(Ar,At,.none,Env,Path);
@@ -777,10 +767,11 @@ star.compiler.checker{
   typeOfExps:(cons[ast],cons[tipe],option[tipe],cons[canon],dict,string) => cons[canon].
   typeOfExps([],[],_,Els,Env,_) =>reverse(Els).
   typeOfExps([P,..Ps],[T,..Ts],ErTp,Els,Env,Path) =>
-    typeOfExps(Ps,Ts,ErTp,[typeOfExp(P,T,ErTp,Env,Path),..Els],Env,Path).
+    typeOfExps(Ps,Ts,ErTp,[typeOfExp(P,snd(evidence(T,Env)),ErTp,Env,Path),..Els],Env,Path).
 
   typeOfRoundTerm:(option[locn],ast,cons[ast],tipe,option[tipe],dict,string) => canon.
   typeOfRoundTerm(Lc,Op,As,Tp,ErTp,Env,Path) => valof{
+--    logMsg("check round term $(Op)$(As) expected type $(Tp)");
     Vrs = genTpVars(As);
     At = .tupleType(Vrs);
     FFTp = newTypeFun("_F",2);
@@ -942,15 +933,16 @@ star.compiler.checker{
   }
 
   checkAssignment(Lc,Lhs,Rhs,ErTp,Env,Path) where (ILc,Id) ?= isName(Lhs) => valof{
+    Tp = newTypeVar("_V");
     if ~ varDefined(Id,Env) then {
-      Tp = newTypeVar("_V");
       RfTp = refType(Tp);
       Val = typeOfExp(Rhs,Tp,ErTp,Env,Path);
       Ev = declareVar(Id,ILc,refType(Tp),.none,Env);
       valis (doDefn(Lc,vr(ILc,Id,RfTp),apply(Lc,vr(Lc,"_cell",funType([Tp],RfTp)),[Val],RfTp)),Ev)
     } else{
-      Tp = newTypeVar("_V");
+--      logMsg("check assignment $(Lhs) := $(Rhs)");
       Val = typeOfExp(Rhs,Tp,ErTp,Env,Path);
+--      logMsg("rhs $(Val)\:$(typeOf(Val))");
       Var = typeOfExp(Lhs,refType(Tp),ErTp,Env,Path);
       valis (doAssign(Lc,Var,Val),Env)
     }

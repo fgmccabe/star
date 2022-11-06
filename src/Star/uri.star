@@ -264,8 +264,7 @@ star.uri{
   dispSegs([S]) => S.
   dispSegs([S,..M]) => "#(S)/#(dispSegs(M))".
 
-  public
-  getUriPath:(uri)=>string.
+  public getUriPath:(uri)=>string.
   getUriPath(.absUri(_,Pth,_)) => dispRsrc(Pth)::string.
   getUriPath(.relUri(Pth,_)) => dispRsrc(Pth)::string.
 

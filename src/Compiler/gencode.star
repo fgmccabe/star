@@ -114,8 +114,8 @@ star.compiler.gencode{
       compCnsCase(Lc,Gov,Cases,expCont,Cont,ECont,Ctx,Stk).
     .cLtt(Lc,.cId(Vr,VTp),Val,Bnd) => valof{
       (Off,Ctx1) = defineLclVar(Vr,VTp::ltipe,Ctx);
-      (EX,Ctx2) = defineExitLbl("_",Ctx1);
-      valis compExp(Val,stoCont(Off,Stk,expCont(Bnd,Cont,ECont)),ECont,Ctx2,Stk)
+--      (EX,Ctx2) = defineExitLbl("_",Ctx1);
+      valis compExp(Val,stoCont(Off,Stk,expCont(Bnd,Cont,ECont)),ECont,Ctx1,Stk)
     }.
     .cAbort(Lc,Msg,Tp) =>
       abortCont(Lc,Msg).C(Ctx,Stk,[]).
@@ -238,8 +238,8 @@ star.compiler.gencode{
     }.
     .aLtt(Lc,.cId(Vr,VTp),Val,Bnd) => valof{
       (Off,Ctx1) = defineLclVar(Vr,VTp::ltipe,Ctx);
-      (EX,Ctx2) = defineExitLbl("_",Ctx1);
-      valis compExp(Val,stoCont(Off,Stk,actionCont(Bnd,ACont,Cont,ECont)),ECont,Ctx2,Stk)
+--      (EX,Ctx2) = defineExitLbl("_",Ctx1);
+      valis compExp(Val,stoCont(Off,Stk,actionCont(Bnd,ACont,Cont,ECont)),ECont,Ctx1,Stk)
     }.
     .aTry(Lc,B,H) => valof{
       (CLb,CtxB) = defineExitLbl("C",Ctx);
@@ -645,7 +645,8 @@ star.compiler.gencode{
   errorCont:(option[locn],string) => Cont.
   errorCont(Lc,Msg) => cont{
     C(_,Stk,Cde) => valof{
-      reportError(Msg,Lc);
+      if _?=Stk then
+	reportError(Msg,Lc);
       valis (Stk,Cde)
     }
   }

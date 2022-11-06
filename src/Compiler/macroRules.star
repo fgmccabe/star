@@ -61,9 +61,9 @@ star.compiler.macro.rules{
     "assert" -> [(.actn,assertMacro)],
     "show" -> [(.actn,showMacro)],
     "trace" -> [(.expression,traceMacro)],
-    "\${}" -> [(.expression,taskMacro)],
+    "\${}fiber" -> [(.expression,fiberMacro)],
     "generator" -> [(.expression,generatorMacro)],
-    "task" -> [(.expression,taskMacro)],
+    "fiber" -> [(.expression,fiberMacro)],
     "yield" -> [(.actn,yieldMacro)],
     "->" -> [(.expression,arrowMacro),(.pattern,arrowMacro)]
   }.
@@ -367,16 +367,16 @@ star.compiler.macro.rules{
   }
   forLoopMacro(_,.actn) default => .inactive.
 
-  /* task{A} becomes task((this,first)=>A) */
-  taskMacro(E,.expression) where (Lc,A) ?= isTaskTerm(E) =>
-    active(unary(Lc,"task",
+  /* fiber{A} becomes fiber((this,first)=>A) */
+  fiberMacro(E,.expression) where (Lc,A) ?= isFiberTerm(E) =>
+    active(unary(Lc,"_new_fiber",
 	mkLambda(Lc,.false,rndTuple(Lc,[nme(Lc,"this"),nme(Lc,"first")]),
 	  .none,mkValof(Lc,brTuple(Lc,[A]))))).
-  taskMacro(_,.expression) => .inactive.
+  fiberMacro(_,.expression) => .inactive.
     
   /* generator{A}
   becomes
-  task{
+  fiber{
     try{A*} catch {._cancel => {}};
     valis .all
   }
@@ -393,7 +393,7 @@ star.compiler.macro.rules{
 	Try = mkTryCatch(Lc,A,[Catcher]);
 
 	All = mkValis(Lc,enum(Lc,"_all"));
-	valis active(mkTaskTerm(Lc,mkSequence(Lc,Try,All)))
+	valis active(mkFiberTerm(Lc,mkSequence(Lc,Try,All)))
       }.
   generatorMacro(_,_) default => .inactive.
 
@@ -657,72 +657,86 @@ star.compiler.macro.rules{
 
   buildAccessors:(ast,cons[ast],cons[ast],ast,string,cons[ast],visibility)=>cons[ast].
   buildAccessors(Rhs,Q,Cx,H,TpNm,Fields,Vz) =>
-    (Fields//((F)=>makeAccessor(F,TpNm,Rhs,Q,Cx,H,Vz))).
+    (Fields//((F)=>makeAccessor(F,TpNm,Rhs,Q,Cx,H,Vz)))*.
 
   buildUpdaters:(ast,cons[ast],cons[ast],ast,string,cons[ast],
     visibility)=>cons[ast].
   buildUpdaters(Rhs,Q,Cx,H,TpNm,Fields,Vz) =>
-    (Fields//((F)=>makeUpdater(F,TpNm,Rhs,Q,Cx,H,Vz))).
+    (Fields//((F)=>makeUpdater(F,TpNm,Rhs,Q,Cx,H,Vz)))*.
   
-  makeAccessor:(ast,string,ast,cons[ast],cons[ast],ast,visibility) => ast.
+  makeAccessor:(ast,string,ast,cons[ast],cons[ast],ast,visibility) => cons[ast].
   makeAccessor(Annot,TpNm,Cns,Q,Cx,H,Vz) where (Lc,Fld,FldTp)?=isTypeAnnotation(Annot) =>
     valof{
-      AccNm = nme(Lc,"\$$(Fld)");
-      AcEqs = accessorEqns(Cns,Fld,AccNm,[]);
+      AccNm = nme(Lc,"\$#(genSym(disp(Fld)))");
+      Tp = reUQuant(Lc,Q,mkFunctionType(Lc,rndTuple(Lc,[H]),FldTp));
+      AcEqs = accessorEqns(Cns,Fld,FldTp,[]);
       AccessHead = squareTerm(Lc,Fld,[mkDepends(Lc,[H],[FldTp])]);
-      valis mkAccessorStmt(Lc,Q,Cx,AccessHead,mkLetDef(Lc,AcEqs,AccNm))
-    }
+      Gv = nme(Lc,"G");
+      Annot = typeAnnotation(Lc,AccNm,Tp);
+      
+      valis [mkAccessorStmt(Lc,Q,Cx,AccessHead,Annot),
+	Annot,
+	mkEquation(Lc,?AccNm,.false,rndTuple(Lc,[Gv]),.none,mkCaseExp(Lc,Gv,AcEqs))]
+    }.
 
   accessorEqns:(ast,ast,ast,cons[ast])=>cons[ast].
-  accessorEqns(Cns,Fld,AccNm,SoFar) where (Lc,L,R)?=isBinary(Cns,"|") =>
-    accessorEqns(R,Fld,AccNm,accessorEqns(L,Fld,AccNm,SoFar)).
-  accessorEqns(Cns,Fld,AccNm,SoFar) where
+  accessorEqns(Cns,Fld,Tp,SoFar) where (Lc,L,R)?=isBinary(Cns,"|") =>
+    accessorEqns(R,Fld,Tp,accessorEqns(L,Fld,Tp,SoFar)).
+  accessorEqns(Cns,Fld,Tp,SoFar) where
       (Lc,CnNm,Els)?=isBrTerm(Cns) && isFieldOfFc(Els,Fld) => valof{
 	Sorted = sort(Els,compEls);
-	ConArgs = projectArgTypes(Sorted,Fld);
+	ConArgs = projectArgTypes(Sorted,nme(Lc,"X"),Fld);
 	
-	Eqn = mkEquation(Lc,some(AccNm),.false,
-	  rndTuple(Lc,[mkEnumCon(Lc,dollarName(CnNm),ConArgs)]),.none,nme(Lc,"X"));
+	Eqn = equation(Lc,mkEnumCon(Lc,dollarName(CnNm),ConArgs),
+	  typeAnnotation(Lc,nme(Lc,"X"),Tp));
 	valis [Eqn,..SoFar]
-  }
-  accessorEqns(C,Fld,AccNm,Eqns) where (Lc,I) ?= isPrivate(C) =>
-    accessorEqns(I,Fld,AccNm,Eqns).
-  accessorEqns(C,Fld,AccNm,Eqns) default => Eqns.
+      }.
+  accessorEqns(C,Fld,Tp,Eqns) where (Lc,I) ?= isPrivate(C) =>
+    accessorEqns(I,Fld,Tp,Eqns).
+  accessorEqns(C,Fld,Tp,Eqns) where (Lc,I) ?= isPublic(C) =>
+    accessorEqns(I,Fld,Tp,Eqns).
+  accessorEqns(_,_,_,Eqns) default => Eqns.
 
   isFieldOfFc([F,..Els],Fld) where (_,Fld,_) ?= isTypeAnnotation(F) => .true.
   isFieldOfFc([_,..Els],Fld) => isFieldOfFc(Els,Fld).
   isFieldOfFc([],_) default => .false.
 
-  projectArgTypes([],_) => [].
-  projectArgTypes([A,..As],F) where
+  projectArgTypes([],_,_) => [].
+  projectArgTypes([A,..As],X,F) where
       (Lc,V,T) ?= isTypeAnnotation(A) && F== V =>
-    [nme(Lc,"X"),..projectArgTypes(As,F)].
-  projectArgTypes([A,..As],F) where (Lc,V,T) ?= isTypeAnnotation(A) =>
-    [mkAnon(Lc),..projectArgTypes(As,F)].
-  projectArgTypes([_,..As],F) => projectArgTypes(As,F).
+    [X,..projectArgTypes(As,X,F)].
+  projectArgTypes([A,..As],X,F) where (Lc,V,T) ?= isTypeAnnotation(A) =>
+    [mkAnon(Lc),..projectArgTypes(As,X,F)].
+  projectArgTypes([_,..As],X,F) => projectArgTypes(As,X,F).
 
-  makeUpdater:(ast,string,ast,cons[ast],cons[ast],ast,visibility) => ast.
+  makeUpdater:(ast,string,ast,cons[ast],cons[ast],ast,visibility) => cons[ast].
   makeUpdater(Annot,TpNm,Cns,Q,Cx,H,Vz) where (Lc,Fld,FldTp)?=isTypeAnnotation(Annot) => valof{
-    AccNm = dollarName(Fld);
-    UpEqs = updaterEqns(Cns,Fld,AccNm,[]);
+    AccNm = nme(Lc,"\$#(genSym(disp(Fld)))");
+    Annot = typeAnnotation(Lc,AccNm,reUQuant(Lc,Q,mkFunctionType(Lc,rndTuple(Lc,[H,FldTp]),H)));
+    UpEqs = updaterEqns(Cns,Fld,[]);
     AccessHead = squareTerm(Lc,Fld,[mkDepends(Lc,[H],[FldTp])]);
-    valis mkUpdaterStmt(Lc,Q,Cx,AccessHead,mkLetDef(Lc,UpEqs,AccNm))
+    Gv = nme(Lc,"G");
+
+    valis [mkUpdaterStmt(Lc,Q,Cx,AccessHead,Annot),
+      Annot,
+      mkEquation(Lc,?AccNm,.false,rndTuple(Lc,[Gv,nme(Lc,"XX")]),.none,mkCaseExp(Lc,Gv,UpEqs))]
   }
 
-  updaterEqns:(ast,ast,ast,cons[ast])=>cons[ast].
-  updaterEqns(Cns,Fld,AccNm,SoFar) where (Lc,L,R)?=isBinary(Cns,"|") =>
-    updaterEqns(R,Fld,AccNm,updaterEqns(L,Fld,AccNm,SoFar)).
-  updaterEqns(Cns,Fld,AccNm,SoFar) where
+  updaterEqns:(ast,ast,cons[ast])=>cons[ast].
+  updaterEqns(Cns,Fld,SoFar) where (Lc,L,R)?=isBinary(Cns,"|") =>
+    updaterEqns(R,Fld,updaterEqns(L,Fld,SoFar)).
+  updaterEqns(Cns,Fld,SoFar) where
       (Lc,CnNm,Els)?=isBrTerm(Cns) && isFieldOfFc(Els,Fld) => valof{
 	Sorted = sort(Els,compEls);
-	UEqn = mkEquation(Lc,some(AccNm),.false,
-	  rndTuple(Lc,[mkEnumCon(Lc,dollarName(CnNm),allArgs(Sorted,Fld,0,mkAnon(Lc))),nme(Lc,"XX")]),.none,
-	  mkEnumCon(Lc,dollarName(CnNm),allArgs(Sorted,Fld,0,nme(Lc,"XX"))));
+      UEqn = equation(Lc,mkEnumCon(Lc,dollarName(CnNm),allArgs(Sorted,Fld,0,mkAnon(Lc))),
+	mkEnumCon(Lc,dollarName(CnNm),allArgs(Sorted,Fld,0,nme(Lc,"XX"))));
 	valis [UEqn,..SoFar]
       }
-  updaterEqns(C,Fld,AccNm,Eqns) where (Lc,I) ?= isPrivate(C) =>
-    updaterEqns(I,Fld,AccNm,Eqns).
-  updaterEqns(C,_,_,Eqns) default => Eqns.
+  updaterEqns(C,Fld,Eqns) where (Lc,I) ?= isPrivate(C) =>
+    updaterEqns(I,Fld,Eqns).
+  updaterEqns(C,Fld,Eqns) where (Lc,I) ?= isPublic(C) =>
+    updaterEqns(I,Fld,Eqns).
+  updaterEqns(C,_,Eqns) default => Eqns.
   
   allArgs([],_,_,_) => [].
   allArgs([A,..As],F,Ix,Rep) where

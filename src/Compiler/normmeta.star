@@ -47,7 +47,6 @@ star.compiler.normalize.meta{
   public implementation display[typeMapEntry] => {
     disp(.moduleType(Nm,Tp,ConsMap)) => "type #(Nm)\:$(Tp) <- $(ConsMap)".
   }
-public crFlow ~> (cExp,cons[cDefn]).
 
   public lookupVarName:(nameMap,string)=>option[nameMapEntry].
   lookupVarName(Map,Nm) => lookup(Map,Nm,anyDef).

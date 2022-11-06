@@ -3,7 +3,7 @@
   Copyright (c) 2016, 2017 and beyond. Francis G. McCabe
  */
 
-#define fiberType(S,R) "Uz2'star.core*fiber'" S R
+#define fiberType(S,R) "UUz2'star.core*fiber'" S R
 
 /* Define the standard intrinsics */
 
