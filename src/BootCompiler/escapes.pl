@@ -49,10 +49,10 @@ escapeType("_str2big",funType(tplType([type("star.core*string")]),tpExp(tpFun("s
 escapeType("_big2str",funType(tplType([type("star.core*bigint")]),type("star.core*string"))).
 escapeType("_big_format",funType(tplType([type("star.core*bigint"),type("star.core*string")]),type("star.core*string"))).
 escapeType("_fiber_eq",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("s")),kVar("r")),tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("s")),kVar("r"))]),type("star.core*boolean"))))).
-escapeType("_new_fiber",allType(kVar("s"),allType(kVar("r"),funType(tplType([funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("s")),kVar("r")),kVar("r")]),kVar("s"))]),tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("s")),kVar("r")))))).
-escapeType("_suspend_fiber",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("s")),kVar("r")),kVar("s")]),kVar("r"))))).
-escapeType("_retire_fiber",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("s")),kVar("r")),kVar("s")]),tplType([]))))).
-escapeType("_resume_fiber",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("s")),kVar("r")),kVar("r")]),kVar("s"))))).
+escapeType("_new_fiber",allType(kVar("s"),allType(kVar("r"),funType(tplType([funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s")),kVar("r")]),kVar("s"))]),tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s")))))).
+escapeType("_suspend_fiber",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s")),kVar("s")]),kVar("r"))))).
+escapeType("_retire_fiber",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s")),kVar("s")]),tplType([]))))).
+escapeType("_resume_fiber",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s")),kVar("r")]),kVar("s"))))).
 escapeType("sqrt",funType(tplType([type("star.core*float")]),type("star.core*float"))).
 escapeType("exp",funType(tplType([type("star.core*float")]),type("star.core*float"))).
 escapeType("log",funType(tplType([type("star.core*float")]),type("star.core*float"))).

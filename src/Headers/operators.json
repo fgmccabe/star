@@ -2,9 +2,9 @@
   {
     "infixOp": "::=",
     "priorities": [
-      1249,
-      1250,
-      1249
+      1549,
+      1550,
+      1549
     ],
     "desc": "algebraic type definition",
     "keyword": true
@@ -12,9 +12,9 @@
   {
     "infixOp": "|",
     "priorities": [
-      1248,
-      1248,
-      1247
+      1548,
+      1548,
+      1547
     ],
     "desc": "type union and abstraction",
     "keyword": true
@@ -953,8 +953,8 @@
   {
     "prefixOp": "private",
     "priorities": [
-      1200,
-      1199
+      1510,
+      1509
     ],
     "desc": "private program",
     "keyword": true
@@ -998,8 +998,8 @@
   {
     "prefixOp": "contract",
     "priorities": [
-      1260,
-      1259
+      1560,
+      1559
     ],
     "desc": "contract definition",
     "keyword": true

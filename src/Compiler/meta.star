@@ -134,8 +134,8 @@ star.compiler.meta{
     disp(Dc) => case Dc in {
       .implDec(_,Nm,ImplNm,ImplTp) => "Impl #(Nm)~#(ImplNm)\:$(ImplTp)".
       .accDec(_,Tp,Fld,Fun,FunTp) => "Acc $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
-      .updDec(_,Tp,Fld,Fun,FunTp) => "Update $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
-      .conDec(_,Nm,_,RlTp) => "Contract #(Nm)\:$(RlTp)".
+      .updDec(_,Tp,Fld,Fun,FunTp) => "Upd $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
+      .conDec(_,Nm,_,RlTp) => "Ctrct #(Nm)\:$(RlTp)".
       .tpeDec(_,Nm,Tp,_) => "Type #(Nm)\::$(Tp)".
       .varDec(_,Nm,FullNm,Tp) => "Var #(FullNm)\:$(Tp)".
       .funDec(_,Nm,FullNm,Tp) => "Fun #(FullNm)\:$d(Tp)".

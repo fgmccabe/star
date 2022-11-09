@@ -184,7 +184,7 @@
 @tab tupling operator
 @item @code{contract}
 @tab non-associative prefix
-@tab 1260
+@tab 1560
 @tab contract definition
 @item @code{\\/}
 @tab left associative infix
@@ -396,7 +396,7 @@
 @tab while ... do @{@}
 @item @code{private}
 @tab non-associative prefix
-@tab 1200
+@tab 1510
 @tab private program
 @item @code{•}
 @tab left associative infix
@@ -452,7 +452,7 @@
 @tab contract implementation
 @item @code{|}
 @tab left associative infix
-@tab 1248
+@tab 1548
 @tab type union and abstraction
 @item @code{.#.}
 @tab left associative infix
@@ -476,7 +476,7 @@
 @tab if ... then ... else
 @item @code{::=}
 @tab non-associative infix
-@tab 1250
+@tab 1550
 @tab algebraic type definition
 @item @code{/\\}
 @tab left associative infix

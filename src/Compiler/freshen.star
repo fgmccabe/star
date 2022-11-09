@@ -81,7 +81,7 @@ star.compiler.freshen{
   skolemFun(Nm,Ar) => kFun(genSym(Nm),Ar).
 
   public evidence:(tipe,dict) => (cons[(string,tipe)],tipe).
-  evidence(Tp,Env) where (T,Q,Ev).=skolemQuants(deRef(Tp),[],Env) =>
+  evidence(Tp,Env) where (T,Q,Ev).= skolemQuants(deRef(Tp),[],Env) =>
     (Q,frshn(deRef(T),Ev)).
   evidence(Tp,_) default => ([],Tp).
 

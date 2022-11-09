@@ -20,8 +20,8 @@ star.compiler.normalize{
   public normalize:(pkgSpec,cons[canonDef],cons[decl])=>cons[cDefn].
   normalize(PkgSpec,Defs,Decls) => valof{
     Map = pkgMap(Decls);
---    if traceNormalize! then
---      logMsg("package map $(Map)");
+    if traceNormalize! then
+      logMsg("package map $(Map)");
     valis transformGroup(Defs,Map,Map,[],.none,[])
   }
 
@@ -39,7 +39,7 @@ star.compiler.normalize{
     cons[cDefn].
   transformDef(.varDef(Lc,Nm,FullNm,.lambda(_,LNm,Eqns,Tp),_,_),Map,Outer,Q,Extra,Ex) => valof{
     if traceNormalize! then
-      logMsg("transform $(lambda(Lc,LNm,Eqns,Tp))");
+      logMsg("transform function $(lambda(Lc,LNm,Eqns,Tp))");
     ATp = extendFunTp(deRef(Tp),Extra);
     (Eqs,Ex1) = transformRules(Eqns,Outer,Q,Extra,Ex);
     if traceNormalize! then
@@ -93,9 +93,10 @@ star.compiler.normalize{
   transformDef(.updDef(_,_,_,_),_,_,_,_,Ex) => Ex.
 
   transformTypeDef(Lc,Nm,Tp,TpRl,Map,Ex) => valof{
---    logMsg("look for $(Nm)\:$(Tp) in $(Map)");
+    if traceNormalize! then
+      logMsg("indexmap of $(Nm)\:$(Tp) = $(findIndexMap(Nm,Map))");
+
     if ConsMap ?= findIndexMap(Nm,Map) then
---    logMsg("constructor map $(ConsMap)");
       valis [.tpDef(Lc,Tp,TpRl,ConsMap),..Ex]
     else
     valis [.tpDef(Lc,Tp,TpRl,[]),..Ex]
@@ -152,7 +153,6 @@ star.compiler.normalize{
       (cons[(option[locn],cons[cExp],option[cExp],t)],cons[cDefn]).
   transformRules([],_,_,_,Ex) => ([],Ex).
   transformRules([Eqn,..Eqns],Map,Q,Extra,Ex) => valof{
---    logMsg("transform equation $(Eqn)");
     (Trple,Ex1) = transformRule(Eqn,Map,Q,Extra,Ex);
     (Rest,Exx) = transformRules(Eqns,Map,Q,Extra,Ex1);
     valis ([Trple,..Rest],Exx)
@@ -320,12 +320,12 @@ star.compiler.normalize{
     valis (.cCnd(Lc,LTs,LTh,LEl),Exx)
   }
   liftExp(.letExp(Lc,Grp,Decs,Bnd),Map,Q,Ex) => valof{
-    Free = findFree(.letExp(Lc,Grp,Decs,Bnd),[],Q);
+    Free = findFree(.letExp(Lc,Grp,Decs,Bnd),Q);
     valis liftLet(Lc,Grp,Decs,Bnd,Map,Q,Free,Ex)
   }
   liftExp(.letRec(Lc,Grp,Decs,Bnd),Map,Q,Ex) => valof{
-    Free = findFree(.letRec(Lc,Grp,Decs,Bnd),[],Q);
-    liftLetRec(Lc,Grp,Decs,Bnd,Map,Q,Free,Ex).
+    Free = findFree(.letRec(Lc,Grp,Decs,Bnd),Q);
+    valis liftLetRec(Lc,Grp,Decs,Bnd,Map,Q,Free,Ex).
   }
   liftExp(.lambda(Lc,FullNm,Eqns,Tp),Map,Q,Ex) => 
     liftExp(.letExp(Lc,[.varDef(Lc,FullNm,FullNm,.lambda(Lc,FullNm,Eqns,Tp),[],Tp)],
@@ -568,11 +568,11 @@ star.compiler.normalize{
     valis (.aPerf(Lc,EE),Ex1)
   }
   liftAction(.doLet(Lc,Grp,Dcs,Bnd),Map,Q,Ex) => valof{
-    Free = findFree(.doLet(Lc,Grp,Dcs,Bnd),[],Q);
+    Free = findFree(.doLet(Lc,Grp,Dcs,Bnd),Q);
     valis liftLet(Lc,Grp,Dcs,Bnd,Map,Q,Free,Ex)
   }
   liftAction(.doLetRec(Lc,Grp,Dcs,Bnd),Map,Q,Ex) => valof{
-    Free = findFree(.doLetRec(Lc,Grp,Dcs,Bnd),[],Q);
+    Free = findFree(.doLetRec(Lc,Grp,Dcs,Bnd),Q);
     valis liftLetRec(Lc,Grp,Dcs,Bnd,Map,Q,Free,Ex)
   }
   liftAction(.doSuspend(Lc,T,E,H),Map,Q,Ex) => valof{

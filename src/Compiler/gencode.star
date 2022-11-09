@@ -20,10 +20,15 @@ star.compiler.gencode{
 
   public compProg:(pkg,cons[cDefn],cons[decl])=>cons[codeSegment].
   compProg(Pkg,Defs,Globals) => valof{
-    Vars = { Nm->glbVar(Nm,Tp::ltipe) | Decl in Globals &&
-	    (.varDec(_,Nm,_,Tp) .=Decl || .funDec(_,Nm,_,Tp).=Decl) };
+    Vars = foldLeft(declGlobal,[],Globals);
     valis compDefs(Defs,localFuns(Defs,Vars))
   }
+
+  declGlobal(.varDec(_,Nm,_,Tp), Vrs) => Vrs[Nm->glbVar(Nm,Tp::ltipe)].
+  declGlobal(.funDec(_,Nm,_,Tp), Vrs) => Vrs[Nm->glbVar(Nm,Tp::ltipe)].
+  declGlobal(.accDec(_,_,_,Nm,Tp), Vrs) => Vrs[Nm->glbVar(Nm,Tp::ltipe)].
+  declGlobal(.updDec(_,_,_,Nm,Tp), Vrs) => Vrs[Nm->glbVar(Nm,Tp::ltipe)].
+  declGlobal(_,Vrs) => Vrs.
 
   localFuns:(cons[cDefn],map[string,srcLoc])=>map[string,srcLoc].
   localFuns(Defs,Vars) => foldRight(defFun,Vars,Defs).
@@ -108,8 +113,8 @@ star.compiler.gencode{
 	logMsg("compile conditional $(G) -> $(L) or $(R) at $(Stk)");
       valis compCond(G,LC,RC,ECont,Ctx,Stk)
     }.
-    .cCase(Lc,Exp,Cases,Deflt,_Tp) =>
-      compCase(Lc,Exp,Cases,Deflt,expCont,Cont,ECont,Ctx,Stk).
+    .cCase(Lc,Gov,Cases,Deflt,_Tp) =>
+      compCase(Lc,Gov,Cases,Deflt,expCont,Cont,ECont,Ctx,Stk).
     .cUnpack(Lc,Gov,Cases,_Tp) =>
       compCnsCase(Lc,Gov,Cases,expCont,Cont,ECont,Ctx,Stk).
     .cLtt(Lc,.cId(Vr,VTp),Val,Bnd) => valof{
@@ -380,6 +385,7 @@ star.compiler.gencode{
     .cInt(_,Ix) => Ix.
     .cBig(_,Bx) => hash(Bx).
     .cFloat(_,Dx) => hash(Dx).
+    .cChar(_,Cx) => hash(Cx).
     .cString(_,Sx) => hash(Sx).
     .cTerm(_,Nm,Args,_) => size(Args)*37+hash(Nm).
     .cWhere(_,P,_) => caseHash(P).

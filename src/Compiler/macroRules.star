@@ -399,7 +399,7 @@ star.compiler.macro.rules{
 
   /* yield E
    becomes
-   suspend _yld(E) in {
+   suspend ._yld(E) in {
      ._next => {}.
      ._cancel => throw ._cancel
    }
@@ -412,7 +412,7 @@ star.compiler.macro.rules{
     Cancel = mkLambda(Lc,.false,enum(Lc,"_cancel"),.none,mkThrow(Lc,enum(Lc,"_cancel")));
 
     /* Build suspend */
-    valis active(mkSuspend(Lc,nme(Lc,"this"),unary(Lc,"_yld",E),[Nxt,Cancel]))
+    valis active(mkSuspend(Lc,nme(Lc,"this"),mkEnumCon(Lc,nme(Lc,"_yld"),[E]),[Nxt,Cancel]))
   }
 
   contractMacro(A,.statement) where
@@ -667,16 +667,12 @@ star.compiler.macro.rules{
   makeAccessor:(ast,string,ast,cons[ast],cons[ast],ast,visibility) => cons[ast].
   makeAccessor(Annot,TpNm,Cns,Q,Cx,H,Vz) where (Lc,Fld,FldTp)?=isTypeAnnotation(Annot) =>
     valof{
-      AccNm = nme(Lc,"\$#(genSym(disp(Fld)))");
-      Tp = reUQuant(Lc,Q,mkFunctionType(Lc,rndTuple(Lc,[H]),FldTp));
       AcEqs = accessorEqns(Cns,Fld,FldTp,[]);
       AccessHead = squareTerm(Lc,Fld,[mkDepends(Lc,[H],[FldTp])]);
       Gv = nme(Lc,"G");
-      Annot = typeAnnotation(Lc,AccNm,Tp);
       
-      valis [mkAccessorStmt(Lc,Q,Cx,AccessHead,Annot),
-	Annot,
-	mkEquation(Lc,?AccNm,.false,rndTuple(Lc,[Gv]),.none,mkCaseExp(Lc,Gv,AcEqs))]
+      valis [mkAccessorStmt(Lc,Q,Cx,AccessHead,
+	  equation(Lc,rndTuple(Lc,[Gv]),mkCaseExp(Lc,Gv,AcEqs)))]
     }.
 
   accessorEqns:(ast,ast,ast,cons[ast])=>cons[ast].
@@ -711,15 +707,12 @@ star.compiler.macro.rules{
 
   makeUpdater:(ast,string,ast,cons[ast],cons[ast],ast,visibility) => cons[ast].
   makeUpdater(Annot,TpNm,Cns,Q,Cx,H,Vz) where (Lc,Fld,FldTp)?=isTypeAnnotation(Annot) => valof{
-    AccNm = nme(Lc,"\$#(genSym(disp(Fld)))");
-    Annot = typeAnnotation(Lc,AccNm,reUQuant(Lc,Q,mkFunctionType(Lc,rndTuple(Lc,[H,FldTp]),H)));
     UpEqs = updaterEqns(Cns,Fld,[]);
     AccessHead = squareTerm(Lc,Fld,[mkDepends(Lc,[H],[FldTp])]);
     Gv = nme(Lc,"G");
 
-    valis [mkUpdaterStmt(Lc,Q,Cx,AccessHead,Annot),
-      Annot,
-      mkEquation(Lc,?AccNm,.false,rndTuple(Lc,[Gv,nme(Lc,"XX")]),.none,mkCaseExp(Lc,Gv,UpEqs))]
+    valis [mkUpdaterStmt(Lc,Q,Cx,AccessHead,
+	equation(Lc,rndTuple(Lc,[Gv,nme(Lc,"XX")]),mkCaseExp(Lc,Gv,UpEqs)))]
   }
 
   updaterEqns:(ast,ast,cons[ast])=>cons[ast].

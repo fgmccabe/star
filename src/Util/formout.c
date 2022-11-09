@@ -167,12 +167,12 @@ static int number2Str(double x, int precision, char *dec, long *exp) {
     }
 
     while (x >= 1.0L) {
-      x *= 0.1L;
+      x *= 0.1;
       ++exp10;
     }
 
     while (x < 0.1L) {
-      x *= 10.0L;
+      x *= 10.0;
       --exp10;
     }
 
@@ -181,7 +181,7 @@ static int number2Str(double x, int precision, char *dec, long *exp) {
 
       x = modf((double) (x * 10.0L), &front);  /* extract left-most digit */
 
-      *digits++ = hxDgit((int) front);
+      *digits++ = hxDgit((int8) front);
       len++;
     }
 

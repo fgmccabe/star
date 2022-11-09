@@ -9,8 +9,10 @@ star.compiler.dependencies{
   import star.compiler.wff.
   import star.compiler.misc.
 
+  public visMap ~> cons[(defnSp,visibility)].
+
   public dependencies:(cons[ast]) =>
-    (cons[(defnSp,visibility)],cons[ast],map[string,ast],cons[cons[defnSpec]]).
+    (visMap,cons[ast],map[string,ast],cons[cons[defnSpec]]).
   dependencies(Dfs) => valof{
     if traceDependencies! then
       logMsg("look for dependencies in $(Dfs)");
@@ -44,11 +46,10 @@ star.compiler.dependencies{
     disp(.definition(Sp,Lc,Refs,_)) => "$(Sp)->$(Refs)".
   }
 
-  collectDefinitions:(cons[ast]) => (cons[defnSpec],cons[(defnSp,visibility)],
-    map[string,ast],cons[ast]).
+  collectDefinitions:(cons[ast]) => (cons[defnSpec],visMap,map[string,ast],cons[ast]).
   collectDefinitions(Stmts) => collectDefs(Stmts,[],[],{},[]).
 
-  collectDefs:(cons[ast],cons[defnSpec],cons[(defnSp,visibility)],map[string,ast],cons[ast]) => (cons[defnSpec],cons[(defnSp,visibility)],map[string,ast],cons[ast]).
+  collectDefs:(cons[ast],cons[defnSpec],visMap,map[string,ast],cons[ast]) => (cons[defnSpec],visMap,map[string,ast],cons[ast]).
   
   collectDefs([],Defs,Pb,As,Opn) => (Defs,Pb,As,Opn).
   collectDefs([A,..Ss],Defs,Pb,As,Opn) where _ ?= isAnnotation(A) =>
@@ -58,9 +59,9 @@ star.compiler.dependencies{
     valis collectDefs(SS1,Dfs1,Pb1,As1,Opn1)
   }
     
-  collectDefinition:(ast, cons[ast], cons[defnSpec], cons[(defnSp,visibility)],
+  collectDefinition:(ast, cons[ast], cons[defnSpec], visMap,
     map[string,ast], cons[ast], visibility) =>
-    (cons[ast],cons[defnSpec], cons[(defnSp,visibility)],map[string,ast],cons[ast]).
+    (cons[ast],cons[defnSpec], visMap,map[string,ast],cons[ast]).
 
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,_) where
       (_,Ai) ?= isPublic(A) =>
@@ -145,8 +146,7 @@ star.compiler.dependencies{
   isDefined(Sp,[.defnSpec(Sp,Lc,Sts),..Defs]) => Lc.
   isDefined(Sp,[_,..Defs]) => isDefined(Sp,Defs).
 
-  publishName:(defnSp,visibility,cons[(defnSp,visibility)])=>
-    cons[(defnSp,visibility)].
+  publishName:(defnSp,visibility,visMap)=>visMap.
   publishName(Nm,_,Pb) where {? (Nm,_) in Pb ?} => Pb.
   publishName(Nm,Vz,Pb) => [(Nm,Vz),..Pb].
 
@@ -350,7 +350,7 @@ star.compiler.dependencies{
     collectTermRefs(R,All,Rf).
   collectTermRefs(A,All,Rf) where (_,L,H) ?= isTryCatch(A) => 
     collectCasesRefs(H,collectTermRefs,All,collectTermRefs(L,All,Rf)).
-  collectTermRefs(T,All,Rf) where (_,L,R) ?= isAbstraction(T) =>
+  collectTermRefs(T,All,Rf) where (_,L,R) ?= isComprehension(T) =>
     collectCondRefs(R,All,collectTermRefs(L,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,R,_,V) ?= isRecordUpdate(T) => 
     collectTermRefs(V,All,collectTermRefs(R,All,Rf)).

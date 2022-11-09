@@ -53,10 +53,10 @@ star.compiler.escapes{
     "_big2str" => ? tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*bigint")])),nomnal("star.core*string")).
     "_big_format" => ? tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*bigint"),nomnal("star.core*string")])),nomnal("star.core*string")).
     "_fiber_eq" => ? allType(nomnal("s"),allType(nomnal("r"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpExp(tpFun("star.fiber*fiber",2),nomnal("s")),nomnal("r")),tpExp(tpExp(tpFun("star.fiber*fiber",2),nomnal("s")),nomnal("r"))])),nomnal("star.core*boolean")))).
-    "_new_fiber" => ? allType(nomnal("s"),allType(nomnal("r"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpExp(tpFun("star.fiber*fiber",2),nomnal("s")),nomnal("r")),nomnal("r")])),nomnal("s"))])),tpExp(tpExp(tpFun("star.fiber*fiber",2),nomnal("s")),nomnal("r"))))).
-    "_suspend_fiber" => ? allType(nomnal("s"),allType(nomnal("r"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpExp(tpFun("star.fiber*fiber",2),nomnal("s")),nomnal("r")),nomnal("s")])),nomnal("r")))).
-    "_retire_fiber" => ? allType(nomnal("s"),allType(nomnal("r"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpExp(tpFun("star.fiber*fiber",2),nomnal("s")),nomnal("r")),nomnal("s")])),tupleType([])))).
-    "_resume_fiber" => ? allType(nomnal("s"),allType(nomnal("r"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpExp(tpFun("star.fiber*fiber",2),nomnal("s")),nomnal("r")),nomnal("r")])),nomnal("s")))).
+    "_new_fiber" => ? allType(nomnal("s"),allType(nomnal("r"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpExp(tpFun("star.fiber*fiber",2),nomnal("r")),nomnal("s")),nomnal("r")])),nomnal("s"))])),tpExp(tpExp(tpFun("star.fiber*fiber",2),nomnal("r")),nomnal("s"))))).
+    "_suspend_fiber" => ? allType(nomnal("s"),allType(nomnal("r"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpExp(tpFun("star.fiber*fiber",2),nomnal("r")),nomnal("s")),nomnal("s")])),nomnal("r")))).
+    "_retire_fiber" => ? allType(nomnal("s"),allType(nomnal("r"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpExp(tpFun("star.fiber*fiber",2),nomnal("r")),nomnal("s")),nomnal("s")])),tupleType([])))).
+    "_resume_fiber" => ? allType(nomnal("s"),allType(nomnal("r"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpExp(tpFun("star.fiber*fiber",2),nomnal("r")),nomnal("s")),nomnal("r")])),nomnal("s")))).
     "sqrt" => ? tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float")])),nomnal("star.core*float")).
     "exp" => ? tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float")])),nomnal("star.core*float")).
     "log" => ? tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float")])),nomnal("star.core*float")).

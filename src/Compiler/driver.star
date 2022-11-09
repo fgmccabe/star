@@ -110,7 +110,7 @@ star.compiler{
 	};
 
 	if errorFree() && ~ typeCheckOnly! then {
-	  N = normalize(PkgSpec,Defs,Decls);
+	  N = normalize(PkgSpec,Defs,IDecls++Decls);
 	  validProg(N,IDecls++Decls);
 	  if traceNormalize! then{
 	    logMsg("normalized code $(N)");
@@ -127,7 +127,7 @@ star.compiler{
 	    logMsg("normalized code $(Inlined)");
 	  };
 	  if errorFree() && genCode! then{
-	    Segs = compProg(P,Inlined,Decls);
+	    Segs = compProg(P,Inlined,IDecls++Decls);
 
 	    if showCode! then{
 	      logMsg("Generated code:");

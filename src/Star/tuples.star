@@ -107,7 +107,7 @@ star.tuples{
     hash((A,B,C,D,E)) => (((hash(A)*37+hash(B))*37+hash(C))*37+hash(D))*37+hash(E).
   }
 
-  public all K,V ~~ keyval[K,V] ::= kv(K,V).
+  public all K,V ~~ keyval[K,V] ::= .kv(K,V).
   
   public implementation all k,v ~~ display[k],display[v] |:
     display[keyval[k,v]] => {

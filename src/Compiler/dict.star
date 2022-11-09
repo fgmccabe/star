@@ -88,7 +88,7 @@ star.compiler.dict{
     Key = tpName(Tp);
     Entry = accEntry(Lc,AccFn,AccTp);
     Accs = Scope.accessors;
-    
+
     if AccOrs ?= Accs[Key] then{
       valis [Scope.accessors<<-Accs[Key->AccOrs[Fld->Entry]],..Env]
     } else{
@@ -110,7 +110,7 @@ star.compiler.dict{
     Key = tpName(Tp);
     Entry = accEntry(Lc,UpdFn,UpdTp);
     Ups = Scope.updaters;
---    logMsg("declare updater for $(Tp)[$(Key)].#(Fld) |:$(UpdTp)");
+    
     if AccOrs ?= Ups[Key] then{
       valis [Scope.updaters<<-Ups[Key->AccOrs[Fld->Entry]],..Env]
     } else{

@@ -3,6 +3,7 @@ star.compiler.freevars{
   import star.sets.
 
   import star.compiler.canon.
+  import star.compiler.errors.
   import star.compiler.location.
   import star.compiler.escapes.
   import star.compiler.intrinsics.
@@ -11,11 +12,11 @@ star.compiler.freevars{
   import star.compiler.types.
 
   public contract all e ~~ freevars[e] ::= {
-    findFree:(e,set[cId],set[cId]) => set[cId].
+    findFree:(e,set[cId]) => set[cId].
   }
 
   public implementation freevars[canon] => {
-    findFree(E,Excl,Q) => freeVarsInExp(E,Excl,Q,[])
+    findFree(E,Q) => freeVarsInExp(E,[],Q,[])
   }
 
   public freeVarsInExp:(canon,set[cId],set[cId],set[cId]) => set[cId].
@@ -27,6 +28,7 @@ star.compiler.freevars{
     .vr(_,Nm,_) where _ ?= intrinsic(Nm) => Fv.
     .vr(Lc,Nm,Tp) => ({? .cId(Nm,_) in Q ?} ? Fv\+.cId(Nm,Tp) || Fv).
     .intr(_,_) => Fv.
+    .bintr(_,_) => Fv.
     .kar(_,_) => Fv.
     .flt(_,_) => Fv.
     .strng(_,_) => Fv.
@@ -59,13 +61,13 @@ star.compiler.freevars{
     } in freeVarsInExp(E,XX,Q,freeVarsInDefs(D,XX,Q,Fv)).
     .vlof(_,A,_) => freeVarsInAct(A,Excl,Q,Fv).
     _ default => valof{
-      logMsg("cant find free vars in $(Cn)");
+      reportError("cant find free vars in $(Cn)",locOf(Cn));
       valis Fv
     }
   }
 
   public implementation freevars[canonAction] => {
-    findFree(A,Excl,Q) => freeVarsInAct(A,Excl,Q,[])
+    findFree(A,Q) => freeVarsInAct(A,[],Q,[])
   }
 
   freeVarsInAct(Ac,Excl,Q,Fv) => case Ac in {
@@ -108,8 +110,11 @@ star.compiler.freevars{
       freeVarsInExp(F,Excl,Q,
 	freeVarsInExp(E,Excl,Q,Fv)).
     .doCall(_,C) => freeVarsInExp(C,Excl,Q,Fv).
+    _ default => valof{
+      reportError("cant find free vars in $(Ac)",locOf(Ac));
+      valis Fv
+    }
   }
-
 
   freeVarsInTuple(Els,Excl,Q,Fv) =>
     foldRight((E,F)=>freeVarsInExp(E,Excl,Q,F),Fv,Els).
@@ -166,8 +171,7 @@ star.compiler.freevars{
   exclDfs(Defs,Excl,Fv) => foldRight((D,Ex)=>exclDf(D,Ex,Fv),Excl,Defs).
 
   exclDf(.varDef(Lc,Nm,_,Val,_,Tp),Excl,Fv) => Excl\+cId(Nm,Tp).
-  exclDf(.implDef(Lc,Nm,FullNm,Val,Cx,Tp),Excl,Fv) =>
-    exclDf(.varDef(Lc,Nm,FullNm,Val,Cx,Tp),Excl,Fv).
+  exclDf(.implDef(Lc,Nm,FullNm,Val,Cx,Tp),Excl,Fv) => Excl\+cId(Nm,Tp).
   exclDf(_,Excl,_) => Excl.
 
   public glVars:(canon,set[cId]) => set[cId].
@@ -190,6 +194,7 @@ star.compiler.freevars{
       Excl\+.cId(Nm,Tp).
     .intr(_,_) => Excl.
     .flt(_,_) => Excl.
+    .kar(_,_) => Excl.
     .strng(_,_) => Excl.
     .enm(_,_,_) => Excl.
     .dot(_,Rc,_,_) => ptnVars(Rc,Excl,Fv).

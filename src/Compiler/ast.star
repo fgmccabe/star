@@ -104,8 +104,8 @@ star.compiler.ast{
   deInterpolate(A) where (_,I,F) ?= isBinary(A,"frmt") => dePolate(A).
 
   deConsPolate(A) where (_,I) ?= isUnary(A,".") && (_,"nil")?=isNme(I) => .nil.
-  deConsPolate(A) where (_,L,R) ?= isBinary(A,"cons") =>
-    cons(dePolate(L),deConsPolate(R)).
+  deConsPolate(A) where (_,I) ?= isUnary(A,".") && (_,L,R) ?= isBinary(I,"cons") =>
+    .cons(dePolate(L),deConsPolate(R)).
 
   dePolate(A) where (_,D) ?= isUnary(A,"disp") => "$"++dispAst(D,0,"").
   dePolate(A) where (_,D,.str(_,F)) ?= isBinary(A,"frmt") => "$"++dispAst(D,0,"")++":"++F++";".
@@ -113,7 +113,7 @@ star.compiler.ast{
   dePolate(A) default => "#"++dispAst(A,0,"").
 
   isDispCons(A) where (_,I) ?= isUnary(A,".") && (_,"nil")?=isNme(I) => .true.
-  isDispCons(A) where (_,L,R) ?= isBinary(A,"cons") => isDisp(L) && isDispCons(R).
+  isDispCons(A) where (_,I) ?= isUnary(A,".") && (_,L,R) ?= isBinary(I,"cons") => isDisp(L) && isDispCons(R).
   isDispCons(_) default => .false.
 
   isDisp(A) where (_,S) ?= isUnary(A,"_str_multicat") => isDispCons(S).
