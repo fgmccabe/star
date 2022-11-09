@@ -59,7 +59,7 @@
   operator("resume", [prefixOp(901, 900), infixOp(900, 901, 900)]).
   operator("*>", [infixOp(904, 905, 904)]).
   operator(",", [infixOp(999, 1000, 1000)]).
-  operator("contract", [prefixOp(1260, 1259)]).
+  operator("contract", [prefixOp(1560, 1559)]).
   operator("\\/", [infixOp(720, 720, 719)]).
   operator("-", [prefixOp(300, 299), infixOp(720, 720, 719)]).
   operator(".", [prefixOp(10, 9), infixOp(100, 100, 99)]).
@@ -105,7 +105,7 @@
   operator("valof", [prefixOp(300, 299)]).
   operator("yield", [prefixOp(300, 299)]).
   operator("while", [prefixOp(1175, 1174)]).
-  operator("private", [prefixOp(1200, 1199)]).
+  operator("private", [prefixOp(1510, 1509)]).
   operator("•", [infixOp(450, 450, 449)]).
   operator(".&.", [infixOp(700, 700, 699)]).
   operator("///", [infixOp(960, 960, 959)]).
@@ -119,13 +119,13 @@
   operator("<~", [infixOp(1230, 1231, 1230)]).
   operator("type", [prefixOp(1251, 1250)]).
   operator("implementation", [prefixOp(1260, 1259)]).
-  operator("|", [infixOp(1248, 1248, 1247)]).
+  operator("|", [infixOp(1548, 1548, 1547)]).
   operator(".#.", [infixOp(600, 600, 599)]).
   operator("~", [prefixOp(905, 904)]).
   operator("^//", [infixOp(800, 800, 799)]).
   operator("||", [infixOp(919, 920, 920)]).
   operator("else", [infixOp(1199, 1200, 1200)]).
-  operator("::=", [infixOp(1249, 1250, 1249)]).
+  operator("::=", [infixOp(1549, 1550, 1549)]).
   operator("/\\", [infixOp(700, 700, 699)]).
   operator(">=", [infixOp(899, 900, 899)]).
   operator("throws", [infixOp(999, 1000, 999)]).

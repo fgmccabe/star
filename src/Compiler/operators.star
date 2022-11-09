@@ -76,7 +76,7 @@ star.compiler.operators{
     "resume" => [prefixOp(901,900), infixOp(900,901,900)].
     "*>" => [infixOp(904,905,904)].
     "," => [infixOp(999,1000,1000)].
-    "contract" => [prefixOp(1260,1259)].
+    "contract" => [prefixOp(1560,1559)].
     "\\/" => [infixOp(720,720,719)].
     "-" => [prefixOp(300,299), infixOp(720,720,719)].
     "." => [prefixOp(10,9), infixOp(100,100,99)].
@@ -122,7 +122,7 @@ star.compiler.operators{
     "valof" => [prefixOp(300,299)].
     "yield" => [prefixOp(300,299)].
     "while" => [prefixOp(1175,1174)].
-    "private" => [prefixOp(1200,1199)].
+    "private" => [prefixOp(1510,1509)].
     "•" => [infixOp(450,450,449)].
     ".&." => [infixOp(700,700,699)].
     "///" => [infixOp(960,960,959)].
@@ -136,13 +136,13 @@ star.compiler.operators{
     "<~" => [infixOp(1230,1231,1230)].
     "type" => [prefixOp(1251,1250)].
     "implementation" => [prefixOp(1260,1259)].
-    "|" => [infixOp(1248,1248,1247)].
+    "|" => [infixOp(1548,1548,1547)].
     ".#." => [infixOp(600,600,599)].
     "~" => [prefixOp(905,904)].
     "^//" => [infixOp(800,800,799)].
     "||" => [infixOp(919,920,920)].
     "else" => [infixOp(1199,1200,1200)].
-    "::=" => [infixOp(1249,1250,1249)].
+    "::=" => [infixOp(1549,1550,1549)].
     "/\\" => [infixOp(700,700,699)].
     ">=" => [infixOp(899,900,899)].
     "throws" => [infixOp(999,1000,999)].

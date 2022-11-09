@@ -265,6 +265,10 @@ star.compiler.canon{
   showActSeq(.doSeq(_,L,R),Pr,Sp) => "#(showAct(L,Pr-1,Sp));\n#(Sp)#(showActSeq(R,Pr,Sp))".
   showActSeq(A,Pr,Sp) => showAct(A,Pr,Sp).
 
+  public implementation display[canonAction] => {
+    disp(C) => showAct(C,0,"")
+  }
+
   showCases:all x ~~ (cons[rule[x]],(x,integer,string)=>string,string)=>string.
   showCases(Cs,Shw,Sp) => "{#(showRls("",Cs,Shw,Sp))}".
 

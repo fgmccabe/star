@@ -104,7 +104,6 @@ star.compiler.dict.mgt{
 
   declareCns(CLc,Nm,Tp,TpNm,Dict) => valof{
     if [Level,..Rest] .= Dict then {
---      logMsg("declare constructor $(Nm) for $(TpNm) in $(Level.types)");
       if .tpDefn(Lc,TNm,TTp,TpRl,Cons)?=Level.types[TpNm] then{
 	valis [Level.types<<-Level.types[TpNm->.tpDefn(Lc,TNm,TTp,TpRl,Cons[Nm->Tp])],..Rest]
       } else{
@@ -116,6 +115,16 @@ star.compiler.dict.mgt{
       valis Dict
     }
   }
+
+  -- declareConstructor(Nm,FullNm,Lc,Tp,[Level,..Rest]) => valof{
+  --   TpNm = localName(tpName(funTypeRes(Tp)),.typeMark);
+
+  --   if .tpDefn(Lc,TNm,TTp,TpRl,Cons)?=Level.types[TpNm] then
+  --     valis [Level.types<<-Level.types[TpNm->.tpDefn(Lc,TNm,TTp,TpRl,Cons[Nm->Tp])],..Rest]
+  --   else{
+  --     valis [Level.types<<-Level.types[TpNm->.tpDefn(Lc,TpNm,.voidType,.voidType,[Nm->Tp])],..Rest]
+  --   }
+  -- }
 
   public findConstructors:(tipe,dict)=>option[map[string,tipe]].
   findConstructors(Tp,Dict) where (_,_,_,Mp) ?=
@@ -195,9 +204,9 @@ star.compiler.dict.mgt{
     .implDec(Lc,Nm,ImplNm,Tp) => 
       declareImplementation(Lc,Nm,ImplNm,Tp,Dict).
     .accDec(Lc,Tp,Fld,AccFn,AccTp) =>
-      declareAccessor(Lc,Tp,Fld,AccFn,AccTp,Dict).
+      declareVar(AccFn,Lc,AccTp,.none,declareAccessor(Lc,Tp,Fld,AccFn,AccTp,Dict)).
     .updDec(Lc,Tp,Fld,AccFn,AccTp) =>
-      declareUpdater(Lc,Tp,Fld,AccFn,AccTp,Dict).
+      declareVar(AccFn,Lc,AccTp,.none,declareUpdater(Lc,Tp,Fld,AccFn,AccTp,Dict)).
     .conDec(Lc,Nm,ConNm,ConRl) => 
       declareContract(Lc,Nm,ConRl,Dict).
     .tpeDec(Lc,Nm,Tp,TpRl) => 
@@ -217,8 +226,8 @@ star.compiler.dict.mgt{
   public pushFace:(tipe,option[locn],dict) => dict.
   pushFace(Tp,Lc,Env) =>
     pushSig(Tp,Lc,(Id,T,E) where (_,DQ).=deQuant(T) => (_ ?= isConsType(DQ) ?
-	  declareConstructor(Id,Id,Lc,T,E) ||
-	  declareVar(Id,Lc,T,.none,E)),
+	declareConstructor(Id,Id,Lc,T,E) ||
+	declareVar(Id,Lc,T,.none,E)),
       Env).
   
   pushFlds:(cons[(string,tipe)],option[locn],(string,tipe,dict)=>dict,dict) => dict.

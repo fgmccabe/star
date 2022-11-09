@@ -120,7 +120,7 @@ star.cons{
   .}
 
   -- Implement a generator for cons lists
-  public implementation all e ~~ generate[cons[e]->>e] => {.
+  public implementation all e ~~ generate[cons[e]->>e] => {
     _generate(L) => generator{
       LL = ref L;
       while .cons(H,T) .= LL! do{
@@ -128,7 +128,7 @@ star.cons{
 	LL := T
       }
     }
-  .}	
+  }
     
   public implementation all e ~~ display[e] |: display[cons[e]] => let{.
     consDisp(.nil,L) => L.

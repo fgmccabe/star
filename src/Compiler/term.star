@@ -91,6 +91,7 @@ star.compiler.term{
 
   dspExp:(cExp,string) => string.
   dspExp(Exp,Off) => case Exp in {
+    .cVoid(_,_) => "void".
     .cAnon(_,_) => "_".
     .cVar(_,.cId(V,VTp)) => "%#(V)/$(arity(VTp))".
     .cInt(_,Ix) => disp(Ix).
@@ -98,7 +99,6 @@ star.compiler.term{
     .cBig(_,Ix) => disp(Ix).
     .cFloat(_,Dx) => disp(Dx).
     .cString(_,Sx) => disp(Sx).
-    .cVoid(_,_) => "void".
     .cECall(_,Op,As,_) => "#(Op)ε(#(dsplyExps(As,Off)*))".
     .cOCall(_,Op,As,_) => "#(dspExp(Op,Off))·(#(dsplyExps(As,Off)*))".
     .cCall(_,Op,As,_) => "#(Op)(#(dsplyExps(As,Off)*))".
@@ -307,6 +307,8 @@ star.compiler.term{
 
   public implementation hasLoc[cExp] => {
     locOf(Tr) => case Tr in {
+      .cVoid(Lc,_) => Lc.
+      .cAnon(Lc,_) => Lc.
       .cVar(Lc,_) => Lc.
       .cVoid(Lc,_) => Lc.
       .cInt(Lc,_) => Lc.

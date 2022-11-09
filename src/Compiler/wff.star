@@ -34,6 +34,7 @@ star.compiler.wff{
   isLitAst(.int(_,_)) => .true.
   isLitAst(.num(_,_)) => .true.
   isLitAst(.big(_,_)) => .true.
+  isLitAst(.chr(_,_)) => .true.
   isLitAst(.str(_,_)) => .true.
   isLitAst(_) default => .false.
 
@@ -674,7 +675,7 @@ star.compiler.wff{
 
   public mkWherePtn:(option[locn],ast,ast) => ast.
   mkWherePtn(Lc,Ptn,Op) where V.=genName(Lc,"_P") =>
-    binary(Lc,"where",V,binary(Lc,".=",unary(Lc,"some",Ptn),roundTerm(Lc,Op,[V]))).
+    binary(Lc,"where",V,binary(Lc,".=",mkOption(Lc,Ptn),roundTerm(Lc,Op,[V]))).
 
   public isOptionPtn:(ast) => option[(option[locn],ast,ast)].
   isOptionPtn(A) => isBinary(A,"^").
@@ -834,13 +835,8 @@ star.compiler.wff{
 
   public mkBreak(Lc,Lb) => unary(Lc,"break",.nme(Lc,Lb)).
 
-  public isAbstraction:(ast) => option[(option[locn],ast,ast)].
-  isAbstraction(A) where (Lc,[T]) ?= isBrTuple(A) &&
-      (_,B,C) ?= isBinary(T,"|") => .some((Lc,B,C)).
-  isAbstraction(_) default => .none.
-
   public isTheta:(ast) => option[(option[locn],cons[ast])].
-  isTheta(A) where (Lc,Els) ?= isBrTuple(A) && ~ _ ?= isAbstraction(A) =>
+  isTheta(A) where (Lc,Els) ?= isBrTuple(A) && ~ _ ?= isComprehension(A) =>
     .some((Lc,Els)).
   isTheta(_) default => .none.
 

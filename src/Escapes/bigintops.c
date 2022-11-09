@@ -130,7 +130,7 @@ ReturnStatus g__big2str(heapPo h, termPo a1) {
 ReturnStatus g__str2big(heapPo h, termPo a1) {
   integer len;
   const char *str = strVal(a1, &len);
-  integer gSize = len / 8;
+  integer gSize = ((len+7) / 8)+1;
   uint32 digits[gSize];
 
   integer bgSize = longFromText(str, len, digits, gSize);

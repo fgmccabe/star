@@ -257,7 +257,7 @@ star.compiler.macro{
   macroOpt(.some(A),E) => .some(E(A)).
 
   macroLambda(A) where (Lc,D,L,C,R) ?= isLambda(A) =>
-    mkLambda(Lc,D,macroTerm(L),macroOpt(C,macroTerm),macroTerm(R)).
+    mkLambda(Lc,D,macroPtn(L),macroOpt(C,macroTerm),macroTerm(R)).
   macroLambda(A) default => valof{
     reportError("cannot figure out case rule $(A)",locOf(A));
     valis A

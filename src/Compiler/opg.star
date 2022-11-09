@@ -167,7 +167,7 @@ star.compiler.opg{
   handleInterpolations(.cons(H,T),Lc) where
       HH .= handleInterpolation(H) &&
       TT .= handleInterpolations(T,Lc) =>
-    binary(Lc,"cons",HH,TT).
+    mkEnumCon(Lc,nme(Lc,"cons"),[HH,TT]).
 
   handleInterpolation:(stringSegment) => ast.
   handleInterpolation(.segment(Lc,Str)) => .str(? Lc,Str).
