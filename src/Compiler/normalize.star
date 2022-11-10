@@ -39,11 +39,11 @@ star.compiler.normalize{
     cons[cDefn].
   transformDef(.varDef(Lc,Nm,FullNm,.lambda(_,LNm,Eqns,Tp),_,_),Map,Outer,Q,Extra,Ex) => valof{
     if traceNormalize! then
-      logMsg("transform function $(lambda(Lc,LNm,Eqns,Tp))");
+      logMsg("transform function $(lambda(Lc,LNm,Eqns,Tp)) @ $(Lc)");
     ATp = extendFunTp(deRef(Tp),Extra);
     (Eqs,Ex1) = transformRules(Eqns,Outer,Q,Extra,Ex);
     if traceNormalize! then
-      logMsg("transformed $(Eqns) equations: $(Eqs)");
+      logMsg("transformed equations: $(Eqs)");
     Func = functionMatcher(Lc,FullNm,ATp,Map,Eqs);
     if traceNormalize! then
       logMsg("transformed function $(Func)");

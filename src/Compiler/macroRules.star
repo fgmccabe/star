@@ -108,7 +108,7 @@ star.compiler.macro.rules{
 
   -- Convert P?=E to some(P).=E
   optionMatchMacro(A,.expression) where (Lc,L,R) ?= isOptionMatch(A) =>
-    .active(mkMatch(Lc,unary(Lc,"some",L),R)).
+    .active(mkMatch(Lc,mkOption(Lc,L),R)).
   optionMatchMacro(_,_) default => .inactive.
 
   mkLoc(Lc) where .locn(P,Line,Col,Off,Ln)?=Lc =>

@@ -138,9 +138,10 @@ star.compiler.gencode{
       compAction(A,errorCont(Lc,"missing valis action"),Cont,ECont,Ctx,Stk).
     C where isCond(C) => valof{
       Nx = defineLbl("E",Ctx);
-      (Stk1,Cde) = compCond(C,trueCont(jmpCont(Nx,Stk)),
-	falseCont(jmpCont(Nx,Stk)),ECont,Ctx,Stk);
-      valis Cont.C(Ctx,pushStack(boolType::ltipe,Stk),Cde++[.iLbl(Nx)]) -- fix me
+      Stk0 = pushStack(boolType::ltipe,Stk);
+      (Stk1,Cde) = compCond(C,trueCont(jmpCont(Nx,Stk0)),
+	falseCont(jmpCont(Nx,Stk0)),ECont,Ctx,Stk);
+      valis Cont.C(Ctx,Stk1,Cde++[.iLbl(Nx)]) -- fix me
     }.
     C => valof{
       reportError("cannot compile expression $(C)",locOf(C));
@@ -273,11 +274,11 @@ star.compiler.gencode{
       logMsg("compiling case");
     OC = splitCont(Lc,Ctx,Cont);
     EC = splitCont(Lc,Ctx,ECont);
-    (Stk2,CCode,TCode) = compCases(Table,0,Max,Comp,OC,jmpCont(DLbl,Stk),EC,DLbl,Ctx,Stk1);
-    (Stk3,DCode) = Comp(Deflt,OC,EC).C(Ctx,Stk,[]);
+    (Stkc,DCode) = Comp(Deflt,OC,EC).C(Ctx,Stk,[]);
+    (Stkb,CCode,TCode) = compCases(Table,0,Max,Comp,OC,jmpCont(DLbl,Stkc),EC,DLbl,Ctx,Stk1);
     Hgt = ^[|Stk|];
 
-    valis (reconcileStack(Stk2,Stk3),
+    valis (reconcileStack(Stkb,Stkc),
       GCode++[.iLbl(Nxt),.iCase(Max)]++TCode++CCode++[.iLbl(DLbl),.iRst(Hgt)]++DCode)
   }
 
@@ -295,9 +296,9 @@ star.compiler.gencode{
     }.
     [(Ix,Case),..Cases] => valof{
       Lb = defineLbl("CC",Ctx);
-      (Stk2,TCde2,Cde2) = compCases(Cases,Ix+1,Mx,Comp,Succ,Fail,ECont,Deflt,Ctx,Stk);
-      (Stk3,CCde) = compCaseBranch(Case,Comp,Succ,Fail,ECont,Ctx,Stk);
-      valis (reconcileStack(Stk2,Stk3),TCde2++[iJmp(Lb)],Cde2++[.iLbl(Lb),..CCde])
+      (Stkb,TCde2,Cde2) = compCases(Cases,Ix+1,Mx,Comp,Succ,Fail,ECont,Deflt,Ctx,Stk);
+      (Stkc,CCde) = compCaseBranch(Case,Comp,Succ,Fail,ECont,Ctx,Stk);
+      valis (reconcileStack(Stkb,Stkc),TCde2++[iJmp(Lb)],Cde2++[.iLbl(Lb),..CCde])
     }.
     [(Iy,Case),..Cases] => valof{
       (Stk1,TCde,CCde) = compCases([(Iy,Case),..Cases],Ix+1,Mx,Comp,Succ,Fail,ECont,Deflt,Ctx,Stk);
@@ -316,9 +317,9 @@ star.compiler.gencode{
       VLb = defineLbl("CN",Ctx);
       Vr = genSym("__");
       (Off,Ctx1) = defineLclVar(Vr,typeOf(Ptn)::ltipe,Ctx);
-      (Stk2,RlCde) = compPttrn(Ptn,Comp(Exp,Succ,ECont),jmpCont(Fl,Stk),ECont,Ctx1,Stk);
-      (Stk3,AltCde) = compMoreCase(More,Off,Comp,Succ,Fail,ECont,Ctx,Stk);
-      valis (reconcileStack(Stk2,Stk3),[.iTL(Off)]++RlCde++[.iLbl(Fl)]++AltCde)
+      (Stkb,RlCde) = compPttrn(Ptn,Comp(Exp,Succ,ECont),jmpCont(Fl,Stk),ECont,Ctx1,Stk);
+      (Stkc,AltCde) = compMoreCase(More,Off,Comp,Succ,Fail,ECont,Ctx,Stk);
+      valis (reconcileStack(Stkb,Stkc),[.iTL(Off)]++RlCde++[.iLbl(Fl)]++AltCde)
     }
   }
 
@@ -360,11 +361,10 @@ star.compiler.gencode{
     [] => (Stk,[],[]).
     [(Lc,Ptn,Exp),..Cases] => valof{
       Lb = cseLbl(Ptn,Ctx);
-      (Stk2,TCde2,Cde2) = compCnsCases(Cases,Comp,Succ,ECont,Ctx,Stk);
-      
-      (Stk3,CCde) = compPtn(Ptn,Comp(Exp,Succ,ECont),
+      (Stk2a,TCde2,Cde2) = compCnsCases(Cases,Comp,Succ,ECont,Ctx,Stk);
+      (Stk3a,CCde) = compPtn(Ptn,Comp(Exp,Succ,ECont),
 	abortCont(Lc,"match error"),ECont,Ctx,Stk);
-      valis (reconcileStack(Stk2,Stk3),[iJmp(Lb),..TCde2],Cde2++[.iLbl(Lb),..CCde])
+      valis (reconcileStack(trace Stk2a,trace Stk3a),[iJmp(Lb),..TCde2],Cde2++[.iLbl(Lb),..CCde])
     }
   }
 
@@ -427,8 +427,8 @@ star.compiler.gencode{
       valis compPtnArgs(Args,unpackCont(Lc,tLbl(Nm,size(Args)),Succ,Fail,Stk0),
 	Fail,ECont,Ctx,loadStack(Args//(A)=>(typeOf(A)::ltipe),Stk0))
     }.
-    .cWhere(Lc,Ptn,Cond) =>
-      compPtn(Ptn,condCont(Cond,Succ,Fail,ECont,dropStack(Stk)),Fail,ECont,Ctx,Stk).
+    .cWhere(Lc,Ptrn,Cond) =>
+      compPtn(Ptrn,condCont(Cond,Succ,Fail,ECont,dropStack(Stk)),Fail,ECont,Ctx,Stk).
     _ default => valof{
       if isGround(Ptn) then{
 	if traceCodegen! then
@@ -592,11 +592,9 @@ star.compiler.gencode{
   expCont:(cExp,Cont,Cont) => Cont.
   expCont(Exp,Cont,ECont) => cont{
     C(Ctx,Stk,Cde) => valof{
-      if traceCodegen! then
-	logMsg("exp cont $(Exp), Stk=$(Stk)");
       (Stk1,OCde) = compExp(Exp,Cont,ECont,Ctx,Stk);
       if traceCodegen! then
-	logMsg("exp result $(Stk1)");
+	logMsg("exp $(Exp)\:$(typeOf(Exp)), Stk $(Stk) -> $(Stk1)");
       valis (Stk1,Cde++OCde)
     }
   }
