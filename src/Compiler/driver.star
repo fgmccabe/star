@@ -145,9 +145,11 @@ star.compiler{
 
 	    InlineBytes = (mkTpl(Inlined//((I)=>freezeDefn(I))))::string;
 
-	    valis addSpec(PkgSpec,
-	      addSource(addLoweredSource(
-		  addPackage(Repo,CPkg,Bytes),CPkg,InlineBytes),CPkg,SrcUri::string))
+	    if errorFree() then{
+	      valis addSpec(PkgSpec,
+		addSource(addLoweredSource(
+		    addPackage(Repo,CPkg,Bytes),CPkg,InlineBytes),CPkg,SrcUri::string))
+	    }
 	  }
 	}
       };
@@ -178,8 +180,9 @@ star.compiler{
 --      logMsg("is $(P) ok? $(pkgOk(Repo,P))");
       if ~ {? (pkgOk(Repo,P) && I in Imps *> pkgOk(Repo,I)) ?} then{
 	Repp := processPkg(P,Repp!,Cat);
-	if ~errorFree() then
+	if ~errorFree() then{
 	  break pkgLoop
+	}
       }
     };
     flushRepo(Repp!);

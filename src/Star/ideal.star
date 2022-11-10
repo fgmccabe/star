@@ -16,8 +16,8 @@ star.ideal{
   public  all k,v ~~ map[k,v] ::=   -- Expose the type only
     private .ihNil | -- Empty dictionary
     -- Leaf dictionary, all entries have the same hash
-      private ihLeaf(integer,cons[keyval[k,v]]) | 
-      private ihNode(map[k,v],map[k,v],map[k,v],map[k,v]). -- non-leaf case
+      private .ihLeaf(integer,cons[keyval[k,v]]) | 
+      private .ihNode(map[k,v],map[k,v],map[k,v],map[k,v]). -- non-leaf case
 
   findIdeal: all k,v ~~ equality[k],hashable[k] |: (map[k,v],k) => option[v].
   findIdeal(Tr,Ky) => findInTree(0,hash(Ky),Ky,Tr).
@@ -29,7 +29,7 @@ star.ideal{
   findInTree(_,_,_,_) default => .none.
 
   findMember:all k,v ~~ equality[k] |: (k,cons[keyval[k,v]])=>option[v].
-  findMember(K,.cons(Ky->V,_)) where K==Ky => .some(V).
+  findMember(K,.cons(Ky->V,_)) where K==Ky => ?V.
   findMember(K,.cons(_,L)) => findMember(K,L).
   findMember(_,.nil) => .none.
 
@@ -77,14 +77,14 @@ star.ideal{
 
   replaceIdeal: all k,v ~~ equality[k],hashable[k] |: (map[k,v],k,v) => map[k,v].
   replaceIdeal(Tr,Ky,Vl) => let{.
-    replaceInTree(.ihNil,_,Hash) => ihLeaf(Hash,cons(Ky->Vl,.nil)).
+    replaceInTree(.ihNil,_,Hash) => .ihLeaf(Hash,.cons(Ky->Vl,.nil)).
     replaceInTree(.ihLeaf(Hash,Els),_,Hash) => .ihLeaf(Hash,replaceInCons(Els)).
     replaceInTree(.ihLeaf(H,Els),Dpth,Hash) =>
       insertTree(Dpth,Hash,.ihLeaf(H,Els),Ky,Vl).
     replaceInTree(Vect,Dpth,Hash) =>
       patchVec(Vect,subKey(Hash,Dpth),(Sb)=>replaceInTree(Sb,Dpth+2,Hash)).
 
-    replaceInCons(.nil) => cons(Ky->Vl,.nil).
+    replaceInCons(.nil) => .cons(Ky->Vl,.nil).
     replaceInCons(.cons(Ky->_,T)) => .cons(Ky->Vl,T).
     replaceInCons(.cons(P,T)) => .cons(P,replaceInCons(T)).
  .} in replaceInTree(Tr,0,hash(Ky)).
@@ -160,7 +160,7 @@ star.ideal{
   }
 
   public implementation all k,v ~~ equality[k],hashable[k] |: coercion[cons[(k,v)],map[k,v]] => {
-    _coerce(L) => some(foldRight(((K,V),M)=>insertIdeal(M,K,V),.ihNil,L)).
+    _coerce(L) => ?foldRight(((K,V),M)=>insertIdeal(M,K,V),.ihNil,L).
   }
 
   public implementation all k,v ~~ coercion[map[k,v],cons[(k,v)]] => let{.
@@ -171,7 +171,7 @@ star.ideal{
     consPairs(.nil,L) => L.
     consPairs(.cons(K->V,T),L) => consPairs(T,[(K,V),..L]).
  .} in {
-    _coerce(Tr) => some(pairs(Tr,[]))
+    _coerce(Tr) => ?pairs(Tr,[])
   }
 
   idealFold:all k,v,u ~~ ((k,v,u)=>u,u,map[k,v]) => u.
@@ -269,14 +269,14 @@ star.ideal{
     drop(.ihNode(.ihNil,A2,A3,A4)) => .ihNode(.ihNil,drop(A2),A3,A4).
     drop(.ihNode(A1,A2,A3,A4)) => .ihNode(drop(A1),A2,A3,A4).
 
-    hd(.ihLeaf(_,[E,.._])) => .some(E).
+    hd(.ihLeaf(_,[E,.._])) => ?E.
     hd(.ihNode(.ihNil,.ihNil,.ihNil,A4)) => hd(A4).
     hd(.ihNode(.ihNil,.ihNil,A3,A4)) => hd(A3).
     hd(.ihNode(.ihNil,A2,A3,A4)) => hd(A2).
     hd(.ihNode(A1,A2,A3,A4)) => hd(A1).
     hd(_) default => .none.
 
-    hdtl(Tr) where Hh?=hd(Tr) => .some((Hh,drop(Tr))).
+    hdtl(Tr) where Hh?=hd(Tr) => ?(Hh,drop(Tr)).
     hdtl(_) default => .none.
   .} in {
     _eof(.ihNil) => .true.

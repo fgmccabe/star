@@ -690,7 +690,7 @@ star.compiler.term{
   validE:(cExp,set[cId]) => boolean.
   validE(Exp,Vrs) => case Exp in {
     .cVoid(Lc,Tp) => .true.
-    .cAnon(_,_) => .true.
+    .cAnon(_,_) => .false.
     .cVar(Lc,V) =>  V .<. Vrs ? .true || valof{
       reportError("variable $(V)\:$(typeOf(V)) not in scope",Lc);
       valis .false
@@ -719,7 +719,7 @@ star.compiler.term{
     .cCase(_,G,Cs,Df,_) => validE(G,Vrs) && validCases(Cs,validE,Vrs) && validE(Df,Vrs).
     .cUnpack(_,G,Cs,_) => validE(G,Vrs) && validCases(Cs,validE,Vrs).
     .cWhere(_,V,E) => validE(V,Vrs) && validE(E,Vrs).
-    .cMatch(_,V,E) => validE(V,Vrs) && validE(E,Vrs).
+    .cMatch(_,V,E) => validP(V,Vrs) && validE(E,Vrs).
     .cVarNmes(_,_,E) => validE(E,Vrs).
     .cAbort(_,_,_) => .true.
     .cSusp(_,Ts,E,_) => validE(Ts,Vrs) && validE(E,Vrs).
@@ -728,11 +728,29 @@ star.compiler.term{
     .cValof(_,A,_) => validA(A,Vrs).
   }
 
+  validP:(cExp,set[cId]) => boolean.
+  validP(Exp,Vrs) => case Exp in {
+    .cVoid(Lc,Tp) => .true.
+    .cAnon(_,_) => .true.
+    .cVar(Lc,V) =>  .true.
+    .cInt(_,_) => .true.
+    .cBig(_,_) => .true.
+    .cChar(_,_) => .true.
+    .cString(_,_) => .true.
+    .cFloat(_,_) => .true.
+    .cTerm(_,_,Args,_) => {? E in Args *> validP(E,Vrs) ?}.
+    .cWhere(_,P,G) => validP(P,Vrs) && validE(G,Vrs).
+    _ default => valof{
+      reportError("invalid pattern: $(Exp)",locOf(Exp));
+      valis .false.
+    }
+  }
+  
   validCases:all e ~~ (cons[cCase[e]],(e,set[cId])=>boolean,set[cId]) => boolean.
   validCases([],_,_) => .true.
   validCases([(_,A,E),..Cs],P,Vrs) => valof{
     D1 = ptnVrs(A,Vrs);
-    valis validE(A,D1) && P(E,D1) && validCases(Cs,P,Vrs)
+    valis validP(A,D1) && P(E,D1) && validCases(Cs,P,Vrs)
   }
 
   validA:(aAction,set[cId])=>boolean.
@@ -784,7 +802,7 @@ star.compiler.term{
     .cFloat(_,_) => Vrs.
     .cTerm(_,_,Args,_) => foldLeft(ptnVrs,Vrs,Args).
     .cNth(_,R,_,_) => ptnVrs(R,Vrs).
-    .cWhere(_,V,E) => ptnVrs(V,glVars(E,Vrs)).
+    .cWhere(_,V,G) => ptnVrs(V,glVars(G,Vrs)).
   }
 
   glVars:(cExp,set[cId])=>set[cId].

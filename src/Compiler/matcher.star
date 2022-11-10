@@ -19,8 +19,8 @@ star.compiler.matcher{
   functionMatcher(Lc,Nm,Tp,Map,Eqns) => valof{
     NVrs = genVars(Lc,funTypeArg(Tp));
     Trpls = makeTriples(Eqns);
+--      logMsg("function triples: $(Trpls)");
     Error = genRaise(Lc,Nm,funTypeRes(Tp));
-    logMsg("function triples: $(Trpls)");
     Reslt = matchTriples(Lc,NVrs,Trpls,Error,Map);
     valis fnDef(Lc,Nm,Tp,NVrs//(.cVar(_,V))=>V,Reslt)
   }
@@ -28,9 +28,9 @@ star.compiler.matcher{
   public caseMatcher:all e ~~ reform[e],rewrite[e],display[e] |: (option[locn],nameMap,cExp,e,
     cons[(option[locn],cons[cExp],option[cExp],e)])=>e.
   caseMatcher(Lc,Map,Gov,Deflt,Cs) => valof{
-    logMsg("match cases $(Cs)\ngoverning expression $(Gov)");
+--      logMsg("match cases $(Cs)\ngoverning expression $(Gov)");
     Trpls = makeTriples(Cs);
-    logMsg("case triples $(Trpls)");
+--      logMsg("case triples $(Trpls)");
     valis matchTriples(Lc,[Gov],Trpls,Deflt,Map)
   }
 
@@ -51,11 +51,9 @@ star.compiler.matcher{
   matchTriples:all e~~reform[e],rewrite[e],display[e] |: (option[locn],cons[cExp],cons[triple[e]],e,nameMap) => e.
   matchTriples(_,[],Triples,Deflt,_) => conditionalize(Triples,Deflt).
   matchTriples(Lc,Vrs,Triples,Deflt,Map) => valof{
-    logMsg("matching triples, $(Vrs) --- $(Triples), default = $(Deflt)");
+--      logMsg("matching triples, $(Vrs) --- $(Triples), default = $(Deflt)");
     Parts = partitionTriples(Triples);
-    logMsg("partitioned $(Parts)");
     Segs = matchSegments(Parts,Vrs,Lc,Deflt,Map);
-    logMsg("segments = $(Segs)");
     valis Segs
   }.
 
@@ -134,7 +132,6 @@ star.compiler.matcher{
   matchConstructors(Seg,[V,..Vrs],Lc,Deflt,Map) => valof{
     Cases = formCases(sort(Seg,compareConstructorTriple),
       sameConstructorTriple,Lc,Vrs,Deflt,Map);
-    logMsg("map of var type $(tpName(typeOf(V))) is $(findIndexMap(tpName(typeOf(V)),Map))");
     if Index ?= findIndexMap(tpName(typeOf(V)),Map) then
       valis mkUnpack(Lc,V,populateArms(Index,Cases,Lc,Deflt,Map))
     else
@@ -146,7 +143,6 @@ star.compiler.matcher{
   matchTuples(Seg,[V,..Vrs],Lc,Deflt,Map) => valof{
     Cases = formCases(sort(Seg,compareConstructorTriple),
       sameConstructorTriple,Lc,Vrs,Deflt,Map);
-    logMsg("tuple type $(V)\:$(typeOf(V)), ");
     VTp = typeOf(V);
     Arity = arity(VTp);
     Index = [(tLbl(tplLbl(Arity),Arity),consType(VTp,VTp),0)];
@@ -207,9 +203,7 @@ star.compiler.matcher{
     option[locn],cons[cExp],e,nameMap) => cons[cCase[e]].
   formCases([],_,_,_,_,_) => [].
   formCases([Tr,..Triples],Eq,Lc,Vrs,Deflt,Map) => valof{
-    logMsg("case lead triple $(Tr)");
     (Tx,More) = pickMoreCases(Tr,Triples,Eq,[],[]);
-    logMsg("form case from $([Tr,..Tx])");
     Case = formCase(Tr,sort([Tr,..Tx],compareTriple),Lc,Vrs,Deflt,Map);
     valis [Case,..formCases(sort(More,compareTriple),Eq,Lc,Vrs,Deflt,Map)].
   }
@@ -227,14 +221,10 @@ star.compiler.matcher{
     Vrs = (Args//genTplVar);
     NTriples = subTriples(Triples);
     Case = matchTriples(Lc,Vrs++Vars,NTriples,Deflt,Map);
-    valis (Lc,trace cTerm(Lc,Lbl,Vrs,Tp),Case)
+    valis (Lc,cTerm(Lc,Lbl,Vrs,Tp),Case)
   }.
 
-  genTplVar(Arg) => case Arg in {
-    .cAnon(_,_) => Arg.
-    .cVar(Lc,.cId(V,T)) => .cVar(Lc,.cId(genSym(V),T)).
-    _ default => .cVar(locOf(Arg),.cId(genSym("V"),typeOf(Arg))).
-  }
+  genTplVar(Arg) => .cVar(locOf(Arg),.cId(genSym("V"),typeOf(Arg))).
 
   pickMoreCases:all e ~~ (triple[e],cons[triple[e]],(triple[e],triple[e])=>boolean,
     cons[triple[e]],cons[triple[e]])=> (cons[triple[e]],cons[triple[e]]).
@@ -250,7 +240,7 @@ star.compiler.matcher{
     (CArgs++Args,V,X).
   subTriple(([_,..Args],V,X)) => (Args,V,X).
 
-  conditionalize:all e ~~ reform[e] |: (cons[triple[e]],e)=>e.
+  conditionalize:all e ~~ reform[e],display[e] |: (cons[triple[e]],e)=>e.
   conditionalize([],Deflt) => Deflt.
   conditionalize([(_,(Lc,Bnds,ArgCond,Test,Val),_),..Triples],Deflt) => valof{
     (Vl,Cnd) = pullWhere(Val,Test);
