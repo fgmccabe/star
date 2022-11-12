@@ -84,11 +84,13 @@ star.compiler.freevars{
     .doAssign(_,L,R) => freeVarsInExp(L,Excl,Q,freeVarsInExp(R,Excl,Q,Fv)).
     .doTryCatch(_,L,H) => 
       foldLeft((Rl,F)=>freeVarsInRule(Rl,freeVarsInAct,Excl,Q,F),freeVarsInAct(L,Excl,Q,Fv), H).
-    .doIfThen(_,T,L,R) where Fv1 .= freeVarsInCond(T,Excl,Q,Fv) =>
-      freeVarsInAct(L,Excl,Q,freeVarsInAct(R,Excl,Q,Fv1)).
+    .doIfThen(_,T,L,R) => valof{
+      Excl1 = glVars(T,Excl);
+      valis freeVarsInAct(L,Excl1,Q,freeVarsInAct(R,Excl,Q,freeVarsInCond(T,Excl1,Q,Fv)))
+    }.
     .doCase(_,G,Cs) =>
       foldLeft((Rl,F)=>freeVarsInRule(Rl,freeVarsInAct,Excl,Q,F), freeVarsInExp(G,Excl,Q,Fv), Cs).
-    .doWhile(_,C,B) where Excl1 .= extendExcl(C,Excl,Fv) =>
+    .doWhile(_,C,B) where Excl1 .= glVars(C,Excl) =>
       freeVarsInAct(B,Excl1,Q,freeVarsInCond(C,Excl1,Q,Fv)).
     .doLet(_,Dfs,_,A) => valof{
       XX = exclDfs(Dfs,Excl,Fv);

@@ -10,7 +10,7 @@ star.range{
 
   public implementation all a ~~ arith[a],comp[a] |: stream[range[a]->>a] => {
     _eof(.range(F,T,_)) => F>=T.
-    _hdtl(.range(F,T,S)) where F<T => some((F,.range(F+S,T,S))).
+    _hdtl(.range(F,T,S)) where F<T => ?(F,.range(F+S,T,S)).
     _hdtl(_) default => .none.
   }
 

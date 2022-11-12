@@ -17,7 +17,7 @@ star.parse{
   _hed(P) => let{
     hd([],_) => [].
     hd([(F,_),.._],S) => [(F,S)].
-  } in parser((S)=>hd(parse(P,S),S)).
+  } in .parser((S)=>hd(parse(P,S),S)).
 
   public _sat:all s,t ~~ stream[s->>t] |: ((t)=>boolean) => parser[s,t].
   _sat(T) => _item >>= (Ch) => (T(Ch) ? (return Ch) || epsilon).
@@ -29,7 +29,7 @@ star.parse{
   _pred(P) => let{
     check(S) where X?=P() => [(X,S)].
     check(_) => [].
-  } in parser(check).
+  } in .parser(check).
 
   public _tk:all s,t ~~ stream[s->>t], equality[t]|:(t)=>parser[s,t].
   _tk(Chr) => _sat((Ch)=>Ch==Chr).
@@ -60,9 +60,9 @@ star.parse{
  .} in prs(K::cons[char]).
  
   public implementation all t ~~ monad[parser[t]] => {
-    return a => parser((S)=>[(a,S)]).
+    return a => .parser((S)=>[(a,S)]).
 
-    (P >>= F) => parser((S)=>(parse(P,S)//(((a,S1))=>parse(F(a),S1)))*).
+    (P >>= F) => .parser((S)=>(parse(P,S)//(((a,S1))=>parse(F(a),S1)))*).
   }
 
   public implementation all e,t ~~ concat[parser[t,e]] => {

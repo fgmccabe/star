@@ -3,6 +3,7 @@
 :- module(assemble,[assem/2, dispIns/1]).
 :- use_module(misc).
 :- use_module(lterms).
+:- use_module(types).
 :- use_module(encode).
 :- use_module(display).
 :- use_module(escapes).
@@ -21,10 +22,10 @@ assem(struct(Lbl,Ix,Sig),Tpl) :-
     mkCons("cons",[Lbl,Sig,intgr(Ix)],Tpl).
 assem(tipe(Tp,Rl,Map),Tpl) :-
     encMap(Map,MapEls),
-    encType(Tp,TpSig),
+    tpName(Tp,TpNm),
     encType(Rl,RlSig),
     mkTpl(MapEls,MapTpl),
-    mkCons("type",[strg(TpSig),strg(RlSig),MapTpl],Tpl).
+    mkCons("type",[strg(TpNm),strg(RlSig),MapTpl],Tpl).
 
 encPolicy(hard,T) :-
   mkTpl([],T).

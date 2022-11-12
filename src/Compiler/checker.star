@@ -243,7 +243,7 @@ star.compiler.checker{
     if traceCanon! then
       logMsg("function $(Nm) is bound to $(lambda(Lc,FullNm,Rls,Tp))\:$(Tp)");
     
-    valis ([varDef(Lc,Nm,FullNm,lambda(Lc,FullNm,Rls,Tp),Cx,Tp)],
+    valis ([varDef(Lc,Nm,FullNm,lambda(Lc,lambdaLbl(Lc),Rls,Tp),Cx,Tp)],
       [funDec(Lc,Nm,FullNm,Tp)])
   }
 
@@ -676,7 +676,7 @@ star.compiler.checker{
     if Cnd ?= C then {
       (Cond,E1) = checkCond(Cnd,.none,E0,Path);
       Rep = typeOfExp(R,Rt,.none,E1,Path);
-      valis lambda(Lc,LName,[rule(Lc,As,.some(Cond),Rep)],Tp)
+      valis lambda(Lc,LName,[rule(Lc,As,?Cond,Rep)],Tp)
     } else{
       Rep = typeOfExp(R,Rt,.none,E0,Path);
       valis lambda(Lc,LName,[rule(Lc,As,.none,Rep)],Tp)

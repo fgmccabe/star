@@ -410,7 +410,7 @@ int getEngineOptions(int argc, char **argv) {
   splitFirstArg(argc, argv, &argc, &argv);
   int narg = processOptions(copyright, argc, argv, options, NumberOf(options));
 
-  if (narg < argc && !bootSet) {
+  if (narg>0 && narg < argc && !bootSet) {
     setBootPkg(argv[narg], True);
     return narg + 1;
   } else

@@ -52,13 +52,13 @@ star.compiler.resolve{
   overloadVarDef(Dict,Lc,Nm,FullNm,Val,[],Tp) => 
     (varDef(Lc,Nm,FullNm,resolveTerm(Val,Dict),[],Tp),Dict).
   overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp) => valof{
---    logMsg("declare CVars $(Cx)");
+--    logMsg("overload $(FullNm) = $(Val)");
     (Cvrs,CDict) = defineCVars(Lc,Cx,[],Dict);
     RVal = resolveTerm(Val,CDict);
     (Qx,Qt) = deQuant(Tp);
     (_,ITp) = deConstrain(Qt);
     CTp = reQuant(Qx,funType(Cx//typeOf,ITp));
-    valis (varDef(Lc,Nm,FullNm,lambda(Lc,FullNm,[rule(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp),Dict)
+    valis (trace varDef(Lc,Nm,FullNm,lambda(Lc,lambdaLbl(Lc),[rule(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp),Dict)
   }
 
   overloadImplDef:(dict,option[locn],string,string,canon,cons[constraint],tipe) =>
@@ -81,7 +81,7 @@ star.compiler.resolve{
       valis (implDef(Lc,Nm,FullNm,RVal,[],Tp),Dict)
     } else {
       CTp = reQuant(Qx,funType(Cx//genContractType,ITp));
-      valis (implDef(Lc,Nm,FullNm,lambda(Lc,FullNm,[rule(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp),Dict)
+      valis (implDef(Lc,Nm,FullNm,lambda(Lc,lambdaLbl(Lc),[rule(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp),Dict)
     }
   }
 
@@ -203,7 +203,6 @@ star.compiler.resolve{
   }
   overloadTerm(.lambda(Lc,Nm,Rls,Tp),Dict,St) => valof{
     (RRls,St1) = overloadRules(Rls,[],overloadTerm,Dict,St);
---    logMsg("overloaded lambda $(lambda(Lc,Nm,RRls,Tp))");
     valis (.lambda(Lc,Nm,RRls,Tp),St1)
   }
   overloadTerm(.letExp(Lc,Gp,Decls,Rhs),Dict,St) => valof{
@@ -252,8 +251,7 @@ star.compiler.resolve{
   curryOver(Lc,OverOp,Args,Tp) where .tupleType(ArgTps) .= funTypeArg(Tp) => valof{
     Vrs = { .vr(Lc,genSym("A"),ArgTp) | ArgTp in ArgTps};
     NArgs = Args++Vrs;
-    LamLbl = genSym((.some(ALc).=Lc?locPkg(ALc)||"")++"λ");
-    valis .lambda(Lc,LamLbl,
+    valis .lambda(Lc,lambdaLbl(Lc),
       [.rule(Lc,.tple(Lc,Vrs),.none,.apply(Lc,OverOp,NArgs,Tp))],
       funType(ArgTps,Tp))
   }
@@ -495,5 +493,7 @@ star.compiler.resolve{
     disp(.resolved) => "resolved".
     disp(.active(Lc,Msg)) => "active $(Lc)\:#(Msg)".
   }
+
+  public lambdaLbl(Lc) => genSym((ALc?=Lc?locPkg(ALc)||"")++"λ").
 }
   

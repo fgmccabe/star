@@ -4,6 +4,7 @@ star.compiler.peephole{
 
   import star.compiler.assem.
   import star.compiler.errors.
+  import star.compiler.meta.
   import star.compiler.misc.
 
   import star.compiler.location.
@@ -19,134 +20,15 @@ star.compiler.peephole{
 
   public peepOptimize:(cons[assemOp])=>cons[assemOp].
   peepOptimize(Ins) => valof{
-    InsJ = peep(pullJumps(Ins));
-    valis peep(deleteUnused(.false, InsJ, findLblUsages(InsJ,{})));
+    Map = splitSegments([.iLbl(al("")),..Ins],[]);
+    if traceCodegen! then
+      logMsg(makeDotGraph("segs",Map));
+    PMap = pullTgts(Map);
+    if traceCodegen! then
+      logMsg(makeDotGraph("psegs",PMap));
+    PC = sequentialize([al("")],PMap);
+    valis ^tail(PC)
   }
-
-  labelMap ~> map[assemLbl,(boolean,integer)].
-
-  pullJumps(Ins) =>
-    pullJmps(Ins,findTgts(Ins,{})).
-
-  pullJmps([],_) => [].
-  pullJmps([.iJmp(Lbl),..Ins],Map) =>
-    pullJump(Lbl,Map,Ins).
-  pullJmps([I,..Ins],Map) =>
-    [I,..pullJmps(Ins,Map)].
-
-  pullJump(Lbl,Map,Ins) where TIns ?= Map[Lbl] =>
-    pickupIns(TIns,Lbl,Map,Ins).
-  pullJump(Lbl,Map,Ins) =>
-    [.iJmp(Lbl),..pullJmps(Ins,Map)].
-
-  pickupIns:(cons[assemOp],assemLbl,map[assemLbl,cons[assemOp]],cons[assemOp])=>cons[assemOp].
-  pickupIns([.iRet,.._],_,Map,Ins) =>
-    [.iRet,.iNop,.iNop,..pullJmps(Ins,Map)]. -- extra nops will be deleted
-  pickupIns([.iRetX,.._],_,Map,Ins) =>
-    [.iRetX,.iNop,.iNop,..pullJmps(Ins,Map)].
-  pickupIns([.iRtG,.._],_,Map,Ins) =>
-    [.iRtG,.iNop,.iNop,..pullJmps(Ins,Map)].
-  pickupIns([.iJmp(L2),.._],_,Map,Ins) =>
-    pullJmps([.iJmp(L2),..Ins],Map).
-  pickupIns(_,Lbl,Map,Ins) =>
-    [.iJmp(Lbl),..pullJmps(Ins,Map)].
-
-  findLblUsages([],Lbls) => Lbls.
-  findLblUsages([I,..Ins],Lbls) =>
-    findLblUsages(Ins,lblUsage(I,addLbl,Lbls)).
-
-  lblUsage:(assemOp, (assemLbl,labelMap)=>labelMap, labelMap)=>labelMap.
-  lblUsage(Op,H,Lbs) => case Op in {
-    .iJmp(Lbl) => H(Lbl,Lbs).
-    .iCLbl(_,Lbl) => H(Lbl,Lbs).
-    .iIf(Lbl) => H(Lbl,Lbs).
-    .iIfNot(Lbl) => H(Lbl,Lbs).
-    .iUnpack(_,Lbl) => H(Lbl,Lbs).
-    .iCmp(Lbl) => H(Lbl,Lbs).
-    .iFCmp(Lbl) => H(Lbl,Lbs).
-    .iICmp(Lbl) => H(Lbl,Lbs).
-    .iCall(_,Lbl) => H(Lbl,Lbs).
-    .iOCall(_,Lbl) => H(Lbl,Lbs).
-    .iEscape(_,Lbl) => H(Lbl,Lbs).
-    .iLdG(_,Lbl) => H(Lbl,Lbs).
-    .iLocal(_,St,En,_) => softAdd(En,softAdd(St,Lbs)).
-    _ default => Lbs
-  }
-
-  addLbl:(assemLbl,labelMap)=>labelMap.
-  addLbl(Lbl,Lbs) where (L,Cnt) ?= Lbs[Lbl] => Lbs[Lbl->(L,Cnt+1)].
-  addLbl(Lbl,Lbs) => Lbs[Lbl->(.false,1)].
-
-  softAdd(Lb,Lbs) where (_,Cnt) ?= Lbs[Lb] => Lbs[Lb->(.true,Cnt)].
-  softAdd(Lb,Lbs) => Lbs[Lb->(.true,0)].
-
-  deleteUnused:(boolean,cons[assemOp],labelMap)=>cons[assemOp].
-  deleteUnused(_,[],_) => [].
-  deleteUnused(F,[I,..Ins],Lbs) => case I in {
-    .iLbl(Lb) => valof{
-      if F then{
-	case Lbs[Lb] in {
-	  .some(Rslt) => {
-	    if (.true,0).=Rslt then
-	      valis [.iLbl(Lb),..dropUntilLbl(.true,Ins,Lbs)]
-	    else
-	    valis [.iLbl(Lb),..deleteUnused(.false,Ins,Lbs)]
-	  }.
-	  .none => valis dropUntilLbl(.true,Ins,Lbs).
-	}
-      }
-      else if _?=Lbs[Lb] then
-	valis [.iLbl(Lb),..deleteUnused(F,Ins,Lbs)]
-      else
-	valis deleteUnused(F,Ins,Lbs)
-    }.
-    .iCase(Ar) => valof{
-      (Hd,Tl) = copyN(Ins,Ar);
-      valis [iCase(Ar),..(Hd++deleteUnused(F,Tl,Lbs))]
-    }.
-    .iIndxJmp(Ar) => valof{
-      (Hd,Tl) = copyN(Ins,Ar);
-      valis [.iIndxJmp(Ar),..(Hd++deleteUnused(F,Tl,Lbs))]
-    }.
-    .iJmp(Lb) => valof{
-      if onlyLbls(Ins,Lb) then
-	valis Ins
-      else{
-	valis [I,..dropUntilLbl(.true,Ins,Lbs)]
-      }
-    }.
-    _ default => valof{
-      if uncondJmp(I) then
-	valis [I,..dropUntilLbl(.true,Ins,Lbs)]
-      else
-      valis [I,..deleteUnused(F,Ins,Lbs)]
-    }
-  }
-
-  onlyLbls([.iLbl(Lb),.._],Lb) => .true.
-  onlyLbls([.iLbl(_),..Ins],Lb) => onlyLbls(Ins,Lb).
-  onlyLbls(_,_) default => .false.
-      
-  copyN:all e ~~ (cons[e],integer) => (cons[e],cons[e]).
-  copyN(L,X) => let{.
-    copy([],_,H) => (reverse(H),[]).
-    copy(I,0,H) => (reverse(H),I).
-    copy([I,..Is],Cx,H) => copy(Is,Cx-1,[I,..H]).
-  .} in copy(L,X,[]).
-
-  dropUntilLbl(_,[],_) => [].
-  dropUntilLbl(F,[.iLbl(Lb),..Ins],Lbs) =>
-    deleteUnused(F,[.iLbl(Lb),..Ins],Lbs).
-  dropUntilLbl(.true,[I,..Ins],Lbs) =>
-    dropUntilLbl(.true,Ins,lblUsage(I,dropLbl,Lbs)).
-  dropUntilLbl(.false,[I,..Ins],Lbs) =>
-    [I,..deleteUnused(.false,Ins,Lbs)].
-
-  dropLbl(Lb,Lbs) where (L,Cnt) ?= Lbs[Lb] =>
-    ((Cnt>0 || L==.true)?
-	Lbs[Lb->(L,Cnt-1)] ||
-	Lbs[~Lb]).
-  dropLbl(_,Lbs) default => Lbs.
 
   uncondJmp(Op) => case Op in {
     .iJmp(_) => .true.
@@ -162,15 +44,6 @@ star.compiler.peephole{
     _ default => .false.
   }
 
-  findTgts:(cons[assemOp],map[assemLbl,cons[assemOp]]) => map[assemLbl,cons[assemOp]].
-  findTgts([],M) => M.
-  findTgts([.iLbl(Lb),..Ins],Tgts) => findTgts(Ins,Tgts[Lb->skipLbls(Ins)]).
-  findTgts([I,..Ins],Tgts) => findTgts(Ins,Tgts).
-
-  skipLbls([])=>[].
-  skipLbls([.iLbl(_),..Ins]) => skipLbls(Ins).
-  skipLbls(Ins) => Ins.
-  
   -- Low-level optimizations.
   peep:(cons[assemOp])=>cons[assemOp].
   peep([]) => [].
@@ -195,4 +68,115 @@ star.compiler.peephole{
 
   dropSeq([.iDrop,..Ins],Dz) => dropSeq(Ins,[.iDrop,..Dz]).
   dropSeq(Ins,Dz) => (Dz,Ins).
+
+  segment::=.segment(assemLbl,option[assemLbl],cons[assemOp],set[assemLbl]).
+
+  implementation display[segment] => {
+    disp(.segment(Lb,FLb,Ins,Exits)) => "segment $(Lb)\:$(Ins) ~> $(FLb)\:$(Exits)"
+  }
+
+  splitSegments:(cons[assemOp],map[assemLbl,segment]) => map[assemLbl,segment].
+  splitSegments([],Map) => Map.
+  splitSegments([.iLbl(Lb),..Code],Map) => splitSegment(Code,Lb,[],[],Map).
+  splitSegments([I,..Code],Map) => valof{
+    reportTrap("Expecting a label $(I) ..  $(Code)");
+    valis splitSegments(Code,Map)
+  }
+
+  splitSegment:(cons[assemOp],assemLbl,cons[assemOp],set[assemLbl],map[assemLbl,segment]) => map[assemLbl,segment].
+  splitSegment([],Lb,SoFar,Exits,Map) => Map[Lb->.segment(Lb,.none,reverse(SoFar),Exits)].
+  splitSegment([.iLbl(XLb),..Code],Lb,SoFar,Exits,Map) =>
+    splitSegment(Code,XLb,[],[],Map[Lb->.segment(Lb,?XLb,reverse(SoFar),Exits)]).
+  splitSegment([Op,..Code],Lb,SoFar,Exits,Map) => valof{
+    Ex = (Tgt?=opTgt(Op) ? Exits\+Tgt || Exits);
+
+    if (.iIndxJmp(Cnt).=Op || .iCase(Cnt).=Op) && (Front,Rest) ?= front(Code,Cnt) then{
+      valis splitSegments(Rest,Map[Lb->.segment(Lb,.none,reverse(SoFar)++[Op,..Front],
+	    findExits(Front,Ex))])
+    } else if uncondJmp(Op) then
+      valis splitSegments(Code,Map[Lb->.segment(Lb,.none,reverse([Op,..SoFar]),Ex)])
+    else 
+    valis splitSegment(Code,Lb,[Op,..SoFar],Ex,Map)
+  }
+
+  findExits:(cons[assemOp],set[assemLbl]) => set[assemLbl].
+  findExits(Code,Ex) => foldLeft((O,X) => (TT?=opTgt(O)?X\+TT||X),Ex,Code).
+
+  opTgt(.iCall(_,Lb)) => ?Lb.
+  opTgt(.iOCall(_,Lb)) => ?Lb.
+  opTgt(.iEscape(_,Lb)) => ?Lb.
+  opTgt(.iJmp(Lb)) => ?Lb.
+  opTgt(.iLdG(_,Lb)) => ?Lb.
+  opTgt(.iCLbl(_,Lb)) => ?Lb.
+  opTgt(.iUnpack(_,Lb)) => ?Lb.
+  opTgt(.iICmp(Lb)) => ?Lb.
+  opTgt(.iFCmp(Lb)) => ?Lb.
+  opTgt(.iCmp(Lb)) => ?Lb.
+  opTgt(.iIf(Lb)) => ?Lb.
+  opTgt(.iIfNot(Lb)) => ?Lb.
+  opTgt(_) default => .none.
+
+  reTgt(.iCall(Nm,_),Lb) => .iCall(Nm,Lb).
+  reTgt(.iOCall(Ar,_),Lb) => .iOCall(Ar,Lb).
+  reTgt(.iEscape(Nm,_),Lb) => .iEscape(Nm,Lb).
+  reTgt(.iJmp(_),Lb) => .iJmp(Lb).
+  reTgt(.iLdG(G,_),Lb) => .iLdG(G,Lb).
+  reTgt(.iCLbl(T,_),Lb) => .iCLbl(T,Lb).
+  reTgt(.iUnpack(T,_),Lb) => .iUnpack(T,Lb).
+  reTgt(.iICmp(_),Lb) => .iICmp(Lb).
+  reTgt(.iFCmp(_),Lb) => .iFCmp(Lb).
+  reTgt(.iCmp(_),Lb) => .iCmp(Lb).
+  reTgt(.iIf(_),Lb) => .iIf(Lb).
+  reTgt(.iIfNot(_),Lb) => .iIfNot(Lb).
+  reTgt(O,_) default => O.
+
+  pullTgts:(map[assemLbl,segment]) => map[assemLbl,segment].
+  pullTgts(Map) => (Map///(Lbl,Seg)=>pullSegment(Seg,Map)).
+
+  pullSegment:(segment,map[assemLbl,segment]) => segment.
+  pullSegment(.segment(Lbl,Flw,Ops,Exits),Map) => valof{
+    Nops = peep(pullOps(Ops,Map));
+    valis .segment(Lbl,Flw,Nops,findExits(Nops,[]))
+  }
+
+  pullOps([],_) => [].
+  pullOps([O,..Code],Map) => [pullTgt(O,Map),..pullOps(Code,Map)].
+
+  pullTgt(O,Map) => valof{
+    if Tg?=opTgt(O) then{
+      if .segment(_,_,[.iJmp(Tgt),.._],_) ?= Map[Tg] then
+	valis pullTgt(reTgt(O,Tgt),Map)
+      else if .segment(_,?Flw,[],_) ?= Map[Tg] then
+	valis pullTgt(reTgt(O,Flw),Map)
+      else
+      valis O
+    }
+    else
+    valis O
+  }.
+
+  sequentialize:(cons[assemLbl],map[assemLbl,segment]) => cons[assemOp].
+  sequentialize([],_Map) => [].
+  sequentialize([Lbl,..Ls],Map) => valof{
+    if .segment(_,Flw,Ops,Exits) ?= Map[Lbl] then{
+      if F ?= Flw then{
+	valis [.iLbl(Lbl),..Ops]++sequentialize([F,..Ls++(Exits::cons[assemLbl])],Map[~Lbl]);
+      } else{
+	valis [.iLbl(Lbl),..Ops]++sequentialize(Ls++(Exits::cons[assemLbl]),Map[~Lbl])
+      }
+    }
+    else
+    valis sequentialize(Ls,Map)
+  }
+  
+    
+  makeDotGraph:(string,map[assemLbl,segment])=>string.
+  makeDotGraph(Nm,Map) => "digraph $(Nm) {\n#(ixLeft((_,S,F)=>F++makeSegGraph(S),"",Map))\n}".
+
+  makeSegGraph(.segment(Lbl,Flw,Code,Exits)) => valof{
+    ExNodes = ((Exits::cons[assemLbl])//(Tgt)=>"\"$(Lbl)\" -> \"$(Tgt)\";\n")*;
+    Node = "\"$(Lbl)\" [shape=box,label=$(disp(Lbl)++":"++(Code//(I)=>disp(I))*)];\n";
+    Follow = (Tgt?=Flw ? "\"$(Lbl)\" -> \"$(Tgt)\" [ style=dotted, color=red ]" || "");
+    valis Node++ExNodes++Follow
+  }
 }
