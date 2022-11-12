@@ -282,7 +282,7 @@ star.compiler.canon{
   showDef:(canonDef,string)=>string.
   showDef(Df,Sp) => case Df in {
     .varDef(_,Nm,_FullNm,.lambda(_,LamNm,Rls,_),_,Tp) =>
-      "Fun: #(Nm) #(showRls(LamNm,Rls,showCanon,Sp))".
+      "Fun: #(Nm) = #(showRls(LamNm,Rls,showCanon,Sp))".
     .varDef(_,Nm,_FullNm,V,_,Tp) => "Var: #(Nm) = #(showCanon(V,0,Sp))".
     .typeDef(_,Nm,T,_) => "Type: #(Nm)~>$(T)".
     .conDef(_,_,Nm,Tp) => "Contract: #(Nm) ::= $(Tp)".

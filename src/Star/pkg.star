@@ -45,13 +45,13 @@ star.pkg{
   }
 
   public implementation coercion[string,version] => {
-    _coerce("*") => some(.defltVersion).
-    _coerce(V) => some(.vers(V)).
+    _coerce("*") => ?.defltVersion.
+    _coerce(V) => ?.vers(V).
   }
 
   public implementation coercion[version,string] => {
-    _coerce(.defltVersion) => some("*").
-    _coerce(.vers(V)) => some(V).
+    _coerce(.defltVersion) => ?"*".
+    _coerce(.vers(V)) => ?V.
   }
 
   public compatiblePkg:(pkg,pkg)=>boolean.
@@ -68,10 +68,10 @@ star.pkg{
   parsePkgName(S) => first(parse(pkgParse,S::cons[char])).
 
   first([])=>.none.
-  first([(E,_),.._])=>some(E).
+  first([(E,_),.._])=>?E.
 
   public pkgParse:parser[cons[char],pkg].
-  pkgParse = parseName >>= (Pkg) => parseVersion >>= (V) => return pkg(Pkg,V).
+  pkgParse = parseName >>= (Pkg) => parseVersion >>= (V) => return .pkg(Pkg,V).
 
   parseName:parser[cons[char],string].
   parseName = segment.
@@ -87,5 +87,5 @@ star.pkg{
   isSegChr(Ch) => isAlphaNum(Ch).
 
   parseVersion:parser[cons[char],version].
-  parseVersion = ((_str(":") >>= (_) => segment >>= (Seg) => (return vers(Seg))) +++ (return .defltVersion)).
+  parseVersion = ((_str(":") >>= (_) => segment >>= (Seg) => (return .vers(Seg))) +++ (return .defltVersion)).
 }

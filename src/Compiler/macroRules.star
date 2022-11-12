@@ -112,7 +112,7 @@ star.compiler.macro.rules{
   optionMatchMacro(_,_) default => .inactive.
 
   mkLoc(Lc) where .locn(P,Line,Col,Off,Ln)?=Lc =>
-    roundTerm(Lc,.nme(Lc,"locn"),
+    mkEnumCon(Lc,.nme(Lc,"locn"),
       [.str(Lc,P),.int(Lc,Line),.int(Lc,Col),.int(Lc,Off),.int(Lc,Ln)]).
 
   -- Handle __loc__ macro symbol

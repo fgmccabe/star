@@ -76,11 +76,11 @@ star.q{
  .}
 
   public implementation all e ~~ coercion[cons[e],qc[e]] => {
-    _coerce(L) => .some(qc(L,.nil)).
+    _coerce(L) => ?.qc(L,.nil).
   }
 
   public implementation all e ~~ coercion[qc[e],cons[e]] => {
-    _coerce(.qc(F,B)) => .some(F++reverse(B)).
+    _coerce(.qc(F,B)) => ?(F++reverse(B)).
   }
 
 }

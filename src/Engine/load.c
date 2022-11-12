@@ -22,8 +22,6 @@ tracingLevel tracePkg = noTracing;
 
 static retCode decodePkgName(ioPo in, packagePo pkg, char *errorMsg, integer msgLen);
 
-static retCode decodeLoadedPkg(packagePo pkg, ioPo in, char *errorMsg, integer msgLen);
-
 static retCode decodeImportsSig(strBufferPo sigBuffer, char *errorMsg, long msgLen, pickupPkg pickup, void *cl);
 
 static retCode decodeTplCount(ioPo in, integer *count, char *errMsg, integer msgLen);
@@ -62,10 +60,13 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
         if ((ret = isLookingAt(file, stringSig)) == Ok)
           ret = decodeText(file, sigBuffer);
 
-        if (ret == Ok) {
-          rewindStrBuffer(sigBuffer);
-          ret = decodeLoadedPkg(&lddPkg, O_IO(sigBuffer), errorMsg, msgSize);
-        }
+        rewindStrBuffer(sigBuffer);
+        ioPo pkgIn = O_IO(sigBuffer);
+
+        if (ret == Ok && isLookingAt(pkgIn, pkgSig) == Ok)
+          ret = decodePkgName(pkgIn, &lddPkg, errorMsg, msgSize);
+        else
+          ret = Error;
 
         if (ret == Ok && uniCmp(lddPkg.packageName, pkg->packageName) != same) {
           closeFile(O_IO(sigBuffer));
@@ -131,19 +132,23 @@ installPackage(char *pkgText, long pkgTxtLen, heapPo H, char *errorMsg, long msg
 
   if (ret == Ok) {
     rewindStrBuffer(sigBuffer);
-    ret = decodeLoadedPkg(&lddPkg, O_IO(sigBuffer), errorMsg, msgSize);
+
+    ioPo pkgIn = O_IO(sigBuffer);
+
+    if (isLookingAt(pkgIn, pkgSig) == Ok)
+      ret = decodePkgName(pkgIn, &lddPkg, errorMsg, msgSize);
 
     if (ret == Ok && !isLoadedPackage(&lddPkg)) {
       ret = decodeImportsSig(sigBuffer, errorMsg, msgSize, pickup, cl);
 
       if (ret == Ok)
-        ret = skipEncoded(O_IO(sigBuffer), errorMsg, msgSize); // Skip export declarations
+        ret = skipEncoded(pkgIn, errorMsg, msgSize); // Skip export declarations
 
       if (ret == Ok)
-        ret = skipEncoded(O_IO(sigBuffer), errorMsg, msgSize); // Skip local declarations
+        ret = skipEncoded(pkgIn, errorMsg, msgSize); // Skip local declarations
 
       if (ret == Ok)
-        ret = loadDefs(O_IO(sigBuffer), H, markLoaded(lddPkg.packageName, lddPkg.version), errorMsg, msgSize);
+        ret = loadDefs(pkgIn, H, markLoaded(lddPkg.packageName, lddPkg.version), errorMsg, msgSize);
     }
 #ifdef TRACEPKG
     else if (tracePkg >= generalTracing)
@@ -163,20 +168,6 @@ installPackage(char *pkgText, long pkgTxtLen, heapPo H, char *errorMsg, long msg
     return Ok;
   else
     return ret;
-}
-
-/*
- * A package signature consists of a tuple of 7 elements:
- * (pkg,imports,fields,types,contracts,implementations)
- *
- * We are only interested in the first two the pkg and the imports.
- */
-
-retCode decodeLoadedPkg(packagePo pkg, ioPo in, char *errorMsg, integer msgLen) {
-  if (isLookingAt(in, pkgSig) == Ok)
-    return decodePkgName(in, pkg, errorMsg, msgLen);
-  else
-    return Error;
 }
 
 static retCode decodeImportsSig(strBufferPo sigBuffer, char *errorMsg, long msgLen, pickupPkg pickup, void *cl) {
@@ -268,9 +259,11 @@ retCode decodeTplCount(ioPo in, integer *count, char *errMsg, integer msgLen) {
 }
 
 static char *consPreamble = "n3o3\1cons\1";
+static char *structPreamble = "n3o3\1struct\1";
 static char *typePreamble = "n3o3\1type\1";
 static char *fieldPreamble = "n2o2\1()2\1";
 static char *funcPreamble = "n8o8\1func\1";
+static char *globalPreamble = "n7o7\1global\1";
 
 typedef enum {
   hardDef,
@@ -278,6 +271,7 @@ typedef enum {
 } DefinitionMode;
 
 static retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize);
+static retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize);
 static retCode loadType(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize);
 static retCode loadCtor(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize);
 
@@ -289,9 +283,13 @@ retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen
     for (integer ix = 0; ret == Ok && ix < count; ix++) {
       if (isLookingAt(in, funcPreamble) == Ok)
         ret = loadFunc(in, h, owner, errorMsg, msgLen);
+      else if (isLookingAt(in, globalPreamble) == Ok)
+        ret = loadGlobal(in, h, owner, errorMsg, msgLen);
       else if (isLookingAt(in, typePreamble) == Ok)
         ret = loadType(in, h, owner, errorMsg, msgLen);
       else if (isLookingAt(in, consPreamble) == Ok)
+        ret = loadCtor(in, h, owner, errorMsg, msgLen);
+      else if (isLookingAt(in, structPreamble) == Ok)
         ret = loadCtor(in, h, owner, errorMsg, msgLen);
       else {
         strMsg(errorMsg, msgLen, "invalid code stream");
@@ -609,6 +607,92 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
   return ret;
 }
 
+retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize) {
+  char prgName[MAX_SYMB_LEN];
+  integer arity;
+  integer lclCount = 0;
+  integer maxStack = 0;
+  DefinitionMode redefine = hardDef;
+
+  retCode ret = decodeLbl(in, prgName, NumberOf(prgName), &arity, errorMsg, msgSize);
+
+#ifdef TRACEPKG
+  if (tracePkg >= detailedTracing)
+    logMsg(logFile, "loading global %s/%d", &prgName, arity);
+#endif
+
+  if (ret == Ok)
+    ret = skipEncoded(in, errorMsg, msgSize); // Skip the code signature
+
+  if (ret == Ok)
+    ret = decodeInteger(in, &lclCount);
+
+  if (ret == Ok) {
+    integer insCount;
+    ret = decodeTplCount(in, &insCount, errorMsg, msgSize);
+
+    if (ret == Ok) {
+      wordBufferPo bfr = newWordBuffer(shortGrain);
+      for (integer ix = 0; ret == Ok && ix < insCount;) {
+        integer stackInc = 0;
+        ret = decodeIns(in, bfr, &ix, &stackInc, errorMsg, msgSize);
+        maxStack += stackInc;
+      }
+      integer pcCount;
+      insPo ins = (insPo) getBufferData(bfr, &pcCount);
+      closeWordBuffer(bfr);
+
+      if (ret == Ok) {
+        termPo pool = voidEnum;
+        int root = gcAddRoot(H, &pool);
+        EncodeSupport support = {errorMsg, msgSize, H};
+        strBufferPo tmpBuffer = newStringBuffer();
+
+        ret = decode(in, &support, H, &pool, tmpBuffer);
+
+        if (ret == Ok) {
+          termPo locals = voidEnum;
+          gcAddRoot(H, &locals);
+          ret = decode(in, &support, H, &locals, tmpBuffer);
+
+          if (ret == Ok) {
+            termPo lines = voidEnum;
+            gcAddRoot(H, &lines);
+            ret = decode(in, &support, H, &lines, tmpBuffer);
+
+            if (ret == Ok) {
+              labelPo lbl = declareLbl(prgName, arity, -1);
+
+              if (labelCode(lbl) != Null) {
+                strMsg(errorMsg, msgSize, "attempt to redeclare global %A", lbl);
+                ret = Error;
+              } else {
+                gcAddRoot(H, (ptrPo) &lbl);
+
+                integer stackDelta = maxDepth(ins, pcCount, C_NORMAL(pool)) + lclCount;
+
+                methodPo mtd = defineMtd(H, ins, pcCount, lclCount, stackDelta, lbl, C_NORMAL(pool),
+                                         C_NORMAL(locals),
+                                         C_NORMAL(lines));
+                if (enableVerify)
+                  ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
+              }
+            }
+          }
+        }
+        closeFile(O_IO(tmpBuffer));
+        gcReleaseRoot(H, root);
+      }
+      free((void *) ins);
+    }
+  }
+
+  if (ret == Error)
+    logMsg(logFile, "problem in loading %s/%d: %s", prgName, arity, errorMsg);
+
+  return ret;
+}
+
 retCode loadType(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize) {
   char typeName[MAX_SYMB_LEN];
   integer typeNameLen;
@@ -659,6 +743,12 @@ retCode loadCtor(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSiz
   integer arity;
 
   retCode ret = decodeLbl(in, lblName, NumberOf(lblName), &arity, errorMsg, msgSize);
+
+#ifdef TRACEPKG
+  if (tracePkg >= detailedTracing)
+    logMsg(logFile, "loading struct %s/%d", &lblName, arity);
+#endif
+
   if (ret == Ok) {
     ret = skipEncoded(in, errorMsg, msgSize);
 

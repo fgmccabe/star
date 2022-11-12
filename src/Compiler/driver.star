@@ -138,9 +138,12 @@ star.compiler{
 	    PkgSig = mkTpl([pkgTerm(CPkg),
 		mkTpl(PkgSpec.imports//(.pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
 		mkTpl(PkgSpec.exports//((D)=>D::data))])::string;
---	    logMsg("pkg sig $(PkgSig)");
 
-	    Code = mkTpl(Segs//assem);
+	    Code = mkTpl([pkgTerm(CPkg),
+		mkTpl(PkgSpec.imports//(.pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
+		mkTpl([]),		
+		mkTpl([]),
+		mkTpl(Segs//assem)]);
 	    Bytes = (strg(Code::string)::string);
 
 	    InlineBytes = (mkTpl(Inlined//((I)=>freezeDefn(I))))::string;

@@ -38,8 +38,9 @@ star.compiler.normalize{
   transformDef:(canonDef,nameMap,nameMap,set[cId],option[cExp],cons[cDefn]) =>
     cons[cDefn].
   transformDef(.varDef(Lc,Nm,FullNm,.lambda(_,LNm,Eqns,Tp),_,_),Map,Outer,Q,Extra,Ex) => valof{
-    if traceNormalize! then
-      logMsg("transform function $(lambda(Lc,LNm,Eqns,Tp)) @ $(Lc)");
+    if traceNormalize! then{
+      logMsg("transform function $(lambda(Lc,LNm,Eqns,Tp)) Q=$(Q) @ $(Lc)");
+    };
     ATp = extendFunTp(deRef(Tp),Extra);
     (Eqs,Ex1) = transformRules(Eqns,Outer,Q,Extra,Ex);
     if traceNormalize! then
@@ -103,19 +104,20 @@ star.compiler.normalize{
   }
 
   transformConsDef(Lc,Nm,Tp,Map,Ex) => valof{
---    logMsg("look for $(Nm)\:$(Tp) constructor");
+    if traceNormalize! then
+      logMsg("transform $(Nm)\:$(Tp) constructor");
     (_,CT) = deQuant(Tp);
     (_,IT) = deConstrain(CT);
     (ATp,RTp) = ^ isConsType(IT);
     if (Ar,_) ?= isTupleType(ATp) then{
 --    logMsg("look for $(tpName(RTp)) type: $(findIndexMap(tpName(RTp),Map))");
       ConsMap = ^ findIndexMap(tpName(RTp),Map);
---      logMsg("consmap for $(Nm)\:$(ConsMap)");
       (Lbl,_,Ix) = ^ findLbl(Nm,ConsMap);
       valis [.lblDef(Lc,Lbl,Tp,Ix),..Ex]
     }
     else{
---      logMsg("ignore $(Nm)");
+      if traceNormalize! then
+	logMsg("ignore constructor $(Nm)");
       valis Ex
     }
   }
@@ -164,7 +166,6 @@ star.compiler.normalize{
   transformRule(.rule(Lc,.tple(ALc,As),.none,Val),Map,Q,Extra,Ex) => valof{
     EQ = ptnVars(.tple(ALc,As),Q,[]);
     (Ptns,Ex1) = liftPtns(As,Map,Q,Ex);
---    logMsg("patterns $(As) lifted to $(Ptns)");
     (Rep,Exx) = transform(Val,Map,EQ,Ex1);
     valis ((Lc,addExtra(Extra,Ptns),.none,Rep),Exx)
   }
@@ -443,6 +444,7 @@ star.compiler.normalize{
     (option[locn],cons[canonDef],cons[decl],e,nameMap,set[cId],set[cId],cons[cDefn]) =>
       crFlow[x].
   liftLet(Lc,Defs,Decls,Bnd,Outer,Q,Free,Ex) => valof{
+--    logMsg("Q=$(Q), Free=$(Free)");
     (lVars,vrDefs) = unzip(varDefs(Defs));
     CM = makeConsMap(Decls);
     GrpFns = (Defs^/(D)=>~_?=isVarDef(D));
