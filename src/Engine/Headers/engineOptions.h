@@ -34,7 +34,7 @@
 
 extern char *copyright;
 
-extern char bootEntry[MAX_SYMB_LEN];
+extern char mainEntry[MAX_SYMB_LEN];
 extern char CWD[MAXFILELEN];
 extern char repoDir[MAXFILELEN];
 

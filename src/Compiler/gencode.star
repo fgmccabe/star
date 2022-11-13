@@ -586,7 +586,7 @@ star.compiler.gencode{
     C(Ctx,XStk,Cde) => valof{
       (Stk1,SSCde) = resetStack([|Stk|],XStk);
       (Stk2,CCde) = compCond(Cond,Succ,Fail,ECont,Ctx,Stk1);
-      valis (Stk2,SSCde++CCde)
+      valis (Stk2,Cde++SSCde++CCde)
     }
   }
 
