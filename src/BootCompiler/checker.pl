@@ -29,10 +29,9 @@ checkProgram(Prg,Pkg,Repo,Opts,PkgDecls,Canon) :-
   thetaEnv(Pk,Lc,Stmts,faceType([],[]),Opts,Env0,OEnv,Defs,Public),
   overload(Defs,OEnv,ODefs),
   completePublic(Public,Public,FllPb,Pk),
-  packageExport(ODefs,FllPb,EDecls,LDecls,XDefs),
-  mkBoot(OEnv,Lc,Pk,XDefs,PkgDefs,EDecls,ExportDecls),
-  Canon=prog(Pkg,Imports,ExportDecls,LDecls,PkgDefs),
-  concat(ExportDecls,LDecls,D0),
+  packageExport(ODefs,FllPb,ExDecls,LDecls,PkgDefs),
+  Canon=prog(Pkg,Imports,ExDecls,LDecls,PkgDefs),
+  concat(ExDecls,LDecls,D0),
   concat(D0,IDecls,PkgDecls).
 
 findExportedDefs(Lc,Flds,Els) :-
@@ -367,7 +366,7 @@ checkVarRules(N,Lc,Stmts,E,Ev,Defs,Dx,Face,Path) :-
   declareTypeVars(Q,Lc,E0,E1),
   declareConstraints(Lc,Cx,E1,E2),
   processStmts(Stmts,ProgramType,Rules,Deflts,Deflts,[],E2,Path),
-  packageVarName(Path,N,LclName),
+  qualifiedName(Path,N,LclName),
   formDefn(Rules,N,LclName,E,Ev,Tp,Cx,Defs,Dx).
 %  reportMsg("type of %s:%s",[N,ProgramType]).
 
@@ -456,7 +455,7 @@ checkDefn(Lc,L,R,VlTp,varDef(Lc,Nm,ExtNm,[],VlTp,Value),Env,Path) :-
   isIden(L,_,Nm),
   pushScope(Env,E),
   typeOfExp(R,VlTp,none,E,_E2,Value,Path),
-  packageVarName(Path,Nm,ExtNm).
+  qualifiedName(Path,Nm,ExtNm).
 
 checkThetaBody(Tp,Lbl,Lc,Els,Env,Val,Path) :-
   evidence(Tp,Env,Q,ETp),

@@ -16,7 +16,7 @@
 	       charHash/3,stringHash/3,hashSixtyFour/2,bigHash/2,
 	       stringEndsWith/2,
 	       marker/2,
-	       packageVarName/3,contractName/3,
+	       qualifiedName/3,packageVarName/3,contractName/3,
 	       thetaName/3,consName/3,packageTypeName/3,genNewName/3,
 	       lambdaLbl/3,
 	       same/2,
@@ -342,6 +342,9 @@ dotName(Nm,DtNm) :-
 
 packageVarName(Pkg,Nm,LclName) :-
   mangleName(Pkg,package,Nm,LclName).
+
+qualifiedName(Path,Nm,LclName) :-
+  mangleName(Path,value,Nm,LclName).
 
 thetaName(Path,Nm,LclName) :-
   genNewName(Path,"θ",ThPath),
