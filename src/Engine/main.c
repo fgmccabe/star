@@ -93,8 +93,8 @@ int main(int argc, char **argv) {
 
   char errMsg[MAXLINE];
 
-  if (loadPackage(&bootPkge, errMsg, NumberOf(errMsg), Null) != Ok) {
-    logMsg(logFile, "Could not load boot pkg %s: %s", pkgName(&bootPkge), errMsg);
+  if (loadPackage(&mainPkge, errMsg, NumberOf(errMsg), Null) != Ok) {
+    logMsg(logFile, "Could not load boot pkg %s: %s", pkgName(&mainPkge), errMsg);
     exit(99);
   }
 
@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
 
   capabilityPo rootCap = allocateCapability(globalHeap, rootWd, uniStrLen(rootWd), stdPerms);
 
-  switch (bootstrap(globalHeap, bootEntry, rootWd, rootCap)) {
+  switch (bootstrap(globalHeap, mainEntry, rootWd, rootCap)) {
     case Ok:
       return EXIT_SUCCEED;          /* exit the runtime system cleanly */
     case Error:

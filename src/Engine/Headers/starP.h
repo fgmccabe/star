@@ -8,6 +8,6 @@
 #include "star.h"
 #include "pkgP.h"
 
-extern PackageRec bootPkge;
+extern PackageRec mainPkge;
 
 #endif //STAR_STARP_H

@@ -58,7 +58,7 @@ star.compiler.resolve{
     (Qx,Qt) = deQuant(Tp);
     (_,ITp) = deConstrain(Qt);
     CTp = reQuant(Qx,funType(Cx//typeOf,ITp));
-    valis (trace varDef(Lc,Nm,FullNm,lambda(Lc,lambdaLbl(Lc),[rule(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp),Dict)
+    valis (varDef(Lc,Nm,FullNm,lambda(Lc,lambdaLbl(Lc),[rule(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp),Dict)
   }
 
   overloadImplDef:(dict,option[locn],string,string,canon,cons[constraint],tipe) =>
