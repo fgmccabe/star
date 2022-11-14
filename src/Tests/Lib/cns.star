@@ -13,10 +13,14 @@ test.cns{
 --  public strFind:(string,string,integer) => option[integer].
 --  strFind(Txt,Ky,Ix) where Lc.= _str_find(Txt,Ky,Ix) && Lc>=0 => ?Lc.
 --  strFind(_,_,_) default => .none.
+
+  ne:all x ~~ equality[x] |: (x,x)=>boolean.
+  ne(x,y) => ~x==y.
+  
   main:()=>().
   main()=>valof{
     logMsg("hello");
-    assert 3~=2;
+    assert ne(3,2);
     valis ()
   }
 }
