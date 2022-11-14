@@ -200,7 +200,7 @@ star.compiler.canon{
       "#(leftParen(OPr,Pr))#(showCanon(L,Lp,Sp)) || #(showCanon(R,Rp,Sp))#(rgtParen(OPr,Pr))".
     .neg(_,R)  where (OPr,Rp) ?= isPrefixOp("~") =>
       "#(leftParen(OPr,Pr))~ #(showCanon(R,Rp,Sp))#(rgtParen(OPr,Pr))".
-    .cond(_,T,L,R) where (Lp,OPr,Rp) ?= isInfixOp("?") =>
+    .cond(_,T,L,R) where (Lp,OPr,Rp) ?= isInfixOp("??") =>
       "(#(showCanon(T,Lp,Sp)) ?? #(showCanon(L,Rp,Sp)) || #(showCanon(R,Rp,Sp)))".
     .apply(_,L,R,_) => showApply(L,R,Pr,Sp).
     .tple(_,Els) => showTuple(Els,Sp).

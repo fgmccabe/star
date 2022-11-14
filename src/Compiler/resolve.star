@@ -32,13 +32,15 @@ star.compiler.resolve{
   overloadDefs:(cons[canonDef],dict,cons[canonDef]) => (cons[canonDef],dict).
   overloadDefs([],Dict,Dfx) => (reverse(Dfx),Dict).
   overloadDefs([D,..Defs],Dict,Dfx) => valof{
-    logMsg("overload definition $(D)");
+--    logMsg("overload definition $(D)");
     (DD,DDict) = overloadDef(D,Dict);
-    logMsg("overloaded definition $(DD)");
+--    logMsg("overloaded definition $(DD)");
     valis overloadDefs(Defs,DDict,[DD,..Dfx])
   }
 
   overloadDef:(canonDef,dict)=>(canonDef,dict).
+  overloadDef(.varDef(Lc,Nm,FullNm,.lambda(_,_,Eqns,_),Cx,Tp),Dict) =>
+    overloadFunction(Dict,Lc,Nm,FullNm,Eqns,Cx,Tp).
   overloadDef(.varDef(Lc,Nm,FullNm,Val,Cx,Tp),Dict) =>
     overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp).
   overloadDef(.implDef(Lc,Nm,FullNm,Val,Cx,Tp),Dict) =>
@@ -49,6 +51,31 @@ star.compiler.resolve{
   overloadDef(Def,Dict) default => valof{
     reportError("cannot overload $(Def)",locOf(Def));
     valis (Def,Dict)
+  }
+
+  overloadFunction:(dict,option[locn],string,string,cons[rule[canon]],cons[constraint],tipe)=>
+    (canonDef,dict).
+  overloadFunction(Dict,Lc,Nm,FullNm,Eqns,Cx,Tp) => valof{
+    (Extra,CDict) = defineCVars(Lc,Cx,[],Dict);
+    REqns = Eqns//(Eq)=>resolveEqn(Eq,Extra,CDict);
+    (Qx,Qt) = deQuant(Tp);
+    (_,ITp) = deConstrain(Qt);
+    if .tupleType(AITp).=funTypeArg(ITp) && RITp .= funTypeRes(ITp) then {
+      CTp = reQuant(Qx,funType((Cx//typeOf)++AITp,RITp));
+      valis (.varDef(Lc,Nm,FullNm,lambda(Lc,FullNm,REqns,CTp),[],CTp),Dict)
+    } else{
+      reportError("type of $(Nm) not a function type",Lc);
+      valis (.varDef(Lc,Nm,FullNm,lambda(Lc,FullNm,REqns,Tp),[],Tp),Dict)
+    }
+  }
+
+  resolveEqn(Rl,Extra,Dict) => valof{
+    if .rule(Lc,A,C,V) .= overload(Rl,Dict) then{
+      valis .rule(Lc,addExtra(A,Extra),C,V)
+    } else{
+      reportError("not a rule: $(Rl)",locOf(Rl));
+      valis Rl
+    }
   }
  
   overloadVarDef:(dict,option[locn],string,string,canon,cons[constraint],tipe)=>
@@ -360,12 +387,21 @@ star.compiler.resolve{
     resolve(T,D,S) => overloadRule(T,D,S)
   }
 
-  overloadRule:all e ~~ resolve[e] |: (rule[e],dict,resolveState) => (rule[e],resolveState).
+  overloadRule:all e ~~ resolve[e] |: (rule[e],dict,resolveState) =>
+    (rule[e],resolveState).
   overloadRule(.rule(Lc,Ptn,.none,Exp),Dict,St) => valof{
     (RPtn,St1) = overloadTerm(Ptn,Dict,St);
     (RExp,St2) = resolve(Exp,Dict,St1);
     valis (.rule(Lc,RPtn,.none,RExp),St2)
   }
+  overloadRule(.rule(Lc,Ptn,?C,Exp),Dict,St) => valof{
+    (RPtn,St1) = overloadTerm(Ptn,Dict,St);
+    (RExp,St2) = resolve(Exp,Dict,St1);
+    (RC,St3) = resolve(C,Dict,St2);
+    valis (.rule(Lc,RPtn,?RC,RExp),St3)
+  }
+
+  addExtra(.tple(Lc,Els),Extra) => .tple(Lc,Extra++Els).
   
   overloadRules:all x ~~ resolve[x] |: (cons[rule[x]],cons[rule[x]],
     dict,resolveState)=>
