@@ -18,7 +18,7 @@ star.compiler.catalog{
   public parseCat:(json,uri) => option[catalog].
   parseCat(.jColl(M),U) => .some(catalog{
       parent=M["default"]>>=(.jTxt(Ut))=>parseUri(Ut)>>=(PU)=>
-	(RU?=resolveUri(U,PU) ? loadCatalog(RU) || .none).
+	(RU?=resolveUri(U,PU) ?? loadCatalog(RU) || .none).
       vers=M["version"] >>= (.jTxt(V)) => .some(V::version).
       base=U.
       content=deflt(M["content"]>>=(.jColl(C))=>.some(C///((_,.jTxt(E))=>E)),()=>[]).
@@ -31,7 +31,7 @@ star.compiler.catalog{
   parseSubCats(_,[],So) => .some(So).
   parseSubCats(U,[.jTxt(CU),..Cs],So) => valof{
     SC = ^(parseUri(CU) >>= (PU)=>
-	(RU?=resolveUri(U,PU) ? loadCatalog(RU) || .none));
+	(RU?=resolveUri(U,PU) ?? loadCatalog(RU) || .none));
     valis parseSubCats(U,Cs,[SC,..So])
   }
 
@@ -59,7 +59,7 @@ star.compiler.catalog{
 
   public implementation display[catalog] => let{.
     dispCat:(catalog)=>string.
-    dispCat(Cat) => "catalog: at $(Cat.base)\ncontent: $(Cat.content)\nversion: $(Cat.vers) #(Parent?=Cat.parent ? "\nparent: #(dispCat(Parent))" || "")\nsubcats: #(interleave(Cat.subcats//dispCat,";")*)"
+    dispCat(Cat) => "catalog: at $(Cat.base)\ncontent: $(Cat.content)\nversion: $(Cat.vers) #(Parent?=Cat.parent ?? "\nparent: #(dispCat(Parent))" || "")\nsubcats: #(interleave(Cat.subcats//dispCat,";")*)"
   .} in {
     disp(Cat) => dispCat(Cat)
   }

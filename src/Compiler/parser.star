@@ -15,15 +15,15 @@ star.compiler.parser{
   public parseSrc:(uri,pkg) => option[ast].
   parseSrc(U,P) where Txt ?= getResource(U) &&
       (Toks) .= allTokens(initSt(pkgLoc(P),Txt::cons[char])) =>
-    (errorFree() ?
-	((Trm,_) .= astParse(Toks) ?
-	    (errorFree() ?
-		some(Trm) ||
-		.none) ||
-	    .none) ||
-	.none).
+    (errorFree() ??
+      ((Trm,_) .= astParse(Toks) ??
+	(errorFree() ??
+	  .some(Trm) ||
+	  .none) ||
+	.none) ||
+      .none).
   parseSrc(U,P) => valof{
-    reportError("Cannot locate $(P) in $(U)",some(pkgLoc(P)));
+    reportError("Cannot locate $(P) in $(U)",.some(pkgLoc(P)));
     valis .none
   }
 }

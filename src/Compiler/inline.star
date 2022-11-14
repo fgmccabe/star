@@ -68,7 +68,7 @@ star.compiler.inline{
   }
 
   simplifyExp:(cExp,map[termLbl,cDefn],integer) => cExp.
-  simplifyExp(E,P,D) => (D>0 ? simExp(E,P,D-1) || E).
+  simplifyExp(E,P,D) => (D>0 ?? simExp(E,P,D-1) || E).
   
   simExp(.cVar(Lc,V),Map,Depth) => inlineVar(Lc,V,Map,Depth).
   simExp(.cInt(Lc,Ix),_,_) => .cInt(Lc,Ix).
@@ -129,7 +129,7 @@ star.compiler.inline{
   }
 
   simplifyAct:(aAction,map[termLbl,cDefn],integer) => aAction.
-  simplifyAct(A,P,D) => (D>0 ? simAct(A,P,D-1) || A).
+  simplifyAct(A,P,D) => (D>0 ?? simAct(A,P,D-1) || A).
 
   simAct(.aNop(Lc),_,_) => .aNop(Lc).
   simAct(.aSeq(Lc,A1,A2),Map,Depth) =>
@@ -276,7 +276,7 @@ star.compiler.inline{
   rewriteECall(Lc,"_int_minus",[.cInt(_,A),.cInt(_,B)],_) => .cInt(Lc,A-B).
   rewriteECall(Lc,"_int_times",[.cInt(_,A),.cInt(_,B)],_) => .cInt(Lc,A*B).
   rewriteECall(Lc,"_int_eq",[.cInt(_,A),.cInt(_,B)],_) =>
-    .cTerm(Lc,(A == B?"star.core#true"||"star.core#false"),[],boolType).
+    .cTerm(Lc,(A == B??"star.core#true"||"star.core#false"),[],boolType).
   rewriteECall(Lc,Op,Args,Tp) default => .cECall(Lc,Op,Args,Tp).
 
   countOccs:(cExp,cId,integer) => integer.
@@ -284,7 +284,7 @@ star.compiler.inline{
     .cVoid(_,_) => Cnt.
     .cAbort(_,_,_) => Cnt.
     .cAnon(_,_) => Cnt.
-    .cVar(_,Vr) => (Id==Vr?Cnt+1||Cnt).
+    .cVar(_,Vr) => (Id==Vr??Cnt+1||Cnt).
     .cInt(_,_) => Cnt.
     .cChar(_,_) => Cnt.
     .cBig(_,_) => Cnt.
@@ -302,7 +302,7 @@ star.compiler.inline{
     .cDsj(_,L,R) => countOccs(R,Id,countOccs(L,Id,Cnt)).
     .cNeg(_,R) => countOccs(R,Id,Cnt).
     .cCnd(_,T,L,R) => countOccs(T,Id,countOccs(R,Id,countOccs(L,Id,Cnt))).
-    .cLtt(_,V,L,R) => (V==Id ? Cnt || countOccs(L,Id,countOccs(R,Id,Cnt))).
+    .cLtt(_,V,L,R) => (V==Id ?? Cnt || countOccs(L,Id,countOccs(R,Id,Cnt))).
     .cUnpack(_,G,Cs,_) => countCases(Cs,Id,countOccs(G,Id,Cnt),countOccs).
     .cCase(_,G,Cs,D,_) =>
       countCases(Cs,Id,countOccs(G,Id,countOccs(D,Id,Cnt)),countOccs).
@@ -336,7 +336,7 @@ star.compiler.inline{
     .aWhile(_,T,L) => countAOccs(L,Id,countOccs(T,Id,Cnt)).
     .aRetire(_,L,R) => countOccs(R,Id,countOccs(L,Id,Cnt)).
     .aTry(_,L,R) => countAOccs(R,Id,countAOccs(L,Id,Cnt)).
-    .aLtt(_,V,L,R) => (V==Id ? Cnt || countOccs(L,Id,countAOccs(R,Id,Cnt))).
+    .aLtt(_,V,L,R) => (V==Id ?? Cnt || countOccs(L,Id,countAOccs(R,Id,Cnt))).
     .aVarNmes(_,_,R) => countAOccs(R,Id,Cnt).
   }
 

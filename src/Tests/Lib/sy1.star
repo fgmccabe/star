@@ -39,8 +39,8 @@ test.sy1{
   public find:all x~~cmp[x] |: (tree[x],x)=>boolean.
   find(.empty,_) => .false.
   find(node(L,X,R),K) =>
-    less(X,K) ? find(L,K) ||
-    less(K,X) ? find(R,K) ||
+    less(X,K) ?? find(L,K) ||
+    less(K,X) ?? find(R,K) ||
     .true.
 
   mkSingle:all a ~~ (a)=>tr[a].

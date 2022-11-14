@@ -122,6 +122,10 @@
 @tab non-associative infix
 @tab 760
 @tab package separator
+@item @code{??}
+@tab right associative infix
+@tab 920
+@tab conditional operator
 @item @code{%}
 @tab left associative infix
 @tab 700
@@ -274,10 +278,6 @@
 @tab non-associative prefix
 @tab 820
 @tab mark expression as optionally there
-@item @code{?}
-@tab right associative infix
-@tab 920
-@tab conditional operator
 @item @code{@@}
 @tab non-associative prefix
 @tab 400
@@ -557,61 +557,62 @@
   @tab @code{->>}
   @tab @code{?=}
   @item @code{#}
+  @tab @code{??}
   @tab @code{%}
   @tab @code{<-}
   @tab @code{.>>>.}
-  @tab @code{\\+}
-  @item @code{<<-}
+  @item @code{\\+}
+  @tab @code{<<-}
   @tab @code{*}
   @tab @code{\\-}
   @tab @code{+}
-  @tab @code{.>>.}
-  @item @code{*>}
+  @item @code{.>>.}
+  @tab @code{*>}
   @tab @code{,}
   @tab @code{\\/}
   @tab @code{-}
-  @tab @code{.}
-  @item @code{/}
+  @item @code{.}
+  @tab @code{/}
   @tab @code{<*>}
   @tab @code{:}
   @tab @code{;}
-  @tab @code{<}
-  @item @code{.=}
+  @item @code{<}
+  @tab @code{.=}
   @tab @code{=}
   @tab @code{|:}
   @tab @code{++}
-  @tab @code{>}
-  @item @code{?}
+  @item @code{>}
+  @tab @code{?}
   @tab @code{@@}
   @tab @code{~~}
   @tab @code{⊕}
-  @tab @code{.^.}
-  @item @code{//}
+  @item @code{.^.}
+  @tab @code{//}
   @tab @code{.~.}
   @tab @code{=<}
   @tab @code{==}
-  @tab @code{\\}
-  @item @code{=>}
+  @item @code{\\}
+  @tab @code{=>}
   @tab @code{^}
   @tab @code{<=>}
   @tab @code{•}
-  @tab @code{.&.}
-  @item @code{///}
+  @item @code{.&.}
+  @tab @code{///}
   @tab @code{::}
   @tab @code{+++}
   @tab @code{:=}
-  @tab @code{:?}
-  @item @code{.<<.}
+  @item @code{:?}
+  @tab @code{.<<.}
   @tab @code{>>=}
   @tab @code{^/}
   @tab @code{<~}
-  @tab @code{|}
-  @item @code{.#.}
+  @item @code{|}
+  @tab @code{.#.}
   @tab @code{~}
   @tab @code{^//}
   @tab @code{||}
-  @tab @code{::=}
-  @item @code{/\\}
+  @item @code{::=}
+  @tab @code{/\\}
   @tab @code{>=}
   @tab @code{>>}
 

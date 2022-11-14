@@ -383,7 +383,7 @@ star.compiler.data{
   encodeSignature(Tp) => reverse(encodeType(deRef(Tp),[]))::string.
 
   encodeType:(tipe,cons[char]) => cons[char].
-  encodeType(Tp,Chs) => isUnbound(Tp) ? [`_`,..Chs] ||
+  encodeType(Tp,Chs) => isUnbound(Tp) ?? [`_`,..Chs] ||
   case Tp in {
     .voidType => [`v`,..Chs].
     .nomnal("star.core*integer") => [`i`,..Chs].

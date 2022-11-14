@@ -50,7 +50,7 @@ star.compiler.normalize{
       logMsg("transformed function $(Func)");
 
     ClosureNm = closureNm(FullNm);
-    ClVar = (.cVar(_,Exv)?=Extra ? Exv || .cId("_",unitTp));
+    ClVar = (.cVar(_,Exv)?=Extra ?? Exv || .cId("_",unitTp));
     ClVars = makeFunVars(Tp);
     ClArgs = [ClVar,..ClVars];
 
@@ -601,7 +601,7 @@ star.compiler.normalize{
   
   varDefs:(cons[canonDef]) => cons[(cId,canon)].
   varDefs(Defs) =>
-    foldLeft((D,FF) => (V?=isVarDef(D) ? [V,..FF] || FF),
+    foldLeft((D,FF) => (V?=isVarDef(D) ?? [V,..FF] || FF),
       [],Defs).
 
   isVarDef(.varDef(_,Nm,FullNm,Vl,_,Tp)) where ~isFunDef(Vl) =>

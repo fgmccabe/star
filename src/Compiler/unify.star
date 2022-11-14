@@ -95,7 +95,7 @@ star.compiler.unify{
       };
       valis .true
     }.
-  .} in (sm(deRef(Tp1),deRef(Tp2),Envir) ? .true || resetBindings()).
+  .} in (sm(deRef(Tp1),deRef(Tp2),Envir) ?? .true || resetBindings()).
 
   public faceOfType:(tipe,dict) => option[tipe].
   faceOfType(T,_) where .faceType(_,_).=deRef(T) => some(T).
@@ -147,8 +147,8 @@ star.compiler.unify{
   rewr(.tpExp(Op,A),Env) => .tpExp(rewriteType(Op,Env),rewriteType(A,Env)).
   rewr(.throwsType(T,E),Env) => .throwsType(rewriteType(T,Env),rewriteType(E,Env)).
   rewr(.tupleType(Els),Env) => .tupleType(rewriteTps(Els,Env)).
-  rewr(.allType(V,B),Env) => _ ?= Env[V] ? .allType(V,B) || .allType(V,rewriteType(B,Env)).
-  rewr(.existType(V,B),Env) => _ ?= Env[V] ? .existType(V,B) || .existType(V,rewriteType(B,Env)).
+  rewr(.allType(V,B),Env) => _ ?= Env[V] ?? .allType(V,B) || .allType(V,rewriteType(B,Env)).
+  rewr(.existType(V,B),Env) => _ ?= Env[V] ?? .existType(V,B) || .existType(V,rewriteType(B,Env)).
   rewr(.faceType(Flds,Tps),Env) => .faceType(Flds//((Nm,T))=>(Nm,rewriteType(T,Env)),
     Tps//((Nm,T))=>(Nm,rewriteType(T,Env))).
   rewr(.constrainedType(T,C),Env) => .constrainedType(rewriteType(T,Env),rewriteCon(C,Env)).

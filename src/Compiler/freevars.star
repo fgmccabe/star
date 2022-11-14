@@ -26,7 +26,7 @@ star.compiler.freevars{
     .vr(Lc,Nm,Tp) where {? .cId(Nm,_) in Fv ?} => Fv.
     .vr(_,Nm,_) where _ ?= isEscape(Nm) => Fv.
     .vr(_,Nm,_) where _ ?= intrinsic(Nm) => Fv.
-    .vr(Lc,Nm,Tp) => ({? .cId(Nm,_) in Q ?} ? Fv\+.cId(Nm,Tp) || Fv).
+    .vr(Lc,Nm,Tp) => ({? .cId(Nm,_) in Q ?} ?? Fv\+.cId(Nm,Tp) || Fv).
     .intr(_,_) => Fv.
     .bintr(_,_) => Fv.
     .kar(_,_) => Fv.
@@ -191,7 +191,7 @@ star.compiler.freevars{
   public ptnVars:(canon,set[cId],set[cId]) => set[cId].
   ptnVars(Cn,Excl,Fv) => case Cn in {
     .anon(_,_) => Fv.
-    .vr(Lc,Nm,Tp) => ({? .cId(Nm,Tp) in Excl ?} || {? .cId(Nm,_) in Fv ?}) ?
+    .vr(Lc,Nm,Tp) => ({? .cId(Nm,Tp) in Excl ?} || {? .cId(Nm,_) in Fv ?}) ??
       Excl ||
       Excl\+.cId(Nm,Tp).
     .intr(_,_) => Excl.

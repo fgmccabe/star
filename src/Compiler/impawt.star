@@ -83,7 +83,7 @@ star.compiler.impawt{
   pickupDeclarations:(cons[data],option[locn])=>cons[decl].
   pickupDeclarations([],_Lc) => [].
   pickupDeclarations([T,..Ts],Lc) => (
-    D ?= pickupDeclaration(T,Lc) ?
+    D ?= pickupDeclaration(T,Lc) ??
       [D,..pickupDeclarations(Ts,Lc)] ||
       pickupDeclarations(Ts,Lc)).
 	

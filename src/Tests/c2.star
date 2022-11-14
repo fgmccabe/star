@@ -10,7 +10,7 @@ test.c2{
   cP(_,_) default => .none.
 
   testP:all x~~comp[x]|:(x,x)=>string.
-  testP(A,B) => A<B ? "fred" || "bill".
+  testP(A,B) => A<B ?? "fred" || "bill".
 
   main:()=>().
   main()=>valof{

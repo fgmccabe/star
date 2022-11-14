@@ -30,7 +30,7 @@ test.p{
   epsilon = parser((_)=>[]).
 
   public _sat:all s,t ~~ stream[s->>t] |: ((t)=>boolean) => parser[s,t].
-  _sat(T) => _item >>= (Ch) => (T(Ch) ? (return Ch) || epsilon).
+  _sat(T) => _item >>= (Ch) => (T(Ch) ?? (return Ch) || epsilon).
 
   public real:parser[cons[integer],float].
   real = (_tk(0c-) >>= (_) =>

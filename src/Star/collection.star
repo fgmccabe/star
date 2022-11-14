@@ -170,6 +170,6 @@ star.collection{
   }
 
   public iota: all c ~~ sequence[c->>integer] |: (integer,integer)=>c.
-  iota(Ix,Mx) => Ix==Mx ? [] || [Ix,..iota(Ix+1,Mx)].
+  iota(Ix,Mx) => Ix==Mx ?? [] || [Ix,..iota(Ix+1,Mx)].
 
 }

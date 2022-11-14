@@ -125,7 +125,7 @@ star.compiler.term{
     .cDsj(_,L,R) => "(#(dspExp(L,Off))||#(dspExp(R,Off)))".
     .cCnd(_,T,L,R) => valof{
       Off2=Off++"  ";
-      valis "(#(dspExp(T,Off)) ? #(dspExp(L,Off2)) ||\n #(Off2)#(dspExp(R,Off2)))"
+      valis "(#(dspExp(T,Off)) ?? #(dspExp(L,Off2)) ||\n #(Off2)#(dspExp(R,Off2)))"
     }.
     .cNeg(_,R) => "~#(dspExp(R,Off))".
     .cSeq(Lc,L,R) => "{#(dspSeq(cSeq(Lc,L,R),Off++"  "))}".
@@ -253,7 +253,7 @@ star.compiler.term{
 
   eqs(L1,L2) => case L1 in {
     [] => L2==[].
-    [E1,..S1] => [E2,..S2].=L2 ? eqTerm(E1,E2) && eqs(S1,S2) || .false.
+    [E1,..S1] => [E2,..S2].=L2 ?? eqTerm(E1,E2) && eqs(S1,S2) || .false.
     _ default => .false
   }
 
@@ -447,7 +447,7 @@ star.compiler.term{
 
   public rwTerm:(cExp,(cExp)=>option[cDefn])=>cExp.
   rwTerm(T,Tst) =>
-    .vrDef(_,_,_,Vl) ?= Tst(T) ? Vl || case T in {
+    .vrDef(_,_,_,Vl) ?= Tst(T) ?? Vl || case T in {
       .cVoid(Lc,Tp) => .cVoid(Lc,Tp).
       .cAnon(Lc,Tp) => .cAnon(Lc,Tp).
       .cVar(Lc,V) => .cVar(Lc,V).
@@ -691,7 +691,7 @@ star.compiler.term{
   validE(Exp,Vrs) => case Exp in {
     .cVoid(Lc,Tp) => .true.
     .cAnon(_,_) => .false.
-    .cVar(Lc,V) =>  V .<. Vrs ? .true || valof{
+    .cVar(Lc,V) =>  V .<. Vrs ?? .true || valof{
       reportError("variable $(V)\:$(typeOf(V)) not in scope",Lc);
       valis .false
     }.
@@ -842,7 +842,7 @@ star.compiler.term{
   isBreak(.aBreak(_,Lb),Lb) => .true.
   isBreak(_,_) default => .false.
 
-  presentInA(A,C,T) => C(A) ?
+  presentInA(A,C,T) => C(A) ??
     .true ||
     case A in {
       .aNop(_) => .false.
@@ -876,7 +876,7 @@ star.compiler.term{
   sameVar(_,_) default => .false.
 
   presentInE:(cExp,(aAction)=>boolean,(cExp)=>boolean) => boolean.
-  presentInE(T,A,C) => C(T) ?
+  presentInE(T,A,C) => C(T) ??
     .true ||
     case T in {
       .cVoid(_,_) => .false.

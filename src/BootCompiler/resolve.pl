@@ -22,7 +22,6 @@ overloadDef(_,Def,Def).
 overloadFunction(Lc,Nm,ExtNm,H,Tp,[],Eqns,Dict,funDef(Lc,Nm,ExtNm,H,Tp,[],REqns)) :-
   overloadEquations(Eqns,Dict,[],REqns),!.
 overloadFunction(Lc,Nm,ExtNm,H,Tp,Cx,Eqns,Dict,funDef(Lc,Nm,ExtNm,H,Tp,[],REqns)) :-
-%  reportMsg("overloading %s",[canDef(funDef(Lc,Nm,ExtNm,H,Tp,[],Eqns))],Lc),
   defineCVars(Lc,Cx,Dict,CVars,FDict),
   overloadEquations(Eqns,FDict,CVars,REqns),!.
 

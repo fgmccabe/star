@@ -30,7 +30,7 @@ star.compiler.dependencies{
 
   private collectRef:(defnSpec,map[defnSp,defnSp])=>map[defnSp,defnSp].
   collectRef(.defnSpec(.conSp(Nm),_,[St]),M) where (_,_,_,_,Els) ?= isCntrctStmt(St) =>
-    foldLeft((El,MM) => ((_,N,_) ?= isTypeAnnotation(El) && (_,Id)?=isName(N) ?
+    foldLeft((El,MM) => ((_,N,_) ?= isTypeAnnotation(El) && (_,Id)?=isName(N) ??
 	  MM[.varSp(Id)->.conSp(Nm)] || MM),
       M[.conSp(Nm)->.conSp(Nm)],Els).
   collectRef(.defnSpec(N,_,_),M) => M[N->N].
@@ -264,7 +264,7 @@ star.compiler.dependencies{
     collectTermRefs(H,All,Rf).
     
   collectAnnotRefs(H,All,Annots,Rf) where Id?=headName(H) =>
-    (Tp ?= Annots[Id] ? collectTypeRefs(Tp,All,Rf) || Rf).
+    (Tp ?= Annots[Id] ?? collectTypeRefs(Tp,All,Rf) || Rf).
   collectAnnotRefs(H,_,_,Rf) => valof{
     reportError("not a head: $(H)",locOf(H));
     valis Rf
@@ -343,7 +343,7 @@ star.compiler.dependencies{
   collectTermRefs(A,All,Rf) where (_,R) ?= isOpen(A) => 
     collectTermRefs(R,All,Rf).
   collectTermRefs(T,All,Rf) where (_,L) ?= isValof(T) =>
-    ((_,[As]) ?= isBrTuple(L) ?
+    ((_,[As]) ?= isBrTuple(L) ??
       collectDoRefs(As,All,Rf) ||
 	collectTermRefs(L,All,Rf)).
   collectTermRefs(A,All,Rf) where (_,R) ?= isThrow(A) => 

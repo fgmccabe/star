@@ -152,7 +152,7 @@ ssTrm(cnj(_,L,R),Dp,sq([LL,ss("&&"),RR])) :-!,
 ssTrm(dsj(_,L,R),Dp,sq([lp,LL,ss("||"),RR,rp])) :-!,
   ssTrm(L,Dp,LL),
   ssTrm(R,Dp,RR).
-ssTrm(cnd(_,T,L,R),Dp,sq([lp,TT,ss(" ? "),nl(Dp1),LL,ss("||"),nl(Dp1),RR,rp])) :-!,
+ssTrm(cnd(_,T,L,R),Dp,sq([lp,TT,ss(" ?? "),nl(Dp1),LL,ss("||"),nl(Dp1),RR,rp])) :-!,
   Dp1 is Dp+2,
   ssTrm(T,Dp,TT),
   ssTrm(L,Dp1,LL),
@@ -262,7 +262,7 @@ ssActSeq(seq(_,A,B),Dp,[AA|BB]) :-!,
 ssActSeq(A,Dp,[AA]) :-
   ssAct(A,Dp,AA).
 
-ssCnd(cnd(_,T,L,R),Dp,sq([TT,ss(" ? "),nl(Dp),LL,ss("||"),nl(Dp),RR])) :-!,
+ssCnd(cnd(_,T,L,R),Dp,sq([TT,ss(" ?? "),nl(Dp),LL,ss("||"),nl(Dp),RR])) :-!,
   Dp1 is Dp+2,
   ssTrm(T,Dp,TT),
   ssTrm(L,Dp1,LL),

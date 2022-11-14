@@ -252,7 +252,7 @@ star.compiler.term.ast{
     
 
 
-  exprId(Lc,Id) => (isIdentifier(Id) ? nme(Lc,Id) || qnm(Lc,Id)).  
+  exprId(Lc,Id) => (isIdentifier(Id) ?? nme(Lc,Id) || qnm(Lc,Id)).  
 
   isIdentifier:(string)=>boolean.
   isIdentifier(Id) => Ch in (Id::cons[integer]) *> isAlphaNum(Ch).

@@ -140,9 +140,9 @@ star.compiler.macro.rules{
   
   -- Convert unary minus to a call to __minus
   uMinusMacro(A,_) where (Lc,R) ?= isUnary(A,"-") =>
-    (.int(_,Ix) .= R ?
+    (.int(_,Ix) .= R ??
 	.active(int(Lc,-Ix)) ||
-	.num(_,Dx) .= R ?
+	.num(_,Dx) .= R ??
 	  .active(.num(Lc,-Dx)) ||
 	  .active(unary(Lc,"__minus",R))).
   uMinusMacro(_,_) => .inactive.
@@ -273,9 +273,9 @@ star.compiler.macro.rules{
   coercionMacro(_,_) => .inactive.
 
   indexMacro(A,.expression) where (Lc,L,R) ?= isIndexTerm(A) =>
-    ((_,Ky,Vl) ?= isBinary(R,"->") ?
+    ((_,Ky,Vl) ?= isBinary(R,"->") ??
 	active(ternary(Lc,"_put",L,Ky,Vl)) ||
-	(_,Ky) ?= isNegation(R) ?
+	(_,Ky) ?= isNegation(R) ??
 	  active(binary(Lc,"_remove",L,Ky)) ||
 	  active(binary(Lc,"_index",L,R))).
   indexMacro(_,_) default => .inactive.

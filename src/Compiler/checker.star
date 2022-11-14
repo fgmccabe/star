@@ -176,28 +176,28 @@ star.compiler.checker{
   checkDefn(Defn,Vis,Env,Outer,Path) => case Defn in {
     .defnSpec(.varSp(Nm),Lc,Stmts) where Tp ?= varType(Nm,Env) && areEquations(Stmts) => valof{
       (Defs,Decls) = checkFunction(Nm,Tp,Lc,Stmts,Env,Outer,Path);
-      valis (Defs,(isVisible(Vis,.priVate,.varSp(Nm))?Decls||[]),Decls)
+      valis (Defs,(isVisible(Vis,.priVate,.varSp(Nm))??Decls||[]),Decls)
     }.
     .defnSpec(.varSp(Nm),Lc,[Stmt]) where Tp ?= varType(Nm,Env) => valof{
       (Defs,Decls) = checkVar(Nm,Tp,Lc,Stmt,Env,Outer,Path);
-      valis (Defs,(isVisible(Vis,.priVate,.varSp(Nm))?Decls||[]),Decls)
+      valis (Defs,(isVisible(Vis,.priVate,.varSp(Nm))??Decls||[]),Decls)
     }.
     .defnSpec(.tpSp(TpNm),Lc,[St]) => valof{
       (Df,Dc) = parseTypeDef(TpNm,St,Env,Path);
-      valis (Df,(isVisible(Vis,.priVate,.tpSp(TpNm))?Dc||[]),Dc)
+      valis (Df,(isVisible(Vis,.priVate,.tpSp(TpNm))??Dc||[]),Dc)
     }.
     .defnSpec(.cnsSp(CnNm),Lc,[St]) => valof{
       (Defs,Decls) = parseConstructor(CnNm,St,Env,Path);
-      valis (Defs,(isVisible(Vis,.priVate,.cnsSp(CnNm))?Decls||[]),Decls)
+      valis (Defs,(isVisible(Vis,.priVate,.cnsSp(CnNm))??Decls||[]),Decls)
     }.
     .defnSpec(.conSp(ConNm),Lc,[St]) => valof{
       (Defs,Decls) = parseContract(St,Env,Path);
-      valis (Defs,(isVisible(Vis,.priVate,.conSp(ConNm))?Decls||[]),Decls)
+      valis (Defs,(isVisible(Vis,.priVate,.conSp(ConNm))??Decls||[]),Decls)
     }.
     .defnSpec(.implSp(Nm),Lc,[St]) => valof {
       if (_,Q,C,H,B) ?= isImplementationStmt(St) then{
 	(Defs,Decls) = checkImplementation(Lc,Q,C,H,B,Env,Outer,Path);
-	valis (Defs,(isVisible(Vis,.priVate,.implSp(Nm))?Decls||[]),Decls)
+	valis (Defs,(isVisible(Vis,.priVate,.implSp(Nm))??Decls||[]),Decls)
       }
       else{
 	reportError("not a valid implementation statement",Lc);
@@ -207,7 +207,7 @@ star.compiler.checker{
     .defnSpec(.accSp(Nm,Fld),Lc,[St]) => valof {
       if (_,Q,C,T,B) ?= isAccessorStmt(St) then{
 	(Defs,Decls) = checkAccessor(Lc,Nm,Q,C,T,B,Env,Outer,Path);
-	valis (Defs,(isVisible(Vis,.priVate,.accSp(Nm,Fld))?Decls||[]),Decls)
+	valis (Defs,(isVisible(Vis,.priVate,.accSp(Nm,Fld))??Decls||[]),Decls)
       }
       else{
 	reportError("not a valid accessor statement",Lc);
@@ -217,7 +217,7 @@ star.compiler.checker{
     .defnSpec(.updSp(Nm,Fld),Lc,[St]) => valof {
       if (_,Q,C,H,B) ?= isUpdaterStmt(St) then{
 	(Defs,Decls) = checkUpdater(Lc,Nm,Q,C,H,B,Env,Outer,Path);
-	valis (Defs,(isVisible(Vis,.priVate,.updSp(Nm,Fld))?Decls||[]),Decls)
+	valis (Defs,(isVisible(Vis,.priVate,.updSp(Nm,Fld))??Decls||[]),Decls)
       }
       else{
 	reportError("not a valid updater statement",Lc);
@@ -266,7 +266,7 @@ star.compiler.checker{
     }
   }
 
-  isThrowsType(Tp) => .throwsType(PrTp,ErTp) .= deRef(Tp) ?
+  isThrowsType(Tp) => .throwsType(PrTp,ErTp) .= deRef(Tp) ??
     (deRef(PrTp),.some(ErTp)) || (deRef(Tp),.none).
 
   processEqns:(cons[ast],tipe,option[tipe],cons[rule[canon]],option[rule[canon]],dict,dict,string) =>

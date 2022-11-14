@@ -437,12 +437,12 @@ mkOpen(Lc,I,Trm) :-
   unary(Lc,"open",I,Trm).
 
 isConditional(Term,Lc,Tst,Th,El) :-
-  isBinary(Term,Lc,"?",Tst,Rhs),
+  isBinary(Term,Lc,"??",Tst,Rhs),
   isBinary(Rhs,_,"||",Th,El).
 
 conditional(Lc,Tst,Th,El,Cond) :-
   binary(Lc,"||",Th,El,Rhs),
-  binary(Lc,"?",Tst,Rhs,Cond).
+  binary(Lc,"??",Tst,Rhs,Cond).
 
 ruleName(St,var(Nm),value) :-
   headOfRule(St,Hd),
@@ -735,6 +735,9 @@ isGl(C) :-
   isSearch(C,_,_,_),!.
 isGl(C) :-
   isMatch(C,_,_,_),!.
+isGl(C) :-
+  isConditional(C,_,Th,El),!,
+  (isGl(Th);isGl(El)).
 
 isIterableGl(C) :-
   isConjunct(C,_,L,R),!,

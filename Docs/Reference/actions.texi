@@ -163,7 +163,6 @@ There is no automatic search for an handling form: every @code{throw}
 must be lexically accounted for.
 @end quotation
 
-
 @node Labeled Action
 @subsection Labeled Action
 @cindex labeled action
@@ -178,7 +177,6 @@ not affected -- unless it lexically contains a @refer{BreakAction}.
 @anchored{LabeledAction} ::= @refer{Identifier} @code{:} @refer{Action}
 @end display
 @end float
-
 
 @node Break Action
 @subsection Break Action

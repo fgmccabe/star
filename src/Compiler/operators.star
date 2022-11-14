@@ -64,6 +64,7 @@ star.compiler.operators{
     "?=" => [infixOp(899,900,899)].
     "default" => [postfixOp(939,940)].
     "#" => [prefixOp(1750,1749), infixOp(759,760,759)].
+    "??" => [infixOp(919,920,920)].
     "%" => [infixOp(700,700,699)].
     "<-" => [infixOp(904,905,904)].
     ".>>>." => [infixOp(600,600,599)].
@@ -95,7 +96,7 @@ star.compiler.operators{
     "++" => [infixOp(719,720,720)].
     ">" => [infixOp(899,900,899)].
     "return" => [prefixOp(930,929)].
-    "?" => [prefixOp(820,819), infixOp(919,920,920)].
+    "?" => [prefixOp(820,819)].
     "@" => [prefixOp(400,399), infixOp(399,400,400)].
     "in" => [infixOp(899,900,900)].
     "break" => [prefixOp(10,9)].
@@ -294,6 +295,7 @@ star.compiler.operators{
     (">",`=`) => ?">=".
     (">",`>`) => ?">>".
     (">>",`=`) => ?">>=".
+    ("?",`?`) => ?"??".
     ("?",`=`) => ?"?=".
     ("?",`}`) => ?"?}".
     ("!",`}`) => ?"!}".
@@ -384,6 +386,7 @@ star.compiler.operators{
     ">>" => .true.  /* monadic bind */
     ">>=" => .true.  /* monadic bind */
     "?" => .true.  /* mark expression as optionally there */
+    "??" => .true.  /* conditional operator */
     "?=" => .true.  /* optional decomposition match */
     "?}" => .true.  /* test comprehension */
     "@" => .true.  /* meta annotation */
@@ -419,6 +422,7 @@ star.compiler.operators{
     "default" => .true.
     "#" => .true.
     "!}" => .true.
+    "??" => .true.
     "<-" => .true.
     "(" => .true.
     ")" => .true.

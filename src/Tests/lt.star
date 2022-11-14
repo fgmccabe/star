@@ -8,7 +8,7 @@ test.lt{
   ll(M) => let{.
     S = ref genInt(M).
 
-    f(A) => (N) => (N>=S! ?  A || f(A*N)(N+1)).
+    f(A) => (N) => (N>=S! ??  A || f(A*N)(N+1)).
   .} in (f(1)(1),S!).
 
   contract all x ~~ zz[x] ::= {

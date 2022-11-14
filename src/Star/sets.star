@@ -25,8 +25,8 @@ star.sets{
 
   public implementation all e ~~ equality[e], hashable[e] |: setops[set[e]] => {
     .set(m1)\/.set(m2) => .set(ixLeft(((k,_,mm) => mm[k->()]),m2,m1)).
-    .set(m1)/\.set(m2) => .set(ixLeft((k,_,mm) => (.some(_).=m2[k]?mm[k->()]||mm),[],m1)).
-    .set(m1)\.set(m2) => .set(ixLeft((k,_,mm) => (.some(_).=m2[k]?mm||mm[k->()]),[],m1)).
+    .set(m1)/\.set(m2) => .set(ixLeft((k,_,mm) => (.some(_).=m2[k]??mm[k->()]||mm),[],m1)).
+    .set(m1)\.set(m2) => .set(ixLeft((k,_,mm) => (.some(_).=m2[k]??mm||mm[k->()]),[],m1)).
   }
 
   public implementation all e ~~ display[e] |: display[set[e]] => let{

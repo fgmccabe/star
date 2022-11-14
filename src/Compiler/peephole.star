@@ -88,7 +88,7 @@ star.compiler.peephole{
   splitSegment([.iLbl(XLb),..Code],Lb,SoFar,Exits,Map) =>
     splitSegment(Code,XLb,[],[],Map[Lb->.segment(Lb,?XLb,reverse(SoFar),Exits)]).
   splitSegment([Op,..Code],Lb,SoFar,Exits,Map) => valof{
-    Ex = (Tgt?=opTgt(Op) ? Exits\+Tgt || Exits);
+    Ex = (Tgt?=opTgt(Op) ?? Exits\+Tgt || Exits);
 
     if (.iIndxJmp(Cnt).=Op || .iCase(Cnt).=Op) && (Front,Rest) ?= front(Code,Cnt) then{
       valis splitSegments(Rest,Map[Lb->.segment(Lb,.none,reverse(SoFar)++[Op,..Front],
@@ -100,7 +100,7 @@ star.compiler.peephole{
   }
 
   findExits:(cons[assemOp],set[assemLbl]) => set[assemLbl].
-  findExits(Code,Ex) => foldLeft((O,X) => (TT?=opTgt(O)?X\+TT||X),Ex,Code).
+  findExits(Code,Ex) => foldLeft((O,X) => (TT?=opTgt(O)??X\+TT||X),Ex,Code).
 
   opTgt(.iCall(_,Lb)) => ?Lb.
   opTgt(.iOCall(_,Lb)) => ?Lb.
@@ -176,7 +176,7 @@ star.compiler.peephole{
   makeSegGraph(.segment(Lbl,Flw,Code,Exits)) => valof{
     ExNodes = ((Exits::cons[assemLbl])//(Tgt)=>"\"$(Lbl)\" -> \"$(Tgt)\";\n")*;
     Node = "\"$(Lbl)\" [shape=box,label=$(disp(Lbl)++":"++(Code//(I)=>disp(I))*)];\n";
-    Follow = (Tgt?=Flw ? "\"$(Lbl)\" -> \"$(Tgt)\" [ style=dotted, color=red ]" || "");
+    Follow = (Tgt?=Flw ?? "\"$(Lbl)\" -> \"$(Tgt)\" [ style=dotted, color=red ]" || "");
     valis Node++ExNodes++Follow
   }
 }

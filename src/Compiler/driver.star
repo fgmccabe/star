@@ -116,7 +116,7 @@ star.compiler{
 	    logMsg("normalized code $(N)");
 	  };
 
-	  Inlined = ( optimization! ==.inlining ? valof{
+	  Inlined = ( optimization! ==.inlining ?? valof{
 	      Priors = { Lb->Df | .pkgImp(_,_,I) in PkgSpec.imports &&
 		    Dfs ?= importLowered(I,Repo) &&
 		    Df in Dfs && Lb?=dfLbl(Df)};

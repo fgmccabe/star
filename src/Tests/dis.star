@@ -5,7 +5,7 @@ test.dis{
   check:(option[(integer,integer)]) => option[integer].
   check(S) =>
     (.some((A,1)) .= S ||
-      .some((2,A)) .= S) ? .some(A) || .none.
+      .some((2,A)) .= S) ?? .some(A) || .none.
 
   main:()=>().
   main()=>valof{

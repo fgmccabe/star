@@ -59,7 +59,7 @@ star.compiler.term.repo{
   packageCodeOk(_,_) default => .false.
 
   public pkgOk:(termRepo,pkg)=>boolean.
-  pkgOk(Repo,Pkg) => (SrcUri,CodeUri) ?= packageCode(Repo,Pkg) ?
+  pkgOk(Repo,Pkg) => (SrcUri,CodeUri) ?= packageCode(Repo,Pkg) ??
   newerRsrc(CodeUri,SrcUri) || .false.
 
   public packageCode:(termRepo,pkg) => option[(uri,uri)].
