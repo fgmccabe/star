@@ -31,14 +31,14 @@ test.ralist{
   lookup(_,.nil) => .none.
   lookup(Ix,.cons(.zer,ts)) => lookup(Ix,ts).
   lookup(Ix,.cons(.one(t),ts)) where sz.=size(t) =>
-    (Ix<sz ?
+    (Ix<sz ??
 	lookupTree(Ix,t) ||
 	lookup(Ix-sz,ts)).
 
   updateTree:all e ~~ (integer,e,tree[e])=>tree[e].
   updateTree(0,x,.leaf(_)) => .leaf(x).
   updateTree(Ix,x,.node(w,t1,t2)) where w2.=w/2 =>
-    (Ix<w2 ?
+    (Ix<w2 ??
 	.node(w,updateTree(Ix,x,t1),t2) ||
 	.node(w,t1,updateTree(Ix-w2,x,t2))).
 
@@ -46,14 +46,14 @@ test.ralist{
   update(0,x,.nil) => .cons(.one(.leaf(x)),.nil).
   update(Ix,x,.cons(.zer,ts)) => .cons(.zer,update(Ix,x,ts)).
   update(Ix,x,.cons(.one(t1),ts)) where sz.=size(t1) =>
-    (Ix<sz ?
+    (Ix<sz ??
 	.cons(.one(updateTree(Ix,x,t1)),ts) ||
 	.cons(.one(t1),update(Ix-sz,x,ts))).
 
   removeFromTree:all e ~~ (integer,tree[e])=>digit[e].
   removeFromTree(0,.leaf(_)) => .zer.
   removeFromTree(Ix,.node(w,t1,t2)) where w2.=w/2 =>
-    (Ix<w2 ?
+    (Ix<w2 ??
 	unwrapDigit(w,removeFromTree(Ix,t1),.one(t2)) ||
 	unwrapDigit(w,.one(t1),removeFromTree(Ix-w2,t2))).
 
@@ -65,7 +65,7 @@ test.ralist{
   remove(0,.nil) => .nil.
   remove(Ix,.cons(.zer,ts)) => .cons(.zer,remove(Ix,ts)).
   remove(Ix,.cons(.one(t1),ts)) where sz.=size(t1) =>
-    (Ix<sz ?
+    (Ix<sz ??
 	.cons(removeFromTree(Ix,t1),ts) ||
 	.cons(.one(t1),remove(Ix-sz,ts))).
 

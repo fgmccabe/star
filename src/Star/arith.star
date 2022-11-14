@@ -118,13 +118,13 @@ star.arith{
   X =< Y => Y>=X.
 
   public min: all t ~~ comp[t] |: (t,t)=>t.
-  min(X,Y) => X<Y ? X || Y.
+  min(X,Y) => X<Y ?? X || Y.
 
   public max: all t ~~ comp[t] |: (t,t)=>t.
-  max(X,Y) => X>Y ? X || Y.
+  max(X,Y) => X>Y ?? X || Y.
 
   public abs: all t ~~ comp[t],arith[t] |: (t)=>t.
-  abs(X) => X<zero ? __minus(X) || X.
+  abs(X) => X<zero ?? __minus(X) || X.
 
   public implementation display[float] => {
     disp(X) => _flt2str(X,8,`g`,.false).

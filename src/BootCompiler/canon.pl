@@ -260,7 +260,7 @@ ssTerm(disj(_,L,R),Dp,sq([lp,LL,ss(" || "),RR,rp])) :-
 ssTerm(implies(_,L,R),Dp,sq([lp,LL,ss(" *> "),RR,rp])) :-
   ssTerm(L,Dp,LL),
   ssTerm(R,Dp,RR).
-ssTerm(cond(_,Test,Either,Or,_),Dp,sq([lp,TT,ss("?"),LL,ss(" || "),RR,rp])) :-
+ssTerm(cond(_,Test,Either,Or,_),Dp,sq([lp,TT,ss("??"),LL,ss(" || "),RR,rp])) :-
   ssTerm(Test,Dp,TT),
   ssTerm(Either,Dp,LL),
   ssTerm(Or,Dp,RR).

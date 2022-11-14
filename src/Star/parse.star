@@ -20,10 +20,10 @@ star.parse{
   } in .parser((S)=>hd(parse(P,S),S)).
 
   public _sat:all s,t ~~ stream[s->>t] |: ((t)=>boolean) => parser[s,t].
-  _sat(T) => _item >>= (Ch) => (T(Ch) ? (return Ch) || epsilon).
+  _sat(T) => _item >>= (Ch) => (T(Ch) ?? (return Ch) || epsilon).
 
   public _test:all p,s,t ~~ stream[s->>t] |: ((t)=>option[p]) => parser[s,p].
-  _test(P) => _item >>= (Ch) => (X?=P(Ch) ? (return X) || epsilon).
+  _test(P) => _item >>= (Ch) => (X?=P(Ch) ?? (return X) || epsilon).
 
   public _pred:all p,s,t ~~ stream[s->>t] |: (()=>option[p]) => parser[s,p].
   _pred(P) => let{

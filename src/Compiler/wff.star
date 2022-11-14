@@ -333,13 +333,13 @@ star.compiler.wff{
   public mkImplies(Lc,L,R) => binary(Lc,"*>",L,R).
 
   public isConditional(A) where
-      (Lc,Tst,Rhs) ?= isBinary(A,"?") &&
+      (Lc,Tst,Rhs) ?= isBinary(A,"??") &&
       (_,Th,El) ?= isBinary(Rhs,"||") => .some((Lc,Tst,Th,El)).
   isConditional(_) => .none.
 
   public mkConditional:(option[locn],ast,ast,ast) => ast.
   mkConditional(Lc,T,Th,El) =>
-    binary(Lc,"?",T,binary(Lc,"||",Th,El)).
+    binary(Lc,"??",T,binary(Lc,"||",Th,El)).
 
   public isMatch(A) => isBinary(A,".=").
 
@@ -393,11 +393,11 @@ star.compiler.wff{
 
   public isImport:(ast)=> option[importSpec].
   isImport(A) where (Lc,I) ?= isPublic(A) =>
-    (.pkgImp(_,_,Im) ?= isImport(I) ?
+    (.pkgImp(_,_,Im) ?= isImport(I) ??
       .some(.pkgImp(Lc,.pUblic,Im)) ||
 	.none).
   isImport(A) where (Lc,I) ?= isPrivate(A) =>
-    (.pkgImp(_,_,Im) ?= isImport(I) ?
+    (.pkgImp(_,_,Im) ?= isImport(I) ??
 	.some(pkgImp(Lc,.priVate,Im)) ||
 	.none).
   isImport(A) where (Lc,I) ?= isUnary(A,"import") => .some(pkgImp(Lc,.priVate,pkgeName(I))).
@@ -567,7 +567,7 @@ star.compiler.wff{
   public collectImports:(cons[ast], cons[importSpec], cons[ast]) => (cons[importSpec],cons[ast]).
   collectImports([],Imp,Oth) => (Imp,reverse(Oth)).
   collectImports([A,..Ss],Imp,Oth) => (
-    Spec ?= isImport(A) ?
+    Spec ?= isImport(A) ??
       collectImports(Ss,[Spec,..Imp],Oth) ||
       collectImports(Ss,Imp,[A,..Oth])).
 

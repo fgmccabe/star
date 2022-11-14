@@ -476,7 +476,7 @@ star.compiler.gencode{
 
   intrinsicCont:(assemOp,boolean,stack,Cont) => Cont.
   intrinsicCont(I,Frm,Stk,Cont) => cont{
-    C(Ctx,AStk,Cde) => Cont.C(Ctx,Stk,Cde++[I]++(Frm?[frameIns(Stk)]||[])).
+    C(Ctx,AStk,Cde) => Cont.C(Ctx,Stk,Cde++[I]++(Frm??[frameIns(Stk)]||[])).
   }
 
   callCont:(termLbl,stack,Cont) => Cont.

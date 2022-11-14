@@ -283,7 +283,7 @@ star.redblack{
 
   public implementation all k,v ~~ equality[k],comp[k] |:
     ixfilter[rbtree[k,v]->>k,v] => let{
-      ixFilter(T,P) => ixLeft((K,V,A)=>(P(K,V) ? add(A,K,V) || A),.leaf,T).
+      ixFilter(T,P) => ixLeft((K,V,A)=>(P(K,V) ?? add(A,K,V) || A),.leaf,T).
     } in {
       (^//) = ixFilter
     }

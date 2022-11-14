@@ -5,7 +5,7 @@ test.tr{
   import star.script.
 
   isOdd:(integer) => boolean throws string.
-  isOdd(X) => (X%2==0 ? (throw "not odd") || .true).
+  isOdd(X) => (X%2==0 ?? (throw "not odd") || .true).
 
   checkMe:(integer) => boolean.
   checkMe(X) => (try

@@ -60,7 +60,7 @@ star.compiler.dict.mgt{
 
   public findVarFace:(string,dict) => option[tipe].
   findVarFace(Nm,Env) where .vrEntry(_,_,Tp,Fc) ?=isVar(Nm,Env) =>
-    (_?=Fc ? Fc || faceOfType(Tp,Env)).
+    (_?=Fc ?? Fc || faceOfType(Tp,Env)).
   findVarFace(_,_) default => .none.
     
   public varDefined:(string,dict) => boolean.
@@ -91,7 +91,7 @@ star.compiler.dict.mgt{
   public undeclareVar:(string,dict) => dict.
   undeclareVar(_,[]) => [].
   undeclareVar(Nm,[Sc,..Ev]) =>
-    (_ ?= Sc.vars[Nm] ?
+    (_ ?= Sc.vars[Nm] ??
 	[Sc.vars<<-Sc.vars[~Nm],..Ev] ||
 	[Sc,..undeclareVar(Nm,Ev)]).
 
@@ -225,7 +225,7 @@ star.compiler.dict.mgt{
   
   public pushFace:(tipe,option[locn],dict) => dict.
   pushFace(Tp,Lc,Env) =>
-    pushSig(Tp,Lc,(Id,T,E) where (_,DQ).=deQuant(T) => (_ ?= isConsType(DQ) ?
+    pushSig(Tp,Lc,(Id,T,E) where (_,DQ).=deQuant(T) => (_ ?= isConsType(DQ) ??
 	declareConstructor(Id,Id,Lc,T,E) ||
 	declareVar(Id,Lc,T,.none,E)),
       Env).

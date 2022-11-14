@@ -282,7 +282,7 @@ star.compiler.matcher{
 
   compareConstructorTriple:all e ~~ (triple[e],triple[e]) => boolean.
   compareConstructorTriple(([A,.._],_,IxA),([B,.._],_,IxB)) =>
-    (sameConstructor(A,B) ? IxA<IxB || compareConstructor(A,B)).
+    (sameConstructor(A,B) ?? IxA<IxB || compareConstructor(A,B)).
 
   compareConstructor(.cTerm(_,A,_,_),.cTerm(_,B,_,_)) => A<B.
 
@@ -298,5 +298,5 @@ star.compiler.matcher{
   pullVarLets(Vrs,Exp) => (Vrs,Exp).
 
   replaceWith:(cExp,cExp) => (cExp)=>cExp.
-  replaceWith(A,B) => (X) => (A==X?B||X).
+  replaceWith(A,B) => (X) => (A==X??B||X).
 }

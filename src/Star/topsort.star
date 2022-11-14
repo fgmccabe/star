@@ -45,7 +45,7 @@ star.topsort{
 
     popGroups((Dfs,Stk,Gps,Low),Pt) where Pt>Low => (Dfs,Stk,Gps,Low).
     popGroups((Dfs,Stk,Gps,Low),Pt) where (NStk,Grp).=popGroup(Stk,Low,[]) =>
-      [].=Grp ? (Dfs,NStk,Gps,Low) || (Dfs,NStk,[Grp,..Gps],Low).
+      [].=Grp ?? (Dfs,NStk,Gps,Low) || (Dfs,NStk,[Grp,..Gps],Low).
 
     popGroup:(cons[defEntry],integer,cons[d]) => (cons[defEntry],cons[d]).
     popGroup([E,..Stk],Low,SoFar) where E.stackPt>=Low => popGroup(Stk,Low,[E.df,..SoFar]).

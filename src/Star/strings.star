@@ -127,7 +127,7 @@ star.strings{
   }
 
   public isHexDigit:(char) => option[integer].
-  isHexDigit(Ch) => isDigit(Ch) ? ?digitVal(Ch) ||
+  isHexDigit(Ch) => isDigit(Ch) ?? ?digitVal(Ch) ||
     case Ch in {
       `a` => ?10.
       `b` => ?11.

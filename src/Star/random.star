@@ -45,7 +45,7 @@ star.random{
 
   iLogBase : (integer, integer) => integer.
   iLogBase(b, i) =>
-    (i < b) ? 1 || 1 + iLogBase(b, i / b).
+    (i < b) ?? 1 || 1 + iLogBase(b, i / b).
 
   min32Bound = -0x80000000.
   max32Bound = 0x7fffffff.
@@ -66,14 +66,14 @@ star.random{
       valof {	
 	k = s1 / 53668;
 	s1_1  = 40014 * (s1 - k * 53668) - k * 12211;
-	s1_2 = (s1_1 < 0 ? s1_1 + 2147483563 || s1_1);
+	s1_2 = (s1_1 < 0 ?? s1_1 + 2147483563 || s1_1);
 
 	k1 = s2 / 52774;
 	s2_1  = 40692 * (s2 - k1 * 52774) - k1 * 3791;
-	s2_2 = (s2_1 < 0 ? s2_1 + 2147483399 || s2_1);
+	s2_2 = (s2_1 < 0 ?? s2_1 + 2147483399 || s2_1);
 
 	z  = s1_2 - s2_2;
-	z1 = (z < 1 ? z + 2147483562 || z);
+	z1 = (z < 1 ?? z + 2147483562 || z);
 
 	valis (z1, StdGen(s1_2, s2_2))
       }.
@@ -82,8 +82,8 @@ star.random{
     stdSplit(std) where StdGen(s1, s2) .= std =>
       valof {
 	/* no statistical foundation for this! */
-	new_s1 = (s1 == 2147483562 ? 1 || s1 + 1);
-	new_s2 = (s2 == 1 ? 2147483398 || s2 - 1);
+	new_s1 = (s1 == 2147483562 ?? 1 || s1 + 1);
+	new_s2 = (s2 == 1 ?? 2147483398 || s2 - 1);
 	StdGen(t1, t2) .= snd(stdNext(std));
 	left = StdGen(new_s1, t2);
 	right = StdGen(t1, new_s2);

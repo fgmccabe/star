@@ -84,8 +84,8 @@ star.compiler.lexer{
     graphFollow(Strm,Id,Deflt) default => Deflt.
 
     finalist(SoFr,Str,Deflt) where final(SoFr) =>
-      (Str,(.bkt(SoFr,Lbl,_,_,_) ?= isBracket(SoFr) ? .some(.tok(makeLoc(St0,Str),.lftTok(Lbl))) ||
-	  .bkt(_,Lbl,SoFr,_,_) ?= isBracket(SoFr) ? .some(.tok(makeLoc(St0,Str),.rgtTok(Lbl))) ||
+      (Str,(.bkt(SoFr,Lbl,_,_,_) ?= isBracket(SoFr) ?? .some(.tok(makeLoc(St0,Str),.lftTok(Lbl))) ||
+	  .bkt(_,Lbl,SoFr,_,_) ?= isBracket(SoFr) ?? .some(.tok(makeLoc(St0,Str),.rgtTok(Lbl))) ||
 	  .some(.tok(makeLoc(St0,Str),.idTok(SoFr))))).
     finalist(_,_,Deflt) => Deflt.
   .} in graphFollow(St,Ld,finalist(Ld,St,(St,.none))).
@@ -262,7 +262,7 @@ star.compiler.lexer{
   skipToNx(St) where Nx ?= lookingAt(St,[`/`,`*`]) => skipToNx(blockComment(Nx)).
   skipToNx(St) => St.
 
-  lineComment(St) where Ch?=hedChar(St) => ((Ch==`\n`||_isZlChar(Ch)) ? nxtSt(St) || lineComment(nxtSt(St))).
+  lineComment(St) where Ch?=hedChar(St) => ((Ch==`\n`||_isZlChar(Ch)) ?? nxtSt(St) || lineComment(nxtSt(St))).
   lineComment(St) => St.
 
   blockComment(St) where Nx?=lookingAt(St,[`*`,`/`]) => Nx.

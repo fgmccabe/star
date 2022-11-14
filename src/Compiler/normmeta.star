@@ -33,7 +33,7 @@ star.compiler.normalize.meta{
 
   public implementation display[nameMapEntry] => {
     disp(En) => case En in {
-      .moduleFun(C,V) => "module fun $(V), closure $(C)".
+      .moduleFun(C,V) => "module fun $(C)\:$(typeOf(C))".
       .moduleCons(Nm,Tp) => "module cons $(Nm)".
       .localCons(Nm,Tp,Vr) => "local cons #(Nm)[$(Vr)]".
       .localFun(Nm,ClNm,V) => "local fun #(Nm), closure $(ClNm), ThV $(V)".
@@ -92,7 +92,7 @@ star.compiler.normalize.meta{
     collectConstructors([],Map) => Map.
     collectConstructors([.cnsDec(Lc,Nm,FullNm,Tp),..Ds],Map) where
 	TpNm ?= collectibleConsType(Tp) =>
-      (E ?= Map[TpNm] ?
+      (E ?= Map[TpNm] ??
 	collectConstructors(Ds,Map[TpNm->[(FullNm,Tp),..E]]) ||
 	collectConstructors(Ds,Map[TpNm->[(FullNm,Tp)]])
       ).

@@ -4,7 +4,7 @@ test.do8a{
   switch = .true.
 
   foo()=>
-    ((A) => ((B) => switch ? logMsg("A wins") || logMsg("B wins"))("beta"))("alpha").
+    ((A) => ((B) => switch ?? logMsg("A wins") || logMsg("B wins"))("beta"))("alpha").
 
   logMsg:(string)=>().
   logMsg(_)=>().

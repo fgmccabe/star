@@ -14,6 +14,10 @@ star.compiler.resolve{
   public overloadProgram:(cons[cons[canonDef]],dict) => cons[cons[canonDef]].
   overloadProgram(Gps,Dict) => overloadGroups(Gps,[],Dict).
 
+  contract all e ~~ resolve[e] ::= {
+    resolve:(e,dict,resolveState) => (e,resolveState)
+  }
+
   overloadGroups:(cons[cons[canonDef]],cons[cons[canonDef]],dict) =>
     cons[cons[canonDef]].
   overloadGroups([],Gps,_) => reverse(Gps).
@@ -28,9 +32,9 @@ star.compiler.resolve{
   overloadDefs:(cons[canonDef],dict,cons[canonDef]) => (cons[canonDef],dict).
   overloadDefs([],Dict,Dfx) => (reverse(Dfx),Dict).
   overloadDefs([D,..Defs],Dict,Dfx) => valof{
---    logMsg("overload definition $(D)");
+    logMsg("overload definition $(D)");
     (DD,DDict) = overloadDef(D,Dict);
---    logMsg("overloaded definition $(DD)");
+    logMsg("overloaded definition $(DD)");
     valis overloadDefs(Defs,DDict,[DD,..Dfx])
   }
 
@@ -50,11 +54,11 @@ star.compiler.resolve{
   overloadVarDef:(dict,option[locn],string,string,canon,cons[constraint],tipe)=>
     (canonDef,dict).
   overloadVarDef(Dict,Lc,Nm,FullNm,Val,[],Tp) => 
-    (varDef(Lc,Nm,FullNm,resolveTerm(Val,Dict),[],Tp),Dict).
+    (varDef(Lc,Nm,FullNm,overload(Val,Dict),[],Tp),Dict).
   overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp) => valof{
 --    logMsg("overload $(FullNm) = $(Val)");
     (Cvrs,CDict) = defineCVars(Lc,Cx,[],Dict);
-    RVal = resolveTerm(Val,CDict);
+    RVal = overload(Val,CDict);
     (Qx,Qt) = deQuant(Tp);
     (_,ITp) = deConstrain(Qt);
     CTp = reQuant(Qx,funType(Cx//typeOf,ITp));
@@ -74,7 +78,7 @@ star.compiler.resolve{
     (Cvrs,CDict) = defineCVars(Lc,Cx,[],Dict);
 
 --    logMsg("cvars = $(Cvrs)");
-    RVal = resolveTerm(Val,CDict);
+    RVal = overload(Val,CDict);
 
     if isEmpty(Cvrs) then {
       CTp = reQuant(Qx,ITp);
@@ -94,18 +98,23 @@ star.compiler.resolve{
       declareVar(TpNm,Lc,Tp,.none,
 	declareImplementation(Lc,TpNm,TpNm,Tp,D))).
 
-  resolveTerm:(canon,dict) => canon.
-  resolveTerm(C,D) => resolveAgain(.inactive,C,overloadTerm(C,D,.inactive),D).
+  overload:all e ~~ resolve[e] |: (e,dict) => e.
+  overload(C,D) => resolveAgain(.inactive,C,resolve(C,D,.inactive),D).
 
+  resolveAgain:all e ~~ resolve[e] |: (resolveState,e,(e,resolveState),dict) => e.
   resolveAgain(_,_,(T,.resolved),D) =>
-    resolveAgain(.inactive,T,overloadTerm(T,D,.inactive),D).
+    resolveAgain(.inactive,T,resolve(T,D,.inactive),D).
   resolveAgain(_,_,(T,.inactive),_) => T.
   resolveAgain(.active(_,Msg),_,(T,.active(Lc,Msg)),_) => valof{
     reportError(Msg,Lc);
     valis T
   }
   resolveAgain(_,O,(_,.active(Lc,Msg)),D) =>
-    resolveAgain(.active(Lc,Msg),O,overloadTerm(O,D,.inactive),D).
+    resolveAgain(.active(Lc,Msg),O,resolve(O,D,.inactive),D).
+
+  implementation resolve[canon] => {
+    resolve(T,D,S) => overloadTerm(T,D,S)
+  }
 
   overloadTerm:(canon,dict,resolveState) => (canon,resolveState).
   overloadTerm(.anon(Lc,Tp),_,St) => (.anon(Lc,Tp),St).
@@ -202,7 +211,7 @@ star.compiler.resolve{
     valis (.cond(Lc,RTst,RLhs,RRhs),St3)
   }
   overloadTerm(.lambda(Lc,Nm,Rls,Tp),Dict,St) => valof{
-    (RRls,St1) = overloadRules(Rls,[],overloadTerm,Dict,St);
+    (RRls,St1) = overloadRules(Rls,[],Dict,St);
     valis (.lambda(Lc,Nm,RRls,Tp),St1)
   }
   overloadTerm(.letExp(Lc,Gp,Decls,Rhs),Dict,St) => valof{
@@ -217,7 +226,7 @@ star.compiler.resolve{
   }
   overloadTerm(.csexp(Lc,Gov,Cases,Tp),Dict,St) => valof{
     (RGov,St1) = overloadTerm(Gov,Dict,St);
-    (RCases,St2) = overloadRules(Cases,[],overloadTerm,Dict,St1);
+    (RCases,St2) = overloadRules(Cases,[],Dict,St1);
     valis (.csexp(Lc,RGov,RCases,Tp),St2)
   }
   overloadTerm(.trycatch(Lc,A,H,Tp),Dict,St) => valof{
@@ -256,6 +265,10 @@ star.compiler.resolve{
       funType(ArgTps,Tp))
   }
 
+  implementation resolve[canonAction] => {
+    resolve(T,D,S) => overloadAction(T,D,S)
+  }
+
   overloadAction(.doNop(Lc),_,St) => (doNop(Lc),St).
   overloadAction(.doSeq(Lc,L,R),Dict,St) => valof{
     (LL,St1) = overloadAction(L,Dict,St);
@@ -292,7 +305,7 @@ star.compiler.resolve{
   }
   overloadAction(.doTryCatch(Lc,A,H),Dict,St) => valof{
     (AA,St1) = overloadAction(A,Dict,St);
-    (HH,St2) = overloadRules(H,[],overloadAction,Dict,St1);
+    (HH,St2) = overloadRules(H,[],Dict,St1);
     valis (.doTryCatch(Lc,AA,HH),St2)
   }
   overloadAction(.doIfThen(Lc,T,Th,El),Dict,St) => valof{
@@ -318,19 +331,19 @@ star.compiler.resolve{
   }
   overloadAction(.doCase(Lc,A,H),Dict,St) => valof{
     (AA,St1) = overloadTerm(A,Dict,St);
-    (HH,St2) = overloadRules(H,[],overloadAction,Dict,St1);
+    (HH,St2) = overloadRules(H,[],Dict,St1);
     valis (.doCase(Lc,AA,HH),St2)
   }
   overloadAction(.doSuspend(Lc,T,E,H),Dict,St) => valof{
     (TT,St1) = overloadTerm(T,Dict,St);
     (EE,St2) = overloadTerm(E,Dict,St1);
-    (HH,St3) = overloadRules(H,[],overloadAction,Dict,St2);
+    (HH,St3) = overloadRules(H,[],Dict,St2);
     valis (.doSuspend(Lc,TT,EE,HH),St3)
   }
   overloadAction(.doResume(Lc,T,E,H),Dict,St) => valof{
     (TT,St1) = overloadTerm(T,Dict,St);
     (EE,St2) = overloadTerm(E,Dict,St1);
-    (HH,St3) = overloadRules(H,[],overloadAction,Dict,St2);
+    (HH,St3) = overloadRules(H,[],Dict,St2);
     valis (.doResume(Lc,TT,EE,HH),St3)
   }
   overloadAction(.doRetire(Lc,T,E),Dict,St) => valof{
@@ -343,45 +356,41 @@ star.compiler.resolve{
     valis (.doCall(Lc,EE),St1)
   }
     
-  /*
-  
-    ([A,..Args],St1) .= resolveContracts(Lc,Cx,[],Dict,St);
---    logMsg("contract args $([A,..Args]), St1=$(St1)");
-    if mtd(_,Nm,_,MTp) .= T then{
-      if _eof(Args) then
-	valis overloadTerm(dot(Lc,A,Nm,MTp),Dict,St1)
-      else
-      valis overloadTerm(apply(Lc,dot(Lc,A,Nm,MTp),Args,typeOf(T)),Dict,St1)
-    }
-    else{
-      (Tr,St2) = overloadTerm(T,Dict,St1);
-      valis (apply(Lc,Tr,[A,..Args],typeOf(T)),St2)
-    }
+  implementation all e ~~ resolve[e] |: resolve[rule[e]] => {
+    resolve(T,D,S) => overloadRule(T,D,S)
   }
-*/
-    
-  overloadRules:all x ~~ (cons[rule[x]],cons[rule[x]],
-    (x,dict,resolveState)=>(x,resolveState),dict,resolveState)=>
+
+  overloadRule:all e ~~ resolve[e] |: (rule[e],dict,resolveState) => (rule[e],resolveState).
+  overloadRule(.rule(Lc,Ptn,.none,Exp),Dict,St) => valof{
+    (RPtn,St1) = overloadTerm(Ptn,Dict,St);
+    (RExp,St2) = resolve(Exp,Dict,St1);
+    valis (.rule(Lc,RPtn,.none,RExp),St2)
+  }
+  
+  overloadRules:all x ~~ resolve[x] |: (cons[rule[x]],cons[rule[x]],
+    dict,resolveState)=>
     (cons[rule[x]],resolveState).
-  overloadRules([],Els,_,Dict,St) => (reverse(Els),St).
-  overloadRules([.rule(Lc,Ptn,.none,Exp),..Ts],Els,H,Dict,St) => valof{
+  overloadRules([],Els,Dict,St) => (reverse(Els),St).
+  overloadRules([.rule(Lc,Ptn,.none,Exp),..Ts],Els,Dict,St) => valof{
     (RPtn,St1) = overloadTerm(Ptn,Dict,St);
-    (RExp,St2) = H(Exp,Dict,St1);
-    valis overloadRules(Ts,[.rule(Lc,RPtn,.none,RExp),..Els],H,Dict,St2)
+    (RExp,St2) = resolve(Exp,Dict,St1);
+    valis overloadRules(Ts,[.rule(Lc,RPtn,.none,RExp),..Els],Dict,St2)
   }
-  overloadRules([.rule(Lc,Ptn,.some(Wh),Exp),..Ts],Els,H,Dict,St) => valof{
+  overloadRules([.rule(Lc,Ptn,.some(Wh),Exp),..Ts],Els,Dict,St) => valof{
     (RPtn,St1) = overloadTerm(Ptn,Dict,St);
-    (RExp,St2) = H(Exp,Dict,St1);
+    (RExp,St2) = resolve(Exp,Dict,St1);
     (RWh,St3) = overloadTerm(Wh,Dict,St2);
-    valis overloadRules(Ts,[.rule(Lc,RPtn,.some(RWh),RExp),..Els],H,Dict,St3)
+    valis overloadRules(Ts,[.rule(Lc,RPtn,.some(RWh),RExp),..Els],Dict,St3)
   }
   
+  overloadTerms:all e ~~ resolve[e] |: (cons[e],cons[e],dict,resolveState) => (cons[e],resolveState).
   overloadTerms([],Els,Dict,St) => (reverse(Els),St).
   overloadTerms([T,..Ts],Els,Dict,St) => valof{
-    (RT,St1) = overloadTerm(T,Dict,St);
+    (RT,St1) = resolve(T,Dict,St);
     valis overloadTerms(Ts,[RT,..Els],Dict,St1)
   }
 
+  overloadTplEls:all e ~~ resolve[e] |: (cons[e],dict,resolveState) => (cons[e],resolveState).
   overloadTplEls(Els,Dict,St) => overloadTerms(Els,[],Dict,St).
     
   resolveContracts:(option[locn],cons[constraint],cons[canon],dict,resolveState) =>
@@ -494,6 +503,6 @@ star.compiler.resolve{
     disp(.active(Lc,Msg)) => "active $(Lc)\:#(Msg)".
   }
 
-  public lambdaLbl(Lc) => genSym((ALc?=Lc?locPkg(ALc)||"")++"λ").
+  public lambdaLbl(Lc) => genSym((ALc?=Lc??locPkg(ALc)||"")++"λ").
 }
   

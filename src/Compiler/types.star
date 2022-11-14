@@ -56,14 +56,14 @@ star.compiler.types{
   isIdent(_,_) default => .false.
 
   public isUnbound:(tipe) => boolean.
-  isUnbound(.tVar(B,_)) => ((T?=B.binding!) ? isUnbound(T) || .true).
-  isUnbound(.tFun(B,_,_)) => ((T?=B.binding!) ? isUnbound(T) || .true).
+  isUnbound(.tVar(B,_)) => ((T?=B.binding!) ?? isUnbound(T) || .true).
+  isUnbound(.tFun(B,_,_)) => ((T?=B.binding!) ?? isUnbound(T) || .true).
   isUnbound(_) default => .false.
 
   public isUnboundFVar:(tipe) => option[integer].
-  isUnboundFVar(.tVar(B,_)) => ((T?=B.binding!) ? isUnboundFVar(T) || .none).
+  isUnboundFVar(.tVar(B,_)) => ((T?=B.binding!) ?? isUnboundFVar(T) || .none).
   isUnboundFVar(.tFun(B,Ar,_)) =>
-    ((T?=B.binding!) ? isUnboundFVar(T) || ?Ar).
+    ((T?=B.binding!) ?? isUnboundFVar(T) || ?Ar).
   isUnboundFVar(.kFun(B,Ar)) => ? Ar.
   isUnboundFVar(_) default => .none.
 
@@ -427,7 +427,7 @@ star.compiler.types{
 
   public isTupleType:(tipe) => option[(integer,cons[tipe])].
   isTupleType(Tp) =>
-    (.tupleType(A) .= deRef(Tp) ?
+    (.tupleType(A) .= deRef(Tp) ??
       .some((size(A),A)) ||
       .none).
 

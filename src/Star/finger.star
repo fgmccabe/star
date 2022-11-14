@@ -231,7 +231,7 @@ star.finger{
   deepL:all e ~~ measured[e->>integer] |:
     (option[digit[e]],fingerTree[node[e]],digit[e]) => fingerTree[e].
   deepL(.none,Md,Rgt) =>
-    ( .consl(H,M) .= viewl(Md) ?
+    ( .consl(H,M) .= viewl(Md) ??
 	.deep([|H|]⊕[|M|]⊕[|Rgt|],toDigit(H),M,Rgt) ||
 	toTree(Rgt)).
   deepL(.some(L),Md,Rgt) => .deep([|L|]⊕[|Md|]⊕[|Rgt|],L,Md,Rgt).
@@ -255,7 +255,7 @@ star.finger{
   deepR:all e ~~ measured[e->>integer] |:
     (option[digit[e]],fingerTree[node[e]],digit[e]) => fingerTree[e].
   deepR(.none,Md,Lft) =>
-    ( .consr(L,F) .= viewr(Md) ?
+    ( .consr(L,F) .= viewr(Md) ??
 	.deep([|Lft|]⊕[|F|]⊕[|L|],Lft,F,toDigit(L)) ||
 	toTree(Lft)).
   deepR(.some(L),Md,Rgt) => .deep([|L|]⊕[|Md|]⊕[|Rgt|],L,Md,Rgt).

@@ -21,7 +21,7 @@ test.as2{
     check:(cons[integer],cons[integer])=>boolean.
     check([],[]) => .true.
     check([E,..Es],[D,..Ds]) =>
-      ( try D==E ?
+      ( try D==E ??
 	  mark(D) && check(Es,Ds) ||
 	  reset()
 	catch {

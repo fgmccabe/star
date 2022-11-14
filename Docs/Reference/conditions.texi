@@ -237,7 +237,7 @@ depends on a test.
 @float BNF,conditionConditionFig
 @caption{Condition Condition}
 @display
-@anchored{ConditionalCondition}::= @code{(} @refer{Condition} @code{?} @refer{Condition} @code{||} @refer{Condition} @code{)}
+@anchored{ConditionalCondition}::= @code{(} @refer{Condition} @code{??} @refer{Condition} @code{||} @refer{Condition} @code{)}
 @end display
 @end float
 
@@ -245,7 +245,7 @@ For example, if the salary of an employee may be gotten from two
 different relations depending on whether the employee was a manager or
 not, the salary may be retrieved using a query:
 @example
-@{ S | ( isManager(P) ?
+@{ S | ( isManager(P) ??
             (P,S) in manager_salary ||
             (P,S) in employee_salary )
 @}

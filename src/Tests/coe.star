@@ -12,7 +12,7 @@ test.coe{
 
   logStrs(.nil) => ().
   logStrs(.cons(H,T)) =>
-    (_ .= logMsg(H) ?
+    (_ .= logMsg(H) ??
 	logStrs(T) ||
 	logMsg("something went wrong")).
 }

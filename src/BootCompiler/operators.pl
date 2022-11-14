@@ -47,6 +47,7 @@
   operator("?=", [infixOp(899, 900, 899)]).
   operator("default", [postfixOp(939, 940)]).
   operator("#", [prefixOp(1750, 1749), infixOp(759, 760, 759)]).
+  operator("??", [infixOp(919, 920, 920)]).
   operator("%", [infixOp(700, 700, 699)]).
   operator("<-", [infixOp(904, 905, 904)]).
   operator(".>>>.", [infixOp(600, 600, 599)]).
@@ -78,7 +79,7 @@
   operator("++", [infixOp(719, 720, 720)]).
   operator(">", [infixOp(899, 900, 899)]).
   operator("return", [prefixOp(930, 929)]).
-  operator("?", [prefixOp(820, 819), infixOp(919, 920, 920)]).
+  operator("?", [prefixOp(820, 819)]).
   operator("@", [prefixOp(400, 399), infixOp(399, 400, 400)]).
   operator("in", [infixOp(899, 900, 900)]).
   operator("break", [prefixOp(10, 9)]).
@@ -242,6 +243,7 @@
   follows('>','=','>=').
   follows('>','>','>>').
   follows('>>','=','>>=').
+  follows('?','?','??').
   follows('?','=','?=').
   follows('?','}','?}').
   follows('!','}','!}').
@@ -328,6 +330,7 @@
   final('>>',">>").	 /* monadic bind */
   final('>>=',">>=").	 /* monadic bind */
   final('?',"?").	 /* mark expression as optionally there */
+  final('??',"??").	 /* conditional operator */
   final('?=',"?=").	 /* optional decomposition match */
   final('?}',"?}").	 /* test comprehension */
   final('@',"@").	 /* meta annotation */
@@ -359,6 +362,7 @@
   keyword("default").
   keyword("#").
   keyword("!}").
+  keyword("??").
   keyword("<-").
   keyword("(").
   keyword(")").

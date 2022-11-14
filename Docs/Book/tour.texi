@@ -97,9 +97,10 @@ sample.main@{
   import star.
   import sample.factorial.
 
-  main:(integer)=>action[(),()].
-  main(Ix) => do@{
-    logMsg("Factorial of $(Ix) is $(fact(Ix))")
+  main:(integer)=>().
+  main(Ix) => valof@{
+    logMsg("Factorial of $(Ix) is $(fact(Ix))");
+    valis ()
   @}
 @}
 @end example
@@ -114,8 +115,8 @@ $
 
 If you are used to other programming languages, you might have spotted
 something a little unusual here: the type signature for @code{main}
-denotes a function that accepts an @code{integer} and returns an
-@code{action}. We will explore actions further in <The M Word>; but we should
+denotes a function that accepts an @code{integer} and returns an empty tuple.
+We will explore actions further in @ref{Actions}; but we should
 point something else out here: @code{main} accepts an @code{integer}
 whereas the main program in most other programming languages looks
 like an array of string values.
@@ -152,6 +153,13 @@ function @code{fact}.
 The @code{public} annotation means that the function is exported by
 this module and will be available in other modules where the
 @code{sample.factorial} module is imported.
+
+A more paradigmatic type annotation would be:
+@example
+public factorial: all x ~~ arith[x] |: (x)=>x.
+@end example
+which introduces a function @code{factorial} that will work on any
+type that has an implementation for @code{arith}metic.
 
 @node Lexical style
 @subsection Lexical style
