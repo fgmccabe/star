@@ -310,7 +310,6 @@ star.compiler.term{
       .cVoid(Lc,_) => Lc.
       .cAnon(Lc,_) => Lc.
       .cVar(Lc,_) => Lc.
-      .cVoid(Lc,_) => Lc.
       .cInt(Lc,_) => Lc.
       .cBig(Lc,_) => Lc.
       .cChar(Lc,_) => Lc.
@@ -427,7 +426,6 @@ star.compiler.term{
       .cString(_,Sx) => .some(.strg(Sx)).
       .cVoid(_,_) => .some(.symb(tLbl("void",0))).
       .cInt(_,Ix) => .some(.intgr(Ix)).
-      .cTerm(_,Nm,[],_) => .some(.symb(tLbl(Nm,0))).
       .cTerm(_,Nm,Args,_) where NArgs ?= mapArgs(Args,[]) =>
 	.some(.term(Nm,NArgs)).
       _ default => .none.
