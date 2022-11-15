@@ -94,7 +94,7 @@ star.compiler.gencode{
     .cCall(Lc,Nm,Args,Tp) =>
       compExps(Args,callCont(tLbl(Nm,[|Args|]),pushStack(Tp::ltipe,Stk),Cont),ECont,Ctx,Stk).
     .cOCall(Lc,Op,Args,Tp) => 
-      compExps(Args,expCont(Op,oclCont([|Args|],pushStack(Tp::ltipe,Stk),Cont),ECont),
+      compExps(Args,expCont(Op,oclCont([|Args|]+1,pushStack(Tp::ltipe,Stk),Cont),ECont),
 	ECont,Ctx,Stk).
     .cNth(Lc,E,Ix,Tp) =>
       compExp(E,nthCont(Ix,Cont,pushStack(Tp::ltipe,Stk)),ECont,Ctx,Stk).

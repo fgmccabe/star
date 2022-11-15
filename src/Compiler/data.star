@@ -118,10 +118,10 @@ star.compiler.data{
   }
 
   public trueEnum:data.
-  trueEnum = .symb(.tLbl("star.core*true",0)).
+  trueEnum = .term("star.core#true",[]).
 
   public falseEnum:data.
-  falseEnum = .symb(.tLbl("star.core*false",0)).
+  falseEnum = .term("star.core#false",[]).
 
   -- Written in this way to maximize potential for tail recursion
 
@@ -134,6 +134,7 @@ star.compiler.data{
     .strg(Tx) => encodeText(Tx,[`s`,..Chs]).
     .symb(Sym) => encodeL(Sym,Chs).
     .term("[]",Els) => encodeTerms(Els,encodeNat(size(Els),[`l`,..Chs])).
+--    .term(Op,[]) => encodeText(Op,[`e`,..Chs]).
     .term(Op,Args) =>
       encodeTerms(Args,encodeL(.tLbl(Op,size(Args)),encodeNat(size(Args),[`n`,..Chs]))).
   }
@@ -166,7 +167,7 @@ star.compiler.data{
     }
     `e` => valof{
       (Sym,Lx) = decodeText(Ls);
-      valis (symb(tLbl(Sym,0)),Lx)
+      valis (.term(Sym,[]),Lx)
     }
     `o` => valof{
       (Sym,Lx) = decodeLabel([`o`,..Ls]);

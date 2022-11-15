@@ -381,11 +381,13 @@ star.compiler.checker{
 
     if traceCanon! then
       logMsg("accessor var $(AccVrNm)");
-    Defn = varDef(Lc,AccVrNm,AccVrNm,AccFn,Cx,AccTp);
-    Decl = accDec(Lc,rebind(QV,reConstrainType(Cx,RcTp),Env),Fld,AccVrNm,AccTp);
+    Defn = .varDef(Lc,AccVrNm,AccVrNm,AccFn,Cx,AccTp);
+    Decl = .accDec(Lc,rebind(QV,reConstrainType(Cx,RcTp),Env),Fld,AccVrNm,AccTp);
+    FDecl = .funDec(Lc,AccVrNm,AccVrNm,AccTp);
+    
     if traceCanon! then
       logMsg("accessor $(Decl)");
-    valis ([Defn],[Decl])
+    valis ([Defn],[Decl,FDecl])
   }
 
   checkUpdater:(option[locn],string,cons[ast],cons[ast],ast,ast,dict,dict,string) => (cons[canonDef],cons[decl]).
@@ -411,11 +413,12 @@ star.compiler.checker{
 
     AccVrNm = qualifiedName(Path,.valMark,qualifiedName(tpName(RcTp),.typeMark,"!"++Fld));
 
-    Defn = varDef(Lc,AccVrNm,AccVrNm,AccFn,Cx,AccTp);
-    Decl = updDec(Lc,rebind(QV,reConstrainType(Cx,RcTp),Env),Fld,AccVrNm,AccTp);
+    Defn = .varDef(Lc,AccVrNm,AccVrNm,AccFn,Cx,AccTp);
+    Decl = .updDec(Lc,rebind(QV,reConstrainType(Cx,RcTp),Env),Fld,AccVrNm,AccTp);
+    FDecl = .funDec(Lc,AccVrNm,AccVrNm,AccTp);
     if traceCanon! then
       logMsg("updater $(Decl)");
-    valis ([Defn],[Decl])
+    valis ([Defn],[Decl,FDecl])
   }
     
   typeOfPtn:(ast,tipe,option[tipe],dict,string) => (canon,dict).
