@@ -183,9 +183,15 @@ followed by the argument patterns -- as introduced in the appropriate
 @float BNF,positionalConstructorPtnFig
 @caption{Positional Constructor Pattern}
 @display
-@anchored{PositionalConstructorPattern}::= @refer{Identifier} @code{(} @refer{Pattern}@code{,} @dots{}@code{,} @refer{Pattern}@code{)}
+@anchored{PositionalConstructorPattern}::= @code{.}@refer{Identifier} @code{(} @refer{Pattern}@code{,} @dots{}@code{,} @refer{Pattern}@code{)}
 @end display
-@end float  
+@end float
+
+@quotation Note
+Positional constructors, like @refer{EnumeratedSymbol}s, are marked by
+a leading @code{.} character. This helps to distinguish such
+expressions from normal function calls.
+@end quotation
 
 @node Record Patterns
 @subsection Record Patterns

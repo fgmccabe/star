@@ -20,7 +20,7 @@ The @code{cons} type is defined as though by the type definition:
 @float Program,consType
 @caption{The @code{cons} List Type}
 @example
-all e ~~ cons[e] ::= nil | cons(e,cons[e]).
+all e ~~ cons[e] ::= .nil | .cons(e,cons[e]).
 @end example
 @end float
 

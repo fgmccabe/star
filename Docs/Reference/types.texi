@@ -294,7 +294,7 @@ parameterized type.
 
 @node Type Interface
 @subsection Type Interface
-@anchor{algebraicInterface}
+@anchor{typeInterface}
 
 Nominal types are associated with a @refer{FaceType} that denotes
 nthe @emph{interface} to the type.
@@ -464,7 +464,7 @@ provided that @code{t} is unifiable with @code{string}.
 
 @quotation NOTE
 All nomimal types have a @refer{FaceType} interface associated with
-them. This, as is detailed in @refer{algebraicInterface}, defines a type
+them. This, as is detailed in @refer{typeInterface}, defines a type
 for all of the fields in any of the constructors for the type. In
 turn, this permits a @refer{FieldAccess} expression to apply to a
 user-defined type as well as a @refer{FaceType}.
@@ -1112,7 +1112,7 @@ r <~ @{ alpha : string. beta : integer @}
 @end example
 
 if @code{r} is unified against a concrete type then that type's
-@refer{FaceType} interface (see @refer{algebraicInterface}) must contain
+@refer{FaceType} interface (see @refer{typeInterface}) must contain
 both of @code{alpha} and @code{beta}. In addition, the fields must be
 of the right types.
 
