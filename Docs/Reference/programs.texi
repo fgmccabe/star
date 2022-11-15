@@ -166,7 +166,7 @@ terms of different constructors for the type.
   | @refer{PositionalConstructor}
   | @refer{RecordConstructor}
 
-@anchored{PositionalConstructor} ::= @refer{Identifier} @code{(} @refer{Type} @code{,}  @dots{}  @code{,} @refer{Type} @code{)}
+@anchored{PositionalConstructor} ::= @code{.} @refer{Identifier} @code{(} @refer{Type} @code{,}  @dots{}  @code{,} @refer{Type} @code{)}
 
 @anchored{RecordConstructor} ::= @refer{Identifier} @code{@{} @refer{Annotation} @refer{Terminator} @dots{}  @refer{Terminator} @refer{Annotation} @code{@}}
 @end display
@@ -198,15 +198,19 @@ used as data structuring tools; but mathematically they are functions.
 
 For example, the type definition:
 @example
-person ::= .noone | someone(string,integer)
+person ::= .noone | .someone(string,integer)
 @end example
 induces the constructor function for @code{someone}:
 @example
-someone : (string,integer) <=> person;
+someone : (string,integer) <=> person
 @end example
 The enumerated symbol has a simpler type:
 @example
-noone : person;
+noone : () <=> person
+@end example
+whereas:
+@example
+.noone : person
 @end example
 
 The complete set of constructor functions introduced within an
@@ -241,11 +245,11 @@ An @refer{AlgebraicTypeDefinition} statement for a generic type (i.e.,
 a type with type parameters) may omit the explicit quantifiers. I.e., instead of
 
 @example
-all e ~~ cons[e] ::= .nil | cons(e,cons[e])
+all e ~~ cons[e] ::= .nil | .cons(e,cons[e])
 @end example
 it is permissable to write:
 @example
-cons[e] ::= .nil | cons(e,cons[e])
+cons[e] ::= .nil | .cons(e,cons[e])
 @end example
 
 The reason is that the quantifiers in such a definition may be
@@ -269,7 +273,7 @@ automatically constructed in some situations.
 
 The @refer{TypeExistsStmt} declares the existence of a type --
 together with its associated algebraic interface (see
-@refer{algebraicInterface}). It does so without specifying any constructors
+@refer{typeInterface}). It does so without specifying any constructors
 for the type.
 
 @node Type Alias Statement

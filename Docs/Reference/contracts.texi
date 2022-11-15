@@ -72,7 +72,7 @@ enclosing type quantifier.
 
 For example, the type definition:
 @example
-opaque ::= op(t)
+opaque ::= .op(t)
 
 is not valid because the type variable @code{t} mentioned in the
 @code{op} constructor is not mentioned in the @var{TypeSpec} -- unless
@@ -107,13 +107,13 @@ is that such type variables must be closed by quantification.
 
 For example, the type definition:
 @example
-univ ::= univ(all t ~~ t)
+univ ::= .univ(all t ~~ t)
 
 is a legally valid @var{AlgebraicType} definition; albeit one that is
 quite restricted. Locally quantified types are usually associated with
 function types:
 @example
-uniFun ::= uniFun(all t ~~ (t,t)=>t)
+uniFun ::= .uniFun(all t ~~ (t,t)=>t)
 
 which describes a term constructor @code{uniFun} that expects a
 generic function as an argument.
@@ -132,7 +132,7 @@ A programmer may extend this system of atomically implementing
 contracts by implementing a special macro whose name is of the form
 @code{implement\_\q{name}}. A type definition that is marked:
 @example
-person ::= some{ name:string; } | noOne implementing Spec
+person ::= some{ name:string; } | .noOne implementing Spec
 
 will result in the macro @code{implement_Spec} being invoked on the
 type definition.

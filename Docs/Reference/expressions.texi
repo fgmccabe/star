@@ -414,7 +414,7 @@ to define enumerations or for sentinels. For example, the
 standard cons-list type uses @code{nil} to mark the empty list:
 
 @example
-all e ~~ cons[e] ::=  .nil | cons(e,cons[e])
+all e ~~ cons[e] ::=  .nil | .cons(e,cons[e])
 @end example
 
 @quotation Note
@@ -435,20 +435,28 @@ constructors that are introduced in an algebraic
 @float BNF,positionalConstructorFig
 @caption{Positional Constructor Literal}
 @display
-@anchored{PositionalConstructorLiteral} ::= @refer{Identifier}@code{(}@refer{Expression}@code{,} @dots{} @code{,}@refer{Expression}@code{)}
+@anchored{PositionalConstructorLiteral} ::= @code{.}@refer{Identifier}@code{(}@refer{Expression}@code{,} @dots{} @code{,}@refer{Expression}@code{)}
 @end display
 @end float
 The valid types of the arguments to a @refer{PositionalConstructorLiteral} are determined by its definition within the appropriate type definition.
 
 For example, in the type definition:
 @example
-address ::= .noWhere | someWhere(string,integer,string)
+address ::= .noWhere | .someWhere(string,integer,string)
 @end example
 
 @code{someWhere} as the identifier of a
 @refer{PositionalConstructorLiteral} and any instance must have
 exactly three arguments: a @code{string}, an @code{integer} and a
 @code{string}.
+
+@quotation Note
+Positional constructors, like @refer{EnumeratedSymbol}s, are marked by
+a leading @code{.} character. This helps to distinguish such
+expressions from normal function calls.
+@end quotation
+
+
 
 @node Accessing Elements of a Positional Constructor Literal
 @subsubsection Accessing Elements of a Positional Constructor Literal
@@ -1060,7 +1068,7 @@ though by the algebraic type definition in:
 @float Program,optionTypeDef
 @caption{@code{option} Type Definition}
 @example
-option[t] ::= .none | some(t)
+option[t] ::= .none | .some(t)
 @end example
 @end float
 
