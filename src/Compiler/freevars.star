@@ -104,7 +104,7 @@ star.compiler.freevars{
       foldLeft((Rl,F)=>freeVarsInRule(Rl,freeVarsInAct,Excl,Q,F),
 	freeVarsInExp(Fb,Excl,Q,
 	  freeVarsInExp(E,Excl,Q,Fv)),H).
-    .doResume(_,Fb,E,H) => 
+    .doResume(_,Fb,E,_,H) => 
       foldLeft((Rl,F)=>freeVarsInRule(Rl,freeVarsInAct,Excl,Q,F),
 	freeVarsInExp(Fb,Excl,Q,
 	  freeVarsInExp(E,Excl,Q,Fv)),H).

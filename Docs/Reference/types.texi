@@ -98,7 +98,7 @@ is a @refer{TypeConstructor}: it takes a type as an argument and
 returns another type as result.
 @end quotation
 
-Often it is convenient to be able to @emph{talk} about types without
+Often it is convenient to be able to refer to types without
 being specific about the type itself; for this purpose we use
 @refer{TypeVariable}s.
 
@@ -108,7 +108,6 @@ introduced using an explicit quantifier -- either @code{all} or
 @example
 all t ~~ cons[t]
 @end example
-
 denotes a list type of some unspecified element type -- identified by
 the type variable @code{t}.
 
@@ -268,7 +267,7 @@ statement.
 
 A type expression of the form:
 @example
-c[t1,...,tn]
+c[t1,@dots{},tn]
 @end example
 
 where @code{c} is a type variable -- i.e., bound by a quantifier --
@@ -347,7 +346,7 @@ expressions enclosed in parentheses.
 @display
 @anchored{TupleType} ::= @code{()}
   | @code{((} @refer{Type} @code{))}
-  | @code{(}@refer{Type} ,@dots{},@refer{Type}@code{)}
+  | @code{(}@refer{Type},@dots{},@refer{Type}@code{)}
 @end display
 @end float
 
@@ -611,7 +610,6 @@ Jx = 0
 @end example
 results in the variable @code{Jx} having type @code{integer}.
 
-
 @node Quantified Types
 @section Quantified Types
 @cindex quantified types
@@ -642,9 +640,7 @@ substitutions of a type variable.
 @float BNF,universalTypeFig
 @caption{Universal Type Expression}
 @display
-@anchored{UniversalType} ::= @refer{UniversalQuantifier} @refer{Type}
-
-@anchored{UniversalQuantifier} ::= @code{all} @refer{BoundType} @comma{}@dots{}@comma{}@refer{BoundType} @code{~~}
+@anchored{UniversalType} ::= @code{all} @refer{BoundType} @comma{}@dots{}@comma{}@refer{BoundType} @code{~~} @refer{Type}
 
 @anchored{BoundType} ::= @refer{Identifier} | @refer{Identifier} @code{/} @refer{Decimal}
 @end display

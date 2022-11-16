@@ -367,11 +367,11 @@ star.compiler.resolve{
     (HH,St3) = overloadRules(H,[],Dict,St2);
     valis (.doSuspend(Lc,TT,EE,HH),St3)
   }
-  overloadAction(.doResume(Lc,T,E,H),Dict,St) => valof{
+  overloadAction(.doResume(Lc,T,E,STp,H),Dict,St) => valof{
     (TT,St1) = overloadTerm(T,Dict,St);
     (EE,St2) = overloadTerm(E,Dict,St1);
     (HH,St3) = overloadRules(H,[],Dict,St2);
-    valis (.doResume(Lc,TT,EE,HH),St3)
+    valis (.doResume(Lc,TT,EE,STp,HH),St3)
   }
   overloadAction(.doRetire(Lc,T,E),Dict,St) => valof{
     (TT,St1) = overloadTerm(T,Dict,St);

@@ -53,7 +53,7 @@ star.compiler.canon{
     .doLet(option[locn],cons[canonDef],cons[decl],canonAction) |
     .doLetRec(option[locn],cons[canonDef],cons[decl],canonAction) |
     .doSuspend(option[locn],canon,canon,cons[rule[canonAction]]) |
-    .doResume(option[locn],canon,canon,cons[rule[canonAction]]) |
+    .doResume(option[locn],canon,canon,tipe,cons[rule[canonAction]]) |
     .doRetire(option[locn],canon,canon) |
     .doCall(option[locn],canon).
 
@@ -152,7 +152,7 @@ star.compiler.canon{
       .doLet(Lc,_,_,_) => Lc.
       .doLetRec(Lc,_,_,_) => Lc.
       .doSuspend(Lc,_,_,_) => Lc.
-      .doResume(Lc,_,_,_) => Lc.
+      .doResume(Lc,_,_,_,_) => Lc.
       .doRetire(Lc,_,_) => Lc.
       .doCall(Lc,_) => Lc.
     }
@@ -255,7 +255,7 @@ star.compiler.canon{
       "let {.\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp).} in #(showAct(B,Rp,Sp2))". 
     .doSuspend(Lc,T,E,C) where (Lp,OPr,Rp) ?= isInfixOp("suspend") =>
       "#(showCanon(T,Lp,Sp)) suspend #(showCanon(E,Rp,Sp)) in #(showCases(C,showAct,Sp))".
-    .doResume(Lc,T,E,C)  where (Lp,OPr,Rp) ?= isInfixOp("resume") =>
+    .doResume(Lc,T,E,_,C)  where (Lp,OPr,Rp) ?= isInfixOp("resume") =>
       "#(showCanon(T,Lp,Sp)) resume #(showCanon(E,Rp,Sp)) in #(showCases(C,showAct,Sp))".
     .doRetire(Lc,T,E)  where (Lp,OPr,Rp) ?= isInfixOp("retire") =>
       "#(showCanon(T,Lp,Sp)) retire #(showCanon(E,Rp,Sp))".

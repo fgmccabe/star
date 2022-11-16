@@ -161,7 +161,7 @@ star.compiler.term{
     }.
     .aIftte(_,C,T,E) => valof{
       Off2=Off++"  ";
-      valis "if #(dspExp(C,Off)) then\n#(Off2)#(dspAct(T,Off2))else\n#(Off2)#(dspAct(E,Off2))"
+      valis "if #(dspExp(C,Off)) then\n#(Off2)#(dspAct(T,Off2)) else\n#(Off2)#(dspAct(E,Off2))"
     }.
     .aWhile(_,C,A) => valof{
       Off2=Off++"  ";

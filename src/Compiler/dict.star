@@ -152,8 +152,8 @@ star.compiler.dict{
 
   emptyFace = faceType([],[]).
 
-  public emptyDict:dict.
-  public emptyDict = pushScope([]).
+  emptyDict:dict.
+  emptyDict = pushScope([]).
 
 -- Standard types are predefined by the language
   public stdDict:dict.
@@ -166,6 +166,6 @@ star.compiler.dict{
 	      declareType("string",.none,strType,typeExists(strType,emptyFace),
 		declareType("cons",.none,tpFun("star.core*cons",1),
 		  allRule(nomnal("e"),
-		    typeExists(lstType(nomnal("e")),faceType([],[]))),
+		    typeExists(lstType(nomnal("e")),emptyFace)),
 		  emptyDict))))))).
 }

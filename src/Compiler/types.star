@@ -425,6 +425,14 @@ star.compiler.types{
   isConsType(.existType(_,Tp)) => isConsType(deRef(Tp)).
   isConsType(.constrainedType(T,_))=>isConsType(T).
 
+  public isConstrainedType:(tipe) => boolean.
+  isConstrainedType(Tp) => isConstrained(deRef(Tp)).
+
+  isConstrained(.allType(_,T)) => isConstrainedType(T).
+  isConstrained(.existType(_,T)) => isConstrainedType(T).
+  isConstrained(.constrainedType(_,T)) => .true.
+  isConstrained(_) default => .false.
+  
   public isTupleType:(tipe) => option[(integer,cons[tipe])].
   isTupleType(Tp) =>
     (.tupleType(A) .= deRef(Tp) ??

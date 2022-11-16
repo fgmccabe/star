@@ -345,10 +345,10 @@ star.compiler.macro.rules{
     End = mkLambda(Lc,.false,enum(Lc,"_all"),.none,mkBreak(Lc,Lb));
 
     /* build _yld(P) => B */
-    Yld = mkLambda(Lc,.false,unary(Lc,"_yld",P),.none,B);
+    Yld = mkLambda(Lc,.false,mkEnumCon(Lc,nme(Lc,"_yld"),[P]),.none,B);
 
     /* build _yld(_) default => {} */
-    Deflt = mkEquation(Lc,.none,.true,unary(Lc,"_yld",mkAnon(Lc)),.none,brTuple(Lc,[]));
+    Deflt = mkEquation(Lc,.none,.true,mkEnumCon(Lc,nme(Lc,"_yld"),[mkAnon(Lc)]),.none,brTuple(Lc,[]));
 
     /* build I resume ._next in .. */
     Resume = mkResume(Lc,I,enum(Lc,"_next"),[Yld,Deflt,End]);

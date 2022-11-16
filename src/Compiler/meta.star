@@ -138,7 +138,7 @@ star.compiler.meta{
       .conDec(_,Nm,_,RlTp) => "Ctrct #(Nm)\:$(RlTp)".
       .tpeDec(_,Nm,Tp,_) => "Type #(Nm)\::$(Tp)".
       .varDec(_,Nm,FullNm,Tp) => "Var #(FullNm)\:$(Tp)".
-      .funDec(_,Nm,FullNm,Tp) => "Fun #(FullNm)\:$d(Tp)".
+      .funDec(_,Nm,FullNm,Tp) => "Fun #(FullNm)\:$(Tp)".
       .cnsDec(_,Nm,FullNm,Tp) => "Con #(FullNm)\:$(Tp)".
     }
   }

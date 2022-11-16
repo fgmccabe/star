@@ -19,7 +19,7 @@ test.ac10{
 
   firstMultiple(X,M) => valof{
     L:{
-      for ix in range(1,X,1) do{
+      for ix in .range(1,X,1) do{
 	if ix%M==0 then
 	  break L
       };
