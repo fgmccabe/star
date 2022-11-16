@@ -194,6 +194,8 @@ star.compiler.gencode{
       valis compAction(LbldA,ACont,Cont,ECont,Ctxl,Stk)
     }.
     .aBreak(Lc,Lb) => valof{
+      if traceCodegen! then
+	logMsg("break $(Lb), Stk=$(Stk)");
       if XCont?=Ctx.brks[Lb] then
 	valis XCont.C(Ctx,Stk,[])
       else{
@@ -307,6 +309,7 @@ star.compiler.gencode{
       (Off,Ctx1) = defineLclVar(Vr,typeOf(Ptn)::ltipe,Ctx);
       (Stkb,RlCde) = compPttrn(Ptn,Comp(Exp,Succ,ECont),jmpCont(Fl,Stk),ECont,Ctx1,Stk);
       (Stkc,AltCde) = compMoreCase(More,Off,Comp,Succ,Fail,ECont,Ctx,Stk);
+--      logMsg("Stkb=$(Stkb), Stkc=$(Stkc)");
       valis (reconcileStack(Stkb,Stkc),[.iTL(Off)]++RlCde++[.iLbl(Fl)]++AltCde)
     }
   }
@@ -319,6 +322,7 @@ star.compiler.gencode{
       Fl = defineLbl("CM",Ctx);
       (Stk2,RlCde) = compPttrn(Ptn,Comp(Exp,Succ,ECont),jmpCont(Fl,Stk),ECont,Ctx,Stk);
       (Stk3,RstCde) = compMoreCase(More,Off,Comp,Succ,Fail,ECont,Ctx,Stk);
+--      logMsg("Stk2=$(Stk2), Stk3=$(Stk3)");
       valis (reconcileStack(Stk2,Stk3),[.iLdL(Off)]++RlCde++[.iLbl(Fl)]++RstCde)
     }
   }
@@ -346,12 +350,13 @@ star.compiler.gencode{
   compCnsCases:all e ~~ (cons[cCase[e]],(e,Cont,Cont)=>Cont,Cont,Cont,codeCtx,stack) =>
     (stack,multi[assemOp],multi[assemOp]).
   compCnsCases(Cs,Comp,Succ,ECont,Ctx,Stk) => case Cs in {
-    [] => (Stk,[],[]).
+    [] => (.none,[],[]).
     [(Lc,Ptn,Exp),..Cases] => valof{
       Lb = cseLbl(Ptn,Ctx);
       (Stk2a,TCde2,Cde2) = compCnsCases(Cases,Comp,Succ,ECont,Ctx,Stk);
       (Stk3a,CCde) = compPtn(Ptn,Comp(Exp,Succ,ECont),
 	abortCont(Lc,"match error"),ECont,Ctx,Stk);
+--      logMsg("Stk2a=$(Stk2a), Stk3a=$(Stk3a)");
       valis (reconcileStack(Stk2a,Stk3a),[iJmp(Lb),..TCde2],Cde2++[.iLbl(Lb),..CCde])
     }
   }
@@ -640,6 +645,7 @@ star.compiler.gencode{
   actionCont:(aAction,Cont,Cont,Cont) => Cont.
   actionCont(A,ACont,Cont,ECont) => cont{
     C(Ctx,Stk,Cde) => valof{
+--      logMsg("action $(A) at stack $(Stk)");
       (SStk,SCde) = compAction(A,ACont,Cont,ECont,Ctx,Stk);
       valis (SStk,Cde++SCde)
     }
@@ -698,6 +704,7 @@ star.compiler.gencode{
   resetCont:(stack,Cont) => Cont.
   resetCont(Stk,Cont) => cont{
     C(Ctx,XStk,Cde) => valof{
+--      logMsg("reset stack $(XStk) to $(Stk)");
       (NStk,SCde) = resetStack([|Stk|],XStk);
       valis Cont.C(Ctx,NStk,Cde++SCde)
     }

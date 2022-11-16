@@ -20,8 +20,8 @@ star.compiler.normalize{
   public normalize:(pkgSpec,cons[canonDef],cons[decl])=>cons[cDefn].
   normalize(PkgSpec,Defs,Decls) => valof{
     Map = pkgMap(Decls);
-    if traceNormalize! then
-      logMsg("package map $(Map)");
+--    if traceNormalize! then
+--      logMsg("package map $(Map)");
     valis transformGroup(Defs,Map,Map,[],.none,[])
   }
 
@@ -401,6 +401,7 @@ star.compiler.normalize{
     implementFunCall(Lc,Entry,Nm,Args,Tp,Map,Ex).
   liftExpCallOp(Lc,.enm(_,FullNm,_),Args,Tp,Map,_,Ex) => (.cTerm(Lc,FullNm,Args,Tp),Ex).
   liftExpCallOp(Lc,Op,Args,Tp,Map,Q,Ex) => valof{
+--    logMsg("could not find $(Op) in $(Map)");
     (LOp,Ex0) = liftExp(Op,Map,Q,Ex);
     valis (.cOCall(Lc,LOp,Args,Tp),Ex0)
   }
@@ -585,13 +586,13 @@ star.compiler.normalize{
     Hndlr = caseMatcher(Lc,Map,.cVar(Lc,Vr),.aAbort(Lc,"no matches"),Hs);
     valis (.aLtt(Lc,Vr,.cSusp(Lc,TT,EE,.voidType),Hndlr),Ex3)
   }
-  liftAction(.doResume(Lc,T,E,H),Map,Q,Ex) => valof{
+  liftAction(.doResume(Lc,T,E,Stp,H),Map,Q,Ex) => valof{
     (TT,Ex1) = liftExp(T,Map,Q,Ex);
     (EE,Ex2) = liftExp(E,Map,Q,Ex1);
-    Vr = genVar("E",.voidType);
+    Vr = genVar("E",Stp);
     (Hs,Ex3) = transformRules(H,Map,Q,.none,Ex2);
     Hndlr = caseMatcher(Lc,Map,.cVar(Lc,Vr),.aAbort(Lc,"no matches"),Hs);
-    valis (.aLtt(Lc,Vr,.cResume(Lc,TT,EE,.voidType),Hndlr),Ex3)
+    valis (.aLtt(Lc,Vr,.cResume(Lc,TT,EE,Stp),Hndlr),Ex3)
   }
   liftAction(.doRetire(Lc,T,E),Map,Q,Ex) => valof{
     (TT,Ex1) = liftExp(T,Map,Q,Ex);

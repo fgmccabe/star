@@ -338,7 +338,9 @@ star.compiler.checker{
 	
 	valis ([.implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp)],
 	  [.implDec(Lc,ImplNm,ImplVrNm,ImplTp),
-	    .varDec(Lc,ImplVrNm,ImplVrNm,ImplTp)])
+	    (~isEmpty(Cx) ??
+	      .funDec(Lc,ImplVrNm,ImplVrNm,ImplTp) ||
+	      .varDec(Lc,ImplVrNm,ImplVrNm,ImplTp))])
       }
       else{
 	reportError("implementation type $(Cn) not consistent with contract type $(ConTp)",Lc);
@@ -896,20 +898,22 @@ star.compiler.checker{
 	(Act,_) = checkAction(Ac,Tp,ErTp,Ev,Path);
 	valis Act
       },[],.none);
-    valis (doSuspend(Lc,TT,EE,Rules),Env)
+    valis (.doSuspend(Lc,TT,EE,Rules),Env)
   }
   checkAction(A,Tp,ErTp,Env,Path) where (Lc,T,E,Cases) ?= isResume(A) => valof{
     STp = newTypeVar("_s");
     RTp = newTypeVar("_r");
     TT = typeOfExp(T,fiberType(RTp,STp),ErTp,Env,Path);
     EE = typeOfExp(E,RTp,ErTp,Env,Path);
+
+    logMsg("resume event $(EE)\:$(typeOf(EE))");
     
     Rules = checkRules(Cases,STp,Tp,ErTp,Env,Path,
       (Ac,_,_,Ev,Path) => valof{
 	(Act,_) = checkAction(Ac,Tp,ErTp,Ev,Path);
 	valis Act
       },[],.none);
-    valis (doResume(Lc,TT,EE,Rules),Env)
+    valis (.doResume(Lc,TT,EE,STp,Rules),Env)
   }
   checkAction(A,Tp,ErTp,Env,Path) where (Lc,T,E) ?= isRetire(A) => valof{
     STp = newTypeVar("_s");

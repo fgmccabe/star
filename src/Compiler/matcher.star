@@ -28,9 +28,9 @@ star.compiler.matcher{
   public caseMatcher:all e ~~ reform[e],rewrite[e],display[e] |: (option[locn],nameMap,cExp,e,
     cons[(option[locn],cons[cExp],option[cExp],e)])=>e.
   caseMatcher(Lc,Map,Gov,Deflt,Cs) => valof{
---      logMsg("match cases $(Cs)\ngoverning expression $(Gov)");
+--    logMsg("match cases $(Cs)\ngoverning expression $(Gov)\:$(typeOf(Gov))");
     Trpls = makeTriples(Cs);
---      logMsg("case triples $(Trpls)");
+--    logMsg("case triples $(Trpls)");
     valis matchTriples(Lc,[Gov],Trpls,Deflt,Map)
   }
 
@@ -51,7 +51,7 @@ star.compiler.matcher{
   matchTriples:all e~~reform[e],rewrite[e],display[e] |: (option[locn],cons[cExp],cons[triple[e]],e,nameMap) => e.
   matchTriples(_,[],Triples,Deflt,_) => conditionalize(Triples,Deflt).
   matchTriples(Lc,Vrs,Triples,Deflt,Map) => valof{
---      logMsg("matching triples, $(Vrs) --- $(Triples), default = $(Deflt)");
+--    logMsg("matching triples, $(Vrs) --- $(Triples), default = $(Deflt)"); -- 
     Parts = partitionTriples(Triples);
     Segs = matchSegments(Parts,Vrs,Lc,Deflt,Map);
     valis Segs
