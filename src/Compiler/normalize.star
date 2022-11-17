@@ -584,13 +584,13 @@ star.compiler.normalize{
     Free = findFree(.doLetRec(Lc,Grp,Dcs,Bnd),Q);
     valis liftLetRec(Lc,Grp,Dcs,Bnd,Map,Q,Free,Ex)
   }
-  liftAction(.doSuspend(Lc,T,E,H),Map,Q,Ex) => valof{
+  liftAction(.doSuspend(Lc,T,E,RTp,H),Map,Q,Ex) => valof{
     (TT,Ex1) = liftExp(T,Map,Q,Ex);
     (EE,Ex2) = liftExp(E,Map,Q,Ex1);
-    Vr = genVar("E",.voidType);
+    Vr = genVar("E",RTp);
     (Hs,Ex3) = transformRules(H,Map,Q,.none,Ex2);
     Hndlr = caseMatcher(Lc,Map,.cVar(Lc,Vr),.aAbort(Lc,"no matches"),Hs);
-    valis (.aLtt(Lc,Vr,.cSusp(Lc,TT,EE,.voidType),Hndlr),Ex3)
+    valis (.aLtt(Lc,Vr,.cSusp(Lc,TT,EE,RTp),Hndlr),Ex3)
   }
   liftAction(.doResume(Lc,T,E,Stp,H),Map,Q,Ex) => valof{
     (TT,Ex1) = liftExp(T,Map,Q,Ex);

@@ -898,7 +898,7 @@ star.compiler.checker{
 	(Act,_) = checkAction(Ac,Tp,ErTp,Ev,Path);
 	valis Act
       },[],.none);
-    valis (.doSuspend(Lc,TT,EE,Rules),Env)
+    valis (.doSuspend(Lc,TT,EE,RTp,Rules),Env)
   }
   checkAction(A,Tp,ErTp,Env,Path) where (Lc,T,E,Cases) ?= isResume(A) => valof{
     STp = newTypeVar("_s");
@@ -906,8 +906,6 @@ star.compiler.checker{
     TT = typeOfExp(T,fiberType(RTp,STp),ErTp,Env,Path);
     EE = typeOfExp(E,RTp,ErTp,Env,Path);
 
-    logMsg("resume event $(EE)\:$(typeOf(EE))");
-    
     Rules = checkRules(Cases,STp,Tp,ErTp,Env,Path,
       (Ac,_,_,Ev,Path) => valof{
 	(Act,_) = checkAction(Ac,Tp,ErTp,Ev,Path);
