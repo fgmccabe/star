@@ -100,7 +100,7 @@ star.compiler.freevars{
       XX = exclDfs(Dfs,Excl,Fv);
       valis freeVarsInAct(A,XX,Q,freeVarsInDefs(Dfs,Excl,Q,Fv))
     }.
-    .doSuspend(_,Fb,E,H) => 
+    .doSuspend(_,Fb,E,_,H) => 
       foldLeft((Rl,F)=>freeVarsInRule(Rl,freeVarsInAct,Excl,Q,F),
 	freeVarsInExp(Fb,Excl,Q,
 	  freeVarsInExp(E,Excl,Q,Fv)),H).

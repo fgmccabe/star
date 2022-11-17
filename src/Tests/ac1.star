@@ -2,7 +2,6 @@ test.ac1{
   import star.core.
   import star.arith.
   import star.coerce.
-  import star.tuples.
 
   -- Test basics of actions
 
@@ -16,11 +15,7 @@ test.ac1{
 
   main:()=>().
   main() => valof{
---    _logmsg(disp(f1(10)));
-    X = 1;
-    Y = 2;
-    T = (X,Y);
-    _logmsg(disp(T));
+    _logmsg(disp(f1(10)));
     valis ()
   }
 }
