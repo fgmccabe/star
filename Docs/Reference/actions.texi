@@ -61,8 +61,7 @@ actions, as explained in @ref{Fibers}.
 @subsection @code{nothing}
 @cindex no operation
 @findex nothing
-The @code{nothing} action does nothing; and does not return a value;
-or, more accurately, return the empty tuple:
+The @code{@{@}} action does nothing; and does not return a value.
 
 @float BNF,nothingFig
 @caption{No Operation}
@@ -125,6 +124,11 @@ The @refer{ValisAction} denotes that the action should terminate and return a va
 When a @code{valis} action is performed, its expression is evaluated
 and that value is used as the value of the computation.
 
+A @refer{ValisAction} must be lexically enclosed by a
+@refer{ValofExpression}. The @refer{ValisAction} terminates that
+expression and the value of the @refer{ValofExpression} is the value
+computed by the @refer{ValisAction}.
+
 @quotation Note
 It is possible that evaluating the expression of a @refer{ValisAction}
 may cause an exception to be thrown. In that case, the
@@ -177,6 +181,8 @@ not affected -- unless it lexically contains a @refer{BreakAction}.
 @anchored{LabeledAction} ::= @refer{Identifier} @code{:} @refer{Action}
 @end display
 @end float
+
+The scope of the label is limited to the text enclosed within the labeled action.
 
 @node Break Action
 @subsection Break Action
@@ -233,7 +239,7 @@ identify (sic) a specific action.
 
 Labels can be nested, however. In the case that there are multiple
 occurrences of a label in scope, a @code{break} will always refer to
-the lexically innermost labeled action.
+the lexically innermost labeled action with the same label.
 @end quotation
 
 @node Definition Action
@@ -277,8 +283,7 @@ re-assignable variable with another value. The variable being
 re-assigned must have a @code{ref} type -- there is no `implicit'
 assignability of a variable or field.
 
-
-@float BNF,assignctionFig
+@float BNF,assignactionFig
 @caption{Assignment Action}
 @display
 @anchored{AssignmentAction} ::= @refer{Variable} @code{:=} @refer{Expression}

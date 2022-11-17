@@ -65,7 +65,7 @@ fiber@{
   let@{
     yildFn:((),e)=>().
     yildFn(_,E) => valof@{
-      suspend yild(E) in @{
+      suspend .yild(E) in @{
        .next => valis ().
       @}
     @}
@@ -84,7 +84,8 @@ within the body of the @code{fiber} expression: @code{this} and
 @table @code
 @item this
 The @code{this} keyword is bound to the currently executing
-@code{fiber} (and has the same type). This is one of the primary ways in which a @code{fiber} is given its own identity.
+@code{fiber} (and has the same type). This is one of the primary ways
+in which a @code{fiber} is given its own identity.
 @item first
 The @code{first} keyword is bound to the initial event that is passed
 to the @code{fiber} when it is first resumed.
@@ -96,7 +97,6 @@ immediately. The @code{fiber} starts executing only when it is resumed
 -- using the @refer{ResumeAction}
 @end quotation
 @end table
-
 
 @node Fiber Actions
 @section Fiber Actions
