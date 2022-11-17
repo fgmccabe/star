@@ -287,7 +287,7 @@ star.compiler.canon{
     .typeDef(_,Nm,T,_) => "Type: #(Nm)~>$(T)".
     .conDef(_,_,Nm,Tp) => "Contract: #(Nm) ::= $(Tp)".
     .cnsDef(_,_,Nm,Tp) => "Constructor: #(Nm):$(Tp)".
-    .implDef(_,Nm,FullNm,Exp,_,Tp) => "Implementation: #(Nm)\:$(Tp) = $(Exp)".
+    .implDef(_,Nm,_,Exp,Cx,Tp) => "Implementation: #(Nm)\:$(Tp) = $(Cx) |: $(Exp)".
     .accDef(_,Fld,Nm,Tp) => "Access: #(Fld):$(Tp) = $(Nm)".
     .updDef(_,Fld,Nm,Tp) => "Update: #(Fld):$(Tp) = $(Nm)".
   }
