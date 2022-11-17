@@ -39,9 +39,12 @@ star.compiler.normalize{
     cons[cDefn].
   transformDef(.varDef(Lc,Nm,FullNm,.lambda(_,LNm,Eqns,Tp),_,_),Map,Outer,Q,Extra,Ex) => valof{
     if traceNormalize! then{
-      logMsg("transform function $(lambda(Lc,LNm,Eqns,Tp)) Q=$(Q) @ $(Lc)");
+      logMsg("transform function $(lambda(Lc,LNm,Eqns,Tp)) Q=$(Q) Extra = $(Extra) @ $(Lc)");
     };
     ATp = extendFunTp(deRef(Tp),Extra);
+    if traceNormalize! then
+      logMsg("extended function function type $(ATp)");
+    
     (Eqs,Ex1) = transformRules(Eqns,Outer,Q,Extra,Ex);
     if traceNormalize! then
       logMsg("transformed equations: $(Eqs)");
@@ -322,10 +325,14 @@ star.compiler.normalize{
   }
   liftExp(.letExp(Lc,Grp,Decs,Bnd),Map,Q,Ex) => valof{
     Free = findFree(.letExp(Lc,Grp,Decs,Bnd),Q);
+    if traceNormalize! then
+      logMsg("lift let exp $(.letExp(Lc,Grp,Decs,Bnd))");
     valis liftLet(Lc,Grp,Decs,Bnd,Map,Q,Free,Ex)
   }
   liftExp(.letRec(Lc,Grp,Decs,Bnd),Map,Q,Ex) => valof{
     Free = findFree(.letRec(Lc,Grp,Decs,Bnd),Q);
+    if traceNormalize! then
+      logMsg("lift let exp $(.letRec(Lc,Grp,Decs,Bnd))");
     valis liftLetRec(Lc,Grp,Decs,Bnd,Map,Q,Free,Ex).
   }
   liftExp(.lambda(Lc,FullNm,Eqns,Tp),Map,Q,Ex) => 
@@ -445,6 +452,7 @@ star.compiler.normalize{
     (option[locn],cons[canonDef],cons[decl],e,nameMap,set[cId],set[cId],cons[cDefn]) =>
       crFlow[x].
   liftLet(Lc,Defs,Decls,Bnd,Outer,Q,Free,Ex) => valof{
+
 --    logMsg("Q=$(Q), Free=$(Free)");
     (lVars,vrDefs) = unzip(varDefs(Defs));
     CM = makeConsMap(Decls);
@@ -462,11 +470,9 @@ star.compiler.normalize{
     allFree = freeVars++lVars;
 
     if [SFr] .= allFree && isEmpty(lVars) then {
---      logMsg("single free: $(SFr)\:$(typeOf(SFr))");
       MM = [lyr(? SFr,foldRight((D,LL)=>collectMtd(D,.some(SFr),LL),[],GrpFns),CM),..Outer];
       M = Outer;
       GrpQ = foldLeft(collectQ,Q\+SFr,Defs);
---      logMsg("single $(SFr)\: $(M)");
       Ex1 = transformGroup(GrpFns,Outer,Outer,GrpQ,.some(.cVar(Lc,SFr)),Ex);
       valis transform(Bnd,MM,GrpQ,Ex1);
     } else {
@@ -475,17 +481,11 @@ star.compiler.normalize{
       ThV = genVar("_ThVr",freeType);
       ThVr = .cVar(Lc,ThV);
 
---      logMsg("ThVr = $(ThVr)\:$(typeOf(ThVr))");
-
       L = collectLabelVars(allFree,ThV,0,[]);
 
       MM = [.lyr(.some(ThV),foldRight((D,LL)=>collectMtd(D,.some(ThV),LL),L,GrpFns),CM),..Outer];
     
---      logMsg("theta var $(ThV) ~ $(L)");
-    
       M = [lyr(.some(ThV),L,CM),..Outer];
-
---      logMsg("let map is $(head(MM))");
 
       GrpQ = foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q,lVars),Defs);
       
@@ -495,6 +495,12 @@ star.compiler.normalize{
       (cellArgs,Ex2) = liftExps(vrDefs,GrpQ,Outer,Ex1);
 
       GrpFree = crTpl(Lc,freeArgs++cellArgs);
+
+      if traceNormalize! then{
+	logMsg("free term is $(GrpFree)");
+	logMsg("let M is $(head(M))");
+	logMsg("let MM is $(head(MM))");
+      };
 
       (BndTrm,Exx) = transform(Bnd,MM,GrpQ,Ex2);
       valis (letify(Lc,ThV,GrpFree,BndTrm),Exx)
@@ -644,6 +650,12 @@ star.compiler.normalize{
     GrpFree = crTpl(Lc,freeArgs++cellVoids);
       
     GrpQ = foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q\+ThV,lVars),Grp);
+
+    if traceNormalize! then{
+      logMsg("free term is $(GrpFree)");
+      logMsg("let M is $(head(M))");
+    };
+    
     Ex2 = transformGroup(Grp,M,M,GrpQ,.some(ThVr),Ex);
       
     (BndTrm,Exx) = transform(Bnd,M,GrpQ,Ex2);

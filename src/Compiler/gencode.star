@@ -85,8 +85,9 @@ star.compiler.gencode{
 	valis Cont.C(Ctx,pushStack(Tp::ltipe,Stk),[.iLdV])
       }
     }.
-    .cTerm(_,Nm,Args,Tp) =>
-      compExps(Args,allocCont(tLbl(Nm,size(Args)),pushStack(Tp::ltipe,Stk),Cont),ECont,Ctx,Stk).
+    .cTerm(_,Nm,Args,Tp) => valof{
+      valis compExps(Args,allocCont(tLbl(Nm,size(Args)),pushStack(Tp::ltipe,Stk),Cont),ECont,Ctx,Stk)
+    }.
     .cECall(Lc,Op,Args,Tp) where (_,Ins,Frm)?=intrinsic(Op) =>
       compExps(Args,intrinsicCont(Ins,Frm,pushStack(Tp::ltipe,Stk),Cont),ECont,Ctx,Stk).
     .cECall(Lc,Es,Args,Tp) =>

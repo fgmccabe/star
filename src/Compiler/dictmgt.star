@@ -78,7 +78,7 @@ star.compiler.dict.mgt{
   refreshVr:(option[locn],tipe,dict,(option[locn],tipe)=>canon) => canon.
   refreshVr(Lc,Tp,Env,Mkr) => valof{
     (_,VrTp) = freshen(Tp,Env);
-    valis manageConstraints(VrTp,Lc,Mkr)
+    valis manageConstraints(VrTp,Lc,(VTp) => Mkr(Lc,VTp))
   }    
 
   refreshVar(Lc,Nm,Tp,Env) =>
@@ -135,7 +135,7 @@ star.compiler.dict.mgt{
 --    logMsg("freshen $(Nm)'s type: $(Tp)");
     (_,VrTp) = freshen(Tp,Env);
 --    logMsg("freshened type of $(Nm) is $(VrTp)");
-    valis manageConstraints(VrTp,Lc,(LLc,ETp)=>enm(LLc,Nm,ETp))
+    valis manageConstraints(VrTp,Lc,(ETp)=>enm(Lc,Nm,ETp))
   }
 
   public declareEnum:(string,string,option[locn],tipe,dict) => dict.
@@ -181,7 +181,7 @@ star.compiler.dict.mgt{
     (Q,VrTp) = freshen(Tp,Env);
 --    logMsg("freshened type of $(Nm) is $(VrTp) Q=$(Q)");
 --    logMsg("freshened contract $(Cn)");
-    valis manageConstraints(VrTp,Lc,(LLc,MTp)=>mtd(LLc,Nm,MTp))
+    valis manageConstraints(VrTp,Lc,(MTp)=>mtd(Lc,Nm,MTp))
   }
 
   public mergeDict:(dict,dict,dict) => dict.
@@ -251,10 +251,10 @@ star.compiler.dict.mgt{
   declareConstraints(Lc,[_,..Cx],Env) =>
     declareConstraints(Lc,Cx,Env).
 
-  manageConstraints:(tipe,option[locn],(option[locn],tipe)=>canon) => canon.
+  manageConstraints:(tipe,option[locn],(tipe)=>canon) => canon.
   manageConstraints(.constrainedType(Tp,Con),Lc,Term) =>
-    applyConstraint(Lc,Con,manageConstraints(deRef(Tp),Lc,Term)).
-  manageConstraints(Tp,Lc,Term) => Term(Lc,Tp).
+    manageConstraints(deRef(Tp),Lc,(TT)=>applyConstraint(Lc,Con,Term(TT))).
+  manageConstraints(Tp,Lc,Term) => Term(Tp).
 
   applyConstraint:(option[locn],constraint,canon) => canon.
   applyConstraint(Lc,.fieldConstraint(V,F,T),Trm) => overaccess(Lc,Trm,V,F,T).
