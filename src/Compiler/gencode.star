@@ -48,7 +48,7 @@ star.compiler.gencode{
       if traceCodegen! then
 	logMsg("compile $(fnDef(Lc,Nm,Tp,Args,Val))");
       Ctx = emptyCtx(argVars(Args,Glbs,0));
-      (_,AbortCde) = abortCont(Lc,"function: $(Nm)").C(Ctx,.none,[]);
+      (_,AbortCde) = abortCont(Lc,"function: $(Nm)").C(Ctx,?[],[]);
       (_Stk,Code) = compExp(Val,retCont,jmpCont(Ctx.escape,.none),Ctx,.some([]));
       if traceCodegen! then
 	logMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp])");
@@ -85,6 +85,8 @@ star.compiler.gencode{
 	valis Cont.C(Ctx,pushStack(Tp::ltipe,Stk),[.iLdV])
       }
     }.
+    .cVoid(Lc,Tp) =>
+      Cont.C(Ctx,pushStack(Tp::ltipe,Stk),[.iLdV]).
     .cTerm(_,Nm,Args,Tp) => valof{
       valis compExps(Args,allocCont(tLbl(Nm,size(Args)),pushStack(Tp::ltipe,Stk),Cont),ECont,Ctx,Stk)
     }.
@@ -101,6 +103,10 @@ star.compiler.gencode{
       compExp(E,nthCont(Ix,Cont,pushStack(Tp::ltipe,Stk)),ECont,Ctx,Stk).
     .cSetNth(Lc,R,Ix,V) =>
       compExp(R,expCont(V,setNthCont(Ix,Cont,Stk),ECont),ECont,Ctx,Stk).
+    .cThunk(Lc,Lam,_) =>
+      compExp(Lam,thunkCont(Stk,Cont),ECont,Ctx,Stk).
+    .cThGet(Lc,Thnk,Tp) =>
+      compExp(Thnk,thGetCont(pushStack(Tp::ltipe,Stk),Ctx.escape,Cont),ECont,Ctx,Stk).
     .cThrow(Lc,Exp,_) =>
       compExp(Exp,ECont,abortCont(Lc,"throw"),Ctx,Stk).
     .cSeq(_,L,R) =>
@@ -214,6 +220,8 @@ star.compiler.gencode{
       compExp(E,ptnCont(P,ACont,abortCont(Lc,"define error"),ECont),ECont,Ctx,Stk).
     .aAsgn(Lc,P,E) =>
       compExp(E,expCont(P,asgnCont(ACont,Ctx,Stk),ECont),ECont,Ctx,Stk).
+    .aSetNth(Lc,T,Ix,E) =>
+      compExp(T,expCont(E,setNthCont(Ix,ACont,Stk),ECont),ECont,Ctx,Stk).
     .aCase(Lc,G,Cs,D) =>
       compCase(Lc,G,Cs,D,(Ac,C1,C2)=>actionCont(Ac,ACont,C1,C2),Cont,ECont,Ctx,Stk).
     .aUnpack(Lc,G,Cs) =>
@@ -242,8 +250,10 @@ star.compiler.gencode{
       valis compAction(B,ACont,Cont,
 	catchCont(CLb,()=>compAction(H,ACont,Cont,ECont,Ctx,Stk)),Ctx,Stk)
     }.
-    .aRetire(Lc,F,E) => compExp(F,expCont(E,retireCont(ACont),
-	abortCont(Lc,"retire")),ECont,Ctx,Stk).
+    .aRetire(Lc,F,E) => valof{
+      valis compExp(F,expCont(E,retireCont(.none),
+	  abortCont(Lc,"retire")),ECont,Ctx,Stk)
+    }.
     .aAbort(Lc,Msg) =>
       abortCont(Lc,Msg).C(Ctx,Stk,[]).
     _ => valof{
@@ -547,9 +557,9 @@ star.compiler.gencode{
     C(Ctx,_AStk,Cde) => Cont.C(Ctx,Stk,Cde++[.iResume,frameIns(Stk)]).
   }
 
-  retireCont:(Cont) => Cont.
-  retireCont(Cont) => cont{
-    C(Ctx,_AStk,Cde) => Cont.C(Ctx,.none,Cde++[.iRetire]).
+  retireCont:(stack) => Cont.
+  retireCont(Stk) => cont{
+    C(Ctx,_AStk,Cde) => (Stk,Cde++[.iRetire]).
   }
 
   nullCont = cont{
@@ -582,7 +592,9 @@ star.compiler.gencode{
   expCont:(cExp,Cont,Cont) => Cont.
   expCont(Exp,Cont,ECont) => cont{
     C(Ctx,Stk,Cde) => valof{
+--      logMsg("Compile cont $(Exp), with stack $(Stk)");
       (Stk1,OCde) = compExp(Exp,Cont,ECont,Ctx,Stk);
+--      logMsg("Stack after Compile cont $(Exp) is $(Stk1)");
       valis (Stk1,Cde++OCde)
     }
   }
@@ -615,6 +627,21 @@ star.compiler.gencode{
     C(Ctx,_SS,Cde) => Cont.C(Ctx,Stk,Cde++[.iStNth(Ix)]).
   }
 
+  thunkCont:(stack,Cont) => Cont.
+  thunkCont(Stk,Cont) => cont{
+    C(Ctx,_,Cde) => Cont.C(Ctx,Stk,Cde++[.iThunk])
+  }
+
+  thGetCont:(stack,assemLbl,Cont) => Cont.
+  thGetCont(Stk,Exit,Cont) => cont{
+    C(Ctx,_,Cde) => Cont.C(Ctx,Stk,Cde++[.iLdTh(Exit)])
+  }
+
+  thSetCont:(stack,Cont) => Cont.
+  thSetCont(Stk,Cont) => cont{
+    C(Ctx,_,Cde) => Cont.C(Ctx,Stk,Cde++[.iTTh])
+  }
+
   catchCont:all e ~~ (assemLbl,()=>(stack,multi[assemOp])) => Cont.
   catchCont(CLb,HComp) => cont{
     C(_,_,Cde) => valof{
@@ -631,7 +658,10 @@ star.compiler.gencode{
 
   abortCont:(option[locn],string) => Cont.
   abortCont(.some(Lc),Msg) => cont{
-    C(_,_,Cde) => (.none,Cde++[.iLdC(Lc::data),.iLdC(strg(Msg)),.iAbort]).
+    C(_,_,Cde) => valof{
+--      logMsg("abort cont $(Lc), $(Msg)");
+      valis (.none,Cde++[.iLdC(Lc::data),.iLdC(strg(Msg)),.iAbort])
+    }
   }
 
   errorCont:(option[locn],string) => Cont.
@@ -736,10 +766,6 @@ star.compiler.gencode{
   drop:all x,e ~~ stream[x->>e] |: (x,integer)=>x.
   drop(S,0)=>S.
   drop([_,..S],N)=>drop(S,N-1).
-
-  trimStack:all x, e ~~ stream[x->>e],sizeable[x] |: (option[x],integer)=>option[x].
-  trimStack(.some(L),N) =>.some(drop(L,size(L)-N)).
-  trimStack(.none,_) => .none.
 
   dropStack(.none) => .none.
   dropStack(.some([_,..Stk])) => .some(Stk).

@@ -16,6 +16,7 @@
 #include "thunk.h"
 #include "cellP.h"
 #include "jit.h"
+#include "thunkP.h"
 
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<(unsigned)16)|lo32))
 #define collectOff(pc) (hi32 = collectI32(pc), (pc)+(signed)hi32)
@@ -558,12 +559,12 @@ retCode run(processPo P) {
           termPo vr = getGlobal(glb);
 
           check(vr != Null, "undefined global");
-          check(SP> (ptrPo)(FP+1),"not enough room");
+          check(SP > (ptrPo) (FP + 1), "not enough room");
 
           push(vr);     /* load a global variable */
         } else {
           labelPo glbLbl = findLbl(globalVarName(glb), 0);
-          if(glbLbl==Null){
+          if (glbLbl == Null) {
             logMsg(logFile, "no definition for global %s", globalVarName(glb));
             bail();
           }
@@ -586,6 +587,95 @@ retCode run(processPo P) {
           LITS = codeLits(glbThnk);
           H = globalHeap;
         }
+        continue;
+      }
+
+      case Thunk: {  // Create a new thunk
+        normalPo thLam = C_NORMAL(pop());
+
+        if (reserveSpace(H, ThunkCellCount) != Ok) {
+          saveRegisters();
+          retCode ret = gcCollect(H, ThunkCellCount);
+          if (ret != Ok)
+            return ret;
+          restoreRegisters();
+        }
+        thunkPo thnk = thunkVar(H, thLam);
+        push(thnk);       /* put the structure back on the stack */
+        continue;
+      }
+
+      case LdTh: {
+        thunkPo thVr = C_THUNK(pop());
+        insPo exit = collectOff(PC);
+
+        if (thunkIsSet(thVr)) {
+          termPo vr = thunkVal(thVr);
+
+          check(vr != Null, "undefined thunk value");
+          check(SP > (ptrPo) (FP + 1), "not enough room");
+
+          push(vr);     /* load a global variable */
+        } else {
+          normalPo thLambda = thunkLam(thVr);
+
+          labelPo oLbl = objLabel(termLbl(thLambda), 2); // Two arguments: the thunk and the free vector
+
+          if (oLbl == Null) {
+            logMsg(logFile, "label %s/%d not defined", labelName(termLbl(thLambda)), 2);
+            bail();
+          }
+
+          methodPo mtd = labelCode(oLbl);       /* set up for object call */
+
+          if (mtd == Null) {
+            logMsg(logFile, "no definition for %T", oLbl);
+            bail();
+          }
+
+          bumpCallCount(mtd);
+
+          push(nthElem(thLambda, 0));                     // Put the free term back on the stack
+          push(thVr);
+
+          if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE)) {
+            int root = gcAddRoot(H, (ptrPo) &mtd);
+            stackGrow(stackDelta(mtd) + STACKFRAME_SIZE, codeArity(mtd));
+            gcReleaseRoot(H, root);
+          }
+
+          assert(isPcOfMtd(FP->prog, PC));
+          FP->pc = PC;
+          pushFrme(mtd);
+          LITS = codeLits(mtd);
+          incEntryCount(mtd);              // Increment program count
+        }
+        continue;
+      }
+
+      case StTh: {                           // Store into thunk
+        thunkPo thnk = C_THUNK(pop());
+        termPo val = pop();
+
+        if (thunkIsSet(thnk)) {
+          logMsg(logFile, "thunk %T already set", thnk);
+          bail();
+        }
+
+        setThunk(thnk, val);      // Update the thunk variable
+        continue;
+      }
+
+      case TTh: {                        // Set thunk and carry on
+        thunkPo thnk = C_THUNK(pop());
+        termPo val = top();
+
+        if (thunkIsSet(thnk)) {
+          logMsg(logFile, "thunk %T already set", thnk);
+          bail();
+        }
+
+        setThunk(thnk, val);      // Update the thunk variable
         continue;
       }
 
@@ -949,15 +1039,16 @@ retCode run(processPo P) {
 
       case Unpack: {
         labelPo l = C_LBL(nthElem(LITS, collectI32(PC)));
-        normalPo t = C_NORMAL(pop());
+        termPo t = pop();
         insPo exit = collectOff(PC);
 
         assert(validPC(FP->prog, exit));
 
-        if (sameLabel(l, termLbl(t))) {
+        normalPo n;
+        if (isNormalPo(t) && sameLabel(l, termLbl(n = C_NORMAL(t)))) {
           integer arity = labelArity(l);
           for (integer ix = arity - 1; ix >= 0; ix--)
-            push(nthElem(t, ix));
+            push(nthElem(n, ix));
         } else {
           PC = exit;
         }

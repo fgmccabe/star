@@ -90,6 +90,8 @@ star.compiler.inline{
     inlineTplOff(Lc,simplifyExp(T,Map,Depth),Ix,Tp).
   simExp(.cSetNth(Lc,T,Ix,Vl),Map,Depth) =>
     applyTplUpdate(Lc,simplifyExp(T,Map,Depth),Ix,simplifyExp(Vl,Map,Depth)).
+  simExp(.cThunk(Lc,T,Tp),Map,Depth) =>
+    .cThunk(Lc,simplifyExp(T,Map,Depth),Tp).
   simExp(.cSeq(Lc,L,R),Map,Depth) =>
     cSeq(Lc,simplifyExp(L,Map,Depth),simplifyExp(R,Map,Depth)).
   simExp(.cCnj(Lc,L,R),Map,Depth) =>
@@ -293,6 +295,7 @@ star.compiler.inline{
     .cTerm(_,_,Els,_) => countEls(Els,Id,Cnt).
     .cNth(_,E,_,_) => countOccs(E,Id,Cnt).
     .cSetNth(_,E,_,V) => countOccs(V,Id,countOccs(E,Id,Cnt)).
+    .cThunk(_,E,_) => countOccs(E,Id,Cnt).
     .cCall(_,_,Els,_) => countEls(Els,Id,Cnt).
     .cECall(_,_,Els,_) => countEls(Els,Id,Cnt).
     .cOCall(_,Op,Els,_) => countEls(Els,Id,countOccs(Op,Id,Cnt)).

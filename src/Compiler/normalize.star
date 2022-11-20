@@ -35,11 +35,47 @@ star.compiler.normalize{
 
   all e ~~ crFlow[e] ~> (e,cons[cDefn]).
 
-  transformDef:(canonDef,nameMap,nameMap,set[cId],option[cExp],cons[cDefn]) =>
-    cons[cDefn].
-  transformDef(.varDef(Lc,Nm,FullNm,.lambda(_,LNm,Eqns,Tp),_,_),Map,Outer,Q,Extra,Ex) => valof{
+  transformDef:(canonDef,nameMap,nameMap,set[cId],option[cExp],cons[cDefn]) =>cons[cDefn].
+  transformDef(.varDef(Lc,Nm,FullNm,.lambda(_,LNm,Eqns,Tp),_,_),Map,Outer,Q,Extra,Ex) =>
+    transformFunction(Lc,Nm,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex).
+  transformDef(.varDef(Lc,_,FullNm,Val,Cx,Tp),Map,Outer,Q,.none,Ex) => valof{
+    (Vl,Defs) = liftExp(Val,Outer,Q,Ex);
+    valis [.vrDef(Lc,FullNm,Tp,Vl),..Defs]
+  }
+  transformDef(.varDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,.some(V),Ex) where .cVar(VLc,ThVr) .= V => valof{
+    if traceNormalize! then
+      logMsg("lift thunk $(Nm)\:$(Tp) = $(Val) @ $(Lc)");
+
+    ATp = extendFunTp(deRef(Tp),?V);
+    if traceNormalize! then
+      logMsg("extended function function type $(ATp)");
+
+    Thnk = genVar("Thnk",thunkType(Tp));
+
+    (Vl,Defs) = liftExp(Val,Outer,Q,Ex);
+    Body = .cThSet(Lc,.cVar(Lc,Thnk),Vl,Tp);
+    if traceNormalize! then
+      logMsg("definition body = $(Body)");
+
+    ThunkNm = varClosureNm(FullNm);
+    Thunk = .fnDef(Lc,ThunkNm,funType([typeOf(ThVr),thunkType(Tp)],Tp),[ThVr,Thnk],Body);
+
+    valis [Thunk,..Defs]
+  }
+
+  transformDef(.implDef(Lc,_,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex) =>
+    transformDef(.varDef(Lc,FullNm,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex).
+  transformDef(.typeDef(Lc,Nm,Tp,TpRl),Map,_,_,_,Ex) =>
+    transformTypeDef(Lc,Nm,Tp,TpRl,Map,Ex).
+  transformDef(.cnsDef(Lc,Nm,FullNm,Tp),Map,_,_,_,Ex) =>
+    transformConsDef(Lc,FullNm,Tp,Map,Ex).
+  transformDef(.conDef(_,_,_,_),_,_,_,_,Ex) => Ex.
+  transformDef(.accDef(_,_,_,_),_,_,_,_,Ex) => Ex.
+  transformDef(.updDef(_,_,_,_),_,_,_,_,Ex) => Ex.
+
+  transformFunction(Lc,Nm,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex) => valof{
     if traceNormalize! then{
-      logMsg("transform function $(lambda(Lc,LNm,Eqns,Tp)) Q=$(Q) Extra = $(Extra) @ $(Lc)");
+      logMsg("transform function $(lambda(Lc,Nm,Eqns,Tp)) Q=$(Q) Extra = $(Extra) @ $(Lc)");
     };
     ATp = extendFunTp(deRef(Tp),Extra);
     if traceNormalize! then
@@ -71,30 +107,6 @@ star.compiler.normalize{
       valis [Func,ClosEntry,..Ex1]
     }
   }
-  transformDef(.varDef(Lc,_,FullNm,Val,Cx,Tp),Map,Outer,Q,.none,Ex) => valof{
-    (Vl,Defs) = liftExp(Val,Outer,Q,Ex);
-    valis [.vrDef(Lc,FullNm,Tp,Vl),..Defs]
-  }
-  transformDef(.varDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,.some(V),Ex) where
-      .cVar(VLc,ThVr) .= V => valof{
-    ThIx = ^findMemoIx(Nm,ThVr,Map);
-    (Vl,Defs) = liftExp(Val,Outer,Q,Ex);
-    Body = .cNth(Lc,.cCnd(Lc,.cMatch(Lc,.cVoid(Lc,Tp),.cNth(Lc,V,ThIx,Tp)),
-	    .cSetNth(Lc,V,ThIx,Vl),V),ThIx,Tp);
-    ClosureNm = varClosureNm(FullNm);
-    ClosEntry = .fnDef(Lc,ClosureNm,funType([typeOf(ThVr)],Tp),[ThVr],Body);
-    valis [ClosEntry,..Defs]
-  }
-  transformDef(.implDef(Lc,_,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex) => 
-    transformDef(.varDef(Lc,FullNm,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex).
-  transformDef(.typeDef(Lc,Nm,Tp,TpRl),Map,_,_,_,Ex) =>
-    transformTypeDef(Lc,Nm,Tp,TpRl,Map,Ex).
-  transformDef(.cnsDef(Lc,Nm,FullNm,Tp),Map,_,_,_,Ex) =>
-    transformConsDef(Lc,FullNm,Tp,Map,Ex).
-  transformDef(.conDef(_,_,_,_),_,_,_,_,Ex) => Ex.
-  transformDef(.implDef(_,_,_,_,_,_),_,_,_,_,Ex) => Ex.
-  transformDef(.accDef(_,_,_,_),_,_,_,_,Ex) => Ex.
-  transformDef(.updDef(_,_,_,_),_,_,_,_,Ex) => Ex.
 
   transformTypeDef(Lc,Nm,Tp,TpRl,Map,Ex) => valof{
     if traceNormalize! then
@@ -143,14 +155,17 @@ star.compiler.normalize{
 
   contract all t ~~ letify[t] ::= {
     letify:(option[locn],cId,cExp,t) => t.
+    freeUpdate:(option[locn],cExp,integer,cExp,t) => t.
   }
 
   implementation letify[cExp] => {
     letify(Lc,V,Vl,B) => .cLtt(Lc,V,Vl,B).
+    freeUpdate(Lc,Vr,Ix,Vl,SoFar) => .cSeq(Lc,.cSetNth(Lc,Vr,Ix,Vl),SoFar).
   }
 
   implementation letify[aAction] => {
     letify(Lc,V,Vl,B) => .aLtt(Lc,V,Vl,B).
+    freeUpdate(Lc,Vr,Ix,Vl,SoFar) => .aSeq(Lc,.aSetNth(Lc,Vr,Ix,Vl),SoFar).
   }
 
   transformRules:all e,t ~~ transform[e->>t] |:
@@ -249,10 +264,10 @@ star.compiler.normalize{
     NN = .cVar(Lc,.cId(Nm,Tp));
     valis (.cWhere(Lc,NN,.cMatch(Lc,NN,.cNth(Lc,V,Ix,Tp))),Ex)
   }
-  implementVarPtn(Lc,Nm,.some(.memoArg(ClNm,Base,Ix)),Tp,Map,Ex) => valof{
+  implementVarPtn(Lc,Nm,.some(.memoArg(ClNm,Base,Ix,_)),Tp,Map,Ex) => valof{
     V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
     NN = .cVar(Lc,.cId(Nm,Tp));
-    valis (.cWhere(Lc,NN,.cMatch(Lc,NN,.cCall(Lc,ClNm,[V],Tp))),Ex)
+    valis (.cWhere(Lc,NN,.cMatch(Lc,NN,.cThGet(Lc,V,Tp))),Ex)
   }
   implementVarPtn(Lc,Nm,.some(V),Tp,_Map,Ex) => valof{
     reportError("not permitted to match against $(Nm)\:$(V)",Lc);
@@ -383,9 +398,9 @@ star.compiler.normalize{
     V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
     valis .cNth(Lc,V,Ix,Tp)
   }.
-  implementVarExp(Lc,.memoArg(ClNm,Base,Ix),Map,Tp) => valof{
+  implementVarExp(Lc,.memoArg(ClNm,Base,Ix,_),Map,Tp) => valof{
     V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
-    valis .cCall(Lc,ClNm,[V],Tp)
+    valis .cThGet(Lc,.cNth(Lc,V,Ix,Tp),Tp)
   }
   implementVarExp(Lc,.localVar(Vr),_,Tp) => Vr.
   implementVarExp(Lc,.moduleCons(Enum,CTp),_,Tp) => cTerm(Lc,Enum,[],Tp).
@@ -435,9 +450,9 @@ star.compiler.normalize{
     V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
     valis (.cOCall(Lc,.cNth(Lc,V,Ix,Tp),Args,Tp),Ex)
   }
-  implementFunCall(Lc,.memoArg(ClNm,Base,Ix),_,Args,Tp,Map,Ex) => valof{
-    V = liftVarExp(Lc,cName(Base),Tp,Map);
-    valis (.cOCall(Lc,.cCall(Lc,ClNm,[V],funType([typeOf(V)],Tp)),Args,Tp),Ex)
+  implementFunCall(Lc,.memoArg(ClNm,Base,Ix,MTp),_,Args,Tp,Map,Ex) => valof{
+    V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
+    valis (.cOCall(Lc,.cThGet(Lc,.cNth(Lc,V,Ix,MTp),MTp),Args,Tp),Ex)
   }
   implementFunCall(Lc,.localVar(Vr),_,Args,Tp,Map,Ex) =>
     (.cOCall(Lc,Vr,Args,Tp),Ex).
@@ -484,7 +499,7 @@ star.compiler.normalize{
       L = collectLabelVars(allFree,ThV,0,[]);
 
       MM = [.lyr(.some(ThV),foldRight((D,LL)=>collectMtd(D,.some(ThV),LL),L,GrpFns),CM),..Outer];
-    
+
       M = [lyr(.some(ThV),L,CM),..Outer];
 
       GrpQ = foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q,lVars),Defs);
@@ -498,14 +513,131 @@ star.compiler.normalize{
 
       if traceNormalize! then{
 	logMsg("free term is $(GrpFree)");
-	logMsg("let M is $(head(M))");
-	logMsg("let MM is $(head(MM))");
       };
 
       (BndTrm,Exx) = transform(Bnd,MM,GrpQ,Ex2);
       valis (letify(Lc,ThV,GrpFree,BndTrm),Exx)
     }
   }
+  -- In a let rec, all the non functions must end up in the free data
+
+  liftLetRec:all e,x ~~ transform[e->>x],letify[x] |:
+    (option[locn],cons[canonDef],cons[decl],e,nameMap,set[cId],set[cId],
+      cons[cDefn]) => crFlow[x].
+  liftLetRec(Lc,Grp,Decs,Bnd,Outer,Q,Free,Ex) => valof{
+    GrpFns = (Grp^/(D)=>~_?=isVarDef(D));
+    GrpVars = (Grp^/(D)=>_?=isVarDef(D));
+
+    (lVars,vrDefs) = unzip(varDefs(GrpVars));
+
+    rawGrpFree = freeLabelVars(Free,Outer)::cons[cId];
+    varParents = freeParents(rawGrpFree \ lVars,Outer);
+    freeVars = reduceFreeArgs(varParents,Outer);
+
+    ThV = genVar("_ThVr",typeOf(freeVars++lVars));
+    ThVr = .cVar(Lc,ThV);
+
+    CM = makeConsMap(Decs);
+
+--    L = collectVars(GrpVars,ThV,size(freeVars),collectLabelVars(freeVars,ThV,0,[]));
+    L = collectLabelVars(lVars,ThV,size(freeVars),collectLabelVars(freeVars,ThV,0,[]));
+
+    if traceNormalize! then{
+      logMsg("L = $(L)")
+    };
+
+    M = [.lyr(.some(ThV),foldRight((D,LL)=>collectMtd(D,.some(ThV),LL),L,GrpFns),CM),..Outer];
+
+    freeArgs = (freeVars//(.cId(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer));
+    GrpQ = foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q\+ThV,lVars),Grp);
+
+    cellVoids = (vrDefs//(E)=>.cVoid(Lc,typeOf(E)));
+    GrpFree = crTpl(Lc,freeArgs++cellVoids);
+
+    if traceNormalize! then{
+      logMsg("lVars = $(lVars)");
+      logMsg("vrDefs = $(vrDefs)");
+      logMsg("GrpVars = $(GrpVars)");
+      logMsg("GrpFree = $(GrpFree)");
+    };
+
+    if traceNormalize! then{
+      logMsg("free term = $(GrpFree)")
+    };
+    (Fx,Ex2) = transformLetDefs(Grp,M,M,GrpQ,.some(ThVr),[],Ex);
+    if traceNormalize! then{
+      logMsg("fixups $(Fx)");
+    };
+
+    (BndTrm,Exx) = transform(Bnd,M,GrpQ,Ex2);
+    valis (computeFixups(Fx,Lc,ThV,GrpFree,BndTrm),Exx)
+  }
+
+  fixUp ~> (string,integer,cExp).
+
+  computeFixups:all e ~~ letify[e] |: (cons[fixUp],option[locn],cId,cExp,e) => e.
+  computeFixups([],Lc,Vr,Fr,Bnd) => letify(Lc,Vr,Fr,Bnd).
+  computeFixups([(Nm,Ix,Up),..Fx],Lc,Vr,Fr,Bnd) => valof{
+    if traceNormalize! then{
+      logMsg("compute fixup for $(Nm) at $(Ix) = $(Up)");
+      logMsg("present: $(Vr) in $(Up) $(present(Up,(T) => (.cVar(_,VV).=T ?? VV==Vr || .false)))");
+    };
+
+    if ~present(Up,(T) => (.cVar(_,VV).=T ?? VV==Vr || .false)) &&
+	.cTerm(FLc,FOp,FArgs,FTp) .= Fr then{
+	  Fr1 = .cTerm(FLc,FOp,FArgs[Ix->Up],FTp);
+	  if traceNormalize! then
+	    logMsg("fixed up free term $(Fr1)");
+	  valis computeFixups(Fx,Lc,Vr,Fr1,Bnd)
+	}
+    else{
+      valis computeFixups(Fx,Lc,Vr,Fr,freeUpdate(Lc,.cVar(Lc,Vr),Ix,Up,Bnd))
+    }
+  }
+
+  transformLetDefs:(cons[canonDef],nameMap,nameMap,set[cId],option[cExp],cons[fixUp],cons[cDefn]) =>
+    (cons[fixUp],cons[cDefn]).
+  transformLetDefs([],_,_,_,_,Fx,D) => (Fx,D).
+  transformLetDefs([D,..Ds],Map,Outer,Q,Extra,Fx,Ex) => valof {
+    (Fx1,Ex1) = transformLetDef(D,Map,Outer,Q,Extra,Fx,Ex);
+    valis transformLetDefs(Ds,Map,Outer,Q,Extra,Fx1,Ex1)
+  }
+
+  transformLetDef:(canonDef,nameMap,nameMap,set[cId],option[cExp],cons[fixUp],cons[cDefn]) => (cons[fixUp],cons[cDefn]).
+  transformLetDef(.varDef(Lc,Nm,FullNm,.lambda(_,_,Eqns,Tp),_,_),Map,Outer,Q,Extra,Fx,Ex) => valof{
+    Ex1 = transformFunction(Lc,Nm,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex);
+    valis (Fx,Ex1)
+  }
+  transformLetDef(.varDef(Lc,_,FullNm,Val,Cx,Tp),Map,Outer,Q,.none,Fx,Ex) => valof{
+    (Vl,Defs) = liftExp(Val,Outer,Q,Ex);
+    valis (Fx,[.vrDef(Lc,FullNm,Tp,Vl),..Defs])
+  }
+  transformLetDef(.varDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,.some(V),Fx,Ex) where .cVar(VLc,ThVr) .= V => valof{
+    if traceNormalize! then
+      logMsg("lift $(Nm)\:$(Tp) = $(Val) @ $(Lc)");
+
+    if (_,Ix) ?= labelIndex(Nm,Map) then{
+      (Vl,Defs) = liftExp(Val,Outer,Q,Ex);
+      valis ([(Nm,Ix,Vl),..Fx],Defs)
+    }
+    else{
+      reportError("cannot compile var $(Nm), because not in map",Lc);
+      valis (Fx,Ex)
+    }
+  }
+  transformLetDef(.implDef(Lc,_,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Fx,Ex) =>
+    transformLetDef(.varDef(Lc,FullNm,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Fx,Ex).
+  transformLetDef(.typeDef(Lc,Nm,Tp,TpRl),Map,_,_,_,Fx,Ex) => valof{
+    Ex1 = transformTypeDef(Lc,Nm,Tp,TpRl,Map,Ex);
+    valis (Fx,Ex1)
+  }
+  transformLetDef(.cnsDef(Lc,Nm,FullNm,Tp),Map,_,_,_,Fx,Ex) => valof{
+    Ex1 = transformConsDef(Lc,FullNm,Tp,Map,Ex);
+    valis (Fx,Ex1)
+  }
+  transformLetDef(.conDef(_,_,_,_),_,_,_,_,Fx,Ex) => (Fx,Ex).
+  transformLetDef(.accDef(_,_,_,_),_,_,_,_,Fx,Ex) => (Fx,Ex).
+  transformLetDef(.updDef(_,_,_,_),_,_,_,_,Fx,Ex) => (Fx,Ex).
 
   liftAction:(canonAction,nameMap,set[cId],cons[cDefn]) => (aAction,cons[cDefn]).
   liftAction(.doNop(Lc),_,_,Ex) => (aNop(Lc),Ex).
@@ -623,52 +755,13 @@ star.compiler.normalize{
   collectLabelVars([.cId(Nm,Tp),..Vrs],ThV,Ix,Entries) =>
     collectLabelVars(Vrs,ThV,Ix+1,Entries[Nm->labelArg(ThV,Ix)]).
   
-  -- In a let rec, all the non functions must end up in the free data
-
-  liftLetRec:all e,x ~~ transform[e->>x],letify[x] |:
-    (option[locn],cons[canonDef],cons[decl],e,nameMap,set[cId],set[cId],
-      cons[cDefn]) => crFlow[x].
-  liftLetRec(Lc,Grp,Decs,Bnd,Outer,Q,Free,Ex) => valof{
-    GrpFns = (Grp^/(D)=>~_?=isVarDef(D));
-    GrpVars = (Grp^/(D)=>_?=isVarDef(D));
-    (lVars,vrDefs) = unzip(varDefs(Grp));
-    
-    rawGrpFree = freeLabelVars(Free,Outer)::cons[cId];
-    varParents = freeParents(rawGrpFree \ lVars,Outer);
-    freeVars = reduceFreeArgs(varParents,Outer);
-
-    ThV = genVar("_ThVr",typeOf(freeVars++lVars));
-    ThVr = .cVar(Lc,ThV);
-
-    CM = makeConsMap(Decs);
-
-    L = collectVars(GrpVars,ThV,size(freeVars),collectLabelVars(freeVars,ThV,0,[]));
-    M = [.lyr(.some(ThV),foldRight((D,LL)=>collectMtd(D,.some(ThV),LL),L,GrpFns),CM),..Outer];
-
-    freeArgs = (freeVars//(.cId(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer));
-    cellVoids = (vrDefs//(E)=>.cVoid(Lc,typeOf(E)));
-    GrpFree = crTpl(Lc,freeArgs++cellVoids);
-      
-    GrpQ = foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q\+ThV,lVars),Grp);
-
-    if traceNormalize! then{
-      logMsg("free term is $(GrpFree)");
-      logMsg("let M is $(head(M))");
-    };
-    
-    Ex2 = transformGroup(Grp,M,M,GrpQ,.some(ThVr),Ex);
-      
-    (BndTrm,Exx) = transform(Bnd,M,GrpQ,Ex2);
-    valis (letify(Lc,ThV,GrpFree,BndTrm),Exx)
-  }
-
   collectVars:(cons[canonDef],cId,integer,map[string,nameMapEntry]) =>
     map[string,nameMapEntry].
   collectVars([],_,_,LV) => LV.
   collectVars([.varDef(Lc,Nm,FullNm,_,_,Tp),..Vrs],ThV,Ix,Entries) =>
-    collectVars(Vrs,ThV,Ix+1,Entries[Nm->.memoArg(varClosureNm(FullNm),ThV,Ix)]).
+    collectVars(Vrs,ThV,Ix+1,Entries[Nm->.memoArg(varClosureNm(FullNm),ThV,Ix,Tp)]).
   collectVars([.implDef(Lc,_,FullNm,_,_,Tp),..Vrs],ThV,Ix,Entries) =>
-    collectVars(Vrs,ThV,Ix+1,Entries[FullNm->.memoArg(varClosureNm(FullNm),ThV,Ix)]).
+    collectVars(Vrs,ThV,Ix+1,Entries[FullNm->.memoArg(varClosureNm(FullNm),ThV,Ix,Tp)]).
 
   -- eliminate free variables that can be computed from other free vars
   reduceFreeArgs:(cons[cId],nameMap) => cons[cId].
@@ -726,6 +819,17 @@ star.compiler.normalize{
       _ => So
     }.
   labelVar(_,_,So) default => So.
+
+  labelIndex:(string,nameMap) => option[(cId,integer)].
+  labelIndex(Nm,Map) => valof{
+    if E?=lookupVarName(Map,Nm) then{
+      case E in {
+	.labelArg(Thv,Ix) => valis ? (Thv,Ix).
+	_ default => valis .none
+      }
+    } else
+    valis .none
+  }
 
   genVar:(string,tipe) => cId.
   genVar(Pr,Tp) => .cId(genSym(Pr),Tp).

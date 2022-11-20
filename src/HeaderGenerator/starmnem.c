@@ -204,7 +204,7 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
           return;
         case off:
           outMsg(out,
-                 "where Tgt ?= Lbls[V] => mnem(Ins,Code++[intgr(%d),intgr(Tgt-Pc-3)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).\n",
+                 "where Tgt ?= Lbls[V] => mnem(Ins,Code++[intgr(%d),intgr(Tgt-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n",
                  op);
           return;
         case i32:

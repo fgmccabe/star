@@ -235,22 +235,22 @@ liftGuard(none,none,Q,Q,_,_,Ex,Ex) :-!.
 liftGuard(some(G),some(LG),Q,Qx,Map,Opts,Ex,Exx) :-
   liftGoal(G,LG,Q,Qx,Map,Opts,Ex,Exx).
 
-transformThetaDefs(_,_,_,_,[],Fx,Fx,Dfs,Dfs).
-transformThetaDefs(Map,OMap,Extra,Opts,[Def|Defs],F,Fx,Ex,Exx) :-
-  transformThetaDef(Def,Extra,Map,OMap,Opts,F,F1,Ex,Ex1),!,
-  transformThetaDefs(Map,OMap,Extra,Opts,Defs,F1,Fx,Ex1,Exx).
+transformLetDefs(_,_,_,_,[],Fx,Fx,Dfs,Dfs).
+transformLetDefs(Map,OMap,Extra,Opts,[Def|Defs],F,Fx,Ex,Exx) :-
+  transformLetDef(Def,Extra,Map,OMap,Opts,F,F1,Ex,Ex1),!,
+  transformLetDefs(Map,OMap,Extra,Opts,Defs,F1,Fx,Ex1,Exx).
 
-transformThetaDef(funDef(Lc,Nm,ExtNm,H,Tp,_,Eqns),Extra,Map,_OMap,Opts,Fx,Fx,Dx,Dxx) :-
+transformLetDef(funDef(Lc,Nm,ExtNm,H,Tp,_,Eqns),Extra,Map,_OMap,Opts,Fx,Fx,Dx,Dxx) :-
   transformFunction(Lc,Nm,ExtNm,H,Tp,Extra,Eqns,Map,Opts,Dx,Dxx).
-transformThetaDef(varDef(_Lc,Nm,_LclNm,_,_Tp,Exp),_,Map,OMap,Opts,F,[(Nm,Ix,Rep)|F],Dx,Dxx) :-
+transformLetDef(varDef(_Lc,Nm,_LclNm,_,_Tp,Exp),_,Map,OMap,Opts,F,[(Nm,Ix,Rep)|F],Dx,Dxx) :-
   liftExp(Exp,Rep,[],_Qx,OMap,Opts,Dx,Dxx),
   lookupVar(Map,Nm,labelArg(_,Ix,_ThVr)).
-transformThetaDef(cnsDef(_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
-transformThetaDef(typeDef(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
-transformThetaDef(conDef(_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
-transformThetaDef(accDec(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
-transformThetaDef(updDec(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
-transformThetaDef(implDef(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
+transformLetDef(cnsDef(_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
+transformLetDef(typeDef(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
+transformLetDef(conDef(_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
+transformLetDef(accDec(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
+transformLetDef(updDec(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
+transformLetDef(implDef(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 
 liftArgPtn(tple(_Lc,Els),A,Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtns(Els,A,Q,Qx,Map,Opts,Ex,Exx).
@@ -434,7 +434,7 @@ liftAction(doLet(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   (is_member(showTrCode,Opts) -> dispAction(doLet(Lc,Decls,Defs,B));true),
   genVar("_ThR",ThVr),
   letActionMap(Lc,Decls,Defs,B,ThVr,Q,Map,Opts,ThMap,RMap,FreeTerm),
-  transformThetaDefs(ThMap,RMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
+  transformLetDefs(ThMap,RMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
   liftAction(B,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
   mkFreeActionLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
   (is_member(showTrCode,Opts) -> dispAct(Exp);true).
@@ -442,7 +442,7 @@ liftAction(doLetRec(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   (is_member(showTrCode,Opts) -> dispAction(doLetRec(Lc,Decls,Defs,B));true),
   genVar("_ThR",ThVr),
   letRecActionMap(Lc,Decls,Defs,B,ThVr,Q,Map,Opts,ThMap,FreeTerm),
-  transformThetaDefs(ThMap,ThMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
+  transformLetDefs(ThMap,ThMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
   liftAction(B,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
   mkFreeActionLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
   (is_member(showTrCode,Opts) -> dispAct(Exp);true).
@@ -488,7 +488,7 @@ liftLetRecExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftLet(Lc,Decls,Defs,Bnd,Cll,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   genVar("_ThR",ThVr),
   letMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,ThMap,RMap,FreeTerm),
-  transformThetaDefs(ThMap,RMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
+  transformLetDefs(ThMap,RMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
   call(Cll,Bnd,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
   mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp).
 %  (is_member(showTrCode,Opts) -> dispTerm(Exp);true).
@@ -497,7 +497,7 @@ liftLetRec(Lc,Decls,Defs,Cll,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   genVar("_ThV",ThVr),
   letRecMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,ThMap,FreeTerm),
 %  (is_member(showTrCode,Opts) -> dispMap("Letrec map: ",1,ThMap);true),
-  transformThetaDefs(ThMap,ThMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
+  transformLetDefs(ThMap,ThMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
   call(Cll,Bnd,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
   mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp).
 %  (is_member(showTrCode,Opts) -> dispTerm(Exp);true).
