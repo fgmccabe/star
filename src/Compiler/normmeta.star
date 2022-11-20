@@ -18,7 +18,7 @@ star.compiler.normalize.meta{
     | .moduleCons(string,tipe)
     | .localCons(string,tipe,cId)
     | .labelArg(cId,integer)
-    | .memoArg(string,cId,integer)
+    | .memoArg(string,cId,integer,tipe)
     | .globalVar(string,tipe).
 
   public typeMapEntry ::= .moduleType(string,tipe,consMap).
@@ -39,7 +39,7 @@ star.compiler.normalize.meta{
       .localFun(Nm,ClNm,V) => "local fun #(Nm), closure $(ClNm), ThV $(V)".
       .localVar(Vr) => "local var $(Vr)".
       .labelArg(Base,Ix) => "label arg $(Base)[$(Ix)]".
-      .memoArg(Nm,Base,Ix) => "memo arg #(Nm)@$(Base)[$(Ix)]".
+      .memoArg(Nm,Base,Ix,Tp) => "memo arg #(Nm)@$(Base)[$(Ix)]\:$(Tp)".
       .globalVar(Nm,Tp) => "global #(Nm)".
     }
   }
@@ -57,7 +57,7 @@ star.compiler.normalize.meta{
   lookupThetaVar(Map,Nm) where E?=lookupVarName(Map,Nm) =>
     case E in {
       .labelArg(ThV,_) => .some(ThV).
-      .memoArg(_,ThV,_) => .some(ThV).
+      .memoArg(_,ThV,_,_) => .some(ThV).
       .localFun(_,_,ThV) => .some(ThV).
       _ default => .none
     }.
@@ -152,7 +152,7 @@ star.compiler.normalize.meta{
 
   isMemoVar:(cId)=>(nameMapEntry)=>option[integer].
   isMemoVar(ThV) => let{
-    check(.memoArg(_,ThV,Ix))=>.some(Ix).
+    check(.memoArg(_,ThV,Ix,_))=>.some(Ix).
     check(_) default => .none
   } in check.
   

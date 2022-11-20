@@ -153,7 +153,8 @@ star.compiler{
 		addSource(addLoweredSource(
 		    addPackage(Repo,CPkg,Bytes),CPkg,InlineBytes),CPkg,SrcUri::string))
 	    }
-	  }
+	  } else
+	  logMsg("no code generated");
 	}
       };
       if ~errorFree() then{

@@ -103,6 +103,9 @@ star.compiler.types{
   mkTypeExp(Tp,[]) => Tp.
   mkTypeExp(Tp,[A,..L]) => mkTypeExp(tpExp(Tp,A),L).
 
+  public makeTpExp:(string,cons[tipe]) => tipe.
+  makeTpExp(Nm,Args) => mkTypeExp(.tpFun(Nm,[|Args|]),Args).
+
   public mkConType:(string,cons[tipe],cons[tipe])=>tipe.
   mkConType(N,T,D) where L .= T++D => mkTypeExp(.tpFun(N,size(L)),L).
 
@@ -384,6 +387,7 @@ star.compiler.types{
   public enumType(A) => .tpExp(.tpExp(.tpFun("<=>",2),.tupleType([])),A).
   public lstType(Tp) => .tpExp(.tpFun("star.core*cons",1),Tp).
   public refType(Tp) => .tpExp(.tpFun("star.core*ref",1),Tp).
+  public thunkType(T) => makeTpExp("star.core*thunk",[T]).
   public fiberType(R,S) => mkTypeExp(.tpFun("star.fiber*fiber",2),[R,S]).
 
   public funTypeArg(Tp) where

@@ -40,7 +40,7 @@ scanPkg(Pkg,Repo,Cat,CWD,SoFar,Pkgs) :-
 scanPkg(Pkg,Repo,Cat,CWD,Pi,Px) :-
     scanCat(Cat,Repo,Pkg,CWD,Pi,Px).
 
-consistentPkg(pkg(P,V1),pkg(P,V2)) :- consistentVersion(V1,V2).
+consistentPkg(pkg(P,V1),pkg(P,V2)) :- consistentVersion(V1,V2),!.
 
 consistentVersion(defltVersion,_).
 consistentVersion(_,defltVersion).

@@ -129,6 +129,22 @@ retCode jit_LdG(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
+retCode jit_Thunk(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_LdTh(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_StTh(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_TTh(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
 retCode jit_LdV(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
