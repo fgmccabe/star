@@ -1,6 +1,6 @@
 star.capabilities{
   import star.
 
-  public permission ::= readPermission | writePermission | createPermission | deletePermission.
+  public permission ::= .readPermission | .writePermission | .createPermission | .deletePermission.
   
 }

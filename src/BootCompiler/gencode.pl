@@ -437,7 +437,7 @@ compTry(Lc,B,idnt(E),H,OLc,Cont,TCont,Hndlr,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk) :-
   chLine(Opts,OLc,Lc,C,C0),
   genLbl(L,End,L2),
   call(Hndlr,B,Lc,Cont,catchCont(E,Lc,H,Cont,TCont,Hndlr,Brks,Opts),
-	     End,Brks,Opts,L2,Lx,D,Dx,C0,[iLbl(End)|Cx],Stk,_).
+       End,Brks,Opts,L2,Lx,D,Dx,C0,[iLbl(End)|Cx],Stk,_).
 
 catchCont(E,Lc,H,Cont,TCont,Hndlr,Brks,Opts,L,Lx,D,Dx,
 	  [iStL(Off),iLbl(ELb)|C],Cx,Stk,Stkx) :-
