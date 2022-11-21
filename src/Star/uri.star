@@ -84,7 +84,7 @@ star.uri{
   }
 
   query:parser[cons[char],query].
-  query = (_tk(`?`) >>= (_) => _star(_sat(isUric)) >>= (QQ)=> return qry(QQ::string)) +++ (return .noQ).
+  query = (_tk(`?`) >>= (_) => _star(_sat(isUric)) >>= (QQ)=> return .qry(QQ::string)) +++ (return .noQ).
 
   userStar:parser[cons[char],char].
   userStar = _sat(userCh).
@@ -103,7 +103,7 @@ star.uri{
 
   hostNamePort:parser[cons[char],host].
   hostNamePort = hostName >>= (H) =>
-    ((_tk(`:`) >>= (_) => port >>= (P) => return hostPort(H,P)) +++ (return host(H))).
+    ((_tk(`:`) >>= (_) => port >>= (P) => return .hostPort(H,P)) +++ (return .host(H))).
 
   hostName:parser[cons[char],string].
   hostName = _star(alphaDash) >>= (H)=> return (H::string).
@@ -228,7 +228,7 @@ star.uri{
   edit(Segs,R) => reverse(R)++Segs.
 
   drop:all t ~~ (cons[t])=>option[cons[t]].
-  drop([_,..L])=>some(L).
+  drop([_,..L])=>?L.
   drop(_) default => .none.
 
   public implementation display[uri] => {
@@ -278,9 +278,9 @@ star.uri{
 
   public editUriPath:(uri,(cons[string])=>option[cons[string]])=>option[uri].
   editUriPath(.absUri(Scheme,ResNam,Qury),F) where NRes?=editUriResource(ResNam,F) =>
-    .some(absUri(Scheme,NRes,Qury)).
+    .some(.absUri(Scheme,NRes,Qury)).
   editUriPath(.relUri(ResNam,Qury),F) where NRes?=editUriResource(ResNam,F) =>
-    .some(relUri(NRes,Qury)).
+    .some(.relUri(NRes,Qury)).
   editUriPath(_,_) default => .none.
 
   editUriResource:(rsrcName,(cons[string])=>option[cons[string]])=>option[rsrcName].

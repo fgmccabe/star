@@ -121,8 +121,8 @@ star.compiler.inline{
     .cSusp(Lc,simplifyExp(Tsk,Map,Depth),simplifyExp(Evt,Map,Depth),Tp).
   simExp(.cResume(Lc,Tsk,Evt,Tp),Map,Depth) =>
     .cResume(Lc,simplifyExp(Tsk,Map,Depth),simplifyExp(Evt,Map,Depth),Tp).
-  simExp(.cTry(Lc,Exp,H,Tp),Map,Depth) =>
-    .cTry(Lc,simplifyExp(Exp,Map,Depth),simplifyExp(H,Map,Depth),Tp).
+  simExp(.cTry(Lc,Exp,ErTp,H,Tp),Map,Depth) =>
+    .cTry(Lc,simplifyExp(Exp,Map,Depth),ErTp,simplifyExp(H,Map,Depth),Tp).
   simExp(.cValof(Lc,Act,Tp),Map,Depth) =>
     .cValof(Lc,simplifyAct(Act,Map,Depth),Tp).
 
@@ -165,8 +165,8 @@ star.compiler.inline{
   simAct(.aRetire(Lc,T,E),Map,Depth) =>
     .aRetire(Lc,simplifyExp(T,Map,Depth),
       simplifyExp(E,Map,Depth)).
-  simAct(.aTry(Lc,T,H),Map,Depth) =>
-    .aTry(Lc,simplifyAct(T,Map,Depth),simplifyAct(H,Map,Depth)).
+  simAct(.aTry(Lc,T,E,H),Map,Depth) =>
+    .aTry(Lc,simplifyAct(T,Map,Depth),E,simplifyAct(H,Map,Depth)).
   simAct(.aLtt(Lc,Vr,Bnd,A),Map,Depth) =>
     inlineLtt(Lc,Vr,simplifyExp(Bnd,Map,Depth),A,Map,Depth).
   simAct(.aVarNmes(Lc,Vrs,X),Map,Depth) =>
@@ -314,7 +314,7 @@ star.compiler.inline{
     .cVarNmes(_,_,R) => countOccs(R,Id,Cnt).
     .cSusp(_,L,R,_) => countOccs(R,Id,countOccs(L,Id,Cnt)).
     .cResume(_,L,R,_) => countOccs(R,Id,countOccs(L,Id,Cnt)).
-    .cTry(_,L,R,_) => countOccs(R,Id,countOccs(L,Id,Cnt)).
+    .cTry(_,L,E,R,_) => countOccs(E,Id,countOccs(R,Id,countOccs(L,Id,Cnt))).
     .cValof(_,A,_) => countAOccs(A,Id,Cnt).
   }
 
@@ -338,7 +338,7 @@ star.compiler.inline{
       countAOccs(R,Id,countAOccs(L,Id,countOccs(T,Id,Cnt))).
     .aWhile(_,T,L) => countAOccs(L,Id,countOccs(T,Id,Cnt)).
     .aRetire(_,L,R) => countOccs(R,Id,countOccs(L,Id,Cnt)).
-    .aTry(_,L,R) => countAOccs(R,Id,countAOccs(L,Id,Cnt)).
+    .aTry(_,L,_,R) => countAOccs(R,Id,countAOccs(L,Id,Cnt)).
     .aLtt(_,V,L,R) => (V==Id ?? Cnt || countOccs(L,Id,countAOccs(R,Id,Cnt))).
     .aVarNmes(_,_,R) => countAOccs(R,Id,Cnt).
   }

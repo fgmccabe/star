@@ -112,9 +112,13 @@ star.compiler.opg{
 
   genBkt(Lc,"[]",Arg)=>.tpl(Lc,"[]",deComma(Arg)).
   genBkt(Lc,"()",Arg)=>.tpl(Lc,"()",deComma(Arg)).
+  genBkt(Lc,"{}",Arg)=>.tpl(Lc,"{}",deComma(Arg)).
+  genBkt(Lc,"{..}",Arg)=>.tpl(Lc,"{..}",deComma(Arg)).
   genBkt(Lc,"(||)",Arg)=>unary(Lc,"(||)",Arg).
   genBkt(Lc,"[||]",Arg)=>unary(Lc,"[||]",Arg).
   genBkt(Lc,"<||>",Arg)=>unary(Lc,"<||>",Arg).
+  genBkt(Lc,"{??}",Arg)=>unary(Lc,"{??}",Arg).
+  genBkt(Lc,"{!!}",Arg)=>unary(Lc,"{!!}",Arg).
 
   termArgs:((ast,cons[token],needsTerm)) => (ast,integer,cons[token],needsTerm).
   termArgs((Left,[.tok(Lc,.lftTok("()")),.tok(Lcx,.rgtTok("()")),..Toks],_)) =>

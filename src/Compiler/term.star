@@ -42,7 +42,7 @@ star.compiler.term{
     | .cAbort(option[locn],string,tipe)
     | .cSusp(option[locn],cExp,cExp,tipe)
     | .cResume(option[locn],cExp,cExp,tipe)
-    | .cTry(option[locn],cExp,cExp,tipe)
+    | .cTry(option[locn],cExp,cExp,cExp,tipe)
     | .cValof(option[locn],aAction,tipe).
   
   public cId ::= cId(string,tipe).
@@ -64,7 +64,7 @@ star.compiler.term{
     | .aIftte(option[locn],cExp,aAction,aAction)
     | .aWhile(option[locn],cExp,aAction)
     | .aRetire(option[locn],cExp,cExp)
-    | .aTry(option[locn],aAction,aAction)
+    | .aTry(option[locn],aAction,cExp,aAction)
     | .aLtt(option[locn],cId,cExp,aAction)
     | .aVarNmes(option[locn],cons[(string,cId)],aAction)
     | .aAbort(option[locn],string).
@@ -140,7 +140,8 @@ star.compiler.term{
     .cAbort(_,M,_) => "abort #(M)".
     .cSusp(_,T,E,_) => "#(dspExp(T,Off)) suspend #(dspExp(E,Off))".
     .cResume(_,T,E,_) => "#(dspExp(T,Off)) resume #(dspExp(E,Off))".
-    .cTry(_,E,H,_)=> "try #(dspExp(E,Off)) catch #(dspExp(H,Off++"  "))".
+    .cTry(_,B,E,H,_)=> 
+      "try #(dspExp(B,Off)) catch $(E)/#(dspExp(H,Off))".
     .cValof(_,A,_) => "valof #(dspAct(A,Off))".
   }
 
@@ -176,10 +177,8 @@ star.compiler.term{
       valis "while #(dspExp(C,Off)) do#(dspAct(A,Off2))"
     }.
     .aRetire(_,T,E) => "#(dspExp(T,Off)) retire #(dspExp(E,Off))".
-    .aTry(_,E,H) => valof{
-      Off2=Off++"  ";
-      valis "try #(dspAct(E,Off)) catch #(dspAct(H,Off))"
-    }.
+    .aTry(_,B,V,H) => 
+      "try #(dspAct(B,Off)) catch $(V)/ #(dspAct(H,Off))".
     .aLtt(_,V,D,I) => valof{
       Off2=Off++"  ";
       valis "let $(V) = #(dspExp(D,Off2)) in\n#(Off2)#(dspAct(I,Off2))"
@@ -256,7 +255,7 @@ star.compiler.term{
     .cAbort(_,M1,T1) => .cAbort(_,M2,T2).=E2 && M1==M2 && T1==T2.
     .cSusp(_,T1,V1,_) => .cSusp(_,T2,V2,_).=E2 && eqTerm(T1,T2) && eqTerm(V1,V2).
     .cResume(_,T1,V1,_) => .cResume(_,T2,V2,_).=E2 && eqTerm(T1,T2) && eqTerm(V1,V2).
-    .cTry(_,M1,H1,_) => .cTry(_,M2,H2,_).=E2 && eqTerm(M1,M2) && eqTerm(H1,H2).
+    .cTry(_,M1,E1,H1,_) => .cTry(_,M2,E2,H2,_).=E2 && eqTerm(M1,M2) && eqTerm(E1,E2) && eqTerm(H1,H2).
     .cValof(_,A1,_) => .cValof(_,A2,_).=E2 && eqAct(A1,A2).
     .cVarNmes(_,N1,V1) => .cVarNmes(_,N2,V2).=E2 && eqVs(N1,N2) && eqTerm(V1,V2).
     _ default => .false
@@ -301,7 +300,7 @@ star.compiler.term{
     .aWhile(_,C1,L1) => .aWhile(_,C2,L2).=A2 &&
 	eqTerm(C1,C2) && eqAct(L1,L2).
     .aRetire(_,E1,V1) => .aRetire(_,E2,V2).=A2 && eqTerm(E1,E2) && eqTerm(V1,V2).
-    .aTry(_,M1,H1) => .aTry(_,M2,H2).=A2 && eqAct(M1,M2) && eqAct(H1,H2).
+    .aTry(_,M1,E1,H1) => .aTry(_,M2,E2,H2).=A2 && eqAct(M1,M2) && eqTerm(E1,E2) && eqAct(H1,H2).
     .aLtt(_,V1,D1,Ac1) => .aLtt(_,V2,D2,Ac2).=A2 &&
 	V1==V2 && eqTerm(D1,D2) && eqAct(Ac1,Ac2).
     .aVarNmes(_,V1,Ac1) => .aVarNmes(_,V2,Ac2).=A2 && eqVs(V1,V2) && eqAct(Ac1,Ac2).
@@ -350,7 +349,7 @@ star.compiler.term{
       .cVarNmes(Lc,_,_) => Lc.
       .cSusp(Lc,_,_,_) => Lc.
       .cResume(Lc,_,_,_) => Lc.
-      .cTry(Lc,_,_,_) => Lc.
+      .cTry(Lc,_,_,_,_) => Lc.
       .cValof(Lc,_,_) => Lc.
     }
   }
@@ -387,7 +386,7 @@ star.compiler.term{
       .cMatch(_,_,_) => boolType.
       .cSusp(_,_,_,T) => T.
       .cResume(_,_,_,T) => T.
-      .cTry(_,_,_,T) => T.
+      .cTry(_,_,_,_,T) => T.
       .cValof(_,_,T) => T.
       .cAbort(_,_,T) => T.
       .cVarNmes(_,_,E) => tpOf(E).
@@ -425,7 +424,7 @@ star.compiler.term{
       .aIftte(Lc,_,_,_) => Lc.
       .aWhile(Lc,_,_) => Lc.
       .aRetire(Lc,_,_) => Lc.
-      .aTry(Lc,_,_) => Lc.
+      .aTry(Lc,_,_,_) => Lc.
       .aLtt(Lc,_,_,_) => Lc.
       .aVarNmes(Lc,_,_) => Lc.
       .aAbort(Lc,_) => Lc.
@@ -497,7 +496,7 @@ star.compiler.term{
       .cMatch(Lc,P,E) => .cMatch(Lc,rwTerm(P,Tst),rwTerm(E,Tst)).
       .cSusp(Lc,F,E,Tp) => .cSusp(Lc,rwTerm(F,Tst),rwTerm(E,Tst),Tp).
       .cResume(Lc,F,E,Tp) => .cResume(Lc,rwTerm(F,Tst),rwTerm(E,Tst),Tp).
-      .cTry(Lc,E,H,Tp) => .cTry(Lc,rwTerm(E,Tst),rwTerm(H,Tst),Tp).
+      .cTry(Lc,B,E,H,Tp) => .cTry(Lc,rwTerm(B,Tst),rwTerm(E,Tst),rwTerm(H,Tst),Tp).
       .cVarNmes(Lc,Vs,E) => .cVarNmes(Lc,Vs,rwTerm(E,Tst)).
       .cValof(Lc,A,Tp) => .cValof(Lc,rwAct(A,Tst),Tp).
       .cAbort(Lc,Ms,Tp) => .cAbort(Lc,Ms,Tp).
@@ -520,7 +519,7 @@ star.compiler.term{
     .aIftte(Lc,C,L,R) => .aIftte(Lc,rwTerm(C,Tst),rwAct(L,Tst),rwAct(R,Tst)).
     .aWhile(Lc,C,B) => .aWhile(Lc,rwTerm(C,Tst),rwAct(B,Tst)).
     .aRetire(Lc,T,E) => .aRetire(Lc,rwTerm(T,Tst),rwTerm(E,Tst)).
-    .aTry(Lc,B,H) => .aTry(Lc,rwAct(B,Tst),rwAct(H,Tst)).
+    .aTry(Lc,B,E,Hs) => .aTry(Lc,rwAct(B,Tst),rwTerm(E,Tst),rwAct(Hs,Tst)).
     .aLtt(Lc,V,D,A) =>.aLtt(Lc,V,rwTerm(D,Tst),rwAct(A,dropVar(cName(V),Tst))).
     .aVarNmes(Lc,Vs,E) => .aVarNmes(Lc,Vs,rwAct(E,Tst)).
     .aAbort(Lc,Ms) => .aAbort(Lc,Ms).
@@ -748,7 +747,10 @@ star.compiler.term{
     .cAbort(_,_,_) => .true.
     .cSusp(_,Ts,E,_) => validE(Ts,Vrs) && validE(E,Vrs).
     .cResume(_,Ts,E,_) => validE(Ts,Vrs) && validE(E,Vrs).
-    .cTry(_,Ts,E,_) => validE(Ts,Vrs) && validE(E,Vrs).
+    .cTry(_,B,E,H,_) => valof{
+      V1 = ptnVrs(E,Vrs);
+      valis validE(B,Vrs) && validE(E,V1) && validE(H,V1)
+    }.
     .cValof(_,A,_) => validA(A,Vrs).
   }
 
@@ -809,7 +811,10 @@ star.compiler.term{
       valis validE(G,D1) && validA(A,D1)
     }.
     .aRetire(_,Ts,E) => validE(Ts,Vrs) && validE(E,Vrs).
-    .aTry(_,A,H) => validA(A,Vrs) && validA(H,Vrs).
+    .aTry(_,B,E,Hs) => valof{
+      D1 = ptnVrs(E,Vrs);
+      valis validA(B,Vrs) && validE(E,D1) && validA(Hs,D1)
+    }.
     .aLtt(_,B,V,A) => validE(V,Vrs) && validA(A,Vrs\+B).
     .aVarNmes(_,_,A) => validA(A,Vrs).
     .aAbort(_,_) => .true.
@@ -889,7 +894,7 @@ star.compiler.term{
     .aWhile(_,G,A) =>
       presentInE(G,C,T) || presentInA(A,C,T).
     .aRetire(_,Ts,E) => presentInE(Ts,C,T) || presentInE(E,C,T).
-    .aTry(_,A,H) => presentInA(A,C,T) || presentInA(H,C,T).
+    .aTry(_,B,E,H) => presentInA(B,C,T) || presentInE(E,C,T) || presentInA(H,C,T).
     .aLtt(_,_,V,A) => presentInE(V,C,T) || presentInA(A,C,T).
     .aVarNmes(_,_,A) => presentInA(A,C,T).
     .aAbort(_,_) => .false.
@@ -943,7 +948,8 @@ star.compiler.term{
     .cAbort(_,_,_) => .false.
     .cSusp(_,Ts,E,_) => presentInE(Ts,A,C) || presentInE(E,A,C).
     .cResume(_,Ts,E,_) => presentInE(Ts,A,C) || presentInE(E,A,C).
-    .cTry(_,Ts,E,_) => presentInE(Ts,A,C) || presentInE(E,A,C).
+    .cTry(_,B,E,H,_) =>
+      presentInE(B,A,C) || presentInE(E,A,C) || presentInE(H,A,C).
     .cValof(_,Act,_) => presentInA(Act,A,C).
   }
 
@@ -956,57 +962,55 @@ star.compiler.term{
   public visitE:all a ~~ (cExp,(cExp,a)=>a,(aAction,a)=>a,a) => a.
   visitE(Tr,V,VA,X) => case Tr in {
     .cTerm(Lc,Nm,Args,Tp) =>
-      visitEls(Args,V,VA,V(.cTerm(Lc,Nm,Args,Tp),X)).
+      visitEls(Args,V,VA,V(Tr,X)).
     .cNth(Lc,R,Ix,Tp) =>
-      visitE(R,V,VA,V(.cNth(Lc,R,Ix,Tp),X)).
+      visitE(R,V,VA,V(Tr,X)).
     .cSetNth(Lc,R,F,N) =>
-      visitE(R,V,VA,visitE(N,V,VA,V(.cSetNth(Lc,R,F,N),X))).
+      visitE(R,V,VA,visitE(N,V,VA,V(Tr,X))).
     .cThunk(Lc,E,Tp) => visitE(E,V,VA,V(Tr,X)).
     .cThGet(Lc,E,Tp) => visitE(E,V,VA,V(Tr,X)).
     .cThSet(Lc,E,Vl,Tp) => visitE(Vl,V,VA,visitE(E,V,VA,V(Tr,X))).
     .cCall(Lc,Nm,Args,Tp) =>
-      visitEls(Args,V,VA,V(.cCall(Lc,Nm,Args,Tp),X)).
+      visitEls(Args,V,VA,V(Tr,X)).
     .cECall(Lc,Nm,Args,Tp) =>
-      visitEls(Args,V,VA,V(.cECall(Lc,Nm,Args,Tp),X)).
+      visitEls(Args,V,VA,V(Tr,X)).
     .cOCall(Lc,Op,Args,Tp) =>
-      visitEls(Args,V,VA,visitE(Op,V,VA,V(.cOCall(Lc,Op,Args,Tp),X))).
+      visitEls(Args,V,VA,visitE(Op,V,VA,V(Tr,X))).
     .cThrow(Lc,E,Tp) =>
-      visitE(E,V,VA,V(.cThrow(Lc,E,Tp),X)).
+      visitE(E,V,VA,V(Tr,X)).
     .cSeq(Lc,L,R) =>
-      visitE(R,V,VA,visitE(L,V,VA,V(.cSeq(Lc,L,R),X))).
+      visitE(R,V,VA,visitE(L,V,VA,V(Tr,X))).
     .cCnj(Lc,L,R) =>
-      visitE(R,V,VA,visitE(L,V,VA,V(.cCnj(Lc,L,R),X))).
+      visitE(R,V,VA,visitE(L,V,VA,V(Tr,X))).
     .cDsj(Lc,L,R) =>
-      visitE(R,V,VA,visitE(L,V,VA,V(.cDsj(Lc,L,R),X))).
+      visitE(R,V,VA,visitE(L,V,VA,V(Tr,X))).
     .cNeg(Lc,R) =>
-      visitE(R,V,VA,V(.cNeg(Lc,R),X)).
+      visitE(R,V,VA,V(Tr,X)).
     .cCnd(Lc,T,L,R) =>
-      visitE(R,V,VA,visitE(L,V,VA,visitE(T,V,VA,V(.cCnd(Lc,T,L,R),X)))).
+      visitE(R,V,VA,visitE(L,V,VA,visitE(T,V,VA,V(Tr,X)))).
     .cWhere(Lc,L,R) =>
-      visitE(R,V,VA,visitE(L,V,VA,V(.cWhere(Lc,L,R),X))).
+      visitE(R,V,VA,visitE(L,V,VA,V(Tr,X))).
     .cMatch(Lc,L,R) =>
-      visitE(R,V,VA,visitE(L,V,VA,V(.cMatch(Lc,L,R),X))).
+      visitE(R,V,VA,visitE(L,V,VA,V(Tr,X))).
     .cLtt(Lc,Vr,B,E) =>
-      visitE(E,V,VA,visitE(B,V,VA,V(.cLtt(Lc,Vr,B,E),X))).
+      visitE(E,V,VA,visitE(B,V,VA,V(Tr,X))).
     .cCase(Lc,G,Cs,D,Tp) =>
       visitE(D,V,VA,
 	visitCases(Cs,V,VA,visitE,
 	  visitE(G,V,VA,
-	    V(.cCase(Lc,G,Cs,D,Tp),X)))).
+	    V(Tr,X)))).
     .cUnpack(Lc,G,Cs,Tp) =>
-      visitCases(Cs,V,VA,visitE,
-	visitE(G,V,VA,
-	  V(.cUnpack(Lc,G,Cs,Tp),X))).
+      visitCases(Cs,V,VA,visitE, visitE(G,V,VA, V(Tr,X))).
     .cVarNmes(Lc,Vs,E) =>
-      visitE(E,V,VA,V(.cVarNmes(Lc,Vs,E),X)).
+      visitE(E,V,VA,V(Tr,X)).
     .cSusp(Lc,T,E,Tp) =>
-      visitE(T,V,VA,visitE(E,V,VA,V(.cSusp(Lc,T,E,Tp),X))).
+      visitE(T,V,VA,visitE(E,V,VA,V(Tr,X))).
     .cResume(Lc,T,E,Tp) =>
-      visitE(T,V,VA,visitE(E,V,VA,V(.cResume(Lc,T,E,Tp),X))).
-    .cTry(Lc,E,H,Tp) =>
-      visitE(H,V,VA,visitE(E,V,VA,V(.cTry(Lc,E,H,Tp),X))).
+      visitE(T,V,VA,visitE(E,V,VA,V(Tr,X))).
+    .cTry(Lc,B,E,H,Tp) =>
+      visitE(H,V,VA,visitE(B,V,VA,visitE(E,V,VA,V(Tr,X)))).
     .cValof(Lc,A,Tp) =>
-      visitA(A,V,VA,V(.cValof(Lc,A,Tp),X)).
+      visitA(A,V,VA,V(Tr,X)).
   }
 
   visitEls:all a ~~ (cons[cExp],(cExp,a)=>a,(aAction,a)=>a,a) => a.
@@ -1016,32 +1020,31 @@ star.compiler.term{
 
   public visitA:all a ~~ (aAction,(cExp,a)=>a,(aAction,a)=>a,a) => a.
   visitA(Ac,V,VA,X) => case Ac in {
-    .aSeq(Lc,A1,A2) => visitA(A2,V,VA,visitA(A1,V,VA,VA(.aSeq(Lc,A1,A2),X))).
-    .aLbld(Lc,Lb,A) => visitA(A,V,VA,VA(.aLbld(Lc,Lb,A),X)).
+    .aSeq(Lc,A1,A2) => visitA(A2,V,VA,visitA(A1,V,VA,VA(Ac,X))).
+    .aLbld(Lc,Lb,A) => visitA(A,V,VA,VA(Ac,X)).
     .aValis(Lc,E) => visitE(E,V,VA,X).
     .aThrow(Lc,E) => visitE(E,V,VA,X).
     .aPerf(Lc,E) => visitE(E,V,VA,X).
     .aSetNth(Lc,T,Ix,E) => visitE(T,V,VA,visitE(E,V,VA,VA(Ac,X))).
-    .aDefn(Lc,Vr,E) => visitE(E,V,VA,VA(.aDefn(Lc,Vr,E),X)).
-    .aAsgn(Lc,L,E) => visitE(L,V,VA,visitE(E,V,VA,VA(.aAsgn(Lc,L,E),X))).
+    .aDefn(Lc,Vr,E) => visitE(E,V,VA,VA(Ac,X)).
+    .aAsgn(Lc,L,E) => visitE(L,V,VA,visitE(E,V,VA,VA(Ac,X))).
     .aCase(Lc,G,Cs,D) =>
       visitA(D,V,VA,
 	visitCases(Cs,V,VA,visitA,
-	  visitE(G,V,VA,VA(.aCase(Lc,G,Cs,D),X)))).
+	  visitE(G,V,VA,VA(Ac,X)))).
     .aUnpack(Lc,G,Cs) =>
       visitCases(Cs,V,VA,visitA,
-	visitE(G,V,VA,VA(.aUnpack(Lc,G,Cs),X))).
+	visitE(G,V,VA,VA(Ac,X))).
     .aIftte(Lc,G,T,E) =>
-      visitA(E,V,VA,visitA(T,V,VA,visitE(G,V,VA,VA(.aIftte(Lc,G,T,E),X)))).
+      visitA(E,V,VA,visitA(T,V,VA,visitE(G,V,VA,VA(Ac,X)))).
     .aWhile(Lc,G,A) =>
-      visitA(A,V,VA,visitE(G,V,VA,VA(.aWhile(Lc,G,A),X))).
+      visitA(A,V,VA,visitE(G,V,VA,VA(Ac,X))).
     .aRetire(Lc,T,E) =>
-      visitE(E,V,VA,visitE(T,V,VA,VA(.aRetire(Lc,T,E),X))).
-    .aTry(Lc,A,H) =>
-      visitA(H,V,VA,visitA(A,V,VA,VA(.aTry(Lc,A,H),X))).
+      visitE(E,V,VA,visitE(T,V,VA,VA(Ac,X))).
+    .aTry(Lc,B,E,H) => visitA(H,V,VA,visitA(B,V,VA,visitE(E,V,VA,VA(Ac,X)))).
     .aLtt(Lc,Vr,B,A) =>
-      visitA(A,V,VA,visitE(B,V,VA,VA(.aLtt(Lc,Vr,B,A),X))).
-    .aVarNmes(Lc,Vs,A) => visitA(A,V,VA,VA(.aVarNmes(Lc,Vs,A),X)).
+      visitA(A,V,VA,visitE(B,V,VA,VA(Ac,X))).
+    .aVarNmes(Lc,Vs,A) => visitA(A,V,VA,VA(Ac,X)).
   }
 
   visitCases:all e,a ~~
@@ -1054,17 +1057,17 @@ star.compiler.term{
   freezeDefn(D) => case D in {
     .fnDef(Lc,Nm,Tp,Vrs,Vl) => mkCons("fun",[Lc::data,.strg(Nm),encodeSig(Tp),
 	mkTpl(Vrs//(.cId(Vn,VTp))=>mkTpl([.strg(Vn),encodeSig(VTp)])),
-	freezeTerm(Vl)]).
+	frzeExp(Vl)]).
     .vrDef(Lc,Nm,Tp,Vl) => mkCons("glb",[Lc::data,.strg(Nm),encodeSig(Tp),
-	freezeTerm(Vl)]).
+	frzeExp(Vl)]).
     .tpDef(Lc,Tp,TpRl,Map) => mkCons("tpe",[Lc::data,encodeSig(Tp),
 	.strg(encodeTpRlSignature(TpRl)),
 	mkTpl(Map//((Lbl,CTp,Ix))=>mkTpl([.symb(Lbl),encodeSig(CTp),.intgr(Ix)]))]).
     .lblDef(Lc,Lbl,Tp,Ix) => mkCons("cns",[Lc::data,.symb(Lbl),encodeSig(Tp),.intgr(Ix)]).
   }
 
-  freezeTerm:(cExp)=>data.
-  freezeTerm(E) => case E in {
+  frzeExp:(cExp)=>data.
+  frzeExp(E) => case E in {
     .cVoid(Lc,Tp) => mkCons("void",[Lc::data,encodeSig(Tp)]).
     .cAnon(Lc,Tp) => mkCons("anon",[Lc::data,encodeSig(Tp)]).
     .cVar(Lc,.cId(V,Tp)) => mkCons("var",[Lc::data,.strg(V),encodeSig(Tp)]).
@@ -1073,71 +1076,71 @@ star.compiler.term{
     .cFloat(Lc,Dx) => mkCons("flt",[Lc::data,.flot(Dx)]).
     .cBig(Lc,Bx) => mkCons("big",[Lc::data,.strg(Bx::string)]).
     .cString(Lc,Sx) => mkCons("str",[Lc::data,.strg(Sx)]).
-    .cTerm(Lc,Nm,Args,Tp) => mkCons("term",[Lc::data,.strg(Nm),mkTpl(Args//freezeTerm),
+    .cTerm(Lc,Nm,Args,Tp) => mkCons("term",[Lc::data,.strg(Nm),mkTpl(Args//frzeExp),
 	.strg(encodeSignature(Tp))]).
-    .cNth(Lc,T,Ix,Tp) => mkCons("nth",[Lc::data,freezeTerm(T),.intgr(Ix),
+    .cNth(Lc,T,Ix,Tp) => mkCons("nth",[Lc::data,frzeExp(T),.intgr(Ix),
 	.strg(encodeSignature(Tp))]).
-    .cSetNth(Lc,T,Ix,R) => mkCons("setnth",[Lc::data,freezeTerm(T),.intgr(Ix),
-	freezeTerm(R)]).
-    .cThunk(Lc,V,Tp) => mkCons("thunk",[Lc::data,freezeTerm(V),encodeSig(Tp)]).
-    .cThGet(Lc,V,Tp) => mkCons("thget",[Lc::data,freezeTerm(V),encodeSig(Tp)]).
-    .cThSet(Lc,V,Vl,Tp) => mkCons("thset",[Lc::data,freezeTerm(V),freezeTerm(Vl),encodeSig(Tp)]).
-    .cCall(Lc,Nm,Args,Tp) => mkCons("call",[Lc::data,.strg(Nm),mkTpl(Args//freezeTerm),
+    .cSetNth(Lc,T,Ix,R) => mkCons("setnth",[Lc::data,frzeExp(T),.intgr(Ix),
+	frzeExp(R)]).
+    .cThunk(Lc,V,Tp) => mkCons("thunk",[Lc::data,frzeExp(V),encodeSig(Tp)]).
+    .cThGet(Lc,V,Tp) => mkCons("thget",[Lc::data,frzeExp(V),encodeSig(Tp)]).
+    .cThSet(Lc,V,Vl,Tp) => mkCons("thset",[Lc::data,frzeExp(V),frzeExp(Vl),encodeSig(Tp)]).
+    .cCall(Lc,Nm,Args,Tp) => mkCons("call",[Lc::data,.strg(Nm),mkTpl(Args//frzeExp),
 	.strg(encodeSignature(Tp))]).
-    .cECall(Lc,Nm,Args,Tp) => mkCons("ecll",[Lc::data,.strg(Nm),mkTpl(Args//freezeTerm),
+    .cECall(Lc,Nm,Args,Tp) => mkCons("ecll",[Lc::data,.strg(Nm),mkTpl(Args//frzeExp),
 	.strg(encodeSignature(Tp))]).
-    .cOCall(Lc,Op,Args,Tp) => mkCons("ocll",[Lc::data,freezeTerm(Op),
-	mkTpl(Args//freezeTerm),.strg(encodeSignature(Tp))]).
-    .cThrow(Lc,X,Tp) => mkCons("thrw",[Lc::data,freezeTerm(X),.strg(encodeSignature(Tp))]).
-    .cSeq(Lc,L,R) => mkCons("seq",[Lc::data,freezeTerm(L),freezeTerm(R)]).
-    .cCnj(Lc,L,R) => mkCons("cnj",[Lc::data,freezeTerm(L),freezeTerm(R)]).
-    .cDsj(Lc,L,R) => mkCons("dsj",[Lc::data,freezeTerm(L),freezeTerm(R)]).
-    .cNeg(Lc,R) => mkCons("neg",[Lc::data,freezeTerm(R)]).
-    .cCnd(Lc,T,L,R) => mkCons("cnd",[Lc::data,freezeTerm(T),freezeTerm(L),freezeTerm(R)]).
-    .cWhere(Lc,L,R) => mkCons("whr",[Lc::data,freezeTerm(L),freezeTerm(R)]).
-    .cMatch(Lc,L,R) => mkCons("mtch",[Lc::data,freezeTerm(L),freezeTerm(R)]).
+    .cOCall(Lc,Op,Args,Tp) => mkCons("ocll",[Lc::data,frzeExp(Op),
+	mkTpl(Args//frzeExp),.strg(encodeSignature(Tp))]).
+    .cThrow(Lc,X,Tp) => mkCons("thrw",[Lc::data,frzeExp(X),.strg(encodeSignature(Tp))]).
+    .cSeq(Lc,L,R) => mkCons("seq",[Lc::data,frzeExp(L),frzeExp(R)]).
+    .cCnj(Lc,L,R) => mkCons("cnj",[Lc::data,frzeExp(L),frzeExp(R)]).
+    .cDsj(Lc,L,R) => mkCons("dsj",[Lc::data,frzeExp(L),frzeExp(R)]).
+    .cNeg(Lc,R) => mkCons("neg",[Lc::data,frzeExp(R)]).
+    .cCnd(Lc,T,L,R) => mkCons("cnd",[Lc::data,frzeExp(T),frzeExp(L),frzeExp(R)]).
+    .cWhere(Lc,L,R) => mkCons("whr",[Lc::data,frzeExp(L),frzeExp(R)]).
+    .cMatch(Lc,L,R) => mkCons("mtch",[Lc::data,frzeExp(L),frzeExp(R)]).
     .cLtt(Lc,.cId(V,Tp),B,X) => mkCons("ltt",[Lc::data,.strg(V),encodeSig(Tp),
-	freezeTerm(B),freezeTerm(X)]).
-    .cUnpack(Lc,G,Cs,Tp) => mkCons("unpck",[Lc::data,freezeTerm(G),
-	freezeCases(Cs,freezeTerm),encodeSig(Tp)]).
-    .cCase(Lc,G,Cs,Df,Tp) => mkCons("case",[Lc::data,freezeTerm(G),
-	freezeCases(Cs,freezeTerm),freezeTerm(Df),encodeSig(Tp)]).
+	frzeExp(B),frzeExp(X)]).
+    .cUnpack(Lc,G,Cs,Tp) => mkCons("unpck",[Lc::data,frzeExp(G),
+	freezeCases(Cs,frzeExp),encodeSig(Tp)]).
+    .cCase(Lc,G,Cs,Df,Tp) => mkCons("case",[Lc::data,frzeExp(G),
+	freezeCases(Cs,frzeExp),frzeExp(Df),encodeSig(Tp)]).
     .cAbort(Lc,Msg,Tp) => mkCons("abrt",[Lc::data,.strg(Msg),encodeSig(Tp)]).
-    .cSusp(Lc,F,V,Tp) => mkCons("susp",[Lc::data,freezeTerm(F),freezeTerm(V),encodeSig(Tp)]).
-    .cResume(Lc,F,V,Tp) => mkCons("resme",[Lc::data,freezeTerm(F),freezeTerm(V),encodeSig(Tp)]).
-    .cTry(Lc,G,H,Tp) => mkCons("try",[Lc::data,freezeTerm(G),freezeTerm(H),encodeSig(Tp)]).
-    .cVarNmes(Lc,Vs,B) => mkCons("vrs",[Lc::data,freezeNames(Vs),freezeTerm(B)]).
-    .cValof(Lc,A,Tp) => mkCons("valf",[Lc::data,freezeAct(A),encodeSig(Tp)]).
+    .cSusp(Lc,F,V,Tp) => mkCons("susp",[Lc::data,frzeExp(F),frzeExp(V),encodeSig(Tp)]).
+    .cResume(Lc,F,V,Tp) => mkCons("resme",[Lc::data,frzeExp(F),frzeExp(V),encodeSig(Tp)]).
+    .cTry(Lc,B,E,H,Tp) => mkCons("try",[Lc::data,frzeExp(B),frzeExp(E),frzeExp(H),encodeSig(Tp)]).
+    .cVarNmes(Lc,Vs,B) => mkCons("vrs",[Lc::data,freezeNames(Vs),frzeExp(B)]).
+    .cValof(Lc,A,Tp) => mkCons("valf",[Lc::data,frzeAct(A),encodeSig(Tp)]).
   }
 
   freezeCases:all e ~~ (cons[cCase[e]],(e)=>data) => data.
-  freezeCases(Cs,F) => mkTpl(Cs//((Lc,Pt,E))=>mkTpl([Lc::data,freezeTerm(Pt),F(E)])).
+  freezeCases(Cs,F) => mkTpl(Cs//((Lc,Pt,E))=>mkTpl([Lc::data,frzeExp(Pt),F(E)])).
 
   freezeNames(Vs) => mkTpl(Vs//((Nm,.cId(Vn,VTp)))=>
       mkTpl([.strg(Nm),.strg(Vn),encodeSig(VTp)])).
 
-  freezeAct:(aAction)=>data.
-  freezeAct(A) => case A in {
+  frzeAct:(aAction)=>data.
+  frzeAct(A) => case A in {
     .aNop(Lc) => mkCons("nop",[Lc::data]).
-    .aSeq(Lc,L,R) => mkCons("seq",[Lc::data,freezeAct(L),freezeAct(R)]).
-    .aLbld(Lc,L,I) => mkCons("lbld",[Lc::data,.strg(L),freezeAct(I)]).
+    .aSeq(Lc,L,R) => mkCons("seq",[Lc::data,frzeAct(L),frzeAct(R)]).
+    .aLbld(Lc,L,I) => mkCons("lbld",[Lc::data,.strg(L),frzeAct(I)]).
     .aBreak(Lc,L) => mkCons("brek",[Lc::data,.strg(L)]).
-    .aValis(Lc,V) => mkCons("vls",[Lc::data,freezeTerm(V)]).
-    .aThrow(Lc,V) => mkCons("thrw",[Lc::data,freezeTerm(V)]).
-    .aPerf(Lc,V) => mkCons("perf",[Lc::data,freezeTerm(V)]).
-    .aSetNth(Lc,V,Ix,E) => mkCons("setix",[Lc::data,freezeTerm(V),intgr(Ix),freezeTerm(E)]).
-    .aDefn(Lc,P,V) => mkCons("defn",[Lc::data,freezeTerm(P),freezeTerm(V)]).
-    .aAsgn(Lc,P,V) => mkCons("asgn",[Lc::data,freezeTerm(P),freezeTerm(V)]).
-    .aCase(Lc,G,C,D) => mkCons("case",[Lc::data,freezeTerm(G),
-	freezeCases(C,freezeAct),freezeAct(D)]).
-    .aUnpack(Lc,G,C) => mkCons("unpk",[Lc::data,freezeTerm(G),freezeCases(C,freezeAct)]).
-    .aIftte(Lc,T,L,R) => mkCons("iftt",[Lc::data,freezeTerm(T),freezeAct(L),freezeAct(R)]).
-    .aWhile(Lc,T,I) => mkCons("whle",[Lc::data,freezeTerm(T),freezeAct(I)]).
-    .aRetire(Lc,F,V) => mkCons("rtre",[Lc::data,freezeTerm(F),freezeTerm(V)]).
-    .aTry(Lc,B,H) => mkCons("try",[Lc::data,freezeAct(B),freezeAct(H)]).
+    .aValis(Lc,V) => mkCons("vls",[Lc::data,frzeExp(V)]).
+    .aThrow(Lc,V) => mkCons("thrw",[Lc::data,frzeExp(V)]).
+    .aPerf(Lc,V) => mkCons("perf",[Lc::data,frzeExp(V)]).
+    .aSetNth(Lc,V,Ix,E) => mkCons("setix",[Lc::data,frzeExp(V),intgr(Ix),frzeExp(E)]).
+    .aDefn(Lc,P,V) => mkCons("defn",[Lc::data,frzeExp(P),frzeExp(V)]).
+    .aAsgn(Lc,P,V) => mkCons("asgn",[Lc::data,frzeExp(P),frzeExp(V)]).
+    .aCase(Lc,G,C,D) => mkCons("case",[Lc::data,frzeExp(G),
+	freezeCases(C,frzeAct),frzeAct(D)]).
+    .aUnpack(Lc,G,C) => mkCons("unpk",[Lc::data,frzeExp(G),freezeCases(C,frzeAct)]).
+    .aIftte(Lc,T,L,R) => mkCons("iftt",[Lc::data,frzeExp(T),frzeAct(L),frzeAct(R)]).
+    .aWhile(Lc,T,I) => mkCons("whle",[Lc::data,frzeExp(T),frzeAct(I)]).
+    .aRetire(Lc,F,V) => mkCons("rtre",[Lc::data,frzeExp(F),frzeExp(V)]).
+    .aTry(Lc,B,E,H) => mkCons("try",[Lc::data,frzeAct(B),frzeExp(E),frzeAct(H)]).
     .aLtt(Lc,.cId(V,Tp),B,X) => mkCons("ltt",[Lc::data,.strg(V),encodeSig(Tp),
-	freezeTerm(B),freezeAct(X)]).
-    .aVarNmes(Lc,Vs,B) => mkCons("vrs",[Lc::data,freezeNames(Vs),freezeAct(B)]).
+	frzeExp(B),frzeAct(X)]).
+    .aVarNmes(Lc,Vs,B) => mkCons("vrs",[Lc::data,freezeNames(Vs),frzeAct(B)]).
     .aAbort(Lc,Msg) => mkCons("abrt",[Lc::data,.strg(Msg)]).
   }
 
@@ -1211,7 +1214,7 @@ star.compiler.term{
     .term("abrt",[Lc,.strg(M),Sig]) => .cAbort(thawLoc(Lc),M,decodeSig(Sig)).
     .term("susp",[Lc,F,E,Sig]) => .cSusp(thawLoc(Lc),thawTerm(F),thawTerm(E),decodeSig(Sig)).
     .term("resme",[Lc,F,E,Sig]) => .cResume(thawLoc(Lc),thawTerm(F),thawTerm(E),decodeSig(Sig)).
-    .term("try",[Lc,E,H,Sig]) => .cTry(thawLoc(Lc),thawTerm(E),thawTerm(H),decodeSig(Sig)).
+    .term("try",[Lc,B,E,H,Sig]) => .cTry(thawLoc(Lc),thawTerm(B),thawTerm(E),thawTerm(H),decodeSig(Sig)).
     .term("vrs",[Lc,Vs,B]) => .cVarNmes(thawLoc(Lc),thawVars(Vs),thawTerm(B)).
   }
 
@@ -1242,15 +1245,10 @@ star.compiler.term{
     .term("iftt",[Lc,T,L,R]) => .aIftte(thawLoc(Lc),thawTerm(T),thawAct(L),thawAct(R)).
     .term("whle",[Lc,T,I]) => .aWhile(thawLoc(Lc),thawTerm(T),thawAct(I)).
     .term("rtre",[Lc,F,V]) => .aRetire(thawLoc(Lc),thawTerm(F),thawTerm(V)).
-    .term("try",[Lc,B,H]) => .aTry(thawLoc(Lc),thawAct(B),thawAct(H)).
+    .term("try",[Lc,B,E,H]) => .aTry(thawLoc(Lc),thawAct(B),thawTerm(E),thawAct(H)).
     .term("vrs",[Lc,Vs,B]) => .aVarNmes(thawLoc(Lc),thawVars(Vs),thawAct(B)).
     .term("ltt",[Lc,.strg(V),Sig,B,X]) =>
       .aLtt(thawLoc(Lc),.cId(V,decodeSig(Sig)),thawTerm(B),thawAct(X)).
     .term("abrt",[Lc,.strg(M)]) => .aAbort(thawLoc(Lc),M).
   }
-  
-
-
-
-  
 }

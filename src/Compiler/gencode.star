@@ -133,9 +133,10 @@ star.compiler.gencode{
       compExp(Fb,expCont(Ev,suspendCont(pushStack(Tp::ltipe,Stk),Cont),ECont),ECont,Ctx,Stk).
     .cResume(Lc,Fb,Ev,Tp) => 
       compExp(Fb,expCont(Ev,resumeCont(pushStack(Tp::ltipe,Stk),Cont),ECont),ECont,Ctx,Stk).
-    .cTry(Lc,B,H,Tp) => valof{
+    .cTry(Lc,B,.cVar(_,.cId(Er,ETp)),H,Tp) => valof{
       (CLb,CtxB) = defineExitLbl("Tr",Ctx);
-      valis compExp(B,Cont,catchCont(CLb,()=>compExp(H,Cont,ECont,Ctx,Stk)),CtxB,Stk)
+      (EOff,Ctx1) = defineLclVar(Er,ETp::ltipe,Ctx);
+      valis compExp(B,Cont,catchCont(CLb,EOff,()=>compExp(H,Cont,ECont,Ctx1,Stk)),CtxB,Stk)
     }.
     .cValof(Lc,A,Tp) => 
       compAction(A,errorCont(Lc,"missing valis action"),Cont,ECont,Ctx,Stk).
@@ -245,10 +246,11 @@ star.compiler.gencode{
 --      (EX,Ctx2) = defineExitLbl("_",Ctx1);
       valis compExp(Val,stoCont(Off,Stk,actionCont(Bnd,ACont,Cont,ECont)),ECont,Ctx1,Stk)
     }.
-    .aTry(Lc,B,H) => valof{
+    .aTry(Lc,B,.cVar(_,.cId(Er,ETp)),H) => valof{
       (CLb,CtxB) = defineExitLbl("aTr",Ctx);
+      (EOff,Ctx1) = defineLclVar(Er,ETp::ltipe,Ctx);
       valis compAction(B,ACont,Cont,
-	catchCont(CLb,()=>compAction(H,ACont,Cont,ECont,Ctx,Stk)),Ctx,Stk)
+	catchCont(CLb,EOff,()=>compAction(H,ACont,Cont,ECont,Ctx1,Stk)),CtxB,Stk)
     }.
     .aRetire(Lc,F,E) => valof{
       valis compExp(F,expCont(E,retireCont(.none),
@@ -642,11 +644,11 @@ star.compiler.gencode{
     C(Ctx,_,Cde) => Cont.C(Ctx,Stk,Cde++[.iTTh])
   }
 
-  catchCont:all e ~~ (assemLbl,()=>(stack,multi[assemOp])) => Cont.
-  catchCont(CLb,HComp) => cont{
+  catchCont:all e ~~ (assemLbl,integer,()=>(stack,multi[assemOp])) => Cont.
+  catchCont(CLb,EOff,HComp) => cont{
     C(_,_,Cde) => valof{
       (SStk,HCde) = HComp();
-      valis (SStk,Cde++[.iLbl(CLb)]++HCde)
+      valis (SStk,Cde++[.iLbl(CLb),.iStL(EOff)]++HCde)
     }
   }
 

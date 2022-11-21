@@ -73,7 +73,7 @@ star.compiler.types{
 
   bnd:(tv,tipe) => ().
   bnd(B,T) where B.binding! == .none => valof {
-    B.binding := some(T);
+    B.binding := ?T;
     valis ()
   }
   bnd(_,_) default => ().
@@ -101,7 +101,7 @@ star.compiler.types{
 
   public mkTypeExp:(tipe,cons[tipe])=>tipe.
   mkTypeExp(Tp,[]) => Tp.
-  mkTypeExp(Tp,[A,..L]) => mkTypeExp(tpExp(Tp,A),L).
+  mkTypeExp(Tp,[A,..L]) => mkTypeExp(.tpExp(Tp,A),L).
 
   public makeTpExp:(string,cons[tipe]) => tipe.
   makeTpExp(Nm,Args) => mkTypeExp(.tpFun(Nm,[|Args|]),Args).
@@ -360,11 +360,11 @@ star.compiler.types{
   }
 
   public implementation all t ~~ hasType[t] |: hasType[cons[t]] => {
-    typeOf(L) => tupleType(L//typeOf)
+    typeOf(L) => .tupleType(L//typeOf)
   }
 
   public fieldTypes:(tipe)=>option[cons[(string,tipe)]].
-  fieldTypes(Tp) where .faceType(Fs,_) .= deRef(Tp) => some(Fs).
+  fieldTypes(Tp) where .faceType(Fs,_) .= deRef(Tp) => ?Fs.
   fieldTypes(_) default => .none.
 
   public fieldInFace:(tipe,string)=>option[tipe].
@@ -400,6 +400,7 @@ star.compiler.types{
       .tpFun("<=>",2).=deRef(O2) => deRef(A).
   funTypeArg(.allType(_,Tp)) => funTypeArg(deRef(Tp)).
   funTypeArg(.constrainedType(T,_))=>funTypeArg(T).
+  funTypeArg(.throwsType(T,_)) => funTypeArg(T).
 
   public funTypeRes(Tp) where
       .tpExp(O,R) .= deRef(Tp) &&
@@ -411,19 +412,23 @@ star.compiler.types{
       .tpFun("<=>",2).=deRef(O2) => deRef(R).
   funTypeRes(.allType(_,Tp)) => funTypeRes(deRef(Tp)).
   funTypeRes(.constrainedType(T,_))=>funTypeRes(T).
+  funTypeRes(.throwsType(T,_)) => funTypeRes(T).
 
   public isFunType:(tipe) => option[(tipe,tipe)].
   isFunType(Tp) where
       .tpExp(O,B).=deRef(Tp) &&
       .tpExp(O2,A) .= deRef(O) &&
-      .tpFun("=>",2).=deRef(O2) => some((A,B)).
+      .tpFun("=>",2).=deRef(O2) => ?(A,B).
   isFunType(_) default => .none.
+
+  public isThrowsType:(tipe) => option[(tipe,tipe)].
+  isThrowsType(Tp) => (.throwsType(FTp,ETp).=deRef(Tp) ?? ?(FTp,ETp) || .none).
 
   public isConsType:(tipe) => option[(tipe,tipe)].
   isConsType(Tp) where
       .tpExp(O,B).=deRef(Tp) &&
       .tpExp(O2,A) .= deRef(O) &&
-      .tpFun("<=>",2).=deRef(O2) => some((A,B)).
+      .tpFun("<=>",2).=deRef(O2) => ?(A,B).
   isConsType(_) default => .none.
   isConsType(.allType(_,Tp)) => isConsType(deRef(Tp)).
   isConsType(.existType(_,Tp)) => isConsType(deRef(Tp)).
@@ -439,12 +444,10 @@ star.compiler.types{
   
   public isTupleType:(tipe) => option[(integer,cons[tipe])].
   isTupleType(Tp) =>
-    (.tupleType(A) .= deRef(Tp) ??
-      .some((size(A),A)) ||
-      .none).
+    (.tupleType(A) .= deRef(Tp) ?? ?(size(A),A) || .none).
 
   public isEnumType:(tipe)=>option[tipe].
-  isEnumType(Tp) where (A,T)?=isConsType(Tp) && deRef(A)==tupleType([]) => some(T).
+  isEnumType(Tp) where (A,T)?=isConsType(Tp) && deRef(A)==.tupleType([]) => ?T.
   isEnumType(_) default => .none.
 
   public netEnumType:(tipe)=>tipe.
@@ -484,11 +487,11 @@ star.compiler.types{
 
   public reQuant:(cons[tipe],tipe) => tipe.
   reQuant([],Tp) => Tp.
-  reQuant([Q,..Qs],Tp) => allType(Q,reQuant(Qs,Tp)).
+  reQuant([Q,..Qs],Tp) => .allType(Q,reQuant(Qs,Tp)).
 
   public reQuantX:(cons[tipe],tipe) => tipe.
   reQuantX([],Tp) => Tp.
-  reQuantX([Q,..Qs],Tp) => existType(Q,reQuantX(Qs,Tp)).
+  reQuantX([Q,..Qs],Tp) => .existType(Q,reQuantX(Qs,Tp)).
 
   public deConstrain:(tipe) => (cons[constraint],tipe).
   deConstrain(T) => let{.
@@ -498,7 +501,7 @@ star.compiler.types{
 
   public reConstrainType:(cons[constraint],tipe) => tipe.
   reConstrainType([],Tp) => Tp.
-  reConstrainType([Q,..Qs],Tp) => constrainedType(reConstrainType(Qs,Tp),Q).
+  reConstrainType([Q,..Qs],Tp) => .constrainedType(reConstrainType(Qs,Tp),Q).
 
   public isMapType:(tipe)=>boolean.
   isMapType(Tp) => tpName(deRef(Tp))=="map".
@@ -514,12 +517,12 @@ star.compiler.types{
   }
 
   public contractType:(typeRule) => tipe.
-  contractType(.allRule(Q,R)) => allType(Q,contractType(R)).
+  contractType(.allRule(Q,R)) => .allType(Q,contractType(R)).
   contractType(.contractExists(Nm,Tps,Dps,_)) =>
     mkTypeExp(.tpFun(Nm,size(Tps)+size(Dps)),Tps++Dps).
 
   public contractTypeRule:(typeRule) => typeRule.
-  contractTypeRule(.allRule(Q,R)) => allRule(Q,contractTypeRule(R)).
+  contractTypeRule(.allRule(Q,R)) => .allRule(Q,contractTypeRule(R)).
   contractTypeRule(.contractExists(Nm,Tps,Dps,Face)) =>
-    typeExists(mkTypeExp(.tpFun(Nm,size(Tps)+size(Dps)),Tps++Dps),Face).
+    .typeExists(mkTypeExp(.tpFun(Nm,size(Tps)+size(Dps)),Tps++Dps),Face).
 }

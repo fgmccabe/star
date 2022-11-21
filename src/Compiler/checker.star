@@ -748,16 +748,14 @@ star.compiler.checker{
     typeOfRoundTerm(Lc,Op,Args,Tp,ErTp,Env,Path).
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Ac) ?= isValof(A) => valof{
     (Act,_) = checkAction(Ac,Tp,ErTp,Env,Path);
-    valis vlof(Lc,Act,Tp)
+    valis .vlof(Lc,Act,Tp)
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Body,Rls) ?= isTryCatch(A) => valof{
     NErTp = newTypeVar("_E");
-    HName = genSym(Path++"λ");
     NB = typeOfExp(Body,Tp,.some(NErTp),Env,Path);
-    NH = lambda(Lc,HName,checkRules(Rls,NErTp,Tp,ErTp,Env,Path,typeOfExp,[],.none),
-      funType([NErTp],Tp));
+    HRls = checkRules(Rls,NErTp,Tp,ErTp,Env,Path,typeOfExp,[],.none);
     
-    valis trycatch(Lc,NB,NH,Tp)
+    valis .trycatch(Lc,NB,NErTp,HRls,Tp)
   }
   typeOfExp(A,Tp,_,_,_) => valof{
     reportError("cannot type check expression $(A)",locOf(A));
@@ -845,7 +843,7 @@ star.compiler.checker{
 	(HA,_)=checkAction(AA,Tp,ErTp,Ev,Path);
 	valis HA
       },[],.none);
-    valis (doTryCatch(Lc,NB,Hs),Env)
+    valis (.doTryCatch(Lc,NB,NErTp,Hs),Env)
   }
   checkAction(A,Tp,ErTp,Env,Path) where (Lc,C,T,E) ?= isIfThenElse(A) => valof{
     (CC,E0) = checkGoal(C,ErTp,Env,Path);
@@ -932,9 +930,9 @@ star.compiler.checker{
     valis (doNop(Lc),Env)
   }
 
-  checkAssignment(Lc,Lhs,Rhs,ErTp,Env,Path) where (ILc,Id) ?= isName(Lhs) => valof{
+  checkAssignment(Lc,Lhs,Rhs,ErTp,Env,Path) => valof{
     Tp = newTypeVar("_V");
-    if ~ varDefined(Id,Env) then {
+    if (ILc,Id) ?= isName(Lhs) && ~ varDefined(Id,Env) then {
       RfTp = refType(Tp);
       Val = typeOfExp(Rhs,Tp,ErTp,Env,Path);
       Ev = declareVar(Id,ILc,refType(Tp),.none,Env);
@@ -967,7 +965,7 @@ star.compiler.checker{
   }
 
   checkRule(St,ATp,RTp,ErTp,Env,Chk,Path) where (Lc,IsDeflt,Lhs,Cnd,R) ?= isLambda(St) => valof{
-    (Arg,E0) = typeOfArgPtn(Lhs,ATp,ErTp,Env,Path);
+    (Arg,E0) = typeOfPtn(Lhs,ATp,ErTp,Env,Path);
 	
     if Wh?=Cnd then{
       (Cond,E1) = checkCond(Wh,ErTp,E0,Path);

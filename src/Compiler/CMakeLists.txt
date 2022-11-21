@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.7)
 project(compiler)
 
 add_custom_target(compiler)
-add_dependencies(compiler sbc boot star.operators star.escapes sc)
+add_dependencies(compiler sbc star.operators star.escapes sc)
 
 set(REPO_DIR "${CMAKE_BINARY_DIR}/.star-repo/")
 set(TEMP_REPO "${CMAKE_BINARY_DIR}/.temp-repo")

@@ -187,7 +187,7 @@ star.compiler.macro.rules{
   iotaComprehensionMacro(A,.expression) where
       (Lc,Bnd,Body) ?= isIotaComprehension(A) => valof{
 	CC = makeCondition(Body,passThru,
-	  genResult(unary(Lc,"some",Bnd)),
+	  genResult(mkEnumCon(Lc,nme(Lc,"some"),[Bnd])),
 	  lyfted(enum(Lc,"none")));
 	valis .active(CC)
       }.
@@ -438,15 +438,15 @@ star.compiler.macro.rules{
   implementationMacro(_,_) default => .inactive.
 
   labelImplExp(T,Nm) where (Lc,Els) ?= isBrTuple(T) =>
-    some(braceTerm(Lc,hashName(Nm),Els)).
+    ?braceTerm(Lc,hashName(Nm),Els).
   labelImplExp(T,Nm) where (Lc,Els) ?= isQBrTuple(T) =>
-    some(qbraceTerm(Lc,hashName(Nm),Els)).
+    ?qbraceTerm(Lc,hashName(Nm),Els).
   labelImplExp(T,Nm) where (Lc,Els,Exp) ?= isLetDef(T) &&
     EE ?= labelImplExp(Exp,Nm) =>
-    some(mkLetDef(Lc,Els,EE)).
+    ?mkLetDef(Lc,Els,EE).
   labelImplExp(T,Nm) where (Lc,Els,Exp) ?= isLetRecDef(T) &&
       EE ?= labelImplExp(Exp,Nm) =>
-    some(mkLetRecDef(Lc,Els,EE)).
+    ?mkLetRecDef(Lc,Els,EE).
   labelImplExp(T,_) default => .none.
 
   arrowMacro(E,_) where (Lc,Lhs,Rhs) ?= isBinary(E,"->") =>
@@ -643,15 +643,15 @@ star.compiler.macro.rules{
 
   isCon:(ast,(ast)=>option[(option[locn],ast,cons[ast])]) => option[(option[locn],ast,cons[ast],cons[ast],cons[ast])].
   isCon(A,P) where
-      (Lc,Nm,Els) ?= P(A) && _ ?= isName(Nm) => some((Lc,Nm,[],[],Els)).
+      (Lc,Nm,Els) ?= P(A) && _ ?= isName(Nm) => ?(Lc,Nm,[],[],Els).
   isCon(A,P) where
       (Lc,Q,I) ?= isXQuantified(A) &&
       (_,Nm,_,Cx,Els) ?= isCon(I,P) =>
-    some((Lc,Nm,Q,Cx,Els)).
+    ?(Lc,Nm,Q,Cx,Els).
   isCon(A,P) where
       (Lc,Cx,I) ?= isConstrained(A) &&
       (_,Nm,Q,_,Els) ?= isCon(I,P) =>
-    some((Lc,Nm,Q,Cx,Els)).
+    ?(Lc,Nm,Q,Cx,Els).
   isCon(_,_) default => .none.
 
 

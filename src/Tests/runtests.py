@@ -6,7 +6,7 @@ import sys, getopt
 starExec = "/Users/fgm/Projects/star/Build/src/Engine/star"
 testDir = "/Users/fgm/Projects/star/src/Tests/"
 sbc = "/Users/fgm/Projects/star/src/BootCompiler/sbc"
-sc = "/Users/fgm/Projects/star/Build/src/Compiler/sc"
+sc = "/Users/fgm/bin/sc"
 repoDir = "/Users/fgm/Projects/star/Build/.star-repo/"
 usage = "runtests.py [-t <testpkg>|--all] --compile_only --tracing --repo <dir>"
 

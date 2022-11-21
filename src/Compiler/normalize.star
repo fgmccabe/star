@@ -366,10 +366,13 @@ star.compiler.normalize{
       valis (.cLtt(Lc,V,LGov,Res),Ex2)
     }
   }
-  liftExp(.trycatch(Lc,Gov,H,Tp),Map,Q,Ex) => valof{
+  liftExp(.trycatch(Lc,Gov,ErTp,Hndlr,Tp),Map,Q,Ex) => valof{
     (LGov,Ex1) = liftExp(Gov,Map,Q,Ex);
-    (Hndlr,Ex2) = liftExp(H,Map,Q,Ex);
-    valis (.cTry(Lc,LGov,Hndlr,Tp),Ex2)
+    (Hs,Ex2) = transformRules(Hndlr,Map,Q,.none,Ex1);
+    ErrVr = .cVar(Lc,genVar("E",ErTp));
+    HH = caseMatcher(Lc,Map,ErrVr,.cAbort(Lc,"no matches",Tp),Hs);
+    
+    valis (.cTry(Lc,LGov,ErrVr,HH,Tp),Ex2)
   }
   liftExp(.vlof(Lc,A,Tp),Map,Q,Ex) => valof{
     (Acts,Ex1) = liftAction(A,Map,Q,Ex);
@@ -698,11 +701,17 @@ star.compiler.normalize{
       valis (.aLtt(Lc,V,LGv,Res),Ex2)
     }
   }
-  liftAction(.doTryCatch(Lc,B,H),Map,Q,Ex) => valof{
+  liftAction(.doTryCatch(Lc,B,ErTp,H),Map,Q,Ex) => valof{
+    if traceNormalize! then
+      logMsg("lift $(.doTryCatch(Lc,B,ErTp,H))");
     (BB,Ex1) = liftAction(B,Map,Q,Ex);
     (Hs,Ex2) = transformRules(H,Map,Q,.none,Ex1);
-    Hndlr = caseMatcher(Lc,Map,.cVar(Lc,genVar("E",.voidType)),.aAbort(Lc,"no matches"),Hs);
-    valis (.aTry(Lc,BB,Hndlr),Ex2)
+    ErrVr = .cVar(Lc,genVar("E",ErTp));
+    Hndlr = caseMatcher(Lc,Map,ErrVr,.aAbort(Lc,"no matches"),Hs);
+    if traceNormalize! then
+      logMsg("catch handler $(Hndlr)");
+    
+    valis (.aTry(Lc,BB,ErrVr,Hndlr),Ex2)
   }
   liftAction(.doCall(Lc,E),Map,Q,Ex) => valof{
     (EE,Ex1) = liftExp(E,Map,Q,Ex);

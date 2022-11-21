@@ -20,7 +20,7 @@ star.compiler.freevars{
   }
 
   public freeVarsInExp:(canon,set[cId],set[cId],set[cId]) => set[cId].
-  freeVarsInExp(Cn,Excl,Q,Fv) => case Cn in {
+  freeVarsInExp(Exp,Excl,Q,Fv) => case Exp in {
     .anon(_,_) => Fv.
     .vr(Lc,Nm,Tp) where {? .cId(Nm,_) in Excl ?} => Fv.
     .vr(Lc,Nm,Tp) where {? .cId(Nm,_) in Fv ?} => Fv.
@@ -48,9 +48,11 @@ star.compiler.freevars{
     .tple(_,Els) => freeVarsInTuple(Els,Excl,Q,Fv).
     .match(_,P,S) where Excl1 .= extendExcl(P,Excl,Fv) =>
       freeVarsInExp(S,Excl1,Q,freeVarsInExp(P,Excl1,Q,Fv)).
-    .conj(Lc,L,R) => freeVarsInCond(conj(Lc,L,R),Excl,Q,Fv).
-    .disj(Lc,L,R) => freeVarsInCond(disj(Lc,L,R),Excl,Q,Fv).
-    .neg(Lc,R) => freeVarsInCond(neg(Lc,R),Excl,Q,Fv).
+    .conj(_,L,R) => freeVarsInCond(Exp,Excl,Q,Fv).
+    .disj(_,L,R) => freeVarsInCond(Exp,Excl,Q,Fv).
+    .neg(_,R) => freeVarsInCond(Exp,Excl,Q,Fv).
+    .trycatch(_,E,_,H,_) => freeVarsInExp(E,Excl,Q,
+      foldRight((Rl,F)=>freeVarsInRule(Rl,freeVarsInExp,Excl,Q,F),Fv,H)).
     .lambda(_,_,Eqns,_) =>
       foldRight((Rl,F)=>freeVarsInRule(Rl,freeVarsInExp,Excl,Q,F),Fv,Eqns).
     .letExp(_,D,_,E) => let{
@@ -61,7 +63,7 @@ star.compiler.freevars{
     } in freeVarsInExp(E,XX,Q,freeVarsInDefs(D,XX,Q,Fv)).
     .vlof(_,A,_) => freeVarsInAct(A,Excl,Q,Fv).
     _ default => valof{
-      reportError("cant find free vars in $(Cn)",locOf(Cn));
+      reportError("cant find free vars in $(Exp)",locOf(Exp));
       valis Fv
     }
   }
@@ -82,7 +84,7 @@ star.compiler.freevars{
     .doMatch(_,P,E) where Excl1 .= extendExcl(P,Excl,Fv) =>
       freeVarsInExp(E,Excl1,Q,freeVarsInExp(P,Excl1,Q,Fv)).
     .doAssign(_,L,R) => freeVarsInExp(L,Excl,Q,freeVarsInExp(R,Excl,Q,Fv)).
-    .doTryCatch(_,L,H) => 
+    .doTryCatch(_,L,_,H) => 
       foldLeft((Rl,F)=>freeVarsInRule(Rl,freeVarsInAct,Excl,Q,F),freeVarsInAct(L,Excl,Q,Fv), H).
     .doIfThen(_,T,L,R) => valof{
       Excl1 = glVars(T,Excl);
@@ -189,7 +191,7 @@ star.compiler.freevars{
   glVars(_,Vrs) default => Vrs.
   
   public ptnVars:(canon,set[cId],set[cId]) => set[cId].
-  ptnVars(Cn,Excl,Fv) => case Cn in {
+  ptnVars(Exp,Excl,Fv) => case Exp in {
     .anon(_,_) => Fv.
     .vr(Lc,Nm,Tp) => ({? .cId(Nm,Tp) in Excl ?} || {? .cId(Nm,_) in Fv ?}) ??
       Excl ||
