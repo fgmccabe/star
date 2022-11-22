@@ -5,7 +5,7 @@
 #include "engineP.h"
 
 ReturnStatus g__fiber_eq(heapPo h, termPo a1, termPo a2) {
-  termPo Rs = (C_FIBER(a1) == C_FIBER(a2) ? trueEnum : falseEnum);
+  termPo Rs = (C_STACK(a1) == C_STACK(a2) ? trueEnum : falseEnum);
 
   return (ReturnStatus) {.ret=Ok, .result = Rs};
 }
@@ -17,7 +17,7 @@ ReturnStatus g__new_fiber(heapPo h, termPo fiberLambda) {
 }
 
 ReturnStatus g__suspend_fiber(heapPo h, termPo f, termPo event) {
-  stackPo fiber = C_FIBER(f);
+  stackPo fiber = C_STACK(f);
   if (stackState(fiber) != active) {
     logMsg(logFile, "tried to suspend non-active fiber %T", fiber);
     return (ReturnStatus) {.ret=Fail, .result = Null};
@@ -28,7 +28,7 @@ ReturnStatus g__suspend_fiber(heapPo h, termPo f, termPo event) {
 }
 
 ReturnStatus g__resume_fiber(heapPo h, termPo f, termPo event) {
-  stackPo fiber = C_FIBER(f);
+  stackPo fiber = C_STACK(f);
   if (stackState(fiber) != suspended) {
     logMsg(logFile, "tried to resume non-suspended fiber %T", fiber);
     return (ReturnStatus) {.ret=Fail, .result = Null};
@@ -39,7 +39,7 @@ ReturnStatus g__resume_fiber(heapPo h, termPo f, termPo event) {
 }
 
 ReturnStatus g__retire_fiber(heapPo h, termPo f, termPo event) {
-  stackPo fiber = C_FIBER(f);
+  stackPo fiber = C_STACK(f);
   if (stackState(fiber) != active) {
     logMsg(logFile, "tried to retire non-active fiber %T", fiber);
     return (ReturnStatus) {.ret=Fail, .result = Null};

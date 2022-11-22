@@ -454,7 +454,7 @@ retCode run(processPo P) {
 
       case Suspend: { // Suspend identified fiber.
         termPo event = pop();
-        stackPo fiber = C_FIBER(pop());
+        stackPo fiber = C_STACK(pop());
 
         if (stackState(fiber) != active) {
           logMsg(logFile, "tried to suspend non-active fiber %T", fiber);
@@ -469,7 +469,7 @@ retCode run(processPo P) {
       }
       case Resume: {
         termPo event = pop();
-        stackPo fiber = C_FIBER(pop());
+        stackPo fiber = C_STACK(pop());
 
         if (stackState(fiber) != suspended) {
           logMsg(logFile, "tried to resume non-suspended fiber %T", fiber);
@@ -484,7 +484,7 @@ retCode run(processPo P) {
       }
       case Retire: { // Similar to a suspend, except that we trash the susending stack
         termPo event = pop();
-        stackPo fiber = C_FIBER(pop());
+        stackPo fiber = C_STACK(pop());
 
         if (stackState(fiber) != active) {
           logMsg(logFile, "tried to retire a non-active fiber %T", fiber);
@@ -499,7 +499,7 @@ retCode run(processPo P) {
         }
       }
       case Release: { // Trash a fiber
-        stackPo fiber = C_FIBER(pop());
+        stackPo fiber = C_STACK(pop());
 
         if (stackState(fiber) != suspended) {
           logMsg(logFile, "tried to release a %s fiber %T", stackStateName(stackState(fiber)), fiber);
@@ -524,7 +524,7 @@ retCode run(processPo P) {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
-        termPo Rs = (C_FIBER(Lhs) == C_FIBER(Rhs) ? trueEnum : falseEnum);
+        termPo Rs = (C_STACK(Lhs) == C_STACK(Rhs) ? trueEnum : falseEnum);
         push(Rs);
         continue;
       }
