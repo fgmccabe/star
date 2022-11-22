@@ -53,6 +53,6 @@ integer stackHwm(stackPo stk);;
 
 integer stackNo(stackPo stk);
 
-extern stackPo C_FIBER(termPo t);
+extern stackPo C_STACK(termPo t);
 
 #endif //STAR_STACK_H

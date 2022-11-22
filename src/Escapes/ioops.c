@@ -33,7 +33,7 @@ ReturnStatus g__end_of_file(heapPo h, termPo a1) {
 ReturnStatus g_enqueue_read(heapPo h, termPo a1, termPo a2, termPo a3) {
   ioChnnlPo chnl = C_IO(a1);
   integer count = integerVal(a2);
-  stackPo tskRef = C_FIBER(a3);
+  stackPo tskRef = C_STACK(a3);
 
   retCode ret = enqueueRead(ioChannel(chnl), count, Null, tskRef);
   ReturnStatus rt = {.ret=ret, .result=voidEnum};

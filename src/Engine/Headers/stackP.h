@@ -30,11 +30,12 @@ typedef struct StackStructure {
   stackPo bottom;               // What is the actual innermost stack
   TaskState state;             // is the stack attached, root, detached or moribund
   ptrPo stkMem;                 // Memory block used for stack
+  integer counter;               // Incremented every time stack is suspended
 } StackRecord;
 
 #define StackCellCount CellCount(sizeof(StackRecord))
 
-extern void initFibers();
+extern void initStacks();
 extern logical traceStack;      // stack operation tracing
 
 #define MINMINSTACKSIZE (64)
@@ -50,6 +51,10 @@ static inline ptrPo stackLimit(stackPo stk) {
 
 static inline framePo baseFrame(stackPo stk) {
   return (framePo) stk->stkMem;
+}
+
+static inline logical validFP(stackPo stk, framePo fp) {
+  return fp >= baseFrame(stk) && fp <= stk->fp;
 }
 
 static inline logical validStkValueLoc(stackPo stk, ptrPo p) {
@@ -76,7 +81,7 @@ char *stackStateName(TaskState ste);
 
 void propagateHwm(stackPo stk);
 
-typedef enum{
+typedef enum {
   showPrognames,
   showArguments,
   showLocalVars

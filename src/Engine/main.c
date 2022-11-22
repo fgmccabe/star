@@ -27,6 +27,7 @@
 #include "thunkP.h"
 
 #include "stringBufferP.h"
+#include "continuationP.h"
 
 char *copyright = "(c) 2010 and beyond F.G.McCabe\nApache Licence 2.0";
 
@@ -49,7 +50,8 @@ int main(int argc, char **argv) {
   }
   initHistory(/*".star"*/Null);
   initHeap(initHeapSize);
-  initFibers();
+  initStacks();
+  initContinuations();
   initArith();
   initChars();
   initStrings();

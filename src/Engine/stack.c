@@ -8,7 +8,6 @@
 #include "termP.h"
 #include "engineP.h"
 #include "heapP.h"
-#include "buddy.h"
 
 logical traceStack = False;          // stack operation tracing
 integer minStackSize = 256;           /* What is the smallest stack size */
@@ -63,7 +62,7 @@ static buddyRegionPo stackRegion;
 
 static logical isAttachedFiber(stackPo base, stackPo tgt);
 
-void initFibers() {
+void initStacks() {
   StackClass.clss = specialClass;
   underFlowMethod.clss = methodClass;
   newTaskMethod.clss = methodClass;
@@ -77,8 +76,8 @@ void initFibers() {
   stackRegion = createRegion(regionSize, minStackSize);
 }
 
-stackPo C_FIBER(termPo t) {
-  assert(hasClass(t, stackClass));
+stackPo C_STACK(termPo t) {
+  assert(isFiber(t));
   return (stackPo) t;
 }
 
@@ -105,6 +104,7 @@ stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, TaskState state
   tsk->bottom = (state == active ? Null : tsk);
   tsk->state = state;
   tsk->hash = stackCount++;
+  tsk->counter = 0;
 
 #ifdef TRACESTACK
   if (traceStack)
@@ -227,7 +227,7 @@ void verifyStack(stackPo stk, heapPo H) {
 }
 
 termPo stkCopy(specialClassPo cl, termPo dst, termPo src) {
-  stackPo ss = C_FIBER(src);
+  stackPo ss = C_STACK(src);
   stackPo ds = (stackPo) dst; // Dest not yet a valid stack structure
   *ds = *ss;                  // Copy the structural part
 
@@ -239,7 +239,7 @@ logical stkCmp(specialClassPo cl, termPo o1, termPo o2) {
 }
 
 integer stkHash(specialClassPo cl, termPo o) {
-  return C_FIBER(o)->hash;
+  return C_STACK(o)->hash;
 }
 
 integer stackNo(stackPo tsk) {
@@ -279,7 +279,7 @@ void moveStack2Stack(stackPo totsk, stackPo fromtsk, integer count) {
 }
 
 termPo stkScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
-  stackPo stk = C_FIBER(o);
+  stackPo stk = C_STACK(o);
 
   assert(stk != Null);
 
@@ -319,7 +319,7 @@ termPo stkScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 }
 
 termPo stkFinalizer(specialClassPo class, termPo o) {
-  stackPo tsk = C_FIBER(o);
+  stackPo tsk = C_STACK(o);
   if (tsk->stkMem != Null) {
     release(stackRegion, (voidPtr) tsk->stkMem);
     tsk->stkMem = Null;
@@ -341,7 +341,7 @@ char *stackStateName(TaskState ste) {
 }
 
 retCode stkDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
-  stackPo tsk = C_FIBER(t);
+  stackPo tsk = C_STACK(t);
 
   return outMsg(out, "(.stack %d:[%s] %M.)",
                 tsk->hash,

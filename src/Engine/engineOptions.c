@@ -18,6 +18,7 @@
 #include "debugP.h"
 #include "capabilityP.h"
 #include "buddyP.h"
+#include "continuationP.h"
 
 char CWD[MAXFILELEN] = "";
 char rootCap[MAXFILELEN] = "/";
@@ -130,6 +131,16 @@ static retCode debugOption(char *option, logical enable) {
         continue;
 #else
         logMsg(logFile,"stack operation tracing not enabled");
+        return -1;
+#endif
+
+      case 'O':    /* trace continuation operations  */
+#ifdef TRACESTACK
+        traceContinuations = True;
+        logMsg(logFile, "Continuation tracing enabled\n");
+        continue;
+#else
+        logMsg(logFile,"Continuation tracing not enabled");
         return -1;
 #endif
 
@@ -260,6 +271,9 @@ static retCode debugOptHelp(ioPo out, char opt, char *usage) {
                      #endif
                      #ifdef TRACEEXEC
                      "G|g|"
+                     #endif
+                     #ifdef TRACEEXEC
+                     "O|"
                      #endif
                      #ifdef TRACEJIT
                      "j|"
