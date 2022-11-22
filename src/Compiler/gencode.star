@@ -49,7 +49,7 @@ star.compiler.gencode{
 	logMsg("compile $(fnDef(Lc,Nm,Tp,Args,Val))");
       Ctx = emptyCtx(argVars(Args,Glbs,0));
       (_,AbortCde) = abortCont(Lc,"function: $(Nm)").C(Ctx,?[],[]);
-      (_Stk,Code) = compExp(Val,retCont,jmpCont(Ctx.escape,.none),Ctx,.some([]));
+      (_Stk,Code) = compExp(Val,retCont,retXCont,Ctx,.some([]));
       if traceCodegen! then
 	logMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp])");
       Peeped = peepOptimize(([.iLocals(Ctx.hwm!),..Code]++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp]);
@@ -136,7 +136,12 @@ star.compiler.gencode{
     .cTry(Lc,B,.cVar(_,.cId(Er,ETp)),H,Tp) => valof{
       (CLb,CtxB) = defineExitLbl("Tr",Ctx);
       (EOff,Ctx1) = defineLclVar(Er,ETp::ltipe,Ctx);
-      valis compExp(B,Cont,catchCont(CLb,EOff,()=>compExp(H,Cont,ECont,Ctx1,Stk)),CtxB,Stk)
+      EStk = pushStack(ETp::ltipe,Stk);
+
+      (Stk1,BCde) = compExp(B,Cont,dropCont(EStk,jmpCont(CLb,pushStack(Tp::ltipe,Stk))),Ctx1,Stk);
+      (Stk2,HCde) = compExp(H,Cont,ECont,Ctx,EStk);
+
+      valis (reconcileStack(Stk1,Stk2),BCde++[.iLbl(CLb),.iStL(EOff)]++HCde)
     }.
     .cValof(Lc,A,Tp) => 
       compAction(A,errorCont(Lc,"missing valis action"),Cont,ECont,Ctx,Stk).
@@ -249,8 +254,14 @@ star.compiler.gencode{
     .aTry(Lc,B,.cVar(_,.cId(Er,ETp)),H) => valof{
       (CLb,CtxB) = defineExitLbl("aTr",Ctx);
       (EOff,Ctx1) = defineLclVar(Er,ETp::ltipe,Ctx);
-      valis compAction(B,ACont,Cont,
-	catchCont(CLb,EOff,()=>compAction(H,ACont,Cont,ECont,Ctx1,Stk)),CtxB,Stk)
+
+      (Stk1,BCde) = compAction(B,ACont,Cont,jmpCont(CLb,Stk),CtxB,Stk);
+      if traceCodegen! then
+	logMsg("after try body: $(Stk1), $(BCde)");
+      
+      (Stk2,CCde) = compAction(H,ACont,Cont,ECont,Ctx1,pushStack(ETp::ltipe,Stk));
+
+      valis (reconcileStack(Stk1,Stk2),BCde++[.iLbl(CLb),.iStL(EOff)]++CCde)
     }.
     .aRetire(Lc,F,E) => valof{
       valis compExp(F,expCont(E,retireCont(.none),
@@ -512,6 +523,11 @@ star.compiler.gencode{
     C(_,_,Cde) => (.none,Cde++[.iRet])
   }
 
+  retXCont:Cont.
+  retXCont = cont{
+    C(_,_,Cde) => (.none,Cde++[.iRetX])
+  }
+
   glbRetCont:(string)=>Cont.
   glbRetCont(Nm) => cont{
     C(_,_,Cde) => (.none,Cde++[.iTG(Nm),.iRtG])
@@ -740,6 +756,22 @@ star.compiler.gencode{
 --      logMsg("reset stack $(XStk) to $(Stk)");
       (NStk,SCde) = resetStack([|Stk|],XStk);
       valis Cont.C(Ctx,NStk,Cde++SCde)
+    }
+  }
+
+  dropCont:(stack,Cont) => Cont.
+  dropCont(EStk,Cont) => cont{
+    C(Ctx,XStk,Cde) => valof{
+      if TgtDpth ?= [|EStk|] && CurDpth?=[|XStk|] then{
+	if CurDpth > TgtDpth then{
+	  (_,DCde) = resetStack([|EStk|],XStk);
+	  valis Cont.C(Ctx,EStk,Cde++[.iRot(CurDpth-TgtDpth-1)]++DCde)
+	} else
+	valis Cont.C(Ctx,EStk,Cde)
+      } else{
+	reportTrap("illegal stacks");
+	valis Cont.C(Ctx,EStk,Cde)
+      }
     }
   }
 

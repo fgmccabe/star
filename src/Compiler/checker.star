@@ -266,8 +266,8 @@ star.compiler.checker{
     }
   }
 
-  isThrowsType(Tp) => .throwsType(PrTp,ErTp) .= deRef(Tp) ??
-    (deRef(PrTp),.some(ErTp)) || (deRef(Tp),.none).
+  isThrowsType(Tp) => (.throwsType(PrTp,ErTp) .= deRef(Tp) ??
+    (deRef(PrTp),.some(ErTp)) || (deRef(Tp),.none)).
 
   processEqns:(cons[ast],tipe,option[tipe],cons[rule[canon]],option[rule[canon]],dict,dict,string) =>
     cons[rule[canon]].
@@ -772,17 +772,19 @@ star.compiler.checker{
 --    logMsg("check round term $(Op)$(As) expected type $(Tp)");
     Vrs = genTpVars(As);
     At = .tupleType(Vrs);
-    FFTp = newTypeFun("_F",2);
-    ExTp = mkTypeExp(FFTp,[At,Tp]);
+    ExTp = newTypeVar("F");
     Fun = typeOfExp(Op,ExTp,ErTp,Env,Path);
-    Args = typeOfExps(As,Vrs,ErTp,[],Env,Path);
-    if sameType(FFTp,tpFun("=>",2),Env) then{
+    logMsg("Fun $(Fun)\:$(ExTp)");
+    FnTp = fnType(At,Tp);
+
+    if sameType(ExTp,FnTp,Env) then{
+      Args = typeOfExps(As,Vrs,ErTp,[],Env,Path);      
       valis apply(Lc,Fun,Args,Tp)
-    } else if ETp?=ErTp && sameType(FFTp,throwsType(ExTp,ETp),Env) then{
+    } else if ETp?=ErTp && sameType(ExTp,.throwsType(FnTp,ETp),Env) then{
+      Args = typeOfExps(As,Vrs,ErTp,[],Env,Path);      
       valis apply(Lc,Fun,Args,Tp)
-    }
-    else{
-      reportError("type of $(Op)\:$(ExTp) not consistent with $(fnType(At,Tp))",Lc);
+    } else{
+      reportError("type of $(Op)\:$(ExTp) not consistent with $(FnTp)",Lc);
       valis vr(Lc,"_",Tp)
     }
   }
