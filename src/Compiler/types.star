@@ -421,8 +421,8 @@ star.compiler.types{
       .tpFun("=>",2).=deRef(O2) => ?(A,B).
   isFunType(_) default => .none.
 
-  public isThrowsType:(tipe) => option[(tipe,tipe)].
-  isThrowsType(Tp) => (.throwsType(FTp,ETp).=deRef(Tp) ?? ?(FTp,ETp) || .none).
+--  public isThrowsType:(tipe) => option[(tipe,tipe)].
+--  isThrowsType(Tp) => (.throwsType(FTp,ETp).=deRef(Tp) ?? ?(FTp,ETp) || .none).
 
   public isConsType:(tipe) => option[(tipe,tipe)].
   isConsType(Tp) where

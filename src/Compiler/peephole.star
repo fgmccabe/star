@@ -54,6 +54,7 @@ star.compiler.peephole{
     [.iTCall(Fn),..peep(Ins)].
   peep([.iOCall(O,Lbl),.iFrame(_),.iRet,..Ins]) =>
     [.iTOCall(O),..peep(Ins)].
+  peep([.iRot(0),..Ins]) => peep(Ins).
   peep([I,..Ins]) => [I,..peep(Ins)].
 
   accessorPtn([.iUnpack(Lb,Fl),..Ins]) => valof{
