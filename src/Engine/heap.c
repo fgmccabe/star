@@ -34,8 +34,8 @@ void initHeap(long heapSize) {
 
 #ifdef TRACEMEM
     if (traceMemory) {
-      outMsg(logFile, "establish heap of %d words total\n", initHeapSize);
-      outMsg(logFile, "lower half at 0x%x, %d words\n", heap.start, heap.limit - heap.base);
+      outMsg(logFile, "establish heap of %ld words total\n", initHeapSize);
+      outMsg(logFile, "lower half at 0x%x, %ld words\n", heap.start, heap.limit - heap.base);
     }
 #endif
   }
