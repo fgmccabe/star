@@ -11,7 +11,7 @@ ReturnStatus g__fiber_eq(heapPo h, termPo a1, termPo a2) {
 }
 
 ReturnStatus g__new_fiber(heapPo h, termPo fiberLambda) {
-  stackPo child = newFiber(currentProcess, fiberLambda);
+  stackPo child = newStack(currentProcess, fiberLambda);
 
   return (ReturnStatus) {.ret=Ok, .result = (termPo) child};
 }
@@ -22,7 +22,7 @@ ReturnStatus g__suspend_fiber(heapPo h, termPo f, termPo event) {
     logMsg(logFile, "tried to suspend non-active fiber %T", fiber);
     return (ReturnStatus) {.ret=Fail, .result = Null};
   } else {
-    currentProcess->stk = detachFiber(currentProcess->stk, fiber);
+    currentProcess->stk = detachStack(currentProcess->stk, fiber);
     return (ReturnStatus) {.ret=Ok, .result = event};
   }
 }
@@ -33,7 +33,7 @@ ReturnStatus g__resume_fiber(heapPo h, termPo f, termPo event) {
     logMsg(logFile, "tried to resume non-suspended fiber %T", fiber);
     return (ReturnStatus) {.ret=Fail, .result = Null};
   } else {
-    currentProcess->stk = attachFiber(currentProcess->stk, fiber);
+    currentProcess->stk = attachStack(currentProcess->stk, fiber);
     return (ReturnStatus) {.ret=Ok, .result = event};
   }
 }
@@ -44,8 +44,8 @@ ReturnStatus g__retire_fiber(heapPo h, termPo f, termPo event) {
     logMsg(logFile, "tried to retire non-active fiber %T", fiber);
     return (ReturnStatus) {.ret=Fail, .result = Null};
   } else {
-    currentProcess->stk = detachFiber(currentProcess->stk, fiber);
-    dropFiber(fiber);
+    currentProcess->stk = detachStack(currentProcess->stk, fiber);
+    dropStack(fiber);
     return (ReturnStatus) {.ret=Ok, .result = event};
   }
 }

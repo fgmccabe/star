@@ -77,7 +77,7 @@ void initStacks() {
 }
 
 stackPo C_STACK(termPo t) {
-  assert(isFiber(t));
+  assert(isStack(t));
   return (stackPo) t;
 }
 
@@ -457,7 +457,7 @@ stackPo spinupStack(heapPo H, integer size) {
   return allocateStack(H, size, &underFlowMethod, suspended, Null);
 }
 
-stackPo newFiber(processPo P, termPo lam) {
+stackPo newStack(processPo P, termPo lam) {
   heapPo H = P->heap;
   int root = gcAddRoot(H, (ptrPo) &lam);
   stackPo child = spinupStack(H, minStackSize);
@@ -471,7 +471,7 @@ stackPo newFiber(processPo P, termPo lam) {
   return child;                                                 // We return the new stack
 }
 
-stackPo attachFiber(stackPo tsk, stackPo top) {
+stackPo attachStack(stackPo tsk, stackPo top) {
   stackPo bottom = top->bottom;
   assert(bottom != Null && isAttachedFiber(bottom, top));
 
@@ -498,7 +498,7 @@ stackPo attachFiber(stackPo tsk, stackPo top) {
 }
 
 // Get the stack immediately below the identified parent
-stackPo detachFiber(stackPo base, stackPo top) {
+stackPo detachStack(stackPo base, stackPo top) {
 #ifdef TRACESTACK
   if (traceStack)
     outMsg(logFile, "detach %T up to %T\n", base, top);
@@ -522,7 +522,7 @@ stackPo detachFiber(stackPo base, stackPo top) {
   return parent;
 }
 
-stackPo dropFiber(stackPo tsk) {
+stackPo dropStack(stackPo tsk) {
 #ifdef TRACESTACK
   if (traceStack)
     outMsg(logFile, "drop stack %T\n%_", tsk);

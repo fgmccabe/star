@@ -446,7 +446,7 @@ retCode run(processPo P) {
         // The top of a stack should be a binary lambda
         termPo fiberLambda = pop();
         saveRegisters();
-        stackPo child = newFiber(P, fiberLambda);
+        stackPo child = newStack(P, fiberLambda);
         restoreRegisters();
         push(child);                                                 // We return the new stack
         continue;
@@ -461,7 +461,7 @@ retCode run(processPo P) {
           bail();
         } else {
           saveRegisters();
-          P->stk = detachFiber(STK, fiber);
+          P->stk = detachStack(STK, fiber);
           restoreRegisters();
           push(event);
           continue;
@@ -476,7 +476,7 @@ retCode run(processPo P) {
           bail();
         } else {
           saveRegisters();
-          P->stk = attachFiber(STK, fiber);
+          P->stk = attachStack(STK, fiber);
           restoreRegisters();
           push(event);
           continue;
@@ -491,8 +491,8 @@ retCode run(processPo P) {
           bail();
         } else {
           saveRegisters();
-          P->stk = detachFiber(STK, fiber);
-          dropFiber(fiber);
+          P->stk = detachStack(STK, fiber);
+          dropStack(fiber);
           restoreRegisters();
           push(event);
           continue;
@@ -506,8 +506,8 @@ retCode run(processPo P) {
           bail();
         } else {
           saveRegisters();
-          stackPo parent = detachFiber(STK, fiber);
-          dropFiber(fiber);
+          stackPo parent = detachStack(STK, fiber);
+          dropStack(fiber);
           continue;
         }
       }
@@ -515,7 +515,7 @@ retCode run(processPo P) {
         termPo val = pop();
         saveRegisters();  // Seal off the current stack
         assert(stackState(STK) == active);
-        STK = P->stk = dropFiber(STK);
+        STK = P->stk = dropStack(STK);
         restoreRegisters();
         push(val);
         continue;

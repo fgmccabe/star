@@ -734,10 +734,6 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
   if (ret == Ok) {
     integer iPc = oPc + 1;
     insPo const base = entryPoint(seg->seg.mtd);
-    if (seg->seg.stackDepth < 0) {
-      strMsg(errorMsg, msgLen, RED_ESC_ON "negative stack depth: %d @ %d" RED_ESC_OFF, seg->seg.stackDepth, oPc);
-      return Error;
-    }
 
     // Special handling for specific instructions
 
@@ -835,6 +831,10 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
 
       default:;
     }
+    if (seg->seg.stackDepth < 0) {
+      strMsg(errorMsg, msgLen, RED_ESC_ON "negative stack depth: %d @ %d" RED_ESC_OFF, seg->seg.stackDepth, oPc);
+      return Error;
+    }
   }
 
   return ret;
@@ -927,13 +927,11 @@ void showSeg(segPo seg) {
 
   for (integer ix = 0; ix < vectLength(seg->seg.exits); ix++) {
     segPo entry = O_SEG(getVectEl(seg->seg.exits, ix));
-    outMsg(logFile, ", exit=%d", entry->seg.segNo);
+    if (seg->seg.fallThru == entry)
+      outMsg(logFile, ", fallthrough=%d", entry->seg.segNo);
+    else
+      outMsg(logFile, ", exit=%d", entry->seg.segNo);
   }
-
-  if (seg->seg.fallThru == Null)
-    outMsg(logFile, "\nNo fall through");
-  else
-    outMsg(logFile, "\nFall through to %d", seg->seg.fallThru->seg.segNo);
 
   if (seg->seg.args != Null || seg->seg.locals != Null) {
     outMsg(logFile, "\n");

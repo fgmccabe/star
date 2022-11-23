@@ -12,7 +12,7 @@ typedef struct StackStructure *stackPo;
 
 extern clssPo stackClass;
 
-static inline logical isFiber(termPo p) {
+static inline logical isStack(termPo p) {
   return hasClass(p, stackClass);
 }
 
@@ -29,10 +29,10 @@ stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, TaskState state
 TaskState stackState(stackPo tsk);
 retCode setTaskState(stackPo stk, TaskState state);
 
-stackPo newFiber(processPo P, termPo lam);
-stackPo attachFiber(stackPo tsk, stackPo top);
-stackPo detachFiber(stackPo base, stackPo top);
-stackPo dropFiber(stackPo tsk);
+stackPo newStack(processPo P, termPo lam);
+stackPo attachStack(stackPo tsk, stackPo top);
+stackPo detachStack(stackPo base, stackPo top);
+stackPo dropStack(stackPo tsk);
 
 framePo currFrame(stackPo stk);
 framePo previousFrame(stackPo stk, framePo fp);
