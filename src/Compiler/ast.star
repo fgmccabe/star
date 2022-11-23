@@ -61,6 +61,8 @@ star.compiler.ast{
     .str(_,Sx) => disp(Sx).
     .nme(_,Id) => dispId(Id).
     .qnm(_,Id) => "'#(stringQuote(Id))'".
+    .tpl(_,"{}",[St]) where .app(_,.nme(_,";"),_).=St =>
+      "{#(dispActs(St,Sp++"  "))}".
     .tpl(_,"{}",Els) =>
       "{#(interleave(Els//((E)=>dispAst(E,2000,Sp++"  ")),".\n"++Sp)*)}".
     .tpl(_,"{..}",Els) =>
@@ -79,6 +81,13 @@ star.compiler.ast{
       "#(LB) #(interleave(A//((E)=>dispAst(E,2000,Sp++"  ")),Sep)*) #(RB)".
     .app(_,Op,A) => "$(Op)#(dispAst(A,0,Sp++"  "))".
   }
+
+  dispActs(.app(_,.nme(_,";"),.tpl(_,"()",[L,R])),Sp) =>
+    "#(dispAst(L,1250,Sp));\n#(Sp)#(dispActs(R,Sp))".
+  dispActs(.app(_,.nme(_,";"),.tpl(_,"()",[L])),Sp) =>
+    "#(dispAst(L,1250,Sp));".
+  dispActs(A,Sp) => dispAst(A,1250,Sp).
+  
 
   dispId:(string) => string.
   dispId(S) where isOperator(S) => "(#(S))".

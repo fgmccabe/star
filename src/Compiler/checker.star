@@ -774,7 +774,6 @@ star.compiler.checker{
     At = .tupleType(Vrs);
     ExTp = newTypeVar("F");
     Fun = typeOfExp(Op,ExTp,ErTp,Env,Path);
-    logMsg("Fun $(Fun)\:$(ExTp)");
     FnTp = fnType(At,Tp);
 
     if sameType(ExTp,FnTp,Env) then{

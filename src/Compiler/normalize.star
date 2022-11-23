@@ -75,7 +75,7 @@ star.compiler.normalize{
 
   transformFunction(Lc,Nm,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex) => valof{
     if traceNormalize! then{
-      logMsg("transform function $(lambda(Lc,Nm,Eqns,Tp)) Q=$(Q) Extra = $(Extra) @ $(Lc)");
+      logMsg("transform function $(lambda(Lc,FullNm,Eqns,Tp)) Q=$(Q) Extra = $(Extra) @ $(Lc)");
     };
     ATp = extendFunTp(deRef(Tp),Extra);
     if traceNormalize! then
