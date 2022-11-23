@@ -440,9 +440,11 @@ star.compiler.gencode{
       Succ.C(Ctx,dropStack(Stk),[.iDrop]).
     .cTerm(Lc,Nm,Args,Tp) => valof{
       Stk0 = dropStack(Stk);
-      
-      valis compPtnArgs(Args,unpackCont(Lc,tLbl(Nm,size(Args)),Succ,Fail,Stk0),
-	Fail,ECont,Ctx,loadStack(Args//(A)=>(typeOf(A)::ltipe),Stk0))
+      Flb = defineLbl("U",Ctx);
+      (Stk1,FCde) = Fail.C(Ctx,Stk0,[]);
+      (Stk2,SCde) = compPtnArgs(Args,Succ,Fail,ECont,Ctx,loadStack(Args//(A)=>(typeOf(A)::ltipe),Stk0));
+
+      valis (reconcileStack(Stk1,Stk2),[.iUnpack(.tLbl(Nm,size(Args)),Flb)]++SCde++[.iLbl(Flb),..FCde])
     }.
     .cWhere(Lc,Ptrn,Cond) =>
       compPtn(Ptrn,condCont(Cond,Succ,Fail,ECont,dropStack(Stk)),Fail,ECont,Ctx,Stk).

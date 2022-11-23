@@ -21,11 +21,11 @@ star.compiler.peephole{
   public peepOptimize:(cons[assemOp])=>cons[assemOp].
   peepOptimize(Ins) => valof{
     Map = splitSegments([.iLbl(al("")),..Ins],[]);
-    if traceCodegen! then
-      logMsg(makeDotGraph("segs",Map));
+--    if traceCodegen! then
+--      logMsg(makeDotGraph("segs",Map));
     PMap = pullTgts(Map);
-    if traceCodegen! then
-      logMsg(makeDotGraph("psegs",PMap));
+--    if traceCodegen! then
+--      logMsg(makeDotGraph("psegs",PMap));
     PC = sequentialize([al("")],PMap);
     valis ^tail(PC)
   }
@@ -161,15 +161,18 @@ star.compiler.peephole{
   sequentialize([Lbl,..Ls],Map) => valof{
     if .segment(_,Flw,Ops,Exits) ?= Map[Lbl] then{
       if F ?= Flw then{
-	valis [.iLbl(Lbl),..Ops]++sequentialize([F,..Ls++(Exits::cons[assemLbl])],Map[~Lbl]);
+	if _ ?= Map[F] then
+	  valis [.iLbl(Lbl),..Ops]++sequentialize([F,..Ls++(Exits::cons[assemLbl])],Map[~Lbl])
+	else
+	valis [.iLbl(Lbl),..Ops]++[.iJmp(F)]++sequentialize(Ls++(Exits::cons[assemLbl]),Map[~Lbl])
+	
       } else{
 	valis [.iLbl(Lbl),..Ops]++sequentialize(Ls++(Exits::cons[assemLbl]),Map[~Lbl])
       }
     }
     else
-    valis sequentialize(Ls,Map)
+      valis sequentialize(Ls,Map)
   }
-  
     
   makeDotGraph:(string,map[assemLbl,segment])=>string.
   makeDotGraph(Nm,Map) => "digraph $(Nm) {\n#(ixLeft((_,S,F)=>F++makeSegGraph(S),"",Map))\n}".

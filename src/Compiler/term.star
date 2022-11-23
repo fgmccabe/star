@@ -610,7 +610,7 @@ star.compiler.term{
     (.none,G) => G.
     (.some(G),.some(H)) => .some(.cCnj(Lc,G,H)).
   }
-  
+
   public contract all e ~~ reform[e] ::= {
     mkCond:(option[locn],cExp,e,e)=>e.
     mkCase:(option[locn],cExp,cons[cCase[e]],e) => e.
@@ -650,7 +650,10 @@ star.compiler.term{
   public implementation reform[aAction] => {
     mkCond(Lc,Tst,Th,El) where
 	.aIftte(Lc0,T1,Th1,El1).=Th && El1==El => .aIftte(Lc0,cCnj(Lc,Tst,T1),Th1,El1).
-    mkCond(Lc,Tst,Th,El) => aIftte(Lc,Tst,Th,El).
+    mkCond(Lc,.cMatch(_,.cAnon(_,_),_),Th,_) => Th.
+    mkCond(Lc,.cMatch(_,.cVar(_,Vr),Vl),Th,_) =>
+      .aLtt(Lc,Vr,Vl,Th).
+    mkCond(Lc,Tst,Th,El) => .aIftte(Lc,Tst,Th,El).
 
     varNames(Lc,Bnds,Val) => aVarNmes(Lc,Bnds,Val).
 
