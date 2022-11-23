@@ -442,7 +442,10 @@ star.compiler.gencode{
       Stk0 = dropStack(Stk);
       Flb = defineLbl("U",Ctx);
       (Stk1,FCde) = Fail.C(Ctx,Stk0,[]);
-      (Stk2,SCde) = compPtnArgs(Args,Succ,Fail,ECont,Ctx,loadStack(Args//(A)=>(typeOf(A)::ltipe),Stk0));
+      (Stk2,SCde) = compPtnArgs(Args,Succ,jmpCont(Flb,Stk1),ECont,Ctx,loadStack(Args//(A)=>(typeOf(A)::ltipe),Stk0));
+
+      if traceCodegen! then
+	logMsg("code for pattern $(Ptn) is $([.iUnpack(.tLbl(Nm,size(Args)),Flb)]++SCde++[.iLbl(Flb),..FCde])");
 
       valis (reconcileStack(Stk1,Stk2),[.iUnpack(.tLbl(Nm,size(Args)),Flb)]++SCde++[.iLbl(Flb),..FCde])
     }.
@@ -476,12 +479,16 @@ star.compiler.gencode{
   compPtnArgs:(cons[cExp],Cont,Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
   compPtnArgs(Es,Succ,Fail,ECont,Ctx,Stk) => case Es in {
     [] => Succ.C(Ctx,Stk,[]).
-    [A,..As] =>
-      compPtn(A,argsPtnCont(As,Succ,Fail,ECont),Fail,ECont,Ctx,Stk).
+    [A,..As] => valof{
+      valis compPtn(A,argsPtnCont(As,Succ,Fail,ECont),Fail,ECont,Ctx,Stk);
+    }
   }
 
   argsPtnCont(As,Succ,Fail,ECont) => cont{
-    C(Ctx,Stk,Cde) => compPtnArgs(As,propCode(Cde,Succ),Fail,ECont,Ctx,Stk).
+    C(Ctx,Stk,Cde) => valof{
+      (Stk2,Cde2) = compPtnArgs(As,Succ,Fail,ECont,Ctx,Stk);
+      valis (Stk2,Cde++Cde2)
+    }
   }
 
   -- continuations
@@ -489,11 +496,6 @@ star.compiler.gencode{
   Cont ::= cont{
     C:(codeCtx,stack,multi[assemOp])=>(stack,multi[assemOp]).
   }.
-
-  propCode:(multi[assemOp],Cont)=>Cont.
-  propCode(Pre,Cont) => cont{
-    C(Ctx,Stk,Cde) => Cont.C(Ctx,Stk,Pre++Cde)
-  }
 
   allocCont:(termLbl,stack,Cont) => Cont.
   allocCont(Lbl,Stk,Cont) => cont{
@@ -538,6 +540,11 @@ star.compiler.gencode{
   jmpCont:(assemLbl,stack)=>Cont.
   jmpCont(Lbl,Stk) => cont{
     C(Ctx,_Stk1,Cde) => (Stk,Cde++[.iJmp(Lbl)]).
+    }
+
+  contCont:(assemLbl)=>Cont.
+    contCont(Lbl) => cont{
+    C(Ctx,Stk,Cde) => (Stk,Cde++[.iJmp(Lbl)]).
   }
 
   stoCont:(integer,stack,Cont) => Cont.
