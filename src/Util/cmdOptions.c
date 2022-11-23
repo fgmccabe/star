@@ -220,15 +220,15 @@ integer parseSize(char *text) {
     switch (*p) {
       case 'k':
       case 'K':
-        scale = 1 << 10;
+        scale = 1L << 10;
         break;
       case 'm':
       case 'M':
-        scale = 1 << 20;
+        scale = 1L << 20;
         break;
       case 'g':
       case 'G':
-        scale = 1 << 30;
+        scale = 1L << 30;
         break;
       default:;
     }
