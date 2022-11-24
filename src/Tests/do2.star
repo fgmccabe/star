@@ -49,7 +49,7 @@ test.do2{
   }
   
 
-  main:()=>()
+  main:()=>().
   main() => valof{
     try{
       doFirst();

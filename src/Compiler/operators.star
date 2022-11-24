@@ -41,7 +41,7 @@ star.compiler.operators{
     "retire" => [prefixOp(901,900), infixOp(900,901,900)].
     "all" => [prefixOp(1010,1009)].
     ".<." => [infixOp(699,700,699)].
-    "&&" => [infixOp(910,910,909)].
+    "&&" => [infixOp(909,910,910)].
     "^?" => [infixOp(800,800,799)].
     "~=" => [infixOp(899,900,899)].
     "~>" => [infixOp(1230,1231,1230)].

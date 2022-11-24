@@ -332,6 +332,7 @@ star.compiler.types{
   public implementationName:(constraint) => string.
   implementationName(Con) => let{.
     implName(.conTract(Nm,Tps,_)) => interleave([Nm,..(Tps//(T)=>surfaceNm(deRef(T)))],"!")*.
+
     surfaceNm(.voidType) => "void".
     surfaceNm(.nomnal(Nm)) => Nm.
     surfaceNm(.tpExp(O,A)) => surfaceNm(deRef(O)).

@@ -305,18 +305,18 @@ star.compiler.gencode{
 	valis (.none,[],[])
       else{
 	(Stk1,TCde,Cde) = compCases([],Ix+1,Mx,Comp,Succ,Fail,ECont,Deflt,Ctx,Stk);
-	valis (Stk1,TCde++[.iJmp(Deflt)],Cde)
+	valis (Stk1,[.iJmp(Deflt)]++TCde,Cde)
       }
     }.
     [(Ix,Case),..Cases] => valof{
       Lb = defineLbl("CC",Ctx);
       (Stkb,TCde2,Cde2) = compCases(Cases,Ix+1,Mx,Comp,Succ,Fail,ECont,Deflt,Ctx,Stk);
       (Stkc,CCde) = compCaseBranch(Case,Comp,Succ,Fail,ECont,Ctx,Stk);
-      valis (reconcileStack(Stkb,Stkc),TCde2++[iJmp(Lb)],Cde2++[.iLbl(Lb),..CCde])
+      valis (reconcileStack(Stkb,Stkc),[iJmp(Lb)]++TCde2,Cde2++[.iLbl(Lb),..CCde])
     }.
     [(Iy,Case),..Cases] => valof{
       (Stk1,TCde,CCde) = compCases([(Iy,Case),..Cases],Ix+1,Mx,Comp,Succ,Fail,ECont,Deflt,Ctx,Stk);
-      valis (Stk1,TCde++[iJmp(Deflt)],CCde)
+      valis (Stk1,[iJmp(Deflt)]++TCde,CCde)
     }
   }
 

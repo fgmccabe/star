@@ -19,8 +19,6 @@ star.compiler.matcher{
   functionMatcher(Lc,Nm,Tp,Map,Eqns) => valof{
     NVrs = genVars(Lc,funTypeArg(Tp));
     Trpls = makeTriples(Eqns);
-    if traceNormalize! then
-      logMsg("function triples: $(Trpls)");
     Error = genRaise(Lc,Nm,funTypeRes(Tp));
     Reslt = matchTriples(Lc,NVrs,Trpls,Error,0,Map);
     valis fnDef(Lc,Nm,Tp,NVrs//(.cVar(_,V))=>V,Reslt)
@@ -32,8 +30,6 @@ star.compiler.matcher{
     if traceNormalize! then
       logMsg("match cases $(Cs)\ngoverning expression $(Gov)\:$(typeOf(Gov))");
     Trpls = makeTriples(Cs);
-    if traceNormalize! then
-      logMsg("case triples $(Trpls)");
     valis matchTriples(Lc,[Gov],Trpls,Deflt,0,Map)
   }
 
@@ -54,8 +50,6 @@ star.compiler.matcher{
   matchTriples:all e~~reform[e],rewrite[e],display[e] |: (option[locn],cons[cExp],cons[triple[e]],e,integer,nameMap) => e.
   matchTriples(_,[],Triples,Deflt,_,_) => conditionalize(Triples,Deflt).
   matchTriples(Lc,Vrs,Triples,Deflt,Depth,Map) => valof{
-    if traceNormalize! then
-      logMsg("matching triples, $(Vrs) --- $(Triples), default = $(Deflt)");
     Parts = partitionTriples(Triples);
     valis matchSegments(Parts,Vrs,Lc,Deflt,Depth,Map)
   }.
@@ -149,14 +143,14 @@ star.compiler.matcher{
   mkMatchCond([],[],_) => .none.
   mkMatchCond([V,..Vrs],[A,..Args],Lc) =>
     mergeGoal(Lc,?.cMatch(Lc,V,A),mkMatchCond(Vrs,Args,Lc)).
-  
 
   matchScalars:all e ~~ reform[e],rewrite[e],display[e] |:
     (cons[triple[e]],cons[cExp],option[locn],e,integer,nameMap)=>e.
   matchScalars(Seg,[V,..Vrs],Lc,Deflt,Depth,Map) => valof{
     ST = sort(Seg,compareScalarTriple);
     Cases = formCases(ST,sameScalarTriple,Lc,Vrs,Deflt,Depth+1,Map);
-    valis mkCase(Lc,V,Cases,Deflt)
+    logMsg("scalar cases: $(Cases)");
+    valis trace mkCase(Lc,V,Cases,Deflt)
   }
 
   matchConstructors:all e ~~ reform[e],rewrite[e],display[e] |:

@@ -353,9 +353,9 @@
   {
     "infixOp": "&&",
     "priorities": [
+      909,
       910,
-      910,
-      909
+      910
     ],
     "desc": "conjunction",
     "keyword": true

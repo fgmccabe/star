@@ -24,7 +24,7 @@
   operator("retire", [prefixOp(901, 900), infixOp(900, 901, 900)]).
   operator("all", [prefixOp(1010, 1009)]).
   operator(".<.", [infixOp(699, 700, 699)]).
-  operator("&&", [infixOp(910, 910, 909)]).
+  operator("&&", [infixOp(909, 910, 910)]).
   operator("^?", [infixOp(800, 800, 799)]).
   operator("~=", [infixOp(899, 900, 899)]).
   operator("~>", [infixOp(1230, 1231, 1230)]).

@@ -8,7 +8,7 @@ test.idx0{
   zip(L,Ix,Inc,T0) => snd(foldLeft((E,(I,T))=>(I+Inc,T[I->E]),(Ix,T0),L)).
 
   t0 : map[integer,string].
-  t0 = {}.
+  t0 = [].
 
   t1 = t0[45->"a"].
 

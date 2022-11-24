@@ -222,33 +222,11 @@ star.compiler.freevars{
   ptnTplVars(Els,Excl,Fv) => 
     foldRight((E,F)=>ptnVars(E,F,Fv),Excl,Els).
 
+  -- Variables that might be introduced in an action
   public actnVars:(canonAction,set[cId]) => set[cId].
   actnVars(Ac,Q) => case Ac in {
-    .doNop(_) => Q.
-    .doSeq(_,L,R) => actnVars(R,actnVars(L,Q)).
-    .doLbld(_,_,A) => actnVars(A,Q).
-    .doBrk(_,_) => Q.
-    .doValis(_,E) => Q.
-    .doThrow(_,E) => Q.
     .doDefn(_,P,_) => ptnVars(P,[],Q).
     .doMatch(_,P,_) => ptnVars(P,[],Q).
-    .doAssign(_,_,_) => Q.
-    .doTryCatch(_,L,_,H) => actnVars(L,Q).
-    .doIfThen(_,T,L,R) => valof{
-      Q1 = glVars(T,Q);
-      valis actnVars(L,Q1)/\actnVars(R,Q1)
-    }.
-    .doCase(_,_,_) => Q.
-    .doWhile(_,C,B) => Q.
-    .doLet(_,_,_,A) => actnVars(A,Q).
-    .doLetRec(_,_,_,A) => actnVars(A,Q).
-    .doSuspend(_,_,_,_,_) => Q.
-    .doResume(_,_,_,_,_) => Q.
-    .doRetire(_,_,_) => Q.
-    .doCall(_,C) => Q.
-    _ default => valof{
-      reportError("cant find vars in $(Ac)",locOf(Ac));
-      valis Q
-    }
+    _ default => Q.
   }
 }
