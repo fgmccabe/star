@@ -24,14 +24,14 @@ test.ac8{
 	    _throw(E) => valof{
 	      TryTsk retire .err(E)
 	    }
-	}
-      } in {
-	_logmsg("p1");
-	if X>5 then
-	  _throw(10)
-	else
+	  }
+	} in {
+	  _logmsg("p1");
+	  if X>5 then
+	    _throw(10)
+	  else
 	  valis .ok(3*X)
-      }
+	}
       }:fiber[(),rslt[integer,integer]]);
     TT resume () in {
       .err(E) => {

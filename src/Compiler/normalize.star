@@ -646,7 +646,7 @@ star.compiler.normalize{
   liftAction(.doNop(Lc),_,_,Ex) => (aNop(Lc),Ex).
   liftAction(.doSeq(Lc,L,R),Map,Q,Ex) => valof{
     (LL,Ex1) = liftAction(L,Map,Q,Ex);
-    (RR,Ex2) = liftAction(R,Map,Q,Ex1);
+    (RR,Ex2) = liftAction(R,Map,actnVars(L,Q),Ex1);
     valis (.aSeq(Lc,LL,RR),Ex2)
   }
   liftAction(.doLbld(Lc,Lb,A),Map,Q,Ex) => valof{
@@ -679,13 +679,13 @@ star.compiler.normalize{
   }
   liftAction(.doIfThen(Lc,C,L,R),Map,Q,Ex) => valof{
     (CC,Ex1) = liftExp(C,Map,Q,Ex);
-    (LL,Ex2) = liftAction(L,Map,Q,Ex1);
+    (LL,Ex2) = liftAction(L,Map,glVars(C,Q),Ex1);
     (RR,Ex3) = liftAction(R,Map,Q,Ex2);
     valis (.aIftte(Lc,CC,LL,RR),Ex3)
   }
   liftAction(.doWhile(Lc,C,B),Map,Q,Ex) => valof{
     (CC,Ex1) = liftExp(C,Map,Q,Ex);
-    (BB,Ex2) = liftAction(B,Map,Q,Ex1);
+    (BB,Ex2) = liftAction(B,Map,glVars(C,Q),Ex1);
     valis (.aWhile(Lc,CC,BB),Ex2)
   }
   liftAction(.doCase(Lc,Gv,Cs),Map,Q,Ex) => valof{
