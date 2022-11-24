@@ -4,7 +4,7 @@ test.cnx{
 
   -- Test growing stacks
 
-  fib(0) => 1.
+  fib(0) => 0.
   fib(1) => 1.
   fib(N) => fib(N-1)+fib(N-2).
 

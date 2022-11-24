@@ -28,7 +28,7 @@ test.as2{
 	  _ => .false
 	}
       ).
-    check(_,_) default => valof { reset(); valis .false }.
+    check(_,_) default => reset().
   .} in check.
 
   notMuch:()=>() throws ().

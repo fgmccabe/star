@@ -21,11 +21,11 @@ star.compiler.peephole{
   public peepOptimize:(cons[assemOp])=>cons[assemOp].
   peepOptimize(Ins) => valof{
     Map = splitSegments([.iLbl(al("")),..Ins],[]);
---    if traceCodegen! then
---      logMsg(makeDotGraph("segs",Map));
+    if traceCodegen! then
+      logMsg(makeDotGraph("segs",Map));
     PMap = pullTgts(Map);
---    if traceCodegen! then
---      logMsg(makeDotGraph("psegs",PMap));
+    if traceCodegen! then
+      logMsg(makeDotGraph("psegs",PMap));
     PC = sequentialize([al("")],PMap);
     valis ^tail(PC)
   }
@@ -94,7 +94,10 @@ star.compiler.peephole{
     if (.iIndxJmp(Cnt).=Op || .iCase(Cnt).=Op) && (Front,Rest) ?= front(Code,Cnt) then{
       valis splitSegments(Rest,Map[Lb->.segment(Lb,.none,reverse(SoFar)++[Op,..Front],
 	    findExits(Front,Ex))])
-    } else if uncondJmp(Op) then
+    } else if .iJmp(Tgt).=Op && [.iLbl(Tgt),.._].=Code then{
+      valis splitSegments(Code,Map[Lb->.segment(Lb,?Tgt,reverse(SoFar),Ex)])
+    }
+    else if uncondJmp(Op) then
       valis splitSegments(Code,Map[Lb->.segment(Lb,.none,reverse([Op,..SoFar]),Ex)])
     else 
     valis splitSegment(Code,Lb,[Op,..SoFar],Ex,Map)
@@ -143,6 +146,8 @@ star.compiler.peephole{
   pullOps([],_) => [].
   pullOps([O,..Code],Map) => [pullTgt(O,Map),..pullOps(Code,Map)].
 
+  pullTgt(.iJmp(Tg),Map) where .segment(_,_,[Op,.._],_) ?= Map[Tg] &&
+      (.iRet.=Op||.iRetX.=Op||.iRtG.=Op) => Op.
   pullTgt(O,Map) => valof{
     if Tg?=opTgt(O) then{
       if .segment(_,_,[.iJmp(Tgt),.._],_) ?= Map[Tg] then
@@ -175,7 +180,7 @@ star.compiler.peephole{
   }
     
   makeDotGraph:(string,map[assemLbl,segment])=>string.
-  makeDotGraph(Nm,Map) => "digraph $(Nm) {\n#(ixLeft((_,S,F)=>F++makeSegGraph(S),"",Map))\n}".
+  makeDotGraph(Nm,Map) => "digraph $(Nm) {\n#(ixLeft((_,S,F)=>F++makeSegGraph(S),"",Map))}".
 
   makeSegGraph(.segment(Lbl,Flw,Code,Exits)) => valof{
     ExNodes = ((Exits::cons[assemLbl])//(Tgt)=>"\"$(Lbl)\" -> \"$(Tgt)\";\n")*;

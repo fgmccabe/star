@@ -17,7 +17,7 @@ test.implies{
      let{
        checkSon((P,S),So) => foldRight(
   	  let{
-  	    checkMale(S,.none) => some(()).
+  	    checkMale(S,.none) => ?().
   	    checkMale(_,St) => St.
   	  } in checkMale, So, ms).
        checkSon(_,So) => So.

@@ -734,7 +734,10 @@ star.compiler.term{
     .cOCall(_,Op,Args,_) => validE(Op,Vrs) && {? E in Args *> validE(E,Vrs) ?}.
     .cThrow(_,E,_) => validE(E,Vrs).
     .cSeq(_,L,R) => validE(L,Vrs) && validE(R,Vrs).
-    .cCnj(_,L,R) => validE(L,Vrs) && validE(R,Vrs).
+    .cCnj(_,L,R) => valof{
+      V1 = glVars(L,Vrs);
+      valis validE(L,V1) && validE(R,V1)
+    }.
     .cDsj(_,L,R) => validE(L,Vrs) && validE(R,Vrs).
     .cNeg(_,R) => validE(R,Vrs).
     .cCnd(_,Ts,L,R) => valof{
@@ -1111,7 +1114,7 @@ star.compiler.term{
     .cAbort(Lc,Msg,Tp) => mkCons("abrt",[Lc::data,.strg(Msg),encodeSig(Tp)]).
     .cSusp(Lc,F,V,Tp) => mkCons("susp",[Lc::data,frzeExp(F),frzeExp(V),encodeSig(Tp)]).
     .cResume(Lc,F,V,Tp) => mkCons("resme",[Lc::data,frzeExp(F),frzeExp(V),encodeSig(Tp)]).
-    .cTry(Lc,B,E,H,Tp) => mkCons("try",[Lc::data,frzeExp(B),frzeExp(E),frzeExp(H),encodeSig(Tp)]).
+    .cTry(Lc,B,Er,H,Tp) => mkCons("try",[Lc::data,frzeExp(B),frzeExp(Er),frzeExp(H),encodeSig(Tp)]).
     .cVarNmes(Lc,Vs,B) => mkCons("vrs",[Lc::data,freezeNames(Vs),frzeExp(B)]).
     .cValof(Lc,A,Tp) => mkCons("valf",[Lc::data,frzeAct(A),encodeSig(Tp)]).
   }

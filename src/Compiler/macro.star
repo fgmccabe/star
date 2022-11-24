@@ -224,6 +224,8 @@ star.compiler.macro{
     mkValof(Lc,brTuple(VLc,[macroAction(As)])).
   examineTerm(A) where (Lc,B,Hs) ?= isTryCatch(A) =>
     mkTryCatch(Lc,macroTerm(B),Hs//macroLambda).
+  examineTerm(A) where (Lc,T) ?= isThrow(A) =>
+    mkThrow(Lc,macroTerm(T)).
   examineTerm(A) where (Lc,S) ?= isFiberTerm(A) => 
     mkFiberTerm(Lc,macroAction(S)).
   examineTerm(A) where (Lc,Lb,S) ?= isLabeledTheta(A) => 

@@ -211,7 +211,7 @@ star.compiler.normalize{
   liftPtn(.strng(Lc,Sx),Map,_,Ex) => (.cString(Lc,Sx),Ex).
   liftPtn(.whr(Lc,Ptn,Cond),Map,Q,Ex) => valof{
     (LPtn,Ex1) = liftPtn(Ptn,Map,Q,Ex);
-    (LCond,Exx) = liftExp(Cond,Map,ptnVars(Ptn,Q,[]),Ex);
+    (LCond,Exx) = liftExp(Cond,Map,glVars(Cond,ptnVars(Ptn,Q,[])),Ex);
     valis (.cWhere(Lc,LPtn,LCond),Exx)
   }
   liftPtn(.tple(Lc,Els),Map,Q,Ex) => valof{
@@ -302,7 +302,7 @@ star.compiler.normalize{
     liftExp(E,Map,Q,Ex).
   liftExp(.whr(Lc,E,C),Map,Q,Ex) => valof{
     (LE,Ex1) = liftExp(E,Map,Q,Ex);
-    (LC,Ex2) = liftExp(C,Map,Q,Ex1);
+    (LC,Ex2) = liftExp(C,Map,glVars(C,Q),Ex1);
     valis (.cWhere(Lc,LE,LC),Ex2)
   }
   liftExp(.conj(Lc,L,R),Map,Q,Ex) => valof{
@@ -321,8 +321,7 @@ star.compiler.normalize{
   }
   liftExp(.cond(Lc,T,L,R),Map,Q,Ex) => valof{
     (LT,Ex1) = liftExp(T,Map,Q,Ex);
-    Q1 = glVars(T,Q);
-    (LL,Ex2) = liftExp(L,Map,Q1,Ex1);
+    (LL,Ex2) = liftExp(L,Map,glVars(T,Q),Ex1);
     (LR,Ex3) = liftExp(R,Map,Q,Ex2);
     valis (.cCnd(Lc,LT,LL,LR),Ex3)
   }
@@ -330,13 +329,6 @@ star.compiler.normalize{
     (LP,Ex1) = liftPtn(P,Map,Q,Ex);
     (LE,Ex2) = liftExp(E,Map,Q,Ex1);
     valis (.cMatch(Lc,LP,LE),Ex2)
-  }
-  liftExp(.cond(Lc,Ts,Th,El),Map,Q,Ex) => valof{
-    (LTs,Ex1) = liftExp(Ts,Map,Q,Ex);
-    Q1 = glVars(Ts,Q);
-    (LTh,Ex2) = liftExp(Th,Map,Q1,Ex1);
-    (LEl,Exx) = liftExp(El,Map,Q,Ex2);
-    valis (.cCnd(Lc,LTs,LTh,LEl),Exx)
   }
   liftExp(.letExp(Lc,Grp,Decs,Bnd),Map,Q,Ex) => valof{
     Free = findFree(.letExp(Lc,Grp,Decs,Bnd),Q);
@@ -663,12 +655,12 @@ star.compiler.normalize{
     valis (.aThrow(Lc,EE),Ex1)
   }
   liftAction(.doDefn(Lc,P,E),Map,Q,Ex) => valof{
-    (PP,Ex1) = liftExp(P,Map,Q,Ex);
+    (PP,Ex1) = liftPtn(P,Map,Q,Ex);
     (EE,Ex2) = liftExp(E,Map,Q,Ex1);
     valis (.aDefn(Lc,PP,EE),Ex2)
   }
   liftAction(.doMatch(Lc,P,E),Map,Q,Ex) => valof{
-    (PP,Ex1) = liftExp(P,Map,Q,Ex);
+    (PP,Ex1) = liftPtn(P,Map,Q,Ex);
     (EE,Ex2) = liftExp(E,Map,Q,Ex1);
     valis (.aDefn(Lc,PP,EE),Ex2)
   }
@@ -702,14 +694,10 @@ star.compiler.normalize{
     }
   }
   liftAction(.doTryCatch(Lc,B,ErTp,H),Map,Q,Ex) => valof{
-    if traceNormalize! then
-      logMsg("lift $(.doTryCatch(Lc,B,ErTp,H))");
     (BB,Ex1) = liftAction(B,Map,Q,Ex);
     (Hs,Ex2) = transformRules(H,Map,Q,.none,Ex1);
     ErrVr = .cVar(Lc,genVar("E",ErTp));
     Hndlr = caseMatcher(Lc,Map,ErrVr,.aAbort(Lc,"no matches"),Hs);
-    if traceNormalize! then
-      logMsg("catch handler $(Hndlr)");
     
     valis (.aTry(Lc,BB,ErrVr,Hndlr),Ex2)
   }

@@ -2,7 +2,7 @@ test.di{
   import star.
   import star.script.
 
-  Is = cons(1,cons(2,cons(3,cons(4,.nil)))).
+  Is = .cons(1,.cons(2,.cons(3,.cons(4,.nil)))).
 
   Fc:(cons[integer])=>integer.
   Fc(I) => valof{

@@ -2,10 +2,9 @@ star.json{
   import star.
   import star.parse.
 
-  public json ::=
-    .jTrue | .jFalse | .jNull |
-    jTxt(string) | jColl(map[string,json]) | jSeq(cons[json]) |
-    jNum(float).
+  public json ::= .jTrue | .jFalse | .jNull |
+    .jTxt(string) | .jColl(map[string,json]) | .jSeq(cons[json]) |
+    .jNum(float).
 
 
   public implementation display[json] => {
@@ -29,10 +28,10 @@ star.json{
 
   dispSeq:(cons[json],integer) => cons[string].
   dispSeq([],_) => .nil.
-  dispSeq([e,..l],Sp) => cons(dispJson(e,Sp),dispSeq(l,Sp)).
+  dispSeq([e,..l],Sp) => .cons(dispJson(e,Sp),dispSeq(l,Sp)).
 
   public implementation coercion[json,string] => {
-    _coerce(J) => some(disp(J)).
+    _coerce(J) => ?disp(J).
   }
 
   public implementation equality[json] => {
@@ -55,7 +54,7 @@ star.json{
   }
 
   public parseJson:(string)=>option[json].
-  parseJson(T) where (J,_)?=pJ(skpBlnks(T::cons[char])) => some(J).
+  parseJson(T) where (J,_)?=pJ(skpBlnks(T::cons[char])) => ?J.
   parseJson(_) default => .none.
 
   pJ:(cons[char]) => option[(json,cons[char])].
@@ -124,18 +123,18 @@ star.json{
   psHex(L,So,_) default => (So::char,L).
 
   psSeq:(cons[char]) => option[(json,cons[char])].
-  psSeq([`]`,..L]) => some((jSeq([]),L)).
+  psSeq([`]`,..L]) => ?(.jSeq([]),L).
   psSeq(L) where (El,LL)?=pJ(L) => psMoreSeq(skpBlnks(LL),[El]).
 
-  psMoreSeq([`]`,..L],SoF) => some((jSeq(reverse(SoF)),L)).
+  psMoreSeq([`]`,..L],SoF) => ?(.jSeq(reverse(SoF)),L).
   psMoreSeq([`,`,..L],SoF) where (El,LL)?=pJ(L) =>
     psMoreSeq(skpBlnks(LL),[El,..SoF]).
 
   psColl:(cons[char]) => option[(json,cons[char])].
-  psColl([`}`,..L]) => some((jColl([]),L)).
+  psColl([`}`,..L]) => ?(.jColl([]),L).
   psColl(L) where (Ky,El,LL).=psEntry(L) => psMoreCol(skpBlnks(LL),[Ky->El]).
 
-  psMoreCol([`}`,..L],SoF) => some((jColl(SoF),L)).
+  psMoreCol([`}`,..L],SoF) => ?(.jColl(SoF),L).
   psMoreCol([`,`,..L],SoF) where (Ky,El,LL).=psEntry(L) => psMoreCol(skpBlnks(LL),SoF[Ky->El]).
 
   psEntry(L) where (Ky,L1) .= psString(skpBlnks(L)) &&

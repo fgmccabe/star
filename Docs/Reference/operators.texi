@@ -19,7 +19,7 @@
 @tab 700
 @tab set membership
 @item @code{&&}
-@tab left associative infix
+@tab right associative infix
 @tab 910
 @tab conjunction
 @item @code{^?}

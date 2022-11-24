@@ -23,7 +23,7 @@ test.l2{
 
   main:()=>().
   main()=> valof{
-    show "splits $(splits(node(node(.empty,(1,"a"),.empty),(2,"b"),.empty)))";
+    show "splits $(splits(.node(.node(.empty,(1,"a"),.empty),(2,"b"),.empty)))";
     valis ()
   }
 }

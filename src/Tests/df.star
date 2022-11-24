@@ -12,7 +12,7 @@ test.df{
   	Cx := Cx!+Ix
     };
 
-    return Cx!
+    valis Cx!
   }
   
   IS = [1,2,-3,5,-2,56,10,0].

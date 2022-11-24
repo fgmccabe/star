@@ -2,7 +2,7 @@ test.assign{
   import star.
   import star.script.
 
-  person ::= someone{name:ref string. age:integer} | student(string,integer).
+  person ::= someone{name:ref string. age:integer} | .student(string,integer).
 
   rec : (integer)=>person.
   rec(A) => let{
