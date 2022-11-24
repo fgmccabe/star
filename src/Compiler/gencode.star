@@ -144,7 +144,7 @@ star.compiler.gencode{
       valis (reconcileStack(Stk1,Stk2),BCde++[.iLbl(CLb),.iStL(EOff)]++HCde)
     }.
     .cValof(Lc,A,Tp) => 
-      compAction(A,errorCont(Lc,"missing valis action"),Cont,ECont,Ctx,Stk).
+      compAction(A,abortCont(Lc,"missing valis action"),Cont,ECont,Ctx,Stk).
     C where isCond(C) => valof{
       Nx = defineLbl("E",Ctx);
       Stk0 = pushStack(boolType::ltipe,Stk);
