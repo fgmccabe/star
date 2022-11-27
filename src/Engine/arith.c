@@ -66,10 +66,10 @@ void initArith() {
 termPo allocateInteger(heapPo H, integer ix) {
   intPo t = (intPo) allocateObject(H, integerClass, CellCount(sizeof(IntegerRecord)));
   t->ix = ix;
-  #ifdef TRACEMEM
-  if(traceAllocs)
+#ifdef TRACEMEM
+  if (traceAllocs)
     allocatedInts++;
-  #endif
+#endif
   return (termPo) t;
 }
 
@@ -134,7 +134,7 @@ termPo allocateFloat(heapPo H, double dx) {
   fltPo t = (fltPo) allocateObject(H, floatClass, CellCount(sizeof(FloatRecord)));
   t->dx = dx;
 #ifdef TRACEMEM
-  if(traceAllocs)
+  if (traceAllocs)
     allocatedFloats++;
 #endif
   return (termPo) t;
@@ -195,12 +195,7 @@ integer fltHash(specialClassPo cl, termPo o) {
 }
 
 integer floatHash(double dx) {
-  union {
-    double n;
-    integer i;
-  } c;
-  c.n = dx;
-  return c.i;
+  return (integer) dx;
 }
 
 double floatVal(termPo o) {
@@ -209,6 +204,6 @@ double floatVal(termPo o) {
   return dx->dx;
 }
 
-void dumpArithAllocStats(){
+void dumpArithAllocStats() {
 
 }

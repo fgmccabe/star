@@ -160,7 +160,7 @@ static logical shouldWeStop(processPo p, termPo arg) {
         }
       }
       case Locals: {
-        if (p->waterMark==Null && breakPointSet(mtdLabel(p->stk->fp->prog))) {
+        if (p->waterMark == Null && breakPointSet(mtdLabel(p->stk->fp->prog))) {
           p->waitFor = stepInto;
           p->tracing = True;
           p->waterMark = Null;
@@ -1167,4 +1167,10 @@ void dumpStats() {
   logMsg(debugOutChnnl, "%ld instructions executed\n", pcCount);
   dumpEscapes(debugOutChnnl);
   dumpStackStats();
+}
+
+void dumpStack() {
+  if (controlC()) {
+    stackTrace(currentProcess, logFile, currentProcess->stk, displayDepth, showArguments);
+  }
 }

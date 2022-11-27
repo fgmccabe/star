@@ -12,6 +12,7 @@ retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt);
 
 integer pcCount;     /* How many instructions executed so far? */
 void dumpStats();
+void dumpStack();
 
 void showMethodCode(ioPo out, char *msg, char *name, methodPo mtd);
 

@@ -13,6 +13,7 @@
 
 
 static volatile sig_atomic_t gotSIGQUIT = 0;
+static volatile sig_atomic_t gotControlC = 0;
 
 static void quitHandler(int sig) {
   gotSIGQUIT = 1;
@@ -34,7 +35,12 @@ static void busErrorHandler(int sig) {
 static void interruptMe(int ignored) /* This one is invoked when user presses ^C */
 {
   outMsg(logFile, "control-C interrupt\n");
+  gotControlC = 1;
   star_exit(EXIT_FAIL);    /* We just abort everything */
+}
+
+logical controlC() {
+  return gotControlC == 1;
 }
 
 void setupSimpleHandler(int signal, void (*handler)(int)) {
