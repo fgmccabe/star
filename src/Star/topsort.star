@@ -35,12 +35,12 @@ star.topsort{
 
     pickDef:(t,cons[d],cons[d]) => option[(d,cons[d])].
     pickDef(_,[],_) => .none.
-    pickDef(Ref,[Df,..Dfs],SoFar) where defined(Df,Ref) => some((Df,SoFar++Dfs)).
+    pickDef(Ref,[Df,..Dfs],SoFar) where defined(Df,Ref) => .some((Df,SoFar++Dfs)).
     pickDef(Ref,[Df,..Dfs],SoFar) => pickDef(Ref,Dfs,[Df,..SoFar]).
 
     inStack:(t,cons[defEntry])=>option[integer].
     inStack(_,[]) => .none.
-    inStack(Ref,[E,..Stk]) where defined(E.df,Ref) => some(E.stackPt).
+    inStack(Ref,[E,..Stk]) where defined(E.df,Ref) => .some(E.stackPt).
     inStack(Ref,[_,..Stk]) => inStack(Ref,Stk).
 
     popGroups((Dfs,Stk,Gps,Low),Pt) where Pt>Low => (Dfs,Stk,Gps,Low).

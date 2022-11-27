@@ -12,7 +12,7 @@ test.ms{
 
 
   doubleOrQuits:(integer)=>option[integer].
-  doubleOrQuits(X) where X>0 => some(X+X).
+  doubleOrQuits(X) where X>0 => .some(X+X).
   doubleOrQuits(_) => .none.
 
   KK : cons[integer].
@@ -22,12 +22,12 @@ test.ms{
   LL = [1,2,3,0,5].
 
   sq:(float)=>option[float].
-  sq(X) where X>0.0 => some(sqrt(X)).
+  sq(X) where X>0.0 => .some(sqrt(X)).
   sq(_) default => .none.
 
   sqr:(float)=>either[string,float].
-  sqr(X) where X>0.0 => either(sqrt(X)).
-  sqr(_) default => other("negative").
+  sqr(X) where X>0.0 => .either(sqrt(X)).
+  sqr(_) default => .other("negative").
   
 
   main:() => ().

@@ -49,8 +49,8 @@ locateVersion(man(Entries),pkg(Pkg,Vers),pkg(Pkg,Act),Sig,U,Fn) :-
   is_member(entry(Pkg,Versions),Entries),
   getVersion(Vers,Versions,Act,Sig,U,Fn).
 
+getVersion(defltVersion,V,Act,Sig,U,Fn) :- !, is_member((Act,Sig,U,Fn),V),!.
 getVersion(Vers,V,Vers,Sig,U,Fn) :- is_member((Vers,Sig,U,Fn),V),!.
-getVersion(defltVersion,V,Act,Sig,U,Fn) :- is_member((Act,Sig,U,Fn),V),!.
 
 addCodePackage(repo(Root,Man),U,pkg(Pkg,Vers),Sig,Text,repo(Root,NM)) :-
   versionName(Vers,VNm),

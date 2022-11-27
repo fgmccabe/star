@@ -1,7 +1,9 @@
 :- module(catalog,[locateCatalog/2,
 		   resolveCatalog/4,
 		   catalogBase/2,
-		   catalogVersion/2]).
+		   resolveVersion/3,
+		   consistentPkg/2,
+		   consistentVersion/2]).
 
 :- use_module(resource).
 :- use_module(misc).
@@ -21,12 +23,13 @@ readCatalog(CatURI,Cat) :-
      writef("cannot parse catalog at %t\n",[CatURI]),
      abort).
 
-resolveCatalog(cat(Cat),Nm,Uri,V) :-
-  is_member(entries(Map),Cat),
-  is_member(base(Base),Cat),
-  is_member(entry(Nm,U),Map),!,
-  resolveURI(Base,U,Uri),
-  resolveVersion(Nm,Cat,V).
+resolveCatalog(cat(Entries),pkg(Nm,Ver),Uri,V) :-
+  is_member(entries(Map),Entries),
+  is_member(base(Base),Entries),
+  is_member(entry(pkg(Nm,A),U),Map),
+  consistentPkg(pkg(Nm,A),pkg(Nm,Ver)),
+  resolveVersion(pkg(Nm,A),cat(Entries),V),!,
+  resolveURI(Base,U,Uri).
 resolveCatalog(cat(Cat),Nm,Uri,V) :-
   is_member(subcatalogs(L),Cat),
   is_member(Sub,L),
@@ -42,8 +45,8 @@ resolveVersion(pkg(Pkg,defltVersion),Cat,pkg(Pkg,V)) :-
   catalogVersion(Cat,V).
 resolveVersion(Pkg,_,Pkg).
 
-catalogVersion(Cat,ver(V)) :-
-  is_member(ver(V),Cat),!.
+catalogVersion(cat(Entries),ver(V)) :-
+  is_member(ver(V),Entries),!.
 catalogVersion(_,defltVersion).
 
 parseJsonCat(Chrs,U,Cat):-
@@ -87,3 +90,9 @@ defaultBase(cat(Stmts),Fl,cat(NStmts)) :-
 
 catalogBase(cat(Stmts),Base) :-
   is_member(base(Base),Stmts).
+
+consistentPkg(pkg(P,V1),pkg(P,V2)) :- consistentVersion(V1,V2),!.
+
+consistentVersion(defltVersion,_).
+consistentVersion(_,defltVersion).
+consistentVersion(ver(V),ver(V)).

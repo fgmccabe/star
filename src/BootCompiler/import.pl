@@ -44,16 +44,14 @@ pickupPkgSpec(Enc,spec(Pkg,Imports,Decls)) :-
   pickupImports(Imps,Imports),
   pickupDeclarations(DeclSigs,Decls).
 
-pickupPkg(ctpl(lbl("pkg",2),[strg(Nm),V]),pkg(Nm,Vers)) :-
-  pickupVersion(V,VV),
-  (consistentVersion(Vers,VV) ;
-   writef("version of imported pkg %w#%w not consistent with %w",[Nm,VV,Vers])).
+pickupPkg(ctpl(lbl("pkg",2),[strg(Nm),V]),pkg(Nm,VV)) :-
+  pickupVersion(V,VV).
 
 pickupVersion(enum("*"),defltVersion).
 pickupVersion(strg(V),ver(V)).
 
-consistentVersion(defltVersion,_).
 consistentVersion(ver(V),ver(V)).
+consistentVersion(defltVersion,_).
 
 pickupImports([],[]).
 pickupImports([ctpl(lbl("import",2),[V,P])|L],[import(Viz,Pkg)|M]) :-

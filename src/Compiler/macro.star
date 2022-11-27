@@ -71,9 +71,9 @@ star.compiler.macro{
   examineStmt(A) where isConstructorStmt(A) => macroType(A).
   examineStmt(A) where _ ?= isAnnotation(A) => A.
   examineStmt(A) where (Lc,Q,Cx,Tp,Exp) ?= isAccessorStmt(A) =>
-    mkAccessorStmt(Lc,Q//macroType,Cx//macroType,macroType(Tp),macroTerm(Exp)).
+    mkAccessorStmt(Lc,Q//macroType,[],Cx//macroType,macroType(Tp),macroTerm(Exp)).
   examineStmt(A) where (Lc,Q,Cx,Tp,Exp) ?= isUpdaterStmt(A) => 
-    mkUpdaterStmt(Lc,Q//macroType,Cx//macroType,macroType(Tp),macroTerm(Exp)).
+    mkUpdaterStmt(Lc,Q//macroType,[],Cx//macroType,macroType(Tp),macroTerm(Exp)).
   examineStmt(A) where (Lc,Els) ?= isBrTuple(A) =>
     brTuple(Lc,macroStmts(Els)).
   examineStmt(A) => valof{
@@ -176,6 +176,8 @@ star.compiler.macro{
     refCell(Lc,macroTerm(R)).
   examineTerm(A) where (Lc,R) ?= isRef(A) => 
     mkRef(Lc,macroTerm(R)).
+  examineTerm(A) where (Lc,R) ?= isOpen(A) => 
+    mkOpen(Lc,macroTerm(R)).
   examineTerm(A) where (Lc,D,B) ?= isLetDef(A) => 
     mkLetDef(Lc,macroStmts(D),macroTerm(B)).
   examineTerm(A) where (Lc,D,B) ?= isLetRecDef(A) =>

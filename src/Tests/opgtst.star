@@ -20,6 +20,7 @@ test.opg{
     dsp(._tuple("[]",Els)) => "[#(interleave(Els//dsp,",")*)]".
     dsp(._tuple("{}",Els)) => "[#(interleave(Els//dsp,". ")*)]".
     dsp(._tuple(B,Els)) => "[#(B)#(interleave(Els//dsp,",")*)]".
+    dsp(._apply(._name("<||>"),A)) => "<|#(dsp(A))|>".
     dsp(._apply(O,A)) => "#(dsp(O))#(dsp(A))".
   .} in {
     disp(A) => dsp(A)

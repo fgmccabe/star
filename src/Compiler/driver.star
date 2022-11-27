@@ -110,8 +110,9 @@ star.compiler{
 	};
 
 	if errorFree() && ~ typeCheckOnly! then {
-	  N = normalize(PkgSpec,Defs,IDecls++Decls);
-	  validProg(N,IDecls++Decls);
+	  AllDecls = IDecls++Decls;
+	  N = normalize(PkgSpec,Defs,AllDecls);
+	  validProg(N,AllDecls);
 	  if traceNormalize! then{
 	    logMsg("normalized code $(N)");
 	  };

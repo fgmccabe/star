@@ -71,9 +71,9 @@ star.compiler.dict.mgt{
   varType(Nm,Dict) where .vrEntry(_,_,Tp,_) ?= isVar(Nm,Dict) => .some(Tp).
   varType(_,_) default => .none.
 
-  public declareVar:(string,option[locn],tipe,option[tipe],dict) => dict.
-  declareVar(Nm,Lc,Tp,Fc,Dict) =>
-    declareVr(Nm,Lc,Tp,(L,E)=>refreshVar(L,Nm,Tp,E),Fc,Dict).
+  public declareVar:(string,string,option[locn],tipe,option[tipe],dict) => dict.
+  declareVar(Nm,FullNm,Lc,Tp,Fc,Dict) =>
+    declareVr(Nm,Lc,Tp,(L,E)=>refreshVar(L,FullNm,Tp,E),Fc,Dict).
 
   refreshVr:(option[locn],tipe,dict,(option[locn],tipe)=>canon) => canon.
   refreshVr(Lc,Tp,Env,Mkr) => valof{
@@ -116,25 +116,13 @@ star.compiler.dict.mgt{
     }
   }
 
-  -- declareConstructor(Nm,FullNm,Lc,Tp,[Level,..Rest]) => valof{
-  --   TpNm = localName(tpName(funTypeRes(Tp)),.typeMark);
-
-  --   if .tpDefn(Lc,TNm,TTp,TpRl,Cons)?=Level.types[TpNm] then
-  --     valis [Level.types<<-Level.types[TpNm->.tpDefn(Lc,TNm,TTp,TpRl,Cons[Nm->Tp])],..Rest]
-  --   else{
-  --     valis [Level.types<<-Level.types[TpNm->.tpDefn(Lc,TpNm,.voidType,.voidType,[Nm->Tp])],..Rest]
-  --   }
-  -- }
-
   public findConstructors:(tipe,dict)=>option[map[string,tipe]].
   findConstructors(Tp,Dict) where (_,_,_,Mp) ?=
     findType(Dict,localName(tpName(Tp),.typeMark)) => .some(Mp).
   findConstructors(_,_) default => .none.
 
   pickupEnum(Lc,Nm,Tp,Env) => valof{
---    logMsg("freshen $(Nm)'s type: $(Tp)");
     (_,VrTp) = freshen(Tp,Env);
---    logMsg("freshened type of $(Nm) is $(VrTp)");
     valis manageConstraints(VrTp,Lc,(ETp)=>enm(Lc,Nm,ETp))
   }
 
@@ -144,7 +132,6 @@ star.compiler.dict.mgt{
 
   public declareVr:(string,option[locn],tipe,(option[locn],dict)=>canon,option[tipe],dict) => dict.
   declareVr(Nm,Lc,Tp,MkVr,Fc,[Sc,..Ev]) => valof{
---    logMsg("declare $(Nm)\:$(Tp)");
     valis [Sc.vars<<-Sc.vars[Nm->.vrEntry(Lc,MkVr,Tp,Fc)],..Ev]
   }.
 
@@ -177,10 +164,7 @@ star.compiler.dict.mgt{
     declareVr(Nm,Lc,Tp,(L,E)=>pickupMtd(L,Nm,Tp,E),.none,Dict).
 
   pickupMtd(Lc,Nm,Tp,Env) => valof{
---    logMsg("pick up method $(Nm) : $(Tp) {$(Con)}");
     (Q,VrTp) = freshen(Tp,Env);
---    logMsg("freshened type of $(Nm) is $(VrTp) Q=$(Q)");
---    logMsg("freshened contract $(Cn)");
     valis manageConstraints(VrTp,Lc,(MTp)=>mtd(Lc,Nm,MTp))
   }
 
@@ -204,17 +188,17 @@ star.compiler.dict.mgt{
     .implDec(Lc,Nm,ImplNm,Tp) => 
       declareImplementation(Lc,Nm,ImplNm,Tp,Dict).
     .accDec(Lc,Tp,Fld,AccFn,AccTp) =>
-      declareVar(AccFn,Lc,AccTp,.none,declareAccessor(Lc,Tp,Fld,AccFn,AccTp,Dict)).
+      declareVar(AccFn,AccFn,Lc,AccTp,.none,declareAccessor(Lc,Tp,Fld,AccFn,AccTp,Dict)).
     .updDec(Lc,Tp,Fld,AccFn,AccTp) =>
-      declareVar(AccFn,Lc,AccTp,.none,declareUpdater(Lc,Tp,Fld,AccFn,AccTp,Dict)).
+      declareVar(AccFn,AccFn,Lc,AccTp,.none,declareUpdater(Lc,Tp,Fld,AccFn,AccTp,Dict)).
     .conDec(Lc,Nm,ConNm,ConRl) => 
       declareContract(Lc,Nm,ConRl,Dict).
     .tpeDec(Lc,Nm,Tp,TpRl) => 
       declareType(Nm,Lc,Tp,TpRl,Dict).
     .varDec(Lc,Nm,FullNm,Tp) =>
-      declareVar(Nm,Lc,Tp,.none,Dict).
+      declareVar(Nm,FullNm,Lc,Tp,.none,Dict).
     .funDec(Lc,Nm,FullNm,Tp) =>
-      declareVar(Nm,Lc,Tp,.none,Dict).
+      declareVar(Nm,FullNm,Lc,Tp,.none,Dict).
     .cnsDec(Lc,Nm,FullNm,Tp) =>
       declareConstructor(Nm,FullNm,Lc,Tp,Dict).
   }
@@ -223,11 +207,11 @@ star.compiler.dict.mgt{
   pushSig(.faceType(Vrs,Tps),Lc,Mkr,Env) =>
     pushTypes(Tps,Lc,pushFlds(Vrs,Lc,Mkr,Env)).
   
-  public pushFace:(tipe,option[locn],dict) => dict.
-  pushFace(Tp,Lc,Env) =>
+  public pushFace:(tipe,option[locn],dict,string) => dict.
+  pushFace(Tp,Lc,Env,Path) =>
     pushSig(Tp,Lc,(Id,T,E) where (_,DQ).=deQuant(T) => (_ ?= isConsType(DQ) ??
-	declareConstructor(Id,Id,Lc,T,E) ||
-	declareVar(Id,Lc,T,.none,E)),
+	declareConstructor(Id,qualifiedName(Path,.valMark,Id),Lc,T,E) ||
+	declareVar(Id,qualifiedName(Path,.valMark,Id),Lc,T,.none,E)),
       Env).
   
   pushFlds:(cons[(string,tipe)],option[locn],(string,tipe,dict)=>dict,dict) => dict.
@@ -246,7 +230,7 @@ star.compiler.dict.mgt{
       where ConTp .= mkConType(N,T,D) &&
       ConNm.=implementationName(conTract(N,T,D)) =>
     declareConstraints(Lc,Cx,
-      declareVar(ConNm,Lc,ConTp,.none,
+      declareVar(ConNm,ConNm,Lc,ConTp,.none,
 	declareImplementation(Lc,ConNm,ConNm,ConTp,Env))).
   declareConstraints(Lc,[_,..Cx],Env) =>
     declareConstraints(Lc,Cx,Env).

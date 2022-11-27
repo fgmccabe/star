@@ -69,7 +69,7 @@ test.rb0{
     assert u0[12] == .none;
 
     show u12();
-    assert u1[12] == some("d");
+    assert u1[12] == .some("d");
 
     show zip(["a","b","c","d","e","f","g","h","i"],0,1,[]);
 

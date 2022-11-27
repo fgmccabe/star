@@ -132,14 +132,14 @@ star.compiler.meta{
 
   public implementation display[decl] => {
     disp(Dc) => case Dc in {
-      .implDec(_,Nm,ImplNm,ImplTp) => "Impl #(Nm)~#(ImplNm)\:$(ImplTp)".
+      .implDec(_,Nm,ImplNm,ImplTp) => "Impl #(Nm)[#(ImplNm)]\:$(ImplTp)".
       .accDec(_,Tp,Fld,Fun,FunTp) => "Acc $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
       .updDec(_,Tp,Fld,Fun,FunTp) => "Upd $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
       .conDec(_,Nm,_,RlTp) => "Ctrct #(Nm)\:$(RlTp)".
       .tpeDec(_,Nm,Tp,_) => "Type #(Nm)\::$(Tp)".
-      .varDec(_,Nm,FullNm,Tp) => "Var #(FullNm)\:$(Tp)".
-      .funDec(_,Nm,FullNm,Tp) => "Fun #(FullNm)\:$(Tp)".
-      .cnsDec(_,Nm,FullNm,Tp) => "Con #(FullNm)\:$(Tp)".
+      .varDec(_,Nm,FullNm,Tp) => "Var #(Nm)[#(FullNm)]\:$(Tp)".
+      .funDec(_,Nm,FullNm,Tp) => "Fun #(Nm)[#(FullNm)]\:$(Tp)".
+      .cnsDec(_,Nm,FullNm,Tp) => "Con #(Nm)[#(FullNm)]\:$(Tp)".
     }
   }
 

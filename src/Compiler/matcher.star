@@ -148,9 +148,10 @@ star.compiler.matcher{
     (cons[triple[e]],cons[cExp],option[locn],e,integer,nameMap)=>e.
   matchScalars(Seg,[V,..Vrs],Lc,Deflt,Depth,Map) => valof{
     ST = sort(Seg,compareScalarTriple);
+--    logMsg("Sorted triples: $(ST)");
     Cases = formCases(ST,sameScalarTriple,Lc,Vrs,Deflt,Depth+1,Map);
-    logMsg("scalar cases: $(Cases)");
-    valis trace mkCase(Lc,V,Cases,Deflt)
+--    logMsg("Scalar cases: $(Cases)");
+    valis mkCase(Lc,V,Cases,Deflt)
   }
 
   matchConstructors:all e ~~ reform[e],rewrite[e],display[e] |:
@@ -230,8 +231,9 @@ star.compiler.matcher{
   formCases([],_,_,_,_,_,_) => [].
   formCases([Tr,..Triples],Eq,Lc,Vrs,Deflt,Depth,Map) => valof{
     (Tx,More) = pickMoreCases(Tr,Triples,Eq,[],[]);
+--    logMsg("More cases for $(Tr)\:$(Tx)");
     Case = formCase(Tr,sort([Tr,..Tx],compareTriple),Lc,Vrs,Deflt,Depth,Map);
-    valis [Case,..formCases(sort(More,compareTriple),Eq,Lc,Vrs,Deflt,Depth,Map)].
+    valis [Case,..formCases(More,Eq,Lc,Vrs,Deflt,Depth,Map)].
   }
 
   formCase:all e ~~ reform[e],rewrite[e],display[e] |: (triple[e],cons[triple[e]],option[locn],cons[cExp],e,integer,nameMap) => cCase[e].

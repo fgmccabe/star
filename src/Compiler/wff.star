@@ -368,6 +368,8 @@ star.compiler.wff{
 
   public mkEnumCon(Lc,Op,Args) => unary(Lc,".",roundTerm(Lc,Op,Args)).
 
+  public mkCon(Lc,Op,Args) => unary(Lc,".",roundTerm(Lc,nme(Lc,Op),Args)).
+
   public isSearch(A) where (Lc,P,G) ?= isBinary(A,"in") &&
       ~ .app(_,.nme(_,"let"),Body) .= P => .some((Lc,P,G)).
   isSearch(_) default => .none.
@@ -546,8 +548,8 @@ star.compiler.wff{
       (Lc,I) ?= isUnary(A,".access") => isImplSpec(Lc,[],[],I).
   isAccessorStmt(_) default => .none.
 
-  public mkAccessorStmt:(option[locn],cons[ast],cons[ast],ast,ast) => ast.
-  mkAccessorStmt(Lc,Q,Cx,T,E) =>
+  public mkAccessorStmt:(option[locn],cons[ast],cons[ast],cons[ast],ast,ast) => ast.
+  mkAccessorStmt(Lc,Q,XQ,Cx,T,E) =>
     unary(Lc,".access",reUQuant(Lc,Q,reConstrain(Cx,binary(Lc,"=>",T,E)))).
 
   public isUpdaterStmt:(ast) => option[(option[locn],cons[ast],cons[ast],ast,ast)].
@@ -555,8 +557,8 @@ star.compiler.wff{
       (Lc,I) ?= isUnary(A,".update") => isImplSpec(Lc,[],[],I).
   isUpdaterStmt(_) default => .none.
 
-  public mkUpdaterStmt:(option[locn],cons[ast],cons[ast],ast,ast) => ast.
-  mkUpdaterStmt(Lc,Q,Cx,T,E) =>
+  public mkUpdaterStmt:(option[locn],cons[ast],cons[ast],cons[ast],ast,ast) => ast.
+  mkUpdaterStmt(Lc,Q,XQ,Cx,T,E) =>
     unary(Lc,".update",reUQuant(Lc,Q,reConstrain(Cx,binary(Lc,"=>",T,E)))).
 
   public typeName:(ast)=>string.

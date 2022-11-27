@@ -11,7 +11,7 @@ test.lt2a{
 
   eqR ::= .eqR((eqR,js,js)=>boolean).
 
-  eqr = eqR(equalJ).
+  eqr = .eqR(equalJ).
   
   equalJ:(eqR,js,js)=>boolean.
   equalJ(_,.jN,.jN) => .true.

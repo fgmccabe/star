@@ -79,7 +79,7 @@ star.compiler.constraints{
 
   extractFieldConstraints((_,T),Dict,Cnx) => extractTermConstraints(T,Dict,Cnx).
 
-  extractDefConstraints(varDef(Lc,_,_,T,Cx,_),Dict,Cnx) => valof action{
+  extractDefConstraints(varDef(Lc,_,T,Cx,_),Dict,Cnx) => valof action{
     DD .= defineCVars(Lc,Cx,Dict);
     valis foldRight((Cn,Cons) => extractConstraint(Cn,Lc,DD,Cons),
       extractTermConstraints(T,DD,Cnx),Cx)

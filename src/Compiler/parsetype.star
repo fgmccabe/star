@@ -171,8 +171,12 @@ star.compiler.typeparse{
   parseTypeFields(Q,[],Flds,Tps,_) => (Flds,Tps).
   parseTypeFields(Q,[A,..L],Flds,Tps,Env) where _ ?= isAnnotation(A) =>
     parseTypeFields(Q,L,Flds,Tps,Env).
-  parseTypeFields(Q,[F,..L],Flds,Tps,Env) => valof{
-    (FF,TT) = parseTypeField(Q,F,Flds,Tps,Env);
+  parseTypeFields(Q,[A,..L],Flds,Tps,Env) where _ ?= isTypeAnnotation(A) => valof{
+    (FF,TT) = parseTypeField(Q,A,Flds,Tps,Env);
+    valis parseTypeFields(Q,L,FF,TT,Env)
+  }
+  parseTypeFields(Q,[A,..L],Flds,Tps,Env) where _ ?= isTypeStatement(A) => valof{
+    (FF,TT) = parseTypeField(Q,A,Flds,Tps,Env);
     valis parseTypeFields(Q,L,FF,TT,Env)
   }
 
@@ -186,17 +190,15 @@ star.compiler.typeparse{
       valis ([],[])
     }
   }
-  parseTypeField(Q,F,Flds,Tps,Env) where
-      (_,A)?=isUnary(F,"type") &&
-      (_,Lhs,Rhs) ?= isTypeAnnotation(A) => valof{
-	if (ILc,Nm) ?= isName(Lhs) then {
-	  FTp=parseType(Q,Rhs,Env);
-	  valis (Flds,[(Nm,FTp),..Tps])
-	} else{
-	  reportError("invalid lhs -- $(Lhs) -- of type annotation",locOf(Lhs));
-	  valis ([],[])
-	}
-      }.
+  parseTypeField(Q,F,Flds,Tps,Env) where (Lc,Lhs,Rhs) ?= isTypeStatement(F) => valof{
+    if (ILc,Nm) ?= isName(Lhs) then {
+      FTp=parseType(Q,Rhs,Env);
+      valis (Flds,[(Nm,FTp),..Tps])
+    } else{
+      reportError("invalid lhs -- $(Lhs) -- of type annotation",locOf(Lhs)); -- 
+      valis ([],[])
+    }
+  }.
   parseTypeField(Q,F,Flds,Tps,Env) => valof{
     reportError("invalid type field -- $(F)",locOf(F));
     valis ([],[])
@@ -382,9 +384,13 @@ star.compiler.typeparse{
       
   parseConstructor:(string,ast,dict,string) => (cons[canonDef],cons[decl]).
   public parseConstructor(Nm,St,Env,Path) => valof{
+    if traceCanon! then
+      logMsg("parse constructor $(St)");
     Tp = parseType([],St,Env);
     Lc = locOf(St);
     FullNm = qualifiedName(Path,.conMark,Nm);
+    if traceCanon! then
+      logMsg("qualifed name of $(St) is $(FullNm)");
     valis ([cnsDef(Lc,Nm,FullNm,Tp)],
       [cnsDec(Lc,Nm,FullNm,Tp)])
   }

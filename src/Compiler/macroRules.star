@@ -312,15 +312,15 @@ star.compiler.macro.rules{
 
   -- quoteAst creates an ast that checks to a quoted form of the ast itself
   quoteAst(E) where (_,X) ?= isUnary(E,"?") => X.
-  quoteAst(.nme(Lc,Nm)) => unary(Lc,"_name",.str(Lc,Nm)).
-  quoteAst(.qnm(Lc,Nm)) => unary(Lc,"_qnme",.str(Lc,Nm)).
-  quoteAst(.int(Lc,Nx)) => unary(Lc,"_integer",.int(Lc,Nx)).
-  quoteAst(.num(Lc,Nx)) => unary(Lc,"_float",.num(Lc,Nx)).
-  quoteAst(.chr(Lc,Cx)) => unary(Lc,"_char",.chr(Lc,Cx)).
-  quoteAst(.str(Lc,Sx)) => unary(Lc,"_string",.str(Lc,Sx)).
-  quoteAst(.tpl(Lc,Nm,Els)) => binary(Lc,"_tuple",.str(Lc,Nm),
-    macroListEntries(Lc,Els,genNil,genCons)).
-  quoteAst(.app(Lc,Op,Arg)) => binary(Lc,"_apply",quoteAst(Op),quoteAst(Arg)).
+  quoteAst(.nme(Lc,Nm)) => mkCon(Lc,"_name",[.str(Lc,Nm)]).
+  quoteAst(.qnm(Lc,Nm)) => mkCon(Lc,"_qnme",[.str(Lc,Nm)]).
+  quoteAst(.int(Lc,Nx)) => mkCon(Lc,"_integer",[.int(Lc,Nx)]).
+  quoteAst(.num(Lc,Nx)) => mkCon(Lc,"_float",[.num(Lc,Nx)]).
+  quoteAst(.chr(Lc,Cx)) => mkCon(Lc,"_char",[.chr(Lc,Cx)]).
+  quoteAst(.str(Lc,Sx)) => mkCon(Lc,"_string",[.str(Lc,Sx)]).
+  quoteAst(.tpl(Lc,Nm,Els)) => mkCon(Lc,"_tuple",[.str(Lc,Nm),
+      macroListEntries(Lc,Els//quoteAst,genNil,genCons)]).
+  quoteAst(.app(Lc,Op,Arg)) => mkCon(Lc,"_apply",[quoteAst(Op),quoteAst(Arg)]).
   
   /*
   for P in C do B
@@ -478,31 +478,32 @@ star.compiler.macro.rules{
 
   makeAlgebraic:(option[locn],visibility,cons[ast],cons[ast],ast,ast) => cons[ast].
   makeAlgebraic(Lc,Vz,Q,Cx,H,Rhs) => valof{
-    (Qs,Xs,Face) = algebraicFace(Rhs,Q,[]);
+    (Qs,Xs,Face,Types) = algebraicFace(Rhs,Q,[]);
     Fields = sort(Face,compEls);
---    logMsg("algebraic fields $(Fields)");
-    TpExSt = reveal(reUQuant(Lc,Qs,reConstrain(Cx,binary(Lc,"<~",H,reXQuant(Lc,Xs,brTuple(Lc,Fields))))),Vz);
---    logMsg("Type rule is $(TpExSt)");
+    FFields = sort(Types,compEls);
+    TpExSt = reveal(reUQuant(Lc,Qs,reConstrain(Cx,binary(Lc,"<~",H,reXQuant(Lc,Xs,brTuple(Lc,Fields++FFields))))),Vz);
+    logMsg("Type rule is $(TpExSt)");
     Cons = buildConstructors(Rhs,Q,Cx,H,Vz);
 --    logMsg("Constructors are $(Cons)");
-    Accs = buildAccessors(Rhs,Q,Cx,H,typeName(H),Fields,Vz);
+    Accs = buildAccessors(Rhs,Q,Xs,Cx,H,typeName(H),Fields,Vz);
 --    logMsg("Accessors are $(Accs)");
-    Ups = buildUpdaters(Rhs,Q,Cx,H,typeName(H),Fields,Vz);
+    Ups = buildUpdaters(Rhs,Q,Xs,Cx,H,typeName(H),Fields,Vz);
 --    logMsg("Updaters are $(Ups)");
     valis [TpExSt,..Cons++Accs++Ups]
   }
 
-  algebraicFace:(ast,cons[ast],cons[ast]) => (cons[ast],cons[ast],cons[ast]).
+  algebraicFace:(ast,cons[ast],cons[ast]) => (cons[ast],cons[ast],cons[ast],cons[ast]).
   algebraicFace(A,Qs,Xs) where (_,L,R) ?= isBinary(A,"|") => valof{
-    (Q1,X1,Lhs) = algebraicFace(L,Qs,Xs);
-    (Qx,Xx,Rhs) = algebraicFace(R,Q1,X1);
+    (Q1,X1,Lhs,T1) = algebraicFace(L,Qs,Xs);
+    (Qx,Xx,Rhs,T2) = algebraicFace(R,Q1,X1);
     Fs = combineFaces(Lhs,Rhs);
-    valis (Qx,Xx,Fs)
+    Ts = combineTypes(T1,T2);
+    valis (Qx,Xx,Fs,Ts)
   }
-  algebraicFace(A,Qs,Xs) where (Lc,_,_) ?= isRoundTerm(A) => (Qs,Xs,[]).
-  algebraicFace(A,Qs,Xs) where (Lc,_) ?= isEnumSymb(A) => (Qs,Xs,[]).
-  algebraicFace(A,Qs,Xs) where (Lc,_,_) ?= isEnumCon(A) => (Qs,Xs,[]).
-  algebraicFace(A,Qs,Xs) where (Lc,_,Els) ?= isBrTerm(A) => (Qs,Xs,Els^/((E)=>_?=isTypeAnnotation(E))).
+  algebraicFace(A,Qs,Xs) where (Lc,_,_) ?= isRoundTerm(A) => (Qs,Xs,[],[]).
+  algebraicFace(A,Qs,Xs) where (Lc,_) ?= isEnumSymb(A) => (Qs,Xs,[],[]).
+  algebraicFace(A,Qs,Xs) where (Lc,_,_) ?= isEnumCon(A) => (Qs,Xs,[],[]).
+  algebraicFace(A,Qs,Xs) where (Lc,_,Els) ?= isBrTerm(A) => (Qs,Xs,Els^/((E)=>_?=isTypeAnnotation(E)),Els^/((E)=>_?=isTypeStatement(E))).
   algebraicFace(A,Qs,Xs) where (_,I) ?= isPrivate(A) =>
     algebraicFace(I,Qs,Xs).
   algebraicFace(A,Qs,Xs) where (_,I) ?= isPublic(A) =>
@@ -513,7 +514,7 @@ star.compiler.macro.rules{
     algebraicFace(I,Qs\/A0,Xs).
   algebraicFace(A,Qs,Xs) default => valof{
     reportError("invalid case in algebraic type",locOf(A));
-    valis (Qs,Xs,[])
+    valis (Qs,Xs,[],[])
   }
 
   combineFaces([],F2) => F2.
@@ -521,6 +522,14 @@ star.compiler.macro.rules{
   combineFaces([F,..Fs],Gs) where (Lc,Id,Tp)?=isTypeAnnotation(F) => valof{
     G1 = mergeField(Lc,Id,Tp,Gs);
     Fs1 = combineFaces(Fs,G1);
+    valis [F,..Fs1]
+  }
+
+  combineTypes([],F2) => F2.
+  combineTypes(F1,[]) => F1.
+  combineTypes([F,..Fs],Gs) where (Lc,Id,Tp)?=isTypeStatement(F) => valof{
+    G1 = mergeField(Lc,Id,Tp,Gs);
+    Fs1 = combineTypes(Fs,G1);
     valis [F,..Fs1]
   }
 
@@ -579,8 +588,9 @@ star.compiler.macro.rules{
       }.
   buildConstructors(A,Qs,Cx,Tp,Vz) where
       (Lc,Nm,XQs,XCx,Es) ?= isBraceCon(A) => valof{
-	Els = sort(Es^/((E)=>_?=isTypeAnnotation(E)),compEls);
---	logMsg("constructor els $(Els)");
+	Fs = sort(Es^/((E)=>_?=isTypeAnnotation(E)),compEls);
+	Ts = sort(Es^/((E)=>_?=isTypeStatement(E)),compEls);
+	Els = Fs++Ts;
 	BCon = typeAnnotation(Lc,Nm,reUQuant(Lc,Qs,
 	  reConstrain(Cx,
 	      binary(Lc,"<=>",reXQuant(Lc,XQs,
@@ -622,6 +632,9 @@ star.compiler.macro.rules{
   compEls(A,B) where
       (_,N1,_) ?= isTypeAnnotation(A) && (_,Nm1) ?= isName(N1) &&
       (_,N2,_) ?= isTypeAnnotation(B) && (_,Nm2) ?= isName(N2) => Nm1<Nm2.
+  compEls(A,B) where
+      (_,N1,_) ?= isTypeStatement(A) && (_,Nm1) ?= isName(N1) &&
+      (_,N2,_) ?= isTypeStatement(B) && (_,Nm2) ?= isName(N2) => Nm1<Nm2.
   compEls(_,_) default => .false.
 
   reveal(A,.priVate) => unary(locOf(A),"private",A).
@@ -655,23 +668,23 @@ star.compiler.macro.rules{
   isCon(_,_) default => .none.
 
 
-  buildAccessors:(ast,cons[ast],cons[ast],ast,string,cons[ast],visibility)=>cons[ast].
-  buildAccessors(Rhs,Q,Cx,H,TpNm,Fields,Vz) =>
-    (Fields//((F)=>makeAccessor(F,TpNm,Rhs,Q,Cx,H,Vz)))*.
+  buildAccessors:(ast,cons[ast],cons[ast],cons[ast],ast,string,cons[ast],visibility)=>cons[ast].
+  buildAccessors(Rhs,Q,XQ,Cx,H,TpNm,Fields,Vz) =>
+    (Fields//((F)=>makeAccessor(F,TpNm,Rhs,Q,XQ,Cx,H,Vz)))*.
 
-  buildUpdaters:(ast,cons[ast],cons[ast],ast,string,cons[ast],
+  buildUpdaters:(ast,cons[ast],cons[ast],cons[ast],ast,string,cons[ast],
     visibility)=>cons[ast].
-  buildUpdaters(Rhs,Q,Cx,H,TpNm,Fields,Vz) =>
-    (Fields//((F)=>makeUpdater(F,TpNm,Rhs,Q,Cx,H,Vz)))*.
+  buildUpdaters(Rhs,Q,XQ,Cx,H,TpNm,Fields,Vz) =>
+    (Fields//((F)=>makeUpdater(F,TpNm,Rhs,Q,XQ,Cx,H,Vz)))*.
   
-  makeAccessor:(ast,string,ast,cons[ast],cons[ast],ast,visibility) => cons[ast].
-  makeAccessor(Annot,TpNm,Cns,Q,Cx,H,Vz) where (Lc,Fld,FldTp)?=isTypeAnnotation(Annot) =>
+  makeAccessor:(ast,string,ast,cons[ast],cons[ast],cons[ast],ast,visibility) => cons[ast].
+  makeAccessor(Annot,TpNm,Cns,Q,XQ,Cx,H,Vz) where (Lc,Fld,FldTp)?=isTypeAnnotation(Annot) =>
     valof{
       AcEqs = accessorEqns(Cns,Fld,FldTp,[]);
       AccessHead = squareTerm(Lc,Fld,[mkDepends(Lc,[H],[FldTp])]);
       Gv = nme(Lc,"G");
       
-      valis [mkAccessorStmt(Lc,Q,Cx,AccessHead,
+      valis [mkAccessorStmt(Lc,Q,XQ,Cx,AccessHead,
 	  equation(Lc,rndTuple(Lc,[Gv]),mkCaseExp(Lc,Gv,AcEqs)))]
     }.
 
@@ -705,13 +718,13 @@ star.compiler.macro.rules{
     [mkAnon(Lc),..projectArgTypes(As,X,F)].
   projectArgTypes([_,..As],X,F) => projectArgTypes(As,X,F).
 
-  makeUpdater:(ast,string,ast,cons[ast],cons[ast],ast,visibility) => cons[ast].
-  makeUpdater(Annot,TpNm,Cns,Q,Cx,H,Vz) where (Lc,Fld,FldTp)?=isTypeAnnotation(Annot) => valof{
+  makeUpdater:(ast,string,ast,cons[ast],cons[ast],cons[ast],ast,visibility) => cons[ast].
+  makeUpdater(Annot,TpNm,Cns,Q,XQ,Cx,H,Vz) where (Lc,Fld,FldTp)?=isTypeAnnotation(Annot) => valof{
     UpEqs = updaterEqns(Cns,Fld,[]);
     AccessHead = squareTerm(Lc,Fld,[mkDepends(Lc,[H],[FldTp])]);
     Gv = nme(Lc,"G");
 
-    valis [mkUpdaterStmt(Lc,Q,Cx,AccessHead,
+    valis [mkUpdaterStmt(Lc,Q,XQ,Cx,AccessHead,
 	equation(Lc,rndTuple(Lc,[Gv,nme(Lc,"XX")]),mkCaseExp(Lc,Gv,UpEqs)))]
   }
 

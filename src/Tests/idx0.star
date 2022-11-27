@@ -64,7 +64,7 @@ test.idx0{
     assert u1[5]==.none;
     assert u0[12] == .none;
 
-    assert u1[12] == some("d");
+    assert u1[12] == .some("d");
 
     show zip(["a","b","c","d","e","f","g","h","i"],0,1,[]);
 
