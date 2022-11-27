@@ -9,6 +9,7 @@ star.compiler.normalize.meta{
   import star.compiler.misc.
   import star.compiler.data.
   import star.compiler.types.
+  import star.compiler.location.
 
   public consMap ~> cons[(termLbl,tipe,integer)].
 
@@ -127,11 +128,11 @@ star.compiler.normalize.meta{
   mkConsLbl(Nm,Tp) => tLbl(Nm,arity(Tp)).
 
   declMdlGlobal(.funDec(Lc,Nm,FullNm,Tp),Map) =>
-    Map[Nm->moduleFun(cVar(Lc,cId(FullNm,Tp)),FullNm)].
+    Map[FullNm->moduleFun(.cTerm(Lc,closureNm(FullNm),[crTpl(Lc,[])],Tp),FullNm)].
   declMdlGlobal(.varDec(Lc,Nm,FullNm,Tp),Map) =>
-    Map[Nm->globalVar(FullNm,Tp)].
+    Map[FullNm->globalVar(FullNm,Tp)].
   declMdlGlobal(.cnsDec(Lc,Nm,FullNm,Tp),Map) =>
-    Map[Nm->moduleCons(FullNm,Tp)].
+    Map[FullNm->moduleCons(FullNm,Tp)].
   declMdlGlobal(_,Map) => Map.
 
   public extendFunTp:all x ~~ hasType[x] |: (tipe,option[x])=>tipe.
@@ -155,6 +156,17 @@ star.compiler.normalize.meta{
     check(.memoArg(_,ThV,Ix,_))=>.some(Ix).
     check(_) default => .none
   } in check.
-  
+
+  public crTpl:(option[locn],cons[cExp]) => cExp.
+  crTpl(Lc,Args) => let{
+    Tp = typeOf(Args).
+    Ar = size(Args).
+  } in .cTerm(Lc,tplLbl(Ar),Args,Tp).
+
+  public closureNm:(string)=>string.
+  closureNm(Nm)=>Nm++"^".
+
+  public varClosureNm:(string)=>string.
+  varClosureNm(Nm) => Nm++"$".
 }
   

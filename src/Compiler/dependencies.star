@@ -360,11 +360,11 @@ star.compiler.dependencies{
     collectTermRefs(L,All,Rf).
   collectTermRefs(T,All,Rf) where (_,L,Stmts) ?= isLabeledTheta(T) => valof{
     Rf1 = collectStmtsRefs(Stmts,All,[],Rf);
-    valis collectTermRefs(L,All,Rf1)
+    valis collectTermRefs(dollarName(L),All,collectTermRefs(L,All,Rf1))
   }
   collectTermRefs(T,All,Rf) where (_,L,Stmts) ?= isLabeledRecord(T) => valof{
     Rf1 = collectStmtsRefs(Stmts,All,[],Rf);
-    valis collectTermRefs(L,All,Rf1)
+    valis collectTermRefs(dollarName(L),All,collectTermRefs(L,All,Rf1))
   }
   collectTermRefs(.int(_,_),_,Rf) => Rf.
   collectTermRefs(.big(_,_),_,Rf) => Rf.

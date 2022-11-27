@@ -3,7 +3,7 @@ test.st{
   import star.script.
 
   hs:(string) => option[char].
-  hs([H,..T]) => some(H).
+  hs([H,..T]) => .some(H).
   hs(_) default => .none.
 
   main:() => ().

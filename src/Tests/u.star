@@ -15,7 +15,7 @@ test.u{
     tt();
 
     assert parse(uriParse,"http://foo.bar.com?query"::cons[char]) ==
-      [(absUri("http",netRsrc(server(.none,host("foo.bar.com")),relPath([""])),qry("query")),[])];
+      [(.absUri("http",.netRsrc(.server(.none,.host("foo.bar.com")),.relPath([""])),.qry("query")),[])];
 
     valis ()
   }

@@ -16,10 +16,8 @@ star.compiler.unify{
     resets = ref [].
 
     resetBindings() => valof{
-      for Rx in resets! do{
-	if .resetVar(BndVr) .= Rx then {
-	  resetBinding(BndVr)
-	}
+      for .resetVar(BndVr) in resets! do{
+	resetBinding(BndVr)
       };
       valis .false
     }

@@ -53,6 +53,7 @@ star.compiler.freevars{
     .neg(_,R) => freeVarsInCond(Exp,Excl,Q,Fv).
     .trycatch(_,E,_,H,_) => freeVarsInExp(E,Excl,Q,
       foldRight((Rl,F)=>freeVarsInRule(Rl,freeVarsInExp,Excl,Q,F),Fv,H)).
+    .thrw(_,E,_) => freeVarsInExp(E,Excl,Q,Fv).
     .lambda(_,_,Eqns,_) =>
       foldRight((Rl,F)=>freeVarsInRule(Rl,freeVarsInExp,Excl,Q,F),Fv,Eqns).
     .letExp(_,D,_,E) => let{
@@ -93,7 +94,7 @@ star.compiler.freevars{
     }.
     .doCase(_,G,Cs) =>
       foldLeft((Rl,F)=>freeVarsInRule(Rl,freeVarsInAct,Excl,Q,F), freeVarsInExp(G,Excl,Q,Fv), Cs).
-    .doWhile(_,C,B) where Excl1 .= glVars(C,Excl) =>
+    .doWhile(_,C,B) where Excl1 .= condVars(C,Excl) =>
       freeVarsInAct(B,Excl1,Q,freeVarsInCond(C,Excl1,Q,Fv)).
     .doLet(_,Dfs,_,A) => valof{
       XX = exclDfs(Dfs,Excl,Fv);
@@ -160,7 +161,7 @@ star.compiler.freevars{
   } in foldLeft((D,F)=>freeVarsInDef(D,[],Q,F),freeVarsInExp(Bnd,Excl1,Q,[]),Defs).
 
   freeVarsInDef:(canonDef,set[cId],set[cId],set[cId])=>set[cId].
-  freeVarsInDef(.varDef(_,_,_,E,_,_),Excl,Q,Fv) =>
+  freeVarsInDef(.varDef(_,_,E,_,_),Excl,Q,Fv) =>
     freeVarsInExp(E,Excl,Q,Fv).
   freeVarsInDef(.implDef(_,_,_,Val,_,_),Excl,Q,Fv) =>
     freeVarsInExp(Val,Excl,Q,Fv).
@@ -175,52 +176,51 @@ star.compiler.freevars{
   exclDfs:(cons[canonDef],set[cId],set[cId])=>set[cId].
   exclDfs(Defs,Excl,Fv) => foldRight((D,Ex)=>exclDf(D,Ex,Fv),Excl,Defs).
 
-  exclDf(.varDef(Lc,Nm,_,Val,_,Tp),Excl,Fv) => Excl\+cId(Nm,Tp).
+  exclDf(.varDef(Lc,Nm,Val,_,Tp),Excl,Fv) => Excl\+cId(Nm,Tp).
   exclDf(.implDef(Lc,Nm,FullNm,Val,Cx,Tp),Excl,Fv) => Excl\+cId(Nm,Tp).
   exclDf(_,Excl,_) => Excl.
 
-  public glVars:(canon,set[cId]) => set[cId].
-  glVars(.whr(_,E,C),Vrs) =>
-    glVars(C,glVars(E,Vrs)).
-  glVars(.cond(_,T,L,R),Vrs) => glVars(L,glVars(T,Vrs))/\ glVars(R,Vrs).
-  glVars(.tple(_,Els),Vrs) =>
-    foldRight((E,F)=>glVars(E,F),Vrs,Els).
-  glVars(.match(_,P,S),Vrs) => ptnVars(P,Vrs,[]).
-  glVars(.conj(Lc,L,R),Vrs) => glVars(R,glVars(L,Vrs)).
-  glVars(.disj(Lc,L,R),Vrs) => glVars(L,Vrs)/\glVars(R,Vrs).
-  glVars(.neg(Lc,R),Vrs) => Vrs.
-  glVars(_,Vrs) default => Vrs.
+  public condVars:(canon,set[cId]) => set[cId].
+  condVars(.whr(_,E,C),Vrs) =>
+    condVars(C,condVars(E,Vrs)).
+  condVars(.cond(_,T,L,R),Vrs) => condVars(L,condVars(T,Vrs))/\ condVars(R,Vrs).
+  condVars(.tple(_,Els),Vrs) =>
+    foldRight((E,F)=>condVars(E,F),Vrs,Els).
+  condVars(.match(_,P,S),Vrs) => ptnVars(P,Vrs,[]).
+  condVars(.conj(Lc,L,R),Vrs) => condVars(R,condVars(L,Vrs)).
+  condVars(.disj(Lc,L,R),Vrs) => condVars(L,Vrs)/\condVars(R,Vrs).
+  condVars(.neg(Lc,R),Vrs) => Vrs.
+  condVars(_,Vrs) default => Vrs.
   
   public ptnVars:(canon,set[cId],set[cId]) => set[cId].
-  ptnVars(Exp,Excl,Fv) => case Exp in {
-    .anon(_,_) => Fv.
-    .vr(Lc,Nm,Tp) => ({? .cId(Nm,Tp) in Excl ?} || {? .cId(Nm,_) in Fv ?}) ??
-      Excl ||
-      Excl\+.cId(Nm,Tp).
-    .intr(_,_) => Excl.
-    .flt(_,_) => Excl.
-    .kar(_,_) => Excl.
-    .strng(_,_) => Excl.
-    .enm(_,_,_) => Excl.
-    .dot(_,Rc,_,_) => ptnVars(Rc,Excl,Fv).
-    .mtd(_,_,_) => Excl.
-    .over(_,V,_) => ptnVars(V,Excl,Fv).
-    .overaccess(_,V,_,_,_) => ptnVars(V,Excl,Fv).
-    .whr(_,E,C) => glVars(C,ptnVars(E,Excl,Fv)).
-    .cond(_,T,L,R) => ptnVars(L,ptnVars(T,Excl,Fv),Fv)/\ ptnVars(R,Excl,Fv).
-    .apply(_,O,A,_) => ptnTplVars(A,Excl,Fv).
-    .tple(_,Els) => ptnTplVars(Els,Excl,Fv).
-    .match(_,P,S) => ptnVars(S,ptnVars(P,Excl,Fv),Fv).
-    .conj(Lc,L,R) => ptnVars(R,ptnVars(L,Excl,Fv),Fv).
-    .disj(Lc,L,R) => ptnVars(L,Excl,Fv)/\ptnVars(R,Excl,Fv).
-    .neg(Lc,R) => Excl.
-    .lambda(_,_,_,_) => Excl.
-    .letExp(_,B,_,E) => Excl.
-    .letRec(_,B,_,E) => Excl.
+  ptnVars(Exp,Q,Fv) => case Exp in {
+    .anon(_,_) => Q.
+    .vr(Lc,Nm,Tp) => 
+      {? .cId(Nm,Tp) in Q || .cId(Nm,_) in Fv ?} ?? Q || Q\+.cId(Nm,Tp).
+    .intr(_,_) => Q.
+    .flt(_,_) => Q.
+    .kar(_,_) => Q.
+    .strng(_,_) => Q.
+    .enm(_,_,_) => Q.
+    .dot(_,Rc,_,_) => ptnVars(Rc,Q,Fv).
+    .mtd(_,_,_) => Q.
+    .over(_,V,_) => ptnVars(V,Q,Fv).
+    .overaccess(_,V,_,_,_) => ptnVars(V,Q,Fv).
+    .whr(_,E,C) => condVars(C,ptnVars(E,Q,Fv)).
+    .cond(_,T,L,R) => ptnVars(L,ptnVars(T,Q,Fv),Fv)/\ ptnVars(R,Q,Fv).
+    .apply(_,O,A,_) => ptnTplVars(A,Q,Fv).
+    .tple(_,Els) => ptnTplVars(Els,Q,Fv).
+    .match(_,P,S) => ptnVars(S,ptnVars(P,Q,Fv),Fv).
+    .conj(Lc,L,R) => ptnVars(R,ptnVars(L,Q,Fv),Fv).
+    .disj(Lc,L,R) => ptnVars(L,Q,Fv)/\ptnVars(R,Q,Fv).
+    .neg(Lc,R) => Q.
+    .lambda(_,_,_,_) => Q.
+    .letExp(_,B,_,E) => Q.
+    .letRec(_,B,_,E) => Q.
   }
 
-  ptnTplVars(Els,Excl,Fv) => 
-    foldRight((E,F)=>ptnVars(E,F,Fv),Excl,Els).
+  ptnTplVars:(cons[canon],set[cId],set[cId])=>set[cId].
+  ptnTplVars(Els,Q,Fv) => foldRight((E,F)=>ptnVars(E,F,Fv),Q,Els).
 
   -- Variables that might be introduced in an action
   public actnVars:(canonAction,set[cId]) => set[cId].

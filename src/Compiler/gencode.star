@@ -107,14 +107,14 @@ star.compiler.gencode{
       compExp(Lam,thunkCont(Stk,Cont),ECont,Ctx,Stk).
     .cThGet(Lc,Thnk,Tp) =>
       compExp(Thnk,thGetCont(pushStack(Tp::ltipe,Stk),Ctx.escape,Cont),ECont,Ctx,Stk).
-    .cThrow(Lc,Exp,_) =>
-      compExp(Exp,ECont,abortCont(Lc,"throw"),Ctx,Stk).
+    .cThrow(Lc,E,_) =>
+      compExp(E,ECont,abortCont(Lc,"throw"),Ctx,Stk).
     .cSeq(_,L,R) =>
       compExp(L,resetCont(Stk,expCont(R,Cont,ECont)),ECont,Ctx,Stk).
     .cCnd(Lc,G,L,R) => valof{
       LC = splitCont(Lc,Ctx,expCont(L,Cont,ECont));
       RC = splitCont(Lc,Ctx,expCont(R,Cont,ECont));
-      valis compCond(G,LC,RC,ECont,Ctx,Stk)
+      valis compCond(G,LC,RC,ECont,glCtx(Ctx,G),Stk)
     }.
     .cCase(Lc,Gov,Cases,Deflt,_Tp) =>
       compCase(Lc,Gov,Cases,Deflt,expCont,Cont,ECont,Ctx,Stk).
@@ -128,7 +128,7 @@ star.compiler.gencode{
     .cAbort(Lc,Msg,Tp) =>
       abortCont(Lc,Msg).C(Ctx,Stk,[]).
     .cWhere(Lc,E,C) =>
-      compCond(C,expCont(E,Cont,ECont),ECont,ECont,Ctx,Stk).
+      compCond(C,expCont(E,Cont,ECont),ECont,ECont,glCtx(Ctx,C),Stk).
     .cSusp(Lc,Fb,Ev,Tp) => 
       compExp(Fb,expCont(Ev,suspendCont(pushStack(Tp::ltipe,Stk),Cont),ECont),ECont,Ctx,Stk).
     .cResume(Lc,Fb,Ev,Tp) => 
@@ -141,7 +141,7 @@ star.compiler.gencode{
       (Stk1,BCde) = compExp(B,Cont,dropCont(EStk,jmpCont(CLb,pushStack(Tp::ltipe,Stk))),Ctx1,Stk);
       (Stk2,HCde) = compExp(H,Cont,ECont,Ctx,EStk);
 
-      valis (reconcileStack(Stk1,Stk2),BCde++[.iLbl(CLb),.iStL(EOff)]++HCde)
+      valis (reconcileStack(Stk1,Stk2),BCde++[.iLbl(CLb),.iTL(EOff)]++HCde)
     }.
     .cValof(Lc,A,Tp) => 
       compAction(A,abortCont(Lc,"missing valis action"),Cont,ECont,Ctx,Stk).
@@ -149,7 +149,7 @@ star.compiler.gencode{
       Nx = defineLbl("E",Ctx);
       Stk0 = pushStack(boolType::ltipe,Stk);
       (Stk1,Cde) = compCond(C,trueCont(jmpCont(Nx,Stk0)),
-	falseCont(jmpCont(Nx,Stk0)),ECont,Ctx,Stk);
+	falseCont(jmpCont(Nx,Stk0)),ECont,glCtx(Ctx,C),Stk);
       valis Cont.C(Ctx,Stk1,Cde++[.iLbl(Nx)]) -- fix me
     }.
     C => valof{
@@ -187,8 +187,6 @@ star.compiler.gencode{
     .cCnd(Lc,T,L,R) => valof{
       if traceCodegen! then
 	logMsg("compiling conditional cond $(C)");
---      FC = splitCont(Lc,Ctx,Fail);
---      SC = splitCont(Lc,Ctx,Succ);
       valis compCond(T,condCont(L,Succ,Fail,ECont,Stk),condCont(R,Succ,Fail,ECont,Stk),
 	ECont,Ctx,Stk)
     }.
@@ -261,7 +259,7 @@ star.compiler.gencode{
       
       (Stk2,CCde) = compAction(H,ACont,Cont,ECont,Ctx1,pushStack(ETp::ltipe,Stk));
 
-      valis (reconcileStack(Stk1,Stk2),BCde++[.iLbl(CLb),.iStL(EOff)]++CCde)
+      valis (reconcileStack(Stk1,Stk2),BCde++[.iLbl(CLb),.iTL(EOff)]++CCde)
     }.
     .aRetire(Lc,F,E) => valof{
       valis compExp(F,expCont(E,retireCont(.none),
@@ -803,8 +801,17 @@ star.compiler.gencode{
   argVars:(cons[cId],map[string,srcLoc],integer) => map[string,srcLoc].
   argVars([],Mp,_)=>Mp.
   argVars([.cId(Nm,Tp),..As],Vars,Ix) =>
-    argVars(As,Vars[Nm->argVar(Ix,Tp::ltipe)],Ix+1).
+    argVars(As,Vars[Nm->.argVar(Ix,Tp::ltipe)],Ix+1).
   argVars([_,..As],Map,Ix) => argVars(As,Map,Ix+1).
+
+  glCtx:(codeCtx,cExp) => codeCtx.
+  glCtx(Ctx,Exp) => valof{
+    Vrs = glVars(Exp,[]);
+    valis foldLeft((.cId(Nm,Tp),C)=>snd(defineLclVar(Nm,Tp::ltipe,C)),Ctx,Vrs)
+  }
+
+  cndCtx:(cExp,codeCtx) => codeCtx.
+  cndCtx(E,Ctx) => Ctx.
 
   drop:all x,e ~~ stream[x->>e] |: (x,integer)=>x.
   drop(S,0)=>S.
@@ -813,10 +820,10 @@ star.compiler.gencode{
   dropStack(.none) => .none.
   dropStack(.some([_,..Stk])) => .some(Stk).
 
-  srcLoc ::= lclVar(integer,ltipe) |
-    argVar(integer,ltipe) |
-    glbVar(string,ltipe) |
-    glbFun(termLbl,ltipe).
+  srcLoc ::= .lclVar(integer,ltipe) |
+    .argVar(integer,ltipe) |
+    .glbVar(string,ltipe) |
+    .glbFun(termLbl,ltipe).
 
   codeCtx ::= codeCtx{
     vars : map[string,srcLoc].

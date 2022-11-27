@@ -350,6 +350,7 @@ star.compiler.term{
       .cSusp(Lc,_,_,_) => Lc.
       .cResume(Lc,_,_,_) => Lc.
       .cTry(Lc,_,_,_,_) => Lc.
+      .cThrow(Lc,_,_) => Lc.
       .cValof(Lc,_,_) => Lc.
     }
   }
@@ -387,6 +388,7 @@ star.compiler.term{
       .cSusp(_,_,_,T) => T.
       .cResume(_,_,_,T) => T.
       .cTry(_,_,_,_,T) => T.
+      .cThrow(_,_,T) => T.
       .cValof(_,_,T) => T.
       .cAbort(_,_,T) => T.
       .cVarNmes(_,_,E) => tpOf(E).
@@ -713,7 +715,10 @@ star.compiler.term{
   validE:(cExp,set[cId]) => boolean.
   validE(Exp,Vrs) => case Exp in {
     .cVoid(Lc,Tp) => .true.
-    .cAnon(_,_) => .false.
+    .cAnon(Lc,_) => valof{
+      reportError("anons not allowed in expressions",Lc);
+      valis .false
+    }.
     .cVar(Lc,V) =>  V .<. Vrs ?? .true || valof{
       reportError("variable $(V)\:$(typeOf(V)) not in scope",Lc);
       valis .false
@@ -748,7 +753,10 @@ star.compiler.term{
     .cCase(_,G,Cs,Df,_) => validE(G,Vrs) && validCases(Cs,validE,Vrs) && validE(Df,Vrs).
     .cUnpack(_,G,Cs,_) => validE(G,Vrs) && validCases(Cs,validE,Vrs).
     .cWhere(_,V,E) => validE(V,Vrs) && validE(E,Vrs).
-    .cMatch(_,V,E) => validP(V,Vrs) && validE(E,Vrs).
+    .cMatch(_,V,E) => valof{
+      V1 = glVars(E,Vrs);
+      valis validP(V,V1) && validE(E,V1)
+    }.
     .cVarNmes(_,_,E) => validE(E,Vrs).
     .cAbort(_,_,_) => .true.
     .cSusp(_,Ts,E,_) => validE(Ts,Vrs) && validE(E,Vrs).
@@ -771,7 +779,7 @@ star.compiler.term{
     .cString(_,_) => .true.
     .cFloat(_,_) => .true.
     .cTerm(_,_,Args,_) => {? E in Args *> validP(E,Vrs) ?}.
-    .cWhere(_,P,G) => validP(P,Vrs) && validE(G,Vrs).
+    .cWhere(_,P,G) => validP(P,Vrs) && validE(G,ptnVrs(P,Vrs)).
     _ default => valof{
       reportError("invalid pattern: $(Exp)",locOf(Exp));
       valis .false.
@@ -791,7 +799,7 @@ star.compiler.term{
     .aSeq(_,A1,A2) => valof{
       if .aDefn(_,P,V) .= A1 then{
 	V1 = ptnVrs(P,Vrs);
-	valis validE(P,V1) && validE(V,Vrs) && validA(A2,V1);
+	valis validP(P,V1) && validE(V,Vrs) && validA(A2,V1);
       } else {
 	valis validA(A1,Vrs) && validA(A2,Vrs)
       }
@@ -802,7 +810,8 @@ star.compiler.term{
     .aThrow(_,E) => validE(E,Vrs).
     .aPerf(_,E) => validE(E,Vrs).
     .aSetNth(_,V,_,E) => validE(V,Vrs) && validE(E,Vrs).
-    .aDefn(_,P,E) => validE(P,ptnVrs(P,Vrs)) && validE(E,Vrs).
+    .aDefn(_,P,E) => 
+      validP(P,ptnVrs(P,Vrs)) && validE(E,Vrs).
     .aAsgn(_,L,V) => validE(L,Vrs) && validE(V,Vrs).
     .aCase(_,G,Cs,Df) =>
       validE(G,Vrs) && validCases(Cs,validA,Vrs) && validA(Df,Vrs).
@@ -841,7 +850,7 @@ star.compiler.term{
     .cWhere(_,V,G) => ptnVrs(V,glVars(G,Vrs)).
   }
 
-  glVars:(cExp,set[cId])=>set[cId].
+  public glVars:(cExp,set[cId])=>set[cId].
   glVars(G,Vrs) => case G in {
     .cCnj(_,L,R) => glVars(R,glVars(L,Vrs)).
     .cDsj(_,L,R) => valof{
@@ -967,6 +976,9 @@ star.compiler.term{
 
   public visitE:all a ~~ (cExp,(cExp,a)=>a,(aAction,a)=>a,a) => a.
   visitE(Tr,V,VA,X) => case Tr in {
+    .cAnon(_,_) => V(Tr,X).
+    .cVoid(_,_) => V(Tr,X).
+    .cVar(_,_) => V(Tr,X).
     .cTerm(Lc,Nm,Args,Tp) =>
       visitEls(Args,V,VA,V(Tr,X)).
     .cNth(Lc,R,Ix,Tp) =>

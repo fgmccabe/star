@@ -44,7 +44,7 @@ test.bench{
     timer := timer_start(Count, "Iterating over all elements in cons list");
     for i in (cn_list!) do {
 --      logMsg("cons element: $(i)");
-      empty(some(i))
+      empty(.some(i))
     };
     timer_finish(timer!);
 
@@ -72,7 +72,7 @@ test.bench{
     timer := timer_start(Count, "Iterating over all elements in ideal");
     for (i->_) in (id_list!) do {
 --      logMsg(" element: $(i) = $(El)")
-      empty(some(i))
+      empty(.some(i))
     };
     timer_finish(timer!);
 
@@ -95,7 +95,7 @@ test.bench{
     timer := timer_start(Count, "Iterating over all elements in finger list");
     for i in (fn_list!) do {
 --      logMsg(" element: $(i) = $(El)")
-      empty(some(i))
+      empty(.some(i))
     };
     timer_finish(timer!);
 
@@ -120,7 +120,7 @@ test.bench{
 
     timer := timer_start(Count, "Iterating over all elements in skew list");
     for i in (sk_list!) do {
-      empty(some(i))
+      empty(.some(i))
 --      logMsg("skew element: $(i)")
     };
     timer_finish(timer!);
@@ -148,7 +148,7 @@ test.bench{
 
     timer := timer_start(Count, "Iterating over all elements in red/black list");
     for i->_ in rb_list! do {
-      empty(some(i))
+      empty(.some(i))
 --      logMsg("rb element: $(i)")
     };
     timer_finish(timer!);

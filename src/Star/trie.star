@@ -1,4 +1,4 @@
-trie.star{
+star.trie{
   import star.
 
   public trie[k,v] ::=
@@ -15,11 +15,11 @@ trie.star{
 
   public insertInTrie:all k,v ~~ equality[k],hashable[k] |:
     (cons[k],v,trie[k,v]) => trie[k,v].
-  insertInTrie([],Vl,.trNode(M,_)) => .trNode(M,some(Vl)).
+  insertInTrie([],Vl,.trNode(M,_)) => .trNode(M,.some(Vl)).
   insertInTrie([K,..Ks],V,.trNode(M,Vl)) where Sub ?= M[K] =>
     .trNode(M[K->insertInTrie(Ks,V,Sub)],Vl).
   insertInTrie([K,..Ks],V,.trNode(M,Vl)) =>
-    .trNode(M[K->insertInTrie(Ks,V,trNode([],.none))],Vl).
+    .trNode(M[K->insertInTrie(Ks,V,.trNode([],.none))],Vl).
 
   public subTrie:all k,v ~~ equality[k],hashable[k] |: (trie[k,v]) => map[k,trie[k,v]].
   subTrie(.trNode(M,_)) => M.

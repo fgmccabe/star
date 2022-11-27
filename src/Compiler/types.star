@@ -34,6 +34,7 @@ star.compiler.types{
 
   hasKind:(tipe)=>integer.
   hasKind(Tp) => case Tp in {
+    .voidType => 0.
     .kFun(_,Ar) => Ar.
     .tVar(_,_) => 0.
     .tFun(_,Ar,_) => Ar.

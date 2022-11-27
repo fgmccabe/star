@@ -1,4 +1,4 @@
-test.ar{
+test.br{
   import star.
   import star.script.
 

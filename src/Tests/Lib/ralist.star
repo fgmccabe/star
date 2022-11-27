@@ -17,12 +17,12 @@ test.ralist{
   unconsTree:all e ~~ (cons[digit[e]]) => option[(tree[e],cons[digit[e]])].
   unconsTree(.nil) => .none.
   unconsTree(.cons(.one(t),.nil)) => .some((t,.nil)).
-  unconsTree(.cons(.one(t),ts)) => some((t,.cons(.zer,ts))).
+  unconsTree(.cons(.one(t),ts)) => .some((t,.cons(.zer,ts))).
   unconsTree(.cons(.zer,ts)) where (.node(_,t1,t2),ts1) ?= unconsTree(ts) =>
-    some((t1,.cons(.one(t2),ts1))).
+    .some((t1,.cons(.one(t2),ts1))).
 
   lookupTree:all e ~~ (integer,tree[e]) => option[e].
-  lookupTree(0,.leaf(X)) => some(X).
+  lookupTree(0,.leaf(X)) => .some(X).
   lookupTree(Ix,.leaf(_)) => .none.
   lookupTree(Ix,.node(W,t1,t2)) where Ix<W/2 => lookupTree(Ix,t1).
   lookupTree(Ix,.node(W,t1,t2)) => lookupTree(Ix-W/2,t2).
@@ -107,10 +107,10 @@ test.ralist{
 
   public implementation all e ~~ head[ra[e]->>e] => {
     head(.ra(.nil)) => .none.
-    head(.ra(ts)) where (.leaf(h),_) ?= unconsTree(ts) => some(h).
+    head(.ra(ts)) where (.leaf(h),_) ?= unconsTree(ts) => .some(h).
 
     tail(.ra(.nil)) => .none.
-    tail(.ra(ts)) where (_,tl) ?= unconsTree(ts) => some(.ra(tl)).
+    tail(.ra(ts)) where (_,tl) ?= unconsTree(ts) => .some(.ra(tl)).
   }
 
   public implementation all e ~~ indexed[ra[e]->>integer,e] => {

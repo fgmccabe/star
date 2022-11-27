@@ -39,10 +39,10 @@ star.compiler.resolve{
   }
 
   overloadDef:(canonDef,dict)=>(canonDef,dict).
-  overloadDef(.varDef(Lc,Nm,FullNm,.lambda(_,_,Eqns,_),Cx,Tp),Dict) =>
-    overloadFunction(Dict,Lc,Nm,FullNm,Eqns,Cx,Tp).
-  overloadDef(.varDef(Lc,Nm,FullNm,Val,Cx,Tp),Dict) =>
-    overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp).
+  overloadDef(.varDef(Lc,Nm,.lambda(_,_,Eqns,_),Cx,Tp),Dict) =>
+    overloadFunction(Dict,Lc,Nm,Eqns,Cx,Tp).
+  overloadDef(.varDef(Lc,Nm,Val,Cx,Tp),Dict) =>
+    overloadVarDef(Dict,Lc,Nm,Val,Cx,Tp).
   overloadDef(.implDef(Lc,Nm,FullNm,Val,Cx,Tp),Dict) =>
     overloadImplDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp).
   overloadDef(.typeDef(Lc,Nm,Tp,TpRl),Dict) => (.typeDef(Lc,Nm,Tp,TpRl),Dict).
@@ -53,19 +53,19 @@ star.compiler.resolve{
     valis (Def,Dict)
   }
 
-  overloadFunction:(dict,option[locn],string,string,cons[rule[canon]],cons[constraint],tipe)=>
+  overloadFunction:(dict,option[locn],string,cons[rule[canon]],cons[constraint],tipe)=>
     (canonDef,dict).
-  overloadFunction(Dict,Lc,Nm,FullNm,Eqns,Cx,Tp) => valof{
+  overloadFunction(Dict,Lc,Nm,Eqns,Cx,Tp) => valof{
     (Extra,CDict) = defineCVars(Lc,Cx,[],Dict);
     REqns = Eqns//(Eq)=>resolveEqn(Eq,Extra,CDict);
     (Qx,Qt) = deQuant(Tp);
     (_,ITp) = deConstrain(Qt);
     if .tupleType(AITp).=funTypeArg(ITp) && RITp .= funTypeRes(ITp) then {
       CTp = reQuant(Qx,funType((Cx//typeOf)++AITp,RITp));
-      valis (.varDef(Lc,Nm,FullNm,lambda(Lc,FullNm,REqns,CTp),[],CTp),Dict)
+      valis (.varDef(Lc,Nm,lambda(Lc,Nm,REqns,CTp),[],CTp),Dict)
     } else{
       reportError("type of $(Nm) not a function type",Lc);
-      valis (.varDef(Lc,Nm,FullNm,lambda(Lc,FullNm,REqns,Tp),[],Tp),Dict)
+      valis (.varDef(Lc,Nm,lambda(Lc,Nm,REqns,Tp),[],Tp),Dict)
     }
   }
 
@@ -78,18 +78,18 @@ star.compiler.resolve{
     }
   }
  
-  overloadVarDef:(dict,option[locn],string,string,canon,cons[constraint],tipe)=>
+  overloadVarDef:(dict,option[locn],string,canon,cons[constraint],tipe)=>
     (canonDef,dict).
-  overloadVarDef(Dict,Lc,Nm,FullNm,Val,[],Tp) => 
-    (varDef(Lc,Nm,FullNm,overload(Val,Dict),[],Tp),Dict).
-  overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp) => valof{
---    logMsg("overload $(FullNm) = $(Val)");
+  overloadVarDef(Dict,Lc,Nm,Val,[],Tp) => 
+    (varDef(Lc,Nm,overload(Val,Dict),[],Tp),Dict).
+  overloadVarDef(Dict,Lc,Nm,Val,Cx,Tp) => valof{
+--    logMsg("overload $(Nm) = $(Val)");
     (Cvrs,CDict) = defineCVars(Lc,Cx,[],Dict);
     RVal = overload(Val,CDict);
     (Qx,Qt) = deQuant(Tp);
     (_,ITp) = deConstrain(Qt);
     CTp = reQuant(Qx,funType(Cx//typeOf,ITp));
-    valis (varDef(Lc,Nm,FullNm,lambda(Lc,lambdaLbl(Lc),[rule(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp),Dict)
+    valis (varDef(Lc,Nm,lambda(Lc,lambdaLbl(Lc),[rule(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp),Dict)
   }
 
   overloadImplDef:(dict,option[locn],string,string,canon,cons[constraint],tipe) =>
@@ -122,7 +122,7 @@ star.compiler.resolve{
   defineCVars(_,[],Vrs,D) => (reverse(Vrs),D).
   defineCVars(Lc,[T,..Tps],Vrs,D) where TpNm .= implementationName(T) && Tp.=typeOf(T) =>
     defineCVars(Lc,Tps,[vr(Lc,TpNm,Tp),..Vrs],
-      declareVar(TpNm,Lc,Tp,.none,
+      declareVar(TpNm,TpNm,Lc,Tp,.none,
 	declareImplementation(Lc,TpNm,TpNm,Tp,D))).
 
   overload:all e ~~ resolve[e] |: (e,dict) => e.
@@ -260,6 +260,10 @@ star.compiler.resolve{
     (AA,St1) = overloadTerm(A,Dict,St);
     (HH,St2) = overloadRules(Hs,[],Dict,St1);
     valis (.trycatch(Lc,AA,ErTp,HH,Tp),St2)
+  }
+  overloadTerm(.thrw(Lc,E,Tp),Dict,St) => valof{
+    (RE,St1) = overloadTerm(E,Dict,St);
+    valis (.thrw(Lc,RE,Tp),St1)
   }
   overloadTerm(.vlof(Lc,Act,Tp),Dict,St) => valof{
     (Ac,St1) = overloadAction(Act,Dict,St);

@@ -22,17 +22,17 @@ test.rl{
     show T[9];
     show T[10];
 
-    assert T[0]==some("zero");
-    assert T[1]==some("one");
-    assert T[2]==some("two");
-    assert T[3]==some("three");
-    assert T[4]==some("four");
-    assert T[5]==some("five");
-    assert T[6]==some("six");
-    assert T[7]==some("seven");
-    assert T[8]==some("eight");
-    assert T[9]==some("nine");
-    assert T[10]==some("ten");
+    assert T[0]==.some("zero");
+    assert T[1]==.some("one");
+    assert T[2]==.some("two");
+    assert T[3]==.some("three");
+    assert T[4]==.some("four");
+    assert T[5]==.some("five");
+    assert T[6]==.some("six");
+    assert T[7]==.some("seven");
+    assert T[8]==.some("eight");
+    assert T[9]==.some("nine");
+    assert T[10]==.some("ten");
 
     show rev(SS);
 

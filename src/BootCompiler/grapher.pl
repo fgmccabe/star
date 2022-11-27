@@ -40,25 +40,21 @@ scanPkg(Pkg,Repo,Cat,CWD,SoFar,Pkgs) :-
 scanPkg(Pkg,Repo,Cat,CWD,Pi,Px) :-
     scanCat(Cat,Repo,Pkg,CWD,Pi,Px).
 
-consistentPkg(pkg(P,V1),pkg(P,V2)) :- consistentVersion(V1,V2),!.
-
-consistentVersion(defltVersion,_).
-consistentVersion(_,defltVersion).
-consistentVersion(ver(V),ver(V)).
-
 parsePkgName(P,_,pkg(Pkg,Version)) :-
   sub_string(P,Before,_,After,":"),!,
   sub_string(P,0,Before,_,Pkg),
   sub_string(P,_,After,0,Version).
-parsePkgName(P,Cat,pkg(P,V)) :-
-  catalogVersion(Cat,V),!.
+parsePkgName(P,Cat,Pkg) :-
+  resolveVersion(pkg(P,defltVersion),Cat,Pkg).
 
 checkPkg(spec(Pkg,Imports,_),Repo,Cat,CWD,SrcFn,SoFar,Pkgs) :-
-  reformatImports(Imports,Imps),
+  reformatImports(Imports,Imps,Cat),
   scanImports(Imps,Repo,Cat,CWD,[(Pkg,Imps,Imps,SrcFn)|SoFar],Pkgs).
 
-reformatImports([],[]).
-reformatImports([import(_,P)|L],[P|M]) :- reformatImports(L,M).
+reformatImports([],[],_).
+reformatImports([import(_,P)|L],[Pkg|M],Cat) :-
+  resolveVersion(P,Cat,Pkg),
+  reformatImports(L,M,Cat).
 
 scanImports([],_,_,_,Pkgs,Pkgs).
 scanImports([Pkg|Imports],Repo,Cat,CWD,SoFar,Pkgs) :-
@@ -71,7 +67,7 @@ scanCat(Cat,Repo,Pkg,CWD,Pi,Px) :-
 
 scanFile(Fl,Pkg,Repo,Cat,CWD,SoFar,Pkgs) :-
   parseFile(Pkg,Fl,Term),
-  scanForImports(Term,_,Imps),!,
+  scanForImports(Term,Imps,Cat),!,
   scanImports(Imps,Repo,Cat,CWD,[(Pkg,Imps,Imps,Fl)|SoFar],Pkgs).
 
 parseFile(Pk,Fl,Term) :-
@@ -83,36 +79,43 @@ getSrcUri(Fl,WD,FUri) :-
   parseURI(Fl,FU),
   resolveURI(WD,FU,FUri).
 
-scanForImports(Term,Pkg,Imports) :-
-    isBraceTerm(Term,_,P,Els),
-    scanPackageName(P,Pkg),
-    scanThetaEnv(Els,Imports),!.
+scanForImports(Term,Imports,Cat) :-
+  isBraceTerm(Term,_,_,Els),
+  scanThetaEnv(Els,Imports,Cat),!.
 
-scanPackageName(Term,Nm) :- isIden(Term,Nm).
-scanPackageName(Term,Pk) :- isBinary(Term,_,".",L,R),
-  scanPackageName(L,F),
-  scanPackageName(R,B),
+scanPackageName(Term,pkg(Nm,Ver)) :-
+  isBinary(Term,_,":",L,R),!,
+  scanNm(L,Nm),
+  scanNm(R,Ver).
+scanPackageName(Term,pkg(Nm,defltVersion)) :-
+  scanNm(Term,Nm).
+
+scanNm(Term,Nm) :- isIden(Term,Nm).
+scanNm(Term,Pk) :- isBinary(Term,_,".",L,R),
+  scanNm(L,F),
+  scanNm(R,B),
   string_concat(F,".",FF),
   string_concat(FF,B,Pk).
-scanPackageName(Name,"") :-
+scanNm(Name,"") :-
   locOfAst(Name,Lc),
   reportError("Package name %s not valid",[Name],Lc).
 
-scanThetaEnv([],[]).
-scanThetaEnv([St|Stmts],Imports) :-
-    scanStmt(St,Imports,MoreImp),
-    scanThetaEnv(Stmts,MoreImp).
+scanThetaEnv([],[],_).
+scanThetaEnv([St|Stmts],Imports,Cat) :-
+    scanStmt(St,Imports,MoreImp,Cat),
+    scanThetaEnv(Stmts,MoreImp,Cat).
 
-scanStmt(St,Imp,More) :-
+scanStmt(St,Imp,More,Cat) :-
   isUnary(St,_,"public",El),!,
-  scanStmt(El,Imp,More).
-scanStmt(St,Imp,More) :-
+  scanStmt(El,Imp,More,Cat).
+scanStmt(St,Imp,More,Cat) :-
   isUnary(St,_,"private",El),!,
-  scanStmt(El,Imp,More).
-scanStmt(St,[pkg(Pk,defltVersion)|More],More) :-
+  scanStmt(El,Imp,More,Cat).
+scanStmt(St,[Pkg|More],More,Cat) :-
   isUnary(St,_,"import",P),
-  scanPackageName(P,Pk).
-scanStmt(_,Imp,Imp).
+  scanPackageName(P,Pk),
+  resolveVersion(Pk,Cat,Pkg).
+scanStmt(_,Imp,Imp,_).
 
 pkgOk(Pkg,Repo) :-
   codePackagePresent(Repo,Pkg,_,_,_U,SrcWhen,CodeWhen),
