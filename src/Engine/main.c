@@ -103,6 +103,7 @@ int main(int argc, char **argv) {
   init_args(argv, argc, narg);    /* Initialize the argument list */
 
   setupSignals();
+  atexit(dumpStack);
 
   capabilityPo rootCap = allocateCapability(globalHeap, rootWd, uniStrLen(rootWd), stdPerms);
 
