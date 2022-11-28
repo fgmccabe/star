@@ -187,8 +187,8 @@ star.compiler.macro.rules{
   iotaComprehensionMacro(A,.expression) where
       (Lc,Bnd,Body) ?= isIotaComprehension(A) => valof{
 	CC = makeCondition(Body,passThru,
-	  genResult(mkEnumCon(Lc,nme(Lc,"some"),[Bnd])),
-	  lyfted(enum(Lc,"none")));
+	  genResult(mkOption(Lc,Bnd)),
+	  .grounded(enum(Lc,"none")));
 	valis .active(CC)
       }.
   iotaComprehensionMacro(_,_) default => .inactive.
@@ -198,7 +198,7 @@ star.compiler.macro.rules{
       (Lc,Cond) ?= isTestComprehension(A) => valof{
 	CC = makeCondition(Cond,passThru,
 	  genResult(enum(Lc,"true")),
-	  .lyfted(enum(Lc,"false")));
+	  .grounded(enum(Lc,"false")));
 	valis .active(CC)
       }
   testComprehensionMacro(_,_) => .inactive.
@@ -212,6 +212,11 @@ star.compiler.macro.rules{
 
   lyfted[a] ::= .lyfted(a) | .grounded(a).
 
+  implementation all e ~~ display[e] |: display[lyfted[e]] => {
+    disp(.lyfted(X)) => "lifted $(X)".
+    disp(.grounded(X)) => "grounded $(X)"
+  }
+
   passThru(.grounded(X)) => X.
   passThru(.lyfted(X)) => X.
 
@@ -219,7 +224,7 @@ star.compiler.macro.rules{
   consResult(_,_,.lyfted(St)) => St.
 
   genResult(T) => let{
-    chk(.grounded(_))=>T.
+    chk(.grounded(_))=> T.
     chk(.lyfted(St)) => St.
   } in chk.	
 
@@ -244,14 +249,14 @@ star.compiler.macro.rules{
     FF = mkLetDef(Lc,[Eq1,Eq2],sF);
     valis ternary(Lc,"_iter",Src,Lift(Zed),FF)
   }
-  makeCondition(A,Lift,Succ,Zed) where (Lc,L,R) ?= isConjunct(A) =>
+  makeCondition(A,Lift,Succ,Zed) where (Lc,L,R) ?= isConjunct(A) => 
     makeCondition(L,Lift,(Lf) => makeCondition(R,Lift,Succ,Lf),Zed).
   makeCondition(A,Lift,Succ,Zed) where (Lc,L,R) ?= isDisjunct(A) => valof{
     E1 =makeCondition(L,Lift,Succ,Zed);
     valis makeCondition(R,Lift,Succ,.lyfted(E1))
   }
   makeCondition(A,Lift,Succ,Zed) where (Lc,R) ?= isNegation(A) => valof{
-    Negated = makeCondition(R,Lift,(_)=>Lift(.grounded(enum(Lc,"true"))),
+    Negated = makeCondition(R,Lift,genResult(enum(Lc,"true")),
       .grounded(enum(Lc,"false")));
     St = genName(Lc,"St");
     SuccCase = Succ(Zed);
@@ -260,7 +265,9 @@ star.compiler.macro.rules{
   }
   makeCondition(A,Lift,Succ,Zed) where (Lc,L,R) ?= isImplies(A) =>
     makeCondition(negated(Lc,mkConjunct(Lc,L,negated(Lc,R))),Lift,Succ,Zed).
-  makeCondition(Other,Lift,Succ,Zed) => 
+  makeCondition(A,Lift,Succ,Zed) where (_,[I]) ?= isTuple(A) =>
+    makeCondition(I,Lift,Succ,Zed).
+  makeCondition(Other,Lift,Succ,Zed) =>
     mkConditional(locOf(Other),Other,Succ(Zed),Lift(Zed)).
 
   -- Convert E::T to _optval(_coerce(E)):T
@@ -482,13 +489,9 @@ star.compiler.macro.rules{
     Fields = sort(Face,compEls);
     FFields = sort(Types,compEls);
     TpExSt = reveal(reUQuant(Lc,Qs,reConstrain(Cx,binary(Lc,"<~",H,reXQuant(Lc,Xs,brTuple(Lc,Fields++FFields))))),Vz);
---    logMsg("Type rule is $(TpExSt)");
     Cons = buildConstructors(Rhs,Q,Cx,H,Vz);
---    logMsg("Constructors are $(Cons)");
     Accs = buildAccessors(Rhs,Q,Xs,Cx,H,typeName(H),Fields,Vz);
---    logMsg("Accessors are $(Accs)");
     Ups = buildUpdaters(Rhs,Q,Xs,Cx,H,typeName(H),Fields,Vz);
---    logMsg("Updaters are $(Ups)");
     valis [TpExSt,..Cons++Accs++Ups]
   }
 

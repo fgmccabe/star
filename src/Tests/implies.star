@@ -10,7 +10,11 @@ test.implies{
 
   onlySons(P) => {! () | (P,S) in pars *> S in ms !}.
 
-  hasD(P) => {! () | (P,S) in pars && ~ S in ms !}.
+  funny(X,Y) => {! () | X>Y *> Y<X !}.
+
+  hasD(P) => {! () | (PP,S) in pars && ~ S in ms !}.
+
+  noD(P) => {! () | ~((QP,S) in pars && ~ S in ms) !}.
 
   foldOnlySons:(string)=>option[()].
   foldOnlySons(P) => foldRight(
@@ -31,7 +35,11 @@ test.implies{
     show hasD("a");
     show hasD("f");
   
+    show noD("f");
+    
     assert _?=onlySons("a");
+
+    show funny(2,4);
 
     show onlySons("a");
     show onlySons("f");

@@ -299,8 +299,8 @@ star.compiler.checker{
   }
 
   processEqn(St,ProgramType,ErTp,Env,Outer,Path) where (Lc,_,IsDeflt,Arg,Cnd,R) ?= isEquation(St) => valof{
-    if traceCanon! then
-      logMsg("check equation $(St)");
+--    if traceCanon! then
+--      logMsg("check equation $(St)");
     Ats = genArgTps(Arg);
     RTp = newTypeVar("_R");
     checkType(St,funType(Ats,RTp),ProgramType,Env);
@@ -332,13 +332,13 @@ star.compiler.checker{
     if Con ?= findContract(Env,ConName) then{
       (_,.contractExists(CnNm,CnTps,CnDps,ConFaceTp)) = freshen(Con,Env);
       ConTp = mkConType(CnNm,CnTps,CnDps);
-      if traceCanon! then
-	logMsg("contract exists: $(ConTp) ~ $(Cn)");
+--      if traceCanon! then
+--	logMsg("contract exists: $(ConTp) ~ $(Cn)");
       if sameType(ConTp,typeOf(Cn),Env) then {
 	Es = declareConstraints(Lc,Cx,declareTypeVars(BV,Outer));
 	Impl = typeOfExp(B,ConTp,.none,Es,Path);
-	if traceCanon! then
-	  logMsg("implementation expression $(Impl)");
+--	if traceCanon! then
+--	  logMsg("implementation expression $(Impl)");
 	ImplNm = implementationName(conTract(CnNm,CnTps,CnDps));
 	ImplVrNm = qualifiedName(Path,.valMark,ImplNm);
 	ImplTp = rebind(BV,reConstrainType(Cx,ConTp),Es);
@@ -380,18 +380,10 @@ star.compiler.checker{
     (CCx,VarTp) = deConstrain(ETp);
     Es = declareConstraints(Lc,CCx,declareTypeVars(Qs,Env));
 
-    if traceCanon! then
-      logMsg("accessor type $(AccTp)");
-    
     AccFn = typeOfExp(B,VarTp,.none,Es,Path);
-
-    if traceCanon! then
-      logMsg("accessor exp $(AccFn)");
 
     AccVrNm = qualifiedName(Path,.valMark,qualifiedName(tpName(RcTp),.typeMark,"^"++Fld));
 
-    if traceCanon! then
-      logMsg("accessor var $(AccVrNm)");
     Defn = .varDef(Lc,AccVrNm,AccFn,Cx,AccTp);
     Decl = .accDec(Lc,rebind(QV,reConstrainType(Cx,RcTp),Env),Fld,AccVrNm,AccTp);
     FDecl = .funDec(Lc,AccVrNm,AccVrNm,AccTp);
@@ -484,9 +476,6 @@ star.compiler.checker{
     Fun = typeOfExp(Op,consType(At,Tp),ErTp,Env,Path);
     DFun = typeOfVar(Lc,dlrName(Nm),newTypeVar(""),Env,Path);
 
-    if traceCanon! then
-      logMsg("labeled op is $(Fun)\:$(typeOf(Fun))");
-
     (Q,ETp) = evidence(deRef(At),Env);
     FaceTp = ^faceOfType(ETp,Env);
     (Cx,Face) = deConstrain(FaceTp);
@@ -502,9 +491,6 @@ star.compiler.checker{
     At = newTypeVar("A");
     Fun = typeOfExp(Op,consType(At,Tp),ErTp,Env,Path);
     DFun = typeOfVar(Lc,dlrName(Nm),newTypeVar(""),Env,Path);
-    
-    if traceCanon! then
-      logMsg("labeled op is $(DFun)\:$(typeOf(Fun))");
     
     (Q,ETp) = evidence(deRef(At),Env);
     FaceTp = ^faceOfType(ETp,Env);
@@ -734,15 +720,11 @@ star.compiler.checker{
     valis genLetRec(Defs,Decls,(G,D,E) => letRec(Lc,G,D,E),El)
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Els,Bnd) ?= isLetDef(A) => valof{
---    logMsg("let exp $(A)");
     (Defs,Decls)=recordEnv(Lc,genNewName(Path,"Γ"),Els,.faceType([],[]),Env,Env);
 
     El = typeOfExp(Bnd,Tp,ErTp,declareDecls(Decls,Env),Path);
---    logMsg("bound exp $(El)");
 
-    Sorted = sortDefs(Defs);
-
-    valis foldRight((Gp,I)=>letExp(Lc,Gp,Decls,I),El,Sorted)
+    valis foldRight((Gp,I)=>letExp(Lc,Gp,Decls,I),El,sortDefs(Defs))
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Op,Args) ?= isEnumCon(A) => valof{
     Vrs = genTpVars(Args);
@@ -796,11 +778,12 @@ star.compiler.checker{
 
   typeOfRoundTerm:(option[locn],ast,cons[ast],tipe,option[tipe],dict,string) => canon.
   typeOfRoundTerm(Lc,Op,As,Tp,ErTp,Env,Path) => valof{
---    logMsg("check round term $(Op)$(As) expected type $(Tp)");
     Vrs = genTpVars(As);
     At = .tupleType(Vrs);
     ExTp = newTypeVar("F");
     Fun = typeOfExp(Op,ExTp,ErTp,Env,Path);
+    if traceCanon! then
+      logMsg("op of $(Op)$(As) is $(Fun)\:$(typeOf(Fun))");
     FnTp = fnType(At,Tp);
 
     if sameType(ExTp,FnTp,Env) then{
