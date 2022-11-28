@@ -482,7 +482,7 @@ star.compiler.macro.rules{
     Fields = sort(Face,compEls);
     FFields = sort(Types,compEls);
     TpExSt = reveal(reUQuant(Lc,Qs,reConstrain(Cx,binary(Lc,"<~",H,reXQuant(Lc,Xs,brTuple(Lc,Fields++FFields))))),Vz);
-    logMsg("Type rule is $(TpExSt)");
+--    logMsg("Type rule is $(TpExSt)");
     Cons = buildConstructors(Rhs,Q,Cx,H,Vz);
 --    logMsg("Constructors are $(Cons)");
     Accs = buildAccessors(Rhs,Q,Xs,Cx,H,typeName(H),Fields,Vz);

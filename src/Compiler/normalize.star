@@ -20,8 +20,8 @@ star.compiler.normalize{
   public normalize:(pkgSpec,cons[canonDef],cons[decl])=>cons[cDefn].
   normalize(PkgSpec,Defs,Decls) => valof{
     Map = pkgMap(Decls);
-    if traceNormalize! then
-      logMsg("package map $(Map)");
+--    if traceNormalize! then
+--      logMsg("package map $(Map)");
     valis transformGroup(Defs,Map,Map,[],.none,[])
   }
 
@@ -120,21 +120,18 @@ star.compiler.normalize{
 
   transformConsDef(Lc,Nm,Tp,Map,Ex) => valof{
     if traceNormalize! then
-      logMsg("transform $(Nm)\:$(Tp) constructor");
+      logMsg("transform constructor $(Nm)\:$(Tp)");
     (_,CT) = deQuant(Tp);
     (_,IT) = deConstrain(CT);
     (ATp,RTp) = ^ isConsType(IT);
     if (Ar,_) ?= isTupleType(ATp) then{
---    logMsg("look for $(tpName(RTp)) type: $(findIndexMap(tpName(RTp),Map))");
-      ConsMap = ^ findIndexMap(tpName(RTp),Map);
-      (Lbl,_,Ix) = ^ findLbl(Nm,ConsMap);
-      valis [.lblDef(Lc,Lbl,Tp,Ix),..Ex]
-    }
-    else{
-      if traceNormalize! then
-	logMsg("ignore constructor $(Nm)");
-      valis Ex
-    }
+--      logMsg("look for $(tpName(RTp)) type: $(findIndexMap(tpName(RTp),Map)) in $(Map)");
+      if ConsMap ?= findIndexMap(tpName(RTp),Map) then{
+	(Lbl,_,Ix) = ^ findLbl(Nm,ConsMap);
+	valis [.lblDef(Lc,Lbl,Tp,Ix),..Ex]
+      }
+    };
+    valis Ex
   }
 
   findLbl(Nm,[]) => .none.
@@ -538,7 +535,6 @@ star.compiler.normalize{
 
     CM = makeConsMap(Decs);
 
---    L = collectVars(GrpVars,ThV,size(freeVars),collectLabelVars(freeVars,ThV,0,[]));
     L = collectLabelVars(lVars,ThV,size(freeVars),collectLabelVars(freeVars,ThV,0,[]));
 
     if traceNormalize! then{

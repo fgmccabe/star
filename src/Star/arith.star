@@ -99,7 +99,7 @@ star.arith{
   }
 
   public implementation equality[float] => {
-    X == Y => _flt_eq(X,Y,1.0e-20).
+    X == Y => _flt_eq(X,Y,X/1.0e20).
   }
 
   public implementation hashable[float] => {
