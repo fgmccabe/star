@@ -15,7 +15,7 @@ encodeTerm(intgr(Ix),['x'|O],Ox) :- encodeInt(Ix,O,Ox).
 encodeTerm(bigx(Ix),['b'|O],Ox) :- encodeText(Ix,O,Ox).
 encodeTerm(float(Dx),['d'|O],Ox) :- encodeFloat(Dx,O,Ox).
 encodeTerm(enum(Nm),['e'|O],Ox) :- encodeText(Nm,O,Ox).
-encodeTerm(chr(Cp),['c'|O],Ox) :- appChr(Cp,O,Ox).
+encodeTerm(chr(Cp),['c'|O],Ox) :- encodeChar(Cp,'\\',O,Ox).
 encodeTerm(strg(St),['s'|O],Ox) :- encodeText(St,O,Ox).
 encodeTerm(lbl(Nm,Arity),['o'|O],Ox) :-
   encodeInt(Arity,O,O1),
@@ -54,12 +54,13 @@ encodeText(Txt,[Delim|O],Ox) :-
   encodeQuoted(Chrs,Delim,O,Ox).
 
 encodeQuoted([],Delim,[Delim|Ox],Ox) :- !.
-encodeQuoted(['\\'|More],Delim,['\\','\\'|O],Ox) :-
-  encodeQuoted(More,Delim,O,Ox).
-encodeQuoted([Delim|More],Delim,['\\',Delim|O],Ox) :-
-  encodeQuoted(More,Delim,O,Ox).
-encodeQuoted([Ch|More],Delim,[Ch|O],Ox) :-
-  encodeQuoted(More,Delim,O,Ox).
+encodeQuoted([Ch|More],Delim,O,Ox) :-
+  encodeChar(Ch,Delim,O,O1),
+  encodeQuoted(More,Delim,O1,Ox).
+
+encodeChar(Delim,Delim,['\\',Delim|O],O) :-!.
+encodeChar('\\',_,['\\','\\'|O],O) :-!.
+encodeChar(Ch,_,[Ch|O],O).
 
 digit(0,'0').
 digit(1,'1').

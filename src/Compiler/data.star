@@ -456,6 +456,10 @@ star.compiler.data{
 
   encodeChar:(char,cons[char]) => cons[char].
   encodeChar(`\\`,Chs) => [`\\`,`\\`,..Chs].
+  encodeChar(`|`,Chs) => [`\\`,`|`,..Chs]. -- quote delimiter chars
+  encodeChar(`/`,Chs) => [`\\`,`/`,..Chs].
+  encodeChar(`%`,Chs) => [`\\`,`%`,..Chs].
+  encodeChar(`'`,Chs) => [`\\`,`'`,..Chs].
   encodeChar(Ch,Chs) => [Ch,..Chs].
 
   findDelim:(cons[char],cons[char])=>char.

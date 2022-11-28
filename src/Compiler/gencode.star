@@ -466,7 +466,7 @@ star.compiler.gencode{
 
   ptnCmp(Ptn,Lb) => case Ptn in {
     .cInt(_,Ix) => .iICmp(Lb).
-    .cChar(_,Cx) => .iICmp(Lb).
+    .cChar(_,Cx) => .iCmp(Lb).
     .cFloat(_,Dx) => .iFCmp(Lb).
     _ => .iCmp(Lb)
   }.
