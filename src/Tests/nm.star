@@ -11,7 +11,7 @@ test.nm{
   main() => valof{
     show first(parse(real(),"34.56e10"::cons[char]));
 
-    assert 34.56e10 ?= first(parse(real(),"34.56e10"::cons[char]));
+    assert R ?= first(parse(real(),"34.56e10"::cons[char])) && R==34.56e10;
 
     show first(parse(real(),"34.56"::cons[char]));
 
