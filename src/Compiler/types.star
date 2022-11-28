@@ -176,7 +176,7 @@ star.compiler.types{
   }
 
   public implementation display[constraint] => {
-    disp(C) => showConstraint(C,2)
+    disp(C) => showConstraint(C,4)
   }
 
   public implementation display[typeRule] => {

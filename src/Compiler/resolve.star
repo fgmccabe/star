@@ -32,9 +32,7 @@ star.compiler.resolve{
   overloadDefs:(cons[canonDef],dict,cons[canonDef]) => (cons[canonDef],dict).
   overloadDefs([],Dict,Dfx) => (reverse(Dfx),Dict).
   overloadDefs([D,..Defs],Dict,Dfx) => valof{
---    logMsg("overload definition $(D)");
     (DD,DDict) = overloadDef(D,Dict);
---    logMsg("overloaded definition $(DD)");
     valis overloadDefs(Defs,DDict,[DD,..Dfx])
   }
 
@@ -83,7 +81,6 @@ star.compiler.resolve{
   overloadVarDef(Dict,Lc,Nm,Val,[],Tp) => 
     (varDef(Lc,Nm,overload(Val,Dict),[],Tp),Dict).
   overloadVarDef(Dict,Lc,Nm,Val,Cx,Tp) => valof{
---    logMsg("overload $(Nm) = $(Val)");
     (Cvrs,CDict) = defineCVars(Lc,Cx,[],Dict);
     RVal = overload(Val,CDict);
     (Qx,Qt) = deQuant(Tp);
@@ -95,16 +92,12 @@ star.compiler.resolve{
   overloadImplDef:(dict,option[locn],string,string,canon,cons[constraint],tipe) =>
     (canonDef,dict).
   overloadImplDef(Dict,Lc,Nm,FullNm,Val,_,Tp) => valof{
---    logMsg("overload implementation $(Nm) = $(Val)\:$(Tp)");
     
     (Qx,Qt) = deQuant(Tp);
     (Cx,ITp) = deConstrain(Qt);
 
---    logMsg("constraints $(Cx)");
-
     (Cvrs,CDict) = defineCVars(Lc,Cx,[],Dict);
 
---    logMsg("cvars = $(Cvrs)");
     RVal = overload(Val,CDict);
 
     if isEmpty(Cvrs) then {
@@ -177,13 +170,11 @@ star.compiler.resolve{
   overloadTerm(.mtd(Lc,Nm,Tp),Dict,St) => 
     (.mtd(Lc,Nm,Tp),.active(Lc,"cannot resolve unconstrained method #(Nm)\:$(Tp)")).
   overloadTerm(.over(Lc,T,Cx),Dict,St) => valof{
---    logMsg("over $(over(Lc,T,Cx))");
     (DArgs,St1) = resolveContracts(Lc,Cx,[],Dict,St);
     (OverOp,NArgs,St2) = resolveRef(T,DArgs,[],Dict,St1);
     valis (overApply(Lc,OverOp,NArgs,typeOf(T)),markResolved(St2))
   }
   overloadTerm(.overaccess(Lc,T,RcTp,Fld,FldTp),Dict,St) => valof{
---    logMsg("over access $(T)");
     if (AccessOp,St1) ?= resolveAccess(Lc,RcTp,Fld,FldTp,Dict,St) then{
       (OverOp,NArgs,St2) = resolveRef(T,[AccessOp],[],Dict,St1);
       valis (curryOver(Lc,OverOp,NArgs,funType([RcTp],FldTp)),St2)
@@ -384,6 +375,7 @@ star.compiler.resolve{
   }
   overloadAction(.doCall(Lc,E),Dict,St) => valof{
     (EE,St1) = overloadTerm(E,Dict,St);
+    
     valis (.doCall(Lc,EE),St1)
   }
     
@@ -443,13 +435,10 @@ star.compiler.resolve{
   
   resolveContract:(option[locn],constraint,dict,resolveState) => (canon,resolveState).
   resolveContract(Lc,Con,Dict,St) => valof{
---    logMsg("resolve contract $(Con)");
     ImpNm = implementationName(Con);
     Tp = typeOf(Con);
     if Impl?=findImplementation(Dict,ImpNm) then {
---      logMsg("resolve contract $(Con) using $(Impl)\:$(typeOf(Impl))");
       if sameType(typeOf(Impl),Tp,Dict) then {
---	logMsg("resolving impl var $(Impl)");
 	valis overloadTerm(Impl,Dict,markResolved(St))
       } else{
 	valis (.anon(Lc,Tp),.active(Lc,"implementation $(typeOf(Impl)) not consistent with $(Tp)"))
@@ -461,9 +450,7 @@ star.compiler.resolve{
 
   resolveAccess:(option[locn],tipe,string,tipe,dict,resolveState) => option[(canon,resolveState)].
   resolveAccess(Lc,RcTp,Fld,Tp,Dict,St) => valof{
---    logMsg("resolve access $(RcTp).$(Fld)\:$(Tp)");
     if AccFn ?= findAccess(Lc,RcTp,Fld,Dict) then{
---      logMsg("access fun $(AccFn)\:$(typeOf(AccFn))");
       Ft = newTypeVar("F");
       if sameType(typeOf(AccFn),funType([RcTp],Ft),Dict) then{
 	if sameType(Tp,snd(freshen(Ft,Dict)),Dict) then{
@@ -481,10 +468,8 @@ star.compiler.resolve{
 
   resolveDot:(option[locn],canon,string,tipe,dict,resolveState) => (canon,resolveState).
   resolveDot(Lc,Rc,Fld,Tp,Dict,St) => valof{
---    logMsg("resolve access at $(Lc) of $(Rc).$(Fld), expected type $(Tp)");
     RcTp = typeOf(Rc);
     if AccFn ?= findAccess(Lc,RcTp,Fld,Dict) then{
---      logMsg("access fun $(AccFn)\:$(typeOf(AccFn))");
       Ft = newTypeVar("F");
       if sameType(typeOf(AccFn),funType([RcTp],Ft),Dict) then{
 	if sameType(Tp,snd(freshen(Ft,Dict)),Dict) then{
@@ -505,15 +490,12 @@ star.compiler.resolve{
 
   resolveUpdate:(option[locn],canon,string,canon,dict,resolveState) => (canon,resolveState).
   resolveUpdate(Lc,Rc,Fld,Vl,Dict,St) => valof{
---    logMsg("resolve update at $(Lc) of $(Rc).$(Fld)");
     RcTp = typeOf(Rc);
     if AccFn ?= findUpdate(Lc,RcTp,Fld,Dict) then{
---      logMsg("updater fun $(AccFn)\:$(typeOf(AccFn))");
 
       Ft = newTypeVar("F");
       if sameType(typeOf(AccFn),funType([RcTp,Ft],RcTp),Dict) then{
 	if sameType(typeOf(Vl),snd(freshen(Ft,Dict)),Dict) then{
---	  logMsg("update $(update(Lc,Rc,Fld,Vl)) resolved to $(apply(Lc,AccFn,[Rc,Vl],RcTp))");
 	  valis overloadTerm(apply(Lc,AccFn,[Rc,Vl],RcTp),Dict,markResolved(St))
 	} else{
 	  valis (update(Lc,Rc,Fld,Vl),
