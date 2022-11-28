@@ -297,8 +297,10 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo tmpBuffer
     }
     case chrTrm: {
       codePoint cp;
-      if ((res = inChar(in, &cp)) != Ok)
-        return res;
+      tryRet(inChar(in,&cp));
+      if(cp=='\\'){
+        tryRet(inChar(in,&cp));
+      }
       *tgt = (termPo) allocateCharacter(H, cp);
       return Ok;
     }

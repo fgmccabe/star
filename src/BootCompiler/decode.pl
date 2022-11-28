@@ -27,7 +27,7 @@ decodeTerm(intgr(Nm)) --> ['x'], decInt(Nm).
 decodeTerm(bigx(Ix)) --> ['b'], tdigits(Ix).
 decodeTerm(float(Dx)) --> ['d'], decFloat(Dx).
 decodeTerm(enum(Nm)) --> ['e'], decodeText(Nm).
-decodeTerm(chr(Cp)) --> ['c',Cp].
+decodeTerm(chr(Cp)) --> ['c'], decodeChar(Cp).
 decodeTerm(strg(Txt)) --> ['s'], decodeText(Txt).
 decodeTerm(lbl(Nm,Ar)) --> ['o'], decInt(Ar), decodeText(Nm).
 decodeTerm(ctpl(Con,Els)) --> ['n'], decInt(Len), decodeTerm(Con), decTerms(Len,Els).
@@ -46,6 +46,9 @@ decodeText(Txt) --> [C], collectQuoted(C,Chrs),{ string_chars(Txt,Chrs)}.
 collectQuoted(C,[]) --> [C].
 collectQuoted(C,[Ch|M]) --> ['\\', Ch], collectQuoted(C,M).
 collectQuoted(C,[Ch|M]) --> [Ch], collectQuoted(C,M).
+
+decodeChar(Ch) --> ['\\', Ch],!.
+decodeChar(Ch) --> [Ch].
 
 decodeSignature(S,Tp) :-
   string_chars(S,Chrs),
