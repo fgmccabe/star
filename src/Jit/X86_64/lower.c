@@ -432,3 +432,19 @@ retCode jit_TEq(insPo code, integer *pc, jitCompPo jitCtx) {
 retCode jit_dBug(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
+
+retCode jit_LdTh(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_StTh(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_TTh(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_Thunk(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
