@@ -384,13 +384,10 @@ star.compiler.typeparse{
       
   parseConstructor:(string,ast,dict,string) => (cons[canonDef],cons[decl]).
   public parseConstructor(Nm,St,Env,Path) => valof{
-    if traceCanon! then
-      logMsg("parse constructor $(St)");
+    -- logMsg("parse constructor $(St)");
     Tp = parseType([],St,Env);
     Lc = locOf(St);
     FullNm = qualifiedName(Path,.conMark,Nm);
-    if traceCanon! then
-      logMsg("qualifed name of $(St) is $(FullNm)");
     valis ([cnsDef(Lc,Nm,FullNm,Tp)],
       [cnsDec(Lc,Nm,FullNm,Tp)])
   }

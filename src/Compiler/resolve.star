@@ -7,6 +7,7 @@ star.compiler.resolve{
   import star.compiler.errors.
   import star.compiler.freshen.
   import star.compiler.location.
+  import star.compiler.meta.
   import star.compiler.misc.
   import star.compiler.types.
   import star.compiler.unify.
@@ -54,12 +55,17 @@ star.compiler.resolve{
   overloadFunction:(dict,option[locn],string,cons[rule[canon]],cons[constraint],tipe)=>
     (canonDef,dict).
   overloadFunction(Dict,Lc,Nm,Eqns,Cx,Tp) => valof{
+    if traceCanon! then
+      logMsg("overload function $(Nm) = $(Eqns)");
     (Extra,CDict) = defineCVars(Lc,Cx,[],Dict);
+      
     REqns = Eqns//(Eq)=>resolveEqn(Eq,Extra,CDict);
     (Qx,Qt) = deQuant(Tp);
     (_,ITp) = deConstrain(Qt);
     if .tupleType(AITp).=funTypeArg(ITp) && RITp .= funTypeRes(ITp) then {
       CTp = reQuant(Qx,funType((Cx//typeOf)++AITp,RITp));
+      if traceCanon! then
+	logMsg("overloaded fun $(.varDef(Lc,Nm,lambda(Lc,Nm,REqns,CTp),[],CTp))");
       valis (.varDef(Lc,Nm,lambda(Lc,Nm,REqns,CTp),[],CTp),Dict)
     } else{
       reportError("type of $(Nm) not a function type",Lc);
@@ -81,6 +87,7 @@ star.compiler.resolve{
   overloadVarDef(Dict,Lc,Nm,Val,[],Tp) => 
     (varDef(Lc,Nm,overload(Val,Dict),[],Tp),Dict).
   overloadVarDef(Dict,Lc,Nm,Val,Cx,Tp) => valof{
+    
     (Cvrs,CDict) = defineCVars(Lc,Cx,[],Dict);
     RVal = overload(Val,CDict);
     (Qx,Qt) = deQuant(Tp);
@@ -113,10 +120,20 @@ star.compiler.resolve{
 
   defineCVars:(option[locn],cons[constraint],cons[canon],dict) => (cons[canon],dict).
   defineCVars(_,[],Vrs,D) => (reverse(Vrs),D).
-  defineCVars(Lc,[T,..Tps],Vrs,D) where TpNm .= implementationName(T) && Tp.=typeOf(T) =>
-    defineCVars(Lc,Tps,[vr(Lc,TpNm,Tp),..Vrs],
+  defineCVars(Lc,[(T where .conTract(CNm,CTps,CDTps).=T),..Tps],Vrs,D) => valof{
+    TpNm = implementationName(T);
+    Tp=typeOf(T);
+    valis defineCVars(Lc,Tps,[vr(Lc,TpNm,Tp),..Vrs],
       declareVar(TpNm,TpNm,Lc,Tp,.none,
-	declareImplementation(Lc,TpNm,TpNm,Tp,D))).
+	declareImplementation(Lc,TpNm,TpNm,Tp,D)))
+  }
+  defineCVars(Lc,[.fieldConstraint(Tp,Nm,FTp),..Tps],Vrs,D) => valof{
+    Vnm = genSym("Nm");
+    Vtp = funType([Tp],FTp);
+    valis defineCVars(Lc,Tps,[.vr(Lc,Vnm,Vtp),..Vrs],
+      declareVar(Vnm,Vnm,Lc,Vtp,.none,
+	declareAccessor(Lc,Tp,Nm,Vnm,Vtp,D)))
+  }
 
   overload:all e ~~ resolve[e] |: (e,dict) => e.
   overload(C,D) => resolveAgain(.inactive,C,resolve(C,D,.inactive),D).
@@ -179,7 +196,7 @@ star.compiler.resolve{
       (OverOp,NArgs,St2) = resolveRef(T,[AccessOp],[],Dict,St1);
       valis (curryOver(Lc,OverOp,NArgs,funType([RcTp],FldTp)),St2)
     } else{
-      valis (.overaccess(Lc,T,RcTp,Fld,FldTp),.active(Lc,"cannot find accessor for #(Fld)"))
+      valis (.overaccess(Lc,T,RcTp,Fld,FldTp),.active(Lc,"cannot find accessor for $(RcTp).#(Fld)"))
     }
   }
   overloadTerm(.apply(lc,.over(OLc,T,Cx),Args,Tp),Dict,St) => valof{
@@ -492,7 +509,6 @@ star.compiler.resolve{
   resolveUpdate(Lc,Rc,Fld,Vl,Dict,St) => valof{
     RcTp = typeOf(Rc);
     if AccFn ?= findUpdate(Lc,RcTp,Fld,Dict) then{
-
       Ft = newTypeVar("F");
       if sameType(typeOf(AccFn),funType([RcTp,Ft],RcTp),Dict) then{
 	if sameType(typeOf(Vl),snd(freshen(Ft,Dict)),Dict) then{

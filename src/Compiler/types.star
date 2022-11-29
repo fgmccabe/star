@@ -273,7 +273,7 @@ star.compiler.types{
 
   showConstraint(.conTract(Nm,T,D),Dp) => shContract(Nm,T,D,.false,Dp).
   showConstraint(.fieldConstraint(Tp,Fld,Fc),Dp) =>
-    "#(showType(Tp,.false,Dp)) <~ #(Fld):#(showType(Fc,.false,Dp))".
+    "#(showType(Tp,.false,Dp)) <~ {#(Fld):#(showType(Fc,.false,Dp))}".
 
   showDeps([],_) => "".
   showDeps(Els,Dp) => "->>#(showTypes(Els,.false,Dp)*)".
@@ -359,6 +359,7 @@ star.compiler.types{
 
   public implementation hasType[constraint] => {
     typeOf(.conTract(Nm,T,D)) => mkConType(Nm,T,D).
+    typeOf(.fieldConstraint(Tp,_,FTp)) => funType([Tp],FTp).
   }
 
   public implementation all t ~~ hasType[t] |: hasType[cons[t]] => {
