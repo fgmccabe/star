@@ -138,8 +138,8 @@ star.compiler.gencode{
       (EOff,Ctx1) = defineLclVar(Er,ETp::ltipe,Ctx);
       EStk = pushStack(ETp::ltipe,Stk);
 
-      (Stk1,BCde) = compExp(B,Cont,dropCont(EStk,jmpCont(CLb,pushStack(Tp::ltipe,Stk))),Ctx1,Stk);
-      (Stk2,HCde) = compExp(H,Cont,ECont,Ctx,EStk);
+      (Stk1,BCde) = compExp(B,Cont,dropCont(EStk,jmpCont(CLb,pushStack(Tp::ltipe,Stk))),CtxB,Stk);
+      (Stk2,HCde) = compExp(H,Cont,ECont,Ctx1,EStk);
 
       valis (reconcileStack(Stk1,Stk2),BCde++[.iLbl(CLb),.iTL(EOff)]++HCde)
     }.
