@@ -74,7 +74,7 @@ star.compiler.canon{
       .vr(_,_,T) => T.
       .mtd(_,_,T) => T.
       .over(_,T,_) => typeOf(T).
-      .overaccess(_,_,_,_,Tp) => Tp.
+      .overaccess(_,T,_,_,_) => typeOf(T).
       .intr(_,_) => intType.
       .bintr(_,_) => bigintType.
       .flt(_,_) => fltType.
@@ -179,7 +179,7 @@ star.compiler.canon{
     .vr(_,Nm,Tp) => Nm.
     .mtd(_,Fld,_) => "µ#(Fld)".
     .over(_,V,Cx) => "$(Cx)|:#(showCanon(V,Pr,Sp))".
-    .overaccess(_,_,RcTp,F,T) => "($(RcTp)<~#(F):$(T))".
+    .overaccess(_,Rc,RcTp,F,T) => "$(RcTp)<~{#(F):$(T)}|:#(showCanon(Rc,Pr,Sp))".
     .intr(_,Lt) => disp(Lt).
     .bintr(_,Lt) => disp(Lt).
     .kar(_,Ch) => disp(Ch).

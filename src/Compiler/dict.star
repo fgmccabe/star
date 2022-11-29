@@ -123,7 +123,7 @@ star.compiler.dict{
 
   getUpdate(_,_,[]) => .none.
   getUpdate(Key,Fld,[Scope,.._]) where
-      AccOrs ?= Scope.accessors[Key] &&
+      AccOrs ?= Scope.updaters[Key] &&
       Acc ?= AccOrs[Fld] => .some(Acc).
   getUpdate(Key,Fld,[_,..Env]) => getUpdate(Key,Fld,Env).
 

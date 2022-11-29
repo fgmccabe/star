@@ -2,13 +2,12 @@ test.ts0{
   import star.core.
   import star.arith.
   import star.coerce.
+  import star.fiber.
   
   -- Simple test of fiber generator pattern
 
   scomm ::= .yild(integer) | .end.
   rcomm ::= .next | .cancel.
-
-  all s,r ~~ fiber[s,r] <~ {}. -- fibers have a type ...
 
   generatr:(integer,integer)=>fiber[rcomm,scomm].
   generatr(F,T) => fiber{

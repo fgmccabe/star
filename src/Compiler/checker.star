@@ -236,7 +236,7 @@ star.compiler.checker{
     (cons[canonDef],cons[decl]).
   checkFunction(Nm,Tp,Lc,Stmts,Env,Outer,Path) => valof{
     if traceCanon! then
-      logMsg("check function $(Stmts)\:$(Tp), existing #(showVar(Nm,Outer))");
+      logMsg("check function $(Stmts)\:$(Tp)");
 
     (Q,ETp) = evidence(Tp,Env);
     (Cx,ProgTp) = deConstrain(ETp);
@@ -299,8 +299,6 @@ star.compiler.checker{
   }
 
   processEqn(St,ProgramType,ErTp,Env,Outer,Path) where (Lc,_,IsDeflt,Arg,Cnd,R) ?= isEquation(St) => valof{
---    if traceCanon! then
---      logMsg("check equation $(St)");
     Ats = genArgTps(Arg);
     RTp = newTypeVar("_R");
     checkType(St,funType(Ats,RTp),ProgramType,Env);
@@ -420,7 +418,7 @@ star.compiler.checker{
     Decl = .updDec(Lc,rebind(QV,reConstrainType(Cx,RcTp),Env),Fld,AccVrNm,AccTp);
     FDecl = .funDec(Lc,AccVrNm,AccVrNm,AccTp);
     if traceCanon! then
-      logMsg("updater $(Decl)");
+      logMsg("updater $(Defn)\:$(AccTp)");
     valis ([Defn],[Decl,FDecl])
   }
     
@@ -782,8 +780,6 @@ star.compiler.checker{
     At = .tupleType(Vrs);
     ExTp = newTypeVar("F");
     Fun = typeOfExp(Op,ExTp,ErTp,Env,Path);
-    if traceCanon! then
-      logMsg("op of $(Op)$(As) is $(Fun)\:$(typeOf(Fun))");
     FnTp = fnType(At,Tp);
 
     if sameType(ExTp,FnTp,Env) then{
