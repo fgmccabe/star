@@ -7,7 +7,6 @@
 #include "stackP.h"
 #include "globalsP.h"
 #include <assert.h>
-#include <globals.h>
 
 logical traceContinuations = False;      // continuation tracing
 
@@ -103,4 +102,21 @@ continuationPo allocateContinuation(heapPo H, stackPo stack, framePo fp, insPo p
 
   gcReleaseRoot(H, root);
   return cont;
+}
+
+stackPo contStack(continuationPo cont) {
+  return cont->stack;
+}
+
+logical continIsValid(continuationPo cont) {
+  stackPo stk = cont->stack;
+  return validFP(stk, cont->fp);
+}
+
+framePo contFP(continuationPo cont) {
+  return cont->fp;
+}
+
+insPo contPC(continuationPo cont){
+  return cont->pc;
 }

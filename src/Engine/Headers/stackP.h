@@ -66,8 +66,9 @@ static inline logical fiberHasSpace(stackPo stk, integer amount) {
   return stk->sp - amount >= (ptrPo) (stk->fp + 1);
 }
 
-extern void stackSanityCheck(stackPo stk);
-extern void verifyStack(stackPo stk, heapPo H);
+void stackSanityCheck(stackPo stk);
+void verifyStack(stackPo stk, heapPo H);
+logical isAttachedStack(stackPo base, stackPo tgt);
 
 static inline ptrPo stackArg(stackPo stk, framePo frame, integer arg) {
   return &frame->csp[arg];

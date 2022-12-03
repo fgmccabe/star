@@ -20,7 +20,9 @@ continuationPo allocateContinuation(heapPo H, stackPo stack, framePo fp, insPo p
 
 continuationPo C_CONTINUATION(termPo t);
 
-stackPo continStack(continuationPo cont);
+stackPo contStack(continuationPo cont);
 logical continIsValid(continuationPo cont);
+framePo contFP(continuationPo cont);
+insPo contPC(continuationPo cont);
 
 #endif //STAR_CONTINUATION_H

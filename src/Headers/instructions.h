@@ -38,12 +38,16 @@ instruction(Rot,i32,nOp,0,"Pull up nth element of stack")
 instruction(Rst, i32, nOp, 0, "reset stack height to a fixed height")
 
 instruction(Fiber, tOs, nOp, 1, "Create new fiber")
+instruction(Spawn,tOs,nOp,0,"spawn a new task")
 instruction(Suspend,tOs,tOs,-1,"suspend fiber")
 instruction(Resume,tOs,tOs,-1,"resume fiber")
 instruction(Retire,tOs,tOs,-2,"retire a fiber")
 instruction(Release,tOs,nOp,-1,"destroy a fiber")
 instruction(Underflow,nOp,nOp,0,"underflow from current stack")
 instruction(TEq,tOs,nOp,-1,"L R --> L==R, where L,R are tasks")
+
+instruction(Cont,off,nOp,1,"create a continuation")
+instruction(Throw,tOs,tOs,0,"Invoke a continuation")
 
 instruction(LdV,nOp,nOp,1,"Place a void value on stack")
 instruction(LdC,lit,nOp,1,"load literal from constant pool")

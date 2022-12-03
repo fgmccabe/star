@@ -405,6 +405,10 @@ retCode jit_Fiber(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
+retCode jit_Spawn(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
 retCode jit_Suspend(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
@@ -426,6 +430,14 @@ retCode jit_Underflow(insPo code, integer *pc, jitCompPo jitCtx) {
 }
 
 retCode jit_TEq(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_Cont(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_Throw(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
