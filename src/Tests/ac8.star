@@ -17,8 +17,7 @@ test.ac8{
 
   f:(integer) => integer.
   f(X) => valof{
-    TT = (fiber{
-	TryTsk = this;
+    TT = _new_fiber((TryTsk,_) => valof{
 	let{
 	  implementation throwable[integer] => {
 	    _throw(E) => valof{
@@ -32,7 +31,7 @@ test.ac8{
 	  else
 	  valis .ok(3*X)
 	}
-      }:fiber[(),rslt[integer,integer]]);
+	}); -- );
     TT resume () in {
       .err(E) => {
 	_logmsg(disp(E));
