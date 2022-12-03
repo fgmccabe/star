@@ -50,9 +50,9 @@ star.compiler.peephole{
   peep([.iLine(Lc),.iLine(_),..Ins]) => peep([.iLine(Lc),..Ins]).
   peep(Ins) where Inx ?= accessorPtn(Ins) => peep(Inx).
   peep([.iStL(Off),.iLdL(Off),..Ins]) => peep([.iTL(Off),..Ins]).
-  peep([.iCall(Fn,Lbl),.iFrame(_),.iRet,..Ins]) =>
+  peep([.iCall(Fn,.al("$$")),.iFrame(_),.iRet,..Ins]) =>
     [.iTCall(Fn),..peep(Ins)].
-  peep([.iOCall(O,Lbl),.iFrame(_),.iRet,..Ins]) =>
+  peep([.iOCall(O,.al("$$")),.iFrame(_),.iRet,..Ins]) =>
     [.iTOCall(O),..peep(Ins)].
   peep([.iRot(0),..Ins]) => peep(Ins).
   peep([I,..Ins]) => [I,..peep(Ins)].
