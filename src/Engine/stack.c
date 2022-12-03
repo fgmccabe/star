@@ -44,12 +44,22 @@ static MethodRec underFlowMethod = {
 
 static MethodRec newTaskMethod = {
   .clss = Null,
-  .codeSize = 8,
+  .codeSize = 9,
   .arity = 0,
   .lclcnt = 0,
   .pool = Null,
   .locals = Null,
   .code = {Rot, 0, 2, Rot, 0, 1, TOCall, 0, 3}
+};
+
+static MethodRec spawnMethod = {
+  .clss = Null,
+  .codeSize = 3,
+  .arity = 0,
+  .lclcnt = 0,
+  .pool = Null,
+  .locals = Null,
+  .code = { TOCall, 0, 2}
 };
 
 clssPo stackClass = (clssPo) &StackClass;
@@ -60,12 +70,11 @@ static integer stackReleases = 0;
 #endif
 static buddyRegionPo stackRegion;
 
-static logical isAttachedFiber(stackPo base, stackPo tgt);
-
 void initStacks() {
   StackClass.clss = specialClass;
   underFlowMethod.clss = methodClass;
   newTaskMethod.clss = methodClass;
+  spawnMethod.clss = methodClass;
   integer regionSize = (1 << lg2(stackRegionSize));
 
 #ifdef TRACESTACK
@@ -189,7 +198,7 @@ void stackSanityCheck(stackPo stk) {
       break;
     case suspended:
       assert(stk->bottom != Null &&
-             (stk->attachment == Null ? isAttachedFiber(stk->bottom, stk) : True));
+             (stk->attachment == Null ? isAttachedStack(stk->bottom, stk) : True));
       break;
     case moribund:
       assert(stk->stkMem == Null);
@@ -471,9 +480,23 @@ stackPo newStack(processPo P, termPo lam) {
   return child;                                                 // We return the new stack
 }
 
+stackPo spawnStack(processPo P, termPo lam) {
+  heapPo H = P->heap;
+  int root = gcAddRoot(H, (ptrPo) &lam);
+  stackPo child = spinupStack(H, minStackSize);
+  gcReleaseRoot(H, root);
+
+  child->fp = pushFrame(child, &spawnMethod, child->fp);
+
+  pushStack(child, (termPo) child);
+  pushStack(child, lam);
+
+  return child;                                                 // We return the new stack
+}
+
 stackPo attachStack(stackPo tsk, stackPo top) {
   stackPo bottom = top->bottom;
-  assert(bottom != Null && isAttachedFiber(bottom, top));
+  assert(bottom != Null && isAttachedStack(bottom, top));
 
 #ifdef TRACESTACK
   if (traceStack)
@@ -518,7 +541,7 @@ stackPo detachStack(stackPo base, stackPo top) {
   s->attachment = Null;
   s->state = suspended;
   s->bottom = base;
-  assert(isAttachedFiber(base, top));
+  assert(isAttachedStack(base, top));
   return parent;
 }
 
@@ -536,7 +559,13 @@ stackPo dropStack(stackPo tsk) {
   return previous;
 }
 
-logical isAttachedFiber(stackPo base, stackPo tgt) {
+stackPo dropUntil(stackPo base, stackPo tgt) {
+  while (base != Null && base != tgt)
+    base = dropStack(base);
+  return base;
+}
+
+logical isAttachedStack(stackPo base, stackPo tgt) {
   while (base != Null && base != tgt)
     base = base->attachment;
   return base == tgt;

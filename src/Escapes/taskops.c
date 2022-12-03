@@ -16,6 +16,13 @@ ReturnStatus g__new_fiber(heapPo h, termPo fiberLambda) {
   return (ReturnStatus) {.ret=Ok, .result = (termPo) child};
 }
 
+ReturnStatus g__spawn(heapPo h, termPo fiberLambda) {
+  stackPo child = spawnStack(currentProcess, fiberLambda);
+
+  currentProcess->stk = attachStack(currentProcess->stk, child);
+  return (ReturnStatus) {.ret=Ok, .result = (termPo) child};
+}
+
 ReturnStatus g__suspend_fiber(heapPo h, termPo f, termPo event) {
   stackPo fiber = C_STACK(f);
   if (stackState(fiber) != active) {

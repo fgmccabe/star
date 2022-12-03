@@ -3,7 +3,7 @@
   Copyright (c) 2016, 2017 and beyond. Francis G. McCabe
  */
 
-#define fiberType(S,R) "UUz2'star.core*fiber'" S R
+#define fiberType(R,S) "UUz2'star.fiber*fiber'" R S
 
 /* Define the standard intrinsics */
 
@@ -39,7 +39,8 @@ intrinsic(_basr,"F(ii)i","BAsr",True,"arithmetic right shift")
 intrinsic(_bnot,"F(i)i","BNot",True,"bitwise negate number")
 
 intrinsic(_fiber_eq,":k's':k'r'F("fiberType("k's'","k'r'")fiberType("k's'","k'r'")")l","TEq",True,"compare two fiber identifiers")
-intrinsic(_new_fiber,":k's':k'r'F(F("fiberType("k's'","k'r'")")k's')"fiberType("k's'","k'r'"),"Fiber",True,"create a new fiber")
+intrinsic(_new_fiber,":k's':k'r'F(F("fiberType("k'r'","k's'")"k'r')k's')"fiberType("k'r'","k's'"),"Fiber",True,"create a new fiber")
+intrinsic(_spawn,":k's':k'r'F(F("fiberType("k'r'","k's'")")k's')k's'","Spawn",True,"spawn a new task")
 intrinsic(_suspend_fiber,":k's':k'r'F("fiberType("k's'","k'r'")"k's')k'r'","Suspend", True,"suspend a fiber")
 intrinsic(_retire_fiber,":k's':k'r'F("fiberType("k's'","k'r'")"k's')()","Retire",False,"retire a fiber")
 intrinsic(_resume_fiber,":k's':k'r'F("fiberType("k's'","k'r'")"k'r')k's'","Resume" ,True,"resume a fiber")

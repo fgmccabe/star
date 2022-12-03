@@ -30,9 +30,11 @@ TaskState stackState(stackPo tsk);
 retCode setTaskState(stackPo stk, TaskState state);
 
 stackPo newStack(processPo P, termPo lam);
+stackPo spawnStack(processPo P, termPo lam);
 stackPo attachStack(stackPo tsk, stackPo top);
 stackPo detachStack(stackPo base, stackPo top);
 stackPo dropStack(stackPo tsk);
+stackPo dropUntil(stackPo base, stackPo tgt);
 
 framePo currFrame(stackPo stk);
 framePo previousFrame(stackPo stk, framePo fp);

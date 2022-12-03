@@ -14,6 +14,7 @@
 #define udpType "t'star.io*udpHandle'"
 #define optionType(T) "Uz1'star.core*option'" T
 #define fiberType(R,S) "UUz2'star.fiber*fiber'" R S
+#define contType(T) "Uz1'star.fiber*cont'" T
 #define futureType(T) "Uz1'star.core*future'" T
 
 /* Define the standard escapes */
@@ -80,6 +81,7 @@ escape(_big_format, "F(bs)s", "format a big integer")
 
 escape(_fiber_eq,":k's':k'r'F("fiberType("k's'","k'r'")fiberType("k's'","k'r'")")l","compare two fiber identifiers")
 escape(_new_fiber,":k's':k'r'F(F("fiberType("k'r'","k's'")"k'r')k's')"fiberType("k'r'","k's'"),"create a new fiber")
+escape(_spawn,":k's':k'r'F(F("fiberType("k'r'","k's'")")k's')k's'","spawn a new task")
 escape(_suspend_fiber,":k's':k'r'F("fiberType("k'r'","k's'")"k's')k'r'","suspend a fiber")
 escape(_retire_fiber,":k's':k'r'F("fiberType("k'r'","k's'")"k's')()","retire a fiber")
 escape(_resume_fiber,":k's':k'r'F("fiberType("k'r'","k's'")"k'r')k's'","resume a fiber")

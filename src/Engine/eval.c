@@ -14,6 +14,7 @@
 #include <math.h>
 #include "utils.h"
 #include "thunk.h"
+#include "continuation.h"
 #include "cellP.h"
 #include "jit.h"
 #include "thunkP.h"
@@ -452,6 +453,18 @@ retCode run(processPo P) {
         continue;
       }
 
+      case Spawn: {
+        // The top of a stack should be a unary lambda
+        termPo lambda = pop();
+        saveRegisters();
+        stackPo child = spawnStack(P, lambda);
+
+        P->stk = attachStack(STK, child);
+        verifyStack(P->stk,H);
+        restoreRegisters();
+        continue;
+      }
+
       case Suspend: { // Suspend identified fiber.
         termPo event = pop();
         stackPo fiber = C_STACK(pop());
@@ -516,6 +529,29 @@ retCode run(processPo P) {
         saveRegisters();  // Seal off the current stack
         assert(stackState(STK) == active);
         STK = P->stk = dropStack(STK);
+        restoreRegisters();
+        push(val);
+        continue;
+      }
+      case Cont: {
+        insPo exit = collectOff(PC);
+        assert(validPC(FP->prog, exit));
+        push(allocateContinuation(H, STK, FP, exit));
+        continue;
+      }
+      case Throw: {
+        continuationPo cont = C_CONTINUATION(pop());
+        termPo val = pop();
+        assert(continIsValid(cont));
+
+        stackPo stk = contStack(cont);
+
+        assert(isAttachedStack(STK, stk) && validFP(stk, contFP(cont)));
+
+        saveRegisters();
+        STK = P->stk = dropUntil(STK, stk);
+        STK->fp = contFP(cont);
+        STK->fp->pc = contPC(cont);
         restoreRegisters();
         push(val);
         continue;
