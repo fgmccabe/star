@@ -29,7 +29,7 @@ star.compiler.inline{
   simplifyDefn(D,_) default => D.
 
   -- There are three possibilities of a match ...
-  match[e] ::= .noMatch | .insufficient | matching(e).
+  match[e] ::= .noMatch | .insufficient | .matching(e).
 
   implementation all e ~~ display[e] |: display[match[e]] => {
     disp(.noMatch) => "noMatch".
@@ -51,7 +51,7 @@ star.compiler.inline{
   ptnMatch(_,.cVoid(_,_),_) => .insufficient.  -- void on right does not match anything
   ptnMatch(_,_,_) default => .noMatch.
 
-  ptnMatchArgs([],[],Map) => matching(Map).
+  ptnMatchArgs([],[],Map) => .matching(Map).
   ptnMatchArgs([E1,..L1],[E2,..L2],Map) => case ptnMatch(E1,E2,Map) in {
     .noMatch => .noMatch.
     .insufficient => .insufficient.
@@ -93,7 +93,7 @@ star.compiler.inline{
   simExp(.cThunk(Lc,T,Tp),Map,Depth) =>
     .cThunk(Lc,simplifyExp(T,Map,Depth),Tp).
   simExp(.cSeq(Lc,L,R),Map,Depth) =>
-    cSeq(Lc,simplifyExp(L,Map,Depth),simplifyExp(R,Map,Depth)).
+    .cSeq(Lc,simplifyExp(L,Map,Depth),simplifyExp(R,Map,Depth)).
   simExp(.cCnj(Lc,L,R),Map,Depth) =>
     applyCnj(Lc,simplifyExp(L,Map,Depth),simplifyExp(R,Map,Depth)).
   simExp(.cDsj(Lc,L,R),Map,Depth) =>
@@ -117,8 +117,8 @@ star.compiler.inline{
   simExp(.cMatch(Lc,Ptn,Exp),Map,Depth) =>
     applyMatch(Lc,Ptn,simplifyExp(Exp,Map,Depth)).
   simExp(.cVarNmes(Lc,Vrs,Exp),Map,Depth) =>
-    cVarNmes(Lc,Vrs,simplifyExp(Exp,Map,Depth)).
-  simExp(.cAbort(Lc,Txt,Tp),_,_) => cAbort(Lc,Txt,Tp).
+    .cVarNmes(Lc,Vrs,simplifyExp(Exp,Map,Depth)).
+  simExp(.cAbort(Lc,Txt,Tp),_,_) => .cAbort(Lc,Txt,Tp).
   simExp(.cSusp(Lc,Tsk,Evt,Tp),Map,Depth) =>
     .cSusp(Lc,simplifyExp(Tsk,Map,Depth),simplifyExp(Evt,Map,Depth),Tp).
   simExp(.cResume(Lc,Tsk,Evt,Tp),Map,Depth) =>
@@ -189,17 +189,17 @@ star.compiler.inline{
   applyWhere(Lc,Ptn,Exp) => .cWhere(Lc,Ptn,Exp).
 
   applyCnj(_,.cTerm(_,"star.core#true",[],_),R) => R.
-  applyCnj(_,.cTerm(Lc,"star.core#false",[],Tp),R) => cTerm(Lc,"star.core#false",[],Tp).
-  applyCnj(Lc,L,R) => cCnj(Lc,L,R).
+  applyCnj(_,.cTerm(Lc,"star.core#false",[],Tp),R) => .cTerm(Lc,"star.core#false",[],Tp).
+  applyCnj(Lc,L,R) => .cCnj(Lc,L,R).
 
   applyDsj(_,.cTerm(_,"star.core#false",[],_),R) => R.
   applyDsj(_,.cTerm(Lc,"star.core#true",[],Tp),R) => 
-    cTerm(Lc,"star.core#false",[],Tp).
-  applyDsj(Lc,L,R) => cDsj(Lc,L,R).
+    .cTerm(Lc,"star.core#false",[],Tp).
+  applyDsj(Lc,L,R) => .cDsj(Lc,L,R).
 
-  applyNeg(_,.cTerm(Lc,"star.core#false",[],Tp)) => cTerm(Lc,"star.core#true",[],Tp).
-  applyNeg(_,.cTerm(Lc,"star.core#true",[],Tp)) => cTerm(Lc,"star.core#false",[],Tp).
-  applyNeg(Lc,Inner) => cNeg(Lc,Inner).
+  applyNeg(_,.cTerm(Lc,"star.core#false",[],Tp)) => .cTerm(Lc,"star.core#true",[],Tp).
+  applyNeg(_,.cTerm(Lc,"star.core#true",[],Tp)) => .cTerm(Lc,"star.core#false",[],Tp).
+  applyNeg(Lc,Inner) => .cNeg(Lc,Inner).
 
   applyCnd:all e ~~ reform[e] |: (option[locn],cExp,e,e) => e.
   applyCnd(_,.cTerm(_,"star.core#false",[],_),_L,R) => R.

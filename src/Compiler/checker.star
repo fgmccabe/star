@@ -33,6 +33,7 @@ star.compiler.checker{
       if compatiblePkg(Pkg,Pkge) then{
 	(Imports,Stmts) = collectImports(Els,[],[]);
 	(AllImports,IDecls) = importAll(Imports,Repo,[],[]);
+--	logMsg("All imported decls $(IDecls)");
 
 	PkgEnv = declareDecls(IDecls,Base);
 	PkgPth = packageName(Pkg);
@@ -72,8 +73,8 @@ star.compiler.checker{
   formRecordExp:(option[locn],canon,tipe,cons[canonDef],cons[decl],tipe) => canon.
   formRecordExp(Lc,Lbl,.faceType(Flds,Tps),Defs,Decls,Tp) => valof{
     sortedFlds = sortFieldTypes(Flds);
-    valis letExp(Lc,Defs,Decls,apply(Lc,Lbl,
-	(sortedFlds//((FNm,FTp)) where FullNm ?=fullDeclName(FNm,Decls) =>vr(.none,FullNm,FTp)),Tp))
+    valis .letExp(Lc,Defs,Decls,.apply(Lc,Lbl,
+	(sortedFlds//((FNm,FTp)) where FullNm ?=fullDeclName(FNm,Decls) =>.vr(.none,FullNm,FTp)),Tp))
   }
 
   fullDeclName:(string,cons[decl]) => option[string].
@@ -89,8 +90,8 @@ star.compiler.checker{
     sortedFlds = sortFieldTypes(Flds);
     Dcls = Decls*;
     
-    valis genLetRec(Defs,Decls,(G,D,E) => letRec(Lc,G,D,E),
-      apply(Lc,Lbl,(sortedFlds//((FNm,FTp)) where FullNm ?=fullDeclName(FNm,Dcls) =>vr(Lc,FullNm,FTp)),Tp))
+    valis genLetRec(Defs,Decls,(G,D,E) => .letRec(Lc,G,D,E),
+      .apply(Lc,Lbl,(sortedFlds//((FNm,FTp)) where FullNm ?=fullDeclName(FNm,Dcls) =>.vr(Lc,FullNm,FTp)),Tp))
   }
 
   thetaEnv:(option[locn],string,cons[ast],tipe,dict) =>
@@ -140,8 +141,21 @@ star.compiler.checker{
     valis parseAnnotations(Gs,Fields,Annots,
       declareVar(Nm,qualifiedName(Path,.valMark,Nm),Lc,Tp,faceOfType(Tp,Env),Env),Path)
   }
+  parseAnnotations([.defnSpec(.tpSp(Nm),Lc,[Stmt]),..Gs],Fields,Annots,Env,Path) =>
+    parseAnnotations(Gs,Fields,Annots,defineType(Nm,Lc,Stmt,Env,Path),Path).
   parseAnnotations([_,..Gs],Fields,Annots,Env,Path) => parseAnnotations(Gs,Fields,Annots,Env,Path).
 
+  -- Prescan a type definition, before actually parsing it properly later
+  defineType:(string,option[locn],ast,dict,string) => dict.
+  defineType(Nm,Lc,Stmt,Env,Path) => valof{
+    if (Tmpl,TpRl) ?= parseTypeCore(Stmt,Env,Path) then
+      valis declareType(Nm,Lc,Tmpl,TpRl,Env)
+    else{
+      reportError("Cannot parse type statement $(Stmt)",Lc);
+      valis Env
+    }
+  }
+    
   parseAnnotation:(string,option[locn],cons[ast],tipe,map[string,ast],dict) => tipe.
   parseAnnotation(Nm,_,_,_,Annots,Env) where T ?= Annots[Nm] => 
     parseType([],T,Env).
@@ -247,10 +261,10 @@ star.compiler.checker{
     FullNm = qualifiedName(Path,.valMark,Nm);
 
     if traceCanon! then
-      logMsg("function $(Nm) is bound to $(lambda(Lc,FullNm,Rls,Tp))\:$(Tp)");
+      logMsg("function $(Nm) is bound to $(.lambda(Lc,FullNm,Rls,Tp))\:$(Tp)");
     
-    valis ([varDef(Lc,FullNm,lambda(Lc,lambdaLbl(Lc),Rls,Tp),Cx,Tp)],
-      [funDec(Lc,Nm,FullNm,Tp)])
+    valis ([.varDef(Lc,FullNm,.lambda(Lc,lambdaLbl(Lc),Rls,Tp),Cx,Tp)],
+      [.funDec(Lc,Nm,FullNm,Tp)])
   }
 
   checkVar:(string,tipe,option[locn],ast,dict,dict,string) => (cons[canonDef],cons[decl]).
@@ -308,9 +322,9 @@ star.compiler.checker{
       (Cond,E1) = checkCond(Wh,ErTp,E0,Path);
       Rep = typeOfExp(R,RTp,ErTp,E1,Path);
 	  
-      valis (rule(Lc,Args,.some(Cond),Rep),IsDeflt)
+      valis (.rule(Lc,Args,.some(Cond),Rep),IsDeflt)
     } else{
-      valis (rule(Lc,Args,.none,typeOfExp(R,RTp,ErTp,E0,Path)),IsDeflt)
+      valis (.rule(Lc,Args,.none,typeOfExp(R,RTp,ErTp,E0,Path)),IsDeflt)
     }
   }
 
@@ -337,11 +351,11 @@ star.compiler.checker{
 	Impl = typeOfExp(B,ConTp,.none,Es,Path);
 --	if traceCanon! then
 --	  logMsg("implementation expression $(Impl)");
-	ImplNm = implementationName(conTract(CnNm,CnTps,CnDps));
+	ImplNm = implementationName(.conTract(CnNm,CnTps,CnDps));
 	ImplVrNm = qualifiedName(Path,.valMark,ImplNm);
 	ImplTp = rebind(BV,reConstrainType(Cx,ConTp),Es);
 	if traceCanon! then
-	  logMsg("implementation definition $(implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp))");
+	  logMsg("implementation definition $(.implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp))");
 	
 	valis ([.implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp)],
 	  [.implDec(Lc,ImplNm,ImplVrNm,ImplTp),
@@ -423,13 +437,13 @@ star.compiler.checker{
   }
     
   typeOfPtn:(ast,tipe,option[tipe],dict,string) => (canon,dict).
-  typeOfPtn(A,Tp,_,Env,_) where Lc?=isAnon(A) => (anon(Lc,Tp),Env).
+  typeOfPtn(A,Tp,_,Env,_) where Lc?=isAnon(A) => (.anon(Lc,Tp),Env).
   typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Id) ?= isName(A) &&
       varDefined(Id,Env) =>
     typeOfPtn(mkWhereEquality(A),Tp,ErTp,Env,Path).
   typeOfPtn(A,Tp,_,Env,Path) where (Lc,Id) ?= isName(A) => valof{
     Ev = declareVar(Id,Id,Lc,Tp,faceOfType(Tp,Env),Env);
-    valis (vr(Lc,Id,Tp),Ev)
+    valis (.vr(Lc,Id,Tp),Ev)
   }
   typeOfPtn(A,Tp,ErTp,Env,Path) where _ ?= isEnumSymb(A) => valof{
     Enm = typeOfExp(A,Tp,ErTp,Env,Path);
@@ -449,7 +463,7 @@ star.compiler.checker{
       (Lc,E,C) ?= isWhere(A) => valof{
 	(Ptn,Ev0) = typeOfPtn(E,Tp,ErTp,Env,Path);
 	(Cond,Ev1) = checkCond(C,ErTp,Ev0,Path);
-	valis (whr(Lc,Ptn,Cond),Ev1)
+	valis (.whr(Lc,Ptn,Cond),Ev1)
       }.
   typeOfPtn(A,Tp,ErTp,Env,Path) where (_,[El]) ?= isTuple(A) && ~ _ ?= isTuple(El) =>
     typeOfPtn(El,Tp,ErTp,Env,Path).
@@ -457,7 +471,7 @@ star.compiler.checker{
     Tvs = genTpVars(Els);
     checkType(A,.tupleType(Tvs),Tp,Env);
     (Ptns,Ev) = typeOfPtns(Els,Tvs,ErTp,[],Env,Path);
-    valis (tple(Lc,Ptns),Ev)
+    valis (.tple(Lc,Ptns),Ev)
   }
   typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Op,Els) ?= isEnumCon(A) => valof{
     At = newTypeVar("A");
@@ -465,7 +479,7 @@ star.compiler.checker{
     Tps = genTpVars(Els);
     checkType(A,.tupleType(Tps),At,Env);
     (Args,Ev) = typeOfArgsPtn(Els,Tps,ErTp,Env,Path);
-    valis (apply(Lc,Fun,Args,Tp),Ev)
+    valis (.apply(Lc,Fun,Args,Tp),Ev)
   }
   typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Op,Ss) ?= isLabeledRecord(A) && (OLc,Nm)?=isName(Op) => valof{
     if traceCanon! then
@@ -481,7 +495,7 @@ star.compiler.checker{
     (Els,Ev) = typeOfElementPtns(Ss,Face,ErTp,Base,Path,[]);
     Args = fillinElementPtns(Lc,Els,Face);
 
-    valis (apply(Lc,DFun,Args,Tp),Ev)
+    valis (.apply(Lc,DFun,Args,Tp),Ev)
   }
   typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Op,Ss) ?= isLabeledTheta(A) && (OLc,Nm)?=isName(Op) => valof{
     if traceCanon! then
@@ -496,12 +510,12 @@ star.compiler.checker{
     Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
     (Els,Ev) = typeOfElementPtns(Ss,Face,ErTp,Base,Path,[]);
     Args = fillinElementPtns(Lc,Els,Face);
-    valis (apply(Lc,DFun,Args,Tp),Ev)
+    valis (.apply(Lc,DFun,Args,Tp),Ev)
   }
   typeOfPtn(A,Tp,_,Env,_) => valof{
     Lc = locOf(A);
     reportError("illegal pattern: $(A), expecting a $(Tp)",Lc);
-    valis (anon(Lc,Tp),Env)    
+    valis (.anon(Lc,Tp),Env)    
   }
     
   typeOfArgPtn:(ast,tipe,option[tipe],dict,string) => (canon,dict).
@@ -509,7 +523,7 @@ star.compiler.checker{
     Tvs = genTpVars(Els);
     checkType(A,.tupleType(Tvs),Tp,Env);
     (Ptns,Ev) = typeOfPtns(Els,Tvs,ErTp,[],Env,Path);
-    valis (tple(Lc,Ptns),Ev)
+    valis (.tple(Lc,Ptns),Ev)
   }
   typeOfArgPtn(A,Tp,ErTp,Env,Path) => typeOfPtn(A,Tp,ErTp,Env,Path).
 
@@ -534,7 +548,7 @@ star.compiler.checker{
   fillinElementPtns:(option[locn],cons[(string,canon)],tipe) => cons[canon].
   fillinElementPtns(Lc,Ptns,Tp) =>
     project1(foldRight(((Nm,Pt),Ps)=>fillinElementPtn(Lc,Nm,Pt,Ps),
-	_optval(fieldTypes(Tp))//((N,T))=>(N,vr(Lc,genSym("_"),T)),
+	_optval(fieldTypes(Tp))//((N,T))=>(N,.vr(Lc,genSym("_"),T)),
 	Ptns)).
 
   fillinElementPtn(Lc,Nm,Pt,Ps) => replace(Ps,((N,_))=>N==Nm,(Nm,Pt)).
@@ -551,33 +565,33 @@ star.compiler.checker{
   typeOfExp:(ast,tipe,option[tipe],dict,string) => canon.
   typeOfExp(A,Tp,_,Env,Path) where Lc ?= isAnon(A) => valof{
     reportError("anonymous variable not permitted in expression",Lc);
-    valis anon(Lc,Tp)
+    valis .anon(Lc,Tp)
   }
   typeOfExp(A,Tp,_,Env,Path) where (Lc,Id) ?= isName(A) =>
     typeOfVar(Lc,Id,Tp,Env,Path).
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Nm) ?= isEnumSymb(A) => valof{
-    Fun = typeOfExp(.nme(Lc,Nm),consType(tupleType([]),Tp),ErTp,Env,Path);
-    valis apply(Lc,Fun,[],Tp)
+    Fun = typeOfExp(.nme(Lc,Nm),consType(.tupleType([]),Tp),ErTp,Env,Path);
+    valis .apply(Lc,Fun,[],Tp)
   }
   typeOfExp(A,Tp,_,Env,Path) where (Lc,Ix) ?= isInt(A)  => valof{
     checkType(A,intType,Tp,Env);
-    valis intr(Lc,Ix)
+    valis .intr(Lc,Ix)
   }
   typeOfExp(A,Tp,_,Env,Path) where (Lc,Ix) ?= isBig(A)  => valof{
     checkType(A,bigintType,Tp,Env);
-    valis bintr(Lc,Ix)
+    valis .bintr(Lc,Ix)
   }
   typeOfExp(A,Tp,_,Env,Path) where (Lc,Dx) ?= isFlt(A) => valof{
     checkType(A,fltType,Tp,Env);
-    valis flt(Lc,Dx)
+    valis .flt(Lc,Dx)
   }.
   typeOfExp(A,Tp,_,Env,Path) where (Lc,Cx) ?= isChr(A)  => valof{
     checkType(A,chrType,Tp,Env);
-    valis kar(Lc,Cx)
+    valis .kar(Lc,Cx)
   }
   typeOfExp(A,Tp,_,Env,Path) where (Lc,Sx) ?= isStr(A) => valof{
     checkType(A,strType,Tp,Env);
-    valis strng(Lc,Sx)
+    valis .strng(Lc,Sx)
   }.
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,E,T) ?= isTypeAnnotation(A) => valof{
     ETp = parseType([],T,Env);
@@ -594,24 +608,24 @@ star.compiler.checker{
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,E,C) ?= isWhere(A) => valof{
     (Cond,Ev0) = checkCond(C,ErTp,Env,Path);
     Exp = typeOfExp(E,Tp,ErTp,Ev0,Path);
-    valis whr(Lc,Exp,Cond)
+    valis .whr(Lc,Exp,Cond)
   }.
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,R,F) ?= isFieldAcc(A) && (_,Fld) ?= isName(F) => valof{
     RTp = newTypeVar("R");
     Rc = typeOfExp(R,RTp,ErTp,Env,Path);
-    valis dot(Lc,Rc,Fld,Tp)
+    valis .dot(Lc,Rc,Fld,Tp)
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,R,Fld,V) ?= isRecordUpdate(A) => valof{
     Rc = typeOfExp(R,Tp,ErTp,Env,Path);
     VTp = newTypeVar("_V");
     Vl = typeOfExp(V,VTp,ErTp,Env,Path);
-    valis update(Lc,Rc,Fld,Vl)
+    valis .update(Lc,Rc,Fld,Vl)
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,T,L,R) ?= isConditional(A) => valof{
     (Tst,E0) = checkCond(T,ErTp,Env,Path);
     Thn = typeOfExp(L,Tp,ErTp,E0,Path);
     Els = typeOfExp(R,Tp,ErTp,Env,Path);
-    valis cond(Lc,Tst,Thn,Els)
+    valis .cond(Lc,Tst,Thn,Els)
   }.
   typeOfExp(A,Tp,ErTp,Env,Path) where _ ?= isConjunct(A) => valof{
     (_,boolTp,_,_) = ^findType(Env,"boolean");
@@ -640,17 +654,17 @@ star.compiler.checker{
     
     Rules = checkRules(Cases,ETp,Tp,ErTp,Env,Path,typeOfExp,[],.none);
     checkPtnCoverage(Rules//((.rule(_,.tple(_,[Ptn]),_,_))=>Ptn),Env,ETp);
-    valis csexp(Lc,Gv,Rules,Tp)
+    valis .csexp(Lc,Gv,Rules,Tp)
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,C) ?= isCellRef(A) => valof{
     Cl = typeOfExp(C,refType(Tp),ErTp,Env,Path);
-    valis apply(Lc,vr(Lc,"_get",funType([refType(Tp)],Tp)),[Cl],Tp)
+    valis .apply(Lc,.vr(Lc,"_get",funType([refType(Tp)],Tp)),[Cl],Tp)
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,V) ?= isRef(A) => valof{
     VTp = newTypeVar("_C");
     Vl = typeOfExp(V,VTp,ErTp,Env,Path);
     checkType(V,refType(VTp),Tp,Env);
-    valis apply(Lc,vr(Lc,"_cell",funType([VTp],Tp)),[Vl],Tp)
+    valis .apply(Lc,.vr(Lc,"_cell",funType([VTp],Tp)),[Vl],Tp)
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (_,[El]) ?= isTuple(A) && ~ _ ?= isTuple(El) =>
     typeOfExp(El,Tp,ErTp,Env,Path).
@@ -658,7 +672,7 @@ star.compiler.checker{
     Tvs = genTpVars(Els);
     checkType(A,.tupleType(Tvs),Tp,Env);
     Ptns = typeOfExps(Els,Tvs,ErTp,[],Env,Path);
-    valis tple(Lc,Ptns)
+    valis .tple(Lc,Ptns)
   }
   typeOfExp(A,Tp,_,Env,Path) where (Lc,_,Ar,C,R) ?= isLambda(A) => valof{
     At = newTypeVar("_A");
@@ -676,10 +690,10 @@ star.compiler.checker{
     if Cnd ?= C then {
       (Cond,E1) = checkCond(Cnd,.none,E0,Path);
       Rep = typeOfExp(R,Rt,.none,E1,Path);
-      valis lambda(Lc,LName,[rule(Lc,As,?Cond,Rep)],Tp)
+      valis .lambda(Lc,LName,[.rule(Lc,As,?Cond,Rep)],Tp)
     } else{
       Rep = typeOfExp(R,Rt,.none,E0,Path);
-      valis lambda(Lc,LName,[rule(Lc,As,.none,Rep)],Tp)
+      valis .lambda(Lc,LName,[.rule(Lc,As,.none,Rep)],Tp)
     }
   }
   typeOfExp(A,Tp,ErTp,Env,Pth) where (Lc,Op,Els) ?= isLabeledTheta(A) && (_,Nm)?=isName(Op) => valof{
@@ -715,14 +729,14 @@ star.compiler.checker{
     
     El = typeOfExp(Bnd,Tp,ErTp,ThEnv,Path);
 
-    valis genLetRec(Defs,Decls,(G,D,E) => letRec(Lc,G,D,E),El)
+    valis genLetRec(Defs,Decls,(G,D,E) => .letRec(Lc,G,D,E),El)
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Els,Bnd) ?= isLetDef(A) => valof{
     (Defs,Decls)=recordEnv(Lc,genNewName(Path,"Γ"),Els,.faceType([],[]),Env,Env);
 
     El = typeOfExp(Bnd,Tp,ErTp,declareDecls(Decls,Env),Path);
 
-    valis foldRight((Gp,I)=>letExp(Lc,Gp,Decls,I),El,sortDefs(Defs))
+    valis foldRight((Gp,I)=>.letExp(Lc,Gp,Decls,I),El,sortDefs(Defs))
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Op,Args) ?= isEnumCon(A) => valof{
     Vrs = genTpVars(Args);
@@ -730,7 +744,7 @@ star.compiler.checker{
     FFTp = newTypeFun("_F",2);
     Fun = typeOfExp(Op,consType(At,Tp),ErTp,Env,Path);
     Args = typeOfExps(Args,Vrs,ErTp,[],Env,Path);
-    valis apply(Lc,Fun,Args,Tp)
+    valis .apply(Lc,Fun,Args,Tp)
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Op,Args) ?= isRoundTerm(A) =>
     typeOfRoundTerm(Lc,Op,Args,Tp,ErTp,Env,Path).
@@ -751,7 +765,7 @@ star.compiler.checker{
   }
   typeOfExp(A,Tp,_,_,_) => valof{
     reportError("cannot type check expression $(A)",locOf(A));
-    valis anon(locOf(A),Tp)
+    valis .anon(locOf(A),Tp)
   }.
 
   typeOfVar(Lc,Id,Tp,Env,Path) => valof{
@@ -760,12 +774,12 @@ star.compiler.checker{
 	valis Var
       } else{
 	reportError("variable $(Id)\:$(typeOf(Var)) not consistent with expected type: $(Tp)",Lc);
-	valis anon(Lc,Tp)
+	valis .anon(Lc,Tp)
       }
     }
     else{
       reportError("variable $(Id) not defined. Expecting a $(Tp)",Lc);
-      valis anon(Lc,Tp)
+      valis .anon(Lc,Tp)
     }
   }
 
@@ -784,13 +798,13 @@ star.compiler.checker{
 
     if sameType(ExTp,FnTp,Env) then{
       Args = typeOfExps(As,Vrs,ErTp,[],Env,Path);      
-      valis apply(Lc,Fun,Args,Tp)
+      valis .apply(Lc,Fun,Args,Tp)
     } else if ETp?=ErTp && sameType(ExTp,.throwsType(FnTp,ETp),Env) then{
       Args = typeOfExps(As,Vrs,ErTp,[],Env,Path);      
-      valis apply(Lc,Fun,Args,Tp)
+      valis .apply(Lc,Fun,Args,Tp)
     } else{
       reportError("type of $(Op)\:$(ExTp) not consistent with $(FnTp)",Lc);
-      valis vr(Lc,"_",Tp)
+      valis .vr(Lc,"_",Tp)
     }
   }
 
@@ -798,46 +812,46 @@ star.compiler.checker{
   checkAction(A,Tp,ErTp,Env,Path) where (Lc,[St]) ?= isBrTuple(A) =>
     checkAction(St,Tp,ErTp,Env,Path).
   checkAction(A,_Tp,_ErTp,Env,Path) where (Lc,[]) ?= isBrTuple(A) =>
-    (doNop(Lc),Env).
+    (.doNop(Lc),Env).
   checkAction(A,Tp,ErTp,Env,Path) where (Lc,L,R) ?= isActionSeq(A) => valof{
     (LL,E0) = checkAction(L,Tp,ErTp,Env,Path);
     (RR,E1) = checkAction(R,Tp,ErTp,E0,Path);
-    valis (doSeq(Lc,LL,RR),E1)
+    valis (.doSeq(Lc,LL,RR),E1)
   }
   checkAction(A,Tp,ErTp,Env,Path) where (_,L) ?= isSoloSeq(A) =>
     checkAction(L,Tp,ErTp,Env,Path).
   checkAction(A,Tp,ErTp,Env,Path) where (Lc,Lb,Ac) ?= isLbldAction(A) => valof{
     (RR,E1) = checkAction(Ac,Tp,ErTp,Env,Path);
-    valis (doLbld(Lc,Lb,RR),E1)
+    valis (.doLbld(Lc,Lb,RR),E1)
   }
   checkAction(A,_Tp,_ErTp,Env,_Path) where (Lc,Lb) ?= isBreak(A) =>
-    (doBrk(Lc,Lb),Env).
+    (.doBrk(Lc,Lb),Env).
   checkAction(A,Tp,ErTp,Env,Path) where (Lc,E) ?= isValis(A) => valof{
     V = typeOfExp(E,Tp,ErTp,Env,Path);
-    valis (doValis(Lc,V),Env)
+    valis (.doValis(Lc,V),Env)
   }
   checkAction(A,_Tp,.some(ErTp),Env,Path) where (Lc,E) ?= isThrow(A) => valof{
     V = typeOfExp(E,ErTp,.none,Env,Path);
-    valis (doThrow(Lc,V),Env)
+    valis (.doThrow(Lc,V),Env)
   }
   checkAction(A,Tp,.none,Env,Path) where (Lc,E) ?= isThrow(A) => valof{
     reportError("Not permitted to throw",Lc);
-    valis (doNop(Lc),Env)
+    valis (.doNop(Lc),Env)
   }
   checkAction(A,_,ErTp,Env,Path) where (Lc,Lhs,Rhs) ?= isDefn(A) => valof{
     if (ILc,Id) ?= isName(Lhs) then{
       Tp = newTypeVar("_V");
       Val = typeOfExp(Rhs,Tp,ErTp,Env,Path);
       Ev = declareVar(Id,Id,Lc,Tp,faceOfType(Tp,Env),Env);
-      valis (doDefn(Lc,vr(ILc,Id,Tp),Val),Ev)
+      valis (.doDefn(Lc,.vr(ILc,Id,Tp),Val),Ev)
     } else if (ILc,Els) ?= isTuple(Lhs) then {
       TTp = newTypeVar("_T");
       (Ptn,Ev) = typeOfPtn(Lhs,TTp,ErTp,Env,Path);
       Val = typeOfExp(Rhs,TTp,ErTp,Env,Path);
-      valis (doMatch(Lc,Ptn,Val),Ev)
+      valis (.doMatch(Lc,Ptn,Val),Ev)
     } else{
       reportError("invalid lhs $(Lhs) of definition",locOf(Lhs));
-      valis (doNop(Lc),Env)
+      valis (.doNop(Lc),Env)
     }
   }
   checkAction(A,_,ErTp,Env,Path) where (Lc,Lhs,Rhs) ?= isAssignment(A) =>
@@ -856,17 +870,17 @@ star.compiler.checker{
     (CC,E0) = checkGoal(C,ErTp,Env,Path);
     (TT,_) = checkAction(T,Tp,ErTp,E0,Path);
     (EE,_) = checkAction(E,Tp,ErTp,Env,Path);
-    valis (doIfThen(Lc,CC,TT,EE),Env)
+    valis (.doIfThen(Lc,CC,TT,EE),Env)
   }
   checkAction(A,Tp,ErTp,Env,Path) where (Lc,C,T) ?= isIfThen(A) => valof{
     (CC,E0) = checkGoal(C,ErTp,Env,Path);
     (TT,_) = checkAction(T,Tp,ErTp,E0,Path);
-    valis (doIfThen(Lc,CC,TT,doNop(Lc)),Env)
+    valis (.doIfThen(Lc,CC,TT,.doNop(Lc)),Env)
   }
   checkAction(A,Tp,ErTp,Env,Path) where (Lc,C,B) ?= isWhileDo(A) => valof{
     (CC,E0) = checkGoal(C,ErTp,Env,Path);
     (BB,_) = checkAction(B,Tp,ErTp,E0,Path);
-    valis (doWhile(Lc,CC,BB),Env)
+    valis (.doWhile(Lc,CC,BB),Env)
   }
   checkAction(A,Tp,ErTp,Env,Path) where (Lc,Ds,B) ?= isLetDef(A) => valof{
     (Defs,Decls)=recordEnv(Lc,genNewName(Path,"Γ"),Ds,.faceType([],[]),Env,Env);
@@ -874,13 +888,13 @@ star.compiler.checker{
     (Ac,_) = checkAction(B,Tp,ErTp,declareDecls(Decls,Env),Path);
     Sorted = sortDefs(Defs);
 
-    valis (foldRight((Gp,I)=>doLet(Lc,Gp,Decls,I),Ac,Sorted),Env)
+    valis (foldRight((Gp,I)=>.doLet(Lc,Gp,Decls,I),Ac,Sorted),Env)
   }
   checkAction(A,Tp,ErTp,Env,Path) where (Lc,Ds,B) ?= isLetRecDef(A) => valof{
     (Defs,_,Decls,ThEnv)=thetaEnv(Lc,genNewName(Path,"Γ"),Ds,.faceType([],[]),Env);
     (Ac,_) = checkAction(B,Tp,ErTp,ThEnv,Path);
 
-    valis (genLetRec(Defs,Decls,(G,D,E)=>doLetRec(Lc,G,D,E),Ac),Env)
+    valis (genLetRec(Defs,Decls,(G,D,E)=>.doLetRec(Lc,G,D,E),Ac),Env)
   }
   checkAction(A,Tp,ErTp,Env,Path) where (Lc,G,Cases) ?= isCase(A) => valof{
     ETp = newTypeVar("_e");
@@ -890,7 +904,7 @@ star.compiler.checker{
 	(Act,_) = checkAction(Ac,Tp,ErTp,E,Path);
 	valis Act
       },[],.none);
-    valis (doCase(Lc,Gv,Rules),Env)
+    valis (.doCase(Lc,Gv,Rules),Env)
   }
   checkAction(A,Tp,ErTp,Env,Path) where (Lc,T,E,Cases) ?= isSuspend(A) => valof{
     STp = newTypeVar("_s");
@@ -924,17 +938,17 @@ star.compiler.checker{
     TT = typeOfExp(T,fiberType(RTp,STp),ErTp,Env,Path);
     EE = typeOfExp(E,STp,ErTp,Env,Path);
 
-    valis (doRetire(Lc,TT,EE),Env)
+    valis (.doRetire(Lc,TT,EE),Env)
   }
   
   checkAction(A,Tp,ErTp,Env,Path) where (Lc,Op,Args) ?= isRoundTerm(A) => valof{
-    Call = typeOfRoundTerm(Lc,Op,Args,unitTp,ErTp,Env,Path);
-    valis (doCall(Lc,Call),Env)
+    Call = typeOfRoundTerm(Lc,Op,Args,newTypeVar("_r"),ErTp,Env,Path);
+    valis (.doCall(Lc,Call),Env)
   }
   checkAction(A,_Tp,_ErTp,Env,_Path) default => valof{
     Lc = locOf(A);
     reportError("invalid action $(A)",Lc);
-    valis (doNop(Lc),Env)
+    valis (.doNop(Lc),Env)
   }
 
   checkAssignment(Lc,Lhs,Rhs,ErTp,Env,Path) => valof{
@@ -943,11 +957,11 @@ star.compiler.checker{
       RfTp = refType(Tp);
       Val = typeOfExp(Rhs,Tp,ErTp,Env,Path);
       Ev = declareVar(Id,Id,ILc,refType(Tp),.none,Env);
-      valis (doDefn(Lc,vr(ILc,Id,RfTp),apply(Lc,vr(Lc,"_cell",funType([Tp],RfTp)),[Val],RfTp)),Ev)
+      valis (.doDefn(Lc,.vr(ILc,Id,RfTp),.apply(Lc,.vr(Lc,"_cell",funType([Tp],RfTp)),[Val],RfTp)),Ev)
     } else{
       Val = typeOfExp(Rhs,Tp,ErTp,Env,Path);
       Var = typeOfExp(Lhs,refType(Tp),ErTp,Env,Path);
-      valis (doAssign(Lc,Var,Val),Env)
+      valis (.doAssign(Lc,Var,Val),Env)
     }
   }
 
@@ -978,12 +992,12 @@ star.compiler.checker{
       (Cond,E1) = checkCond(Wh,ErTp,E0,Path);
       Rep = Chk(R,RTp,ErTp,E1,Path);
       (Ags,ACnd) = pullWhere(Arg,.some(Cond));
-      valis .some((rule(Lc,tple(Lc,[Ags]),ACnd,Rep),IsDeflt))
+      valis .some((.rule(Lc,.tple(Lc,[Ags]),ACnd,Rep),IsDeflt))
     }
     else{
       (Ags,ACnd) = pullWhere(Arg,.none);
       Rep = Chk(R,RTp,ErTp,E0,Path);
-      valis .some((rule(Lc,tple(Lc,[Ags]),ACnd,Rep),IsDeflt))
+      valis .some((.rule(Lc,.tple(Lc,[Ags]),ACnd,Rep),IsDeflt))
     }
   }
   checkRule(St,_,_,_,_,_,_) default => valof{
@@ -999,7 +1013,7 @@ star.compiler.checker{
   mergeGoal:(option[locn],option[canon],option[canon])=>option[canon].
   mergeGoal(_,Gl,.none) => Gl.
   mergeGoal(_,.none,Gl) => Gl.
-  mergeGoal(Lc,.some(Gl),.some(H)) => .some(conj(Lc,Gl,H)).
+  mergeGoal(Lc,.some(Gl),.some(H)) => .some(.conj(Lc,Gl,H)).
   
   checkCond:(ast,option[tipe],dict,string) => (canon,dict).
   checkCond(A,ErTp,Env,Path) => checkGoal(A,ErTp,Env,Path).
@@ -1008,28 +1022,28 @@ star.compiler.checker{
   checkGoal(A,ErTp,Env,Path) where (Lc,L,R) ?= isConjunct(A) => valof{
     (Lhs,E0) = checkGoal(L,ErTp,Env,Path);
     (Rhs,E1) = checkGoal(R,ErTp,E0,Path);
-    valis (conj(Lc,Lhs,Rhs),E1)
+    valis (.conj(Lc,Lhs,Rhs),E1)
   }.
   checkGoal(A,ErTp,Env,Path) where (Lc,L,R) ?= isDisjunct(A) => valof{
     (Lhs,E0) = checkGoal(L,ErTp,Env,Path);
     (Rhs,E1) = checkGoal(R,ErTp,Env,Path);
-    valis (disj(Lc,Lhs,Rhs),mergeDict(E0,E1,Env))
+    valis (.disj(Lc,Lhs,Rhs),mergeDict(E0,E1,Env))
   }.
   checkGoal(A,ErTp,Env,Path) where (Lc,R) ?= isNegation(A) => valof{
     (Rhs,_) = checkGoal(R,ErTp,Env,Path);
-    valis (neg(Lc,Rhs),Env)
+    valis (.neg(Lc,Rhs),Env)
   }.
   checkGoal(A,ErTp,Env,Path) where (Lc,T,L,R) ?= isConditional(A) => valof{
     (Tst,E0) = checkGoal(T,ErTp,Env,Path);
     (Thn,E1) = checkGoal(L,ErTp,E0,Path);
     (Els,E2) = checkGoal(R,ErTp,Env,Path);
-    valis (cond(Lc,Tst,Thn,Els),mergeDict(E1,E2,Env))
+    valis (.cond(Lc,Tst,Thn,Els),mergeDict(E1,E2,Env))
   }.
   checkGoal(A,ErTp,Env,Path) where (Lc,L,R) ?= isMatch(A) => valof{
     PtnTp = newTypeVar("_M");
     Val = typeOfExp(R,PtnTp,ErTp,Env,Path);
     (Ptn,Ev) = typeOfPtn(L,PtnTp,ErTp,Env,Path);
-    valis (match(Lc,Ptn,Val),Ev)
+    valis (.match(Lc,Ptn,Val),Ev)
   }
   checkGoal(A,ErTp,Env,Path) where (_,[Inner]) ?= isTuple(A) =>
     checkGoal(Inner,ErTp,Env,Path).

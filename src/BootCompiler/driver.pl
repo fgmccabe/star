@@ -43,7 +43,7 @@ parseFlags(['-r', R|More],CWD,Cx,[repository(Repo)|Opts],Files) :-!,
   resolveURI(CWD,RU,Ruri),
   openRepository(Ruri,Repo),
   parseFlags(More,CWD,Cx,Opts,Files).
-parseFlags(['-c'|More],CWD,Cx,[compileOnly|Opts],Files) :-!,
+parseFlags(['-c'|More],CWD,Cx,[typeCheckOnly|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-m'|More],CWD,Cx,[macroOnly|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
@@ -60,7 +60,7 @@ parseFlags(['-da'|More],CWD,Cx,[showAst|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-dd'|More],CWD,Cx,[showGroups|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
-parseFlags(['-dt'|More],CWD,Cx,[showTCCode|Opts],Files) :-!,
+parseFlags(['-dc'|More],CWD,Cx,[showTCCode|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-dT'|More],CWD,Cx,[showTrCode|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
@@ -143,7 +143,7 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
    checkProgram(Prog,Pkg,Repo,Opts,PkgDecls,Canon),!,
    (is_member(showTCCode,Opts) -> dispCanonProg(Canon);true),
    noErrors,
-   (\+ is_member(compileOnly,Opts) ->
+   (\+ is_member(typeCheckOnly,Opts) ->
     transformProg(PkgDecls,Canon,Opts,Rules),!,
     (is_member(showTrCode,Opts) -> dispProg(Rules),validLProg(PkgDecls,Rules);true),
     noErrors,

@@ -23,14 +23,14 @@ star.compiler.opg{
 
   termLeft:(cons[token],integer) => (ast,integer,cons[token],needsTerm).
   termLeft([.tok(Lc,.idTok(Id)),.tok(Lc1,.rgtTok(Par)),..Toks],_) =>
-    (nme(? Lc,Id),0,[.tok(Lc1,.rgtTok(Par)),..Toks],.needOne).
+    (.nme(? Lc,Id),0,[.tok(Lc1,.rgtTok(Par)),..Toks],.needOne).
   termLeft([.tok(Lc,.idTok(Op)),..Toks],Priority) where
       (PPr,PRgt)?=isPrefixOp(Op) && PPr=<Priority &&
       (Arg,_,RToks,Needs) .= term(Toks,PRgt) =>
     (unary(mergeLoc(? Lc,locOf(Arg)),Op,Arg),PPr,RToks,Needs).
   termLeft([.endTok(Lc),..Toks],_) => valof{
     reportError("end of file on input",? Lc);
-    valis (nme(? Lc,"_eof"),0,[endTok(Lc),..Toks],.noNeed)
+    valis (.nme(? Lc,"_eof"),0,[.endTok(Lc),..Toks],.noNeed)
   }
   
   termLeft(Toks,_) => term0(Toks).
@@ -122,29 +122,29 @@ star.compiler.opg{
 
   termArgs:((ast,cons[token],needsTerm)) => (ast,integer,cons[token],needsTerm).
   termArgs((Left,[.tok(Lc,.lftTok("()")),.tok(Lcx,.rgtTok("()")),..Toks],_)) =>
-    termArgs((app(mergeLoc(locOf(Left),? Lcx),Left,.tpl(mergeLoc(? Lc,? Lcx),"()",[])),Toks,.needOne)).
+    termArgs((.app(mergeLoc(locOf(Left),? Lcx),Left,.tpl(mergeLoc(? Lc,? Lcx),"()",[])),Toks,.needOne)).
   termArgs((Lhs,[.tok(Lc,.lftTok("()")),..Toks],_)) where
       (Arg,_,Toks1,_) .= term(Toks,2000) &&
       (Lc2,Toks2) .= checkToken(.rgtTok("()"),Toks1) =>
-    termArgs((app(mergeLoc(locOf(Lhs),Lc2),Lhs,.tpl(mergeLoc(? Lc,Lc2),"()",deComma(Arg))),Toks2,.needOne)).
+    termArgs((.app(mergeLoc(locOf(Lhs),Lc2),Lhs,.tpl(mergeLoc(? Lc,Lc2),"()",deComma(Arg))),Toks2,.needOne)).
   termArgs((Left,[.tok(Lc,.lftTok("[]")),.tok(Lcx,.rgtTok("[]")),..Toks],_)) =>
-    termArgs((app(mergeLoc(locOf(Left),? Lcx),Left,.tpl(mergeLoc(? Lc,? Lcx),"[]",[])),Toks,.needOne)).
+    termArgs((.app(mergeLoc(locOf(Left),? Lcx),Left,.tpl(mergeLoc(? Lc,? Lcx),"[]",[])),Toks,.needOne)).
   termArgs((Lhs,[.tok(Lc,.lftTok("[]")),..Toks],_)) where
       (Arg,_,Toks1,_) .= term(Toks,2000) &&
       (Lc2,Toks2) .= checkToken(.rgtTok("[]"),Toks1) =>
-    termArgs((app(mergeLoc(locOf(Lhs),Lc2),Lhs,.tpl(mergeLoc(? Lc,Lc2),"[]",deComma(Arg))),Toks2,.needOne)).
+    termArgs((.app(mergeLoc(locOf(Lhs),Lc2),Lhs,.tpl(mergeLoc(? Lc,Lc2),"[]",deComma(Arg))),Toks2,.needOne)).
   termArgs((Left,[.tok(Lc,.lftTok("{}")),.tok(Lcx,.rgtTok("{}")),..Toks],_)) =>
-    (app(mergeLoc(locOf(Left),? Lcx),Left,.tpl(mergeLoc(? Lc,? Lcx),"{}",[])),0,Toks,.noNeed).
+    (.app(mergeLoc(locOf(Left),? Lcx),Left,.tpl(mergeLoc(? Lc,? Lcx),"{}",[])),0,Toks,.noNeed).
   termArgs((Lhs,[.tok(Lc,.lftTok("{}")),..Toks],_)) where
       (Els,Toks1) .= terms(Toks,.rgtTok("{}"),[]) &&
       (Lc2,Toks2) .= checkToken(.rgtTok("{}"),Toks1) =>
-    (app(mergeLoc(locOf(Lhs),Lc2),Lhs,.tpl(mergeLoc(? Lc,Lc2),"{}",Els)),0,Toks2,.noNeed).
+    (.app(mergeLoc(locOf(Lhs),Lc2),Lhs,.tpl(mergeLoc(? Lc,Lc2),"{}",Els)),0,Toks2,.noNeed).
   termArgs((Lhs,[.tok(Lc,.lftTok("{..}")),.tok(Lcx,.rgtTok("{..}")),..Toks],_)) =>
-    (app(mergeLoc(locOf(Lhs),? Lcx),Lhs,.tpl(mergeLoc(? Lc,? Lcx),"{..}",[])),0,Toks,.noNeed).
+    (.app(mergeLoc(locOf(Lhs),? Lcx),Lhs,.tpl(mergeLoc(? Lc,? Lcx),"{..}",[])),0,Toks,.noNeed).
   termArgs((Lhs,[.tok(Lc,.lftTok("{..}")),..Toks],_)) where
       (Els,Toks1) .= terms(Toks,.rgtTok("{..}"),[]) &&
       (Lc2,Toks2) .= checkToken(.rgtTok("{..}"),Toks1) =>
-    (app(mergeLoc(locOf(Lhs),Lc2),Lhs,.tpl(mergeLoc(? Lc,Lc2),"{..}",Els)),0,Toks2,.noNeed).
+    (.app(mergeLoc(locOf(Lhs),Lc2),Lhs,.tpl(mergeLoc(? Lc,Lc2),"{..}",Els)),0,Toks2,.noNeed).
   termArgs((Left,[.tok(Lc,.idTok(".")),.tok(Lcx,.idTok(Fld)),..Toks],_)) =>
     termArgs((binary(mergeLoc(locOf(Left),? Lcx),".",Left,.nme(? Lcx,Fld)),Toks,.needOne)).
   termArgs((Left,Toks,Needs)) => (Left,0,Toks,Needs).
@@ -171,7 +171,7 @@ star.compiler.opg{
   handleInterpolations(.cons(H,T),Lc) where
       HH .= handleInterpolation(H) &&
       TT .= handleInterpolations(T,Lc) =>
-    mkEnumCon(Lc,nme(Lc,"cons"),[HH,TT]).
+    mkEnumCon(Lc,.nme(Lc,"cons"),[HH,TT]).
 
   handleInterpolation:(stringSegment) => ast.
   handleInterpolation(.segment(Lc,Str)) => .str(? Lc,Str).
@@ -189,7 +189,7 @@ star.compiler.opg{
   }
   checkToken(Tk,[.endTok(Lc),..Toks]) => valof{
     reportError("missing $(Tk) - end of input",? Lc);    
-    valis (? Lc,[endTok(Lc),..Toks])
+    valis (? Lc,[.endTok(Lc),..Toks])
   }.
 
   checkTerminator:(cons[token],needsTerm) => cons[token].

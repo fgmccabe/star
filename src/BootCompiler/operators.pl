@@ -81,6 +81,7 @@
   operator("return", [prefixOp(930, 929)]).
   operator("?", [prefixOp(820, 819)]).
   operator("@", [prefixOp(400, 399), infixOp(399, 400, 400)]).
+  operator("|=", [infixOp(1224, 1225, 1224)]).
   operator("in", [infixOp(899, 900, 900)]).
   operator("break", [prefixOp(10, 9)]).
   operator("suspend", [prefixOp(901, 900), infixOp(900, 901, 900)]).
@@ -212,6 +213,7 @@
   follows('|',']','|]').
   follows('|',':','|:').
   follows('|','|','||').
+  follows('|','=','|=').
   follows('|','>','|>').
   follows('~','~','~~').
   follows('~','=','~=').
@@ -290,6 +292,7 @@
   final('|]',"|]").	 /* measure brackets */
   final('|:',"|:").	 /* constrained type */
   final('||',"||").	 /* disjunction */
+  final('|=',"|=").	 /* implicit variable */
   final('|>',"|>").	 /* meta quote */
   final('}',"}").	 /* non-recursive braces */
   final('~',"~").	 /* logical negation */
@@ -382,6 +385,7 @@
   keyword("|:").
   keyword("?").
   keyword("@").
+  keyword("|=").
   keyword("|>").
   keyword("in").
   keyword("break").

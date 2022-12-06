@@ -60,6 +60,16 @@
     "keyword": true
   },
   {
+    "infixOp" : "|=",
+    "priorities" : [
+      1224,
+      1225,
+      1224
+    ],
+    "desc" : "implicit variable",
+    "keyword" : true
+  },
+  {
     "infixOp": "~>",
     "priorities": [
       1230,

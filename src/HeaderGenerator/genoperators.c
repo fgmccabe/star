@@ -362,11 +362,11 @@ static retCode procOper(ioPo out, char *sep, opPo op) {
     case genStar:
       switch (op->style) {
         case prefixOp:
-          return outMsg(out, "%sprefixOp(%d,%d)", sep, op->prior, op->right);
+          return outMsg(out, "%s.prefixOp(%d,%d)", sep, op->prior, op->right);
         case infixOp:
-          return outMsg(out, "%sinfixOp(%d,%d,%d)", sep, op->left, op->prior, op->right);
+          return outMsg(out, "%s.infixOp(%d,%d,%d)", sep, op->left, op->prior, op->right);
         case postfixOp:
-          return outMsg(out, "%spostfixOp(%d,%d)", sep, op->left, op->prior);
+          return outMsg(out, "%s.postfixOp(%d,%d)", sep, op->left, op->prior);
         default:
           return Error;
       }

@@ -18,7 +18,7 @@ star.compiler.ltipe{
       .flt64 => "flt64".
       .bool => "bool".
       .ptr => "ptr".
-      .funTipe(As,R) => "(#(showTp(tplTipe(As))))->#(showTp(R))".
+      .funTipe(As,R) => "(#(showTp(.tplTipe(As))))->#(showTp(R))".
       .tplTipe(As) => "(#(interleave(As//showTp,",")*))".
     }
   .} in {
@@ -59,15 +59,15 @@ star.compiler.ltipe{
   }
 
   public implementation coercion[tipe,ltipe] => {
-    _coerce(T) => some(reduceTp(T))
+    _coerce(T) => .some(reduceTp(T))
   }
 
   public implementation coercion[ltipe,multi[char]] => {
-    _coerce(LT) => some(encTp(LT))
+    _coerce(LT) => .some(encTp(LT))
   }
 
   public implementation coercion[ltipe,string] => {
-    _coerce(LT) => some((encTp(LT)::cons[char])::string)
+    _coerce(LT) => .some((encTp(LT)::cons[char])::string)
   }
 
   encTp:(ltipe)=>multi[char].
@@ -76,8 +76,8 @@ star.compiler.ltipe{
     .flt64 => [`f`].
     .bool => [`l`].
     .ptr => [`p`].
-    .funTipe(As,R) => [`F`,..encTp(tplTipe(As))]++encTp(R).
-    .tplTipe(As) => [`(`]++multi(As//encTp)++[`)`].
+    .funTipe(As,R) => [`F`,..encTp(.tplTipe(As))]++encTp(R).
+    .tplTipe(As) => [`(`]++.multi(As//encTp)++[`)`].
   }
 
 
@@ -93,7 +93,7 @@ star.compiler.ltipe{
       decTps(C,So) where (E,C1)?=decTp(Cs) => decTps(C1,So++[E]).
     .} in decTps(Cs,[]).
     `F` where (.tplTipe(As),C0)?=decTp(Cs) && (Rt,Cx) ?= decTp(C0) =>
-      .some((funTipe(As,Rt),Cx)).
+      .some((.funTipe(As,Rt),Cx)).
   }
 
   reduceTp:(tipe)=>ltipe.
@@ -105,8 +105,8 @@ star.compiler.ltipe{
     .nomnal("star.core*boolean") => .bool.
     .nomnal(_) => .ptr.
     _ where (A,R) ?= isFunType(Tp) && .tupleType(As).=deRef(A) =>
-      funTipe(As//reduceTp,reduceTp(R)).
-    .tupleType(A) => tplTipe(A//reduceTp).
+      .funTipe(As//reduceTp,reduceTp(R)).
+    .tupleType(A) => .tplTipe(A//reduceTp).
     _ default => .ptr.
   }
 }

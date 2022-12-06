@@ -173,7 +173,10 @@ parseTypeFace(T,_,_,[],[]) :-
   reportError("%s is not a type interface",[ast(T)],Lc).
 
 parseConstraint(T,Env,B,C0,Cx) :-
-  isBinary(T,_,"<~",L,R),
+  isDynamic(T,_,Nm,R),
+  parseType(R,Env,B,C0,[implicit(Nm,Tp)|Cx],Tp).
+parseConstraint(T,Env,B,C0,Cx) :-
+  isTypeExists(T,_,L,R),
   parseType(L,Env,B,C0,C1,TV),
   parseType(R,Env,B,C1,[implementsFace(TV,AT)|Cx],AT).
 parseConstraint(Sq,Env,B,C0,Cx) :-
@@ -183,6 +186,9 @@ parseConstraint(Sq,Env,B,C0,Cx) :-
     C1=[conTract(Op,ArgTps,Deps)|Cx];
     reportError("contract %s not declared",[id(N)],Lc),
     Cx=C1).
+parseConstraint(T,Env,B,C,Cx) :-
+  isTuple(T,_,[El]),
+  parseConstraint(El,Env,B,C,Cx).
 parseConstraint(T,_,B,B,C,C) :-
   locOfAst(T,Lc),
   reportError("invalid type constraint %s",[ast(T)],Lc).

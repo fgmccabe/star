@@ -155,12 +155,12 @@ static char *dumpStarSig(char *sig, ioPo out) {
       outMsg(out, "boolType");
       break;
     case kvrSig:
-      outStr(out, "nomnal(");
+      outStr(out, ".nomnal(");
       sig = dName(sig, out);
       outStr(out, ")");
       break;
     case kfnSig: {
-      outStr(out, "kFun(");
+      outStr(out, ".kFun(");
       int ar;
       sig = dInt(sig, &ar);
       sig = dName(sig, out);
@@ -170,25 +170,25 @@ static char *dumpStarSig(char *sig, ioPo out) {
       break;
     }
     case voidSig:
-      outStr(out, "voidType");
+      outStr(out, ".voidType");
       break;
     case thisSig:
       outStr(out, "thisType");
       break;
     case tpeSig:
-      outMsg(out, "nomnal(");
+      outMsg(out, ".nomnal(");
       sig = dName(sig, out);
       outMsg(out, ")");
       break;
 
     case refSig: {
-      outStr(out, "tpExp(tpFun(\"ref\",1),");
+      outStr(out, ".tpExp(.tpFun(\"ref\",1),");
       sig = dumpStarSig(sig, out);
       outStr(out, ")");
       break;
     }
     case tpfnSig: {
-      outStr(out, "tpFun(");
+      outStr(out, ".tpFun(");
       int ar;
       sig = dInt(sig, &ar);
       sig = dName(sig, out);
@@ -198,64 +198,64 @@ static char *dumpStarSig(char *sig, ioPo out) {
       break;
     }
     case tpeExpSig:
-      outStr(out, "tpExp(");
+      outStr(out, ".tpExp(");
       sig = dumpStarSig(sig, out);
       outStr(out, ",");
       sig = dumpStarSig(sig, out);
       outStr(out, ")");
       break;
     case tplSig:
-      outStr(out, "tupleType(");
+      outStr(out, ".tupleType(");
       sig = dStarSequence(sig, out);
       outStr(out, ")");
       break;
     case funSig:
-      outStr(out, "tpExp(tpExp(tpFun(\"=>\",2),");
+      outStr(out, ".tpExp(.tpExp(.tpFun(\"=>\",2),");
       sig = dumpStarSig(sig, out);
       outStr(out, "),");
       sig = dumpStarSig(sig, out);
       outStr(out, ")");
       break;
     case conSig:
-      outStr(out, "tpExp(tpExp(tpFun(\"<=>\",2),");
+      outStr(out, ".tpExp(.tpExp(.tpFun(\"<=>\",2),");
       sig = dumpStarSig(sig, out);
       outStr(out, "),");
       sig = dumpStarSig(sig, out);
       outStr(out, ")");
       break;
     case throwsSig:
-      outStr(out, "throwsType(");
+      outStr(out, ".throwsType(");
       sig = dumpStarSig(sig, out);
       outStr(out, "),");
       sig = dumpStarSig(sig, out);
       outStr(out, ")");
       break;
     case faceSig:
-      outStr(out, "faceType(");
+      outStr(out, ".faceType(");
       sig = dStarFields(sig, out);
       outStr(out, ")");
       break;
     case lstSig:
-      outStr(out, "tpExp(tpFun(\"star.core*cons\",1),");
+      outStr(out, ".tpExp(.tpFun(\"star.core*cons\",1),");
       sig = dumpStarSig(sig, out);
       outStr(out, ")");
       break;
     case allSig:
-      outStr(out, "allType(");
+      outStr(out, ".allType(");
       sig = dumpStarSig(sig, out);
       outStr(out, ",");
       sig = dumpStarSig(sig, out);
       outStr(out, ")");
       break;
     case xstSig:
-      outStr(out, "existType(");
+      outStr(out, ".existType(");
       sig = dumpStarSig(sig, out);
       outStr(out, ",");
       sig = dumpStarSig(sig, out);
       outStr(out, ")");
       break;
     case constrainedSig:
-      outStr(out, "constrained(");
+      outStr(out, ".constrained(");
       sig = dumpStarSig(sig, out);
       outStr(out, ",");
       sig = dumpStarSig(sig, out);

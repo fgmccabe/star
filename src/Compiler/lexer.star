@@ -14,7 +14,7 @@ star.compiler.lexer{
   allTks:(tokenState)=>(tokenState,cons[token]).
   allTks(St) => let{.
     allToks(Strm,SoFr) where (Nx,.some(Tk)).=nextToken(Strm) => allToks(Nx,[Tk,..SoFr]).
-    allToks(Strm,SoFr) default => (Strm,reverse([endTok(makeLoc(Strm,Strm)),..SoFr])).
+    allToks(Strm,SoFr) default => (Strm,reverse([.endTok(makeLoc(Strm,Strm)),..SoFr])).
   .} in allToks(St,[]).
   
   public initSt:(locn,cons[char])=>tokenState.
@@ -31,9 +31,9 @@ star.compiler.lexer{
   nxxTok:(char,tokenState,tokenState) => (tokenState,option[token]).
   nxxTok(`0`,St,St0) where (Nx,.some(Ch)).=nextChr(St) => let{
     numericTok(`x`,St1) where (Nxt,.some(Hx)) .= hexChars(Nx,0) =>
-      (Nxt,.some(tok(makeLoc(St0,Nxt),intTok(Hx)))).
+      (Nxt,.some(.tok(makeLoc(St0,Nxt),.intTok(Hx)))).
     numericTok(`c`,St1) where (Nxt,.some(ChC)) .= charRef(St1) =>
-      (Nxt,.some(tok(makeLoc(St0,Nxt),intTok(ChC::integer)))).
+      (Nxt,.some(.tok(makeLoc(St0,Nxt),.intTok(ChC::integer)))).
     numericTok(`b`,St1) => valof{
       (Nxt,.some(Bg)) = readNatural(St1,[]);
       valis (Nxt,?.tok(makeLoc(St0,Nx),.bigTok(Bg::bigint)))
@@ -44,11 +44,11 @@ star.compiler.lexer{
     case Ch in {
       `x` => valof{
 	(Nxt,.some(Hx)) = hexChars(Nx,0);
-	valis (Nxt,?tok(makeLoc(St0,Nxt),intTok(Hx)))
+	valis (Nxt,?.tok(makeLoc(St0,Nxt),.intTok(Hx)))
       }.
       `c` => valof{
 	(Nxt,?ChC) = charRef(Nx);
-	valis (Nxt,? tok(makeLoc(St0,Nxt),intTok(ChC::integer)))
+	valis (Nxt,? .tok(makeLoc(St0,Nxt),.intTok(ChC::integer)))
       }.
       `b` => valof{
 	(Nxt,.some(Bg)) = readNatural(Nx,[]);
@@ -65,18 +65,18 @@ star.compiler.lexer{
   nxxTok(`8`,_,St0) => readNumber(St0).
   nxxTok(`9`,_,St0) => readNumber(St0).
   nxxTok(`'`,St,St0) where (Nxt,.some(Id)) .= readQuoted(St,`'`,[]) =>
-    (Nxt,.some(tok(makeLoc(St0,Nxt),idQTok(Id)))).
+    (Nxt,.some(.tok(makeLoc(St0,Nxt),.idQTok(Id)))).
   nxxTok(`\"`,St,St0) where Nx ?= lookingAt(St,[`\"`,`\"`]) => stringBlob(Nx,St0,[]).
   nxxTok(`\"`,St,St0) where (Nxt,.some(Str)) .= readString(St,[]) =>
-    (Nxt,.some(tok(makeLoc(St0,Nxt),strTok(Str)))).
+    (Nxt,.some(.tok(makeLoc(St0,Nxt),.strTok(Str)))).
   nxxTok(`\``,St,St0) where
       (St1,.some(ChC)) .= charRef(St) &&
       Stx ?= lookingAt(St1,[`\``]) =>
-    (Stx,.some(tok(makeLoc(St0,Stx),chrTok(ChC)))).
+    (Stx,.some(.tok(makeLoc(St0,Stx),.chrTok(ChC)))).
   nxxTok(`.`,St,St0) where (Nx,.some(`\n`)) .= nextChr(St) =>
-    (Nx,.some(tok(makeLoc(St0,Nx),idTok(". ")))).
+    (Nx,.some(.tok(makeLoc(St0,Nx),.idTok(". ")))).
   nxxTok(`.`,St,St0) where (Nx,.some(`\t`)) .= nextChr(St) =>
-    (Nx,.some(tok(makeLoc(St0,Nx),idTok(". ")))).
+    (Nx,.some(.tok(makeLoc(St0,Nx),.idTok(". ")))).
   nxxTok(Chr,St,St0) where Ld ?= first(Chr) => let{.
     graphFollow:(tokenState,string,(tokenState,option[token])) => (tokenState,option[token]).
     graphFollow(Strm,SoF,Deflt) where (Nx,.some(Ch)) .= nextChr(Strm) && SoF1 ?= follows(SoF,Ch) =>
@@ -100,7 +100,7 @@ star.compiler.lexer{
   readIden:(tokenState,tokenState,cons[char]) => (tokenState,option[token]).
   readIden(St,St0,SoF) where (Nx,.some(Chr)) .= nextChr(St) && (isIdentifierStart(Chr) || _isNdChar(Chr)) =>
     readIden(Nx,St0,[Chr,..SoF]).
-  readIden(St,St0,SoF) default => (St,.some(tok(makeLoc(St0,St),idTok(reverse(SoF)::string)))).
+  readIden(St,St0,SoF) default => (St,.some(.tok(makeLoc(St0,St),.idTok(reverse(SoF)::string)))).
 
   readQuoted:(tokenState,char,cons[char]) => (tokenState,option[string]).
   readQuoted(St,Qt,Chrs) where (Nx,.some(Qt)) .= nextChr(St) => (Nx,.some(reverse(Chrs)::string)).
@@ -118,7 +118,7 @@ star.compiler.lexer{
     (_,.some(`\(`)) .= nextChr(Nx) &&
 	  (St1,.some(Inter)) .= evaluation(Nx) => readString(St1,[Inter,..SoFar]).
   readString(St,SoFar) where (St1,.some(Seg)) .= readStr(St,[]) =>
-    readString(St1,[segment(makeLoc(St,St1),Seg),..SoFar]).
+    readString(St1,[.segment(makeLoc(St,St1),Seg),..SoFar]).
 
   readStr:(tokenState,cons[char]) => (tokenState,option[string]).
   readStr(St,Chrs) where  `\"` ?= hedChar(St) => (St,.some(reverse(Chrs)::string)).
@@ -133,14 +133,14 @@ star.compiler.lexer{
     (St2,.some(Inter)) .= bracketCount(St,St1,Chr,[],[]) &&
     (St3,.some(Format)) .= readFormat(St2) &&
     (St4,IToks) .= allTks(interSt(St2,Inter)) =>
-   (St3,.some(interpolate(makeLoc(St,St3),IToks,Format))).
+   (St3,.some(.interpolate(makeLoc(St,St3),IToks,Format))).
 
   evaluation:(tokenState) => (tokenState,option[stringSegment]).
   evaluation(St) where
     (St1,.some(Chr)) .= nextChr(St) &&
     (St2,.some(Inter)) .= bracketCount(St,St1,Chr,[],[]) &&
     (St3,IToks) .= allTks(interSt(St2,Inter)) =>
-  (St2,.some(evaluate(makeLoc(St,St2),IToks))).
+  (St2,.some(.evaluate(makeLoc(St,St2),IToks))).
 
   bracketCount:(tokenState,tokenState,char,cons[char],cons[char]) => (tokenState,option[string]).
   bracketCount(_,St1,Cl,[Cl],Chrs) => (St1,.some(reverse([Cl,..Chrs])::string)).
@@ -167,7 +167,7 @@ star.compiler.lexer{
   stringBlob:(tokenState,tokenState,cons[char]) => (tokenState,option[token]).
   stringBlob(St,St0,Sf) where St1 ?= lookingAt(St,[`\"`,`\"`,`\"`]) &&
     Lc .= makeLoc(St0,St1) =>
-    (St1,.some(tok(Lc,strTok([segment(Lc,reverse(Sf)::string)])))).
+    (St1,.some(.tok(Lc,.strTok([.segment(Lc,reverse(Sf)::string)])))).
   stringBlob(St,St0,Sf) where (St1,.some(Nx)) .= nextChr(St) =>
     stringBlob(St1,St0,[Nx,..Sf]).
 
@@ -206,18 +206,18 @@ star.compiler.lexer{
   readMore:(tokenState,tokenState,integer) => (tokenState,option[token]).
   readMore(St,St0,Sf) where St1?=lookingAt(St,[`.`]) && Hd?=hedChar(St1) && isDigit(Hd) =>
     readFraction(St1,St0,Sf::float,0.1).
-  readMore(St,St0,Sf) => (St,.some(tok(makeLoc(St0,St),intTok(Sf)))).
+  readMore(St,St0,Sf) => (St,.some(.tok(makeLoc(St0,St),.intTok(Sf)))).
 
   readFraction:(tokenState,tokenState,float,float) => (tokenState,option[token]).
   readFraction(St,St0,Sf,Scle) where (St1,.some(Hd)).=nextChr(St) && isDigit(Hd) =>
     readFraction(St1,St0,Sf+(digitVal(Hd)::float)*Scle,Scle*0.1).
   readFraction(St,St0,Sf,_) where St1?=lookingAt(St,[`e`]) => readExponent(St1,St0,Sf).
-  readFraction(St,St0,Sf,_) => (St,.some(tok(makeLoc(St0,St),fltTok(Sf)))).
+  readFraction(St,St0,Sf,_) => (St,.some(.tok(makeLoc(St0,St),.fltTok(Sf)))).
 
   readExponent:(tokenState,tokenState,float) => (tokenState,option[token]).
   readExponent(St,St0,Mn) where (St1,.some(Ix)).=readInt(St) =>
-    (St1,.some(tok(makeLoc(St0,St1),fltTok(Mn*(10.0**(Ix::float)))))).
-  readExponent(St,St0,Mn) => (St,.some(tok(makeLoc(St0,St),fltTok(Mn)))).
+    (St1,.some(.tok(makeLoc(St0,St1),.fltTok(Mn*(10.0**(Ix::float)))))).
+  readExponent(St,St0,Mn) => (St,.some(.tok(makeLoc(St0,St),.fltTok(Mn)))).
 
   -- We define a tracking state to allow us to collect locations
   public tokenState ::= .tokenState(string,integer,integer,integer,cons[char]).

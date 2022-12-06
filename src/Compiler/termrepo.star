@@ -15,8 +15,8 @@ star.compiler.term.repo{
   openRepository(Root) where
       ManUri ?= parseUri("manifest") &&
       MU ?= resolveUri(Root,ManUri) &&
-      Man ?= readManifest(MU) => repo(Root,Man).
-  openRepository(Root) => .repo(Root,man([])).
+      Man ?= readManifest(MU) => .repo(Root,Man).
+  openRepository(Root) => .repo(Root,.man([])).
 
   public implementation repo[termRepo] => {
     pkgSignature(.repo(_,Man),Pkg) => locateInManifest(Man,Pkg,"signature").
@@ -42,7 +42,7 @@ star.compiler.term.repo{
     Fn = "#(Pk).#(Vr::string)#(Ext)";
     FU = ^resolveUri(Root,Fn::uri);
     putResource(FU,Text);
-    valis flushRepo(.repo(Root,addToManifest(Man,pkg(Pk,Vr),Kind,Fn)))
+    valis flushRepo(.repo(Root,addToManifest(Man,.pkg(Pk,Vr),Kind,Fn)))
   }
 
 
@@ -69,7 +69,7 @@ star.compiler.term.repo{
       CU ?= parseUri(U) &&
       CodeFile ?= resolveUri(Root,CU) &&
       SU ?= parseUri(S) &&
-      SrcFile ?= resolveUri(Root,SU) => some((SrcFile,CodeFile)).
+      SrcFile ?= resolveUri(Root,SU) => .some((SrcFile,CodeFile)).
   packageCode(_,_) default => .none.
     
   public addPackage:(termRepo,pkg,string) => termRepo.
@@ -114,7 +114,7 @@ star.compiler.term.repo{
   termInfo(.term(Ky,[.strg(V)]),Is) => Is[Ky->V].
 
   implementation coercion[data,manifest] => {
-    _coerce(T) => some(termManifest(T)).
+    _coerce(T) => .some(termManifest(T)).
   }
 
   infoTerm:(mInfo)=>data.
@@ -137,6 +137,6 @@ star.compiler.term.repo{
 
   readManifest(Url) where
       Txt ?= getResource(Url) &&
-      J.=Txt::data => some(J::manifest).
+      J.=Txt::data => .some(J::manifest).
   readManifest(_) default => .none.
 }

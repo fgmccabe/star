@@ -46,7 +46,7 @@ star.compiler.term{
     | .cTry(option[locn],cExp,cExp,cExp,tipe)
     | .cValof(option[locn],aAction,tipe).
   
-  public cId ::= cId(string,tipe).
+  public cId ::= .cId(string,tipe).
 
   public all e ~~ cCase[e] ~> (option[locn],cExp,e).
 
@@ -71,10 +71,10 @@ star.compiler.term{
     | .aVarNmes(option[locn],cons[(string,cId)],aAction)
     | .aAbort(option[locn],string).
 
-  public cDefn ::= fnDef(option[locn],string,tipe,cons[cId],cExp) |
-    vrDef(option[locn],string,tipe,cExp)|
-    tpDef(option[locn],tipe,typeRule,cons[(termLbl,tipe,integer)]) |
-    lblDef(option[locn],termLbl,tipe,integer).
+  public cDefn ::= .fnDef(option[locn],string,tipe,cons[cId],cExp) |
+    .vrDef(option[locn],string,tipe,cExp)|
+    .tpDef(option[locn],tipe,typeRule,cons[(termLbl,tipe,integer)]) |
+    .lblDef(option[locn],termLbl,tipe,integer).
 
   public dispCrProg:(cons[cDefn])=>string.
   dispCrProg(Defs) => interleave(Defs//disp,".\n")*.
@@ -141,7 +141,7 @@ star.compiler.term{
       valis "(#(dspExp(T,Off)) ?? #(dspExp(L,Off2)) ||\n #(Off2)#(dspExp(R,Off2)))"
     }.
     .cNeg(_,R) => "~#(dspExp(R,Off))".
-    .cSeq(Lc,L,R) => "{#(dspSeq(cSeq(Lc,L,R),Off++"  "))}".
+    .cSeq(Lc,L,R) => "{#(dspSeq(.cSeq(Lc,L,R),Off++"  "))}".
     .cVarNmes(_,V,E) => "<vars #(dspVrs(V)) in #(dspExp(E,Off))>".
     .cAbort(_,M,_) => "abort #(M)".
     .cSusp(_,T,E,_) => "#(dspExp(T,Off)) suspend #(dspExp(E,Off))".
@@ -214,9 +214,9 @@ star.compiler.term{
 
   public mcTpl:(option[locn],cons[cExp]) => cExp.
   mcTpl(Lc,Args) => let{
-    TpTp = tupleType(Args//typeOf).
+    TpTp = .tupleType(Args//typeOf).
     Ar = size(Args)
-  } in cTerm(Lc,tplLbl(Ar), Args, TpTp).
+  } in .cTerm(Lc,tplLbl(Ar), Args, TpTp).
 
   public contract all e ~~ rewrite[e] ::= {
     rewrite:(e,map[termLbl,cDefn])=>e
@@ -461,7 +461,7 @@ star.compiler.term{
       .cChar(_,Cx) => .some(.chr(Cx)).
       .cFloat(_,Dx) => .some(.flot(Dx)).
       .cString(_,Sx) => .some(.strg(Sx)).
-      .cVoid(_,_) => .some(.symb(tLbl("void",0))).
+      .cVoid(_,_) => .some(.symb(.tLbl("void",0))).
       .cInt(_,Ix) => .some(.intgr(Ix)).
       .cTerm(_,Nm,Args,_) where NArgs ?= mapArgs(Args,[]) =>
 	.some(.term(Nm,NArgs)).
@@ -645,14 +645,14 @@ star.compiler.term{
   public implementation reform[cExp] => {.
     mkCond(Lc,Tst,Th,El) => valof{
       if .cCnd(_,T1,Th1,El1).=Th && El1==El then
-	valis .cCnd(Lc,cCnj(Lc,Tst,T1),Th1,El1) else
+	valis .cCnd(Lc,.cCnj(Lc,Tst,T1),Th1,El1) else
       valis .cCnd(Lc,Tst,Th,El).
     }
 
-    varNames(Lc,Bnds,Val) => cVarNmes(Lc,Bnds,Val).
+    varNames(Lc,Bnds,Val) => .cVarNmes(Lc,Bnds,Val).
 
     pullWhere(.cWhere(Lc,V,C),G) where (Val,G1) .= pullWhere(V,G) =>
-      (Val,mergeGoal(Lc,some(C),G1)).
+      (Val,mergeGoal(Lc,.some(C),G1)).
     pullWhere(.cTerm(Lc,Lbl,Args,Tp),G) where (NArgs,Gx) .= pullWheres(Args,G) =>
       (.cTerm(Lc,Lbl,NArgs,Tp),Gx).
     pullWhere(Exp,G) default => (Exp,G).
@@ -661,19 +661,19 @@ star.compiler.term{
     pullWheres([A,..As],G) where (NA,NG).=pullWhere(A,G) && (NAs,Gx) .= pullWheres(As,NG) =>
       ([NA,..NAs],Gx).
 
-    mkCase(Lc,Tst,[(PLc,Ptn,Val)],Deflt) => mkCond(Lc,cMatch(PLc,Ptn,Tst),Val,Deflt).
-    mkCase(Lc,V,Cases,Deflt) => cCase(Lc,V,Cases,Deflt,typeOf(Deflt)).
+    mkCase(Lc,Tst,[(PLc,Ptn,Val)],Deflt) => mkCond(Lc,.cMatch(PLc,Ptn,Tst),Val,Deflt).
+    mkCase(Lc,V,Cases,Deflt) => .cCase(Lc,V,Cases,Deflt,typeOf(Deflt)).
 
-    mkUnpack(Lc,V,Arms) => cUnpack(Lc,V,Arms,typeOf(V)).
+    mkUnpack(Lc,V,Arms) => .cUnpack(Lc,V,Arms,typeOf(V)).
 
-    mkLtt(Lc,V,E,X) => cLtt(Lc,V,E,X).
+    mkLtt(Lc,V,E,X) => .cLtt(Lc,V,E,X).
 
-    mkCont(Lc,V,E,X) => cCont(Lc,V,E,X).
+    mkCont(Lc,V,E,X) => .cCont(Lc,V,E,X).
   .}
 
   public implementation reform[aAction] => {
     mkCond(Lc,Tst,Th,El) where
-	.aIftte(Lc0,T1,Th1,El1).=Th && El1==El => .aIftte(Lc0,cCnj(Lc,Tst,T1),Th1,El1).
+	.aIftte(Lc0,T1,Th1,El1).=Th && El1==El => .aIftte(Lc0,.cCnj(Lc,Tst,T1),Th1,El1).
     mkCond(Lc,.cMatch(_,.cAnon(_,_),_),Th,_) => Th.
     mkCond(Lc,.cMatch(_,.cVar(_,Vr),Vl),Th,_) => .aLtt(Lc,Vr,Vl,Th).
     mkCond(Lc,Tst,Th,El) => .aIftte(Lc,Tst,Th,El).
@@ -692,9 +692,9 @@ star.compiler.term{
 
   dfVars:(cons[cDefn],set[cId])=>set[cId].
   dfVars([.fnDef(_,Nm,Tp,_,_),..Ds],D) =>
-    dfVars(Ds,D\+cId(Nm,Tp)).
+    dfVars(Ds,D\+.cId(Nm,Tp)).
   dfVars([.vrDef(_,Nm,Tp,_),..Ds],D) =>
-    dfVars(Ds,D\+cId(Nm,Tp)).
+    dfVars(Ds,D\+.cId(Nm,Tp)).
   dfVars([_,..Ds],D) => dfVars(Ds,D).
   dfVars([],D) => D.
 
@@ -721,12 +721,12 @@ star.compiler.term{
 	.fnDef(Lc,Nm,Tp,Args,Val) => {
 	  D1 = foldLeft((V,D1)=>D1\+V,D,Args);
 	  if ~validE(Val,D1) then{
-	    reportError("$(fnDef(Lc,Nm,Tp,Args,Val)) not valid",Lc)
+	    reportError("$(.fnDef(Lc,Nm,Tp,Args,Val)) not valid",Lc)
 	  }
 	}.
 	.vrDef(Lc,Nm,Tp,Val) => {
 	  if ~validE(Val,D) then{
-	    reportError("$(vrDef(Lc,Nm,Tp,Val)) not valid",Lc)
+	    reportError("$(.vrDef(Lc,Nm,Tp,Val)) not valid",Lc)
 	  }
 	}
 	_ default => {}
@@ -1180,7 +1180,7 @@ star.compiler.term{
     .aValis(Lc,V) => mkCons("vls",[Lc::data,frzeExp(V)]).
     .aThrow(Lc,V) => mkCons("thrw",[Lc::data,frzeExp(V)]).
     .aPerf(Lc,V) => mkCons("perf",[Lc::data,frzeExp(V)]).
-    .aSetNth(Lc,V,Ix,E) => mkCons("setix",[Lc::data,frzeExp(V),intgr(Ix),frzeExp(E)]).
+    .aSetNth(Lc,V,Ix,E) => mkCons("setix",[Lc::data,frzeExp(V),.intgr(Ix),frzeExp(E)]).
     .aDefn(Lc,P,V) => mkCons("defn",[Lc::data,frzeExp(P),frzeExp(V)]).
     .aAsgn(Lc,P,V) => mkCons("asgn",[Lc::data,frzeExp(P),frzeExp(V)]).
     .aCase(Lc,G,C,D) => mkCons("case",[Lc::data,frzeExp(G),

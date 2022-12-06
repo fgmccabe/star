@@ -114,7 +114,7 @@ star.compiler.data{
   }
 
   public implementation coercion[data,string] => {
-    _coerce(T) => some(_implode(reverse(encodeT(T,[])))).
+    _coerce(T) => .some(_implode(reverse(encodeT(T,[])))).
   }
 
   public trueEnum:data.
@@ -151,7 +151,7 @@ star.compiler.data{
     _coerce(S) => valof{
       L=S::cons[char];
       (T,_) = decodeTerm(S::cons[char]);
-      valis some(T)
+      valis .some(T)
     }
   }
   
@@ -159,11 +159,11 @@ star.compiler.data{
   decodeTerm([Ch,..Ls]) => case Ch in {
     `x` => valof{
       (Ix,L0) = decodeInt(Ls);
-      valis (intgr(Ix),L0)
+      valis (.intgr(Ix),L0)
     }
     `d` => valof{
       (Txt,Lx) = decodeText(Ls);
-      valis (flot(Txt::float),Lx)
+      valis (.flot(Txt::float),Lx)
     }
     `e` => valof{
       (Sym,Lx) = decodeText(Ls);
@@ -171,21 +171,21 @@ star.compiler.data{
     }
     `o` => valof{
       (Sym,Lx) = decodeLabel([`o`,..Ls]);
-      valis (symb(Sym),Lx)
+      valis (.symb(Sym),Lx)
     }
     `c` => valof{
       (Ch,Lx) = decodeChar(Ls);
-      valis (chr(Ch),Lx)
+      valis (.chr(Ch),Lx)
     }
     `s` => valof{
       (Txt,Lx) = decodeText(Ls);
-      valis (strg(Txt),Lx)
+      valis (.strg(Txt),Lx)
     }
     `n` => valof{
       (Ax,L0) = decodeNat(Ls,0);
       (.tLbl(Op,_),LL1) = decodeLabel(L0);
       (Args,Lx) = decodeTerms(LL1,Ax,[]);
-      valis (term(Op,Args),Lx)
+      valis (.term(Op,Args),Lx)
     }
     `l` => valof{
       (Ax,L0) = decodeNat(Ls,0);
@@ -205,7 +205,7 @@ star.compiler.data{
   decodeLabel([`o`,..Ls]) => valof{
     (Ar,L0) = decodeNat(Ls,0);
     (Nm,Lx) = decodeText(L0);
-    valis (tLbl(Nm,Ar),Lx)
+    valis (.tLbl(Nm,Ar),Lx)
   }
     
   decodeInt:(cons[char])=>(integer,cons[char]).
@@ -245,30 +245,30 @@ star.compiler.data{
 
   decodeType:(cons[char]) => (tipe,cons[char]).
   decodeType([Ch,..Ts]) => case Ch in {
-    `i` => (nomnal("star.core*integer"),Ts).
-    `b` => (nomnal("star.core*bigint"),Ts).
-    `f` => (nomnal("star.core*float"),Ts).
-    `c` => (nomnal("star.core*char"),Ts).
-    `s` => (nomnal("star.core*string"),Ts).
-    `l` => (nomnal("star.core*boolean"),Ts).
+    `i` => (.nomnal("star.core*integer"),Ts).
+    `b` => (.nomnal("star.core*bigint"),Ts).
+    `f` => (.nomnal("star.core*float"),Ts).
+    `c` => (.nomnal("star.core*char"),Ts).
+    `s` => (.nomnal("star.core*string"),Ts).
+    `l` => (.nomnal("star.core*boolean"),Ts).
     `_` => (newTypeVar("_"),Ts).
     `k` => valof{
       (Nm,T1) = decodeText(Ts);
-      valis (nomnal(Nm),T1)
+      valis (.nomnal(Nm),T1)
     }
     `K` => valof{
       (Ar,T0) = decodeNat(Ts,0);
       (Nm,T1) = decodeText(T0);
-      valis (kFun(Nm,Ar),T1)
+      valis (.kFun(Nm,Ar),T1)
     }
     `t` => valof{
       (Nm,T1) = decodeText(Ts);
-      valis (nomnal(Nm),T1)
+      valis (.nomnal(Nm),T1)
     }
     `z` => valof{
       (Ar,T0) = decodeNat(Ts,0);
       (Nm,T1) = decodeText(T0);
-      valis (tpFun(Nm,Ar),T1)
+      valis (.tpFun(Nm,Ar),T1)
     }
     `L` => valof{
       (ElTp,T0) = decodeType(Ts);
@@ -277,7 +277,7 @@ star.compiler.data{
     `U` => valof{
       (OpTp,T0) = decodeType(Ts);
       (ElTp,T1) = decodeType(T0);
-      valis (tpExp(OpTp,ElTp),T1)
+      valis (.tpExp(OpTp,ElTp),T1)
     }
     `r` => valof{
       (ElTp,T0) = decodeType(Ts);
@@ -285,27 +285,32 @@ star.compiler.data{
     }
     `(` => valof{
       (Tps,T0) = decodeTypes(Ts);
-      valis (tupleType(Tps),T0)
+      valis (.tupleType(Tps),T0)
+    }
+    `E` => valof{
+      (L,T0) = decodeType(Ts);
+      (R,T1) = decodeType(T0);
+      valis (.throwsType(L,R),T1)
     }
     `:` => valof{
       (V,T0) = decodeType(Ts);
       (B,T1) = decodeType(T0);
-      valis (allType(V,B),T1)
+      valis (.allType(V,B),T1)
     }
     `e` => valof{
       (V,T0) = decodeType(Ts);
       (B,T1) = decodeType(T0);
-      valis (existType(V,B),T1)
+      valis (.existType(V,B),T1)
     }
     `|` => valof{
       (V,T0) = decodeType(Ts);
       (B,T1) = decodeConstraint(T0);
-      valis (constrainedType(V,B),T1)
+      valis (.constrainedType(V,B),T1)
     }
     `I` => valof{
       (F1,T0) = decodeFields(Ts);
       (F2,T1) = decodeFields(T0);
-      valis (faceType(F1,F2),T1)
+      valis (.faceType(F1,F2),T1)
     }
     `F` => valof{
       (A,T0) = decodeType(Ts);
@@ -337,12 +342,12 @@ star.compiler.data{
   decodeTypeRule([`:`,..Ts]) => valof{
     (V,T0) = decodeType(Ts);
     (R,T1) = decodeTypeRule(T0);
-    valis (allRule(V,R),T1)
+    valis (.allRule(V,R),T1)
   }  
   decodeTypeRule([`Y`,..Ts]) => valof{
     (A,T0) = decodeType(Ts);
     (R,T1) = decodeType(T0);
-    valis (typeExists(A,R),T1)
+    valis (.typeExists(A,R),T1)
   }
   decodeTypeRule([`Z`,..Ts]) => valof{
     (.conTract(N,T,D),T0) = decodeConstraint(Ts);
@@ -379,6 +384,11 @@ star.compiler.data{
     (.faceType([(Fld,FT)],_),T1) = decodeType(T0);
     valis (.fieldConstraint(BT,Fld,FT),T1)
   }
+  decodeConstraint([`d`,..T]) => valof{
+    (Nm,T0) = decodeText(T);
+    (FT,T1) = decodeType(T0);
+    valis (.implicit(Nm,FT),T1)
+  }
 
   public encodeSignature:(tipe) => string.
   encodeSignature(Tp) => reverse(encodeType(deRef(Tp),[]))::string.
@@ -388,6 +398,7 @@ star.compiler.data{
   case Tp in {
     .voidType => [`v`,..Chs].
     .nomnal("star.core*integer") => [`i`,..Chs].
+    .nomnal("star.core*bigint") => [`b`,..Chs].
     .nomnal("star.core*float") => [`f`,..Chs].
     .nomnal("star.core*string") => [`s`,..Chs].
     .nomnal("star.core*boolean") => [`l`,..Chs].
@@ -404,6 +415,8 @@ star.compiler.data{
       encodeType(deRef(R),encodeType(deRef(A),[`C`,..Chs])).
     .tpExp(Op,A) =>
       encodeType(deRef(A),encodeType(deRef(Op),[`U`,..Chs])).
+    .throwsType(L,R) =>
+      encodeType(deRef(R),encodeType(deRef(L),[`E`,..Chs])).
     .tupleType(Els) => encodeTypes(Els,[`(`,..Chs]).
     .allType(V,T) =>
       encodeType(deRef(T),encodeType(deRef(V),[`:`,..Chs])).
@@ -435,6 +448,8 @@ star.compiler.data{
 	encodeText(Nm,[`c`,..Chs]))).
   encodeConstraint(.fieldConstraint(V,F,T),Chs) =>
     encodeType(.faceType([(F,deRef(T))],[]),encodeType(deRef(V),[`a`,..Chs])).
+  encodeConstraint(.implicit(Nm,T),Chs) =>
+    encodeType(T,encodeText(Nm,[`d`,..Chs])).
 
   public encodeTypeRule:(typeRule,cons[char])=>cons[char].
   encodeTypeRule(.allRule(V,R),Chs) =>
@@ -442,7 +457,7 @@ star.compiler.data{
   encodeTypeRule(.typeExists(H,I),Chs) =>
     encodeType(deRef(I),encodeType(deRef(H),[`Y`,..Chs])).
   encodeTypeRule(.contractExists(N,T,D,I),Chs) =>
-    encodeType(deRef(I),encodeConstraint(conTract(N,T,D),[`Z`,..Chs])).
+    encodeType(deRef(I),encodeConstraint(.conTract(N,T,D),[`Z`,..Chs])).
   encodeTypeRule(.typeLambda(Hd,I),Chs) =>
     encodeType(deRef(I),encodeType(deRef(Hd),[`y`,..Chs])).
 
@@ -482,7 +497,7 @@ star.compiler.data{
   encodeInt(Ix,Chs) => encodeNat(Ix,Chs).
 
   public implementation coercion[locn,data]=>{
-    _coerce(.locn(Pkg,Line,Col,Off,Ln))=>some(mkTpl([.strg(Pkg),.intgr(Line),.intgr(Col),.intgr(Off),.intgr(Ln)])).
+    _coerce(.locn(Pkg,Line,Col,Off,Ln))=>.some(mkTpl([.strg(Pkg),.intgr(Line),.intgr(Col),.intgr(Off),.intgr(Ln)])).
   }
 
   public implementation coercion[data,locn]=>{
@@ -501,26 +516,26 @@ star.compiler.data{
   }
 
   public encodeSig:(tipe)=>data.
-  encodeSig(Tp) => strg(encodeSignature(Tp)).
+  encodeSig(Tp) => .strg(encodeSignature(Tp)).
 
   public implementation coercion[decl,data] => {
     _coerce(D) => .some(case D in {
 	.implDec(_,ConNm,ImplNm,Tp) =>
-	  mkCons("imp",[strg(ConNm),strg(ImplNm),encodeSig(Tp)]).
+	  mkCons("imp",[.strg(ConNm),.strg(ImplNm),encodeSig(Tp)]).
 	.accDec(_,Tp,Fld,Fn,AccTp) =>
-	  mkCons("acc",[encodeSig(Tp),strg(Fld),strg(Fn),encodeSig(AccTp)]).
+	  mkCons("acc",[encodeSig(Tp),.strg(Fld),.strg(Fn),encodeSig(AccTp)]).
 	.updDec(_,Tp,Fld,Fn,AccTp) =>
-	  mkCons("upd",[encodeSig(Tp),strg(Fld),strg(Fn),encodeSig(AccTp)]).
+	  mkCons("upd",[encodeSig(Tp),.strg(Fld),.strg(Fn),encodeSig(AccTp)]).
 	.conDec(_,Nm,FullNm,TpRl) =>
-	  mkCons("con",[strg(Nm),strg(FullNm),strg(encodeTpRlSignature(TpRl))]).
+	  mkCons("con",[.strg(Nm),.strg(FullNm),.strg(encodeTpRlSignature(TpRl))]).
 	.tpeDec(_,Nm,Tp,TpRl) =>
-	  mkCons("tpe",[strg(Nm),encodeSig(Tp),strg(encodeTpRlSignature(TpRl))]).
+	  mkCons("tpe",[.strg(Nm),encodeSig(Tp),.strg(encodeTpRlSignature(TpRl))]).
 	.cnsDec(_,Nm,FullNm,Tp) =>
-	  mkCons("cns",[strg(Nm),strg(FullNm),encodeSig(Tp)]).
+	  mkCons("cns",[.strg(Nm),.strg(FullNm),encodeSig(Tp)]).
 	.varDec(_,Nm,FullNm,Tp) =>
-	  mkCons("var",[strg(Nm),strg(FullNm),encodeSig(Tp)]).
+	  mkCons("var",[.strg(Nm),.strg(FullNm),encodeSig(Tp)]).
 	.funDec(_,Nm,FullNm,Tp) =>
-	  mkCons("fun",[strg(Nm),strg(FullNm),encodeSig(Tp)]).
+	  mkCons("fun",[.strg(Nm),.strg(FullNm),encodeSig(Tp)]).
       }).
   }
 
@@ -528,7 +543,7 @@ star.compiler.data{
   pkgTerm(.pkg(Pk,Ver))=>mkCons("pkg",[.strg(Pk),versTerm(Ver)]).
 
   public versTerm:(version)=>data.
-  versTerm(.defltVersion) => .symb(tLbl("*",0)).
-  versTerm(.vers("*")) => .symb(tLbl("*",0)).
+  versTerm(.defltVersion) => .symb(.tLbl("*",0)).
+  versTerm(.vers("*")) => .symb(.tLbl("*",0)).
   versTerm(.vers(V)) => .strg(V).
 }

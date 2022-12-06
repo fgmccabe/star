@@ -10,6 +10,7 @@
 :- use_module(types).
 :- use_module(parsetype).
 :- use_module(dict).
+:- use_module(declmgt).
 :- use_module(misc).
 :- use_module(canon).
 :- use_module(errors).
@@ -26,8 +27,10 @@ checkProgram(Prg,Pkg,Repo,Opts,PkgDecls,Canon) :-
   collectImportDecls(AllImports,Repo,[],IDecls),
   declareAllDecls(IDecls,Lc,Base,Env0),
 %  dispEnv(Env0),
-  thetaEnv(Pk,Lc,Stmts,faceType([],[]),Opts,Env0,OEnv,Defs,Public),
-  overload(Defs,OEnv,ODefs),
+  thetaEnv(Pk,Lc,Stmts,faceType([],[]),Opts,Env0,_OEnv,Defs,Public),
+  genDecls(Defs,checker:isAny,EDecls,ADecls,ADecls,[],_,[]),
+  declareAllDecls(EDecls,Lc,Env0,Env1),
+  overload(Defs,Env1,ODefs),
   completePublic(Public,Public,FllPb,Pk),
   packageExport(ODefs,FllPb,ExDecls,LDecls,PkgDefs),
   Canon=prog(Pkg,Imports,ExDecls,LDecls,PkgDefs),
@@ -205,39 +208,6 @@ collectImportDecls([importPk(_Lc,_Viz,Pkg)|More],Repo,Decls,Dcx) :-
   concat(PDecls,Decls,Dc0),
   collectImportDecls(More,Repo,Dc0,Dcx).
 
-declareAllDecls([],_,Env,Env).
-declareAllDecls([D|More],Lc,Env,Evx) :-
-  declareDecl(Lc,D,Env,E0),!,
-  declareAllDecls(More,Lc,E0,Evx).
-
-declareDecl(Lc,impDec(ImplNm,FullNm,ImplTp),Ev,Evx) :-
-  declareVr(Lc,FullNm,ImplTp,none,Ev,Ev0),
-  declareImplementation(ImplNm,FullNm,ImplTp,Ev0,Evx).
-declareDecl(_,accDec(Tp,Fld,FnNm,AccTp),Ev,Evx) :-
-  declareFieldAccess(Tp,Fld,FnNm,AccTp,Ev,Evx).
-declareDecl(_,updDec(Tp,Fld,FnNm,AccTp),Ev,Evx) :-
-  declareFieldUpdater(Tp,Fld,FnNm,AccTp,Ev,Evx).
-declareDecl(Lc,contractDec(Nm,CnNm,Rule),Ev,Evx) :-
-  defineContract(Nm,Lc,conDef(Nm,CnNm,Rule),Ev,Evx).
-declareDecl(Lc,typeDec(Nm,Tp,Rule),Env,Evx) :-
-  declareType(Nm,tpDef(Lc,Tp,Rule),Env,Evx).
-declareDecl(Lc,varDec(Nm,_FullNm,Tp),Env,Evx) :-
-  (varLoc(Nm,Env,VTp,VLc),
-   \+sameType(Tp,VTp,Lc,Env) ->
-   reportWarning("%s:%s already declared as %s at %s",[Nm,tpe(Tp),tpe(VTp),loc(VLc)],Lc);true),
-  declareVr(Lc,Nm,Tp,none,Env,Evx).
-declareDecl(Lc,cnsDec(Nm,FullNm,Tp),Env,Evx) :-
-  (isConType(Tp,0) ->
-   declareEnum(Lc,Nm,FullNm,Tp,Env,Evx) ;
-   declareCns(Lc,Nm,FullNm,Tp,Env,Evx)).
-declareDecl(Lc,funDec(Nm,_FullNm,Tp),Env,Evx) :-
-  (varLoc(Nm,Env,VTp,VLc),
-   \+sameType(Tp,VTp,Lc,Env) ->
-   reportWarning("function %s:%s already declared as %s at %s",[Nm,tpe(Tp),tpe(VTp),loc(VLc)],Lc);true),
-  declareVr(Lc,Nm,Tp,none,Env,Evx).
-declareDecl(Lc,Entry,Env,Env) :-
-  reportError("(internal) cannot figure out import entry %s",[Entry],Lc).
-
 importContracts([],_,Env,Env).
 importContracts([C|L],Lc,E,Env) :-
   C = conDef(Nm,_,_),
@@ -277,24 +247,6 @@ checkGroup([(open(_),_,[Stmt])|More],Defs,Dx,Env,Ex,Face,Path) :-
   checkOpenStmt(Stmt,Env,Ev0,Path),
   checkGroup(More,Defs,Dx,Ev0,Ex,Face,Path).
 checkGroup([],Defs,Defs,Env,Env,_,_).
-
-defineContract(N,Lc,Contract,E0,Ex) :-
-  declareContract(N,Contract,E0,E1),
-  declareMethods(Contract,Lc,E1,Ex).
-
-declareMethods(conDef(_,_,ConEx),Lc,Env,Ev) :-
-  moveQuants(ConEx,Q,C1),
-  getConstraints(C1,Cx,contractExists(CTract,faceType(Methods,[]))),
-  formMethods(Methods,Lc,Q,Cx,CTract,Env,Ev).
-
-formMethods([],_,_,_,_,Env,Env).
-formMethods([(Nm,Tp)|M],Lc,Q,Cx,Con,Env,Ev) :-
-  moveQuants(Tp,FQ,QTp),
-  merge(FQ,Q,MQ),
-  putConstraints(Cx,constrained(QTp,Con),CC),
-  moveQuants(MTp,MQ,CC),
-  declareMtd(Lc,Nm,MTp,Env,E0),
-  formMethods(M,Lc,Q,Cx,Con,E0,Ev).
 
 parseConstructor(Nm,Lc,T,Env,Ev,Dfs,Defs,Path) :-
 %  reportMsg("parse constructor type %s:%s",[id(Nm),ast(T)],Lc),
@@ -1178,6 +1130,8 @@ packageExport(Defs,Public,ExportDecls,LDecls,XDefs) :-
 
 isPkgPublic(Public,V) :-
   is_member(V,Public),!.
+
+isAny(_).
 
 genDecls([],_,Exx,Exx,LDx,LDx,Dfx,Dfx).
 genDecls([Def|Defs],Public,Exports,Exx,LDecls,LDx,Dfs,Dfx) :-

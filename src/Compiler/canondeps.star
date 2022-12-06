@@ -16,7 +16,7 @@ star.compiler.canondeps{
     valis (Sorted // ((Gp)=>(Gp//((.defSpec(_,_,Df))=>Df))))
   }
 
-  defnSp ::= varSp(string,tipe) | tpSp(tipe).
+  defnSp ::= .varSp(string,tipe) | .tpSp(tipe).
 
   implementation equality[defnSp] => {
     .varSp(V1,T1) == .varSp(V2,T2) => V1==V2 && T1==T2.
@@ -44,7 +44,7 @@ star.compiler.canondeps{
   definedName(.cnsDef(_,Nm,_,Tp))=>.varSp(Nm,Tp).
   definedName(.implDef(_,_,Nm,_,_,Tp))=>.varSp(Nm,Tp).
 
-  defSpec ::= defSpec(defnSp,cons[defnSp],canonDef).
+  defSpec ::= .defSpec(defnSp,cons[defnSp],canonDef).
 
   implementation depends[defSpec->>defnSp] => {
     references(.defSpec(_,Refs,_)) => Refs.

@@ -135,17 +135,17 @@ star.compiler.ast{
   }
 
   generated:ref map[string,integer].
-  generated = ref {}.
+  generated = ref [].
 
   public genName:(option[locn],string) => ast.
   genName(Lc,Pr) => valof{
     if Last?=generated![Pr] then{
       Nxt = Last+1;
       generated[Pr] := Nxt;
-      valis nme(Lc,"#(Pr)*$(Nxt)")
+      valis .nme(Lc,"#(Pr)*$(Nxt)")
     } else{
       generated[Pr] := 0;
-      valis nme(Lc,"#(Pr)*0")
+      valis .nme(Lc,"#(Pr)*0")
     }
   }
   
@@ -161,9 +161,9 @@ star.compiler.ast{
     }
   }
 
-  public mkAnon(Lc) => nme(Lc,"_").
+  public mkAnon(Lc) => .nme(Lc,"_").
 
-  public isAnon(.nme(Lc,"_")) => some(Lc).
+  public isAnon(.nme(Lc,"_")) => .some(Lc).
   isAnon(_) default => .none.
 
   public isNme:(ast) => option[(option[locn],string)].
@@ -205,7 +205,7 @@ star.compiler.ast{
   sqUnary(Lc,Op,Arg) => .app(Lc,.nme(Lc,Op),.tpl(locOf(Arg),"[]",[Arg])).
 
   public isUnary:(ast,string) => option[(option[locn],ast)].
-  isUnary(.app(Lc,.nme(_,Op),.tpl(_,"()",[A])),Op) => some((Lc,A)).
+  isUnary(.app(Lc,.nme(_,Op),.tpl(_,"()",[A])),Op) => .some((Lc,A)).
   isUnary(_,_) default => .none.
 
   public binary:(option[locn],string,ast,ast) => ast.

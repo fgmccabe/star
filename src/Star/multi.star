@@ -18,7 +18,7 @@ star.multi{
     _eof(.multi(.nil)) => .true.
     _eof(_) default => .false.
 
-    _hdtl(.single(X)) => some((X,.null)).
+    _hdtl(.single(X)) => .some((X,.null)).
     _hdtl(.multi(.cons(H,T))) where (F,R) ?= _hdtl(H) =>
       .some((F,push(R,.multi(T)))).
 
@@ -38,7 +38,7 @@ star.multi{
 
   public implementation all e ~~ glue[multi[e]->>e] => {
     prepend(A,M) => .single(A)++M.
-    append(M,E) => M++single(E)
+    append(M,E) => M++.single(E)
   }
 
   public implementation all e ~~ coercion[multi[e],cons[e]] => let{.

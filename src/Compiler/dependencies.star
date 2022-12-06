@@ -35,7 +35,7 @@ star.compiler.dependencies{
       M[.conSp(Nm)->.conSp(Nm)],Els).
   collectRef(.defnSpec(N,_,_),M) => M[N->N].
 
-  definitionSpec ::= definition(defnSp,option[locn],cons[defnSp],cons[ast]).
+  definitionSpec ::= .definition(defnSp,option[locn],cons[defnSp],cons[ast]).
 
   implementation depends[definitionSpec->>defnSp] => {
     references(.definition(_,_,Refs,_)) => Refs.
@@ -47,7 +47,7 @@ star.compiler.dependencies{
   }
 
   collectDefinitions:(cons[ast]) => (cons[defnSpec],visMap,map[string,ast],cons[ast]).
-  collectDefinitions(Stmts) => collectDefs(Stmts,[],[],{},[]).
+  collectDefinitions(Stmts) => collectDefs(Stmts,[],[],[],[]).
 
   collectDefs:(cons[ast],cons[defnSpec],visMap,map[string,ast],cons[ast]) => (cons[defnSpec],visMap,map[string,ast],cons[ast]).
   
@@ -75,7 +75,7 @@ star.compiler.dependencies{
       (Lc,V,T) ?= isTypeAnnotation(A) => valof{
 	if(ILc,Id) ?= isName(V) then{
 	  if isConstructorStmt(T) then {
-	    valis (Stmts,[defnSpec(.cnsSp(Id),Lc,[T]),..Defs],
+	    valis (Stmts,[.defnSpec(.cnsSp(Id),Lc,[T]),..Defs],
 	      [(.cnsSp(Id),Vz),..Pb],As[Id->T],Opn)
 	  }
 	  else
@@ -89,41 +89,41 @@ star.compiler.dependencies{
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
       (Lc,Q,C,T,Els) ?= isCntrctStmt(A) => valof{
 	ConTpNme = typeName(T);
-	valis (Stmts,[defnSpec(.conSp(ConTpNme),Lc,[A]),..Defs],
+	valis (Stmts,[.defnSpec(.conSp(ConTpNme),Lc,[A]),..Defs],
 	  [(.conSp(ConTpNme),Vz),..Pb],generateAnnotations(Els,Q,C,As),Opn)
       }.
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
       (Lc,_,_,Cn,_) ?= isImplementationStmt(A) &&
-      Sp .= implSp(implementedContractName(Cn)) =>
-    (Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn).
+      Sp .= .implSp(implementedContractName(Cn)) =>
+    (Stmts,[.defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
-      (Lc,_,_,L,R) ?= isTypeExistsStmt(A) && Sp .= tpSp(typeName(L)) =>
-    (Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn).
+      (Lc,_,_,L,R) ?= isTypeExistsStmt(A) && Sp .= .tpSp(typeName(L)) =>
+    (Stmts,[.defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
-      (Lc,_,_,L,R) ?= isTypeFunStmt(A) && Sp .= tpSp(typeName(L)) =>
-    (Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn).
+      (Lc,_,_,L,R) ?= isTypeFunStmt(A) && Sp .= .tpSp(typeName(L)) =>
+    (Stmts,[.defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn).
   collectDefinition(A,Ss,Defs,Pb,As,Opn,Vz) where
       (Lc,Nm,Rhs) ?= isDefn(A) && (_,Id) ?= isName(Nm) => valof{
 	Sp = .varSp(Id);
-	valis (Ss,[defnSpec(Sp,Lc,[A]),..Defs],publishName(Sp,Vz,Pb),As,Opn)
+	valis (Ss,[.defnSpec(Sp,Lc,[A]),..Defs],publishName(Sp,Vz,Pb),As,Opn)
       }.
   collectDefinition(A,Ss,Defs,Pb,As,Opn,Vz) where
       (Lc,Nm,Rhs) ?= isAssignment(A) && (_,Id) ?= isName(Nm) => valof{
 	Sp = .varSp(Id);
-	valis (Ss,[defnSpec(Sp,Lc,[A]),..Defs],publishName(Sp,Vz,Pb),As,Opn)
+	valis (Ss,[.defnSpec(Sp,Lc,[A]),..Defs],publishName(Sp,Vz,Pb),As,Opn)
       }.
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
       (Lc,_,_,Tp,_) ?= isAccessorStmt(A) &&
       (_,_,[Arg]) ?= isSquareApply(Tp) &&
       (_,[ATp],_) ?= isDepends(Arg) &&
-      Sp .= accSp(typeName(ATp),typeName(Tp)) =>
-    (Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn).
+      Sp .= .accSp(typeName(ATp),typeName(Tp)) =>
+    (Stmts,[.defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
       (Lc,_,_,Tp,_) ?= isUpdaterStmt(A) &&
       (_,_,[Arg]) ?= isSquareApply(Tp) &&
       (_,[ATp],_) ?= isDepends(Arg) &&
-      Sp .= updSp(typeName(ATp),typeName(Tp)) =>
-    (Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn).
+      Sp .= .updSp(typeName(ATp),typeName(Tp)) =>
+    (Stmts,[.defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
       (Lc,Nm) ?= ruleName(A) => valof{
 	if DLc ?= isDefined(.varSp(Nm),Defs) then{
@@ -133,7 +133,7 @@ star.compiler.dependencies{
 	else{
 	  (Ss,Dfs) = collectDefines(Stmts,Nm,[A]);
 	  Sp = .varSp(Nm);
-	  valis (Ss,[defnSpec(Sp,Lc,reverse(Dfs)),..Defs],publishName(Sp,Vz,Pb),As,Opn)
+	  valis (Ss,[.defnSpec(Sp,Lc,reverse(Dfs)),..Defs],publishName(Sp,Vz,Pb),As,Opn)
 	}
       }.
   collectDefinition(A,Ss,Defs,Pb,As,Opn,_Vz) => valof{
@@ -168,11 +168,11 @@ star.compiler.dependencies{
   collectThetaRefs([],_,_,DSpecs) => DSpecs.
   collectThetaRefs([.defnSpec(.cnsSp(Nm),Lc,[Def]),..Defs],AllRefs,Annots,S) => valof{
     Refs = collectTypeRefs(Def,AllRefs,[]);
-    valis collectThetaRefs(Defs,AllRefs,Annots,[definition(.cnsSp(Nm),Lc,Refs,[Def]),..S])
+    valis collectThetaRefs(Defs,AllRefs,Annots,[.definition(.cnsSp(Nm),Lc,Refs,[Def]),..S])
   }
   collectThetaRefs([.defnSpec(Defines,Lc,Stmts),..Defs],AllRefs,Annots,S) => valof{
     Refs = collectStmtsRefs(Stmts,AllRefs,Annots,[]);
-    valis collectThetaRefs(Defs,AllRefs,Annots,[definition(Defines,Lc,Refs,Stmts),..S])
+    valis collectThetaRefs(Defs,AllRefs,Annots,[.definition(Defines,Lc,Refs,Stmts),..S])
   }.
 
   collectEnvRefs:(cons[ast],map[defnSp,defnSp],map[string,ast],cons[defnSp]) =>
@@ -442,7 +442,7 @@ star.compiler.dependencies{
 
   collectTypeRefs:(ast,map[defnSp,defnSp],cons[defnSp]) => cons[defnSp].
   collectTypeRefs(V,All,SoFar) where (_,Id) ?= isName(V) =>
-    collectName(tpSp(Id),All,SoFar).
+    collectName(.tpSp(Id),All,SoFar).
   collectTypeRefs(T,All,SoFar) where (_,Op,Els) ?= isSquareTerm(T) => 
     collectTypeList(Els,All,collectTypeRefs(Op,All,SoFar)).
   collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isConstructorType(T) =>
@@ -491,14 +491,14 @@ star.compiler.dependencies{
 
   collectConstraintRefs:(cons[ast],map[defnSp,defnSp],cons[defnSp]) => cons[defnSp].
   collectConstraintRefs([],_,Rf) => Rf.
-  collectConstraintRefs([T,..Ts],All,Rf) where _ ?= isSquareTerm(T) => valof {
-    R1 = collectContractRefs(T,All,Rf);
-    valis collectConstraintRefs(Ts,All,R1)
-  }
-  collectConstraintRefs([T,..Ts],All,Rf) => valof {
-    R1 = collectTypeRefs(T,All,Rf);
-    valis collectConstraintRefs(Ts,All,R1)
-  }
+  collectConstraintRefs([C,..Cs],All,Rf) => 
+    collectConstraintRefs(Cs,All,collectConstraintRef(C,All,Rf)).
+  
+  collectConstraintRef(T,All,Rf) where _ ?= isSquareTerm(T) => 
+    collectContractRefs(T,All,Rf).
+  collectConstraintRef(T,All,Rf) where (_,_,Tp) ?= isImplicit(T) =>
+    collectTypeRefs(Tp,All,Rf).
+  collectConstraintRef(T,All,Rf) => collectTypeRefs(T,All,Rf).
 
   collectContractRefs:(ast,map[defnSp,defnSp],cons[defnSp]) => cons[defnSp].
   collectContractRefs(T,All,Rf) where

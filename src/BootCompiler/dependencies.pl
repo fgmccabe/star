@@ -176,6 +176,9 @@ collConstraint(C,All,SoFar,Refs) :-
 collConstraint(C,All,Refs,[con(Nm)|Refs]) :-
   isSquare(C,_,Nm,_),
   is_member(con(Nm),All).
+collConstraint(C,All,Refs,Rfx) :-
+  isDynamic(C,_,_,Tp),
+  collectTypeRefs(Tp,All,Refs,Rfx).
 collConstraint(_,_,Refs,Refs).
 
 locallyDefined([],All,All).

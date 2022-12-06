@@ -26,7 +26,7 @@ star.resources{
       searchFor(C) where
 	  RU ?= resolveUri(C,R) &&
 	  P1 .= getUriPath(RU) &&
-	  filePresent(P1) => some(RU).
+	  filePresent(P1) => .some(RU).
       searchFor(C) where
 	  PU ?= resolveUri(C,P) &&
 	  P1 .= getUriPath(PU) && P1~="/" =>

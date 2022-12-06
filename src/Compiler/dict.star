@@ -62,7 +62,7 @@ star.compiler.dict{
   
   public declareType:(string,option[locn],tipe,typeRule,dict) => dict.
   declareType(Nm,Lc,Tp,TpRl,[Level,..Rest]) =>
-    [Level.types<<-Level.types[Nm->.tpDefn(Lc,Nm,Tp,TpRl,{})],..Rest].
+    [Level.types<<-Level.types[Nm->.tpDefn(Lc,Nm,Tp,TpRl,[])],..Rest].
 
   public findType:(dict,string) => option[(option[locn],tipe,typeRule,map[string,tipe])].
   findType([],Nm) => .none.
@@ -77,7 +77,7 @@ star.compiler.dict{
 
   public declareImplementation:(option[locn],string,string,tipe,dict) => dict.
   declareImplementation(Lc,ImplNm,ImplVr,Tp,[Scope,..Env]) =>
-    [Scope.impls<<-Scope.impls[ImplNm->implEntry(Lc,ImplVr,Tp)],..Env].
+    [Scope.impls<<-Scope.impls[ImplNm->.implEntry(Lc,ImplVr,Tp)],..Env].
 
   public undeclareImplementation:(string,dict) => dict.
   undeclareImplementation(Nm,[Scope,..Env]) =>
@@ -86,7 +86,7 @@ star.compiler.dict{
   public declareAccessor:(option[locn],tipe,string,string,tipe,dict) => dict.
   declareAccessor(Lc,Tp,Fld,AccFn,AccTp,[Scope,..Env]) => valof{
     Key = tpName(Tp);
-    Entry = accEntry(Lc,AccFn,AccTp);
+    Entry = .accEntry(Lc,AccFn,AccTp);
     Accs = Scope.accessors;
 
     if AccOrs ?= Accs[Key] then{
@@ -108,7 +108,7 @@ star.compiler.dict{
   public declareUpdater:(option[locn],tipe,string,string,tipe,dict) => dict.
   declareUpdater(Lc,Tp,Fld,UpdFn,UpdTp,[Scope,..Env]) => valof{
     Key = tpName(Tp);
-    Entry = accEntry(Lc,UpdFn,UpdTp);
+    Entry = .accEntry(Lc,UpdFn,UpdTp);
     Ups = Scope.updaters;
     
     if AccOrs ?= Ups[Key] then{
@@ -137,20 +137,20 @@ star.compiler.dict{
 
   public pushScope:(dict)=>dict.
   pushScope(Env) => [scope{
-      types={}.
-      vars={}.
-      contracts={}.
-      impls={}.
-      accessors={}.
-      updaters={}.
+      types=[].
+      vars=[].
+      contracts=[].
+      impls=[].
+      accessors=[].
+      updaters=[].
       labels=[]},..Env].
 
   public declareTypeVars:(cons[(string,tipe)],dict) => dict.
   declareTypeVars([],Env) => Env.
   declareTypeVars([(Nm,Tp),..Q],Env) =>
-    declareTypeVars(Q,declareType(Nm,.none,Tp,typeExists(Tp,Tp),Env)).
+    declareTypeVars(Q,declareType(Nm,.none,Tp,.typeExists(Tp,Tp),Env)).
 
-  emptyFace = faceType([],[]).
+  emptyFace = .faceType([],[]).
 
   emptyDict:dict.
   emptyDict = pushScope([]).
@@ -158,14 +158,14 @@ star.compiler.dict{
 -- Standard types are predefined by the language
   public stdDict:dict.
   stdDict =
-    declareType("integer",.none,intType,typeExists(intType,emptyFace),
-      declareType("bigint",.none,bigintType,typeExists(bigintType,emptyFace),
-	declareType("float",.none,fltType,typeExists(fltType,emptyFace),
-	  declareType("boolean",.none,boolType,typeExists(boolType,emptyFace),
-	    declareType("char",.none,chrType,typeExists(chrType,emptyFace),
-	      declareType("string",.none,strType,typeExists(strType,emptyFace),
-		declareType("cons",.none,tpFun("star.core*cons",1),
-		  allRule(nomnal("e"),
-		    typeExists(lstType(nomnal("e")),emptyFace)),
+    declareType("integer",.none,intType,.typeExists(intType,emptyFace),
+      declareType("bigint",.none,bigintType,.typeExists(bigintType,emptyFace),
+	declareType("float",.none,fltType,.typeExists(fltType,emptyFace),
+	  declareType("boolean",.none,boolType,.typeExists(boolType,emptyFace),
+	    declareType("char",.none,chrType,.typeExists(chrType,emptyFace),
+	      declareType("string",.none,strType,.typeExists(strType,emptyFace),
+		declareType("cons",.none,.tpFun("star.core*cons",1),
+		  .allRule(.nomnal("e"),
+		    .typeExists(lstType(.nomnal("e")),emptyFace)),
 		  emptyDict))))))).
 }

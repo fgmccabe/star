@@ -21,7 +21,7 @@ star.compiler.impawt{
     if {? .pkgImp(_,_,Pkg) in Imported ?} then
       valis importAll(Imports,Repo,Imported,Decls)
     else if P ?= importPkg(Pkg,Lc,Repo) then{
-      valis importAll(Imports++P.imports,Repo,[.pkgImp(Lc,Viz,Pkg),..Imported],
+      valis importAll(Imports++publicImports(P.imports),Repo,[.pkgImp(Lc,Viz,Pkg),..Imported],
 	Decls++P.exports)
     }
     else {
@@ -29,6 +29,9 @@ star.compiler.impawt{
       valis (Imports,Decls)
     }
   }
+
+  publicImports:(cons[importSpec]) => cons[importSpec].
+  publicImports(Imps) => (Imps ^/ ((.pkgImp(_,Vis,_)) => Vis>=.transItive)).
 
   public importPkg:all r ~~ repo[r] |: (pkg,option[locn],r) => option[pkgSpec].
   importPkg(Pkg,Lc,Repo) where Sig ?= pkgSignature(Repo,Pkg) => 
@@ -74,7 +77,7 @@ star.compiler.impawt{
       if Pkg?=pickupPkg(P) && Vz ?= pickupViz(V) then
 	valis pickupImps(Imps,[.pkgImp(Lc,Vz,Pkg),..Imx])
       else{
-	reportError("Ignoring invalid pkg import spec $(term(O,[V,P]))",Lc);
+	reportError("Ignoring invalid pkg import spec $(.term(O,[V,P]))",Lc);
 	valis pickupImps(Imps,Imx)
       }
     }
@@ -260,18 +263,4 @@ star.compiler.impawt{
       
     valis .none
   }
-
-  pickupPkgSpec:(string,option[locn]) => option[pkgSpec].
-  pickupPkgSpec(Txt,Lc) => valof{
-    if (.term(_,[Pk,.term(_,Imps),.term(_,Ds)]),_).=decodeTerm(Txt::cons[char]) then{
-      Pkg = ^pickupPkg(Pk);
-      Imports = pickupImports(Imps,Lc);
-      Decls = pickupDeclarations(Ds,Lc);
-      valis ? pkgSpec{pkg=Pkg. imports=Imports. exports=Decls}
-    } else {
-      reportError("count not decode package spec",Lc);
-      valis .none
-    }
-  }
-
 }

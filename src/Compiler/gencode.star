@@ -24,18 +24,18 @@ star.compiler.gencode{
     valis compDefs(Defs,localFuns(Defs,Vars))
   }
 
-  declGlobal(.varDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->glbVar(Nm,Tp::ltipe)].
-  declGlobal(.funDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->glbVar(Nm,Tp::ltipe)].
-  declGlobal(.accDec(_,_,_,Nm,Tp), Vrs) => Vrs[Nm->glbVar(Nm,Tp::ltipe)].
-  declGlobal(.updDec(_,_,_,Nm,Tp), Vrs) => Vrs[Nm->glbVar(Nm,Tp::ltipe)].
+  declGlobal(.varDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->.glbVar(Nm,Tp::ltipe)].
+  declGlobal(.funDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->.glbVar(Nm,Tp::ltipe)].
+  declGlobal(.accDec(_,_,_,Nm,Tp), Vrs) => Vrs[Nm->.glbVar(Nm,Tp::ltipe)].
+  declGlobal(.updDec(_,_,_,Nm,Tp), Vrs) => Vrs[Nm->.glbVar(Nm,Tp::ltipe)].
   declGlobal(_,Vrs) => Vrs.
 
   localFuns:(cons[cDefn],map[string,srcLoc])=>map[string,srcLoc].
   localFuns(Defs,Vars) => foldRight(defFun,Vars,Defs).
 
   defFun(Def,Vrs) => case Def in {
-    .fnDef(Lc,Nm,Tp,_,_) => Vrs[Nm->glbFun(tLbl(Nm,arity(Tp)),Tp::ltipe)].
-    .vrDef(Lc,Nm,Tp,_) => Vrs[Nm->glbVar(Nm,Tp::ltipe)].
+    .fnDef(Lc,Nm,Tp,_,_) => Vrs[Nm->.glbFun(.tLbl(Nm,arity(Tp)),Tp::ltipe)].
+    .vrDef(Lc,Nm,Tp,_) => Vrs[Nm->.glbVar(Nm,Tp::ltipe)].
     _ default => Vrs
   }
   
@@ -46,7 +46,7 @@ star.compiler.gencode{
   genDef(Defn,Glbs) => case Defn in {
     .fnDef(Lc,Nm,Tp,Args,Val) => valof{
       if traceCodegen! then
-	logMsg("compile $(fnDef(Lc,Nm,Tp,Args,Val))");
+	logMsg("compile $(.fnDef(Lc,Nm,Tp,Args,Val))");
       Ctx = emptyCtx(argVars(Args,Glbs,0));
       (_,AbortCde) = abortCont(Lc,"function: $(Nm)").C(Ctx,?[],[]);
       (_Stk,Code) = compExp(Val,retCont,retXCont,Ctx,.some([]));
@@ -54,8 +54,8 @@ star.compiler.gencode{
 	logMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp])");
       Peeped = peepOptimize(([.iLocals(Ctx.hwm!),..Code]++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp]);
       if traceCodegen! then
-	logMsg("code is $(.func(tLbl(Nm,size(Args)),.hardDefinition,Tp,Ctx.hwm!,Peeped))");
-      valis .func(tLbl(Nm,size(Args)),.hardDefinition,Tp,Ctx.hwm!,Peeped)
+	logMsg("code is $(.func(.tLbl(Nm,size(Args)),.hardDefinition,Tp,Ctx.hwm!,Peeped))");
+      valis .func(.tLbl(Nm,size(Args)),.hardDefinition,Tp,Ctx.hwm!,Peeped)
     }.
     .vrDef(Lc,Nm,Tp,Val) => valof{
       if traceCodegen! then
@@ -65,9 +65,9 @@ star.compiler.gencode{
       (_Stk,Code) = compExp(Val,glbRetCont(Nm),jmpCont(Ctx.escape,.none),Ctx,.some([]));
       Peeped = peepOptimize(([.iLocals(Ctx.hwm!),..Code]++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp]);
       if traceCodegen! then
-	logMsg("code is $(.global(tLbl(Nm,0),Tp,Ctx.hwm!,Peeped))");
+	logMsg("code is $(.global(.tLbl(Nm,0),Tp,Ctx.hwm!,Peeped))");
 
-      valis .global(tLbl(Nm,0),Tp,Ctx.hwm!,Peeped)
+      valis .global(.tLbl(Nm,0),Tp,Ctx.hwm!,Peeped)
     }.
     .tpDef(Lc,Tp,TpRl,Index) => .tipe(Tp,TpRl,Index).
     .lblDef(_Lc,Lbl,Tp,Ix) => .struct(Lbl,Tp,Ix).
@@ -88,14 +88,14 @@ star.compiler.gencode{
     .cVoid(Lc,Tp) =>
       Cont.C(Ctx,pushStack(Tp::ltipe,Stk),[.iLdV]).
     .cTerm(_,Nm,Args,Tp) => valof{
-      valis compExps(Args,allocCont(tLbl(Nm,size(Args)),pushStack(Tp::ltipe,Stk),Cont),ECont,Ctx,Stk)
+      valis compExps(Args,allocCont(.tLbl(Nm,size(Args)),pushStack(Tp::ltipe,Stk),Cont),ECont,Ctx,Stk)
     }.
     .cECall(Lc,Op,Args,Tp) where (_,Ins,Frm)?=intrinsic(Op) =>
       compExps(Args,intrinsicCont(Ins,Frm,pushStack(Tp::ltipe,Stk),Cont),ECont,Ctx,Stk).
     .cECall(Lc,Es,Args,Tp) =>
       compExps(Args,escapeCont(Es,pushStack(Tp::ltipe,Stk),Cont),ECont,Ctx,Stk).
     .cCall(Lc,Nm,Args,Tp) =>
-      compExps(Args,callCont(tLbl(Nm,[|Args|]),pushStack(Tp::ltipe,Stk),Cont),ECont,Ctx,Stk).
+      compExps(Args,callCont(.tLbl(Nm,[|Args|]),pushStack(Tp::ltipe,Stk),Cont),ECont,Ctx,Stk).
     .cOCall(Lc,Op,Args,Tp) => 
       compExps(Args,expCont(Op,oclCont([|Args|]+1,pushStack(Tp::ltipe,Stk),Cont),ECont),
 	ECont,Ctx,Stk).
@@ -169,7 +169,7 @@ star.compiler.gencode{
     .argVar(Off,Tp) => Cont.C(Ctx,pushStack(Tp,Stk),[.iLdA(Off)]).
     .lclVar(Off,Tp) => Cont.C(Ctx,pushStack(Tp,Stk),[.iLdL(Off)]).
     .glbVar(Nm,Tp) => Cont.C(Ctx,pushStack(Tp,Stk),[.iLdG(Nm,Ctx.escape)]).
-    .glbFun(Nm,Tp) => Cont.C(Ctx,pushStack(Tp,Stk),[.iLdC(symb(Nm))]).
+    .glbFun(Nm,Tp) => Cont.C(Ctx,pushStack(Tp,Stk),[.iLdC(.symb(Nm))]).
   }
     
   compCond:(cExp,Cont,Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
@@ -310,11 +310,11 @@ star.compiler.gencode{
       Lb = defineLbl("CC",Ctx);
       (Stkb,TCde2,Cde2) = compCases(Cases,Ix+1,Mx,Comp,Succ,Fail,ECont,Deflt,Ctx,Stk);
       (Stkc,CCde) = compCaseBranch(Case,Comp,Succ,Fail,ECont,Ctx,Stk);
-      valis (reconcileStack(Stkb,Stkc),[iJmp(Lb)]++TCde2,Cde2++[.iLbl(Lb),..CCde])
+      valis (reconcileStack(Stkb,Stkc),[.iJmp(Lb)]++TCde2,Cde2++[.iLbl(Lb),..CCde])
     }.
     [(Iy,Case),..Cases] => valof{
       (Stk1,TCde,CCde) = compCases([(Iy,Case),..Cases],Ix+1,Mx,Comp,Succ,Fail,ECont,Deflt,Ctx,Stk);
-      valis (Stk1,[iJmp(Deflt)]++TCde,CCde)
+      valis (Stk1,[.iJmp(Deflt)]++TCde,CCde)
     }
   }
 
@@ -379,7 +379,7 @@ star.compiler.gencode{
       (Stk3a,CCde) = compPtn(Ptn,Comp(Exp,Succ,ECont),
 	abortCont(Lc,"match error"),ECont,Ctx,Stk);
 --      logMsg("Stk2a=$(Stk2a), Stk3a=$(Stk3a)");
-      valis (reconcileStack(Stk2a,Stk3a),[iJmp(Lb),..TCde2],Cde2++[.iLbl(Lb),..CCde])
+      valis (reconcileStack(Stk2a,Stk3a),[.iJmp(Lb),..TCde2],Cde2++[.iLbl(Lb),..CCde])
     }
   }
 
@@ -429,7 +429,7 @@ star.compiler.gencode{
       else{
 	LTp = Tp::ltipe;
 	(Off,Ctx1) = defineLclVar(Vr,LTp,Ctx);
-	valis compPtnVar(Lc,Vr,lclVar(Off,LTp),Succ,Ctx1,dropStack(Stk))
+	valis compPtnVar(Lc,Vr,.lclVar(Off,LTp),Succ,Ctx1,dropStack(Stk))
       }
     }.
     .cVoid(Lc,_) =>
@@ -685,7 +685,7 @@ star.compiler.gencode{
   abortCont(.some(Lc),Msg) => cont{
     C(_,_,Cde) => valof{
 --      logMsg("abort cont $(Lc), $(Msg)");
-      valis (.none,Cde++[.iLdC(Lc::data),.iLdC(strg(Msg)),.iAbort])
+      valis (.none,Cde++[.iLdC(Lc::data),.iLdC(.strg(Msg)),.iAbort])
     }
   }
 
@@ -783,7 +783,7 @@ star.compiler.gencode{
   }
 
   frameIns:(stack)=>assemOp.
-  frameIns(.some(Stk)) => .iFrame(tplTipe(Stk)).
+  frameIns(.some(Stk)) => .iFrame(.tplTipe(Stk)).
 
   locateVar:(string,codeCtx)=>option[srcLoc].
   locateVar(Nm,Ctx) => Ctx.vars[Nm].
@@ -795,7 +795,7 @@ star.compiler.gencode{
     Off = hwm!+1;
     hwm := Off;
 
-    valis (Off,Ctx.vars<<-Ctx.vars[Nm->lclVar(Off,Tp)])
+    valis (Off,Ctx.vars<<-Ctx.vars[Nm->.lclVar(Off,Tp)])
   }
 
   argVars:(cons[cId],map[string,srcLoc],integer) => map[string,srcLoc].
@@ -845,14 +845,14 @@ star.compiler.gencode{
     lbls = ref 0.
     min = 0.
     hwm = ref 0.
-    brks = {}.
+    brks = [].
   }
 
   defineLbl:(string,codeCtx)=>assemLbl.
   defineLbl(Pr,C) => valof{
     CurLbl = C.lbls!;
     C.lbls := CurLbl+1;
-    valis al("#(Pr)$(CurLbl)")
+    valis .al("#(Pr)$(CurLbl)")
   }
 
   defineExitLbl:(string,codeCtx) => (assemLbl,codeCtx).

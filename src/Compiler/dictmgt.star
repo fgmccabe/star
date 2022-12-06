@@ -82,11 +82,11 @@ star.compiler.dict.mgt{
   }    
 
   refreshVar(Lc,Nm,Tp,Env) =>
-    refreshVr(Lc,Tp,Env,(LLc,T)=>vr(LLc,Nm,T)).
+    refreshVr(Lc,Tp,Env,(LLc,T)=>.vr(LLc,Nm,T)).
 
   public declareFldAccess:(canon,string,option[locn],tipe,dict) => dict.
   declareFldAccess(Rc,Nm,Lc,Tp,Env) =>
-    declareVr(Nm,Lc,Tp,(L,E) => refreshVr(L,Tp,E,(LLc,T)=>dot(LLc,Rc,Nm,T)),.none,Env).
+    declareVr(Nm,Lc,Tp,(L,E) => refreshVr(L,Tp,E,(LLc,T)=>.dot(LLc,Rc,Nm,T)),.none,Env).
 
   public undeclareVar:(string,dict) => dict.
   undeclareVar(_,[]) => [].
@@ -123,7 +123,7 @@ star.compiler.dict.mgt{
 
   pickupEnum(Lc,Nm,Tp,Env) => valof{
     (_,VrTp) = freshen(Tp,Env);
-    valis manageConstraints(VrTp,Lc,(ETp)=>enm(Lc,Nm,ETp))
+    valis manageConstraints(VrTp,Lc,(ETp)=>.enm(Lc,Nm,ETp))
   }
 
   public declareEnum:(string,string,option[locn],tipe,dict) => dict.
@@ -137,7 +137,7 @@ star.compiler.dict.mgt{
 
   public declareContract:(option[locn],string,typeRule,dict) => dict.
   declareContract(Lc,Nm,Con,[Sc,..Rest]) => valof{
-    NTps = Sc.types[Nm->tpDefn(Lc,Nm,contractType(Con),contractTypeRule(Con),{})];
+    NTps = Sc.types[Nm->.tpDefn(Lc,Nm,contractType(Con),contractTypeRule(Con),[])];
     NCts = Sc.contracts[Nm->Con];
     valis declareMethods(Lc,Con,
       [(Sc.types<<-NTps).contracts<<-NCts,..Rest]).
@@ -165,7 +165,7 @@ star.compiler.dict.mgt{
 
   pickupMtd(Lc,Nm,Tp,Env) => valof{
     (Q,VrTp) = freshen(Tp,Env);
-    valis manageConstraints(VrTp,Lc,(MTp)=>mtd(Lc,Nm,MTp))
+    valis manageConstraints(VrTp,Lc,(MTp)=>.mtd(Lc,Nm,MTp))
   }
 
   public mergeDict:(dict,dict,dict) => dict.
@@ -222,16 +222,18 @@ star.compiler.dict.mgt{
   pushTypes:(cons[(string,tipe)],option[locn],dict) => dict.
   pushTypes([],Lc,Env) => Env.
   pushTypes([(Nm,Tp),..Tps],Lc,Env) =>
-    pushTypes(Tps,Lc,declareType(Nm,Lc,typeKey(Tp),typeExists(Tp,faceType([],[])),Env)).
+    pushTypes(Tps,Lc,declareType(Nm,Lc,typeKey(Tp),.typeExists(Tp,.faceType([],[])),Env)).
 
   public declareConstraints:(option[locn],cons[constraint],dict) => dict.
   declareConstraints(_,[],E) => E.
   declareConstraints(Lc,[.conTract(N,T,D),..Cx],Env)
       where ConTp .= mkConType(N,T,D) &&
-      ConNm.=implementationName(conTract(N,T,D)) =>
+      ConNm.=implementationName(.conTract(N,T,D)) =>
     declareConstraints(Lc,Cx,
       declareVar(ConNm,ConNm,Lc,ConTp,.none,
 	declareImplementation(Lc,ConNm,ConNm,ConTp,Env))).
+  declareConstraints(Lc,[.implicit(Nm,Tp),..Cx],Env) =>
+    declareConstraints(Lc,Cx,declareVar(Nm,Nm,Lc,Tp,faceOfType(Tp,Env),Env)).
   declareConstraints(Lc,[_,..Cx],Env) =>
     declareConstraints(Lc,Cx,Env).
 
@@ -241,7 +243,7 @@ star.compiler.dict.mgt{
   manageConstraints(Tp,Lc,Term) => Term(Tp).
 
   applyConstraint:(option[locn],constraint,canon) => canon.
-  applyConstraint(Lc,.fieldConstraint(V,F,T),Trm) => overaccess(Lc,Trm,V,F,T).
-  applyConstraint(Lc,.conTract(N,T,D),Trm) =>
-    .over(Lc,Trm,[.conTract(N,T,D)]).
+  applyConstraint(Lc,.fieldConstraint(V,F,T),Trm) => .overaccess(Lc,Trm,V,F,T).
+  applyConstraint(Lc,.conTract(N,T,D),Trm) => .over(Lc,Trm,[.conTract(N,T,D)]).
+  applyConstraint(Lc,.implicit(Nm,T),Trm) => .over(Lc,Trm,[.implicit(Nm,T)]).
 }

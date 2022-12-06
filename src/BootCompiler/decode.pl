@@ -98,6 +98,7 @@ decodeConstraint(S,Con) :-
 
 decodeConstraint(constrained(Con,Extra)) --> ['|'], decodeConstraint(Con), decodeConstraint(Extra).
 decodeConstraint(conTract(Nm,Args,Deps)) --> ['c'], decodeText(Nm), decodeType(tplType(Args)), decodeType(tplType(Deps)).
+decodeConstraint(implicit(Nm,Tp)) --> ['d'], decodeText(Nm), decodeType(Tp).
 decodeConstraint(implementsFace(Tp,Face)) --> ['a'], decodeType(Tp), decodeType(faceType(Face,[])).
 decodeConstraint(allType(TV,Con)) --> [':'], decodeType(TV), decodeConstraint(Con).
 

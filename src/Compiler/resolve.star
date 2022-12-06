@@ -65,11 +65,11 @@ star.compiler.resolve{
     if .tupleType(AITp).=funTypeArg(ITp) && RITp .= funTypeRes(ITp) then {
       CTp = reQuant(Qx,funType((Cx//typeOf)++AITp,RITp));
       if traceCanon! then
-	logMsg("overloaded fun $(.varDef(Lc,Nm,lambda(Lc,Nm,REqns,CTp),[],CTp))");
-      valis (.varDef(Lc,Nm,lambda(Lc,Nm,REqns,CTp),[],CTp),Dict)
+	logMsg("overloaded fun $(.varDef(Lc,Nm,.lambda(Lc,Nm,REqns,CTp),[],CTp))");
+      valis (.varDef(Lc,Nm,.lambda(Lc,Nm,REqns,CTp),[],CTp),Dict)
     } else{
       reportError("type of $(Nm) not a function type",Lc);
-      valis (.varDef(Lc,Nm,lambda(Lc,Nm,REqns,Tp),[],Tp),Dict)
+      valis (.varDef(Lc,Nm,.lambda(Lc,Nm,REqns,Tp),[],Tp),Dict)
     }
   }
 
@@ -85,7 +85,7 @@ star.compiler.resolve{
   overloadVarDef:(dict,option[locn],string,canon,cons[constraint],tipe)=>
     (canonDef,dict).
   overloadVarDef(Dict,Lc,Nm,Val,[],Tp) => 
-    (varDef(Lc,Nm,overload(Val,Dict),[],Tp),Dict).
+    (.varDef(Lc,Nm,overload(Val,Dict),[],Tp),Dict).
   overloadVarDef(Dict,Lc,Nm,Val,Cx,Tp) => valof{
     
     (Cvrs,CDict) = defineCVars(Lc,Cx,[],Dict);
@@ -93,7 +93,7 @@ star.compiler.resolve{
     (Qx,Qt) = deQuant(Tp);
     (_,ITp) = deConstrain(Qt);
     CTp = reQuant(Qx,funType(Cx//typeOf,ITp));
-    valis (varDef(Lc,Nm,lambda(Lc,lambdaLbl(Lc),[rule(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp),Dict)
+    valis (.varDef(Lc,Nm,.lambda(Lc,lambdaLbl(Lc),[.rule(Lc,.tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp),Dict)
   }
 
   overloadImplDef:(dict,option[locn],string,string,canon,cons[constraint],tipe) =>
@@ -109,10 +109,10 @@ star.compiler.resolve{
 
     if isEmpty(Cvrs) then {
       CTp = reQuant(Qx,ITp);
-      valis (implDef(Lc,Nm,FullNm,RVal,[],Tp),Dict)
+      valis (.implDef(Lc,Nm,FullNm,RVal,[],Tp),Dict)
     } else {
       CTp = reQuant(Qx,funType(Cx//genContractType,ITp));
-      valis (implDef(Lc,Nm,FullNm,lambda(Lc,lambdaLbl(Lc),[rule(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp),Dict)
+      valis (.implDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),[.rule(Lc,.tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp),Dict)
     }
   }
 
@@ -123,7 +123,7 @@ star.compiler.resolve{
   defineCVars(Lc,[(T where .conTract(CNm,CTps,CDTps).=T),..Tps],Vrs,D) => valof{
     TpNm = implementationName(T);
     Tp=typeOf(T);
-    valis defineCVars(Lc,Tps,[vr(Lc,TpNm,Tp),..Vrs],
+    valis defineCVars(Lc,Tps,[.vr(Lc,TpNm,Tp),..Vrs],
       declareVar(TpNm,TpNm,Lc,Tp,.none,
 	declareImplementation(Lc,TpNm,TpNm,Tp,D)))
   }
@@ -133,6 +133,10 @@ star.compiler.resolve{
     valis defineCVars(Lc,Tps,[.vr(Lc,Vnm,Vtp),..Vrs],
       declareVar(Vnm,Vnm,Lc,Vtp,.none,
 	declareAccessor(Lc,Tp,Nm,Vnm,Vtp,D)))
+  }
+  defineCVars(Lc,[.implicit(Nm,Tp),..Tps],Vrs,D) => valof{
+    valis defineCVars(Lc,Tps,[.vr(Lc,Nm,Tp),..Vrs],
+      declareVar(Nm,Nm,Lc,Tp,.none,D))
   }
 
   overload:all e ~~ resolve[e] |: (e,dict) => e.
@@ -292,7 +296,7 @@ star.compiler.resolve{
 
   overApply(_,OverOp,[],_) => OverOp.
   overApply(Lc,OverOp,Args,Tp) where ~ _ ?= isFunType(Tp) =>
-    apply(Lc,OverOp,Args,Tp).
+    .apply(Lc,OverOp,Args,Tp).
   overApply(Lc,OverOp,Args,Tp) =>
     curryOver(Lc,OverOp,Args,Tp).
 
@@ -308,7 +312,7 @@ star.compiler.resolve{
     resolve(T,D,S) => overloadAction(T,D,S)
   }
 
-  overloadAction(.doNop(Lc),_,St) => (doNop(Lc),St).
+  overloadAction(.doNop(Lc),_,St) => (.doNop(Lc),St).
   overloadAction(.doSeq(Lc,L,R),Dict,St) => valof{
     (LL,St1) = overloadAction(L,Dict,St);
     (RR,St2) = overloadAction(R,Dict,St1);
@@ -451,6 +455,19 @@ star.compiler.resolve{
   }
   
   resolveContract:(option[locn],constraint,dict,resolveState) => (canon,resolveState).
+  resolveContract(Lc,.implicit(Id,Tp),Dict,St) => valof{
+    if Var ?= findVar(Lc,Id,Dict) then{
+      if sameType(Tp,typeOf(Var),Dict) then {
+	valis overloadTerm(Var,Dict,markResolved(St))
+      } else{
+	valis (.anon(Lc,Tp),
+	  .active(Lc,"implicit $(Id)\:$(typeOf(Var)) not consistent with expected type: $(Tp)"))
+      }
+    }
+    else{
+      valis (.anon(Lc,Tp),.active(Lc,"cannot find an definition for implicit var #(Id)\:$(Tp)"))
+    }
+  }
   resolveContract(Lc,Con,Dict,St) => valof{
     ImpNm = implementationName(Con);
     Tp = typeOf(Con);
@@ -490,18 +507,17 @@ star.compiler.resolve{
       Ft = newTypeVar("F");
       if sameType(typeOf(AccFn),funType([RcTp],Ft),Dict) then{
 	if sameType(Tp,snd(freshen(Ft,Dict)),Dict) then{
-	  valis overloadTerm(apply(Lc,AccFn,[Rc],Tp),Dict,markResolved(St))
+	  valis overloadTerm(.apply(Lc,AccFn,[Rc],Tp),Dict,markResolved(St))
 	} else{
-	  valis (dot(Lc,Rc,Fld,Tp),
+	  valis (.dot(Lc,Rc,Fld,Tp),
 	    .active(Lc,"field $(Rc).$(Fld)\:$(Ft) not consistent with required type $(Tp)")).
 	}
       } else {
-	valis (dot(Lc,Rc,Fld,Tp),
+	valis (.dot(Lc,Rc,Fld,Tp),
 	  .active(Lc,"accessor for field $(Rc).$(Fld)\:$(typeOf(AccFn)) for $(RcTp) not consistent with required type $(Tp)"))
       }
     } else{
-      valis (dot(Lc,Rc,Fld,Tp),
-	.active(Lc,"cannot find accessor for field $(Fld) for $(RcTp)"))
+      valis (.dot(Lc,Rc,Fld,Tp),.active(Lc,"cannot find accessor for field $(Fld) for $(RcTp)"))
     }
   }
 
@@ -512,18 +528,18 @@ star.compiler.resolve{
       Ft = newTypeVar("F");
       if sameType(typeOf(AccFn),funType([RcTp,Ft],RcTp),Dict) then{
 	if sameType(typeOf(Vl),snd(freshen(Ft,Dict)),Dict) then{
-	  valis overloadTerm(apply(Lc,AccFn,[Rc,Vl],RcTp),Dict,markResolved(St))
+	  valis overloadTerm(.apply(Lc,AccFn,[Rc,Vl],RcTp),Dict,markResolved(St))
 	} else{
-	  valis (update(Lc,Rc,Fld,Vl),
+	  valis (.update(Lc,Rc,Fld,Vl),
 	    .active(Lc,"field $(Fld)\:$(Ft) not consistent with required type $(typeOf(Vl))"))
 	}
       }
       else {
-	valis (update(Lc,Rc,Fld,Vl),
+	valis (.update(Lc,Rc,Fld,Vl),
 	  .active(Lc,"updater for field $(Fld) for $(RcTp) not consistent with required type $(typeOf(Vl))"))
       }
     } else {
-      valis (update(Lc,Rc,Fld,Vl),
+      valis (.update(Lc,Rc,Fld,Vl),
 	.active(Lc,"cannot find updater for field $(Fld) for $(RcTp) not consistent with required type $(typeOf(Vl))"))
     }
   }

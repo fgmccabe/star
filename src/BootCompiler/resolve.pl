@@ -1,6 +1,7 @@
 :- module(resolve,[overload/3,overloadOthers/3]).
 
 :- use_module(dict).
+:- use_module(declmgt).
 :- use_module(misc).
 :- use_module(errors).
 :- use_module(types).
@@ -13,7 +14,6 @@ overload(Defs,Dict,RDefs) :-
   map(Defs,resolve:overloadDef(Dict),RDefs).
 
 overloadDef(Dict,funDef(Lc,Nm,ExtNm,H,Tp,Cx,Eqns),RF) :-!,
-%  dispDef(funDef(Lc,Nm,ExtNm,H,Tp,Cx,Eqns)),
   overloadFunction(Lc,Nm,ExtNm,H,Tp,Cx,Eqns,Dict,RF).
 overloadDef(Dict,varDef(Lc,Nm,ExtNm,Cx,Tp,Value),RD) :-!,
   overloadDefn(Lc,Nm,ExtNm,Cx,Tp,Value,Dict,RD).
@@ -62,6 +62,12 @@ makeContractFunType(constrained(T,_C),Cx,CT) :-
 makeContractFunType(T,Cx,funType(tplType(Cx),T)).
 
 defineCVars(_,[],Dict,[],Dict).
+defineCVars(Lc,[implementsFace(X,faceType(Flds,_))|Cx],Dict,CVars,FDict) :-
+  fieldVars(Lc,X,Flds,CVars,CVrs,Dict,CDict),
+  defineCVars(Lc,Cx,CDict,CVrs,FDict).
+defineCVars(Lc,[implicit(Nm,Tp)|Cx],Dict,[v(Lc,Nm,Tp)|CVars],FDict) :-
+  declareVr(Lc,Nm,Tp,none,Dict,DDict),
+  defineCVars(Lc,Cx,DDict,CVars,FDict).
 defineCVars(Lc,[Con|Cx],Dict,[v(Lc,CVarNm,ConTp)|CVars],FDict) :-
   implementationName(Con,ImplNm),
   mangleName("_",value,ImplNm,CVarNm),
@@ -69,9 +75,6 @@ defineCVars(Lc,[Con|Cx],Dict,[v(Lc,CVarNm,ConTp)|CVars],FDict) :-
   declareImplementation(ImplNm,CVarNm,ConTp,Dict,D0),
   declareVr(Lc,CVarNm,ConTp,none,D0,D1),
   defineCVars(Lc,Cx,D1,CVars,FDict).
-defineCVars(Lc,[implementsFace(X,faceType(Flds,_))|Cx],Dict,CVars,FDict) :-
-  fieldVars(Lc,X,Flds,CVars,CVrs,Dict,CDict),
-  defineCVars(Lc,Cx,CDict,CVrs,FDict).
 
 fieldVars(_,_,[],CVars,CVars,Dict,Dict).
 fieldVars(Lc,Tp,[(FldNm,FldTp)|Flds],[NV|CVrs],XVrs,Dict,CDict) :-
@@ -202,7 +205,7 @@ overloadGuard(some(G),Dict,St,Stx,some(RG)) :-
   overloadTerm(G,Dict,St,Stx,RG).
 
 overloadLet(Lc,Decls,Defs,Bound,RR,Dict,St,Stx,RDefs,RBound) :-
-  declareAccessors(Lc,Decls,Dict,RDict),
+  declareAllDecls(Decls,Lc,Dict,RDict),
   overload(Defs,RDict,RDefs),
   call(RR,Bound,RDict,St,Stx,RBound).
 
@@ -393,8 +396,8 @@ resolveUpdate(Lc,Rc,Fld,Vl,Dict,St,Stx,Reslvd) :-
    Reslvd = update(Lc,Rc,Fld,Vl)).
 resolveUpdate(Lc,Rc,Fld,Vl,_Dict,St,Stx,update(Lc,Rc,Fld,Vl)) :-
   typeOfCanon(Rc,RcTp),
-  reportMsg("no updater defined for %s for type %s in %s",
-	 [Fld,tpe(RcTp),can(update(Lc,Rc,Fld,Vl))],Lc),
+%  reportMsg("no updater defined for %s for type %s in %s",
+%	 [Fld,tpe(RcTp),can(update(Lc,Rc,Fld,Vl))],Lc),
   genMsg("no updater defined for %s for type %s in %s",
 	 [Fld,tpe(RcTp),can(upate(Lc,Rc,Fld,Vl))],Msg),
   markActive(St,Lc,Msg,Stx).
@@ -404,6 +407,15 @@ resolveContracts(Lc,[Con|C],Dict,St,Stx,[CV|Vs]) :-
   resolveContract(Lc,Con,Dict,St,St0,CV),!,
   resolveContracts(Lc,C,Dict,St0,Stx,Vs).
 
+resolveContract(Lc,implicit(Nm,Tp),Dict,St,Stx,Over) :-
+  (getVar(Lc,Nm,Dict,Vr,VTp),
+   (sameType(VTp,Tp,Lc,Dict),
+    markResolved(St,St1),
+    overloadTerm(Vr,Dict,St1,Stx,Over);
+    genMsg("implicit %s:%s not consistent with %s",[Nm,tpe(VTp),tpe(Tp)],Msg),
+    markActive(St,Lc,Msg,Stx)) ;
+   genMsg("implicit %s:%s not defined",[Nm,tpe(Tp)],Msg),
+   markActive(St,Lc,Msg,Stx)).
 resolveContract(Lc,C,Dict,St,Stx,Over) :-
   implementationName(C,ImpNm),
   getImplementation(Dict,ImpNm,ImplVrNm,_ImplTp),
@@ -438,17 +450,6 @@ formOver(V,Args,Lc,Tp,apply(Lc,V,tple(Lc,Args),Tp,none)).
 
 genVar(Nm,Lc,Tp,v(Lc,NV,Tp)) :-
   genstr(Nm,NV).
-
-declareAccessors(_,[],Dict,Dict) :-!.
-declareAccessors(Lc,[accDec(Tp,FldNm,FunNm,AcTp)|Defs],Dict,Dx) :-!,
-  declareFieldAccess(Tp,FldNm,FunNm,AcTp,Dict,D0),
-  declareAccessors(Lc,Defs,D0,Dx).
-declareAccessors(Lc,[impDec(ImplNm,FullNm,ImplTp)|Defs],Dict,Dx) :-!,
-  declareImplementation(ImplNm,FullNm,ImplTp,Dict,D0),
-  declareVr(Lc,FullNm,ImplTp,none,D0,D1),
-  declareAccessors(Lc,Defs,D1,Dx).
-declareAccessors(Lc,[_|Defs],Dict,Dx) :-
-  declareAccessors(Lc,Defs,Dict,Dx).
 
 findAccess(Tp,FldNm,Dict,AccTp,FunNm) :-
   getFieldAccess(Tp,FldNm,FunNm,AccTp,Dict).

@@ -87,8 +87,8 @@ star.compiler{
     valis ()
   }
 
-  extractPkgSpec(P) where Lc ?= strFind(P,":",0) => pkg(P[0:Lc],P[Lc+1:size(P)]::version).
-  extractPkgSpec(P) default => pkg(P,.defltVersion).
+  extractPkgSpec(P) where Lc ?= strFind(P,":",0) => .pkg(P[0:Lc],P[Lc+1:size(P)]::version).
+  extractPkgSpec(P) default => .pkg(P,.defltVersion).
 
   processPkg:(pkg,termRepo,catalog) => termRepo.
   processPkg(P,Repo,Cat) => valof{
@@ -145,7 +145,7 @@ star.compiler{
 		mkTpl([]),		
 		mkTpl([]),
 		mkTpl(Segs//assem)]);
-	    Bytes = (strg(Code::string)::string);
+	    Bytes = (.strg(Code::string)::string);
 
 	    InlineBytes = (mkTpl(Inlined//((I)=>freezeDefn(I))))::string;
 
@@ -166,7 +166,7 @@ star.compiler{
       valis Repo
     }
     else{
-      reportError("cannot locate source of $(P)",some(pkgLoc(P)));
+      reportError("cannot locate source of $(P)",.some(pkgLoc(P)));
       valis Repo
     }
   }

@@ -88,7 +88,7 @@ star.compiler.canon{
       .letExp(_,_,_,E) => typeOf(E).
       .letRec(_,_,_,E) => typeOf(E).
       .apply(_,_,_,Tp) => Tp.
-      .tple(_,Els) => tupleType(Els//typeOf).
+      .tple(_,Els) => .tupleType(Els//typeOf).
       .dot(_,_,_,Tp) => Tp.
       .update(_,R,_,_) => typeOf(R).
       .whr(_,E,_) => typeOf(E).
@@ -232,7 +232,7 @@ star.compiler.canon{
   showAct(Ac,Pr,Sp) => case Ac in {
     .doNop(_) => "{}".
     .doSeq(Lc,L,R)  where (Lp,OPr,Rp) ?= isInfixOp(";") =>
-      "{\n#(Sp++"  ")#(showActSeq(doSeq(Lc,L,R),Rp,Sp++"  "))\n#(Sp)}".
+      "{\n#(Sp++"  ")#(showActSeq(.doSeq(Lc,L,R),Rp,Sp++"  "))\n#(Sp)}".
     .doLbld(_,Lb,A) => "#(Lb)\:#(showAct(A,Pr,Sp))".
     .doBrk(_,Lb) => "break #(Lb)".
     .doValis(_,E) where (OPr,Rp) ?= isPrefixOp("valis") =>
@@ -364,7 +364,7 @@ star.compiler.canon{
     }
     splitPttrn(.whr(Lc,Pt,C)) => valof{
       (SP,SCond) = splitPttrn(Pt);
-      valis (SP,mergeGl(SCond,some(C)))
+      valis (SP,mergeGl(SCond,.some(C)))
     }
     splitPttrn(Pt) => (Pt,.none).
 
