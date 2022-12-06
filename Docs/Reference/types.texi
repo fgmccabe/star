@@ -975,6 +975,7 @@ implying a constraint on the possible binding of a @refer{TypeVariable}.
 @display
 @anchored{TypeConstraint} ::= @refer{Contract}
   | @refer{FieldConstraint}
+  | @refer{ImplicitConstraint}
   | @refer{TypeConstraint} ,@comma{}, @refer{TypeConstraint}
 @end display
 @end float
@@ -1085,6 +1086,60 @@ constraint varerring to it must also have a @code{\->>} clause.
 The @code{->>} clause identifies which type(s) are dependent on the
 type argument(s) of the @refer{Contract}. (See
 @refer{ContractFunctionalDependency}).
+
+
+@node Implicit Binding Constraints
+@subsection Implicit Binding Constraints
+@cindex type,constraints!implicit
+@cindex implicit binding constraint
+
+@noindent
+A @refer{ImplicitConstraint} is a requirement that a given variable of
+a specified type exists (i.e., is in scope).
+
+For example, the constraint expression in the constrained type:
+@example
+foo |= t |: (integer) => t
+@end example
+means that, for any variable of this type, there must also be a
+variable call @code{foo} in scope, of type @code{t}. Typically, the
+constrained type is a function, and the implicit binding constraint
+also means that the implicit variable is in scope within the function.
+
+More specifically, @code{foo} must be in scope wherever the function
+is called, and @code{foo} is automatically in scope within the
+definition of @code{foo}.
+
+In effect, the implicit constraint denotes an implicitly bound
+variable; or, equivalently, a dynamically scoped variable.
+
+@float BNF,implicitConstraintFig
+@caption{Implicit Binding Constraint}
+@display
+@anchored{ImplicitConstraint} ::= @refer{Identifier}@code{|=}@refer{Type}
+@end display
+@end float
+
+So, for example, in the function @code{clamp} below, there is an
+implicitly defined variable @code{limit}:
+
+@example
+clamp : limit |: integer |: (integer)=>integer.
+clamp(X) => valof@{
+  if X>limit then
+    valis limit
+  else
+    valis X
+@}
+@end example
+Any call to @code{clamp} must occur in a scope where @code{limit} is
+defined with type @code{integer}:
+
+@example
+let@{
+  limit = 1000;
+@} in clamp(Z)
+@end example
 
 @node Field Constraints
 @subsection Field Constraints
