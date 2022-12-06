@@ -61,7 +61,7 @@ static inline logical validStkValueLoc(stackPo stk, ptrPo p) {
   return p >= ((ptrPo) (stk->fp + 1)) && p <= stackLimit(stk);
 }
 
-static inline logical fiberHasSpace(stackPo stk, integer amount) {
+static inline logical stackHasSpace(stackPo stk, integer amount) {
   assert(amount >= 0);
   return stk->sp - amount >= (ptrPo) (stk->fp + 1);
 }

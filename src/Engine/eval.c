@@ -133,6 +133,10 @@ retCode run(processPo P) {
           stackGrow(stackDelta(mtd) + STACKFRAME_SIZE, codeArity(mtd));
           gcReleaseRoot(H, root);
           assert(stackRoom(stackDelta(mtd) + STACKFRAME_SIZE));
+#ifdef TRACESTACK
+          if (traceStack)
+            verifyStack(STK, H);
+#endif
         }
 
         assert(isPcOfMtd(FP->prog, PC));
@@ -183,6 +187,11 @@ retCode run(processPo P) {
           int root = gcAddRoot(H, (ptrPo) &mtd);
           stackGrow(stackDelta(mtd) + STACKFRAME_SIZE, codeArity(mtd));
           gcReleaseRoot(H, root);
+
+#ifdef TRACESTACK
+          if (traceStack)
+            verifyStack(STK, H);
+#endif
         }
 
         assert(isPcOfMtd(FP->prog, PC));
@@ -460,7 +469,7 @@ retCode run(processPo P) {
         stackPo child = spawnStack(P, lambda);
 
         P->stk = attachStack(STK, child);
-        verifyStack(P->stk,H);
+        verifyStack(P->stk, H);
         restoreRegisters();
         continue;
       }
@@ -485,7 +494,7 @@ retCode run(processPo P) {
         stackPo fiber = C_STACK(pop());
 
         if (stackState(fiber) != suspended) {
-          logMsg(logFile, "tried to resume non-suspended fiber %T", fiber);
+          logMsg(logFile, "tried to resume non-suspended stack %T", fiber);
           bail();
         } else {
           saveRegisters();
@@ -500,13 +509,17 @@ retCode run(processPo P) {
         stackPo fiber = C_STACK(pop());
 
         if (stackState(fiber) != active) {
-          logMsg(logFile, "tried to retire a non-active fiber %T", fiber);
+          logMsg(logFile, "tried to retire a non-active stack %T", fiber);
           bail();
         } else {
           saveRegisters();
           P->stk = detachStack(STK, fiber);
           dropStack(fiber);
           restoreRegisters();
+#ifdef TRACESTACK
+          if (traceStack)
+            verifyStack(STK,H);
+#endif
           push(event);
           continue;
         }
@@ -521,6 +534,7 @@ retCode run(processPo P) {
           saveRegisters();
           stackPo parent = detachStack(STK, fiber);
           dropStack(fiber);
+          restoreRegisters();
           continue;
         }
       }
@@ -528,7 +542,7 @@ retCode run(processPo P) {
         termPo val = pop();
         saveRegisters();  // Seal off the current stack
         assert(stackState(STK) == active);
-        STK = P->stk = dropStack(STK);
+        P->stk = dropStack(STK);
         restoreRegisters();
         push(val);
         continue;
@@ -616,6 +630,11 @@ retCode run(processPo P) {
             stackGrow(stackDelta(glbThnk) + STACKFRAME_SIZE, codeArity(glbThnk));
             gcReleaseRoot(H, root);
             assert(stackRoom(stackDelta(glbThnk) + STACKFRAME_SIZE));
+
+#ifdef TRACESTACK
+            if (traceStack)
+              verifyStack(STK, H);
+#endif
           }
           FP->pc = PC;
           pushFrme(glbThnk);
@@ -678,6 +697,11 @@ retCode run(processPo P) {
             int root = gcAddRoot(H, (ptrPo) &mtd);
             stackGrow(stackDelta(mtd) + STACKFRAME_SIZE, codeArity(mtd));
             gcReleaseRoot(H, root);
+
+#ifdef TRACESTACK
+            if (traceStack)
+              verifyStack(STK, H);
+#endif
           }
 
           assert(isPcOfMtd(FP->prog, PC));
@@ -793,6 +817,7 @@ retCode run(processPo P) {
       }
 
       case Cell: {
+        checkAlloc(CellCellCount);
         cellPo cell = newCell(H, pop());
         push(cell);
         continue;
