@@ -49,7 +49,7 @@ enum KEY_ACTION {
   TAB = '\t',            /* Tab */
   CTRL_K = CTRL((unsigned) 'K'),
   CTRL_L = CTRL((unsigned) 'L'),
-  ENTER = 13,         /* Enter */
+  ENTER = 10,         /* Enter */
   CTRL_N = CTRL((unsigned) 'N'),
   CTRL_P = CTRL((unsigned) 'P'),
   CTRL_T = CTRL((unsigned) 'T'),

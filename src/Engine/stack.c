@@ -212,6 +212,8 @@ void stackSanityCheck(stackPo stk) {
 
 void verifyStack(stackPo stk, heapPo H) {
   while (stk != Null) {
+    assert(classOf((termPo)stk)==stackClass);
+
     if (stk->stkMem != Null) {
       stackSanityCheck(stk);
       ptrPo sp = stk->sp;
@@ -276,7 +278,7 @@ void pushStack(stackPo stk, termPo ptr) {
 
 void moveStack2Stack(stackPo totsk, stackPo fromtsk, integer count) {
   assert(validStkValueLoc(fromtsk, fromtsk->sp + count));
-  assert(fiberHasSpace(totsk, count));
+  assert(stackHasSpace(totsk, count));
 
   ptrPo src = fromtsk->sp + count;
   ptrPo dst = totsk->sp;
@@ -293,15 +295,6 @@ termPo stkScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   assert(stk != Null);
 
   if (stk->stkMem != Null) {
-#ifdef TRACEMEM
-    if (traceStack)
-      stackSanityCheck(stk);
-
-    if (traceMemory) {
-      outMsg(logFile, "scan stack %d\n%_", stk->hash);
-    }
-#endif
-
     ptrPo sp = stk->sp;
     framePo fp = stk->fp;
     ptrPo limit = stk->stkMem + stk->sze;
@@ -323,6 +316,11 @@ termPo stkScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
     helper((ptrPo) &stk->attachment, c);
   if (stk->bottom != Null)
     helper((ptrPo) &stk->bottom, c);
+
+#ifdef TRACESTACK
+  if (traceStack)
+    stackSanityCheck(stk);
+#endif
 
   return o + StackCellCount;
 }
@@ -500,7 +498,7 @@ stackPo attachStack(stackPo tsk, stackPo top) {
 
 #ifdef TRACESTACK
   if (traceStack)
-    outMsg(logFile, "attach fiber %T to %T\n", top, tsk);
+    outMsg(logFile, "attach stack %T to %T\n", top, tsk);
 #endif
 
   assert(stackState(tsk) == active && stackState(top) == suspended && stackState(bottom) == suspended);
@@ -527,6 +525,8 @@ stackPo detachStack(stackPo base, stackPo top) {
     outMsg(logFile, "detach %T up to %T\n", base, top);
 #endif
   assert(stackState(top) == active && top->bottom == Null);
+  assert(isAttachedStack(base, top));
+
   top->bottom = base;
   stackPo s = base;
   while (s != Null && s != top) {
@@ -541,7 +541,13 @@ stackPo detachStack(stackPo base, stackPo top) {
   s->attachment = Null;
   s->state = suspended;
   s->bottom = base;
-  assert(isAttachedStack(base, top));
+
+#ifdef TRACESTACK
+  if (traceStack) {
+    outMsg(logFile, "now at %T\n", parent);
+    assert(hasClass((termPo)parent, stackClass));
+  }
+#endif
   return parent;
 }
 
@@ -552,6 +558,8 @@ stackPo dropStack(stackPo tsk) {
   stackReleases++;
 #endif
   stackPo previous = tsk->attachment;
+  tsk->attachment = Null;
+  tsk->bottom = Null;
   tsk->state = moribund;
   release(stackRegion, (voidPtr) tsk->stkMem);
   tsk->stkMem = Null;
