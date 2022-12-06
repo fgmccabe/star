@@ -49,7 +49,7 @@ star.compiler.catalog{
     E ?= Cat.content[Pkg] &&
       CU ?= parseUri(E) &&
       PU ?= resolveUri(Cat.base,CU) =>
-    .some((PU,pkg(Pkg,deflt(Cat.vers,()=>.defltVersion)))).
+    .some((PU,.pkg(Pkg,deflt(Cat.vers,()=>.defltVersion)))).
   findInCat(Cat,Pkg) => findInSubs(Cat.subcats,Pkg).
 
   findInSubs:(cons[catalog],string) => option[(uri,pkg)].

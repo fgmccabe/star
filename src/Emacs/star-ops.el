@@ -63,6 +63,7 @@
   ("return" ( (prefix 930 929)))
   ("?" ( (prefix 820 819)))
   ("@" ( (prefix 400 399) (infix 399 400 400)))
+  ("|=" ( (infix 1224 1225 1224)))
   ("in" ( (infix 899 900 900)))
   ("break" ( (prefix 10 9)))
   ("suspend" ( (prefix 901 900) (infix 900 901 900)))

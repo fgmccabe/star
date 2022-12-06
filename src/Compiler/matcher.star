@@ -21,7 +21,7 @@ star.compiler.matcher{
     Trpls = makeTriples(Eqns);
     Error = genRaise(Lc,Nm,funTypeRes(Tp));
     Reslt = matchTriples(Lc,NVrs,Trpls,Error,0,Map);
-    valis fnDef(Lc,Nm,Tp,NVrs//(.cVar(_,V))=>V,Reslt)
+    valis .fnDef(Lc,Nm,Tp,NVrs//(.cVar(_,V))=>V,Reslt)
   }
 
   public caseMatcher:all e ~~ reform[e],rewrite[e],display[e] |: (option[locn],nameMap,cExp,e,
@@ -45,7 +45,7 @@ star.compiler.matcher{
       valis [(Args,(Lc,[],Cnd,Wh,Vl),Ix),..Ts]
     },[],Eqns).
 
-  genRaise(Lc,Msg,Tp) => cAbort(Lc,Msg,Tp).
+  genRaise(Lc,Msg,Tp) => .cAbort(Lc,Msg,Tp).
 
   matchTriples:all e~~reform[e],rewrite[e],display[e] |: (option[locn],cons[cExp],cons[triple[e]],e,integer,nameMap) => e.
   matchTriples(_,[],Triples,Deflt,_,_) => conditionalize(Triples,Deflt).
@@ -172,7 +172,7 @@ star.compiler.matcher{
       sameConstructorTriple,Lc,Vrs,Deflt,Depth+1,Map);
     VTp = typeOf(V);
     Arity = arity(VTp);
-    Index = [(tLbl(tplLbl(Arity),Arity),consType(VTp,VTp),0)];
+    Index = [(.tLbl(tplLbl(Arity),Arity),consType(VTp,VTp),0)];
     Arms = populateArms(Index,Cases,Lc,Deflt,Map);
     valis mkUnpack(Lc,V,Arms)
   }
@@ -215,7 +215,7 @@ star.compiler.matcher{
       valis (NArgs, (CLc,B,NAG,NGl,NExp),Ix)
     }
     applyToTriple(([.cWhere(Lc,.cVar(VLc,.cId(Vr,VTp)),Cond),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof{
-      Mp = { .tLbl(Vr,arity(VTp))->vrDef(VLc,Vr,VTp,V)};
+      Mp = { .tLbl(Vr,arity(VTp))->.vrDef(VLc,Vr,VTp,V)};
       NArgs = rewriteTerms(Args,Mp);
       NAG = fmap((T)=>rewrite(T,Mp),AG);
       NCond = rewrite(Cond,Mp);
@@ -249,7 +249,7 @@ star.compiler.matcher{
     Vrs = (Args//genTplVar);
     NTriples = subTriples(Triples);
     Case = matchTriples(Lc,Vrs++Vars,NTriples,Deflt,Depth,Map);
-    valis (Lc,cTerm(Lc,Lbl,Vrs,Tp),Case)
+    valis (Lc,.cTerm(Lc,Lbl,Vrs,Tp),Case)
   }.
 
   genTplVar(Arg) => .cVar(locOf(Arg),.cId(genSym("V"),typeOf(Arg))).

@@ -26,7 +26,8 @@ star.compiler.types{
     .allRule(tipe,typeRule).
 
   public constraint ::= .conTract(string,cons[tipe],cons[tipe]) |
-    .fieldConstraint(tipe,string,tipe).
+    .fieldConstraint(tipe,string,tipe) |
+    .implicit(string,tipe).
 
   tv ::= tv{
     binding : ref option[tipe].
@@ -155,6 +156,8 @@ star.compiler.types{
     N1==N2 && identTypes(T1,T2,Q) && identTypes(D1,D2,Q).
   eqConstraint(.fieldConstraint(T1,F,R1),.fieldConstraint(T2,F,R2),Q) =>
     eqType(T1,T2,Q) && eqType(R1,R2,Q).
+  eqConstraint(.implicit(N1,T1),.implicit(N2,T2),Q) =>
+    N1==N2 && eqType(T1,T2,Q).
   eqConstraint(_,_,_) default => .false.
 
   identNmTypes(L1,L2,Q) => let{.
@@ -168,6 +171,7 @@ star.compiler.types{
   public implementation equality[constraint] => {
     .conTract(N1,T1,D1) == .conTract(N2,T2,D2) => N1==N2 && T1==T2 && D1==D2.
     .fieldConstraint(V1,N1,T1) == .fieldConstraint(V2,N2,T2) => N1==N2 && V1==V2 && T1==T2.
+    .implicit(N1,T1) == .implicit(N2,T2) => N1==N2 && T1==T2.
     _ == _ default => .false.
   }
 
@@ -274,6 +278,8 @@ star.compiler.types{
   showConstraint(.conTract(Nm,T,D),Dp) => shContract(Nm,T,D,.false,Dp).
   showConstraint(.fieldConstraint(Tp,Fld,Fc),Dp) =>
     "#(showType(Tp,.false,Dp)) <~ {#(Fld):#(showType(Fc,.false,Dp))}".
+  showConstraint(.implicit(Fld,Tp),Dp) =>
+    "#(Fld) |= #(showType(Tp,.false,Dp))".
 
   showDeps([],_) => "".
   showDeps(Els,Dp) => "->>#(showTypes(Els,.false,Dp)*)".
@@ -296,6 +302,7 @@ star.compiler.types{
     }
 
     hshCon(.conTract(N,T,D)) => hshEls(hshEls(hash(N)*37,T),D).
+    hshCon(.implicit(N,T)) => hash(N)*37+hash(T).
     hshCon(.fieldConstraint(V,F,T)) =>
       ((hash("<~")*37+hash(F))*37+hsh(deRef(V)))*37+hsh(deRef(T)).
 
@@ -360,6 +367,7 @@ star.compiler.types{
   public implementation hasType[constraint] => {
     typeOf(.conTract(Nm,T,D)) => mkConType(Nm,T,D).
     typeOf(.fieldConstraint(Tp,_,FTp)) => funType([Tp],FTp).
+    typeOf(.implicit(_,Tp)) => Tp.
   }
 
   public implementation all t ~~ hasType[t] |: hasType[cons[t]] => {

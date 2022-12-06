@@ -75,7 +75,7 @@ star.compiler.normalize{
 
   transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex) => valof{
     if traceNormalize! then{
-      logMsg("transform function $(lambda(Lc,FullNm,Eqns,Tp)) Q=$(Q) Extra = $(Extra) @ $(Lc)");
+      logMsg("transform function $(.lambda(Lc,FullNm,Eqns,Tp)) Q=$(Q) Extra = $(Extra) @ $(Lc)");
     };
     ATp = extendFunTp(deRef(Tp),Extra);
     if traceNormalize! then
@@ -246,7 +246,7 @@ star.compiler.normalize{
   implementPtnCall(Lc,.moduleCons(Nm,CTp),Args,Tp,_,_,Ex) =>
     (.cTerm(Lc,Nm,Args,Tp),Ex).
   implementPtnCall(Lc,.localCons(Nm,CTp,Vr),Args,Tp,_,_,Ex) =>
-    (.cTerm(Lc,Nm,[cVar(Lc,Vr),..Args],Tp),Ex).
+    (.cTerm(Lc,Nm,[.cVar(Lc,Vr),..Args],Tp),Ex).
   
   trVarPtn(Lc,Nm,Tp,Map,Ex) =>
     implementVarPtn(Lc,Nm,lookupVarName(Map,Nm),Tp,Map,Ex).
@@ -292,7 +292,7 @@ star.compiler.normalize{
     valis liftExpCallOp(Lc,Op,LEls,Tp,Q,Map,Ex1)
   }
   liftExp(.dot(Lc,Rc,Fld,Tp),Map,Q,Ex) => valof{
-    reportError("unexpected dot expression $(dot(Lc,Rc,Fld,Tp))",Lc);
+    reportError("unexpected dot expression $(.dot(Lc,Rc,Fld,Tp))",Lc);
     valis (.cVoid(Lc,Tp),[])
   }
   liftExp(.whr(_,E,.enm(_,"star.core#true",_)),Map,Q,Ex) =>
@@ -399,7 +399,7 @@ star.compiler.normalize{
     valis .cThGet(Lc,.cNth(Lc,V,Ix,Tp),Tp)
   }
   implementVarExp(Lc,.localVar(Vr),_,Tp) => Vr.
-  implementVarExp(Lc,.moduleCons(Enum,CTp),_,Tp) => cTerm(Lc,Enum,[],Tp).
+  implementVarExp(Lc,.moduleCons(Enum,CTp),_,Tp) => .cTerm(Lc,Enum,[],Tp).
   implementVarExp(Lc,.localCons(Enum,CTp,Vr),Map,Tp) => valof{
     V = liftVarExp(Lc,cName(Vr),typeOf(Vr),Map);
     valis .cTerm(Lc,Enum,[V],Tp)
@@ -481,13 +481,13 @@ star.compiler.normalize{
     allFree = freeVars++lVars;
 
     if [SFr] .= allFree && isEmpty(lVars) then {
-      MM = [lyr(? SFr,foldRight((D,LL)=>collectMtd(D,.some(SFr),LL),[],GrpFns),CM),..Outer];
+      MM = [.lyr(? SFr,foldRight((D,LL)=>collectMtd(D,.some(SFr),LL),[],GrpFns),CM),..Outer];
       M = Outer;
       GrpQ = foldLeft(collectQ,Q\+SFr,Defs);
       Ex1 = transformGroup(GrpFns,Outer,Outer,GrpQ,.some(.cVar(Lc,SFr)),Ex);
       valis transform(Bnd,MM,GrpQ,Ex1);
     } else {
-      freeType = tupleType(allFree//typeOf);
+      freeType = .tupleType(allFree//typeOf);
 
       ThV = genVar("_ThVr",freeType);
       ThVr = .cVar(Lc,ThV);
@@ -496,7 +496,7 @@ star.compiler.normalize{
 
       MM = [.lyr(.some(ThV),foldRight((D,LL)=>collectMtd(D,.some(ThV),LL),L,GrpFns),CM),..Outer];
 
-      M = [lyr(.some(ThV),L,CM),..Outer];
+      M = [.lyr(.some(ThV),L,CM),..Outer];
 
       GrpQ = foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q,lVars),Defs);
       
@@ -635,7 +635,7 @@ star.compiler.normalize{
   transformLetDef(.updDef(_,_,_,_),_,_,_,_,Fx,Ex) => (Fx,Ex).
 
   liftAction:(canonAction,nameMap,set[cId],cons[cDefn]) => (aAction,cons[cDefn]).
-  liftAction(.doNop(Lc),_,_,Ex) => (aNop(Lc),Ex).
+  liftAction(.doNop(Lc),_,_,Ex) => (.aNop(Lc),Ex).
   liftAction(.doSeq(Lc,L,R),Map,Q,Ex) => valof{
     (LL,Ex1) = liftAction(L,Map,Q,Ex);
     (RR,Ex2) = liftAction(R,Map,actnVars(L,Q),Ex1);
@@ -645,7 +645,7 @@ star.compiler.normalize{
     (AA,Ex1) = liftAction(A,Map,Q,Ex);
     valis (.aLbld(Lc,Lb,AA),Ex1)
   }
-  liftAction(.doBrk(Lc,Lb),_,_,Ex) => (aBreak(Lc,Lb),Ex).
+  liftAction(.doBrk(Lc,Lb),_,_,Ex) => (.aBreak(Lc,Lb),Ex).
   liftAction(.doValis(Lc,E),Map,Q,Ex) => valof{
     (EE,Ex1) = liftExp(E,Map,Q,Ex);
     valis (.aValis(Lc,EE),Ex1)
@@ -750,7 +750,7 @@ star.compiler.normalize{
     map[string,nameMapEntry].
   collectLabelVars([],_,_,LV) => LV.
   collectLabelVars([.cId(Nm,Tp),..Vrs],ThV,Ix,Entries) =>
-    collectLabelVars(Vrs,ThV,Ix+1,Entries[Nm->labelArg(ThV,Ix)]).
+    collectLabelVars(Vrs,ThV,Ix+1,Entries[Nm->.labelArg(ThV,Ix)]).
   
   collectVars:(cons[canonDef],cId,integer,map[string,nameMapEntry]) =>
     map[string,nameMapEntry].
@@ -790,7 +790,7 @@ star.compiler.normalize{
     LL[Nm->.globalVar(Nm,Tp)].
   collectMtd(.varDef(Lc,Nm,Val,_,Tp),.some(ThVr),LL) => LL.
   collectMtd(.varDef(Lc,Nm,Val,_,Tp),.some(ThVr),LL) =>
-    LL[Nm->.localVar(.cCall(Lc,varClosureNm(Nm),[cVar(Lc,ThVr)],Tp))].
+    LL[Nm->.localVar(.cCall(Lc,varClosureNm(Nm),[.cVar(Lc,ThVr)],Tp))].
   collectMtd(.implDef(Lc,_,FullNm,Val,Cx,Tp),ThVr,LL) =>
     collectMtd(.varDef(Lc,FullNm,Val,Cx,Tp),ThVr,LL).
   collectMtd(.cnsDef(Lc,Nm,FullNm,Tp),.none,LL) => LL[Nm->.moduleCons(FullNm,Tp)].

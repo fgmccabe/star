@@ -6,7 +6,6 @@
 #include "ooio.h"
 #include "formioP.h"
 #include "template.h"
-#include <stringBuffer.h>
 #include <assert.h>
 #include "formexts.h"
 
@@ -200,15 +199,15 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
       switch (B) {
         case nOp:
         case tOs:
-          outMsg(out, "=> mnem(Ins,Code++[intgr(%d)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).\n", op);
+          outMsg(out, "=> mnem(Ins,Code++[.intgr(%d)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).\n", op);
           return;
         case off:
           outMsg(out,
-                 "where Tgt ?= Lbls[V] => mnem(Ins,Code++[intgr(%d),intgr(Tgt-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n",
+                 "where Tgt ?= Lbls[V] => mnem(Ins,Code++[.intgr(%d),.intgr(Tgt-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n",
                  op);
           return;
         case i32:
-          outMsg(out, "=> mnem(Ins,Code++[intgr(%d),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", op);
+          outMsg(out, "=> mnem(Ins,Code++[.intgr(%d),.intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", op);
           return;
         default:
           check(False, "invalid second operand");
@@ -219,17 +218,17 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
         case nOp:
         case tOs:
           outMsg(out,
-                 "where (Lt1,LtNo) .= findLit(Lts,U) => mnem(Ins,Code++[intgr(%d),intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).\n",
+                 "where (Lt1,LtNo) .= findLit(Lts,U) => mnem(Ins,Code++[.intgr(%d),.intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).\n",
                  op);
           return;
         case off:
           outMsg(out,
-                 "where (Lt1,LtNo) .= findLit(Lts,U) && Tgt ?= Lbls[V] => mnem(Ins,Code++[intgr(%d),intgr(LtNo),intgr(Tgt-Pc-5)],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
+                 "where (Lt1,LtNo) .= findLit(Lts,U) && Tgt ?= Lbls[V] => mnem(Ins,Code++[.intgr(%d),.intgr(LtNo),.intgr(Tgt-Pc-5)],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
                  op);
           return;
         case cDe:
           outMsg(out,
-                 "where (Lt1,LtNo) .= findLit(Lts,U) && (BlkCde,Lt2,Lns1,Lcs1,Pc1,Lc1) .= mnem(V,[],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl) => mnem(Ins,Code++[intgr(%d),intgr(LtNo),intgr(Pc1-Pc-5),..BlkCde],Lbls,Lt2,Lns1,Lcs1,Pc1,Lc1,Ends).\n",
+                 "where (Lt1,LtNo) .= findLit(Lts,U) && (BlkCde,Lt2,Lns1,Lcs1,Pc1,Lc1) .= mnem(V,[],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl) => mnem(Ins,Code++[.intgr(%d),.intgr(LtNo),.intgr(Pc1-Pc-5),..BlkCde],Lbls,Lt2,Lns1,Lcs1,Pc1,Lc1,Ends).\n",
                  op);
           return;
         default:
@@ -240,12 +239,12 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
         case nOp:
         case tOs:
           outMsg(out,
-                 "where (Lt1,LtNo) .= findLit(Lts,strg(U::string)) => mnem(Ins,Code++[intgr(%d),intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).\n",
+                 "where (Lt1,LtNo) .= findLit(Lts,.strg(U::string)) => mnem(Ins,Code++[.intgr(%d),.intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).\n",
                  op);
           return;
         case off:
           outMsg(out,
-                 "where (Lt1,LtNo) .= findLit(Lts,strg(U::string)) && Tgt ?= Lbls[V] => mnem(Ins,Code++[intgr(%d),intgr(LtNo),intgr(Tgt-Pc-5)],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
+                 "where (Lt1,LtNo) .= findLit(Lts,.strg(U::string)) && Tgt ?= Lbls[V] => mnem(Ins,Code++[.intgr(%d),.intgr(LtNo),.intgr(Tgt-Pc-5)],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
                  op);
           return;
         default:
@@ -253,17 +252,17 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
       }
 
     case sym: {                            // symbol
-      char *cond = "where (Lt1,LtNo) .= findLit(Lts,symb(U))";
+      char *cond = "where (Lt1,LtNo) .= findLit(Lts,.symb(U))";
 
       switch (B) {
         case nOp:
         case tOs:
-          outMsg(out, "%s => mnem(Ins,Code++[intgr(%d),intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).\n", cond,
+          outMsg(out, "%s => mnem(Ins,Code++[.intgr(%d),.intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).\n", cond,
                  op);
           return;
         case off:
           outMsg(out,
-                 "%s && Tgt ?= Lbls[V] => mnem(Ins,Code++[intgr(%d),intgr(LtNo),intgr(Tgt-Pc-5)],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
+                 "%s && Tgt ?= Lbls[V] => mnem(Ins,Code++[.intgr(%d),.intgr(LtNo),.intgr(Tgt-Pc-5)],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
                  cond, op);
           return;
         default:
@@ -276,11 +275,11 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
       switch (B) {
         case nOp:
         case tOs:
-          outMsg(out, "=> mnem(Ins,Code++[intgr(%d),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", op);
+          outMsg(out, "=> mnem(Ins,Code++[.intgr(%d),.intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", op);
           return;
         case off:
           outMsg(out,
-                 "where Tgt ?= Lbls[V] =>  mnem(Ins,Code++[intgr(%d),intgr(U),intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
+                 "where Tgt ?= Lbls[V] =>  mnem(Ins,Code++[.intgr(%d),.intgr(U),.intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
                  op);
           return;
         default:
@@ -289,17 +288,17 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
     case lcl:
     case lcs:
       check(B == nOp, "second operand not nOp");
-      outMsg(out, "=> mnem(Ins,Code++[intgr(%d),intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,max(U,MxLcl),Ends).\n", op);
+      outMsg(out, "=> mnem(Ins,Code++[.intgr(%d),.intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,max(U,MxLcl),Ends).\n", op);
       return;
     case glb:
       switch (B) {
         case nOp:
         case tOs:
-          outMsg(out, "=> mnem(Ins,Code++[intgr(%d),strg(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", op);
+          outMsg(out, "=> mnem(Ins,Code++[.intgr(%d),.strg(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", op);
           return;
         case off:
           outMsg(out,
-                 "where Tgt ?= Lbls[V] => mnem(Ins,Code++[intgr(%d),strg(U),intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
+                 "where Tgt ?= Lbls[V] => mnem(Ins,Code++[.intgr(%d),.strg(U),.intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
                  op);
           return;
         default:
@@ -312,11 +311,11 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
       switch (B) {
         case nOp:
         case tOs:
-          outMsg(out, "%s => mnem(Ins,Code++[intgr(%d),intgr(Cd)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", cond, op);
+          outMsg(out, "%s => mnem(Ins,Code++[.intgr(%d),.intgr(Cd)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", cond, op);
           break;
         case off:
           outMsg(out,
-                 "%s && Tgt ?= Lbls[V] => mnem(Ins,Code++[intgr(%d),intgr(Cd),intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
+                 "%s && Tgt ?= Lbls[V] => mnem(Ins,Code++[.intgr(%d),.intgr(Cd),.intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
                  cond, op);
           return;
         default:
@@ -327,7 +326,7 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
     case off:                            // program counter relative offset
       check(B == nOp, "second operand not nOp");
       outMsg(out,
-             "where Tgt ?= Lbls[U] => mnem(Ins,Code++[intgr(%d),intgr(Tgt-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n",
+             "where Tgt ?= Lbls[U] => mnem(Ins,Code++[.intgr(%d),.intgr(Tgt-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n",
              op);
       return;
     default:

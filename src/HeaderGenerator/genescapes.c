@@ -5,7 +5,6 @@
 #include <assert.h>
 #include <getopt.h>
 #include "signature.h"
-#include "stringBuffer.h"
 #include "formio.h"
 #include "escodes.h"
 #include <ctype.h>
@@ -73,6 +72,8 @@ int main(int argc, char **argv) {
   }
 }
 
+typedef char *(*sigDump)(char *sig, strBufferPo out);
+
 static void dumpStdType(char *name, strBufferPo out);
 
 static void dumpStr(char *str, strBufferPo out);
@@ -81,13 +82,13 @@ static char *dInt(char *sig, int *len);
 
 static char *dName(char *sig, strBufferPo out);
 
-static char *dSequence(char *sig, strBufferPo out);
+static char *dSequence(char *sig, sigDump dump, strBufferPo out);
 
-static char *dTple(char *sig, strBufferPo out);
+static char *dTple(char *sig, sigDump dump, strBufferPo out);
 
-static char *dFields(char *sig, strBufferPo out);
+static char *dFields(char *sig, sigDump dump, strBufferPo out);
 
-static char *dumpSig(char *sig, strBufferPo out) {
+char *dumpPrologSig(char *sig, strBufferPo out) {
   assert(sig != NULL && *sig != '\0');
 
   switch (*sig++) {
@@ -110,15 +111,9 @@ static char *dumpSig(char *sig, strBufferPo out) {
       dumpStdType("star.core*boolean", out);
       break;
     case kvrSig:
-      if (genMode == genProlog) {
-        outStr(O_IO(out), "kVar(");
-        sig = dName(sig, out);
-        outStr(O_IO(out), ")");
-      } else {
-        outStr(O_IO(out), "nomnal(");
-        sig = dName(sig, out);
-        outStr(O_IO(out), ")");
-      }
+      outStr(O_IO(out), "kVar(");
+      sig = dName(sig, out);
+      outStr(O_IO(out), ")");
       break;
     case kfnSig: {
       outStr(O_IO(out), "kFun(");
@@ -133,39 +128,22 @@ static char *dumpSig(char *sig, strBufferPo out) {
     case anySig:
       outStr(O_IO(out), "_");
       break;
-    case voidSig:
+    case voidSig: {
       outStr(O_IO(out), "voidType");
       break;
-    case thisSig:
-      outStr(O_IO(out), "thisType");
-      break;
-    case tpeSig:
-      switch (genMode) {
-        case genProlog:
-          outMsg(O_IO(out), "type(");
-          sig = dName(sig, out);
-          outMsg(O_IO(out), ")");
-          return sig;
-        case genStar:
-          outMsg(O_IO(out), "nomnal(");
-          sig = dName(sig, out);
-          outMsg(O_IO(out), ")");
-      }
-      break;
+    }
+
+    case tpeSig: {
+      outMsg(O_IO(out), "type(");
+      sig = dName(sig, out);
+      outMsg(O_IO(out), ")");
+      return sig;
+    }
 
     case refSig: {
-      switch (genMode) {
-        case genStar:
-          outStr(O_IO(out), "tpExp(tpFun(\"star.core*ref\",1),");
-          sig = dumpSig(sig, out);
-          outStr(O_IO(out), ")");
-          break;
-        case genProlog:
-          outMsg(O_IO(out), "refType(");
-          sig = dumpSig(sig, out);
-          outStr(O_IO(out), ")");
-          break;
-      }
+      outMsg(O_IO(out), "refType(");
+      sig = dumpPrologSig(sig, out);
+      outStr(O_IO(out), ")");
       return sig;
     }
     case tpfnSig: {
@@ -178,118 +156,250 @@ static char *dumpSig(char *sig, strBufferPo out) {
       outStr(O_IO(out), ")");
       break;
     }
-    case tpeExpSig:
+    case tpeExpSig: {
       outStr(O_IO(out), "tpExp(");
-      sig = dumpSig(sig, out);
+      sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ",");
-      sig = dumpSig(sig, out);
+      sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ")");
       break;
-    case tplSig:
-      switch (genMode) {
-        case genStar:
-          outStr(O_IO(out), "tupleType(");
-          sig = dSequence(sig, out);
-          outStr(O_IO(out), ")");
-          break;
-        case genProlog:
-          outStr(O_IO(out), "tplType(");
-          sig = dSequence(sig, out);
-          outStr(O_IO(out), ")");
-          break;
-      }
+    }
 
+    case tplSig: {
+      outStr(O_IO(out), "tplType(");
+      sig = dSequence(sig, dumpPrologSig, out);
+      outStr(O_IO(out), ")");
       break;
+    }
     case funSig:
-      switch (genMode) {
-        case genStar:
-          outStr(O_IO(out), "tpExp(tpExp(tpFun(\"=>\",2),");
-          sig = dumpSig(sig, out);
-          outStr(O_IO(out), "),");
-          sig = dumpSig(sig, out);
-          outStr(O_IO(out), ")");
-          break;
-        case genProlog:
-          outStr(O_IO(out), "funType(");
-          sig = dumpSig(sig, out);
-          outStr(O_IO(out), ",");
-          sig = dumpSig(sig, out);
-          outStr(O_IO(out), ")");
-      }
+      outStr(O_IO(out), "funType(");
+      sig = dumpPrologSig(sig, out);
+      outStr(O_IO(out), ",");
+      sig = dumpPrologSig(sig, out);
+      outStr(O_IO(out), ")");
       return sig;
     case conSig:
-      switch (genMode) {
-        case genProlog:
-          outStr(O_IO(out), "consType(");
-          sig = dTple(sig, out);
-          outStr(O_IO(out), ",");
-          sig = dumpSig(sig, out);
-          outStr(O_IO(out), ")");
-          return sig;
-        case genStar:
-          outStr(O_IO(out), "tpExp(tpExp(tpFun(\"<=>\",2),");
-          sig = dumpSig(sig, out);
-          outStr(O_IO(out), "),");
-          sig = dumpSig(sig, out);
-          outStr(O_IO(out), ")");
-          return sig;
-      }
+      outStr(O_IO(out), "consType(");
+      sig = dTple(sig, dumpPrologSig, out);
+      outStr(O_IO(out), ",");
+      sig = dumpPrologSig(sig, out);
+      outStr(O_IO(out), ")");
+      return sig;
     case throwsSig: {
-      switch (genMode) {
-        case genStar:
-          outStr(O_IO(out), "throwsType(");
-          sig = dumpSig(sig, out);
-          outStr(O_IO(out), "),");
-          sig = dumpSig(sig, out);
-          outStr(O_IO(out), ")");
-          break;
-        case genProlog:
-          outStr(O_IO(out), "throwsType(");
-          sig = dumpSig(sig, out);
-          outStr(O_IO(out), ",");
-          sig = dumpSig(sig, out);
-          outStr(O_IO(out), ")");
-      }
+      outStr(O_IO(out), "throwsType(");
+      sig = dumpPrologSig(sig, out);
+      outStr(O_IO(out), ",");
+      sig = dumpPrologSig(sig, out);
+      outStr(O_IO(out), ")");
       return sig;
     }
-    case faceSig:
+    case faceSig: {
       outStr(O_IO(out), "faceType(");
-      sig = dFields(sig, out);
+      sig = dFields(sig, dumpPrologSig, out);
       outStr(O_IO(out), ")");
       break;
-    case lstSig:
+    }
+    case lstSig: {
       outStr(O_IO(out), "tpExp(");
       outStr(O_IO(out), "tpFun(");
       dumpStr("star.core*cons", out);
       outStr(O_IO(out), ",1),");
-      sig = dumpSig(sig, out);
+      sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ")");
-      break;
-    case allSig:
+      return sig;
+    }
+
+    case allSig: {
       outStr(O_IO(out), "allType(");
-      sig = dumpSig(sig, out);
+      sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ",");
-      sig = dumpSig(sig, out);
+      sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ")");
-      break;
-    case xstSig:
+      return sig;
+    }
+
+    case xstSig: {
       outStr(O_IO(out), "existType(");
-      sig = dumpSig(sig, out);
+      sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ",");
-      sig = dumpSig(sig, out);
+      sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ")");
-      break;
-    case constrainedSig:
+      return sig;
+    }
+
+    case constrainedSig: {
       outStr(O_IO(out), "constrained(");
-      sig = dumpSig(sig, out);
+      sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ",");
-      sig = dumpSig(sig, out);
+      sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ")");
-      break;
+      return sig;
+    }
+
     default:
       fprintf(stderr, "illegal signature %s\n", sig);
       exit(99);
   }
+
+  return sig;
+}
+
+static char *dumpStarSig(char *sig, strBufferPo out) {
+  assert(sig != NULL && *sig != '\0');
+
+  switch (*sig++) {
+    case intSig:
+      dumpStdType("star.core*integer", out);
+      break;
+    case bigSig:
+      dumpStdType("star.core*bigint", out);
+      break;
+    case fltSig:
+      dumpStdType("star.core*float", out);
+      break;
+    case chrSig:
+      dumpStdType("star.core*char", out);
+      break;
+    case strSig:
+      dumpStdType("star.core*string", out);
+      break;
+    case logSig:
+      dumpStdType("star.core*boolean", out);
+      break;
+    case kvrSig: {
+      outStr(O_IO(out), ".nomnal(");
+      sig = dName(sig, out);
+      outStr(O_IO(out), ")");
+      return sig;
+    }
+    case kfnSig: {
+      outStr(O_IO(out), ".kFun(");
+      int ar;
+      sig = dInt(sig, &ar);
+      sig = dName(sig, out);
+      outStr(O_IO(out), ",");
+      outInt(O_IO(out), ar);
+      outStr(O_IO(out), ")");
+      return sig;
+    }
+    case anySig:
+      outStr(O_IO(out), "_");
+      break;
+    case voidSig: {
+      outStr(O_IO(out), ".voidType");
+      return sig;
+    }
+
+    case tpeSig: {
+      outMsg(O_IO(out), ".nomnal(");
+      sig = dName(sig, out);
+      outMsg(O_IO(out), ")");
+      return sig;
+    }
+
+    case refSig: {
+      outStr(O_IO(out), ".tpExp(.tpFun(\"star.core*ref\",1),");
+      sig = dumpStarSig(sig, out);
+      outStr(O_IO(out), ")");
+      return sig;
+    }
+    case tpfnSig: {
+      outStr(O_IO(out), ".tpFun(");
+      int ar;
+      sig = dInt(sig, &ar);
+      sig = dName(sig, out);
+      outStr(O_IO(out), ",");
+      outInt(O_IO(out), ar);
+      outStr(O_IO(out), ")");
+      return sig;
+    }
+    case tpeExpSig: {
+      outStr(O_IO(out), ".tpExp(");
+      sig = dumpStarSig(sig, out);
+      outStr(O_IO(out), ",");
+      sig = dumpStarSig(sig, out);
+      outStr(O_IO(out), ")");
+      return sig;
+    }
+
+    case tplSig: {
+      outStr(O_IO(out), ".tupleType(");
+      sig = dSequence(sig, dumpStarSig, out);
+      outStr(O_IO(out), ")");
+      return sig;
+    }
+    case funSig: {
+      outStr(O_IO(out), ".tpExp(.tpExp(.tpFun(\"=>\",2),");
+      sig = dumpStarSig(sig, out);
+      outStr(O_IO(out), "),");
+      sig = dumpStarSig(sig, out);
+      outStr(O_IO(out), ")");
+      return sig;
+    }
+    case conSig: {
+      outStr(O_IO(out), ".tpExp(.tpExp(.tpFun(\"<=>\",2),");
+      sig = dumpStarSig(sig, out);
+      outStr(O_IO(out), "),");
+      sig = dumpStarSig(sig, out);
+      outStr(O_IO(out), ")");
+      return sig;
+    }
+    case throwsSig: {
+      outStr(O_IO(out), ".throwsType(");
+      sig = dumpStarSig(sig, out);
+      outStr(O_IO(out), "),");
+      sig = dumpStarSig(sig, out);
+      outStr(O_IO(out), ")");
+      return sig;
+    }
+    case faceSig: {
+      outStr(O_IO(out), ".faceType(");
+      sig = dFields(sig, dumpStarSig, out);
+      outStr(O_IO(out), ")");
+      return sig;
+    }
+    case lstSig: {
+      outStr(O_IO(out), ".tpExp(");
+      outStr(O_IO(out), ".tpFun(");
+      dumpStr("star.core*cons", out);
+      outStr(O_IO(out), ",1),");
+      sig = dumpStarSig(sig, out);
+      outStr(O_IO(out), ")");
+      return sig;
+    }
+
+    case allSig: {
+      outStr(O_IO(out), ".allType(");
+      sig = dumpStarSig(sig, out);
+      outStr(O_IO(out), ",");
+      sig = dumpStarSig(sig, out);
+      outStr(O_IO(out), ")");
+      return sig;
+    }
+
+    case xstSig: {
+      outStr(O_IO(out), ".existType(");
+      sig = dumpStarSig(sig, out);
+      outStr(O_IO(out), ",");
+      sig = dumpStarSig(sig, out);
+      outStr(O_IO(out), ")");
+      return sig;
+    }
+
+    case constrainedSig: {
+      outStr(O_IO(out), ".constrained(");
+      sig = dumpStarSig(sig, out);
+      outStr(O_IO(out), ",");
+      sig = dumpStarSig(sig, out);
+      outStr(O_IO(out), ")");
+      return sig;
+    }
+
+    default:
+      fprintf(stderr, "illegal signature %s\n", sig);
+      exit(99);
+  }
+
   return sig;
 }
 
@@ -301,7 +411,7 @@ static void dumpStdType(char *name, strBufferPo out) {
       outMsg(O_IO(out), ")");
       return;
     case genStar:
-      outMsg(O_IO(out), "nomnal(");
+      outMsg(O_IO(out), ".nomnal(");
       dumpStr(name, out);
       outMsg(O_IO(out), ")");
   }
@@ -323,17 +433,17 @@ static char *dInt(char *sig, int *len) {
   return sig;
 }
 
-static char *dTple(char *sig, strBufferPo out) {
+static char *dTple(char *sig, sigDump dump, strBufferPo out) {
   assert(*sig == tplSig);
-  return dSequence(++sig, out);
+  return dSequence(++sig, dump, out);
 }
 
-static char *dSequence(char *sig, strBufferPo out) {
+static char *dSequence(char *sig, sigDump dump, strBufferPo out) {
   char *sep = "";
   outStr(O_IO(out), "[");
   while (*sig != '\0' && *sig != ')') {
     outStr(O_IO(out), sep);
-    sig = dumpSig(sig, out);
+    sig = dump(sig, out);
     sep = ",";
   }
   outStr(O_IO(out), "]");
@@ -341,7 +451,7 @@ static char *dSequence(char *sig, strBufferPo out) {
   return ++sig;
 }
 
-static char *dFields(char *sig, strBufferPo out) {
+static char *dFields(char *sig, sigDump dump, strBufferPo out) {
   int ar;
   sig = dInt(sig, &ar);
   char *sep = "";
@@ -351,7 +461,7 @@ static char *dFields(char *sig, strBufferPo out) {
     outStr(O_IO(out), "(");
     sig = dName(sig, out);
     outStr(O_IO(out), ",");
-    sig = dumpSig(sig, out);
+    sig = dump(sig, out);
     outStr(O_IO(out), ")");
     sep = ",";
   }
@@ -394,7 +504,7 @@ static void genStarEsc(FILE *out, strBufferPo buffer, char *name, char *sig, cha
   outStr(O_IO(buffer), "    ");
   dumpStr(name, buffer);
   outStr(O_IO(buffer), " => ? ");
-  dumpSig(sig, buffer);
+  dumpStarSig(sig, buffer);
   outStr(O_IO(buffer), ".\n");
 
   integer len;
@@ -474,7 +584,7 @@ static void genPrologEsc(FILE *out, strBufferPo buffer, char *name, char *sig, c
   outStr(O_IO(buffer), "escapeType(");
   dumpStr(name, buffer);
   outStr(O_IO(buffer), ",");
-  dumpSig(sig, buffer);
+  dumpPrologSig(sig, buffer);
   outStr(O_IO(buffer), ").\n");
 
   integer len;

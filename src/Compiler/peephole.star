@@ -20,13 +20,13 @@ star.compiler.peephole{
 
   public peepOptimize:(cons[assemOp])=>cons[assemOp].
   peepOptimize(Ins) => valof{
-    Map = splitSegments([.iLbl(al("")),..Ins],[]);
+    Map = splitSegments([.iLbl(.al("")),..Ins],[]);
     if traceCodegen! then
       logMsg(makeDotGraph("segs",Map));
     PMap = pullTgts(Map);
     if traceCodegen! then
       logMsg(makeDotGraph("psegs",PMap));
-    PC = sequentialize([al("")],PMap);
+    PC = sequentialize([.al("")],PMap);
     valis ^tail(PC)
   }
 
@@ -60,7 +60,7 @@ star.compiler.peephole{
   accessorPtn([.iUnpack(Lb,Fl),..Ins]) => valof{
     if (Dx,[.iStL(Off),..Ins1]) .= dropSeq(Ins,[]) &&
 	(_,[.iLdL(Off),.iRet,..Inz]) .= dropSeq(Ins1,[]) then{
-	  valis some([.iUnpack(Lb,Fl),..Dx++[.iRet,..Inz]])
+	  valis .some([.iUnpack(Lb,Fl),..Dx++[.iRet,..Inz]])
 	}
     else
     valis .none

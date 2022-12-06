@@ -43,14 +43,15 @@
 	      isIotaComprehension/4,
 	      isTestComprehension/3,mkTestComprehension/3,
 	      isCaseExp/4,caseExp/4,
-	      isSuspend/4,isSuspend/5,isResume/5,isRetire/3,isRetire/4,
-	      mkSuspend/4,mkSuspend/5,mkResume/5,mkRetire/3,mkRetire/4,
+	      isSuspend/4,isSuspend/5,isResume/5,isRetire/3,isRetire/4,isSpawn/4,
+	      mkSuspend/4,mkSuspend/5,mkResume/5,mkRetire/3,mkRetire/4,mkSpawn/4,
 	      isFiberTerm/3,mkFiberTerm/3,isFiber/3,mkFiber/3,
 	      isDoTerm/3,mkDoTerm/3,isDo/3,mkDo/3,
 	      isValof/3,mkValof/3,isValis/3,mkValis/3,
 	      isTryCatch/4,mkTryCatch/4,
-	      isThrow/3,mkThrow/3,isThrow/4,mkThrow/4,
+	      isThrow/3,mkThrow/3,
 	      isThrows/4,mkThrows/4,
+	      isDynamic/4,mkDynamic/4,
 	      isBreak/3,mkBreak/3,isLbldAction/4,mkLbldAction/4,
 	      isIfThenElse/5,isIfThen/4,mkIfThenElse/5,mkIfThen/4,
 	      isWhileDo/4,isForDo/4,isForDo/5,
@@ -297,6 +298,13 @@ surfaceName(T,Nm) :-
   isTuple(T,_,A),
   length(A,Ar),
   swritef(Nm,"()%d",[Ar]).
+
+isDynamic(A,Lc,Nm,Tp) :-
+  isBinary(A,Lc,"|=",L,Tp),
+  isIden(L,Nm).
+
+mkDynamic(Lc,Nm,Tp,D) :-
+  binary(Lc,"|=",name(Lc,Nm),Tp,D).
 
 isConstrainedTp(T,C,R) :-
   isConstrained(T,R,C),!.
@@ -818,14 +826,8 @@ mkValof(Lc,A,E) :-
 isThrow(A,Lc,E) :-
   isUnary(A,Lc,"throw",E).
 
-isThrow(A,Lc,C,E) :-
-  isBinary(A,Lc,"throw",C,E).
-
 mkThrow(Lc,A,E) :-
   unary(Lc,"throw",A,E).
-
-mkThrow(Lc,C,A,E) :-
-  binary(Lc,"throw",C,A,E).
 
 isThrows(A,Lc,E,T) :-
   isBinary(A,Lc,"throws",E,T).
@@ -923,6 +925,16 @@ mkSuspend(Lc,T,E,C,A) :-
   braceTuple(Lc,C,R),
   binary(Lc,"in",E,R,L),
   binary(Lc,"suspend",T,L,A).
+
+isSpawn(A,Lc,F,H) :-
+  isUnary(A,Lc,"spawn",T),
+  isBinary(T,_,"in",F,R),
+  isBraceTuple(R,_,H).
+
+mkSpawn(Lc,F,H,S) :-
+  braceTuple(Lc,H,R),
+  binary(Lc,"in",F,R,L),
+  unary(Lc,"spawn",L,S).
 
 isResume(A,Lc,T,E,C) :-
   isBinary(A,Lc,"resume",T,L),

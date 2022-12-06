@@ -344,6 +344,8 @@ star.compiler.macro{
     squareTerm(Lc,Op,Els//macroType).
   examineConstraint(A) where (Lc,L,R) ?= isTypeExists(A) =>
     mkTypeExists(Lc,macroType(L),macroType(R)).
+  examineConstraint(A) where (Lc,Nm,T) ?= isImplicit(A) =>
+    mkImplicit(Lc,Nm,macroType(T)).
 
   visibilityOf:(ast) => (ast,visibility).
   visibilityOf(A) => visib(A,.deFault).
@@ -386,12 +388,13 @@ star.compiler.macro{
   synthesizeMain(Lc,Tp,Defs) where (_,Lhs,Rhs) ?= isFunctionType(Tp) && (_,ElTps)?=isTuple(Lhs) => valof{
     (Action,As) = synthCoercion(Lc,ElTps,[]);
     
-    MLhs = roundTerm(Lc,nme(Lc,"_main"),[mkConsPtn(Lc,As)]);
+    MLhs = roundTerm(Lc,.nme(Lc,"_main"),[mkConsPtn(Lc,As)]);
 
 --    logMsg("main action $(Action)");
     Valof = mkValof(Lc,brTuple(Lc,[Action]));
     Main = equation(Lc,MLhs,Valof);
-    Annot = typeAnnotation(Lc,nme(Lc,"_main"),equation(Lc,rndTuple(Lc,[squareTerm(Lc,nme(Lc,"cons"),[nme(Lc,"string")])]),rndTuple(Lc,[])));
+    Annot = typeAnnotation(Lc,.nme(Lc,"_main"),equation(Lc,rndTuple(Lc,
+	  [squareTerm(Lc,.nme(Lc,"cons"),[.nme(Lc,"string")])]),rndTuple(Lc,[])));
     valis [unary(Lc,"public",Annot),Main,..Defs].
   }
 
@@ -409,12 +412,12 @@ star.compiler.macro{
     A = genName(Lc,"A");    
     PRhs = binary(Lc,":?",A,Tp);
     Tst = binary(Lc,"?=",X,PRhs); -- .some(X).=_coerce(A):T
-    Emsg = unary(Lc,"logMsg",str(Lc,"cannot coerce \$(#(A::string)) to #(Tp::string)"));
+    Emsg = unary(Lc,"logMsg",.str(Lc,"cannot coerce \$(#(A::string)) to #(Tp::string)"));
     (Inner,As) = synthCoercion(Lc,Ts,[X,..Xs]);
     valis (mkIfThenElse(Lc,Tst,Inner,Emsg),[A,..As])
   }
   synthCoercion(Lc,[],Xs) => 
-    (mkValis(Lc,roundTerm(Lc,nme(Lc,"main"),reverse(Xs))),[]).
+    (mkValis(Lc,roundTerm(Lc,.nme(Lc,"main"),reverse(Xs))),[]).
 
   mkConsPtn:(option[locn],cons[ast]) => ast.
   mkConsPtn(Lc,[]) => enum(Lc,"nil").

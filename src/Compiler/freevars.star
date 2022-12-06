@@ -176,8 +176,8 @@ star.compiler.freevars{
   exclDfs:(cons[canonDef],set[cId],set[cId])=>set[cId].
   exclDfs(Defs,Excl,Fv) => foldRight((D,Ex)=>exclDf(D,Ex,Fv),Excl,Defs).
 
-  exclDf(.varDef(Lc,Nm,Val,_,Tp),Excl,Fv) => Excl\+cId(Nm,Tp).
-  exclDf(.implDef(Lc,Nm,FullNm,Val,Cx,Tp),Excl,Fv) => Excl\+cId(Nm,Tp).
+  exclDf(.varDef(Lc,Nm,Val,_,Tp),Excl,Fv) => Excl\+.cId(Nm,Tp).
+  exclDf(.implDef(Lc,Nm,FullNm,Val,Cx,Tp),Excl,Fv) => Excl\+.cId(Nm,Tp).
   exclDf(_,Excl,_) => Excl.
 
   public condVars:(canon,set[cId]) => set[cId].
@@ -225,8 +225,9 @@ star.compiler.freevars{
   -- Variables that might be introduced in an action
   public actnVars:(canonAction,set[cId]) => set[cId].
   actnVars(Ac,Q) => case Ac in {
-    .doDefn(_,P,_) => ptnVars(P,[],Q).
-    .doMatch(_,P,_) => ptnVars(P,[],Q).
+    .doDefn(_,P,_) => ptnVars(P,Q,[]).
+    .doMatch(_,P,_) => ptnVars(P,Q,[]).
+    .doSeq(_,L,R) => actnVars(R,actnVars(L,Q)).
     _ default => Q.
   }
 }

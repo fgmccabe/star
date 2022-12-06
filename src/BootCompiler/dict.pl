@@ -1,6 +1,6 @@
 :- module(dict,[declareType/4,isType/3,
 		declareTypeVars/4,isTypeVar/3,
-		declareVr/6,declareField/6,declareMtd/5,
+		declareVr/6,declareField/6,declareMtd/5,declareDyn/6,
 		declareEnum/6,declareCns/6,
 		getVar/5,getVarTypeFace/4,varLoc/4,
 		currentVar/3,
@@ -10,7 +10,7 @@
 		declareFieldUpdater/6,getFieldUpdater/5,
 		getImplementation/4,
 		manageConstraints/4,
-		declareConstraint/4,declareConstraints/4,allConstraints/2,
+		declareConstraints/4,
 		pushScope/2,mergeDict/4,pushFace/4,makeKey/2,stdDict/1,
 		dispEnv/1
 	       ]).
@@ -61,6 +61,9 @@ declareField(Lc,Rc,Nm,Tp,Env,Ev) :-
 
 declareMtd(Lc,Nm,Tp,Env,Ev) :-
   declareVar(Nm,Lc,Tp,none,dict:mkMtd(Nm),Env,Ev).
+
+declareDyn(Lc,Nm,RlNm,Tp,Env,Ev) :-
+  declareVar(Nm,Lc,Tp,none,dict:mkVr(RlNm),Env,Ev).
 
 mkMtd(Nm,Lc,Tp,mtd(Lc,Nm,Tp)).
 
@@ -132,6 +135,8 @@ declareConstraint(Lc,C,E,Ev) :- C=conTract(_,_Args,_Deps),!,
   implementationName(C,ImpNm),
   contractType(C,CTp),
   declareVr(Lc,ImpNm,CTp,none,E,Ev).
+declareConstraint(Lc,implicit(Nm,Tp),E,Ev) :-
+  declareVr(Lc,Nm,Tp,none,E,Ev).
 declareConstraint(_,Con,[dict(Types,Nms,Cns,Impl,Accs,Ups,Cons)|Outer],
 		  [dict(Types,Nms,[Con|Cns],Impl,Accs,Ups,Cons)|Outer]).
 
@@ -139,11 +144,6 @@ declareConstraints(_,[],Env,Env).
 declareConstraints(Lc,[C|L],E,Ex) :-
   declareConstraint(Lc,C,E,E0),
   declareConstraints(Lc,L,E0,Ex).
-
-allConstraints([],[]).
-allConstraints([dict(_,_,Cns,_,_,_,_)|Env],All) :-
-  allConstraints(Env,Outer),
-  concat(Cns,Outer,All).
 
 declareImplementation(ImplNm,ImplVrNm,Tp,
 		      [dict(Types,Names,Cns,Impls,Accs,Ups,Contracts)|Outer],
@@ -360,4 +360,5 @@ dispEnv([D|Env],Cx) :-
   display(DD),
   C1 is Cx+1,
   dispEnv(Env,C1).
+
 

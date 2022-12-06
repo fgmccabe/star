@@ -84,7 +84,7 @@ star.compiler.normalize.meta{
 
   public pkgMap:(cons[decl]) => nameMap.
   pkgMap(Decls) =>
-    [.lyr(.none,foldRight((Dcl,D)=>declMdlGlobal(Dcl,D),{},Decls),makeConsMap(Decls))].
+    [.lyr(.none,foldRight((Dcl,D)=>declMdlGlobal(Dcl,D),[],Decls),makeConsMap(Decls))].
 
   public makeConsMap:(cons[decl]) => map[string,typeMapEntry].
   makeConsMap(Decls) => let{.
@@ -113,8 +113,8 @@ star.compiler.normalize.meta{
     collectMdlTypes([.tpeDec(Lc,Nm,Tp,_),..Ds],Cns,Map) where
 	TpNm .= tpName(Tp) &&
 	Entry ?= Cns[TpNm] =>
-      collectMdlTypes(Ds,Cns,(Map[Nm->moduleType(TpNm,Tp,Entry)])
-	[TpNm->moduleType(TpNm,Tp,Entry)]).
+      collectMdlTypes(Ds,Cns,(Map[Nm->.moduleType(TpNm,Tp,Entry)])
+	[TpNm->.moduleType(TpNm,Tp,Entry)]).
     collectMdlTypes([_D,..Ds],Cns,Map) => collectMdlTypes(Ds,Cns,Map).
   .} in collectMdlTypes(Decls,indexConstructors(collectConstructors(Decls,[])),[]).
 
@@ -122,17 +122,17 @@ star.compiler.normalize.meta{
   collectibleConsType(Tp) where
       (_,I) .= deQuant(Tp) && (A,R) ?= isConsType(I) &&
       ~ _ ?= fieldTypes(A) => -- Leave out record constructors
-    some(tpName(R)).
+    .some(tpName(R)).
   collectibleConsType(_) default => .none.
 
-  mkConsLbl(Nm,Tp) => tLbl(Nm,arity(Tp)).
+  mkConsLbl(Nm,Tp) => .tLbl(Nm,arity(Tp)).
 
   declMdlGlobal(.funDec(Lc,Nm,FullNm,Tp),Map) =>
-    Map[FullNm->moduleFun(.cTerm(Lc,closureNm(FullNm),[crTpl(Lc,[])],Tp),FullNm)].
+    Map[FullNm->.moduleFun(.cTerm(Lc,closureNm(FullNm),[crTpl(Lc,[])],Tp),FullNm)].
   declMdlGlobal(.varDec(Lc,Nm,FullNm,Tp),Map) =>
-    Map[FullNm->globalVar(FullNm,Tp)].
+    Map[FullNm->.globalVar(FullNm,Tp)].
   declMdlGlobal(.cnsDec(Lc,Nm,FullNm,Tp),Map) =>
-    Map[FullNm->moduleCons(FullNm,Tp)].
+    Map[FullNm->.moduleCons(FullNm,Tp)].
   declMdlGlobal(_,Map) => Map.
 
   public extendFunTp:all x ~~ hasType[x] |: (tipe,option[x])=>tipe.

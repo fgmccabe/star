@@ -196,6 +196,10 @@ examineType(T,Tx) :-
   macroType(I,Ix),
   reConstrain(Cx,Ix,Tx).
 examineType(T,Tx) :-
+  isDynamic(T,Lc,Nm,Tp),
+  macroType(Tp,TTp),
+  mkDynamic(Lc,Nm,TTp,Tx).
+examineType(T,Tx) :-
   isThrows(T,Lc,V,E),
   macroType(V,Vx),
   macroType(E,Ex),
@@ -706,8 +710,6 @@ macroKey(bigint(_,_),"$bigint").
 macroKey(float(_,_),"$float").
 macroKey(string(_,_),"$string").
 macroKey(char(_,_),"$char").
-macroKey(A,Ky) :- isTuple(A,_,[I]),!,
-  macroKey(I,Ky).
 macroKey(tuple(_,Op,_),Op).
 macroKey(app(_,Op,tuple(_,"()",_)),Ky) :-
   macroKey(Op,Ky).

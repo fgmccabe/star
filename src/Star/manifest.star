@@ -13,11 +13,11 @@ star.repo.manifest{
   public mInfo ::= .mInfo(version,map[string,string]).
 
   public implementation coercion[json,manifest] => {
-    _coerce(J) => some(fromJson(J)).
+    _coerce(J) => .some(fromJson(J)).
   }
 
   fromJson:(json) => manifest.
-  fromJson(.jColl(M)) => man(M///jsonEntry).
+  fromJson(.jColl(M)) => .man(M///jsonEntry).
 
   jsonEntry:(string,json) => pEntry.
   jsonEntry(P,.jColl(Vs)) => .pEntry(P,ixRight(pickEntry,[],Vs)).
@@ -39,7 +39,7 @@ star.repo.manifest{
   toJson(.man(Ps)) => .jColl(ixRight((K,.pEntry(P,Vs),M) => M[K->.jColl(mkVersions(Vs))],[],Ps)).
 
   implementation coercion[pEntry,json] => {
-    _coerce(.pEntry(P,Vs)) => some(.jColl([P->.jColl(mkVersions(Vs))]))
+    _coerce(.pEntry(P,Vs)) => .some(.jColl([P->.jColl(mkVersions(Vs))]))
   }
 
   public implementation display[manifest] => {
@@ -70,10 +70,10 @@ star.repo.manifest{
   public addToManifest:(manifest,pkg,string,string) => manifest.
   addToManifest(.man(M),.pkg(P,V),K,R) where
       .pEntry(Pk,Vs) ?= M[P] => .man(M[P->.pEntry(Pk,updateVersion(Vs,V,K,R))]).
-  addToManifest(.man(M),.pkg(P,V),K,R) => man(M[P->.pEntry(P,[(V,.mInfo(V,[K->R]))])]).
+  addToManifest(.man(M),.pkg(P,V),K,R) => .man(M[P->.pEntry(P,[(V,.mInfo(V,[K->R]))])]).
 
   updateVersion:(cons[(version,mInfo)],version,string,string) => cons[(version,mInfo)].
-  updateVersion([],V,K,R) => [(V,mInfo(V,[K->R]))].
+  updateVersion([],V,K,R) => [(V,.mInfo(V,[K->R]))].
   updateVersion([(V,.mInfo(V,Info)),..Vs],V,K,R) => [(V,.mInfo(V,Info[K->R])),..Vs].
   updateVersion([Vi,..Vs],V,K,R) => [Vi,..updateVersion(Vs,V,K,R)].
 }

@@ -74,11 +74,11 @@ star.compiler.freshen{
   freshQuants(T,B,Env) default => (T,B,Env).
 
   genSkolemFun(Nm,[]) => skolemFun(Nm,0).
-  genSkolemFun(Nm,Q) => foldLeft(((_,V),S)=>tpExp(S,V),skolemFun(Nm,size(Q)),Q).
+  genSkolemFun(Nm,Q) => foldLeft(((_,V),S)=>.tpExp(S,V),skolemFun(Nm,size(Q)),Q).
 
   skolemFun:(string,integer) => tipe.
-  skolemFun(Nm,0) => nomnal(genSym(Nm)).
-  skolemFun(Nm,Ar) => kFun(genSym(Nm),Ar).
+  skolemFun(Nm,0) => .nomnal(genSym(Nm)).
+  skolemFun(Nm,Ar) => .kFun(genSym(Nm),Ar).
 
   public evidence:(tipe,dict) => (cons[(string,tipe)],tipe).
   evidence(Tp,Env) where (T,Q,Ev).= skolemQuants(deRef(Tp),[],Env) =>
@@ -102,7 +102,7 @@ star.compiler.freshen{
   skolemQuants(T,B,Env) default => (T,B,Env).
 
   genTypeFun(Nm,[]) => newTypeVar(Nm).
-  genTypeFun(Nm,Q) => foldLeft(((_,V),S)=>tpExp(S,V),newTypeFun(Nm,size(Q)),Q).
+  genTypeFun(Nm,Q) => foldLeft(((_,V),S)=>.tpExp(S,V),newTypeFun(Nm,size(Q)),Q).
 
   frshn:(tipe,dict)=>tipe.
   frshn(.voidType,_) => .voidType.
@@ -138,4 +138,6 @@ star.compiler.freshen{
     .conTract(N,frshnList(T,Env),frshnList(D,Env)).
   frshnConstraint(.fieldConstraint(V,F,T),Env) =>
     .fieldConstraint(frshnD(V,Env),F,frshnD(T,Env)).
+  frshnConstraint(.implicit(N,T),Env) =>
+    .implicit(N,frshn(T,Env)).
 }

@@ -187,7 +187,7 @@ star.compiler.wff{
   public isAnnotation:(ast) => option[(option[locn],ast,ast)].
   isAnnotation(A) where (Lc,L,R) ?= isBinary(A,"@") =>
     .some((Lc,L,R)).
-  isAnnotation(A) where (Lc,Rh) ?= isUnary(A,"@") => .some((Lc,str(Lc,""),Rh)).
+  isAnnotation(A) where (Lc,Rh) ?= isUnary(A,"@") => .some((Lc,.str(Lc,""),Rh)).
   isAnnotation(_) default => .none.
 
   public isTypeLambda:(ast) => option[(option[locn],ast,ast)].
@@ -368,7 +368,7 @@ star.compiler.wff{
 
   public mkEnumCon(Lc,Op,Args) => unary(Lc,".",roundTerm(Lc,Op,Args)).
 
-  public mkCon(Lc,Op,Args) => unary(Lc,".",roundTerm(Lc,nme(Lc,Op),Args)).
+  public mkCon(Lc,Op,Args) => unary(Lc,".",roundTerm(Lc,.nme(Lc,Op),Args)).
 
   public isSearch(A) where (Lc,P,G) ?= isBinary(A,"in") &&
       ~ .app(_,.nme(_,"let"),Body) .= P => .some((Lc,P,G)).
@@ -400,15 +400,15 @@ star.compiler.wff{
 	.none).
   isImport(A) where (Lc,I) ?= isPrivate(A) =>
     (.pkgImp(_,_,Im) ?= isImport(I) ??
-	.some(pkgImp(Lc,.priVate,Im)) ||
+	.some(.pkgImp(Lc,.priVate,Im)) ||
 	.none).
-  isImport(A) where (Lc,I) ?= isUnary(A,"import") => .some(pkgImp(Lc,.priVate,pkgeName(I))).
+  isImport(A) where (Lc,I) ?= isUnary(A,"import") => .some(.pkgImp(Lc,.priVate,pkgeName(I))).
   isImport(_) default => .none.
 
   public pkgeName:(ast) => pkg.
   pkgeName(A) where (_,L,R) ?= isBinary(A,"#") => 
-    pkg(dottedName(L),vers(dottedName(R))).
-  pkgeName(A) => pkg(dottedName(A),.defltVersion).
+    .pkg(dottedName(L),.vers(dottedName(R))).
+  pkgeName(A) => .pkg(dottedName(A),.defltVersion).
 
   dottedName:(ast) => string.
   dottedName(N) where (_,Id) ?= isName(N) => Id.
@@ -542,6 +542,11 @@ star.compiler.wff{
   public mkImplementationStmt:(option[locn],cons[ast],cons[ast],ast,ast) => ast.
   mkImplementationStmt(Lc,Q,Cx,T,E) =>
     unary(Lc,"implementation",reUQuant(Lc,Q,reConstrain(Cx,binary(Lc,"=>",T,E)))).
+
+  public isImplicit(A) where (Lc,L,R) ?= isBinary(A,"|=") && (_,Id)?=isName(L) => ?(Lc,Id,R).
+  isImplicit(A) default => .none.
+
+  public mkImplicit(Lc,N,T) => binary(Lc,"|=",.nme(Lc,N),T).
 
   public isAccessorStmt:(ast) => option[(option[locn],cons[ast],cons[ast],ast,ast)].
   isAccessorStmt(A) where
@@ -860,7 +865,6 @@ star.compiler.wff{
   isLabeledRecord(A) where
       (Lc,Op,Els) ?= isBrTerm(A) &&
       ~_?=isKeyword(Op) => .some((Lc,Op,Els)).
-  isLabeledRecord(_) default => .none.
   isLabeledRecord(_) default => .none.
 
   public mkLabeledRecord(Lc,Lb,Els) => mkBrTerm(Lc,Lb,Els).

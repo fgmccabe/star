@@ -286,6 +286,10 @@
 @tab right associative infix
 @tab 400
 @tab meta annotation
+@item @code{|=}
+@tab non-associative infix
+@tab 1225
+@tab implicit variable
 @item @code{in}
 @tab right associative infix
 @tab 900
@@ -584,34 +588,35 @@
   @item @code{>}
   @tab @code{?}
   @tab @code{@@}
+  @tab @code{|=}
   @tab @code{~~}
-  @tab @code{⊕}
-  @item @code{.^.}
+  @item @code{⊕}
+  @tab @code{.^.}
   @tab @code{//}
   @tab @code{.~.}
   @tab @code{=<}
-  @tab @code{==}
-  @item @code{\\}
+  @item @code{==}
+  @tab @code{\\}
   @tab @code{=>}
   @tab @code{^}
   @tab @code{<=>}
-  @tab @code{•}
-  @item @code{.&.}
+  @item @code{•}
+  @tab @code{.&.}
   @tab @code{///}
   @tab @code{::}
   @tab @code{+++}
-  @tab @code{:=}
-  @item @code{:?}
+  @item @code{:=}
+  @tab @code{:?}
   @tab @code{.<<.}
   @tab @code{>>=}
   @tab @code{^/}
-  @tab @code{<~}
-  @item @code{|}
+  @item @code{<~}
+  @tab @code{|}
   @tab @code{.#.}
   @tab @code{~}
   @tab @code{^//}
-  @tab @code{||}
-  @item @code{::=}
+  @item @code{||}
+  @tab @code{::=}
   @tab @code{/\\}
   @tab @code{>=}
   @tab @code{>>}

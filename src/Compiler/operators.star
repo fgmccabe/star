@@ -38,116 +38,117 @@ star.compiler.operators{
 
   oper:(string)=>cons[operator].
   oper(Op) => case Op in {
-    "retire" => [prefixOp(901,900), infixOp(900,901,900)].
-    "all" => [prefixOp(1010,1009)].
-    ".<." => [infixOp(699,700,699)].
-    "&&" => [infixOp(909,910,910)].
-    "^?" => [infixOp(800,800,799)].
-    "~=" => [infixOp(899,900,899)].
-    "~>" => [infixOp(1230,1231,1230)].
-    "throw" => [prefixOp(930,929)].
-    ".|." => [infixOp(720,720,719)].
-    "do" => [prefixOp(200,199), infixOp(1199,1200,1199)].
-    "import" => [prefixOp(900,899)].
-    "catch" => [infixOp(1198,1199,1198)].
-    "valis" => [prefixOp(930,929)].
-    ",.." => [infixOp(999,1000,999)].
-    "for" => [prefixOp(1175,1174)].
-    "••" => [infixOp(450,450,449)].
-    "**" => [infixOp(600,600,599)].
-    "->" => [infixOp(889,890,889)].
-    ".+." => [prefixOp(700,699)].
-    "<$" => [infixOp(719,720,720)].
-    "then" => [infixOp(1179,1180,1179)].
-    "!" => [postfixOp(99,100), infixOp(99,100,99)].
-    "->>" => [infixOp(1199,1200,1199)].
-    "?=" => [infixOp(899,900,899)].
-    "default" => [postfixOp(939,940)].
-    "#" => [prefixOp(1750,1749), infixOp(759,760,759)].
-    "??" => [infixOp(919,920,920)].
-    "%" => [infixOp(700,700,699)].
-    "<-" => [infixOp(904,905,904)].
-    ".>>>." => [infixOp(600,600,599)].
-    "\\+" => [infixOp(700,700,699)].
-    "<<-" => [infixOp(974,975,974)].
-    "*" => [postfixOp(699,700), infixOp(700,700,699)].
-    "\\-" => [infixOp(700,700,699)].
-    "+" => [postfixOp(699,700), infixOp(720,720,719)].
-    ".>>." => [infixOp(600,600,599)].
-    "resume" => [prefixOp(901,900), infixOp(900,901,900)].
-    "*>" => [infixOp(904,905,904)].
-    "," => [infixOp(999,1000,1000)].
-    "contract" => [prefixOp(1560,1559)].
-    "\\/" => [infixOp(720,720,719)].
-    "-" => [prefixOp(300,299), infixOp(720,720,719)].
-    "." => [prefixOp(10,9), infixOp(100,100,99)].
-    "/" => [infixOp(700,700,699)].
-    "<*>" => [infixOp(949,950,950)].
-    "try" => [prefixOp(1200,1199)].
-    "exists" => [prefixOp(1010,1009)].
-    "if" => [prefixOp(1175,1174)].
-    ":" => [infixOp(1249,1250,1249)].
-    ";" => [postfixOp(1250,1251), infixOp(1250,1251,1251)].
-    "<" => [infixOp(899,900,899)].
-    ".=" => [infixOp(899,900,899)].
-    "=" => [infixOp(974,975,974)].
-    "|:" => [infixOp(1234,1235,1234)].
-    "show" => [prefixOp(1240,1239)].
-    "++" => [infixOp(719,720,720)].
-    ">" => [infixOp(899,900,899)].
-    "return" => [prefixOp(930,929)].
-    "?" => [prefixOp(820,819)].
-    "@" => [prefixOp(400,399), infixOp(399,400,400)].
-    "in" => [infixOp(899,900,900)].
-    "break" => [prefixOp(10,9)].
-    "suspend" => [prefixOp(901,900), infixOp(900,901,900)].
-    "open" => [prefixOp(900,899)].
-    "trace" => [prefixOp(140,139)].
-    "~~" => [infixOp(1239,1240,1240)].
-    "assert" => [prefixOp(1240,1239)].
-    "⊕" => [infixOp(720,720,719)].
-    ".^." => [infixOp(720,720,719)].
-    "//" => [infixOp(960,960,959)].
-    "public" => [prefixOp(1700,1699)].
-    "ref" => [prefixOp(899,898)].
-    ".~." => [prefixOp(650,649)].
-    "where" => [infixOp(910,911,910)].
-    "=<" => [infixOp(899,900,899)].
-    "case" => [prefixOp(901,900)].
-    "==" => [infixOp(899,900,899)].
-    "\\" => [infixOp(700,700,699)].
-    "=>" => [infixOp(949,950,950)].
-    "^" => [prefixOp(100,99), infixOp(99,100,99)].
-    "<=>" => [infixOp(949,950,949)].
-    "generator" => [prefixOp(300,299)].
-    "valof" => [prefixOp(300,299)].
-    "yield" => [prefixOp(300,299)].
-    "while" => [prefixOp(1175,1174)].
-    "private" => [prefixOp(1510,1509)].
-    "•" => [infixOp(450,450,449)].
-    ".&." => [infixOp(700,700,699)].
-    "///" => [infixOp(960,960,959)].
-    "::" => [infixOp(399,400,399)].
-    "+++" => [infixOp(719,720,720)].
-    ":=" => [infixOp(974,975,974)].
-    ":?" => [infixOp(399,400,399)].
-    ".<<." => [infixOp(600,600,599)].
-    ">>=" => [infixOp(949,950,950)].
-    "^/" => [infixOp(960,960,959)].
-    "<~" => [infixOp(1230,1231,1230)].
-    "type" => [prefixOp(1251,1250)].
-    "implementation" => [prefixOp(1260,1259)].
-    "|" => [infixOp(1548,1548,1547)].
-    ".#." => [infixOp(600,600,599)].
-    "~" => [prefixOp(905,904)].
-    "^//" => [infixOp(800,800,799)].
-    "||" => [infixOp(919,920,920)].
-    "else" => [infixOp(1199,1200,1200)].
-    "::=" => [infixOp(1549,1550,1549)].
-    "/\\" => [infixOp(700,700,699)].
-    ">=" => [infixOp(899,900,899)].
-    "throws" => [infixOp(999,1000,999)].
-    ">>" => [infixOp(949,950,950)].
+    "retire" => [.prefixOp(901,900), .infixOp(900,901,900)].
+    "all" => [.prefixOp(1010,1009)].
+    ".<." => [.infixOp(699,700,699)].
+    "&&" => [.infixOp(909,910,910)].
+    "^?" => [.infixOp(800,800,799)].
+    "~=" => [.infixOp(899,900,899)].
+    "~>" => [.infixOp(1230,1231,1230)].
+    "throw" => [.prefixOp(930,929)].
+    ".|." => [.infixOp(720,720,719)].
+    "do" => [.prefixOp(200,199), .infixOp(1199,1200,1199)].
+    "import" => [.prefixOp(900,899)].
+    "catch" => [.infixOp(1198,1199,1198)].
+    "valis" => [.prefixOp(930,929)].
+    ",.." => [.infixOp(999,1000,999)].
+    "for" => [.prefixOp(1175,1174)].
+    "••" => [.infixOp(450,450,449)].
+    "**" => [.infixOp(600,600,599)].
+    "->" => [.infixOp(889,890,889)].
+    ".+." => [.prefixOp(700,699)].
+    "<$" => [.infixOp(719,720,720)].
+    "then" => [.infixOp(1179,1180,1179)].
+    "!" => [.postfixOp(99,100), .infixOp(99,100,99)].
+    "->>" => [.infixOp(1199,1200,1199)].
+    "?=" => [.infixOp(899,900,899)].
+    "default" => [.postfixOp(939,940)].
+    "#" => [.prefixOp(1750,1749), .infixOp(759,760,759)].
+    "??" => [.infixOp(919,920,920)].
+    "%" => [.infixOp(700,700,699)].
+    "<-" => [.infixOp(904,905,904)].
+    ".>>>." => [.infixOp(600,600,599)].
+    "\\+" => [.infixOp(700,700,699)].
+    "<<-" => [.infixOp(974,975,974)].
+    "*" => [.postfixOp(699,700), .infixOp(700,700,699)].
+    "\\-" => [.infixOp(700,700,699)].
+    "+" => [.postfixOp(699,700), .infixOp(720,720,719)].
+    ".>>." => [.infixOp(600,600,599)].
+    "resume" => [.prefixOp(901,900), .infixOp(900,901,900)].
+    "*>" => [.infixOp(904,905,904)].
+    "," => [.infixOp(999,1000,1000)].
+    "contract" => [.prefixOp(1560,1559)].
+    "\\/" => [.infixOp(720,720,719)].
+    "-" => [.prefixOp(300,299), .infixOp(720,720,719)].
+    "." => [.prefixOp(10,9), .infixOp(100,100,99)].
+    "/" => [.infixOp(700,700,699)].
+    "<*>" => [.infixOp(949,950,950)].
+    "try" => [.prefixOp(1200,1199)].
+    "exists" => [.prefixOp(1010,1009)].
+    "if" => [.prefixOp(1175,1174)].
+    ":" => [.infixOp(1249,1250,1249)].
+    ";" => [.postfixOp(1250,1251), .infixOp(1250,1251,1251)].
+    "<" => [.infixOp(899,900,899)].
+    ".=" => [.infixOp(899,900,899)].
+    "=" => [.infixOp(974,975,974)].
+    "|:" => [.infixOp(1234,1235,1234)].
+    "show" => [.prefixOp(1240,1239)].
+    "++" => [.infixOp(719,720,720)].
+    ">" => [.infixOp(899,900,899)].
+    "return" => [.prefixOp(930,929)].
+    "?" => [.prefixOp(820,819)].
+    "@" => [.prefixOp(400,399), .infixOp(399,400,400)].
+    "|=" => [.infixOp(1224,1225,1224)].
+    "in" => [.infixOp(899,900,900)].
+    "break" => [.prefixOp(10,9)].
+    "suspend" => [.prefixOp(901,900), .infixOp(900,901,900)].
+    "open" => [.prefixOp(900,899)].
+    "trace" => [.prefixOp(140,139)].
+    "~~" => [.infixOp(1239,1240,1240)].
+    "assert" => [.prefixOp(1240,1239)].
+    "⊕" => [.infixOp(720,720,719)].
+    ".^." => [.infixOp(720,720,719)].
+    "//" => [.infixOp(960,960,959)].
+    "public" => [.prefixOp(1700,1699)].
+    "ref" => [.prefixOp(899,898)].
+    ".~." => [.prefixOp(650,649)].
+    "where" => [.infixOp(910,911,910)].
+    "=<" => [.infixOp(899,900,899)].
+    "case" => [.prefixOp(901,900)].
+    "==" => [.infixOp(899,900,899)].
+    "\\" => [.infixOp(700,700,699)].
+    "=>" => [.infixOp(949,950,950)].
+    "^" => [.prefixOp(100,99), .infixOp(99,100,99)].
+    "<=>" => [.infixOp(949,950,949)].
+    "generator" => [.prefixOp(300,299)].
+    "valof" => [.prefixOp(300,299)].
+    "yield" => [.prefixOp(300,299)].
+    "while" => [.prefixOp(1175,1174)].
+    "private" => [.prefixOp(1510,1509)].
+    "•" => [.infixOp(450,450,449)].
+    ".&." => [.infixOp(700,700,699)].
+    "///" => [.infixOp(960,960,959)].
+    "::" => [.infixOp(399,400,399)].
+    "+++" => [.infixOp(719,720,720)].
+    ":=" => [.infixOp(974,975,974)].
+    ":?" => [.infixOp(399,400,399)].
+    ".<<." => [.infixOp(600,600,599)].
+    ">>=" => [.infixOp(949,950,950)].
+    "^/" => [.infixOp(960,960,959)].
+    "<~" => [.infixOp(1230,1231,1230)].
+    "type" => [.prefixOp(1251,1250)].
+    "implementation" => [.prefixOp(1260,1259)].
+    "|" => [.infixOp(1548,1548,1547)].
+    ".#." => [.infixOp(600,600,599)].
+    "~" => [.prefixOp(905,904)].
+    "^//" => [.infixOp(800,800,799)].
+    "||" => [.infixOp(919,920,920)].
+    "else" => [.infixOp(1199,1200,1200)].
+    "::=" => [.infixOp(1549,1550,1549)].
+    "/\\" => [.infixOp(700,700,699)].
+    ">=" => [.infixOp(899,900,899)].
+    "throws" => [.infixOp(999,1000,999)].
+    ">>" => [.infixOp(949,950,950)].
     _ default => [].
   }
 
@@ -264,6 +265,7 @@ star.compiler.operators{
     ("|",`]`) => ?"|]".
     ("|",`:`) => ?"|:".
     ("|",`|`) => ?"||".
+    ("|",`=`) => ?"|=".
     ("|",`>`) => ?"|>".
     ("~",`~`) => ?"~~".
     ("~",`=`) => ?"~=".
@@ -346,6 +348,7 @@ star.compiler.operators{
     "|]" => .true.  /* measure brackets */
     "|:" => .true.  /* constrained type */
     "||" => .true.  /* disjunction */
+    "|=" => .true.  /* implicit variable */
     "|>" => .true.  /* meta quote */
     "}" => .true.  /* non-recursive braces */
     "~" => .true.  /* logical negation */
@@ -442,6 +445,7 @@ star.compiler.operators{
     "|:" => .true.
     "?" => .true.
     "@" => .true.
+    "|=" => .true.
     "|>" => .true.
     "in" => .true.
     "break" => .true.

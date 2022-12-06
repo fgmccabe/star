@@ -80,6 +80,8 @@ star.compiler.unify{
       N1==N2 && smTypes(T1,T2,Env) && smTypes(D1,D2,Env).
     sameConstraint(.fieldConstraint(V1,F1,T1),.fieldConstraint(V2,F2,T2),Env) =>
       same(V1,V2,Env) && F1==F2 && same(T1,T2,Env).
+    sameConstraint(.implicit(N1,T1),.implicit(N2,T2),Env) =>
+      N1==N2 && same(T1,T2,Env).
 
     varBinding(T1,T2,_) where isIdenticalVar(T1,T2) => .true.
     varBinding(T1,T2,Env) where ~ occursIn(T1,T2) => 
@@ -96,7 +98,7 @@ star.compiler.unify{
   .} in (sm(deRef(Tp1),deRef(Tp2),Envir) ?? .true || resetBindings()).
 
   public faceOfType:(tipe,dict) => option[tipe].
-  faceOfType(T,_) where .faceType(_,_).=deRef(T) => some(T).
+  faceOfType(T,_) where .faceType(_,_).=deRef(T) => .some(T).
   faceOfType(T,Env) => valof{
     if (_,_,Rl,_) ?= findType(Env,localName(tpName(T),.typeMark)) then{
       (_,FRl) = freshen(Rl,Env);
@@ -111,7 +113,7 @@ star.compiler.unify{
     }
   }.
   
-  fcTp(.faceType(Flds,Tps)) => some(.faceType(Flds,Tps)).
+  fcTp(.faceType(Flds,Tps)) => .some(.faceType(Flds,Tps)).
   fcTp(_) default => .none.
 
   occursIn(TV,Tp) where ~isIdenticalVar(TV,Tp) =>
@@ -157,4 +159,5 @@ star.compiler.unify{
     .conTract(N,rewriteTps(T,Env),rewriteTps(D,Env)).
   rewriteCon(.fieldConstraint(V,F,T),Env) =>
     .fieldConstraint(rewriteType(V,Env),F,rewriteType(T,Env)).
+  rewriteCon(.implicit(N,T),Env) => .implicit(N,rewriteType(T,Env)).
 }

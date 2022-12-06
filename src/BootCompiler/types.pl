@@ -258,6 +258,8 @@ ssConstraint(ShCon,Dp,conTract(Nm,Els,Deps),
 ssConstraint(ShCon,Dp,implementsFace(Tp,Face),sq([TT,ss("<~"),FF])) :-
   ssType(Tp,ShCon,Dp,TT),
   ssType(Face,ShCon,Dp,FF).
+ssConstraint(ShCon,Dp,implicit(Nm,Tp),sq([ss("("),ss(Nm),ss(" : "),TT,ss(")")])) :-
+  ssType(Tp,ShCon,Dp,TT).
 
 ssVarConstraints(C,_,[]) :- var(C),!.
 ssVarConstraints([C1|Cx],Dp,[CC,ss(",")|Cs]) :-

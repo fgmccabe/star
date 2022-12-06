@@ -34,7 +34,7 @@ star.compiler.assem{
   public assem:(codeSegment) => data.
   assem(Df) => case Df in {
     .func(Nm,H,Sig,Lx,Ins) => valof{
-      (Lt0,_) = findLit([],symb(Nm));
+      (Lt0,_) = findLit([],.symb(Nm));
       (_,Lbls) = genLblTbl(Ins,0,[]);
       (Code,Lts,Lns,Lcs,_,_Max) = assemBlock(Ins,Lbls,Lt0,[],[],0,0,[]);
       valis mkCons("func",
@@ -42,7 +42,7 @@ star.compiler.assem{
               mkTpl(sortLines(Lns))])
     }.
     .global(Nm,Sig,Lx,Ins) => valof{
-      (Lt0,_) = findLit([],symb(Nm));
+      (Lt0,_) = findLit([],.symb(Nm));
       (_,Lbls) = genLblTbl(Ins,0,[]);
       (Code,Lts,Lns,Lcs,_,_Max) = assemBlock(Ins,Lbls,Lt0,[],[],0,0,[]);
       valis mkCons("global",
@@ -50,7 +50,7 @@ star.compiler.assem{
               mkTpl(sortLines(Lns))])
     }.
     .struct(Lbl,Tp,Ix) =>
-      mkCons("struct",[.symb(Lbl),strg(encodeSignature(Tp)),intgr(Ix)]).
+      mkCons("struct",[.symb(Lbl),.strg(encodeSignature(Tp)),.intgr(Ix)]).
     .tipe(Tp,TpRl,Map) =>
       mkCons("type",[.strg(tpName(Tp)),.strg(encodeTpRlSignature(TpRl)),encodeMap(Map)]).
   }.
@@ -58,7 +58,7 @@ star.compiler.assem{
   encodeMap(Entries) => mkTpl(Entries//((Lbl,_,Ix))=>mkTpl([.symb(Lbl),.intgr(Ix)])).
 
   encPolicy(.hardDefinition) => mkTpl([]).
-  encPolicy(.softDefinition) => mkTpl([strg("soft")]).
+  encPolicy(.softDefinition) => mkTpl([.strg("soft")]).
 
   private assemBlock:(cons[assemOp],map[string,integer],map[data,integer],map[data,integer],
                       set[data],integer,integer,cons[integer]) =>
@@ -73,9 +73,9 @@ star.compiler.assem{
   mnem([.iLocal(Nm,.al(Frm),.al(End),Off),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where
     F ?= Lbls[Frm] &&
     T ?= Lbls[End] =>
-    mnem(Ins,Code,Lbls,Lts,Lns,Lcs\+mkTpl([strg(Nm),intgr(F),intgr(T),intgr(Off)]),Pc,MxLcl,Ends).
+    mnem(Ins,Code,Lbls,Lts,Lns,Lcs\+mkTpl([.strg(Nm),.intgr(F),.intgr(T),.intgr(Off)]),Pc,MxLcl,Ends).
   mnem([.iLine(Lc),..Ins],Code,Lbs,Lts,Lns,Lcs,Pc,MxLcl,Ends) =>
-        mnem(Ins,Code,Lbs,Lts,Lns[mkTpl([Lc,intgr(Pc)])->Pc],Lcs,Pc,MxLcl,Ends).
+        mnem(Ins,Code,Lbs,Lts,Lns[mkTpl([Lc,.intgr(Pc)])->Pc],Lcs,Pc,MxLcl,Ends).
 #(Mnem)
   mnem([I,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => valof{
     reportTrap("Cannot assemble instruction $(I)");
