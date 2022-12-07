@@ -41,7 +41,8 @@ star.compiler{
 	    graphOption,
 	    traceDependencyOption,
 	    traceAstOption,
-	    macroTracingOption,
+	    showMacroOption,
+	    traceMacroOption,
 	    checkOnlyOption,
 	    showCheckOption,
 	    traceCheckOption,
@@ -99,7 +100,7 @@ star.compiler{
 	logMsg("Ast of $(P) is $(Ast)")
       };
       M = macroPkg(Ast);
-      if macroTracing! then{
+      if showMacrod! then{
 	logMsg("Macroed package $(M)")
       };
 

@@ -169,6 +169,7 @@ star.compiler.meta{
   public traceAst = ref .false.
   public traceDependencies = ref .false.
   public macroTracing = ref .false.
+  public showMacrod = ref .false.
   public macroOnly = ref .false.
   public showCanon = ref .false.
   public traceCanon = ref .false.
@@ -219,14 +220,26 @@ star.compiler.meta{
     }
   }
 
-  public macroTracingOption:cmdOption[compilerOptions].
-  macroTracingOption = cmdOption{
+  public traceMacroOption:cmdOption[compilerOptions].
+  traceMacroOption = cmdOption{
+    shortForm = "-tm".
+    alternatives = [].
+    usage = "-tm -- trace macro".
+    validator = .none.
+    setOption(_,Opts) => valof{
+      macroTracing := .true;
+      valis Opts
+    }
+  }
+
+  public showMacroOption:cmdOption[compilerOptions].
+  showMacroOption = cmdOption{
     shortForm = "-dm".
     alternatives = [].
     usage = "-dm -- show macro".
     validator = .none.
     setOption(_,Opts) => valof{
-      macroTracing := .true;
+      showMacrod := .true;
       valis Opts
     }
   }

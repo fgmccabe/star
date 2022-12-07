@@ -42,6 +42,8 @@ test.rl{
 
     show SS^/((Nm)=>size(Nm)<5);
 
+    show SS^/((Nm) => _?=isEven(Nm));
+
     assert rev(rev(SS))==SS;
 
     XX = ref SS;
@@ -56,6 +58,11 @@ test.rl{
   }
 
   SS = ["zero",..T].
+
+  isEven:(string) => option[integer].
+  isEven("two") => ?2.
+  isEven("four") => ?4.
+  isEven(_) default => .none.
 
   rev:all e ~~ (sk[e])=>sk[e].
   rev(Tt) => foldLeft((E,So)=>[E,..So],[],Tt).

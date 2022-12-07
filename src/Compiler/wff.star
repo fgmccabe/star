@@ -625,13 +625,13 @@ star.compiler.wff{
   splitHead(A,N,C,_) where (_,I) ?= isDefault(A) => splitHead(I,N,C,.true).
   splitHead(A,_,C,D) where (Lc,Nm,As) ?= isRoundTerm(A) => .some((.some(Nm),rndTuple(Lc,As),C,D)).
   splitHead(A,N,C,D) where (Lc,[E]) ?= isTuple(A) => splitHead(E,N,C,D).
-  splitHead(A,N,_,D) where (Lc,L,C) ?= isWhere(A) => splitHead(L,N,.some(C),D).
+  splitHead(A,N,C1,D) where (Lc,L,C2) ?= isWhere(A) => splitHead(L,N,mergeCond(.some(C2),C1),D).
   splitHead(A,N,C,D) => .some((N,A,C,D)).
 
   splitHd:(ast,option[ast],option[ast],boolean) => option[(option[ast],ast,option[ast],boolean)].
   splitHd(A,N,C,_) where (_,I) ?= isDefault(A) => splitHd(I,N,C,.true).
   splitHd(A,_,C,D) where (Lc,Nm,As) ?= isRoundTerm(A) => .some((.some(Nm),rndTuple(Lc,As),C,D)).
-  splitHd(A,N,_,D) where (Lc,L,C) ?= isWhere(A) => splitHd(L,N,.some(C),D).
+  splitHd(A,N,C1,D) where (Lc,L,C2) ?= isWhere(A) => splitHd(L,N,mergeCond(?C2,C1),D).
   splitHd(A,N,C,D) => .some((N,A,C,D)).
 
   public isLambda:(ast) => option[(option[locn],boolean,ast,option[ast],ast)].
@@ -641,8 +641,12 @@ star.compiler.wff{
 
   splitLHead:(ast,option[ast],boolean) => option[(ast,option[ast],boolean)].
   splitLHead(A,C,_) where (_,I) ?= isDefault(A) => splitLHead(I,C,.true).
-  splitLHead(A,_,D) where (Lc,L,C) ?= isWhere(A) => splitLHead(L,.some(C),D).
+  splitLHead(A,C1,D) where (Lc,L,C2) ?= isWhere(A) => splitLHead(L,mergeCond(.some(C2),C1),D).
   splitLHead(A,C,D) => .some((A,C,D)).
+
+  mergeCond(.none,G) => G.
+  mergeCond(G,.none) => G.
+  mergeCond(.some(L),.some(R)) => .some(mkConjunct(locOf(L),L,R)).
 
   public mkLambda:(option[locn],boolean,ast,option[ast],ast) => ast.
   mkLambda(Lc,Deflt,Arg,Cond,Rep) =>
