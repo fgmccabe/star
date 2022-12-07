@@ -690,6 +690,7 @@ star.compiler.macro.rules{
       valis [mkAccessorStmt(Lc,Q,XQ,Cx,AccessHead,
 	  equation(Lc,rndTuple(Lc,[Gv]),mkCaseExp(Lc,Gv,AcEqs)))]
     }.
+  makeAccessor(_,_,_,_,_,_,_,_) default => [].
 
   accessorEqns:(ast,ast,ast,cons[ast])=>cons[ast].
   accessorEqns(Cns,Fld,Tp,SoFar) where (Lc,L,R)?=isBinary(Cns,"|") =>
@@ -730,6 +731,7 @@ star.compiler.macro.rules{
     valis [mkUpdaterStmt(Lc,Q,XQ,Cx,AccessHead,
 	equation(Lc,rndTuple(Lc,[Gv,.nme(Lc,"XX")]),mkCaseExp(Lc,Gv,UpEqs)))]
   }
+  makeUpdater(_,_,_,_,_,_,_,_) default => [].
 
   updaterEqns:(ast,ast,cons[ast])=>cons[ast].
   updaterEqns(Cns,Fld,SoFar) where (Lc,L,R)?=isBinary(Cns,"|") =>
