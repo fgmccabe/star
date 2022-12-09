@@ -33,7 +33,6 @@ star.compiler.checker{
       if compatiblePkg(Pkg,Pkge) then{
 	(Imports,Stmts) = collectImports(Els,[],[]);
 	(AllImports,IDecls) = importAll(Imports,Repo,[],[]);
---	logMsg("All imported decls $(IDecls)");
 
 	PkgEnv = declareDecls(IDecls,Base);
 	PkgPth = packageName(Pkg);

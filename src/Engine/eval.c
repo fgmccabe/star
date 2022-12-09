@@ -118,18 +118,17 @@ retCode run(processPo P) {
       }
 
       case Call: {
-        termPo nProg = nthElem(LITS, collectI32(PC));
-        methodPo mtd = labelCode(C_LBL(nProg));   // Which program do we want?
+        labelPo nProg = C_LBL(nthElem(LITS, collectI32(PC)));
+        methodPo mtd = labelCode(nProg);    // Which program do we want?
         insPo exit = collectOff(PC);
 
         if (mtd == Null) {
-          logMsg(logFile, "label %T not defined", nProg);
+          logMsg(logFile, "label %L not defined", nProg);
           bail();
         }
 
         if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE)) {
-          int root = gcAddRoot(H, &nProg);
-          gcAddRoot(H, (ptrPo) &mtd);
+          int root = gcAddRoot(H, (ptrPo) &mtd);
           stackGrow(stackDelta(mtd) + STACKFRAME_SIZE, codeArity(mtd));
           gcReleaseRoot(H, root);
           assert(stackRoom(stackDelta(mtd) + STACKFRAME_SIZE));
