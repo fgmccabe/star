@@ -375,7 +375,7 @@ star.compiler.types{
   }
 
   public fieldTypes:(tipe)=>option[cons[(string,tipe)]].
-  fieldTypes(Tp) where .faceType(Fs,_) .= deRef(Tp) => ?Fs.
+  fieldTypes(Tp) where .faceType(Fs,_) .= deRef(Tp) => ?sortFieldTypes(Fs).
   fieldTypes(_) default => .none.
 
   public fieldInFace:(tipe,string)=>option[tipe].

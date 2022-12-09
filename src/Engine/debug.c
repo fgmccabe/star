@@ -87,12 +87,12 @@ static inline int32 collect32(insPo pc) {
 #define collectI32(pc) (collI32(pc))
 #define collI32(pc) hi32 = (uint32)(uint16)(*(pc)++), lo32 = *(pc)++, ((hi32<<16)|lo32)
 
-ReturnStatus g__ins_debug(processPo p, heapPo h) {
+ReturnStatus g__ins_debug(heapPo h) {
   insDebugging = tracing = True;
-  p->waitFor = stepInto;
-  p->tracing = True;
-  p->traceCount = 0;
-  p->waterMark = p->stk->fp;
+  currentProcess->waitFor = stepInto;
+  currentProcess->tracing = True;
+  currentProcess->traceCount = 0;
+  currentProcess->waterMark = currentProcess->stk->fp;
 
   return rtnStatus(h, Ok, "_ins_debug");
 }
@@ -1027,7 +1027,7 @@ retCode showGlb(ioPo out, globalPo glb) {
 
 void showTos(ioPo out, stackPo stk, termPo _) {
   if (stk != Null)
-    outMsg(out, " <tos> = %,*T", displayDepth, topStack(stk));
+    outMsg(out, " <tos> = %#,*T", displayDepth, topStack(stk));
   else
     outMsg(out, " <tos>");
 }

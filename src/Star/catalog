@@ -24,6 +24,7 @@
     "star.json": "json.star",
     "star.location" : "location.star",
     "star.repo.manifest": "manifest.star",
+    "star.meta": "meta.star",
     "star.misc": "misc.star",
     "star.monad": "monad.star",
     "star.multi": "multi.star",
