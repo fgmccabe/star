@@ -662,5 +662,5 @@ uinteger longHash(uint32 *data, integer count) {
   for (integer ix = 0; ix < count; ix++) {
     h = h * 37 + (uinteger) data[ix];
   }
-  return hash64(h);
+  return hash61(h);
 }

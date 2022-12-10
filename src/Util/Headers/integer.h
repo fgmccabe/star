@@ -20,6 +20,7 @@ typedef enum {
 #include "object.h"
 
 #define LARGE_INT64 ((integer)(((uinteger)-1)>>1u))
+#define LARGE_INT61 ((integer)(((uinteger)-1)>>3u))
 #define LARGE_INT32 ((int32)(((uint32)-1)>>1u))
 
 #define INT32_DIGITS (10)

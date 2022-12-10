@@ -434,6 +434,10 @@
 @tab left associative infix
 @tab 600
 @tab shift left
+@item @code{implementation}
+@tab non-associative prefix
+@tab 1260
+@tab contract implementation
 @item @code{>>=}
 @tab right associative infix
 @tab 950
@@ -450,10 +454,6 @@
 @tab non-associative prefix
 @tab 1251
 @tab type marker
-@item @code{implementation}
-@tab non-associative prefix
-@tab 1260
-@tab contract implementation
 @item @code{|}
 @tab left associative infix
 @tab 1548
@@ -534,8 +534,8 @@
 @tab @code{yield}
 @tab @code{while}
 @item @code{private}
-@tab @code{type}
 @tab @code{implementation}
+@tab @code{type}
 @item @code{else}
 @tab @code{throws}
 

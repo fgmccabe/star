@@ -71,7 +71,7 @@ logical thrCmp(specialClassPo cl, termPo o1, termPo o2) {
 
 integer thrHash(specialClassPo cl, termPo o) {
   threadPo t = C_THREAD(o);
-  return (integer) t->process;
+  return hash61((integer) t->process);
 }
 
 static retCode thrDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {

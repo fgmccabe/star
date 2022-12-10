@@ -250,7 +250,7 @@ logical stkCmp(specialClassPo cl, termPo o1, termPo o2) {
 }
 
 integer stkHash(specialClassPo cl, termPo o) {
-  return C_STACK(o)->hash;
+  return hash61(C_STACK(o)->hash);
 }
 
 integer stackNo(stackPo tsk) {

@@ -48,7 +48,7 @@ futurePo makeFuture(heapPo H, futureSetProc fut, void *cl) {
   ft->val = voidEnum;
   ft->set = fut;
   ft->cl = cl;
-  ft->hash = futureHash++;
+  ft->hash = hash61(futureHash++);
   return ft;
 }
 

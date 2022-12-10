@@ -68,7 +68,7 @@ logical ioCmp(specialClassPo cl, termPo o1, termPo o2) {
 
 integer ioHash(specialClassPo cl, termPo o) {
   ioChnnlPo io = C_IO(o);
-  return (integer) io->io;
+  return hash61((integer) io->io);
 }
 
 static retCode ioDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {

@@ -72,7 +72,7 @@ logical chrCmp(specialClassPo cl, termPo t1, termPo t2) {
 }
 
 integer chrHash(specialClassPo cl, termPo o) {
-  return (C_CHAR(o))->cp;
+  return hash61((C_CHAR(o))->cp);
 }
 
 static retCode chrDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {

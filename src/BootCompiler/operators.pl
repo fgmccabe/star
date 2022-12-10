@@ -116,11 +116,11 @@
   operator(":=", [infixOp(974, 975, 974)]).
   operator(":?", [infixOp(399, 400, 399)]).
   operator(".<<.", [infixOp(600, 600, 599)]).
+  operator("implementation", [prefixOp(1260, 1259)]).
   operator(">>=", [infixOp(949, 950, 950)]).
   operator("^/", [infixOp(960, 960, 959)]).
   operator("<~", [infixOp(1230, 1231, 1230)]).
   operator("type", [prefixOp(1251, 1250)]).
-  operator("implementation", [prefixOp(1260, 1259)]).
   operator("|", [infixOp(1548, 1548, 1547)]).
   operator(".#.", [infixOp(600, 600, 599)]).
   operator("~", [prefixOp(905, 904)]).
@@ -411,11 +411,11 @@
   keyword("private").
   keyword("::").
   keyword(":?").
+  keyword("implementation").
   keyword("<|").
   keyword("<~").
   keyword("{").
   keyword("type").
-  keyword("implementation").
   keyword(".}").
   keyword("|").
   keyword("}").

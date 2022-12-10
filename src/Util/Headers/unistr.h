@@ -132,7 +132,7 @@ logical sameWords(const uint32 *s1,integer l1,const uint32* s2,integer l2);
 retCode wordMove(uint32 *dest, uint32 len, const uint32 *s, uint32 sLen);
 integer byteHash(const byte *data, long len);
 integer wordHash(const uint32 *data, long len);
-integer hash64(integer ix);
+integer hash61(integer ix);
 
 typedef retCode (*uniCodeProc)(codePoint ch, integer ix, void *cl);
 extern retCode processUnicodes(const char *text, integer length, uniCodeProc p, void *cl);
