@@ -162,7 +162,7 @@ ReturnStatus g__str2flt(heapPo h, termPo a1) {
   switch (parseDouble(str, len, &flt)) {
     case Ok:
       return (ReturnStatus) {.ret=Ok,
-        .result=(termPo) wrapSome(H, (termPo) allocateFloat(H, flt))};
+        .result=(termPo) wrapSome(H, makeFloat(flt))};
     default:
     case Error:
       return (ReturnStatus) {.ret=Ok, .result = noneEnum};

@@ -143,19 +143,14 @@ static retCode estimateVoid(void *cl) {
 }
 
 static retCode estimateInt(integer _, void *cl) {
-  Estimation *info = (Estimation *) cl;
-
   return Ok;
 }
 
 static retCode estimateFlt(double dx, void *cl) {
-  Estimation *info = (Estimation *) cl;
-  info->amnt += FloatCellCount;
   return Ok;
 }
 
 static retCode estimateChar(codePoint _, void *cl) {
-  Estimation *info = (Estimation *) cl;
   return Ok;
 }
 
@@ -272,7 +267,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo tmpBuffer
       double dx;
       if ((res = decFlt(in, &dx)) != Ok)
         return res;
-      *tgt = (termPo) allocateFloat(H, dx);
+      *tgt = makeFloat(dx);
       return Ok;
     }
     case enuTrm: {

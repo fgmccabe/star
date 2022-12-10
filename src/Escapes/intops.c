@@ -214,7 +214,7 @@ ReturnStatus g__int_format(heapPo h, termPo a1, termPo a2) {
 
 ReturnStatus g__int2flt(heapPo h, termPo arg1) {
   integer Arg = integerVal(arg1);
-  termPo Rs = allocateFloat(h, (double) Arg);
+  termPo Rs = makeFloat((double) Arg);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
@@ -230,7 +230,7 @@ ReturnStatus g__random(heapPo h) {
   double rnd = ((double) random()) / LARGE_INT32;
 
   return (ReturnStatus) {.ret=Ok,
-    .result=(termPo) allocateFloat(h, rnd)};
+    .result=(termPo) makeFloat( rnd)};
 }
 
 ReturnStatus g__seed(termPo arg1) {

@@ -8,11 +8,6 @@
 #include "bignumP.h"
 #include "heapP.h"
 
-#ifdef TRACEMEM
-integer allocatedInts = 0;
-integer allocatedFloats = 0;
-#endif
-
 static retCode intDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 static integer intHash(specialClassPo cl, termPo o);
 static logical intCmp(specialClassPo cl, termPo t1, termPo t2);
@@ -30,20 +25,16 @@ SpecialClass IntegerClass = {
 
 clssPo integerClass = (clssPo) &IntegerClass;
 
-static long fltSize(specialClassPo cl, termPo o);
-static termPo fltCopy(specialClassPo cl, termPo dst, termPo src);
-static termPo fltScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
-static termPo fltFinalizer(specialClassPo class, termPo o);
 static retCode fltDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
-static integer fltHash(specialClassPo cl, termPo o);
 static logical fltCmp(specialClassPo cl, termPo t1, termPo t2);
+static integer fltHash(specialClassPo cl, termPo o);
 
 SpecialClass FloatClass = {
   .clss = Null,
-  .sizeFun = fltSize,
-  .copyFun = fltCopy,
-  .scanFun = fltScan,
-  .finalizer = fltFinalizer,
+  .sizeFun = Null,
+  .copyFun = Null,
+  .scanFun = Null,
+  .finalizer = Null,
   .compFun = fltCmp,
   .hashFun = fltHash,
   .dispFun = fltDisp
@@ -65,7 +56,7 @@ logical intCmp(specialClassPo cl, termPo t1, termPo t2) {
 }
 
 integer intHash(specialClassPo cl, termPo o) {
-  return hash61(integerVal(o));
+  return hash62(integerVal(o));
 }
 
 static retCode intDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
@@ -79,38 +70,9 @@ extern fltPo C_FLT(termPo t) {
   return (fltPo) t;
 }
 
-termPo allocateFloat(heapPo H, double dx) {
-  fltPo t = (fltPo) allocateObject(H, floatClass, CellCount(sizeof(FloatRecord)));
-  t->dx = dx;
-#ifdef TRACEMEM
-  if (traceAllocs)
-    allocatedFloats++;
-#endif
-  return (termPo) t;
-}
-
-long fltSize(specialClassPo cl, termPo o) {
-  return CellCount(sizeof(FloatRecord));
-}
-
-termPo fltCopy(specialClassPo cl, termPo dst, termPo src) {
-  fltPo si = C_FLT(src);
-  fltPo di = (fltPo) (dst);
-  *di = *si;
-  return (termPo) di + FloatCellCount;
-}
-
-termPo fltScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
-  return (termPo) (o + FloatCellCount);
-}
-
-termPo fltFinalizer(specialClassPo class, termPo o) {
-  return (termPo) (o + FloatCellCount);
-}
-
 static retCode fltDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   fltPo dx = C_FLT(t);
-  return outDouble(out, dx->dx, 'g', 0, (int) precision, ' ', True, False);
+  return outDouble(out, floatVal(t), 'g', 0, (int) precision, ' ', True, False);
 }
 
 logical fltCmp(specialClassPo cl, termPo t1, termPo t2) {
@@ -121,6 +83,10 @@ logical fltCmp(specialClassPo cl, termPo t1, termPo t2) {
     return True;
   else
     return False;
+}
+
+integer fltHash(specialClassPo cl, termPo o) {
+  return floatHash(floatVal(o));
 }
 
 logical nearlyEqual(double dx1, double dx2, double eps) {
@@ -139,17 +105,5 @@ logical nearlyEqual(double dx1, double dx2, double eps) {
   return False;
 }
 
-integer fltHash(specialClassPo cl, termPo o) {
-  return floatHash(floatVal(o));
-}
 
-integer floatHash(double dx) {
-  return hash61((integer) dx);
-}
-
-double floatVal(termPo o) {
-  assert(isFloat(o));
-  fltPo dx = (fltPo) o;
-  return dx->dx;
-}
 
