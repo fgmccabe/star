@@ -509,7 +509,7 @@ termHash(enum(Sx),Ix) :- termHash(lbl(Sx,0),Ix).
 termHash(lbl(Nm,Ar),Hx) :-
   stringHash(0,Nm,Lx),
   Ix is Ar*37+Lx,
-  hashSixtyFour(Ix,Hx).
+  hashSixtyOne(Ix,Hx).
 
 locTerm(loc(Pk,Ln,Col,Pos,Len),Tpl) :-
   mkTpl([strg(Pk),intgr(Ln),intgr(Col),intgr(Pos),intgr(Len)],Tpl).

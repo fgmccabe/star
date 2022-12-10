@@ -77,7 +77,7 @@ static labelPo newLbl(lblTablePo table, const char *name, integer arity, integer
   lbl->len = uniStrLen(name);
   lbl->mtd = Null;
   lbl->clss = labelClass;
-  lbl->hash = arity * 37 + uniHash(name);
+  lbl->hash = hash61(arity * 37 + uniHash(name));
   lbl->table = table;
   lbl->breakPointSet = False;
   return lbl;

@@ -18,7 +18,8 @@ There are three standard numeric types: @code{integer}, @code{bigint} and @code{
 @node Integer Type
 @subsection Integer Type
 
-Integers are 64 bit.
+Integers are 61 bits in precision. However, there are also arbitrary
+precision integers if needed.
 
 @node Arbitrary Precision Integers
 @subsection Arbitrary Precision Integers
@@ -235,7 +236,7 @@ is implemented for both @code{integer} and @code{float} values.
 @section Bit Manipulation Functions
 @anchor{bitString}
 
-The bit manipulation functions treat @code{integer} values as 64-bit
+The bit manipulation functions treat @code{integer} values as 61-bit
 bit strings.
 
 @node @code{.&.} Bit-wise Conjunction

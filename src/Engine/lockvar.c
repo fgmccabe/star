@@ -77,7 +77,7 @@ logical lockCmp(specialClassPo cl, termPo o1, termPo o2) {
 
 integer lckHash(specialClassPo cl, termPo o) {
   lockPo l = C_LOCK(o);
-  return (integer) (&l->mutex);
+  return hash61((integer) (&l->mutex));
 }
 
 static retCode lockDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {

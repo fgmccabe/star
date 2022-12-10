@@ -100,7 +100,7 @@ logical intCmp(specialClassPo cl, termPo t1, termPo t2) {
 }
 
 integer intHash(specialClassPo cl, termPo o) {
-  return (C_INT(o))->ix;
+  return hash61((C_INT(o))->ix);
 }
 
 static retCode intDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
@@ -195,7 +195,7 @@ integer fltHash(specialClassPo cl, termPo o) {
 }
 
 integer floatHash(double dx) {
-  return (integer) dx;
+  return hash61((integer) dx);
 }
 
 double floatVal(termPo o) {

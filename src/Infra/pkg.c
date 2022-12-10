@@ -17,7 +17,7 @@ logical compatiblVersion(char *rqVer, char *ver) {
 }
 
 integer pkgHash(packagePo pkg){
-  return hash64(uniHash(pkg->packageName)*37+uniHash(pkg->version));
+  return hash61(uniHash(pkg->packageName)*37+uniHash(pkg->version));
 }
 
 comparison compPkg(packagePo p1,packagePo p2){

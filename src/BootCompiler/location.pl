@@ -59,5 +59,5 @@ pkgLoc(pkg(Pk,_),loc(Pk,0,0,0,0)).
 
 locHash(loc(Pk,_,_,S,L),H) :-
   H0 is S*37+L,
-  hashSixtyFour(H0,H1),
+  hashSixtyOne(H0,H1),
   stringHash(H1,Pk,H).

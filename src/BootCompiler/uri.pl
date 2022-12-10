@@ -246,11 +246,11 @@ uriHash(absUri(Scheme,Path,Query),Hash) :-
   stringHash(0,Scheme,H1),
   pathHash(H1,Path,H2),
   queryHash(H2,Query,H3),
-  hashSixtyFour(H3,Hash).
+  hashSixtyOne(H3,Hash).
 uriHash(relUri(Path,Query),Hash) :-
   pathHash(0,Path,H1),
   queryHash(H1,Query,H2),
-  hashSixtyFour(H2,Hash).
+  hashSixtyOne(H2,Hash).
 
 authHash(H0,userHost(Usr,Hst),H) :-
   userHash(H0,Usr,H1),

@@ -578,7 +578,7 @@ integer uniNHash(const char *name, long len) {
     hash = hash * 37 + ch;
   }
 
-  return hash64(hash);
+  return hash61(hash);
 }
 
 integer byteHash(const byte *data, long len) {
@@ -589,7 +589,7 @@ integer byteHash(const byte *data, long len) {
     hash = hash * 37 + data[fx++];
   }
 
-  return hash64(hash);
+  return hash61(hash);
 }
 
 integer wordHash(const uint32 *data, long len) {
@@ -600,11 +600,11 @@ integer wordHash(const uint32 *data, long len) {
     hash = hash * 37 + data[fx++];
   }
 
-  return hash64(hash);
+  return hash61(hash);
 }
 
-integer hash64(integer ix) {
-  return (integer) ((uint64) ix & ((uint64) LARGE_INT64));
+integer hash61(integer ix){
+  return (integer) ((uint64) ix & ((uint64) LARGE_INT61));
 }
 
 retCode uniLower(const char *s, integer sLen, char *d, integer dLen) {

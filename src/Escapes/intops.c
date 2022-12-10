@@ -156,7 +156,7 @@ ReturnStatus g__int_abs(heapPo h, termPo a1) {
 
 ReturnStatus g__int_hash(heapPo h, termPo Lhs) {
   integer Arg = integerVal(Lhs);
-  termPo Rs = (Arg < 0 ? (termPo) allocateInteger(h, hash64(Arg)) : Lhs);
+  termPo Rs = (Arg < 0 ? (termPo) allocateInteger(h, hash61(Arg)) : Lhs);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }

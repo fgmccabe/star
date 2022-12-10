@@ -60,7 +60,7 @@ logical cellCmp(specialClassPo cl, termPo o1, termPo o2) {
 }
 
 integer cellHash(specialClassPo cl, termPo o) {
-  return hash64(uniHash("cell") * 37 + termHash(C_CELL(o)->content));
+  return hash61(uniHash("cell") * 37 + termHash(C_CELL(o)->content));
 }
 
 retCode cellDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {

@@ -75,7 +75,7 @@ logical cntCmp(specialClassPo cl, termPo o1, termPo o2) {
 integer cntHash(specialClassPo cl, termPo o) {
   continuationPo cont = C_CONTINUATION(o);
 
-  return (cont->stack->hash) * 37 + cont->counter;
+  return hash61((cont->stack->hash) * 37 + cont->counter);
 }
 
 retCode cntDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {

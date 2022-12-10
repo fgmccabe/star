@@ -84,7 +84,7 @@ logical mtdCmp(specialClassPo cl, termPo o1, termPo o2) {
 }
 
 integer mtdHash(specialClassPo cl, termPo o) {
-  return (integer) o;
+  return hash61((integer) o);
 }
 
 retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {

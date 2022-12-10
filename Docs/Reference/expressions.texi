@@ -156,7 +156,7 @@ There are three forms of numeric literal expression: integers
 @cindex integer
 
 The @code{integer} type is used to denote integral values in the range
--9223372036854775808..9223372036854775807.@footnote{I.e., 64 bit
+-1152921504606846976..1152921504606846975.@footnote{I.e., 61 bit
 precision.}
 
 Integers may be written in a variety of styles (see
@@ -180,7 +180,7 @@ digits followed by a @code{b} letter:
 @end example
 
 It is possible to coerce between so-called @emph{bigint}s and regular
-64 bit integers; although it is not guaranteed to be possible in all
+61 bit integers; although it is not guaranteed to be possible in all
 cases.
 
 @node Floating Point Literals

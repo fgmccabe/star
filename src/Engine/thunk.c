@@ -46,7 +46,7 @@ thunkPo thunkVar(heapPo H, normalPo lam) {
   thnk->content = Null;
   thnk->clss = thunkClass;
   thnk->lam = lam;
-  thnk->hash = thunkHash++;
+  thnk->hash = hash61(thunkHash++);
 
   gcReleaseRoot(H, root);
 

@@ -110,7 +110,7 @@ star.ideal{
   subKey:(integer,integer) => integer.
   subKey(Hash,Depth) => _band(_blsr(Hash,Depth),0x3).
 
-  maxDepth = 64.
+  maxDepth = 61.
 
   -- Implement some standard contracts
 
