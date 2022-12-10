@@ -167,7 +167,7 @@ retCode gcCollect(heapPo H, long amount) {
 termPo markPtr(gcSupportPo G, ptrPo p) {
   termPo t = *p;
 
-  if (t != Null) {
+  if (t != Null && isPointer(t)) {
     if (hasMoved(t))
       return movedTo(t);
     else if (inSwappedHeap(G, t)) {
@@ -270,10 +270,9 @@ void verifyProc(processPo P, heapPo H) {
 
 void dumpGcStats() {
 #ifdef TRACEMEM
-  if(traceAllocs)
-    logMsg(logFile, "%ld char allocations, %ld integer allocations, %ld float allocations, %ld total allocations, %ld total words",
-         allocatedChars,allocatedInts,allocatedFloats,numAllocated, totalAllocated);
-  if(traceMemory)
+  if (traceAllocs)
+    logMsg(logFile, "%ld total allocations, %ld total words", numAllocated, totalAllocated);
+  if (traceMemory)
     logMsg(logFile, "%d gc collections, %d heap grows, %d stack extensions", gcCount, gcGrow, stkGrow);
 #endif
 }

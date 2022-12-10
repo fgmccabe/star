@@ -11,7 +11,7 @@
 ReturnStatus g__uniCodeCategory(heapPo h, termPo a1) {
   codePoint ch = (codePoint) charVal(a1);
 
-  termPo Rs = (termPo) allocateInteger(h, uniCharCategory(ch));
+  termPo Rs = makeInteger(uniCharCategory(ch));
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
@@ -283,8 +283,7 @@ ReturnStatus g__digitCode(heapPo h, termPo a1) {
   codePoint ch = charVal(a1);
 
   if (isNdChar(ch)) {
-    return (ReturnStatus) {.ret=Ok,
-      .result=(termPo) allocateInteger(h, digitValue(ch))};
+    return (ReturnStatus) {.ret=Ok, .result=makeInteger(digitValue(ch))};
 
   } else {
     return (ReturnStatus) {.ret=Fail, .result=voidEnum};
@@ -294,13 +293,12 @@ ReturnStatus g__digitCode(heapPo h, termPo a1) {
 ReturnStatus g__codePoint(heapPo h, termPo a1) {
   codePoint ch = charVal(a1);
 
-  return (ReturnStatus) {.ret=Ok,
-    .result=(termPo) allocateInteger(h, ch)};
+  return (ReturnStatus) {.ret=Ok, .result= makeInteger(ch)};
 }
 
 ReturnStatus g__char(heapPo h, termPo a1) {
   codePoint ch = integerVal(a1);
 
   return (ReturnStatus) {.ret=Ok,
-    .result=(termPo) allocateCharacter(h, ch)};
+    .result=allocateCharacter(ch)};
 }

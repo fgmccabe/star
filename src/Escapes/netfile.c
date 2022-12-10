@@ -69,13 +69,13 @@ ReturnStatus g__accept(heapPo h, termPo a1, termPo a2) {
         termPo outChnl = (termPo) allocateIOChnnl(h, outC);
         gcAddRoot(h, &outChnl);
 
-        termPo peer = (termPo) allocateString(h, peerN, uniStrLen(peerN));
+        termPo peer = allocateString(h, peerN, uniStrLen(peerN));
         gcAddRoot(h, &peer);
 
-        termPo peerIP = (termPo) allocateString(h, peerI, uniStrLen(peerI));
+        termPo peerIP = allocateString(h, peerI, uniStrLen(peerI));
         gcAddRoot(h, &peerIP);
 
-        termPo prt = (termPo) allocateInteger(h, port);
+        termPo prt = makeInteger(port);
         gcAddRoot(h, &prt);
 
         normalPo reslt = allocateTpl(h, 5);

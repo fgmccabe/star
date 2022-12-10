@@ -50,8 +50,47 @@ void setArg(normalPo term, integer ix, termPo arg);
 extern termPo falseEnum;
 extern termPo trueEnum;
 
+extern clssPo integerClass;
+extern clssPo charClass;
+extern clssPo floatClass;
+
+typedef enum {
+  ptrTg = 0,
+  intTg = 1,
+  chrTg = 2,
+  fltTg = 3
+} PtrTag;
+
+static inline PtrTag pointerTag(termPo t){
+  return (PtrTag)(((uinteger)t)&3ul);
+}
+
+static inline logical isPointer(termPo t){
+  return pointerTag(t)==ptrTg;
+}
+
+static inline integer ptrPayload(termPo t){
+  switch(pointerTag(t)){
+    case ptrTg:
+      return (integer)t;
+    case intTg:
+    case chrTg:
+    case fltTg:
+      return (((integer)t)>>2l);
+  }
+}
+
 static inline clssPo classOf(termPo obj) {
-  return obj->clss;
+  switch(pointerTag(obj)){
+    case ptrTg:
+      return obj->clss;
+    case intTg:
+      return integerClass;
+    case chrTg:
+      return charClass;
+    case fltTg:
+      return floatClass;
+  }
 }
 
 static inline logical hasClass(termPo obj, clssPo clss) {

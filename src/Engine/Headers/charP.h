@@ -9,18 +9,7 @@
 #include "char.h"
 #include "termP.h"
 
-typedef struct character_term *charPo;
-
-extern charPo C_CHAR(termPo t);
-
-typedef struct character_term {
-  clssPo clss;                  // == charClass
-  codePoint cp;
-} CharacterRecord;
-
-#define CharCellCount CellCount(sizeof(CharacterRecord))
-
-termPo allocateCharacter(heapPo H, codePoint cp);
+termPo allocateCharacter(codePoint cp);
 
 void initChars();
 #endif //STAR_CHARP_H

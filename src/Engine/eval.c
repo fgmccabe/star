@@ -839,8 +839,7 @@ retCode run(processPo P) {
         integer Lhs = integerVal(pop());
         integer Rhs = integerVal(pop());
 
-        checkAlloc(IntegerCellCount);
-        termPo Rs = allocateInteger(H, Lhs + Rhs);
+        termPo Rs = makeInteger(Lhs + Rhs);
         push(Rs);
         continue;
       }
@@ -849,8 +848,7 @@ retCode run(processPo P) {
         integer Lhs = integerVal(pop());
         integer Rhs = integerVal(pop());
 
-        checkAlloc(IntegerCellCount);
-        termPo Rs = (termPo) allocateInteger(H, Lhs - Rhs);
+        termPo Rs = makeInteger(Lhs - Rhs);
         push(Rs);
         continue;
       }
@@ -858,17 +856,14 @@ retCode run(processPo P) {
         integer Lhs = integerVal(pop());
         integer Rhs = integerVal(pop());
 
-        checkAlloc(IntegerCellCount);
-        termPo Rs = (termPo) allocateInteger(H, Lhs * Rhs);
+        termPo Rs = makeInteger(Lhs * Rhs);
         push(Rs);
         continue;
       }
       case IDiv: {
         integer Lhs = integerVal(pop());
         integer Rhs = integerVal(pop());
-
-        checkAlloc(IntegerCellCount);
-        termPo Rs = (termPo) allocateInteger(H, Lhs / Rhs);
+        termPo Rs = makeInteger(Lhs / Rhs);
         push(Rs);
         continue;
       }
@@ -878,8 +873,7 @@ retCode run(processPo P) {
 
         integer reslt = denom % numerator;
 
-        checkAlloc(IntegerCellCount);
-        termPo Rs = (termPo) allocateInteger(H, reslt);
+        termPo Rs = (termPo) makeInteger(reslt);
 
         push(Rs);
         continue;
@@ -888,8 +882,7 @@ retCode run(processPo P) {
         termPo Trm = pop();
         integer Arg = integerVal(Trm);
 
-        checkAlloc(IntegerCellCount);
-        termPo Rs = (Arg < 0 ? (termPo) allocateInteger(H, -Arg) : Trm);
+        termPo Rs = (Arg < 0 ? makeInteger(-Arg) : Trm);
         push(Rs);
         continue;
       }
@@ -931,8 +924,7 @@ retCode run(processPo P) {
         integer Lhs = integerVal(pop());
         integer Rhs = integerVal(pop());
 
-        checkAlloc(IntegerCellCount);
-        termPo Rs = (termPo) allocateInteger(H, ((unsigned) Lhs & (unsigned) Rhs));
+        termPo Rs = (termPo) makeInteger(((unsigned) Lhs & (unsigned) Rhs));
         push(Rs);
         continue;
       }
@@ -940,8 +932,7 @@ retCode run(processPo P) {
         integer Lhs = integerVal(pop());
         integer Rhs = integerVal(pop());
 
-        checkAlloc(IntegerCellCount);
-        termPo Rs = (termPo) allocateInteger(H, ((unsigned) Lhs | (unsigned) Rhs));
+        termPo Rs = makeInteger(((unsigned) Lhs | (unsigned) Rhs));
         push(Rs);
         continue;
       }
@@ -949,16 +940,14 @@ retCode run(processPo P) {
         integer Lhs = integerVal(pop());
         integer Rhs = integerVal(pop());
 
-        checkAlloc(IntegerCellCount);
-        termPo Rs = (termPo) allocateInteger(H, ((unsigned) Lhs ^ (unsigned) Rhs));
+        termPo Rs = (termPo) makeInteger(((unsigned) Lhs ^ (unsigned) Rhs));
         push(Rs);
         continue;
       }
       case BNot: {
         integer Lhs = integerVal(pop());
 
-        checkAlloc(IntegerCellCount);
-        termPo Rs = (termPo) allocateInteger(H, ~(unsigned) Lhs);
+        termPo Rs = (termPo) makeInteger(~(unsigned) Lhs);
         push(Rs);
         continue;
       }
@@ -966,8 +955,7 @@ retCode run(processPo P) {
         integer Lhs = integerVal(pop());
         integer Rhs = integerVal(pop());
 
-        checkAlloc(IntegerCellCount);
-        termPo Rs = (termPo) allocateInteger(H, ((unsigned) Lhs << (unsigned) Rhs));
+        termPo Rs = (termPo) makeInteger(((unsigned) Lhs << (unsigned) Rhs));
         push(Rs);
         continue;
       }
@@ -975,8 +963,7 @@ retCode run(processPo P) {
         integer Lhs = integerVal(pop());
         integer Rhs = integerVal(pop());
 
-        checkAlloc(IntegerCellCount);
-        termPo Rs = (termPo) allocateInteger(H, (((unsigned) Lhs) >> ((unsigned) Rhs)));
+        termPo Rs = (termPo) makeInteger((((unsigned) Lhs) >> ((unsigned) Rhs)));
         push(Rs);
         continue;
       }
@@ -984,8 +971,7 @@ retCode run(processPo P) {
         integer Lhs = integerVal(pop());
         integer Rhs = integerVal(pop());
 
-        checkAlloc(IntegerCellCount);
-        termPo Rs = (termPo) allocateInteger(H, (Lhs) >> Rhs);
+        termPo Rs = (termPo) makeInteger((Lhs) >> Rhs);
         push(Rs);
         continue;
       }

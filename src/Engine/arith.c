@@ -13,22 +13,16 @@ integer allocatedInts = 0;
 integer allocatedFloats = 0;
 #endif
 
-static long intSize(specialClassPo cl, termPo o);
-static termPo intCopy(specialClassPo cl, termPo dst, termPo src);
-static termPo intScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
 static retCode intDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 static integer intHash(specialClassPo cl, termPo o);
 static logical intCmp(specialClassPo cl, termPo t1, termPo t2);
-static termPo intFinalizer(specialClassPo class, termPo o);
-
-static intPo C_INT(termPo t);
 
 SpecialClass IntegerClass = {
   .clss = Null,
-  .sizeFun = intSize,
-  .copyFun = intCopy,
-  .scanFun = intScan,
-  .finalizer = intFinalizer,
+  .sizeFun = Null,
+  .copyFun = Null,
+  .scanFun = Null,
+  .finalizer = Null,
   .compFun = intCmp,
   .hashFun = intHash,
   .dispFun = intDisp
@@ -63,35 +57,6 @@ void initArith() {
   initBignum();
 }
 
-termPo allocateInteger(heapPo H, integer ix) {
-  intPo t = (intPo) allocateObject(H, integerClass, CellCount(sizeof(IntegerRecord)));
-  t->ix = ix;
-#ifdef TRACEMEM
-  if (traceAllocs)
-    allocatedInts++;
-#endif
-  return (termPo) t;
-}
-
-long intSize(specialClassPo cl, termPo o) {
-  return CellCount(sizeof(IntegerRecord));
-}
-
-termPo intCopy(specialClassPo cl, termPo dst, termPo src) {
-  intPo si = C_INT(src);
-  intPo di = (intPo) (dst);
-  *di = *si;
-  return (termPo) di + IntegerCellCount;
-}
-
-termPo intScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
-  return (termPo) (o + IntegerCellCount);
-}
-
-termPo intFinalizer(specialClassPo class, termPo o) {
-  return (termPo) (o + IntegerCellCount);
-}
-
 logical intCmp(specialClassPo cl, termPo t1, termPo t2) {
   integer ix1 = integerVal(t1);
   integer ix2 = integerVal(t2);
@@ -100,27 +65,11 @@ logical intCmp(specialClassPo cl, termPo t1, termPo t2) {
 }
 
 integer intHash(specialClassPo cl, termPo o) {
-  return hash61((C_INT(o))->ix);
+  return hash61(integerVal(o));
 }
 
 static retCode intDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   return outInteger(out, integerVal(t), 10, 0, precision, 0, False, "", alt);
-}
-
-intPo C_INT(termPo t) {
-#ifdef TRACEEXEC
-  assert(hasClass(t, integerClass));
-#endif
-  return (intPo) t;
-}
-
-logical isInteger(termPo t) {
-  return hasClass(t, integerClass);
-}
-
-integer integerVal(termPo o) {
-  intPo ix = C_INT(o);
-  return ix->ix;
 }
 
 typedef struct float_term *fltPo;
@@ -204,6 +153,3 @@ double floatVal(termPo o) {
   return dx->dx;
 }
 
-void dumpArithAllocStats() {
-
-}

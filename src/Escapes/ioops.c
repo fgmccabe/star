@@ -66,7 +66,7 @@ ReturnStatus g__inchar(heapPo h, termPo a1) {
   codePoint cp;
   retCode ret = inChar(io, &cp);
   if (ret == Ok) {
-    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateInteger(h, cp)};
+    ReturnStatus rt = {.ret=Ok, .result=makeInteger(cp)};
     return rt;
   } else {
     ReturnStatus rt = {.ret=ret, .result=voidEnum};
@@ -92,7 +92,7 @@ ReturnStatus g__inchars(heapPo h, termPo a1, termPo a2) {
     integer length;
     char *text = getTextFromBuffer(buffer, &length);
 
-    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(h, text, length)};
+    ReturnStatus rt = {.ret=Ok, .result=allocateString(h, text, length)};
     closeFile(O_IO(buffer));
     return rt;
   } else {
@@ -108,7 +108,7 @@ ReturnStatus g__inbyte(heapPo h, termPo a1) {
   byte b;
   retCode ret = inByte(io, &b);
   if (ret == Ok) {
-    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateInteger(h, b)};
+    ReturnStatus rt = {.ret=Ok, .result=makeInteger(b)};
     return rt;
   } else {
     ReturnStatus rt = {.ret=ret, .result=voidEnum};
@@ -228,8 +228,7 @@ ReturnStatus g__inline(heapPo h, termPo a1) {
 
 ReturnStatus g__inline_async(heapPo h, termPo a1) {
   ioPo io = ioChannel(C_IO(a1));
-  retCode ret = configureIo(O_FILE(io) , enableAsynch);
-
+  retCode ret = configureIo(O_FILE(io), enableAsynch);
 
   const char *match = "\n\r";
   integer mlen = uniStrLen(match);
@@ -260,8 +259,6 @@ ReturnStatus g__inline_async(heapPo h, termPo a1) {
     return rt;
   }
 }
-
-
 
 ReturnStatus g__get_file(heapPo h, termPo a1) {
   char fn[MAXFILELEN];
@@ -413,7 +410,7 @@ ReturnStatus g__fposition(heapPo h, termPo a1) {
       break;
   }
 
-  ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateInteger(h, pos)};
+  ReturnStatus rt = {.ret=Ok, .result=makeInteger(pos)};
   return rt;
 }
 

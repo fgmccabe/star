@@ -6,13 +6,25 @@
 #define STAR_ARITH_H
 
 #include "term.h"
+#include <assert.h>
 
 // Integer structure
 extern clssPo integerClass;
 
-logical isInteger(termPo t);
+static inline logical isInteger(termPo t){
+  return pointerTag(t)==intTg;
+}
 
-integer integerVal(termPo o);
+static inline integer integerVal(termPo o){
+#ifdef TRACEEXEC
+  assert(isInteger(o));
+#endif
+  return ptrPayload(o);
+}
+
+static inline termPo makeInteger(integer x){
+  return ((termPo)((x<<2ul)|intTg));
+}
 
 // Float structure
 
