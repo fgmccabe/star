@@ -199,7 +199,7 @@ star.compiler.normalize{
 
   liftPtn:(canon,nameMap,set[cId],cons[cDefn]) => crFlow[cExp].
   liftPtn(.anon(Lc,Tp),Map,_,Ex) => (.cAnon(Lc,Tp),Ex).
-  liftPtn(.vr(Lc,Nm,Tp),Map,_,Ex) => trVarPtn(Lc,Nm,Tp,Map,Ex).
+  liftPtn(.vr(Lc,Nm,Tp),Map,Q,Ex) => trVarPtn(Lc,Nm,Tp,Map,Q,Ex).
   liftPtn(.enm(Lc,FullNm,Tp),Map,_,Ex) => (.cTerm(Lc,FullNm,[],Tp),Ex).
   liftPtn(.intr(Lc,Ix),Map,_,Ex) =>  (.cInt(Lc,Ix),Ex).
   liftPtn(.bintr(Lc,Ix),Map,_,Ex) => (.cBig(Lc,Ix),Ex).
@@ -248,8 +248,9 @@ star.compiler.normalize{
   implementPtnCall(Lc,.localCons(Nm,CTp,Vr),Args,Tp,_,_,Ex) =>
     (.cTerm(Lc,Nm,[.cVar(Lc,Vr),..Args],Tp),Ex).
   
-  trVarPtn(Lc,Nm,Tp,Map,Ex) =>
-    implementVarPtn(Lc,Nm,lookupVarName(Map,Nm),Tp,Map,Ex).
+  trVarPtn(Lc,Nm,Tp,Map,Q,Ex) => ({? .cId(Nm,Tp) in Q ?} ??
+    (.cVar(Lc,.cId(Nm,Tp)),Ex) ||
+    implementVarPtn(Lc,Nm,lookupVarName(Map,Nm),Tp,Map,Ex)).
 
   implementVarPtn(Lc,Nm,.none,Tp,_,Ex) => (.cVar(Lc,.cId(Nm,Tp)),Ex).
   implementVarPtn(Lc,Nm,.some(.moduleCons(Enum,CTp)),Tp,_,Ex) where ETp?=isEnumType(CTp) =>
@@ -828,10 +829,9 @@ star.compiler.normalize{
     valis .none
   }
 
-  genVar:(string,tipe) => cId.
-  genVar(Pr,Tp) => .cId(genSym(Pr),Tp).
-
   makeFunVars:(tipe)=>cons[cId].
   makeFunVars(Tp) where .tupleType(Es).=funTypeArg(deRef(Tp)) => (Es//(E)=>genVar("_",E)).
 
+  genVar:(string,tipe)=>cId.
+  genVar(Pr,Tp) => .cId(genId(Pr),Tp).
 }

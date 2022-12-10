@@ -135,32 +135,9 @@ star.compiler.ast{
   }
 
   generated:ref map[string,integer].
-  generated = ref [].
-
   public genName:(option[locn],string) => ast.
-  genName(Lc,Pr) => valof{
-    if Last?=generated![Pr] then{
-      Nxt = Last+1;
-      generated[Pr] := Nxt;
-      valis .nme(Lc,"#(Pr)*$(Nxt)")
-    } else{
-      generated[Pr] := 0;
-      valis .nme(Lc,"#(Pr)*0")
-    }
-  }
+  genName(Lc,Pr) => .nme(Lc,genId(Pr)).
   
-  public genId:(string) => string.
-  genId(Pr) => valof{
-    if Last?=generated![Pr] then{
-      Nxt = Last+1;
-      generated[Pr] := Nxt;
-      valis "#(Pr)*$(Nxt)"
-    } else{
-      generated[Pr] := 0;
-      valis "#(Pr)*0"
-    }
-  }
-
   public mkAnon(Lc) => .nme(Lc,"_").
 
   public isAnon(.nme(Lc,"_")) => .some(Lc).

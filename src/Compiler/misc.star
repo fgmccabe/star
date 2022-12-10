@@ -95,4 +95,19 @@ star.compiler.misc{
   public isTplLbl:(string)=>boolean.
   isTplLbl(Nm) where [`(`,`)`,..Ds].=(Nm::cons[char]) => .true.
   isTplLbl(_) default => .false.
+
+  generated:ref map[string,integer].
+  generated = ref [].
+
+  public genId:(string) => string.
+  genId(Pr) => valof{
+    if Last?=generated![Pr] then{
+      Nxt = Last+1;
+      generated[Pr] := Nxt;
+      valis "#(Pr)*$(Nxt)"
+    } else{
+      generated[Pr] := 0;
+      valis "#(Pr)*0"
+    }
+  }
 }

@@ -36,7 +36,7 @@ star.compiler.matcher{
   genVars:(option[locn],tipe) => cons[cExp].
   genVars(Lc,.tupleType(L)) => let{.
     genV([]) => [].
-    genV([T,..Ts]) => [.cVar(Lc,.cId(genSym("_"),T)),..genV(Ts)].
+    genV([T,..Ts]) => [.cVar(Lc,.cId(genId("_"),T)),..genV(Ts)].
   .} in genV(L).
 
   makeTriples:all e ~~ reform[e] |: (cons[(option[locn],cons[cExp],option[cExp],e)]) => cons[triple[e]].
@@ -51,6 +51,8 @@ star.compiler.matcher{
   matchTriples(_,[],Triples,Deflt,_,_) => conditionalize(Triples,Deflt).
   matchTriples(Lc,Vrs,Triples,Deflt,Depth,Map) => valof{
     Parts = partitionTriples(Triples);
+    if traceNormalize! then
+      logMsg("partition triples into $(Parts)");
     valis matchSegments(Parts,Vrs,Lc,Deflt,Depth,Map)
   }.
 
@@ -58,8 +60,11 @@ star.compiler.matcher{
   partitionTriples([]) => [].
   partitionTriples([Tr,..Triples]) where
       M .= tripleArgMode(Tr) &&
-      (P,Ts) .= partTriples(M,Triples,[]) =>
-    [(M,[Tr,..P]),..partitionTriples(Ts)].
+	  (P,Ts) .= partTriples(M,Triples,[]) =>
+    [(M,sort([Tr,..P],byEqnNo)),..partitionTriples(Ts)].
+
+  byEqnNo:all e ~~ (triple[e],triple[e])=>boolean.
+  byEqnNo((_,_,E1),(_,_,E2)) => E1<E2.
 
   partTriples:all e ~~ (argMode,cons[triple[e]],cons[triple[e]])=>
     (cons[triple[e]],cons[triple[e]]).
@@ -107,8 +112,11 @@ star.compiler.matcher{
 
   compileMatch:all e ~~ reform[e],rewrite[e],display[e] |:
     (argMode,cons[triple[e]],cons[cExp],option[locn],e,integer,nameMap)=>e.
-  compileMatch(_,Seg,Vrs,Lc,Deflt,Depth,_Map) where tooDeep(Depth) =>
-    conditionMatch(Seg,Vrs,Deflt).
+  compileMatch(_,Seg,Vrs,Lc,Deflt,Depth,_Map) where tooDeep(Depth) => valof{
+    if traceNormalize! then
+      logMsg("generate condition from $(Seg)");
+    valis conditionMatch(Seg,Vrs,Deflt)
+  }.
   compileMatch(.inScalars,Seg,Vrs,Lc,Deflt,Depth,Map) =>
     matchScalars(Seg,Vrs,Lc,Deflt,Depth,Map).
   compileMatch(.inConstructors,Seg,Vrs,Lc,Deflt,Depth,Map) =>
@@ -129,20 +137,39 @@ star.compiler.matcher{
     
     (Vl,Cnd) = pullWhere(Val,Test);
 
-    if Cond ?= mergeGoal(Lc,mkMatchCond(Args,Vrs,Lc),
-      mergeGoal(Lc,ArgCond,Cnd)) then{
-      Other = conditionMatch(M,Vrs,Deflt);
-      valis mkCond(Lc,Cond,applyBindings(Lc,Bnds,Vl),Other)
-    } else
-    valis applyBindings(Lc,Bnds,Vl)
+    (AG,Tst,Res) = mkMatchCond(Args,Vrs,ArgCond,Cnd,Lc,Vl);
+    Other = conditionMatch(M,Vrs,Deflt);
+
+    if Cond?=mergeGoal(Lc,AG,Tst) then
+      valis mkCond(Lc,Cond,Res,Other)
+    else
+    valis Res
   }
 
-  mkMatchCond:(cons[cExp],cons[cExp],option[locn]) => option[cExp].
-  mkMatchCond([_,..Vrs],[.cAnon(_,_),..Args],Lc) =>
-    mkMatchCond(Vrs,Args,Lc).
-  mkMatchCond([],[],_) => .none.
-  mkMatchCond([V,..Vrs],[A,..Args],Lc) =>
-    mergeGoal(Lc,?.cMatch(Lc,V,A),mkMatchCond(Vrs,Args,Lc)).
+  mkMatchCond:all e ~~ rewrite[e] |: (cons[cExp],cons[cExp],option[cExp],option[cExp],option[locn],e) =>
+    (option[cExp],option[cExp],e).
+  mkMatchCond([],[],ArgCond,Test,_,Val) => (ArgCond,Test,Val).
+  mkMatchCond([.cAnon(_,_),..Args],[_,..Vars],ArgCond,Test,Lc,Val) =>
+    mkMatchCond(Args,Vars,ArgCond,Test,Lc,Val).
+  mkMatchCond([.cWhere(WLc,.cVar(VLc,.cId(Vr,VTp)),WCond),..Args],[V,..Vars],AG,Test,Lc,Val) => valof{
+    Mp = { .tLbl(Vr,arity(VTp))->.vrDef(VLc,Vr,VTp,V)};
+    NArgs = rewriteTerms(Args,Mp);
+    NWCond = rewrite(WCond,Mp);
+    NAG = fmap((T)=>rewrite(T,Mp),AG);
+    NTst = fmap((T)=>rewrite(T,Mp),Test);
+    NVal = rewrite(Val,Mp);
+    valis mkMatchCond(NArgs,Vars,mergeGoal(WLc,NAG,?NWCond),NTst,Lc,NVal)
+  }
+  mkMatchCond([.cVar(VLc,.cId(Vr,VTp)),..Args],[V,..Vars],AG,Test,Lc,Val) => valof{
+    Mp = { .tLbl(Vr,arity(VTp))->.vrDef(VLc,Vr,VTp,V)};
+    NArgs = rewriteTerms(Args,Mp);
+    NAG = fmap((T)=>rewrite(T,Mp),AG);
+    NTst = fmap((T)=>rewrite(T,Mp),Test);
+    NVal = rewrite(Val,Mp);
+    valis mkMatchCond(NArgs,Vars,NAG,NTst,Lc,NVal)
+  }
+  mkMatchCond([A,..Args],[V,..Vars],AG,Test,Lc,Val) =>
+    mkMatchCond(Args,Vars,mergeGoal(Lc,AG,?.cMatch(Lc,A,V)),Test,Lc,Val).
 
   matchScalars:all e ~~ reform[e],rewrite[e],display[e] |:
     (cons[triple[e]],cons[cExp],option[locn],e,integer,nameMap)=>e.
@@ -252,7 +279,7 @@ star.compiler.matcher{
     valis (Lc,.cTerm(Lc,Lbl,Vrs,Tp),Case)
   }.
 
-  genTplVar(Arg) => .cVar(locOf(Arg),.cId(genSym("V"),typeOf(Arg))).
+  genTplVar(Arg) => .cVar(locOf(Arg),.cId(genId("V"),typeOf(Arg))).
 
   pickMoreCases:all e ~~ (triple[e],cons[triple[e]],(triple[e],triple[e])=>boolean,
     cons[triple[e]],cons[triple[e]])=> (cons[triple[e]],cons[triple[e]]).
