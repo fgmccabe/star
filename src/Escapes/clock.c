@@ -113,14 +113,14 @@ ReturnStatus g__sleep(processPo p, termPo a1) {
 
 /* Return the current time */
 ReturnStatus g__now(heapPo h) {
-  termPo now = (termPo) allocateFloat(h, get_time());
+  termPo now = makeFloat(get_time());
 
   return (ReturnStatus) {.ret=now != Null ? Ok : Error, .result=now};
 }
 
 /* Return the time at midnight */
 ReturnStatus g__today(heapPo h) {
-  termPo now = (termPo) allocateFloat(h, get_date());
+  termPo now = makeFloat(get_date());
 
   return (ReturnStatus) {.ret=now != Null ? Ok : Error, .result=now};
 }
@@ -151,5 +151,5 @@ double get_date(void) {
   gettimeofday(&t, NULL);
 
   t.tv_sec -= t.tv_sec % SECSINDAY;
-  return (double)(t.tv_sec + timezone_offset);
+  return (double) (t.tv_sec + timezone_offset);
 }

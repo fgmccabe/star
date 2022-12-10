@@ -41,7 +41,7 @@ ReturnStatus g__date2time(heapPo h, termPo a1) {
   time_t when = mktime(&now);
 
   return (ReturnStatus) {.ret=Ok,
-    .result=(termPo) allocateFloat(h, when + fraction)};
+    .result=makeFloat(when + fraction)};
 }
 
 ReturnStatus g__utc2time(heapPo h, termPo a1) {
@@ -64,7 +64,7 @@ ReturnStatus g__utc2time(heapPo h, termPo a1) {
   time_t when = timegm(&now);
 
   return (ReturnStatus) {.ret=Ok,
-    .result=(termPo) allocateFloat(h, when + fraction)};
+    .result=makeFloat(when + fraction)};
 }
 
 ReturnStatus g__time2date(heapPo h, termPo a1) {
@@ -95,7 +95,7 @@ ReturnStatus g__time2date(heapPo h, termPo a1) {
   termPo min = makeInteger(now->tm_min);
   setArg(dte, DATE_MIN, min);
 
-  termPo sc = allocateFloat(h, now->tm_sec + fraction);
+  termPo sc = makeFloat(now->tm_sec + fraction);
   setArg(dte, DATE_SEC, sc);
 
   termPo off = makeInteger(now->tm_gmtoff);
@@ -137,7 +137,7 @@ ReturnStatus g__time2utc(heapPo h, termPo a1) {
   termPo min = makeInteger(now->tm_min);
   setArg(dte, DATE_MIN, min);
 
-  termPo sc = allocateFloat(h, now->tm_sec + fraction);
+  termPo sc = makeFloat(now->tm_sec + fraction);
   setArg(dte, DATE_SEC, sc);
 
   termPo off = makeInteger(now->tm_gmtoff);

@@ -31,12 +31,21 @@ static inline termPo makeInteger(integer x){
 extern clssPo floatClass;
 
 static inline logical isFloat(termPo p) {
-  return hasClass(p, floatClass);
+  return pointerTag(p)==fltTg;
 }
 
-extern double floatVal(termPo o);
+static inline double floatVal(termPo o){
+  assert (isFloat(o));
+  return (double)(((uinteger)o)&(((uinteger)-1l)<<2l));
+}
 
-extern integer floatHash(double dx);
+static inline termPo makeFloat(double dx){
+  return ((termPo)((((uinteger)dx)&(((uinteger)-1)<<2ul))|fltTg));
+}
+
+static inline integer floatHash(double dx){
+  return hash62(((uinteger)dx)>>2ul);
+}
 
 extern logical nearlyEqual(double dx1, double dx2, double eps);
 
