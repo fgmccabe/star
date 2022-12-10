@@ -903,7 +903,7 @@ retCode checkSegment(segPo seg, char *errorMsg, long msgLen) {
     }
 #endif
 
-    if (seg->seg.fallThru != Null)
+    if (ret==Ok && seg->seg.fallThru != Null)
       ret = mergeSegVars(seg, seg->seg.fallThru);
 
     return ret;

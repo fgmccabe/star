@@ -226,7 +226,8 @@ transformEquations(Map,Extra,Opts,[Eqn|Defs],Rules,Rx,Ex,Exx) :-
 
 transformEqn(rule(Lc,A,G,Value),OMap,Extra,Opts,[(Lc,Args,Test,Rep)|Rx],Rx,Ex,Exx) :-
   filterVars(Extra,Q0),
-  liftArgPtn(A,AA,Q0,Q1,OMap,Opts,Ex,Ex0), % head args
+  ptnVars(A,Q0,Q0a),
+  liftArgPtn(A,AA,Q0a,Q1,OMap,Opts,Ex,Ex0), % head args
   liftGuard(G,Test,Q1,Q2,OMap,Opts,Ex0,Ex1),
   concat(Extra,AA,Args),
   liftExp(Value,Rep,Q2,_Q3,OMap,Opts,Ex1,Exx). % replacement expression
@@ -288,6 +289,8 @@ liftPtn(XX,whr(Lc,Vr,mtch(Lc,Vr,Val)),Q,Qx,Map,Opts,Ex,Exx) :-
   genVar("ϕ",Vr),
   liftExp(XX,Val,Q,Qx,Map,Opts,Ex,Exx).
 
+trVarPtn(_Lc,Nm,idnt(Nm),Q,Q,_Map,_Opts) :-
+  is_member(idnt(Nm),Q),!.
 trVarPtn(Lc,Nm,A,Q,Qx,Map,Opts) :-
   lookupVar(Map,Nm,V),!,
   implementVarPtn(V,Nm,Lc,A,Map,Opts,Q,Qx).

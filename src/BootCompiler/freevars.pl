@@ -1,4 +1,4 @@
-:-module(freevars,[freeVars/5,freeVarsInAction/5]).
+:-module(freevars,[freeVars/5,ptnVars/3,freeVarsInAction/5]).
 
 :- use_module(canon).
 :- use_module(errors).

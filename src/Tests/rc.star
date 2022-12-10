@@ -7,7 +7,7 @@ test.rc{
 
   kk ::= kk{C:integer}.
 
-  aa ::= aa{A:integer. ii:map[integer,boolean]}.
+  aa ::= aa{A:integer. ii:map[integer,boolean]. b:string. c:map[string,boolean]}.
   
 
   implementation measured[aa->>integer] => {
@@ -36,7 +36,7 @@ test.rc{
   public main:()=>().
   main()=>valof{
     show cont(2).C;
-    AA = aa{A=10. ii=[1->.false, 2->.true]};
+    AA = aa{A=10. ii=[1->.false, 2->.true]. b="hi". c=[]};
 
     show [|AA|];
 
