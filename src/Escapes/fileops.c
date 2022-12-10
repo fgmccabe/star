@@ -255,7 +255,7 @@ ReturnStatus g__file_mode(heapPo h, termPo a1) {
         return liberror(h, FILE_MODE, eNOTFND);
     }
   } else {
-    ReturnStatus ret = {.ret=Ok, .result = (termPo) allocateInteger(h, buf.st_mode)};
+    ReturnStatus ret = {.ret=Ok, .result = makeInteger(buf.st_mode)};
 
     setProcessRunnable(currentProcess);
     return ret;
@@ -379,19 +379,19 @@ ReturnStatus g__file_type(heapPo h, termPo a1) {
   termPo type;
 
   if (S_ISFIFO(buf.st_mode))
-    type = (termPo) allocateInteger(h, fifoFile);
+    type = makeInteger(fifoFile);
   else if (S_ISCHR(buf.st_mode))
-    type = (termPo) allocateInteger(h, charfile);
+    type = makeInteger(charfile);
   else if (S_ISDIR(buf.st_mode))
-    type = (termPo) allocateInteger(h, directory);
+    type = makeInteger(directory);
   else if (S_ISBLK(buf.st_mode))
-    type = (termPo) allocateInteger(h, blockFile);
+    type = makeInteger(blockFile);
   else if (S_ISREG(buf.st_mode))
-    type = (termPo) allocateInteger(h, plainFile);
+    type = makeInteger(plainFile);
   else if (S_ISLNK(buf.st_mode))
-    type = (termPo) allocateInteger(h, symLink);
+    type = makeInteger(symLink);
   else if (S_ISSOCK(buf.st_mode))
-    type = (termPo) allocateInteger(h, fileSocket);
+    type = makeInteger(fileSocket);
   else
     return liberror(h, "__file_type", eINVAL);
 
@@ -434,7 +434,7 @@ ReturnStatus g__file_size(heapPo h, termPo a1) {
         return liberror(h, "__file_size", eNOTFND);
     }
   } else {
-    termPo details = (termPo) allocateInteger(h, buf.st_size);
+    termPo details = makeInteger(buf.st_size);
 
     setProcessRunnable(currentProcess);
 
@@ -478,11 +478,11 @@ ReturnStatus g__file_date(heapPo h, termPo a1) {
         return liberror(h, FILE_DATE, eNOTFND);
     }
   } else {
-    termPo atime = (termPo) allocateInteger(h, buf.st_atime);
+    termPo atime = makeInteger(buf.st_atime);
     int root = gcAddRoot(h, &atime);
-    termPo ctime = (termPo) allocateInteger(h, buf.st_ctime);
+    termPo ctime = makeInteger(buf.st_ctime);
     gcAddRoot(h, &ctime);
-    termPo mtime = (termPo) allocateInteger(h, buf.st_mtime);
+    termPo mtime = makeInteger(buf.st_mtime);
     gcAddRoot(h, &mtime);
     normalPo triple = allocateTpl(h, 3);
 
@@ -533,7 +533,7 @@ ReturnStatus g__file_modified(heapPo h, termPo a1) {
         return liberror(h, FILE_MODIFIED, eNOTFND);
     }
   } else {
-    termPo mtime = (termPo) allocateInteger(h, buf.st_mtime);
+    termPo mtime = makeInteger(buf.st_mtime);
 
     setProcessRunnable(currentProcess);
 

@@ -254,7 +254,7 @@ ReturnStatus g__shell(heapPo h, termPo a1, termPo a2, termPo a3) {
           }
         } else if (WIFEXITED(childStatus)) { /* exited normally */
           return (ReturnStatus) {.ret=Ok,
-            .result = (termPo) allocateInteger(h, WEXITSTATUS(childStatus))};
+            .result = makeInteger(WEXITSTATUS(childStatus))};
         } else if (WIFSIGNALED(childStatus))
           return liberror(h, "__shell", eINTRUPT);
       } while (True);

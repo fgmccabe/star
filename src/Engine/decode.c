@@ -144,7 +144,7 @@ static retCode estimateVoid(void *cl) {
 
 static retCode estimateInt(integer _, void *cl) {
   Estimation *info = (Estimation *) cl;
-  info->amnt += IntegerCellCount;
+
   return Ok;
 }
 
@@ -156,7 +156,6 @@ static retCode estimateFlt(double dx, void *cl) {
 
 static retCode estimateChar(codePoint _, void *cl) {
   Estimation *info = (Estimation *) cl;
-  info->amnt += CharCellCount;
   return Ok;
 }
 
@@ -257,7 +256,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo tmpBuffer
       integer i;
       if ((res = decInt(in, &i)) != Ok)
         return res;
-      *tgt = (termPo) allocateInteger(H, i);
+      *tgt = makeInteger(i);
       return Ok;
     }
     case bigTrm: {
@@ -297,11 +296,11 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo tmpBuffer
     }
     case chrTrm: {
       codePoint cp;
-      tryRet(inChar(in,&cp));
-      if(cp=='\\'){
-        tryRet(inChar(in,&cp));
+      tryRet(inChar(in, &cp));
+      if (cp == '\\') {
+        tryRet(inChar(in, &cp));
       }
-      *tgt = (termPo) allocateCharacter(H, cp);
+      *tgt = allocateCharacter(cp);
       return Ok;
     }
     case strTrm: {

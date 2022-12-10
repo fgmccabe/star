@@ -10,17 +10,6 @@
 #include "code.h"
 #include "termP.h"
 
-typedef struct integer_term *intPo;
-
-typedef struct integer_term {
-  clssPo clss;                  // == integerClass
-  integer ix;
-} IntegerRecord;
-
-#define IntegerCellCount CellCount(sizeof(IntegerRecord))
-
-extern termPo allocateInteger(heapPo H, integer ix);
-
 typedef struct float_term {
   clssPo clss;                  // == floatClass
   double dx;

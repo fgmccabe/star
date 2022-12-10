@@ -144,7 +144,7 @@ ReturnStatus g__str2big(heapPo h, termPo a1) {
 
 ReturnStatus g__big_hash(heapPo h, termPo a1) {
   bignumPo bg = C_BIGNUM(a1);
-  termPo Rs = (termPo) allocateInteger(h, bignumHash(bg));
+  termPo Rs = makeInteger(bignumHash(bg));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
@@ -204,7 +204,7 @@ ReturnStatus g__big2ints(heapPo h, termPo a1) {
   for (integer ix = 0; ix < count; ix++) {
     uint32 segment = digits[ix];
 
-    el = (termPo) allocateInteger(h, segment);
+    el = makeInteger(segment);
     list = (termPo) allocateCons(h, el, list);
   }
 
@@ -235,14 +235,14 @@ ReturnStatus g__big2int(heapPo h, termPo a1) {
   switch (count) {
     case 0:
       return (ReturnStatus) {.ret=Ok,
-        .result=(termPo) wrapSome(h, (termPo) allocateInteger(h, 0))};
+        .result=(termPo) wrapSome(h, makeInteger(0))};
     case 1:
       return (ReturnStatus) {.ret=Ok,
-        .result=(termPo) wrapSome(h, (termPo) allocateInteger(h, (integer) digits[0]))};
+        .result=(termPo) wrapSome(h, makeInteger((integer) digits[0]))};
     case 2: {
       uinteger lge = ((uint64) digits[0]) | (((uint64) digits[1]) << 32);
       return (ReturnStatus) {.ret=Ok,
-        .result=(termPo) wrapSome(h, (termPo) allocateInteger(h, (integer) lge))};
+        .result=(termPo) wrapSome(h, makeInteger((integer) lge))};
     }
     default:
       return (ReturnStatus) {.ret=Ok, .result=noneEnum};

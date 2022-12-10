@@ -126,7 +126,7 @@ ReturnStatus g__today(heapPo h) {
 }
 
 ReturnStatus g__ticks(heapPo h) {
-  termPo now = (termPo) allocateInteger(h, (integer) clock());
+  termPo now = makeInteger((integer) clock());
 
   return (ReturnStatus) {.ret=now != Null ? Ok : Error, .result=now};
 }

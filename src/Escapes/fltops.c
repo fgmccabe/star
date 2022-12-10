@@ -112,7 +112,7 @@ ReturnStatus g__frexp(heapPo h, termPo arg1) {
 
   termPo man = (termPo) allocateFloat(H, frac);
   int root = gcAddRoot(H, &man);
-  termPo ex = (termPo) allocateInteger(H, (integer) exp);
+  termPo ex = makeInteger((integer) exp);
   gcAddRoot(H, &ex);
   termPo Rs = (termPo) allocatePair(H, man, ex);
   gcReleaseRoot(H, root);
@@ -128,7 +128,7 @@ ReturnStatus g__modf(heapPo h, termPo arg1) {
 
   termPo man = (termPo) allocateFloat(H, frac);
   int root = gcAddRoot(H, &man);
-  termPo ex = (termPo) allocateInteger(H, (integer) intgrl);
+  termPo ex = makeInteger((integer) intgrl);
   gcAddRoot(H, &ex);
   termPo Rs = (termPo) allocatePair(H, man, ex);
   gcReleaseRoot(H, root);
@@ -137,7 +137,7 @@ ReturnStatus g__modf(heapPo h, termPo arg1) {
 }
 
 ReturnStatus g__flt2int(heapPo h, termPo arg1) {
-  termPo Rs = (termPo) allocateInteger(h, (integer) floatVal(arg1));
+  termPo Rs = makeInteger((integer) floatVal(arg1));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
@@ -159,19 +159,19 @@ ReturnStatus g__float_bits(heapPo h, termPo arg1) {
     double Dx;
   } Arg;
   Arg.Dx = floatVal(arg1);
-  termPo Rs = (termPo) allocateInteger(h, Arg.Ix);
+  termPo Rs = makeInteger(Arg.Ix);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__flt2str(heapPo h, termPo arg1, termPo p,  termPo m,termPo s) {
+ReturnStatus g__flt2str(heapPo h, termPo arg1, termPo p, termPo m, termPo s) {
   double Arg = floatVal(arg1);
-  int precision = (int)integerVal(p);
+  int precision = (int) integerVal(p);
   codePoint mdc = charVal(m);
-  FloatDisplayMode mode =  (mdc=='f'?fractional:mdc=='s' ? scientific : general);
+  FloatDisplayMode mode = (mdc == 'f' ? fractional : mdc == 's' ? scientific : general);
   char buff[64];
 
-  retCode ret = formatDouble(buff, NumberOf(buff), Arg, mode, precision, s==trueEnum?True:False);
+  retCode ret = formatDouble(buff, NumberOf(buff), Arg, mode, precision, s == trueEnum ? True : False);
   if (ret == Ok) {
     return (ReturnStatus) {.ret=Ok,
       .result = (termPo) allocateString(h, buff, uniStrLen(buff))};
@@ -196,7 +196,7 @@ ReturnStatus g__flt_format(heapPo h, termPo a1, termPo a2) {
 ReturnStatus g__flt_hash(heapPo h, termPo arg1) {
   double Arg = floatVal(arg1);
 
-  termPo Rs = (termPo) allocateInteger(h, floatHash(Arg));
+  termPo Rs = makeInteger(floatHash(Arg));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }

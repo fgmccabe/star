@@ -8,7 +8,6 @@
 #include "term.h"
 
 // Character structure
-extern clssPo charClass;
 
 logical isChar(termPo t);
 

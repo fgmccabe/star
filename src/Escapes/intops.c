@@ -14,25 +14,25 @@
 #include "arithmetic.h"
 
 ReturnStatus g__int_plus(processPo p, heapPo h, termPo a1, termPo a2) {
-  termPo Rs = (termPo) allocateInteger(h, integerVal(a1) + integerVal(a2));
+  termPo Rs = makeInteger(integerVal(a1) + integerVal(a2));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
 ReturnStatus g__int_minus(processPo p, heapPo h, termPo a1, termPo a2) {
-  termPo Rs = (termPo) allocateInteger(h, integerVal(a1) - integerVal(a2));
+  termPo Rs = makeInteger(integerVal(a1) - integerVal(a2));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
 ReturnStatus g__int_times(processPo p, heapPo h, termPo a1, termPo a2) {
-  termPo Rs = (termPo) allocateInteger(h, integerVal(a1) * integerVal(a2));
+  termPo Rs = makeInteger(integerVal(a1) * integerVal(a2));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
 ReturnStatus g__int_div(processPo p, heapPo h, termPo a1, termPo a2) {
-  termPo Rs = (termPo) allocateInteger(h, integerVal(a1) / integerVal(a2));
+  termPo Rs = makeInteger(integerVal(a1) / integerVal(a2));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
@@ -43,7 +43,7 @@ ReturnStatus g__int_mod(processPo p, heapPo h, termPo a1, termPo a2) {
 
   integer reslt = denom % numerator;
 
-  termPo Rs = (termPo) allocateInteger(h, reslt);
+  termPo Rs = makeInteger(reslt);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
@@ -52,7 +52,7 @@ ReturnStatus g__int_gcd(heapPo h, termPo a1, termPo a2) {
   integer gC = intGCD(integerVal(a1), integerVal(a2));
 
   if (gC > 0) {
-    termPo g = (termPo) allocateInteger(h, gC);
+    termPo g = makeInteger(gC);
 
     return (ReturnStatus) {.ret=Ok, .result=g};
   } else {
@@ -64,7 +64,7 @@ ReturnStatus g__band(heapPo h, termPo a1, termPo a2) {
   uint64 Lhs = (uint64) integerVal(a1);
   uint64 Rhs = (uint64) integerVal(a2);
 
-  termPo Rs = (termPo) allocateInteger(h, (integer) (Lhs & Rhs));
+  termPo Rs = makeInteger((integer) (Lhs & Rhs));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
@@ -73,7 +73,7 @@ ReturnStatus g__basr(heapPo h, termPo a1, termPo a2) {
   integer Lhs = integerVal(a1);
   integer Rhs = integerVal(a2);
 
-  termPo Rs = (termPo) allocateInteger(h, Lhs >> Rhs);
+  termPo Rs = makeInteger(Lhs >> Rhs);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
@@ -82,7 +82,7 @@ ReturnStatus g__blsl(heapPo h, termPo a1, termPo a2) {
   uint64 Lhs = (uint64) integerVal(a1);
   uint64 Rhs = (uint64) integerVal(a2);
 
-  termPo Rs = (termPo) allocateInteger(h, (integer) (Lhs << Rhs));
+  termPo Rs = makeInteger((integer) (Lhs << Rhs));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
@@ -91,7 +91,7 @@ ReturnStatus g__blsr(heapPo h, termPo a1, termPo a2) {
   uint64 Lhs = (uint64) integerVal(a1);
   uint64 Rhs = (uint64) integerVal(a2);
 
-  termPo Rs = (termPo) allocateInteger(h, (integer) (Lhs >> Rhs));
+  termPo Rs = makeInteger((integer) (Lhs >> Rhs));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
@@ -100,7 +100,7 @@ ReturnStatus g__bor(heapPo h, termPo a1, termPo a2) {
   uint64 Lhs = (uint64) integerVal(a1);
   uint64 Rhs = (uint64) integerVal(a2);
 
-  termPo Rs = (termPo) allocateInteger(h, (integer) (Lhs | Rhs));
+  termPo Rs = makeInteger((integer) (Lhs | Rhs));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
@@ -109,13 +109,13 @@ ReturnStatus g__bxor(heapPo h, termPo a1, termPo a2) {
   uint64 Lhs = (uint64) integerVal(a1);
   uint64 Rhs = (uint64) integerVal(a2);
 
-  termPo Rs = (termPo) allocateInteger(h, (integer) (Lhs ^ Rhs));
+  termPo Rs = makeInteger((integer) (Lhs ^ Rhs));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
 ReturnStatus g__bnot(heapPo h, termPo arg1) {
-  termPo Rs = (termPo) allocateInteger(h, ~(unsigned) integerVal(arg1));
+  termPo Rs = makeInteger(~(unsigned) integerVal(arg1));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
@@ -149,14 +149,14 @@ ReturnStatus g__int_lt(heapPo h, termPo a1, termPo a2) {
 
 ReturnStatus g__int_abs(heapPo h, termPo a1) {
   integer Arg = integerVal(a1);
-  termPo Rs = (Arg < 0 ? (termPo) allocateInteger(h, -Arg) : a1);
+  termPo Rs = (Arg < 0 ? makeInteger(-Arg) : a1);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
 ReturnStatus g__int_hash(heapPo h, termPo Lhs) {
   integer Arg = integerVal(Lhs);
-  termPo Rs = (Arg < 0 ? (termPo) allocateInteger(h, hash61(Arg)) : Lhs);
+  termPo Rs = (Arg < 0 ? makeInteger(hash61(Arg)) : Lhs);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
@@ -184,7 +184,7 @@ ReturnStatus g__bcount(heapPo h, termPo arg1) {
   integer Arg = integerVal(arg1);
 
   return (ReturnStatus) {.ret=Ok,
-    .result=(termPo) allocateInteger(h, countBits(Arg))};
+    .result=makeInteger(countBits(Arg))};
 }
 
 ReturnStatus g__int2str(heapPo h, termPo arg1) {
@@ -192,7 +192,7 @@ ReturnStatus g__int2str(heapPo h, termPo arg1) {
   char buff[64];
 
   integer len = int2StrByBase(buff, ix, 0, 10);
-  termPo str = (termPo) allocateString(h, buff, len);
+  termPo str = allocateString(h, buff, len);
 
   return (ReturnStatus) {.result = str, .ret=Ok};
 }
@@ -214,7 +214,7 @@ ReturnStatus g__int_format(heapPo h, termPo a1, termPo a2) {
 
 ReturnStatus g__int2flt(heapPo h, termPo arg1) {
   integer Arg = integerVal(arg1);
-  termPo Rs = (termPo) allocateFloat(h, (double) Arg);
+  termPo Rs = allocateFloat(h, (double) Arg);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
@@ -223,8 +223,7 @@ ReturnStatus g__irand(heapPo h, termPo arg1) {
   integer mx = integerVal(arg1);
   integer rnd = randomInt();
 
-  return (ReturnStatus) {.ret=Ok,
-    .result=(termPo) allocateInteger(h, rnd % mx)};
+  return (ReturnStatus) {.ret=Ok, .result=makeInteger(rnd % mx)};
 }
 
 ReturnStatus g__random(heapPo h) {

@@ -27,7 +27,7 @@ ReturnStatus g__chr_ge(heapPo h, termPo a1, termPo a2) {
 }
 
 ReturnStatus g__chr_hash(heapPo h, termPo a1) {
-  return (ReturnStatus) {.ret=Ok, .result=allocateInteger(h, charVal(a1))};
+  return (ReturnStatus) {.ret=Ok, .result=makeInteger(charVal(a1))};
 }
 
 ReturnStatus g__chr_quote(heapPo h, termPo a1) {
@@ -145,12 +145,12 @@ ReturnStatus g__str_hash(heapPo h, termPo a1) {
   }
 
   return (ReturnStatus) {.ret=Ok,
-    .result=(termPo) allocateInteger(h, lhs->hash)};
+    .result=makeInteger(lhs->hash)};
 }
 
 ReturnStatus g__str_len(heapPo h, termPo a1) {
   return (ReturnStatus) {.ret=Ok,
-    .result=(termPo) allocateInteger(h, strLength(C_STR(a1)))};
+    .result= makeInteger(strLength(C_STR(a1)))};
 }
 
 ReturnStatus g__str2flt(heapPo h, termPo a1) {
@@ -179,7 +179,7 @@ ReturnStatus g__str2int(heapPo h, termPo a1) {
   switch (parseInteger(str, &pos, len, &ix)) {
     case Ok:
       return (ReturnStatus) {.ret=Ok,
-        .result=(termPo) wrapSome(H, (termPo) allocateInteger(h, ix))};
+        .result=(termPo) wrapSome(H, makeInteger(ix))};
     default:
       return (ReturnStatus) {.ret=Ok, .result = noneEnum};
   }
@@ -359,7 +359,7 @@ ReturnStatus g__explode(heapPo h, termPo a1) {
       codePoint cp;
       ret = prevPoint(buffer, &pos, &cp);
       if (ret == Ok) {
-        el = (termPo) allocateCharacter(H, cp);
+        el = allocateCharacter(cp);
         list = (termPo) allocateCons(H, el, list);
       }
     }
@@ -416,8 +416,7 @@ ReturnStatus g__str_find(heapPo h, termPo a1, termPo a2, termPo a3) {
 
   integer found = uniSearch(str, len, start, tgt, tlen);
 
-  return (ReturnStatus) {.ret=Ok,
-    .result=(termPo) allocateInteger(h, found)};
+  return (ReturnStatus) {.ret=Ok, .result=makeInteger(found)};
 }
 
 ReturnStatus g__sub_str(heapPo h, termPo a1, termPo a2, termPo a3) {
@@ -445,7 +444,7 @@ ReturnStatus g__str_hdtl(heapPo h, termPo a1) {
   retCode ret = nxtPoint(str, &offset, len, &ch);
 
   if (ret == Ok) {
-    termPo chCode = allocateCharacter(H, ch);
+    termPo chCode = allocateCharacter(ch);
     int mark = gcAddRoot(H, &chCode);
     termPo rest = allocateString(H, &str[offset], len - offset);
     gcAddRoot(H, &rest);
@@ -509,7 +508,7 @@ ReturnStatus g__str_back(heapPo h, termPo a1) {
   retCode ret = prevPoint(str, &offset, &ch);
 
   if (ret == Ok) {
-    termPo chCode = allocateCharacter(H, ch);
+    termPo chCode = allocateCharacter(ch);
     int mark = gcAddRoot(H, (ptrPo) &chCode);
     termPo rest = allocateString(H, str, offset);
     gcAddRoot(H, &rest);
