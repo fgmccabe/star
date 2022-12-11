@@ -9,8 +9,6 @@
 #include <assert.h>
 
 // Integer structure
-extern clssPo integerClass;
-
 static inline logical isInteger(termPo t){
   return pointerTag(t)==intTg;
 }
@@ -27,9 +25,6 @@ static inline termPo makeInteger(integer x){
 }
 
 // Float structure
-
-extern clssPo floatClass;
-
 static inline logical isFloat(termPo p) {
   return pointerTag(p)==fltTg;
 }
