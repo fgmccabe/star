@@ -502,7 +502,7 @@ isLiteral(ctpl(Lbl,Args)) :-
 termHash(voyd,0).
 termHash(intgr(Ix),Ix).
 termHash(bigx(Bx),Hx) :- bigHash(Bx,Hx).
-termHash(float(Dx),Ix) :- Ix is round(Dx).
+termHash(float(Dx),Hx) :- Ix is round(Dx), hashSixtyOne(Ix,Hx).
 termHash(chr(Cp),Ix) :- charHash(0,Cp,Ix).
 termHash(strg(Sx),Ix) :- stringHash(0,Sx,Ix).
 termHash(enum(Sx),Ix) :- termHash(lbl(Sx,0),Ix).

@@ -13,7 +13,7 @@
 	       mangleName/3,mangleName/4,dollarName/2,dotName/2,
 	       splitLocalName/4,getLocalName/2,localName/3,
 	       listShow/5,
-	       charHash/3,stringHash/3,hashSixtyFour/2,hashSixtyOne/2,bigHash/2,
+	       charHash/3,stringHash/3,hashSixtyOne/2,bigHash/2,
 	       stringEndsWith/2,
 	       marker/2,
 	       qualifiedName/3,packageVarName/3,contractName/3,
@@ -299,9 +299,6 @@ bgH(Nm,H,Hx) :-
   H1 is H*37+Rx,
   N1 is Nm // 4294967296,
   bgH(N1,H1,Hx).
-
-hashSixtyFour(H0,H) :-
-  H is H0 /\ 9223372036854775807.
 
 hashSixtyOne(H0,H) :-
   H is H0 /\ 2305843009213693951.
