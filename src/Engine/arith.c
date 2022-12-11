@@ -56,7 +56,7 @@ logical intCmp(specialClassPo cl, termPo t1, termPo t2) {
 }
 
 integer intHash(specialClassPo cl, termPo o) {
-  return hash62(integerVal(o));
+  return hash61(integerVal(o));
 }
 
 static retCode intDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {

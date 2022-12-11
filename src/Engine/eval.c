@@ -979,8 +979,7 @@ retCode run(processPo P) {
         double Lhs = floatVal(pop());
         double Rhs = floatVal(pop());
 
-        checkAlloc(FloatCellCount);
-        termPo Rs = (termPo) allocateFloat(H, Lhs + Rhs);
+        termPo Rs = makeFloat(Lhs + Rhs);
         push(Rs);
         continue;
       }
@@ -988,8 +987,7 @@ retCode run(processPo P) {
         double Lhs = floatVal(pop());
         double Rhs = floatVal(pop());
 
-        checkAlloc(FloatCellCount);
-        termPo Rs = (termPo) allocateFloat(H, Lhs - Rhs);
+        termPo Rs = makeFloat(Lhs - Rhs);
         push(Rs);
         continue;
       }
@@ -997,8 +995,7 @@ retCode run(processPo P) {
         double Lhs = floatVal(pop());
         double Rhs = floatVal(pop());
 
-        checkAlloc(FloatCellCount);
-        termPo Rs = (termPo) allocateFloat(H, Lhs * Rhs);
+        termPo Rs = makeFloat(Lhs * Rhs);
         push(Rs);
         continue;
       }
@@ -1006,8 +1003,7 @@ retCode run(processPo P) {
         double Lhs = floatVal(pop());
         double Rhs = floatVal(pop());
 
-        checkAlloc(FloatCellCount);
-        termPo Rs = (termPo) allocateFloat(H, Lhs / Rhs);
+        termPo Rs = makeFloat(Lhs / Rhs);
         push(Rs);
         continue;
       }
@@ -1015,16 +1011,14 @@ retCode run(processPo P) {
         double Lhs = floatVal(pop());
         double Rhs = floatVal(pop());
 
-        checkAlloc(FloatCellCount);
-        termPo Rs = (termPo) allocateFloat(H, fmod(Lhs, Rhs));
+        termPo Rs = makeFloat(fmod(Lhs, Rhs));
         push(Rs);
         continue;
       }
       case FAbs: {
         double Lhs = floatVal(pop());
 
-        checkAlloc(FloatCellCount);
-        termPo Rs = (termPo) allocateFloat(H, fabs(Lhs));
+        termPo Rs = makeFloat(fabs(Lhs));
         push(Rs);
         continue;
       }
