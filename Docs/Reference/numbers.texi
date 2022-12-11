@@ -18,8 +18,15 @@ There are three standard numeric types: @code{integer}, @code{bigint} and @code{
 @node Integer Type
 @subsection Integer Type
 
-Integers are 61 bits in precision. However, there are also arbitrary
+Integers are 62 bits in precision. However, there are also arbitrary
 precision integers if needed.
+
+@quotation Note
+The restriction to 62 bits facilitates improved space representation
+in the engine. If more precision is required, arbitrary precision
+arithmetic is a good choice.
+@end quotation
+
 
 @node Arbitrary Precision Integers
 @subsection Arbitrary Precision Integers
@@ -236,7 +243,7 @@ is implemented for both @code{integer} and @code{float} values.
 @section Bit Manipulation Functions
 @anchor{bitString}
 
-The bit manipulation functions treat @code{integer} values as 61-bit
+The bit manipulation functions treat @code{integer} values as 62-bit
 bit strings.
 
 @node @code{.&.} Bit-wise Conjunction

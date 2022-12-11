@@ -156,7 +156,7 @@ There are three forms of numeric literal expression: integers
 @cindex integer
 
 The @code{integer} type is used to denote integral values in the range
--1152921504606846976..1152921504606846975.@footnote{I.e., 61 bit
+-2305843009213693952..2305843009213693951.@footnote{I.e., 62 bit
 precision.}
 
 Integers may be written in a variety of styles (see
@@ -173,15 +173,14 @@ range: in principle, a single number could take the entire memory of
 the computer.@footnote{Not recommended.}
 
 Arbitrary precision integers are written as a sequence of decimal
-digits followed by a @code{b} letter:
+digits prefixed by a @code{0b}:
 
 @example
-815915283247897734345611269596115894272000000000b
+0b815915283247897734345611269596115894272000000000
 @end example
 
 It is possible to coerce between so-called @emph{bigint}s and regular
-61 bit integers; although it is not guaranteed to be possible in all
-cases.
+integers; although it is not guaranteed to be possible in all cases.
 
 @node Floating Point Literals
 @subsection Floating Point Literals
@@ -190,6 +189,12 @@ cases.
 The @code{float} type is used to represent fractional values. Floating
 point numbers are represented as IEEE double precision -- i.e., 64
 bit.
+
+@quotation Note
+In fact, the precision of floating numbers is limited to 62 bits. The
+least significant bits are dropped.
+@end quotation
+
 
 The syntax of floating point numbers is given in
 @ref{floatingPointFig}.

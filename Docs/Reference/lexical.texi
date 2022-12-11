@@ -148,7 +148,7 @@ An integer is written using the normal decimal notation (@pxref{decimalFig}):
 @end example
 
 @quotation TIP
-All integers are represented as at least 61 bit values. So-called
+All integers are represented as at least 62 bit values. So-called
 @emph{bigints} have arbitrary precision.
 @end quotation
 
@@ -161,7 +161,7 @@ All integers are represented as at least 61 bit values. So-called
 @end display
 @end float
 
-Normal integers have limited (61bit) precision, whereas big integers
+Normal integers have limited (62bit) precision, whereas big integers
 have unlimited precision.
 
 @node Hexadecimal Integers 

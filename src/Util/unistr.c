@@ -603,6 +603,7 @@ integer wordHash(const uint32 *data, long len) {
   return hash61(hash);
 }
 
+// Ensures that hash codes are always positive
 integer hash61(integer ix){
   return (integer) ((uint64) ix & ((uint64) LARGE_INT61));
 }
