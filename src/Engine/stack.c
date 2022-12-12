@@ -478,7 +478,7 @@ stackPo newStack(processPo P, termPo lam) {
   return child;                                                 // We return the new stack
 }
 
-stackPo spawnStack(processPo P, termPo lam) {
+stackPo splitStack(processPo P, termPo lam) {
   heapPo H = P->heap;
   int root = gcAddRoot(H, (ptrPo) &lam);
   stackPo child = spinupStack(H, minStackSize);

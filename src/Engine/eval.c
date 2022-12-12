@@ -12,7 +12,6 @@
 #include "engineP.h"
 #include "debugP.h"
 #include <math.h>
-#include "utils.h"
 #include "thunk.h"
 #include "continuation.h"
 #include "cellP.h"
@@ -465,7 +464,7 @@ retCode run(processPo P) {
         // The top of a stack should be a unary lambda
         termPo lambda = pop();
         saveRegisters();
-        stackPo child = spawnStack(P, lambda);
+        stackPo child = splitStack(P, lambda);
 
         P->stk = attachStack(STK, child);
         verifyStack(P->stk, H);

@@ -8,12 +8,9 @@
 #include <assert.h>
 #include "engineP.h"      /* access engine definitions */
 
-#include "config.h"    /* pick up standard configuration header */
 #include <memory.h>
-#include <labelsP.h>
 #include <globalsP.h>
 #include <debug.h>
-#include "heap.h"
 
 #ifdef TRACEMEM
 long gcCount = 0;                       /* Number of times GC is invoked */
