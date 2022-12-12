@@ -3,7 +3,9 @@ project(jit)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c99")
 
-string(TOUPPER "${CMAKE_HOST_SYSTEM_PROCESSOR}" JIT_ARCH)
+if (NOT DEFINED JIT_ARCH)
+    string(TOUPPER "${CMAKE_HOST_SYSTEM_PROCESSOR}" JIT_ARCH)
+endif ()
 
 add_subdirectory(${JIT_ARCH})
 
