@@ -39,7 +39,7 @@ typedef enum {
   X28 = 28,
   X29 = 29,
   LR = 30,
-  ZR = 31,
+  XZR = 31,
   SP = 31
 } armReg;
 
@@ -91,14 +91,31 @@ typedef struct {
   } op;
 } armOp;
 
-typedef armOp registerSpec;
-#define PLATFORM_PC_DELTA 0
+typedef enum{
+  imm,  // Immediate value
+  lsli, // Logical shift left immediate
+  lsri, // logical shift right immediate
+  asri, // arithmetic shift right immediate
+  rori, // rotate right immediate
+  reg, // register
+  rox, // rotate right extended
+  lslr, // logical shift left register
+  lsrr, // logical shift right register
+  asrr, // arithmetic shift right register
+  rorr // rotate right register
+} FlexibleMode;
 
-#define RG(Rg) {.mode=Reg, .op.reg=(Rg)}
-#define IM(Vl, Scale) {.mode=Immediate, .op.imm=(Vl), .op.scale=(Scale)}
-#define BS(Rg, Off) {.mode=Based, .op.based.base=(Rg), .op.based.disp=(Off)}
-#define IX(Rg, Ix, Sc) {.mode=Indexed, .op.indexed.base = (Rg), .op.indexed.index=(Ix),  .op.indexed.scale=(Sc)}
-#define LB(l)  {.mode=Labeled, .op.lbl = (l)}
+typedef struct{
+  FlexibleMode mode;
+  uint32 immediate;
+  uint1 hiLo;
+  armReg reg;
+  uint8 shift;
+} FlexOp;
+
+
+typedef armOp registerSpec;
+#define PLATFORM_PC_DELTA (0)
 
 typedef enum {
   LSL = 0,
@@ -125,7 +142,16 @@ typedef enum {
   unsignedOff = 0
 } ixMode;
 
-void add_(armReg d, armReg s1, armOp s2, assemCtxPo ctx);
+void adc_(uint1 wide, armReg rd, armReg s1, armReg s2, assemCtxPo ctx);
+void adcs_(uint1 wide, armReg rd, armReg s1, armReg s2, assemCtxPo ctx);
+void add_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
+void add_x(uint1 w, armReg Rd, armReg Rn, armReg Rm, armExtent ex, uint8 shift, assemCtxPo ctx);
+void adds_x(uint1 w, armReg Rd, armReg Rn, armReg Rm, armExtent ex, uint8 shift, assemCtxPo ctx);
+void adds_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
+
+void adr_(armReg Rd, codeLblPo lbl, assemCtxPo ctx);
+void adrp_(armReg Rd, codeLblPo lbl, assemCtxPo ctx);
+
 void sub_(armReg d, armReg s1, armOp s2, assemCtxPo ctx);
 void and_(armReg d, armReg s1, armOp s2, assemCtxPo ctx);
 
@@ -172,9 +198,6 @@ void csdb_(assemCtxPo ctx);
 void esb_(assemCtxPo ctx);
 
 void extr_(uint1 w, armReg Rd, armReg Rn, armReg Rm, uint8 lsb, assemCtxPo ctx);
-
-void adr_(armReg Rd, codeLblPo lbl, assemCtxPo ctx);
-void adrp_(armReg Rd, codeLblPo lbl, assemCtxPo ctx);
 
 void ldr_(uint1 w, armReg Rt, armReg Rn, uint16 imm, ixMode ix, assemCtxPo ctx);
 void ldrb_imm(armReg Rt, armReg Rn, uint16 imm, ixMode ix, assemCtxPo ctx);
