@@ -50,7 +50,7 @@ escapeType("_big2str",funType(tplType([type("star.core*bigint")]),type("star.cor
 escapeType("_big_format",funType(tplType([type("star.core*bigint"),type("star.core*string")]),type("star.core*string"))).
 escapeType("_fiber_eq",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("s")),kVar("r")),tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("s")),kVar("r"))]),type("star.core*boolean"))))).
 escapeType("_new_fiber",allType(kVar("s"),allType(kVar("r"),funType(tplType([funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s")),kVar("r")]),kVar("s"))]),tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s")))))).
-escapeType("_spawn",allType(kVar("s"),allType(kVar("r"),funType(tplType([funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s"))]),kVar("s"))]),kVar("s"))))).
+escapeType("_stack_split",allType(kVar("s"),allType(kVar("r"),funType(tplType([funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s"))]),kVar("s"))]),kVar("s"))))).
 escapeType("_suspend_fiber",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s")),kVar("s")]),kVar("r"))))).
 escapeType("_retire_fiber",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s")),kVar("s")]),tplType([]))))).
 escapeType("_resume_fiber",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s")),kVar("r")]),kVar("s"))))).
@@ -288,7 +288,7 @@ isEscape("_big2str",44).
 isEscape("_big_format",45).
 isEscape("_fiber_eq",46).
 isEscape("_new_fiber",47).
-isEscape("_spawn",48).
+isEscape("_stack_split",48).
 isEscape("_suspend_fiber",49).
 isEscape("_retire_fiber",50).
 isEscape("_resume_fiber",51).

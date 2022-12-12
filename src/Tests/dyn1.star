@@ -34,7 +34,7 @@ test.dyn1{
 
   f:(integer) => integer.
   f(X) => valof{
-    case _spawn((TryTsk) => valof{
+    case _stack_split((TryTsk) => valof{
 	let{
 	  _throw(E) => valof{
 	    logMsg("retiring...");

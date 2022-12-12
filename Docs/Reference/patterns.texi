@@ -112,14 +112,13 @@ the string pattern @code{"has$"} is not legal. You should use:
 hasDollar("has\$") => true
 @end example
 
-
 @node Literal Numbers
 @subsection Literal Numbers
 @cindex number pattern
 @cindex patterns,literal number
 
-A literal number -- @code{integer} or @code{float} -- as a pattern
-matches exactly that number.
+A literal number -- @code{integer}, @code{bigint} or @code{float} --
+as a pattern matches exactly that number.
 
 The type of the pattern depends on the type of the number literal:
 @code{integer} literals have type @code{integer}, @code{float}

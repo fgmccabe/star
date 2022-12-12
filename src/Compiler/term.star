@@ -1162,7 +1162,7 @@ star.compiler.term{
     .cResume(Lc,F,V,Tp) => mkCons("resme",[Lc::data,frzeExp(F),frzeExp(V),encodeSig(Tp)]).
     .cTry(Lc,B,Er,H,Tp) => mkCons("try",[Lc::data,frzeExp(B),frzeExp(Er),frzeExp(H),encodeSig(Tp)]).
     .cVarNmes(Lc,Vs,B) => mkCons("vrs",[Lc::data,freezeNames(Vs),frzeExp(B)]).
-    .cValof(Lc,A,Tp) => mkCons("valf",[Lc::data,frzeAct(A),encodeSig(Tp)]).
+    .cValof(Lc,A,Tp) => mkCons("valof",[Lc::data,frzeAct(A),encodeSig(Tp)]).
   }
 
   freezeCases:all e ~~ (cons[cCase[e]],(e)=>data) => data.
@@ -1265,13 +1265,14 @@ star.compiler.term{
       .cCont(thawLoc(Lc),.cId(V,decodeSig(Sig)),thawTerm(B),thawTerm(X)).
     .term("unpck",[Lc,G,Cs,Sig]) => .cUnpack(thawLoc(Lc),thawTerm(G),
       thawCases(Cs,thawTerm),decodeSig(Sig)).
-    .term("case",[Lc,G,Cs,D,Sig]) => .cCase(thawLoc(Lc),thawTerm(G),
-      thawCases(Cs,thawTerm),thawTerm(D),decodeSig(Sig)).
+    .term("case",[Lc,G,Cs,Df,Sig]) => .cCase(thawLoc(Lc),thawTerm(G),
+      thawCases(Cs,thawTerm),thawTerm(Df),decodeSig(Sig)).
     .term("abrt",[Lc,.strg(M),Sig]) => .cAbort(thawLoc(Lc),M,decodeSig(Sig)).
     .term("susp",[Lc,F,E,Sig]) => .cSusp(thawLoc(Lc),thawTerm(F),thawTerm(E),decodeSig(Sig)).
     .term("resme",[Lc,F,E,Sig]) => .cResume(thawLoc(Lc),thawTerm(F),thawTerm(E),decodeSig(Sig)).
     .term("try",[Lc,B,E,H,Sig]) => .cTry(thawLoc(Lc),thawTerm(B),thawTerm(E),thawTerm(H),decodeSig(Sig)).
     .term("vrs",[Lc,Vs,B]) => .cVarNmes(thawLoc(Lc),thawVars(Vs),thawTerm(B)).
+    .term("valof",[Lc,A,T]) => .cValof(thawLoc(Lc),thawAct(A),decodeSig(T)).
   }
 
   thawLoc(L:data) => L::option[locn].
