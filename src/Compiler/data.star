@@ -174,8 +174,8 @@ star.compiler.data{
       valis (.symb(Sym),Lx)
     }
     `c` => valof{
-      (Ch,Lx) = decodeChar(Ls);
-      valis (.chr(Ch),Lx)
+      (Chr,Lx) = decodeChar(Ls);
+      valis (.chr(Chr),Lx)
     }
     `s` => valof{
       (Txt,Lx) = decodeText(Ls);
