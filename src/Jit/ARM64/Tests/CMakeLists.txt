@@ -13,7 +13,7 @@ include_directories("../Headers"
 set(TEST_SOURCE_FILES ../../../Util/unitTests.c arm64Tests.c ../../jitinfra.c)
 set(TEST_HEADER_FILES ../Headers/arm64.h ../Headers/arm64P.h ../../../Util/Headers/unitTests.h ../../Headers/jitP.h)
 
-add_executable(armTest EXCLUDE_FROM_ALL ${TEST_SOURCE_FILES} ${TEST_HEADER_FILES})
+add_executable(arm64Test EXCLUDE_FROM_ALL ${TEST_SOURCE_FILES} ${TEST_HEADER_FILES})
 target_link_libraries(arm64Test ARM64 ooio m)
 
 add_custom_target(test64Arm ALL DEPENDS arm64Test

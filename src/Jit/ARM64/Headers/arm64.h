@@ -91,7 +91,7 @@ typedef struct {
   } op;
 } armOp;
 
-typedef enum{
+typedef enum {
   imm,  // Immediate value
   lsli, // Logical shift left immediate
   lsri, // logical shift right immediate
@@ -105,14 +105,13 @@ typedef enum{
   rorr // rotate right register
 } FlexibleMode;
 
-typedef struct{
+typedef struct {
   FlexibleMode mode;
   uint32 immediate;
   uint1 hiLo;
   armReg reg;
   uint8 shift;
 } FlexOp;
-
 
 typedef armOp registerSpec;
 #define PLATFORM_PC_DELTA (0)
@@ -152,8 +151,25 @@ void adds_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
 void adr_(armReg Rd, codeLblPo lbl, assemCtxPo ctx);
 void adrp_(armReg Rd, codeLblPo lbl, assemCtxPo ctx);
 
+void and_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
+void ands_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
+void asr_reg_(uint1 w, armReg RD, armReg S1, armReg S2, assemCtxPo ctx);
+void asr_imm(uint1 w, armReg Rd, armReg Rn, uint8 sh, assemCtxPo ctx);
+void asrv_(uint1 w, armReg RD, armReg S1, armReg S2, assemCtxPo ctx);
+
+void b_cond_(armCond cond, codeLblPo lbl, assemCtxPo ctx);
+void b_(codeLblPo lbl, assemCtxPo ctx);
+void bfc_(uint1 w, armReg RD, uint8 width, uint8 bit, assemCtxPo ctx);
+void bfi_(uint1 w, armReg RD, armReg S, uint8 width, uint8 bit, assemCtxPo ctx);
+void bfxil_(uint1 w, armReg RD, armReg S, uint8 width, uint8 bit, assemCtxPo ctx);
+void bics_(uint1 w, armShift tp, armReg RD, armReg Rn, armReg Rm, uint8 shift, assemCtxPo ctx);
+
+void bl_(codeLblPo lbl, assemCtxPo ctx);
+void blr_(armReg reg, assemCtxPo ctx);
+void br_(armReg reg, assemCtxPo ctx);
+void brk_(uint16 bkpt, assemCtxPo ctx);
+
 void sub_(armReg d, armReg s1, armOp s2, assemCtxPo ctx);
-void and_(armReg d, armReg s1, armOp s2, assemCtxPo ctx);
 
 void orn_(uint1 w, armReg Rd, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx);
 void orr_imm(uint1 w, armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
@@ -175,13 +191,6 @@ void lsr_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx);
 void cmp_(armReg s1, armOp s2, assemCtxPo ctx);
 void tst_(armReg s1, armOp s2, assemCtxPo ctx);
 
-void b_cond_(armCond cond, codeLblPo lbl, assemCtxPo ctx);
-void b_(codeLblPo lbl, assemCtxPo ctx);
-
-void bl_(codeLblPo lbl, assemCtxPo ctx);
-void blr_(armReg reg, assemCtxPo ctx);
-void br_(armReg reg, assemCtxPo ctx);
-void brk_(uint16 bkpt, assemCtxPo ctx);
 void ret_(armReg reg, assemCtxPo ctx);
 
 void cbnz_(uint1 w, armReg Rt, codeLblPo lbl, assemCtxPo ctx);
