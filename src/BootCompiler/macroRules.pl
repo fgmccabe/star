@@ -575,13 +575,16 @@ arrowMacro(E,Md,Rp) :- (Md=expression;Md=pattern),
 /*
   (A)=>R throws E
 becomes
-  throwing[E] |: (A)=>R
+  _throw|=(E)=>_ |: (A)=>R
 */
 
 throwsMacro(T,type,Tx) :-
   isThrows(T,Lc,I,E),!,
-  mkSqType(Lc,"throwing",[E],C),
-%  reportMsg("contract %s",[ast(C)],Lc),
+  roundTuple(Lc,[E],Ta),
+  mkAnon(Lc,Tr),
+  funcType(Lc,Ta,Tr,TTp),
+  mkDynamic(Lc,"_throw",TTp,C),
+%  reportMsg("implicit %s",[ast(C)],Lc),
   reConstrain([C],I,Tx).
 %  reportMsg("%s ==> %s",[ast(T),ast(Tx)],Lc).
 
@@ -595,21 +598,20 @@ throwMacro(A,expression,Ax) :-
 /*
   try A catch H
 becomes
-  case _spawn((Try) => let{
-    _throw(E:ErTp) => valof{
+  case _stack_split((Try) => let{
+  _throw(E) => valof{
       Try retire ._except(E)
     }
   } in
     ._ok(A) ) in {
   ._ok(X) => X
-  ._except(E:ErTp) => case E in H
+  ._except(E) => case E in H
 }
 */
 tryMacro(A,expression,Ax) :-
   isTryCatch(A,Lc,B,H),!,
   genIden(Lc,"Try",Try),
   genIden(Lc,"E",E),
-  genIden(Lc,"ErTp",ErTp),
   genIden(Lc,"X",X),
   % build _throw function
   unary(Lc,"_throw",E,Th),
@@ -618,20 +620,16 @@ tryMacro(A,expression,Ax) :-
   braceTuple(Lc,[A1],A2),
   mkValof(Lc,A2,A3),
   mkEquation(Lc,Th,none,A3,ThrEq),
-  braceTuple(Lc,[ThrEq],Tb),
-  mkSqType(Lc,"throwing",[ErTp],C),
-  implementationStmt(Lc,[],[],C,Tb,ThrImp),
-%  reportMsg("ThrImp ==> %s",[ast(ThrImp)],Lc),
+%  reportMsg("ThrImp ==> %s",[ast(ThrEq)],Lc),
 
   mkConApply(Lc,name(Lc,"_ok"),[B],In),
-  mkLetDef(Lc,[ThrImp],In,Lt1),
+  mkLetDef(Lc,[ThrEq],In,Lt1),
 %  reportMsg("Let ==> %s",[ast(Lt1)],Lc),
   % build spawn response
   mkConApply(Lc,name(Lc,"_ok"),[X],XLhs),
   mkEquation(Lc,XLhs,none,X,Eq1),
 %  reportMsg("Eq1 ==> %s",[ast(Eq1)],Lc),
-  typeAnnotation(Lc,E,ErTp,Ev),
-  mkConApply(Lc,name(Lc,"_except"),[Ev],ELhs),
+  mkConApply(Lc,name(Lc,"_except"),[E],ELhs),
   caseExp(Lc,E,H,ERhs),
   mkEquation(Lc,ELhs,none,ERhs,Eq2),
 %  reportMsg("Eq2 ==> %s",[ast(Eq2)],Lc),

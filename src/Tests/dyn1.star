@@ -4,13 +4,16 @@ test.dyn1{
 
   -- Experiments in throwing
 
-  ff: _throw|=(integer)=>() |: (integer)=>integer.
-  ff(X) => valof{
+  fa: _throw|=(integer)=>() |: (integer)=>integer.
+  fa(X) => valof{
     if X>5 then
       _throw(10)
     else
     valis 3*X
   }
+
+  fe: _throw|=(integer)=>_ |: (integer)=>integer.
+  fe(X) => (X>5 ?? _throw(10) || 3*X).
 
   /*
   f(X) => valof{
@@ -42,7 +45,7 @@ test.dyn1{
 	  }
 	} in {
 	  logMsg("starting f($(X))");
-	  valis .ok(ff(X))
+	  valis .ok(fe(X))
 	}
       }) in {
       .err(E) => {
