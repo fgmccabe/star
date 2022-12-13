@@ -247,14 +247,15 @@ retCode run(processPo P) {
         }
         assert(H->topRoot == 0);
         restoreRegisters();
-        SP += esc->arity;
 
         switch (ret.ret) {
           case Ok:
+            SP += esc->arity;
             if (ret.result != Null)
               push(ret.result);
             continue;
           case Error:
+            SP += esc->arity;
             if (ret.result != Null)
               push(ret.result);
             else
@@ -263,6 +264,8 @@ retCode run(processPo P) {
             continue;
           case Fail:
             bail();
+          case Switch:
+            continue;
           default:
             continue;
         }

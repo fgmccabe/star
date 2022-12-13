@@ -20,7 +20,7 @@ ReturnStatus g__stack_split(heapPo h, termPo lambda) {
   stackPo child = splitStack(currentProcess, lambda);
 
   currentProcess->stk = attachStack(currentProcess->stk, child);
-  return (ReturnStatus) {.ret=Ok, .result = (termPo) child};
+  return (ReturnStatus) {.ret=Switch, .result = Null};
 }
 
 ReturnStatus g__suspend_fiber(heapPo h, termPo f, termPo event) {
