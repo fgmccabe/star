@@ -17,7 +17,8 @@ retCode cmpBytes(byte *lft, byte *rgt, integer count) {
   for (integer ix = 0; ix < count; ix++)
     if (lft[ix] != rgt[ix]) {
       logMsg(logFile, "byte at %d is 0x%x, should be 0x%x", ix, rgt[ix], lft[ix]);
-      logMsg(logFile, "actual bytes: %.*X", count, rgt);
+      logMsg(logFile, "expected bytes (from %d): %.*X", ix, count-ix, lft+ix);
+      logMsg(logFile, "actual bytes (from %d): %.*X", ix, count-ix, rgt+ix);
       return Error;
     }
 
