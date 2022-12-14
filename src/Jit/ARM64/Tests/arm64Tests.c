@@ -10,30 +10,51 @@ static retCode checkCode(uint8 *src, integer srcLen, assemCtxPo ctx);
 static retCode test_adc() {
   assemCtxPo ctx = createCtx();
 
-  adc_(1, X12, X13, X14, ctx);
-  adc_(1, X1, X2, X3, ctx);
-  adcs_(1, X12, X13, X14, ctx);
-  adcs_(1, X1, X2, X3, ctx);
+  adc(X12, X13, X14, ctx);
+  adc(X1, X2, X3, ctx);
+  adcs(X12, X13, X14, ctx);
+  adcs(X1, X2, X3, ctx);
 
+  add(X3, X4, RG(X6), ctx);
+  add(X3, X5, IM(135), ctx);
+  add(X3, X5, IMH(135), ctx);
+  add(X2, X4, LS(X6, 3), ctx);
+  add(X1, X12, RS(X18, 3), ctx);
+  add(X1, X12, AS(X18, 3), ctx);
 
-//  adc(RG(R10), IM(0x11223344), ctx);
-//  adc(RG(RCX), IM(0x55667788), ctx);
-//
-//  adc(RG(R10), BS(RAX, 0x11223344), ctx);
-//  adc(BS(RAX, 0x11223344), RG(R10), ctx);
-//  adc(BS(RCX, 0x11223344), IM(0x55667788), ctx);
-//  adc(BS(R10, 0x11223344), IM(0x55667788), ctx);
-//  adc(BS(R9, 0x11223344), IM(0x55667788), ctx);
-//  adc(BS(RAX, 0x11223344), IM(0x55667788), ctx);
-//
-//  adc(RG(R10), IX(RDX, R10, 8, 0x55), ctx);
-//  adc(IX(RDX, R10, 8, 0x55), RG(R10), ctx);
-//  adc(IX(RDX, R10, 8, 0x55), IM(0x11223344), ctx);
+  adds(X3, X4, RG(X6), ctx);
+  adds(X3, X5, IM(135), ctx);
+  adds(X3, X5, IMH(135), ctx);
+  adds(X2, X4, LS(X6, 3), ctx);
+  adds(X1, X12, RS(X18, 3), ctx);
+  adds(X1, X12, AS(X18, 3), ctx);
 
   uint8 tgt[] = {0xac, 0x01, 0x0e, 0x9a, // adc x12, x13, x14
                  0x41, 0x00, 0x03, 0x9a, // adc x1, x2, x3
-                  0xac, 0x01, 0x0e, 0xba, // adcs x12, x13, x14
+                 0xac, 0x01, 0x0e, 0xba, // adcs x12, x13, x14
                  0x41, 0x00, 0x03, 0xba, // adcs x1, x2, x3
+                 0x83, 0x00, 0x06, 0x8b, // add x3, x4, x6
+                 0xa3, 0x1c, 0x02, 0x91, //	add X3, X5, 135
+                 0xa3, 0x1c, 0x42, 0x91, //	add X3, X5, 135 lsl 12
+                 0x82, 0x0c, 0x06, 0x8b, // add X2, X4, X6, lsl 3
+                 0x81, 0x0d, 0x52, 0x8b, // add x1, x12, x18, lsr 3
+                 0x81, 0x0d, 0x92, 0x8b, // add x1, x12, x18, asr 3
+                 0x83, 0x00, 0x06, 0xab, //	adds X3, X4, X6
+                 0xa3, 0x1c, 0x02, 0xb1, // adds x3, x5, 135
+                 0xa3, 0x1c, 0x42, 0xb1, // adds x3, x5, 135, lsl 12
+                 0x82, 0x0c, 0x06, 0xab, // adds x2, x4, x6, lsl 3
+                 0x81, 0x0d, 0x52, 0xab, // adds x1, x12, x18, lsr 3
+                 0x81, 0x0d, 0x92, 0xab // adds x1, x12, x18, asr 3
+  };
+  return checkCode(tgt, NumberOf(tgt), ctx);
+}
+
+static retCode test_and() {
+  assemCtxPo ctx = createCtx();
+
+  and(X12, X13, IM(0xff00), ctx);
+
+  uint8 tgt[] = {0xac, 0x1d, 0x78, 0x92, // and x12, x13, #0xff00
   };
   return checkCode(tgt, NumberOf(tgt), ctx);
 }
@@ -95,6 +116,7 @@ retCode all_tests() {
   tests_run = 0;
 
   tryRet(run_test(test_adc));
+//  tryRet(run_test(test_and));
 
 //  tryRet(run_test(test_addFun));
 //  tryRet(run_test(test_factFun));

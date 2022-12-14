@@ -367,16 +367,13 @@ void add_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
       encodeAddSubImm(w, 0, 0, 0x22, S2.hiLo, S2.immediate, Rn, Rd, ctx);
       return;
     case lsli: // Logical shift left immediate
-      encode3Reg7Imm(w, 0, 0, 0xb, LSL, 0, S2.reg, S2.shift, Rn, Rd, ctx);
+      encode3Reg7Imm(w, 0, 0, 0xb, LSL, 0, S2.reg, S2.immediate, Rn, Rd, ctx);
       return;
     case lsri :// logical shift right immediate
-      encode3Reg7Imm(w, 0, 0, 0xb, LSR, 0, S2.reg, S2.shift, Rn, Rd, ctx);
+      encode3Reg7Imm(w, 0, 0, 0xb, LSR, 0, S2.reg, S2.immediate, Rn, Rd, ctx);
       return;
     case asri: // arithmetic shift right immediate
-      encode3Reg7Imm(w, 0, 0, 0xb, ASR, 0, S2.reg, S2.shift, Rn, Rd, ctx);
-      return;
-    case rori: // rotate right immediate
-      encode3Reg7Imm(w, 0, 0, 0xb, ROR, 0, S2.reg, S2.shift, Rn, Rd, ctx);
+      encode3Reg7Imm(w, 0, 0, 0xb, ASR, 0, S2.reg, S2.immediate, Rn, Rd, ctx);
       return;
     case reg: // register
       encode3Reg7Imm(w, 0, 0, 0xb, 0, 0, S2.reg, 0, Rn, Rd, ctx);
@@ -400,16 +397,13 @@ void adds_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
       encodeAddSubImm(w, 0, 1, 0x22, S2.hiLo, S2.immediate, Rn, Rd, ctx);
       return;
     case lsli: // Logical shift left immediate
-      encode3Reg7Imm(w, 0, 1, 0xb, LSL, 0, S2.reg, S2.shift, Rn, Rd, ctx);
+      encode3Reg7Imm(w, 0, 1, 0xb, LSL, 0, S2.reg, S2.immediate, Rn, Rd, ctx);
       return;
     case lsri :// logical shift right immediate
-      encode3Reg7Imm(w, 0, 1, 0xb, LSR, 0, S2.reg, S2.shift, Rn, Rd, ctx);
+      encode3Reg7Imm(w, 0, 1, 0xb, LSR, 0, S2.reg, S2.immediate, Rn, Rd, ctx);
       return;
     case asri: // arithmetic shift right immediate
-      encode3Reg7Imm(w, 0, 1, 0xb, ASR, 0, S2.reg, S2.shift, Rn, Rd, ctx);
-      return;
-    case rori: // rotate right immediate
-      encode3Reg7Imm(w, 0, 1, 0xb, ROR, 0, S2.reg, S2.shift, Rn, Rd, ctx);
+      encode3Reg7Imm(w, 0, 1, 0xb, ASR, 0, S2.reg, S2.immediate, Rn, Rd, ctx);
       return;
     case reg: // register
       encode3Reg7Imm(w, 0, 1, 0xb, 0, 0, S2.reg, 0, Rn, Rd, ctx);
@@ -431,19 +425,19 @@ void adrp_(armReg Rd, codeLblPo lbl, assemCtxPo ctx) {
 void and_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
   switch (S2.mode) {
     case imm:  // Immediate value
-      encodeLogImm(w, 0, imm, Rn, Rd, ctx);
+      encodeLogImm(w, 0, S2.immediate, Rn, Rd, ctx);
       return;
     case lsli: // Logical shift left immediate
-      encodeShift3Reg(w, 0, 0, 0xa, LSL, 0, S2.reg, S2.immediate, Rn, Rd, ctx);
+      encode3Reg7Imm(w, 0, 0, 0xa, LSL, 0, S2.reg, S2.immediate, Rn, Rd, ctx);
       return;
     case lsri :// logical shift right immediate
-      encodeShift3Reg(w, 0, 0, 0xa, LSR, 0, S2.reg, S2.immediate, Rn, Rd, ctx);
+      encode3Reg7Imm(w, 0, 0, 0xa, LSR, 0, S2.reg, S2.immediate, Rn, Rd, ctx);
       return;
     case asri: // arithmetic shift right immediate
-      encodeShift3Reg(w, 0, 0, 0xa, ASR, 0, S2.reg, S2.immediate, Rn, Rd, ctx);
+      encode3Reg7Imm(w, 0, 0, 0xa, ASR, 0, S2.reg, S2.immediate, Rn, Rd, ctx);
       return;
     case rori: // rotate right immediate
-      encodeShift3Reg(w, 0, 0, 0xa, ROR, 0, S2.reg, S2.immediate, Rn, Rd, ctx);
+      encode3Reg7Imm(w, 0, 0, 0xa, ROR, 0, S2.reg, S2.immediate, Rn, Rd, ctx);
       return;
     case reg: // register
       encodeShift3Reg(w, 0, 0, 0xa, 0, 0, S2.reg, 0, Rn, Rd, ctx);

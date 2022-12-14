@@ -141,17 +141,36 @@ typedef enum {
   unsignedOff = 0
 } ixMode;
 
+#define RG(Rg) {.mode=reg, .reg=(Rg)}
+#define IM(Vl) {.mode=imm, .immediate=(Vl), .hiLo=0}
+#define IMH(Vl) {.mode=imm, .immediate=(Vl), .hiLo=1}
+#define LS(Rg, Amnt) {.mode=lsli, .reg=Rg, .immediate=(Amnt)}
+#define RS(Rg, Amnt) {.mode=lsri, .reg=Rg, .immediate=(Amnt)}
+#define AS(Rg, Amnt) {.mode=asri, .reg=Rg, .immediate=(Amnt)}
+
+#define BS(Rg, Off) {.mode=Based, .op.based.base=(Rg), .op.based.disp=(Off)}
+#define IX(Rg, Ix, Sc, Off) {.mode=Indexed, .op.indexed.base = (Rg), .op.indexed.index=(Ix), .op.indexed.disp=(Off), .op.indexed.scale=(Sc)}
+#define LB(l)  {.mode=Labeled, .op.lbl = (l)}
+
 void adc_(uint1 wide, armReg rd, armReg s1, armReg s2, assemCtxPo ctx);
+#define adc(rd, s1, s2, ctx) adc_(1, rd, s1, s2,ctx)
 void adcs_(uint1 wide, armReg rd, armReg s1, armReg s2, assemCtxPo ctx);
+#define adcs(rd, s1, s2, ctx) adcs_(1, rd, s1, s2,ctx)
+
 void add_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
+#define add(rd, s1, s2, ctx) do{ FlexOp s=s2; add_(1, rd, s1, s, ctx); } while(False)
+
 void add_x(uint1 w, armReg Rd, armReg Rn, armReg Rm, armExtent ex, uint8 shift, assemCtxPo ctx);
 void adds_x(uint1 w, armReg Rd, armReg Rn, armReg Rm, armExtent ex, uint8 shift, assemCtxPo ctx);
 void adds_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
+#define adds(rd, s1, s2, ctx) do{ FlexOp s=s2; adds_(1, rd, s1, s, ctx); } while(False)
 
 void adr_(armReg Rd, codeLblPo lbl, assemCtxPo ctx);
 void adrp_(armReg Rd, codeLblPo lbl, assemCtxPo ctx);
 
 void and_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
+#define and(rd, s1, s2, ctx) do{ FlexOp s=s2; and_(1, rd, s1, s, ctx); } while(False)
+
 void ands_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
 void asr_reg_(uint1 w, armReg RD, armReg S1, armReg S2, assemCtxPo ctx);
 void asr_imm(uint1 w, armReg Rd, armReg Rn, uint8 sh, assemCtxPo ctx);
