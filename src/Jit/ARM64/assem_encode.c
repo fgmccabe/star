@@ -157,7 +157,7 @@ void encodeExtrct(uint1 w, uint8 opc, uint1 N, uint1 o0, armReg Rm, uint8 imms, 
 
 static void updateCondPc(assemCtxPo ctx, codeLblPo lbl, integer pc) {
   assert(isLabelDefined(lbl));
-  integer delta = (integer)labelTgt(lbl) - (pc + PLATFORM_PC_DELTA);
+  integer delta = (integer) labelTgt(lbl) - (pc + PLATFORM_PC_DELTA);
   uint32 oldIns = readCtxAtPc(ctx, pc);
   uint32 newIns =
     six_bt((oldIns >> 25), 25) | ntn_bt(delta >> 2, 5) | for_bt(oldIns, 0);
@@ -167,11 +167,11 @@ static void updateCondPc(assemCtxPo ctx, codeLblPo lbl, integer pc) {
 void encodeCondBrnch(uint8 op, uint1 o1, codeLblPo lbl, armCond cond, assemCtxPo ctx) {
   if (!isLabelDefined(lbl)) {
     addLabelReference(ctx, lbl, ctx->pc, updateCondPc);
-    emitU32(ctx, ((uint32)(six_bt(op, 25) | for_bt(cond, 0)))); // The rest of the instruction
+    emitU32(ctx, ((uint32) (six_bt(op, 25) | for_bt(cond, 0)))); // The rest of the instruction
   } else {
     integer delta = lblDeltaRef(ctx, lbl);
     check(absolute(delta >> 2) < (1 << 19), "label out of range");
-    emitU32(ctx, ((uint32)(six_bt(op, 25) | ntn_bt(delta >> 2, 5) | for_bt(cond, 0))));
+    emitU32(ctx, ((uint32) (six_bt(op, 25) | ntn_bt(delta >> 2, 5) | for_bt(cond, 0))));
   }
 }
 
@@ -180,11 +180,25 @@ void encodeBranch(uint8 opc, uint8 op2, uint8 op3, armReg Rn, uint8 op4, assemCt
   emitU32(ctx, ins);
 }
 
+static void updateBPc(assemCtxPo ctx, codeLblPo lbl, integer pc) {
+  assert(isLabelDefined(lbl));
+  integer delta = (integer) labelTgt(lbl) - (pc + PLATFORM_PC_DELTA);
+  uint32 oldIns = readCtxAtPc(ctx, pc);
+  uint32 newIns =
+    six_bt((oldIns >> 26), 26) | tsx_bt(delta >> 2, 0);
+  updateU32(ctx, pc, newIns);
+}
+
 void encodeBranchImm(uint1 op, codeLblPo lbl, assemCtxPo ctx) {
-  integer delta = lblDeltaRef(ctx, lbl);
-  check(absolute(delta >> 2) < (1 << 26), "label out of range");
-  uint32 ins = one_bt(op, 31) | fiv_bt(0x56, 25) | tsx_bt(delta, 0);
-  emitU32(ctx, ins);
+  if (!isLabelDefined(lbl)) {
+    addLabelReference(ctx, lbl, ctx->pc, updateBPc);
+    emitU32(ctx, fiv_bt(5, 26)); // The rest of the instruction
+  } else {
+    integer delta = lblDeltaRef(ctx, lbl);
+    check(absolute(delta >> 2) < (1 << 26), "label out of range");
+    uint32 ins = one_bt(op, 31) | fiv_bt(0x5, 26) | tsx_bt(delta>>2, 0);
+    emitU32(ctx, ins);
+  }
 }
 
 void encodeCmpBr(uint1 b5, uint1 op, codeLblPo lbl, armReg Rt, assemCtxPo ctx) {

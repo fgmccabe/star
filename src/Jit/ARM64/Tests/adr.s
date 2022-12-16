@@ -22,7 +22,8 @@ _adc:	adr	X10, _adc
 1:	b.eq	1b
 	b.nv    1b
 	b.hi    2f
-2:	
+	b	2f
+2:	b	2b
 
 helloworld:	.ascii "Hi there\n"
 	.end

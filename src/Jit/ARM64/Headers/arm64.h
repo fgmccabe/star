@@ -199,6 +199,8 @@ void b_cond_(armCond cond, codeLblPo lbl, assemCtxPo ctx);
 #define bnv(lbl,ctx) do{ b_cond_(NV, lbl, ctx); } while(False)
 
 void b_(codeLblPo lbl, assemCtxPo ctx);
+#define b(lbl,ctx) do{ b_(lbl, ctx); } while(False)
+
 void bfc_(uint1 w, armReg RD, uint8 width, uint8 bit, assemCtxPo ctx);
 void bfi_(uint1 w, armReg RD, armReg S, uint8 width, uint8 bit, assemCtxPo ctx);
 void bfxil_(uint1 w, armReg RD, armReg S, uint8 width, uint8 bit, assemCtxPo ctx);
