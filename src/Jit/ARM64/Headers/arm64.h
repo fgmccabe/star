@@ -107,7 +107,7 @@ typedef enum {
 
 typedef struct {
   FlexibleMode mode;
-  uint32 immediate;
+  uint64 immediate;
   uint1 hiLo;
   armReg reg;
   uint8 shift;
@@ -147,6 +147,7 @@ typedef enum {
 #define LS(Rg, Amnt) {.mode=lsli, .reg=Rg, .immediate=(Amnt)}
 #define RS(Rg, Amnt) {.mode=lsri, .reg=Rg, .immediate=(Amnt)}
 #define AS(Rg, Amnt) {.mode=asri, .reg=Rg, .immediate=(Amnt)}
+#define RR(Rg, Amnt) {.mode=rori, .reg=Rg, .immediate=(Amnt)}
 
 #define BS(Rg, Off) {.mode=Based, .op.based.base=(Rg), .op.based.disp=(Off)}
 #define IX(Rg, Ix, Sc, Off) {.mode=Indexed, .op.indexed.base = (Rg), .op.indexed.index=(Ix), .op.indexed.disp=(Off), .op.indexed.scale=(Sc)}
@@ -154,7 +155,7 @@ typedef enum {
 
 void adc_(uint1 wide, armReg rd, armReg s1, armReg s2, assemCtxPo ctx);
 #define adc(rd, s1, s2, ctx) adc_(1, rd, s1, s2,ctx)
-void adcs_(uint1 wide, armReg rd, armReg s1, armReg s2, assemCtxPo ctx);
+void adcs_(uint1 wide, armReg rd, armReg Rn, armReg Rm, assemCtxPo ctx);
 #define adcs(rd, s1, s2, ctx) adcs_(1, rd, s1, s2,ctx)
 
 void add_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
@@ -166,17 +167,37 @@ void adds_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
 #define adds(rd, s1, s2, ctx) do{ FlexOp s=s2; adds_(1, rd, s1, s, ctx); } while(False)
 
 void adr_(armReg Rd, codeLblPo lbl, assemCtxPo ctx);
+#define adr(Rd, lbl, ctx) do{ adr_(Rd, lbl, ctx); } while(False)
+
 void adrp_(armReg Rd, codeLblPo lbl, assemCtxPo ctx);
 
 void and_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
 #define and(rd, s1, s2, ctx) do{ FlexOp s=s2; and_(1, rd, s1, s, ctx); } while(False)
 
 void ands_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
-void asr_reg_(uint1 w, armReg RD, armReg S1, armReg S2, assemCtxPo ctx);
-void asr_imm(uint1 w, armReg Rd, armReg Rn, uint8 sh, assemCtxPo ctx);
-void asrv_(uint1 w, armReg RD, armReg S1, armReg S2, assemCtxPo ctx);
+#define ands(rd, s1, s2, ctx) do{ FlexOp s=s2; ands_(1, rd, s1, s, ctx); } while(False)
+
+void asr_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
+#define asr(rd, s1, s2, ctx) do{ FlexOp s=s2; asr_(1, rd, s1, s, ctx); } while(False)
 
 void b_cond_(armCond cond, codeLblPo lbl, assemCtxPo ctx);
+#define beq(lbl,ctx) do{ b_cond_(EQ, lbl, ctx); } while(False)
+#define bne(lbl,ctx) do{ b_cond_(NE, lbl, ctx); } while(False)
+#define bcs(lbl,ctx) do{ b_cond_(CS, lbl, ctx); } while(False)
+#define bcc(lbl,ctx) do{ b_cond_(CC, lbl, ctx); } while(False)
+#define bmi(lbl,ctx) do{ b_cond_(MI, lbl, ctx); } while(False)
+#define bpl(lbl,ctx) do{ b_cond_(PL, lbl, ctx); } while(False)
+#define bvs(lbl,ctx) do{ b_cond_(VS, lbl, ctx); } while(False)
+#define bvc(lbl,ctx) do{ b_cond_(VC, lbl, ctx); } while(False)
+#define bhi(lbl,ctx) do{ b_cond_(HI, lbl, ctx); } while(False)
+#define bls(lbl,ctx) do{ b_cond_(LS, lbl, ctx); } while(False)
+#define bge(lbl,ctx) do{ b_cond_(GE, lbl, ctx); } while(False)
+#define blt(lbl,ctx) do{ b_cond_(LT, lbl, ctx); } while(False)
+#define bgt(lbl,ctx) do{ b_cond_(GT, lbl, ctx); } while(False)
+#define ble(lbl,ctx) do{ b_cond_(LE, lbl, ctx); } while(False)
+#define bal(lbl,ctx) do{ b_cond_(AL, lbl, ctx); } while(False)
+#define bnv(lbl,ctx) do{ b_cond_(NV, lbl, ctx); } while(False)
+
 void b_(codeLblPo lbl, assemCtxPo ctx);
 void bfc_(uint1 w, armReg RD, uint8 width, uint8 bit, assemCtxPo ctx);
 void bfi_(uint1 w, armReg RD, armReg S, uint8 width, uint8 bit, assemCtxPo ctx);

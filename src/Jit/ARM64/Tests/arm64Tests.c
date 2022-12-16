@@ -49,12 +49,74 @@ static retCode test_adc() {
   return checkCode(tgt, NumberOf(tgt), ctx);
 }
 
+static retCode test_adr() {
+  assemCtxPo ctx = createCtx();
+  codeLblPo l0 = defineLabel(ctx, "l0", ctx->pc);
+  codeLblPo l1 = defineLabel(ctx, "l1", undefinedPc);
+
+  adr(X10, l0, ctx);
+  adr(X12, l1, ctx);
+
+  setLabel(ctx, l1);
+
+  uint8 tgt[] = {0x0a, 0x00, 0x00, 0x10, // adr x10, adc
+                 0x2c, 0x00, 0x00, 0x10, // adr 12, 1f
+  };
+  return checkCode(tgt, NumberOf(tgt), ctx);
+}
+
 static retCode test_and() {
   assemCtxPo ctx = createCtx();
 
+  and(X12, X13, IM(0x3333333333333333), ctx);
   and(X12, X13, IM(0xff00), ctx);
+  and(X1, X2, RG(X3), ctx);
+  and(X3, X5, LS(X6, 3), ctx);
+  and(X3, X5, RS(X6, 3), ctx);
+  and(X3, X5, RR(X6, 3), ctx);
 
-  uint8 tgt[] = {0xac, 0x1d, 0x78, 0x92, // and x12, x13, #0xff00
+  ands(X12, X13, IM(0x3333333333333333), ctx);
+  ands(X12, X13, IM(0xff00), ctx);
+  ands(X1, X2, RG(X3), ctx);
+  ands(X3, X5, LS(X6, 3), ctx);
+  ands(X3, X5, RS(X6, 3), ctx);
+  ands(X3, X5, RR(X6, 3), ctx);
+
+  asr(X12, X13, IM(0xf), ctx);
+  asr(X1, X2, RG(X3), ctx);
+
+  uint8 tgt[] = {0xac, 0xe5, 0x00, 0x92,  //and	X12, X13, #0x3333333333333333
+                 0xac, 0x1d, 0x78, 0x92, // and x12, x13, #0xff00
+                 0x41, 0x00, 0x03, 0x8a,  // and x1, x2, x3
+                 0xa3, 0x0c, 0x06, 0x8a, // and x3,x5,x6, lsl 3
+                 0xa3, 0x0c, 0x46, 0x8a, // and x3,x5,x6, lsr 3
+                 0xa3, 0x0c, 0xc6, 0x8a, // and x3,x5,x6, ror 3
+                 0xac, 0xe5, 0x00, 0xf2,//ands	X12, X13, #0x3333333333333333
+                 0xac, 0x1d, 0x78, 0xf2,// ands x12, x13, #0xff00
+                 0x41, 0x00, 0x03, 0xea, // ands x1, x2, x3
+                 0xa3, 0x0c, 0x06, 0xea,// ands x3,x5,x6, lsl 3
+                 0xa3, 0x0c, 0x46, 0xea,// ands x3,x5,x6, lsr 3
+                 0xa3, 0x0c, 0xc6, 0xea, // ands x3,x5,x6, ror 3
+                 0xac, 0xfd, 0x4f, 0x93, // asr x12, x13, 0xf
+                 0x41, 0x28, 0xc3, 0x9a, // asr x1, x2, x3
+  };
+  return checkCode(tgt, NumberOf(tgt), ctx);
+}
+
+static retCode test_b() {
+  assemCtxPo ctx = createCtx();
+  codeLblPo l0 = defineLabel(ctx, "l0", ctx->pc);
+  codeLblPo l1 = defineLabel(ctx, "l1", undefinedPc);
+
+  beq(l0, ctx);
+  bnv(l0, ctx);
+  bhi(l1,ctx);
+  setLabel(ctx, l1);
+
+
+  uint8 tgt[] = {0x00, 0x00, 0x00, 0x54, // b.eq 1b
+                 0xef, 0xff, 0xff, 0x54,   // b.nv 1b
+                 0x28, 0x00, 0x00, 0x54 // b.hi 2f
   };
   return checkCode(tgt, NumberOf(tgt), ctx);
 }
@@ -116,7 +178,9 @@ retCode all_tests() {
   tests_run = 0;
 
   tryRet(run_test(test_adc));
-//  tryRet(run_test(test_and));
+  tryRet(run_test(test_and));
+  tryRet(run_test(test_adr));
+  tryRet(run_test(test_b));
 
 //  tryRet(run_test(test_addFun));
 //  tryRet(run_test(test_factFun));

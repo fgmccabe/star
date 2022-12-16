@@ -1,5 +1,5 @@
 	//
-	// Test out and - asr arm instructions
+	// Test out adr arm instructions
 	//
 	.global _start
 	.align 2
@@ -17,22 +17,12 @@ _start:	mov X0, #1     // 1 = StdOut
         mov     X16, #1     // Service command code 1 terminates this program
         svc     0           // Call MacOS to terminate the program
 
-_adc:	and	X12, X13, #0x3333333333333333
-	and	X12, X13, #0xff00
-	and     X1, X2, X3
-	and	X3, X5, X6, lsl 3
-	and	X3, X5, X6, lsr 3
-	and	X3, X5, X6, ror 3
+_adc:	adr	X10, _adc
+	adr	x12, 1f
+1:	b.eq	1b
+	b.nv    1b
+	b.hi    2f
+2:	
 
-	ands	X12, X13, #0x3333333333333333
-	ands	X12, X13, #0xff00
-	ands     X1, X2, X3
-	ands	X3, X5, X6, lsl 3
-	ands	X3, X5, X6, lsr 3
-	ands	X3, X5, X6, ror 3
-
-	asr	 X12, X13, #0xf
-	asr     X1, X2, X3
-	
 helloworld:	.ascii "Hi there\n"
 	.end
