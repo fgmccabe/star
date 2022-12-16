@@ -61,6 +61,25 @@ integer lg2(integer ix) {
   return (integer) r;
 }
 
+integer countBits(integer ix) {
+  uinteger ux = (unsigned) ix;
+
+  static uinteger SK5 = 0x5555555555555555;
+  static uinteger SK3 = 0x3333333333333333;
+  static uinteger SKF0 = 0x0F0F0F0F0F0F0F0F;
+  static uinteger SKFF = 0x00FF00FF00FF00FF;
+  static uinteger SKFF16 = 0x0000FFFF0000FFFF;
+  static uinteger SKFF32 = 0x00000000FFFFFFFF;
+
+  ux = (ux & SK5) + ((ux >> 1u) & SK5);
+  ux = (ux & SK3) + ((ux >> 2u) & SK3);
+  ux = (ux & SKF0) + ((ux >> 4u) & SKF0);
+  ux = (ux & SKFF) + ((ux >> 8u) & SKFF);
+  ux = (ux & SKFF16) + ((ux >> 16u) & SKFF16);
+  ux = (ux & SKFF32) + ((ux >> 32u) & SKFF32);
+  return (integer) ux;
+}
+
 integer intGCD(integer a, integer b) {
   a = absolute(a);
   b = absolute(b);

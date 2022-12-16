@@ -1,4 +1,5 @@
 adc-add
 and-asr
+adr
 *.o
 

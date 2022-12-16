@@ -89,9 +89,11 @@ arrayPo eraseArray(arrayPo ar, arrayElProc eraser, void *cl) {
 
 retCode processArrayElements(arrayPo ar, arrayElProc proc, void *cl) {
   retCode ret = Ok;
-  for (integer ix = 0; ret == Ok && ix < ar->count; ix++) {
-    void *el = ar->data + (ar->elSize * ix);
-    ret = proc(el, ix, cl);
+  if (ar != Null) {
+    for (integer ix = 0; ret == Ok && ix < ar->count; ix++) {
+      void *el = ar->data + (ar->elSize * ix);
+      ret = proc(el, ix, cl);
+    }
   }
   return ret;
 }

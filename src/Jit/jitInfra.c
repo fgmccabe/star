@@ -121,17 +121,17 @@ logical isLabelDefined(codeLblPo lbl) {
   return lbl->pc != undefinedPc;
 }
 
-uint64 labelTgt(codeLblPo lbl){
+uint64 labelTgt(codeLblPo lbl) {
   assert(isLabelDefined(lbl));
   return lbl->pc;
 }
 
-#define UNDEF_LBL_LANDING_PAD 0x11223344
+#define UNDEF_LBL_LANDING_PAD 0x12244
 
 void labelDisp32(assemCtxPo ctx, codeLblPo lbl, integer pc) {
   check(readCtxAtPc(ctx, pc) == UNDEF_LBL_LANDING_PAD, "bad label reference");
 
-  integer delta = (integer)labelTgt(lbl) - (pc + PLATFORM_PC_DELTA);
+  integer delta = (integer) labelTgt(lbl) - (pc + PLATFORM_PC_DELTA);
   if (isI32(delta)) {
     updateU32(ctx, pc, delta);
   } else {
@@ -139,16 +139,16 @@ void labelDisp32(assemCtxPo ctx, codeLblPo lbl, integer pc) {
   }
 }
 
-integer lblDeltaRef(assemCtxPo ctx, codeLblPo tgt){
-  if(isLabelDefined(tgt))
-    return (integer)labelTgt(tgt) - (ctx->pc+PLATFORM_PC_DELTA);
+integer lblDeltaRef(assemCtxPo ctx, codeLblPo tgt) {
+  if (isLabelDefined(tgt))
+    return (integer) labelTgt(tgt) - (ctx->pc + PLATFORM_PC_DELTA);
   else
     return UNDEF_LBL_LANDING_PAD;
 }
 
 void emitLblRef(assemCtxPo ctx, codeLblPo tgt) {
   if (isLabelDefined(tgt)) {
-    integer delta = (integer)labelTgt(tgt) - (ctx->pc + PLATFORM_PC_DELTA);
+    integer delta = (integer) labelTgt(tgt) - (ctx->pc + PLATFORM_PC_DELTA);
     if (!isI32(delta)) {
       check(False, "label displacement too large");
       return;
@@ -184,7 +184,7 @@ void updateU32(assemCtxPo ctx, integer pc, uint32 word) {
   ctx->bytes[pc++] = (word & 0xffu);
   ctx->bytes[pc++] = (word >> 8u) & 0xffu;
   ctx->bytes[pc++] = (word >> 16u) & 0xffu;
-  ctx->bytes[pc] = (word >> 23u) & 0xffu;
+  ctx->bytes[pc] = (word >> 24u) & 0xffu;
 }
 
 uint32 readCtxAtPc(assemCtxPo ctx, integer pc) {

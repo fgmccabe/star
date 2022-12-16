@@ -5,6 +5,13 @@ adc-add: adc-add.o
 	-e _start \
 	-arch arm64
 
+adr: adr.o
+	ld -o adr adr.o \
+         -lSystem \
+	-syslibroot `xcrun -sdk macosx --show-sdk-path` \
+	-e _start \
+	-arch arm64
+
 and-asr: and-asr.o
 	ld -o and-asr and-asr.o \
          -lSystem \
