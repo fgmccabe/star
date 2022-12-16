@@ -110,13 +110,16 @@ static retCode test_b() {
 
   beq(l0, ctx);
   bnv(l0, ctx);
-  bhi(l1,ctx);
+  bhi(l1, ctx);
+  b(l1, ctx);
   setLabel(ctx, l1);
-
+  b(l1, ctx);
 
   uint8 tgt[] = {0x00, 0x00, 0x00, 0x54, // b.eq 1b
                  0xef, 0xff, 0xff, 0x54,   // b.nv 1b
-                 0x28, 0x00, 0x00, 0x54 // b.hi 2f
+                 0x48, 0x00, 0x00, 0x54, // b.hi 2f
+                 0x01, 0x00, 0x00, 0x14, // b 2f
+                 0x00, 0x00, 0x00, 0x14 // b 2b
   };
   return checkCode(tgt, NumberOf(tgt), ctx);
 }
