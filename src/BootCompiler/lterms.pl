@@ -132,6 +132,11 @@ ssTrm(ltt(_,Vr,Bnd,Exp),Dp,sq([ss("let "),VV,ss("="),BB,ss(" in "),EE])) :-!,
   ssTrm(Vr,Dp1,VV),
   ssTrm(Bnd,Dp1,BB),
   ssTrm(Exp,Dp1,EE).
+ssTrm(cntlt(_,Vr,Bnd,Exp),Dp,sq([ss("cont "),VV,ss("="),BB,ss(" in "),EE])) :-!,
+  Dp1 is Dp+2,
+  ssTrm(Vr,Dp1,VV),
+  ssTrm(Bnd,Dp1,BB),
+  ssTrm(Exp,Dp1,EE).
 ssTrm(varNames(_,Vars,Value),Dp,sq([ss("vars:"),VV,ss("->"),EE])) :-!,
   ssVarNames(Vars,Dp,VV),
   ssTrm(Value,Dp,EE).
