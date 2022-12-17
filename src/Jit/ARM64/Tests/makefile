@@ -33,5 +33,12 @@ bfc: bf.o
 	-e _start \
 	-arch arm64
 
+cas: cas.o
+	ld -o cas cas.o \
+         -lSystem \
+	-syslibroot `xcrun -sdk macosx --show-sdk-path` \
+	-e _start \
+	-arch arm64
+
 .o: .s
 	as -o $@.o $@.s
