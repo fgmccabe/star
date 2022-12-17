@@ -251,36 +251,36 @@ void brk_(uint16 bkpt, assemCtxPo ctx) {
   emitU32(ctx, ins);
 }
 
-void casab_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+void casab(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
   encodeCas(0, 1, Rs, 0, XZR, Rn, Rt, ctx);
 }
 
-void casalb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+void casalb(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
   encodeCas(0, 1, Rs, 1, XZR, Rn, Rt, ctx);
 }
 
-void casb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+void casb(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
   encodeCas(0, 0, Rs, 0, XZR, Rn, Rt, ctx);
 }
 
-void caslb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+void caslb(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
   encodeCas(0, 0, Rs, 1, XZR, Rn, Rt, ctx);
 }
 
-void casah_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeCas(1, 0, Rs, 0, XZR, Rn, Rt, ctx);
-}
-
-void casalh_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeCas(1, 1, Rs, 1, XZR, Rn, Rt, ctx);
-}
-
-void cash_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+void casah(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
   encodeCas(1, 1, Rs, 0, XZR, Rn, Rt, ctx);
 }
 
-void caslh_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+void casalh(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
   encodeCas(1, 1, Rs, 1, XZR, Rn, Rt, ctx);
+}
+
+void cash(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeCas(1, 0, Rs, 0, XZR, Rn, Rt, ctx);
+}
+
+void caslh(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeCas(1, 0, Rs, 1, XZR, Rn, Rt, ctx);
 }
 
 void casp_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
@@ -296,7 +296,7 @@ void caspal_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
 }
 
 void caspl_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeCasPr(w, 1, Rs, 1, XZR, Rn, Rt, ctx);
+  encodeCasPr(w, 0, Rs, 1, XZR, Rn, Rt, ctx);
 }
 
 void casa_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {

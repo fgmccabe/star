@@ -228,6 +228,32 @@ void br_(armReg reg, assemCtxPo ctx);
 void brk_(uint16 bkpt, assemCtxPo ctx);
 #define brk(bkpt, ctx) do{ brk_(bkpt, ctx); } while(False)
 
+void casab(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void casalb(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void casb(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void caslb(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void casah(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void casalh(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void cash(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void caslh(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+void casp_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+#define casp(Rs, Rt, Rn, cxt) casp_(1, Rs, Rt, Rn, ctx)
+void caspa_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+#define caspa(Rs, Rt, Rn, cxt) caspa_(1, Rs, Rt, Rn, ctx)
+void caspal_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+#define caspal(Rs, Rt, Rn, cxt) caspal_(1, Rs, Rt, Rn, ctx)
+void caspl_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+#define caspl(Rs, Rt, Rn, cxt) caspl_(1, Rs, Rt, Rn, ctx)
+
+void casa_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+#define casa(Rs, Rt, Rn, cxt) casa_(1, Rs, Rt, Rn, ctx)
+void casal_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+#define casal(Rs, Rt, Rn, cxt) casal_(1, Rs, Rt, Rn, ctx)
+void cas_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+#define cas(Rs, Rt, Rn, cxt) cas_(1, Rs, Rt, Rn, ctx)
+void casl_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+#define casl(Rs, Rt, Rn, cxt) casl_(1, Rs, Rt, Rn, ctx)
+
 void sub_(armReg d, armReg s1, armOp s2, assemCtxPo ctx);
 
 void orn_(uint1 w, armReg Rd, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx);
@@ -347,21 +373,5 @@ void stllrb_(armReg Rt, armReg Rn, assemCtxPo ctx);
 void stllrh_(armReg Rd, armReg Rn, assemCtxPo ctx);
 void stllr_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx);
 
-void casab_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
-void casalb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
-void casb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
-void caslb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
-void casah_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
-void casalh_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
-void cash_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
-void caslh_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
-void casp_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
-void caspa_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
-void caspal_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
-void caspl_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
-void casa_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
-void casal_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
-void cas_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
-void casl_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
 
 #endif

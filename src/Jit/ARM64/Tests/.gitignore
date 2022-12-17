@@ -3,5 +3,6 @@ and-asr
 adr
 b
 bfc
+cas
 *.o
 

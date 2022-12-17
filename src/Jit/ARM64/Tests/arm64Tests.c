@@ -117,7 +117,7 @@ static retCode test_b() {
   setLabel(ctx, l1);
   b(l1, ctx);
   setLabel(ctx, l2);
-  bl(l2,ctx);
+  bl(l2, ctx);
   bl(l3, ctx);
   blr(X12, ctx);
   br(X13, ctx);
@@ -168,6 +168,61 @@ static retCode test_bit() {
                  0x28, 0x11, 0x6a, 0xea, // bics x8, x9, x10 lsr #4
                  0x28, 0x11, 0xaa, 0xea, // bics x8, x9, x10 asr #4
                  0x28, 0x11, 0xea, 0xea // bics x8, x9, x10 ror #4
+  };
+  return checkCode(tgt, NumberOf(tgt), ctx);
+}
+
+static retCode test_cas() {
+  assemCtxPo ctx = createCtx();
+
+  casb(X6, X8, X3, ctx);
+  casab(X10, X3, X2, ctx);
+  casab(X10, X3, SP, ctx);
+  casalb(X10, X3, X5, ctx);
+  caslb(X10, X3, X0, ctx);
+
+  cash(X6, X8, X3, ctx);
+  casah(X10, X3, X2, ctx);
+  casah(X10, X3, SP, ctx);
+  casalh(X10, X3, X5, ctx);
+  caslh(X10, X3, X0, ctx);
+
+  casp(X6, X8, X3, ctx);
+  caspa(X10, X2, X2, ctx);
+  caspa(X10, X2, SP, ctx);
+  caspal(X10, X2, X5, ctx);
+  caspl(X10, X2, X0, ctx);
+
+  cas(X6, X8, X3, ctx);
+  casa(X10, X3, X2, ctx);
+  casa(X10, X3, SP, ctx);
+  casal(X10, X3, X5, ctx);
+  casl(X10, X3, X0, ctx);
+
+  uint8 tgt[] = {
+    0x68, 0x7c, 0xa6, 0x08, // casb w6, w8, [x3]
+    0x43, 0x7c, 0xea, 0x08, // casab w10, w3, [x2]
+    0xe3, 0x7f, 0xea, 0x08, // casab w10, w3, [sp]
+    0xa3, 0xfc, 0xea, 0x08, // casalb w10, w3 [x5]
+    0x03, 0xfc, 0xaa, 0x08, // calb w10, w3, [x0]
+
+    0x68, 0x7c, 0xa6, 0x48, // cash w6, w8, [x3]
+    0x43, 0x7c, 0xea, 0x48, // casah w10, w3, [x2]
+    0xe3, 0x7f, 0xea, 0x48, // casah w10, w3, [sp]
+    0xa3, 0xfc, 0xea, 0x48, // casalh w10, w3 [x5]
+    0x03, 0xfc, 0xaa, 0x48, // calh w10, w3, [x0]]
+
+    0x68, 0x7c, 0x26, 0x48, // casp x6/7, x8/9, [x3]
+    0x42, 0x7c, 0x6a, 0x48, // caspa x10/11, x2/3, [x2]
+    0xe2, 0x7f, 0x6a, 0x48, // caspa x10/11, x2/3, [sp]
+    0xa2, 0xfc, 0x6a, 0x48, // csspal x10/11, x2/3, [x5]
+    0x02, 0xfc, 0x2a, 0x48, // caspl x10/11, x2/3, [x0]
+
+    0x68, 0x7c, 0xa6, 0xc8, // cas x6, x8, [x3]
+    0x43, 0x7c, 0xea, 0xc8, // casa x10, x3, [x2]
+    0xe3, 0x7f, 0xea, 0xc8, // casa x10, x3, [sp]
+    0xa3, 0xfc, 0xea, 0xc8, // casal x10, x3, [x5]
+    0x03, 0xfc, 0xaa, 0xc8, // casl x10, x3, [x0]
   };
   return checkCode(tgt, NumberOf(tgt), ctx);
 }
@@ -233,6 +288,7 @@ retCode all_tests() {
   tryRet(run_test(test_adr));
   tryRet(run_test(test_b));
   tryRet(run_test(test_bit));
+  tryRet(run_test(test_cas));
 
 //  tryRet(run_test(test_addFun));
 //  tryRet(run_test(test_factFun));
