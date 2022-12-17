@@ -107,6 +107,8 @@ static retCode test_b() {
   assemCtxPo ctx = createCtx();
   codeLblPo l0 = defineLabel(ctx, "l0", ctx->pc);
   codeLblPo l1 = defineLabel(ctx, "l1", undefinedPc);
+  codeLblPo l2 = defineLabel(ctx, "l2", undefinedPc);
+  codeLblPo l3 = defineLabel(ctx, "l3", undefinedPc);
 
   beq(l0, ctx);
   bnv(l0, ctx);
@@ -114,12 +116,58 @@ static retCode test_b() {
   b(l1, ctx);
   setLabel(ctx, l1);
   b(l1, ctx);
+  setLabel(ctx, l2);
+  bl(l2,ctx);
+  bl(l3, ctx);
+  blr(X12, ctx);
+  br(X13, ctx);
+  setLabel(ctx, l3);
+  brk(1234, ctx);
 
   uint8 tgt[] = {0x00, 0x00, 0x00, 0x54, // b.eq 1b
                  0xef, 0xff, 0xff, 0x54,   // b.nv 1b
                  0x48, 0x00, 0x00, 0x54, // b.hi 2f
                  0x01, 0x00, 0x00, 0x14, // b 2f
-                 0x00, 0x00, 0x00, 0x14 // b 2b
+                 0x00, 0x00, 0x00, 0x14, // b 2b
+                 0x00, 0x00, 0x00, 0x94, // bl 1b
+                 0x03, 0x00, 0x00, 0x94, // bl 2f
+                 0x80, 0x01, 0x3f, 0xd6, // blr x12
+                 0xa0, 0x01, 0x1f, 0xd6, // br x13
+                 0x40, 0x9a, 0x20, 0xd4 // brk #1234
+  };
+  return checkCode(tgt, NumberOf(tgt), ctx);
+}
+
+static retCode test_bit() {
+  assemCtxPo ctx = createCtx();
+
+  bfc(X12, 23, 5, ctx);
+  bfi(X12, X10, 23, 5, ctx);
+  bfxil(X12, X10, 23, 5, ctx);
+  bic(X5, X6, RG(7), ctx);
+  bic(X8, X9, LS(X10, 4), ctx);
+  bic(X8, X9, RS(X10, 4), ctx);
+  bic(X8, X9, AS(X10, 4), ctx);
+  bic(X8, X9, RR(X10, 4), ctx);
+  bics(X5, X6, RG(7), ctx);
+  bics(X8, X9, LS(X10, 4), ctx);
+  bics(X8, X9, RS(X10, 4), ctx);
+  bics(X8, X9, AS(X10, 4), ctx);
+  bics(X8, X9, RR(X10, 4), ctx);
+
+  uint8 tgt[] = {0xec, 0x13, 0x69, 0xb3,// bfc x12, 23, 5
+                 0x4c, 0x11, 0x69, 0xb3, // bfi x12, x10, 23, 5
+                 0x4c, 0x6d, 0x57, 0xb3, // bfxil x12, x10, 23,5
+                 0xc5, 0x00, 0x27, 0x8a, // bic x5, x6, x7
+                 0x28, 0x11, 0x2a, 0x8a, // bic x8, x9, x10 lsl #4
+                 0x28, 0x11, 0x6a, 0x8a, // bic x8, x9, x10 lsr #4
+                 0x28, 0x11, 0xaa, 0x8a, // bic x8, x9, x10 asr #4
+                 0x28, 0x11, 0xea, 0x8a, // bic x8, x9, x10 ror #4
+                 0xc5, 0x00, 0x27, 0xea, // bics x5, x6, x7
+                 0x28, 0x11, 0x2a, 0xea, // bics x8, x9, x10 lsl #4
+                 0x28, 0x11, 0x6a, 0xea, // bics x8, x9, x10 lsr #4
+                 0x28, 0x11, 0xaa, 0xea, // bics x8, x9, x10 asr #4
+                 0x28, 0x11, 0xea, 0xea // bics x8, x9, x10 ror #4
   };
   return checkCode(tgt, NumberOf(tgt), ctx);
 }
@@ -184,6 +232,7 @@ retCode all_tests() {
   tryRet(run_test(test_and));
   tryRet(run_test(test_adr));
   tryRet(run_test(test_b));
+  tryRet(run_test(test_bit));
 
 //  tryRet(run_test(test_addFun));
 //  tryRet(run_test(test_factFun));

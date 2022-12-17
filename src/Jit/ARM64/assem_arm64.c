@@ -173,24 +173,64 @@ void b_(codeLblPo lbl, assemCtxPo ctx) {
   encodeBranchImm(0, lbl, ctx);
 }
 
-void bfc_(uint1 w, armReg RD, uint8 width, uint8 bit, assemCtxPo ctx) {
-  encode2Imm1Src(w, 0x66, ~bit, width - 1, 0x1f, RD, ctx);
+void bfc_(uint1 w, armReg RD, uint8 bit, uint8 width, assemCtxPo ctx) {
+  encode2Imm1Src(w, 0x66, 64 - bit, width - 1, 0x1f, RD, ctx);
 }
 
-void bfi_(uint1 w, armReg RD, armReg S, uint8 width, uint8 bit, assemCtxPo ctx) {
-  encode2Imm1Src(w, 0x66, ~bit, width - 1, S, RD, ctx);
+void bfi_(uint1 w, armReg RD, armReg Rn, uint8 bit, uint8 width, assemCtxPo ctx) {
+  encode2Imm1Src(w, 0x66, 64 - bit, width - 1, Rn, RD, ctx);
 }
 
-void bfxil_(uint1 w, armReg RD, armReg S, uint8 width, uint8 bit, assemCtxPo ctx) {
-  encode2Imm1Src(w, 0x66, bit, width + bit - 1, S, RD, ctx);
+void bfxil_(uint1 w, armReg RD, armReg Rn, uint8 bit, uint8 width, assemCtxPo ctx) {
+  encode2Imm1Src(w, 0x66, bit, width + bit - 1, Rn, RD, ctx);
 }
 
-void bic_(uint1 w, armShift tp, armReg RD, armReg Rn, armReg Rm, uint8 shift, assemCtxPo ctx) {
-  encodeShift3Reg(w, 0, 0, 0xa, tp, 1, Rm, shift, Rn, RD, ctx);
+void bfm_(uint1 w, armReg Rd, armReg Rn, uint8 immr, uint8 imms, assemCtxPo ctx) {
+  encode2Imm1Src(w, 0x66, immr, imms, Rn, Rd, ctx);
 }
 
-void bics_(uint1 w, armShift tp, armReg RD, armReg Rn, armReg Rm, uint8 shift, assemCtxPo ctx) {
-  encodeShift3Reg(w, 1, 1, 0xa, tp, 1, Rm, shift, Rn, RD, ctx);
+void bic_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
+  switch (S2.mode) {
+    case reg:
+      encodeShift3Reg(w, 0, 0, 0xa, LSL, 1, S2.reg, 0, Rn, Rd, ctx);
+      return;
+    case lsli:
+      encodeShift3Reg(w, 0, 0, 0xa, LSL, 1, S2.reg, S2.immediate, Rn, Rd, ctx);
+      return;
+    case lsri:
+      encodeShift3Reg(w, 0, 0, 0xa, LSR, 1, S2.reg, S2.immediate, Rn, Rd, ctx);
+      return;
+    case asri:
+      encodeShift3Reg(w, 0, 0, 0xa, ASR, 1, S2.reg, S2.immediate, Rn, Rd, ctx);
+      return;
+    case rori:
+      encodeShift3Reg(w, 0, 0, 0xa, ROR, 1, S2.reg, S2.immediate, Rn, Rd, ctx);
+      return;
+    default:
+      assert(False);
+  }
+}
+
+void bics_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
+  switch (S2.mode) {
+    case reg:
+      encodeShift3Reg(w, 1, 1, 0xa, LSL, 1, S2.reg, 0, Rn, Rd, ctx);
+      return;
+    case lsli:
+      encodeShift3Reg(w, 1, 1, 0xa, LSL, 1, S2.reg, S2.immediate, Rn, Rd, ctx);
+      return;
+    case lsri:
+      encodeShift3Reg(w, 1, 1, 0xa, LSR, 1, S2.reg, S2.immediate, Rn, Rd, ctx);
+      return;
+    case asri:
+      encodeShift3Reg(w, 1, 1, 0xa, ASR, 1, S2.reg, S2.immediate, Rn, Rd, ctx);
+      return;
+    case rori:
+      encodeShift3Reg(w, 1, 1, 0xa, ROR, 1, S2.reg, S2.immediate, Rn, Rd, ctx);
+      return;
+    default:
+      assert(False);
+  }
 }
 
 void bl_(codeLblPo lbl, assemCtxPo ctx) {
@@ -206,7 +246,7 @@ void br_(armReg Rn, assemCtxPo ctx) {
 }
 
 void brk_(uint16 bkpt, assemCtxPo ctx) {
-  uint32 ins = ayt_bt(0xd4, 24) | two_bt(1, 21) |
+  uint32 ins = ayt_bt(0xd4, 24) | one_bt(1, 21) |
                sxt_bt(bkpt, 5);
   emitU32(ctx, ins);
 }
@@ -797,10 +837,6 @@ void sbfiz_(uint1 w, armReg Rd, armReg Rn, int8 lsb, int8 width, assemCtxPo ctx)
 
 void sbfm_(uint1 w, armReg Rd, armReg Rn, uint8 immr, uint8 imms, assemCtxPo ctx) {
   encodeImmRegReg(w, 0, w, immr, imms, Rn, Rd, ctx);
-}
-
-void bfm_(uint1 w, armReg Rd, armReg Rn, uint8 immr, uint8 imms, assemCtxPo ctx) {
-  encodeImmRegReg(w, 1, w, immr, imms, Rn, Rd, ctx);
 }
 
 void ubfm_(uint1 w, armReg Rd, armReg Rn, uint8 immr, uint8 imms, assemCtxPo ctx) {

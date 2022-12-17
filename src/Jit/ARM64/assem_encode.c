@@ -176,11 +176,11 @@ void encodeCondBrnch(uint8 op, uint1 o1, codeLblPo lbl, armCond cond, assemCtxPo
 }
 
 void encodeBranch(uint8 opc, uint8 op2, uint8 op3, armReg Rn, uint8 op4, assemCtxPo ctx) {
-  uint32 ins = six_bt(0x6b, 25) | for_bt(opc, 21) | fiv_bt(op2, 16) | six_bt(op3, 10) | fiv_bt(Rn, 5) | fiv_bt(op4, 0);
+  uint32 ins = svn_bt(0x6b, 25) | for_bt(opc, 21) | fiv_bt(op2, 16) | six_bt(op3, 10) | fiv_bt(Rn, 5) | fiv_bt(op4, 0);
   emitU32(ctx, ins);
 }
 
-static void updateBPc(assemCtxPo ctx, codeLblPo lbl, integer pc) {
+static void updateBImm(assemCtxPo ctx, codeLblPo lbl, integer pc) {
   assert(isLabelDefined(lbl));
   integer delta = (integer) labelTgt(lbl) - (pc + PLATFORM_PC_DELTA);
   uint32 oldIns = readCtxAtPc(ctx, pc);
@@ -191,8 +191,8 @@ static void updateBPc(assemCtxPo ctx, codeLblPo lbl, integer pc) {
 
 void encodeBranchImm(uint1 op, codeLblPo lbl, assemCtxPo ctx) {
   if (!isLabelDefined(lbl)) {
-    addLabelReference(ctx, lbl, ctx->pc, updateBPc);
-    emitU32(ctx, fiv_bt(5, 26)); // The rest of the instruction
+    addLabelReference(ctx, lbl, ctx->pc, updateBImm);
+    emitU32(ctx,  one_bt(op, 31) | fiv_bt(5, 26)); // The rest of the instruction
   } else {
     integer delta = lblDeltaRef(ctx, lbl);
     check(absolute(delta >> 2) < (1 << 26), "label out of range");
@@ -372,9 +372,9 @@ void encodeShift3Reg(uint1 wide, uint1 o, uint1 S, uint8 op, armShift sh, uint1 
   emitU32(ctx, ins);
 }
 
-void encode2Imm1Src(uint1 w, uint8 op, uint8 im1, uint8 im2, armReg R1, armReg RD, assemCtxPo ctx) {
+void encode2Imm1Src(uint1 w, uint8 op, uint8 immr, uint8 imms, armReg R1, armReg RD, assemCtxPo ctx) {
   uint32 ins = one_bt(w, 31) | ayt_bt(op, 23)
-               | one_bt(w, 22) | six_bt(im1, 16) | six_bt(im2, 10) |
+               | one_bt(w, 22) | six_bt(immr, 16) | six_bt(imms, 10) |
                fiv_bt(R1, 5) | fiv_bt(RD, 0);
   emitU32(ctx, ins);
 }

@@ -19,5 +19,19 @@ and-asr: and-asr.o
 	-e _start \
 	-arch arm64
 
+b: b.o
+	ld -o b b.o \
+         -lSystem \
+	-syslibroot `xcrun -sdk macosx --show-sdk-path` \
+	-e _start \
+	-arch arm64
+
+bfc: bf.o
+	ld -o bfc bf.o \
+         -lSystem \
+	-syslibroot `xcrun -sdk macosx --show-sdk-path` \
+	-e _start \
+	-arch arm64
+
 .o: .s
 	as -o $@.o $@.s
