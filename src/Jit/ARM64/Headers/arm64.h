@@ -92,17 +92,24 @@ typedef struct {
 } armOp;
 
 typedef enum {
+  U_XTB = 0,
+  U_XTH = 1,
+  U_XTW = 2,
+  U_XTX = 3,
+  S_XTB = 4,
+  S_XTH = 5,
+  S_XTW = 6,
+  S_XTX = 7
+} armExtent;
+
+typedef enum {
   imm,  // Immediate value
   lsli, // Logical shift left immediate
   lsri, // logical shift right immediate
   asri, // arithmetic shift right immediate
   rori, // rotate right immediate
   reg, // register
-  rox, // rotate right extended
-  lslr, // logical shift left register
-  lsrr, // logical shift right register
-  asrr, // arithmetic shift right register
-  rorr // rotate right register
+  extnd,  // extended
 } FlexibleMode;
 
 typedef struct {
@@ -111,6 +118,7 @@ typedef struct {
   uint1 hiLo;
   armReg reg;
   uint8 shift;
+  armExtent ext;
 } FlexOp;
 
 typedef armOp registerSpec;
@@ -122,17 +130,6 @@ typedef enum {
   ASR = 2,
   ROR = 3
 } armShift;
-
-typedef enum {
-  U_XTB = 0,
-  U_XTH = 1,
-  U_XTW = 2,
-  U_XTX = 3,
-  S_XTB = 4,
-  S_XTH = 5,
-  S_XTW = 6,
-  S_XTX = 7
-} armExtent;
 
 typedef enum {
   postIndex = 1,
@@ -148,6 +145,7 @@ typedef enum {
 #define RS(Rg, Amnt) {.mode=lsri, .reg=Rg, .immediate=(Amnt)}
 #define AS(Rg, Amnt) {.mode=asri, .reg=Rg, .immediate=(Amnt)}
 #define RR(Rg, Amnt) {.mode=rori, .reg=Rg, .immediate=(Amnt)}
+#define EX(Rg, Md, Amnt) {.mode=extnd, .reg =Rg, .ext=Md, .immediate=(Amnt)}
 
 #define BS(Rg, Off) {.mode=Based, .op.based.base=(Rg), .op.based.disp=(Off)}
 #define IX(Rg, Ix, Sc, Off) {.mode=Indexed, .op.indexed.base = (Rg), .op.indexed.index=(Ix), .op.indexed.disp=(Off), .op.indexed.scale=(Sc)}
@@ -259,13 +257,51 @@ void cbnz_(uint1 w, armReg Rt, codeLblPo lbl, assemCtxPo ctx);
 void cbz_(uint1 w, armReg Rt, codeLblPo lbl, assemCtxPo ctx);
 #define cbz(Rt, Lbl, ctx) cbz_(1, Rt, Lbl, ctx)
 
+void ccmn_(uint1 w, armReg Rn, armCond cnd, uint8 nzcv, FlexOp S2, assemCtxPo ctx);
+void ccmp_(uint1 w, armReg Rn, armCond cnd, uint8 nzcv, FlexOp S2, assemCtxPo ctx);
+
+void cinc_(uint1 w, armReg Rd, armCond cond, armReg Rn, assemCtxPo ctx);
+#define cinc(Rd, Rn, Cond, ctx) cinc_(1, Rd, Cond, Rn, ctx)
+
+void cinv_(uint1 w, armReg Rd, armCond cond, armReg Rn, assemCtxPo ctx);
+#define cinv(Rd, Rn, Cond, ctx) cinv_(1, Rd, Cond, Rn, ctx)
+
+void cls_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx);
+#define cls(Rd, Rn, ctx) cls_(1,Rd, Rn, ctx)
+void clz_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx);
+#define clz(Rd, Rn, ctx) clz_(1,Rd, Rn, ctx)
+
+void cmn_(uint1 w, armReg Rn, FlexOp S2, assemCtxPo ctx);
+#define cmn(Rn, S2, ctx) do {FlexOp s=S2;  cmn_(1, Rn, s, ctx); } while(False)
+void cmp_(uint1 w, armReg Rn, FlexOp S2, assemCtxPo ctx);
+#define cmp(Rn, S2, ctx) do {FlexOp s=S2;  cmp_(1, Rn, s, ctx); } while(False)
+
+void cneg_(uint1 w, armReg Rd, armCond cond, armReg Rn, assemCtxPo ctx);
+#define cneg(Rd, Rn, Cond, ctx) cneg_(1, Rd, Cond, Rn, ctx)
+void csel_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armCond cond, assemCtxPo ctx);
+#define csel(Rd, Rn, Rm, cond, ctx) csel_(1,Rd,Rn,Rm,cond,ctx);
+void cset_(uint1 w, armReg Rd, armCond cond, assemCtxPo ctx);
+#define cset(Rd, Cnd, Ctx) cset_(1,Rd,Cnd,Ctx);
+void csetm_(uint1 w, armReg Rd, armCond cond, assemCtxPo ctx);
+#define csetm(Rd, Cnd, Ctx) csetm_(1,Rd,Cnd,Ctx);
+void csinc_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armCond cond, assemCtxPo ctx);
+#define csinc(Rd, Rn, Rm, cond, ctx) csinc_(1,Rd,Rn,Rm,cond,ctx);
+void csinv_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armCond cond, assemCtxPo ctx);
+#define csinv(Rd, Rn, Rm, cond, ctx) csinv_(1,Rd,Rn,Rm,cond,ctx);
+void csneg_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armCond cond, assemCtxPo ctx);
+#define csneg(Rd, Rn, Rm, cond, ctx) csneg_(1,Rd,Rn,Rm,cond,ctx);
+
+void eor_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
+#define eor(Rd, Rn, S2, ctx) do {FlexOp s=S2;  eor_(1, Rd, Rn, s, ctx); } while(False)
+
+void extr_(uint1 w, armReg Rd, armReg Rn, armReg Rm, uint8 lsb, assemCtxPo ctx);
+
 void sub_(armReg d, armReg s1, armOp s2, assemCtxPo ctx);
 
 void orn_(uint1 w, armReg Rd, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx);
 void orr_imm(uint1 w, armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
 void orr_sh_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx);
 
-void eor_(armReg d, armReg s1, armOp s2, assemCtxPo ctx);
 void neg_(uint1 w, armReg Rd, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx);
 void negs_(uint1 w, armReg Rd, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx);
 void mvn_(uint1 w, armReg Rd, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx);
@@ -277,22 +313,10 @@ void udiv_(armReg d, armReg s1, armOp s2, assemCtxPo ctx);
 void lsl_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx);
 void lsr_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx);
 
-void cmp_(armReg s1, armOp s2, assemCtxPo ctx);
-void tst_(armReg s1, armOp s2, assemCtxPo ctx);
-
 void ret_(armReg reg, assemCtxPo ctx);
-
 
 void tbnz_(uint1 w, armReg Rt, uint8 pos, codeLblPo lbl, assemCtxPo ctx);
 void tbz_(uint1 w, armReg Rt, uint8 pos, codeLblPo lbl, assemCtxPo ctx);
-
-void clrex_(assemCtxPo ctx);
-void dmb_(assemCtxPo ctx);
-void dsb_(assemCtxPo ctx);
-void isb_(assemCtxPo ctx);
-
-void csdb_(assemCtxPo ctx);
-void esb_(assemCtxPo ctx);
 
 void extr_(uint1 w, armReg Rd, armReg Rn, armReg Rm, uint8 lsb, assemCtxPo ctx);
 
@@ -376,6 +400,5 @@ void ldlar_(uint1 w, armReg Rt, armReg Rn, assemCtxPo ctx);
 void stllrb_(armReg Rt, armReg Rn, assemCtxPo ctx);
 void stllrh_(armReg Rd, armReg Rn, assemCtxPo ctx);
 void stllr_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx);
-
 
 #endif

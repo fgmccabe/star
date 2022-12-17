@@ -369,7 +369,7 @@ void encodeDPReg2Imm(uint1 wide, uint8 opc, uint8 op, uint1 N, uint8 imm1, uint8
   emitU32(ctx, ins);
 }
 
-void encodeShift3Reg(uint1 wide, uint1 o, uint1 S, uint8 op, armShift sh, uint1 N, armReg Rm, int8 imm, armReg Rn,
+void encodeShift3Reg(uint1 wide, uint1 o, uint1 S, uint8 op, armShift sh, uint1 N, armReg Rm, uint8 imm, armReg Rn,
                      armReg Rd, assemCtxPo ctx) {
   uint32 ins = one_bt(wide, 31) | one_bt(o, 30)
                | one_bt(S, 29) | fiv_bt(op, 24) | two_bt(sh, 22) | one_bt(N, 21) |
