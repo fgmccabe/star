@@ -248,6 +248,11 @@ ssAct(ltt(_,Vr,B,A),Dp,sq([ss("let "),VV,ss("="),BB,ss(" in "),AA])) :-!,
   ssTrm(Vr,Dp1,VV),
   ssTrm(B,Dp1,BB),
   ssAct(A,Dp1,AA).
+ssAct(cntlt(_,Vr,B,A),Dp,sq([ss("let "),VV,ss("="),BB,ss(" in "),AA])) :-!,
+  Dp1 is Dp+2,
+  ssTrm(Vr,Dp1,VV),
+  ssTrm(B,Dp1,BB),
+  ssAct(A,Dp1,AA).
 ssAct(rtire(_,T,E),Dp,sq([TT,ss(" retire "),EE])) :-
   ssTrm(T,Dp,TT),
   ssTrm(E,Dp,EE).
@@ -327,6 +332,9 @@ rewriteTerm(_,strg(Sx),strg(Sx)).
 rewriteTerm(_,enum(Nm),enum(Nm)).
 rewriteTerm(_,lbl(Nm,Ar),lbl(Nm,Ar)).
 rewriteTerm(QTest,ltt(Lc,V,Val,Exp),ltt(Lc,V,Val1,Exp1)) :-
+  rewriteTerm(lterms:checkV(V,QTest),Val,Val1),
+  rewriteTerm(lterms:checkV(V,QTest),Exp,Exp1).
+rewriteTerm(QTest,cntlt(Lc,V,Val,Exp),cntlt(Lc,V,Val1,Exp1)) :-
   rewriteTerm(lterms:checkV(V,QTest),Val,Val1),
   rewriteTerm(lterms:checkV(V,QTest),Exp,Exp1).
 rewriteTerm(QTest,thrw(Lc,E),thrw(Lc,EE)) :-!,
@@ -457,6 +465,9 @@ rewriteAction(QTest,ffor(Lc,P,S,B),ffor(Lc,PP,SS,BB)) :-!,
   rewriteTerm(QTest,S,SS),
   rewriteAction(QTest,B,BB).
 rewriteAction(QTest,ltt(Lc,V,E,B),ltt(Lc,V,EE,BB)) :-!,
+  rewriteTerm(lterms:checkV(V,QTest),E,EE),
+  rewriteAction(lterms:checkV(V,QTest),B,BB).
+rewriteAction(QTest,cntlt(Lc,V,E,B),cntlt(Lc,V,EE,BB)) :-!,
   rewriteTerm(lterms:checkV(V,QTest),E,EE),
   rewriteAction(lterms:checkV(V,QTest),B,BB).
 rewriteAction(QTest,rtire(Lc,T,E),rtire(Lc,TT,EE)) :-!,
@@ -592,6 +603,10 @@ inTerm(ltt(_,_,B,_E),Nm) :-
   inTerm(B,Nm).
 inTerm(ltt(_,_,_B,E),Nm) :-
   inTerm(E,Nm).
+inTerm(cntlt(_,_,B,_E),Nm) :-
+  inTerm(B,Nm).
+inTerm(cntlt(_,_,_B,E),Nm) :-
+  inTerm(E,Nm).
 
 inAction(nop(_),_) :- !,fail.
 inAction(seq(_,L,R),Nm) :-!,
@@ -625,6 +640,8 @@ inAction(iftte(_,G,L,R),Nm) :-!,
 inAction(whle(_,G,L),Nm) :-!,
   (inTerm(G,Nm) ; inAction(L,Nm)).
 inAction(ltt(_,_,E,B),Nm) :-!,
+  (inTerm(E,Nm) ; inAction(B,Nm)).
+inAction(cntlt(_,_,E,B),Nm) :-!,
   (inTerm(E,Nm) ; inAction(B,Nm)).
 inAction(rtire(_,L,G),Nm) :-!,
   (inTerm(L,Nm) ; inTerm(G,Nm)).
@@ -723,6 +740,11 @@ validTerm(whr(Lc,Exp,Cond),_,D) :-
   validTerm(Exp,Lc,D1),
   validTerm(Cond,Lc,D1).
 validTerm(ltt(Lc,Vr,Bnd,Exp),_,D) :-
+  validTerm(Bnd,Lc,D),
+  ptnVars(Vr,D,D1),
+  validTerm(Vr,Lc,D1),
+  validTerm(Exp,Lc,D1).
+validTerm(cntlt(Lc,Vr,Bnd,Exp),_,D) :-
   validTerm(Bnd,Lc,D),
   ptnVars(Vr,D,D1),
   validTerm(Vr,Lc,D1),
@@ -876,6 +898,11 @@ validAction(ffor(Lc,P,S,B),_,D,D) :-!,
   validPtn(P,Lc,D,D0),
   validAction(B,Lc,D0,_).
 validAction(ltt(Lc,V,E,B),_,D,D) :-!,
+  validTerm(E,Lc,D),
+  ptnVars(V,D,D1),
+  validTerm(V,Lc,D1),
+  validAction(B,Lc,D1,_).
+validAction(cntlt(Lc,V,E,B),_,D,D) :-!,
   validTerm(E,Lc,D),
   ptnVars(V,D,D1),
   validTerm(V,Lc,D1),
