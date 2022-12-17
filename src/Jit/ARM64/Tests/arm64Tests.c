@@ -85,6 +85,10 @@ static retCode test_and() {
   asr(X12, X13, IM(0xf), ctx);
   asr(X1, X2, RG(X3), ctx);
 
+  eor(X17, X9, IM(0x3333333333333333), ctx);
+  eor(X18, X10, RG(X12), ctx);
+  eor(X18, X10, RR(X12, 5), ctx);
+
   uint8 tgt[] = {0xac, 0xe5, 0x00, 0x92,  //and	X12, X13, #0x3333333333333333
                  0xac, 0x1d, 0x78, 0x92, // and x12, x13, #0xff00
                  0x41, 0x00, 0x03, 0x8a,  // and x1, x2, x3
@@ -99,6 +103,9 @@ static retCode test_and() {
                  0xa3, 0x0c, 0xc6, 0xea, // ands x3,x5,x6, ror 3
                  0xac, 0xfd, 0x4f, 0x93, // asr x12, x13, 0xf
                  0x41, 0x28, 0xc3, 0x9a, // asr x1, x2, x3
+                 0x31, 0xe5, 0x00, 0xd2, // eor
+                 0x52, 0x01, 0x0c, 0xca,
+                 0x52, 0x15, 0xcc, 0xca,
   };
   return checkCode(tgt, NumberOf(tgt), ctx);
 }
@@ -233,6 +240,65 @@ static retCode test_cas() {
   return checkCode(tgt, NumberOf(tgt), ctx);
 }
 
+static retCode test_cbt() {
+  assemCtxPo ctx = createCtx();
+
+  cls(X11, X9, ctx);
+  clz(X9, X7, ctx);
+
+  cmn(X21, EX(X9, U_XTX, 3), ctx);
+  cmn(X20, IM(0xff), ctx);
+  cmn(X20, IM(0xff0000), ctx);
+  cmn(X19, LS(X5, 5), ctx);
+  cmn(X19, AS(X5, 5), ctx);
+
+  cmp(X21, EX(X9, U_XTX, 3), ctx);
+  cmp(X20, IM(0xff), ctx);
+  cmp(X20, IM(0xff0000), ctx);
+  cmp(X19, LS(X5, 5), ctx);
+  cmp(X19, AS(X5, 5), ctx);
+
+  cinc(X28, X20, EQ, ctx);
+  cinv(X28, X20, CC, ctx);
+  cneg(X28, X20, HI, ctx);
+
+  csel(X17, X13, X20, LE, ctx);
+  cset(X16, LE, ctx);
+  csetm(X16, LE, ctx);
+
+  csinc(X14, X13, X11, GT, ctx);
+  csinv(X14, X13, X11, GT, ctx);
+  csneg(X14, X13, X11, GT, ctx);
+
+  uint8 tgt[] = {0x2b, 0x15, 0xc0, 0xda, // cls
+                 0xe9, 0x10, 0xc0, 0xda, // cls
+
+                 0xbf, 0x6e, 0x29, 0xab, // cmn
+                 0x9f, 0xfe, 0x03, 0xb1,
+                 0x9f, 0xc2, 0x7f, 0xb1,
+                 0x7f, 0x16, 0x05, 0xab,
+                 0x7f, 0x16, 0x85, 0xab,
+
+                 0xbf, 0x6e, 0x29, 0xeb,  // cmp
+                 0x9f, 0xfe, 0x03, 0xf1,
+                 0x9f, 0xc2, 0x7f, 0xf1,
+                 0x7f, 0x16, 0x05, 0xeb,
+                 0x7f, 0x16, 0x85, 0xeb,
+
+                 0x9c, 0x16, 0x94, 0x9a, // cinc
+                 0x9c, 0x22, 0x94, 0xda, // cinv
+                 0x9c, 0x96, 0x94, 0xda, // cneg
+                 0xb1, 0xd1, 0x94, 0x9a, // csel
+                 0xf0, 0xc7, 0x9f, 0x9a, // cset
+                 0xf0, 0xc3, 0x9f, 0xda, // csetm
+
+                 0xae, 0xc5, 0x8b, 0x9a, // csinc
+                 0xae, 0xc1, 0x8b, 0xda, // csinv
+                 0xae, 0xc5, 0x8b, 0xda, // csneg
+  };
+  return checkCode(tgt, NumberOf(tgt), ctx);
+}
+
 typedef int64 (*un_i64)(int64 x);
 typedef int64 (*bin_i64)(int64 x, int64 y);
 //
@@ -295,6 +361,7 @@ retCode all_tests() {
   tryRet(run_test(test_b));
   tryRet(run_test(test_bit));
   tryRet(run_test(test_cas));
+  tryRet(run_test(test_cbt));
 
 //  tryRet(run_test(test_addFun));
 //  tryRet(run_test(test_factFun));

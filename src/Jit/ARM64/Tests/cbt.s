@@ -1,5 +1,5 @@
 	//
-	// Test out bit field arm instructions
+	// Test out bit arm instructions
 	//
 	.global _start
 	.align 2
@@ -17,25 +17,32 @@ _start:	mov X0, #1     // 1 = StdOut
         mov     X16, #1     // Service command code 1 terminates this program
         svc     0           // Call MacOS to terminate the program
 
-_bfc:	bfc	X12, #23, #5
-	bfi	X12, X10, #23, #5
-	bfxil	X12, X10, #23, #5
+	cls	X11,X9
+	clz	X9,X7
 
-	bic	X5, X6, X7
-	bic	X8, X9, X10, lsl #4
-	bic	X8, X9, X10, lsr #4
-	bic	X8, X9, X10, asr #4
-	bic	X8, X9, X10, ror #4
+	cmn	X21, X9, uxtx #3
+	cmn	X20, #0xff
+	cmn	X20, #0xff0, lsl #12
+	cmn	X19, X5, lsl #5
+	cmn	X19, X5, asr #5
 
-	bics	X5, X6, X7
-	bics	X8, X9, X10, lsl #4
-	bics	X8, X9, X10, lsr #4
-	bics	X8, X9, X10, asr #4
-	bics	X8, X9, X10, ror #4
+	cmp	X21, X9, uxtx #3
+	cmp	X20, #0xff
+	cmp	X20, #0xff0, lsl #12
+	cmp	X19, X5, lsl #5
+	cmp	X19, X5, asr #5
 
-	eor	x17, x9, #0x3333333333333333
-	eor	x18, x10, x12
-	eor	x18, x10, x12, ror #5
+	cinc	X28, X20, eq
+	cinv	X28, X20, cc
+	cneg	X28, X20, hi
+
+	csel	X17, X13, X20, le
+	cset	X16, le
+	csetm	X16, le
+
+	csinc	X14, X13, X11, gt
+	csinv	X14, X13, X11, gt
+	csneg	X14, X13, X11, gt
 	
 
 helloworld:	.ascii "Hi there\n"

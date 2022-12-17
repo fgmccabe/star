@@ -40,5 +40,12 @@ cas: cas.o
 	-e _start \
 	-arch arm64
 
+cbt: cbt.o
+	ld -o cbt cbt.o \
+         -lSystem \
+	-syslibroot `xcrun -sdk macosx --show-sdk-path` \
+	-e _start \
+	-arch arm64
+
 .o: .s
 	as -o $@.o $@.s

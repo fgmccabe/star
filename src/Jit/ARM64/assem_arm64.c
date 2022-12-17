@@ -323,40 +323,60 @@ void cbz_(uint1 w, armReg Rt, codeLblPo lbl, assemCtxPo ctx) {
   encodeCmpBr(w, 0, lbl, Rt, ctx);
 }
 
-void ccmn_imm_(uint1 w, armReg Rn, uint8 imm, uint8 nzcv, armCond cond, assemCtxPo ctx) {
-  uint32 ins = one_bt(w, 31) | one_bt(1, 29) | ayt_bt(0xd2, 21) | fiv_bt(imm, 16) |
-               for_bt(cond, 12) | one_bt(1, 11) | fiv_bt(Rn, 5) | for_bt(nzcv, 0);
-  emitU32(ctx, ins);
+void ccmn_(uint1 w, armReg Rn, armCond cnd, uint8 nzcv, FlexOp S2, assemCtxPo ctx) {
+  switch (S2.mode) {
+    case imm: {
+      uint32 ins = one_bt(w, 31) | two_bt(1, 29) | ayt_bt(0xd2, 21) | fiv_bt(imm, 16) |
+                   for_bt(cnd, 12) | one_bt(1, 11) | fiv_bt(Rn, 5) | for_bt(nzcv, 0);
+      emitU32(ctx, ins);
+      return;
+    }
+    case reg: {
+      uint32 ins = one_bt(w, 31) | two_bt(1, 29) | ayt_bt(0xd2, 21) | fiv_bt(S2.reg, 16) |
+                   for_bt(cnd, 12) | fiv_bt(Rn, 5) | for_bt(nzcv, 0);
+      emitU32(ctx, ins);
+      return;
+    }
+    default:
+      assert(False);
+  }
 }
 
-void ccmn_r_(uint1 w, armReg Rn, armReg Rm, uint8 nzcv, armCond cond, assemCtxPo ctx) {
-  uint32 ins = one_bt(w, 31) | one_bt(1, 29) | ayt_bt(0xd2, 21) | fiv_bt(Rm, 16) |
-               for_bt(cond, 12) | fiv_bt(Rn, 5) | for_bt(nzcv, 0);
-  emitU32(ctx, ins);
+void ccmp_(uint1 w, armReg Rn, armCond cnd, uint8 nzcv, FlexOp S2, assemCtxPo ctx) {
+  switch (S2.mode) {
+    case imm: {
+      uint32 ins = one_bt(w, 31) | two_bt(3, 29) | ayt_bt(0xd2, 21) | fiv_bt(imm, 16) |
+                   for_bt(cnd, 12) | one_bt(1, 11) | fiv_bt(Rn, 5) | for_bt(nzcv, 0);
+      emitU32(ctx, ins);
+      return;
+    }
+    case reg: {
+      uint32 ins = one_bt(w, 31) | two_bt(3, 29) | ayt_bt(0xd2, 21) | fiv_bt(S2.reg, 16) |
+                   for_bt(cnd, 12) | fiv_bt(Rn, 5) | for_bt(nzcv, 0);
+      emitU32(ctx, ins);
+      return;
+    }
+    default:
+      assert(False);
+  }
 }
 
-void ccmp_imm_(uint1 w, armReg Rn, uint8 imm, uint8 nzcv, armCond cond, assemCtxPo ctx) {
-  uint32 ins = one_bt(w, 31) | two_bt(3, 29) | ayt_bt(0xd2, 21) | fiv_bt(imm, 16) |
-               for_bt(cond, 12) | one_bt(2, 10) | fiv_bt(Rn, 5) | for_bt(nzcv, 0);
-  emitU32(ctx, ins);
+static uint8 twistCond(armCond cond) {
+  return (((uint8) cond) & 0xfe) | ((~(uint8) cond) & 0x1);
 }
 
-void ccmp_r_(uint1 w, armReg Rn, armReg Rm, uint8 nzcv, armCond cond, assemCtxPo ctx) {
-  encodeCnd3Reg(w, 1, 1, 0xd2, Rm, cond, 0, Rn, nzcv, ctx);
-}
-
-void cinc_(uint1 w, armReg Rd, armReg Rm, armCond cond, armReg Rn, assemCtxPo ctx) {
-  check(Rm != XZR && Rn != XZR, "invalid register");
+void cinc_(uint1 w, armReg Rd, armCond cond, armReg Rn, assemCtxPo ctx) {
+  check(Rn != XZR, "invalid register");
   check((cond & 0xe0) != 0xe0, "invalid condition");
 
-  encodeCnd3Reg(w, 0, 0, 0xd4, Rm, cond, 1, Rn, Rd, ctx);
+  encodeCnd3Reg(w, 0, 0, 0xd4, Rn, twistCond(cond), 1, Rn, Rd, ctx);
 }
 
-void cinv_(uint1 w, armReg Rd, armReg Rm, armCond cond, armReg Rn, assemCtxPo ctx) {
-  check(Rm != XZR && Rn != XZR, "invalid register");
+void cinv_(uint1 w, armReg Rd, armCond cond, armReg Rn, assemCtxPo ctx) {
+  check(Rn != XZR, "invalid register");
   check((cond & 0xe0) != 0xe0, "invalid condition");
 
-  encodeCnd3Reg(w, 1, 0, 0xd4, Rm, cond, 0, Rn, Rd, ctx);
+  encodeCnd3Reg(w, 1, 0, 0xd4, Rn, twistCond(cond), 0, Rn, Rd, ctx);
 }
 
 void cls_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx) {
@@ -371,38 +391,66 @@ void clz_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx) {
   emitU32(ctx, ins);
 }
 
-void cmn_x(uint1 w, armReg Rn, armReg Rm, armExtent ex, uint8 imm, assemCtxPo ctx) {
-  encode2SrcExt(w, 0, 1, 0x59, Rm, ex, imm, Rn, 0x1f, ctx);
+void cmn_(uint1 w, armReg Rn, FlexOp S2, assemCtxPo ctx) {
+  switch (S2.mode) {
+    case reg:
+      encode3Reg7Imm(w, 0, 1, 0xb, 0, 0, S2.reg, 0, Rn, 0x1f, ctx);
+      return;
+    case imm: {
+      uint16 shifted = ((S2.immediate & 0xfff) == 0) ? S2.immediate >> 12 : (S2.immediate & 0xfff);
+      encodeDPRegImm(w, 1, 0x22, (S2.immediate & 0xfff) == 0, shifted, Rn, 0x1f, ctx);
+      return;
+    }
+    case lsli:
+      encode3Reg7Imm(w, 0, 1, 0xb, LSL, 0, S2.reg, S2.immediate, Rn, 0x1f, ctx);
+      return;
+    case lsri:
+      encode3Reg7Imm(w, 0, 1, 0xb, LSR, 0, S2.reg, S2.immediate, Rn, 0x1f, ctx);
+      return;
+    case asri:
+      encode3Reg7Imm(w, 0, 1, 0xb, ASR, 0, S2.reg, S2.immediate, Rn, 0x1f, ctx);
+      return;
+    case extnd:
+      encode2SrcExt(w, 0, 1, 0x59, S2.reg, S2.ext, S2.immediate, Rn, 0x1f, ctx);
+      return;
+    default:
+      assert(False);
+  }
 }
 
-void cmn_imm(uint1 w, armReg Rn, uint32 imm, uint1 sh, assemCtxPo ctx) {
-  uint32 ins = one_bt(w, 31) | ayt_bt(0x62, 23) | one_bt(sh, 22) | twl_bt(imm, 10) |
-               fiv_bt(Rn, 5) | fiv_bt(0x1f, 0);
-  emitU32(ctx, ins);
-}
-
-void cmn_shft(uint1 w, armReg Rn, armReg Rm, armShift sh, uint8 amnt, assemCtxPo ctx) {
-  encodeShift3Reg(w, 0, 1, 0xb, sh, 0, Rm, amnt, Rn, 0x1f, ctx);
-}
-
-void cmp_x(uint1 w, armReg Rn, armReg Rm, armExtent ex, uint8 imm, assemCtxPo ctx) {
-  encode2SrcExt(w, 1, 1, 0x59, Rm, ex, imm, Rn, 0x1f, ctx);
-}
-
-void cmp_i(uint1 w, armReg Rn, uint1 sh, uint16 imm, assemCtxPo ctx) {
-  encodeDPRegImm(w, 3, 0x22, sh, imm, Rn, 0x1f, ctx);
-}
-
-void cmp_shft(uint1 w, armReg Rn, armReg Rm, armShift sh, uint8 amnt, assemCtxPo ctx) {
-  encodeShift3Reg(w, 1, 1, 0xb, sh, 0, Rm, amnt, Rn, 0x1f, ctx);
+void cmp_(uint1 w, armReg Rn, FlexOp S2, assemCtxPo ctx) {
+  switch (S2.mode) {
+    case reg:
+      encode3Reg7Imm(w, 1, 1, 0xb, 0, 0, S2.reg, 0, Rn, 0x1f, ctx);
+      return;
+    case imm: {
+      uint16 shifted = ((S2.immediate & 0xfff) == 0) ? S2.immediate >> 12 : (S2.immediate & 0xfff);
+      encodeDPRegImm(w, 3, 0x22, (S2.immediate & 0xfff) == 0, shifted, Rn, 0x1f, ctx);
+      return;
+    }
+    case lsli:
+      encode3Reg7Imm(w, 1, 1, 0xb, LSL, 0, S2.reg, S2.immediate, Rn, 0x1f, ctx);
+      return;
+    case lsri:
+      encode3Reg7Imm(w, 1, 1, 0xb, LSR, 0, S2.reg, S2.immediate, Rn, 0x1f, ctx);
+      return;
+    case asri:
+      encode3Reg7Imm(w, 1, 1, 0xb, ASR, 0, S2.reg, S2.immediate, Rn, 0x1f, ctx);
+      return;
+    case extnd:
+      encode2SrcExt(w, 1, 1, 0x59, S2.reg, S2.ext, S2.immediate, Rn, 0x1f, ctx);
+      return;
+    default:
+      assert(False);
+  }
 }
 
 void cmpp_(armReg Rn, armReg Rm, assemCtxPo ctx) {
   encodeReg2Src(1, 0, 1, 0xd6, Rn, 0, Rm, 0x1f, ctx);
 }
 
-void cneg_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armCond cond, assemCtxPo ctx) {
-  encodeCnd3Reg(w, 1, 0, 0xd4, Rm, cond, 1, Rn, Rd, ctx);
+void cneg_(uint1 w, armReg Rd, armCond cond, armReg Rn, assemCtxPo ctx) {
+  encodeCnd3Reg(w, 1, 0, 0xd4, Rn, twistCond(cond), 1, Rn, Rd, ctx);
 }
 
 void csel_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armCond cond, assemCtxPo ctx) {
@@ -410,22 +458,22 @@ void csel_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armCond cond, assemCtxPo ct
 }
 
 void cset_(uint1 w, armReg Rd, armCond cond, assemCtxPo ctx) {
-  encodeCnd3Reg(w, 0, 0, 0xd4, 0x1f, cond, 1, 0x1f, Rd, ctx);
+  encodeCnd3Reg(w, 0, 0, 0xd4, 0x1f, twistCond(cond), 1, 0x1f, Rd, ctx);
 }
 
 void csetm_(uint1 w, armReg Rd, armCond cond, assemCtxPo ctx) {
-  encodeCnd3Reg(w, 1, 0, 0xd4, 0x1f, cond, 0, 0x1f, Rd, ctx);
+  encodeCnd3Reg(w, 1, 0, 0xd4, 0x1f, twistCond(cond), 0, 0x1f, Rd, ctx);
 }
 
-void csinc_(uint1 w, armReg Rd, armReg Rm, armReg Rn, armCond cond, assemCtxPo ctx) {
+void csinc_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armCond cond, assemCtxPo ctx) {
   encodeCnd3Reg(w, 0, 0, 0xd4, Rm, cond, 1, Rn, Rd, ctx);
 }
 
-void csinv_(uint1 w, armReg Rd, armReg Rm, armReg Rn, armCond cond, assemCtxPo ctx) {
+void csinv_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armCond cond, assemCtxPo ctx) {
   encodeCnd3Reg(w, 1, 0, 0xd4, Rm, cond, 0, Rn, Rd, ctx);
 }
 
-void csneg_(uint1 w, armReg Rd, armReg Rm, armReg Rn, armCond cond, assemCtxPo ctx) {
+void csneg_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armCond cond, assemCtxPo ctx) {
   encodeCnd3Reg(w, 1, 0, 0xd4, Rm, cond, 1, Rn, Rd, ctx);
 }
 
@@ -433,12 +481,29 @@ void eon_sh_(uint1 w, armReg Rd, armReg Rm, armReg Rn, armShift sh, uint8 imm, a
   encodeShift3Reg(w, 1, 0, 0xa, sh, 1, Rm, imm, Rn, Rd, ctx);
 }
 
-void eor_imm(uint1 w, armReg Rd, armReg Rn, uint16 imm, assemCtxPo ctx) {
-  encodeLogImm(w, 2, imm, Rn, Rd, ctx);
-}
-
-void eor_sh_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armShift sh, uint8 amnt, assemCtxPo ctx) {
-  encodeShift3Reg(w, 1, 0, 0xa, sh, 0, Rm, amnt, Rn, Rd, ctx);
+void eor_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
+  switch (S2.mode) {
+    case imm:
+      encodeLogImm(w, 2, S2.immediate, Rn, Rd, ctx);
+      return;
+    case reg:
+      encodeShift3Reg(w, 1, 0, 0xa, LSL, 0, S2.reg, 0, Rn, Rd, ctx);
+      return;
+    case lsli:
+      encodeShift3Reg(w, 1, 0, 0xa, LSL, 0, S2.reg, (uint8)(S2.immediate), Rn, Rd, ctx);
+      return;
+    case lsri:
+      encodeShift3Reg(w, 1, 0, 0xa, LSR, 0, S2.reg, S2.immediate, Rn, Rd, ctx);
+      return;
+    case asri:
+      encodeShift3Reg(w, 1, 0, 0xa, ASR, 0, S2.reg, S2.immediate, Rn, Rd, ctx);
+      return;
+    case rori:
+      encodeShift3Reg(w, 1, 0, 0xa, ROR, 0, S2.reg, S2.immediate, Rn, Rd, ctx);
+      return;
+    default:
+      assert(False);
+  }
 }
 
 void extr_(uint1 w, armReg Rd, armReg Rn, armReg Rm, uint8 lsb, assemCtxPo ctx) {

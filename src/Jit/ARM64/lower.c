@@ -9,6 +9,16 @@
 /* Lower Star VM code to Arm64 code */
 /*
 
+ X0-X7 Arguments
+ X9-X15 Caller saved
+ X19-X29 Callee saved
+ X8 idirect result
+ X16, X17   IP0, IP1 intra call temps
+ X18 platform register
+ X29 Frame pointer
+ X30 Link register
+
+
  */
 
 retCode jit_preamble(methodPo mtd, jitCompPo jitCtx) {
