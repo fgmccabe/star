@@ -1,5 +1,7 @@
 adc-add
 and-asr
 adr
+b
+bfc
 *.o
 

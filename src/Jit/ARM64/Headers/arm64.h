@@ -181,35 +181,52 @@ void asr_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
 #define asr(rd, s1, s2, ctx) do{ FlexOp s=s2; asr_(1, rd, s1, s, ctx); } while(False)
 
 void b_cond_(armCond cond, codeLblPo lbl, assemCtxPo ctx);
-#define beq(lbl,ctx) do{ b_cond_(EQ, lbl, ctx); } while(False)
-#define bne(lbl,ctx) do{ b_cond_(NE, lbl, ctx); } while(False)
-#define bcs(lbl,ctx) do{ b_cond_(CS, lbl, ctx); } while(False)
-#define bcc(lbl,ctx) do{ b_cond_(CC, lbl, ctx); } while(False)
-#define bmi(lbl,ctx) do{ b_cond_(MI, lbl, ctx); } while(False)
-#define bpl(lbl,ctx) do{ b_cond_(PL, lbl, ctx); } while(False)
-#define bvs(lbl,ctx) do{ b_cond_(VS, lbl, ctx); } while(False)
-#define bvc(lbl,ctx) do{ b_cond_(VC, lbl, ctx); } while(False)
-#define bhi(lbl,ctx) do{ b_cond_(HI, lbl, ctx); } while(False)
-#define bls(lbl,ctx) do{ b_cond_(LS, lbl, ctx); } while(False)
-#define bge(lbl,ctx) do{ b_cond_(GE, lbl, ctx); } while(False)
-#define blt(lbl,ctx) do{ b_cond_(LT, lbl, ctx); } while(False)
-#define bgt(lbl,ctx) do{ b_cond_(GT, lbl, ctx); } while(False)
-#define ble(lbl,ctx) do{ b_cond_(LE, lbl, ctx); } while(False)
-#define bal(lbl,ctx) do{ b_cond_(AL, lbl, ctx); } while(False)
-#define bnv(lbl,ctx) do{ b_cond_(NV, lbl, ctx); } while(False)
+#define beq(lbl, ctx) do{ b_cond_(EQ, lbl, ctx); } while(False)
+#define bne(lbl, ctx) do{ b_cond_(NE, lbl, ctx); } while(False)
+#define bcs(lbl, ctx) do{ b_cond_(CS, lbl, ctx); } while(False)
+#define bcc(lbl, ctx) do{ b_cond_(CC, lbl, ctx); } while(False)
+#define bmi(lbl, ctx) do{ b_cond_(MI, lbl, ctx); } while(False)
+#define bpl(lbl, ctx) do{ b_cond_(PL, lbl, ctx); } while(False)
+#define bvs(lbl, ctx) do{ b_cond_(VS, lbl, ctx); } while(False)
+#define bvc(lbl, ctx) do{ b_cond_(VC, lbl, ctx); } while(False)
+#define bhi(lbl, ctx) do{ b_cond_(HI, lbl, ctx); } while(False)
+#define bls(lbl, ctx) do{ b_cond_(LS, lbl, ctx); } while(False)
+#define bge(lbl, ctx) do{ b_cond_(GE, lbl, ctx); } while(False)
+#define blt(lbl, ctx) do{ b_cond_(LT, lbl, ctx); } while(False)
+#define bgt(lbl, ctx) do{ b_cond_(GT, lbl, ctx); } while(False)
+#define ble(lbl, ctx) do{ b_cond_(LE, lbl, ctx); } while(False)
+#define bal(lbl, ctx) do{ b_cond_(AL, lbl, ctx); } while(False)
+#define bnv(lbl, ctx) do{ b_cond_(NV, lbl, ctx); } while(False)
 
 void b_(codeLblPo lbl, assemCtxPo ctx);
-#define b(lbl,ctx) do{ b_(lbl, ctx); } while(False)
+#define b(lbl, ctx) do{ b_(lbl, ctx); } while(False)
 
-void bfc_(uint1 w, armReg RD, uint8 width, uint8 bit, assemCtxPo ctx);
-void bfi_(uint1 w, armReg RD, armReg S, uint8 width, uint8 bit, assemCtxPo ctx);
-void bfxil_(uint1 w, armReg RD, armReg S, uint8 width, uint8 bit, assemCtxPo ctx);
-void bics_(uint1 w, armShift tp, armReg RD, armReg Rn, armReg Rm, uint8 shift, assemCtxPo ctx);
+void bfc_(uint1 w, armReg RD, uint8 bit, uint8 width, assemCtxPo ctx);
+#define bfc(Rd, Wdth, Bit, ctx) do {bfc_(1, Rd, Wdth, Bit, ctx); } while(False)
+
+void bfi_(uint1 w, armReg RD, armReg Rn, uint8 bit, uint8 width, assemCtxPo ctx);
+#define bfi(Rd, Rn, Wdth, Bit, ctx) do {bfi_(1, Rd, Rn, Wdth, Bit, ctx); } while(False)
+
+void bfxil_(uint1 w, armReg RD, armReg Rn, uint8 bit, uint8 width, assemCtxPo ctx);
+#define bfxil(Rd, Rn, Wdth, Bit, ctx) do {bfxil_(1, Rd, Rn, Wdth, Bit, ctx); } while(False)
+
+void bic_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
+#define bic(Rd, Rn, S2, ctx) do {FlexOp s=S2; bic_(1, Rd, Rn, s, ctx); } while(False)
+
+void bics_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
+#define bics(Rd, Rn, S2, ctx) do {FlexOp s=S2;  bics_(1, Rd, Rn, s, ctx); } while(False)
 
 void bl_(codeLblPo lbl, assemCtxPo ctx);
+#define bl(lbl, ctx) do{ bl_(lbl, ctx); } while(False)
+
 void blr_(armReg reg, assemCtxPo ctx);
+#define blr(reg, ctx) do{ blr_(reg, ctx); } while(False)
+
 void br_(armReg reg, assemCtxPo ctx);
+#define br(reg, ctx) do{ br_(reg, ctx); } while(False)
+
 void brk_(uint16 bkpt, assemCtxPo ctx);
+#define brk(bkpt, ctx) do{ brk_(bkpt, ctx); } while(False)
 
 void sub_(armReg d, armReg s1, armOp s2, assemCtxPo ctx);
 
@@ -221,7 +238,6 @@ void eor_(armReg d, armReg s1, armOp s2, assemCtxPo ctx);
 void neg_(uint1 w, armReg Rd, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx);
 void negs_(uint1 w, armReg Rd, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx);
 void mvn_(uint1 w, armReg Rd, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx);
-void bic_(uint1 w, armShift tp, armReg RD, armReg Rn, armReg Rm, uint8 shift, assemCtxPo ctx);
 void mov_(armReg d, armOp s1, assemCtxPo ctx);
 void mul_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx);
 void sdiv_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx);

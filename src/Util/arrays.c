@@ -78,7 +78,7 @@ retCode dropEntry(arrayPo ar, integer ix) {
 }
 
 arrayPo eraseArray(arrayPo ar, arrayElProc eraser, void *cl) {
-  if (eraser != Null)
+  if (eraser != Null )
     processArrayElements(ar, eraser, cl);
 
   if (ar->growable)

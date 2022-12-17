@@ -104,8 +104,10 @@ codeLblPo defineLabel(assemCtxPo ctx, char *lName, integer pc) {
 void setLabel(assemCtxPo ctx, codeLblPo lbl) {
   lbl->pc = ctx->pc;
   ClInfo info = {.ctx=ctx, .lbl=lbl};
-  processArrayElements(lbl->refs, updateLblEntry, &info);
-  lbl->refs = eraseArray(lbl->refs, NULL, NULL);
+  if (lbl->refs != Null) {
+    processArrayElements(lbl->refs, updateLblEntry, &info);
+    lbl->refs = eraseArray(lbl->refs, NULL, NULL);
+  }
 }
 
 retCode addLabelReference(assemCtxPo ctx, codeLblPo lbl, integer pc, lblRefUpdater updater) {

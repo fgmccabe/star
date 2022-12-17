@@ -53,7 +53,7 @@ void encodeDPReg2Imm(uint1 wide, uint8 opc, uint8 op, uint1 N, uint8 imm1, uint8
                      assemCtxPo ctx);
 void encodeShift3Reg(uint1 wide, uint1 o, uint1 S, uint8 op, armShift sh, uint1 N, armReg Rm, int8 imm, armReg Rn,
                      armReg Rd, assemCtxPo ctx);
-void encode2Imm1Src(uint1 w, uint8 op, uint8 im1, uint8 im2, armReg R1, armReg RD, assemCtxPo ctx);
+void encode2Imm1Src(uint1 w, uint8 op, uint8 immr, uint8 imms, armReg R1, armReg RD, assemCtxPo ctx);
 void encodeCondTgt(uint8 op, uint32 imm, armCond cond, assemCtxPo ctx);
 void encodeCnd3Reg(uint1 w, uint1 o, uint1 S, uint8 op, armReg Rm, armCond cond, uint1 o2, armReg Rn, armReg Rd,
                    assemCtxPo ctx);
