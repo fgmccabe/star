@@ -23,5 +23,8 @@ _start:	mov X0, #1     // 1 = StdOut
 	br	X13
 2:	brk	#1234
 
+	cbnz	X3, 2b
+	cbz	x4, 2b
+
 helloworld:	.ascii "Hi there\n"
 	.end

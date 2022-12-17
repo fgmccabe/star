@@ -254,6 +254,11 @@ void cas_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
 void casl_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
 #define casl(Rs, Rt, Rn, cxt) casl_(1, Rs, Rt, Rn, ctx)
 
+void cbnz_(uint1 w, armReg Rt, codeLblPo lbl, assemCtxPo ctx);
+#define cbnz(Rt, Lbl, ctx) cbnz_(1, Rt, Lbl, ctx)
+void cbz_(uint1 w, armReg Rt, codeLblPo lbl, assemCtxPo ctx);
+#define cbz(Rt, Lbl, ctx) cbz_(1, Rt, Lbl, ctx)
+
 void sub_(armReg d, armReg s1, armOp s2, assemCtxPo ctx);
 
 void orn_(uint1 w, armReg Rd, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx);
@@ -277,8 +282,7 @@ void tst_(armReg s1, armOp s2, assemCtxPo ctx);
 
 void ret_(armReg reg, assemCtxPo ctx);
 
-void cbnz_(uint1 w, armReg Rt, codeLblPo lbl, assemCtxPo ctx);
-void cbz_(uint1 w, armReg Rt, codeLblPo lbl, assemCtxPo ctx);
+
 void tbnz_(uint1 w, armReg Rt, uint8 pos, codeLblPo lbl, assemCtxPo ctx);
 void tbz_(uint1 w, armReg Rt, uint8 pos, codeLblPo lbl, assemCtxPo ctx);
 
