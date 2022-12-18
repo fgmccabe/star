@@ -299,6 +299,32 @@ static retCode test_cbt() {
   return checkCode(tgt, NumberOf(tgt), ctx);
 }
 
+static retCode test_ld() {
+  assemCtxPo ctx = createCtx();
+
+  ldaddab(X3, X6, X4, ctx);
+  ldaddalb(X3, X6, X4, ctx);
+  ldaddb(X3, X6, X4, ctx);
+  ldaddlb(X3, X6, X4, ctx);
+
+  ldadd(X3, X6, X4, ctx);
+  ldadda(X3, X6, X4, ctx);
+  ldaddal(X3, X6, X4, ctx);
+  ldaddl(X3, X6, X4, ctx);
+
+  uint8 tgt[] = {0x86, 0x00, 0xa3, 0x38,// ldaddab
+                 0x86, 0x00, 0xe3, 0x38,// ldaddalb
+                 0x86, 00, 0x23, 0x38, // ldaddb
+                 0x86, 0x00, 0x63, 0x38, // ldaddlb
+
+                 0x86, 0x00, 0x23, 0xf8,  // ldadd
+                 0x86, 0x00, 0xa3, 0xf8, // ldadda
+                 0x86, 0x00, 0xe3, 0xf8, // ldaddal
+                 0x86, 0x00, 0x63, 0xf8, // ldaddl
+  };
+  return checkCode(tgt, NumberOf(tgt), ctx);
+}
+
 typedef int64 (*un_i64)(int64 x);
 typedef int64 (*bin_i64)(int64 x, int64 y);
 //
@@ -362,6 +388,7 @@ retCode all_tests() {
   tryRet(run_test(test_bit));
   tryRet(run_test(test_cas));
   tryRet(run_test(test_cbt));
+  tryRet(run_test(test_ld));
 
 //  tryRet(run_test(test_addFun));
 //  tryRet(run_test(test_factFun));

@@ -490,7 +490,7 @@ void eor_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
       encodeShift3Reg(w, 1, 0, 0xa, LSL, 0, S2.reg, 0, Rn, Rd, ctx);
       return;
     case lsli:
-      encodeShift3Reg(w, 1, 0, 0xa, LSL, 0, S2.reg, (uint8)(S2.immediate), Rn, Rd, ctx);
+      encodeShift3Reg(w, 1, 0, 0xa, LSL, 0, S2.reg, (uint8) (S2.immediate), Rn, Rd, ctx);
       return;
     case lsri:
       encodeShift3Reg(w, 1, 0, 0xa, LSR, 0, S2.reg, S2.immediate, Rn, Rd, ctx);
@@ -510,48 +510,42 @@ void extr_(uint1 w, armReg Rd, armReg Rn, armReg Rm, uint8 lsb, assemCtxPo ctx) 
   encodeExtrct(w, 0, w, 0, Rm, lsb, Rn, Rd, ctx);
 }
 
+void ldaddab_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeALd3Reg(0, 0, one, zero, one, Rs, 0, Rn, Rt, ctx);
+}
+
+void ldaddalb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeALd3Reg(0, 0, one, one, one, Rs, 0, Rn, Rt, ctx);
+}
+
+void ldaddb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeALd3Reg(0, 0, zero, zero, one, Rs, 0, Rn, Rt, ctx);
+}
+
+void ldaddlb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeALd3Reg(0, 0, zero, one, one, Rs, 0, Rn, Rt, ctx);
+}
+
+void ldadd_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeALd3Reg(2|w, 0, zero, zero, one, Rs, 0, Rn, Rt, ctx);
+}
+
+void ldadda_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeALd3Reg(2|w, 0, one, zero, one, Rs, 0, Rn, Rt, ctx);
+}
+
+void ldaddal_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeALd3Reg(2|w, 0, one, one, one, Rs, 0, Rn, Rt, ctx);
+}
+
+void ldaddl_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  encodeALd3Reg(2|w, 0, zero, one, one, Rs, 0, Rn, Rt, ctx);
+}
+
 void ld64b_(armReg Rn, armReg Rt, assemCtxPo ctx) {
   uint32 ins = fiv_bt(0x1f, 27) | ayt_bt(0xff, 14) | one_bt(1, 12) |
                fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
   emitU32(ctx, ins);
-}
-
-void encodeLdStPrPostIx(uint8 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
-  uint32 ins = two_bt(opc, 30) | thr_bt(5, 27) | one_bt(V, 26) | thr_bt(1, 23) | one_bt(L, 22) |
-               svn_bt(imm, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
-  emitU32(ctx, ins);
-}
-
-void encodeLdStPrPreIx(uint8 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
-  uint32 ins = two_bt(opc, 30) | thr_bt(5, 27) | one_bt(V, 26) | thr_bt(3, 23) | one_bt(L, 22) |
-               svn_bt(imm, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
-  emitU32(ctx, ins);
-}
-
-void encodeLdStPrOffset(uint8 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
-  uint32 ins = two_bt(opc, 30) | thr_bt(5, 27) | one_bt(V, 26) | thr_bt(12, 23) | one_bt(L, 22) |
-               svn_bt(imm, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
-  emitU32(ctx, ins);
-}
-
-void encodeIxRegPr(uint8 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, ixMode ix, assemCtxPo ctx) {
-  switch (ix) {
-    case postIndex: {
-      encodeLdStPrPostIx(opc, V, L, imm, Rt2, Rn, Rt, ctx);
-      return;
-    }
-    case preIndex: {
-      encodeLdStPrPreIx(opc, V, L, imm, Rt2, Rn, Rt, ctx);
-      return;
-    }
-    case signedOff: {
-      encodeLdStPrOffset(opc, V, L, imm, Rt2, Rn, Rt, ctx);
-      return;
-    }
-    default: {
-      check(False, "invalid index mode");
-    }
-  }
 }
 
 void ldnp(uint1 w, armReg Rt, armReg Rt2, armReg Rn, uint8 imm, assemCtxPo ctx) {
@@ -564,33 +558,6 @@ void ldp_(uint1 w, armReg Rt, armReg Rt2, armReg Rn, int8 imm, ixMode ix, assemC
 
 void ldpsw_(armReg Rt, armReg Rt2, armReg Rn, int8 imm, ixMode ix, assemCtxPo ctx) {
   encodeIxRegPr(1, 0, 1, imm, Rt2, Rn, Rt, ix, ctx);
-}
-
-void
-encode2SrcIxImmPrePost(uint8 sz, uint8 op, uint8 opc, ixMode ix, uint16 imm, armReg Rn, armReg Rt,
-                       assemCtxPo ctx) {
-  switch (ix) {
-    case postIndex: {
-      uint32 ins = two_bt(sz, 30) | for_bt(op, 26) | two_bt(opc, 22) |
-                   nin_bt(imm, 12) | two_bt(1, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
-      emitU32(ctx, ins);
-      return;
-    }
-    case preIndex: {
-      uint32 ins = two_bt(sz, 30) | for_bt(op, 26) | two_bt(opc, 22) |
-                   nin_bt(imm, 12) | two_bt(3, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
-      emitU32(ctx, ins);
-      return;
-    }
-    case unsignedOff: {
-      uint32 ins = two_bt(sz, 30) | for_bt(op, 26) | two_bt(1, 24) | two_bt(opc, 22) |
-                   twl_bt(imm, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
-      emitU32(ctx, ins);
-      return;
-    }
-    default:
-      check(False, "invalid prePostindex mode");
-  }
 }
 
 void ldr_(uint1 w, armReg Rt, armReg Rn, uint16 imm, ixMode ix, assemCtxPo ctx) {

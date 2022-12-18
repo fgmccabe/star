@@ -296,6 +296,67 @@ void eor_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
 
 void extr_(uint1 w, armReg Rd, armReg Rn, armReg Rm, uint8 lsb, assemCtxPo ctx);
 
+void ldaddab_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+#define ldaddab(Rs, Rt, Rn, ctx) ldaddab_(Rs, Rt, Rn, ctx)
+void ldaddalb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+#define ldaddalb(Rs, Rt, Rn, ctx) ldaddalb_(Rs, Rt, Rn, ctx)
+void ldaddb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+#define ldaddb(Rs, Rt, Rn, ctx) ldaddb_(Rs, Rt, Rn, ctx)
+void ldaddlb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+#define ldaddlb(Rs, Rt, Rn, ctx) ldaddlb_(Rs, Rt, Rn, ctx)
+
+void ldadd_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+#define ldadd(Rs, Rt, Rn, ctx) ldadd_(1, Rs, Rt, Rn, ctx)
+void ldadda_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+#define ldadda(Rs, Rt, Rn, ctx) ldadda_(1, Rs, Rt, Rn, ctx)
+void ldaddal_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+#define ldaddal(Rs, Rt, Rn, ctx) ldaddal_(1, Rs, Rt, Rn, ctx)
+void ldaddl_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
+#define ldaddl(Rs, Rt, Rn, ctx) ldaddl_(1, Rs, Rt, Rn, ctx)
+
+void ldapr_(armReg dst, armOp src, assemCtxPo ctx);
+void ldaprb_(armReg dst, armOp src, assemCtxPo ctx);
+void ldaprh_(armReg dst, armOp src, assemCtxPo ctx);
+void ldapur_(uint1 w, armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
+void ldapurb_(armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
+void ldapurh_(armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
+void ldapursb_(uint1 w, armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
+void ldapursh_(uint1 w, armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
+void ldapursw_(armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
+void ldar_(armReg dst, armOp src, assemCtxPo ctx);
+void ldarb_(armReg Rt, armReg Rn, assemCtxPo ctx);
+void ldarh_(armReg Rt, armReg Rn, assemCtxPo ctx);
+
+void ldaxr_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx);
+void ldaxrb_(armReg Rt, armReg Rn, assemCtxPo ctx);
+void ldaxrh_(armReg Rt, armReg Rn, assemCtxPo ctx);
+
+void ldlarb_(armReg Rt, armReg Rn, assemCtxPo ctx);
+void ldlarh_(armReg Rt, armReg Rn, assemCtxPo ctx);
+void ldlar_(uint1 w, armReg Rt, armReg Rn, assemCtxPo ctx);
+
+void ldr_(uint1 w, armReg Rt, armReg Rn, uint16 imm, ixMode ix, assemCtxPo ctx);
+void ldrb_imm(armReg Rt, armReg Rn, uint16 imm, ixMode ix, assemCtxPo ctx);
+void ldrsb_(armReg dst, armOp src, assemCtxPo ctx);
+void ldrh_(armReg dst, armOp src, assemCtxPo ctx);
+void ldrsh_(armReg dst, armOp src, assemCtxPo ctx);
+void ldrw_(armReg dst, armOp src, assemCtxPo ctx);
+void ldrsw_(armReg dst, armOp src, assemCtxPo ctx);
+
+void ldur_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
+void ldurb_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
+void ldursb_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
+void ldurh_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
+void ldursh_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
+void ldurw_(armReg dst, armOp src, assemCtxPo ctx);
+void ldursw_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
+
+void ldxr_(uint1 w, armReg Rt, armReg Rn, assemCtxPo ctx);
+void ldxrb_(armReg Rt, armReg Rn, assemCtxPo ctx);
+void ldxrh_(armReg Rt, armReg Rn, assemCtxPo ctx);
+void ldxap_(uint1 w, armReg Rd, armReg Rt2, armReg Rn, assemCtxPo ctx);
+void ldxp_(uint1 w, armReg Rt1, armReg Rt2, armReg Rn, assemCtxPo ctx);
+
 void sub_(armReg d, armReg s1, armOp s2, assemCtxPo ctx);
 
 void orn_(uint1 w, armReg Rd, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx);
@@ -318,24 +379,6 @@ void ret_(armReg reg, assemCtxPo ctx);
 void tbnz_(uint1 w, armReg Rt, uint8 pos, codeLblPo lbl, assemCtxPo ctx);
 void tbz_(uint1 w, armReg Rt, uint8 pos, codeLblPo lbl, assemCtxPo ctx);
 
-void extr_(uint1 w, armReg Rd, armReg Rn, armReg Rm, uint8 lsb, assemCtxPo ctx);
-
-void ldr_(uint1 w, armReg Rt, armReg Rn, uint16 imm, ixMode ix, assemCtxPo ctx);
-void ldrb_imm(armReg Rt, armReg Rn, uint16 imm, ixMode ix, assemCtxPo ctx);
-void ldrsb_(armReg dst, armOp src, assemCtxPo ctx);
-void ldrh_(armReg dst, armOp src, assemCtxPo ctx);
-void ldrsh_(armReg dst, armOp src, assemCtxPo ctx);
-void ldrw_(armReg dst, armOp src, assemCtxPo ctx);
-void ldrsw_(armReg dst, armOp src, assemCtxPo ctx);
-
-void ldur_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
-void ldurb_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
-void ldursb_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
-void ldurh_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
-void ldursh_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
-void ldurw_(armReg dst, armOp src, assemCtxPo ctx);
-void ldursw_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
-
 void bfm_(uint1 w, armReg Rd, armReg Rn, uint8 immr, uint8 imms, assemCtxPo ctx);
 void sbfm_(uint1 w, armReg Rd, armReg Rn, uint8 immr, uint8 imms, assemCtxPo ctx);
 void ubfm_(uint1 w, armReg Rd, armReg Rn, uint8 immr, uint8 imms, assemCtxPo ctx);
@@ -357,12 +400,6 @@ void stp_(uint1 w, armReg Rt, armReg Rt2, armReg Rn, int8 imm, ixMode ix, assemC
 void ldnp_(uint1 w, armReg Rt1, armReg Rt2, armReg Rn, uint8 imm, assemCtxPo ctx);
 void stnp_(uint1 w, armReg Rt1, armReg Rt2, armReg Rn, uint8 imm, assemCtxPo ctx);
 
-void ldxr_(uint1 w, armReg Rt, armReg Rn, assemCtxPo ctx);
-void ldxrb_(armReg Rt, armReg Rn, assemCtxPo ctx);
-void ldxrh_(armReg Rt, armReg Rn, assemCtxPo ctx);
-void ldxap_(uint1 w, armReg Rd, armReg Rt2, armReg Rn, assemCtxPo ctx);
-void ldxp_(uint1 w, armReg Rt1, armReg Rt2, armReg Rn, assemCtxPo ctx);
-
 void stxr_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
 void stxrb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
 void stxrh_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
@@ -372,31 +409,12 @@ void stlxrh_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
 void stlxp_(uint1 w, armReg Rd, armReg Rt2, armReg Rn, assemCtxPo ctx);
 void stxp_(uint1 w, armReg Rd, armReg Rt2, armReg Rn, assemCtxPo ctx);
 
-void ldapr_(armReg dst, armOp src, assemCtxPo ctx);
-void ldaprb_(armReg dst, armOp src, assemCtxPo ctx);
-void ldaprh_(armReg dst, armOp src, assemCtxPo ctx);
-void ldapur_(uint1 w, armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
-void ldapurb_(armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
-void ldapurh_(armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
-void ldapursb_(uint1 w, armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
-void ldapursh_(uint1 w, armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
-void ldapursw_(armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
-void ldar_(armReg dst, armOp src, assemCtxPo ctx);
-void ldarb_(armReg Rt, armReg Rn, assemCtxPo ctx);
-void ldarh_(armReg Rt, armReg Rn, assemCtxPo ctx);
 void stlr_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx);
 void stlrb_(armReg Rd, armReg Rn, assemCtxPo ctx);
 void stlrh_(armReg Rd, armReg Rn, assemCtxPo ctx);
 void stlurb_(armReg Rd, armReg Rn, uint16 imm, assemCtxPo ctx);
 void stlurh_(armReg Rd, armReg Rn, uint16 imm, assemCtxPo ctx);
 
-void ldaxr_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx);
-void ldaxrb_(armReg Rt, armReg Rn, assemCtxPo ctx);
-void ldaxrh_(armReg Rt, armReg Rn, assemCtxPo ctx);
-
-void ldlarb_(armReg Rt, armReg Rn, assemCtxPo ctx);
-void ldlarh_(armReg Rt, armReg Rn, assemCtxPo ctx);
-void ldlar_(uint1 w, armReg Rt, armReg Rn, assemCtxPo ctx);
 void stllrb_(armReg Rt, armReg Rn, assemCtxPo ctx);
 void stllrh_(armReg Rd, armReg Rn, assemCtxPo ctx);
 void stllr_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx);
