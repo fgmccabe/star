@@ -312,6 +312,25 @@ static retCode test_ld() {
   ldaddal(X3, X6, X4, ctx);
   ldaddl(X3, X6, X4, ctx);
 
+  ldp(X10, X11, PSX(X3, 8), ctx);
+  ldp(X10, X8, PRX(X5, -8), ctx);
+  ldp(X15, X20, OF(X20, 16), ctx);
+
+  ldpsw(X10, X11, PSX(X3, 8), ctx);
+  ldpsw(X10, X8, PRX(X5, -8), ctx);
+  ldpsw(X15, X20, OF(X20, 16), ctx);
+
+  ldr(X10, PSX(X3, 8), ctx);
+  ldr(X10, PRX(X5, -8), ctx);
+  ldr(X15, UO(X20, 16), ctx);
+
+  codeLblPo l0 = defineLabel(ctx, "l0", undefinedPc);
+  ldr(X19, PC(l0),ctx);
+
+  setLabel(ctx, l0);
+
+  ldr(X21, EX2(X22, X7, S_XTX, 3), ctx);
+
   uint8 tgt[] = {0x86, 0x00, 0xa3, 0x38,// ldaddab
                  0x86, 0x00, 0xe3, 0x38,// ldaddalb
                  0x86, 00, 0x23, 0x38, // ldaddb
@@ -321,6 +340,22 @@ static retCode test_ld() {
                  0x86, 0x00, 0xa3, 0xf8, // ldadda
                  0x86, 0x00, 0xe3, 0xf8, // ldaddal
                  0x86, 0x00, 0x63, 0xf8, // ldaddl
+
+                 0x6a, 0xac, 0xc0, 0xa8, // ldp postx
+                 0xaa, 0xa0, 0xff, 0xa9, // ldp prex
+                 0x8f, 0x52, 0x41, 0xa9, // ldp off
+
+                 0x6a, 0x2c, 0xc1, 0x68, // ldpsw
+                 0xaa, 0x20, 0xff, 0x69,
+                 0x8f, 0x52, 0x42, 0x69,
+
+                 0x6a, 0x84, 0x40, 0xf8, // ldr px
+                 0xaa, 0x8c, 0x5f, 0xf8, // ldr prx
+                 0x8f, 0x0a, 0x40, 0xf9, // ldr uo
+                 0x33, 0x00, 0x00, 0x58, // ldr pc+off
+
+                 0xd5, 0xfa, 0x67, 0xf8, // ldr x21, [x22, x7, sxtx #3]
+
   };
   return checkCode(tgt, NumberOf(tgt), ctx);
 }

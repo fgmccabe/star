@@ -151,7 +151,6 @@ retCode run(processPo P) {
           restoreRegisters();
           push(res);
         } else {
-          bumpCallCount(mtd);
           pushFrme(mtd);
           LITS = codeLits(mtd);
           incEntryCount(mtd);              // Increment number of times program called
@@ -176,8 +175,6 @@ retCode run(processPo P) {
           logMsg(logFile, "no definition for %T", oLbl);
           bail();
         }
-
-        bumpCallCount(mtd);
 
         push(nthElem(obj, 0));                     // Put the free term back on the stack
 
@@ -282,8 +279,6 @@ retCode run(processPo P) {
           bail();
         }
 
-        bumpCallCount(mtd);
-
         if (!stackRoom(stackDelta(mtd))) {
           int root = gcAddRoot(H, (ptrPo) &mtd);
 
@@ -337,8 +332,6 @@ retCode run(processPo P) {
           logMsg(logFile, "no definition for %T", lbl);
           bail();
         }
-
-        bumpCallCount(mtd);
 
         if (!stackRoom(stackDelta(mtd))) {
           int root = gcAddRoot(H, (ptrPo) &mtd);
@@ -688,8 +681,6 @@ retCode run(processPo P) {
             logMsg(logFile, "no definition for %T", oLbl);
             bail();
           }
-
-          bumpCallCount(mtd);
 
           push(nthElem(thLambda, 0));                     // Put the free term back on the stack
           push(thVr);

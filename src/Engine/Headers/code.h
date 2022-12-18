@@ -29,7 +29,6 @@ integer insOffset(methodPo m, insPo pc);
 insPo pcAddr(methodPo mtd, integer off);
 integer mtdCodeSize(methodPo mtd);
 
-integer bumpCallCount(methodPo mtd);
 integer callCount(methodPo mtd);
 
 logical normalCode(methodPo mtd);

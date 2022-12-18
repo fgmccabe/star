@@ -63,14 +63,6 @@ void encodeDPRegImm(uint1 wide, uint8 opc, uint8 op, uint1 sh, uint16 imm, armRe
   emitU32(ctx, ins);
 }
 
-void encode3RegExtended(uint1 w, uint1 opt, uint1 S, uint8 op, armReg Rm, uint8 option, uint8 imm, armReg Rn, armReg Rd,
-                        assemCtxPo ctx) {
-  uint32 ins = one_bt(w, 31) | one_bt(opt, 30) | one_bt(S, 29) | svn_bt(op, 21) |
-               fiv_bt(Rm, 16) | thr_bt(option, 13) | thr_bt(imm, 10) |
-               fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
-  emitU32(ctx, ins);
-}
-
 void
 encodeAddSubImm(uint1 w, uint1 op, uint1 S, uint8 code, uint1 sh, int16 imm, armReg Rn, armReg Rd, assemCtxPo ctx) {
   uint32 ins = one_bt(w, 31) | one_bt(op, 30) | one_bt(S, 29) | six_bt(code, 23) |
@@ -160,7 +152,7 @@ static void updateCondPc(assemCtxPo ctx, codeLblPo lbl, integer pc) {
   integer delta = (integer) labelTgt(lbl) - (pc + PLATFORM_PC_DELTA);
   uint32 oldIns = readCtxAtPc(ctx, pc);
   uint32 newIns =
-    svn_bt((oldIns >> 24), 24) | ntn_bt(delta >> 2, 5) | fiv_bt(oldIns, 0);
+    ayt_bt((oldIns >> 24), 24) | ntn_bt(delta >> 2, 5) | fiv_bt(oldIns, 0);
   updateU32(ctx, pc, newIns);
 }
 
@@ -246,6 +238,11 @@ void encodeExLdStRg(uint8 w, uint1 L, armReg Rs, uint1 o0, armReg Rt2, armReg Rn
   emitU32(ctx, ins);
 }
 
+void encodeLdSt(uint8 sz, uint8 opc, uint16 imm, armReg Rn, armReg Rd, assemCtxPo ctx) {
+  uint32 ins = two_bt(sz, 30) | ayt_bt(opc, 22) | twl_bt(imm, 10) | fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
+  emitU32(ctx, ins);
+}
+
 void encodeLdStOrd(uint8 w, uint1 L, armReg Rs, uint1 o0, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
   uint32 ins = two_bt(w, 30) | svn_bt(0x11, 23) | one_bt(L, 22) |
                fiv_bt(Rs, 16) | one_bt(o0, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
@@ -259,16 +256,23 @@ void encodeLdStUnscaled(uint8 w, uint8 opc, int16 imm9, armReg Rn, armReg Rt, as
 }
 
 void encodeLdPcLit(uint8 opc, uint1 V, codeLblPo lbl, armReg Rt, assemCtxPo ctx) {
-  integer delta = lblDeltaRef(ctx, lbl);
-  check(absolute(delta >> 2) < (1 << 19), "label out of range");
-  uint32 ins = two_bt(opc, 30) | thr_bt(3, 27) | one_bt(V, 26) |
-               ntn_bt(delta >> 2, 15) | fiv_bt(Rt, 0);
-  emitU32(ctx, ins);
+  if (!isLabelDefined(lbl)) {
+    addLabelReference(ctx, lbl, ctx->pc, updateCondPc);
+    emitU32(ctx, two_bt(opc, 30) | thr_bt(3, 27) | one_bt(V, 26) | fiv_bt(Rt, 0));
+  } else {
+    integer delta = lblDeltaRef(ctx, lbl);
+    check(absolute(delta >> 2) < (1 << 21), "label out of range");
+    uint32 ins = two_bt(opc, 30) | thr_bt(3, 27) | one_bt(V, 26) |
+                 ntn_bt(delta >> 2, 15) | fiv_bt(Rt, 0);
+    emitU32(ctx, ins);
+  }
 }
 
-void encodeLdStNoAl(uint8 opc, uint1 V, uint1 L, uint8 imm7, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
-  uint32 ins = two_bt(opc, 30) | thr_bt(0x5, 27) | one_bt(V, 26) | one_bt(L, 22) | svn_bt(imm7, 15) |
-               fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
+void
+encodeLd3Reg(uint8 w, uint1 w2, uint8 op1, uint1 V, uint8 op2, uint1 L, uint8 imm7, armReg Rt2, armReg Rn, armReg Rt,
+             assemCtxPo ctx) {
+  uint32 ins = one_bt(w, 31) | one_bt(w2, 30) | thr_bt(op1, 27) | one_bt(V, 26) | thr_bt(op2, 23) | one_bt(L, 22) |
+               svn_bt(imm7, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
   emitU32(ctx, ins);
 }
 
@@ -278,9 +282,9 @@ void encodeLdStRegUnscaled(uint8 sz, uint1 V, uint8 opc, int16 imm, armReg Rn, a
   emitU32(ctx, ins);
 }
 
-void encodeLdStRegPost(uint8 sz, uint1 V, uint8 opc, int16 imm, armReg Rn, armReg Rt, assemCtxPo ctx) {
+void encodeLdStRegX(uint8 sz, uint1 V, uint8 opc, int16 imm, uint8 op2, armReg Rn, armReg Rt, assemCtxPo ctx) {
   uint32 ins = two_bt(sz, 30) | thr_bt(0x7, 27) | one_bt(V, 26) | two_bt(opc, 22) |
-               nin_bt(imm, 12) | two_bt(1, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
+               nin_bt(imm, 12) | two_bt(op2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
   emitU32(ctx, ins);
 }
 
@@ -305,7 +309,7 @@ void encodeLdStRegOff(uint8 opc, uint1 V, uint1 L, int8 imm7, armReg Rt2, armReg
 void encodeIxReg(uint8 w, uint1 V, int8 opc, int8 imm, armReg Rn, armReg Rt, ixMode ix, assemCtxPo ctx) {
   switch (ix) {
     case postIndex: {
-      encodeLdStRegPost(w, V, opc, imm, Rn, Rt, ctx);
+      encodeLdStRegX(w, V, opc, imm, 0, Rn, Rt, ctx);
       return;
     }
     case preIndex: {
@@ -392,11 +396,6 @@ void encode2Imm1Src(uint1 w, uint8 op, uint8 immr, uint8 imms, armReg R1, armReg
   emitU32(ctx, ins);
 }
 
-void encodeCondTgt(uint8 op, uint32 imm, armCond cond, assemCtxPo ctx) {
-  uint32 ins = ayt_bt(op, 24) | ntn_bt(imm, 5) | for_bt(cond, 0);
-  emitU32(ctx, ins);
-}
-
 void encodeCnd3Reg(uint1 w, uint1 o, uint1 S, uint8 op, armReg Rm, armCond cond, uint1 o2, armReg Rn, armReg Rd,
                    assemCtxPo ctx) {
   uint32 ins = one_bt(w, 31) | one_bt(o, 30) | one_bt(S, 29) | ayt_bt(op, 21) |
@@ -405,24 +404,9 @@ void encodeCnd3Reg(uint1 w, uint1 o, uint1 S, uint8 op, armReg Rm, armCond cond,
   emitU32(ctx, ins);
 }
 
-void encodeRelTgt(uint8 op, uint32 imm, assemCtxPo ctx) {
-  uint32 ins = six_bt(op, 24) | tsx_bt(imm, 0);
-  emitU32(ctx, ins);
-}
-
-void encodeRelReg(uint1 wide, uint8 op, uint32 imm, armReg Rt, assemCtxPo ctx) {
-  uint32 ins = one_bt(wide, 31) | svn_bt(op, 24) | ntn_bt(imm, 5) | fiv_bt(Rt, 0);
-  emitU32(ctx, ins);
-}
-
-void encodeCmpImm(uint1 w, uint8 o0, uint8 op, uint8 imm, armCond cond, armReg Rn, uint8 nzcv, assemCtxPo ctx) {
-  uint32 ins = one_bt(w, 31) | two_bt(o0, 29) | ayt_bt(op, 21) | fiv_bt(imm, 16) |
-               for_bt(cond, 12) | one_bt(1, 11) | fiv_bt(Rn, 5) | for_bt(nzcv, 0);
-  emitU32(ctx, ins);
-}
-
-void encodeLdStPrPostIx(uint8 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
-  uint32 ins = two_bt(opc, 30) | thr_bt(5, 27) | one_bt(V, 26) | thr_bt(1, 23) | one_bt(L, 22) |
+void
+encodeLdStPrPostIx(uint1 w, uint1 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
+  uint32 ins = one_bt(w, 31) | one_bt(opc, 30) | thr_bt(5, 27) | one_bt(V, 26) | thr_bt(1, 23) | one_bt(L, 22) |
                svn_bt(imm, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
   emitU32(ctx, ins);
 }
@@ -442,7 +426,7 @@ void encodeLdStPrOffset(uint8 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armRe
 void encodeIxRegPr(uint8 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, ixMode ix, assemCtxPo ctx) {
   switch (ix) {
     case postIndex: {
-      encodeLdStPrPostIx(opc, V, L, imm, Rt2, Rn, Rt, ctx);
+      encodeLdStPrPostIx(one, opc, V, L, imm, Rt2, Rn, Rt, ctx);
       return;
     }
     case preIndex: {

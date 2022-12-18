@@ -191,10 +191,6 @@ termPo getMtdLit(methodPo mtd, integer litNo) {
   return nthArg(codeLits(mtd), litNo);
 }
 
-integer bumpCallCount(methodPo mtd) {
-  return ++mtd->entryCount;
-}
-
 integer callCount(methodPo mtd) {
   return mtd->entryCount;
 }
@@ -294,12 +290,12 @@ static retCode showMtdCount(labelPo lbl, void *cl) {
   ioPo out = (ioPo) cl;
   methodPo mtd = labelCode(lbl);
   if (mtd != 0 && callCount(mtd) > 0) {
-    return outMsg(out, "%L:%ld\n", lbl, callCount(mtd));
+    return outMsg(out, "%L %ld\n", lbl, callCount(mtd));
   } else
     return Ok;
 }
 
 void showMtdCounts(ioPo out) {
-  outMsg(out,"Unsorted method counts\n");
+  outMsg(out, "Unsorted method counts\n");
   iterateLabels(showMtdCount, out);
 }

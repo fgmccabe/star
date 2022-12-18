@@ -32,5 +32,21 @@ _start:	mov X0, #1     // 1 = StdOut
 	ldaddal	x3, x6, [x4]
 	ldaddl	x3, x6, [x4]
 
+	ldp	X10, X11, [X3], #8
+	ldp	X10, X8, [X5, #-8]!
+	ldp	X15, X20, [X20, #16]
+
+	ldpsw	X10, X11, [X3], #8
+	ldpsw	X10, X8, [X5, #-8]!
+	ldpsw	X15, X20, [X20, #16]
+
+	ldr	X10, [X3], #8
+	ldr	X10, [X5, #-8]!
+	ldr	X15, [X20, #16]
+
+	ldr	X19, helloworld
+	ldr	X21, [X22, X7, SXTX #3]
+	
+	
 helloworld:	.ascii "Hi there\n"
 	.end
