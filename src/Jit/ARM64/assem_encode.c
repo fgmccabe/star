@@ -209,7 +209,7 @@ void encodeCmpBr(uint1 b5, uint1 op, codeLblPo lbl, armReg Rt, assemCtxPo ctx) {
     integer delta = lblDeltaRef(ctx, lbl);
     check(absolute(delta >> 2) < (1 << 19), "label out of range");
     uint32 ins = one_bt(b5, 31) | fiv_bt(0x1a, 25) | one_bt(op, 24) |
-                 ntn_bt(delta>>2, 5) | fiv_bt(Rt, 0);
+                 ntn_bt(delta >> 2, 5) | fiv_bt(Rt, 0);
     emitU32(ctx, ins);
   }
 }
@@ -330,9 +330,17 @@ void encodeLdStUnPriv(uint8 sz, uint1 V, uint8 opc, int16 imm9, armReg Rn, armRe
 }
 
 void
-encodeLdSt3Reg(uint8 sz, uint1 V, uint8 opc, armReg Rm, uint8 option, uint1 S, armReg Rn, armReg Rt, assemCtxPo ctx) {
+encodeALd3Reg(uint8 sz, uint8 opc, uint1 a, uint1 r, uint1 N, armReg Rs, uint8 opt, armReg Rn, armReg Rt,
+              assemCtxPo ctx) {
+  uint32 ins = two_bt(sz, 30) | thr_bt(0x7, 27) | two_bt(opc, 24) | one_bt(a, 23) | one_bt(r, 22) |
+               one_bt(1, 21) | fiv_bt(Rs, 16) | thr_bt(opt, 12) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
+  emitU32(ctx, ins);
+}
+
+void
+encodeLdSt3Reg(uint8 sz, uint1 V, uint8 opc, armReg Rm, uint8 opt, uint1 S, armReg Rn, armReg Rt, assemCtxPo ctx) {
   uint32 ins = two_bt(sz, 30) | thr_bt(0x7, 27) | one_bt(V, 26) | two_bt(opc, 22) | one_bt(1, 21) |
-               fiv_bt(Rm, 16) | thr_bt(option, 13) | one_bt(S, 12) |
+               fiv_bt(Rm, 16) | thr_bt(opt, 13) | one_bt(S, 12) |
                fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
   emitU32(ctx, ins);
 }
@@ -411,4 +419,68 @@ void encodeCmpImm(uint1 w, uint8 o0, uint8 op, uint8 imm, armCond cond, armReg R
   uint32 ins = one_bt(w, 31) | two_bt(o0, 29) | ayt_bt(op, 21) | fiv_bt(imm, 16) |
                for_bt(cond, 12) | one_bt(1, 11) | fiv_bt(Rn, 5) | for_bt(nzcv, 0);
   emitU32(ctx, ins);
+}
+
+void encodeLdStPrPostIx(uint8 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
+  uint32 ins = two_bt(opc, 30) | thr_bt(5, 27) | one_bt(V, 26) | thr_bt(1, 23) | one_bt(L, 22) |
+               svn_bt(imm, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
+  emitU32(ctx, ins);
+}
+
+void encodeLdStPrPreIx(uint8 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
+  uint32 ins = two_bt(opc, 30) | thr_bt(5, 27) | one_bt(V, 26) | thr_bt(3, 23) | one_bt(L, 22) |
+               svn_bt(imm, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
+  emitU32(ctx, ins);
+}
+
+void encodeLdStPrOffset(uint8 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
+  uint32 ins = two_bt(opc, 30) | thr_bt(5, 27) | one_bt(V, 26) | thr_bt(12, 23) | one_bt(L, 22) |
+               svn_bt(imm, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
+  emitU32(ctx, ins);
+}
+
+void encodeIxRegPr(uint8 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, ixMode ix, assemCtxPo ctx) {
+  switch (ix) {
+    case postIndex: {
+      encodeLdStPrPostIx(opc, V, L, imm, Rt2, Rn, Rt, ctx);
+      return;
+    }
+    case preIndex: {
+      encodeLdStPrPreIx(opc, V, L, imm, Rt2, Rn, Rt, ctx);
+      return;
+    }
+    case signedOff: {
+      encodeLdStPrOffset(opc, V, L, imm, Rt2, Rn, Rt, ctx);
+      return;
+    }
+    default: {
+      check(False, "invalid index mode");
+    }
+  }
+}
+
+void encode2SrcIxImmPrePost(uint8 sz, uint8 op, uint8 opc, ixMode ix, uint16 imm, armReg Rn, armReg Rt,
+                            assemCtxPo ctx) {
+  switch (ix) {
+    case postIndex: {
+      uint32 ins = two_bt(sz, 30) | for_bt(op, 26) | two_bt(opc, 22) |
+                   nin_bt(imm, 12) | two_bt(1, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
+      emitU32(ctx, ins);
+      return;
+    }
+    case preIndex: {
+      uint32 ins = two_bt(sz, 30) | for_bt(op, 26) | two_bt(opc, 22) |
+                   nin_bt(imm, 12) | two_bt(3, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
+      emitU32(ctx, ins);
+      return;
+    }
+    case unsignedOff: {
+      uint32 ins = two_bt(sz, 30) | for_bt(op, 26) | two_bt(1, 24) | two_bt(opc, 22) |
+                   twl_bt(imm, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
+      emitU32(ctx, ins);
+      return;
+    }
+    default:
+      check(False, "invalid prePostindex mode");
+  }
 }

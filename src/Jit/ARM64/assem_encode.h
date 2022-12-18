@@ -21,7 +21,7 @@ void encodeLogImm(uint1 w, uint8 opc, uint64 val, armReg Rn, armReg Rd, assemCtx
 void encodeMovWide(uint1 w, uint8 opc, uint8 hw, int16 imm, armReg Rd, assemCtxPo ctx);
 void encodeImmRegReg(uint1 w, uint8 opc, uint1 N, uint8 immr, uint8 imms, armReg Rn, armReg Rd, assemCtxPo ctx);
 void encodeExtrct(uint1 w, uint8 opc, uint1 N, uint1 o0, armReg Rm, uint8 imms, armReg Rn, armReg Rd, assemCtxPo ctx);
-void encodeCondBrnch(uint8 op, uint1 o1, codeLblPo lbl,armCond cond, assemCtxPo ctx);
+void encodeCondBrnch(uint8 op, uint1 o1, codeLblPo lbl, armCond cond, assemCtxPo ctx);
 void encodeBranch(uint8 opc, uint8 op2, uint8 op3, armReg Rn, uint8 op4, assemCtxPo ctx);
 void encodeBranchImm(uint1 op, codeLblPo lbl, assemCtxPo ctx);
 void encodeCmpBr(uint1 b5, uint1 op, codeLblPo lbl, armReg Rt, assemCtxPo ctx);
@@ -30,6 +30,9 @@ void encodeCasPr(uint8 w, uint1 L, armReg Rs, uint o0, armReg Rt2, armReg Rn, ar
 void encodeCas(uint8 w, uint1 L, armReg Rs, uint o0, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx);
 void encodeExLdStPr(uint1 w, uint1 L, armReg Rs, uint1 o0, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx);
 void encodeExLdStRg(uint8 w, uint1 L, armReg Rs, uint1 o0, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx);
+
+void encodeALd3Reg(uint8 sz, uint8 opc, uint1 a, uint1 r, uint1 N, armReg Rs, uint8 opt, armReg Rn, armReg Rt,
+                   assemCtxPo ctx);
 void encodeLdStOrd(uint8 w, uint1 L, armReg Rs, uint1 o0, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx);
 void encodeLdStUnscaled(uint8 w, uint8 opc, int16 imm9, armReg Rn, armReg Rt, assemCtxPo ctx);
 void encodeLdPcLit(uint8 opc, uint1 V, codeLblPo lbl, armReg Rt, assemCtxPo ctx);
@@ -41,8 +44,7 @@ void encodeLdRegLit(uint8 sz, uint8 opc, int16 imm9, armReg Rn, armReg Rt, assem
 void encodeLdStRegOff(uint8 opc, uint1 V, uint1 L, int8 imm7, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx);
 void encodeIxReg(uint8 w, uint1 V, int8 opc, int8 imm, armReg Rn, armReg Rt, ixMode ix, assemCtxPo ctx);
 void encodeLdStUnPriv(uint8 sz, uint1 V, uint8 opc, int16 imm9, armReg Rn, armReg Rt, assemCtxPo ctx);
-void
-encodeLdSt3Reg(uint8 sz, uint1 V, uint8 opc, armReg Rm, uint8 option, uint1 S, armReg Rn, armReg Rt, assemCtxPo ctx);
+void encodeLdSt3Reg(uint8 sz, uint1 V, uint8 opc, armReg Rm, uint8 opt, uint1 S, armReg Rn, armReg Rt, assemCtxPo ctx);
 void encodeSz2OpcImm3Reg(uint8 sz, uint8 op, uint8 opc, uint1 N, armReg Rm, armExtent ex, uint1 S, uint8 S1, armReg Rn,
                          armReg Rt, assemCtxPo ctx);
 void
@@ -60,5 +62,12 @@ void encodeCnd3Reg(uint1 w, uint1 o, uint1 S, uint8 op, armReg Rm, armCond cond,
 void encodeRelTgt(uint8 op, uint32 imm, assemCtxPo ctx);
 void encodeRelReg(uint1 wide, uint8 op, uint32 imm, armReg Rt, assemCtxPo ctx);
 void encodeCmpImm(uint1 w, uint8 o0, uint8 op, uint8 imm, armCond cond, armReg Rn, uint8 nzcv, assemCtxPo ctx);
+
+void encodeLdStPrPostIx(uint8 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx);
+void encodeLdStPrPreIx(uint8 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx);
+void encodeLdStPrOffset(uint8 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx);
+void encodeIxRegPr(uint8 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, ixMode ix, assemCtxPo ctx);
+void encode2SrcIxImmPrePost(uint8 sz, uint8 op, uint8 opc, ixMode ix, uint16 imm, armReg Rn, armReg Rt,
+                            assemCtxPo ctx);
 
 #endif //STAR_ASSEM_ENCODE_H
