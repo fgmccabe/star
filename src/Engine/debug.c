@@ -1166,7 +1166,9 @@ retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bu
 void dumpStats() {
   logMsg(debugOutChnnl, "%ld instructions executed\n", pcCount);
   dumpEscapes(debugOutChnnl);
+  showMtdCounts(debugOutChnnl);
   dumpStackStats();
+  dumpGcStats();
 }
 
 void dumpStack() {

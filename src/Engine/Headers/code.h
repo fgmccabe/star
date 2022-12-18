@@ -1,5 +1,5 @@
-#ifndef _CODE_H_
-#define _CODE_H_
+#ifndef CODE_H_
+#define CODE_H_
 
 #include "config.h"
 #include "ooio.h"
@@ -30,7 +30,9 @@ insPo pcAddr(methodPo mtd, integer off);
 integer mtdCodeSize(methodPo mtd);
 
 integer bumpCallCount(methodPo mtd);
+integer callCount(methodPo mtd);
 
 logical normalCode(methodPo mtd);
 
+void showMtdCounts(ioPo out);
 #endif
