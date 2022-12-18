@@ -104,25 +104,15 @@ typedef enum {
 
 typedef enum {
   imm,  // Immediate value
-  lsli, // Logical shift left immediate
-  lsri, // logical shift right immediate
-  asri, // arithmetic shift right immediate
-  rori, // rotate right immediate
+  shft, // Shifting mode
   reg, // register
   extnd,  // extended
+  postX, // post increment
+  preX, // predecrement
+  sOff, // signed offset
+  uOff, // unsigned offset
+  pcRel, // relative to PC
 } FlexibleMode;
-
-typedef struct {
-  FlexibleMode mode;
-  uint64 immediate;
-  uint1 hiLo;
-  armReg reg;
-  uint8 shift;
-  armExtent ext;
-} FlexOp;
-
-typedef armOp registerSpec;
-#define PLATFORM_PC_DELTA (0)
 
 typedef enum {
   LSL = 0,
@@ -138,17 +128,35 @@ typedef enum {
   unsignedOff = 0
 } ixMode;
 
+typedef struct {
+  FlexibleMode mode;
+  uint64 immediate;
+  uint1 hiLo;
+  armReg reg;
+  armReg rgm;
+  armShift shift;
+  armExtent ext;
+  codeLblPo lbl;
+} FlexOp;
+
+typedef armOp registerSpec;
+#define PLATFORM_PC_DELTA (0)
+
 #define RG(Rg) {.mode=reg, .reg=(Rg)}
 #define IM(Vl) {.mode=imm, .immediate=(Vl), .hiLo=0}
 #define IMH(Vl) {.mode=imm, .immediate=(Vl), .hiLo=1}
-#define LS(Rg, Amnt) {.mode=lsli, .reg=Rg, .immediate=(Amnt)}
-#define RS(Rg, Amnt) {.mode=lsri, .reg=Rg, .immediate=(Amnt)}
-#define AS(Rg, Amnt) {.mode=asri, .reg=Rg, .immediate=(Amnt)}
-#define RR(Rg, Amnt) {.mode=rori, .reg=Rg, .immediate=(Amnt)}
+#define LS(Rg, Amnt) {.mode=shft, .shift=LSL, .reg=Rg, .immediate=(Amnt)}
+#define RS(Rg, Amnt) {.mode=shft, .shift=LSR, .reg=Rg, .immediate=(Amnt)}
+#define AS(Rg, Amnt) {.mode=shft, .shift=ASR, .reg=Rg, .immediate=(Amnt)}
+#define RR(Rg, Amnt) {.mode=shft, .shift=ROR, .reg=Rg, .immediate=(Amnt)}
 #define EX(Rg, Md, Amnt) {.mode=extnd, .reg =Rg, .ext=Md, .immediate=(Amnt)}
+#define EX2(Rg, Rgm,Md, Amnt) {.mode=extnd, .reg =Rg, .rgm=Rgm, .ext=Md, .immediate=(Amnt)}
+#define PSX(Rg, Amnt) {.mode=postX, .reg=Rg, .immediate=(Amnt)}
+#define PRX(Rg, Amnt) {.mode=preX,  .reg=Rg, .immediate=(Amnt)}
+#define OF(Rg, Amnt) {.mode=sOff,  .reg=Rg, .immediate=(Amnt)}
+#define UO(Rg, Amnt) {.mode=uOff, .reg=Rg, .immediate=(Amnt)}
+#define PC(Lbl) {.mode=pcRel, .lbl=Lbl}
 
-#define BS(Rg, Off) {.mode=Based, .op.based.base=(Rg), .op.based.disp=(Off)}
-#define IX(Rg, Ix, Sc, Off) {.mode=Indexed, .op.indexed.base = (Rg), .op.indexed.index=(Ix), .op.indexed.disp=(Off), .op.indexed.scale=(Sc)}
 #define LB(l)  {.mode=Labeled, .op.lbl = (l)}
 
 void adc_(uint1 wide, armReg rd, armReg s1, armReg s2, assemCtxPo ctx);
@@ -296,6 +304,8 @@ void eor_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
 
 void extr_(uint1 w, armReg Rd, armReg Rn, armReg Rm, uint8 lsb, assemCtxPo ctx);
 
+void ld64b(armReg Rt, armReg Rn, assemCtxPo ctx);
+
 void ldaddab_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
 #define ldaddab(Rs, Rt, Rn, ctx) ldaddab_(Rs, Rt, Rn, ctx)
 void ldaddalb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
@@ -323,7 +333,6 @@ void ldapurh_(armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
 void ldapursb_(uint1 w, armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
 void ldapursh_(uint1 w, armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
 void ldapursw_(armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
-void ldar_(armReg dst, armOp src, assemCtxPo ctx);
 void ldarb_(armReg Rt, armReg Rn, assemCtxPo ctx);
 void ldarh_(armReg Rt, armReg Rn, assemCtxPo ctx);
 
@@ -335,7 +344,15 @@ void ldlarb_(armReg Rt, armReg Rn, assemCtxPo ctx);
 void ldlarh_(armReg Rt, armReg Rn, assemCtxPo ctx);
 void ldlar_(uint1 w, armReg Rt, armReg Rn, assemCtxPo ctx);
 
-void ldr_(uint1 w, armReg Rt, armReg Rn, uint16 imm, ixMode ix, assemCtxPo ctx);
+void ldp_(uint1 w, armReg Rt, armReg Rt2, FlexOp Sn, assemCtxPo ctx);
+#define ldp(Rt,Rt2,S2,Ctx) do{FlexOp s=S2;  ldp_(1, Rt, Rt2, s, ctx); } while(False)
+
+void ldpsw_(armReg Rt, armReg Rt2, FlexOp Sn, assemCtxPo ctx);
+#define ldpsw(Rt,Rt2,S2,Ctx) do{FlexOp s=S2;  ldpsw_(Rt, Rt2, s, ctx); } while(False)
+
+void ldr_(uint1 w, armReg Rt,  FlexOp Sn, assemCtxPo ctx);
+#define ldr(Rt,S2,Ctx) do{FlexOp s=S2;  ldr_(1, Rt, s, ctx); } while(False)
+
 void ldrb_imm(armReg Rt, armReg Rn, uint16 imm, ixMode ix, assemCtxPo ctx);
 void ldrsb_(armReg dst, armOp src, assemCtxPo ctx);
 void ldrh_(armReg dst, armOp src, assemCtxPo ctx);
@@ -393,8 +410,6 @@ void sturb_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
 void sturh_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
 
 void ldnp(uint1 w, armReg Rt, armReg Rt2, armReg Rn, uint8 imm, assemCtxPo ctx);
-void ldp_(uint1 w, armReg Rt, armReg Rt2, armReg Rn, int8 imm, ixMode ix, assemCtxPo ctx);
-void ldpsw_(armReg Rt, armReg Rt2, armReg Rn, int8 imm, ixMode ix, assemCtxPo ctx);
 void stp_(uint1 w, armReg Rt, armReg Rt2, armReg Rn, int8 imm, ixMode ix, assemCtxPo ctx);
 
 void ldnp_(uint1 w, armReg Rt1, armReg Rt2, armReg Rn, uint8 imm, assemCtxPo ctx);
