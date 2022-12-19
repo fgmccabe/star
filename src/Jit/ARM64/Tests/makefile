@@ -54,5 +54,13 @@ ldb: ld.o
 	-e _start \
 	-arch arm64
 
+lsl: lsl.o
+	ld -o lsl lsl.o \
+         -lSystem \
+	-syslibroot `xcrun -sdk macosx --show-sdk-path` \
+	-e _start \
+	-arch arm64
+
+
 .o: .s
 	as -o $@.o $@.s
