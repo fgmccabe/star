@@ -435,6 +435,23 @@ static retCode test_ld() {
   return checkCode(tgt, NumberOf(tgt), ctx);
 }
 
+static retCode test_lsl() {
+  assemCtxPo ctx = createCtx();
+
+  lsl(X12, X13, RG(X20), ctx);
+  lsl(X12, X9, IM(23), ctx);
+
+  lsr(X12, X13, RG(X20), ctx);
+  lsr(X12, X9, IM(23), ctx);
+
+  uint8 tgt[] = {0xac, 0x21, 0xd4, 0x9a, // lsl
+                 0x2c, 0xa1, 0x69, 0xd3,
+                 0xac, 0x25, 0xd4, 0x9a, // lsr
+                 0x2c, 0xfd, 0x57, 0xd3,
+  };
+  return checkCode(tgt, NumberOf(tgt), ctx);
+}
+
 typedef int64 (*un_i64)(int64 x);
 typedef int64 (*bin_i64)(int64 x, int64 y);
 //
@@ -499,6 +516,7 @@ retCode all_tests() {
   tryRet(run_test(test_cas));
   tryRet(run_test(test_cbt));
   tryRet(run_test(test_ld));
+  tryRet(run_test(test_lsl));
 
 //  tryRet(run_test(test_addFun));
 //  tryRet(run_test(test_factFun));
