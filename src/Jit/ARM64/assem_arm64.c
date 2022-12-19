@@ -538,68 +538,106 @@ void ldr_(uint1 w, armReg Rt, FlexOp Sn, assemCtxPo ctx) {
                           Rt, ctx);
       return;
     default:
-      check(False, "unsupported address mode");
+      check(False, "unsupported address mode in ldr");
   }
 }
 
-void ldr_r_(uint1 w, armReg Rt, armReg Rn, armReg Rm, armExtent ex, logical shft, assemCtxPo ctx) {
-  uint32 ins = one_bt(1, 31) | one_bt(w, 30) | six_bt(0x38, 24) | two_bt(1, 22) | one_bt(1, 21) |
-               fiv_bt(Rm, 16) | thr_bt(ex, 13) | one_bt(shft, 12) | two_bt(2, 10) |
-               fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
-  emitU32(ctx, ins);
+void ldrb_(armReg Rt, FlexOp S2, assemCtxPo ctx) {
+  switch (S2.mode) {
+    case postX:
+      encode2SrcIxImmPrePost(0, 0xe, 0x1, postIndex, S2.immediate, S2.reg, Rt, ctx);
+      return;
+    case preX:
+      encode2SrcIxImmPrePost(0, 0xe, 0x1, preIndex, S2.immediate, S2.reg, Rt, ctx);
+      return;
+    case uOff:
+      encodeLdSt(0, 0xe5, S2.immediate, S2.reg, Rt, ctx);
+      return;
+    case extnd:
+      encodeSz2OpcImm3Reg(0, 0x38, 1, 1, S2.rgm, S2.ext, (S2.immediate != 0 ? one : zero), 2, S2.reg, Rt, ctx);
+      return;
+    default:
+      check(False, "unsupported address mode in ldrb");
+  }
 }
 
-void ldrb_imm(armReg Rt, armReg Rn, uint16 imm, ixMode ix, assemCtxPo ctx) {
-  encode2SrcIxImmPrePost(0, 0xe, 0x1, imm, ix, Rn, Rt, ctx);
+void ldrh_(armReg Rt, FlexOp S2, assemCtxPo ctx) {
+  switch (S2.mode) {
+    case postX:
+      encode2SrcIxImmPrePost(1, 0xe, 0x1, postIndex, S2.immediate, S2.reg, Rt, ctx);
+      return;
+    case preX:
+      encode2SrcIxImmPrePost(1, 0xe, 0x1, preIndex, S2.immediate, S2.reg, Rt, ctx);
+      return;
+    case uOff:
+      encodeLdSt(1, 0xe5, S2.immediate >> 1, S2.reg, Rt, ctx);
+      return;
+    case extnd:
+      encodeSz2OpcImm3Reg(1, 0x38, 1, 1, S2.rgm, S2.ext, (S2.immediate != 0 ? one : zero), 2, S2.reg, Rt, ctx);
+      return;
+    default:
+      check(False, "unsupported address mode in ldrb");
+  }
 }
 
-void ldrb_r(armReg Rt, armReg Rn, armReg Rm, armExtent ex, logical sh, assemCtxPo ctx) {
-  uint32 ins = thr_bt(7, 27) | one_bt(1, 22) | one_bt(1, 21) |
-               fiv_bt(Rm, 16) | thr_bt(ex, 13) | one_bt(sh, 12) | two_bt(2, 10) |
-               fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
-  emitU32(ctx, ins);
+void ldrsb_(uint1 w, armReg Rt, FlexOp S2, assemCtxPo ctx) {
+  switch (S2.mode) {
+    case postX:
+      encode2SrcIxImmPrePost(0, 0xe, (2 | w), postIndex, S2.immediate, S2.reg, Rt, ctx);
+      return;
+    case preX:
+      encode2SrcIxImmPrePost(0, 0xe, (2 | w), preIndex, S2.immediate, S2.reg, Rt, ctx);
+      return;
+    case uOff:
+      encode2SrcIxImmPrePost(0, 0xe, (2 | w), unsignedOff, S2.immediate, S2.reg, Rt, ctx);
+      return;
+    case extnd:
+      encodeSz2OpcImm3Reg(0, 0x38, (2 | w), 1, S2.rgm, S2.ext, (S2.immediate != 0 ? one : zero), 2, S2.reg, Rt, ctx);
+      return;
+    default:
+      check(False, "unsupported address mode in ldrb");
+  }
 }
 
-void ldrh_imm(armReg Rt, armReg Rn, uint16 imm, ixMode ix, assemCtxPo ctx) {
-  encode2SrcIxImmPrePost(1, 0xe, 0x1, imm, ix, Rn, Rt, ctx);
+void ldrsh_(uint1 w, armReg Rt, FlexOp S2, assemCtxPo ctx) {
+  switch (S2.mode) {
+    case postX:
+      encode2SrcIxImmPrePost(1, 0xe, (2 | w), postIndex, S2.immediate, S2.reg, Rt, ctx);
+      return;
+    case preX:
+      encode2SrcIxImmPrePost(1, 0xe, (2 | w), preIndex, S2.immediate, S2.reg, Rt, ctx);
+      return;
+    case uOff:
+      encode2SrcIxImmPrePost(1, 0xe, (2 | w), unsignedOff, S2.immediate >> 1, S2.reg, Rt, ctx);
+      return;
+    case extnd:
+      encodeSz2OpcImm3Reg(1, 0x38, (2 | w), 1, S2.rgm, S2.ext, (S2.immediate != 0 ? one : zero), 2, S2.reg, Rt, ctx);
+      return;
+    default:
+      check(False, "unsupported address mode in ldrb");
+  }
 }
 
-void ldrh_r_(armReg Rt, armReg Rn, armReg Rm, armExtent ex, logical shft, assemCtxPo ctx) {
-  uint32 ins = one_bt(1, 30) | six_bt(0x38, 24) | two_bt(1, 22) | one_bt(1, 21) |
-               fiv_bt(Rm, 16) | thr_bt(ex, 13) | one_bt(shft, 12) | two_bt(2, 10) |
-               fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
-  emitU32(ctx, ins);
-}
-
-void ldrsb_imm(uint1 w, armReg Rt, armReg Rn, uint16 imm, ixMode ix, assemCtxPo ctx) {
-  encode2SrcIxImmPrePost(0, 0xe, (2 | w), imm, ix, Rn, Rt, ctx);
-}
-
-void ldrsb_r(uint1 w, armReg Rt, armReg Rn, armReg Rm, armExtent ex, logical sh, assemCtxPo ctx) {
-  uint32 ins = thr_bt(7, 27) | one_bt(1, 23) | one_bt(~w, 22) | one_bt(1, 21) |
-               fiv_bt(Rm, 16) | thr_bt(ex, 13) | one_bt(sh, 12) | two_bt(2, 10) |
-               fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
-  emitU32(ctx, ins);
-}
-
-void ldrsh_imm(uint1 w, armReg Rt, armReg Rn, uint16 imm, ixMode ix, assemCtxPo ctx) {
-  encode2SrcIxImmPrePost(1, 0xe, (2 | w), imm, ix, Rn, Rt, ctx);
-}
-
-void ldrsh_r(uint1 w, armReg Rt, armReg Rn, armReg Rm, armExtent ex, logical sh, assemCtxPo ctx) {
-  uint32 ins = one_bt(1, 30) | thr_bt(7, 27) | one_bt(1, 23) | one_bt(~w, 22) |
-               one_bt(1, 21) |
-               fiv_bt(Rm, 16) | thr_bt(ex, 13) | one_bt(sh, 12) | two_bt(2, 10) |
-               fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
-  emitU32(ctx, ins);
-}
-
-void ldrsw_imm(armReg Rt, armReg Rn, uint16 imm, ixMode ix, assemCtxPo ctx) {
-  encode2SrcIxImmPrePost(2, 0xe, 2, imm, ix, Rn, Rt, ctx);
-}
-
-void ldrsw_lit(armReg Rt, codeLblPo lbl, assemCtxPo ctx) {
-  encodeLdPcLit(2, 0, lbl, Rt, ctx);
+void ldrsw_(armReg Rt, FlexOp S2, assemCtxPo ctx) {
+  switch (S2.mode) {
+    case postX:
+      encode2SrcIxImmPrePost(2, 0xe, 0x2, postIndex, S2.immediate, S2.reg, Rt, ctx);
+      return;
+    case preX:
+      encode2SrcIxImmPrePost(2, 0xe, 0x2, preIndex, S2.immediate, S2.reg, Rt, ctx);
+      return;
+    case uOff:
+      encodeLdSt(2, 0xe6, S2.immediate >> 2, S2.reg, Rt, ctx);
+      return;
+    case extnd:
+      encodeSz2OpcImm3Reg(2, 0x38, 2, 1, S2.rgm, S2.ext, (S2.immediate != 0 ? one : zero), 2, S2.reg, Rt, ctx);
+      return;
+    case pcRel:
+      encodeLdPcLit(2, 0, S2.lbl, Rt, ctx);
+      return;
+    default:
+      check(False, "unsupported address mode in ldrb");
+  }
 }
 
 void ldrsw_r(armReg Rt, armReg Rn, armReg Rm, armExtent ex, uint1 sh, assemCtxPo ctx) {
@@ -619,11 +657,11 @@ void ldurh_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
 }
 
 void ldursb_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
-  encodeLdStRegUnscaled(0, 0, (2 | w), imm, Rn, Rt, ctx);
+  encodeLdStRegUnscaled(0, 0, (2 | ~w), imm, Rn, Rt, ctx);
 }
 
 void ldursh_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
-  encodeLdStRegUnscaled(1, 0, (2 | w), imm, Rn, Rt, ctx);
+  encodeLdStRegUnscaled(1, 0, (2 | ~w), imm, Rn, Rt, ctx);
 }
 
 void ldursw_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
@@ -631,19 +669,19 @@ void ldursw_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
 }
 
 void ldxap_(uint1 w, armReg Rd, armReg Rt2, armReg Rn, assemCtxPo ctx) {
-  encodeExLdStPr(w, 1, XZR, 1, Rt2, Rn, Rd, ctx);
+  encodeExLdStPr(w, 1, one, XZR, 1, Rt2, Rn, Rd, ctx);
 }
 
 void ldxp_(uint1 w, armReg Rd, armReg Rt2, armReg Rn, assemCtxPo ctx) {
-  encodeExLdStPr(w, 1, XZR, 0, Rt2, Rn, Rd, ctx);
+  encodeExLdStPr(w, 1, one, XZR, 0, Rt2, Rn, Rd, ctx);
 }
 
 void ldxr_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx) {
-  encodeExLdStPr((2 | w), 1, XZR, 0, XZR, Rn, Rd, ctx);
+  encodeExLdStPr(w, 1, 0, XZR, 0, XZR, Rn, Rd, ctx);
 }
 
 void ldapur_(uint1 w, armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx) {
-  encodeLdStUnscaled((2 | w), 1, imm, Rn, Rd, ctx);
+  encodeLdStUnscaled(w,1, imm, Rn, Rd, ctx);
 }
 
 void ldapurb_(armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx) {
@@ -667,7 +705,7 @@ void ldapursh_(uint1 w, armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx) {
 }
 
 void ldaxr_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx) {
-  encodeExLdStPr((2 | w), 1, XZR, 1, XZR, Rn, Rd, ctx);
+  encodeExLdStPr((2 | w), 1, one, XZR, 1, XZR, Rn, Rd, ctx);
 }
 
 void ldxrb_(armReg Rt, armReg Rn, assemCtxPo ctx) {
@@ -918,15 +956,15 @@ void stlxr_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
 }
 
 void stlxrb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeExLdStPr(0, 0, Rs, 0, XZR, Rn, Rt, ctx);
+  encodeExLdStPr(0, 0, one, Rs, 0, XZR, Rn, Rt, ctx);
 }
 
 void stxrh_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeExLdStPr(1, 0, Rs, 1, XZR, Rn, Rt, ctx);
+  encodeExLdStPr(1, 0, one, Rs, 1, XZR, Rn, Rt, ctx);
 }
 
 void stlxrh_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeExLdStPr(1, 0, Rs, 1, XZR, Rn, Rt, ctx);
+  encodeExLdStPr(1, 0, one, Rs, 1, XZR, Rn, Rt, ctx);
 }
 
 void stnp_(uint1 w, armReg Rt, armReg Rt2, armReg Rn, uint8 imm, assemCtxPo ctx) {
@@ -1002,19 +1040,19 @@ void sturh_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
 }
 
 void stlxp_(uint1 w, armReg Rd, armReg Rt2, armReg Rn, assemCtxPo ctx) {
-  encodeExLdStPr(w, 0, XZR, 1, Rt2, Rn, Rd, ctx);
+  encodeExLdStPr(w, 0, one, XZR, 1, Rt2, Rn, Rd, ctx);
 }
 
 void stxp_(uint1 w, armReg Rd, armReg Rt2, armReg Rn, assemCtxPo ctx) {
-  encodeExLdStPr(w, 0, XZR, 0, Rt2, Rn, Rd, ctx);
+  encodeExLdStPr(w, 0, one, XZR, 0, Rt2, Rn, Rd, ctx);
 }
 
 void stxr_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeExLdStPr((2 | w), 0, Rs, 0, Rn, Rn, Rt, ctx);
+  encodeExLdStPr((2 | w), 0, one, Rs, 0, Rn, Rn, Rt, ctx);
 }
 
 void stxrb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
-  encodeExLdStPr(0, 0, Rs, 0, XZR, Rn, Rt, ctx);
+  encodeExLdStPr(0, 0, one, Rs, 0, XZR, Rn, Rt, ctx);
 }
 
 void sub_x(uint1 w, armReg Rd, armReg Rn, armReg Rm, armExtent ex, int8 amnt, assemCtxPo ctx) {

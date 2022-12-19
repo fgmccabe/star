@@ -325,11 +325,49 @@ static retCode test_ld() {
   ldr(X15, UO(X20, 16), ctx);
 
   codeLblPo l0 = defineLabel(ctx, "l0", undefinedPc);
-  ldr(X19, PC(l0),ctx);
-
+  ldr(X19, PC(l0), ctx);
   setLabel(ctx, l0);
-
   ldr(X21, EX2(X22, X7, S_XTX, 3), ctx);
+
+  ldrb(X19, PSX(X3, 8), ctx);
+  ldrb(X10, PRX(X5, -8), ctx);
+  ldrb(X15, UO(X20, 16), ctx);
+  ldrb(X21, EX2(X22, X7, S_XTX, 0), ctx);
+
+  ldrh(X19, PSX(X3, 8), ctx);
+  ldrh(X10, PRX(X5, -8), ctx);
+  ldrh(X15, UO(X20, 16), ctx);
+  ldrh(X21, EX2(X22, X7, S_XTX, 0), ctx);
+
+  ldrsb(X19, PSX(X3, 8), ctx);
+  ldrsb(X10, PRX(X5, -8), ctx);
+  ldrsb(X15, UO(X20, 16), ctx);
+  ldrsb(X21, EX2(X22, X7, S_XTX, 0), ctx);
+
+  ldrsh(X19, PSX(X3, 8), ctx);
+  ldrsh(X10, PRX(X5, -8), ctx);
+  ldrsh(X15, UO(X20, 16), ctx);
+  ldrsh(X21, EX2(X22, X7, S_XTX, 0), ctx);
+
+  ldrsw(X10, PSX(X3, 8), ctx);
+  ldrsw(X10, PRX(X5, -8), ctx);
+  ldrsw(X15, UO(X20, 16), ctx);
+  codeLblPo l1 = defineLabel(ctx, "l1", undefinedPc);
+  ldrsw(X19, PC(l1), ctx);
+  ldrsw(X21, EX2(X22, X7, S_XTX, 3), ctx);
+  setLabel(ctx, l1);
+
+  ldur(X29, X3, -8, ctx);
+  ldurb(X29, X3, -8, ctx);
+  ldurh(X29, X3, -8, ctx);
+  ldursb(X29, X3, -8, ctx);
+  ldursh(X29, X3, -8, ctx);
+  ldursw(X29, X3, -8, ctx);
+
+  ldxp(X12, X16, X2, ctx);
+  ldxr(X13, X9, ctx);
+  ldxrb(X13, X9, ctx);
+  ldxrh(X13, X9, ctx);
 
   uint8 tgt[] = {0x86, 0x00, 0xa3, 0x38,// ldaddab
                  0x86, 0x00, 0xe3, 0x38,// ldaddalb
@@ -356,6 +394,43 @@ static retCode test_ld() {
 
                  0xd5, 0xfa, 0x67, 0xf8, // ldr x21, [x22, x7, sxtx #3]
 
+                 0x73, 0x84, 0x40, 0x38, // ldrb
+                 0xaa, 0x8c, 0x5f, 0x38,
+                 0x8f, 0x42, 0x40, 0x39,
+                 0xd5, 0xea, 0x67, 0x38,
+
+                 0x73, 0x84, 0x40, 0x78, // ldrh
+                 0xaa, 0x8c, 0x5f, 0x78,
+                 0x8f, 0x22, 0x40, 0x79,
+                 0xd5, 0xea, 0x67, 0x78,
+
+                 0x73, 0x84, 0xc0, 0x38, // ldrsb
+                 0xaa, 0x8c, 0xdf, 0x38,
+                 0x8f, 0x42, 0xc0, 0x39,
+                 0xd5, 0xea, 0xe7, 0x38,
+
+                 0x73, 0x84, 0xc0, 0x78, // ldrsh
+                 0xaa, 0x8c, 0xdf, 0x78,
+                 0x8f, 0x22, 0xc0, 0x79,
+                 0xd5, 0xea, 0xe7, 0x78,
+
+                 0x6a, 0x84, 0x80, 0xb8, // ldrsw
+                 0xaa, 0x8c, 0x9f, 0xb8,
+                 0x8f, 0x12, 0x80, 0xb9,
+                 0x53, 0x00, 0x00, 0x98,
+                 0xd5, 0xfa, 0xa7, 0xb8,
+
+                 0x7d, 0x80, 0x5f, 0xf8, // ldur
+                 0x7d, 0x80, 0x5f, 0x38,
+                 0x7d, 0x80, 0x5f, 0x78,
+                 0x7d, 0x80, 0x9f, 0x38,
+                 0x7d, 0x80, 0x9f, 0x78,
+                 0x7d, 0x80, 0x9f, 0xb8,
+
+                 0x4c, 0x40, 0x7f, 0xc8, // ldxp
+                 0x2d, 0x7d, 0x5f, 0xc8,
+                 0x2d, 0x7d, 0x5f, 0x08,
+                 0x2d, 0x7d, 0x5f, 0x48,
   };
   return checkCode(tgt, NumberOf(tgt), ctx);
 }

@@ -226,8 +226,8 @@ void encodeCas(uint8 w, uint1 L, armReg Rs, uint o0, armReg Rt2, armReg Rn, armR
   emitU32(ctx, ins);
 }
 
-void encodeExLdStPr(uint1 w, uint1 L, armReg Rs, uint1 o0, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
-  uint32 ins = one_bt(1, 31) | one_bt(w, 30) | svn_bt(0x10, 23) | one_bt(L, 22) | one_bt(1, 21) |
+void encodeExLdStPr(uint1 w, uint1 L, uint1 L2, armReg Rs, uint1 o0, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
+  uint32 ins = one_bt(1, 31) | one_bt(w, 30) | svn_bt(0x10, 23) | one_bt(L, 22) | one_bt(L2, 21) |
                fiv_bt(Rs, 16) | one_bt(o0, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
   emitU32(ctx, ins);
 }
