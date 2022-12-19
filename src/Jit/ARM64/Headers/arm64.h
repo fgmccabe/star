@@ -150,7 +150,7 @@ typedef armOp registerSpec;
 #define AS(Rg, Amnt) {.mode=shft, .shift=ASR, .reg=Rg, .immediate=(Amnt)}
 #define RR(Rg, Amnt) {.mode=shft, .shift=ROR, .reg=Rg, .immediate=(Amnt)}
 #define EX(Rg, Md, Amnt) {.mode=extnd, .reg =Rg, .ext=Md, .immediate=(Amnt)}
-#define EX2(Rg, Rgm,Md, Amnt) {.mode=extnd, .reg =Rg, .rgm=Rgm, .ext=Md, .immediate=(Amnt)}
+#define EX2(Rg, Rgm, Md, Amnt) {.mode=extnd, .reg =Rg, .rgm=Rgm, .ext=Md, .immediate=(Amnt)}
 #define PSX(Rg, Amnt) {.mode=postX, .reg=Rg, .immediate=(Amnt)}
 #define PRX(Rg, Amnt) {.mode=preX,  .reg=Rg, .immediate=(Amnt)}
 #define OF(Rg, Amnt) {.mode=sOff,  .reg=Rg, .immediate=(Amnt)}
@@ -345,34 +345,52 @@ void ldlarh_(armReg Rt, armReg Rn, assemCtxPo ctx);
 void ldlar_(uint1 w, armReg Rt, armReg Rn, assemCtxPo ctx);
 
 void ldp_(uint1 w, armReg Rt, armReg Rt2, FlexOp Sn, assemCtxPo ctx);
-#define ldp(Rt,Rt2,S2,Ctx) do{FlexOp s=S2;  ldp_(1, Rt, Rt2, s, ctx); } while(False)
+#define ldp(Rt, Rt2, S2, Ctx) do{FlexOp s=S2;  ldp_(1, Rt, Rt2, s, ctx); } while(False)
 
 void ldpsw_(armReg Rt, armReg Rt2, FlexOp Sn, assemCtxPo ctx);
-#define ldpsw(Rt,Rt2,S2,Ctx) do{FlexOp s=S2;  ldpsw_(Rt, Rt2, s, ctx); } while(False)
+#define ldpsw(Rt, Rt2, S2, Ctx) do{FlexOp s=S2;  ldpsw_(Rt, Rt2, s, ctx); } while(False)
 
-void ldr_(uint1 w, armReg Rt,  FlexOp Sn, assemCtxPo ctx);
-#define ldr(Rt,S2,Ctx) do{FlexOp s=S2;  ldr_(1, Rt, s, ctx); } while(False)
+void ldr_(uint1 w, armReg Rt, FlexOp Sn, assemCtxPo ctx);
+#define ldr(Rt, S2, Ctx) do{FlexOp s=S2;  ldr_(1, Rt, s, ctx); } while(False)
 
-void ldrb_imm(armReg Rt, armReg Rn, uint16 imm, ixMode ix, assemCtxPo ctx);
-void ldrsb_(armReg dst, armOp src, assemCtxPo ctx);
-void ldrh_(armReg dst, armOp src, assemCtxPo ctx);
-void ldrsh_(armReg dst, armOp src, assemCtxPo ctx);
-void ldrw_(armReg dst, armOp src, assemCtxPo ctx);
-void ldrsw_(armReg dst, armOp src, assemCtxPo ctx);
+void ldrb_(armReg Rt, FlexOp S2, assemCtxPo ctx);
+#define ldrb(Rt, S2, Ctx) do{FlexOp s=S2; ldrb_(Rt,s,ctx); } while(False)
+
+void ldrh_(armReg Rt, FlexOp S2, assemCtxPo ctx);
+#define ldrh(Rt, S2, Ctx) do{FlexOp s=S2; ldrh_(Rt,s,ctx); } while(False)
+
+void ldrsb_(uint1 w, armReg Rt, FlexOp S2, assemCtxPo ctx);
+#define ldrsb(Rt, S2, Ctx) do{FlexOp s=S2; ldrsb_(1, Rt,s,ctx); } while(False)
+
+void ldrsh_(uint1 w, armReg Rt, FlexOp S2, assemCtxPo ctx);
+#define ldrsh(Rt, S2, Ctx) do{FlexOp s=S2; ldrsh_(1, Rt,s,ctx); } while(False)
+
+void ldrsw_(armReg Rt, FlexOp S2, assemCtxPo ctx);
+#define ldrsw(Rt, S2, Ctx) do{FlexOp s=S2; ldrsw_(Rt,s,ctx); } while(False)
 
 void ldur_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
+#define ldur(Rt,Rn,Imm,Ctx) ldur_(1,Rt,Rn,Imm,ctx)
+
 void ldurb_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
+#define ldurb(Rt,Rn,Off,ctx) ldurb_(Rt,Rn,Off,ctx)
 void ldursb_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
+#define ldursb(Rt,Rn,Off,ctx) ldursb_(1, Rt,Rn,Off,ctx)
 void ldurh_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
+#define ldurh(Rt,Rn,Off,ctx) ldurh_(Rt,Rn,Off,ctx)
 void ldursh_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
-void ldurw_(armReg dst, armOp src, assemCtxPo ctx);
+#define ldursh(Rt,Rn,Off,ctx) ldursh_(1,Rt,Rn,Off,ctx)
 void ldursw_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
+#define ldursw(Rt,Rn,Off,ctx) ldursw_(Rt,Rn,Off,ctx)
 
 void ldxr_(uint1 w, armReg Rt, armReg Rn, assemCtxPo ctx);
+#define ldxr(Rt,Rn,ctx) ldxr_(1,Rt,Rn,ctx)
+
 void ldxrb_(armReg Rt, armReg Rn, assemCtxPo ctx);
+#define ldxrb(Rt,Rn,ctx) ldxrb_(Rt,Rn,ctx)
 void ldxrh_(armReg Rt, armReg Rn, assemCtxPo ctx);
-void ldxap_(uint1 w, armReg Rd, armReg Rt2, armReg Rn, assemCtxPo ctx);
+#define ldxrh(Rt,Rn,ctx) ldxrh_(Rt,Rn,ctx)
 void ldxp_(uint1 w, armReg Rt1, armReg Rt2, armReg Rn, assemCtxPo ctx);
+#define ldxp(Rt,Rt2,Rn,ctx) ldxp_(1,Rt,Rt2,Rn,ctx)
 
 void sub_(armReg d, armReg s1, armOp s2, assemCtxPo ctx);
 
