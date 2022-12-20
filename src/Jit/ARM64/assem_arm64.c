@@ -768,7 +768,7 @@ void lsr_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
   }
 }
 
-void madd_(uint1 w, armReg Rd, armReg Rm, armReg Rn, armReg Ra, assemCtxPo ctx) {
+void madd_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armReg Ra, assemCtxPo ctx) {
   encode4Reg(w, 0, 0xd8, Rm, 0, Ra, Rn, Rd, ctx);
 }
 
@@ -776,42 +776,38 @@ void mneg_(uint1 w, armReg Rd, armReg Rm, armReg Rn, assemCtxPo ctx) {
   encode4Reg(w, 0, 0xd8, Rm, 1, XZR, Rn, Rd, ctx);
 }
 
-void mov_sp_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx) {
-  check(Rd == SP || Rn == SP, "Only use with SP");
-  encodeDPRegImm(w, 0, 0x42, 0, 0, Rn, Rd, ctx);
+void mov_(armReg Rd, FlexOp S1, assemCtxPo ctx) {
+  switch (S1.mode) {
+    case reg:
+      encodeDPRegImm(1, 0, 0x22, 0, 0, S1.reg, Rd, ctx);
+      return;
+    case imm: {
+      uint8 sh;
+      uint16 imm16;
+      if ((S1.immediate & 0xffffffffffff) == 0) {
+        imm16 = S1.immediate >> 48;
+        sh = 3;
+      } else if ((S1.immediate & 0xffffffff) == 0) {
+        imm16 = S1.immediate >> 32;
+        sh = 2;
+      } else if ((S1.immediate & 0xffff) == 0) {
+        imm16 = S1.immediate >> 16;
+        sh = 1;
+      } else {
+        imm16 = S1.immediate != 0;
+        sh = 0;
+      }
+
+      encodeImm1Reg(1, 2, 0x25, sh, (int16) imm16, Rd, ctx);
+      return;
+    }
+    default:
+      check(False, "unsupported address mode in mov");
+  }
 }
 
-void encodeImm1Reg(uint1 w, uint8 opc, uint8 op, uint8 hw, int16 imm, armReg Rd, assemCtxPo ctx) {
-  uint32 ins = one_bt(w, 31) | two_bt(opc, 29) | six_bt(op, 23) | two_bt(hw, 21) |
-               sxt_bt(imm, 5) | fiv_bt(Rd, 0);
-}
-
-void mov_inv_(uint1 w, armReg Rd, int32 imm, int8 sh, assemCtxPo ctx) {
-  encodeImm1Reg(w, 0, 0x25, sh, imm, Rd, ctx);
-}
-
-void mov_wide(uint1 w, armReg Rd, uint8 sh, int16 imm, assemCtxPo ctx) {
-  encodeImm1Reg(w, 2, 0x25, sh, imm, Rd, ctx);
-}
-
-void mov_msk(uint1 w, armReg Rd, uint16 imm, assemCtxPo ctx) {
-  encodeDPRegImm(w, 1, 0x24, (imm >> 12) & 1, imm, XZR, Rd, ctx);
-}
-
-void mov_r(uint1 w, armReg Rd, armReg Rm, assemCtxPo ctx) {
-  encodeShift3Reg(w, 0, 1, 0xa, 0, 0, Rm, 0, XZR, Rd, ctx);
-}
-
-void movk_(uint1 w, armReg Rd, uint8 sh, int16 imm, assemCtxPo ctx) {
-  encodeMovWide(w, 3, sh, imm, Rd, ctx);
-}
-
-void movn_imm(uint1 w, armReg Rd, uint8 sh, int16 imm, assemCtxPo ctx) {
-  encodeMovWide(w, 0, sh, imm, Rd, ctx);
-}
-
-void movz_(uint1 w, armReg Rd, uint8 sh, int16 imm, assemCtxPo ctx) {
-  encodeMovWide(w, 2, sh, imm, Rd, ctx);
+void msub_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armReg Ra, assemCtxPo ctx) {
+  encode4Reg(w, 0, 0xd8, Rm, 1, Ra, Rn, Rd, ctx);
 }
 
 void mul_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
@@ -830,16 +826,36 @@ void negs_(uint1 w, armReg Rd, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx
   encodeShift3Reg(w, 1, 1, 0xb, sh, 0, Rm, amnt, XZR, Rd, ctx);
 }
 
-void orn_(uint1 w, armReg Rd, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx) {
-  encodeShift3Reg(w, 0, 1, 0xa, sh, 1, Rm, amnt, XZR, Rd, ctx);
+void ngc_(uint1 w, armReg Rd, armReg Rm, assemCtxPo ctx) {
+  encodeImm3Reg(w, 2, 0xd0, Rm, 0, XZR, Rd, ctx);
 }
 
-void orr_imm(uint1 w, armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx) {
-  encodeLogImm(w, 1, imm, Rn, Rd, ctx);
+void ngcs_(uint1 w, armReg Rd, armReg Rm, assemCtxPo ctx) {
+  encodeImm3Reg(w, 3, 0xd0, Rm, 0, XZR, Rd, ctx);
 }
 
-void orr_sh_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx) {
-  encodeShift3Reg(w, 0, 1, 0xa, sh, 0, Rm, amnt, Rn, Rd, ctx);
+void nop(assemCtxPo ctx) {
+  encodeImm3Reg(1, 2, 0xa8, 0x3, 0x8, 0, 0x1f, ctx);
+}
+
+void orn_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx) {
+  encodeShift3Reg(w, 0, 1, 0xa, sh, 1, Rm, amnt, Rn, Rd, ctx);
+}
+
+void orr_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
+  switch (S2.mode) {
+    case imm:
+      encodeLogImm(w, 1, S2.immediate, Rn, Rd, ctx);
+      return;
+    case reg:
+      encodeShift3Reg(w, 0, 1, 0xa, LSL, 0, S2.reg, 0, Rn, Rd, ctx);
+      return;
+    case shft:
+      encodeShift3Reg(w, 0, 1, 0xa, S2.shift, 0, S2.reg, S2.immediate, Rn, Rd, ctx);
+      return;
+    default:
+      check(False, "unsupported address mode in mov");
+  }
 }
 
 void rbit_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx) {
@@ -858,16 +874,21 @@ void rev16_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx) {
   encode2SrcExt(w, 1, 0, 0xd6, 0, 0, 1, Rn, Rd, ctx);
 }
 
-void rev32_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx) {
+void rev32_(armReg Rd, armReg Rn, assemCtxPo ctx) {
   encode2SrcExt(1, 1, 0, 0xd6, 0, 0, 2, Rn, Rd, ctx);
 }
 
-void ror_(uint1 w, armReg Rd, armReg Rn, int16 amnt, assemCtxPo ctx) {
-  encodeReg2Src(w, 0, 0, (0xc | (w << 1)), Rn, amnt, Rn, Rd, ctx);
-}
-
-void ror_imm(uint1 w, armReg Rd, armReg Rn, int16 amnt, assemCtxPo ctx) {
-  extr_(w, Rd, Rn, Rn, amnt, ctx);
+void ror_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
+  switch (S2.mode) {
+    case imm:
+      encodeExtrct(w, 0, w, 0, Rn, S2.immediate, Rn, Rd, ctx);
+      return;
+    case reg:
+      encodeReg2Src(w, 0, 0, 0xd6, S2.reg, 0x0b, Rn, Rd, ctx);
+      return;
+    default:
+      check(False, "unsupported address mode (asr)");
+  }
 }
 
 void rorv_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
@@ -902,7 +923,7 @@ void sdiv_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
   encodeReg2Src(w, 0, 0, 0xd6, Rm, 3, Rn, Rd, ctx);
 }
 
-void smaddl(armReg Rd, armReg Rn, armReg Rm, armReg Ra, assemCtxPo ctx) {
+void smaddl_(armReg Rd, armReg Rn, armReg Rm, armReg Ra, assemCtxPo ctx) {
   encode4Reg(1, 0, 0xd9, Rm, 0, Ra, Rn, Rd, ctx);
 }
 
@@ -914,12 +935,12 @@ void smsubl_(armReg Rd, armReg Rn, armReg Rm, armReg Ra, assemCtxPo ctx) {
   encode4Reg(1, 0, 0xd9, Rm, 1, Ra, Rn, Rd, ctx);
 }
 
-void smmulh_(armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
+void smulh_(armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
   encode4Reg(1, 0, 0xda, Rm, 0, XZR, Rn, Rd, ctx);
 }
 
-void smmull_(armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
-  encode4Reg(1, 0, 0xda, Rm, 0, XZR, Rn, Rd, ctx);
+void smull_(armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
+  encode4Reg(1, 0, 0xd9, Rm, 0, XZR, Rn, Rd, ctx);
 }
 
 void stllrb_(armReg Rt, armReg Rn, assemCtxPo ctx) {
@@ -978,8 +999,20 @@ void stnp_(uint1 w, armReg Rt, armReg Rt2, armReg Rn, uint8 imm, assemCtxPo ctx)
   encodeLd3Reg(0, one_bt(w, 1), 0, 0, 0, 0, imm, Rt2, Rn, Rt, ctx);
 }
 
-void stp_(uint1 w, armReg Rt, armReg Rt2, armReg Rn, int8 imm, ixMode ix, assemCtxPo ctx) {
-  encodeIxRegPr(w << 1, 0, 0, imm, Rt2, Rn, Rt, ix, ctx);
+void stp_(uint1 w, armReg Rt, armReg Rt2, FlexOp Sn, assemCtxPo ctx) {
+  switch (Sn.mode) {
+    case postX:
+      encodeLdStPrPostIx(one, 0, 0, 0, Sn.immediate >> (w + 2), Rt2, Sn.reg, Rt, ctx);
+      return;
+    case preX:
+      encodeLdStPrPreIx(w<<1, 0, 0, Sn.immediate>>(w+2), Rt2, Sn.reg, Rt, ctx);
+      return;
+    case sOff:
+      encodeLdStPrOffset(w << 1, 2, 0, Sn.immediate >> (w + 2), Rt2, Sn.reg, Rt, ctx);
+      return;
+    default:
+      check(False, "unsupported address mode (ldp)");
+  }
 }
 
 void str_(uint1 w, armReg Rt, armReg Rn, ixMode ix, int16 imm, assemCtxPo ctx) {
@@ -1084,4 +1117,8 @@ void tbnz_(uint1 w, armReg Rt, uint8 pos, codeLblPo lbl, assemCtxPo ctx) {
 
 void tbz_(uint1 w, armReg Rt, uint8 pos, codeLblPo lbl, assemCtxPo ctx) {
   encodeTstBr(w, 0, pos, lbl, Rt, ctx);
+}
+
+void udiv_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
+  encodeReg2Src(w, 0, 0, 0xd6, Rm, 2, Rn, Rd, ctx);
 }

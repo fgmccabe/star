@@ -63,6 +63,13 @@ void encodeDPRegImm(uint1 wide, uint8 opc, uint8 op, uint1 sh, uint16 imm, armRe
   emitU32(ctx, ins);
 }
 
+
+void encodeImm1Reg(uint1 w, uint8 opc, uint8 op, uint8 hw, int16 imm, armReg Rd, assemCtxPo ctx) {
+  uint32 ins = one_bt(w, 31) | two_bt(opc, 29) | six_bt(op, 23) | two_bt(hw, 21) |
+               sxt_bt(imm, 5) | fiv_bt(Rd, 0);
+  emitU32(ctx, ins);
+}
+
 void
 encodeAddSubImm(uint1 w, uint1 op, uint1 S, uint8 code, uint1 sh, int16 imm, armReg Rn, armReg Rd, assemCtxPo ctx) {
   uint32 ins = one_bt(w, 31) | one_bt(op, 30) | one_bt(S, 29) | six_bt(code, 23) |
@@ -417,30 +424,10 @@ void encodeLdStPrPreIx(uint8 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armReg
   emitU32(ctx, ins);
 }
 
-void encodeLdStPrOffset(uint8 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
-  uint32 ins = two_bt(opc, 30) | thr_bt(5, 27) | one_bt(V, 26) | thr_bt(12, 23) | one_bt(L, 22) |
+void encodeLdStPrOffset(uint8 opc, uint8 op, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
+  uint32 ins = two_bt(opc, 30) | thr_bt(5, 27) | thr_bt(op, 23) | one_bt(L, 22) |
                svn_bt(imm, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
   emitU32(ctx, ins);
-}
-
-void encodeIxRegPr(uint8 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, ixMode ix, assemCtxPo ctx) {
-  switch (ix) {
-    case postIndex: {
-      encodeLdStPrPostIx(one, opc, V, L, imm, Rt2, Rn, Rt, ctx);
-      return;
-    }
-    case preIndex: {
-      encodeLdStPrPreIx(opc, V, L, imm, Rt2, Rn, Rt, ctx);
-      return;
-    }
-    case signedOff: {
-      encodeLdStPrOffset(opc, V, L, imm, Rt2, Rn, Rt, ctx);
-      return;
-    }
-    default: {
-      check(False, "invalid index mode");
-    }
-  }
 }
 
 void encode2SrcIxImmPrePost(uint8 sz, uint8 op, uint8 opc, ixMode ix, uint16 imm, armReg Rn, armReg Rt,

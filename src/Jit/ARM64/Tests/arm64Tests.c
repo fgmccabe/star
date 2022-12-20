@@ -452,6 +452,111 @@ static retCode test_lsl() {
   return checkCode(tgt, NumberOf(tgt), ctx);
 }
 
+static retCode test_mt() {
+  assemCtxPo ctx = createCtx();
+
+  madd(X21, X29, X30, X1, ctx);
+  mov(X21, RG(SP), ctx);
+  mov(X21, IM(0xff230000), cxt);
+  msub(X21, X29, X30, X1, ctx);
+  mul(X1, X2, X3, ctx);
+  mvn(X1, X10, ROR, 4, ctx);
+
+  neg(X1, X10, ASR, 4, ctx);
+  neg(X1, X10, LSR, 4, ctx);
+
+  negs(X1, X10, ASR, 4, ctx);
+  negs(X1, X10, LSR, 4, ctx);
+
+  ngc(X1, X12, ctx);
+  ngcs(X1, X12, ctx);
+
+  nop(ctx);
+
+  orn(X26, X24, X1, ROR, 20, ctx);
+
+  orr(X10, X9, IM(0xff00), ctx);
+  orr(X11, X12, RG(X11), ctx);
+  orr(X11, X12, RR(X11, 8), ctx);
+
+  rbit(X1, X2, ctx);
+  ret(X12, ctx);
+
+  rev(X3, X4, ctx);
+  rev16(X5, X6, ctx);
+  rev32(X7, X8, ctx);
+
+  ror(X9, X10, RG(X11), ctx);
+  ror(X12, X13, IM(4), ctx);
+
+  sbc(X15,X16,X17,ctx);
+  sbcs(X15,X16,X17,ctx);
+  sdiv(X18,X19,X20,ctx);
+  udiv(X21,X22,X23,ctx);
+
+  smaddl(X1,X2,X3,X4,ctx);
+
+  smulh(X5,X6,X7,ctx);
+  smull(X5,X6,X8,ctx);
+
+  uint8 tgt[] = {0xb5, 0x07, 0x1e, 0x9b,  // madd
+                 0xf5, 0x03, 0x00, 0x91, // mov
+                 0x75, 0xe4, 0xbf, 0xd2,
+                 0xb5, 0x87, 0x1e, 0x9b,  // msub
+                 0x41, 0x7c, 0x03, 0x9b,
+                 0xe1, 0x13, 0xea, 0xaa,
+                 0xe1, 0x13, 0x8a, 0xcb,
+                 0xe1, 0x13, 0x4a, 0xcb,
+                 0xe1, 0x13, 0x8a, 0xeb,
+                 0xe1, 0x13, 0x4a, 0xeb,
+
+                 0xe1, 0x03, 0x0c, 0xda,
+                 0xe1, 0x03, 0x0c, 0xfa,
+                 0x1f, 0x20, 0x03, 0xd5,
+                 0x1a, 0x53, 0xe1, 0xaa,
+
+                 0x2a, 0x1d, 0x78, 0xb2, // orr
+                 0x8b, 0x01, 0x0b, 0xaa,
+                 0x8b, 0x21, 0xcb, 0xaa,
+                 0x41, 0x00, 0xc0, 0xda, // rbit
+                 0x80, 0x01, 0x5f, 0xd6, // ret
+
+                 0x83, 0x0c, 0xc0, 0xda, // rev
+                 0xc5, 0x04, 0xc0, 0xda,
+                 0x07, 0x09, 0xc0, 0xda,
+
+                 0x49, 0x2d, 0xcb, 0x9a, // ror
+                 0xac, 0x11, 0xcd, 0x93,
+
+                 0x0f, 0x02, 0x11, 0xda, // sbc
+                 0x0f, 0x02, 0x11, 0xfa,
+
+                 0x72, 0x0e, 0xd4, 0x9a,
+                 0xd5, 0x0a, 0xd7, 0x9a,
+
+                 0x41, 0x10, 0x23, 0x9b, // smaddl
+
+                 0xc5, 0x7c, 0x47, 0x9b,
+                 0xc5, 0x7c, 0x28, 0x9b
+  };
+  return checkCode(tgt, NumberOf(tgt), ctx);
+}
+
+static retCode test_st() {
+  assemCtxPo ctx = createCtx();
+
+  stp(X1,X2,PSX(X3,32),ctx);
+  stp(X1,X2,PRX(X3,32),ctx);
+  stp(X1,X2,OF(X3,32),ctx);
+
+
+  uint8 tgt[] = {0x61, 0x08, 0x82, 0xa8, // stp
+                 0x61, 0x08, 0x82, 0xa9,
+                 0x61, 0x08, 0x02, 0xa9,
+  };
+  return checkCode(tgt, NumberOf(tgt), ctx);
+}
+
 typedef int64 (*un_i64)(int64 x);
 typedef int64 (*bin_i64)(int64 x, int64 y);
 //
@@ -517,6 +622,8 @@ retCode all_tests() {
   tryRet(run_test(test_cbt));
   tryRet(run_test(test_ld));
   tryRet(run_test(test_lsl));
+  tryRet(run_test(test_mt));
+  tryRet(run_test(test_st));
 
 //  tryRet(run_test(test_addFun));
 //  tryRet(run_test(test_factFun));
