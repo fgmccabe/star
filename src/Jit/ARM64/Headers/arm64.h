@@ -38,6 +38,7 @@ typedef enum {
   X27 = 27,
   X28 = 28,
   X29 = 29,
+  X30 = 30,
   LR = 30,
   XZR = 31,
   SP = 31
@@ -394,24 +395,86 @@ void lsl_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
 void lsr_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
 #define lsr(Rd, Rn, S2, Ctx)  do{FlexOp s=S2; lsr_(1,Rd,Rn,s,ctx); } while(False)
 
-void madd_(uint1 w, armReg Rd, armReg Rm, armReg Rn, armReg Ra, assemCtxPo ctx);
+void madd_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armReg Ra, assemCtxPo ctx);
 #define madd(Rd, Rm, Rn, Ra, ctx) madd_(1,Rd,Rm,Rn,Ra,ctx)
+
+void mov_(armReg d, FlexOp s1, assemCtxPo ctx);
+#define mov(Rd, S, Ctx)  do{FlexOp s=S; mov_(Rd,s,ctx); } while(False)
+
+void msub_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armReg Ra, assemCtxPo ctx);
+#define msub(Rd, Rm, Rn, Ra, ctx) msub_(1,Rd,Rm,Rn,Ra,ctx)
+
+void mul_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx);
+#define mul(Rd, Rm, Rn, ctx) mul_(1,Rd,Rm,Rn,ctx)
+
+void mvn_(uint1 w, armReg Rd, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx);
+#define mvn(Rd, Rm, sh, amnt, ctx) mvn_(1, Rd, Rm, sh, amnt, ctx)
+
+void neg_(uint1 w, armReg Rd, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx);
+#define neg(Rd, Rm, sh, amnt, ctx) neg_(1, Rd, Rm, sh, amnt, ctx)
+
+void negs_(uint1 w, armReg Rd, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx);
+#define negs(Rd, Rm, sh, amnt, ctx) negs_(1, Rd, Rm, sh, amnt, ctx)
+
+void ngc_(uint1 w, armReg Rd, armReg Rm, assemCtxPo ctx);
+#define ngc(Rd, Rm, ctx) ngc_(1,Rd,Rm,ctx)
+
+void ngcs_(uint1 w, armReg Rd, armReg Rm, assemCtxPo ctx);
+#define ngcs(Rd, Rm, ctx) ngcs_(1,Rd,Rm,ctx)
+
+void nop(assemCtxPo ctx);
+
+void orn_(uint1 w, armReg Rd, armReg RN, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx);
+#define orn(Rd, Rn, Rm, sh, amnt, ctx) orn_(1, Rd, Rn, Rm, sh, amnt, ctx)
+
+void orr_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
+#define orr(Rd, Rn, S, Ctx)  do{FlexOp s=S; orr_(1, Rd,Rn,s,ctx); } while(False)
 
 void sub_(armReg d, armReg s1, FlexOp s2, assemCtxPo ctx);
 
-void orn_(uint1 w, armReg Rd, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx);
-void orr_imm(uint1 w, armReg Rd, armReg Rn, int16 imm, assemCtxPo ctx);
-void orr_sh_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx);
-
 void neg_(uint1 w, armReg Rd, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx);
 void negs_(uint1 w, armReg Rd, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx);
-void mvn_(uint1 w, armReg Rd, armReg Rm, armShift sh, int8 amnt, assemCtxPo ctx);
-void mov_(armReg d, FlexOp s1, assemCtxPo ctx);
-void mul_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx);
-void sdiv_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx);
-void udiv_(armReg d, armReg s1, FlexOp s2, assemCtxPo ctx);
+void rbit_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx);
+#define rbit(Rd, Rn, Ctx) rbit_(1, Rd, Rn, Ctx)
 
 void ret_(armReg reg, assemCtxPo ctx);
+#define ret(Rg, Ctx) ret_(Rg,Ctx)
+
+void rev_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx);
+#define rev(Rd, Rn, Ctx) rev_(1, Rd, Rn, Ctx)
+
+void rev16_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx);
+#define rev16(Rd, Rn, Ctx) rev16_(1, Rd, Rn, Ctx)
+
+void rev32_(armReg Rd, armReg Rn, assemCtxPo ctx);
+#define rev32(Rd, Rn, Ctx) rev32_(Rd, Rn, Ctx)
+
+void ror_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
+#define ror(Rd, Rn, S2, Ctx) do{FlexOp s=S2; ror_(1, Rd,Rn,s,ctx); } while(False)
+
+void sbc_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx);
+#define sbc(Rd, Rn, Rm, Ctx) sbc_(1, Rd, Rn, Rm, Ctx)
+
+void sbcs_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx);
+#define sbcs(Rd, Rn, Rm, Ctx) sbcs_(1, Rd, Rn, Rm, Ctx)
+
+void sdiv_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx);
+#define sdiv(Rd, Rn, Rm, Ctx) sdiv_(1, Rd, Rn, Rm, Ctx)
+
+void smaddl_(armReg Rd, armReg Rn, armReg Rm, armReg Ra, assemCtxPo ctx);
+#define smaddl(Rd, Rm, Rn, Ra, ctx) smaddl_(Rd,Rm,Rn,Ra,ctx)
+
+void smulh_(armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx);
+#define smulh(Rd, Rm, Rn, ctx) smulh_(Rd,Rm,Rn,ctx)
+
+void smull_(armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx);
+#define smull(Rd, Rm, Rn, ctx) smull_(Rd,Rm,Rn,ctx)
+
+void stp_(uint1 w, armReg Rt, armReg Rt2, FlexOp Sn, assemCtxPo ctx);
+#define stp(Rt, Rt2, S2, Ctx) do{FlexOp s=S2; stp_(1, Rt, Rt2, s,ctx); } while(False)
+
+void udiv_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx);
+#define udiv(Rd, Rn, Rm, Ctx) udiv_(1, Rd, Rn, Rm, Ctx)
 
 void tbnz_(uint1 w, armReg Rt, uint8 pos, codeLblPo lbl, assemCtxPo ctx);
 void tbz_(uint1 w, armReg Rt, uint8 pos, codeLblPo lbl, assemCtxPo ctx);
@@ -430,7 +493,6 @@ void sturb_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
 void sturh_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
 
 void ldnp(uint1 w, armReg Rt, armReg Rt2, armReg Rn, uint8 imm, assemCtxPo ctx);
-void stp_(uint1 w, armReg Rt, armReg Rt2, armReg Rn, int8 imm, ixMode ix, assemCtxPo ctx);
 
 void ldnp_(uint1 w, armReg Rt1, armReg Rt2, armReg Rn, uint8 imm, assemCtxPo ctx);
 void stnp_(uint1 w, armReg Rt1, armReg Rt2, armReg Rn, uint8 imm, assemCtxPo ctx);
