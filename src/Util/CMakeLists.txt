@@ -8,6 +8,12 @@ BISON_TARGET(JsonParser json.y ${CMAKE_CURRENT_BINARY_DIR}/jsonParser.c)
 FLEX_TARGET(JsonTokeniser jtoken.l ${CMAKE_CURRENT_BINARY_DIR}/jsontoken.c)
 ADD_FLEX_BISON_DEPENDENCY(JsonTokeniser JsonParser)
 
+if (NOT DEFINED JIT_ARCH)
+    string(TOUPPER "${CMAKE_HOST_SYSTEM_PROCESSOR}" JIT_ARCH)
+endif ()
+
+add_subdirectory(${JIT_ARCH})
+
 add_subdirectory("UnicodeStuff")
 add_subdirectory("UnitTests")
 
@@ -62,7 +68,7 @@ set(PUBLIC_HEADERS
         Headers/buddy.h
         Headers/base64.h
         Headers/multi.h
-        Headers/signals.h)
+        Headers/signals.h Headers/fiber.h)
 
 set(HEADER_FILES
         Headers/bcdP.h
