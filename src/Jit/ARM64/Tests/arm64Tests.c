@@ -688,7 +688,7 @@ retCode test_factFun() {
   codeLblPo fct = preamble(ctx, lclCount*8);
   codeLblPo l0 = defineLabel(ctx, "nonZero", undefinedPc);
   codeLblPo lx = defineLabel(ctx, "exit", undefinedPc);
-  stur(X0,X29,-8);
+  sttr(X0,X29,-8);
   cmp(X0, IM(1));
   bne(l0);
   mov(X0, IM(1));
@@ -696,7 +696,7 @@ retCode test_factFun() {
   setLabel(ctx, l0);
   sub(X0,X0,IM(1));  // f(x-1)
   bl(fct);
-  ldur(X1,X29,-8);
+  ldtr(X1,X29,-8);
   mul(X0,X0,X1);
   setLabel(ctx, lx);
   postamble(ctx);
