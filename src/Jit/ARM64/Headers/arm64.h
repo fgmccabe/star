@@ -130,7 +130,7 @@ typedef enum {
 
 typedef struct {
   FlexibleMode mode;
-  uint64 immediate;
+  int64 immediate;
   armReg reg;
   armReg rgm;
   armShift shift;
@@ -380,6 +380,9 @@ void ldrsw_(armReg Rt, FlexOp S2, assemCtxPo ctx);
 
 void ldur_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
 #define ldur(Rt, Rn, Imm) ldur_(1,Rt,Rn,Imm,ctx)
+
+void ldtr_(uint1 w, armReg Rt, armReg Rn, int16 off, assemCtxPo ctx);
+#define ldtr(Rt,Rn,Off) ldtr_(1,Rt,Rn,Off,ctx)
 
 void ldurb_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
 #define ldurb(Rt, Rn, Off) ldurb_(Rt,Rn,Off,ctx)

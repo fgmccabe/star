@@ -397,6 +397,9 @@ static retCode test_ld() {
   ldxrb(X13, X9);
   ldxrh(X13, X9);
 
+  ldtr(X0,X1,-8);
+  ldr(X15, OF(X20, -16));
+
   uint8 tgt[] = {0x86, 0x00, 0xa3, 0x38,// ldaddab
                  0x86, 0x00, 0xe3, 0x38,// ldaddalb
                  0x86, 00, 0x23, 0x38, // ldaddb
@@ -459,6 +462,8 @@ static retCode test_ld() {
                  0x2d, 0x7d, 0x5f, 0xc8,
                  0x2d, 0x7d, 0x5f, 0x08,
                  0x2d, 0x7d, 0x5f, 0x48,
+                 0x20, 0x88, 0x5f, 0xf8, //ldtr
+                 0x8f, 0x0a, 0x5f, 0xf8,
   };
   return checkCode(tgt, NumberOf(tgt), ctx);
 }
@@ -683,7 +688,7 @@ retCode test_factFun() {
   codeLblPo fct = preamble(ctx, lclCount*8);
   codeLblPo l0 = defineLabel(ctx, "nonZero", undefinedPc);
   codeLblPo lx = defineLabel(ctx, "exit", undefinedPc);
-  str(X0,OF(SP,0));
+  stur(X0,X29,-8);
   cmp(X0, IM(1));
   bne(l0);
   mov(X0, IM(1));
@@ -691,7 +696,7 @@ retCode test_factFun() {
   setLabel(ctx, l0);
   sub(X0,X0,IM(1));  // f(x-1)
   bl(fct);
-  ldr(X1,OF(SP,0));
+  ldur(X1,X29,-8);
   mul(X0,X0,X1);
   setLabel(ctx, lx);
   postamble(ctx);
