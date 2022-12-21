@@ -174,6 +174,41 @@ integer longSubtract(uint32 *tgt, integer tCount, uint32 *a, integer aCount, uin
   return longAdd(tgt, tCount, a, aCount, comp, bCount);
 }
 
+integer longBitAnd(uint32 *tgt, integer tCount, uint32 *a, integer aCount, uint32 *b, integer bCount) {
+  if (aCount > bCount) {
+    return longBitAnd(tgt, tCount, b, bCount, a, aCount);
+  } else {
+    assert(aCount <= bCount);
+    for (integer ix = 0; ix < aCount; ix++) {
+      tgt[ix] = a[ix] & b[ix];
+    }
+    return longTrim(tgt, aCount);
+  }
+}
+
+integer longBitOr(uint32 *tgt, integer tCount, uint32 *a, integer aCount, uint32 *b, integer bCount) {
+  if (aCount < bCount) {
+    return longBitOr(tgt, tCount, b, bCount, a, aCount);
+  } else {
+    assert(aCount >= bCount);
+    for (integer ix = 0; ix < bCount; ix++) {
+      tgt[ix] = a[ix] | b[ix];
+    }
+    for (integer ix = bCount; ix < aCount; ix++)
+      tgt[ix] = a[ix];
+    return longTrim(tgt, aCount);
+  }
+}
+
+integer longBitNot(uint32 *tgt, integer tCount, uint32 *a, integer aCount) {
+
+  for (integer ix = 0; ix < aCount; ix++) {
+    tgt[ix] = ~a[ix];
+  }
+
+  return longTrim(tgt, aCount);
+}
+
 multiPo multiMinus(multiPo lhs, multiPo rhs) {
   integer max = maximum(lhs->size, rhs->size) + 1;
   uint32 sum[max];
@@ -199,7 +234,7 @@ multiPo multiFromStr(char *str) {
 }
 
 multiPo multiFromText(char *text, integer tlen) {
-  integer dataLen = tlen+1;
+  integer dataLen = tlen + 1;
   uint32 data[dataLen];
   zeroFill(data, dataLen);
   logical positive = True;
@@ -224,7 +259,7 @@ multiPo multiFromText(char *text, integer tlen) {
   // Allow for case where number might look negative
   dLen++;
 
-  assert(dLen<=dataLen);
+  assert(dLen <= dataLen);
 
   if (positive) {
     return allocMulti(data, dLen);

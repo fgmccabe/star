@@ -25,7 +25,10 @@ integer longSubtract(uint32 *tgt, integer tCount, uint32 *a, integer aCount, uin
 integer longMultiply(uint32 *tgt, integer tSize, uint32 *a, integer aCount, uint32 *b, integer bCount);
 retCode longDivide(uint32 *q, integer *qC, uint32 *r, integer *rC, uint32 *n, integer nC, uint32 *d, integer dC);
 integer longGCD(uint32 *tgt, uint32 *a, integer aC, uint32 *b, integer bC);
-uinteger longHash(uint32 *data,integer count);
+uinteger longHash(uint32 *data, integer count);
+integer longBitAnd(uint32 *tgt, integer tCount, uint32 *a, integer aCount, uint32 *b, integer bCount);
+integer longBitNot(uint32 *tgt, integer tCount, uint32 *a, integer aCount);
+integer longBitOr(uint32 *tgt, integer tCount, uint32 *a, integer aCount, uint32 *b, integer bCount);
 
 integer longFormat(uint32 *data, integer count, const char *format, integer formatLen, char *buffer, integer buffLen);
 integer longFromText(const char *text, integer tLen, uint32 *data, integer count);

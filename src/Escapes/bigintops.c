@@ -39,6 +39,38 @@ ReturnStatus g__big_minus(heapPo h, termPo a1, termPo a2) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
+ReturnStatus g__big_bitand(heapPo h, termPo a1, termPo a2) {
+  bignumPo lhs = C_BIGNUM(a1);
+  bignumPo rhs = C_BIGNUM(a2);
+  integer cS = maximum(bigCount(lhs), bigCount(rhs)) + 1;
+  uint32 sum[cS];
+  integer cC = longBitAnd(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
+  termPo Rs = (termPo) allocateBignum(h, cC, sum);
+
+  return (ReturnStatus) {.ret=Ok, .result=Rs};
+}
+
+ReturnStatus g__big_bitor(heapPo h, termPo a1, termPo a2) {
+  bignumPo lhs = C_BIGNUM(a1);
+  bignumPo rhs = C_BIGNUM(a2);
+  integer cS = maximum(bigCount(lhs), bigCount(rhs)) + 1;
+  uint32 sum[cS];
+  integer cC = longBitOr(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
+  termPo Rs = (termPo) allocateBignum(h, cC, sum);
+
+  return (ReturnStatus) {.ret=Ok, .result=Rs};
+}
+
+ReturnStatus g__big_bitnot(heapPo h, termPo a1) {
+  bignumPo lhs = C_BIGNUM(a1);
+  integer cS = bigCount(lhs) + 1;
+  uint32 sum[cS];
+  integer cC = longBitNot(sum, cS, bigDigits(lhs), bigCount(lhs));
+  termPo Rs = (termPo) allocateBignum(h, cC, sum);
+
+  return (ReturnStatus) {.ret=Ok, .result=Rs};
+}
+
 ReturnStatus g__big_times(heapPo h, termPo a1, termPo a2) {
   bignumPo lhs = C_BIGNUM(a1);
   bignumPo rhs = C_BIGNUM(a2);
@@ -130,7 +162,7 @@ ReturnStatus g__big2str(heapPo h, termPo a1) {
 ReturnStatus g__str2big(heapPo h, termPo a1) {
   integer len;
   const char *str = strVal(a1, &len);
-  integer gSize = ((len+7) / 8)+1;
+  integer gSize = ((len + 7) / 8) + 1;
   uint32 digits[gSize];
 
   integer bgSize = longFromText(str, len, digits, gSize);
