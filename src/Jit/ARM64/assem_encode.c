@@ -7,7 +7,7 @@
 
 static void updateRelPc(assemCtxPo ctx, codeLblPo lbl, integer pc) {
   assert(isLabelDefined(lbl));
-  integer delta = labelTgt(lbl) - (pc + PLATFORM_PC_DELTA);
+  integer delta = labelTgt(lbl) - pc;
   uint32 oldIns = readCtxAtPc(ctx, pc);
   uint32 newIns =
     one_bt((oldIns >> 31), 31) | two_bt(delta, 29) | one_bt((oldIns >> 28u), 28) | ntn_bt(delta >> 2, 5) |
@@ -162,7 +162,7 @@ void encodeExtrct(uint1 w, uint8 opc, uint1 N, uint1 o0, armReg Rm, uint8 imms, 
 
 static void updateCondPc(assemCtxPo ctx, codeLblPo lbl, integer pc) {
   assert(isLabelDefined(lbl));
-  integer delta = (integer) labelTgt(lbl) - (pc + PLATFORM_PC_DELTA);
+  integer delta = (integer) labelTgt(lbl) - pc;
   uint32 oldIns = readCtxAtPc(ctx, pc);
   uint32 newIns =
     ayt_bt((oldIns >> 24), 24) | ntn_bt(delta >> 2, 5) | fiv_bt(oldIns, 0);
@@ -187,7 +187,7 @@ void encodeBranch(uint8 opc, uint8 op2, uint8 op3, armReg Rn, uint8 op4, assemCt
 
 static void updateBImm(assemCtxPo ctx, codeLblPo lbl, integer pc) {
   assert(isLabelDefined(lbl));
-  integer delta = (integer) labelTgt(lbl) - (pc + PLATFORM_PC_DELTA);
+  integer delta = (integer) labelTgt(lbl) - pc;
   uint32 oldIns = readCtxAtPc(ctx, pc);
   uint32 newIns =
     six_bt((oldIns >> 26), 26) | tsx_bt(delta >> 2, 0);
@@ -229,7 +229,7 @@ static void updateTestPc(assemCtxPo ctx, codeLblPo lbl, integer pc) {
 }
 
 void encodeTstBr(uint1 w, uint1 op, uint8 b40, codeLblPo lbl, armReg Rt, assemCtxPo ctx) {
-  uint1 ww = (b40>=32?1:0);
+  uint1 ww = (b40 >= 32 ? 1 : 0);
   if (!isLabelDefined(lbl)) {
     addLabelReference(ctx, lbl, ctx->pc, updateTestPc);
     emitU32(ctx, one_bt(ww, 31) | six_bt(0x1b, 25) | one_bt(op, 24) | fiv_bt(b40, 19) |
@@ -238,7 +238,7 @@ void encodeTstBr(uint1 w, uint1 op, uint8 b40, codeLblPo lbl, armReg Rt, assemCt
     integer delta = lblDeltaRef(ctx, lbl);
     check(absolute(delta >> 2) < (1 << 15), "label out of range");
     uint32 ins = one_bt(ww, 31) | six_bt(0x1b, 25) | one_bt(op, 24) | fiv_bt(b40, 19) |
-                 ftn_bt(delta>>2, 5) | fiv_bt(Rt, 0);
+                 ftn_bt(delta >> 2, 5) | fiv_bt(Rt, 0);
     emitU32(ctx, ins);
   }
 }

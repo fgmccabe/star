@@ -38,6 +38,7 @@ typedef enum {
   X27 = 27,
   X28 = 28,
   X29 = 29,
+  FP = 29,
   X30 = 30,
   LR = 30,
   XZR = 31,
@@ -62,35 +63,6 @@ typedef enum {
   AL = 0xe,  // Always
   NV = 0xf   // Always
 } armCond;
-
-typedef enum {
-  Reg,
-  Immediate,
-  Based,
-  PreIndexed,
-  PostIndexed,
-  Relative
-} armOpMode;
-
-typedef struct {
-  armOpMode mode;
-  union {
-    armReg reg;
-    struct {
-      armReg base;
-      int disp;
-    } based;
-    struct {
-      armReg base;
-      armReg index;
-      int8 scale;
-    } indexed;
-    int64 imm;
-    int16 scale;
-    uint8 fpReg;
-    codeLblPo lbl;
-  } op;
-} armOp;
 
 typedef enum {
   U_XTB = 0,
@@ -138,8 +110,7 @@ typedef struct {
   codeLblPo lbl;
 } FlexOp;
 
-typedef armOp registerSpec;
-#define PLATFORM_PC_DELTA (0)
+typedef FlexOp registerSpec;
 
 #define RG(Rg) {.mode=reg, .reg=(Rg)}
 #define IM(Vl) {.mode=imm, .immediate=(Vl)}
@@ -382,7 +353,7 @@ void ldur_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
 #define ldur(Rt, Rn, Imm) ldur_(1,Rt,Rn,Imm,ctx)
 
 void ldtr_(uint1 w, armReg Rt, armReg Rn, int16 off, assemCtxPo ctx);
-#define ldtr(Rt,Rn,Off) ldtr_(1,Rt,Rn,Off,ctx)
+#define ldtr(Rt, Rn, Off) ldtr_(1,Rt,Rn,Off,ctx)
 
 void ldurb_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
 #define ldurb(Rt, Rn, Off) ldurb_(Rt,Rn,Off,ctx)

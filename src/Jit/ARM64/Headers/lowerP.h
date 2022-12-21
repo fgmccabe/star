@@ -10,7 +10,8 @@
 #include "jitP.h"
 #include "arm64P.h"
 
-armOp formOperand(vOperand v);
+FlexOp formOperand(vOperand v);
 
+#define CLT (X28)
 
 #endif //STAR_LOWERP_H
