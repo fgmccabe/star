@@ -11,19 +11,9 @@
 
 #include "x86_64P.h"
 #include "jitP.h"
-
+#include "jit.h"
 
 void initAssem() {
-}
-
-void *createCode(assemCtxPo ctx) {
-  cleanupLabels(ctx);
-  void *code = mmap(Null, ctx->pc, PROT_EXEC | PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
-  memcpy(code, ctx->bytes, ctx->pc);
-  free(ctx->bytes);
-  ctx->bytes = Null;
-  discardCtx(ctx);
-  return code;
 }
 
 codeLblPo preamble(assemCtxPo ctx, int32 lclCount) {

@@ -12,7 +12,7 @@
 #endif
 
 #ifndef ALIGNVALUE
-#define ALIGNVALUE(count, size) ((((count)*(size)-1)/(size))*(size))
+#define ALIGNVALUE(count, size) ((((count)+(size)-1)/(size))*(size))
 #endif
 
 #ifndef NumberOf

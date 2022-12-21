@@ -60,9 +60,49 @@ _start:	mov X0, #1     // 1 = StdOut
 	;; smulh	X5,X6,X7
 	;; smull	X5,w6,w8
 
-	stp	x1,x2,[x3], #32
-	stp	x1, x2, [x3, #32]!
-	stp	x1, x2, [x3, #32]
+	;; stp	x1,x2,[x3], #32
+	;; stp	x1, x2, [x3, #32]!
+	;; stp	x1, x2, [x3, #32]
+
+	;; str	x1,[x3], #32
+	;; str	x1, [x3, #32]!
+	;; str	x1, [x3, #32]
+	;; str	x2, [x10, x7, sxtx #3]
 	
+	;; strb	w1,[x3], #32
+	;; strb	w1, [x3, #32]!
+	;; strb	w1, [x3, #32]
+	;; strb	w2, [x10, x7, sxtx]
+	
+	;; strh	w1,[x3], #32
+	;; strh	w1, [x3, #32]!
+	;; strh	w1, [x3, #32]
+	;; strh	w2, [x10, x7, sxtx]
+
+	;; stur	X29, [X3, #-8]
+	;; sturb	w29, [X3, #-8]
+	;; sturh	w29, [X3, #-8]
+	
+	;; sub     X3, X4, X6
+	;; sub     X3, X5, 135
+	;; sub     X3, X5, 135, lsl 12
+	;; sub     X2, X4, X6, lsl 3
+	;; sub     X1, X12, X18, lsr 3
+	;; sub     X1, X12, X18, asr 3
+
+	;; subs     X3, X4, X6
+	;; subs     X3, X5, 135
+	;; subs     X3, X5, 135, lsl 12
+	;; subs     X2, X4, X6, lsl 3
+	;; subs     X1, X12, X18, lsr 3
+	;; subs     X1, X12, X18, asr 3
+
+	umaddl	X1, w2, w3, X4
+	umnegl	x5, w6, w7
+	umsubl	x8, w9, w10, x11
+	umulh	x12,x13,x14
+	umull	x15,w16,w17
+	
+
 helloworld:	.ascii "Hi there\n"
 	.end
