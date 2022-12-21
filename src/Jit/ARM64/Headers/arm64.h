@@ -496,6 +496,9 @@ void strb_(armReg Rt, FlexOp Sn, assemCtxPo ctx);
 void strh_(armReg Rt, FlexOp Sn, assemCtxPo ctx);
 #define strh(Rt, S2) do{FlexOp s=S2; strh_( Rt, s,ctx); } while(False)
 
+void sttr_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
+#define sttr(Rt, Rn, Off) sttr_(1,Rt,Rn,Off,ctx)
+
 void stur_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
 #define stur(Rt, Rn, Off) stur_(1,Rt,Rn,Off,ctx)
 
