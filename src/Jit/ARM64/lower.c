@@ -35,42 +35,42 @@ static int32 collectOperand(insPo base, integer *pc) {
   return (int32) (hi << (uint32) 16 | lo);
 }
 
-armOp formOperand(vOperand v) {
+FlexOp formOperand(vOperand v) {
   switch (v.loc) {
     case argument: {
       switch (v.ix) {
         case 0: {
-          armOp op = {.mode=Reg, .op.reg=X0};
+          FlexOp op = RG(X0);
           return op;
         }
         case 1: {
-          armOp op = {.mode=Reg, .op.reg=X1};
+          FlexOp op = RG(X1);
           return op;
         }
         case 2: {
-          armOp op = {.mode=Reg, .op.reg=X2};
+          FlexOp op = RG(X2);
           return op;
         }
         case 3: {
-          armOp op = {.mode=Reg, .op.reg=X3};
+          FlexOp op = RG(X2);
           return op;
         }
         default: {
-          armOp op = {.mode=Based, .op.based.base=X12, .op.based.disp=(int) (v.ix * LONG_COUNT + FRAME_SIZE)};
+          FlexOp op = OF(X29,v.ix * LONG_COUNT);
           return op;
         }
       }
     }
     case literal: {
-      armOp op = {.mode=Based, .op.based.base=X11, .op.based.disp=(int) (v.ix * LONG_COUNT)};
+      FlexOp op = OF(CLT,v.ix*LONG_COUNT);
       return op;
     }
     case local: {
-      armOp op = {.mode=Based, .op.based.base=X12, .op.based.disp=(int) (-v.ix * LONG_COUNT)};
+      FlexOp op = OF(FP,v.ix*LONG_COUNT);
       return op;
     }
     case immediate: {
-      armOp op = {.mode=Immediate, .op.imm=(int) (v.ix)};
+      FlexOp op = IM(v.ix);
       return op;
     }
     case mcReg: {
@@ -79,13 +79,13 @@ armOp formOperand(vOperand v) {
   }
 }
 
-static armOp popStkOp(jitCompPo jitCtx) {
+static FlexOp popStkOp(jitCompPo jitCtx) {
   verifyJitCtx(jitCtx, 1, 0);
   vOperand v = jitCtx->vStack[--jitCtx->vTop];
   return formOperand(v);
 }
 
-static void pushStkOp(jitCompPo jitCtx, armOp operand) {
+static void pushStkOp(jitCompPo jitCtx, FlexOp operand) {
   verifyJitCtx(jitCtx, 0, 1);
   vOperand v = {.loc=mcReg, .mcLoc=operand};
   jitCtx->vStack[jitCtx->vTop++] = v;
@@ -325,8 +325,8 @@ retCode jit_FLt(insPo code, integer *pc, jitCompPo jitCtx) {
 
 retCode jit_IAdd(insPo code, integer *pc, jitCompPo jitCtx) {
   verifyJitCtx(jitCtx, 1, 0);
-  armOp a1 = popStkOp(jitCtx);
-  armOp a2 = popStkOp(jitCtx);
+  FlexOp a1 = popStkOp(jitCtx);
+  FlexOp a2 = popStkOp(jitCtx);
 
 //  add(a1, a2, jitCtx->assemCtx);
   pushStkOp(jitCtx, a1);
