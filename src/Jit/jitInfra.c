@@ -2,6 +2,14 @@
 // Created by Francis McCabe on 4/1/20.
 //
 
+#include "jit.h"
+#include "assem_encode.h"
+#include "arm64P.h"
+#include <string.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/mman.h>
+#include <utils.h>
 #include <lower.h>
 #include "jitP.h"
 #include "pool.h"
@@ -204,4 +212,50 @@ logical isByte(int64 x) {
 
 logical isI32(int64 x) {
   return x >= MIN_I32 && x <= MAX_I32;
+}
+
+void *createCode(assemCtxPo ctx) {
+  cleanupLabels(ctx);
+  extern int errno;
+  errno = 0;
+  void *code = mmap(Null, ctx->pc, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
+
+  switch (errno) {
+    case 0:
+      break;
+    case EACCES:
+      syserr("could not allocate JIT memory");
+
+    case EBADF:
+      syserr("The fd argument is not a valid open file descriptor");
+
+    case EINVAL:
+      syserr("flags includes bits that are not part of any valid flags value.");
+
+    case ENXIO:
+      syserr("Addresses in the specified range are invalid for fd.");
+
+    case EOVERFLOW:
+      syserr("Addresses in the specified range exceed the maximum offset set for fd.");
+  }
+  memcpy(code, ctx->bytes, ctx->pc);
+
+  switch (mprotect(code, ctx->pc, PROT_READ | PROT_EXEC)) {
+    case 0:
+      break;
+    case EACCES:
+      syserr(
+        "The requested protection conflicts with the access permissions of the process on the specified address range");
+    case EINVAL:
+      syserr("addr is not a multiple of the page size (i.e.  addr is not page-aligned).");
+    case ENOMEM:
+      syserr("The specified address range is outside of the address range of the process or includes an unmapped page");
+    case ENOTSUP:
+      syserr("The combination of accesses requested in prot is not supported.");
+  }
+
+  free(ctx->bytes);
+  ctx->bytes = Null;
+  discardCtx(ctx);
+  return code;
 }

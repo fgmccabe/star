@@ -17,14 +17,19 @@ _start:	mov X0, #1     // 1 = StdOut
         mov     X16, #1     // Service command code 1 terminates this program
         svc     0           // Call MacOS to terminate the program
 
-1:	bl	1b
-	bl	2f
-	blr	X12
-	br	X13
-2:	brk	#1234
+;; 1:	bl	1b
+;; 	bl	2f
+;; 	blr	X12
+;; 	br	X13
+;; 2:	brk	#1234
 
-	cbnz	X3, 2b
-	cbz	x4, 2b
+	;; cbnz	X3, 2b
+	;; cbz	x4, 2b
+
+	tbnz	X3, #56, 2f
+	tbz	x4, #23, 2f
+2:	tbnz	X3, #23, 2b
+	tbz	x4, #56, 2b
 
 helloworld:	.ascii "Hi there\n"
 	.end
