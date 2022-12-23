@@ -219,7 +219,7 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
   assert(referenceCount(O_OBJECT(blocks)) == 1);
   assert(referenceCount(O_OBJECT(groups)) == 1);
   if (traceVerify)
-    logMsg(logFile, "%s verified: %s", name, retCodeNames[ret]);
+    logMsg(logFile, "%s %s", name, retCodeNames[ret]);
 #endif
 
   decReference(O_OBJECT(blocks));

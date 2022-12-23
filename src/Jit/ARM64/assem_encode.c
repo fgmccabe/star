@@ -221,7 +221,7 @@ void encodeCmpBr(uint1 b5, uint1 op, codeLblPo lbl, armReg Rt, assemCtxPo ctx) {
 
 static void updateTestPc(assemCtxPo ctx, codeLblPo lbl, integer pc) {
   assert(isLabelDefined(lbl));
-  integer delta = (integer) labelTgt(lbl) - (pc + PLATFORM_PC_DELTA);
+  integer delta = (integer) labelTgt(lbl) - (pc);
   uint32 oldIns = readCtxAtPc(ctx, pc);
   uint32 newIns =
     thi_bt((oldIns >> 19), 19) | ftn_bt(delta >> 2, 5) | fiv_bt(oldIns, 0);

@@ -12,6 +12,9 @@
 
 FlexOp formOperand(vOperand v);
 
-#define CLT (X28)
+// Code literal vector
+#define CL (X28)
+// Stack base pointer
+#define SB (X27)
 
 #endif //STAR_LOWERP_H
