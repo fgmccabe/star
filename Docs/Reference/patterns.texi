@@ -301,8 +301,8 @@ Noting, of course, that @code{$2} is not a legal @refer{Identifier}.
 @c defined.
 @c @end quotation
 
-@node Guarded Patterns
-@section Guarded Patterns
+@node Guarded Pattern
+@section Guarded Pattern
 @anchored{guardPattern}
 @cindex patterns,guarded
 @cindex guarded patterns
