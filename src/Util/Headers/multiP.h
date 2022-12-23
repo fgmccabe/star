@@ -29,6 +29,7 @@ uinteger longHash(uint32 *data, integer count);
 integer longBitAnd(uint32 *tgt, integer tCount, uint32 *a, integer aCount, uint32 *b, integer bCount);
 integer longBitNot(uint32 *tgt, integer tCount, uint32 *a, integer aCount);
 integer longBitOr(uint32 *tgt, integer tCount, uint32 *a, integer aCount, uint32 *b, integer bCount);
+integer longBitXor(uint32 *tgt, integer tCount, uint32 *a, integer aCount, uint32 *b, integer bCount);
 
 integer longFormat(uint32 *data, integer count, const char *format, integer formatLen, char *buffer, integer buffLen);
 integer longFromText(const char *text, integer tLen, uint32 *data, integer count);

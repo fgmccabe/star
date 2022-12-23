@@ -62,6 +62,11 @@ escape(_big_plus, "F(bb)b", "add two bigints")
 escape(_big_minus, "F(bb)b", "subtract two bigints")
 escape(_big_times, "F(bb)b", "multiply two bigints")
 escape(_big_div, "F(bb)(bb)", "divide two bigints, return quotient & remainder")
+escape(_big_bitand, "F(bb)b", "bitwise and of two bigints")
+escape(_big_bitor, "F(bb)b", "bitwise or of two bigints")
+escape(_big_bitxor, "F(bb)b", "bitwise exclusive or of two bigints")
+escape(_big_bitnot, "F(b)b", "bitwise negation of a bigint")
+
 escape(_big_gcd, "F(bb)b", "gcd of two bigints")
 escape(_big_hash, "F(b)i", "compute hash of bigint")
 

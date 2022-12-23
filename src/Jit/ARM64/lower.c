@@ -9,16 +9,17 @@
 /* Lower Star VM code to Arm64 code */
 /*
 
- X0-X7 Arguments
+ X0-X7 Arguments // Need to be spilled if an allocation in function
  X9-X15 Caller saved
  X19-X29 Callee saved
  X8 indirect result
  X16, X17   IP0, IP1 intra call temps
  X18 platform register
- X29 Frame pointer
- X30 Link register
-
-
+ SB = X27 Base of current stack
+ CL = X28 Code literals
+ FP = X29 Frame pointer
+ LR = X30 Link register
+ SP = X31 Stack pointer
  */
 
 retCode jit_preamble(methodPo mtd, jitCompPo jitCtx) {
@@ -56,21 +57,17 @@ FlexOp formOperand(vOperand v) {
           return op;
         }
         default: {
-          FlexOp op = OF(X29,v.ix * LONG_COUNT);
+          FlexOp op = OF(FP,v.ix * LONG_COUNT+FRAME_SIZE);
           return op;
         }
       }
     }
     case literal: {
-      FlexOp op = OF(CLT,v.ix*LONG_COUNT);
+      FlexOp op = OF(CL,v.ix*LONG_COUNT);
       return op;
     }
     case local: {
-      FlexOp op = OF(FP,v.ix*LONG_COUNT);
-      return op;
-    }
-    case immediate: {
-      FlexOp op = IM(v.ix);
+      FlexOp op = OF(FP,-v.ix*LONG_COUNT);
       return op;
     }
     case mcReg: {
@@ -79,16 +76,14 @@ FlexOp formOperand(vOperand v) {
   }
 }
 
-static FlexOp popStkOp(jitCompPo jitCtx) {
+static vOperand popStkOp(jitCompPo jitCtx) {
   verifyJitCtx(jitCtx, 1, 0);
-  vOperand v = jitCtx->vStack[--jitCtx->vTop];
-  return formOperand(v);
+  return jitCtx->vStack[--jitCtx->vTop];
 }
 
-static void pushStkOp(jitCompPo jitCtx, FlexOp operand) {
+static void pushStkOp(jitCompPo jitCtx, vOperand operand) {
   verifyJitCtx(jitCtx, 0, 1);
-  vOperand v = {.loc=mcReg, .mcLoc=operand};
-  jitCtx->vStack[jitCtx->vTop++] = v;
+  jitCtx->vStack[jitCtx->vTop++] = operand;
 }
 
 retCode jit_Nop(insPo code, integer *pc, jitCompPo jitCtx) {
@@ -325,8 +320,8 @@ retCode jit_FLt(insPo code, integer *pc, jitCompPo jitCtx) {
 
 retCode jit_IAdd(insPo code, integer *pc, jitCompPo jitCtx) {
   verifyJitCtx(jitCtx, 1, 0);
-  FlexOp a1 = popStkOp(jitCtx);
-  FlexOp a2 = popStkOp(jitCtx);
+  vOperand a1 = popStkOp(jitCtx);
+  vOperand a2 = popStkOp(jitCtx);
 
 //  add(a1, a2, jitCtx->assemCtx);
   pushStkOp(jitCtx, a1);

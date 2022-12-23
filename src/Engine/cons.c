@@ -6,6 +6,7 @@
 #include <strings.h>
 #include "consP.h"
 #include "assert.h"
+#include "debug.h"
 
 termPo nilEnum;
 labelPo consCons;
@@ -88,5 +89,5 @@ retCode dispCons(ioPo out, termPo t, integer precision, integer depth, logical a
   if (ret == Ok && isConsNil(t)) {
     return outMsg(out, "]");
   } else
-    return ret;
+    return outMsg(out,"!%,*T!",displayDepth);
 }

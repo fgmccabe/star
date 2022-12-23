@@ -200,8 +200,21 @@ integer longBitOr(uint32 *tgt, integer tCount, uint32 *a, integer aCount, uint32
   }
 }
 
-integer longBitNot(uint32 *tgt, integer tCount, uint32 *a, integer aCount) {
+integer longBitXor(uint32 *tgt, integer tCount, uint32 *a, integer aCount, uint32 *b, integer bCount) {
+  if (aCount < bCount) {
+    return longBitXor(tgt, tCount, b, bCount, a, aCount);
+  } else {
+    assert(aCount >= bCount);
+    for (integer ix = 0; ix < bCount; ix++) {
+      tgt[ix] = a[ix] ^ b[ix];
+    }
+    for (integer ix = bCount; ix < aCount; ix++)
+      tgt[ix] = a[ix];
+    return longTrim(tgt, aCount);
+  }
+}
 
+integer longBitNot(uint32 *tgt, integer tCount, uint32 *a, integer aCount) {
   for (integer ix = 0; ix < aCount; ix++) {
     tgt[ix] = ~a[ix];
   }

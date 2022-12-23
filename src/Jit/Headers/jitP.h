@@ -25,7 +25,6 @@ typedef enum {
   argument,
   local,
   literal,
-  immediate,
   mcReg
 } srcLoc;
 

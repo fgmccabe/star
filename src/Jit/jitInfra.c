@@ -3,7 +3,6 @@
 //
 
 #include "jit.h"
-#include "assem_encode.h"
 #include "arm64P.h"
 #include <string.h>
 #include <errno.h>

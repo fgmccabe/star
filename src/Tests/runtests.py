@@ -1,4 +1,5 @@
 import json
+import re
 from pprint import pprint
 import subprocess
 import sys, getopt
@@ -10,11 +11,14 @@ sc = "/Users/fgm/bin/sc"
 repoDir = "/Users/fgm/Projects/star/Build/.star-repo/"
 usage = "runtests.py [-t <testpkg>|--all] --compile_only --tracing --repo <dir>"
 
+
 tracing = False
 
 def main(argv):
-    global tracing,starExec,sbc,repoDir,testDir
+    global tracing,starExec,sbc,repoDir,testDir,cflags,rflags
 
+    cflags = []
+    rflags = []
     pkgs = []
     compile_only = False
     ignore_failures = False
@@ -22,7 +26,7 @@ def main(argv):
     compile_failures = []
     run_failures = []
     try:
-        opts,args = getopt.getopt(argv,"dhct:",["sc","test=","help","compile_only","tracing","all","ignore_failures","starexec=","sbc","testdir=","repo="])
+        opts,args = getopt.getopt(argv,"dhct:",["sc","test=","help","compile_only","tracing","all","ignore_failures","starexec=","sbc","testdir=","repo=","cflag=","rflag="])
     except getopt.GetoptError as e:
         print (e.msg)
         sys.exit(2)
@@ -54,12 +58,16 @@ def main(argv):
             testDir = arg
         elif opt=="--sc":
             compiler=mainCompile
+        elif opt=="--cflag":
+            cflags = cflags+parseArgFlag(arg)
+        elif opt=="-rflag":
+            rflags = rflags+parseArgFlag(arg)
 
     print ("Run tests on ",pkgs)
     for pkg in pkgs:
         print ("Testing:",pkg)
 
-        return_code = compiler(pkg)
+        return_code = compiler(pkg,cflags)
         if return_code!=0:
             print ("compiling ",pkg," failed")
             if not ignore_failures:
@@ -67,7 +75,7 @@ def main(argv):
             else:
                 run_failures.append(pkg)
         elif not compile_only:
-            return_code = runPkg(pkg)
+            return_code = runPkg(pkg,rflags)
             if return_code!=0:
                 if not ignore_failures:
                     print ("return code from running ",pkg," is ",return_code)
@@ -79,25 +87,28 @@ def main(argv):
     if run_failures != []:
         print (run_failures, "tests failed to complete")
 
-def bootCompile(Pkg):
+def parseArgFlag(Txt):
+    return re.split(" *= *",Txt)
+
+def bootCompile(Pkg,Flgs):
     "Compile a package using the bootstrap compiler"
     if tracing:
-        print ("compile:",sbc,"-r",repoDir, "-w", testDir, "-g", Pkg)
-    return subprocess.call([sbc, "-r",repoDir, "-w",testDir, "-g", Pkg])
+        print ("compile:",sbc,"-r",repoDir, "-w", testDir, "-g", Pkg, Flgs)
+    return subprocess.call([sbc, "-r",repoDir, "-w",testDir, "-g"]+Flgs+[Pkg])
 
-def mainCompile(Pkg):
+def mainCompile(Pkg,Flgs):
     "Compile a package using the main compiler"
     if tracing:
-        print ("compile:",sc,"-R",repoDir, "-W", testDir, Pkg)
-    return subprocess.call([sc, "-R",repoDir, "-W",testDir, Pkg])
+        print ("compile:",sc,"-R",repoDir, "-W", testDir, Pkg,Flgs)
+    return subprocess.call([sc, "-R",repoDir, "-W",testDir]+Flgs+[Pkg])
 
-def runPkg(Pkg):
+def runPkg(Pkg,Flgs):
     "Run a previously compiled package"
     if tracing:
-        print ("run:",starExec,"-r",repoDir, "-h","4m", Pkg)
+        print ("run:",starExec,"-r",repoDir, "-h","4m", Pkg,Flgs)
 
     try:
-        out = subprocess.check_output([starExec, "-r",repoDir,"-h","4m", Pkg],
+        out = subprocess.check_output([starExec, "-r",repoDir,"-h","4m"]+Flgs+[Pkg],
                                       stderr=subprocess.STDOUT)
         if tracing:
             print(out)
