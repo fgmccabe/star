@@ -674,10 +674,10 @@ star.compiler.wff{
 
   public deBar:(ast) => cons[ast].
   deBar(Trm) => let{.
-    deC(T,SoF) where (_,Lh,Rh)?=isBinary(T,"|") =>
-      deC(Rh,[Lh,..SoF]).
-    deC(T,SoF) => reverse([T,..SoF]).
-  .} in deC(Trm,[]).
+    deC(T) where (_,Lh,Rh)?=isBinary(T,"|") =>
+      deC(Lh)++deC(Rh).
+    deC(T) => [T].
+  .} in deC(Trm).
 
   public reBar:(cons[ast]) => ast.
   reBar([A]) => A.
