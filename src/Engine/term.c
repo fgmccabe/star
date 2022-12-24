@@ -104,7 +104,7 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
     labelPo lbl = nml->lbl;
     integer arity = labelArity(lbl);
 
-    if (isTplLabel(lbl)) {
+    if (isTplLabel(labelName(lbl))) {
       return showArgs(out, nml, precision, depth, alt);
     } else if (arity == 0) {
       return outMsg(out, ".%Q", labelName(lbl));
