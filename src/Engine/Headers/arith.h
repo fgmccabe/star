@@ -60,7 +60,7 @@ static inline termPo makeFloat(double dx) {
 }
 
 static inline integer floatHash(double dx) {
-  return hash61(((uinteger) dx) >> 2ul);
+  return hash61((integer)float_bits(dx));
 }
 
 extern logical nearlyEqual(double dx1, double dx2, double eps);
