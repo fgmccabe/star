@@ -75,6 +75,8 @@ star.compiler.ast{
       "#(leftPar(P,Pr))#(Op) #(dispAst(R,Rg,Sp))#(rightPar(P,Pr))".
     .app(_,.nme(_,Op),.tpl(_,"()",[L])) where (P,Rg)?=isPostfixOp(Op) =>
       "#(leftPar(P,Pr))#(dispAst(L,Rg,Sp)) #(Op)#(rightPar(P,Pr))".
+    .app(_,.nme(_,Op),.tpl(_,"()",[L])) where .bkt(Lft,_,Rgt,_,Inn)?=isBracket(Op)=>
+      "#(Lft)#(dispAst(L,Inn,Sp))#(Rgt)".
     T where isInterpolated(T) => "\"#(deInterpolate(T))\"".
     .app(_,.nme(_,Op),.tpl(_,"()",A)) where
 	.bkt(LB,Op,RB,Sep,Pr) ?= isBracket(Op) =>

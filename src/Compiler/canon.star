@@ -18,7 +18,6 @@ star.compiler.canon{
     .flt(option[locn],float) |
     .strng(option[locn],string) |
     .enm(option[locn],string,tipe) |
-    .whr(option[locn],canon,canon) |
     .dot(option[locn],canon,string,tipe) |
     .update(option[locn],canon,string,canon) |
     .csexp(option[locn],canon,cons[rule[canon]],tipe) |
@@ -91,7 +90,6 @@ star.compiler.canon{
       .tple(_,Els) => .tupleType(Els//typeOf).
       .dot(_,_,_,Tp) => Tp.
       .update(_,R,_,_) => typeOf(R).
-      .whr(_,E,_) => typeOf(E).
       .match(_,_,_) => boolType.
       .conj(_,_,_) => boolType.
       .disj(_,_,_) => boolType.
@@ -113,7 +111,6 @@ star.compiler.canon{
       .kar(Lc,_) => Lc.
       .strng(Lc,_) => Lc.
       .enm(Lc,_,_) => Lc.
-      .whr(Lc,_,_) => Lc.
       .dot(Lc,_,_,_) => Lc.
       .update(Lc,_,_,_) => Lc.
       .csexp(Lc,_,_,_) => Lc.
@@ -186,8 +183,6 @@ star.compiler.canon{
     .flt(_,Lt) => disp(Lt).
     .strng(_,Lt) => disp(Lt).
     .enm(_,Nm,Tp) => "°#(Nm)".
-    .whr(_,E,C) where (Lp,OPr,Rp) ?= isInfixOp("where") =>
-      "#(leftParen(OPr,Pr))#(showCanon(E,Lp,Sp)) where #(showCanon(C,Rp,Sp))#(rgtParen(OPr,Pr))".
     .dot(_,R,F,Tp) => "#(showCanon(R,0,Sp))°#(F)\:$(Tp)".
     .update(_,L,F,R) where (Lp,OPr,Rp) ?= isInfixOp("<<-") =>
       "#(leftParen(OPr,Pr))#(showCanon(L,Lp,Sp)).#(F) <<- #(showCanon(R,Rp,Sp))#(rgtParen(OPr,Pr))".
@@ -298,7 +293,7 @@ star.compiler.canon{
   }
 
   showRls:all x ~~ (string,cons[rule[x]],(x,integer,string)=>string,string) => string.
-  showRls(Nm,Rls,Shw,Sp) => interleave(Rls//(Rl)=>showRl(Nm,Rl,Shw,Sp),".\n"++Sp)*.
+  showRls(Nm,Rls,Shw,Sp) => interleave(Rls//(Rl)=>showRl(Nm,Rl,Shw,Sp),"\n"++Sp++"| ")*.
 
   showRl:all x ~~ (string,rule[x],(x,integer,string)=>string,string) => string.
   showRl(Nm,.rule(_,Ptn,.none,Val),Shw,Sp) where (Lp,OPr,Rp) ?= isInfixOp("=>") =>
@@ -334,7 +329,6 @@ star.compiler.canon{
   isGoal(Cn) => case Cn in {
     .enm(_,"star.core#true",.nomnal("star.core*boolean")) => .true.
     .enm(_,"star.core#false",.nomnal("star.core*boolean")) => .true.
-    .whr(_,E,_) => isGoal(E).
     .match(_,_,_) => .true.
     .conj(_,_,_) => .true.
     .disj(_,_,_) => .true.
@@ -350,29 +344,4 @@ star.compiler.canon{
     .letRec(_,_,_,Exp) => isFunDef(Exp).
     _ default => .false.
   }
-
-  public splitPtn:(canon) => (canon,option[canon]).
-  splitPtn(P) => let{.
-    splitPttrn(.apply(Lc,Op,Args,Tp)) => valof{
-      (SOp,OCond) = splitPttrn(Op);
-      (SEls,SCond) = splitPttrns(Args);
-      valis (.apply(Lc,SOp,SEls,Tp),mergeGl(OCond,SCond))
-    }
-    splitPttrn(.tple(Lc,Els)) => valof{
-      (SEls,SCond) = splitPttrns(Els);
-      valis (.tple(Lc,SEls),SCond)
-    }
-    splitPttrn(.whr(Lc,Pt,C)) => valof{
-      (SP,SCond) = splitPttrn(Pt);
-      valis (SP,mergeGl(SCond,.some(C)))
-    }
-    splitPttrn(Pt) => (Pt,.none).
-
-    splitPttrns(Els) => foldLeft(((E,C),(SEls,SCond))=>
-	([E,..SEls],mergeGl(C,SCond)),([],.none),Els//splitPttrn).
-
-    mergeGl(.none,C) => C.
-    mergeGl(C,.none) => C.
-    mergeGl(.some(A),.some(B)) => .some(.conj(locOf(A),A,B)).
-  .} in splitPttrn(P).
 }

@@ -183,11 +183,6 @@ star.compiler.resolve{
     (Rc1,St1) = overloadTerm(Rc,Dict,St);
     valis (.owpen(Lc,Rc1),St1);
   }
-  overloadTerm(.whr(Lc,T,C),Dict,St) => valof{
-    (OT,St1) = overloadTerm(T,Dict,St);
-    (OC,St2) = overloadTerm(C,Dict,St1);
-    valis (.whr(Lc,OT,OC),St2)
-  }
   overloadTerm(.mtd(Lc,Nm,Tp),Dict,St) => 
     (.mtd(Lc,Nm,Tp),.active(Lc,"cannot resolve unconstrained method #(Nm)\:$(Tp)")).
   overloadTerm(.over(Lc,T,Cx),Dict,St) => valof{

@@ -29,8 +29,6 @@ star.compiler.constraints{
   extractTermConstraints(enm(_,FullNm,Tp),_,Cnx) => Cnx.
   extractTermConstraints(dot(_,Rc,_,_),Dict,Cnx) =>
     extractTermConstraints(Rc,Dict,Cnx).
-  extractTermConstraints(whr(_,T,C),Dict,Cnx) =>
-    extractTermConstraints(T,Dict,extractTermConstraints(C,Dict,Cnx)).
   extractTermConstraints(mtd(Lc,Nm,Con,Tp),Dict,Cnx) => [check(Lc,.none,Dict,Con),..Cnx].
   extractTermConstraints(over(Lc,T,[Cn]),Dict,Cnx) =>
     extractConstraint(Cn,Lc,Dict,Cnx).

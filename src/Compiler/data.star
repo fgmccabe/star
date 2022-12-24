@@ -381,8 +381,10 @@ star.compiler.data{
   }
   decodeConstraint([`a`,..T]) => valof{
     (BT,T0) = decodeType(T);
-    (.faceType([(Fld,FT)],_),T1) = decodeType(T0);
-    valis (.fieldConstraint(BT,Fld,FT),T1)
+    if (.faceType([(Fld,FT)],_),T1) .= decodeType(T0) then
+      valis (.fieldConstraint(BT,Fld,FT),T1)
+    else
+    valis (.fieldConstraint(BT,"",.voidType),T0)
   }
   decodeConstraint([`d`,..T]) => valof{
     (Nm,T0) = decodeText(T);

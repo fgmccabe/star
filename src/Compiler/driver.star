@@ -52,7 +52,8 @@ star.compiler{
 	    noCodeOption,
 	    showCodegenOption,	    
 	    traceCodegenOption,	    
-	    optimizeLvlOption],
+	    optimizeLvlOption,
+	    traceInlineOption],
 	  defltOptions(WI,RI)
 	))
     } catch {
@@ -126,7 +127,7 @@ star.compiler{
 	    } || N);
 	  validProg(Inlined,IDecls++Decls);
 	  if showNormalize! then{
-	    logMsg("normalized code $(Inlined)");
+	    logMsg("inline normalized code $(Inlined)");
 	  };
 	  if errorFree() && genCode! then{
 	    Segs = compProg(P,Inlined,IDecls++Decls);

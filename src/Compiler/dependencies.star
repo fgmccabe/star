@@ -428,6 +428,7 @@ star.compiler.dependencies{
   collectCasesRefs([],_,_,Rf) => Rf.
   collectCasesRefs([St,..Sts],F,All,Rf) =>
     collectCasesRefs(Sts,F,All,collectCaseRefs(St,F,All,Rf)).
+
   collectCaseRefs(Cse,F,All,Rf) where (_,_,A,C,Rhs) ?= isLambda(Cse) =>
     F(Rhs,All,collectHeadRefs(A,C,All,Rf)).
   collectCaseRefs(Cse,_,_,Rf) => valof{

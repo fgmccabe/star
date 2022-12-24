@@ -338,6 +338,19 @@ reComma([F|M],T) :-
   locOfAst(F,Lc),
   binary(Lc,",",F,T1,T).
 
+deBar(T,LL) :-
+  isBinary(T,_,"|",L,R),
+  deBar(L,Lf),
+  deBar(R,Rf),
+  concat(Lf,Rf,LL).
+deBar(T,[T]).
+
+reBar([T],T).
+reBar([F|M],T) :-
+  reBar(M,T1),
+  locOfAst(F,Lc),
+  binary(Lc,"|",F,T1,T).
+
 isCons(T,Lc,L,R) :-
   isBinary(T,Lc,",..",L,R).
 
@@ -525,10 +538,12 @@ mkLetRec(Lc,Els,Bnd,Let) :-
 isCaseExp(Trm,Lc,Exp,Cases) :-
   isUnary(Trm,Lc,"case",L),
   isBinary(L,_,"in",Exp,R),
-  isBraceTuple(R,_,Cases).
+  isBraceTuple(R,_,Cs),
+  (Cs=[C] -> deBar(C,Cases); Cases=Cs).
 
 caseExp(Lc,Exp,Cases,Trm) :-
-  braceTuple(Lc,Cases,R),
+  reBar(Cases,Cs),
+  braceTuple(Lc,[Cs],R),
   binary(Lc,"in",Exp,R,C0),
   unary(Lc,"case",C0,Trm).
 

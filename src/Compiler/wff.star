@@ -665,12 +665,25 @@ star.compiler.wff{
   public isCase:(ast) => option[(option[locn],ast,cons[ast])].
   isCase(A) where (Lc,L) ?= isUnary(A,"case") &&
       (_,Lhs,Rhs) ?= isBinary(L,"in") &&
-      (_,Els) ?= isBrTuple(Rhs) => .some((Lc,Lhs,Els)).
+	  (_,Els) ?= isBrTuple(Rhs) =>
+    ([El].=Els ?? .some((Lc,Lhs,deBar(El))) || .some((Lc,Lhs,Els))).
   isCase(_) => .none.
 
   public mkCaseExp(Lc,E,C) =>
-    unary(Lc,"case",binary(Lc,"in",E,brTuple(Lc,C))).
-  
+    unary(Lc,"case",binary(Lc,"in",E,brTuple(Lc,[reBar(C)]))).
+
+  public deBar:(ast) => cons[ast].
+  deBar(Trm) => let{.
+    deC(T,SoF) where (_,Lh,Rh)?=isBinary(T,"|") =>
+      deC(Rh,[Lh,..SoF]).
+    deC(T,SoF) => reverse([T,..SoF]).
+  .} in deC(Trm,[]).
+
+  public reBar:(cons[ast]) => ast.
+  reBar([A]) => A.
+  reBar([A,..As]) =>
+    binary(locOf(A),"|",A,reBar(As)).
+
   public isWhere:(ast) => option[(option[locn],ast,ast)].
   isWhere(A) => isBinary(A,"where").
 
@@ -742,31 +755,35 @@ star.compiler.wff{
   public isTryCatch:(ast) => option[(option[locn],ast,cons[ast])].
   isTryCatch(A) where (Lc,I) ?= isUnary(A,"try") &&
       (_,B,H) ?= isBinary(I,"catch") &&
-      (_,Hs) ?= isBrTuple(H) => .some((Lc,B,Hs)).
+	  (_,Hs) ?= isBrTuple(H) =>
+    ([El].=Hs ?? .some((Lc,B,deBar(El))) || .some((Lc,B,Hs))).
   isTryCatch(_) default => .none.
 
   public mkTryCatch(Lc,B,Hs) =>
-    unary(Lc,"try",binary(Lc,"catch",B,brTuple(Lc,Hs))).
+    unary(Lc,"try",binary(Lc,"catch",B,brTuple(Lc,[reBar(Hs)]))).
 
   public isSuspend(A) where
       (Lc,T,L) ?= isBinary(A,"suspend") &&
-      (_,E,R) ?= isBinary(L,"in") &&
-      (_,C) ?= isBrTuple(R) => .some((Lc,T,E,C)).
+	  (_,E,R) ?= isBinary(L,"in") &&
+	      (_,Els) ?= isBrTuple(R) =>
+    ([El].=Els ?? .some((Lc,T,E,deBar(El))) || .some((Lc,T,E,Els))).
   isSuspend(A) where
       (Lc,L) ?= isUnary(A,"suspend") &&
       (_,E,R) ?= isBinary(L,"in") &&
-      (_,C) ?= isBrTuple(R) => .some((Lc,.nme(Lc,"this"),E,C)).
+	      (_,Els) ?= isBrTuple(R) =>
+    ([El].=Els ?? .some((Lc,.nme(Lc,"this"),E,deBar(El))) || .some((Lc,.nme(Lc,"this"),E,Els))).
   isSuspend(_) default => .none.
 
-  public mkSuspend(Lc,T,E,H) => binary(Lc,"suspend",T,binary(Lc,"in",E,brTuple(Lc,H))).
+  public mkSuspend(Lc,T,E,H) => binary(Lc,"suspend",T,binary(Lc,"in",E,brTuple(Lc,[reBar(H)]))).
 
   public isResume(A) where
       (Lc,T,L) ?= isBinary(A,"resume") &&
       (_,E,R) ?= isBinary(L,"in") &&
-      (_,C) ?= isBrTuple(R) => .some((Lc,T,E,C)).
+	      (_,Els) ?= isBrTuple(R) =>
+    ([El].=Els ?? .some((Lc,T,E,deBar(El))) || .some((Lc,T,E,Els))).
   isResume(_) default => .none.
 
-  public mkResume(Lc,T,E,H) => binary(Lc,"resume",T,binary(Lc,"in",E,brTuple(Lc,H))).
+  public mkResume(Lc,T,E,H) => binary(Lc,"resume",T,binary(Lc,"in",E,brTuple(Lc,[reBar(H)]))).
 
   public isRetire(A) where
       (Lc,T,E) ?= isBinary(A,"retire") => .some((Lc,T,E)).

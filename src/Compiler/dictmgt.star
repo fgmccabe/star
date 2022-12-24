@@ -144,8 +144,12 @@ star.compiler.dict.mgt{
 
   declareMethods:(option[locn],typeRule,dict) => dict.
   declareMethods(Lc,Spec,Dict) => valof{
-    (Q,.contractExists(Nm,Tps,Dps,.faceType(Mts,[]))) = deQuantRule(Spec);
-    valis formMethods(Mts,Lc,Q,.conTract(Nm,Tps,Dps),Dict)
+    if (Q,.contractExists(Nm,Tps,Dps,.faceType(Mts,[]))) .= deQuantRule(Spec) then
+      valis formMethods(Mts,Lc,Q,.conTract(Nm,Tps,Dps),Dict)
+    else{
+      reportError("invalid contract spec $(Spec)",Lc);
+      valis Dict
+    }
   }
 
   formMethods:(cons[(string,tipe)],option[locn],cons[tipe],constraint,dict) => dict.
