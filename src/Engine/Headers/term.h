@@ -75,8 +75,9 @@ static inline integer ptrPayload(termPo t){
       return (integer)t;
     case intTg:
     case chrTg:
-    case fltTg:
       return (((integer)t)>>2l);
+    case fltTg:
+      return (integer)(((uint64)t)&(((uint64)-1)<<2ul));
   }
 }
 
