@@ -182,7 +182,11 @@ star.compiler.gencode{
       valis compCond(L,condCont(R,Succ,Fail,ECont,Stk),Fail,ECont,Ctx,Stk)
     }.
     .cDsj(Lc,L,R) => valof{
-      valis compCond(L,Succ,ctxCont(Ctx,condCont(R,Succ,Fail,ECont,Stk)),ECont,Ctx,Stk)
+      SC = splitCont(Lc,Ctx,Succ);
+
+      Ctxa = dsjCtx(Ctx,L,R);
+
+      valis compCond(L,SC,ctxCont(Ctxa,condCont(R,SC,Fail,ECont,Stk)),ECont,Ctxa,Stk)
     }.
     .cNeg(Lc,R) =>
       compCond(R,ctxCont(Ctx,Fail),ctxCont(Ctx,Succ),ECont,Ctx,Stk).
@@ -191,8 +195,10 @@ star.compiler.gencode{
 	logMsg("compiling conditional cond $(C)");
       SC = splitCont(Lc,Ctx,Succ);
       FC = splitCont(Lc,Ctx,Fail);
-      valis compCond(T,condCont(L,SC,FC,ECont,Stk),condCont(R,SC,FC,ECont,Stk),
-	ECont,glCtx(Ctx,T),Stk)
+
+      Ctxa = dsjCtx(glCtx(Ctx,T),L,R); -- Make sure that common variables are kept in same place
+
+      valis compCond(T,condCont(L,SC,FC,ECont,Stk),condCont(R,SC,FC,ECont,Stk),ECont,Ctxa,Stk)
     }.
     .cMatch(Lc,Ptn,Exp) => 
       compExp(Exp,ptnCont(Ptn,Succ,Fail,ECont),ECont,Ctx,Stk).
@@ -840,6 +846,13 @@ star.compiler.gencode{
   glCtx(Ctx,Exp) => valof{
     Vrs = glVars(Exp,[]);
     valis foldLeft((.cId(Nm,Tp),C)=>snd(defineLclVar(Nm,Tp::ltipe,C)),Ctx,Vrs)
+  }
+
+  dsjCtx:(codeCtx,cExp,cExp) => codeCtx.
+  dsjCtx(Ctx,L,R) => valof{
+    CommonVrs = glVars(L,[]) /\ glVars(R,[]);
+
+    valis foldLeft((.cId(Nm,Tp),Cx)=>snd(defineLclVar(Nm,Tp::ltipe,Cx)),Ctx,CommonVrs)
   }
 
   drop:all x,e ~~ stream[x->>e] |: (x,integer)=>x.
