@@ -917,7 +917,7 @@ retCode run(processPo P) {
         integer Lhs = integerVal(pop());
         integer Rhs = integerVal(pop());
 
-        termPo Rs = (termPo) makeInteger(((unsigned) Lhs & (unsigned) Rhs));
+        termPo Rs = (termPo) makeInteger((integer)((uinteger) Lhs & (uinteger) Rhs));
         push(Rs);
         continue;
       }
@@ -925,7 +925,7 @@ retCode run(processPo P) {
         integer Lhs = integerVal(pop());
         integer Rhs = integerVal(pop());
 
-        termPo Rs = makeInteger(((unsigned) Lhs | (unsigned) Rhs));
+        termPo Rs = makeInteger((integer)((uinteger) Lhs | (uinteger) Rhs));
         push(Rs);
         continue;
       }
@@ -933,14 +933,14 @@ retCode run(processPo P) {
         integer Lhs = integerVal(pop());
         integer Rhs = integerVal(pop());
 
-        termPo Rs = (termPo) makeInteger(((unsigned) Lhs ^ (unsigned) Rhs));
+        termPo Rs = (termPo) makeInteger((integer)((uinteger) Lhs ^ (uinteger) Rhs));
         push(Rs);
         continue;
       }
       case BNot: {
         integer Lhs = integerVal(pop());
 
-        termPo Rs = (termPo) makeInteger(~(unsigned) Lhs);
+        termPo Rs = (termPo) makeInteger((integer)(~(uinteger) Lhs));
         push(Rs);
         continue;
       }
@@ -948,7 +948,7 @@ retCode run(processPo P) {
         integer Lhs = integerVal(pop());
         integer Rhs = integerVal(pop());
 
-        termPo Rs = (termPo) makeInteger(((unsigned) Lhs << (unsigned) Rhs));
+        termPo Rs = (termPo) makeInteger((integer)((uinteger) Lhs << (uinteger) Rhs));
         push(Rs);
         continue;
       }
@@ -956,7 +956,7 @@ retCode run(processPo P) {
         integer Lhs = integerVal(pop());
         integer Rhs = integerVal(pop());
 
-        termPo Rs = (termPo) makeInteger((((unsigned) Lhs) >> ((unsigned) Rhs)));
+        termPo Rs = (termPo) makeInteger((integer)(((uinteger) Lhs) >> ((uinteger) Rhs)));
         push(Rs);
         continue;
       }
