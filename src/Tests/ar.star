@@ -29,14 +29,26 @@ test.ar{
     eqq(X,Y) => _int_eq(X,Y)
   }
 
-/*  person ::= someOne{
+  implementation four[float] => {
+    plus(X,Y) => _flt_plus(X,Y).
+    minus(X,Y) => _flt_minus(X,Y).
+    times(X,Y) => _flt_times(X,Y).
+    div(X,Y) => _flt_div(X,Y).
+    zer = 0.0.
+    unum = 1.0.
+  }.
+
+  implementation eqq[float] => {
+    eqq(X,Y) => _flt_eq(X,Y,X/1.0e20)
+  }
+  
+  person ::= someOne{
     name:string
   }
 
   ff:all x ~~ four[x],eqq[x] |:(x)=>x.
   ff(X) where eqq(X,zer) =>unum.
   ff(N) => times(N,ff(minus(N,unum))).
-  */
 
   fi:(integer)=>integer.
   fi(X) where eqq(X,zer) =>unum.
@@ -50,6 +62,12 @@ test.ar{
 --    show Peter.name;
 --    assert sample==5;
     show fi(5);
+    show ff(5.0);
+
+    show 34.56e10;
+
+    start := 123.0e10;
+    show start!;
     valis ()
   }
 }
