@@ -86,6 +86,9 @@ static labelPo newLbl(lblTablePo table, const char *name, integer arity, integer
 labelPo declareLbl(const char *name, integer arity, integer index) {
   lblTablePo tbl = locateLblTbl(name);
 
+  if(index==-1 && isTplLabel(name))
+    index = 0;
+
   assert(tbl != Null);
   check(arity >= 0, "invalid label arity");
 
@@ -306,8 +309,7 @@ labelPo tplLabel(integer arity) {
   return declareLbl(txt, arity, 0);
 }
 
-logical isTplLabel(labelPo lb) {
-  char *nm = lb->name;
+logical isTplLabel(const char *nm) {
   if (uniIsLitPrefix(nm, "()")) {
     integer ln = uniStrLen(nm);
     integer pos = uniStrLen("()");

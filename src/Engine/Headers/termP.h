@@ -31,7 +31,7 @@ typedef logical (*classSameFun)(specialClassPo class, termPo t1, termPo t2);
 
 typedef integer (*classHashFun)(specialClassPo class, termPo t1);
 
-typedef termPo (*classFinalizerFun)(specialClassPo class,termPo o);
+typedef termPo (*classFinalizerFun)(specialClassPo class, termPo o);
 
 typedef struct special_class {
   clssPo clss;                 // == specialClass
@@ -46,8 +46,8 @@ typedef struct special_class {
 
 extern clssPo specialClass;
 
-extern void initTerm();
+void initTerm();
 
-extern logical isSpecialClass(clssPo p);
+logical isSpecialClass(clssPo p);
 
 #endif //STAR_TERMP_H
