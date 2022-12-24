@@ -37,7 +37,6 @@ star.compiler.term{
     | .cCont(option[locn],cId,cExp,cExp)
     | .cUnpack(option[locn],cExp,cons[cCase[cExp]],tipe)
     | .cCase(option[locn],cExp,cons[cCase[cExp]],cExp,tipe)
-    | .cWhere(option[locn],cExp,cExp)
     | .cMatch(option[locn],cExp,cExp)
     | .cVarNmes(option[locn],cons[(string,cId)],cExp)
     | .cAbort(option[locn],string,tipe)
@@ -108,8 +107,8 @@ star.compiler.term{
     .cECall(_,Op,As,_) => "#(Op)ε(#(dsplyExps(As,Off)*))".
     .cOCall(_,Op,As,_) => "#(dspExp(Op,Off))·(#(dsplyExps(As,Off)*))".
     .cCall(_,Op,As,_) => "#(Op)(#(dsplyExps(As,Off)*))".
-    .cTerm(_,Op,As,_) where isTplLbl(Op) => "‹#(dsplyExps(As,Off)*)›".
-    .cTerm(_,Op,As,_) => "#(Op)‹#(dsplyExps(As,Off)*)›".
+    .cTerm(_,Op,As,_) where isTplLbl(Op) => "(#(dsplyExps(As,Off)*))".
+    .cTerm(_,Op,As,_) => "#(Op)(#(dsplyExps(As,Off)*))".
     .cNth(_,O,Ix,_) => "#(dspExp(O,Off)).$(Ix)".
     .cSetNth(_,O,Ix,E) => "(#(dspExp(O,Off)).$(Ix) <- #(dspExp(E,Off)))".
     .cThunk(_,E,Tp) => "thunk #(dspExp(E,Off))".
@@ -133,9 +132,8 @@ star.compiler.term{
       valis "unpack (#(dspExp(E,Off))) in {\n#(Off2)#(dspCases(Cs,dspExp,Off2)*)\n#(Off)}"
     }.
     .cMatch(_,P,E) => "#(dspExp(P,Off)).=#(dspExp(E,Off))".
-    .cWhere(_,T,C) => "#(dspExp(T,Off)) where #(dspExp(C,Off++"  "))".
-    .cCnj(_,L,R) => "#(dspExp(L,Off))&&#(dspExp(R,Off))".
-    .cDsj(_,L,R) => "(#(dspExp(L,Off))||#(dspExp(R,Off)))".
+    .cCnj(_,L,R) => "#(dspExp(L,Off)) && #(dspExp(R,Off))".
+    .cDsj(_,L,R) => "(#(dspExp(L,Off)) || #(dspExp(R,Off)))".
     .cCnd(_,T,L,R) => valof{
       Off2=Off++"  ";
       valis "(#(dspExp(T,Off)) ?? #(dspExp(L,Off2)) ||\n #(Off2)#(dspExp(R,Off2)))"
@@ -202,7 +200,7 @@ star.compiler.term{
 
   dspCases:all e ~~ (cons[cCase[e]],(e,string)=>string,string)=>cons[string].
   dspCases(Cs,F,Off) => let{
-    Gap = ";\n"++Off.
+    Gap = "\n"++Off++"| ".
   } in interleave(Cs//((_,P,V))=>"#(dspExp(P,Off))=>#(F(V,Off))",Gap).
 
   dsplyExps(Es,Off) => interleave(Es//(E)=>dspExp(E,Off),", ").
@@ -262,7 +260,6 @@ star.compiler.term{
 	eqTerm(S1,S2) && eqCs(C1,eqTerm,C2).
     .cCase(_,S1,C1,D1,_) => .cCase(_,S2,C2,D2,_).=E2 &&
 	eqTerm(S1,S2) && eqCs(C1,eqTerm,C2) && eqTerm(D1,D2).
-    .cWhere(_,V1,C1) => .cWhere(_,V2,C2).=E2 && eqTerm(V1,V2) && eqTerm(C1,C2).
     .cMatch(_,P1,V1) => .cMatch(_,P2,V2).=E2 && eqTerm(V1,V2) && eqTerm(P1,P2).
     .cAbort(_,M1,T1) => .cAbort(_,M2,T2).=E2 && M1==M2 && T1==T2.
     .cSusp(_,T1,V1,_) => .cSusp(_,T2,V2,_).=E2 && eqTerm(T1,T2) && eqTerm(V1,V2).
@@ -346,7 +343,6 @@ star.compiler.term{
       .cThGet(Lc,_,_) => Lc.
       .cThSet(Lc,_,_,_) => Lc.
       .cTerm(Lc,_,_,_) => Lc.
-      .cWhere(Lc,_,_) => Lc.
       .cMatch(Lc,_,_) => Lc.
       .cLtt(Lc,_,_,_) => Lc.
       .cCont(Lc,_,_,_) => Lc.
@@ -399,7 +395,6 @@ star.compiler.term{
       .cUnpack(_,_,_,Tp) => Tp.
       .cCase(_,_,_,_,Tp) => Tp.
       .cCnd(_,_,L,_) => tpOf(L).
-      .cWhere(_,T,_) => tpOf(T).
       .cMatch(_,_,_) => boolType.
       .cSusp(_,_,_,T) => T.
       .cResume(_,_,_,T) => T.
@@ -512,7 +507,6 @@ star.compiler.term{
 	rwTerm(Sel,Tst),Cases//(C)=>rwCase(C,Tst,rwTerm),Tp).
       .cCase(Lc,Sel,Cases,Dflt,Tp) => .cCase(Lc,rwTerm(Sel,Tst),
 	Cases//(C)=>rwCase(C,Tst,rwTerm),rwTerm(Dflt,Tst),Tp).
-      .cWhere(Lc,Tr,C) => .cWhere(Lc,rwTerm(Tr,Tst),rwTerm(C,Tst)).
       .cMatch(Lc,P,E) => .cMatch(Lc,rwTerm(P,Tst),rwTerm(E,Tst)).
       .cSusp(Lc,F,E,Tp) => .cSusp(Lc,rwTerm(F,Tst),rwTerm(E,Tst),Tp).
       .cResume(Lc,F,E,Tp) => .cResume(Lc,rwTerm(F,Tst),rwTerm(E,Tst),Tp).
@@ -609,7 +603,6 @@ star.compiler.term{
     .cDsj(_,_,_)=>.true.
     .cNeg(_,_)=>.true.
     .cCnd(_,_,L,R)=>isCond(L)&&isCond(R).
-    .cWhere(_,L,_) => isCond(L).
     .cMatch(_,_,_)=>.true.
     _ default => .false.
   }
@@ -632,12 +625,38 @@ star.compiler.term{
     (.some(G),.some(H)) => .some(.cCnj(Lc,G,H)).
   }
 
+  public liftWhere:(cExp) => cExp.
+  liftWhere(G) where isCond(G) => case G in {
+    .cCnj(Lc,L,R) => valof{
+      LL = liftWhere(L);
+      RR = liftWhere(R);
+      valis .cCnj(Lc,LL,RR)
+    }.
+    .cDsj(Lc,L,R) => valof{
+      LL = liftWhere(L);
+      RR = liftWhere(R);
+      valis .cDsj(Lc,LL,RR)
+    }.
+    .cNeg(Lc,R) => valof{
+      RR = liftWhere(R);
+      valis .cNeg(Lc,RR)
+    }.
+    .cMatch(Lc,P,E) => valof{
+      (PP,W) = pullWhere(P);
+      if C?=W then
+	valis .cCnj(Lc,.cMatch(Lc,PP,E),C)
+	else
+      valis .cMatch(Lc,PP,E)
+    }.
+  }
+  liftWhere(G) default => G.
+
   public contract all e ~~ reform[e] ::= {
     mkCond:(option[locn],cExp,e,e)=>e.
     mkCase:(option[locn],cExp,cons[cCase[e]],e) => e.
     mkUnpack:(option[locn],cExp,cons[cCase[e]]) => e.
     varNames:(option[locn],cons[(string,cId)],e)=>e.
-    pullWhere:(e,option[cExp]) => (e,option[cExp]).
+    pullWhere:(e) => (e,option[cExp]).
     mkLtt:(option[locn],cId,cExp,e) => e.
     mkCont:(option[locn],cId,cExp,e) => e.
   }
@@ -651,15 +670,13 @@ star.compiler.term{
 
     varNames(Lc,Bnds,Val) => .cVarNmes(Lc,Bnds,Val).
 
-    pullWhere(.cWhere(Lc,V,C),G) where (Val,G1) .= pullWhere(V,G) =>
-      (Val,mergeGoal(Lc,.some(C),G1)).
-    pullWhere(.cTerm(Lc,Lbl,Args,Tp),G) where (NArgs,Gx) .= pullWheres(Args,G) =>
+    pullWhere(.cTerm(Lc,Lbl,Args,Tp)) where (NArgs,Gx) .= pullWheres(Args) =>
       (.cTerm(Lc,Lbl,NArgs,Tp),Gx).
-    pullWhere(Exp,G) default => (Exp,G).
+    pullWhere(Exp) default => (Exp,.none).
 
-    pullWheres([],G) => ([],G).
-    pullWheres([A,..As],G) where (NA,NG).=pullWhere(A,G) && (NAs,Gx) .= pullWheres(As,NG) =>
-      ([NA,..NAs],Gx).
+    pullWheres([]) => ([],.none).
+    pullWheres([A,..As]) where (NA,NG).=pullWhere(A) && (NAs,Gx) .= pullWheres(As) =>
+      ([NA,..NAs],mergeGoal(locOf(A),NG,Gx)).
 
     mkCase(Lc,Tst,[(PLc,Ptn,Val)],Deflt) => mkCond(Lc,.cMatch(PLc,Ptn,Tst),Val,Deflt).
     mkCase(Lc,V,Cases,Deflt) => .cCase(Lc,V,Cases,Deflt,typeOf(Deflt)).
@@ -680,7 +697,7 @@ star.compiler.term{
 
     varNames(Lc,Bnds,Val) => .aVarNmes(Lc,Bnds,Val).
 
-    pullWhere(A,Cond) => (A,Cond).
+    pullWhere(A) => (A,.none).
 
     mkCase(Lc,V,Cases,Deflt) => .aCase(Lc,V,Cases,Deflt).
     mkUnpack(Lc,V,Arms) => .aUnpack(Lc,V,Arms).
@@ -776,7 +793,6 @@ star.compiler.term{
     .cCont(_,B,V,E) => validE(V,Vrs) && validE(E,Vrs\+B).
     .cCase(_,G,Cs,Df,_) => validE(G,Vrs) && validCases(Cs,validE,Vrs) && validE(Df,Vrs).
     .cUnpack(_,G,Cs,_) => validE(G,Vrs) && validCases(Cs,validE,Vrs).
-    .cWhere(_,V,E) => validE(V,Vrs) && validE(E,Vrs).
     .cMatch(_,V,E) => valof{
       V1 = glVars(E,Vrs);
       valis validP(V,V1) && validE(E,V1)
@@ -803,7 +819,6 @@ star.compiler.term{
     .cString(_,_) => .true.
     .cFloat(_,_) => .true.
     .cTerm(_,_,Args,_) => {? E in Args *> validP(E,Vrs) ?}.
-    .cWhere(_,P,G) => validP(P,Vrs) && validE(G,ptnVrs(P,Vrs)).
     _ default => valof{
       reportError("invalid pattern: $(Exp)",locOf(Exp));
       valis .false.
@@ -872,7 +887,6 @@ star.compiler.term{
     .cFloat(_,_) => Vrs.
     .cTerm(_,_,Args,_) => foldLeft(ptnVrs,Vrs,Args).
     .cNth(_,R,_,_) => ptnVrs(R,Vrs).
-    .cWhere(_,V,G) => ptnVrs(V,glVars(G,Vrs)).
   }
 
   public glVars:(cExp,set[cId])=>set[cId].
@@ -889,7 +903,6 @@ star.compiler.term{
       D2 = glVars(R,[]);
       valis Vrs\/(D1/\D2)
     }.
-    .cWhere(_,V,C) => glVars(C,glVars(V,Vrs)).
     .cMatch(_,P,_) => ptnVrs(P,Vrs).
     _ default => Vrs
   }
@@ -931,13 +944,13 @@ star.compiler.term{
       presentInE(G,C,T) || presentInCases(Cs,presentInA,C,T).
     .aIftte(_,G,Th,E) =>
       presentInE(G,C,T) || presentInA(Th,C,T) || presentInA(E,C,T).
-    .aWhile(_,G,A) =>
-      presentInE(G,C,T) || presentInA(A,C,T).
+    .aWhile(_,G,B) =>
+      presentInE(G,C,T) || presentInA(B,C,T).
     .aRetire(_,Ts,E) => presentInE(Ts,C,T) || presentInE(E,C,T).
     .aTry(_,B,E,H) => presentInA(B,C,T) || presentInE(E,C,T) || presentInA(H,C,T).
-    .aLtt(_,_,V,A) => presentInE(V,C,T) || presentInA(A,C,T).
-    .aCont(_,_,V,A) => presentInE(V,C,T) || presentInA(A,C,T).
-    .aVarNmes(_,_,A) => presentInA(A,C,T).
+    .aLtt(_,_,V,B) => presentInE(V,C,T) || presentInA(B,C,T).
+    .aCont(_,_,V,B) => presentInE(V,C,T) || presentInA(B,C,T).
+    .aVarNmes(_,_,B) => presentInA(B,C,T).
     .aAbort(_,_) => .false.
   }.
 
@@ -982,8 +995,6 @@ star.compiler.term{
       presentInE(G,A,C) || presentInCases(Cs,presentInE,A,C) || presentInE(D,A,C).
     .cUnpack(_,G,Cs,_) =>
       presentInE(G,A,C) || presentInCases(Cs,presentInE,A,C).
-    .cWhere(_,V,E) =>
-      presentInE(V,A,C) || presentInE(E,A,C).
     .cMatch(_,V,E) =>
       presentInE(V,A,C) || presentInE(E,A,C).
     .cVarNmes(_,_,E) =>
@@ -1034,8 +1045,6 @@ star.compiler.term{
       visitE(R,V,VA,V(Tr,X)).
     .cCnd(Lc,T,L,R) =>
       visitE(R,V,VA,visitE(L,V,VA,visitE(T,V,VA,V(Tr,X)))).
-    .cWhere(Lc,L,R) =>
-      visitE(R,V,VA,visitE(L,V,VA,V(Tr,X))).
     .cMatch(Lc,L,R) =>
       visitE(R,V,VA,visitE(L,V,VA,V(Tr,X))).
     .cLtt(Lc,Vr,B,E) =>
@@ -1147,7 +1156,6 @@ star.compiler.term{
     .cDsj(Lc,L,R) => mkCons("dsj",[Lc::data,frzeExp(L),frzeExp(R)]).
     .cNeg(Lc,R) => mkCons("neg",[Lc::data,frzeExp(R)]).
     .cCnd(Lc,T,L,R) => mkCons("cnd",[Lc::data,frzeExp(T),frzeExp(L),frzeExp(R)]).
-    .cWhere(Lc,L,R) => mkCons("whr",[Lc::data,frzeExp(L),frzeExp(R)]).
     .cMatch(Lc,L,R) => mkCons("mtch",[Lc::data,frzeExp(L),frzeExp(R)]).
     .cLtt(Lc,.cId(V,Tp),B,X) => mkCons("ltt",[Lc::data,.strg(V),encodeSig(Tp),
 	frzeExp(B),frzeExp(X)]).
@@ -1255,8 +1263,6 @@ star.compiler.term{
       .cNeg(thawLoc(Lc),thawTerm(R)).
     .term("cnd",[Lc,T,L,R]) =>
       .cCnd(thawLoc(Lc),thawTerm(T),thawTerm(L),thawTerm(R)).
-    .term("whr",[Lc,L,R]) =>
-      .cWhere(thawLoc(Lc),thawTerm(L),thawTerm(R)).
     .term("mtch",[Lc,L,R]) =>
       .cMatch(thawLoc(Lc),thawTerm(L),thawTerm(R)).
     .term("ltt",[Lc,.strg(V),Sig,B,X]) =>

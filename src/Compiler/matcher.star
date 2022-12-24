@@ -13,7 +13,7 @@ star.compiler.matcher{
   import star.compiler.location.
 
   all e ~~ triple[e] ~>
-    (cons[cExp],(option[locn],cons[(string,cId)],option[cExp],option[cExp],e),integer).
+    (cons[cExp],(option[locn],cons[(string,cId)],option[cExp],e),integer).
 
   public functionMatcher:(option[locn],string,tipe,nameMap,cons[(option[locn],cons[cExp],option[cExp],cExp)]) => cDefn.
   functionMatcher(Lc,Nm,Tp,Map,Eqns) => valof{
@@ -27,8 +27,8 @@ star.compiler.matcher{
   public caseMatcher:all e ~~ reform[e],rewrite[e],display[e] |: (option[locn],nameMap,cExp,e,
     cons[(option[locn],cons[cExp],option[cExp],e)])=>e.
   caseMatcher(Lc,Map,Gov,Deflt,Cs) => valof{
-    if traceNormalize! then
-      logMsg("match cases $(Cs)\ngoverning expression $(Gov)\:$(typeOf(Gov))");
+    -- if traceNormalize! then
+    --   logMsg("match cases $(Cs)\ngoverning expression $(Gov)\:$(typeOf(Gov))");
     Trpls = makeTriples(Cs);
     valis matchTriples(Lc,[Gov],Trpls,Deflt,0,Map)
   }
@@ -41,8 +41,8 @@ star.compiler.matcher{
 
   makeTriples:all e ~~ reform[e] |: (cons[(option[locn],cons[cExp],option[cExp],e)]) => cons[triple[e]].
   makeTriples(Eqns) => ixRight((Ix,(Lc,Args,Wh,Exp),Ts)=> valof{
-      (Vl,Cnd) = pullWhere(Exp,.none);
-      valis [(Args,(Lc,[],Cnd,Wh,Vl),Ix),..Ts]
+      (Vl,Cnd) = pullWhere(Exp);
+      valis [(Args,(Lc,[],mergeGoal(Lc,Cnd,Wh),Vl),Ix),..Ts]
     },[],Eqns).
 
   genRaise(Lc,Msg,Tp) => .cAbort(Lc,Msg,Tp).
@@ -102,7 +102,6 @@ star.compiler.matcher{
   argMode(.cString(_,_)) => .inScalars.
   argMode(.cTerm(_,Op,_,_)) where isTplLbl(Op) => .inTuples.
   argMode(.cTerm(_,_,_,_)) => .inConstructors.
-  argMode(.cWhere(_,T,_)) => argMode(T).
 
   matchSegments:all e ~~ reform[e],rewrite[e],display[e] |:
     (cons[(argMode,cons[triple[e]])],cons[cExp],option[locn],e,integer,nameMap) => e.
@@ -131,45 +130,36 @@ star.compiler.matcher{
   conditionMatch:all e ~~ reform[e],rewrite[e],display[e] |:
     (cons[triple[e]],cons[cExp],e) => e.
   conditionMatch([],_,Deflt) => Deflt.
-  conditionMatch([(Args,(Lc,Bnds,ArgCond,Test,Val),_),..M],Vrs,Deflt) => valof{
+  conditionMatch([(Args,(Lc,Bnds,Test,Val),_),..M],Vrs,Deflt) => valof{
+    (Vl,Cnd) = pullWhere(Val);
+
     if traceNormalize! then
       logMsg("generate condition match $(Args) .= $(Vrs)");
-    
-    (Vl,Cnd) = pullWhere(Val,Test);
-
-    (AG,Tst,Res) = mkMatchCond(Args,Vrs,ArgCond,Cnd,Lc,Vl);
+    (Tst,Res) = mkMatchCond(Args,Vrs,fmap(liftWhere,mergeGoal(Lc,Cnd,Test)),Lc,Vl);
+    if traceNormalize! then
+      logMsg("match cond $(Tst)");
     Other = conditionMatch(M,Vrs,Deflt);
 
-    if Cond?=mergeGoal(Lc,AG,Tst) then
+    if Cond?=Tst then
       valis mkCond(Lc,Cond,Res,Other)
     else
     valis Res
   }
 
-  mkMatchCond:all e ~~ rewrite[e] |: (cons[cExp],cons[cExp],option[cExp],option[cExp],option[locn],e) =>
-    (option[cExp],option[cExp],e).
-  mkMatchCond([],[],ArgCond,Test,_,Val) => (ArgCond,Test,Val).
-  mkMatchCond([.cAnon(_,_),..Args],[_,..Vars],ArgCond,Test,Lc,Val) =>
-    mkMatchCond(Args,Vars,ArgCond,Test,Lc,Val).
-  mkMatchCond([.cWhere(WLc,.cVar(VLc,.cId(Vr,VTp)),WCond),..Args],[V,..Vars],AG,Test,Lc,Val) => valof{
+  mkMatchCond:all e ~~ rewrite[e] |: (cons[cExp],cons[cExp],option[cExp],option[locn],e) =>
+    (option[cExp],e).
+  mkMatchCond([],[],Test,_,Val) => (Test,Val).
+  mkMatchCond([.cAnon(_,_),..Args],[_,..Vars],Test,Lc,Val) =>
+    mkMatchCond(Args,Vars,Test,Lc,Val).
+  mkMatchCond([.cVar(VLc,.cId(Vr,VTp)),..Args],[V,..Vars],Test,Lc,Val) => valof{
     Mp = { .tLbl(Vr,arity(VTp))->.vrDef(VLc,Vr,VTp,V)};
     NArgs = rewriteTerms(Args,Mp);
-    NWCond = rewrite(WCond,Mp);
-    NAG = fmap((T)=>rewrite(T,Mp),AG);
     NTst = fmap((T)=>rewrite(T,Mp),Test);
     NVal = rewrite(Val,Mp);
-    valis mkMatchCond(NArgs,Vars,mergeGoal(WLc,NAG,?NWCond),NTst,Lc,NVal)
+    valis mkMatchCond(NArgs,Vars,NTst,Lc,NVal)
   }
-  mkMatchCond([.cVar(VLc,.cId(Vr,VTp)),..Args],[V,..Vars],AG,Test,Lc,Val) => valof{
-    Mp = { .tLbl(Vr,arity(VTp))->.vrDef(VLc,Vr,VTp,V)};
-    NArgs = rewriteTerms(Args,Mp);
-    NAG = fmap((T)=>rewrite(T,Mp),AG);
-    NTst = fmap((T)=>rewrite(T,Mp),Test);
-    NVal = rewrite(Val,Mp);
-    valis mkMatchCond(NArgs,Vars,NAG,NTst,Lc,NVal)
-  }
-  mkMatchCond([A,..Args],[V,..Vars],AG,Test,Lc,Val) =>
-    mkMatchCond(Args,Vars,mergeGoal(Lc,AG,?.cMatch(Lc,A,V)),Test,Lc,Val).
+  mkMatchCond([A,..Args],[V,..Vars],Test,Lc,Val) =>
+    mkMatchCond(Args,Vars,mergeGoal(Lc,?.cMatch(Lc,A,V),Test),Lc,Val).
 
   matchScalars:all e ~~ reform[e],rewrite[e],display[e] |:
     (cons[triple[e]],cons[cExp],option[locn],e,integer,nameMap)=>e.
@@ -230,25 +220,15 @@ star.compiler.matcher{
   applyVar:all e ~~ rewrite[e] |: (cExp,cons[triple[e]]) => cons[triple[e]].
   applyVar(V,Triples) => let{
     applyToTriple:(triple[e])=>triple[e].
-    applyToTriple(([.cAnon(VLc,VTp),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof{
-      valis (Args, (CLc,B,AG,Gl,Exp),Ix)
+    applyToTriple(([.cAnon(VLc,VTp),..Args],(CLc,B,Gl,Exp),Ix)) => valof{
+      valis (Args, (CLc,B,Gl,Exp),Ix)
     }
-    applyToTriple(([.cVar(VLc,.cId(Vr,VTp)),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof{
+    applyToTriple(([.cVar(VLc,.cId(Vr,VTp)),..Args],(CLc,B,Gl,Exp),Ix)) => valof{
       Mp = { .tLbl(Vr,arity(VTp))->.vrDef(VLc,Vr,VTp,V)};
       NArgs = rewriteTerms(Args,Mp);
-      NAG = fmap((T)=>rewrite(T,Mp),AG);
       NGl = fmap((T)=>rewrite(T,Mp),Gl);
       NExp = rewrite(Exp,Mp);
-      valis (NArgs, (CLc,B,NAG,NGl,NExp),Ix)
-    }
-    applyToTriple(([.cWhere(Lc,.cVar(VLc,.cId(Vr,VTp)),Cond),..Args],(CLc,B,AG,Gl,Exp),Ix)) => valof{
-      Mp = { .tLbl(Vr,arity(VTp))->.vrDef(VLc,Vr,VTp,V)};
-      NArgs = rewriteTerms(Args,Mp);
-      NAG = fmap((T)=>rewrite(T,Mp),AG);
-      NCond = rewrite(Cond,Mp);
-      NGl = fmap((T)=>rewrite(T,Mp),Gl);
-      NExp = rewrite(Exp,Mp);
-      valis (NArgs, (CLc,B,mergeGoal(VLc,NAG,.some(NCond)),NGl,NExp),Ix)
+      valis (NArgs, (CLc,B,NGl,NExp),Ix)
     }
   } in (Triples//applyToTriple).
 
@@ -297,12 +277,12 @@ star.compiler.matcher{
 
   conditionalize:all e ~~ reform[e],display[e] |: (cons[triple[e]],e)=>e.
   conditionalize([],Deflt) => Deflt.
-  conditionalize([(_,(Lc,Bnds,ArgCond,Test,Val),_),..Triples],Deflt) => valof{
-    (Vl,Cnd) = pullWhere(Val,Test);
-    EqnCnd = mergeGoal(Lc,ArgCond,Cnd);
+  conditionalize([(_,(Lc,Bnds,Test,Val),_),..Triples],Deflt) => valof{
+    (Vl,Cnd) = pullWhere(Val);
+    EqnCnd = mergeGoal(Lc,Test,Cnd);
     if Tst ?= EqnCnd then
       valis applyBindings(Lc,Bnds,
-	mkCond(Lc,Tst,Vl,conditionalize(Triples,Deflt)))
+	mkCond(Lc,liftWhere(Tst),Vl,conditionalize(Triples,Deflt)))
     else
     valis applyBindings(Lc,Bnds,Vl)
   }

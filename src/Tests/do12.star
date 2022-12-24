@@ -9,8 +9,8 @@ test.do12{
   multiWhr:(foo)=>integer.
   multiWhr(X) => valof{
     case X in {
-      .foo(Ix) => valis Ix.
-      .bar(_) => valis 0
+      .foo(Ix) => valis Ix
+      | .bar(_) => valis 0
     }
   }
 

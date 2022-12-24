@@ -109,9 +109,6 @@ star.compiler.normalize{
   }
 
   transformTypeDef(Lc,Nm,Tp,TpRl,Map,Ex) => valof{
-    if traceNormalize! then
-      logMsg("indexmap of $(Nm)\:$(Tp) = $(findIndexMap(Nm,Map))");
-
     if ConsMap ?= findIndexMap(Nm,Map) then
       valis [.tpDef(Lc,Tp,TpRl,ConsMap),..Ex]
     else
@@ -119,13 +116,10 @@ star.compiler.normalize{
   }
 
   transformConsDef(Lc,Nm,Tp,Map,Ex) => valof{
-    if traceNormalize! then
-      logMsg("transform constructor $(Nm)\:$(Tp)");
     (_,CT) = deQuant(Tp);
     (_,IT) = deConstrain(CT);
     (ATp,RTp) = ^ isConsType(IT);
     if (Ar,_) ?= isTupleType(ATp) then{
---      logMsg("look for $(tpName(RTp)) type: $(findIndexMap(tpName(RTp),Map)) in $(Map)");
       if ConsMap ?= findIndexMap(tpName(RTp),Map) then{
 	(Lbl,_,Ix) = ^ findLbl(Nm,ConsMap);
 	valis [.lblDef(Lc,Lbl,Tp,Ix),..Ex]
@@ -178,20 +172,28 @@ star.compiler.normalize{
   transformRule:all e,t ~~ transform[e->>t] |:
     (rule[e],nameMap,set[cId],option[cExp],cons[cDefn]) =>
       ((option[locn],cons[cExp],option[cExp],t),cons[cDefn]).
-  transformRule(.rule(Lc,.tple(ALc,As),.none,Val),Map,Q,Extra,Ex) => valof{
-    EQ = ptnVars(.tple(ALc,As),Q,[]);
-    (Ptns,Ex1) = liftPtns(As,Map,EQ,Ex);
-    (Rep,Exx) = transform(Val,Map,EQ,Ex1);
-    valis ((Lc,addExtra(Extra,Ptns),.none,Rep),Exx)
-  }
-  transformRule(.rule(Lc,.tple(ALc,As),.some(Wh),Val),Map,Q,Extra,Ex) => valof{
-    (Ptns,Ex1) = liftPtns(As,Map,Q,Ex);
-    EQ = ptnVars(.tple(Lc,As),Q,[]);
-    (Cond,Ex2) = transform(Wh,Map,EQ,Ex1);
-    GLQ = condVars(Wh,EQ);
-    (Rep,Exx) = transform(Val,Map,GLQ,Ex2);
+  transformRule(.rule(Lc,Arg,Test,Val),Map,Q,Extra,Ex) => valof{
+    EQ = ptnVars(Arg,Q,[]);
+    (APtn,Ex1) = liftPtn(Arg,Map,EQ,Ex);
 
-    valis ((Lc,addExtra(Extra,Ptns),.some(Cond),Rep),Exx)
+    (TPtn, WC) = pullWhere(APtn);
+
+    GEQ = (Tst?=Test ?? condVars(Tst,EQ) || EQ);
+    (NG,Ex2) = liftGoal(Test,Map,EQ,Ex1);
+    (Rep,Exx) = transform(Val,Map,GEQ,Ex2);
+    if .cTerm(_,_,Ptns,_).=TPtn then
+      valis ((Lc,addExtra(Extra,Ptns),mergeGoal(Lc,WC,NG),Rep),Exx)
+    else{
+      reportError("cannot transform invalid rule args $(Arg)",Lc);
+      valis ((Lc,addExtra(Extra,[]),.none,Rep),Exx)
+    }
+  }
+
+  liftGoal:(option[canon],nameMap,set[cId],cons[cDefn]) => crFlow[option[cExp]].
+  liftGoal(.none,_,_,Ex) => (.none,Ex).
+  liftGoal(.some(C),Map,Q,Ex) => valof{
+    (C1,Ex1) = liftExp(C,Map,Q,Ex);
+    valis (.some(liftWhere(C1)),Ex1)
   }
   
   addExtra(.none,Args) => Args.
@@ -206,11 +208,6 @@ star.compiler.normalize{
   liftPtn(.flt(Lc,Dx),Map,_,Ex) => (.cFloat(Lc,Dx),Ex).
   liftPtn(.kar(Lc,Cx),Map,_,Ex) => (.cChar(Lc,Cx),Ex).
   liftPtn(.strng(Lc,Sx),Map,_,Ex) => (.cString(Lc,Sx),Ex).
-  liftPtn(.whr(Lc,Ptn,Cond),Map,Q,Ex) => valof{
-    (LPtn,Ex1) = liftPtn(Ptn,Map,Q,Ex);
-    (LCond,Exx) = liftExp(Cond,Map,condVars(Cond,ptnVars(Ptn,Q,[])),Ex);
-    valis (.cWhere(Lc,LPtn,LCond),Exx)
-  }
   liftPtn(.tple(Lc,Els),Map,Q,Ex) => valof{
     (LEls,Exx) = liftPtns(Els,Map,Q,Ex);
     valis (crTpl(Lc,LEls),Exx)
@@ -257,16 +254,6 @@ star.compiler.normalize{
     (.cTerm(Lc,Enum,[],ETp),Ex).
   implementVarPtn(Lc,Nm,.some(.localCons(Enum,CTp,Vr)),Tp,_,Ex) =>
     (.cTerm(Lc,Enum,[.cVar(Lc,Vr)],Tp),Ex).
-  implementVarPtn(Lc,Nm,.some(.labelArg(Base,Ix)),Tp,Map,Ex) => valof{
-    V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
-    NN = .cVar(Lc,.cId(Nm,Tp));
-    valis (.cWhere(Lc,NN,.cMatch(Lc,NN,.cNth(Lc,V,Ix,Tp))),Ex)
-  }
-  implementVarPtn(Lc,Nm,.some(.memoArg(ClNm,Base,Ix,_)),Tp,Map,Ex) => valof{
-    V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
-    NN = .cVar(Lc,.cId(Nm,Tp));
-    valis (.cWhere(Lc,NN,.cMatch(Lc,NN,.cThGet(Lc,V,Tp))),Ex)
-  }
   implementVarPtn(Lc,Nm,.some(V),Tp,_Map,Ex) => valof{
     reportError("not permitted to match against $(Nm)\:$(V)",Lc);
     valis (.cVoid(Lc,Tp),Ex)
@@ -296,13 +283,6 @@ star.compiler.normalize{
     reportError("unexpected dot expression $(.dot(Lc,Rc,Fld,Tp))",Lc);
     valis (.cVoid(Lc,Tp),[])
   }
-  liftExp(.whr(_,E,.enm(_,"star.core#true",_)),Map,Q,Ex) =>
-    liftExp(E,Map,Q,Ex).
-  liftExp(.whr(Lc,E,C),Map,Q,Ex) => valof{
-    (LE,Ex1) = liftExp(E,Map,Q,Ex);
-    (LC,Ex2) = liftExp(C,Map,condVars(C,Q),Ex1);
-    valis (.cWhere(Lc,LE,LC),Ex2)
-  }
   liftExp(.conj(Lc,L,R),Map,Q,Ex) => valof{
     (LL,Ex1) = liftExp(L,Map,Q,Ex);
     (LR,Ex2) = liftExp(R,Map,condVars(L,Q),Ex1);
@@ -321,7 +301,10 @@ star.compiler.normalize{
     (LT,Ex1) = liftExp(T,Map,Q,Ex);
     (LL,Ex2) = liftExp(L,Map,condVars(T,Q),Ex1);
     (LR,Ex3) = liftExp(R,Map,Q,Ex2);
-    valis (.cCnd(Lc,LT,LL,LR),Ex3)
+
+--    logMsg("lift wheres from $(LT) = $(liftWhere(LT))");
+
+    valis (.cCnd(Lc,liftWhere(LT),LL,LR),Ex3)
   }
   liftExp(.match(Lc,P,E),Map,Q,Ex) => valof{
     (LP,Ex1) = liftPtn(P,Map,Q,Ex);
@@ -513,6 +496,11 @@ star.compiler.normalize{
       };
 
       (BndTrm,Exx) = transform(Bnd,MM,GrpQ,Ex2);
+
+      if traceNormalize! then{
+	logMsg("definitions are $(Exx)");
+      };
+
       valis (letify(Lc,ThV,GrpFree,BndTrm),Exx)
     }
   }
@@ -674,12 +662,12 @@ star.compiler.normalize{
     (CC,Ex1) = liftExp(C,Map,Q,Ex);
     (LL,Ex2) = liftAction(L,Map,condVars(C,Q),Ex1);
     (RR,Ex3) = liftAction(R,Map,Q,Ex2);
-    valis (.aIftte(Lc,CC,LL,RR),Ex3)
+    valis (.aIftte(Lc,liftWhere(CC),LL,RR),Ex3)
   }
   liftAction(.doWhile(Lc,C,B),Map,Q,Ex) => valof{
     (CC,Ex1) = liftExp(C,Map,Q,Ex);
     (BB,Ex2) = liftAction(B,Map,condVars(C,Q),Ex1);
-    valis (.aWhile(Lc,CC,BB),Ex2)
+    valis (.aWhile(Lc,liftWhere(CC),BB),Ex2)
   }
   liftAction(.doCase(Lc,Gv,Cs),Map,Q,Ex) => valof{
     (LGv,Ex1) = liftExp(Gv,Map,Q,Ex);

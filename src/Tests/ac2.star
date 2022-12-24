@@ -6,7 +6,7 @@ test.ac2{
   parent:cons[(string,string)].
   parent = [("a","ab"),("b","ab"),("a","c"),("c","aa"),("ab","abc"),
     ("de","abc"),("d","de"),("e","de"),
-    ("f","a"),("g","f")].
+    ("ff","a"),("g","ff")].
 
   gps:(cons[(string,string)])=>cons[(string,string)].
   gps(Ps) => valof{

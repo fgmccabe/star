@@ -315,15 +315,15 @@ star.compiler.checker{
     Ats = genArgTps(Arg);
     RTp = newTypeVar("_R");
     checkType(St,funType(Ats,RTp),ProgramType,Env);
-    (Args,E0) = typeOfArgPtn(Arg,.tupleType(Ats),ErTp,Outer,Path);
-	
+    (Args,ACnd,E0) = typeOfArgPtn(Arg,.tupleType(Ats),ErTp,Outer,Path);
+
     if Wh?=Cnd then{
       (Cond,E1) = checkCond(Wh,ErTp,E0,Path);
       Rep = typeOfExp(R,RTp,ErTp,E1,Path);
 	  
-      valis (.rule(Lc,Args,.some(Cond),Rep),IsDeflt)
+      valis (.rule(Lc,Args,mergeGoal(Lc,ACnd,.some(Cond)),Rep),IsDeflt)
     } else{
-      valis (.rule(Lc,Args,.none,typeOfExp(R,RTp,ErTp,E0,Path)),IsDeflt)
+      valis (.rule(Lc,Args,ACnd,typeOfExp(R,RTp,ErTp,E0,Path)),IsDeflt)
     }
   }
 
@@ -379,29 +379,32 @@ star.compiler.checker{
       logMsg("check accessor $(Nm) B=$(B)");
     QV = parseBoundTpVars(Q);
     Cx = parseConstraints(C,QV,Env);
-    (_,Fn,[TA]) = ^isSquareTerm(T);
-    (_,[L],[R]) = ^isDepends(TA);
-    (_,Fld) = ^isName(Fn);
-    RcTp = parseType(QV,L,Env);
-    FldTp = parseType(QV,R,Env);
-    AT = funType([RcTp],FldTp);
-    AccTp = rebind(QV,reConstrainType(Cx,AT),Env);
+    if (_,Fn,[TA]) ?= isSquareTerm(T) && (_,[L],[R]) ?= isDepends(TA) then{
+      (_,Fld) = ^isName(Fn);
+      RcTp = parseType(QV,L,Env);
+      FldTp = parseType(QV,R,Env);
+      AT = funType([RcTp],FldTp);
+      AccTp = rebind(QV,reConstrainType(Cx,AT),Env);
 
-    (Qs,ETp) = evidence(AccTp,Env);
-    (CCx,VarTp) = deConstrain(ETp);
-    Es = declareConstraints(Lc,CCx,declareTypeVars(Qs,Env));
+      (Qs,ETp) = evidence(AccTp,Env);
+      (CCx,VarTp) = deConstrain(ETp);
+      Es = declareConstraints(Lc,CCx,declareTypeVars(Qs,Env));
 
-    AccFn = typeOfExp(B,VarTp,.none,Es,Path);
+      AccFn = typeOfExp(B,VarTp,.none,Es,Path);
 
-    AccVrNm = qualifiedName(Path,.valMark,qualifiedName(tpName(RcTp),.typeMark,"^"++Fld));
-
-    Defn = .varDef(Lc,AccVrNm,AccFn,Cx,AccTp);
-    Decl = .accDec(Lc,rebind(QV,reConstrainType(Cx,RcTp),Env),Fld,AccVrNm,AccTp);
-    FDecl = .funDec(Lc,AccVrNm,AccVrNm,AccTp);
+      AccVrNm = qualifiedName(Path,.valMark,qualifiedName(tpName(RcTp),.typeMark,"^"++Fld));
+      
+      Defn = .varDef(Lc,AccVrNm,AccFn,Cx,AccTp);
+      Decl = .accDec(Lc,rebind(QV,reConstrainType(Cx,RcTp),Env),Fld,AccVrNm,AccTp);
+      FDecl = .funDec(Lc,AccVrNm,AccVrNm,AccTp);
     
-    if traceCanon! then
-      logMsg("accessor $(Decl)");
-    valis ([Defn],[Decl,FDecl])
+      if traceCanon! then
+	logMsg("accessor $(Decl)");
+      valis ([Defn],[Decl,FDecl])
+    } else {
+      reportError("bad accessor structure $(T)",Lc);
+      valis ([],[])
+    }
   }
 
   checkUpdater:(option[locn],string,cons[ast],cons[ast],ast,ast,dict,dict,string) => (cons[canonDef],cons[decl]).
@@ -410,47 +413,52 @@ star.compiler.checker{
       logMsg("Check updater: $(Nm) Head:$(T), Body:$(B)");
     QV = parseBoundTpVars(Q);
     Cx = parseConstraints(C,QV,Env);
-    (_,Fn,[TA]) = ^isSquareTerm(T);
-    (_,[L],[R]) = ^isDepends(TA);
-    (_,Fld) = ^isName(Fn);
-    RcTp = parseType(QV,L,Env);
-    FldTp = parseType(QV,R,Env);
+    if (_,Fn,[TA]) ?= isSquareTerm(T) && (_,[L],[R]) ?= isDepends(TA) && (_,Fld) ?= isName(Fn) then{
+      RcTp = parseType(QV,L,Env);
+      FldTp = parseType(QV,R,Env);
 
-    AT = funType([RcTp,FldTp],RcTp);
-    AccTp = rebind(QV,reConstrainType(Cx,AT),Env);
+      AT = funType([RcTp,FldTp],RcTp);
+      AccTp = rebind(QV,reConstrainType(Cx,AT),Env);
+      
+      (Qs,ETp) = evidence(AccTp,Env);
+      (CCx,VarTp) = deConstrain(ETp);
+      Es = declareConstraints(Lc,CCx,declareTypeVars(Qs,Env));
 
-    (Qs,ETp) = evidence(AccTp,Env);
-    (CCx,VarTp) = deConstrain(ETp);
-    Es = declareConstraints(Lc,CCx,declareTypeVars(Qs,Env));
+      AccFn = typeOfExp(B,VarTp,.none,Es,Path);
 
-    AccFn = typeOfExp(B,VarTp,.none,Es,Path);
+      AccVrNm = qualifiedName(Path,.valMark,qualifiedName(tpName(RcTp),.typeMark,"!"++Fld));
 
-    AccVrNm = qualifiedName(Path,.valMark,qualifiedName(tpName(RcTp),.typeMark,"!"++Fld));
-
-    Defn = .varDef(Lc,AccVrNm,AccFn,Cx,AccTp);
-    Decl = .updDec(Lc,rebind(QV,reConstrainType(Cx,RcTp),Env),Fld,AccVrNm,AccTp);
-    FDecl = .funDec(Lc,AccVrNm,AccVrNm,AccTp);
-    if traceCanon! then
-      logMsg("updater $(Defn)\:$(AccTp)");
-    valis ([Defn],[Decl,FDecl])
+      Defn = .varDef(Lc,AccVrNm,AccFn,Cx,AccTp);
+      Decl = .updDec(Lc,rebind(QV,reConstrainType(Cx,RcTp),Env),Fld,AccVrNm,AccTp);
+      FDecl = .funDec(Lc,AccVrNm,AccVrNm,AccTp);
+      if traceCanon! then
+	logMsg("updater $(Defn)\:$(AccTp)");
+      valis ([Defn],[Decl,FDecl])
+    } else {
+      reportError("bad updater structure $(T)",Lc);
+      valis ([],[])
+    }
   }
     
-  typeOfPtn:(ast,tipe,option[tipe],dict,string) => (canon,dict).
-  typeOfPtn(A,Tp,_,Env,_) where Lc?=isAnon(A) => (.anon(Lc,Tp),Env).
-  typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Id) ?= isName(A) &&
-      varDefined(Id,Env) =>
-    typeOfPtn(mkWhereEquality(A),Tp,ErTp,Env,Path).
+  typeOfPtn:(ast,tipe,option[tipe],dict,string) => (canon,option[canon],dict).
+  typeOfPtn(A,Tp,_,Env,_) where Lc?=isAnon(A) => (.anon(Lc,Tp),.none,Env).
+  typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Id) ?= isName(A) && varDefined(Id,Env) => valof{
+    V = genName(Lc,Id);
+    (Ptn,PCond,Ev0) = typeOfPtn(V,Tp,ErTp,Env,Path);
+    (Cond,Ev1) = checkCond(binary(Lc,"==",V,A),ErTp,Ev0,Path);
+    valis (Ptn,mergeGoal(Lc,PCond,?Cond),Ev1)
+  }.
   typeOfPtn(A,Tp,_,Env,Path) where (Lc,Id) ?= isName(A) => valof{
     Ev = declareVar(Id,Id,Lc,Tp,faceOfType(Tp,Env),Env);
-    valis (.vr(Lc,Id,Tp),Ev)
+    valis (.vr(Lc,Id,Tp),.none,Ev)
   }
   typeOfPtn(A,Tp,ErTp,Env,Path) where _ ?= isEnumSymb(A) => valof{
     Enm = typeOfExp(A,Tp,ErTp,Env,Path);
-    valis (Enm,Env)
+    valis (Enm,.none,Env)
   }
   typeOfPtn(A,Tp,ErTp,Env,Path) where isLitAst(A) => valof{
     Exp = typeOfExp(A,Tp,ErTp,Env,Path);
-    valis (Exp,Env)
+    valis (Exp,.none,Env)
   }
   typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,E,T) ?= isTypeAnnotation(A) => valof{
     ETp = parseType([],T,Env);
@@ -460,25 +468,25 @@ star.compiler.checker{
   }.
   typeOfPtn(A,Tp,ErTp,Env,Path) where 
       (Lc,E,C) ?= isWhere(A) => valof{
-	(Ptn,Ev0) = typeOfPtn(E,Tp,ErTp,Env,Path);
+	(Ptn,PCond,Ev0) = typeOfPtn(E,Tp,ErTp,Env,Path);
 	(Cond,Ev1) = checkCond(C,ErTp,Ev0,Path);
-	valis (.whr(Lc,Ptn,Cond),Ev1)
+	valis (Ptn,mergeGoal(Lc,PCond,?Cond),Ev1)
       }.
   typeOfPtn(A,Tp,ErTp,Env,Path) where (_,[El]) ?= isTuple(A) && ~ _ ?= isTuple(El) =>
     typeOfPtn(El,Tp,ErTp,Env,Path).
   typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Els) ?= isTuple(A) => valof{
     Tvs = genTpVars(Els);
     checkType(A,.tupleType(Tvs),Tp,Env);
-    (Ptns,Ev) = typeOfPtns(Els,Tvs,ErTp,[],Env,Path);
-    valis (.tple(Lc,Ptns),Ev)
+    (Ptns,Cond,Ev) = typeOfPtns(Els,Tvs,ErTp,.none,[],Env,Path);
+    valis (.tple(Lc,Ptns),Cond,Ev)
   }
   typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Op,Els) ?= isEnumCon(A) => valof{
     At = newTypeVar("A");
     Fun = typeOfExp(Op,consType(At,Tp),ErTp,Env,Path);
     Tps = genTpVars(Els);
     checkType(A,.tupleType(Tps),At,Env);
-    (Args,Ev) = typeOfArgsPtn(Els,Tps,ErTp,Env,Path);
-    valis (.apply(Lc,Fun,Args,Tp),Ev)
+    (Args,Cond,Ev) = typeOfArgsPtn(Els,Tps,ErTp,Env,Path);
+    valis (.apply(Lc,Fun,Args,Tp),Cond,Ev)
   }
   typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Op,Ss) ?= isLabeledRecord(A) && (OLc,Nm)?=isName(Op) => valof{
     if traceCanon! then
@@ -491,10 +499,10 @@ star.compiler.checker{
     FaceTp = ^faceOfType(ETp,Env);
     (Cx,Face) = deConstrain(FaceTp);
     Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
-    (Els,Ev) = typeOfElementPtns(Ss,Face,ErTp,Base,Path,[]);
+    (Els,Cond,Ev) = typeOfElementPtns(Ss,Face,ErTp,Base,Path,.none,[]);
     Args = fillinElementPtns(Lc,Els,Face);
 
-    valis (.apply(Lc,DFun,Args,Tp),Ev)
+    valis (.apply(Lc,DFun,Args,Tp),Cond,Ev)
   }
   typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Op,Ss) ?= isLabeledTheta(A) && (OLc,Nm)?=isName(Op) => valof{
     if traceCanon! then
@@ -507,40 +515,39 @@ star.compiler.checker{
     FaceTp = ^faceOfType(ETp,Env);
     (Cx,Face) = deConstrain(FaceTp);
     Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
-    (Els,Ev) = typeOfElementPtns(Ss,Face,ErTp,Base,Path,[]);
+    (Els,Cond,Ev) = typeOfElementPtns(Ss,Face,ErTp,Base,Path,.none,[]);
     Args = fillinElementPtns(Lc,Els,Face);
-    valis (.apply(Lc,DFun,Args,Tp),Ev)
+    valis (.apply(Lc,DFun,Args,Tp),Cond,Ev)
   }
   typeOfPtn(A,Tp,_,Env,_) => valof{
     Lc = locOf(A);
     reportError("illegal pattern: $(A), expecting a $(Tp)",Lc);
-    valis (.anon(Lc,Tp),Env)    
+    valis (.anon(Lc,Tp),.none,Env)    
   }
     
-  typeOfArgPtn:(ast,tipe,option[tipe],dict,string) => (canon,dict).
+  typeOfArgPtn:(ast,tipe,option[tipe],dict,string) => (canon,option[canon],dict).
   typeOfArgPtn(A,Tp,ErTp,Env,Path) where (Lc,Els) ?= isTuple(A) => valof{
     Tvs = genTpVars(Els);
     checkType(A,.tupleType(Tvs),Tp,Env);
-    (Ptns,Ev) = typeOfPtns(Els,Tvs,ErTp,[],Env,Path);
-    valis (.tple(Lc,Ptns),Ev)
+    (Ptns,Cond,Ev) = typeOfPtns(Els,Tvs,ErTp,.none,[],Env,Path);
+    valis (.tple(Lc,Ptns),Cond,Ev)
   }
   typeOfArgPtn(A,Tp,ErTp,Env,Path) => typeOfPtn(A,Tp,ErTp,Env,Path).
 
-  typeOfArgsPtn:(cons[ast],cons[tipe],option[tipe],dict,string) => (cons[canon],dict).
-  typeOfArgsPtn(Els,Tps,ErTp,Env,Path) => typeOfPtns(Els,Tps,ErTp,[],Env,Path).
+  typeOfArgsPtn:(cons[ast],cons[tipe],option[tipe],dict,string) => (cons[canon],option[canon],dict).
+  typeOfArgsPtn(Els,Tps,ErTp,Env,Path) => typeOfPtns(Els,Tps,ErTp,.none,[],Env,Path).
 
-  typeOfElementPtns:(cons[ast],tipe,option[tipe],dict,string,cons[(string,canon)]) =>
-    (cons[(string,canon)],dict).
-  typeOfElementPtns([],_,_,Env,_,Prs) => (Prs,Env).
-  typeOfElementPtns([D,..Ds],Tp,ErTp,Env,Pth,SoFr) => valof{
-    if (Lc,Lhs,R) ?= isDefn(D) &&
-	(_,Nm) ?= isName(Lhs) &&
+  typeOfElementPtns:(cons[ast],tipe,option[tipe],dict,string,option[canon],cons[(string,canon)]) =>
+    (cons[(string,canon)],option[canon],dict).
+  typeOfElementPtns([],_,_,Env,_,Cnd,Prs) => (Prs,Cnd,Env).
+  typeOfElementPtns([D,..Ds],Tp,ErTp,Env,Pth,Cnd,SoFr) => valof{
+    if (Lc,Lhs,R) ?= isDefn(D) && (_,Nm) ?= isName(Lhs) &&
 	FTp ?= fieldInFace(Tp,Nm) then{
-	  (Ptn,Ev) = typeOfPtn(R,FTp,ErTp,Env,Pth);
-	  valis typeOfElementPtns(Ds,Tp,ErTp,Ev,Pth,[(Nm,Ptn),..SoFr])
+	  (Ptn,C1,Ev) = typeOfPtn(R,FTp,ErTp,Env,Pth);
+	  valis typeOfElementPtns(Ds,Tp,ErTp,Ev,Pth,mergeGoal(Lc,Cnd,C1),[(Nm,Ptn),..SoFr])
 	} else{
 	  reportError("$(D) is not a legal element pattern",locOf(D));
-	  valis ([],Env)
+	  valis ([],.none,Env)
 	}
   }
 
@@ -554,11 +561,12 @@ star.compiler.checker{
 
   project1(L) => (L//snd).
 
-  typeOfPtns:(cons[ast],cons[tipe],option[tipe],cons[canon],dict,string) => (cons[canon],dict).
-  typeOfPtns([],[],_,Els,Env,_) => (reverse(Els),Env).
-  typeOfPtns([P,..Ps],[T,..Ts],ErTp,Els,Env,Path) => valof{
-    (Pt,E0) = typeOfPtn(P,snd(freshen(T,Env)),ErTp,Env,Path);
-    valis typeOfPtns(Ps,Ts,ErTp,[Pt,..Els],E0,Path)
+  typeOfPtns:(cons[ast],cons[tipe],option[tipe],option[canon],cons[canon],dict,string) =>
+    (cons[canon],option[canon],dict).
+  typeOfPtns([],[],_,Cond,Els,Env,_) => (reverse(Els),Cond,Env).
+  typeOfPtns([P,..Ps],[T,..Ts],ErTp,Cnd,Els,Env,Path) => valof{
+    (Pt,C,E0) = typeOfPtn(P,snd(freshen(T,Env)),ErTp,Env,Path);
+    valis typeOfPtns(Ps,Ts,ErTp,mergeGoal(locOf(P),Cnd,C),[Pt,..Els],E0,Path)
   }
   
   typeOfExp:(ast,tipe,option[tipe],dict,string) => canon.
@@ -604,11 +612,6 @@ star.compiler.checker{
     checkType(A,VE,Tp,Env);
     valis EE
   }
-  typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,E,C) ?= isWhere(A) => valof{
-    (Cond,Ev0) = checkCond(C,ErTp,Env,Path);
-    Exp = typeOfExp(E,Tp,ErTp,Ev0,Path);
-    valis .whr(Lc,Exp,Cond)
-  }.
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,R,F) ?= isFieldAcc(A) && (_,Fld) ?= isName(F) => valof{
     RTp = newTypeVar("R");
     Rc = typeOfExp(R,RTp,ErTp,Env,Path);
@@ -643,7 +646,6 @@ star.compiler.checker{
     valis Gl
   }.
   typeOfExp(A,Tp,ErTp,Env,Path) where _ ?= isMatch(A) => valof{
-    checkType(A,boolType,Tp,Env);
     (Gl,_) = checkCond(A,ErTp,Env,Path);
     valis Gl
   }
@@ -683,16 +685,17 @@ star.compiler.checker{
 
     checkType(A,fnType(At,Rt),ProgTp,Es);
     
-    (As,E0) = typeOfArgPtn(Ar,At,.none,Es,Path);
+    (As,ACnd,E0) = typeOfArgPtn(Ar,At,.none,Es,Path);
+
     LName = genSym(Path++"λ");
 
     if Cnd ?= C then {
       (Cond,E1) = checkCond(Cnd,.none,E0,Path);
       Rep = typeOfExp(R,Rt,.none,E1,Path);
-      valis .lambda(Lc,LName,[.rule(Lc,As,?Cond,Rep)],Tp)
+      valis .lambda(Lc,LName,[.rule(Lc,As,mergeGoal(Lc,ACnd,?Cond),Rep)],Tp)
     } else{
       Rep = typeOfExp(R,Rt,.none,E0,Path);
-      valis .lambda(Lc,LName,[.rule(Lc,As,.none,Rep)],Tp)
+      valis .lambda(Lc,LName,[.rule(Lc,As,ACnd,Rep)],Tp)
     }
   }
   typeOfExp(A,Tp,ErTp,Env,Pth) where (Lc,Op,Els) ?= isLabeledTheta(A) && (_,Nm)?=isName(Op) => valof{
@@ -845,7 +848,9 @@ star.compiler.checker{
       valis (.doDefn(Lc,.vr(ILc,Id,Tp),Val),Ev)
     } else if (ILc,Els) ?= isTuple(Lhs) then {
       TTp = newTypeVar("_T");
-      (Ptn,Ev) = typeOfPtn(Lhs,TTp,ErTp,Env,Path);
+      (Ptn,PCond,Ev) = typeOfPtn(Lhs,TTp,ErTp,Env,Path);
+      if C?=PCond then
+	reportError("Not permitted to have where clauses in action $(A)",Lc);
       Val = typeOfExp(Rhs,TTp,ErTp,Env,Path);
       valis (.doMatch(Lc,Ptn,Val),Ev)
     } else{
@@ -985,18 +990,16 @@ star.compiler.checker{
   }
 
   checkRule(St,ATp,RTp,ErTp,Env,Chk,Path) where (Lc,IsDeflt,Lhs,Cnd,R) ?= isLambda(St) => valof{
-    (Arg,E0) = typeOfPtn(Lhs,ATp,ErTp,Env,Path);
+    (Arg,ACnd,E0) = typeOfPtn(Lhs,ATp,ErTp,Env,Path);
 	
     if Wh?=Cnd then{
       (Cond,E1) = checkCond(Wh,ErTp,E0,Path);
       Rep = Chk(R,RTp,ErTp,E1,Path);
-      (Ags,ACnd) = pullWhere(Arg,.some(Cond));
-      valis .some((.rule(Lc,.tple(Lc,[Ags]),ACnd,Rep),IsDeflt))
+      valis .some((.rule(Lc,.tple(Lc,[Arg]),mergeGoal(Lc,ACnd,.some(Cond)),Rep),IsDeflt))
     }
     else{
-      (Ags,ACnd) = pullWhere(Arg,.none);
       Rep = Chk(R,RTp,ErTp,E0,Path);
-      valis .some((.rule(Lc,.tple(Lc,[Ags]),ACnd,Rep),IsDeflt))
+      valis .some((.rule(Lc,.tple(Lc,[Arg]),ACnd,Rep),IsDeflt))
     }
   }
   checkRule(St,_,_,_,_,_,_) default => valof{
@@ -1004,15 +1007,14 @@ star.compiler.checker{
     valis .none
   }
 
-  pullWhere:(canon,option[canon]) => (canon,option[canon]).
-  pullWhere(.whr(WLc,Vl,Cn),Gl) where (Val,G1) .= pullWhere(Vl,Gl) =>
-    (Val,mergeGoal(WLc,.some(Cn),G1)).
-  pullWhere(Exp,Gl) default => (Exp,Gl).
-
   mergeGoal:(option[locn],option[canon],option[canon])=>option[canon].
   mergeGoal(_,Gl,.none) => Gl.
   mergeGoal(_,.none,Gl) => Gl.
   mergeGoal(Lc,.some(Gl),.some(H)) => .some(.conj(Lc,Gl,H)).
+
+  mergeCond:(option[locn],canon,option[canon]) => canon.
+  mergeCond(_,Gl,.none) => Gl.
+  mergeCond(Lc,Gl,.some(G2)) => .conj(Lc,Gl,G2).
   
   checkCond:(ast,option[tipe],dict,string) => (canon,dict).
   checkCond(A,ErTp,Env,Path) => checkGoal(A,ErTp,Env,Path).
@@ -1041,8 +1043,8 @@ star.compiler.checker{
   checkGoal(A,ErTp,Env,Path) where (Lc,L,R) ?= isMatch(A) => valof{
     PtnTp = newTypeVar("_M");
     Val = typeOfExp(R,PtnTp,ErTp,Env,Path);
-    (Ptn,Ev) = typeOfPtn(L,PtnTp,ErTp,Env,Path);
-    valis (.match(Lc,Ptn,Val),Ev)
+    (Ptn,PCond,Ev) = typeOfPtn(L,PtnTp,ErTp,Env,Path);
+    valis (mergeCond(Lc,.match(Lc,Ptn,Val),PCond),Ev)
   }
   checkGoal(A,ErTp,Env,Path) where (_,[Inner]) ?= isTuple(A) =>
     checkGoal(Inner,ErTp,Env,Path).

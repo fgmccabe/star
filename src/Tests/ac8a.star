@@ -46,9 +46,9 @@ test.ac8a{
       .err(E) => {
 	logMsg("We got exception $(E)");
 	valis -E
-      }.
-      .ok(V) =>
-	valis 5*V
+      }
+      | .ok(V) =>
+	  valis 5*V
       }
   }
 

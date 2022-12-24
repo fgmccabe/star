@@ -5,6 +5,7 @@ star.compiler.inline{
   import star.compiler.data.
   import star.compiler.term.
   import star.compiler.freevars.
+  import star.compiler.meta.
   import star.compiler.misc.
   import star.compiler.types.
 
@@ -68,8 +69,9 @@ star.compiler.inline{
   }
 
   simplifyExp:(cExp,map[termLbl,cDefn],integer) => cExp.
-  simplifyExp(E,P,D) => (D>0 ?? simExp(E,P,D-1) || E).
+  simplifyExp(E,P,D) => simExp(E,P,D).
   
+  simExp(.cAnon(Lc,Tp),_Map,_Depth) => .cAnon(Lc,Tp).
   simExp(.cVar(Lc,V),Map,Depth) => inlineVar(Lc,V,Map,Depth).
   simExp(.cInt(Lc,Ix),_,_) => .cInt(Lc,Ix).
   simExp(.cBig(Lc,Bx),_,_) => .cBig(Lc,Bx).
@@ -101,7 +103,7 @@ star.compiler.inline{
   simExp(.cNeg(Lc,R),Map,Depth) =>
     applyNeg(Lc,simplifyExp(R,Map,Depth)).
   simExp(.cCnd(Lc,T,L,R),Map,Depth) =>
-    applyCnd(Lc,simplifyExp(T,Map,Depth),
+    applyCnd(Lc,liftWhere(simplifyExp(T,Map,Depth)),
       simplifyExp(L,Map,Depth),simplifyExp(R,Map,Depth)).
   simExp(.cLtt(Lc,Vr,Bnd,Exp),Map,Depth) =>
     inlineLtt(Lc,Vr,simplifyExp(Bnd,Map,Depth),Exp,Map,Depth).
@@ -112,10 +114,8 @@ star.compiler.inline{
   simExp(.cCase(Lc,Gov,Cases,Deflt,Tp),Map,Depth) =>
     inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases,
       simplifyExp(Deflt,Map,Depth),Map,Depth).
-  simExp(.cWhere(Lc,Ptn,Exp),Map,Depth) =>
-    applyWhere(Lc,Ptn,simplifyExp(Exp,Map,Depth)).
   simExp(.cMatch(Lc,Ptn,Exp),Map,Depth) =>
-    applyMatch(Lc,Ptn,simplifyExp(Exp,Map,Depth)).
+    applyMatch(Lc,simplifyExp(Ptn,Map,Depth),simplifyExp(Exp,Map,Depth)).
   simExp(.cVarNmes(Lc,Vrs,Exp),Map,Depth) =>
     .cVarNmes(Lc,Vrs,simplifyExp(Exp,Map,Depth)).
   simExp(.cAbort(Lc,Txt,Tp),_,_) => .cAbort(Lc,Txt,Tp).
@@ -133,7 +133,7 @@ star.compiler.inline{
   }
 
   simplifyAct:(aAction,map[termLbl,cDefn],integer) => aAction.
-  simplifyAct(A,P,D) => (D>0 ?? simAct(A,P,D-1) || A).
+  simplifyAct(A,P,D) => simAct(A,P,D).
 
   simAct(.aNop(Lc),_,_) => .aNop(Lc).
   simAct(.aSeq(Lc,A1,A2),Map,Depth) =>
@@ -159,10 +159,10 @@ star.compiler.inline{
   simAct(.aUnpack(Lc,Gov,Cases),Map,Depth) =>
     inlineUnpack(Lc,simplifyExp(Gov,Map,Depth),Cases,Map,Depth).
   simAct(.aIftte(Lc,T,L,R),Map,Depth) =>
-    applyCnd(Lc,simplifyExp(T,Map,Depth),
+    applyCnd(Lc,liftWhere(simplifyExp(T,Map,Depth)),
       simplifyAct(L,Map,Depth),simplifyAct(R,Map,Depth)).
   simAct(.aWhile(Lc,T,A),Map,Depth) =>
-    .aWhile(Lc,simplifyExp(T,Map,Depth),
+    .aWhile(Lc,liftWhere(simplifyExp(T,Map,Depth)),
       simplifyAct(A,Map,Depth)).
   simAct(.aRetire(Lc,T,E),Map,Depth) =>
     .aRetire(Lc,simplifyExp(T,Map,Depth),
@@ -181,12 +181,10 @@ star.compiler.inline{
   dropNops(_,A,.aNop(_)) => A.
   dropNops(Lc,L,R) => .aSeq(Lc,L,R).
   
+  inlineVar(Lc,.cId("_",Tp),_Map,_Depth) => .cAnon(Lc,Tp).
   inlineVar(Lc,.cId(Id,Tp),Map,Depth) where
       .vrDef(_,_,_,Vl) ?= Map[.tLbl(Id,arity(Tp))]/* && isGround(Vl) */ => simplify(Vl,Map,Depth-1).
   inlineVar(Lc,V,_,_) => .cVar(Lc,V).
-
-  applyWhere(Lc,Ptn,.cTerm(_,"star.core#true",[],_)) => Ptn.
-  applyWhere(Lc,Ptn,Exp) => .cWhere(Lc,Ptn,Exp).
 
   applyCnj(_,.cTerm(_,"star.core#true",[],_),R) => R.
   applyCnj(_,.cTerm(Lc,"star.core#false",[],Tp),R) => .cTerm(Lc,"star.core#false",[],Tp).
@@ -264,8 +262,7 @@ star.compiler.inline{
   
   inlineCall:(option[locn],string,cons[cExp],tipe,map[termLbl,cDefn],integer) => cExp.
   inlineCall(Lc,Nm,Args,_Tp,Map,Depth) where Depth>0 &&
-      PrgLbl .= .tLbl(Nm,[|Args|]) &&
-      .fnDef(_,_,_,Vrs,Rep) ?= Map[PrgLbl] => valof{
+      PrgLbl .= .tLbl(Nm,[|Args|]) && .fnDef(_,_,_,Vrs,Rep) ?= Map[PrgLbl] => valof{
 	RwMap = { .tLbl(VNm,arity(VTp))->.vrDef(Lc,Nm,VTp,A) | (.cId(VNm,VTp),A) in zip(Vrs,Args)};
 	RwTerm = rewriteTerm(Rep,RwMap);
 	valis (simplifyExp(RwTerm,Map[~PrgLbl],Depth-1))
@@ -322,7 +319,6 @@ star.compiler.inline{
     .cUnpack(_,G,Cs,_) => countCases(Cs,Id,countOccs(G,Id,Cnt),countOccs).
     .cCase(_,G,Cs,D,_) =>
       countCases(Cs,Id,countOccs(G,Id,countOccs(D,Id,Cnt)),countOccs).
-    .cWhere(_,L,R) => countOccs(R,Id,countOccs(L,Id,Cnt)).
     .cMatch(_,L,R) => countOccs(R,Id,countOccs(L,Id,Cnt)).
     .cVarNmes(_,_,R) => countOccs(R,Id,Cnt).
     .cSusp(_,L,R,_) => countOccs(R,Id,countOccs(L,Id,Cnt)).

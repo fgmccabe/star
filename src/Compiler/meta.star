@@ -178,6 +178,7 @@ star.compiler.meta{
   public traceNormalize = ref .false.
   public optimization = ref .base.
   public traceCodegen = ref .false.
+  public traceInline = ref .false.
   public showCode = ref .false.
   public genCode = ref .true.
 
@@ -370,6 +371,19 @@ star.compiler.meta{
     }
   }
 
+  public traceInlineOption:cmdOption[compilerOptions].
+  traceInlineOption = cmdOption{
+    shortForm = "-tO".
+    alternatives = [].
+    usage = "-tO -- trace inlining".
+    validator = .none.
+    setOption(_,Opts) => valof{
+      traceInline := .true;
+      
+      valis Opts
+    }
+  }
+
   public repoOption:cmdOption[compilerOptions].
   repoOption = cmdOption{
     shortForm = "-R".
@@ -425,4 +439,11 @@ star.compiler.meta{
 	doStdin=Opts.doStdin
       }.
   }
+
+  public metaTrace:all e ~~ display[e] |: (e,string,ref boolean) => e.
+  metaTrace(X,Msg,Flg) where Flg! => valof{
+    logMsg("#(Msg): $(X)");
+    valis X
+  }
+  metaTrace(X,_,_) default => X.
 }
