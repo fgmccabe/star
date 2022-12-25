@@ -139,7 +139,7 @@ star.compiler.gencode{
       (EOff,Ctx1) = defineLclVar(Er,ETp::ltipe,Ctx);
       EStk = pushStack(ETp::ltipe,Stk);
 
-      (Stk1,BCde) = compExp(B,Cont,dropCont(EStk,jmpCont(CLb,pushStack(Tp::ltipe,Stk))),CtxB,Stk);
+      (Stk1,BCde) = compExp(B,Cont,dropCont(EStk,jmpCont(CLb,EStk)),CtxB,Stk);
       (Stk2,HCde) = compExp(H,Cont,ECont,Ctx1,EStk);
 
 --      logMsg("Stk1=$(Stk1), Stk2=$(Stk2)");
@@ -262,8 +262,9 @@ star.compiler.gencode{
     .aTry(Lc,B,.cVar(_,.cId(Er,ETp)),H) => valof{
       (CLb,CtxB) = defineExitLbl("aTr",Ctx);
       (EOff,Ctx1) = defineLclVar(Er,ETp::ltipe,Ctx);
+      EStk = pushStack(ETp::ltipe,Stk);
 
-      (Stk1,BCde) = compAction(B,ACont,Cont,jmpCont(CLb,Stk),CtxB,Stk);
+      (Stk1,BCde) = compAction(B,ACont,Cont,dropCont(EStk,jmpCont(CLb,EStk)),CtxB,Stk);
       if traceCodegen! then
 	logMsg("after try body: $(Stk1), $(BCde)");
       

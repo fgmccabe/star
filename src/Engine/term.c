@@ -2,10 +2,10 @@
 // Created by Francis McCabe on 1/15/18.
 // Copyright (c) 2018 and beyond. Francis G. McCabe
 
-#include "codeP.h"
+#include "termP.h"
+#include "debugP.h"
+#include "engineP.h"
 #include <assert.h>
-#include <labelsP.h>
-#include "labels.h"
 #include "consP.h"
 #include "ideal.h"
 
@@ -23,6 +23,8 @@ SpecialClass SpecialClss = {
 };
 
 clssPo specialClass = (clssPo) &SpecialClss;
+
+integer displayDepth = 1;
 
 logical isSpecialClass(clssPo p) {
   return (logical) (p->clss == specialClass);

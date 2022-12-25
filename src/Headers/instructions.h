@@ -19,7 +19,7 @@ instruction(Nop,nOp,nOp,0,"No operation")
 
 instruction(Abort,tOs,nOp,-2,"abort with message")
 
-instruction(Call,sym,off,1,"Call <prog>")
+instruction(Call,sym,nOp,1,"Call <prog>")
 instruction(OCall,art,off,1,"OCall")
 instruction(Escape,Es,off,1,"call C escape")
 instruction(TCall,sym,nOp,0,"TCall <prog>")
@@ -46,7 +46,7 @@ instruction(Release,tOs,nOp,-1,"destroy a fiber")
 instruction(Underflow,nOp,nOp,0,"underflow from current stack")
 instruction(TEq,tOs,nOp,-1,"L R --> L==R, where L,R are tasks")
 
-instruction(Cont,off,nOp,1,"create a continuation")
+instruction(Cont,tOs,nOp,0,"create a continuation")
 instruction(Throw,tOs,tOs,0,"Invoke a continuation")
 
 instruction(LdV,nOp,nOp,1,"Place a void value on stack")

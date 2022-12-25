@@ -288,6 +288,10 @@ star.compiler.inline{
   rewriteECall(Lc,"_int_times",[.cInt(_,A),.cInt(_,B)],_) => .cInt(Lc,A*B).
   rewriteECall(Lc,"_int_eq",[.cInt(_,A),.cInt(_,B)],_) =>
     .cTerm(Lc,(A == B??"star.core#true"||"star.core#false"),[],boolType).
+  -- rewriteECall(Lc,"_int_lt",[.cInt(_,A),.cInt(_,B)],_) =>
+  --   .cTerm(Lc,(A < B??"star.core#true"||"star.core#false"),[],boolType).
+  -- rewriteECall(Lc,"_int_ge",[.cInt(_,A),.cInt(_,B)],_) =>
+  --   .cTerm(Lc,(A >= B??"star.core#true"||"star.core#false"),[],boolType).
   rewriteECall(Lc,Op,Args,Tp) default => .cECall(Lc,Op,Args,Tp).
 
   countOccs:(cExp,cId,integer) => integer.
