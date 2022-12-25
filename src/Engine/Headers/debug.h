@@ -16,8 +16,6 @@ void dumpStack();
 
 void showMethodCode(ioPo out, char *msg, char *name, methodPo mtd);
 
-integer displayDepth;
-
 retCode setupDebugChannels();
 
 #endif //STAR_DEBUG_H

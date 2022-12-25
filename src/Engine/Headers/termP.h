@@ -5,6 +5,7 @@
 #ifndef STAR_TERMP_H
 #define STAR_TERMP_H
 
+#include "engine.h"
 #include "term.h"
 #include "code.h"
 
@@ -45,6 +46,8 @@ typedef struct special_class {
 } SpecialClass;
 
 extern clssPo specialClass;
+
+integer displayDepth;         // Global limit on how deep to display things
 
 void initTerm();
 

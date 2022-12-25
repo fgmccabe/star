@@ -11,6 +11,7 @@
 #include "debugP.h"
 #include "arith.h"
 #include "editline.h"
+#include "termP.h"
 
 integer pcCount = 0;
 static integer lineCount = 0;
@@ -108,8 +109,6 @@ static integer cmdCount(char *cmdLine, integer deflt) {
 
 static processPo focus = NULL;
 static pthread_mutex_t debugMutex = PTHREAD_MUTEX_INITIALIZER;
-
-integer displayDepth = 1;
 
 void dC(termPo w) {
   outMsg(logFile, "%,*T\n", displayDepth, w);

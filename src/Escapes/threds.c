@@ -8,8 +8,6 @@
 #include <errno.h>
 #include "threds.h"
 #include <globals.h>
-#include <strings.h>
-#include "debugP.h"
 
 static const char *state_names[] = {"star.thread#quiescent",
                                     "star.thread#runnable",
