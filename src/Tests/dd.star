@@ -41,7 +41,7 @@ test.dd{
     }
   }
 
-  UU : (integer)=>integer.
+  UU:(integer)=>integer.
   UU = (U)=> valof{
     if ZZ == U then
       valis 1
@@ -72,6 +72,14 @@ test.dd{
     }
   }
 
+  TT : (integer)=>integer throws string.
+  TT(U)=> valof{
+    if U>0 then
+      valis U
+    else
+    throw "Negative $(U)"
+  }
+
   main:()=>().
   main()=>valof{
     try{
@@ -85,9 +93,12 @@ test.dd{
       show UU(9);
 
       show VV;
-      assert VV == 3628800
+      assert VV == 3628800;
+
+      assert TT(1)==1;
+      show TT(-1) -- never finish this
     } catch {
-      _ => logMsg("Huh")
+      M => logMsg("Huh: #(M)")
     };
     valis ()
   }

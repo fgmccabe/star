@@ -30,7 +30,7 @@ test.ac8a{
   
   f:(integer) => integer.
   f(X) => valof{
-    case _stack_split((TryTsk) => valof{
+    case _spawn((TryTsk) => valof{
 	let{
 	  implementation throwable[integer] => {
 	    _throw(E) => valof{
