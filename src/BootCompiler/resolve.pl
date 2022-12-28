@@ -191,11 +191,13 @@ overloadTerm(valof(Lc,A,Tp),Dict,St,Stx,valof(Lc,AA,Tp)) :-!,
   overloadAction(A,Dict,St,Stx,AA).
 overloadTerm(fiber(Lc,A,Tp),Dict,St,Stx,fiber(Lc,AA,Tp)) :-!,
   overloadTerm(A,Dict,St,Stx,AA).
-overloadTerm(tryCatch(Lc,E,H),Dict,St,Stx,tryCatch(Lc,EE,HH)) :-
-  overloadTerm(E,Dict,St,St0,EE),
+overloadTerm(tryCatch(Lc,E,v(TLc,Nm,Tp),H),Dict,St,Stx,tryCatch(Lc,EE,v(TLc,Nm,Tp),HH)) :-
+  declareVr(Lc,Nm,Tp,none,Dict,DDict),
+  overloadTerm(E,DDict,St,St0,EE),
   overloadCases(H,resolve:overloadTerm,Dict,St0,Stx,HH).
-overloadTerm(throw(Lc,E),Dict,St,Stx,throw(Lc,EE)) :-
-  overloadTerm(E,Dict,St,Stx,EE).
+overloadTerm(throw(Lc,T,E),Dict,St,Stx,throw(Lc,TT,EE)) :-
+  overloadTerm(T,Dict,St,St0,TT),
+  overloadTerm(E,Dict,St0,Stx,EE).
 overloadTerm(T,_,St,St,T) :-
   locOfCanon(T,Lc),
   reportError("invalid term to resolve %s",[can(T)],Lc).
@@ -218,8 +220,9 @@ overloadAction(doLbld(Lc,Lb,A),Dict,St,Stx,doLbld(Lc,Lb,AA)) :-!,
 overloadAction(doBrk(Lc,Lb),_,St,St,doBrk(Lc,Lb)) :-!.
 overloadAction(doValis(Lc,A),Dict,St,Stx,doValis(Lc,AA)) :-
   overloadTerm(A,Dict,St,Stx,AA).
-overloadAction(doThrow(Lc,A),Dict,St,Stx,doThrow(Lc,AA)) :-
-  overloadTerm(A,Dict,St,Stx,AA).
+overloadAction(doThrow(Lc,T,A),Dict,St,Stx,doThrow(Lc,TT,AA)) :-
+  overloadTerm(T,Dict,St,St0,TT),
+  overloadTerm(A,Dict,St0,Stx,AA).
 overloadAction(doDefn(Lc,V,E),Dict,St,Stx,doDefn(Lc,V,EE)) :-
   overloadTerm(E,Dict,St,Stx,EE).
 overloadAction(doMatch(Lc,P,A),Dict,St,Stx,doMatch(Lc,PP,AA)) :-
@@ -228,8 +231,9 @@ overloadAction(doMatch(Lc,P,A),Dict,St,Stx,doMatch(Lc,PP,AA)) :-
 overloadAction(doAssign(Lc,P,A),Dict,St,Stx,doAssign(Lc,PP,AA)) :-
   overloadTerm(P,Dict,St,St1,PP),
   overloadTerm(A,Dict,St1,Stx,AA).
-overloadAction(doTryCatch(Lc,A,H),Dict,St,Stx,doTryCatch(Lc,AA,HH)) :-
-  overloadAction(A,Dict,St,St1,AA),
+overloadAction(doTryCatch(Lc,A,v(TLc,Nm,Tp),H),Dict,St,Stx,doTryCatch(Lc,AA,v(TLc,Nm,Tp),HH)) :-
+  declareVr(Lc,Nm,Tp,none,Dict,DDict),
+  overloadAction(A,DDict,St,St1,AA),
   overloadCases(H,resolve:overloadAction,Dict,St1,Stx,HH).
 overloadAction(doIfThenElse(Lc,T,A,B),Dict,St,Stx,doIfThenElse(Lc,TT,AA,BB)) :-
   overloadTerm(T,Dict,St,St1,TT),

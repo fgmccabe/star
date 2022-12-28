@@ -33,7 +33,7 @@ macroRl(":=",action,macroRules:spliceAssignMacro).
 macroRl(":=",action,macroRules:indexAssignMacro).
 macroRl(":=",expression,macroRules:spliceAssignMacro).
 macroRl(":=",expression,macroRules:indexAssignMacro).
-% macroRl("throws",type,macroRules:throwsMacro).
+macroRl("throws",type,macroRules:throwsMacro).
 % macroRl("throw",expression,macroRules:throwMacro).
 % macroRl("throw",action,macroRules:throwMacro).
 % macroRl("try",action,macroRules:tryMacro).
@@ -400,17 +400,6 @@ indexAssignMacro(A,_,Act) :-
   ternary(LLc,"_put",CC,I,R,Repl),
   binary(Lc,":=",C,Repl,Act).
 
-valofMacro(T,expression,Tx) :-
-  isValof(T,Lc,A),!,
-  (isBraceTuple(A,_,[As]) ->
-   makeAction(As,none,Ax),
-   mkAnon(Lc,Anon),
-   unitTpl(Lc,U),
-   squareTerm(Lc,name(Lc,"result"),[U,Anon],RTp),
-   typeAnnotation(Lc,Ax,RTp,AA);
-   A=AA),
-  unary(Lc,"_getval",AA,Tx).
-
 macroQuote(T,expression,Rp) :-
   isQuote(T,_,A),!,
   quoteExp(A,Rp).
@@ -505,34 +494,20 @@ binRefMacro(T,expression,Rp) :-
 
 /* generator{A}
    becomes
-   fiber{
-     try{
-       A*
-     } catch {
-       ._cancel => {}
-     }
-   };
-   retire .all
+   fiber((this)=>valof{
+     A*;
+     valis ._all
+   }
 */
    
 generatorMacro(E,expression,Ex) :-
   isUnary(E,Lc,"generator",A),
   isBraceTuple(A,_,[B]),!,
 
-  /* Build try ... catch ... */
-  
-  /* Build .cancel => {} */
-  mkEnum(Lc,"_cancel",CLhs),
-  braceTuple(Lc,[],Nop),
-  mkEquation(Lc,CLhs,none,Nop,Catcher),
-
-  braceTuple(Lc,[B],Bdy),
-  mkTryCatch(Lc,Bdy,[Catcher],Try),
-
   mkEnum(Lc,"_all",All),
-  mkRetire(Lc,All,Rt),
+  mkValis(Lc,All,Rt),
 
-  mkSequence(Lc,Try,Rt,TB),
+  mkSequence(Lc,B,Rt,TB),
 
   mkFiberTerm(Lc,TB,Ex).
 %  dispAst(Ex).
@@ -541,7 +516,7 @@ generatorMacro(E,expression,Ex) :-
    becomes
    suspend _yld(E) in {
      ._next => {}.
-     ._cancel => throw ._cancel
+     ._cancel => retire ._all
    }
 */
 yieldMacro(E,action,Ax) :-
@@ -554,9 +529,10 @@ yieldMacro(E,action,Ax) :-
   mkEnum(Lc,"_next",Nxt),
   mkEquation(Lc,Nxt,none,Nop,NxtRl),
 
-  /* build ._cancel => throw ._cancel */
+  /* build ._cancel => retire ._all */
   mkEnum(Lc,"_cancel",Can),
-  mkThrow(Lc,Can,Rs),
+  mkEnum(Lc,"_all",All),
+  mkRetire(Lc,All,Rs),
   mkEquation(Lc,Can,none,Rs,Cancel),
 
   /* Build suspend */
@@ -575,14 +551,13 @@ arrowMacro(E,Md,Rp) :- (Md=expression;Md=pattern),
 /*
   (A)=>R throws E
 becomes
-  _throw|=(E)=>_ |: (A)=>R
+  _throw|=cont[E] |: (A)=>R
 */
 
 throwsMacro(T,type,Tx) :-
   isThrows(T,Lc,I,E),!,
-  roundTuple(Lc,[E],Ta),
-  mkAnon(Lc,Tr),
-  funcType(Lc,Ta,Tr,TTp),
+
+  mkContType(Lc,E,TTp),
   mkDynamic(Lc,"_throw",TTp,C),
 %  reportMsg("implicit %s",[ast(C)],Lc),
   reConstrain([C],I,Tx).

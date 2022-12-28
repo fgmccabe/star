@@ -51,7 +51,7 @@ isCanon(open(_,_,_)).
 isCanon(neg(_,_)).
 isCanon(lambda(_,_,_,_)).
 isCanon(fiber(_,_,_)).
-isCanon(tryCatch(_,_,_)).
+isCanon(tryCatch(_,_,_,_)).
 
 isSimpleCanon(v(_,_,_)).
 isSimpleCanon(anon(_,_)).
@@ -111,7 +111,7 @@ typeOfCanon(case(_,_,_,Tp),Tp) :- !.
 typeOfCanon(throw(_,_,Tp),Tp) :-!.
 typeOfCanon(fiber(_,_,Tp),Tp) :-!.
 typeOfCanon(valof(_,_,Tp),Tp) :-!.
-typeOfCanon(tryCatch(_,E,_),Tp) :- !,
+typeOfCanon(tryCatch(_,E,_T,_),Tp) :- !,
   typeOfCanon(E,Tp).
 
 locOfCanon(v(Lc,_,_),Lc) :- !.
@@ -139,25 +139,24 @@ locOfCanon(apply(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(tple(Lc,_),Lc) :-!.
 locOfCanon(lambda(Lc,_,_,_),Lc) :-!.
 locOfCanon(assign(Lc,_,_),Lc) :-!.
-locOfCanon(tryCatch(Lc,_,_),Lc) :-!.
+locOfCanon(tryCatch(Lc,_,_,_),Lc) :-!.
 locOfCanon(whileDo(Lc,_,_),Lc) :-!.
 locOfCanon(forDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(valis(Lc,_),Lc) :-!.
-locOfCanon(throw(Lc,_),Lc) :-!.
+locOfCanon(throw(Lc,_,_),Lc) :-!.
 locOfCanon(fiber(Lc,_,_),Lc) :-!.
 locOfCanon(valof(Lc,_,_),Lc) :-!.
-locOfCanon(tryCatch(Lc,_,_),Lc) :-!.
 
 locOfCanon(doNop(Lc),Lc) :-!.
 locOfCanon(doSeq(Lc,_,_),Lc) :-!.
 locOfCanon(doLbld(Lc,_,_),Lc) :-!.
 locOfCanon(doBrk(Lc,_),Lc) :-!.
 locOfCanon(doValis(Lc,_),Lc) :-!.
-locOfCanon(doThrow(Lc,_),Lc) :-!.
+locOfCanon(doThrow(Lc,_,_),Lc) :-!.
 locOfCanon(doMatch(Lc,_,_),Lc) :-!.
 locOfCanon(doDefn(Lc,_,_),Lc) :-!.
 locOfCanon(doAssign(Lc,_,_),Lc) :-!.
-locOfCanon(doTryCatch(Lc,_,_),Lc) :-!.
+locOfCanon(doTryCatch(Lc,_,_,_),Lc) :-!.
 locOfCanon(doIfThenElse(Lc,_,_,_),Lc) :-!.
 locOfCanon(doWhile(Lc,_,_),Lc) :-!.
 locOfCanon(doLet(Lc,_,_,_),Lc) :-!.
@@ -269,14 +268,17 @@ ssTerm(match(_,P,E),Dp,sq([lp,LL,ss(" .= "),RR,rp])) :-
   ssTerm(E,Dp,RR).
 ssTerm(neg(_,R),Dp,sq([lp,ss(" ~ "),RR,rp])) :-
   ssTerm(R,Dp,RR).
-ssTerm(throw(_,A),Dp,sq([ss("throw "),AA])) :-!,
+ssTerm(throw(_,T,A),Dp,sq([TT,ss(" throw "),AA])) :-!,
+  typeOfCanon(T,ETp),
+  ssType(ETp,true,Dp,TT),
   ssTerm(A,Dp,AA).
 ssTerm(valof(_,A,_),Dp,sq([ss("valof "),AA])) :-!,
   ssAction(A,Dp,AA).
 ssTerm(fiber(_,A,_),Dp,sq([ss("fiber "),AA])) :-!,
   ssTerm(A,Dp,AA).
-ssTerm(tryCatch(_,A,Hs),Dp,sq([ss("try "),AA,ss(" catch "),lb,HH,nl(Dp),rb])) :-!,
+ssTerm(tryCatch(_,A,T,Hs),Dp,sq([ss("try "),TT,ss(" in "),AA,ss(" catch "),TT,lb,HH,nl(Dp),rb])) :-!,
   Dp2 is Dp+2,
+  ssTerm(T,Dp,TT),
   ssTerm(A,Dp2,AA),
   ssRls("",Hs,Dp2,canon:ssTerm,HH).
 
@@ -297,7 +299,9 @@ ssAction(doLbld(_,Lb,A),Dp,sq([ss(Lb),ss(":"),AA])) :-!,
 ssAction(doBrk(_,Lb),_,sq([ss("break "),ss(Lb)])) :-!.
 ssAction(doValis(_,E),Dp,sq([ss("valis "),EE])) :-!,
   ssTerm(E,Dp,EE).
-ssAction(doThrow(_,E),Dp,sq([ss("throw "),EE])) :-!,
+ssAction(doThrow(_,T,E),Dp,sq([TT,ss(" throw "),EE])) :-!,
+  typeOfCanon(T,ETp),
+  ssType(ETp,true,Dp,TT),
   ssTerm(E,Dp,EE).
 ssAction(doCall(_,E,_),Dp,sq([ss("call "),EE])) :-!,
   ssTerm(E,Dp,EE).
@@ -310,8 +314,9 @@ ssAction(doDefn(_,P,E),Dp,sq([PP,ss(" = "),EE])) :-!,
 ssAction(doAssign(_,P,E),Dp,sq([PP,ss(" := "),EE])) :-!,
   ssTerm(P,Dp,PP),
   ssTerm(E,Dp,EE).
-ssAction(doTryCatch(_,A,Hs),Dp,sq([ss("try"),AA,ss(" catch "),lb,HH,nl(Dp),rb])) :-!,
+ssAction(doTryCatch(_,A,T,Hs),Dp,sq([ss("try "),TT,ss(" in "),AA,ss(" catch "),lb,HH,nl(Dp),rb])) :-!,
   Dp2 is Dp+2,
+  ssTerm(T,Dp,TT),
   ssAction(A,Dp2,AA),
   ssRls("",Hs,Dp2,canon:ssAction,HH).
 ssAction(doIfThenElse(_,T,A,doNop(_)),Dp,sq([ss("if "),TT,ss(" then "),nl(Dp2),AA])) :-!,

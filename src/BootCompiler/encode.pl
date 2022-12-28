@@ -98,7 +98,6 @@ encodeT(tpExp(T,Arg),['U'|O],Ox) :- deRef(T,Tp),encodeType(Tp,O,O1), encodeType(
 encodeT(refType(Tp),['r'|O],Ox) :- encodeType(Tp,O,Ox).
 encodeT(funType(AT,Tp),['F'|O],Ox) :- encodeType(AT,O,O1), encodeType(Tp,O1,Ox).
 encodeT(consType(Args,Tp),['C'|O],Ox) :- encodeType(Args,O,O1), encodeType(Tp,O1,Ox).
-encodeT(throwsType(V,E),['E'|O],Ox) :- encodeType(V,O,O1), encodeType(E,O1,Ox).
 encodeT(tplType(Args),['('|O],Ox) :- encodeTypes(Args,O,[')'|Ox]).
 encodeT(faceType(Fields,Types),['I'|O],Ox) :- encodeFieldTypes(Fields,O,O1),encodeFieldTypes(Types,O1,Ox).
 encodeT(allType(B,Tp),[':'|O],Ox) :- encodeType(B,O,O1),encodeType(Tp,O1,Ox).
