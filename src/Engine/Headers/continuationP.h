@@ -11,9 +11,10 @@
 typedef struct ContStructure {
   clssPo clss;                  // == continClass
   stackPo stack;
-  framePo fp;
-  insPo pc;
-  integer counter;
+  integer fpNo;                 // stored as offsets to the stack, for GC reliability
+  integer spOff;
+  integer pcOff;
+  integer hashCounter;
 } ContinuationRecord;
 
 #define ContinuationCellCount CellCount(sizeof(ContinuationRecord))

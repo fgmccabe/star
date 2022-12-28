@@ -38,6 +38,6 @@ ReturnStatus g__overwrite(heapPo h, termPo a1,termPo a2) {
 
     return (ReturnStatus){.ret=Ok, .result=(termPo)orig};
   } else {
-    return (ReturnStatus){.ret=Error, .result= voidEnum};
+    return (ReturnStatus){.ret=Error, .result= unitEnum};
   }
 }

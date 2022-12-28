@@ -75,30 +75,39 @@ logical cntCmp(specialClassPo cl, termPo o1, termPo o2) {
 integer cntHash(specialClassPo cl, termPo o) {
   continuationPo cont = C_CONTINUATION(o);
 
-  return hash61((cont->stack->hash) * 37 + cont->counter);
+  return hash61((cont->stack->hash) * 37 + cont->hashCounter);
 }
 
 retCode cntDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   continuationPo cont = C_CONTINUATION(t);
 
-  return outMsg(out, "(.continuation %d:[%d].)", cont->stack->hash, cont->pc);
+  framePo fp = contFP(cont);
+  termPo loc = findPcLocation(fp->prog, insOffset(fp->prog, contPC(cont)));
+
+  if(loc==Null)
+    loc = voidEnum;
+
+  return outMsg(out, "(.continuation %d:[%,*T].)", cont->stack->hash, displayDepth, loc);
 }
 
 termPo cntFinalizer(specialClassPo class, termPo o) {
   return o + ContinuationCellCount;
 }
 
-continuationPo allocateContinuation(heapPo H, stackPo stack, framePo fp, insPo pc) {
+continuationPo allocateContinuation(heapPo H, stackPo stack, ptrPo sp, framePo fp, insPo pc) {
   int root = gcAddRoot(H, (ptrPo) &stack);
+
+  integer fpo = fp-baseFrame(stack);
+  integer spo = stackLimit(stack)-sp;
+  integer pcOff = insOffset(fp->prog, pc);
 
   continuationPo cont = (continuationPo) allocateObject(H, contClass, ContinuationCellCount);
 
   cont->stack = stack;
-  cont->fp = fp;
-  cont->pc = pc;
-  cont->counter = ++stack->counter;
-
-  assert(validFP(stack, fp));
+  cont->fpNo = fpo;
+  cont->pcOff = pcOff;
+  cont->spOff = spo;
+  cont->hashCounter = ++stack->counter;
 
   gcReleaseRoot(H, root);
   return cont;
@@ -110,13 +119,22 @@ stackPo contStack(continuationPo cont) {
 
 logical continIsValid(continuationPo cont) {
   stackPo stk = cont->stack;
-  return validFP(stk, cont->fp);
+  return stk != Null && stackState(stk) != moribund && validFP(stk, contFP(cont));
+}
+
+void invalidateCont(continuationPo cont) {
+  assert(continIsValid(cont));
+  cont->stack = Null;
 }
 
 framePo contFP(continuationPo cont) {
-  return cont->fp;
+  return baseFrame(cont->stack)+cont->fpNo;
 }
 
-insPo contPC(continuationPo cont){
-  return cont->pc;
+insPo contPC(continuationPo cont) {
+  return pcAddr(contFP(cont)->prog, cont->pcOff);
+}
+
+ptrPo contSP(continuationPo cont){
+  return stackLimit(cont->stack)-cont->spOff;
 }

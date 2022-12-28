@@ -445,7 +445,7 @@ retCode jit_TEq(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
-retCode jit_Cont(insPo code, integer *pc, jitCompPo jitCtx) {
+retCode jit_Try(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 

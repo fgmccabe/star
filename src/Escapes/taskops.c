@@ -16,7 +16,7 @@ ReturnStatus g__new_fiber(heapPo h, termPo fiberLambda) {
   return (ReturnStatus) {.ret=Ok, .result = (termPo) child};
 }
 
-ReturnStatus g__stack_split(heapPo h, termPo lambda) {
+ReturnStatus g__spawn(heapPo h, termPo lambda) {
   stackPo child = splitStack(currentProcess, lambda);
 
   currentProcess->stk = attachStack(currentProcess->stk, child);
