@@ -7,7 +7,6 @@
 #include "stackP.h"
 #include "termP.h"
 #include "engineP.h"
-#include "heapP.h"
 
 logical traceStack = False;          // stack operation tracing
 integer minStackSize = 256;           /* What is the smallest stack size */

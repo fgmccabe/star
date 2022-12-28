@@ -86,7 +86,7 @@ escape(_big_format, "F(bs)s", "format a big integer")
 
 escape(_fiber_eq,":k's':k'r'F("fiberType("k's'","k'r'")fiberType("k's'","k'r'")")l","compare two fiber identifiers")
 escape(_new_fiber,":k's':k'r'F(F("fiberType("k'r'","k's'")"k'r')k's')"fiberType("k'r'","k's'"),"create a new fiber")
-escape(_stack_split,":k's':k'r'F(F("fiberType("k'r'","k's'")")k's')k's'","stack_split a new task")
+escape(_spawn,":k's':k'r'F(F("fiberType("k'r'","k's'")")k's')k's'","stack_split a new task")
 escape(_suspend_fiber,":k's':k'r'F("fiberType("k'r'","k's'")"k's')k'r'","suspend a fiber")
 escape(_retire_fiber,":k's':k'r'F("fiberType("k'r'","k's'")"k's')()","retire a fiber")
 escape(_resume_fiber,":k's':k'r'F("fiberType("k'r'","k's'")"k'r')k's'","resume a fiber")

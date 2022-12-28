@@ -20,14 +20,13 @@ instruction(Nop,nOp,nOp,0,"No operation")
 instruction(Abort,tOs,nOp,-2,"abort with message")
 
 instruction(Call,sym,nOp,1,"Call <prog>")
-instruction(OCall,art,off,1,"OCall")
-instruction(Escape,Es,off,1,"call C escape")
+instruction(OCall,art,nOp,1,"OCall")
+instruction(Escape,Es,nOp,1,"call C escape")
 instruction(TCall,sym,nOp,0,"TCall <prog>")
 instruction(TOCall,art,nOp,0,"TOCall")
 instruction(Locals,i32,nOp,0,"locals definition")
 
 instruction(Ret,tOs,nOp,0,"return")
-instruction(RetX,tOs,nOp,0,"return with exception")
 instruction(RtG,tOs,nOp,0,"return rom global")
 
 instruction(Jmp,off,nOp,0,"jump lbl")
@@ -46,7 +45,7 @@ instruction(Release,tOs,nOp,-1,"destroy a fiber")
 instruction(Underflow,nOp,nOp,0,"underflow from current stack")
 instruction(TEq,tOs,nOp,-1,"L R --> L==R, where L,R are tasks")
 
-instruction(Cont,tOs,nOp,0,"create a continuation")
+instruction(Try,off,nOp,1,"create a handler continuation")
 instruction(Throw,tOs,tOs,0,"Invoke a continuation")
 
 instruction(LdV,nOp,nOp,1,"Place a void value on stack")
@@ -58,12 +57,12 @@ instruction(StV,lcs,nOp,0,"clear a local to void")
 instruction(TL,lcs,nOp,0,"copy tos to local[xx]")
 instruction(StA,arg,nOp,-1,"store tos to args[xx]")
 
-instruction(LdG,glb,off,1,"load a global variable")
+instruction(LdG,glb,nOp,1,"load a global variable")
 instruction(StG,glb,nOp,-1,"store into a global variable")
 instruction(TG,glb,nOp,0,"copy into a global variable")
 
 instruction(Thunk,tOs,nOp,0,"create a thunk from a lambda")
-instruction(LdTh,tOs,off,0,"derefence a thunk, potentially running its lambda")
+instruction(LdTh,tOs,nOp,0,"derefence a thunk, potentially running its lambda")
 instruction(StTh,tOs,tOs,-2,"store a value into a thunk variable")
 instruction(TTh,tOs,tOs,-1,"update thunk and leave on stack")
 

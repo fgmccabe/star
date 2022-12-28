@@ -20,7 +20,6 @@
 
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<(unsigned)16)|lo32))
 #define collectOff(pc) (hi32 = collectI32(pc), (pc)+(signed)hi32)
-#define pcBeforeOff(pc) (pc-=2, collectOff(pc))
 
 #define checkAlloc(Count) STMT_WRAP({\
   if (reserveSpace(H, Count) != Ok) {\
@@ -119,7 +118,6 @@ retCode run(processPo P) {
       case Call: {
         labelPo nProg = C_LBL(nthElem(LITS, collectI32(PC)));
         methodPo mtd = labelCode(nProg);    // Which program do we want?
-        insPo exit = collectOff(PC);
 
         if (mtd == Null) {
           logMsg(logFile, "label %L not defined", nProg);
@@ -162,7 +160,6 @@ retCode run(processPo P) {
         int arity = collectI32(PC);
         normalPo obj = C_NORMAL(pop());
         labelPo oLbl = objLabel(termLbl(obj), arity);
-        insPo exit = collectOff(PC);
 
         if (oLbl == Null) {
           logMsg(logFile, "label %s/%d not defined", labelName(termLbl(obj)), arity);
@@ -199,7 +196,6 @@ retCode run(processPo P) {
 
       case Escape: {     /* call escape */
         int32 escNo = collectI32(PC); /* escape number */
-        insPo exit = collectOff(PC);
 
 #ifdef TRACEEXEC
         recordEscape(escNo);
@@ -257,7 +253,7 @@ retCode run(processPo P) {
               push(ret.result);
             else
               push(unitEnum);
-            PC = exit;
+            //PC = exit; Fix me, pass in a continuation to escapes that can fail
             continue;
           case Fail:
             bail();
@@ -402,16 +398,6 @@ retCode run(processPo P) {
         continue;       /* and carry on regardless */
       }
 
-      case RetX: {        /* return exceptionally from function */
-        termPo retVal = *SP;     /* return value */
-
-        SP = &arg(argCount(FP->prog)); // Just above arguments to current call
-        prevFrme();
-        PC = pcBeforeOff(PC);  // Pick up the exception offset from the previous instruction
-        push(retVal);      /* push return value */
-        continue;       /* and carry on regardless */
-      }
-
       case Jmp:       /* jump to local offset */
         PC = collectOff(PC);
         assert(validPC(FP->prog, PC));
@@ -541,10 +527,11 @@ retCode run(processPo P) {
         push(val);
         continue;
       }
-      case Cont: {
+      case Try: {
         insPo exit = collectOff(PC);
         assert(validPC(FP->prog, exit));
-        push(allocateContinuation(H, STK, FP, exit));
+        continuationPo  cont = allocateContinuation(H, STK, SP, FP, exit);
+        push(cont);
         continue;
       }
       case Throw: {
@@ -560,6 +547,8 @@ retCode run(processPo P) {
         STK = P->stk = dropUntil(STK, stk);
         STK->fp = contFP(cont);
         STK->fp->pc = contPC(cont);
+        STK->sp = contSP(cont);
+        invalidateCont(cont);
         restoreRegisters();
         push(val);
         continue;
@@ -595,7 +584,6 @@ retCode run(processPo P) {
 
       case LdG: {
         int32 glbNo = collectI32(PC);
-        insPo exit = collectOff(PC);
 
         globalPo glb = findGlobalVar(glbNo);
 
@@ -656,7 +644,6 @@ retCode run(processPo P) {
 
       case LdTh: {
         thunkPo thVr = C_THUNK(pop());
-        insPo exit = collectOff(PC);
 
         if (thunkIsSet(thVr)) {
           termPo vr = thunkVal(thVr);

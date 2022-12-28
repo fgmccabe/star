@@ -140,7 +140,6 @@ static logical shouldWeStop(processPo p, termPo arg) {
       case Abort:
         return True;
       case Ret:
-      case RetX:
       case RtG: {
         switch (p->waitFor) {
           case stepOut:
@@ -299,7 +298,6 @@ static DebugWaitFor dbgOver(char *line, processPo p, termPo loc, void *cl) {
 
   switch (*p->stk->fp->pc) {
     case Ret:
-    case RetX:
     case RtG: {
       p->waterMark = previousFrame(stk, stk->fp);
       break;
@@ -345,7 +343,6 @@ static DebugWaitFor dbgUntilRet(char *line, processPo p, termPo loc, void *cl) {
 
   switch (*stk->fp->pc) {
     case Ret:
-    case RetX:
     case RtG: {
       p->waterMark = previousFrame(stk, stk->fp);
       break;
@@ -635,7 +632,6 @@ static logical shouldWeStopIns(processPo p) {
 
     switch (*f->pc) {
       case Ret:
-      case RetX:
       case RtG: {
         switch (p->waitFor) {
           case stepOut:
@@ -894,8 +890,6 @@ DebugWaitFor enterDebug(processPo p) {
     case Ret:
     case RtG:
       return lnDebug(p, topStack(stk), showRet);
-    case RetX:
-      return lnDebug(p, topStack(stk), showRetX);
     case Assign:
       return lnDebug(p, Null, showAssign);
     case Suspend:
