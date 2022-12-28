@@ -26,13 +26,9 @@ star.iterable{
     let{
       yieldFn:(e,())=>().
       yieldFn(E,_) => valof{
-	try{
-	  suspend ._yld(E) in {
-	    ._next => {}.
-	    ._cancel => throw ()
-	  }
-	} catch {
-	  _ => retire ._all
+	suspend ._yld(E) in {
+	  ._next => {}.
+	  ._cancel => retire ._all
 	};
 	valis ()
       }

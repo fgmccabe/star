@@ -18,7 +18,7 @@ test.ts1{
       yildFn(_,E) => valof{
 	suspend .yild(E) in {
 	  .next => valis ().
-	  .cancel => valis ()
+	  .cancel => retire .end
 	}
       }
     } in {consIter(L,(),yildFn)};
@@ -30,21 +30,17 @@ test.ts1{
     TT = iterGen(L);
     Tl = ref 0;
 
-    try{
-      while .true do {
-	TT resume .next in {
-	  .yild(X) where X%2==0 => {
-	    Tl := Tl! + X
-	  }.
-	  .yild(X) default => {
-	    Tl := Tl! * X
-	  }.
-	  .end => throw ()
-	}
+    while .true do {
+      TT resume .next in {
+	.yild(X) where X%2==0 => {
+	  Tl := Tl! + X;
+	}.
+	.yild(X) default => {
+	  Tl := Tl! * X
+	}.
+	.end => valis Tl!
       }
-    } catch {
-      () => valis Tl!
-    }
+    };
   }
 
   iterTask:all c,e ~~ iter[c->>e] |: (c) => fiber[rcomm,scomm[e]].
