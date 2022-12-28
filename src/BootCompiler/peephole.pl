@@ -37,8 +37,6 @@ pullJump(Lbl,Map,Ins,[iJmp(Lbl)|InsX]) :-
 
 pickupIns([iRet|_],Ins,Map,[iRet,iNop,iNop|InsX]) :-!,
   pullJmps(Ins,Map,InsX).
-pickupIns([iRetX|_],Ins,Map,[iRetX,iNop,iNop|InsX]) :-!,
-  pullJmps(Ins,Map,InsX).
 pickupIns([iJmp(L2)|_],Ins,Map,InsX) :-
   pullJmps([iJmp(L2)|Ins],Map,InsX),!.
 
@@ -48,6 +46,8 @@ findLblUsages([I|Ins],Lbs,Lbx) :-
   findLblUsages(Ins,Lb1,Lbx).
 
 addLblUsage(iJmp(Lbl),H,Lbs,Lbx) :-!,
+  call(H,Lbl,Lbs,Lbx).
+addLblUsage(iTry(Lbl),H,Lbs,Lbx) :-!,
   call(H,Lbl,Lbs,Lbx).
 addLblUsage(iCLbl(_,Lbl),H,Lbs,Lbx) :-!,
   call(H,Lbl,Lbs,Lbx).

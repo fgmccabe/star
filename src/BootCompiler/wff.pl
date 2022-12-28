@@ -11,7 +11,7 @@
 	      isTypeExistsStmt/6,typeExistsStmt/6,isTypeFunStmt/6,typeFunStmt/6,
 	      isTypeAnnotation/4,typeAnnotation/4,isTypeField/4,mkTypeField/4,
 	      isTypeLambda/4,typeLambda/4,typeName/2,
-	      isFuncType/4,funcType/4,
+	      isFuncType/4,funcType/4,isContType/3,mkContType/3,
 	      mkSqType/4,
 	      isEnum/3,mkEnum/3,isAnon/2,mkAnon/2,
 	      isConApply/4,mkConApply/4,
@@ -315,6 +315,13 @@ isFuncType(T,Lc,Lh,Rh) :-
 
 funcType(Lc,L,R,Tp) :-
   binary(Lc,"=>",L,R,Tp).
+
+isContType(T,Lc,E) :-
+  isSquareTerm(T,Lc,Lhs,[E]),
+  isIden(Lhs,_,"cont"),!.
+
+mkContType(Lc,E,T) :-
+  squareTerm(Lc,name(Lc,"cont"),[E],T).  
 
 mkSqType(Lc,Nm,Els,Tp) :-
   squareTerm(Lc,name(Lc,Nm),Els,Tp).

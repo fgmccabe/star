@@ -378,19 +378,6 @@ findType(Nm,_,Env,Tp) :-
 findType(Nm,Lc,_,anonType) :-
   reportError("type %s not known",[Nm],Lc).
 
-areWeThrowing(RT,VlTp,some(ErTp)) :-
-  isThrowsType(RT,VlTp,ErTp),!.
-areWeThrowing(RT,RT,none).
-
-checkEquation(Lc,H,C,R,throwsType(funType(AT,RT),ErTp),Defs,Defsx,Df,Dfx,E,Path) :-!,
-  splitHead(H,_,A,IsDeflt),
-  pushScope(E,Env),
-  typeOfArgPtn(A,AT,some(ErTp),Env,E0,Args,Path),
-  checkGuard(C,some(ErTp),E0,E1,Guard,Path),
-  typeOfExp(R,RT,some(ErTp),E1,_E2,Exp,Path),
-  Eqn = rule(Lc,Args,Guard,Exp),
-%  reportMsg("rule %s",[Eqn],Lc),
-  (IsDeflt=isDeflt -> Defs=Defsx, Df=[Eqn|Dfx]; Defs=[Eqn|Defsx],Df=Dfx).
 checkEquation(Lc,H,C,R,funType(AT,RT),Defs,Defsx,Df,Dfx,E,Path) :-
   splitHead(H,_,A,IsDeflt),
   pushScope(E,Env),
@@ -800,15 +787,12 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,valof(Lc,Act,Tp),Path) :-
   isValof(Term,Lc,A),
   isBraceTuple(A,_,[Ac]),!,
   checkAction(Ac,Tp,ErTp,Env,Ev,Act,Path).
-typeOfExp(A,Tp,ErTp,Env,Ev,Act,Path) :-
+typeOfExp(A,Tp,ErTp,Env,Env,Act,Path) :-
   isTryCatch(A,Lc,B,H),!,
-  checkTryCatch(Lc,B,H,Tp,ErTp,Env,Ev,Act,Path).
-typeOfExp(A,_Tp,some(ErTp),Env,Ev,throw(Lc,Exp),Path) :-
+  checkTryCatch(Lc,B,H,Tp,ErTp,Env,Act,Path).
+typeOfExp(A,_Tp,_,Env,Env,throw(Lc,Thrw,ErExp),Path) :-
   isThrow(A,Lc,E),!,
-  typeOfExp(E,ErTp,none,Env,Ev,Exp,Path).
-typeOfExp(A,_Tp,none,Env,Env,void,_Path) :-
-  isThrow(A,Lc,E),!,
-  reportError("not permitted to throw %s",[ast(E)],Lc).
+  checkThrow(Lc,E,Env,Thrw,ErExp,Path).
 typeOfExp(Term,Tp,_ErTp,Env,Env,void,_) :-
   locOfAst(Term,Lc),
   reportError("illegal expression: %s, expecting a %s",[Term,Tp],Lc).
@@ -846,9 +830,6 @@ typeOfRoundTerm(Lc,F,A,Tp,ErTp,Env,Call,Path) :-
    sameType(consType(At,Tp),FnTp,Lc,E0) ->
    typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Path),
    Call=apply(Lc,Fun,Args,Tp,none);
-   ErTp = some(ETp), sameType(throwsType(funType(At,Tp),ETp),FnTp,Lc,E0) ->
-   typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Path),
-   Call=apply(Lc,Fun,Args,Tp,ErTp);
    reportError("type of %s:\n%s\nnot consistent with:\n%s=>%s",[Fun,FnTp,At,Tp],Lc),
    Call=void).
 
@@ -856,13 +837,12 @@ typeOfLambda(Term,Tp,Env,lambda(Lc,Lbl,rule(Lc,Args,Guard,Exp),Tp),Path) :-
 %  reportMsg("expected type of lambda %s = %s",[Term,Tp]),
   isEquation(Term,Lc,H,C,R),
   newTypeVar("_A",AT),
-  areWeThrowing(Tp,_,ErTp),
-  typeOfArgPtn(H,AT,ErTp,Env,E0,Args,Path),
-  checkGuard(C,ErTp,E0,E1,Guard,Path),
+  typeOfArgPtn(H,AT,voidType,Env,E0,Args,Path),
+  checkGuard(C,voidType,E0,E1,Guard,Path),
   newTypeVar("_E",RT),
   verifyType(Lc,ast(Term),funType(AT,RT),Tp,Env),
   lambdaLbl(Path,"λ",Lbl),
-  typeOfExp(R,RT,ErTp,E1,_,Exp,Path).
+  typeOfExp(R,RT,voidType,E1,_,Exp,Path).
 
 typeOfFiber(Lc,A,Tp,Env,fiber(Lc,TskFun,Tp),Path) :-
   findType("fiber",Lc,Env,TskTp),
@@ -904,9 +884,9 @@ checkAction(A,_,_,Env,Env,doBrk(Lc,Lb),_Path) :-
 checkAction(A,Tp,ErTp,Env,Env,doValis(Lc,ValExp),Path) :-
   isValis(A,Lc,E),!,
   typeOfExp(E,Tp,ErTp,Env,_,ValExp,Path).
-checkAction(A,_Tp,some(ErTp),Env,Env,doThrow(Lc,ErrExp),Path) :-
+checkAction(A,_Tp,_ErTp,Env,Env,doThrow(Lc,Thrw,ErrExp),Path) :-
   isThrow(A,Lc,E),!,
-  typeOfExp(E,ErTp,none,Env,_,ErrExp,Path).
+  checkThrow(Lc,E,Env,Thrw,ErrExp,Path).
 checkAction(A,_Tp,ErTp,Env,Ev,doDefn(Lc,v(NLc,Nm,TV),Exp),Path) :-
   isDefn(A,Lc,L,R),
   isIden(L,NLc,Nm),!,
@@ -928,9 +908,9 @@ checkAction(A,_Tp,ErTp,Env,Ev,doMatch(Lc,Ptn,Exp),Path) :-
 checkAction(A,_Tp,ErTp,Env,Ev,Act,Path) :-
   isAssignment(A,Lc,P,E),!,
   checkAssignment(Lc,P,E,ErTp,Env,Ev,Act,Path).
-checkAction(A,Tp,ErTp,Env,Ev,Act,Path) :-
+checkAction(A,Tp,ErTp,Env,Env,Act,Path) :-
   isTryCatch(A,Lc,B,H),!,
-  checkTryCatchAction(Lc,B,H,Tp,ErTp,Env,Ev,Act,Path).
+  checkTryCatchAction(Lc,B,H,Tp,ErTp,Env,Act,Path).
 checkAction(A,Tp,ErTp,Env,Ev,doIfThenElse(Lc,Tst,Thn,Els),Path) :-
   isIfThenElse(A,Lc,G,T,E),!,
   checkGoal(G,ErTp,Env,E0,Tst,Path),
@@ -1002,15 +982,32 @@ checkGuard(none,_,Env,Env,none,_) :-!.
 checkGuard(some(G),ErTp,Env,Ev,some(Goal),Path) :-
   checkGoal(G,ErTp,Env,Ev,Goal,Path).
 
-checkTryCatch(Lc,B,Hs,Tp,ErTp,Env,Ev,tryCatch(Lc,Body,Hndlr),Path) :-
+checkTryCatch(Lc,B,Hs,Tp,ErTp,Env,tryCatch(Lc,Body,Trw,Hndlr),Path) :-
   newTypeVar("EE",ETp),
-  typeOfExp(B,Tp,some(ETp),Env,Ev,Body,Path),
+  contType(ETp,CTp),
+  declareVr(Lc,"_throw",CTp,none,Env,Ev1),
+  Trw = v(Lc,"_throw",CTp),
+  typeOfExp(B,Tp,some(ETp),Ev1,_,Body,Path),
   checkCases(Hs,ETp,Tp,ErTp,Env,Hndlr,Eqx,Eqx,[],checker:typeOfExp,Path),!.
 
-checkTryCatchAction(Lc,B,Hs,Tp,ErTp,Env,Ev,doTryCatch(Lc,Body,Hndlr),Path) :-
+checkTryCatchAction(Lc,B,Hs,Tp,ErTp,Env,doTryCatch(Lc,Body,Trw,Hndlr),Path) :-
   newTypeVar("EE",ETp),
-  checkAction(B,Tp,some(ETp),Env,Ev,Body,Path),
+  findType("cont",Lc,Env,ContTp),
+  applyTypeFun(ContTp,[ETp],Lc,Env,CTp),
+  declareVr(Lc,"_throw",CTp,none,Env,Ev1),
+  Trw = v(Lc,"_throw",CTp),
+  checkAction(B,Tp,some(ETp),Ev1,_,Body,Path),
   checkCases(Hs,ETp,Tp,ErTp,Env,Hndlr,Eqx,Eqx,[],checker:checkAction,Path),!.
+
+checkThrow(Lc,X,Env,Thrw,ErrExp,Path) :-
+  (getVar(Lc,"_throw",Env,Thrw,VTp) ->
+   newTypeVar("E",ErTp),
+   contType(ErTp,CTp),
+   verifyType(Lc,ast(X),VTp,CTp,Env),
+   typeOfExp(X,ErTp,none,Env,_,ErrExp,Path);
+   reportError("cannot throw %s here",[ast(X)],Lc),
+   ErrExp=void,
+   Thrw=void).
 
 checkGoal(Term,ErTp,Env,Ex,conj(Lc,Lhs,Rhs),Path) :-
   isConjunct(Term,Lc,L,R),!,

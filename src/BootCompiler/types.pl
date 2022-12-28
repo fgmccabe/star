@@ -6,17 +6,16 @@
 	   progTypeArity/2,progArgTypes/2,funResType/2,
 	   isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
 	   isFunctionType/1,isFunctionType/2,isCnsType/3,
-	   isProgramType/1,isFixedSizeType/1,
+	   isProgramType/1,
 	   ssConstraint/4,ssType/4,dispType/1,dispConstraint/1,
 	   contractType/2,contractTypes/2,
 	   isUnbound/1,isBound/1,isUnboundFVar/2, isIdenticalVar/2,occursIn/2,
-	   isThrowsType/3,
 	   moveQuants/3,reQuantTps/3,
 	   moveXQuants/3,reQuantX/3,
 	   getConstraints/3,putConstraints/3,
 	   implementationName/2,
 	   mkTypeRule/3,
-	   stdType/3,
+	   stdType/3,contType/2,
 	   unitTp/1]).
 :- use_module(misc).
 :- use_module(display).
@@ -38,7 +37,6 @@ isType(existType(_,_)).
 isType(faceType(_,_)).
 isType(typeLambda(_,_)).
 isType(constrained(_,_)).
-isType(throwsType(_,_)).
 isType(valType(_)).
 
 isConstraint(conTract(_,_,_)).
@@ -62,9 +60,6 @@ ntEnumType(existType(V,T),existType(V,T1)):-
 ntEnumType(constrained(T,C),constrained(T1,C)) :-
   netEnumType(T,T1).
 ntEnumType(consType(_,T),T).
-
-isThrowsType(Tp,T,E) :- isBound(Tp),!,
-  deRef(Tp,throwsType(T,E)).
 
 isFaceType(Tp) :- deRef(Tp,T),!,isFcType(T).
 
@@ -357,8 +352,6 @@ mkTypeRule(constrained(T,C),constraint(Tp,C),constrained(R,C)) :-
   mkTypeRule(T,Tp,R).
 mkTypeRule(Tp,Tp,Tp).
 
-
-
 isTypeExp(Tp,Op,Args) :-
   isTpExp(Tp,Op,Args,[]).
 
@@ -369,6 +362,9 @@ isTpExp(Op,Op,Args,Args).
 mkTypeExp(Op,[],Op).
 mkTypeExp(Op,[A|Args],Tp) :-
   mkTypeExp(tpExp(Op,A),Args,Tp).
+
+contType(Arg,Tp) :-
+  mkTypeExp(tpFun("star.core*cont",1),[Arg],Tp).
 
 tpName(Tp,Nm) :-
   deRef(Tp,RTp),
@@ -423,6 +419,7 @@ contractType(conTract(Nm,A,D),Tp) :-
   concat(A,D,Args),
   length(Args,Ar),
   mkTypeExp(tpFun(Nm,Ar),Args,Tp).
+contractType(implicit(_,Tp),Tp).
 contractType(allType(V,CT),allType(V,T)) :-
   contractType(CT,T).
 contractType(constrained(_,Cn),Tp) :-
@@ -452,21 +449,11 @@ stdType("fiber",
 			typeExists(tpExp(tpExp(tpFun("star.core*fiber",2),kVar("a")),
 					 kVar("e")),
 				   faceType([],[]))))).
-stdType("catch",
-	tpFun("star.core*catch",2),
-	allType(kVar("a"),
-		allType(kVar("e"),
-			typeExists(tpExp(tpExp(tpFun("star.core*catch",2),kVar("a")),
-					 kVar("e")),
-				   faceType([],[]))))).
-
-isFixedSizeType(Tp) :- deRef(Tp,T),!,isFxTp(T).
-
-isFxTp(type("star.core*integer")).
-isFxTp(type("star.core*float")).
-isFxTp(type("star.core*boolean")).
-isFxTp(tplType(Els)) :- check_implies(misc:is_member(T,Els),types:isFixedSizeType(T)).
-isFxTp(faceType(Flds,_)) :- check_implies(misc:is_member((_,T),Flds),types:isFixedSizeType(T)).
+stdType("cont",
+	tpFun("star.core*cont",1),
+	allType(kVar("e"),
+		typeExists(tpExp(tpFun("star.core*cont",1),kVar("e")),
+			   faceType([],[])))).
 
 toLtipe(Tp,LTp) :-
   deRef(Tp,DTp),

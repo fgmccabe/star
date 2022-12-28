@@ -25,13 +25,6 @@
 parseFlags([],CWD,CWD,[],[]).
 parseFlags(['-g'|More],CWD,Cx,[debugging|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
-parseFlags(['-p'|More],CWD,Cx,[profiling|Opts],Files) :-!,
-  parseFlags(More,CWD,Cx,Opts,Files).
-parseFlags(['-i',W|M],CW,Cx,[installDir(CWD)|Opts],Files) :-!,
-  atom_string(W,WN),
-  parseURI(WN,WU),
-  resolveURI(CW,WU,CWD),
-  parseFlags(M,CW,Cx,Opts,Files).
 parseFlags(['-w',W|M],CW,Cx,Opts,Files) :-!,
   atom_string(W,WN),
   parseURI(WN,WU),
