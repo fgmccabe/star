@@ -196,7 +196,7 @@ star.compiler.gencode{
       
       valis compCond(T,.notLast,condCont(L,TM,SC,FC,Stk),condCont(R,TM,SC,FC,Stk),Ctxa,Stk)
     }
-    | .cMatch(Lc,Ptn,Exp) => compExp(Exp,TM,ptnCont(Ptn,Succ,Fail),Ctx,Stk)
+    | .cMatch(Lc,Ptn,Exp) => compExp(Exp,.notLast,ptnCont(Ptn,Succ,Fail),Ctx,Stk)
     | Exp default => 
       compExp(Exp,.notLast,ifCont(locOf(Exp),Stk,Succ,Fail),Ctx,Stk)
   }
