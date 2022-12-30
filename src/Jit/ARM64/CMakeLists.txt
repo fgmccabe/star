@@ -19,7 +19,7 @@ set(HEADER_FILES
         Headers/lowerP.h
         )
 
-set(SOURCE_FILES assem_arm64.c lower.c assem_encode.c assem_encode.h)
+set(SOURCE_FILES assem_arm64.c lower.c assem_encode.c assem_encode.h ../../Util/ARM64/fiberP.h)
 
 add_library(ARM64 STATIC ${SOURCE_FILES})
 target_link_libraries(ARM64 m)
