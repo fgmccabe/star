@@ -17,6 +17,7 @@
 #include "cellP.h"
 #include "jit.h"
 #include "thunkP.h"
+#include "continuationP.h"
 
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<(unsigned)16)|lo32))
 #define collectOff(pc) (hi32 = collectI32(pc), (pc)+(signed)hi32)
@@ -530,7 +531,10 @@ retCode run(processPo P) {
       case Try: {
         insPo exit = collectOff(PC);
         assert(validPC(FP->prog, exit));
+
+        saveRegisters();
         continuationPo  cont = allocateContinuation(H, STK, SP, FP, exit);
+        restoreRegisters();
         push(cont);
         continue;
       }

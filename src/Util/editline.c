@@ -46,6 +46,7 @@ enum KEY_ACTION {
   CTRL_E = CTRL((unsigned) 'E'),
   CTRL_F = CTRL((unsigned) 'F'),
   CTRL_H = CTRL((unsigned) 'H'),
+  CTRL_J = CTRL((unsigned ) 'J'),
   TAB = '\t',            /* Tab */
   CTRL_K = CTRL((unsigned) 'K'),
   CTRL_L = CTRL((unsigned) 'L'),
@@ -294,6 +295,7 @@ static retCode editLine(strBufferPo lineBuff) {
 
     switch (c) {
       case ENTER:    /* enter */
+      case CTRL_J: // line feed
         if (appendToStrBuffer(lineBuff, "\n", 1) != Ok)
           return Error;
 

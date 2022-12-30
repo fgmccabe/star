@@ -10,6 +10,7 @@
 
 logical traceStack = False;          // stack operation tracing
 integer minStackSize = 256;           /* What is the smallest stack size */
+integer defaultStackSize = 4096;         // What is the initial default stack size when running
 integer stackRegionSize = (1 << 23);     /* 64M cells is default max stack size */
 
 static long stkSize(specialClassPo cl, termPo o);

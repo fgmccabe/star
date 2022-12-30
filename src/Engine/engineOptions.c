@@ -379,10 +379,28 @@ static retCode setDisplayDepth(char *option, logical enable) {
   return Ok;
 }
 
+static retCode setDefaultSize(char *option, integer minSize, integer maxSize, integer *var, logical enable) {
+  integer size = parseSize(option);
+  if (size < minSize) {
+    outMsg(logFile, "size should be at least %d\n", minSize);
+    size = minSize;
+  } else if (size > maxSize) {
+    outMsg(logFile, "size should no larger than %d\n", maxSize);
+    size = maxSize;
+  } else if (size != (1 << lg2(size))) {
+    outMsg(logFile, "size should be a power of 2, suggesting %d\n", 1 << (lg2(size) + 1));
+    size = 1 << (lg2(size) + 1);
+  }
+
+  *var = size;
+
+  return Ok;
+}
+
 static retCode setMinStackSize(char *option, logical enable) {
   minStackSize = parseSize(option);
   if (minStackSize < MINMINSTACKSIZE) {
-    outMsg(logFile, "minimum stack size should be at least %d\n",MINMINSTACKSIZE);
+    outMsg(logFile, "minimum stack size should be at least %d\n", MINMINSTACKSIZE);
     minStackSize = MINMINSTACKSIZE;
   } else if (minStackSize != (1 << lg2(minStackSize))) {
     outMsg(logFile, "minimum stack size should be a power of 2, suggesting %d\n", 1 << (lg2(minStackSize) + 1));
@@ -402,29 +420,29 @@ static retCode setStackRegionSize(char *option, logical enable) {
 }
 
 Option options[] = {
-  {'d', "debug",         hasArgument, STAR_DBG_OPTS,      debugOption,       "-d|--debug <flags>", debugOptHelp},
-  {'p', "print-depth",   hasArgument, STAR_DBG_OPTS,      setDisplayDepth,   "-p|--print-depth <depth>"},
-  {'g', "symbol-debug",  noArgument,  SYMBOL_DEBUG,       symbolDebug,       "-g|--symbol-debug"},
-  {'G', "debugger-port", hasArgument, STAR_DEBUGGER_PORT, setDebuggerPort,   "-G|--debugger-port"},
-  {'v', "version",       noArgument,  Null,               displayVersion,    "-v|--version"},
-  {'b', "main-pkg",      hasArgument, STAR_BOOT,          setPkgMain,        "-b|--main-pkg <pkg>"},
-  {'j', "threshold",     hasArgument, STAR_JIT_THRESHOLD, setJitThreshold,   "-j|--threshold <count>"},
-  {'m', "main",          hasArgument, STAR_MAIN,          setBootEntry,      "-m|--main <entry>"},
-  {'L', "logFile",       hasArgument, STAR_LOGFILE,       setLogFile,        "-L|--logFile <path>"},
-  {'r', "repository",    hasArgument, STAR_REPO,          setRepoDir,        "-r|--repository <path>"},
-  {'w', "set-wd",        hasArgument, STAR_WD,            setWD,             "-w|--set-wd <dir>"},
-  {'W', "set-root-cap",  hasArgument, STAR_ROOT_WD,       setRootCapability, "-W|--set-root-cap <dir>"},
-  {'V', "verify",        noArgument,  STAR_VERIFY,        setVerify,         "-V|--toggle code verify"},
-  {'h', "heap",          hasArgument, STAR_INIT_HEAP,     setHeapSize,       "-h|--heap <size>"},
-  {'H', "max-heap",      hasArgument, STAR_MAX_HEAP,      setMaxHeapSize,    "-H|--max-heap <size>"},
-  {'s', "min-stack",     hasArgument, STAR_MIN_STACK,     setMinStackSize,   "-s|--min-stack <size>"},
+  {'d', "debug",         hasArgument, STAR_DBG_OPTS,      debugOption,        "-d|--debug <flags>", debugOptHelp},
+  {'p', "print-depth",   hasArgument, STAR_DBG_OPTS,      setDisplayDepth,    "-p|--print-depth <depth>"},
+  {'g', "symbol-debug",  noArgument,  SYMBOL_DEBUG,       symbolDebug,        "-g|--symbol-debug"},
+  {'G', "debugger-port", hasArgument, STAR_DEBUGGER_PORT, setDebuggerPort,    "-G|--debugger-port"},
+  {'v', "version",       noArgument,  Null,               displayVersion,     "-v|--version"},
+  {'b', "main-pkg",      hasArgument, STAR_BOOT,          setPkgMain,         "-b|--main-pkg <pkg>"},
+  {'j', "threshold",     hasArgument, STAR_JIT_THRESHOLD, setJitThreshold,    "-j|--threshold <count>"},
+  {'m', "main",          hasArgument, STAR_MAIN,          setBootEntry,       "-m|--main <entry>"},
+  {'L', "logFile",       hasArgument, STAR_LOGFILE,       setLogFile,         "-L|--logFile <path>"},
+  {'r', "repository",    hasArgument, STAR_REPO,          setRepoDir,         "-r|--repository <path>"},
+  {'w', "set-wd",        hasArgument, STAR_WD,            setWD,              "-w|--set-wd <dir>"},
+  {'W', "set-root-cap",  hasArgument, STAR_ROOT_WD,       setRootCapability,  "-W|--set-root-cap <dir>"},
+  {'V', "verify",        noArgument,  STAR_VERIFY,        setVerify,          "-V|--toggle code verify"},
+  {'h', "heap",          hasArgument, STAR_INIT_HEAP,     setHeapSize,        "-h|--heap <size>"},
+  {'H', "max-heap",      hasArgument, STAR_MAX_HEAP,      setMaxHeapSize,     "-H|--max-heap <size>"},
+  {'s', "min-stack",     hasArgument, STAR_MIN_STACK,     setMinStackSize,    "-s|--min-stack <size>"},
   {'S', "max-stack",     hasArgument, STAR_MAX_STACK,     setStackRegionSize, "-S|--max-stack <size>"},};
 
 int getEngineOptions(int argc, char **argv) {
   splitFirstArg(argc, argv, &argc, &argv);
   int narg = processOptions(copyright, argc, argv, options, NumberOf(options));
 
-  if (narg>0 && narg < argc && !bootSet) {
+  if (narg > 0 && narg < argc && !bootSet) {
     setPkgMain(argv[narg], True);
     return narg + 1;
   } else
