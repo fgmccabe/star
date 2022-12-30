@@ -421,6 +421,16 @@
     "keyword": true
   },
   {
+    "infixOp": "^=",
+    "priorities": [
+      899,
+      900,
+      899
+    ],
+    "desc": "optional decomposition match",
+    "keyword": true
+  },
+  {
     "infixOp": "?=",
     "priorities": [
       899,

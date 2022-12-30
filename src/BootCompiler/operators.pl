@@ -24,6 +24,7 @@
   operator("retire", [prefixOp(901, 900), infixOp(900, 901, 900)]).
   operator("all", [prefixOp(1010, 1009)]).
   operator(".<.", [infixOp(699, 700, 699)]).
+  operator("^=", [infixOp(899, 900, 899)]).
   operator("&&", [infixOp(909, 910, 910)]).
   operator("^?", [infixOp(800, 800, 799)]).
   operator("~=", [infixOp(899, 900, 899)]).
@@ -224,6 +225,7 @@
   follows('\\','/','\\/').
   follows('^','?','^?').
   follows('^','/','^/').
+  follows('^','=','^=').
   follows('^/','/','^//').
   follows(':','?',':?').
   follows(':',':','::').
@@ -310,6 +312,7 @@
   final('^?',"^?").	 /* option propagate */
   final('^/',"^/").	 /* filter */
   final('^//',"^//").	 /* filter map */
+  final('^=',"^=").	 /* optional decomposition match */
   final(':',":").	 /* type annotation */
   final(':?',":?").	 /* fallable type coercion */
   final('::',"::").	 /* type coercion */
@@ -346,6 +349,7 @@
 
   keyword("retire").
   keyword("all").
+  keyword("^=").
   keyword("&&").
   keyword("~>").
   keyword("throw").
