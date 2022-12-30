@@ -287,11 +287,6 @@ star.compiler.data{
       (Tps,T0) = decodeTypes(Ts);
       valis (.tupleType(Tps),T0)
     }
-    `E` => valof{
-      (L,T0) = decodeType(Ts);
-      (R,T1) = decodeType(T0);
-      valis (.throwsType(L,R),T1)
-    }
     `:` => valof{
       (V,T0) = decodeType(Ts);
       (B,T1) = decodeType(T0);
@@ -417,8 +412,6 @@ star.compiler.data{
       encodeType(deRef(R),encodeType(deRef(A),[`C`,..Chs])).
     .tpExp(Op,A) =>
       encodeType(deRef(A),encodeType(deRef(Op),[`U`,..Chs])).
-    .throwsType(L,R) =>
-      encodeType(deRef(R),encodeType(deRef(L),[`E`,..Chs])).
     .tupleType(Els) => encodeTypes(Els,[`(`,..Chs]).
     .allType(V,T) =>
       encodeType(deRef(T),encodeType(deRef(V),[`:`,..Chs])).

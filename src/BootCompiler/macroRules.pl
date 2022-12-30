@@ -34,10 +34,6 @@ macroRl(":=",action,macroRules:indexAssignMacro).
 macroRl(":=",expression,macroRules:spliceAssignMacro).
 macroRl(":=",expression,macroRules:indexAssignMacro).
 macroRl("throws",type,macroRules:throwsMacro).
-% macroRl("throw",expression,macroRules:throwMacro).
-% macroRl("throw",action,macroRules:throwMacro).
-% macroRl("try",action,macroRules:tryMacro).
-% macroRl("try",expression,macroRules:tryMacro).
 macroRl("do",action,macroRules:forLoopMacro).
 macroRl("->",expression,macroRules:arrowMacro).
 macroRl("->",pattern,macroRules:arrowMacro).
@@ -563,53 +559,3 @@ throwsMacro(T,type,Tx) :-
   reConstrain([C],I,Tx).
 %  reportMsg("%s ==> %s",[ast(T),ast(Tx)],Lc).
 
-throwMacro(A,action,Ax) :-
-  isThrow(A,Lc,E),!,
-  unary(Lc,"_throw",E,Ax).
-throwMacro(A,expression,Ax) :-
-  isThrow(A,Lc,E),!,
-  unary(Lc,"_throw",E,Ax).
-
-/*
-  try A catch H
-becomes
-  case _stack_split((Try) => let{
-  _throw(E) => valof{
-      Try retire ._except(E)
-    }
-  } in
-    ._ok(A) ) in {
-  ._ok(X) => X
-  ._except(E) => case E in H
-}
-*/
-tryMacro(A,expression,Ax) :-
-  isTryCatch(A,Lc,B,H),!,
-  genIden(Lc,"Try",Try),
-  genIden(Lc,"E",E),
-  genIden(Lc,"X",X),
-  % build _throw function
-  unary(Lc,"_throw",E,Th),
-  mkConApply(Lc,name(Lc,"_except"),[E],Ex),
-  mkRetire(Lc,Try,Ex,A1),
-  braceTuple(Lc,[A1],A2),
-  mkValof(Lc,A2,A3),
-  mkEquation(Lc,Th,none,A3,ThrEq),
-%  reportMsg("ThrImp ==> %s",[ast(ThrEq)],Lc),
-
-  mkConApply(Lc,name(Lc,"_ok"),[B],In),
-  mkLetDef(Lc,[ThrEq],In,Lt1),
-%  reportMsg("Let ==> %s",[ast(Lt1)],Lc),
-  % build spawn response
-  mkConApply(Lc,name(Lc,"_ok"),[X],XLhs),
-  mkEquation(Lc,XLhs,none,X,Eq1),
-%  reportMsg("Eq1 ==> %s",[ast(Eq1)],Lc),
-  mkConApply(Lc,name(Lc,"_except"),[E],ELhs),
-  caseExp(Lc,E,H,ERhs),
-  mkEquation(Lc,ELhs,none,ERhs,Eq2),
-%  reportMsg("Eq2 ==> %s",[ast(Eq2)],Lc),
-  roundTuple(Lc,[Try],SpLamL),
-  mkEquation(Lc,SpLamL,none,Lt1,Lam),
-  unary(Lc,"_spawn",Lam,Spwn),
-  caseExp(Lc,Spwn,[Eq1,Eq2],Ax).
-%  reportMsg("%s ==> %s",[ast(A),ast(Ax)],Lc).

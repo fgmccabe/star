@@ -65,7 +65,10 @@ star.compiler.macro.rules{
     "generator" -> [(.expression,generatorMacro)],
     "fiber" -> [(.expression,fiberMacro)],
     "yield" -> [(.actn,yieldMacro)],
-    "->" -> [(.expression,arrowMacro),(.pattern,arrowMacro)]
+    "->" -> [(.expression,arrowMacro),(.pattern,arrowMacro)],
+    "throws" -> [(.typeterm,throwsMacro)]
+--    "throw" -> [(.expression, throwMacro),(.actn,throwMacro)],
+--    "try" -> [(.expression, tryMacro), (.actn,tryMacro)]
   }.
 
   -- Convert assert C to assrt(C,"failed C",Loc)
@@ -383,44 +386,122 @@ star.compiler.macro.rules{
     
   /* generator{A}
   becomes
-  fiber{
-    try{A*} catch {._cancel => {}};
+  fiber(this)=>valof{
+    A*;
     valis .all
   }
+
   */
    
   generatorMacro(E,.expression) where
-    (Lc,A) ?= isUnary(E,"generator") &&
-    (_,[B]) ?= isBrTuple(A) => valof{
-	/* Build try ... catch ... */
-  
-	/* Build .cancel => {} */
-	Catcher = mkLambda(Lc,.false,enum(Lc,"_cancel"),.none,brTuple(Lc,[]));
-
-	Try = mkTryCatch(Lc,A,[Catcher]);
-
+    (Lc,A) ?= isUnary(E,"generator") && (_,[B]) ?= isBrTuple(A) => valof{
 	All = mkValis(Lc,enum(Lc,"_all"));
-	valis .active(mkFiberTerm(Lc,mkSequence(Lc,Try,All)))
+	valis .active(mkFiberTerm(Lc,mkSequence(Lc,B,All)))
       }.
   generatorMacro(_,_) default => .inactive.
 
   /* yield E
    becomes
-   suspend ._yld(E) in {
+     suspend ._yld(E) in {
      ._next => {}.
-     ._cancel => throw ._cancel
+     ._cancel => retire ._all
    }
   */
   yieldMacro(A,.actn) where (Lc,E) ?= isUnary(A,"yield") => valof{
+    This = .nme(Lc,"this");
     /* build ._next => {} */
     Nxt = mkLambda(Lc,.false,enum(Lc,"_next"),.none,brTuple(Lc,[]));
 
-    /* build ._cancel => throw ._cancel */
-    Cancel = mkLambda(Lc,.false,enum(Lc,"_cancel"),.none,mkThrow(Lc,enum(Lc,"_cancel")));
+    /* build ._cancel => retire ._all */
+    Cancel = mkLambda(Lc,.false,enum(Lc,"_cancel"),.none,mkRetire(Lc,This,enum(Lc,"_all")));
 
     /* Build suspend */
-    valis .active(mkSuspend(Lc,.nme(Lc,"this"),mkEnumCon(Lc,.nme(Lc,"_yld"),[E]),[Nxt,Cancel]))
+    valis .active(mkSuspend(Lc,This,mkEnumCon(Lc,.nme(Lc,"_yld"),[E]),[Nxt,Cancel]))
   }
+
+  /*
+  (A)=>R throws E
+  becomes
+  _throw|=all t ~~ cont[t] |: (A)=>R
+  */
+
+  throwsMacro(A,.typeterm) where (Lc,T,Th) ?= isThrows(A) =>
+    .active(reConstrain([mkImplicit(Lc,"_throw",mkContType(Lc,Th))],T)).
+  throwsMacro(_,_) default => .inactive.
+
+  /* throw E
+  becomes
+  _throw(E)
+  */
+
+  throwMacro(A,Sc) where (Sc==.expression || Sc==.actn) && (Lc,E) ?= isThrow(A) =>
+    .active(unary(Lc,"_throw",E)).
+  throwMacro(_,_) default => .inactive.
+
+  /*
+  try B catch H expression
+  becomes
+  case _spawn((Try) => let{
+      _throw(E) => valof{
+        Try retire ._except(E)
+      }
+    } in
+    ._ok(B) ) in {
+    ._ok(X) => X
+    ._except(E) => case E in H
+  }
+  */
+
+  tryMacro(A,.expression) where (Lc,B,H) ?= isTryCatch(A) => valof{
+    -- Build _throw function
+    E = genName(Lc,"E");
+    T = genName(Lc,"Try");
+    X = genName(Lc,"X");
+    XC = mkEnumCon(Lc,.nme(Lc,"_except"),[E]);
+
+    Thrw = equation(Lc,unary(Lc,"_throw",E),
+      mkValof(Lc,brTuple(Lc,[
+	    mkRetire(Lc,T,XC)])));
+    Ltt = mkLetDef(Lc,[Thrw],mkEnumCon(Lc,.nme(Lc,"_ok"),[B]));
+    Lam = equation(Lc,rndTuple(Lc,[T]),Ltt);
+    Cs1 = equation(Lc,mkEnumCon(Lc,.nme(Lc,"_ok"),[X]),X);
+    Cs2 = equation(Lc,XC, mkCaseExp(Lc,E,H));
+    
+    valis .active(mkCaseExp(Lc,unary(Lc,"_spawn",Lam),[Cs1,Cs2]));
+  }.
+  /*
+  try B catch H action
+  becomes
+  case _spawn((Try) => let{
+    _throw(E) => valof{
+      Try retire ._except(E)
+    }
+  } in {
+  B; -- valis E => valis ._ok(E)		-- 
+  }) in {
+  ._ok(_) => {}
+  ._except(E) => case E in H
+  }
+  */
+  
+  tryMacro(A,.actn) where (Lc,B,H) ?= isTryCatch(A) => valof{
+    -- Build _throw function
+    E = genName(Lc,"E");
+    T = genName(Lc,"Try");
+    X = genName(Lc,"X");
+    XC = mkEnumCon(Lc,.nme(Lc,"_except"),[E]);
+
+    Thrw = equation(Lc,unary(Lc,"_throw",E),
+      mkValof(Lc,brTuple(Lc,[
+	    mkRetire(Lc,T,XC)])));
+    Ltt = mkLetDef(Lc,[Thrw],mkEnumCon(Lc,.nme(Lc,"_ok"),[mkValof(Lc,B)]));
+    Lam = equation(Lc,rndTuple(Lc,[T]),Ltt);
+    Cs1 = equation(Lc,mkEnumCon(Lc,.nme(Lc,"_ok"),[mkAnon(Lc)]),brTuple(Lc,[]));
+    Cs2 = equation(Lc,XC, mkCaseExp(Lc,E,H));
+    
+    valis .active(mkCaseExp(Lc,unary(Lc,"_spawn",Lam),[Cs1,Cs2]));
+  }
+  tryMacro(_,_) default => .inactive.
 
   contractMacro(A,.statement) where
       (Lc,Lhs,Els) ?= isContractStmt(A) && (_,Nm,Q,C,T) ?= isContractSpec(Lhs) &&
@@ -756,4 +837,5 @@ star.compiler.macro.rules{
   allArgs([A,..As],F,Ix,Rep) where (Lc,V,T) ?= isTypeAnnotation(A) =>
     [.nme(Lc,"X$(Ix)"),..allArgs(As,F,Ix+1,Rep)].
   allArgs([_,..As],F,Ix,Rep) => allArgs(As,F,Ix,Rep).
+  
 }

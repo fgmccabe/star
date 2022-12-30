@@ -140,11 +140,12 @@ star.compiler.wff{
   public isFunctionType:(ast) => option[(option[locn],ast,ast)].
   isFunctionType(A) => isBinary(A,"=>").
 
-  public isContTp:(ast) => option[(option[locn],ast,ast)].
-  isContTp(A) => isBinary(A,"=>>").
+  public isContTp:(ast) => option[(option[locn],ast)].
+  isContTp(A) => ( (Lc,Op,[Arg]) ?= isSquareTerm(A)  && (_,"cont") ?= isName(Op)
+    ?? ?(Lc,Arg) || .none).
 
-  public mkContType:(option[locn],ast,ast) => ast.
-  mkContType(Lc,Lhs,Rhs) => binary(Lc,"=>>",Lhs,Rhs).
+  public mkContType:(option[locn],ast) => ast.
+  mkContType(Lc,Lhs) => squareTerm(Lc,.nme(Lc,"cont"),[Lhs]).
 
   public isConstructorStmt(A) where (_,_,I) ?= isQuantified(A) =>
     isConstructorStmt(I).
