@@ -18,6 +18,10 @@
 @tab non-associative infix
 @tab 700
 @tab set membership
+@item @code{^=}
+@tab non-associative infix
+@tab 900
+@tab optional decomposition match
 @item @code{&&}
 @tab right associative infix
 @tab 910
@@ -546,80 +550,81 @@
 @caption{Standard Graphical Tokens}
 @multitable |{Graphic}|{Graphic}|{Graphic}|{Graphic}|{Graphic}|
   @item @code{.<.}
+  @tab @code{^=}
   @tab @code{&&}
   @tab @code{^?}
   @tab @code{~=}
-  @tab @code{~>}
-  @item @code{.|.}
+  @item @code{~>}
+  @tab @code{.|.}
   @tab @code{,..}
   @tab @code{••}
   @tab @code{**}
-  @tab @code{->}
-  @item @code{.+.}
+  @item @code{->}
+  @tab @code{.+.}
   @tab @code{<$}
   @tab @code{!}
   @tab @code{->>}
-  @tab @code{?=}
-  @item @code{#}
+  @item @code{?=}
+  @tab @code{#}
   @tab @code{??}
   @tab @code{%}
   @tab @code{<-}
-  @tab @code{.>>>.}
-  @item @code{\\+}
+  @item @code{.>>>.}
+  @tab @code{\\+}
   @tab @code{<<-}
   @tab @code{*}
   @tab @code{\\-}
-  @tab @code{+}
-  @item @code{.>>.}
+  @item @code{+}
+  @tab @code{.>>.}
   @tab @code{*>}
   @tab @code{,}
   @tab @code{\\/}
-  @tab @code{-}
-  @item @code{.}
+  @item @code{-}
+  @tab @code{.}
   @tab @code{/}
   @tab @code{<*>}
   @tab @code{:}
-  @tab @code{;}
-  @item @code{<}
+  @item @code{;}
+  @tab @code{<}
   @tab @code{.=}
   @tab @code{=}
   @tab @code{|:}
-  @tab @code{++}
-  @item @code{>}
+  @item @code{++}
+  @tab @code{>}
   @tab @code{?}
   @tab @code{@@}
   @tab @code{|=}
-  @tab @code{~~}
-  @item @code{⊕}
+  @item @code{~~}
+  @tab @code{⊕}
   @tab @code{.^.}
   @tab @code{//}
   @tab @code{.~.}
-  @tab @code{=<}
-  @item @code{==}
+  @item @code{=<}
+  @tab @code{==}
   @tab @code{\\}
   @tab @code{=>}
   @tab @code{^}
-  @tab @code{<=>}
-  @item @code{•}
+  @item @code{<=>}
+  @tab @code{•}
   @tab @code{.&.}
   @tab @code{///}
   @tab @code{::}
-  @tab @code{+++}
-  @item @code{:=}
+  @item @code{+++}
+  @tab @code{:=}
   @tab @code{:?}
   @tab @code{.<<.}
   @tab @code{>>=}
-  @tab @code{^/}
-  @item @code{<~}
+  @item @code{^/}
+  @tab @code{<~}
   @tab @code{|}
   @tab @code{.#.}
   @tab @code{~}
-  @tab @code{^//}
-  @item @code{||}
+  @item @code{^//}
+  @tab @code{||}
   @tab @code{::=}
   @tab @code{/\\}
   @tab @code{>=}
-  @tab @code{>>}
+  @item @code{>>}
 
 @end multitable
 @end float

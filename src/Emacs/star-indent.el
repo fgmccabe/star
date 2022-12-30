@@ -159,7 +159,7 @@
 	   ("~>"     nil     star-arrow-indent)
 	   ("|:"     nil     star-arrow-indent)
 	   ("where"  nil     (* star-arrow-indent 2))
-	   ("|"      nil     star-arrow-indent)
+	   ("|"      t       0)
 	   ("||"     t	     0)
 	   ("?"      nil     star-query-indent)
 	   (","      nil     0)
