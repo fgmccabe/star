@@ -19,6 +19,10 @@ test.assign{
 
   main:() => ().
   main() => valof{
+    show fred.name!;
+    
+    show peter.name!;
+
     assert valof {
       fred.name := "fred";
       valis fred.name!

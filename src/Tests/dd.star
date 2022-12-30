@@ -1,6 +1,6 @@
 test.dd{
   import star.
-  import test.fact.
+  import test.lib.fact.
   import star.script.
 
   ff:(integer)=>integer.

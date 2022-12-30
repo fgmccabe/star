@@ -1,7 +1,7 @@
 test.fg{
   import star.
   import star.script.
-  import test.fact.
+  import test.lib.fact.
 
   public _main:(cons[string])=>().
   _main(_) => main(5).
