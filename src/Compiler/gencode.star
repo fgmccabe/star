@@ -63,7 +63,7 @@ star.compiler.gencode{
 	logMsg("compile global $(Nm)\:$(Tp) = $(Val))");
       Ctx = emptyCtx(Glbs);
       (_,AbortCde) = abortCont(Lc,"global: $(Nm)").C(Ctx,.none,[]);
-      (_Stk,Code) = compExp(Val,.last,glbRetCont(Nm),Ctx,.some([]));
+      (_Stk,Code) = compExp(Val,.notLast,glbRetCont(Nm),Ctx,.some([]));
 
       if traceCodegen! then
 	logMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp])");
@@ -130,16 +130,14 @@ star.compiler.gencode{
     | .cResume(Lc,Fb,Ev,Tp) => 
       compExp(Fb,.notLast,expCont(Ev,.notLast,resumeCont(pushStack(Tp::ltipe,Stk),Cont)),Ctx,Stk)
     | .cTry(Lc,B,.cVar(_,.cId(Th,ThTp)),.cVar(_,.cId(Er,ETp)),H,Tp) => valof{
-      (CLb,CtxB) = defineExitLbl("Tr",Ctx);
-      Blk = defineLbl("H",CtxB);
-      (TOff,Ctx0) = defineLclVar(Th,ThTp::ltipe,Ctx);
-      (EOff,Ctx1) = defineLclVar(Er,ETp::ltipe,Ctx0);
+      (CLb,Ctx0) = defineExitLbl("Tr",Ctx);
+      Blk = defineLbl("H",Ctx);
+      (TOff,CtxB) = defineLclVar(Th,ThTp::ltipe,Ctx0);
+      (EOff,Ctx1) = defineLclVar(Er,ETp::ltipe,Ctx);
       EStk = pushStack(ETp::ltipe,Stk);
       
-      (Stk1,BCde) = compExp(B,.notLast,Cont,CtxB,Stk);
+      (Stk1,BCde) = compExp(B,.notLast,Cont,CtxB,Stk); -- critical: body of try is not tail rec
       (Stk2,HCde) = compExp(H,TM,Cont,Ctx1,EStk);
-      
---      logMsg("Stk1=$(Stk1), Stk2=$(Stk2)");
       valis (reconcileStack(Stk1,Stk2),[.iTry(Blk),.iStL(TOff)]++BCde++[.iLbl(Blk),.iTL(EOff)]++HCde)
     }
     | .cThrow(Lc,T,E,_) => compExp(E,.notLast,expCont(T,.notLast,throwCont),Ctx,Stk)

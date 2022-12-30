@@ -1129,7 +1129,7 @@ star.compiler.term{
   }
 
   frzeExp:(cExp)=>data.
-  frzeExp(E) => case E in {
+  frzeExp(Ex) => case Ex in {
     .cVoid(Lc,Tp) => mkCons("void",[Lc::data,encodeSig(Tp)]).
     .cAnon(Lc,Tp) => mkCons("anon",[Lc::data,encodeSig(Tp)]).
     .cVar(Lc,.cId(V,Tp)) => mkCons("var",[Lc::data,.strg(V),encodeSig(Tp)]).
@@ -1184,7 +1184,7 @@ star.compiler.term{
       mkTpl([.strg(Nm),.strg(Vn),encodeSig(VTp)])).
 
   frzeAct:(aAction)=>data.
-  frzeAct(A) => case A in {
+  frzeAct(Ac) => case Ac in {
     .aNop(Lc) => mkCons("nop",[Lc::data]).
     .aSeq(Lc,L,R) => mkCons("seq",[Lc::data,frzeAct(L),frzeAct(R)]).
     .aLbld(Lc,L,I) => mkCons("lbld",[Lc::data,.strg(L),frzeAct(I)]).
