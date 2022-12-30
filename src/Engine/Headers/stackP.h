@@ -41,6 +41,7 @@ extern logical traceStack;      // stack operation tracing
 #define MINMINSTACKSIZE (64)
 
 extern integer minStackSize;       /* How big is a stack */
+extern integer defaultStackSize;
 extern integer stackRegionSize;    // How much space for stacks
 
 void dumpStackStats();
