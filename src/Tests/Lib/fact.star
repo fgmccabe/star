@@ -1,4 +1,4 @@
-test.fact{
+test.lib.fact{
   import star.arith.
 
   public fact:(integer)=>integer.

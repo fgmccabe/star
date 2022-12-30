@@ -1,7 +1,7 @@
 test.dl{
   import star.
   import star.script.
-  import test.fact.
+  import test.lib.fact.
 
   -- Test iteration constructs
 

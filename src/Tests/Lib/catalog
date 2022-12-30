@@ -11,7 +11,7 @@
     "test.aa": "aa.star",
     "test.disp" : "disp.star",
     "test.e": "e.star",
-    "test.fact": "fact.star",
+    "test.lib.fact": "fact.star",
     "test.fng": "fng.star",
     "test.fog": "fog.star",
     "test.m": "m.star",

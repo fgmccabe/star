@@ -1,6 +1,6 @@
 test.fi{
   import star.
-  import test.fact.
+  import test.lib.fact.
   import star.script.
 
   main:()=>().
