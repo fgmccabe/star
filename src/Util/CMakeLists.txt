@@ -159,7 +159,7 @@ set(SOURCE_FILES
         ${HEADER_FILES} match.c)
 
 add_library(ooio STATIC ${SOURCE_FILES})
-target_link_libraries(ooio pthread m)
+target_link_libraries(ooio fiber pthread m)
 
 add_custom_command(OUTPUT ${UNITABLE.C} DEPENDS parseUni ${UNICODE}
   COMMAND ${CMAKE_CURRENT_BINARY_DIR}/UnicodeStuff/parseUni ${UNICODE} ${UNITABLE.C}

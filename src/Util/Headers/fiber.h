@@ -9,14 +9,17 @@
 
 typedef struct fiber_record_ *fiberPo;
 
-
 typedef enum {
   suspended,
   active,
   moribund
 } FiberState;
 
-fiberPo createFiber(integer size);
+typedef void (*fiberFun)(fiberPo f,void *cl);
+
+fiberPo createFiber(fiberFun fn, void *cl,integer size);
 void dropFiber(fiberPo fiber);
+
+void switchFiber(fiberPo next,void *val);
 
 #endif //STAR_FIBER_H
