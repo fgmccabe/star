@@ -49,9 +49,10 @@ star.compiler.freevars{
     .conj(_,L,R) => freeVarsInCond(Exp,Excl,Q,Fv).
     .disj(_,L,R) => freeVarsInCond(Exp,Excl,Q,Fv).
     .neg(_,R) => freeVarsInCond(Exp,Excl,Q,Fv).
-    .trycatch(_,E,_,H,_) => freeVarsInExp(E,Excl,Q,
-      foldRight((Rl,F)=>freeVarsInRule(Rl,freeVarsInExp,Excl,Q,F),Fv,H)).
-    .thrw(_,E,_) => freeVarsInExp(E,Excl,Q,Fv).
+    .trycatch(_,E,T,H,_) where Excl1 .= extendExcl(T,Excl,Fv) =>
+      freeVarsInExp(T,Excl1,Q,freeVarsInExp(E,Excl1,Q,
+	  foldRight((Rl,F)=>freeVarsInRule(Rl,freeVarsInExp,Excl,Q,F),Fv,H))).
+    .thrw(_,T,E,_) => freeVarsInExp(T,Excl,Q,freeVarsInExp(E,Excl,Q,Fv)).
     .lambda(_,_,Eqns,_) =>
       foldRight((Rl,F)=>freeVarsInRule(Rl,freeVarsInExp,Excl,Q,F),Fv,Eqns).
     .letExp(_,D,_,E) => let{
@@ -77,14 +78,14 @@ star.compiler.freevars{
     .doLbld(_,_,A) => freeVarsInAct(A,Excl,Q,Fv).
     .doBrk(_,_) => Fv.
     .doValis(_,E) => freeVarsInExp(E,Excl,Q,Fv).
-    .doThrow(_,E) => freeVarsInExp(E,Excl,Q,Fv).
+    .doThrow(_,T,E) => freeVarsInExp(T,Excl,Q,freeVarsInExp(E,Excl,Q,Fv)).
     .doDefn(_,P,E) where Excl1 .= extendExcl(P,Excl,Fv) =>
       freeVarsInExp(E,Excl1,Q,freeVarsInExp(P,Excl1,Q,Fv)).
     .doMatch(_,P,E) where Excl1 .= extendExcl(P,Excl,Fv) =>
       freeVarsInExp(E,Excl1,Q,freeVarsInExp(P,Excl1,Q,Fv)).
     .doAssign(_,L,R) => freeVarsInExp(L,Excl,Q,freeVarsInExp(R,Excl,Q,Fv)).
-    .doTryCatch(_,L,_,H) => 
-      foldLeft((Rl,F)=>freeVarsInRule(Rl,freeVarsInAct,Excl,Q,F),freeVarsInAct(L,Excl,Q,Fv), H).
+    .doTryCatch(_,L,T,H) where Excl1 .= extendExcl(T,Excl,Fv) =>
+      foldLeft((Rl,F)=>freeVarsInRule(Rl,freeVarsInAct,Excl,Q,F),freeVarsInAct(L,Excl1,Q,Fv), H).
     .doIfThen(_,T,L,R) => valof{
       Excl1 = extendExcl(T,Excl,Fv);
       valis freeVarsInAct(L,Excl1,Q,

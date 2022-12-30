@@ -14,7 +14,7 @@
 #define udpType "t'star.io*udpHandle'"
 #define optionType(T) "Uz1'star.core*option'" T
 #define fiberType(R,S) "UUz2'star.fiber*fiber'" R S
-#define contType(T) "Uz1'star.fiber*cont'" T
+#define contType(T) "Uz1'star.core*cont'" T
 #define futureType(T) "Uz1'star.core*future'" T
 
 /* Define the standard escapes */

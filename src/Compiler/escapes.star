@@ -58,7 +58,7 @@ star.compiler.escapes{
     "_big_format" => ? .tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*bigint"),.nomnal("star.core*string")])),.nomnal("star.core*string")).
     "_fiber_eq" => ? .allType(.nomnal("s"),.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("s")),.nomnal("r")),.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("s")),.nomnal("r"))])),.nomnal("star.core*boolean")))).
     "_new_fiber" => ? .allType(.nomnal("s"),.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("r")])),.nomnal("s"))])),.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("r")),.nomnal("s"))))).
-    "_stack_split" => ? .allType(.nomnal("s"),.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("r")),.nomnal("s"))])),.nomnal("s"))])),.nomnal("s")))).
+    "_spawn" => ? .allType(.nomnal("s"),.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("r")),.nomnal("s"))])),.nomnal("s"))])),.nomnal("s")))).
     "_suspend_fiber" => ? .allType(.nomnal("s"),.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("s")])),.nomnal("r")))).
     "_retire_fiber" => ? .allType(.nomnal("s"),.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("s")])),.tupleType([])))).
     "_resume_fiber" => ? .allType(.nomnal("s"),.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("r")])),.nomnal("s")))).
@@ -305,7 +305,7 @@ star.compiler.escapes{
     "_big_format" => ?49.
     "_fiber_eq" => ?50.
     "_new_fiber" => ?51.
-    "_stack_split" => ?52.
+    "_spawn" => ?52.
     "_suspend_fiber" => ?53.
     "_retire_fiber" => ?54.
     "_resume_fiber" => ?55.

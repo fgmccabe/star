@@ -167,5 +167,8 @@ star.compiler.dict{
 		declareType("cons",.none,.tpFun("star.core*cons",1),
 		  .allRule(.nomnal("e"),
 		    .typeExists(lstType(.nomnal("e")),emptyFace)),
-		  emptyDict))))))).
+		  declareType("cont",.none,.tpFun("star.core*cont",1),
+		    .allRule(.nomnal("e"),
+		      .typeExists(lstType(.nomnal("e")),emptyFace)),
+		    emptyDict)))))))).
 }

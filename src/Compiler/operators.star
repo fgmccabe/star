@@ -41,6 +41,7 @@ star.compiler.operators{
     "retire" => [.prefixOp(901,900), .infixOp(900,901,900)].
     "all" => [.prefixOp(1010,1009)].
     ".<." => [.infixOp(699,700,699)].
+    "^=" => [.infixOp(899,900,899)].
     "&&" => [.infixOp(909,910,910)].
     "^?" => [.infixOp(800,800,799)].
     "~=" => [.infixOp(899,900,899)].
@@ -276,6 +277,7 @@ star.compiler.operators{
     ("\\",`/`) => ?"\\/".
     ("^",`?`) => ?"^?".
     ("^",`/`) => ?"^/".
+    ("^",`=`) => ?"^=".
     ("^/",`/`) => ?"^//".
     (":",`?`) => ?":?".
     (":",`:`) => ?"::".
@@ -366,6 +368,7 @@ star.compiler.operators{
     "^?" => .true.  /* option propagate */
     "^/" => .true.  /* filter */
     "^//" => .true.  /* filter map */
+    "^=" => .true.  /* optional decomposition match */
     ":" => .true.  /* type annotation */
     ":?" => .true.  /* fallable type coercion */
     "::" => .true.  /* type coercion */
@@ -406,6 +409,7 @@ star.compiler.operators{
   keyword(Op) => case Op in {
     "retire" => .true.
     "all" => .true.
+    "^=" => .true.
     "&&" => .true.
     "~>" => .true.
     "throw" => .true.

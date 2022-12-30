@@ -16,7 +16,6 @@ star.compiler.types{
     .tupleType(cons[tipe]) |
     .allType(tipe,tipe) |
     .existType(tipe,tipe) |
-    .throwsType(tipe,tipe) |
     .faceType(cons[(string,tipe)],cons[(string,tipe)]) |
     .constrainedType(tipe,constraint).
 
@@ -45,7 +44,6 @@ star.compiler.types{
     .tupleType(_) => 0.
     .allType(_,T) => hasKind(T).
     .existType(_,T) => hasKind(T).
-    .throwsType(T,_) => hasKind(T).
     .faceType(_,_) => 0.
     .constrainedType(T,_) => hasKind(T).
   }
@@ -111,6 +109,14 @@ star.compiler.types{
   public mkConType:(string,cons[tipe],cons[tipe])=>tipe.
   mkConType(N,T,D) where L .= T++D => mkTypeExp(.tpFun(N,size(L)),L).
 
+  public getTypeArg:(tipe,string) => option[tipe].
+  getTypeArg(T,Nm) => valof{
+    if .tpExp(OT,A) .= deRef(T) && .tpFun(Nm,1).=deRef(OT) then
+      valis .some(A)
+    else
+    valis .none
+  }
+
   public implementation equality[tipe] => {
     T1==T2 => eqType(T1,T2,[]).
   }
@@ -132,7 +138,6 @@ star.compiler.types{
     eqType(V1,V2,Q) && eqType(T1,T2,Q).
   identType(.existType(V1,T1),.existType(V2,T2),Q) =>
     eqType(V1,V2,Q) && eqType(T1,T2,Q).
-  identType(.throwsType(N1,A1),.throwsType(N2,A2),_) => N1==N2 && A1==A2.
   identType(.faceType(V1,T1),.faceType(V2,T2),Q) =>
     identNmTypes(V1,V2,Q) && identNmTypes(T1,T2,Q).
   identType(.constrainedType(T1,C1),.constrainedType(T2,C2),Q) =>
@@ -204,8 +209,6 @@ star.compiler.types{
       "all #(showBound(A,Dp))#(showMoreQuantified(T,Sh,Dp))".
     .existType(A,T) =>
       "exists #(showBound(A,Dp))#(showMoreQuantified(T,Sh,Dp))".
-    .throwsType(A,T) =>
-      "#(showType(A,Sh,Dp)) throws #(showType(T,Sh,Dp))".
     .faceType(Els,Tps) => "{#(showTypeEls(Els,Tps,Sh,Dp))}".
     .constrainedType(T,C) =>
       "#(showConstraint(C,Dp)) |: #(showType(T,Sh,Dp))".
@@ -326,7 +329,6 @@ star.compiler.types{
     tName(.tpFun(Nm,_)) => Nm.
     tName(.tVar(_,_)) => "_".
     tName(.tFun(_,_,_)) => "!_".
-    tName(.throwsType(T,_)) => tName(deRef(T)).
     tName(.allType(_,T)) => tName(deRef(T)).
     tName(.existType(_,T)) => tName(deRef(T)).
     tName(.constrainedType(T,_)) => tName(deRef(T)).
@@ -348,7 +350,6 @@ star.compiler.types{
     surfaceNm(.tpFun(Nm,_)) => Nm.
     surfaceNm(.tVar(_,_)) => "_".
     surfaceNm(.tFun(_,_,_)) => "_".
-    surfaceNm(.throwsType(T,_)) => surfaceNm(deRef(T)).
     surfaceNm(.allType(_,T)) => surfaceNm(deRef(T)).
     surfaceNm(.existType(_,T)) => surfaceNm(deRef(T)).
     surfaceNm(.constrainedType(T,_)) => surfaceNm(deRef(T)).
@@ -411,7 +412,6 @@ star.compiler.types{
       .tpFun("<=>",2).=deRef(O2) => deRef(A).
   funTypeArg(.allType(_,Tp)) => funTypeArg(deRef(Tp)).
   funTypeArg(.constrainedType(T,_))=>funTypeArg(T).
-  funTypeArg(.throwsType(T,_)) => funTypeArg(T).
 
   public funTypeRes(Tp) where
       .tpExp(O,R) .= deRef(Tp) &&
@@ -423,7 +423,6 @@ star.compiler.types{
       .tpFun("<=>",2).=deRef(O2) => deRef(R).
   funTypeRes(.allType(_,Tp)) => funTypeRes(deRef(Tp)).
   funTypeRes(.constrainedType(T,_))=>funTypeRes(T).
-  funTypeRes(.throwsType(T,_)) => funTypeRes(T).
 
   public isFunType:(tipe) => option[(tipe,tipe)].
   isFunType(Tp) where
@@ -431,9 +430,6 @@ star.compiler.types{
       .tpExp(O2,A) .= deRef(O) &&
       .tpFun("=>",2).=deRef(O2) => ?(A,B).
   isFunType(_) default => .none.
-
---  public isThrowsType:(tipe) => option[(tipe,tipe)].
---  isThrowsType(Tp) => (.throwsType(FTp,ETp).=deRef(Tp) ?? ?(FTp,ETp) || .none).
 
   public isConsType:(tipe) => option[(tipe,tipe)].
   isConsType(Tp) where
@@ -476,6 +472,7 @@ star.compiler.types{
   public fltType = .nomnal("star.core*float").
   public strType = .nomnal("star.core*string").
   public boolType = .nomnal("star.core*boolean").
+  public contType(T) => mkTypeExp(.tpFun("star.core*cont",1),[T]).
 
   public isRefType(Tp) => .tpExp(Op,_) .= deRef(Tp) &&
       .tpFun("star.core*ref",1).=deRef(Op).
@@ -522,7 +519,6 @@ star.compiler.types{
     .allType(_K,T) => typeKey(T).
     .existType(_K,T) => typeKey(T).
     .constrainedType(T,_C) => typeKey(T).
-    .throwsType(T,_) => typeKey(deRef(T)).
     .tpExp(O,_) => typeKey(deRef(O)).
     T default => T.
   }

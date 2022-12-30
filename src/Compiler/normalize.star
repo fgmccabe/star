@@ -339,17 +339,24 @@ star.compiler.normalize{
       valis (.cLtt(Lc,V,LGov,Res),Ex2)
     }
   }
-  liftExp(.trycatch(Lc,Gov,ErTp,Hndlr,Tp),Map,Q,Ex) => valof{
-    (LGov,Ex1) = liftExp(Gov,Map,Q,Ex);
-    (Hs,Ex2) = transformRules(Hndlr,Map,Q,.none,Ex1);
-    ErrVr = .cVar(Lc,genVar("E",ErTp));
-    HH = caseMatcher(Lc,Map,ErrVr,.cAbort(Lc,"no matches",Tp),Hs);
-    
-    valis (.cTry(Lc,LGov,ErrVr,HH,Tp),Ex2)
+  liftExp(.trycatch(Lc,B,Th,Hndlr,Tp),Map,Q,Ex) => valof{
+    if ErTp?=getTypeArg(typeOf(Th),"star.core*cont") then{
+      (TT,Ex1) = liftPtn(Th,Map,Q,Ex);
+      (BB,Ex2) = liftExp(B,Map,Q,Ex1);
+      (Hs,Ex3) = transformRules(Hndlr,Map,Q,.none,Ex2);
+      ErrVr = .cVar(Lc,genVar("E",ErTp));
+      HH = caseMatcher(Lc,Map,ErrVr,.cAbort(Lc,"no matches",Tp),Hs);
+      valis (.cTry(Lc,BB,TT,ErrVr,HH,Tp),Ex3)
+    }
+    else {
+      reportError("expecting a continuation type, not $(typeOf(Th))",Lc);
+      valis (.cVoid(Lc,typeOf(Th)),Ex)
+    }
   }
-  liftExp(.thrw(Lc,E,Tp),Map,Q,Ex) => valof{
-    (LE,Ex1) = liftExp(E,Map,Q,Ex);
-    valis (.cThrow(Lc,LE,Tp),Ex1)
+  liftExp(.thrw(Lc,T,E,Tp),Map,Q,Ex) => valof{
+    (LT,Ex1) = liftExp(T,Map,Q,Ex);
+    (LE,Ex2) = liftExp(E,Map,Q,Ex1);
+    valis (.cThrow(Lc,LT,LE,Tp),Ex1)
   }
   liftExp(.vlof(Lc,A,Tp),Map,Q,Ex) => valof{
     (Acts,Ex1) = liftAction(A,Map,Q,Ex);
@@ -639,9 +646,10 @@ star.compiler.normalize{
     (EE,Ex1) = liftExp(E,Map,Q,Ex);
     valis (.aValis(Lc,EE),Ex1)
   }
-  liftAction(.doThrow(Lc,E),Map,Q,Ex) => valof{
-    (EE,Ex1) = liftExp(E,Map,Q,Ex);
-    valis (.aThrow(Lc,EE),Ex1)
+  liftAction(.doThrow(Lc,T,E),Map,Q,Ex) => valof{
+    (TT,Ex1) = liftExp(T,Map,Q,Ex);
+    (EE,Ex2) = liftExp(E,Map,Q,Ex1);
+    valis (.aThrow(Lc,TT,EE),Ex1)
   }
   liftAction(.doDefn(Lc,P,E),Map,Q,Ex) => valof{
     (PP,Ex1) = liftPtn(P,Map,Q,Ex);
@@ -682,13 +690,20 @@ star.compiler.normalize{
       valis (.aLtt(Lc,V,LGv,Res),Ex2)
     }
   }
-  liftAction(.doTryCatch(Lc,B,ErTp,H),Map,Q,Ex) => valof{
-    (BB,Ex1) = liftAction(B,Map,Q,Ex);
-    (Hs,Ex2) = transformRules(H,Map,Q,.none,Ex1);
-    ErrVr = .cVar(Lc,genVar("E",ErTp));
-    Hndlr = caseMatcher(Lc,Map,ErrVr,.aAbort(Lc,"no matches"),Hs);
-    
-    valis (.aTry(Lc,BB,ErrVr,Hndlr),Ex2)
+  liftAction(.doTryCatch(Lc,B,Th,H),Map,Q,Ex) => valof{
+    if ErTp?=getTypeArg(typeOf(Th),"star.core*cont") then{
+      (TT,Ex1) = liftPtn(Th,Map,Q,Ex);
+      (BB,Ex2) = liftAction(B,Map,Q,Ex1);
+      (Hs,Ex3) = transformRules(H,Map,Q,.none,Ex2);
+      ErrVr = .cVar(Lc,genVar("E",ErTp));
+      Hndlr = caseMatcher(Lc,Map,ErrVr,.aAbort(Lc,"no matches"),Hs);
+      
+      valis (.aTry(Lc,BB,TT,ErrVr,Hndlr),Ex3)
+    }
+    else {
+      reportError("expecting a continuation type, not $(typeOf(Th))",Lc);
+      valis (.aNop(Lc),Ex)
+    }
   }
   liftAction(.doCall(Lc,E),Map,Q,Ex) => valof{
     (EE,Ex1) = liftExp(E,Map,Q,Ex);

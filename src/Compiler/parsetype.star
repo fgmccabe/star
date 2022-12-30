@@ -77,11 +77,6 @@ star.compiler.typeparse{
     R = parseType(Q,Rhs,Env);
     valis fnType(A,R)
   }
-  parseType(Q,T,Env) where (Lc,Lhs,Rhs) ?= isThrows(T) => valof{
-    A = parseType(Q,Lhs,Env);
-    E = parseType(Q,Rhs,Env);
-    valis .throwsType(A,E)
-  }
   parseType(Q,T,Env) where (Lc,Lhs,Rhs) ?= isConstructorType(T) => valof{
     A = parseArgType(Q,Lhs,Env);
     R = parseType(Q,Rhs,Env);
@@ -342,7 +337,6 @@ star.compiler.typeparse{
   pickTypeTemplate(.tpFun(Nm,Ar)) => .tpFun(Nm,Ar).
   pickTypeTemplate(.kFun(Nm,Ar)) => .kFun(Nm,Ar).
   pickTypeTemplate(.tpExp(Op,_)) => pickTypeTemplate(Op).
-  pickTypeTemplate(.throwsType(T,_)) => pickTypeTemplate(T).
 
   public parseTypeDef:(string,ast,dict,string) => (cons[canonDef],cons[decl]).
   parseTypeDef(Nm,St,Env,Path) where (Lc,V,C,H,B) ?= isTypeExistsStmt(St) => valof{

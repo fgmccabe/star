@@ -263,14 +263,17 @@ star.compiler.resolve{
     (RCases,St2) = overloadRules(Cases,[],Dict,St1);
     valis (.csexp(Lc,RGov,RCases,Tp),St2)
   }
-  overloadTerm(.trycatch(Lc,A,ErTp,Hs,Tp),Dict,St) => valof{
-    (AA,St1) = overloadTerm(A,Dict,St);
+  overloadTerm(.trycatch(Lc,A,.vr(TLc,Tnm,TTp),Hs,Tp),Dict,St) => valof{
+    TDict = declareVar(Tnm,Tnm,TLc,TTp,.none,Dict);
+    (TT,St0) = overloadTerm(.vr(TLc,Tnm,TTp),TDict,St);
+    (AA,St1) = overloadTerm(A,TDict,St0);
     (HH,St2) = overloadRules(Hs,[],Dict,St1);
-    valis (.trycatch(Lc,AA,ErTp,HH,Tp),St2)
+    valis (.trycatch(Lc,AA,TT,HH,Tp),St2)
   }
-  overloadTerm(.thrw(Lc,E,Tp),Dict,St) => valof{
-    (RE,St1) = overloadTerm(E,Dict,St);
-    valis (.thrw(Lc,RE,Tp),St1)
+  overloadTerm(.thrw(Lc,E,T,Tp),Dict,St) => valof{
+    (TT,St1) = overloadTerm(T,Dict,St);
+    (EE,St2) = overloadTerm(E,Dict,St1);
+    valis (.thrw(Lc,EE,TT,Tp),St2)
   }
   overloadTerm(.vlof(Lc,Act,Tp),Dict,St) => valof{
     (Ac,St1) = overloadAction(Act,Dict,St);
@@ -322,9 +325,10 @@ star.compiler.resolve{
     (EE,St1) = overloadTerm(E,Dict,St);
     valis (.doValis(Lc,EE),St1)
   }
-  overloadAction(.doThrow(Lc,E),Dict,St) => valof{
-    (EE,St1) = overloadTerm(E,Dict,St);
-    valis (.doThrow(Lc,EE),St1)
+  overloadAction(.doThrow(Lc,T,E),Dict,St) => valof{
+    (TT,St1) = overloadTerm(T,Dict,St);
+    (EE,St2) = overloadTerm(E,Dict,St1);
+    valis (.doThrow(Lc,TT,EE),St1)
   }
   overloadAction(.doDefn(Lc,P,V),Dict,St) => valof{
     (PP,St1) = overloadTerm(P,Dict,St);
@@ -341,10 +345,12 @@ star.compiler.resolve{
     (VV,St2) = overloadTerm(V,Dict,St1);
     valis (.doAssign(Lc,PP,VV),St2)
   }
-  overloadAction(.doTryCatch(Lc,A,ETp,H),Dict,St) => valof{
-    (AA,St1) = overloadAction(A,Dict,St);
-    (HH,St2) = overloadRules(H,[],Dict,St1);
-    valis (.doTryCatch(Lc,AA,ETp,HH),St2)
+  overloadAction(.doTryCatch(Lc,A,.vr(TLc,Tnm,TTp),H),Dict,St) => valof{
+    TDict = declareVar(Tnm,Tnm,TLc,TTp,.none,Dict);
+    (TT,St1) = overloadTerm(.vr(TLc,Tnm,TTp),TDict,St);
+    (AA,St2) = overloadAction(A,TDict,St1);
+    (HH,St3) = overloadRules(H,[],Dict,St2);
+    valis (.doTryCatch(Lc,AA,TT,HH),St3)
   }
   overloadAction(.doIfThen(Lc,T,Th,El),Dict,St) => valof{
     (TT,St1) = overloadTerm(T,Dict,St);
@@ -451,9 +457,11 @@ star.compiler.resolve{
   
   resolveContract:(option[locn],constraint,dict,resolveState) => (canon,resolveState).
   resolveContract(Lc,.implicit(Id,Tp),Dict,St) => valof{
+--    logMsg("resolve implicit $(Id)\:$(Tp)");
     if Var ?= findVar(Lc,Id,Dict) then{
-      if sameType(Tp,typeOf(Var),Dict) then {
-	valis overloadTerm(Var,Dict,markResolved(St))
+--      logMsg("implicit $(Var)\:$(typeOf(Var))");
+      if sameType(snd(freshen(Tp,Dict)),typeOf(Var),Dict) then {
+	valis (Var,markResolved(St))
       } else{
 	valis (.anon(Lc,Tp),
 	  .active(Lc,"implicit $(Id)\:$(typeOf(Var)) not consistent with expected type: $(Tp)"))

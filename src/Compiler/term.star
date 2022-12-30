@@ -27,7 +27,7 @@ star.compiler.term{
     | .cCall(option[locn],string,cons[cExp],tipe)
     | .cECall(option[locn],string,cons[cExp],tipe)
     | .cOCall(option[locn],cExp,cons[cExp],tipe)
-    | .cThrow(option[locn],cExp,tipe)
+    | .cThrow(option[locn],cExp,cExp,tipe)
     | .cSeq(option[locn],cExp,cExp)
     | .cCnj(option[locn],cExp,cExp)
     | .cDsj(option[locn],cExp,cExp)
@@ -42,7 +42,7 @@ star.compiler.term{
     | .cAbort(option[locn],string,tipe)
     | .cSusp(option[locn],cExp,cExp,tipe)
     | .cResume(option[locn],cExp,cExp,tipe)
-    | .cTry(option[locn],cExp,cExp,cExp,tipe)
+    | .cTry(option[locn],cExp,cExp,cExp,cExp,tipe)
     | .cValof(option[locn],aAction,tipe).
   
   public cId ::= .cId(string,tipe).
@@ -54,7 +54,7 @@ star.compiler.term{
     | .aLbld(option[locn],string,aAction)
     | .aBreak(option[locn],string)
     | .aValis(option[locn],cExp)
-    | .aThrow(option[locn],cExp)
+    | .aThrow(option[locn],cExp,cExp)
     | .aPerf(option[locn],cExp)
     | .aSetNth(option[locn],cExp,integer,cExp)
     | .aDefn(option[locn],cExp,cExp)
@@ -64,7 +64,7 @@ star.compiler.term{
     | .aIftte(option[locn],cExp,aAction,aAction)
     | .aWhile(option[locn],cExp,aAction)
     | .aRetire(option[locn],cExp,cExp)
-    | .aTry(option[locn],aAction,cExp,aAction)
+    | .aTry(option[locn],aAction,cExp,cExp,aAction)
     | .aLtt(option[locn],cId,cExp,aAction)
     | .aCont(option[locn],cId,cExp,aAction)
     | .aVarNmes(option[locn],cons[(string,cId)],aAction)
@@ -114,7 +114,7 @@ star.compiler.term{
     .cThunk(_,E,Tp) => "thunk #(dspExp(E,Off))".
     .cThGet(_,E,_) => "get #(dspExp(E,Off))".
     .cThSet(_,E,V,_) => "set #(dspExp(E,Off)) <- #(dspExp(V,Off))".
-    .cThrow(_,E,_) => "throw #(dspExp(E,Off))".
+    .cThrow(_,T,E,_) => "#(dspExp(T,Off)) throw #(dspExp(E,Off))".
     .cLtt(_,V,D,I) => valof{
       Off2=Off++"  ";
       valis "let $(V) = #(dspExp(D,Off2)) in\n#(Off2)#(dspExp(I,Off2))"
@@ -144,8 +144,8 @@ star.compiler.term{
     .cAbort(_,M,_) => "abort #(M)".
     .cSusp(_,T,E,_) => "#(dspExp(T,Off)) suspend #(dspExp(E,Off))".
     .cResume(_,T,E,_) => "#(dspExp(T,Off)) resume #(dspExp(E,Off))".
-    .cTry(_,B,E,H,_)=> 
-      "try #(dspExp(B,Off)) catch $(E)/#(dspExp(H,Off))".
+    .cTry(_,B,T,E,H,_)=> 
+      "try #(dspExp(T,Off)) in #(dspExp(B,Off)) catch $(E)/#(dspExp(H,Off))".
     .cValof(_,A,_) => "valof #(dspAct(A,Off))".
   }
 
@@ -159,7 +159,7 @@ star.compiler.term{
     .aLbld(_,Lb,A) => "#(Lb) : #(dspAct(A,Off))".
     .aBreak(_,Lb) => "break #(Lb)".
     .aValis(_,E) => "valis #(dspExp(E,Off))".
-    .aThrow(_,E) => "throw #(dspExp(E,Off))".
+    .aThrow(_,T,E) => "#(dspExp(T,Off)) throw #(dspExp(E,Off))".
     .aPerf(_,E) => "perform #(dspExp(E,Off))".
     .aSetNth(_,T,Ix,V) => "update #(dspExp(T,Off))[$(Ix)] <- #(dspExp(V,Off))".
     .aDefn(_,P,E) => "#(dspExp(P,Off)) = #(dspExp(E,Off))".
@@ -181,8 +181,8 @@ star.compiler.term{
       valis "while #(dspExp(C,Off)) do#(dspAct(A,Off2))"
     }.
     .aRetire(_,T,E) => "#(dspExp(T,Off)) retire #(dspExp(E,Off))".
-    .aTry(_,B,V,H) => 
-      "try #(dspAct(B,Off)) catch $(V)/ #(dspAct(H,Off))".
+    .aTry(_,B,T,V,H) => 
+      "try #(dspExp(T,Off)) in #(dspAct(B,Off)) catch $(V) in #(dspAct(H,Off))".
     .aLtt(_,V,D,I) => valof{
       Off2=Off++"  ";
       valis "let $(V) = #(dspExp(D,Off2)) in\n#(Off2)#(dspAct(I,Off2))"
@@ -240,7 +240,7 @@ star.compiler.term{
     .cCall(_,S1,A1,_) => .cCall(_,S2,A2,_).=E2 && S1==S2 && eqs(A1,A2).
     .cECall(_,S1,A1,_) => .cECall(_,S2,A2,_).=E2 && S1==S2 && eqs(A1,A2).
     .cOCall(_,S1,A1,_) => .cOCall(_,S2,A2,_).=E2 && eqTerm(S1,S2) && eqs(A1,A2).
-    .cThrow(_,S1,_) => .cThrow(_,S2,_).=E2 && S1==S2.
+    .cThrow(_,T1,S1,_) => .cThrow(_,T2,S2,_).=E2 && T1==T2 && S1==S2.
     .cNth(_,R1,F1,_) => .cNth(_,R2,F2,_).=E2 && eqTerm(R1,R2) && F1==F2.
     .cSetNth(_,R1,Ix,V1) => .cSetNth(_,R2,Ix,V2).=E2 && eqTerm(R1,R2) && eqTerm(V1,V2).
     .cThunk(_,V1,_) => .cThunk(_,V2,_).=E2 && eqTerm(V1,V2).
@@ -264,7 +264,8 @@ star.compiler.term{
     .cAbort(_,M1,T1) => .cAbort(_,M2,T2).=E2 && M1==M2 && T1==T2.
     .cSusp(_,T1,V1,_) => .cSusp(_,T2,V2,_).=E2 && eqTerm(T1,T2) && eqTerm(V1,V2).
     .cResume(_,T1,V1,_) => .cResume(_,T2,V2,_).=E2 && eqTerm(T1,T2) && eqTerm(V1,V2).
-    .cTry(_,M1,E1,H1,_) => .cTry(_,M2,E2,H2,_).=E2 && eqTerm(M1,M2) && eqTerm(E1,E2) && eqTerm(H1,H2).
+    .cTry(_,M1,T1,E1,H1,_) => .cTry(_,M2,T2,E2,H2,_).=E2 &&
+	eqTerm(T1,T2) && eqTerm(M1,M2) && eqTerm(E1,E2) && eqTerm(H1,H2).
     .cValof(_,A1,_) => .cValof(_,A2,_).=E2 && eqAct(A1,A2).
     .cVarNmes(_,N1,V1) => .cVarNmes(_,N2,V2).=E2 && eqVs(N1,N2) && eqTerm(V1,V2).
     _ default => .false
@@ -295,7 +296,7 @@ star.compiler.term{
     .aLbld(_,L1,Ac1) => .aLbld(_,L2,Ac2).=A2 && L1==L2 && eqAct(Ac1,Ac2).
     .aBreak(_,L1) => .aBreak(_,L2).=A2 && L1==L2.
     .aValis(_,E1) => .aValis(_,E2).=A2 && eqTerm(E1,E2).
-    .aThrow(_,E1) => .aThrow(_,E2).=A2 && eqTerm(E1,E2).
+    .aThrow(_,T1,E1) => .aThrow(_,T2,E2).=A2 && eqTerm(T1,T2) && eqTerm(E1,E2).
     .aPerf(_,E1) => .aPerf(_,E2).=A2 && eqTerm(E1,E2).
     .aSetNth(_,V1,Ix1,T1) => .aSetNth(_,V2,Ix2,T2).=A2 && eqTerm(V1,V2) && Ix1==Ix2 && eqTerm(T1,T2).
     .aDefn(_,E1,V1) => .aDefn(_,E2,V2).=A2 && eqTerm(E1,E2) && eqTerm(V1,V2).
@@ -309,7 +310,8 @@ star.compiler.term{
     .aWhile(_,C1,L1) => .aWhile(_,C2,L2).=A2 &&
 	eqTerm(C1,C2) && eqAct(L1,L2).
     .aRetire(_,E1,V1) => .aRetire(_,E2,V2).=A2 && eqTerm(E1,E2) && eqTerm(V1,V2).
-    .aTry(_,M1,E1,H1) => .aTry(_,M2,E2,H2).=A2 && eqAct(M1,M2) && eqTerm(E1,E2) && eqAct(H1,H2).
+    .aTry(_,M1,T1,E1,H1) => .aTry(_,M2,T2,E2,H2).=A2 && eqAct(M1,M2) &&
+	eqTerm(T1,T2) && eqTerm(E1,E2) && eqAct(H1,H2).
     .aLtt(_,V1,D1,Ac1) => .aLtt(_,V2,D2,Ac2).=A2 &&
 	V1==V2 && eqTerm(D1,D2) && eqAct(Ac1,Ac2).
     .aCont(_,V1,D1,Ac1) => .aCont(_,V2,D2,Ac2).=A2 &&
@@ -360,8 +362,8 @@ star.compiler.term{
       .cVarNmes(Lc,_,_) => Lc.
       .cSusp(Lc,_,_,_) => Lc.
       .cResume(Lc,_,_,_) => Lc.
-      .cTry(Lc,_,_,_,_) => Lc.
-      .cThrow(Lc,_,_) => Lc.
+      .cTry(Lc,_,_,_,_,_) => Lc.
+      .cThrow(Lc,_,_,_) => Lc.
       .cValof(Lc,_,_) => Lc.
     }
   }
@@ -380,7 +382,7 @@ star.compiler.term{
       .cECall(_,_,_,Tp) => Tp.
       .cOCall(_,_,_,Tp) => Tp.
       .cCall(_,_,_,Tp) => Tp.
-      .cThrow(_,_,Tp) => Tp.
+      .cThrow(_,_,_,Tp) => Tp.
       .cNth(_,_,_,Tp) => Tp.
       .cSetNth(_,T,_,_) => tpOf(T).
       .cThunk(_,_,Tp) => Tp.
@@ -398,8 +400,7 @@ star.compiler.term{
       .cMatch(_,_,_) => boolType.
       .cSusp(_,_,_,T) => T.
       .cResume(_,_,_,T) => T.
-      .cTry(_,_,_,_,T) => T.
-      .cThrow(_,_,T) => T.
+      .cTry(_,_,_,_,_,T) => T.
       .cValof(_,_,T) => T.
       .cAbort(_,_,T) => T.
       .cVarNmes(_,_,E) => tpOf(E).
@@ -427,7 +428,7 @@ star.compiler.term{
       .aLbld(Lc,_,_) => Lc.
       .aBreak(Lc,_) => Lc.
       .aValis(Lc,_) => Lc.
-      .aThrow(Lc,_) => Lc.
+      .aThrow(Lc,_,_) => Lc.
       .aPerf(Lc,_) => Lc.
       .aSetNth(Lc,_,_,_) => Lc.
       .aDefn(Lc,_,_) => Lc.
@@ -437,7 +438,7 @@ star.compiler.term{
       .aIftte(Lc,_,_,_) => Lc.
       .aWhile(Lc,_,_) => Lc.
       .aRetire(Lc,_,_) => Lc.
-      .aTry(Lc,_,_,_) => Lc.
+      .aTry(Lc,_,_,_,_) => Lc.
       .aLtt(Lc,_,_,_) => Lc.
       .aCont(Lc,_,_,_) => Lc.
       .aVarNmes(Lc,_,_) => Lc.
@@ -476,8 +477,8 @@ star.compiler.term{
   }
 
   public rwTerm:(cExp,(cExp)=>option[cDefn])=>cExp.
-  rwTerm(T,Tst) =>
-    .vrDef(_,_,_,Vl) ?= Tst(T) ?? Vl || case T in {
+  rwTerm(Trm,Tst) =>
+    .vrDef(_,_,_,Vl) ?= Tst(Trm) ?? Vl || case Trm in {
       .cVoid(Lc,Tp) => .cVoid(Lc,Tp).
       .cAnon(Lc,Tp) => .cAnon(Lc,Tp).
       .cVar(Lc,V) => .cVar(Lc,V).
@@ -495,7 +496,7 @@ star.compiler.term{
       .cCall(Lc,Op,Args,Tp) => .cCall(Lc,Op,Args//(A)=>rwTerm(A,Tst),Tp).
       .cOCall(Lc,Op,Args,Tp) => .cOCall(Lc,rwTerm(Op,Tst),Args//(A)=>rwTerm(A,Tst),Tp).
       .cECall(Lc,Op,Args,Tp) => .cECall(Lc,Op,Args//(A)=>rwTerm(A,Tst),Tp).
-      .cThrow(Lc,E,Tp) =>.cThrow(Lc,rwTerm(E,Tst),Tp).
+      .cThrow(Lc,Th,E,Tp) =>.cThrow(Lc,rwTerm(Th,Tst),rwTerm(E,Tst),Tp).
       .cSeq(Lc,L,R) =>.cSeq(Lc,rwTerm(L,Tst),rwTerm(R,Tst)).
       .cCnj(Lc,L,R) =>.cCnj(Lc,rwTerm(L,Tst),rwTerm(R,Tst)).
       .cDsj(Lc,L,R) =>.cDsj(Lc,rwTerm(L,Tst),rwTerm(R,Tst)).
@@ -510,7 +511,7 @@ star.compiler.term{
       .cMatch(Lc,P,E) => .cMatch(Lc,rwTerm(P,Tst),rwTerm(E,Tst)).
       .cSusp(Lc,F,E,Tp) => .cSusp(Lc,rwTerm(F,Tst),rwTerm(E,Tst),Tp).
       .cResume(Lc,F,E,Tp) => .cResume(Lc,rwTerm(F,Tst),rwTerm(E,Tst),Tp).
-      .cTry(Lc,B,E,H,Tp) => .cTry(Lc,rwTerm(B,Tst),rwTerm(E,Tst),rwTerm(H,Tst),Tp).
+      .cTry(Lc,B,T,E,H,Tp) => .cTry(Lc,rwTerm(B,Tst),rwTerm(T,Tst),rwTerm(E,Tst),rwTerm(H,Tst),Tp).
       .cVarNmes(Lc,Vs,E) => .cVarNmes(Lc,Vs,rwTerm(E,Tst)).
       .cValof(Lc,A,Tp) => .cValof(Lc,rwAct(A,Tst),Tp).
       .cAbort(Lc,Ms,Tp) => .cAbort(Lc,Ms,Tp).
@@ -523,7 +524,7 @@ star.compiler.term{
     .aLbld(Lc,L,A) => .aLbld(Lc,L,rwAct(A,Tst)).
     .aBreak(Lc,L) => .aBreak(Lc,L).
     .aValis(Lc,E) => .aValis(Lc,rwTerm(E,Tst)).
-    .aThrow(Lc,E) => .aThrow(Lc,rwTerm(E,Tst)).
+    .aThrow(Lc,T,E) => .aThrow(Lc,rwTerm(T,Tst),rwTerm(E,Tst)).
     .aPerf(Lc,E) => .aPerf(Lc,rwTerm(E,Tst)).
     .aSetNth(Lc,V,Ix,E) => .aSetNth(Lc,rwTerm(V,Tst),Ix,rwTerm(E,Tst)).
     .aDefn(Lc,V,E) => .aDefn(Lc,rwTerm(V,Tst),rwTerm(E,Tst)).
@@ -533,7 +534,7 @@ star.compiler.term{
     .aIftte(Lc,C,L,R) => .aIftte(Lc,rwTerm(C,Tst),rwAct(L,Tst),rwAct(R,Tst)).
     .aWhile(Lc,C,B) => .aWhile(Lc,rwTerm(C,Tst),rwAct(B,Tst)).
     .aRetire(Lc,T,E) => .aRetire(Lc,rwTerm(T,Tst),rwTerm(E,Tst)).
-    .aTry(Lc,B,E,Hs) => .aTry(Lc,rwAct(B,Tst),rwTerm(E,Tst),rwAct(Hs,Tst)).
+    .aTry(Lc,B,T,E,Hs) => .aTry(Lc,rwAct(B,Tst),rwTerm(T,Tst),rwTerm(E,Tst),rwAct(Hs,Tst)).
     .aLtt(Lc,V,D,A) =>.aLtt(Lc,V,rwTerm(D,Tst),rwAct(A,dropVar(cName(V),Tst))).
     .aCont(Lc,V,D,A) =>.aCont(Lc,V,rwTerm(D,Tst),rwAct(A,dropVar(cName(V),Tst))).
     .aVarNmes(Lc,Vs,E) => .aVarNmes(Lc,Vs,rwAct(E,Tst)).
@@ -777,7 +778,7 @@ star.compiler.term{
     .cCall(_,_,Args,_) => {? E in Args *> validE(E,Vrs) ?}.
     .cECall(_,_,Args,_) => {? E in Args *> validE(E,Vrs) ?}.
     .cOCall(_,Op,Args,_) => validE(Op,Vrs) && {? E in Args *> validE(E,Vrs) ?}.
-    .cThrow(_,E,_) => validE(E,Vrs).
+    .cThrow(_,T,E,_) => validE(T,Vrs) && validE(E,Vrs).
     .cSeq(_,L,R) => validE(L,Vrs) && validE(R,Vrs).
     .cCnj(_,L,R) => valof{
       V1 = glVars(L,Vrs);
@@ -801,9 +802,10 @@ star.compiler.term{
     .cAbort(_,_,_) => .true.
     .cSusp(_,Ts,E,_) => validE(Ts,Vrs) && validE(E,Vrs).
     .cResume(_,Ts,E,_) => validE(Ts,Vrs) && validE(E,Vrs).
-    .cTry(_,B,E,H,_) => valof{
-      V1 = ptnVrs(E,Vrs);
-      valis validE(B,Vrs) && validE(E,V1) && validE(H,V1)
+    .cTry(_,B,T,E,H,_) => valof{
+      V1 = ptnVrs(T,Vrs);
+      V2 = ptnVrs(E,Vrs);
+      valis validE(B,V1) && validE(T,V1) && validE(E,V2) && validE(H,V2)
     }.
     .cValof(_,A,_) => validA(A,Vrs).
   }
@@ -846,7 +848,7 @@ star.compiler.term{
     .aLbld(_,_,A) => validA(A,Vrs).
     .aBreak(_,L) => .true.
     .aValis(_,E) => validE(E,Vrs).
-    .aThrow(_,E) => validE(E,Vrs).
+    .aThrow(_,T,E) => validE(T,Vrs) && validE(E,Vrs).
     .aPerf(_,E) => validE(E,Vrs).
     .aSetNth(_,V,_,E) => validE(V,Vrs) && validE(E,Vrs).
     .aDefn(_,P,E) => 
@@ -865,9 +867,10 @@ star.compiler.term{
       valis validE(G,D1) && validA(A,D1)
     }.
     .aRetire(_,Ts,E) => validE(Ts,Vrs) && validE(E,Vrs).
-    .aTry(_,B,E,Hs) => valof{
-      D1 = ptnVrs(E,Vrs);
-      valis validA(B,Vrs) && validE(E,D1) && validA(Hs,D1)
+    .aTry(_,B,Th,E,Hs) => valof{
+      V1 = ptnVrs(Th,Vrs);
+      V2 = ptnVrs(E,Vrs);
+      valis validA(B,V1) && validE(Th,V1) && validE(E,V2) && validA(Hs,V2)
     }.
     .aLtt(_,B,V,A) => validE(V,Vrs) && validA(A,Vrs\+B).
     .aCont(_,B,V,A) => validE(V,Vrs) && validA(A,Vrs\+B).
@@ -933,7 +936,7 @@ star.compiler.term{
     .aLbld(_,_,A) => presentInA(A,C,T).
     .aBreak(_,L) => .false.
     .aValis(_,E) => presentInE(E,C,T).
-    .aThrow(_,E) => presentInE(E,C,T).
+    .aThrow(_,Th,E) => presentInE(Th,C,T) || presentInE(E,C,T).
     .aPerf(_,E) => presentInE(E,C,T).
     .aSetNth(_,V,_,E) => presentInE(V,C,T) || presentInE(E,C,T).
     .aDefn(_,_,E) => presentInE(E,C,T).
@@ -947,7 +950,7 @@ star.compiler.term{
     .aWhile(_,G,B) =>
       presentInE(G,C,T) || presentInA(B,C,T).
     .aRetire(_,Ts,E) => presentInE(Ts,C,T) || presentInE(E,C,T).
-    .aTry(_,B,E,H) => presentInA(B,C,T) || presentInE(E,C,T) || presentInA(H,C,T).
+    .aTry(_,B,Th,E,H) => presentInA(B,C,T) || presentInE(Th,C,T) || presentInE(E,C,T) || presentInA(H,C,T).
     .aLtt(_,_,V,B) => presentInE(V,C,T) || presentInA(B,C,T).
     .aCont(_,_,V,B) => presentInE(V,C,T) || presentInA(B,C,T).
     .aVarNmes(_,_,B) => presentInA(B,C,T).
@@ -980,7 +983,7 @@ star.compiler.term{
     .cECall(_,_,Args,_) => {? E in Args && presentInE(E,A,C) ?}.
     .cOCall(_,Op,Args,_) =>
       presentInE(Op,A,C) || {? E in Args && presentInE(E,A,C) ?}.
-    .cThrow(_,E,_) => presentInE(E,A,C).
+    .cThrow(_,Th,E,_) => presentInE(Th,A,C) || presentInE(E,A,C).
     .cSeq(_,L,R) => presentInE(L,A,C) || presentInE(R,A,C).
     .cCnj(_,L,R) => presentInE(L,A,C) || presentInE(R,A,C).
     .cDsj(_,L,R) => presentInE(L,A,C) || presentInE(R,A,C).
@@ -1002,8 +1005,8 @@ star.compiler.term{
     .cAbort(_,_,_) => .false.
     .cSusp(_,Ts,E,_) => presentInE(Ts,A,C) || presentInE(E,A,C).
     .cResume(_,Ts,E,_) => presentInE(Ts,A,C) || presentInE(E,A,C).
-    .cTry(_,B,E,H,_) =>
-      presentInE(B,A,C) || presentInE(E,A,C) || presentInE(H,A,C).
+    .cTry(_,B,Th,E,H,_) =>
+      presentInE(B,A,C) || presentInE(Th,A,C) || presentInE(E,A,C) || presentInE(H,A,C).
     .cValof(_,Act,_) => presentInA(Act,A,C).
   }
 
@@ -1033,8 +1036,8 @@ star.compiler.term{
       visitEls(Args,V,VA,V(Tr,X)).
     .cOCall(Lc,Op,Args,Tp) =>
       visitEls(Args,V,VA,visitE(Op,V,VA,V(Tr,X))).
-    .cThrow(Lc,E,Tp) =>
-      visitE(E,V,VA,V(Tr,X)).
+    .cThrow(Lc,T,E,Tp) =>
+      visitE(T,V,VA,visitE(E,V,VA,V(Tr,X))).
     .cSeq(Lc,L,R) =>
       visitE(R,V,VA,visitE(L,V,VA,V(Tr,X))).
     .cCnj(Lc,L,R) =>
@@ -1064,8 +1067,8 @@ star.compiler.term{
       visitE(T,V,VA,visitE(E,V,VA,V(Tr,X))).
     .cResume(Lc,T,E,Tp) =>
       visitE(T,V,VA,visitE(E,V,VA,V(Tr,X))).
-    .cTry(Lc,B,E,H,Tp) =>
-      visitE(H,V,VA,visitE(B,V,VA,visitE(E,V,VA,V(Tr,X)))).
+    .cTry(Lc,B,T,E,H,Tp) =>
+      visitE(H,V,VA,visitE(B,V,VA,visitE(T,V,VA,visitE(E,V,VA,V(Tr,X))))).
     .cValof(Lc,A,Tp) =>
       visitA(A,V,VA,V(Tr,X)).
   }
@@ -1080,7 +1083,7 @@ star.compiler.term{
     .aSeq(Lc,A1,A2) => visitA(A2,V,VA,visitA(A1,V,VA,VA(Ac,X))).
     .aLbld(Lc,Lb,A) => visitA(A,V,VA,VA(Ac,X)).
     .aValis(Lc,E) => visitE(E,V,VA,X).
-    .aThrow(Lc,E) => visitE(E,V,VA,X).
+    .aThrow(Lc,T,E) => visitE(T,V,VA,visitE(E,V,VA,VA(Ac,X))).
     .aPerf(Lc,E) => visitE(E,V,VA,X).
     .aSetNth(Lc,T,Ix,E) => visitE(T,V,VA,visitE(E,V,VA,VA(Ac,X))).
     .aDefn(Lc,Vr,E) => visitE(E,V,VA,VA(Ac,X)).
@@ -1098,7 +1101,7 @@ star.compiler.term{
       visitA(A,V,VA,visitE(G,V,VA,VA(Ac,X))).
     .aRetire(Lc,T,E) =>
       visitE(E,V,VA,visitE(T,V,VA,VA(Ac,X))).
-    .aTry(Lc,B,E,H) => visitA(H,V,VA,visitA(B,V,VA,visitE(E,V,VA,VA(Ac,X)))).
+    .aTry(Lc,B,T,E,H) => visitA(H,V,VA,visitA(B,V,VA,visitE(T,V,VA,visitE(E,V,VA,VA(Ac,X))))).
     .aLtt(Lc,Vr,B,A) =>
       visitA(A,V,VA,visitE(B,V,VA,VA(Ac,X))).
     .aCont(Lc,Vr,B,A) =>
@@ -1150,7 +1153,8 @@ star.compiler.term{
 	.strg(encodeSignature(Tp))]).
     .cOCall(Lc,Op,Args,Tp) => mkCons("ocll",[Lc::data,frzeExp(Op),
 	mkTpl(Args//frzeExp),.strg(encodeSignature(Tp))]).
-    .cThrow(Lc,X,Tp) => mkCons("thrw",[Lc::data,frzeExp(X),.strg(encodeSignature(Tp))]).
+    .cThrow(Lc,Th,X,Tp) => mkCons("thrw",[Lc::data,frzeExp(Th),
+	frzeExp(X),.strg(encodeSignature(Tp))]).
     .cSeq(Lc,L,R) => mkCons("seq",[Lc::data,frzeExp(L),frzeExp(R)]).
     .cCnj(Lc,L,R) => mkCons("cnj",[Lc::data,frzeExp(L),frzeExp(R)]).
     .cDsj(Lc,L,R) => mkCons("dsj",[Lc::data,frzeExp(L),frzeExp(R)]).
@@ -1168,7 +1172,7 @@ star.compiler.term{
     .cAbort(Lc,Msg,Tp) => mkCons("abrt",[Lc::data,.strg(Msg),encodeSig(Tp)]).
     .cSusp(Lc,F,V,Tp) => mkCons("susp",[Lc::data,frzeExp(F),frzeExp(V),encodeSig(Tp)]).
     .cResume(Lc,F,V,Tp) => mkCons("resme",[Lc::data,frzeExp(F),frzeExp(V),encodeSig(Tp)]).
-    .cTry(Lc,B,Er,H,Tp) => mkCons("try",[Lc::data,frzeExp(B),frzeExp(Er),frzeExp(H),encodeSig(Tp)]).
+    .cTry(Lc,B,T,E,H,Tp) => mkCons("try",[Lc::data,frzeExp(B),frzeExp(T),frzeExp(E),frzeExp(H),encodeSig(Tp)]).
     .cVarNmes(Lc,Vs,B) => mkCons("vrs",[Lc::data,freezeNames(Vs),frzeExp(B)]).
     .cValof(Lc,A,Tp) => mkCons("valof",[Lc::data,frzeAct(A),encodeSig(Tp)]).
   }
@@ -1186,7 +1190,7 @@ star.compiler.term{
     .aLbld(Lc,L,I) => mkCons("lbld",[Lc::data,.strg(L),frzeAct(I)]).
     .aBreak(Lc,L) => mkCons("brek",[Lc::data,.strg(L)]).
     .aValis(Lc,V) => mkCons("vls",[Lc::data,frzeExp(V)]).
-    .aThrow(Lc,V) => mkCons("thrw",[Lc::data,frzeExp(V)]).
+    .aThrow(Lc,T,V) => mkCons("thrw",[Lc::data,frzeExp(T),frzeExp(V)]).
     .aPerf(Lc,V) => mkCons("perf",[Lc::data,frzeExp(V)]).
     .aSetNth(Lc,V,Ix,E) => mkCons("setix",[Lc::data,frzeExp(V),.intgr(Ix),frzeExp(E)]).
     .aDefn(Lc,P,V) => mkCons("defn",[Lc::data,frzeExp(P),frzeExp(V)]).
@@ -1197,7 +1201,7 @@ star.compiler.term{
     .aIftte(Lc,T,L,R) => mkCons("iftt",[Lc::data,frzeExp(T),frzeAct(L),frzeAct(R)]).
     .aWhile(Lc,T,I) => mkCons("whle",[Lc::data,frzeExp(T),frzeAct(I)]).
     .aRetire(Lc,F,V) => mkCons("rtre",[Lc::data,frzeExp(F),frzeExp(V)]).
-    .aTry(Lc,B,E,H) => mkCons("try",[Lc::data,frzeAct(B),frzeExp(E),frzeAct(H)]).
+    .aTry(Lc,B,T,E,H) => mkCons("try",[Lc::data,frzeAct(B),frzeExp(T),frzeExp(E),frzeAct(H)]).
     .aLtt(Lc,.cId(V,Tp),B,X) => mkCons("ltt",[Lc::data,.strg(V),encodeSig(Tp),
 	frzeExp(B),frzeAct(X)]).
     .aCont(Lc,.cId(V,Tp),B,X) => mkCons("cont",[Lc::data,.strg(V),encodeSig(Tp),
@@ -1251,8 +1255,8 @@ star.compiler.term{
       .cECall(thawLoc(Lc),Nm,Args//thawTerm,decodeSig(Sig)).
     .term("ocll",[Lc,Op,.term(_,Args),Sig]) =>
       .cOCall(thawLoc(Lc),thawTerm(Op),Args//thawTerm,decodeSig(Sig)).
-    .term("thrw",[Lc,Op,Sig]) =>
-      .cThrow(thawLoc(Lc),thawTerm(Op),decodeSig(Sig)).
+    .term("thrw",[Lc,Th,Op,Sig]) =>
+      .cThrow(thawLoc(Lc),thawTerm(Th),thawTerm(Op),decodeSig(Sig)).
     .term("seq",[Lc,L,R]) =>
       .cSeq(thawLoc(Lc),thawTerm(L),thawTerm(R)).
     .term("cnj",[Lc,L,R]) =>
@@ -1276,7 +1280,7 @@ star.compiler.term{
     .term("abrt",[Lc,.strg(M),Sig]) => .cAbort(thawLoc(Lc),M,decodeSig(Sig)).
     .term("susp",[Lc,F,E,Sig]) => .cSusp(thawLoc(Lc),thawTerm(F),thawTerm(E),decodeSig(Sig)).
     .term("resme",[Lc,F,E,Sig]) => .cResume(thawLoc(Lc),thawTerm(F),thawTerm(E),decodeSig(Sig)).
-    .term("try",[Lc,B,E,H,Sig]) => .cTry(thawLoc(Lc),thawTerm(B),thawTerm(E),thawTerm(H),decodeSig(Sig)).
+    .term("try",[Lc,B,Th,E,H,Sig]) => .cTry(thawLoc(Lc),thawTerm(B),thawTerm(Th),thawTerm(E),thawTerm(H),decodeSig(Sig)).
     .term("vrs",[Lc,Vs,B]) => .cVarNmes(thawLoc(Lc),thawVars(Vs),thawTerm(B)).
     .term("valof",[Lc,A,T]) => .cValof(thawLoc(Lc),thawAct(A),decodeSig(T)).
   }
@@ -1297,7 +1301,7 @@ star.compiler.term{
     .term("lbld",[Lc,.strg(L),I]) => .aLbld(thawLoc(Lc),L,thawAct(I)).
     .term("brek",[Lc,.strg(L)]) => .aBreak(thawLoc(Lc),L).
     .term("vls",[Lc,V]) => .aValis(thawLoc(Lc),thawTerm(V)).
-    .term("thrw",[Lc,V]) => .aThrow(thawLoc(Lc),thawTerm(V)).
+    .term("thrw",[Lc,T,V]) => .aThrow(thawLoc(Lc),thawTerm(T),thawTerm(V)).
     .term("perf",[Lc,V]) => .aPerf(thawLoc(Lc),thawTerm(V)).
     .term("setix",[Lc,V,.intgr(Ix),E]) => .aSetNth(thawLoc(Lc),thawTerm(V),Ix,thawTerm(E)).
     .term("defn",[Lc,P,V]) => .aDefn(thawLoc(Lc),thawTerm(P),thawTerm(V)).
@@ -1308,7 +1312,7 @@ star.compiler.term{
     .term("iftt",[Lc,T,L,R]) => .aIftte(thawLoc(Lc),thawTerm(T),thawAct(L),thawAct(R)).
     .term("whle",[Lc,T,I]) => .aWhile(thawLoc(Lc),thawTerm(T),thawAct(I)).
     .term("rtre",[Lc,F,V]) => .aRetire(thawLoc(Lc),thawTerm(F),thawTerm(V)).
-    .term("try",[Lc,B,E,H]) => .aTry(thawLoc(Lc),thawAct(B),thawTerm(E),thawAct(H)).
+    .term("try",[Lc,B,T,E,H]) => .aTry(thawLoc(Lc),thawAct(B),thawTerm(T),thawTerm(E),thawAct(H)).
     .term("vrs",[Lc,Vs,B]) => .aVarNmes(thawLoc(Lc),thawVars(Vs),thawAct(B)).
     .term("ltt",[Lc,.strg(V),Sig,B,X]) =>
       .aLtt(thawLoc(Lc),.cId(V,decodeSig(Sig)),thawTerm(B),thawAct(X)).

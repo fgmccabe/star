@@ -33,7 +33,6 @@ star.compiler.peephole{
   uncondJmp(Op) => case Op in {
     .iJmp(_) => .true.
     .iRet => .true.
-    .iRetX => .true.
     .iRtG => .true.
     .iAbort => .true.
     .iRetire => .true.
@@ -50,10 +49,6 @@ star.compiler.peephole{
   peep([.iLine(Lc),.iLine(_),..Ins]) => peep([.iLine(Lc),..Ins]).
   peep(Ins) where Inx ?= accessorPtn(Ins) => peep(Inx).
   peep([.iStL(Off),.iLdL(Off),..Ins]) => peep([.iTL(Off),..Ins]).
-  peep([.iCall(Fn,.al("$$")),.iFrame(_),.iRet,..Ins]) =>
-    [.iTCall(Fn),..peep(Ins)].
-  peep([.iOCall(O,.al("$$")),.iFrame(_),.iRet,..Ins]) =>
-    [.iTOCall(O),..peep(Ins)].
   peep([.iRot(0),..Ins]) => peep(Ins).
   peep([I,..Ins]) => [I,..peep(Ins)].
 
@@ -106,11 +101,7 @@ star.compiler.peephole{
   findExits:(cons[assemOp],set[assemLbl]) => set[assemLbl].
   findExits(Code,Ex) => foldLeft((O,X) => (TT?=opTgt(O)??X\+TT||X),Ex,Code).
 
-  opTgt(.iCall(_,Lb)) => ?Lb.
-  opTgt(.iOCall(_,Lb)) => ?Lb.
-  opTgt(.iEscape(_,Lb)) => ?Lb.
   opTgt(.iJmp(Lb)) => ?Lb.
-  opTgt(.iLdG(_,Lb)) => ?Lb.
   opTgt(.iCLbl(_,Lb)) => ?Lb.
   opTgt(.iUnpack(_,Lb)) => ?Lb.
   opTgt(.iICmp(Lb)) => ?Lb.
@@ -118,13 +109,10 @@ star.compiler.peephole{
   opTgt(.iCmp(Lb)) => ?Lb.
   opTgt(.iIf(Lb)) => ?Lb.
   opTgt(.iIfNot(Lb)) => ?Lb.
+  opTgt(.iTry(Lb)) => ?Lb.
   opTgt(_) default => .none.
 
-  reTgt(.iCall(Nm,_),Lb) => .iCall(Nm,Lb).
-  reTgt(.iOCall(Ar,_),Lb) => .iOCall(Ar,Lb).
-  reTgt(.iEscape(Nm,_),Lb) => .iEscape(Nm,Lb).
   reTgt(.iJmp(_),Lb) => .iJmp(Lb).
-  reTgt(.iLdG(G,_),Lb) => .iLdG(G,Lb).
   reTgt(.iCLbl(T,_),Lb) => .iCLbl(T,Lb).
   reTgt(.iUnpack(T,_),Lb) => .iUnpack(T,Lb).
   reTgt(.iICmp(_),Lb) => .iICmp(Lb).
@@ -132,6 +120,7 @@ star.compiler.peephole{
   reTgt(.iCmp(_),Lb) => .iCmp(Lb).
   reTgt(.iIf(_),Lb) => .iIf(Lb).
   reTgt(.iIfNot(_),Lb) => .iIfNot(Lb).
+  reTgt(.iTry(_),Lb) => .iTry(Lb).
   reTgt(O,_) default => O.
 
   pullTgts:(map[assemLbl,segment]) => map[assemLbl,segment].
@@ -147,7 +136,7 @@ star.compiler.peephole{
   pullOps([O,..Code],Map) => [pullTgt(O,Map),..pullOps(Code,Map)].
 
   pullTgt(.iJmp(Tg),Map) where .segment(_,_,[Op,.._],_) ?= Map[Tg] &&
-      (.iRet.=Op||.iRetX.=Op||.iRtG.=Op) => Op.
+      (.iRet.=Op||.iRtG.=Op) => Op.
   pullTgt(O,Map) => valof{
     if Tg?=opTgt(O) then{
       if .segment(_,_,[.iJmp(Tgt),.._],_) ?= Map[Tg] then
