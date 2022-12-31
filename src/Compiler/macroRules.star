@@ -73,14 +73,14 @@ star.compiler.macro.rules{
 
   -- Convert assert C to assrt(C,"failed C",Loc)
   assertMacro(A,.actn) where (Lc,C) ?= isIntegrity(A) => valof{
-    Assert = ternary(Lc,"assrt",C,.str(Lc,C::string),mkLoc(Lc));
+    Assert = ternary(Lc,"assrt",C,.str(Lc,C::string),.str(Lc,disp(Lc)));
     valis .active(Assert)
   }
   assertMacro(_,_) default => .inactive.
 
   -- Convert show E to shwMsg(E,"E",Lc)
   showMacro(A,.actn) where (Lc,E) ?= isShow(A) => valof{
-    Shw = ternary(Lc,"shwMsg",E,.str(Lc,E::string),mkLoc(Lc));
+    Shw = ternary(Lc,"shwMsg",E,.str(Lc,E::string),.str(Lc,disp(Lc)));
     valis .active(Shw)
   }
   showMacro(_,.actn) default => .inactive.
