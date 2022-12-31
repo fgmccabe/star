@@ -108,7 +108,7 @@ star.compiler.term{
     .cOCall(_,Op,As,_) => "#(dspExp(Op,Off))·(#(dsplyExps(As,Off)*))".
     .cCall(_,Op,As,_) => "#(Op)(#(dsplyExps(As,Off)*))".
     .cTerm(_,Op,As,_) where isTplLbl(Op) => "(#(dsplyExps(As,Off)*))".
-    .cTerm(_,Op,As,_) => "#(Op)(#(dsplyExps(As,Off)*))".
+    .cTerm(_,Op,As,_) => ".#(Op)(#(dsplyExps(As,Off)*))".
     .cNth(_,O,Ix,_) => "#(dspExp(O,Off)).$(Ix)".
     .cSetNth(_,O,Ix,E) => "(#(dspExp(O,Off)).$(Ix) <- #(dspExp(E,Off)))".
     .cThunk(_,E,Tp) => "thunk #(dspExp(E,Off))".
@@ -145,7 +145,7 @@ star.compiler.term{
     .cSusp(_,T,E,_) => "#(dspExp(T,Off)) suspend #(dspExp(E,Off))".
     .cResume(_,T,E,_) => "#(dspExp(T,Off)) resume #(dspExp(E,Off))".
     .cTry(_,B,T,E,H,_)=> 
-      "try #(dspExp(T,Off)) in #(dspExp(B,Off)) catch $(E)/#(dspExp(H,Off))".
+      "(try #(dspExp(T,Off)) in #(dspExp(B,Off)) catch $(E) in #(dspExp(H,Off)))".
     .cValof(_,A,_) => "valof #(dspAct(A,Off))".
   }
 
@@ -182,7 +182,7 @@ star.compiler.term{
     }.
     .aRetire(_,T,E) => "#(dspExp(T,Off)) retire #(dspExp(E,Off))".
     .aTry(_,B,T,V,H) => 
-      "try #(dspExp(T,Off)) in #(dspAct(B,Off)) catch $(V) in #(dspAct(H,Off))".
+      "{ try #(dspExp(T,Off)) in #(dspAct(B,Off)) catch $(V) in #(dspAct(H,Off))}".
     .aLtt(_,V,D,I) => valof{
       Off2=Off++"  ";
       valis "let $(V) = #(dspExp(D,Off2)) in\n#(Off2)#(dspAct(I,Off2))"
@@ -928,9 +928,9 @@ star.compiler.term{
   isBreak(.aBreak(_,Lb),Lb) => .true.
   isBreak(_,_) default => .false.
 
-  presentInA(A,C,T) => C(A) ??
+  presentInA(Ac,C,T) => C(Ac) ??
     .true ||
-    case A in {
+    case Ac in {
     .aNop(_) => .false.
     .aSeq(_,A1,A2) => presentInA(A1,C,T) || presentInA(A2,C,T).
     .aLbld(_,_,A) => presentInA(A,C,T).
