@@ -60,13 +60,13 @@ test.dd{
         throw "fred"
       } catch {
 	(F) => {
-	  logMsg("we got exception $(F)");
+	  logMsg("we got an exception $(F)");
 	  throw ()
 	}
       }
     } catch {
       (E) => {
-	logMsg("we got exception $(E)");
+	logMsg("we got exception $(E), returning $(R)");
 	valis R
       }
     }
@@ -96,7 +96,7 @@ test.dd{
       assert VV == 3628800;
 
       assert TT(1)==1;
-      show TT(-1) -- never finish this
+      show TT(-1)			-- never finish this
     } catch {
       M => logMsg("Huh: #(M)")
     };
