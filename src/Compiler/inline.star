@@ -81,13 +81,14 @@ star.compiler.inline{
   simExp(.cVoid(Lc,Tp),_,_) => .cVoid(Lc,Tp).
   simExp(.cTerm(Lc,Fn,Args,Tp),Map,Depth) =>
     .cTerm(Lc,Fn,Args//(A)=>simplifyExp(A,Map,Depth),Tp).
-  simExp(.cCall(Lc,Fn,Args,Tp),Map,Depth) =>
-    inlineCall(Lc,Fn,Args//(A)=>simplifyExp(A,Map,Depth),Tp,Map,Depth).
+  simExp(.cCall(Lc,Fn,Args,Tp),Map,Depth) => valof{
+    SMap = Map[~.tLbl(Fn,[|Args|])];
+    valis inlineCall(Lc,Fn,Args//(A)=>simplifyExp(A,SMap,Depth-1),Tp,Map,Depth)
+  }
   simExp(.cECall(Lc,Fn,Args,Tp),Map,Depth) =>
     inlineECall(Lc,Fn,Args//(A)=>simplifyExp(A,Map,Depth),Tp,Depth).
-  simExp(.cOCall(Lc,Op,Args,Tp),Map,Depth) =>
-    inlineOCall(Lc,simplifyExp(Op,Map,Depth),
-      Args//(A)=>simplifyExp(A,Map,Depth),Tp,Map,Depth).
+  simExp(.cOCall(Lc,Op,Args,Tp),Map,Depth) => 
+    inlineOCall(Lc,simplifyExp(Op,Map,Depth),Args//(A)=>simplifyExp(A,Map,Depth),Tp,Map,Depth).
   simExp(.cNth(Lc,T,Ix,Tp),Map,Depth) =>
     inlineTplOff(Lc,simplifyExp(T,Map,Depth),Ix,Tp).
   simExp(.cSetNth(Lc,T,Ix,Vl),Map,Depth) =>
@@ -123,8 +124,10 @@ star.compiler.inline{
     .cSusp(Lc,simplifyExp(Tsk,Map,Depth),simplifyExp(Evt,Map,Depth),Tp).
   simExp(.cResume(Lc,Tsk,Evt,Tp),Map,Depth) =>
     .cResume(Lc,simplifyExp(Tsk,Map,Depth),simplifyExp(Evt,Map,Depth),Tp).
+  simExp(.cThrow(Lc,Th,E,Tp),Map,Depth) =>
+    .cThrow(Lc,simplifyExp(Th,Map,Depth),simplifyExp(E,Map,Depth),Tp).
   simExp(.cTry(Lc,Exp,Th,E,H,Tp),Map,Depth) =>
-    .cTry(Lc,simplifyExp(Exp,Map,Depth),simplifyExp(Th,Map,Depth),
+    trace .cTry(Lc,simplifyExp(Exp,Map,Depth),simplifyExp(Th,Map,Depth),
       simplifyExp(E,Map,Depth),simplifyExp(H,Map,Depth),Tp).
   simExp(.cValof(Lc,Act,Tp),Map,Depth) =>
     .cValof(Lc,simplifyAct(Act,Map,Depth),Tp).
@@ -147,13 +150,15 @@ star.compiler.inline{
     valis AA
   }
   simAct(.aBreak(Lc,Lb),_,_) => .aBreak(Lc,Lb).
-  simAct(.aValis(Lc,E),Map,Depth) => .aValis(Lc,simplifyExp(E,Map,Depth)).
+  simAct(.aValis(Lc,E),Map,Depth) => getValis(Lc,simplifyExp(E,Map,Depth)).
   simAct(.aThrow(Lc,T,E),Map,Depth) => .aThrow(Lc,simplifyExp(T,Map,Depth),simplifyExp(E,Map,Depth)).
   simAct(.aPerf(Lc,E),Map,Depth) => .aPerf(Lc,simplifyExp(E,Map,Depth)).
   simAct(.aDefn(Lc,V,E),Map,Depth) =>
     .aDefn(Lc,simplifyExp(V,Map,Depth),simplifyExp(E,Map,Depth)).
   simAct(.aAsgn(Lc,V,E),Map,Depth) =>
     .aAsgn(Lc,simplifyExp(V,Map,Depth),simplifyExp(E,Map,Depth)).
+  simAct(.aSetNth(Lc,T,Ix,E),Map,Depth) =>
+    .aSetNth(Lc,simplifyExp(T,Map,Depth),Ix,simplifyExp(E,Map,Depth)).
   simAct(.aCase(Lc,Gov,Cases,Deflt),Map,Depth) =>
     inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases,
       simplifyAct(Deflt,Map,Depth),Map,Depth).
@@ -182,10 +187,13 @@ star.compiler.inline{
   dropNops(_,.aNop(_),A) => A.
   dropNops(_,A,.aNop(_)) => A.
   dropNops(Lc,L,R) => .aSeq(Lc,L,R).
+
+  getValis(Lc,.cValof(_,A,_)) => A.
+  getValis(Lc,E) => .aValis(Lc,E).
   
   inlineVar(Lc,.cId("_",Tp),_Map,_Depth) => .cAnon(Lc,Tp).
   inlineVar(Lc,.cId(Id,Tp),Map,Depth) where
-      .vrDef(_,_,_,Vl) ?= Map[.tLbl(Id,arity(Tp))]/* && isGround(Vl) */ => simplify(Vl,Map,Depth-1).
+      .vrDef(_,_,_,Vl) ?= Map[.tLbl(Id,arity(Tp))] && isGround(Vl) => simplify(Vl,Map,Depth-1).
   inlineVar(Lc,V,_,_) => .cVar(Lc,V).
 
   applyCnj(_,.cTerm(_,"star.core#true",[],_),R) => R.
@@ -214,6 +222,8 @@ star.compiler.inline{
   applyTplUpdate(Lc,T,Ix,E) =>
     .cSetNth(Lc,T,Ix,E).
 
+  applyMatch(Lc,Ptn,Exp) where isGround(Ptn) && isGround(Exp) =>
+    (Ptn==Exp ?? .cTerm(Lc,"star.core#true",[],boolType) || .cTerm(Lc,"star.core#false",[],boolType)).
   applyMatch(Lc,Ptn,Exp) => .cMatch(Lc,Ptn,Exp).
 
   inlineCase:all e ~~ rewrite[e], reform[e], simplify[e] |:
@@ -264,10 +274,10 @@ star.compiler.inline{
   
   inlineCall:(option[locn],string,cons[cExp],tipe,map[termLbl,cDefn],integer) => cExp.
   inlineCall(Lc,Nm,Args,_Tp,Map,Depth) where Depth>0 &&
-      PrgLbl .= .tLbl(Nm,[|Args|]) && .fnDef(_,_,_,Vrs,Rep) ?= Map[PrgLbl] => valof{
+	PrgLbl .= .tLbl(Nm,[|Args|]) && .fnDef(_,_,_,Vrs,Rep) ?= Map[PrgLbl] => valof{
 	RwMap = { .tLbl(VNm,arity(VTp))->.vrDef(Lc,Nm,VTp,A) | (.cId(VNm,VTp),A) in zip(Vrs,Args)};
 	RwTerm = rewriteTerm(Rep,RwMap);
-	valis (simplifyExp(RwTerm,Map[~PrgLbl],Depth-1))
+	valis (simplifyExp(RwTerm,Map[~PrgLbl],Depth))
       }.
   inlineCall(Lc,Nm,Args,Tp,_,_) default => .cCall(Lc,Nm,Args,Tp).
 
@@ -282,19 +292,24 @@ star.compiler.inline{
       Prg .= .tLbl(Nm,arity(VTp)) &&
       .vrDef(VLc,Nm,_,Rep) ?= Map[Prg] =>
     inlineOCall(Lc,simplifyExp(Rep,Map[~Prg],Depth-1),Args,Tp,Map,Depth).
-  inlineOCall(Lc,Op,Args,Tp,Map,Depth) =>
-    .cOCall(Lc,Op,Args,Tp).
+  inlineOCall(Lc,Op,Args,Tp,Map,Depth) => .cOCall(Lc,Op,Args,Tp).
   
   rewriteECall(Lc,"_int_plus",[.cInt(_,A),.cInt(_,B)],_) => .cInt(Lc,A+B).
   rewriteECall(Lc,"_int_minus",[.cInt(_,A),.cInt(_,B)],_) => .cInt(Lc,A-B).
   rewriteECall(Lc,"_int_times",[.cInt(_,A),.cInt(_,B)],_) => .cInt(Lc,A*B).
   rewriteECall(Lc,"_int_eq",[.cInt(_,A),.cInt(_,B)],_) =>
     .cTerm(Lc,(A == B??"star.core#true"||"star.core#false"),[],boolType).
-  -- rewriteECall(Lc,"_int_lt",[.cInt(_,A),.cInt(_,B)],_) =>
-  --   .cTerm(Lc,(A < B??"star.core#true"||"star.core#false"),[],boolType).
-  -- rewriteECall(Lc,"_int_ge",[.cInt(_,A),.cInt(_,B)],_) =>
-  --   .cTerm(Lc,(A >= B??"star.core#true"||"star.core#false"),[],boolType).
+  rewriteECall(Lc,"_int_lt",[.cInt(_,A),.cInt(_,B)],_) =>
+    .cTerm(Lc,(A < B??"star.core#true"||"star.core#false"),[],boolType).
+  rewriteECall(Lc,"_int_ge",[.cInt(_,A),.cInt(_,B)],_) =>
+    .cTerm(Lc,(A >= B??"star.core#true"||"star.core#false"),[],boolType).
+  rewriteECall(Lc,"_str_multicatε",[As],_) where isGround(As) =>
+    .cString(Lc,pullStrings(As)*).
   rewriteECall(Lc,Op,Args,Tp) default => .cECall(Lc,Op,Args,Tp).
+
+  pullStrings(.cTerm(_,"star.core#nil",[],_)) => [].
+  pullStrings(.cTerm(_,"star.core#cons",[.cString(_,S),Tl],_)) => [S,..pullStrings(Tl)].
+  
 
   countOccs:(cExp,cId,integer) => integer.
   countOccs(T,Id,Cnt) => case T in {

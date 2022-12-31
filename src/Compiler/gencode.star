@@ -134,10 +134,13 @@ star.compiler.gencode{
       Blk = defineLbl("H",Ctx);
       (TOff,CtxB) = defineLclVar(Th,ThTp::ltipe,Ctx0);
       (EOff,Ctx1) = defineLclVar(Er,ETp::ltipe,Ctx);
-      EStk = pushStack(ETp::ltipe,Stk);
       
       (Stk1,BCde) = compExp(B,.notLast,Cont,CtxB,Stk); -- critical: body of try is not tail rec
-      (Stk2,HCde) = compExp(H,TM,Cont,Ctx1,EStk);
+      (Stk2,HCde) = compExp(H,TM,Cont,Ctx1,Stk);
+
+      if ~reconcileable(Stk1,Stk2) then
+	reportError("cannot reconcile try exp $(B) with handler $(H)",Lc);
+
       valis (reconcileStack(Stk1,Stk2),[.iTry(Blk),.iStL(TOff)]++BCde++[.iLbl(Blk),.iTL(EOff)]++HCde)
     }
     | .cThrow(Lc,T,E,_) => compExp(E,.notLast,expCont(T,.notLast,throwCont),Ctx,Stk)
@@ -195,8 +198,7 @@ star.compiler.gencode{
       valis compCond(T,.notLast,condCont(L,TM,SC,FC,Stk),condCont(R,TM,SC,FC,Stk),Ctxa,Stk)
     }
     | .cMatch(Lc,Ptn,Exp) => compExp(Exp,.notLast,ptnCont(Ptn,Succ,Fail),Ctx,Stk)
-    | Exp default => 
-      compExp(Exp,.notLast,ifCont(locOf(Exp),Stk,Succ,Fail),Ctx,Stk)
+    | Exp default => compExp(Exp,.notLast,ifCont(locOf(Exp),Stk,Succ,Fail),Ctx,Stk)
   }
 
   compAction:(aAction,tailMode,Cont,Cont,codeCtx,stack) =>(stack,multi[assemOp]).
@@ -208,8 +210,6 @@ star.compiler.gencode{
       valis compAction(LbldA,TM,ACont,Cont,Ctxl,Stk)
     }
     | .aBreak(Lc,Lb) => valof{
-      if traceCodegen! then
-	logMsg("break $(Lb), Stk=$(Stk)");
       if XCont?=Ctx.brks[Lb] then{
 	(_,Cde) = XCont.C(Ctx,Stk,[]); -- Special handling for breaks, we can't relate their stack
 	valis (.none,Cde)
@@ -235,9 +235,18 @@ star.compiler.gencode{
     }
     | .aWhile(Lc,G,B) => valof{
       Lp = defineLbl("Lp",Ctx);
+      Tst = defineLbl("Tst",Ctx);
+      Ex = defineLbl("Ex",Ctx);
+      GCtx = glCtx(Ctx,G);
 
-      (Stk1,WCde) = compCond(G,.notLast,actionCont(B,.notLast,jmpCont(Lp,Stk),Cont),ACont,glCtx(Ctx,G),Stk);
-      valis (reconcileStack(Stk,Stk1),[.iLbl(Lp)]++WCde)
+      (Stk1,WCde) = compCond(G,.notLast,jmpCont(Lp,Stk),jmpCont(Ex,Stk),GCtx,Stk);
+      if traceCodegen! then
+	logMsg("While test code $(WCde)");
+
+      (Stk0,BCde) = compAction(B,.notLast,jmpCont(Tst,Stk),Cont,GCtx,Stk);
+
+      valis ACont.C(Ctx,reconcileStack(Stk0,Stk1),
+	[.iJmp(Tst),.iLbl(Lp)]++BCde++[.iLbl(Tst)]++WCde++[.iLbl(Ex)])
     }
     |.aLtt(Lc,.cId(Vr,VTp),Val,Bnd) => valof{
       valis compExp(Val,.notLast,stoCont(Vr,VTp::ltipe,Stk,actionCont(Bnd,TM,ACont,Cont)),Ctx,Stk)
@@ -246,10 +255,14 @@ star.compiler.gencode{
       Blk = defineLbl("H",Ctx);
       (TOff,Ctx0) = defineLclVar(Th,ETp::ltipe,Ctx);
       (EOff,Ctx1) = defineLclVar(Er,ETp::ltipe,Ctx);
-      EStk = pushStack(ETp::ltipe,Stk);
+      AC = splitCont(Lc,Ctx,ACont);
+      CC = splitCont(Lc,Ctx,Cont);
       
-      (Stk1,BCde) = compAction(B,.notLast,ACont,Cont,Ctx0,Stk);
-      (Stk2,CCde) = compAction(H,TM,ACont,Cont,Ctx1,pushStack(ETp::ltipe,Stk));
+      (Stk1,BCde) = compAction(B,.notLast,AC,CC,Ctx0,Stk);
+      (Stk2,CCde) = compAction(H,TM,AC,CC,Ctx1,Stk);
+
+      if ~reconcileable(Stk1,Stk2) then
+	reportError("cannot reconcile try body $(B) with handler $(H)",Lc);
       
       valis (reconcileStack(Stk1,Stk2),[.iTry(Blk),.iStL(TOff)]++BCde++[.iLbl(Blk),.iTL(EOff)]++CCde)
     }
@@ -276,6 +289,7 @@ star.compiler.gencode{
     (Stkb,TCode,CCode) = compCases(Table,0,Max,Comp,OC,jmpCont(DLbl,Stkc),DLbl,Ctx,Stk1);
     Hgt = ^[|Stk|];
 
+--    logMsg("In case Stkb=$(Stkb), Stkc=$(Stkc)");
     valis (reconcileStack(Stkb,Stkc),
       GCode++[.iLbl(Nxt),.iCase(Max)]++TCode++CCode++[.iLbl(DLbl),.iRst(Hgt)]++DCode)
   }
@@ -295,6 +309,7 @@ star.compiler.gencode{
       Lb = defineLbl("CC",Ctx);
       (Stkb,TCde2,Cde2) = compCases(Cases,Ix+1,Mx,Comp,Succ,Fail,Deflt,Ctx,Stk);
       (Stkc,CCde) = compCaseBranch(Case,Comp,Succ,Fail,Ctx,Stk);
+--      logMsg("In cases Stkb=$(Stkb), Stkc=$(Stkc)");
       valis (reconcileStack(Stkb,Stkc),[.iJmp(Lb)]++TCde2,Cde2++[.iLbl(Lb),..CCde])
     }
     | [(Iy,Case),..Cases] => valof{
@@ -315,7 +330,7 @@ star.compiler.gencode{
       (Off,Ctx1) = defineLclVar(Vr,typeOf(Ptn)::ltipe,Ctx);
       (Stkb,RlCde) = compPttrn(Ptn,Comp(Exp,Succ),jmpCont(Fl,Stk),Ctx1,Stk);
       (Stkc,AltCde) = compMoreCase(More,Off,Comp,Succ,Fail,Ctx,Stk);
---      logMsg("Stkb=$(Stkb), Stkc=$(Stkc)");
+--      logMsg("in case branch Stkb=$(Stkb), Stkc=$(Stkc)");
       valis (reconcileStack(Stkb,Stkc),[.iTL(Off)]++RlCde++[.iLbl(Fl)]++AltCde)
     }
   }
@@ -328,7 +343,7 @@ star.compiler.gencode{
       Fl = defineLbl("CM",Ctx);
       (Stk2,RlCde) = compPttrn(Ptn,Comp(Exp,Succ),jmpCont(Fl,Stk),Ctx,Stk);
       (Stk3,RstCde) = compMoreCase(More,Off,Comp,Succ,Fail,Ctx,Stk);
---      logMsg("Stk2=$(Stk2), Stk3=$(Stk3)");
+--      logMsg("In more case Stk2=$(Stk2), Stk3=$(Stk3)");
       valis (reconcileStack(Stk2,Stk3),[.iLdL(Off)]++RlCde++[.iLbl(Fl)]++RstCde)
     }
   }
@@ -433,7 +448,7 @@ star.compiler.gencode{
 	Stk0 = dropStack(Stk); 
 	(Stk1,FCde) = Fail.C(Ctx,Stk0,[]);
 	(Stk2,SCde) = Succ.C(Ctx,Stk0,[]);
---	logMsg("Stk1=$(Stk1), Stk2=$(Stk2)");
+--	logMsg("ground ptn Stk1=$(Stk1), Stk2=$(Stk2)");
 	valis (reconcileStack(Stk1,Stk2),
 	  [.iLdC(Ptn::data),ptnCmp(Ptn,Flb)]++SCde++[.iLbl(Flb),..FCde])
       } else{
@@ -604,7 +619,7 @@ star.compiler.gencode{
   traceCont:(string,Cont) => Cont.
   traceCont(Msg,Cont) => cont{
     C(Ctx,Stk,Cde) => valof{
-      logMsg("invoking continuation #(Msg), stack = $(Stk)");
+--      logMsg("invoking continuation #(Msg), stack = $(Stk)");
       valis Cont.C(Ctx,Stk,Cde)
     }
   }
