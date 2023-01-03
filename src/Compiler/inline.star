@@ -69,7 +69,8 @@ star.compiler.inline{
   }
 
   simplifyExp:(cExp,map[termLbl,cDefn],integer) => cExp.
-  simplifyExp(E,P,D) => simExp(E,P,D).
+  simplifyExp(E,P,D) where D>=0 => simExp(E,P,D).
+  simplifyExp(E,_,_) => E.
   
   simExp(.cAnon(Lc,Tp),_Map,_Depth) => .cAnon(Lc,Tp).
   simExp(.cVar(Lc,V),Map,Depth) => inlineVar(Lc,V,Map,Depth).
@@ -80,32 +81,30 @@ star.compiler.inline{
   simExp(.cString(Lc,Sx),_,_) => .cString(Lc,Sx).
   simExp(.cVoid(Lc,Tp),_,_) => .cVoid(Lc,Tp).
   simExp(.cTerm(Lc,Fn,Args,Tp),Map,Depth) =>
-    .cTerm(Lc,Fn,Args//(A)=>simplifyExp(A,Map,Depth),Tp).
-  simExp(.cCall(Lc,Fn,Args,Tp),Map,Depth) => valof{
-    SMap = Map[~.tLbl(Fn,[|Args|])];
-    valis inlineCall(Lc,Fn,Args//(A)=>simplifyExp(A,SMap,Depth-1),Tp,Map,Depth)
-  }
+    .cTerm(Lc,Fn,Args//(A)=>simExp(A,Map,Depth),Tp).
+  simExp(.cCall(Lc,Fn,Args,Tp),Map,Depth) =>
+    inlineCall(Lc,Fn,Args,Tp,Map,Depth).
   simExp(.cECall(Lc,Fn,Args,Tp),Map,Depth) =>
     inlineECall(Lc,Fn,Args//(A)=>simplifyExp(A,Map,Depth),Tp,Depth).
   simExp(.cOCall(Lc,Op,Args,Tp),Map,Depth) => 
-    inlineOCall(Lc,simplifyExp(Op,Map,Depth),Args//(A)=>simplifyExp(A,Map,Depth),Tp,Map,Depth).
+    inlineOCall(Lc,simExp(Op,Map,Depth),Args//(A)=>simExp(A,Map,Depth),Tp,Map,Depth).
   simExp(.cNth(Lc,T,Ix,Tp),Map,Depth) =>
-    inlineTplOff(Lc,simplifyExp(T,Map,Depth),Ix,Tp).
+    inlineTplOff(Lc,simExp(T,Map,Depth),Ix,Tp).
   simExp(.cSetNth(Lc,T,Ix,Vl),Map,Depth) =>
-    applyTplUpdate(Lc,simplifyExp(T,Map,Depth),Ix,simplifyExp(Vl,Map,Depth)).
+    applyTplUpdate(Lc,simExp(T,Map,Depth),Ix,simExp(Vl,Map,Depth)).
   simExp(.cThunk(Lc,T,Tp),Map,Depth) =>
-    .cThunk(Lc,simplifyExp(T,Map,Depth),Tp).
+    .cThunk(Lc,simExp(T,Map,Depth),Tp).
   simExp(.cSeq(Lc,L,R),Map,Depth) =>
-    .cSeq(Lc,simplifyExp(L,Map,Depth),simplifyExp(R,Map,Depth)).
+    .cSeq(Lc,simExp(L,Map,Depth),simExp(R,Map,Depth)).
   simExp(.cCnj(Lc,L,R),Map,Depth) =>
-    applyCnj(Lc,simplifyExp(L,Map,Depth),simplifyExp(R,Map,Depth)).
+    applyCnj(Lc,simExp(L,Map,Depth),simExp(R,Map,Depth)).
   simExp(.cDsj(Lc,L,R),Map,Depth) =>
-    applyDsj(Lc,simplifyExp(L,Map,Depth),simplifyExp(R,Map,Depth)).
+    applyDsj(Lc,simExp(L,Map,Depth),simExp(R,Map,Depth)).
   simExp(.cNeg(Lc,R),Map,Depth) =>
-    applyNeg(Lc,simplifyExp(R,Map,Depth)).
+    applyNeg(Lc,simExp(R,Map,Depth)).
   simExp(.cCnd(Lc,T,L,R),Map,Depth) =>
-    applyCnd(Lc,liftWhere(simplifyExp(T,Map,Depth)),
-      simplifyExp(L,Map,Depth),simplifyExp(R,Map,Depth)).
+    applyCnd(Lc,simExp(T,Map,Depth),
+      simExp(L,Map,Depth),simExp(R,Map,Depth)).
   simExp(.cLtt(Lc,Vr,Bnd,Exp),Map,Depth) =>
     inlineLtt(Lc,Vr,simplifyExp(Bnd,Map,Depth),Exp,Map,Depth).
   simExp(.cCont(Lc,Vr,Bnd,Exp),Map,Depth) =>
@@ -127,11 +126,14 @@ star.compiler.inline{
   simExp(.cThrow(Lc,Th,E,Tp),Map,Depth) =>
     .cThrow(Lc,simplifyExp(Th,Map,Depth),simplifyExp(E,Map,Depth),Tp).
   simExp(.cTry(Lc,Exp,Th,E,H,Tp),Map,Depth) =>
-    trace .cTry(Lc,simplifyExp(Exp,Map,Depth),simplifyExp(Th,Map,Depth),
+    .cTry(Lc,simplifyExp(Exp,Map,Depth),simplifyExp(Th,Map,Depth),
       simplifyExp(E,Map,Depth),simplifyExp(H,Map,Depth),Tp).
   simExp(.cValof(Lc,Act,Tp),Map,Depth) =>
-    .cValof(Lc,simplifyAct(Act,Map,Depth),Tp).
+    valofAct(Lc,simplifyAct(Act,Map,Depth),Tp).
 
+  valofAct(_,.aValis(_Lc,E),_) => E.
+  valofAct(Lc,A,Tp) => .cValof(Lc,A,Tp).
+  
   implementation simplify[aAction] => {
     simplify(A,Map,Dp) => simplifyAct(A,Map,Dp)
   }
@@ -165,10 +167,10 @@ star.compiler.inline{
   simAct(.aUnpack(Lc,Gov,Cases),Map,Depth) =>
     inlineUnpack(Lc,simplifyExp(Gov,Map,Depth),Cases,Map,Depth).
   simAct(.aIftte(Lc,T,L,R),Map,Depth) =>
-    applyCnd(Lc,liftWhere(simplifyExp(T,Map,Depth)),
+    applyCnd(Lc,simplifyExp(T,Map,Depth),
       simplifyAct(L,Map,Depth),simplifyAct(R,Map,Depth)).
   simAct(.aWhile(Lc,T,A),Map,Depth) =>
-    .aWhile(Lc,liftWhere(simplifyExp(T,Map,Depth)),
+    .aWhile(Lc,simplifyExp(T,Map,Depth),
       simplifyAct(A,Map,Depth)).
   simAct(.aRetire(Lc,T,E),Map,Depth) =>
     .aRetire(Lc,simplifyExp(T,Map,Depth),
@@ -193,7 +195,7 @@ star.compiler.inline{
   
   inlineVar(Lc,.cId("_",Tp),_Map,_Depth) => .cAnon(Lc,Tp).
   inlineVar(Lc,.cId(Id,Tp),Map,Depth) where
-      .vrDef(_,_,_,Vl) ?= Map[.tLbl(Id,arity(Tp))] && isGround(Vl) => simplify(Vl,Map,Depth-1).
+      .vrDef(_,_,_,Vl) ?= Map[.tLbl(Id,arity(Tp))] && isGround(Vl) => simplify(Vl,Map,Depth).
   inlineVar(Lc,V,_,_) => .cVar(Lc,V).
 
   applyCnj(_,.cTerm(_,"star.core#true",[],_),R) => R.
@@ -274,12 +276,11 @@ star.compiler.inline{
   
   inlineCall:(option[locn],string,cons[cExp],tipe,map[termLbl,cDefn],integer) => cExp.
   inlineCall(Lc,Nm,Args,_Tp,Map,Depth) where Depth>0 &&
-	PrgLbl .= .tLbl(Nm,[|Args|]) && .fnDef(_,_,_,Vrs,Rep) ?= Map[PrgLbl] => valof{
+      PrgLbl .= .tLbl(Nm,[|Args|]) && .fnDef(_,_,_,Vrs,Rep) ?= Map[PrgLbl] => valof{
 	RwMap = { .tLbl(VNm,arity(VTp))->.vrDef(Lc,Nm,VTp,A) | (.cId(VNm,VTp),A) in zip(Vrs,Args)};
-	RwTerm = rewriteTerm(Rep,RwMap);
-	valis (simplifyExp(RwTerm,Map[~PrgLbl],Depth))
+	valis simplifyExp(rewriteTerm(Rep,RwMap),Map[~PrgLbl],Depth)
       }.
-  inlineCall(Lc,Nm,Args,Tp,_,_) default => .cCall(Lc,Nm,Args,Tp).
+  inlineCall(Lc,Nm,Args,Tp,Map,Depth) default => .cCall(Lc,Nm,Args//(A)=>simplifyExp(A,Map,Depth),Tp).
 
   inlineECall:(option[locn],string,cons[cExp],tipe,integer) => cExp.
   inlineECall(Lc,Nm,Args,Tp,Depth) where Depth>0 && {? A in Args *> isGround(A) ?} =>
@@ -288,10 +289,6 @@ star.compiler.inline{
 
   inlineOCall(Lc,.cTerm(OLc,Nm,OArgs,_),Args,Tp,Map,Depth) =>
     simplifyExp(.cCall(Lc,Nm,OArgs++Args,Tp),Map,Depth).
-  inlineOCall(Lc,.cVar(_,.cId(Nm,VTp)),Args,Tp,Map,Depth) where Depth>0 &&
-      Prg .= .tLbl(Nm,arity(VTp)) &&
-      .vrDef(VLc,Nm,_,Rep) ?= Map[Prg] =>
-    inlineOCall(Lc,simplifyExp(Rep,Map[~Prg],Depth-1),Args,Tp,Map,Depth).
   inlineOCall(Lc,Op,Args,Tp,Map,Depth) => .cOCall(Lc,Op,Args,Tp).
   
   rewriteECall(Lc,"_int_plus",[.cInt(_,A),.cInt(_,B)],_) => .cInt(Lc,A+B).
@@ -310,7 +307,6 @@ star.compiler.inline{
   pullStrings(.cTerm(_,"star.core#nil",[],_)) => [].
   pullStrings(.cTerm(_,"star.core#cons",[.cString(_,S),Tl],_)) => [S,..pullStrings(Tl)].
   
-
   countOccs:(cExp,cId,integer) => integer.
   countOccs(T,Id,Cnt) => case T in {
     .cVoid(_,_) => Cnt.

@@ -626,32 +626,6 @@ star.compiler.term{
     (.some(G),.some(H)) => .some(.cCnj(Lc,G,H)).
   }
 
-  public liftWhere:(cExp) => cExp.
-  liftWhere(G) where isCond(G) => case G in {
-    .cCnj(Lc,L,R) => valof{
-      LL = liftWhere(L);
-      RR = liftWhere(R);
-      valis .cCnj(Lc,LL,RR)
-    }.
-    .cDsj(Lc,L,R) => valof{
-      LL = liftWhere(L);
-      RR = liftWhere(R);
-      valis .cDsj(Lc,LL,RR)
-    }.
-    .cNeg(Lc,R) => valof{
-      RR = liftWhere(R);
-      valis .cNeg(Lc,RR)
-    }.
-    .cMatch(Lc,P,E) => valof{
-      (PP,W) = pullWhere(P);
-      if C?=W then
-	valis .cCnj(Lc,.cMatch(Lc,PP,E),C)
-	else
-      valis .cMatch(Lc,PP,E)
-    }.
-  }
-  liftWhere(G) default => G.
-
   public contract all e ~~ reform[e] ::= {
     mkCond:(option[locn],cExp,e,e)=>e.
     mkCase:(option[locn],cExp,cons[cCase[e]],e) => e.
@@ -957,12 +931,6 @@ star.compiler.term{
     .aAbort(_,_) => .false.
   }.
 
-  public varPresent:all e ~~ present[e] |: (e,string)=>boolean.
-  varPresent(E,Nm) => present(E,(V)=>sameVar(V,Nm)).
-
-  sameVar(.cVar(_,.cId(Nm,_)),Nm) => .true.
-  sameVar(_,_) default => .false.
-
   presentInE:(cExp,(aAction)=>boolean,(cExp)=>boolean) => boolean.
   presentInE(T,A,C) => C(T) ?? .true || case T in {
     .cVoid(_,_) => .false.
@@ -1015,105 +983,6 @@ star.compiler.term{
   presentInCases([],_,_,_) => .false.
   presentInCases([(_,A,E),..Cs],P,C,T) =>
     presentInE(A,C,T) || P(E,C,T) || presentInCases(Cs,P,C,T).
-
-  public visitE:all a ~~ (cExp,(cExp,a)=>a,(aAction,a)=>a,a) => a.
-  visitE(Tr,V,VA,X) => case Tr in {
-    .cAnon(_,_) => V(Tr,X).
-    .cVoid(_,_) => V(Tr,X).
-    .cVar(_,_) => V(Tr,X).
-    .cTerm(Lc,Nm,Args,Tp) =>
-      visitEls(Args,V,VA,V(Tr,X)).
-    .cNth(Lc,R,Ix,Tp) =>
-      visitE(R,V,VA,V(Tr,X)).
-    .cSetNth(Lc,R,F,N) =>
-      visitE(R,V,VA,visitE(N,V,VA,V(Tr,X))).
-    .cThunk(Lc,E,Tp) => visitE(E,V,VA,V(Tr,X)).
-    .cThGet(Lc,E,Tp) => visitE(E,V,VA,V(Tr,X)).
-    .cThSet(Lc,E,Vl,Tp) => visitE(Vl,V,VA,visitE(E,V,VA,V(Tr,X))).
-    .cCall(Lc,Nm,Args,Tp) =>
-      visitEls(Args,V,VA,V(Tr,X)).
-    .cECall(Lc,Nm,Args,Tp) =>
-      visitEls(Args,V,VA,V(Tr,X)).
-    .cOCall(Lc,Op,Args,Tp) =>
-      visitEls(Args,V,VA,visitE(Op,V,VA,V(Tr,X))).
-    .cThrow(Lc,T,E,Tp) =>
-      visitE(T,V,VA,visitE(E,V,VA,V(Tr,X))).
-    .cSeq(Lc,L,R) =>
-      visitE(R,V,VA,visitE(L,V,VA,V(Tr,X))).
-    .cCnj(Lc,L,R) =>
-      visitE(R,V,VA,visitE(L,V,VA,V(Tr,X))).
-    .cDsj(Lc,L,R) =>
-      visitE(R,V,VA,visitE(L,V,VA,V(Tr,X))).
-    .cNeg(Lc,R) =>
-      visitE(R,V,VA,V(Tr,X)).
-    .cCnd(Lc,T,L,R) =>
-      visitE(R,V,VA,visitE(L,V,VA,visitE(T,V,VA,V(Tr,X)))).
-    .cMatch(Lc,L,R) =>
-      visitE(R,V,VA,visitE(L,V,VA,V(Tr,X))).
-    .cLtt(Lc,Vr,B,E) =>
-      visitE(E,V,VA,visitE(B,V,VA,V(Tr,X))).
-    .cCont(Lc,Vr,B,E) =>
-      visitE(E,V,VA,visitE(B,V,VA,V(Tr,X))).
-    .cCase(Lc,G,Cs,D,Tp) =>
-      visitE(D,V,VA,
-	visitCases(Cs,V,VA,visitE,
-	  visitE(G,V,VA,
-	    V(Tr,X)))).
-    .cUnpack(Lc,G,Cs,Tp) =>
-      visitCases(Cs,V,VA,visitE, visitE(G,V,VA, V(Tr,X))).
-    .cVarNmes(Lc,Vs,E) =>
-      visitE(E,V,VA,V(Tr,X)).
-    .cSusp(Lc,T,E,Tp) =>
-      visitE(T,V,VA,visitE(E,V,VA,V(Tr,X))).
-    .cResume(Lc,T,E,Tp) =>
-      visitE(T,V,VA,visitE(E,V,VA,V(Tr,X))).
-    .cTry(Lc,B,T,E,H,Tp) =>
-      visitE(H,V,VA,visitE(B,V,VA,visitE(T,V,VA,visitE(E,V,VA,V(Tr,X))))).
-    .cValof(Lc,A,Tp) =>
-      visitA(A,V,VA,V(Tr,X)).
-  }
-
-  visitEls:all a ~~ (cons[cExp],(cExp,a)=>a,(aAction,a)=>a,a) => a.
-  visitEls([],_,_,X) => X.
-  visitEls([E,..Els],V,VA,X) =>
-    visitEls(Els,V,VA,visitE(E,V,VA,X)).
-
-  public visitA:all a ~~ (aAction,(cExp,a)=>a,(aAction,a)=>a,a) => a.
-  visitA(Ac,V,VA,X) => case Ac in {
-    .aSeq(Lc,A1,A2) => visitA(A2,V,VA,visitA(A1,V,VA,VA(Ac,X))).
-    .aLbld(Lc,Lb,A) => visitA(A,V,VA,VA(Ac,X)).
-    .aValis(Lc,E) => visitE(E,V,VA,X).
-    .aThrow(Lc,T,E) => visitE(T,V,VA,visitE(E,V,VA,VA(Ac,X))).
-    .aPerf(Lc,E) => visitE(E,V,VA,X).
-    .aSetNth(Lc,T,Ix,E) => visitE(T,V,VA,visitE(E,V,VA,VA(Ac,X))).
-    .aDefn(Lc,Vr,E) => visitE(E,V,VA,VA(Ac,X)).
-    .aAsgn(Lc,L,E) => visitE(L,V,VA,visitE(E,V,VA,VA(Ac,X))).
-    .aCase(Lc,G,Cs,D) =>
-      visitA(D,V,VA,
-	visitCases(Cs,V,VA,visitA,
-	  visitE(G,V,VA,VA(Ac,X)))).
-    .aUnpack(Lc,G,Cs) =>
-      visitCases(Cs,V,VA,visitA,
-	visitE(G,V,VA,VA(Ac,X))).
-    .aIftte(Lc,G,T,E) =>
-      visitA(E,V,VA,visitA(T,V,VA,visitE(G,V,VA,VA(Ac,X)))).
-    .aWhile(Lc,G,A) =>
-      visitA(A,V,VA,visitE(G,V,VA,VA(Ac,X))).
-    .aRetire(Lc,T,E) =>
-      visitE(E,V,VA,visitE(T,V,VA,VA(Ac,X))).
-    .aTry(Lc,B,T,E,H) => visitA(H,V,VA,visitA(B,V,VA,visitE(T,V,VA,visitE(E,V,VA,VA(Ac,X))))).
-    .aLtt(Lc,Vr,B,A) =>
-      visitA(A,V,VA,visitE(B,V,VA,VA(Ac,X))).
-    .aCont(Lc,Vr,B,A) =>
-      visitA(A,V,VA,visitE(B,V,VA,VA(Ac,X))).
-    .aVarNmes(Lc,Vs,A) => visitA(A,V,VA,VA(Ac,X)).
-  }
-
-  visitCases:all e,a ~~
-  (cons[cCase[e]],(cExp,a)=>a,(aAction,a)=>a,(e,(cExp,a)=>a,(aAction,a)=>a,a)=>a,a)=>a.
-  visitCases([],_,_,_,X) => X.
-  visitCases([(Lc,A,E),..Cs],V,VA,VC,X) =>
-    visitCases(Cs,V,VA,VC,V(A,VC(E,V,VA,X))).
 
   public freezeDefn:(cDefn) => data.
   freezeDefn(D) => case D in {

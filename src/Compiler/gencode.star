@@ -111,10 +111,8 @@ star.compiler.gencode{
     | .cSeq(_,L,R) =>
       compExp(L,.notLast,resetCont(Stk,expCont(R,TM,Cont)),Ctx,Stk)
     | .cCnd(Lc,G,L,R) => valof{
-      Ctx1 = glCtx(Ctx,G);
-      
       LC = splitCont(Lc,Ctx,expCont(L,TM,Cont));
-      RC = splitCont(Lc,Ctx,ctxCont(Ctx,ctxCont(Ctx,expCont(R,TM,Cont))));
+      RC = splitCont(Lc,Ctx,ctxCont(Ctx,expCont(R,TM,Cont)));
       
       valis compCond(G,TM,LC,RC,Ctx,Stk)
     }
@@ -149,7 +147,7 @@ star.compiler.gencode{
       Nx = defineLbl("E",Ctx);
       Stk0 = pushStack(boolType::ltipe,Stk);
       (Stk1,Cde) = compCond(C,.notLast,trueCont(jmpCont(Nx,Stk0)),falseCont(jmpCont(Nx,Stk0)),
-	glCtx(Ctx,C),Stk);
+	Ctx,Stk);
       valis Cont.C(Ctx,Stk1,Cde++[.iLbl(Nx)]) -- fix me
     }
     | C => valof{
@@ -177,12 +175,12 @@ star.compiler.gencode{
     .cTerm(_,"star.core#true",[],_) => Succ.C(Ctx,Stk,[])
     | .cTerm(_,"star.core#false",[],_) => Fail.C(Ctx,Stk,[])
     | .cCnj(Lc,L,R) => valof{
-      valis compCond(L,.notLast,condCont(R,TM,Succ,Fail,Stk),Fail,Ctx,Stk)
+      FC = splitCont(Lc,Ctx,ctxCont(Ctx,Fail));
+      valis compCond(L,.notLast,condCont(R,TM,Succ,FC,Stk),FC,Ctx,Stk)
     }
     | .cDsj(Lc,L,R) => valof{
-      SC = splitCont(Lc,Ctx,Succ);
-      
       Ctxa = dsjCtx(Ctx,L,R);
+      SC = splitCont(Lc,Ctx,ctxCont(Ctxa,Succ));
       
       valis compCond(L,TM,SC,ctxCont(Ctxa,condCont(R,TM,SC,Fail,Stk)),Ctxa,Stk)
     }
@@ -190,12 +188,11 @@ star.compiler.gencode{
     | .cCnd(Lc,T,L,R) => valof{
       if traceCodegen! then
 	logMsg("compiling conditional cond $(C)");
+      Ctxa = dsjCtx(Ctx,L,R);
       SC = splitCont(Lc,Ctx,Succ);
       FC = splitCont(Lc,Ctx,Fail);
       
-      Ctxa = dsjCtx(glCtx(Ctx,T),L,R); -- Make sure that common variables are kept in same place
-      
-      valis compCond(T,.notLast,condCont(L,TM,SC,FC,Stk),condCont(R,TM,SC,FC,Stk),Ctxa,Stk)
+      valis compCond(T,.notLast,condCont(L,TM,SC,FC,Stk),ctxCont(Ctxa,condCont(R,TM,SC,FC,Stk)),Ctxa,Stk)
     }
     | .cMatch(Lc,Ptn,Exp) => compExp(Exp,.notLast,ptnCont(Ptn,Succ,Fail),Ctx,Stk)
     | Exp default => compExp(Exp,.notLast,ifCont(locOf(Exp),Stk,Succ,Fail),Ctx,Stk)
@@ -230,8 +227,9 @@ star.compiler.gencode{
     | .aIftte(Lc,G,L,R) => valof{
       AC = splitCont(Lc,Ctx,ACont);
       CC = splitCont(Lc,Ctx,Cont);
+      Ctxa = glCtx(Ctx,G);
       valis compCond(G,.notLast,actionCont(L,TM,AC,CC),
-	resetCont(Stk,actionCont(R,TM,AC,CC)),glCtx(Ctx,G),Stk)
+	resetCont(Stk,ctxCont(Ctxa,actionCont(R,TM,AC,CC))),Ctxa,Stk)
     }
     | .aWhile(Lc,G,B) => valof{
       Lp = defineLbl("Lp",Ctx);
@@ -823,6 +821,14 @@ star.compiler.gencode{
     hwm := Off;
 
     valis (Off,Ctx.vars<<-Ctx.vars[Nm->.lclVar(Off,Tp)])
+  }
+
+  ensureLclVar:(string,ltipe,codeCtx) => codeCtx.
+  ensureLclVar(Nm,Tp,Ctx) => valof{
+    if _ ?=Ctx.vars[Nm] then
+      valis Ctx
+    else
+    valis snd(defineLclVar(Nm,Tp,Ctx))
   }
 
   argVars:(cons[cId],map[string,srcLoc],integer) => map[string,srcLoc].
