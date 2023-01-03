@@ -319,8 +319,8 @@ assertMacro(T,_,Act) :-
 makeAssert(Lc,Cond,Act) :-
   ast2String(Lc,Cond,Msg),
   locOfAst(Cond,CLc),
-  mkLoc(CLc,Loc),
-  roundTerm(Lc,name(Lc,"assrt"),[Cond,Msg,Loc],Act).
+  dispLocation(CLc,Lcn),
+  roundTerm(Lc,name(Lc,"assrt"),[Cond,Msg,string(Lc,Lcn)],Act).
 
 /*
  show E 
@@ -333,9 +333,8 @@ showMacro(T,_,Act) :-
 
 makeShow(Lc,Exp,Act) :-
   ast2String(Lc,Exp,Txt),
-  locOfAst(Exp,ELc),
-  mkLoc(ELc,Loc),
-  roundTerm(Lc,name(Lc,"shwMsg"),[Exp,Txt,Loc],Act).
+  dispLocation(Lc,Lcn),
+  roundTerm(Lc,name(Lc,"shwMsg"),[Exp,Txt,string(Lc,Lcn)],Act).
 
 /*
   trace E
@@ -345,21 +344,11 @@ becomes
 
 traceMacro(T,expression,Exp) :-
   isTrace(T,Lc,E),!,
-/*  (isRound(E,OLc,Op,Els) ->
-   dispLocation(OLc,Loc),
-   unary(OLc,"disp",Op,OO),
-   genArgsDisplay(Els,OLc,AA),
-   interleave(AA,string(OLc,","),AAA),
-   concat([string(OLc,Loc),string(OLc," "),OO,string(OLc,"(")|AAA],[string(OLc,")")],A2),
-   mkConses(A2,OLc,CC),
-   unary(OLc,"_str_multicat",CC,DD),
-   roundTerm(Lc,name(Lc,"traceCall"),[DD,E],Exp) ;
-*/
-   ast2String(Lc,E,string(_,Txt)),
-   locOfAst(E,ELc),
-   dispLocation(ELc,Loc),
-   ss_to_str(sq([ss(Loc),ss(":"),ss(Txt)]),Msg),
-   roundTerm(Lc,name(Lc,"traceCall"),[string(Lc,Msg),E],Exp).
+  ast2String(Lc,E,string(_,Txt)),
+  locOfAst(E,ELc),
+  dispLocation(ELc,Loc),
+  ss_to_str(sq([ss(Loc),ss(":"),ss(Txt)]),Msg),
+  roundTerm(Lc,name(Lc,"traceCall"),[string(Lc,Msg),E],Exp).
 
 mkConses([],Lc,Nl) :-
   mkEnum(Lc,"nil",Nl).
