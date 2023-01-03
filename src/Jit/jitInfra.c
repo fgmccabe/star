@@ -3,7 +3,6 @@
 //
 
 #include "jit.h"
-#include "arm64P.h"
 #include <string.h>
 #include <errno.h>
 #include <sys/types.h>
@@ -140,7 +139,7 @@ uint64 labelTgt(codeLblPo lbl) {
 void labelDisp32(assemCtxPo ctx, codeLblPo lbl, integer pc) {
   check(readCtxAtPc(ctx, pc) == UNDEF_LBL_LANDING_PAD, "bad label reference");
 
-  integer delta = (integer) labelTgt(lbl) - pc;
+  integer delta = (integer) labelTgt(lbl) - (pc + PLATFORM_PC_DELTA);
   if (isI32(delta)) {
     updateU32(ctx, pc, delta);
   } else {
@@ -150,14 +149,14 @@ void labelDisp32(assemCtxPo ctx, codeLblPo lbl, integer pc) {
 
 integer lblDeltaRef(assemCtxPo ctx, codeLblPo tgt) {
   if (isLabelDefined(tgt))
-    return (integer) labelTgt(tgt) - ctx->pc;
+    return (integer) labelTgt(tgt) - (ctx->pc + PLATFORM_PC_DELTA);
   else
     return UNDEF_LBL_LANDING_PAD;
 }
 
 void emitLblRef(assemCtxPo ctx, codeLblPo tgt) {
   if (isLabelDefined(tgt)) {
-    integer delta = (integer) labelTgt(tgt) - ctx->pc;
+    integer delta = (integer) labelTgt(tgt) - (ctx->pc + PLATFORM_PC_DELTA);
     if (!isI32(delta)) {
       check(False, "label displacement too large");
       return;
