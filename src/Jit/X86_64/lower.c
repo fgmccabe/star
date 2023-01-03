@@ -68,10 +68,6 @@ x64Op formX64Operand(vOperand v) {
       x64Op op = {.mode=Based, .op.based.base=RBP, .op.based.disp=(int) (-v.ix * LONG_COUNT)};
       return op;
     }
-    case immediate: {
-      x64Op op = {.mode=Immediate, .op.imm=(int) (v.ix)};
-      return op;
-    }
     case mcReg: {
       return v.mcLoc;
     }

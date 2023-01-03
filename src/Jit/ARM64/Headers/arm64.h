@@ -112,6 +112,8 @@ typedef struct {
 
 typedef FlexOp registerSpec;
 
+#define PLATFORM_PC_DELTA 0
+
 #define RG(Rg) {.mode=reg, .reg=(Rg)}
 #define IM(Vl) {.mode=imm, .immediate=(Vl)}
 #define LS(Rg, Amnt) {.mode=shft, .shift=LSL, .reg=Rg, .immediate=(Amnt)}
