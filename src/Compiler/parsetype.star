@@ -200,7 +200,7 @@ star.compiler.typeparse{
   }.
 	  
   parseTypeName(_,_,"_",_) => (newTypeVar("_"),.none).
-  parseTypeName(Q,_,Nm,_) where Tp?={! Tp | (Nm,Tp) in Q !} => (Tp,.none).
+  parseTypeName(Q,_,Nm,_) where Tp?={! T | (Nm,T) in Q !} => (Tp,.none).
   parseTypeName(Q,_,Nm,Env) where (_,T,TpRl,_) ?= findType(Env,Nm) => valof{
 --    logMsg("type $(Nm) has type rule $(TpRl)");
     if isLambdaRule(TpRl) then 

@@ -179,7 +179,7 @@ star.compiler.normalize{
     (TPtn, WC) = pullWhere(APtn);
 
     GEQ = (Tst?=Test ?? condVars(Tst,EQ) || EQ);
-    (NG,Ex2) = liftGoal(Test,Map,EQ,Ex1);
+    (NG,Ex2) = liftGoal(Test,Map,GEQ,Ex1);
     (Rep,Exx) = transform(Val,Map,GEQ,Ex2);
     if .cTerm(_,_,Ptns,_).=TPtn then
       valis ((Lc,addExtra(Extra,Ptns),mergeGoal(Lc,WC,NG),Rep),Exx)
@@ -189,11 +189,10 @@ star.compiler.normalize{
     }
   }
 
-  liftGoal:(option[canon],nameMap,set[cId],cons[cDefn]) => crFlow[option[cExp]].
   liftGoal(.none,_,_,Ex) => (.none,Ex).
   liftGoal(.some(C),Map,Q,Ex) => valof{
     (C1,Ex1) = liftExp(C,Map,Q,Ex);
-    valis (.some(liftWhere(C1)),Ex1)
+    valis (.some(C1),Ex1)
   }
   
   addExtra(.none,Args) => Args.
@@ -304,7 +303,7 @@ star.compiler.normalize{
 
 --    logMsg("lift wheres from $(LT) = $(liftWhere(LT))");
 
-    valis (.cCnd(Lc,liftWhere(LT),LL,LR),Ex3)
+    valis (.cCnd(Lc,LT,LL,LR),Ex3)
   }
   liftExp(.match(Lc,P,E),Map,Q,Ex) => valof{
     (LP,Ex1) = liftPtn(P,Map,Q,Ex);
@@ -670,12 +669,12 @@ star.compiler.normalize{
     (CC,Ex1) = liftExp(C,Map,Q,Ex);
     (LL,Ex2) = liftAction(L,Map,condVars(C,Q),Ex1);
     (RR,Ex3) = liftAction(R,Map,Q,Ex2);
-    valis (.aIftte(Lc,liftWhere(CC),LL,RR),Ex3)
+    valis (.aIftte(Lc,CC,LL,RR),Ex3)
   }
   liftAction(.doWhile(Lc,C,B),Map,Q,Ex) => valof{
     (CC,Ex1) = liftExp(C,Map,Q,Ex);
     (BB,Ex2) = liftAction(B,Map,condVars(C,Q),Ex1);
-    valis (.aWhile(Lc,liftWhere(CC),BB),Ex2)
+    valis (.aWhile(Lc,CC,BB),Ex2)
   }
   liftAction(.doCase(Lc,Gv,Cs),Map,Q,Ex) => valof{
     (LGv,Ex1) = liftExp(Gv,Map,Q,Ex);

@@ -115,19 +115,20 @@ star.compiler{
 	  AllDecls = IDecls++Decls;
 	  N = normalize(PkgSpec,Defs,AllDecls);
 	  validProg(N,AllDecls);
-	  if traceNormalize! then{
-	    logMsg("normalized code $(N)");
-	  };
 
 	  Inlined = ( optimization! ==.inlining ?? valof{
+	      if traceNormalize! then{
+		logMsg("pre-inlined code $(N)");
+	      };
 	      Priors = { Lb->Df | .pkgImp(_,_,I) in PkgSpec.imports &&
-		    Dfs ?= importLowered(I,Repo) &&
-		    Df in Dfs && Lb?=dfLbl(Df)};
+		    Dfs ?= trace importLowered(trace I,Repo) &&
+			Df in Dfs && Lb?=dfLbl(Df)};
+	      logMsg("prior definitions for inlining: $(Priors)");
 	      valis simplifyDefs(N,Priors);
 	    } || N);
 	  validProg(Inlined,IDecls++Decls);
 	  if showNormalize! then{
-	    logMsg("inline normalized code $(Inlined)");
+	    logMsg("normalized code $(Inlined)");
 	  };
 	  if errorFree() && genCode! then{
 	    Segs = compProg(P,Inlined,IDecls++Decls);

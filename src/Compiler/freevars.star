@@ -44,12 +44,12 @@ star.compiler.freevars{
     .apply(_,O,A,_) =>
       freeVarsInTuple(A,Excl,Q,freeVarsInExp(O,Excl,Q,Fv)).
     .tple(_,Els) => freeVarsInTuple(Els,Excl,Q,Fv).
-    .match(_,P,S) where Excl1 .= extendExcl(P,Excl,Fv) =>
+    .match(_,P,S) where Excl1 .= extendExcl(P,Excl) =>
       freeVarsInExp(S,Excl1,Q,freeVarsInExp(P,Excl1,Q,Fv)).
     .conj(_,L,R) => freeVarsInCond(Exp,Excl,Q,Fv).
     .disj(_,L,R) => freeVarsInCond(Exp,Excl,Q,Fv).
     .neg(_,R) => freeVarsInCond(Exp,Excl,Q,Fv).
-    .trycatch(_,E,T,H,_) where Excl1 .= extendExcl(T,Excl,Fv) =>
+    .trycatch(_,E,T,H,_) where Excl1 .= extendExcl(T,Excl) =>
       freeVarsInExp(T,Excl1,Q,freeVarsInExp(E,Excl1,Q,
 	  foldRight((Rl,F)=>freeVarsInRule(Rl,freeVarsInExp,Excl,Q,F),Fv,H))).
     .thrw(_,T,E,_) => freeVarsInExp(T,Excl,Q,freeVarsInExp(E,Excl,Q,Fv)).
@@ -58,9 +58,10 @@ star.compiler.freevars{
     .letExp(_,D,_,E) => let{
       XX = exclDfs(D,Excl,Fv)
     } in freeVarsInExp(E,XX,Q,freeVarsInDefs(D,Excl,Q,Fv)).
-    .letRec(_,D,_,E) => let{
-      XX = exclDfs(D,Excl,Fv)
-    } in freeVarsInExp(E,XX,Q,freeVarsInDefs(D,XX,Q,Fv)).
+    .letRec(Lc,D,_,E) => valof{
+      XX = exclDfs(D,Excl,Fv);
+      valis freeVarsInExp(E,XX,Q,freeVarsInDefs(D,XX,Q,Fv))
+    }.
     .vlof(_,A,_) => freeVarsInAct(A,Excl,Q,Fv).
     _ default => valof{
       reportError("cant find free vars in $(Exp)",locOf(Exp));
@@ -79,15 +80,15 @@ star.compiler.freevars{
     .doBrk(_,_) => Fv.
     .doValis(_,E) => freeVarsInExp(E,Excl,Q,Fv).
     .doThrow(_,T,E) => freeVarsInExp(T,Excl,Q,freeVarsInExp(E,Excl,Q,Fv)).
-    .doDefn(_,P,E) where Excl1 .= extendExcl(P,Excl,Fv) =>
+    .doDefn(_,P,E) where Excl1 .= extendExcl(P,Excl) =>
       freeVarsInExp(E,Excl1,Q,freeVarsInExp(P,Excl1,Q,Fv)).
-    .doMatch(_,P,E) where Excl1 .= extendExcl(P,Excl,Fv) =>
+    .doMatch(_,P,E) where Excl1 .= extendExcl(P,Excl) =>
       freeVarsInExp(E,Excl1,Q,freeVarsInExp(P,Excl1,Q,Fv)).
     .doAssign(_,L,R) => freeVarsInExp(L,Excl,Q,freeVarsInExp(R,Excl,Q,Fv)).
-    .doTryCatch(_,L,T,H) where Excl1 .= extendExcl(T,Excl,Fv) =>
+    .doTryCatch(_,L,T,H) where Excl1 .= extendExcl(T,Excl) =>
       foldLeft((Rl,F)=>freeVarsInRule(Rl,freeVarsInAct,Excl,Q,F),freeVarsInAct(L,Excl1,Q,Fv), H).
-    .doIfThen(_,T,L,R) => valof{
-      Excl1 = extendExcl(T,Excl,Fv);
+    .doIfThen(Lc,T,L,R) => valof{
+      Excl1 = condVars(T,Excl);
       valis freeVarsInAct(L,Excl1,Q,
 	freeVarsInAct(R,Excl,Q,freeVarsInCond(T,Excl1,Q,Fv)))
     }.
@@ -138,10 +139,14 @@ star.compiler.freevars{
 
   freeVarsInRule:all e ~~ (rule[e],
     (e,set[cId],set[cId],set[cId])=>set[cId],set[cId],set[cId],set[cId])=>set[cId].
-  freeVarsInRule(.rule(_,Ptn,.none,Exp),Fn,Excl,Q,Fv) =>
-    freeVarsInExp(Ptn,Excl,Q,Fn(Exp,Excl,Q,Fv)).
-  freeVarsInRule(.rule(_,Ptn,.some(Wh),Exp),Fn,Excl,Q,Fv) =>
-    freeVarsInExp(Ptn,Excl,Q,Fn(Exp,Excl,Q,freeVarsInCond(Wh,Excl,Q,Fv))).
+  freeVarsInRule(.rule(_,Ptn,.none,Exp),Fn,Excl,Q,Fv) => valof{
+    Excl1 = extendExcl(Ptn,Excl);
+    valis freeVarsInExp(Ptn,Excl1,Q,Fn(Exp,Excl1,Q,Fv))
+  }
+  freeVarsInRule(.rule(_,Ptn,.some(Wh),Exp),Fn,Excl,Q,Fv) =>valof{
+    Excl1 = extendExcl(Ptn,Excl);
+    valis freeVarsInExp(Ptn,Excl1,Q,Fn(Exp,Excl1,Q,freeVarsInCond(Wh,Excl1,Q,Fv)))
+  }
 
   public freeVarsInGroup:(cons[canonDef],set[cId])=>set[cId].
   freeVarsInGroup(Defs,Q) => let{
@@ -169,8 +174,8 @@ star.compiler.freevars{
   freeVarsInDefs:(cons[canonDef],set[cId],set[cId],set[cId])=>set[cId].
   freeVarsInDefs(Defs,Excl,Q,Fv)=>foldRight((D,F)=>freeVarsInDef(D,Excl,Q,F),Fv,Defs).
 
-  extendExcl:(canon,set[cId],set[cId]) => set[cId].
-  extendExcl(P,Excl,Fv) => ptnVars(P,Excl,Fv).
+  extendExcl:(canon,set[cId]) => set[cId].
+  extendExcl(P,Excl) => ptnVars(P,Excl,[]).
 
   exclDfs:(cons[canonDef],set[cId],set[cId])=>set[cId].
   exclDfs(Defs,Excl,Fv) => foldRight((D,Ex)=>exclDf(D,Ex,Fv),Excl,Defs).
@@ -206,7 +211,7 @@ star.compiler.freevars{
     .cond(_,T,L,R) => ptnVars(L,ptnVars(T,Q,Fv),Fv)/\ ptnVars(R,Q,Fv).
     .apply(_,O,A,_) => ptnTplVars(A,Q,Fv).
     .tple(_,Els) => ptnTplVars(Els,Q,Fv).
-    .match(_,P,S) => ptnVars(S,ptnVars(P,Q,Fv),Fv).
+    .match(_,P,S) => ptnVars(P,Q,Fv).
     .conj(Lc,L,R) => ptnVars(R,ptnVars(L,Q,Fv),Fv).
     .disj(Lc,L,R) => ptnVars(L,Q,Fv)/\ptnVars(R,Q,Fv).
     .neg(Lc,R) => Q.

@@ -135,7 +135,7 @@ star.compiler.matcher{
 
     if traceNormalize! then
       logMsg("generate condition match $(Args) .= $(Vrs)");
-    (Tst,Res) = mkMatchCond(Args,Vrs,fmap(liftWhere,mergeGoal(Lc,Cnd,Test)),Lc,Vl);
+    (Tst,Res) = mkMatchCond(Args,Vrs,mergeGoal(Lc,Cnd,Test),Lc,Vl);
     if traceNormalize! then
       logMsg("match cond $(Tst)");
     Other = conditionMatch(M,Vrs,Deflt);
@@ -282,7 +282,7 @@ star.compiler.matcher{
     EqnCnd = mergeGoal(Lc,Test,Cnd);
     if Tst ?= EqnCnd then
       valis applyBindings(Lc,Bnds,
-	mkCond(Lc,liftWhere(Tst),Vl,conditionalize(Triples,Deflt)))
+	mkCond(Lc,Tst,Vl,conditionalize(Triples,Deflt)))
     else
     valis applyBindings(Lc,Bnds,Vl)
   }
