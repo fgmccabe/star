@@ -517,7 +517,7 @@ star.compiler.term{
       .cAbort(Lc,Ms,Tp) => .cAbort(Lc,Ms,Tp).
     }.
 
-  public rwAct:(aAction,(cExp)=>option[cDefn])=>aAction.
+  rwAct:(aAction,(cExp)=>option[cDefn])=>aAction.
   rwAct(Ac,Tst) => case Ac in {
     .aNop(Lc) => .aNop(Lc).
     .aSeq(Lc,L,R) => .aSeq(Lc,rwAct(L,Tst),rwAct(R,Tst)).
