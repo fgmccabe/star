@@ -443,7 +443,9 @@ constructors that are introduced in an algebraic
 @anchored{PositionalConstructorLiteral} ::= @code{.}@refer{Identifier}@code{(}@refer{Expression}@code{,} @dots{} @code{,}@refer{Expression}@code{)}
 @end display
 @end float
-The valid types of the arguments to a @refer{PositionalConstructorLiteral} are determined by its definition within the appropriate type definition.
+The valid types of the arguments to a
+@refer{PositionalConstructorLiteral} are determined by its definition
+within the appropriate type definition.
 
 For example, in the type definition:
 @example
@@ -461,15 +463,13 @@ a leading @code{.} character. This helps to distinguish such
 expressions from normal function calls.
 @end quotation
 
-
-
 @node Accessing Elements of a Positional Constructor Literal
 @subsubsection Accessing Elements of a Positional Constructor Literal
-The only way that elements
-of a @refer{PositionalConstructorLiteral} can be @emph{accessed} is via a
-pattern match -- see @refer{posConPattern}. For example, given the
-definition of @code{address} above, we can 'unpack' its argument using a
-pattern such as in 
+The only way that elements of a @refer{PositionalConstructorLiteral}
+can be @emph{accessed} is via a pattern match -- see
+@refer{posConPattern}. For example, given the definition of
+@code{address} above, we can 'unpack' its argument using a pattern
+such as in
 @example
 city(someWhere(City,_,_)) => City
 @end example

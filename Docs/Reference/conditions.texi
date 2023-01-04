@@ -59,7 +59,7 @@ contents in a safe way. I.e., a @refer{Condition} of the form:
 @end example
 is equivalent to:
 @example
-some(@refer{Pattern}) .= @refer{Expression}
+.some(@refer{Pattern}) .= @refer{Expression}
 @end example
 
 @quotation Note
