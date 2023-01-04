@@ -15,7 +15,6 @@
 
 #include <assert.h>
 #include "ixTreeP.h"
-#include "utils.h"
 
 // Implement the tree leaf class structure
 

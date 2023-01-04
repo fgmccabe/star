@@ -476,7 +476,7 @@ star.compiler.term{
 	    .cInt(OLc,Line),.cInt(OLc,Col),.cInt(OLc,Off),.cInt(OLc,Len)]))
   }
 
-  public rwTerm:(cExp,(cExp)=>option[cDefn])=>cExp.
+  rwTerm:(cExp,(cExp)=>option[cDefn])=>cExp.
   rwTerm(Trm,Tst) =>
     .vrDef(_,_,_,Vl) ?= Tst(Trm) ?? Vl || case Trm in {
       .cVoid(Lc,Tp) => .cVoid(Lc,Tp).
@@ -547,14 +547,8 @@ star.compiler.term{
     test(T) default => Tst(T)
   } in test.
   
-  public rwTerms:(cons[cExp],(cExp)=>option[cDefn])=>cons[cExp].
+  rwTerms:(cons[cExp],(cExp)=>option[cDefn])=>cons[cExp].
   rwTerms(Els,Tst) => (Els//(E)=>rwTerm(E,Tst)).
-
-  rwDef(D,M) => case D in {
-    .fnDef(Lc,Nm,Tp,Args,Val) => .fnDef(Lc,Nm,Tp,Args,rwTerm(Val,M)).
-    .vrDef(Lc,Nm,Tp,Val) => .vrDef(Lc,Nm,Tp,rwTerm(Val,M)).
-    _ default => D
-  }
 
   rwCase:all e ~~ (cCase[e],(cExp)=>option[cDefn],(e,(cExp)=>option[cDefn])=>e) => cCase[e].
   rwCase((Lc,Ptn,Rep),T,F) => (Lc,rwTerm(Ptn,T),F(Rep,T)).

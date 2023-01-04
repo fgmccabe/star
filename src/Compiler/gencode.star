@@ -192,7 +192,7 @@ star.compiler.gencode{
       SC = splitCont(Lc,Ctx,Succ);
       FC = splitCont(Lc,Ctx,Fail);
       
-      valis compCond(T,.notLast,condCont(L,TM,SC,FC,Stk),ctxCont(Ctxa,condCont(R,TM,SC,FC,Stk)),Ctxa,Stk)
+      valis compCond(T,.notLast,condCont(L,TM,SC,FC,Stk),ctxCont(Ctx,condCont(R,TM,SC,FC,Stk)),Ctx,Stk)
     }
     | .cMatch(Lc,Ptn,Exp) => compExp(Exp,.notLast,ptnCont(Ptn,Succ,Fail),Ctx,Stk)
     | Exp default => compExp(Exp,.notLast,ifCont(locOf(Exp),Stk,Succ,Fail),Ctx,Stk)
@@ -227,9 +227,8 @@ star.compiler.gencode{
     | .aIftte(Lc,G,L,R) => valof{
       AC = splitCont(Lc,Ctx,ACont);
       CC = splitCont(Lc,Ctx,Cont);
-      Ctxa = glCtx(Ctx,G);
       valis compCond(G,.notLast,actionCont(L,TM,AC,CC),
-	resetCont(Stk,ctxCont(Ctxa,actionCont(R,TM,AC,CC))),Ctxa,Stk)
+	resetCont(Stk,ctxCont(Ctx,actionCont(R,TM,AC,CC))),Ctx,Stk)
     }
     | .aWhile(Lc,G,B) => valof{
       Lp = defineLbl("Lp",Ctx);
