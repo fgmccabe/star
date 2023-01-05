@@ -3,7 +3,7 @@ star.compiler.misc{
   import star.pkg.
 
   public genNewName:(string,string) => string.
-  genNewName(Path,Prefix) => qualifiedName(Path,.valMark,genSym(Prefix)).
+  genNewName(Path,Prefix) => qualifiedName(Path,.valMark,genId(Prefix)).
 
   public markerType ::= .typeMark |
     .valMark |
