@@ -277,8 +277,8 @@ star.compiler.inline{
   inlineCall:(option[locn],string,cons[cExp],tipe,map[termLbl,cDefn],integer) => cExp.
   inlineCall(Lc,Nm,Args,_Tp,Map,Depth) where Depth>0 &&
       PrgLbl .= .tLbl(Nm,[|Args|]) && .fnDef(_,_,_,Vrs,Rep) ?= Map[PrgLbl] => valof{
-	RwMap = { .tLbl(VNm,arity(VTp))->.vrDef(Lc,Nm,VTp,A) | (.cId(VNm,VTp),A) in zip(Vrs,Args)};
-	valis simplifyExp(rewriteTerm(Rep,RwMap),Map[~PrgLbl],Depth)
+	RwMap = { lName(V)->A | (V,A) in zip(Vrs,Args)};
+	valis simplifyExp(freshenE(Rep,RwMap),Map[~PrgLbl],Depth)
       }.
   inlineCall(Lc,Nm,Args,Tp,Map,Depth) default => .cCall(Lc,Nm,Args//(A)=>simplifyExp(A,Map,Depth),Tp).
 

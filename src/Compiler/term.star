@@ -572,6 +572,136 @@ star.compiler.term{
     test(_) => .none.
   } in test.
 
+  public freshenE:(cExp,map[termLbl,cExp])=>cExp.
+  freshenE(E,Mp) => valof{
+    logMsg("Freshen $(E) using $(Mp)");
+    valis trace frshnE(E,[Mp])
+  }
+
+  scope ~> cons[map[termLbl,cExp]].
+
+  frshnE:(cExp,scope)=>cExp.
+  frshnE(Trm,Sc) => case Trm in {
+    .cVoid(Lc,Tp) => .cVoid(Lc,Tp)
+    | .cAnon(Lc,Tp) => .cAnon(Lc,Tp)
+    | .cVar(Lc,V) => (Rp ?= hasBinding(lName(V),Sc) ?? Rp || Trm)
+    | .cInt(Lc,Ix) => .cInt(Lc,Ix)
+    | .cBig(Lc,Ix) => .cBig(Lc,Ix)
+    | .cFloat(Lc,Dx) => .cFloat(Lc,Dx)
+    | .cChar(Lc,Cx) => .cChar(Lc,Cx)
+    | .cString(Lc,Sx) => .cString(Lc,Sx)
+    | .cTerm(Lc,Op,Args,Tp) => .cTerm(Lc,Op,frshnEs(Args,Sc),Tp)
+    | .cNth(Lc,R,Ix,Tp) =>.cNth(Lc,frshnE(R,Sc),Ix,Tp)
+    | .cSetNth(Lc,R,Ix,E) =>.cSetNth(Lc,frshnE(R,Sc),Ix,frshnE(E,Sc))
+    | .cThunk(Lc,E,Tp) =>.cThunk(Lc,frshnE(E,Sc),Tp)
+    | .cThGet(Lc,E,Tp) =>.cThGet(Lc,frshnE(E,Sc),Tp)
+    | .cThSet(Lc,E,V,Tp) =>.cThSet(Lc,frshnE(E,Sc),frshnE(V,Sc),Tp)
+    | .cCall(Lc,Op,Args,Tp) => .cCall(Lc,Op,frshnEs(Args,Sc),Tp)
+    | .cOCall(Lc,Op,Args,Tp) => .cOCall(Lc,frshnE(Op,Sc),frshnEs(Args,Sc),Tp)
+    | .cECall(Lc,Op,Args,Tp) => .cECall(Lc,Op,frshnEs(Args,Sc),Tp)
+    | .cThrow(Lc,Th,E,Tp) =>.cThrow(Lc,frshnE(Th,Sc),frshnE(E,Sc),Tp)
+    | .cSeq(Lc,L,R) =>.cSeq(Lc,frshnE(L,Sc),frshnE(R,Sc))
+    | .cCnd(Lc,G,L,R) => valof{
+      Sc1 = newVars(glVars(Trm,[]),Sc);
+      valis .cCnd(Lc,frshnE(G,Sc1),frshnE(L,Sc1),frshnE(R,Sc))
+    }
+    | .cCnj(Lc,L,R) => valof{
+      Sc1 = newVars(glVars(L,[]),Sc);
+      valis .cCnj(Lc,frshnE(L,Sc1),frshnE(R,Sc1))
+    }
+    | .cDsj(Lc,L,R) =>valof{
+      Sc1 = newVars(glVars(Trm,[]),Sc);
+      valis .cDsj(Lc,frshnE(L,Sc1),frshnE(R,Sc1))
+    }
+    | .cNeg(Lc,R) =>.cNeg(Lc,frshnE(R,Sc))
+    | .cMatch(Lc,P,E) => .cMatch(Lc,frshnE(P,Sc),frshnE(E,Sc))
+    | .cLtt(Lc,V,D,E) =>.cLtt(Lc,V,frshnE(D,Sc),frshnE(E,pushScope(Sc)))
+    | .cCont(Lc,V,D,E) =>.cCont(Lc,V,frshnE(D,Sc),frshnE(E,pushScope(Sc)))
+    | .cUnpack(Lc,Sel,Cs,Tp) => .cUnpack(Lc,frshnE(Sel,Sc),frCases(Cs,Sc,frshnE),Tp)
+    | .cCase(Lc,Sel,Cs,Dflt,Tp) => .cCase(Lc,frshnE(Sel,Sc),frCases(Cs,Sc,frshnE),frshnE(Dflt,Sc),Tp)
+    | .cSusp(Lc,F,E,Tp) => .cSusp(Lc,frshnE(F,Sc),frshnE(E,Sc),Tp)
+    | .cResume(Lc,F,E,Tp) => .cResume(Lc,frshnE(F,Sc),frshnE(E,Sc),Tp)
+    | .cTry(Lc,B,T,E,H,Tp) => valof{
+      Sc0 = pushScope(Sc);
+      Sc1 = newVars(ptnVrs(E,[]),Sc0);
+      Sc2 = newVars(ptnVrs(T,[]),Sc0);
+      valis .cTry(Lc,frshnE(B,Sc2),
+	frshnE(T,Sc2),frshnE(E,Sc1),frshnE(H,Sc1),Tp)
+    }
+    | .cVarNmes(Lc,Vs,E) => .cVarNmes(Lc,Vs,frshnE(E,Sc))
+    | .cValof(Lc,A,Tp) => .cValof(Lc,frshnA(A,pushScope(Sc)),Tp)
+    | .cAbort(Lc,Ms,Tp) => .cAbort(Lc,Ms,Tp)
+  }.
+
+  hasBinding:(termLbl,scope) => option[cExp].
+  hasBinding(_,[]) => .none.
+  hasBinding(V,[M,.._]) where Vl ?= M[V] => .some(Vl).
+  hasBinding(V,[_,..Ms]) => hasBinding(V,Ms).
+
+  newVars:(set[cId],scope) => scope.
+  newVars(Vrs,[Mp,..Ms]) => let{
+    def:(cId,map[termLbl,cExp]) => map[termLbl,cExp].
+    def(V,M) where Nm .= lName(V) => (_ ?= M[Nm] ?? M || M[Nm->newVar(V)]).
+  } in [foldLeft(def,Mp,Vrs),..Ms].
+
+  newVar(.cId(Nm,Tp)) => .cVar(.none,.cId(genId(Nm),Tp)).
+
+  pushScope:(scope) => scope.
+  pushScope(Sc) => [[],..Sc].
+
+  public lName:(cId) => termLbl.
+  lName(.cId(Nm,Tp)) => .tLbl(Nm,arity(Tp)).
+
+  frshnA:(aAction,scope)=>aAction.
+  frshnA(Ac,Sc) => case Ac in {
+    .aNop(Lc) => .aNop(Lc)
+    | .aSeq(Lc,.aDefn(LL,P,E),R) => valof{
+      Sc1 = newVars(ptnVrs(P,[]),Sc);
+      valis .aSeq(Lc,.aDefn(LL,frshnE(P,Sc1),frshnE(E,Sc)),frshnA(R,Sc1))
+    }
+    | .aSeq(Lc,L,R) => .aSeq(Lc,frshnA(L,Sc),frshnA(R,Sc))
+    | .aLbld(Lc,L,A) => .aLbld(Lc,L,frshnA(A,Sc))
+    | .aBreak(Lc,L) => .aBreak(Lc,L)
+    | .aValis(Lc,E) => .aValis(Lc,frshnE(E,Sc))
+    | .aThrow(Lc,T,E) => .aThrow(Lc,frshnE(T,Sc),frshnE(E,Sc))
+    | .aPerf(Lc,E) => .aPerf(Lc,frshnE(E,Sc))
+    | .aSetNth(Lc,V,Ix,E) => .aSetNth(Lc,frshnE(V,Sc),Ix,frshnE(E,Sc))
+    | .aDefn(Lc,V,E) => .aDefn(Lc,frshnE(V,Sc),frshnE(E,Sc))
+    | .aAsgn(Lc,V,E) => .aAsgn(Lc,frshnE(V,Sc),frshnE(E,Sc))
+    | .aCase(Lc,G,Cs,D) => .aCase(Lc,frshnE(G,Sc),frCases(Cs,Sc,frshnA),frshnA(D,Sc))
+    | .aUnpack(Lc,G,Cs) => .aUnpack(Lc,frshnE(G,Sc),frCases(Cs,Sc,frshnA))
+    | .aIftte(Lc,C,L,R) => valof{
+      Sc0 = pushScope(Sc);
+      Sc1 = newVars(glVars(C,[]),Sc0);
+      valis .aIftte(Lc,frshnE(C,Sc1),frshnA(L,Sc1),frshnA(R,Sc))
+    }
+    | .aWhile(Lc,C,B) => valof{
+      Sc0 = pushScope(Sc);
+      Sc1 = newVars(glVars(C,[]),Sc0);
+      valis .aWhile(Lc,frshnE(C,Sc1),frshnA(B,Sc1))
+    }
+    | .aRetire(Lc,T,E) => .aRetire(Lc,frshnE(T,Sc),frshnE(E,Sc))
+    | .aTry(Lc,B,T,E,Hs) => valof{
+      Sc0 = pushScope(Sc);
+      Sc1 = newVars(ptnVrs(E,[]),Sc0);
+      Sc2 = newVars(ptnVrs(T,[]),Sc0);
+      valis .aTry(Lc,frshnA(B,Sc2),frshnE(T,Sc2), frshnE(E,Sc1),frshnA(Hs,Sc1))
+    }
+    | .aLtt(Lc,V,D,A) =>.aLtt(Lc,V,frshnE(D,Sc),frshnA(A,pushScope(Sc)))
+    | .aCont(Lc,V,D,A) =>.aCont(Lc,V,frshnE(D,Sc),frshnA(A,pushScope(Sc)))
+    | .aVarNmes(Lc,Vs,E) => .aVarNmes(Lc,Vs,frshnA(E,Sc))
+    | .aAbort(Lc,Ms) => .aAbort(Lc,Ms)
+  }
+
+  frshnEs:(cons[cExp],scope)=>cons[cExp].
+  frshnEs(Els,Sc) => (Els//(E)=>frshnE(E,Sc)).
+
+  frCases:all e ~~ (cons[cCase[e]],scope,(e,scope)=>e) => cons[cCase[e]].
+  frCases(Cs,Sc,F) => (Cs//((Lc,Ptn,Rep)) => valof{
+      Sc1=newVars(ptnVrs(Ptn,[]),pushScope(Sc));
+      valis (Lc,frshnE(Ptn,Sc1),F(Rep,Sc1))
+    }).
+
   public implementation hasLoc[cDefn] => {
     locOf(Df) => case Df in {
       .fnDef(Lc,_,_,_,_) => Lc.
