@@ -128,7 +128,7 @@ star.compiler.resolve{
 	declareImplementation(Lc,TpNm,TpNm,Tp,D)))
   }
   defineCVars(Lc,[.fieldConstraint(Tp,Nm,FTp),..Tps],Vrs,D) => valof{
-    Vnm = genSym("Nm");
+    Vnm = genId("Nm");
     Vtp = funType([Tp],FTp);
     valis defineCVars(Lc,Tps,[.vr(Lc,Vnm,Vtp),..Vrs],
       declareVar(Vnm,Vnm,Lc,Vtp,.none,

@@ -121,9 +121,8 @@ star.compiler{
 		logMsg("pre-inlined code $(N)");
 	      };
 	      Priors = { Lb->Df | .pkgImp(_,_,I) in PkgSpec.imports &&
-		    Dfs ?= trace importLowered(trace I,Repo) &&
+		    Dfs ?= importLowered(I,Repo) &&
 			Df in Dfs && Lb?=dfLbl(Df)};
-	      logMsg("prior definitions for inlining: $(Priors)");
 	      valis simplifyDefs(N,Priors);
 	    } || N);
 	  validProg(Inlined,IDecls++Decls);

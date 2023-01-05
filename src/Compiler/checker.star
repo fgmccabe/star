@@ -550,7 +550,7 @@ star.compiler.checker{
   fillinElementPtns:(option[locn],cons[(string,canon)],tipe) => cons[canon].
   fillinElementPtns(Lc,Ptns,Tp) =>
     project1(foldRight(((Nm,Pt),Ps)=>fillinElementPtn(Lc,Nm,Pt,Ps),
-	_optval(fieldTypes(Tp))//((N,T))=>(N,.vr(Lc,genSym("_"),T)),
+	_optval(fieldTypes(Tp))//((N,T))=>(N,.vr(Lc,genId("_"),T)),
 	Ptns)).
 
   fillinElementPtn(Lc,Nm,Pt,Ps) => replace(Ps,((N,_))=>N==Nm,(Nm,Pt)).
@@ -683,7 +683,7 @@ star.compiler.checker{
     
     (As,ACnd,E0) = typeOfArgPtn(Ar,At,Es,Path);
 
-    LName = genSym(Path++"λ");
+    LName = genId(Path++"λ");
 
     if Cnd ?= C then {
       (Cond,E1) = checkCond(Cnd,E0,Path);
