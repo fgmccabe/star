@@ -110,12 +110,7 @@ star.compiler.gencode{
       compExp(Thnk,.notLast,thGetCont(pushStack(Tp::ltipe,Stk),Ctx.escape,Cont),Ctx,Stk)
     | .cSeq(_,L,R) =>
       compExp(L,.notLast,resetCont(Stk,expCont(R,TM,Cont)),Ctx,Stk)
-    | .cCnd(Lc,G,L,R) => valof{
-      LC = splitCont(Lc,Ctx,expCont(L,TM,Cont));
-      RC = splitCont(Lc,Ctx,ctxCont(Ctx,expCont(R,TM,Cont)));
-      
-      valis compCond(G,TM,LC,RC,Ctx,Stk)
-    }
+    | .cCnd(Lc,G,L,R) => compCond(G,TM,expCont(L,TM,Cont),ctxCont(Ctx,expCont(R,TM,Cont)),Ctx,Stk)
     | .cCase(Lc,Gov,Cases,Deflt,_Tp) =>
       compCase(Lc,Gov,Cases,Deflt,(E,C1)=>expCont(E,TM,C1),Cont,Ctx,Stk)
     | .cUnpack(Lc,Gov,Cases,_Tp) => compCnsCase(Lc,Gov,Cases,(Ac,C1)=>expCont(Ac,TM,C1),Cont,Ctx,Stk)
