@@ -573,10 +573,7 @@ star.compiler.term{
   } in test.
 
   public freshenE:(cExp,map[termLbl,cExp])=>cExp.
-  freshenE(E,Mp) => valof{
-    logMsg("Freshen $(E) using $(Mp)");
-    valis trace frshnE(E,[Mp])
-  }
+  freshenE(E,Mp) => frshnE(E,[Mp]).
 
   scope ~> cons[map[termLbl,cExp]].
 
@@ -602,7 +599,7 @@ star.compiler.term{
     | .cThrow(Lc,Th,E,Tp) =>.cThrow(Lc,frshnE(Th,Sc),frshnE(E,Sc),Tp)
     | .cSeq(Lc,L,R) =>.cSeq(Lc,frshnE(L,Sc),frshnE(R,Sc))
     | .cCnd(Lc,G,L,R) => valof{
-      Sc1 = newVars(glVars(Trm,[]),Sc);
+      Sc1 = newVars(glVars(G,[]),Sc);
       valis .cCnd(Lc,frshnE(G,Sc1),frshnE(L,Sc1),frshnE(R,Sc))
     }
     | .cCnj(Lc,L,R) => valof{
@@ -625,8 +622,7 @@ star.compiler.term{
       Sc0 = pushScope(Sc);
       Sc1 = newVars(ptnVrs(E,[]),Sc0);
       Sc2 = newVars(ptnVrs(T,[]),Sc0);
-      valis .cTry(Lc,frshnE(B,Sc2),
-	frshnE(T,Sc2),frshnE(E,Sc1),frshnE(H,Sc1),Tp)
+      valis .cTry(Lc,frshnE(B,Sc2),frshnE(T,Sc2),frshnE(E,Sc1),frshnE(H,Sc1),Tp)
     }
     | .cVarNmes(Lc,Vs,E) => .cVarNmes(Lc,Vs,frshnE(E,Sc))
     | .cValof(Lc,A,Tp) => .cValof(Lc,frshnA(A,pushScope(Sc)),Tp)
