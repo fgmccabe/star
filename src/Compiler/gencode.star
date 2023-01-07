@@ -110,9 +110,13 @@ star.compiler.gencode{
       compExp(Thnk,.notLast,thGetCont(pushStack(Tp::ltipe,Stk),Ctx.escape,Cont),Ctx,Stk)
     | .cSeq(_,L,R) =>
       compExp(L,.notLast,resetCont(Stk,expCont(R,TM,Cont)),Ctx,Stk)
-    | .cCnd(Lc,G,L,R) => compCond(G,TM,expCont(L,TM,Cont),ctxCont(Ctx,expCont(R,TM,Cont)),Ctx,Stk)
-    | .cCase(Lc,Gov,Cases,Deflt,_Tp) =>
-      compCase(Lc,Gov,Cases,Deflt,(E,C1)=>expCont(E,TM,C1),Cont,Ctx,Stk)
+    | .cCnd(Lc,G,L,R) => valof{
+      CC = splitCont(Lc,Ctx,Cont);
+      valis compCond(G,TM,expCont(L,TM,CC),ctxCont(Ctx,expCont(R,TM,CC)),Ctx,Stk)
+    }
+    | .cCase(Lc,Gov,Cases,Deflt,_Tp) => valof{
+      valis compCase(Lc,Gov,Cases,Deflt, (E,C1)=>expCont(E,TM,C1),Cont,Ctx,Stk)
+    }
     | .cUnpack(Lc,Gov,Cases,_Tp) => compCnsCase(Lc,Gov,Cases,(Ac,C1)=>expCont(Ac,TM,C1),Cont,Ctx,Stk)
     | .cLtt(Lc,.cId(Vr,VTp),Val,Bnd) => valof{
       valis compExp(Val,.notLast,stoCont(Vr,VTp::ltipe,Stk,expCont(Bnd,TM,Cont)),Ctx,Stk)
@@ -137,7 +141,8 @@ star.compiler.gencode{
       valis (reconcileStack(Stk1,Stk2),[.iTry(Blk),.iStL(TOff)]++BCde++[.iLbl(Blk),.iTL(EOff)]++HCde)
     }
     | .cThrow(Lc,T,E,_) => compExp(E,.notLast,expCont(T,.notLast,throwCont),Ctx,Stk)
-    | .cValof(Lc,A,Tp) => compAction(A,TM,abortCont(Lc,"missing valis action"),Cont,Ctx,Stk)
+    | .cValof(Lc,A,Tp) =>
+      compAction(A,TM,abortCont(Lc,"missing valis action"),splitCont(Lc,Ctx,Cont),Ctx,Stk)
     |  C where isCond(C) => valof{
       Nx = defineLbl("E",Ctx);
       Stk0 = pushStack(boolType::ltipe,Stk);
@@ -270,14 +275,20 @@ star.compiler.gencode{
     (option[locn],cExp,cons[cCase[e]],e,(e,Cont)=>Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
   compCase(Lc,Gv,Cases,Deflt,Comp,Cont,Ctx,Stk) => valof{
     if traceCodegen! then
-      logMsg("compiling case, Stk $(Stk)");
+      logMsg("compiling case @$(Lc), Gov=$(Gv)");
     Nxt = defineLbl("CN",Ctx);
     DLbl = defineLbl("CD",Ctx);
     (Stk1,GCode) = compExp(Gv,.notLast,jmpCont(Nxt,pushStack(typeOf(Gv)::ltipe,Stk)),Ctx,Stk);
     (Table,Max) = genCaseTable(Cases);
+    if traceCodegen! then
+      logMsg("case table $(Table)");
+    
     OC = splitCont(Lc,Ctx,Cont);
     (Stkc,DCode) = Comp(Deflt,OC).C(Ctx,Stk,[]);
 
+    if traceCodegen! then
+      logMsg("default code $(DCode)");
+    
     (Stkb,TCode,CCode) = compCases(Table,0,Max,Comp,OC,jmpCont(DLbl,Stkc),DLbl,Ctx,Stk1);
     Hgt = ^[|Stk|];
 
@@ -301,7 +312,6 @@ star.compiler.gencode{
       Lb = defineLbl("CC",Ctx);
       (Stkb,TCde2,Cde2) = compCases(Cases,Ix+1,Mx,Comp,Succ,Fail,Deflt,Ctx,Stk);
       (Stkc,CCde) = compCaseBranch(Case,Comp,Succ,Fail,Ctx,Stk);
---      logMsg("In cases Stkb=$(Stkb), Stkc=$(Stkc)");
       valis (reconcileStack(Stkb,Stkc),[.iJmp(Lb)]++TCde2,Cde2++[.iLbl(Lb),..CCde])
     }
     | [(Iy,Case),..Cases] => valof{
