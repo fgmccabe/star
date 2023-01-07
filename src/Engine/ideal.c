@@ -71,11 +71,11 @@ static retCode dispTree(ioPo out, termPo t, integer precision, integer depth, lo
 
 retCode dispIdeal(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   char *sep = "";
-  retCode ret = outStr(out, "{");
+  retCode ret = outStr(out, "[");
   if (ret == Ok)
     ret = dispTree(out, t, precision, depth, alt, &sep);
   if (ret == Ok)
-    ret = outStr(out, "}");
+    ret = outStr(out, "]");
   return ret;
 }
 

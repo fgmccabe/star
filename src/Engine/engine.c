@@ -60,7 +60,8 @@ retCode bootstrap(heapPo h, char *entry, char *rootWd, capabilityPo rootCap) {
 
 processPo newProcess(heapPo h, methodPo mtd, char *rootWd, capabilityPo processCap, termPo rootArg) {
   processPo P = (processPo) allocPool(prPool);
-  stackPo stk = P->stk = allocateStack(h, defaultStackSize, &haltMethod, active, Null);
+  integer stackSize = maximum(stackDelta(mtd)*2,defaultStackSize);
+  stackPo stk = P->stk = allocateStack(h, stackSize, &haltMethod, active, Null);
 
   pushStack(stk, rootArg);
   stk->fp = pushFrame(stk, mtd, stk->fp);
