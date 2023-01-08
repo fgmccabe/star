@@ -439,7 +439,7 @@ star.compiler.gencode{
       Flb = defineLbl("U",Ctx);
       (Stk1,FCde) = Fail.C(Ctx,Stk0,[]);
       
-      (Stk2,SCde) = compPtnArgs(Args,Succ,jmpCont(Flb,Stk1),Ctx,loadStack(Args//(A)=>(typeOf(A)::ltipe),Stk0));
+      (Stk2,SCde) = compPtnArgs(Args,Succ,resetCont(Stk0,jmpCont(Flb,Stk1)),Ctx,loadStack(Args//(A)=>(typeOf(A)::ltipe),Stk0));
 
 --      logMsg("Unpack $(Nm), Args=$(Args), Stk1=$(Stk1), Stk2=$(Stk2), SCde=$(SCde)");
       valis (reconcileStack(Stk1,Stk2),[.iUnpack(.tLbl(Nm,size(Args)),Flb)]++SCde++[.iLbl(Flb),..FCde])
@@ -932,5 +932,8 @@ star.compiler.gencode{
     }
   }
 
-  
+  chLine:(option[locn],option[locn]) => multi[assemOp].
+  chLine(.none,_) => [].
+  chLine(.some(Lc),.some(Lc)) => [].
+  chLine(_,.some(Lc)) => [.iLine(Lc::data)].
 }
