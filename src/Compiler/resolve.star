@@ -559,7 +559,5 @@ star.compiler.resolve{
     disp(.resolved) => "resolved".
     disp(.active(Lc,Msg)) => "active $(Lc)\:#(Msg)".
   }
-
-  public lambdaLbl(Lc) => genSym((ALc?=Lc??locPkg(ALc)||"")++"λ").
 }
   

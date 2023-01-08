@@ -124,10 +124,10 @@ star.json{
 
   psSeq:(cons[char]) => option[(json,cons[char])].
   psSeq([`]`,..L]) => ?(.jSeq([]),L).
-  psSeq(L) where (El,LL)?=pJ(L) => psMoreSeq(skpBlnks(LL),[El]).
+  psSeq(L) where (El,LL) ?= pJ(L) => psMoreSeq(skpBlnks(LL),[El]).
 
   psMoreSeq([`]`,..L],SoF) => ?(.jSeq(reverse(SoF)),L).
-  psMoreSeq([`,`,..L],SoF) where (El,LL)?=pJ(L) =>
+  psMoreSeq([`,`,..L],SoF) where (El,LL) ?= pJ(skpBlnks(L)) =>
     psMoreSeq(skpBlnks(LL),[El,..SoF]).
 
   psColl:(cons[char]) => option[(json,cons[char])].
