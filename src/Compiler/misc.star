@@ -104,10 +104,10 @@ star.compiler.misc{
     if Last?=generated![Pr] then{
       Nxt = Last+1;
       generated[Pr] := Nxt;
-      valis "#(Pr)*$(Nxt)"
+      valis "#(Pr)_$(Nxt)"
     } else{
       generated[Pr] := 0;
-      valis "#(Pr)*0"
+      valis "#(Pr)_0"
     }
   }
 }
