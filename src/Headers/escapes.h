@@ -189,6 +189,7 @@ escape(_in_manifest, "F(sss)l", "True if pkg/version/kind is present in manifest
 escape(_locate_in_manifest, "F(sss)s", "Access manifest resource")
 
 escape(_logmsg, "F(s)()", "log a message in logfile or console")
+escape(_display_depth,"F()i", "Current standard display depth")
 
 // Socket handling functions
 escape(_connect, "F(sii)("fileType fileType")", "connect to remote host")
