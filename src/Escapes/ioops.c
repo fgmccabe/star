@@ -363,8 +363,7 @@ ReturnStatus g__put_file(heapPo h, termPo a1, termPo a2) {
     ReturnStatus rt = {.ret=ret, .result=unitEnum};
     return rt;
   } else {
-    ReturnStatus rt = {.ret=Error, .result=eNOTFND};
-    return rt;
+    return (ReturnStatus){.ret=Error, .result=eNOTFND};
   }
 }
 
@@ -374,6 +373,10 @@ ReturnStatus g__logmsg(heapPo h, termPo a1) {
   retCode ret = logMsg(logFile, "%S", (char *) text, length);
 
   return rtnStatus(h, ret, "logmsg");
+}
+
+ReturnStatus g__display_depth(heapPo h){
+  return (ReturnStatus){.ret=Ok, .result=makeInteger(displayDepth)};
 }
 
 ReturnStatus g__stdfile(heapPo h, termPo a1) {
