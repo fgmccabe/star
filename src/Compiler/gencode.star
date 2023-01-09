@@ -186,8 +186,6 @@ star.compiler.gencode{
     }
     | .cNeg(Lc,R) => compCond(R,TM,ctxCont(Ctx,Fail),ctxCont(Ctx,Succ),Ctx,Stk)
     | .cCnd(Lc,T,L,R) => valof{
-      if traceCodegen! then
-	logMsg("compiling conditional cond $(C)");
       Ctxa = dsjCtx(Ctx,L,R);
       SC = splitCont(Lc,Ctx,Succ);
       FC = splitCont(Lc,Ctx,Fail);
@@ -237,9 +235,6 @@ star.compiler.gencode{
       GCtx = glCtx(Ctx,G);
 
       (Stk1,WCde) = compCond(G,.notLast,jmpCont(Lp,Stk),jmpCont(Ex,Stk),GCtx,Stk);
-      if traceCodegen! then
-	logMsg("While test code $(WCde)");
-
       (Stk0,BCde) = compAction(B,.notLast,jmpCont(Tst,Stk),Cont,GCtx,Stk);
 
       valis ACont.C(Ctx,reconcileStack(Stk0,Stk1),
@@ -280,21 +275,14 @@ star.compiler.gencode{
     DLbl = defineLbl("CD",Ctx);
     (Stk1,GCode) = compExp(Gv,.notLast,jmpCont(Nxt,pushStack(typeOf(Gv)::ltipe,Stk)),Ctx,Stk);
     (Table,Max) = genCaseTable(Cases);
-    if traceCodegen! then
-      logMsg("case table $(Table)");
     
     OC = splitCont(Lc,Ctx,Cont);
     (Stkc,DCode) = Comp(Deflt,OC).C(Ctx,Stk,[]);
 
-    if traceCodegen! then
-      logMsg("default code $(DCode)");
-    
-    (Stkb,TCode,CCode) = compCases(Table,0,Max,Comp,OC,jmpCont(DLbl,Stkc),DLbl,Ctx,Stk1);
-    Hgt = ^[|Stk|];
+    (Stkb,TCode,CCode) = compCases(Table,0,Max,Comp,OC,resetCont(Stk,jmpCont(DLbl,Stkc)),DLbl,Ctx,Stk1);
 
---    logMsg("In case Stkb=$(Stkb), Stkc=$(Stkc)");
     valis (reconcileStack(Stkb,Stkc),
-      GCode++[.iLbl(Nxt),.iCase(Max)]++TCode++CCode++[.iLbl(DLbl),.iRst(Hgt)]++DCode)
+      GCode++[.iLbl(Nxt),.iCase(Max)]++TCode++CCode++[.iLbl(DLbl)]++DCode)
   }
 
   compCases:all e ~~ display[e] |: (cons[csEntry[e]],integer,integer,
@@ -312,6 +300,7 @@ star.compiler.gencode{
       Lb = defineLbl("CC",Ctx);
       (Stkb,TCde2,Cde2) = compCases(Cases,Ix+1,Mx,Comp,Succ,Fail,Deflt,Ctx,Stk);
       (Stkc,CCde) = compCaseBranch(Case,Comp,Succ,Fail,Ctx,Stk);
+
       valis (reconcileStack(Stkb,Stkc),[.iJmp(Lb)]++TCde2,Cde2++[.iLbl(Lb),..CCde])
     }
     | [(Iy,Case),..Cases] => valof{
@@ -330,22 +319,22 @@ star.compiler.gencode{
       VLb = defineLbl("CN",Ctx);
       Vr = genSym("__");
       (Off,Ctx1) = defineLclVar(Vr,typeOf(Ptn)::ltipe,Ctx);
-      (Stkb,RlCde) = compPttrn(Ptn,Comp(Exp,Succ),jmpCont(Fl,Stk),Ctx1,Stk);
       (Stkc,AltCde) = compMoreCase(More,Off,Comp,Succ,Fail,Ctx,Stk);
---      logMsg("in case branch Stkb=$(Stkb), Stkc=$(Stkc)");
-      valis (reconcileStack(Stkb,Stkc),[.iTL(Off)]++RlCde++[.iLbl(Fl)]++AltCde)
+
+      (Stkb,RlCde) = compPttrn(Ptn,Comp(Exp,Succ),jmpCont(Fl,Stkc),Ctx1,Stk);
+      valis (reconcileStack(Stkb,Stkc),[.iTL(Off)]++RlCde++[.iLbl(Fl),.iLdL(Off)]++AltCde)
     }
   }
 
-  compMoreCase:all e ~~ (cons[(option[locn],cExp,e)],integer,(e,Cont)=>Cont,
+  compMoreCase:all e ~~ display[e] |: (cons[(option[locn],cExp,e)],integer,(e,Cont)=>Cont,
     Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
   compMoreCase(Cs,Off,Comp,Succ,Fail,Ctx,Stk) => case Cs in {
-    [] => Fail.C(Ctx,Stk,[])
+    [] => Fail.C(Ctx,.none,[])
     | [(Lc,Ptn,Exp),..More] => valof{
       Fl = defineLbl("CM",Ctx);
-      (Stk2,RlCde) = compPttrn(Ptn,Comp(Exp,Succ),jmpCont(Fl,Stk),Ctx,Stk);
+      
       (Stk3,RstCde) = compMoreCase(More,Off,Comp,Succ,Fail,Ctx,Stk);
---      logMsg("In more case Stk2=$(Stk2), Stk3=$(Stk3)");
+      (Stk2,RlCde) = compPttrn(Ptn,Comp(Exp,Succ),jmpCont(Fl,Stk3),Ctx,Stk);
       valis (reconcileStack(Stk2,Stk3),[.iLdL(Off)]++RlCde++[.iLbl(Fl)]++RstCde)
     }
   }
@@ -376,7 +365,6 @@ star.compiler.gencode{
       Lb = cseLbl(Ptn,Ctx);
       (Stk2a,TCde2,Cde2) = compCnsCases(Cases,Comp,Succ,Ctx,Stk);
       (Stk3a,CCde) = compPtn(Ptn,Comp(Exp,Succ),abortCont(Lc,"match error"),Ctx,Stk);
---      logMsg("Stk2a=$(Stk2a), Stk3a=$(Stk3a)");
       if ~reconcileable(Stk2a,Stk3a) then
 	reportError("cannot reconcile case $(Ptn)=>$(Exp) with $(Cases)",Lc);
       valis (reconcileStack(Stk2a,Stk3a),[.iJmp(Lb),..TCde2],Cde2++[.iLbl(Lb),..CCde])
@@ -441,7 +429,6 @@ star.compiler.gencode{
       
       (Stk2,SCde) = compPtnArgs(Args,Succ,resetCont(Stk0,jmpCont(Flb,Stk1)),Ctx,loadStack(Args//(A)=>(typeOf(A)::ltipe),Stk0));
 
---      logMsg("Unpack $(Nm), Args=$(Args), Stk1=$(Stk1), Stk2=$(Stk2), SCde=$(SCde)");
       valis (reconcileStack(Stk1,Stk2),[.iUnpack(.tLbl(Nm,size(Args)),Flb)]++SCde++[.iLbl(Flb),..FCde])
     }
     | _ default => valof{
@@ -450,7 +437,6 @@ star.compiler.gencode{
 	Stk0 = dropStack(Stk); 
 	(Stk1,FCde) = Fail.C(Ctx,Stk0,[]);
 	(Stk2,SCde) = Succ.C(Ctx,Stk0,[]);
---	logMsg("ground ptn Stk1=$(Stk1), Stk2=$(Stk2)");
 	valis (reconcileStack(Stk1,Stk2),
 	  [.iLdC(Ptn::data),ptnCmp(Ptn,Flb)]++SCde++[.iLbl(Flb),..FCde])
       } else{
@@ -561,7 +547,6 @@ star.compiler.gencode{
       (SStk,SCde) = Succ.C(Ctx,Stk,[.iIfNot(Flb)]);
       (FStk,FCde) = Fail.C(Ctx,Stk,[]);
       
---      logMsg("SStk=$(SStk), FStk=$(FStk)");
       valis (reconcileStack(SStk,FStk),Cde++SCde++[.iLbl(Flb),..FCde])
     }
   }
@@ -611,9 +596,7 @@ star.compiler.gencode{
   expCont:(cExp,tailMode,Cont) => Cont.
   expCont(Exp,TM,Cont) => cont{
     C(Ctx,Stk,Cde) => valof{
---      logMsg("Compile cont $(Exp), with stack $(Stk)");
       (Stk1,OCde) = compExp(Exp,TM,Cont,Ctx,Stk);
---      logMsg("Stack after Compile cont $(Exp) is $(Stk1)");
       valis (Stk1,Cde++OCde)
     }
   }
@@ -621,7 +604,6 @@ star.compiler.gencode{
   traceCont:(string,Cont) => Cont.
   traceCont(Msg,Cont) => cont{
     C(Ctx,Stk,Cde) => valof{
---      logMsg("invoking continuation #(Msg), stack = $(Stk)");
       valis Cont.C(Ctx,Stk,Cde)
     }
   }
@@ -698,7 +680,6 @@ star.compiler.gencode{
   abortCont:(option[locn],string) => Cont.
   abortCont(.some(Lc),Msg) => cont{
     C(_,_,Cde) => valof{
---      logMsg("abort cont $(Lc), $(Msg)");
       valis (.none,Cde++[.iLdC(Lc::data),.iLdC(.strg(Msg)),.iAbort])
     }
   }
@@ -715,7 +696,6 @@ star.compiler.gencode{
   actionCont:(aAction,tailMode,Cont,Cont) => Cont.
   actionCont(A,TM,ACont,Cont) => cont{
     C(Ctx,Stk,Cde) => valof{
---      logMsg("action $(A) at stack $(Stk)");
       (SStk,SCde) = compAction(A,TM,ACont,Cont,Ctx,Stk);
       valis (SStk,Cde++SCde)
     }
