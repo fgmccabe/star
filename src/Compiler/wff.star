@@ -186,10 +186,10 @@ star.compiler.wff{
 
   public mkDepends(Lc,L,R) => binary(Lc,"->>",reComma(L),reComma(R)).
 
-  public isThrows:(ast) => option[(option[locn],ast,ast)].
-  isThrows(T) => isBinary(T,"throws").
+  public isRaises:(ast) => option[(option[locn],ast,ast)].
+  isRaises(T) => isBinary(T,"raises").
 
-  public mkThrows(Lc,L,R) => binary(Lc,"throws",L,R).
+  public mkRaises(Lc,L,R) => binary(Lc,"raises",L,R).
 
   public isAnnotation:(ast) => option[(option[locn],ast,ast)].
   isAnnotation(A) where (Lc,L,R) ?= isBinary(A,"@") =>
@@ -744,15 +744,16 @@ star.compiler.wff{
 
   public mkValof(Lc,I) => unary(Lc,"valof",I).
 
-  public isThrow:(ast) => option[(option[locn],ast)].
-  isThrow(A) => isUnary(A,"throw").
-
-  public mkThrow(Lc,E) => unary(Lc,"throw",E).
-
   public isRaise:(ast) => option[(option[locn],ast)].
   isRaise(A) => isUnary(A,"raise").
 
   public mkRaise(Lc,E) => unary(Lc,"raise",E).
+
+  public isInvoke:(ast) => option[(option[locn],ast,cons[ast])].
+  isInvoke(A) where (Lc,Op,A) ?= isBinary(A,".") && (_,As) ?= isTuple(A) => .some((Lc,Op,As)).
+  isInvoke(_) default => .none.
+
+  public mkInvoke(Lc,Op,As) => binary(Lc,".",Op,rndTuple(Lc,As)).
 
   public isPerform:(ast) => option[(option[locn],ast)].
   isPerform(A) => isUnary(A,"perform").

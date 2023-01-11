@@ -52,7 +52,9 @@ star.compiler.freevars{
     .trycatch(_,E,T,H,_) where Excl1 .= extendExcl(T,Excl) =>
       freeVarsInExp(T,Excl1,Q,freeVarsInExp(E,Excl1,Q,
 	  foldRight((Rl,F)=>freeVarsInRule(Rl,freeVarsInExp,Excl,Q,F),Fv,H))).
-    .thrw(_,T,E,_) => freeVarsInExp(T,Excl,Q,freeVarsInExp(E,Excl,Q,Fv)).
+    .rais(_,T,E,_) => freeVarsInExp(T,Excl,Q,freeVarsInExp(E,Excl,Q,Fv)).
+    .invoke(_,O,A,_) =>
+      freeVarsInTuple(A,Excl,Q,freeVarsInExp(O,Excl,Q,Fv)).
     .lambda(_,_,Eqns,_) =>
       foldRight((Rl,F)=>freeVarsInRule(Rl,freeVarsInExp,Excl,Q,F),Fv,Eqns).
     .letExp(_,D,_,E) => let{
@@ -79,7 +81,7 @@ star.compiler.freevars{
     .doLbld(_,_,A) => freeVarsInAct(A,Excl,Q,Fv).
     .doBrk(_,_) => Fv.
     .doValis(_,E) => freeVarsInExp(E,Excl,Q,Fv).
-    .doThrow(_,T,E) => freeVarsInExp(T,Excl,Q,freeVarsInExp(E,Excl,Q,Fv)).
+    .doRaise(_,T,E) => freeVarsInExp(T,Excl,Q,freeVarsInExp(E,Excl,Q,Fv)).
     .doDefn(_,P,E) where Excl1 .= extendExcl(P,Excl) =>
       freeVarsInExp(E,Excl1,Q,freeVarsInExp(P,Excl1,Q,Fv)).
     .doMatch(_,P,E) where Excl1 .= extendExcl(P,Excl) =>

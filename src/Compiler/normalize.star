@@ -352,10 +352,10 @@ star.compiler.normalize{
       valis (.cVoid(Lc,typeOf(Th)),Ex)
     }
   }
-  liftExp(.thrw(Lc,T,E,Tp),Map,Q,Ex) => valof{
+  liftExp(.rais(Lc,T,E,Tp),Map,Q,Ex) => valof{
     (LT,Ex1) = liftExp(T,Map,Q,Ex);
     (LE,Ex2) = liftExp(E,Map,Q,Ex1);
-    valis (.cThrow(Lc,LT,LE,Tp),Ex1)
+    valis (.cRaise(Lc,LT,LE,Tp),Ex1)
   }
   liftExp(.vlof(Lc,A,Tp),Map,Q,Ex) => valof{
     (Acts,Ex1) = liftAction(A,Map,Q,Ex);
@@ -645,10 +645,10 @@ star.compiler.normalize{
     (EE,Ex1) = liftExp(E,Map,Q,Ex);
     valis (.aValis(Lc,EE),Ex1)
   }
-  liftAction(.doThrow(Lc,T,E),Map,Q,Ex) => valof{
+  liftAction(.doRaise(Lc,T,E),Map,Q,Ex) => valof{
     (TT,Ex1) = liftExp(T,Map,Q,Ex);
     (EE,Ex2) = liftExp(E,Map,Q,Ex1);
-    valis (.aThrow(Lc,TT,EE),Ex1)
+    valis (.aRaise(Lc,TT,EE),Ex1)
   }
   liftAction(.doDefn(Lc,P,E),Map,Q,Ex) => valof{
     (PP,Ex1) = liftPtn(P,Map,Q,Ex);

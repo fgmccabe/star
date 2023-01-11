@@ -346,8 +346,10 @@ star.compiler.dependencies{
     ((_,[As]) ?= isBrTuple(L) ??
       collectDoRefs(As,All,Rf) ||
 	collectTermRefs(L,All,Rf)).
-  collectTermRefs(A,All,Rf) where (_,R) ?= isThrow(A) => 
+  collectTermRefs(A,All,Rf) where (_,R) ?= isRaise(A) => 
     collectTermRefs(R,All,Rf).
+  collectTermRefs(T,All,Rf) where (_,Op,Args) ?= isInvoke(T) =>
+    collectTermListRefs(Args,All,collectTermRefs(Op,All,Rf)).
   collectTermRefs(A,All,Rf) where (_,L,H) ?= isTryCatch(A) => 
     collectCasesRefs(H,collectTermRefs,All,collectTermRefs(L,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,L,R) ?= isComprehension(T) =>
@@ -390,8 +392,10 @@ star.compiler.dependencies{
     collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
   collectDoRefs(A,All,Rf) where (_,R) ?= isValis(A) => 
     collectTermRefs(R,All,Rf).
-  collectDoRefs(A,All,Rf) where (_,R) ?= isThrow(A) => 
+  collectDoRefs(A,All,Rf) where (_,R) ?= isRaise(A) => 
     collectTermRefs(R,All,Rf).
+  collectDoRefs(T,All,Rf) where (_,Op,Args) ?= isInvoke(T) =>
+    collectTermListRefs(Args,All,collectTermRefs(Op,All,Rf)).
   collectDoRefs(A,All,Rf) where (_,L,H) ?= isTryCatch(A) =>
     collectCasesRefs(H,collectDoRefs,All,collectDoRefs(L,All,Rf)).
   collectDoRefs(A,All,Rf) where (_,L,H) ?= isCase(A) =>
@@ -462,7 +466,7 @@ star.compiler.dependencies{
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
   collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isBinary(T,"|") =>
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
-  collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isThrows(T) =>
+  collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isRaises(T) =>
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
   collectTypeRefs(T,All,SoFar) where (_,Q,I) ?= isQuantified(T) =>
     collectTypeRefs(I,filterOut(All,Q),SoFar).

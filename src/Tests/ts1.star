@@ -61,7 +61,7 @@ test.ts1{
       for (X where X%2==1) in L do{
 	_logmsg(disp(X));
 	if X>6 then
-	  throw ()
+	  raise ()
       }
     } catch {
       _ => {}

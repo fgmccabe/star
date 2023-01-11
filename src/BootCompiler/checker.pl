@@ -790,9 +790,9 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,valof(Lc,Act,Tp),Path) :-
 typeOfExp(A,Tp,ErTp,Env,Env,Act,Path) :-
   isTryCatch(A,Lc,B,H),!,
   checkTryCatch(Lc,B,H,Tp,ErTp,Env,Act,Path).
-typeOfExp(A,_Tp,_,Env,Env,throw(Lc,Thrw,ErExp),Path) :-
-  isThrow(A,Lc,E),!,
-  checkThrow(Lc,E,Env,Thrw,ErExp,Path).
+typeOfExp(A,_Tp,_,Env,Env,raise(Lc,Thrw,ErExp),Path) :-
+  isRaise(A,Lc,E),!,
+  checkRaise(Lc,E,Env,Thrw,ErExp,Path).
 typeOfExp(Term,Tp,_ErTp,Env,Env,void,_) :-
   locOfAst(Term,Lc),
   reportError("illegal expression: %s, expecting a %s",[Term,Tp],Lc).
@@ -884,9 +884,9 @@ checkAction(A,_,_,Env,Env,doBrk(Lc,Lb),_Path) :-
 checkAction(A,Tp,ErTp,Env,Env,doValis(Lc,ValExp),Path) :-
   isValis(A,Lc,E),!,
   typeOfExp(E,Tp,ErTp,Env,_,ValExp,Path).
-checkAction(A,_Tp,_ErTp,Env,Env,doThrow(Lc,Thrw,ErrExp),Path) :-
-  isThrow(A,Lc,E),!,
-  checkThrow(Lc,E,Env,Thrw,ErrExp,Path).
+checkAction(A,_Tp,_ErTp,Env,Env,doRaise(Lc,Thrw,ErrExp),Path) :-
+  isRaise(A,Lc,E),!,
+  checkRaise(Lc,E,Env,Thrw,ErrExp,Path).
 checkAction(A,_Tp,ErTp,Env,Ev,doDefn(Lc,v(NLc,Nm,TV),Exp),Path) :-
   isDefn(A,Lc,L,R),
   isIden(L,NLc,Nm),!,
@@ -999,13 +999,13 @@ checkTryCatchAction(Lc,B,Hs,Tp,ErTp,Env,doTryCatch(Lc,Body,Trw,Hndlr),Path) :-
   checkAction(B,Tp,some(ETp),Ev1,_,Body,Path),
   checkCases(Hs,ETp,Tp,ErTp,Env,Hndlr,Eqx,Eqx,[],checker:checkAction,Path),!.
 
-checkThrow(Lc,X,Env,Thrw,ErrExp,Path) :-
+checkRaise(Lc,X,Env,Thrw,ErrExp,Path) :-
   (getVar(Lc,"_throw",Env,Thrw,VTp) ->
    newTypeVar("E",ErTp),
    contType(ErTp,CTp),
    verifyType(Lc,ast(X),VTp,CTp,Env),
    typeOfExp(X,ErTp,none,Env,_,ErrExp,Path);
-   reportError("cannot throw %s here",[ast(X)],Lc),
+   reportError("cannot throw exception %s here",[ast(X)],Lc),
    ErrExp=void,
    Thrw=void).
 

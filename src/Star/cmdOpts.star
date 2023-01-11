@@ -31,7 +31,7 @@ star.cmdOpts{
   checkOption(Args,O,.none,setter,Specs,SoFar) => processAll(Args,Specs,setter(O,SoFar)).
   checkOption([A,..Args],O,.some(V),Setter,Specs,SoFar)
       where V(A) => processAll(Args,Specs,Setter(A,SoFar)).
-  checkOption(_,_,_,_,Specs,_) => throw collectUsage(Specs).
+  checkOption(_,_,_,_,Specs,_) => raise collectUsage(Specs).
 
   collectUsage:all o ~~ (cons[cmdOption[o]]) => string.
   collectUsage(Specs) => "Usage: \n#(interleave(Specs//((O)=>O.usage),"\n")*)".

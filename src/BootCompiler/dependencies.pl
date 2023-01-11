@@ -290,6 +290,9 @@ collectTermRefs(T,All,Rf,Rfx) :-
 collectTermRefs(T,All,Rf,Rfx) :-
   isThrow(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
+collectTermRefs(T,All,Rf,Rfx) :-
+  isRaise(T,_,E),!,
+  collectTermRefs(E,All,Rf,Rfx).
 collectTermRefs(T,A,R0,Rx) :-
   isFiberTerm(T,_,Stmts),!,
   collectDoRefs(Stmts,A,R0,Rx).
@@ -440,6 +443,9 @@ collectDoRefs(T,A,R,Rx) :-
   collectDoRefs(B,A,R0,Rx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isThrow(T,_,E),!,
+  collectTermRefs(E,All,Rf,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  isRaise(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isValis(T,_,E),!,

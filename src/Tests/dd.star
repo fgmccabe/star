@@ -35,7 +35,7 @@ test.dd{
     try {
       A = ff(6);
       B = ff(7);
-      throw ()
+      raise ()
     } catch {
       _ => valis 10
     }
@@ -57,11 +57,11 @@ test.dd{
       fc(10);
       
       try {
-        throw "fred"
+        raise "fred"
       } catch {
 	(F) => {
 	  logMsg("we got an exception $(F)");
-	  throw ()
+	  raise ()
 	}
       }
     } catch {
@@ -77,7 +77,7 @@ test.dd{
     if U>0 then
       valis U
     else
-    throw "Negative $(U)"
+    raise "Negative $(U)"
   }
 
   main:()=>().

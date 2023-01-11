@@ -18,7 +18,7 @@ expressions and actions that the expression itself may be part of.
   | @refer{RecordUpdate}
   | @refer{CaseExpression}
   | @refer{TryCatchExpression}
-  | @refer{ThrowExpression}
+  | @refer{RaiseExpression}
   | @refer{ConditionalExpression}
   | @refer{Condition}
   | @refer{LetExpression}
@@ -893,7 +893,7 @@ The type of any exception thrown within the body of the
 example, in:
 @example
 try@{
-  throw 10
+  raise 10
 @} catch @{
   (E) => @{
     E+10
@@ -902,40 +902,40 @@ try@{
 @end example
 the type of @code{E} is @code{integer}; which is consistent with the expression
 @example
-throw 10
+raise 10
 @end example
 The value of this overall expression is @code{20}.
 
-@node Throw
-@subsection Throw
-@cindex throw
+@node Raise
+@subsection Raise
+@cindex raise
 
-@float BNF,throwFig
-@caption{Throw}
+@float BNF,raiseFig
+@caption{Raise}
 @display
-@anchored{ThrowExpression} ::= @code{throw} @refer{Expression}
+@anchored{RaiseExpression} ::= @code{raise} @refer{Expression}
 @end display
 @end float
 
-When a @code{throw} expression is evaluated, its expression is
+When a @code{raise} expression is evaluated, its expression is
 evaluated and that value is raised as an exception. There must either
 be a @refer{TryCatchExpression} form, a @refer{TryCatchAction} form in the
 enclosing lexical scope, or the function in which it occurs must have
-been declared as throwing a value of the appropriate type.
+been declared as raiseing a value of the appropriate type.
 
 @quotation Note
-The type of a @code{ThrowExpression} is unconstrained -- because its value is
+The type of a @code{RaiseExpression} is unconstrained -- because its value is
 never consumed.
 @end quotation
 
 @quotation Note
-If evaluating the expression that denotes the exception to throw
-itself throws an exception, that is a fatal error and causes overall
+If evaluating the expression that denotes the exception to raise
+itself raises an exception, that is a fatal error and causes overall
 execution of the program to stop.
 @end quotation
 
 @quotation Note
-There is no automatic search for an handling form: every @code{throw}
+There is no automatic search for an handling form: every @code{raise}
 must be lexically accounted for.
 @end quotation
 

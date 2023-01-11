@@ -250,7 +250,7 @@ compExp(ltt(Lc,idnt(Nm),Val,Exp),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx)
 	  End,Brks,Opts,L1,Lx,D1,Dx,C1,Cx,Stk,Stkx).
 compExp(error(Lc,Msg),_OLc,_Cont,_End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   abortCont(Lc,Msg,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx). % no continuation after an error
-compExp(thrw(Lc,T,E),_,_,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :-!,
+compExp(rais(Lc,T,E),_,_,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :-!,
   compExp(E,Lc,compExp(T,Lc,throwCont,End,Brks,Opts),
 	  End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,_).
 compExp(cnd(Lc,T,A,B),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
@@ -334,7 +334,7 @@ compAction(vls(Lc,E),OLc,Cont,_ACont,_End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :- 
   chLine(Opts,OLc,Lc,C,C0),
   genLbl(L,End,L0),
   compExp(E,Lc,Cont,End,Brks,Opts,L0,Lx,D,Dx,C0,[iLbl(End)|Cx],Stk,Stkx).
-compAction(thrw(Lc,T,E),OLc,_Cont,_ACont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :- !,
+compAction(rais(Lc,T,E),OLc,_Cont,_ACont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :- !,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(E,Lc,compExp(T,Lc,throwCont,End,Brks,Opts),
 	  End,Brks,Opts,L,Lx,D,Dx,C0,[iLbl(End)|Cx],Stk,_Stkx).

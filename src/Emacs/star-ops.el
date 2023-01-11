@@ -24,6 +24,7 @@
   ("->" ( (infix 889 890 889)))
   (".+." ( (prefix 700 699)))
   ("<$" ( (infix 719 720 720)))
+  ("raise" ( (prefix 930 929)))
   ("then" ( (infix 1179 1180 1179)))
   ("!" ( (postfix 99 100) (infix 99 100 99)))
   ("->>" ( (infix 1199 1200 1199)))
@@ -142,6 +143,7 @@
 "catch"
 "valis"
 "for"
+"raise"
 "then"
 "default"
 "resume"
