@@ -291,6 +291,16 @@
     "keyword": true
   },
   {
+    "infixOp": "=>>",
+    "priorities": [
+      949,
+      950,
+      950
+    ],
+    "desc": "continuation arrow",
+    "keyword": true
+  },
+  {
     "infixOp": ">>=",
     "priorities": [
       949,
