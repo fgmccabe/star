@@ -48,6 +48,14 @@ test.j{
     """;
 
     show disp(str::json);
+    assert str::json ==
+      .jColl({
+	  "star.core" -> .jColl({"1.0.0"->
+		.jColl({
+		    "source"->.jTxt("file:/Users/fgm/Projects/cafe/src/Star/core.star"),
+		    "code" -> .jTxt("star.core5751615246627866486.cafe")})
+	    })
+	});
     valis ()
   }
 }

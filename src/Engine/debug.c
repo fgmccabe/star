@@ -702,7 +702,7 @@ DebugWaitFor insDebug(processPo p) {
   logical stopping = shouldWeStopIns(p);
   if (p->tracing || stopping) {
     stackPo stk = p->stk;
-    outMsg(debugOutChnnl, "[(%d)%d]: ", stackNo(stk), pcCount);
+    outMsg(debugOutChnnl, "[(%d)%ld]: ", stackNo(stk), pcCount);
     disass(debugOutChnnl, stk, stk->fp->prog, stk->fp->pc);
 
     if (stopping) {
