@@ -94,7 +94,6 @@ static retCode debugOption(char *option, logical enable) {
 #ifdef TRACEMEM
         traceAllocs = True;
 
-        atexit(dumpGcStats);
         logMsg(logFile, "Memory allocation tracing enabled\n");
         continue;
 #else
@@ -105,8 +104,6 @@ static retCode debugOption(char *option, logical enable) {
       case 'm':    /* trace memory activity  */
 #ifdef TRACEMEM
         traceMemory = True;
-
-        atexit(dumpGcStats);
         logMsg(logFile, "GC tracing enabled\n");
         continue;
 #else
