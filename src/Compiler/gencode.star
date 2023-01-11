@@ -140,7 +140,7 @@ star.compiler.gencode{
 
       valis (reconcileStack(Stk1,Stk2),[.iTry(Blk),.iStL(TOff)]++BCde++[.iLbl(Blk),.iTL(EOff)]++HCde)
     }
-    | .cThrow(Lc,T,E,_) => compExp(E,.notLast,expCont(T,.notLast,throwCont),Ctx,Stk)
+    | .cRaise(Lc,T,E,_) => compExp(E,.notLast,expCont(T,.notLast,raiseCont),Ctx,Stk)
     | .cValof(Lc,A,Tp) =>
       compAction(A,TM,abortCont(Lc,"missing valis action"),splitCont(Lc,Ctx,Cont),Ctx,Stk)
     |  C where isCond(C) => valof{
@@ -215,7 +215,7 @@ star.compiler.gencode{
       }
     }
     | .aValis(Lc,E) => compExp(E,TM,Cont,Ctx,Stk)
-    | .aThrow(Lc,T,E) => compExp(E,.notLast,expCont(T,.notLast,throwCont),Ctx,Stk)
+    | .aRaise(Lc,T,E) => compExp(E,.notLast,expCont(T,.notLast,raiseCont),Ctx,Stk)
     | .aPerf(Lc,E) => compExp(E,TM,resetCont(Stk,ACont),Ctx,Stk)
     | .aDefn(Lc,P,E) => compExp(E,.notLast,ptnCont(P,ACont,abortCont(Lc,"define error")),Ctx,Stk)
     | .aAsgn(Lc,P,E) => compExp(E,.notLast,expCont(P,.notLast,asgnCont(ACont,Ctx,Stk)),Ctx,Stk)
@@ -522,8 +522,8 @@ star.compiler.gencode{
     C(Ctx,_Stk1,Cde) => (Stk,Cde++[.iJmp(Lbl)]).
     }
 
-  throwCont:Cont.
-  throwCont = cont{
+  raiseCont:Cont.
+  raiseCont = cont{
     C(_,_,Cde) => (.none,Cde++[.iThrow])
   }
 

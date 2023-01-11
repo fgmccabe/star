@@ -11,8 +11,8 @@ star.compiler.inline{
 
   import star.compiler.location.
 
-  public simplifyDefs:(cons[cDefn],map[termLbl,cDefn]) => cons[cDefn].
-  simplifyDefs(Dfs,Prior) where Prog .= foldLeft(pickupDefn,Prior,Dfs) =>
+  public simplifyDefs:(cons[cDefn]) => cons[cDefn].
+  simplifyDefs(Dfs) where Prog .= foldLeft(pickupDefn,[],Dfs) =>
     (Dfs//(D)=>simplifyDefn(D,Prog)).
 
   pickupDefn:(cDefn,map[termLbl,cDefn])=>map[termLbl,cDefn].
@@ -104,15 +104,15 @@ star.compiler.inline{
     applyNeg(Lc,simExp(R,Map,Depth)).
   simExp(.cCnd(Lc,T,L,R),Map,Depth) =>
     applyCnd(Lc,simExp(T,Map,Depth),
-      simExp(L,Map,Depth),simExp(R,Map,Depth)).
+      simplifyExp(L,Map,Depth-1),simplifyExp(R,Map,Depth-1)).
   simExp(.cLtt(Lc,Vr,Bnd,Exp),Map,Depth) =>
     inlineLtt(Lc,Vr,simplifyExp(Bnd,Map,Depth),Exp,Map,Depth).
   simExp(.cCont(Lc,Vr,Bnd,Exp),Map,Depth) =>
     inlineCont(Lc,Vr,simplifyExp(Bnd,Map,Depth),Exp,Map,Depth).
   simExp(.cUnpack(Lc,Gov,Cases,Tp),Map,Depth) =>
-    inlineUnpack(Lc,simplifyExp(Gov,Map,Depth),Cases,Map,Depth).
+    inlineUnpack(Lc,simplifyExp(Gov,Map,Depth),Cases//(C)=>simplifyCase(C,Map,Depth-1),Map,Depth).
   simExp(.cCase(Lc,Gov,Cases,Deflt,Tp),Map,Depth) =>
-    inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases,
+    inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases//(C)=>simplifyCase(C,Map,Depth-1),
       simplifyExp(Deflt,Map,Depth),Map,Depth).
   simExp(.cMatch(Lc,Ptn,Exp),Map,Depth) =>
     applyMatch(Lc,simplifyExp(Ptn,Map,Depth),simplifyExp(Exp,Map,Depth)).
@@ -123,8 +123,8 @@ star.compiler.inline{
     .cSusp(Lc,simplifyExp(Tsk,Map,Depth),simplifyExp(Evt,Map,Depth),Tp).
   simExp(.cResume(Lc,Tsk,Evt,Tp),Map,Depth) =>
     .cResume(Lc,simplifyExp(Tsk,Map,Depth),simplifyExp(Evt,Map,Depth),Tp).
-  simExp(.cThrow(Lc,Th,E,Tp),Map,Depth) =>
-    .cThrow(Lc,simplifyExp(Th,Map,Depth),simplifyExp(E,Map,Depth),Tp).
+  simExp(.cRaise(Lc,Th,E,Tp),Map,Depth) =>
+    .cRaise(Lc,simplifyExp(Th,Map,Depth),simplifyExp(E,Map,Depth),Tp).
   simExp(.cTry(Lc,Exp,Th,E,H,Tp),Map,Depth) =>
     .cTry(Lc,simplifyExp(Exp,Map,Depth),simplifyExp(Th,Map,Depth),
       simplifyExp(E,Map,Depth),simplifyExp(H,Map,Depth),Tp).
@@ -153,7 +153,7 @@ star.compiler.inline{
   }
   simAct(.aBreak(Lc,Lb),_,_) => .aBreak(Lc,Lb).
   simAct(.aValis(Lc,E),Map,Depth) => getValis(Lc,simplifyExp(E,Map,Depth)).
-  simAct(.aThrow(Lc,T,E),Map,Depth) => .aThrow(Lc,simplifyExp(T,Map,Depth),simplifyExp(E,Map,Depth)).
+  simAct(.aRaise(Lc,T,E),Map,Depth) => .aRaise(Lc,simplifyExp(T,Map,Depth),simplifyExp(E,Map,Depth)).
   simAct(.aPerf(Lc,E),Map,Depth) => .aPerf(Lc,simplifyExp(E,Map,Depth)).
   simAct(.aDefn(Lc,V,E),Map,Depth) =>
     .aDefn(Lc,simplifyExp(V,Map,Depth),simplifyExp(E,Map,Depth)).
@@ -162,13 +162,13 @@ star.compiler.inline{
   simAct(.aSetNth(Lc,T,Ix,E),Map,Depth) =>
     .aSetNth(Lc,simplifyExp(T,Map,Depth),Ix,simplifyExp(E,Map,Depth)).
   simAct(.aCase(Lc,Gov,Cases,Deflt),Map,Depth) =>
-    inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases,
+    inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases//(C)=>simplifyCase(C,Map,Depth-1),
       simplifyAct(Deflt,Map,Depth),Map,Depth).
   simAct(.aUnpack(Lc,Gov,Cases),Map,Depth) =>
-    inlineUnpack(Lc,simplifyExp(Gov,Map,Depth),Cases,Map,Depth).
+    inlineUnpack(Lc,simplifyExp(Gov,Map,Depth),Cases//(C)=>simplifyCase(C,Map,Depth-1),Map,Depth).
   simAct(.aIftte(Lc,T,L,R),Map,Depth) =>
     applyCnd(Lc,simplifyExp(T,Map,Depth),
-      simplifyAct(L,Map,Depth),simplifyAct(R,Map,Depth)).
+      simplifyAct(L,Map,Depth-1),simplifyAct(R,Map,Depth-1)).
   simAct(.aWhile(Lc,T,A),Map,Depth) =>
     .aWhile(Lc,simplifyExp(T,Map,Depth),
       simplifyAct(A,Map,Depth)).
@@ -228,6 +228,10 @@ star.compiler.inline{
     (Ptn==Exp ?? .cTerm(Lc,"star.core#true",[],boolType) || .cTerm(Lc,"star.core#false",[],boolType)).
   applyMatch(Lc,Ptn,Exp) => .cMatch(Lc,Ptn,Exp).
 
+  simplifyCase:all e ~~ rewrite[e], reform[e], simplify[e] |:
+    (cCase[e],map[termLbl,cDefn],integer) => cCase[e].
+  simplifyCase((Lc,Ptn,Rep),Map,Dp) => (Lc,Ptn,simplify(Rep,Map,Dp)).
+
   inlineCase:all e ~~ rewrite[e], reform[e], simplify[e] |:
     (option[locn],cExp,cons[cCase[e]],e,map[termLbl,cDefn],integer) => e.
   inlineCase(Lc,Gov,Cases,Deflt,Map,Depth) where 
@@ -277,9 +281,8 @@ star.compiler.inline{
   inlineCall:(option[locn],string,cons[cExp],tipe,map[termLbl,cDefn],integer) => cExp.
   inlineCall(Lc,Nm,Args,_Tp,Map,Depth) where Depth>0 &&
       PrgLbl .= .tLbl(Nm,[|Args|]) && .fnDef(_,_,_,Vrs,Rep) ?= Map[PrgLbl] => valof{
---	logMsg("inlining call to $(Nm)$(Args)");
 	RwMap = { lName(V)->A | (V,A) in zip(Vrs,Args)};
-	valis simplifyExp(freshenE(Rep,RwMap),Map[~PrgLbl],Depth)
+	valis simplifyExp(freshenE(Rep,RwMap),Map[~PrgLbl],Depth-1)
       }.
   inlineCall(Lc,Nm,Args,Tp,Map,Depth) default => .cCall(Lc,Nm,Args//(A)=>simplifyExp(A,Map,Depth),Tp).
 
@@ -326,7 +329,7 @@ star.compiler.inline{
     .cCall(_,_,Els,_) => countEls(Els,Id,Cnt).
     .cECall(_,_,Els,_) => countEls(Els,Id,Cnt).
     .cOCall(_,Op,Els,_) => countEls(Els,Id,countOccs(Op,Id,Cnt)).
-    .cThrow(_,T,E,_) => countOccs(T,Id,countOccs(E,Id,Cnt)).
+    .cRaise(_,T,E,_) => countOccs(T,Id,countOccs(E,Id,Cnt)).
     .cSeq(_,L,R) => countOccs(R,Id,countOccs(L,Id,Cnt)).
     .cCnj(_,L,R) => countOccs(R,Id,countOccs(L,Id,Cnt)).
     .cDsj(_,L,R) => countOccs(R,Id,countOccs(L,Id,Cnt)).
@@ -352,7 +355,7 @@ star.compiler.inline{
     .aLbld(_,_,A) => countAOccs(A,Id,Cnt).
     .aBreak(_,_) => Cnt.
     .aValis(_,E) => countOccs(E,Id,Cnt).
-    .aThrow(_,T,E) => countOccs(T,Id,countOccs(E,Id,Cnt)).
+    .aRaise(_,T,E) => countOccs(T,Id,countOccs(E,Id,Cnt)).
     .aPerf(_,E) => countOccs(E,Id,Cnt).
     .aDefn(_,L,_) where countOccs(L,Id,0)>0 => Cnt.
     .aDefn(_,_,R) => countOccs(R,Id,Cnt).

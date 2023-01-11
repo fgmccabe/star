@@ -5,7 +5,7 @@ test.do14{
 
   isEven:(integer) => boolean throws string.
   isEven(X) where X%2==0 => .true.
-  isEven(X) default => throw "$(X) not even".
+  isEven(X) default => raise "$(X) not even".
 
   main:()=>().
   main()=>valof{

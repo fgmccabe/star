@@ -88,7 +88,7 @@ ssTrm(bigx(Ix),_,ss(Ix)) :-!.
 ssTrm(float(Dx),_,fx(Dx)) :-!.
 ssTrm(chr(Cp),_,sq([ss("`"),cp(Cp),ss("`")])) :-!.
 ssTrm(strg(Str),_,sq([ss(""""),ss(Str),ss("""")])) :-!.
-ssTrm(thrw(_,T,E),Dp,sq([TT,ss(" throw "),EE])) :-
+ssTrm(rais(_,T,E),Dp,sq([TT,ss(" raise "),EE])) :-
   ssTrm(T,Dp,TT),
   ssTrm(E,Dp,EE).
 ssTrm(cll(_,Op,Args),Dp,sq([OO,lp,AA,rp])) :- !,
@@ -200,7 +200,7 @@ ssAct(lbld(_,Lb,A),Dp,sq([ss(Lb),ss(":"),AA])) :-!,
 ssAct(brk(_,Lb),_,sq([ss("break "),ss(Lb)])) :-!.
 ssAct(vls(_,E),Dp,sq([ss("valis "),EE])) :-!,
   ssTrm(E,Dp,EE).
-ssAct(thrw(_,T,E),Dp,sq([TT,ss(" throw "),EE])) :-!,
+ssAct(rais(_,T,E),Dp,sq([TT,ss(" raise "),EE])) :-!,
   ssTrm(T,Dp,TT),
   ssTrm(E,Dp,EE).
 ssAct(mtch(_,P,E),Dp,sq([PP,ss(" .= "),EE])) :-!,
@@ -341,7 +341,7 @@ rewriteTerm(QTest,ltt(Lc,V,Val,Exp),ltt(Lc,V,Val1,Exp1)) :-
 rewriteTerm(QTest,cntlt(Lc,V,Val,Exp),cntlt(Lc,V,Val1,Exp1)) :-
   rewriteTerm(lterms:checkV(V,QTest),Val,Val1),
   rewriteTerm(lterms:checkV(V,QTest),Exp,Exp1).
-rewriteTerm(QTest,thrw(Lc,T,E),thrw(Lc,TT,EE)) :-!,
+rewriteTerm(QTest,rais(Lc,T,E),rais(Lc,TT,EE)) :-!,
   rewriteTerm(QTest,T,TT),
   rewriteTerm(QTest,E,EE).
 rewriteTerm(QTest,cll(Lc,Op,Args),cll(Lc,NOp,NArgs)) :-
@@ -437,7 +437,7 @@ rewriteAction(QTest,lbld(Lc,Lb,A),lbld(Lc,Lb,AA)) :- !,
 rewriteAction(_,brk(Lc,Lb),brk(Lc,Lb)) :-!.
 rewriteAction(QTest,vls(Lc,E),vls(Lc,EE)) :- !,
   rewriteTerm(QTest,E,EE).
-rewriteAction(QTest,thrw(Lc,T,E),thrw(Lc,TT,EE)) :- !,
+rewriteAction(QTest,rais(Lc,T,E),rais(Lc,TT,EE)) :- !,
   rewriteTerm(QTest,T,TT),
   rewriteTerm(QTest,E,EE).
 rewriteAction(QTest,perf(Lc,E),perf(Lc,EE)) :- !,
@@ -542,7 +542,7 @@ idInTerm(idnt(Nm),Term) :-
   inTerm(Term,Nm),!.
 
 inTerm(idnt(Nm),Nm).
-inTerm(thrw(_,T,E),Nm) :-!,
+inTerm(rais(_,T,E),Nm) :-!,
   (inTerm(E,Nm);inTerm(T,Nm)),!.
 inTerm(cll(_,_,Args),Nm) :-
   is_member(Arg,Args),
@@ -623,7 +623,7 @@ inAction(lbld(_,_,E),Nm) :- !,
   inAction(E,Nm).
 inAction(vls(_,E),Nm) :- !,
   inTerm(E,Nm).
-inAction(thrw(_,T,E),Nm) :- !,
+inAction(rais(_,T,E),Nm) :- !,
   (inTerm(T,Nm) ; inTerm(E,Nm)),!.
 inAction(perf(_,E),Nm) :- !,
   inTerm(E,Nm).
@@ -724,7 +724,7 @@ validTerm(ecll(Lc,Es,Args),_,D) :-
 validTerm(intrinsic(Lc,Is,Args),_,D) :-
   isIntrinsic(_,_,Is),
   validTerms(Args,Lc,D).
-validTerm(thrw(Lc,T,E),_,D) :-
+validTerm(rais(Lc,T,E),_,D) :-
   validTerm(T,Lc,D),
   validTerm(E,Lc,D).
 validTerm(ctpl(lbl(_,_),Args),Lc,D) :-
@@ -867,7 +867,7 @@ validAction(vls(Lc,E),_,D,D) :- !,
   validTerm(E,Lc,D).
 validAction(rse(Lc,E),_,D,D) :- !,
   validTerm(E,Lc,D).
-validAction(thrw(Lc,T,E),_,D,D) :- !,
+validAction(rais(Lc,T,E),_,D,D) :- !,
   validTerm(T,Lc,D),
   validTerm(E,Lc,D).
 validAction(perf(Lc,E),_,D,D) :- !,

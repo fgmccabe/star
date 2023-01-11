@@ -291,7 +291,7 @@ macroLocationExp(T,expression,Loc) :-
   becomes
   case A in {
     ok(_) => {}
-    bad(E) => throw E
+    bad(E) => raise E
   }
 */
 performMacro(T,action,Act) :-
@@ -304,7 +304,7 @@ performMacro(T,action,Act) :-
   /* make bad(E) => raise E */
   genIden(Lc,E),
   unary(Lc,"bad",E,Lh2),
-  mkThrow(Lc,E,Rh2),
+  mkRaise(Lc,E,Rh2),
   mkEquation(Lc,Lh2,none,Rh2,BadEqn),
   caseExp(Lc,I,[OkEqn,BadEqn],Act).
 /*

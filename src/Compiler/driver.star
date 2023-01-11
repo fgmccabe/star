@@ -120,10 +120,7 @@ star.compiler{
 	      if traceNormalize! then{
 		logMsg("pre-inlined code $(N)");
 	      };
-	      Priors = { Lb->Df | .pkgImp(_,_,I) in PkgSpec.imports &&
-		    Dfs ?= importLowered(I,Repo) &&
-			Df in Dfs && Lb?=dfLbl(Df)};
-	      valis simplifyDefs(N,Priors);
+	      valis simplifyDefs(N);
 	    } || N);
 	  validProg(Inlined,IDecls++Decls);
 	  if showNormalize! then{

@@ -8,41 +8,41 @@ star.compiler.canon{
   import star.compiler.operators.
 
   public canon ::= .anon(option[locn],tipe) |
-    .vr(option[locn],string,tipe) |
-    .mtd(option[locn],string,tipe) |
-    .over(option[locn],canon,cons[constraint]) |
-    .overaccess(option[locn],canon,tipe,string,tipe) |
-    .intr(option[locn],integer) |
-    .bintr(option[locn],bigint) |
-    .kar(option[locn],char) |
-    .flt(option[locn],float) |
-    .strng(option[locn],string) |
-    .enm(option[locn],string,tipe) |
-    .dot(option[locn],canon,string,tipe) |
-    .update(option[locn],canon,string,canon) |
-    .csexp(option[locn],canon,cons[rule[canon]],tipe) |
-    .trycatch(option[locn],canon,canon,cons[rule[canon]],tipe) |
-    .thrw(option[locn],canon,canon,tipe) |
-    .match(option[locn],canon,canon) |
-    .conj(option[locn],canon,canon) |
-    .disj(option[locn],canon,canon) |
-    .neg(option[locn],canon) |
-    .cond(option[locn],canon,canon,canon) |
-    .apply(option[locn],canon,cons[canon],tipe) |
-    .tple(option[locn],cons[canon]) |
-    .lambda(option[locn],string,cons[rule[canon]],tipe) |
-    .owpen(option[locn],canon) |
-    .letExp(option[locn],cons[canonDef],cons[decl],canon) |
-    .letRec(option[locn],cons[canonDef],cons[decl],canon) |
-    .vlof(option[locn],canonAction,tipe).
-
+  .vr(option[locn],string,tipe) |
+  .mtd(option[locn],string,tipe) |
+  .over(option[locn],canon,cons[constraint]) |
+  .overaccess(option[locn],canon,tipe,string,tipe) |
+  .intr(option[locn],integer) |
+  .bintr(option[locn],bigint) |
+  .kar(option[locn],char) |
+  .flt(option[locn],float) |
+  .strng(option[locn],string) |
+  .enm(option[locn],string,tipe) |
+  .dot(option[locn],canon,string,tipe) |
+  .update(option[locn],canon,string,canon) |
+  .csexp(option[locn],canon,cons[rule[canon]],tipe) |
+  .trycatch(option[locn],canon,canon,cons[rule[canon]],tipe) |
+  .rais(option[locn],canon,canon,tipe) |
+  .match(option[locn],canon,canon) |
+  .conj(option[locn],canon,canon) |
+  .disj(option[locn],canon,canon) |
+  .neg(option[locn],canon) |
+  .cond(option[locn],canon,canon,canon) |
+  .apply(option[locn],canon,cons[canon],tipe) |
+  .invoke(option[locn],canon,cons[canon],tipe) |
+  .tple(option[locn],cons[canon]) |
+  .lambda(option[locn],string,cons[rule[canon]],tipe) |
+  .owpen(option[locn],canon) |
+  .letExp(option[locn],cons[canonDef],cons[decl],canon) |
+  .letRec(option[locn],cons[canonDef],cons[decl],canon) |
+  .vlof(option[locn],canonAction,tipe).
 
   public canonAction ::= .doNop(option[locn]) |
     .doSeq(option[locn],canonAction,canonAction) |
     .doLbld(option[locn],string,canonAction) |
     .doBrk(option[locn],string) |
     .doValis(option[locn],canon) |
-    .doThrow(option[locn],canon,canon) |
+    .doRaise(option[locn],canon,canon) |
     .doDefn(option[locn],canon,canon) |
     .doMatch(option[locn],canon,canon) |
     .doAssign(option[locn],canon,canon) |
@@ -82,11 +82,12 @@ star.compiler.canon{
       .enm(_,_,Tp) => Tp.
       .csexp(_,_,_,Tp) => Tp.
       .trycatch(_,_,_,_,Tp) => Tp.
-      .thrw(_,_,_,Tp) => Tp.
+      .rais(_,_,_,Tp) => Tp.
       .lambda(_,_,_,Tp) => Tp.
       .letExp(_,_,_,E) => typeOf(E).
       .letRec(_,_,_,E) => typeOf(E).
       .apply(_,_,_,Tp) => Tp.
+      .invoke(_,_,_,Tp) => Tp.
       .tple(_,Els) => .tupleType(Els//typeOf).
       .dot(_,_,_,Tp) => Tp.
       .update(_,R,_,_) => typeOf(R).
@@ -115,13 +116,14 @@ star.compiler.canon{
       .update(Lc,_,_,_) => Lc.
       .csexp(Lc,_,_,_) => Lc.
       .trycatch(Lc,_,_,_,_) => Lc.
-      .thrw(Lc,_,_,_) => Lc.
+      .rais(Lc,_,_,_) => Lc.
       .match(Lc,_,_) => Lc.
       .conj(Lc,_,_) => Lc.
       .disj(Lc,_,_) => Lc.
       .neg(Lc,_) => Lc.
       .cond(Lc,_,_,_) => Lc.
       .apply(Lc,_,_,_) => Lc.
+      .invoke(Lc,_,_,_) => Lc.
       .tple(Lc,_) => Lc.
       .lambda(Lc,_,_,_) => Lc.
       .letExp(Lc,_,_,_) => Lc.
@@ -141,7 +143,7 @@ star.compiler.canon{
       .doLbld(Lc,_,_) => Lc.
       .doBrk(Lc,_) => Lc.
       .doValis(Lc,_) => Lc.
-      .doThrow(Lc,_,_) => Lc.
+      .doRaise(Lc,_,_) => Lc.
       .doDefn(Lc,_,_) => Lc.
       .doMatch(Lc,_,_) => Lc.
       .doAssign(Lc,_,_) => Lc.
@@ -190,8 +192,8 @@ star.compiler.canon{
       "#(leftParen(OPr,Pr))case #(showCanon(Exp,Rp,Sp)) in #(showCases(Cs,showCanon,Sp))#(rgtParen(OPr,Pr))".
     .trycatch(_,Exp,T,H,_) where (OPr,Rp) ?= isPrefixOp("try") =>
       "#(leftParen(OPr,Pr))try #(showCanon(T,Rp,Sp)) in #(showCanon(Exp,Rp,Sp)) catch #(showCases(H,showCanon,Sp++"  "))#(rgtParen(OPr,Pr))".
-    .thrw(_,_Thrw,Exp,_) where (OPr,Rp) ?= isPrefixOp("throw") =>
-      "#(leftParen(OPr,Pr))throw #(showCanon(Exp,Rp,Sp))#(rgtParen(OPr,Pr))".
+    .rais(_,_Thrw,Exp,_) where (OPr,Rp) ?= isPrefixOp("raise") =>
+      "#(leftParen(OPr,Pr)) raise #(showCanon(Exp,Rp,Sp))#(rgtParen(OPr,Pr))".
     .match(_,Ptn,Gen) where (Lp,OPr,Rp) ?= isInfixOp(".=") =>
       "#(leftParen(OPr,Pr))#(showCanon(Ptn,Lp,Sp)) .= #(showCanon(Gen,Rp,Sp))#(rgtParen(OPr,Pr))".
     .conj(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp("&&") =>
@@ -203,6 +205,8 @@ star.compiler.canon{
     .cond(_,T,L,R) where (Lp,OPr,Rp) ?= isInfixOp("??") =>
       "(#(showCanon(T,Lp,Sp)) ?? #(showCanon(L,Rp,Sp)) || #(showCanon(R,Rp,Sp)))".
     .apply(_,L,R,_) => showApply(L,R,Pr,Sp).
+    .invoke(_,K,A,_) where (Lp,OPr,Rp) ?= isInfixOp(".") =>
+      "#(leftParen(OPr,Pr))#(showCanon(K,Lp,Sp)).(showTuple(Args,Sp))#(rgtParen(OPr,Pr))".
     .tple(_,Els) => showTuple(Els,Sp).
     .lambda(_,Nm,Rls,Tp) => "(#(showRls(Nm,Rls,showCanon,Sp++"  ")))".
     .letExp(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
@@ -232,8 +236,8 @@ star.compiler.canon{
     .doBrk(_,Lb) => "break #(Lb)".
     .doValis(_,E) where (OPr,Rp) ?= isPrefixOp("valis") =>
       "valis #(showCanon(E,Rp,Sp))".
-    .doThrow(_,_,E) where (OPr,Rp) ?= isPrefixOp("throw") =>
-      "throw #(showCanon(E,Rp,Sp))".
+    .doRaise(_,_,E) where (OPr,Rp) ?= isPrefixOp("raise") =>
+      "raise #(showCanon(E,Rp,Sp))".
     .doDefn(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp("=") =>
       "#(showCanon(L,Lp,Sp)) = #(showCanon(R,Rp,Sp))".
     .doMatch(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp(".=") =>

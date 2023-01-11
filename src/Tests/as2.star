@@ -34,7 +34,7 @@ test.as2{
   notMuch:()=>() throws ().
   notMuch()=>valof{
     logMsg("hello there");
-    throw ()
+    raise ()
   }
 
   main:()=>().

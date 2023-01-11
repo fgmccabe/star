@@ -49,6 +49,11 @@ parseType(F,Env,B,C0,Cx,funType(AT,RT)) :-
   isFuncType(F,_,L,R),
   parseArgType(L,Env,B,C0,C1,AT),
   parseType(R,Env,B,C1,Cx,RT).
+parseType(F,Env,B,C0,Cx,Tp) :-
+  isContinType(F,_,L,R),
+  parseArgType(L,Env,B,C0,C1,AT),
+  parseType(R,Env,B,C1,Cx,RT),
+  mkTypeExp(tpFun("=>>",2),[AT,RT],Tp).
 parseType(F,Env,B,C0,Cx,consType(AT,RT)) :-
   isConstructorType(F,_,_,_,L,R),!, % quantifiers already handled
   parseArgType(L,Env,B,C0,C1,AT),!,

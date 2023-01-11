@@ -752,16 +752,24 @@ star.compiler.checker{
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,Body,Rls) ?= isTryCatch(A) => valof{
     NErTp = newTypeVar("_E");
-    Ev = declareVar("_throw","_throw",Lc,contType(NErTp),.none,Env);
+    Ev = declareVar("_raise","_raise",Lc,contType(NErTp),.none,Env);
     NB = typeOfExp(Body,Tp,Ev,Path);
     HRls = checkRules(Rls,NErTp,Tp,Env,Path,typeOfExp,[],.none);
-    valis .trycatch(Lc,NB,.vr(Lc,"_throw",contType(NErTp)),HRls,Tp)
+    valis .trycatch(Lc,NB,.vr(Lc,"_raise",contType(NErTp)),HRls,Tp)
   }
-  typeOfExp(A,Tp,Env,Path) where (Lc,E) ?= isThrow(A) => valof{
+  typeOfExp(A,Tp,Env,Path) where (Lc,E) ?= isRaise(A) => valof{
     ErTp = newTypeVar("_E");
-    Thrw = typeOfVar(Lc,"_throw",contType(ErTp),Env,Path);
+    Thrw = typeOfVar(Lc,"_raise",contType(ErTp),Env,Path);
     V = typeOfExp(E,ErTp,Env,Path);
-    valis .thrw(Lc,Thrw,V,Tp)
+    valis .rais(Lc,Thrw,V,Tp)
+  }
+  typeOfExp(A,Tp,Env,Path) where (Lc,K,As) ?= isInvoke(A) => valof{
+    Vrs = genTpVars(As);
+    At = .tupleType(Vrs);
+    KTp = continuationType(Vrs,Tp);
+    KK = typeOfExp(K,KTp,Env,Path);
+    Args = typeOfExps(As,Vrs,[],Env,Path);      
+    valis .invoke(Lc,KK,Args,Tp)
   }
   typeOfExp(A,Tp,_,_) => valof{
     reportError("cannot type check expression $(A)",locOf(A));
@@ -827,11 +835,11 @@ star.compiler.checker{
     V = typeOfExp(E,Tp,Env,Path);
     valis (.doValis(Lc,V),Env)
   }
-  checkAction(A,_Tp,Env,Path) where (Lc,E) ?= isThrow(A) => valof{
+  checkAction(A,_Tp,Env,Path) where (Lc,E) ?= isRaise(A) => valof{
     ErTp = newTypeVar("_E");
-    Thrw = typeOfVar(Lc,"_throw",contType(ErTp),Env,Path);
+    Thrw = typeOfVar(Lc,"_raise",contType(ErTp),Env,Path);
     V = typeOfExp(E,ErTp,Env,Path);
-    valis (.doThrow(Lc,Thrw,V),Env)
+    valis (.doRaise(Lc,Thrw,V),Env)
   }
   checkAction(A,_,Env,Path) where (Lc,Lhs,Rhs) ?= isDefn(A) => valof{
     if (ILc,Id) ?= isName(Lhs) then{
@@ -855,14 +863,14 @@ star.compiler.checker{
     checkAssignment(Lc,Lhs,Rhs,Env,Path).
   checkAction(A,Tp,Env,Path) where (Lc,Body,Rls) ?= isTryCatch(A) => valof{
     NErTp = newTypeVar("_E");
-    Ev = declareVar("_throw","_throw",Lc,contType(NErTp),.none,Env);
+    Ev = declareVar("_raise","_raise",Lc,contType(NErTp),.none,Env);
     (NB,_) = checkAction(Body,Tp,Ev,Path);
     Hs = checkRules(Rls,NErTp,Tp,Env,Path,
       (AA,_,Eva,_)=>valof{
 	(HA,_)=checkAction(AA,Tp,Eva,Path);
 	valis HA
       },[],.none);
-    valis (.doTryCatch(Lc,NB,.vr(Lc,"_throw",contType(NErTp)),Hs),Env)
+    valis (.doTryCatch(Lc,NB,.vr(Lc,"_raise",contType(NErTp)),Hs),Env)
   }
   checkAction(A,Tp,Env,Path) where (Lc,C,T,E) ?= isIfThenElse(A) => valof{
     (CC,E0) = checkGoal(C,Env,Path);

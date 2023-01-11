@@ -11,7 +11,7 @@
 	      isTypeExistsStmt/6,typeExistsStmt/6,isTypeFunStmt/6,typeFunStmt/6,
 	      isTypeAnnotation/4,typeAnnotation/4,isTypeField/4,mkTypeField/4,
 	      isTypeLambda/4,typeLambda/4,typeName/2,
-	      isFuncType/4,funcType/4,isContType/3,mkContType/3,
+	      isFuncType/4,funcType/4,isContType/3,mkContType/3,isContinType/4,mkContinType/4,
 	      mkSqType/4,
 	      isEnum/3,mkEnum/3,isAnon/2,mkAnon/2,
 	      isConApply/4,mkConApply/4,
@@ -49,7 +49,7 @@
 	      isDoTerm/3,mkDoTerm/3,isDo/3,mkDo/3,
 	      isValof/3,mkValof/3,isValis/3,mkValis/3,
 	      isTryCatch/4,mkTryCatch/4,
-	      isThrow/3,mkThrow/3,
+	      isThrow/3,mkThrow/3,isRaise/3,mkRaise/3,
 	      isThrows/4,mkThrows/4,
 	      isDynamic/4,mkDynamic/4,
 	      isBreak/3,mkBreak/3,isLbldAction/4,mkLbldAction/4,
@@ -321,7 +321,13 @@ isContType(T,Lc,E) :-
   isIden(Lhs,_,"cont"),!.
 
 mkContType(Lc,E,T) :-
-  squareTerm(Lc,name(Lc,"cont"),[E],T).  
+  squareTerm(Lc,name(Lc,"cont"),[E],T).
+
+isContinType(T,Lc,L,R) :-
+  isBinary(T,Lc,"=>>",L,R).
+
+mkContinType(Lc,L,R,T) :-
+  binary(Lc,"=>>",L,R,T).
 
 mkSqType(Lc,Nm,Els,Tp) :-
   squareTerm(Lc,name(Lc,Nm),Els,Tp).
@@ -844,6 +850,12 @@ isValof(A,Lc,E) :-
 
 mkValof(Lc,A,E) :-
   unary(Lc,"valof",A,E).
+
+isRaise(A,Lc,E) :-
+  isUnary(A,Lc,"raise",E).
+
+mkRaise(Lc,A,E) :-
+  unary(Lc,"raise",A,E).
 
 isThrow(A,Lc,E) :-
   isUnary(A,Lc,"throw",E).

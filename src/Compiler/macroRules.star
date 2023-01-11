@@ -66,8 +66,8 @@ star.compiler.macro.rules{
     "fiber" -> [(.expression,fiberMacro)],
     "yield" -> [(.actn,yieldMacro)],
     "->" -> [(.expression,arrowMacro),(.pattern,arrowMacro)],
-    "throws" -> [(.typeterm,throwsMacro)]
---    "throw" -> [(.expression, throwMacro),(.actn,throwMacro)],
+    "raises" -> [(.typeterm,raisesMacro)]
+--    "raise" -> [(.expression, raiseMacro),(.actn,raiseMacro)],
 --    "try" -> [(.expression, tryMacro), (.actn,tryMacro)]
   }.
 
@@ -420,29 +420,29 @@ star.compiler.macro.rules{
   }
 
   /*
-  (A)=>R throws E
+  (A)=>R raises E
   becomes
-  _throw|=all t ~~ cont[t] |: (A)=>R
+  _raise|=all t ~~ cont[t] |: (A)=>R
   */
 
-  throwsMacro(A,.typeterm) where (Lc,T,Th) ?= isThrows(A) =>
-    .active(reConstrain([mkImplicit(Lc,"_throw",mkContType(Lc,Th))],T)).
-  throwsMacro(_,_) default => .inactive.
+  raisesMacro(A,.typeterm) where (Lc,T,Th) ?= isRaises(A) =>
+    .active(reConstrain([mkImplicit(Lc,"_raise",mkContType(Lc,Th))],T)).
+  raisesMacro(_,_) default => .inactive.
 
-  /* throw E
+  /* raise E
   becomes
-  _throw(E)
+  _raise(E)
   */
 
-  throwMacro(A,Sc) where (Sc==.expression || Sc==.actn) && (Lc,E) ?= isThrow(A) =>
-    .active(unary(Lc,"_throw",E)).
-  throwMacro(_,_) default => .inactive.
+  raiseMacro(A,Sc) where (Sc==.expression || Sc==.actn) && (Lc,E) ?= isRaise(A) =>
+    .active(unary(Lc,"_raise",E)).
+  raiseMacro(_,_) default => .inactive.
 
   /*
   try B catch H expression
   becomes
   case _spawn((Try) => let{
-      _throw(E) => valof{
+      _raise(E) => valof{
         Try retire ._except(E)
       }
     } in
@@ -453,13 +453,13 @@ star.compiler.macro.rules{
   */
 
   tryMacro(A,.expression) where (Lc,B,H) ?= isTryCatch(A) => valof{
-    -- Build _throw function
+    -- Build _raise function
     E = genName(Lc,"E");
     T = genName(Lc,"Try");
     X = genName(Lc,"X");
     XC = mkEnumCon(Lc,.nme(Lc,"_except"),[E]);
 
-    Thrw = equation(Lc,unary(Lc,"_throw",E),
+    Thrw = equation(Lc,unary(Lc,"_raise",E),
       mkValof(Lc,brTuple(Lc,[
 	    mkRetire(Lc,T,XC)])));
     Ltt = mkLetDef(Lc,[Thrw],mkEnumCon(Lc,.nme(Lc,"_ok"),[B]));
@@ -473,7 +473,7 @@ star.compiler.macro.rules{
   try B catch H action
   becomes
   case _spawn((Try) => let{
-    _throw(E) => valof{
+    _raise(E) => valof{
       Try retire ._except(E)
     }
   } in {
@@ -485,13 +485,13 @@ star.compiler.macro.rules{
   */
   
   tryMacro(A,.actn) where (Lc,B,H) ?= isTryCatch(A) => valof{
-    -- Build _throw function
+    -- Build _raise function
     E = genName(Lc,"E");
     T = genName(Lc,"Try");
     X = genName(Lc,"X");
     XC = mkEnumCon(Lc,.nme(Lc,"_except"),[E]);
 
-    Thrw = equation(Lc,unary(Lc,"_throw",E),
+    Thrw = equation(Lc,unary(Lc,"_raise",E),
       mkValof(Lc,brTuple(Lc,[
 	    mkRetire(Lc,T,XC)])));
     Ltt = mkLetDef(Lc,[Thrw],mkEnumCon(Lc,.nme(Lc,"_ok"),[mkValof(Lc,B)]));

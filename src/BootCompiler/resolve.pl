@@ -195,7 +195,7 @@ overloadTerm(tryCatch(Lc,E,v(TLc,Nm,Tp),H),Dict,St,Stx,tryCatch(Lc,EE,v(TLc,Nm,T
   declareVr(Lc,Nm,Tp,none,Dict,DDict),
   overloadTerm(E,DDict,St,St0,EE),
   overloadCases(H,resolve:overloadTerm,Dict,St0,Stx,HH).
-overloadTerm(throw(Lc,T,E),Dict,St,Stx,throw(Lc,TT,EE)) :-
+overloadTerm(raise(Lc,T,E),Dict,St,Stx,raise(Lc,TT,EE)) :-
   overloadTerm(T,Dict,St,St0,TT),
   overloadTerm(E,Dict,St0,Stx,EE).
 overloadTerm(T,_,St,St,T) :-
@@ -220,7 +220,7 @@ overloadAction(doLbld(Lc,Lb,A),Dict,St,Stx,doLbld(Lc,Lb,AA)) :-!,
 overloadAction(doBrk(Lc,Lb),_,St,St,doBrk(Lc,Lb)) :-!.
 overloadAction(doValis(Lc,A),Dict,St,Stx,doValis(Lc,AA)) :-
   overloadTerm(A,Dict,St,Stx,AA).
-overloadAction(doThrow(Lc,T,A),Dict,St,Stx,doThrow(Lc,TT,AA)) :-
+overloadAction(doRaise(Lc,T,A),Dict,St,Stx,doRaise(Lc,TT,AA)) :-
   overloadTerm(T,Dict,St,St0,TT),
   overloadTerm(A,Dict,St0,Stx,AA).
 overloadAction(doDefn(Lc,V,E),Dict,St,Stx,doDefn(Lc,V,EE)) :-

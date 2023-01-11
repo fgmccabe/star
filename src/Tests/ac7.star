@@ -9,7 +9,7 @@ test.ac7{
       XX = f(X-1);
       valis XX*X
     } else
-    throw "illegal arg"
+    raise "illegal arg"
   }
 
   main:()=>().

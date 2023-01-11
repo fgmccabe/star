@@ -51,7 +51,7 @@ actions, as explained in @ref{Fibers}.
   | @refer{CaseAction}
   | @refer{LetAction}
   | @refer{TryCatchAction}
-  | @refer{ThrowAction}
+  | @refer{RaiseAction}
   | @refer{LabeledAction}
   | @refer{BreakAction}
 @end display
@@ -136,34 +136,34 @@ may cause an exception to be thrown. In that case, the
 the designated handler.
 @end quotation
 
-@node Throw Action
-@subsection Throw Action
-@cindex throw action
-@findex throw
+@node Raise Action
+@subsection Raise Action
+@cindex raise action
+@findex raise
 
-The @refer{ThrowAction} denotes that the action should terminate and throw a value.
+The @refer{RaiseAction} denotes that the action should terminate and raise a value.
 
-@float BNF,throwActionFig
-@caption{Throw Action}
+@float BNF,raiseActionFig
+@caption{Raise Action}
 @display
-@anchored{ThrowAction} ::= @code{throw} @refer{Expression}
+@anchored{RaiseAction} ::= @code{raise} @refer{Expression}
 @end display
 @end float
 
-When a @code{throw} action is performed, its expression is evaluated
+When a @code{raise} action is performed, its expression is evaluated
 and that value is raised as an exception. The syntactically enclosing
 action must either be a @refer{TryCatchAction} form, or the action
 must be the top-level of a function and that function must have been
-declared as throwing a value of the appropriate type.
+declared as raiseing a value of the appropriate type.
 
 @quotation Note
-If evaluating the expression that denotes the exception to throw
-itself throws an exception, that is a fatal error and causes overall
+If evaluating the expression that denotes the exception to raise
+itself raises an exception, that is a fatal error and causes overall
 execution of the program to stop.
 @end quotation
 
 @quotation Note
-There is no automatic search for an handling form: every @code{throw}
+There is no automatic search for an handling form: every @code{raise}
 must be lexically accounted for.
 @end quotation
 
@@ -468,7 +468,7 @@ The type of any exception thrown within the body of the
 example, in:
 @example
 try@{
-  throw 10
+  raise 10
 @} catch @{
   (E) => @{
     logMsg("We got error $(E)")
@@ -477,7 +477,7 @@ try@{
 @end example
 the type of @code{E} is @code{integer}; which is consistent with the action
 @example
-throw 10
+raise 10
 @end example
 action.
 

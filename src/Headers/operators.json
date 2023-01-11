@@ -1134,6 +1134,15 @@
     "keyword": true
   },
   {
+    "prefixOp": "raise",
+    "priorities": [
+      930,
+      929
+    ],
+    "desc": "raise an exception",
+    "keyword": true
+  },
+  {
     "prefixOp": "throw",
     "priorities": [
       930,

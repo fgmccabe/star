@@ -42,6 +42,7 @@
   operator("->", [infixOp(889, 890, 889)]).
   operator(".+.", [prefixOp(700, 699)]).
   operator("<$", [infixOp(719, 720, 720)]).
+  operator("raise", [prefixOp(930, 929)]).
   operator("then", [infixOp(1179, 1180, 1179)]).
   operator("!", [postfixOp(99, 100), infixOp(99, 100, 99)]).
   operator("->>", [infixOp(1199, 1200, 1199)]).
@@ -364,6 +365,7 @@
   keyword(",..").
   keyword("for").
   keyword("{?").
+  keyword("raise").
   keyword(". ").
   keyword("then").
   keyword("!").

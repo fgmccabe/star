@@ -129,8 +129,8 @@ star.compiler.macro{
     mkForDo(Lc,macroPtn(El),macroTerm(C),macroAction(B)).
   examineAction(A) where (Lc,T) ?= isValis(A) =>
     mkValis(Lc,macroTerm(T)).
-  examineAction(A) where (Lc,T) ?= isThrow(A) =>
-    mkThrow(Lc,macroTerm(T)).
+  examineAction(A) where (Lc,T) ?= isRaise(A) =>
+    mkRaise(Lc,macroTerm(T)).
   examineAction(A) where (Lc,T,E,Hs) ?= isSuspend(A) => 
     mkSuspend(Lc,macroTerm(T),macroTerm(E),Hs//macroCaseAction).
   examineAction(A) where (Lc,T,E,Hs) ?= isResume(A) => 
@@ -145,6 +145,8 @@ star.compiler.macro{
     mkCaseExp(Lc,macroTerm(G),Cs//macroCaseAction).
   examineAction(A) where (Lc,O,Els) ?= isRoundTerm(A) => 
     roundTerm(Lc,macroTerm(O),Els//macroTerm).
+  examineAction(A) where (Lc,O,Els) ?= isInvoke(A) => 
+    mkInvoke(Lc,macroTerm(O),Els//macroTerm).
   examineAction(A) default => valof{
     reportError("cannot figure out action\n$(A)",locOf(A));
     valis A
@@ -226,8 +228,10 @@ star.compiler.macro{
     mkValof(Lc,brTuple(VLc,[macroAction(As)])).
   examineTerm(A) where (Lc,B,Hs) ?= isTryCatch(A) =>
     mkTryCatch(Lc,macroTerm(B),Hs//macroLambda).
-  examineTerm(A) where (Lc,T) ?= isThrow(A) =>
-    mkThrow(Lc,macroTerm(T)).
+  examineTerm(A) where (Lc,T) ?= isRaise(A) =>
+    mkRaise(Lc,macroTerm(T)).
+  examineTerm(A) where (Lc,O,Els) ?= isInvoke(A) => 
+    mkInvoke(Lc,macroTerm(O),Els//macroTerm).
   examineTerm(A) where (Lc,S) ?= isFiberTerm(A) => 
     mkFiberTerm(Lc,macroAction(S)).
   examineTerm(A) where (Lc,Lb,S) ?= isLabeledTheta(A) => 
@@ -309,8 +313,8 @@ star.compiler.macro{
   examineType(A) where _ ?= isTypeFunVar(A) => A.
   examineType(A) where (Lc,L,R) ?= isDepends(A) =>
     mkDepends(Lc,L//macroType,R//macroType).
-  examineType(A) where (Lc,L,R) ?= isThrows(A) =>
-    mkThrows(Lc,macroType(L),macroType(R)).
+  examineType(A) where (Lc,L,R) ?= isRaises(A) =>
+    mkRaises(Lc,macroType(L),macroType(R)).
   examineType(A) where (Lc,L,R) ?= isConstructorType(A) =>
     mkConstructorType(Lc,macroType(L),macroType(R)).
   examineType(A) where (Lc,L,R) ?= isFunctionType(A) =>

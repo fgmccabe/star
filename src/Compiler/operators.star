@@ -59,6 +59,7 @@ star.compiler.operators{
     "->" => [.infixOp(889,890,889)].
     ".+." => [.prefixOp(700,699)].
     "<$" => [.infixOp(719,720,720)].
+    "raise" => [.prefixOp(930,929)].
     "then" => [.infixOp(1179,1180,1179)].
     "!" => [.postfixOp(99,100), .infixOp(99,100,99)].
     "->>" => [.infixOp(1199,1200,1199)].
@@ -424,6 +425,7 @@ star.compiler.operators{
     ",.." => .true.
     "for" => .true.
     "{?" => .true.
+    "raise" => .true.
     ". " => .true.
     "then" => .true.
     "!" => .true.

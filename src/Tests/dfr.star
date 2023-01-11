@@ -16,7 +16,7 @@ test.dfr{
     } catch{
       (E) => {
 	logMsg(E);
-	throw E
+	raise E
       }
     }
   }

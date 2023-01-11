@@ -173,10 +173,6 @@ examineType(T,Tx) :- isFuncType(T,Lc,L,R),!,
   macroType(L,Lx),
   macroType(R,Rx),
   funcType(Lc,Lx,Rx,Tx).
-examineType(T,Tx) :- isThrows(T,Lc,L,R),!,
-  macroType(L,Lx),
-  macroType(R,Rx),
-  mkThrows(Lc,Lx,Rx,Tx).
 examineType(T,Tx) :- isRoundTuple(T,Lc,Els),!,
   map(Els,macros:macroType,Elx),
   roundTuple(Lc,Elx,Tx).
@@ -448,6 +444,10 @@ examineTerm(A,Ax) :-
   isThrow(A,Lc,V),!,
   macroTerm(V,Vx),
   mkThrow(Lc,Vx,Ax).
+examineTerm(A,Ax) :-
+  isRaise(A,Lc,V),!,
+  macroTerm(V,Vx),
+  mkRaise(Lc,Vx,Ax).
 examineTerm(T,T) :-
   locOfAst(T,Lc),
   reportError("cannot figure out expression %s",[ast(T)],Lc).
@@ -645,6 +645,10 @@ examineAction(A,Ax) :-
   isThrow(A,Lc,V),!,
   macroTerm(V,Vx),
   mkThrow(Lc,Vx,Ax).
+examineAction(A,Ax) :-
+  isRaise(A,Lc,V),!,
+  macroTerm(V,Vx),
+  mkRaise(Lc,Vx,Ax).
 examineAction(A,Ax) :-
   isLetDef(A,Lc,D,B),!,
   map(D,macros:macroStmt,Dx),
