@@ -16,6 +16,7 @@
 	   implementationName/2,
 	   mkTypeRule/3,
 	   stdType/3,contType/2,
+	   continuationType/3,
 	   unitTp/1]).
 :- use_module(misc).
 :- use_module(display).
@@ -365,6 +366,9 @@ mkTypeExp(Op,[A|Args],Tp) :-
 
 contType(Arg,Tp) :-
   mkTypeExp(tpFun("star.core*cont",1),[Arg],Tp).
+
+continuationType(A,R,Tp) :-
+  mkTypeExp(tpFun("=>>",2),[A,R],Tp).
 
 tpName(Tp,Nm) :-
   deRef(Tp,RTp),

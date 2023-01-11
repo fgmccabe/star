@@ -401,6 +401,8 @@ star.compiler.types{
   public refType(Tp) => .tpExp(.tpFun("star.core*ref",1),Tp).
   public thunkType(T) => makeTpExp("star.core*thunk",[T]).
   public fiberType(R,S) => mkTypeExp(.tpFun("star.fiber*fiber",2),[R,S]).
+  public continType(L,R) => mkTypeExp(.tpFun("=>>",2),[L,R]).
+  public continuationType(L,R) => mkTypeExp(.tpFun("=>>",2),[.tupleType(L),R]).
 
   public funTypeArg(Tp) where
       .tpExp(O,_) .= deRef(Tp) &&

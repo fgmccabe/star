@@ -140,6 +140,12 @@ star.compiler.wff{
   public isFunctionType:(ast) => option[(option[locn],ast,ast)].
   isFunctionType(A) => isBinary(A,"=>").
 
+  public isContinuationType:(ast) => option[(option[locn],ast,ast)].
+  isContinuationType(A) => isBinary(A,"=>>").
+
+  public mkContinuationType:(option[locn],ast,ast) => ast.
+  mkContinuationType(Lc,L,R) => binary(Lc,"=>>",L,R).
+
   public isContTp:(ast) => option[(option[locn],ast)].
   isContTp(A) => ( (Lc,Op,[Arg]) ?= isSquareTerm(A)  && (_,"cont") ?= isName(Op)
     ?? ?(Lc,Arg) || .none).
