@@ -166,7 +166,7 @@ signals that the value is a function.
   | @refer{ReferenceType}
   | @refer{FunctionType}
   | @refer{ConstructorType}
-  | @refer{ThrowsType}
+  | @refer{RaisesType}
   | @refer{QuantifiedType}
   | @refer{TypeConstraint} @code{|:} @refer{Type}
   | @code{(} @refer{Type} @code{)}
@@ -495,13 +495,13 @@ takes the form:
 (integer,string) => cons[string]
 @end example
 
-@node Throwing Types
-@subsection Throwing Types
-@cindex throws type
-@cindex type,throws
+@node Raiseing Types
+@subsection Raiseing Types
+@cindex raises type
+@cindex type,raises
 
 @noindent
-The @code{throws} type is used to indicate a function type that may raise an exception.
+The @code{raises} type is used to indicate a function type that may raise an exception.
 
 A function type denotes a function value. It takes the form of a
 possibly empty sequence of argument types -- denoting the types of the
@@ -525,7 +525,7 @@ exception; this would be signaled using a type of the form:
 Functions that raise exceptions may not be inferred: their type must
 be explicitly declared; for example, the declaration:
 @example
-foo:(integer) => integer throws string
+foo:(integer) => integer raises string
 @end example
 declares that @code{foo} is a function from @code{integer} to
 @code{integer}, and it may raise an exception -- in the form of a
