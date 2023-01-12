@@ -57,17 +57,17 @@ FlexOp formOperand(vOperand v) {
           return op;
         }
         default: {
-          FlexOp op = OF(FP,v.ix * LONG_COUNT+FRAME_SIZE);
+          FlexOp op = OF(FP, v.ix * LONG_COUNT + FRAME_SIZE);
           return op;
         }
       }
     }
     case literal: {
-      FlexOp op = OF(CL,v.ix*LONG_COUNT);
+      FlexOp op = OF(CL, v.ix * LONG_COUNT);
       return op;
     }
     case local: {
-      FlexOp op = OF(FP,-v.ix*LONG_COUNT);
+      FlexOp op = OF(FP, -v.ix * LONG_COUNT);
       return op;
     }
     case mcReg: {
@@ -231,6 +231,10 @@ retCode jit_TCall(insPo code, integer *pc, jitCompPo jitCtx) {
 }
 
 retCode jit_TOCall(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_Invoke(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 

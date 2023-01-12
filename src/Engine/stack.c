@@ -59,7 +59,7 @@ static MethodRec spawnMethod = {
   .lclcnt = 0,
   .pool = Null,
   .locals = Null,
-  .code = { TOCall, 0, 2}
+  .code = {TOCall, 0, 2}
 };
 
 clssPo stackClass = (clssPo) &StackClass;
@@ -147,13 +147,17 @@ retCode setTaskState(stackPo tsk, TaskState state) {
   }
 }
 
-framePo currFrame(stackPo tsk) {
-  return tsk->fp;
+framePo currFrame(stackPo stk) {
+  return stk->fp;
 }
 
 framePo previousFrame(stackPo stk, framePo fp) {
   assert(fp >= baseFrame(stk) && ((ptrPo) fp + 1) < stk->sp);
   return fp - 1;
+}
+
+ptrPo stackSP(stackPo stk) {
+  return stk->sp;
 }
 
 integer stackHwm(stackPo tsk) {
@@ -212,7 +216,7 @@ void stackSanityCheck(stackPo stk) {
 
 void verifyStack(stackPo stk, heapPo H) {
   while (stk != Null) {
-    assert(classOf((termPo)stk)==stackClass);
+    assert(classOf((termPo) stk) == stackClass);
 
     if (stk->stkMem != Null) {
       stackSanityCheck(stk);
@@ -545,7 +549,7 @@ stackPo detachStack(stackPo base, stackPo top) {
 #ifdef TRACESTACK
   if (traceStack) {
     outMsg(logFile, "now at %T\n", parent);
-    assert(hasClass((termPo)parent, stackClass));
+    assert(hasClass((termPo) parent, stackClass));
   }
 #endif
   return parent;
