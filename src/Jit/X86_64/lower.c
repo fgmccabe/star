@@ -218,6 +218,10 @@ retCode jit_TOCall(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
+retCode jit_Invoke(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
 retCode jit_Escape(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }

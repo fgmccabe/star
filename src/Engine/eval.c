@@ -499,7 +499,7 @@ retCode run(processPo P) {
           restoreRegisters();
 #ifdef TRACESTACK
           if (traceStack)
-            verifyStack(STK,H);
+            verifyStack(STK, H);
 #endif
           push(event);
           continue;
@@ -533,7 +533,7 @@ retCode run(processPo P) {
         assert(validPC(FP->prog, exit));
 
         saveRegisters();
-        continuationPo  cont = allocateContinuation(H, STK, SP, FP, exit);
+        continuationPo cont = allocateContinuation(H, STK, SP, FP, exit);
         restoreRegisters();
         push(cont);
         continue;
@@ -557,6 +557,33 @@ retCode run(processPo P) {
         push(val);
         continue;
       }
+
+      case Invoke: { // Invoke a continuation, passing arguments ...
+        int arity = collectI32(PC);
+        continuationPo cont = C_CONTINUATION(pop());
+
+        assert(continIsValid(cont));
+
+        stackPo stk = contStack(cont);
+
+        if (stackState(stk) != suspended) {
+          logMsg(logFile, "tried to resume non-suspended stack %T", stk);
+          bail();
+        } else if (currFrame(stk) != contFP(cont) || stackSP(stk) != contSP(cont)) {
+          logMsg(logFile, "tried to resume non-valid continuation %T", cont);
+          bail();
+        } else {
+          saveRegisters();
+          for (integer ix = arity; ix > 0; ix--)
+            pushStack(stk, arg(ix));
+          P->stk = attachStack(STK, stk);
+          STK->fp->pc = contPC(cont);
+          invalidateCont(cont);
+          restoreRegisters();
+          continue;
+        }
+      }
+
       case TEq: {
         termPo Lhs = pop();
         termPo Rhs = pop();
@@ -908,7 +935,7 @@ retCode run(processPo P) {
         integer Lhs = integerVal(pop());
         integer Rhs = integerVal(pop());
 
-        termPo Rs = (termPo) makeInteger((integer)((uinteger) Lhs & (uinteger) Rhs));
+        termPo Rs = (termPo) makeInteger((integer) ((uinteger) Lhs & (uinteger) Rhs));
         push(Rs);
         continue;
       }
@@ -916,7 +943,7 @@ retCode run(processPo P) {
         integer Lhs = integerVal(pop());
         integer Rhs = integerVal(pop());
 
-        termPo Rs = makeInteger((integer)((uinteger) Lhs | (uinteger) Rhs));
+        termPo Rs = makeInteger((integer) ((uinteger) Lhs | (uinteger) Rhs));
         push(Rs);
         continue;
       }
@@ -924,14 +951,14 @@ retCode run(processPo P) {
         integer Lhs = integerVal(pop());
         integer Rhs = integerVal(pop());
 
-        termPo Rs = (termPo) makeInteger((integer)((uinteger) Lhs ^ (uinteger) Rhs));
+        termPo Rs = (termPo) makeInteger((integer) ((uinteger) Lhs ^ (uinteger) Rhs));
         push(Rs);
         continue;
       }
       case BNot: {
         integer Lhs = integerVal(pop());
 
-        termPo Rs = (termPo) makeInteger((integer)(~(uinteger) Lhs));
+        termPo Rs = (termPo) makeInteger((integer) (~(uinteger) Lhs));
         push(Rs);
         continue;
       }
@@ -939,7 +966,7 @@ retCode run(processPo P) {
         integer Lhs = integerVal(pop());
         integer Rhs = integerVal(pop());
 
-        termPo Rs = (termPo) makeInteger((integer)((uinteger) Lhs << (uinteger) Rhs));
+        termPo Rs = (termPo) makeInteger((integer) ((uinteger) Lhs << (uinteger) Rhs));
         push(Rs);
         continue;
       }
@@ -947,7 +974,7 @@ retCode run(processPo P) {
         integer Lhs = integerVal(pop());
         integer Rhs = integerVal(pop());
 
-        termPo Rs = (termPo) makeInteger((integer)(((uinteger) Lhs) >> ((uinteger) Rhs)));
+        termPo Rs = (termPo) makeInteger((integer) (((uinteger) Lhs) >> ((uinteger) Rhs)));
         push(Rs);
         continue;
       }
