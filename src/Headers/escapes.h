@@ -212,11 +212,11 @@ escape(_sleep, "F(f)()", "sleep until a definite time")
 escape(_now, "F()f", "current time")
 escape(_today, "F()f", "time at midnight")
 escape(_ticks, "F()i", "used CPU time")
-escape(_time2date, "F(f)(iiiiiifii)", "convert a time to a date")
-escape(_time2utc, "F(f)(iiiiiifii)", "convert a time to UTC date")
+escape(_time2date, "F(f)(iiiiiifi)", "convert a time to a date")
+escape(_time2utc, "F(f)(iiiiiifi)", "convert a time to UTC date")
 escape(_date2time, "F(iiiiifi)f", "convert a date to a time")
 escape(_utc2time, "F(iiiiifi)f", "convert a UTC date to a time")
-
+escape(_fmttime,"F(fs)s","format a time value")
 // Character class escapes
 
 escape(_uniCodeCategory, "F(c)i", "unicode category")

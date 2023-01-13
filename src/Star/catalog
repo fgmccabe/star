@@ -12,6 +12,7 @@
     "star.capabilities": "capabilities.star",
     "star.coerce": "coerce.star",
     "star.combo": "combo.star",
+    "star.date": "date.star",
     "star.either": "either.star",
     "star.fiber": "fiber.star",
     "star.file": "file.star",
