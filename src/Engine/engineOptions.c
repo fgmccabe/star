@@ -9,7 +9,6 @@
 #include "version.h"      /* Version ID for the Star system */
 
 #include "cmdOptions.h"
-#include "engineOptions.h"
 #include "streamDecodeP.h"
 #include "heapP.h"
 #include "stackP.h"
@@ -376,20 +375,20 @@ static retCode setDisplayDepth(char *option, logical enable) {
   return Ok;
 }
 
-static retCode setDefaultSize(char *option, integer minSize, integer maxSize, integer *var, logical enable) {
+static retCode setDefaultSize(char *option, logical enable) {
   integer size = parseSize(option);
-  if (size < minSize) {
-    outMsg(logFile, "size should be at least %d\n", minSize);
-    size = minSize;
-  } else if (size > maxSize) {
-    outMsg(logFile, "size should no larger than %d\n", maxSize);
-    size = maxSize;
+  if (size < minStackSize) {
+    outMsg(logFile, "default size should be at least %d\n", minStackSize);
+    size = minStackSize;
+  } else if (size > stackRegionSize / 2) {
+    outMsg(logFile, "size should no larger than %d\n", stackRegionSize / 2);
+    size = stackRegionSize / 2;
   } else if (size != (1 << lg2(size))) {
     outMsg(logFile, "size should be a power of 2, suggesting %d\n", 1 << (lg2(size) + 1));
     size = 1 << (lg2(size) + 1);
   }
 
-  *var = size;
+  defaultStackSize = size;
 
   return Ok;
 }
@@ -433,7 +432,8 @@ Option options[] = {
   {'h', "heap",          hasArgument, STAR_INIT_HEAP,     setHeapSize,        "-h|--heap <size>"},
   {'H', "max-heap",      hasArgument, STAR_MAX_HEAP,      setMaxHeapSize,     "-H|--max-heap <size>"},
   {'s', "min-stack",     hasArgument, STAR_MIN_STACK,     setMinStackSize,    "-s|--min-stack <size>"},
-  {'S', "max-stack",     hasArgument, STAR_MAX_STACK,     setStackRegionSize, "-S|--max-stack <size>"},};
+  {'S', "dflt-stack",    hasArgument, STAR_DFLT_STACK,    setDefaultSize,     "-S|--default-stack <size>"},
+  {'R', "stack-region",  hasArgument, STAR_STACK_REGION,  setStackRegionSize, "-R|--stack-region <size>"},};
 
 int getEngineOptions(int argc, char **argv) {
   splitFirstArg(argc, argv, &argc, &argv);

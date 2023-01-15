@@ -598,32 +598,17 @@ ReturnStatus g__str_start(heapPo h, termPo a1, termPo a2) {
     .result=(uniIsPrefix(lhs, llen, rhs, rlen) ? trueEnum : falseEnum)};
 }
 
-retCode str_flatten(strBufferPo str, termPo t) {
-  if (isNormalPo(t)) {
-    normalPo ss = C_NORMAL(t);
-    integer cx = termArity(ss);
-    retCode ret = Ok;
-    for (integer ix = 0; ret == Ok && ix < cx; ix++) {
-      ret = str_flatten(str, nthArg(ss, ix));
-    }
-    return ret;
-  } else if (isString(t)) {
-    integer len;
-    const char *elTxt = strVal(t, &len);
-    return outText(O_IO(str), elTxt, len);
-  } else if (isChar(t))
-    return outChar(O_IO(str), charVal(t));
-  else if (isInteger(t))
-    return outChar(O_IO(str), integerVal(t));
-  else
-    return Error;
-}
-
-ReturnStatus g__str_multicat(heapPo h, termPo a1) {
+ReturnStatus g__str_multicat(heapPo h, termPo t) {
   strBufferPo strb = newStringBuffer();
 
-  retCode ret = str_flatten(strb, a1);
-
+  retCode ret = Ok;
+  while (ret == Ok && isCons(t)) {
+    normalPo c = C_NORMAL(t);
+    integer len;
+    const char *elTxt = strVal(consHead(c), &len);
+    ret = outText(O_IO(strb), elTxt, len);
+    t = consTail(c);
+  }
   integer oLen;
   const char *buff = getTextFromBuffer(strb, &oLen);
 
@@ -631,21 +616,6 @@ ReturnStatus g__str_multicat(heapPo h, termPo a1) {
     .result=(termPo) allocateString(h, buff, oLen)};
   closeFile(O_IO(strb));
   return rt;
-}
-
-ReturnStatus g__str_fltn(heapPo h, termPo a1) {
-  strBufferPo str = newStringBuffer();
-
-  retCode ret = str_flatten(str, a1);
-
-  if (ret == Ok) {
-    ReturnStatus rt = {.ret=Ok, .result=allocateFromStrBuffer(str, h)};
-    closeFile(O_IO(str));
-    return rt;
-  } else {
-    closeFile(O_IO(str));
-    return (ReturnStatus) {.ret=ret, .result = voidEnum};
-  }
 }
 
 ReturnStatus g__str_reverse(heapPo h, termPo a1) {
