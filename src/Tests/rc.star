@@ -43,7 +43,7 @@ test.rc{
     assert ^AA.ii[2];
     assert ~_?=AA.ii[3];
 
-    CC = (cont(2).C<<-20);
+    CC = (cont(2).C=20);
     show CC;
     show ll(CC);
 
