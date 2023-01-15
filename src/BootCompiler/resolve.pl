@@ -203,6 +203,10 @@ overloadTerm(tryCatch(Lc,E,v(TLc,Nm,Tp),H),Dict,St,Stx,tryCatch(Lc,EE,v(TLc,Nm,T
   declareVr(Lc,Nm,Tp,none,Dict,DDict),
   overloadTerm(E,DDict,St,St0,EE),
   overloadCases(H,resolve:overloadTerm,Dict,St0,Stx,HH).
+overloadTerm(tryHandle(Lc,E,v(TLc,Nm,Tp),H),Dict,St,Stx,tryHandle(Lc,EE,v(TLc,Nm,Tp),HH)) :-
+  declareVr(Lc,Nm,Tp,none,Dict,DDict),
+  overloadTerm(E,DDict,St,St0,EE),
+  overloadCases(H,resolve:overloadTerm,Dict,St0,Stx,HH).
 overloadTerm(raise(Lc,T,E),Dict,St,Stx,raise(Lc,TT,EE)) :-
   overloadTerm(T,Dict,St,St0,TT),
   overloadTerm(E,Dict,St0,Stx,EE).
@@ -240,6 +244,10 @@ overloadAction(doAssign(Lc,P,A),Dict,St,Stx,doAssign(Lc,PP,AA)) :-
   overloadTerm(P,Dict,St,St1,PP),
   overloadTerm(A,Dict,St1,Stx,AA).
 overloadAction(doTryCatch(Lc,A,v(TLc,Nm,Tp),H),Dict,St,Stx,doTryCatch(Lc,AA,v(TLc,Nm,Tp),HH)) :-
+  declareVr(Lc,Nm,Tp,none,Dict,DDict),
+  overloadAction(A,DDict,St,St1,AA),
+  overloadCases(H,resolve:overloadAction,Dict,St1,Stx,HH).
+overloadAction(doTryHandle(Lc,A,v(TLc,Nm,Tp),H),Dict,St,Stx,doTryHandle(Lc,AA,v(TLc,Nm,Tp),HH)) :-
   declareVr(Lc,Nm,Tp,none,Dict,DDict),
   overloadAction(A,DDict,St,St1,AA),
   overloadCases(H,resolve:overloadAction,Dict,St1,Stx,HH).

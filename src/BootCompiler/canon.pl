@@ -55,6 +55,7 @@ isCanon(neg(_,_)).
 isCanon(lambda(_,_,_,_)).
 isCanon(fiber(_,_,_)).
 isCanon(tryCatch(_,_,_,_)).
+isCanon(tryHandle(_,_,_,_)).
 
 isSimpleCanon(v(_,_,_)).
 isSimpleCanon(anon(_,_)).
@@ -119,6 +120,8 @@ typeOfCanon(fiber(_,_,Tp),Tp) :-!.
 typeOfCanon(valof(_,_,Tp),Tp) :-!.
 typeOfCanon(tryCatch(_,E,_T,_),Tp) :- !,
   typeOfCanon(E,Tp).
+typeOfCanon(tryHandle(_,E,_T,_),Tp) :- !,
+  typeOfCanon(E,Tp).
 
 locOfCanon(v(Lc,_,_),Lc) :- !.
 locOfCanon(anon(Lc,_),Lc) :- !.
@@ -149,6 +152,7 @@ locOfCanon(tple(Lc,_),Lc) :-!.
 locOfCanon(lambda(Lc,_,_,_),Lc) :-!.
 locOfCanon(assign(Lc,_,_),Lc) :-!.
 locOfCanon(tryCatch(Lc,_,_,_),Lc) :-!.
+locOfCanon(tryHandle(Lc,_,_,_),Lc) :-!.
 locOfCanon(whileDo(Lc,_,_),Lc) :-!.
 locOfCanon(forDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(valis(Lc,_),Lc) :-!.
@@ -166,6 +170,7 @@ locOfCanon(doMatch(Lc,_,_),Lc) :-!.
 locOfCanon(doDefn(Lc,_,_),Lc) :-!.
 locOfCanon(doAssign(Lc,_,_),Lc) :-!.
 locOfCanon(doTryCatch(Lc,_,_,_),Lc) :-!.
+locOfCanon(doTryHandle(Lc,_,_,_),Lc) :-!.
 locOfCanon(doIfThenElse(Lc,_,_,_),Lc) :-!.
 locOfCanon(doWhile(Lc,_,_),Lc) :-!.
 locOfCanon(doLet(Lc,_,_,_),Lc) :-!.
@@ -297,6 +302,11 @@ ssTerm(tryCatch(_,A,T,Hs),Dp,sq([ss("try "),TT,ss(" in "),AA,ss(" catch "),TT,lb
   ssTerm(T,Dp,TT),
   ssTerm(A,Dp2,AA),
   ssRls("",Hs,Dp2,canon:ssTerm,HH).
+ssTerm(tryHandle(_,A,T,Hs),Dp,sq([ss("try "),TT,ss(" in "),AA,ss(" handle "),TT,lb,HH,nl(Dp),rb])) :-!,
+  Dp2 is Dp+2,
+  ssTerm(T,Dp,TT),
+  ssTerm(A,Dp2,AA),
+  ssRls("",Hs,Dp2,canon:ssTerm,HH).
 
 ssTerms([],_,[]).
 ssTerms([T|More],Dp,[TT|TTs]) :-
@@ -331,6 +341,11 @@ ssAction(doAssign(_,P,E),Dp,sq([PP,ss(" := "),EE])) :-!,
   ssTerm(P,Dp,PP),
   ssTerm(E,Dp,EE).
 ssAction(doTryCatch(_,A,T,Hs),Dp,sq([ss("try "),TT,ss(" in "),AA,ss(" catch "),lb,HH,nl(Dp),rb])) :-!,
+  Dp2 is Dp+2,
+  ssTerm(T,Dp,TT),
+  ssAction(A,Dp2,AA),
+  ssRls("",Hs,Dp2,canon:ssAction,HH).
+ssAction(doTryHandle(_,A,T,Hs),Dp,sq([ss("try "),TT,ss(" in "),AA,ss(" handle "),lb,HH,nl(Dp),rb])) :-!,
   Dp2 is Dp+2,
   ssTerm(T,Dp,TT),
   ssAction(A,Dp2,AA),

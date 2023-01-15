@@ -68,6 +68,11 @@ freeVars(tryCatch(_,B,T,H),Ex,Q,F,Fv) :-!,
   freeVars(B,Ex1,Q,F,F0),
   freeVars(T,Ex1,Q,F0,F1),
   freeVarsInRules(H,Ex,Q,freevars:freeVars,F1,Fv).
+freeVars(tryHandle(_,B,T,H),Ex,Q,F,Fv) :-!,
+  ptnVars(T,Ex,Ex1),  
+  freeVars(B,Ex1,Q,F,F0),
+  freeVars(T,Ex1,Q,F0,F1),
+  freeVarsInRules(H,Ex,Q,freevars:freeVars,F1,Fv).
 freeVars(fiber(_,A,_),Ex,Q,F,Fv) :-
   freeVars(A,Ex,Q,F,Fv).
 freeVars(T,_,_,F,F) :-
@@ -100,6 +105,11 @@ freeVarsInAction(doAssign(_,P,E),Ex,Ex,Q,F,Fv) :-!,
   freeVars(P,Ex,Q,F,F0),
   freeVars(E,Ex,Q,F0,Fv).
 freeVarsInAction(doTryCatch(_,B,T,H),Ex,Exx,Q,F,Fv) :-!,
+  ptnVars(T,Ex,Ex1),  
+  freeVars(T,Ex1,Q,F,F0),
+  freeVarsInAction(B,Ex1,Exx,Q,F0,F1),
+  freeVarsInRules(H,Ex,Q,freevars:freeVarsInAct,F1,Fv).
+freeVarsInAction(doTryHandle(_,B,T,H),Ex,Exx,Q,F,Fv) :-!,
   ptnVars(T,Ex,Ex1),  
   freeVars(T,Ex1,Q,F,F0),
   freeVarsInAction(B,Ex1,Exx,Q,F0,F1),
