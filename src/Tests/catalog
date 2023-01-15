@@ -121,6 +121,7 @@
     "test.sy": "sy.star",
     "test.t": "t.star",
     "test.tl" : "tl.star",
+    "test.tm" : "tm.star",
     "test.tp1": "tp1.star",
     "test.tr": "tr.star",
     "test.trec": "trec.star",
@@ -128,7 +129,6 @@
     "test.ts0": "ts0.star",
     "test.ts1": "ts1.star",
     "test.ts2": "ts2.star",
-    "test.ts3": "ts3.star",
     "test.tsort": "tsort.star",
     "test.u": "u.star"
   },

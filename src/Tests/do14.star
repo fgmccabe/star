@@ -1,9 +1,9 @@
 test.do14{
-  -- Test throws
+  -- Test raises
   import star.
   import star.script.
 
-  isEven:(integer) => boolean throws string.
+  isEven:(integer) => boolean raises string.
   isEven(X) where X%2==0 => .true.
   isEven(X) default => raise "$(X) not even".
 
