@@ -356,6 +356,8 @@ star.compiler.dependencies{
     collectTermRefs(F,All,collectTermRefs(E,All,Rf)).
   collectTermRefs(A,All,Rf) where (_,L,H) ?= isTryCatch(A) => 
     collectCasesRefs(H,collectTermRefs,All,collectTermRefs(L,All,Rf)).
+  collectTermRefs(A,All,Rf) where (_,L,H) ?= isTryHandle(A) => 
+    collectCasesRefs(H,collectTermRefs,All,collectTermRefs(L,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,L,R) ?= isComprehension(T) =>
     collectCondRefs(R,All,collectTermRefs(L,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,R,_,V) ?= isRecordUpdate(T) => 
@@ -401,6 +403,8 @@ star.compiler.dependencies{
   collectDoRefs(T,All,Rf) where (_,Op,Args) ?= isInvoke(T) =>
     collectTermListRefs(Args,All,collectTermRefs(Op,All,Rf)).
   collectDoRefs(A,All,Rf) where (_,L,H) ?= isTryCatch(A) =>
+    collectCasesRefs(H,collectDoRefs,All,collectDoRefs(L,All,Rf)).
+  collectDoRefs(A,All,Rf) where (_,L,H) ?= isTryHandle(A) =>
     collectCasesRefs(H,collectDoRefs,All,collectDoRefs(L,All,Rf)).
   collectDoRefs(A,All,Rf) where (_,L,H) ?= isCase(A) =>
     collectCasesRefs(H,collectDoRefs,All,collectTermRefs(L,All,Rf)).

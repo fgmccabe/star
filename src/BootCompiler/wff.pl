@@ -48,7 +48,7 @@
 	      isFiberTerm/3,mkFiberTerm/3,isFiber/3,mkFiber/3,
 	      isDoTerm/3,mkDoTerm/3,isDo/3,mkDo/3,
 	      isValof/3,mkValof/3,isValis/3,mkValis/3,
-	      isTryCatch/4,mkTryCatch/4,
+	      isTryCatch/4,mkTryCatch/4,isTryHandle/4,mkTryHandle/4,
 	      isRaise/3,mkRaise/3,
 	      isRaises/4,mkRaises/4,isInvoke/4,mkInvoke/4,
 	      isDynamic/4,mkDynamic/4,
@@ -879,6 +879,16 @@ isTryCatch(A,Lc,B,Hs) :-
 mkTryCatch(Lc,B,H,A) :-
   braceTuple(Lc,H,Hs),
   binary(Lc,"catch",B,Hs,A0),
+  unary(Lc,"try",A0,A).
+
+isTryHandle(A,Lc,B,Hs) :-
+  isUnary(A,Lc,"try",I),
+  isBinary(I,_,"handle",B,H),
+  isBraceTuple(H,_,Hs).
+
+mkTryHandle(Lc,B,H,A) :-
+  braceTuple(Lc,H,Hs),
+  binary(Lc,"handle",B,Hs,A0),
   unary(Lc,"try",A0,A).
 
 isBreak(A,Lc,L) :-

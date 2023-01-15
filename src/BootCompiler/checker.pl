@@ -808,6 +808,9 @@ typeOfExp(A,Tp,ErTp,Env,Env,Act,Path) :-
 typeOfExp(A,_Tp,_,Env,Env,raise(Lc,Thrw,ErExp),Path) :-
   isRaise(A,Lc,E),!,
   checkRaise(Lc,E,Env,Thrw,ErExp,Path).
+typeOfExp(A,Tp,ErTp,Env,Env,Act,Path) :-
+  isTryHandle(A,Lc,B,H),!,
+  checkTryHandle(Lc,B,H,Tp,ErTp,Env,Act,Path).
 typeOfExp(Term,Tp,_ErTp,Env,Env,void,_) :-
   locOfAst(Term,Lc),
   reportError("illegal expression: %s, expecting a %s",[Term,Tp],Lc).
@@ -926,6 +929,9 @@ checkAction(A,_Tp,ErTp,Env,Ev,Act,Path) :-
 checkAction(A,Tp,ErTp,Env,Env,Act,Path) :-
   isTryCatch(A,Lc,B,H),!,
   checkTryCatchAction(Lc,B,H,Tp,ErTp,Env,Act,Path).
+checkAction(A,Tp,ErTp,Env,Env,Act,Path) :-
+  isTryHandle(A,Lc,B,H),!,
+  checkTryHandleAction(Lc,B,H,Tp,ErTp,Env,Act,Path).
 checkAction(A,Tp,ErTp,Env,Ev,doIfThenElse(Lc,Tst,Thn,Els),Path) :-
   isIfThenElse(A,Lc,G,T,E),!,
   checkGoal(G,ErTp,Env,E0,Tst,Path),
