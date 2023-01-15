@@ -770,6 +770,16 @@ star.compiler.wff{
   public mkTryCatch(Lc,B,Hs) =>
     unary(Lc,"try",binary(Lc,"catch",B,brTuple(Lc,[reBar(Hs)]))).
 
+  public isTryHandle:(ast) => option[(option[locn],ast,cons[ast])].
+  isTryCatch(A) where (Lc,I) ?= isUnary(A,"try") &&
+      (_,B,H) ?= isBinary(I,"handle") &&
+	  (_,Hs) ?= isBrTuple(H) =>
+    ([El].=Hs ?? .some((Lc,B,deBar(El))) || .some((Lc,B,Hs))).
+  isTryHandle(_) default => .none.
+
+  public mkTryHandle(Lc,B,Hs) =>
+    unary(Lc,"try",binary(Lc,"handle",B,brTuple(Lc,[reBar(Hs)]))).
+
   public isSuspend(A) where (Lc,T,L) ?= isBinary(A,"suspend") => .some((Lc,T,L)).
   isSuspend(A) where (Lc,L) ?= isUnary(A,"suspend") => .some((Lc,.nme(Lc,"this"),L)).
   isSuspend(_) default => .none.
