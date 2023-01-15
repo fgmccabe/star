@@ -381,6 +381,12 @@ liftExp(tryCatch(Lc,B,T,H),try(Lc,BB,TT,E,HH),Q,Qx,Map,Opts,Ex,Exx) :-
 liftExp(raise(Lc,T,E),rais(Lc,TT,EE),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(T,TT,Q,Q1,Map,Opts,Ex,Ex1),
   liftExp(E,EE,Q1,Qx,Map,Opts,Ex1,Exx).
+liftExp(tryHandle(Lc,B,T,H),handle(Lc,BB,TT,E,HH),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftPtn(T,TT,Q,Q0,Map,Opts,Ex,Ex0),
+  liftExp(B,BB,Q0,Q1,Map,Opts,Ex0,Ex1),
+  genVar("_E",E),
+  liftCases(H,Cases,Q1,Qx,Map,Opts,transform:liftExp,Ex1,Exx),
+  caseMatcher(Lc,E,Cases,Map,HH).
 liftExp(cell(Lc,In),cel(Lc,CellV),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(In,CellV,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(deref(Lc,In),get(Lc,CellV),Q,Qx,Map,Opts,Ex,Exx) :- !,
@@ -467,6 +473,12 @@ liftAction(doRetire(Lc,T,E),rtire(Lc,TT,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(T,TT,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(E,EE,Q0,Qx,Map,Opts,Ex0,Exx).
 liftAction(doTryCatch(Lc,B,T,H),try(Lc,BB,TT,E,HH),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftPtn(T,TT,Q,Q0,Map,Opts,Ex,Ex0),
+  liftAction(B,BB,Q0,Q1,Map,Opts,Ex0,Ex1),
+  liftCases(H,Cases,Q1,Qx,Map,Opts,transform:liftAction,Ex1,Exx),
+  genVar("_E",E),
+  actionCaseMatcher(Lc,E,Cases,Map,HH).
+liftAction(doTryHandle(Lc,B,T,H),handle(Lc,BB,TT,E,HH),Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtn(T,TT,Q,Q0,Map,Opts,Ex,Ex0),
   liftAction(B,BB,Q0,Q1,Map,Opts,Ex0,Ex1),
   liftCases(H,Cases,Q1,Qx,Map,Opts,transform:liftAction,Ex1,Exx),
