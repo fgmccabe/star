@@ -175,6 +175,16 @@
     "keyword": true
   },
   {
+    "infixOp": "handle",
+    "priorities": [
+      1198,
+      1199,
+      1198
+    ],
+    "desc": "try {...} handle {...}",
+    "keyword": true
+  },
+  {
     "infixOp": ";",
     "priorities": [
       1250,
@@ -267,18 +277,8 @@
       975,
       974
     ],
-    "desc": "reassignable variable definition",
+    "desc": "assignment",
     "keyword": false
-  },
-  {
-    "infixOp": "<<-",
-    "priorities": [
-      974,
-      975,
-      974
-    ],
-    "desc": "record replacement",
-    "keyword": true
   },
   {
     "infixOp": "=>",
@@ -499,9 +499,9 @@
   {
     "infixOp": "suspend",
     "priorities": [
-      900,
-      901,
-      900
+      889,
+      890,
+      889
     ],
     "desc": "suspend computation",
     "keyword": true
@@ -509,9 +509,9 @@
   {
     "infixOp": "resume",
     "priorities": [
-      900,
-      901,
-      900
+      889,
+      890,
+      889
     ],
     "desc": "suspend computation",
     "keyword": true
@@ -519,8 +519,8 @@
   {
     "prefixOp": "suspend",
     "priorities": [
-      901,
-      900
+      890,
+      899
     ],
     "desc": "suspend computation",
     "keyword": true
@@ -528,8 +528,8 @@
   {
     "prefixOp": "resume",
     "priorities": [
-      901,
-      900
+      890,
+      899
     ],
     "desc": "suspend computation",
     "keyword": true
@@ -1152,7 +1152,7 @@
     "keyword": true
   },
   {
-    "infixOp": "throws",
+    "infixOp": "raises",
     "priorities": [
       999,
       1000,

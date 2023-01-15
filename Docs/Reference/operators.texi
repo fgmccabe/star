@@ -150,10 +150,6 @@
 @tab left associative infix
 @tab 700
 @tab add element to set
-@item @code{<<-}
-@tab non-associative infix
-@tab 975
-@tab record replacement
 @item @code{*}
 @tab non-associative postfix
 @tab 700
@@ -180,11 +176,11 @@
 @tab logical shift right
 @item @code{resume}
 @tab non-associative prefix
-@tab 901
+@tab 890
 @tab suspend computation
 @item @code{resume}
 @tab non-associative infix
-@tab 901
+@tab 890
 @tab suspend computation
 @item @code{*>}
 @tab non-associative infix
@@ -210,6 +206,10 @@
 @tab left associative infix
 @tab 720
 @tab subtraction
+@item @code{raises}
+@tab non-associative infix
+@tab 1000
+@tab type of values that can raise exceptions
 @item @code{.}
 @tab non-associative prefix
 @tab 10
@@ -312,11 +312,11 @@
 @tab break out of an action (loop or block)
 @item @code{suspend}
 @tab non-associative prefix
-@tab 901
+@tab 890
 @tab suspend computation
 @item @code{suspend}
 @tab non-associative infix
-@tab 901
+@tab 890
 @tab suspend computation
 @item @code{open}
 @tab non-associative prefix
@@ -437,7 +437,7 @@
 @item @code{:=}
 @tab non-associative infix
 @tab 975
-@tab reassignable variable definition
+@tab assignment
 @item @code{:?}
 @tab non-associative infix
 @tab 400
@@ -474,6 +474,10 @@
 @tab left associative infix
 @tab 600
 @tab test nth bit
+@item @code{handle}
+@tab non-associative infix
+@tab 1199
+@tab try @{...@} handle @{...@}
 @item @code{~}
 @tab non-associative prefix
 @tab 905
@@ -502,10 +506,6 @@
 @tab non-associative infix
 @tab 900
 @tab greater than or equal
-@item @code{throws}
-@tab non-associative infix
-@tab 1000
-@tab type of values that can raise exceptions
 @item @code{>>}
 @tab right associative infix
 @tab 950
@@ -531,26 +531,27 @@
 @tab @code{default}
 @tab @code{resume}
 @item @code{contract}
+@tab @code{raises}
 @tab @code{try}
-@tab @code{exists}
-@item @code{if}
+@item @code{exists}
+@tab @code{if}
 @tab @code{in}
-@tab @code{break}
-@item @code{suspend}
+@item @code{break}
+@tab @code{suspend}
 @tab @code{open}
-@tab @code{public}
-@item @code{ref}
+@item @code{public}
+@tab @code{ref}
 @tab @code{where}
-@tab @code{case}
-@item @code{generator}
+@item @code{case}
+@tab @code{generator}
 @tab @code{valof}
-@tab @code{yield}
-@item @code{while}
+@item @code{yield}
+@tab @code{while}
 @tab @code{private}
-@tab @code{implementation}
-@item @code{type}
-@tab @code{else}
-@tab @code{throws}
+@item @code{implementation}
+@tab @code{type}
+@tab @code{handle}
+@item @code{else}
 
 @end multitable
 @end float
@@ -580,61 +581,60 @@
   @tab @code{<-}
   @item @code{.>>>.}
   @tab @code{\\+}
-  @tab @code{<<-}
   @tab @code{*}
   @tab @code{\\-}
-  @item @code{+}
-  @tab @code{.>>.}
+  @tab @code{+}
+  @item @code{.>>.}
   @tab @code{*>}
   @tab @code{,}
   @tab @code{\\/}
-  @item @code{-}
-  @tab @code{.}
+  @tab @code{-}
+  @item @code{.}
   @tab @code{/}
   @tab @code{<*>}
   @tab @code{:}
-  @item @code{;}
-  @tab @code{<}
+  @tab @code{;}
+  @item @code{<}
   @tab @code{.=}
   @tab @code{=>>}
   @tab @code{=}
-  @item @code{|:}
-  @tab @code{++}
+  @tab @code{|:}
+  @item @code{++}
   @tab @code{>}
   @tab @code{?}
   @tab @code{@@}
-  @item @code{|=}
-  @tab @code{~~}
+  @tab @code{|=}
+  @item @code{~~}
   @tab @code{⊕}
   @tab @code{.^.}
   @tab @code{//}
-  @item @code{.~.}
-  @tab @code{=<}
+  @tab @code{.~.}
+  @item @code{=<}
   @tab @code{==}
   @tab @code{\\}
   @tab @code{=>}
-  @item @code{^}
-  @tab @code{<=>}
+  @tab @code{^}
+  @item @code{<=>}
   @tab @code{•}
   @tab @code{.&.}
   @tab @code{///}
-  @item @code{::}
-  @tab @code{+++}
+  @tab @code{::}
+  @item @code{+++}
   @tab @code{:=}
   @tab @code{:?}
   @tab @code{.<<.}
-  @item @code{>>=}
-  @tab @code{^/}
+  @tab @code{>>=}
+  @item @code{^/}
   @tab @code{<~}
   @tab @code{|}
   @tab @code{.#.}
-  @item @code{~}
-  @tab @code{^//}
+  @tab @code{~}
+  @item @code{^//}
   @tab @code{||}
   @tab @code{::=}
   @tab @code{/\\}
-  @item @code{>=}
-  @tab @code{>>}
+  @tab @code{>=}
+  @item @code{>>}
 
 @end multitable
 @end float

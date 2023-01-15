@@ -36,17 +36,17 @@
   ("<-" ( (infix 904 905 904)))
   (".>>>." ( (infix 600 600 599)))
   ("\\+" ( (infix 700 700 699)))
-  ("<<-" ( (infix 974 975 974)))
   ("*" ( (postfix 699 700) (infix 700 700 699)))
   ("\\-" ( (infix 700 700 699)))
   ("+" ( (postfix 699 700) (infix 720 720 719)))
   (".>>." ( (infix 600 600 599)))
-  ("resume" ( (prefix 901 900) (infix 900 901 900)))
+  ("resume" ( (prefix 890 899) (infix 889 890 889)))
   ("*>" ( (infix 904 905 904)))
   ("," ( (infix 999 1000 1000)))
   ("contract" ( (prefix 1560 1559)))
   ("\\/" ( (infix 720 720 719)))
   ("-" ( (prefix 300 299) (infix 720 720 719)))
+  ("raises" ( (infix 999 1000 999)))
   ("." ( (prefix 10 9) (infix 100 100 99)))
   ("/" ( (infix 700 700 699)))
   ("<*>" ( (infix 949 950 950)))
@@ -69,7 +69,7 @@
   ("|=" ( (infix 1224 1225 1224)))
   ("in" ( (infix 899 900 900)))
   ("break" ( (prefix 10 9)))
-  ("suspend" ( (prefix 901 900) (infix 900 901 900)))
+  ("suspend" ( (prefix 890 899) (infix 889 890 889)))
   ("open" ( (prefix 900 899)))
   ("trace" ( (prefix 140 139)))
   ("~~" ( (infix 1239 1240 1240)))
@@ -108,6 +108,7 @@
   ("type" ( (prefix 1251 1250)))
   ("|" ( (infix 1548 1548 1547)))
   (".#." ( (infix 600 600 599)))
+  ("handle" ( (infix 1198 1199 1198)))
   ("~" ( (prefix 905 904)))
   ("^//" ( (infix 800 800 799)))
   ("||" ( (infix 919 920 920)))
@@ -115,7 +116,6 @@
   ("::=" ( (infix 1549 1550 1549)))
   ("/\\" ( (infix 700 700 699)))
   (">=" ( (infix 899 900 899)))
-  ("throws" ( (infix 999 1000 999)))
   (">>" ( (infix 949 950 950)))
 )
   "Table of standard star operators"
@@ -148,6 +148,7 @@
 "default"
 "resume"
 "contract"
+"raises"
 "try"
 "exists"
 "if"
@@ -166,8 +167,8 @@
 "private"
 "implementation"
 "type"
+"handle"
 "else"
-"throws"
 )
   "Table of standard keywords"
 )
