@@ -169,6 +169,9 @@ ssType(tFun(_,Cons,_,_,Ar,Id),true,Dp,
 ssType(tFun(_,_,_,_,Ar,Id),false,_,sq([ss("%"),ss(Id),ss("/"),ix(Ar)])).
 ssType(type(Nm),_,_,id(Id)) :- typeName(Nm,Id).
 ssType(tpFun(Nm,Ar),_,_,sq([id(Id),ss("/"),ix(Ar)])) :- typeName(Nm,Id).
+ssType(tpExp(tpExp(tpFun("=>>",2),L),R),ShCon,Dp,sq([LL,ss("=>>"),RR])) :-
+  ssType(L,ShCon,Dp,LL),
+  ssType(R,ShCon,Dp,RR).
 ssType(tpExp(Nm,A),ShCon,Dp,S) :- ssTypeExp(tpExp(Nm,A),ShCon,Dp,S).
 ssType(tplType(A),ShCon,Dp,sq([lp,iv(ss(","),AA),rp])) :-
   ssTypeEls(A,ShCon,Dp,AA).

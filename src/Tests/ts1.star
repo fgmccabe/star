@@ -16,7 +16,7 @@ test.ts1{
     let{
       yildFn:((),e)=>().
       yildFn(_,E) => valof{
-	suspend .yild(E) in {
+	case suspend .yild(E) in {
 	  .next => valis ().
 	  .cancel => retire .end
 	}
@@ -31,7 +31,7 @@ test.ts1{
     Tl = ref 0;
 
     while .true do {
-      TT resume .next in {
+      case TT resume .next in {
 	.yild(X) where X%2==0 => {
 	  Tl := Tl! + X;
 	}.
@@ -47,7 +47,7 @@ test.ts1{
   iterTask(L) => fiber{
     let{
       yildFn(E,Cx) => valof{
-	suspend .yild(E) in {
+	case suspend .yild(E) in {
 	  .next => valis Cx
 	}
       }

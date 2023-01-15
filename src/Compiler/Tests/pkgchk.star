@@ -56,9 +56,9 @@ star.core{
 
   A0 = getAst(parseText(lc,S0,R0)).
 
-  SR1 = valof do{
+  SR1 = valof{
     RP0 = strRepo([]);
-    (Sp,_,_) <- checkPkg(RP0,A0,stdDict,R0);
+    (Sp,_,_) = checkPkg(RP0,A0,stdDict,R0);
   logMsg("spec = $(Sp::term)");
     valis addSpec(Sp,RP0)
   }

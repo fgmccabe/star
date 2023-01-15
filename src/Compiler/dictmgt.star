@@ -92,7 +92,7 @@ star.compiler.dict.mgt{
   undeclareVar(_,[]) => [].
   undeclareVar(Nm,[Sc,..Ev]) =>
     (_ ?= Sc.vars[Nm] ??
-	[Sc.vars<<-Sc.vars[~Nm],..Ev] ||
+	[Sc.vars=Sc.vars[~Nm],..Ev] ||
 	[Sc,..undeclareVar(Nm,Ev)]).
 
   public declareConstructor:(string,string,option[locn],tipe,dict) => dict.
@@ -105,7 +105,7 @@ star.compiler.dict.mgt{
   declareCns(CLc,Nm,Tp,TpNm,Dict) => valof{
     if [Level,..Rest] .= Dict then {
       if .tpDefn(Lc,TNm,TTp,TpRl,Cons)?=Level.types[TpNm] then{
-	valis [Level.types<<-Level.types[TpNm->.tpDefn(Lc,TNm,TTp,TpRl,Cons[Nm->Tp])],..Rest]
+	valis [Level.types=Level.types[TpNm->.tpDefn(Lc,TNm,TTp,TpRl,Cons[Nm->Tp])],..Rest]
       } else{
 	valis [Level,..declareCns(CLc,Nm,Tp,TpNm,Rest)]
       }
@@ -132,14 +132,14 @@ star.compiler.dict.mgt{
 
   declareVr:(string,option[locn],tipe,(option[locn],dict)=>canon,option[tipe],dict) => dict.
   declareVr(Nm,Lc,Tp,MkVr,Fc,[Sc,..Ev]) => valof{
-    valis [Sc.vars<<-Sc.vars[Nm->.vrEntry(Lc,MkVr,Tp,Fc)],..Ev]
+    valis [Sc.vars=Sc.vars[Nm->.vrEntry(Lc,MkVr,Tp,Fc)],..Ev]
   }.
 
   public declareContract:(option[locn],string,typeRule,dict) => dict.
   declareContract(Lc,Nm,Con,[Sc,..Rest]) => valof{
     NTps = Sc.types[Nm->.tpDefn(Lc,Nm,contractType(Con),contractTypeRule(Con),[])];
     NCts = Sc.contracts[Nm->Con];
-    valis declareMethods(Lc,Con,[(Sc.types<<-NTps).contracts<<-NCts,..Rest]).
+    valis declareMethods(Lc,Con,[(Sc.types=NTps).contracts=NCts,..Rest]).
   }
 
   declareMethods:(option[locn],typeRule,dict) => dict.
@@ -174,7 +174,7 @@ star.compiler.dict.mgt{
   public mergeDict:(dict,dict,dict) => dict.
   mergeDict(D1,D2,Env) => let{.
     mergeScopes([Sc1,..Rst], [Sc2,.._]) =>
-      [Sc1.vars<<-mergeVDefs(Sc1.vars,Sc2.vars),..Rst].
+      [Sc1.vars=mergeVDefs(Sc1.vars,Sc2.vars),..Rst].
 
     mergeVDefs:(map[string,vrEntry],map[string,vrEntry])=>map[string,vrEntry].
     mergeVDefs(V1,V2) => {Nm->E1|Nm->E1 in V1 && E2?=V2[Nm] && sameDesc(E1,E2)}.

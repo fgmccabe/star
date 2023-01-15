@@ -99,6 +99,10 @@ ssTrm(ocall(_,Op,Args),Dp,sq([OO,ss("°"),lp,AA,rp])) :-!,
   ssTrm(Op,Dp,OO),
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
+ssTrm(voke(_,K,Args),Dp,sq([KK,ss("."),lp,AA,rp])) :-!,
+  ssTrm(K,Dp,KK),
+  Dp1 is Dp+2,
+  showArgs(Args,Dp1,AA).
 ssTrm(ecll(_,Es,Args),Dp,sq([ss("ε"),ss(Es),ss("("),AA,ss(")")])) :-!,
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
@@ -350,6 +354,9 @@ rewriteTerm(QTest,cll(Lc,Op,Args),cll(Lc,NOp,NArgs)) :-
 rewriteTerm(QTest,ocall(Lc,Op,Args),ocall(Lc,NOp,NArgs)) :-
   rewriteTerm(QTest,Op,NOp),
   rewriteTerms(QTest,Args,NArgs).
+rewriteTerm(QTest,voke(Lc,Op,Args),voke(Lc,NOp,NArgs)) :-
+  rewriteTerm(QTest,Op,NOp),
+  rewriteTerms(QTest,Args,NArgs).
 rewriteTerm(QTest,nth(Lc,Op,Off),nth(Lc,NOp,Off)) :-
   rewriteTerm(QTest,Op,NOp).
 rewriteTerm(QTest,cel(Lc,T),cel(Lc,NT)) :-
@@ -551,6 +558,10 @@ inTerm(ocall(_,Op,_),Nm) :-
   inTerm(Op,Nm).
 inTerm(ocall(_,_Op,Args),Nm) :-
   is_member(Arg,Args), inTerm(Arg,Nm),!.
+inTerm(voke(_,Op,_),Nm) :-
+  inTerm(Op,Nm).
+inTerm(voke(_,_Op,Args),Nm) :-
+  is_member(Arg,Args), inTerm(Arg,Nm),!.
 inTerm(ecll(_,_,Args),Nm) :-
   is_member(Arg,Args), inTerm(Arg,Nm),!.
 inTerm(intrinsic(_,_Op,Args),Nm) :-
@@ -716,6 +727,9 @@ validTerm(lbl(_,_),_,_).
 validTerm(cll(Lc,lbl(_,_),Args),_,D) :-
   validTerms(Args,Lc,D).
 validTerm(ocall(Lc,Op,Args),_,D) :-
+  validTerm(Op,Lc,D),
+  validTerms(Args,Lc,D).
+validTerm(voke(Lc,Op,Args),_,D) :-
   validTerm(Op,Lc,D),
   validTerms(Args,Lc,D).
 validTerm(ecll(Lc,Es,Args),_,D) :-

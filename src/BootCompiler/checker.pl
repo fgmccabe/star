@@ -779,7 +779,22 @@ typeOfExp(Term,Tp,ErTp,Env,Env,apply(Lc,Fun,Args,Tp,none),Path) :-
   typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Path).
 typeOfExp(Term,Tp,ErTp,Env,Env,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
-  typeOfRoundTerm(Lc,F,A,Tp,ErTp,Env,Exp,Path).  
+  typeOfRoundTerm(Lc,F,A,Tp,ErTp,Env,Exp,Path).
+typeOfExp(Term,Tp,ErTp,Env,Env,invoke(Lc,KK,Args,Tp),Path) :-
+  isInvoke(Term,Lc,K,A),!,
+  genTpVars(A,Vrs),
+  At = tplType(Vrs),
+  newTypeVar("R",Rt),
+  continuationType(At,Rt,KTp),
+  verifyType(Lc,ast(Term),tplType([KTp,Rt]),Tp,Env),
+  typeOfExp(K,KTp,ErTp,Env,E0,KK,Path),
+  typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Path).
+typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
+  isResume(Term,Lc,T,E),!,
+  checkResume(Lc,T,E,Tp,ErTp,Env,Ev,Exp,Path).
+typeOfExp(Term,Tp,ErTp,Env,Ev,Exp,Path) :-
+  isSuspend(Term,Lc,T,E),!,
+  checkSuspend(Lc,T,E,Tp,ErTp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,_ErTp,Env,Env,Lam,Path) :-
   isEquation(Term,_Lc,_H,_R),
   typeOfLambda(Term,Tp,Env,Lam,Path).
@@ -944,15 +959,6 @@ checkAction(A,Tp,ErTp,Env,Env,doCase(Lc,Bound,Eqns,Tp),Path) :-
   newTypeVar("B",BVr),
   typeOfExp(Bnd,BVr,ErTp,Env,_,Bound,Path),
   checkCases(Cases,BVr,Tp,ErTp,Env,Eqns,Eqx,Eqx,[],checker:checkAction,Path),!.
-checkAction(A,Tp,ErTp,Env,Ev,Susp,Path) :-
-  isSuspend(A,Lc,E,C),!,
-  checkSuspend(Lc,name(Lc,"this"),E,C,Tp,ErTp,Env,Ev,Susp,Path).
-checkAction(A,Tp,ErTp,Env,Ev,Susp,Path) :-
-  isSuspend(A,Lc,T,E,C),!,
-  checkSuspend(Lc,T,E,C,Tp,ErTp,Env,Ev,Susp,Path).
-checkAction(A,Tp,ErTp,Env,Ev,Susp,Path) :-
-  isResume(A,Lc,T,E,C),!,
-  checkResume(Lc,T,E,C,Tp,ErTp,Env,Ev,Susp,Path).
 checkAction(A,_Tp,ErTp,Env,Ev,Susp,Path) :-
   isRetire(A,Lc,E),!,
   checkRetire(Lc,name(Lc,"this"),E,ErTp,Env,Ev,Susp,Path).
@@ -985,8 +991,8 @@ checkGuard(some(G),ErTp,Env,Ev,some(Goal),Path) :-
 checkTryCatch(Lc,B,Hs,Tp,ErTp,Env,tryCatch(Lc,Body,Trw,Hndlr),Path) :-
   newTypeVar("EE",ETp),
   contType(ETp,CTp),
-  declareVr(Lc,"_throw",CTp,none,Env,Ev1),
-  Trw = v(Lc,"_throw",CTp),
+  declareVr(Lc,"_raise",CTp,none,Env,Ev1),
+  Trw = v(Lc,"_raise",CTp),
   typeOfExp(B,Tp,some(ETp),Ev1,_,Body,Path),
   checkCases(Hs,ETp,Tp,ErTp,Env,Hndlr,Eqx,Eqx,[],checker:typeOfExp,Path),!.
 
@@ -994,18 +1000,18 @@ checkTryCatchAction(Lc,B,Hs,Tp,ErTp,Env,doTryCatch(Lc,Body,Trw,Hndlr),Path) :-
   newTypeVar("EE",ETp),
   findType("cont",Lc,Env,ContTp),
   applyTypeFun(ContTp,[ETp],Lc,Env,CTp),
-  declareVr(Lc,"_throw",CTp,none,Env,Ev1),
-  Trw = v(Lc,"_throw",CTp),
+  declareVr(Lc,"_raise",CTp,none,Env,Ev1),
+  Trw = v(Lc,"_raise",CTp),
   checkAction(B,Tp,some(ETp),Ev1,_,Body,Path),
   checkCases(Hs,ETp,Tp,ErTp,Env,Hndlr,Eqx,Eqx,[],checker:checkAction,Path),!.
 
 checkRaise(Lc,X,Env,Thrw,ErrExp,Path) :-
-  (getVar(Lc,"_throw",Env,Thrw,VTp) ->
+  (getVar(Lc,"_raise",Env,Thrw,VTp) ->
    newTypeVar("E",ErTp),
    contType(ErTp,CTp),
    verifyType(Lc,ast(X),VTp,CTp,Env),
    typeOfExp(X,ErTp,none,Env,_,ErrExp,Path);
-   reportError("cannot throw exception %s here",[ast(X)],Lc),
+   reportError("cannot raise exception %s here",[ast(X)],Lc),
    ErrExp=void,
    Thrw=void).
 
@@ -1060,23 +1066,19 @@ checkCase(Lc,H,G,R,LhsTp,Tp,ErTp,Env,
   checkGuard(G,ErTp,E1,E2,Guard,Path),
   call(Checker,R,Tp,ErTp,E2,_,Exp,Path).
 
-checkSuspend(Lc,T,E,Cs,Tp,ErTp,Env,Env,doSuspend(Lc,Tsk,Evt,Eqns),Path) :-
+checkSuspend(Lc,T,E,Tp,ErTp,Env,Env,suspend(Lc,Tsk,Evt,Tp),Path) :-
   findType("fiber",Lc,Env,TskTp),
   newTypeVar("SComm",SV),
-  newTypeVar("RComm",RV),
-  applyTypeFun(TskTp,[RV,SV],Lc,Env,TTp),
+  applyTypeFun(TskTp,[Tp,SV],Lc,Env,TTp),
   typeOfExp(T,TTp,ErTp,Env,_,Tsk,Path),
-  typeOfExp(E,SV,ErTp,Env,_,Evt,Path),
-  checkCases(Cs,RV,Tp,ErTp,Env,Eqns,Eqx,Eqx,[],checker:checkAction,Path),!.
+  typeOfExp(E,SV,ErTp,Env,_,Evt,Path).
 
-checkResume(Lc,T,E,Cs,Tp,ErTp,Env,Env,doResume(Lc,Tsk,Evt,Eqns),Path) :-
+checkResume(Lc,T,E,Tp,ErTp,Env,Env,resume(Lc,Tsk,Evt,Tp),Path) :-
   findType("fiber",Lc,Env,TskTp),
-  newTypeVar("SComm",SV),
   newTypeVar("RComm",RV),
-  applyTypeFun(TskTp,[RV,SV],Lc,Env,TTp),
+  applyTypeFun(TskTp,[RV,Tp],Lc,Env,TTp),
   typeOfExp(T,TTp,ErTp,Env,_,Tsk,Path),
-  typeOfExp(E,RV,ErTp,Env,_,Evt,Path),
-  checkCases(Cs,SV,Tp,ErTp,Env,Eqns,Eqx,Eqx,[],checker:checkAction,Path),!.
+  typeOfExp(E,RV,ErTp,Env,_,Evt,Path).
 
 checkRetire(Lc,T,E,ErTp,Env,Env,doRetire(Lc,Tsk,Evt),Path) :-
   findType("fiber",Lc,Env,TskTp),

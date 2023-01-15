@@ -5,9 +5,9 @@ star.fiber{
 
   public all e ~~ task[e] ~> fiber[resumeProtocol,suspendProtocol[e]].
 
-  public all e ~~ channel[e] ::= .quiescent |
-    .hasData(e) |
-    .waitingFor(exists e ~~ task[e]).
+  public all e ~~ channel[e] ::= .quiescent
+  | .hasData(e)
+  | .waiting(exists e ~~ task[e]).
 
   public all e ~~ suspendProtocol[e] ::= .yield_ |
     .blocked |
@@ -20,20 +20,20 @@ star.fiber{
   post(T,D,Ch) => valof{
     case Ch! in {
       .hasData(_) => {
-	T suspend .blocked in {
+	case T suspend .blocked in {
 	  .go_ahead => valis post(T,D,Ch)
 	}
       }.
       .quiescent => {
 	Ch := .hasData(D);
-	T suspend .yield_ in {
+	case T suspend .yield_ in {
 	  .go_ahead =>
 	    valis ()
 	}
       }.
-      .waitingFor(RR) => {
+      .waiting(RR) => {
 	Ch := .hasData(D);
-	T suspend .wake(RR) in {
+	case T suspend .wake(RR) in {
 	  .go_ahead =>
 	    valis ()
 	}
@@ -46,20 +46,20 @@ star.fiber{
     case Ch! in {
       .hasData(D) => {
 	Ch := .quiescent;
-	T suspend .yield_ in {
+	case T suspend .yield_ in {
 	  .go_ahead =>
 	    valis D
 	}
       }.
       .quiescent => {
-	Ch := .waitingFor(T);
-	T suspend .blocked in {
+	Ch := .waiting(T);
+	case T suspend .blocked in {
 	  .go_ahead =>
 	    valis collect(T,Ch)
 	}
       }.
-      .waitingFor(TT) => {
-	T suspend .blocked in {
+      .waiting(TT) => {
+	case T suspend .blocked in {
 	  .go_ahead =>
 	    valis collect(T,Ch)
 	}

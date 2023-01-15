@@ -164,6 +164,9 @@ overloadTerm(apply(ALc,overaccess(Lc,T,RcTp,Fld,FTp),Args,ATp,ErTp),Dict,St,Stx,
 overloadTerm(apply(Lc,Op,Args,Tp,ErTp),Dict,St,Stx,apply(Lc,ROp,RArgs,Tp,ErTp)) :-
   overloadTerm(Op,Dict,St,St0,ROp),
   overloadTerm(Args,Dict,St0,Stx,RArgs).
+overloadTerm(invoke(Lc,Op,Args,Tp),Dict,St,Stx,invoke(Lc,ROp,RArgs,Tp)) :-
+  overloadTerm(Op,Dict,St,St0,ROp),
+  overloadTerm(Args,Dict,St0,Stx,RArgs).
 overloadTerm(over(Lc,T,Cx),Dict,St,Stx,Over) :-
   ( resolveContracts(Lc,Cx,Dict,St,St0,DTerms) ->
     resolveRef(T,DTerms,[],OverOp,Dict,St0,St1,NArgs),
@@ -184,7 +187,12 @@ overloadTerm(overaccess(Lc,T,RcTp,Fld,FTp),Dict,St,Stx,Over) :-
 overloadTerm(mtd(Lc,Nm,Tp),_,St,Stx,mtd(Lc,Nm,Tp)) :-
   genMsg("cannot find implementation for %s",[Nm],Msg),
   markActive(St,Lc,Msg,Stx).
-
+overloadTerm(suspend(Lc,F,E,Tp),Dict,St,Stx,suspend(Lc,FF,EE,Tp)) :-
+  overloadTerm(F,Dict,St,St0,FF),
+  overloadTerm(E,Dict,St0,Stx,EE).
+overloadTerm(resume(Lc,F,E,Tp),Dict,St,Stx,resume(Lc,FF,EE,Tp)) :-
+  overloadTerm(F,Dict,St,St0,FF),
+  overloadTerm(E,Dict,St0,Stx,EE).
 overloadTerm(lambda(Lc,Lbl,Eqn,Tp),Dict,St,Stx,lambda(Lc,Lbl,OEqn,Tp)) :-
   overloadRule(resolve:overloadTerm,Eqn,Dict,St,Stx,OEqn).
 overloadTerm(valof(Lc,A,Tp),Dict,St,Stx,valof(Lc,AA,Tp)) :-!,
@@ -252,14 +260,6 @@ overloadAction(doLetRec(Lc,Decls,Defs,Bound),Dict,St,Stx,doLetRec(Lc,Decls,RDefs
 overloadAction(case(Lc,G,C,Tp),Dict,St,Stx,case(Lc,GG,CC,Tp)) :-
   overloadTerm(G,Dict,St,St1,GG),
   overloadCases(C,resolve:overloadAction,Dict,St1,Stx,CC).
-overloadAction(doSuspend(Lc,T,E,C),Dict,St,Stx,doSuspend(Lc,TT,EE,CC)) :-
-  overloadTerm(T,Dict,St,St1,TT),
-  overloadTerm(E,Dict,St1,St2,EE),
-  overloadCases(C,resolve:overloadAction,Dict,St2,Stx,CC).
-overloadAction(doResume(Lc,T,E,C),Dict,St,Stx,doResume(Lc,TT,EE,CC)) :-
-  overloadTerm(T,Dict,St,St1,TT),
-  overloadTerm(E,Dict,St1,St2,EE),
-  overloadCases(C,resolve:overloadAction,Dict,St2,Stx,CC).
 overloadAction(doRetire(Lc,T,E),Dict,St,Stx,doRetire(Lc,TT,EE)) :-
   overloadTerm(T,Dict,St,St1,TT),
   overloadTerm(E,Dict,St1,Stx,EE).

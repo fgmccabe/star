@@ -770,28 +770,17 @@ star.compiler.wff{
   public mkTryCatch(Lc,B,Hs) =>
     unary(Lc,"try",binary(Lc,"catch",B,brTuple(Lc,[reBar(Hs)]))).
 
-  public isSuspend(A) where
-      (Lc,T,L) ?= isBinary(A,"suspend") &&
-	  (_,E,R) ?= isBinary(L,"in") &&
-	      (_,Els) ?= isBrTuple(R) =>
-    ([El].=Els ?? .some((Lc,T,E,deBar(El))) || .some((Lc,T,E,Els))).
-  isSuspend(A) where
-      (Lc,L) ?= isUnary(A,"suspend") &&
-      (_,E,R) ?= isBinary(L,"in") &&
-	      (_,Els) ?= isBrTuple(R) =>
-    ([El].=Els ?? .some((Lc,.nme(Lc,"this"),E,deBar(El))) || .some((Lc,.nme(Lc,"this"),E,Els))).
+  public isSuspend(A) where (Lc,T,L) ?= isBinary(A,"suspend") => .some((Lc,T,L)).
+  isSuspend(A) where (Lc,L) ?= isUnary(A,"suspend") => .some((Lc,.nme(Lc,"this"),L)).
   isSuspend(_) default => .none.
 
-  public mkSuspend(Lc,T,E,H) => binary(Lc,"suspend",T,binary(Lc,"in",E,brTuple(Lc,[reBar(H)]))).
-
-  public isResume(A) where
-      (Lc,T,L) ?= isBinary(A,"resume") &&
-      (_,E,R) ?= isBinary(L,"in") &&
-	      (_,Els) ?= isBrTuple(R) =>
-    ([El].=Els ?? .some((Lc,T,E,deBar(El))) || .some((Lc,T,E,Els))).
+  public mkSuspend(Lc,T,E) => binary(Lc,"suspend",T,E).
+  
+  public isResume(A) where (Lc,T,L) ?= isBinary(A,"resume") => .some((Lc,T,L)).
+  isResume(A) where (Lc,L) ?= isUnary(A,"resume") => .some((Lc,.nme(Lc,"this"),L)).
   isResume(_) default => .none.
 
-  public mkResume(Lc,T,E,H) => binary(Lc,"resume",T,binary(Lc,"in",E,brTuple(Lc,[reBar(H)]))).
+  public mkResume(Lc,T,E) => binary(Lc,"resume",T,E).
 
   public isRetire(A) where
       (Lc,T,E) ?= isBinary(A,"retire") => .some((Lc,T,E)).
@@ -899,13 +888,13 @@ star.compiler.wff{
   public mkLabeledRecord(Lc,Lb,Els) => mkBrTerm(Lc,Lb,Els).
 
   public isRecordUpdate:(ast) => option[(option[locn],ast,string,ast)].
-  isRecordUpdate(A) where (Lc,Lhs,Vl) ?= isBinary(A,"<<-") &&
+  isRecordUpdate(A) where (Lc,Lhs,Vl) ?= isBinary(A,"=") &&
       (_,Rc,F) ?= isFieldAcc(Lhs) &&
       (_,Fld) ?= isName(F) => .some((Lc,Rc,Fld,Vl)).
   isRecordUpdate(_) default => .none.
 
   public mkRecordUpdate(Lc,Rc,Fld,Vl) =>
-    binary(Lc,"<<-",mkFieldAcc(Lc,Rc,.nme(Lc,Fld)),Vl).
+    binary(Lc,"=",mkFieldAcc(Lc,Rc,.nme(Lc,Fld)),Vl).
 
   public implementation coercion[locn,ast]=>{
     _coerce(Lc where .locn(Pkg,Line,Col,Off,Ln).=Lc)=>

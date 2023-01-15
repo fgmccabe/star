@@ -350,6 +350,10 @@ star.compiler.dependencies{
     collectTermRefs(R,All,Rf).
   collectTermRefs(T,All,Rf) where (_,Op,Args) ?= isInvoke(T) =>
     collectTermListRefs(Args,All,collectTermRefs(Op,All,Rf)).
+  collectTermRefs(A,All,Rf) where (_,F,E) ?= isResume(A) =>
+    collectTermRefs(F,All,collectTermRefs(E,All,Rf)).
+  collectTermRefs(A,All,Rf) where (_,F,E) ?= isSuspend(A) =>
+    collectTermRefs(F,All,collectTermRefs(E,All,Rf)).
   collectTermRefs(A,All,Rf) where (_,L,H) ?= isTryCatch(A) => 
     collectCasesRefs(H,collectTermRefs,All,collectTermRefs(L,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,L,R) ?= isComprehension(T) =>
@@ -419,12 +423,6 @@ star.compiler.dependencies{
   }
   collectDoRefs(A,All,Rf) where (_,[S]) ?= isBrTuple(A) =>
     collectDoRefs(S,All,Rf).
-  collectDoRefs(A,All,Rf) where (_,T,E,H) ?= isSuspend(A) => 
-    collectCasesRefs(H,collectDoRefs,All,
-      collectTermRefs(E,All,collectTermRefs(T,All,Rf))).
-  collectDoRefs(A,All,Rf) where (_,T,E,H) ?= isResume(A) => 
-    collectCasesRefs(H,collectDoRefs,All,
-      collectTermRefs(E,All,collectTermRefs(T,All,Rf))).
   collectDoRefs(A,All,Rf) where (_,T,E) ?= isRetire(A) => 
     collectTermRefs(E,All,collectTermRefs(T,All,Rf)).
   collectDoRefs(A,All,Rf) => collectTermRefs(A,All,Rf).

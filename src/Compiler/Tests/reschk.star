@@ -50,18 +50,20 @@ star.core{
   addSpec:(pkgSpec,strRepo) => strRepo.
   addSpec(Spec,R) where pkgSpec(Pkg,_,_,_,_) .= Spec => addSigToRep(R,Pkg,(Spec::term)::string).
 
-  A0 = getAst(parseText(lc,S0,R0)).
+  main:()=>().
+  main() => valof{
+    A0 = getAst(parseText(lc,S0,R0));
 
-  SR1 = valof do{
-    RP0 = strRepo([]);
-    (Sp,_,_) <- checkPkg(RP0,A0,stdDict,R0);
-  logMsg("spec = $(Sp::term)");
-    valis addSpec(Sp,RP0)
-  }
+    SR1 = valof{
+      RP0 = strRep([]);
+      (Sp,_,_) = checkPkg(RP0,A0,stdDict,R0);
+      logMsg("spec = $(Sp::term)");
+      valis addSpec(Sp,RP0)
+    }
 
-  show disp(SR1).
+    show disp(SR1);
 
-  S1 = """
+    S1 = """
 test{
   import star.core.
 
@@ -83,11 +85,12 @@ test{
   conc([],T) => T.
   conc([E,..Es],T) => [E,..conc(Es,T)].
 }
-  """.
+    """;
 
-  A1 = getAst(parseText(lc,S1,R0)).
+    A1 = getAst(parseText(lc,S1,R0));
 
-  P1 = checkPkg(SR1,A1,stdDict,R0).
+    P1 = checkPkg(SR1,A1,stdDict,R0);
 
-  show disp(P1).
+    show disp(P1)
+  }
 }

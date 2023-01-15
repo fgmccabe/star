@@ -55,6 +55,10 @@ star.compiler.freevars{
     .rais(_,T,E,_) => freeVarsInExp(T,Excl,Q,freeVarsInExp(E,Excl,Q,Fv)).
     .invoke(_,O,A,_) =>
       freeVarsInTuple(A,Excl,Q,freeVarsInExp(O,Excl,Q,Fv)).
+    .suspnd(_,F,E,_) =>
+      freeVarsInExp(F,Excl,Q,freeVarsInExp(E,Excl,Q,Fv)).
+    .resme(_,F,E,_) =>
+      freeVarsInExp(F,Excl,Q,freeVarsInExp(E,Excl,Q,Fv)).
     .lambda(_,_,Eqns,_) =>
       foldRight((Rl,F)=>freeVarsInRule(Rl,freeVarsInExp,Excl,Q,F),Fv,Eqns).
     .letExp(_,D,_,E) => let{
@@ -106,14 +110,6 @@ star.compiler.freevars{
       XX = exclDfs(Dfs,Excl,Fv);
       valis freeVarsInAct(A,XX,Q,freeVarsInDefs(Dfs,Excl,Q,Fv))
     }.
-    .doSuspend(_,Fb,E,_,H) => 
-      foldLeft((Rl,F)=>freeVarsInRule(Rl,freeVarsInAct,Excl,Q,F),
-	freeVarsInExp(Fb,Excl,Q,
-	  freeVarsInExp(E,Excl,Q,Fv)),H).
-    .doResume(_,Fb,E,_,H) => 
-      foldLeft((Rl,F)=>freeVarsInRule(Rl,freeVarsInAct,Excl,Q,F),
-	freeVarsInExp(Fb,Excl,Q,
-	  freeVarsInExp(E,Excl,Q,Fv)),H).
     .doRetire(_,F,E) => 
       freeVarsInExp(F,Excl,Q,
 	freeVarsInExp(E,Excl,Q,Fv)).

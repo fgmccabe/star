@@ -771,6 +771,21 @@ star.compiler.checker{
     Args = typeOfExps(As,Vrs,[],Env,Path);      
     valis .invoke(Lc,KK,Args,Tp)
   }
+  typeOfExp(A,Tp,Env,Path) where (Lc,T,E) ?= isSuspend(A) => valof{
+    ETp = newTypeVar("_r");
+    TT = typeOfExp(T,fiberType(Tp,ETp),Env,Path);
+    EE = typeOfExp(E,ETp,Env,Path);
+
+    valis .suspnd(Lc,TT,EE,Tp)
+  }
+  typeOfExp(A,Tp,Env,Path) where (Lc,T,E) ?= isResume(A) => valof{
+    RTp = newTypeVar("_r");
+    TT = typeOfExp(T,fiberType(RTp,Tp),Env,Path);
+    EE = typeOfExp(E,RTp,Env,Path);
+
+    valis .resme(Lc,TT,EE,Tp)
+  }
+  
   typeOfExp(A,Tp,_,_) => valof{
     reportError("cannot type check expression $(A)",locOf(A));
     valis .anon(locOf(A),Tp)
@@ -911,32 +926,6 @@ star.compiler.checker{
 	valis Act
       },[],.none);
     valis (.doCase(Lc,Gv,Rules),Env)
-  }
-  checkAction(A,Tp,Env,Path) where (Lc,T,E,Cases) ?= isSuspend(A) => valof{
-    STp = newTypeVar("_s");
-    RTp = newTypeVar("_r");
-    TT = typeOfExp(T,fiberType(RTp,STp),Env,Path);
-    EE = typeOfExp(E,STp,Env,Path);
-    
-    Rules = checkRules(Cases,RTp,Tp,Env,Path,
-      (Ac,_,Ev,Path) => valof{
-	(Act,_) = checkAction(Ac,Tp,Ev,Path);
-	valis Act
-      },[],.none);
-    valis (.doSuspend(Lc,TT,EE,RTp,Rules),Env)
-  }
-  checkAction(A,Tp,Env,Path) where (Lc,T,E,Cases) ?= isResume(A) => valof{
-    STp = newTypeVar("_s");
-    RTp = newTypeVar("_r");
-    TT = typeOfExp(T,fiberType(RTp,STp),Env,Path);
-    EE = typeOfExp(E,RTp,Env,Path);
-
-    Rules = checkRules(Cases,STp,Tp,Env,Path,
-      (Ac,_,Ev,Path) => valof{
-	(Act,_) = checkAction(Ac,Tp,Ev,Path);
-	valis Act
-      },[],.none);
-    valis (.doResume(Lc,TT,EE,STp,Rules),Env)
   }
   checkAction(A,Tp,Env,Path) where (Lc,T,E) ?= isRetire(A) => valof{
     STp = newTypeVar("_s");

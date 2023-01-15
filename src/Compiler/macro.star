@@ -131,10 +131,6 @@ star.compiler.macro{
     mkValis(Lc,macroTerm(T)).
   examineAction(A) where (Lc,T) ?= isRaise(A) =>
     mkRaise(Lc,macroTerm(T)).
-  examineAction(A) where (Lc,T,E,Hs) ?= isSuspend(A) => 
-    mkSuspend(Lc,macroTerm(T),macroTerm(E),Hs//macroCaseAction).
-  examineAction(A) where (Lc,T,E,Hs) ?= isResume(A) => 
-    mkResume(Lc,macroTerm(T),macroTerm(E),Hs//macroCaseAction).
   examineAction(A) where (Lc,T,E) ?= isRetire(A) => 
     mkRetire(Lc,macroTerm(T),macroTerm(E)).
   examineAction(A) where (Lc,D,B) ?= isLetDef(A) => 
@@ -232,6 +228,10 @@ star.compiler.macro{
     mkRaise(Lc,macroTerm(T)).
   examineTerm(A) where (Lc,O,Els) ?= isInvoke(A) => 
     mkInvoke(Lc,macroTerm(O),Els//macroTerm).
+  examineTerm(A) where (Lc,F,E) ?= isSuspend(A) =>
+    mkSuspend(Lc,macroTerm(F),macroTerm(E)).
+  examineTerm(A) where (Lc,F,E) ?= isResume(A) =>
+    mkResume(Lc,macroTerm(F),macroTerm(E)).
   examineTerm(A) where (Lc,S) ?= isFiberTerm(A) => 
     mkFiberTerm(Lc,macroAction(S)).
   examineTerm(A) where (Lc,Lb,S) ?= isLabeledTheta(A) => 

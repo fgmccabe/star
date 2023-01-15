@@ -173,6 +173,10 @@ examineType(T,Tx) :- isFuncType(T,Lc,L,R),!,
   macroType(L,Lx),
   macroType(R,Rx),
   funcType(Lc,Lx,Rx,Tx).
+examineType(T,Tx) :- isContinType(T,Lc,L,R),!,
+  macroType(L,Lx),
+  macroType(R,Rx),
+  mkContinType(Lc,Lx,Rx,Tx).
 examineType(T,Tx) :- isRoundTuple(T,Lc,Els),!,
   map(Els,macros:macroType,Elx),
   roundTuple(Lc,Elx,Tx).
@@ -196,10 +200,10 @@ examineType(T,Tx) :-
   macroType(Tp,TTp),
   mkDynamic(Lc,Nm,TTp,Tx).
 examineType(T,Tx) :-
-  isThrows(T,Lc,V,E),
+  isRaises(T,Lc,V,E),
   macroType(V,Vx),
   macroType(E,Ex),
-  mkThrows(Lc,Vx,Ex,Tx).
+  mkRaises(Lc,Vx,Ex,Tx).
 examineType(T,T) :-
   isBinary(T,_,"/",_,_),!.
 examineType(T,Tx) :-
@@ -441,13 +445,24 @@ examineTerm(A,Ax) :-
   map(C,macros:macroLambda,Cs),
   mkTryCatch(Lc,Bx,Cs,Ax).
 examineTerm(A,Ax) :-
-  isThrow(A,Lc,V),!,
-  macroTerm(V,Vx),
-  mkThrow(Lc,Vx,Ax).
-examineTerm(A,Ax) :-
   isRaise(A,Lc,V),!,
   macroTerm(V,Vx),
   mkRaise(Lc,Vx,Ax).
+examineTerm(T,Tx) :-
+  isInvoke(T,Lc,O,Args),!,
+  map(Args,macros:macroTerm,Argx),
+  macroTerm(O,Ox),
+  mkInvoke(Lc,Ox,Argx,Tx).
+examineTerm(T,Tx) :-
+  isResume(T,Lc,F,E),!,
+  macroTerm(F,Fx),
+  macroTerm(E,Ex),
+  mkResume(Lc,Fx,Ex,Tx).
+examineTerm(T,Tx) :-
+  isSuspend(T,Lc,F,E),!,
+  macroTerm(F,Fx),
+  macroTerm(E,Ex),
+  mkSuspend(Lc,Fx,Ex,Tx).
 examineTerm(T,T) :-
   locOfAst(T,Lc),
   reportError("cannot figure out expression %s",[ast(T)],Lc).
@@ -642,10 +657,6 @@ examineAction(A,Ax) :-
   macroTerm(V,Vx),
   mkValis(Lc,Vx,Ax).
 examineAction(A,Ax) :-
-  isThrow(A,Lc,V),!,
-  macroTerm(V,Vx),
-  mkThrow(Lc,Vx,Ax).
-examineAction(A,Ax) :-
   isRaise(A,Lc,V),!,
   macroTerm(V,Vx),
   mkRaise(Lc,Vx,Ax).
@@ -659,23 +670,6 @@ examineAction(A,Ax) :-
   map(D,macros:macroStmt,Dx),
   macroAction(B,Bx),
   mkLetRec(Lc,Dx,Bx,Ax).
-examineAction(T,Tx) :-
-  isSuspend(T,Lc,E,C),!,
-  macroTerm(E,Ex),
-  map(C,macros:examineActionCase,Cx),
-  mkSuspend(Lc,Ex,Cx,Tx).
-examineAction(T,Tx) :-
-  isSuspend(T,Lc,Ts,E,C),!,
-  macroTerm(Ts,Tsx),
-  macroTerm(E,Ex),
-  map(C,macros:examineActionCase,Cx),
-  mkSuspend(Lc,Tsx,Ex,Cx,Tx).
-examineAction(T,Tx) :-
-  isResume(T,Lc,Ts,E,C),!,
-  macroTerm(Ts,Tsx),
-  macroTerm(E,Ex),
-  map(C,macros:examineActionCase,Cx),
-  mkResume(Lc,Tsx,Ex,Cx,Tx).
 examineAction(A,Ax) :-
   isRetire(A,Lc,V),!,
   macroTerm(V,Vx),

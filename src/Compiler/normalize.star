@@ -357,6 +357,16 @@ star.compiler.normalize{
     (LE,Ex2) = liftExp(E,Map,Q,Ex1);
     valis (.cRaise(Lc,LT,LE,Tp),Ex1)
   }
+  liftExp(.suspnd(Lc,F,E,Tp),Map,Q,Ex) => valof{
+    (FF,Ex1) = liftExp(F,Map,Q,Ex);
+    (EE,Ex2) = liftExp(E,Map,Q,Ex1);
+    valis (.cSusp(Lc,FF,EE,Tp),Ex2)
+  }
+  liftExp(.resme(Lc,F,E,Tp),Map,Q,Ex) => valof{
+    (FF,Ex1) = liftExp(F,Map,Q,Ex);
+    (EE,Ex2) = liftExp(E,Map,Q,Ex1);
+    valis (.cResume(Lc,FF,EE,Tp),Ex2)
+  }
   liftExp(.vlof(Lc,A,Tp),Map,Q,Ex) => valof{
     (Acts,Ex1) = liftAction(A,Map,Q,Ex);
     valis (.cValof(Lc,Acts,Tp),Ex1)
@@ -715,22 +725,6 @@ star.compiler.normalize{
   liftAction(.doLetRec(Lc,Grp,Dcs,Bnd),Map,Q,Ex) => valof{
     Free = findFree(.doLetRec(Lc,Grp,Dcs,Bnd),Q);
     valis liftLetRec(Lc,Grp,Dcs,Bnd,Map,Q,Free,Ex)
-  }
-  liftAction(.doSuspend(Lc,T,E,RTp,H),Map,Q,Ex) => valof{
-    (TT,Ex1) = liftExp(T,Map,Q,Ex);
-    (EE,Ex2) = liftExp(E,Map,Q,Ex1);
-    Vr = genVar("E",RTp);
-    (Hs,Ex3) = transformRules(H,Map,Q,.none,Ex2);
-    Hndlr = caseMatcher(Lc,Map,.cVar(Lc,Vr),.aAbort(Lc,"no matches"),Hs);
-    valis (.aLtt(Lc,Vr,.cSusp(Lc,TT,EE,RTp),Hndlr),Ex3)
-  }
-  liftAction(.doResume(Lc,T,E,Stp,H),Map,Q,Ex) => valof{
-    (TT,Ex1) = liftExp(T,Map,Q,Ex);
-    (EE,Ex2) = liftExp(E,Map,Q,Ex1);
-    Vr = genVar("E",Stp);
-    (Hs,Ex3) = transformRules(H,Map,Q,.none,Ex2);
-    Hndlr = caseMatcher(Lc,Map,.cVar(Lc,Vr),.aAbort(Lc,"no matches"),Hs);
-    valis (.aLtt(Lc,Vr,.cResume(Lc,TT,EE,Stp),Hndlr),Ex3)
   }
   liftAction(.doRetire(Lc,T,E),Map,Q,Ex) => valof{
     (TT,Ex1) = liftExp(T,Map,Q,Ex);
