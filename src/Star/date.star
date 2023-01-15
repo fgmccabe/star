@@ -75,11 +75,24 @@ star.date{
 	tz = Tz}) => _fmttime(_date2time(Yr,Mn,Dy,Hr,Min,Sec,Tz),"%a %e/%b/%Y %X")
   }
 
-  public implementation display[time] => {
-    disp(.time(Tm)) => 
-      _fmttime(Tm,"%a %e/%b/%Y %X")
+  public implementation format[date] => {
+    frmt(date{year = Yr.
+	month = Mn.
+	day = Dy.
+	dow = Dw.
+	hour = Hr.
+	min = Min.
+	sec = Sec.
+	tz = Tz},F) => _fmttime(_date2time(Yr,Mn,Dy,Hr,Min,Sec,Tz),F)
   }
-  
+
+  public implementation display[time] => {
+    disp(.time(Tm)) => _fmttime(Tm,"%a %e/%b/%Y %X")
+  }
+
+  public implementation format[time] => {
+    frmt(.time(Tm),F) => _fmttime(Tm,F)
+  }
 }
   
     
