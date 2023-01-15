@@ -54,17 +54,17 @@
   operator("<-", [infixOp(904, 905, 904)]).
   operator(".>>>.", [infixOp(600, 600, 599)]).
   operator("\\+", [infixOp(700, 700, 699)]).
-  operator("<<-", [infixOp(974, 975, 974)]).
   operator("*", [postfixOp(699, 700), infixOp(700, 700, 699)]).
   operator("\\-", [infixOp(700, 700, 699)]).
   operator("+", [postfixOp(699, 700), infixOp(720, 720, 719)]).
   operator(".>>.", [infixOp(600, 600, 599)]).
-  operator("resume", [prefixOp(901, 900), infixOp(900, 901, 900)]).
+  operator("resume", [prefixOp(890, 899), infixOp(889, 890, 889)]).
   operator("*>", [infixOp(904, 905, 904)]).
   operator(",", [infixOp(999, 1000, 1000)]).
   operator("contract", [prefixOp(1560, 1559)]).
   operator("\\/", [infixOp(720, 720, 719)]).
   operator("-", [prefixOp(300, 299), infixOp(720, 720, 719)]).
+  operator("raises", [infixOp(999, 1000, 999)]).
   operator(".", [prefixOp(10, 9), infixOp(100, 100, 99)]).
   operator("/", [infixOp(700, 700, 699)]).
   operator("<*>", [infixOp(949, 950, 950)]).
@@ -87,7 +87,7 @@
   operator("|=", [infixOp(1224, 1225, 1224)]).
   operator("in", [infixOp(899, 900, 900)]).
   operator("break", [prefixOp(10, 9)]).
-  operator("suspend", [prefixOp(901, 900), infixOp(900, 901, 900)]).
+  operator("suspend", [prefixOp(890, 899), infixOp(889, 890, 889)]).
   operator("open", [prefixOp(900, 899)]).
   operator("trace", [prefixOp(140, 139)]).
   operator("~~", [infixOp(1239, 1240, 1240)]).
@@ -126,6 +126,7 @@
   operator("type", [prefixOp(1251, 1250)]).
   operator("|", [infixOp(1548, 1548, 1547)]).
   operator(".#.", [infixOp(600, 600, 599)]).
+  operator("handle", [infixOp(1198, 1199, 1198)]).
   operator("~", [prefixOp(905, 904)]).
   operator("^//", [infixOp(800, 800, 799)]).
   operator("||", [infixOp(919, 920, 920)]).
@@ -133,7 +134,6 @@
   operator("::=", [infixOp(1549, 1550, 1549)]).
   operator("/\\", [infixOp(700, 700, 699)]).
   operator(">=", [infixOp(899, 900, 899)]).
-  operator("throws", [infixOp(999, 1000, 999)]).
   operator(">>", [infixOp(949, 950, 950)]).
 
   bracket("[||]", "[|", "|]", "", 2000).
@@ -237,11 +237,9 @@
   follows('<','~','<~').
   follows('<','$','<$').
   follows('<','-','<-').
-  follows('<','<','<<').
   follows('<','|','<|').
   follows('<','=','<=').
   follows('<*','>','<*>').
-  follows('<<','-','<<-').
   follows('<=','>','<=>').
   follows('=','<','=<').
   follows('=','=','==').
@@ -320,14 +318,13 @@
   final(':?',":?").	 /* fallable type coercion */
   final('::',"::").	 /* type coercion */
   final('::=',"::=").	 /* algebraic type definition */
-  final(':=',":=").	 /* reassignable variable definition */
+  final(':=',":=").	 /* assignment */
   final(';',";").	 /* sequencing operator */
   final('<',"<").	 /* less than */
   final('<*>',"<*>").	 /* applicative splat */
   final('<~',"<~").	 /* type interface rule */
   final('<$',"<$").	 /* constant replace */
   final('<-',"<-").	 /* variable bind */
-  final('<<-',"<<-").	 /* record replacement */
   final('<|',"<|").	 /* meta quote */
   final('<=>',"<=>").	 /* constructor arrow */
   final('=',"=").	 /* definition */
@@ -378,11 +375,11 @@
   keyword("<-").
   keyword("(").
   keyword(")").
-  keyword("<<-").
   keyword("resume").
   keyword("*>").
   keyword(",").
   keyword("contract").
+  keyword("raises").
   keyword(".").
   keyword("try").
   keyword("exists").
@@ -429,11 +426,11 @@
   keyword(".}").
   keyword("|").
   keyword("}").
+  keyword("handle").
   keyword("~").
   keyword("||").
   keyword("else").
   keyword("::=").
-  keyword("throws").
   keyword("{!").
 
   isKeyword(X):- keyword(X), !.
