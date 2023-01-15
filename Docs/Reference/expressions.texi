@@ -585,7 +585,7 @@ respectively.
 @subsection Updating Fields of a Record
 @cindex record update
 @findex . operator
-@findex <<- operator
+@findex = operator
 
 A record cannot be updated in the normal sense -- unless one or more
 of the fields of teh record is marked as being a reference
@@ -596,13 +596,13 @@ values.
 @float BNF,recordUpdateFig
 @caption{Record Update}
 @display
-@anchored{RecordUpdate}::=@refer{Expression} @code{.} @refer{Identifier} @code{<<-} @refer{Expression}
+@anchored{RecordUpdate}::=@refer{Expression} @code{.} @refer{Identifier} @code{=} @refer{Expression}
 @end display
 @end float
 
 An expression of the form 
 @example
-A.F<<-B
+A.F=B
 @end example
 
 where @code{F} is the name of an attribute of the record @code{A}
@@ -621,7 +621,7 @@ and a @code{person} value bound to @code{P}:
 P = someone@{ name="fred". age=32 @}
 @end example
 
-then the expression @code{P.name<<-"peter"} has value
+then the expression @code{P.name="peter"} has value
 @example
 someone@{ name="peter". age=32 @}
 @end example

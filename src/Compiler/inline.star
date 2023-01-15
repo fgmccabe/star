@@ -24,9 +24,9 @@ star.compiler.inline{
 
   simplifyDefn:(cDefn,map[termLbl,cDefn])=>cDefn.
   simplifyDefn(.fnDef(Lc,Nm,Tp,Args,Val),Map) => 
-    .fnDef(Lc,Nm,Tp,Args,simplifyExp(Val,Map[~.tLbl(Nm,[|Args|])],10)).
+    .fnDef(Lc,Nm,Tp,Args,simplifyExp(Val,Map[~.tLbl(Nm,[|Args|])],4)).
   simplifyDefn(.vrDef(Lc,Nm,Tp,Val),Map) => 
-    .vrDef(Lc,Nm,Tp,simplifyExp(Val,Map,10)).
+    .vrDef(Lc,Nm,Tp,simplifyExp(Val,Map,4)).
   simplifyDefn(D,_) default => D.
 
   -- There are three possibilities of a match ...
@@ -92,8 +92,6 @@ star.compiler.inline{
     inlineTplOff(Lc,simExp(T,Map,Depth),Ix,Tp).
   simExp(.cSetNth(Lc,T,Ix,Vl),Map,Depth) =>
     applyTplUpdate(Lc,simExp(T,Map,Depth),Ix,simExp(Vl,Map,Depth)).
-  simExp(.cThunk(Lc,T,Tp),Map,Depth) =>
-    .cThunk(Lc,simExp(T,Map,Depth),Tp).
   simExp(.cSeq(Lc,L,R),Map,Depth) =>
     .cSeq(Lc,simExp(L,Map,Depth),simExp(R,Map,Depth)).
   simExp(.cCnj(Lc,L,R),Map,Depth) =>
@@ -304,80 +302,10 @@ star.compiler.inline{
     .cTerm(Lc,(A < B??"star.core#true"||"star.core#false"),[],boolType).
   rewriteECall(Lc,"_int_ge",[.cInt(_,A),.cInt(_,B)],_) =>
     .cTerm(Lc,(A >= B??"star.core#true"||"star.core#false"),[],boolType).
-  rewriteECall(Lc,"_str_multicatε",[As],_) where isGround(As) =>
+  rewriteECall(Lc,"_str_multicat",[As],_) where isGround(As) =>
     .cString(Lc,pullStrings(As)*).
   rewriteECall(Lc,Op,Args,Tp) default => .cECall(Lc,Op,Args,Tp).
 
   pullStrings(.cTerm(_,"star.core#nil",[],_)) => [].
   pullStrings(.cTerm(_,"star.core#cons",[.cString(_,S),Tl],_)) => [S,..pullStrings(Tl)].
-  
-  countOccs:(cExp,cId,integer) => integer.
-  countOccs(T,Id,Cnt) => case T in {
-    .cVoid(_,_) => Cnt.
-    .cAbort(_,_,_) => Cnt.
-    .cAnon(_,_) => Cnt.
-    .cVar(_,Vr) => (Id==Vr??Cnt+1||Cnt).
-    .cInt(_,_) => Cnt.
-    .cChar(_,_) => Cnt.
-    .cBig(_,_) => Cnt.
-    .cFloat(_,_) => Cnt.
-    .cString(_,_) => Cnt.
-    .cTerm(_,_,Els,_) => countEls(Els,Id,Cnt).
-    .cNth(_,E,_,_) => countOccs(E,Id,Cnt).
-    .cSetNth(_,E,_,V) => countOccs(V,Id,countOccs(E,Id,Cnt)).
-    .cThunk(_,E,_) => countOccs(E,Id,Cnt).
-    .cCall(_,_,Els,_) => countEls(Els,Id,Cnt).
-    .cECall(_,_,Els,_) => countEls(Els,Id,Cnt).
-    .cOCall(_,Op,Els,_) => countEls(Els,Id,countOccs(Op,Id,Cnt)).
-    .cRaise(_,T,E,_) => countOccs(T,Id,countOccs(E,Id,Cnt)).
-    .cSeq(_,L,R) => countOccs(R,Id,countOccs(L,Id,Cnt)).
-    .cCnj(_,L,R) => countOccs(R,Id,countOccs(L,Id,Cnt)).
-    .cDsj(_,L,R) => countOccs(R,Id,countOccs(L,Id,Cnt)).
-    .cNeg(_,R) => countOccs(R,Id,Cnt).
-    .cCnd(_,T,L,R) => countOccs(T,Id,countOccs(R,Id,countOccs(L,Id,Cnt))).
-    .cLtt(_,V,L,R) => (V==Id ?? Cnt || countOccs(L,Id,countOccs(R,Id,Cnt))).
-    .cCont(_,V,L,R) => (V==Id ?? Cnt || countOccs(L,Id,countOccs(R,Id,Cnt))).
-    .cUnpack(_,G,Cs,_) => countCases(Cs,Id,countOccs(G,Id,Cnt),countOccs).
-    .cCase(_,G,Cs,D,_) =>
-      countCases(Cs,Id,countOccs(G,Id,countOccs(D,Id,Cnt)),countOccs).
-    .cMatch(_,L,R) => countOccs(R,Id,countOccs(L,Id,Cnt)).
-    .cVarNmes(_,_,R) => countOccs(R,Id,Cnt).
-    .cSusp(_,L,R,_) => countOccs(R,Id,countOccs(L,Id,Cnt)).
-    .cResume(_,L,R,_) => countOccs(R,Id,countOccs(L,Id,Cnt)).
-    .cTry(_,L,T,E,R,_) => countOccs(T,Id,countOccs(E,Id,countOccs(R,Id,countOccs(L,Id,Cnt)))).
-    .cValof(_,A,_) => countAOccs(A,Id,Cnt).
-  }
-
-  countAOccs(A,Id,Cnt) => case A in {
-    .aNop(_) => Cnt.
-    .aAbort(_,_) => Cnt.
-    .aSeq(_,L,R) => countAOccs(R,Id,countAOccs(L,Id,Cnt)).
-    .aLbld(_,_,A) => countAOccs(A,Id,Cnt).
-    .aBreak(_,_) => Cnt.
-    .aValis(_,E) => countOccs(E,Id,Cnt).
-    .aRaise(_,T,E) => countOccs(T,Id,countOccs(E,Id,Cnt)).
-    .aPerf(_,E) => countOccs(E,Id,Cnt).
-    .aDefn(_,L,_) where countOccs(L,Id,0)>0 => Cnt.
-    .aDefn(_,_,R) => countOccs(R,Id,Cnt).
-    .aAsgn(_,L,R) => countOccs(R,Id,countOccs(L,Id,Cnt)).
-    .aCase(_,L,Cs,D) =>
-      countCases(Cs,Id,countAOccs(D,Id,countOccs(L,Id,Cnt)),countAOccs).
-    .aUnpack(_,L,Cs) =>
-      countCases(Cs,Id,countOccs(L,Id,Cnt),countAOccs).
-    .aIftte(_,T,L,R) =>
-      countAOccs(R,Id,countAOccs(L,Id,countOccs(T,Id,Cnt))).
-    .aWhile(_,T,L) => countAOccs(L,Id,countOccs(T,Id,Cnt)).
-    .aRetire(_,L,R) => countOccs(R,Id,countOccs(L,Id,Cnt)).
-    .aTry(_,L,T,E,R) => countOccs(E,Id,countOccs(T,Id,countAOccs(R,Id,countAOccs(L,Id,Cnt)))).
-    .aLtt(_,V,L,R) => (V==Id ?? Cnt || countOccs(L,Id,countAOccs(R,Id,Cnt))).
-    .aCont(_,V,L,R) => (V==Id ?? Cnt || countOccs(L,Id,countAOccs(R,Id,Cnt))).
-    .aVarNmes(_,_,R) => countAOccs(R,Id,Cnt).
-  }
-
-  countEls([],_,Cnt) => Cnt.
-  countEls([E,..Es],Id,Cnt) => countEls(Es,Id,countOccs(E,Id,Cnt)).
-
-  countCases:all e ~~ (cons[cCase[e]],cId,integer,(e,cId,integer)=>integer)=>integer.
-  countCases([],_,Cnt,_) => Cnt.
-  countCases([(_,P,A),..As],Id,Cnt,F) => countCases(As,Id,countOccs(P,Id,F(A,Id,Cnt)),F).
 }

@@ -42,14 +42,8 @@ test.gp{
   gpF(GC) => fGps(fPs(parent,GC,[]),[]).
 
 
-  -- Translated from the query rule:
-  -- gp(X,Y) <- parent(X,Z) && parent(Z,Y).
-
   qP1:()=>set[(string,string)].
   qP1() => { (X,Y) | (X,Z) in parent && (Z,Y) in parent }.
-
-  -- As though translated from the query rule:
-  -- gc(X) given (Y) <- parent(X,Z) && parent(Z,Y).
 
   qC2:(string) => cons[string].
   qC2(Y) => { X | (X,Z) in parent && (Z,Y) in parent }.

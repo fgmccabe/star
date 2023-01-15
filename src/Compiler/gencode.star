@@ -201,7 +201,7 @@ star.compiler.gencode{
     .aNop(Lc) => ACont.C(Ctx,Stk,[])
     | .aSeq(Lc,L,R) => compAction(L,.notLast,resetCont(Stk,actionCont(R,TM,ACont,Cont)),Cont,Ctx,Stk)
     | .aLbld(Lc,Lb,LbldA) => valof{
-      Ctxl = (Ctx.brks<<-Ctx.brks[Lb->ctxCont(Ctx,resetCont(Stk,ACont))]);
+      Ctxl = (Ctx.brks=Ctx.brks[Lb->ctxCont(Ctx,resetCont(Stk,ACont))]);
       valis compAction(LbldA,TM,ACont,Cont,Ctxl,Stk)
     }
     | .aBreak(Lc,Lb) => valof{
@@ -344,8 +344,10 @@ star.compiler.gencode{
   compCnsCase(Lc,Gv,Cs,Comp,Cont,Ctx,Stk) => case Cs in {
     [(_,Ptn,Exp)] => compExp(Gv,.notLast, ptnCont(Ptn,Comp(Exp,Cont),
 	abortCont(Lc,"match error")),Ctx,Stk)
-    | Cases default =>
-      compExp(Gv,.notLast,cnsCaseCont(Cases,Comp,splitCont(Lc,Ctx,Cont)),Ctx,Stk)
+    | Cases default => valof{
+      CC = splitCont(Lc,Ctx,Cont);
+      valis compExp(Gv,.notLast,cnsCaseCont(Cases,Comp,CC),Ctx,Stk)
+    }
   }
 
   cnsCaseCont:all e ~~ display[e] |: (cons[cCase[e]],(e,Cont)=>Cont,Cont) => Cont.
@@ -804,7 +806,7 @@ star.compiler.gencode{
     Off = hwm!+1;
     hwm := Off;
 
-    valis (Off,Ctx.vars<<-Ctx.vars[Nm->.lclVar(Off,Tp)])
+    valis (Off,Ctx.vars=Ctx.vars[Nm->.lclVar(Off,Tp)])
   }
 
   ensureLclVar:(string,ltipe,codeCtx) => codeCtx.
@@ -881,7 +883,7 @@ star.compiler.gencode{
   defineExitLbl:(string,codeCtx) => (assemLbl,codeCtx).
   defineExitLbl(Pr,C) => valof{
     Lb = defineLbl(Pr,C);
-    valis (Lb,C.escape<<-Lb)
+    valis (Lb,C.escape=Lb)
   }
 
   pushStack:(ltipe,stack) => stack.

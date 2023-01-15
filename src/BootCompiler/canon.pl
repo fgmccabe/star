@@ -36,6 +36,9 @@ isCanon(floatLit(_,_)).
 isCanon(charLit(_,_)).
 isCanon(stringLit(_,_)).
 isCanon(apply(_,_,_,_,_)).
+isCanon(invoke(_,_,_,_)).
+isCanon(resume(_,_,_,_)).
+isCanon(suspend(_,_,_,_)).
 isCanon(dot(_,_,_,_)).
 isCanon(update(_,_,_,_)).
 isCanon(enm(_,_,_)).
@@ -97,6 +100,9 @@ typeOfCanon(cond(_,_,_,_,Tp),Tp) :-!.
 typeOfCanon(letExp(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(letRec(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(apply(_,_,_,Tp,_),Tp) :-!.
+typeOfCanon(invoke(_,_,_,Tp),Tp) :-!.
+typeOfCanon(resume(_,_,_,Tp),Tp) :-!.
+typeOfCanon(suspend(_,_,_,Tp),Tp) :-!.
 typeOfCanon(tple(_,Els),tplType(Tps)) :-!,
   map(Els,canon:typeOfCanon,Tps).
 typeOfCanon(cell(_,Vl),refType(Tp)) :-
@@ -136,6 +142,9 @@ locOfCanon(letExp(Lc,_,_,_),Lc) :- !.
 locOfCanon(letRec(Lc,_,_,_),Lc) :- !.
 locOfCanon(case(Lc,_,_,_),Lc) :- !.
 locOfCanon(apply(Lc,_,_,_,_),Lc) :-!.
+locOfCanon(invoke(Lc,_,_,_),Lc) :-!.
+locOfCanon(resume(Lc,_,_,_),Lc) :-!.
+locOfCanon(suspend(Lc,_,_,_),Lc) :-!.
 locOfCanon(tple(Lc,_),Lc) :-!.
 locOfCanon(lambda(Lc,_,_,_),Lc) :-!.
 locOfCanon(assign(Lc,_,_),Lc) :-!.
@@ -163,8 +172,6 @@ locOfCanon(doLet(Lc,_,_,_),Lc) :-!.
 locOfCanon(doLetRec(Lc,_,_,_),Lc) :-!.
 locOfCanon(doCall(Lc,_,_),Lc) :-!.
 locOfCanon(doCase(Lc,_,_,_),Lc) :-!.
-locOfCanon(doSuspend(Lc,_,_,_),Lc) :-!.
-locOfCanon(doResume(Lc,_,_,_),Lc) :-!.
 locOfCanon(doRetire(Lc,_,_),Lc) :-!.
 
 constructorName(enm(_,Nm,_),Nm) :-!.
@@ -204,13 +211,22 @@ ssTerm(stringLit(_,Str),_,sq([ss(""""),ss(Str),ss("""")])).
 ssTerm(apply(_,Op,Args,_,none),Dp,sq([O,A])) :-
   ssTerm(Op,Dp,O),
   ssTerm(Args,Dp,A).
-ssTerm(apply(_,Op,Args,_,some(ErTp)),Dp,sq([O,A,ss(" throws "),TT])) :-
+ssTerm(apply(_,Op,Args,_,some(ErTp)),Dp,sq([O,A,ss(" raises "),TT])) :-
   ssTerm(Op,Dp,O),
   ssTerm(Args,Dp,A),
   ssType(ErTp,false,Dp,TT).
+ssTerm(invoke(_,Op,Args,_),Dp,sq([O,ss("."),A])) :-
+  ssTerm(Op,Dp,O),
+  ssTerm(Args,Dp,A).
+ssTerm(resume(_,F,E,_),Dp,sq([FF,ss(" resume "),EE])) :-
+  ssTerm(F,Dp,FF),
+  ssTerm(E,Dp,EE).
+ssTerm(suspend(_,F,E,_),Dp,sq([FF,ss(" suspend "),EE])) :-
+  ssTerm(F,Dp,FF),
+  ssTerm(E,Dp,EE).
 ssTerm(dot(_,Rc,Fld,_),Dp,sq([R,ss("."),id(Fld)])) :-
   ssTerm(Rc,Dp,R).
-ssTerm(update(_,Rc,Fld,Vl),Dp,sq([RR,ss("."),id(Fld),ss("<<-"),VV])) :-
+ssTerm(update(_,Rc,Fld,Vl),Dp,sq([RR,ss("."),id(Fld),ss("="),VV])) :-
   ssTerm(Rc,Dp,RR),
   ssTerm(Vl,Dp,VV).
 ssTerm(enm(_,Nm,_),_,sq([ss("."),id(Nm)])).
@@ -344,16 +360,6 @@ ssAction(doCase(_,Bound,Cases,_),Dp,
 	 sq([ss("case "),B,ss(" in {"),Rs,ss("}")])) :-
   ssTerm(Bound,Dp,B),
   ssRls("",Cases,Dp,canon:ssAction,Rs).
-ssAction(doSuspend(_,T,E,Cs),Dp,sq([TT,ss(" suspend "),EE,ss(" in "),
-				    lb,Rs,rb])) :-
-  ssTerm(T,Dp,TT),
-  ssTerm(E,Dp,EE),
-  ssRls("",Cs,Dp,canon:ssAction,Rs).
-ssAction(doResume(_,T,E,Cs),Dp,sq([TT,ss(" resume "),EE,ss(" in "),
-				    lb,Rs,rb])) :-
-  ssTerm(T,Dp,TT),
-  ssTerm(E,Dp,EE),
-  ssRls("",Cs,Dp,canon:ssAction,Rs).
 ssAction(doRetire(_,T,E),Dp,sq([TT,ss(" retire "),EE])) :-
   ssTerm(T,Dp,TT),
   ssTerm(E,Dp,EE).

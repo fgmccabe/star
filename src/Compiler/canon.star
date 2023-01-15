@@ -30,6 +30,8 @@ star.compiler.canon{
   .cond(option[locn],canon,canon,canon) |
   .apply(option[locn],canon,cons[canon],tipe) |
   .invoke(option[locn],canon,cons[canon],tipe) |
+  .suspnd(option[locn],canon,canon,tipe) |
+  .resme(option[locn],canon,canon,tipe) |
   .tple(option[locn],cons[canon]) |
   .lambda(option[locn],string,cons[rule[canon]],tipe) |
   .owpen(option[locn],canon) |
@@ -52,8 +54,6 @@ star.compiler.canon{
     .doWhile(option[locn],canon,canonAction) |
     .doLet(option[locn],cons[canonDef],cons[decl],canonAction) |
     .doLetRec(option[locn],cons[canonDef],cons[decl],canonAction) |
-    .doSuspend(option[locn],canon,canon,tipe,cons[rule[canonAction]]) |
-    .doResume(option[locn],canon,canon,tipe,cons[rule[canonAction]]) |
     .doRetire(option[locn],canon,canon) |
     .doCall(option[locn],canon).
 
@@ -88,6 +88,8 @@ star.compiler.canon{
       .letRec(_,_,_,E) => typeOf(E).
       .apply(_,_,_,Tp) => Tp.
       .invoke(_,_,_,Tp) => Tp.
+      .suspnd(_,_,_,Tp) => Tp.
+      .resme(_,_,_,Tp) => Tp.
       .tple(_,Els) => .tupleType(Els//typeOf).
       .dot(_,_,_,Tp) => Tp.
       .update(_,R,_,_) => typeOf(R).
@@ -124,6 +126,8 @@ star.compiler.canon{
       .cond(Lc,_,_,_) => Lc.
       .apply(Lc,_,_,_) => Lc.
       .invoke(Lc,_,_,_) => Lc.
+      .suspnd(Lc,_,_,_) => Lc.
+      .resme(Lc,_,_,_) => Lc.
       .tple(Lc,_) => Lc.
       .lambda(Lc,_,_,_) => Lc.
       .letExp(Lc,_,_,_) => Lc.
@@ -153,9 +157,6 @@ star.compiler.canon{
       .doWhile(Lc,_,_) => Lc.
       .doLet(Lc,_,_,_) => Lc.
       .doLetRec(Lc,_,_,_) => Lc.
-      .doSuspend(Lc,_,_,_,_) => Lc.
-      .doResume(Lc,_,_,_,_) => Lc.
-      .doRetire(Lc,_,_) => Lc.
       .doCall(Lc,_) => Lc.
     }
   }
@@ -186,8 +187,8 @@ star.compiler.canon{
     .strng(_,Lt) => disp(Lt).
     .enm(_,Nm,Tp) => "°#(Nm)".
     .dot(_,R,F,Tp) => "#(showCanon(R,0,Sp))°#(F)\:$(Tp)".
-    .update(_,L,F,R) where (Lp,OPr,Rp) ?= isInfixOp("<<-") =>
-      "#(leftParen(OPr,Pr))#(showCanon(L,Lp,Sp)).#(F) <<- #(showCanon(R,Rp,Sp))#(rgtParen(OPr,Pr))".
+    .update(_,L,F,R) where (Lp,OPr,Rp) ?= isInfixOp("=") =>
+      "#(leftParen(OPr,Pr))#(showCanon(L,Lp,Sp)).#(F) = #(showCanon(R,Rp,Sp))#(rgtParen(OPr,Pr))".
     .csexp(_,Exp,Cs,_) where (OPr,Rp) ?= isPrefixOp("case") =>
       "#(leftParen(OPr,Pr))case #(showCanon(Exp,Rp,Sp)) in #(showCases(Cs,showCanon,Sp))#(rgtParen(OPr,Pr))".
     .trycatch(_,Exp,T,H,_) where (OPr,Rp) ?= isPrefixOp("try") =>
@@ -207,6 +208,10 @@ star.compiler.canon{
     .apply(_,L,R,_) => showApply(L,R,Pr,Sp).
     .invoke(_,K,A,_) where (Lp,OPr,Rp) ?= isInfixOp(".") =>
       "#(leftParen(OPr,Pr))#(showCanon(K,Lp,Sp)).(showTuple(Args,Sp))#(rgtParen(OPr,Pr))".
+    .suspnd(Lc,T,E,_)  where (Lp,OPr,Rp) ?= isInfixOp("suspend") =>
+      "#(showCanon(T,Lp,Sp)) suspend #(showCanon(E,Rp,Sp))".
+    .resme(Lc,T,E,_)  where (Lp,OPr,Rp) ?= isInfixOp("resume") =>
+      "#(showCanon(T,Lp,Sp)) resume #(showCanon(E,Rp,Sp))".
     .tple(_,Els) => showTuple(Els,Sp).
     .lambda(_,Nm,Rls,Tp) => "(#(showRls(Nm,Rls,showCanon,Sp++"  ")))".
     .letExp(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
@@ -257,10 +262,6 @@ star.compiler.canon{
     .doLetRec(Lc,Defs,Decs,B) where Sp2.=Sp++"  " &&
 	(Lp,OPr,Rp) ?= isInfixOp("in") =>
       "let {.\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp).} in #(showAct(B,Rp,Sp2))". 
-    .doSuspend(Lc,T,E,_,C) where (Lp,OPr,Rp) ?= isInfixOp("suspend") =>
-      "#(showCanon(T,Lp,Sp)) suspend #(showCanon(E,Rp,Sp)) in #(showCases(C,showAct,Sp))".
-    .doResume(Lc,T,E,_,C)  where (Lp,OPr,Rp) ?= isInfixOp("resume") =>
-      "#(showCanon(T,Lp,Sp)) resume #(showCanon(E,Rp,Sp)) in #(showCases(C,showAct,Sp))".
     .doRetire(Lc,T,E)  where (Lp,OPr,Rp) ?= isInfixOp("retire") =>
       "#(showCanon(T,Lp,Sp)) retire #(showCanon(E,Rp,Sp))".
     .doCall(_,E) => "call #(showCanon(E,Pr,Sp))".

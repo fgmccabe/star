@@ -141,7 +141,7 @@ the designated handler.
 @cindex raise action
 @findex raise
 
-The @refer{RaiseAction} denotes that the action should terminate and raise a value.
+The @refer{RaiseAction} denotes that the action should terminate and raise an exception.
 
 @float BNF,raiseActionFig
 @caption{Raise Action}
@@ -154,7 +154,7 @@ When a @code{raise} action is performed, its expression is evaluated
 and that value is raised as an exception. The syntactically enclosing
 action must either be a @refer{TryCatchAction} form, or the action
 must be the top-level of a function and that function must have been
-declared as raiseing a value of the appropriate type.
+declared as raising a value of the appropriate type.
 
 @quotation Note
 If evaluating the expression that denotes the exception to raise

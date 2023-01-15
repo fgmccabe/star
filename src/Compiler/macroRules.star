@@ -338,7 +338,7 @@ star.compiler.macro.rules{
   {
     I .= _generate(C);
     lb:while .true do{
-      I resume ._next in {
+      case I resume ._next in {
         _yld(P) => B.
         _yld(_) default => {}.
         ._all => break lb
@@ -360,8 +360,8 @@ star.compiler.macro.rules{
     /* build _yld(_) default => {} */
     Deflt = mkEquation(Lc,.none,.true,mkEnumCon(Lc,.nme(Lc,"_yld"),[mkAnon(Lc)]),.none,brTuple(Lc,[]));
 
-    /* build I resume ._next in .. */
-    Resume = mkResume(Lc,I,enum(Lc,"_next"),[Yld,Deflt,End]);
+    /* build case I resume ._next in .. */
+    Resume = mkCaseExp(Lc,mkResume(Lc,I,enum(Lc,"_next")),[Yld,Deflt,End]);
 
     /* Build while .true loop */
     Loop = mkWhileDo(Lc,enum(Lc,"true"),brTuple(Lc,[Resume]));
@@ -402,7 +402,7 @@ star.compiler.macro.rules{
 
   /* yield E
    becomes
-     suspend ._yld(E) in {
+    case suspend ._yld(E) in {
      ._next => {}.
      ._cancel => retire ._all
    }
@@ -416,7 +416,7 @@ star.compiler.macro.rules{
     Cancel = mkLambda(Lc,.false,enum(Lc,"_cancel"),.none,mkRetire(Lc,This,enum(Lc,"_all")));
 
     /* Build suspend */
-    valis .active(mkSuspend(Lc,This,mkEnumCon(Lc,.nme(Lc,"_yld"),[E]),[Nxt,Cancel]))
+    valis .active(mkCaseExp(Lc,mkSuspend(Lc,This,mkEnumCon(Lc,.nme(Lc,"_yld"),[E])),[Nxt,Cancel]))
   }
 
   /*

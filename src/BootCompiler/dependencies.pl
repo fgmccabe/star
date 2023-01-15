@@ -288,14 +288,23 @@ collectTermRefs(T,All,Rf,Rfx) :-
   collectTermRefs(L,All,Rf,Rf1),
   collectCaseRefs(C,collectTermRefs,All,Rf1,Rfx).
 collectTermRefs(T,All,Rf,Rfx) :-
-  isThrow(T,_,E),!,
-  collectTermRefs(E,All,Rf,Rfx).
-collectTermRefs(T,All,Rf,Rfx) :-
   isRaise(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
-collectTermRefs(T,A,R0,Rx) :-
+collectTermRefs(T,All,Rf,Rx) :-
+  isInvoke(T,_,O,Args),!,
+  collectTermRefs(O,All,Rf,R1),
+  collectTermListRefs(Args,All,R1,Rx).
+collectTermRefs(T,A,Rf,Rx) :-
+  isSuspend(T,_,F,E),!,
+  collectTermRefs(F,A,Rf,R0),
+  collectTermRefs(E,A,R0,Rx).
+collectTermRefs(T,A,Rf,Rx) :-
+  isResume(T,_,F,E),!,
+  collectTermRefs(F,A,Rf,R0),
+  collectTermRefs(E,A,R0,Rx).
+collectTermRefs(T,All,R0,Rx) :-
   isFiberTerm(T,_,Stmts),!,
-  collectDoRefs(Stmts,A,R0,Rx).
+  collectDoRefs(Stmts,All,R0,Rx).
 collectTermRefs(app(_,Op,Args),All,R,Rx) :-
   collectTermRefs(Op,All,R,R0),
   collectTermRefs(Args,All,R0,Rx).
@@ -400,20 +409,6 @@ collectDoRefs(T,All,Rf,Rfx) :-
   isIfThen(T,_,Tt,H),!,
   collectTermRefs(Tt,All,Rf,Rf0),
   collectDoRefs(H,All,Rf0,Rfx).
-collectDoRefs(T,A,Rf,Rx) :-
-  isSuspend(T,_,E,C),!,
-  collectTermRefs(E,A,Rf,R0),
-  collectCaseRefs(C,collectDoRefs,A,R0,Rx).
-collectDoRefs(T,A,Rf,Rx) :-
-  isSuspend(T,_,Ts,E,C),!,
-  collectTermRefs(E,A,Rf,R0),
-  collectTermRefs(Ts,A,R0,R1),
-  collectCaseRefs(C,collectDoRefs,A,R1,Rx).
-collectDoRefs(T,A,Rf,Rx) :-
-  isResume(T,_,Ts,E,C),!,
-  collectTermRefs(E,A,Rf,R0),
-  collectTermRefs(Ts,A,R0,R1),
-  collectCaseRefs(C,collectDoRefs,A,R1,Rx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isRetire(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
@@ -442,11 +437,12 @@ collectDoRefs(T,A,R,Rx) :-
   collectStmtRefs(S,A,[],R,R0),
   collectDoRefs(B,A,R0,Rx).
 collectDoRefs(T,All,Rf,Rfx) :-
-  isThrow(T,_,E),!,
-  collectTermRefs(E,All,Rf,Rfx).
-collectDoRefs(T,All,Rf,Rfx) :-
   isRaise(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
+collectDoRefs(T,All,Rf,Rx) :-
+  isInvoke(T,_,O,Args),!,
+  collectTermRefs(O,All,Rf,R1),
+  collectTermListRefs(Args,All,R1,Rx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isValis(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
@@ -484,6 +480,10 @@ collectTypeRefs(T,All,SoFar,Rest) :-
   isBinary(T,_,"->>",L,R),
   collectTypeRefs(L,All,SoFar,R0),
   collectTypeRefs(R,All,R0,Rest).
+collectTypeRefs(T,All,R0,Rx) :-
+  isContinType(T,_,L,R),!,
+  collectTypeRefs(L,All,R0,R1),
+  collectTypeRefs(R,All,R1,Rx).
 collectTypeRefs(T,All,SoFar,Rx) :-
   isTypeLambda(T,_,L,R),
   collectTypeRefs(L,All,SoFar,R0),

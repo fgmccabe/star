@@ -224,6 +224,16 @@ star.compiler.resolve{
     (RArgs,St2) = overloadTplEls(Args,Dict,St1);
     valis (.invoke(lc,ROp,RArgs,Tp),St2)
   }
+  overloadTerm(.suspnd(lc,F,A,Tp),Dict,St) => valof{
+    (RF,St1) = overloadTerm(F,Dict,St);
+    (RA,St2) = overloadTerm(A,Dict,St1);
+    valis (.suspnd(lc,RF,RA,Tp),St2)
+  }
+  overloadTerm(.resme(lc,F,A,Tp),Dict,St) => valof{
+    (RF,St1) = overloadTerm(F,Dict,St);
+    (RA,St2) = overloadTerm(A,Dict,St1);
+    valis (.resme(lc,RF,RA,Tp),St2)
+  }
   overloadTerm(.match(Lc,Ptn,Src),Dict,St) => valof{
     (RPtn,St1) = overloadTerm(Ptn,Dict,St);
     (RSrc,St2) = overloadTerm(Src,Dict,St1);
@@ -382,18 +392,6 @@ star.compiler.resolve{
     (AA,St1) = overloadTerm(A,Dict,St);
     (HH,St2) = overloadRules(H,[],Dict,St1);
     valis (.doCase(Lc,AA,HH),St2)
-  }
-  overloadAction(.doSuspend(Lc,T,E,RTp,H),Dict,St) => valof{
-    (TT,St1) = overloadTerm(T,Dict,St);
-    (EE,St2) = overloadTerm(E,Dict,St1);
-    (HH,St3) = overloadRules(H,[],Dict,St2);
-    valis (.doSuspend(Lc,TT,EE,RTp,HH),St3)
-  }
-  overloadAction(.doResume(Lc,T,E,STp,H),Dict,St) => valof{
-    (TT,St1) = overloadTerm(T,Dict,St);
-    (EE,St2) = overloadTerm(E,Dict,St1);
-    (HH,St3) = overloadRules(H,[],Dict,St2);
-    valis (.doResume(Lc,TT,EE,STp,HH),St3)
   }
   overloadAction(.doRetire(Lc,T,E),Dict,St) => valof{
     (TT,St1) = overloadTerm(T,Dict,St);

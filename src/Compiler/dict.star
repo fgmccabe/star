@@ -62,7 +62,7 @@ star.compiler.dict{
   
   public declareType:(string,option[locn],tipe,typeRule,dict) => dict.
   declareType(Nm,Lc,Tp,TpRl,[Level,..Rest]) =>
-    [Level.types<<-Level.types[Nm->.tpDefn(Lc,Nm,Tp,TpRl,[])],..Rest].
+    [Level.types=Level.types[Nm->.tpDefn(Lc,Nm,Tp,TpRl,[])],..Rest].
 
   public findType:(dict,string) => option[(option[locn],tipe,typeRule,map[string,tipe])].
   findType([],Nm) => .none.
@@ -77,11 +77,11 @@ star.compiler.dict{
 
   public declareImplementation:(option[locn],string,string,tipe,dict) => dict.
   declareImplementation(Lc,ImplNm,ImplVr,Tp,[Scope,..Env]) =>
-    [Scope.impls<<-Scope.impls[ImplNm->.implEntry(Lc,ImplVr,Tp)],..Env].
+    [Scope.impls=Scope.impls[ImplNm->.implEntry(Lc,ImplVr,Tp)],..Env].
 
   public undeclareImplementation:(string,dict) => dict.
   undeclareImplementation(Nm,[Scope,..Env]) =>
-    [Scope.impls<<-Scope.impls[~Nm],..Env].
+    [Scope.impls=Scope.impls[~Nm],..Env].
 
   public declareAccessor:(option[locn],tipe,string,string,tipe,dict) => dict.
   declareAccessor(Lc,Tp,Fld,AccFn,AccTp,[Scope,..Env]) => valof{
@@ -90,9 +90,9 @@ star.compiler.dict{
     Accs = Scope.accessors;
 
     if AccOrs ?= Accs[Key] then{
-      valis [Scope.accessors<<-Accs[Key->AccOrs[Fld->Entry]],..Env]
+      valis [Scope.accessors=Accs[Key->AccOrs[Fld->Entry]],..Env]
     } else{
-      valis [Scope.accessors<<-Accs[Key->{Fld->Entry}],..Env]
+      valis [Scope.accessors=Accs[Key->{Fld->Entry}],..Env]
     }
   }
 
@@ -112,9 +112,9 @@ star.compiler.dict{
     Ups = Scope.updaters;
     
     if AccOrs ?= Ups[Key] then{
-      valis [Scope.updaters<<-Ups[Key->AccOrs[Fld->Entry]],..Env]
+      valis [Scope.updaters=Ups[Key->AccOrs[Fld->Entry]],..Env]
     } else{
-      valis [Scope.updaters<<-Ups[Key->{Fld->Entry}],..Env]
+      valis [Scope.updaters=Ups[Key->{Fld->Entry}],..Env]
     }
   }
 
@@ -128,7 +128,7 @@ star.compiler.dict{
   getUpdate(Key,Fld,[_,..Env]) => getUpdate(Key,Fld,Env).
 
   public declareLabel:(option[locn],string,dict) => dict.
-  declareLabel(Lc,Lb,[Scope,..Env]) => [Scope.labels<<-Scope.labels[Lb->(Lc,Lb)],..Env].
+  declareLabel(Lc,Lb,[Scope,..Env]) => [Scope.labels=Scope.labels[Lb->(Lc,Lb)],..Env].
 
   public isLabel:(string,dict) => option[(option[locn],string)].
   isLabel(Lb,[Sc,.._]) where Tgt?=Sc.labels[Lb] => .some(Tgt).

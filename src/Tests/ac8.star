@@ -31,8 +31,8 @@ test.ac8{
 	  else
 	  valis .ok(3*X)
 	}
-	}); -- );
-    TT resume () in {
+	});
+    case TT resume () in {
       .err(E) => {
 	_logmsg(disp(E));
 	valis -E

@@ -71,17 +71,17 @@ star.compiler.operators{
     "<-" => [.infixOp(904,905,904)].
     ".>>>." => [.infixOp(600,600,599)].
     "\\+" => [.infixOp(700,700,699)].
-    "<<-" => [.infixOp(974,975,974)].
     "*" => [.postfixOp(699,700), .infixOp(700,700,699)].
     "\\-" => [.infixOp(700,700,699)].
     "+" => [.postfixOp(699,700), .infixOp(720,720,719)].
     ".>>." => [.infixOp(600,600,599)].
-    "resume" => [.prefixOp(901,900), .infixOp(900,901,900)].
+    "resume" => [.prefixOp(890,899), .infixOp(889,890,889)].
     "*>" => [.infixOp(904,905,904)].
     "," => [.infixOp(999,1000,1000)].
     "contract" => [.prefixOp(1560,1559)].
     "\\/" => [.infixOp(720,720,719)].
     "-" => [.prefixOp(300,299), .infixOp(720,720,719)].
+    "raises" => [.infixOp(999,1000,999)].
     "." => [.prefixOp(10,9), .infixOp(100,100,99)].
     "/" => [.infixOp(700,700,699)].
     "<*>" => [.infixOp(949,950,950)].
@@ -104,7 +104,7 @@ star.compiler.operators{
     "|=" => [.infixOp(1224,1225,1224)].
     "in" => [.infixOp(899,900,900)].
     "break" => [.prefixOp(10,9)].
-    "suspend" => [.prefixOp(901,900), .infixOp(900,901,900)].
+    "suspend" => [.prefixOp(890,899), .infixOp(889,890,889)].
     "open" => [.prefixOp(900,899)].
     "trace" => [.prefixOp(140,139)].
     "~~" => [.infixOp(1239,1240,1240)].
@@ -143,6 +143,7 @@ star.compiler.operators{
     "type" => [.prefixOp(1251,1250)].
     "|" => [.infixOp(1548,1548,1547)].
     ".#." => [.infixOp(600,600,599)].
+    "handle" => [.infixOp(1198,1199,1198)].
     "~" => [.prefixOp(905,904)].
     "^//" => [.infixOp(800,800,799)].
     "||" => [.infixOp(919,920,920)].
@@ -150,7 +151,6 @@ star.compiler.operators{
     "::=" => [.infixOp(1549,1550,1549)].
     "/\\" => [.infixOp(700,700,699)].
     ">=" => [.infixOp(899,900,899)].
-    "throws" => [.infixOp(999,1000,999)].
     ">>" => [.infixOp(949,950,950)].
     _ default => [].
   }
@@ -289,11 +289,9 @@ star.compiler.operators{
     ("<",`~`) => ?"<~".
     ("<",`$`) => ?"<$".
     ("<",`-`) => ?"<-".
-    ("<",`<`) => ?"<<".
     ("<",`|`) => ?"<|".
     ("<",`=`) => ?"<=".
     ("<*",`>`) => ?"<*>".
-    ("<<",`-`) => ?"<<-".
     ("<=",`>`) => ?"<=>".
     ("=",`<`) => ?"=<".
     ("=",`=`) => ?"==".
@@ -376,14 +374,13 @@ star.compiler.operators{
     ":?" => .true.  /* fallable type coercion */
     "::" => .true.  /* type coercion */
     "::=" => .true.  /* algebraic type definition */
-    ":=" => .true.  /* reassignable variable definition */
+    ":=" => .true.  /* assignment */
     ";" => .true.  /* sequencing operator */
     "<" => .true.  /* less than */
     "<*>" => .true.  /* applicative splat */
     "<~" => .true.  /* type interface rule */
     "<$" => .true.  /* constant replace */
     "<-" => .true.  /* variable bind */
-    "<<-" => .true.  /* record replacement */
     "<|" => .true.  /* meta quote */
     "<=>" => .true.  /* constructor arrow */
     "=" => .true.  /* definition */
@@ -438,11 +435,11 @@ star.compiler.operators{
     "<-" => .true.
     "(" => .true.
     ")" => .true.
-    "<<-" => .true.
     "resume" => .true.
     "*>" => .true.
     "," => .true.
     "contract" => .true.
+    "raises" => .true.
     "." => .true.
     "try" => .true.
     "exists" => .true.
@@ -489,11 +486,11 @@ star.compiler.operators{
     ".}" => .true.
     "|" => .true.
     "}" => .true.
+    "handle" => .true.
     "~" => .true.
     "||" => .true.
     "else" => .true.
     "::=" => .true.
-    "throws" => .true.
     "{!" => .true.
     _ default => .false.
   }

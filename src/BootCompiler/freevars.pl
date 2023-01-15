@@ -21,6 +21,9 @@ freeVars(charLit(_,_),_,_,F,F).
 freeVars(stringLit(_,_),_,_,F,F).
 freeVars(tple(_,Els),Ex,Q,F,FV) :- freeVarsList(Els,Ex,Q,F,FV).
 freeVars(apply(_,Op,A,_,_),Ex,Q,F,FV) :- freeVars(Op,Ex,Q,F,F0), freeVars(A,Ex,Q,F0,FV).
+freeVars(invoke(_,Op,A,_),Ex,Q,F,FV) :- freeVars(Op,Ex,Q,F,F0), freeVars(A,Ex,Q,F0,FV).
+freeVars(resume(_,Op,A,_),Ex,Q,F,FV) :- freeVars(Op,Ex,Q,F,F0), freeVars(A,Ex,Q,F0,FV).
+freeVars(suspend(_,T,E,_),Ex,Q,F,FV) :- freeVars(T,Ex,Q,F,F0), freeVars(E,Ex,Q,F0,FV).
 freeVars(dot(_,Rc,_,_),Ex,Q,F,FV) :- freeVars(Rc,Ex,Q,F,FV).
 freeVars(open(_,E,_),Ex,Q,F,Fv) :- freeVars(E,Ex,Q,F,Fv).
 freeVars(cell(_,Cll),Ex,Q,F,FV) :- freeVars(Cll,Ex,Q,F,FV).
@@ -122,14 +125,6 @@ freeVarsInAction(doLetRec(_,_,Defs,Bnd),Ex,Ex,Q,F,Fv) :-!,
 freeVarsInAction(doCase(_,G,Cs,_),Ex,Ex,Q,F,Fv) :-!,
   freeVars(G,Ex,Q,F,F0),
   freeVarsInRules(Cs,Ex,Q,freevars:freeVarsInAct,F0,Fv).
-freeVarsInAction(doSuspend(_,T,E,Cs),Ex,Ex,Q,F,Fv) :-!,
-  freeVars(T,Ex,Q,F,F0),
-  freeVars(E,Ex,Q,F0,F1),
-  freeVarsInRules(Cs,Ex,Q,freevars:freeVarsInAct,F1,Fv).
-freeVarsInAction(doResume(_,T,E,Cs),Ex,Ex,Q,F,Fv) :-!,
-  freeVars(T,Ex,Q,F,F0),
-  freeVars(E,Ex,Q,F0,F1),
-  freeVarsInRules(Cs,Ex,Q,freevars:freeVarsInAct,F1,Fv).
 freeVarsInAction(doRetire(_,T,E),Ex,Ex,Q,F,Fv) :-!,
   freeVars(T,Ex,Q,F,F0),
   freeVars(E,Ex,Q,F0,Fv).

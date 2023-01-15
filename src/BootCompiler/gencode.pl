@@ -202,6 +202,12 @@ compExp(ocall(Lc,Fn,A),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   Arity is Ar+1,
   compExps(A,Lc,compExp(Fn,Lc,oclCont(Arity,Cont),End,Brks,Opts),
 	   End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
+compExp(voke(Lc,K,A),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+  chLine(Opts,OLc,Lc,C,C0),
+  length(A,Ar),
+  Arity is Ar+1,
+  compExps(A,Lc,compExp(K,Lc,invokeCont(Arity,Cont),End,Brks,Opts),
+	   End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compExp(nth(Lc,Exp,Off),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(Exp,Lc,idxCont(Off,Cont),End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
@@ -266,14 +272,14 @@ compExp(vlof(Lc,A),_,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
 	     End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 compExp(tsk(Lc,F),_,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compExp(F,Lc,tskCont(Cont),End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
-compExp(susp(Lc,T,E),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
+compExp(susp(Lc,T,E),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(T,Lc,compExp(E,Lc,suspendCont(Cont,Stk,Opts),End,Brks,Opts),
-	  End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,_).
-compExp(resme(Lc,T,E),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-
+	  End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
+compExp(resme(Lc,T,E),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   compExp(T,Lc,compExp(E,Lc,resumeCont(Cont,Stk,Opts),End,Brks,Opts),
-	  End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,_).
+	  End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compExp(Cond,Lc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   isCond(Cond),!,
   genLbl(L,Nx,L0),
@@ -520,6 +526,12 @@ resumeCont(Cont,Stk,Opts,L,Lx,D,Dx,C,Cx,_Stk,Stkx) :-
 
 retireCont(Opts,Lx,Lx,Dx,Dx,C,Cx,_Stk,none) :-
   genDbg(Opts,C,[iRetire|Cx]).
+
+invokeCont(Arity,Cont,L,Lx,D,Dx,[iInvoke(Arity)|C],Cx,Stk,Stkx) :-
+  dropStk(Stk,Arity,Stk0),
+  bumpStk(Stk0,Stk1),
+  frameIns(Stk,C,C1),
+  call(Cont,L,Lx,D,Dx,C1,Cx,Stk1,Stkx).
 
 jmpCont(Lbl,Stk,Lx,Lx,D,D,[iJmp(Lbl)|Cx],Cx,_,Stk).
 

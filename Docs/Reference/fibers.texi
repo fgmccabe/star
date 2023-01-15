@@ -22,7 +22,6 @@ A @code{generator} expression is used to define so-called yield-style generators
 
 @end quotation
 
-
 @node Fiber Type
 @section Fiber Type
 @cindex type, fiber
@@ -39,15 +38,15 @@ The @code{fiber} type is used to characterize the type of fiber expressions. It 
 @end float
 
 The second type argument refers to values that the fiber may suspend
-with (see @refer{SuspendAction} and @refer{RetireAction}) and the
-first type argument refers to values that the fiber may be resumed
-with (see @refer{ResumeAction}).
+with (see @refer{Suspend} and @refer{RetireAction}) and the first type
+argument refers to values that the fiber may be resumed with (see
+@refer{Resume}).
 
 @node Fiber Expression
 @section Fiber Expression
 
 A @code{fiber} expression evaluates to a new fiber. It contains a set of
-actions to perform as the fiber.
+actions to perform as the fiber. 
 
 @float BNF,fiberFig
 @caption{Fiber Expression Syntax}
@@ -56,6 +55,8 @@ actions to perform as the fiber.
 
 @anchored{FiberExpression} ::= @code{fiber} @refer{BlockAction}
   | @code{fiber} @refer{Expression}
+  | @refer{SuspendExpression}
+  | @refer{ResumeExpression}
 @end display
 @end float
 
@@ -65,7 +66,7 @@ fiber@{
   let@{
     yildFn:((),e)=>().
     yildFn(_,E) => valof@{
-      suspend .yild(E) in @{
+      case suspend .yild(E) in @{
        .next => valis ().
       @}
     @}
@@ -98,38 +99,20 @@ immediately. The @code{fiber} starts executing only when it is resumed
 @end quotation
 @end table
 
-@node Fiber Actions
-@section Fiber Actions
+@node Suspend
+@subsection Suspend
 
-The primary actions associated with fibers are suspend, resume and retire.
-
-@float BNF,fiberActionFig
-@caption{Fiber Action Syntax}
-@display
-@refer{Action}::+=@refer{FiberAction}
-
-@anchored{FiberAction}::= @refer{SuspendAction}
-  | @refer{ResumeAction}
-  | @refer{RetireAction}
-@c  | @refer{YieldAction}
-@end display
-@end float
-
-@node Suspend Action
-@subsection Suspend Action
-
-The @refer{SuspendAction} is used when a fiber wishes to suspend
-itself. There are three arguments to the @refer{SuspendAction}: the
+The @refer{Suspend} is used when a fiber wishes to suspend
+itself. There are two arguments to the @refer{Suspend}: the
 identity of the fiber to be suspended, a value that determines the
-@emph{suspension event} and a @refer{CaseActionHandler} to respond to
-the incoming event when the fiber is resumed again:
+@emph{suspension event}:
 
-@float BNF,suspendActionFig
-@caption{Suspend Action Syntax}
+@float BNF,suspendFig
+@caption{Suspend Syntax}
 @display
-@anchored{SuspendAction}::=
-    @refer{Expression} @code{suspend} @refer{Expression} @code{in} @refer{CaseActionHandler}
-  | @code{suspend} @refer{Expression} @code{in} @refer{CaseActionHandler}
+@anchored{SuspendExpression}::=
+    @refer{Expression} @code{suspend} @refer{Expression}
+  | @code{suspend} @refer{Expression}
 @end display
 @end float
 
@@ -169,27 +152,25 @@ The @code{this} keyword is established within the scope of a
 identity.
 @end quotation
 
-@node Resume Action
-@subsection Resume Action
+@node Resume
+@subsection Resume
 
-The @refer{ResumeAction} is used when a fiber wishes to resume another fiber.
-There are three arguments to the @refer{ResumeAction}: the
-identity of the fiber to be resumed, a value that determines the
-@emph{resumption event} and a @refer{CaseActionHandler} to respond to
-the incoming event when the resumed fiber is suspended again:
+A @refer{Resume} is used when a fiber wishes to resume another fiber.
+There are two arguments to the @refer{Resume}: the
+identity of the fiber to be resumed, and a value that determines the
+@emph{resumption event}:
 
-@float BNF,resumeActionFig
-@caption{Resume Action Syntax}
+@float BNF,resumeFig
+@caption{Resume Syntax}
 @display
-@anchored{ResumeAction}::=
-  @refer{Expression} @code{resume} @refer{Expression} @code{in} @refer{CaseActionHandler}
+@anchored{ResumeExpression}::= @refer{Expression} @code{resume} @refer{Expression}
 @end display
 @end float
 
-As with the @code{SuspendAction}, the types of the fiber, the event and
+As with @code{Suspend}, the types of the fiber, the event and
 the action case must match up; i.e., given
 @example
-@var{T} @code{resume} @var{E} @code{in} @{@var{P@sub{1}} => @var{A@sub{1}}. .. @var{P@sub{n}} => @var{A@sub{n}}@}
+@var{T} @code{resume} @var{E}
 @end example
 then @code{@var{T}} must be of type
 @example
@@ -203,10 +184,10 @@ and the left hand sides of the response case -- @code{@var{P@sub{i}}}
 -- must have type @code{@var{S}} -- which will be used to match
 against the suspension event.
 
-The @refer{SuspendAction} and @refer{ResumeAction} are quite symmetric.
+The @refer{Suspend} and @refer{Resume} are quite symmetric.
 
-@node Retire Action
-@subsection Retire Action
+@node Retiring a Fiber
+@subsection Retiring a Fiber
 
 The @refer{RetireAction} is used when a fiber wishes to retire and no
 longer continue execution. This is the primary means by which a fiber
@@ -221,10 +202,6 @@ is determined by the value of the event it signals.
   | @code{retire} @refer{Expression}
 @end display
 @end float
-
-Note that there is no @refer{CaseActionHandler} specified with this
-action; this is because a fiber that performs the retire action will
-not be resumed: it is ended.
 
 The types of the fiber and the event must match up; i.e., given
 @example

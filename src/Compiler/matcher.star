@@ -176,9 +176,9 @@ star.compiler.matcher{
   matchConstructors(Seg,[V,..Vrs],Lc,Deflt,Depth,Map) => valof{
     Cases = formCases(sort(Seg,compareConstructorTriple),
       sameConstructorTriple,Lc,Vrs,Deflt,Depth+1,Map);
-    if Index ?= findIndexMap(tpName(typeOf(V)),Map) then
-      valis mkUnpack(Lc,V,populateArms(Index,Cases,Lc,Deflt,Map))
-    else
+    -- if Index ?= findIndexMap(tpName(typeOf(V)),Map) then
+    --   valis mkUnpack(Lc,V,populateArms(Index,Cases,Lc,Deflt,Map))
+    -- else
     valis mkCase(Lc,V,Cases,Deflt)
   }
 

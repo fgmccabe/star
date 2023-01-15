@@ -33,7 +33,7 @@ macroRl(":=",action,macroRules:spliceAssignMacro).
 macroRl(":=",action,macroRules:indexAssignMacro).
 macroRl(":=",expression,macroRules:spliceAssignMacro).
 macroRl(":=",expression,macroRules:indexAssignMacro).
-macroRl("throws",type,macroRules:throwsMacro).
+macroRl("raises",type,macroRules:raisesMacro).
 macroRl("do",action,macroRules:forLoopMacro).
 macroRl("->",expression,macroRules:arrowMacro).
 macroRl("->",pattern,macroRules:arrowMacro).
@@ -429,7 +429,7 @@ binRefMacro(T,expression,Rp) :-
   {
     I .= _generate(C);
     lb:while .true do{
-      I resume ._next in {
+      case I resume ._next in {
         _yld(P) => B.
         _yld(_) default => {}.
         ._all => break lb
@@ -460,9 +460,10 @@ binRefMacro(T,expression,Rp) :-
    mkDefault(Lc,DYld,Dflt),
    mkEquation(Lc,Dflt,none,Nop,DefltEqn),
 
-   /* build I resume ._next in .. */
+   /* build case I resume ._next in .. */
    mkEnum(Lc,"_next",Next),
-   mkResume(Lc,I,Next,[YldEqn,DefltEqn,EndEq],Rsme),
+   mkResume(Lc,I,Next,G),
+   caseExp(Lc,G,[YldEqn,DefltEqn,EndEq],Rsme),
    braceTuple(Lc,[Rsme],Resume),
 
    /* Build while .true loop */
@@ -499,7 +500,7 @@ generatorMacro(E,expression,Ex) :-
 
 /* yield E
    becomes
-   suspend _yld(E) in {
+   case suspend _yld(E) in {
      ._next => {}.
      ._cancel => retire ._all
    }
@@ -521,8 +522,8 @@ yieldMacro(E,action,Ax) :-
   mkEquation(Lc,Can,none,Rs,Cancel),
 
   /* Build suspend */
-  mkSuspend(Lc,Yld,[NxtRl,Cancel],Ax).
-  
+  mkSuspend(Lc,name(Lc,"this"),Yld,SS),
+  caseExp(Lc,SS,[NxtRl,Cancel],Ax).
 
 /*
   K -> V
@@ -534,16 +535,15 @@ arrowMacro(E,Md,Rp) :- (Md=expression;Md=pattern),
   mkConApply(Lc,name(Lc,"kv"),[K,V],Rp).
 
 /*
-  (A)=>R throws E
+  (A)=>R raises E
 becomes
-  _throw|=cont[E] |: (A)=>R
+  _raise|=cont[E] |: (A)=>R
 */
 
-throwsMacro(T,type,Tx) :-
-  isThrows(T,Lc,I,E),!,
-
+raisesMacro(T,type,Tx) :-
+  isRaises(T,Lc,I,E),!,
   mkContType(Lc,E,TTp),
-  mkDynamic(Lc,"_throw",TTp,C),
+  mkDynamic(Lc,"_raise",TTp,C),
 %  reportMsg("implicit %s",[ast(C)],Lc),
   reConstrain([C],I,Tx).
 %  reportMsg("%s ==> %s",[ast(T),ast(Tx)],Lc).

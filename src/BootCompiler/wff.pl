@@ -43,14 +43,14 @@
 	      isIotaComprehension/4,
 	      isTestComprehension/3,mkTestComprehension/3,
 	      isCaseExp/4,caseExp/4,
-	      isSuspend/4,isSuspend/5,isResume/5,isRetire/3,isRetire/4,isSpawn/4,
-	      mkSuspend/4,mkSuspend/5,mkResume/5,mkRetire/3,mkRetire/4,mkSpawn/4,
+	      isSuspend/4,isResume/4,isRetire/3,isRetire/4,isSpawn/4,
+	      mkSuspend/4,mkResume/4,mkRetire/3,mkRetire/4,mkSpawn/4,
 	      isFiberTerm/3,mkFiberTerm/3,isFiber/3,mkFiber/3,
 	      isDoTerm/3,mkDoTerm/3,isDo/3,mkDo/3,
 	      isValof/3,mkValof/3,isValis/3,mkValis/3,
 	      isTryCatch/4,mkTryCatch/4,
-	      isThrow/3,mkThrow/3,isRaise/3,mkRaise/3,
-	      isThrows/4,mkThrows/4,
+	      isRaise/3,mkRaise/3,
+	      isRaises/4,mkRaises/4,isInvoke/4,mkInvoke/4,
 	      isDynamic/4,mkDynamic/4,
 	      isBreak/3,mkBreak/3,isLbldAction/4,mkLbldAction/4,
 	      isIfThenElse/5,isIfThen/4,mkIfThenElse/5,mkIfThen/4,
@@ -736,12 +736,12 @@ fieldAcc(Lc,Rc,F,T) :-
   binary(Lc,".",Rc,F,T).
 
 isRecordUpdate(Trm,Lc,Rc,Fld,Vl) :-
-  isBinary(Trm,Lc,"<<-",Lft,Vl),
+  isBinary(Trm,Lc,"=",Lft,Vl),
   isFieldAcc(Lft,_,Rc,Fld).
 
 recordUpdate(Lc,Rc,Fld,Vl,T) :-
   fieldAcc(Lc,Rc,name(Lc,Fld),Lhs),
-  binary(Lc,"<<-",Lhs,Vl,T).
+  binary(Lc,"=",Lhs,Vl,T).
 
 isIndexTerm(Trm,Lc,Lhs,Rhs) :-
   isSquareTerm(Trm,Lc,Lhs,[Rhs]),
@@ -857,17 +857,19 @@ isRaise(A,Lc,E) :-
 mkRaise(Lc,A,E) :-
   unary(Lc,"raise",A,E).
 
-isThrow(A,Lc,E) :-
-  isUnary(A,Lc,"throw",E).
+isRaises(A,Lc,E,T) :-
+  isBinary(A,Lc,"raises",E,T).
 
-mkThrow(Lc,A,E) :-
-  unary(Lc,"throw",A,E).
+mkRaises(Lc,E,T,A) :-
+  binary(Lc,"raises",E,T,A).
 
-isThrows(A,Lc,E,T) :-
-  isBinary(A,Lc,"throws",E,T).
+isInvoke(T,Lc,O,As) :-
+  isBinary(T,Lc,".",O,R),
+  isTuple(R,_,As).
 
-mkThrows(Lc,E,T,A) :-
-  binary(Lc,"throws",E,T,A).
+mkInvoke(Lc,O,As,T) :-
+  roundTuple(Lc,As,R),
+  binary(Lc,".",O,R,T).
 
 isTryCatch(A,Lc,B,Hs) :-
   isUnary(A,Lc,"try",I),
@@ -941,24 +943,13 @@ isActionSeq(A,Lc,S) :-
 mkActionSeq(Lc,S1,S2,T) :-
   binary(Lc,";",S1,S2,T).
 
-isSuspend(A,Lc,E,C) :-
-  isUnary(A,Lc,"suspend",L),
-  isBinary(L,_,"in",E,R),
-  isBraceTuple(R,_,C).
+isSuspend(A,Lc,name(Lc,"this"),E) :-
+  isUnary(A,Lc,"suspend",E),!.
+isSuspend(A,Lc,F,E) :-
+  isBinary(A,Lc,"suspend",F,E).
 
-isSuspend(A,Lc,T,E,C) :-
-  isBinary(A,Lc,"suspend",T,L),
-  isBinary(L,_,"in",E,R),
-  isBraceTuple(R,_,C).
-
-mkSuspend(Lc,E,C,A) :-
-  braceTuple(Lc,C,R),
-  binary(Lc,"in",E,R,L),
-  unary(Lc,"suspend",L,A).
-mkSuspend(Lc,T,E,C,A) :-
-  braceTuple(Lc,C,R),
-  binary(Lc,"in",E,R,L),
-  binary(Lc,"suspend",T,L,A).
+mkSuspend(Lc,F,E,A) :-
+  binary(Lc,"suspend",F,E,A).
 
 isSpawn(A,Lc,F,H) :-
   isUnary(A,Lc,"spawn",T),
@@ -970,19 +961,13 @@ mkSpawn(Lc,F,H,S) :-
   binary(Lc,"in",F,R,L),
   unary(Lc,"spawn",L,S).
 
-isResume(A,Lc,T,E,C) :-
-  isBinary(A,Lc,"resume",T,L),
-  isBinary(L,_,"in",E,R),
-  isBraceTuple(R,_,C).
+isResume(A,Lc,T,E) :-
+  isBinary(A,Lc,"resume",T,E),!.
+isResume(A,Lc,name(Lc,"this"),E) :-
+  isUnary(A,Lc,"resume",E).
 
-mkResume(Lc,E,C,A) :-
-  braceTuple(Lc,C,R),
-  binary(Lc,"in",E,R,L),
-  unary(Lc,"resume",L,A).
-mkResume(Lc,T,E,C,A) :-
-  braceTuple(Lc,C,R),
-  binary(Lc,"in",E,R,L),
-  binary(Lc,"resume",T,L,A).
+mkResume(Lc,F,E,A) :-
+  binary(Lc,"resume",F,E,A).
 
 isRetire(A,Lc,E) :-
   isUnary(A,Lc,"retire",E).
