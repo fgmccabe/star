@@ -23,14 +23,14 @@ typedef struct StackStructure {
   clssPo clss;                  // == stackClass
   integer hash;                 // Hash code of stack (== count of created stacks)
   integer sze;                  // Size of stack
-  integer hwm;                  // High water mark of stack sizes rooted off this stack
+  integer hwm;                  // High watermark of stack sizes rooted off this stack
   ptrPo sp;                     // Current stack pointer
   framePo fp;                   // Current frame pointer
   stackPo attachment;           // Where is the stack attached
   stackPo bottom;               // What is the actual innermost stack
-  TaskState state;             // is the stack attached, root, detached or moribund
+  TaskState state;              // is the stack attached, root, detached or moribund
   ptrPo stkMem;                 // Memory block used for stack
-  integer counter;               // Incremented every time stack is suspended
+  integer counter;              // Incremented every time stack is suspended
 } StackRecord;
 
 #define StackCellCount CellCount(sizeof(StackRecord))
