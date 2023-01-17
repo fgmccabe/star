@@ -13,6 +13,8 @@
 #include "ioops.h"
 #include "stack.h"
 #include "globals.h"
+#include "consP.h"
+#include "future.h"
 
 ReturnStatus g__close(heapPo h, termPo a1) {
   ioChnnlPo chnl = C_IO(a1);
@@ -25,19 +27,46 @@ ReturnStatus g__end_of_file(heapPo h, termPo a1) {
 
   termPo Rs = (isFileAtEof(ioChannel(chnl)) == Eof ? trueEnum : falseEnum);
 
-  ReturnStatus ret = {.ret=Ok, .result=Rs};
-
-  return ret;
+  return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g_enqueue_read(heapPo h, termPo a1, termPo a2, termPo a3) {
+static retCode fillFuture(ioPo f, void *cl) {
+  futurePo fut = C_FUTURE((termPo) cl);
+  integer count = enqueuedCount(f);
+  heapPo currentHeap;
+
+  strBufferPo buffer = newStringBuffer();
+
+  retCode ret = Ok;
+  while (count-- > 0 && ret == Ok) {
+    codePoint cp;
+    ret = inChar(f, &cp);
+    if (ret == Ok)
+      ret = outChar(O_IO(buffer), cp);
+  }
+
+  if (ret == Ok) {
+    integer length;
+    char *text = getTextFromBuffer(buffer, &length);
+
+    ret = setFuture(currentHeap, fut, allocateString(currentHeap, text, length));
+
+    closeFile(O_IO(buffer));
+    return ret;
+  } else {
+    closeFile(O_IO(buffer));
+    return ret;
+  }
+}
+
+ReturnStatus g__enqueue_read(heapPo h, termPo a1, termPo a2) {
   ioChnnlPo chnl = C_IO(a1);
   integer count = integerVal(a2);
-  stackPo tskRef = C_STACK(a3);
 
-  retCode ret = enqueueRead(ioChannel(chnl), count, Null, tskRef);
-  ReturnStatus rt = {.ret=ret, .result=voidEnum};
-  return rt;
+  futurePo ft = makeFuture(h, Null, nilEnum);
+
+  retCode ret = enqueueRead(ioChannel(chnl), count, fillFuture, ft);
+  return (ReturnStatus) {.ret=ret, .result=(termPo) ft};
 }
 
 ReturnStatus g__ready_to_read(heapPo h, termPo a1) {
@@ -45,9 +74,7 @@ ReturnStatus g__ready_to_read(heapPo h, termPo a1) {
 
   termPo Rs = (isInReady(O_FILE(ioChannel(chnl))) ? trueEnum : falseEnum);
 
-  ReturnStatus ret = {.ret=Ok, .result=Rs};
-
-  return ret;
+  return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
 ReturnStatus g__ready_to_write(heapPo h, termPo a1) {
@@ -55,9 +82,7 @@ ReturnStatus g__ready_to_write(heapPo h, termPo a1) {
 
   termPo Rs = (isOutReady(O_FILE(ioChannel(chnl))) ? trueEnum : falseEnum);
 
-  ReturnStatus ret = {.ret=Ok, .result=Rs};
-
-  return ret;
+  return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
 ReturnStatus g__inchar(heapPo h, termPo a1) {
@@ -66,11 +91,9 @@ ReturnStatus g__inchar(heapPo h, termPo a1) {
   codePoint cp;
   retCode ret = inChar(io, &cp);
   if (ret == Ok) {
-    ReturnStatus rt = {.ret=Ok, .result=makeInteger(cp)};
-    return rt;
+    return (ReturnStatus) {.ret=Ok, .result=makeInteger(cp)};
   } else {
-    ReturnStatus rt = {.ret=ret, .result=voidEnum};
-    return rt;
+    return (ReturnStatus) {.ret=ret, .result=voidEnum};
   }
 }
 
@@ -97,8 +120,7 @@ ReturnStatus g__inchars(heapPo h, termPo a1, termPo a2) {
     return rt;
   } else {
     closeFile(O_IO(buffer));
-    ReturnStatus rt = {.ret=ret, .result=voidEnum};
-    return rt;
+    return (ReturnStatus) {.ret=ret, .result=voidEnum};
   }
 }
 
@@ -108,57 +130,50 @@ ReturnStatus g__inbyte(heapPo h, termPo a1) {
   byte b;
   retCode ret = inByte(io, &b);
   if (ret == Ok) {
-    ReturnStatus rt = {.ret=Ok, .result=makeInteger(b)};
-    return rt;
+    return (ReturnStatus) {.ret=Ok, .result=makeInteger(b)};
   } else {
-    ReturnStatus rt = {.ret=ret, .result=voidEnum};
-    return rt;
+    return (ReturnStatus) {.ret=ret, .result=voidEnum};
   }
 }
-//
-//ReturnStatus g__inbytes(heapPo h, termPo a1) {
-//  termPo Arg1 = a1;
-//  termPo Arg2 = tos[1];
-//  ioPo io = ioChannel(C_IO(Arg1));
-//  integer limit = integerVal(Arg2);
-//
-//  bufferPo buffer = newStringBuffer();
-//  byte bf[MAXLINE];
-//
-//  retCode ret = Ok;
-//
-//  while (limit-- > 0 && ret == Ok) {
-//    integer cnt;
-//    ret = inBytes(io, bf, NumberOf(bf), &cnt);
-//
-//    if (ret == Ok)
-//      ret = outBytes(O_IO(buffer), bf, cnt, &cnt);
-//  }
-//
-//  if (ret == Ok) {
-//    integer length;
-//    char *text = getTextFromBuffer(buffer, &length);
-//
-//    arrayPo lst = allocateArray(H, length);
-//    int root = gcAddRoot(H, (ptrPo) &lst);
-//
-//    for (long ix = 0; ix < length; ix++) {
-//      byte b = (byte) text[ix];
-//      termPo bt = (termPo) allocateInteger(H, (integer) b);
-//      setNthEl(lst, ix, bt);
-//    }
-//
-//    closeFile(O_IO(buffer));
-//    gcReleaseRoot(H, root);
-//
-//    ReturnStatus rt = {.ret=Ok, .result=(termPo) lst};
-//    return rt;
-//  } else {
-//    closeFile(O_IO(buffer));
-//    ReturnStatus rt = {.ret=ret, .result=voidEnum};
-//    return rt;
-//  }
-//}
+
+ReturnStatus g__inbytes(heapPo h, termPo a1, termPo a2) {
+  ioPo io = ioChannel(C_IO(a1));
+  integer limit = integerVal(a2);
+
+  strBufferPo buffer = newStringBuffer();
+  byte bf[MAXLINE];
+
+  retCode ret = Ok;
+
+  while (limit-- > 0 && ret == Ok) {
+    integer cnt;
+    ret = inBytes(io, bf, NumberOf(bf), &cnt);
+
+    if (ret == Ok)
+      ret = outBytes(O_IO(buffer), bf, cnt, &cnt);
+  }
+
+  if (ret == Ok) {
+    integer length;
+    char *text = getTextFromBuffer(buffer, &length);
+
+    termPo lst = nilEnum;
+    int root = gcAddRoot(h, (ptrPo) &lst);
+
+    for (integer ix = length - 1; ix >= 0; ix--) {
+      termPo b = makeInteger((byte) text[ix]);
+      lst = (termPo) allocateCons(h, b, lst);
+    }
+
+    closeFile(O_IO(buffer));
+    gcReleaseRoot(h, root);
+
+    return (ReturnStatus) {.ret=Ok, .result=lst};
+  } else {
+    closeFile(O_IO(buffer));
+    return (ReturnStatus) {.ret=ret, .result=voidEnum};
+  }
+}
 
 ReturnStatus g__intext(heapPo h, termPo a1, termPo a2) {
   ioPo io = ioChannel(C_IO(a1));
@@ -188,8 +203,7 @@ ReturnStatus g__intext(heapPo h, termPo a1, termPo a2) {
     return rt;
   } else {
     closeFile(O_IO(buffer));
-    ReturnStatus rt = {.ret=ret, .result=voidEnum};
-    return rt;
+    return (ReturnStatus) {.ret=ret, .result=voidEnum};
   }
 }
 
@@ -221,8 +235,7 @@ ReturnStatus g__inline(heapPo h, termPo a1) {
     return rt;
   } else {
     closeFile(O_IO(buffer));
-    ReturnStatus rt = {.ret=ret, .result=voidEnum};
-    return rt;
+    return (ReturnStatus) {.ret=ret, .result=voidEnum};
   }
 }
 
@@ -255,8 +268,7 @@ ReturnStatus g__inline_async(heapPo h, termPo a1) {
     return rt;
   } else {
     closeFile(O_IO(buffer));
-    ReturnStatus rt = {.ret=ret, .result=voidEnum};
-    return rt;
+    return (ReturnStatus) {.ret=ret, .result=voidEnum};
   }
 }
 
@@ -286,12 +298,10 @@ ReturnStatus g__get_file(heapPo h, termPo a1) {
       return rt;
     } else {
       closeFile(O_IO(buffer));
-      ReturnStatus rt = {.ret=ret, .result=voidEnum};
-      return rt;
+      return (ReturnStatus) {.ret=ret, .result=voidEnum};
     }
   } else {
-    ReturnStatus rt = {.ret=Error, .result=eNOTFND};
-    return rt;
+    return (ReturnStatus) {.ret=Error, .result=eNOTFND};
   }
 }
 
@@ -363,7 +373,7 @@ ReturnStatus g__put_file(heapPo h, termPo a1, termPo a2) {
     ReturnStatus rt = {.ret=ret, .result=unitEnum};
     return rt;
   } else {
-    return (ReturnStatus){.ret=Error, .result=eNOTFND};
+    return (ReturnStatus) {.ret=Error, .result=eNOTFND};
   }
 }
 
@@ -375,8 +385,8 @@ ReturnStatus g__logmsg(heapPo h, termPo a1) {
   return rtnStatus(h, ret, "logmsg");
 }
 
-ReturnStatus g__display_depth(heapPo h){
-  return (ReturnStatus){.ret=Ok, .result=makeInteger(displayDepth)};
+ReturnStatus g__display_depth(heapPo h) {
+  return (ReturnStatus) {.ret=Ok, .result=makeInteger(displayDepth)};
 }
 
 ReturnStatus g__stdfile(heapPo h, termPo a1) {
