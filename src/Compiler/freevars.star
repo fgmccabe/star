@@ -52,6 +52,9 @@ star.compiler.freevars{
     .trycatch(_,E,T,H,_) where Excl1 .= extendExcl(T,Excl) =>
       freeVarsInExp(T,Excl1,Q,freeVarsInExp(E,Excl1,Q,
 	  foldRight((Rl,F)=>freeVarsInRule(Rl,freeVarsInExp,Excl,Q,F),Fv,H))).
+    .tryhandle(_,E,T,H,_) where Excl1 .= extendExcl(T,Excl) =>
+      freeVarsInExp(T,Excl1,Q,freeVarsInExp(E,Excl1,Q,
+	  foldRight((Rl,F)=>freeVarsInRule(Rl,freeVarsInExp,Excl,Q,F),Fv,H))).
     .rais(_,T,E,_) => freeVarsInExp(T,Excl,Q,freeVarsInExp(E,Excl,Q,Fv)).
     .invoke(_,O,A,_) =>
       freeVarsInTuple(A,Excl,Q,freeVarsInExp(O,Excl,Q,Fv)).
@@ -92,6 +95,8 @@ star.compiler.freevars{
       freeVarsInExp(E,Excl1,Q,freeVarsInExp(P,Excl1,Q,Fv)).
     .doAssign(_,L,R) => freeVarsInExp(L,Excl,Q,freeVarsInExp(R,Excl,Q,Fv)).
     .doTryCatch(_,L,T,H) where Excl1 .= extendExcl(T,Excl) =>
+      foldLeft((Rl,F)=>freeVarsInRule(Rl,freeVarsInAct,Excl,Q,F),freeVarsInAct(L,Excl1,Q,Fv), H).
+    .doTryHandle(_,L,T,H) where Excl1 .= extendExcl(T,Excl) =>
       foldLeft((Rl,F)=>freeVarsInRule(Rl,freeVarsInAct,Excl,Q,F),freeVarsInAct(L,Excl1,Q,Fv), H).
     .doIfThen(Lc,T,L,R) => valof{
       Excl1 = condVars(T,Excl);

@@ -352,6 +352,20 @@ star.compiler.normalize{
       valis (.cVoid(Lc,typeOf(Th)),Ex)
     }
   }
+  liftExp(.tryhandle(Lc,B,Th,Hndlr,Tp),Map,Q,Ex) => valof{
+    if ErTp?=getTypeArg(typeOf(Th),"star.core*cont") then{
+      (TT,Ex1) = liftPtn(Th,Map,Q,Ex);
+      (BB,Ex2) = liftExp(B,Map,Q,Ex1);
+      (Hs,Ex3) = transformRules(Hndlr,Map,Q,.none,Ex2);
+      ErrVr = .cVar(Lc,genVar("E",ErTp));
+      HH = caseMatcher(Lc,Map,ErrVr,.cAbort(Lc,"no matches",Tp),Hs);
+      valis (.cHandle(Lc,BB,TT,ErrVr,HH,Tp),Ex3)
+    }
+    else {
+      reportError("expecting a continuation type, not $(typeOf(Th))",Lc);
+      valis (.cVoid(Lc,typeOf(Th)),Ex)
+    }
+  }
   liftExp(.rais(Lc,T,E,Tp),Map,Q,Ex) => valof{
     (LT,Ex1) = liftExp(T,Map,Q,Ex);
     (LE,Ex2) = liftExp(E,Map,Q,Ex1);
@@ -708,6 +722,21 @@ star.compiler.normalize{
       Hndlr = caseMatcher(Lc,Map,ErrVr,.aAbort(Lc,"no matches"),Hs);
       
       valis (.aTry(Lc,BB,TT,ErrVr,Hndlr),Ex3)
+    }
+    else {
+      reportError("expecting a continuation type, not $(typeOf(Th))",Lc);
+      valis (.aNop(Lc),Ex)
+    }
+  }
+  liftAction(.doTryHandle(Lc,B,Th,H),Map,Q,Ex) => valof{
+    if ErTp?=getTypeArg(typeOf(Th),"star.core*cont") then{
+      (TT,Ex1) = liftPtn(Th,Map,Q,Ex);
+      (BB,Ex2) = liftAction(B,Map,Q,Ex1);
+      (Hs,Ex3) = transformRules(H,Map,Q,.none,Ex2);
+      ErrVr = .cVar(Lc,genVar("E",ErTp));
+      Hndlr = caseMatcher(Lc,Map,ErrVr,.aAbort(Lc,"no matches"),Hs);
+      
+      valis (.aHandle(Lc,BB,TT,ErrVr,Hndlr),Ex3)
     }
     else {
       reportError("expecting a continuation type, not $(typeOf(Th))",Lc);

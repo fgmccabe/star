@@ -126,6 +126,9 @@ star.compiler.inline{
   simExp(.cTry(Lc,Exp,Th,E,H,Tp),Map,Depth) =>
     .cTry(Lc,simplifyExp(Exp,Map,Depth),simplifyExp(Th,Map,Depth),
       simplifyExp(E,Map,Depth),simplifyExp(H,Map,Depth),Tp).
+  simExp(.cHandle(Lc,Exp,Th,E,H,Tp),Map,Depth) =>
+    .cHandle(Lc,simplifyExp(Exp,Map,Depth),simplifyExp(Th,Map,Depth),
+      simplifyExp(E,Map,Depth),simplifyExp(H,Map,Depth),Tp).
   simExp(.cValof(Lc,Act,Tp),Map,Depth) =>
     valofAct(Lc,simplifyAct(Act,Map,Depth),Tp).
 
@@ -175,6 +178,9 @@ star.compiler.inline{
       simplifyExp(E,Map,Depth)).
   simAct(.aTry(Lc,B,T,E,H),Map,Depth) =>
     .aTry(Lc,simplifyAct(B,Map,Depth),
+      simplifyExp(T,Map,Depth),simplifyExp(E,Map,Depth),simplifyAct(H,Map,Depth)).
+  simAct(.aHandle(Lc,B,T,E,H),Map,Depth) =>
+    .aHandle(Lc,simplifyAct(B,Map,Depth),
       simplifyExp(T,Map,Depth),simplifyExp(E,Map,Depth),simplifyAct(H,Map,Depth)).
   simAct(.aLtt(Lc,Vr,Bnd,A),Map,Depth) =>
     inlineLtt(Lc,Vr,simplifyExp(Bnd,Map,Depth),A,Map,Depth).
