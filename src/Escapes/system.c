@@ -49,12 +49,6 @@ void sleep_for(integer amnt) {
   }
 }
 
-void memerr() {
-  outMsg(logFile, "out of heap space\n");
-  flushOut();
-  exit(99);
-}
-
 ReturnStatus g__exit(heapPo h, termPo arg1) {
   integer ix = integerVal(arg1);
 

@@ -318,6 +318,11 @@ retCode fileEnqueueRead(ioPo io, integer count, ioCallBackProc signaler, void *c
   return Ok;
 }
 
+integer enqueuedCount(ioPo io){
+  filePo f = O_FILE(io);
+  return f->file.aio.aio_nbytes;
+}
+
 retCode fileEnqueueWrite(ioPo f, byte *buffer, integer count, void *cl) {
   return Error;
 }

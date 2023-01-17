@@ -80,6 +80,7 @@ retCode resolvePath(char *root, integer rootLen, const char *fn, integer fnLen, 
 
 retCode fileEnqueueRead(ioPo io, integer count, ioCallBackProc signaler, void *cl);
 retCode fileEnqueueWrite(ioPo io, byte *buffer, integer count, void *cl);
+integer enqueuedCount(ioPo io);
 
 #ifdef VERIFY_OBJECT
 #define O_FILE(c) ((filePo)(checkCast((c),ioClass)))

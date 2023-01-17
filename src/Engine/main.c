@@ -25,6 +25,7 @@
 #include "jit.h"
 #include "starP.h"
 #include "thunkP.h"
+#include "futureP.h"
 
 #include "stringBufferP.h"
 #include "continuationP.h"
@@ -61,6 +62,7 @@ int main(int argc, char **argv) {
   initCons();
   initIdeal();
   initOption();
+  initFuture();
   initCell();
   initCode();
   initLocks();

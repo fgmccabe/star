@@ -4,7 +4,6 @@
 
 
 #include <labels.h>
-#include <stack.h>
 #include "futureP.h"
 #include "assert.h"
 #include "option.h"
@@ -45,7 +44,7 @@ static integer futureHash = 0;
 futurePo makeFuture(heapPo H, futureSetProc fut, void *cl) {
   futurePo ft = (futurePo) allocateObject(H, futureClass, FutureCellCount);
   ft->cont = Null;
-  ft->val = voidEnum;
+  ft->val = noneEnum;
   ft->set = fut;
   ft->cl = cl;
   ft->hash = hash61(futureHash++);
@@ -102,6 +101,7 @@ retCode setFuture(heapPo H, futurePo ft, termPo val) {
   int root = gcAddRoot(H, &val);
   ft->val = (termPo) wrapSome(H, val);
 
+  gcReleaseRoot(H,root);
   return Ok;
 }
 
