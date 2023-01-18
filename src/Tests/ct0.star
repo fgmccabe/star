@@ -5,22 +5,29 @@ test.ct0{
   import star.script.
   import star.structured.conn.
 
+  pause:all e ~~ this |= task[e], _raise |= cont[()] |: () => ().
+  pause() => valof{
+    case this suspend .yield_ in {
+      .go_ahead => valis ()
+      | .shut_down_ => raise ()
+    }
+  }
+
   tt:(integer)=>task[()].
   tt(K) => fiber{
     Count := K;
-    while Count!>0 do{
-      case suspend .yield_ in {
-	.go_ahead => {}.
-	.shut_down_ => {
-	  logMsg("$(K) shutting down");
-	  retire .blocked
-	}
-      };
-      Count := Count!-1;
-      logMsg("$(K) moving along, $(Count!) rounds left");
+    try{
+      while Count!>0 do{
+	pause();
+	Count := Count! -1;
+	logMsg("$(K) moving along, $(Count!) rounds left");
+      }
+    } catch {() => {
+	logMsg("$(K) shutting down");
+      }
     };
     valis .result(())
-  }.
+    }.
   
   main:()=>().
   main() => valof{
