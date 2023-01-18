@@ -111,4 +111,14 @@ star.structured.conn{
     testBlocked(Q,BQ,[T,..Ws]).
   testBlocked([(P,T),..Q],BQ,Ws) =>
     testBlocked(Q,[(P,T),..BQ],Ws).
+
+  public canceled : () <=> exception.
+
+  public pause:all e ~~ this |= task[e] |: () => () raises exception.
+  pause() => valof{
+    case this suspend .yield_ in {
+      .go_ahead => valis ()
+      | .shut_down_ => raise .canceled
+    }
+  }
 }
