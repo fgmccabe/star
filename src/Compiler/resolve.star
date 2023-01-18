@@ -139,6 +139,11 @@ star.compiler.resolve{
       declareVar(Nm,Nm,Lc,Tp,.none,D))
   }
 
+  defineArgVars(.tple(_,Args),D) => foldLeft(defineArg,D,Args).
+
+  defineArg(.vr(Lc,Nm,Tp),D) => declareVar(Nm,Nm,Lc,Tp,.none,D).
+  defineArg(_,D) => D.
+
   overload:all e ~~ resolve[e] |: (e,dict) => e.
   overload(C,D) => resolveAgain(.inactive,C,resolve(C,D,.inactive),D).
 
@@ -443,14 +448,16 @@ star.compiler.resolve{
     (cons[rule[x]],resolveState).
   overloadRules([],Els,Dict,St) => (reverse(Els),St).
   overloadRules([.rule(Lc,Ptn,.none,Exp),..Ts],Els,Dict,St) => valof{
-    (RPtn,St1) = overloadTerm(Ptn,Dict,St);
-    (RExp,St2) = resolve(Exp,Dict,St1);
+    RDict = defineArgVars(Ptn,Dict);
+    (RPtn,St1) = overloadTerm(Ptn,RDict,St);
+    (RExp,St2) = resolve(Exp,RDict,St1);
     valis overloadRules(Ts,[.rule(Lc,RPtn,.none,RExp),..Els],Dict,St2)
   }
   overloadRules([.rule(Lc,Ptn,.some(Wh),Exp),..Ts],Els,Dict,St) => valof{
-    (RPtn,St1) = overloadTerm(Ptn,Dict,St);
-    (RExp,St2) = resolve(Exp,Dict,St1);
-    (RWh,St3) = overloadTerm(Wh,Dict,St2);
+    RDict = defineArgVars(Ptn,Dict);
+    (RPtn,St1) = overloadTerm(Ptn,RDict,St);
+    (RExp,St2) = resolve(Exp,RDict,St1);
+    (RWh,St3) = overloadTerm(Wh,RDict,St2);
     valis overloadRules(Ts,[.rule(Lc,RPtn,.some(RWh),RExp),..Els],Dict,St3)
   }
   

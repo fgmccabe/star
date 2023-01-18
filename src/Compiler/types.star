@@ -534,4 +534,27 @@ star.compiler.types{
   contractTypeRule(.allRule(Q,R)) => .allRule(Q,contractTypeRule(R)).
   contractTypeRule(.contractExists(Nm,Tps,Dps,Face)) =>
     .typeExists(mkTypeExp(.tpFun(Nm,size(Tps)+size(Dps)),Tps++Dps),Face).
+
+  public occursIn(TV,Tp) where ~isIdenticalVar(TV,Tp) =>
+    occIn(vrNm(TV),deRef(Tp)).
+
+  occIn(Id,.tVar(_,Nm)) => Id==Nm.
+  occIn(Id,.tFun(_,_,Nm)) => Id==Nm.
+  occIn(Id,.tpExp(O,A)) => occIn(Id,deRef(O)) || occIn(Id,deRef(A)).
+  occIn(Id,.tupleType(Els)) => {? El in Els && occIn(Id,deRef(El)) ?}.
+  occIn(Id,.allType(_,B)) => occIn(Id,deRef(B)).
+  occIn(Id,.existType(_,B)) => occIn(Id,deRef(B)).
+  occIn(Id,.faceType(Flds,Tps)) => occInPrs(Id,Flds) || occInPrs(Id,Tps).
+  occIn(Id,.constrainedType(T,C)) => occIn(Id,deRef(T)) || occInCon(Id,C).
+  occIn(_,_) default => .false.
+
+  occInCon(Id,.conTract(_,Els,Dps)) => {? El in Els && occIn(Id,deRef(El)) ?} ||
+  {? El in Dps && occIn(Id,deRef(El)) ?}.
+  occInCon(Id,.fieldConstraint(T,_,F)) => occIn(Id,deRef(T)) || occIn(Id,deRef(F)).
+  occInCon(Id,.implicit(_,T)) => occIn(Id,deRef(T)).
+
+  occInPrs(Id,Tps) => {? (_,El) in Tps && occIn(Id,deRef(El)) ?}.
+
+  vrNm(.tVar(_,Nm)) => Nm.
+  vrNm(.tFun(_,_,Nm)) => Nm.
 }

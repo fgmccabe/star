@@ -114,24 +114,6 @@ star.compiler.unify{
   fcTp(.faceType(Flds,Tps)) => .some(.faceType(Flds,Tps)).
   fcTp(_) default => .none.
 
-  occursIn(TV,Tp) where ~isIdenticalVar(TV,Tp) =>
-      occIn(vrNm(TV),deRef(Tp)).
-
-  occIn(Id,.tVar(_,Nm)) => Id==Nm.
-  occIn(Id,.tFun(_,_,Nm)) => Id==Nm.
-  occIn(Id,.tpExp(O,A)) => occIn(Id,deRef(O)) || occIn(Id,deRef(A)).
-  occIn(Id,.tupleType(Els)) => {? El in Els && occIn(Id,deRef(El)) ?}.
-  occIn(Id,.allType(_,B)) => occIn(Id,deRef(B)).
-  occIn(Id,.existType(_,B)) => occIn(Id,deRef(B)).
-  occIn(Id,.faceType(Flds,Tps)) => occInPrs(Id,Flds) || occInPrs(Id,Tps).
-  occIn(Id,.constrainedType(T,_)) => occIn(Id,deRef(T)).
-  occIn(_,_) default => .false.
-
-  vrNm(.tVar(_,Nm)) => Nm.
-  vrNm(.tFun(_,_,Nm)) => Nm.
-
-  occInPrs(Id,Tps) => {? (_,El) in Tps && occIn(Id,deRef(El)) ?}.
-
   rewriteType:(tipe,map[tipe,tipe])=>tipe.
   rewriteType(Tp,Env) => rewr(deRef(Tp),Env).
   
