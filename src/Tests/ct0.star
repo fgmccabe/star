@@ -5,14 +5,6 @@ test.ct0{
   import star.script.
   import star.structured.conn.
 
-  pause:all e ~~ this |= task[e], _raise |= cont[()] |: () => ().
-  pause() => valof{
-    case this suspend .yield_ in {
-      .go_ahead => valis ()
-      | .shut_down_ => raise ()
-    }
-  }
-
   tt:(integer)=>task[()].
   tt(K) => fiber{
     Count := K;
@@ -22,7 +14,7 @@ test.ct0{
 	Count := Count! -1;
 	logMsg("$(K) moving along, $(Count!) rounds left");
       }
-    } catch {() => {
+    } catch { .canceled => {
 	logMsg("$(K) shutting down");
       }
     };
