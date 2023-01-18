@@ -95,7 +95,7 @@ to the @code{fiber} when it is first resumed.
 When @code{fiber}s are created, they are in suspended state: i.e., the
 code within the @code{fiber} expression is not executed
 immediately. The @code{fiber} starts executing only when it is resumed
--- using the @refer{ResumeAction}
+-- using the @refer{Resume}
 @end quotation
 @end table
 
@@ -219,6 +219,6 @@ for some @code{@var{S}} and @code{@var{R}}; the type of @code{@var{E}}:
 In the case where the @refer{RetireAction} is being performed withing
 the lexical scope of the @code{fiber} expression, the shorter form --
 which omits the identifier for the fiber being retired -- may be
-used. As with the @refer{SuspendAction} this is equivalent to using
+used. As with @refer{Suspend} this is equivalent to using
 the @code{this} keyword to identify the retiring fiber.
 
