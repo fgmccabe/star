@@ -300,7 +300,7 @@
 @tab meta annotation
 @item @code{|=}
 @tab non-associative infix
-@tab 1225
+@tab 999
 @tab implicit variable
 @item @code{in}
 @tab right associative infix
@@ -460,7 +460,7 @@
 @tab filter
 @item @code{<~}
 @tab non-associative infix
-@tab 1231
+@tab 999
 @tab type interface rule
 @item @code{type}
 @tab non-associative prefix
