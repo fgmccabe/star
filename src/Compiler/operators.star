@@ -101,7 +101,7 @@ star.compiler.operators{
     "return" => [.prefixOp(930,929)].
     "?" => [.prefixOp(820,819)].
     "@" => [.prefixOp(400,399), .infixOp(399,400,400)].
-    "|=" => [.infixOp(1224,1225,1224)].
+    "|=" => [.infixOp(998,999,998)].
     "in" => [.infixOp(899,900,900)].
     "break" => [.prefixOp(10,9)].
     "suspend" => [.prefixOp(890,899), .infixOp(889,890,889)].
@@ -139,7 +139,7 @@ star.compiler.operators{
     "implementation" => [.prefixOp(1260,1259)].
     ">>=" => [.infixOp(949,950,950)].
     "^/" => [.infixOp(960,960,959)].
-    "<~" => [.infixOp(1230,1231,1230)].
+    "<~" => [.infixOp(998,999,998)].
     "type" => [.prefixOp(1251,1250)].
     "|" => [.infixOp(1548,1548,1547)].
     ".#." => [.infixOp(600,600,599)].

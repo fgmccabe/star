@@ -52,9 +52,9 @@
   {
     "infixOp": "<~",
     "priorities": [
-      1230,
-      1231,
-      1230
+      998,
+      999,
+      998
     ],
     "desc": "type interface rule",
     "keyword": true
@@ -62,9 +62,9 @@
   {
     "infixOp" : "|=",
     "priorities" : [
-      1224,
-      1225,
-      1224
+      998,
+      999,
+      998
     ],
     "desc" : "implicit variable",
     "keyword" : true

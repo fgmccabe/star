@@ -84,7 +84,7 @@
   operator("return", [prefixOp(930, 929)]).
   operator("?", [prefixOp(820, 819)]).
   operator("@", [prefixOp(400, 399), infixOp(399, 400, 400)]).
-  operator("|=", [infixOp(1224, 1225, 1224)]).
+  operator("|=", [infixOp(998, 999, 998)]).
   operator("in", [infixOp(899, 900, 900)]).
   operator("break", [prefixOp(10, 9)]).
   operator("suspend", [prefixOp(890, 899), infixOp(889, 890, 889)]).
@@ -122,7 +122,7 @@
   operator("implementation", [prefixOp(1260, 1259)]).
   operator(">>=", [infixOp(949, 950, 950)]).
   operator("^/", [infixOp(960, 960, 959)]).
-  operator("<~", [infixOp(1230, 1231, 1230)]).
+  operator("<~", [infixOp(998, 999, 998)]).
   operator("type", [prefixOp(1251, 1250)]).
   operator("|", [infixOp(1548, 1548, 1547)]).
   operator(".#.", [infixOp(600, 600, 599)]).
