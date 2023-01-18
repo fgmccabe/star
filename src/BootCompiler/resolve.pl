@@ -41,9 +41,10 @@ resolveGuard(some(G),Dict,some(RG)) :-
 
 % These are used when resolving lambdas only. A lambda cannot introduce any dictionary variables
 overloadRule(Over,rule(Lc,Args,G,Exp),Dict,St,Stx,rule(Lc,RArgs,RG,RExp)) :-
-  overloadTerm(Args,Dict,St,St0,RArgs),
-  overloadGuard(G,Dict,St0,St1,RG),
-  call(Over,Exp,Dict,St1,Stx,RExp).
+  defineArgVars(Args,Dict,RDict),
+  overloadTerm(Args,RDict,St,St0,RArgs),
+  overloadGuard(G,RDict,St0,St1,RG),
+  call(Over,Exp,RDict,St1,Stx,RExp).
 
 overloadDefn(Lc,Nm,ExtNm,[],Tp,Exp,Dict,varDef(Lc,Nm,ExtNm,[],Tp,RExp)) :-
   resolveTerm(Exp,Dict,RExp).
@@ -81,6 +82,14 @@ fieldVars(Lc,Tp,[(FldNm,FldTp)|Flds],[NV|CVrs],XVrs,Dict,CDict) :-
   genVar(FldNm,Lc,funType(tplType([Tp]),FldTp),NV),
   fieldVars(Lc,Tp,Flds,CVrs,XVrs,[access(FldNm,NV)|Dict],CDict).
 
+defineArgVars(tple(_,Args),Dict,RDict) :-
+  rfold(Args,resolve:defineArg,Dict,RDict).
+defineArgVars(_,Dict,Dict).
+
+defineArg(v(Lc,Nm,Tp),Dict,RDict) :-
+  declareVr(Lc,Nm,Tp,none,Dict,RDict).
+defineArg(_,Dict,Dict).
+  
 resolveTerm(Term,Dict,Resolved) :-
 %  locOfCanon(Term,Lc),
 %  reportMsg("resolving %s",[Term],Lc),
@@ -420,11 +429,11 @@ resolveContracts(Lc,[Con|C],Dict,St,Stx,[CV|Vs]) :-
   resolveContracts(Lc,C,Dict,St0,Stx,Vs).
 
 resolveContract(Lc,implicit(Nm,Tp),Dict,St,Stx,Over) :-
-  (getVar(Lc,Nm,Dict,Vr,VTp),
-   (sameType(VTp,Tp,Lc,Dict),
+  (getVar(Lc,Nm,Dict,Vr,ITp),
+   (sameType(ITp,Tp,Lc,Dict),
     markResolved(St,St1),
     overloadTerm(Vr,Dict,St1,Stx,Over);
-    genMsg("implicit %s:%s not consistent with %s",[Nm,tpe(VTp),tpe(Tp)],Msg),
+    genMsg("implicit %s:%s not consistent with %s",[Nm,tpe(ITp),tpe(Tp)],Msg),
     markActive(St,Lc,Msg,Stx)) ;
    genMsg("implicit %s:%s not defined",[Nm,tpe(Tp)],Msg),
    markActive(St,Lc,Msg,Stx)).

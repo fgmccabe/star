@@ -531,4 +531,5 @@ occIn(V,conTract(_,T,_)) :- is_member(A,T), deRef(A,AA),occIn(V,AA).
 occIn(V,conTract(_,_,D)) :- is_member(A,D), deRef(A,AA),occIn(V,AA).
 occIn(V,implementsFace(T,_)) :- deRef(T,TT),occIn(V,TT),!.
 occIn(V,implementsFace(_,F)) :- deRef(F,FF),occIn(V,FF),!.
+occIn(V,implicit(_,T)) :- deRef(T,TT),occIn(V,TT),!.
 
