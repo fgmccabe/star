@@ -213,13 +213,9 @@ ssTerm(bigLit(_,Bx),_,ss(Bx)).
 ssTerm(floatLit(_,Dx),_,fx(Dx)).
 ssTerm(charLit(_,Cp),_,sq([ss("`"),cp(Cp),ss("`")])).
 ssTerm(stringLit(_,Str),_,sq([ss(""""),ss(Str),ss("""")])).
-ssTerm(apply(_,Op,Args,_,none),Dp,sq([O,A])) :-
+ssTerm(apply(_,Op,Args,_,_),Dp,sq([O,A])) :-
   ssTerm(Op,Dp,O),
   ssTerm(Args,Dp,A).
-ssTerm(apply(_,Op,Args,_,some(ErTp)),Dp,sq([O,A,ss(" raises "),TT])) :-
-  ssTerm(Op,Dp,O),
-  ssTerm(Args,Dp,A),
-  ssType(ErTp,false,Dp,TT).
 ssTerm(invoke(_,Op,Args,_),Dp,sq([O,ss("."),A])) :-
   ssTerm(Op,Dp,O),
   ssTerm(Args,Dp,A).
