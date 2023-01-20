@@ -378,6 +378,7 @@ retCode decodeIns(ioPo in, wordBufferPo bfr, integer *ix, integer *si, char *err
     switch (op) {
 #define sznOp
 #define sztOs
+#define sztO1
 #define szart if(ret==Ok){ret =  writeIntOperand(in,bfr,ix);}
 #define szi32 if(ret==Ok){ret = writeIntOperand(in,bfr,ix);}
 #define szlBs if(ret==Ok){ret = writeBlocks(in,bfr,ix,si,errorMsg,msgSize);}
@@ -421,6 +422,7 @@ retCode decodeIns(ioPo in, wordBufferPo bfr, integer *ix, integer *si, char *err
 #undef szglb
 #undef sznOp
 #undef sztOs
+#undef sztO1
       default: {
         strMsg(errorMsg, msgSize, "invalid instruction encoding");
         return Error;
@@ -443,6 +445,7 @@ static integer maxDepth(insPo code, integer maxPc, normalPo constPool) {
 
 #define sznOp
 #define sztOs
+#define sztO1
 #define szart pc+=2;
 #define szi32 pc+=2;
 #define szlBs pc+=2;
@@ -488,6 +491,7 @@ break;
 #undef szglb
 #undef sznOp
 #undef sztOs
+#undef sztO1
     }
     if (op == Unpack) {
       labelPo lbl = C_LBL(nthArg(constPool, litNo));

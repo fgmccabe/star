@@ -133,10 +133,10 @@ static char *genArg(ioPo out, char *sep, opAndSpec A, char *V) {
   switch (A) {
     case nOp:                             // No operand
     case tOs:
+    case tO1:
       return sep;
     case lit:
     case sym:
-    case lne:
     case glb:
     case Es:
     case i32:
@@ -144,7 +144,6 @@ static char *genArg(ioPo out, char *sep, opAndSpec A, char *V) {
     case arg:
     case lcl:
     case lcs:
-    case cDe:
     case tPe:
       outMsg(out, "%s%s", sep, V);
       return ",";
@@ -171,6 +170,7 @@ char *dot(opAndSpec A) {
   switch (A) {
     case nOp:
     case tOs:
+    case tO1:
       return ".";
     default:
       return "";
@@ -199,6 +199,7 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
       switch (B) {
         case nOp:
         case tOs:
+        case tO1:
           outMsg(out, "=> mnem(Ins,Code++[.intgr(%d)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).\n", op);
           return;
         case off:
@@ -212,11 +213,11 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
         default:
           check(False, "invalid second operand");
       }
-    case lne:
     case lit:
       switch (B) {
         case nOp:
         case tOs:
+        case tO1:
           outMsg(out,
                  "where (Lt1,LtNo) .= findLit(Lts,U) => mnem(Ins,Code++[.intgr(%d),.intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).\n",
                  op);
@@ -226,11 +227,6 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
                  "where (Lt1,LtNo) .= findLit(Lts,U) && Tgt ?= Lbls[V] => mnem(Ins,Code++[.intgr(%d),.intgr(LtNo),.intgr(Tgt-Pc-5)],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
                  op);
           return;
-        case cDe:
-          outMsg(out,
-                 "where (Lt1,LtNo) .= findLit(Lts,U) && (BlkCde,Lt2,Lns1,Lcs1,Pc1,Lc1) .= mnem(V,[],Lbls,Lt1,Lns,Lcs,Pc+5,MxLcl) => mnem(Ins,Code++[.intgr(%d),.intgr(LtNo),.intgr(Pc1-Pc-5),..BlkCde],Lbls,Lt2,Lns1,Lcs1,Pc1,Lc1,Ends).\n",
-                 op);
-          return;
         default:
           check(False, "Cannot generate instruction code");
       }
@@ -238,6 +234,7 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
       switch (B) {
         case nOp:
         case tOs:
+        case tO1:
           outMsg(out,
                  "where (Lt1,LtNo) .= findLit(Lts,.strg(U::string)) => mnem(Ins,Code++[.intgr(%d),.intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).\n",
                  op);
@@ -257,6 +254,7 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
       switch (B) {
         case nOp:
         case tOs:
+        case tO1:
           outMsg(out, "%s => mnem(Ins,Code++[.intgr(%d),.intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).\n", cond,
                  op);
           return;
@@ -275,6 +273,7 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
       switch (B) {
         case nOp:
         case tOs:
+        case tO1:
           outMsg(out, "=> mnem(Ins,Code++[.intgr(%d),.intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", op);
           return;
         case off:
@@ -287,13 +286,14 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
       }
     case lcl:
     case lcs:
-      check(B == nOp, "second operand not nOp");
+      check(B == nOp || B == tO1 || B == tOs, "second operand not nOp");
       outMsg(out, "=> mnem(Ins,Code++[.intgr(%d),.intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,max(U,MxLcl),Ends).\n", op);
       return;
     case glb:
       switch (B) {
         case nOp:
         case tOs:
+        case tO1:
           outMsg(out, "=> mnem(Ins,Code++[.intgr(%d),.strg(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", op);
           return;
         case off:
@@ -311,6 +311,7 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
       switch (B) {
         case nOp:
         case tOs:
+        case tO1:
           outMsg(out, "%s => mnem(Ins,Code++[.intgr(%d),.intgr(Cd)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", cond, op);
           break;
         case off:
@@ -324,7 +325,7 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
       break;
     }
     case off:                            // program counter relative offset
-      check(B == nOp, "second operand not nOp");
+      check(B == nOp || B == tOs || B == tO1, "second operand not nOp");
       outMsg(out,
              "where Tgt ?= Lbls[U] => mnem(Ins,Code++[.intgr(%d),.intgr(Tgt-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n",
              op);
@@ -343,7 +344,6 @@ static integer insSize(OpCode op, opAndSpec A1, opAndSpec A2) {
     case tPe:
     case lit:
     case sym:
-    case lne:
     case i32:
     case art:
     case arg:
@@ -352,7 +352,6 @@ static integer insSize(OpCode op, opAndSpec A1, opAndSpec A2) {
     case Es:
     case glb:
     case off:
-    case cDe:
       sz += 2;
       break;
   }
@@ -362,7 +361,6 @@ static integer insSize(OpCode op, opAndSpec A1, opAndSpec A2) {
     case tPe:
     case lit:
     case sym:
-    case lne:
     case i32:
     case art:
     case arg:
@@ -371,7 +369,6 @@ static integer insSize(OpCode op, opAndSpec A1, opAndSpec A2) {
     case Es:
     case glb:
     case off:
-    case cDe:
       sz += 2;
       break;
   }
@@ -391,26 +388,16 @@ void starPc(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt)
 
   int increment = insSize(op, A1, A2);
 
-  if (A1 == cDe) {
-    if (A2 == cDe) {
-      outMsg(out,
-             "where (Pc1,Lb1).=genLblTbl(A,Pc+%d,Lbls) && (Pc2,Lb2) .= genLblTbl(B,Pc1,Lb1) => genLblTbl(Ins,Pc2,Lb2).\n",
-             increment);
-    } else
-      outMsg(out, "where (Pc1,Lb1).=genLblTbl(A,Pc+%d,Lbls) => genLblTbl(Ins,Pc1,Lb1).\n", increment);
-  } else if (A2 == cDe) {
-    outMsg(out, "where (Pc1,Lb1).=genLblTbl(B,Pc+%d,Lbls) => genLblTbl(Ins,Pc1,Lb1).\n", increment);
-  } else
-    outMsg(out, " => genLblTbl(Ins,Pc+%d,Lbls).\n", increment);
+  outMsg(out, " => genLblTbl(Ins,Pc+%d,Lbls).\n", increment);
 }
 
 static char *opAndTp(opAndSpec A) {
   switch (A) {
     case nOp:                             // No operand
     case tOs:
+    case tO1:
       return Null;
     case lit:
-    case lne:
       return "data";
     case sym:
       return "termLbl";
@@ -425,8 +412,6 @@ static char *opAndTp(opAndSpec A) {
     case Es:
     case glb:
       return "string";
-    case cDe:
-      return "cons[assemOp]";
     case tPe:
       return "ltipe";
     default:
@@ -456,9 +441,9 @@ static logical genDisp(ioPo out, opAndSpec A, char *Nm) {
   switch (A) {
     case nOp:                             // No operand
     case tOs:
+    case tO1:
     default:
       return False;
-    case lne:
     case tPe:
     case lit:
     case sym:
@@ -468,7 +453,6 @@ static logical genDisp(ioPo out, opAndSpec A, char *Nm) {
     case lcl:
     case lcs:
     case glb:
-    case cDe:
     case Es:
       outMsg(out, " $(%s)", Nm);
       return True;

@@ -81,13 +81,16 @@ integer cntHash(specialClassPo cl, termPo o) {
 retCode cntDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   continuationPo cont = C_CONTINUATION(t);
 
-  framePo fp = contFP(cont);
-  termPo loc = findPcLocation(fp->prog, insOffset(fp->prog, contPC(cont)));
+  if (continIsValid(cont)) {
+    framePo fp = contFP(cont);
+    termPo loc = findPcLocation(fp->prog, insOffset(fp->prog, contPC(cont)));
 
-  if(loc==Null)
-    loc = voidEnum;
-
-  return outMsg(out, "(.continuation %d:[%,*T].)", cont->stack->hash, displayDepth, loc);
+    if (loc == Null)
+      return outMsg(out, "(.continuation %d:[unknown].)", cont->stack->hash, displayDepth);
+    else
+      return outMsg(out, "(.continuation %d:[%,*T].)", cont->stack->hash, displayDepth, loc);
+  } else
+    return outMsg(out, "(.continuation %d:invalid.)",cont->stack->hash);
 }
 
 termPo cntFinalizer(specialClassPo class, termPo o) {
@@ -97,8 +100,8 @@ termPo cntFinalizer(specialClassPo class, termPo o) {
 continuationPo allocateContinuation(heapPo H, stackPo stack, ptrPo sp, framePo fp, insPo pc) {
   int root = gcAddRoot(H, (ptrPo) &stack);
 
-  integer fpo = fp-baseFrame(stack);
-  integer spo = stackLimit(stack)-sp;
+  integer fpo = fp - baseFrame(stack);
+  integer spo = stackLimit(stack) - sp;
   integer pcOff = insOffset(fp->prog, pc);
 
   continuationPo cont = (continuationPo) allocateObject(H, contClass, ContinuationCellCount);
@@ -128,13 +131,13 @@ void invalidateCont(continuationPo cont) {
 }
 
 framePo contFP(continuationPo cont) {
-  return baseFrame(cont->stack)+cont->fpNo;
+  return baseFrame(cont->stack) + cont->fpNo;
 }
 
 insPo contPC(continuationPo cont) {
   return pcAddr(contFP(cont)->prog, cont->pcOff);
 }
 
-ptrPo contSP(continuationPo cont){
-  return stackLimit(cont->stack)-cont->spOff;
+ptrPo contSP(continuationPo cont) {
+  return stackLimit(cont->stack) - cont->spOff;
 }

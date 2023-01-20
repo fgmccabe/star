@@ -25,7 +25,7 @@ static void showResume(ioPo out, stackPo stk, termPo cont);
 
 static void showRegisters(processPo p, heapPo h);
 static void showAllLocals(ioPo out, stackPo stk, framePo fp);
-static void showTos(ioPo out, stackPo stk, termPo tos);
+static void showTos(ioPo out, stackPo stk, integer offset);
 static retCode showLcl(ioPo out, stackPo stk, integer vr);
 static retCode showArg(ioPo out, stackPo stk, integer arg);
 static retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bufLen);
@@ -1018,9 +1018,9 @@ retCode showGlb(ioPo out, globalPo glb) {
     return outMsg(out, " unknown global");
 }
 
-void showTos(ioPo out, stackPo stk, termPo _) {
+void showTos(ioPo out, stackPo stk, integer offset) {
   if (stk != Null)
-    outMsg(out, " <tos> = %#,*T", displayDepth, topStack(stk));
+    outMsg(out, " <tos[%d]> = %#,*T", offset, displayDepth, peekStack(stk, offset));
   else
     outMsg(out, " <tos>");
 }
@@ -1075,7 +1075,8 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
 #undef instruction
 
 #define show_nOp
-#define show_tOs showTos(out,stk,Null)
+#define show_tOs showTos(out,stk,0)
+#define show_tO1 showTos(out,stk,1)
 #define show_art showTopOfStack(out,stk,collectI32(pc))
 #define show_i32 outMsg(out," #%d",collectI32(pc))
 #define show_lBs outMsg(out," #%d",collectI32(pc))

@@ -352,12 +352,12 @@ char *stackStateName(TaskState ste) {
 }
 
 retCode stkDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
-  stackPo tsk = C_STACK(t);
+  stackPo stk = C_STACK(t);
 
-  return outMsg(out, "(.stack %d:[%s] %M.)",
-                tsk->hash,
-                stackStateName(tsk->state),
-                tsk->fp->prog);
+  return outMsg(out, "(.stack %d:[%s] %T.)",
+                stk->hash,
+                stackStateName(stk->state),
+                stackState(stk) == moribund ? voidEnum : (termPo)(stk->fp->prog));
 }
 
 void
