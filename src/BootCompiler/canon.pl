@@ -35,7 +35,7 @@ isCanon(bigLit(_,_)).
 isCanon(floatLit(_,_)).
 isCanon(charLit(_,_)).
 isCanon(stringLit(_,_)).
-isCanon(apply(_,_,_,_,_)).
+isCanon(apply(_,_,_,_)).
 isCanon(invoke(_,_,_,_)).
 isCanon(resume(_,_,_,_)).
 isCanon(suspend(_,_,_,_)).
@@ -100,7 +100,7 @@ typeOfCanon(implies(_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(cond(_,_,_,_,Tp),Tp) :-!.
 typeOfCanon(letExp(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(letRec(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
-typeOfCanon(apply(_,_,_,Tp,_),Tp) :-!.
+typeOfCanon(apply(_,_,_,Tp),Tp) :-!.
 typeOfCanon(invoke(_,_,_,Tp),Tp) :-!.
 typeOfCanon(resume(_,_,_,Tp),Tp) :-!.
 typeOfCanon(suspend(_,_,_,Tp),Tp) :-!.
@@ -144,7 +144,7 @@ locOfCanon(cond(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(letExp(Lc,_,_,_),Lc) :- !.
 locOfCanon(letRec(Lc,_,_,_),Lc) :- !.
 locOfCanon(case(Lc,_,_,_),Lc) :- !.
-locOfCanon(apply(Lc,_,_,_,_),Lc) :-!.
+locOfCanon(apply(Lc,_,_,_),Lc) :-!.
 locOfCanon(invoke(Lc,_,_,_),Lc) :-!.
 locOfCanon(resume(Lc,_,_,_),Lc) :-!.
 locOfCanon(suspend(Lc,_,_,_),Lc) :-!.
@@ -175,7 +175,7 @@ locOfCanon(doIfThenElse(Lc,_,_,_),Lc) :-!.
 locOfCanon(doWhile(Lc,_,_),Lc) :-!.
 locOfCanon(doLet(Lc,_,_,_),Lc) :-!.
 locOfCanon(doLetRec(Lc,_,_,_),Lc) :-!.
-locOfCanon(doCall(Lc,_,_),Lc) :-!.
+locOfCanon(doCall(Lc,_),Lc) :-!.
 locOfCanon(doCase(Lc,_,_,_),Lc) :-!.
 locOfCanon(doRetire(Lc,_,_),Lc) :-!.
 
@@ -213,7 +213,7 @@ ssTerm(bigLit(_,Bx),_,ss(Bx)).
 ssTerm(floatLit(_,Dx),_,fx(Dx)).
 ssTerm(charLit(_,Cp),_,sq([ss("`"),cp(Cp),ss("`")])).
 ssTerm(stringLit(_,Str),_,sq([ss(""""),ss(Str),ss("""")])).
-ssTerm(apply(_,Op,Args,_,_),Dp,sq([O,A])) :-
+ssTerm(apply(_,Op,Args,_),Dp,sq([O,A])) :-
   ssTerm(Op,Dp,O),
   ssTerm(Args,Dp,A).
 ssTerm(invoke(_,Op,Args,_),Dp,sq([O,ss("."),A])) :-
@@ -325,7 +325,7 @@ ssAction(doRaise(_,T,E),Dp,sq([TT,ss(" raise "),EE])) :-!,
   typeOfCanon(T,ETp),
   ssType(ETp,true,Dp,TT),
   ssTerm(E,Dp,EE).
-ssAction(doCall(_,E,_),Dp,sq([ss("call "),EE])) :-!,
+ssAction(doCall(_,E),Dp,sq([ss("call "),EE])) :-!,
   ssTerm(E,Dp,EE).
 ssAction(doMatch(_,P,E),Dp,sq([PP,ss(" .= "),EE])) :-!,
   ssTerm(P,Dp,PP),

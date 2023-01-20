@@ -365,7 +365,7 @@ genAccessorEquation(Lc,ConsNm,Fld,FldTp,Tp,AllElTps,
 		    [rule(Lc,tple(Lc,[apply(Lc,
 					    cons(Lc,ConsNm,
 						 consType(ArgTps,Tp)),
-					    tple(Lc,ArgPtns),Tp,none)]),
+					    tple(Lc,ArgPtns),Tp)]),
 			  none,
 			  XX)|Eqns],Eqns) :-
   XX = v(Lc,"XX",FldTp),  
@@ -408,12 +408,12 @@ genUpdaterEquation(Lc,ConsNm,Fld,FldTp,Tp,AllElTps,
 		   [rule(Lc,tple(Lc,[apply(Lc,
 					    cons(Lc,ConsNm,
 						 consType(ArgTps,Tp)),
-					   tple(Lc,ArgPtns),Tp,none),
+					   tple(Lc,ArgPtns),Tp),
 				     XX]),
 			  none,
 			 apply(Lc,
 			       cons(Lc,ConsNm,consType(ArgTps,Tp)),
-			       tple(Lc,ValPtns),Tp,none)
+			       tple(Lc,ValPtns),Tp)
 			 )|Eqns],Eqns) :-
   XX = v(Lc,"XX",FldTp),
   sort(AllElTps,parsetype:cmpVarDef,SortedTps),
@@ -471,7 +471,7 @@ genBraceAccessor(Lc,Q,Cx,ConNm,Tp,Fld,FldTp,Tp,AllElTps,
   Eqn=rule(Lc,tple(Lc,[apply(Lc,
 			     cons(Lc,ConNm,
 				  consType(ArgTps,Tp)),
-			     tple(Lc,ArgPtns),Tp,none)]),
+			     tple(Lc,ArgPtns),Tp)]),
 	   none,
 	   XX).
 

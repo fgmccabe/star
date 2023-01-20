@@ -757,6 +757,13 @@ star.compiler.checker{
     HRls = checkRules(Rls,NErTp,Tp,Env,Path,typeOfExp,[],.none);
     valis .trycatch(Lc,NB,.vr(Lc,"_raise",contType(NErTp)),HRls,Tp)
   }
+  typeOfExp(A,Tp,Env,Path) where (Lc,Body,Rls) ?= isTryHandle(A) => valof{
+    NErTp = newTypeVar("_E");
+    Ev = declareVar("_raise","_raise",Lc,contType(NErTp),.none,Env);
+    NB = typeOfExp(Body,Tp,Ev,Path);
+    HRls = checkRules(Rls,NErTp,Tp,Env,Path,typeOfExp,[],.none);
+    valis .trycatch(Lc,NB,.vr(Lc,"_raise",contType(NErTp)),HRls,Tp)
+  }
   typeOfExp(A,Tp,Env,Path) where (Lc,E) ?= isRaise(A) => valof{
     ErTp = newTypeVar("_E");
     Thrw = typeOfVar(Lc,"_raise",contType(ErTp),Env,Path);
