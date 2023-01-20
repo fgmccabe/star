@@ -271,6 +271,7 @@ static retCode splitOperand(opAndSpec A, vectorPo blocks, insPo code, integer *p
   switch (A) {
     case nOp:                                   // No operand
     case tOs:
+    case tO1:
       return Ok;
     case i32:          /* 32 bit literal operand */
     case art:          // Arity
@@ -280,7 +281,6 @@ static retCode splitOperand(opAndSpec A, vectorPo blocks, insPo code, integer *p
       collect32(code, pc);
       return Ok;
     }
-    case cDe:           // Range of instructions to skip
     case off: {         /* offset within current code */
       integer delta = collect32(code, pc);
       integer nPc = *pc + delta;
@@ -289,7 +289,6 @@ static retCode splitOperand(opAndSpec A, vectorPo blocks, insPo code, integer *p
     }
     case Es:
     case lit:          /* constant literal */
-    case lne:           // Location literal
     case sym:           // Symbol
     case glb:           // Global variable name
     case tPe:           // Type literal
@@ -472,6 +471,7 @@ retCode checkOprndTgt(methodPo mtd, insPo code, vectorPo blocks, integer oPc, in
   switch (A) {
     case nOp:                                   // No operand
     case tOs:
+    case tO1:
       return Ok;
     case i32:          /* 32 bit literal operand */
     case art:          // Arity
@@ -481,16 +481,11 @@ retCode checkOprndTgt(methodPo mtd, insPo code, vectorPo blocks, integer oPc, in
       collect32(code, pc);
       return Ok;
     }
-    case cDe: {
-      integer delta = collect32(code, pc);
-      return Ok;
-    }
     case off: {         /* offset within current code */
       integer delta = collect32(code, pc);
       integer nPc = *pc + delta;
       return checkDest(blocks, oPc, nPc, False, errorMsg, msgLen);
     }
-    case lne:           // Location literal
     case Es:
     case glb:           // Global variable name
       collect32(code, pc);
@@ -602,6 +597,7 @@ static retCode checkOperand(segPo seg, integer oPc, integer *pc, opAndSpec A, ch
   switch (A) {
     case nOp:                                   // No operand
     case tOs:
+    case tO1:
       return Ok;
     case art:
     case i32: {                     /* 32 bit literal operand */
@@ -649,10 +645,6 @@ static retCode checkOperand(segPo seg, integer oPc, integer *pc, opAndSpec A, ch
         return Error;
       }
     }
-    case cDe: {                         /* offset within current code */
-      int32 delta = collect32(base, pc);
-      return Ok;
-    }
     case off: {                         /* offset within current code */
       int32 delta = collect32(base, pc);
       integer npc = *pc + delta;
@@ -673,7 +665,6 @@ static retCode checkOperand(segPo seg, integer oPc, integer *pc, opAndSpec A, ch
       }
       return Ok;
     }
-    case lne:
     case sym:
     case lit: {                          /* constant literal */
       int32 litNo = collect32(base, pc);

@@ -39,7 +39,8 @@ typedef enum {
 
 typedef enum {
   nOp,                                   // No operand
-  tOs,
+  tOs,          // top of stack
+  tO1,          // Next entry in stack
   i32,         /* 32 bit literal operand */
   art,          /* Arity */
   arg,          /* argument variable offset */
@@ -49,10 +50,8 @@ typedef enum {
   Es,           // escape code 0..65535
   lit,          /* constant literal */
   sym,          // Symbol
-  lne,          // Constant that is a location
   glb,          // Global variable name
   tPe,          // Type signature
-  cDe           // Code sequence
 } opAndSpec;                    // Specification code for an operand
 
 #define JMP_SIZE (3)            // A jmp is three 16bit words
