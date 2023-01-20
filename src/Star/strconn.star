@@ -11,7 +11,9 @@ star.structured.conn{
   .blocked(()=>boolean) |
   .wake(exists r ~~ task[r]) |
   .result(e) |
-  .fork(task[e]).
+  .fork((task[e])=>e) |
+  .identify(task[e]) |
+  .retired_.
 
   public resumeProtocol ::= .go_ahead | .shut_down_.
 
@@ -73,6 +75,8 @@ star.structured.conn{
 
       while .true do{
 	while ~isEmpty(Q!) do{
+--	  logMsg("Q has $([|Q!|]) elements");
+	  
 	  if [T,..Rs] .= Q! then{
 	    Q := Rs;
 	    case T resume .go_ahead in {
@@ -85,8 +89,20 @@ star.structured.conn{
 		
 		valis Rslt
 	      }
+	      | .retired_ => {}
 	      | .fork(F) => {
-		Q := Q!++[T,F]
+		case _spawn((Tsk) => valof{
+		    case Tsk suspend .identify(Tsk) in {
+		      .go_ahead => {
+		        Tsk retire .result(F(Tsk))
+		      }
+		      | .shut_down_ => {}
+		    };
+		    Tsk retire .retired_
+		  }) in {
+		  .identify(Tsk) => { Q := Q!++[Tsk]}
+		  };
+		Q := Q!++[T];
 	      }
 	      | .blocked(P) => {
 	        BlockQ := [(P,T),..BlockQ!]
@@ -121,4 +137,13 @@ star.structured.conn{
       | .shut_down_ => raise .canceled
     }
   }
+
+  public spawn:all e ~~ this |= task[e] |: ((task[e])=>e) => () raises exception.
+  spawn(F) => valof{
+    case this suspend .fork(F) in {
+      .go_ahead => valis ()
+      | .shut_down_ => raise .canceled
+    }
+  }
+  
 }

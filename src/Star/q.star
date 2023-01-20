@@ -54,6 +54,10 @@ star.q{
     isEmpty(_) default => .false.
   }
 
+  public implementation all e ~~ measured[qc[e]->>integer] => {
+    [|L|] => size(L)
+  }
+  
   public implementation all x ~~ glue[qc[x]->>x] => {
     prepend(X,.qc(F,T)) => .qc(.cons(X,F),T).
     append(.qc(F,T),X) => .qc(F,.cons(X,T)).
