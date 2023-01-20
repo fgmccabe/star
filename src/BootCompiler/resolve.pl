@@ -166,11 +166,11 @@ overloadTerm(match(Lc,L,R),Dict,St,Stx,match(Lc,RL,RR)) :-
 overloadTerm(case(Lc,B,C,Tp),Dict,St,Stx,case(Lc,RB,RC,Tp)) :-
   overloadTerm(B,Dict,St,St0,RB),
   overloadCases(C,resolve:overloadTerm,Dict,St0,Stx,RC).
-overloadTerm(apply(ALc,over(Lc,T,Cx),Args,Tp,ErTp),Dict,St,Stx,Term) :-
-  overloadMethod(ALc,Lc,T,Cx,Args,Tp,ErTp,Dict,St,Stx,Term).
-overloadTerm(apply(ALc,overaccess(Lc,T,RcTp,Fld,FTp),Args,ATp,ErTp),Dict,St,Stx,Term) :-
-  overloadAccess(ALc,Lc,T,RcTp,Fld,FTp,Args,ATp,ErTp,Dict,St,Stx,Term).
-overloadTerm(apply(Lc,Op,Args,Tp,ErTp),Dict,St,Stx,apply(Lc,ROp,RArgs,Tp,ErTp)) :-
+overloadTerm(apply(ALc,over(Lc,T,Cx),Args,Tp),Dict,St,Stx,Term) :-
+  overloadMethod(ALc,Lc,T,Cx,Args,Tp,Dict,St,Stx,Term).
+overloadTerm(apply(ALc,overaccess(Lc,T,RcTp,Fld,FTp),Args,ATp),Dict,St,Stx,Term) :-
+  overloadAccess(ALc,Lc,T,RcTp,Fld,FTp,Args,ATp,Dict,St,Stx,Term).
+overloadTerm(apply(Lc,Op,Args,Tp),Dict,St,Stx,apply(Lc,ROp,RArgs,Tp)) :-
   overloadTerm(Op,Dict,St,St0,ROp),
   overloadTerm(Args,Dict,St0,Stx,RArgs).
 overloadTerm(invoke(Lc,Op,Args,Tp),Dict,St,Stx,invoke(Lc,ROp,RArgs,Tp)) :-
@@ -280,20 +280,20 @@ overloadAction(case(Lc,G,C,Tp),Dict,St,Stx,case(Lc,GG,CC,Tp)) :-
 overloadAction(doRetire(Lc,T,E),Dict,St,Stx,doRetire(Lc,TT,EE)) :-
   overloadTerm(T,Dict,St,St1,TT),
   overloadTerm(E,Dict,St1,Stx,EE).
-overloadAction(doCall(Lc,T,ErTp),Dict,St,Stx,doCall(Lc,TT,ErTp)) :-
+overloadAction(doCall(Lc,T),Dict,St,Stx,doCall(Lc,TT)) :-
   overloadTerm(T,Dict,St,Stx,TT).
 overloadAction(A,_,St,St,A) :-
   locOfCanon(A,Lc),
   reportError("cannot resolve action %s",[cnact(A)],Lc).
 
-overloadMethod(ALc,Lc,T,Cx,Args,Tp,ErTp,Dict,St,Stx,apply(ALc,OverOp,tple(LcA,NArgs),Tp,ErTp)) :-
+overloadMethod(ALc,Lc,T,Cx,Args,Tp,Dict,St,Stx,apply(ALc,OverOp,tple(LcA,NArgs),Tp)) :-
   resolveContracts(Lc,Cx,Dict,St,St0,DTerms),
   markResolved(St0,St1),
   overloadTerm(Args,Dict,St1,St2,tple(LcA,RArgs)),
   resolveRef(T,DTerms,RArgs,OverOp,Dict,St2,Stx,NArgs).
 
-overloadAccess(ALc,Lc,T,RcTp,Fld,Tp,Args,ATp,ErTp,Dict,St,Stx,
-	       apply(ALc,Op,tple(LcA,NArgs),ATp,ErTp)) :-
+overloadAccess(ALc,Lc,T,RcTp,Fld,Tp,Args,ATp,Dict,St,Stx,
+	       apply(ALc,Op,tple(LcA,NArgs),ATp)) :-
   resolveAccess(Lc,RcTp,Fld,Tp,Dict,St,St1,AccessOp),
   overloadTerm(Args,Dict,St1,St2,tple(LcA,RArgs)),
   resolveRef(T,[AccessOp],RArgs,Op,Dict,St2,Stx,NArgs).
@@ -302,13 +302,13 @@ overloadCases(Cses,Resolver,Dict,St,Stx,RCases) :-
   overloadLst(Cses,resolve:overloadRule(Resolver),Dict,St,Stx,RCases).
 
 overApply(_,OverOp,[],_,OverOp) :-!.
-overApply(Lc,OverOp,Args,Tp,apply(Lc,OverOp,tple(Lc,Args),Tp,none)) :- \+isProgramType(Tp),!.
+overApply(Lc,OverOp,Args,Tp,apply(Lc,OverOp,tple(Lc,Args),Tp)) :- \+isProgramType(Tp),!.
 overApply(Lc,OverOp,Args,Tp,Lam) :-
   curryOver(Lc,OverOp,Args,Tp,Lam).
 
 curryOver(Lc,OverOp,Cx,Tp,
     lambda(Lc,Lbl,rule(Lc,tple(Lc,Args),none,
-          apply(Lc,OverOp,tple(Lc,NArgs),Tp,none)),funType(tplType(ArTps),Tp))) :-
+          apply(Lc,OverOp,tple(Lc,NArgs),Tp)),funType(tplType(ArTps),Tp))) :-
   progArgTypes(Tp,ArTps),
   genVrs(ArTps,Lc,Args),
   concat(Cx,Args,NArgs),
@@ -348,7 +348,7 @@ resolveDot(Lc,Rc,Fld,Tp,Dict,St,Stx,Reslvd) :-
    getConstraints(CFTp,Cx,FTp),
    sameType(FTp,Tp,Lc,Dict),
    V = v(Lc,FunNm,funType(tplType([RcTp]),FTp)),
-   Acc = apply(Lc,V,tple(Lc,[Rc]),Tp,none),
+   Acc = apply(Lc,V,tple(Lc,[Rc]),Tp),
    resolveContracts(Lc,Cx,Dict,St,St0,DTerms),
    resolveRef(Acc,DTerms,[],OverOp,Dict,St0,St1,NArgs),
    overApply(Lc,OverOp,NArgs,Tp,Reslvd),
@@ -394,7 +394,7 @@ resolveUpdate(Lc,Rc,Fld,Vl,Dict,St,Stx,Reslvd) :-
 %   reportMsg("expected type %s",[tpe(VlTp)],Lc),
    sameType(FTp,VlTp,Lc,Dict),
    V = v(Lc,FunNm,funType(tplType([RcTp,VlTp]),RcTp)),
-   Acc = apply(Lc,V,tple(Lc,[Rc,Vl]),RcTp,none),
+   Acc = apply(Lc,V,tple(Lc,[Rc,Vl]),RcTp),
 
 %   reportMsg("base update expression %s",[can(Acc)],Lc),
 
@@ -467,7 +467,7 @@ resolveDependents([C|L],Lc,Dict,St,Stx,[A|As],Args) :-
   resolveDependents(L,Lc,Dict,St0,Stx,As,Args).
 
 formOver(V,[],_,_,V).
-formOver(V,Args,Lc,Tp,apply(Lc,V,tple(Lc,Args),Tp,none)).
+formOver(V,Args,Lc,Tp,apply(Lc,V,tple(Lc,Args),Tp)).
 
 genVar(Nm,Lc,Tp,v(Lc,NV,Tp)) :-
   genstr(Nm,NV).
@@ -508,8 +508,8 @@ overloadClassRule(CVars,labelRule(Lc,Nm,Hd,St),Dict,labelRule(Lc,Nm,OHd,OSt)) :-
   overloadOthers(St,Dict,OSt).
 
 resolveHead(Hd,[],Hd).
-resolveHead(enm(Lc,Nm,Tp),CVars,apply(Lc,v(Lc,Nm,Tp,none),CVars)).
-resolveHead(apply(Lc,v(ALc,Nm,Tp),Args,Tpx,ErTp),CVars,apply(Lc,v(ALc,Nm,Tp,ErTp),OArgs,Tpx)) :-
+resolveHead(enm(Lc,Nm,Tp),CVars,apply(Lc,v(Lc,Nm,Tp),CVars)).
+resolveHead(apply(Lc,v(ALc,Nm,Tp),Args,Tpx),CVars,apply(Lc,v(ALc,Nm,Tp),OArgs,Tpx)) :-
   addExtra(CVars,Args,OArgs).
 
 addExtra(Extra,tple(Lc,Els),tple(Lc,EEls)) :-
