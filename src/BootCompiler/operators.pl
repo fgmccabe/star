@@ -29,7 +29,6 @@
   operator("^?", [infixOp(800, 800, 799)]).
   operator("~=", [infixOp(899, 900, 899)]).
   operator("~>", [infixOp(1230, 1231, 1230)]).
-  operator("throw", [prefixOp(930, 929)]).
   operator(".|.", [infixOp(720, 720, 719)]).
   operator("do", [prefixOp(200, 199), infixOp(1199, 1200, 1199)]).
   operator("import", [prefixOp(900, 899)]).
@@ -92,6 +91,7 @@
   operator("trace", [prefixOp(140, 139)]).
   operator("~~", [infixOp(1239, 1240, 1240)]).
   operator("assert", [prefixOp(1240, 1239)]).
+  operator("invoke", [prefixOp(930, 929)]).
   operator("⊕", [infixOp(720, 720, 719)]).
   operator(".^.", [infixOp(720, 720, 719)]).
   operator("//", [infixOp(960, 960, 959)]).
@@ -353,7 +353,6 @@
   keyword("^=").
   keyword("&&").
   keyword("~>").
-  keyword("throw").
   keyword("{.").
   keyword("do").
   keyword("import").
@@ -399,6 +398,7 @@
   keyword("suspend").
   keyword("open").
   keyword("~~").
+  keyword("invoke").
   keyword("public").
   keyword("[|").
   keyword("ref").

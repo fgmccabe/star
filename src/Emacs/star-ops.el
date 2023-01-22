@@ -11,7 +11,6 @@
   ("^?" ( (infix 800 800 799)))
   ("~=" ( (infix 899 900 899)))
   ("~>" ( (infix 1230 1231 1230)))
-  ("throw" ( (prefix 930 929)))
   (".|." ( (infix 720 720 719)))
   ("do" ( (prefix 200 199) (infix 1199 1200 1199)))
   ("import" ( (prefix 900 899)))
@@ -74,6 +73,7 @@
   ("trace" ( (prefix 140 139)))
   ("~~" ( (infix 1239 1240 1240)))
   ("assert" ( (prefix 1240 1239)))
+  ("invoke" ( (prefix 930 929)))
   ("⊕" ( (infix 720 720 719)))
   (".^." ( (infix 720 720 719)))
   ("//" ( (infix 960 960 959)))
@@ -137,7 +137,6 @@
 (defconst star-keywords
   '("retire"
 "all"
-"throw"
 "do"
 "import"
 "catch"
@@ -156,6 +155,7 @@
 "break"
 "suspend"
 "open"
+"invoke"
 "public"
 "ref"
 "where"
