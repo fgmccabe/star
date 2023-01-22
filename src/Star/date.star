@@ -2,7 +2,7 @@ star.date{
   -- Date and time functions
   import star.
 
-  public time ::= private .time(float). -- Time since 1st Jan 1970
+  public time ::= private .time(float) | private .never. -- Time since 1st Jan 1970
 
   public date ::= date{
     year:integer.
@@ -50,6 +50,7 @@ star.date{
 	tz = Tz
       }
     }
+    _coerce(.never) => .none.
   }
 
   public implementation coercion[date,time] => {
@@ -87,11 +88,13 @@ star.date{
   }
 
   public implementation display[time] => {
-    disp(.time(Tm)) => _fmttime(Tm,"%a %e/%b/%Y %X")
+    disp(.time(Tm)) => _fmttime(Tm,"%a %e/%b/%Y %X").
+    disp(.never) => "never".
   }
 
   public implementation format[time] => {
-    frmt(.time(Tm),F) => _fmttime(Tm,F)
+    frmt(.time(Tm),F) => _fmttime(Tm,F).
+    frmt(.never,_) => "never".
   }
 }
   

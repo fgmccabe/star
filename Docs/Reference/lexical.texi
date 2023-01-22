@@ -211,10 +211,11 @@ See @ref{floatingPointFig} for a complete syntax diagram for floating point numb
 @end display
 @end float
 
-@quotation TIP
+@quotation NOTE
 All floating point number are represented to a precision that is at
 least equal to 64-bit double precision. There is no equivalent of
-single-precision floating pointer numbers.
+single-precision floating pointer numbers, nor is there an equivalent
+of arbitrary precision floating point numbers.
 @end quotation
 
 @node Character Codes

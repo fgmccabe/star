@@ -5,13 +5,13 @@
 
 The grammar of @Star{} is based on an @emph{operator precedence
 grammar}. This allows us to address the full grammar and semantics of
-@code{Star} in a layered approach. The grammar layer is focused on the
-@emph{well formed formedness} of @code{Star} programs -- which
+@Star{} in a layered approach. The grammar layer is focused on the
+@emph{well formed formedness} of @Star{} programs -- which
 expressions are syntactically valid even though they may not be type correct.
 
 In effect, the grammar layer represents the second layer (above the
 lexical layer) in the 'tower of semantics' that represents the full
-semantics of @code{Star} programs.
+semantics of @Star{} programs.
 
 @menu
 * Operator Precedence Grammar::
@@ -22,7 +22,7 @@ semantics of @code{Star} programs.
 @quotation TIP
 This choice gives us two key benefits: it is simple to understand and
 it is simple to extend. The latter is particularly important in
-@code{Star} as a significant part of its functionality is derived from
+@Star{} as a significant part of its functionality is derived from
 @emph{profiles} which are similar to macros.
 @end quotation
 
@@ -52,7 +52,7 @@ or more specifically:
 @end example
 
 Operator precedence grammars are often used to capture
-arithmetic-style expressions. In @code{Star} we extend the concept to
+arithmetic-style expressions. In @Star{} we extend the concept to
 cover the entire language.
 
 For example, an equation such as:
@@ -107,7 +107,7 @@ A non-terminal of the form:
 amounts to a parameterized non-terminal. Or, equivalently, it stands
 for all possible expansions of the non-terminal.
 @item
-This grammar is the basis of the actual grammar for @code{Star};
+This grammar is the basis of the actual grammar for @Star{};
 although the actual implementation is somewhat more efficient than the
 ambiguous grammar would suggest.
 @item
