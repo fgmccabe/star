@@ -224,10 +224,10 @@ star.compiler.resolve{
     (RArgs,St2) = overloadTplEls(Args,Dict,St1);
     valis (.apply(lc,ROp,RArgs,Tp),St2)
   }
-  overloadTerm(.invoke(lc,Op,Args,Tp),Dict,St) => valof{
+  overloadTerm(.invoak(lc,Op,Args,Tp),Dict,St) => valof{
     (ROp,St1) = overloadTerm(Op,Dict,St);
     (RArgs,St2) = overloadTplEls(Args,Dict,St1);
-    valis (.invoke(lc,ROp,RArgs,Tp),St2)
+    valis (.invoak(lc,ROp,RArgs,Tp),St2)
   }
   overloadTerm(.suspnd(lc,F,A,Tp),Dict,St) => valof{
     (RF,St1) = overloadTerm(F,Dict,St);

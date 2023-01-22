@@ -56,7 +56,7 @@ star.compiler.freevars{
       freeVarsInExp(T,Excl1,Q,freeVarsInExp(E,Excl1,Q,
 	  foldRight((Rl,F)=>freeVarsInRule(Rl,freeVarsInExp,Excl,Q,F),Fv,H))).
     .rais(_,T,E,_) => freeVarsInExp(T,Excl,Q,freeVarsInExp(E,Excl,Q,Fv)).
-    .invoke(_,O,A,_) =>
+    .invoak(_,O,A,_) =>
       freeVarsInTuple(A,Excl,Q,freeVarsInExp(O,Excl,Q,Fv)).
     .suspnd(_,F,E,_) =>
       freeVarsInExp(F,Excl,Q,freeVarsInExp(E,Excl,Q,Fv)).
