@@ -64,6 +64,7 @@ F.G. McCabe).
 
 * Numbers::
 * Strings::
+* Date and Time::
 * Collections::
 * Source Catalogs::
 * Concept index::
@@ -99,6 +100,8 @@ F.G. McCabe).
 @include numbers.texi
 
 @include strings.texi
+
+@include date.texi
 
 @include collections.texi
 

@@ -38,10 +38,6 @@
 @tab non-associative infix
 @tab 1231
 @tab type function
-@item @code{throw}
-@tab non-associative prefix
-@tab 930
-@tab raise an exception
 @item @code{.|.}
 @tab left associative infix
 @tab 720
@@ -334,6 +330,10 @@
 @tab non-associative prefix
 @tab 1240
 @tab assert condition
+@item @code{invoke}
+@tab non-associative prefix
+@tab 930
+@tab invoke a handler
 @item @code{⊕}
 @tab left associative infix
 @tab 720
@@ -520,25 +520,25 @@
 @headitem Keyword @tab Keyword @tab Keyword
 @item @code{retire}
 @tab @code{all}
-@tab @code{throw}
-@item @code{do}
-@tab @code{import}
+@tab @code{do}
+@item @code{import}
 @tab @code{catch}
-@item @code{valis}
-@tab @code{for}
+@tab @code{valis}
+@item @code{for}
 @tab @code{raise}
-@item @code{then}
-@tab @code{default}
+@tab @code{then}
+@item @code{default}
 @tab @code{resume}
-@item @code{contract}
-@tab @code{raises}
+@tab @code{contract}
+@item @code{raises}
 @tab @code{try}
-@item @code{exists}
-@tab @code{if}
+@tab @code{exists}
+@item @code{if}
 @tab @code{in}
-@item @code{break}
-@tab @code{suspend}
+@tab @code{break}
+@item @code{suspend}
 @tab @code{open}
+@tab @code{invoke}
 @item @code{public}
 @tab @code{ref}
 @tab @code{where}

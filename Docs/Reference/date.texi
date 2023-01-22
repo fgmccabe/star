@@ -1,0 +1,111 @@
+@node Date and Time
+@chapter Date and Time
+
+@section Date and Time Types
+
+The @code{date} type is a record structure that denotes a localized
+date: it has fields that refer to the year, month and day, as well as
+time and timezone. The @code{time} type is a simpler structure that
+refers to Unix time: i.e., the number of seconds since January 1st,
+1970 GMT.
+
+@subsection The @code{date} Type
+
+@subsection The @code{time} Type
+
+@section Functions
+
+@subsection @code{today()}
+
+@subsection @code{now()}
+
+@subsection @code{ticks()}
+
+@section Implemented Contracts
+
+@subsection The @code{format} contract
+
+The `_frmt` function computes a readable string representation of a
+`date` as a string displaying the date and/or time. The second
+argument is a format string that guides how to format the string.
+
+The format string consists of letters, spaces and other characters;
+the letters control the representation of some aspect of the date,
+other non-letter characters are displayed as is in the
+result. <<tableFormatTbl>> contains the definitions of the available
+formatting characters.
+
+@float Table,dateFormatChrs
+@caption{Date Formatting Codes}
+@multitable{Letter}{Date Component}{Presentation}{Example}
+@headitem Letter @tab Component @tab Presentation @tab Example
+@item @code{G}
+@tab Era designator
+@tab Text
+@tab @code{AD}
+@item @code{y}
+@tab year
+@tab Year
+@tab @code{1999}
+@item M
+@tab month
+@tab Month in year
+@tab @code{July; Jul; 07}
+@item @code{w}
+@tab Week in year
+@tab Number
+@tab @code{25}
+@item @code{W}
+@tab week
+@tab Number
+@tab @code{2}
+@item @code{D}
+@tab Day in year
+@tab Number
+@tab @code{191}
+@item @code{d}
+@tab Day in month
+@tab Number
+@tab @code{2}
+@item @code{E}
+@tab Day in week
+@tab Text
+@tab @code{Tuesday; Tue}
+@item @code{a}
+@tab AM/PM
+@tab Text
+@tab @code{PM}
+@item @code{H}
+@tab Hour in day (0-23)
+@tab Number
+@tab @code{0}
+@item @code{k}
+@tab Hour in day (1-24)
+@tab Number
+@tab @code{24}
+@item @code{h}
+@tab Hour in day (1-12)
+@tab Number
+@tab @code{11}
+@item @code{m}
+@tab Minute in hour
+@tab Number
+@tab @code{34}
+@item @code{s}
+@tab Second in minute
+@tab Number
+@tab @code{56}
+@item @code{S}
+@tab Millisecond in second
+@tab Number
+@tab @code{543}
+@item @code{z}
+@tab General time zone
+@tab Text
+@tab @code{PDT; GMT-08:00}
+@item @code{Z}
+@tab RFC 822 time zone
+@tab Text
+@tab @code{-0800}
+@end multitable
+@end float
