@@ -90,7 +90,7 @@ stackPo C_STACK(termPo t) {
   return (stackPo) t;
 }
 
-stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, TaskState state, stackPo attachment) {
+stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, StackState state, stackPo attachment) {
   if (sze > stackRegionSize)
     syserr("tried to allocate too large a stack");
 
@@ -126,11 +126,11 @@ stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, TaskState state
   return tsk;
 }
 
-TaskState stackState(stackPo tsk) {
+StackState stackState(stackPo tsk) {
   return tsk->state;
 }
 
-retCode setTaskState(stackPo tsk, TaskState state) {
+retCode setTaskState(stackPo tsk, StackState state) {
   switch (tsk->state) {
     case suspended:
       tsk->state = state;
@@ -338,7 +338,7 @@ termPo stkFinalizer(specialClassPo class, termPo o) {
   return o + StackCellCount;
 }
 
-char *stackStateName(TaskState ste) {
+char *stackStateName(StackState ste) {
   switch (ste) {
     case active:
       return "active";

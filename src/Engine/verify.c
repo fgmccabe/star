@@ -449,12 +449,11 @@ retCode checkDest(vectorPo blocks, integer pc, integer tgt, logical fallingThru,
     segPo srcSeg = findSeg(blocks, pc);
 
     if (srcSeg != Null) {
-      if (srcSeg != tgtSeg) {
-        updateEntryPoint(srcSeg, tgtSeg);
-        updateExitPoint(srcSeg, tgtSeg);
-        if (fallingThru)
-          srcSeg->seg.fallThru = tgtSeg;
-      }
+      updateEntryPoint(srcSeg, tgtSeg);
+      updateExitPoint(srcSeg, tgtSeg);
+      if (fallingThru)
+        srcSeg->seg.fallThru = tgtSeg;
+
       return Ok;
     } else {
       strMsg(errorMsg, msgLen, RED_ESC_ON "invalid source pc %d" RED_ESC_OFF, pc);
@@ -890,7 +889,7 @@ retCode checkSegment(segPo seg, char *errorMsg, long msgLen) {
     }
 #endif
 
-    if (ret==Ok && seg->seg.fallThru != Null)
+    if (ret == Ok && seg->seg.fallThru != Null)
       ret = mergeSegVars(seg, seg->seg.fallThru);
 
     return ret;

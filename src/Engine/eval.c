@@ -239,8 +239,8 @@ retCode run(processPo P) {
             logMsg(logFile, "invalid arity for escape %s", escapeName(esc));
             bail();
         }
-        assert(H->topRoot == 0);
         restoreRegisters();
+        assert(H->topRoot == 0);
 
         switch (ret.ret) {
           case Ok:
@@ -449,22 +449,22 @@ retCode run(processPo P) {
         saveRegisters();
         stackPo child = splitStack(P, lambda);
 
-        P->stk = attachStack(STK, child);
-        verifyStack(P->stk, H);
+        P->stk = attachStack(P->stk, child);
+        verifyStack(P->stk, P->heap);
         restoreRegisters();
         continue;
       }
 
       case Suspend: { // Suspend identified fiber.
         termPo event = pop();
-        stackPo fiber = C_STACK(pop());
+        stackPo stack = C_STACK(pop());
 
-        if (stackState(fiber) != active) {
-          logMsg(logFile, "tried to suspend non-active fiber %T", fiber);
+        if (stackState(stack) != active) {
+          logMsg(logFile, "tried to suspend %s fiber %T", stackStateName(stackState(stack)), stack);
           bail();
         } else {
           saveRegisters();
-          P->stk = detachStack(STK, fiber);
+          P->stk = detachStack(STK, stack);
           restoreRegisters();
           push(event);
           continue;
@@ -472,14 +472,14 @@ retCode run(processPo P) {
       }
       case Resume: {
         termPo event = pop();
-        stackPo fiber = C_STACK(pop());
+        stackPo stack = C_STACK(pop());
 
-        if (stackState(fiber) != suspended) {
-          logMsg(logFile, "tried to resume non-suspended stack %T", fiber);
+        if (stackState(stack) != suspended) {
+          logMsg(logFile, "tried to resume %s stack %T", stackStateName(stackState(stack)), stack);
           bail();
         } else {
           saveRegisters();
-          P->stk = attachStack(STK, fiber);
+          P->stk = attachStack(STK, stack);
           restoreRegisters();
           push(event);
           continue;
@@ -577,7 +577,7 @@ retCode run(processPo P) {
           for (integer ix = arity; ix > 0; ix--)
             pushStack(stk, arg(ix));
           P->stk = attachStack(STK, stk);
-          STK->fp->pc = contPC(cont);
+          P->stk->fp->pc = contPC(cont);
           invalidateCont(cont);
           restoreRegisters();
           continue;

@@ -28,7 +28,7 @@ typedef struct StackStructure {
   framePo fp;                   // Current frame pointer
   stackPo attachment;           // Where is the stack attached
   stackPo bottom;               // What is the actual innermost stack
-  TaskState state;              // is the stack attached, root, detached or moribund
+  StackState state;              // is the stack attached, root, detached or moribund
   ptrPo stkMem;                 // Memory block used for stack
   integer counter;              // Incremented every time stack is suspended
 } StackRecord;
@@ -79,7 +79,7 @@ static inline ptrPo stackLcl(stackPo stk, framePo frame, integer lcl) {
   return &frame->csp[-lcl];
 }
 
-char *stackStateName(TaskState ste);
+char *stackStateName(StackState ste);
 
 void propagateHwm(stackPo stk);
 
