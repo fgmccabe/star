@@ -181,9 +181,6 @@ ssType(funType(A,R),ShCon,Dp,sq([AA,ss("=>"),RR])) :-
 ssType(consType(A,R),ShCon,Dp,sq([AA,ss("<=>"),RR])) :-
   ssType(A,ShCon,Dp,AA),
   ssType(R,ShCon,Dp,RR).
-ssType(throwsType(A,R),ShCon,Dp,sq([AA,ss(" throws "),RR])) :-
-  ssType(A,ShCon,Dp,AA),
-  ssType(R,ShCon,Dp,RR).
 ssType(refType(R),ShCon,Dp,sq([ss("ref "),RR])) :- ssType(R,ShCon,Dp,RR).
 ssType(valType(R),ShCon,Dp,sq([ss("val "),RR])) :- ssType(R,ShCon,Dp,RR).
 ssType(allType(V,T),ShCon,Dp,sq([ss("all "),iv(ss(","),[types:tvr(V)|VV]),ss("~"),TT])) :-
@@ -295,8 +292,6 @@ tpArity(funType(A,_),Ar) :- !,
   progTypeArity(A,Ar).
 tpArity(consType(A,_),Ar) :- !,
   tpArity(A,Ar).
-tpArity(throwsType(A,_),Ar) :- !,
-  tpArity(A,Ar).
 tpArity(refType(A),Ar) :- !,
   progTypeArity(A,Ar).
 tpArity(tplType(A),Ar) :- !,length(A,Ar).
@@ -309,7 +304,6 @@ tpArgTypes(allType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(existType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(constrained(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(funType(A,_),ArTps) :- tpArgTypes(A,ArTps).
-tpArgTypes(throwsType(A,_),ArTps) :- tpArgTypes(A,ArTps).
 tpArgTypes(tplType(ArTps),ArTps).
 
 funResType(Tp,ResTp) :- deRef(Tp,TT), resType(TT,ResTp).
@@ -472,9 +466,6 @@ toLtp(type("star.core*boolean"),blTipe) :- !.
 toLtp(funType(Args,Res),fnTipe(As,R)) :-
   toLtipe(Args,As),
   toLtipe(Res,R).
-toLtp(throwsType(Arg,Res),throwsTipe(A,R)) :-
-  toLtipe(Arg,A),
-  toLtipe(Res,R).
 toLtp(tplType(Args),tplTipe(As)) :-
   map(Args,types:toLtipe,As).
 toLtp(_,ptrTipe).
@@ -513,8 +504,6 @@ occIn(V,funType(A,_)) :- deRef(A,AA),occIn(V,AA).
 occIn(V,funType(_,R)) :- deRef(R,RR),occIn(V,RR).
 occIn(V,consType(L,_)) :- deRef(L,LL),occIn(V,LL).
 occIn(V,consType(_,R)) :- deRef(R,RR),occIn(V,RR).
-occIn(V,throwsType(A,_)) :- deRef(A,AA),occIn(V,AA).
-occIn(V,throwsType(_,R)) :- deRef(R,RR),occIn(V,RR).
 occIn(V,constrained(_,C)) :- deRef(C,CC),occIn(V,CC),!.
 occIn(V,constrained(T,_)) :- deRef(T,TT),occIn(V,TT),!.
 occIn(V,typeLambda(A,_)) :- deRef(A,AA),occIn(V,AA).

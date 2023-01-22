@@ -30,10 +30,11 @@ overloadEquations(Eqns,Dict,Extra,REqns) :-
 
 overloadEquation(Extra,rule(Lc,Args,G,Exp),Dict,
 		 rule(Lc,RArgs,RG,RExp)) :-
-  resolveTerm(Args,Dict,RA),
+  defineArgVars(Args,Dict,RDict),
+  resolveTerm(Args,RDict,RA),
   addExtra(Extra,RA,RArgs),
-  resolveGuard(G,Dict,RG),
-  resolveTerm(Exp,Dict,RExp).
+  resolveGuard(G,RDict,RG),
+  resolveTerm(Exp,RDict,RExp).
 
 resolveGuard(none,_,none) :-!.
 resolveGuard(some(G),Dict,some(RG)) :-

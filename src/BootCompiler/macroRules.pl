@@ -83,7 +83,7 @@ list_pttrn(Lc,[],Arg) :-!,
   mkEnum(Lc,"nil",Arg).
 list_pttrn(Lc,[T|Ts],Arg) :-
   list_pttrn(Lc,Ts,As),
-  binary(Lc,"cons",T,As,Arg).
+  mkConApply(Lc,name(Lc,"cons"),[T,As],Arg).
 
 squareSequenceMacro(A,expression,Trm) :-
   isSquareTuple(A,Lc,Els),

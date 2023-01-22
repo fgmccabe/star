@@ -801,15 +801,15 @@ typeOfExp(Term,Tp,Env,Ev,valof(Lc,Act,Tp),Path) :-
   isValof(Term,Lc,A),
   isBraceTuple(A,_,[Ac]),!,
   checkAction(Ac,Tp,Env,Ev,Act,Path).
-typeOfExp(A,Tp,Env,Env,Act,Path) :-
+typeOfExp(A,Tp,Env,Env,tryCatch(Lc,Body,Trw,Hndlr),Path) :-
   isTryCatch(A,Lc,B,H),!,
-  checkTryCatch(Lc,B,H,Tp,Env,Act,Path).
+  checkTryCatch(Lc,B,H,Tp,checker:typeOfExp,Env,Body,Trw,Hndlr,Path).
 typeOfExp(A,_Tp,Env,Env,raise(Lc,Thrw,ErExp),Path) :-
   isRaise(A,Lc,E),!,
   checkRaise(Lc,E,Env,Thrw,ErExp,Path).
 typeOfExp(A,Tp,Env,Env,Act,Path) :-
   isTryHandle(A,Lc,B,H),!,
-  checkTryHandle(Lc,B,H,Tp,Env,Act,Path).
+  checkTryHandle(Lc,B,H,Tp,checker:typeOfExp,Env,Act,Path).
 typeOfExp(Term,Tp,Env,Env,void,_) :-
   locOfAst(Term,Lc),
   reportError("illegal expression: %s, expecting a %s",[Term,Tp],Lc).
@@ -925,12 +925,12 @@ checkAction(A,_Tp,Env,Ev,doMatch(Lc,Ptn,Exp),Path) :-
 checkAction(A,_Tp,Env,Ev,Act,Path) :-
   isAssignment(A,Lc,P,E),!,
   checkAssignment(Lc,P,E,Env,Ev,Act,Path).
-checkAction(A,Tp,Env,Env,Act,Path) :-
+checkAction(A,Tp,Env,Env,doTryCatch(Lc,Body,Trw,Hndlr),Path) :-
   isTryCatch(A,Lc,B,H),!,
-  checkTryCatchAction(Lc,B,H,Tp,Env,Act,Path).
+  checkTryCatch(Lc,B,H,Tp,Env,checker:checkAction,Body,Trw,Hndlr,Path).
 checkAction(A,Tp,Env,Env,Act,Path) :-
   isTryHandle(A,Lc,B,H),!,
-  checkTryHandleAction(Lc,B,H,Tp,Env,Act,Path).
+  checkTryHandle(Lc,B,H,Tp,Env,checker:checkAction,Act,Path).
 checkAction(A,Tp,Env,Ev,doIfThenElse(Lc,Tst,Thn,Els),Path) :-
   isIfThenElse(A,Lc,G,T,E),!,
   checkGoal(G,Env,E0,Tst,Path),
@@ -993,22 +993,13 @@ checkGuard(none,Env,Env,none,_) :-!.
 checkGuard(some(G),Env,Ev,some(Goal),Path) :-
   checkGoal(G,Env,Ev,Goal,Path).
 
-checkTryCatch(Lc,B,Hs,Tp,Env,tryCatch(Lc,Body,Trw,Hndlr),Path) :-
+checkTryCatch(Lc,B,Hs,Tp,Env,Check,Body,Trw,Hndlr,Path) :-
   newTypeVar("EE",ETp),
   contType(ETp,CTp),
   declareVr(Lc,"_raise",CTp,none,Env,Ev1),
   Trw = v(Lc,"_raise",CTp),
-  typeOfExp(B,Tp,Ev1,_,Body,Path),
-  checkCases(Hs,ETp,Tp,Env,Hndlr,Eqx,Eqx,[],checker:typeOfExp,Path),!.
-
-checkTryCatchAction(Lc,B,Hs,Tp,Env,doTryCatch(Lc,Body,Trw,Hndlr),Path) :-
-  newTypeVar("EE",ETp),
-  findType("cont",Lc,Env,ContTp),
-  applyTypeFun(ContTp,[ETp],Lc,Env,CTp),
-  declareVr(Lc,"_raise",CTp,none,Env,Ev1),
-  Trw = v(Lc,"_raise",CTp),
-  checkAction(B,Tp,Ev1,_,Body,Path),
-  checkCases(Hs,ETp,Tp,Env,Hndlr,Eqx,Eqx,[],checker:checkAction,Path),!.
+  call(Check,B,Tp,Ev1,_,Body,Path),
+  checkCases(Hs,ETp,Tp,Env,Hndlr,Eqx,Eqx,[],Check,Path),!.
 
 checkRaise(Lc,X,Env,Thrw,ErrExp,Path) :-
   (getVar(Lc,"_raise",Env,Thrw,VTp) ->
@@ -1020,14 +1011,14 @@ checkRaise(Lc,X,Env,Thrw,ErrExp,Path) :-
    ErrExp=void,
    Thrw=void).
 
-checkTryHandle(Lc,B,Hs,Tp,Env,tryHandle(Lc,Body,Trw,Hndlr),Path) :-
+checkTryHandle(Lc,B,Hs,Tp,Env,Check,tryHandle(Lc,Body,Trw,Hndlr),Path) :-
   newTypeVar("EE",ETp),
   newTypeVar("RR",RTp),
   continuationType(ETp,RTp,CTp),
   declareVr(Lc,"_invoke",CTp,none,Env,Ev1),
   Trw = v(Lc,"_invoke",CTp),
-  typeOfExp(B,Tp,Ev1,_,Body,Path),
-  checkCases(Hs,ETp,Tp,Env,Hndlr,Eqx,Eqx,[],checker:typeOfExp,Path),!.
+  call(Check,B,Tp,Ev1,_,Body,Path),
+  checkCases(Hs,ETp,Tp,Env,Hndlr,Eqx,Eqx,[],Check,Path),!.
 
 checkGoal(Term,Env,Ex,conj(Lc,Lhs,Rhs),Path) :-
   isConjunct(Term,Lc,L,R),!,
