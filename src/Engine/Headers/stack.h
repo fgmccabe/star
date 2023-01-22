@@ -20,14 +20,14 @@ typedef enum {
   suspended,
   active,
   moribund
-} TaskState;
+} StackState;
 
 typedef struct stack_frame_ *framePo;
 
-stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, TaskState state, stackPo attachment);
+stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, StackState state, stackPo attachment);
 
-TaskState stackState(stackPo tsk);
-retCode setTaskState(stackPo stk, TaskState state);
+StackState stackState(stackPo tsk);
+retCode setTaskState(stackPo stk, StackState state);
 
 stackPo newStack(processPo P, termPo lam);
 stackPo splitStack(processPo P, termPo lam);

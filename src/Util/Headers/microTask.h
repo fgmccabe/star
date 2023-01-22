@@ -16,7 +16,7 @@ typedef enum {
   taskActive,
   taskCompleted,
   taskInError
-} TaskState;
+} StackState;
 
 typedef retCode (*taskCBProc)(stackPo f);
 

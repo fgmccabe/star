@@ -9,7 +9,7 @@
 #include "objectP.h"
 
 typedef struct {
-  TaskState state;
+  StackState state;
   taskCBProc onStart;
   taskCBProc onResume;
   taskCBProc onError;
