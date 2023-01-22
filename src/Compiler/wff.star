@@ -771,7 +771,7 @@ star.compiler.wff{
     unary(Lc,"try",binary(Lc,"catch",B,brTuple(Lc,[reBar(Hs)]))).
 
   public isTryHandle:(ast) => option[(option[locn],ast,cons[ast])].
-  isTryCatch(A) where (Lc,I) ?= isUnary(A,"try") &&
+  isTryHandle(A) where (Lc,I) ?= isUnary(A,"try") &&
       (_,B,H) ?= isBinary(I,"handle") &&
 	  (_,Hs) ?= isBrTuple(H) =>
     ([El].=Hs ?? .some((Lc,B,deBar(El))) || .some((Lc,B,Hs))).

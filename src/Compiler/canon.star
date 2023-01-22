@@ -30,7 +30,7 @@ star.compiler.canon{
   .neg(option[locn],canon) |
   .cond(option[locn],canon,canon,canon) |
   .apply(option[locn],canon,cons[canon],tipe) |
-  .invoke(option[locn],canon,cons[canon],tipe) |
+  .invoak(option[locn],canon,cons[canon],tipe) |
   .suspnd(option[locn],canon,canon,tipe) |
   .resme(option[locn],canon,canon,tipe) |
   .tple(option[locn],cons[canon]) |
@@ -90,7 +90,7 @@ star.compiler.canon{
       .letExp(_,_,_,E) => typeOf(E).
       .letRec(_,_,_,E) => typeOf(E).
       .apply(_,_,_,Tp) => Tp.
-      .invoke(_,_,_,Tp) => Tp.
+      .invoak(_,_,_,Tp) => Tp.
       .suspnd(_,_,_,Tp) => Tp.
       .resme(_,_,_,Tp) => Tp.
       .tple(_,Els) => .tupleType(Els//typeOf).
@@ -129,7 +129,7 @@ star.compiler.canon{
       .neg(Lc,_) => Lc.
       .cond(Lc,_,_,_) => Lc.
       .apply(Lc,_,_,_) => Lc.
-      .invoke(Lc,_,_,_) => Lc.
+      .invoak(Lc,_,_,_) => Lc.
       .suspnd(Lc,_,_,_) => Lc.
       .resme(Lc,_,_,_) => Lc.
       .tple(Lc,_) => Lc.
@@ -213,7 +213,7 @@ star.compiler.canon{
     .cond(_,T,L,R) where (Lp,OPr,Rp) ?= isInfixOp("??") =>
       "(#(showCanon(T,Lp,Sp)) ?? #(showCanon(L,Rp,Sp)) || #(showCanon(R,Rp,Sp)))".
     .apply(_,L,R,_) => showApply(L,R,Pr,Sp).
-    .invoke(_,K,A,_) where (Lp,OPr,Rp) ?= isInfixOp(".") =>
+    .invoak(_,K,A,_) where (Lp,OPr,Rp) ?= isInfixOp(".") =>
       "#(leftParen(OPr,Pr))#(showCanon(K,Lp,Sp)).(showTuple(Args,Sp))#(rgtParen(OPr,Pr))".
     .suspnd(Lc,T,E,_)  where (Lp,OPr,Rp) ?= isInfixOp("suspend") =>
       "#(showCanon(T,Lp,Sp)) suspend #(showCanon(E,Rp,Sp))".
