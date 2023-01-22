@@ -3,13 +3,13 @@ star.structured.conn{
 
   public all e ~~ task[e] ~> fiber[resumeProtocol,suspendProtocol[e]].
 
-  public all e ~~ channel[e] ::= .quiescent
-  | .hasData(e)
-  | .waiting(exists e ~~ task[e]).
+  public all d,e ~~ channel[d,e] ::= .quiescent
+  | .hasData(d)
+  | .waiting(task[e]).
 
   public all e ~~ suspendProtocol[e] ::= .yield_ |
   .blocked(()=>boolean) |
-  .wake(exists r ~~ task[r]) |
+  .wake(task[e]) |
   .result(e) |
   .fork((task[e])=>e) |
   .identify(task[e]) |
@@ -17,66 +17,66 @@ star.structured.conn{
 
   public resumeProtocol ::= .go_ahead | .shut_down_.
 
-  post:all e,d ~~ (task[e],d,ref channel[d])=>().
+  public post:all e,d ~~ (task[e],d,ref channel[d,e])=>() raises exception.
   post(T,D,Ch) => valof{
     case Ch! in {
       .hasData(_) => {
 	case T suspend .blocked(()=>.hasData(_).=Ch!) in {
 	  .go_ahead => valis post(T,D,Ch)
+	  | .shut_down_ => raise .canceled
 	}
-      }.
-      .quiescent => {
+      }
+      | .quiescent => {
 	Ch := .hasData(D);
 	case T suspend .yield_ in {
 	  .go_ahead => valis ()
+	  | .shut_down_ => raise .canceled
 	}
-      }.
-      .waiting(RR) => {
+      }
+      | .waiting(RR) => {
 	Ch := .hasData(D);
 	case T suspend .wake(RR) in {
-	  .go_ahead =>
-	    valis ()
+	  .go_ahead => valis ()
+	  | .shut_down_ => raise .canceled
 	}
       }
     }
   }
 
-  collect:all e ~~ (task[e],ref channel[e]) => e.
+  public collect:all d,e ~~ (task[e],ref channel[d,e]) => d raises exception.
   collect(T,Ch) => valof{
     case Ch! in {
       .hasData(D) => {
 	Ch := .quiescent;
 	case T suspend .yield_ in {
-	  .go_ahead =>
-	    valis D
+	  .go_ahead => valis D
+	  | .shut_down_ => raise .canceled
 	}
       }.
       .quiescent => {
 	Ch := .waiting(T);
-	case T suspend .blocked(()=>~ .hasData(_).=Ch!) in {
-	  .go_ahead =>
-	    valis collect(T,Ch)
+	case T suspend .blocked(()=> ~.hasData(_).=Ch!) in {
+	  .go_ahead => valis collect(T,Ch)
+	  | .shut_down_ => raise .canceled
 	}
       }.
       .waiting(TT) => {
-	case T suspend .blocked(()=>~ .hasData(_).=Ch!) in {
+	case T suspend .blocked(()=> ~.hasData(_).=Ch!) in {
 	  .go_ahead =>
 	    valis collect(T,Ch)
+	  | .shut_down_ => raise .canceled
 	}
       }
     }
   }
   
-
   public nursery:all e ~~ (cons[task[e]]) => e.
   nursery(Ts) => _spawn((This) => valof{
       Q := Ts::qc[task[e]];
-      BlockQ := ([]:qc[(()=>boolean,task[e])]);
+      BlockQ := ([]:cons[(()=>boolean,task[e])]);
 
       while .true do{
 	while ~isEmpty(Q!) do{
---	  logMsg("Q has $([|Q!|]) elements");
-	  
 	  if [T,..Rs] .= Q! then{
 	    Q := Rs;
 	    case T resume .go_ahead in {
@@ -107,11 +107,12 @@ star.structured.conn{
 	      | .blocked(P) => {
 	        BlockQ := [(P,T),..BlockQ!]
 	      }
+	      | .wake(W) => {
+		Q := [W,T]++Q!;
+		BlockQ := removeT(BlockQ!,W);
+	      }
 	    }
 	  };
-	  (BQ,Wts) = testBlocked(BlockQ!,[],[]);
-	  Q := Q!++Wts;
-	  BlockQ := BQ;
 	};
 	
 	if ~isEmpty(BlockQ!) then{
@@ -123,10 +124,12 @@ star.structured.conn{
     }).
 
   testBlocked([],BQ,Ws) => (BQ,Ws).
-  testBlocked([(P,T),..Q],BQ,Ws) where P() =>
+  testBlocked([(P,T),..Q],BQ,Ws) where ~P() =>
     testBlocked(Q,BQ,[T,..Ws]).
   testBlocked([(P,T),..Q],BQ,Ws) =>
     testBlocked(Q,[(P,T),..BQ],Ws).
+
+  removeT(Q,W) => {(P,Ts) | (P,Ts) in Q && ~W==Ts}.
 
   public canceled : () <=> exception.
 
@@ -145,5 +148,15 @@ star.structured.conn{
       | .shut_down_ => raise .canceled
     }
   }
-  
+
+  implementation all e ~~ display[suspendProtocol[e]] => {
+    disp(.yield_) => "yield".
+    disp(.blocked(B)) => "blocked $(B())".
+    disp(.wake(T)) => "wake #(_stringOf(T,2))".
+    disp(.result(e)) => "result #(_stringOf(e,2))".
+    disp(.fork(F)) => "fork #(_stringOf(F,2))".
+    disp(.identify(T)) => "identify #(_stringOf(T,2))".
+    disp(.retired_) => "retired"
+  }
+
 }

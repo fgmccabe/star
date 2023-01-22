@@ -87,4 +87,33 @@ star.q{
     _coerce(.qc(F,B)) => ?(F++reverse(B)).
   }
 
+  public implementation all e ~~ display[e] |: display[qc[e]] => let{.
+    consDisp(.nil,L) => L.
+    consDisp(.cons(X,.nil),L) => .cons(disp(X), L).
+    consDisp(.cons(X,R),L) => .cons(disp(X), .cons(",", consDisp(R,L))).
+ .} in {
+    disp(.qc(F,B)) => _str_multicat(.cons("[",consDisp(F,
+	  .cons("$",
+	    consDisp(reverse(B),
+	      .cons("]",.nil))))))
+  }
+
+  public implementation all e ~~ equality[e] |: membership[qc[e]->>e] => let{.
+    _mem(K,Ls) => case Ls in {
+      .cons(K,_) => .true.
+      .cons(_,L) => _mem(K,L).
+      .nil => .false
+    }
+
+    _rem(K,Ls) => case Ls in {
+      .nil => .nil.
+      .cons(K,L) => L.
+      .cons(E,L) => .cons(E,_rem(K,L)).
+    }
+  .} in {
+    .qc(F,B)\+E where (_mem(E,F) || _mem(E,B)) => .qc(F,B).
+    .qc(F,B)\+E => .qc(.cons(E,F),B).
+    .qc(F,B)\-E => .qc(_rem(E,F),_rem(E,B)).
+    E .<. .qc(F,B) => _mem(E,F) || _mem(E,B)
+  }
 }
