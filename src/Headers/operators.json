@@ -1143,12 +1143,12 @@
     "keyword": true
   },
   {
-    "prefixOp": "throw",
+    "prefixOp": "invoke",
     "priorities": [
       930,
       929
     ],
-    "desc": "raise an exception",
+    "desc": "invoke a handler",
     "keyword": true
   },
   {
