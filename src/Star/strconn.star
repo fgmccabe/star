@@ -3,9 +3,16 @@ star.structured.conn{
 
   public all e ~~ task[e] ~> fiber[resumeProtocol,suspendProtocol[e]].
 
-  public all d,e ~~ channel[d,e] ::= .quiescent
+  public all d,e ~~ channel[d,e] <~ {}.
+
+  channel:all d,e ~~ (ref channelState[d,e]) <=> channel[d,e].
+
+  channelState[d,e] ::= .quiescent
   | .hasData(d)
   | .waiting(task[e]).
+
+  public newChannel:all d,e ~~ () => channel[d,e].
+  newChannel() => .channel(ref .quiescent).
 
   public all e ~~ suspendProtocol[e] ::= .yield_ |
   .blocked(()=>boolean) |
@@ -17,24 +24,24 @@ star.structured.conn{
 
   public resumeProtocol ::= .go_ahead | .shut_down_.
 
-  public post:all e,d ~~ (task[e],d,ref channel[d,e])=>() raises exception.
-  post(T,D,Ch) => valof{
-    case Ch! in {
+  public post:all e,d ~~ (task[e],d,channel[d,e])=>() raises exception.
+  post(T,D,Ch where .channel(St).=Ch) => valof{
+    case St! in {
       .hasData(_) => {
-	case T suspend .blocked(()=>.hasData(_).=Ch!) in {
+	case T suspend .blocked(()=>.hasData(_).=St!) in {
 	  .go_ahead => valis post(T,D,Ch)
 	  | .shut_down_ => raise .canceled
 	}
       }
       | .quiescent => {
-	Ch := .hasData(D);
+	St := .hasData(D);
 	case T suspend .yield_ in {
 	  .go_ahead => valis ()
 	  | .shut_down_ => raise .canceled
 	}
       }
       | .waiting(RR) => {
-	Ch := .hasData(D);
+	St := .hasData(D);
 	case T suspend .wake(RR) in {
 	  .go_ahead => valis ()
 	  | .shut_down_ => raise .canceled
@@ -43,25 +50,25 @@ star.structured.conn{
     }
   }
 
-  public collect:all d,e ~~ (task[e],ref channel[d,e]) => d raises exception.
-  collect(T,Ch) => valof{
-    case Ch! in {
+  public collect:all d,e ~~ (task[e],channel[d,e]) => d raises exception.
+  collect(T,Ch where .channel(St).=Ch) => valof{
+    case St! in {
       .hasData(D) => {
-	Ch := .quiescent;
+	St := .quiescent;
 	case T suspend .yield_ in {
 	  .go_ahead => valis D
 	  | .shut_down_ => raise .canceled
 	}
       }.
       .quiescent => {
-	Ch := .waiting(T);
-	case T suspend .blocked(()=> ~.hasData(_).=Ch!) in {
+	St := .waiting(T);
+	case T suspend .blocked(()=> ~.hasData(_).=St!) in {
 	  .go_ahead => valis collect(T,Ch)
 	  | .shut_down_ => raise .canceled
 	}
       }.
       .waiting(TT) => {
-	case T suspend .blocked(()=> ~.hasData(_).=Ch!) in {
+	case T suspend .blocked(()=> ~.hasData(_).=St!) in {
 	  .go_ahead =>
 	    valis collect(T,Ch)
 	  | .shut_down_ => raise .canceled

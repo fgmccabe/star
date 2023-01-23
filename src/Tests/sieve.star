@@ -3,7 +3,7 @@ test.sieve{
   import star.script.
   import star.structured.conn.
 
-  gen:(ref channel[integer,integer]) => task[integer].
+  gen:(channel[integer,integer]) => task[integer].
   gen(Chnnl) => fiber{
 --    logMsg("starting generator");
     Ix := 1;
@@ -19,7 +19,7 @@ test.sieve{
     }
   }
 
-  filter:(task[integer],integer,ref channel[integer,integer],ref channel[integer,integer]) => () raises exception.
+  filter:(task[integer],integer,channel[integer,integer],channel[integer,integer]) => () raises exception.
   filter(Tsk,Prm,Chnl,Next) => valof{
     while Nxt .= collect(Tsk,Chnl) do{
       if ~Nxt%Prm == 0 then
@@ -28,14 +28,14 @@ test.sieve{
     valis ()
   }
 
-  sieve:(task[integer],integer,integer,ref channel[integer,integer]) => integer.
+  sieve:(task[integer],integer,integer,channel[integer,integer]) => integer.
   sieve(this,Cnt,Mx,Chnnl) => valof{
 --    logMsg("starting sieve #(_stringOf(this,2))");
     try{
       Nxt = collect(this,Chnnl);
       if Cnt<Mx then{
 	logMsg("Next prime is $(Nxt), $(Cnt) out of $(Mx)");
-	NChnl := .quiescent;
+	NChnl = newChannel();
 	try{
 	  spawn((T)=>sieve(T,Cnt+1,Mx,NChnl));
 	  filter(this,Nxt,Chnnl,NChnl)
@@ -52,9 +52,13 @@ test.sieve{
     this retire .retired_ 
   }
 
+  _main:(cons[string]) => ().
+  _main([C,.._]) where Cnt?=(C:?integer) => main(Cnt).
+  _main(_) => main(100).
+
   main:(integer)=>().
   main(Cnt) => valof{
-    FstCh := .quiescent;
+    FstCh = newChannel();
     Gn = gen(FstCh);
     Sv = fiber{
       sieve(this,0,Cnt,FstCh);
