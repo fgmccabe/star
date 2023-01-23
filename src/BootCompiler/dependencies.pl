@@ -290,7 +290,7 @@ collectTermRefs(T,All,Rf,Rfx) :-
 collectTermRefs(T,All,Rf,Rfx) :-
   isTryHandle(T,_,L,C),!,
   collectTermRefs(L,All,Rf,Rf1),
-  collectCaseRefs(C,collectTermRefs,All,Rf1,Rfx).
+  collectTermRefs(C,All,Rf1,Rfx).
 collectTermRefs(T,All,Rf,Rfx) :-
   isRaise(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
@@ -435,7 +435,7 @@ collectDoRefs(T,All,Rf,Rfx) :-
 collectDoRefs(T,All,Rf,Rfx) :-
   isTryHandle(T,_,L,C),!,
   collectDoRefs(L,All,Rf,Rf1),
-  collectCaseRefs(C,collectDoRefs,All,Rf1,Rfx).
+  collectTermRefs(C,All,Rf1,Rfx).
 collectDoRefs(T,A,R,Rx) :-
   isLetDef(T,_,S,B),!,
   collectStmtRefs(S,A,[],R,R0),

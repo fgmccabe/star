@@ -881,14 +881,12 @@ mkTryCatch(Lc,B,H,A) :-
   binary(Lc,"catch",B,Hs,A0),
   unary(Lc,"try",A0,A).
 
-isTryHandle(A,Lc,B,Hs) :-
+isTryHandle(A,Lc,B,H) :-
   isUnary(A,Lc,"try",I),
-  isBinary(I,_,"handle",B,H),
-  isBraceTuple(H,_,Hs).
+  isBinary(I,_,"handle",B,H).
 
 mkTryHandle(Lc,B,H,A) :-
-  braceTuple(Lc,H,Hs),
-  binary(Lc,"handle",B,Hs,A0),
+  binary(Lc,"handle",B,H,A0),
   unary(Lc,"try",A0,A).
 
 isBreak(A,Lc,L) :-

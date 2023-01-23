@@ -447,8 +447,8 @@ examineTerm(A,Ax) :-
 examineTerm(A,Ax) :-
   isTryHandle(A,Lc,B,C),!,
   macroTerm(B,Bx),
-  map(C,macros:macroLambda,Cs),
-  mkTryCatch(Lc,Bx,Cs,Ax).
+  macroTerm(C,Cx),
+  mkTryHandle(Lc,Bx,Cx,Ax).
 examineTerm(A,Ax) :-
   isRaise(A,Lc,V),!,
   macroTerm(V,Vx),
@@ -649,8 +649,8 @@ examineAction(A,Ax) :-
 examineAction(A,Ax) :-
   isTryHandle(A,Lc,B,C),!,
   macroAction(B,Bx),
-  map(C,macros:examineActionCase,Cs),
-  mkTryCatch(Lc,Bx,Cs,Ax).
+  macroTerm(C,Cx),
+  mkTryHandle(Lc,Bx,Cx,Ax).
 examineAction(A,Ax) :-
   isWhileDo(A,Lc,T,B),!,
   macroTerm(T,Tx),

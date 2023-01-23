@@ -293,16 +293,16 @@ ssTerm(valof(_,A,_),Dp,sq([ss("valof "),AA])) :-!,
   ssAction(A,Dp,AA).
 ssTerm(fiber(_,A,_),Dp,sq([ss("fiber "),AA])) :-!,
   ssTerm(A,Dp,AA).
-ssTerm(tryCatch(_,A,T,Hs),Dp,sq([ss("try "),TT,ss(" in "),AA,ss(" catch "),TT,lb,HH,nl(Dp),rb])) :-!,
+ssTerm(tryCatch(_,A,T,Hs),Dp,sq([ss("try "),TT,ss(" in "),AA,ss(" catch "),lb,HH,nl(Dp),rb])) :-!,
   Dp2 is Dp+2,
   ssTerm(T,Dp,TT),
   ssTerm(A,Dp2,AA),
   ssRls("",Hs,Dp2,canon:ssTerm,HH).
-ssTerm(tryHandle(_,A,T,Hs),Dp,sq([ss("try "),TT,ss(" in "),AA,ss(" handle "),TT,lb,HH,nl(Dp),rb])) :-!,
+ssTerm(tryHandle(_,A,T,H),Dp,sq([ss("try "),TT,ss(" in "),AA,ss(" handle "),HH])) :-!,
   Dp2 is Dp+2,
   ssTerm(T,Dp,TT),
   ssTerm(A,Dp2,AA),
-  ssRls("",Hs,Dp2,canon:ssTerm,HH).
+  ssTerm(H,Dp2,HH).
 
 ssTerms([],_,[]).
 ssTerms([T|More],Dp,[TT|TTs]) :-
@@ -341,11 +341,12 @@ ssAction(doTryCatch(_,A,T,Hs),Dp,sq([ss("try "),TT,ss(" in "),AA,ss(" catch "),l
   ssTerm(T,Dp,TT),
   ssAction(A,Dp2,AA),
   ssRls("",Hs,Dp2,canon:ssAction,HH).
-ssAction(doTryHandle(_,A,T,Hs),Dp,sq([ss("try "),TT,ss(" in "),AA,ss(" handle "),lb,HH,nl(Dp),rb])) :-!,
+ssAction(doTryHandle(_,A,T,H),Dp,sq([ss("try "),TT,ss(" in "),AA,ss(" handle "),HH])) :-!,
   Dp2 is Dp+2,
   ssTerm(T,Dp,TT),
   ssAction(A,Dp2,AA),
-  ssRls("",Hs,Dp2,canon:ssAction,HH).
+  ssTerm(H,Dp2,HH).
+
 ssAction(doIfThenElse(_,T,A,doNop(_)),Dp,sq([ss("if "),TT,ss(" then "),nl(Dp2),AA])) :-!,
   Dp2 is Dp+2,
   ssTerm(T,Dp,TT),
