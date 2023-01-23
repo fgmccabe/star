@@ -1011,14 +1011,15 @@ checkRaise(Lc,X,Env,Thrw,ErrExp,Path) :-
    ErrExp=void,
    Thrw=void).
 
-checkTryHandle(Lc,B,Hs,Tp,Env,Check,tryHandle(Lc,Body,Trw,Hndlr),Path) :-
+checkTryHandle(Lc,B,H,Tp,Env,Check,tryHandle(Lc,Body,Trw,Hndlr),Path) :-
   newTypeVar("EE",ETp),
-  newTypeVar("RR",RTp),
-  continuationType(ETp,RTp,CTp),
-  declareVr(Lc,"_invoke",CTp,none,Env,Ev1),
-  Trw = v(Lc,"_invoke",CTp),
-  call(Check,B,Tp,Ev1,_,Body,Path),
-  checkCases(Hs,ETp,Tp,Env,Hndlr,Eqx,Eqx,[],Check,Path),!.
+  continuationType(ETp,Tp,CTp),
+  declareVr(Lc,"_continue",CTp,none,Env,Ev1),
+  Trw = v(Lc,"_continue",CTp),
+  newTypeVar("HH",HTp),
+  typeOfExp(H,HTp,Ev1,_,Hndlr,Path),
+  declareVr(Lc,"_handler",HTp,none,Env,EvB),
+  call(Check,B,Tp,EvB,_,Body,Path).
 
 checkGoal(Term,Env,Ex,conj(Lc,Lhs,Rhs),Path) :-
   isConjunct(Term,Lc,L,R),!,
