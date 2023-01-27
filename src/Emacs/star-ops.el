@@ -102,13 +102,13 @@
   (":?" ( (infix 399 400 399)))
   (".<<." ( (infix 600 600 599)))
   ("implementation" ( (prefix 1260 1259)))
+  ("with" ( (infix 1198 1199 1198)))
   (">>=" ( (infix 949 950 950)))
   ("^/" ( (infix 960 960 959)))
   ("<~" ( (infix 998 999 998)))
   ("type" ( (prefix 1251 1250)))
   ("|" ( (infix 1548 1548 1547)))
   (".#." ( (infix 600 600 599)))
-  ("handle" ( (infix 1198 1199 1198)))
   ("~" ( (prefix 905 904)))
   ("^//" ( (infix 800 800 799)))
   ("||" ( (infix 919 920 920)))
@@ -166,8 +166,8 @@
 "while"
 "private"
 "implementation"
+"with"
 "type"
-"handle"
 "else"
 )
   "Table of standard keywords"

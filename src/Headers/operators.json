@@ -175,13 +175,13 @@
     "keyword": true
   },
   {
-    "infixOp": "handle",
+    "infixOp": "with",
     "priorities": [
       1198,
       1199,
       1198
     ],
-    "desc": "try {...} handle {...}",
+    "desc": "try ... with H",
     "keyword": true
   },
   {

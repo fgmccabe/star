@@ -450,6 +450,10 @@
 @tab non-associative prefix
 @tab 1260
 @tab contract implementation
+@item @code{with}
+@tab non-associative infix
+@tab 1199
+@tab try ... with H
 @item @code{>>=}
 @tab right associative infix
 @tab 950
@@ -474,10 +478,6 @@
 @tab left associative infix
 @tab 600
 @tab test nth bit
-@item @code{handle}
-@tab non-associative infix
-@tab 1199
-@tab try @{...@} handle @{...@}
 @item @code{~}
 @tab non-associative prefix
 @tab 905
@@ -549,8 +549,8 @@
 @tab @code{while}
 @tab @code{private}
 @item @code{implementation}
+@tab @code{with}
 @tab @code{type}
-@tab @code{handle}
 @item @code{else}
 
 @end multitable
