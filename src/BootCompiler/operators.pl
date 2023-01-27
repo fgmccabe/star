@@ -120,13 +120,13 @@
   operator(":?", [infixOp(399, 400, 399)]).
   operator(".<<.", [infixOp(600, 600, 599)]).
   operator("implementation", [prefixOp(1260, 1259)]).
+  operator("with", [infixOp(1198, 1199, 1198)]).
   operator(">>=", [infixOp(949, 950, 950)]).
   operator("^/", [infixOp(960, 960, 959)]).
   operator("<~", [infixOp(998, 999, 998)]).
   operator("type", [prefixOp(1251, 1250)]).
   operator("|", [infixOp(1548, 1548, 1547)]).
   operator(".#.", [infixOp(600, 600, 599)]).
-  operator("handle", [infixOp(1198, 1199, 1198)]).
   operator("~", [prefixOp(905, 904)]).
   operator("^//", [infixOp(800, 800, 799)]).
   operator("||", [infixOp(919, 920, 920)]).
@@ -419,6 +419,7 @@
   keyword("::").
   keyword(":?").
   keyword("implementation").
+  keyword("with").
   keyword("<|").
   keyword("<~").
   keyword("{").
@@ -426,7 +427,6 @@
   keyword(".}").
   keyword("|").
   keyword("}").
-  keyword("handle").
   keyword("~").
   keyword("||").
   keyword("else").
