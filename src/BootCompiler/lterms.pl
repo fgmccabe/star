@@ -137,11 +137,16 @@ ssTrm(ltt(_,Vr,Bnd,Exp),Dp,sq([ss("let "),VV,ss("="),BB,ss(" in "),EE])) :-!,
   ssTrm(Vr,Dp1,VV),
   ssTrm(Bnd,Dp1,BB),
   ssTrm(Exp,Dp1,EE).
-ssTrm(cntlt(_,Vr,Bnd,Exp),Dp,sq([ss("cont "),VV,ss("="),BB,ss(" in "),EE])) :-!,
+ssTrm(prmpt(_,Lam),Dp,sq([ss(" prompt "),LL])) :-!,
   Dp1 is Dp+2,
-  ssTrm(Vr,Dp1,VV),
-  ssTrm(Bnd,Dp1,BB),
-  ssTrm(Exp,Dp1,EE).
+  ssTrm(Lam,Dp1,LL).
+ssTrm(cntrl(_,P,K),Dp,sq([PP,ss(" control "),KK])) :-!,
+  ssTrm(P,Dp,PP),
+  Dp1 is Dp+2,
+  ssTrm(K,Dp1,KK).
+ssTrm(cnt(_,K,V),Dp,sq([ss("continue"),lp,KK,ss(","),VV,rp])) :- !,
+  ssTrm(K,Dp,KK),
+  ssTrm(V,Dp,VV).
 ssTrm(varNames(_,Vars,Value),Dp,sq([ss("vars:"),VV,ss("->"),EE])) :-!,
   ssVarNames(Vars,Dp,VV),
   ssTrm(Value,Dp,EE).
@@ -186,12 +191,6 @@ ssTrm(resme(_,T,E),Dp,sq([TT,ss(" resume "),EE])) :-
 ssTrm(vlof(_,A),Dp,sq([ss("valof "),AA])) :-
   ssAct(A,Dp,AA).
 ssTrm(try(_,B,T,E,H),Dp,sq([ss("try "),TT,ss(" in "),BB,ss(" catch "),EE,ss(" in "),HH])) :-
-  Dp2 is Dp+2,
-  ssTrm(T,Dp,TT),
-  ssTrm(E,Dp,EE),
-  ssTrm(B,Dp2,BB),
-  ssTrm(H,Dp,HH).
-ssTrm(handle(_,B,T,E,H),Dp,sq([ss("try "),TT,ss(" in "),BB,ss(" handle "),EE,ss(" in "),HH])) :-
   Dp2 is Dp+2,
   ssTrm(T,Dp,TT),
   ssTrm(E,Dp,EE),
@@ -261,23 +260,12 @@ ssAct(ltt(_,Vr,B,A),Dp,sq([ss("let "),VV,ss("="),BB,ss(" in "),AA])) :-!,
   ssTrm(Vr,Dp1,VV),
   ssTrm(B,Dp1,BB),
   ssAct(A,Dp1,AA).
-ssAct(cntlt(_,Vr,B,A),Dp,sq([ss("let "),VV,ss("="),BB,ss(" in "),AA])) :-!,
-  Dp1 is Dp+2,
-  ssTrm(Vr,Dp1,VV),
-  ssTrm(B,Dp1,BB),
-  ssAct(A,Dp1,AA).
 ssAct(rtire(_,T,E),Dp,sq([TT,ss(" retire "),EE])) :-
   ssTrm(T,Dp,TT),
   ssTrm(E,Dp,EE).
 ssAct(error(_,M),Dp,sq([ss(" error "),MM])) :-
   ssTrm(M,Dp,MM).
 ssAct(try(_,B,T,E,H),Dp,sq([ss("try "),TT,ss(" in "),BB,ss(" catch "),EE,ss(" in "),HH])) :-
-  Dp2 is Dp+2,
-  ssTrm(T,Dp,TT),
-  ssTrm(E,Dp,EE),
-  ssAct(B,Dp2,BB),
-  ssAct(H,Dp2,HH).
-ssAct(handle(_,B,T,E,H),Dp,sq([ss("try "),TT,ss(" in "),BB,ss(" handle "),EE,ss(" in "),HH])) :-
   Dp2 is Dp+2,
   ssTrm(T,Dp,TT),
   ssTrm(E,Dp,EE),
@@ -354,9 +342,6 @@ rewriteTerm(_,lbl(Nm,Ar),lbl(Nm,Ar)).
 rewriteTerm(QTest,ltt(Lc,V,Val,Exp),ltt(Lc,V,Val1,Exp1)) :-
   rewriteTerm(lterms:checkV(V,QTest),Val,Val1),
   rewriteTerm(lterms:checkV(V,QTest),Exp,Exp1).
-rewriteTerm(QTest,cntlt(Lc,V,Val,Exp),cntlt(Lc,V,Val1,Exp1)) :-
-  rewriteTerm(lterms:checkV(V,QTest),Val,Val1),
-  rewriteTerm(lterms:checkV(V,QTest),Exp,Exp1).
 rewriteTerm(QTest,rais(Lc,T,E),rais(Lc,TT,EE)) :-!,
   rewriteTerm(QTest,T,TT),
   rewriteTerm(QTest,E,EE).
@@ -391,6 +376,14 @@ rewriteTerm(QTest,ecll(Lc,Call,Args),ecll(Lc,Call,NArgs)) :-
 rewriteTerm(QTest,whr(Lc,T,C),whr(Lc,NT,NC)) :-
   rewriteTerm(QTest,T,NT),
   rewriteTerm(QTest,C,NC).
+rewriteTerm(QTest,prmpt(Lc,E),prmpt(Lc,EE)) :-
+  rewriteTerm(QTest,E,EE).
+rewriteTerm(QTest,cntrl(Lc,V,E),cntrl(Lc,VV,EE)) :-
+  rewriteTerm(QTest,V,VV),
+  rewriteTerm(QTest,E,EE).
+rewriteTerm(QTest,cnt(Lc,K,V),cnt(Lc,KK,VV)) :-
+  rewriteTerm(QTest,V,VV),
+  rewriteTerm(QTest,K,KK).
 rewriteTerm(QTest,varNames(Lc,V,T),varNames(Lc,NV,NT)) :-
   map(V,lterms:rewriteVN(QTest),NV),
   rewriteTerm(QTest,T,NT).
@@ -432,11 +425,6 @@ rewriteTerm(QTest,resme(Lc,T,E),resme(Lc,TT,EE)) :-
 rewriteTerm(QTest,error(Lc,M),error(Lc,MM)) :-!,
   rewriteTerm(QTest,M,MM).
 rewriteTerm(QTest,try(Lc,B,T,E,H),try(Lc,BB,TT,EE,HH)) :-!,
-  rewriteTerm(QTest,T,TT),
-  rewriteTerm(QTest,E,EE),
-  rewriteTerm(QTest,B,BB),
-  rewriteTerm(QTest,H,HH).
-rewriteTerm(QTest,handle(Lc,B,T,E,H),handle(Lc,BB,TT,EE,HH)) :-!,
   rewriteTerm(QTest,T,TT),
   rewriteTerm(QTest,E,EE),
   rewriteTerm(QTest,B,BB),
@@ -498,20 +486,12 @@ rewriteAction(QTest,ffor(Lc,P,S,B),ffor(Lc,PP,SS,BB)) :-!,
 rewriteAction(QTest,ltt(Lc,V,E,B),ltt(Lc,V,EE,BB)) :-!,
   rewriteTerm(lterms:checkV(V,QTest),E,EE),
   rewriteAction(lterms:checkV(V,QTest),B,BB).
-rewriteAction(QTest,cntlt(Lc,V,E,B),cntlt(Lc,V,EE,BB)) :-!,
-  rewriteTerm(lterms:checkV(V,QTest),E,EE),
-  rewriteAction(lterms:checkV(V,QTest),B,BB).
 rewriteAction(QTest,rtire(Lc,T,E),rtire(Lc,TT,EE)) :-!,
   rewriteTerm(QTest,T,TT),
   rewriteTerm(QTest,E,EE).
 rewriteAction(QTest,error(Lc,M),error(Lc,MM)) :-!,
   rewriteTerm(QTest,M,MM).
 rewriteAction(QTest,try(Lc,B,T,E,H),try(Lc,BB,TT,EE,HH)) :-!,
-  rewriteTerm(QTest,T,TT),
-  rewriteTerm(QTest,E,EE),
-  rewriteAction(QTest,B,BB),
-  rewriteAction(QTest,H,HH).
-rewriteAction(QTest,handle(Lc,B,T,E,H),handle(Lc,BB,TT,EE,HH)) :-!,
   rewriteTerm(QTest,T,TT),
   rewriteTerm(QTest,E,EE),
   rewriteAction(QTest,B,BB),
@@ -525,14 +505,14 @@ checkV(Vr,Other,T,T1) :-
   T\=Vr,
   call(Other,T,T1).
 
-genTplStruct(Cnt,lbl(Nm,Cnt)) :-
-  swritef(Nm,"()%d",[Cnt]).
+genTplStruct(Cx,lbl(Nm,Cx)) :-
+  swritef(Nm,"()%d",[Cx]).
 
 isTplLbl(Nm,Ar) :- string_concat("()",A,Nm),number_string(Ar,A).
 
 mkTpl(Els,ctpl(C,Els)) :-
-  length(Els,Cnt),
-  genTplStruct(Cnt,C).
+  length(Els,Cx),
+  genTplStruct(Cx,C).
 
 isTpl(ctpl(lbl(Lb,Ar),_)) :- isTplLbl(Lb,Ar).
 
@@ -604,14 +584,16 @@ inTerm(setix(_,_,_,Vl),Nm) :-
   inTerm(Vl,Nm).
 inTerm(ctpl(_,Args),Nm) :-
   is_member(Arg,Args), inTerm(Arg,Nm),!.
-inTerm(shft(_,L,_A),Nm) :-
-  is_member(L,Nm).
-inTerm(shft(_,_L,A),Nm) :-
-  is_member(A,Nm).
 inTerm(resme(_,L,_A),Nm) :-
   is_member(L,Nm).
 inTerm(resme(_,_L,Arg),Nm) :-
   inTerm(Arg,Nm),!.
+inTerm(prmpt(_,L),Nm) :-
+  inTerm(L,Nm).
+inTerm(cntrl(_,V,T),Nm) :-
+  inTerm(V,Nm) ; inTerm(T,Nm).
+inTerm(cnt(_,K,V),Nm) :-
+  inTerm(K,Nm);inTerm(V,Nm).
 inTerm(whr(_,T,_),Nm) :-
   inTerm(T,Nm),!.
 inTerm(whr(_,_,C),Nm) :-
@@ -643,10 +625,6 @@ inTerm(ng(_,R),Nm) :-
 inTerm(ltt(_,_,B,_E),Nm) :-
   inTerm(B,Nm).
 inTerm(ltt(_,_,_B,E),Nm) :-
-  inTerm(E,Nm).
-inTerm(cntlt(_,_,B,_E),Nm) :-
-  inTerm(B,Nm).
-inTerm(cntlt(_,_,_B,E),Nm) :-
   inTerm(E,Nm).
 
 inAction(nop(_),_) :- !,fail.
@@ -682,15 +660,11 @@ inAction(whle(_,G,L),Nm) :-!,
   (inTerm(G,Nm) ; inAction(L,Nm)).
 inAction(ltt(_,_,E,B),Nm) :-!,
   (inTerm(E,Nm) ; inAction(B,Nm)).
-inAction(cntlt(_,_,E,B),Nm) :-!,
-  (inTerm(E,Nm) ; inAction(B,Nm)).
 inAction(rtire(_,L,G),Nm) :-!,
   (inTerm(L,Nm) ; inTerm(G,Nm)).
 inAction(error(_,M),Nm) :-!,
   inTerm(M,Nm).
 inAction(try(_,B,T,E,H),Nm) :-!,
-  (inAction(B,Nm) ;  inTerm(T,Nm) ; inTerm(E,Nm) ; inAction(H,Nm)).
-inAction(handle(_,B,T,E,H),Nm) :-!,
   (inAction(B,Nm) ;  inTerm(T,Nm) ; inTerm(E,Nm) ; inAction(H,Nm)).
 
 isCnd(cnj(_,_,_)).
@@ -782,16 +756,19 @@ validTerm(setix(Lc,Rc,Off,Vl),_,D) :-
   integer(Off),
   validTerm(Rc,Lc,D),
   validTerm(Vl,Lc,D).
+validTerm(prmpt(Lc,Lm),_,D) :-
+  validTerm(Lm,Lc,D).
+validTerm(cntrl(Lc,V,K),_,D) :-
+  validTerm(V,Lc,D),
+  validTerm(K,Lc,D).
+validTerm(cnt(Lc,K,V),_,D) :-
+  validTerm(V,Lc,D),
+  validTerm(K,Lc,D).
 validTerm(whr(Lc,Exp,Cond),_,D) :-
   glVars(Cond,D,D1),
   validTerm(Exp,Lc,D1),
   validTerm(Cond,Lc,D1).
 validTerm(ltt(Lc,Vr,Bnd,Exp),_,D) :-
-  validTerm(Bnd,Lc,D),
-  ptnVars(Vr,D,D1),
-  validTerm(Vr,Lc,D1),
-  validTerm(Exp,Lc,D1).
-validTerm(cntlt(Lc,Vr,Bnd,Exp),_,D) :-
   validTerm(Bnd,Lc,D),
   ptnVars(Vr,D,D1),
   validTerm(Vr,Lc,D1),
@@ -807,11 +784,6 @@ validTerm(unpack(Lc,G,Cases),_,D) :-
   validTerm(G,Lc,D),
   validCases(Cases,lterms:validTerm,D).
 validTerm(try(Lc,B,T,E,H),_,D) :-
-  declareArg(T,D,D1),
-  validTerm(B,Lc,D1),
-  ptnVars(E,D,D0),
-  validTerm(H,Lc,D0).
-validTerm(handle(Lc,B,T,E,H),_,D) :-
   declareArg(T,D,D1),
   validTerm(B,Lc,D1),
   ptnVars(E,D,D0),
@@ -956,22 +928,12 @@ validAction(ltt(Lc,V,E,B),_,D,D) :-!,
   ptnVars(V,D,D1),
   validTerm(V,Lc,D1),
   validAction(B,Lc,D1,_).
-validAction(cntlt(Lc,V,E,B),_,D,D) :-!,
-  validTerm(E,Lc,D),
-  ptnVars(V,D,D1),
-  validTerm(V,Lc,D1),
-  validAction(B,Lc,D1,_).
 validAction(rtire(Lc,L,G),_,D,D) :-!,
   validTerm(L,Lc,D),
   validTerm(G,Lc,D).
 validAction(error(Lc,M),_,D,D) :-
   validTerm(M,Lc,D).
 validAction(try(Lc,B,T,E,H),_,D,D) :-
-  declareArg(T,D,D1),
-  validAction(B,Lc,D1,_),
-  ptnVars(E,D,D0),
-  validAction(H,Lc,D0,_).
-validAction(handle(Lc,B,T,E,H),_,D,D) :-
   declareArg(T,D,D1),
   validAction(B,Lc,D1,_),
   ptnVars(E,D,D0),

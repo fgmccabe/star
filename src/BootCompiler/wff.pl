@@ -22,6 +22,7 @@
 	      isConditional/5,conditional/5,
 	      isEquation/4,isEquation/5,mkEquation/5,
 	      buildEquation/6,
+	      isContRule/5,mkContRule/5,
 	      isDefn/4,isAssignment/4,isRef/3,mkRef/3,isCellRef/3,cellRef/3,
 	      isSequence/4,mkSequence/3,mkSequence/4,
 	      assignment/4,eqn/4,eqn/5,
@@ -46,9 +47,10 @@
 	      isSuspend/4,isResume/4,isRetire/3,isRetire/4,isSpawn/4,
 	      mkSuspend/4,mkResume/4,mkRetire/3,mkRetire/4,mkSpawn/4,
 	      isFiberTerm/3,mkFiberTerm/3,isFiber/3,mkFiber/3,
+	      isPrompt/3,mkPrompt/3,isControl/4,mkControl/4,isContinue/4,mkContinue/4,
 	      isDoTerm/3,mkDoTerm/3,isDo/3,mkDo/3,
 	      isValof/3,mkValof/3,isValis/3,mkValis/3,
-	      isTryCatch/4,mkTryCatch/4,isTryHandle/4,mkTryHandle/4,
+	      isTryCatch/4,mkTryCatch/4,
 	      isRaise/3,mkRaise/3,
 	      isRaises/4,mkRaises/4,isInvoke/4,mkInvoke/4,
 	      isDynamic/4,mkDynamic/4,
@@ -241,6 +243,8 @@ isContractSpec(S,[],Constraints,Con) :-
   isContractSpec(R,_,_,Con).
 isContractSpec(S,[],[],S) :-
   isSquareTerm(S,_,_).
+isContractSpec(S,[],[],S) :-
+  isIden(S,_).
 
 contractSpec(_Lc,Q,C,Tp,Spec) :-
   reConstrain(C,Tp,T0),
@@ -267,12 +271,14 @@ implementationStmt(Lc,Q,Cx,Con,Body,St) :-
   unary(Lc,"implementation",S2,St).
 
 implementedContractName(Sq,INm) :-
-  isSquare(Sq,Nm,A),
+  isSquare(Sq,Nm,A),!,
   appStr(Nm,S0,S1),
   marker(over,M),
   surfaceNames(A,M,S1,[]),
   string_chars(INm,S0).
-
+implementedContractName(L,Nm) :-
+  isIden(L,Nm),!.
+  
 surfaceNames([],_,S,S).
 surfaceNames([T|_],Sep,S0,Sx) :-
   isBinary(T,_,"->>",L,_),!,
@@ -300,11 +306,14 @@ surfaceName(T,Nm) :-
   swritef(Nm,"()%d",[Ar]).
 
 isDynamic(A,Lc,Nm,Tp) :-
-  isBinary(A,Lc,"|=",L,Tp),
+  isBinary(A,Lc,"|=",L,Tp),!,
+  isIden(L,Nm).
+isDynamic(A,Lc,Nm,Tp) :-
+  isBinary(A,Lc,":",L,Tp),!,
   isIden(L,Nm).
 
 mkDynamic(Lc,Nm,Tp,D) :-
-  binary(Lc,"|=",name(Lc,Nm),Tp,D).
+  binary(Lc,":",name(Lc,Nm),Tp,D).
 
 isConstrainedTp(T,C,R) :-
   isConstrained(T,R,C),!.
@@ -525,6 +534,16 @@ eqn(Lc,Args,Cond,Rhs,Eqn) :-
   binary(Lc,"=>",Lhs,Rhs,Eqn).
 eqn(Lc,Lhs,Rhs,Eqn) :-
   binary(Lc,"=>",Lhs,Rhs,Eqn).
+
+isContRule(Trm,Lc,Lhs,Cond,Rhs) :-
+  isBinary(Trm,Lc,"=>>",L,Rhs),
+  (isWhere(L,_,Lhs,G), Cond=some(G) ; L=Lhs, Cond=none).
+
+mkContRule(Lc,Lhs,none,Rhs,Eqn) :-
+  binary(Lc,"=>>",Lhs,Rhs,Eqn).
+mkContRule(Lc,Args,some(G),Rhs,Eqn) :-
+  whereTerm(Lc,Args,G,Lhs),
+  binary(Lc,"=>>",Lhs,Rhs,Eqn).
 
 isDefn(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,"=",Lhs,Rhs).
@@ -881,24 +900,16 @@ mkTryCatch(Lc,B,H,A) :-
   binary(Lc,"catch",B,Hs,A0),
   unary(Lc,"try",A0,A).
 
-isTryHandle(A,Lc,B,H) :-
-  isUnary(A,Lc,"try",I),
-  isBinary(I,_,"handle",B,H).
-
-mkTryHandle(Lc,B,H,A) :-
-  binary(Lc,"handle",B,H,A0),
-  unary(Lc,"try",A0,A).
-
 isBreak(A,Lc,L) :-
   isUnary(A,Lc,"break",L),
-  isIden(L,_,_).
+  isIden(L,_).
 
 mkBreak(Lc,Lb,A) :-
   unary(Lc,"break",Lb,A).
 
 isLbldAction(A,Lc,L,Ac) :-
   isBinary(A,Lc,":",L,Ac),
-  isIden(L,_,_).
+  isIden(L,_).
 
 mkLbldAction(Lc,Lb,Ac,A) :-
   binary(Lc,":",Lb,Ac,A).
@@ -986,6 +997,24 @@ mkRetire(Lc,E,A) :-
   unary(Lc,"retire",E,A).
 mkRetire(Lc,T,E,A) :-
   binary(Lc,"retire",T,E,A).
+
+isPrompt(T,Lc,L) :-
+  isUnary(T,Lc,"prompt",L).
+
+mkPrompt(Lc,L,T) :-
+  unary(Lc,"prompt",L,T).
+
+isControl(Tm,Lc,T,L) :-
+  isBinary(Tm,Lc,"control",T,L).
+
+mkControl(Lc,T,L,Tm) :-
+  binary(Lc,"control",T,L,Tm).
+
+isContinue(T,Lc,K,V) :-
+  isBinary(T,Lc,"continue",K,V).
+
+mkContinue(Lc,K,V,T) :-
+  binary(Lc,"continue",K,V,T).
 
 mkLoc(Lc,T) :-
   Lc=loc(Pk,Line,Col,Off,Ln),

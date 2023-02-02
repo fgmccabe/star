@@ -288,10 +288,6 @@ collectTermRefs(T,All,Rf,Rfx) :-
   collectTermRefs(L,All,Rf,Rf1),
   collectCaseRefs(C,collectTermRefs,All,Rf1,Rfx).
 collectTermRefs(T,All,Rf,Rfx) :-
-  isTryHandle(T,_,L,C),!,
-  collectTermRefs(L,All,Rf,Rf1),
-  collectTermRefs(C,All,Rf1,Rfx).
-collectTermRefs(T,All,Rf,Rfx) :-
   isRaise(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
 collectTermRefs(T,All,Rf,Rx) :-
@@ -309,6 +305,17 @@ collectTermRefs(T,A,Rf,Rx) :-
 collectTermRefs(T,All,R0,Rx) :-
   isFiberTerm(T,_,Stmts),!,
   collectDoRefs(Stmts,All,R0,Rx).
+collectTermRefs(T,A,Rf,Rx) :-
+  isPrompt(T,_,L),!,
+  collectTermRefs(L,A,Rf,Rx).
+collectTermRefs(T,A,Rf,Rx) :-
+  isControl(T,_,F,E),!,
+  collectTermRefs(F,A,Rf,R0),
+  collectTermRefs(E,A,R0,Rx).
+collectTermRefs(T,A,Rf,Rx) :-
+  isContinue(T,_,K,V),!,
+  collectTermRefs(K,A,Rf,R0),
+  collectTermRefs(V,A,R0,Rx).
 collectTermRefs(app(_,Op,Args),All,R,Rx) :-
   collectTermRefs(Op,All,R,R0),
   collectTermRefs(Args,All,R0,Rx).
@@ -432,10 +439,6 @@ collectDoRefs(T,All,Rf,Rfx) :-
   isTryCatch(T,_,L,C),!,
   collectDoRefs(L,All,Rf,Rf1),
   collectCaseRefs(C,collectDoRefs,All,Rf1,Rfx).
-collectDoRefs(T,All,Rf,Rfx) :-
-  isTryHandle(T,_,L,C),!,
-  collectDoRefs(L,All,Rf,Rf1),
-  collectTermRefs(C,All,Rf1,Rfx).
 collectDoRefs(T,A,R,Rx) :-
   isLetDef(T,_,S,B),!,
   collectStmtRefs(S,A,[],R,R0),

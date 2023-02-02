@@ -56,10 +56,6 @@ defineContract(N,Lc,Contract,E0,Ex) :-
   declareContract(N,Contract,E0,E1),
   declareMethods(Contract,Lc,E1,Ex).
 
-defineContract(N,Lc,Contract,E0,Ex) :-
-  declareContract(N,Contract,E0,E1),
-  declareMethods(Contract,Lc,E1,Ex).
-
 declareMethods(conDef(_,_,ConEx),Lc,Env,Ev) :-
   moveQuants(ConEx,Q,C1),
   getConstraints(C1,Cx,contractExists(CTract,faceType(Methods,[]))),

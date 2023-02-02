@@ -80,7 +80,7 @@ collectDefinition(St,Stmts,Stx,Defs,Dfx,P,Px,A,Ax,_) :-
 collectDefinition(St,Stmts,Stmts,[(con(Nm),Lc,[St])|Defs],Defs,P,Px,A,Ax,Export) :-
   isContractStmt(St,Lc,Quants,Constraints,Con,Els),
   generateAnnotations(Els,Quants,[Con|Constraints],A,Ax),
-  isSquare(Con,Nm,_),
+  typeName(Con,Nm),
   call(Export,con(Nm),P,Px).
 collectDefinition(St,Stmts,Stmts,[(imp(Nm),Lc,[St])|Defs],Defs,P,Px,A,A,Export) :-
   isImplementationStmt(St,Lc,_,_,N,_),
@@ -385,7 +385,7 @@ checkEquation(Lc,H,C,R,funType(AT,RT),Defs,Defsx,Df,Dfx,E,Path) :-
   checkGuard(C,E0,E1,Guard,Path),
   typeOfExp(R,RT,E1,_E2,Exp,Path),
   Eqn = rule(Lc,Args,Guard,Exp),
-%  reportMsg("rule %s",[Eqn],Lc),
+%  reportMsg("rule %s",[rle(Eqn)],Lc),
   (IsDeflt=isDeflt -> Defs=Defsx, Df=[Eqn|Dfx]; Defs=[Eqn|Defsx],Df=Dfx).
 checkEquation(Lc,_,_,_,ProgramType,Defs,Defs,Df,Df,_,_) :-
   reportError("rule not consistent with expected type: %s",[ProgramType],Lc).
@@ -511,7 +511,7 @@ pickBoundType((_,Tv),Tp,allType(Tv,Tp)).
 
 % Patterns are very similarly checked to expressions, except that fewer forms
 typeOfArgPtn(T,Tp,Env,Ev,tple(Lc,Els),Path) :-
-  isTuple(T,Lc,A),
+  isTuple(T,Lc,A),!,
   genTpVars(A,ArgTps),
   verifyType(Lc,ast(T),tplType(ArgTps),Tp,Env),
   typeOfPtns(A,ArgTps,Env,Ev,Lc,Els,Path).
@@ -776,16 +776,11 @@ typeOfExp(Term,Tp,Env,Env,apply(Lc,Fun,Args,Tp),Path) :-
   At = tplType(Vrs),
   typeOfExp(F,consType(At,Tp),Env,E0,Fun,Path),
   typeOfArgTerm(tuple(Lc,"()",A),At,E0,_Ev,Args,Path).
-typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
-  isRoundTerm(Term,Lc,F,A),
-  typeOfRoundTerm(Lc,F,A,Tp,Env,Exp,Path).
 typeOfExp(Term,Tp,Env,Env,invoke(Lc,KK,Args,Tp),Path) :-
   isInvoke(Term,Lc,K,A),!,
   genTpVars(A,Vrs),
   At = tplType(Vrs),
-  newTypeVar("R",Rt),
-  continuationType(At,Rt,KTp),
-  verifyType(Lc,ast(Term),tplType([KTp,Rt]),Tp,Env),
+  continuationType(At,Tp,KTp),
   typeOfExp(K,KTp,Env,E0,KK,Path),
   typeOfArgTerm(tuple(Lc,"()",A),At,E0,_Ev,Args,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
@@ -794,6 +789,17 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isSuspend(Term,Lc,T,E),!,
   checkSuspend(Lc,T,E,Tp,Env,Ev,Exp,Path).
+typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
+  isPrompt(Term,Lc,Lm),
+  isEquation(Lm,_Lc,_H,_R),!,
+  checkPrompt(Lc,Lm,Tp,Env,Exp,Path).
+typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
+  isControl(Term,Lc,Tg,Lm),
+  isEquation(Lm,_Lc,_H,_R),!,
+  checkControl(Lc,Tg,Lm,Tp,Env,Exp,Path).
+typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
+  isContinue(Term,Lc,K,V),
+  checkContinue(Lc,K,V,Tp,Env,Exp,Path).
 typeOfExp(Term,Tp,Env,Env,Lam,Path) :-
   isEquation(Term,_Lc,_H,_R),
   typeOfLambda(Term,Tp,Env,Lam,Path).
@@ -803,13 +809,13 @@ typeOfExp(Term,Tp,Env,Ev,valof(Lc,Act,Tp),Path) :-
   checkAction(Ac,Tp,Env,Ev,Act,Path).
 typeOfExp(A,Tp,Env,Env,tryCatch(Lc,Body,Trw,Hndlr),Path) :-
   isTryCatch(A,Lc,B,H),!,
-  checkTryCatch(Lc,B,H,Tp,checker:typeOfExp,Env,Body,Trw,Hndlr,Path).
-typeOfExp(A,_Tp,Env,Env,raise(Lc,Thrw,ErExp),Path) :-
+  checkTryCatch(Lc,B,H,Tp,Env,checker:typeOfExp,Body,Trw,Hndlr,Path).
+typeOfExp(A,Tp,Env,Env,raise(Lc,Thrw,ErExp,Tp),Path) :-
   isRaise(A,Lc,E),!,
   checkRaise(Lc,E,Env,Thrw,ErExp,Path).
-typeOfExp(A,Tp,Env,Env,Act,Path) :-
-  isTryHandle(A,Lc,B,H),!,
-  checkTryHandle(Lc,B,H,Tp,checker:typeOfExp,Env,Act,Path).
+typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
+  isRoundTerm(Term,Lc,F,A),
+  typeOfRoundTerm(Lc,F,A,Tp,Env,Exp,Path).
 typeOfExp(Term,Tp,Env,Env,void,_) :-
   locOfAst(Term,Lc),
   reportError("illegal expression: %s, expecting a %s",[Term,Tp],Lc).
@@ -928,9 +934,6 @@ checkAction(A,_Tp,Env,Ev,Act,Path) :-
 checkAction(A,Tp,Env,Env,doTryCatch(Lc,Body,Trw,Hndlr),Path) :-
   isTryCatch(A,Lc,B,H),!,
   checkTryCatch(Lc,B,H,Tp,Env,checker:checkAction,Body,Trw,Hndlr,Path).
-checkAction(A,Tp,Env,Env,Act,Path) :-
-  isTryHandle(A,Lc,B,H),!,
-  checkTryHandle(Lc,B,H,Tp,Env,checker:checkAction,Act,Path).
 checkAction(A,Tp,Env,Ev,doIfThenElse(Lc,Tst,Thn,Els),Path) :-
   isIfThenElse(A,Lc,G,T,E),!,
   checkGoal(G,Env,E0,Tst,Path),
@@ -1011,16 +1014,6 @@ checkRaise(Lc,X,Env,Thrw,ErrExp,Path) :-
    ErrExp=void,
    Thrw=void).
 
-checkTryHandle(Lc,B,H,Tp,Env,Check,tryHandle(Lc,Body,Trw,Hndlr),Path) :-
-  newTypeVar("EE",ETp),
-  continuationType(ETp,Tp,CTp),
-  declareVr(Lc,"_continue",CTp,none,Env,Ev1),
-  Trw = v(Lc,"_continue",CTp),
-  newTypeVar("HH",HTp),
-  typeOfExp(H,HTp,Ev1,_,Hndlr,Path),
-  declareVr(Lc,"_handler",HTp,none,Env,EvB),
-  call(Check,B,Tp,EvB,_,Body,Path).
-
 checkGoal(Term,Env,Ex,conj(Lc,Lhs,Rhs),Path) :-
   isConjunct(Term,Lc,L,R),!,
   checkGoal(L,Env,E1,Lhs,Path),
@@ -1093,6 +1086,31 @@ checkRetire(Lc,T,E,Env,Env,doRetire(Lc,Tsk,Evt),Path) :-
   applyTypeFun(TskTp,[RV,SV],Lc,Env,TTp),
   typeOfExp(T,TTp,Env,_,Tsk,Path),
   typeOfExp(E,SV,Env,_,Evt,Path).
+
+checkPrompt(Lc,Lm,Tp,Env,prompt(Lc,Lam),Path) :-
+  newTypeVar("A",ATp),
+  newTypeVar("R",RTp),
+  tagType(ATp,RTp,TgTp),
+  LmTp = funType(tplType([TgTp]),Tp),
+  typeOfExp(Lm,LmTp,Env,_,Lam,Path).
+%  reportMsg("type of prompt %s is %s",[ast(Lm),tpe(LmTp)]).
+
+checkControl(Lc,Tg,Lm,Tp,Env,control(Lc,Tag,Lam),Path) :-
+  newTypeVar("A",Atp),
+  newTypeVar("R",Rtp),
+  tagType(Atp,Rtp,TgTp),
+  typeOfExp(Tg,TgTp,Env,_,Tag,Path),
+%  reportMsg("type of tag %s is %s",[ast(Tg),tpe(TgTp)]),
+  continuationType(tplType([Tp]),Atp,CTp),
+  LmTp = funType(tplType([CTp]),Rtp),
+  typeOfExp(Lm,LmTp,Env,_,Lam,Path).
+%  reportMsg("type of control lambda %s is %s",[ast(Lm),tpe(LmTp)]).
+
+checkContinue(Lc,K,V,Tp,Env,cont(Lc,Kv,Vl),Path) :-
+  newTypeVar("K",Ktp),
+  continuationType(tplType([Ktp]),Tp,CTp),
+  typeOfExp(K,CTp,Env,_,Kv,Path),
+  typeOfExp(V,Ktp,Env,_,Vl,Path).
 
 genTpVars([],[]).
 genTpVars([_|I],[Tp|More]) :-

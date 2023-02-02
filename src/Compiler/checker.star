@@ -757,14 +757,14 @@ star.compiler.checker{
     HRls = checkRules(Rls,NErTp,Tp,Env,Path,typeOfExp,[],.none);
     valis .trycatch(Lc,NB,.vr(Lc,"_raise",contType(NErTp)),HRls,Tp)
   }
-  typeOfExp(A,Tp,Env,Path) where (Lc,Body,Rls) ?= isTryHandle(A) => valof{
+  typeOfExp(A,Tp,Env,Path) where (Lc,Body,Rls) ?= isTryWith(A) => valof{
     ETp = newTypeVar("_E");
     RTp = newTypeVar("_R");
     CTp = continuationType([ETp],RTp);
     Ev = declareVar("_invoke","_invoke",Lc,CTp,.none,Env);
     NB = typeOfExp(Body,Tp,Ev,Path);
     HRls = checkRules(Rls,ETp,Tp,Env,Path,typeOfExp,[],.none);
-    valis .tryhandle(Lc,NB,.vr(Lc,"_invoke",CTp),HRls,Tp)
+    valis .trywith(Lc,NB,.vr(Lc,"_invoke",CTp),HRls,Tp)
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,E) ?= isRaise(A) => valof{
     ErTp = newTypeVar("_E");
@@ -896,7 +896,7 @@ star.compiler.checker{
       },[],.none);
     valis (.doTryCatch(Lc,NB,.vr(Lc,"_raise",contType(NErTp)),Hs),Env)
   }
-  checkAction(A,Tp,Env,Path) where (Lc,Body,Rls) ?= isTryHandle(A) => valof{
+  checkAction(A,Tp,Env,Path) where (Lc,Body,Rls) ?= isTryWith(A) => valof{
     ETp = newTypeVar("_E");
     RTp = newTypeVar("_R");
     CTp = continuationType([ETp],RTp);
@@ -906,7 +906,7 @@ star.compiler.checker{
 	(HA,_)=checkAction(AA,Tp,Eva,Path);
 	valis HA
       },[],.none);
-    valis (.doTryHandle(Lc,NB,.vr(Lc,"_invoke",CTp),HRls),Env)
+    valis (.doTryWith(Lc,NB,.vr(Lc,"_invoke",CTp),HRls),Env)
   }
   checkAction(A,Tp,Env,Path) where (Lc,C,T,E) ?= isIfThenElse(A) => valof{
     (CC,E0) = checkGoal(C,Env,Path);

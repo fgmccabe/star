@@ -11,6 +11,7 @@
 		getImplementation/4,
 		manageConstraints/4,
 		declareConstraints/4,
+		allConstraints/2,
 		pushScope/2,mergeDict/4,pushFace/4,makeKey/2,stdDict/1,
 		dispEnv/1
 	       ]).
@@ -130,6 +131,11 @@ getContract(Nm,Env,Con) :-
 
 contractInD(Ky,[dict(_,_,_,_,_,_,Cons)|_],Con) :- get_dict(Ky,Cons,Con),!.
 contractInD(Key,[_|Env],Con) :- contractInD(Key,Env,Con).
+
+allConstraints([],[]).
+allConstraints([dict(_,_,Cons,_,_,_,_)|D],C,Cx) :-
+  concat(Cons,C,C0),
+  allConstraints(D,C0,Cx).
 
 declareConstraint(Lc,C,E,Ev) :- C=conTract(_,_Args,_Deps),!,
   implementationName(C,ImpNm),
