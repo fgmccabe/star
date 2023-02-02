@@ -445,6 +445,18 @@ retCode jit_Underflow(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
+retCode jit_Tag(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_Cntrl(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_Cont(insPo code, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
 retCode jit_TEq(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }

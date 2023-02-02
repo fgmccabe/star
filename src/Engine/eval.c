@@ -455,6 +455,84 @@ retCode run(processPo P) {
         continue;
       }
 
+      case Tag: {
+        // The top of a stack should be a unary lambda
+        termPo lambda = pop();
+        saveRegisters();
+        stackPo child = splitStack(P, lambda);
+
+        P->stk = attachStack(P->stk, child);
+        verifyStack(P->stk, P->heap);
+        restoreRegisters();   // We enter the new code, argument is the id of the stack
+        continue;
+      }
+
+      case Cntrl: {                        // Collect continuation, and invoke control lambda
+        normalPo lam = C_NORMAL(pop());    // The lambda to execute
+        stackPo stack = C_STACK(pop()); // Pick up the root of our stack
+
+        if (stackState(stack) != active) {
+          logMsg(logFile, "tried to suspend %s fiber %T", stackStateName(stackState(stack)), stack);
+          bail();
+        } else {
+          saveRegisters();
+          P->stk = detachStack(STK, stack);
+          restoreRegisters();
+          push(stack);
+
+          labelPo oLbl = objLabel(termLbl(lam), 2);
+
+          if (oLbl == Null) {
+            logMsg(logFile, "label %s/%d not defined", labelName(termLbl(lam)), 1);
+            bail();
+          }
+
+          methodPo mtd = labelCode(oLbl);       /* set up for object call */
+
+          if (mtd == Null) {
+            logMsg(logFile, "no definition for %T", oLbl);
+            bail();
+          }
+
+          push(nthElem(lam, 0));                     // Put the free term back on the stack
+
+          if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE)) {
+            int root = gcAddRoot(H, (ptrPo) &mtd);
+            stackGrow(stackDelta(mtd) + STACKFRAME_SIZE, codeArity(mtd));
+            gcReleaseRoot(H, root);
+
+#ifdef TRACESTACK
+            if (traceStack)
+              verifyStack(STK, H);
+#endif
+          }
+
+          assert(isPcOfMtd(FP->prog, PC));
+          FP->pc = PC;
+          pushFrme(mtd);
+          LITS = codeLits(mtd);
+          incEntryCount(mtd);              // Increment number of times program called
+
+          continue;
+        }
+      }
+
+      case Cont: {
+        stackPo stack = C_STACK(pop());
+        termPo event = pop();
+
+        if (stackState(stack) != suspended) {
+          logMsg(logFile, "tried to resume %s stack %T", stackStateName(stackState(stack)), stack);
+          bail();
+        } else {
+          saveRegisters();
+          P->stk = attachStack(STK, stack);
+          restoreRegisters();
+          push(event);
+          continue;
+        }
+      }
+
       case Suspend: { // Suspend identified fiber.
         termPo event = pop();
         stackPo stack = C_STACK(pop());
