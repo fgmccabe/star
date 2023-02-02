@@ -33,6 +33,10 @@ macroRl(":=",action,macroRules:spliceAssignMacro).
 macroRl(":=",action,macroRules:indexAssignMacro).
 macroRl(":=",expression,macroRules:spliceAssignMacro).
 macroRl(":=",expression,macroRules:indexAssignMacro).
+macroRl("=>",statement,macroRules:curryMacro).
+macroRl("=>",expression,macroRules:curryMacro).
+macroRl("=>>",statement,macroRules:contRuleMacro).
+macroRl("=>>",expression,macroRules:contRuleMacro).
 macroRl("raises",type,macroRules:raisesMacro).
 macroRl("do",action,macroRules:forLoopMacro).
 macroRl("->",expression,macroRules:arrowMacro).
@@ -287,27 +291,6 @@ macroLocationExp(T,expression,Loc) :-
   mkLoc(Lc,Loc).
 
 /*
-  perform A
-  becomes
-  case A in {
-    ok(_) => {}
-    bad(E) => raise E
-  }
-*/
-performMacro(T,action,Act) :-
-  isPerform(T,Lc,I),!,
-  /* make ok(_) => {} */
-  mkAnon(Lc,Anon),
-  unary(Lc,"ok",Anon,Lh1),
-  braceTuple(Lc,[],Nop),
-  mkEquation(Lc,Lh1,none,Nop,OkEqn),
-  /* make bad(E) => raise E */
-  genIden(Lc,E),
-  unary(Lc,"bad",E,Lh2),
-  mkRaise(Lc,E,Rh2),
-  mkEquation(Lc,Lh2,none,Rh2,BadEqn),
-  caseExp(Lc,I,[OkEqn,BadEqn],Act).
-/*
  assert C 
 becomes
   assrt(C,"failed: C",Loc)
@@ -537,7 +520,7 @@ arrowMacro(E,Md,Rp) :- (Md=expression;Md=pattern),
 /*
   (A)=>R raises E
 becomes
-  _raise|=cont[E] |: (A)=>R
+  (_raise:cont[E]) |: (A)=>R
 */
 
 raisesMacro(T,type,Tx) :-
@@ -548,3 +531,30 @@ raisesMacro(T,type,Tx) :-
   reConstrain([C],I,Tx).
 %  reportMsg("%s ==> %s",[ast(T),ast(Tx)],Lc).
 
+/*
+ f(A)(K) => E
+becomes
+ f(A) => (K)=>E
+*/
+
+curryMacro(T,Mode,Tx) :-
+  (Mode=expression ; Mode=statement),
+  isEquation(T,Lc,Lhs,Cond,Rhs),
+  isRoundTerm(Lhs,OLc,Op,KArgs),
+  isRoundTerm(Op,OOLc,F,FArgs),!,
+  roundTuple(OLc,KArgs,LmLhs),
+  mkEquation(Lc,LmLhs,Cond,Rhs,CRle),
+  roundTerm(OOLc,F,FArgs,RLhs),
+  mkEquation(Lc,RLhs,none,CRle,Tx).
+
+/*
+  Lhs =>> Rhs
+  becomes
+  Lhs(k) => Rhs
+  */
+contRuleMacro(T,Mode,Tx) :-
+  (Mode=expression ; Mode=statement),
+  isContRule(T,Lc,Lhs,Cond,Rhs),!,
+  roundTerm(Lc,Lhs,[name(Lc,"_cont")],LL),
+  mkEquation(Lc,LL,Cond,Rhs,Tx).
+  

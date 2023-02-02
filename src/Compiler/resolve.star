@@ -295,12 +295,12 @@ star.compiler.resolve{
     (EE,St2) = overloadTerm(E,Dict,St1);
     valis (.rais(Lc,EE,TT,Tp),St2)
   }
-  overloadTerm(.tryhandle(Lc,A,.vr(TLc,Tnm,TTp),Hs,Tp),Dict,St) => valof{
+  overloadTerm(.trywith(Lc,A,.vr(TLc,Tnm,TTp),Hs,Tp),Dict,St) => valof{
     TDict = declareVar(Tnm,Tnm,TLc,TTp,.none,Dict);
     (TT,St0) = overloadTerm(.vr(TLc,Tnm,TTp),TDict,St);
     (AA,St1) = overloadTerm(A,TDict,St0);
     (HH,St2) = overloadRules(Hs,[],Dict,St1);
-    valis (.tryhandle(Lc,AA,TT,HH,Tp),St2)
+    valis (.trywith(Lc,AA,TT,HH,Tp),St2)
   }
   overloadTerm(.vlof(Lc,Act,Tp),Dict,St) => valof{
     (Ac,St1) = overloadAction(Act,Dict,St);
@@ -379,12 +379,12 @@ star.compiler.resolve{
     (HH,St3) = overloadRules(H,[],Dict,St2);
     valis (.doTryCatch(Lc,AA,TT,HH),St3)
   }
-  overloadAction(.doTryHandle(Lc,A,.vr(TLc,Tnm,TTp),H),Dict,St) => valof{
+  overloadAction(.doTryWith(Lc,A,.vr(TLc,Tnm,TTp),H),Dict,St) => valof{
     TDict = declareVar(Tnm,Tnm,TLc,TTp,.none,Dict);
     (TT,St1) = overloadTerm(.vr(TLc,Tnm,TTp),TDict,St);
     (AA,St2) = overloadAction(A,TDict,St1);
     (HH,St3) = overloadRules(H,[],Dict,St2);
-    valis (.doTryHandle(Lc,AA,TT,HH),St3)
+    valis (.doTryWith(Lc,AA,TT,HH),St3)
   }
   overloadAction(.doIfThen(Lc,T,Th,El),Dict,St) => valof{
     (TT,St1) = overloadTerm(T,Dict,St);

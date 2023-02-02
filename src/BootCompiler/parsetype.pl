@@ -53,9 +53,9 @@ parseType(F,Env,B,C0,Cx,Tp) :-
   isContinType(F,_,L,R),
   parseArgType(L,Env,B,C0,C1,AT),
   parseType(R,Env,B,C1,Cx,RT),
-  mkTypeExp(tpFun("=>>",2),[AT,RT],Tp).
+  continuationType(AT,RT,Tp).
 parseType(F,Env,B,C0,Cx,consType(AT,RT)) :-
-  isConstructorType(F,_,_,_,L,R),!, % quantifiers already handled
+  isConstructorType(F,_,_,_,L,R),!, % should be no quantifiers
   parseArgType(L,Env,B,C0,C1,AT),!,
   parseType(R,Env,B,C1,Cx,RT).
 parseType(F,Env,B,C0,Cx,refType(Tp)) :-
@@ -187,6 +187,12 @@ parseConstraint(Sq,Env,B,C0,Cx) :-
     C1=[conTract(Op,ArgTps,Deps)|Cx];
     reportError("contract %s not declared",[id(N)],Lc),
     Cx=C1).
+parseConstraint(Cn,Env,B,C,Cx) :-
+  isIden(Cn,Lc,Nm),
+  (parseContractName(Lc,Nm,Env,B,contractExists(conTract(Op,_ATs,_Dps),_)) ->
+   C=[conTract(Op,[],[])|Cx];
+   reportError("contract %s not declared",[id(Nm)],Lc),
+   C=Cx).
 parseConstraint(T,Env,B,C,Cx) :-
   isTuple(T,_,[El]),
   parseConstraint(El,Env,B,C,Cx).
@@ -208,6 +214,20 @@ parseContractConstraint(Quants,Cons,Sq,Env,N,Op,ConSpec) :-
       ( sameType(tplType(ATs),tplType(ArgTps),Lc,Env),
         simplifyType(tplType(ATs),Lc,Env,C1,C2,tplType(As)),
         sameType(tplType(Dps),tplType(Deps),Lc,Env) ->
+          simplifyType(tplType(Dps),Lc,Env,C2,Cx,tplType(Ds)),
+          putConstraints(Cx,contractExists(conTract(Op,As,Ds),IFace),CC),
+          reUQnt(Q,CC,ConSpec);
+          reportError("implementation does not match contract %s",[id(Op)],Lc),
+          fail);
+    reportError("contract %s not declared",[id(N)],Lc), fail).
+parseContractConstraint(Quants,Cons,Sq,Env,N,Op,ConSpec) :-
+  isIden(Sq,Lc,N),
+  parseBoundTpVars(Quants,Q),
+  parseConstraints(Cons,Env,Q,C0,[]),
+  ( parseContractName(Lc,N,Env,Q,contractExists(conTract(Op,ATs,Dps),IFace)) ->
+      ( sameType(tplType(ATs),tplType([]),Lc,Env),
+        simplifyType(tplType(ATs),Lc,Env,C0,C2,tplType(As)),
+        sameType(tplType(Dps),tplType([]),Lc,Env) ->
           simplifyType(tplType(Dps),Lc,Env,C2,Cx,tplType(Ds)),
           putConstraints(Cx,contractExists(conTract(Op,As,Ds),IFace),CC),
           reUQnt(Q,CC,ConSpec);
@@ -283,8 +303,11 @@ parseContract(T,Env,Ev,Path,[conDef(Nm,ConNm,ConRule),
   declareAccessors(Acc,Ev0,Ev).
 
 parseContractSpec(T,Q,C0,Cx,Env,conTract(ConNm,ArgTps,Deps),Nm,ConNm,Path) :-
-  isSquare(T,_,Nm,A),
+  isSquare(T,_,Nm,A),!,
   parseContractArgs(A,Env,Q,C0,Cx,ArgTps,Deps),
+  contractName(Path,Nm,ConNm).
+parseContractSpec(T,_Q,Cx,Cx,_Env,conTract(ConNm,[],[]),Nm,ConNm,Path) :-
+  isIden(T,_,Nm),!,
   contractName(Path,Nm,ConNm).
 
 parseTypeDef(St,[Defn|Dx],Dx,E,Ev,Path) :-

@@ -445,11 +445,6 @@ examineTerm(A,Ax) :-
   map(C,macros:macroLambda,Cs),
   mkTryCatch(Lc,Bx,Cs,Ax).
 examineTerm(A,Ax) :-
-  isTryHandle(A,Lc,B,C),!,
-  macroTerm(B,Bx),
-  macroTerm(C,Cx),
-  mkTryHandle(Lc,Bx,Cx,Ax).
-examineTerm(A,Ax) :-
   isRaise(A,Lc,V),!,
   macroTerm(V,Vx),
   mkRaise(Lc,Vx,Ax).
@@ -468,6 +463,20 @@ examineTerm(T,Tx) :-
   macroTerm(F,Fx),
   macroTerm(E,Ex),
   mkSuspend(Lc,Fx,Ex,Tx).
+examineTerm(T,Tx) :-
+  isPrompt(T,Lc,Lm),!,
+  macroTerm(Lm,Lx),
+  mkPrompt(Lc,Lx,Tx).
+examineTerm(T,Tx) :-
+  isControl(T,Lc,F,E),!,
+  macroTerm(F,Fx),
+  macroTerm(E,Ex),
+  mkControl(Lc,Fx,Ex,Tx).
+examineTerm(T,Tx) :-
+  isContinue(T,Lc,K,V),!,
+  macroTerm(K,Kx),
+  macroTerm(V,Vx),
+  mkContinue(Lc,Kx,Vx,Tx).
 examineTerm(T,T) :-
   locOfAst(T,Lc),
   reportError("cannot figure out expression %s",[ast(T)],Lc).
@@ -646,11 +655,6 @@ examineAction(A,Ax) :-
   macroAction(B,Bx),
   map(C,macros:examineActionCase,Cs),
   mkTryCatch(Lc,Bx,Cs,Ax).
-examineAction(A,Ax) :-
-  isTryHandle(A,Lc,B,C),!,
-  macroAction(B,Bx),
-  macroTerm(C,Cx),
-  mkTryHandle(Lc,Bx,Cx,Ax).
 examineAction(A,Ax) :-
   isWhileDo(A,Lc,T,B),!,
   macroTerm(T,Tx),

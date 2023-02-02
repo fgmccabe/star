@@ -103,6 +103,8 @@ showTrm(can(C),O) :-
   ss_to_chrs(canon:ssTerm(C,0),O,[]).
 showTrm(cnact(C),O) :-
   ss_to_chrs(canon:ssAction(C,0),O,[]).
+showTrm(rle(C),O) :-
+  ss_to_chrs(canon:ssRule(C,0),O,[]).
 showTrm(tpe(T),O) :-
   ss_to_chrs(types:ssType(T,true,0),O,[]).
 showTrm(con(T),O) :-

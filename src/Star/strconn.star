@@ -59,15 +59,15 @@ star.structured.conn{
 	  .go_ahead => valis D
 	  | .shut_down_ => raise .canceled
 	}
-      }.
-      .quiescent => {
+      }
+      | .quiescent => {
 	St := .waiting(T);
 	case T suspend .blocked(()=> ~.hasData(_).=St!) in {
 	  .go_ahead => valis collect(T,Ch)
 	  | .shut_down_ => raise .canceled
 	}
-      }.
-      .waiting(TT) => {
+      }
+      | .waiting(TT) => {
 	case T suspend .blocked(()=> ~.hasData(_).=St!) in {
 	  .go_ahead =>
 	    valis collect(T,Ch)
