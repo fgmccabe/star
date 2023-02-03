@@ -381,14 +381,6 @@ liftExp(tryCatch(Lc,B,T,H),try(Lc,BB,TT,E,HH),Q,Qx,Map,Opts,Ex,Exx) :-
 liftExp(raise(Lc,T,E,_),rais(Lc,TT,EE),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(T,TT,Q,Q1,Map,Opts,Ex,Ex1),
   liftExp(E,EE,Q1,Qx,Map,Opts,Ex1,Exx).
-liftExp(prompt(Lc,E),prmpt(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-
-  liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(control(Lc,T,E),cntrl(Lc,TT,EE),Q,Qx,Map,Opts,Ex,Exx) :-
-  liftExp(T,TT,Q,Q0,Map,Opts,Ex,Ex0),
-  liftExp(E,EE,Q0,Qx,Map,Opts,Ex0,Exx).
-liftExp(cont(Lc,K,V),cnt(Lc,KK,VV),Q,Qx,Map,Opts,Ex,Exx) :-
-  liftExp(V,VV,Q,Q0,Map,Opts,Ex,Ex0),
-  liftExp(K,KK,Q0,Qx,Map,Opts,Ex0,Exx).
 liftExp(cell(Lc,In),cel(Lc,CellV),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(In,CellV,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(deref(Lc,In),get(Lc,CellV),Q,Qx,Map,Opts,Ex,Exx) :- !,

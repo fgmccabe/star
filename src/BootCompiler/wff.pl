@@ -11,7 +11,7 @@
 	      isTypeExistsStmt/6,typeExistsStmt/6,isTypeFunStmt/6,typeFunStmt/6,
 	      isTypeAnnotation/4,typeAnnotation/4,isTypeField/4,mkTypeField/4,
 	      isTypeLambda/4,typeLambda/4,typeName/2,
-	      isFuncType/4,funcType/4,isContType/3,mkContType/3,isContinType/4,mkContinType/4,
+	      isFuncType/4,funcType/4,isContType/3,mkContType/3,
 	      mkSqType/4,
 	      isEnum/3,mkEnum/3,isAnon/2,mkAnon/2,
 	      isConApply/4,mkConApply/4,
@@ -47,7 +47,6 @@
 	      isSuspend/4,isResume/4,isRetire/3,isRetire/4,isSpawn/4,
 	      mkSuspend/4,mkResume/4,mkRetire/3,mkRetire/4,mkSpawn/4,
 	      isFiberTerm/3,mkFiberTerm/3,isFiber/3,mkFiber/3,
-	      isPrompt/3,mkPrompt/3,isControl/4,mkControl/4,isContinue/4,mkContinue/4,
 	      isDoTerm/3,mkDoTerm/3,isDo/3,mkDo/3,
 	      isValof/3,mkValof/3,isValis/3,mkValis/3,
 	      isTryCatch/4,mkTryCatch/4,
@@ -331,12 +330,6 @@ isContType(T,Lc,E) :-
 
 mkContType(Lc,E,T) :-
   squareTerm(Lc,name(Lc,"cont"),[E],T).
-
-isContinType(T,Lc,L,R) :-
-  isBinary(T,Lc,"=>>",L,R).
-
-mkContinType(Lc,L,R,T) :-
-  binary(Lc,"=>>",L,R,T).
 
 mkSqType(Lc,Nm,Els,Tp) :-
   squareTerm(Lc,name(Lc,Nm),Els,Tp).
@@ -997,24 +990,6 @@ mkRetire(Lc,E,A) :-
   unary(Lc,"retire",E,A).
 mkRetire(Lc,T,E,A) :-
   binary(Lc,"retire",T,E,A).
-
-isPrompt(T,Lc,L) :-
-  isUnary(T,Lc,"prompt",L).
-
-mkPrompt(Lc,L,T) :-
-  unary(Lc,"prompt",L,T).
-
-isControl(Tm,Lc,T,L) :-
-  isBinary(Tm,Lc,"control",T,L).
-
-mkControl(Lc,T,L,Tm) :-
-  binary(Lc,"control",T,L,Tm).
-
-isContinue(T,Lc,K,V) :-
-  isBinary(T,Lc,"continue",K,V).
-
-mkContinue(Lc,K,V,T) :-
-  binary(Lc,"continue",K,V,T).
 
 mkLoc(Lc,T) :-
   Lc=loc(Pk,Line,Col,Off,Ln),

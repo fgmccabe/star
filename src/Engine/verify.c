@@ -316,9 +316,6 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
       case Ret:
       case RtG:
       case Underflow:
-      case Tag:
-      case Cntrl:
-      case Cont:
       case Spawn:
       case Suspend:
       case Resume:
@@ -545,8 +542,6 @@ checkTgt(vectorPo blocks, methodPo mtd, insPo code, integer oPc, integer *pc, Op
         case Abort:
         case Retire:
         case Throw:
-        case Cntrl:
-        case Cont:
         case Ret:
         case RtG:
           break;
@@ -879,8 +874,6 @@ retCode checkSegment(segPo seg, char *errorMsg, long msgLen) {
         case TOCall:
         case Retire:
         case Throw:
-        case Cntrl:
-        case Cont:
           break;
         default:
           strMsg(errorMsg, msgLen, RED_ESC_ON "expecting a return at %d" RED_ESC_OFF, pc);

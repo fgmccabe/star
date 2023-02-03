@@ -137,16 +137,6 @@ ssTrm(ltt(_,Vr,Bnd,Exp),Dp,sq([ss("let "),VV,ss("="),BB,ss(" in "),EE])) :-!,
   ssTrm(Vr,Dp1,VV),
   ssTrm(Bnd,Dp1,BB),
   ssTrm(Exp,Dp1,EE).
-ssTrm(prmpt(_,Lam),Dp,sq([ss(" prompt "),LL])) :-!,
-  Dp1 is Dp+2,
-  ssTrm(Lam,Dp1,LL).
-ssTrm(cntrl(_,P,K),Dp,sq([PP,ss(" control "),KK])) :-!,
-  ssTrm(P,Dp,PP),
-  Dp1 is Dp+2,
-  ssTrm(K,Dp1,KK).
-ssTrm(cnt(_,K,V),Dp,sq([ss("continue"),lp,KK,ss(","),VV,rp])) :- !,
-  ssTrm(K,Dp,KK),
-  ssTrm(V,Dp,VV).
 ssTrm(varNames(_,Vars,Value),Dp,sq([ss("vars:"),VV,ss("->"),EE])) :-!,
   ssVarNames(Vars,Dp,VV),
   ssTrm(Value,Dp,EE).
@@ -376,14 +366,6 @@ rewriteTerm(QTest,ecll(Lc,Call,Args),ecll(Lc,Call,NArgs)) :-
 rewriteTerm(QTest,whr(Lc,T,C),whr(Lc,NT,NC)) :-
   rewriteTerm(QTest,T,NT),
   rewriteTerm(QTest,C,NC).
-rewriteTerm(QTest,prmpt(Lc,E),prmpt(Lc,EE)) :-
-  rewriteTerm(QTest,E,EE).
-rewriteTerm(QTest,cntrl(Lc,V,E),cntrl(Lc,VV,EE)) :-
-  rewriteTerm(QTest,V,VV),
-  rewriteTerm(QTest,E,EE).
-rewriteTerm(QTest,cnt(Lc,K,V),cnt(Lc,KK,VV)) :-
-  rewriteTerm(QTest,V,VV),
-  rewriteTerm(QTest,K,KK).
 rewriteTerm(QTest,varNames(Lc,V,T),varNames(Lc,NV,NT)) :-
   map(V,lterms:rewriteVN(QTest),NV),
   rewriteTerm(QTest,T,NT).
@@ -588,12 +570,6 @@ inTerm(resme(_,L,_A),Nm) :-
   is_member(L,Nm).
 inTerm(resme(_,_L,Arg),Nm) :-
   inTerm(Arg,Nm),!.
-inTerm(prmpt(_,L),Nm) :-
-  inTerm(L,Nm).
-inTerm(cntrl(_,V,T),Nm) :-
-  inTerm(V,Nm) ; inTerm(T,Nm).
-inTerm(cnt(_,K,V),Nm) :-
-  inTerm(K,Nm);inTerm(V,Nm).
 inTerm(whr(_,T,_),Nm) :-
   inTerm(T,Nm),!.
 inTerm(whr(_,_,C),Nm) :-
@@ -756,14 +732,6 @@ validTerm(setix(Lc,Rc,Off,Vl),_,D) :-
   integer(Off),
   validTerm(Rc,Lc,D),
   validTerm(Vl,Lc,D).
-validTerm(prmpt(Lc,Lm),_,D) :-
-  validTerm(Lm,Lc,D).
-validTerm(cntrl(Lc,V,K),_,D) :-
-  validTerm(V,Lc,D),
-  validTerm(K,Lc,D).
-validTerm(cnt(Lc,K,V),_,D) :-
-  validTerm(V,Lc,D),
-  validTerm(K,Lc,D).
 validTerm(whr(Lc,Exp,Cond),_,D) :-
   glVars(Cond,D,D1),
   validTerm(Exp,Lc,D1),

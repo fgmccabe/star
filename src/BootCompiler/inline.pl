@@ -153,10 +153,6 @@ rewriteTerm(deref(Lc,Inn),Env,deref(Lc,Inn1)) :-
 rewriteTerm(letExp(Lc,Env,Bound),Env,letExp(Lc,REnv,RBound)) :-
   rewriteTerm(Env,Env,REnv),
   rewriteTerm(Bound,Env,RBound).
-rewriteTerm(prompt(Lc,Trm,Tp),Env,prompt(Lc,RTrm,Tp)) :-
-  rewriteTerm(Trm,Env,RTrm).
-rewriteTerm(control(Lc,V,F),Env,control(Lc,V,RF)) :-
-  rewriteTerm(F,Env,RF).
 rewriteTerm(where(Lc,Trm,Cond),Env,where(Lc,RTrm,RCond)) :-
   rewriteTerm(Trm,Env,RTrm),
   rewriteGuard(Cond,Env,RCond).

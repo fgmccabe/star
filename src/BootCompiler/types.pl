@@ -16,7 +16,6 @@
 	   implementationName/2,
 	   mkTypeRule/3,
 	   stdType/3,contType/2,tagType/3,
-	   continuationType/3,
 	   unitTp/1]).
 :- use_module(misc).
 :- use_module(display).
@@ -169,9 +168,6 @@ ssType(tFun(_,Cons,_,_,Ar,Id),true,Dp,
 ssType(tFun(_,_,_,_,Ar,Id),false,_,sq([ss("%"),ss(Id),ss("/"),ix(Ar)])).
 ssType(type(Nm),_,_,id(Id)) :- typeName(Nm,Id).
 ssType(tpFun(Nm,Ar),_,_,sq([id(Id),ss("/"),ix(Ar)])) :- typeName(Nm,Id).
-ssType(tpExp(tpExp(tpFun("=>>",2),A),R),ShCon,Dp,sq([AA,ss(" =>>" ),RR])) :-
-  ssType(A,ShCon,Dp,AA),
-  ssType(R,ShCon,Dp,RR).
 ssType(tpExp(Nm,A),ShCon,Dp,S) :- ssTypeExp(tpExp(Nm,A),ShCon,Dp,S).
 ssType(tplType(A),ShCon,Dp,sq([lp,iv(ss(","),AA),rp])) :-
   ssTypeEls(A,ShCon,Dp,AA).
@@ -365,10 +361,7 @@ contType(Arg,Tp) :-
   mkTypeExp(tpFun("star.core*cont",1),[Arg],Tp).
 
 tagType(Arg,Res,Tp) :-
-  mkTypeExp(tpFun("star.core*tag",2),[Arg,Res],Tp).
-
-continuationType(A,R,Tp) :-
-  mkTypeExp(tpFun("=>>",2),[A,R],Tp).
+  mkTypeExp(tpFun("tag",2),[Arg,Res],Tp).
 
 tpName(Tp,Nm) :-
   deRef(Tp,RTp),
