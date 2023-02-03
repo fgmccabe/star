@@ -173,10 +173,6 @@ examineType(T,Tx) :- isFuncType(T,Lc,L,R),!,
   macroType(L,Lx),
   macroType(R,Rx),
   funcType(Lc,Lx,Rx,Tx).
-examineType(T,Tx) :- isContinType(T,Lc,L,R),!,
-  macroType(L,Lx),
-  macroType(R,Rx),
-  mkContinType(Lc,Lx,Rx,Tx).
 examineType(T,Tx) :- isRoundTuple(T,Lc,Els),!,
   map(Els,macros:macroType,Elx),
   roundTuple(Lc,Elx,Tx).
@@ -463,20 +459,6 @@ examineTerm(T,Tx) :-
   macroTerm(F,Fx),
   macroTerm(E,Ex),
   mkSuspend(Lc,Fx,Ex,Tx).
-examineTerm(T,Tx) :-
-  isPrompt(T,Lc,Lm),!,
-  macroTerm(Lm,Lx),
-  mkPrompt(Lc,Lx,Tx).
-examineTerm(T,Tx) :-
-  isControl(T,Lc,F,E),!,
-  macroTerm(F,Fx),
-  macroTerm(E,Ex),
-  mkControl(Lc,Fx,Ex,Tx).
-examineTerm(T,Tx) :-
-  isContinue(T,Lc,K,V),!,
-  macroTerm(K,Kx),
-  macroTerm(V,Vx),
-  mkContinue(Lc,Kx,Vx,Tx).
 examineTerm(T,T) :-
   locOfAst(T,Lc),
   reportError("cannot figure out expression %s",[ast(T)],Lc).

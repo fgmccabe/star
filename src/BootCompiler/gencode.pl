@@ -280,19 +280,6 @@ compExp(resme(Lc,T,E),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   compExp(T,Lc,compExp(E,Lc,resumeCont(Cont,Stk,Opts),End,Brks,Opts),
 	  End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
-compExp(prmpt(Lc,Lm),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  chLine(Opts,OLc,Lc,C,C0),
-  compExp(Lm,Lc,tagCont(Cont,Opts),End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
-compExp(cntrl(Lc,Tg,Lm),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  chLine(Opts,OLc,Lc,C,C0),
-  bumpStk(Stk,Stk1),
-  compExp(Tg,Lc,compExp(Lm,Lc,cntrlCont(Cont,Stk1,Opts),End,Brks,Opts),
-	  End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
-compExp(cnt(Lc,K,V),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  chLine(Opts,OLc,Lc,C,C0),
-  bumpStk(Stk,Stk1),
-  compExp(V,Lc,compExp(K,Lc,cntCont(Cont,Stk1,Opts),End,Brks,Opts),
-	  End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compExp(Cond,Lc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   isCond(Cond),!,
   genLbl(L,Nx,L0),
@@ -523,15 +510,6 @@ oclCont(Arity,Cont,L,Lx,D,Dx,[iOCall(Arity)|C],Cx,Stk,Stkx) :-
   call(Cont,L,Lx,D,Dx,C1,Cx,Stk1,Stkx).
 
 tskCont(Cont,L,Lx,D,Dx,[iFiber|C],Cx,Stk,Stkx) :-
-  call(Cont,L,Lx,D,Dx,C,Cx,Stk,Stkx).
-
-tagCont(Cont,_Opts,L,Lx,D,Dx,[iTag|C],Cx,Stk,Stkx) :-
-  call(Cont,L,Lx,D,Dx,C,Cx,Stk,Stkx).
-
-cntrlCont(Cont,Stk,_Opts,L,Lx,D,Dx,[iCntrl|C],Cx,_Stk,Stkx) :-
-  call(Cont,L,Lx,D,Dx,C,Cx,Stk,Stkx).
-
-cntCont(Cont,Stk,_Opts,L,Lx,D,Dx,[iCont|C],Cx,_Stk,Stkx) :-
   call(Cont,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 
 suspendCont(Cont,Stk,Opts,L,Lx,D,Dx,C,Cx,_Stk,Stkx) :-

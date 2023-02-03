@@ -305,17 +305,6 @@ collectTermRefs(T,A,Rf,Rx) :-
 collectTermRefs(T,All,R0,Rx) :-
   isFiberTerm(T,_,Stmts),!,
   collectDoRefs(Stmts,All,R0,Rx).
-collectTermRefs(T,A,Rf,Rx) :-
-  isPrompt(T,_,L),!,
-  collectTermRefs(L,A,Rf,Rx).
-collectTermRefs(T,A,Rf,Rx) :-
-  isControl(T,_,F,E),!,
-  collectTermRefs(F,A,Rf,R0),
-  collectTermRefs(E,A,R0,Rx).
-collectTermRefs(T,A,Rf,Rx) :-
-  isContinue(T,_,K,V),!,
-  collectTermRefs(K,A,Rf,R0),
-  collectTermRefs(V,A,R0,Rx).
 collectTermRefs(app(_,Op,Args),All,R,Rx) :-
   collectTermRefs(Op,All,R,R0),
   collectTermRefs(Args,All,R0,Rx).
@@ -491,10 +480,6 @@ collectTypeRefs(T,All,SoFar,Rest) :-
   isBinary(T,_,"->>",L,R),
   collectTypeRefs(L,All,SoFar,R0),
   collectTypeRefs(R,All,R0,Rest).
-collectTypeRefs(T,All,R0,Rx) :-
-  isContinType(T,_,L,R),!,
-  collectTypeRefs(L,All,R0,R1),
-  collectTypeRefs(R,All,R1,Rx).
 collectTypeRefs(T,All,SoFar,Rx) :-
   isTypeLambda(T,_,L,R),
   collectTypeRefs(L,All,SoFar,R0),

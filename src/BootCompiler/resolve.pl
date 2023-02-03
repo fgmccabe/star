@@ -213,14 +213,6 @@ overloadTerm(tryCatch(Lc,E,v(TLc,Nm,Tp),H),Dict,St,Stx,tryCatch(Lc,EE,v(TLc,Nm,T
   declareVr(Lc,Nm,Tp,none,Dict,DDict),
   overloadTerm(E,DDict,St,St0,EE),
   overloadCases(H,resolve:overloadTerm,Dict,St0,Stx,HH).
-overloadTerm(prompt(Lc,E),Dict,St,Stx,prompt(Lc,EE)) :-
-  overloadTerm(E,Dict,St,Stx,EE).
-overloadTerm(control(Lc,V,K),Dict,St,Stx,control(Lc,VV,KK)) :-
-  overloadTerm(V,Dict,St,St0,VV),
-  overloadTerm(K,Dict,St0,Stx,KK).
-overloadTerm(cont(Lc,V,K),Dict,St,Stx,cont(Lc,VV,KK)) :-
-  overloadTerm(V,Dict,St,St0,VV),
-  overloadTerm(K,Dict,St0,Stx,KK).
 overloadTerm(raise(Lc,T,E,Tp),Dict,St,Stx,raise(Lc,TT,EE,Tp)) :-
   overloadTerm(T,Dict,St,St0,TT),
   overloadTerm(E,Dict,St0,Stx,EE).

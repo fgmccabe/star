@@ -70,15 +70,6 @@ freeVars(tryCatch(_,B,T,H),Ex,Q,F,Fv) :-!,
   freeVarsInRules(H,Ex,Q,freevars:freeVars,F1,Fv).
 freeVars(fiber(_,A,_),Ex,Q,F,Fv) :-
   freeVars(A,Ex,Q,F,Fv).
-freeVars(prompt(_,T),Ex,Q,F,Fv) :-!,
-  freeVars(T,Ex,Q,F,Fv).
-freeVars(control(_,B,T),Ex,Q,F,Fv) :-!,
-  freeVars(B,Ex,Q,F,F0),
-  freeVars(T,Ex,Q,F0,Fv).
-freeVars(cont(_,K,V),Ex,Q,F,Fv) :-!,
-  freeVars(K,Ex,Q,F,F0),
-  freeVars(V,Ex,Q,F0,Fv).
-
 freeVars(T,_,_,F,F) :-
   locOfCanon(T,Lc),
   reportError("cannot find free vars in %s",[can(T)],Lc).

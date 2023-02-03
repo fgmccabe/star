@@ -55,9 +55,6 @@ isCanon(neg(_,_)).
 isCanon(lambda(_,_,_,_)).
 isCanon(fiber(_,_,_)).
 isCanon(tryCatch(_,_,_,_)).
-isCanon(prompt(_,_)).
-isCanon(control(_,_,_)).
-isCanon(cont(_,_,_)).
 
 isSimpleCanon(v(_,_,_)).
 isSimpleCanon(anon(_,_)).
@@ -122,15 +119,6 @@ typeOfCanon(fiber(_,_,Tp),Tp) :-!.
 typeOfCanon(valof(_,_,Tp),Tp) :-!.
 typeOfCanon(tryCatch(_,E,_T,_),Tp) :- !,
   typeOfCanon(E,Tp).
-typeOfCanon(prompt(_,E),Tp) :-
-  typeOfCanon(E,Tp).
-typeOfCanon(control(_,T,_),Tp) :-
-  typeOfCanon(T,CTp),
-  deRef(CTp,tpExp(tpExp(tpFun("=>>",2),Tp,_))).
-typeOfCanon(cont(_,K,_V),Tp) :-
-  typeOfCanon(K,CTp),
-  deRef(CTp,tpExp(tpExp(tpFun("=>>",2),_,Tp))).
-
 
 locOfCanon(v(Lc,_,_),Lc) :- !.
 locOfCanon(anon(Lc,_),Lc) :- !.
@@ -167,9 +155,6 @@ locOfCanon(valis(Lc,_),Lc) :-!.
 locOfCanon(raise(Lc,_,_,_),Lc) :-!.
 locOfCanon(fiber(Lc,_,_),Lc) :-!.
 locOfCanon(valof(Lc,_,_),Lc) :-!.
-locOfCanon(prompt(Lc,_),Lc) :-!.
-locOfCanon(control(Lc,_,_),Lc) :-!.
-locOfCanon(cont(Lc,_,_),Lc) :-!.
 
 locOfCanon(doNop(Lc),Lc) :-!.
 locOfCanon(doSeq(Lc,_,_),Lc) :-!.
@@ -299,14 +284,6 @@ ssTerm(raise(_,T,A,_),Dp,sq([TT,ss(" raise "),AA])) :-!,
   typeOfCanon(T,ETp),
   ssType(ETp,true,Dp,TT),
   ssTerm(A,Dp,AA).
-ssTerm(prompt(_,E),Dp,sq([lp,ss("prompt "),EE,rp])) :-
-  ssTerm(E,Dp,EE).
-ssTerm(control(_,P,E),Dp,sq([lp,LL,ss(" control "),RR,rp])) :-
-  ssTerm(P,Dp,LL),
-  ssTerm(E,Dp,RR).
-ssTerm(cont(_,K,V),Dp,sq([lp,KK,ss(" continue "),VV,rp])) :-
-  ssTerm(K,Dp,KK),
-  ssTerm(V,Dp,VV).
 ssTerm(valof(_,A,_),Dp,sq([ss("valof "),AA])) :-!,
   ssAction(A,Dp,AA).
 ssTerm(fiber(_,A,_),Dp,sq([ss("fiber "),AA])) :-!,

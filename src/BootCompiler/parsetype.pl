@@ -49,11 +49,6 @@ parseType(F,Env,B,C0,Cx,funType(AT,RT)) :-
   isFuncType(F,_,L,R),
   parseArgType(L,Env,B,C0,C1,AT),
   parseType(R,Env,B,C1,Cx,RT).
-parseType(F,Env,B,C0,Cx,Tp) :-
-  isContinType(F,_,L,R),
-  parseArgType(L,Env,B,C0,C1,AT),
-  parseType(R,Env,B,C1,Cx,RT),
-  continuationType(AT,RT,Tp).
 parseType(F,Env,B,C0,Cx,consType(AT,RT)) :-
   isConstructorType(F,_,_,_,L,R),!, % should be no quantifiers
   parseArgType(L,Env,B,C0,C1,AT),!,

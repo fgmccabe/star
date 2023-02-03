@@ -776,30 +776,12 @@ typeOfExp(Term,Tp,Env,Env,apply(Lc,Fun,Args,Tp),Path) :-
   At = tplType(Vrs),
   typeOfExp(F,consType(At,Tp),Env,E0,Fun,Path),
   typeOfArgTerm(tuple(Lc,"()",A),At,E0,_Ev,Args,Path).
-typeOfExp(Term,Tp,Env,Env,invoke(Lc,KK,Args,Tp),Path) :-
-  isInvoke(Term,Lc,K,A),!,
-  genTpVars(A,Vrs),
-  At = tplType(Vrs),
-  continuationType(At,Tp,KTp),
-  typeOfExp(K,KTp,Env,E0,KK,Path),
-  typeOfArgTerm(tuple(Lc,"()",A),At,E0,_Ev,Args,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isResume(Term,Lc,T,E),!,
   checkResume(Lc,T,E,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isSuspend(Term,Lc,T,E),!,
   checkSuspend(Lc,T,E,Tp,Env,Ev,Exp,Path).
-typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
-  isPrompt(Term,Lc,Lm),
-  isEquation(Lm,_Lc,_H,_R),!,
-  checkPrompt(Lc,Lm,Tp,Env,Exp,Path).
-typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
-  isControl(Term,Lc,Tg,Lm),
-  isEquation(Lm,_Lc,_H,_R),!,
-  checkControl(Lc,Tg,Lm,Tp,Env,Exp,Path).
-typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
-  isContinue(Term,Lc,K,V),
-  checkContinue(Lc,K,V,Tp,Env,Exp,Path).
 typeOfExp(Term,Tp,Env,Env,Lam,Path) :-
   isEquation(Term,_Lc,_H,_R),
   typeOfLambda(Term,Tp,Env,Lam,Path).
@@ -1086,31 +1068,6 @@ checkRetire(Lc,T,E,Env,Env,doRetire(Lc,Tsk,Evt),Path) :-
   applyTypeFun(TskTp,[RV,SV],Lc,Env,TTp),
   typeOfExp(T,TTp,Env,_,Tsk,Path),
   typeOfExp(E,SV,Env,_,Evt,Path).
-
-checkPrompt(Lc,Lm,Tp,Env,prompt(Lc,Lam),Path) :-
-  newTypeVar("A",ATp),
-  newTypeVar("R",RTp),
-  tagType(ATp,RTp,TgTp),
-  LmTp = funType(tplType([TgTp]),Tp),
-  typeOfExp(Lm,LmTp,Env,_,Lam,Path).
-%  reportMsg("type of prompt %s is %s",[ast(Lm),tpe(LmTp)]).
-
-checkControl(Lc,Tg,Lm,Tp,Env,control(Lc,Tag,Lam),Path) :-
-  newTypeVar("A",Atp),
-  newTypeVar("R",Rtp),
-  tagType(Atp,Rtp,TgTp),
-  typeOfExp(Tg,TgTp,Env,_,Tag,Path),
-%  reportMsg("type of tag %s is %s",[ast(Tg),tpe(TgTp)]),
-  continuationType(tplType([Tp]),Atp,CTp),
-  LmTp = funType(tplType([CTp]),Rtp),
-  typeOfExp(Lm,LmTp,Env,_,Lam,Path).
-%  reportMsg("type of control lambda %s is %s",[ast(Lm),tpe(LmTp)]).
-
-checkContinue(Lc,K,V,Tp,Env,cont(Lc,Kv,Vl),Path) :-
-  newTypeVar("K",Ktp),
-  continuationType(tplType([Ktp]),Tp,CTp),
-  typeOfExp(K,CTp,Env,_,Kv,Path),
-  typeOfExp(V,Ktp,Env,_,Vl,Path).
 
 genTpVars([],[]).
 genTpVars([_|I],[Tp|More]) :-
