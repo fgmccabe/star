@@ -9,6 +9,7 @@
   ("^=" ( (infix 899 900 899)))
   ("&&" ( (infix 909 910 910)))
   ("^?" ( (infix 800 800 799)))
+  ("let" ( (prefix 899 898)))
   ("~=" ( (infix 899 900 899)))
   ("~>" ( (infix 1230 1231 1230)))
   (".|." ( (infix 720 720 719)))
@@ -102,7 +103,6 @@
   (":?" ( (infix 399 400 399)))
   (".<<." ( (infix 600 600 599)))
   ("implementation" ( (prefix 1260 1259)))
-  ("with" ( (infix 1198 1199 1198)))
   (">>=" ( (infix 949 950 950)))
   ("^/" ( (infix 960 960 959)))
   ("<~" ( (infix 998 999 998)))
@@ -137,6 +137,7 @@
 (defconst star-keywords
   '("retire"
 "all"
+"let"
 "do"
 "import"
 "catch"
@@ -166,7 +167,6 @@
 "while"
 "private"
 "implementation"
-"with"
 "type"
 "else"
 )

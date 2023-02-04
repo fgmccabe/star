@@ -248,8 +248,6 @@ star.compiler.types{
     "#(showType(A,Sh,Dp-1)) => #(showType(R,Sh,Dp-1))".
   showTpExp(.tpFun("<=>",2),[A,R],Sh,Dp) =>
     "#(showType(A,Sh,Dp-1)) <=> #(showType(R,Sh,Dp-1))".
-  showTpExp(.tpFun("=>>",2),[A,R],Sh,Dp) =>
-    "#(showType(A,Sh,Dp-1)) =>> #(showType(R,Sh,Dp-1))".
   showTpExp(.tpFun("ref",1),[R],Sh,Dp) =>
     "ref #(showType(R,Sh,Dp-1))".
   showTpExp(.tpFun(Nm,Ar),A,Sh,Dp) where size(A)==Ar =>
@@ -401,8 +399,6 @@ star.compiler.types{
   public refType(Tp) => .tpExp(.tpFun("star.core*ref",1),Tp).
   public thunkType(T) => makeTpExp("star.core*thunk",[T]).
   public fiberType(R,S) => mkTypeExp(.tpFun("star.fiber*fiber",2),[R,S]).
-  public continType(L,R) => mkTypeExp(.tpFun("=>>",2),[L,R]).
-  public continuationType(L,R) => mkTypeExp(.tpFun("=>>",2),[.tupleType(L),R]).
 
   public funTypeArg(Tp) where
       .tpExp(O,_) .= deRef(Tp) &&

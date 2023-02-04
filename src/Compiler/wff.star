@@ -140,12 +140,6 @@ star.compiler.wff{
   public isFunctionType:(ast) => option[(option[locn],ast,ast)].
   isFunctionType(A) => isBinary(A,"=>").
 
-  public isContinuationType:(ast) => option[(option[locn],ast,ast)].
-  isContinuationType(A) => isBinary(A,"=>>").
-
-  public mkContinuationType:(option[locn],ast,ast) => ast.
-  mkContinuationType(Lc,L,R) => binary(Lc,"=>>",L,R).
-
   public isContTp:(ast) => option[(option[locn],ast)].
   isContTp(A) => ( (Lc,Op,[Arg]) ?= isSquareTerm(A)  && (_,"cont") ?= isName(Op)
     ?? ?(Lc,Arg) || .none).
@@ -279,22 +273,32 @@ star.compiler.wff{
 
   public isLetDef:(ast) => option[(option[locn],cons[ast],ast)].
   isLetDef(A) where (Lc,Lh,Rh) ?= isBinary(A,"in") &&
-      .app(_,.nme(_,"let"),Body) .= Lh &&
+      (_,Body) ?= isUnary(Lh,"let") &&
       (_,Els) ?= isBrTuple(Body) => .some((Lc,Els,Rh)).
   isLetDef(_) default => .none.
 
   public mkLetDef(Lc,Els,Bnd) =>
-    binary(Lc,"in",braceTerm(Lc,.nme(Lc,"let"),Els),Bnd).
+    binary(Lc,"in",unary(Lc,"let",brTuple(Lc,Els)),Bnd).
 
   public isLetRecDef:(ast) => option[(option[locn],cons[ast],ast)].
   isLetRecDef(A) where (Lc,Lh,Rh) ?= isBinary(A,"in") &&
-      .app(_,.nme(_,"let"),Body) .= Lh &&
+      (_,Body) ?= isUnary(Lh,"let") &&
       (_,Els) ?= isQBrTuple(Body) => .some((Lc,Els,Rh)).
   isLetRecDef(_) default => .none.
 
   public mkLetRecDef:(option[locn],cons[ast],ast) => ast.
   mkLetRecDef(Lc,Els,Bnd) =>
-    binary(Lc,"in",qbraceTerm(Lc,.nme(Lc,"let"),Els),Bnd).
+    binary(Lc,"in",unary(Lc,"let",qbrTuple(Lc,Els)),Bnd).
+
+  public isLet:(ast) => option[(option[locn],ast,ast)].
+  isLet(A) where (Lc,Lh,Rh) ?= isBinary(A,"in") &&
+      (_,Body) ?= isUnary(Lh,"let") &&
+	  ~ _ ?= isBrTuple(Body) &&
+	  ~ _ ?= isQBrTuple(Body) => .some((Lc,Body,Rh)).
+  isLet(_) default => .none.
+
+  public mkLet(Lc,Body,Bnd) =>
+    binary(Lc,"in",unary(Lc,"let",Body),Bnd).
 
   public isMapLiteral:(ast)=>option[(option[locn],cons[ast])].
   isMapLiteral(A) where (Lc,[I]) ?= isBrTuple(A) &&

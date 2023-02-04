@@ -27,7 +27,6 @@
 	      isSequence/4,mkSequence/3,mkSequence/4,
 	      assignment/4,eqn/4,eqn/5,
 	      mkDefn/4,mkLoc/2,
-	      isGl/1,isIterableGl/1,
 	      ruleName/3,headName/2,
 	      isWhere/4,mkWhere/4,mkWherePtn/4,mkWhereEquality/3,
 	      isCoerce/4,coerce/4,isOptCoerce/4,optCoerce/4,
@@ -58,7 +57,7 @@
 	      isWhileDo/4,isForDo/4,isForDo/5,
 	      mkWhileDo/4,mkForDo/5,
 	      isActionSeq/4,isActionSeq/3,mkActionSeq/4,
-	      isLetDef/4,isLetRec/4,mkLetDef/4,mkLetRec/4,
+	      isLetDef/4,isLetRec/4,mkLetDef/4,mkLetRec/4,isLet/4,mkLet/4,
 	      whereTerm/4,
 	      packageName/2,pkgName/2,
 	      collectImports/3,
@@ -545,20 +544,34 @@ mkDefn(Lc,L,R,Trm) :-
   binary(Lc,"=",L,R,Trm).
 
 isLetDef(Trm,Lc,Els,Exp) :-
-  isBinary(Trm,Lc,"in",app(_,name(_,"let"),Body),Exp),
+  isBinary(Trm,Lc,"in",L,Exp),
+  isUnary(L,_,"let",Body),
   isBraceTuple(Body,_,Els),!.
 
 isLetRec(Trm,Lc,Els,Exp) :-
-  isBinary(Trm,Lc,"in",app(_,name(_,"let"),Body),Exp),
+  isBinary(Trm,Lc,"in",L,Exp),
+  isUnary(L,_,"let",Body),
   isQBraceTuple(Body,_,Els),!.
 
+isLet(Trm,Lc,Df,Exp) :-
+  isBinary(Trm,Lc,"in",L,Exp),
+  isUnary(L,_,"let",Df),
+  \+isBraceTuple(Df,_,_),
+  \+isQBraceTuple(Df,_,_).
+
 mkLetDef(Lc,Els,Bnd,Let) :-
-  braceTerm(Lc,name(Lc,"let"),Els,Body),
-  binary(Lc,"in",Body,Bnd,Let).
+  braceTuple(Lc,Els,Body),
+  unary(Lc,"let",Body,L),
+  binary(Lc,"in",L,Bnd,Let).
 
 mkLetRec(Lc,Els,Bnd,Let) :-
-  qbraceTerm(Lc,name(Lc,"let"),Els,Body),
-  binary(Lc,"in",Body,Bnd,Let).
+  qbraceTuple(Lc,Els,Body),
+  unary(Lc,"let",Body,L),
+  binary(Lc,"in",L,Bnd,Let).
+
+mkLet(Lc,Body,Bnd,Let) :-
+  unary(Lc,"let",Body,L),
+  binary(Lc,"in",L,Bnd,Let).
 
 isCaseExp(Trm,Lc,Exp,Cases) :-
   isUnary(Trm,Lc,"case",L),
@@ -770,37 +783,6 @@ isSplice(Trm,Lc,S,F,T,R) :-
   isAssignment(Trm,Lc,L,R), % S[F:T]:=R
   isSquareTerm(L,_,S,X),
   isBinary(X,_,":",F,T),!.
-
-isGl(C) :-
-  isConjunct(C,_,_,_),!.
-isGl(C) :-
-  isDisjunct(C,_,_,_),!.
-isGl(C) :-
-  isNegation(C,_,_),!.
-isGl(C) :-
-  isForall(C,_,_,_),!.
-isGl(C) :-
-  isSearch(C,_,_,_),!.
-isGl(C) :-
-  isMatch(C,_,_,_),!.
-isGl(C) :-
-  isConditional(C,_,Th,El),!,
-  (isGl(Th);isGl(El)).
-
-isIterableGl(C) :-
-  isConjunct(C,_,L,R),!,
-  (isIterableGl(L) ; isIterableGl(R)).
-isIterableGl(C) :-
-  isDisjunct(C,_,L,R),!,
-  (isIterableGl(L) ; isIterableGl(R)).
-isIterableGl(C) :-
-  isNegation(C,_,L),!,
-  isIterableGl(L).
-isIterableGl(C) :-
-  isForall(C,_,L,R),!,
-  (isIterableGl(L) ; isIterableGl(R)).
-isIterableGl(C) :-
-  isSearch(C,_,_,_),!.
 
 packageName(T,Pkg) :- isIden(T,Pkg).
 packageName(T,Pkg) :- isBinary(T,_,".",L,R),

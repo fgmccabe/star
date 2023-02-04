@@ -757,28 +757,11 @@ star.compiler.checker{
     HRls = checkRules(Rls,NErTp,Tp,Env,Path,typeOfExp,[],.none);
     valis .trycatch(Lc,NB,.vr(Lc,"_raise",contType(NErTp)),HRls,Tp)
   }
-  typeOfExp(A,Tp,Env,Path) where (Lc,Body,Rls) ?= isTryWith(A) => valof{
-    ETp = newTypeVar("_E");
-    RTp = newTypeVar("_R");
-    CTp = continuationType([ETp],RTp);
-    Ev = declareVar("_invoke","_invoke",Lc,CTp,.none,Env);
-    NB = typeOfExp(Body,Tp,Ev,Path);
-    HRls = checkRules(Rls,ETp,Tp,Env,Path,typeOfExp,[],.none);
-    valis .trywith(Lc,NB,.vr(Lc,"_invoke",CTp),HRls,Tp)
-  }
   typeOfExp(A,Tp,Env,Path) where (Lc,E) ?= isRaise(A) => valof{
     ErTp = newTypeVar("_E");
     Thrw = typeOfVar(Lc,"_raise",contType(ErTp),Env,Path);
     V = typeOfExp(E,ErTp,Env,Path);
     valis .rais(Lc,Thrw,V,Tp)
-  }
-  typeOfExp(A,Tp,Env,Path) where (Lc,K,As) ?= isInvoke(A) => valof{
-    Vrs = genTpVars(As);
-    At = .tupleType(Vrs);
-    KTp = continuationType(Vrs,Tp);
-    KK = typeOfExp(K,KTp,Env,Path);
-    Args = typeOfExps(As,Vrs,[],Env,Path);      
-    valis .invoak(Lc,KK,Args,Tp)
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,T,E) ?= isSuspend(A) => valof{
     ETp = newTypeVar("_r");
@@ -895,18 +878,6 @@ star.compiler.checker{
 	valis HA
       },[],.none);
     valis (.doTryCatch(Lc,NB,.vr(Lc,"_raise",contType(NErTp)),Hs),Env)
-  }
-  checkAction(A,Tp,Env,Path) where (Lc,Body,Rls) ?= isTryWith(A) => valof{
-    ETp = newTypeVar("_E");
-    RTp = newTypeVar("_R");
-    CTp = continuationType([ETp],RTp);
-    Ev = declareVar("_invoke","_invoke",Lc,CTp,.none,Env);
-    (NB,_) = checkAction(Body,Tp,Ev,Path);
-    HRls = checkRules(Rls,ETp,Tp,Env,Path,(AA,_,Eva,_)=>valof{
-	(HA,_)=checkAction(AA,Tp,Eva,Path);
-	valis HA
-      },[],.none);
-    valis (.doTryWith(Lc,NB,.vr(Lc,"_invoke",CTp),HRls),Env)
   }
   checkAction(A,Tp,Env,Path) where (Lc,C,T,E) ?= isIfThenElse(A) => valof{
     (CC,E0) = checkGoal(C,Env,Path);

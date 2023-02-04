@@ -175,16 +175,6 @@
     "keyword": true
   },
   {
-    "infixOp": "with",
-    "priorities": [
-      1198,
-      1199,
-      1198
-    ],
-    "desc": "E with H",
-    "keyword": true
-  },
-  {
     "infixOp": ";",
     "priorities": [
       1250,
@@ -601,6 +591,15 @@
       900
     ],
     "desc": "list membership",
+    "keyword": true
+  },
+  {
+    "prefixOp": "let",
+    "priorities": [
+      899,
+      898
+    ],
+    "desc": "part of let def",
     "keyword": true
   },
   {

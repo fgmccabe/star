@@ -43,7 +43,6 @@ star.compiler.term{
     | .cSusp(option[locn],cExp,cExp,tipe)
     | .cResume(option[locn],cExp,cExp,tipe)
     | .cTry(option[locn],cExp,cExp,cExp,cExp,tipe)
-    | .cWith(option[locn],cExp,cExp,cExp,cExp,tipe)
     | .cValof(option[locn],aAction,tipe).
   
   public cId ::= .cId(string,tipe).
@@ -148,8 +147,6 @@ star.compiler.term{
     .cResume(_,T,E,_) => "#(dspExp(T,Off)) resume #(dspExp(E,Off))".
     .cTry(_,B,T,E,H,_)=> 
       "(try #(dspExp(T,Off)) in #(dspExp(B,Off)) catch $(E) in #(dspExp(H,Off)))".
-    .cWith(_,B,T,E,H,_)=> 
-      "(try #(dspExp(T,Off)) in #(dspExp(B,Off)) with $(E) in #(dspExp(H,Off)))".
     .cValof(_,A,_) => "valof #(dspAct(A,Off))".
   }
 
@@ -272,8 +269,6 @@ star.compiler.term{
     .cResume(_,T1,V1,_) => .cResume(_,T2,V2,_).=E2 && eqTerm(T1,T2) && eqTerm(V1,V2).
     .cTry(_,M1,T1,E1,H1,_) => .cTry(_,M2,T2,E2,H2,_).=E2 &&
 	eqTerm(T1,T2) && eqTerm(M1,M2) && eqTerm(E1,E2) && eqTerm(H1,H2).
-    .cWith(_,M1,T1,E1,H1,_) => .cWith(_,M2,T2,E2,H2,_).=E2 &&
-	eqTerm(T1,T2) && eqTerm(M1,M2) && eqTerm(E1,E2) && eqTerm(H1,H2).
     .cValof(_,A1,_) => .cValof(_,A2,_).=E2 && eqAct(A1,A2).
     .cVarNmes(_,N1,V1) => .cVarNmes(_,N2,V2).=E2 && eqVs(N1,N2) && eqTerm(V1,V2).
     _ default => .false
@@ -374,7 +369,6 @@ star.compiler.term{
       .cResume(Lc,_,_,_) => Lc.
       .cTry(Lc,_,_,_,_,_) => Lc.
       .cRaise(Lc,_,_,_) => Lc.
-      .cWith(Lc,_,_,_,_,_) => Lc.
       .cValof(Lc,_,_) => Lc.
     }
   }
@@ -412,7 +406,6 @@ star.compiler.term{
       .cSusp(_,_,_,T) => T.
       .cResume(_,_,_,T) => T.
       .cTry(_,_,_,_,_,T) => T.
-      .cWith(_,_,_,_,_,T) => T.
       .cValof(_,_,T) => T.
       .cAbort(_,_,T) => T.
       .cVarNmes(_,_,E) => tpOf(E).
@@ -525,8 +518,6 @@ star.compiler.term{
       .cSusp(Lc,F,E,Tp) => .cSusp(Lc,rwTerm(F,Tst),rwTerm(E,Tst),Tp).
       .cResume(Lc,F,E,Tp) => .cResume(Lc,rwTerm(F,Tst),rwTerm(E,Tst),Tp).
       .cTry(Lc,B,T,E,H,Tp) => .cTry(Lc,rwTerm(B,Tst),rwTerm(T,Tst),rwTerm(E,Tst),rwTerm(H,Tst),Tp).
-      .cWith(Lc,B,T,E,H,Tp) =>
-	.cWith(Lc,rwTerm(B,Tst),rwTerm(T,Tst),rwTerm(E,Tst),rwTerm(H,Tst),Tp).
       .cVarNmes(Lc,Vs,E) => .cVarNmes(Lc,Vs,rwTerm(E,Tst)).
       .cValof(Lc,A,Tp) => .cValof(Lc,rwAct(A,Tst),Tp).
       .cAbort(Lc,Ms,Tp) => .cAbort(Lc,Ms,Tp).
@@ -639,12 +630,6 @@ star.compiler.term{
       Sc1 = newVars(ptnVrs(E,[]),Sc0);
       Sc2 = newVars(ptnVrs(T,[]),Sc0);
       valis .cTry(Lc,frshnE(B,Sc2),frshnE(T,Sc2),frshnE(E,Sc1),frshnE(H,Sc1),Tp)
-    }
-    | .cWith(Lc,B,T,E,H,Tp) => valof{
-      Sc0 = pushScope(Sc);
-      Sc1 = newVars(ptnVrs(E,[]),Sc0);
-      Sc2 = newVars(ptnVrs(T,[]),Sc0);
-      valis .cWith(Lc,frshnE(B,Sc2),frshnE(T,Sc2),frshnE(E,Sc1),frshnE(H,Sc1),Tp)
     }
     | .cVarNmes(Lc,Vs,E) => .cVarNmes(Lc,Vs,frshnE(E,Sc))
     | .cValof(Lc,A,Tp) => .cValof(Lc,frshnA(A,pushScope(Sc)),Tp)
@@ -929,11 +914,6 @@ star.compiler.term{
       V2 = ptnVrs(E,Vrs);
       valis validE(B,V1) && validE(T,V1) && validE(E,V2) && validE(H,V2)
     }.
-    .cWith(_,B,T,E,H,_) => valof{
-      V1 = ptnVrs(T,Vrs);
-      V2 = ptnVrs(E,Vrs);
-      valis validE(B,V1) && validE(T,V1) && validE(E,V2) && validE(H,V2)
-    }.
     .cValof(_,A,_) => validA(A,Vrs).
   }
 
@@ -1135,8 +1115,6 @@ star.compiler.term{
     .cResume(_,Ts,E,_) => presentInE(Ts,A,C) || presentInE(E,A,C).
     .cTry(_,B,Th,E,H,_) =>
       presentInE(B,A,C) || presentInE(Th,A,C) || presentInE(E,A,C) || presentInE(H,A,C).
-    .cWith(_,B,Th,E,H,_) =>
-      presentInE(B,A,C) || presentInE(Th,A,C) || presentInE(E,A,C) || presentInE(H,A,C).
     .cValof(_,Act,_) => presentInA(Act,A,C).
   }
 
@@ -1204,7 +1182,6 @@ star.compiler.term{
     .cSusp(Lc,F,V,Tp) => mkCons("susp",[Lc::data,frzeExp(F),frzeExp(V),encodeSig(Tp)]).
     .cResume(Lc,F,V,Tp) => mkCons("resme",[Lc::data,frzeExp(F),frzeExp(V),encodeSig(Tp)]).
     .cTry(Lc,B,T,E,H,Tp) => mkCons("try",[Lc::data,frzeExp(B),frzeExp(T),frzeExp(E),frzeExp(H),encodeSig(Tp)]).
-    .cWith(Lc,B,T,E,H,Tp) => mkCons("hndl",[Lc::data,frzeExp(B),frzeExp(T),frzeExp(E),frzeExp(H),encodeSig(Tp)]).
     .cVarNmes(Lc,Vs,B) => mkCons("vrs",[Lc::data,freezeNames(Vs),frzeExp(B)]).
     .cValof(Lc,A,Tp) => mkCons("valof",[Lc::data,frzeAct(A),encodeSig(Tp)]).
   }
@@ -1314,7 +1291,6 @@ star.compiler.term{
     .term("susp",[Lc,F,E,Sig]) => .cSusp(thawLoc(Lc),thawTerm(F),thawTerm(E),decodeSig(Sig)).
     .term("resme",[Lc,F,E,Sig]) => .cResume(thawLoc(Lc),thawTerm(F),thawTerm(E),decodeSig(Sig)).
     .term("try",[Lc,B,Th,E,H,Sig]) => .cTry(thawLoc(Lc),thawTerm(B),thawTerm(Th),thawTerm(E),thawTerm(H),decodeSig(Sig)).
-    .term("hndl",[Lc,B,Th,E,H,Sig]) => .cWith(thawLoc(Lc),thawTerm(B),thawTerm(Th),thawTerm(E),thawTerm(H),decodeSig(Sig)).
     .term("vrs",[Lc,Vs,B]) => .cVarNmes(thawLoc(Lc),thawVars(Vs),thawTerm(B)).
     .term("valof",[Lc,A,T]) => .cValof(thawLoc(Lc),thawAct(A),decodeSig(T)).
   }

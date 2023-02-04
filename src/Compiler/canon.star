@@ -22,7 +22,6 @@ star.compiler.canon{
   .update(option[locn],canon,string,canon) |
   .csexp(option[locn],canon,cons[rule[canon]],tipe) |
   .trycatch(option[locn],canon,canon,cons[rule[canon]],tipe) |
-  .trywith(option[locn],canon,canon,cons[rule[canon]],tipe) |
   .rais(option[locn],canon,canon,tipe) |
   .match(option[locn],canon,canon) |
   .conj(option[locn],canon,canon) |
@@ -30,7 +29,6 @@ star.compiler.canon{
   .neg(option[locn],canon) |
   .cond(option[locn],canon,canon,canon) |
   .apply(option[locn],canon,cons[canon],tipe) |
-  .invoak(option[locn],canon,cons[canon],tipe) |
   .suspnd(option[locn],canon,canon,tipe) |
   .resme(option[locn],canon,canon,tipe) |
   .tple(option[locn],cons[canon]) |
@@ -50,7 +48,6 @@ star.compiler.canon{
     .doMatch(option[locn],canon,canon) |
     .doAssign(option[locn],canon,canon) |
     .doTryCatch(option[locn],canonAction,canon,cons[rule[canonAction]]) |
-    .doTryWith(option[locn],canonAction,canon,cons[rule[canonAction]]) |
     .doIfThen(option[locn],canon,canonAction,canonAction) |
     .doCase(option[locn],canon,cons[rule[canonAction]]) |
     .doWhile(option[locn],canon,canonAction) |
@@ -84,13 +81,11 @@ star.compiler.canon{
       .enm(_,_,Tp) => Tp.
       .csexp(_,_,_,Tp) => Tp.
       .trycatch(_,_,_,_,Tp) => Tp.
-      .trywith(_,_,_,_,Tp) => Tp.
       .rais(_,_,_,Tp) => Tp.
       .lambda(_,_,_,Tp) => Tp.
       .letExp(_,_,_,E) => typeOf(E).
       .letRec(_,_,_,E) => typeOf(E).
       .apply(_,_,_,Tp) => Tp.
-      .invoak(_,_,_,Tp) => Tp.
       .suspnd(_,_,_,Tp) => Tp.
       .resme(_,_,_,Tp) => Tp.
       .tple(_,Els) => .tupleType(Els//typeOf).
@@ -121,7 +116,6 @@ star.compiler.canon{
       .update(Lc,_,_,_) => Lc.
       .csexp(Lc,_,_,_) => Lc.
       .trycatch(Lc,_,_,_,_) => Lc.
-      .trywith(Lc,_,_,_,_) => Lc.
       .rais(Lc,_,_,_) => Lc.
       .match(Lc,_,_) => Lc.
       .conj(Lc,_,_) => Lc.
@@ -129,7 +123,6 @@ star.compiler.canon{
       .neg(Lc,_) => Lc.
       .cond(Lc,_,_,_) => Lc.
       .apply(Lc,_,_,_) => Lc.
-      .invoak(Lc,_,_,_) => Lc.
       .suspnd(Lc,_,_,_) => Lc.
       .resme(Lc,_,_,_) => Lc.
       .tple(Lc,_) => Lc.
@@ -156,7 +149,6 @@ star.compiler.canon{
       .doMatch(Lc,_,_) => Lc.
       .doAssign(Lc,_,_) => Lc.
       .doTryCatch(Lc,_,_,_) => Lc.
-      .doTryWith(Lc,_,_,_) => Lc.
       .doIfThen(Lc,_,_,_) => Lc.
       .doCase(Lc,_,_) => Lc.
       .doWhile(Lc,_,_) => Lc.
@@ -198,8 +190,6 @@ star.compiler.canon{
       "#(leftParen(OPr,Pr))case #(showCanon(Exp,Rp,Sp)) in #(showCases(Cs,showCanon,Sp))#(rgtParen(OPr,Pr))".
     .trycatch(_,Exp,T,H,_) where (OPr,Rp) ?= isPrefixOp("try") =>
       "#(leftParen(OPr,Pr))try #(showCanon(T,Rp,Sp)) in #(showCanon(Exp,Rp,Sp)) catch #(showCases(H,showCanon,Sp++"  "))#(rgtParen(OPr,Pr))".
-    .trywith(_,Exp,T,H,_) where (OPr,Rp) ?= isPrefixOp("try") =>
-      "#(leftParen(OPr,Pr))try #(showCanon(T,Rp,Sp)) in #(showCanon(Exp,Rp,Sp)) with #(showCases(H,showCanon,Sp++"  "))#(rgtParen(OPr,Pr))".
     .rais(_,_Thrw,Exp,_) where (OPr,Rp) ?= isPrefixOp("raise") =>
       "#(leftParen(OPr,Pr)) raise #(showCanon(Exp,Rp,Sp))#(rgtParen(OPr,Pr))".
     .match(_,Ptn,Gen) where (Lp,OPr,Rp) ?= isInfixOp(".=") =>
@@ -213,8 +203,6 @@ star.compiler.canon{
     .cond(_,T,L,R) where (Lp,OPr,Rp) ?= isInfixOp("??") =>
       "(#(showCanon(T,Lp,Sp)) ?? #(showCanon(L,Rp,Sp)) || #(showCanon(R,Rp,Sp)))".
     .apply(_,L,R,_) => showApply(L,R,Pr,Sp).
-    .invoak(_,K,A,_) where (Lp,OPr,Rp) ?= isInfixOp(".") =>
-      "#(leftParen(OPr,Pr))#(showCanon(K,Lp,Sp)).(showTuple(Args,Sp))#(rgtParen(OPr,Pr))".
     .suspnd(Lc,T,E,_)  where (Lp,OPr,Rp) ?= isInfixOp("suspend") =>
       "#(showCanon(T,Lp,Sp)) suspend #(showCanon(E,Rp,Sp))".
     .resme(Lc,T,E,_)  where (Lp,OPr,Rp) ?= isInfixOp("resume") =>
@@ -258,8 +246,6 @@ star.compiler.canon{
       "#(showCanon(L,Lp,Sp)) := #(showCanon(R,Rp,Sp))".
     .doTryCatch(_,A,T,H) =>
       "try #(showCanon(T,Pr,Sp)) in #(showAct(A,Pr,Sp)) catch {\n#(showCases(H,showAct,Sp))\n}".
-    .doTryWith(_,A,T,H) =>
-      "try #(showCanon(T,Pr,Sp)) in #(showAct(A,Pr,Sp)) with {\n#(showCases(H,showAct,Sp))\n}".
     .doIfThen(_,T,Th,El) where (Lp,OPr,Rp) ?= isInfixOp("then") =>
       "if #(showCanon(T,Lp,Sp)) then #(showAct(Th,Pr,Sp)) else #(showAct(El,Pr,Sp))".
     .doCase(Lc,G,C) where (Lp,OPr,Rp) ?= isInfixOp("in") =>

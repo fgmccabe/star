@@ -44,6 +44,7 @@ star.compiler.operators{
     "^=" => [.infixOp(899,900,899)].
     "&&" => [.infixOp(909,910,910)].
     "^?" => [.infixOp(800,800,799)].
+    "let" => [.prefixOp(899,898)].
     "~=" => [.infixOp(899,900,899)].
     "~>" => [.infixOp(1230,1231,1230)].
     ".|." => [.infixOp(720,720,719)].
@@ -137,7 +138,6 @@ star.compiler.operators{
     ":?" => [.infixOp(399,400,399)].
     ".<<." => [.infixOp(600,600,599)].
     "implementation" => [.prefixOp(1260,1259)].
-    "with" => [.infixOp(1198,1199,1198)].
     ">>=" => [.infixOp(949,950,950)].
     "^/" => [.infixOp(960,960,959)].
     "<~" => [.infixOp(998,999,998)].
@@ -412,6 +412,7 @@ star.compiler.operators{
     "all" => .true.
     "^=" => .true.
     "&&" => .true.
+    "let" => .true.
     "~>" => .true.
     "{." => .true.
     "do" => .true.
@@ -479,7 +480,6 @@ star.compiler.operators{
     "::" => .true.
     ":?" => .true.
     "implementation" => .true.
-    "with" => .true.
     "<|" => .true.
     "<~" => .true.
     "{" => .true.

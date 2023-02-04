@@ -30,6 +30,10 @@
 @tab left associative infix
 @tab 800
 @tab option propagate
+@item @code{let}
+@tab non-associative prefix
+@tab 899
+@tab part of let def
 @item @code{~=}
 @tab non-associative infix
 @tab 900
@@ -450,10 +454,6 @@
 @tab non-associative prefix
 @tab 1260
 @tab contract implementation
-@item @code{with}
-@tab non-associative infix
-@tab 1199
-@tab try ... with H
 @item @code{>>=}
 @tab right associative infix
 @tab 950
@@ -520,36 +520,36 @@
 @headitem Keyword @tab Keyword @tab Keyword
 @item @code{retire}
 @tab @code{all}
-@tab @code{do}
-@item @code{import}
+@tab @code{let}
+@item @code{do}
+@tab @code{import}
 @tab @code{catch}
-@tab @code{valis}
-@item @code{for}
+@item @code{valis}
+@tab @code{for}
 @tab @code{raise}
-@tab @code{then}
-@item @code{default}
+@item @code{then}
+@tab @code{default}
 @tab @code{resume}
-@tab @code{contract}
-@item @code{raises}
+@item @code{contract}
+@tab @code{raises}
 @tab @code{try}
-@tab @code{exists}
-@item @code{if}
+@item @code{exists}
+@tab @code{if}
 @tab @code{in}
-@tab @code{break}
-@item @code{suspend}
+@item @code{break}
+@tab @code{suspend}
 @tab @code{open}
-@tab @code{invoke}
-@item @code{public}
+@item @code{invoke}
+@tab @code{public}
 @tab @code{ref}
-@tab @code{where}
-@item @code{case}
+@item @code{where}
+@tab @code{case}
 @tab @code{generator}
-@tab @code{valof}
-@item @code{yield}
+@item @code{valof}
+@tab @code{yield}
 @tab @code{while}
-@tab @code{private}
-@item @code{implementation}
-@tab @code{with}
+@item @code{private}
+@tab @code{implementation}
 @tab @code{type}
 @item @code{else}
 

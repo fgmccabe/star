@@ -27,6 +27,7 @@
   operator("^=", [infixOp(899, 900, 899)]).
   operator("&&", [infixOp(909, 910, 910)]).
   operator("^?", [infixOp(800, 800, 799)]).
+  operator("let", [prefixOp(899, 898)]).
   operator("~=", [infixOp(899, 900, 899)]).
   operator("~>", [infixOp(1230, 1231, 1230)]).
   operator(".|.", [infixOp(720, 720, 719)]).
@@ -120,7 +121,6 @@
   operator(":?", [infixOp(399, 400, 399)]).
   operator(".<<.", [infixOp(600, 600, 599)]).
   operator("implementation", [prefixOp(1260, 1259)]).
-  operator("with", [infixOp(1198, 1199, 1198)]).
   operator(">>=", [infixOp(949, 950, 950)]).
   operator("^/", [infixOp(960, 960, 959)]).
   operator("<~", [infixOp(998, 999, 998)]).
@@ -352,6 +352,7 @@
   keyword("all").
   keyword("^=").
   keyword("&&").
+  keyword("let").
   keyword("~>").
   keyword("{.").
   keyword("do").
@@ -419,7 +420,6 @@
   keyword("::").
   keyword(":?").
   keyword("implementation").
-  keyword("with").
   keyword("<|").
   keyword("<~").
   keyword("{").

@@ -82,11 +82,6 @@ star.compiler.typeparse{
     R = parseType(Q,Rhs,Env);
     valis consType(A,R)
   }
-  parseType(Q,T,Env) where (Lc,Lhs,Rhs) ?= isContinuationType(T) => valof{
-    L = parseArgType(Q,Lhs,Env);
-    R = parseType(Q,Rhs,Env);
-    valis continType(L,R)
-  }
   parseType(Q,T,Env) where (Lc,Rhs) ?= isRef(T) =>
     refType(parseType(Q,Rhs,Env)).
   parseType(Q,T,Env) where (Lc,[A]) ?= isTuple(T) => valof{
