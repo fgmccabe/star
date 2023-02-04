@@ -126,9 +126,6 @@ star.compiler.inline{
   simExp(.cTry(Lc,Exp,Th,E,H,Tp),Map,Depth) =>
     .cTry(Lc,simplifyExp(Exp,Map,Depth),simplifyExp(Th,Map,Depth),
       simplifyExp(E,Map,Depth),simplifyExp(H,Map,Depth),Tp).
-  simExp(.cWith(Lc,Exp,Th,E,H,Tp),Map,Depth) =>
-    .cWith(Lc,simplifyExp(Exp,Map,Depth),simplifyExp(Th,Map,Depth),
-      simplifyExp(E,Map,Depth),simplifyExp(H,Map,Depth),Tp).
   simExp(.cValof(Lc,Act,Tp),Map,Depth) =>
     valofAct(Lc,simplifyAct(Act,Map,Depth),Tp).
 

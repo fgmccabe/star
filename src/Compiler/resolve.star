@@ -224,11 +224,6 @@ star.compiler.resolve{
     (RArgs,St2) = overloadTplEls(Args,Dict,St1);
     valis (.apply(lc,ROp,RArgs,Tp),St2)
   }
-  overloadTerm(.invoak(lc,Op,Args,Tp),Dict,St) => valof{
-    (ROp,St1) = overloadTerm(Op,Dict,St);
-    (RArgs,St2) = overloadTplEls(Args,Dict,St1);
-    valis (.invoak(lc,ROp,RArgs,Tp),St2)
-  }
   overloadTerm(.suspnd(lc,F,A,Tp),Dict,St) => valof{
     (RF,St1) = overloadTerm(F,Dict,St);
     (RA,St2) = overloadTerm(A,Dict,St1);
@@ -294,13 +289,6 @@ star.compiler.resolve{
     (TT,St1) = overloadTerm(T,Dict,St);
     (EE,St2) = overloadTerm(E,Dict,St1);
     valis (.rais(Lc,EE,TT,Tp),St2)
-  }
-  overloadTerm(.trywith(Lc,A,.vr(TLc,Tnm,TTp),Hs,Tp),Dict,St) => valof{
-    TDict = declareVar(Tnm,Tnm,TLc,TTp,.none,Dict);
-    (TT,St0) = overloadTerm(.vr(TLc,Tnm,TTp),TDict,St);
-    (AA,St1) = overloadTerm(A,TDict,St0);
-    (HH,St2) = overloadRules(Hs,[],Dict,St1);
-    valis (.trywith(Lc,AA,TT,HH,Tp),St2)
   }
   overloadTerm(.vlof(Lc,Act,Tp),Dict,St) => valof{
     (Ac,St1) = overloadAction(Act,Dict,St);
@@ -378,13 +366,6 @@ star.compiler.resolve{
     (AA,St2) = overloadAction(A,TDict,St1);
     (HH,St3) = overloadRules(H,[],Dict,St2);
     valis (.doTryCatch(Lc,AA,TT,HH),St3)
-  }
-  overloadAction(.doTryWith(Lc,A,.vr(TLc,Tnm,TTp),H),Dict,St) => valof{
-    TDict = declareVar(Tnm,Tnm,TLc,TTp,.none,Dict);
-    (TT,St1) = overloadTerm(.vr(TLc,Tnm,TTp),TDict,St);
-    (AA,St2) = overloadAction(A,TDict,St1);
-    (HH,St3) = overloadRules(H,[],Dict,St2);
-    valis (.doTryWith(Lc,AA,TT,HH),St3)
   }
   overloadAction(.doIfThen(Lc,T,Th,El),Dict,St) => valof{
     (TT,St1) = overloadTerm(T,Dict,St);

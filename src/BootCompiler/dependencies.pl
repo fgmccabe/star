@@ -255,6 +255,10 @@ collectTermRefs(T,A,R,Rx) :-
   isLetRec(T,_,S,B),!,
   collectStmtRefs(S,A,[],R,R0),
   collectTermRefs(B,A,R0,Rx).
+collectTermRefs(T,A,R,Rx) :-
+  isLet(T,_,S,B),!,
+  collectTermRefs(S,A,R,R0),
+  collectTermRefs(B,A,R0,Rx).
 collectTermRefs(T,All,Rf,Rx) :-
   isMatch(T,_,L,R),!,
   collectTermRefs(L,All,Rf,Rf0),
@@ -435,6 +439,10 @@ collectDoRefs(T,A,R,Rx) :-
 collectDoRefs(T,A,R,Rx) :-
   isLetRec(T,_,S,B),!,
   collectStmtRefs(S,A,[],R,R0),
+  collectDoRefs(B,A,R0,Rx).
+collectDoRefs(T,A,R,Rx) :-
+  isLet(T,_,S,B),!,
+  collectTermRefs(S,A,R,R0),
   collectDoRefs(B,A,R0,Rx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isRaise(T,_,E),!,

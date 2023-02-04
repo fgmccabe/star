@@ -77,9 +77,9 @@ star.structured.conn{
     }
   }
   
-  public nursery:all e ~~ (cons[task[e]]) => e.
+  public nursery:all e ~~ (cons[(task[e])=>e]) => e.
   nursery(Ts) => _spawn((This) => valof{
-      Q := Ts::qc[task[e]];
+      Q := (Ts//spawnTask)::qc[task[e]];
       BlockQ := ([]:cons[(()=>boolean,task[e])]);
 
       while .true do{
@@ -98,18 +98,8 @@ star.structured.conn{
 	      }
 	      | .retired_ => {}
 	      | .fork(F) => {
-		case _spawn((Tsk) => valof{
-		    case Tsk suspend .identify(Tsk) in {
-		      .go_ahead => {
-		        Tsk retire .result(F(Tsk))
-		      }
-		      | .shut_down_ => {}
-		    };
-		    Tsk retire .retired_
-		  }) in {
-		  .identify(Tsk) => { Q := Q!++[Tsk]}
-		  };
-		Q := Q!++[T];
+		Tsk = spawnTask(F);
+		Q := Q! ++ [Tsk,T];
 	      }
 	      | .blocked(P) => {
 	        BlockQ := [(P,T),..BlockQ!]
@@ -147,6 +137,19 @@ star.structured.conn{
       | .shut_down_ => raise .canceled
     }
   }
+
+  spawnTask:all e ~~ ((task[e])=>e) => task[e].
+  spawnTask(F) => case _spawn((Tsk) => valof{
+      case Tsk suspend .identify(Tsk) in {
+	.go_ahead => {
+	  Tsk retire .result(F(Tsk))
+	}
+	| .shut_down_ => {}
+      };
+      Tsk retire .retired_
+    }) in {
+    .identify(Tsk) => Tsk
+    }.
 
   public spawn:all e ~~ this |= task[e] |: ((task[e])=>e) => () raises exception.
   spawn(F) => valof{

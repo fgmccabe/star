@@ -5,8 +5,8 @@ test.ct0{
   import star.script.
   import star.structured.conn.
 
-  tt:(integer)=>task[()].
-  tt(K) => fiber{
+  tt:(integer)=>(task[()])=>().
+  tt(K) => (this) => valof{
     logMsg("starting $(K)");
     Count := K;
     try{
@@ -44,15 +44,12 @@ test.ct0{
 	logMsg("$(K) shutting down");
       }
     };
-    valis .result(())
+    valis ()
   }.
   
   main:()=>().
   main() => valof{
-    T1 = tt(10);
-    T2 = tt(20);
-
-    Rs = nursery([T1,T2]);
+    Rs = nursery([tt(10),tt(20)]);
     logMsg("final result $(Rs)");
     valis ()
   }
