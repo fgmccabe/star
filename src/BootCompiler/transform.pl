@@ -178,12 +178,12 @@ transformConsDef(Lc,Nm,Tp,Map,[lblDef(Lc,lbl(Nm,Ar),Tp,Ix)|Dx],Dx) :-
   is_member((Nm,Ix),IxMap).
 
 transformFunction(Lc,Nm,LclName,H,Tp,Extra,Eqns,Map,Opts,[Fun|Ex],Exx) :-
-%  (is_member(showTrCode,Opts) -> dispFunction(LclName,Tp,Eqns);true),
+  (is_member(showTrCode,Opts) -> dispFunction(LclName,Tp,Eqns);true),
   progTypeArity(Tp,Arity),
   extraArity(Arity,Extra,Ar),
   extendFunTp(Tp,Extra,ATp),
   transformEquations(Map,Extra,Opts,Eqns,Rules,[],Ex,Ex0),
-%  (is_member(showTrCode,Opts) -> dispEquations(Rules);true),
+  (is_member(showTrCode,Opts) -> dispEquations(Rules);true),
   closureEntry(Map,Lc,Nm,Tp,Arity,Extra,Ex0,Exx),
   functionMatcher(Lc,Ar,lbl(LclName,Ar),H,ATp,Rules,Map,Fun),!.
 %  (is_member(showTrCode,Opts) -> dispRuleSet(Fun);true).
@@ -222,13 +222,14 @@ transformEquations(Map,Extra,Opts,[Eqn|Defs],Rules,Rx,Ex,Exx) :-
   transformEqn(Eqn,Map,Extra,Opts,Rules,R0,Ex,Ex0),
   transformEquations(Map,Extra,Opts,Defs,R0,Rx,Ex0,Exx).
 
-transformEqn(rule(Lc,A,G,Value),OMap,Extra,Opts,[(Lc,Args,Test,Rep)|Rx],Rx,Ex,Exx) :-
+transformEqn(rule(Lc,A,G,Value),Map,Extra,Opts,[(Lc,Args,Test,Rep)|Rx],Rx,Ex,Exx) :-
   filterVars(Extra,Q0),
   ptnVars(A,Q0,Q0a),
-  liftArgPtn(A,AA,Q0a,Q1,OMap,Opts,Ex,Ex0), % head args
-  liftGuard(G,Test,Q1,Q2,OMap,Opts,Ex0,Ex1),
+  declarePtnVars(Q0a,Map,LMap),
+  liftArgPtn(A,AA,Q0a,Q1,LMap,Opts,Ex,Ex0), % head args
+  liftGuard(G,Test,Q1,Q2,LMap,Opts,Ex0,Ex1),
   concat(Extra,AA,Args),
-  liftExp(Value,Rep,Q2,_Q3,OMap,Opts,Ex1,Exx). % replacement expression
+  liftExp(Value,Rep,Q2,_Q3,LMap,Opts,Ex1,Exx). % replacement expression
 
 liftGuard(none,none,Q,Q,_,_,Ex,Ex) :-!.
 liftGuard(some(G),some(LG),Q,Qx,Map,Opts,Ex,Exx) :-
@@ -276,7 +277,7 @@ liftPtn(tple(_,Ptns),PTpl,Q,Qx,Map,Opts,Ex,Exx) :-
 liftPtn(apply(Lc,v(_,Nm,_),tple(_,A),_),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtns(A,Args,Q,Q0,Map,Opts,Ex,Ex0),
   trPtnCallOp(Lc,Nm,Args,Ptn,Q0,Qx,Map,Opts,Ex0,Exx).
-liftPtn(apply(Lc,cons(_,Nm,_),tple(_,A),_),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
+liftPtn(capply(Lc,enm(_,Nm,_),tple(_,A),_),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtns(A,Args,Q,Q0,Map,Opts,Ex,Ex0),
   trPtnCallOp(Lc,Nm,Args,Ptn,Q0,Qx,Map,Opts,Ex0,Exx).
 liftPtn(where(Lc,P,C),whr(Lc,LP,LC),Q,Qx,Map,Opts,Ex,Exx) :-
@@ -294,7 +295,7 @@ trVarPtn(Lc,Nm,A,Q,Qx,Map,Opts) :-
   implementVarPtn(V,Nm,Lc,A,Map,Opts,Q,Qx).
 
 implementVarPtn(moduleVar(Vn),_,Lc,cll(Lc,lbl(Vn,0),[]),_,_,Q,Q) :-
-  reportError("not allowed to have globals in patterns: %w",[id(Vn)],Lc). % module variable
+  reportError("not allowed to have globals in patterns: %s",[id(Vn)],Lc). % module variable
 implementVarPtn(labelArg(N,Ix,ThVr),_,Lc,
 		whr(Lc,N,mtch(Lc,N,nth(Lc,Vr,Ix))),Map,Opts,Q,Qx) :- !, % argument from label
   liftVar(Lc,ThVr,Vr,Map,Opts,Q,Q0),
@@ -340,8 +341,6 @@ liftExp(v(Lc,Nm,_),Vr,Q,Qx,Map,Opts,Ex,Ex) :-
   trVarExp(Lc,Nm,Vr,Map,Opts,Q,Qx).
 liftExp(enm(Lc,Nm,_),Exp,Q,Qx,Map,Opts,Ex,Ex) :- !,
   trVarExp(Lc,Nm,Exp,Map,Opts,Q,Qx).
-liftExp(cons(Lc,Nm,_),Vr,Q,Qx,Map,Opts,Ex,Ex) :- !,
-  trVarExp(Lc,Nm,Vr,Map,Opts,Q,Qx).
 liftExp(intLit(_,Ix),intgr(Ix),Q,Q,_,_,Ex,Ex) :-!.
 liftExp(bigLit(_,Ix),bigx(Ix),Q,Q,_,_,Ex,Ex) :-!.
 liftExp(floatLit(_,Dx),float(Dx),Q,Q,_,_,Ex,Ex) :-!.
@@ -353,6 +352,9 @@ liftExp(tple(_,A),TApl,Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftExp(open(_,E,_),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(apply(Lc,Op,tple(_,A),_),Call,Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
+  trExpCallOp(Lc,Op,LA,Call,Q1,Qx,Map,Opts,Ex1,Exx).
+liftExp(capply(Lc,Op,tple(_,A),_),Call,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
   trExpCallOp(Lc,Op,LA,Call,Q1,Qx,Map,Opts,Ex1,Exx).
 liftExp(invoke(Lc,K,tple(_,A),_),voke(Lc,KK,AA),Q,Qx,Map,Opts,Ex,Exx) :-!,
@@ -485,11 +487,11 @@ liftLetExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
 liftLetRecExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftLetRec(Lc,Decls,Defs,transform:liftExp,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
 
-liftLet(Lc,Decls,Defs,Bnd,Cll,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
+liftLet(Lc,Decls,Defs,Bnd,Cll,Exp,Q,Q,Map,Opts,Ex,Exx) :-
   genVar("_ThR",ThVr),
-  letMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,ThMap,RMap,FreeTerm),
+  letMap(Lc,Decls,Defs,Bnd,ThVr,Q,QL,Map,Opts,ThMap,RMap,FreeTerm),
   transformLetDefs(ThMap,RMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
-  call(Cll,Bnd,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
+  call(Cll,Bnd,BExpr,QL,_Qx,ThMap,Opts,Ex1,Exx),
   mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp).
 %  (is_member(showTrCode,Opts) -> dispTerm(Exp);true).
 
@@ -562,8 +564,6 @@ trExpCallOp(Lc,v(_,Nm,_),Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   implementFunCall(Lc,Reslt,Nm,Args,Exp,Q,Qx,Map,Opts,Ex,Exx).
 trExpCallOp(Lc,enm(Lc0,Nm,Tp),Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   trExpCallOp(Lc,v(Lc0,Nm,Tp),Args,Exp,Q,Qx,Map,Opts,Ex,Exx).
-trExpCallOp(Lc,cons(Lc0,Nm,Tp),Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
-  trExpCallOp(Lc,v(Lc0,Nm,Tp),Args,Exp,Q,Qx,Map,Opts,Ex,Exx).
 trExpCallOp(Lc,Op,A,ocall(Lc,Rc,A),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(Op,Rc,Q,Qx,Map,Opts,Ex,Exx).
 
@@ -590,6 +590,7 @@ liftCase(rule(Lc,P,G,Value),(Lc,[Ptn],Test,Rep),Q,Qx,Map,Opts,Lifter,Ex,Exx) :-
   call(Lifter,Value,Rep,Q1,Qx,Map,Opts,Ex1,Exx). % replacement expression
 
 liftLambda(lambda(Lc,LamLbl,Eqn,Tp),Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
+  (is_member(showTrCode,Opts) -> dispCanon(lambda(Lc,LamLbl,Eqn,Tp));true),
   lambdaMap(lambda(Lc,LamLbl,Eqn,Tp),ThVr,LamLbl,Q,Map,Opts,Closure,LMap),
   transformEqn(Eqn,LMap,[ThVr],Opts,Rls,[],Ex,Exx),
   is_member((_,Args,_,_),Rls),!,
@@ -635,11 +636,12 @@ letRecMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,[lyr(Vx,Tx,ConsMap,ThVr)|Map],FreeTe
   declareThetaVars(Decls,ThVr,CellVars,ConsMap,V0,Vx,typeMap{},Tx),
   makeFreeTerm(CellVars,Lc,ThFree,Map,Opts,FreeTerm).
 
-letMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,
+letMap(Lc,Decls,Defs,Bnd,ThVr,Q,Qx,Map,Opts,
        [lyr(Vx,Tx,ConsMap,ThVr)|Map],[lyr(varMap{},Tx,ConsMap,ThVr)|Map],FreeTerm) :-
   findFreeVars(letExp(Lc,Decls,Defs,Bnd),Map,Q,ThFree),
   varDefs(Defs,CellVars),
   concat(CellVars,ThFree,FreeVars),
+  merge(CellVars,Q,Qx),
   makeConstructorMap(Decls,consMap{},ConsMap),
   collectLabelVars(FreeVars,ThVr,0,varMap{},V0),
   declareThetaVars(Decls,ThVr,CellVars,ConsMap,V0,Vx,typeMap{},Tx),
@@ -664,6 +666,13 @@ letRecActionMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,
   declareThetaVars(Decls,ThVr,CellVars,ConsMap,varMap{},V0,typeMap{},Tx),
   collectLabelVars(FreeVars,ThVr,0,V0,Vx),
   makeFreeTerm(CellVars,Lc,ThFree,Map,Opts,FreeTerm).
+
+declarePtnVars(Q,[lyr(Vars,Tx,Cons,ThVr)|Map],[lyr(NVars,Tx,Cons,ThVr)|Map]) :-
+  rfold(Q,transform:declVr,Vars,NVars).
+
+declVr(idnt(Nm),Vars,Vx) :-
+  declEntry(Nm,notInMap,Vars,Vx).
+declVr(Vars,Vars).
 
 lambdaMap(Lam,ThVr,LamLbl,Q,Map,Opts,ctpl(lbl(LamLbl,1),[FreeTerm]),
 	  [lyr(Vx,typeMap{},consMap{},ThVr)|Map]) :-

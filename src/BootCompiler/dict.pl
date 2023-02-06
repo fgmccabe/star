@@ -95,7 +95,7 @@ declareEnum(Lc,Nm,FullNm,Tp,Env,Ev) :-
 declareCns(Lc,Nm,FullNm,Tp,Env,Ev) :-
   declareVar(Nm,Lc,Tp,none,dict:mkCns(FullNm),Env,Ev).
 
-mkCns(Nm,Lc,Tp,cons(Lc,Nm,Tp)).
+mkCns(Nm,Lc,Tp,enm(Lc,Nm,Tp)).
 mkEnum(Nm,Lc,Tp,enm(Lc,Nm,ETp)) :- netEnumType(Tp,ETp).
 
 manageConstraints([],_,V,V).
@@ -288,7 +288,7 @@ declareStdTypes([T|Ts],D,Dx) :-
 stdDict(Base) :-
   pushScope([],B),
   declareStdTypes(["integer","bigint","char","string","float",
-		   "cons","file","fiber","cont"],B,Base).
+		   "cons","file","fiber","cont","tag"],B,Base).
 
 dispDictLvl(dict(Types,Nms,_Cns,Impls,Accs,Ups,Contracts),Cx,
 	    sq([ix(Cx),ss("-"),

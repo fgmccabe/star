@@ -1,10 +1,10 @@
 test.sieve{
   import star.
   import star.script.
-  import star.structured.conn.
+  import star.mbox.
 
-  gen:(channel[integer,integer]) => task[integer].
-  gen(Chnnl) => fiber{
+  gen:(channel[integer]) => taskFun[integer].
+  gen(Chnnl) => (this)=>valof{
 --    logMsg("starting generator");
     Ix := 1;
     try{
@@ -19,7 +19,7 @@ test.sieve{
     }
   }
 
-  filter:(task[integer],integer,channel[integer,integer],channel[integer,integer]) => () raises exception.
+  filter:(task[integer],integer,channel[integer],channel[integer]) => () raises exception.
   filter(Tsk,Prm,Chnl,Next) => valof{
     while Nxt .= collect(Tsk,Chnl) do{
       if ~Nxt%Prm == 0 then
@@ -28,7 +28,7 @@ test.sieve{
     valis ()
   }
 
-  sieve:(task[integer],integer,integer,channel[integer,integer]) => integer.
+  sieve:(task[integer],integer,integer,channel[integer]) => integer.
   sieve(this,Cnt,Mx,Chnnl) => valof{
 --    logMsg("starting sieve #(_stringOf(this,2))");
     try{
@@ -60,9 +60,9 @@ test.sieve{
   main(Cnt) => valof{
     FstCh = newChannel();
     Gn = gen(FstCh);
-    Sv = fiber{
-      sieve(this,0,Cnt,FstCh);
-      retire .retired_
+    Sv = (Tsk)=>valof{
+      sieve(Tsk,0,Cnt,FstCh);
+      Tsk retire .retired_
     };
 
     Eras = nursery([Gn,Sv]);

@@ -52,7 +52,7 @@ dispEquations(Eqs) :-
 ssEqn(Dsp,(_Lc,Args,Grd,Val),sq([ss("("),AA,ss(")=>"),GG,VV])) :-
   showArgs(Args,0,AA),
   ssGuard(Grd,GG),
-  call(Dsp,ssTrm,Val,0,VV).
+  call(Dsp,Val,0,VV).
 
 ssGuard(none,ss("")).
 ssGuard(some(G),sq([ss(" where "),GG])) :-
