@@ -258,7 +258,7 @@ parseConstructor(Nm,Lc,T,Env,Ev,Dfs,Defs,Path) :-
    declareEnum(Lc,Nm,FullNm,Tp,Env,Ev),
    Dfs=[cnsDef(Lc,Nm,enm(Lc,FullNm,Tp))|Defs];
    declareCns(Lc,Nm,FullNm,Tp,Env,Ev),
-   Dfs=[cnsDef(Lc,Nm,cons(Lc,FullNm,Tp))|Defs]).
+   Dfs=[cnsDef(Lc,Nm,enm(Lc,FullNm,Tp))|Defs]).
 
 parseAnnotations(Defs,Fields,Annots,Env,Path,faceType(F,T)) :-
   parseAnnots(Defs,Fields,Annots,Env,[],F,[],T,Path).
@@ -415,7 +415,7 @@ formTheta(Lc,Lbl,Decls,Defs,Flds,Tp,letRec(Lc,Decls,Defs,Exp)) :-
   sort(Flds,checker:cmpPair,SortedFlds),
   findExportedDefs(Lc,SortedFlds,Args),
   project1(SortedFlds,ElTps),
-  Exp = apply(Lc,cons(Lc,Lbl,consType(tplType(ElTps),Tp)),tple(Lc,Args),Tp).
+  Exp = capply(Lc,enm(Lc,Lbl,consType(tplType(ElTps),Tp)),tple(Lc,Args),Tp).
 
 checkRecordBody(Tp,Lbl,Lc,Els,Env,letExp(Lc,Decls,Defs,Exp),Path) :-
   evidence(Tp,Env,Q,ETp),
@@ -430,7 +430,7 @@ checkRecordBody(Tp,Lbl,Lc,Els,Env,letExp(Lc,Decls,Defs,Exp),Path) :-
   computeThetaExport(Defs,Fs,FullPublic,Decls,Defs),!,
   sort(Fs,checker:cmpPair,SortedFlds),
   findExportedDefs(Lc,SortedFlds,Args),
-  Exp = apply(Lc,Lbl,tple(Lc,Args),Tp).
+  Exp = capply(Lc,Lbl,tple(Lc,Args),Tp).
 
 checkLetRec(Tp,Lc,Els,Ex,Env,letRec(Lc,Decls,XDefs,Bound),Path):-
   genNewName(Path,"Γ",ThPath),
@@ -531,7 +531,8 @@ typeOfPtn(V,Tp,Env,Ev,Term,Path) :-
   typeOfPtn(TT,Tp,Env,Ev,Term,Path).
 typeOfPtn(V,Tp,Ev,Env,v(Lc,N,Tp),_Path) :-
   isIden(V,Lc,N),
-  declareVr(Lc,N,Tp,none,Ev,Env).
+  getConstraints(Tp,_,UTp),
+  declareVr(Lc,N,UTp,none,Ev,Env).
 typeOfPtn(Trm,Tp,Env,Ev,Term,Path) :-
   isEnum(Trm,_,N),isIden(N,_,_),!,
   typeOfExp(Trm,Tp,Env,Ev,Term,Path).
@@ -576,7 +577,7 @@ typeOfPtn(Term,Tp,Env,Ev,Exp,Path) :-
   newTypeVar("A",At),
   typeOfExp(F,consType(At,Tp),Env,E0,Fun,Path),
   typeOfArgPtn(tuple(Lc,"()",A),At,E0,Ev,Args,Path),
-  Exp = apply(Lc,Fun,Args,Tp).
+  Exp = capply(Lc,Fun,Args,Tp).
 typeOfPtn(Term,Tp,Env,Ev,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
   mkConApply(Lc,F,A,TT),
@@ -586,7 +587,7 @@ typeOfPtn(Term,Tp,Env,Ev,Exp,Path) :-
   typeOfExp(F,consType(At,Tp),Env,E0,Fun,Path),
 %  reportMsg("con type = %s",[tpe(consType(At,Tp))],Lc),
   typeOfArgPtn(tuple(Lc,"()",A),At,E0,Ev,Args,Path),
-  Exp = apply(Lc,Fun,Args,Tp).
+  Exp = capply(Lc,Fun,Args,Tp).
 typeOfPtn(Term,Tp,Env,Ev,Exp,Path) :-
   (isBraceTerm(Term,Lc,F,Args);isQBraceTerm(Term,Lc,F,Args)),
   typeOfRecordPtn(Lc,Tp,F,Args,Env,Ev,Exp,Path).
@@ -603,7 +604,7 @@ typeOfRecordPtn(Lc,Tp,F,Args,Env,Ev,Exp,Path) :-
   declareConstraints(Lc,Cx,E1,BaseEnv),
   typeOfElementPtns(Args,Face,BaseEnv,Ev,PtnDefs,[],Path),
   fillinElementPtns(PtnDefs,Lc,FaceTp,ArgPtns),
-  Exp = apply(Lc,Fun,tple(Lc,ArgPtns),Tp).
+  Exp = capply(Lc,Fun,tple(Lc,ArgPtns),Tp).
 %  reportMsg("record ptn = %s",[can(Exp)],Lc).
 
 typeOfElementPtns([],_Face,Env,Env,Defs,Defs,_Path).
@@ -745,7 +746,7 @@ typeOfExp(Term,Tp,Env,Env,Val,Path) :-
   isBraceTuple(Term,Lc,Els),
   reportError("anonymous brace expression %s not supported",[ast(Term)],Lc),
   tpName(Tp,Lbl),
-  checkRecordBody(Tp,Lbl,Lc,Els,Env,Val,Path).
+  checkRecordBody(Tp,enm(Lc,Lbl,consType(Tp,Tp)),Lc,Els,Env,Val,Path).
 typeOfExp(Term,Tp,Env,Env,Val,Path) :-
   isBraceTerm(Term,Lc,F,Els),
   newTypeVar("F",FnTp),
@@ -773,7 +774,7 @@ typeOfExp(Trm,Tp,Env,Ev,tple(Lc,Els),Path) :-
   genTpVars(A,ArgTps),
   verifyType(Lc,ast(Trm),tplType(ArgTps),Tp,Env),
   typeOfExps(A,ArgTps,Env,Ev,Lc,Els,Path).
-typeOfExp(Term,Tp,Env,Env,apply(Lc,Fun,Args,Tp),Path) :-
+typeOfExp(Term,Tp,Env,Env,capply(Lc,Fun,Args,Tp),Path) :-
   isEnum(Term,Lc,I),
   isRoundTerm(I,_,F,A),!,
   genTpVars(A,Vrs),
@@ -813,7 +814,6 @@ verifyType(Lc,M,S,T,_) :-
 
 brceConLbl(over(_,T,_),L) :- brceConLbl(T,L).
 brceConLbl(v(_,L,_),L).
-brceConLbl(cons(_,Nm,_),Nm).
 brceConLbl(enm(_,Nm,_),Nm).
 brceConLbl(mtd(_,Nm,_),Nm).
 
@@ -838,18 +838,22 @@ typeOfRoundTerm(Lc,F,A,Tp,Env,Call,Path) :-
    Call=apply(Lc,Fun,Args,Tp);
    sameType(consType(At,Tp),FnTp,Lc,E0) ->
    typeOfArgTerm(tuple(Lc,"()",A),At,E0,_Ev,Args,Path),
-   Call=apply(Lc,Fun,Args,Tp);
+   Call=capply(Lc,Fun,Args,Tp);
    reportError("type of %s:\n%s\nnot consistent with:\n%s=>%s",[Fun,FnTp,At,Tp],Lc),
    Call=void).
 
 typeOfLambda(Term,Tp,Env,lambda(Lc,Lbl,rule(Lc,Args,Guard,Exp),Tp),Path) :-
 %  reportMsg("expected type of lambda %s = %s",[Term,Tp]),
+
+  getConstraints(Tp,Cx,LambdaTp),
+  declareConstraints(Lc,Cx,Env,EvL),
+  
   isEquation(Term,Lc,H,C,R),
   newTypeVar("_A",AT),
-  typeOfArgPtn(H,AT,Env,E0,Args,Path),
+  typeOfArgPtn(H,AT,EvL,E0,Args,Path),
   checkGuard(C,E0,E1,Guard,Path),
   newTypeVar("_E",RT),
-  verifyType(Lc,ast(Term),funType(AT,RT),Tp,Env),
+  verifyType(Lc,ast(Term),funType(AT,RT),LambdaTp,Env),
   lambdaLbl(Path,"λ",Lbl),
   typeOfExp(R,RT,E1,_,Exp,Path).
 
@@ -1132,11 +1136,11 @@ genDecl(typeDef(_,Nm,Tp,TpRule),Def,Public,
   call(Public,tpe(Nm)),!.
 genDecl(typeDef(_,Nm,Tp,TpRule),Def,_,Ex,Ex,
 	[typeDec(Nm,Tp,TpRule)|Lx],Lx,[Def|Dfx],Dfx).
-genDecl(varDef(Lc,Nm,FullNm,[],Tp,lambda(_,_,Eqn),_),_,Public,
+genDecl(varDef(Lc,Nm,FullNm,[],Tp,lambda(_,_,Eqn,_),_),_,Public,
 	 [funDec(Nm,FullNm,Tp)|Ex],Ex,Lx,Lx,
 	 [funDef(Lc,Nm,FullNm,hard,Tp,[],[Eqn])|Dfx],Dfx) :-
   call(Public,var(Nm)),!.
-genDecl(varDef(Lc,Nm,FullNm,[],Tp,lambda(_,_,Eqn),_),_,Public,
+genDecl(varDef(Lc,Nm,FullNm,[],Tp,lambda(_,_,Eqn,_),_),_,Public,
 	 Ex,Ex,[funDec(Nm,FullNm,Tp)|Lx],Lx,
 	 [funDef(Lc,Nm,FullNm,hard,Tp,[],[Eqn])|Dfx],Dfx) :-
   call(Public,var(Nm)),!.

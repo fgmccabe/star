@@ -50,7 +50,7 @@ overloadRule(Over,rule(Lc,Args,G,Exp),Dict,St,Stx,rule(Lc,RArgs,RG,RExp)) :-
 overloadDefn(Lc,Nm,ExtNm,[],Tp,Exp,Dict,varDef(Lc,Nm,ExtNm,[],Tp,RExp)) :-
   resolveTerm(Exp,Dict,RExp).
 overloadDefn(Lc,Nm,ExtNm,Cx,Tp,Exp,Dict,varDef(Lc,Nm,ExtNm,[],Tp,
-    lambda(Lc,Lbl,rule(Lc,tple(Lc,CVars),none,RExp),OTp))) :-
+					       lambda(Lc,Lbl,rule(Lc,tple(Lc,CVars),none,RExp),OTp))) :-
   defineCVars(Lc,Cx,Dict,CVars,FDict),
   contractTypes(Cx,Tps),
   makeContractFunType(Tp,Tps,OTp),
@@ -87,8 +87,10 @@ defineArgVars(tple(_,Args),Dict,RDict) :-
   rfold(Args,resolve:defineArg,Dict,RDict).
 defineArgVars(_,Dict,Dict).
 
-defineArg(v(Lc,Nm,Tp),Dict,RDict) :-
+defineArg(v(Lc,Nm,Tp),Dict,RDict) :-!,
   declareVr(Lc,Nm,Tp,none,Dict,RDict).
+defineArg(capply(_,_,Args,_),Dict,RDict) :-!,
+  defineArgVars(Args,Dict,RDict).
 defineArg(_,Dict,Dict).
   
 resolveTerm(Term,Dict,Resolved) :-
@@ -130,7 +132,6 @@ overloadTerm(update(Lc,Rc,Fld,Vl),Dict,St,Stx,Update) :-
   overloadTerm(Vl,Dict,St0,St1,Vx),
   resolveUpdate(Lc,Rx,Fld,Vx,Dict,St1,Stx,Update).
 overloadTerm(enm(Lc,Rf,Tp),_,St,St,enm(Lc,Rf,Tp)).
-overloadTerm(cons(Lc,Rf,Tp),_,St,St,cons(Lc,Rf,Tp)).
 overloadTerm(tple(Lc,Args),Dict,St,Stx,tple(Lc,RArgs)) :-!,
   overloadLst(Args,resolve:overloadTerm,Dict,St,Stx,RArgs).
 overloadTerm(open(Lc,Er,Tp),Dict,St,Stx,open(Lc,Err,Tp)) :-
@@ -174,6 +175,9 @@ overloadTerm(apply(ALc,overaccess(Lc,T,RcTp,Fld,FTp),Args,ATp),Dict,St,Stx,Term)
 overloadTerm(apply(Lc,Op,Args,Tp),Dict,St,Stx,apply(Lc,ROp,RArgs,Tp)) :-
   overloadTerm(Op,Dict,St,St0,ROp),
   overloadTerm(Args,Dict,St0,Stx,RArgs).
+overloadTerm(capply(Lc,Op,Args,Tp),Dict,St,Stx,capply(Lc,ROp,RArgs,Tp)) :-
+  overloadTerm(Op,Dict,St,St0,ROp),
+  overloadTerm(Args,Dict,St0,Stx,RArgs).
 overloadTerm(invoke(Lc,Op,Args,Tp),Dict,St,Stx,invoke(Lc,ROp,RArgs,Tp)) :-
   overloadTerm(Op,Dict,St,St0,ROp),
   overloadTerm(Args,Dict,St0,Stx,RArgs).
@@ -203,8 +207,8 @@ overloadTerm(suspend(Lc,F,E,Tp),Dict,St,Stx,suspend(Lc,FF,EE,Tp)) :-
 overloadTerm(resume(Lc,F,E,Tp),Dict,St,Stx,resume(Lc,FF,EE,Tp)) :-
   overloadTerm(F,Dict,St,St0,FF),
   overloadTerm(E,Dict,St0,Stx,EE).
-overloadTerm(lambda(Lc,Lbl,Eqn,Tp),Dict,St,Stx,lambda(Lc,Lbl,OEqn,Tp)) :-
-  overloadRule(resolve:overloadTerm,Eqn,Dict,St,Stx,OEqn).
+overloadTerm(lambda(Lc,Lbl,Eqn,Tp),Dict,St,Stx,Lam) :-!,
+  overloadLambda(Lc,Lbl,Eqn,Tp,Dict,St,Stx,Lam).
 overloadTerm(valof(Lc,A,Tp),Dict,St,Stx,valof(Lc,AA,Tp)) :-!,
   overloadAction(A,Dict,St,Stx,AA).
 overloadTerm(fiber(Lc,A,Tp),Dict,St,Stx,fiber(Lc,AA,Tp)) :-!,
@@ -224,6 +228,9 @@ overloadGuard(none,_,Stx,Stx,none) :-!.
 overloadGuard(some(G),Dict,St,Stx,some(RG)) :-
   overloadTerm(G,Dict,St,Stx,RG).
 
+overloadLambda(Lc,Lbl,Eqn,Tp,Dict,St,Stx,lambda(Lc,Lbl,OEqn,Tp)) :-!,
+  overloadRule(resolve:overloadTerm,Eqn,Dict,St,Stx,OEqn).
+					      
 overloadLet(Lc,Decls,Defs,Bound,RR,Dict,St,Stx,RDefs,RBound) :-
   declareAllDecls(Decls,Lc,Dict,RDict),
   overload(Defs,RDict,RDefs),

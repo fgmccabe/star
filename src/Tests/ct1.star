@@ -5,8 +5,8 @@ test.ct1{
   import star.script.
   import star.structured.conn.
 
-  ping:(integer,channel[boolean,()]) => task[()].
-  ping(Cnt,Chnnl) => fiber{
+  ping:(integer,channel[boolean,()]) => (task[()])=>().
+  ping(Cnt,Chnnl) => (this) => valof{
     logMsg("starting $(Cnt) pings");
     Count := Cnt;
 
@@ -20,8 +20,8 @@ test.ct1{
     this retire .retired_
   }
 
-  pong:(channel[boolean,()]) => task[()].
-  pong(Chnnl) => fiber{
+  pong:(channel[boolean,()]) => (task[()])=>().
+  pong(Chnnl) => (this) => valof{
     Count := 0;
 
     try{
@@ -32,7 +32,7 @@ test.ct1{
     } catch { _ => logMsg("something went wrong") };
 
     logMsg("received $(Count!) pings");
-    valis .result(())
+    valis ()
   }
   
   main:()=>().

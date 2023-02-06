@@ -36,13 +36,13 @@ isCanon(floatLit(_,_)).
 isCanon(charLit(_,_)).
 isCanon(stringLit(_,_)).
 isCanon(apply(_,_,_,_)).
+isCanon(capply(_,_,_,_)).
 isCanon(invoke(_,_,_,_)).
 isCanon(resume(_,_,_,_)).
 isCanon(suspend(_,_,_,_)).
 isCanon(dot(_,_,_,_)).
 isCanon(update(_,_,_,_)).
 isCanon(enm(_,_,_)).
-isCanon(cons(_,_,_)).
 isCanon(tple(_,_)).
 isCanon(where(_,_,_)).
 isCanon(conj(_,_,_)).
@@ -89,7 +89,6 @@ typeOfCanon(floatLit(_,_),type("star.core*float")) :- !.
 typeOfCanon(charLit(_,_),type("star.core*char")) :- !.
 typeOfCanon(stringLit(_,_),type("star.core*string")) :- !.
 typeOfCanon(enm(_,_,Tp),Tp) :- !.
-typeOfCanon(cons(_,_,Tp),Tp) :- !.
 typeOfCanon(where(_,T,_),Tp) :- !, typeOfCanon(T,Tp).
 typeOfCanon(open(_,_,Tp),Tp) :-!.
 typeOfCanon(match(_,_,_),type("star.core*boolean")) :-!.
@@ -100,6 +99,7 @@ typeOfCanon(cond(_,_,_,_,Tp),Tp) :-!.
 typeOfCanon(letExp(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(letRec(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(apply(_,_,_,Tp),Tp) :-!.
+typeOfCanon(capply(_,_,_,Tp),Tp) :-!.
 typeOfCanon(invoke(_,_,_,Tp),Tp) :-!.
 typeOfCanon(resume(_,_,_,Tp),Tp) :-!.
 typeOfCanon(suspend(_,_,_,Tp),Tp) :-!.
@@ -142,6 +142,7 @@ locOfCanon(letExp(Lc,_,_,_),Lc) :- !.
 locOfCanon(letRec(Lc,_,_,_),Lc) :- !.
 locOfCanon(case(Lc,_,_,_),Lc) :- !.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
+locOfCanon(capply(Lc,_,_,_),Lc) :-!.
 locOfCanon(invoke(Lc,_,_,_),Lc) :-!.
 locOfCanon(resume(Lc,_,_,_),Lc) :-!.
 locOfCanon(suspend(Lc,_,_,_),Lc) :-!.
@@ -175,10 +176,8 @@ locOfCanon(doCase(Lc,_,_,_),Lc) :-!.
 locOfCanon(doRetire(Lc,_,_),Lc) :-!.
 
 constructorName(enm(_,Nm,_),Nm) :-!.
-constructorName(cons(_,Nm,_),Nm).
 
 constructorType(enm(_,_,Tp),Tp) :-!.
-constructorType(cons(_,_,Tp),Tp).
 
 dispCanonProg(P) :-
   displayln(canon:ssCanonProg(P)).  
@@ -211,6 +210,9 @@ ssTerm(stringLit(_,Str),_,sq([ss(""""),ss(Str),ss("""")])).
 ssTerm(apply(_,Op,Args,_),Dp,sq([O,A])) :-
   ssTerm(Op,Dp,O),
   ssTerm(Args,Dp,A).
+ssTerm(capply(_,Op,Args,_),Dp,sq([O,A])) :-
+  ssTerm(Op,Dp,O),
+  ssTerm(Args,Dp,A).
 ssTerm(invoke(_,Op,Args,_),Dp,sq([O,ss("."),A])) :-
   ssTerm(Op,Dp,O),
   ssTerm(Args,Dp,A).
@@ -226,7 +228,6 @@ ssTerm(update(_,Rc,Fld,Vl),Dp,sq([RR,ss("."),id(Fld),ss("="),VV])) :-
   ssTerm(Rc,Dp,RR),
   ssTerm(Vl,Dp,VV).
 ssTerm(enm(_,Nm,_),_,sq([ss("."),id(Nm)])).
-ssTerm(cons(_,Nm,_),_,sq([ss("."),id(Nm)])).
 ssTerm(open(_,E,_),Dp,sq([ss("open "),EE])) :- ssTerm(E,Dp,EE).
 ssTerm(case(_,Bound,Cases,_),Dp,
 	    sq([ss("case "),B,ss(" in {"),Rs,ss("}")])) :-
@@ -253,8 +254,8 @@ ssTerm(lambda(_,Lbl,Rle,_),Dp,sq([lp,Rl,rp])) :-
 ssTerm(tple(_,Els),Dp,sq([lp,iv(ss(", "),SEls),rp])) :-
   ssTerms(Els,Dp,SEls).
 ssTerm(mtd(_,Nm,_),_,sq([ss("°"),id(Nm)])).
-ssTerm(over(_,V,Cons),Dp,sq([iv(ss(","),CCs),ss("|:"),VV])) :-
-  map(Cons,types:ssConstraint(false,Dp),CCs),
+ssTerm(over(_,V,Cx),Dp,sq([iv(ss(","),CCs),ss("|:"),VV])) :-
+  map(Cx,types:ssConstraint(false,Dp),CCs),
   ssTerm(V,Dp,VV).
 ssTerm(overaccess(_,R,Fld,F),Dp,sq([RR,ss("<~{"),ss(Fld),ss(":"),FF,ss("}")])) :-
   ssTerm(R,Dp,RR),

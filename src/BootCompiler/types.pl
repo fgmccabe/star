@@ -452,6 +452,13 @@ stdType("cont",
 	allType(kVar("e"),
 		typeExists(tpExp(tpFun("star.core*cont",1),kVar("e")),
 			   faceType([],[])))).
+stdType("tag",
+	tpFun("tag",2),
+	allType(kVar("a"),
+		allType(kVar("e"),
+			typeExists(tpExp(tpExp(tpFun("tag",2),kVar("a")),
+					 kVar("e")),
+				   faceType([],[]))))).
 
 toLtipe(Tp,LTp) :-
   deRef(Tp,DTp),
