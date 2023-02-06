@@ -320,10 +320,13 @@ retCode run(processPo P) {
       case TOCall: {       /* Tail call */
         int arity = collectI32(PC);
         normalPo obj = C_NORMAL(pop());
-        labelPo lbl = objLabel(termLbl(obj), arity);
 
         push(nthElem(obj, 0));                     // Put the free term back on the stack
-
+        labelPo lbl = objLabel(termLbl(obj), arity);
+        if (lbl == Null) {
+          logMsg(logFile, "label %s/%d not defined", labelName(termLbl(obj)), arity);
+          bail();
+        }
         methodPo mtd = labelCode(lbl);
         if (mtd == Null) {
           logMsg(logFile, "no definition for %T", lbl);
