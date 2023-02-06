@@ -445,7 +445,7 @@ star.compiler.checker{
     valis (Ptn,mergeGoal(Lc,PCond,?Cond),Ev1)
   }.
   typeOfPtn(A,Tp,Env,Path) where (Lc,Id) ?= isName(A) => valof{
-    Ev = declareVar(Id,Id,Lc,Tp,faceOfType(Tp,Env),Env);
+    Ev = declareVar(Id,Id,Lc,deConstrain(Tp),faceOfType(Tp,Env),Env);
     valis (.vr(Lc,Id,Tp),.none,Ev)
   }
   typeOfPtn(A,Tp,Env,Path) where _ ?= isEnumSymb(A) => valof{
