@@ -3,9 +3,9 @@ test.ct1{
 
   import star.
   import star.script.
-  import star.structured.conn.
+  import star.mbox.
 
-  ping:(integer,channel[boolean,()]) => (task[()])=>().
+  ping:(integer,channel[boolean]) => (task[()])=>().
   ping(Cnt,Chnnl) => (this) => valof{
     logMsg("starting $(Cnt) pings");
     Count := Cnt;
@@ -20,7 +20,7 @@ test.ct1{
     this retire .retired_
   }
 
-  pong:(channel[boolean,()]) => (task[()])=>().
+  pong:(channel[boolean]) => (task[()])=>().
   pong(Chnnl) => (this) => valof{
     Count := 0;
 

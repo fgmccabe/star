@@ -10,8 +10,7 @@ star.mbox{
   channel:all d ~~ (ref channelState[d]) <=> channel[d].
 
   channelState[d] ::= .quiescent
-  | .hasData(d)
-  | .waiting(()=>() raises exception).
+  | .hasData(d).
 
   public newChannel:all d ~~ () => channel[d].
   newChannel() => .channel(ref .quiescent).
@@ -28,7 +27,7 @@ star.mbox{
 
   public post:all e,d ~~ display[d] |: (task[e],d,channel[d])=>() raises exception.
   post(T,D,Ch where .channel(St).=Ch) => valof{
-    logMsg("posting $(D), $(St!)");
+--    logMsg("posting $(D), $(St!)");
     case St! in {
       .hasData(_) => {
 	case T suspend .blocked(()=>.hasData(_).=St!) in {
@@ -38,21 +37,17 @@ star.mbox{
       }
       | .quiescent => {
 	St := .hasData(D);
-	case trace(T suspend .yield_) in {
+	case T suspend .yield_ in {
 	  .go_ahead => valis ()
 	  | .shut_down_ => raise .canceled
 	}
-      }
-      | .waiting(RR) => {
-	St := .hasData(D);
-	RR();
       }
     }
   }
 
   public collect:all d,e ~~ display[d] |:(task[e],channel[d]) => d raises exception.
   collect(T,Ch where .channel(St).=Ch) => valof{
-    logMsg("collecting $(St!)");
+--    logMsg("collecting $(St!)");
     case St! in {
       .hasData(D) => {
 	St := .quiescent;
@@ -62,24 +57,10 @@ star.mbox{
 	}
       }
       | .quiescent => {
-	St := .waiting(()=>valof{
-	    logMsg("wake up");
-	    case T suspend .wake(T) in {
-	      .go_ahead => valis ()
-	      | .shut_down_ => raise .canceled
-	    }
-	  });
 	case T suspend .blocked(()=> ~.hasData(_).=St!) in {
 	  .go_ahead => valis collect(T,Ch)
 	  | .shut_down_ => raise .canceled
 	}
-      }
-      | .waiting(RR) => {
-	case T suspend .blocked(()=> ~.hasData(_).=St!) in {
-	  .go_ahead =>
-	    valis collect(T,Ch)
-	  | .shut_down_ => raise .canceled
-	};
       }
     }
   }
@@ -104,13 +85,13 @@ star.mbox{
 
       while .true do{
 	while ~isEmpty(Q!) do{
-	  logMsg("Q ~ $([|Q!|])");	  
+--	  logMsg("Q ~ $([|Q!|])");	  
 	  if [T,..Rs] .= Q! then{
 	    Q := Rs;
-	    logMsg("resuming");
-	    _ins_debug();
+--	    logMsg("resuming");
+--	    _ins_debug();
 	    case T resume .go_ahead in {
-	      .yield_ => { Q:=Q!++[T]; logMsg("yielding"); }
+	      .yield_ => { Q:=Q!++[T]; /*logMsg("yielding");*/ }
 	      | .result(Rslt) => {
 		while [C,..Cs] .= Q! do{
 		  Q := Cs;
@@ -187,6 +168,5 @@ star.mbox{
   implementation all d ~~ display[d] |: display[channelState[d]] => {
     disp(.quiescent) => "quiescent".
     disp(.hasData(D)) => "hasData($(D))".
-    disp(_) default => "waiting"
   }
 }
