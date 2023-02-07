@@ -503,10 +503,6 @@ labelImplExp(Trm,Nm,Term) :-
   isLetRec(Trm,Lc,Els,Ex),
   labelImplExp(Ex,Nm,IExp),
   mkLetRec(Lc,Els,IExp,Term).
-labelImplExp(Trm,Nm,Term) :-
-  isLet(Trm,Lc,Body,Ex),
-  labelImplExp(Ex,Nm,IExp),
-  mkLet(Lc,Body,IExp,Term).
 labelImplExp(Trm,_,Trm) :-
   locOfAst(Trm,Lc),
   reportError("invalid form of implementation %s",[ast(Trm)],Lc).

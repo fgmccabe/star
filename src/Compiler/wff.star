@@ -290,16 +290,6 @@ star.compiler.wff{
   mkLetRecDef(Lc,Els,Bnd) =>
     binary(Lc,"in",unary(Lc,"let",qbrTuple(Lc,Els)),Bnd).
 
-  public isLet:(ast) => option[(option[locn],ast,ast)].
-  isLet(A) where (Lc,Lh,Rh) ?= isBinary(A,"in") &&
-      (_,Body) ?= isUnary(Lh,"let") &&
-	  ~ _ ?= isBrTuple(Body) &&
-	  ~ _ ?= isQBrTuple(Body) => .some((Lc,Body,Rh)).
-  isLet(_) default => .none.
-
-  public mkLet(Lc,Body,Bnd) =>
-    binary(Lc,"in",unary(Lc,"let",Body),Bnd).
-
   public isMapLiteral:(ast)=>option[(option[locn],cons[ast])].
   isMapLiteral(A) where (Lc,[I]) ?= isBrTuple(A) &&
       {? Pr in deComma(I) *> _ ?= isPair(Pr) ?} => .some((Lc,deComma(I))).
