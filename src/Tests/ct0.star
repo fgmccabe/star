@@ -3,7 +3,7 @@ test.ct0{
 
   import star.
   import star.script.
-  import star.structured.conn.
+  import star.mbox.
 
   tt:(integer)=>(task[()])=>().
   tt(K) => (this) => valof{
