@@ -57,7 +57,7 @@
 	      isWhileDo/4,isForDo/4,isForDo/5,
 	      mkWhileDo/4,mkForDo/5,
 	      isActionSeq/4,isActionSeq/3,mkActionSeq/4,
-	      isLetDef/4,isLetRec/4,mkLetDef/4,mkLetRec/4,isLet/4,mkLet/4,
+	      isLetDef/4,isLetRec/4,mkLetDef/4,mkLetRec/4,
 	      whereTerm/4,
 	      packageName/2,pkgName/2,
 	      collectImports/3,
@@ -553,12 +553,6 @@ isLetRec(Trm,Lc,Els,Exp) :-
   isUnary(L,_,"let",Body),
   isQBraceTuple(Body,_,Els),!.
 
-isLet(Trm,Lc,Df,Exp) :-
-  isBinary(Trm,Lc,"in",L,Exp),
-  isUnary(L,_,"let",Df),
-  \+isBraceTuple(Df,_,_),
-  \+isQBraceTuple(Df,_,_).
-
 mkLetDef(Lc,Els,Bnd,Let) :-
   braceTuple(Lc,Els,Body),
   unary(Lc,"let",Body,L),
@@ -566,10 +560,6 @@ mkLetDef(Lc,Els,Bnd,Let) :-
 
 mkLetRec(Lc,Els,Bnd,Let) :-
   qbraceTuple(Lc,Els,Body),
-  unary(Lc,"let",Body,L),
-  binary(Lc,"in",L,Bnd,Let).
-
-mkLet(Lc,Body,Bnd,Let) :-
   unary(Lc,"let",Body,L),
   binary(Lc,"in",L,Bnd,Let).
 

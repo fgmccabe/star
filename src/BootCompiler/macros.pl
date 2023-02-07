@@ -283,11 +283,6 @@ examineTerm(T,Tx) :-
   macroTerm(B,Bx),
   mkLetRec(Lc,Dx,Bx,Tx).
 examineTerm(T,Tx) :-
-  isLet(T,Lc,D,B),!,
-  macroTerm(D,Dx),
-  macroTerm(B,Bx),
-  mkLet(Lc,Dx,Bx,Tx).
-examineTerm(T,Tx) :-
   isConApply(T,Lc,O,As),!,
   map(As,macros:macroTerm,Ax),
   macroTerm(O,Ox),
@@ -671,11 +666,6 @@ examineAction(A,Ax) :-
   map(D,macros:macroStmt,Dx),
   macroAction(B,Bx),
   mkLetRec(Lc,Dx,Bx,Ax).
-examineAction(T,Tx) :-
-  isLet(T,Lc,D,B),!,
-  macroTerm(D,Dx),
-  macroAction(B,Bx),
-  mkLet(Lc,Dx,Bx,Tx).
 examineAction(A,Ax) :-
   isRetire(A,Lc,V),!,
   macroTerm(V,Vx),
