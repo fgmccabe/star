@@ -41,7 +41,7 @@ test.dyn1{
 	let{
 	  _throw(E) => valof{
 	    logMsg("retiring...");
-	    TryTsk retire .err(E)
+	    _retire_fiber(TryTsk,.err(E))
 	  }
 	} in {
 	  logMsg("starting f($(X))");

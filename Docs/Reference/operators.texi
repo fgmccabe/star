@@ -2,14 +2,6 @@
 @caption{Standard Operators}
 @multitable {implementation}{non-associative prefix}{1010}{Apply optional function and match result}
 @headitem Operator @tab Form @tab Priority @tab Description
-@item @code{retire}
-@tab non-associative prefix
-@tab 901
-@tab suspend computation
-@item @code{retire}
-@tab non-associative infix
-@tab 901
-@tab suspend computation
 @item @code{all}
 @tab non-associative prefix
 @tab 1010
@@ -174,14 +166,6 @@
 @tab left associative infix
 @tab 600
 @tab logical shift right
-@item @code{resume}
-@tab non-associative prefix
-@tab 890
-@tab suspend computation
-@item @code{resume}
-@tab non-associative infix
-@tab 890
-@tab suspend computation
 @item @code{*>}
 @tab non-associative infix
 @tab 905
@@ -310,14 +294,6 @@
 @tab non-associative prefix
 @tab 10
 @tab break out of an action (loop or block)
-@item @code{suspend}
-@tab non-associative prefix
-@tab 890
-@tab suspend computation
-@item @code{suspend}
-@tab non-associative infix
-@tab 890
-@tab suspend computation
 @item @code{open}
 @tab non-associative prefix
 @tab 900
@@ -518,26 +494,23 @@
 @caption{Keywords}
 @multitable {implementation}{implementation}{implementation}
 @headitem Keyword @tab Keyword @tab Keyword
-@item @code{retire}
-@tab @code{all}
+@item @code{all}
 @tab @code{let}
-@item @code{do}
-@tab @code{import}
+@tab @code{do}
+@item @code{import}
 @tab @code{catch}
-@item @code{valis}
-@tab @code{for}
+@tab @code{valis}
+@item @code{for}
 @tab @code{raise}
-@item @code{then}
-@tab @code{default}
-@tab @code{resume}
-@item @code{contract}
+@tab @code{then}
+@item @code{default}
+@tab @code{contract}
 @tab @code{raises}
-@tab @code{try}
-@item @code{exists}
+@item @code{try}
+@tab @code{exists}
 @tab @code{if}
-@tab @code{in}
-@item @code{break}
-@tab @code{suspend}
+@item @code{in}
+@tab @code{break}
 @tab @code{open}
 @item @code{invoke}
 @tab @code{public}

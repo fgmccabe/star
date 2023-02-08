@@ -774,26 +774,6 @@ star.compiler.wff{
   public mkTryWith(Lc,B,Hs) =>
     unary(Lc,"try",binary(Lc,"with",B,brTuple(Lc,[reBar(Hs)]))).
 
-  public isSuspend(A) where (Lc,T,L) ?= isBinary(A,"suspend") => .some((Lc,T,L)).
-  isSuspend(A) where (Lc,L) ?= isUnary(A,"suspend") => .some((Lc,.nme(Lc,"this"),L)).
-  isSuspend(_) default => .none.
-
-  public mkSuspend(Lc,T,E) => binary(Lc,"suspend",T,E).
-  
-  public isResume(A) where (Lc,T,L) ?= isBinary(A,"resume") => .some((Lc,T,L)).
-  isResume(A) where (Lc,L) ?= isUnary(A,"resume") => .some((Lc,.nme(Lc,"this"),L)).
-  isResume(_) default => .none.
-
-  public mkResume(Lc,T,E) => binary(Lc,"resume",T,E).
-
-  public isRetire(A) where
-      (Lc,T,E) ?= isBinary(A,"retire") => .some((Lc,T,E)).
-  isRetire(A) where
-      (Lc,E) ?= isUnary(A,"retire") => .some((Lc,.nme(Lc,"this"),E)).
-  isRetire(_) default => .none.
-
-  public mkRetire(Lc,T,E) => binary(Lc,"retire",T,E).
-
   public isIfThenElse:(ast) => option[(option[locn],ast,ast,ast)].
   isIfThenElse(A) where
       (Lc,Lhs,El) ?= isBinary(A,"else") &&

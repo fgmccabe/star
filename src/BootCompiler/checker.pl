@@ -777,12 +777,6 @@ typeOfExp(Term,Tp,Env,Env,capply(Lc,Fun,Args,Tp),Path) :-
   At = tplType(Vrs),
   typeOfExp(F,consType(At,Tp),Env,E0,Fun,Path),
   typeOfArgTerm(tuple(Lc,"()",A),At,E0,_Ev,Args,Path).
-typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
-  isResume(Term,Lc,T,E),!,
-  checkResume(Lc,T,E,Tp,Env,Ev,Exp,Path).
-typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
-  isSuspend(Term,Lc,T,E),!,
-  checkSuspend(Lc,T,E,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Env,Lam,Path) :-
   isEquation(Term,_Lc,_H,_R),
   typeOfLambda(Term,Tp,Env,Lam,Path).
@@ -953,12 +947,6 @@ checkAction(A,Tp,Env,Env,doCase(Lc,Bound,Eqns,Tp),Path) :-
   newTypeVar("B",BVr),
   typeOfExp(Bnd,BVr,Env,_,Bound,Path),
   checkCases(Cases,BVr,Tp,Env,Eqns,Eqx,Eqx,[],checker:checkAction,Path),!.
-checkAction(A,_Tp,Env,Ev,Susp,Path) :-
-  isRetire(A,Lc,E),!,
-  checkRetire(Lc,name(Lc,"this"),E,Env,Ev,Susp,Path).
-checkAction(A,_Tp,Env,Ev,Susp,Path) :-
-  isRetire(A,Lc,T,E),!,
-  checkRetire(Lc,T,E,Env,Ev,Susp,Path).
 checkAction(A,_Tp,Env,Env,doCall(Lc,Exp),Path) :-
   isRoundTerm(A,Lc,F,Args),!,
   newTypeVar("_",RTp),
@@ -1050,28 +1038,6 @@ checkCase(Lc,H,G,R,LhsTp,Tp,Env,
   typeOfPtn(H,LhsTp,Env,E1,Arg,Path),
   checkGuard(G,E1,E2,Guard,Path),
   call(Checker,R,Tp,E2,_,Exp,Path).
-
-checkSuspend(Lc,T,E,Tp,Env,Env,suspend(Lc,Tsk,Evt,Tp),Path) :-
-  findType("fiber",Lc,Env,TskTp),
-  newTypeVar("SComm",SV),
-  applyTypeFun(TskTp,[Tp,SV],Lc,Env,TTp),
-  typeOfExp(T,TTp,Env,_,Tsk,Path),
-  typeOfExp(E,SV,Env,_,Evt,Path).
-
-checkResume(Lc,T,E,Tp,Env,Env,resume(Lc,Tsk,Evt,Tp),Path) :-
-  findType("fiber",Lc,Env,TskTp),
-  newTypeVar("RComm",RV),
-  applyTypeFun(TskTp,[RV,Tp],Lc,Env,TTp),
-  typeOfExp(T,TTp,Env,_,Tsk,Path),
-  typeOfExp(E,RV,Env,_,Evt,Path).
-
-checkRetire(Lc,T,E,Env,Env,doRetire(Lc,Tsk,Evt),Path) :-
-  findType("fiber",Lc,Env,TskTp),
-  newTypeVar("SComm",SV),
-  newTypeVar("RComm",RV),
-  applyTypeFun(TskTp,[RV,SV],Lc,Env,TTp),
-  typeOfExp(T,TTp,Env,_,Tsk,Path),
-  typeOfExp(E,SV,Env,_,Evt,Path).
 
 genTpVars([],[]).
 genTpVars([_|I],[Tp|More]) :-

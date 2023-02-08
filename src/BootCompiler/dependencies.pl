@@ -294,14 +294,6 @@ collectTermRefs(T,All,Rf,Rx) :-
   isInvoke(T,_,O,Args),!,
   collectTermRefs(O,All,Rf,R1),
   collectTermListRefs(Args,All,R1,Rx).
-collectTermRefs(T,A,Rf,Rx) :-
-  isSuspend(T,_,F,E),!,
-  collectTermRefs(F,A,Rf,R0),
-  collectTermRefs(E,A,R0,Rx).
-collectTermRefs(T,A,Rf,Rx) :-
-  isResume(T,_,F,E),!,
-  collectTermRefs(F,A,Rf,R0),
-  collectTermRefs(E,A,R0,Rx).
 collectTermRefs(T,All,R0,Rx) :-
   isFiberTerm(T,_,Stmts),!,
   collectDoRefs(Stmts,All,R0,Rx).
@@ -409,13 +401,6 @@ collectDoRefs(T,All,Rf,Rfx) :-
   isIfThen(T,_,Tt,H),!,
   collectTermRefs(Tt,All,Rf,Rf0),
   collectDoRefs(H,All,Rf0,Rfx).
-collectDoRefs(T,All,Rf,Rfx) :-
-  isRetire(T,_,E),!,
-  collectTermRefs(E,All,Rf,Rfx).
-collectDoRefs(T,All,Rf,Rfx) :-
-  isRetire(T,_,Ts,E),!,
-  collectTermRefs(Ts,All,Rf,R0),
-  collectTermRefs(E,All,R0,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isCaseExp(T,_,Exp,Cases),!,
   collectTermRefs(Exp,All,Rf,R0),

@@ -487,63 +487,6 @@
     "keyword": true
   },
   {
-    "infixOp": "suspend",
-    "priorities": [
-      889,
-      890,
-      889
-    ],
-    "desc": "suspend computation",
-    "keyword": true
-  },
-  {
-    "infixOp": "resume",
-    "priorities": [
-      889,
-      890,
-      889
-    ],
-    "desc": "suspend computation",
-    "keyword": true
-  },
-  {
-    "prefixOp": "suspend",
-    "priorities": [
-      890,
-      899
-    ],
-    "desc": "suspend computation",
-    "keyword": true
-  },
-  {
-    "prefixOp": "resume",
-    "priorities": [
-      890,
-      899
-    ],
-    "desc": "suspend computation",
-    "keyword": true
-  },
-  {
-    "infixOp": "retire",
-    "priorities": [
-      900,
-      901,
-      900
-    ],
-    "desc": "suspend computation",
-    "keyword": true
-  },
-  {
-    "prefixOp": "retire",
-    "priorities": [
-      901,
-      900
-    ],
-    "desc": "suspend computation",
-    "keyword": true
-  },
-  {
     "infixOp": "<",
     "priorities": [
       899,

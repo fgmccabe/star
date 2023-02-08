@@ -445,7 +445,7 @@ star.compiler.checker{
     valis (Ptn,mergeGoal(Lc,PCond,?Cond),Ev1)
   }.
   typeOfPtn(A,Tp,Env,Path) where (Lc,Id) ?= isName(A) => valof{
-    Ev = declareVar(Id,Id,Lc,deConstrain(Tp),faceOfType(Tp,Env),Env);
+    Ev = declareVar(Id,Id,Lc,snd(deConstrain(Tp)),faceOfType(Tp,Env),Env);
     valis (.vr(Lc,Id,Tp),.none,Ev)
   }
   typeOfPtn(A,Tp,Env,Path) where _ ?= isEnumSymb(A) => valof{
@@ -763,21 +763,6 @@ star.compiler.checker{
     V = typeOfExp(E,ErTp,Env,Path);
     valis .rais(Lc,Thrw,V,Tp)
   }
-  typeOfExp(A,Tp,Env,Path) where (Lc,T,E) ?= isSuspend(A) => valof{
-    ETp = newTypeVar("_r");
-    TT = typeOfExp(T,fiberType(Tp,ETp),Env,Path);
-    EE = typeOfExp(E,ETp,Env,Path);
-
-    valis .suspnd(Lc,TT,EE,Tp)
-  }
-  typeOfExp(A,Tp,Env,Path) where (Lc,T,E) ?= isResume(A) => valof{
-    RTp = newTypeVar("_r");
-    TT = typeOfExp(T,fiberType(RTp,Tp),Env,Path);
-    EE = typeOfExp(E,RTp,Env,Path);
-
-    valis .resme(Lc,TT,EE,Tp)
-  }
-  
   typeOfExp(A,Tp,_,_) => valof{
     reportError("cannot type check expression $(A)",locOf(A));
     valis .anon(locOf(A),Tp)
@@ -918,14 +903,6 @@ star.compiler.checker{
 	valis Act
       },[],.none);
     valis (.doCase(Lc,Gv,Rules),Env)
-  }
-  checkAction(A,Tp,Env,Path) where (Lc,T,E) ?= isRetire(A) => valof{
-    STp = newTypeVar("_s");
-    RTp = newTypeVar("_r");
-    TT = typeOfExp(T,fiberType(RTp,STp),Env,Path);
-    EE = typeOfExp(E,STp,Env,Path);
-
-    valis (.doRetire(Lc,TT,EE),Env)
   }
   checkAction(A,Tp,Env,Path) where (Lc,Op,Args) ?= isRoundTerm(A) => valof{
     Call = typeOfRoundTerm(Lc,Op,Args,newTypeVar("_r"),Env,Path);

@@ -16,9 +16,9 @@ test.ts1{
     let{
       yildFn:((),e)=>().
       yildFn(_,E) => valof{
-	case suspend .yild(E) in {
+	case _suspend_fiber(this,.yild(E)) in {
 	  .next => valis ().
-	  .cancel => retire .end
+	  .cancel => _retire_fiber(this,.end)
 	}
       }
     } in {consIter(L,(),yildFn)};
@@ -31,7 +31,7 @@ test.ts1{
     Tl = ref 0;
 
     while .true do {
-      case TT resume .next in {
+      case _resume_fiber(TT,.next) in {
 	.yild(X) where X%2==0 => {
 	  Tl := Tl! + X;
 	}.
@@ -47,7 +47,7 @@ test.ts1{
   iterTask(L) => fiber{
     let{
       yildFn(E,Cx) => valof{
-	case suspend .yild(E) in {
+	case _suspend_fiber(this,.yild(E)) in {
 	  .next => valis Cx
 	}
       }

@@ -172,12 +172,6 @@ ssTrm(error(Lc,M),Dp,sq([lp,ss("error "),MM,rp,ss("@"),LL])) :-!,
   ssLoc(Lc,LL).
 ssTrm(tsk(_,A),Dp,sq([ss("fiber "),AA])) :-
   ssTrm(A,Dp,AA).
-ssTrm(susp(_,T,E),Dp,sq([TT,ss(" suspend "),EE])) :-
-  ssTrm(T,Dp,TT),
-  ssTrm(E,Dp,EE).
-ssTrm(resme(_,T,E),Dp,sq([TT,ss(" resume "),EE])) :-
-  ssTrm(T,Dp,TT),
-  ssTrm(E,Dp,EE).
 ssTrm(vlof(_,A),Dp,sq([ss("valof "),AA])) :-
   ssAct(A,Dp,AA).
 ssTrm(try(_,B,T,E,H),Dp,sq([ss("try "),TT,ss(" in "),BB,ss(" catch "),EE,ss(" in "),HH])) :-
@@ -250,9 +244,6 @@ ssAct(ltt(_,Vr,B,A),Dp,sq([ss("let "),VV,ss("="),BB,ss(" in "),AA])) :-!,
   ssTrm(Vr,Dp1,VV),
   ssTrm(B,Dp1,BB),
   ssAct(A,Dp1,AA).
-ssAct(rtire(_,T,E),Dp,sq([TT,ss(" retire "),EE])) :-
-  ssTrm(T,Dp,TT),
-  ssTrm(E,Dp,EE).
 ssAct(error(_,M),Dp,sq([ss(" error "),MM])) :-
   ssTrm(M,Dp,MM).
 ssAct(try(_,B,T,E,H),Dp,sq([ss("try "),TT,ss(" in "),BB,ss(" catch "),EE,ss(" in "),HH])) :-
@@ -398,9 +389,6 @@ rewriteTerm(QTest,vlof(Lc,A),vlof(Lc,AA)) :-
   rewriteAction(QTest,A,AA).
 rewriteTerm(QTest,tsk(Lc,F),tsk(Lc,FF)) :-
   rewriteTerm(QTest,F,FF).
-rewriteTerm(QTest,susp(Lc,T,E),susp(Lc,TT,EE)) :-
-  rewriteTerm(QTest,T,TT),
-  rewriteTerm(QTest,E,EE).
 rewriteTerm(QTest,resme(Lc,T,E),resme(Lc,TT,EE)) :-
   rewriteTerm(QTest,T,TT),
   rewriteTerm(QTest,E,EE).
@@ -468,9 +456,6 @@ rewriteAction(QTest,ffor(Lc,P,S,B),ffor(Lc,PP,SS,BB)) :-!,
 rewriteAction(QTest,ltt(Lc,V,E,B),ltt(Lc,V,EE,BB)) :-!,
   rewriteTerm(lterms:checkV(V,QTest),E,EE),
   rewriteAction(lterms:checkV(V,QTest),B,BB).
-rewriteAction(QTest,rtire(Lc,T,E),rtire(Lc,TT,EE)) :-!,
-  rewriteTerm(QTest,T,TT),
-  rewriteTerm(QTest,E,EE).
 rewriteAction(QTest,error(Lc,M),error(Lc,MM)) :-!,
   rewriteTerm(QTest,M,MM).
 rewriteAction(QTest,try(Lc,B,T,E,H),try(Lc,BB,TT,EE,HH)) :-!,
@@ -636,8 +621,6 @@ inAction(whle(_,G,L),Nm) :-!,
   (inTerm(G,Nm) ; inAction(L,Nm)).
 inAction(ltt(_,_,E,B),Nm) :-!,
   (inTerm(E,Nm) ; inAction(B,Nm)).
-inAction(rtire(_,L,G),Nm) :-!,
-  (inTerm(L,Nm) ; inTerm(G,Nm)).
 inAction(error(_,M),Nm) :-!,
   inTerm(M,Nm).
 inAction(try(_,B,T,E,H),Nm) :-!,
@@ -782,9 +765,6 @@ validTerm(error(Lc,R),_,D) :-
   validTerm(R,Lc,D).
 validTerm(tsk(Lc,F),_,D) :-
   validTerm(F,Lc,D).
-validTerm(susp(Lc,T,E),_,D) :-
-  validTerm(T,Lc,D),
-  validTerm(E,Lc,D).
 validTerm(resme(Lc,T,E),_,D) :-
   validTerm(T,Lc,D),
   validTerm(E,Lc,D).
@@ -896,9 +876,6 @@ validAction(ltt(Lc,V,E,B),_,D,D) :-!,
   ptnVars(V,D,D1),
   validTerm(V,Lc,D1),
   validAction(B,Lc,D1,_).
-validAction(rtire(Lc,L,G),_,D,D) :-!,
-  validTerm(L,Lc,D),
-  validTerm(G,Lc,D).
 validAction(error(Lc,M),_,D,D) :-
   validTerm(M,Lc,D).
 validAction(try(Lc,B,T,E,H),_,D,D) :-

@@ -44,8 +44,8 @@
 	      isIotaComprehension/4,
 	      isTestComprehension/3,mkTestComprehension/3,
 	      isCaseExp/4,caseExp/4,
-	      isSuspend/4,isResume/4,isRetire/3,isRetire/4,isSpawn/4,
-	      mkSuspend/4,mkResume/4,mkRetire/3,mkRetire/4,mkSpawn/4,
+	      isSpawn/4,
+	      mkSpawn/4,
 	      isFiberTerm/3,mkFiberTerm/3,isFiber/3,mkFiber/3,
 	      isDoTerm/3,mkDoTerm/3,isDo/3,mkDo/3,
 	      isValof/3,mkValof/3,isValis/3,mkValis/3,
@@ -928,14 +928,6 @@ isActionSeq(A,Lc,S) :-
 mkActionSeq(Lc,S1,S2,T) :-
   binary(Lc,";",S1,S2,T).
 
-isSuspend(A,Lc,name(Lc,"this"),E) :-
-  isUnary(A,Lc,"suspend",E),!.
-isSuspend(A,Lc,F,E) :-
-  isBinary(A,Lc,"suspend",F,E).
-
-mkSuspend(Lc,F,E,A) :-
-  binary(Lc,"suspend",F,E,A).
-
 isSpawn(A,Lc,F,H) :-
   isUnary(A,Lc,"spawn",T),
   isBinary(T,_,"in",F,R),
@@ -945,24 +937,6 @@ mkSpawn(Lc,F,H,S) :-
   braceTuple(Lc,H,R),
   binary(Lc,"in",F,R,L),
   unary(Lc,"spawn",L,S).
-
-isResume(A,Lc,T,E) :-
-  isBinary(A,Lc,"resume",T,E),!.
-isResume(A,Lc,name(Lc,"this"),E) :-
-  isUnary(A,Lc,"resume",E).
-
-mkResume(Lc,F,E,A) :-
-  binary(Lc,"resume",F,E,A).
-
-isRetire(A,Lc,E) :-
-  isUnary(A,Lc,"retire",E).
-isRetire(A,Lc,T,E) :-
-  isBinary(A,Lc,"retire",T,E).
-
-mkRetire(Lc,E,A) :-
-  unary(Lc,"retire",E,A).
-mkRetire(Lc,T,E,A) :-
-  binary(Lc,"retire",T,E,A).
 
 mkLoc(Lc,T) :-
   Lc=loc(Pk,Line,Col,Off,Ln),
