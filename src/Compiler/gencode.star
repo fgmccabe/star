@@ -94,8 +94,8 @@ star.compiler.gencode{
     | .cTerm(_,Nm,Args,Tp) => valof{
       valis compExps(Args,allocCont(.tLbl(Nm,size(Args)),pushStack(Tp::ltipe,Stk),Cont),Ctx,Stk)
     }
-    | .cECall(Lc,Op,Args,Tp) where (_,Ins,Frm)?=intrinsic(Op) =>
-      compExps(Args,intrinsicCont(Ins,Frm,pushStack(Tp::ltipe,Stk),Cont),Ctx,Stk)
+    | .cECall(Lc,Op,Args,Tp) where (_,Ins,Frm,Tail)?=intrinsic(Op) =>
+      compExps(Args,intrinsicCont(Ins,Frm,Tail,pushStack(Tp::ltipe,Stk),Cont),Ctx,Stk)
     | .cECall(Lc,Es,Args,Tp) =>
       compExps(Args,escapeCont(Es,pushStack(Tp::ltipe,Stk),Cont),Ctx,Stk)
     | .cCall(Lc,Nm,Args,Tp) =>
@@ -122,10 +122,6 @@ star.compiler.gencode{
       valis compExp(Val,.notLast,stoCont(Vr,VTp::ltipe,Stk,expCont(Bnd,TM,Cont)),Ctx,Stk)
     }
     | .cAbort(Lc,Msg,Tp) => abortCont(Lc,Msg).C(Ctx,Stk,[])
-    | .cSusp(Lc,Fb,Ev,Tp) => 
-      compExp(Fb,.notLast,expCont(Ev,.notLast,suspendCont(pushStack(Tp::ltipe,Stk),Cont)),Ctx,Stk)
-    | .cResume(Lc,Fb,Ev,Tp) => 
-      compExp(Fb,.notLast,expCont(Ev,.notLast,resumeCont(pushStack(Tp::ltipe,Stk),Cont)),Ctx,Stk)
     | .cTry(Lc,B,.cVar(_,.cId(Th,ThTp)),.cVar(_,.cId(Er,ETp)),H,Tp) => valof{
       (CLb,Ctx0) = defineExitLbl("Tr",Ctx);
       Blk = defineLbl("H",Ctx);
@@ -258,7 +254,6 @@ star.compiler.gencode{
       
       valis (reconcileStack(Stk1,Stk2),[.iTry(Blk),.iStL(TOff)]++BCde++[.iLbl(Blk),.iTL(EOff)]++CCde)
     }
-    | .aRetire(Lc,F,E) => compExp(F,.notLast,expCont(E,.notLast,retireCont(.none)),Ctx,Stk)
     | .aAbort(Lc,Msg) => abortCont(Lc,Msg).C(Ctx,Stk,[])
     | _ default => valof{
       reportError("cannot compile action $(A)",locOf(A));
@@ -488,8 +483,11 @@ star.compiler.gencode{
     C(Ctx,_Stk,Cde) => Cont.C(Ctx,Stk,Cde++[.iEscape(Es),frameIns(Stk)]).
   }
 
-  intrinsicCont:(assemOp,boolean,stack,Cont) => Cont.
-  intrinsicCont(I,Frm,Stk,Cont) => cont{
+  intrinsicCont:(assemOp,boolean,tailMode,stack,Cont) => Cont.
+  intrinsicCont(I,Frm,.last,Stk,Cont) => cont{
+    C(Ctx,AStk,Cde) => (.none,Cde++[I]).
+  }
+  intrinsicCont(I,Frm,.notLast,Stk,Cont) => cont{
     C(Ctx,AStk,Cde) => Cont.C(Ctx,Stk,Cde++[I]++(Frm??[frameIns(Stk)]||[])).
   }
 
@@ -859,8 +857,6 @@ star.compiler.gencode{
   }
 
   stack ~> option[cons[ltipe]].
-
-  tailMode ::= .last | .notLast.
 
   emptyCtx:(map[string,srcLoc])=>codeCtx.
   emptyCtx(Glbs) => codeCtx{

@@ -117,10 +117,6 @@ star.compiler.inline{
   simExp(.cVarNmes(Lc,Vrs,Exp),Map,Depth) =>
     .cVarNmes(Lc,Vrs,simplifyExp(Exp,Map,Depth)).
   simExp(.cAbort(Lc,Txt,Tp),_,_) => .cAbort(Lc,Txt,Tp).
-  simExp(.cSusp(Lc,Tsk,Evt,Tp),Map,Depth) =>
-    .cSusp(Lc,simplifyExp(Tsk,Map,Depth),simplifyExp(Evt,Map,Depth),Tp).
-  simExp(.cResume(Lc,Tsk,Evt,Tp),Map,Depth) =>
-    .cResume(Lc,simplifyExp(Tsk,Map,Depth),simplifyExp(Evt,Map,Depth),Tp).
   simExp(.cRaise(Lc,Th,E,Tp),Map,Depth) =>
     .cRaise(Lc,simplifyExp(Th,Map,Depth),simplifyExp(E,Map,Depth),Tp).
   simExp(.cTry(Lc,Exp,Th,E,H,Tp),Map,Depth) =>
@@ -170,9 +166,6 @@ star.compiler.inline{
   simAct(.aWhile(Lc,T,A),Map,Depth) =>
     .aWhile(Lc,simplifyExp(T,Map,Depth),
       simplifyAct(A,Map,Depth)).
-  simAct(.aRetire(Lc,T,E),Map,Depth) =>
-    .aRetire(Lc,simplifyExp(T,Map,Depth),
-      simplifyExp(E,Map,Depth)).
   simAct(.aTry(Lc,B,T,E,H),Map,Depth) =>
     .aTry(Lc,simplifyAct(B,Map,Depth),
       simplifyExp(T,Map,Depth),simplifyExp(E,Map,Depth),simplifyAct(H,Map,Depth)).

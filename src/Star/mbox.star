@@ -17,7 +17,6 @@ star.mbox{
 
   public all e ~~ suspendProtocol[e] ::= .yield_ |
   .blocked(()=>boolean) |
-  .wake(task[e]) |
   .result(e) |
   .fork(taskFun[e]) |
   .identify(task[e]) |
@@ -30,14 +29,14 @@ star.mbox{
 --    logMsg("posting $(D), $(St!)");
     case St! in {
       .hasData(_) => {
-	case T suspend .blocked(()=>.hasData(_).=St!) in {
+	case _suspend_fiber(T,.blocked(()=>.hasData(_).=St!)) in {
 	  .go_ahead => valis post(T,D,Ch)
 	  | .shut_down_ => raise .canceled
 	}
       }
       | .quiescent => {
 	St := .hasData(D);
-	case T suspend .yield_ in {
+	case _suspend_fiber(T,.yield_) in {
 	  .go_ahead => valis ()
 	  | .shut_down_ => raise .canceled
 	}
@@ -51,13 +50,13 @@ star.mbox{
     case St! in {
       .hasData(D) => {
 	St := .quiescent;
-	case T suspend .yield_ in {
+	case _suspend_fiber(T,.yield_) in {
 	  .go_ahead => valis D
 	  | .shut_down_ => raise .canceled
 	}
       }
       | .quiescent => {
-	case T suspend .blocked(()=> ~.hasData(_).=St!) in {
+	case _suspend_fiber(T,.blocked(()=> ~.hasData(_).=St!)) in {
 	  .go_ahead => valis collect(T,Ch)
 	  | .shut_down_ => raise .canceled
 	}
@@ -67,13 +66,13 @@ star.mbox{
   
   spawnTask:all e ~~ ((task[e])=>e) => task[e].
   spawnTask(F) => case _spawn((Tsk) => valof{
-      case Tsk suspend .identify(Tsk) in {
+      case _suspend_fiber(Tsk,.identify(Tsk)) in {
 	.go_ahead => {
-	  Tsk retire .result(F(Tsk))
+	  _retire_fiber(Tsk,.result(F(Tsk)))
 	}
 	| .shut_down_ => {}
       };
-      Tsk retire .retired_
+      _retire_fiber(Tsk,.retired_)
     }) in {
     .identify(Tsk) => Tsk
     }.
@@ -90,12 +89,12 @@ star.mbox{
 	    Q := Rs;
 --	    logMsg("resuming");
 --	    _ins_debug();
-	    case T resume .go_ahead in {
+	    case _resume_fiber(T,.go_ahead) in {
 	      .yield_ => { Q:=Q!++[T]; /*logMsg("yielding");*/ }
 	      | .result(Rslt) => {
 		while [C,..Cs] .= Q! do{
 		  Q := Cs;
-		  _ = C resume .shut_down_;
+		  _ = _resume_fiber(C,.shut_down_);
 		};
 		
 		valis Rslt
@@ -107,10 +106,6 @@ star.mbox{
 	      }
 	      | .blocked(P) => {
 	        BlockQ := [(P,T),..BlockQ!]
-	      }
-	      | .wake(W) => {
-		Q := [W,T]++Q!;
-		BlockQ := removeT(BlockQ!,W);
 	      }
 	    }
 	  };
@@ -130,13 +125,11 @@ star.mbox{
   testBlocked([(P,T),..Q],BQ,Ws) =>
     testBlocked(Q,[(P,T),..BQ],Ws).
 
-  removeT(Q,W) => {(P,Ts) | (P,Ts) in Q && ~W==Ts}.
-
   public canceled : () <=> exception.
 
   public pause:all e ~~ this |= task[e] |: () => () raises exception.
   pause() => valof{
-    case this suspend .yield_ in {
+    case _suspend_fiber(this,.yield_) in {
       .go_ahead => valis ()
       | .shut_down_ => raise .canceled
     }
@@ -144,7 +137,7 @@ star.mbox{
 
   public spawn:all e ~~ this |= task[e] |: ((task[e])=>e) => () raises exception.
   spawn(F) => valof{
-    case this suspend .fork(F) in {
+    case _suspend_fiber(this,.fork(F)) in {
       .go_ahead => valis ()
       | .shut_down_ => raise .canceled
     }
@@ -153,7 +146,6 @@ star.mbox{
   implementation all e ~~ display[suspendProtocol[e]] => {
     disp(.yield_) => "yield".
     disp(.blocked(B)) => "blocked $(B())".
-    disp(.wake(T)) => "wake #(_stringOf(T,2))".
     disp(.result(e)) => "result #(_stringOf(e,2))".
     disp(.fork(F)) => "fork #(_stringOf(F,2))".
     disp(.identify(T)) => "identify #(_stringOf(T,2))".

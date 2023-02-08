@@ -38,7 +38,6 @@ star.compiler.operators{
 
   oper:(string)=>cons[operator].
   oper(Op) => case Op in {
-    "retire" => [.prefixOp(901,900), .infixOp(900,901,900)].
     "all" => [.prefixOp(1010,1009)].
     ".<." => [.infixOp(699,700,699)].
     "^=" => [.infixOp(899,900,899)].
@@ -75,7 +74,6 @@ star.compiler.operators{
     "\\-" => [.infixOp(700,700,699)].
     "+" => [.postfixOp(699,700), .infixOp(720,720,719)].
     ".>>." => [.infixOp(600,600,599)].
-    "resume" => [.prefixOp(890,899), .infixOp(889,890,889)].
     "*>" => [.infixOp(904,905,904)].
     "," => [.infixOp(999,1000,1000)].
     "contract" => [.prefixOp(1560,1559)].
@@ -104,7 +102,6 @@ star.compiler.operators{
     "|=" => [.infixOp(998,999,998)].
     "in" => [.infixOp(899,900,900)].
     "break" => [.prefixOp(10,9)].
-    "suspend" => [.prefixOp(890,899), .infixOp(889,890,889)].
     "open" => [.prefixOp(900,899)].
     "trace" => [.prefixOp(140,139)].
     "~~" => [.infixOp(1239,1240,1240)].
@@ -408,7 +405,6 @@ star.compiler.operators{
 
   public keyword:(string) => boolean.
   keyword(Op) => case Op in {
-    "retire" => .true.
     "all" => .true.
     "^=" => .true.
     "&&" => .true.
@@ -435,7 +431,6 @@ star.compiler.operators{
     "<-" => .true.
     "(" => .true.
     ")" => .true.
-    "resume" => .true.
     "*>" => .true.
     "," => .true.
     "contract" => .true.
@@ -456,7 +451,6 @@ star.compiler.operators{
     "|>" => .true.
     "in" => .true.
     "break" => .true.
-    "suspend" => .true.
     "open" => .true.
     "~~" => .true.
     "invoke" => .true.

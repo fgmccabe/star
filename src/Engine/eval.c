@@ -459,8 +459,8 @@ retCode run(processPo P) {
       }
 
       case Suspend: { // Suspend identified fiber.
-        termPo event = pop();
         stackPo stack = C_STACK(pop());
+        termPo event = pop();
 
         if (stackState(stack) != active) {
           logMsg(logFile, "tried to suspend %s fiber %T", stackStateName(stackState(stack)), stack);
@@ -474,8 +474,8 @@ retCode run(processPo P) {
         }
       }
       case Resume: {
-        termPo event = pop();
         stackPo stack = C_STACK(pop());
+        termPo event = pop();
 
         if (stackState(stack) != suspended) {
           logMsg(logFile, "tried to resume %s stack %T", stackStateName(stackState(stack)), stack);
@@ -489,8 +489,8 @@ retCode run(processPo P) {
         }
       }
       case Retire: { // Similar to a suspend, except that we trash the susending stack
-        termPo event = pop();
         stackPo fiber = C_STACK(pop());
+        termPo event = pop();
 
         if (stackState(fiber) != active) {
           logMsg(logFile, "tried to retire a non-active stack %T", fiber);

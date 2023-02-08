@@ -38,8 +38,6 @@ isCanon(stringLit(_,_)).
 isCanon(apply(_,_,_,_)).
 isCanon(capply(_,_,_,_)).
 isCanon(invoke(_,_,_,_)).
-isCanon(resume(_,_,_,_)).
-isCanon(suspend(_,_,_,_)).
 isCanon(dot(_,_,_,_)).
 isCanon(update(_,_,_,_)).
 isCanon(enm(_,_,_)).
@@ -101,8 +99,6 @@ typeOfCanon(letRec(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(apply(_,_,_,Tp),Tp) :-!.
 typeOfCanon(capply(_,_,_,Tp),Tp) :-!.
 typeOfCanon(invoke(_,_,_,Tp),Tp) :-!.
-typeOfCanon(resume(_,_,_,Tp),Tp) :-!.
-typeOfCanon(suspend(_,_,_,Tp),Tp) :-!.
 typeOfCanon(tple(_,Els),tplType(Tps)) :-!,
   map(Els,canon:typeOfCanon,Tps).
 typeOfCanon(cell(_,Vl),refType(Tp)) :-
@@ -144,8 +140,6 @@ locOfCanon(case(Lc,_,_,_),Lc) :- !.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
 locOfCanon(capply(Lc,_,_,_),Lc) :-!.
 locOfCanon(invoke(Lc,_,_,_),Lc) :-!.
-locOfCanon(resume(Lc,_,_,_),Lc) :-!.
-locOfCanon(suspend(Lc,_,_,_),Lc) :-!.
 locOfCanon(tple(Lc,_),Lc) :-!.
 locOfCanon(lambda(Lc,_,_,_),Lc) :-!.
 locOfCanon(assign(Lc,_,_),Lc) :-!.
@@ -173,7 +167,6 @@ locOfCanon(doLet(Lc,_,_,_),Lc) :-!.
 locOfCanon(doLetRec(Lc,_,_,_),Lc) :-!.
 locOfCanon(doCall(Lc,_),Lc) :-!.
 locOfCanon(doCase(Lc,_,_,_),Lc) :-!.
-locOfCanon(doRetire(Lc,_,_),Lc) :-!.
 
 constructorName(enm(_,Nm,_),Nm) :-!.
 
@@ -216,12 +209,6 @@ ssTerm(capply(_,Op,Args,_),Dp,sq([O,A])) :-
 ssTerm(invoke(_,Op,Args,_),Dp,sq([O,ss("."),A])) :-
   ssTerm(Op,Dp,O),
   ssTerm(Args,Dp,A).
-ssTerm(resume(_,F,E,_),Dp,sq([FF,ss(" resume "),EE])) :-
-  ssTerm(F,Dp,FF),
-  ssTerm(E,Dp,EE).
-ssTerm(suspend(_,F,E,_),Dp,sq([FF,ss(" suspend "),EE])) :-
-  ssTerm(F,Dp,FF),
-  ssTerm(E,Dp,EE).
 ssTerm(dot(_,Rc,Fld,_),Dp,sq([R,ss("."),id(Fld)])) :-
   ssTerm(Rc,Dp,R).
 ssTerm(update(_,Rc,Fld,Vl),Dp,sq([RR,ss("."),id(Fld),ss("="),VV])) :-
@@ -357,10 +344,6 @@ ssAction(doCase(_,Bound,Cases,_),Dp,
 	 sq([ss("case "),B,ss(" in {"),Rs,ss("}")])) :-
   ssTerm(Bound,Dp,B),
   ssRls("",Cases,Dp,canon:ssAction,Rs).
-ssAction(doRetire(_,T,E),Dp,sq([TT,ss(" retire "),EE])) :-
-  ssTerm(T,Dp,TT),
-  ssTerm(E,Dp,EE).
-				    
 ssAction(A,Dp,AA) :- ssTerm(A,Dp,AA).
 
 ssActSeq(doSeq(_,L,R),Dp,sq([LL,ss(";"),nl(Dp),RR])) :-!,

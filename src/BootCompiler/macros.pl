@@ -447,16 +447,6 @@ examineTerm(T,Tx) :-
   map(Args,macros:macroTerm,Argx),
   macroTerm(O,Ox),
   mkInvoke(Lc,Ox,Argx,Tx).
-examineTerm(T,Tx) :-
-  isResume(T,Lc,F,E),!,
-  macroTerm(F,Fx),
-  macroTerm(E,Ex),
-  mkResume(Lc,Fx,Ex,Tx).
-examineTerm(T,Tx) :-
-  isSuspend(T,Lc,F,E),!,
-  macroTerm(F,Fx),
-  macroTerm(E,Ex),
-  mkSuspend(Lc,Fx,Ex,Tx).
 examineTerm(T,T) :-
   locOfAst(T,Lc),
   reportError("cannot figure out expression %s",[ast(T)],Lc).
@@ -664,15 +654,6 @@ examineAction(A,Ax) :-
   map(D,macros:macroStmt,Dx),
   macroAction(B,Bx),
   mkLetRec(Lc,Dx,Bx,Ax).
-examineAction(A,Ax) :-
-  isRetire(A,Lc,V),!,
-  macroTerm(V,Vx),
-  mkRetire(Lc,Vx,Ax).
-examineAction(A,Ax) :-
-  isRetire(A,Lc,T,V),!,
-  macroTerm(T,Tx),
-  macroTerm(V,Vx),
-  mkRetire(Lc,Tx,Vx,Ax).
 examineAction(T,Tx) :-
   isCaseExp(T,Lc,E,C),!,
   macroTerm(E,Ex),

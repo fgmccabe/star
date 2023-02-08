@@ -13,9 +13,9 @@ test.ts0{
   generatr(F,T) => fiber{
     Ix = ref F;
     while Ix! < T do{
-      case suspend .yild(Ix!) in {
+      case _suspend_fiber(this,.yild(Ix!)) in {
 	.next => {}.
-	.cancel => retire .end
+	.cancel => _retire_fiber(this,.end)
       };
       
       Ix := Ix! + 1;
@@ -29,7 +29,7 @@ test.ts0{
     Tl = ref 0;
 
     while .true do {
-      case TT resume .next in {
+      case _resume_fiber(TT,.next) in {
 	.yild(X) => {
 	  Tl := Tl! + X
 	}.

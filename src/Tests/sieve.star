@@ -14,7 +14,7 @@ test.sieve{
       }
     } catch { .canceled => {
 --	logMsg("generator canceled at $(Ix!)");
-	retire .retired_
+	_retire_fiber(this,.retired_)
     }
     }
   }
@@ -41,15 +41,15 @@ test.sieve{
 	  filter(this,Nxt,Chnnl,NChnl)
 	} catch { .canceled => {
 --	    logMsg("canceling $(Nxt) filter #(_stringOf(this,2))");
-	    this retire .retired_ }
+	    _retire_fiber(this,.retired_) }
 	}
       } else{
 	logMsg("collected $(Mx) primes");
-	retire .result(Nxt)
+	_retire_fiber(this,.result(Nxt))
       }
     } catch { .canceled => {}};
 --    logMsg("collected $(Mx) primes");
-    this retire .retired_ 
+    _retire_fiber(this,.retired_)
   }
 
   _main:(cons[string]) => ().
@@ -62,7 +62,7 @@ test.sieve{
     Gn = gen(FstCh);
     Sv = (Tsk)=>valof{
       sieve(Tsk,0,Cnt,FstCh);
-      Tsk retire .retired_
+      _retire_fiber(Tsk,.retired_)
     };
 
     Eras = nursery([Gn,Sv]);

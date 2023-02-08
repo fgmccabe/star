@@ -35,7 +35,7 @@ test.ac8a{
 	  implementation throwable[integer] => {
 	    _throw(E) => valof{
 	      logMsg("retiring...");
-	      TryTsk retire .err(E)
+	      _retire_fiber(TryTsk,.err(E))
 	    }
 	  }
 	} in {

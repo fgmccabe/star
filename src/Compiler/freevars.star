@@ -53,10 +53,6 @@ star.compiler.freevars{
       freeVarsInExp(T,Excl1,Q,freeVarsInExp(E,Excl1,Q,
 	  foldRight((Rl,F)=>freeVarsInRule(Rl,freeVarsInExp,Excl,Q,F),Fv,H))).
     .rais(_,T,E,_) => freeVarsInExp(T,Excl,Q,freeVarsInExp(E,Excl,Q,Fv)).
-    .suspnd(_,F,E,_) =>
-      freeVarsInExp(F,Excl,Q,freeVarsInExp(E,Excl,Q,Fv)).
-    .resme(_,F,E,_) =>
-      freeVarsInExp(F,Excl,Q,freeVarsInExp(E,Excl,Q,Fv)).
     .lambda(_,_,Eqns,_) =>
       foldRight((Rl,F)=>freeVarsInRule(Rl,freeVarsInExp,Excl,Q,F),Fv,Eqns).
     .letExp(_,D,_,E) => let{
@@ -108,9 +104,6 @@ star.compiler.freevars{
       XX = exclDfs(Dfs,Excl,Fv);
       valis freeVarsInAct(A,XX,Q,freeVarsInDefs(Dfs,Excl,Q,Fv))
     }.
-    .doRetire(_,F,E) => 
-      freeVarsInExp(F,Excl,Q,
-	freeVarsInExp(E,Excl,Q,Fv)).
     .doCall(_,C) => freeVarsInExp(C,Excl,Q,Fv).
     _ default => valof{
       reportError("cant find free vars in $(Ac)",locOf(Ac));

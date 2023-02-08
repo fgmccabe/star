@@ -360,12 +360,6 @@ liftExp(capply(Lc,Op,tple(_,A),_),Call,Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftExp(invoke(Lc,K,tple(_,A),_),voke(Lc,KK,AA),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,AA,[],Q,Q1,Map,Opts,Ex,Ex1),
   liftExp(K,KK,Q1,Qx,Map,Opts,Ex1,Exx).
-liftExp(resume(Lc,T,E,_Tp),resme(Lc,TT,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftExp(T,TT,Q,Q0,Map,Opts,Ex,Ex0),
-  liftExp(E,EE,Q0,Qx,Map,Opts,Ex0,Exx).
-liftExp(suspend(Lc,T,E,_),susp(Lc,TT,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftExp(T,TT,Q,Q0,Map,Opts,Ex,Ex0),
-  liftExp(E,EE,Q0,Qx,Map,Opts,Ex0,Exx).
 liftExp(case(Lc,Bnd,Cses,_),Result,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(Bnd,Bound,Q,Q0,Map,Opts,Ex,Ex0),
   liftCases(Cses,Cases,Q0,Qx,Map,Opts,transform:liftExp,Ex0,Exx),

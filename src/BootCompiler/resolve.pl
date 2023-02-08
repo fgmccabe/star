@@ -201,12 +201,6 @@ overloadTerm(overaccess(Lc,T,RcTp,Fld,FTp),Dict,St,Stx,Over) :-
 overloadTerm(mtd(Lc,Nm,Tp),_,St,Stx,mtd(Lc,Nm,Tp)) :-
   genMsg("cannot find implementation for %s",[Nm],Msg),
   markActive(St,Lc,Msg,Stx).
-overloadTerm(suspend(Lc,F,E,Tp),Dict,St,Stx,suspend(Lc,FF,EE,Tp)) :-
-  overloadTerm(F,Dict,St,St0,FF),
-  overloadTerm(E,Dict,St0,Stx,EE).
-overloadTerm(resume(Lc,F,E,Tp),Dict,St,Stx,resume(Lc,FF,EE,Tp)) :-
-  overloadTerm(F,Dict,St,St0,FF),
-  overloadTerm(E,Dict,St0,Stx,EE).
 overloadTerm(lambda(Lc,Lbl,Eqn,Tp),Dict,St,Stx,Lam) :-!,
   overloadLambda(Lc,Lbl,Eqn,Tp,Dict,St,Stx,Lam).
 overloadTerm(valof(Lc,A,Tp),Dict,St,Stx,valof(Lc,AA,Tp)) :-!,

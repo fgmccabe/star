@@ -21,7 +21,7 @@ test.ac8{
 	let{
 	  implementation throwable[integer] => {
 	    _throw(E) => valof{
-	      TryTsk retire .err(E)
+	      _retire_fiber(TryTsk,.err(E))
 	    }
 	  }
 	} in {
@@ -32,7 +32,7 @@ test.ac8{
 	  valis .ok(3*X)
 	}
 	});
-    case TT resume () in {
+    case _resume_fiber(TT,()) in {
       .err(E) => {
 	_logmsg(disp(E));
 	valis -E

@@ -29,8 +29,6 @@ star.compiler.canon{
   .neg(option[locn],canon) |
   .cond(option[locn],canon,canon,canon) |
   .apply(option[locn],canon,cons[canon],tipe) |
-  .suspnd(option[locn],canon,canon,tipe) |
-  .resme(option[locn],canon,canon,tipe) |
   .tple(option[locn],cons[canon]) |
   .lambda(option[locn],string,cons[rule[canon]],tipe) |
   .owpen(option[locn],canon) |
@@ -53,7 +51,6 @@ star.compiler.canon{
     .doWhile(option[locn],canon,canonAction) |
     .doLet(option[locn],cons[canonDef],cons[decl],canonAction) |
     .doLetRec(option[locn],cons[canonDef],cons[decl],canonAction) |
-    .doRetire(option[locn],canon,canon) |
     .doCall(option[locn],canon).
 
   public rule[t] ::= .rule(option[locn],canon,option[canon],t).
@@ -86,8 +83,6 @@ star.compiler.canon{
       .letExp(_,_,_,E) => typeOf(E).
       .letRec(_,_,_,E) => typeOf(E).
       .apply(_,_,_,Tp) => Tp.
-      .suspnd(_,_,_,Tp) => Tp.
-      .resme(_,_,_,Tp) => Tp.
       .tple(_,Els) => .tupleType(Els//typeOf).
       .dot(_,_,_,Tp) => Tp.
       .update(_,R,_,_) => typeOf(R).
@@ -123,8 +118,6 @@ star.compiler.canon{
       .neg(Lc,_) => Lc.
       .cond(Lc,_,_,_) => Lc.
       .apply(Lc,_,_,_) => Lc.
-      .suspnd(Lc,_,_,_) => Lc.
-      .resme(Lc,_,_,_) => Lc.
       .tple(Lc,_) => Lc.
       .lambda(Lc,_,_,_) => Lc.
       .letExp(Lc,_,_,_) => Lc.
@@ -203,10 +196,6 @@ star.compiler.canon{
     .cond(_,T,L,R) where (Lp,OPr,Rp) ?= isInfixOp("??") =>
       "(#(showCanon(T,Lp,Sp)) ?? #(showCanon(L,Rp,Sp)) || #(showCanon(R,Rp,Sp)))".
     .apply(_,L,R,_) => showApply(L,R,Pr,Sp).
-    .suspnd(Lc,T,E,_)  where (Lp,OPr,Rp) ?= isInfixOp("suspend") =>
-      "#(showCanon(T,Lp,Sp)) suspend #(showCanon(E,Rp,Sp))".
-    .resme(Lc,T,E,_)  where (Lp,OPr,Rp) ?= isInfixOp("resume") =>
-      "#(showCanon(T,Lp,Sp)) resume #(showCanon(E,Rp,Sp))".
     .tple(_,Els) => showTuple(Els,Sp).
     .lambda(_,Nm,Rls,Tp) => "(#(showRls(Nm,Rls,showCanon,Sp++"  ")))".
     .letExp(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
@@ -257,8 +246,6 @@ star.compiler.canon{
     .doLetRec(Lc,Defs,Decs,B) where Sp2.=Sp++"  " &&
 	(Lp,OPr,Rp) ?= isInfixOp("in") =>
       "let {.\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp).} in #(showAct(B,Rp,Sp2))". 
-    .doRetire(Lc,T,E)  where (Lp,OPr,Rp) ?= isInfixOp("retire") =>
-      "#(showCanon(T,Lp,Sp)) retire #(showCanon(E,Rp,Sp))".
     .doCall(_,E) => "call #(showCanon(E,Pr,Sp))".
   }
 

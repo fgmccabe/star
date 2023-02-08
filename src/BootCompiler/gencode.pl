@@ -272,14 +272,6 @@ compExp(vlof(Lc,A),_,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
 	     End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 compExp(tsk(Lc,F),_,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compExp(F,Lc,tskCont(Cont),End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
-compExp(susp(Lc,T,E),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  chLine(Opts,OLc,Lc,C,C0),
-  compExp(T,Lc,compExp(E,Lc,suspendCont(Cont,Stk,Opts),End,Brks,Opts),
-	  End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
-compExp(resme(Lc,T,E),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
-  chLine(Opts,OLc,Lc,C,C0),
-  compExp(T,Lc,compExp(E,Lc,resumeCont(Cont,Stk,Opts),End,Brks,Opts),
-	  End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compExp(Cond,Lc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   isCond(Cond),!,
   genLbl(L,Nx,L0),
@@ -344,11 +336,6 @@ compAction(rais(Lc,T,E),OLc,_Cont,_ACont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,none) 
   chLine(Opts,OLc,Lc,C,C0),
   compExp(E,Lc,compExp(T,Lc,throwCont,End,Brks,Opts),
 	  End,Brks,Opts,L,Lx,D,Dx,C0,[iLbl(End)|Cx],Stk,_Stkx).
-compAction(rtire(Lc,T,E),OLc,_Cont,_ACont,_End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :- !,
-  chLine(Opts,OLc,Lc,C,C0),
-  genLbl(L,End,L0),
-  compExp(T,Lc,compExp(E,Lc,retireCont(Opts),End,Brks,Opts),
-	  End,Brks,Opts,L0,Lx,D,Dx,C0,[iLbl(End)|Cx],Stk,_Stkx).
 compAction(perf(Lc,Cll),OLc,_Cont,ACont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :- !,
   chLine(Opts,OLc,Lc,C,C0),!,
   compExp(Cll,Lc,resetCont(Stk,ACont),End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
@@ -511,21 +498,6 @@ oclCont(Arity,Cont,L,Lx,D,Dx,[iOCall(Arity)|C],Cx,Stk,Stkx) :-
 
 tskCont(Cont,L,Lx,D,Dx,[iFiber|C],Cx,Stk,Stkx) :-
   call(Cont,L,Lx,D,Dx,C,Cx,Stk,Stkx).
-
-suspendCont(Cont,Stk,Opts,L,Lx,D,Dx,C,Cx,_Stk,Stkx) :-
-  genDbg(Opts,C,[iSuspend|C0]),
-  bumpStk(Stk,Stk1),
-  frameIns(Stk1,C0,C1),
-  call(Cont,L,Lx,D,Dx,C1,Cx,Stk1,Stkx).
-
-resumeCont(Cont,Stk,Opts,L,Lx,D,Dx,C,Cx,_Stk,Stkx) :-
-  genDbg(Opts,C,[iResume|C0]),
-  bumpStk(Stk,Stk1),
-  frameIns(Stk1,C0,C1),
-  call(Cont,L,Lx,D,Dx,C1,Cx,Stk1,Stkx).
-
-retireCont(Opts,Lx,Lx,Dx,Dx,C,Cx,_Stk,none) :-
-  genDbg(Opts,C,[iRetire|Cx]).
 
 invokeCont(Arity,Cont,L,Lx,D,Dx,[iInvoke(Arity)|C],Cx,Stk,Stkx) :-
   dropStk(Stk,Arity,Stk0),

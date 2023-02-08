@@ -19,21 +19,21 @@ test.ct0{
 	  spawn((Tsk)=>valof{
 	      try{
 		logMsg("We were spawned $(Cnt)");
-		case Tsk suspend .yield_ in {
+		case _suspend_fiber(Tsk,.yield_) in {
 		  .go_ahead => {}
 		  | .shut_down_ => raise .canceled
 		};
 		logMsg("After 1 pause $(Cnt)");
-		case Tsk suspend .yield_ in {
+		case _suspend_fiber(Tsk,.yield_) in {
 		  .go_ahead => {}
 		  | .shut_down_ => raise .canceled
 		};
 		logMsg("After 2 pauses $(Cnt)");
-		Tsk retire .blocked(()=>.false)
+		_retire_fiber(Tsk,.blocked(()=>.false))
 	      } catch {
 		_ => {
 		  logMsg("we were canceled");
-		  Tsk retire .retired_
+		  _retire_fiber(Tsk,.retired_)
 		}
 	      }
 	    });
