@@ -50,8 +50,6 @@ examineStmt(S,Rp) :-
   disThroughGroup(II,abstract:unary(Lc,"private"),Rp).
 examineStmt(S,S) :-
   isImport(S,_Lc,_I),!.
-examineStmt(S,S) :-
-  isOpen(S,_Lc,_I),!.
 examineStmt(S,Rp) :-
   isDefn(S,Lc,P,V),!,
   macroPtn(P,PP),
