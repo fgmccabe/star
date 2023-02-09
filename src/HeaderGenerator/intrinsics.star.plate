@@ -5,7 +5,7 @@ star.compiler.intrinsics{
   import star.compiler.types.
   import star.compiler.assem.
 
-  public tailMode ::= .last | .notLast.
+  public tailMode ::= .noMore | .notLast.
 
   public intrinsic:(string) => option[(tipe,assemOp,boolean,tailMode)].
   intrinsic(Es) => case Es in {

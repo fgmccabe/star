@@ -49,7 +49,7 @@ star.compiler.gencode{
 	logMsg("compile $(.fnDef(Lc,Nm,Tp,Args,Val))");
       Ctx = emptyCtx(argVars(Args,Glbs,0));
       (_,AbortCde) = abortCont(Lc,"function: $(Nm)").C(Ctx,?[],[]);
-      (_Stk,Code) = compExp(Val,.last,retCont,Ctx,.some([]));
+      (_Stk,Code) = compExp(Val,.noMore,retCont,Ctx,.some([]));
       if traceCodegen! then
 	logMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp])");
       Peeped = peepOptimize(([.iLocals(Ctx.hwm!),..Code]++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp]);
@@ -484,7 +484,7 @@ star.compiler.gencode{
   }
 
   intrinsicCont:(assemOp,boolean,tailMode,stack,Cont) => Cont.
-  intrinsicCont(I,Frm,.last,Stk,Cont) => cont{
+  intrinsicCont(I,Frm,.noMore,Stk,Cont) => cont{
     C(Ctx,AStk,Cde) => (.none,Cde++[I]).
   }
   intrinsicCont(I,Frm,.notLast,Stk,Cont) => cont{
@@ -495,7 +495,7 @@ star.compiler.gencode{
   callCont(Lbl,.notLast,Stk,Cont) => cont{
     C(Ctx,_AStk,Cde) => Cont.C(Ctx,Stk,Cde++[.iCall(Lbl),frameIns(Stk)]).
   }
-  callCont(Lbl,.last,Stk,Cont) => cont{
+  callCont(Lbl,.noMore,Stk,Cont) => cont{
     C(Ctx,_AStk,Cde) => (.none,Cde++[.iTCall(Lbl)]).
   }
 
@@ -503,7 +503,7 @@ star.compiler.gencode{
   oclCont(Ar,.notLast,Stk,Cont) => cont{
     C(Ctx,AStk,Cde) => Cont.C(Ctx,Stk,Cde++[.iOCall(Ar),frameIns(Stk)]).
   }
-  oclCont(Ar,.last,Stk,Cont) => cont{
+  oclCont(Ar,.noMore,Stk,Cont) => cont{
     C(Ctx,AStk,Cde) => (.none,Cde++[.iTOCall(Ar)]).
   }
 
