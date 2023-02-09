@@ -3,8 +3,9 @@ sample.main{
 
   import sample.factorial.
 
-  main:(integer) => action[(),()].
-  main(Ix) => do{
-    logMsg("Factorial of $(Ix) is $(fact(Ix))")
+  main:(integer) => ().
+  main(Ix) => valof{
+    logMsg("Factorial of $(Ix) is $(fact(Ix))");
+    valis ()
   }
 }
