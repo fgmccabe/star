@@ -131,8 +131,11 @@ is:
 @cindex accessing packages with catalogs
 @cindex catalog,accessing packages with
 
-The purpose of the catalog is to resolve package names to URIs. The
-process for doing this can be summarized as:
+The purpose of the catalog is to resolve package names to URIs. This
+is primarily used by the @Star{} compiler, but is also a general
+capability.
+
+The resolution process can be summarized as:
 
 @enumerate
 @item
@@ -151,7 +154,9 @@ The located URI is resolved against the base URI of the current
 catalog. This allows catalogs themselves to contain relative URIs
 where possible.  This is the so-called target URI.
 @item
-The target URI is dereferenced -- using a transducer -- and accessed. If the resource does not exist, or is not valid, exit with an error.
+The target URI is dereferenced -- using a transducer -- and
+accessed. If the resource does not exist, or is not valid, exit with
+an error.
 @item
 The catalog uri:
 @example
