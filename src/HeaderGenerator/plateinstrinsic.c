@@ -129,7 +129,7 @@ static char *dumpStarSig(char *sig, ioPo out);
 static void genStarIntrinsic(ioPo out, char *name, char *tipe, char *op, logical Alloc,TailEsc tailMode,char *cmt) {
   outMsg(out, "    \"%s\" => ? (", name);
   dumpStarSig(tipe, out);
-  outMsg(out, ",.i%s, %s, %s).  -- %s\n", capitalize(op), (Alloc?".true":".false"), (tailMode==Last?".last":".notLast"), cmt);
+  outMsg(out, ",.i%s, %s, %s).  -- %s\n", capitalize(op), (Alloc?".true":".false"), (tailMode==Last?".noMore":".notLast"), cmt);
 }
 
 static char *dName(char *sig, ioPo out);

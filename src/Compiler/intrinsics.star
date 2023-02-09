@@ -5,11 +5,11 @@ star.compiler.intrinsics{
   import star.compiler.types.
   import star.compiler.assem.
 
-  public   tailMode ::= .last | .notLast.
+  public tailMode ::= .noMore | .notLast.
 
   public intrinsic:(string) => option[(tipe,assemOp,boolean,tailMode)].
   intrinsic(Es) => case Es in {
-    "_abort" => ? (.allType(.nomnal("a"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("a"),strType])),.tupleType([]))),.iAbort, .false, .last).  -- abort process
+    "_abort" => ? (.allType(.nomnal("a"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("a"),strType])),.tupleType([]))),.iAbort, .false, .noMore).  -- abort process
     "_int_plus" => ? (.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),.iIAdd, .true, .notLast).  -- add two integers
     "_int_minus" => ? (.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),.iISub, .true, .notLast).  -- subtract two integers
     "_int_times" => ? (.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),.iIMul, .true, .notLast).  -- multiply two integers
@@ -39,7 +39,7 @@ star.compiler.intrinsics{
     "_new_fiber" => ? (.allType(.nomnal("s"),.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("r")])),.nomnal("s"))])),.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("r")),.nomnal("s"))))),.iFiber, .true, .notLast).  -- create a new fiber
     "_spawn" => ? (.allType(.nomnal("s"),.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("r")),.nomnal("s"))])),.nomnal("s"))])),.nomnal("s")))),.iSpawn, .true, .notLast).  -- spawn a new task
     "_suspend_fiber" => ? (.allType(.nomnal("s"),.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("s")])),.nomnal("r")))),.iSuspend, .true, .notLast).  -- suspend a fiber
-    "_retire_fiber" => ? (.allType(.nomnal("s"),.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("s")])),.tupleType([])))),.iRetire, .false, .last).  -- retire a fiber
+    "_retire_fiber" => ? (.allType(.nomnal("s"),.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("s")])),.tupleType([])))),.iRetire, .false, .noMore).  -- retire a fiber
     "_resume_fiber" => ? (.allType(.nomnal("s"),.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("r")])),.nomnal("s")))),.iResume, .true, .notLast).  -- resume a fiber
     "_cell" => ? (.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("t")])),.tpExp(.tpFun("ref",1),.nomnal("t")))),.iCell, .true, .notLast).  -- create a reference cell
     "_get" => ? (.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("ref",1),.nomnal("t"))])),.nomnal("t"))),.iGet, .false, .notLast).  -- access contents of reference cell
