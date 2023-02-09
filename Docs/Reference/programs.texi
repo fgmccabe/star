@@ -997,27 +997,20 @@ and other elements of the imported package are made available to the
 importing package.
 
 The @refer{ImportStatement} is used to denote that the exported
-elements of another package should be made available within this package. There
-are two variants of the @refer{ImportStatement}: the open import and
-the named import.
+elements of another package should be made available within this package.
 
 @float BNF,importStatementFig
 @caption{Import Package Statement}
 @display
-@anchored{ImportStatement} ::= @refer{OpenImportStatement}
-  | @refer{NamedImportStatement}
-
-@anchored{OpenImportStatement} ::= [@code{public}] @code{import} @refer{PackageName}
-
-@anchored{NamedImportStatement} ::= @refer{Variable} @code{import} @refer{PackageName}
+@anchored{ImportStatement} ::= [@code{public}] @code{import} @refer{PackageName}
 @end display
 @end float
 
-@node The open @code{import} Statement
-@subsection The open import statement
-@anchor{openImportStatement}
-@cindex import,open
-@cindex open import
+@node The @code{import} Statement
+@subsection The import statement
+@anchor{importStatement}
+@cindex import,statement
+@cindex statement,import
 @findex @code{import}
 
 An @refer{ImportStatement} of the form:
@@ -1044,39 +1037,6 @@ By using @code{public} package imports it is possible to construct the
 equivalent of a library -- consisting of multiple packages internally
 but viewed as a single package externally.
 @end quotation
-
-@node Named Import
-@subsection Named Import
-@anchor{namedImport}
-@cindex import,named
-
-An @refer{ImportStatement} of the form:
-@example
-P import Pkg
-@end example
-
-is a @emph{named import} -- so-called because it establishes a
-@refer{Variable} whose value is the contents of the imported package
-and whose name is used to access the imported package.
-
-Definitions that are imported as a named import are not immediately
-defined to be in scope. Instead, they must be accessed via the package
-variable -- using @refer{FieldAccess} expressions.
-
-For example, if @code{Pkg} exports a type @code{person} and a function
-@code{someone}, then to use the type and function they are referenced from
-the @code{P} variable -- much like accessing @refer{Record} fields:
-@example
-Joe : P.person.
-Joe = P.someone("Joe")
-@end example
-
-Using named imports in this way is a convenient way to establish
-different name spaces. Since all the definitions within the package
-must be accessed via the @refer{FieldAccess} operator, the name used
-to import the package effectively becomes a local name space for that
-package and will not clash with neither other imported packages nor
-locally defined functions and types.
 
 @node Open Statement
 @section Open Statement
