@@ -30,12 +30,18 @@ void initJit() {
 }
 
 jitCompPo jitContext(methodPo mtd) {
-  jitCompPo ctx = (jitCompPo) allocPool(contextPool);
+  jitCompPo jitComp = (jitCompPo) allocPool(contextPool);
 
-  ctx->mtd = mtd;
-  ctx->vTop = 0;
+  jitComp->mtd = mtd;
+  jitComp->vTop = 0;
+  jitComp->assemCtx = createCtx();
 
-  return ctx;
+  return jitComp;
+}
+
+void clearJitContext(jitCompPo jit){
+  discardCtx(jit->assemCtx);
+  freePool(contextPool,jit);
 }
 
 static retCode clearLbl(codeLblPo lbl);
@@ -212,7 +218,7 @@ logical isI32(int64 x) {
   return x >= MIN_I32 && x <= MAX_I32;
 }
 
-void *createCode(assemCtxPo ctx) {
+jitCode createCode(assemCtxPo ctx) {
   cleanupLabels(ctx);
   extern int errno;
   errno = 0;
@@ -254,6 +260,5 @@ void *createCode(assemCtxPo ctx) {
 
   free(ctx->bytes);
   ctx->bytes = Null;
-  discardCtx(ctx);
-  return code;
+  return (jitCode)code;
 }

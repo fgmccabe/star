@@ -65,12 +65,13 @@ void updateU32(assemCtxPo ctx, integer pc, uint32 word);
 uint32 readCtxAtPc(assemCtxPo ctx, integer pc);
 
 jitCompPo jitContext(methodPo mtd);
+void clearJitContext(jitCompPo ctx);
 void clearCodeCtxMaps(assemCtxPo ctx);;
 
 void initAssem();
 assemCtxPo createCtx();
 void discardCtx(assemCtxPo ctx);
-void *createCode(assemCtxPo ctx);
+jitCode createCode(assemCtxPo ctx);
 
 extern integer undefinedPc;
 

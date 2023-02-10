@@ -8,6 +8,7 @@
 #include "codeP.h"
 #include "labelsP.h"
 #include "debugP.h"
+#include <assert.h>
 
 static poolPo pkgPool;
 static hashPo packages;
@@ -298,4 +299,10 @@ static retCode showMtdCount(labelPo lbl, void *cl) {
 void showMtdCounts(ioPo out) {
   outMsg(out, "Unsorted method counts\n");
   iterateLabels(showMtdCount, out);
+}
+
+retCode setJitCode(methodPo mtd,jitCode code){
+  assert(!hasJit(mtd));
+  mtd->jit = code;
+  return Ok;
 }

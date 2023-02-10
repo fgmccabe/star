@@ -30,4 +30,5 @@ termPo invokeJitMethod(methodPo mtd, heapPo H, stackPo stk);
 extern logical traceJit;
 #endif
 extern integer jitThreshold;
+extern logical jitOnLoad;
 #endif //STAR_JIT_H

@@ -677,6 +677,8 @@ retCode test_addFun() {
   postamble(ctx);
 
   bin_i64 fn = (bin_i64) createCode(ctx);
+  discardCtx(ctx);
+
   int64 reslt = fn(3, 5);
   return checkReslt(reslt, 8, "addFn");
 }
@@ -702,6 +704,8 @@ retCode test_factFun() {
   postamble(ctx);
 
   un_i64 fn = (un_i64) createCode(ctx);
+  discardCtx(ctx);
+
   tryRet(checkReslt(fn(3), 6, "fact(3)"));
   tryRet(checkReslt(fn(10), 3628800, "fact(10)"));
   return Ok;

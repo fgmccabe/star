@@ -87,7 +87,7 @@ static void pushStkOp(jitCompPo jitCtx, vOperand operand) {
 }
 
 retCode jit_Nop(insPo code, integer *pc, jitCompPo jitCtx) {
-  return Error;
+  return Ok;
 }
 
 retCode jit_Halt(insPo code, integer *pc, jitCompPo jitCtx) {
