@@ -70,6 +70,8 @@ static inline jitCode codeJit(methodPo mtd){
   return mtd->jit;
 }
 
+retCode setJitCode(methodPo mtd,jitCode code);
+
 static inline logical isPcOfMtd(methodPo mtd, insPo pc){
   return pc>=entryPoint(mtd) && pc< entryPoint(mtd)+ insCount(mtd);
 }

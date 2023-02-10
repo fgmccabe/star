@@ -13,6 +13,7 @@
 #include "stack.h"
 
 integer jitThreshold = 1000;
+logical jitOnLoad = False;
 
 #ifdef TRACEJIT
 logical traceJit = False;
@@ -21,19 +22,19 @@ logical traceJit = False;
 #undef instruction
 #define instruction(Op, A1, A2, Dl, Cmt)    \
     case Op:          \
-      ret = jit_##Op(code,&pc,context); \
+      ret = jit_##Op(ins,&pc,jitCtx); \
       break;
 
 retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
-  insPo code = entryPoint(mtd);
+  insPo ins = entryPoint(mtd);
   int len = insCount(mtd);
   integer pc = 0;
-  jitCompPo context = jitContext(mtd);
+  jitCompPo jitCtx = jitContext(mtd);
 
-  retCode ret = jit_preamble(mtd, context);
+  retCode ret = jit_preamble(mtd, jitCtx);
 
   while (ret == Ok && pc < len) {
-    switch (code[pc++]) {
+    switch (ins[pc++]) {
 #include "instructions.h"
 
       default:
@@ -42,8 +43,11 @@ retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
   }
 
   if (ret == Ok)
-    ret = jit_postamble(mtd, context);
+    ret = jit_postamble(mtd, jitCtx);
 
+  if (ret == Ok)
+    return setJitCode(mtd, createCode(jitCtx->assemCtx));
+  clearJitContext(jitCtx);
   return ret;
 }
 

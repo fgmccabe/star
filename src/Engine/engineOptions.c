@@ -348,6 +348,8 @@ static retCode setPkgMain(char *option, logical enable) {
 
 static retCode setJitThreshold(char *option, logical enable) {
   jitThreshold = parseInt(option, uniStrLen(option));
+  if(jitThreshold==0)
+    jitOnLoad = True;
   return Ok;
 }
 
