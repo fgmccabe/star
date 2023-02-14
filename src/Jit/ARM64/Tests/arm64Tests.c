@@ -3,8 +3,6 @@
 //
 #include "unitTests.h"
 #include "arm64P.h"
-#include "jitP.h"
-#include "jit.h"
 
 static retCode checkCode(uint8 *src, integer srcLen, assemCtxPo ctx);
 
@@ -115,12 +113,12 @@ static retCode test_and() {
                  0x52, 0x01, 0x0c, 0xca,
                  0x52, 0x15, 0xcc, 0xca,
 
-                0xbf, 0xe5, 0x00, 0xf2, // tst
-                0xbf, 0x1d, 0x78, 0xf2,
-                0x5f, 0x00, 0x03, 0xea,
-                0xbf, 0x0c, 0x06, 0xea,
-                0xbf, 0x0c, 0x46, 0xea,
-                0xbf, 0x0c, 0xc6, 0xea
+                 0xbf, 0xe5, 0x00, 0xf2, // tst
+                 0xbf, 0x1d, 0x78, 0xf2,
+                 0x5f, 0x00, 0x03, 0xea,
+                 0xbf, 0x0c, 0x06, 0xea,
+                 0xbf, 0x0c, 0x46, 0xea,
+                 0xbf, 0x0c, 0xc6, 0xea
   };
   return checkCode(tgt, NumberOf(tgt), ctx);
 }
@@ -397,7 +395,7 @@ static retCode test_ld() {
   ldxrb(X13, X9);
   ldxrh(X13, X9);
 
-  ldtr(X0,X1,-8);
+  ldtr(X0, X1, -8);
   ldr(X15, OF(X20, -16));
 
   uint8 tgt[] = {0x86, 0x00, 0xa3, 0x38,// ldaddab
@@ -546,11 +544,11 @@ static retCode test_mt() {
   subs(X1, X12, RS(X18, 3));
   subs(X1, X12, AS(X18, 3));
 
-  umaddl(X1,X2,X3,X4);
-  umnegl(X5,X6,X7);
-  umsubl(X8,X9,X10,X11);
-  umulh(X12,X13,X14);
-  umull(X15,X16,X17);
+  umaddl(X1, X2, X3, X4);
+  umnegl(X5, X6, X7);
+  umsubl(X8, X9, X10, X11);
+  umulh(X12, X13, X14);
+  umull(X15, X16, X17);
 
   uint8 tgt[] = {0xb5, 0x07, 0x1e, 0x9b,  // madd
                  0xf5, 0x03, 0x00, 0x91, // mov
@@ -605,11 +603,11 @@ static retCode test_mt() {
                  0x81, 0x0d, 0x52, 0xeb,
                  0x81, 0x0d, 0x92, 0xeb,
 
-                0x41, 0x10, 0xa3, 0x9b, // umull etc
-                0xc5, 0xfc, 0xa7, 0x9b,
-                0x28, 0xad, 0xaa, 0x9b,
-                0xac, 0x7d, 0xce, 0x9b,
-                0x0f, 0x7e, 0xb1, 0x9b
+                 0x41, 0x10, 0xa3, 0x9b, // umull etc
+                 0xc5, 0xfc, 0xa7, 0x9b,
+                 0x28, 0xad, 0xaa, 0x9b,
+                 0xac, 0x7d, 0xce, 0x9b,
+                 0x0f, 0x7e, 0xb1, 0x9b
   };
   return checkCode(tgt, NumberOf(tgt), ctx);
 }
@@ -673,7 +671,7 @@ retCode test_addFun() {
   assemCtxPo ctx = createCtx();
 
   preamble(ctx, 0);
-  add(X0,X0,RG(X1));
+  add(X0, X0, RG(X1));
   postamble(ctx);
 
   bin_i64 fn = (bin_i64) createCode(ctx);
@@ -687,19 +685,19 @@ retCode test_factFun() {
   assemCtxPo ctx = createCtx();
   int lclCount = 1;
 
-  codeLblPo fct = preamble(ctx, lclCount*8);
+  codeLblPo fct = preamble(ctx, lclCount * 8);
   codeLblPo l0 = defineLabel(ctx, "nonZero", undefinedPc);
   codeLblPo lx = defineLabel(ctx, "exit", undefinedPc);
-  sttr(X0,X29,-8);
+  sttr(X0, X29, -8);
   cmp(X0, IM(1));
   bne(l0);
   mov(X0, IM(1));
   b(lx);
   setLabel(ctx, l0);
-  sub(X0,X0,IM(1));  // f(x-1)
+  sub(X0, X0, IM(1));  // f(x-1)
   bl(fct);
-  ldtr(X1,X29,-8);
-  mul(X0,X0,X1);
+  ldtr(X1, X29, -8);
+  mul(X0, X0, X1);
   setLabel(ctx, lx);
   postamble(ctx);
 

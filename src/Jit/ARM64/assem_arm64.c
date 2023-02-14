@@ -4,20 +4,9 @@
  */
 
 #include <utils.h>
-#include <stdlib.h>
-#include <sys/mman.h>
-#include <sys/types.h>
-#include <errno.h>
-#include <string.h>
-#include <assert.h>
 
 #include "arm64P.h"
 #include "assem_encode.h"
-#include "jitP.h"
-#include "jit.h"
-
-void initAssem() {
-}
 
 codeLblPo preamble(assemCtxPo ctx, int32 lclSize) {
   codeLblPo entry = defineLabel(ctx, "entry", ctx->pc);
@@ -37,11 +26,6 @@ retCode postamble(assemCtxPo ctx) {
 }
 
 void clearCodeCtxMaps(assemCtxPo ctx) {
-  ctx->usedRegs = 0;
-  ctx->freeRegs =
-    X8_mask | X9_mask | X10_mask | X11_mask | X12_mask | X13_mask | X14_mask | X15_mask | X16_mask | X17_mask |
-    X18_mask | X19_mask | X20_mask | X21_mask | X22_mask | X23_mask | X24_mask | X25_mask | X26_mask | X27_mask |
-    X28_mask;
 }
 
 void adc_(uint1 wide, armReg rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
@@ -55,7 +39,7 @@ void adcs_(uint1 wide, armReg rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
 void add_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
   switch (S2.mode) {
     case imm: {  // Immediate value
-      encodeAddSubImm(w, 0, 0, 0x22, S2.immediate, Rn, Rd, ctx);
+      encodeAddSubImm(w, 0, 0, 0x22, (int32) S2.immediate, Rn, Rd, ctx);
       return;
     }
     case shft: // Shift mode
@@ -75,7 +59,7 @@ void add_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
 void adds_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
   switch (S2.mode) {
     case imm: {  // Immediate value
-      encodeAddSubImm(w, 0, 1, 0x22, S2.immediate, Rn, Rd, ctx);
+      encodeAddSubImm(w, 0, 1, 0x22, (int32) S2.immediate, Rn, Rd, ctx);
       return;
     }
     case shft: // Shifting mode
@@ -541,7 +525,7 @@ void ldr_(uint1 w, armReg Rt, FlexOp Sn, assemCtxPo ctx) {
       if (Sn.immediate >= 0)
         encodeLdSt((2 | w), 0xe5, Sn.immediate >> (2 + w), Sn.reg, Rt, ctx);
       else
-        encodeLdStUnPriv((2 | w), 0, 1, Sn.immediate, Sn.reg, Rt, ctx);
+        encodeLdStUnPriv((2 | w), 0, 1, (int16) Sn.immediate, Sn.reg, Rt, ctx);
       return;
     }
     case pcRel:
@@ -983,15 +967,15 @@ void stlrh_(armReg Rt, armReg Rn, assemCtxPo ctx) {
 }
 
 void stlur_(uint1 w, armReg Rd, armReg Rn, uint16 imm, assemCtxPo ctx) {
-  encodeLdRegLit((2 | w), 0, imm, Rn, Rd, ctx);
+  encodeLdRegLit((2 | w), 0, (int16) imm, Rn, Rd, ctx);
 }
 
 void stlurb_(armReg Rd, armReg Rn, uint16 imm, assemCtxPo ctx) {
-  encodeLdRegLit(0, 0, imm, Rn, Rd, ctx);
+  encodeLdRegLit(0, 0, (int16) imm, Rn, Rd, ctx);
 }
 
 void stlurh_(armReg Rd, armReg Rn, uint16 imm, assemCtxPo ctx) {
-  encodeLdRegLit(1, 0, imm, Rn, Rd, ctx);
+  encodeLdRegLit(1, 0, (int16) imm, Rn, Rd, ctx);
 }
 
 void stlxr_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
@@ -1017,13 +1001,13 @@ void stnp_(uint1 w, armReg Rt, armReg Rt2, armReg Rn, uint8 imm, assemCtxPo ctx)
 void stp_(uint1 w, armReg Rt, armReg Rt2, FlexOp Sn, assemCtxPo ctx) {
   switch (Sn.mode) {
     case postX:
-      encodeLdStPrPostIx(one, 0, 0, 0, Sn.immediate >> (w + 2), Rt2, Sn.reg, Rt, ctx);
+      encodeLdStPrPostIx(one, 0, 0, 0, (int8) (Sn.immediate >> (w + 2)), Rt2, Sn.reg, Rt, ctx);
       return;
     case preX:
-      encodeLdStPrPreIx(w << 1, 0, 0, Sn.immediate >> (w + 2), Rt2, Sn.reg, Rt, ctx);
+      encodeLdStPrPreIx(w << 1, 0, 0, (int8) (Sn.immediate >> (w + 2)), Rt2, Sn.reg, Rt, ctx);
       return;
     case sOff:
-      encodeLdStPrOffset(w << 1, 2, 0, Sn.immediate >> (w + 2), Rt2, Sn.reg, Rt, ctx);
+      encodeLdStPrOffset(w << 1, 2, 0, (int8) (Sn.immediate >> (w + 2)), Rt2, Sn.reg, Rt, ctx);
       return;
     default:
       check(False, "unsupported address mode (ldp)");
@@ -1036,10 +1020,10 @@ void str_(uint1 w, armReg Rt, FlexOp Sn, assemCtxPo ctx) {
       encodeSz2OpcImm3Reg((2 | w), 0x38, 0, 1, Sn.rgm, Sn.ext, Sn.immediate != 0, 2, Sn.reg, Rt, ctx);
       return;
     case postX:
-      encodeLdStRegX((2 | w), 0, 0, Sn.immediate, 1, Sn.reg, Rt, ctx);
+      encodeLdStRegX((2 | w), 0, 0, (int16) Sn.immediate, 1, Sn.reg, Rt, ctx);
       return;
     case preX:
-      encodeLdStRegX((2 | w), 0, 0, Sn.immediate, 3, Sn.reg, Rt, ctx);
+      encodeLdStRegX((2 | w), 0, 0, (int16) Sn.immediate, 3, Sn.reg, Rt, ctx);
       return;
     case sOff:
       encodeLdSt((2 | w), 0xe4, Sn.immediate >> (w + 2), Sn.reg, Rt, ctx);
@@ -1055,10 +1039,10 @@ void strb_(armReg Rt, FlexOp Sn, assemCtxPo ctx) {
       encodeSz2OpcImm3Reg(0, 0x38, 0, 1, Sn.rgm, Sn.ext, Sn.immediate != 0, 2, Sn.reg, Rt, ctx);
       return;
     case postX:
-      encodeLdStRegX(0, 0, 0, Sn.immediate, 1, Sn.reg, Rt, ctx);
+      encodeLdStRegX(0, 0, 0, (int16) Sn.immediate, 1, Sn.reg, Rt, ctx);
       return;
     case preX:
-      encodeLdStRegX(0, 0, 0, Sn.immediate, 3, Sn.reg, Rt, ctx);
+      encodeLdStRegX(0, 0, 0, (int16) Sn.immediate, 3, Sn.reg, Rt, ctx);
       return;
     case sOff:
       encodeLdSt(0, 0xe4, Sn.immediate, Sn.reg, Rt, ctx);
@@ -1074,10 +1058,10 @@ void strh_(armReg Rt, FlexOp Sn, assemCtxPo ctx) {
       encodeSz2OpcImm3Reg(1, 0x38, 0, 1, Sn.rgm, Sn.ext, Sn.immediate != 0, 2, Sn.reg, Rt, ctx);
       return;
     case postX:
-      encodeLdStRegX(1, 0, 0, Sn.immediate, 1, Sn.reg, Rt, ctx);
+      encodeLdStRegX(1, 0, 0, (int16) Sn.immediate, 1, Sn.reg, Rt, ctx);
       return;
     case preX:
-      encodeLdStRegX(1, 0, 0, Sn.immediate, 3, Sn.reg, Rt, ctx);
+      encodeLdStRegX(1, 0, 0, (int16) Sn.immediate, 3, Sn.reg, Rt, ctx);
       return;
     case sOff:
       encodeLdSt(1, 0xe4, Sn.immediate >> 1, Sn.reg, Rt, ctx);
@@ -1130,7 +1114,7 @@ void sturh_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
 void sub_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
   switch (S2.mode) {
     case imm: {  // Immediate value
-      encodeAddSubImm(w, 1, 0, 0x22, S2.immediate, Rn, Rd, ctx);
+      encodeAddSubImm(w, 1, 0, 0x22, (int32) S2.immediate, Rn, Rd, ctx);
       return;
     }
     case shft: // Shift mode
@@ -1150,7 +1134,7 @@ void sub_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
 void subs_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
   switch (S2.mode) {
     case imm: {  // Immediate value
-      encodeAddSubImm(w, 1, 1, 0x22, S2.immediate, Rn, Rd, ctx);
+      encodeAddSubImm(w, 1, 1, 0x22, (int32) S2.immediate, Rn, Rd, ctx);
       return;
     }
     case shft: // Shift mode

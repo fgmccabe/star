@@ -22,7 +22,7 @@ set(HEADER_FILES
         ${JIT_ARCH}/Headers/lower.h
         )
 
-set(SOURCE_FILES jit.c jitInfra.c)
+set(SOURCE_FILES jit.c jitInfra.c asmInfra.c)
 
 add_library(jit STATIC ${SOURCE_FILES})
 target_link_libraries(jit ${JIT_ARCH})

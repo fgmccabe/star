@@ -15,6 +15,8 @@
 
 typedef uint64 registerMap;
 
+registerMap defltAvailRegSet();
+
 typedef enum {
   int64Tp,
   fltTp,
@@ -25,7 +27,13 @@ typedef enum {
   argument,
   local,
   literal,
-  mcReg
+  constant,
+  mcReg,
+  stkOff,
+  codeOff,
+  escapeNo,
+  global,
+  noWhere
 } srcLoc;
 
 typedef struct {
@@ -40,17 +48,18 @@ typedef struct assem_ctx {
   uint32 size;
   uint32 pc;
   arrayPo lbls;
-  registerMap usedRegs;
-  registerMap freeRegs;
-  jitCompPo jitCxt;
 } AssemCtxRecord;
 
 typedef struct jit_compiler_ {
   methodPo mtd;
   integer vTop;
   vOperand vStack[MAX_VSTACK];
+  registerMap usedRegs;
+  registerMap freeRegs;
   assemCtxPo assemCtx;
 } JitCompilerContext;
+
+assemCtxPo assemCtx(jitCompPo jitCtx);
 
 typedef struct assem_lbl {
   arrayPo refs;

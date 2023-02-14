@@ -391,6 +391,7 @@ void prologPc(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cm
   switch (A1) {
     case nOp:                             // No operand
     case tOs:
+    case tO1:
     case lit:
     case sym:
     case tPe:
