@@ -24,9 +24,8 @@ star.mbox{
 
   public resumeProtocol ::= .go_ahead | .shut_down_.
 
-  public post:all e,d ~~ display[d] |: (task[e],d,channel[d])=>() raises exception.
+  public post:all e,d ~~ (task[e],d,channel[d])=>() raises exception.
   post(T,D,Ch where .channel(St).=Ch) => valof{
---    logMsg("posting $(D), $(St!)");
     case St! in {
       .hasData(_) => {
 	case _suspend_fiber(T,.blocked(()=>.hasData(_).=St!)) in {
@@ -44,9 +43,8 @@ star.mbox{
     }
   }
 
-  public collect:all d,e ~~ display[d] |:(task[e],channel[d]) => d raises exception.
+  public collect:all d,e ~~ (task[e],channel[d]) => d raises exception.
   collect(T,Ch where .channel(St).=Ch) => valof{
---    logMsg("collecting $(St!)");
     case St! in {
       .hasData(D) => {
 	St := .quiescent;

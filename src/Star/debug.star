@@ -1,13 +1,12 @@
 star.debug{
   import star.
-
+  import star.location.
 
   public contract all s ~~ debug[s] ::= {
     _newLoc:(option[locn],s) => ().
     _enterFun:(string,cons[option[string]],s) => ().
     _exitFun:(string,option[string],s) => ().
   }
-
 
   public implementation debug[()] => {
     _newLoc(?Lc,_) => _debugger_new_loc(Lc).
