@@ -372,7 +372,7 @@ star.compiler.checker{
     (cons[canonDef],cons[decl]).
   checkAccessor(Lc,Nm,Q,C,T,B,Env,Outer,Path) => valof{
     if traceCanon! then
-      logMsg("check accessor $(Nm) B=$(B)");
+      logMsg("check accessor $(Nm) Q=$(Q), C=$(C), B=$(B)");
     QV = parseBoundTpVars(Q);
     Cx = parseConstraints(C,QV,Env);
     if (_,Fn,[TA]) ?= isSquareTerm(T) && (_,[L],[R]) ?= isDepends(TA) then{
@@ -386,6 +386,8 @@ star.compiler.checker{
       (CCx,VarTp) = deConstrain(ETp);
       Es = declareConstraints(Lc,CCx,declareTypeVars(Qs,Env));
 
+      if traceCanon! then
+	logMsg("check accessor against $(VarTp)");
       AccFn = typeOfExp(B,VarTp,Es,Path);
 
       AccVrNm = qualifiedName(Path,.valMark,qualifiedName(tpName(RcTp),.typeMark,"^"++Fld));
@@ -406,7 +408,7 @@ star.compiler.checker{
   checkUpdater:(option[locn],string,cons[ast],cons[ast],ast,ast,dict,dict,string) => (cons[canonDef],cons[decl]).
   checkUpdater(Lc,Nm,Q,C,T,B,Env,Outer,Path) => valof{
     if traceCanon! then
-      logMsg("Check updater: $(Nm) Head:$(T), Body:$(B)");
+      logMsg("Check updater: $(Nm) $(C) ~~ Head:$(T), Body:$(B)");
     QV = parseBoundTpVars(Q);
     Cx = parseConstraints(C,QV,Env);
     if (_,Fn,[TA]) ?= isSquareTerm(T) && (_,[L],[R]) ?= isDepends(TA) && (_,Fld) ?= isName(Fn) then{
@@ -415,10 +417,20 @@ star.compiler.checker{
 
       AT = funType([RcTp,FldTp],RcTp);
       AccTp = rebind(QV,reConstrainType(Cx,AT),Env);
+
+      if traceCanon! then
+	logMsg("updater type $(AccTp)");
       
       (Qs,ETp) = evidence(AccTp,Env);
+
+      if traceCanon! then
+	logMsg("updater type $(ETp)");
+
       (CCx,VarTp) = deConstrain(ETp);
       Es = declareConstraints(Lc,CCx,declareTypeVars(Qs,Env));
+
+      if traceCanon! then
+	logMsg("check updater against $(VarTp)");
 
       AccFn = typeOfExp(B,VarTp,Es,Path);
 
@@ -477,12 +489,30 @@ star.compiler.checker{
     valis (.tple(Lc,Ptns),Cond,Ev)
   }
   typeOfPtn(A,Tp,Env,Path) where (Lc,Op,Els) ?= isEnumCon(A) => valof{
+    if traceCanon! then
+      logMsg("check enum con $(A), expected type $(Tp)");
+
     At = newTypeVar("A");
     Fun = typeOfExp(Op,consType(At,Tp),Env,Path);
-    Tps = genTpVars(Els);
-    checkType(A,.tupleType(Tps),At,Env);
-    (Args,Cond,Ev) = typeOfArgsPtn(Els,Tps,Env,Path);
-    valis (.apply(Lc,Fun,Args,Tp),Cond,Ev)
+
+    if traceCanon! then
+      logMsg("con $(Fun)\:$(typeOf(Fun))");
+
+    (Q,ETp) = evidence(deRef(At),Env);
+    (Cx,ArgTp) = deConstrain(ETp);
+    Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
+
+    if traceCanon! then
+      logMsg("ArgTp = $(ArgTp)");
+
+    if .tupleType(Tps) .= deRef(ArgTp) then{
+      (Args,Cond,Ev) = typeOfArgsPtn(Els,Tps,Base,Path);
+
+      valis (.apply(Lc,Fun,Args,Tp),Cond,Ev)
+    } else{
+      reportError("expecting argument type $(At) to be a tuple type",Lc);
+      valis (.anon(Lc,Tp),.none,Env)
+    }
   }
   typeOfPtn(A,Tp,Env,Path) where (Lc,Op,Ss) ?= isLabeledRecord(A) && (OLc,Nm)?=isName(Op) => valof{
     if traceCanon! then
@@ -537,14 +567,18 @@ star.compiler.checker{
     (cons[(string,canon)],option[canon],dict).
   typeOfElementPtns([],_,Env,_,Cnd,Prs) => (Prs,Cnd,Env).
   typeOfElementPtns([D,..Ds],Tp,Env,Pth,Cnd,SoFr) => valof{
-    if (Lc,Lhs,R) ?= isDefn(D) && (_,Nm) ?= isName(Lhs) &&
-	FTp ?= fieldInFace(Tp,Nm) then{
-	  (Ptn,C1,Ev) = typeOfPtn(R,FTp,Env,Pth);
-	  valis typeOfElementPtns(Ds,Tp,Ev,Pth,mergeGoal(Lc,Cnd,C1),[(Nm,Ptn),..SoFr])
-	} else{
-	  reportError("$(D) is not a legal element pattern",locOf(D));
-	  valis ([],.none,Env)
-	}
+    if (Lc,Lhs,R) ?= isDefn(D) && (_,Nm) ?= isName(Lhs) then{
+      if FTp ?= fieldInFace(Tp,Nm) then{
+	(Ptn,C1,Ev) = typeOfPtn(R,FTp,Env,Pth);
+	valis typeOfElementPtns(Ds,Tp,Ev,Pth,mergeGoal(Lc,Cnd,C1),[(Nm,Ptn),..SoFr])
+      } else{
+	reportError("Field $(Nm) is not a legal element of $(Tp)",locOf(D));
+	valis ([],.none,Env)
+      }
+    } else {
+      reportError("$(D) not a legal form of element pattern",locOf(D));
+      valis ([],.none,Env)
+    }
   }
 
   fillinElementPtns:(option[locn],cons[(string,canon)],tipe) => cons[canon].
@@ -646,11 +680,14 @@ star.compiler.checker{
     valis Gl
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,G,Cases) ?= isCase(A) => valof{
-    ETp = newTypeVar("_e");
-    Gv = typeOfExp(G,ETp,Env,Path);
+    if traceCanon! then
+      logMsg("case expresssion $(A)");
     
-    Rules = checkRules(Cases,ETp,Tp,Env,Path,typeOfExp,[],.none);
-    checkPtnCoverage(Rules//((.rule(_,.tple(_,[Ptn]),_,_))=>Ptn),Env,ETp);
+    GTp = newTypeVar("_e");
+    Gv = typeOfExp(G,GTp,Env,Path);
+
+    Rules = checkRules(Cases,GTp,Tp,Env,Path,typeOfExp,[],.none);
+    checkPtnCoverage(Rules//((.rule(_,.tple(_,[Ptn]),_,_))=>Ptn),Env,GTp);
     valis .csexp(Lc,Gv,Rules,Tp)
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,C) ?= isCellRef(A) => valof{
@@ -672,6 +709,9 @@ star.compiler.checker{
     valis .tple(Lc,Ptns)
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,_,Ar,C,R) ?= isLambda(A) => valof{
+    if traceCanon! then
+      logMsg("check lambda $(A) against $(Tp)");
+
     At = newTypeVar("_A");
     Rt = newTypeVar("_R");
 
@@ -737,12 +777,29 @@ star.compiler.checker{
     valis foldRight((Gp,I)=>.letExp(Lc,Gp,Decls,I),El,sortDefs(Defs))
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,Op,Args) ?= isEnumCon(A) => valof{
-    Vrs = genTpVars(Args);
-    At = .tupleType(Vrs);
-    FFTp = newTypeFun("_F",2);
+    if traceCanon! then
+      logMsg("enum con exp $(A), expected type $(Tp)");
+
+    At = newTypeVar("A");
     Fun = typeOfExp(Op,consType(At,Tp),Env,Path);
-    Args = typeOfExps(Args,Vrs,[],Env,Path);
-    valis .apply(Lc,Fun,Args,Tp)
+
+    if traceCanon! then
+      logMsg("con $(Fun)\:$(typeOf(Fun))");
+
+    (Q,ETp) = evidence(deRef(At),Env);
+    (Cx,ArgTp) = deConstrain(ETp);
+    Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
+
+    if traceCanon! then
+      logMsg("ArgTp = $(ArgTp)");
+
+    if .tupleType(Tps) .= deRef(ArgTp) then{
+      Args = typeOfExps(Args,Tps,[],Base,Path);
+      valis .apply(Lc,Fun,Args,Tp)
+    } else{
+      reportError("expecting argument type $(At) to be a tuple type",Lc);
+      valis .anon(Lc,Tp)
+    }
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,Op,Args) ?= isRoundTerm(A) =>
     typeOfRoundTerm(Lc,Op,Args,Tp,Env,Path).
@@ -897,6 +954,7 @@ star.compiler.checker{
   checkAction(A,Tp,Env,Path) where (Lc,G,Cases) ?= isCase(A) => valof{
     ETp = newTypeVar("_e");
     Gv = typeOfExp(G,ETp,Env,Path);
+
     Rules = checkRules(Cases,ETp,Tp,Env,Path,
       (Ac,_,E,Path) => valof{
 	(Act,_) = checkAction(Ac,Tp,E,Path);
@@ -949,7 +1007,15 @@ star.compiler.checker{
   }
 
   checkRule(St,ATp,RTp,Env,Chk,Path) where (Lc,IsDeflt,Lhs,Cnd,R) ?= isLambda(St) => valof{
-    (Arg,ACnd,E0) = typeOfPtn(Lhs,ATp,Env,Path);
+    (Q,EATp) = evidence(ATp,Env);
+    (Cx,PtnTp) = deConstrain(EATp);
+    Es = declareConstraints(Lc,Cx,declareTypeVars(Q,Env));
+
+    if traceCanon! then
+      logMsg("raw ptn tp $(ATp), PtnTp = $(PtnTp), check lhs $(Lhs)\:$(PtnTp)");
+
+    (Arg,ACnd,E0) = typeOfPtn(Lhs,PtnTp,Es,Path);
+
 	
     if Wh?=Cnd then{
       (Cond,E1) = checkCond(Wh,E0,Path);

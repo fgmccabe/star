@@ -107,11 +107,12 @@ star.compiler.dict.mgt{
       if .tpDefn(Lc,TNm,TTp,TpRl,Cons)?=Level.types[TpNm] then{
 	valis [Level.types=Level.types[TpNm->.tpDefn(Lc,TNm,TTp,TpRl,Cons[Nm->Tp])],..Rest]
       } else{
+	logMsg("Type #(TpNm)=$(Tp) not in $(Level)");
 	valis [Level,..declareCns(CLc,Nm,Tp,TpNm,Rest)]
       }
     }
     else{
-      reportError("cannot declare constructor $(Tp)",CLc);
+      reportError("cannot declare constructor #(Nm)\:$(Tp)",CLc);
       valis Dict
     }
   }

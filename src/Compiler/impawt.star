@@ -22,7 +22,7 @@ star.compiler.impawt{
       valis importAll(Imports,Repo,Imported,Decls)
     else if P ?= importPkg(Pkg,Lc,Repo) then{
       valis importAll(Imports++publicImports(P.imports),Repo,[.pkgImp(Lc,Viz,Pkg),..Imported],
-	Decls++P.exports)
+	P.exports++Decls)
     }
     else {
       reportError("cannot import $(Pkg)",Lc);

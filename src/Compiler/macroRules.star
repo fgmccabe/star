@@ -749,7 +749,6 @@ star.compiler.macro.rules{
     ?(Lc,Nm,Q,Cx,Els).
   isCon(_,_) default => .none.
 
-
   buildAccessors:(ast,cons[ast],cons[ast],cons[ast],ast,string,cons[ast],visibility)=>cons[ast].
   buildAccessors(Rhs,Q,XQ,Cx,H,TpNm,Fields,Vz) =>
     (Fields//((F)=>makeAccessor(F,TpNm,Rhs,Q,XQ,Cx,H,Vz)))*.
@@ -765,7 +764,6 @@ star.compiler.macro.rules{
       AcEqs = accessorEqns(Cns,Fld,FldTp,[]);
       AccessHead = squareTerm(Lc,Fld,[mkDepends(Lc,[H],[FldTp])]);
       Gv = .nme(Lc,"G");
-      
       valis [mkAccessorStmt(Lc,Q,XQ,Cx,AccessHead,
 	  equation(Lc,rndTuple(Lc,[Gv]),mkCaseExp(Lc,Gv,AcEqs)))]
     }.
@@ -786,6 +784,8 @@ star.compiler.macro.rules{
   accessorEqns(C,Fld,Tp,Eqns) where (Lc,I) ?= isPrivate(C) =>
     accessorEqns(I,Fld,Tp,Eqns).
   accessorEqns(C,Fld,Tp,Eqns) where (Lc,I) ?= isPublic(C) =>
+    accessorEqns(I,Fld,Tp,Eqns).
+  accessorEqns(C,Fld,Tp,Eqns) where (_,_,I) ?= isXQuantified(C) =>
     accessorEqns(I,Fld,Tp,Eqns).
   accessorEqns(_,_,_,Eqns) default => Eqns.
 
@@ -826,6 +826,9 @@ star.compiler.macro.rules{
     updaterEqns(I,Fld,Eqns).
   updaterEqns(C,Fld,Eqns) where (Lc,I) ?= isPublic(C) =>
     updaterEqns(I,Fld,Eqns).
+  updaterEqns(C,Fld,Eqns) where (_,_,I) ?= isXQuantified(C) =>
+    updaterEqns(I,Fld,Eqns).
+
   updaterEqns(C,_,Eqns) default => Eqns.
   
   allArgs([],_,_,_) => [].
