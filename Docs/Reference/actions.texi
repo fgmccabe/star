@@ -33,8 +33,9 @@ action.
 @section Basic Action Forms
 @cindex basic action expressions
 
-The basic actions include those in @ref{doFig}. There are additional
-actions, as explained in @ref{Fibers}.
+The basic actions include those in @ref{doFig}.
+
+@c There are additional actions, as explained in @ref{Fibers}.
 
 @float BNF,doFig
 @caption{Different forms of action}

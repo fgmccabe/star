@@ -93,7 +93,7 @@ F.G. McCabe).
 
 @include actions.texi
 
-@c @include fibers.texi
+@include fibers.texi
 
 @include standard.texi
 

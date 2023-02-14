@@ -1030,7 +1030,7 @@ In addition to the regular functions and types defined in the imported
 package, any contracts, and contract implementations that are defined
 in the imported package are also in scope.
 
-If the @refer{OpenImportStatement} is prefixed by a @code{public} keyword then, in addition to importing the definitions, they are also implicitly @emph{re-exported} by thhis package.
+If the @refer{OpenStatement} is prefixed by a @code{public} keyword then, in addition to importing the definitions, they are also implicitly @emph{re-exported} by thhis package.
 
 @quotation Note
 By using @code{public} package imports it is possible to construct the
