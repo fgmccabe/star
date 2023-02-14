@@ -7,7 +7,7 @@
 
 static void updateRelPc(assemCtxPo ctx, codeLblPo lbl, integer pc) {
   assert(isLabelDefined(lbl));
-  integer delta = labelTgt(lbl) - pc;
+  integer delta = (integer) labelTgt(lbl) - pc;
   uint32 oldIns = readCtxAtPc(ctx, pc);
   uint32 newIns =
     one_bt((oldIns >> 31), 31) | two_bt(delta, 29) | one_bt((oldIns >> 28u), 28) | ntn_bt(delta >> 2, 5) |
@@ -84,8 +84,8 @@ void encodeAddSubImm(uint1 w, uint1 op, uint1 S, uint8 code, int32 imm, armReg R
   emitU32(ctx, ins);
 }
 
-static inline uint64 rotRight(uint64 x, uint8 amnt) {
-  return (x >> amnt) | (x << (64 - amnt));
+static inline uint64 rotRight(uint64 x) {
+  return (x >> 1) | (x << (64 - 1));
 }
 
 static inline uint64 rotLeft(uint64 x, uint8 amnt) {
@@ -107,7 +107,7 @@ static BitMaskLiteral encodeBitMask(uint64 val) {
   uint64 vl = (uint64) val;
   while ((vl & 1) == 0) {
     rot++;
-    vl = rotRight(vl, 1);
+    vl = rotRight(vl);
   }
   uint8 immr = (64 - rot) % 64;
   uint64 lowerMask = -1;
@@ -126,9 +126,9 @@ static BitMaskLiteral encodeBitMask(uint64 val) {
       ptn = lower;
     }
   }
-  uint8 immsMask = immsMasks[lg2(ptnSize) - 1];
+  uint8 immsMask = immsMasks[lg2((integer) ptnSize) - 1];
 
-  uint8 count = countBits(ptn) - 1;
+  uint8 count = countBits((integer) ptn) - 1;
 
   BitMaskLiteral literl = {.N=immsMask >> 6, .imms=(immsMask & 0x3c) | count, .immr = immr};
   return literl;
