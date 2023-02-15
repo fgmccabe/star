@@ -47,7 +47,7 @@ typedef struct special_class {
 
 extern clssPo specialClass;
 
-integer displayDepth;         // Global limit on how deep to display things
+extern integer displayDepth;   // Global limit on how deep to display things
 
 void initTerm();
 
