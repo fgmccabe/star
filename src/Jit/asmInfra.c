@@ -1,9 +1,6 @@
 //
 // Created by Francis McCabe on 2/12/23.
 //
-//
-// Created by Francis McCabe on 4/1/20.
-//
 
 #include "jit.h"
 #include <string.h>

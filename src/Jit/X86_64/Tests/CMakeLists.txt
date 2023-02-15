@@ -10,7 +10,7 @@ include_directories("../Headers"
         "../../../Headers"
         "../")
 
-set(TEST_SOURCE_FILES ../../../Util/unitTests.c x64Tests.c ../../jitinfra.c)
+set(TEST_SOURCE_FILES ../../../Util/unitTests.c x64Tests.c)
 set(TEST_HEADER_FILES ../Headers/x86_64.h ../Headers/x86_64P.h ../../../Util/Headers/unitTests.h ../../Headers/jitP.h)
 
 add_executable(x64Test EXCLUDE_FROM_ALL ${TEST_SOURCE_FILES} ${TEST_HEADER_FILES})

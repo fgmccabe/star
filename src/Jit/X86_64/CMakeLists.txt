@@ -19,7 +19,7 @@ set(HEADER_FILES
         Headers/lowerP.h
         )
 
-set(SOURCE_FILES assemx86_64.c ins_x64.c lower.c )
+set(SOURCE_FILES assemx86_64.c ins_x64.c ../asmInfra.c lower.c )
 add_library(X86_64 STATIC ${SOURCE_FILES})
 
 

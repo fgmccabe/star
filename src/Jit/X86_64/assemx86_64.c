@@ -13,9 +13,6 @@
 #include "jitP.h"
 #include "jit.h"
 
-void initAssem() {
-}
-
 codeLblPo preamble(assemCtxPo ctx, int32 lclCount) {
   codeLblPo entry = defineLabel(ctx, "entry", ctx->pc);
   push(RG(RBP), ctx);
@@ -32,9 +29,7 @@ retCode postamble(assemCtxPo ctx) {
 }
 
 void clearCodeCtxMaps(assemCtxPo ctx) {
-  ctx->usedRegs = 0;
-  ctx->freeRegs = (1<<RAX)|(1<<RCX)|(1<RBX)|(1<<RSI)|(1<<RDI)|
-    (1<<R8)|(1<<R9)|(1<<R10)|(1<<R11)|(1<<R12)|(1<<R13)|(1<<R14)|(1<<R15);
+//  ctx->usedRegs = 0;
 }
 
 

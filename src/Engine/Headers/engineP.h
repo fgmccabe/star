@@ -63,7 +63,8 @@ void displayProcess(processPo p);
 void verifyProc(processPo P, heapPo H);
 
 #ifdef TRACEMEM
-long stkGrow;
+extern long stkGrow;
 #endif
+
 
 #endif //STAR_ENGINEP_H

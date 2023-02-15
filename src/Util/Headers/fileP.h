@@ -35,7 +35,7 @@ typedef struct file_class_ {
   FileClassPartRec filePart;
 } FileClassRec;
 
-FileClassRec FileClass;
+extern FileClassRec FileClass;
 /* the standard pointer to an File class record */
 
 typedef struct file_part_ {
