@@ -195,29 +195,11 @@ star.compiler.resolve{
     (OverOp,NArgs,St2) = resolveRef(T,DArgs,[],Dict,St1);
     valis (overApply(Lc,OverOp,NArgs,typeOf(T)),markResolved(St2))
   }
-  overloadTerm(.overaccess(Lc,T,RcTp,Fld,FldTp),Dict,St) => valof{
-    if (AccessOp,St1) ?= resolveAccess(Lc,RcTp,Fld,FldTp,Dict,St) then{
-      (OverOp,NArgs,St2) = resolveRef(T,[AccessOp],[],Dict,St1);
-      valis (curryOver(Lc,OverOp,NArgs,funType([RcTp],FldTp)),St2)
-    } else{
-      valis (.overaccess(Lc,T,RcTp,Fld,FldTp),.active(Lc,"cannot find accessor for $(RcTp).#(Fld)"))
-    }
-  }
   overloadTerm(.apply(lc,.over(OLc,T,Cx),Args,Tp),Dict,St) => valof{
     (DArgs,St1) = resolveContracts(OLc,Cx,[],Dict,St);
     (RArgs,St2) = overloadTplEls(Args,Dict,St1);
     (OverOp,NArgs,St3) = resolveRef(T,DArgs,RArgs,Dict,St2);
     valis (.apply(lc,OverOp,NArgs,Tp),markResolved(St3))
-  }
-  overloadTerm(.apply(lc,.overaccess(Lc,T,RcTp,Fld,FldTp),Args,Tp),Dict,St) => valof{
-    if (AccessOp,St1) ?= resolveAccess(Lc,RcTp,Fld,FldTp,Dict,St) then{
-      (RArgs,St2) = overloadTplEls(Args,Dict,St1);
-      (OverOp,NArgs,St3) = resolveRef(T,[AccessOp],RArgs,Dict,St2);
-      valis (.apply(lc,OverOp,NArgs,Tp),St3)
-    } else {
-      valis (.apply(lc,.overaccess(Lc,T,RcTp,Fld,FldTp),Args,Tp),
-	.active(Lc,"cannot find accessor for #(Fld)"))
-    }
   }
   overloadTerm(.apply(lc,Op,Args,Tp),Dict,St) => valof{
     (ROp,St1) = overloadTerm(Op,Dict,St);
@@ -459,6 +441,13 @@ star.compiler.resolve{
     }
     else{
       valis (.anon(Lc,Tp),.active(Lc,"cannot find an definition for implicit var #(Id)\:$(Tp)"))
+    }
+  }
+  resolveContract(Lc,.fieldConstraint(RcTp,Fld,FldTp),Dict,St) => valof{
+    if (AccessOp,St1) ?= resolveAccess(Lc,RcTp,Fld,FldTp,Dict,St) then{
+      valis (AccessOp,St1)
+    } else{
+      valis (.anon(Lc,FldTp),.active(Lc,"cannot find accessor for $(RcTp).#(Fld)"))
     }
   }
   resolveContract(Lc,Con,Dict,St) => valof{

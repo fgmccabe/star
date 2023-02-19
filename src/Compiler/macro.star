@@ -348,6 +348,12 @@ star.compiler.macro{
     mkTypeExists(Lc,macroType(L),macroType(R)).
   examineConstraint(A) where (Lc,Nm,T) ?= isImplicit(A) =>
     mkImplicit(Lc,Nm,macroType(T)).
+  examineConstraint(A) where (_,[El]) ?= isTuple(A) =>
+    examineConstraint(El).
+  examineConstraint(A) default => valof{
+    reportError("cannot figure out constraint $(A)",locOf(A));
+    valis A
+  }
 
   visibilityOf:(ast) => (ast,visibility).
   visibilityOf(A) => visib(A,.deFault).

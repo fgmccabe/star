@@ -29,6 +29,9 @@ star.compiler.dict.mgt{
   showVar(Nm,Dict) where .vrEntry(_,_,Tp,_)?=isVar(Nm,Dict) => "$(Nm)\:$(Tp)".
   showVar(Nm,_) => "$(Nm) not defined".
 
+  public showAllVars:(dict) => string.
+  showAllVars(Dict) => interleave(Dict//((scope{vars=Vrs})=>disp(Vrs)),"\n--\n")*.
+
   public findVar:(option[locn],string,dict) => option[canon].
   findVar(Lc,Nm,Dict) where .vrEntry(_,Mk,_,_) ?= isVar(Nm,Dict) => .some(Mk(Lc,Dict)).
   findVar(_,_,_) default => .none.
@@ -107,7 +110,7 @@ star.compiler.dict.mgt{
       if .tpDefn(Lc,TNm,TTp,TpRl,Cons)?=Level.types[TpNm] then{
 	valis [Level.types=Level.types[TpNm->.tpDefn(Lc,TNm,TTp,TpRl,Cons[Nm->Tp])],..Rest]
       } else{
-	logMsg("Type #(TpNm)=$(Tp) not in $(Level)");
+--	logMsg("Type #(TpNm)=$(Tp) not in $(Level)");
 	valis [Level,..declareCns(CLc,Nm,Tp,TpNm,Rest)]
       }
     }
@@ -174,14 +177,15 @@ star.compiler.dict.mgt{
 
   public mergeDict:(dict,dict,dict) => dict.
   mergeDict(D1,D2,Env) => let{.
-    mergeScopes([Sc1,..Rst], [Sc2,.._]) =>
-      [Sc1.vars=mergeVDefs(Sc1.vars,Sc2.vars),..Rst].
+    mergeScopes([Sc1,..Rst]) =>
+      [Sc1.vars=mergeVDefs(Sc1.vars),..Rst].
 
-    mergeVDefs:(map[string,vrEntry],map[string,vrEntry])=>map[string,vrEntry].
-    mergeVDefs(V1,V2) => {Nm->E1|Nm->E1 in V1 && E2?=V2[Nm] && sameDesc(E1,E2)}.
+    mergeVDefs:(map[string,vrEntry])=>map[string,vrEntry].
+    mergeVDefs(V1) => {Nm->E1|Nm->E1 in V1 && E2 ?= dictVar(Nm,D2) && sameDesc(E1,E2)}.
+
     sameDesc(.vrEntry(_,_,T1,_),.vrEntry(_,_,T2,_)) => sameType(T1,T2,Env)
 
-  .} in mergeScopes(D1,D2). 
+  .} in mergeScopes(D1).
 
   public declareDecls:(cons[decl],dict)=>dict.
   declareDecls([],Dict) => Dict.
@@ -247,7 +251,5 @@ star.compiler.dict.mgt{
   manageConstraints(Tp,Lc,Term) => Term(Tp).
 
   applyConstraint:(option[locn],constraint,canon) => canon.
-  applyConstraint(Lc,.fieldConstraint(V,F,T),Trm) => .overaccess(Lc,Trm,V,F,T).
-  applyConstraint(Lc,.conTract(N,T,D),Trm) => .over(Lc,Trm,[.conTract(N,T,D)]).
-  applyConstraint(Lc,.implicit(Nm,T),Trm) => .over(Lc,Trm,[.implicit(Nm,T)]).
+  applyConstraint(Lc,Con,Trm) => .over(Lc,Trm,[Con]).
 }
