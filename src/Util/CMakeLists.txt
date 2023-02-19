@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.7)
 project(OOIO)
 
+include(./findAIO.cmake)
+
+
 find_package(BISON 3.2)
 find_package(FLEX)
 
@@ -159,7 +162,7 @@ set(SOURCE_FILES
         ${HEADER_FILES} match.c)
 
 add_library(ooio STATIC ${SOURCE_FILES})
-target_link_libraries(ooio fiber pthread m rt)
+target_link_libraries(ooio fiber pthread m ${AIO_LIBRARIES})
 
 add_custom_command(OUTPUT ${UNITABLE.C} DEPENDS parseUni ${UNICODE}
   COMMAND ${CMAKE_CURRENT_BINARY_DIR}/UnicodeStuff/parseUni ${UNICODE} ${UNITABLE.C}
