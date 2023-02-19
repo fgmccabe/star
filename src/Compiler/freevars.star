@@ -36,7 +36,6 @@ star.compiler.freevars{
     .dot(_,Rc,_,_) => freeVarsInExp(Rc,Excl,Q,Fv).
     .mtd(_,_,_) => Fv.
     .over(_,V,_) => freeVarsInExp(V,Excl,Q,Fv).
-    .overaccess(_,V,_,_,_) => freeVarsInExp(V,Excl,Q,Fv).
     .csexp(_,G,Cs,_) =>
       foldLeft((Rl,F)=>freeVarsInRule(Rl,freeVarsInExp,Excl,Q,F), freeVarsInExp(G,Excl,Q,Fv), Cs).
     .cond(_,T,L,R) where Fv1 .= freeVarsInCond(T,Excl,Q,Fv) =>
@@ -196,7 +195,6 @@ star.compiler.freevars{
     .dot(_,Rc,_,_) => ptnVars(Rc,Q,Fv).
     .mtd(_,_,_) => Q.
     .over(_,V,_) => ptnVars(V,Q,Fv).
-    .overaccess(_,V,_,_,_) => ptnVars(V,Q,Fv).
     .cond(_,T,L,R) => ptnVars(L,ptnVars(T,Q,Fv),Fv)/\ ptnVars(R,Q,Fv).
     .apply(_,O,A,_) => ptnTplVars(A,Q,Fv).
     .tple(_,Els) => ptnTplVars(Els,Q,Fv).

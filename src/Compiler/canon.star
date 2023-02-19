@@ -11,7 +11,6 @@ star.compiler.canon{
   .vr(option[locn],string,tipe) |
   .mtd(option[locn],string,tipe) |
   .over(option[locn],canon,cons[constraint]) |
-  .overaccess(option[locn],canon,tipe,string,tipe) |
   .intr(option[locn],integer) |
   .bintr(option[locn],bigint) |
   .kar(option[locn],char) |
@@ -69,7 +68,6 @@ star.compiler.canon{
       .vr(_,_,T) => T.
       .mtd(_,_,T) => T.
       .over(_,T,_) => typeOf(T).
-      .overaccess(_,T,_,_,_) => typeOf(T).
       .intr(_,_) => intType.
       .bintr(_,_) => bigintType.
       .flt(_,_) => fltType.
@@ -100,7 +98,6 @@ star.compiler.canon{
       .vr(Lc,_,_) => Lc.
       .mtd(Lc,_,_) => Lc.
       .over(Lc,_,_) => Lc.
-      .overaccess(Lc,_,_,_,_) => Lc.
       .intr(Lc,_) => Lc.
       .bintr(Lc,_) => Lc.
       .flt(Lc,_) => Lc.
@@ -169,7 +166,6 @@ star.compiler.canon{
     .vr(_,Nm,Tp) => Nm.
     .mtd(_,Fld,_) => "µ#(Fld)".
     .over(_,V,Cx) => "$(Cx)|:#(showCanon(V,Pr,Sp))".
-    .overaccess(_,Rc,RcTp,F,T) => "$(RcTp)<~{#(F):$(T)}|:#(showCanon(Rc,Pr,Sp))".
     .intr(_,Lt) => disp(Lt).
     .bintr(_,Lt) => disp(Lt).
     .kar(_,Ch) => disp(Ch).
