@@ -377,9 +377,9 @@ star.compiler.data{
   decodeConstraint([`a`,..T]) => valof{
     (BT,T0) = decodeType(T);
     if (.faceType([(Fld,FT)],_),T1) .= decodeType(T0) then
-      valis (.fieldConstraint(BT,Fld,FT),T1)
+      valis (.hasField(BT,Fld,FT),T1)
     else
-    valis (.fieldConstraint(BT,"",.voidType),T0)
+    valis (.hasField(BT,"",.voidType),T0)
   }
   decodeConstraint([`d`,..T]) => valof{
     (Nm,T0) = decodeText(T);
@@ -441,7 +441,7 @@ star.compiler.data{
     encodeType(.tupleType(Ds),
       encodeType(.tupleType(Ts),
 	encodeText(Nm,[`c`,..Chs]))).
-  encodeConstraint(.fieldConstraint(V,F,T),Chs) =>
+  encodeConstraint(.hasField(V,F,T),Chs) =>
     encodeType(.faceType([(F,deRef(T))],[]),encodeType(deRef(V),[`a`,..Chs])).
   encodeConstraint(.implicit(Nm,T),Chs) =>
     encodeType(T,encodeText(Nm,[`d`,..Chs])).

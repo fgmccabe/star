@@ -127,7 +127,7 @@ star.compiler.resolve{
       declareVar(TpNm,TpNm,Lc,Tp,.none,
 	declareImplementation(Lc,TpNm,TpNm,Tp,D)))
   }
-  defineCVars(Lc,[.fieldConstraint(Tp,Nm,FTp),..Tps],Vrs,D) => valof{
+  defineCVars(Lc,[.hasField(Tp,Nm,FTp),..Tps],Vrs,D) => valof{
     Vnm = genId("Nm");
     Vtp = funType([Tp],FTp);
     valis defineCVars(Lc,Tps,[.vr(Lc,Vnm,Vtp),..Vrs],
@@ -191,14 +191,14 @@ star.compiler.resolve{
   overloadTerm(.mtd(Lc,Nm,Tp),Dict,St) => 
     (.mtd(Lc,Nm,Tp),.active(Lc,"cannot resolve unconstrained method #(Nm)\:$(Tp)")).
   overloadTerm(.over(Lc,T,Cx),Dict,St) => valof{
-    (DArgs,St1) = resolveContracts(Lc,Cx,[],Dict,St);
-    (OverOp,NArgs,St2) = resolveRef(T,DArgs,[],Dict,St1);
+    (DArg,St1) = resolveConstraint(Lc,Cx,Dict,St);
+    (OverOp,NArgs,St2) = resolveRef(T,DArg,[],Dict,St1);
     valis (overApply(Lc,OverOp,NArgs,typeOf(T)),markResolved(St2))
   }
   overloadTerm(.apply(lc,.over(OLc,T,Cx),Args,Tp),Dict,St) => valof{
-    (DArgs,St1) = resolveContracts(OLc,Cx,[],Dict,St);
+    (DArg,St1) = resolveConstraint(OLc,Cx,Dict,St);
     (RArgs,St2) = overloadTplEls(Args,Dict,St1);
-    (OverOp,NArgs,St3) = resolveRef(T,DArgs,RArgs,Dict,St2);
+    (OverOp,NArgs,St3) = resolveRef(T,DArg,RArgs,Dict,St2);
     valis (.apply(lc,OverOp,NArgs,Tp),markResolved(St3))
   }
   overloadTerm(.apply(lc,Op,Args,Tp),Dict,St) => valof{
@@ -272,12 +272,12 @@ star.compiler.resolve{
     valis (T,.active(Lc,"cannot resolve term $(T)"))
   }
   
-  resolveRef(.mtd(Lc,Nm,Tp),[DT,..Ds],Args,Dict,St) => valof{
+  resolveRef(.mtd(Lc,Nm,Tp),DT,Args,Dict,St) => valof{
     (OverOp,St1) = resolveDot(Lc,DT,Nm,Tp,Dict,St);
-    valis (OverOp,Ds++Args,St1)
+    valis (OverOp,Args,St1)
   }
-  resolveRef(C,DArgs,Args,_,St) default =>
-    (C,DArgs++Args,St).
+  resolveRef(C,DArg,Args,_,St) default =>
+    (C,[DArg,..Args],St).
 
   overApply(_,OverOp,[],_) => OverOp.
   overApply(Lc,OverOp,Args,Tp) where ~ _ ?= isFunType(Tp) =>
@@ -419,16 +419,8 @@ star.compiler.resolve{
   overloadTplEls:all e ~~ resolve[e] |: (cons[e],dict,resolveState) => (cons[e],resolveState).
   overloadTplEls(Els,Dict,St) => overloadTerms(Els,[],Dict,St).
     
-  resolveContracts:(option[locn],cons[constraint],cons[canon],dict,resolveState) =>
-    (cons[canon],resolveState).
-  resolveContracts(_,[],Cx,_,St) => (reverse(Cx),St).
-  resolveContracts(Lc,[C,..Cx],Vs,Dict,St) => valof{
-    (A,St1) = resolveContract(Lc,C,Dict,St);
-    valis resolveContracts(Lc,Cx,[A,..Vs],Dict,St1)
-  }
-  
-  resolveContract:(option[locn],constraint,dict,resolveState) => (canon,resolveState).
-  resolveContract(Lc,.implicit(Id,Tp),Dict,St) => valof{
+  resolveConstraint:(option[locn],constraint,dict,resolveState) => (canon,resolveState).
+  resolveConstraint(Lc,.implicit(Id,Tp),Dict,St) => valof{
 --    logMsg("resolve implicit $(Id)\:$(Tp)");
     if Var ?= findVar(Lc,Id,Dict) then{
 --      logMsg("implicit $(Var)\:$(typeOf(Var))");
@@ -443,14 +435,14 @@ star.compiler.resolve{
       valis (.anon(Lc,Tp),.active(Lc,"cannot find an definition for implicit var #(Id)\:$(Tp)"))
     }
   }
-  resolveContract(Lc,.fieldConstraint(RcTp,Fld,FldTp),Dict,St) => valof{
+  resolveConstraint(Lc,.hasField(RcTp,Fld,FldTp),Dict,St) => valof{
     if (AccessOp,St1) ?= resolveAccess(Lc,RcTp,Fld,FldTp,Dict,St) then{
       valis (AccessOp,St1)
     } else{
       valis (.anon(Lc,FldTp),.active(Lc,"cannot find accessor for $(RcTp).#(Fld)"))
     }
   }
-  resolveContract(Lc,Con,Dict,St) => valof{
+  resolveConstraint(Lc,Con,Dict,St) => valof{
     ImpNm = implementationName(Con);
     Tp = typeOf(Con);
     if Impl?=findImplementation(Dict,ImpNm) then {

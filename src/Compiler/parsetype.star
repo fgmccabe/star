@@ -243,10 +243,10 @@ star.compiler.typeparse{
     Bnd = parseType(Q,Lh,Env);
     Face = parseType(Q,Rh,Env);
     if .faceType([(Fld,FTp)],_).=deRef(Face) then
-      valis .fieldConstraint(Bnd,Fld,FTp)
+      valis .hasField(Bnd,Fld,FTp)
     else{
       reportError("invalid rhs:$(Rh) of field constraint, expecting $(Lh)<~{F:T}",Lc);
-      valis .fieldConstraint(.voidType,"",.voidType)
+      valis .hasField(.voidType,"",.voidType)
     }
   }
   parseConstraint(A,Q,Env) where (Lc,Id,T) ?= isImplicit(A) => valof{
