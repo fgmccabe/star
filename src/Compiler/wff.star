@@ -545,9 +545,10 @@ star.compiler.wff{
     unary(Lc,"implementation",reUQuant(Lc,Q,reConstrain(Cx,binary(Lc,"=>",T,E)))).
 
   public isImplicit(A) where (Lc,L,R) ?= isBinary(A,"|=") && (_,Id)?=isName(L) => ?(Lc,Id,R).
+  isImplicit(A) where (Lc,L,R) ?= isBinary(A,":") && (_,Id)?=isName(L) => ?(Lc,Id,R).
   isImplicit(A) default => .none.
 
-  public mkImplicit(Lc,N,T) => binary(Lc,"|=",.nme(Lc,N),T).
+  public mkImplicit(Lc,N,T) => binary(Lc,":",.nme(Lc,N),T).
 
   public isAccessorStmt:(ast) => option[(option[locn],cons[ast],cons[ast],ast,ast)].
   isAccessorStmt(A) where

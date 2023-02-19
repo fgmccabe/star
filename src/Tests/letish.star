@@ -1,4 +1,4 @@
-test.let{
+test.letish{
   import star.
   import star.script.
 
