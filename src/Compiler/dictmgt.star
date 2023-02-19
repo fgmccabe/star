@@ -251,5 +251,5 @@ star.compiler.dict.mgt{
   manageConstraints(Tp,Lc,Term) => Term(Tp).
 
   applyConstraint:(option[locn],constraint,canon) => canon.
-  applyConstraint(Lc,Con,Trm) => .over(Lc,Trm,[Con]).
+  applyConstraint(Lc,Con,Trm) => .over(Lc,Trm,Con).
 }

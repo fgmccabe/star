@@ -10,7 +10,7 @@ star.compiler.canon{
   public canon ::= .anon(option[locn],tipe) |
   .vr(option[locn],string,tipe) |
   .mtd(option[locn],string,tipe) |
-  .over(option[locn],canon,cons[constraint]) |
+  .over(option[locn],canon,constraint) |
   .intr(option[locn],integer) |
   .bintr(option[locn],bigint) |
   .kar(option[locn],char) |

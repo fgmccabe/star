@@ -25,7 +25,7 @@ star.compiler.types{
     .allRule(tipe,typeRule).
 
   public constraint ::= .conTract(string,cons[tipe],cons[tipe]) |
-    .fieldConstraint(tipe,string,tipe) |
+    .hasField(tipe,string,tipe) |
     .implicit(string,tipe).
 
   tv ::= tv{
@@ -159,7 +159,7 @@ star.compiler.types{
 
   eqConstraint(.conTract(N1,T1,D1),.conTract(N2,T2,D2),Q) =>
     N1==N2 && identTypes(T1,T2,Q) && identTypes(D1,D2,Q).
-  eqConstraint(.fieldConstraint(T1,F,R1),.fieldConstraint(T2,F,R2),Q) =>
+  eqConstraint(.hasField(T1,F,R1),.hasField(T2,F,R2),Q) =>
     eqType(T1,T2,Q) && eqType(R1,R2,Q).
   eqConstraint(.implicit(N1,T1),.implicit(N2,T2),Q) =>
     N1==N2 && eqType(T1,T2,Q).
@@ -175,7 +175,7 @@ star.compiler.types{
 
   public implementation equality[constraint] => {
     .conTract(N1,T1,D1) == .conTract(N2,T2,D2) => N1==N2 && T1==T2 && D1==D2.
-    .fieldConstraint(V1,N1,T1) == .fieldConstraint(V2,N2,T2) => N1==N2 && V1==V2 && T1==T2.
+    .hasField(V1,N1,T1) == .hasField(V2,N2,T2) => N1==N2 && V1==V2 && T1==T2.
     .implicit(N1,T1) == .implicit(N2,T2) => N1==N2 && T1==T2.
     _ == _ default => .false.
   }
@@ -277,7 +277,7 @@ star.compiler.types{
   showBound(V,Dp) => showType(V,.false,Dp).
 
   showConstraint(.conTract(Nm,T,D),Dp) => shContract(Nm,T,D,.false,Dp).
-  showConstraint(.fieldConstraint(Tp,Fld,Fc),Dp) =>
+  showConstraint(.hasField(Tp,Fld,Fc),Dp) =>
     "#(showType(Tp,.false,Dp)) <~ {#(Fld):#(showType(Fc,.false,Dp))}".
   showConstraint(.implicit(Fld,Tp),Dp) =>
     "#(Fld) |= #(showType(Tp,.false,Dp))".
@@ -304,7 +304,7 @@ star.compiler.types{
 
     hshCon(.conTract(N,T,D)) => hshEls(hshEls(hash(N)*37,T),D).
     hshCon(.implicit(N,T)) => hash(N)*37+hash(T).
-    hshCon(.fieldConstraint(V,F,T)) =>
+    hshCon(.hasField(V,F,T)) =>
       ((hash("<~")*37+hash(F))*37+hsh(deRef(V)))*37+hsh(deRef(T)).
 
     hshEls(H,Els) => foldLeft((El,Hx)=>Hx*37+hsh(deRef(El)),H,Els).
@@ -365,7 +365,7 @@ star.compiler.types{
 
   public implementation hasType[constraint] => {
     typeOf(.conTract(Nm,T,D)) => mkConType(Nm,T,D).
-    typeOf(.fieldConstraint(Tp,_,FTp)) => funType([Tp],FTp).
+    typeOf(.hasField(Tp,_,FTp)) => funType([Tp],FTp).
     typeOf(.implicit(_,Tp)) => Tp.
   }
 
@@ -546,7 +546,7 @@ star.compiler.types{
 
   occInCon(Id,.conTract(_,Els,Dps)) => {? El in Els && occIn(Id,deRef(El)) ?} ||
   {? El in Dps && occIn(Id,deRef(El)) ?}.
-  occInCon(Id,.fieldConstraint(T,_,F)) => occIn(Id,deRef(T)) || occIn(Id,deRef(F)).
+  occInCon(Id,.hasField(T,_,F)) => occIn(Id,deRef(T)) || occIn(Id,deRef(F)).
   occInCon(Id,.implicit(_,T)) => occIn(Id,deRef(T)).
 
   occInPrs(Id,Tps) => {? (_,El) in Tps && occIn(Id,deRef(El)) ?}.

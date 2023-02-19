@@ -76,7 +76,7 @@ star.compiler.unify{
 
     sameConstraint(.conTract(N1,T1,D1),.conTract(N2,T2,D2),Env) =>
       N1==N2 && smTypes(T1,T2,Env) && smTypes(D1,D2,Env).
-    sameConstraint(.fieldConstraint(V1,F1,T1),.fieldConstraint(V2,F2,T2),Env) =>
+    sameConstraint(.hasField(V1,F1,T1),.hasField(V2,F2,T2),Env) =>
       same(V1,V2,Env) && F1==F2 && same(T1,T2,Env).
     sameConstraint(.implicit(N1,T1),.implicit(N2,T2),Env) =>
       N1==N2 && same(T1,T2,Env).
@@ -135,7 +135,7 @@ star.compiler.unify{
 
   rewriteCon(.conTract(N,T,D),Env) =>
     .conTract(N,rewriteTps(T,Env),rewriteTps(D,Env)).
-  rewriteCon(.fieldConstraint(V,F,T),Env) =>
-    .fieldConstraint(rewriteType(V,Env),F,rewriteType(T,Env)).
+  rewriteCon(.hasField(V,F,T),Env) =>
+    .hasField(rewriteType(V,Env),F,rewriteType(T,Env)).
   rewriteCon(.implicit(N,T),Env) => .implicit(N,rewriteType(T,Env)).
 }

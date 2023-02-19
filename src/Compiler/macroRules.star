@@ -775,10 +775,11 @@ star.compiler.macro.rules{
   accessorEqns(Cns,Fld,Tp,SoFar) where
       (Lc,CnNm,Els)?=isBrTerm(Cns) && isFieldOfFc(Els,Fld) => valof{
 	Sorted = sort(Els,compEls);
-	ConArgs = projectArgTypes(Sorted,.nme(Lc,"X"),Fld);
+	XX = .nme(Lc,"X");
+
+	ConArgs = projectArgTypes(Sorted,XX,Fld);
 	
-	Eqn = equation(Lc,mkEnumCon(Lc,dollarName(CnNm),ConArgs),
-	  typeAnnotation(Lc,.nme(Lc,"X"),Tp));
+	Eqn = equation(Lc,mkEnumCon(Lc,dollarName(CnNm),ConArgs),XX);
 	valis [Eqn,..SoFar]
       }.
   accessorEqns(C,Fld,Tp,Eqns) where (Lc,I) ?= isPrivate(C) =>
@@ -818,8 +819,8 @@ star.compiler.macro.rules{
   updaterEqns(Cns,Fld,SoFar) where
       (Lc,CnNm,Els)?=isBrTerm(Cns) && isFieldOfFc(Els,Fld) => valof{
 	Sorted = sort(Els,compEls);
-      UEqn = equation(Lc,mkEnumCon(Lc,dollarName(CnNm),allArgs(Sorted,Fld,0,mkAnon(Lc))),
-	mkEnumCon(Lc,dollarName(CnNm),allArgs(Sorted,Fld,0,.nme(Lc,"XX"))));
+	UEqn = equation(Lc,mkEnumCon(Lc,dollarName(CnNm),allArgs(Sorted,Fld,0,mkAnon(Lc))),
+	  mkEnumCon(Lc,dollarName(CnNm),allArgs(Sorted,Fld,0,.nme(Lc,"XX"))));
 	valis [UEqn,..SoFar]
       }
   updaterEqns(C,Fld,Eqns) where (Lc,I) ?= isPrivate(C) =>
