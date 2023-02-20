@@ -297,9 +297,9 @@ star.compiler.meta{
 
   public showNormalizeOption:cmdOption[compilerOptions].
   showNormalizeOption = cmdOption{
-    shortForm = "-dT".
+    shortForm = "-dn".
     alternatives = [].
-    usage = "-dT -- show type normalizes".
+    usage = "-dn -- show type normalizes".
     validator = .none.
     setOption(_,Opts) => valof{
       showNormalize := .true;
@@ -310,9 +310,9 @@ star.compiler.meta{
 
   public traceNormalizeOption:cmdOption[compilerOptions].
   traceNormalizeOption = cmdOption{
-    shortForm = "-tT".
+    shortForm = "-tn".
     alternatives = [].
-    usage = "-tT -- trace normalize".
+    usage = "-tn -- trace normalize".
     validator = .none.
     setOption(_,Opts) => valof{
       traceNormalize := .true;

@@ -19,9 +19,9 @@ star.compiler.normalize{
 
   public normalize:(pkgSpec,cons[canonDef],cons[decl])=>cons[cDefn].
   normalize(PkgSpec,Defs,Decls) => valof{
+    if traceNormalize! then
+      logMsg("Normalize $(Defs) with $(Decls)");
     Map = pkgMap(Decls);
---    if traceNormalize! then
---      logMsg("package map $(Map)");
     valis transformGroup(Defs,Map,Map,[],.none,[])
   }
 
