@@ -32,7 +32,7 @@ static void PipeInit(objectPo list, va_list *args);
 
 PipeClassRec PipeClass = {
   {
-    (classPo) &PipeClass,                  // parent class is file object
+    (classPo) &FileClass,                  // parent class is file object
     "pipe",                               // this is the pipe class
     initPipeClass,                        // Pipe class initializer, phase I
     O_INHERIT_DEF,
