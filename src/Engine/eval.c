@@ -159,7 +159,12 @@ retCode run(processPo P) {
 
       case OCall: {        /* Call tos a1 .. an -->   */
         int arity = collectI32(PC);
-        normalPo obj = C_NORMAL(pop());
+        termPo clos = pop();
+        if(!isNormalPo(clos)){
+          logMsg(logFile,"Calling non-closure %T",clos);
+          bail();
+        }
+        normalPo obj = C_NORMAL(clos);
         labelPo oLbl = objLabel(termLbl(obj), arity);
 
         if (oLbl == Null) {

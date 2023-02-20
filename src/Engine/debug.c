@@ -19,7 +19,6 @@ static integer lineCount = 0;
 static void showEntry(ioPo out, stackPo stk, termPo call);
 static void showAbort(ioPo out, stackPo stk, termPo reason);
 static void showRet(ioPo out, stackPo stk, termPo val);
-static void showRetX(ioPo out, stackPo stk, termPo val);
 static void showAssign(ioPo out, stackPo stk, termPo vl);
 static void showResume(ioPo out, stackPo stk, termPo cont);
 
@@ -799,19 +798,6 @@ void showRet(ioPo out, stackPo stk, termPo val) {
       outMsg(out, "return: %#L %T->%#,*T", locn, f->prog, displayDepth, val);
   } else
     outMsg(out, "return: %T->%#,*T", f->prog, displayDepth, val);
-}
-
-void showRetX(ioPo out, stackPo stk, termPo val) {
-  framePo f = currFrame(stk);
-  termPo locn = findPcLocation(f->prog, insOffset(f->prog, f->pc));
-
-  if (locn != Null) {
-    if (showColors)
-      outMsg(out, RED_ESC_ON"exception return:"RED_ESC_OFF" %#L %T->%#,*T", locn, f->prog, displayDepth, val);
-    else
-      outMsg(out, "exception return: %#L %T->%#,*T", locn, f->prog, displayDepth, val);
-  } else
-    outMsg(out, "exception return: %T->%#,*T", f->prog, displayDepth, val);
 }
 
 static void showAbort(ioPo out, stackPo stk, termPo reason) {
