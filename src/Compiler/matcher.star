@@ -137,7 +137,7 @@ star.compiler.matcher{
       logMsg("generate condition match $(Args) .= $(Vrs)");
     (Tst,Res) = mkMatchCond(Args,Vrs,mergeGoal(Lc,Cnd,Test),Lc,Vl);
     if traceNormalize! then
-      logMsg("match cond $(Tst)");
+      logMsg("match cond $(Tst) ?? $(Res)");
     Other = conditionMatch(M,Vrs,Deflt);
 
     if Cond?=Tst then
@@ -146,16 +146,27 @@ star.compiler.matcher{
     valis Res
   }
 
-  mkMatchCond:all e ~~ rewrite[e] |: (cons[cExp],cons[cExp],option[cExp],option[locn],e) =>
+  mkMatchCond:all e ~~ display[e], rewrite[e] |: (cons[cExp],cons[cExp],option[cExp],option[locn],e) =>
     (option[cExp],e).
   mkMatchCond([],[],Test,_,Val) => (Test,Val).
   mkMatchCond([.cAnon(_,_),..Args],[_,..Vars],Test,Lc,Val) =>
     mkMatchCond(Args,Vars,Test,Lc,Val).
   mkMatchCond([.cVar(VLc,.cId(Vr,VTp)),..Args],[V,..Vars],Test,Lc,Val) => valof{
+    if traceNormalize! then
+      logMsg("match $(Vr) with $(V)");
     Mp = { .tLbl(Vr,arity(VTp))->.vrDef(VLc,Vr,VTp,V)};
     NArgs = rewriteTerms(Args,Mp);
+    if traceNormalize! then
+      logMsg("rewritten args $(NArgs)");
+
     NTst = fmap((T)=>rewrite(T,Mp),Test);
+    if traceNormalize! then
+      logMsg("rewritten test $(NTst)");
+
     NVal = rewrite(Val,Mp);
+    if traceNormalize! then
+      logMsg("rewritten val $(NVal)");
+
     valis mkMatchCond(NArgs,Vars,NTst,Lc,NVal)
   }
   mkMatchCond([A,..Args],[V,..Vars],Test,Lc,Val) =>

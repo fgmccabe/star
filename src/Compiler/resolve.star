@@ -378,14 +378,16 @@ star.compiler.resolve{
   overloadRule:all e ~~ resolve[e] |: (rule[e],dict,resolveState) =>
     (rule[e],resolveState).
   overloadRule(.rule(Lc,Ptn,.none,Exp),Dict,St) => valof{
-    (RPtn,St1) = overloadTerm(Ptn,Dict,St);
-    (RExp,St2) = resolve(Exp,Dict,St1);
+    RDict = defineArgVars(Ptn,Dict);
+    (RPtn,St1) = overloadTerm(Ptn,RDict,St);
+    (RExp,St2) = resolve(Exp,RDict,St1);
     valis (.rule(Lc,RPtn,.none,RExp),St2)
   }
   overloadRule(.rule(Lc,Ptn,?C,Exp),Dict,St) => valof{
-    (RPtn,St1) = overloadTerm(Ptn,Dict,St);
-    (RExp,St2) = resolve(Exp,Dict,St1);
-    (RC,St3) = resolve(C,Dict,St2);
+    RDict = defineArgVars(Ptn,Dict);
+    (RPtn,St1) = overloadTerm(Ptn,RDict,St);
+    (RExp,St2) = resolve(Exp,RDict,St1);
+    (RC,St3) = resolve(C,RDict,St2);
     valis (.rule(Lc,RPtn,?RC,RExp),St3)
   }
 
@@ -421,7 +423,8 @@ star.compiler.resolve{
     
   resolveConstraint:(option[locn],constraint,dict,resolveState) => (canon,resolveState).
   resolveConstraint(Lc,.implicit(Id,Tp),Dict,St) => valof{
---    logMsg("resolve implicit $(Id)\:$(Tp)");
+    if traceCanon! then
+      logMsg("resolve implicit $(Id)\:$(Tp)");
     if Var ?= findVar(Lc,Id,Dict) then{
 --      logMsg("implicit $(Var)\:$(typeOf(Var))");
       if sameType(snd(freshen(Tp,Dict)),typeOf(Var),Dict) then {

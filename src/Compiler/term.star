@@ -410,7 +410,7 @@ star.compiler.term{
   }
 
   public implementation display[cId] => {
-    disp(.cId(Nm,_)) => "%#(Nm)".
+    disp(.cId(Nm,Tp)) => "%#(Nm)\:$(Tp)".
   }
 
   public implementation hasLoc[aAction] => {

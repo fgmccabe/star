@@ -19,8 +19,6 @@ star.compiler.normalize{
 
   public normalize:(pkgSpec,cons[canonDef],cons[decl])=>cons[cDefn].
   normalize(PkgSpec,Defs,Decls) => valof{
-    if traceNormalize! then
-      logMsg("Normalize $(Defs) with $(Decls)");
     Map = pkgMap(Decls);
     valis transformGroup(Defs,Map,Map,[],.none,[])
   }
@@ -174,7 +172,12 @@ star.compiler.normalize{
       ((option[locn],cons[cExp],option[cExp],t),cons[cDefn]).
   transformRule(.rule(Lc,Arg,Test,Val),Map,Q,Extra,Ex) => valof{
     EQ = ptnVars(Arg,Q,[]);
+    if traceNormalize! then
+      logMsg("Pattern vars $(EQ)");
     (APtn,Ex1) = liftPtn(Arg,Map,EQ,Ex);
+
+    if traceNormalize! then
+      logMsg("lifted pattern $(APtn)");
 
     (TPtn, WC) = pullWhere(APtn);
 
