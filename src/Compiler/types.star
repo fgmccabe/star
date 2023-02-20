@@ -376,12 +376,14 @@ star.compiler.types{
   sortFieldTypes(Tps) => sort(Tps,(((N1,_),(N2,_))=>N1<N2)).
 
   public arity:(tipe)=>integer.
-  arity(Tp) where (A,_) ?= isFunType(Tp) => arity(A).
-  arity(Tp) where (A,_) ?= isConsType(Tp) => arity(A).
-  arity(Tp) where .tupleType(A).=deRef(Tp) => size(A).
-  arity(Tp) where .allType(_,I) .= deRef(Tp) => arity(I).
-  arity(Tp) where .existType(_,I) .= deRef(Tp) => arity(I).
-  arity(_) default => 0.
+  arity(Tp) => ar(deRef(Tp)).
+  ar(Tp) where (A,_) ?= isFunType(Tp) => arity(A).
+  ar(Tp) where (A,_) ?= isConsType(Tp) => arity(A).
+  ar(Tp) where .tupleType(A).=Tp => size(A).
+  ar(Tp) where .allType(_,I) .= Tp => arity(I).
+  ar(Tp) where .existType(_,I) .= Tp => arity(I).
+  ar(Tp) where .constrainedType(T,_).=Tp => arity(T).
+  ar(_) default => 0.
   
   public funType(A,B) => fnType(.tupleType(A),B).
   public fnType(A,B) => .tpExp(.tpExp(.tpFun("=>",2),A),B).

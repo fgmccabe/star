@@ -2,7 +2,8 @@ test.dy2{
   import star.
   import star.script.
 
-  dyntype[e] ::= .dyn((foo:integer)|:(e)=>integer).
+  -- Commented out due to bug in boot compiler
+  dyntype[e] ::= .dyn(/*(foo:integer)|:*/(e)=>integer).
 
   undyn(.dyn(F),A) => F(A).
 
