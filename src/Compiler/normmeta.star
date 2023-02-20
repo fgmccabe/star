@@ -127,13 +127,23 @@ star.compiler.normalize.meta{
 
   mkConsLbl(Nm,Tp) => .tLbl(Nm,arity(Tp)).
 
-  declMdlGlobal(.funDec(Lc,Nm,FullNm,Tp),Map) =>
-    Map[FullNm->.moduleFun(.cTerm(Lc,closureNm(FullNm),[crTpl(Lc,[])],Tp),FullNm)].
-  declMdlGlobal(.varDec(Lc,Nm,FullNm,Tp),Map) =>
-    Map[FullNm->.globalVar(FullNm,Tp)].
-  declMdlGlobal(.cnsDec(Lc,Nm,FullNm,Tp),Map) =>
-    Map[FullNm->.moduleCons(FullNm,Tp)].
-  declMdlGlobal(_,Map) => Map.
+  declMdlGlobal(.funDec(Lc,Nm,FullNm,Tp),Map) => valof{
+    Entry = .moduleFun(.cTerm(Lc,closureNm(FullNm),[crTpl(Lc,[])],Tp),FullNm);
+    valis Map[Nm->Entry][FullNm->Entry]
+  }
+  declMdlGlobal(.varDec(Lc,Nm,FullNm,Tp),Map) => valof{
+    Entry = .globalVar(FullNm,Tp);
+    valis Map[Nm->Entry][FullNm->Entry]
+  }
+  declMdlGlobal(.cnsDec(Lc,Nm,FullNm,Tp),Map) => valof{
+    Entry = .moduleCons(FullNm,Tp);
+    valis Map[Nm->Entry][FullNm->Entry]
+  }
+  declMdlGlobal(.tpeDec(_,_,_,_),Map) => Map.
+  declMdlGlobal(.accDec(_,_,_,_,_),Map) => Map.
+  declMdlGlobal(.updDec(_,_,_,_,_),Map) => Map.
+  declMdlGlobal(.conDec(_,_,_,_),Map) => Map.
+  declMdlGlobal(.implDec(_,_,_,_),Map) => Map.
 
   public extendFunTp:all x ~~ hasType[x] |: (tipe,option[x])=>tipe.
   extendFunTp(Tp,.none) => Tp.
