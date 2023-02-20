@@ -50,7 +50,7 @@ star.compiler.checker{
 	  overloadProgram(Defs,declareDecls(AllDecls,PkgEnv))* || []);
 
 	if traceCanon! then
-	  logMsg("exported declarations $(ExDecls)");
+	  logMsg("all decls: $(AllDecls), exported declarations $(ExDecls)");
 
 	valis (pkgSpec{pkg=Pkge. imports=Imports. exports=ExDecls},RDefs,IDecls,AllDecls)
       }
@@ -259,7 +259,7 @@ star.compiler.checker{
     FullNm = qualifiedName(Path,.valMark,Nm);
 
     if traceCanon! then
-      logMsg("function $(Nm) is bound to $(.lambda(Lc,FullNm,Rls,Tp))\:$(Tp)");
+      logMsg("function $(.varDef(Lc,FullNm,.lambda(Lc,lambdaLbl(Lc),Rls,Tp),Cx,Tp))");
     
     valis ([.varDef(Lc,FullNm,.lambda(Lc,lambdaLbl(Lc),Rls,Tp),Cx,Tp)],
       [.funDec(Lc,Nm,FullNm,Tp)])
@@ -268,7 +268,7 @@ star.compiler.checker{
   checkVar:(string,tipe,option[locn],ast,dict,dict,string) => (cons[canonDef],cons[decl]).
   checkVar(Nm,Tp,Lc,Stmt,Env,Outer,Path) => valof{
     if traceCanon! then
-      logMsg("check definition $(Stmt)\:$(Tp)");
+      logMsg("check definition $(Stmt)\:$(Tp)@$(Lc)");
       
     (Q,ETp) = evidence(Tp,Env);
     (Cx,VarTp) = deConstrain(ETp);
@@ -276,6 +276,9 @@ star.compiler.checker{
     if (_,Lhs,R) ?= isDefn(Stmt) then{
       Val = typeOfExp(R,VarTp,Es,Path);
       FullNm = qualifiedName(Path,.valMark,Nm);
+      if traceCanon! then
+	logMsg("definition $(.varDef(Lc,FullNm,Val,Cx,Tp))");
+
       if ~isEmpty(Cx) || .lambda(_,_,_,_).=Val then
 	valis ([.varDef(Lc,FullNm,Val,Cx,Tp)],[.funDec(Lc,Nm,FullNm,Tp)])
       else

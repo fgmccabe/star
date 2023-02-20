@@ -181,7 +181,7 @@ star.compiler.types{
   }
 
   public implementation display[tipe] => {
-    disp(T) => showType(T,.true,10000)
+    disp(T) => showType(T,10000)
   }
 
   public implementation display[constraint] => {
@@ -189,80 +189,74 @@ star.compiler.types{
   }
 
   public implementation display[typeRule] => {
-    disp(T) => shTipeRule(T,.true,10000)
+    disp(T) => shTipeRule(T,10000)
   }
 
-  public showType:(tipe,boolean,integer) => string.
-  showType(T,Sh,Dp) => shTipe(deRef(T),Sh,Dp).
+  public showType:(tipe,integer) => string.
+  showType(T,Dp) => shTipe(deRef(T),Dp).
 
-  shTipe:(tipe,boolean,integer) => string.
-  shTipe(Tp,Sh,Dp) => case Tp in {
+  shTipe:(tipe,integer) => string.
+  shTipe(Tp,Dp) => case Tp in {
     .voidType => "void".
     .kFun(Nm,Ar) => "#(Nm)/$(Ar)".
     .tVar(V,Nm) => "%#(Nm)".
     .tFun(_,Ar,Nm) => "%#(Nm)/$(Ar)".
     .nomnal(Nm) => Nm.
     .tpFun(Nm,Ar) => "#(Nm)/$(Ar)".
-    .tpExp(O,A) => showTpExp(deRef(O),[A],Sh,Dp).
-    .tupleType(A) => "(#(showTypes(A,Sh,Dp)*))".
+    .tpExp(O,A) => showTpExp(deRef(O),[A],Dp).
+    .tupleType(A) => "(#(showTypes(A,Dp)*))".
     .allType(A,T) =>
-      "all #(showBound(A,Dp))#(showMoreQuantified(T,Sh,Dp))".
+      "all #(showBound(A,Dp))#(showMoreQuantified(T,Dp))".
     .existType(A,T) =>
-      "exists #(showBound(A,Dp))#(showMoreQuantified(T,Sh,Dp))".
-    .faceType(Els,Tps) => "{#(showTypeEls(Els,Tps,Sh,Dp))}".
+      "exists #(showBound(A,Dp))#(showMoreQuantified(T,Dp))".
+    .faceType(Els,Tps) => "{#(showTypeEls(Els,Tps,Dp))}".
     .constrainedType(T,C) =>
-      "#(showConstraint(C,Dp)) |: #(showType(T,Sh,Dp))".
+      "#(showConstraint(C,Dp)) |: #(showType(T,Dp))".
   }
 
-  shContract(Nm,Tps,[],Sh,Dp) => "#(Nm)[#(showTypes(Tps,Sh,Dp)*)]".
-  shContract(Nm,Tps,Dps,Sh,Dp) => "#(Nm)[#(showTypes(Tps,Sh,Dp)*)->>#(showTypes(Dps,Sh,Dp)*)]".
+  shContract(Nm,Tps,[],Dp) => "#(Nm)[#(showTypes(Tps,Dp)*)]".
+  shContract(Nm,Tps,Dps,Dp) => "#(Nm)[#(showTypes(Tps,Dp)*)->>#(showTypes(Dps,Dp)*)]".
   
-  showTypes:(cons[tipe],boolean,integer) => cons[string].
-  showTypes(_,_,0) => ["..."].
-  showTypes(E,Sh,Dp) => showEls(E,Sh,Dp-1,"").
+  showTypes:(cons[tipe],integer) => cons[string].
+  showTypes(_,0) => ["..."].
+  showTypes(E,Dp) => showEls(E,Dp-1,"").
 
-  shTipeRule(.typeExists(A,T),Sh,Dp) =>
-    "#(showType(A,Sh,Dp)) <~ #(showType(T,Sh,Dp))".
-  shTipeRule(.contractExists(N,A,D,T),Sh,Dp) => "#(shContract(N,A,D,Sh,Dp)) ::= #(shTipe(T,Sh,Dp))".
-  shTipeRule(.allRule(Q,R),Sh,Dp) =>
-    "all #(showBound(Q,Dp)) #(showMoreQRule(R,Sh,Dp))".
-  shTipeRule(.typeLambda(A,T),Sh,Dp) =>
-    "#(showType(A,Sh,Dp)) ~> #(showType(T,Sh,Dp))".
+  shTipeRule(.typeExists(A,T),Dp) =>
+    "#(showType(A,Dp)) <~ #(showType(T,Dp))".
+  shTipeRule(.contractExists(N,A,D,T),Dp) => "#(shContract(N,A,D,Dp)) ::= #(shTipe(T,Dp))".
+  shTipeRule(.allRule(Q,R),Dp) =>
+    "all #(showBound(Q,Dp)) #(showMoreQRule(R,Dp))".
+  shTipeRule(.typeLambda(A,T),Dp) =>
+    "#(showType(A,Dp)) ~> #(showType(T,Dp))".
 
-  showMoreQRule(.allRule(Q,R),Sh,Dp) =>
-    ", #(showBound(Q,Dp))#(showMoreQRule(R,Sh,Dp))".
-  showMoreQRule(R,Sh,Dp) =>
-    " ~~ #(shTipeRule(R,Sh,Dp))".
+  showMoreQRule(.allRule(Q,R),Dp) =>
+    ", #(showBound(Q,Dp))#(showMoreQRule(R,Dp))".
+  showMoreQRule(R,Dp) =>
+    " ~~ #(shTipeRule(R,Dp))".
   
-  showEls:(cons[tipe],boolean,integer,string) => cons[string].
-  showEls([],_,_,_) => [].
-  showEls([T,..Tps],Sh,Dp,Sep) => [Sep,showType(T,Sh,Dp),..showEls(Tps,Sh,Dp,", ")].
+  showEls:(cons[tipe],integer,string) => cons[string].
+  showEls([],_,_) => [].
+  showEls([T,..Tps],Dp,Sep) => [Sep,showType(T,Dp),..showEls(Tps,Dp,", ")].
 
-  showTypeEls:(cons[(string,tipe)],cons[(string,tipe)],boolean,integer) => string.
-  showTypeEls(Els,Tps,Sh,Dp) =>
-    interleave({"#(Nm)\:#(showType(Tp,Sh,Dp))" | (Nm,Tp) in Els} ++
-      {"type #(Nm)\:#(showType(Tp,Sh,Dp))" | (Nm,Tp) in Tps},".\n")*.
+  showTypeEls:(cons[(string,tipe)],cons[(string,tipe)],integer) => string.
+  showTypeEls(Els,Tps,Dp) =>
+    interleave({"#(Nm)\:#(showType(Tp,Dp))" | (Nm,Tp) in Els} ++
+      {"type #(Nm)\:#(showType(Tp,Dp))" | (Nm,Tp) in Tps},".\n")*.
 
-  showTpExp:(tipe,cons[tipe],boolean,integer) => string.
-  showTpExp(.tpFun("=>",2),[A,R],Sh,Dp) =>
-    "#(showType(A,Sh,Dp-1)) => #(showType(R,Sh,Dp-1))".
-  showTpExp(.tpFun("<=>",2),[A,R],Sh,Dp) =>
-    "#(showType(A,Sh,Dp-1)) <=> #(showType(R,Sh,Dp-1))".
-  showTpExp(.tpFun("ref",1),[R],Sh,Dp) =>
-    "ref #(showType(R,Sh,Dp-1))".
-  showTpExp(.tpFun(Nm,Ar),A,Sh,Dp) where size(A)==Ar =>
-    "#(Nm)[#(showTypes(A,Sh,Dp-1)*)]".    
-  showTpExp(.tpExp(O,A),R,Sh,Dp) =>
-    showTpExp(deRef(O),[A,..R],Sh,Dp).
-  showTpExp(Op,A,Sh,Dp) =>
-    "#(showType(Op,Sh,Dp-1))[#(showTypes(A,Sh,Dp-1)*)]".    
+  showTpExp:(tipe,cons[tipe],integer) => string.
+  showTpExp(.tpFun("=>",2),[A,R],Dp) => "#(showType(A,Dp-1)) => #(showType(R,Dp-1))".
+  showTpExp(.tpFun("<=>",2),[A,R],Dp) => "#(showType(A,Dp-1)) <=> #(showType(R,Dp-1))".
+  showTpExp(.tpFun("ref",1),[R],Dp) => "ref #(showType(R,Dp-1))".
+  showTpExp(.tpFun(Nm,Ar),A,Dp) where size(A)==Ar => "#(Nm)[#(showTypes(A,Dp-1)*)]".    
+  showTpExp(.tpExp(O,A),R,Dp) => showTpExp(deRef(O),[A,..R],Dp).
+  showTpExp(Op,A,Dp) => "#(showType(Op,Dp-1))[#(showTypes(A,Dp-1)*)]".    
 
-  shTpExp:(tipe,string,string,boolean,integer) => string.
-  shTpExp(.tpExp(T,A),Sep,R,Sh,Dp) => shTpExp(deRef(T),",","#(showType(A,Sh,Dp))#(Sep)#(R)",Sh,Dp).
-  shTpExp(.tpFun(Nm,_),Sep,R,_,Dp) => "#(Nm)[#(R)".
-  shTpExp(.kFun(Nm,_),Sep,R,_,Dp) => "#(Nm)[#(R)".
-  shTpExp(.tFun(_,_,Nm),Sep,R,_,Dp) => "#(Nm)[#(R)".
-  shTpExp(T,Sep,R,Sh,Dp) => "#(showType(T,Sh,Dp))[#(R)".
+  shTpExp:(tipe,string,string,integer) => string.
+  shTpExp(.tpExp(T,A),Sep,R,Dp) => shTpExp(deRef(T),",","#(showType(A,Dp))#(Sep)#(R)",Dp).
+  shTpExp(.tpFun(Nm,_),Sep,R,Dp) => "#(Nm)[#(R)".
+  shTpExp(.kFun(Nm,_),Sep,R,Dp) => "#(Nm)[#(R)".
+  shTpExp(.tFun(_,_,Nm),Sep,R,Dp) => "#(Nm)[#(R)".
+  shTpExp(T,Sep,R,Dp) => "#(showType(T,Dp))[#(R)".
 
   showAllConstraints([],Dp) => "".
   showAllConstraints([C,..Cs],Dp) => "#(showConstraint(C,Dp))#(showMoreConstraints(Cs,Dp))".
@@ -271,19 +265,17 @@ star.compiler.types{
   showMoreConstraints([],_) => "|:".
   showMoreConstraints([C,..Cs],Dp) => ", #(showConstraint(C,Dp))#(showMoreConstraints(Cs,Dp))".
 
-  showMoreQuantified(.allType(V,T),Sh,Dp) => ", #(showBound(V,Dp))#(showMoreQuantified(T,Sh,Dp))".
-  showMoreQuantified(T,Sh,Dp) => " ~~ #(showType(T,Sh,Dp))".
+  showMoreQuantified(.allType(V,T),Dp) => ", #(showBound(V,Dp))#(showMoreQuantified(T,Dp))".
+  showMoreQuantified(T,Dp) => " ~~ #(showType(T,Dp))".
 
-  showBound(V,Dp) => showType(V,.false,Dp).
+  showBound(V,Dp) => showType(V,Dp).
 
-  showConstraint(.conTract(Nm,T,D),Dp) => shContract(Nm,T,D,.false,Dp).
-  showConstraint(.hasField(Tp,Fld,Fc),Dp) =>
-    "#(showType(Tp,.false,Dp)) <~ {#(Fld):#(showType(Fc,.false,Dp))}".
-  showConstraint(.implicit(Fld,Tp),Dp) =>
-    "#(Fld) |= #(showType(Tp,.false,Dp))".
+  showConstraint(.conTract(Nm,T,D),Dp) => shContract(Nm,T,D,Dp).
+  showConstraint(.hasField(Tp,Fld,Fc),Dp) => "#(showType(Tp,Dp)) <~ {#(Fld):#(showType(Fc,Dp))}".
+  showConstraint(.implicit(Fld,Tp),Dp) => "#(Fld) : #(showType(Tp,Dp))".
 
   showDeps([],_) => "".
-  showDeps(Els,Dp) => "->>#(showTypes(Els,.false,Dp)*)".
+  showDeps(Els,Dp) => "->>#(showTypes(Els,Dp)*)".
   
   -- in general, hashing types is not reliable because of unification
   public implementation hashable[tipe] => let{.
