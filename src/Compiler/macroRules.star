@@ -277,9 +277,9 @@ star.compiler.macro.rules{
   -- Convert E:?T to _coerce(E):option[T]
 
   coercionMacro(A,.expression) where (Lc,L,R) ?= isCoerce(A) =>
-    .active(typeAnnotation(Lc,unary(Lc,"_optval",unary(Lc,"_coerce",L)),R)).
+    .active(mkTypeAnnotation(Lc,unary(Lc,"_optval",unary(Lc,"_coerce",L)),R)).
   coercionMacro(A,.expression) where (Lc,L,R) ?= isOptCoerce(A) =>
-    .active(typeAnnotation(Lc,unary(Lc,"_coerce",L),sqUnary(Lc,"option",R))).
+    .active(mkTypeAnnotation(Lc,unary(Lc,"_coerce",L),sqUnary(Lc,"option",R))).
   coercionMacro(_,_) => .inactive.
 
   indexMacro(A,.expression) where (Lc,L,R) ?= isIndexTerm(A) =>
@@ -673,11 +673,11 @@ star.compiler.macro.rules{
 	Fs = sort(Es^/((E)=>_?=isTypeAnnotation(E)),compEls);
 	Ts = sort(Es^/((E)=>_?=isTypeStatement(E)),compEls);
 	Els = Fs++Ts;
-	BCon = typeAnnotation(Lc,Nm,reUQuant(Lc,Qs,
+	BCon = mkTypeAnnotation(Lc,Nm,reUQuant(Lc,Qs,
 	  reConstrain(Cx,
 	      binary(Lc,"<=>",reXQuant(Lc,XQs,
 		  reConstrain(XCx,brTuple(Lc,Els))),Tp))));
-	DCon = typeAnnotation(Lc,dollarName(Nm),reUQuant(Lc,Qs,
+	DCon = mkTypeAnnotation(Lc,dollarName(Nm),reUQuant(Lc,Qs,
 	    reConstrain(Cx,
 	      binary(Lc,"<=>",reXQuant(Lc,XQs,
 		  reConstrain(XCx,rndTuple(Lc,projectTps(Els)))),Tp))));
@@ -685,13 +685,13 @@ star.compiler.macro.rules{
       }
   buildConstructors(A,Qs,Cx,Tp,Vz) where
       (Lc,Nm,XQs,XCx,Els) ?= isRoundCon(A) => let{
-	Con = typeAnnotation(Lc,Nm,reUQuant(Lc,Qs,
+	Con = mkTypeAnnotation(Lc,Nm,reUQuant(Lc,Qs,
 	  reConstrain(Cx,
 	    binary(Lc,"<=>",rndTuple(Lc,Els),Tp)))).
       } in [reveal(Con,Vz)].
   buildConstructors(A,Qs,Cx,Tp,Vz) where
       (Lc,Nm) ?= isEnumSymb(A) => let{
-	Con = typeAnnotation(Lc,.nme(Lc,Nm),reUQuant(Lc,Qs,
+	Con = mkTypeAnnotation(Lc,.nme(Lc,Nm),reUQuant(Lc,Qs,
 	  reConstrain(Cx,
 	      binary(Lc,"<=>",rndTuple(Lc,[]),Tp)))).
       } in [reveal(Con,Vz)].
@@ -775,11 +775,10 @@ star.compiler.macro.rules{
   accessorEqns(Cns,Fld,Tp,SoFar) where
       (Lc,CnNm,Els)?=isBrTerm(Cns) && isFieldOfFc(Els,Fld) => valof{
 	Sorted = sort(Els,compEls);
-	XX = .nme(Lc,"X");
-
+	XX = mkTypeAnnotation(Lc,.nme(Lc,"X"),Tp);
 	ConArgs = projectArgTypes(Sorted,XX,Fld);
 	
-	Eqn = equation(Lc,mkEnumCon(Lc,dollarName(CnNm),ConArgs),XX);
+	Eqn = equation(Lc,mkEnumCon(Lc,dollarName(CnNm),ConArgs),.nme(Lc,"X"));
 	valis [Eqn,..SoFar]
       }.
   accessorEqns(C,Fld,Tp,Eqns) where (Lc,I) ?= isPrivate(C) =>
@@ -808,8 +807,10 @@ star.compiler.macro.rules{
     AccessHead = squareTerm(Lc,Fld,[mkDepends(Lc,[H],[FldTp])]);
     Gv = .nme(Lc,"G");
 
+    XX = mkTypeAnnotation(Lc,.nme(Lc,"XX"),FldTp);
+
     valis [mkUpdaterStmt(Lc,Q,XQ,Cx,AccessHead,
-	equation(Lc,rndTuple(Lc,[Gv,.nme(Lc,"XX")]),mkCaseExp(Lc,Gv,UpEqs)))]
+	equation(Lc,rndTuple(Lc,[Gv,XX]),mkCaseExp(Lc,Gv,UpEqs)))]
   }
   makeUpdater(_,_,_,_,_,_,_,_) default => [].
 
@@ -837,7 +838,7 @@ star.compiler.macro.rules{
       (Lc,V,T) ?= isTypeAnnotation(A) && F == V =>
     [Rep,..allArgs(As,F,Ix+1,Rep)].
   allArgs([A,..As],F,Ix,Rep) where (Lc,V,T) ?= isTypeAnnotation(A) =>
-    [.nme(Lc,"X$(Ix)"),..allArgs(As,F,Ix+1,Rep)].
+    [mkTypeAnnotation(Lc,.nme(Lc,"X$(Ix)"),T),..allArgs(As,F,Ix+1,Rep)].
   allArgs([_,..As],F,Ix,Rep) => allArgs(As,F,Ix,Rep).
   
 }

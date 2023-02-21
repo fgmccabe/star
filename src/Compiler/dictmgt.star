@@ -134,7 +134,7 @@ star.compiler.dict.mgt{
   declareEnum(Nm,FullNm,Lc,Tp,Env) =>
     declareVr(Nm,Lc,Tp,(L,E)=>pickupEnum(L,FullNm,Tp,E),.none,Env).
 
-  declareVr:(string,option[locn],tipe,(option[locn],dict)=>canon,option[tipe],dict) => dict.
+  public declareVr:(string,option[locn],tipe,(option[locn],dict)=>canon,option[tipe],dict) => dict.
   declareVr(Nm,Lc,Tp,MkVr,Fc,[Sc,..Ev]) => valof{
     valis [Sc.vars=Sc.vars[Nm->.vrEntry(Lc,MkVr,Tp,Fc)],..Ev]
   }.

@@ -316,15 +316,13 @@ star.compiler.checker{
     checkType(St,funType(Ats,RTp),ProgramType,Env);
     (Args,ACnd,E0) = typeOfArgPtn(Arg,.tupleType(Ats),Outer,Path);
 
-    ETp = snd(evidence(RTp,Env));
-
     if Wh?=Cnd then{
       (Cond,E1) = checkCond(Wh,E0,Path);
-      Rep = typeOfExp(R,ETp,E1,Path);
+      Rep = typeOfExp(R,RTp,E1,Path);
 	  
       valis (.rule(Lc,Args,mergeGoal(Lc,ACnd,.some(Cond)),Rep),IsDeflt)
     } else{
-      valis (.rule(Lc,Args,ACnd,typeOfExp(R,ETp,E0,Path)),IsDeflt)
+      valis (.rule(Lc,Args,ACnd,typeOfExp(R,RTp,E0,Path)),IsDeflt)
     }
   }
 
@@ -389,8 +387,8 @@ star.compiler.checker{
 	logMsg("rc type $(RcTp), fld $(FldTp)");
 
       AT = funType([RcTp],FldTp);
-      AccTp = rebind(QV,AT,Env);
---      AccTp = rebind(QV,reConstrainType(Cx,AT),Env);
+--      AccTp = rebind(QV,AT,Env);
+      AccTp = rebind(QV,reConstrainType(Cx,AT),Env);
 
       (Qs,ETp) = evidence(AccTp,Env);
       (CCx,VarTp) = deConstrain(ETp);
@@ -426,6 +424,7 @@ star.compiler.checker{
       FldTp = parseType(QV,R,Env);
 
       AT = funType([RcTp,FldTp],RcTp);
+--      AccTp = rebind(QV,AT,Env);
       AccTp = rebind(QV,reConstrainType(Cx,AT),Env);
 
       if traceCanon! then
@@ -478,6 +477,20 @@ star.compiler.checker{
     Exp = typeOfExp(A,Tp,Env,Path);
     valis (Exp,.none,Env)
   }
+
+  typeOfPtn(A,Tp,Env,Path) where (Lc,E,T) ?= isTypeAnnotation(A) && (_,Id) ?= isName(E) => valof{
+    if traceCanon! then
+      logMsg("type annotated var $(Id)\:$(T)");
+
+    ETp = parseType([],T,Env);
+
+    if traceCanon! then
+      logMsg("type  $(ETp), expected type $(Tp)");
+
+    checkType(E,Tp,ETp,Env);
+    Ev = declareVr(Id,Lc,Tp,(OLc,D) => .vr(OLc,Id,Tp),.none,Env);
+    valis (.vr(Lc,Id,Tp),.none,Ev)
+  }
   typeOfPtn(A,Tp,Env,Path) where (Lc,E,T) ?= isTypeAnnotation(A) => valof{
     if traceCanon! then
       logMsg("type annotated pattern $(E)\:$(T)");
@@ -485,13 +498,12 @@ star.compiler.checker{
     ETp = parseType([],T,Env);
 
     if traceCanon! then
-      logMsg("type  $(ETp)");
+      logMsg("type  $(ETp), expected type $(Tp)");
 
     checkType(E,Tp,ETp,Env);
     if traceCanon! then
       logMsg("type annotated ptn $(E), check against $(ETp)");
---    valis typeOfPtn(E,ETp,Env,Path)
-    valis typeOfPtn(E,snd(evidence(ETp,Env)),Env,Path)
+    valis typeOfPtn(E,ETp,Env,Path)
   }.
   typeOfPtn(A,Tp,Env,Path) where 
       (Lc,E,C) ?= isWhere(A) => valof{
@@ -611,9 +623,7 @@ star.compiler.checker{
     (cons[canon],option[canon],dict).
   typeOfPtns([],[],Cond,Els,Env,_) => (reverse(Els),Cond,Env).
   typeOfPtns([P,..Ps],[T,..Ts],Cnd,Els,Env,Path) => valof{
-    if traceCanon! then
-      logMsg("$(T) -> $(snd(evidence(T,Env)))");
-    (Pt,C,E0) = typeOfPtn(P,snd(evidence(T,Env)),Env,Path);
+    (Pt,C,E0) = typeOfPtn(P,T,Env,Path);
     valis typeOfPtns(Ps,Ts,mergeGoal(locOf(P),Cnd,C),[Pt,..Els],E0,Path)
   }
   
@@ -658,8 +668,7 @@ star.compiler.checker{
 
     checkType(E,Tp,ETp,Env);
 
---    valis typeOfExp(E,ETp,Env,Path)
-    valis typeOfExp(E,snd(evidence(ETp,Env)),Env,Path)
+    valis typeOfExp(E,ETp,Env,Path)
   }.
   typeOfExp(A,Tp,Env,Path) where (Lc,E) ?= isOpen(A) => valof{
     XTp = newTypeVar("X");
@@ -750,10 +759,10 @@ star.compiler.checker{
 
     if Cnd ?= C then {
       (Cond,E1) = checkCond(Cnd,E0,Path);
-      Rep = typeOfExp(R,snd(evidence(Rt,E0)),E1,Path);
+      Rep = typeOfExp(R,Rt,E1,Path);
       valis .lambda(Lc,LName,[.rule(Lc,As,mergeGoal(Lc,ACnd,?Cond),Rep)],Tp)
     } else{
-      Rep = typeOfExp(R,snd(evidence(Rt,E0)),E0,Path);
+      Rep = typeOfExp(R,Rt,E0,Path);
       valis .lambda(Lc,LName,[.rule(Lc,As,ACnd,Rep)],Tp)
     }
   }
@@ -866,7 +875,7 @@ star.compiler.checker{
   typeOfExps:(cons[ast],cons[tipe],cons[canon],dict,string) => cons[canon].
   typeOfExps([],[],Els,Env,_) =>reverse(Els).
   typeOfExps([P,..Ps],[T,..Ts],Els,Env,Path) =>
-    typeOfExps(Ps,Ts,[typeOfExp(P,snd(evidence(T,Env)),Env,Path),..Els],Env,Path).
+    typeOfExps(Ps,Ts,[typeOfExp(P,T,Env,Path),..Els],Env,Path).
 
   typeOfRoundTerm:(option[locn],ast,cons[ast],tipe,dict,string) => canon.
   typeOfRoundTerm(Lc,Op,As,Tp,Env,Path) => valof{
@@ -1037,17 +1046,15 @@ star.compiler.checker{
     if traceCanon! then
       logMsg("raw rule ptn $(Lhs)|~$(PtnTp)");
 
-    ETp = snd(evidence(RTp,Env));
-
     (Arg,ACnd,E0) = typeOfPtn(Lhs,PtnTp,Es,Path);
 
     if Wh?=Cnd then{
       (Cond,E1) = checkCond(Wh,E0,Path);
-      Rep = Chk(R,ETp,E1,Path);
+      Rep = Chk(R,RTp,E1,Path);
       valis .some((.rule(Lc,.tple(Lc,[Arg]),mergeGoal(Lc,ACnd,.some(Cond)),Rep),IsDeflt))
     }
     else{
-      Rep = Chk(R,ETp,E0,Path);
+      Rep = Chk(R,RTp,E0,Path);
       valis .some((.rule(Lc,.tple(Lc,[Arg]),ACnd,Rep),IsDeflt))
     }
   }

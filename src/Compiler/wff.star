@@ -204,8 +204,8 @@ star.compiler.wff{
   public isTypeAnnotation:(ast)=>option[(option[locn],ast,ast)].
   isTypeAnnotation(A) => isBinary(A,":").
 
-  public typeAnnotation:(option[locn],ast,ast)=>ast.
-  typeAnnotation(Lc,V,T) => binary(Lc,":",V,T).
+  public mkTypeAnnotation:(option[locn],ast,ast)=>ast.
+  mkTypeAnnotation(Lc,V,T) => binary(Lc,":",V,T).
 
   public isTypeExistsStmt:(ast) => option[(option[locn],cons[ast],cons[ast],ast,ast)].
   isTypeExistsStmt(A) where
@@ -244,7 +244,7 @@ star.compiler.wff{
       (_,V,T) ?= isTypeAnnotation(R) => .some((Lc,V,T)).
   isTypeStatement(_) default => .none.
 
-  public mkTypeStatement(Lc,V,T) => unary(Lc,"type",typeAnnotation(Lc,V,T)).
+  public mkTypeStatement(Lc,V,T) => unary(Lc,"type",mkTypeAnnotation(Lc,V,T)).
 
   public isAlgebraicTypeStmt:(ast) => 
     option[(option[locn],visibility,cons[ast],cons[ast],ast,ast)].
