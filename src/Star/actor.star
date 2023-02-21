@@ -7,7 +7,7 @@ star.actor{
     _tell:(a,(i)=>()) => () raises exception.
   }
 
-/*  actorProtocol[i] ::=
+  actorProtocol[i] ::=
     exists r ~~ query{ q:(i)=>r. resp:channel[r]}
     | .tell((i)=>()).
 
@@ -40,7 +40,6 @@ star.actor{
       valis ()
     }
   }
-  */
 }
 	
 	

@@ -42,7 +42,7 @@ star.compiler.macro{
 
   examineStmt:(ast) => ast.
   examineStmt(A) where (Lc,L,R) ?= isTypeAnnotation(A) => 
-    typeAnnotation(Lc,L,macroType(R)).
+    mkTypeAnnotation(Lc,L,macroType(R)).
   examineStmt(A) where (Lc,V,T) ?= isTypeStatement(A) =>
     mkTypeStatement(Lc,V,macroType(T)).
   examineStmt(A) where (Lc,R) ?= isPublic(A) => 
@@ -167,7 +167,7 @@ star.compiler.macro{
   examineTerm(A) where .num(_,_) .= A => A.
   examineTerm(A) where .str(_,_) .= A => A.
   examineTerm(A) where (Lc,L,R) ?= isTypeAnnotation(A) => 
-    typeAnnotation(Lc,macroTerm(L),macroType(R)).
+    mkTypeAnnotation(Lc,macroTerm(L),macroType(R)).
   examineTerm(A) where (Lc,L,R) ?= isCoerce(A) => 
     mkCoercion(Lc,macroTerm(L),macroType(R)).
   examineTerm(A) where (Lc,R) ?= isCellRef(A) =>
@@ -279,7 +279,7 @@ star.compiler.macro{
   examinePtn(A) where .chr(_,_) .= A => A.
   examinePtn(A) where _ ?= isEnumSymb(A) => A.
   examinePtn(A) where (Lc,L,R) ?= isTypeAnnotation(A) =>
-    typeAnnotation(Lc,macroPtn(L),macroType(R)).
+    mkTypeAnnotation(Lc,macroPtn(L),macroType(R)).
   examinePtn(A) where (Lc,Lb,S) ?= isLabeledRecord(A) => 
     mkQBrTerm(Lc,Lb,macroStmts(S)).
   examinePtn(A) where (Lc,O,Els) ?= isRoundTerm(A) => 
@@ -401,7 +401,7 @@ star.compiler.macro{
 --    logMsg("main action $(Action)");
     Valof = mkValof(Lc,brTuple(Lc,[Action]));
     Main = equation(Lc,MLhs,Valof);
-    Annot = typeAnnotation(Lc,.nme(Lc,"_main"),equation(Lc,rndTuple(Lc,
+    Annot = mkTypeAnnotation(Lc,.nme(Lc,"_main"),equation(Lc,rndTuple(Lc,
 	  [squareTerm(Lc,.nme(Lc,"cons"),[.nme(Lc,"string")])]),rndTuple(Lc,[])));
     valis [unary(Lc,"public",Annot),Main,..Defs].
   }
