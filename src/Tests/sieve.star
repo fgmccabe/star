@@ -5,7 +5,6 @@ test.sieve{
 
   gen:(channel[integer]) => taskFun[integer].
   gen(Chnnl) => (this)=>valof{
---    logMsg("starting generator");
     Ix := 1;
     try{
       while .true do{
@@ -13,7 +12,6 @@ test.sieve{
 	post(this,Ix!,Chnnl)
       }
     } catch { .canceled => {
---	logMsg("generator canceled at $(Ix!)");
 	_retire_fiber(this,.retired_)
     }
     }
@@ -30,7 +28,6 @@ test.sieve{
 
   sieve:(task[integer],integer,integer,channel[integer]) => integer.
   sieve(this,Cnt,Mx,Chnnl) => valof{
---    logMsg("starting sieve #(_stringOf(this,2))");
     try{
       Nxt = collect(this,Chnnl);
       if Cnt<Mx then{
@@ -40,7 +37,6 @@ test.sieve{
 	  spawn((T)=>sieve(T,Cnt+1,Mx,NChnl));
 	  filter(this,Nxt,Chnnl,NChnl)
 	} catch { .canceled => {
---	    logMsg("canceling $(Nxt) filter #(_stringOf(this,2))");
 	    _retire_fiber(this,.retired_) }
 	}
       } else{
@@ -48,7 +44,6 @@ test.sieve{
 	_retire_fiber(this,.result(Nxt))
       }
     } catch { .canceled => {}};
---    logMsg("collected $(Mx) primes");
     _retire_fiber(this,.retired_)
   }
 

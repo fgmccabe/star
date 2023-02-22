@@ -62,7 +62,7 @@ star.mbox{
     }
   }
   
-  spawnTask:all e ~~ ((task[e])=>e) => task[e].
+  public spawnTask:all e ~~ ((task[e])=>e) => task[e].
   spawnTask(F) => case _spawn((Tsk) => valof{
       case _suspend_fiber(Tsk,.identify(Tsk)) in {
 	.go_ahead => {
