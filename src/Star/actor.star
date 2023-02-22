@@ -7,11 +7,11 @@ star.actor{
     _tell:(a,(i)=>()) => () raises exception.
   }
 
-  actorProtocol[i] ::=
+  public actorProtocol[i] ::=
     exists r ~~ query{ q:(i)=>r. resp:channel[r]}
     | .tell((i)=>()).
 
-  actorHead:all i ~~ (channel[actorProtocol[i]],i) => taskFun[i].
+  public actorHead:all i ~~ (channel[actorProtocol[i]],i) => taskFun[()].
   actorHead(mBox,body) => (this) => valof{
     while .true do{
       try{
@@ -23,13 +23,13 @@ star.actor{
 	    A(body);
 	  }
 	}
-      } catch { (_) => logMsg("Problem in actor") }
+      } catch { (_) => { logMsg("Problem in actor"); valis () }}
     }
   }
 
-  actor[i] ::= .actor(task[i],channel[actorProtocol[i]]).
+  public actor[i] ::= .actor(task[()],channel[actorProtocol[i]]).
 
-  implementation all i ~~ sa[actor[i]->>i] => {
+  public implementation all i ~~ sa[actor[i]->>i] => {
     _query(.actor(T,Ch),Q) => valof{
       R = newChannel();
       post(T,query{q=Q. resp=R},Ch);

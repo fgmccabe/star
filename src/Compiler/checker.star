@@ -34,6 +34,9 @@ star.compiler.checker{
 	(Imports,Stmts) = collectImports(Els,[],[]);
 	(AllImports,IDecls) = importAll(Imports,Repo,[],[]);
 
+	if traceCanon! then
+	  logMsg("Import declarations $(IDecls)");
+
 	PkgEnv = declareDecls(IDecls,Base);
 	PkgPth = packageName(Pkg);
 
@@ -383,19 +386,13 @@ star.compiler.checker{
       RcTp = parseType(QV,L,Env);
       FldTp = parseType(QV,R,Env);
 
-      if traceCanon! then
-	logMsg("rc type $(RcTp), fld $(FldTp)");
-
       AT = funType([RcTp],FldTp);
---      AccTp = rebind(QV,AT,Env);
       AccTp = rebind(QV,reConstrainType(Cx,AT),Env);
 
       (Qs,ETp) = evidence(AccTp,Env);
       (CCx,VarTp) = deConstrain(ETp);
       Es = declareConstraints(Lc,CCx,declareTypeVars(Qs,Env));
 
-      if traceCanon! then
-	logMsg("accessor type $(VarTp)");
       AccFn = typeOfExp(B,VarTp,Es,Path);
 
       AccVrNm = qualifiedName(Path,.valMark,qualifiedName(tpName(RcTp),.typeMark,"^"++Fld));
