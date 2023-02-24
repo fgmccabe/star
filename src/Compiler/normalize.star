@@ -344,7 +344,7 @@ star.compiler.normalize{
   liftExp(.trycatch(Lc,B,Th,Hndlr,Tp),Map,Q,Ex) => valof{
     if ErTp?=getTypeArg(typeOf(Th),"star.core*cont") then{
       (TT,Ex1) = liftPtn(Th,Map,Q,Ex);
-      (BB,Ex2) = liftExp(B,Map,Q,Ex1);
+      (BB,Ex2) = liftExp(B,Map,ptnVars(Th,Q,[]),Ex1);
       (Hs,Ex3) = transformRules(Hndlr,Map,Q,.none,Ex2);
       ErrVr = .cVar(Lc,genVar("E",ErTp));
       HH = caseMatcher(Lc,Map,ErrVr,.cAbort(Lc,"no matches",Tp),Hs);
@@ -695,7 +695,7 @@ star.compiler.normalize{
   liftAction(.doTryCatch(Lc,B,Th,H),Map,Q,Ex) => valof{
     if ErTp?=getTypeArg(typeOf(Th),"star.core*cont") then{
       (TT,Ex1) = liftPtn(Th,Map,Q,Ex);
-      (BB,Ex2) = liftAction(B,Map,Q,Ex1);
+      (BB,Ex2) = liftAction(B,Map,ptnVars(Th,Q,[]),Ex1);
       (Hs,Ex3) = transformRules(H,Map,Q,.none,Ex2);
       ErrVr = .cVar(Lc,genVar("E",ErTp));
       Hndlr = caseMatcher(Lc,Map,ErrVr,.aAbort(Lc,"no matches"),Hs);
