@@ -479,12 +479,22 @@ star.compiler.resolve{
 
   resolveDot:(option[locn],canon,string,tipe,dict,resolveState) => (canon,resolveState).
   resolveDot(Lc,Rc,Fld,Tp,Dict,St) => valof{
+    if traceCanon! then
+      logMsg("resolve $(Rc).#(Fld)\:$(Tp)");
     RcTp = typeOf(Rc);
     if AccFn ?= findAccess(Lc,RcTp,Fld,Dict) then{
+      if traceCanon! then
+	logMsg("access function $(AccFn)\:$(typeOf(AccFn))");
+      
       Ft = newTypeVar("F");
       if sameType(typeOf(AccFn),funType([RcTp],Ft),Dict) then{
-	if sameType(Tp,snd(freshen(Ft,Dict)),Dict) then{
-	  valis overloadTerm(.apply(Lc,AccFn,[Rc],Tp),Dict,markResolved(St))
+	FrFt = snd(freshen(Ft,Dict));
+	(Cx,FldT) = deConstrain(FrFt);
+
+	if traceCanon! then
+	  logMsg("check field type $(Ft)=$(FldT) against $(Tp)");
+	if sameType(Tp,FldT,Dict) then{
+	  valis overloadTerm(manageConstraints(FrFt,Lc,(T)=>.apply(Lc,AccFn,[Rc],T)),Dict,markResolved(St))
 	} else{
 	  valis (.dot(Lc,Rc,Fld,Tp),
 	    .active(Lc,"field $(Rc).$(Fld)\:$(Ft) not consistent with required type $(Tp)")).

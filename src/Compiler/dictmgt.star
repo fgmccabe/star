@@ -245,7 +245,7 @@ star.compiler.dict.mgt{
   declareConstraints(Lc,[_,..Cx],Env) =>
     declareConstraints(Lc,Cx,Env).
 
-  manageConstraints:(tipe,option[locn],(tipe)=>canon) => canon.
+  public manageConstraints:(tipe,option[locn],(tipe)=>canon) => canon.
   manageConstraints(.constrainedType(Tp,Con),Lc,Term) =>
     manageConstraints(deRef(Tp),Lc,(TT)=>applyConstraint(Lc,Con,Term(TT))).
   manageConstraints(Tp,Lc,Term) => Term(Tp).
