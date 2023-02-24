@@ -62,7 +62,7 @@ star.mbox{
     }
   }
   
-  public spawnTask:all e ~~ ((task[e])=>e) => task[e].
+  spawnTask:all e ~~ ((task[e])=>e) => task[e].
   spawnTask(F) => case _spawn((Tsk) => valof{
       case _suspend_fiber(Tsk,.identify(Tsk)) in {
 	.go_ahead => {
@@ -133,7 +133,7 @@ star.mbox{
     }
   }
 
-  public spawn:all e ~~ this |= task[e] |: ((task[e])=>e) => () raises exception.
+  public spawn:all e ~~ this |= task[e] |: (taskFun[e]) => () raises exception.
   spawn(F) => valof{
     case _suspend_fiber(this,.fork(F)) in {
       .go_ahead => valis ()
