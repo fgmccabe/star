@@ -64,6 +64,7 @@ star.compiler.operators{
     "->>" => [.infixOp(1199,1200,1199)].
     "?=" => [.infixOp(899,900,899)].
     "default" => [.postfixOp(939,940)].
+    "<*" => [.infixOp(600,600,599)].
     "#" => [.prefixOp(1750,1749), .infixOp(759,760,759)].
     "??" => [.infixOp(919,920,920)].
     "%" => [.infixOp(700,700,699)].
@@ -328,7 +329,7 @@ star.compiler.operators{
     ".|." => .true.  /* bitwise or */
     ".}" => .true.  /* recursive braces */
     ".~." => .true.  /* bitwise 1's complement */
-    ".<<." => .true.  /* shift left */
+    ".<<." => .true.  /* left shift */
     ".<." => .true.  /* set membership */
     ".^." => .true.  /* bitwise xor */
     ".+." => .true.  /* count of number of bits */
@@ -374,6 +375,7 @@ star.compiler.operators{
     ":=" => .true.  /* assignment */
     ";" => .true.  /* sequencing operator */
     "<" => .true.  /* less than */
+    "<*" => .true.  /* left fold */
     "<*>" => .true.  /* applicative splat */
     "<~" => .true.  /* type interface rule */
     "<$" => .true.  /* constant replace */

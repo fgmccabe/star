@@ -805,13 +805,23 @@
     "keyword": false
   },
   {
+    "infixOp": "<*",
+    "priorities": [
+      600,
+      600,
+      599
+    ],
+    "desc": "left fold",
+    "keyword": false
+  },
+  {
     "infixOp": ".<<.",
     "priorities": [
       600,
       600,
       599
     ],
-    "desc": "shift left",
+    "desc": "left shift",
     "keyword": false
   },
   {

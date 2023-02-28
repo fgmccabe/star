@@ -47,6 +47,7 @@
   operator("->>", [infixOp(1199, 1200, 1199)]).
   operator("?=", [infixOp(899, 900, 899)]).
   operator("default", [postfixOp(939, 940)]).
+  operator("<*", [infixOp(600, 600, 599)]).
   operator("#", [prefixOp(1750, 1749), infixOp(759, 760, 759)]).
   operator("??", [infixOp(919, 920, 920)]).
   operator("%", [infixOp(700, 700, 699)]).
@@ -272,7 +273,7 @@
   final('.|.',".|.").	 /* bitwise or */
   final('.}',".}").	 /* recursive braces */
   final('.~.',".~.").	 /* bitwise 1's complement */
-  final('.<<.',".<<.").	 /* shift left */
+  final('.<<.',".<<.").	 /* left shift */
   final('.<.',".<.").	 /* set membership */
   final('.^.',".^.").	 /* bitwise xor */
   final('.+.',".+.").	 /* count of number of bits */
@@ -318,6 +319,7 @@
   final(':=',":=").	 /* assignment */
   final(';',";").	 /* sequencing operator */
   final('<',"<").	 /* less than */
+  final('<*',"<*").	 /* left fold */
   final('<*>',"<*>").	 /* applicative splat */
   final('<~',"<~").	 /* type interface rule */
   final('<$',"<$").	 /* constant replace */
