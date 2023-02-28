@@ -23,7 +23,7 @@ ReturnStatus g__spawn(heapPo h, termPo lambda) {
   return (ReturnStatus) {.ret=Switch, .result = Null};
 }
 
-ReturnStatus g__suspend_fiber(heapPo h, termPo f, termPo event) {
+ReturnStatus g__suspend(heapPo h, termPo f, termPo event) {
   stackPo fiber = C_STACK(f);
   if (stackState(fiber) != active) {
     logMsg(logFile, "tried to suspend non-active fiber %T", fiber);
@@ -34,7 +34,7 @@ ReturnStatus g__suspend_fiber(heapPo h, termPo f, termPo event) {
   }
 }
 
-ReturnStatus g__resume_fiber(heapPo h, termPo f, termPo event) {
+ReturnStatus g__resume(heapPo h, termPo f, termPo event) {
   stackPo fiber = C_STACK(f);
   if (stackState(fiber) != suspended) {
     logMsg(logFile, "tried to resume non-suspended fiber %T", fiber);
@@ -45,7 +45,7 @@ ReturnStatus g__resume_fiber(heapPo h, termPo f, termPo event) {
   }
 }
 
-ReturnStatus g__retire_fiber(heapPo h, termPo f, termPo event) {
+ReturnStatus g__retire(heapPo h, termPo f, termPo event) {
   stackPo fiber = C_STACK(f);
   if (stackState(fiber) != active) {
     logMsg(logFile, "tried to retire non-active fiber %T", fiber);

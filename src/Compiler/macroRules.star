@@ -338,7 +338,7 @@ star.compiler.macro.rules{
   {
     I .= _generate(C);
     lb:while .true do{
-       case _resume_fiber(I,._next) in {
+       case _resume(I,._next) in {
         _yld(P) => B.
         _yld(_) default => {}.
         ._all => break lb
@@ -361,7 +361,7 @@ star.compiler.macro.rules{
     Deflt = mkEquation(Lc,.none,.true,mkEnumCon(Lc,.nme(Lc,"_yld"),[mkAnon(Lc)]),.none,brTuple(Lc,[]));
 
     /* build case I resume ._next in .. */
-    Resume = mkCaseExp(Lc,binary(Lc,"_resume_fiber",I,enum(Lc,"_next")),[Yld,Deflt,End]);
+    Resume = mkCaseExp(Lc,binary(Lc,"_resume",I,enum(Lc,"_next")),[Yld,Deflt,End]);
 
     /* Build while .true loop */
     Loop = mkWhileDo(Lc,enum(Lc,"true"),brTuple(Lc,[Resume]));
@@ -402,9 +402,9 @@ star.compiler.macro.rules{
 
   /* yield E
   becomes
-  case _suspend_fiber(this,._yld(E)) in {
+  case _suspend(this,._yld(E)) in {
     ._next => {}.
-  ._cancel => _retire_fiber(this,._all)
+  ._cancel => _retire(this,._all)
   }
   */
   yieldMacro(A,.actn) where (Lc,E) ?= isUnary(A,"yield") => valof{
@@ -412,11 +412,11 @@ star.compiler.macro.rules{
     /* build ._next => {} */
     Nxt = mkLambda(Lc,.false,enum(Lc,"_next"),.none,brTuple(Lc,[]));
 
-    /* build ._cancel => _retire_fiber(this, ._all) */
-    Cancel = mkLambda(Lc,.false,enum(Lc,"_cancel"),.none,binary(Lc,"_retire_fiber",This,enum(Lc,"_all")));
+    /* build ._cancel => _retire(this, ._all) */
+    Cancel = mkLambda(Lc,.false,enum(Lc,"_cancel"),.none,binary(Lc,"_retire",This,enum(Lc,"_all")));
 
     /* Build suspend */
-    valis .active(mkCaseExp(Lc,binary(Lc,"_suspend_fiber",This,mkEnumCon(Lc,.nme(Lc,"_yld"),[E])),[Nxt,Cancel]))
+    valis .active(mkCaseExp(Lc,binary(Lc,"_suspend",This,mkEnumCon(Lc,.nme(Lc,"_yld"),[E])),[Nxt,Cancel]))
   }
 
   /*
@@ -443,7 +443,7 @@ star.compiler.macro.rules{
   becomes
   case _spawn((Try) => let{
       _raise(E) => valof{
-  _retire_fiber(Try,._except(E))
+  _retire(Try,._except(E))
       }
     } in
     ._ok(B) ) in {
@@ -460,7 +460,7 @@ star.compiler.macro.rules{
     XC = mkEnumCon(Lc,.nme(Lc,"_except"),[E]);
 
     Thrw = equation(Lc,unary(Lc,"_raise",E),
-      mkValof(Lc,brTuple(Lc,[binary(Lc,"_retire_fiber",T,XC)])));
+      mkValof(Lc,brTuple(Lc,[binary(Lc,"_retire",T,XC)])));
     Ltt = mkLetDef(Lc,[Thrw],mkEnumCon(Lc,.nme(Lc,"_ok"),[B]));
     Lam = equation(Lc,rndTuple(Lc,[T]),Ltt);
     Cs1 = equation(Lc,mkEnumCon(Lc,.nme(Lc,"_ok"),[X]),X);
@@ -473,7 +473,7 @@ star.compiler.macro.rules{
   becomes
   case _spawn((Try) => let{
     _raise(E) => valof{
-      _retire_fiber(Try,._except(E))
+      _retire(Try,._except(E))
     }
   } in {
   B; -- valis E => valis ._ok(E)		-- 
@@ -491,7 +491,7 @@ star.compiler.macro.rules{
     XC = mkEnumCon(Lc,.nme(Lc,"_except"),[E]);
 
     Thrw = equation(Lc,unary(Lc,"_raise",E),
-      mkValof(Lc,brTuple(Lc,[binary(Lc,"_retire_fiber",T,XC)])));
+      mkValof(Lc,brTuple(Lc,[binary(Lc,"_retire",T,XC)])));
     Ltt = mkLetDef(Lc,[Thrw],mkEnumCon(Lc,.nme(Lc,"_ok"),[mkValof(Lc,B)]));
     Lam = equation(Lc,rndTuple(Lc,[T]),Ltt);
     Cs1 = equation(Lc,mkEnumCon(Lc,.nme(Lc,"_ok"),[mkAnon(Lc)]),brTuple(Lc,[]));

@@ -12,7 +12,7 @@ test.sieve{
 	post(this,Ix!,Chnnl)
       }
     } catch { .canceled => {
-	_retire_fiber(this,.retired_)
+	_retire(this,.retired_)
     }
     }
   }
@@ -37,14 +37,14 @@ test.sieve{
 	  spawn((T)=>sieve(T,Cnt+1,Mx,NChnl));
 	  filter(this,Nxt,Chnnl,NChnl)
 	} catch { .canceled => {
-	    _retire_fiber(this,.retired_) }
+	    _retire(this,.retired_) }
 	}
       } else{
 	logMsg("collected $(Mx) primes");
-	_retire_fiber(this,.result(Nxt))
+	_retire(this,.result(Nxt))
       }
     } catch { .canceled => {}};
-    _retire_fiber(this,.retired_)
+    _retire(this,.retired_)
   }
 
   _main:(cons[string]) => ().
@@ -57,7 +57,7 @@ test.sieve{
     Gn = gen(FstCh);
     Sv = (Tsk)=>valof{
       sieve(Tsk,0,Cnt,FstCh);
-      _retire_fiber(Tsk,.retired_)
+      _retire(Tsk,.retired_)
     };
 
     Eras = nursery([Gn,Sv]);

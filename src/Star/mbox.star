@@ -28,14 +28,14 @@ star.mbox{
   post(T,D,Ch where .channel(St).=Ch) => valof{
     case St! in {
       .hasData(_) => {
-	case _suspend_fiber(T,.blocked(()=>.hasData(_).=St!)) in {
+	case _suspend(T,.blocked(()=>.hasData(_).=St!)) in {
 	  .go_ahead => valis post(T,D,Ch)
 	  | .shut_down_ => raise .canceled
 	}
       }
       | .quiescent => {
 	St := .hasData(D);
-	case _suspend_fiber(T,.yield_) in {
+	case _suspend(T,.yield_) in {
 	  .go_ahead => valis ()
 	  | .shut_down_ => raise .canceled
 	}
@@ -48,13 +48,13 @@ star.mbox{
     case St! in {
       .hasData(D) => {
 	St := .quiescent;
-	case _suspend_fiber(T,.yield_) in {
+	case _suspend(T,.yield_) in {
 	  .go_ahead => valis D
 	  | .shut_down_ => raise .canceled
 	}
       }
       | .quiescent => {
-	case _suspend_fiber(T,.blocked(()=> ~.hasData(_).=St!)) in {
+	case _suspend(T,.blocked(()=> ~.hasData(_).=St!)) in {
 	  .go_ahead => valis collect(T,Ch)
 	  | .shut_down_ => raise .canceled
 	}
@@ -64,13 +64,13 @@ star.mbox{
   
   spawnTask:all e ~~ ((task[e])=>e) => task[e].
   spawnTask(F) => case _spawn((Tsk) => valof{
-      case _suspend_fiber(Tsk,.identify(Tsk)) in {
+      case _suspend(Tsk,.identify(Tsk)) in {
 	.go_ahead => {
-	  _retire_fiber(Tsk,.result(F(Tsk)))
+	  _retire(Tsk,.result(F(Tsk)))
 	}
 	| .shut_down_ => {}
       };
-      _retire_fiber(Tsk,.retired_)
+      _retire(Tsk,.retired_)
     }) in {
     .identify(Tsk) => Tsk
     }.
@@ -87,12 +87,12 @@ star.mbox{
 	    Q := Rs;
 --	    logMsg("resuming");
 --	    _ins_debug();
-	    case _resume_fiber(T,.go_ahead) in {
+	    case _resume(T,.go_ahead) in {
 	      .yield_ => { Q:=Q!++[T]; /*logMsg("yielding");*/ }
 	      | .result(Rslt) => {
 		while [C,..Cs] .= Q! do{
 		  Q := Cs;
-		  _ = _resume_fiber(C,.shut_down_);
+		  _ = _resume(C,.shut_down_);
 		};
 		
 		valis Rslt
@@ -127,7 +127,7 @@ star.mbox{
 
   public pause:all e ~~ this |= task[e] |: () => () raises exception.
   pause() => valof{
-    case _suspend_fiber(this,.yield_) in {
+    case _suspend(this,.yield_) in {
       .go_ahead => valis ()
       | .shut_down_ => raise .canceled
     }
@@ -135,7 +135,7 @@ star.mbox{
 
   public spawn:all e ~~ this |= task[e] |: (taskFun[e]) => () raises exception.
   spawn(F) => valof{
-    case _suspend_fiber(this,.fork(F)) in {
+    case _suspend(this,.fork(F)) in {
       .go_ahead => valis ()
       | .shut_down_ => raise .canceled
     }

@@ -17,7 +17,7 @@ test.ct1{
 	Count := Count!-1
       }
     } catch { _ => logMsg("something went wrong") };
-    _retire_fiber(this,.retired_)
+    _retire(this,.retired_)
   }
 
   pong:(channel[boolean]) => (task[()])=>().
