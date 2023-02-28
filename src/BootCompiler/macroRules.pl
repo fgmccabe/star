@@ -15,6 +15,7 @@ macroRl("$[]",expression,macroRules:indexMacro).
 macroRl("<||>",expression,macroRules:macroQuote).
 macroRl("{}",expression,macroRules:comprehensionMacro).
 macroRl("{}",expression,macroRules:mapLiteralMacro).
+macroRl("{}",expression,macroRules:totalizerMacro).
 macroRl("{!!}",expression,macroRules:macroIotaComprehension).
 macroRl("{??}",expression,macroRules:iterableGoalMacro).
 macroRl("::",expression,macroRules:coercionMacro).
@@ -149,10 +150,19 @@ mapLiteralMacro(A,expression,Trm) :-
 
 comprehensionMacro(T,expression,Rp) :-
   isComprehension(T,Lc,Bnd,Body),!,
-  makeComprehension(Lc,Bnd,Body,Rp).
+  (isBinary(Bnd,"<<",_,L,R) ->
+   makeTotalizer(Lc,L,R,Body,Rp);
+   makeComprehension(Lc,Bnd,Body,Rp)).
 
 makeComprehension(Lc,Bnd,Body,Rp) :-
   makeCondition(Body,macroRules:passThru,macroRules:consResult(Lc,Bnd),grounded(name(Lc,"_nil")),Rp).
+
+totalizerMacro(T,expression,Rp) :-
+  isTotalizerComprehension(T,Lc,Fun,El,Zr,Body),!,
+  makeTotalizer(Lc,Fun,El,Zr,Body,Rp).
+
+makeTotalizer(Lc,Fn,El,Zr,Body,Rp) :-
+  makeCondition(Body,macroRules:passThru,macroRules:foldResult(Lc,Fn,El),grounded(Zr),Rp).
 
 macroIotaComprehension(T,expression,Rp) :-
   isIotaComprehension(T,Lc,Bnd,Body),!,
@@ -182,6 +192,10 @@ passThru(lyfted(X),X).
 consResult(Lc,Bnd,grounded(St),Res) :-
   binary(Lc,"_cons",Bnd,St,Res).
 consResult(_,_,lyfted(St),St).
+
+foldResult(Lc,F,E,grounded(St),Res) :-
+  roundTerm(Lc,F,[E,St],Res).
+foldResult(_,_,_,lyfted(St),St).
 
 makeCondition(A,Lift,Succ,Zed,Rp) :-
   isSearch(A,Lc,Ptn,Src),!,

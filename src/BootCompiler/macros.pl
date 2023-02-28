@@ -305,6 +305,13 @@ examineTerm(T,Tx) :-
   macroTerm(Bdy,Bdyx),
   mkTestComprehension(Lc,Bdyx,Tx).
 examineTerm(T,Tx) :-
+  isTotalizerComprehension(T,Lc,Fun,El,Zr,Bdy),!,
+  macroTerm(Fun,Fnx),
+  macroTerm(El,Elx),
+  macroTerm(Zr,Zx),
+  macroTerm(Bdy,Bdyx),
+  mkTotalizerComprehension(Lc,Fnx,Elx,Zx,Bdyx,Tx).
+examineTerm(T,Tx) :-
   isMapLiteral(T,Lc,D),!,
   map(D,macros:macroPair(macros:examineTerm),expression,Dx),
   mkMapLiteral(Lc,Dx,Tx).

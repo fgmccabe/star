@@ -45,7 +45,7 @@ star.compiler.macro.rules{
     "::" -> [(.expression,coercionMacro)],
     ":?" -> [(.expression,coercionMacro)],
     "*" -> [(.expression,multicatMacro)],
-    "{}" -> [(.expression,comprehensionMacro),(.expression,mapLiteralMacro)],
+    "{}" -> [(.expression,comprehensionMacro),(.expression,totalizerMacro),(.expression,mapLiteralMacro)],
     "{!!}" -> [(.expression,iotaComprehensionMacro)],
     "{??}" -> [(.expression,testComprehensionMacro)],
     "__pkg__" -> [(.expression,pkgNameMacro)],
@@ -195,6 +195,17 @@ star.compiler.macro.rules{
 	valis .active(CC)
       }.
   iotaComprehensionMacro(_,_) default => .inactive.
+
+  -- Convert { F << El << Zr | Cond }
+  totalizerMacro(A,.expression) where
+      (Lc,Fn,El,Zr,Body) ?= isTotalizerComprehension(A) =>
+    .active(makeCondition(Body,passThru,genFold(Lc,Fn,El),.grounded(Zr))).
+  totalizerMacro(_,_) default => .inactive.
+
+  genFold(Lc,Fn,El) => let{
+    chk(.grounded(X))=> roundTerm(Lc,Fn,[El,X]).
+    chk(.lyfted(St)) => St.
+  } in chk.
 
   -- Convert {? Cond ?}
   testComprehensionMacro(A,.expression) where

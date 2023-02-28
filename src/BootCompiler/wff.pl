@@ -42,6 +42,7 @@
 	      isMapLiteral/3,mkMapLiteral/3,
 	      isComprehension/4,mkComprehension/4,
 	      isIotaComprehension/4,
+	      isTotalizerComprehension/6,mkTotalizerComprehension/6,
 	      isTestComprehension/3,mkTestComprehension/3,
 	      isCaseExp/4,caseExp/4,
 	      isSpawn/4,
@@ -720,11 +721,24 @@ collectPair(T,(F,E)) :-
 
 isComprehension(Trm,Lc,Bnd,Body) :-
   isBraceTuple(Trm,Lc,[T]),
-  isBinary(T,_,"|",Bnd,Body).
+  isBinary(T,_,"|",Bnd,Body),
+  \+isBinary(Bnd,_,"<<",_,_).
 
 mkComprehension(Lc,Bnd,Bdy,Trm) :-
   binary(Lc,"|",Bnd,Bdy,El),
   braceTuple(Lc,[El],Trm).
+
+isTotalizerComprehension(Trm,Lc,Fun,El,Zr,Body) :-
+  isBraceTuple(Trm,Lc,[T]),
+  isBinary(T,_,"|",Bnd,Body),
+  isBinary(Bnd,_,"<*",L,Zr),
+  isBinary(L,_,"<*",Fun,El).
+
+mkTotalizerComprehension(Lc,Fun,El,Zr,Body,Trm) :-
+  binary(Lc,"<*",Fun,El,L),
+  binary(Lc,"<*",L,Zr,B),
+  binary(Lc,"|",B,Body,BB),
+  braceTuple(Lc,[BB],Trm).
 
 isTestComprehension(Trm,Lc,Body) :-
   isUnary(Trm,Lc,"{??}",Body).

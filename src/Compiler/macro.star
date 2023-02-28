@@ -186,6 +186,8 @@ star.compiler.macro{
     mkIotaComprehension(Lc,macroTerm(D),macroTerm(B)).
   examineTerm(A) where (Lc,B) ?= isTestComprehension(A) => 
     mkTestComprehension(Lc,macroCond(B)).
+  examineTerm(A) where (Lc,F,E,Z,B) ?= isTotalizerComprehension(A) =>
+    mkTotalizerComprehension(Lc,macroTerm(F),macroTerm(E),macroTerm(Z),macroTerm(B)).
   examineTerm(A) where (Lc,Els) ?= isMapLiteral(A) =>
     mkMapLiteral(Lc,Els//macroTerm).
   examineTerm(A) where (Lc,Op,[Ix]) ?= isSquareTerm(A) =>
