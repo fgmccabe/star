@@ -55,9 +55,9 @@ escapeType("_big_format",funType(tplType([type("star.core*bigint"),type("star.co
 escapeType("_fiber_eq",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("s")),kVar("r")),tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("s")),kVar("r"))]),type("star.core*boolean"))))).
 escapeType("_new_fiber",allType(kVar("s"),allType(kVar("r"),funType(tplType([funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s")),kVar("r")]),kVar("s"))]),tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s")))))).
 escapeType("_spawn",allType(kVar("s"),allType(kVar("r"),funType(tplType([funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s"))]),kVar("s"))]),kVar("s"))))).
-escapeType("_suspend_fiber",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s")),kVar("s")]),kVar("r"))))).
-escapeType("_retire_fiber",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s")),kVar("s")]),tplType([]))))).
-escapeType("_resume_fiber",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s")),kVar("r")]),kVar("s"))))).
+escapeType("_suspend",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s")),kVar("s")]),kVar("r"))))).
+escapeType("_retire",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s")),kVar("s")]),tplType([]))))).
+escapeType("_resume",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s")),kVar("r")]),kVar("s"))))).
 escapeType("sqrt",funType(tplType([type("star.core*float")]),type("star.core*float"))).
 escapeType("exp",funType(tplType([type("star.core*float")]),type("star.core*float"))).
 escapeType("log",funType(tplType([type("star.core*float")]),type("star.core*float"))).
@@ -301,9 +301,9 @@ isEscape("_big_format",49).
 isEscape("_fiber_eq",50).
 isEscape("_new_fiber",51).
 isEscape("_spawn",52).
-isEscape("_suspend_fiber",53).
-isEscape("_retire_fiber",54).
-isEscape("_resume_fiber",55).
+isEscape("_suspend",53).
+isEscape("_retire",54).
+isEscape("_resume",55).
 isEscape("sqrt",56).
 isEscape("exp",57).
 isEscape("log",58).

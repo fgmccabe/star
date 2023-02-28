@@ -26,14 +26,14 @@ star.iterable{
     let{
       yieldFn:(e,())=>().
       yieldFn(E,_) => valof{
-	case _suspend_fiber(this,._yld(E)) in {
+	case _suspend(this,._yld(E)) in {
 	  ._next => {}.
-	  ._cancel => _retire_fiber(this,._all)
+	  ._cancel => _retire(this,._all)
 	};
 	valis ()
       }
     } in {_ = _iter(L,(),yieldFn)};
-    _retire_fiber(this,._all)
+    _retire(this,._all)
   }
   
 }

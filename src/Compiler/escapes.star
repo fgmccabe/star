@@ -59,9 +59,9 @@ star.compiler.escapes{
     "_fiber_eq" => ? .allType(.nomnal("s"),.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("s")),.nomnal("r")),.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("s")),.nomnal("r"))])),.nomnal("star.core*boolean")))).
     "_new_fiber" => ? .allType(.nomnal("s"),.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("r")])),.nomnal("s"))])),.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("r")),.nomnal("s"))))).
     "_spawn" => ? .allType(.nomnal("s"),.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("r")),.nomnal("s"))])),.nomnal("s"))])),.nomnal("s")))).
-    "_suspend_fiber" => ? .allType(.nomnal("s"),.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("s")])),.nomnal("r")))).
-    "_retire_fiber" => ? .allType(.nomnal("s"),.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("s")])),.tupleType([])))).
-    "_resume_fiber" => ? .allType(.nomnal("s"),.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("r")])),.nomnal("s")))).
+    "_suspend" => ? .allType(.nomnal("s"),.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("s")])),.nomnal("r")))).
+    "_retire" => ? .allType(.nomnal("s"),.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("s")])),.tupleType([])))).
+    "_resume" => ? .allType(.nomnal("s"),.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("star.fiber*fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("r")])),.nomnal("s")))).
     "sqrt" => ? .tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*float")])),.nomnal("star.core*float")).
     "exp" => ? .tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*float")])),.nomnal("star.core*float")).
     "log" => ? .tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*float")])),.nomnal("star.core*float")).
@@ -310,9 +310,9 @@ star.compiler.escapes{
     "_fiber_eq" => ?50.
     "_new_fiber" => ?51.
     "_spawn" => ?52.
-    "_suspend_fiber" => ?53.
-    "_retire_fiber" => ?54.
-    "_resume_fiber" => ?55.
+    "_suspend" => ?53.
+    "_retire" => ?54.
+    "_resume" => ?55.
     "sqrt" => ?56.
     "exp" => ?57.
     "log" => ?58.
