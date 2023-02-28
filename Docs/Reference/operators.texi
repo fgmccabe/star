@@ -114,6 +114,10 @@
 @tab non-associative postfix
 @tab 940
 @tab default value marker
+@item @code{<*}
+@tab left associative infix
+@tab 600
+@tab left fold
 @item @code{#}
 @tab non-associative prefix
 @tab 1750
@@ -425,7 +429,7 @@
 @item @code{.<<.}
 @tab left associative infix
 @tab 600
-@tab shift left
+@tab left shift
 @item @code{implementation}
 @tab non-associative prefix
 @tab 1260
@@ -548,66 +552,67 @@
   @tab @code{!}
   @tab @code{->>}
   @item @code{?=}
+  @tab @code{<*}
   @tab @code{#}
   @tab @code{??}
   @tab @code{%}
-  @tab @code{<-}
-  @item @code{.>>>.}
+  @item @code{<-}
+  @tab @code{.>>>.}
   @tab @code{\\+}
   @tab @code{*}
   @tab @code{\\-}
-  @tab @code{+}
-  @item @code{.>>.}
+  @item @code{+}
+  @tab @code{.>>.}
   @tab @code{*>}
   @tab @code{,}
   @tab @code{\\/}
-  @tab @code{-}
-  @item @code{.}
+  @item @code{-}
+  @tab @code{.}
   @tab @code{/}
   @tab @code{<*>}
   @tab @code{:}
-  @tab @code{;}
-  @item @code{<}
+  @item @code{;}
+  @tab @code{<}
   @tab @code{.=}
   @tab @code{=>>}
   @tab @code{=}
-  @tab @code{|:}
-  @item @code{++}
+  @item @code{|:}
+  @tab @code{++}
   @tab @code{>}
   @tab @code{?}
   @tab @code{@@}
-  @tab @code{|=}
-  @item @code{~~}
+  @item @code{|=}
+  @tab @code{~~}
   @tab @code{⊕}
   @tab @code{.^.}
   @tab @code{//}
-  @tab @code{.~.}
-  @item @code{=<}
+  @item @code{.~.}
+  @tab @code{=<}
   @tab @code{==}
   @tab @code{\\}
   @tab @code{=>}
-  @tab @code{^}
-  @item @code{<=>}
+  @item @code{^}
+  @tab @code{<=>}
   @tab @code{•}
   @tab @code{.&.}
   @tab @code{///}
-  @tab @code{::}
-  @item @code{+++}
+  @item @code{::}
+  @tab @code{+++}
   @tab @code{:=}
   @tab @code{:?}
   @tab @code{.<<.}
-  @tab @code{>>=}
-  @item @code{^/}
+  @item @code{>>=}
+  @tab @code{^/}
   @tab @code{<~}
   @tab @code{|}
   @tab @code{.#.}
-  @tab @code{~}
-  @item @code{^//}
+  @item @code{~}
+  @tab @code{^//}
   @tab @code{||}
   @tab @code{::=}
   @tab @code{/\\}
-  @tab @code{>=}
-  @item @code{>>}
+  @item @code{>=}
+  @tab @code{>>}
 
 @end multitable
 @end float
