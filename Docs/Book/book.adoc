@@ -1,0 +1,19 @@
+= Programming in Star
+:reproducilbe:
+:doctype: book
+Francis G. McCabe <fmccabe@gmail.com>
+:description: This book gives an introduction into the form and usage of the Star programming language. However, it is not a definitive reference to the language.
+:icons: font
+
+include::why.adoc[]
+
+\include::tour.adoc[]
+
+// = Programming in Star
+
+\include::collections.adoc[]
+
+\include::choices.adoc[]
+
+\include::boiling.adoc[]
+
