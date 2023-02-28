@@ -494,8 +494,8 @@ star.compiler.resolve{
 	if traceCanon! then
 	  logMsg("check field type $(Ft)=$(FldT) against $(Tp)");
 	if sameType(Tp,FldT,Dict) then{
-	  valis overloadTerm(manageConstraints(FrFt,Lc,(T)=>.apply(Lc,AccFn,[Rc],T)),Dict,markResolved(St))
-	} else{
+	  valis overloadTerm(.apply(Lc,AccFn,[Rc],FldT),Dict,markResolved(St))
+	} else {
 	  valis (.dot(Lc,Rc,Fld,Tp),
 	    .active(Lc,"field $(Rc).$(Fld)\:$(Ft) not consistent with required type $(Tp)")).
 	}

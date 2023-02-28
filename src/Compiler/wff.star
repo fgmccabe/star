@@ -299,7 +299,7 @@ star.compiler.wff{
   
   public isComprehension:(ast) => option[(option[locn],ast,ast)].
   isComprehension(A) where (Lc,[T]) ?= isBrTuple(A) &&
-      (_,Bnd,Body) ?= isBinary(T,"|") => .some((Lc,Bnd,Body)).
+      (_,Bnd,Body) ?= isBinary(T,"|") && ~ _ ?= isBinary(Bnd,"<*") => .some((Lc,Bnd,Body)).
   isComprehension(A) => .none.
 
   public mkComprehension(Lc,Exp,Cond) =>
@@ -312,6 +312,16 @@ star.compiler.wff{
 
   public mkIotaComprehension(Lc,Exp,Cond) =>
     unary(Lc,"{!!}",binary(Lc,"|",Exp,Cond)).
+
+  public isTotalizerComprehension:(ast) => option[(option[locn],ast,ast,ast,ast)].
+  isTotalizerComprehension(A) where (Lc,[T]) ?= isBrTuple(A) &&
+      (_,Bnd,Body) ?= isBinary(T,"|") &&
+	  (_,L,Zr) ?= isBinary(Bnd,"<*") &&
+	      (_,Fn,El) ?= isBinary(L,"<*")  => .some((Lc,Fn,El,Zr,Body)).
+  isTotalizerComprehension(A) => .none.
+
+  public mkTotalizerComprehension(Lc,Fn,El,Zr,Cond) =>
+    brTuple(Lc,[binary(Lc,"|",binary(Lc,"<*",binary(Lc,"<*",Fn,El),Zr),Cond)]).
 
   public isTestComprehension(A) => isUnary(A,"{??}").
 

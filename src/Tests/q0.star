@@ -13,7 +13,7 @@ test.q0{
   gp = { (X,Y) | (X,Z) in parent && (Z,Y) in parent}.
 
   pp : cons[string].
-  pp = {X|(X,"ab") in parent || (X,D) in parent && "de".=D}.
+  pp = {X | (X,"ab") in parent || (X,D) in parent && "de".=D}.
 
   -- A different example, filtering positive numbers
   someInts : cons[integer].
@@ -33,6 +33,8 @@ test.q0{
     show pp;
 
     show pos;
+
+    show { (+) <* X <* 0 | X in someInts && X>0 };
 
     valis ()
   }
