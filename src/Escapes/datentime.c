@@ -19,7 +19,8 @@
 #define DATE_UTC 7
 #define DATE_LEN 8
 
-ReturnStatus g__date2time(heapPo h, termPo yr, termPo mon, termPo day, termPo hour, termPo min, termPo s, termPo gmtoff) {
+ReturnStatus
+g__date2time(heapPo h, termPo yr, termPo mon, termPo day, termPo hour, termPo min, termPo s, termPo gmtoff) {
   struct tm now;
 
   now.tm_year = (int) (integerVal(yr) - 1900); /* Extract the year */
@@ -38,7 +39,7 @@ ReturnStatus g__date2time(heapPo h, termPo yr, termPo mon, termPo day, termPo ho
   time_t when = mktime(&now);
 
   return (ReturnStatus) {.ret=Ok,
-    .result=makeFloat((double)when + fraction)};
+    .result=makeFloat((double) when + fraction)};
 }
 
 ReturnStatus g__utc2time(heapPo h, termPo a1) {
@@ -61,7 +62,7 @@ ReturnStatus g__utc2time(heapPo h, termPo a1) {
   time_t when = timegm(&now);
 
   return (ReturnStatus) {.ret=Ok,
-    .result=makeFloat((double)when + fraction)};
+    .result=makeFloat((double) when + fraction)};
 }
 
 ReturnStatus g__time2date(heapPo h, termPo a1) {
@@ -155,3 +156,176 @@ ReturnStatus g__fmttime(heapPo h, termPo a1, termPo a2) {
     return (ReturnStatus) {.ret=Error, .result=voidEnum};
   }
 }
+
+static retCode formatDate(ioPo out, const char *fmt, integer fmtLen, struct tm *time);
+
+ReturnStatus g__formattime(heapPo h, termPo a1, termPo a2) {
+  time_t when = (time_t) floatVal(a1);
+  integer fmtLen;
+  const char *fmt = strVal(a2, &fmtLen);
+
+  struct tm *now = localtime(&when);
+
+  strBufferPo buff = newStringBuffer();
+
+  retCode ret = formatDate(O_IO(buff), fmt, fmtLen, now);
+
+  if (ret == Ok) {
+    termPo result = allocateFromStrBuffer(buff, h);
+    closeFile(O_IO(buff));
+
+    return (ReturnStatus) {.ret=Ok, .result=result};
+  } else {
+    closeFile(O_IO(buff));
+    return (ReturnStatus) {.ret=Error, .result=voidEnum};
+  }
+}
+
+static integer countFmtChrs(const char *fmt, integer *pos, integer len, codePoint f) {
+  integer cx = 1;
+  integer ps = *pos;
+
+  while (ps < len) {
+    integer pps = ps;
+    codePoint p = nextCodePoint(fmt, &ps, len);
+    if (p == f) {
+      cx++;
+    } else {
+      *pos = pps;
+      return cx;
+    }
+  }
+  *pos = ps;
+  return cx;
+}
+
+static char *shortMonths[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+static char *longMonths[] = {"January", "February", "March", "April", "May", "June", "July", "August", "September",
+                             "October", "November", "December"};
+
+static char *shortDays[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+static char *longDays[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+
+retCode formatDate(ioPo out, const char *fmt, integer fmtLen, struct tm *time) {
+  integer outPos = 0;
+  retCode ret = Ok;
+
+  integer fmtPos = 0;
+
+  while (ret == Ok && fmtPos < fmtLen) {
+    codePoint f = nextCodePoint(fmt, &fmtPos, fmtLen);
+
+    integer fLen = countFmtChrs(fmt, &fmtPos, fmtLen, f);
+
+    switch (f) {
+      case 'G': {
+        logical isAD = time->tm_year >= -1900;
+
+        ret = outMsg(out, "% .*s", clamp(1, fLen, 3), (isAD ? "CE" : "BCE"));
+        continue;
+      }
+      case 'y': {
+        int year = time->tm_year + 1900;
+
+        fLen = clamp(2, fLen, 4);
+
+        if (fLen == 2)
+          ret = outMsg(out, "%2d", year % 100);
+        else
+          ret = outMsg(out, "%0:*d", fLen, year % 10000);
+
+        continue;
+      }
+      case 'm': {
+        int mon = time->tm_mon;
+
+        switch (fLen) {
+          case 1:
+          case 2: {
+            ret = outMsg(out, "%0.*d", fLen, mon + 1);
+            continue;
+          }
+          case 3: {
+            ret = outMsg(out, "%s", shortMonths[mon]);
+            continue;
+          }
+          default:
+            ret = outMsg(out, "% .*s", fLen, longMonths[mon]);
+            continue;
+        }
+      }
+
+      case 'w': {
+        int day = time->tm_wday;
+
+        switch (fLen) {
+          case 1: {
+            ret = outMsg(out, "%0:*d", fLen, day);
+            continue;
+          }
+          case 2:
+          case 3: {
+            ret = outMsg(out, "% :*s", fLen, shortDays[day]);
+            continue;
+          }
+          default:
+            ret = outMsg(out, "% :*s", fLen, longDays[day]);
+            continue;
+        }
+      }
+      case 'D': {
+        int day = time->tm_yday;
+        ret = outMsg(out, "%0:*d", fLen, day+1);
+        continue;
+      }
+      case 'd': {
+        int day = time->tm_mday;
+        ret = outMsg(out, "%0:*d", fLen, day);
+        continue;
+      }
+
+      case 'a': {
+        logical pm = time->tm_hour >= 12;
+        ret = outMsg(out, "% :*s", fLen, (pm ? "pm" : "am"));
+        continue;
+      }
+      case 'A': {
+        logical pm = time->tm_hour >= 12;
+        ret = outMsg(out, "% :*s", fLen, (pm ? "PM" : "AM"));
+        continue;
+      }
+      case 'h': {
+        int hr = time->tm_hour % 12;
+        ret = outMsg(out, "%0:*d", fLen, hr);
+        continue;
+      }
+      case 'H': {
+        int hr = time->tm_hour;
+        ret = outMsg(out, "%0:*d", fLen, hr);
+        continue;
+      }
+      case 'M': {
+        int min = time->tm_min;
+        ret = outMsg(out, "%0:*d", fLen, min);
+        continue;
+      }
+      case 'S': {
+        int sec = time->tm_sec;
+        ret = outMsg(out, "%0:*d", fLen, sec);
+        continue;
+      }
+      case 'z': {
+        ret = outMsg(out, "% :*s", fLen, time->tm_zone);
+        continue;
+      }
+      default: {
+        for (int ix = 0; ret == Ok && ix < fLen; ix++) {
+          ret = outChar(out, f);
+        }
+        continue;
+      }
+    }
+  }
+  return ret;
+}
+

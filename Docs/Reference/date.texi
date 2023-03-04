@@ -1,111 +1,210 @@
 @node Date and Time
 @chapter Date and Time
 
-@section Date and Time Types
+Date and time support revolves around the @code{time}
+built-in type.
 
-The @code{date} type is a record structure that denotes a localized
-date: it has fields that refer to the year, month and day, as well as
-time and timezone. The @code{time} type is a simpler structure that
-refers to Unix time: i.e., the number of seconds since January 1st,
-1970 GMT.
-
-@subsection The @code{date} Type
+@section The @code{time} Type
 
 @subsection The @code{time} Type
 
-@section Functions
+The @code{time} type is a simple structure that
+refers to Unix time: i.e., the number of seconds since January 1st,
+1970 GMT:
 
-@subsection @code{today()}
+@example
+public time ::= private .time(float)
+ | private .never. -- Time since 1st Jan 1970
+@end example
+
+The most notable part of the @code{time} type is that we mark the
+different constructors for it @code{private}.
+
+The @code{never} enumerated symbol denotes a nonexistent time.
+
+@section Date and Time Functions
 
 @subsection @code{now()}
+@findex @code{now} function
+
+The @code{now} function returns a @code{time} value that denotes the
+current wall clock time:
+
+@example
+now: () => time
+@end example
+
+@subsection @code{today()}
+@findex @code{today} function
+
+The @code{today} function returns a @code{time} value that denotes the
+wall clock time at midnight this morning:
+
+@example
+today: () => time
+@end example
 
 @subsection @code{ticks()}
+@findex @code{ticks} function
+
+@example
+ticks: () => integer
+@end example
+
+The @code{ticks} function returns an integer that denotes the number
+of micro seconds since the invokation of star program. This number is
+not intended to be a reliable measure; in particular it will 'roll
+over' every 73117 years.
 
 @section Implemented Contracts
 
+@subsection The @code{display} contract
+
+
+
 @subsection The @code{format} contract
 
-The `_frmt` function computes a readable string representation of a
-`date` as a string displaying the date and/or time. The second
+The @code{_format} function computes a readable string representation of a
+@code{time} as a string displaying the date and/or time. The second
 argument is a format string that guides how to format the string.
 
 The format string consists of letters, spaces and other characters;
 the letters control the representation of some aspect of the date,
 other non-letter characters are displayed as is in the
-result. <<tableFormatTbl>> contains the definitions of the available
-formatting characters.
+result. The individual code characters are shown
 
-@float Table,dateFormatChrs
-@caption{Date Formatting Codes}
-@multitable{Letter}{Date Component}{Presentation}{Example}
-@headitem Letter @tab Component @tab Presentation @tab Example
-@item @code{G}
-@tab Era designator
-@tab Text
-@tab @code{AD}
-@item @code{y}
-@tab year
-@tab Year
-@tab @code{1999}
-@item M
-@tab month
-@tab Month in year
-@tab @code{July; Jul; 07}
-@item @code{w}
-@tab Week in year
-@tab Number
-@tab @code{25}
-@item @code{W}
-@tab week
-@tab Number
-@tab @code{2}
-@item @code{D}
-@tab Day in year
-@tab Number
-@tab @code{191}
-@item @code{d}
-@tab Day in month
-@tab Number
-@tab @code{2}
-@item @code{E}
-@tab Day in week
-@tab Text
-@tab @code{Tuesday; Tue}
-@item @code{a}
-@tab AM/PM
-@tab Text
-@tab @code{PM}
-@item @code{H}
-@tab Hour in day (0-23)
-@tab Number
-@tab @code{0}
-@item @code{k}
-@tab Hour in day (1-24)
-@tab Number
-@tab @code{24}
-@item @code{h}
-@tab Hour in day (1-12)
-@tab Number
-@tab @code{11}
-@item @code{m}
-@tab Minute in hour
-@tab Number
-@tab @code{34}
-@item @code{s}
-@tab Second in minute
-@tab Number
-@tab @code{56}
-@item @code{S}
-@tab Millisecond in second
-@tab Number
-@tab @code{543}
-@item @code{z}
-@tab General time zone
-@tab Text
-@tab @code{PDT; GMT-08:00}
-@item @code{Z}
-@tab RFC 822 time zone
-@tab Text
-@tab @code{-0800}
-@end multitable
-@end float
+The @code{_format} function is typically used inside an interpolated string. For example:
+@example
+"$(today()):yyyy-mmm-ddd;"
+@end example
+shows the current date in the format @emph{year}-@emph{mon}-@emph{day}.
+
+@subsubsection The @code{G} era code
+
+The @code{G} code signifies the era; i.e., whether the year is before
+the year zero or not. Years that are before year zero are designated
+@code{BCE} (before common era) and later years are designated
+@code{CE} (common era).
+
+This is a repeated code, with 1 through 3 repetitions valid.
+
+@subsubsection The @code{y} year code
+
+The @code{y} code signifies the year.
+
+This is a repeated code, with 1 through 4 repetitions valid. For example,
+
+@example
+_format(today(),"yy")
+@end example
+displays the least significant two digits of the year; and
+
+@example
+"$(today()):yyyy;"
+@end example
+shows the full 4 digit year.
+
+@subsubsection The @code{m} month code
+
+The @code{m} code signifies the month. This is a repeated code, with minimum 2 repitions.
+
+If the code @code{m} or @code{mm} is used then the month is displayed
+as a decimal number in the range 1-12, with @code{1} denoting January,
+and 12 denoting December.
+
+If the code @code{mmm} is used, then the month is written using the
+three letter abbreviation (for example, @code{Jun} denoting June.
+
+For a higher number of repetitions, the full name of the month is
+printed. Note though that a minimum of nine repetitions is needed to
+avoid truncating a month name.
+
+@subsubsection The @code{w} day of week code
+
+The @code{w} code signifies the day of the week. This is a repeated code, with minimum 1 repetition.
+
+If the code @code{w} is used, then the day of the week is displayed as
+a digit, with Sunday referred to as 0.
+
+If the code @code{ww} or @code{www} is used then the day of the week
+is displayed using a three letter abbreviation.
+
+If more repetitions are used then the long form of the day of the week
+is used. Although, in order to avoid truncating a week day name, there
+should be eight repetitions.
+
+For example, if it is Friday today, then
+@example
+_format(now(),"www")
+@end example
+results in 
+@example
+"Fri"
+@end example
+whereas
+@example
+"$(now()):wwwwwwww;"
+@end example
+would result in
+@example
+"  Friday"
+@end example
+
+
+@subsubsection The @code{D} day of the year code
+
+The @code{D} code signifies the day of the year, in the range 1-366.
+
+This is a repeated code, one should use @code{DDD} to ensure displaying all the days in the year.
+
+@subsubsection The @code{d} day of the month code
+
+The @code{d} code signifies the day of the current month, in the range 1-31.
+
+This is a repeated code, one should use @code{dd} to ensure displaying all the days in any month.
+
+@subsubsection The @code{H} hour of the day code
+
+The @code{H} code signifies the hour, in the range 0-23. I.e., the
+hour is displayed in maritime fashion, with 00 denoting midnight and
+17 denoting 5 pm.
+
+This is a repeated code, one should use @code{HH} to ensure displaying all the hours in the day.
+
+@subsubsection The @code{h} hour of the day code.
+
+The @code{h} code signifies the hour, in the range 0-11, the number of
+hours since midnight or noon.
+
+This is a repeated code, one should use @code{hh} to ensure displaying all the hours in the day.
+
+@quotation Note
+It is recommended to also use the @code{a} or @code{A} codes to indicate AM or PM.
+@end quotation
+
+@subsubsection The @code{M} minutes of the hour code
+
+The @code{M} code signifies the number of minutes since the top of the hour; in the range 0-59.
+
+@subsubsection The @code{S} seconds of the minute code
+
+The @code{S} code signifies the number of seconds since the beginning
+of the current minute; in the range 0-59.
+
+@subsubsection The @code{a}, @code{A} AM/PM codes
+
+The @code{a} and @code{A} codes are used to designate whether a time
+is before noon or after. Use @code{a} to show @code{am} or @code{pm}
+and use @code{A} to show @code{AM} or @code{PM} respectively.
+
+This is a repeated code, one should use @code{aa} or @code{AA}.
+
+@subsubsection The @code{z} timezone code.
+
+The @code{z} code is used to show a string indicating the time zone associated with the time.
+
+@subsubsection All other characters
+
+Any other characters in a time format string are displayed as is. This allows the use of characters such as @code{-} to separate fragments of a date and @code{:} to separate time segments.
+
+
