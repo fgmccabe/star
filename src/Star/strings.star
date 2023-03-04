@@ -18,7 +18,7 @@ star.strings{
   }
 
   public implementation format[char] => {
-    frmt(S,Fmt) => _chr_format(S,Fmt).
+    _format(S,Fmt) => _chr_format(S,Fmt).
   }
 
   -- and strings ...
@@ -44,7 +44,7 @@ star.strings{
   }
 
   public implementation format[string] => {
-    frmt(S,Fmt) => _str_format(S,Fmt).
+    _format(S,Fmt) => _str_format(S,Fmt).
   }
 
   public implementation sizeable[string] => {

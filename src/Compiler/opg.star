@@ -178,7 +178,7 @@ star.compiler.opg{
   handleInterpolation(.interpolate(Lc,Toks,"")) where
       (A,_) .= astParse(Toks) => unary(? Lc,"disp",A).
   handleInterpolation(.interpolate(Lc,Toks,Frmt)) where
-      (A,_) .= astParse(Toks) => binary(? Lc,"frmt",A,.str(? Lc,Frmt)).
+      (A,_) .= astParse(Toks) => binary(? Lc,"_format",A,.str(? Lc,Frmt)).
   handleInterpolation(.evaluate(Lc,Toks)) where (A,_) .= astParse(Toks) => A.
   
   checkToken:(tk,cons[token]) => (option[locn],cons[token]).

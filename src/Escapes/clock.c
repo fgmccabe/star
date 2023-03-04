@@ -1,6 +1,6 @@
 /*
   Clock and interval timer management for the Star system
-  Copyright (c) 2016, 2017, 2018. Francis G. McCabe
+  Copyright (c) 2016 and beyond. Francis G. McCabe
  */
 
 #include <signal.h>
