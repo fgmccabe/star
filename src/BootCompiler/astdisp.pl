@@ -78,7 +78,7 @@ deInterpolate(T,O,Ox) :-
   appStr("$",O,O1),
   dispAst(Trm,1000,O1,Ox).
 deInterpolate(T,O,Ox) :-
-  isBinary(T,_,"frmt",Trm,Fmt),
+  isBinary(T,_,"_format",Trm,Fmt),
   isString(Fmt,_,FmtTxt),
   appStr("$",O,O1),
   dispAst(Trm,1000,O1,O2),

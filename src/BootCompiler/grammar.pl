@@ -209,7 +209,7 @@ handleInterpolation(interpolate(Text,"",Lc),_,Disp) :-
 handleInterpolation(interpolate(Text,Fmt,Lc),_,Disp) :-
   subTokenize(Lc,Text,Toks),
   term(Toks,2000,Term,TksX,_),
-  binary(Lc,"frmt",Term,string(Lc,Fmt),Disp),
+  binary(Lc,"_format",Term,string(Lc,Fmt),Disp),
   ( TksX = [] ; lookAhead(ATk,TksX),locOf(ATk,ALc),reportError("extra tokens in string interpolation",[],ALc)).
 handleInterpolation(coerce(Text,Lc),_,Disp) :-
   subTokenize(Lc,Text,Toks),

@@ -76,7 +76,7 @@ star.core {
 
   format@"Formatting contract".
   public contract all t ~~ format[t] ::= {
-    frmt:(t,string) => string.
+    _format:(t,string) => string.
   }
 
   public contract all k ~~ concat[k] ::= {

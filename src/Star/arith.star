@@ -46,7 +46,7 @@ star.arith{
   }
 
   public implementation format[integer] => {
-    frmt(X,F) => _int_format(X,F).
+    _format(X,F) => _int_format(X,F).
   }
 
   public implementation arith[bigint] => {
@@ -82,7 +82,7 @@ star.arith{
   }
 
   public implementation format[bigint] => {
-    frmt(X,F) => _big_format(X,F).
+    _format(X,F) => _big_format(X,F).
   }
 
   -- implement standard contracts for floats
@@ -131,7 +131,7 @@ star.arith{
   }
 
   public implementation format[float] => {
-    frmt(X,F) => _flt_format(X,F).
+    _format(X,F) => _flt_format(X,F).
   }
 
   public (**):(float,float)=>float.

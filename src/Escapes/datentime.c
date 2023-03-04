@@ -38,7 +38,7 @@ ReturnStatus g__date2time(heapPo h, termPo yr, termPo mon, termPo day, termPo ho
   time_t when = mktime(&now);
 
   return (ReturnStatus) {.ret=Ok,
-    .result=makeFloat(when + fraction)};
+    .result=makeFloat((double)when + fraction)};
 }
 
 ReturnStatus g__utc2time(heapPo h, termPo a1) {
@@ -61,7 +61,7 @@ ReturnStatus g__utc2time(heapPo h, termPo a1) {
   time_t when = timegm(&now);
 
   return (ReturnStatus) {.ret=Ok,
-    .result=makeFloat(when + fraction)};
+    .result=makeFloat((double)when + fraction)};
 }
 
 ReturnStatus g__time2date(heapPo h, termPo a1) {
@@ -154,5 +154,4 @@ ReturnStatus g__fmttime(heapPo h, termPo a1, termPo a2) {
   } else {
     return (ReturnStatus) {.ret=Error, .result=voidEnum};
   }
-
 }

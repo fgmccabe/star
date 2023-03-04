@@ -105,21 +105,21 @@ star.compiler.ast{
 
   isInterpolated(A) where (_,I) ?= isUnary(A,"_str_multicat") => isDispCons(I).
   isInterpolated(A) where (_,I) ?= isUnary(A,"disp") => isDisp(I).
-  isInterpolated(A) where (_,I,_) ?= isBinary(A,"frmt") => isDisp(I).
+  isInterpolated(A) where (_,I,_) ?= isBinary(A,"_format") => isDisp(I).
   isInterpolated(A) default => .false.
 
   deInterpolate:(ast) => string.
   deInterpolate(A) where (_,S) ?= isUnary(A,"_str_multicat") =>
     _str_multicat(deConsPolate(S)).
   deInterpolate(A) where (_,S) ?= isUnary(A,"disp") => dePolate(A).
-  deInterpolate(A) where (_,I,F) ?= isBinary(A,"frmt") => dePolate(A).
+  deInterpolate(A) where (_,I,F) ?= isBinary(A,"_format") => dePolate(A).
 
   deConsPolate(A) where (_,I) ?= isUnary(A,".") && (_,"nil")?=isNme(I) => .nil.
   deConsPolate(A) where (_,I) ?= isUnary(A,".") && (_,L,R) ?= isBinary(I,"cons") =>
     .cons(dePolate(L),deConsPolate(R)).
 
   dePolate(A) where (_,D) ?= isUnary(A,"disp") => "$"++dispAst(D,0,"").
-  dePolate(A) where (_,D,.str(_,F)) ?= isBinary(A,"frmt") => "$"++dispAst(D,0,"")++":"++F++";".
+  dePolate(A) where (_,D,.str(_,F)) ?= isBinary(A,"_format") => "$"++dispAst(D,0,"")++":"++F++";".
   dePolate(A) where (_,S) ?= isStr(A) => S.
   dePolate(A) default => "#"++dispAst(A,0,"").
 
@@ -129,7 +129,7 @@ star.compiler.ast{
 
   isDisp(A) where (_,S) ?= isUnary(A,"_str_multicat") => isDispCons(S).
   isDisp(A) where (_,S) ?= isUnary(A,"disp") => .true.
-  isDisp(A) where (_,I,F) ?= isBinary(A,"frmt") => .true.
+  isDisp(A) where (_,I,F) ?= isBinary(A,"_format") => .true.
   isDisp(_) default => .false.
 
   public implementation coercion[ast,string] => {
