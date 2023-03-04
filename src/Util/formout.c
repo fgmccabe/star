@@ -666,7 +666,7 @@ retCode __voutMsg(ioPo f, char *format, va_list args) {
         fcp = nextCodePoint(format, &fx, fmtLen);
       }
 
-      while (strchr(".,", (char) fcp) != NULL) {
+      while (strchr(".,:", (char) fcp) != NULL) {
         if (fcp == '.') {    /* We have a precision ... */
           overridePrecision = True;
           /* extract the precision field */
@@ -674,6 +674,9 @@ retCode __voutMsg(ioPo f, char *format, va_list args) {
         } else if (fcp == ',') {
           /* extract the depth field */
           nextDecimal(format, fx, fmtLen, args, depth);
+        } else if (fcp == ':') {
+          /* extract the width field */
+          nextDecimal(format, fx, fmtLen, args, width);
         } else
           break;
       }

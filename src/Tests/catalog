@@ -57,6 +57,7 @@
     "test.do14": "do14.star",
     "test.dd": "dd.star",
     "test.df": "df.star",
+    "test.dfmt": "dfmt.star",
     "test.dis" : "dis.star",
     "test.di": "di.star",
     "test.dq": "dq.star",
