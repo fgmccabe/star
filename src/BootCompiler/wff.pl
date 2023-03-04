@@ -722,7 +722,7 @@ collectPair(T,(F,E)) :-
 isComprehension(Trm,Lc,Bnd,Body) :-
   isBraceTuple(Trm,Lc,[T]),
   isBinary(T,_,"|",Bnd,Body),
-  \+isBinary(Bnd,_,"<<",_,_).
+  \+isBinary(Bnd,_,"<*",_,_).
 
 mkComprehension(Lc,Bnd,Bdy,Trm) :-
   binary(Lc,"|",Bnd,Bdy,El),

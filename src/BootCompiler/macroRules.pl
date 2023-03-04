@@ -150,7 +150,7 @@ mapLiteralMacro(A,expression,Trm) :-
 
 comprehensionMacro(T,expression,Rp) :-
   isComprehension(T,Lc,Bnd,Body),!,
-  (isBinary(Bnd,"<<",_,L,R) ->
+  (isBinary(Bnd,"<*",_,L,R) ->
    makeTotalizer(Lc,L,R,Body,Rp);
    makeComprehension(Lc,Bnd,Body,Rp)).
 
