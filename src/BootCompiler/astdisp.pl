@@ -27,9 +27,9 @@ dispAst(tuple(_,Nm,A),_,O,E) :- bracket(Nm,Left,Right,Sep,Pr),
     writeEls(A,Pr,Sep,O1,O2),
     appStr(Right,O2,E).
 dispAst(Trm,_,O,Ox) :-
-  isSSTrm(Trm,_,_),
+  isSSTrm(Trm,_,SS),
   appStr("\"",O,O1),
-  deInterpolate(Trm,O1,O2),!,
+  deInterpolate(SS,O1,O2),!,
   appStr("\"",O2,Ox).
 dispAst(app(_,name(_,Nm),tuple(_,"()",A)),_,O,E) :- bracket(Nm,Left,Right,Sep,Pr),
     appStr(Left,O,O1),
@@ -62,12 +62,16 @@ dispAst(app(_,name(_,Nm),tuple(_,"()",[A,B])),Pr,O,E) :-
 dispAst(app(_,Op,A),_,O,E) :- dispAst(Op,0,O,O1), dispAst(A,0,O1,E).
 
 isSSTrm(T,Lc,A) :-
-  isUnary(T,Lc,"_str_multicat",A).
+  isUnary(T,Lc,"_str_multicat",A),!.
+isSSTrm(T,Lc,T) :-
+  isUnary(T,Lc,"disp",_),!.
+isSSTrm(T,Lc,T) :-
+  isBinary(T,Lc,"_format",_,_),!.
 
 deInterpolate(T,Ox,Ox) :-
-  isEnum(T,_,"nil"),!.
-deInterpolate(T,O,Ox) :-
-  isBinary(T,_,"cons",H,T),
+  isEnum(T,_,name(_,"nil")),!.
+deInterpolate(Trm,O,Ox) :-
+  isConApply(Trm,_,name(_,"cons"),[H,T]),
   deInterpolate(H,O,O1),
   deInterpolate(T,O1,Ox).
 deInterpolate(string(_,Txt),O,Ox) :-

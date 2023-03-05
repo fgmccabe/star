@@ -221,7 +221,7 @@ retCode formatDate(ioPo out, const char *fmt, integer fmtLen, struct tm *time) {
       case 'G': {
         logical isAD = time->tm_year >= -1900;
 
-        ret = outMsg(out, "% .*s", clamp(1, fLen, 3), (isAD ? "CE" : "BCE"));
+        ret = outMsg(out, "% :*s", clamp(1, fLen, 3), (isAD ? "CE" : "BCE"));
         continue;
       }
       case 'y': {
@@ -242,7 +242,7 @@ retCode formatDate(ioPo out, const char *fmt, integer fmtLen, struct tm *time) {
         switch (fLen) {
           case 1:
           case 2: {
-            ret = outMsg(out, "%0.*d", fLen, mon + 1);
+            ret = outMsg(out, "%0:*d", fLen, mon + 1);
             continue;
           }
           case 3: {
@@ -250,7 +250,7 @@ retCode formatDate(ioPo out, const char *fmt, integer fmtLen, struct tm *time) {
             continue;
           }
           default:
-            ret = outMsg(out, "% .*s", fLen, longMonths[mon]);
+            ret = outMsg(out, "% :*s", fLen, longMonths[mon]);
             continue;
         }
       }
@@ -275,7 +275,7 @@ retCode formatDate(ioPo out, const char *fmt, integer fmtLen, struct tm *time) {
       }
       case 'D': {
         int day = time->tm_yday;
-        ret = outMsg(out, "%0:*d", fLen, day+1);
+        ret = outMsg(out, "%0:*d", fLen, day + 1);
         continue;
       }
       case 'd': {
@@ -316,6 +316,27 @@ retCode formatDate(ioPo out, const char *fmt, integer fmtLen, struct tm *time) {
       }
       case 'z': {
         ret = outMsg(out, "% :*s", fLen, time->tm_zone);
+        continue;
+      }
+      case 'Z': {
+        integer gmtoffset = (integer) time->tm_gmtoff;
+        int hours = ((long) absolute(gmtoffset)) / (60 * 60);
+        int mins = (((long) absolute(gmtoffset)) / 60) % 60;
+        char zone[32];
+
+        switch (fLen) {
+          case 3:
+            strMsg(zone, NumberOf(zone), "%s%0:2d", (gmtoffset < 0 ? "-" : "+"), hours);
+            break;
+          case 5:
+            strMsg(zone, NumberOf(zone), "%s%0:2d%0:2d", (gmtoffset < 0 ? "-" : "+"), hours, mins);
+            break;
+          default:
+            strMsg(zone, NumberOf(zone), "%s%0:2d:%0:2d", (gmtoffset < 0 ? "-" : "+"), hours, mins);
+            break;
+        }
+
+        ret = outMsg(out, "%+ :*s", fLen, zone);
         continue;
       }
       default: {
