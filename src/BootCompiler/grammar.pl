@@ -198,7 +198,7 @@ handleInterpolations([],Lc,Nil) :-
 handleInterpolations([El|Els],Lc,Cons) :-
   handleInterpolation(El,Lc,H),
   handleInterpolations(Els,Lc,T),
-  binary(Lc,"cons",H,T,Cons).
+  mkConApply(Lc,name(Lc,"cons"),[H,T],Cons).
 
 handleInterpolation(segment(Str,Lc),_,string(Lc,Str)) :-!.
 handleInterpolation(interpolate(Text,"",Lc),_,Disp) :-

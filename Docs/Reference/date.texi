@@ -203,6 +203,24 @@ This is a repeated code, one should use @code{aa} or @code{AA}.
 
 The @code{z} code is used to show a string indicating the time zone associated with the time.
 
+@subsubsection The @code{Z} timezone code.
+
+The @code{Z} code is used to show the time zone in standard numeric format.
+
+This is a repeated code, the valid forms are 3, 5 and 6 repetitions:
+
+@itemize
+@item
+If @code{ZZZ} is used, then the time zone shows the number of hours
+since UTC, e.g., pacific standard time is -08 hours.
+@item
+If code @code{ZZZZZ} is used, then the time zone shows the number of
+hours and minutes in the format +HHMM.
+@item
+If code @code{ZZZZZZ} is used, then the time zone shows the number of
+hours and minutes in the format +HH:MM.
+@end itemize
+
 @subsubsection All other characters
 
 Any other characters in a time format string are displayed as is. This allows the use of characters such as @code{-} to separate fragments of a date and @code{:} to separate time segments.

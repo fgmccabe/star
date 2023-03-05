@@ -9,6 +9,9 @@ test.dfmt{
     show now();
 
     show "$(now()):wwwwwwww yyyyy-mmm-dddd HH:MMAA;";
+
+    show "Now = $(now()):yyyy-mm-dd HH:MM:SS;";
+    show "Now = $(now()):yyyy-mm-dd HH:MM:SSZZZ;";
     valis ()
   }
 }
