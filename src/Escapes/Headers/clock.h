@@ -5,6 +5,8 @@
 
 void initTime(void);
 
+extern long timezone_offset;
+
 void flushTimeQ();
 void reset_timer(void);
 struct timeval *nextTimeOut(void);

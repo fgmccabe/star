@@ -1,26 +1,26 @@
 @node Date and Time
 @chapter Date and Time
 
-Date and time support revolves around the @code{time}
-built-in type.
+Date and time support revolves around the @code{time} built-in type.
 
 @section The @code{time} Type
 
 @subsection The @code{time} Type
 
-The @code{time} type is a simple structure that
-refers to Unix time: i.e., the number of seconds since January 1st,
-1970 GMT:
+The @code{time} type is a structure that refers to Unix time: i.e.,
+the number of seconds since January 1st, 1970 GMT:
 
 @example
-public time ::= private .time(float)
- | private .never. -- Time since 1st Jan 1970
+public time ::= private .time(float). -- Time since 1st Jan 1970
 @end example
 
 The most notable part of the @code{time} type is that we mark the
-different constructors for it @code{private}.
+@code{time} constructor for it as @code{private}.
 
-The @code{never} enumerated symbol denotes a nonexistent time.
+The underlying representation of time values is @code{float}; this
+allows us to represent time values that are a fractional number of
+seconds. However, the actual precision of time values depends on the
+operating system; typically we expect at least microsecond precision.
 
 @section Date and Time Functions
 
@@ -58,9 +58,15 @@ over' every 73117 years.
 
 @section Implemented Contracts
 
+@subsection The @code{equality} contract
+
+@subsection The @code{comp} contract
+
+@subsection The @code{coercion} contract
+
+Coercion 
+
 @subsection The @code{display} contract
-
-
 
 @subsection The @code{format} contract
 
@@ -225,4 +231,50 @@ hours and minutes in the format +HH:MM.
 
 Any other characters in a time format string are displayed as is. This allows the use of characters such as @code{-} to separate fragments of a date and @code{:} to separate time segments.
 
+@section Other time related functions
 
+@subsection @code{timeDiff} -- the difference between two times
+
+@example
+timeDiff:(time,time) => float
+@end example
+
+The @code{timeDiff} returns the difference between two times -- expressed as a floating point number of seconds.
+
+@subsection @code{timeDelta} -- increment a time
+
+@example
+timeDelta:(time,float) => time
+@end example
+
+The @code{timeDelta} function adds a number of seconds to a
+@code{time} value to obtain a new @code{time}. For example, to get the
+@code{time} corresponding to yesterday we can do:
+
+@example
+yesterday() => timeDelta(today(),-86400000.0)
+@end example
+
+@subsection @code{parseTime} -- parse a time
+
+The @code{parseTime} function parses a string using a format string as
+guidance for the format of the date/time.
+
+@example
+parseTime:(string,string)=>option[time]
+@end example
+
+The first argument is the string to parse, the second is a format string as defined above.
+
+For example, if we have a date string produced:
+@example
+Td = _format(today(),"yyyy-mm-dd")
+@end example
+we can parse the result using the same format:
+@example
+parseTime(Td,"yyyy-mm-dd")
+@end example
+
+Since parsing is not guaranteed (the date/time may not be parseable
+using the guiding format string) the return type from @code{parseTime}
+is @code{option}al.

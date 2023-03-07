@@ -85,6 +85,7 @@ but the value itself is ignored.
 @display
 @anchored{ScalarPattern}::= @refer{StringLiteral}
   | @refer{NumericLiteral}
+  | @refer{CharLiteral}
 @end display
 @end float  
 
@@ -122,7 +123,8 @@ as a pattern matches exactly that number.
 
 The type of the pattern depends on the type of the number literal:
 @code{integer} literals have type @code{integer}, @code{float}
-literals have type @code{float}.
+literals have type @code{float} and @code{bigint} literals have type
+@code{bigint}.
 
 @node Constructor Patterns
 @section Constructor Patterns
@@ -168,7 +170,18 @@ only.
 @display
 @anchored{EnumeratedSymbolPattern}::= @code{.} @refer{Identifier}
 @end display
-@end float  
+@end float
+
+Note the use of the period in front of the Identifier: this signals
+the use of an enumerated symbol; and differentiates it from a
+variable.
+
+@quotation Note
+The use of periods in front of enumerated symbols (and positional
+constructors) is somewhat verbose. However, mispelling an enumerated
+symbol is a reasonably common error; and without the period, such a
+mispelt enumerated symbol would be silently interpreted as a variable.
+@end quotation
 
 @node Positional Constructor Patterns
 @subsection Positional Constructor Patterns

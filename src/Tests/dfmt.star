@@ -12,6 +12,10 @@ test.dfmt{
 
     show "Now = $(now()):yyyy-mm-dd HH:MM:SS;";
     show "Now = $(now()):yyyy-mm-dd HH:MM:SSZZZ;";
+
+    show "$(parseTime("$(today()):yyyy-mm-dd;","yyyy-mm-dd"))";
+
+    assert parseTime("$(today()):yyyy-mm-dd;","yyyy-mm-dd") == ?today();
     valis ()
   }
 }
