@@ -219,6 +219,7 @@ escape(_date2time, "F(iiiiifi)f", "convert a date to a time")
 escape(_utc2time, "F(iiiiifi)f", "convert a UTC date to a time")
 escape(_fmttime,"F(fs)s","format a time value")
 escape(_formattime,"F(fs)s","format a time value")
+escape(_parsetime,"F(ss)" optionType("f"),"parse a date expression guided by format string")
 // Character class escapes
 
 escape(_uniCodeCategory, "F(c)i", "unicode category")

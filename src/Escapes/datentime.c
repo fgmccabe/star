@@ -8,6 +8,8 @@
 #include <arithP.h>
 #include <tpl.h>
 #include "globals.h"
+#include "clock.h"
+#include "option.h"
 
 #define DATE_DOW 0
 #define DATE_DAY 1
@@ -207,9 +209,7 @@ static char *shortDays[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 static char *longDays[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 
 retCode formatDate(ioPo out, const char *fmt, integer fmtLen, struct tm *time) {
-  integer outPos = 0;
   retCode ret = Ok;
-
   integer fmtPos = 0;
 
   while (ret == Ok && fmtPos < fmtLen) {
@@ -320,8 +320,8 @@ retCode formatDate(ioPo out, const char *fmt, integer fmtLen, struct tm *time) {
       }
       case 'Z': {
         integer gmtoffset = (integer) time->tm_gmtoff;
-        int hours = ((long) absolute(gmtoffset)) / (60 * 60);
-        int mins = (((long) absolute(gmtoffset)) / 60) % 60;
+        int hours = ((int) absolute(gmtoffset)) / (60 * 60);
+        int mins = (((int) absolute(gmtoffset)) / 60) % 60;
         char zone[32];
 
         switch (fLen) {
@@ -350,3 +350,245 @@ retCode formatDate(ioPo out, const char *fmt, integer fmtLen, struct tm *time) {
   return ret;
 }
 
+static retCode rdNum(const char *src, integer *srcPos, integer srcLen, int count, int *res) {
+  int x = 0;
+  retCode ret = Ok;
+  for (int ix = 0; ix < count && ret == Ok && *srcPos < srcLen; ix++) {
+    codePoint ch = nextCodePoint(src, srcPos, srcLen);
+    if (isNdChar(ch)) {
+      x = x * 10 + digitValue(ch);
+    } else
+      ret = Fail;
+  }
+  *res = x;
+  return ret;
+}
+
+static retCode
+rdChars(const char *src, integer *srcPos, integer srcLen, int count, char *res, integer *resPos, integer resLen) {
+  retCode ret = Ok;
+  for (int ix = 0; ix < count && ret == Ok && *srcPos < srcLen; ix++) {
+    codePoint ch = nextCodePoint(src, srcPos, srcLen);
+    ret = appendCodePoint(res, resPos, resLen, ch);
+  }
+  if (*resPos < resLen)
+    res[*resPos] = '\0';
+  return ret;
+}
+
+static retCode parseTime(const char *fmt, integer fmtLen, const char *src, integer srcLen, struct tm *time) {
+  retCode ret = Ok;
+
+  integer fmtPos = 0;
+  integer srcPos = 0;
+
+  logical isCE = True;
+  logical isPm = False;
+  int year = 0;
+  int month = 0;
+  int day = 0;
+  int hours = 0;
+  int mins = 0;
+  int secs = 0;
+  long gmtOffset = timezone_offset;
+
+  while (ret == Ok && fmtPos < fmtLen && srcPos < srcLen) {
+    codePoint f = nextCodePoint(fmt, &fmtPos, fmtLen);
+    integer fLen = countFmtChrs(fmt, &fmtPos, fmtLen, f);
+
+    switch (f) {
+      case 'G': {
+        char adBuff[16];
+        integer adPos = 0;
+        ret = rdChars(src, &srcPos, srcLen, (int) clamp(1, fLen, 3), adBuff, &adPos, NumberOf(adBuff));
+
+        isCE = uniIsLit(adBuff, "CE") || uniIsLit(adBuff, "ce") || uniIsLit(adBuff, "AD") || uniIsLit(adBuff, "ad");
+        continue;
+      }
+      case 'y': {
+        ret = rdNum(src, &srcPos, srcLen, (int) clamp(2, fLen, 4), &year);
+        continue;
+      }
+      case 'm': {
+        char mnBuff[16];
+        integer mnPos = 0;
+
+        switch (fLen) {
+          case 1:
+          case 2: {
+            ret = rdNum(src, &srcPos, srcLen, (int) clamp(1, fLen, 2), &month);
+            month--; // Map January to 0
+            continue;
+          }
+          case 3: {
+            ret = rdChars(src, &srcPos, srcLen, (int) clamp(1, fLen, 3), mnBuff, &mnPos, NumberOf(mnBuff));
+
+            for (int ix = 0; ret == Ok && ix < NumberOf(shortMonths); ix++) {
+              if (uniIsLit(shortMonths[ix], mnBuff)) {
+                time->tm_mon = ix;
+                break;
+              }
+            }
+            continue;
+          }
+          default: {
+            ret = rdChars(src, &srcPos, srcLen, (int) clamp(1, fLen, NumberOf(mnBuff)), mnBuff, &mnPos,
+                          NumberOf(mnBuff));
+
+            for (int ix = 0; ret == Ok && ix < NumberOf(longMonths); ix++) {
+              if (uniIsLit(longMonths[ix], mnBuff)) {
+                time->tm_mon = ix;
+                break;
+              }
+            }
+            continue;
+          }
+        }
+      }
+      case 'w': {
+        char wkBuff[16];
+        integer mnPos = 0;
+        switch (fLen) {
+          case 1:
+          case 2: {
+            ret = rdNum(src, &srcPos, srcLen, (int) clamp(1, fLen, 2), &time->tm_wday);
+            continue;
+          }
+          case 3: {
+            ret = rdChars(src, &srcPos, srcLen, (int) clamp(1, fLen, 3), wkBuff, &mnPos, NumberOf(wkBuff));
+
+            for (int ix = 0; ret == Ok && ix < NumberOf(shortDays); ix++) {
+              if (uniIsLit(shortDays[ix], wkBuff)) {
+                time->tm_wday = ix;
+                break;
+              }
+            }
+            continue;
+          }
+          default: {
+            ret = rdChars(src, &srcPos, srcLen, (int) clamp(1, fLen, NumberOf(wkBuff)), wkBuff, &mnPos,
+                          NumberOf(wkBuff));
+
+            for (int ix = 0; ret == Ok && ix < NumberOf(longDays); ix++) {
+              if (uniIsLit(longDays[ix], wkBuff)) {
+                time->tm_wday = ix;
+                break;
+              }
+            }
+            continue;
+          }
+        }
+      }
+      case 'D': {
+        ret = rdNum(src, &srcPos, srcLen, (int) clamp(1, fLen, 4), &time->tm_yday);
+        continue;
+      }
+      case 'd': {
+        ret = rdNum(src, &srcPos, srcLen, (int) clamp(1, fLen, 4), &day);
+        continue;
+      }
+      case 'a':
+      case 'A': {
+        char ampmBuff[16];
+        integer adPos = 0;
+        ret = rdChars(src, &srcPos, srcLen, (int) clamp(1, fLen, 3), ampmBuff, &adPos, NumberOf(ampmBuff));
+
+        isPm = uniIsLit(ampmBuff, "pm") || uniIsLit(ampmBuff, "PM");
+        continue;
+      }
+      case 'H':
+      case 'h': {
+        ret = rdNum(src, &srcPos, srcLen, (int) clamp(1, fLen, 2), &hours);
+        continue;
+      }
+
+      case 'M': {
+        ret = rdNum(src, &srcPos, srcLen, (int) clamp(1, fLen, 2), &mins);
+        continue;
+      }
+      case 'S': {
+        ret = rdNum(src, &srcPos, srcLen, (int) clamp(1, fLen, 2), &time->tm_sec);
+        continue;
+      }
+      case 'z': {
+        ret = Error;
+        continue;
+      }
+      case 'Z': {
+        char znBuff[16];
+        integer znLen = 0;
+        ret = rdChars(src, &srcPos, srcLen, (int) clamp(1, fLen, NumberOf(znBuff)), znBuff, &znLen, NumberOf(znBuff));
+        logical beforeGMT = False;
+
+        integer znPos;
+        if (znBuff[0] == '-') {
+          beforeGMT = True;
+          znPos = 1;
+        } else if (znBuff[0] == '+') {
+          beforeGMT = False;
+          znPos = 1;
+        } else
+          znPos = 0;
+
+        int znHours = 0;
+        int znMins = 0;
+
+        ret = rdNum(znBuff, &znPos, znLen, 2, &znHours);
+
+        if (znBuff[znPos] == ':')
+          znPos++;
+
+        if (ret == Ok)
+          ret = rdNum(znBuff, &znPos, znLen, clamp(0, 2, znLen - znPos), &znMins);
+
+        if (beforeGMT)
+          gmtOffset = -znHours * 60 * 60 + znMins * 60;
+        else
+          gmtOffset = znHours * 60 * 60 + znMins * 60;
+        continue;
+      }
+      default: { // skip over other characters
+        codePoint ch = nextCodePoint(src, &srcPos, srcLen);
+        if (ch != f)
+          return Fail;
+        continue;
+      }
+    }
+  }
+
+  if (isPm && hours < 12)
+    hours += 12;
+  time->tm_hour = hours;
+
+  if (!isCE)
+    time->tm_year = -year - 1900;
+  else
+    time->tm_year = year - 1900;
+
+  time->tm_isdst = False;
+  time->tm_mon = month;
+  time->tm_mday = day;
+  time->tm_min = mins;
+  time->tm_sec = secs;
+  time->tm_gmtoff = gmtOffset;
+  return ret;
+}
+
+ReturnStatus g__parsetime(heapPo h, termPo a1, termPo a2) {
+  integer srcLen;
+  const char *src = strVal(a1, &srcLen);
+
+  integer fmtLen;
+  const char *fmt = strVal(a2, &fmtLen);
+
+  struct tm time;
+
+  retCode ret = parseTime(fmt, fmtLen, src, srcLen, &time);
+
+  if (ret == Ok) {
+    time_t tm = mktime(&time);
+    return (ReturnStatus) {.ret=Ok, .result=wrapSome(h,makeFloat((double) tm))};
+  } else {
+    return (ReturnStatus) {.ret=Error, .result=voidEnum};
+  }
+}
