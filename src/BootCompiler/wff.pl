@@ -2,6 +2,7 @@
 	      isAlgebraicTypeStmt/6,mkAlgebraicTypeStmt/6,
 	      isConstructorType/6,constructorType/6,
 	      isRoundCon/6,isBraceCon/6,
+	      isAnonBrace/3,mkAnonBrace/3,
 	      isQuantified/3,isXQuantified/3,reUQuant/3,reXQuant/3,
 	      isConstrained/3,reConstrain/3,
 	      isContractStmt/6,contractStmt/6,
@@ -193,6 +194,13 @@ mkConApply(Lc,Op,Args,T) :-
 isAnon(name(Lc,"_"),Lc).
 
 mkAnon(Lc,name(Lc,"_")).
+
+isAnonBrace(T,Lc,Els) :-
+  isBraceTuple(T,Lc,Els),
+  check_implies(is_member(S,Els),isDefinition(S)).
+
+mkAnonBrace(Lc,Els,T) :-
+  braceTuple(Lc,Els,T).
 
 isQuantified(T,Q,B) :-
   isBinary(T,_,"~~",L,B),

@@ -1,0 +1,7 @@
+{
+  "content" : {
+    "star.lex.nfa" : "nfa.star"
+    },
+  "version" : "1.0.0",
+  "default": ".."
+}

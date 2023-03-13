@@ -1,5 +1,6 @@
 star.lex.nfa{
   import star.
+  import star.compiler.errors.
 
   public nfa[c] ::=
     .epsilon |
@@ -16,8 +17,11 @@ star.lex.nfa{
     disp(N) => dispNfa(N)
   }
 
-  start:all c ~~ hashable[c], equality[c] |: (nfa[c]) => set[c].
-  start(N) => let{.
-    strt(.choice(L)) => 
+  parseRe:(string)=>nfa[char].
+  parseRe(Rs) => valof{
+    (Re,Rest) = parseR(Rs::cons[char]);
+    if ~isEmpty(Rest) then
+
+  parseR(
     
 }

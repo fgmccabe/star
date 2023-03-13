@@ -11,11 +11,11 @@ BISON_TARGET(JsonParser json.y ${CMAKE_CURRENT_BINARY_DIR}/jsonParser.c)
 FLEX_TARGET(JsonTokeniser jtoken.l ${CMAKE_CURRENT_BINARY_DIR}/jsontoken.c)
 ADD_FLEX_BISON_DEPENDENCY(JsonTokeniser JsonParser)
 
-if (NOT DEFINED JIT_ARCH)
-    string(TOUPPER "${CMAKE_HOST_SYSTEM_PROCESSOR}" JIT_ARCH)
-endif ()
-
-add_subdirectory(${JIT_ARCH})
+#if (NOT DEFINED JIT_ARCH)
+#    string(TOUPPER "${CMAKE_HOST_SYSTEM_PROCESSOR}" JIT_ARCH)
+#endif ()
+#
+#add_subdirectory(${JIT_ARCH})
 
 add_subdirectory("UnicodeStuff")
 add_subdirectory("UnitTests")
@@ -162,7 +162,7 @@ set(SOURCE_FILES
         ${HEADER_FILES} match.c)
 
 add_library(ooio STATIC ${SOURCE_FILES})
-target_link_libraries(ooio fiber pthread m ${AIO_LIBRARIES})
+target_link_libraries(ooio pthread m ${AIO_LIBRARIES})
 
 add_custom_command(OUTPUT ${UNITABLE.C} DEPENDS parseUni ${UNICODE}
   COMMAND ${CMAKE_CURRENT_BINARY_DIR}/UnicodeStuff/parseUni ${UNICODE} ${UNITABLE.C}

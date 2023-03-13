@@ -9,10 +9,6 @@ Apart from achieving some effect, actions are associated with a
 value. This is the value of the action that is returned when action is
 completed.
 
-Actions may also be associated with an exception; in the case that the
-action does not complete normally. Unlike many programming languages,
-exceptions in @Star{} are strictly statically checked.
-
 The @refer{ValofExpression} is used to denote that a value is to be
 computed by performing actions. Similarly, many actions involve the
 evaluation of expressions.
@@ -22,12 +18,9 @@ evaluation of expressions.
 @cindex action types
 @cindex action!types
 
-Actions have two types associated with them: their @emph{value} type
-and their @emph{exception} type.  The action's value type is the type
-of any returned value -- i.e., the type of the expression associated
-with any @refer{ValisAction}s within the action. The action's
-exception type is the type of any exception that may be thrown by the
-action.
+Actions may have a type associated with them: their @emph{value} type.
+This is the type of any returned value -- i.e., the type of the
+expression associated with any @refer{ValisAction}s within the action.
 
 @node Basic Action Forms
 @section Basic Action Forms
@@ -42,7 +35,7 @@ The basic actions include those in @ref{doFig}.
 @display
 @anchored{Action}::=@refer{NullAction}
   | @refer{BlockAction}
-  | @refer{InvokeAction}
+  | @refer{CallAction}
   | @refer{ValisAction}
   | @refer{DefnAction}
   | @refer{AssignmentAction}
@@ -90,17 +83,16 @@ An action block consists of a sequence of actions, enclosed in braces
 The empty action block -- @code{@{@}} -- is equivalent to the
 @refer{NullAction}.
 
-@node Invoke Action
-@subsection Invoke Action
-@cindex invoke action
+@node Call Action
+@subsection Call Action
+@cindex call action
 
-The @refer{InvokeAction} denotes the invokation of a
-sub-computation. Typically, an @refer{InvokeAction} takes the form of
-a call to a function.
-@float BNF,invokeActionFig
-@caption{Invoke Action}
+The @refer{CallAction} denotes calling a function; typically
+also expressed in terms of actions. 
+@float BNF,callActionFig
+@caption{Call Action}
 @display
-@anchored{InvokeAction} ::= @refer{Expression} @refer{TupleLiteral}
+@anchored{CallAction} ::= @refer{Expression} @refer{TupleLiteral}
 @end display
 @end float
 
@@ -113,7 +105,11 @@ within the enclosing action.
 @cindex valis action
 @findex valis
 
-The @refer{ValisAction} denotes that the action should terminate and return a value.
+The @refer{ValisAction} denotes that the action should terminate and
+return a value. Specifically, for a @refer{ValisAction} to be valid,
+it must be textually enclosed in a @refer{ValofExpression}. The
+@refer{ValisAction} returns its value as the value of the enclosed
+@refer{ValofExpression}.
 
 @float BNF,valisActionFig
 @caption{Valis Action}
@@ -121,14 +117,6 @@ The @refer{ValisAction} denotes that the action should terminate and return a va
 @anchored{ValisAction} ::= @code{valis} @refer{Expression}
 @end display
 @end float
-
-When a @code{valis} action is performed, its expression is evaluated
-and that value is used as the value of the computation.
-
-A @refer{ValisAction} must be lexically enclosed by a
-@refer{ValofExpression}. The @refer{ValisAction} terminates that
-expression and the value of the @refer{ValofExpression} is the value
-computed by the @refer{ValisAction}.
 
 @quotation Note
 It is possible that evaluating the expression of a @refer{ValisAction}
@@ -279,10 +267,10 @@ form of action.
 @cindex assignment action
 @findex :=
 
-The @refer{AssignmentAction} is an @refer{Action} that replaces the value of a
-re-assignable variable with another value. The variable being
-re-assigned must have a @code{ref} type -- there is no `implicit'
-assignability of a variable or field.
+The @refer{AssignmentAction} is an @refer{Action} that replaces the
+value of a re-assignable variable with another value. The variable
+being re-assigned must have a @code{ref} type -- there is no
+`implicit' assignability of a variable or field.
 
 @float BNF,assignactionFig
 @caption{Assignment Action}
@@ -362,7 +350,10 @@ The @code{for} loop iterates over a collection and matches each element
 against @emph{Pattern}; which will typically bind one or more variables
 that are in scope for the body of the loop.
 
-The type of the collection must implement the @code{generate} contract.
+@code{for} loops are governed by the collection being iterated over.
+There must be an implementation of the @code{generate} contract for
+the collection type. In fact, @code{for} loops are actually examples
+of concurrent programs.
 
 For example, the action:
 @example
@@ -377,7 +368,7 @@ action is equivalent to the double @refer{While Action}:
 @example
 @{
   gps := [];
-  G1 = _generate(parent);
+  G1 = _generate(parent);            -- establish a generator for parent
   L1: while .true do @{
     G1 resume ._next in @{
       _yld((X,Y)) => @{
@@ -508,7 +499,3 @@ At least one of the actions executed within the @refer{BlockAction}
 must be a @refer{ValisAction}. If @refer{BlockAction} exits with no
 @refer{ValisAction} being executed execution of the entire program
 halts.
-
-
-
-

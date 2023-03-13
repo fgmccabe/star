@@ -3,7 +3,6 @@ test.ac5{
   import star.arith.
   import star.iterable.
   import star.range.
-  import star.fiber.
 
   -- test for loops
 

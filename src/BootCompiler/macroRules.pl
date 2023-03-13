@@ -16,6 +16,8 @@ macroRl("<||>",expression,macroRules:macroQuote).
 macroRl("{}",expression,macroRules:comprehensionMacro).
 macroRl("{}",expression,macroRules:mapLiteralMacro).
 macroRl("{}",expression,macroRules:totalizerMacro).
+%macroRl("{}",expression,macroRules:anonBraceMacro).
+macroRl("{}",pattern,macroRules:anonBraceMacro).
 macroRl("{!!}",expression,macroRules:macroIotaComprehension).
 macroRl("{??}",expression,macroRules:iterableGoalMacro).
 macroRl("::",expression,macroRules:coercionMacro).

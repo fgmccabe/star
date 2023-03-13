@@ -26,7 +26,7 @@ set(HEADER_FILES
         Headers/pkgops.h
         Headers/turm.h
         Headers/listops.h
-        Headers/stkops.h)
+        Headers/stkops.h Headers/futureops.h)
 
 set(SOURCE_FILES
         ${HEADER_FILES}
@@ -48,6 +48,6 @@ set(SOURCE_FILES
         stringops.c
         threds.c
         turm.c
-        unicode.c taskops.c)
+        unicode.c fiberops.c)
 
 add_library(escapes STATIC ${SOURCE_FILES})
