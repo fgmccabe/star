@@ -1,5 +1,5 @@
-@node Fibers
 @chapter Fibers
+@node Fibers
 
 A fiber is a computation whose execution can be managed. Fibers can be
 created, suspended and resumed. Fibers also have identity which allows
@@ -12,17 +12,15 @@ top of fibers; including:
 
 @itemize @bullet
 @item
-A @code{fiber} expression denotes a computation that can be scheduled
+A @code{task} expression denotes a computation that can be scheduled
 independently of other actions.
 
 This is analogous to coroutining in other programming languages.
 @item
 A @code{generator} expression is used to define so-called yield-style generators.
 @end itemize
-
 @end quotation
 
-@node Fiber Type
 @section Fiber Type
 @cindex type, fiber
 @cindex fiber type
@@ -38,187 +36,95 @@ The @code{fiber} type is used to characterize the type of fiber expressions. It 
 @end float
 
 The second type argument refers to values that the fiber may suspend
-with (see @refer{Suspend} and @refer{RetireAction}) and the first type
-argument refers to values that the fiber may be resumed with (see
-@refer{Resume}).
+with (see below) and the first type argument refers to values that the
+fiber may be resumed with.
 
-@node Fiber Expression
-@section Fiber Expression
+@section Creating Fibers
 
-A @code{fiber} expression evaluates to a new fiber. It contains a set of
-actions to perform as the fiber. 
+A @code{fiber} is created using one of two escape functions:
+@code{_new_fiber} or @code{_spawn}. They both take a so-called
+@emph{fiber function} as argument.
 
-@float BNF,fiberFig
-@caption{Fiber Expression Syntax}
-@display
-@refer{Expression}::+=@refer{FiberExpression}
+@subsection Fiber functions
 
-@anchored{FiberExpression} ::= @code{fiber} @refer{BlockAction}
-  | @code{fiber} @refer{Expression}
-  | @refer{SuspendExpression}
-  | @refer{ResumeExpression}
-@end display
-@end float
+A fiber function is a function that is executed in a separate
+fiber. The type of a fiber function has a strong effect on the fiber:
+it specifies the legal ways that the fiber can be suspended, resumed
+and what values it may return. In addition, a fiber function takes a
+@code{_fiber} argument -- the identity of the fiber that the fiber
+function is running on.
 
-For example, in the @code{fiber} expression:
+The general form of the type of a fiber function is:
+
 @example
-fiber@{
-  let@{
-    yildFn:((),e)=>().
-    yildFn(_,E) => valof@{
-      case suspend .yild(E) in @{
-       .next => valis ().
-      @}
-    @}
-  @} in @{_iter(L,(),yildFn)@};
-  retire .end
-@}
+all r,s ~~ (fiber[r,s]) => s
 @end example
-we use a @refer{LetAction} to introduce a local function definition --
-@code{yildFn} -- and pass it to the standard contract method --
-@code{_iter} -- (which is defined in the @code{iter} contract).
 
-In addition to the actions, there are two special variables defined
-within the body of the @code{fiber} expression: @code{this} and
-@code{first}:
+The @code{r} type indicates the type of the value given to the fiber
+whenever it is resumed, and the @code{s} type indicates the type that
+the fiber will return and what it will yield should it suspend.
 
-@table @code
-@item this
-The @code{this} keyword is bound to the currently executing
-@code{fiber} (and has the same type). This is one of the primary ways
-in which a @code{fiber} is given its own identity.
-@item first
-The @code{first} keyword is bound to the initial event that is passed
-to the @code{fiber} when it is first resumed.
+@subsection Using @code{_spawn}
 
-@quotation Note
-When @code{fiber}s are created, they are in suspended state: i.e., the
-code within the @code{fiber} expression is not executed
-immediately. The @code{fiber} starts executing only when it is resumed
--- using the @refer{Resume}
-@end quotation
-@end table
+The @code{_spawn} function takes a fiber function and enters that
+function on a new fiber.
 
-@node Suspend
-@subsection Suspend
+The type of @code{_spawn} is:
 
-The @refer{Suspend} is used when a fiber wishes to suspend
-itself. There are two arguments to the @refer{Suspend}: the
-identity of the fiber to be suspended, a value that determines the
+@example
+_spawn: all r,s ~~ ((fiber[r,s])=>s)=>s
+@end example
+
+I.e., it returns whatever its fiber function returns.
+
+@subsection Suspend using @code{_suspend}
+
+The @code{_suspend} function is used when a fiber wishes to suspend
+itself. There are two arguments to @code{_suspend}: the
+identity of the fiber to be suspended and the value that determines the
 @emph{suspension event}:
 
-@float BNF,suspendFig
-@caption{Suspend Syntax}
-@display
-@anchored{SuspendExpression}::=
-    @refer{Expression} @code{suspend} @refer{Expression}
-  | @code{suspend} @refer{Expression}
-@end display
-@end float
-
-The types of the fiber, the event and the action case must match up; i.e., given
 @example
-@var{T} suspend @var{E} in @{@var{P@sub{1}} => @var{A@sub{1}}. .. @var{P@sub{n}} => @var{A@sub{n}}@}
-@end example
-then @code{@var{T}} must be of type
-@example
-fiber[@var{R},@var{S}]
-@end example
-for some @code{@var{S}} and @code{@var{R}}; the type of @code{@var{E}}:
-@example
-@code{@var{E}} : @code{@var{S}}
-@end example
-and the left hand sides of the response case -- @code{@var{P@sub{i}}}
--- must have type @code{@var{R}}.
-
-In effect, the fiber type determines the legal events that the fiber
-may be suspended with (and the legal events that the fiber may be
-resumed with).
-
-@quotation Note
-When used directly within the text of a @code{fiber} expression, there
-is a slightly shorter form of @code{suspend}:
-@example
-suspend @var{E} in @{@var{P@sub{1}} => @var{A@sub{1}}. .. @var{P@sub{n}} => @var{A@sub{n}}@}
-@end example
-This may be used when a fiber is directly suspending itself within the
-@code{fiber} expression. This action is equivalent to:
-@example
-@code{this} @code{suspend} @var{E} @code{in} @{@var{P@sub{1}} => @var{A@sub{1}}. .. @var{P@sub{n}} => @var{A@sub{n}}@}
+_suspend: all r,s ~~ (fiber[r,s],s) => r
 @end example
 
-The @code{this} keyword is established within the scope of a
-@code{fiber} expression; it allows fibers to discover their own
-identity.
-@end quotation
+The returned value from a call to @code{_suspend} is the value used
+when the fiber is resumed using @code{_resume}.
 
-@node Resume
-@subsection Resume
+@subsection Resume using @code{_resume}
 
-A @refer{Resume} is used when a fiber wishes to resume another fiber.
-There are two arguments to the @refer{Resume}: the
+The @code{_resume} function is used when one wishes to resume another fiber.
+There are two arguments to the @code{_resume}: the
 identity of the fiber to be resumed, and a value that determines the
 @emph{resumption event}:
 
-@float BNF,resumeFig
-@caption{Resume Syntax}
-@display
-@anchored{ResumeExpression}::= @refer{Expression} @code{resume} @refer{Expression}
-@end display
-@end float
-
-As with @code{Suspend}, the types of the fiber, the event and
-the action case must match up; i.e., given
 @example
-@var{T} @code{resume} @var{E}
-@end example
-then @code{@var{T}} must be of type
-@example
-fiber[@var{R},@var{S}]
-@end example
-for some @code{@var{R}} and @code{@var{S}}; the type of @code{@var{E}}:
-@example
-@code{@var{E}} : @code{@var{R}}
-@end example
-and the left hand sides of the response case -- @code{@var{P@sub{i}}}
--- must have type @code{@var{S}} -- which will be used to match
-against the suspension event.
-
-The @refer{Suspend} and @refer{Resume} are quite symmetric.
-
-@node Retiring a Fiber
-@subsection Retiring a Fiber
-
-The @refer{RetireAction} is used when a fiber wishes to retire and no
-longer continue execution. This is the primary means by which a fiber
-designates that it is completed. Whether the fiber is successful or not
-is determined by the value of the event it signals.
-
-@float BNF,retireActionFig
-@caption{Retire Action Syntax}
-@display
-@anchored{RetireAction}::=
-  @refer{Expression} @code{retire} @refer{Expression}
-  | @code{retire} @refer{Expression}
-@end display
-@end float
-
-The types of the fiber and the event must match up; i.e., given
-@example
-@var{T} retire @var{E}
-@end example
-then @code{@var{T}} must be of type
-@example
-fiber[@var{R},@var{S}]
-@end example
-for some @code{@var{S}} and @code{@var{R}}; the type of @code{@var{E}}:
-@example
-@code{@var{E}} : @code{@var{S}}
+_resume: all r,s ~~ (fiber[r,s],r) => s
 @end example
 
-In the case where the @refer{RetireAction} is being performed withing
-the lexical scope of the @code{fiber} expression, the shorter form --
-which omits the identifier for the fiber being retired -- may be
-used. As with @refer{Suspend} this is equivalent to using
-the @code{this} keyword to identify the retiring fiber.
+The second argument -- of type @code{r} -- is passed to the fiber
+being resumed. Since that fiber must be in a suspended state, the
+@code{_resume} function suspends the current fiber and resumes the
+identified fiber.
+
+The @code{_resume} function returns when either the fiber function of
+the resumed fiber returns, or the resumed fiber suspends itself. In
+both cases the value returned by @code{_resume} is the value returned
+by the fiber function -- or the value passed in a call to
+@code{_suspend}.
+
+@subsection Retiring a fiber with @code{_retire}
+
+The @code{_retire} function can be used by a fiber when it wished to
+cease execution. This is an alternative method of exiting a fiber; the
+normal way is simply return from the fiber function.
+
+@example
+_retire: all r,s ~~ (fiber[r,s],s) => ()
+@end example
+
+The @code{_retire} function does not actually return. When called, the
+fiber it is running will be terminated and the corresponding
+@code{_resume} call will receive the second argument from the
+@code{_retire} call.
 

@@ -45,7 +45,9 @@ star.compiler.macro.rules{
     "::" -> [(.expression,coercionMacro)],
     ":?" -> [(.expression,coercionMacro)],
     "*" -> [(.expression,multicatMacro)],
-    "{}" -> [(.expression,comprehensionMacro),(.expression,totalizerMacro),(.expression,mapLiteralMacro)],
+    "{}" -> [(.expression,comprehensionMacro),
+      (.expression,totalizerMacro),
+      (.expression,mapLiteralMacro)],
     "{!!}" -> [(.expression,iotaComprehensionMacro)],
     "{??}" -> [(.expression,testComprehensionMacro)],
     "__pkg__" -> [(.expression,pkgNameMacro)],
@@ -851,5 +853,4 @@ star.compiler.macro.rules{
   allArgs([A,..As],F,Ix,Rep) where (Lc,V,T) ?= isTypeAnnotation(A) =>
     [mkTypeAnnotation(Lc,.nme(Lc,"X$(Ix)"),T),..allArgs(As,F,Ix+1,Rep)].
   allArgs([_,..As],F,Ix,Rep) => allArgs(As,F,Ix,Rep).
-  
 }

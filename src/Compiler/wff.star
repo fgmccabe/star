@@ -327,6 +327,14 @@ star.compiler.wff{
 
   public mkTestComprehension(Lc,C) => unary(Lc,"{??}",C).
 
+  public isAnonBraceTuple(Trm) where (Lc,Els) ?= isBrTuple(Trm) &&
+      {? D in Els *> isDefinition(D) ?} => some((Lc,Els)).
+  isAnonBraceTuple(_) default => .none.
+
+  isDefinition(A) => (_?=isDefn(A) || _?=isTypeExistsStmt(A) ||
+    _?=isTypeAnnotation(A) || _?= isTypeFunStmt(A) || _?=isEquation(A) ||
+    _ ?= isAlgebraicTypeStmt(A)).
+
   public isConjunct(A) => isBinary(A,"&&").
 
   public mkConjunct(Lc,L,R) => binary(Lc,"&&",L,R).

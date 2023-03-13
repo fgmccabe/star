@@ -587,7 +587,7 @@ ReturnStatus g__parsetime(heapPo h, termPo a1, termPo a2) {
 
   if (ret == Ok) {
     time_t tm = mktime(&time);
-    return (ReturnStatus) {.ret=Ok, .result=wrapSome(h,makeFloat((double) tm))};
+    return (ReturnStatus) {.ret=Ok, .result=(termPo)wrapSome(h,makeFloat((double) tm))};
   } else {
     return (ReturnStatus) {.ret=Error, .result=voidEnum};
   }

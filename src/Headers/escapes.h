@@ -14,7 +14,6 @@
 #define udpType "t'star.io*udpHandle'"
 #define optionType(T) "Uz1'star.core*option'" T
 #define fiberType(R,S) "UUz2'star.fiber*fiber'" R S
-#define contType(T) "Uz1'star.core*cont'" T
 #define futureType(T) "Uz1'star.core*future'" T
 
 /* Define the standard escapes */
@@ -220,8 +219,8 @@ escape(_utc2time, "F(iiiiifi)f", "convert a UTC date to a time")
 escape(_fmttime,"F(fs)s","format a time value")
 escape(_formattime,"F(fs)s","format a time value")
 escape(_parsetime,"F(ss)" optionType("f"),"parse a date expression guided by format string")
-// Character class escapes
 
+// Character class escapes
 escape(_uniCodeCategory, "F(c)i", "unicode category")
 
 escape(_isCcChar, "F(c)l", "is Other, control char")
