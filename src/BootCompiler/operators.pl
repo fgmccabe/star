@@ -191,6 +191,7 @@
   follows('.','+','.+').
   follows('.','=','.=').
   follows('.','>','.>').
+  follows('.','/','./').
   follows('.',' ','. ').
   follows('.#','.','.#.').
   follows('.&','.','.&.').
@@ -206,6 +207,7 @@
   follows('.>>','>','.>>>').
   follows('.>>>','.','.>>>.').
   follows('/','\\','/\\').
+  follows('/','.','/.').
   follows('/','/','//').
   follows('//','/','///').
   follows('{','?','{?').
@@ -280,9 +282,11 @@
   final('.=',".=").	 /* pattern match */
   final('.>>.',".>>.").	 /* logical shift right */
   final('.>>>.',".>>>.").	 /* arithmetic shift right */
+  final('./',"./").	 /* regexp right */
   final('. ',". ").	 /* statement terminator */
   final('/',"/").	 /* division */
   final('/\\',"/\\").	 /* intersection */
+  final('/.',"/.").	 /* regexp left */
   final('//',"//").	 /* map over */
   final('///',"///").	 /* indexed map over */
   final('{',"{").	 /* non-recursive braces */
@@ -376,6 +380,7 @@
   keyword("*>").
   keyword(",").
   keyword("contract").
+  keyword("./").
   keyword("raises").
   keyword(".").
   keyword("try").
@@ -396,6 +401,7 @@
   keyword("open").
   keyword("~~").
   keyword("invoke").
+  keyword("/.").
   keyword("public").
   keyword("[|").
   keyword("ref").

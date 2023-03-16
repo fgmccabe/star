@@ -5,9 +5,8 @@ star.mbox{
 
   public all e ~~ taskFun[e] ~> ((task[e])=>e).
 
-  public all d ~~ channel[d] <~ {}.
-
-  channel:all d ~~ (ref channelState[d]) <=> channel[d].
+  public all d ~~ channel[d] ::=
+    private .channel(ref channelState[d]).
 
   channelState[d] ::= .quiescent
   | .hasData(d).
@@ -82,13 +81,10 @@ star.mbox{
 
       while .true do{
 	while ~isEmpty(Q!) do{
---	  logMsg("Q ~ $([|Q!|])");	  
 	  if [T,..Rs] .= Q! then{
 	    Q := Rs;
---	    logMsg("resuming");
---	    _ins_debug();
 	    case _resume(T,.go_ahead) in {
-	      .yield_ => { Q:=Q!++[T]; /*logMsg("yielding");*/ }
+	      .yield_ => { Q:=Q!++[T] }
 	      | .result(Rslt) => {
 		while [C,..Cs] .= Q! do{
 		  Q := Cs;

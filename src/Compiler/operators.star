@@ -243,6 +243,7 @@ star.compiler.operators{
     (".",`+`) => ?".+".
     (".",`=`) => ?".=".
     (".",`>`) => ?".>".
+    (".",`/`) => ?"./".
     (".",` `) => ?". ".
     (".#",`.`) => ?".#.".
     (".&",`.`) => ?".&.".
@@ -258,6 +259,7 @@ star.compiler.operators{
     (".>>",`>`) => ?".>>>".
     (".>>>",`.`) => ?".>>>.".
     ("/",`\\`) => ?"/\\".
+    ("/",`.`) => ?"/.".
     ("/",`/`) => ?"//".
     ("//",`/`) => ?"///".
     ("{",`?`) => ?"{?".
@@ -336,9 +338,11 @@ star.compiler.operators{
     ".=" => .true.  /* pattern match */
     ".>>." => .true.  /* logical shift right */
     ".>>>." => .true.  /* arithmetic shift right */
+    "./" => .true.  /* regexp right */
     ". " => .true.  /* statement terminator */
     "/" => .true.  /* division */
     "/\\" => .true.  /* intersection */
+    "/." => .true.  /* regexp left */
     "//" => .true.  /* map over */
     "///" => .true.  /* indexed map over */
     "{" => .true.  /* non-recursive braces */
@@ -436,6 +440,7 @@ star.compiler.operators{
     "*>" => .true.
     "," => .true.
     "contract" => .true.
+    "./" => .true.
     "raises" => .true.
     "." => .true.
     "try" => .true.
@@ -456,6 +461,7 @@ star.compiler.operators{
     "open" => .true.
     "~~" => .true.
     "invoke" => .true.
+    "/." => .true.
     "public" => .true.
     "[|" => .true.
     "ref" => .true.

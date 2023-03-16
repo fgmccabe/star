@@ -1241,5 +1241,13 @@
     "right": "|>",
     "priority": 2000,
     "desc": "meta quote"
+  },
+  {
+    "bracket": "/../",
+    "left": "/.",
+    "right": "./",
+    "priority": 2000,
+    "seperator": ",",
+    "desc": "dfa expression"
   }
 ]
