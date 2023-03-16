@@ -81,4 +81,61 @@ star.compiler.token{
     locOf(.tok(Lc,_)) => .some(Lc).
     locOf(.endTok(Lc)) => .some(Lc).
   }
+
+  -- We define a tracking state to allow us to collect locations
+  public tokenState ::= .tokenState(string,integer,integer,integer,cons[char]).
+
+  atEof:(tokenState) => boolean.
+  atEof(.tokenState(_,_,_,_,Str)) => _eof(Str).
+
+  public nextChr:(tokenState) => (tokenState,option[char]).
+  nextChr(St) where .tokenState(_,_,_,_,.cons(Ch,_)).=St  => (nxtSt(St),.some(Ch)).
+  nextChr(St) default => (St,.none).
+
+  public hedChar:(tokenState) => option[char].
+  hedChar(.tokenState(_,_,_,_,Txt)) => head(Txt).
+
+  public interSt:(tokenState,string) => tokenState.
+  interSt(.tokenState(P,Ln,Cl,Off,_),Txt) => .tokenState(P,Ln,Cl,Off,Txt::cons[char]).
+
+  public nxtSt:(tokenState) => tokenState.
+  nxtSt(.tokenState(Pk,Line,Col,Off,.cons(`\n`,Txt))) =>
+    .tokenState(Pk,Line+1,1,Off+1,Txt).
+  nxtSt(.tokenState(Pk,Line,Col,Off,.cons(_,Txt))) =>
+    .tokenState(Pk,Line,Col+1,Off+1,Txt).
+
+  public lookingAt:(tokenState,cons[char]) => option[tokenState].
+  lookingAt(St,[]) => .some(St).
+  lookingAt(St,[Ch,..Nxt]) where Ch?=hedChar(St) => lookingAt(nxtSt(St),Nxt).
+  lookingAt(_,_) default => .none.
+
+  public makeLoc:(tokenState,tokenState)=>locn.
+  makeLoc(.tokenState(Pk,Line,Col,Start,_),.tokenState(_,_,_,End,_)) =>
+    .locn(Pk,Line,Col,Start,End-Start).
+
+  public skipToNx:(tokenState) => tokenState.
+  skipToNx(St) where Ch ?= hedChar(St) && isNonPrint(Ch) => skipToNx(nxtSt(St)).
+  skipToNx(St) where Nx ?= lookingAt(St,[`-`,`-`,` `]) => skipToNx(lineComment(Nx)).
+  skipToNx(St) where Nx ?= lookingAt(St,[`-`,`-`,`\n`]) => skipToNx(Nx).
+  skipToNx(St) where Nx ?= lookingAt(St,[`-`,`-`,`\t`]) => skipToNx(lineComment(Nx)).
+  skipToNx(St) where Nx ?= lookingAt(St,[`/`,`*`]) => skipToNx(blockComment(Nx)).
+  skipToNx(St) => St.
+
+  lineComment(St) where Ch?=hedChar(St) => ((Ch==`\n`||_isZlChar(Ch)) ?? nxtSt(St) || lineComment(nxtSt(St))).
+  lineComment(St) => St.
+
+  blockComment(St) where Nx?=lookingAt(St,[`*`,`/`]) => Nx.
+  blockComment(St) where atEof(St) => St.
+  blockComment(St) default => blockComment(nxtSt(St)).
+
+  isNonPrint:(char) => boolean.
+  isNonPrint(Ch) => (_isZlChar(Ch) || _isZsChar(Ch) || _isZpChar(Ch) || _isCcChar(Ch)).
+
+  public implementation display[tokenState] => {
+    disp(.tokenState(Pk,Line,Col,Off,_)) => disp(.locn(Pk,Line,Col,Off,0)).
+  }
+
+  public implementation hasLoc[tokenState] => {
+    locOf(.tokenState(Pkg,Line,Col,Start,_)) => .some(.locn(Pkg,Line,Col,Start,0)).
+  }
 }

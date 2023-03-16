@@ -40,6 +40,7 @@
     "star.compiler.normalize.meta": "normmeta.star",
     "star.compiler.operators": "operators.star",
     "star.compiler.peephole": "peephole.star",
+    "star.compiler.re": "re.star",
     "star.compiler.resolve": "resolve.star",
     "star.compiler.term.repo" : "termrepo.star",
     "star.compiler.token": "token.star",

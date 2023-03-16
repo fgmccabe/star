@@ -1,6 +1,8 @@
 star.lex.nfa{
   import star.
+  import star.location.
   import star.compiler.errors.
+  import star.parse.
 
   public nfa[c] ::=
     .epsilon |
@@ -20,8 +22,11 @@ star.lex.nfa{
   parseRe:(string)=>nfa[char].
   parseRe(Rs) => valof{
     (Re,Rest) = parseR(Rs::cons[char]);
-    if ~isEmpty(Rest) then
+    if ~isEmpty(Rest) then{
+      report
 
+
+      
   parseR(
     
 }
