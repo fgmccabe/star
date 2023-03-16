@@ -328,7 +328,7 @@ star.compiler.wff{
   public mkTestComprehension(Lc,C) => unary(Lc,"{??}",C).
 
   public isAnonBraceTuple(Trm) where (Lc,Els) ?= isBrTuple(Trm) &&
-      {? D in Els *> isDefinition(D) ?} => some((Lc,Els)).
+      {? D in Els *> isDefinition(D) ?} => .some((Lc,Els)).
   isAnonBraceTuple(_) default => .none.
 
   isDefinition(A) => (_?=isDefn(A) || _?=isTypeExistsStmt(A) ||
