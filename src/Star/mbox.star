@@ -23,18 +23,18 @@ star.mbox{
 
   public resumeProtocol ::= .go_ahead | .shut_down_.
 
-  public post:all e,d ~~ (task[e],d,channel[d])=>() raises exception.
-  post(T,D,Ch where .channel(St).=Ch) => valof{
+  public post:all e,d ~~ (this:task[e])|:(d,channel[d])=>() raises exception.
+  post(D,Ch where .channel(St).=Ch) => valof{
     case St! in {
       .hasData(_) => {
-	case _suspend(T,.blocked(()=>.hasData(_).=St!)) in {
-	  .go_ahead => valis post(T,D,Ch)
+	case _suspend(this,.blocked(()=>.hasData(_).=St!)) in {
+	  .go_ahead => valis post(D,Ch)
 	  | .shut_down_ => raise .canceled
 	}
       }
       | .quiescent => {
 	St := .hasData(D);
-	case _suspend(T,.yield_) in {
+	case _suspend(this,.yield_) in {
 	  .go_ahead => valis ()
 	  | .shut_down_ => raise .canceled
 	}
@@ -42,19 +42,19 @@ star.mbox{
     }
   }
 
-  public collect:all d,e ~~ (task[e],channel[d]) => d raises exception.
-  collect(T,Ch where .channel(St).=Ch) => valof{
+  public collect:all d,e ~~ (this:task[e])|:(channel[d]) => d raises exception.
+  collect(Ch where .channel(St).=Ch) => valof{
     case St! in {
       .hasData(D) => {
 	St := .quiescent;
-	case _suspend(T,.yield_) in {
+	case _suspend(this,.yield_) in {
 	  .go_ahead => valis D
 	  | .shut_down_ => raise .canceled
 	}
       }
       | .quiescent => {
-	case _suspend(T,.blocked(()=> ~.hasData(_).=St!)) in {
-	  .go_ahead => valis collect(T,Ch)
+	case _suspend(this,.blocked(()=> ~.hasData(_).=St!)) in {
+	  .go_ahead => valis collect(Ch)
 	  | .shut_down_ => raise .canceled
 	}
       }
@@ -111,8 +111,50 @@ star.mbox{
 	  Q := Wts
 	}
       }
+  }).
+
+  public waitfor:all e ~~ (taskFun[e]) => e.
+  waitfor(TF) => _spawn((This) => valof{
+      Tgt = spawnTask(TF);
+      Q := ([Tgt]:qc[task[e]]);
+      BlockQ := ([]:cons[(()=>boolean,task[e])]);
+
+      while .true do{
+	while ~isEmpty(Q!) do{
+	  if [T,..Rs] .= Q! then{
+	    Q := Rs;
+	    case _resume(T,.go_ahead) in {
+	      .yield_ => { Q:=Q!++[T] }
+	      | .result(Rslt) where T==Tgt => {
+		while [C,..Cs] .= Q! do{
+		  Q := Cs;
+		  _ = _resume(C,.shut_down_);
+		};
+
+		valis Rslt
+	      }
+	      | .retired_ => {}
+	      | .fork(F) => {
+		Tsk = spawnTask(F);
+		Q := Q! ++ [Tsk,T];
+	      }
+	      | .blocked(P) => {
+	        BlockQ := [(P,T),..BlockQ!]
+	      }
+	    }
+	  };
+	};
+
+	if ~isEmpty(BlockQ!) then{
+	  (BQ,Wts) = testBlocked(BlockQ!,[],[]);
+	  BlockQ := BQ;
+	  Q := Wts
+	}
+      }
     }).
 
+  testBlocked:all y ~~ (cons[(()=>boolean,y)],cons[(()=>boolean,y)],qc[y])=>
+    (cons[(()=>boolean,y)],qc[y]).
   testBlocked([],BQ,Ws) => (BQ,Ws).
   testBlocked([(P,T),..Q],BQ,Ws) where ~P() =>
     testBlocked(Q,BQ,[T,..Ws]).

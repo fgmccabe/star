@@ -15,9 +15,9 @@ star.actor{
   actorHead(mBox,body) => (this) => valof{
     while .true do{
       try{
-	case collect(this,mBox) in {
+	case collect(mBox) in {
 	  query{q=Q. resp=Reply. } => {
-	    post(this,Q(body),Reply);
+	    post(Q(body),Reply);
 	  }
 	  | .tell(A) => {
 	    A(body);
@@ -30,13 +30,13 @@ star.actor{
   public actor[i] ::= .actor(task[()],channel[actorProtocol[i]]).
 
   public implementation all i ~~ sa[actor[i]->>i] => {
-    _query(.actor(T,Ch),Q) => valof{
+    _query(.actor(this,Ch),Q) => valof{
       R = newChannel();
-      post(T,query{q=Q. resp=R},Ch);
-      valis collect(T,R)
+      post(query{q=Q. resp=R},Ch);
+      valis collect(R)
     }
-    _tell(.actor(T,Ch),A) => valof{
-      post(T,.tell(A),Ch);
+    _tell(.actor(this,Ch),A) => valof{
+      post(.tell(A),Ch);
       valis ()
     }
   }
