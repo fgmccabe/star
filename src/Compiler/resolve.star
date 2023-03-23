@@ -5,10 +5,12 @@ star.compiler.resolve{
   import star.compiler.dict.
   import star.compiler.dict.mgt.
   import star.compiler.errors.
+  import star.compiler.freevars.
   import star.compiler.freshen.
   import star.compiler.location.
   import star.compiler.meta.
   import star.compiler.misc.
+  import star.compiler.term.
   import star.compiler.types.
   import star.compiler.unify.
 
@@ -139,10 +141,10 @@ star.compiler.resolve{
       declareVar(Nm,Nm,Lc,Tp,.none,D))
   }
 
-  defineArgVars(.tple(_,Args),D) => foldLeft(defineArg,D,Args).
+  defineArgVars(Ptn,D) =>
+    foldLeft(defineArg,D,ptnVars(Ptn,[],[])).
 
-  defineArg(.vr(Lc,Nm,Tp),D) => declareVar(Nm,Nm,Lc,Tp,.none,D).
-  defineArg(_,D) => D.
+  defineArg(.cId(Nm,Tp),D) => declareVar(Nm,Nm,.none,Tp,.none,D).
 
   overload:all e ~~ resolve[e] |: (e,dict) => e.
   overload(C,D) => resolveAgain(.inactive,C,resolve(C,D,.inactive),D).
