@@ -161,6 +161,9 @@ star.compiler.operators{
     "<|" => ?.bkt("<|","<||>","|>","",2000).
     "|>" => ?.bkt("<|","<||>","|>","",2000).
     "<||>" => ?.bkt("<|","<||>","|>","",2000).
+    "/." => ?.bkt("/.","/../","./",",",2000).
+    "./" => ?.bkt("/.","/../","./",",",2000).
+    "/../" => ?.bkt("/.","/../","./",",",2000).
     "{." => ?.bkt("{.","{..}",".}",".\n",2000).
     ".}" => ?.bkt("{.","{..}",".}",".\n",2000).
     "{..}" => ?.bkt("{.","{..}",".}",".\n",2000).
@@ -338,11 +341,11 @@ star.compiler.operators{
     ".=" => .true.  /* pattern match */
     ".>>." => .true.  /* logical shift right */
     ".>>>." => .true.  /* arithmetic shift right */
-    "./" => .true.  /* regexp right */
+    "./" => .true.  /* dfa expression */
     ". " => .true.  /* statement terminator */
     "/" => .true.  /* division */
     "/\\" => .true.  /* intersection */
-    "/." => .true.  /* regexp left */
+    "/." => .true.  /* dfa expression */
     "//" => .true.  /* map over */
     "///" => .true.  /* indexed map over */
     "{" => .true.  /* non-recursive braces */
