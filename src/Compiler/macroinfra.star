@@ -51,8 +51,8 @@ star.compiler.macro.infra{
     .tpl(_,Op,_) => Op.
     .app(_,O,.tpl(_,"()",_)) => macroKey(O).
     .app(_,O,.tpl(_,"[]",_)) => "\$[]".
-    .app(_,O,.tpl(_,"{}",_)) => "\${}#(macroKey(O))".
-    .app(_,O,.tpl(_,"{..}",_)) => "\${}#(macroKey(O))".
+    .app(_,O,.tpl(_,"{}",_)) => macroKey(O)++"\${}".
+    .app(_,O,.tpl(_,"{..}",_)) => macroKey(O)++"\${}".
   }
 
   public reveal:(ast,visibility) => ast.
