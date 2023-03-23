@@ -136,6 +136,7 @@
 
   bracket("[||]", "[|", "|]", "", 2000).
   bracket("<||>", "<|", "|>", "", 2000).
+  bracket("/../", "/.", "./", ",", 2000).
   bracket("{..}", "{.", ".}", ".\n", 2000).
   bracket("[]", "[", "]", ",", 2000).
   bracket("()", "(", ")", ",", 2000).
@@ -282,11 +283,11 @@
   final('.=',".=").	 /* pattern match */
   final('.>>.',".>>.").	 /* logical shift right */
   final('.>>>.',".>>>.").	 /* arithmetic shift right */
-  final('./',"./").	 /* regexp right */
+  final('./',"./").	 /* dfa expression */
   final('. ',". ").	 /* statement terminator */
   final('/',"/").	 /* division */
   final('/\\',"/\\").	 /* intersection */
-  final('/.',"/.").	 /* regexp left */
+  final('/.',"/.").	 /* dfa expression */
   final('//',"//").	 /* map over */
   final('///',"///").	 /* indexed map over */
   final('{',"{").	 /* non-recursive braces */
