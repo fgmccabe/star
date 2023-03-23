@@ -9,7 +9,7 @@ test.sieve{
     try{
       while .true do{
 	Ix := Ix!+2;
-	post(this,Ix!,Chnnl)
+	post(Ix!,Chnnl)
       }
     } catch { .canceled => {
 	_retire(this,.retired_)
@@ -17,11 +17,11 @@ test.sieve{
     }
   }
 
-  filter:(task[integer],integer,channel[integer],channel[integer]) => () raises exception.
-  filter(Tsk,Prm,Chnl,Next) => valof{
-    while Nxt .= collect(Tsk,Chnl) do{
+  filter:(this : task[integer]) |: (integer,channel[integer],channel[integer]) => () raises exception.
+  filter(Prm,Chnl,Next) => valof{
+    while Nxt .= collect(Chnl) do{
       if ~Nxt%Prm == 0 then
-	post(Tsk,Nxt,Next)
+	post(Nxt,Next)
     };
     valis ()
   }
@@ -29,13 +29,13 @@ test.sieve{
   sieve:(task[integer],integer,integer,channel[integer]) => integer.
   sieve(this,Cnt,Mx,Chnnl) => valof{
     try{
-      Nxt = collect(this,Chnnl);
+      Nxt = collect(Chnnl);
       if Cnt<Mx then{
 	logMsg("Next prime is $(Nxt), $(Cnt) out of $(Mx)");
 	NChnl = newChannel();
 	try{
 	  spawn((T)=>sieve(T,Cnt+1,Mx,NChnl));
-	  filter(this,Nxt,Chnnl,NChnl)
+	  filter(Nxt,Chnnl,NChnl)
 	} catch { .canceled => {
 	    _retire(this,.retired_) }
 	}

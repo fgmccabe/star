@@ -13,7 +13,7 @@ test.ct1{
     try{
       while Count!>=0 do{
 	logMsg("posting $(Count!)");
-	post(this,Count!>0,Chnnl);
+	post(Count!>0,Chnnl);
 	Count := Count!-1
       }
     } catch { _ => logMsg("something went wrong") };
@@ -25,7 +25,7 @@ test.ct1{
     Count := 0;
 
     try{
-      while collect(this,Chnnl) do{
+      while collect(Chnnl) do{
 	logMsg("received ping");
 	Count := Count!+1
       }
