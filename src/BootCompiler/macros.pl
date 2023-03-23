@@ -694,4 +694,6 @@ macroKey(tuple(_,Op,_),Op).
 macroKey(app(_,Op,tuple(_,"()",_)),Ky) :-
   macroKey(Op,Ky).
 macroKey(app(_,_,tuple(_,"[]",_)),"$[]").
-macroKey(app(_,_,tuple(_,"{}",_)),"${}").
+macroKey(app(_,Op,tuple(_,"{}",_)),Ky) :-
+  macroKey(Op,Ky0),
+  string_concat(Ky0,"{}",Ky).

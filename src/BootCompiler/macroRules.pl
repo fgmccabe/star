@@ -38,8 +38,6 @@ macroRl(":=",expression,macroRules:spliceAssignMacro).
 macroRl(":=",expression,macroRules:indexAssignMacro).
 macroRl("=>",statement,macroRules:curryMacro).
 macroRl("=>",expression,macroRules:curryMacro).
-macroRl("=>>",statement,macroRules:contRuleMacro).
-macroRl("=>>",expression,macroRules:contRuleMacro).
 macroRl("raises",type,macroRules:raisesMacro).
 macroRl("do",action,macroRules:forLoopMacro).
 macroRl("->",expression,macroRules:arrowMacro).
@@ -563,14 +561,5 @@ curryMacro(T,Mode,Tx) :-
   roundTerm(OOLc,F,FArgs,RLhs),
   mkEquation(Lc,RLhs,none,CRle,Tx).
 
-/*
-  Lhs =>> Rhs
-  becomes
-  Lhs(k) => Rhs
-  */
-contRuleMacro(T,Mode,Tx) :-
-  (Mode=expression ; Mode=statement),
-  isContRule(T,Lc,Lhs,Cond,Rhs),!,
-  roundTerm(Lc,Lhs,[name(Lc,"_cont")],LL),
-  mkEquation(Lc,LL,Cond,Rhs,Tx).
+
   

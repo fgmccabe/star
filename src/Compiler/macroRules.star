@@ -63,12 +63,11 @@ star.compiler.macro.rules{
     "assert" -> [(.actn,assertMacro)],
     "show" -> [(.actn,showMacro)],
     "trace" -> [(.expression,traceMacro)],
-    "\${}fiber" -> [(.expression,fiberMacro)],
     "generator" -> [(.expression,generatorMacro)],
-    "fiber" -> [(.expression,fiberMacro)],
     "yield" -> [(.actn,yieldMacro)],
     "->" -> [(.expression,arrowMacro),(.pattern,arrowMacro)],
-    "raises" -> [(.typeterm,raisesMacro)]
+    "raises" -> [(.typeterm,raisesMacro)],
+    "fiber\${}" -> [(.expression,fiberMacro)]
 --    "raise" -> [(.expression, raiseMacro),(.actn,raiseMacro)],
 --    "try" -> [(.expression, tryMacro), (.actn,tryMacro)]
   }.
