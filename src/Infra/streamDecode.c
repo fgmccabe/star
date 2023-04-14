@@ -272,6 +272,22 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, strBufferPo 
       return res;
     }
 
+    case cloTrm: {
+      res = cb->decClo(cl);
+
+      if (res == Ok)
+        res = decodeStream(in, cb, cl, buff, errorMsg, msgLen); // Handle the label of the closure
+
+      if (res == Ok) {
+        res = decodeStream(in, cb, cl, buff, errorMsg, msgLen); // and the environment tuple
+
+        if (res == Ok)
+          res = cb->endClo(cl);
+      }
+
+      return res;
+    }
+
     default:
       return Error;
   }
@@ -326,6 +342,14 @@ static retCode endSkipLst(void *cl) {
   return Ok;
 }
 
+static retCode skipClosure(void *cl) {
+  return Ok;
+}
+
+static retCode endSkipClosure(void *cl) {
+  return Ok;
+}
+
 static retCode skipBignum(uint32 *data, integer count, void *cl) {
   return Ok;
 }
@@ -344,6 +368,8 @@ static DecodeCallBacks skipCB = {
   endSkipCns,         // End of constructor
   skipLst,            // Start of list
   endSkipLst,         // End of list
+  skipClosure,        // Start the skipping of a closure
+  endSkipClosure,        // End the skipping of a closure
   skipBignum,         // skip over a big number
 };
 
@@ -448,13 +474,22 @@ static retCode endCopyList(void *cl) {
   return Ok;
 }
 
+static retCode copyClosure(void *cl) {
+  ioPo out = ((CopyRec *) cl)->out;
+  return outChar(out, cloTrm);
+}
+
+static retCode endCopyClosure(void *cl) {
+  return Ok;
+}
+
 static retCode copyBignum(uint32 *data, integer count, void *cl) {
   ioPo out = ((CopyRec *) cl)->out;
   outChar(out, bigTrm);
   integer buffLen = count * INT32_DIGITS + 1;
   char buffer[buffLen];
 
-  integer textCount = textFromlong(buffer, buffLen,  data,  count);
+  integer textCount = textFromlong(buffer, buffLen, data, count);
   return encodeStr(out, buffer, textCount);
 }
 
@@ -472,6 +507,8 @@ static DecodeCallBacks copyCB = {
   endCopyCons,        // Copying a structure
   copyList,           // Copy a list
   endCopyList,        // End of copying a list
+  copyClosure,                // start copying a closure
+  endCopyClosure,
   copyBignum,         // Copy a big number
 };
 

@@ -14,13 +14,13 @@ star.compiler.normalize.meta{
   public consMap ~> cons[(termLbl,tipe,integer)].
 
   public nameMapEntry ::= .moduleFun(cExp,string)
-    | .localFun(string,string,cId)
-    | .localVar(cExp)
-    | .moduleCons(string,tipe)
-    | .localCons(string,tipe,cId)
-    | .labelArg(cId,integer)
-    | .memoArg(string,cId,integer,tipe)
-    | .globalVar(string,tipe).
+  | .localFun(string,string,integer,cId)
+  | .localVar(cExp)
+  | .moduleCons(string,tipe)
+  | .localCons(string,tipe,cId)
+  | .labelArg(cId,integer)
+  | .memoArg(string,cId,integer,tipe)
+  | .globalVar(string,tipe).
 
   public typeMapEntry ::= .moduleType(string,tipe,consMap).
 
@@ -37,7 +37,7 @@ star.compiler.normalize.meta{
       .moduleFun(C,V) => "module fun $(C)\:$(typeOf(C))".
       .moduleCons(Nm,Tp) => "module cons $(Nm)".
       .localCons(Nm,Tp,Vr) => "local cons #(Nm)[$(Vr)]".
-      .localFun(Nm,ClNm,V) => "local fun #(Nm), closure $(ClNm), ThV $(V)".
+      .localFun(Nm,ClNm,_,V) => "local fun #(Nm), closure $(ClNm), ThV $(V)".
       .localVar(Vr) => "local var $(Vr)".
       .labelArg(Base,Ix) => "label arg $(Base)[$(Ix)]".
       .memoArg(Nm,Base,Ix,Tp) => "memo arg #(Nm)@$(Base)[$(Ix)]\:$(Tp)".
@@ -59,7 +59,7 @@ star.compiler.normalize.meta{
     case E in {
       .labelArg(ThV,_) => .some(ThV).
       .memoArg(_,ThV,_,_) => .some(ThV).
-      .localFun(_,_,ThV) => .some(ThV).
+      .localFun(_,_,_,ThV) => .some(ThV).
       _ default => .none
     }.
   lookupThetaVar(_,_) default => .none.
@@ -128,7 +128,7 @@ star.compiler.normalize.meta{
   mkConsLbl(Nm,Tp) => .tLbl(Nm,arity(Tp)).
 
   declMdlGlobal(.funDec(Lc,Nm,FullNm,Tp),Map) => valof{
-    Entry = .moduleFun(.cTerm(Lc,closureNm(FullNm),[crTpl(Lc,[])],Tp),FullNm);
+    Entry = .moduleFun(.cClos(Lc,closureNm(FullNm),arity(Tp)+1,crTpl(Lc,[]),Tp),FullNm);
     valis Map[Nm->Entry][FullNm->Entry]
   }
   declMdlGlobal(.varDec(Lc,Nm,FullNm,Tp),Map) => valof{

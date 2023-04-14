@@ -18,6 +18,7 @@
 #include "jit.h"
 #include "thunkP.h"
 #include "continuationP.h"
+#include "closureP.h"
 
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<(unsigned)16)|lo32))
 #define collectOff(pc) (hi32 = collectI32(pc), (pc)+(signed)hi32)
@@ -159,27 +160,27 @@ retCode run(processPo P) {
 
       case OCall: {        /* Call tos a1 .. an -->   */
         int arity = collectI32(PC);
-        termPo clos = pop();
-        if(!isNormalPo(clos)){
-          logMsg(logFile,"Calling non-closure %T",clos);
+        termPo cl = pop();
+        if (!isClosure(cl)) {
+          logMsg(logFile, "Calling non-closure %T", cl);
           bail();
         }
-        normalPo obj = C_NORMAL(clos);
-        labelPo oLbl = objLabel(termLbl(obj), arity);
+        closurePo obj = C_CLOSURE(cl);
+        labelPo lb = closureLabel(obj);
 
-        if (oLbl == Null) {
-          logMsg(logFile, "label %s/%d not defined", labelName(termLbl(obj)), arity);
+        if(labelArity(lb)!=arity){
+          logMsg(logFile, "closure %T does not have correct arity %d", obj, arity);
           bail();
         }
 
-        methodPo mtd = labelCode(oLbl);       /* set up for object call */
+        methodPo mtd = labelCode(lb);       /* set up for object call */
 
         if (mtd == Null) {
-          logMsg(logFile, "no definition for %T", oLbl);
+          logMsg(logFile, "no definition for %T", lb);
           bail();
         }
 
-        push(nthElem(obj, 0));                     // Put the free term back on the stack
+        push(closureFree(obj));                     // Put the free term back on the stack
 
         if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE)) {
           int root = gcAddRoot(H, (ptrPo) &mtd);
@@ -324,17 +325,24 @@ retCode run(processPo P) {
 
       case TOCall: {       /* Tail call */
         int arity = collectI32(PC);
-        normalPo obj = C_NORMAL(pop());
-
-        push(nthElem(obj, 0));                     // Put the free term back on the stack
-        labelPo lbl = objLabel(termLbl(obj), arity);
-        if (lbl == Null) {
-          logMsg(logFile, "label %s/%d not defined", labelName(termLbl(obj)), arity);
+        termPo cl = pop();
+        if (!isClosure(cl)) {
+          logMsg(logFile, "Calling non-closure %T", cl);
           bail();
         }
-        methodPo mtd = labelCode(lbl);
+        closurePo obj = C_CLOSURE(cl);
+        labelPo lb = closureLabel(obj);
+
+        if(labelArity(lb)!=arity){
+          logMsg(logFile, "closure %T does not have correct arity %d", obj, arity);
+          bail();
+        }
+
+        push(closureFree(obj));                     // Put the free term back on the stack
+        methodPo mtd = labelCode(lb);       /* set up for object call */
+
         if (mtd == Null) {
-          logMsg(logFile, "no definition for %T", lbl);
+          logMsg(logFile, "no definition for %T", lb);
           bail();
         }
 
@@ -1111,6 +1119,27 @@ retCode run(processPo P) {
         } else {
           PC = exit;
         }
+        continue;
+      }
+
+      case Closure: {      /* heap allocate closure */
+        if (reserveSpace(H, ClosureCellCount) != Ok) {
+          saveRegisters();
+          retCode ret = gcCollect(H, ClosureCellCount);
+          if (ret != Ok)
+            return ret;
+          restoreRegisters();
+        }
+        labelPo cd = C_LBL(nthElem(LITS, collectI32(PC)));
+
+        if (!labelDefined(cd)) {
+          logMsg(logFile, "label %L not defined", cd);
+          bail();
+        }
+
+        closurePo cl = newClosure(H, cd, pop());
+
+        push(cl);       /* put the closure back on the stack */
         continue;
       }
 

@@ -86,7 +86,7 @@ static labelPo newLbl(lblTablePo table, const char *name, integer arity, integer
 labelPo declareLbl(const char *name, integer arity, integer index) {
   lblTablePo tbl = locateLblTbl(name);
 
-  if(index==-1 && isTplLabel(name))
+  if (index == -1 && isTplLabel(name))
     index = 0;
 
   assert(tbl != Null);
@@ -281,6 +281,10 @@ retCode showLbl(ioPo out, labelPo lbl, integer depth, integer prec, logical alt)
 
 methodPo labelCode(labelPo lbl) {
   return lbl->mtd;
+}
+
+logical labelDefined(labelPo lbl) {
+  return lbl->mtd != Null;
 }
 
 integer labelArity(labelPo lbl) {

@@ -92,6 +92,8 @@ star.compiler.inline{
     inlineTplOff(Lc,simExp(T,Map,Depth),Ix,Tp).
   simExp(.cSetNth(Lc,T,Ix,Vl),Map,Depth) =>
     applyTplUpdate(Lc,simExp(T,Map,Depth),Ix,simExp(Vl,Map,Depth)).
+  simExp(.cClos(Lc,Lb,Ar,Fr,Tp),Map,Depth) =>
+    .cClos(Lc,Lb,Ar,simExp(Fr,Map,Depth),Tp).
   simExp(.cSeq(Lc,L,R),Map,Depth) =>
     .cSeq(Lc,simExp(L,Map,Depth),simExp(R,Map,Depth)).
   simExp(.cCnj(Lc,L,R),Map,Depth) =>

@@ -114,6 +114,8 @@ ssTrm(ctpl(Op,A),Dp,sq([ss("."),OO,lp,AA,rp])) :-!,
   ssCOnOp(Op,OO),
   Dp1 is Dp+2,
   showArgs(A,Dp1,AA).
+ssTrm(clos(Nm,Ar,Free),Dp,sq([ss("<"),id(Nm),ss("/"),ix(Ar),ss(":"),FF])) :-
+  ssTrm(Free,Dp,FF).
 ssTrm(enum(Nm),_,sq([ss("."),id(Nm)])) :-!.
 ssTrm(nth(_,Rc,Off),Dp,sq([OO,ss("."),ix(Off)])) :-!,
   ssTrm(Rc,Dp,OO).
@@ -347,6 +349,8 @@ rewriteTerm(QTest,set(Lc,T,V),set(Lc,NT,NV)) :-
 rewriteTerm(QTest,setix(Lc,Op,Off,Vl),setix(Lc,NOp,Off,NVl)) :-
   rewriteTerm(QTest,Op,NOp),
   rewriteTerm(QTest,Vl,NVl).
+rewriteTerm(QTest,clos(Nm,Ar,Free),clos(Nm,Ar,NFree)) :-
+  rewriteTerm(QTest,Free,NFree).
 rewriteTerm(QTest,ctpl(Op,Args),ctpl(NOp,NArgs)) :-
   rewriteTerm(QTest,Op,NOp),
   rewriteTerms(QTest,Args,NArgs).
@@ -498,6 +502,8 @@ isLiteral(lbl(_,_)).
 isLiteral(ctpl(Lbl,Args)) :-
   isLiteral(Lbl),
   check_implies(misc:is_member(A,Args),lterms:isLiteral(A)),!.
+isLiteral(clos(_,_,F)) :-
+  isLiteral(F).
 
 termHash(voyd,0).
 termHash(intgr(Ix),Ix).
@@ -686,6 +692,8 @@ validTerm(cll(Lc,lbl(_,_),Args),_,D) :-
 validTerm(ocall(Lc,Op,Args),_,D) :-
   validTerm(Op,Lc,D),
   validTerms(Args,Lc,D).
+validTerm(clos(_,_,Free),Lc,D) :-
+  validTerm(Free,Lc,D).
 validTerm(voke(Lc,Op,Args),_,D) :-
   validTerm(Op,Lc,D),
   validTerms(Args,Lc,D).

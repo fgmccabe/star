@@ -208,6 +208,8 @@ compExp(voke(Lc,K,A),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   Arity is Ar+1,
   compExps(A,Lc,compExp(K,Lc,invokeCont(Arity,Cont),End,Brks,Opts),
 	   End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
+compExp(clos(Lb,Ar,Free),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+  compExp(Free,OLc,closureCont(Lb,Ar,Cont),End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 compExp(nth(Lc,Exp,Off),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(Exp,Lc,idxCont(Off,Cont),End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
@@ -503,6 +505,12 @@ invokeCont(Arity,Cont,L,Lx,D,Dx,[iInvoke(Arity)|C],Cx,Stk,Stkx) :-
   dropStk(Stk,Arity,Stk0),
   bumpStk(Stk0,Stk1),
   frameIns(Stk,C,C1),
+  call(Cont,L,Lx,D,Dx,C1,Cx,Stk1,Stkx).
+
+closureCont(Lb,Ar,Cont,L,Lx,D,Dx,[iClosure(lbl(Lb,Ar))|C],Cx,Stk,Stkx) :-
+  frameIns(Stk,C,C1),
+  dropStk(Stk,1,Stk0),
+  bumpStk(Stk0,Stk1),
   call(Cont,L,Lx,D,Dx,C1,Cx,Stk1,Stkx).
 
 jmpCont(Lbl,Stk,Lx,Lx,D,D,[iJmp(Lbl)|Cx],Cx,_,Stk).

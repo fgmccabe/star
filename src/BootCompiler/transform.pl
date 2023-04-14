@@ -540,10 +540,12 @@ implementVarExp(moduleCons(C,_,Ar),_,_,Cns,_,_,Q,Q) :-
   trCons(C,Ar,Cns).
 implementVarExp(notInMap,_,Nm,idnt(Nm),_,_,Q,Qx) :-
   merge([idnt(Nm)],Q,Qx).
-implementVarExp(moduleFun(_,some(Closure),_),_,_,ctpl(lbl(Closure,1),[Unit]),_,_,Q,Q) :-
+implementVarExp(moduleFun(_,some(Closure),Ar),_,_,clos(Closure,Ar1,Unit),_,_,Q,Q) :-
   Closure\==void,
+  Ar1 is Ar+1,
   mkTpl([],Unit).
-implementVarExp(localFun(_Fn,Closure,_,ThVr),Lc,_,ctpl(lbl(Closure,1),[Vr]),Map,Opts,Q,Qx) :-
+implementVarExp(localFun(_Fn,Closure,Ar,ThVr),Lc,_,clos(Closure,Ar1,Vr),Map,Opts,Q,Qx) :-
+  Ar1 is Ar+1,
   liftVar(Lc,ThVr,Vr,Map,Opts,Q,Qx).
 implementVarExp(_Other,Lc,Nm,idnt(Nm),_,_,Q,Q) :-
   reportError("cannot handle %s in expression",[id(Nm)],Lc).
@@ -583,12 +585,14 @@ liftCase(rule(Lc,P,G,Value),(Lc,[Ptn],Test,Rep),Q,Qx,Map,Opts,Lifter,Ex,Exx) :-
   liftGuard(G,Test,Q0,Q1,Map,Opts,Ex0,Ex1), % condition goals
   call(Lifter,Value,Rep,Q1,Qx,Map,Opts,Ex1,Exx). % replacement expression
 
-liftLambda(lambda(Lc,LamLbl,Eqn,Tp),Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
+liftLambda(lambda(Lc,LamLbl,Eqn,Tp),clos(LamLbl,Ar,FreeTerm),Q,Map,Opts,[LamFun|Ex],Exx) :-
+  progTypeArity(Tp,Ar0),
+  Ar is Ar0+1,
   (is_member(showTrCode,Opts) -> dispCanon(lambda(Lc,LamLbl,Eqn,Tp));true),
-  lambdaMap(lambda(Lc,LamLbl,Eqn,Tp),ThVr,LamLbl,Q,Map,Opts,Closure,LMap),
+  lambdaMap(lambda(Lc,LamLbl,Eqn,Tp),ThVr,Q,Map,Opts,FreeTerm,LMap),
   transformEqn(Eqn,LMap,[ThVr],Opts,Rls,[],Ex,Exx),
-  is_member((_,Args,_,_),Rls),!,
-  length(Args,Ar),
+%  is_member((_,Args,_,_),Rls),!,
+%  length(Args,Ar),
   functionMatcher(Lc,Ar,lbl(LamLbl,Ar),hard,Tp,Rls,Map,LamFun).
 
 liftGoal(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
@@ -668,8 +672,7 @@ declVr(idnt(Nm),Vars,Vx) :-
   declEntry(Nm,notInMap,Vars,Vx).
 declVr(Vars,Vars).
 
-lambdaMap(Lam,ThVr,LamLbl,Q,Map,Opts,ctpl(lbl(LamLbl,1),[FreeTerm]),
-	  [lyr(Vx,typeMap{},consMap{},ThVr)|Map]) :-
+lambdaMap(Lam,ThVr,Q,Map,Opts,FreeTerm,[lyr(Vx,typeMap{},consMap{},ThVr)|Map]) :-
   findFreeVars(Lam,Map,Q,LmFree),
   genVar("_ΛV",ThVr),
   collectLabelVars(LmFree,ThVr,0,varMap{},Vx),
@@ -788,8 +791,7 @@ collectLabelVars([_|Args],ThVr,Ix,List,Lx) :-
  Generate the closure return:
  OuterNm(ThVr,.Nm) => ClosureNm(ThVr)
 */
-closureRule(_,Lc,Nm,ClosureName,ThVr,
-    (Lc,[ThVr,DotName],none,ctpl(lbl(ClosureName,1),[ThVr]))) :-
+closureRule(_,Lc,Nm,ClosureName,ThVr,(Lc,[ThVr,DotName],none,clos(ClosureName,2,ThVr))) :-
   makeDotLbl(Nm,DotName).
 
 accessRule(_,Lc,Nm,LclName,ThV,(Lc,[ThV,DotName],enum("star.core#true"),cll(Lc,lbl(LclName,1),[ThV]))) :-

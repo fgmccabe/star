@@ -48,7 +48,10 @@ typedef struct {
   flagProc endCons;
   consProc decLst;
   flagProc endLst;
+  flagProc decClo;
+  flagProc endClo;
   bignumProc decBignum;
+
 } DecodeCallBacks, *decodeCallBackPo;
 
 retCode streamDecode(ioPo in, decodeCallBackPo cb, void *cl, char *errorMsg, integer msgLen);

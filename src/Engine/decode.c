@@ -13,7 +13,9 @@
 #include "heap.h"
 #include "signature.h"
 #include "labelsP.h"
+#include "closure.h"
 #include "streamDecode.h"
+#include "closureP.h"
 
 #ifdef TRACEDECODE
 tracingLevel traceDecode = noTracing;
@@ -191,6 +193,17 @@ static retCode endEstimateLst(void *cl) {
   return Ok;
 }
 
+static retCode estimateClosure(void *cl) {
+  Estimation *info = (Estimation *) cl;
+
+  info->amnt += ClosureCellCount;
+  return Ok;
+}
+
+static retCode endEstimateClosure(void *cl) {
+  return Ok;
+}
+
 static retCode estimateBignum(uint32 *data, integer count, void *cl) {
   Estimation *info = (Estimation *) cl;
 
@@ -218,6 +231,8 @@ retCode estimate(ioPo in, integer *amnt) {
     endEstimateCns,         // End of constructor
     estimateLst,            // Start of list
     endEstimateLst,         // End of list
+    estimateClosure,        // Estimating a closure
+    endEstimateClosure,
     estimateBignum,         // A big number
   };
 
@@ -357,6 +372,23 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo tmpBuffer
       if (res == Ok)
         res = decodeList(in, S, count, H, tgt, tmpBuffer);
 
+      return res;
+    }
+
+    case cloTrm: {
+      labelPo lbl = Null;
+      termPo t = Null;
+      int root = gcAddRoot(H, &t);
+      gcAddRoot(H, (ptrPo) (&lbl));
+      res = decode(in, S, H, &t, tmpBuffer);
+      if (res != Ok || !isALabel(t))
+        return Error;
+      else
+        lbl = C_LBL(t);
+      res = decode(in, S, H, &t, tmpBuffer); /* read the free term */
+      if (res == Ok)
+        *tgt = (termPo) newClosure(H, lbl, t);
+      gcReleaseRoot(H, root);
       return res;
     }
 

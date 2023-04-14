@@ -44,6 +44,7 @@ retCode showLbl(ioPo out, labelPo lbl, integer depth, integer prec, logical alt)
 retCode showLabel(ioPo f, void *data, long depth, long precision, logical alt);
 
 methodPo labelCode(labelPo lbl);
+logical labelDefined(labelPo lbl);
 
 labelPo C_LBL(termPo t);
 

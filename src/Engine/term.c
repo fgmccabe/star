@@ -24,7 +24,7 @@ SpecialClass SpecialClss = {
 
 clssPo specialClass = (clssPo) &SpecialClss;
 
-integer displayDepth = 1;
+integer displayDepth = 3;
 
 logical isSpecialClass(clssPo p) {
   return (logical) (p->clss == specialClass);

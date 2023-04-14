@@ -115,6 +115,7 @@ instruction(FGe, tOs, tO1, 1, "L R --> L>=R")
 instruction(FCmp, off, tOs, -2, "L R --> branch if not same floating point")
 
 instruction(Alloc, sym, nOp, 1, "new structure, elements from stack")
+instruction(Closure, sym, tOs, 0, "allocate a closure")
 
 instruction(Cmp, off, tOs, -1, "t1 t2 --> , branch to offset if not same literal")
 
