@@ -16,6 +16,7 @@
 #include "manifest.h"
 #include "clock.h"
 #include "args.h"
+#include "closureP.h"
 #include "formioP.h"
 #include "arithP.h"
 #include "charP.h"
@@ -63,6 +64,7 @@ int main(int argc, char **argv) {
   initIdeal();
   initOption();
   initFuture();
+  initClosure();
   initCell();
   initCode();
   initLocks();

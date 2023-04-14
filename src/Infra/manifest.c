@@ -60,7 +60,9 @@ static retCode intEntry(integer ix, void *cl);
 static retCode fltEntry(double dx, void *cl);
 static retCode badEntry(void *cl);
 static retCode errorEntry(const char *name, void *cl);
-static retCode bignumEntry(uint32 *data,integer count,void *cl);
+static retCode closureEntry(void *cl);
+static retCode endClosureEntry(void *cl);
+static retCode bignumEntry(uint32 *data, integer count, void *cl);
 
 retCode decodeManifest(ioPo in) {
   ParsingState info = {.state=initial};
@@ -79,6 +81,8 @@ retCode decodeManifest(ioPo in) {
     endEntry,               // End of constructor entry
     startList,
     endList,
+    closureEntry,           // Should not have any closures in the manifest
+    endClosureEntry,
     bignumEntry,            // Should not have any big nums here
   };
 
@@ -428,7 +432,15 @@ retCode fltEntry(double dx, void *cl) {
   return Error;
 }
 
-retCode bignumEntry(uint32 *data,integer count,void *cl){
+retCode bignumEntry(uint32 *data, integer count, void *cl) {
+  return Error;
+}
+
+retCode closureEntry(void *cl) {
+  return Error;
+}
+
+retCode endClosureEntry(void *cl) {
   return Error;
 }
 

@@ -67,6 +67,7 @@ typedef enum {
   lstTrm = 'l',
   lblTrm = 'o',         // A structure label identifier
   enuTrm = 'e',         // An enumerated symbol
+  cloTrm = 'p',         // A closure object
 } starDecodeKey;
 
 logical validSignature(char *s);

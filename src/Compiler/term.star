@@ -11,37 +11,38 @@ star.compiler.term{
   import star.pkg.
   
   public cExp ::= .cVoid(option[locn],tipe)
-    | .cAnon(option[locn],tipe)
-    | .cVar(option[locn],cId)
-    | .cInt(option[locn],integer)
-    | .cChar(option[locn],char)
-    | .cBig(option[locn],bigint)
-    | .cFloat(option[locn],float)
-    | .cString(option[locn],string)
-    | .cTerm(option[locn],string,cons[cExp],tipe)
-    | .cNth(option[locn],cExp,integer,tipe)
-    | .cSetNth(option[locn],cExp,integer,cExp)
-    | .cThunk(option[locn],cExp,tipe)
-    | .cThGet(option[locn],cExp,tipe)
-    | .cThSet(option[locn],cExp,cExp,tipe)
-    | .cCall(option[locn],string,cons[cExp],tipe)
-    | .cECall(option[locn],string,cons[cExp],tipe)
-    | .cOCall(option[locn],cExp,cons[cExp],tipe)
-    | .cRaise(option[locn],cExp,cExp,tipe)
-    | .cSeq(option[locn],cExp,cExp)
-    | .cCnj(option[locn],cExp,cExp)
-    | .cDsj(option[locn],cExp,cExp)
-    | .cNeg(option[locn],cExp)
-    | .cCnd(option[locn],cExp,cExp,cExp)
-    | .cLtt(option[locn],cId,cExp,cExp)
-    | .cCont(option[locn],cId,cExp,cExp)
-    | .cUnpack(option[locn],cExp,cons[cCase[cExp]],tipe)
-    | .cCase(option[locn],cExp,cons[cCase[cExp]],cExp,tipe)
-    | .cMatch(option[locn],cExp,cExp)
-    | .cVarNmes(option[locn],cons[(string,cId)],cExp)
-    | .cAbort(option[locn],string,tipe)
-    | .cTry(option[locn],cExp,cExp,cExp,cExp,tipe)
-    | .cValof(option[locn],aAction,tipe).
+  | .cAnon(option[locn],tipe)
+  | .cVar(option[locn],cId)
+  | .cInt(option[locn],integer)
+  | .cChar(option[locn],char)
+  | .cBig(option[locn],bigint)
+  | .cFloat(option[locn],float)
+  | .cString(option[locn],string)
+  | .cTerm(option[locn],string,cons[cExp],tipe)
+  | .cNth(option[locn],cExp,integer,tipe)
+  | .cSetNth(option[locn],cExp,integer,cExp)
+  | .cClos(option[locn],string,integer,cExp,tipe)
+  | .cThunk(option[locn],cExp,tipe)
+  | .cThGet(option[locn],cExp,tipe)
+  | .cThSet(option[locn],cExp,cExp,tipe)
+  | .cCall(option[locn],string,cons[cExp],tipe)
+  | .cECall(option[locn],string,cons[cExp],tipe)
+  | .cOCall(option[locn],cExp,cons[cExp],tipe)
+  | .cRaise(option[locn],cExp,cExp,tipe)
+  | .cSeq(option[locn],cExp,cExp)
+  | .cCnj(option[locn],cExp,cExp)
+  | .cDsj(option[locn],cExp,cExp)
+  | .cNeg(option[locn],cExp)
+  | .cCnd(option[locn],cExp,cExp,cExp)
+  | .cLtt(option[locn],cId,cExp,cExp)
+  | .cCont(option[locn],cId,cExp,cExp)
+  | .cUnpack(option[locn],cExp,cons[cCase[cExp]],tipe)
+  | .cCase(option[locn],cExp,cons[cCase[cExp]],cExp,tipe)
+  | .cMatch(option[locn],cExp,cExp)
+  | .cVarNmes(option[locn],cons[(string,cId)],cExp)
+  | .cAbort(option[locn],string,tipe)
+  | .cTry(option[locn],cExp,cExp,cExp,cExp,tipe)
+  | .cValof(option[locn],aAction,tipe).
   
   public cId ::= .cId(string,tipe).
 
@@ -109,6 +110,7 @@ star.compiler.term{
     .cTerm(_,Op,As,_) => ".#(Op)(#(dsplyExps(As,Off)*))".
     .cNth(_,O,Ix,_) => "#(dspExp(O,Off)).$(Ix)".
     .cSetNth(_,O,Ix,E) => "(#(dspExp(O,Off)).$(Ix) <- #(dspExp(E,Off)))".
+    .cClos(_,Nm,Ar,Fr,_) => "<#(Nm)/$(Ar)\:#(dspExp(Fr,Off))>".
     .cThunk(_,E,Tp) => "thunk #(dspExp(E,Off))".
     .cThGet(_,E,_) => "get #(dspExp(E,Off))".
     .cThSet(_,E,V,_) => "set #(dspExp(E,Off)) <- #(dspExp(V,Off))".
@@ -234,6 +236,7 @@ star.compiler.term{
     .cFloat(_,N1) => .cFloat(_,N2).=E2 && N1==N2.
     .cString(_,S1) => .cString(_,S2).=E2 && S1==S2.
     .cTerm(_,S1,A1,_) => .cTerm(_,S2,A2,_).=E2 && S1==S2 && eqs(A1,A2).
+    .cClos(_,L1,A1,F1,_) => .cClos(_,L2,A2,F2,_).=E2 && L1==L2 && A1==A2 && eqTerm(F1,F2).
     .cCall(_,S1,A1,_) => .cCall(_,S2,A2,_).=E2 && S1==S2 && eqs(A1,A2).
     .cECall(_,S1,A1,_) => .cECall(_,S2,A2,_).=E2 && S1==S2 && eqs(A1,A2).
     .cOCall(_,S1,A1,_) => .cOCall(_,S2,A2,_).=E2 && eqTerm(S1,S2) && eqs(A1,A2).
@@ -341,6 +344,7 @@ star.compiler.term{
       .cThGet(Lc,_,_) => Lc.
       .cThSet(Lc,_,_,_) => Lc.
       .cTerm(Lc,_,_,_) => Lc.
+      .cClos(Lc,_,_,_,_) => Lc.
       .cMatch(Lc,_,_) => Lc.
       .cLtt(Lc,_,_,_) => Lc.
       .cCont(Lc,_,_,_) => Lc.
@@ -373,6 +377,7 @@ star.compiler.term{
       .cFloat(_,_) => fltType.
       .cString(_,_) => strType.
       .cTerm(_,_,_,Tp) => Tp.
+      .cClos(_,_,_,_,Tp) => Tp.
       .cECall(_,_,_,Tp) => Tp.
       .cOCall(_,_,_,Tp) => Tp.
       .cCall(_,_,_,Tp) => Tp.
@@ -453,6 +458,7 @@ star.compiler.term{
       .cInt(_,Ix) => .some(.intgr(Ix)).
       .cTerm(_,Nm,Args,_) where NArgs ?= mapArgs(Args,[]) =>
 	.some(.term(Nm,NArgs)).
+      .cClos(_,L,A,F,_) where NF ?= _coerce(F) => .some(.clos(.tLbl(L,A),NF)).
       _ default => .none.
     }.
 
@@ -482,6 +488,7 @@ star.compiler.term{
       .cTerm(Lc,Op,Args,Tp) => .cTerm(Lc,Op,rwTerms(Args,Tst),Tp).
       .cNth(Lc,R,Ix,Tp) =>.cNth(Lc,rwTerm(R,Tst),Ix,Tp).
       .cSetNth(Lc,R,Ix,E) =>.cSetNth(Lc,rwTerm(R,Tst),Ix,rwTerm(E,Tst)).
+      .cClos(Lc,L,A,F,Tp) => .cClos(Lc,L,A,rwTerm(F,Tst),Tp).
       .cThunk(Lc,E,Tp) =>.cThunk(Lc,rwTerm(E,Tst),Tp).
       .cThGet(Lc,E,Tp) =>.cThGet(Lc,rwTerm(E,Tst),Tp).
       .cThSet(Lc,E,V,Tp) =>.cThSet(Lc,rwTerm(E,Tst),rwTerm(V,Tst),Tp).
@@ -580,6 +587,7 @@ star.compiler.term{
     | .cTerm(Lc,Op,Args,Tp) => .cTerm(Lc,Op,frshnEs(Args,Sc),Tp)
     | .cNth(Lc,R,Ix,Tp) =>.cNth(Lc,frshnE(R,Sc),Ix,Tp)
     | .cSetNth(Lc,R,Ix,E) =>.cSetNth(Lc,frshnE(R,Sc),Ix,frshnE(E,Sc))
+    | .cClos(Lc,L,A,F,Tp) => .cClos(Lc,L,A,frshnE(F,Sc),Tp)
     | .cThunk(Lc,E,Tp) =>.cThunk(Lc,frshnE(E,Sc),Tp)
     | .cThGet(Lc,E,Tp) =>.cThGet(Lc,frshnE(E,Sc),Tp)
     | .cThSet(Lc,E,V,Tp) =>.cThSet(Lc,frshnE(E,Sc),frshnE(V,Sc),Tp)
@@ -723,6 +731,7 @@ star.compiler.term{
     .cChar(_,_) => .true.
     .cString(_,_) => .true.
     .cTerm(_,_,Els,_) => {? E in Els *> isGround(E) ?}.
+    .cClos(_,_,_,F,_) => isGround(F).
     _ default => .false.
   }
 
@@ -853,6 +862,7 @@ star.compiler.term{
     .cTerm(_,_,Args,_) => {? E in Args *> validE(E,Vrs) ?}.
     .cNth(_,R,_,_) => validE(R,Vrs).
     .cSetNth(_,R,_,V) => validE(R,Vrs) && validE(V,Vrs).
+    .cClos(_,_,_,F,_) => validE(F,Vrs).
     .cThunk(_,V,_) => validE(V,Vrs).
     .cThGet(_,V,_) => validE(V,Vrs).
     .cThSet(_,V,X,_) => validE(V,Vrs) && validE(X,Vrs).
@@ -1054,6 +1064,7 @@ star.compiler.term{
     .cTerm(_,_,Args,_) => {? E in Args && presentInE(E,A,C) ?}.
     .cNth(_,R,_,_) => presentInE(R,A,C).
     .cSetNth(_,R,_,V) => presentInE(R,A,C) || presentInE(V,A,C).
+    .cClos(_,_,_,F,_) => presentInE(F,A,C).
     .cThunk(_,V,_) => presentInE(V,A,C).
     .cThGet(_,Th,_) => presentInE(Th,A,C).
     .cThSet(_,Th,V,_) => presentInE(Th,A,C) || presentInE(V,A,C).
@@ -1121,6 +1132,8 @@ star.compiler.term{
 	.strg(encodeSignature(Tp))]).
     .cSetNth(Lc,T,Ix,R) => mkCons("setnth",[Lc::data,frzeExp(T),.intgr(Ix),
 	frzeExp(R)]).
+    .cClos(Lc,N,A,F,Tp) => mkCons("clos",[Lc::data,.strg(N),.intgr(A),frzeExp(F),
+	.strg(encodeSignature(Tp))]).
     .cThunk(Lc,V,Tp) => mkCons("thunk",[Lc::data,frzeExp(V),encodeSig(Tp)]).
     .cThGet(Lc,V,Tp) => mkCons("thget",[Lc::data,frzeExp(V),encodeSig(Tp)]).
     .cThSet(Lc,V,Vl,Tp) => mkCons("thset",[Lc::data,frzeExp(V),frzeExp(Vl),encodeSig(Tp)]).
@@ -1218,6 +1231,8 @@ star.compiler.term{
       .cNth(thawLoc(Lc),thawTerm(E),Ix,decodeSig(Sig)).
     .term("setnth",[Lc,E,.intgr(Ix),R]) =>
       .cSetNth(thawLoc(Lc),thawTerm(E),Ix,thawTerm(R)).
+    .term("clos",[Lc,.strg(N),.intgr(A),F,Sig]) =>
+      .cClos(thawLoc(Lc),N,A,thawTerm(F),decodeSig(Sig)).
     .term("thunk",[Lc,V,Sig]) =>
       .cThunk(thawLoc(Lc),thawTerm(V),decodeSig(Sig)).
     .term("thget",[Lc,V,Sig]) =>

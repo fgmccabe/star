@@ -40,6 +40,10 @@ retCode jit_Abort(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitComp
   return Error;
 }
 
+retCode jit_Closure(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
 retCode jit_Alloc(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
   return Error;
 }

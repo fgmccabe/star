@@ -31,6 +31,7 @@ decodeTerm(chr(Cp)) --> ['c'], decodeChar(Cp).
 decodeTerm(strg(Txt)) --> ['s'], decodeText(Txt).
 decodeTerm(lbl(Nm,Ar)) --> ['o'], decInt(Ar), decodeText(Nm).
 decodeTerm(ctpl(Con,Els)) --> ['n'], decInt(Len), decodeTerm(Con), decTerms(Len,Els).
+decodeTerm(clos(Nm,Ar,Free)) --> ['p'], decodeTerm(lbl(Nm,Ar)), decodeTerm(Free).
 decodeTerm(lst(Els)) --> ['l'], decInt(Len), decTerms(Len,Els).
 
 decTerms(0,[]) --> [].

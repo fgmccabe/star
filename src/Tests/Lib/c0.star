@@ -3,6 +3,8 @@ test.c0{
 
   public boolean ::= .true | .false.
 
+  public cons[e] ::= .nil | .cons(e,cons[e]).
+
   public pp[a] ::= pp{C:integer} |
     pq{C:integer. A:a}.
 
@@ -37,6 +39,20 @@ test.c0{
 
   public x * y => _int_times(x,y).
 
+  public (•):all a,b,c ~~ ((b)=>c,(a)=>b)=>(a)=>c.
+  F • G => (x)=>F(G(x)).
+
+  inc(X) => X+1.
+
+  public _main(_) => valof{
+    FF = inc • inc;
+
+    XX = FF(3);
+
+    valis ()
+  }
+    
+    
 
 --  main:()=>().
 --  main()=>().

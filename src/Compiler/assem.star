@@ -105,6 +105,7 @@ star.compiler.assem{
     .iFGe |
     .iFCmp(assemLbl) |
     .iAlloc(termLbl) |
+    .iClosure(termLbl) |
     .iCmp(assemLbl) |
     .iFrame(ltipe) |
     .idBug |
@@ -241,9 +242,10 @@ star.compiler.assem{
   mnem([.iFGe,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[.intgr(78)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
   mnem([.iFCmp(.al(U)),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where Tgt ?= Lbls[U] => mnem(Ins,Code++[.intgr(79),.intgr(Tgt-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
   mnem([.iAlloc(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (Lt1,LtNo) .= findLit(Lts,.symb(U)) => mnem(Ins,Code++[.intgr(80),.intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([.iCmp(.al(U)),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where Tgt ?= Lbls[U] => mnem(Ins,Code++[.intgr(81),.intgr(Tgt-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([.iFrame(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (Lt1,LtNo) .= findLit(Lts,.strg(U::string)) => mnem(Ins,Code++[.intgr(82),.intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).
-  mnem([.idBug,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[.intgr(83)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
+  mnem([.iClosure(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (Lt1,LtNo) .= findLit(Lts,.symb(U)) => mnem(Ins,Code++[.intgr(81),.intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([.iCmp(.al(U)),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where Tgt ?= Lbls[U] => mnem(Ins,Code++[.intgr(82),.intgr(Tgt-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([.iFrame(U),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (Lt1,LtNo) .= findLit(Lts,.strg(U::string)) => mnem(Ins,Code++[.intgr(83),.intgr(LtNo)],Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,Ends).
+  mnem([.idBug,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code++[.intgr(84)],Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,Ends).
 
   mnem([I,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => valof{
     reportTrap("Cannot assemble instruction $(I)");
@@ -338,6 +340,7 @@ star.compiler.assem{
   genLblTbl([.iFGe,..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+1,Lbls).
   genLblTbl([.iFCmp(.al(A)),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([.iAlloc(A),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
+  genLblTbl([.iClosure(A),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([.iCmp(.al(A)),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([.iFrame(A),..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+3,Lbls).
   genLblTbl([.idBug,..Ins],Pc,Lbls)  => genLblTbl(Ins,Pc+1,Lbls).
@@ -460,6 +463,7 @@ star.compiler.assem{
   showMnem([.iFGe,..Ins],Pc) => "$(Pc)\: FGe\n" ++ showMnem(Ins,Pc+1).
   showMnem([.iFCmp(.al(U)),..Ins],Pc) => "$(Pc)\: FCmp #(U):\n" ++ showMnem(Ins,Pc+3).
   showMnem([.iAlloc(U),..Ins],Pc) => "$(Pc)\: Alloc $(U)\n" ++ showMnem(Ins,Pc+3).
+  showMnem([.iClosure(U),..Ins],Pc) => "$(Pc)\: Closure $(U)\n" ++ showMnem(Ins,Pc+3).
   showMnem([.iCmp(.al(U)),..Ins],Pc) => "$(Pc)\: Cmp #(U):\n" ++ showMnem(Ins,Pc+3).
   showMnem([.iFrame(U),..Ins],Pc) => "$(Pc)\: Frame $(U)\n" ++ showMnem(Ins,Pc+3).
   showMnem([.idBug,..Ins],Pc) => "$(Pc)\: dBug\n" ++ showMnem(Ins,Pc+1).

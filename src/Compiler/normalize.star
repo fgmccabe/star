@@ -379,10 +379,8 @@ star.compiler.normalize{
   liftVarExp(Lc,Nm,Tp,Map) => .cVar(Lc,.cId(Nm,Tp)).
 
   implementVarExp:(option[locn],nameMapEntry,nameMap,tipe) => cExp.
-  implementVarExp(Lc,.localFun(_,ClNm,ThVr),Map,Tp) => valof{
-    V = liftVarExp(Lc,cName(ThVr),typeOf(ThVr),Map);
-    valis .cTerm(Lc,ClNm,[V],Tp)
-  }
+  implementVarExp(Lc,.localFun(_,ClNm,Ar,ThVr),Map,Tp) =>
+    .cClos(Lc,ClNm,Ar,liftVarExp(Lc,cName(ThVr),typeOf(ThVr),Map),Tp).
   implementVarExp(Lc,.labelArg(Base,Ix),Map,Tp) => valof{
     V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
     valis .cNth(Lc,V,Ix,Tp)
@@ -431,7 +429,7 @@ star.compiler.normalize{
     VV=liftVarExp(Lc,cName(Vr),typeOf(Vr),Map);
     valis (.cTerm(Lc,Fn,[VV,..Args],Tp),Ex)
   }
-  implementFunCall(Lc,.localFun(Nm,ClNm,Th),_,Args,Tp,Map,Ex) => valof{
+  implementFunCall(Lc,.localFun(Nm,_,_,Th),_,Args,Tp,Map,Ex) => valof{
     V = liftVarExp(Lc,cName(Th),typeOf(Th),Map);
     valis (.cCall(Lc,Nm,[V,..Args],Tp),Ex)
   }
@@ -768,9 +766,9 @@ star.compiler.normalize{
   collectMtd:(canonDef,option[cId],map[string,nameMapEntry])=>map[string,nameMapEntry].
 
   collectMtd(.varDef(Lc,Nm,Val,_,Tp),.some(ThVr),LL) where isFunDef(Val) =>
-    LL[Nm->.localFun(Nm,closureNm(Nm),ThVr)].
+    LL[Nm->.localFun(Nm,closureNm(Nm),arity(Tp)+1,ThVr)].
   collectMtd(.varDef(Lc,Nm,Val,_,Tp),.none,LL) where isFunDef(Val) =>
-    LL[Nm->.moduleFun(.cTerm(Lc,closureNm(Nm),[crTpl(Lc,[])],Tp),Nm)].
+    LL[Nm->.moduleFun(.cClos(Lc,closureNm(Nm),arity(Tp)+1,crTpl(Lc,[]),Tp),Nm)].
   collectMtd(.varDef(Lc,Nm,Val,_,Tp),.none,LL) =>
     LL[Nm->.globalVar(Nm,Tp)].
   collectMtd(.varDef(Lc,Nm,Val,_,Tp),.some(ThVr),LL) => LL.
@@ -797,7 +795,7 @@ star.compiler.normalize{
   labelVar(.cId(Nm,_),Map,So) where Entry?=lookupVarName(Map,Nm) =>
     case Entry in {
       .labelArg(ThVr,_) => So\+ThVr.
-      .localFun(_,_,ThVr) => So\+ThVr.
+      .localFun(_,_,_,ThVr) => So\+ThVr.
       _ => So
     }.
   labelVar(_,_,So) default => So.

@@ -20,6 +20,9 @@ encodeTerm(strg(St),['s'|O],Ox) :- encodeText(St,O,Ox).
 encodeTerm(lbl(Nm,Arity),['o'|O],Ox) :-
   encodeInt(Arity,O,O1),
   encodeText(Nm,O1,Ox).
+encodeTerm(clos(Nm,Ar,Env),['p'|O],Ox) :-
+  encodeTerm(lbl(Nm,Ar),O,O1),
+  encodeTerm(Env,O1,Ox).
 encodeTerm(ctpl(Con,Els),['n'|O],Ox) :-
   length(Els,Ln),
   encodeInt(Ln,O,O1),

@@ -14,12 +14,13 @@ star.compiler.data{
   public termLbl ::= .tLbl(string,integer).
 
   public data ::= .intgr(integer)
-    | .bigi(bigint)
-    | .flot(float)
-    | .chr(char)
-    | .strg(string)
-    | .term(string,cons[data])
-    | .symb(termLbl).
+  | .bigi(bigint)
+  | .flot(float)
+  | .chr(char)
+  | .strg(string)
+  | .term(string,cons[data])
+  | .symb(termLbl)
+  | .clos(termLbl,data).
 
   public implementation display[termLbl] => {
     disp(.tLbl(Nm,Ar)) => "#(Nm)/$(Ar)".
@@ -41,6 +42,7 @@ star.compiler.data{
       .term(T,Args) where isTupleLbl(T) => "(#(dispTs(Args)))".
       .term(Op,Args) => "#(Op)(#(dispTs(Args)))".
       .symb(Sx) => "'$(Sx)'".
+      .clos(Lb,Fr) => "<$(Lb)\:#(dispT(Fr))>".
     }
 
     dispTs(Els) => interleave(Els//dispT,",")*.
@@ -63,6 +65,7 @@ star.compiler.data{
       .chr(C) => hash(C).
       .strg(S) => hash(S).
       .symb(S) => hash(S).
+      .clos(Lb,Fr) => hash(Lb)*37+hash(Fr).
       .term(Op,Args) =>
 	foldRight((T,H)=>H*37+hsh(T),hash(Op)*37,Args).
     }
@@ -82,6 +85,7 @@ star.compiler.data{
       .chr(X) => .chr(Y).=D2 && X==Y.
       .strg(X) => .strg(Y).=D2 && X==Y.
       .symb(X) => .symb(Y).=D2 && X==Y.
+      .clos(L1,F1) => .clos(L2,F2).=D2 && L1==L2 && eq(F1,F2).
       .term(O1,A1) => .term(O2,A2).=D2 && O1==O2 && eqList(A1,A2).
       _ default => .false.
     }
@@ -133,8 +137,8 @@ star.compiler.data{
     .chr(Cx) => encodeChar(Cx,[`c`,..Chs]).
     .strg(Tx) => encodeText(Tx,[`s`,..Chs]).
     .symb(Sym) => encodeL(Sym,Chs).
+    .clos(Lb,F) => encodeT(F,encodeL(Lb,[`p`,..Chs])).
     .term("[]",Els) => encodeTerms(Els,encodeNat(size(Els),[`l`,..Chs])).
---    .term(Op,[]) => encodeText(Op,[`e`,..Chs]).
     .term(Op,Args) =>
       encodeTerms(Args,encodeL(.tLbl(Op,size(Args)),encodeNat(size(Args),[`n`,..Chs]))).
   }
@@ -180,6 +184,11 @@ star.compiler.data{
     `s` => valof{
       (Txt,Lx) = decodeText(Ls);
       valis (.strg(Txt),Lx)
+    }
+    `p` => valof{
+      (Op,L0) = decodeLabel(Ls);
+      (Fr,Lx) = decodeTerm(L0);
+      valis (.clos(Op,Fr),Lx)
     }
     `n` => valof{
       (Ax,L0) = decodeNat(Ls,0);

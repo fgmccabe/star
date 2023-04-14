@@ -108,6 +108,7 @@ star.compiler.gencode{
     | .cThunk(Lc,Lam,_) => compExp(Lam,.notLast,thunkCont(Stk,Cont),Ctx,Stk)
     | .cThGet(Lc,Thnk,Tp) =>
       compExp(Thnk,.notLast,thGetCont(pushStack(Tp::ltipe,Stk),Ctx.escape,Cont),Ctx,Stk)
+    | .cClos(_,L,A,F,Tp) => compExp(F,TM,closCont(pushStack(Tp::ltipe,Stk),.tLbl(L,A),Cont),Ctx,Stk)
     | .cSeq(_,L,R) =>
       compExp(L,.notLast,resetCont(Stk,expCont(R,TM,Cont)),Ctx,Stk)
     | .cCnd(Lc,G,L,R) => valof{
@@ -661,6 +662,11 @@ star.compiler.gencode{
   thSetCont:(stack,Cont) => Cont.
   thSetCont(Stk,Cont) => cont{
     C(Ctx,_,Cde) => Cont.C(Ctx,Stk,Cde++[.iTTh])
+  }
+
+  closCont:(stack,termLbl,Cont) => Cont.
+  closCont(Stk,Lbl,Cont) => cont{
+    C(Ctx,_,Cde) => Cont.C(Ctx,Stk,Cde++[.iClosure(Lbl)])
   }
 
   catchCont:all e ~~ (assemLbl,integer,()=>(stack,multi[assemOp])) => Cont.

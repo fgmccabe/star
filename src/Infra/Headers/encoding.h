@@ -11,6 +11,7 @@
  */
 #include "ooio.h"
 #include "pkg.h"
+#include "closure.h"
 
 retCode encodeInt(ioPo out, integer ix);
 retCode encodeFlt(ioPo out, double dx);
@@ -20,6 +21,7 @@ retCode encodeTxt(ioPo out, char *sx, integer len);
 retCode encodeEnum(ioPo out, char *nm);
 retCode encodeLbl(ioPo out, char *sx, integer ar);
 retCode encodeTplLbl(ioPo out, integer ar);
+retCode encodeClosure(ioPo out,closurePo cl);
 retCode encodeLst(ioPo out, integer ar);
 retCode encodeCons(ioPo out, integer arity);
 retCode encodePkgName(ioPo out, packagePo pkg);
