@@ -36,7 +36,6 @@ star.compiler.term{
   | .cCnd(option[locn],cExp,cExp,cExp)
   | .cLtt(option[locn],cId,cExp,cExp)
   | .cCont(option[locn],cId,cExp,cExp)
-  | .cUnpack(option[locn],cExp,cons[cCase[cExp]],tipe)
   | .cCase(option[locn],cExp,cons[cCase[cExp]],cExp,tipe)
   | .cMatch(option[locn],cExp,cExp)
   | .cVarNmes(option[locn],cons[(string,cId)],cExp)
@@ -59,7 +58,6 @@ star.compiler.term{
     | .aDefn(option[locn],cExp,cExp)
     | .aAsgn(option[locn],cExp,cExp)
     | .aCase(option[locn],cExp,cons[cCase[aAction]],aAction)
-    | .aUnpack(option[locn],cExp,cons[cCase[aAction]])
     | .aIftte(option[locn],cExp,aAction,aAction)
     | .aWhile(option[locn],cExp,aAction)
     | .aTry(option[locn],aAction,cExp,cExp,aAction)
@@ -127,10 +125,6 @@ star.compiler.term{
       Off2=Off++"  ";
       valis "case #(dspExp(E,Off)) in {\n#(Off2)#(dspCases(Cs,dspExp,Off2)*)\n#(Off)} else #(dspExp(D,Off))"
     }.
-    .cUnpack(_,E,Cs,_) => valof{
-      Off2=Off++"  ";
-      valis "unpack (#(dspExp(E,Off))) in {\n#(Off2)#(dspCases(Cs,dspExp,Off2)*)\n#(Off)}"
-    }.
     .cMatch(_,P,E) => "#(dspExp(P,Off)).=#(dspExp(E,Off))".
     .cCnj(_,L,R) => "#(dspExp(L,Off)) && #(dspExp(R,Off))".
     .cDsj(_,L,R) => "(#(dspExp(L,Off)) || #(dspExp(R,Off)))".
@@ -165,10 +159,6 @@ star.compiler.term{
     .aCase(_,E,Cs,Df) => valof{
       Off2=Off++"  ";
       valis "case (#(dspExp(E,Off))) in {\n#(Off2)#(dspCases(Cs,dspAct,Off2)*)\n#(Off)} else #(dspAct(Df,Off))"
-    }.
-    .aUnpack(_,E,Cs) => valof{
-      Off2=Off++"  ";
-      valis "unpack (#(dspExp(E,Off))) in {\n#(Off2)#(dspCases(Cs,dspAct,Off2)*)\n#(Off)}"
     }.
     .aIftte(_,C,T,E) => valof{
       Off2=Off++"  ";
@@ -256,8 +246,6 @@ star.compiler.term{
 	T1==T2 && eqTerm(L1,L2) && eqTerm(R1,R2).
     .cCont(_,T1,L1,R1) => .cCont(_,T2,L2,R2).=E2 &&
 	T1==T2 && eqTerm(L1,L2) && eqTerm(R1,R2).
-    .cUnpack(_,S1,C1,_) => .cUnpack(_,S2,C2,_).=E2 &&
-	eqTerm(S1,S2) && eqCs(C1,eqTerm,C2).
     .cCase(_,S1,C1,D1,_) => .cCase(_,S2,C2,D2,_).=E2 &&
 	eqTerm(S1,S2) && eqCs(C1,eqTerm,C2) && eqTerm(D1,D2).
     .cMatch(_,P1,V1) => .cMatch(_,P2,V2).=E2 && eqTerm(V1,V2) && eqTerm(P1,P2).
@@ -301,8 +289,6 @@ star.compiler.term{
     .aAsgn(_,E1,V1) => .aAsgn(_,E2,V2).=A2 && eqTerm(E1,E2) && eqTerm(V1,V2).
     .aCase(_,S1,C1,D1) => .aCase(_,S2,C2,D2).=A2 &&
 	eqTerm(S1,S2) && eqCs(C1,eqAct,C2) && eqAct(D1,D2).
-    .aUnpack(_,S1,C1) => .aUnpack(_,S2,C2).=A2 &&
-	eqTerm(S1,S2) && eqCs(C1,eqAct,C2).
     .aIftte(_,C1,L1,R1) => .aIftte(_,C2,L2,R2).=A2 &&
 	eqTerm(C1,C2) && eqAct(L1,L2) && eqAct(R1,R2).
     .aWhile(_,C1,L1) => .aWhile(_,C2,L2).=A2 &&
@@ -348,7 +334,6 @@ star.compiler.term{
       .cMatch(Lc,_,_) => Lc.
       .cLtt(Lc,_,_,_) => Lc.
       .cCont(Lc,_,_,_) => Lc.
-      .cUnpack(Lc,_,_,_) => Lc.
       .cCase(Lc,_,_,_,_) => Lc.
       .cCall(Lc,_,_,_)=>Lc.
       .cECall(Lc,_,_,_)=>Lc.
@@ -393,7 +378,6 @@ star.compiler.term{
       .cNeg(_,_) => boolType.
       .cLtt(_,_,_,E) => tpOf(E).
       .cCont(_,_,_,E) => tpOf(E).
-      .cUnpack(_,_,_,Tp) => Tp.
       .cCase(_,_,_,_,Tp) => Tp.
       .cCnd(_,_,L,_) => tpOf(L).
       .cMatch(_,_,_) => boolType.
@@ -431,7 +415,6 @@ star.compiler.term{
       .aDefn(Lc,_,_) => Lc.
       .aAsgn(Lc,_,_) => Lc.
       .aCase(Lc,_,_,_) => Lc.
-      .aUnpack(Lc,_,_) => Lc.
       .aIftte(Lc,_,_,_) => Lc.
       .aWhile(Lc,_,_) => Lc.
       .aTry(Lc,_,_,_,_) => Lc.
@@ -503,8 +486,6 @@ star.compiler.term{
       .cCnd(Lc,G,L,R) =>.cCnd(Lc,rwTerm(G,Tst),rwTerm(L,Tst),rwTerm(R,Tst)).
       .cLtt(Lc,V,D,E) =>.cLtt(Lc,V,rwTerm(D,Tst),rwTerm(E,dropVar(cName(V),Tst))).
       .cCont(Lc,V,D,E) =>.cCont(Lc,V,rwTerm(D,Tst),rwTerm(E,dropVar(cName(V),Tst))).
-      .cUnpack(Lc,Sel,Cases,Tp) => .cUnpack(Lc,
-	rwTerm(Sel,Tst),Cases//(C)=>rwCase(C,Tst,rwTerm),Tp).
       .cCase(Lc,Sel,Cases,Dflt,Tp) => .cCase(Lc,rwTerm(Sel,Tst),
 	Cases//(C)=>rwCase(C,Tst,rwTerm),rwTerm(Dflt,Tst),Tp).
       .cMatch(Lc,P,E) => .cMatch(Lc,rwTerm(P,Tst),rwTerm(E,Tst)).
@@ -527,7 +508,6 @@ star.compiler.term{
     .aDefn(Lc,V,E) => .aDefn(Lc,rwTerm(V,Tst),rwTerm(E,Tst)).
     .aAsgn(Lc,V,E) => .aAsgn(Lc,rwTerm(V,Tst),rwTerm(E,Tst)).
     .aCase(Lc,G,Cs,D) => .aCase(Lc,rwTerm(G,Tst),Cs//(C)=>rwCase(C,Tst,rwAct),rwAct(D,Tst)).
-    .aUnpack(Lc,G,Cs) => .aUnpack(Lc,rwTerm(G,Tst),Cs//(C)=>rwCase(C,Tst,rwAct)).
     .aIftte(Lc,C,L,R) => .aIftte(Lc,rwTerm(C,Tst),rwAct(L,Tst),rwAct(R,Tst)).
     .aWhile(Lc,C,B) => .aWhile(Lc,rwTerm(C,Tst),rwAct(B,Tst)).
     .aTry(Lc,B,T,E,Hs) => .aTry(Lc,rwAct(B,Tst),rwTerm(T,Tst),rwTerm(E,Tst),rwAct(Hs,Tst)).
@@ -612,7 +592,6 @@ star.compiler.term{
     | .cMatch(Lc,P,E) => .cMatch(Lc,frshnE(P,Sc),frshnE(E,Sc))
     | .cLtt(Lc,V,D,E) =>.cLtt(Lc,V,frshnE(D,Sc),frshnE(E,pushScope(Sc)))
     | .cCont(Lc,V,D,E) =>.cCont(Lc,V,frshnE(D,Sc),frshnE(E,pushScope(Sc)))
-    | .cUnpack(Lc,Sel,Cs,Tp) => .cUnpack(Lc,frshnE(Sel,Sc),frCases(Cs,Sc,frshnE),Tp)
     | .cCase(Lc,Sel,Cs,Dflt,Tp) => .cCase(Lc,frshnE(Sel,Sc),frCases(Cs,Sc,frshnE),frshnE(Dflt,Sc),Tp)
     | .cTry(Lc,B,T,E,H,Tp) => valof{
       Sc0 = pushScope(Sc);
@@ -661,7 +640,6 @@ star.compiler.term{
     | .aDefn(Lc,V,E) => .aDefn(Lc,frshnE(V,Sc),frshnE(E,Sc))
     | .aAsgn(Lc,V,E) => .aAsgn(Lc,frshnE(V,Sc),frshnE(E,Sc))
     | .aCase(Lc,G,Cs,D) => .aCase(Lc,frshnE(G,Sc),frCases(Cs,Sc,frshnA),frshnA(D,Sc))
-    | .aUnpack(Lc,G,Cs) => .aUnpack(Lc,frshnE(G,Sc),frCases(Cs,Sc,frshnA))
     | .aIftte(Lc,C,L,R) => valof{
       Sc0 = pushScope(Sc);
       Sc1 = newVars(glVars(C,[]),Sc0);
@@ -745,7 +723,6 @@ star.compiler.term{
   public contract all e ~~ reform[e] ::= {
     mkCond:(option[locn],cExp,e,e)=>e.
     mkCase:(option[locn],cExp,cons[cCase[e]],e) => e.
-    mkUnpack:(option[locn],cExp,cons[cCase[e]]) => e.
     varNames:(option[locn],cons[(string,cId)],e)=>e.
     pullWhere:(e) => (e,option[cExp]).
     mkLtt:(option[locn],cId,cExp,e) => e.
@@ -772,8 +749,6 @@ star.compiler.term{
     mkCase(Lc,Tst,[(PLc,Ptn,Val)],Deflt) => mkCond(Lc,.cMatch(PLc,Ptn,Tst),Val,Deflt).
     mkCase(Lc,V,Cases,Deflt) => .cCase(Lc,V,Cases,Deflt,typeOf(Deflt)).
 
-    mkUnpack(Lc,V,Arms) => .cUnpack(Lc,V,Arms,typeOf(V)).
-
     mkLtt(Lc,V,E,X) => .cLtt(Lc,V,E,X).
 
     mkCont(Lc,V,E,X) => .cCont(Lc,V,E,X).
@@ -791,7 +766,6 @@ star.compiler.term{
     pullWhere(A) => (A,.none).
 
     mkCase(Lc,V,Cases,Deflt) => .aCase(Lc,V,Cases,Deflt).
-    mkUnpack(Lc,V,Arms) => .aUnpack(Lc,V,Arms).
 
     mkLtt(Lc,V,E,X) => .aLtt(Lc,V,E,X).
 
@@ -884,7 +858,6 @@ star.compiler.term{
     .cLtt(_,B,V,E) => validE(V,Vrs) && validE(E,Vrs\+B).
     .cCont(_,B,V,E) => validE(V,Vrs) && validE(E,Vrs\+B).
     .cCase(_,G,Cs,Df,_) => validE(G,Vrs) && validCases(Cs,validE,Vrs) && validE(Df,Vrs).
-    .cUnpack(_,G,Cs,_) => validE(G,Vrs) && validCases(Cs,validE,Vrs).
     .cMatch(_,V,E) => valof{
       V1 = glVars(E,Vrs);
       valis validP(V,V1) && validE(E,V1)
@@ -945,8 +918,6 @@ star.compiler.term{
     .aAsgn(_,L,V) => validE(L,Vrs) && validE(V,Vrs).
     .aCase(_,G,Cs,Df) =>
       validE(G,Vrs) && validCases(Cs,validA,Vrs) && validA(Df,Vrs).
-    .aUnpack(_,G,Cs) =>
-      validE(G,Vrs) && validCases(Cs,validA,Vrs).
     .aIftte(_,G,Th,E) => valof{
       D1 = glVars(G,Vrs);
       valis validE(G,D1) && validA(Th,D1) && validA(E,Vrs)
@@ -1036,8 +1007,6 @@ star.compiler.term{
     .aAsgn(_,L,V) => presentInE(L,C,T) || presentInE(V,C,T).
     .aCase(_,G,Cs,D) =>
       presentInE(G,C,T) || presentInCases(Cs,presentInA,C,T) || presentInA(D,C,T).
-    .aUnpack(_,G,Cs) =>
-      presentInE(G,C,T) || presentInCases(Cs,presentInA,C,T).
     .aIftte(_,G,Th,E) =>
       presentInE(G,C,T) || presentInA(Th,C,T) || presentInA(E,C,T).
     .aWhile(_,G,B) =>
@@ -1085,8 +1054,6 @@ star.compiler.term{
       presentInE(V,A,C) || presentInE(E,A,C).
     .cCase(_,G,Cs,D,_) =>
       presentInE(G,A,C) || presentInCases(Cs,presentInE,A,C) || presentInE(D,A,C).
-    .cUnpack(_,G,Cs,_) =>
-      presentInE(G,A,C) || presentInCases(Cs,presentInE,A,C).
     .cMatch(_,V,E) =>
       presentInE(V,A,C) || presentInE(E,A,C).
     .cVarNmes(_,_,E) =>
@@ -1155,8 +1122,6 @@ star.compiler.term{
 	frzeExp(B),frzeExp(X)]).
     .cCont(Lc,.cId(V,Tp),B,X) => mkCons("cont",[Lc::data,.strg(V),encodeSig(Tp),
 	frzeExp(B),frzeExp(X)]).
-    .cUnpack(Lc,G,Cs,Tp) => mkCons("unpck",[Lc::data,frzeExp(G),
-	freezeCases(Cs,frzeExp),encodeSig(Tp)]).
     .cCase(Lc,G,Cs,Df,Tp) => mkCons("case",[Lc::data,frzeExp(G),
 	freezeCases(Cs,frzeExp),frzeExp(Df),encodeSig(Tp)]).
     .cAbort(Lc,Msg,Tp) => mkCons("abrt",[Lc::data,.strg(Msg),encodeSig(Tp)]).
@@ -1185,7 +1150,6 @@ star.compiler.term{
     .aAsgn(Lc,P,V) => mkCons("asgn",[Lc::data,frzeExp(P),frzeExp(V)]).
     .aCase(Lc,G,C,D) => mkCons("case",[Lc::data,frzeExp(G),
 	freezeCases(C,frzeAct),frzeAct(D)]).
-    .aUnpack(Lc,G,C) => mkCons("unpk",[Lc::data,frzeExp(G),freezeCases(C,frzeAct)]).
     .aIftte(Lc,T,L,R) => mkCons("iftt",[Lc::data,frzeExp(T),frzeAct(L),frzeAct(R)]).
     .aWhile(Lc,T,I) => mkCons("whle",[Lc::data,frzeExp(T),frzeAct(I)]).
     .aTry(Lc,B,T,E,H) => mkCons("try",[Lc::data,frzeAct(B),frzeExp(T),frzeExp(E),frzeAct(H)]).
@@ -1263,8 +1227,6 @@ star.compiler.term{
       .cLtt(thawLoc(Lc),.cId(V,decodeSig(Sig)),thawTerm(B),thawTerm(X)).
     .term("cont",[Lc,.strg(V),Sig,B,X]) =>
       .cCont(thawLoc(Lc),.cId(V,decodeSig(Sig)),thawTerm(B),thawTerm(X)).
-    .term("unpck",[Lc,G,Cs,Sig]) => .cUnpack(thawLoc(Lc),thawTerm(G),
-      thawCases(Cs,thawTerm),decodeSig(Sig)).
     .term("case",[Lc,G,Cs,Df,Sig]) => .cCase(thawLoc(Lc),thawTerm(G),
       thawCases(Cs,thawTerm),thawTerm(Df),decodeSig(Sig)).
     .term("abrt",[Lc,.strg(M),Sig]) => .cAbort(thawLoc(Lc),M,decodeSig(Sig)).
@@ -1296,7 +1258,6 @@ star.compiler.term{
     .term("asgn",[Lc,P,V]) => .aAsgn(thawLoc(Lc),thawTerm(P),thawTerm(V)).
     .term("case",[Lc,G,C,D]) => .aCase(thawLoc(Lc),thawTerm(G),thawCases(C,thawAct),
       thawAct(D)).
-    .term("unpk",[Lc,G,C]) => .aUnpack(thawLoc(Lc),thawTerm(G),thawCases(C,thawAct)).
     .term("iftt",[Lc,T,L,R]) => .aIftte(thawLoc(Lc),thawTerm(T),thawAct(L),thawAct(R)).
     .term("whle",[Lc,T,I]) => .aWhile(thawLoc(Lc),thawTerm(T),thawAct(I)).
     .term("try",[Lc,B,T,E,H]) => .aTry(thawLoc(Lc),thawAct(B),thawTerm(T),thawTerm(E),thawAct(H)).

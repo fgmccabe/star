@@ -118,7 +118,6 @@ star.compiler.gencode{
     | .cCase(Lc,Gov,Cases,Deflt,_Tp) => valof{
       valis compCase(Lc,Gov,Cases,Deflt, (E,C1)=>expCont(E,TM,C1),Cont,Ctx,Stk)
     }
-    | .cUnpack(Lc,Gov,Cases,_Tp) => compCnsCase(Lc,Gov,Cases,(Ac,C1)=>expCont(Ac,TM,C1),Cont,Ctx,Stk)
     | .cLtt(Lc,.cId(Vr,VTp),Val,Bnd) => valof{
       valis compExp(Val,.notLast,stoCont(Vr,VTp::ltipe,Stk,expCont(Bnd,TM,Cont)),Ctx,Stk)
     }
@@ -218,7 +217,6 @@ star.compiler.gencode{
     | .aAsgn(Lc,P,E) => compExp(E,.notLast,expCont(P,.notLast,asgnCont(ACont,Ctx,Stk)),Ctx,Stk)
     | .aSetNth(Lc,T,Ix,E) => compExp(T,.notLast,expCont(E,.notLast,setNthCont(Ix,ACont,Stk)),Ctx,Stk)
     | .aCase(Lc,G,Cs,D) => compCase(Lc,G,Cs,D,(Ac,C1)=>actionCont(Ac,TM,ACont,C1),Cont,Ctx,Stk)
-    | .aUnpack(Lc,G,Cs) => compCnsCase(Lc,G,Cs,(Ac,C1)=>actionCont(Ac,TM,ACont,C1),Cont,Ctx,Stk)
     | .aIftte(Lc,G,L,R) => valof{
       AC = splitCont(Lc,Ctx,ACont);
       CC = splitCont(Lc,Ctx,Cont);
