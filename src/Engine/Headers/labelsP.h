@@ -12,6 +12,8 @@
  * A program label structure
  */
 
+extern integer maxLabels;
+
 typedef struct labelTable_ *lblTablePo;
 
 typedef struct program_label_ {

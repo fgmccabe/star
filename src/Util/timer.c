@@ -25,7 +25,7 @@
 static pthread_once_t once = PTHREAD_ONCE_INIT;
 static pthread_key_t timerKey;
 
-void initTimers(void) {
+static void initAlarms(void) {
   pthread_key_create(&timerKey, NULL);  /* create the timerKey */
 }
 
@@ -49,7 +49,7 @@ static void timerWakeUp(int sig) {
 retCode setAlarm(double time, timeFun onWakeup, void *cl) {
   struct timeval now, when;
 
-  pthread_once(&once, initTimers);
+  pthread_once(&once, initAlarms);
 
   gettimeofday(&now, NULL);
   when.tv_sec = (time_t)floor(time);

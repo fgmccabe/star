@@ -12,12 +12,13 @@ set(HEADER_FILES
         ../Util/Headers/signals.h
         ../Engine/Headers/engineOptions.h
         Headers/streamDecode.h
-        Headers/streamDecodeP.h)
+        Headers/streamDecodeP.h timers.c Headers/timers.h)
 
 set(SOURCE_FILES ${HEADER_FILES} manifest.c
         pkg.c
         encode.c
         signature.c
-        streamDecode.c)
+        streamDecode.c
+        timers.c)
 
 add_library(infra ${SOURCE_FILES} ${HEADER_FILES})

@@ -27,6 +27,7 @@
 #include "starP.h"
 #include "thunkP.h"
 #include "futureP.h"
+#include "timers.h"
 
 #include "stringBufferP.h"
 #include "continuationP.h"
@@ -49,7 +50,8 @@ int main(int argc, char **argv) {
 
   if ((narg = getEngineOptions(argc, argv)) < 0) {
     exit(1);
-  }
+  }       /* Initialize time stuff */
+  initTimers();
   initHistory(/*".star"*/Null);
   initHeap(initHeapSize);
   initStacks();
@@ -72,7 +74,7 @@ int main(int argc, char **argv) {
   initCapability();
   initIoChnnl();
   initThr();
-  initTime();        /* Initialize time stuff */
+  initTime();
 
   char *rootWd = defltCWD();
   defltRepoDir();
@@ -94,14 +96,22 @@ int main(int argc, char **argv) {
   installEscapes();
   initEngine();
 
-  loadManifest();
-  pruneResources("signature");
+  {
+    timerPo manifestTimer = startTimer("manifest");
+    loadManifest();
+    pruneResources("signature");
+    pauseTimer(manifestTimer);
+  }
 
   char errMsg[MAXLINE];
 
-  if (loadPackage(&mainPkge, errMsg, NumberOf(errMsg), Null) != Ok) {
-    logMsg(logFile, "Could not load boot pkg %s: %s", pkgName(&mainPkge), errMsg);
-    exit(99);
+  {
+    timerPo loadTimer = startTimer("load");
+    if (loadPackage(&mainPkge, errMsg, NumberOf(errMsg), Null) != Ok) {
+      logMsg(logFile, "Could not load boot pkg %s: %s", pkgName(&mainPkge), errMsg);
+      exit(99);
+    }
+    pauseTimer(loadTimer);
   }
 
   init_args(argv, argc, narg);    /* Initialize the argument list */

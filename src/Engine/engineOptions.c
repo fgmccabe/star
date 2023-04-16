@@ -17,7 +17,9 @@
 #include "debugP.h"
 #include "capabilityP.h"
 #include "buddyP.h"
+#include "labelsP.h"
 #include "continuationP.h"
+#include "timers.h"
 
 char CWD[MAXFILELEN] = "";
 char rootCap[MAXFILELEN] = "/";
@@ -348,7 +350,7 @@ static retCode setPkgMain(char *option, logical enable) {
 
 static retCode setJitThreshold(char *option, logical enable) {
   jitThreshold = parseInt(option, uniStrLen(option));
-  if(jitThreshold==0)
+  if (jitThreshold == 0)
     jitOnLoad = True;
   return Ok;
 }
@@ -368,6 +370,13 @@ static retCode setHeapSize(char *option, logical enable) {
 static retCode setMaxHeapSize(char *option, logical enable) {
   maxHeapSize = parseSize(option);
   if (maxHeapSize == 0)
+    return Error;
+  return Ok;
+}
+
+static retCode setMaxLabels(char *option, logical enable) {
+  maxLabels = parseInt(option, uniStrLen(option));
+  if (jitThreshold == 0)
     return Error;
   return Ok;
 }
@@ -417,6 +426,13 @@ static retCode setStackRegionSize(char *option, logical enable) {
   return Ok;
 }
 
+static retCode setEnableTimers(char *option, logical enable) {
+  enableTimers = enable;
+  atexit(reportTimers);
+
+  return Ok;
+}
+
 Option options[] = {
   {'d', "debug",         hasArgument, STAR_DBG_OPTS,      debugOption,        "-d|--debug <flags>", debugOptHelp},
   {'p', "print-depth",   hasArgument, STAR_DBG_OPTS,      setDisplayDepth,    "-p|--print-depth <depth>"},
@@ -435,7 +451,10 @@ Option options[] = {
   {'H', "max-heap",      hasArgument, STAR_MAX_HEAP,      setMaxHeapSize,     "-H|--max-heap <size>"},
   {'s', "min-stack",     hasArgument, STAR_MIN_STACK,     setMinStackSize,    "-s|--min-stack <size>"},
   {'S', "dflt-stack",    hasArgument, STAR_DFLT_STACK,    setDefaultSize,     "-S|--default-stack <size>"},
-  {'R', "stack-region",  hasArgument, STAR_STACK_REGION,  setStackRegionSize, "-R|--stack-region <size>"},};
+  {'R', "stack-region",  hasArgument, STAR_STACK_REGION,  setStackRegionSize, "-R|--stack-region <size>"},
+  {'l', "max-labels",    hasArgument, STAR_MAX_LABELS,    setMaxLabels,       "-l|--max-labels <size>"},
+  {'t', "enable-timers", noArgument,  Null,               setEnableTimers,    "-t|--enable-timers"},
+};
 
 int getEngineOptions(int argc, char **argv) {
   splitFirstArg(argc, argv, &argc, &argv);

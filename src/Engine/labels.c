@@ -5,14 +5,12 @@
 #include "labelsP.h"
 #include "codeP.h"
 #include "match.h"
-#include <strings.h>
+#include <stdlib.h>
 
-static hashPo labelTable;
-static poolPo labelPool;
+static hashPo labelHashTable;
 static poolPo labelTablePool;
 
-static comparison labelCmp(labelPo lb1, labelPo lb2);
-static retCode labelDel(labelPo lbl, labelPo l);
+integer maxLabels = 65536;
 
 static long lblSize(specialClassPo cl, termPo o);
 static termPo lblCopy(specialClassPo cl, termPo dst, termPo src);
@@ -35,6 +33,9 @@ SpecialClass LabelClass = {
 
 clssPo labelClass = (clssPo) &LabelClass;
 
+static LblRecord *labelTable;
+static integer lblTableTop = 0;
+
 #define LABELTABLE_COUNT 8
 
 typedef struct labelTable_ {
@@ -45,14 +46,16 @@ typedef struct labelTable_ {
 
 void initLbls() {
   LabelClass.clss = specialClass;
-  labelTable = newHash(1024, (hashFun) uniHash, (compFun) uniCmp, (destFun) Null);
+  labelHashTable = newHash(1024, (hashFun) uniHash, (compFun) uniCmp, (destFun) Null);
 
-  labelPool = newPool(sizeof(LblRecord), 1024);
+  labelTable = (LblRecord *) malloc(sizeof(LblRecord) * maxLabels);
+  lblTableTop = 0;
+
   labelTablePool = newPool(sizeof(LabelTableRecord), 1024);
 }
 
 static lblTablePo locateLblTbl(const char *name) {
-  lblTablePo tbl = (lblTablePo) hashGet(labelTable, (void *) name);
+  lblTablePo tbl = (lblTablePo) hashGet(labelHashTable, (void *) name);
 
   if (tbl == Null) {
     tbl = (lblTablePo) allocPool(labelTablePool);
@@ -60,17 +63,20 @@ static lblTablePo locateLblTbl(const char *name) {
     for (integer ix = 0; ix < LABELTABLE_COUNT; ix++)
       tbl->arities[ix] = Null;
     tbl->otherEntries = Null;
-    hashPut(labelTable, tbl->lblName, tbl);
+    hashPut(labelHashTable, tbl->lblName, tbl);
   }
   return tbl;
 }
 
 static lblTablePo findLblTbl(const char *name) {
-  return (lblTablePo) hashGet(labelTable, (void *) name);
+  return (lblTablePo) hashGet(labelHashTable, (void *) name);
 }
 
 static labelPo newLbl(lblTablePo table, const char *name, integer arity, integer index) {
-  labelPo lbl = (labelPo) allocPool(labelPool);
+  if (lblTableTop >= maxLabels)
+    syserr("label label exhausted");
+
+  labelPo lbl = &labelTable[lblTableTop++];
   lbl->arity = arity;
   lbl->index = index;
   lbl->name = uniDuplicate(name);
@@ -160,18 +166,6 @@ integer labelHash(labelPo lbl) {
   return lbl->hash;
 }
 
-comparison labelCmp(labelPo lb1, labelPo lb2) {
-  comparison comp = unicodeCmp(lb1->name, lb1->len, lb2->name, lb2->len);
-
-  if (comp == same) {
-    if (lb1->arity < lb2->arity)
-      comp = smaller;
-    else if (lb1->arity > lb2->arity)
-      comp = bigger;
-  }
-  return comp;
-}
-
 logical lblCmp(specialClassPo cl, termPo o1, termPo o2) {
   return (logical) (o1 == o2);
 }
@@ -183,12 +177,6 @@ static integer lblHash(specialClassPo cl, termPo o) {
 
 logical sameLabel(labelPo l1, labelPo l2) {
   return (logical) (l1 == l2);
-}
-
-retCode labelDel(labelPo lbl, labelPo l) {
-  uniDestroy(lbl->name);
-  freePool(labelPool, lbl);
-  return Ok;
 }
 
 labelPo C_LBL(termPo t) {
@@ -224,7 +212,7 @@ static retCode markLabelTable(void *n, void *r, void *c) {
 }
 
 void markLabels(gcSupportPo G) {
-  processHashTable(markLabelTable, labelTable, G);
+  processHashTable(markLabelTable, labelHashTable, G);
 }
 
 long lblSize(specialClassPo cl, termPo o) {
@@ -360,7 +348,7 @@ static retCode procLabelTable(void *n, void *r, void *c) {
 
 retCode iterateLabels(labelProc proc, void *cl) {
   LabelInfo info = {.proc = proc, .cl = cl};
-  return processHashTable(procLabelTable, labelTable, &info);
+  return processHashTable(procLabelTable, labelHashTable, &info);
 }
 
 logical breakPointSet(labelPo lbl) {
