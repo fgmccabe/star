@@ -11,6 +11,7 @@
 #include <memory.h>
 #include <globalsP.h>
 #include <debug.h>
+#include "timers.h"
 
 #ifdef TRACEMEM
 long gcCount = 0;                       /* Number of times GC is invoked */
@@ -27,6 +28,8 @@ static termPo movedTo(termPo t);
 static void markMoved(termPo t, termPo where);
 static retCode extendHeap(heapPo H, integer factor, integer hmin);
 static termPo finalizeTerm(gcSupportPo G, termPo x);
+
+timerPo gcTimer = Null;
 
 /* The standard garbage collector invoked when a process runs out of
    heap is a compacting garbage collector, O(n) in time and space
@@ -74,6 +77,12 @@ void setupGCSupport(heapPo H, gcSupportPo G) {
 retCode gcCollect(heapPo H, long amount) {
   GCSupport GCSRec;
   gcSupportPo G = &GCSRec;
+
+  logical rT = isTimerRunning(runTimer);
+
+  if (rT)
+    pauseTimer(runTimer);
+  resumeTimer(gcTimer);
 
 #ifdef TRACEMEM
   if (validateMemory) {
@@ -158,6 +167,10 @@ retCode gcCollect(heapPo H, long amount) {
     outMsg(logFile, "%d bytes available\n%_", H->limit - H->curr);
   }
 #endif
+
+  pauseTimer(gcTimer);
+  if(rT)
+    resumeTimer(runTimer);
   return Ok;
 }
 

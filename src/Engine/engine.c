@@ -14,6 +14,8 @@
 // Count instructions etc.
 static poolPo prPool;     /* pool of processes */
 
+timerPo runTimer = Null;
+
 hashPo prTble;
 
 static integer processHash(void *);
@@ -39,6 +41,8 @@ void initEngine() {
   prTble = newHash(16, processHash, sameProcess, Null);
   initLock(&processLock);
   haltMethod.clss = methodClass;
+  runTimer = startTimer("running");
+  pauseTimer(runTimer);
 }
 
 retCode bootstrap(heapPo h, char *entry, char *rootWd, capabilityPo rootCap) {
@@ -48,7 +52,9 @@ retCode bootstrap(heapPo h, char *entry, char *rootWd, capabilityPo rootCap) {
   if (mainMtd != Null) {
     termPo cmdLine = commandLine(h);
     processPo p = newProcess(h, mainMtd, rootWd, rootCap, cmdLine);
+    resumeTimer(runTimer);
     integer ret = run(p);
+    pauseTimer(runTimer);
 
     ps_kill(p);
     return ret;
@@ -60,7 +66,7 @@ retCode bootstrap(heapPo h, char *entry, char *rootWd, capabilityPo rootCap) {
 
 processPo newProcess(heapPo h, methodPo mtd, char *rootWd, capabilityPo processCap, termPo rootArg) {
   processPo P = (processPo) allocPool(prPool);
-  integer stackSize = maximum(stackDelta(mtd)*2,defaultStackSize);
+  integer stackSize = maximum(stackDelta(mtd) * 2, defaultStackSize);
   stackPo stk = P->stk = allocateStack(h, stackSize, &haltMethod, active, Null);
 
   pushStack(stk, rootArg);

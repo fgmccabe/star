@@ -32,6 +32,9 @@ void initHeap(long heapSize) {
     initHeapLck(&heap);
     globalHeap = &heap;
 
+    gcTimer = startTimer("gc");
+    pauseTimer(gcTimer);
+
 #ifdef TRACEMEM
     if (traceMemory) {
       outMsg(logFile, "establish heap of %ld words total\n", initHeapSize);

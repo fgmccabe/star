@@ -56,6 +56,7 @@ void *ps_client(processPo p);  /* Get the process's client information */
 void *ps_set_client(processPo p, void *cl);
 
 processPo runerr(processPo); /* non-fatal error */
+extern timerPo runTimer;
 
 void displayProcesses(void);
 void displayProcess(processPo p);

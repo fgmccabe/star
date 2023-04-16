@@ -4,6 +4,7 @@
 #include <turm.h>
 #include "heap.h"
 #include "lockvarP.h"
+#include "timers.h"
 
 // Are we allocating from the lower or upper half?
 typedef enum {
@@ -30,6 +31,8 @@ typedef struct heap_ {
 } HeapRecord;
 
 extern HeapRecord heap;
+extern timerPo gcTimer;
+
 
 typedef struct stack_frame_ *framePo;
 
