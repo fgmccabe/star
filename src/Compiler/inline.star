@@ -109,8 +109,6 @@ star.compiler.inline{
     inlineLtt(Lc,Vr,simplifyExp(Bnd,Map,Depth),Exp,Map,Depth).
   simExp(.cCont(Lc,Vr,Bnd,Exp),Map,Depth) =>
     inlineCont(Lc,Vr,simplifyExp(Bnd,Map,Depth),Exp,Map,Depth).
-  simExp(.cUnpack(Lc,Gov,Cases,Tp),Map,Depth) =>
-    inlineUnpack(Lc,simplifyExp(Gov,Map,Depth),Cases//(C)=>simplifyCase(C,Map,Depth-1),Map,Depth).
   simExp(.cCase(Lc,Gov,Cases,Deflt,Tp),Map,Depth) =>
     inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases//(C)=>simplifyCase(C,Map,Depth-1),
       simplifyExp(Deflt,Map,Depth),Map,Depth).
@@ -160,8 +158,6 @@ star.compiler.inline{
   simAct(.aCase(Lc,Gov,Cases,Deflt),Map,Depth) =>
     inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases//(C)=>simplifyCase(C,Map,Depth-1),
       simplifyAct(Deflt,Map,Depth),Map,Depth).
-  simAct(.aUnpack(Lc,Gov,Cases),Map,Depth) =>
-    inlineUnpack(Lc,simplifyExp(Gov,Map,Depth),Cases//(C)=>simplifyCase(C,Map,Depth-1),Map,Depth).
   simAct(.aIftte(Lc,T,L,R),Map,Depth) =>
     applyCnd(Lc,simplifyExp(T,Map,Depth),
       simplifyAct(L,Map,Depth-1),simplifyAct(R,Map,Depth-1)).
@@ -234,12 +230,6 @@ star.compiler.inline{
       .matching(Exp) .= matchingCase(Gov,Cases,Map,Depth) => Exp.
   inlineCase(Lc,Gov,Cases,Deflt,Map,Depth) =>
     mkCase(Lc,Gov,Cases,Deflt).
-
-  inlineUnpack:all e ~~ rewrite[e], reform[e], simplify[e] |:
-    (option[locn],cExp,cons[cCase[e]],map[termLbl,cDefn],integer) => e.
-  inlineUnpack(Lc,Gov,Cases,Map,Depth) where
-      .matching(Exp) .= matchingCase(Gov,Cases,Map,Depth) => Exp.
-  inlineUnpack(Lc,Gov,Cases,_,_) => mkUnpack(Lc,Gov,Cases).
 
   matchingCase:all e ~~ rewrite[e], reform[e], simplify[e] |:
     (cExp,cons[cCase[e]],map[termLbl,cDefn],integer) => match[e].

@@ -187,9 +187,6 @@ star.compiler.matcher{
   matchConstructors(Seg,[V,..Vrs],Lc,Deflt,Depth,Map) => valof{
     Cases = formCases(sort(Seg,compareConstructorTriple),
       sameConstructorTriple,Lc,Vrs,Deflt,Depth+1,Map);
-    -- if Index ?= findIndexMap(tpName(typeOf(V)),Map) then
-    --   valis mkUnpack(Lc,V,populateArms(Index,Cases,Lc,Deflt,Map))
-    -- else
     valis mkCase(Lc,V,Cases,Deflt)
   }
 
@@ -202,7 +199,7 @@ star.compiler.matcher{
     Arity = arity(VTp);
     Index = [(.tLbl(tplLbl(Arity),Arity),consType(VTp,VTp),0)];
     Arms = populateArms(Index,Cases,Lc,Deflt,Map);
-    valis mkUnpack(Lc,V,Arms)
+    valis mkCase(Lc,V,Arms,Deflt)
   }
 
   populateArms:all e ~~ display[e] |: (consMap,cons[cCase[e]],option[locn],e,nameMap) => cons[cCase[e]].
