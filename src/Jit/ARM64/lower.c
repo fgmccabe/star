@@ -74,22 +74,6 @@ retCode jit_LdG(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo
   return Error;
 }
 
-retCode jit_Thunk(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}
-
-retCode jit_LdTh(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}
-
-retCode jit_StTh(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}
-
-retCode jit_TTh(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}
-
 retCode jit_LdV(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
   return Error;
 }

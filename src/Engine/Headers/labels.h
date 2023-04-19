@@ -16,13 +16,12 @@ integer labelHash(labelPo lbl);
 
 labelPo declareLbl(const char *name, integer arity, integer index);
 termPo declareEnum(const char *name, integer index, heapPo H);
-labelPo otherLbl(labelPo lbl, integer arity);
 labelPo tplLabel(integer arity);
 logical isTplLabel(const char *nm) ;
 logical isALabel(termPo t);
 
 integer labelArity(labelPo lbl);
-char *labelName(labelPo lbl);
+const char * labelName(labelPo lbl);
 integer labelIndex(labelPo lbl);
 
 logical isLabel(labelPo lbl, char *nm, integer arity);
@@ -37,8 +36,6 @@ retCode showLabelBreakPoints(ioPo out);
 
 typedef retCode (*labelProc)(labelPo lbl, void *cl);
 retCode iterateLabels(labelProc proc,void *cl);
-
-labelPo objLabel(labelPo lbl, integer arity);
 
 retCode showLbl(ioPo out, labelPo lbl, integer depth, integer prec, logical alt);
 retCode showLabel(ioPo f, void *data, long depth, long precision, logical alt);

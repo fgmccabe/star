@@ -19,7 +19,6 @@ star.compiler.normalize.meta{
   | .moduleCons(string,tipe)
   | .localCons(string,tipe,cId)
   | .labelArg(cId,integer)
-  | .memoArg(string,cId,integer,tipe)
   | .globalVar(string,tipe).
 
   public typeMapEntry ::= .moduleType(string,tipe,consMap).
@@ -40,7 +39,6 @@ star.compiler.normalize.meta{
       .localFun(Nm,ClNm,_,V) => "local fun #(Nm), closure $(ClNm), ThV $(V)".
       .localVar(Vr) => "local var $(Vr)".
       .labelArg(Base,Ix) => "label arg $(Base)[$(Ix)]".
-      .memoArg(Nm,Base,Ix,Tp) => "memo arg #(Nm)@$(Base)[$(Ix)]\:$(Tp)".
       .globalVar(Nm,Tp) => "global #(Nm)".
     }
   }
@@ -58,7 +56,6 @@ star.compiler.normalize.meta{
   lookupThetaVar(Map,Nm) where E?=lookupVarName(Map,Nm) =>
     case E in {
       .labelArg(ThV,_) => .some(ThV).
-      .memoArg(_,ThV,_,_) => .some(ThV).
       .localFun(_,_,_,ThV) => .some(ThV).
       _ default => .none
     }.
@@ -157,15 +154,6 @@ star.compiler.normalize.meta{
   extendTplType:all x ~~ hasType[x] |: (cons[tipe],option[x])=>cons[tipe].
   extendTplType(Es,.none) => Es.
   extendTplType(Es,.some(E)) => [typeOf(E),..Es].
-
-  public findMemoIx:(string,cId,nameMap) => option[integer].
-  findMemoIx(Nm,ThV,Map) => lookup(Map,Nm,isMemoVar(ThV)).
-
-  isMemoVar:(cId)=>(nameMapEntry)=>option[integer].
-  isMemoVar(ThV) => let{
-    check(.memoArg(_,ThV,Ix,_))=>.some(Ix).
-    check(_) default => .none
-  } in check.
 
   public crTpl:(option[locn],cons[cExp]) => cExp.
   crTpl(Lc,Args) => let{

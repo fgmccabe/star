@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <engineP.h>
 #include <globals.h>
-#include <labelsP.h>
 #include <cellP.h>
 #include <iochnnlP.h>
 #include <consP.h>
@@ -23,11 +22,8 @@
 #include "stringsP.h"
 #include "debug.h"
 #include "editline.h"
-#include "jit.h"
 #include "starP.h"
-#include "thunkP.h"
 #include "futureP.h"
-#include "timers.h"
 
 #include "stringBufferP.h"
 #include "continuationP.h"
@@ -60,7 +56,6 @@ int main(int argc, char **argv) {
   initChars();
   initStrings();
   initLbls();
-  initThunk();
   initGlobals();
   initCons();
   initIdeal();
@@ -96,12 +91,8 @@ int main(int argc, char **argv) {
   installEscapes();
   initEngine();
 
-  {
-    timerPo manifestTimer = startTimer("manifest");
-    loadManifest();
-    pruneResources("signature");
-    pauseTimer(manifestTimer);
-  }
+  loadManifest();
+  pruneResources("signature");
 
   char errMsg[MAXLINE];
 

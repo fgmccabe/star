@@ -57,9 +57,26 @@ star.compiler.wasm.instr{
     | .RefIsNull		       --  null test 
     | .Const(num)		       --  constant 
     | .Test(testop)		       --  numeric test 
-    | .Compare(relop)		       --  numeric comparison 
-    | .Unary(unop)		       --  unary numeric operator 
-    | .Binary(binop)		       --  binary numeric operator 
+    | .Compare(relop)		       --  numeric comparison
+    | .Clz                             --  Clear to zero
+    | .Ctz
+    | .Popcnt    
+    | .Binary(binop)		       --  binary numeric operator
+    | .Add
+    | .Sub
+    | .Mul
+    | .DivS
+    | .DivU
+    | .RemS
+    | .RemU
+    | .And
+    | .Or
+    | .Xor
+    | .Shl
+    | .ShrS
+    | .ShrU
+    | .Rotl
+    | .Rotr    
     | .Convert(cvtop)		       --  conversion 
     | .VecConst(vec)		       --  constant 
     | .VecTest(vec_testop)	       --  vector test 

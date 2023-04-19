@@ -14,23 +14,25 @@
 
 extern integer maxLabels;
 
-typedef struct labelTable_ *lblTablePo;
+typedef struct {
+  const char *name;
+  integer arity;
+} LabelRecord, *labelRecordPo;
 
 typedef struct program_label_ {
   clssPo clss;                // == labelClass
-  integer arity;              // Arity of label
+  LabelRecord lbl;            // The label itself
   integer index;              // Index of label in type
   integer hash;               // Hash code for the label
   methodPo mtd;               // Optimization - is a method defined for this label?
-  char *name;                 // LblRecord name
   integer len;                // How long is the label name
   logical breakPointSet;      // Has a breakpoint been set for this label
-  lblTablePo table;           // table of similar labels (different arities)
 } LblRecord;
 
 #define LabelCellCount CellCount(sizeof(LblRecord))
 
 extern void initLbls();
 void markLabels(gcSupportPo G);
+void showAllLabels();
 
 #endif //STAR_LABELSP_H

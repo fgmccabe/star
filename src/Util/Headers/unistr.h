@@ -91,7 +91,7 @@ codePoint nextCodePoint(const char *src, integer *start, integer end);
 codePoint prevCodePoint(const char *src, integer *start, integer end);
 retCode nxtPoint(const char *src, integer *start, integer end, codePoint *code);
 retCode prevPoint(const char *src, integer *pos, codePoint *code);
-integer backCodePoint(char *src, integer from, integer count);
+integer backCodePoint(const char *src, integer from, integer count);
 
 int codePointSize(codePoint pt);
 
@@ -111,7 +111,7 @@ retCode uniReverse(char *dest, integer len);
 char * uniDupl(char *str,integer len);
 
 integer uniIndexOf(const char *s, integer len, integer from, codePoint c);
-integer uniLastIndexOf(char *s, integer len, codePoint c);
+integer uniLastIndexOf(const char *s, integer len, codePoint c);
 
 long uniSearch(const char *src, integer len, integer start, const char *tgt, integer tlen);
 codePoint uniSearchDelims(char *s, integer len, char *t);

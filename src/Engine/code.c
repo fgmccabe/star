@@ -273,7 +273,7 @@ defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stack
 
   mtd->codeSize = insCount;
   mtd->jit = Null;
-  mtd->arity = lbl->arity;
+  mtd->arity = labelArity(lbl);
   mtd->lclcnt = lclCount;
   mtd->pool = pool;
   mtd->locals = locals;

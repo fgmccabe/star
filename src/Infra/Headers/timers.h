@@ -9,11 +9,12 @@ typedef struct timer_record *timerPo;
 
 extern logical enableTimers;
 
-#define startTimer(Msg) (enableTimers ? startTimer_(Msg): Null)
+#define newTimer(Msg) (enableTimers ? startTimer_(Msg,False): Null)
+#define startTimer(Msg) (enableTimers ? startTimer_(Msg,True): Null)
 #define pauseTimer(t) STMT_WRAP(if(enableTimers) { pauseTimer_(t);})
 #define resumeTimer(t) STMT_WRAP(if(enableTimers) { resumeTimer_(t);})
 
-timerPo startTimer_(char *msg);
+timerPo startTimer_(char *msg, logical running);
 void pauseTimer_(timerPo timer);
 void resumeTimer_(timerPo timer);
 logical isTimerRunning(timerPo timer);

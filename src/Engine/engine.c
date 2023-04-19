@@ -41,8 +41,7 @@ void initEngine() {
   prTble = newHash(16, processHash, sameProcess, Null);
   initLock(&processLock);
   haltMethod.clss = methodClass;
-  runTimer = startTimer("running");
-  pauseTimer(runTimer);
+  runTimer = newTimer("running");
 }
 
 retCode bootstrap(heapPo h, char *entry, char *rootWd, capabilityPo rootCap) {

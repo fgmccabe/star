@@ -88,7 +88,7 @@ retCode prevPoint(const char *src, integer *start, codePoint *code) {
     return Eof;
 }
 
-integer backCodePoint(char *src, integer from, integer count) {
+integer backCodePoint(const char *src, integer from, integer count) {
   while (count-- > 0 && from > 0) {
     codePoint ch;
     if (prevPoint(src, &from, &ch) == Ok)
@@ -439,7 +439,7 @@ integer uniIndexOf(const char *s, integer len, integer from, codePoint c) {
   return -1;
 }
 
-integer uniLastIndexOf(char *s, integer len, codePoint c) {
+integer uniLastIndexOf(const char *s, integer len, codePoint c) {
   integer lx = -1;
   integer pos = 0;
 

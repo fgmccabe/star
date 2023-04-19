@@ -32,8 +32,7 @@ void initHeap(long heapSize) {
     initHeapLck(&heap);
     globalHeap = &heap;
 
-    gcTimer = startTimer("gc");
-    pauseTimer(gcTimer);
+    gcTimer = newTimer("gc");
 
 #ifdef TRACEMEM
     if (traceMemory) {
