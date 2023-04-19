@@ -39,7 +39,7 @@ normalPo C_NORMAL(termPo t) {
 }
 
 logical isNormalPo(termPo t) {
-  return hasClass((termPo)classOf(t), labelClass);
+  return hasClass((termPo) classOf(t), labelClass);
 }
 
 logical hasLabel(normalPo n, char *name, integer arity) {
@@ -111,8 +111,8 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
       return outMsg(out, ".%Q", labelName(lbl));
     } else if (isCons(t))
       return dispCons(out, t, precision, depth, alt);
-    else if(isIdealTree(t))
-      return dispIdeal(out,t,precision,depth,alt);
+    else if (isIdealTree(t))
+      return dispIdeal(out, t, precision, depth, alt);
     else {
       retCode ret = showLbl(out, lbl, 0, 24, alt);
       if (ret == Ok)
@@ -130,24 +130,25 @@ retCode showIdentifier(ioPo f, void *data, long depth, long precision, logical a
 }
 
 retCode showId(ioPo out, labelPo lbl, integer depth, integer prec, logical alt) {
-  integer lblLen = uniStrLen(lbl->name);
+  const char *name = labelName(lbl);
+  integer lblLen = uniStrLen(name);
   if (alt) {
     retCode ret;
 
-    integer hashOff = uniLastIndexOf(lbl->name, lblLen, (codePoint) '#');
+    integer hashOff = uniLastIndexOf(name, lblLen, (codePoint) '#');
 
     if (hashOff > 0 && hashOff < lblLen - 1)
-      ret = outMsg(out, "…%S", &lbl->name[hashOff + 1], lblLen - hashOff - 1);
+      ret = outMsg(out, "…%S", &name[hashOff + 1], lblLen - hashOff - 1);
     else if (lblLen > prec) {
       integer half = prec / 2;
-      integer hwp = backCodePoint(lbl->name, lblLen, half);
-      ret = outMsg(out, "%S…%S", lbl->name, half, &lbl->name[hwp], lblLen - hwp);
+      integer hwp = backCodePoint(name, lblLen, half);
+      ret = outMsg(out, "%S…%S", name, half, &name[hwp], lblLen - hwp);
     } else
-      ret = outMsg(out, "%S", lbl->name, lblLen);
+      ret = outMsg(out, "%S", name, lblLen);
 
     return ret;
   } else
-    return outMsg(out, "%S", lbl->name);
+    return outMsg(out, "%S", name);
 }
 
 logical sameTerm(termPo t1, termPo t2) {
@@ -189,7 +190,7 @@ integer termHash(termPo t) {
 termPo termFinalizer(specialClassPo class, termPo o) {
   labelPo lbl = C_LBL((termPo) classOf(o));
 
-  return o + NormalCellCount(lbl->arity);
+  return o + NormalCellCount(labelArity(lbl));
 }
 
 // Special hash function used in case instruction. Only looks at the label of the term

@@ -7,8 +7,10 @@
 #include "engine.h"
 #include "libEscapes.h"
 #include "signature.h"
+#include "timers.h"
 
 static EscapeRec escapes[256];
+
 static int topEsc = 0;
 
 static integer escCount[256];

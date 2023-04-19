@@ -448,19 +448,3 @@ retCode jit_Throw(insPo code, vOperand a1, vOperand a2, integer *pc, jitCompPo j
 retCode jit_dBug(insPo code, vOperand a1, vOperand a2, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
-
-retCode jit_LdTh(insPo code, vOperand a1, vOperand a2, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}
-
-retCode jit_StTh(insPo code, vOperand a1, vOperand a2, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}
-
-retCode jit_TTh(insPo code, vOperand a1, vOperand a2, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}
-
-retCode jit_Thunk(insPo code, vOperand a1, vOperand a2, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}

@@ -8,7 +8,6 @@
 #include <stdlib.h>
 
 static hashPo labelHashTable;
-static poolPo labelTablePool;
 
 integer maxLabels = 65536;
 
@@ -36,118 +35,64 @@ clssPo labelClass = (clssPo) &LabelClass;
 static LblRecord *labelTable;
 static integer lblTableTop = 0;
 
-#define LABELTABLE_COUNT 8
+static integer LabelHash(labelRecordPo lbl) {
+  return hash61(lbl->arity * 37 + uniHash(lbl->name));
+}
 
-typedef struct labelTable_ {
-  char *lblName;
-  labelPo arities[LABELTABLE_COUNT];
-  hashPo otherEntries;
-} LabelTableRecord;
+static comparison LabelCmp(labelRecordPo l1, labelRecordPo l2) {
+  comparison cmp = uniCmp(l1->name, l2->name);
+  if (cmp == same) {
+    if (l1->arity == l2->arity)
+      return same;
+    else
+      return incomparible;
+  }
+  return cmp;
+}
 
 void initLbls() {
   LabelClass.clss = specialClass;
-  labelHashTable = newHash(1024, (hashFun) uniHash, (compFun) uniCmp, (destFun) Null);
+  labelHashTable = newHash(1024, (hashFun) LabelHash, (compFun) LabelCmp, (destFun) Null);
 
   labelTable = (LblRecord *) malloc(sizeof(LblRecord) * maxLabels);
   lblTableTop = 0;
-
-  labelTablePool = newPool(sizeof(LabelTableRecord), 1024);
-}
-
-static lblTablePo locateLblTbl(const char *name) {
-  lblTablePo tbl = (lblTablePo) hashGet(labelHashTable, (void *) name);
-
-  if (tbl == Null) {
-    tbl = (lblTablePo) allocPool(labelTablePool);
-    tbl->lblName = uniDuplicate(name);
-    for (integer ix = 0; ix < LABELTABLE_COUNT; ix++)
-      tbl->arities[ix] = Null;
-    tbl->otherEntries = Null;
-    hashPut(labelHashTable, tbl->lblName, tbl);
-  }
-  return tbl;
-}
-
-static lblTablePo findLblTbl(const char *name) {
-  return (lblTablePo) hashGet(labelHashTable, (void *) name);
-}
-
-static labelPo newLbl(lblTablePo table, const char *name, integer arity, integer index) {
-  if (lblTableTop >= maxLabels)
-    syserr("label label exhausted");
-
-  labelPo lbl = &labelTable[lblTableTop++];
-  lbl->arity = arity;
-  lbl->index = index;
-  lbl->name = uniDuplicate(name);
-  lbl->len = uniStrLen(name);
-  lbl->mtd = Null;
-  lbl->clss = labelClass;
-  lbl->hash = hash61(arity * 37 + uniHash(name));
-  lbl->table = table;
-  lbl->breakPointSet = False;
-  return lbl;
 }
 
 labelPo declareLbl(const char *name, integer arity, integer index) {
-  lblTablePo tbl = locateLblTbl(name);
+  LabelRecord Lbl = {.name=name, .arity=arity};
+  labelPo lbl = hashGet(labelHashTable, &Lbl);
+
+  if (lbl == Null) {
+    if (lblTableTop >= maxLabels)
+      syserr("label label exhausted");
+
+    lbl = &labelTable[lblTableTop++];
+    lbl->lbl.arity = (&Lbl)->arity;
+    lbl->lbl.name = uniDuplicate((&Lbl)->name);
+    lbl->len = uniStrLen((&Lbl)->name);
+    lbl->index = index;
+    lbl->mtd = Null;
+    lbl->clss = labelClass;
+    lbl->hash = LabelHash(&Lbl);
+    lbl->breakPointSet = False;
+    hashPut(labelHashTable, &lbl->lbl, lbl);
+    return lbl;
+  }
 
   if (index == -1 && isTplLabel(name))
     index = 0;
 
-  assert(tbl != Null);
   check(arity >= 0, "invalid label arity");
 
-  if (arity < LABELTABLE_COUNT) {
-    labelPo lbl = tbl->arities[arity];
+  if (index != -1 && lbl->index == -1)
+    lbl->index = index;
 
-    if (lbl == Null) {
-      lbl = newLbl(tbl, name, arity, index);
-      tbl->arities[arity] = lbl;
-    }
-
-    if (index != -1 && lbl->index == -1)
-      lbl->index = index;
-    return lbl;
-  } else {
-    if (tbl->otherEntries == Null) {
-      tbl->otherEntries = newHash(32, ixHash, ixCmp, (destFun) Null);
-    }
-    labelPo lbl = (labelPo) hashGet(tbl->otherEntries, (void *) arity);
-    if (lbl == Null) {
-      lbl = newLbl(tbl, name, arity, index);
-      hashPut(tbl->otherEntries, (void *) arity, lbl);
-    }
-    if (index != -1 && lbl->index == -1)
-      lbl->index = index;
-    return lbl;
-  }
+  return lbl;
 }
 
 labelPo findLbl(const char *name, integer arity) {
-  lblTablePo tbl = findLblTbl(name);
-
-  if (tbl != Null) {
-    if (arity >= 0 && arity < LABELTABLE_COUNT) {
-      return tbl->arities[arity];
-    } else if (tbl->otherEntries != Null)
-      return (labelPo) hashGet(tbl->otherEntries, (void *) arity);
-    else
-      return Null;
-  }
-  return Null;
-}
-
-labelPo otherLbl(labelPo lbl, integer arity) {
-  assert(lbl != Null && arity >= 0 && lbl->table != Null);
-  lblTablePo tbl = lbl->table;
-
-  if (arity < LABELTABLE_COUNT)
-    return tbl->arities[arity];
-  else if (tbl->otherEntries != Null)
-    return (labelPo) hashGet(tbl->otherEntries, (void *) arity);
-  else
-    return Null;
+  LabelRecord lbl = {.name=name, .arity=arity};
+  return (labelPo) hashGet(labelHashTable, &lbl);
 }
 
 termPo declareEnum(const char *name, integer index, heapPo H) {
@@ -156,10 +101,6 @@ termPo declareEnum(const char *name, integer index, heapPo H) {
   normalPo tpl = allocateStruct(H, lbl);
   gcReleaseRoot(H, root);
   return (termPo) tpl;
-}
-
-labelPo objLabel(labelPo lbl, integer arity) {
-  return otherLbl(lbl, arity);
 }
 
 integer labelHash(labelPo lbl) {
@@ -189,30 +130,12 @@ logical isLabelPo(termPo t) {
   return hasClass(t, labelClass);
 }
 
-static retCode markLabel(void *n, void *r, void *c) {
-  labelPo lbl = (labelPo) r;
-  gcSupportPo G = (gcSupportPo) c;
-  if (lbl->mtd != Null)
-    lbl->mtd = (methodPo) markPtr(G, (ptrPo) &lbl->mtd);
-  return Ok;
-}
-
-static retCode markLabelTable(void *n, void *r, void *c) {
-  lblTablePo tbl = (lblTablePo) r;
-
-  for (integer ix = 0; ix < LABELTABLE_COUNT; ix++) {
-    labelPo lbl = tbl->arities[ix];
-    if (lbl != Null)
-      markLabel(Null, (void *) lbl, c);
-  }
-  if (tbl->otherEntries != Null) {
-    processHashTable(markLabel, tbl->otherEntries, c);
-  }
-  return Ok;
-}
-
 void markLabels(gcSupportPo G) {
-  processHashTable(markLabelTable, labelHashTable, G);
+  for (integer ix = 0; ix < lblTableTop; ix++) {
+    labelPo lbl = &labelTable[ix];
+    if (lbl->mtd != Null)
+      lbl->mtd = (methodPo) markPtr(G, (ptrPo) &lbl->mtd);
+  }
 }
 
 long lblSize(specialClassPo cl, termPo o) {
@@ -247,24 +170,34 @@ retCode showLabel(ioPo f, void *data, long depth, long precision, logical alt) {
 }
 
 retCode showLbl(ioPo out, labelPo lbl, integer depth, integer prec, logical alt) {
-  integer lblLen = uniStrLen(lbl->name);
+  const char *name = lbl->lbl.name;
+  integer arity = lbl->lbl.arity;
+
+  integer lblLen = uniStrLen(name);
   if (alt) {
     retCode ret;
 
-    integer hashOff = uniLastIndexOf(lbl->name, lblLen, (codePoint) '#');
+    integer hashOff = uniLastIndexOf(name, lblLen, (codePoint) '#');
 
     if (hashOff > 0 && hashOff < lblLen - 1)
-      ret = outMsg(out, "…%S", &lbl->name[hashOff + 1], (long) (lblLen - hashOff - 1), lbl->arity);
+      ret = outMsg(out, "…%S", &name[hashOff + 1], (long) (lblLen - hashOff - 1), arity);
     else if (lblLen > prec && prec > 0) {
       integer half = prec / 2;
-      integer hwp = backCodePoint(lbl->name, lblLen, half);
-      ret = outMsg(out, "%S…%S", lbl->name, half, &lbl->name[hwp], lblLen - hwp, lbl->arity);
+      integer hwp = backCodePoint(name, lblLen, half);
+      ret = outMsg(out, "%S…%S", name, half, &name[hwp], lblLen - hwp, arity);
     } else
-      ret = outMsg(out, "%S", lbl->name, lblLen, lbl->arity);
+      ret = outMsg(out, "%S", name, lblLen, arity);
 
     return ret;
   } else
-    return outMsg(out, "%Q/%d", lbl->name, lbl->arity);
+    return outMsg(out, "%Q/%d", name, arity);
+}
+
+void showAllLabels() {
+  for (integer ix = 0; ix < lblTableTop; ix++) {
+    outMsg(logFile, "%A\n", &labelTable[ix]);
+  }
+  flushOut();
 }
 
 methodPo labelCode(labelPo lbl) {
@@ -276,11 +209,11 @@ logical labelDefined(labelPo lbl) {
 }
 
 integer labelArity(labelPo lbl) {
-  return lbl->arity;
+  return lbl->lbl.arity;
 }
 
-char *labelName(labelPo lbl) {
-  return lbl->name;
+const char *labelName(labelPo lbl) {
+  return lbl->lbl.name;
 }
 
 integer labelIndex(labelPo lbl) {
@@ -289,7 +222,7 @@ integer labelIndex(labelPo lbl) {
 
 logical isLabel(labelPo lbl, char *nm, integer arity) {
   if (lbl != Null)
-    return uniCmp(lbl->name, nm) == same && lbl->arity == arity;
+    return uniCmp(lbl->lbl.name, nm) == same && lbl->lbl.arity == arity;
   else
     return False;
 }
@@ -319,36 +252,10 @@ logical isALabel(termPo t) {
   return hasClass(t, labelClass);
 }
 
-typedef struct {
-  labelProc proc;
-  void *cl;
-} LabelInfo, *labelInfoPo;
-
-static retCode otherArityProc(void *n, void *r, void *c) {
-  labelInfoPo info = (labelInfoPo) c;
-  return info->proc((labelPo) r, info->cl);
-}
-
-static retCode procLabelTable(void *n, void *r, void *c) {
-  labelInfoPo info = (labelInfoPo) c;
-
-  lblTablePo tbl = (lblTablePo) r;
-  retCode ret = Ok;
-
-  for (integer ar = 0; ret == Ok && ar < LABELTABLE_COUNT; ar++) {
-    labelPo lbl = tbl->arities[ar];
-    if (lbl != Null) {
-      ret = info->proc(lbl, info->cl);
-    }
-  }
-  if (tbl->otherEntries != Null)
-    return processHashTable(otherArityProc, tbl->otherEntries, c);
-  return Ok;
-}
-
 retCode iterateLabels(labelProc proc, void *cl) {
-  LabelInfo info = {.proc = proc, .cl = cl};
-  return processHashTable(procLabelTable, labelHashTable, &info);
+  for (integer ix = 0; ix < lblTableTop; ix++)
+    tryRet(proc(&labelTable[ix], cl));
+  return Ok;
 }
 
 logical breakPointSet(labelPo lbl) {
@@ -371,8 +278,8 @@ typedef struct {
 
 static retCode checkLabel(labelPo lbl, void *cl) {
   SearchInfo *info = (SearchInfo *) cl;
-  if (globMatch(lbl->name, lbl->len, info->search, info->len)) {
-    if (info->arity < 0 || info->arity == lbl->arity) {
+  if (globMatch((char *) lbl->lbl.name, lbl->len, info->search, info->len)) {
+    if (info->arity < 0 || info->arity == lbl->lbl.arity) {
       if (setBreakPoint(lbl, info->set) != info->set)
         info->count++;
     }

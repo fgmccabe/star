@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <tpl.h>
 #include <globals.h>
+#include <stdlib.h>
 #include "arithmetic.h"
 #include "consP.h"
 #include "option.h"
@@ -389,21 +390,27 @@ void dS(termPo w) {
 ReturnStatus g__implode(heapPo h, termPo a1) {
   termPo list = a1;
 
-  strBufferPo strb = newStringBuffer();
+  integer size = 1;
+  for(termPo lst = a1; isCons(lst); lst = consTail(C_NORMAL(lst))){
+    normalPo en = C_NORMAL(lst);
+    size+= codePointSize(charVal(consHead(en)));
+  }
+
+  char buff[MAXLINE];
+  char *buffer = (size > MAXLINE ? (char *) malloc(sizeof(char) * size) : buff);
+  integer pos = 0;
 
   while (isCons(list)) {
     normalPo pr = C_NORMAL(list);
-    outChar(O_IO(strb), charVal(consHead(pr)));
+    codePoint ch = charVal(consHead(pr));
+    appendCodePoint(buffer, &pos, size, ch);
     list = consTail(pr);
   }
 
-  integer oLen;
-  const char *buff = getTextFromBuffer(strb, &oLen);
+  termPo result = (termPo) allocateString(h, buffer, pos);
 
-  termPo result = (termPo) allocateString(h, buff, oLen);
-
-  closeFile(O_IO(strb));
-
+  if (buffer != buff)
+    free(buffer);
   return (ReturnStatus) {.ret=Ok, .result=result};
 }
 

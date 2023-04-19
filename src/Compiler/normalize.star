@@ -40,27 +40,6 @@ star.compiler.normalize{
     (Vl,Defs) = liftExp(Val,Outer,Q,Ex);
     valis [.vrDef(Lc,FullNm,Tp,Vl),..Defs]
   }
-  transformDef(.varDef(Lc,FullNm,Val,Cx,Tp),Map,Outer,Q,.some(V),Ex) where .cVar(VLc,ThVr) .= V => valof{
-    if traceNormalize! then
-      logMsg("lift thunk $(FullNm)\:$(Tp) = $(Val) @ $(Lc)");
-
-    ATp = extendFunTp(deRef(Tp),?V);
-    if traceNormalize! then
-      logMsg("extended function function type $(ATp)");
-
-    Thnk = genVar("Thnk",thunkType(Tp));
-
-    (Vl,Defs) = liftExp(Val,Outer,Q,Ex);
-    Body = .cThSet(Lc,.cVar(Lc,Thnk),Vl,Tp);
-    if traceNormalize! then
-      logMsg("definition body = $(Body)");
-
-    ThunkNm = varClosureNm(FullNm);
-    Thunk = .fnDef(Lc,ThunkNm,funType([typeOf(ThVr),thunkType(Tp)],Tp),[ThVr,Thnk],Body);
-
-    valis [Thunk,..Defs]
-  }
-
   transformDef(.implDef(Lc,_,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex) =>
     transformDef(.varDef(Lc,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex).
   transformDef(.typeDef(Lc,Nm,Tp,TpRl),Map,_,_,_,Ex) =>
@@ -385,10 +364,6 @@ star.compiler.normalize{
     V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
     valis .cNth(Lc,V,Ix,Tp)
   }.
-  implementVarExp(Lc,.memoArg(ClNm,Base,Ix,_),Map,Tp) => valof{
-    V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
-    valis .cThGet(Lc,.cNth(Lc,V,Ix,Tp),Tp)
-  }
   implementVarExp(Lc,.localVar(Vr),_,Tp) => Vr.
   implementVarExp(Lc,.moduleCons(Enum,CTp),_,Tp) => .cTerm(Lc,Enum,[],Tp).
   implementVarExp(Lc,.localCons(Enum,CTp,Vr),Map,Tp) => valof{
@@ -436,10 +411,6 @@ star.compiler.normalize{
   implementFunCall(Lc,.labelArg(Base,Ix),_,Args,Tp,Map,Ex) => valof{
     V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
     valis (.cOCall(Lc,.cNth(Lc,V,Ix,Tp),Args,Tp),Ex)
-  }
-  implementFunCall(Lc,.memoArg(ClNm,Base,Ix,MTp),_,Args,Tp,Map,Ex) => valof{
-    V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
-    valis (.cOCall(Lc,.cThGet(Lc,.cNth(Lc,V,Ix,MTp),MTp),Args,Tp),Ex)
   }
   implementFunCall(Lc,.localVar(Vr),_,Args,Tp,Map,Ex) =>
     (.cOCall(Lc,Vr,Args,Tp),Ex).
@@ -735,14 +706,6 @@ star.compiler.normalize{
   collectLabelVars([.cId(Nm,Tp),..Vrs],ThV,Ix,Entries) =>
     collectLabelVars(Vrs,ThV,Ix+1,Entries[Nm->.labelArg(ThV,Ix)]).
   
-  collectVars:(cons[canonDef],cId,integer,map[string,nameMapEntry]) =>
-    map[string,nameMapEntry].
-  collectVars([],_,_,LV) => LV.
-  collectVars([.varDef(Lc,FullNm,_,_,Tp),..Vrs],ThV,Ix,Entries) =>
-    collectVars(Vrs,ThV,Ix+1,Entries[FullNm->.memoArg(varClosureNm(FullNm),ThV,Ix,Tp)]).
-  collectVars([.implDef(Lc,_,FullNm,_,_,Tp),..Vrs],ThV,Ix,Entries) =>
-    collectVars(Vrs,ThV,Ix+1,Entries[FullNm->.memoArg(varClosureNm(FullNm),ThV,Ix,Tp)]).
-
   -- eliminate free variables that can be computed from other free vars
   reduceFreeArgs:(cons[cId],nameMap) => cons[cId].
   reduceFreeArgs(FrVrs,Map) => let{.

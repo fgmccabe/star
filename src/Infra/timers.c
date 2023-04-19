@@ -25,10 +25,10 @@ void initTimers() {
   timerPool = newPool(sizeof(TimerRecord), 128);
 }
 
-timerPo startTimer_(char *msg) {
+timerPo startTimer_(char *msg, logical running) {
   timerPo timer = (timerPo) allocPool(timerPool);
   timer->total = 0;
-  timer->current = (integer) clock();
+  timer->current = (running ? (integer) clock() : 0);
   timer->name = msg;
   timer->prev = timers;
   timers = timer;

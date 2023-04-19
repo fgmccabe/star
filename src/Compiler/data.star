@@ -47,8 +47,7 @@ star.compiler.data{
 
     dispTs(Els) => interleave(Els//dispT,",")*.
 
-    isTupleLbl(T) where [`(`,`)`,.._] .= T::cons[char] => .true.
-    isTupleLbl(_) default => .false.
+    isTupleLbl(T) =>_str_start(T,"()").
   .} in {
     disp(T) => dispT(T)
   }
@@ -153,7 +152,6 @@ star.compiler.data{
 
   public implementation coercion[string,data] => {
     _coerce(S) => valof{
-      L=S::cons[char];
       (T,_) = decodeTerm(S::cons[char]);
       valis .some(T)
     }

@@ -13,7 +13,6 @@
 /* Set up the buffer file class */
 
 static void initBufferClass(classPo class, classPo req);
-static void inheritBufferClass(classPo class,classPo req,classPo orig);
 
 static void BufferDestroy(objectPo o);
 
@@ -61,35 +60,6 @@ BufferClassRec StrBufferClass = {
 classPo strBufferClass = (classPo) &StrBufferClass;
 
 static void initBufferClass(classPo class, classPo req) {
-}
-
-void inheritBufferClass(classPo class,classPo request,classPo orig){
-  BufferClassRec *req = (BufferClassRec *) request;
-  BufferClassRec *template = (BufferClassRec *) class;
-
-  if (req->ioPart.read == O_INHERIT_DEF) {
-    req->ioPart.read = bufferInBytes;
-  }
-
-  if (req->ioPart.backByte == O_INHERIT_DEF) {
-    req->ioPart.backByte = bufferBackByte;
-  }
-
-  if (req->ioPart.write == O_INHERIT_DEF) {
-    req->ioPart.write = bufferOutBytes;
-  }
-
-  if (req->ioPart.isAtEof == O_INHERIT_DEF) {
-    req->ioPart.isAtEof = bufferAtEof;
-  }
-
-  if (req->ioPart.flush == O_INHERIT_DEF) {
-    req->ioPart.flush = bufferFlusher;
-  }
-
-  if (req->ioPart.close == O_INHERIT_DEF) {
-    req->ioPart.close = bufferClose;
-  }
 }
 
 // IO initialization should already be done at this point
@@ -206,13 +176,9 @@ retCode clearStrBuffer(strBufferPo b) {
 static integer bufferNo = 0;
 
 strBufferPo newStringBuffer() {
-  char name[MAX_SYMB_LEN];
-
-  strMsg(name, NumberOf(name), "<buffer%d>", bufferNo++);
-
   byte *buffer = (byte *) malloc(sizeof(byte) * 128);
 
-  return O_BUFFER(newObject(strBufferClass, name, utf8Encoding, buffer, 128, ioWRITE, True));
+  return O_BUFFER(newObject(strBufferClass, "buffer", utf8Encoding, buffer, 128, ioWRITE, True));
 }
 
 strBufferPo newReadStringBuffer(char *text, integer textLen) {

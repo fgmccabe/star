@@ -12,11 +12,8 @@
 #include "engineP.h"
 #include "debugP.h"
 #include <math.h>
-#include "thunk.h"
 #include "continuation.h"
 #include "cellP.h"
-#include "jit.h"
-#include "thunkP.h"
 #include "continuationP.h"
 #include "closureP.h"
 
@@ -168,7 +165,7 @@ retCode run(processPo P) {
         closurePo obj = C_CLOSURE(cl);
         labelPo lb = closureLabel(obj);
 
-        if(labelArity(lb)!=arity){
+        if (labelArity(lb) != arity) {
           logMsg(logFile, "closure %T does not have correct arity %d", obj, arity);
           bail();
         }
@@ -207,7 +204,6 @@ retCode run(processPo P) {
 #ifdef TRACEEXEC
         recordEscape(escNo);
 #endif
-
         escapePo esc = getEscape(escNo);
         saveRegisters();
         assert(H->topRoot == 0);
@@ -245,6 +241,7 @@ retCode run(processPo P) {
             logMsg(logFile, "invalid arity for escape %s", escapeName(esc));
             bail();
         }
+
         restoreRegisters();
         assert(H->topRoot == 0);
 
@@ -333,7 +330,7 @@ retCode run(processPo P) {
         closurePo obj = C_CLOSURE(cl);
         labelPo lb = closureLabel(obj);
 
-        if(labelArity(lb)!=arity){
+        if (labelArity(lb) != arity) {
           logMsg(logFile, "closure %T does not have correct arity %d", obj, arity);
           bail();
         }
@@ -671,97 +668,6 @@ retCode run(processPo P) {
           LITS = codeLits(glbThnk);
           H = globalHeap;
         }
-        continue;
-      }
-
-      case Thunk: {  // Create a new thunk
-        normalPo thLam = C_NORMAL(pop());
-
-        if (reserveSpace(H, ThunkCellCount) != Ok) {
-          saveRegisters();
-          retCode ret = gcCollect(H, ThunkCellCount);
-          if (ret != Ok)
-            return ret;
-          restoreRegisters();
-        }
-        thunkPo thnk = thunkVar(H, thLam);
-        push(thnk);       /* put the structure back on the stack */
-        continue;
-      }
-
-      case LdTh: {
-        thunkPo thVr = C_THUNK(pop());
-
-        if (thunkIsSet(thVr)) {
-          termPo vr = thunkVal(thVr);
-
-          check(vr != Null, "undefined thunk value");
-          check(SP > (ptrPo) (FP + 1), "not enough room");
-
-          push(vr);     /* load a global variable */
-        } else {
-          normalPo thLambda = thunkLam(thVr);
-
-          labelPo oLbl = objLabel(termLbl(thLambda), 2); // Two arguments: the thunk and the free vector
-
-          if (oLbl == Null) {
-            logMsg(logFile, "label %s/%d not defined", labelName(termLbl(thLambda)), 2);
-            bail();
-          }
-
-          methodPo mtd = labelCode(oLbl);       /* set up for object call */
-
-          if (mtd == Null) {
-            logMsg(logFile, "no definition for %T", oLbl);
-            bail();
-          }
-
-          push(nthElem(thLambda, 0));                     // Put the free term back on the stack
-          push(thVr);
-
-          if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE)) {
-            int root = gcAddRoot(H, (ptrPo) &mtd);
-            stackGrow(stackDelta(mtd) + STACKFRAME_SIZE, codeArity(mtd));
-            gcReleaseRoot(H, root);
-
-#ifdef TRACESTACK
-            if (traceStack)
-              verifyStack(STK, H);
-#endif
-          }
-
-          assert(isPcOfMtd(FP->prog, PC));
-          FP->pc = PC;
-          pushFrme(mtd);
-          LITS = codeLits(mtd);
-          incEntryCount(mtd);              // Increment program count
-        }
-        continue;
-      }
-
-      case StTh: {                           // Store into thunk
-        thunkPo thnk = C_THUNK(pop());
-        termPo val = pop();
-
-        if (thunkIsSet(thnk)) {
-          logMsg(logFile, "thunk %T already set", thnk);
-          bail();
-        }
-
-        setThunk(thnk, val);      // Update the thunk variable
-        continue;
-      }
-
-      case TTh: {                        // Set thunk and carry on
-        thunkPo thnk = C_THUNK(pop());
-        termPo val = top();
-
-        if (thunkIsSet(thnk)) {
-          logMsg(logFile, "thunk %T already set", thnk);
-          bail();
-        }
-
-        setThunk(thnk, val);      // Update the thunk variable
         continue;
       }
 
@@ -1144,16 +1050,18 @@ retCode run(processPo P) {
       }
 
       case Alloc: {      /* heap allocate term */
-        labelPo cd = C_LBL(nthElem(LITS, collectI32(PC)));
-        if (enoughRoom(H, cd) != Ok) {
+        labelPo lbl = C_LBL(nthElem(LITS, collectI32(PC)));
+        integer arity = labelArity(lbl);
+
+        if (enoughRoom(H, lbl) != Ok) {
           saveRegisters();
-          retCode ret = gcCollect(H, NormalCellCount(labelArity(cd)));
+          retCode ret = gcCollect(H, NormalCellCount(arity));
           if (ret != Ok)
             return ret;
           restoreRegisters();
         }
-        normalPo cl = allocateStruct(H, cd); /* allocate a closure on the heap */
-        for (int ix = 0; ix < cd->arity; ix++)
+        normalPo cl = allocateStruct(H, lbl); /* allocate a closure on the heap */
+        for (int ix = 0; ix < arity; ix++)
           cl->args[ix] = pop();   /* fill in free variables by popping from stack */
         push(cl);       /* put the structure back on the stack */
         continue;
