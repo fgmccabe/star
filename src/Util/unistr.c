@@ -143,7 +143,7 @@ codePoint nextCodePoint(const char *src, integer *start, integer end) {
     return (codePoint) 0;
 }
 
-codePoint prevCodePoint(const char *src, integer *start, integer end) {
+codePoint prevCodePoint(const char *src, integer *start) {
   codePoint ch;
   if (prevPoint(src, start, &ch) == Ok)
     return ch;
@@ -488,7 +488,7 @@ codePoint uniSearchDelims(char *s, integer len, char *t) {
 long uniSearch(const char *src, integer len, integer start, const char *tgt, integer tlen) {
   long pos = start;
 
-  while (pos < len - tlen) {
+  while (pos <= len - tlen) {
     if (uniIsPrefix(tgt, tlen, &src[pos], len - pos))
       return pos;
     else
@@ -563,6 +563,21 @@ logical uniIsPrefix(const char *s1, integer len1, const char *s2, integer len2) 
     pos++;
 
   return (logical) (len1 <= len2 && pos == len1);
+}
+
+logical uniIsSuffix(const char *s1, integer len1, const char *s2, integer len2) {
+  integer pos1 = len1;
+  integer pos2 = len2;
+
+  while(pos1>0 && pos2>0) {
+    codePoint ch1 = prevCodePoint(s1, &pos1);
+    codePoint ch2 = prevCodePoint(s2, &pos2);
+
+    if (ch1 != ch2)
+      return False;
+  }
+
+  return (logical)pos2>=pos1;
 }
 
 integer uniHash(const char *name) {

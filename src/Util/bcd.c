@@ -119,7 +119,7 @@ bcdPo bcdFromText(char *text, integer tlen) {
   uint32 segment = 0;
   int dx = 0;
   while (txpos > px) {
-    codePoint ch = prevCodePoint(text, &txpos, tlen);
+    codePoint ch = prevCodePoint(text, &txpos);
     if (isNdChar(ch)) {
       int digit = digitValue(ch);
       segment |= (digit & 0xf) << dx;

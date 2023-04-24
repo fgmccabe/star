@@ -31,10 +31,38 @@ retCode gcdTests() {
   return Ok;
 }
 
+retCode suffix(char *s1, char *s2) {
+  if (uniIsSuffix(s1, uniStrLen(s1), s2, uniStrLen(s2)))
+    return Ok;
+  else
+    return Fail;
+}
+
+retCode find(char *s1, char *s2) {
+  if (uniSearch(s1, uniStrLen(s1), 0, s2, uniStrLen(s2)) >= 0)
+    return Ok;
+  else
+    return Fail;
+}
+
+retCode suffixTest() {
+  tryRet(suffix("", ""));
+  tryRet(suffix("foo", "barfoo"));
+  tryRet(suffix("bar", "barfoobar"));
+
+  negRet(suffix("barfoobar", "bar"));
+  negRet(suffix("barfoo", "bar"));
+  negRet(suffix("abar", "bar"));
+
+  tryRet(find("ac1.star","star"));
+  return Ok;
+}
+
 retCode miscTests() {
   setupTests();
   tryRet(run_test(lg2Tests));
   tryRet(run_test(gcdTests));
+  tryRet(run_test(suffixTest));
   tearDownTests();
   return Ok;
 }
