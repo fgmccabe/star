@@ -1143,7 +1143,29 @@ retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bu
   return Fail;
 }
 
+#undef instruction
+#define instruction(Op, A,B, C, Cmt) #Op,
+
+char *insNames[] = {
+#include "instructions.h"
+#undef instruction
+};
+
+static void dumpInsCounts(){
+  if(collectStats){
+    integer total = 0;
+    for(int ax=0;ax<illegalOp;ax++){
+      if(insCounts[ax]!=0){
+        outMsg(logFile," %s: %d\n",insNames[ax],insCounts[ax]);
+        total+=insCounts[ax];
+      }
+    }
+    assert(total==pcCount);
+  }
+}
+
 void dumpStats() {
+  dumpInsCounts();
   logMsg(debugOutChnnl, "%ld instructions executed\n", pcCount);
   dumpEscapes(debugOutChnnl);
   showMtdCounts(debugOutChnnl);
