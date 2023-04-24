@@ -297,7 +297,7 @@ ReturnStatus g__codePoint(heapPo h, termPo a1) {
 }
 
 ReturnStatus g__char(heapPo h, termPo a1) {
-  codePoint ch = integerVal(a1);
+  codePoint ch = (codePoint)integerVal(a1);
 
   return (ReturnStatus) {.ret=Ok,
     .result=allocateCharacter(ch)};
