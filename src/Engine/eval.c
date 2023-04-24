@@ -19,7 +19,7 @@
 
 #ifdef TRACEEXEC
 logical collectStats = False;
-integer insCounts[maxOpCode];
+integer insCounts[illegalOp];
 #endif
 
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<(unsigned)16)|lo32))
