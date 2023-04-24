@@ -47,6 +47,7 @@
     "star.compiler.typeparse": "parsetype.star",
     "star.compiler.types": "types.star",
     "star.compiler.unify": "unify.star",
+    "star.compiler.wasm.instr": "wasmInstr.star",
     "star.compiler.wff": "wff.star"
   },
   "version": "1.0.0",
