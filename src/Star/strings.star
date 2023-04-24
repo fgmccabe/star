@@ -162,4 +162,7 @@ star.strings{
 
   public subString:(string,integer,integer)=>string.
   subString(Txt,Fr,Ln) => _sub_str(Txt,Fr,Ln).
+
+  public strPrefix:(string,string) => boolean.
+  strPrefix(Pr,Txt) => _str_start(Pr,Txt).
 }

@@ -47,7 +47,7 @@ star.compiler.data{
 
     dispTs(Els) => interleave(Els//dispT,",")*.
 
-    isTupleLbl(T) =>_str_start(T,"()").
+    isTupleLbl(T) =>_str_start("()",T).
   .} in {
     disp(T) => dispT(T)
   }

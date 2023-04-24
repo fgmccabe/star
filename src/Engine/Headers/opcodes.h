@@ -15,27 +15,9 @@ typedef enum {
 
 #undef instruction
   label,
-  illegalOp
+  illegalOp,
+  maxOpCode
 } OpCode;
-
-/*
- * Assume a byte code architecture. This makes transitioning between 32bit and
- * 64 bit easier.
- * The general form of an instruction is:
- *
- * | Mnem | Op |
- *
- * where each Op is a big-ended sequence of bytes, depending on the precise
- * instruction.
- *
- * Special Registers include frame pointer
- *
- * TOS current top of expression stack
- * FP current frame pointer (access locals)
- * L current literals pointer
- * PC current program counter
- * PRG current program base
- */
 
 typedef enum {
   nOp,                                   // No operand
@@ -54,6 +36,5 @@ typedef enum {
   tPe,          // Type signature
 } opAndSpec;                    // Specification code for an operand
 
-#define JMP_SIZE (3)            // A jmp is three 16bit words
 #endif
 

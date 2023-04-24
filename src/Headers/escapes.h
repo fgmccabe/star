@@ -300,6 +300,7 @@ escape(_str_split, "F(si)(ss)", "split a string at a point")
 escape(_str_concat, "F(ss)s", "Concatenate two strings")
 escape(_str_reverse, "F(s)s", "Unicode reverse of string")
 escape(_str_start, "F(ss)l", "True if second string starts with first")
+escape(_str_end, "F(ss)l", "True if second string ends with first")
 escape(_str_splice, "F(siis)s", "splice a substring into a string")
 
 escape(_str_multicat, "F(Ls)s", "Concatenate a list of strings into one")
