@@ -21,5 +21,11 @@ star.file{
 
   public isDir:(string) => boolean.
   isDir(D) => _isdir(D).
+
+  public ls:(string) => cons[string].
+  ls(D) => _ls(D).
+
+  public cwd:()=>string.
+  cwd() => _cwd().
   
 }
