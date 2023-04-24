@@ -376,6 +376,12 @@ accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,Eqx) :-
   mangleName(Path,class,Nm,ConNm),
   projectArgTypes(Args,AllElTps,ArgTps),
   genAccessorEquation(Lc,ConNm,Fld,FldTp,Tp,ArgTps,Eqns,Eqx).
+accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,Eqx) :-
+  isPrivate(Body,_,I),
+  accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,I,Eqns,Eqx).
+accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,Eqx) :-
+  isPublic(Body,_,I),
+  accessorEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,I,Eqns,Eqx).
 accessorEquations(_,_,_,_,_,_,_,Eqx,Eqx).
 
 genAccessorEquation(Lc,ConsNm,Fld,FldTp,Tp,AllElTps,
@@ -419,6 +425,12 @@ updaterEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,Eqx) :-
   mangleName(Path,class,Nm,ConNm),
   projectArgTypes(Args,AllElTps,ArgTps),
   genUpdaterEquation(Lc,ConNm,Fld,FldTp,Tp,ArgTps,Eqns,Eqx).
+updaterEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,Eqx) :-
+  isPrivate(Body,_,I),!,
+  updaterEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,I,Eqns,Eqx).
+updaterEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,Body,Eqns,Eqx) :-
+  isPublic(Body,_,I),!,
+  updaterEquations(Lc,Path,Tp,Fld,FldTp,AllElTps,I,Eqns,Eqx).
 updaterEquations(_,_,_,_,_,_,_,Eqx,Eqx).
 
 genUpdaterEquation(Lc,ConsNm,Fld,FldTp,Tp,AllElTps,
