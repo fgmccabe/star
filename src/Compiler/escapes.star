@@ -229,6 +229,7 @@ star.compiler.escapes{
     "_str_concat" => ? .tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")])),.nomnal("star.core*string")).
     "_str_reverse" => ? .tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.nomnal("star.core*string")).
     "_str_start" => ? .tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")])),.nomnal("star.core*boolean")).
+    "_str_end" => ? .tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")])),.nomnal("star.core*boolean")).
     "_str_splice" => ? .tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*integer"),.nomnal("star.core*integer"),.nomnal("star.core*string")])),.nomnal("star.core*string")).
     "_str_multicat" => ? .tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("star.core*cons",1),.nomnal("star.core*string"))])),.nomnal("star.core*string")).
     "_str_hdtl" => ? .tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.tupleType([.nomnal("star.core*char"),.nomnal("star.core*string")])).
@@ -482,31 +483,32 @@ star.compiler.escapes{
     "_str_concat" => ?220.
     "_str_reverse" => ?221.
     "_str_start" => ?222.
-    "_str_splice" => ?223.
-    "_str_multicat" => ?224.
-    "_str_hdtl" => ?225.
-    "_str_back" => ?226.
-    "_str_cons" => ?227.
-    "_code2str" => ?228.
-    "_str_apnd" => ?229.
-    "_str_quote" => ?230.
-    "_str_format" => ?231.
-    "_getenv" => ?232.
-    "_setenv" => ?233.
-    "_envir" => ?234.
-    "_getlogin" => ?235.
-    "_fork" => ?236.
-    "_thread" => ?237.
-    "_kill" => ?238.
-    "_thread_state" => ?239.
-    "_waitfor" => ?240.
-    "_shell" => ?241.
-    "_newLock" => ?242.
-    "_acquireLock" => ?243.
-    "_waitLock" => ?244.
-    "_releaseLock" => ?245.
-    "_ins_debug" => ?246.
-    "_stackTrace" => ?247.
+    "_str_end" => ?223.
+    "_str_splice" => ?224.
+    "_str_multicat" => ?225.
+    "_str_hdtl" => ?226.
+    "_str_back" => ?227.
+    "_str_cons" => ?228.
+    "_code2str" => ?229.
+    "_str_apnd" => ?230.
+    "_str_quote" => ?231.
+    "_str_format" => ?232.
+    "_getenv" => ?233.
+    "_setenv" => ?234.
+    "_envir" => ?235.
+    "_getlogin" => ?236.
+    "_fork" => ?237.
+    "_thread" => ?238.
+    "_kill" => ?239.
+    "_thread_state" => ?240.
+    "_waitfor" => ?241.
+    "_shell" => ?242.
+    "_newLock" => ?243.
+    "_acquireLock" => ?244.
+    "_waitLock" => ?245.
+    "_releaseLock" => ?246.
+    "_ins_debug" => ?247.
+    "_stackTrace" => ?248.
     _ default => .none.
   }
 }.

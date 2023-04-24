@@ -380,7 +380,7 @@ void dS(termPo w) {
 
   while (isCons(s)) {
     integer cp = integerVal(consHead(C_NORMAL(s)));
-    outChar(logFile, cp);
+    outChar(logFile, (codePoint)cp);
     s = consTail(C_NORMAL(s));
   }
   outStr(logFile, "\n");
@@ -431,6 +431,8 @@ ReturnStatus g__sub_str(heapPo h, termPo a1, termPo a2, termPo a3) {
   const char *str = strVal(a1, &len);
   integer start = integerVal(a2);
   integer count = integerVal(a3);
+
+  count = minimum(count,len-start);
 
   char buff[count + 1];
   uniMove(buff, count + 1, &str[start], count);
@@ -603,6 +605,16 @@ ReturnStatus g__str_start(heapPo h, termPo a1, termPo a2) {
 
   return (ReturnStatus) {.ret=Ok,
     .result=(uniIsPrefix(lhs, llen, rhs, rlen) ? trueEnum : falseEnum)};
+}
+
+ReturnStatus g__str_end(heapPo h, termPo a1, termPo a2) {
+  integer llen;
+  const char *lhs = strVal(a1, &llen);
+  integer rlen;
+  const char *rhs = strVal(a2, &rlen);
+
+  return (ReturnStatus) {.ret=Ok,
+    .result=(uniIsSuffix(lhs, llen, rhs, rlen) ? trueEnum : falseEnum)};
 }
 
 ReturnStatus g__str_multicat(heapPo h, termPo t) {
