@@ -125,7 +125,7 @@ uint64 labelTgt(codeLblPo lbl) {
 void labelDisp32(assemCtxPo ctx, codeLblPo lbl, integer pc) {
   check(readCtxAtPc(ctx, pc) == UNDEF_LBL_LANDING_PAD, "bad label reference");
 
-  integer delta = (integer) labelTgt(lbl) - (pc + PLATFORM_PC_DELTA);
+  uint32 delta = (uint32)((integer) labelTgt(lbl) - (pc + PLATFORM_PC_DELTA));
   if (isI32(delta)) {
     updateU32(ctx, pc, delta);
   } else {
@@ -147,7 +147,7 @@ void emitLblRef(assemCtxPo ctx, codeLblPo tgt) {
       check(False, "label displacement too large");
       return;
     }
-    emitU32(ctx, delta);
+    emitU32(ctx, (uint32)delta);
   } else {
     addLabelReference(ctx, tgt, ctx->pc, labelDisp32);
     emitU32(ctx, UNDEF_LBL_LANDING_PAD);

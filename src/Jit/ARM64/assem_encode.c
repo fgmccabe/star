@@ -7,7 +7,7 @@
 
 static void updateRelPc(assemCtxPo ctx, codeLblPo lbl, integer pc) {
   assert(isLabelDefined(lbl));
-  integer delta = (integer) labelTgt(lbl) - pc;
+  uint32 delta = (uint32) ((integer) labelTgt(lbl) - pc);
   uint32 oldIns = readCtxAtPc(ctx, pc);
   uint32 newIns =
     one_bt((oldIns >> 31), 31) | two_bt(delta, 29) | one_bt((oldIns >> 28u), 28) | ntn_bt(delta >> 2, 5) |
@@ -22,7 +22,8 @@ void encodePCRel(uint1 op, codeLblPo lbl, armReg Rd, assemCtxPo ctx) {
   } else {
     integer delta = lblDeltaRef(ctx, lbl);
     check(absolute(delta >> 2) < (1 << 19), "label out of range");
-    emitU32(ctx, one_bt(op, 31) | two_bt(delta, 29) | one_bt(1, 28) | ntn_bt(delta >> 2, 5) | fiv_bt(Rd, 0));
+    emitU32(ctx, one_bt(op, 31) | two_bt((uint32) delta, 29) | one_bt(1, 28) | ntn_bt(((uint32) delta) >> 2, 5) |
+                 fiv_bt(Rd, 0));
   }
 }
 
@@ -162,7 +163,7 @@ void encodeExtrct(uint1 w, uint8 opc, uint1 N, uint1 o0, armReg Rm, uint8 imms, 
 
 static void updateCondPc(assemCtxPo ctx, codeLblPo lbl, integer pc) {
   assert(isLabelDefined(lbl));
-  integer delta = (integer) labelTgt(lbl) - pc;
+  uint32 delta = (uint32) ((integer) labelTgt(lbl) - pc);
   uint32 oldIns = readCtxAtPc(ctx, pc);
   uint32 newIns =
     ayt_bt((oldIns >> 24), 24) | ntn_bt(delta >> 2, 5) | fiv_bt(oldIns, 0);
@@ -187,7 +188,7 @@ void encodeBranch(uint8 opc, uint8 op2, uint8 op3, armReg Rn, uint8 op4, assemCt
 
 static void updateBImm(assemCtxPo ctx, codeLblPo lbl, integer pc) {
   assert(isLabelDefined(lbl));
-  integer delta = (integer) labelTgt(lbl) - pc;
+  uint32 delta = (uint32) ((integer) labelTgt(lbl) - pc);
   uint32 oldIns = readCtxAtPc(ctx, pc);
   uint32 newIns =
     six_bt((oldIns >> 26), 26) | tsx_bt(delta >> 2, 0);
@@ -201,7 +202,7 @@ void encodeBranchImm(uint1 op, codeLblPo lbl, assemCtxPo ctx) {
   } else {
     integer delta = lblDeltaRef(ctx, lbl);
     check(absolute(delta >> 2) < (1 << 26), "label out of range");
-    uint32 ins = one_bt(op, 31) | fiv_bt(0x5, 26) | tsx_bt(delta >> 2, 0);
+    uint32 ins = one_bt(op, 31) | fiv_bt(0x5, 26) | tsx_bt(((uint32) delta) >> 2, 0);
     emitU32(ctx, ins);
   }
 }
@@ -214,17 +215,19 @@ void encodeCmpBr(uint1 b5, uint1 op, codeLblPo lbl, armReg Rt, assemCtxPo ctx) {
     integer delta = lblDeltaRef(ctx, lbl);
     check(absolute(delta >> 2) < (1 << 19), "label out of range");
     uint32 ins = one_bt(b5, 31) | fiv_bt(0x1a, 25) | one_bt(op, 24) |
-                 ntn_bt(delta >> 2, 5) | fiv_bt(Rt, 0);
+                 ntn_bt(((uint32) delta) >> 2, 5) | fiv_bt(Rt, 0);
     emitU32(ctx, ins);
   }
 }
 
 static void updateTestPc(assemCtxPo ctx, codeLblPo lbl, integer pc) {
   assert(isLabelDefined(lbl));
-  integer delta = (integer) labelTgt(lbl) - (pc);
+  uint32 delta = (uint32) (labelTgt(lbl) - (pc));
   uint32 oldIns = readCtxAtPc(ctx, pc);
   uint32 newIns =
-    thi_bt((oldIns >> 19), 19) | ftn_bt(delta >> 2, 5) | fiv_bt(oldIns, 0);
+    thi_bt((oldIns >> 19), 19) |
+    ftn_bt(delta >> 2, 5) |
+    fiv_bt(oldIns, 0);
   updateU32(ctx, pc, newIns);
 }
 
@@ -238,7 +241,7 @@ void encodeTstBr(uint1 w, uint1 op, uint8 b40, codeLblPo lbl, armReg Rt, assemCt
     integer delta = lblDeltaRef(ctx, lbl);
     check(absolute(delta >> 2) < (1 << 15), "label out of range");
     uint32 ins = one_bt(ww, 31) | six_bt(0x1b, 25) | one_bt(op, 24) | fiv_bt(b40, 19) |
-                 ftn_bt(delta >> 2, 5) | fiv_bt(Rt, 0);
+                 ftn_bt(((uint32) delta) >> 2, 5) | fiv_bt(Rt, 0);
     emitU32(ctx, ins);
   }
 }
@@ -292,7 +295,7 @@ void encodeLdPcLit(uint8 opc, uint1 V, codeLblPo lbl, armReg Rt, assemCtxPo ctx)
     integer delta = lblDeltaRef(ctx, lbl);
     check(absolute(delta >> 2) < (1 << 21), "label out of range");
     uint32 ins = two_bt(opc, 30) | thr_bt(3, 27) | one_bt(V, 26) |
-                 ntn_bt(delta >> 2, 15) | fiv_bt(Rt, 0);
+                 ntn_bt(((uint32) delta) >> 2, 15) | fiv_bt(Rt, 0);
     emitU32(ctx, ins);
   }
 }
