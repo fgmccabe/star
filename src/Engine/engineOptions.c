@@ -20,6 +20,7 @@
 #include "labelsP.h"
 #include "continuationP.h"
 #include "timers.h"
+#include "engineP.h"
 
 char CWD[MAXFILELEN] = "";
 char rootCap[MAXFILELEN] = "/";
@@ -180,6 +181,7 @@ static retCode debugOption(char *option, logical enable) {
 
       case 's':
 #ifdef TRACESTATS
+        collectStats = True;
         atexit(dumpStats);
         logMsg(logFile, "Statistics collection enabled\n");
         break;

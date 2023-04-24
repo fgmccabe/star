@@ -67,5 +67,10 @@ void verifyProc(processPo P, heapPo H);
 extern long stkGrow;
 #endif
 
+#ifdef TRACEEXEC
+extern logical collectStats;
+extern integer insCounts[];
+#endif
+
 
 #endif //STAR_ENGINEP_H

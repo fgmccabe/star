@@ -17,6 +17,11 @@
 #include "continuationP.h"
 #include "closureP.h"
 
+#ifdef TRACEEXEC
+logical collectStats = False;
+integer insCounts[maxOpCode];
+#endif
+
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<(unsigned)16)|lo32))
 #define collectOff(pc) (hi32 = collectI32(pc), (pc)+(signed)hi32)
 
@@ -82,6 +87,10 @@ retCode run(processPo P) {
   for (;;) {
 #ifdef TRACEEXEC
     pcCount++;        /* increment total number of executed */
+
+    if (collectStats) {
+      insCounts[*PC]++;
+    }
 
     if (insDebugging) {
       saveRegisters();
