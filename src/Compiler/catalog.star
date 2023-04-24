@@ -1,5 +1,6 @@
 star.compiler.catalog{
   import star.
+  import star.file.
   import star.json.
   import star.uri.
   import star.pkg.
@@ -7,7 +8,7 @@ star.compiler.catalog{
 
   import star.compiler.misc.
 
-  public catalog ::= catalog{
+  public catalog ::= private catalog{
     base : uri.
     parent:option[catalog].
     vers:option[version].

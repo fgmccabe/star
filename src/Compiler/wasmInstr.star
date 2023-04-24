@@ -1,23 +1,33 @@
 star.compiler.wasm.instr{
   import star.
-  import star.comiler.wasm.types.
 
-  block_type ::=
+  public int_type ::= .I32Type | .I64Type.
+  public flt_type ::= .F32Type | .F64Type.
+  public ref_type ::= .FuncRefType | .ExternRefType.
+
+  public num_type ::= .IntTp(int_type) | .FltTp(flt_type).
+  public value_type ::= .NumTp(num_type) | .RefTp(ref_type).
+
+  var ~> integer.
+
+  public block_type ::=
     .VarBlockType(var)
     | .ValBlockType(option[value_type]).
   
-  var ~> integer.
 
   all t,p ~~ memop[t,p] ::= memop{ty : t. align : integer. offset : integer. pack : p}
 
   loadop ~> memop[num_type, option[(pack_size, extension)]].
   storeop ~> memop[num_type, option[pack_size]].
 
+  public pack_size ::= .Pack8 | .Pack16 | .Pack32 | .Pack64.
+  public extension ::= .SX | .ZX.
+
   public instr ::= 
     .Unreachable                       --  trap unconditionally 
     | .Nop			       --  do nothing 
     | .Drop			       --  forget a value 
-    | .Select(option[cons[value_type]]) --  branchless conditional 
+    | .Select                          --  branchless conditional 
     | .Block(block_type, cons[instr])  --  execute in sequence 
     | .Loop(block_type, cons[instr])   --  loop header 
     | .If(block_type, cons[instr], cons[instr]) --  conditional 
@@ -42,10 +52,6 @@ star.compiler.wasm.instr{
     | .ElemDrop(var)                   --  drop passive element segment 
     | .Load(loadop)		       --  read memory at address 
     | .Store(storeop)		       --  write memory at address 
-    | .VecLoad(vec_loadop)	       --  read memory at address 
-    | .VecStore(vec_storeop)	       --  write memory at address 
-    | .VecLoadLane(vec_laneop)	       --  read single lane at address 
-    | .VecStoreLane(vec_laneop)	       --  write single lane to address 
     | .MemorySize		       --  size of memory 
     | .MemoryGrow		       --  grow memory 
     | .MemoryFill		       --  fill memory range with value 
@@ -55,380 +61,208 @@ star.compiler.wasm.instr{
     | .RefNull(ref_type)	       --  null reference 
     | .RefFunc(var)                    --  function reference 
     | .RefIsNull		       --  null test 
-    | .Const(num)		       --  constant 
-    | .Test(testop)		       --  numeric test 
-    | .Compare(relop)		       --  numeric comparison
-    | .Clz                             --  Clear to zero
-    | .Ctz
+    | .Const(num_type)		       --  constant 
+    | .IClz                            --  Clear to zero
+    | .ICtz                            --  Count trailing zeroes
     | .Popcnt    
-    | .Binary(binop)		       --  binary numeric operator
-    | .Add
-    | .Sub
-    | .Mul
-    | .DivS
-    | .DivU
-    | .RemS
-    | .RemU
-    | .And
-    | .Or
-    | .Xor
-    | .Shl
-    | .ShrS
-    | .ShrU
-    | .Rotl
-    | .Rotr    
-    | .Convert(cvtop)		       --  conversion 
-    | .VecConst(vec)		       --  constant 
-    | .VecTest(vec_testop)	       --  vector test 
-    | .VecCompare(vec_relop)	       --  vector comparison 
-    | .VecUnary(vec_unop)	       --  unary vector operator 
-    | .VecBinary(vec_binop)            --  binary vector operator 
-    | .VecConvert(vec_cvtop)           --  vector conversion 
-    | .VecShift(vec_shiftop)           --  vector shifts 
-    | .VecBitmask(vec_bitmaskop)       --  vector masking 
-    | .VecTestBits(vec_vtestop)        --  vector bit test 
-    | .VecUnaryBits(vec_vunop)         --  unary bit vector operator 
-    | .VecBinaryBits(vec_vbinop)       --  binary bit vector operator 
-    | .VecTernaryBits(vec_vternop)     --  ternary bit vector operator 
-    | .VecSplat(vec_splatop)           --  number to vector conversion 
-    | .VecExtract(vec_extractop)       --  extract lane from vector 
-    | .VecReplace(vec_replaceop).      --  replace lane in vector 
+    | .IAdd(int_type)
+    | .ISub(int_type)
+    | .IMul(int_type)
+    | .IDivS(int_type)
+    | .IDivU(int_type)
+    | .IRemS(int_type)
+    | .IRemU(int_type)
+    | .IAnd(int_type)
+    | .IOr(int_type)
+    | .IXor(int_type)
+    | .IShl(int_type)
+    | .IShrS(int_type)
+    | .IShrU(int_type)
+    | .IRotl(int_type)
+    | .IRotr(int_type)
+    | .IEqz(int_type)                            -- equal to zero
+    | .IEq(int_type)                             -- Integer comparisons
+    | .INe(int_type)
+    | .ILtS(int_type)
+    | .ILtU(int_type)
+    | .IGtS(int_type)
+    | .IGtU(int_type)
+    | .ILeS(int_type)
+    | .ILeU(int_type)
+    | .IGeS(int_type)
+    | .IGeU(int_type)
+    | .FNeg(flt_type)                            -- Unary floating point
+    | .FAbs(flt_type)
+    | .FCeil(flt_type)
+    | .Floor(flt_type)
+    | .FTrunc(flt_type)
+    | .FNearest(flt_type)
+    | .FSqrt(flt_type)
+    | .FEq(flt_type)                              -- Binary floating point
+    | .FNe(flt_type)
+    | .FLt(flt_type)
+    | .FGt(flt_type)
+    | .FLe(flt_type)
+    | .FGe(flt_type)
+    | .ExtendSI32
+    | .ExtendUI32
+    | .WrapI64
+    | .TruncSF32
+    | .TruncUF32
+    | .TruncSF64
+    | .TruncUF64
+    | .TruncSatSF32
+    | .TruncSatUF32
+    | .TruncSatSF64
+    | .TruncSatUF64
+    | .ReinterpretFloat
+    | .ReinterpretInt
+    | .ConvertSI32
+    | .ConvertUI32
+    | .ConvertSI64
+    | .ConvertUI64
+    | .PromoteF32
+    | .DemoteF64
+    | .ReinterpretInt
+  .
+
+  public implementation display[instr] => {
+    disp(I) => d_instr(I,"")
+  }
+
+  d_instr:(instr,string)=>string.
+  d_instr(In,Off) => case In in {
+    .Unreachable => "unreachable"
+    | .Nop => "nop"
+    | .Drop => "drop"
+    | .Select => "select"
+    | .Block(Tp,Ins) => "block $(Tp) #(disp_ins(Ins,Off++"  ")) end"
+    | .Loop(Tp, Ins) => "loop $(Tp) #(disp_ins(Ins,Off++"  ")) end"
+    | .If(Tp,I,E) => "if $(Tp) #(disp_ins(I,Off++"  ")) else #(disp_ins(E,Off++"  ")) end"
+    | .Br(V) => "br $(V)"
+    | .BrIf(V) => "br_if $(V)"
+    | .BrTable(Ls,_) => "br_table $(Ls)"
+    | .Return => "return"
+    | .Call(V) => "call $(V)"
+    | .CallIndirect(X, Y) => "call_indirect $(X) $(Y)"
+    | .LocalGet(V) => "local.get $(V)"
+    | .LocalSet(V) => "local.set $(V)"
+    | .LocalTee(V) => "local.tee $(V)"
+    | .GlobalGet(V) => "global.get $(V)"
+    | .GlobalSet(V) => "global.set $(V)"
+    | .TableGet(V) => "table.get $(V)"
+    | .TableSet(V) => "table.set $(V)"
+    | .TableSize(V) => "table.size $(V)"
+    | .TableGrow(V) => "table.grow $(V)"
+    | .TableFill(V) => "table.fill $(V)"
+    | .TableCopy(X, Y) => "table.copy $(X) $(Y)"
+    | .TableInit(X, Y) => "table.init $(X) $(Y)"
+    | .Load(L) => "load $(L)"
+    | .Store(S) => "store $(S)"
+    | .MemorySize => "memory.size"
+    | .MemoryGrow => "memory.grow"
+    | .MemoryFill => "memory.fill"
+    | .MemoryCopy => "memory.copy"
+    | .MemoryInit(V) => "memory.init"
+    | .RefNull(T) => "ref.null $(T)"
+    | .RefFunc(F) => "ref.func $(F)"
+    | .RefIsNull => "ref.isnull"
+    | .Const(N) => "$(N).const"
+    | .IClz => "clz"
+    | .ICtz => "ctz"
+    | .Popcnt => "popcnt"
+    | .IAdd(Tp) => "$(Tp).add"
+    | .ISub(Tp) => "$(Tp).sub"
+    | .IMul(Tp) => "$(Tp).mul"
+    | .IDivS(Tp) => "$(Tp).divs"
+    | .IDivU(Tp) => "$(Tp).divu"
+    | .IRemS(Tp) => "$(Tp).rems"
+    | .IRemU(Tp) => "$(Tp).remu"
+    | .IAnd(Tp) => "$(Tp).and"
+    | .IOr(Tp) => "$(Tp).or"
+    | .IXor(Tp) => "$(Tp).xor"
+    | .IShl(Tp) => "$(Tp).shl"
+    | .IShrS(Tp) => "$(Tp).shrs"
+    | .IShrU(Tp) => "$(Tp).shru"
+    | .IRotl(Tp) => "$(Tp).rotl"
+    | .IRotr(Tp) => "$(Tp).rotr"
+    | .IEqz(Tp) => "$(Tp).eqz"
+    | .IEq(Tp) => "$(Tp).eq"
+    | .INe(Tp) => "$(Tp).ne"
+    | .ILtS(Tp) => "$(Tp).lts"
+    | .ILtU(Tp) => "$(Tp).ltu"
+    | .IGtS(Tp) => "$(Tp).gts"
+    | .IGtU(Tp) => "$(Tp).gtu"
+    | .ILeS(Tp) => "$(Tp).les"
+    | .ILeU(Tp) => "$(Tp).leu"
+    | .IGeS(Tp) => "$(Tp).ges"
+    | .IGeU(Tp) => "$(Tp).geu"
+    | .FNeg(Tp) => "$(Tp).neg"
+    | .FAbs(Tp) => "$(Tp).abs"
+    | .FCeil(Tp) => "$(Tp).ceil"
+    | .Floor(Tp) => "$(Tp).floor"
+    | .FTrunc(Tp) => "$(Tp).trunc"
+    | .FNearest(Tp) => "$(Tp).nearest"
+    | .FSqrt(Tp) => "$(Tp).sqrt"
+    | .FEq(Tp) => "$(Tp).eq"
+    | .FNe(Tp) => "$(Tp).ne"
+    | .FLt(Tp) => "$(Tp).lt"
+    | .FGt(Tp) => "$(Tp).gt"
+    | .FLe(Tp) => "$(Tp).le"
+    | .FGe(Tp) => "$(Tp).ge"
+    | .ExtendSI32 => "extendsi32"
+    | .ExtendUI32 => "extendui32"
+    | .WrapI64 => "i32.wrap_i64"
+  }
+
+  disp_ins:(cons[instr],string)=>string.
+  disp_ins(Ins,Off) => interleave(Ins//(I)=>d_instr(I,Off),"\n")*.
+
+  public implementation display[int_type] => {
+    disp(.I32Type) => "i32".
+    disp(.I64Type) => "i64".
+  }
+
+  public implementation display[flt_type] => {
+    disp(.F32Type) => "f32".
+    disp(.F64Type) => "f64".
+  }
+
+  public implementation display[ref_type] => {
+    disp(.FuncRefType) => "funcref".
+    disp(.ExternRefType) => "externref".
+  }
+
+  public implementation display[num_type] => {
+    disp(.IntTp(IT)) => disp(IT).
+    disp(.FltTp(FT)) => disp(FT).
+  }
+
+  public implementation display[value_type] => {
+    disp(.NumTp(IT)) => disp(IT).
+    disp(.RefTp(RT)) => disp(RT).
+  }
+
+  public implementation display[block_type] => {
+    disp(.VarBlockType(V)) => "\$$(V)".
+    disp(.ValBlockType(.none)) => "".
+    disp(.ValBlockType(.some(T))) => disp(T)
+  }.
 
 
-
-
-
+  public implementation display[pack_size] => {
+    disp(.Pack8) => "p8".
+    disp(.Pack16) => "p16".
+    disp(.Pack32) => "p32".
+    disp(.Pack64) => "p64"
+  }
   
+  public implementation display[extension] => {
+    disp(.SX) => "sx".
+    disp(.ZX) => "zx"
+  }
 
-
-  
-
-
-
-
-
-(*
- * Throughout the implementation we use consistent naming conventions for
- * syntactic elements, associated with the types defined here and in a few
- * other places:
- *
- *   x : var
- *   v : value
- *   e : instr
- *   f : func
- *   m : module_
- *
- *   t : value_type
- *   s : func_type
- *   c : context / config
- *
- * These conventions mostly follow standard practice in language semantics.
- *)
-
-open Types
-
-type void = Lib.void
-
-
-(* Operators *)
-
-module IntOp =
-struct
-  type unop = Clz | Ctz | Popcnt | ExtendS of pack_size
-  type binop = Add | Sub | Mul | DivS | DivU | RemS | RemU
-             | And | Or | Xor | Shl | ShrS | ShrU | Rotl | Rotr
-  type testop = Eqz
-  type relop = Eq | Ne | LtS | LtU | GtS | GtU | LeS | LeU | GeS | GeU
-  type cvtop = ExtendSI32 | ExtendUI32 | WrapI64
-             | TruncSF32 | TruncUF32 | TruncSF64 | TruncUF64
-             | TruncSatSF32 | TruncSatUF32 | TruncSatSF64 | TruncSatUF64
-             | ReinterpretFloat
-end
-
-module FloatOp =
-struct
-  type unop = Neg | Abs | Ceil | Floor | Trunc | Nearest | Sqrt
-  type binop = Add | Sub | Mul | Div | Min | Max | CopySign
-  type testop = |
-  type relop = Eq | Ne | Lt | Gt | Le | Ge
-  type cvtop = ConvertSI32 | ConvertUI32 | ConvertSI64 | ConvertUI64
-             | PromoteF32 | DemoteF64
-             | ReinterpretInt
-end
-
-module I32Op = IntOp
-module I64Op = IntOp
-module F32Op = FloatOp
-module F64Op = FloatOp
-
-module V128Op =
-struct
-  type itestop = AllTrue
-  type iunop = Abs | Neg | Popcnt
-  type funop = Abs | Neg | Sqrt | Ceil | Floor | Trunc | Nearest
-  type ibinop = Add | Sub | Mul | MinS | MinU | MaxS | MaxU | AvgrU
-              | AddSatS | AddSatU | SubSatS | SubSatU | DotS | Q15MulRSatS
-              | ExtMulLowS | ExtMulHighS | ExtMulLowU | ExtMulHighU
-              | Swizzle | Shuffle of int list | NarrowS | NarrowU
-  type fbinop = Add | Sub | Mul | Div | Min | Max | Pmin | Pmax
-  type irelop = Eq | Ne | LtS | LtU | LeS | LeU | GtS | GtU | GeS | GeU
-  type frelop = Eq | Ne | Lt | Le | Gt | Ge
-  type icvtop = ExtendLowS | ExtendLowU | ExtendHighS | ExtendHighU
-              | ExtAddPairwiseS | ExtAddPairwiseU
-              | TruncSatSF32x4 | TruncSatUF32x4
-              | TruncSatSZeroF64x2 | TruncSatUZeroF64x2
-  type fcvtop = DemoteZeroF64x2 | PromoteLowF32x4
-              | ConvertSI32x4 | ConvertUI32x4
-  type ishiftop = Shl | ShrS | ShrU
-  type ibitmaskop = Bitmask
-
-  type vtestop = AnyTrue
-  type vunop = Not
-  type vbinop = And | Or | Xor | AndNot
-  type vternop = Bitselect
-
-  type testop = (itestop, itestop, itestop, itestop, void, void) V128.laneop
-  type unop = (iunop, iunop, iunop, iunop, funop, funop) V128.laneop
-  type binop = (ibinop, ibinop, ibinop, ibinop, fbinop, fbinop) V128.laneop
-  type relop = (irelop, irelop, irelop, irelop, frelop, frelop) V128.laneop
-  type cvtop = (icvtop, icvtop, icvtop, icvtop, fcvtop, fcvtop) V128.laneop
-  type shiftop = (ishiftop, ishiftop, ishiftop, ishiftop, void, void) V128.laneop
-  type bitmaskop = (ibitmaskop, ibitmaskop, ibitmaskop, ibitmaskop, void, void) V128.laneop
-
-  type nsplatop = Splat
-  type 'a nextractop = Extract of int * 'a
-  type nreplaceop = Replace of int
-
-  type splatop = (nsplatop, nsplatop, nsplatop, nsplatop, nsplatop, nsplatop) V128.laneop
-  type extractop = (extension nextractop, extension nextractop, unit nextractop, unit nextractop, unit nextractop, unit nextractop) V128.laneop
-  type replaceop = (nreplaceop, nreplaceop, nreplaceop, nreplaceop, nreplaceop, nreplaceop) V128.laneop
-end
-
-type testop = (I32Op.testop, I64Op.testop, F32Op.testop, F64Op.testop) Values.op
-type unop = (I32Op.unop, I64Op.unop, F32Op.unop, F64Op.unop) Values.op
-type binop = (I32Op.binop, I64Op.binop, F32Op.binop, F64Op.binop) Values.op
-type relop = (I32Op.relop, I64Op.relop, F32Op.relop, F64Op.relop) Values.op
-type cvtop = (I32Op.cvtop, I64Op.cvtop, F32Op.cvtop, F64Op.cvtop) Values.op
-
-type vec_testop = (V128Op.testop) Values.vecop
-type vec_relop = (V128Op.relop) Values.vecop
-type vec_unop = (V128Op.unop) Values.vecop
-type vec_binop = (V128Op.binop) Values.vecop
-type vec_cvtop = (V128Op.cvtop) Values.vecop
-type vec_shiftop = (V128Op.shiftop) Values.vecop
-type vec_bitmaskop = (V128Op.bitmaskop) Values.vecop
-type vec_vtestop = (V128Op.vtestop) Values.vecop
-type vec_vunop = (V128Op.vunop) Values.vecop
-type vec_vbinop = (V128Op.vbinop) Values.vecop
-type vec_vternop = (V128Op.vternop) Values.vecop
-type vec_splatop = (V128Op.splatop) Values.vecop
-type vec_extractop = (V128Op.extractop) Values.vecop
-type vec_replaceop = (V128Op.replaceop) Values.vecop
-
-type ('t, 'p) memop = {ty : 't; align : int; offset : int32; pack : 'p}
-type loadop = (num_type, (pack_size * extension) option) memop
-type storeop = (num_type, pack_size option) memop
-
-type vec_loadop = (vec_type, (pack_size * vec_extension) option) memop
-type vec_storeop = (vec_type, unit) memop
-type vec_laneop = (vec_type, pack_size) memop * int
-
-
-(* Expressions *)
-
-type var = int32 Source.phrase
-type num = Values.num Source.phrase
-type vec = Values.vec Source.phrase
-type name = Utf8.unicode
-
-type block_type = VarBlockType of var | ValBlockType of value_type option
-
-
-
-(* Globals & Functions *)
-
-type const = cons[instr] Source.phrase
-
-type global = global' Source.phrase
-and global' =
-{
-  gtype : global_type;
-  ginit : const;
+  public implementation all t,p ~~ display[t], display[p] |: display[memop[t,p]] => {
+    disp(memop{ty=T. align=A. offset=O. pack=P}) => "($(T) $(A) $(O) $(P))"
+  }
 }
-
-type func = func' Source.phrase
-and func' =
-{
-  ftype : var;
-  locals : value_type list;
-  body : cons[instr];
-}
-
-
-(* Tables & Memories *)
-
-type table = table' Source.phrase
-and table' =
-{
-  ttype : table_type;
-}
-
-type memory = memory' Source.phrase
-and memory' =
-{
-  mtype : memory_type;
-}
-
-type segment_mode = segment_mode' Source.phrase
-and segment_mode' =
-  | Passive
-  | Active of {index : var; offset : const}
-  | Declarative
-
-type elem_segment = elem_segment' Source.phrase
-and elem_segment' =
-{
-  etype : ref_type;
-  einit : const list;
-  emode : segment_mode;
-}
-
-type data_segment = data_segment' Source.phrase
-and data_segment' =
-{
-  dinit : string;
-  dmode : segment_mode;
-}
-
-
-(* Modules *)
-
-type type_ = func_type Source.phrase
-
-type export_desc = export_desc' Source.phrase
-and export_desc' =
-  | FuncExport of var
-  | TableExport of var
-  | MemoryExport of var
-  | GlobalExport of var
-
-type export = export' Source.phrase
-and export' =
-{
-  name : name;
-  edesc : export_desc;
-}
-
-type import_desc = import_desc' Source.phrase
-and import_desc' =
-  | FuncImport of var
-  | TableImport of table_type
-  | MemoryImport of memory_type
-  | GlobalImport of global_type
-
-type import = import' Source.phrase
-and import' =
-{
-  module_name : name;
-  item_name : name;
-  idesc : import_desc;
-}
-
-type start = start' Source.phrase
-and start' =
-{
-  sfunc : var;
-}
-
-type module_ = module_' Source.phrase
-and module_' =
-{
-  types : type_ list;
-  globals : global list;
-  tables : table list;
-  memories : memory list;
-  funcs : func list;
-  start : start option;
-  elems : elem_segment list;
-  datas : data_segment list;
-  imports : import list;
-  exports : export list;
-}
-
-
-(* Auxiliary functions *)
-
-let empty_module =
-{
-  types = [];
-  globals = [];
-  tables = [];
-  memories = [];
-  funcs = [];
-  start = None;
-  elems = [];
-  datas = [];
-  imports = [];
-  exports = [];
-}
-
-open Source
-
-let func_type_for (m : module_) (x : var) : func_type =
-  (Lib.List32.nth m.it.types x.it).it
-
-let import_type (m : module_) (im : import) : extern_type =
-  let {idesc; _} = im.it in
-  match idesc.it with
-  | FuncImport x -> ExternFuncType (func_type_for m x)
-  | TableImport t -> ExternTableType t
-  | MemoryImport t -> ExternMemoryType t
-  | GlobalImport t -> ExternGlobalType t
-
-let export_type (m : module_) (ex : export) : extern_type =
-  let {edesc; _} = ex.it in
-  let its = List.map (import_type m) m.it.imports in
-  let open Lib.List32 in
-  match edesc.it with
-  | FuncExport x ->
-    let fts =
-      funcs its @ List.map (fun f -> func_type_for m f.it.ftype) m.it.funcs
-    in ExternFuncType (nth fts x.it)
-  | TableExport x ->
-    let tts = tables its @ List.map (fun t -> t.it.ttype) m.it.tables in
-    ExternTableType (nth tts x.it)
-  | MemoryExport x ->
-    let mts = memories its @ List.map (fun m -> m.it.mtype) m.it.memories in
-    ExternMemoryType (nth mts x.it)
-  | GlobalExport x ->
-    let gts = globals its @ List.map (fun g -> g.it.gtype) m.it.globals in
-    ExternGlobalType (nth gts x.it)
-
-let string_of_name n =
-  let b = Buffer.create 16 in
-  let escape uc =
-    if uc < 0x20 || uc >= 0x7f then
-      Buffer.add_string b (Printf.sprintf "\\u{%02x}" uc)
-    else begin
-      let c = Char.chr uc in
-      if c = '\"' || c = '\\' then Buffer.add_char b '\\';
-      Buffer.add_char b c
-    end
-  in
-  List.iter escape n;
-  Buffer.contents b
-
-  
-
-
-
-
-
-
-  
-  import star.
-
-  public wSize ::= .w32 | .w64.
-
-  public wSign ::= .unsigned | .signed.
-
