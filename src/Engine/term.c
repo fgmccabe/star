@@ -60,10 +60,10 @@ termPo nthArg(normalPo term, int64 ix) {
   check(ix >= 0 && ix < termArity(term), "out of bounds");
   return term->args[ix];
 }
-
-termPo nthElem(normalPo term, integer ix) {
-  return term->args[ix];
-}
+//
+//termPo nthElem(normalPo term, integer ix) {
+//  return term->args[ix];
+//}
 
 void setArg(normalPo term, int64 ix, termPo arg) {
   check(ix >= 0 && ix < termArity(term), "out of bounds");

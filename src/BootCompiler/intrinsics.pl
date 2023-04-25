@@ -18,6 +18,9 @@ isIntrinsic("_flt_abs",funType(tplType([type("star.core*float")]),type("star.cor
 isIntrinsic("_int_eq",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*boolean")),iIEq).  % integer equality
 isIntrinsic("_int_lt",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*boolean")),iILt).  % integer less than
 isIntrinsic("_int_ge",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*boolean")),iIGe).  % integer greater or equal
+isIntrinsic("_chr_eq",funType(tplType([type("star.core*char"),type("star.core*char")]),type("star.core*boolean")),iCEq).  % character equality
+isIntrinsic("_chr_lt",funType(tplType([type("star.core*char"),type("star.core*char")]),type("star.core*boolean")),iCLt).  % character less than
+isIntrinsic("_chr_ge",funType(tplType([type("star.core*char"),type("star.core*char")]),type("star.core*boolean")),iCGe).  % character greater or equal
 isIntrinsic("_flt_eq",funType(tplType([type("star.core*float"),type("star.core*float"),type("star.core*float")]),type("star.core*boolean")),iFEq).  % float equality
 isIntrinsic("_flt_lt",funType(tplType([type("star.core*float"),type("star.core*float")]),type("star.core*boolean")),iFLt).  % float less than
 isIntrinsic("_flt_ge",funType(tplType([type("star.core*float"),type("star.core*float")]),type("star.core*boolean")),iFGe).  % float greater or equal

@@ -9,6 +9,7 @@
 #include <globals.h>
 #include <turm.h>
 #include <arithP.h>
+#include "char.h"
 #include "engineP.h"
 #include "debugP.h"
 #include <math.h>
@@ -859,6 +860,40 @@ retCode run(processPo P) {
         assert(validPC(FP->prog, exit));
 
         if (integerVal(i) != integerVal(j))
+          PC = exit;
+        continue;
+      }
+      case CEq: {
+        termPo Lhs = pop();
+        termPo Rhs = pop();
+
+        termPo Rs = (charVal(Lhs) == charVal(Rhs) ? trueEnum : falseEnum);
+        push(Rs);
+        continue;
+      }
+      case CLt: {
+        termPo Lhs = pop();
+        termPo Rhs = pop();
+
+        termPo Rs = (charVal(Lhs) < charVal(Rhs) ? trueEnum : falseEnum);
+        push(Rs);
+        continue;
+      }
+      case CGe: {
+        termPo Lhs = pop();
+        termPo Rhs = pop();
+
+        termPo Rs = (charVal(Lhs) >= charVal(Rhs) ? trueEnum : falseEnum);
+        push(Rs);
+        continue;
+      }
+      case CCmp: {
+        termPo i = pop();
+        termPo j = pop();
+        insPo exit = collectOff(PC);
+        assert(validPC(FP->prog, exit));
+
+        if (charVal(i) != charVal(j))
           PC = exit;
         continue;
       }

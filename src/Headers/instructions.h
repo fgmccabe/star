@@ -89,6 +89,11 @@ instruction(ILt, tOs, tO1, -1, "L R --> L<R")
 instruction(IGe, tOs, tO1, -1, "L R --> L>=R")
 instruction(ICmp, off, tO1, -2, "L R --> break if not same integer")
 
+instruction(CEq, tOs, tO1, -1, "L R --> L==R")
+instruction(CLt, tOs, tO1, -1, "L R --> L<R")
+instruction(CGe, tOs, tO1, -1, "L R --> L>=R")
+instruction(CCmp, off, tO1, -2, "L R --> break if not same character")
+
 instruction(BAnd, tOs, tO1, -1, "L R --> L&R")
 instruction(BOr, tOs, tO1, -1, "L R --> L|R")
 instruction(BXor, tOs, tO1, -1, "L R --> L^R")

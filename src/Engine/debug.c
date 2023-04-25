@@ -1156,7 +1156,7 @@ static void dumpInsCounts(){
     integer total = 0;
     for(int ax=0;ax<illegalOp;ax++){
       if(insCounts[ax]!=0){
-        outMsg(logFile," %s: %d\n",insNames[ax],insCounts[ax]);
+        outMsg(logFile," %s: %ld\n",insNames[ax],insCounts[ax]);
         total+=insCounts[ax];
       }
     }
