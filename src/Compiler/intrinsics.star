@@ -25,6 +25,9 @@ star.compiler.intrinsics{
     "_int_eq" => ? (.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),boolType),.iIEq, .false, .notLast).  -- integer equality
     "_int_lt" => ? (.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),boolType),.iILt, .false, .notLast).  -- integer less than
     "_int_ge" => ? (.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),boolType),.iIGe, .false, .notLast).  -- integer greater or equal
+    "_chr_eq" => ? (.tpExp(.tpExp(.tpFun("=>",2),.tupleType([chrType,chrType])),boolType),.iCEq, .false, .notLast).  -- character equality
+    "_chr_lt" => ? (.tpExp(.tpExp(.tpFun("=>",2),.tupleType([chrType,chrType])),boolType),.iCLt, .false, .notLast).  -- character less than
+    "_chr_ge" => ? (.tpExp(.tpExp(.tpFun("=>",2),.tupleType([chrType,chrType])),boolType),.iCGe, .false, .notLast).  -- character greater or equal
     "_flt_eq" => ? (.tpExp(.tpExp(.tpFun("=>",2),.tupleType([fltType,fltType,fltType])),boolType),.iFEq, .false, .notLast).  -- float equality
     "_flt_lt" => ? (.tpExp(.tpExp(.tpFun("=>",2),.tupleType([fltType,fltType])),boolType),.iFLt, .false, .notLast).  -- float less than
     "_flt_ge" => ? (.tpExp(.tpExp(.tpFun("=>",2),.tupleType([fltType,fltType])),boolType),.iFGe, .false, .notLast).  -- float greater or equal

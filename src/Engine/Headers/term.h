@@ -12,9 +12,12 @@ typedef struct special_class *specialClassPo;
 
 typedef struct program_label_ *labelPo;
 
-typedef struct normal_term *normalPo;
-
 typedef struct term_record **ptrPo, *termPo;      /* pointer to a structured value */
+
+typedef struct normal_term {
+  labelPo lbl;                // Overlays clss - because it is the term's class
+  termPo args[ZEROARRAYSIZE];
+} Normal, *normalPo;
 
 typedef struct class_record *clssPo;
 
@@ -44,7 +47,11 @@ integer termSize(normalPo t);
 integer termArity(normalPo term);
 
 termPo nthArg(normalPo term, integer ix);
-termPo nthElem(normalPo term, integer ix);
+
+static inline termPo nthElem(normalPo term, integer ix) {
+  return term->args[ix];
+}
+
 void setArg(normalPo term, integer ix, termPo arg);
 
 extern termPo falseEnum;
@@ -61,28 +68,28 @@ typedef enum {
   fltTg = 3
 } PtrTag;
 
-static inline PtrTag pointerTag(termPo t){
-  return (PtrTag)(((uinteger)t)&3ul);
+static inline PtrTag pointerTag(termPo t) {
+  return (PtrTag) (((uinteger) t) & 3ul);
 }
 
-static inline logical isPointer(termPo t){
-  return pointerTag(t)==ptrTg;
+static inline logical isPointer(termPo t) {
+  return pointerTag(t) == ptrTg;
 }
 
-static inline integer ptrPayload(termPo t){
-  switch(pointerTag(t)){
+static inline integer ptrPayload(termPo t) {
+  switch (pointerTag(t)) {
     case ptrTg:
-      return (integer)t;
+      return (integer) t;
     case intTg:
     case chrTg:
-      return (((integer)t)>>2l);
+      return (((integer) t) >> 2l);
     case fltTg:
-      return (integer)(((uint64)t)&(((uint64)-1)<<2ul));
+      return (integer) (((uint64) t) & (((uint64) -1) << 2ul));
   }
 }
 
 static inline clssPo classOf(termPo obj) {
-  switch(pointerTag(obj)){
+  switch (pointerTag(obj)) {
     case ptrTg:
       return obj->clss;
     case intTg:

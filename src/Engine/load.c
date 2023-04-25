@@ -339,35 +339,7 @@ static retCode writeIntOperand(ioPo in, wordBufferPo bfr, integer *ix) {
   return ret;
 }
 
-static retCode writeLitOperand(ioPo in, wordBufferPo bfr, integer *ix) {
-  integer and;
-  retCode ret = decodeInteger(in, &and);
-  writeOperand(bfr, (uint32) and);
-  (*ix)++;
-  return ret;
-}
-
-static retCode decodeIns(ioPo in, wordBufferPo bfr, integer *ix, integer *si, char *errorMsg, long msgSize);
-
-static retCode writeBlocks(ioPo in, wordBufferPo bfr, integer *ix, integer *si, char *errorMsg, long msgSize) {
-  integer count;
-  retCode ret = decodeInteger(in, &count);
-  writeOperand(bfr, (uint32) count);
-  (*ix)++;
-  integer pos;
-  reserveBufferSpace(bfr, count * 2, &pos);
-
-  (*ix) += count;
-
-  for (integer i = 0; ret == Ok && i < count; i++) {
-    integer pc = *ix;
-    writeIntoBuffer(bfr, pc, *ix);
-    ret = decodeIns(in, bfr, ix, si, errorMsg, msgSize);
-  }
-  return ret;
-}
-
-retCode decodeIns(ioPo in, wordBufferPo bfr, integer *ix, integer *si, char *errorMsg, long msgSize) {
+static retCode decodeIns(ioPo in, wordBufferPo bfr, integer *ix, integer *si, char *errorMsg, long msgSize) {
   integer op, and;
   char escNm[MAX_SYMB_LEN];
   retCode ret = decodeInteger(in, &op);
@@ -381,7 +353,6 @@ retCode decodeIns(ioPo in, wordBufferPo bfr, integer *ix, integer *si, char *err
 #define sztO1
 #define szart if(ret==Ok){ret =  writeIntOperand(in,bfr,ix);}
 #define szi32 if(ret==Ok){ret = writeIntOperand(in,bfr,ix);}
-#define szlBs if(ret==Ok){ret = writeBlocks(in,bfr,ix,si,errorMsg,msgSize);}
 #define szarg if(ret==Ok){ret = writeIntOperand(in,bfr,ix); }
 #define szlcl if(ret==Ok){ret = writeIntOperand(in,bfr,ix); }
 #define szlcs if(ret==Ok){ret = writeIntOperand(in,bfr,ix);}
@@ -406,7 +377,6 @@ retCode decodeIns(ioPo in, wordBufferPo bfr, integer *ix, integer *si, char *err
 
 #undef instruction
 #undef szi32
-#undef szlBs
 #undef szart
 #undef szarg
 #undef szlcl

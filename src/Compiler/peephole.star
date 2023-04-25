@@ -105,6 +105,7 @@ star.compiler.peephole{
   opTgt(.iCLbl(_,Lb)) => ?Lb.
   opTgt(.iUnpack(_,Lb)) => ?Lb.
   opTgt(.iICmp(Lb)) => ?Lb.
+  opTgt(.iCCmp(Lb)) => ?Lb.
   opTgt(.iFCmp(Lb)) => ?Lb.
   opTgt(.iCmp(Lb)) => ?Lb.
   opTgt(.iIf(Lb)) => ?Lb.
@@ -116,6 +117,7 @@ star.compiler.peephole{
   reTgt(.iCLbl(T,_),Lb) => .iCLbl(T,Lb).
   reTgt(.iUnpack(T,_),Lb) => .iUnpack(T,Lb).
   reTgt(.iICmp(_),Lb) => .iICmp(Lb).
+  reTgt(.iCCmp(_),Lb) => .iCCmp(Lb).
   reTgt(.iFCmp(_),Lb) => .iFCmp(Lb).
   reTgt(.iCmp(_),Lb) => .iCmp(Lb).
   reTgt(.iIf(_),Lb) => .iIf(Lb).

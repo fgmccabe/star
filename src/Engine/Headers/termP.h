@@ -9,11 +9,6 @@
 #include "term.h"
 #include "code.h"
 
-typedef struct normal_term {
-  labelPo lbl;                // Overlays clss - because it is the term's class
-  termPo args[ZEROARRAYSIZE];
-} Normal;
-
 #define NormalCellCount(arity) CellCount(sizeof(Normal)+(arity)*sizeof(termPo))
 
 // Some typedefs to help with working with classes

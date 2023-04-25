@@ -304,6 +304,22 @@ retCode jit_ILt(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo
   return Error;
 }
 
+retCode jit_CCmp(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_CEq(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_CGe(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_CLt(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
 retCode jit_BAnd(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
   return Error;
 }

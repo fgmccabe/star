@@ -26,6 +26,10 @@ intrinsic(_int_eq,"F(ii)l","IEq",False,NotLast,"integer equality")
 intrinsic(_int_lt,"F(ii)l","ILt",False,NotLast,"integer less than")
 intrinsic(_int_ge,"F(ii)l","IGe",False,NotLast,"integer greater or equal")
 
+intrinsic(_chr_eq,"F(cc)l","CEq",False,NotLast,"character equality")
+intrinsic(_chr_lt,"F(cc)l","CLt",False,NotLast,"character less than")
+intrinsic(_chr_ge,"F(cc)l","CGe",False,NotLast,"character greater or equal")
+
 intrinsic(_flt_eq,"F(fff)l","FEq",False,NotLast,"float equality")
 intrinsic(_flt_lt,"F(ff)l","FLt",False,NotLast,"float less than")
 intrinsic(_flt_ge,"F(ff)l","FGe",False,NotLast,"float greater or equal")
