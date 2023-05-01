@@ -20,6 +20,16 @@ star.finger{
 
   node[a] ::= .node2(integer,a,a) | .node3(integer,a,a,a).
 
+  contract all t,e ~~ reduce[t->>e] ::= {
+    reducer:all a ~~ ((e,a)=>a) => (t,a) => a.
+    reducel:all a ~~ ((e,a)=>a) => (t,a) => a.
+  }
+
+  implementation all e ~~ reduce[cons[e]->>e] => {
+    reducer(F) => (L,U) => foldRight(F,U,L).
+    reducel(F) => (L,U) => foldLeft(F,U,L).
+  }
+
   implementation all e ~~ reduce[node[e]->>e] => {
     reducer = reducerNode.
     reducel = reducelNode.

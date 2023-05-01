@@ -9,11 +9,6 @@ star.collection{
     foldLeft:all x ~~ (((e,x)=>x),x,c) => x.
   }
 
-  public contract all t,e ~~ reduce[t->>e] ::= {
-    reducer:all a ~~ ((e,a)=>a) => (t,a) => a.
-    reducel:all a ~~ ((e,a)=>a) => (t,a) => a.
-  }
-
   public contract all c,e ~~ filter[c->>e] ::= {
     (^/):(c,(e)=>boolean) => c.
   }
@@ -85,11 +80,6 @@ star.collection{
     foldLeft(F,U,.nil) => U.
     foldLeft(F,U,.cons(H,T)) => foldLeft(F,F(H,U),T).
  .}
-
-  public implementation all e ~~ reduce[cons[e]->>e] => {
-    reducer(F) => (L,U) => foldRight(F,U,L).
-    reducel(F) => (L,U) => foldLeft(F,U,L).
-  }
 
   public implementation all e ~~ ixfold[cons[e] ->> integer,e] => {
     ixRight(F,Z,L) => let{.
