@@ -18,7 +18,8 @@ types.
 @section What is a Type?
 
 @quotation
-A Type is an expression that denotes a collection of values.
+A Type is an expression that denotes a collection of
+values.@footnote{Not a set of values: some collections are not sets.}
 @end quotation
 
 @quotation TIP
@@ -27,9 +28,9 @@ confused with normal expressions. Types generally play no part in
 evaluation.
 @end quotation
 
-Viewed as collections, types have some particular properties: no value may be
-a member of more than one type collection; all values are members of exactly
-one type collection.
+Viewed as collections, types have some particular properties: no value
+may be a member of more than one type collection; all values are
+members of exactly one type collection.
 
 A @refer{TypeDefinition} introduces a new type and defines what values
 belong to the type. A @refer{TypeAnnotation} is an assertion that a
@@ -60,9 +61,8 @@ For example, the type expression
 (integer)=>string
 @end example
 
-denotes the set of functions that take an @code{integer} as an
-argument and produce a @code{string} value. Like the set of all
-integers, this set is also infinite in size.
+is the type of functions that take an @code{integer} as an
+argument and produce a @code{string} value.
 
 The language for denoting types is quite expressive. It is possible to
 have types that are parameterized; that is they are composed from
@@ -296,7 +296,7 @@ parameterized type.
 @anchor{typeInterface}
 
 Nominal types are associated with a @refer{FaceType} that denotes
-nthe @emph{interface} to the type.
+the @emph{interface} to the type.
 
 This interface contains all the fields that are defined in any of the
 @refer{RecordConstructor}s that are part of the
@@ -322,6 +322,10 @@ the fields defined in the @refer{RecordConstructor}s.
 
 This is one reason why a given field occurring in multiple
 @refer{RecordConstructor}s must have the same type.
+
+However, it can also mean that it is syntactically possible to
+reference a field of a record that does not exist. This results in a
+run-time error.
 @end quotation
 
 @node Structural Types
@@ -495,19 +499,14 @@ takes the form:
 (integer,string) => cons[string]
 @end example
 
-@node Raiseing Types
-@subsection Raiseing Types
+@node Raising Types
+@subsection Raising Types
 @cindex raises type
 @cindex type,raises
 
 @noindent
-The @code{raises} type is used to indicate a function type that may raise an exception.
-
-A function type denotes a function value. It takes the form of a
-possibly empty sequence of argument types -- denoting the types of the
-arguments to the function -- enclosed in parentheses; followed by the
-result type of the function. @refer{functionTypeFig} highlights the form
-of the function type:
+The @code{raises} type is used to indicate a function type that may
+raise an exception.
 
 @float BNT,raisesTypeFig
 @caption{Raises Type}
@@ -522,7 +521,7 @@ exception; this would be signaled using a type of the form:
 (integer) => integer raises string
 @end example
 
-Functions that raise exceptions may not be inferred: their type must
+Functions that raise exceptions may not be type inferred: their type must
 be explicitly declared; for example, the declaration:
 @example
 foo:(integer) => integer raises string
@@ -563,9 +562,10 @@ denoted constructor is a term constructor constructor or a record
 constructor.
 
 @quotation TIP
-Explicit @refer{ConstructorType}s are most used in the context of the signatures
-of @emph{abstract data types}: where a type and its constructors are
-@emph{exported} from a record.
+
+Explicit @refer{ConstructorType}s are most used in the context of the
+signatures of @emph{abstract data types}: where a type and its
+constructors are @emph{exported} from a record.
 @end quotation
 
 @node Reference Type
@@ -598,9 +598,12 @@ The type of a re-assignable variable takes the form:
 @example
 ref @refer{Type}
 @end example
-For example, given the declaration:
+For example, given the declaration for @code{ix} in the action:
 @example
-var Ix := 0
+valof@{
+  Ix := 0;
+  valis Ix!
+@}
 @end example
 
 the variable @code{Ix} has type @code{ref integer}; whereas the
@@ -734,9 +737,9 @@ quantifiers apply to type expressions.
 @end display
 @end float
 
-An existentially quantified type denotes a type within which there is
-an @emph{abstract type}: i.e., the type exists but the expression is
-not explicit about which type.
+An existentially quantified type indicates an @emph{abstract type}:
+i.e., the type exists but the expression is not explicit about which
+type.
 
 Existential types are most often used in the type signatures of
 abstract data types. For example, the term in the statement:
@@ -849,6 +852,14 @@ R.t
 where @code{R} is a @refer{Variable} whose type interface contains the
 type @code{t}.
 
+@quotation Note
+To be more precise, types are not values. So, it is technically
+meaningless to discuss a type being embedded in a record value.
+
+However, we can use the encapsulated type notation to @emph{identify}
+a type from a record value -- provided the reference is well formed.
+@end quotation
+
 More generally, an @refer{EncapsulatedType} reference may involve a
 sequence of field names where each intermediate field name varers to a
 sub-record:
@@ -856,10 +867,11 @@ sub-record:
 R.f1.f2.t
 @end example
 
-The @emph{value} of an encapsulated type is strictly opaque: it is
-assumed to be different to all other types. Which means that
-effectively @emph{only} the other fields of the record variable
-@code{R} contain functions and values that can be used in conjunction.
+The actual @emph{type} identified with an encapsulated type expression
+is strictly opaque: it is assumed to be different to all other
+types. Which means that effectively @emph{only} the other fields of
+the record variable @code{R} contain functions and values that can be
+used in conjunction.
 
 For example, consider the @code{group} type defined in:
 

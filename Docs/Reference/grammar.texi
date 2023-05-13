@@ -4,10 +4,12 @@
 @cindex ast
 
 The grammar of @Star{} is based on an @emph{operator precedence
-grammar}. This allows us to address the full grammar and semantics of
+grammar}. Commonly, operator precedence grammars are restricted to the
+arithmetic expression subset of a language; we use it for the whole of
+@Star{}. This allows us to address the full grammar and semantics of
 @Star{} in a layered approach. The grammar layer is focused on the
-@emph{well formed formedness} of @Star{} programs -- which
-expressions are syntactically valid even though they may not be type correct.
+@emph{well formed formedness} of @Star{} programs -- which expressions
+are syntactically valid even though they may not be type correct.
 
 In effect, the grammar layer represents the second layer (above the
 lexical layer) in the 'tower of semantics' that represents the full
@@ -28,8 +30,8 @@ it is simple to extend. The latter is particularly important in
 
 However, it also makes certain other aspects more challenging. In
 particular, an operator precedence grammar knows less about the
-program as it is parsed. This means that syntax errors are liable to
-less informative.
+program as it is parsed. This means that syntax error messages are
+liable to less informative.
 
 @node Operator Precedence Grammar
 @section Operator Precedence Grammar

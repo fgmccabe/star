@@ -12,6 +12,10 @@ expressions; the fundamental semantics of conditions is based on
 @emph{satisfiability} -- not @emph{evaluation}.  However, a
 @code{boolean}-valued expression @emph{may} act as a degenerate
 example of a condition.
+
+One way in which the difference matters is that conditions may have
+the effect of defining variables. This is particularly true for
+matching conditions.
 @end quotation
 
 @float BNF,conditionFormFig
@@ -82,44 +86,6 @@ then the condition in the equation:
 nameOf(P) where PP ?= P => PP.name
 @end example
 unwraps the optional value of @code{P} into the non-optional @code{PP}.
-
-
-@c @node Indexed Search Condition
-@c @subsection Indexed Search Condition
-@c @anchor{indexedSearchCondition} An @refer{IndexedSearchCondition} 
-@c is satisfied by finding elements of collections that match a pattern
-@c and where the index of the element within the collection is also
-@c matched against.
-
-@c @float BNF,indexedSearchFormFig
-@c @caption{Indexed Search Condition}
-@c @display
-@c @anchored{IndexedSearchCondition}::=@refer{Pattern} @code{->} @refer{Pattern} @code{in} @refer{Expression}
-@c @end display
-@c @end float
-
-@c The first pattern refers to the @emph{keys} in the collection and the
-@c second refers to the @emph{values}.
-
-@c @quotation Note
-@c The collection being searched must implement the @code{indexed_iter}
-@c contract -- see @refer{indexed_iterContractProg}.
-@c @end quotation
-
-@c @refer{IndexedSearchCondition}s allow the programmer to not only
-@c access the element of the collection but also its position within the
-@c collection. For example, the condition:
-@c @example
-@c (Ix->V where V>0 and Ix<10) in L
-@c @end example
-@c is satisfied for those elements in @code{L} which are greater than
-@c zero, and whose index is less than 10.
-
-@c @quotation Note
-@c One of the important features of the @refer{IndexedSearchCondition} is
-@c that it could potentially be satisfied for each element of the
-@c collection -- depending, of course, on the patterns involved.
-@c @end quotation
 
 @node Logical Combinations
 @section Logical Combinations
@@ -267,7 +233,12 @@ condition.
 @end quotation
 
 @quotation Note
-In the case that the @emph{test }is satisfiable; then only solutions from the @emph{then} branch will be considered for the overall query. Conversely, if the `test' is not satisfiable,@footnote{A normal @code{boolean}-valued expression is considered to be satisfiable iff it evaluates to @code{true}.} then only solutions from the @emph{else} branch will be used for the overall query.
+In the case that the @emph{test }is satisfiable; then only solutions
+from the @emph{then} branch will be considered for the overall
+query. Conversely, if the `test' is not satisfiable,@footnote{A normal
+@code{boolean}-valued expression is considered to be satisfiable iff
+it evaluates to @code{true}.} then only solutions from the @emph{else}
+branch will be used for the overall query.
 @end quotation
 
 For example, the @refer{ConditionalCondition} above defines the
@@ -295,7 +266,8 @@ For example, in:
 if (X where X>0,Y where Y<X).=Foo then @dots{}
 @end example
 there are two embedded @code{where} clauses, governing the matches for
-@code{X} and @code{Y} inside the tuple pair. This condition is equivalent to the conjunction:
+@code{X} and @code{Y} inside the tuple pair. This condition is
+equivalent to the conjunction:
 
 @example
 if (X,Y).=Foo && X>0 && Y<X then @dots{}

@@ -24,8 +24,8 @@ particular, the so-called @emph{surrogate pairs} are not legal in
 @quotation Note
 We use the term @emph{CodePoint} to refer to a Unicode Scalar Value --
 the former being easier to say than the latter. However, @Star{} does
-not support surrogate pairs; hence @Star{} code points are technically
-Unicode Scalar Values.
+not support isolated surrogate codes; hence @Star{} code points
+are technically Unicode Scalar Values.
 @end quotation
 
 @quotation Note
@@ -259,14 +259,7 @@ A @var{CharacterCode} has type @code{integer}.
 
 @noindent
 A @code{string} consists of a sequence of characters -- specifically
-@refer{CharRef}s. There is no specific type for the characters
-themselves -- instead, there are primitives for accessing individual
-code points as @code{integer}s.
-
-@quotation CAUTION
-The reasons for this are due to the fact that Unicode @code{string}
-values cannot be easily represented as a unique sequence of code points.
-@end quotation
+@refer{CharRef}s.
 
 @node Character Literals
 @subsection Character Literals
@@ -645,7 +638,8 @@ There are several @emph{special} sets of brackets:
 @anchored{SpecialBracket} ::= @code{(|} | @code{|)} |
   @code{[|} | @code{|]} |
   @code{<|} | @code{|>} |
-  @code{@{!} | @code{!@}} | @code{@{?} | @code{?@}}
+  @code{@{!} | @code{!@}} |
+  @code{@{?} | @code{?@}}
 @end display
 @end float
 

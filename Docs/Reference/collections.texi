@@ -1,15 +1,15 @@
 @node Collections
 @chapter Collections
 
-This chapter defines the standard collection types. Note that all the
-functions that are implemented over collection types are exposed via
-contract implementations.
+This chapter defines the standard collection types. Note that many of
+the functions that are implemented over collection types are exposed
+via contract implementations.
 
 @node Collection Types
 @section Collection Types
 
-There are four basic collection types supported: @code{cons} lists, an
-array-like @code{list} type, @code{map} type and the @code{set} type.
+There are three basic collection types supported: @code{cons} lists,
+the @code{map} type and the @code{set} type.
 
 @node The Cons List
 @subsection The Cons List

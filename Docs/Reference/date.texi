@@ -62,11 +62,17 @@ over' every 73117 years.
 
 @subsection The @code{comp} contract
 
-@subsection The @code{coercion} contract
+@c @subsection The @code{coercion} contract
 
-Coercion 
+@c Coercion is supported between 
 
 @subsection The @code{display} contract
+
+Times are displayed according to the standard format:
+
+@example
+www dd/mmm/yyyy hh:MM:SS aa
+@end example
 
 @subsection The @code{format} contract
 
