@@ -144,21 +144,6 @@ ReturnStatus g__time2utc(heapPo h, termPo a1) {
   return (ReturnStatus) {.ret=Ok, .result= (termPo) dte};
 }
 
-ReturnStatus g__fmttime(heapPo h, termPo a1, termPo a2) {
-  time_t when = (time_t) floatVal(a1);
-  char fmt[256];
-  if (copyChars2Buff(C_STR(a2), fmt, NumberOf(fmt)) == Ok) {
-    struct tm *now = localtime(&when);
-
-    char stamp[256];
-    strftime(stamp, 256, fmt, now);
-
-    return (ReturnStatus) {.ret=Ok, .result=allocateCString(h, stamp)};
-  } else {
-    return (ReturnStatus) {.ret=Error, .result=voidEnum};
-  }
-}
-
 static retCode formatDate(ioPo out, const char *fmt, integer fmtLen, struct tm *time);
 
 ReturnStatus g__formattime(heapPo h, termPo a1, termPo a2) {
@@ -587,7 +572,7 @@ ReturnStatus g__parsetime(heapPo h, termPo a1, termPo a2) {
 
   if (ret == Ok) {
     time_t tm = mktime(&time);
-    return (ReturnStatus) {.ret=Ok, .result=(termPo)wrapSome(h,makeFloat((double) tm))};
+    return (ReturnStatus) {.ret=Ok, .result=(termPo) wrapSome(h, makeFloat((double) tm))};
   } else {
     return (ReturnStatus) {.ret=Error, .result=voidEnum};
   }

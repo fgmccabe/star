@@ -14,7 +14,7 @@ star.date{
   ticks() => _ticks().
 
   public implementation display[time] => {
-    disp(.time(Tm)) => _fmttime(Tm,"%a %e/%b/%Y %X").
+    disp(.time(Tm)) => _formattime(Tm,"www dd/mmm/yyyy hh:MM:SS aa").
   }
 
   public implementation format[time] => {
