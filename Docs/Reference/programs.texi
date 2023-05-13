@@ -2,9 +2,9 @@
 @chapter Programs
 
 This chapter focuses on the organization of programs using functions,
-types and other computational forms. Apart from program values
-themselves, a key concept is the @refer{ThetaEnvironment}. This is
-where many functions, types etc. are defined.
+types and other computational forms. Definitions occur at the
+top-level of a @refer{Package}, but also within functions in
+@refer{Let Expressions} and @refer{LetAction}.
 
 
 @node Package Structure
@@ -39,6 +39,11 @@ may also include @refer{ImportStatement}s.
 @anchored{PackageName} ::= @refer{Identifier} @code{.} @dots{} @code{.} @refer{Identifier}
 @end display
 @end float
+
+Package names are not first class entities in @Star{}: they are
+refered to in some external structures -- such as catalogs and
+repositories. They are also referred to within programs in the context
+of @refer{ImportStatement}s.
 
 @node Managing Exposed Elements of a Package
 @subsection Managing Exposed Elements of a Package
