@@ -391,8 +391,7 @@ star.compiler.types{
   public enumType(A) => .tpExp(.tpExp(.tpFun("<=>",2),.tupleType([])),A).
   public lstType(Tp) => .tpExp(.tpFun("star.core*cons",1),Tp).
   public refType(Tp) => .tpExp(.tpFun("star.core*ref",1),Tp).
-  public thunkType(T) => makeTpExp("star.core*thunk",[T]).
-  public fiberType(R,S) => mkTypeExp(.tpFun("star.fiber*fiber",2),[R,S]).
+  public continType(A,B) => .tpExp(.tpExp(.tpFun("=>>",2),A),B).
 
   public funTypeArg(Tp) where
       .tpExp(O,_) .= deRef(Tp) &&

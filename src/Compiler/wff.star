@@ -144,6 +144,11 @@ star.compiler.wff{
   isContTp(A) => ( (Lc,Op,[Arg]) ?= isSquareTerm(A)  && (_,"cont") ?= isName(Op)
     ?? ?(Lc,Arg) || .none).
 
+  public isContinType:(ast) => option[(option[locn],ast,ast)].
+  isContinType(A) => isBinary(A,"=>>").
+
+  public mkContinType(Lc,A,B) => binary(Lc,"=>>",A,B).
+
   public mkContType:(option[locn],ast) => ast.
   mkContType(Lc,Lhs) => squareTerm(Lc,.nme(Lc,"cont"),[Lhs]).
 
@@ -768,6 +773,10 @@ star.compiler.wff{
 
   public mkInvoke(Lc,Op,As) => binary(Lc,".",Op,rndTuple(Lc,As)).
 
+  public isContinEqn(A) => isBinary(A,"=>>").
+
+  public mkContinEqn(Lc,A,B) => binary(Lc,"=>>",A,B).
+
   public isPerform:(ast) => option[(option[locn],ast)].
   isPerform(A) => isUnary(A,"perform").
 
@@ -787,7 +796,7 @@ star.compiler.wff{
   isTryWith(A) where (Lc,I) ?= isUnary(A,"try") &&
       (_,B,H) ?= isBinary(I,"with") &&
 	  (_,Hs) ?= isBrTuple(H) =>
-    ([El].=Hs ?? .some((Lc,B,deBar(El))) || .some((Lc,B,Hs))).
+   ([El].=Hs ?? .some((Lc,B,deBar(El))) || .some((Lc,B,Hs))).
   isTryWith(_) default => .none.
 
   public mkTryWith(Lc,B,Hs) =>

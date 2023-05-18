@@ -763,6 +763,26 @@ star.compiler.checker{
       valis .lambda(Lc,LName,[.rule(Lc,As,ACnd,Rep)],Tp)
     }
   }
+
+  typeOfExp(A,Tp,Env,Path) where (Lc,Ar,R) ?= isContinEqn(A) => valof{
+    At = newTypeVar("_A");
+    Rt = newTypeVar("_R");
+
+    if traceCanon! then
+      logMsg("check continuation lambda $(A)\:$(Tp)");
+
+    (Q,ETp) = evidence(Tp,Env);
+    (Cx,ProgTp) = deConstrain(ETp);
+    Es = declareConstraints(Lc,Cx,declareTypeVars(Q,Env));
+
+    checkType(A,continType(At,Rt),ProgTp,Es);
+    
+    (As,ACnd,E0) = typeOfArgPtn(Ar,At,Es,Path);
+
+    LName = genId(Path++"ϰ");
+    Rep = typeOfExp(R,Rt,E0,Path);
+    valis .contion(Lc,LName,.rule(Lc,As,.none,Rep),Tp)
+  }
   typeOfExp(A,Tp,Env,Pth) where (Lc,Op,Els) ?= isLabeledTheta(A) && (_,Nm)?=isName(Op) => valof{
     FceTp = newTypeVar("_");
     ConTp = consType(FceTp,Tp);
@@ -832,6 +852,21 @@ star.compiler.checker{
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,Op,Args) ?= isRoundTerm(A) =>
     typeOfRoundTerm(Lc,Op,Args,Tp,Env,Path).
+  typeOfExp(A,Tp,Env,Path) where (Lc,Op,As) ?= isInvoke(A) => valof{
+    Vrs = genTpVars(As);
+    At = .tupleType(Vrs);
+    ExTp = newTypeVar("F");
+    Fun = typeOfExp(Op,ExTp,Env,Path);
+    FnTp = continType(At,Tp);
+
+    if sameType(ExTp,FnTp,Env) then{
+      Args = typeOfExps(As,Vrs,[],Env,Path);      
+      valis .nvoke(Lc,Fun,Args,Tp)
+    } else{
+      reportError("type of $(Op)\:$(ExTp) not consistent with $(FnTp)",Lc);
+      valis .vr(Lc,"_",Tp)
+    }
+  }
   typeOfExp(A,Tp,Env,Path) where (Lc,Ac) ?= isValof(A) => valof{
     (Act,_) = checkAction(Ac,Tp,Env,Path);
     valis .vlof(Lc,Act,Tp)

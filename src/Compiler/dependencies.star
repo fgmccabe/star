@@ -338,6 +338,8 @@ star.compiler.dependencies{
     collectTermRefs(R,All,collectTermRefs(L,All,collectCondRefs(T,All,Rf))).
   collectTermRefs(T,All,Rf) where (_,_,L,C,R) ?= isLambda(T) =>
     collectTermRefs(R,All,collectHeadRefs(L,C,All,Rf)).
+  collectTermRefs(T,All,Rf) where (_,L,R) ?= isContinEqn(T) =>
+    collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,L,R) ?= isWhere(T) =>
     collectCondRefs(R,All,collectTermRefs(L,All,Rf)).
   collectTermRefs(A,All,Rf) where (_,R) ?= isOpen(A) => 
@@ -449,6 +451,8 @@ star.compiler.dependencies{
   collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isConstructorType(T) =>
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
   collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isFunctionType(T) =>
+    collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
+  collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isContinType(T) =>
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
   collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isBinary(T,"->>") =>
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).

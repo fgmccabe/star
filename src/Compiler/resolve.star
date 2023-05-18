@@ -208,6 +208,17 @@ star.compiler.resolve{
     (RArgs,St2) = overloadTplEls(Args,Dict,St1);
     valis (.apply(lc,ROp,RArgs,Tp),St2)
   }
+  overloadTerm(.nvoke(lc,.over(OLc,T,Cx),Args,Tp),Dict,St) => valof{
+    (DArg,St1) = resolveConstraint(OLc,Cx,Dict,St);
+    (RArgs,St2) = overloadTplEls(Args,Dict,St1);
+    (OverOp,NArgs,St3) = resolveRef(T,DArg,RArgs,Dict,St2);
+    valis (.nvoke(lc,OverOp,NArgs,Tp),markResolved(St3))
+  }
+  overloadTerm(.nvoke(lc,Op,Args,Tp),Dict,St) => valof{
+    (ROp,St1) = overloadTerm(Op,Dict,St);
+    (RArgs,St2) = overloadTplEls(Args,Dict,St1);
+    valis (.nvoke(lc,ROp,RArgs,Tp),St2)
+  }
   overloadTerm(.match(Lc,Ptn,Src),Dict,St) => valof{
     (RPtn,St1) = overloadTerm(Ptn,Dict,St);
     (RSrc,St2) = overloadTerm(Src,Dict,St1);
@@ -234,8 +245,12 @@ star.compiler.resolve{
     valis (.cond(Lc,RTst,RLhs,RRhs),St3)
   }
   overloadTerm(.lambda(Lc,Nm,Rls,Tp),Dict,St) => valof{
-    (RRls,St1) = overloadRules(Rls,[],Dict,St);
+    (RRls,St1) = overloadRules(Rls,Dict,St);
     valis (.lambda(Lc,Nm,RRls,Tp),St1)
+  }
+  overloadTerm(.contion(Lc,Nm,Rl,Tp),Dict,St) => valof{
+    (RRl,St1) = overloadRule(Rl,Dict,St);
+    valis (.contion(Lc,Nm,RRl,Tp),St1)
   }
   overloadTerm(.letExp(Lc,Gp,Decls,Rhs),Dict,St) => valof{
     (RDfs,_) = overloadGroup(Gp,Dict);
@@ -249,14 +264,14 @@ star.compiler.resolve{
   }
   overloadTerm(.csexp(Lc,Gov,Cases,Tp),Dict,St) => valof{
     (RGov,St1) = overloadTerm(Gov,Dict,St);
-    (RCases,St2) = overloadRules(Cases,[],Dict,St1);
+    (RCases,St2) = overloadRules(Cases,Dict,St1);
     valis (.csexp(Lc,RGov,RCases,Tp),St2)
   }
   overloadTerm(.trycatch(Lc,A,.vr(TLc,Tnm,TTp),Hs,Tp),Dict,St) => valof{
     TDict = declareVar(Tnm,Tnm,TLc,TTp,.none,Dict);
     (TT,St0) = overloadTerm(.vr(TLc,Tnm,TTp),TDict,St);
     (AA,St1) = overloadTerm(A,TDict,St0);
-    (HH,St2) = overloadRules(Hs,[],Dict,St1);
+    (HH,St2) = overloadRules(Hs,Dict,St1);
     valis (.trycatch(Lc,AA,TT,HH,Tp),St2)
   }
   overloadTerm(.rais(Lc,E,T,Tp),Dict,St) => valof{
@@ -338,7 +353,7 @@ star.compiler.resolve{
     TDict = declareVar(Tnm,Tnm,TLc,TTp,.none,Dict);
     (TT,St1) = overloadTerm(.vr(TLc,Tnm,TTp),TDict,St);
     (AA,St2) = overloadAction(A,TDict,St1);
-    (HH,St3) = overloadRules(H,[],Dict,St2);
+    (HH,St3) = overloadRules(H,Dict,St2);
     valis (.doTryCatch(Lc,AA,TT,HH),St3)
   }
   overloadAction(.doIfThen(Lc,T,Th,El),Dict,St) => valof{
@@ -364,7 +379,7 @@ star.compiler.resolve{
   }
   overloadAction(.doCase(Lc,A,H),Dict,St) => valof{
     (AA,St1) = overloadTerm(A,Dict,St);
-    (HH,St2) = overloadRules(H,[],Dict,St1);
+    (HH,St2) = overloadRules(H,Dict,St1);
     valis (.doCase(Lc,AA,HH),St2)
   }
   overloadAction(.doCall(Lc,E),Dict,St) => valof{
@@ -395,24 +410,15 @@ star.compiler.resolve{
 
   addExtra(.tple(Lc,Els),Extra) => .tple(Lc,Extra++Els).
   
-  overloadRules:all x ~~ resolve[x] |: (cons[rule[x]],cons[rule[x]],
-    dict,resolveState)=>
+  overloadRules:all x ~~ resolve[x] |: (cons[rule[x]],dict,resolveState)=>
     (cons[rule[x]],resolveState).
-  overloadRules([],Els,Dict,St) => (reverse(Els),St).
-  overloadRules([.rule(Lc,Ptn,.none,Exp),..Ts],Els,Dict,St) => valof{
-    RDict = defineArgVars(Ptn,Dict);
-    (RPtn,St1) = overloadTerm(Ptn,RDict,St);
-    (RExp,St2) = resolve(Exp,RDict,St1);
-    valis overloadRules(Ts,[.rule(Lc,RPtn,.none,RExp),..Els],Dict,St2)
+  overloadRules([],Dict,St) => ([],St).
+  overloadRules([Rl,..Rls],Dict,St) => valof{
+    (ORl,OSt) = overloadRule(Rl,Dict,St);
+    (ORls,Stx) = overloadRules(Rls,Dict,OSt);
+    valis ([ORl,..ORls],Stx)
   }
-  overloadRules([.rule(Lc,Ptn,.some(Wh),Exp),..Ts],Els,Dict,St) => valof{
-    RDict = defineArgVars(Ptn,Dict);
-    (RPtn,St1) = overloadTerm(Ptn,RDict,St);
-    (RExp,St2) = resolve(Exp,RDict,St1);
-    (RWh,St3) = overloadTerm(Wh,RDict,St2);
-    valis overloadRules(Ts,[.rule(Lc,RPtn,.some(RWh),RExp),..Els],Dict,St3)
-  }
-  
+
   overloadTerms:all e ~~ resolve[e] |: (cons[e],cons[e],dict,resolveState) => (cons[e],resolveState).
   overloadTerms([],Els,Dict,St) => (reverse(Els),St).
   overloadTerms([T,..Ts],Els,Dict,St) => valof{
