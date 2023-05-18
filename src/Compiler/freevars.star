@@ -42,6 +42,8 @@ star.compiler.freevars{
       freeVarsInExp(L,Excl,Q,freeVarsInExp(R,Excl,Q,Fv1)).
     .apply(_,O,A,_) =>
       freeVarsInTuple(A,Excl,Q,freeVarsInExp(O,Excl,Q,Fv)).
+    .nvoke(_,O,A,_) =>
+      freeVarsInTuple(A,Excl,Q,freeVarsInExp(O,Excl,Q,Fv)).
     .tple(_,Els) => freeVarsInTuple(Els,Excl,Q,Fv).
     .match(_,P,S) where Excl1 .= extendExcl(P,Excl) =>
       freeVarsInExp(S,Excl1,Q,freeVarsInExp(P,Excl1,Q,Fv)).
@@ -54,6 +56,7 @@ star.compiler.freevars{
     .rais(_,T,E,_) => freeVarsInExp(T,Excl,Q,freeVarsInExp(E,Excl,Q,Fv)).
     .lambda(_,_,Eqns,_) =>
       foldRight((Rl,F)=>freeVarsInRule(Rl,freeVarsInExp,Excl,Q,F),Fv,Eqns).
+    .contion(_,_,Rl,_) => freeVarsInRule(Rl,freeVarsInExp,Excl,Q,Fv).
     .letExp(_,D,_,E) => let{
       XX = exclDfs(D,Excl,Fv)
     } in freeVarsInExp(E,XX,Q,freeVarsInDefs(D,Excl,Q,Fv)).

@@ -222,6 +222,8 @@ star.compiler.macro{
     mkImplies(Lc,macroTerm(L),macroTerm(R)).
   examineTerm(A) where (Lc,D,L,C,R) ?= isLambda(A) => 
     mkLambda(Lc,D,macroPtn(L),macroOpt(C,macroCond),macroTerm(R)).
+  examineTerm(A) where (Lc,L,R) ?= isContinEqn(A) =>
+    mkContinEqn(Lc,macroPtn(L),macroTerm(R)).
   examineTerm(A) where (Lc,S) ?= isValof(A) && (VLc,[As])?=isBrTuple(S) =>
     mkValof(Lc,brTuple(VLc,[macroAction(As)])).
   examineTerm(A) where (Lc,B,Hs) ?= isTryCatch(A) =>
@@ -244,6 +246,8 @@ star.compiler.macro{
     mkEnumCon(Lc,macroTerm(O),Els//macroTerm).
   examineTerm(A) where (Lc,O,Els) ?= isRoundTerm(A) => 
     roundTerm(Lc,macroTerm(O),Els//macroTerm).
+  examineTerm(A) where (Lc,O,Els) ?= isInvoke(A) =>
+    mkInvoke(Lc,macroTerm(O),Els//macroTerm).
   examineTerm(A) where (Lc,L,R) ?= isIndexTerm(A) =>
     mkIndexTerm(Lc,macroTerm(L),macroTerm(R)).
   examineTerm(A) where (Lc,L,F,R) ?= isSlice(A) => 
@@ -319,6 +323,8 @@ star.compiler.macro{
     mkConstructorType(Lc,macroType(L),macroType(R)).
   examineType(A) where (Lc,L,R) ?= isFunctionType(A) =>
     mkFunctionType(Lc,macroType(L),macroType(R)).
+  examineType(A) where (Lc,L,R) ?= isContinType(A) =>
+    mkContinType(Lc,macroType(L),macroType(R)).
   examineType(A) where (Lc,R) ?= isRef(A) =>
     mkRef(Lc,macroType(R)).
   examineType(A) where (Lc,L,R) ?= isTypeLambda(A) =>

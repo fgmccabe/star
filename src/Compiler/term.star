@@ -22,10 +22,12 @@ star.compiler.term{
   | .cNth(option[locn],cExp,integer,tipe)
   | .cSetNth(option[locn],cExp,integer,cExp)
   | .cClos(option[locn],string,integer,cExp,tipe)
+  | .cContin(option[locn],string,integer,cExp,tipe)
   | .cCall(option[locn],string,cons[cExp],tipe)
   | .cECall(option[locn],string,cons[cExp],tipe)
   | .cOCall(option[locn],cExp,cons[cExp],tipe)
   | .cRaise(option[locn],cExp,cExp,tipe)
+  | .cNvoke(option[locn],cExp,cons[cExp],tipe)
   | .cSeq(option[locn],cExp,cExp)
   | .cCnj(option[locn],cExp,cExp)
   | .cDsj(option[locn],cExp,cExp)
@@ -101,11 +103,13 @@ star.compiler.term{
     .cECall(_,Op,As,_) => "#(Op)ε(#(dsplyExps(As,Off)*))".
     .cOCall(_,Op,As,_) => "#(dspExp(Op,Off))·(#(dsplyExps(As,Off)*))".
     .cCall(_,Op,As,_) => "#(Op)(#(dsplyExps(As,Off)*))".
+    .cNvoke(_,Op,As,_) => "#(dspExp(Op,Off))..(#(dsplyExps(As,Off)*))".
     .cTerm(_,Op,As,_) where isTplLbl(Op) => "(#(dsplyExps(As,Off)*))".
     .cTerm(_,Op,As,_) => ".#(Op)(#(dsplyExps(As,Off)*))".
     .cNth(_,O,Ix,_) => "#(dspExp(O,Off)).$(Ix)".
     .cSetNth(_,O,Ix,E) => "(#(dspExp(O,Off)).$(Ix) <- #(dspExp(E,Off)))".
     .cClos(_,Nm,Ar,Fr,_) => "<#(Nm)/$(Ar)\:#(dspExp(Fr,Off))>".
+    .cContin(_,Nm,Ar,Fr,_) => "<#(Nm)/$(Ar)\:#(dspExp(Fr,Off))>".
     .cRaise(_,T,E,_) => "#(dspExp(T,Off)) raise #(dspExp(E,Off))".
     .cLtt(_,V,D,I) => valof{
       Off2=Off++"  ";
@@ -221,9 +225,11 @@ star.compiler.term{
     .cString(_,S1) => .cString(_,S2).=E2 && S1==S2.
     .cTerm(_,S1,A1,_) => .cTerm(_,S2,A2,_).=E2 && S1==S2 && eqs(A1,A2).
     .cClos(_,L1,A1,F1,_) => .cClos(_,L2,A2,F2,_).=E2 && L1==L2 && A1==A2 && eqTerm(F1,F2).
+    .cContin(_,L1,A1,F1,_) => .cContin(_,L2,A2,F2,_).=E2 && L1==L2 && A1==A2 && eqTerm(F1,F2).
     .cCall(_,S1,A1,_) => .cCall(_,S2,A2,_).=E2 && S1==S2 && eqs(A1,A2).
     .cECall(_,S1,A1,_) => .cECall(_,S2,A2,_).=E2 && S1==S2 && eqs(A1,A2).
     .cOCall(_,S1,A1,_) => .cOCall(_,S2,A2,_).=E2 && eqTerm(S1,S2) && eqs(A1,A2).
+    .cNvoke(_,S1,A1,_) => .cNvoke(_,S2,A2,_).=E2 && eqTerm(S1,S2) && eqs(A1,A2).
     .cRaise(_,T1,S1,_) => .cRaise(_,T2,S2,_).=E2 && T1==T2 && S1==S2.
     .cNth(_,R1,F1,_) => .cNth(_,R2,F2,_).=E2 && eqTerm(R1,R2) && F1==F2.
     .cSetNth(_,R1,Ix,V1) => .cSetNth(_,R2,Ix,V2).=E2 && eqTerm(R1,R2) && eqTerm(V1,V2).
@@ -319,6 +325,7 @@ star.compiler.term{
       .cSetNth(Lc,_,_,_) => Lc.
       .cTerm(Lc,_,_,_) => Lc.
       .cClos(Lc,_,_,_,_) => Lc.
+      .cContin(Lc,_,_,_,_) => Lc.
       .cMatch(Lc,_,_) => Lc.
       .cLtt(Lc,_,_,_) => Lc.
       .cCont(Lc,_,_,_) => Lc.
@@ -326,6 +333,7 @@ star.compiler.term{
       .cCall(Lc,_,_,_)=>Lc.
       .cECall(Lc,_,_,_)=>Lc.
       .cOCall(Lc,_,_,_)=>Lc.
+      .cNvoke(Lc,_,_,_)=>Lc.
       .cSeq(Lc,_,_) => Lc.
       .cCnj(Lc,_,_) => Lc.
       .cDsj(Lc,_,_) => Lc.
@@ -351,8 +359,10 @@ star.compiler.term{
       .cString(_,_) => strType.
       .cTerm(_,_,_,Tp) => Tp.
       .cClos(_,_,_,_,Tp) => Tp.
+      .cContin(_,_,_,_,Tp) => Tp.
       .cECall(_,_,_,Tp) => Tp.
       .cOCall(_,_,_,Tp) => Tp.
+      .cNvoke(_,_,_,Tp) => Tp.
       .cCall(_,_,_,Tp) => Tp.
       .cRaise(_,_,_,Tp) => Tp.
       .cNth(_,_,_,Tp) => Tp.
@@ -457,9 +467,11 @@ star.compiler.term{
       .cNth(Lc,R,Ix,Tp) =>.cNth(Lc,rwTerm(R,Tst),Ix,Tp).
       .cSetNth(Lc,R,Ix,E) =>.cSetNth(Lc,rwTerm(R,Tst),Ix,rwTerm(E,Tst)).
       .cClos(Lc,L,A,F,Tp) => .cClos(Lc,L,A,rwTerm(F,Tst),Tp).
+      .cContin(Lc,L,A,F,Tp) => .cContin(Lc,L,A,rwTerm(F,Tst),Tp).
       .cCall(Lc,Op,Args,Tp) => .cCall(Lc,Op,Args//(A)=>rwTerm(A,Tst),Tp).
       .cOCall(Lc,Op,Args,Tp) => .cOCall(Lc,rwTerm(Op,Tst),Args//(A)=>rwTerm(A,Tst),Tp).
       .cECall(Lc,Op,Args,Tp) => .cECall(Lc,Op,Args//(A)=>rwTerm(A,Tst),Tp).
+      .cNvoke(Lc,Op,Args,Tp) => .cNvoke(Lc,rwTerm(Op,Tst),Args//(A)=>rwTerm(A,Tst),Tp).
       .cRaise(Lc,Th,E,Tp) =>.cRaise(Lc,rwTerm(Th,Tst),rwTerm(E,Tst),Tp).
       .cSeq(Lc,L,R) =>.cSeq(Lc,rwTerm(L,Tst),rwTerm(R,Tst)).
       .cCnj(Lc,L,R) =>.cCnj(Lc,rwTerm(L,Tst),rwTerm(R,Tst)).
@@ -550,9 +562,11 @@ star.compiler.term{
     | .cNth(Lc,R,Ix,Tp) =>.cNth(Lc,frshnE(R,Sc),Ix,Tp)
     | .cSetNth(Lc,R,Ix,E) =>.cSetNth(Lc,frshnE(R,Sc),Ix,frshnE(E,Sc))
     | .cClos(Lc,L,A,F,Tp) => .cClos(Lc,L,A,frshnE(F,Sc),Tp)
+    | .cContin(Lc,L,A,F,Tp) => .cContin(Lc,L,A,frshnE(F,Sc),Tp)
     | .cCall(Lc,Op,Args,Tp) => .cCall(Lc,Op,frshnEs(Args,Sc),Tp)
     | .cOCall(Lc,Op,Args,Tp) => .cOCall(Lc,frshnE(Op,Sc),frshnEs(Args,Sc),Tp)
     | .cECall(Lc,Op,Args,Tp) => .cECall(Lc,Op,frshnEs(Args,Sc),Tp)
+    | .cNvoke(Lc,Op,Args,Tp) => .cNvoke(Lc,frshnE(Op,Sc),frshnEs(Args,Sc),Tp)
     | .cRaise(Lc,Th,E,Tp) =>.cRaise(Lc,frshnE(Th,Sc),frshnE(E,Sc),Tp)
     | .cSeq(Lc,L,R) =>.cSeq(Lc,frshnE(L,Sc),frshnE(R,Sc))
     | .cCnd(Lc,G,L,R) => valof{
@@ -816,9 +830,11 @@ star.compiler.term{
     .cNth(_,R,_,_) => validE(R,Vrs).
     .cSetNth(_,R,_,V) => validE(R,Vrs) && validE(V,Vrs).
     .cClos(_,_,_,F,_) => validE(F,Vrs).
+    .cContin(_,_,_,F,_) => validE(F,Vrs).
     .cCall(_,_,Args,_) => {? E in Args *> validE(E,Vrs) ?}.
     .cECall(_,_,Args,_) => {? E in Args *> validE(E,Vrs) ?}.
     .cOCall(_,Op,Args,_) => validE(Op,Vrs) && {? E in Args *> validE(E,Vrs) ?}.
+    .cNvoke(_,Op,Args,_) => validE(Op,Vrs) && {? E in Args *> validE(E,Vrs) ?}.
     .cRaise(_,T,E,_) => validE(T,Vrs) && validE(E,Vrs).
     .cSeq(_,L,R) => validE(L,Vrs) && validE(R,Vrs).
     .cCnj(_,L,R) => valof{
@@ -1010,9 +1026,12 @@ star.compiler.term{
     .cNth(_,R,_,_) => presentInE(R,A,C).
     .cSetNth(_,R,_,V) => presentInE(R,A,C) || presentInE(V,A,C).
     .cClos(_,_,_,F,_) => presentInE(F,A,C).
+    .cContin(_,_,_,F,_) => presentInE(F,A,C).
     .cCall(_,_,Args,_) => {? E in Args && presentInE(E,A,C) ?}.
     .cECall(_,_,Args,_) => {? E in Args && presentInE(E,A,C) ?}.
     .cOCall(_,Op,Args,_) =>
+      presentInE(Op,A,C) || {? E in Args && presentInE(E,A,C) ?}.
+    .cNvoke(_,Op,Args,_) =>
       presentInE(Op,A,C) || {? E in Args && presentInE(E,A,C) ?}.
     .cRaise(_,Th,E,_) => presentInE(Th,A,C) || presentInE(E,A,C).
     .cSeq(_,L,R) => presentInE(L,A,C) || presentInE(R,A,C).
@@ -1074,11 +1093,15 @@ star.compiler.term{
 	frzeExp(R)]).
     .cClos(Lc,N,A,F,Tp) => mkCons("clos",[Lc::data,.strg(N),.intgr(A),frzeExp(F),
 	.strg(encodeSignature(Tp))]).
+    .cContin(Lc,N,A,F,Tp) => mkCons("contin",[Lc::data,.strg(N),.intgr(A),frzeExp(F),
+	.strg(encodeSignature(Tp))]).
     .cCall(Lc,Nm,Args,Tp) => mkCons("call",[Lc::data,.strg(Nm),mkTpl(Args//frzeExp),
 	.strg(encodeSignature(Tp))]).
     .cECall(Lc,Nm,Args,Tp) => mkCons("ecll",[Lc::data,.strg(Nm),mkTpl(Args//frzeExp),
 	.strg(encodeSignature(Tp))]).
     .cOCall(Lc,Op,Args,Tp) => mkCons("ocll",[Lc::data,frzeExp(Op),
+	mkTpl(Args//frzeExp),.strg(encodeSignature(Tp))]).
+    .cNvoke(Lc,Op,Args,Tp) => mkCons("invoke",[Lc::data,frzeExp(Op),
 	mkTpl(Args//frzeExp),.strg(encodeSignature(Tp))]).
     .cRaise(Lc,Th,X,Tp) => mkCons("rais",[Lc::data,frzeExp(Th),
 	frzeExp(X),.strg(encodeSignature(Tp))]).
@@ -1167,12 +1190,16 @@ star.compiler.term{
       .cSetNth(thawLoc(Lc),thawTerm(E),Ix,thawTerm(R)).
     .term("clos",[Lc,.strg(N),.intgr(A),F,Sig]) =>
       .cClos(thawLoc(Lc),N,A,thawTerm(F),decodeSig(Sig)).
+    .term("contin",[Lc,.strg(N),.intgr(A),F,Sig]) =>
+      .cContin(thawLoc(Lc),N,A,thawTerm(F),decodeSig(Sig)).
     .term("call",[Lc,.strg(Nm),.term(_,Args),Sig]) =>
       .cCall(thawLoc(Lc),Nm,Args//thawTerm,decodeSig(Sig)).
     .term("ecll",[Lc,.strg(Nm),.term(_,Args),Sig]) =>
       .cECall(thawLoc(Lc),Nm,Args//thawTerm,decodeSig(Sig)).
     .term("ocll",[Lc,Op,.term(_,Args),Sig]) =>
       .cOCall(thawLoc(Lc),thawTerm(Op),Args//thawTerm,decodeSig(Sig)).
+    .term("invoke",[Lc,Op,.term(_,Args),Sig]) =>
+      .cNvoke(thawLoc(Lc),thawTerm(Op),Args//thawTerm,decodeSig(Sig)).
     .term("rais",[Lc,Th,Op,Sig]) =>
       .cRaise(thawLoc(Lc),thawTerm(Th),thawTerm(Op),decodeSig(Sig)).
     .term("seq",[Lc,L,R]) =>
