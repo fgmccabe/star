@@ -11,23 +11,23 @@ star.compiler.wasm.gen{
   import star.compiler.intrinsics.
   import star.compiler.meta.
   import star.compiler.misc.
-  import star.compiler.peephole.
+--  import star.compiler.peephole.
   import star.compiler.ltipe.
   import star.compiler.types.
 
   import star.compiler.location.
   import star.compiler.data.
 
-  public compProg:(pkg,cons[cDefn],cons[decl])=>cons[codeSegment].
-  compProg(Pkg,Defs,Globals) => valof{
+  public genWasm:(pkg,cons[cDefn],cons[decl])=>cons[wasmDefn].
+  genWasm(Pkg,Defs,Globals) => valof{
     Vars = foldLeft(declGlobal,[],Globals);
     valis compDefs(Defs,localFuns(Defs,Vars))
   }
 
   declGlobal(.varDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->.glbVar(Nm,Tp::ltipe)].
-  declGlobal(.funDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->.glbVar(Nm,Tp::ltipe)].
-  declGlobal(.accDec(_,_,_,Nm,Tp), Vrs) => Vrs[Nm->.glbVar(Nm,Tp::ltipe)].
-  declGlobal(.updDec(_,_,_,Nm,Tp), Vrs) => Vrs[Nm->.glbVar(Nm,Tp::ltipe)].
+  declGlobal(.funDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->.glbFun(Nm,Tp::ltipe)].
+  declGlobal(.accDec(_,_,_,Nm,Tp), Vrs) => Vrs[Nm->.glbFun(Nm,Tp::ltipe)].
+  declGlobal(.updDec(_,_,_,Nm,Tp), Vrs) => Vrs[Nm->.glbFun(Nm,Tp::ltipe)].
   declGlobal(_,Vrs) => Vrs.
 
   localFuns:(cons[cDefn],map[string,srcLoc])=>map[string,srcLoc].
@@ -51,8 +51,8 @@ star.compiler.wasm.gen{
       (_,AbortCde) = abortCont(Lc,"function: $(Nm)").C(Ctx,?[],[]);
       (_Stk,Code) = compExp(Val,.noMore,retCont,Ctx,.some([]));
       if traceCodegen! then
-	logMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp])");
-      Peeped = peepOptimize(([.iLocals(Ctx.hwm!),..Code]++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp]);
+	logMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[wOp])");
+      Peeped = peepOptimize(([.iLocals(Ctx.hwm!),..Code]++[.iLbl(Ctx.escape),..AbortCde])::cons[wOp]);
       if traceCodegen! then{
 	logMsg("code is $(.func(.tLbl(Nm,size(Args)),.hardDefinition,Tp,Ctx.hwm!,Peeped))");
       };
@@ -66,9 +66,9 @@ star.compiler.wasm.gen{
       (_Stk,Code) = compExp(Val,.notLast,glbRetCont(Nm),Ctx,.some([]));
 
       if traceCodegen! then
-	logMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp])");
+	logMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[wOp])");
       
-      Peeped = peepOptimize(([.iLocals(Ctx.hwm!),..Code]++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp]);
+      Peeped = peepOptimize(([.iLocals(Ctx.hwm!),..Code]++[.iLbl(Ctx.escape),..AbortCde])::cons[wOp]);
       if traceCodegen! then
 	logMsg("code is $(.global(.tLbl(Nm,0),Tp,Ctx.hwm!,Peeped))");
     
@@ -78,7 +78,7 @@ star.compiler.wasm.gen{
   | .lblDef(_Lc,Lbl,Tp,Ix) => .struct(Lbl,Tp,Ix)
   }
 
-  compExp:(cExp,tailMode,Cont,codeCtx,stack) => (stack,multi[assemOp]).
+  compExp:(cExp,tailMode,Cont,codeCtx,stack) => (stack,multi[wOp]).
   compExp(Exp,TM,Cont,Ctx,Stk) => case Exp in {
     E where isGround(E) =>
       Cont.C(Ctx,pushStack(typeOf(Exp)::ltipe,Stk),[.iLdC(Exp::data)])
@@ -150,12 +150,12 @@ star.compiler.wasm.gen{
   }
     
   -- Expressions are evaluated in reverse order
-  compExps:(cons[cExp],Cont,codeCtx,stack) => (stack,multi[assemOp]).
+  compExps:(cons[cExp],Cont,codeCtx,stack) => (stack,multi[wOp]).
   compExps([],Cont,Ctx,Stk)=>Cont.C(Ctx,Stk,[]).
   compExps([Exp,..Es],Cont,Ctx,Stk)=>
     compExps(Es,ctxCont(Ctx,expCont(Exp,.notLast,Cont)),Ctx,Stk).
 
-  compVar:(option[locn],string,srcLoc,Cont,codeCtx,stack) => (stack,multi[assemOp]).
+  compVar:(option[locn],string,srcLoc,Cont,codeCtx,stack) => (stack,multi[wOp]).
   compVar(Lc,_Nm,Loc,Cont,Ctx,Stk) => case Loc in {
     .argVar(Off,Tp) => Cont.C(Ctx,pushStack(Tp,Stk),[.iLdA(Off)]).
     .lclVar(Off,Tp) => Cont.C(Ctx,pushStack(Tp,Stk),[.iLdL(Off)]).
@@ -163,7 +163,7 @@ star.compiler.wasm.gen{
     .glbFun(Nm,Tp) => Cont.C(Ctx,pushStack(Tp,Stk),[.iLdC(.symb(Nm))]).
   }
     
-  compCond:(cExp,tailMode,Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
+  compCond:(cExp,tailMode,Cont,Cont,codeCtx,stack) => (stack,multi[wOp]).
   compCond(C,TM,Succ,Fail,Ctx,Stk) => case C in {
     .cTerm(_,"star.core#true",[],_) => Succ.C(Ctx,Stk,[])
     | .cTerm(_,"star.core#false",[],_) => Fail.C(Ctx,Stk,[])
@@ -189,7 +189,7 @@ star.compiler.wasm.gen{
     | Exp default => compExp(Exp,.notLast,ifCont(locOf(Exp),Stk,Succ,Fail),Ctx,Stk)
   }
 
-  compAction:(aAction,tailMode,Cont,Cont,codeCtx,stack) =>(stack,multi[assemOp]).
+  compAction:(aAction,tailMode,Cont,Cont,codeCtx,stack) =>(stack,multi[wOp]).
   compAction(A,TM,ACont,Cont,Ctx,Stk) => case A in {
     .aNop(Lc) => ACont.C(Ctx,Stk,[])
     | .aSeq(Lc,L,R) => compAction(L,.notLast,resetCont(Stk,actionCont(R,TM,ACont,Cont)),Cont,Ctx,Stk)
@@ -258,7 +258,7 @@ star.compiler.wasm.gen{
   }
 
   compCase:all e ~~ display[e] |:
-    (option[locn],cExp,cons[cCase[e]],e,(e,Cont)=>Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
+    (option[locn],cExp,cons[cCase[e]],e,(e,Cont)=>Cont,Cont,codeCtx,stack) => (stack,multi[wOp]).
   compCase(Lc,Gv,Cases,Deflt,Comp,Cont,Ctx,Stk) => valof{
     if traceCodegen! then
       logMsg("compiling case @$(Lc), Gov=$(Gv)");
@@ -277,7 +277,7 @@ star.compiler.wasm.gen{
   }
 
   compCases:all e ~~ display[e] |: (cons[csEntry[e]],integer,integer,
-    (e,Cont)=>Cont,Cont,Cont,assemLbl,codeCtx,stack) =>(stack,multi[assemOp],multi[assemOp]).
+    (e,Cont)=>Cont,Cont,Cont,wasmLbl,codeCtx,stack) =>(stack,multi[wOp],multi[wOp]).
   compCases(Cs,Ix,Mx,Comp,Succ,Fail,Deflt,Ctx,Stk) => case Cs in {
     [] => valof{
       if Ix==Mx then
@@ -301,7 +301,7 @@ star.compiler.wasm.gen{
   }
 
   compCaseBranch:all e ~~ display[e] |: (cons[cCase[e]],
-    (e,Cont)=>Cont,Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
+    (e,Cont)=>Cont,Cont,Cont,codeCtx,stack) => (stack,multi[wOp]).
 
   compCaseBranch(Cs,Comp,Succ,Fail,Ctx,Stk) => case Cs in {
     [(Lc,Ptn,Exp)] => compPttrn(Ptn,Comp(Exp,Succ),Fail,Ctx,Stk)
@@ -318,7 +318,7 @@ star.compiler.wasm.gen{
   }
 
   compMoreCase:all e ~~ display[e] |: (cons[(option[locn],cExp,e)],integer,(e,Cont)=>Cont,
-    Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
+    Cont,Cont,codeCtx,stack) => (stack,multi[wOp]).
   compMoreCase(Cs,Off,Comp,Succ,Fail,Ctx,Stk) => case Cs in {
     [] => Fail.C(Ctx,.none,[])
     | [(Lc,Ptn,Exp),..More] => valof{
@@ -331,7 +331,7 @@ star.compiler.wasm.gen{
   }
   
   compCnsCase:all e ~~ display[e] |: (option[locn],cExp,cons[cCase[e]],(e,Cont)=>Cont,
-    Cont,codeCtx,stack) => (stack,multi[assemOp]).
+    Cont,codeCtx,stack) => (stack,multi[wOp]).
   compCnsCase(Lc,Gv,Cs,Comp,Cont,Ctx,Stk) => case Cs in {
     [(_,Ptn,Exp)] => compExp(Gv,.notLast, ptnCont(Ptn,Comp(Exp,Cont),
 	abortCont(Lc,"match error")),Ctx,Stk)
@@ -351,7 +351,7 @@ star.compiler.wasm.gen{
   }
 
   compCnsCases:all e ~~ display[e] |: (cons[cCase[e]],(e,Cont)=>Cont,Cont,codeCtx,stack) =>
-    (stack,multi[assemOp],multi[assemOp]).
+    (stack,multi[wOp],multi[wOp]).
   compCnsCases(Cs,Comp,Succ,Ctx,Stk) => case Cs in {
     [] => (.none,[],[])
     | [(Lc,Ptn,Exp),..Cases] => valof{
@@ -398,10 +398,10 @@ star.compiler.wasm.gen{
     mergeDuplicate(M,Hx,SoFar++[(Lc,Pt,Ex)]).
   mergeDuplicate(M,_,SoFar) default => (SoFar,M).
 
-  compPttrn:(cExp,Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
+  compPttrn:(cExp,Cont,Cont,codeCtx,stack) => (stack,multi[wOp]).
   compPttrn(Ptn,Succ,Fail,Ctx,Stk) => compPtn(Ptn,Succ,Fail,Ctx,Stk).
   
-  compPtn:(cExp,Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
+  compPtn:(cExp,Cont,Cont,codeCtx,stack) => (stack,multi[wOp]).
   compPtn(Ptn,Succ,Fail,Ctx,Stk) => case Ptn in {
     .cVar(_,.cId("_",_)) => Succ.C(Ctx,dropStack(Stk),[.iDrop])
     | .cVar(Lc,.cId(Vr,Tp)) => valof{
@@ -446,11 +446,11 @@ star.compiler.wasm.gen{
     _ => .iCmp(Lb)
   }.
 
-  compPtnVar:(option[locn],string,srcLoc,Cont,codeCtx,stack) => (stack,multi[assemOp]).
+  compPtnVar:(option[locn],string,srcLoc,Cont,codeCtx,stack) => (stack,multi[wOp]).
   compPtnVar(Lc,Nm,.lclVar(Off,Tp),Cont,Ctx,Stk) => Cont.C(Ctx,Stk,[.iStL(Off)]).
   compPtnVar(Lc,Nm,.argVar(Off,Tp),Cont,Ctx,Stk) => Cont.C(Ctx,Stk,[.iDrop]).
 
-  compPtnArgs:(cons[cExp],Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
+  compPtnArgs:(cons[cExp],Cont,Cont,codeCtx,stack) => (stack,multi[wOp]).
   compPtnArgs(Es,Succ,Fail,Ctx,Stk) => case Es in {
     [] => Succ.C(Ctx,Stk,[])
     | [A,..As] => compPtn(A,argsPtnCont(As,Succ,Fail),Fail,Ctx,Stk)
@@ -466,7 +466,7 @@ star.compiler.wasm.gen{
   -- continuations
 
   Cont ::= cont{
-    C:(codeCtx,stack,multi[assemOp])=>(stack,multi[assemOp]).
+    C:(codeCtx,stack,multi[wOp])=>(stack,multi[wOp]).
   }.
 
   allocCont:(termLbl,stack,Cont) => Cont.
@@ -479,7 +479,7 @@ star.compiler.wasm.gen{
     C(Ctx,_Stk,Cde) => Cont.C(Ctx,Stk,Cde++[.iEscape(Es),frameIns(Stk)]).
   }
 
-  intrinsicCont:(assemOp,boolean,tailMode,stack,Cont) => Cont.
+  intrinsicCont:(wOp,boolean,tailMode,stack,Cont) => Cont.
   intrinsicCont(I,Frm,.noMore,Stk,Cont) => cont{
     C(Ctx,AStk,Cde) => (.none,Cde++[I]).
   }
@@ -513,7 +513,7 @@ star.compiler.wasm.gen{
     C(_,_,Cde) => (.none,Cde++[.iTG(Nm),.iRtG])
   }
 
-  jmpCont:(assemLbl,stack)=>Cont.
+  jmpCont:(wasmLbl,stack)=>Cont.
   jmpCont(Lbl,Stk) => cont{
     C(Ctx,_Stk1,Cde) => (Stk,Cde++[.iJmp(Lbl)]).
     }
@@ -523,7 +523,7 @@ star.compiler.wasm.gen{
     C(_,_,Cde) => (.none,Cde++[.iThrow])
   }
 
-  contCont:(assemLbl)=>Cont.
+  contCont:(wasmLbl)=>Cont.
     contCont(Lbl) => cont{
     C(Ctx,Stk,Cde) => (Stk,Cde++[.iJmp(Lbl)]).
   }
@@ -649,7 +649,7 @@ star.compiler.wasm.gen{
     C(Ctx,_,Cde) => Cont.C(Ctx,Stk,Cde++[.iClosure(Lbl)])
   }
 
-  catchCont:all e ~~ (assemLbl,integer,()=>(stack,multi[assemOp])) => Cont.
+  catchCont:all e ~~ (wasmLbl,integer,()=>(stack,multi[wOp])) => Cont.
   catchCont(CLb,EOff,HComp) => cont{
     C(_,_,Cde) => valof{
       (SStk,HCde) = HComp();
@@ -739,7 +739,7 @@ star.compiler.wasm.gen{
     }
   }
 
-  resetStack:(option[integer],stack) => (stack,multi[assemOp]).
+  resetStack:(option[integer],stack) => (stack,multi[wOp]).
   resetStack(.some(Dp),.some(Stk)) =>
     case [|Stk|] in {
       Dp => (.some(Stk),[]).
@@ -777,7 +777,7 @@ star.compiler.wasm.gen{
     }
   }
 
-  frameIns:(stack)=>assemOp.
+  frameIns:(stack)=>wOp.
   frameIns(.some(Stk)) => .iFrame(.tplTipe(Stk)).
 
   locateVar:(string,codeCtx)=>option[srcLoc].
@@ -834,8 +834,8 @@ star.compiler.wasm.gen{
 
   codeCtx ::= codeCtx{
     vars : map[string,srcLoc].
-    end : assemLbl.
-    escape : assemLbl.
+    end : wasmLbl.
+    escape : wasmLbl.
     lbls : ref integer.  
     min : integer.
     hwm : ref integer.
@@ -855,14 +855,14 @@ star.compiler.wasm.gen{
     brks = [].
   }
 
-  defineLbl:(string,codeCtx)=>assemLbl.
+  defineLbl:(string,codeCtx)=>wasmLbl.
   defineLbl(Pr,C) => valof{
     CurLbl = C.lbls!;
     C.lbls := CurLbl+1;
     valis .al("#(Pr)$(CurLbl)")
   }
 
-  defineExitLbl:(string,codeCtx) => (assemLbl,codeCtx).
+  defineExitLbl:(string,codeCtx) => (wasmLbl,codeCtx).
   defineExitLbl(Pr,C) => valof{
     Lb = defineLbl(Pr,C);
     valis (Lb,C.escape=Lb)
@@ -896,7 +896,7 @@ star.compiler.wasm.gen{
     }
   }
 
-  chLine:(option[locn],option[locn]) => multi[assemOp].
+  chLine:(option[locn],option[locn]) => multi[wOp].
   chLine(.none,_) => [].
   chLine(.some(Lc),.some(Lc)) => [].
   chLine(_,.some(Lc)) => [.iLine(Lc::data)].
