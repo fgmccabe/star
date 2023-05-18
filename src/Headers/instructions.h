@@ -41,7 +41,6 @@ instruction(Spawn, tOs, nOp, 0, "spawn a new task")
 instruction(Suspend, tOs, tO1, -1, "suspend fiber")
 instruction(Resume, tOs, tO1, -1, "resume fiber")
 instruction(Retire, tOs, tO1, -2, "retire a fiber")
-instruction(Release, tOs, nOp, -1, "destroy a fiber")
 instruction(Underflow, nOp, nOp, 0, "underflow from current stack")
 instruction(TEq, tOs, tO1, -1, "L R --> L==R, where L,R are tasks")
 

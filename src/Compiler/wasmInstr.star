@@ -10,10 +10,16 @@ star.compiler.wasm.instr{
 
   var ~> integer.
 
+  public wasmDefn ::=
+    wasmGlobal(string,value_type) |
+    wasmFunction(string,block_type).
+
   public block_type ::=
-    .VarBlockType(var)
-    | .ValBlockType(option[value_type]).
-  
+      .VarBlockType(var) |
+      .ValBlockType(option[value_type]) |
+    .FunBlockType(cons[value_type],cons[value_type]).
+
+  public wasmLbl ::= .lbl(string).
 
   all t,p ~~ memop[t,p] ::= memop{ty : t. align : integer. offset : integer. pack : p}
 
@@ -23,17 +29,17 @@ star.compiler.wasm.instr{
   public pack_size ::= .Pack8 | .Pack16 | .Pack32 | .Pack64.
   public extension ::= .SX | .ZX.
 
-  public instr ::= 
-    .Unreachable                       --  trap unconditionally 
+  public wOp ::= 
+    .Unreachable                       --  trap unconditionally
     | .Nop			       --  do nothing 
     | .Drop			       --  forget a value 
     | .Select                          --  branchless conditional 
-    | .Block(block_type, cons[instr])  --  execute in sequence 
-    | .Loop(block_type, cons[instr])   --  loop header 
-    | .If(block_type, cons[instr], cons[instr]) --  conditional 
-    | .Br(var)			       --  break to n-th surrounding label 
-    | .BrIf(var)		       --  conditional break 
-    | .BrTable(cons[var], var)	       --  indexed break 
+    | .Block(option[wasmLbl],block_type, cons[wOp])  --  execute in sequence 
+    | .Loop(option[wasmLbl],block_type, cons[wOp])   --  loop header 
+    | .If(option[wasmLbl],block_type, cons[wOp], cons[wOp]) --  conditional 
+    | .Br(wasmLbl)		       --  break to n-th surrounding label 
+    | .BrIf(wasmLbl)		       --  conditional break 
+    | .BrTable(cons[wasmLbl], wasmLbl) --  indexed break 
     | .Return			       --  break from function body 
     | .Call(var)		       --  call function 
     | .CallIndirect(var, var)	       --  call function through table 
@@ -126,22 +132,22 @@ star.compiler.wasm.instr{
     | .ReinterpretInt
   .
 
-  public implementation display[instr] => {
+  public implementation display[wOp] => {
     disp(I) => d_instr(I,"")
   }
 
-  d_instr:(instr,string)=>string.
+  d_instr:(wOp,string)=>string.
   d_instr(In,Off) => case In in {
     .Unreachable => "unreachable"
     | .Nop => "nop"
     | .Drop => "drop"
     | .Select => "select"
-    | .Block(Tp,Ins) => "block $(Tp) #(disp_ins(Ins,Off++"  ")) end"
-    | .Loop(Tp, Ins) => "loop $(Tp) #(disp_ins(Ins,Off++"  ")) end"
-    | .If(Tp,I,E) => "if $(Tp) #(disp_ins(I,Off++"  ")) else #(disp_ins(E,Off++"  ")) end"
-    | .Br(V) => "br $(V)"
-    | .BrIf(V) => "br_if $(V)"
-    | .BrTable(Ls,_) => "br_table $(Ls)"
+    | .Block(Lbl,Tp,Ins) => "#(disp_lbl(Lbl))block $(Tp) #(disp_ins(Ins,Off++"  ")) end"
+    | .Loop(Lbl,Tp, Ins) => "#(disp_lbl(Lbl))loop $(Tp) #(disp_ins(Ins,Off++"  ")) end"
+    | .If(Lbl,Tp,I,E) => "#(disp_lbl(Lbl))if $(Tp) #(disp_ins(I,Off++"  ")) else #(disp_ins(E,Off++"  ")) end"
+    | .Br(Lbl) => "br $(Lbl)"
+    | .BrIf(Lbl) => "br_if $(Lbl)"
+    | .BrTable(Lbs,Dflt) => "br_table $(Lbs) $(Dflt)"
     | .Return => "return"
     | .Call(V) => "call $(V)"
     | .CallIndirect(X, Y) => "call_indirect $(X) $(Y)"
@@ -215,8 +221,15 @@ star.compiler.wasm.instr{
     | .WrapI64 => "i32.wrap_i64"
   }
 
-  disp_ins:(cons[instr],string)=>string.
+  disp_ins:(cons[wOp],string)=>string.
   disp_ins(Ins,Off) => interleave(Ins//(I)=>d_instr(I,Off),"\n")*.
+
+  public implementation display[wasmLbl] => {
+    disp(.lbl(Lb)) => Lb.
+  }
+
+  disp_lbl(.none) => "".
+  disp_lbl(.some(Lb)) => "$(Lb)\: ".
 
   public implementation display[int_type] => {
     disp(.I32Type) => "i32".
