@@ -147,21 +147,10 @@ retCode run(processPo P) {
         assert(isPcOfMtd(FP->prog, PC));
         FP->pc = PC;
 
-        if (hasJit(mtd)) {
-#ifdef TRACEJIT
-          if (traceJit) {
-            logMsg(logFile, "entering jitted code %T", mtd);
-          }
-#endif
-          saveRegisters();
-          termPo res = invokeJitMethod(mtd, H, STK);
-          restoreRegisters();
-          push(res);
-        } else {
-          pushFrme(mtd);
-          LITS = codeLits(mtd);
-          incEntryCount(mtd);              // Increment number of times program called
-        }
+        pushFrme(mtd);
+        LITS = codeLits(mtd);
+        incEntryCount(mtd);              // Increment number of times program called
+
         continue;
       }
 
@@ -525,20 +514,6 @@ retCode run(processPo P) {
             verifyStack(STK, H);
 #endif
           push(event);
-          continue;
-        }
-      }
-      case Release: { // Trash a fiber
-        stackPo fiber = C_STACK(pop());
-
-        if (stackState(fiber) != suspended) {
-          logMsg(logFile, "tried to release a %s fiber %T", stackStateName(stackState(fiber)), fiber);
-          bail();
-        } else {
-          saveRegisters();
-          stackPo parent = detachStack(STK, fiber);
-          dropStack(fiber);
-          restoreRegisters();
           continue;
         }
       }

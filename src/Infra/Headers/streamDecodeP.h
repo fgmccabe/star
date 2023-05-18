@@ -6,6 +6,7 @@
 #define STAR_STREAMDECODEP_H
 
 #include "streamDecode.h"
+#include "engineOptions.h"
 
 #ifdef TRACEDECODE
 extern tracingLevel traceDecode;

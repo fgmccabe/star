@@ -4,7 +4,6 @@
 #include "config.h"
 #include <stdlib.h>
 #include <unistd.h>
-#include <jit.h>
 
 #include "version.h"      /* Version ID for the Star system */
 
@@ -170,15 +169,6 @@ static retCode debugOption(char *option, logical enable) {
         tracing = True;
         continue;
 
-      case 'j':
-#ifdef TRACEJIT
-        traceJit = True;
-        continue;
-#else
-        logMsg(logFile, "jit tracing not enabled");
-        return Error;
-#endif
-
       case 's':
 #ifdef TRACESTATS
         collectStats = True;
@@ -213,7 +203,7 @@ static retCode debugOption(char *option, logical enable) {
 #endif
 
       case 'Q':    /* trace decoding operations  */
-#ifdef TRACEPKG
+#ifdef TRACEDECODE
         if (traceDecode < detailedTracing)
           traceDecode++;
         logMsg(logFile, "Decoding tracing enabled\n");
@@ -350,13 +340,6 @@ static retCode setPkgMain(char *option, logical enable) {
   return Ok;
 }
 
-static retCode setJitThreshold(char *option, logical enable) {
-  jitThreshold = parseInt(option, uniStrLen(option));
-  if (jitThreshold == 0)
-    jitOnLoad = True;
-  return Ok;
-}
-
 static retCode setVerify(char *option, logical enable) {
   enableVerify = (logical) !enableVerify;
   return Ok;
@@ -378,7 +361,7 @@ static retCode setMaxHeapSize(char *option, logical enable) {
 
 static retCode setMaxLabels(char *option, logical enable) {
   maxLabels = parseInt(option, uniStrLen(option));
-  if (jitThreshold == 0)
+  if (maxLabels == 0)
     return Error;
   return Ok;
 }
@@ -442,7 +425,6 @@ Option options[] = {
   {'G', "debugger-port", hasArgument, STAR_DEBUGGER_PORT, setDebuggerPort,    "-G|--debugger-port"},
   {'v', "version",       noArgument,  Null,               displayVersion,     "-v|--version"},
   {'b', "main-pkg",      hasArgument, STAR_BOOT,          setPkgMain,         "-b|--main-pkg <pkg>"},
-  {'j', "threshold",     hasArgument, STAR_JIT_THRESHOLD, setJitThreshold,    "-j|--threshold <count>"},
   {'m', "main",          hasArgument, STAR_MAIN,          setBootEntry,       "-m|--main <entry>"},
   {'L', "logFile",       hasArgument, STAR_LOGFILE,       setLogFile,         "-L|--logFile <path>"},
   {'r', "repository",    hasArgument, STAR_REPO,          setRepoDir,         "-r|--repository <path>"},
