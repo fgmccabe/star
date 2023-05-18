@@ -272,7 +272,6 @@ defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stack
     mtd->code[ix] = ins[ix];
 
   mtd->codeSize = insCount;
-  mtd->jit = Null;
   mtd->arity = labelArity(lbl);
   mtd->lclcnt = lclCount;
   mtd->pool = pool;
@@ -299,10 +298,4 @@ static retCode showMtdCount(labelPo lbl, void *cl) {
 void showMtdCounts(ioPo out) {
   outMsg(out, "Unsorted method counts\n");
   iterateLabels(showMtdCount, out);
-}
-
-retCode setJitCode(methodPo mtd,jitCode code){
-  assert(!hasJit(mtd));
-  mtd->jit = code;
-  return Ok;
 }

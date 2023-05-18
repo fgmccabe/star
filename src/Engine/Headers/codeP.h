@@ -9,14 +9,12 @@
 #include "termP.h"
 #include "pkgP.h"
 #include "heapP.h"
-#include "jit.h"
 
 #include <assert.h>
 
 typedef struct method_ {
   clssPo clss;         // == specialClass
   integer codeSize;     /* How big is the code block */
-  jitCode jit;          /* Pointer to jit'ed code */
   integer entryCount;
 
   integer arity;        /* How many arguments in method */
@@ -24,7 +22,7 @@ typedef struct method_ {
   integer stackDelta;   // How much space to allocate for the stack
   normalPo pool;      /* A pool tuple of constants */
   normalPo locals;    /* A tuple of sorted locals */
-  normalPo  lines;      // A tuple of line information
+  normalPo lines;      // A tuple of line information
   insWord code[ZEROARRAYSIZE];
 } MethodRec;
 
@@ -56,26 +54,13 @@ static inline integer stackDelta(methodPo mtd) {
   return mtd->stackDelta;
 }
 
-static inline void incEntryCount(methodPo mtd){
+static inline void incEntryCount(methodPo mtd) {
   mtd->entryCount++;
 }
 
-static inline logical hasJit(methodPo mtd){
-  assert(mtd != Null);
-  return mtd->jit!=Null;
+static inline logical isPcOfMtd(methodPo mtd, insPo pc) {
+  return pc >= entryPoint(mtd) && pc < entryPoint(mtd) + insCount(mtd);
 }
-
-static inline jitCode codeJit(methodPo mtd){
-  assert(mtd!=Null && mtd->jit!=Null);
-  return mtd->jit;
-}
-
-retCode setJitCode(methodPo mtd,jitCode code);
-
-static inline logical isPcOfMtd(methodPo mtd, insPo pc){
-  return pc>=entryPoint(mtd) && pc< entryPoint(mtd)+ insCount(mtd);
-}
-
 
 labelPo mtdLabel(methodPo mtd);
 
