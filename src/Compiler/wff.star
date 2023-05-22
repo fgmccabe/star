@@ -777,6 +777,15 @@ star.compiler.wff{
 
   public mkContinEqn(Lc,A,B) => binary(Lc,"=>>",A,B).
 
+  public isContDefn:(ast) => option[(option[locn],option[ast],boolean,ast,option[ast],ast)].
+  isContDefn(A) where (Lc,L,R) ?= isBinary(A,"=>>") &&
+      (N,H,C,D) ?= splitHead(L,.none,.none,.false) => .some((Lc,N,D,H,C,R)).
+  isContDefn(_) default => .none.
+
+  public mkContDefn:(option[locn],option[ast],boolean,ast,option[ast],ast)=>ast.
+  mkContDefn(Lc,Nm,Deflt,Args,Cond,Rep) =>
+    binary(Lc,"=>>",mkLhs(Lc,Nm,Deflt,Args,Cond),Rep).
+
   public isPerform:(ast) => option[(option[locn],ast)].
   isPerform(A) => isUnary(A,"perform").
 

@@ -58,7 +58,7 @@ star.compiler.normalize{
     if traceNormalize! then
       logMsg("extended function function type $(ATp)");
     
-    (Eqs,Ex1) = transformRules(Eqns,Outer,Q,Extra,Ex);
+    (Eqs,Ex1) = transformRules(Eqns,Map,Outer,Q,Extra,Ex);
     if traceNormalize! then
       logMsg("transformed equations: $(Eqs)");
     Func = functionMatcher(Lc,FullNm,ATp,Map,Eqs);
@@ -136,24 +136,24 @@ star.compiler.normalize{
     freeUpdate(Lc,Vr,Ix,Vl,SoFar) => .aSeq(Lc,.aSetNth(Lc,Vr,Ix,Vl),SoFar).
   }
 
-  transformRules:all e,t ~~ transform[e->>t] |:
-    (cons[rule[e]],nameMap,set[cId],option[cExp],cons[cDefn]) =>
+  transformRules:all e,t ~~ transform[e->>t], display[e], display[t] |:
+    (cons[rule[e]],nameMap,nameMap,set[cId],option[cExp],cons[cDefn]) =>
       (cons[(option[locn],cons[cExp],option[cExp],t)],cons[cDefn]).
-  transformRules([],_,_,_,Ex) => ([],Ex).
-  transformRules([Eqn,..Eqns],Map,Q,Extra,Ex) => valof{
-    (Trple,Ex1) = transformRule(Eqn,Map,Q,Extra,Ex);
-    (Rest,Exx) = transformRules(Eqns,Map,Q,Extra,Ex1);
+  transformRules([],_,_,_,_,Ex) => ([],Ex).
+  transformRules([Eqn,..Eqns],Map,Outer,Q,Extra,Ex) => valof{
+    (Trple,Ex1) = transformRule(Eqn,Map,Outer,Q,Extra,Ex);
+    (Rest,Exx) = transformRules(Eqns,Map,Outer,Q,Extra,Ex1);
     valis ([Trple,..Rest],Exx)
   }
 
-  transformRule:all e,t ~~ transform[e->>t] |:
-    (rule[e],nameMap,set[cId],option[cExp],cons[cDefn]) =>
+  transformRule:all e,t ~~ transform[e->>t], display[e], display[t]|:
+    (rule[e],nameMap,nameMap,set[cId],option[cExp],cons[cDefn]) =>
       ((option[locn],cons[cExp],option[cExp],t),cons[cDefn]).
-  transformRule(.rule(Lc,Arg,Test,Val),Map,Q,Extra,Ex) => valof{
+  transformRule(.rule(Lc,Arg,Test,Val),Map,Outer,Q,Extra,Ex) => valof{
     EQ = ptnVars(Arg,Q,[]);
     if traceNormalize! then
       logMsg("Pattern vars $(EQ)");
-    (APtn,Ex1) = liftPtn(Arg,Map,EQ,Ex);
+    (APtn,Ex1) = liftPtn(Arg,Outer,EQ,Ex);
 
     if traceNormalize! then
       logMsg("lifted pattern $(APtn)");
@@ -163,6 +163,9 @@ star.compiler.normalize{
     GEQ = (Tst?=Test ?? condVars(Tst,EQ) || EQ);
     (NG,Ex2) = liftGoal(Test,Map,GEQ,Ex1);
     (Rep,Exx) = transform(Val,Map,GEQ,Ex2);
+    if traceNormalize! then
+      logMsg("Val $(Val) lifted to $(Rep)");
+    
     if .cTerm(_,_,Ptns,_).=TPtn then
       valis ((Lc,addExtra(Extra,Ptns),mergeGoal(Lc,WC,NG),Rep),Exx)
     else{
@@ -283,8 +286,6 @@ star.compiler.normalize{
     (LL,Ex2) = liftExp(L,Map,condVars(T,Q),Ex1);
     (LR,Ex3) = liftExp(R,Map,Q,Ex2);
 
---    logMsg("lift wheres from $(LT) = $(liftWhere(LT))");
-
     valis (.cCnd(Lc,LT,LL,LR),Ex3)
   }
   liftExp(.match(Lc,P,E),Map,Q,Ex) => valof{
@@ -310,7 +311,7 @@ star.compiler.normalize{
 	.vr(Lc,FullNm,Tp)),Map,Q,Ex).
   liftExp(.csexp(Lc,Gov,Cses,Tp),Map,Q,Ex) => valof{
     (LGov,Ex1) = liftExp(Gov,Map,Q,Ex);
-    (Cs,Ex2) = transformRules(Cses,Map,Q,.none,Ex1);
+    (Cs,Ex2) = transformRules(Cses,Map,Map,Q,.none,Ex1);
     if .cVar(_,_).=LGov then{
       Reslt = caseMatcher(Lc,Map,LGov,.cAbort(Lc,"no matches",Tp),Cs);
       valis (Reslt,Ex2)
@@ -324,7 +325,7 @@ star.compiler.normalize{
     if ErTp?=getTypeArg(typeOf(Th),"star.core*cont") then{
       (TT,Ex1) = liftPtn(Th,Map,Q,Ex);
       (BB,Ex2) = liftExp(B,Map,ptnVars(Th,Q,[]),Ex1);
-      (Hs,Ex3) = transformRules(Hndlr,Map,Q,.none,Ex2);
+      (Hs,Ex3) = transformRules(Hndlr,Map,Map,Q,.none,Ex2);
       ErrVr = .cVar(Lc,genVar("E",ErTp));
       HH = caseMatcher(Lc,Map,ErrVr,.cAbort(Lc,"no matches",Tp),Hs);
       valis (.cTry(Lc,BB,TT,ErrVr,HH,Tp),Ex3)
@@ -385,7 +386,6 @@ star.compiler.normalize{
     implementFunCall(Lc,Entry,Nm,Args,Tp,Map,Ex).
   liftExpCallOp(Lc,.enm(_,FullNm,_),Args,Tp,Map,_,Ex) => (.cTerm(Lc,FullNm,Args,Tp),Ex).
   liftExpCallOp(Lc,Op,Args,Tp,Map,Q,Ex) => valof{
---    logMsg("could not find $(Op) in $(Map)");
     (LOp,Ex0) = liftExp(Op,Map,Q,Ex);
     valis (.cOCall(Lc,LOp,Args,Tp),Ex0)
   }
@@ -426,17 +426,14 @@ star.compiler.normalize{
       crFlow[x].
   liftLet(Lc,Defs,Decls,Bnd,Outer,Q,Free,Ex) => valof{
 
---    logMsg("Q=$(Q), Free=$(Free)");
     (lVars,vrDefs) = unzip(varDefs(Defs));
     CM = makeConsMap(Decls);
     GrpFns = (Defs^/(D)=>~_?=isVarDef(D));
 
     rawGrpFree = freeLabelVars(Free,Outer)::cons[cId];
 
---    logMsg("cell vars $(lVars)");
     ffreeVars = rawGrpFree \ lVars;
 
---    logMsg("ffreeVars= $(ffreeVars), head outer map $(head(Outer))");
     varParents = freeParents(ffreeVars,Outer);
     freeVars = reduceFreeArgs(varParents,Outer);
     
@@ -650,7 +647,7 @@ star.compiler.normalize{
   }
   liftAction(.doCase(Lc,Gv,Cs),Map,Q,Ex) => valof{
     (LGv,Ex1) = liftExp(Gv,Map,Q,Ex);
-    (CCs,Ex2) = transformRules(Cs,Map,Q,.none,Ex1);
+    (CCs,Ex2) = transformRules(Cs,Map,Map,Q,.none,Ex1);
     if .cVar(_,_).=LGv then{
       Reslt = caseMatcher(Lc,Map,LGv,.aAbort(Lc,"no matches"),CCs);
 
@@ -665,7 +662,7 @@ star.compiler.normalize{
     if ErTp?=getTypeArg(typeOf(Th),"star.core*cont") then{
       (TT,Ex1) = liftPtn(Th,Map,Q,Ex);
       (BB,Ex2) = liftAction(B,Map,ptnVars(Th,Q,[]),Ex1);
-      (Hs,Ex3) = transformRules(H,Map,Q,.none,Ex2);
+      (Hs,Ex3) = transformRules(H,Map,Map,Q,.none,Ex2);
       ErrVr = .cVar(Lc,genVar("E",ErTp));
       Hndlr = caseMatcher(Lc,Map,ErrVr,.aAbort(Lc,"no matches"),Hs);
       
