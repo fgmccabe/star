@@ -56,6 +56,8 @@ star.compiler.macro{
     mkDefn(Lc,macroPtn(L),macroTerm(R)).
   examineStmt(A) where (Lc,Nm,Deflt,L,C,R) ?= isEquation(A) => 
     mkEquation(Lc,Nm,Deflt,macroPtn(L),macroOpt(C,macroCond),macroTerm(R)).
+  examineStmt(A) where (Lc,Nm,Deflt,L,C,R) ?= isContDefn(A) =>
+    mkContDefn(Lc,Nm,Deflt,macroPtn(L),macroOpt(C,macroCond),macroTerm(R)).
   examineStmt(A) where (Lc,Q,C,L,R) ?= isTypeExistsStmt(A) => 
     mkTypeExistsStmt(Lc,Q//macroType,C//macroType,macroType(L),macroType(R)).
   examineStmt(A) where (Lc,Q,C,L,R) ?= isTypeFunStmt(A) => 
