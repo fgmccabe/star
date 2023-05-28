@@ -389,7 +389,7 @@ star.compiler.macro.rules{
   }
   forLoopMacro(_,.actn) default => .inactive.
 
-  /* fiber{A} becomes fiber((this,first)=>A) */
+  /* fiber{A} becomes _new_fiber((this,first)=>A) */
   fiberMacro(E,.expression) where (Lc,A) ?= isFiberTerm(E) =>
     .active(unary(Lc,"_new_fiber",
 	mkLambda(Lc,.false,rndTuple(Lc,[.nme(Lc,"this"),.nme(Lc,"first")]),

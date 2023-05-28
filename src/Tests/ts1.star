@@ -12,7 +12,7 @@ test.ts1{
   consIter(.cons(H,T),X,F) => consIter(T,F(X,H),F).
 
   iterGen:all e ~~ (cons[e]) => fiber[rcomm,scomm[e]].
-  iterGen(L) => fiber{
+  iterGen(L) => _new_fiber((this,first)=> valof{
     let{
       yildFn:((),e)=>().
       yildFn(_,E) => valof{
@@ -23,7 +23,7 @@ test.ts1{
       }
     } in {consIter(L,(),yildFn)};
     valis .end
-  }
+    })
 
   evens:(cons[integer]) => integer.
   evens(L) => valof{
@@ -44,7 +44,7 @@ test.ts1{
   }
 
   iterTask:all c,e ~~ iter[c->>e] |: (c) => fiber[rcomm,scomm[e]].
-  iterTask(L) => fiber{
+  iterTask(L) => _new_fiber((this,first)=> valof{
     let{
       yildFn(E,Cx) => valof{
 	case _suspend(this,.yild(E)) in {
@@ -53,7 +53,7 @@ test.ts1{
       }
     } in {_iter(L,(),yildFn)};
     valis .end
-  }
+    }).
 
   odds:(cons[integer]) => ().
   odds(L) => valof{

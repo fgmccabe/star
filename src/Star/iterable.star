@@ -22,18 +22,16 @@ star.iterable{
 
   public iterGenerator:all c,e ~~ iter[c->>e] |: (c) =>
     fiber[res_generator,sus_generator[e]].
-  iterGenerator(L) => fiber{
-    let{
-      yieldFn:(e,())=>().
-      yieldFn(E,_) => valof{
-	case _suspend(this,._yld(E)) in {
-	  ._next => {}.
-	  ._cancel => _retire(this,._all)
-	};
-	valis ()
-      }
-    } in {_ = _iter(L,(),yieldFn)};
-    _retire(this,._all)
-  }
-  
+  iterGenerator(L) => _new_fiber((this,first)=> valof{
+      let{
+	yieldFn:(e,())=>().
+	yieldFn(E,_) => valof{
+	  case _suspend(this,._yld(E)) in {
+	    ._next => {}.
+	    ._cancel => _retire(this,._all)
+	  };
+	  valis ()
+	}
+      } in {_ = _iter(L,(),yieldFn)};
+      _retire(this,._all)}).
 }

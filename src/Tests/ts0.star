@@ -10,7 +10,7 @@ test.ts0{
   rcomm ::= .next | .cancel.
 
   generatr:(integer,integer)=>fiber[rcomm,scomm].
-  generatr(F,T) => fiber{
+  generatr(F,T) => _new_fiber((this,first)=>valof{
     Ix = ref F;
     while Ix! < T do{
       case _suspend(this,.yild(Ix!)) in {
@@ -21,7 +21,7 @@ test.ts0{
       Ix := Ix! + 1;
     };
     valis .end
-  }
+    })
 
   adder:(integer,integer) => integer.
   adder(F,T) => valof{
