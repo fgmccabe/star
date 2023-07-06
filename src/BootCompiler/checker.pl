@@ -32,10 +32,10 @@ checkProgram(Prg,Pkg,Repo,Opts,PkgDecls,Canon) :-
   declareAllDecls(ThL,Lc,Env1,Env2),
   overload(Defs,Env2,ODefs),
   Canon=prog(Pkg,Imports,ThEx,ThL,ODefs),
-  reportMsg("export declarations",[]),
-  dispDecls(ThEx),
-  reportMsg("private declarations",[]),
-  dispDecls(ThL),
+%  reportMsg("export declarations",[]),
+%  dispDecls(ThEx),
+%  reportMsg("private declarations",[]),
+%  dispDecls(ThL),
   concat(ThEx,ThL,D0),
   concat(D0,IDecls,PkgDecls).
 
