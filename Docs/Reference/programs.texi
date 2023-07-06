@@ -151,7 +151,6 @@ i.e., a @refer{ThetaEnvironment}.
 @caption{Type Definition}
 @display
 @anchored{TypeDefinition} ::= @refer{AlgebraicTypeDefinition}
-  | @refer{TypeExistsStmt}
   | @refer{TypeAliasStmt}
 @end display
 @end float
@@ -260,26 +259,6 @@ cons[e] ::= .nil | .cons(e,cons[e])
 The reason is that the quantifiers in such a definition may be
 reliably inferred without being explicitly identified.
 @end quotation
-
-@node Type Exists Statement
-@subsection Type Exists Statement
-
-@float BNF,typeExistsFig
-@caption{Type Exists Statement}
-@display
-@anchored{TypeExistsStmt} ::= [@code{all} @refer{BoundType} @comma{}@dots{}@comma{}@refer{BoundType} @code{~~}] @refer{Type} @code{<~} @refer{FaceType}
-@end display
-@end float
-
-@quotation Note
-The explicit use of @refer{TypeExistsStmt}s is rare. However, they are
-automatically constructed in some situations.
-@end quotation
-
-The @refer{TypeExistsStmt} declares the existence of a type --
-together with its associated algebraic interface (see
-@refer{typeInterface}). It does so without specifying any constructors
-for the type.
 
 @node Type Alias Statement
 @subsection Type Alias Statement

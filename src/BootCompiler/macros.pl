@@ -37,19 +37,19 @@ examineStmt(S,Rp) :-
   macroType(T,Tx),
   typeAnnotation(Lc,V,Tx,Rp).
 examineStmt(S,Rp) :-
-  isTypeField(S,Lc,V,T),!,
-  macroType(T,Tx),
-  mkTypeField(Lc,V,Tx,Rp).
-examineStmt(S,Rp) :-
   isPublic(S,Lc,I),!,
   macroStmt(I,II),
-  disThroughGroup(II,abstract:unary(Lc,"public"),Rp).
+  mkPublic(Lc,II,Rp).
 examineStmt(S,Rp) :-
   isPrivate(S,Lc,I),!,
   macroStmt(I,II),
-  disThroughGroup(II,abstract:unary(Lc,"private"),Rp).
+  mkPrivate(Lc,II,Rp).
 examineStmt(S,S) :-
   isImport(S,_Lc,_I),!.
+examineStmt(S,Sx) :-
+  isOpen(S,Lc,E),!,
+  macroTerm(E,Ex),
+  mkOpen(Lc,Ex,Sx).
 examineStmt(S,Rp) :-
   isDefn(S,Lc,P,V),!,
   macroPtn(P,PP),
@@ -62,12 +62,6 @@ examineStmt(S,Rp) :-
   macroTerm(V,VV),
   mkEquation(Lc,PP,GG,VV,Rp).
 examineStmt(S,Rp) :-
-  isTypeExistsStmt(S,Lc,Q,C,L,R),!,
-  macroType(L,Lx),
-  macroType(R,Rx),
-  map(C,macros:macroType,Cx),
-  typeExistsStmt(Lc,Q,Cx,Lx,Rx,Rp).
-examineStmt(S,Rp) :-
   isTypeFunStmt(S,Lc,Q,C,L,R),!,
   macroType(L,Lx),
   macroType(R,Rx),
@@ -75,79 +69,50 @@ examineStmt(S,Rp) :-
   typeFunStmt(Lc,Q,Cx,Lx,Rx,Rp).
 examineStmt(S,Rp) :-
   isContractStmt(S,Lc,Q,C,T,B),!,
-  macroType(T,Tx),
+  macroConstraint(T,Tx),
   map(B,macros:macroStmt,Bx),
-  map(C,macros:macroType,Cx),
+  map(C,macros:macroConstraint,Cx),
   contractStmt(Lc,Q,Cx,Tx,Bx,Rp).
 examineStmt(S,Rp) :-
   isImplementationStmt(S,Lc,Q,C,T,B),!,
-  macroType(T,Tx),
-  map(C,macros:macroType,Cx),
+  macroConstraint(T,Tx),
+  map(C,macros:macroConstraint,Cx),
   macroTerm(B,Bx),
   implementationStmt(Lc,Q,Cx,Tx,Bx,Rp).
 examineStmt(S,Sx) :-
   isAlgebraicTypeStmt(S,Lc,Q,C,H,B),!,
   macroType(H,Hx),
   map(C,macros:macroType,Cx),
-  macroConsBody(B,Bx),
+  macroAlgebraic(B,Bx),
   mkAlgebraicTypeStmt(Lc,Q,Cx,Hx,Bx,Sx).
-examineStmt(S,Rp) :-
-  isBraceTuple(S,Lc,Els),!,
-  map(Els,macros:macroStmt,Elx),
-  braceTuple(Lc,Elx,Rp).
-examineStmt(S,Rp) :-
-  isQBraceTuple(S,Lc,Els),!,
-  map(Els,macros:macroStmt,Elx),
-  qbraceTuple(Lc,Elx,Rp).
 examineStmt(S,S) :-
   isAnnotation(S,_,_,_),!.
 examineStmt(S,S) :-
   locOfAst(S,Lc),
   reportError("cannot figure out statement %s",[ast(S)],Lc).
 
-macroConsBody(B,Bx) :-
+macroAlgebraic(B,Bx) :-
   isBinary(B,Lc,"|",L,R),!,
-  macroConsBody(L,Lx),
-  macroConsBody(R,Rx),
+  macroAlgebraic(L,Lx),
+  macroAlgebraic(R,Rx),
   binary(Lc,"|",Lx,Rx,Bx).
-macroConsBody(B,B) :-
+macroAlgebraic(B,B) :-
   isEnum(B,_,N),isIden(N,_,_),!.
-macroConsBody(B,B) :-
-  isName(B,_,_),!.
-macroConsBody(B,Bx) :-
-  isRoundTerm(B,Lc,O,E),!,
-  map(E,macros:macroType,Ex),
-  roundTerm(Lc,O,Ex,Bx).
-macroConsBody(B,Bx) :-
+macroAlgebraic(B,Bx) :-
   isConApply(B,Lc,O,E),!,
   map(E,macros:macroType,Ex),
   mkConApply(Lc,O,Ex,Bx).
-macroConsBody(B,Bx) :-
+macroAlgebraic(B,Bx) :-
   isBraceTerm(B,Lc,O,E),!,
-  map(E,macros:macroStmt,Ex),
+  map(E,macros:braceTypeMacro,Ex),
   braceTerm(Lc,O,Ex,Bx).
-macroConsBody(B,Bx) :-
-  isPrivate(B,Lc,I),
-  macroConsBody(I,Ix),
-  mkPrivate(Lc,Ix,Bx).
-macroConsBody(B,Bx) :-
+macroAlgebraic(B,Bx) :-
   isXQuantified(B,Q,I),
-  macroConsBody(I,Ix),
+  macroAlgebraic(I,Ix),
   reXQuant(Q,Ix,Bx).
-macroConsBody(B,B) :-
+macroAlgebraic(B,B) :-
   locOfAst(B,Lc),
   reportError("%s is an invalid constructor in type definition",[ast(B)],Lc).
-
-disThroughGroup(S,C,Rp) :-
-  isBraceTuple(S,Lc,Els),
-  map(Els,C,NEls),
-  braceTuple(Lc,NEls,Rp).
-disThroughGroup(S,C,Rp) :-
-  isQBraceTuple(S,Lc,Els),
-  map(Els,C,NEls),
-  qbraceTuple(Lc,NEls,Rp).
-disThroughGroup(S,C,Rp) :-
-  call(C,S,Rp).
 
 macroType(T,Tx) :-
   macroAst(T,type,macros:examineType,Tx).
@@ -157,10 +122,6 @@ examineType(T,Tx) :- isSquareTerm(T,Lc,Op,Args),!,
   map(Args,macros:macroType,Argx),
   macroType(Op,Opx),
   squareTerm(Lc,Opx,Argx,Tx).
-examineType(T,Tx) :- isBinary(T,Lc,"->>",L,R),!,
-  macroType(L,Lx),
-  macroType(R,Rx),
-  binary(Lc,"->>",Lx,Rx,Tx).
 examineType(T,Tx) :- isConstructorType(T,Lc,U,X,L,R),!,
   map(U,macros:macroType,Ux),
   map(X,macros:macroType,Xx),
@@ -171,22 +132,26 @@ examineType(T,Tx) :- isFuncType(T,Lc,L,R),!,
   macroType(L,Lx),
   macroType(R,Rx),
   funcType(Lc,Lx,Rx,Tx).
+examineType(T,Tx) :- isContinType(T,Lc,L,R),!,
+  macroType(L,Lx),
+  macroType(R,Rx),
+  mkContinType(Lc,Lx,Rx,Tx).
 examineType(T,Tx) :- isRoundTuple(T,Lc,Els),!,
   map(Els,macros:macroType,Elx),
   roundTuple(Lc,Elx,Tx).
 examineType(T,Tx) :-
   isQuantified(T,V,I),!,
-  map(V,macros:macroType,Vx),
+  map(V,macros:macroTypeVar,Vx),
   macroType(I,Ix),
   reUQuant(Vx,Ix,Tx).
 examineType(T,Tx) :-
   isXQuantified(T,V,I),!,
-  map(V,macros:macroType,Vx),
+  map(V,macros:macroTypeVar,Vx),
   macroType(I,Ix),
   reXQuant(Vx,Ix,Tx).
 examineType(T,Tx) :-
   isConstrained(T,I,C),!,
-  map(C,macros:macroType,Cx),
+  map(C,macros:macroConstraint,Cx),
   macroType(I,Ix),
   reConstrain(Cx,Ix,Tx).
 examineType(T,Tx) :-
@@ -198,8 +163,6 @@ examineType(T,Tx) :-
   macroType(V,Vx),
   macroType(E,Ex),
   mkRaises(Lc,Vx,Ex,Tx).
-examineType(T,T) :-
-  isBinary(T,_,"/",_,_),!.
 examineType(T,Tx) :-
   isTypeExists(T,Lc,L,R),!,
   macroType(L,Lx),
@@ -218,14 +181,14 @@ examineType(T,Tx) :-
 examineType(T,Tx) :-
   isRef(T,Lc,L),!,
   macroType(L,Lx),
-  unary(Lc,"ref",Lx,Tx).
+  mkRef(Lc,Lx,Tx).
 examineType(T,Tx) :-
   isRoundTuple(T,Lc,Els),!,
   map(Els,macros:macroType,Elx),
   roundTuple(Lc,Elx,Tx).
 examineType(T,Tx) :-
   isBraceTuple(T,Lc,Els),!,
-  map(Els,macros:macroStmt,Elx),
+  map(Els,macros:braceTypeMacro,Elx),
   braceTuple(Lc,Elx,Tx).
 examineType(T,Tx) :-
   isFieldAcc(T,Lc,L,F),!,
@@ -235,6 +198,70 @@ examineType(T,T) :-
   locOfAst(T,Lc),
   reportError("cannot figure out type %s",[ast(T)],Lc).
 
+macroTypeVar(T,Tx) :-
+  macroAst(T,type,macros:examineTypeVar,Tx).
+
+examineTypeVar(T,T) :-
+  isIden(T,_,_),!.
+examineTypeVar(T,T) :-
+  isBinary(T,_,"/",_,_),!.
+examineTypeVar(T,T) :-
+  locOfAst(T,Lc),
+  reportError("cannot figure out type variable %s",[ast(T)],Lc).
+
+braceTypeMacro(S,Sx) :-
+  isTypeAnnotation(S,Lc,L,R),!,
+  macroType(R,Rx),
+  typeAnnotation(Lc,L,Rx,Sx).
+braceTypeMacro(S,Sx) :-
+  isTypeExists(S,Lc,L,R),
+  macroType(R,Rx),
+  mkTypeExists(Lc,L,Rx,Sx).
+
+macroConstraint(T,Tx) :-
+  macroAst(T,constraint,macros:examineConstraint,Tx).
+
+examineConstraint(T,Tx) :- isSquareTerm(T,Lc,Op,Args),!,
+  map(Args,macros:macroConstraintArg,Argx),
+  macroType(Op,Opx),
+  squareTerm(Lc,Opx,Argx,Tx).
+examineConstraint(T,Tx) :-
+  isQuantified(T,V,I),!,
+  map(V,macros:macroConstraint,Vx),
+  macroType(I,Ix),
+  reUQuant(Vx,Ix,Tx).
+examineConstraint(T,Tx) :-
+  isXQuantified(T,V,I),!,
+  map(V,macros:macroConstraint,Vx),
+  macroType(I,Ix),
+  reXQuant(Vx,Ix,Tx).
+examineConstraint(T,Tx) :-
+  isDynamic(T,Lc,Nm,Tp),
+  macroType(Tp,TTp),
+  mkDynamic(Lc,Nm,TTp,Tx).
+examineConstraint(T,Tx) :-
+  isTypeExists(T,Lc,L,R),!,
+  macroType(L,Lx),
+  macroType(R,Rx),
+  typeExists(Lc,Lx,Rx,Tx).
+examineConstraint(T,Tx) :-
+  isRoundTuple(T,Lc,[El]),!,
+  macroConstraint(El,Elx),
+  roundTuple(Lc,[Elx],Tx).
+examineConstraint(T,T) :-
+  locOfAst(T,Lc),
+  reportError("cannot figure out constraint %s",[ast(T)],Lc).
+
+macroConstraintArg(A,Ax) :-
+  macroAst(A,constraint,macros:examineConstraintArg,Ax).
+
+examineConstraintArg(T,Tx) :- isBinary(T,Lc,"->>",L,R),!,
+  macroType(L,Lx),
+  macroType(R,Rx),
+  binary(Lc,"->>",Lx,Rx,Tx).
+examineConstraintArg(T,Tx) :-
+  macroType(T,Tx).
+  
 macroTerm(T,Tx) :-
   macroAst(T,expression,macros:examineTerm,Tx).
 
@@ -419,9 +446,42 @@ examineTerm(T,Tx) :-
   map(C,macros:macroLambda,Cx),
   caseExp(Lc,Ex,Cx,Tx).
 examineTerm(T,Tx) :-
-  isFiberTerm(T,Lc,S),!,
-  macroAction(S,Sx),
-  mkFiberTerm(Lc,Sx,Tx).
+  isContRule(T,Lc,L,G,R),!,
+  macroHead(L,Lx),
+  macroTerm(R,Rx),
+  macroOpt(G,macros:macroTerm,Gx),
+  mkContRule(Lc,Lx,Gx,Rx,Tx).
+examineTerm(T,Tx) :-
+  isSpawn(T,Lc,F,V),!,
+  macroTerm(F,Fx),
+  macroTerm(V,Vx),
+  mkSpawn(Lc,Fx,Vx,Tx).
+examineTerm(T,Tx) :-
+  isPaused(T,Lc,S,F,V),!,
+  macroTerm(S,Sx),
+  macroTerm(F,Fx),
+  macroTerm(V,Vx),
+  mkPaused(Lc,Sx,Fx,Vx,Tx).
+examineTerm(T,Tx) :-
+  isSuspend(T,Lc,F,V),!,
+  macroTerm(F,Fx),
+  macroTerm(V,Vx),
+  mkSuspend(Lc,Fx,Vx,Tx).
+examineTerm(T,Tx) :-
+  isResume(T,Lc,F,V),!,
+  macroTerm(F,Fx),
+  macroTerm(V,Vx),
+  mkResume(Lc,Fx,Vx,Tx).
+examineTerm(T,Tx) :-
+  isInvoke(T,Lc,F,V),!,
+  macroTerm(F,Fx),
+  map(V,macros:macroTerm,Vx),
+  mkInvoke(Lc,Fx,Vx,Tx).
+examineTerm(T,Tx) :-
+  isRetire(T,Lc,F,V),!,
+  macroTerm(F,Fx),
+  macroTerm(V,Vx),
+  mkRetire(Lc,Fx,Vx,Tx).
 examineTerm(T,Tx) :-
   isBraceTuple(T,Lc,D),!,
   map(D,macros:macroStmt,Dx),
@@ -449,11 +509,6 @@ examineTerm(A,Ax) :-
   isRaise(A,Lc,V),!,
   macroTerm(V,Vx),
   mkRaise(Lc,Vx,Ax).
-examineTerm(T,Tx) :-
-  isInvoke(T,Lc,O,Args),!,
-  map(Args,macros:macroTerm,Argx),
-  macroTerm(O,Ox),
-  mkInvoke(Lc,Ox,Argx,Tx).
 examineTerm(T,T) :-
   locOfAst(T,Lc),
   reportError("cannot figure out expression %s",[ast(T)],Lc).
@@ -651,6 +706,26 @@ examineAction(A,Ax) :-
   isRaise(A,Lc,V),!,
   macroTerm(V,Vx),
   mkRaise(Lc,Vx,Ax).
+examineAction(A,Ax) :-
+  isSpawn(A,Lc,F,V),!,
+  macroTerm(F,Fx),
+  macroTerm(V,Vx),
+  mkSpawn(Lc,Fx,Vx,Ax).
+examineAction(A,Ax) :-
+  isSuspend(A,Lc,F,V),!,
+  macroTerm(F,Fx),
+  macroTerm(V,Vx),
+  mkSuspend(Lc,Fx,Vx,Ax).
+examineAction(A,Ax) :-
+  isResume(A,Lc,F,V),!,
+  macroTerm(F,Fx),
+  macroTerm(V,Vx),
+  mkResume(Lc,Fx,Vx,Ax).
+examineAction(A,Ax) :-
+  isRetire(A,Lc,F,V),!,
+  macroTerm(F,Fx),
+  macroTerm(V,Vx),
+  mkRetire(Lc,Fx,Vx,Ax).
 examineAction(A,Ax) :-
   isLetDef(A,Lc,D,B),!,
   map(D,macros:macroStmt,Dx),

@@ -261,6 +261,21 @@ compExp(error(Lc,Msg),_OLc,_Cont,_End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
 compExp(rais(Lc,T,E),_,_,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :-!,
   compExp(E,Lc,compExp(T,Lc,throwCont,End,Brks,Opts),
 	  End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,_).
+compExp(spwn(Lc,Lm),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+  chLine(Opts,OLc,Lc,C,C0),
+  compExp(Lm,Lc,spawnCont(Stk,Cont),End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
+compExp(paus(Lc,Lm),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+  chLine(Opts,OLc,Lc,C,C0),
+  compExp(Lm,Lc,pauseCont(Stk,Cont),End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
+compExp(sosp(Lc,K,E),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
+  chLine(Opts,OLc,Lc,C,C0),
+  compExp(E,Lc,compExp(K,Lc,suspCont(Stk,Cont),End,Brks,Opts),End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
+compExp(rsm(Lc,K,E),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
+  chLine(Opts,OLc,Lc,C,C0),
+  compExp(E,Lc,compExp(K,Lc,resumeCont(Stk,Cont),End,Brks,Opts),End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
+compExp(rtre(Lc,K,E),OLc,_Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :-
+  chLine(Opts,OLc,Lc,C,C0),
+  compExp(E,Lc,compExp(K,Lc,retireCont,End,Brks,Opts),End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,_).
 compExp(cnd(Lc,T,A,B),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compCondExp(Lc,T,A,B,Cont,End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
@@ -337,6 +352,10 @@ compAction(vls(Lc,E),OLc,Cont,_ACont,_End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :- 
 compAction(rais(Lc,T,E),OLc,_Cont,_ACont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :- !,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(E,Lc,compExp(T,Lc,throwCont,End,Brks,Opts),
+	  End,Brks,Opts,L,Lx,D,Dx,C0,[iLbl(End)|Cx],Stk,_Stkx).
+compAction(rtre(Lc,T,E),OLc,_Cont,_ACont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :- !,
+  chLine(Opts,OLc,Lc,C,C0),
+  compExp(E,Lc,compExp(T,Lc,retireCont,End,Brks,Opts),
 	  End,Brks,Opts,L,Lx,D,Dx,C0,[iLbl(End)|Cx],Stk,_Stkx).
 compAction(perf(Lc,Cll),OLc,_Cont,ACont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :- !,
   chLine(Opts,OLc,Lc,C,C0),!,
@@ -426,6 +445,24 @@ compTry(Lc,B,idnt(T),idnt(E),H,OLc,Cont,Hndlr,Brks,Opts,End,L,Lx,D,Dx,C,Cx,Stk) 
   call(Hndlr,H,Lc,Cont,End,Brks,Opts,L4,Lx,D4,Dx,C5,Cx,Stk,_Stk2).
 
 throwCont(Lx,Lx,Dx,Dx,[iThrow|Cx],Cx,_Stk,none).
+
+spawnCont(Stk,Cont,L,Lx,D,Dx,[iSpawn|C],Cx,_Stk,Stkx) :-
+  bumpStk(Stk,Stk1),
+  call(Cont,L,Lx,D,Dx,C,Cx,Stk1,Stkx).
+
+pauseCont(Stk,Cont,L,Lx,D,Dx,[iFiber|C],Cx,_Stk,Stkx) :-
+  bumpStk(Stk,Stk1),
+  call(Cont,L,Lx,D,Dx,C,Cx,Stk1,Stkx).
+
+suspCont(Stk,Cont,L,Lx,D,Dx,[iSuspend|C],Cx,_,Stkx) :-
+  bumpStk(Stk,Stk1),
+  call(Cont,L,Lx,D,Dx,C,Cx,Stk1,Stkx).
+
+resumeCont(Stk,Cont,L,Lx,D,Dx,[iResume|C],Cx,_,Stkx) :-
+  bumpStk(Stk,Stk1),
+  call(Cont,L,Lx,D,Dx,C,Cx,Stk1,Stkx).
+
+retireCont(Lx,Lx,Dx,Dx,[iRetire|Cx],Cx,_,none).
 
 /* Compile actions as sequences with several possible continuations */
 

@@ -13,7 +13,7 @@
 #define fileType "t'star.file*fileHandle'"
 #define udpType "t'star.io*udpHandle'"
 #define optionType(T) "Uz1'star.core*option'" T
-#define fiberType(R,S) "UUz2'star.fiber*fiber'" R S
+#define fiberType(R,S) "UUz2'star.core*fiber'" R S
 #define futureType(T) "Uz1'star.core*future'" T
 
 /* Define the standard escapes */
@@ -126,8 +126,6 @@ escape(_bnot, "F(i)i", "bitwise negate number")
 escape(_cell, ":k't'F(k't')rk't'", "create a reference cell")
 escape(_get, ":k't'F(rk't')k't'", "access contents of reference cell")
 escape(_assign, ":k't'F(rk't'k't')()", "update contents of reference cell")
-
-escape(_overwrite, ":k't'F(k't'k't')k't'", "overwrite a structure with new structure")
 
 escape(_tuple_nth, ":k't':k'e'F(k't'i)k'e'", "Access tuple element")
 escape(_tuple_set_nth, ":k't':k'e'F(k't'ik'e')k't'", "Update tuple element")

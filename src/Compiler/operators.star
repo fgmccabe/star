@@ -38,6 +38,7 @@ star.compiler.operators{
 
   oper:(string)=>cons[operator].
   oper(Op) => case Op in {
+    "retire" => [.infixOp(829,830,829)].
     "all" => [.prefixOp(1010,1009)].
     ".<." => [.infixOp(699,700,699)].
     "^=" => [.infixOp(899,900,899)].
@@ -74,6 +75,7 @@ star.compiler.operators{
     "*" => [.postfixOp(699,700), .infixOp(700,700,699)].
     "\\-" => [.infixOp(700,700,699)].
     "+" => [.postfixOp(699,700), .infixOp(720,720,719)].
+    "resume" => [.infixOp(829,830,829)].
     ".>>." => [.infixOp(600,600,599)].
     "*>" => [.infixOp(904,905,904)].
     "," => [.infixOp(999,1000,1000)].
@@ -82,8 +84,8 @@ star.compiler.operators{
     "-" => [.prefixOp(300,299), .infixOp(720,720,719)].
     "raises" => [.infixOp(999,1000,999)].
     "." => [.prefixOp(10,9), .infixOp(100,100,99)].
+    "spawn" => [.infixOp(929,930,929)].
     "/" => [.infixOp(700,700,699)].
-    "<*>" => [.infixOp(949,950,950)].
     "try" => [.prefixOp(1200,1199)].
     "exists" => [.prefixOp(1010,1009)].
     "if" => [.prefixOp(1175,1174)].
@@ -103,11 +105,11 @@ star.compiler.operators{
     "|=" => [.infixOp(998,999,998)].
     "in" => [.infixOp(899,900,900)].
     "break" => [.prefixOp(10,9)].
+    "suspend" => [.infixOp(829,830,829)].
     "open" => [.prefixOp(900,899)].
     "trace" => [.prefixOp(140,139)].
     "~~" => [.infixOp(1239,1240,1240)].
     "assert" => [.prefixOp(1240,1239)].
-    "invoke" => [.prefixOp(930,929)].
     "⊕" => [.infixOp(720,720,719)].
     ".^." => [.infixOp(720,720,719)].
     "//" => [.infixOp(960,960,959)].
@@ -126,7 +128,7 @@ star.compiler.operators{
     "valof" => [.prefixOp(300,299)].
     "yield" => [.prefixOp(300,299)].
     "while" => [.prefixOp(1175,1174)].
-    "private" => [.prefixOp(1510,1509)].
+    "private" => [.prefixOp(1700,1699)].
     "•" => [.infixOp(450,450,449)].
     ".&." => [.infixOp(700,700,699)].
     "///" => [.infixOp(960,960,959)].
@@ -294,7 +296,6 @@ star.compiler.operators{
     ("<",`-`) => ?"<-".
     ("<",`|`) => ?"<|".
     ("<",`=`) => ?"<=".
-    ("<*",`>`) => ?"<*>".
     ("<=",`>`) => ?"<=>".
     ("=",`<`) => ?"=<".
     ("=",`=`) => ?"==".
@@ -383,7 +384,6 @@ star.compiler.operators{
     ";" => .true.  /* sequencing operator */
     "<" => .true.  /* less than */
     "<*" => .true.  /* left fold */
-    "<*>" => .true.  /* applicative splat */
     "<~" => .true.  /* type interface rule */
     "<$" => .true.  /* constant replace */
     "<-" => .true.  /* variable bind */
@@ -414,6 +414,7 @@ star.compiler.operators{
 
   public keyword:(string) => boolean.
   keyword(Op) => case Op in {
+    "retire" => .true.
     "all" => .true.
     "^=" => .true.
     "&&" => .true.
@@ -440,12 +441,14 @@ star.compiler.operators{
     "<-" => .true.
     "(" => .true.
     ")" => .true.
+    "resume" => .true.
     "*>" => .true.
     "," => .true.
     "contract" => .true.
     "./" => .true.
     "raises" => .true.
     "." => .true.
+    "spawn" => .true.
     "try" => .true.
     "exists" => .true.
     "if" => .true.
@@ -461,9 +464,9 @@ star.compiler.operators{
     "|>" => .true.
     "in" => .true.
     "break" => .true.
+    "suspend" => .true.
     "open" => .true.
     "~~" => .true.
-    "invoke" => .true.
     "/." => .true.
     "public" => .true.
     "[|" => .true.

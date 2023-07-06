@@ -1,6 +1,5 @@
 star.iterable{
   import star.core.
-  import star.fiber.
 
   -- The iter contract is used in query evaluation
   -- The _iter function iterates over the collection composing it
@@ -17,21 +16,21 @@ star.iterable{
   public res_generator ::= ._next | ._cancel.
 
   public contract all c,e ~~ generate[c->>e] ::= {
-    _generate:(c)=>fiber[res_generator,sus_generator[e]]
+    _generate:(c)=>res_generator=>>sus_generator[e]
   }
 
-  public iterGenerator:all c,e ~~ iter[c->>e] |: (c) =>
-    fiber[res_generator,sus_generator[e]].
-  iterGenerator(L) => _new_fiber((this,first)=> valof{
-      let{
-	yieldFn:(e,())=>().
-	yieldFn(E,_) => valof{
-	  case _suspend(this,._yld(E)) in {
-	    ._next => {}.
-	    ._cancel => _retire(this,._all)
-	  };
-	  valis ()
-	}
-      } in {_ = _iter(L,(),yieldFn)};
-      _retire(this,._all)}).
+  public iterGenerator:all c,e ~~ iter[c->>e] |: (c) => res_generator=>>sus_generator[e].
+  iterGenerator(L) => (this spawn first =>> valof{
+    let{
+      yieldFn:(e,())=>().
+      yieldFn(E,_) => valof{
+	case this suspend ._yld(E) in {
+	  ._next => {}.
+	  ._cancel => this retire ._all
+	};
+	valis ()
+      }
+    } in {_ = _iter(L,(),yieldFn)};
+    this retire ._all
+    }).
 }

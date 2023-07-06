@@ -31,12 +31,12 @@ isIntrinsic("_blsl",funType(tplType([type("star.core*integer"),type("star.core*i
 isIntrinsic("_blsr",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer")),iBLsr).  % logical right shift
 isIntrinsic("_basr",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer")),iBAsr).  % arithmetic right shift
 isIntrinsic("_bnot",funType(tplType([type("star.core*integer")]),type("star.core*integer")),iBNot).  % bitwise negate number
-isIntrinsic("_fiber_eq",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s")),tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s"))]),type("star.core*boolean")))),iTEq).  % compare two fiber identifiers
-isIntrinsic("_new_fiber",allType(kVar("s"),allType(kVar("r"),funType(tplType([funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s")),kVar("r")]),kVar("s"))]),tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s"))))),iFiber).  % create a new fiber
-isIntrinsic("_spawn",allType(kVar("s"),allType(kVar("r"),funType(tplType([funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s"))]),kVar("s"))]),kVar("s")))),iSpawn).  % spawn a new task
-isIntrinsic("_suspend",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s")),kVar("s")]),kVar("r")))),iSuspend).  % suspend a fiber
-isIntrinsic("_retire",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s")),kVar("s")]),tplType([])))),iRetire).  % retire a fiber
-isIntrinsic("_resume",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.fiber*fiber",2),kVar("r")),kVar("s")),kVar("r")]),kVar("s")))),iResume).  % resume a fiber
+isIntrinsic("_fiber_eq",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.core*fiber",2),kVar("r")),kVar("s")),tpExp(tpExp(tpFun("star.core*fiber",2),kVar("r")),kVar("s"))]),type("star.core*boolean")))),iTEq).  % compare two fiber identifiers
+isIntrinsic("_new_fiber",allType(kVar("s"),allType(kVar("r"),funType(tplType([funType(tplType([tpExp(tpExp(tpFun("star.core*fiber",2),kVar("r")),kVar("s")),kVar("r")]),kVar("s"))]),tpExp(tpExp(tpFun("star.core*fiber",2),kVar("r")),kVar("s"))))),iFiber).  % create a new fiber
+isIntrinsic("_spawn",allType(kVar("s"),allType(kVar("r"),funType(tplType([funType(tplType([tpExp(tpExp(tpFun("star.core*fiber",2),kVar("r")),kVar("s"))]),kVar("s"))]),kVar("s")))),iSpawn).  % spawn a new task
+isIntrinsic("_suspend",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.core*fiber",2),kVar("r")),kVar("s")),kVar("s")]),kVar("r")))),iSuspend).  % suspend a fiber
+isIntrinsic("_retire",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.core*fiber",2),kVar("r")),kVar("s")),kVar("s")]),tplType([])))),iRetire).  % retire a fiber
+isIntrinsic("_resume",allType(kVar("s"),allType(kVar("r"),funType(tplType([tpExp(tpExp(tpFun("star.core*fiber",2),kVar("r")),kVar("s")),kVar("r")]),kVar("s")))),iResume).  % resume a fiber
 isIntrinsic("_cell",allType(kVar("t"),funType(tplType([kVar("t")]),refType(kVar("t")))),iCell).  % create a reference cell
 isIntrinsic("_get",allType(kVar("t"),funType(tplType([refType(kVar("t"))]),kVar("t"))),iGet).  % access contents of reference cell
 isIntrinsic("_assign",allType(kVar("t"),funType(tplType([refType(kVar("t")),kVar("t")]),tplType([]))),iAssign).  % update contents of reference cell

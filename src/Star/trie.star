@@ -2,7 +2,7 @@ star.trie{
   import star.
 
   public trie[k,v] ::=
-    private .trNode(map[k,trie[k,v]],option[v]).
+    .trNode(map[k,trie[k,v]],option[v]).
 
   public emptyTrie:all k,v ~~ equality[k],hashable[k] |: trie[k,v].
   emptyTrie = .trNode(_empty,.none).

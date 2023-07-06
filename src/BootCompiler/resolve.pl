@@ -1,4 +1,4 @@
-:- module(resolve,[overload/3,overloadOthers/3]).
+:- module(resolve,[overload/3]).
 
 :- use_module(dict).
 :- use_module(declmgt).
@@ -213,6 +213,19 @@ overloadTerm(tryCatch(Lc,E,v(TLc,Nm,Tp),H),Dict,St,Stx,tryCatch(Lc,EE,v(TLc,Nm,T
   overloadCases(H,resolve:overloadTerm,Dict,St0,Stx,HH).
 overloadTerm(raise(Lc,T,E,Tp),Dict,St,Stx,raise(Lc,TT,EE,Tp)) :-
   overloadTerm(T,Dict,St,St0,TT),
+  overloadTerm(E,Dict,St0,Stx,EE).
+overloadTerm(spawn(Lc,L,Tp),Dict,St,Stx,spawn(Lc,LL,Tp)) :-
+  overloadTerm(L,Dict,St,Stx,LL).
+overloadTerm(pause(Lc,L,Tp),Dict,St,Stx,pause(Lc,LL,Tp)) :-
+  overloadTerm(L,Dict,St,Stx,LL).
+overloadTerm(susp(Lc,K,E,Tp),Dict,St,Stx,susp(Lc,KK,EE,Tp)) :-
+  overloadTerm(K,Dict,St,St0,KK),
+  overloadTerm(E,Dict,St0,Stx,EE).
+overloadTerm(resme(Lc,K,E,Tp),Dict,St,Stx,resme(Lc,KK,EE,Tp)) :-
+  overloadTerm(K,Dict,St,St0,KK),
+  overloadTerm(E,Dict,St0,Stx,EE).
+overloadTerm(rtire(Lc,K,E,Tp),Dict,St,Stx,rtire(Lc,KK,EE,Tp)) :-
+  overloadTerm(K,Dict,St,St0,KK),
   overloadTerm(E,Dict,St0,Stx,EE).
 overloadTerm(T,_,St,St,T) :-
   locOfCanon(T,Lc),
@@ -475,31 +488,6 @@ findUpdate(Tp,FldNm,Dict,AccTp,FunNm) :-
   getFieldUpdater(Tp,FldNm,FunNm,AccTp,Dict).
 findUpdate(_Tp,FldNm,Dict,AccTp,FunNm) :-
   is_member(update(FldNm,v(_,FunNm,AccTp)),Dict),!.
-
-overloadOthers(Other,Dict,OOthers) :-
-  overloadList(Other,resolve:overloadOther,Dict,OOthers).
-
-overloadOther(assertion(Lc,Cond),Dict,assertion(Lc,RCond)) :-
-  resolveTerm(Cond,Dict,RCond).
-overloadOther(show(Lc,Exp),Dict,show(Lc,RExp)) :-
-  resolveTerm(Exp,Dict,RExp).
-
-overloadEnum(Lc,Nm,Tp,[],Rules,Dict,enum(Lc,Nm,Tp,[],ORules)) :-
-  overloadClassRules(Rules,[],Dict,ORules).
-overloadEnum(Lc,Nm,Tp,Cx,Rules,Dict,class(Lc,Nm,Tp,[],ORules)) :-
-  defineCVars(Lc,Cx,Dict,EVars,EDict),
-  overloadClassRules(Rules,EVars,EDict,ORules).
-
-overloadClass(Lc,Nm,Tp,Cx,Rules,Dict,class(Lc,Nm,Tp,[],ORules)) :-
-  defineCVars(Lc,Cx,Dict,EVars,EDict),
-  overloadClassRules(Rules,EVars,EDict,ORules).
-
-overloadClassRules(Rules,V,D,ORules) :-
-  overloadList(Rules,resolve:overloadClassRule(V),D,ORules).
-
-overloadClassRule(CVars,labelRule(Lc,Nm,Hd,St),Dict,labelRule(Lc,Nm,OHd,OSt)) :-
-  resolveHead(Hd,CVars,OHd),
-  overloadOthers(St,Dict,OSt).
 
 resolveHead(Hd,[],Hd).
 resolveHead(enm(Lc,Nm,Tp),CVars,apply(Lc,v(Lc,Nm,Tp),CVars)).

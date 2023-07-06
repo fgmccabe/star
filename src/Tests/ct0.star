@@ -16,27 +16,29 @@ test.ct0{
 	if Count! % 3 == 0 then{
 	  Cnt = Count!;
 	  logMsg("spawning sub-task");
-	  spawn((Tsk)=>valof{
-	      try{
-		logMsg("We were spawned $(Cnt)");
-		case _suspend(Tsk,.yield_) in {
-		  .go_ahead => {}
-		  | .shut_down_ => raise .canceled
-		};
-		logMsg("After 1 pause $(Cnt)");
-		case _suspend(Tsk,.yield_) in {
-		  .go_ahead => {}
-		  | .shut_down_ => raise .canceled
-		};
-		logMsg("After 2 pauses $(Cnt)");
-		_retire(Tsk,.blocked(()=>.false))
-	      } catch {
-		_ => {
-		  logMsg("we were canceled");
-		  _retire(Tsk,.retired_)
-		}
+	  case (Tsk spawn valof{
+	    try{
+	      logMsg("We were spawned $(Cnt)");
+	      case Tsk suspend .yield_ in {
+		.go_ahead => {}
+		| .shut_down_ => raise .canceled
+	      };
+	      logMsg("After 1 pause $(Cnt)");
+	      case Tsk suspend .yield_ in {
+		.go_ahead => {}
+		| .shut_down_ => raise .canceled
+	      };
+	      logMsg("After 2 pauses $(Cnt)");
+	      Tsk retire .blocked(()=>.false)
+	    } catch {
+	      _ => {
+		logMsg("we were canceled");
+		Tsk retire .retired_
 	      }
-	    });
+	    }
+	    }) in {
+	    .yield_ => {}
+	    };
 	};
 	logMsg("$(K) moving along, $(Count!) rounds left");
       }
@@ -49,8 +51,12 @@ test.ct0{
   
   main:()=>().
   main() => valof{
-    Rs = nursery([tt(10),tt(20)]);
-    logMsg("final result $(Rs)");
+    try{
+      Rs = nursery([tt(10),tt(20)]);
+      logMsg("final result $(Rs)");
+    } catch {
+      E => logMsg(disp(E))
+    };
     valis ()
   }
 }

@@ -88,9 +88,7 @@ task[e] <~ @{@}
 @quotation Note
 Although the `task' type is implemented as a normal type, it's
 definition is hidden as its internals are not relevant to the
-programmer. Hence, it is declared using a @refer{TypeExistsStmt}
-statement rather than with a @refer{AlgebraicTypeDefinition}
-statement.
+programmer.
 @end quotation
 
 @node Task-related Functions

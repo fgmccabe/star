@@ -2,6 +2,10 @@
 @caption{Standard Operators}
 @multitable {implementation}{non-associative prefix}{1010}{Apply optional function and match result}
 @headitem Operator @tab Form @tab Priority @tab Description
+@item @code{retire}
+@tab non-associative infix
+@tab 830
+@tab retire a coroutine
 @item @code{all}
 @tab non-associative prefix
 @tab 1010
@@ -166,6 +170,10 @@
 @tab left associative infix
 @tab 720
 @tab addition
+@item @code{resume}
+@tab non-associative infix
+@tab 830
+@tab resume coroutine
 @item @code{.>>.}
 @tab left associative infix
 @tab 600
@@ -206,14 +214,14 @@
 @tab left associative infix
 @tab 100
 @tab object access
+@item @code{spawn}
+@tab non-associative infix
+@tab 930
+@tab spawn a coroutine
 @item @code{/}
 @tab left associative infix
 @tab 700
 @tab division
-@item @code{<*>}
-@tab right associative infix
-@tab 950
-@tab applicative splat
 @item @code{try}
 @tab non-associative prefix
 @tab 1200
@@ -298,6 +306,10 @@
 @tab non-associative prefix
 @tab 10
 @tab break out of an action (loop or block)
+@item @code{suspend}
+@tab non-associative infix
+@tab 830
+@tab suspend coroutine
 @item @code{open}
 @tab non-associative prefix
 @tab 900
@@ -314,10 +326,6 @@
 @tab non-associative prefix
 @tab 1240
 @tab assert condition
-@item @code{invoke}
-@tab non-associative prefix
-@tab 930
-@tab invoke a handler
 @item @code{⊕}
 @tab left associative infix
 @tab 720
@@ -333,7 +341,7 @@
 @item @code{public}
 @tab non-associative prefix
 @tab 1700
-@tab public program
+@tab public visibility
 @item @code{ref}
 @tab non-associative prefix
 @tab 899
@@ -396,8 +404,8 @@
 @tab while ... do @{@}
 @item @code{private}
 @tab non-associative prefix
-@tab 1510
-@tab private program
+@tab 1700
+@tab private visibility
 @item @code{•}
 @tab left associative infix
 @tab 450
@@ -498,25 +506,28 @@
 @caption{Keywords}
 @multitable {implementation}{implementation}{implementation}
 @headitem Keyword @tab Keyword @tab Keyword
-@item @code{all}
+@item @code{retire}
+@tab @code{all}
 @tab @code{let}
-@tab @code{do}
-@item @code{import}
+@item @code{do}
+@tab @code{import}
 @tab @code{catch}
-@tab @code{valis}
-@item @code{for}
+@item @code{valis}
+@tab @code{for}
 @tab @code{raise}
-@tab @code{then}
-@item @code{default}
-@tab @code{contract}
+@item @code{then}
+@tab @code{default}
+@tab @code{resume}
+@item @code{contract}
 @tab @code{raises}
+@tab @code{spawn}
 @item @code{try}
 @tab @code{exists}
 @tab @code{if}
 @item @code{in}
 @tab @code{break}
-@tab @code{open}
-@item @code{invoke}
+@tab @code{suspend}
+@item @code{open}
 @tab @code{public}
 @tab @code{ref}
 @item @code{where}
@@ -569,50 +580,49 @@
   @item @code{-}
   @tab @code{.}
   @tab @code{/}
-  @tab @code{<*>}
   @tab @code{:}
-  @item @code{;}
-  @tab @code{<}
+  @tab @code{;}
+  @item @code{<}
   @tab @code{.=}
   @tab @code{=>>}
   @tab @code{=}
-  @item @code{|:}
-  @tab @code{++}
+  @tab @code{|:}
+  @item @code{++}
   @tab @code{>}
   @tab @code{?}
   @tab @code{@@}
-  @item @code{|=}
-  @tab @code{~~}
+  @tab @code{|=}
+  @item @code{~~}
   @tab @code{⊕}
   @tab @code{.^.}
   @tab @code{//}
-  @item @code{.~.}
-  @tab @code{=<}
+  @tab @code{.~.}
+  @item @code{=<}
   @tab @code{==}
   @tab @code{\\}
   @tab @code{=>}
-  @item @code{^}
-  @tab @code{<=>}
+  @tab @code{^}
+  @item @code{<=>}
   @tab @code{•}
   @tab @code{.&.}
   @tab @code{///}
-  @item @code{::}
-  @tab @code{+++}
+  @tab @code{::}
+  @item @code{+++}
   @tab @code{:=}
   @tab @code{:?}
   @tab @code{.<<.}
-  @item @code{>>=}
-  @tab @code{^/}
+  @tab @code{>>=}
+  @item @code{^/}
   @tab @code{<~}
   @tab @code{|}
   @tab @code{.#.}
-  @item @code{~}
-  @tab @code{^//}
+  @tab @code{~}
+  @item @code{^//}
   @tab @code{||}
   @tab @code{::=}
   @tab @code{/\\}
-  @item @code{>=}
-  @tab @code{>>}
+  @tab @code{>=}
+  @item @code{>>}
 
 @end multitable
 @end float

@@ -7,7 +7,7 @@ test.al{
     name:string.
     age:(integer)=>integer
   }
-    | private student{
+  | student{
       name:string.
     } |
     employee{

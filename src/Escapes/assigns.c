@@ -26,18 +26,3 @@ ReturnStatus g__assign(heapPo h, termPo a1,termPo a2) {
 
   return (ReturnStatus){.ret=Ok, .result=unitEnum};
 }
-
-ReturnStatus g__overwrite(heapPo h, termPo a1,termPo a2) {
-  normalPo orig = C_NORMAL(a1);
-  normalPo newval = C_NORMAL(a2);
-
-  if (termArity(orig) == termArity(newval)) {
-    orig->lbl = newval->lbl;
-    for (integer ix = 0; ix < termArity(newval); ix++)
-      orig->args[ix] = newval->args[ix];
-
-    return (ReturnStatus){.ret=Ok, .result=(termPo)orig};
-  } else {
-    return (ReturnStatus){.ret=Error, .result= unitEnum};
-  }
-}

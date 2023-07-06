@@ -2,28 +2,56 @@ test.ts1{
   import star.
   import star.script.
   
-  -- Simple test of fiber generator pattern
+  -- Another test of generator pattern
 
-  scomm[e] ::= .yild(e) | .end.
+  scomm[e] ::= .yild(e) | .end | .identify(rcomm=>>scomm[e]).
   rcomm ::= .next | .cancel.
 
   consIter:all e,x ~~ (cons[e],x,(x,e)=>x)=>x.
   consIter(.nil,X,_) => X.
   consIter(.cons(H,T),X,F) => consIter(T,F(X,H),F).
 
-  iterGen:all e ~~ (cons[e]) => fiber[rcomm,scomm[e]].
-  iterGen(L) => _new_fiber((this,first)=> valof{
-    let{
-      yildFn:((),e)=>().
-      yildFn(_,E) => valof{
-	case _suspend(this,.yild(E)) in {
-	  .next => valis ().
-	  .cancel => _retire(this,.end)
+  iterFn:all e ~~ (rcomm=>>scomm[e],cons[e]) => scomm[e].
+  iterFn(this,L) => let{
+    yildFn:((),e)=>().
+    yildFn(_,E) => valof{
+      case this suspend .yild(E) in {
+	.next => valis ().
+	.cancel => this retire .end
+      }
+    }
+  } in valof{
+    consIter(L,(),yildFn);
+    this retire .end
+  }
+
+  iterGen:all e ~~ (cons[e]) => rcomm=>>scomm[e].
+  iterGen(L) => case (this spawn valof{
+      case (this suspend .identify(this)) in {
+	.next => {
+	  iterFn(this,L)
 	}
       }
-    } in {consIter(L,(),yildFn)};
-    valis .end
-    })
+    }) in {
+    .identify(G) => G
+    }.
+
+  itrFn:all e ~~ (cons[e]) => (rcomm=>>scomm[e]).
+  itrFn(L) => this spawn first =>> let{
+    yildFn:((),e)=>().
+    yildFn(_,E) => valof{
+      case this suspend .yild(E) in {
+	.next => valis ().
+	.cancel => this retire .end
+      }
+    }
+  } in valof{
+    case first in {
+      .next => 
+	consIter(L,(),yildFn)
+    };
+    this retire .end
+  }
 
   evens:(cons[integer]) => integer.
   evens(L) => valof{
@@ -31,7 +59,7 @@ test.ts1{
     Tl = ref 0;
 
     while .true do {
-      case _resume(TT,.next) in {
+      case TT resume .next in {
 	.yild(X) where X%2==0 => {
 	  Tl := Tl! + X;
 	}.
@@ -43,30 +71,22 @@ test.ts1{
     };
   }
 
-  iterTask:all c,e ~~ iter[c->>e] |: (c) => fiber[rcomm,scomm[e]].
-  iterTask(L) => _new_fiber((this,first)=> valof{
-    let{
-      yildFn(E,Cx) => valof{
-	case _suspend(this,.yild(E)) in {
-	  .next => valis Cx
-	}
-      }
-    } in {_iter(L,(),yildFn)};
-    valis .end
-    }).
-
-  odds:(cons[integer]) => ().
+  odds:(cons[integer]) => integer.
   odds(L) => valof{
-    try{
-      for (X where X%2==1) in L do{
-	_logmsg(disp(X));
-	if X>6 then
-	  raise ()
+    TT = itrFn(L);
+    Tl = ref 0;
+
+    while .true do {
+      case TT resume .next in {
+	.yild(X) where X%2==1 => {
+	  Tl := Tl! + X;
+	}.
+	.yild(X) default => {
+	  Tl := Tl! * X
+	}.
+	.end => valis Tl!
       }
-    } catch {
-      _ => {}
     };
-    valis ()
   }
 
   iota:(integer,integer)=>cons[integer].
@@ -76,7 +96,7 @@ test.ts1{
   main:() => ().
   main() => valof{
     LL = iota(1,12);
-    odds(LL);
-    valis _logmsg(disp(evens(LL)));
+    logMsg(disp(odds(LL)));
+    valis logMsg(disp(evens(LL)));
   }
 }

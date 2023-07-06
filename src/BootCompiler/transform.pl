@@ -84,13 +84,14 @@ declMdlGlobal(_,accDec(_,_,AccName,Tp),_,VMp,VMx,TMx,TMx) :-
   progTypeArity(Tp,Ar),
   makeKey(AccName,Key),
   (get_dict(Key,VMp,_),VMx=VMp;
-   declEntry(AccName,moduleFun(AccName,none,Ar),VMp,VMx)).
+  mangleName(AccName,closure,ClosureName),
+   declEntry(AccName,moduleFun(AccName,some(ClosureName),Ar),VMp,VMx)).
 declMdlGlobal(_,updDec(_,_,AccName,Tp),_,VMp,VMx,TMx,TMx) :-
   progTypeArity(Tp,Ar),
   makeKey(AccName,Key),
   (get_dict(Key,VMp,_),VMx=VMp;
-   declEntry(AccName,moduleFun(AccName,none,Ar),VMp,VMx)).
-
+   mangleName(AccName,closure,ClosureName),
+   declEntry(AccName,moduleFun(AccName,some(ClosureName),Ar),VMp,VMx)).
 declMdlGlobal(_,_,_,Mx,Mx,TMx,TMx).
 
 makeConstructorMap(Decls,CnMp,ConsMap) :-
@@ -154,12 +155,13 @@ transformMdlDef(varDef(Lc,_Nm,ExtNm,[],Tp,Val),_Pkg,Map,Opts,Dx,Dxx) :-
   transformGlobal(Lc,ExtNm,Val,Tp,Map,Opts,Dx,Dxx).
 transformMdlDef(typeDef(Lc,_Nm,Tp,Rl),_Pkg,Map,_,D,Dx) :-
   transformTypeDef(Lc,Tp,Rl,Map,D,Dx).
-transformMdlDef(cnsDef(Lc,Nm,Tp),_Pkg,Map,_,D,Dx) :-
-  transformConsDef(Lc,Nm,Tp,Map,D,Dx).
+transformMdlDef(cnsDef(Lc,_Nm,enm(_,FullNm,Tp)),_Pkg,Map,_,D,Dx) :-
+  transformConsDef(Lc,FullNm,Tp,Map,D,Dx).
+transformMdlDef(conDef(_,_,_),_Pkg,_,_,Dxx,Dxx).
 
 transformGlobal(Lc,ExtNm,Val,Tp,Map,Opts,[glbDef(Lc,ExtNm,Tp,Vl)|Dx],Dxx) :-
-%  (is_member(showTrCode,Opts) -> dispDef(varDef(Lc,ExtNm,ExtNm,[],Tp,Val));true),
-  liftExp(Val,Vl,[],_Q3,Map,Opts,Dx,Dxx). % replacement expression
+  (is_member(showTrCode,Opts) -> dispDef(varDef(Lc,ExtNm,ExtNm,[],Tp,Val));true),
+  liftExp(Val,Vl,[],_Q,Map,Opts,Dx,Dxx). 
 %  (is_member(showTrCode,Opts) -> dispRuleSet(glbDef(Lc,ExtNm,Tp,Vl));true).
 
 extraArity(Arity,Vars,ExAr) :-
@@ -175,7 +177,7 @@ transformConsDef(Lc,Nm,Tp,Map,[lblDef(Lc,lbl(Nm,Ar),Tp,Ix)|Dx],Dx) :-
   consTpName(Tp,TpNm),
   lookupTypeIndex(Map,TpNm,IxMap),
   progTypeArity(Tp,Ar),
-  is_member((Nm,Ix),IxMap).
+  is_member((lbl(Nm,_),Ix),IxMap).
 
 transformFunction(Lc,Nm,LclName,H,Tp,Extra,Eqns,Map,Opts,[Fun|Ex],Exx) :-
   (is_member(showTrCode,Opts) -> dispFunction(LclName,Tp,Eqns);true),
@@ -190,7 +192,7 @@ transformFunction(Lc,Nm,LclName,H,Tp,Extra,Eqns,Map,Opts,[Fun|Ex],Exx) :-
 
 closureEntry(Map,Lc,Name,Tp,Arity,Extra,[ClEntry|L],L) :-
   lookupVar(Map,Name,Reslt),
-  programAccess(Reslt,Prog,Closure),
+  programAccess(Reslt,Prog,Closure),!,
   genVars(Arity,Args),
   extendFunTp(Tp,[_],TTp),
   Ar is Arity+1,
@@ -201,6 +203,8 @@ closureEntry(Map,Lc,Name,Tp,Arity,Extra,[ClEntry|L],L) :-
    length(XArgs,ArXX),
    ClEntry = fnDef(Lc,lbl(Closure,Ar),hard,TTp,XArgs,cll(Lc,lbl(Prog,ArXX),XArgs))).
 					%  dispRuleSet(ClEntry).
+closureEntry(_,_,_Name,_Tp,_,_,L,L).
+%  reportMsg("no closure for %s:%s",[ss(Name),tpe(Tp)]).
 
 extendFunTp(Tp,[],Tp):-!.
 extendFunTp(funType(tplType(Els),Rt),Extra,funType(tplType(NEls),Rt)) :-!,
@@ -377,6 +381,19 @@ liftExp(tryCatch(Lc,B,T,H),try(Lc,BB,TT,E,HH),Q,Qx,Map,Opts,Ex,Exx) :-
 liftExp(raise(Lc,T,E,_),rais(Lc,TT,EE),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(T,TT,Q,Q1,Map,Opts,Ex,Ex1),
   liftExp(E,EE,Q1,Qx,Map,Opts,Ex1,Exx).
+liftExp(spawn(Lc,L,_),spwn(Lc,LL),Q,Qx,Map,Opts,Ex,Exx) :- !,
+  liftExp(L,LL,Q,Qx,Map,Opts,Ex,Exx).
+liftExp(pause(Lc,L,_),paus(Lc,LL),Q,Qx,Map,Opts,Ex,Exx) :- !,
+  liftExp(L,LL,Q,Qx,Map,Opts,Ex,Exx).
+liftExp(susp(Lc,K,E,_),sosp(Lc,KK,EE),Q,Qx,Map,Opts,Ex,Exx) :- !,
+  liftExp(K,KK,Q,Q1,Map,Opts,Ex,Ex1),
+  liftExp(E,EE,Q1,Qx,Map,Opts,Ex1,Exx).
+liftExp(resme(Lc,K,E,_),rsm(Lc,KK,EE),Q,Qx,Map,Opts,Ex,Exx) :- !,
+  liftExp(K,KK,Q,Q1,Map,Opts,Ex,Ex1),
+  liftExp(E,EE,Q1,Qx,Map,Opts,Ex1,Exx).
+liftExp(rtire(Lc,K,E,_),rtre(Lc,KK,EE),Q,Qx,Map,Opts,Ex,Exx) :- !,
+  liftExp(K,KK,Q,Q1,Map,Opts,Ex,Ex1),
+  liftExp(E,EE,Q1,Qx,Map,Opts,Ex1,Exx).
 liftExp(cell(Lc,In),cel(Lc,CellV),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(In,CellV,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(deref(Lc,In),get(Lc,CellV),Q,Qx,Map,Opts,Ex,Exx) :- !,
@@ -392,9 +409,6 @@ liftExp(cond(Lc,T,L,R,_),cnd(Lc,LT,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftGoal(T,LT,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(L,LL,Q0,Q1,Map,Opts,Ex0,Ex1),
   liftExp(R,LR,Q1,Qx,Map,Opts,Ex1,Exx).
-liftExp(assertion(Lc,G),ecll(Lc,"_assert",[Gx,Lx]),Q,Qx,Map,Opts,Ex,Exx) :- !,
-  liftGoal(G,Gx,Q,Qx,Map,Opts,Ex,Exx),
-  locTerm(Lc,Lx).
 liftExp(letExp(Lc,Decls,Defs,Bnd),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
 %  (is_member(showTrCode,Opts) -> dispCanon(letExp(Lc,Decls,Defs,Bnd));true),
   liftLetExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
@@ -422,6 +436,9 @@ liftAction(doValis(Lc,E),vls(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
 liftAction(doRaise(Lc,T,E),rais(Lc,TT,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(T,TT,Q,Q1,Map,Opts,Ex,Ex1),
+  liftExp(E,EE,Q1,Qx,Map,Opts,Ex1,Exx).
+liftAction(doRetire(Lc,K,E),rtre(Lc,KK,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftExp(K,KK,Q,Q1,Map,Opts,Ex,Ex1),
   liftExp(E,EE,Q1,Qx,Map,Opts,Ex1,Exx).
 liftAction(doDefn(Lc,P,E),defn(Lc,PP,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftPtn(P,PP,Q,Q0,Map,Opts,Ex,Ex0), % simplified pattern
@@ -777,6 +794,17 @@ declareThetaVar(typeDec(Nm,Tp,_),_,_,ConsMap,Vx,Vx,T,Tx) :-
   tpName(Tp,TpNm),
   findConsMap(TpNm,ConsMap,IxMap),!,
   declEntry(Nm,localType(TpNm,Tp,IxMap),T,Tx).
+declareThetaVar(accDec(_,_,AccName,Tp),ThV,_,_,V,Vx,TMx,TMx) :-
+  progTypeArity(Tp,Ar),
+  mangleName(AccName,closure,ClosureName),
+  declEntry(AccName,localFun(AccName,ClosureName,Ar,ThV),V,Vx).
+declareThetaVar(updDec(_,_,AccName,Tp),ThV,_,_,V,Vx,TMx,TMx) :-
+  progTypeArity(Tp,Ar),
+  mangleName(AccName,closure,ClosureName),
+  declEntry(AccName,localFun(AccName,ClosureName,Ar,ThV),V,Vx).
+
+
+
 declareThetaVar(_,_,_,_,Vx,Vx,Tx,Tx).
 
 collectLabelVars([],_,_,List,List).

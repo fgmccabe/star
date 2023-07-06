@@ -12,12 +12,12 @@ test.sieve{
 	post(Ix!,Chnnl)
       }
     } catch { .canceled => {
-	_retire(this,.retired_)
+	this retire .retired_
     }
     }
   }
 
-  filter:(this : task[integer]) |: (integer,channel[integer],channel[integer]) => () raises exception.
+  filter:(this : task[integer]) |: (integer,channel[integer],channel[integer]) => () raises mboxException.
   filter(Prm,Chnl,Next) => valof{
     while Nxt .= collect(Chnl) do{
       if ~Nxt%Prm == 0 then
@@ -26,7 +26,7 @@ test.sieve{
     valis ()
   }
 
-  sieve:(task[integer],integer,integer,channel[integer]) => integer.
+  sieve:(task[integer],integer,integer,channel[integer]) => ().
   sieve(this,Cnt,Mx,Chnnl) => valof{
     try{
       Nxt = collect(Chnnl);
@@ -34,17 +34,17 @@ test.sieve{
 	logMsg("Next prime is $(Nxt), $(Cnt) out of $(Mx)");
 	NChnl = newChannel();
 	try{
-	  spawn((T)=>sieve(T,Cnt+1,Mx,NChnl));
+	  this suspend .fork((T)=>sieve(T,Cnt+1,Mx,NChnl));
 	  filter(Nxt,Chnnl,NChnl)
 	} catch { .canceled => {
-	    _retire(this,.retired_) }
+	    this retire .retired_ }
 	}
       } else{
 	logMsg("collected $(Mx) primes");
-	_retire(this,.result(Nxt))
+	this retire .result(Nxt)
       }
     } catch { .canceled => {}};
-    _retire(this,.retired_)
+    this retire .retired_
   }
 
   _main:(cons[string]) => ().
@@ -57,11 +57,15 @@ test.sieve{
     Gn = gen(FstCh);
     Sv = (Tsk)=>valof{
       sieve(Tsk,0,Cnt,FstCh);
-      _retire(Tsk,.retired_)
+      Tsk retire .retired_
     };
 
-    Eras = nursery([Gn,Sv]);
-    logMsg("final result $(Eras)");
+    try{
+      Eras = nursery([Gn,Sv]);
+      logMsg("final result $(Eras)");
+    } catch {
+      .deadlock => logMsg("Sieve got deadlocked")
+    };
     valis ()
   }
 }

@@ -4,11 +4,6 @@ star.monad{
     (<$):all a,b ~~ (a,c[b]) => c[a].
   }
 
-  public contract all a/1 ~~ applicative[a] ::= {
-    (pure): all x ~~ (x)=>a[x].
-    (<*>):all x,y ~~ (a[(x)=>y],a[x])=>a[y].
-  }
-
   public contract all m/1 ~~ monad[m] ::= {
     (>>=) : all a,b ~~ (m[a],(a)=>m[b]) => m[b].
     (return): all a ~~ (a) => m[a].

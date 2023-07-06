@@ -18,7 +18,7 @@ assem(func(Nm,H,Sig,Lx,Ins),MTpl) :-
     mkTpl(SLines,LnsTpl),
     encPolicy(H,HP),
     mkCons("func",[Nm,HP,strg(Sig),intgr(Lx),Code,LtTpl,LcsTpl,LnsTpl],MTpl).
-assem(struct(Lbl,Ix,Sig),Tpl) :-
+assem(struct(Lbl,Sig,Ix),Tpl) :-
     mkCons("cons",[Lbl,Sig,intgr(Ix)],Tpl).
 assem(tipe(Tp,Rl,Map),Tpl) :-
     encMap(Map,MapEls),

@@ -46,7 +46,6 @@ instruction(TEq, tOs, tO1, -1, "L R --> L==R, where L,R are tasks")
 
 instruction(Try, off, nOp, 1, "create a handler continuation")
 instruction(Throw, tOs, tO1, 0, "Invoke a continuation")
-instruction(Invoke, art, tOs, 1, "Invoke a continuation")
 
 instruction(LdV, nOp, nOp, 1, "Place a void value on stack")
 instruction(LdC, lit, nOp, 1, "load literal from constant pool")

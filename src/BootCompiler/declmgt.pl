@@ -25,6 +25,7 @@
 
 declareAllDecls([],_,Env,Env).
 declareAllDecls([D|More],Lc,Env,Evx) :-
+%  reportMsg("declare %s",[dcl(D)]),
   declareDecl(Lc,D,Env,E0),!,
   declareAllDecls(More,Lc,E0,Evx).
 
