@@ -17,11 +17,11 @@ test.ac8{
 
   f:(integer) => integer.
   f(X) => valof{
-    TT = _new_fiber((TryTsk,_) => valof{
+    TT = (TryTsk spawn _ =>>valof{
 	let{
 	  implementation throwable[integer] => {
 	    _throw(E) => valof{
-	      _retire(TryTsk,.err(E))
+	      TryTsk retire .err(E)
 	    }
 	  }
 	} in {
@@ -29,10 +29,10 @@ test.ac8{
 	  if X>5 then
 	    _throw(10)
 	  else
-	  valis .ok(3*X)
+	  TryTsk retire .ok(3*X)
 	}
 	});
-    case _resume(TT,()) in {
+    case TT resume () in {
       .err(E) => {
 	_logmsg(disp(E));
 	valis -E

@@ -7,7 +7,7 @@ star.skew{
 
   all a ~~ rlist[a] ~> cons[(integer,tree[a])].
 
-  public sk[a] ::= private .rl(rlist[a]).
+  public sk[a] ::= .rl(rlist[a]).
 
   cns:all a ~~ (a,rlist[a]) => rlist[a].
   cns(x,ts where .cons((w1,t1),.cons((w2,t2),rest)).=ts) =>

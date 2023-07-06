@@ -1,12 +1,12 @@
 star.mbox{
   import star.
 
-  public all e ~~ task[e] ~> fiber[resumeProtocol,suspendProtocol[e]].
+  public all e ~~ task[e] ~> resumeProtocol=>>suspendProtocol[e].
 
-  public all e ~~ taskFun[e] ~> ((task[e])=>e).
+  public all e ~~ taskFun[e] ~> ((task[e])=>()).
 
   public all d ~~ channel[d] ::=
-    private .channel(ref channelState[d]).
+    .channel(ref channelState[d]).
 
   channelState[d] ::= .quiescent
   | .hasData(d).
@@ -23,18 +23,25 @@ star.mbox{
 
   public resumeProtocol ::= .go_ahead | .shut_down_.
 
-  public post:all e,d ~~ (this:task[e])|:(d,channel[d])=>() raises exception.
+  public mboxException ::= .deadlock | .canceled.
+
+  public implementation display[mboxException] => {
+    disp(.canceled) => "canceled".
+    disp(.deadlock) => "deadlocked"
+  }
+
+  public post:all e,d ~~ (this:task[e])|:(d,channel[d])=>() raises mboxException.
   post(D,Ch where .channel(St).=Ch) => valof{
     case St! in {
       .hasData(_) => {
-	case _suspend(this,.blocked(()=>.hasData(_).=St!)) in {
+	case this suspend .blocked(()=>.hasData(_).=St!) in {
 	  .go_ahead => valis post(D,Ch)
 	  | .shut_down_ => raise .canceled
 	}
       }
       | .quiescent => {
 	St := .hasData(D);
-	case _suspend(this,.yield_) in {
+	case this suspend .yield_ in {
 	  .go_ahead => valis ()
 	  | .shut_down_ => raise .canceled
 	}
@@ -42,18 +49,18 @@ star.mbox{
     }
   }
 
-  public collect:all d,e ~~ (this:task[e])|:(channel[d]) => d raises exception.
+  public collect:all d,e ~~ (this:task[e])|:(channel[d]) => d raises mboxException.
   collect(Ch where .channel(St).=Ch) => valof{
     case St! in {
       .hasData(D) => {
 	St := .quiescent;
-	case _suspend(this,.yield_) in {
+	case this suspend .yield_ in {
 	  .go_ahead => valis D
 	  | .shut_down_ => raise .canceled
 	}
       }
       | .quiescent => {
-	case _suspend(this,.blocked(()=> ~.hasData(_).=St!)) in {
+	case this suspend .blocked(()=> ~.hasData(_).=St!) in {
 	  .go_ahead => valis collect(Ch)
 	  | .shut_down_ => raise .canceled
 	}
@@ -61,97 +68,63 @@ star.mbox{
     }
   }
   
-  spawnTask:all e ~~ ((task[e])=>e) => task[e].
-  spawnTask(F) => case _spawn((Tsk) => valof{
-      case _suspend(Tsk,.identify(Tsk)) in {
+  spawnTask:all e ~~ (taskFun[e]) => task[e].
+  spawnTask(F) => case (Tsk spawn valof{
+    case Tsk suspend .identify(Tsk) in {
 	.go_ahead => {
-	  _retire(Tsk,.result(F(Tsk)))
+	  F(Tsk);
 	}
 	| .shut_down_ => {}
       };
-      _retire(Tsk,.retired_)
+      Tsk retire .retired_
     }) in {
     .identify(Tsk) => Tsk
     }.
 
-  public nursery:all e ~~ (cons[taskFun[e]]) => e.
-  nursery(Ts) => _spawn((This) => valof{
-      Q := (Ts//spawnTask)::qc[task[e]];
-      BlockQ := ([]:cons[(()=>boolean,task[e])]);
+  public nursery:all e ~~ (cons[taskFun[e]]) => e raises mboxException.
+  nursery(Ts) => valof{
+    Q := (Ts//spawnTask)::qc[task[e]];
+    BlockQ := ([]:cons[(()=>boolean,task[e])]);
 
-      while .true do{
-	while ~isEmpty(Q!) do{
-	  if [T,..Rs] .= Q! then{
-	    Q := Rs;
-	    case _resume(T,.go_ahead) in {
-	      .yield_ => { Q:=Q!++[T] }
-	      | .result(Rslt) => {
-		while [C,..Cs] .= Q! do{
-		  Q := Cs;
-		  _ = _resume(C,.shut_down_);
-		};
+    while .true do{
+      while ~isEmpty(Q!) do{
+	if [T,..Rs] .= Q! then{
+	  Q := Rs;
+	  case T resume .go_ahead in {
+	    .yield_ => {
+	      Q:=Q!++[T];
+	    }
+	    | .result(Rslt) => {
+	      while [C,..Cs] .= Q! do{
+		Q := Cs;
+		_ = C resume .shut_down_;
+	      };
 		
-		valis Rslt
-	      }
-	      | .retired_ => {}
-	      | .fork(F) => {
-		Tsk = spawnTask(F);
-		Q := Q! ++ [Tsk,T];
-	      }
-	      | .blocked(P) => {
-	        BlockQ := [(P,T),..BlockQ!]
-	      }
+	      valis Rslt
 	    }
-	  };
+	    | .retired_ => { }
+	    | .fork(F) => {
+	      Tsk = spawnTask(F);
+	      Q := Q! ++ [Tsk,T];
+	    }
+	    | .blocked(P) => {
+	      BlockQ := [(P,T),..BlockQ!]
+	    }
+	  }
 	};
+      };
 	
-	if ~isEmpty(BlockQ!) then{
-	  (BQ,Wts) = testBlocked(BlockQ!,[],[]);
-	  BlockQ := BQ;
-	  Q := Wts
-	}
+      if ~isEmpty(BlockQ!) then{
+	(BQ,Wts) = testBlocked(BlockQ!,[],[]);
+	BlockQ := BQ;
+	Q := Wts
+      };
+
+      if isEmpty(Q!) then{
+	raise .deadlock
       }
-  }).
-
-  public waitfor:all e ~~ (taskFun[e]) => e.
-  waitfor(TF) => _spawn((This) => valof{
-      Tgt = spawnTask(TF);
-      Q := ([Tgt]:qc[task[e]]);
-      BlockQ := ([]:cons[(()=>boolean,task[e])]);
-
-      while .true do{
-	while ~isEmpty(Q!) do{
-	  if [T,..Rs] .= Q! then{
-	    Q := Rs;
-	    case _resume(T,.go_ahead) in {
-	      .yield_ => { Q:=Q!++[T] }
-	      | .result(Rslt) where T==Tgt => {
-		while [C,..Cs] .= Q! do{
-		  Q := Cs;
-		  _ = _resume(C,.shut_down_);
-		};
-
-		valis Rslt
-	      }
-	      | .retired_ => {}
-	      | .fork(F) => {
-		Tsk = spawnTask(F);
-		Q := Q! ++ [Tsk,T];
-	      }
-	      | .blocked(P) => {
-	        BlockQ := [(P,T),..BlockQ!]
-	      }
-	    }
-	  };
-	};
-
-	if ~isEmpty(BlockQ!) then{
-	  (BQ,Wts) = testBlocked(BlockQ!,[],[]);
-	  BlockQ := BQ;
-	  Q := Wts
-	}
-      }
-    }).
+    }
+  }
 
   testBlocked:all y ~~ (cons[(()=>boolean,y)],cons[(()=>boolean,y)],qc[y])=>
     (cons[(()=>boolean,y)],qc[y]).
@@ -161,19 +134,9 @@ star.mbox{
   testBlocked([(P,T),..Q],BQ,Ws) =>
     testBlocked(Q,[(P,T),..BQ],Ws).
 
-  public canceled : () <=> exception.
-
-  public pause:all e ~~ this |= task[e] |: () => () raises exception.
+  public pause:all e ~~ this |= task[e] |: () => () raises mboxException.
   pause() => valof{
-    case _suspend(this,.yield_) in {
-      .go_ahead => valis ()
-      | .shut_down_ => raise .canceled
-    }
-  }
-
-  public spawn:all e ~~ this |= task[e] |: (taskFun[e]) => () raises exception.
-  spawn(F) => valof{
-    case _suspend(this,.fork(F)) in {
+    case this suspend .yield_ in {
       .go_ahead => valis ()
       | .shut_down_ => raise .canceled
     }

@@ -112,5 +112,5 @@ star.core {
 
   public all x,e ~~ result[x,e] ::= ._ok(x) | ._except(e).
 
-  public exception <~ {}.
+  public exception ::= .exception(string).
 }

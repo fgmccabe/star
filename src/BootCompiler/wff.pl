@@ -12,7 +12,7 @@
 	      isTypeExistsStmt/6,typeExistsStmt/6,isTypeFunStmt/6,typeFunStmt/6,
 	      isTypeAnnotation/4,typeAnnotation/4,isTypeField/4,mkTypeField/4,
 	      isTypeLambda/4,typeLambda/4,typeName/2,
-	      isFuncType/4,funcType/4,isContType/3,mkContType/3,
+	      isFuncType/4,funcType/4,isContType/3,mkContType/3,isContinType/4,mkContinType/4,
 	      mkSqType/4,
 	      isEnum/3,mkEnum/3,isAnon/2,mkAnon/2,
 	      isConApply/4,mkConApply/4,
@@ -46,14 +46,13 @@
 	      isTotalizerComprehension/6,mkTotalizerComprehension/6,
 	      isTestComprehension/3,mkTestComprehension/3,
 	      isCaseExp/4,caseExp/4,
-	      isSpawn/4,
-	      mkSpawn/4,
-	      isFiberTerm/3,mkFiberTerm/3,isFiber/3,mkFiber/3,
+	      isSpawn/4,mkSpawn/4,isSuspend/4,mkSuspend/4,isResume/4,mkResume/4,isRetire/4,mkRetire/4,
+	      isPaused/5, mkPaused/5,isInvoke/4,mkInvoke/4,
 	      isDoTerm/3,mkDoTerm/3,isDo/3,mkDo/3,
 	      isValof/3,mkValof/3,isValis/3,mkValis/3,
 	      isTryCatch/4,mkTryCatch/4,
 	      isRaise/3,mkRaise/3,
-	      isRaises/4,mkRaises/4,isInvoke/4,mkInvoke/4,
+	      isRaises/4,mkRaises/4,
 	      isDynamic/4,mkDynamic/4,
 	      isBreak/3,mkBreak/3,isLbldAction/4,mkLbldAction/4,
 	      isIfThenElse/5,isIfThen/4,mkIfThenElse/5,mkIfThen/4,
@@ -333,6 +332,12 @@ isFuncType(T,Lc,Lh,Rh) :-
 funcType(Lc,L,R,Tp) :-
   binary(Lc,"=>",L,R,Tp).
 
+isContinType(T,Lc,Lh,Rh) :-
+  isBinary(T,Lc,"=>>",Lh,Rh).
+
+mkContinType(Lc,L,R,Tp) :-
+  binary(Lc,"=>>",L,R,Tp).
+
 isContType(T,Lc,E) :-
   isSquareTerm(T,Lc,Lhs,[E]),
   isIden(Lhs,_,"cont"),!.
@@ -539,7 +544,8 @@ eqn(Lc,Lhs,Rhs,Eqn) :-
 
 isContRule(Trm,Lc,Lhs,Cond,Rhs) :-
   isBinary(Trm,Lc,"=>>",L,Rhs),
-  (isWhere(L,_,Lhs,G), Cond=some(G) ; L=Lhs, Cond=none).
+  (isWhere(L,_,Lhs,G), Cond=some(G) ; L=Lhs, Cond=none),
+  \+isBinary(Lhs,_,"spawn",_,_).
 
 mkContRule(Lc,Lhs,none,Rhs,Eqn) :-
   binary(Lc,"=>>",Lhs,Rhs,Eqn).
@@ -819,18 +825,6 @@ packageVersion(T,Pkg) :- isBinary(T,_,".",L,R),
   string_concat(LP,".",I),
   string_concat(I,RP,Pkg).
 
-isFiberTerm(A,Lc,Stmts) :-
-  isBraceTerm(A,Lc,name(_,"fiber"),[Stmts]),!.
-
-mkFiberTerm(Lc,S,T) :-
-  braceTerm(Lc,name(Lc,"fiber"),[S],T).
-
-isFiber(A,Lc,T) :-
-  isUnary(A,Lc,"fiber",T).
-
-mkFiber(Lc,T,A) :-
-  unary(Lc,"fiber",T,A).
-
 isDoTerm(A,Lc,Stmt) :-
   isUnary(A,Lc,"do",I),
   isBraceTuple(I,_,[Stmt]).
@@ -950,15 +944,37 @@ isActionSeq(A,Lc,S) :-
 mkActionSeq(Lc,S1,S2,T) :-
   binary(Lc,";",S1,S2,T).
 
-isSpawn(A,Lc,F,H) :-
-  isUnary(A,Lc,"spawn",T),
-  isBinary(T,_,"in",F,R),
-  isBraceTuple(R,_,H).
+isSpawn(A,Lc,T,V) :-
+  isBinary(A,Lc,"spawn",T,V).
 
-mkSpawn(Lc,F,H,S) :-
-  braceTuple(Lc,H,R),
-  binary(Lc,"in",F,R,L),
-  unary(Lc,"spawn",L,S).
+mkSpawn(Lc,T,V,A) :-
+  binary(Lc,"spawn",T,V,A).
+
+isPaused(A,Lc,T,F,V) :-
+  isBinary(A,Lc,"=>>",L,V),
+  isBinary(L,_,"spawn",T,F).
+
+mkPaused(Lc,T,F,V,A) :-
+  binary(Lc,"spawn",T,F,L),
+  binary(Lc,"=>>",L,V,A).
+
+isSuspend(A,Lc,T,E) :-
+  isBinary(A,Lc,"suspend",T,E).
+
+mkSuspend(Lc,T,E,A) :-
+  binary(Lc,"suspend",T,E,A).
+
+isResume(A,Lc,T,E) :-
+  isBinary(A,Lc,"resume",T,E).
+
+mkResume(Lc,T,E,A) :-
+  binary(Lc,"resume",T,E,A).
+
+isRetire(A,Lc,T,E) :-
+  isBinary(A,Lc,"retire",T,E).
+
+mkRetire(Lc,T,E,A) :-
+  binary(Lc,"retire",T,E,A).
 
 mkLoc(Lc,T) :-
   Lc=loc(Pk,Line,Col,Off,Ln),

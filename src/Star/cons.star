@@ -4,7 +4,7 @@ star.cons{
   import star.iterable.
   import star.monad.
   import star.coerce.
-  import star.fiber.
+--  import star.fiber.
 
   public implementation all x ~~ equality[x] |: equality[cons[x]] => let{.
     smList:all x ~~ equality[x] |: (cons[x],cons[x]) => boolean.

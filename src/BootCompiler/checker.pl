@@ -27,56 +27,40 @@ checkProgram(Prg,Pkg,Repo,Opts,PkgDecls,Canon) :-
   collectImportDecls(AllImports,Repo,[],IDecls),
   declareAllDecls(IDecls,Lc,Base,Env0),
 %  dispEnv(Env0),
-  thetaEnv(Pk,Lc,Stmts,faceType([],[]),Opts,Env0,_OEnv,Defs,Public),
-  genDecls(Defs,checker:isAny,EDecls,ADecls,ADecls,[],_,[]),
-  declareAllDecls(EDecls,Lc,Env0,Env1),
-  overload(Defs,Env1,ODefs),
-  completePublic(Public,Public,FllPb,Pk),
-  packageExport(ODefs,FllPb,ExDecls,LDecls,PkgDefs),
-  Canon=prog(Pkg,Imports,ExDecls,LDecls,PkgDefs),
-  concat(ExDecls,LDecls,D0),
+  thetaEnv(checker:pkgExport,Pk,Lc,Stmts,faceType([],[]),Opts,Env0,_OEnv,Defs,decls(ThEx,ThL)),
+  declareAllDecls(ThEx,Lc,Env0,Env1),
+  declareAllDecls(ThL,Lc,Env1,Env2),
+  overload(Defs,Env2,ODefs),
+  Canon=prog(Pkg,Imports,ThEx,ThL,ODefs),
+  reportMsg("export declarations",[]),
+  dispDecls(ThEx),
+  reportMsg("private declarations",[]),
+  dispDecls(ThL),
+  concat(ThEx,ThL,D0),
   concat(D0,IDecls,PkgDecls).
 
-findExportedDefs(Lc,Flds,Els) :-
-  map(Flds,checker:mkFieldArg(Lc),Els).
-
-mkFieldArg(Lc,(Nm,Tp),v(Lc,Nm,Tp)).
-
-thetaEnv(Pkg,Lc,Stmts,Fields,Opts,Base,TheEnv,Defs,Public) :-
-  collectDefinitions(Stmts,Dfs,Public,Annots),!,
-  dependencies(Dfs,Opts,Groups,Annots),
-  pushFace(Fields,Lc,Base,Env),
-  checkGroups(Groups,Fields,Annots,Defs,[],Env,TheEnv,Pkg).
-
-recordEnv(Path,_Lc,Stmts,Fields,Base,TheEnv,Defs,Public) :-
-  collectDefinitions(Stmts,Dfs,Public,Annots),!,
-  parseAnnotations(Dfs,Fields,Annots,Base,Path,Face),
-  checkGroup(Dfs,Defs,[],Base,TheEnv,Face,Path).
-
-collectDefinitions([St|Stmts],Defs,P,A) :-
-  collectDefinition(St,Stmts,S0,Defs,D0,P,P0,A,A0,checker:nop),
-  collectDefinitions(S0,D0,P0,A0).
-collectDefinitions([],[],[],[]).
+collectDefinitions([St|Stmts],Defs,V,Vx,A) :-
+  collectDefinition(St,Stmts,S0,Defs,D0,V,V0,A,A0,checker:defltVz),
+  collectDefinitions(S0,D0,V0,Vx,A0).
+collectDefinitions([],[],Vz,Vz,[]).
 
 collectDefinition(St,Stmts,Stmts,[(cns(V),Lc,[T])|Defs],Defs,P,Px,[(V,T)|A],A,Export) :-
   isTypeAnnotation(St,Lc,L,T),
-  (isIden(L,V),Ex=Export; isPrivate(L,_,V1),isIden(V1,V),Ex=checker:nop),
   isConstructorType(T,_,_,_,_,_),!,
-  call(Ex,var(V),P,Px).
+  (isIden(L,V) -> call(Export,cns(V),P,Px);
+   isPrivate(L,_,V1),isIden(V1,V),prvteViz(P,cns(V),Px)).
 collectDefinition(St,Stmts,Stmts,Defs,Defs,P,Px,[(V,T)|A],A,Export) :-
   isTypeAnnotation(St,Lc,L,T),
   (isIden(L,V) ->
    call(Export,var(V),P,Px) ;
-   isPrivate(L,_,V1), isIden(V1,V) ->
-   call(checker:nop,var(V),P,Px);
    reportError("cannot understand type annotation %s",[ast(St)],Lc),
    P=Px).
-collectDefinition(St,Stmts,Stx,Defs,Dfx,P,P,A,Ax,_) :-
+collectDefinition(St,Stmts,Stx,Defs,Dfx,P,Px,A,Ax,_) :-
   isPrivate(St,_,Inner),
-  collectDefinition(Inner,Stmts,Stx,Defs,Dfx,P,_,A,Ax,checker:nop).
+  collectDefinition(Inner,Stmts,Stx,Defs,Dfx,P,Px,A,Ax,checker:prvteViz).
 collectDefinition(St,Stmts,Stx,Defs,Dfx,P,Px,A,Ax,_) :-
   isPublic(St,_,Inner),
-  collectDefinition(Inner,Stmts,Stx,Defs,Dfx,P,Px,A,Ax,checker:export).
+  collectDefinition(Inner,Stmts,Stx,Defs,Dfx,P,Px,A,Ax,checker:pubViz).
 collectDefinition(St,Stmts,Stmts,[(con(Nm),Lc,[St])|Defs],Defs,P,Px,A,Ax,Export) :-
   isContractStmt(St,Lc,Quants,Constraints,Con,Els),
   generateAnnotations(Els,Quants,[Con|Constraints],A,Ax),
@@ -91,9 +75,11 @@ collectDefinition(St,Stmts,Stmts,Defs,Defs,Px,Px,A,A,_) :-
 collectDefinition(St,Stmts,Stmts,Defs,Defs,Px,Px,A,A,_) :-
   isUnary(St,_,"@",_).
 collectDefinition(St,Stmts,Stmts,[(tpe(Nm),Lc,[St])|Defs],Defs,P,Px,A,A,Export) :-
-  isTypeExistsStmt(St,Lc,_,_,L,_),
+  isTypeExistsStmt(St,Lc,_,_,L,B),
   typeName(L,Nm),
-  call(Export,tpe(Nm),P,Px).
+  call(Export,tpe(Nm),P,P0),
+  isBraceTuple(B,_,Els),
+  rfold(Els,checker:tpeFldViz(Nm,Export),P0,Px).
 collectDefinition(St,Stmts,Stmts,[(tpe(Nm),Lc,[St])|Defs],Defs,P,Px,A,A,Export) :-
   isTypeFunStmt(St,Lc,_,_,L,_),
   typeName(L,Nm),
@@ -102,7 +88,10 @@ collectDefinition(St,Stmts,Stmts,[(tpe(Nm),Lc,[St])|Defs],Dfx,P,Px,A,Ax,Export) 
   isAlgebraicTypeStmt(St,Lc,Quants,Constraints,Head,Body),
   typeName(Head,Nm),
   call(Export,tpe(Nm),P,P0),
-  collectConstructors(Body,Quants,Constraints,Head,Defs,Dfx,P0,Px,A,Ax,Export).
+  algebraicFace(Body,[],_,Face),
+  isBraceTuple(Face,_,Els),
+  rfold(Els,checker:tpeFldViz(Nm,Export),P0,P1),
+  collectConstructors(Body,Quants,Constraints,Head,Defs,Dfx,P1,Px,A,Ax,Export).
 collectDefinition(St,Stmts,Stx,[(Nm,Lc,[St|Defn])|Defs],Defs,P,Px,A,A,Export) :-
   ruleName(St,Nm,Kind),
   locOfAst(St,Lc),
@@ -121,6 +110,19 @@ collectDefines([St|Stmts],Kind,[St|OSt],Nm,Defn) :-
   collectDefines(Stmts,Kind,OSt,Nm,Defn).
 collectDefines(Stmts,_,Stmts,_,[]).
 
+tpeFldViz(TpNm,Export,Entry,Vz,Vx) :-
+  isTypeAnnotation(Entry,_,N,_), isIden(N,Fld),
+  call(Export,fld(TpNm,Fld),Vz,Vx).
+tpeFldViz(_TpNm,_Export,_Entry,Vz,Vz).
+
+pubViz(V,viz(Pu,D,Pr),viz(Px,Dx,Prx)) :- add_mem(V,Pu,Px),del_mem(V,D,Dx),del_mem(V,Pr,Prx).
+prvteViz(V,viz(Pu,D,Pr),viz(Pu,Dx,Prx)) :- del_mem(V,D,Dx), add_mem(V,Pr,Prx).
+defltVz(V,viz(Pu,D,Pr),viz(Pu,Dx,Pr)) :-
+  \+is_member(V,Pu),
+  \+is_member(V,Pr),!,
+  add_mem(V,D,Dx).
+defltVz(_,Viz,Viz).
+
 % project contract members out
 generateAnnotations([],_,_,Ax,Ax).
 generateAnnotations([Def|Els],Quants,Constraints,[(Nm,MTp)|A],Ax) :-
@@ -131,9 +133,6 @@ generateAnnotations([Def|Els],Quants,Constraints,[(Nm,MTp)|A],Ax) :-
   generateAnnotations(Els,Quants,Constraints,A,Ax).
 generateAnnotations([_|Els],Quants,Constraints,A,Ax) :- % ignore things like assertions
   generateAnnotations(Els,Quants,Constraints,A,Ax).
-
-export(Nm,[Nm|P],P).
-nop(_,P,P).
 
 collectConstructors(C,Quants,Constraints,Tp,Defs,Dfx,P,Px,A,Ax,Export) :-
   isBinary(C,_,"|",L,R),!,
@@ -146,7 +145,7 @@ collectConstructors(C,Quants,Constraints,Tp,[(cns(Enm),Lc,[St])|Defs],Defs,
   binary(Lc,"<=>",Hd,Tp,CnTp),
   reConstrain(Constraints,CnTp,Rl),
   reUQuant(Quants,Rl,St),
-  call(Export,var(Enm),P,Px).
+  call(Export,cns(Enm),P,Px).
 collectConstructors(C,Quants,Constraints,Tp,[(cns(Enm),Lc,[St])|Defs],Defs,
 		    P,Px,Ax,Ax,Export) :-
   isEnum(C,Lc,E),
@@ -155,21 +154,20 @@ collectConstructors(C,Quants,Constraints,Tp,[(cns(Enm),Lc,[St])|Defs],Defs,
   binary(Lc,"<=>",Hd,Tp,CnTp),
   reConstrain(Constraints,CnTp,Rl),
   reUQuant(Quants,Rl,St),
-  call(Export,var(Enm),P,Px).
+  call(Export,cns(Enm),P,Px).
 collectConstructors(C,Quants,Constraints,Tp,[(cns(Nm),Lc,[St])|Defs],Defs,
 		    P,Px,Ax,Ax,Export) :-
   isRoundCon(C,_,_,Lc,Nm,Args),!,
-  call(Export,var(Nm),P,Px),
   roundTuple(Lc,Args,Hd),
   binary(Lc,"<=>",Hd,Tp,Rl),
   reConstrain(Constraints,Rl,CRl),
   reUQuant(Quants,CRl,St),
-  call(Export,var(Nm),P,Px).
+  call(Export,cns(Nm),P,Px).
 collectConstructors(C,Quants,Constraints,Tp,[(cns(Nm),Lc,[St])|Defs],Defs,
 		    P,Px,Ax,Ax,Export) :-
   isBraceCon(C,XQ,XC,Lc,Nm,Els),!,
   pullOthers(Els,Entries,_Asserts,_Defaults),
-  call(Export,var(Nm),P,Px),
+  call(Export,cns(Nm),P,Px),
   braceTuple(Lc,Entries,Hd),
   reConstrain(XC,Hd,XHd),
   reXQuant(XQ,XHd,QHd),
@@ -178,7 +176,7 @@ collectConstructors(C,Quants,Constraints,Tp,[(cns(Nm),Lc,[St])|Defs],Defs,
   reUQuant(Quants,CRl,St).
 collectConstructors(C,Quants,Constraints,Tp,Defs,Dfx,P,Px,A,Ax,_Export) :-
   isPrivate(C,_,I),
-  collectConstructors(I,Quants,Constraints,Tp,Defs,Dfx,P,Px,A,Ax,checker:nop).
+  collectConstructors(I,Quants,Constraints,Tp,Defs,Dfx,P,Px,A,Ax,checker:prvteViz).
 
 cmpAstPair(A1,A2) :-
   isTypeAnnotation(A1,_,N1,_),
@@ -208,57 +206,63 @@ collectImportDecls([importPk(_Lc,_Viz,Pkg)|More],Repo,Decls,Dcx) :-
   concat(PDecls,Decls,Dc0),
   collectImportDecls(More,Repo,Dc0,Dcx).
 
-importContracts([],_,Env,Env).
-importContracts([C|L],Lc,E,Env) :-
-  C = conDef(Nm,_,_),
-  defineContract(Nm,Lc,C,E,E0),
-  importContracts(L,Lc,E0,Env).
-
 notAlreadyImported(import(_,_,Pkg),SoFar) :-
   \+ is_member(import(_,_,Pkg),SoFar),!.
 
-checkGroups([],_,_,Defs,Defs,E,E,_).
-checkGroups([Gp|More],Fields,Annots,Defs,Dfx,E,Ev,Path) :-
+thetaEnv(Publish,Pkg,Lc,Stmts,Face,Opts,Base,TheEnv,Defs,Decls) :-
+  collectDefinitions(Stmts,Dfs,viz([],[],[]),Viz,Annots),!,
+  dependencies(Dfs,Opts,Groups,Annots),
+  pushFace(Face,Lc,Base,Env),
+  checkGroups(Groups,Face,Annots,Defs,[],Env,TheEnv,Publish,Viz,decls([],[]),Decls,Pkg).
+
+recordEnv(Publish,Path,_Lc,Stmts,Fields,Base,TheEnv,Defs,Decls) :-
+  collectDefinitions(Stmts,Dfs,viz([],[],[]),Viz,Annots),!,
+  parseAnnotations(Dfs,Fields,Annots,Base,Path,Face),
+  checkGroup(Dfs,Defs,[],Base,TheEnv,Face,Publish,Viz,decls([],[]),Decls,Path).
+
+checkGroups([],_,_,Defs,Defs,E,E,_,_,Dc,Dc,_).
+checkGroups([Gp|More],Fields,Annots,Defs,Dfx,E,Ev,Publish,Viz,Dc,Dcx,Path) :-
   parseAnnotations(Gp,Fields,Annots,E,Path,Face),!,
   groupLc(Gp,Lc),
   pushFace(Face,Lc,E,E0),
-  checkGroup(Gp,Defs,Df2,E0,E3,Face,Path),!,
-  checkGroups(More,Fields,Annots,Df2,Dfx,E3,Ev,Path).
+  checkGroup(Gp,Defs,Df2,E0,E3,Face,Publish,Viz,Dc,Dc0,Path),!,
+  checkGroups(More,Fields,Annots,Df2,Dfx,E3,Ev,Publish,Viz,Dc0,Dcx,Path).
 
 groupLc([(_,Lc,_)|_],Lc).
 
-checkGroup([(con(N),Lc,[ConStmt])|More],[Contract|Defs],Dx,Env,Ex,Face,Path) :-
-  parseContract(ConStmt,Env,E0,Path,[Contract|Defs],Df0),
+checkGroup([(con(N),Lc,[ConStmt])|More],[Contract|Defs],Dx,Env,Ex,Face,Publish,Viz,Dc,Dcx,Path) :-
+  parseContract(ConStmt,Env,E0,Path,[Contract|Defs],Df0,Publish,Viz,Dc,Dc0),
   defineContract(N,Lc,Contract,E0,E1),
-  checkGroup(More,Df0,Dx,E1,Ex,Face,Path).
-checkGroup([(cns(Nm),Lc,[St])|More],Defs,Dx,Env,Ex,Face,Path) :-
-  parseConstructor(Nm,Lc,St,Env,E0,Defs,D0,Path),
-  checkGroup(More,D0,Dx,E0,Ex,Face,Path).
-checkGroup([(var(N),Lc,Stmts)|More],Defs,Dx,Env,Ex,Face,Path) :-
-  checkVarRules(N,Lc,Stmts,Env,E0,Defs,D0,Face,Path),
-  checkGroup(More,D0,Dx,E0,Ex,Face,Path).
-checkGroup([(imp(Nm),_,[Stmt])|More],Defs,Dx,Env,Ex,Face,Path) :-
-  checkImplementation(Stmt,Nm,Defs,D0,Env,E0,Face,Path),
-  checkGroup(More,D0,Dx,E0,Ex,Face,Path).
-checkGroup([(tpe(_),_,[Stmt])|More],Defs,Dx,Env,Ex,Face,Path) :-
-  parseTypeDef(Stmt,Defs,D0,Env,E0,Path),
-  checkGroup(More,D0,Dx,E0,Ex,Face,Path).
-checkGroup([(open(_),_,[Stmt])|More],Defs,Dx,Env,Ex,Face,Path) :-
-  checkOpenStmt(Stmt,Env,Ev0,Path),
-  checkGroup(More,Defs,Dx,Ev0,Ex,Face,Path).
-checkGroup([],Defs,Defs,Env,Env,_,_).
+  checkGroup(More,Df0,Dx,E1,Ex,Face,Publish,Viz,Dc0,Dcx,Path).
+checkGroup([(cns(Nm),Lc,[St])|More],Defs,Dx,Env,Ex,Face,Publish,Viz,Dc,Dcx,Path) :-
+  parseConstructor(Nm,Lc,St,Env,E0,Defs,D0,Publish,Viz,Dc,Dc0,Path),
+  checkGroup(More,D0,Dx,E0,Ex,Face,Publish,Viz,Dc0,Dcx,Path).
+checkGroup([(var(N),Lc,Stmts)|More],Defs,Dx,Env,Ex,Face,Publish,Viz,Dc,Dcx,Path) :-
+  checkVarRules(N,Lc,Stmts,Env,E0,Defs,D0,Face,Publish,Viz,Dc,Dc0,Path),
+  checkGroup(More,D0,Dx,E0,Ex,Face,Publish,Viz,Dc0,Dcx,Path).
+checkGroup([(imp(Nm),_,[Stmt])|More],Defs,Dx,Env,Ex,Face,Publish,Viz,Dc,Dcx,Path) :-
+  checkImplementation(Stmt,Nm,Defs,D0,Env,E0,Face,Publish,Viz,Dc,Dc0,Path),
+  checkGroup(More,D0,Dx,E0,Ex,Face,Publish,Viz,Dc0,Dcx,Path).
+checkGroup([(tpe(_),_,[Stmt])|More],Defs,Dx,Env,Ex,Face,Publish,Viz,Dc,Dcx,Path) :-
+  parseTypeDef(Stmt,Defs,D0,Env,E0,Publish,Viz,Dc,Dc0,Path),
+  checkGroup(More,D0,Dx,E0,Ex,Face,Publish,Viz,Dc0,Dcx,Path).
+checkGroup([(open(_),_,[Stmt])|More],Defs,Dx,Env,Ex,Face,Publish,Viz,Dc,Dcx,Path) :-
+  checkOpenStmt(Stmt,Env,Ev0,Publish,Viz,Dc,Dc0,Path),
+  checkGroup(More,Defs,Dx,Ev0,Ex,Face,Publish,Viz,Dc0,Dcx,Path).
+checkGroup([],Defs,Defs,Env,Env,_,_,_,Dcx,Dcx,_).
 
-parseConstructor(Nm,Lc,T,Env,Ev,Dfs,Defs,Path) :-
+parseConstructor(Nm,Lc,T,Env,Ev,[Defn|Defs],Defs,Publish,Viz,Dc,Dcx,Path) :-
 %  reportMsg("parse constructor type %s:%s",[id(Nm),ast(T)],Lc),
   parseType(T,Env,Tp),
 %  reportMsg("constructor %s:%s",[id(Nm),tpe(Tp)],Lc),
   mangleName(Path,class,Nm,FullNm),
   unwrapType(Tp,_Q,_Cx,ITp),
+  Defn = cnsDef(Lc,Nm,enm(Lc,FullNm,Tp)),
+  Decl = cnsDec(Nm,FullNm,Tp),
   (deRef(ITp,consType(tplType([]),_)) ->
-   declareEnum(Lc,Nm,FullNm,Tp,Env,Ev),
-   Dfs=[cnsDef(Lc,Nm,enm(Lc,FullNm,Tp))|Defs];
-   declareCns(Lc,Nm,FullNm,Tp,Env,Ev),
-   Dfs=[cnsDef(Lc,Nm,enm(Lc,FullNm,Tp))|Defs]).
+   declareEnum(Lc,Nm,FullNm,Tp,Env,Ev);
+   declareCns(Lc,Nm,FullNm,Tp,Env,Ev)),
+  call(Publish,Viz,cns(Nm),Decl,Dc,Dcx).
 
 parseAnnotations(Defs,Fields,Annots,Env,Path,faceType(F,T)) :-
   parseAnnots(Defs,Fields,Annots,Env,[],F,[],T,Path).
@@ -311,7 +315,7 @@ declareExported([(Nm,Tp)|More],Rc,Lc,Env,Ev) :-
 
 declareExportedTypes(_,_,_,Env,Env).
 
-checkVarRules(N,Lc,Stmts,E,Ev,Defs,Dx,Face,Path) :-
+checkVarRules(N,Lc,Stmts,E,Ev,Defs,Dx,Face,Publish,Viz,Dc,Dcx,Path) :-
   pickupDefnType(N,Lc,Face,Stmts,E,E0,Tp),
   evidence(Tp,E,Q,ETp),
   getConstraints(ETp,Cx,ProgramType),
@@ -319,20 +323,29 @@ checkVarRules(N,Lc,Stmts,E,Ev,Defs,Dx,Face,Path) :-
   declareConstraints(Lc,Cx,E1,E2),
   processStmts(Stmts,ProgramType,Rules,Deflts,Deflts,[],E2,Path),
   qualifiedName(Path,N,LclName),
-  formDefn(Rules,N,LclName,E,Ev,Tp,Cx,Defs,Dx).
+  formDefn(Rules,N,LclName,E,Ev,Tp,Cx,Defs,Dx,Publish,Viz,Dc,Dcx).
 %  reportMsg("type of %s:%s",[N,ProgramType]).
 
-formDefn([Eqn|Eqns],Nm,LclNm,Env,Ev,Tp,Cx,[funDef(Lc,Nm,LclNm,hard,Tp,Cx,[Eqn|Eqns])|Dx],Dx) :-
+formDefn([Eqn|Eqns],Nm,LclNm,Env,Ev,Tp,Cx,[Defn|Dx],Dx,Publish,Viz,Dc,Dcx) :-
   Eqn = rule(Lc,_,_,_),
-  declareVr(Lc,Nm,Tp,none,Env,Ev).
-formDefn([varDef(Lc,_,_,_,_,open(VLc,Value,Tp))],Nm,LclNm,Env,Ev,Tp,Cx,
-	 [varDef(Lc,Nm,LclNm,Cx,Tp,open(VLc,Value,Tp))|Dx],Dx) :-
+  Defn = funDef(Lc,Nm,LclNm,hard,Tp,Cx,[Eqn|Eqns]),
+  Decl = funDec(Nm,LclNm,Tp),
+  declareVr(Lc,Nm,Tp,none,Env,Ev),
+  call(Publish,Viz,var(Nm),Decl,Dc,Dcx).
+formDefn([varDef(Lc,_,_,_,_,open(VLc,Value,Tp))],Nm,LclNm,Env,Ev,Tp,Cx,[Defn|Dx],Dx,
+	 Publish,Viz,Dc,Dcx) :-
   freshen(Tp,Env,_,FTp),
   faceOfType(FTp,Lc,Env,FaceTp),
-  declareVr(Lc,Nm,Tp,some(FaceTp),Env,Ev).
-formDefn([varDef(Lc,_,_,_,_,Value)],Nm,LclNm,Env,Ev,Tp,Cx,
-    [varDef(Lc,Nm,LclNm,Cx,Tp,Value)|Dx],Dx) :-
-  declareVr(Lc,Nm,Tp,none,Env,Ev).
+  Defn = varDef(Lc,Nm,LclNm,Cx,Tp,open(VLc,Value,Tp)),
+  Decl = varDec(Nm,LclNm,Tp),
+  declareVr(Lc,Nm,Tp,some(FaceTp),Env,Ev),
+  call(Publish,Viz,var(Nm),Decl,Dc,Dcx).
+formDefn([varDef(Lc,_,_,_,_,Value)],Nm,LclNm,Env,Ev,Tp,Cx,[Defn|Dx],Dx,
+	 Publish,Viz,Dc,Dcx) :-
+  Defn = varDef(Lc,Nm,LclNm,Cx,Tp,Value),
+  Decl = varDec(Nm,LclNm,Tp),
+  declareVr(Lc,Nm,Tp,none,Env,Ev),
+  call(Publish,Viz,var(Nm),Decl,Dc,Dcx).
 
 processStmts([],_,Defs,Defs,Dflts,Dflts,_,_).
 processStmts([St|More],ProgramType,Defs,Dx,Df,Dfx,E0,Path) :-
@@ -404,12 +417,24 @@ checkThetaBody(Tp,Lbl,Lc,Els,Env,Val,Path) :-
   declareTypeVars(Q,Lc,Base,E0),
   declareConstraints(Lc,Cx,E0,BaseEnv),
   genNewName(Path,"Γ",ThPath),
-  thetaEnv(ThPath,Lc,Els,Face,[],BaseEnv,_,Defs,Public),
   faceOfType(ETp,Lc,Env,TpFace),
   getConstraints(TpFace,_,faceType(Fs,_)),
-  completePublic(Public,Public,FullPublic,Path),
-  computeThetaExport(Defs,Fs,FullPublic,Decls,Defns),!,
-  formTheta(Lc,Lbl,Decls,Defns,Fs,Tp,Val).
+  thetaEnv(checker:letExport,ThPath,Lc,Els,Face,[],BaseEnv,_,Defs,ThDecls),
+  mergeDecls(ThDecls,Decls),
+  formTheta(Lc,Lbl,Decls,Defs,Fs,Tp,Val).
+
+faceDecls(Fs,Ts,decls(Pub,[],[],[])) :-
+  rfold(Fs,checker:mkVarMd,[],P),
+  rfold(Ts,checker:mkTpMd,P,Pub).
+
+publicDecls(Pub,decls(P,Pr,X,L),decls(Pb,Pr,X,L)) :-
+  merge(Pub,P,Pb).
+
+mkVarMd((Nm,Tp),P,[cns(Nm)|P]) :-
+  isCnsType(Tp,_,_),!.
+mkVarMd((Nm,_),P,[var(Nm)|P]).
+
+mkTpMd((Nm,_),P,[tpe(Nm)|P]).
 
 formTheta(Lc,Lbl,Decls,Defs,Flds,Tp,letRec(Lc,Decls,Defs,Exp)) :-
   sort(Flds,checker:cmpPair,SortedFlds),
@@ -417,7 +442,12 @@ formTheta(Lc,Lbl,Decls,Defs,Flds,Tp,letRec(Lc,Decls,Defs,Exp)) :-
   project1(SortedFlds,ElTps),
   Exp = capply(Lc,enm(Lc,Lbl,consType(tplType(ElTps),Tp)),tple(Lc,Args),Tp).
 
-checkRecordBody(Tp,Lbl,Lc,Els,Env,letExp(Lc,Decls,Defs,Exp),Path) :-
+findExportedDefs(Lc,Flds,Els) :-
+  map(Flds,checker:mkFieldArg(Lc),Els).
+
+mkFieldArg(Lc,(Nm,Tp),v(Lc,Nm,Tp)).
+
+checkRecordBody(Tp,Lbl,Lc,Els,Env,letExp(Lc,LDecls,Defs,Exp),Path) :-
   evidence(Tp,Env,Q,ETp),
   faceOfType(ETp,Lc,Env,FaceTp),
   getConstraints(FaceTp,Cx,faceType(Fs,Ts)),
@@ -425,26 +455,32 @@ checkRecordBody(Tp,Lbl,Lc,Els,Env,letExp(Lc,Decls,Defs,Exp),Path) :-
   declareTypeVars(Q,Lc,Base,E0),
   declareConstraints(Lc,Cx,E0,BaseEnv),
   genNewName(Path,"Γ",ThPath),
-  recordEnv(ThPath,Lc,Els,faceType(Fs,Ts),BaseEnv,_,Defs,Public),
-  completePublic(Public,Public,FullPublic,Path),
-  computeThetaExport(Defs,Fs,FullPublic,Decls,Defs),!,
+  recordEnv(checker:letExport,ThPath,Lc,Els,faceType(Fs,Ts),BaseEnv,_,Defs,RDecls),
+%  completePublic(Public,Public,FullPublic,Path),
+%  computeThetaExport(Defs,Fs,FullPublic,_Decls,Defs),!,
+%  filterTheta(Decls,Fs,Public,XDecls,LDecls),
   sort(Fs,checker:cmpPair,SortedFlds),
   findExportedDefs(Lc,SortedFlds,Args),
-  Exp = capply(Lc,Lbl,tple(Lc,Args),Tp).
+  Exp = capply(Lc,Lbl,tple(Lc,Args),Tp),
+  mergeDecls(RDecls,LDecls).
 
-checkLetRec(Tp,Lc,Els,Ex,Env,letRec(Lc,Decls,XDefs,Bound),Path):-
+checkLetRec(Tp,Lc,Els,Ex,Env,letRec(Lc,Decls,Defs,Bound),Path):-
   genNewName(Path,"Γ",ThPath),
   pushScope(Env,ThEnv),
-  thetaEnv(ThPath,Lc,Els,faceType([],[]),[],ThEnv,OEnv,Defs,_Public),
-  computeLetExport(Defs,[],Decls,XDefs),
+  thetaEnv(checker:letExport,ThPath,Lc,Els,faceType([],[]),[],ThEnv,OEnv,Defs,ThDecls),
+  mergeDecls(ThDecls,Decls),
   typeOfExp(Ex,Tp,OEnv,_,Bound,Path).
 
-checkLetExp(Tp,Lc,Els,Ex,Env,letExp(Lc,Decls,XDefs,Bound),Path):-
+checkLetExp(Tp,Lc,Els,Ex,Env,letExp(Lc,LDecls,XDefs,Bound),Path):-
   genNewName(Path,"Γ",ThPath),
   pushScope(Env,ThEnv),
-  recordEnv(ThPath,Lc,Els,faceType([],[]),ThEnv,OEnv,Defs,_Public),
-  computeLetExport(Defs,[],Decls,XDefs),
-  typeOfExp(Ex,Tp,OEnv,_,Bound,Path).
+  recordEnv(checker:letExport,ThPath,Lc,Els,faceType([],[]),ThEnv,OEnv,Defs,Decls),
+  computeLetExport(Defs,[],_Decls,XDefs),
+  typeOfExp(Ex,Tp,OEnv,_,Bound,Path),
+  mergeDecls(Decls,LDecls).
+
+mergeDecls(decls(Pu,Pr),Dc) :-
+  concat(Pu,Pr,Dc).
 
 splitHead(tuple(_,"()",[A]),Nm,Args,IsDeflt) :-!,
   splitHd(A,Nm,Args,IsDeflt).
@@ -463,7 +499,8 @@ splitHd(Id,Nm,none,notDeflt) :-
 splitHd(Term,"()",Term,notDeflt) :-
   isTuple(Term,_).
 
-checkImplementation(Stmt,INm,[Impl,ImplVar|Dfs],Dfs,Env,Evx,_,Path) :-
+checkImplementation(Stmt,INm,[ImplVar|Dfs],Dfs,Env,Evx,_,
+		    Publish,Viz,Dc,Dcx,Path) :-
   isImplementationStmt(Stmt,Lc,Quants,Cons,Sq,IBody),
   parseContractConstraint(Quants,Cons,Sq,Env,Nm,_ConNm,ConSpec),
 %  dispType(ConSpec),
@@ -482,10 +519,14 @@ checkImplementation(Stmt,INm,[Impl,ImplVar|Dfs],Dfs,Env,Evx,_,Path) :-
   putConstraints(AC,CnType,SS1),
   reQuantTps(SS1,IQ,ImpType),
   ImplVar = varDef(Lc,ImplVrNm,ImplVrNm,AC,ImpType,ImplTerm),
-  Impl = implDef(INm,ImplName,ImplVrNm,ImpType),
+%  Impl = implDef(INm,ImplName,ImplVrNm,ImpType),
+  Decl = impDec(ImplName,ImplVrNm,ImpType),
+  VDcl = varDec(ImplVrNm,ImplVrNm,ImpType),
   declareVr(Lc,ImplVrNm,ImpType,none,Env,Ev0),
-  declareImplementation(ImplName,ImplVrNm,ImpType,Ev0,Evx),!.
-checkImplementation(Stmt,_,Defs,Defs,Env,Env,_,_) :-
+  declareImplementation(ImplName,ImplVrNm,ImpType,Ev0,Evx),
+  call(Publish,Viz,imp(INm),Decl,Dc,Dc0),
+  call(Publish,Viz,imp(INm),VDcl,Dc0,Dcx),!.
+checkImplementation(Stmt,_,Defs,Defs,Env,Env,_,_,_,Dcx,Dcx,_) :-
   locOfAst(Stmt,Lc),
   reportError("could not check implementation statement %s",[ast(Stmt)],Lc).
 
@@ -727,12 +768,6 @@ typeOfExp(Term,Tp,Env,Ev,cell(Lc,Exp),Path) :-
 typeOfExp(Term,Tp,Env,Ev,deref(Lc,Exp),Path) :-
   isCellRef(Term,Lc,I),
   typeOfExp(I,refType(Tp),Env,Ev,Exp,Path).
-typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
-  isFiberTerm(Term,Lc,A),!,
-  typeOfFiber(Lc,A,Tp,Env,Exp,Path).
-typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
-  isFiber(Term,Lc,A),!,
-  fiberLambda(Lc,A,Tp,Env,Exp,Path).
 typeOfExp(Term,Tp,Env,Env,Val,Path) :-
   isQBraceTuple(Term,Lc,Els),
   reportError("anonymous brace expression %s not supported",[ast(Term)],Lc),
@@ -790,10 +825,53 @@ typeOfExp(A,Tp,Env,Env,tryCatch(Lc,Body,Trw,Hndlr),Path) :-
 typeOfExp(A,Tp,Env,Env,raise(Lc,Thrw,ErExp,Tp),Path) :-
   isRaise(A,Lc,E),!,
   checkRaise(Lc,E,Env,Thrw,ErExp,Path).
+typeOfExp(A,Tp,Env,Env,spawn(Lc,Lam,Tp),Path) :-
+  isSpawn(A,Lc,L,R),!,
+  newTypeVar("_C",CTp),
+  mkEquation(Lc,tuple(Lc,"()",[L]),none,R,Eqn),
+  unitTp(UnitTp),
+%  reportMsg("spawn lambda %s:%s",[ast(Eqn),tpe(funType(tplType([continType(CTp,Tp)]),UnitTp))]),
+  typeOfLambda(Eqn,funType(tplType([continType(CTp,Tp)]),UnitTp),Env,Lam,Path).
+typeOfExp(A,Tp,Env,Env,pause(Lc,Lam,Tp),Path) :-
+  isContRule(A,Lc,F,C,E),!,
+  newTypeVar("_R",RTp),
+  newTypeVar("_S",STp),
+  unitTp(UnitTp),
+  verifyType(Lc,ast(A),continType(RTp,STp),Tp,Env),
+  mkEquation(Lc,tuple(Lc,"()",[name(Lc,"this"),F]),C,E,Eqn),
+  typeOfLambda(Eqn,funType(tplType([Tp,RTp]),UnitTp),Env,Lam,Path).
+typeOfExp(A,Tp,Env,Env,pause(Lc,Lam,Tp),Path) :-
+  isPaused(A,Lc,T,F,E),!,
+  newTypeVar("_R",RTp),
+  newTypeVar("_S",STp),
+  unitTp(UnitTp),
+  verifyType(Lc,ast(A),continType(RTp,STp),Tp,Env),
+  mkEquation(Lc,tuple(Lc,"()",[T,F]),none,E,Eqn),
+  typeOfLambda(Eqn,funType(tplType([Tp,RTp]),UnitTp),Env,Lam,Path).
+typeOfExp(A,Tp,Env,Env,susp(Lc,Kt,Evt,Tp),Path) :-
+  isSuspend(A,Lc,T,E),!,
+  newTypeVar("_R",RTp),
+  typeOfExp(T,continType(Tp,RTp),Env,_,Kt,Path),
+  typeOfExp(E,RTp,Env,_,Evt,Path).
+typeOfExp(A,Tp,Env,Env,resme(Lc,Kt,Evt,Tp),Path) :-
+  isResume(A,Lc,T,E),!,
+  newTypeVar("_R",RTp),
+  typeOfExp(T,continType(RTp,Tp),Env,_,Kt,Path),
+  typeOfExp(E,RTp,Env,_,Evt,Path).
+typeOfExp(A,Tp,Env,Env,resme(Lc,Kt,Evt,Tp),Path) :-
+  isInvoke(A,Lc,T,[E]),!,
+  newTypeVar("_R",RTp),
+  typeOfExp(T,continType(RTp,Tp),Env,_,Kt,Path),
+  typeOfExp(E,RTp,Env,_,Evt,Path).
+typeOfExp(A,Tp,Env,Env,rtire(Lc,Kt,Evt,Tp),Path) :-
+  isRetire(A,Lc,T,E),!,
+  newTypeVar("_R",RTp),
+  typeOfExp(T,continType(Tp,RTp),Env,_,Kt,Path),
+  typeOfExp(E,RTp,Env,_,Evt,Path).
 typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
   typeOfRoundTerm(Lc,F,A,Tp,Env,Exp,Path).
-typeOfExp(Term,Tp,Env,Env,void,_) :-
+typeOfExp(Term,Tp,Env,Env,void,_) :-!,
   locOfAst(Term,Lc),
   reportError("illegal expression: %s, expecting a %s",[Term,Tp],Lc).
 
@@ -847,26 +925,6 @@ typeOfLambda(Term,Tp,Env,lambda(Lc,Lbl,rule(Lc,Args,Guard,Exp),Tp),Path) :-
   lambdaLbl(Path,"λ",Lbl),
   typeOfExp(R,RT,E1,_,Exp,Path).
 
-typeOfFiber(Lc,A,Tp,Env,fiber(Lc,TskFun,Tp),Path) :-
-  findType("fiber",Lc,Env,TskTp),
-  newTypeVar("SComm",SV),
-  newTypeVar("RComm",RV),
-  applyTypeFun(TskTp,[RV,SV],Lc,Env,TTp),
-  roundTuple(Lc,[name(Lc,"this"),name(Lc,"first")],Args),
-  braceTuple(Lc,[A],AA),
-  mkValof(Lc,AA,VlOf),
-  mkEquation(Lc,Args,none,VlOf,Lam),
-  verifyType(Lc,ast(A),TTp,Tp,Env),
-  typeOfLambda(Lam,funType(tplType([Tp,RV]),SV),Env,TskFun,Path).
-
-fiberLambda(Lc,F,Tp,Env,fiber(Lc,TskFun,Tp),Path) :-
-  findType("fiber",Lc,Env,TskTp),
-  newTypeVar("SComm",SV),
-  newTypeVar("RComm",RV),
-  applyTypeFun(TskTp,[RV,SV],Lc,Env,TTp),
-  verifyType(Lc,ast(F),TTp,Tp,Env),
-  typeOfExp(F,funType(tplType([Tp,RV]),SV),Env,_,TskFun,Path).
-
 checkAction(A,Tp,Env,Ev,As,Path) :-
   isBraceTuple(A,_,[S]),!,
   checkAction(S,Tp,Env,Ev,As,Path).
@@ -890,6 +948,32 @@ checkAction(A,Tp,Env,Env,doValis(Lc,ValExp),Path) :-
 checkAction(A,_Tp,Env,Env,doRaise(Lc,Thrw,ErrExp),Path) :-
   isRaise(A,Lc,E),!,
   checkRaise(Lc,E,Env,Thrw,ErrExp,Path).
+checkAction(A,_Tp,Env,Env,doCall(Lc,spawn(Lc,Lam,CTp)),Path) :-
+  isSpawn(A,Lc,L,R),!,
+  newTypeVar("_C",CTp),
+  newTypeVar("_R",RTp),
+  mkEquation(Lc,tuple(Lc,"()",[L]),none,R,Eqn),
+  unitTp(UnitTp),
+%  reportMsg("spawn lambda %s:%s",[ast(Eqn),tpe(funType(tplType([continType(CTp,RTp)]),UnitTp))]),
+  typeOfLambda(Eqn,funType(tplType([continType(CTp,RTp)]),UnitTp),Env,Lam,Path).
+checkAction(A,_,Env,Env,doCall(Lc,susp(Lc,Kt,Ev,ATp)),Path) :-
+  isSuspend(A,Lc,K,E),!,
+  newTypeVar("_R",RTp),
+  newTypeVar("_A",ATp),
+  typeOfExp(K,continType(ATp,RTp),Env,_,Kt,Path),
+  typeOfExp(E,RTp,Env,_,Ev,Path).
+checkAction(A,_,Env,Env,doCall(Lc,resme(Lc,Kt,Ev,RTp)),Path) :-
+  isResume(A,Lc,K,E),!,
+  newTypeVar("_R",RTp),
+  newTypeVar("_",ATp),
+  typeOfExp(K,continType(ATp,RTp),Env,_,Kt,Path),
+  typeOfExp(E,RTp,Env,_,Ev,Path).
+checkAction(A,_,Env,Env,doRetire(Lc,Kt,Ev),Path) :-
+  isRetire(A,Lc,K,E),!,
+  newTypeVar("_R",RTp),
+  newTypeVar("_",ATp),
+  typeOfExp(K,continType(ATp,RTp),Env,_,Kt,Path),
+  typeOfExp(E,RTp,Env,_,Ev,Path).
 checkAction(A,_Tp,Env,Ev,doDefn(Lc,v(NLc,Nm,TV),Exp),Path) :-
   isDefn(A,Lc,L,R),
   isIden(L,NLc,Nm),!,
@@ -932,15 +1016,16 @@ checkAction(A,Tp,Env,Env,doLet(Lc,Decls,XDefs,Ac),Path) :-
   isLetDef(A,Lc,D,B),!,
   genNewName(Path,"Γ",ThPath),
   pushScope(Env,ThEnv),
-  recordEnv(ThPath,Lc,D,faceType([],[]),ThEnv,OEnv,Defs,_Public),
-  computeLetExport(Defs,[],Decls,XDefs),
+  recordEnv(checker:letExport,ThPath,Lc,D,faceType([],[]),ThEnv,OEnv,Defs,ThDecls),
+  mergeDecls(ThDecls,Decls),
+  computeLetExport(Defs,[],_Decls,XDefs),
   checkAction(B,Tp,OEnv,_,Ac,ThPath).
-checkAction(A,Tp,Env,Env,doLetRec(Lc,Decls,XDefs,Ac),Path) :-
+checkAction(A,Tp,Env,Env,doLetRec(Lc,Decls,Defs,Ac),Path) :-
   isLetRec(A,Lc,D,B),!,
   genNewName(Path,"Γ",ThPath),
   pushScope(Env,ThEnv),
-  thetaEnv(ThPath,Lc,D,faceType([],[]),[],ThEnv,OEnv,Defs,_Public),
-  computeLetExport(Defs,[],Decls,XDefs),
+  thetaEnv(checker:letExport,ThPath,Lc,D,faceType([],[]),[],ThEnv,OEnv,Defs,ThDecls),
+  mergeDecls(ThDecls,Decls),
   checkAction(B,Tp,OEnv,_,Ac,ThPath).
 checkAction(A,Tp,Env,Env,doCase(Lc,Bound,Eqns,Tp),Path) :-
   isCaseExp(A,Lc,Bnd,Cases),
@@ -1063,10 +1148,10 @@ typeOfExps([A|As],[ETp|ElTypes],Env,Ev,_,[Term|Els],Path) :-
   locOfAst(A,Lc),
   typeOfExps(As,ElTypes,E0,Ev,Lc,Els,Path).
 
-typeOfPtns([],[],Env,Env,_,[],_).
+typeOfPtns([],[],Env,Env,_,[],_) :-!.
 typeOfPtns([],[T|_],Env,Env,Lc,[],_) :-
   reportError("insufficient arguments, expecting a %s",[T],Lc).
-typeOfPtns([A|_],[],Env,Env,_,[],_) :-
+typeOfPtns([A|_],[],Env,Env,_,[],_) :-!,
   locOfAst(A,Lc),
   reportError("too many arguments: %s",[A],Lc).
 typeOfPtns([A|As],[ETp|ElTypes],Env,Ev,_,[Term|Els],Path) :-
@@ -1078,10 +1163,21 @@ typeOfPtns([A|As],[ETp|ElTypes],Env,Ev,_,[Term|Els],Path) :-
 packageExport(Defs,Public,ExportDecls,LDecls,XDefs) :-
   genDecls(Defs,checker:isPkgPublic(Public),ExportDecls,[],LDecls,[],XDefs,[]).
 
+filterExport(Decls,Public,ExportDecls,LclDecls) :-
+  filterDecls(Decls,checker:isPkgPublic(Public),ExportDecls,[],LclDecls,[]).
+
 isPkgPublic(Public,V) :-
   is_member(V,Public),!.
 
 isAny(_).
+
+pkgExport(viz(Pu,_,_),V,Decl,decls(Ex,Lcl),decls([Decl|Ex],Lcl)) :-
+  is_member(V,Pu),!.
+pkgExport(_,_,Decl,decls(Pu,Lcl),decls(Pu,[Decl|Lcl])).
+
+letExport(viz(Pu,Df,_),V,Decl,decls(Ex,Lcl),decls([Decl|Ex],Lcl)) :-
+  (is_member(V,Pu);is_member(V,Df)),!.
+letExport(_,_,Decl,decls(Ex,Lcl),decls(Ex,[Decl|Lcl])).
 
 genDecls([],_,Exx,Exx,LDx,LDx,Dfx,Dfx).
 genDecls([Def|Defs],Public,Exports,Exx,LDecls,LDx,Dfs,Dfx) :-
@@ -1098,13 +1194,13 @@ genDecl(typeDef(_,Nm,Tp,TpRule),Def,Public,
   call(Public,tpe(Nm)),!.
 genDecl(typeDef(_,Nm,Tp,TpRule),Def,_,Ex,Ex,
 	[typeDec(Nm,Tp,TpRule)|Lx],Lx,[Def|Dfx],Dfx).
-genDecl(varDef(Lc,Nm,FullNm,[],Tp,lambda(_,_,Eqn,_),_),_,Public,
+genDecl(varDef(Lc,Nm,FullNm,[],Tp,lambda(_,_,Eqn,_)),_,Public,
 	 [funDec(Nm,FullNm,Tp)|Ex],Ex,Lx,Lx,
 	 [funDef(Lc,Nm,FullNm,hard,Tp,[],[Eqn])|Dfx],Dfx) :-
   call(Public,var(Nm)),!.
-genDecl(varDef(Lc,Nm,FullNm,[],Tp,lambda(_,_,Eqn,_),_),_,Public,
-	 Ex,Ex,[funDec(Nm,FullNm,Tp)|Lx],Lx,
-	 [funDef(Lc,Nm,FullNm,hard,Tp,[],[Eqn])|Dfx],Dfx) :-
+genDecl(varDef(Lc,Nm,FullNm,[],Tp,lambda(_,_,Eqn,OTp)),_,Public,
+	Ex,Ex,[funDec(Nm,FullNm,Tp)|Lx],Lx,
+	[funDef(Lc,Nm,FullNm,hard,OTp,[],[Eqn])|Dfx],Dfx) :-
   call(Public,var(Nm)),!.
 genDecl(varDef(_,Nm,FullNm,_,Tp,_),Def,Public,
 	[varDec(Nm,FullNm,Tp)|Ex],Ex,Lx,Lx,[Def|Dfx],Dfx) :-
@@ -1140,8 +1236,36 @@ genDecl(updDec(Tp,Fld,AccFn,AccTp),_,Public,
 genDecl(updDec(Tp,Fld,AccFn,AccTp),_,_,Ex,Ex,
 	[updDec(Tp,Fld,AccFn,AccTp)|Lx],Lx,Dfx,Dfx).
 
+filterDecls([],_,Exx,Exx,LDx,LDx).
+filterDecls([Decl|Decls],Public,Exports,Exx,LDecls,LDx) :-
+  filterDecl(Decl,Decl,Public,Exports,Ex0,LDecls,LD0),
+  filterDecls(Decls,Public,Ex0,Exx,LD0,LDx).
+
+filterDecl(funDec(Nm,_,_),Decl,Public,[Decl|Ex],Ex,Lx,Lx) :-
+  call(Public,var(Nm)),!.
+filterDecl(typeDec(Nm,_,_),Decl,Public,[Decl|Ex],Ex,Lx,Lx) :-
+  call(Public,tpe(Nm)),!.
+filterDecl(funDec(Nm,_,_),Decl,Public,[Decl|Ex],Ex,Lx,Lx) :-
+  call(Public,var(Nm)),!.
+filterDecl(varDec(Nm,_,_),Decl,Public,[Decl|Ex],Ex,Lx,Lx) :-
+  call(Public,var(Nm)),!.
+filterDecl(cnsDec(Nm,_,_),Decl,Public,[Decl|Ex],Ex,Lx,Lx) :-
+  call(Public,var(Nm)),!.
+filterDecl(contractDec(Nm,_,_),Decl,Public,[Decl|Ex],Ex,Lx,Lx) :-
+  call(Public,con(Nm)),!.
+filterDecl(impDec(_,_,Spec),Decl,Public,[Decl|Ex],Ex,Lx,Lx) :-
+  exportImp(Spec,Public),!.
+filterDecl(accDec(Tp,_,_,_),Decl,Public,[Decl|Ex],Ex,Lx,Lx) :-
+  exportAcc(Tp,Public),!.
+filterDecl(updDec(Tp,_,_,_),Decl,Public,[Decl|Ex],Ex,Lx,Lx) :-
+  exportAcc(Tp,Public),!.
+filterDecl(_,Decl,_,Ex,Ex,[Decl|Lx],Lx).
+
 computeThetaExport(Defs,Fields,Public,Decls,XDefs) :-
   genDecls(Defs,checker:isThetaPublic(Fields,Public),Decls,LDecls,LDecls,[],XDefs,[]).
+
+filterTheta(Decls,Fields,Public,XDecls,LDecls) :-
+  filterDecls(Decls,checker:isThetaPublic(Fields,Public),XDecls,[],LDecls,[]).
 
 isThetaPublic(Public,_,var(Nm)) :-
   is_member(var(Nm),Public),!.
@@ -1157,9 +1281,9 @@ isLetExport(Private,Nm) :-
   \+is_member(Nm,Private),!.
 
 completePublic([],Pub,Pub,_).
-completePublic([con(Nm)|List],Pub,[tpe(ConNm),var(DtNm)|Px],Path) :-
+completePublic([con(Nm)|List],Pub,[tpe(ConNm),var(DlNm)|Px],Path) :-
   contractName(Path,Nm,ConNm),
-  dollarName(Nm,DtNm),
+  dollarName(Nm,DlNm),
   completePublic(List,Pub,Px,Path).
 completePublic([_|List],Pub,Px,Path) :-
   completePublic(List,Pub,Px,Path).
@@ -1186,6 +1310,20 @@ exportAcc(Tp,Export) :-
    marker(conTract,CnMrkr),
    splitLocalName(TpNm,CnMrkr,_,Nm),
    call(Export,con(Nm))),!.
+
+exportImp(Spec,Export) :-
+%  reportMsg("check for export %s",[tpe(Spec)]),
+  tpName(Spec,SpNm),
+%  localName(SpNm,type,Cn),
+  tpArgs(Spec,Tps),
+%  localNames(Tps,Ns),
+  lclImplName(SpNm,Tps,Imn),
+  call(Export,imp(Imn)).
+
+localNames([],[]).
+localNames([T|Ts],[N|Ns]) :-
+  localName(T,type,N),
+  localNames(Ts,Ns).
 
 mkBoot(Env,Lc,Pkg,Dfs,[BootDef|Dfs],Decls,[funDec("_boot",BootNm,BootTp)|Decls]) :-
   findType("cons",Lc,Env,ConsTp),

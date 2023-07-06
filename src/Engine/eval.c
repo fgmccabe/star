@@ -556,32 +556,6 @@ retCode run(processPo P) {
         continue;
       }
 
-      case Invoke: { // Invoke a continuation, passing arguments ...
-        int arity = collectI32(PC);
-        continuationPo cont = C_CONTINUATION(pop());
-
-        assert(continIsValid(cont));
-
-        stackPo stk = contStack(cont);
-
-        if (stackState(stk) != suspended) {
-          logMsg(logFile, "tried to resume non-suspended stack %T", stk);
-          bail();
-        } else if (currFrame(stk) != contFP(cont) || stackSP(stk) != contSP(cont)) {
-          logMsg(logFile, "tried to resume non-valid continuation %T", cont);
-          bail();
-        } else {
-          saveRegisters();
-          for (integer ix = arity; ix > 0; ix--)
-            pushStack(stk, arg(ix));
-          P->stk = attachStack(STK, stk);
-          P->stk->fp->pc = contPC(cont);
-          invalidateCont(cont);
-          restoreRegisters();
-          continue;
-        }
-      }
-
       case TEq: {
         termPo Lhs = pop();
         termPo Rhs = pop();

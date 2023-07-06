@@ -3,7 +3,8 @@
 (require 'star-util)
 
 (defconst star-ops
-  '(  ("all" ( (prefix 1010 1009)))
+  '(  ("retire" ( (infix 829 830 829)))
+  ("all" ( (prefix 1010 1009)))
   (".<." ( (infix 699 700 699)))
   ("^=" ( (infix 899 900 899)))
   ("&&" ( (infix 909 910 910)))
@@ -39,6 +40,7 @@
   ("*" ( (postfix 699 700) (infix 700 700 699)))
   ("\\-" ( (infix 700 700 699)))
   ("+" ( (postfix 699 700) (infix 720 720 719)))
+  ("resume" ( (infix 829 830 829)))
   (".>>." ( (infix 600 600 599)))
   ("*>" ( (infix 904 905 904)))
   ("," ( (infix 999 1000 1000)))
@@ -47,8 +49,8 @@
   ("-" ( (prefix 300 299) (infix 720 720 719)))
   ("raises" ( (infix 999 1000 999)))
   ("." ( (prefix 10 9) (infix 100 100 99)))
+  ("spawn" ( (infix 929 930 929)))
   ("/" ( (infix 700 700 699)))
-  ("<*>" ( (infix 949 950 950)))
   ("try" ( (prefix 1200 1199)))
   ("exists" ( (prefix 1010 1009)))
   ("if" ( (prefix 1175 1174)))
@@ -68,11 +70,11 @@
   ("|=" ( (infix 998 999 998)))
   ("in" ( (infix 899 900 900)))
   ("break" ( (prefix 10 9)))
+  ("suspend" ( (infix 829 830 829)))
   ("open" ( (prefix 900 899)))
   ("trace" ( (prefix 140 139)))
   ("~~" ( (infix 1239 1240 1240)))
   ("assert" ( (prefix 1240 1239)))
-  ("invoke" ( (prefix 930 929)))
   ("⊕" ( (infix 720 720 719)))
   (".^." ( (infix 720 720 719)))
   ("//" ( (infix 960 960 959)))
@@ -91,7 +93,7 @@
   ("valof" ( (prefix 300 299)))
   ("yield" ( (prefix 300 299)))
   ("while" ( (prefix 1175 1174)))
-  ("private" ( (prefix 1510 1509)))
+  ("private" ( (prefix 1700 1699)))
   ("•" ( (infix 450 450 449)))
   (".&." ( (infix 700 700 699)))
   ("///" ( (infix 960 960 959)))
@@ -134,7 +136,8 @@
 )
 
 (defconst star-keywords
-  '("all"
+  '("retire"
+"all"
 "let"
 "do"
 "import"
@@ -144,15 +147,17 @@
 "raise"
 "then"
 "default"
+"resume"
 "contract"
 "raises"
+"spawn"
 "try"
 "exists"
 "if"
 "in"
 "break"
+"suspend"
 "open"
-"invoke"
 "public"
 "ref"
 "where"

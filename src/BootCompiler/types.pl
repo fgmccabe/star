@@ -1,6 +1,6 @@
 :- module(types,
 	  [isType/1,isConType/2,isFaceType/1,isConstraint/1,varConstraints/3,addConstraint/2,
-	   toLtipe/2,mkTplTipe/2,tpName/2,consTpName/2,
+	   toLtipe/2,mkTplTipe/2,tpName/2,consTpName/2,tpArgs/3,tpArgs/2,
 	   netEnumType/2,
 	   newTypeVar/2,skolemVar/2,newTypeFun/3,skolemFun/3,deRef/2,
 	   progTypeArity/2,progArgTypes/2,funResType/2,
@@ -13,7 +13,7 @@
 	   moveQuants/3,reQuantTps/3,
 	   moveXQuants/3,reQuantX/3,
 	   getConstraints/3,putConstraints/3,
-	   implementationName/2,
+	   implementationName/2,lclImplName/3,
 	   mkTypeRule/3,
 	   stdType/3,contType/2,tagType/3,
 	   unitTp/1]).
@@ -32,6 +32,7 @@ isType(refType(_)).
 isType(tplType(_)).
 isType(funType(_,_)).
 isType(consType(_,_)).
+isType(continType(_,_)).
 isType(allType(_,_)).
 isType(existType(_,_)).
 isType(faceType(_,_)).
@@ -177,6 +178,9 @@ ssType(funType(A,R),ShCon,Dp,sq([AA,ss("=>"),RR])) :-
 ssType(consType(A,R),ShCon,Dp,sq([AA,ss("<=>"),RR])) :-
   ssType(A,ShCon,Dp,AA),
   ssType(R,ShCon,Dp,RR).
+ssType(continType(A,R),ShCon,Dp,sq([AA,ss("=>>"),RR])) :-
+  ssType(A,ShCon,Dp,AA),
+  ssType(R,ShCon,Dp,RR).
 ssType(refType(R),ShCon,Dp,sq([ss("ref "),RR])) :- ssType(R,ShCon,Dp,RR).
 ssType(valType(R),ShCon,Dp,sq([ss("val "),RR])) :- ssType(R,ShCon,Dp,RR).
 ssType(allType(V,T),ShCon,Dp,sq([ss("all "),iv(ss(","),[types:tvr(V)|VV]),ss("~"),TT])) :-
@@ -288,6 +292,8 @@ tpArity(funType(A,_),Ar) :- !,
   progTypeArity(A,Ar).
 tpArity(consType(A,_),Ar) :- !,
   tpArity(A,Ar).
+tpArity(continType(A,_),Ar) :- !,
+  progTypeArity(A,Ar).
 tpArity(refType(A),Ar) :- !,
   progTypeArity(A,Ar).
 tpArity(tplType(A),Ar) :- !,length(A,Ar).
@@ -300,6 +306,7 @@ tpArgTypes(allType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(existType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(constrained(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(funType(A,_),ArTps) :- tpArgTypes(A,ArTps).
+tpArgTypes(continType(A,_),ArTps) :- tpArgTypes(A,ArTps).
 tpArgTypes(tplType(ArTps),ArTps).
 
 funResType(Tp,ResTp) :- deRef(Tp,TT), resType(TT,ResTp).
@@ -308,6 +315,7 @@ resType(allType(_,Tp),ResTp) :- resType(Tp,ResTp).
 resType(existType(_,Tp),ResTp) :- resType(Tp,ResTp).
 resType(constrained(_,Tp),ResTp) :- resType(Tp,ResTp).
 resType(funType(_,R),R) :- !.
+resType(continType(_,R),R) :- !.
 resType(R,R) :- !.
 
 isFunctionType(T) :- deRef(T,Tp), isFunctionType(Tp,_).
@@ -367,16 +375,35 @@ tpName(Tp,Nm) :-
   deRef(Tp,RTp),
   tpNm(RTp,Nm).
 
+tpArgs(tpExp(O,A),Ts) :-
+  tArity(O,K),
+  tpArgs(A,K,Ts).
+tpArgs(allType(_,T),Ts) :-
+  tpArgs(T,Ts).
+tpArgs(existType(_,T),Ts) :-
+  tpArgs(T,Ts).
+tpArgs(constrained(T,_),Ts) :-
+  tpArgs(T,Ts).
+
+tpArgs(tpExp(T,E),K,[T|Ex]) :-
+  K > 0,
+  K1 is K-1,
+  tpArgs(E,K1,Ex).
+tpArgs(_,0,[]).
+  
 consTpName(allType(_,T),Nm) :- consTpName(T,Nm).
 consTpName(existType(_,T),Nm) :- consTpName(T,Nm).
 consTpName(constrained(T,_),Nm) :- consTpName(T,Nm).
 consTpName(consType(_,Tp),Nm) :- tpName(Tp,Nm).
 
-implementationName(conTract(Nm,Args,_),INm) :-
+implementationName(conTract(Nm,Args,_),INm) :-!,
   appStr(Nm,S0,S1),
   marker(over,M),
   surfaceNames(Args,M,S1,[]),
   string_chars(INm,S0).
+implementationName(allType(_,T),Nm) :- implementationName(T,Nm).
+implementationName(existType(_,T),Nm) :- implementationName(T,Nm).
+implementationName(constrained(T,_),Nm) :- implementationName(T,Nm).
 
 surfaceNames([],_,S,S).
 surfaceNames([T|L],Sep,S0,Sx) :-
@@ -385,6 +412,30 @@ surfaceNames([T|L],Sep,S0,Sx) :-
   appStr(Sep,S0,S1),
   appStr(SN,S1,S2),
   surfaceNames(L,Sep,S2,Sx).
+
+surfaceNames([],_,S,S).
+surfaceNames([T|L],Sep,S0,Sx) :-
+  deRef(T,TT),
+  tpNm(TT,SN),
+  appStr(Sep,S0,S1),
+  appStr(SN,S1,S2),
+  surfaceNames(L,Sep,S2,Sx).
+
+lclImplName(Nm,Args,INm) :-!,
+  localName(Nm,conTract,NN),
+  appStr(NN,S0,S1),
+  marker(over,M),
+  sfcNames(Args,M,S1,[]),
+  string_chars(INm,S0).
+
+sfcNames([],_,S,S).
+sfcNames([T|L],Sep,S0,Sx) :-
+  deRef(T,TT),
+  tpNm(TT,SN),
+  localName(SN,type,SNN),
+  appStr(Sep,S0,S1),
+  appStr(SNN,S1,S2),
+  sfcNames(L,Sep,S2,Sx).
 
 tpNm(type(Nm),Nm).
 tpNm(tpExp(Op,_),Nm) :- deRef(Op,OO), tpNm(OO,Nm).
@@ -472,6 +523,9 @@ toLtp(funType(Args,Res),fnTipe(As,R)) :-
   toLtipe(Res,R).
 toLtp(tplType(Args),tplTipe(As)) :-
   map(Args,types:toLtipe,As).
+toLtp(continType(Args,Res),cnTipe(As,R)) :-
+  toLtipe(Args,As),
+  toLtipe(Res,R).
 toLtp(_,ptrTipe).
 
 mkTplTipe(Cnt,tplTipe(As)) :-
@@ -508,6 +562,8 @@ occIn(V,funType(A,_)) :- deRef(A,AA),occIn(V,AA).
 occIn(V,funType(_,R)) :- deRef(R,RR),occIn(V,RR).
 occIn(V,consType(L,_)) :- deRef(L,LL),occIn(V,LL).
 occIn(V,consType(_,R)) :- deRef(R,RR),occIn(V,RR).
+occIn(V,continType(A,_)) :- deRef(A,AA),occIn(V,AA).
+occIn(V,continType(_,R)) :- deRef(R,RR),occIn(V,RR).
 occIn(V,constrained(_,C)) :- deRef(C,CC),occIn(V,CC),!.
 occIn(V,constrained(T,_)) :- deRef(T,TT),occIn(V,TT),!.
 occIn(V,typeLambda(A,_)) :- deRef(A,AA),occIn(V,AA).

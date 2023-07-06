@@ -91,6 +91,19 @@ ssTrm(strg(Str),_,sq([ss(""""),ss(Str),ss("""")])) :-!.
 ssTrm(rais(_,T,E),Dp,sq([TT,ss(" raise "),EE])) :-
   ssTrm(T,Dp,TT),
   ssTrm(E,Dp,EE).
+ssTrm(spwn(_,E),Dp,sq([ss(" spawn "),EE])) :-
+  ssTrm(E,Dp,EE).
+ssTrm(paus(_,E),Dp,sq([ss(" pause "),EE])) :-
+  ssTrm(E,Dp,EE).
+ssTrm(sosp(_,K,E),Dp,sq([KK,ss(" suspend "),EE])) :-
+  ssTrm(K,Dp,KK),
+  ssTrm(E,Dp,EE).
+ssTrm(rsm(_,K,E),Dp,sq([KK,ss(" resume "),EE])) :-
+  ssTrm(K,Dp,KK),
+  ssTrm(E,Dp,EE).
+ssTrm(rtre(_,K,E),Dp,sq([KK,ss(" retire "),EE])) :-
+  ssTrm(K,Dp,KK),
+  ssTrm(E,Dp,EE).
 ssTrm(cll(_,Op,Args),Dp,sq([OO,lp,AA,rp])) :- !,
   ssTrm(Op,Dp,OO),
   Dp1 is Dp+2,
@@ -196,6 +209,9 @@ ssAct(brk(_,Lb),_,sq([ss("break "),ss(Lb)])) :-!.
 ssAct(vls(_,E),Dp,sq([ss("valis "),EE])) :-!,
   ssTrm(E,Dp,EE).
 ssAct(rais(_,T,E),Dp,sq([TT,ss(" raise "),EE])) :-!,
+  ssTrm(T,Dp,TT),
+  ssTrm(E,Dp,EE).
+ssAct(rtre(_,T,E),Dp,sq([TT,ss(" retire "),EE])) :-!,
   ssTrm(T,Dp,TT),
   ssTrm(E,Dp,EE).
 ssAct(mtch(_,P,E),Dp,sq([PP,ss(" .= "),EE])) :-!,
@@ -328,6 +344,19 @@ rewriteTerm(QTest,ltt(Lc,V,Val,Exp),ltt(Lc,V,Val1,Exp1)) :-
 rewriteTerm(QTest,rais(Lc,T,E),rais(Lc,TT,EE)) :-!,
   rewriteTerm(QTest,T,TT),
   rewriteTerm(QTest,E,EE).
+rewriteTerm(QTest,spwn(Lc,L),spwn(Lc,LL)) :-!,
+  rewriteTerm(QTest,L,LL).
+rewriteTerm(QTest,paus(Lc,L),paus(Lc,LL)) :-!,
+  rewriteTerm(QTest,L,LL).
+rewriteTerm(QTest,sosp(Lc,K,E),sosp(Lc,KK,EE)) :-!,
+  rewriteTerm(QTest,K,KK),
+  rewriteTerm(QTest,E,EE).
+rewriteTerm(QTest,rsm(Lc,K,E),rsm(Lc,KK,EE)) :-!,
+  rewriteTerm(QTest,K,KK),
+  rewriteTerm(QTest,E,EE).
+rewriteTerm(QTest,rtre(Lc,K,E),rtre(Lc,KK,EE)) :-!,
+  rewriteTerm(QTest,K,KK),
+  rewriteTerm(QTest,E,EE).
 rewriteTerm(QTest,cll(Lc,Op,Args),cll(Lc,NOp,NArgs)) :-
   rewriteTerm(QTest,Op,NOp),
   rewriteTerms(QTest,Args,NArgs).
@@ -425,6 +454,9 @@ rewriteAction(QTest,vls(Lc,E),vls(Lc,EE)) :- !,
   rewriteTerm(QTest,E,EE).
 rewriteAction(QTest,rais(Lc,T,E),rais(Lc,TT,EE)) :- !,
   rewriteTerm(QTest,T,TT),
+  rewriteTerm(QTest,E,EE).
+rewriteAction(QTest,rtre(Lc,K,E),rtre(Lc,KK,EE)) :- !,
+  rewriteTerm(QTest,K,KK),
   rewriteTerm(QTest,E,EE).
 rewriteAction(QTest,perf(Lc,E),perf(Lc,EE)) :- !,
   rewriteTerm(QTest,E,EE).
@@ -526,6 +558,13 @@ idInTerm(idnt(Nm),Term) :-
 inTerm(idnt(Nm),Nm).
 inTerm(rais(_,T,E),Nm) :-!,
   (inTerm(E,Nm);inTerm(T,Nm)),!.
+inTerm(spwn(_,L),Nm) :-!,inTerm(L,Nm).
+inTerm(sosp(_,K,E),Nm) :-!,
+  (inTerm(K,Nm);inTerm(E,Nm)),!.
+inTerm(rsm(_,K,E),Nm) :-!,
+  (inTerm(K,Nm);inTerm(E,Nm)),!.
+inTerm(rtre(_,K,E),Nm) :-!,
+  (inTerm(K,Nm);inTerm(E,Nm)),!.
 inTerm(cll(_,_,Args),Nm) :-
   is_member(Arg,Args),
   inTerm(Arg,Nm).
@@ -603,6 +642,8 @@ inAction(vls(_,E),Nm) :- !,
   inTerm(E,Nm).
 inAction(rais(_,T,E),Nm) :- !,
   (inTerm(T,Nm) ; inTerm(E,Nm)),!.
+inAction(rtre(_,K,E),Nm) :- !,
+  (inTerm(K,Nm) ; inTerm(E,Nm)),!.
 inAction(perf(_,E),Nm) :- !,
   inTerm(E,Nm).
 inAction(mtch(_,P,E),Nm) :- !,
@@ -651,7 +692,8 @@ validDf(fnDef(Lc,_,_,_Tp,Args,Value),Dct) :-!,
   validTerm(Value,Lc,D0),!.
 validDf(glbDef(Lc,_Nm,_Tp,Value),Dct) :-
   validTerm(Value,Lc,Dct).
-validDf(typDef(_Lc,_Tp,_Rl,_IxMap),_).
+validDf(typDef(_Lc,_Tp,_Rl,_IxMap),_) :-!.
+validDf(lblDef(_,_,_,_),_).
 
 declareNms(Defs,Dct,Dx) :-
   rfold(Defs,lterms:declareDef,Dct,Dx).
@@ -705,6 +747,19 @@ validTerm(intrinsic(Lc,Is,Args),_,D) :-
   validTerms(Args,Lc,D).
 validTerm(rais(Lc,T,E),_,D) :-
   validTerm(T,Lc,D),
+  validTerm(E,Lc,D).
+validTerm(spwn(Lc,L),_,D) :-
+  validTerm(L,Lc,D).
+validTerm(paus(Lc,L),_,D) :-
+  validTerm(L,Lc,D).
+validTerm(sosp(Lc,K,E),_,D) :-
+  validTerm(K,Lc,D),
+  validTerm(E,Lc,D).
+validTerm(rsm(Lc,K,E),_,D) :-
+  validTerm(K,Lc,D),
+  validTerm(E,Lc,D).
+validTerm(rtre(Lc,K,E),_,D) :-
+  validTerm(K,Lc,D),
   validTerm(E,Lc,D).
 validTerm(ctpl(lbl(_,_),Args),Lc,D) :-
   validTerms(Args,Lc,D).
@@ -839,6 +894,9 @@ validAction(vls(Lc,E),_,D,D) :- !,
 validAction(rse(Lc,E),_,D,D) :- !,
   validTerm(E,Lc,D).
 validAction(rais(Lc,T,E),_,D,D) :- !,
+  validTerm(T,Lc,D),
+  validTerm(E,Lc,D).
+validAction(rtre(Lc,T,E),_,D,D) :- !,
   validTerm(T,Lc,D),
   validTerm(E,Lc,D).
 validAction(perf(Lc,E),_,D,D) :- !,

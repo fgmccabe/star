@@ -1,5 +1,5 @@
 :-module(misc,[concat/3,flatten/2,segment/3,last/2,reverse/2,revconcat/3,part2/3,
-	       is_member/2,add_mem/3,one_of/1,
+	       is_member/2,add_mem/3,del_mem/3,one_of/1,
 	       merge/3,intersect/3,subtract/3,replace/4,filter/3,front/3,
 	       collect/4,map/3,lfold/4,rfold/4,
 	       project0/2,project1/2,project0_3/2,project1_3/2,project2_3/2,
@@ -63,6 +63,11 @@ bin_nop(_,_).
 
 add_mem(X,L,L) :- is_member(X,L),!.
 add_mem(X,L,[X|L]).
+
+del_mem(_,[],[]) :-!.
+del_mem(X,[X|L],L) :-!.
+del_mem(X,[Y|L],[Y|M]) :-
+  del_mem(X,L,M).
 
 one_of(C) :- call(C),!.
 

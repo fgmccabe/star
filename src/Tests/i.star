@@ -18,8 +18,8 @@ test.i{
   }
 
   public all k,v ~~ mp[k,v] ::=
-    private .ihE |
-    private .ihL(integer,cons[(k,v)]).
+    .ihE |
+    .ihL(integer,cons[(k,v)]).
 
   foo = .ihL(3,([("al",2)]:cons[_])).
   ef = .ihE.

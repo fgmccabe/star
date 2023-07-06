@@ -426,7 +426,7 @@ binRefMacro(T,expression,Rp) :-
   {
     I .= _generate(C);
     lb:while .true do{
-      case _resume(I,._next) in {
+      case I resume ._next in {
         _yld(P) => B.
         _yld(_) default => {}.
         ._all => break lb
@@ -459,7 +459,7 @@ binRefMacro(T,expression,Rp) :-
 
    /* build case I resume ._next in .. */
    mkEnum(Lc,"_next",Next),
-   binary(Lc,"_resume",I,Next,G),
+   mkResume(Lc,I,Next,G),
    caseExp(Lc,G,[YldEqn,DefltEqn,EndEq],Rsme),
    braceTuple(Lc,[Rsme],Resume),
 
@@ -477,9 +477,9 @@ binRefMacro(T,expression,Rp) :-
 
 /* generator{A}
    becomes
-   fiber((this)=>valof{
+   this spawn _ =>> valof{
      A*;
-     valis ._all
+     this retire .all
    }
 */
    
@@ -488,38 +488,40 @@ generatorMacro(E,expression,Ex) :-
   isBraceTuple(A,_,[B]),!,
 
   mkEnum(Lc,"_all",All),
-  mkValis(Lc,All,Rt),
+  mkRetire(Lc,name(Lc,"this"),All,Rt),
 
   mkSequence(Lc,B,Rt,TB),
+  braceTuple(Lc,[TB],VB),
+  mkValof(Lc,VB,GVl),
 
-  mkFiberTerm(Lc,TB,Ex).
+  mkPaused(Lc,name(Lc,"this"),name(Lc,"_"),GVl,Ex).
 %  dispAst(Ex).
 
 /* yield E
    becomes
-   case _suspend(this,_yld(E)) in {
+   case this suspend ._yld(E) in {
      ._next => {}.
-     ._cancel => _retire(this,._all)
+     ._cancel => this retire ._all
    }
 */
 yieldMacro(E,action,Ax) :-
   isUnary(E,Lc,"yield",A),!,
 
-  unary(Lc,"_yld",A,Yld),
+  mkConApply(Lc,name(Lc,"_yld"),[A],Yld),
 
   /* build ._next => {} */
   braceTuple(Lc,[],Nop),
   mkEnum(Lc,"_next",Nxt),
   mkEquation(Lc,Nxt,none,Nop,NxtRl),
 
-  /* build ._cancel => retire ._all */
+  /* build ._cancel => this retire ._all */
   mkEnum(Lc,"_cancel",Can),
   mkEnum(Lc,"_all",All),
-  binary(Lc,"_retire",name(Lc,"this"),All,Rs),
+  mkRetire(Lc,name(Lc,"this"),All,Rs),
   mkEquation(Lc,Can,none,Rs,Cancel),
 
   /* Build suspend */
-  binary(Lc,"_suspend",name(Lc,"this"),Yld,SS),
+  mkSuspend(Lc,name(Lc,"this"),Yld,SS),
   caseExp(Lc,SS,[NxtRl,Cancel],Ax).
 
 /*

@@ -30,17 +30,17 @@ test.ac8a{
   
   f:(integer) => integer.
   f(X) => valof{
-    case _spawn((TryTsk) => valof{
+    case (TryTsk spawn valof{
 	let{
 	  implementation throwable[integer] => {
 	    _throw(E) => valof{
 	      logMsg("retiring...");
-	      _retire(TryTsk,.err(E))
+	      TryTsk retire .err(E)
 	    }
 	  }
 	} in {
 	  logMsg("starting f($(X))");
-	  valis .ok(ff(X))
+	  TryTsk retire .ok(ff(X))
 	}
       }) in {
       .err(E) => {

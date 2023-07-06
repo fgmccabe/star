@@ -3,7 +3,7 @@
   Copyright (c) 2016, 2017 and beyond. Francis G. McCabe
  */
 
-#define fiberType(R,S) "UUz2'star.fiber*fiber'" R S
+#define fiberType(R,S) "UUz2'star.core*fiber'" R S
 
 /* Define the standard intrinsics */
 intrinsic(_abort,":k'a'F(k'a's)()","Abort",False, Last, "abort process")

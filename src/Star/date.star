@@ -2,7 +2,7 @@ star.date{
   -- Date and time functions
   import star.
 
-  public time ::= private .time(float). -- Time since 1st Jan 1970
+  public time ::=  .time(float). -- Time since 1st Jan 1970
 
   public today:()=>time.
   today() => .time(_today()).

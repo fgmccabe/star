@@ -311,16 +311,6 @@
     "keyword": false
   },
   {
-    "infixOp": "<*>",
-    "priorities": [
-      949,
-      950,
-      950
-    ],
-    "desc": "applicative splat",
-    "keyword": false
-  },
-  {
     "infixOp": "<=>",
     "priorities": [
       949,
@@ -935,10 +925,10 @@
   {
     "prefixOp": "private",
     "priorities": [
-      1510,
-      1509
+      1700,
+      1699
     ],
-    "desc": "private program",
+    "desc": "private visibility",
     "keyword": true
   },
   {
@@ -947,7 +937,7 @@
       1700,
       1699
     ],
-    "desc": "public program",
+    "desc": "public visibility",
     "keyword": true
   },
   {
@@ -1095,12 +1085,43 @@
     "keyword": true
   },
   {
-    "prefixOp": "invoke",
+    "infixOp": "spawn",
     "priorities": [
+      929,
       930,
       929
     ],
-    "desc": "invoke a handler",
+    "desc": "spawn a coroutine",
+    "keyword": true
+  },
+  {
+    "infixOp": "resume",
+    "priorities": [
+      829,
+      830,
+      829
+    ],
+    "desc": "resume coroutine",
+    "keyword": true
+  },
+  {
+    "infixOp": "suspend",
+    "priorities": [
+      829,
+      830,
+      829
+    ],
+    "desc": "suspend coroutine",
+    "keyword": true
+  },
+  {
+    "infixOp": "retire",
+    "priorities": [
+      829,
+      830,
+      829
+    ],
+    "desc": "retire a coroutine",
     "keyword": true
   },
   {

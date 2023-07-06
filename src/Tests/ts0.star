@@ -2,35 +2,38 @@ test.ts0{
   import star.core.
   import star.arith.
   import star.coerce.
-  import star.fiber.
   
-  -- Simple test of fiber generator pattern
+  -- Simple test of generator pattern
 
-  scomm ::= .yild(integer) | .end.
+  scomm ::= .yild(integer) | .end | .identify(rcomm=>>scomm).
   rcomm ::= .next | .cancel.
 
-  generatr:(integer,integer)=>fiber[rcomm,scomm].
-  generatr(F,T) => _new_fiber((this,first)=>valof{
+  genr:(integer,integer)=> (rcomm=>>scomm).
+  genr(F,T) => case (Gen spawn valof{
+    Gen suspend .identify(Gen);
     Ix = ref F;
     while Ix! < T do{
-      case _suspend(this,.yild(Ix!)) in {
+      case (Gen suspend .yild(Ix!)) in {
 	.next => {}.
-	.cancel => _retire(this,.end)
+	.cancel => Gen retire.end
       };
       
       Ix := Ix! + 1;
     };
-    valis .end
-    })
+    Gen retire .end
+    }) in {
+    .identify(G) => G
+    }
 
   adder:(integer,integer) => integer.
   adder(F,T) => valof{
-    TT = generatr(F,T);
+    TT = genr(F,T);
     Tl = ref 0;
 
     while .true do {
-      case _resume(TT,.next) in {
+      case (TT resume .next) in {
 	.yild(X) => {
+--	  _logmsg("add $(X) to $(Tl!)");
 	  Tl := Tl! + X
 	}.
 	.end => valis Tl!

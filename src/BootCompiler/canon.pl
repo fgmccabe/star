@@ -1,5 +1,5 @@
 :- module(canon,[dispFunction/3,dispDef/1,dispCanon/1,dispAction/1,dispCanonProg/1,
-		 ssCanonProg/2,ssTerm/3,ssPkg/2,ssContract/3,ssRule/3,
+		 ssCanonProg/2,ssTerm/3,ssPkg/2,ssContract/3,ssRule/3,ssDecl/2,
 		 dispDecls/1,
 		 typeOfCanon/2,locOfCanon/2,
 		 constructorName/2,constructorType/2,
@@ -53,6 +53,11 @@ isCanon(neg(_,_)).
 isCanon(lambda(_,_,_,_)).
 isCanon(fiber(_,_,_)).
 isCanon(tryCatch(_,_,_,_)).
+isCanon(spawn(_,_,_)).
+isCanon(pause(_,_,_)).
+isCanon(susp(_,_,_,_)).
+isCanon(resme(_,_,_,_)).
+isCanon(rtire(_,_,_)).
 
 isSimpleCanon(v(_,_,_)).
 isSimpleCanon(anon(_,_)).
@@ -111,6 +116,11 @@ typeOfCanon(overaccess(_,_,_,Tp),Tp) :- !.
 typeOfCanon(mtd(_,_,Tp),Tp) :-!.
 typeOfCanon(case(_,_,_,Tp),Tp) :- !.
 typeOfCanon(raise(_,_,_,Tp),Tp) :-!.
+typeOfCanon(spawn(_,_,Tp),Tp) :-!.
+typeOfCanon(pause(_,_,Tp),Tp) :-!.
+typeOfCanon(susp(_,_,_,Tp),Tp) :-!.
+typeOfCanon(resme(_,_,_,Tp),Tp) :-!.
+typeOfCanon(rtire(_,_,_,Tp),Tp) :-!.
 typeOfCanon(fiber(_,_,Tp),Tp) :-!.
 typeOfCanon(valof(_,_,Tp),Tp) :-!.
 typeOfCanon(tryCatch(_,E,_T,_),Tp) :- !,
@@ -148,6 +158,11 @@ locOfCanon(whileDo(Lc,_,_),Lc) :-!.
 locOfCanon(forDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(valis(Lc,_),Lc) :-!.
 locOfCanon(raise(Lc,_,_,_),Lc) :-!.
+locOfCanon(spawn(Lc,_,_),Lc) :-!.
+locOfCanon(pause(Lc,_,_),Lc) :-!.
+locOfCanon(susp(Lc,_,_,_),Lc) :-!.
+locOfCanon(resme(Lc,_,_,_),Lc) :-!.
+locOfCanon(rtire(Lc,_,_,_),Lc) :-!.
 locOfCanon(fiber(Lc,_,_),Lc) :-!.
 locOfCanon(valof(Lc,_,_),Lc) :-!.
 
@@ -156,7 +171,8 @@ locOfCanon(doSeq(Lc,_,_),Lc) :-!.
 locOfCanon(doLbld(Lc,_,_),Lc) :-!.
 locOfCanon(doBrk(Lc,_),Lc) :-!.
 locOfCanon(doValis(Lc,_),Lc) :-!.
-locOfCanon(doThrow(Lc,_,_),Lc) :-!.
+locOfCanon(doRaise(Lc,_,_),Lc) :-!.
+locOfCanon(doSpawn(Lc,_),Lc) :-!.
 locOfCanon(doMatch(Lc,_,_),Lc) :-!.
 locOfCanon(doDefn(Lc,_,_),Lc) :-!.
 locOfCanon(doAssign(Lc,_,_),Lc) :-!.
@@ -272,6 +288,19 @@ ssTerm(raise(_,T,A,_),Dp,sq([TT,ss(" raise "),AA])) :-!,
   typeOfCanon(T,ETp),
   ssType(ETp,true,Dp,TT),
   ssTerm(A,Dp,AA).
+ssTerm(spawn(_,L,_),Dp,sq([ss("spawn "),LL])) :-!,
+  ssTerm(L,Dp,LL).
+ssTerm(pause(_,L,_),Dp,sq([ss("pause "),LL])) :-!,
+  ssTerm(L,Dp,LL).
+ssTerm(susp(_,K,E,_),Dp,sq([KK,ss(" suspend "),EE])) :-!,
+  ssTerm(K,Dp,KK),
+  ssTerm(E,Dp,EE).
+ssTerm(resme(_,K,E,_),Dp,sq([KK,ss(" resume "),EE])) :-!,
+  ssTerm(K,Dp,KK),
+  ssTerm(E,Dp,EE).
+ssTerm(rtire(_,K,E,_),Dp,sq([KK,ss(" retire "),EE])) :-!,
+  ssTerm(K,Dp,KK),
+  ssTerm(E,Dp,EE).
 ssTerm(valof(_,A,_),Dp,sq([ss("valof "),AA])) :-!,
   ssAction(A,Dp,AA).
 ssTerm(fiber(_,A,_),Dp,sq([ss("fiber "),AA])) :-!,
@@ -300,6 +329,10 @@ ssAction(doBrk(_,Lb),_,sq([ss("break "),ss(Lb)])) :-!.
 ssAction(doValis(_,E),Dp,sq([ss("valis "),EE])) :-!,
   ssTerm(E,Dp,EE).
 ssAction(doRaise(_,T,E),Dp,sq([TT,ss(" raise "),EE])) :-!,
+  typeOfCanon(T,ETp),
+  ssType(ETp,true,Dp,TT),
+  ssTerm(E,Dp,EE).
+ssAction(doRetire(_,T,E),Dp,sq([TT,ss(" retire "),EE])) :-!,
   typeOfCanon(T,ETp),
   ssType(ETp,true,Dp,TT),
   ssTerm(E,Dp,EE).
@@ -375,21 +408,22 @@ ssDf(Dp,Df,XX) :-
   ssDef(Dp,Df,XX),
   (validSS(XX) ; errors:reportMsg("%s not valid display",[XX]),abort).
 
-ssDef(Dp,funDef(Lc,Nm,ExtNm,Sft,_Type,_Cx,Eqns),
-      sq([ss(SS),ss("fun "),id(Nm),ss("@"),Lcs,nl(Dp),Rs])) :-
+ssDef(Dp,funDef(Lc,Nm,ExtNm,Sft,Tp,_Cx,Eqns),
+      sq([ss(SS),ss("fun "),id(Nm),ss(":"),TT,ss(" @"),Lcs,nl(Dp),Rs])) :-
+  ssType(Tp,true,Dp,TT),
   ssRls(ExtNm,Eqns,Dp,canon:ssTerm,Rs),
   ssLoc(Lc,Lcs),
   (Sft=soft -> SS="soft " ; SS="").
-ssDef(Dp,varDef(_Lc,Nm,_ExtNm,_Cx,_Tp,Value),
-      sq([ss("var "),id(Nm),ss(" = "),V])) :-
+ssDef(Dp,varDef(_Lc,Nm,_ExtNm,_Cx,Tp,Value),
+      sq([ss("var "),id(Nm),ss(":"),TT,ss(" = "),V])) :-
+  ssType(Tp,true,Dp,TT),
   ssTerm(Value,Dp,V).
 ssDef(Dp,cnsDef(Lc,Nm,C),
       sq([ss("con "),id(Nm),ss(" : "),Ts,ss("@"),Lcs])) :-
   typeOfCanon(C,Tp),
   ssType(Tp,true,Dp,Ts),
   ssLoc(Lc,Lcs).
-ssDef(Dp,typeDef(Lc,Nm,_Tp,Rl),
-      sq([ss("type "),id(Nm),ss(":"),Ts,ss("@"),Lcs])) :-
+ssDef(Dp,typeDef(Lc,_Nm,_Tp,Rl),sq([ss("type "),Ts,ss("@"),Lcs])) :-
   ssLoc(Lc,Lcs),
   ssType(Rl,true,Dp,Ts).
 ssDef(Dp,conDef(Nm,_ConNm,Rl),
@@ -426,6 +460,9 @@ ssEqn(Nm,Dp,Dsp,rule(_,Args,Guard,Value),
 dispDecls(Decls) :-
   map(Decls,canon:ssDecl(0,ss("")),DD),
   displayln(iv(nl(0),DD)).
+
+ssDecl(Decl,SS) :-
+  ssDecl(0,ss(""),Decl,SS).
 
 ssDecl(Dp,X,funDec(Nm,Nm,Type),sq([X,ss("fun "),id(Nm),ss(" :: "),TT])) :-!,
   ssType(Type,true,Dp,TT).

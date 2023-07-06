@@ -12,9 +12,9 @@ star.finger{
   -- 2-3 finger trees.
 
   public fingerTree[a] ::=
-    private .eTree |
-      private .single(a) |
-      private .deep(integer,digit[a],fingerTree[node[a]],digit[a]).
+    .eTree |
+    .single(a) |
+    .deep(integer,digit[a],fingerTree[node[a]],digit[a]).
 
   digit[a] ::= .one(a) | .two(a,a) | .three(a,a,a) | .four(a,a,a,a).
 

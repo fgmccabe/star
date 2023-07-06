@@ -14,10 +14,10 @@ star.ideal{
   -- See "Ideal Hash Trees" by Phil Bagwell
 
   public  all k,v ~~ map[k,v] ::=   -- Expose the type only
-    private .ihNil | -- Empty dictionary
+    .ihNil |			    -- Empty dictionary
     -- Leaf dictionary, all entries have the same hash
-      private .ihLeaf(integer,cons[keyval[k,v]]) | 
-      private .ihNode(map[k,v],map[k,v],map[k,v],map[k,v]). -- non-leaf case
+    .ihLeaf(integer,cons[keyval[k,v]]) | 
+    .ihNode(map[k,v],map[k,v],map[k,v],map[k,v]). -- non-leaf case
 
   findIdeal: all k,v ~~ equality[k],hashable[k] |: (map[k,v],k) => option[v].
   findIdeal(Tr,Ky) => findInTree(0,hash(Ky),Ky,Tr).

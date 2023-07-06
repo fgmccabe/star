@@ -11,11 +11,8 @@ The @code{time} type is a structure that refers to Unix time: i.e.,
 the number of seconds since January 1st, 1970 GMT:
 
 @example
-public time ::= private .time(float). -- Time since 1st Jan 1970
+public time ::= .time(float). -- Time since 1st Jan 1970
 @end example
-
-The most notable part of the @code{time} type is that we mark the
-@code{time} constructor for it as @code{private}.
 
 The underlying representation of time values is @code{float}; this
 allows us to represent time values that are a fractional number of

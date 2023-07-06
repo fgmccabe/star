@@ -1004,7 +1004,7 @@ retCode showGlb(ioPo out, globalPo glb) {
 void showTos(ioPo out, stackPo stk, integer offset) {
   if (stk != Null) {
     if (offset == 0)
-      outMsg(out, " tos = %#,*T", offset, displayDepth, peekStack(stk, offset));
+      outMsg(out, " tos = %#,*T", displayDepth, peekStack(stk, offset));
     else
       outMsg(out, " tos[%d] = %#,*T", offset, displayDepth, peekStack(stk, offset));
   } else

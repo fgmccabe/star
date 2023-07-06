@@ -17,7 +17,7 @@ test.ct1{
 	Count := Count!-1
       }
     } catch { _ => logMsg("something went wrong") };
-    _retire(this,.retired_)
+    this retire .retired_
   }
 
   pong:(channel[boolean]) => (task[()])=>().
@@ -41,8 +41,12 @@ test.ct1{
     T1 = ping(10,Chnnl);
     T2 = pong(Chnnl);
 
-    Rs = nursery([T1,T2]);
-    logMsg("final result $(Rs)");
+    try{
+      Rs = nursery([T1,T2]);
+      logMsg("final result $(Rs)");
+    } catch {
+      E => logMsg(disp(E))
+    };
     valis ()
   }
 }

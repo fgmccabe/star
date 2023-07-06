@@ -37,15 +37,15 @@ test.dyn1{
 
   f:(integer) => integer.
   f(X) => valof{
-    case _spawn((TryTsk) => valof{
+    case (TryTsk spawn valof{
 	let{
 	  _throw(E) => valof{
 	    logMsg("retiring...");
-	    _retire(TryTsk,.err(E))
+	    TryTsk retire .err(E)
 	  }
 	} in {
 	  logMsg("starting f($(X))");
-	  valis .ok(fe(X))
+	  TryTsk retire .ok(fe(X))
 	}
       }) in {
       .err(E) => {
