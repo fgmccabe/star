@@ -513,7 +513,10 @@ collectTypeRefs(C,All,SoFar,Rx) :-
   collectTypeRefs(L,All,SoFar,R0),
   collectTypeRefs(R,All,R0,Rx).
 collectTypeRefs(T,All,R,Rx) :-
-  isBinary(T,_,".",L,_),
+  isFieldAcc(T,_,L,_),
+  collectTermRefs(L,All,R,Rx).
+collectTypeRefs(T,All,R,Rx) :-
+  isTupleAcc(T,_,L,_),
   collectTermRefs(L,All,R,Rx).
 collectTypeRefs(T,All,SoFar,Rx) :-
   isUnary(T,_,"ref",L),

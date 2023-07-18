@@ -432,6 +432,10 @@ examineTerm(T,Tx) :-
   macroTerm(L,Lx),
   fieldAcc(Lc,Lx,name(Lc,F),Tx).
 examineTerm(T,Tx) :-
+  isTupleAcc(T,Lc,L,F),!,
+  macroTerm(L,Lx),
+  tupleAcc(Lc,Lx,F,Tx).
+examineTerm(T,Tx) :-
   isOpen(T,Lc,E),!,
   macroTerm(E,Ex),
   mkOpen(Lc,Ex,Tx).

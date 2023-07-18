@@ -32,10 +32,10 @@
 	      ruleName/3,headName/2,
 	      isWhere/4,mkWhere/4,mkWherePtn/4,mkWhereEquality/3,
 	      isCoerce/4,coerce/4,isOptCoerce/4,optCoerce/4,
-	      isFieldAcc/4,fieldAcc/4,isIndexTerm/4,mkIndexTerm/4,
+	      isFieldAcc/4,fieldAcc/4,isIndexTerm/4,mkIndexTerm/4,isTupleAcc/4,tupleAcc/4,
 	      isRecordUpdate/5,recordUpdate/5,
 	      isSlice/5,isSplice/6,
-	      isOption/3,mkOption/3,isOptionMatch/4,optionMatch/4,
+	      isOptionMatch/4,optionMatch/4,
 	      isOptVal/3,mkOptVal/3,
 	      isConjunct/4,conjunct/4,isDisjunct/4,disjunct/4,
 	      isForall/4,mkForall/4,isNegation/3,negation/3,
@@ -632,12 +632,6 @@ whereTerm(_,Lhs,Cond,Lhs) :-
 whereTerm(Lc,Lhs,Rhs,Trm) :-
   binary(Lc,"where",Lhs,Rhs,Trm).
 
-isOption(Trm,Lc,Vl) :-
-  isUnary(Trm,Lc,"?",Vl).
-
-mkOption(Lc,Vl,Trm) :-
-  unary(Lc,"?",Vl,Trm).
-
 isOptionMatch(Trm,Lc,Ptn,Vl) :-
   isBinary(Trm,Lc,"?=",Ptn,Vl).
 
@@ -786,6 +780,13 @@ isRecordUpdate(Trm,Lc,Rc,Fld,Vl) :-
 recordUpdate(Lc,Rc,Fld,Vl,T) :-
   fieldAcc(Lc,Rc,name(Lc,Fld),Lhs),
   binary(Lc,"=",Lhs,Vl,T).
+
+isTupleAcc(Trm,Lc,Rc,Fld) :-
+  isBinary(Trm,Lc,".",Rc,F),
+  isInteger(F,_,Fld),!.
+
+tupleAcc(Lc,Rc,F,T) :-
+  binary(Lc,".",Rc,integer(Lc,F),T).
 
 isIndexTerm(Trm,Lc,Lhs,Rhs) :-
   isSquareTerm(Trm,Lc,Lhs,[Rhs]),

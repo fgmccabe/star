@@ -40,6 +40,7 @@ isCanon(capply(_,_,_,_)).
 isCanon(invoke(_,_,_,_)).
 isCanon(dot(_,_,_,_)).
 isCanon(update(_,_,_,_)).
+isCanon(tdot(_,_,_,_)).
 isCanon(enm(_,_,_)).
 isCanon(tple(_,_)).
 isCanon(where(_,_,_)).
@@ -85,6 +86,7 @@ isPkg(pkg(_,_)).
 typeOfCanon(v(_,_,Tp),Tp) :- !.
 typeOfCanon(anon(_,Tp),Tp) :- !.
 typeOfCanon(dot(_,_,_,Tp),Tp) :- !.
+typeOfCanon(tdot(_,_,_,Tp),Tp) :- !.
 typeOfCanon(update(_,Rc,_,_),Tp) :- !, typeOfCanon(Rc,Tp).
 typeOfCanon(intLit(_,_),type("star.core*integer")) :- !.
 typeOfCanon(bigLit(_,_),type("star.core*bigint")) :- !.
@@ -130,6 +132,7 @@ locOfCanon(v(Lc,_,_),Lc) :- !.
 locOfCanon(anon(Lc,_),Lc) :- !.
 locOfCanon(dot(Lc,_,_,_),Lc) :- !.
 locOfCanon(update(Lc,_,_,_),Lc) :- !.
+locOfCanon(tdot(Lc,_,_,_),Lc) :- !.
 locOfCanon(intLit(Lc,_),Lc) :- !.
 locOfCanon(bigLit(Lc,_),Lc) :- !.
 locOfCanon(floatLit(Lc,_),Lc) :- !.
@@ -230,6 +233,8 @@ ssTerm(dot(_,Rc,Fld,_),Dp,sq([R,ss("."),id(Fld)])) :-
 ssTerm(update(_,Rc,Fld,Vl),Dp,sq([RR,ss("."),id(Fld),ss("="),VV])) :-
   ssTerm(Rc,Dp,RR),
   ssTerm(Vl,Dp,VV).
+ssTerm(tdot(_,Rc,Fld,_),Dp,sq([R,ss("."),ix(Fld)])) :-
+  ssTerm(Rc,Dp,R).
 ssTerm(enm(_,Nm,_),_,sq([ss("."),id(Nm)])).
 ssTerm(open(_,E,_),Dp,sq([ss("open "),EE])) :- ssTerm(E,Dp,EE).
 ssTerm(case(_,Bound,Cases,_),Dp,

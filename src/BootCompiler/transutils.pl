@@ -5,7 +5,7 @@
 	   definedProgs/2,labelVars/2,
 	   genVar/2, genVars/2,
 	   genAnons/2,
-	   pushOpt/3, isOption/2,dispMap/3,
+	   pushOpt/3, dispMap/3,
 	   pullWhere/4,pullWheres/4]).
 
 :- use_module(canon).
@@ -165,8 +165,6 @@ mergeSeq(Lc,seq(Lc0,L0,R0),R,seq(Lc0,L0,RR)) :-
 mergeSeq(Lc,L,R,seq(Lc,L,R)).
 
 pushOpt(Opts,Opt,[Opt|Opts]).
-
-isOption(Opt,Opts) :- is_member(Opt,Opts),!.
 
 genVar(Prefix,idnt(V)) :-
   genstr(Prefix,V).
