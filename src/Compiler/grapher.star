@@ -50,7 +50,7 @@ star.compiler.grapher{
   scanCat(Pkg,Pkgs,Repo,Cat,SoFar) => valof{
     if (SrcUri,CPkg) ?= resolveInCatalog(Cat,pkgName(Pkg)) then{
       if compatiblePkg(CPkg,Pkg) then{
-	Ast = ^parseSrc(SrcUri,CPkg);
+	Ast = _optval(parseSrc(SrcUri,CPkg));
 	SubImps = scanForImports(Ast);
 	valis scanPkgs(Pkgs++SubImps,Repo,Cat,[(CPkg,SubImps),..SoFar])
       } else{
