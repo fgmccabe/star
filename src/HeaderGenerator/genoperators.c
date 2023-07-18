@@ -130,9 +130,9 @@ static void dumpFollows(char *prefix, codePoint last, void *V, void *cl) {
       break;
     case genStar:
       if (uniCmp(prefix, "") == same)
-        outMsg(c->first, "    `%#c` => ?\"%P%#c\".\n", last, prefix, last);
+        outMsg(c->first, "    `%#c` => .some(\"%P%#c\").\n", last, prefix, last);
       else
-        outMsg(c->follow, "    (\"%P\",`%#c`) => ?\"%P%#c\".\n", prefix, last, prefix, last);
+        outMsg(c->follow, "    (\"%P\",`%#c`) => .some(\"%P%#c\").\n", prefix, last, prefix, last);
       break;
     case genTexi:
     default:
@@ -543,13 +543,13 @@ retCode procBrackets(void *n, void *r, void *c) {
       ret = outMsg(out, "  bracket(\"%P\", \"%P\", \"%P\", \"%P\", %d).\n", nm, b->left, b->right, b->sep, b->priority);
       break;
     case genStar:
-      ret = outMsg(out, "    \"%P\" => ?.bkt(\"%P\",\"%P\",\"%P\",\"%P\",%d).\n", b->left, b->left,
+      ret = outMsg(out, "    \"%P\" => .some(.bkt(\"%P\",\"%P\",\"%P\",\"%P\",%d)).\n", b->left, b->left,
                    b->name, b->right, b->sep, b->priority);
       if (ret == Ok)
-        ret = outMsg(out, "    \"%P\" => ?.bkt(\"%P\",\"%P\",\"%P\",\"%P\",%d).\n", b->right, b->left,
+        ret = outMsg(out, "    \"%P\" => .some(.bkt(\"%P\",\"%P\",\"%P\",\"%P\",%d)).\n", b->right, b->left,
                      b->name, b->right, b->sep, b->priority);
       if (ret == Ok)
-        ret = outMsg(out, "    \"%P\" => ?.bkt(\"%P\",\"%P\",\"%P\",\"%P\",%d).\n",
+        ret = outMsg(out, "    \"%P\" => .some(.bkt(\"%P\",\"%P\",\"%P\",\"%P\",%d)).\n",
                      b->name, b->left, b->name, b->right, b->sep, b->priority);
       break;
     case genEmacs:
