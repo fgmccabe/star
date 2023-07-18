@@ -170,7 +170,7 @@ star.compiler.matcher{
     valis mkMatchCond(NArgs,Vars,NTst,Lc,NVal)
   }
   mkMatchCond([A,..Args],[V,..Vars],Test,Lc,Val) =>
-    mkMatchCond(Args,Vars,mergeGoal(Lc,?.cMatch(Lc,A,V),Test),Lc,Val).
+    mkMatchCond(Args,Vars,mergeGoal(Lc,.some(.cMatch(Lc,A,V)),Test),Lc,Val).
 
   matchScalars:all e ~~ reform[e],rewrite[e],display[e] |:
     (cons[triple[e]],cons[cExp],option[locn],e,integer,nameMap)=>e.

@@ -48,7 +48,7 @@ star.compiler.gencode{
       if traceCodegen! then
 	logMsg("compile $(.fnDef(Lc,Nm,Tp,Args,Val))");
       Ctx = emptyCtx(argVars(Args,Glbs,0));
-      (_,AbortCde) = abortCont(Lc,"function: $(Nm)").C(Ctx,?[],[]);
+      (_,AbortCde) = abortCont(Lc,"function: $(Nm)").C(Ctx,.some([]),[]);
       (_Stk,Code) = compExp(Val,.noMore,retCont,Ctx,.some([]));
       if traceCodegen! then
 	logMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp])");
@@ -869,7 +869,7 @@ star.compiler.gencode{
   }
 
   pushStack:(ltipe,stack) => stack.
-  pushStack(Tp,?Stk) => ?[Tp,..Stk].
+  pushStack(Tp,.some(Stk)) => .some([Tp,..Stk]).
 
   loadStack:(cons[ltipe],stack) => stack.
   loadStack(Tps,.some(Stk)) => .some(Tps++Stk).
