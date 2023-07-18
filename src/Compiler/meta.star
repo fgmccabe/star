@@ -46,7 +46,7 @@ star.compiler.meta{
     _ == _ default => .false.
   }
 
-  public pkgSpec::= pkgSpec{
+  public pkgSpec ::= pkgSpec{
     pkg : pkg.
     imports : cons[importSpec].
     exports: cons[decl]}.
@@ -68,9 +68,7 @@ star.compiler.meta{
     | .cnsSp(string)
     | .tpSp(string)
     | .conSp(string)
-    | .implSp(string)
-    | .accSp(string,string)
-    | .updSp(string,string).
+    | .implSp(string).
 
   public implementation display[defnSp] => let{
     dispSp(S) => case S in {
@@ -79,8 +77,6 @@ star.compiler.meta{
       .tpSp(Nm) => "type: $(Nm)".
       .conSp(Nm) => "contract: $(Nm)".
       .implSp(Nm) => "implementation: $(Nm)".
-      .accSp(Tp,Nm) => "accessor: $(Tp).$(Nm)".
-      .updSp(Tp,Nm) => "updater: $(Tp).$(Nm)".
     }
   } in {
     disp = dispSp
@@ -92,8 +88,6 @@ star.compiler.meta{
       .tpSp(S1) => .tpSp(S2).=Sp2 && S1==S2.
       .varSp(S1) => .varSp(S2).=Sp2 && S1==S2.
       .implSp(S1) => .implSp(S2).=Sp2 && S1==S2.
-      .accSp(T1,F1) => .accSp(T2,F2).=Sp2 && T1==T2 && F1==F2.
-      .updSp(T1,F1) => .updSp(T2,F2).=Sp2 && T1==T2 && F1==F2.
       .conSp(S1) => .conSp(S2).=Sp2 && S1==S2.
       _ default => .false.
     }
@@ -108,8 +102,6 @@ star.compiler.meta{
       .tpSp(Nm) => hash(Nm)*37+hash("tp").
       .conSp(Nm) => hash(Nm)*37+hash("con").
       .implSp(Nm) => hash(Nm)*37+hash("impl").
-      .accSp(Tp,Fl) => (hash(Tp)*37+hash(Fl))*37+hash("access").
-      .updSp(Tp,Fl) => (hash(Tp)*37+hash(Fl))*37+hash("update").
     }
   }
 
@@ -127,16 +119,16 @@ star.compiler.meta{
 
   public implementation display[pkgSpec] => {
     disp(P) =>
-      "Package: $(P.pkg), imports=$(P.imports), exports=$(P.exports)".
+      "Package: $(P.pkg)\n  imports=#(interleave(P.imports//disp,"\n")*)\n  exports=#(interleave(P.exports//disp,"\n")*)".
   }
 
   public implementation display[decl] => {
     disp(Dc) => case Dc in {
+      .conDec(_,Nm,_,RlTp) => "Ctrct #(Nm)\:$(RlTp)".
       .implDec(_,Nm,ImplNm,ImplTp) => "Impl #(Nm)[#(ImplNm)]\:$(ImplTp)".
       .accDec(_,Tp,Fld,Fun,FunTp) => "Acc $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
       .updDec(_,Tp,Fld,Fun,FunTp) => "Upd $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
-      .conDec(_,Nm,_,RlTp) => "Ctrct #(Nm)\:$(RlTp)".
-      .tpeDec(_,Nm,Tp,_) => "Type #(Nm)\::$(Tp)".
+      .tpeDec(_,Nm,_,TpRl) => "Type #(Nm)\::$(TpRl)".
       .varDec(_,Nm,FullNm,Tp) => "Var #(Nm)[#(FullNm)]\:$(Tp)".
       .funDec(_,Nm,FullNm,Tp) => "Fun #(Nm)[#(FullNm)]\:$(Tp)".
       .cnsDec(_,Nm,FullNm,Tp) => "Con #(Nm)[#(FullNm)]\:$(Tp)".

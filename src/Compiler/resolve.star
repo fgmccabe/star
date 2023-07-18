@@ -47,8 +47,7 @@ star.compiler.resolve{
   overloadDef(.implDef(Lc,Nm,FullNm,Val,Cx,Tp),Dict) =>
     overloadImplDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp).
   overloadDef(.typeDef(Lc,Nm,Tp,TpRl),Dict) => (.typeDef(Lc,Nm,Tp,TpRl),Dict).
-  overloadDef(.conDef(Lc,Nm,Tp,TpRl),Dict) => (.conDef(Lc,Nm,Tp,TpRl),Dict).
-  overloadDef(.cnsDef(Lc,Nm,FullNm,Tp),Dict) => (.cnsDef(Lc,Nm,FullNm,Tp),Dict).
+  overloadDef(.cnsDef(Lc,Nm,Ix,Tp),Dict) => (.cnsDef(Lc,Nm,Ix,Tp),Dict).
   overloadDef(Def,Dict) default => valof{
     reportError("cannot overload $(Def)",locOf(Def));
     valis (Def,Dict)
@@ -89,7 +88,6 @@ star.compiler.resolve{
   overloadVarDef(Dict,Lc,Nm,Val,[],Tp) => 
     (.varDef(Lc,Nm,overload(Val,Dict),[],Tp),Dict).
   overloadVarDef(Dict,Lc,Nm,Val,Cx,Tp) => valof{
-    
     (Cvrs,CDict) = defineCVars(Lc,Cx,[],Dict);
     RVal = overload(Val,CDict);
     (Qx,Qt) = deQuant(Tp);
@@ -182,6 +180,10 @@ star.compiler.resolve{
     (OV,St2) = overloadTerm(V,Dict,St1);
     valis resolveUpdate(Lc,OR,F,OV,Dict,St2);
   }
+  overloadTerm(.tdot(Lc,Rc,Fld,Tp),Dict,St) => valof{
+    (Rc1,St1) = overloadTerm(Rc,Dict,St);
+    valis resolveTDot(Lc,Rc1,Fld,Tp,Dict,St1);
+  }
   overloadTerm(.tple(Lc,Els),Dict,St) => valof{
     (REls,St1) = overloadTplEls(Els,Dict,St);
     valis (.tple(Lc,REls),St1)
@@ -207,17 +209,6 @@ star.compiler.resolve{
     (ROp,St1) = overloadTerm(Op,Dict,St);
     (RArgs,St2) = overloadTplEls(Args,Dict,St1);
     valis (.apply(lc,ROp,RArgs,Tp),St2)
-  }
-  overloadTerm(.nvoke(lc,.over(OLc,T,Cx),Args,Tp),Dict,St) => valof{
-    (DArg,St1) = resolveConstraint(OLc,Cx,Dict,St);
-    (RArgs,St2) = overloadTplEls(Args,Dict,St1);
-    (OverOp,NArgs,St3) = resolveRef(T,DArg,RArgs,Dict,St2);
-    valis (.nvoke(lc,OverOp,NArgs,Tp),markResolved(St3))
-  }
-  overloadTerm(.nvoke(lc,Op,Args,Tp),Dict,St) => valof{
-    (ROp,St1) = overloadTerm(Op,Dict,St);
-    (RArgs,St2) = overloadTplEls(Args,Dict,St1);
-    valis (.nvoke(lc,ROp,RArgs,Tp),St2)
   }
   overloadTerm(.match(Lc,Ptn,Src),Dict,St) => valof{
     (RPtn,St1) = overloadTerm(Ptn,Dict,St);
@@ -248,10 +239,6 @@ star.compiler.resolve{
     (RRls,St1) = overloadRules(Rls,Dict,St);
     valis (.lambda(Lc,Nm,RRls,Tp),St1)
   }
-  overloadTerm(.contion(Lc,Nm,Rl,Tp),Dict,St) => valof{
-    (RRl,St1) = overloadRule(Rl,Dict,St);
-    valis (.contion(Lc,Nm,RRl,Tp),St1)
-  }
   overloadTerm(.letExp(Lc,Gp,Decls,Rhs),Dict,St) => valof{
     (RDfs,_) = overloadGroup(Gp,Dict);
     (RRhs,St1) = overloadTerm(Rhs,declareDecls(Decls,Dict),St);
@@ -278,6 +265,29 @@ star.compiler.resolve{
     (TT,St1) = overloadTerm(T,Dict,St);
     (EE,St2) = overloadTerm(E,Dict,St1);
     valis (.rais(Lc,EE,TT,Tp),St2)
+  }
+  overloadTerm(.spwn(Lc,Lm,Tp),Dict,St) => valof{
+    (RLm,St1) = overloadTerm(Lm,Dict,St);
+    valis (.spwn(Lc,RLm,Tp),St1)
+  }
+  overloadTerm(.paus(Lc,Lm,Tp),Dict,St) => valof{
+    (RLm,St1) = overloadTerm(Lm,Dict,St);
+    valis (.paus(Lc,RLm,Tp),St1)
+  }
+  overloadTerm(.susp(Lc,Fb,Ex,Tp),Dict,St) => valof{
+    (RFb,St1) = overloadTerm(Fb,Dict,St);
+    (REx,St2) = overloadTerm(Ex,Dict,St1);
+    valis (.susp(Lc,RFb,REx,Tp),St2)
+  }
+  overloadTerm(.rsme(Lc,Fb,Ex,Tp),Dict,St) => valof{
+    (RFb,St1) = overloadTerm(Fb,Dict,St);
+    (REx,St2) = overloadTerm(Ex,Dict,St1);
+    valis (.rsme(Lc,RFb,REx,Tp),St2)
+  }
+  overloadTerm(.rtire(Lc,Fb,Ex),Dict,St) => valof{
+    (RFb,St1) = overloadTerm(Fb,Dict,St);
+    (REx,St2) = overloadTerm(Ex,Dict,St1);
+    valis (.rtire(Lc,RFb,REx),St2)
   }
   overloadTerm(.vlof(Lc,Act,Tp),Dict,St) => valof{
     (Ac,St1) = overloadAction(Act,Dict,St);
@@ -333,6 +343,11 @@ star.compiler.resolve{
     (TT,St1) = overloadTerm(T,Dict,St);
     (EE,St2) = overloadTerm(E,Dict,St1);
     valis (.doRaise(Lc,TT,EE),St1)
+  }
+  overloadAction(.doRetire(Lc,T,E),Dict,St) => valof{
+    (TT,St1) = overloadTerm(T,Dict,St);
+    (EE,St2) = overloadTerm(E,Dict,St1);
+    valis (.doRetire(Lc,TT,EE),St1)
   }
   overloadAction(.doDefn(Lc,P,V),Dict,St) => valof{
     (PP,St1) = overloadTerm(P,Dict,St);
@@ -400,12 +415,12 @@ star.compiler.resolve{
     (RExp,St2) = resolve(Exp,RDict,St1);
     valis (.rule(Lc,RPtn,.none,RExp),St2)
   }
-  overloadRule(.rule(Lc,Ptn,?C,Exp),Dict,St) => valof{
+  overloadRule(.rule(Lc,Ptn,.some(C),Exp),Dict,St) => valof{
     RDict = defineArgVars(Ptn,Dict);
     (RPtn,St1) = overloadTerm(Ptn,RDict,St);
     (RExp,St2) = resolve(Exp,RDict,St1);
     (RC,St3) = resolve(C,RDict,St2);
-    valis (.rule(Lc,RPtn,?RC,RExp),St3)
+    valis (.rule(Lc,RPtn,.some(RC),RExp),St3)
   }
 
   addExtra(.tple(Lc,Els),Extra) => .tple(Lc,Extra++Els).
@@ -536,6 +551,26 @@ star.compiler.resolve{
     } else {
       valis (.update(Lc,Rc,Fld,Vl),
 	.active(Lc,"cannot find updater for field $(Fld) for $(RcTp) not consistent with required type $(typeOf(Vl))"))
+    }
+  }
+
+  resolveTDot:(option[locn],canon,integer,tipe,dict,resolveState) => (canon,resolveState).
+  resolveTDot(Lc,Rc,Ix,Tp,Dict,St) => valof{
+    if traceCanon! then
+      logMsg("resolve $(Rc).$(Ix)\:$(Tp)");
+    
+    if .tupleType(Els) .= deRef(typeOf(Rc)) then{
+      if ElTp ?= Els[Ix] then{
+	if sameType(ElTp,Tp,Dict) then{
+	  valis (tdot(Lc,Rc,Ix,Tp),St)
+	} else{
+	  valis (tdot(Lc,Rc,Ix,Tp),
+	    .active(Lc,"type of $(Rc).$(Ix)\:$(ElTp) not consistent with required type $(Tp)"))
+	}
+      }
+    } else{
+      valis (tdot(Lc,Rc,Ix,Tp),
+	.active(Lc,"type of $(Rc)\:$(typeOf(Rc)) not known to be a tuple type of length > $(Ix)"))
     }
   }
 

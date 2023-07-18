@@ -63,8 +63,8 @@ star.compiler.types{
   public isUnboundFVar:(tipe) => option[integer].
   isUnboundFVar(.tVar(B,_)) => ((T?=B.binding!) ?? isUnboundFVar(T) || .none).
   isUnboundFVar(.tFun(B,Ar,_)) =>
-    ((T?=B.binding!) ?? isUnboundFVar(T) || ?Ar).
-  isUnboundFVar(.kFun(B,Ar)) => ? Ar.
+    ((T?=B.binding!) ?? isUnboundFVar(T) || .some(Ar)).
+  isUnboundFVar(.kFun(B,Ar)) => .some(Ar).
   isUnboundFVar(_) default => .none.
 
   public setBinding:(tipe,tipe) => ().
@@ -73,7 +73,7 @@ star.compiler.types{
 
   bnd:(tv,tipe) => ().
   bnd(B,T) where B.binding! == .none => valof {
-    B.binding := ?T;
+    B.binding := .some(T);
     valis ()
   }
   bnd(_,_) default => ().
@@ -106,16 +106,18 @@ star.compiler.types{
   public makeTpExp:(string,cons[tipe]) => tipe.
   makeTpExp(Nm,Args) => mkTypeExp(.tpFun(Nm,[|Args|]),Args).
 
+  public getTypeArgs:(tipe) => option[(tipe,cons[tipe])].
+  getTypeArgs(T) => case deRef(T) in {
+    .tpExp(O,A) where [F,..As] .= unravelTArgs(deRef(O),[A]) => .some((F,As)).
+    _ default => .none
+  }
+
+  unravelTArgs:(tipe,cons[tipe]) => cons[tipe].
+  unravelTArgs(.tpExp(O,A),S) => unravelTArgs(deRef(O),[A,..S]).
+  unravelTArgs(T,S) => [T,..S].
+
   public mkConType:(string,cons[tipe],cons[tipe])=>tipe.
   mkConType(N,T,D) where L .= T++D => mkTypeExp(.tpFun(N,size(L)),L).
-
-  public getTypeArg:(tipe,string) => option[tipe].
-  getTypeArg(T,Nm) => valof{
-    if .tpExp(OT,A) .= deRef(T) && .tpFun(Nm,1).=deRef(OT) then
-      valis .some(A)
-    else
-    valis .none
-  }
 
   public implementation equality[tipe] => {
     T1==T2 => eqType(T1,T2,[]).
@@ -246,6 +248,7 @@ star.compiler.types{
   showTpExp:(tipe,cons[tipe],integer) => string.
   showTpExp(.tpFun("=>",2),[A,R],Dp) => "#(showType(A,Dp-1)) => #(showType(R,Dp-1))".
   showTpExp(.tpFun("<=>",2),[A,R],Dp) => "#(showType(A,Dp-1)) <=> #(showType(R,Dp-1))".
+  showTpExp(.tpFun("=>>",2),[A,R],Dp) => "#(showType(A,Dp-1)) =>> #(showType(R,Dp-1))".
   showTpExp(.tpFun("ref",1),[R],Dp) => "ref #(showType(R,Dp-1))".
   showTpExp(.tpFun(Nm,Ar),A,Dp) where size(A)==Ar => "#(Nm)[#(showTypes(A,Dp-1)*)]".    
   showTpExp(.tpExp(O,A),R,Dp) => showTpExp(deRef(O),[A,..R],Dp).
@@ -366,7 +369,7 @@ star.compiler.types{
   }
 
   public fieldTypes:(tipe)=>option[cons[(string,tipe)]].
-  fieldTypes(Tp) where .faceType(Fs,_) .= deRef(Tp) => ?sortFieldTypes(Fs).
+  fieldTypes(Tp) where .faceType(Fs,_) .= deRef(Tp) => .some(sortFieldTypes(Fs)).
   fieldTypes(_) default => .none.
 
   public fieldInFace:(tipe,string)=>option[tipe].
@@ -391,6 +394,7 @@ star.compiler.types{
   public enumType(A) => .tpExp(.tpExp(.tpFun("<=>",2),.tupleType([])),A).
   public lstType(Tp) => .tpExp(.tpFun("star.core*cons",1),Tp).
   public refType(Tp) => .tpExp(.tpFun("star.core*ref",1),Tp).
+  public optType(Tp) => .tpExp(.tpFun("star.core*option",1),Tp).
   public continType(A,B) => .tpExp(.tpExp(.tpFun("=>>",2),A),B).
 
   public funTypeArg(Tp) where
@@ -418,15 +422,15 @@ star.compiler.types{
   public isFunType:(tipe) => option[(tipe,tipe)].
   isFunType(Tp) where
       .tpExp(O,B).=deRef(Tp) &&
-      .tpExp(O2,A) .= deRef(O) &&
-      .tpFun("=>",2).=deRef(O2) => ?(A,B).
+	  .tpExp(O2,A) .= deRef(O) &&
+	      .tpFun("=>",2).=deRef(O2) => .some((A,B)).
   isFunType(_) default => .none.
 
   public isConsType:(tipe) => option[(tipe,tipe)].
   isConsType(Tp) where
       .tpExp(O,B).=deRef(Tp) &&
-      .tpExp(O2,A) .= deRef(O) &&
-      .tpFun("<=>",2).=deRef(O2) => ?(A,B).
+	  .tpExp(O2,A) .= deRef(O) &&
+	      .tpFun("<=>",2).=deRef(O2) => .some((A,B)).
   isConsType(_) default => .none.
   isConsType(.allType(_,Tp)) => isConsType(deRef(Tp)).
   isConsType(.existType(_,Tp)) => isConsType(deRef(Tp)).
@@ -442,10 +446,10 @@ star.compiler.types{
   
   public isTupleType:(tipe) => option[(integer,cons[tipe])].
   isTupleType(Tp) =>
-    (.tupleType(A) .= deRef(Tp) ?? ?(size(A),A) || .none).
+    (.tupleType(A) .= deRef(Tp) ?? .some((size(A),A)) || .none).
 
   public isEnumType:(tipe)=>option[tipe].
-  isEnumType(Tp) where (A,T)?=isConsType(Tp) && deRef(A)==.tupleType([]) => ?T.
+  isEnumType(Tp) where (A,T)?=isConsType(Tp) && deRef(A)==.tupleType([]) => .some(T).
   isEnumType(_) default => .none.
 
   public netEnumType:(tipe)=>tipe.
@@ -463,7 +467,7 @@ star.compiler.types{
   public fltType = .nomnal("star.core*float").
   public strType = .nomnal("star.core*string").
   public boolType = .nomnal("star.core*boolean").
-  public contType(T) => mkTypeExp(.tpFun("star.core*cont",1),[T]).
+  public contType(T) => continType(T,unitTp).
 
   public isRefType(Tp) => .tpExp(Op,_) .= deRef(Tp) &&
       .tpFun("star.core*ref",1).=deRef(Op).

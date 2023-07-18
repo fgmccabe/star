@@ -16,13 +16,13 @@ star.compiler.dict.mgt{
   isVar:(string,dict) => option[vrEntry].
   isVar(Nm,Env) => valof{
     if Tp ?= escapeType(Nm) then
-      valis ? .vrEntry(.none,(L,E)=>refreshVar(L,Nm,Tp,E),Tp,.none)
+      valis .some(.vrEntry(.none,(L,E)=>refreshVar(L,Nm,Tp,E),Tp,.none))
     else
     valis dictVar(Nm,Env)
   }
 
   dictVar(Nm,[]) => .none.
-  dictVar(Nm,[Sc,.._]) where Entry?=Sc.vars[Nm] => ? Entry.
+  dictVar(Nm,[Sc,.._]) where Entry?=Sc.vars[Nm] => .some(Entry).
   dictVar(Nm,[_,..Env]) => dictVar(Nm,Env).
 	  
   public showVar:(string,dict) => string.
@@ -102,7 +102,7 @@ star.compiler.dict.mgt{
   declareConstructor(Nm,FullNm,Lc,Tp,Env) => valof{
     AbtTpNm = localName(tpName(funTypeRes(Tp)),.typeMark);
     valis declareCns(Lc,FullNm,Tp,AbtTpNm,
-      declareVr(Nm,Lc,Tp,(L,E)=>pickupEnum(L,FullNm,Tp,Env),.none,Env)).
+      declareVr(Nm,Lc,Tp,(L,E)=>pickupEnum(L,Nm,Tp,Env),.none,Env)).
   }
 
   declareCns(CLc,Nm,Tp,TpNm,Dict) => valof{
@@ -115,7 +115,7 @@ star.compiler.dict.mgt{
       }
     }
     else{
-      reportError("cannot declare constructor #(Nm)\:$(Tp)",CLc);
+      reportError("cannot declare constructor #(Nm)\:$(Tp), could not find type $(TpNm)",CLc);
       valis Dict
     }
   }
@@ -141,9 +141,8 @@ star.compiler.dict.mgt{
 
   public declareContract:(option[locn],string,typeRule,dict) => dict.
   declareContract(Lc,Nm,Con,[Sc,..Rest]) => valof{
-    NTps = Sc.types[Nm->.tpDefn(Lc,Nm,contractType(Con),contractTypeRule(Con),[])];
     NCts = Sc.contracts[Nm->Con];
-    valis declareMethods(Lc,Con,[(Sc.types=NTps).contracts=NCts,..Rest]).
+    valis declareMethods(Lc,Con,[Sc.contracts=NCts,..Rest]).
   }
 
   declareMethods:(option[locn],typeRule,dict) => dict.

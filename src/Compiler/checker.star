@@ -52,8 +52,10 @@ star.compiler.checker{
 	RDefs = (errorFree() ??
 	  overloadProgram(Defs,declareDecls(AllDecls,PkgEnv))* || []);
 
-	if traceCanon! then
+	if traceCanon! then{
 	  logMsg("all decls: $(AllDecls), exported declarations $(ExDecls)");
+	  logMsg("pkg definitions: $(Defs)");
+	};
 
 	valis (pkgSpec{pkg=Pkge. imports=Imports. exports=ExDecls},RDefs,IDecls,AllDecls)
       }
@@ -128,7 +130,7 @@ star.compiler.checker{
   checkGroups:(cons[cons[defnSpec]],visMap,tipe,map[string,ast],dict,string) =>
     (cons[cons[canonDef]],cons[decl],cons[cons[decl]],dict).
   checkGroups(AGps,Vis,Face,Annots,Env,Path) => let{.
-    checkGps([],Ev,Gps,ExDcs,Dcs) => (reverse(Gps),reverse(ExDcs),reverse(Dcs),Ev).
+    checkGps([],Ev,Gps,ExDcs,Dcs) => (reverse(Gps),ExDcs,Dcs,Ev).
     checkGps([G,..Gs],Ev,Gx,ExDcs,Dx) => valof{
       TmpEnv = parseAnnotations(G,Face,Annots,Ev,Path);
       (Gp,Xps,Ds) = checkGroup(G,Vis,TmpEnv,TmpEnv,Path);
@@ -208,10 +210,6 @@ star.compiler.checker{
       (Df,Dc) = parseTypeDef(TpNm,St,Env,Path);
       valis (Df,(isVisible(Vis,.priVate,.tpSp(TpNm))??Dc||[]),Dc)
     }.
-    .defnSpec(.cnsSp(CnNm),Lc,[St]) => valof{
-      (Defs,Decls) = parseConstructor(CnNm,St,Env,Path);
-      valis (Defs,(isVisible(Vis,.priVate,.cnsSp(CnNm))??Decls||[]),Decls)
-    }.
     .defnSpec(.conSp(ConNm),Lc,[St]) => valof{
       (Defs,Decls) = parseContract(St,Env,Path);
       valis (Defs,(isVisible(Vis,.priVate,.conSp(ConNm))??Decls||[]),Decls)
@@ -226,26 +224,6 @@ star.compiler.checker{
 	valis ([],[],[])
       }
     }.
-    .defnSpec(.accSp(Nm,Fld),Lc,[St]) => valof {
-      if (_,Q,C,T,B) ?= isAccessorStmt(St) then{
-	(Defs,Decls) = checkAccessor(Lc,Nm,Q,C,T,B,Env,Outer,Path);
-	valis (Defs,(isVisible(Vis,.priVate,.accSp(Nm,Fld))??Decls||[]),Decls)
-      }
-      else{
-	reportError("not a valid accessor statement",Lc);
-	valis ([],[],[])
-      }
-    }.
-    .defnSpec(.updSp(Nm,Fld),Lc,[St]) => valof {
-      if (_,Q,C,H,B) ?= isUpdaterStmt(St) then{
-	(Defs,Decls) = checkUpdater(Lc,Nm,Q,C,H,B,Env,Outer,Path);
-	valis (Defs,(isVisible(Vis,.priVate,.updSp(Nm,Fld))??Decls||[]),Decls)
-      }
-      else{
-	reportError("not a valid updater statement",Lc);
-	valis ([],[],[])
-      }
-    }
   }
 
   checkFunction:(string,tipe,option[locn],cons[ast],dict,dict,string) =>
@@ -338,15 +316,17 @@ star.compiler.checker{
     BV = parseBoundTpVars(Q);
     Cx = parseConstraints(C,BV,Env);
     Cn = parseContractConstraint(BV,H,Env);
-    ConName = localName(conTractName(Cn),.pkgMark);
-    if traceCanon! then
-      logMsg("Implemented contract name $(implementedContractName(H))");
+    ConName = localName(conTractName(Cn),.typeMark);
+    if traceCanon! then{
+      logMsg("Contract name $(ConName)");
+      logMsg("Local implementation name $(implementedContractName(H))");
+    };
     
-    if Con ?= findContract(Env,ConName) then{
+    if Con ?= findContract(Env,ConName) && (_,CTp,_,_) ?= findType(Env,ConName)then{
       (_,.contractExists(CnNm,CnTps,CnDps,ConFaceTp)) = freshen(Con,Env);
       ConTp = mkConType(CnNm,CnTps,CnDps);
---      if traceCanon! then
---	logMsg("contract exists: $(ConTp) ~ $(Cn)");
+      if traceCanon! then
+	logMsg("contract exists: $(ConTp) ~ $(Cn)");
       if sameType(ConTp,typeOf(Cn),Env) then {
 	Es = declareConstraints(Lc,Cx,declareTypeVars(BV,Outer));
 	Impl = typeOfExp(B,ConTp,Es,Path);
@@ -382,7 +362,7 @@ star.compiler.checker{
     QV = parseBoundTpVars(Q);
     Cx = parseConstraints(C,QV,Env);
     if (_,Fn,[TA]) ?= isSquareTerm(T) && (_,[L],[R]) ?= isDepends(TA) then{
-      (_,Fld) = ^isName(Fn);
+      (_,Fld) = _optval(isName(Fn)); -- TODO replace by final operator
       RcTp = parseType(QV,L,Env);
       FldTp = parseType(QV,R,Env);
 
@@ -460,7 +440,7 @@ star.compiler.checker{
     V = genName(Lc,Id);
     (Ptn,PCond,Ev0) = typeOfPtn(V,Tp,Env,Path);
     (Cond,Ev1) = checkCond(binary(Lc,"==",V,A),Ev0,Path);
-    valis (Ptn,mergeGoal(Lc,PCond,?Cond),Ev1)
+    valis (Ptn,mergeGoal(Lc,PCond,.some(Cond)),Ev1)
   }.
   typeOfPtn(A,Tp,Env,Path) where (Lc,Id) ?= isName(A) => valof{
     Ev = declareVar(Id,Id,Lc,snd(deConstrain(Tp)),faceOfType(Tp,Env),Env);
@@ -506,7 +486,7 @@ star.compiler.checker{
       (Lc,E,C) ?= isWhere(A) => valof{
 	(Ptn,PCond,Ev0) = typeOfPtn(E,Tp,Env,Path);
 	(Cond,Ev1) = checkCond(C,Ev0,Path);
-	valis (Ptn,mergeGoal(Lc,PCond,?Cond),Ev1)
+	valis (Ptn,mergeGoal(Lc,PCond,.some(Cond)),Ev1)
       }.
   typeOfPtn(A,Tp,Env,Path) where (_,[El]) ?= isTuple(A) && ~ _ ?= isTuple(El) =>
     typeOfPtn(El,Tp,Env,Path).
@@ -539,36 +519,34 @@ star.compiler.checker{
       valis (.anon(Lc,Tp),.none,Env)
     }
   }
-  typeOfPtn(A,Tp,Env,Path) where (Lc,Op,Ss) ?= isLabeledRecord(A) && (OLc,Nm)?=isName(Op) => valof{
+  typeOfPtn(A,Tp,Env,Path) where (Lc,Op,Ss) ?= isBrTerm(A) && (OLc,Nm)?=isName(Op) => valof{
     if traceCanon! then
       logMsg("labeled record ptn: $(A)");
     At = newTypeVar("A");
     Fun = typeOfExp(Op,consType(At,Tp),Env,Path);
-    DFun = typeOfVar(Lc,dlrName(Nm),newTypeVar(""),Env,Path);
 
     (Q,ETp) = evidence(deRef(At),Env);
-    FaceTp = ^faceOfType(ETp,Env);
+    FaceTp = _optval(faceOfType(ETp,Env));
     (Cx,Face) = deConstrain(FaceTp);
     Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
     (Els,Cond,Ev) = typeOfElementPtns(Ss,Face,Base,Path,.none,[]);
     Args = fillinElementPtns(Lc,Els,Face);
 
-    valis (.apply(Lc,DFun,Args,Tp),Cond,Ev)
+    valis (.apply(Lc,Fun,Args,Tp),Cond,Ev)
   }
   typeOfPtn(A,Tp,Env,Path) where (Lc,Op,Ss) ?= isLabeledTheta(A) && (OLc,Nm)?=isName(Op) => valof{
     if traceCanon! then
       logMsg("labeled theta ptn: $(A)");
     At = newTypeVar("A");
     Fun = typeOfExp(Op,consType(At,Tp),Env,Path);
-    DFun = typeOfVar(Lc,dlrName(Nm),newTypeVar(""),Env,Path);
     
     (Q,ETp) = evidence(deRef(At),Env);
-    FaceTp = ^faceOfType(ETp,Env);
+    FaceTp = _optval(faceOfType(ETp,Env));
     (Cx,Face) = deConstrain(FaceTp);
     Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
     (Els,Cond,Ev) = typeOfElementPtns(Ss,Face,Base,Path,.none,[]);
     Args = fillinElementPtns(Lc,Els,Face);
-    valis (.apply(Lc,DFun,Args,Tp),Cond,Ev)
+    valis (.apply(Lc,Fun,Args,Tp),Cond,Ev)
   }
   typeOfPtn(A,Tp,Env,_) => valof{
     Lc = locOf(A);
@@ -674,10 +652,15 @@ star.compiler.checker{
     checkType(A,VE,Tp,Env);
     valis EE
   }
-  typeOfExp(A,Tp,Env,Path) where (Lc,R,F) ?= isFieldAcc(A) && (_,Fld) ?= isName(F) => valof{
+  typeOfExp(A,Tp,Env,Path) where (Lc,R,F) ?= isFieldAcc(A) => valof{
     RTp = newTypeVar("R");
     Rc = typeOfExp(R,RTp,Env,Path);
-    valis .dot(Lc,Rc,Fld,Tp)
+    valis .dot(Lc,Rc,F,Tp)
+  }
+  typeOfExp(A,Tp,Env,Path) where (Lc,R,Ix) ?= isTupleAcc(A) => valof{
+    RTp = newTypeVar("R");
+    Rc = typeOfExp(R,RTp,Env,Path);
+    valis .tdot(Lc,Rc,Ix,Tp)
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,R,Fld,V) ?= isRecordUpdate(A) => valof{
     Rc = typeOfExp(R,Tp,Env,Path);
@@ -692,7 +675,7 @@ star.compiler.checker{
     valis .cond(Lc,Tst,Thn,Els)
   }.
   typeOfExp(A,Tp,Env,Path) where _ ?= isConjunct(A) => valof{
-    (_,boolTp,_,_) = ^findType(Env,"boolean");
+    (_,boolTp,_,_) = _optval(findType(Env,"boolean"));
     checkType(A,boolTp,Tp,Env);
     (Gl,_) = checkCond(A,Env,Path);
     valis Gl
@@ -752,64 +735,45 @@ star.compiler.checker{
     
     (As,ACnd,E0) = typeOfArgPtn(Ar,At,Es,Path);
 
+    if traceCanon! then
+      logMsg("lambda args $(As)\:$(typeOf(As))");
+
     LName = genId(Path++"λ");
 
     if Cnd ?= C then {
       (Cond,E1) = checkCond(Cnd,E0,Path);
       Rep = typeOfExp(R,Rt,E1,Path);
-      valis .lambda(Lc,LName,[.rule(Lc,As,mergeGoal(Lc,ACnd,?Cond),Rep)],Tp)
+      valis .lambda(Lc,LName,[.rule(Lc,As,mergeGoal(Lc,ACnd,.some(Cond)),Rep)],Tp)
     } else{
       Rep = typeOfExp(R,Rt,E0,Path);
       valis .lambda(Lc,LName,[.rule(Lc,As,ACnd,Rep)],Tp)
     }
   }
-
-  typeOfExp(A,Tp,Env,Path) where (Lc,Ar,R) ?= isContinEqn(A) => valof{
-    At = newTypeVar("_A");
-    Rt = newTypeVar("_R");
-
-    if traceCanon! then
-      logMsg("check continuation lambda $(A)\:$(Tp)");
-
-    (Q,ETp) = evidence(Tp,Env);
-    (Cx,ProgTp) = deConstrain(ETp);
-    Es = declareConstraints(Lc,Cx,declareTypeVars(Q,Env));
-
-    checkType(A,continType(At,Rt),ProgTp,Es);
-    
-    (As,ACnd,E0) = typeOfArgPtn(Ar,At,Es,Path);
-
-    LName = genId(Path++"ϰ");
-    Rep = typeOfExp(R,Rt,E0,Path);
-    valis .contion(Lc,LName,.rule(Lc,As,.none,Rep),Tp)
-  }
   typeOfExp(A,Tp,Env,Pth) where (Lc,Op,Els) ?= isLabeledTheta(A) && (_,Nm)?=isName(Op) => valof{
     FceTp = newTypeVar("_");
     ConTp = consType(FceTp,Tp);
     Fun = typeOfExp(Op,ConTp,Env,Pth);
-    DFun = typeOfVar(Lc,dlrName(Nm),newTypeVar("_"),Env,Pth);
     (Q,ETp) = evidence(FceTp,Env);
-    FaceTp = ^faceOfType(ETp,Env);
+    FaceTp = _optval(faceOfType(ETp,Env));
     (Cx,Face) = deConstrain(FaceTp);
     Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
     
     (Defs,ExDecls,Decls,ThEnv) = thetaEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base);
 
-    valis formTheta(Lc,DFun,Face,Defs,Decls,Tp)
+    valis formTheta(Lc,Fun,Face,Defs,Decls,Tp)
   }
-  typeOfExp(A,Tp,Env,Pth) where (Lc,Op,Els) ?= isLabeledRecord(A) && (_,Nm)?=isName(Op) => valof{
+  typeOfExp(A,Tp,Env,Pth) where (Lc,Op,Els) ?= isBrTerm(A) && (_,Nm)?=isName(Op) => valof{
     FceTp = newTypeVar("_");
     ConTp = consType(FceTp,Tp);
     Fun = typeOfExp(Op,ConTp,Env,Pth);
-    DFun = typeOfVar(Lc,dlrName(Nm),newTypeVar(""),Env,Pth);
     (Q,ETp) = evidence(FceTp,Env);
-    FaceTp = ^faceOfType(ETp,Env);
+    FaceTp = _optval(faceOfType(ETp,Env));
     (Cx,Face) = deConstrain(FaceTp);
     Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
     
     (Defs,Decls) = recordEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,Env);
     
-    valis formRecordExp(Lc,DFun,Face,Defs,Decls,Tp)
+    valis formRecordExp(Lc,Fun,Face,Defs,Decls,Tp)
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,Els,Bnd) ?= isLetRecDef(A) => valof{
     (Defs,_,Decls,ThEnv)=thetaEnv(Lc,genNewName(Path,"Γ"),Els,.faceType([],[]),Env);
@@ -852,21 +816,6 @@ star.compiler.checker{
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,Op,Args) ?= isRoundTerm(A) =>
     typeOfRoundTerm(Lc,Op,Args,Tp,Env,Path).
-  typeOfExp(A,Tp,Env,Path) where (Lc,Op,As) ?= isInvoke(A) => valof{
-    Vrs = genTpVars(As);
-    At = .tupleType(Vrs);
-    ExTp = newTypeVar("F");
-    Fun = typeOfExp(Op,ExTp,Env,Path);
-    FnTp = continType(At,Tp);
-
-    if sameType(ExTp,FnTp,Env) then{
-      Args = typeOfExps(As,Vrs,[],Env,Path);      
-      valis .nvoke(Lc,Fun,Args,Tp)
-    } else{
-      reportError("type of $(Op)\:$(ExTp) not consistent with $(FnTp)",Lc);
-      valis .vr(Lc,"_",Tp)
-    }
-  }
   typeOfExp(A,Tp,Env,Path) where (Lc,Ac) ?= isValof(A) => valof{
     (Act,_) = checkAction(Ac,Tp,Env,Path);
     valis .vlof(Lc,Act,Tp)
@@ -883,6 +832,39 @@ star.compiler.checker{
     Thrw = typeOfVar(Lc,"_raise",contType(ErTp),Env,Path);
     V = typeOfExp(E,ErTp,Env,Path);
     valis .rais(Lc,Thrw,V,Tp)
+  }
+  typeOfExp(A,Tp,Env,Path) where (Lc,L,R) ?= isSpawn(A) => valof{
+    CTp = newTypeVar("_C");
+    F = typeOfExp(equation(Lc,rndTuple(Lc,[L]),R),
+      funType([continType(CTp,Tp)],Tp),Env,Path);
+    valis .spwn(Lc,F,Tp)
+  }
+  typeOfExp(A,Tp,Env,Path) where (Lc,T,F,E) ?= isPaused(A) => valof{
+    RTp = newTypeVar("_R");
+    STp = newTypeVar("_S");
+    
+    checkType(A,continType(RTp,STp),Tp,Env);
+    
+    Fs = typeOfExp(equation(Lc,rndTuple(Lc,[T,F]),E),funType([Tp,RTp],STp),Env,Path);
+    valis .paus(Lc,Fs,Tp)
+  }
+  typeOfExp(A,Tp,Env,Path) where (Lc,F,E) ?= isSuspend(A) => valof{
+    CTp = newTypeVar("_C");
+    Fb = typeOfExp(F,continType(Tp,CTp),Env,Path);
+    Ms = typeOfExp(E,CTp,Env,Path);
+    valis .susp(Lc,Fb,Ms,Tp)
+  }
+  typeOfExp(A,Tp,Env,Path) where (Lc,F,E) ?= isResume(A) => valof{
+    CTp = newTypeVar("_C");
+    Fb = typeOfExp(F,continType(CTp,Tp),Env,Path);
+    Ms = typeOfExp(E,CTp,Env,Path);
+    valis .rsme(Lc,Fb,Ms,Tp)
+  }
+  typeOfExp(A,_Tp,Env,Path) where (Lc,F,E) ?= isRetire(A) => valof{
+    CTp = newTypeVar("_C");
+    Fb = typeOfExp(F,continType(newTypeVar("_"),CTp),Env,Path);
+    Ms = typeOfExp(E,CTp,Env,Path);
+    valis .rtire(Lc,Fb,Ms)
   }
   typeOfExp(A,Tp,_,_) => valof{
     reportError("cannot type check expression $(A)",locOf(A));
@@ -953,6 +935,27 @@ star.compiler.checker{
     Thrw = typeOfVar(Lc,"_raise",contType(ErTp),Env,Path);
     V = typeOfExp(E,ErTp,Env,Path);
     valis (.doRaise(Lc,Thrw,V),Env)
+  }
+  checkAction(A,_Tp,Env,Path) where (Lc,L,R) ?= isSpawn(A) => valof{
+    CTp = newTypeVar("_C");
+    RTp = newTypeVar("R");
+    Tp = funType([continType(CTp,RTp)],RTp);
+    F = typeOfExp(equation(Lc,rndTuple(Lc,[L]),R),Tp,Env,Path);
+    valis (.doCall(Lc,.spwn(Lc,F,RTp)),Env)
+  }
+  checkAction(A,_Tp,Env,Path) where (Lc,F,E) ?= isRetire(A) => valof{
+    CTp = newTypeVar("_C");
+    Fb = typeOfExp(F,continType(newTypeVar("_"),CTp),Env,Path);
+    Ms = typeOfExp(E,CTp,Env,Path);
+    valis (.doRetire(Lc,Fb,Ms),Env)
+  }
+  checkAction(A,_Tp,Env,Path) where (Lc,F,E) ?= isSuspend(A) => valof{
+    SS = typeOfExp(A,newTypeVar("_"),Env,Path);
+    valis (.doCall(Lc,SS),Env)
+  }
+  checkAction(A,_Tp,Env,Path) where (Lc,F,E) ?= isResume(A) => valof{
+    SS = typeOfExp(A,newTypeVar("_"),Env,Path);
+    valis (.doCall(Lc,SS),Env)
   }
   checkAction(A,_,Env,Path) where (Lc,Lhs,Rhs) ?= isDefn(A) => valof{
     if (ILc,Id) ?= isName(Lhs) then{
@@ -1137,7 +1140,7 @@ star.compiler.checker{
   checkGoal(A,Env,Path) where (_,[Inner]) ?= isTuple(A) =>
     checkGoal(Inner,Env,Path).
   checkGoal(A,Env,Path) => valof{
-    (_,boolTp,_,_) = ^findType(Env,"boolean");
+    (_,boolTp,_,_) = _optval(findType(Env,"boolean"));
     Exp = typeOfExp(A,boolTp,Env,Path);
     valis (Exp,Env)
   }
