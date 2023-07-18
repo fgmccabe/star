@@ -10,12 +10,14 @@ star.compiler.macro.infra{
   -- infrastructure for macro processing
   
   public macroContext ::= .package
-    | .statement
-    | .expression
-    | .actn
-    | .pattern
-    | .typeterm
-    | .constraint.
+  | .statement
+  | .expression
+  | .actn
+  | .pattern
+  | .typeterm
+  | .typevar
+  | .constructor
+  | .constraint.
 
   public implementation equality[macroContext] => {
     .package == .package => .true.
@@ -24,6 +26,8 @@ star.compiler.macro.infra{
     .actn == .actn => .true.
     .pattern == .pattern => .true.
     .typeterm == .typeterm => .true.
+    .typevar == .typevar => .true.
+    .constructor == .constructor => .true.
     .constraint == .constraint => .true.
     _ == _ default => .false
   }
@@ -36,6 +40,8 @@ star.compiler.macro.infra{
     disp(.pattern) => "pattern".
     disp(.typeterm) => "type".
     disp(.constraint) => "constraint".
+    disp(.typevar) => "type var".
+    disp(.constructor) => "constructor".
   }
 
   public macroKey:(ast)=>string.
