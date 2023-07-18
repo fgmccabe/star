@@ -230,7 +230,7 @@ ssAct(case(_,G,Cases,Deflt),Dp,
       sq([ss("case "),GG,ss("in"),lb,CC,rb,ss(" else "),DD])) :-!,
   ssTrm(G,Dp,GG),
   ssCases(Cases,Dp,lterms:ssAct,CC),
-  ssTrm(Deflt,Dp,DD).
+  ssAct(Deflt,Dp,DD).
 ssAct(unpack(_,G,Cases),Dp,
       sq([ss("unpack "),GG,ss(" in "),CC])) :-!,
   ssTrm(G,Dp,GG),
@@ -472,8 +472,9 @@ rewriteAction(QTest,asgn(Lc,P,E),asgn(Lc,PP,EE)) :- !,
 rewriteAction(QTest,setix(Lc,P,Ix,E),setix(Lc,PP,Ix,EE)) :- !,
   rewriteTerm(QTest,P,PP),
   rewriteTerm(QTest,E,EE).
-rewriteAction(QTest,case(Lc,G,C),case(Lc,GG,CC)) :-
+rewriteAction(QTest,case(Lc,G,C,D),case(Lc,GG,CC,ND)) :-
   rewriteTerm(QTest,G,GG),
+  rewriteAction(QTest,D,ND),
   map(C,lterms:rewriteCase(QTest,lterms:rewriteAction),CC).
 rewriteAction(QTest,unpack(Lc,G,C),unpack(Lc,GG,CC)) :-
   rewriteTerm(QTest,G,GG),
@@ -917,9 +918,10 @@ validAction(setix(Lc,Rc,Off,Vl),_,D,D) :-
 validAction(asgn(Lc,P,E),_,D,D) :- !,
   validTerm(P,Lc,D),
   validTerm(E,Lc,D).
-validAction(case(Lc,G,C),_,D,D) :-
+validAction(case(Lc,G,C,Df),_,D,Dx) :-
   validTerm(G,Lc,D),
-  validCases(C,lterms:validAct,D).
+  validCases(C,lterms:validAct,D),
+  validAction(Df,Lc,D,Dx).
 validAction(unpack(Lc,G,C),_,D,D) :-
   validTerm(G,Lc,D),
   validCases(C,lterms:validAct,D).

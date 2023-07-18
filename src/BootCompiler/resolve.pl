@@ -131,6 +131,9 @@ overloadTerm(update(Lc,Rc,Fld,Vl),Dict,St,Stx,Update) :-
   overloadTerm(Rc,Dict,St,St0,Rx),
   overloadTerm(Vl,Dict,St0,St1,Vx),
   resolveUpdate(Lc,Rx,Fld,Vx,Dict,St1,Stx,Update).
+overloadTerm(tdot(Lc,Rc,Fld,Tp),Dict,St,Stx,Dot) :-
+  overloadTerm(Rc,Dict,St,St0,RRc),
+  resolveTDot(Lc,RRc,Fld,Tp,Dict,St0,Stx,Dot).
 overloadTerm(enm(Lc,Rf,Tp),_,St,St,enm(Lc,Rf,Tp)).
 overloadTerm(tple(Lc,Args),Dict,St,Stx,tple(Lc,RArgs)) :-!,
   overloadLst(Args,resolve:overloadTerm,Dict,St,Stx,RArgs).
@@ -368,6 +371,25 @@ resolveDot(Lc,Rc,Fld,Tp,_Dict,St,Stx,dot(Lc,Rc,Fld,Tp)) :-
   typeOfCanon(Rc,RcTp),
   genMsg("no accessor defined for %s for type %s in %s",
 	 [Fld,tpe(RcTp),can(dot(Lc,Rc,Fld,Tp))],Msg),
+  markActive(St,Lc,Msg,Stx).
+
+
+resolveTDot(Lc,Rc,Ix,Tp,Dict,St,Stx,tdot(Lc,Rc,Ix,Tp)) :-
+  typeOfCanon(Rc,RcTp),
+  deRef(RcTp,tplType(Els)),!,
+  (length(Els,Ar), Ar>Ix ->
+   nth_of(Els,Ix,ElTp),
+   (sameType(ElTp,Tp,Lc,Dict) -> St=Stx ;
+    genMsg("%sth type of %s:%s not consistent with expected type %s",
+	   [ix(Ix),tpe(ElTp),tpe(Tp)],Msg),
+    markActive(St,Lc,Msg,Stx));
+   genMsg("%type of %s:%s not a tuple of at least %d",
+	   [can(Rc),tpe(RcTp),ix(Ix)],Msg),
+   markActive(St,Lc,Msg,Stx)).
+resolveTDot(Lc,Rc,Ix,Tp,_Dict,St,Stx,tdot(Lc,Rc,Ix,Tp)) :-
+  typeOfCanon(Rc,RcTp),
+  genMsg("%type of %s:%s not a tuple of at least %d",
+	 [can(Rc),tpe(RcTp),ix(Ix)],Msg),
   markActive(St,Lc,Msg,Stx).
 
 resolveAccess(Lc,RcTp,Fld,Tp,Dict,St,Stx,Reslvd) :-

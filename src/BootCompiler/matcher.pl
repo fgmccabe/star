@@ -169,8 +169,9 @@ mkUnpack(_Lc,V,Conder,[(enum(Nm),Exp,Lc)],_Index,Deflt,_Map,Reslt) :-!,
   call(Conder,Lc,some(mtch(Lc,ctpl(lbl(Nm,0),[]),V)),Exp,Deflt,Reslt).
 mkUnpack(_Lc,V,Conder,[(Ptn,Exp,Lc)],_Index,Deflt,_Map,Reslt) :-!,
   call(Conder,Lc,some(mtch(Lc,Ptn,V)),Exp,Deflt,Reslt).
-mkUnpack(Lc,V,_,Cases,Index,Deflt,Map,unpack(Lc,V,Arms)) :-
-  populateArms(Index,Cases,Map,Lc,Deflt,Arms).
+mkUnpack(Lc,V,_,Cases,_Index,Deflt,_Map,case(Lc,V,Cases,Deflt)).
+% mkUnpack(Lc,V,_,Cases,Index,Deflt,Map,unpack(Lc,V,Arms)) :-
+%   populateArms(Index,Cases,Map,Lc,Deflt,Arms).
 
 populateArms([],_,_,_,_,[]).
 populateArms([(lbl(FullNm,_),_Ix)|Index],Cases,Map,DLc,Deflt,[Arm|Arms]) :-

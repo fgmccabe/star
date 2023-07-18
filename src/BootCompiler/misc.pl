@@ -3,7 +3,7 @@
 	       merge/3,intersect/3,subtract/3,replace/4,filter/3,front/3,
 	       collect/4,map/3,lfold/4,rfold/4,
 	       project0/2,project1/2,project0_3/2,project1_3/2,project2_3/2,
-	       zip/3,split_list/4,index_list/3,
+	       zip/3,split_list/4,index_list/3,nth_of/3,
 	       isIdentifier/1,
 	       appChr/3,appStr/3,appStrs/3,appIden/3,appInt/3,appFlt/3,quoteConcat/4,
 	       appSym/3,appQuoted/4,
@@ -139,6 +139,12 @@ index_list([],_,[]) :-!.
 index_list([E|L],Ix,[(E,Ix)|XL]) :-
   Ix1 is Ix+1,
   index_list(L,Ix1,XL).
+
+nth_of([E|_],0,E) :-!.
+nth_of([_|L],Ix,E) :-
+  Ix>0,
+  Ix1 is Ix-1,
+  nth_of(L,Ix1,E).
 
 split_list(0,L,[],L) :-!.
 split_list(Ix,[H|I],[H|R],O) :-

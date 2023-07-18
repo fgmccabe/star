@@ -720,6 +720,9 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
 typeOfExp(Term,Tp,Env,Ev,U,Path) :-
   isRecordUpdate(Term,Lc,Rc,Fld,Vl),!,
   typeOfRecordUpdate(Lc,Rc,Fld,Vl,Tp,Env,Ev,U,Path).
+typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
+  isTupleAcc(Term,Lc,Rc,Fld),!,
+  typeOfTupleAcc(Lc,Rc,Fld,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,cond(Lc,Test,Then,Else,Tp),Path) :-
   isConditional(Term,Lc,Tst,Th,El),!,
   checkGoal(Tst,Env,E0,Test,Path),
@@ -895,6 +898,11 @@ typeOfRecordUpdate(Lc,Rc,Fld,Vl,Tp,Env,Ev,update(Lc,Rec,Fld,Val),Path) :-
   typeOfExp(Rc,Tp,Env,Ev0,Rec,Path),
   newTypeVar("_V",VT),
   typeOfExp(Vl,VT,Ev0,Ev,Val,Path).
+
+% same: we only partially check tuple index
+typeOfTupleAcc(Lc,Rc,Fld,Tp,Env,Ev,tdot(Lc,Rec,Fld,Tp),Path) :-
+  newTypeVar("_R",AT),
+  typeOfExp(Rc,AT,Env,Ev,Rec,Path).
 
 typeOfRoundTerm(Lc,F,A,Tp,Env,Call,Path) :-
   newTypeVar("F",FnTp),

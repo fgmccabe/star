@@ -372,7 +372,6 @@ genAccessor(Lc,Q,XQ,Cx,Path,TpNm,Tp,Fld,FldTp,Tp,AllElTps,Body,
 	    [acc(Tp,Fld,AccName,AccFunTp)|Acc],Acc,
 	    Publish,Viz,Dc,Dcx) :-
   mangleName(TpNm,field,Fld,AccName),
-%  reXQnt(XQ,FldTp,XFldTp),
   putConstraints(Cx,funType(tplType([Tp]),FldTp),CxFunTp),
   concat(Q,XQ,TQ),
   reUQnt(TQ,CxFunTp,AccFunTp),
@@ -598,18 +597,15 @@ algebraicFace(C,Q,Qx,Face) :-
   concat(Q,XQ,Qx),
   reConstrain(XC,F,Face).
 algebraicFace(C,Q,Qx,Face) :-
-  isPrivate(C,_,I),
-  algebraicFace(I,Q,Qx,Face).
-algebraicFace(C,Q,Qx,Face) :-
-  isPublic(C,_,I),
-  algebraicFace(I,Q,Qx,Face).
-algebraicFace(C,Q,Qx,Face) :-
   isXQuantified(C,EQ,I),
   concat(Q,EQ,Q0),
   algebraicFace(I,Q0,Qx,Face).
 algebraicFace(C,Q,Qx,Face) :-
   isConstrained(C,I,_),
   algebraicFace(I,Q,Qx,Face).
+algebraicFace(T,Q,Q,[]) :-
+  locOfAst(T,Lc),
+  reportError("invalid form form of algebraic type definition, %s",[ast(T)],Lc).
 
 combineFaces(F0,F,F) :-
   isEmptyBrace(F0).
