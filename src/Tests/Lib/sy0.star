@@ -5,12 +5,12 @@ test.sy0{
 
   public all x ~~ foo[x] ~> tree[x].
 
-  public option[x] ::= .none | some(x).
+  public option[x] ::= .none | .some(x).
 
   public boolean ::= .true | .false.
 
   -- Tree type
-  public tree[x] ::= .empty | node(foo[x],x,tree[x]).
+  public tree[x] ::= .empty | .node(foo[x],x,tree[x]).
 
   -- Person type
   public person ::= .noone
@@ -21,7 +21,10 @@ test.sy0{
 
   nn:(person)=>option[string].
   nn(.noone) => .none.
-  nn(someone{name=N}) => some(N).
+  nn(someone{name=N}) => .some(N).
+
+  spouse:(person) => option[person].
+  spouse(P) => P.spouse!.
 
   -- A small contract
 

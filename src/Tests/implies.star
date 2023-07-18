@@ -18,15 +18,14 @@ test.implies{
 
   foldOnlySons:(string)=>option[()].
   foldOnlySons(P) => foldRight(
-     let{
-       checkSon((P,S),So) => foldRight(
-  	  let{
-  	    checkMale(S,.none) => ?().
-  	    checkMale(_,St) => St.
-  	  } in checkMale, So, ms).
-       checkSon(_,So) => So.
-     } in checkSon,
-     .none,pars).
+    let{
+      checkSon((P,S),So) => foldRight(
+	let{
+	  checkMale(S,.none) => .some(()).
+	  checkMale(_,St) => St.
+	} in checkMale, So, ms).
+      checkSon(_,So) => So.
+    } in checkSon,.none,pars).
 
   maleSons = ({X | (X,_) in pars && (X,C) in pars *> C in ms}:cons[string]).
 

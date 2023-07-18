@@ -71,23 +71,23 @@ star.strings{
   }
 
   public implementation coercion[string,cons[char]] => {
-    _coerce(S) => ?_explode(S).
+    _coerce(S) => .some(_explode(S)).
   }
 
   public implementation coercion[cons[char],string] => {
-    _coerce(L) => ?_implode(L).
+    _coerce(L) => .some(_implode(L)).
   }
 
   public implementation coercion[string,string] => {
-    _coerce(S) => ?S.
+    _coerce(S) => .some(S).
   }
 
   public implementation coercion[integer,char] => {
-    _coerce(S) => ?_char(S).
+    _coerce(S) => .some(_char(S)).
   }
 
   public implementation coercion[char,integer] => {
-    _coerce(S) => ?_codePoint(S).
+    _coerce(S) => .some(_codePoint(S)).
   }
   
   public stringQuote:(string)=>string.
@@ -97,7 +97,7 @@ star.strings{
 
   public implementation stream[string->>char] => {
     _eof(S) => S=="".
-    _hdtl(Cs) where (H,T).=_str_hdtl(Cs) => ?(H,T).
+    _hdtl(Cs) where (H,T).=_str_hdtl(Cs) => .some((H,T)).
     _hdtl("") => .none.
   }
 
@@ -127,22 +127,22 @@ star.strings{
   }
 
   public isHexDigit:(char) => option[integer].
-  isHexDigit(Ch) => isDigit(Ch) ?? ?digitVal(Ch) ||
+  isHexDigit(Ch) => (isDigit(Ch) ?? .some(digitVal(Ch)) ||
     case Ch in {
-      `a` => ?10.
-      `b` => ?11.
-      `c` => ?12.
-      `d` => ?13.
-      `e` => ?14.
-      `f` => ?15.
-      `A` => ?10.
-      `B` => ?11.
-      `C` => ?12.
-      `D` => ?13.
-      `E` => ?14.
-      `F` => ?15.
+      `a` => .some(10).
+      `b` => .some(11).
+      `c` => .some(12).
+      `d` => .some(13).
+      `e` => .some(14).
+      `f` => .some(15).
+      `A` => .some(10).
+      `B` => .some(11).
+      `C` => .some(12).
+      `D` => .some(13).
+      `E` => .some(14).
+      `F` => .some(15).
       _ default => .none.
-    }
+    }).
 
   public isSpace:(char) => boolean.
   isSpace(Ch) => (_isZsChar(Ch) || _isZlChar(Ch) || Ch==`\n` || Ch==`\t`).
@@ -157,7 +157,7 @@ star.strings{
   genSym(Pre) => _str_gen(Pre).
 
   public strFind:(string,string,integer) => option[integer].
-  strFind(Txt,Ky,Ix) where Lc.= _str_find(Txt,Ky,Ix) && Lc>=0 => ?Lc.
+  strFind(Txt,Ky,Ix) where Lc.= _str_find(Txt,Ky,Ix) && Lc>=0 => .some(Lc).
   strFind(_,_,_) default => .none.
 
   public subString:(string,integer,integer)=>string.

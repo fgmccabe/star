@@ -228,7 +228,7 @@ star.uri{
   edit(Segs,R) => reverse(R)++Segs.
 
   drop:all t ~~ (cons[t])=>option[cons[t]].
-  drop([_,..L])=>?L.
+  drop([_,..L])=>.some(L).
   drop(_) default => .none.
 
   public implementation display[uri] => {
@@ -269,7 +269,7 @@ star.uri{
   getUriPath(.relUri(Pth,_)) => dispRsrc(Pth)::string.
 
   public implementation coercion[uri,string] => {
-    _coerce(U) => disp(U):?string.
+    _coerce(U) => .some(disp(U)).
   }
 
   public implementation coercion[string,uri] => {

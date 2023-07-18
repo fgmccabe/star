@@ -40,7 +40,7 @@ star.cons{
     _eof(.nil) => .true.
     _eof(.cons(_,_)) => .false.
     
-    _hdtl(.cons(H,T)) => ? (H,T).
+    _hdtl(.cons(H,T)) => .some((H,T)).
     _hdtl(.nil) => .none.
   }
 
@@ -89,16 +89,16 @@ star.cons{
  .}
 
   public implementation all x ~~ head[cons[x]->>x] => {
-    head(.cons(E,_)) => ?E.
+    head(.cons(E,_)) => .some(E).
     head(.nil) => .none.
 
-    tail(.cons(_,T)) => ?T.
+    tail(.cons(_,T)) => .some(T).
     tail(.nil) => .none.
   }
 
   public front:all e ~~ (cons[e],integer)=>option[(cons[e],cons[e])].
   front(Els,Ln) => let{.
-    ff(Es,So,0) => ?(reverse(So),Es).
+    ff(Es,So,0) => .some((reverse(So),Es)).
     ff([E,..Es],So,Ix) =>
       ff(Es,[E,..So],Ix-1).
     ff(_,_,_) default => .none.

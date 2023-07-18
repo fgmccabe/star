@@ -120,6 +120,7 @@
     "test.rl" : "rl.star",
     "test.rn" : "rn.star",
     "test.rrb" : "rrb1.star",
+    "test.rt" : "rt.star",
     "test.s": "s.star",
     "test.sieve": "sieve.star",
     "test.sl": "sl.star",
