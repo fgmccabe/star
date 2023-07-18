@@ -21,9 +21,11 @@ star.cmdOpts{
 
   processOption:all o ~~ (string,cons[string],cons[cmdOption[o]],o) =>
     (o,cons[string]) raises string.
+  processOption("-h",L,Specs,SoFar) => raise collectUsage(Specs).
+  processOption("--help",L,Specs,SoFar) => raise collectUsage(Specs).
   processOption(A,L,Specs,SoFar) where
       O ?= search(Specs,(e)=>(e.shortForm==A|| _ ?=search(e.alternatives,(o)=>o==A))) => 
-	checkOption(L,O.shortForm,O.validator,O.setOption,Specs,SoFar).
+    checkOption(L,O.shortForm,O.validator,O.setOption,Specs,SoFar).
   processOption(A,L,_,SoFar) => (SoFar,[A,..L]).
 
   checkOption:all o ~~ (cons[string],string,option[(string)=>boolean],(string,o) => o,cons[cmdOption[o]],o) =>

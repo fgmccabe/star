@@ -3,7 +3,7 @@ star.file{
   import star.capabilities.
 
   public getFile:(string) => option[string].
-  getFile(Fn) where Fl .= Fn && _file_present(Fl) => ?_get_file(Fl).
+  getFile(Fn) where Fl .= Fn && _file_present(Fl) => .some(_get_file(Fl)).
   getFile(_) default => .none.
 
   public putFile:(string,string)=>().

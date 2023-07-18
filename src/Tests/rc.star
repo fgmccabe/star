@@ -40,7 +40,7 @@ test.rc{
 
     show [|AA|];
 
-    assert ^AA.ii[2];
+    assert _?=AA.ii[2];
     assert ~_?=AA.ii[3];
 
     CC = (cont(2).C=20);

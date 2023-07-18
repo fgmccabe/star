@@ -41,7 +41,7 @@ star.date{
   timeDelta(.time(T1),D) => .time(T1+D).
 
   public parseTime:(string,string) => option[time].
-  parseTime(T,F) where Tm ?= _parsetime(T,F) => ?.time(Tm).
+  parseTime(T,F) where Tm ?= _parsetime(T,F) => .some(.time(Tm)).
   parseTime(_,_) default => .none.
 }
   

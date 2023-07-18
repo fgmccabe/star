@@ -36,7 +36,7 @@ test.ac6{
 
     timer := timer_start(Count, "Iterating over all elements in red/black list");
     for i->_ in rb_list! do {
-      empty(?i);
+      empty(.some(i));
     };
     timer_finish(timer!);
     

@@ -15,7 +15,7 @@ test.dfmt{
 
     show "$(parseTime("$(today()):yyyy-mm-dd;","yyyy-mm-dd"))";
 
-    assert parseTime("$(today()):yyyy-mm-dd;","yyyy-mm-dd") == ?today();
+    assert Today.=today() && parseTime("$(Today):yyyy-mm-dd;","yyyy-mm-dd") == .some(Today);
     valis ()
   }
 }

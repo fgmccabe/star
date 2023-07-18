@@ -45,13 +45,13 @@ star.pkg{
   }
 
   public implementation coercion[string,version] => {
-    _coerce("*") => ?.defltVersion.
-    _coerce(V) => ?.vers(V).
+    _coerce("*") => .some(.defltVersion).
+    _coerce(V) => .some(.vers(V)).
   }
 
   public implementation coercion[version,string] => {
-    _coerce(.defltVersion) => ?"*".
-    _coerce(.vers(V)) => ?V.
+    _coerce(.defltVersion) => .some("*").
+    _coerce(.vers(V)) => .some(V).
   }
 
   public compatiblePkg:(pkg,pkg)=>boolean.
@@ -68,7 +68,7 @@ star.pkg{
   parsePkgName(S) => first(parse(pkgParse,S::cons[char])).
 
   first([])=>.none.
-  first([(E,_),.._])=>?E.
+  first([(E,_),.._])=> .some(E).
 
   public pkgParse:parser[cons[char],pkg].
   pkgParse = parseName >>= (Pkg) => parseVersion >>= (V) => return .pkg(Pkg,V).

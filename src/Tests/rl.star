@@ -60,8 +60,8 @@ test.rl{
   SS = ["zero",..T].
 
   isEven:(string) => option[integer].
-  isEven("two") => ?2.
-  isEven("four") => ?4.
+  isEven("two") => .some(2).
+  isEven("four") => .some(4).
   isEven(_) default => .none.
 
   rev:all e ~~ (sk[e])=>sk[e].
