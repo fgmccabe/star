@@ -127,9 +127,9 @@ static void genPrologIntrinsic(ioPo out, char *name, char *tipe, char *op, char 
 static char *dumpStarSig(char *sig, ioPo out);
 
 static void genStarIntrinsic(ioPo out, char *name, char *tipe, char *op, logical Alloc,TailEsc tailMode,char *cmt) {
-  outMsg(out, "    \"%s\" => ? (", name);
+  outMsg(out, "    \"%s\" => .some((", name);
   dumpStarSig(tipe, out);
-  outMsg(out, ",.i%s, %s, %s).  -- %s\n", capitalize(op), (Alloc?".true":".false"), (tailMode==Last?".noMore":".notLast"), cmt);
+  outMsg(out, ",.i%s, %s, %s)).  -- %s\n", capitalize(op), (Alloc?".true":".false"), (tailMode==Last?".noMore":".notLast"), cmt);
 }
 
 static char *dName(char *sig, ioPo out);
