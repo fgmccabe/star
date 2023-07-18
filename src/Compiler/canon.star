@@ -18,6 +18,7 @@ star.compiler.canon{
   .strng(option[locn],string) |
   .enm(option[locn],string,tipe) |
   .dot(option[locn],canon,string,tipe) |
+  .tdot(option[locn],canon,integer,tipe) |
   .update(option[locn],canon,string,canon) |
   .csexp(option[locn],canon,cons[rule[canon]],tipe) |
   .trycatch(option[locn],canon,canon,cons[rule[canon]],tipe) |
@@ -28,41 +29,44 @@ star.compiler.canon{
   .neg(option[locn],canon) |
   .cond(option[locn],canon,canon,canon) |
   .apply(option[locn],canon,cons[canon],tipe) |
-  .nvoke(option[locn],canon,cons[canon],tipe) |
   .tple(option[locn],cons[canon]) |
   .lambda(option[locn],string,cons[rule[canon]],tipe) |
-  .contion(option[locn],string,rule[canon],tipe) |
+  .spwn(option[locn],canon,tipe) |
+  .paus(option[locn],canon,tipe) |
+  .susp(option[locn],canon,canon,tipe) |
+  .rsme(option[locn],canon,canon,tipe) |
+  .rtire(option[locn],canon,canon) |
   .owpen(option[locn],canon) |
   .letExp(option[locn],cons[canonDef],cons[decl],canon) |
   .letRec(option[locn],cons[canonDef],cons[decl],canon) |
   .vlof(option[locn],canonAction,tipe).
 
   public canonAction ::= .doNop(option[locn]) |
-    .doSeq(option[locn],canonAction,canonAction) |
-    .doLbld(option[locn],string,canonAction) |
-    .doBrk(option[locn],string) |
-    .doValis(option[locn],canon) |
-    .doRaise(option[locn],canon,canon) |
-    .doDefn(option[locn],canon,canon) |
-    .doMatch(option[locn],canon,canon) |
-    .doAssign(option[locn],canon,canon) |
-    .doTryCatch(option[locn],canonAction,canon,cons[rule[canonAction]]) |
-    .doIfThen(option[locn],canon,canonAction,canonAction) |
-    .doCase(option[locn],canon,cons[rule[canonAction]]) |
-    .doWhile(option[locn],canon,canonAction) |
-    .doLet(option[locn],cons[canonDef],cons[decl],canonAction) |
-    .doLetRec(option[locn],cons[canonDef],cons[decl],canonAction) |
-    .doCall(option[locn],canon).
+  .doSeq(option[locn],canonAction,canonAction) |
+  .doLbld(option[locn],string,canonAction) |
+  .doBrk(option[locn],string) |
+  .doValis(option[locn],canon) |
+  .doRaise(option[locn],canon,canon) |
+  .doRetire(option[locn],canon,canon) |
+  .doDefn(option[locn],canon,canon) |
+  .doMatch(option[locn],canon,canon) |
+  .doAssign(option[locn],canon,canon) |
+  .doTryCatch(option[locn],canonAction,canon,cons[rule[canonAction]]) |
+  .doIfThen(option[locn],canon,canonAction,canonAction) |
+  .doCase(option[locn],canon,cons[rule[canonAction]]) |
+  .doWhile(option[locn],canon,canonAction) |
+  .doLet(option[locn],cons[canonDef],cons[decl],canonAction) |
+  .doLetRec(option[locn],cons[canonDef],cons[decl],canonAction) |
+  .doCall(option[locn],canon).
 
   public rule[t] ::= .rule(option[locn],canon,option[canon],t).
     
-  public canonDef ::= .varDef(option[locn],string,canon,cons[constraint],tipe) |
+  public canonDef ::=
+    .varDef(option[locn],string,canon,cons[constraint],tipe) |
     .typeDef(option[locn],string,tipe,typeRule) |
-    .conDef(option[locn],string,string,typeRule) |
-    .cnsDef(option[locn],string,string,tipe) |
-    .implDef(option[locn],string,string,canon,cons[constraint],tipe) |
-    .accDef(option[locn],string,string,tipe) |
-    .updDef(option[locn],string,string,tipe).
+    .cnsDef(option[locn],string,integer,tipe) |
+    .implDef(option[locn],string,string,canon,cons[constraint],tipe).
+
 
   public implementation hasType[canon] => {.
     typeOf(Cn) => case Cn in {
@@ -79,14 +83,18 @@ star.compiler.canon{
       .csexp(_,_,_,Tp) => Tp.
       .trycatch(_,_,_,_,Tp) => Tp.
       .rais(_,_,_,Tp) => Tp.
+      .spwn(_,_,Tp) => Tp.
+      .paus(_,_,Tp) => Tp.
+      .susp(_,_,_,Tp) => Tp.
+      .rsme(_,_,_,Tp) => Tp.
+      .rtire(_,_,_) => unitTp.
       .lambda(_,_,_,Tp) => Tp.
-      .contion(_,_,_,Tp) => Tp.
       .letExp(_,_,_,E) => typeOf(E).
       .letRec(_,_,_,E) => typeOf(E).
       .apply(_,_,_,Tp) => Tp.
-      .nvoke(_,_,_,Tp) => Tp.
       .tple(_,Els) => .tupleType(Els//typeOf).
       .dot(_,_,_,Tp) => Tp.
+      .tdot(_,_,_,Tp) => Tp.
       .update(_,R,_,_) => typeOf(R).
       .match(_,_,_) => boolType.
       .conj(_,_,_) => boolType.
@@ -110,19 +118,23 @@ star.compiler.canon{
       .enm(Lc,_,_) => Lc.
       .dot(Lc,_,_,_) => Lc.
       .update(Lc,_,_,_) => Lc.
+      .tdot(Lc,_,_,_) => Lc.
       .csexp(Lc,_,_,_) => Lc.
       .trycatch(Lc,_,_,_,_) => Lc.
       .rais(Lc,_,_,_) => Lc.
+      .spwn(Lc,_,_) => Lc.
+      .paus(Lc,_,_) => Lc.
+      .susp(Lc,_,_,_) => Lc.
+      .rsme(Lc,_,_,_) => Lc.
+      .rtire(Lc,_,_) => Lc.
       .match(Lc,_,_) => Lc.
       .conj(Lc,_,_) => Lc.
       .disj(Lc,_,_) => Lc.
       .neg(Lc,_) => Lc.
       .cond(Lc,_,_,_) => Lc.
       .apply(Lc,_,_,_) => Lc.
-      .nvoke(Lc,_,_,_) => Lc.
       .tple(Lc,_) => Lc.
       .lambda(Lc,_,_,_) => Lc.
-      .contion(Lc,_,_,_) => Lc.
       .letExp(Lc,_,_,_) => Lc.
       .letRec(Lc,_,_,_) => Lc.
       .vlof(Lc,_,_) => Lc.
@@ -141,6 +153,7 @@ star.compiler.canon{
       .doBrk(Lc,_) => Lc.
       .doValis(Lc,_) => Lc.
       .doRaise(Lc,_,_) => Lc.
+      .doRetire(Lc,_,_) => Lc.
       .doDefn(Lc,_,_) => Lc.
       .doMatch(Lc,_,_) => Lc.
       .doAssign(Lc,_,_) => Lc.
@@ -158,11 +171,8 @@ star.compiler.canon{
     locOf(Df) => case Df in {
       .varDef(Lc,_,_,_,_) => Lc.
       .typeDef(Lc,_,_,_) => Lc.
-      .conDef(Lc,_,_,_) => Lc.
       .cnsDef(Lc,_,_,_) => Lc.
       .implDef(Lc,_,_,_,_,_) => Lc.
-      .accDef(Lc,_,_,_) => Lc.
-      .updDef(Lc,_,_,_) => Lc.
     }
   }
 
@@ -179,6 +189,7 @@ star.compiler.canon{
     .strng(_,Lt) => disp(Lt).
     .enm(_,Nm,Tp) => "°#(Nm)".
     .dot(_,R,F,Tp) => "#(showCanon(R,0,Sp))°#(F)\:$(Tp)".
+    .tdot(_,R,F,Tp) => "#(showCanon(R,0,Sp))°$(F)\:$(Tp)".
     .update(_,L,F,R) where (Lp,OPr,Rp) ?= isInfixOp("=") =>
       "#(leftParen(OPr,Pr))#(showCanon(L,Lp,Sp)).#(F) = #(showCanon(R,Rp,Sp))#(rgtParen(OPr,Pr))".
     .csexp(_,Exp,Cs,_) where (OPr,Rp) ?= isPrefixOp("case") =>
@@ -187,6 +198,16 @@ star.compiler.canon{
       "#(leftParen(OPr,Pr))try #(showCanon(T,Rp,Sp)) in #(showCanon(Exp,Rp,Sp)) catch #(showCases(H,showCanon,Sp++"  "))#(rgtParen(OPr,Pr))".
     .rais(_,_Thrw,Exp,_) where (OPr,Rp) ?= isPrefixOp("raise") =>
       "#(leftParen(OPr,Pr)) raise #(showCanon(Exp,Rp,Sp))#(rgtParen(OPr,Pr))".
+    .spwn(_,Exp,_) where (_,OPr,Rp) ?= isInfixOp("spawn") =>
+      "#(leftParen(OPr,Pr)) spawn #(showCanon(Exp,Rp,Sp))#(rgtParen(OPr,Pr))".
+    .paus(_,Exp,_) where (_,OPr,Rp) ?= isInfixOp("=>>") =>
+      "#(leftParen(OPr,Pr)) pause #(showCanon(Exp,Rp,Sp))#(rgtParen(OPr,Pr))".
+    .susp(_,Fbr,Exp,_) where (Lp,OPr,Rp) ?= isInfixOp("suspend") =>
+      "#(leftParen(OPr,Pr))#(showCanon(Fbr,Lp,Sp)) suspend #(showCanon(Exp,Rp,Sp))#(rgtParen(OPr,Pr))".
+    .rsme(_,Fbr,Exp,_) where (Lp,OPr,Rp) ?= isInfixOp("resume") =>
+      "#(leftParen(OPr,Pr))#(showCanon(Fbr,Lp,Sp)) resume #(showCanon(Exp,Rp,Sp))#(rgtParen(OPr,Pr))".
+    .rtire(_,Fbr,Exp) where (Lp,OPr,Rp) ?= isInfixOp("retire") =>
+      "#(leftParen(OPr,Pr))#(showCanon(Fbr,Lp,Sp)) retire #(showCanon(Exp,Rp,Sp))#(rgtParen(OPr,Pr))".
     .match(_,Ptn,Gen) where (Lp,OPr,Rp) ?= isInfixOp(".=") =>
       "#(leftParen(OPr,Pr))#(showCanon(Ptn,Lp,Sp)) .= #(showCanon(Gen,Rp,Sp))#(rgtParen(OPr,Pr))".
     .conj(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp("&&") =>
@@ -198,12 +219,8 @@ star.compiler.canon{
     .cond(_,T,L,R) where (Lp,OPr,Rp) ?= isInfixOp("??") =>
       "(#(showCanon(T,Lp,Sp)) ?? #(showCanon(L,Rp,Sp)) || #(showCanon(R,Rp,Sp)))".
     .apply(_,L,R,_) => showApply(L,R,Pr,Sp).
-    .nvoke(_,L,A,_) where (Lp,OPr,Rp) ?= isInfixOp(".") =>
-      "#(showCanon(L,Lp,Sp)) . #(showTuple(A,Sp))".
     .tple(_,Els) => showTuple(Els,Sp).
     .lambda(_,Nm,Rls,Tp) => "(#(showRls(Nm,Rls,showCanon,Sp++"  ")))".
-    .contion(_,Nm,Rl,Tp) where (Lp,OPr,Rp) ?= isInfixOp("=>>") =>
-      "#(leftParen(OPr,Pr))#(Nm)#(showRl(Nm,"=>>",Rl,(X,_,_)=>disp(X),Sp))#(rgtParen(OPr,Pr))".
     .letExp(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
       "#(leftParen(OPr,Pr))let {\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))".
     .letRec(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
@@ -233,6 +250,8 @@ star.compiler.canon{
       "valis #(showCanon(E,Rp,Sp))".
     .doRaise(_,_,E) where (OPr,Rp) ?= isPrefixOp("raise") =>
       "raise #(showCanon(E,Rp,Sp))".
+    .doRetire(_,F,E) where (Lp,OPr,Rp) ?= isInfixOp("retire") =>
+      "#(showCanon(F,Lp,Sp)) retire #(showCanon(E,Rp,Sp))".
     .doDefn(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp("=") =>
       "#(showCanon(L,Lp,Sp)) = #(showCanon(R,Rp,Sp))".
     .doMatch(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp(".=") =>
@@ -278,11 +297,8 @@ star.compiler.canon{
       "Fun: #(showRls(Nm,Rls,showCanon,Sp))".
     .varDef(_,Nm,V,_,Tp) => "Var: #(Nm) = #(showCanon(V,0,Sp))".
     .typeDef(_,Nm,T,_) => "Type: #(Nm)~>$(T)".
-    .conDef(_,_,Nm,Tp) => "Contract: #(Nm) ::= $(Tp)".
-    .cnsDef(_,_,Nm,Tp) => "Constructor: #(Nm):$(Tp)".
+    .cnsDef(_,Nm,Ix,Tp) => "Constructor: #(Nm)[$Ix]\:$(Tp)".
     .implDef(_,_,Nm,Exp,Cx,Tp) => "Implementation: #(Nm)\:$(Tp) = $(Cx) |: $(Exp)".
-    .accDef(_,Fld,Nm,Tp) => "Access: #(Fld):$(Tp) = $(Nm)".
-    .updDef(_,Fld,Nm,Tp) => "Update: #(Fld):$(Tp) = $(Nm)".
   }
 
   showRls:all x ~~ (string,cons[rule[x]],(x,integer,string)=>string,string) => string.

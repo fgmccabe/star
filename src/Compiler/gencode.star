@@ -134,6 +134,11 @@ star.compiler.gencode{
       valis (reconcileStack(Stk1,Stk2),[.iTry(Blk),.iStL(TOff)]++BCde++[.iLbl(Blk),.iTL(EOff)]++HCde)
     }
     | .cRaise(Lc,T,E,_) => compExp(E,.notLast,expCont(T,.notLast,raiseCont),Ctx,Stk)
+    | .cSpawn(Lc,L,_) => compExp(L,.notLast,spawnCont(pushStack(.ptr,Stk),Cont),Ctx,Stk)
+    | .cPaus(Lc,L,_) => compExp(L,.notLast,pauseCont(pushStack(.ptr,Stk),Cont),Ctx,Stk)
+    | .cSusp(_Lc,K,E,Tp) => compExp(E,.notLast,expCont(K,.notLast,suspendCont(pushStack(.ptr,Stk),Cont)),Ctx,Stk)
+    | .cResume(_Lc,K,E,Tp) => compExp(E,.notLast,expCont(K,.notLast,resumeCont(pushStack(.ptr,Stk),Cont)),Ctx,Stk)
+    | .cRetire(_Lc,K,E) => compExp(E,.notLast,expCont(K,.notLast,retireCont),Ctx,Stk)
     | .cValof(Lc,A,Tp) =>
       compAction(A,TM,abortCont(Lc,"missing valis action"),splitCont(Lc,Ctx,Cont),Ctx,Stk)
     |  C where isCond(C) => valof{
@@ -209,6 +214,7 @@ star.compiler.gencode{
     }
     | .aValis(Lc,E) => compExp(E,TM,Cont,Ctx,Stk)
     | .aRaise(Lc,T,E) => compExp(E,.notLast,expCont(T,.notLast,raiseCont),Ctx,Stk)
+    | .aRetire(Lc,T,E) => compExp(E,.notLast,expCont(T,.notLast,retireCont),Ctx,Stk)
     | .aPerf(Lc,E) => compExp(E,TM,resetCont(Stk,ACont),Ctx,Stk)
     | .aDefn(Lc,P,E) => compExp(E,.notLast,ptnCont(P,ACont,abortCont(Lc,"define error")),Ctx,Stk)
     | .aAsgn(Lc,P,E) => compExp(E,.notLast,expCont(P,.notLast,asgnCont(ACont,Ctx,Stk)),Ctx,Stk)
@@ -523,6 +529,21 @@ star.compiler.gencode{
     C(_,_,Cde) => (.none,Cde++[.iThrow])
   }
 
+  spawnCont:(stack,Cont) => Cont.
+  spawnCont(Stk,Cont) => cont{
+    C(Ctx,_,Cde) => Cont.C(Ctx,Stk,Cde++[.iSpawn])
+  }
+
+  pauseCont:(stack,Cont) => Cont.
+  pauseCont(Stk,Cont) => cont{
+    C(Ctx,_,Cde) => Cont.C(Ctx,Stk,Cde++[.iFiber])
+  }
+
+  retireCont:Cont.
+  retireCont = cont{
+    C(_,_,Cde) => (.none,Cde++[.iRetire])
+  }
+
   contCont:(assemLbl)=>Cont.
     contCont(Lbl) => cont{
     C(Ctx,Stk,Cde) => (Stk,Cde++[.iJmp(Lbl)]).
@@ -555,11 +576,6 @@ star.compiler.gencode{
   resumeCont:(stack,Cont) => Cont.
   resumeCont(Stk,Cont) => cont{
     C(Ctx,_AStk,Cde) => Cont.C(Ctx,Stk,Cde++[.iResume,frameIns(Stk)]).
-  }
-
-  retireCont:(stack) => Cont.
-  retireCont(Stk) => cont{
-    C(Ctx,_AStk,Cde) => (Stk,Cde++[.iRetire]).
   }
 
   nullCont = cont{

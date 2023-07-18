@@ -27,8 +27,6 @@ star.compiler.misc{
   }
 
   public qualifiedName:(string,markerType,string) => string.
---  qualifiedName(_,Mrk,Nm) where Glue.=markerString(Mrk) &&
---      Ix ?= strFind(Nm,Glue,0) => Nm.
   qualifiedName(Pth,Mrk,Nm) => Pth++markerString(Mrk)++Nm.
 
   public localName:(string,markerType)=>string.
@@ -110,4 +108,11 @@ star.compiler.misc{
       valis "#(Pr)_0"
     }
   }
+
+  public collapsePairs:all d,e ~~ (cons[(cons[d],cons[e])]) => (cons[d],cons[e]).
+  collapsePairs(L) => cP(L,[],[]).
+
+  private cP:all d,e ~~ (cons[(cons[d],cons[e])],cons[d],cons[e]) => (cons[d],cons[e]).
+  cP([],D,E) => (D,E).
+  cP([(d,e),..Prs],D,E) => cP(Prs,d++D,e++E).
 }

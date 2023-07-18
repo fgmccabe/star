@@ -37,7 +37,7 @@ star.compiler.macro.rules{
     applyRls(A,Cxt,St,Rls).
   
   macros:map[string,cons[(macroContext,macroRule)]].
-  macros = { "::=" -> [(.statement,algebraicMacro)],
+  macros = {
     ":=" -> [(.actn,spliceAssignMacro), (.actn,indexAssignMacro)],
     "[]" -> [(.pattern,squarePtnMacro), (.expression,squareSequenceMacro)],
     "$[]" -> [(.expression,indexMacro),(.expression,sliceMacro)],
@@ -58,7 +58,6 @@ star.compiler.macro.rules{
     "^" -> [(.expression,unwrapMacro),(.expression,optvalMacro)],
     "!" -> [(.expression,binRefMacro)],
     "do" -> [(.actn,forLoopMacro)],
-    "contract" -> [(.statement,contractMacro)],
     "implementation" -> [(.statement,implementationMacro)],
     "assert" -> [(.actn,assertMacro)],
     "show" -> [(.actn,showMacro)],
@@ -66,8 +65,7 @@ star.compiler.macro.rules{
     "generator" -> [(.expression,generatorMacro)],
     "yield" -> [(.actn,yieldMacro)],
     "->" -> [(.expression,arrowMacro),(.pattern,arrowMacro)],
-    "raises" -> [(.typeterm,raisesMacro)],
-    "fiber\${}" -> [(.expression,fiberMacro)]
+    "raises" -> [(.typeterm,raisesMacro)]
 --    "raise" -> [(.expression, raiseMacro),(.actn,raiseMacro)],
 --    "try" -> [(.expression, tryMacro), (.actn,tryMacro)]
   }.
@@ -197,7 +195,7 @@ star.compiler.macro.rules{
       }.
   iotaComprehensionMacro(_,_) default => .inactive.
 
-  -- Convert { F << El << Zr | Cond }
+  -- Convert { F <* El <* Zr | Cond }
   totalizerMacro(A,.expression) where
       (Lc,Fn,El,Zr,Body) ?= isTotalizerComprehension(A) =>
     .active(makeCondition(Body,passThru,genFold(Lc,Fn,El),.grounded(Zr))).
@@ -389,26 +387,20 @@ star.compiler.macro.rules{
   }
   forLoopMacro(_,.actn) default => .inactive.
 
-  /* fiber{A} becomes _new_fiber((this,first)=>A) */
-  fiberMacro(E,.expression) where (Lc,A) ?= isFiberTerm(E) =>
-    .active(unary(Lc,"_new_fiber",
-	mkLambda(Lc,.false,rndTuple(Lc,[.nme(Lc,"this"),.nme(Lc,"first")]),
-	  .none,mkValof(Lc,brTuple(Lc,[A]))))).
-  fiberMacro(_,.expression) => .inactive.
-    
   /* generator{A}
   becomes
-  fiber(this)=>valof{
+  _new_fiber((this,_)=>valof{
     A*;
     valis .all
-  }
+    })
 
   */
    
   generatorMacro(E,.expression) where
     (Lc,A) ?= isUnary(E,"generator") && (_,[B]) ?= isBrTuple(A) => valof{
 	All = mkValis(Lc,enum(Lc,"_all"));
-	valis .active(mkFiberTerm(Lc,mkSequence(Lc,B,All)))
+	valis .active(mkPaused(Lc,.nme(Lc,"this"),.nme(Lc,"_"),
+	    mkValof(Lc,brTuple(Lc,[mkSequence(Lc,B,All)]))))
       }.
   generatorMacro(_,_) default => .inactive.
 
@@ -425,10 +417,10 @@ star.compiler.macro.rules{
     Nxt = mkLambda(Lc,.false,enum(Lc,"_next"),.none,brTuple(Lc,[]));
 
     /* build ._cancel => _retire(this, ._all) */
-    Cancel = mkLambda(Lc,.false,enum(Lc,"_cancel"),.none,binary(Lc,"_retire",This,enum(Lc,"_all")));
+    Cancel = mkLambda(Lc,.false,enum(Lc,"_cancel"),.none,mkRetire(Lc,This,enum(Lc,"_all")));
 
     /* Build suspend */
-    valis .active(mkCaseExp(Lc,binary(Lc,"_suspend",This,mkEnumCon(Lc,.nme(Lc,"_yld"),[E])),[Nxt,Cancel]))
+    valis .active(mkCaseExp(Lc,mkSuspend(Lc,This,mkEnumCon(Lc,.nme(Lc,"_yld"),[E])),[Nxt,Cancel]))
   }
 
   /*
@@ -513,21 +505,6 @@ star.compiler.macro.rules{
   }
   tryMacro(_,_) default => .inactive.
 
-  contractMacro(A,.statement) where
-      (Lc,Lhs,Els) ?= isContractStmt(A) && (_,Nm,Q,C,T) ?= isContractSpec(Lhs) &&
-      (SLc,Op,As) ?= isSquareTerm(T) => valof{
-	DlNm = hashName(Op);
-	CTp =contractType(SLc,DlNm,As);
-	ConTp = mkAlgebraicTypeStmt(Lc,Q,C,CTp,braceTerm(SLc,DlNm,Els));
-	valis .active(brTuple(Lc,[ConTp,mkCntrctStmt(Lc,Q,C,T,Els)]))
-      }.
-  contractMacro(A,_) default => .inactive.
-
-  contractType(Lc,Op,[A]) where (_,L,R) ?= isDepends(A) =>
-    squareTerm(Lc,Op,L++R).
-  contractType(Lc,Op,A) =>
-    squareTerm(Lc,Op,A).
-
   implementationMacro(A,.statement) where
       (Lc,Q,C,H,E) ?= isImplementationStmt(A) &&
       (_,Nm,_) ?= isSquareTerm(H) &&
@@ -536,26 +513,20 @@ star.compiler.macro.rules{
   implementationMacro(_,_) default => .inactive.
 
   labelImplExp(T,Nm) where (Lc,Els) ?= isBrTuple(T) =>
-    ?braceTerm(Lc,hashName(Nm),Els).
+    .some(braceTerm(Lc,dollarName(Nm),Els)).
   labelImplExp(T,Nm) where (Lc,Els) ?= isQBrTuple(T) =>
-    ?qbraceTerm(Lc,hashName(Nm),Els).
+    .some(qbraceTerm(Lc,dollarName(Nm),Els)).
   labelImplExp(T,Nm) where (Lc,Els,Exp) ?= isLetDef(T) &&
     EE ?= labelImplExp(Exp,Nm) =>
-    ?mkLetDef(Lc,Els,EE).
+    .some(mkLetDef(Lc,Els,EE)).
   labelImplExp(T,Nm) where (Lc,Els,Exp) ?= isLetRecDef(T) &&
       EE ?= labelImplExp(Exp,Nm) =>
-    ?mkLetRecDef(Lc,Els,EE).
+    .some(mkLetRecDef(Lc,Els,EE)).
   labelImplExp(T,_) default => .none.
 
   arrowMacro(E,_) where (Lc,Lhs,Rhs) ?= isBinary(E,"->") =>
     .active(mkEnumCon(Lc,.nme(Lc,"kv"),[Lhs,Rhs])).
   arrowMacro(_,_) default => .inactive.
-
-  -- Handle algebraic type definitions
-
-  algebraicMacro(St,.statement) where (Lc,Vz,Q,Cx,H,R) ?= isAlgebraicTypeStmt(St) => 
-    .active(brTuple(Lc,makeAlgebraic(Lc,Vz,Q,Cx,H,R))).
-  algebraicMacro(_,_) default => .inactive.
 
   /*
   * We generate auto implementations of fields declared for an algebraic type
@@ -750,15 +721,15 @@ star.compiler.macro.rules{
 
   isCon:(ast,(ast)=>option[(option[locn],ast,cons[ast])]) => option[(option[locn],ast,cons[ast],cons[ast],cons[ast])].
   isCon(A,P) where
-      (Lc,Nm,Els) ?= P(A) && _ ?= isName(Nm) => ?(Lc,Nm,[],[],Els).
+      (Lc,Nm,Els) ?= P(A) && _ ?= isName(Nm) => .some((Lc,Nm,[],[],Els)).
   isCon(A,P) where
       (Lc,Q,I) ?= isXQuantified(A) &&
       (_,Nm,_,Cx,Els) ?= isCon(I,P) =>
-    ?(Lc,Nm,Q,Cx,Els).
+    .some((Lc,Nm,Q,Cx,Els)).
   isCon(A,P) where
       (Lc,Cx,I) ?= isConstrained(A) &&
       (_,Nm,Q,_,Els) ?= isCon(I,P) =>
-    ?(Lc,Nm,Q,Cx,Els).
+    .some((Lc,Nm,Q,Cx,Els)).
   isCon(_,_) default => .none.
 
   buildAccessors:(ast,cons[ast],cons[ast],cons[ast],ast,string,cons[ast],visibility)=>cons[ast].

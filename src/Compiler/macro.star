@@ -33,22 +33,16 @@ star.compiler.macro{
     flattenStmts(As,flattenStmts(Els,So)).
   flattenStmts([A,..As],So) => flattenStmts(As,[A,..So]).
 
-  disThroughGroup(A,F) where (ELc,Els) ?= isBrTuple(A) =>
-    brTuple(ELc,Els//F).
-  disThroughGroup(A,F) default => F(A).
-
   macroStmt:(ast) => ast.
   macroStmt(A) => macroAst(A,.statement,examineStmt).
 
   examineStmt:(ast) => ast.
   examineStmt(A) where (Lc,L,R) ?= isTypeAnnotation(A) => 
     mkTypeAnnotation(Lc,L,macroType(R)).
-  examineStmt(A) where (Lc,V,T) ?= isTypeStatement(A) =>
-    mkTypeStatement(Lc,V,macroType(T)).
   examineStmt(A) where (Lc,R) ?= isPublic(A) => 
-    disThroughGroup(macroStmt(R),(E)=>unary(Lc,"public",E)).
+    mkPublic(Lc,macroStmt(R)).
   examineStmt(A) where (Lc,R) ?= isPrivate(A) =>
-    disThroughGroup(macroStmt(R),(E)=>unary(Lc,"private",E)).
+    mkPrivate(Lc,macroStmt(R)).
   examineStmt(A) where _ ?= isImport(A) => A.
   examineStmt(A) where (Lc,E) ?= isOpen(A) =>
     mkOpen(Lc,macroTerm(E)).
@@ -56,47 +50,46 @@ star.compiler.macro{
     mkDefn(Lc,macroPtn(L),macroTerm(R)).
   examineStmt(A) where (Lc,Nm,Deflt,L,C,R) ?= isEquation(A) => 
     mkEquation(Lc,Nm,Deflt,macroPtn(L),macroOpt(C,macroCond),macroTerm(R)).
-  examineStmt(A) where (Lc,Nm,Deflt,L,C,R) ?= isContDefn(A) =>
-    mkContDefn(Lc,Nm,Deflt,macroPtn(L),macroOpt(C,macroCond),macroTerm(R)).
-  examineStmt(A) where (Lc,Q,C,L,R) ?= isTypeExistsStmt(A) => 
-    mkTypeExistsStmt(Lc,Q//macroType,C//macroType,macroType(L),macroType(R)).
   examineStmt(A) where (Lc,Q,C,L,R) ?= isTypeFunStmt(A) => 
     mkTypeFunStmt(Lc,Q//macroType,C//macroType,macroType(L),macroType(R)).
   examineStmt(A) where (Lc,L,Els) ?= isContractStmt(A) => 
     mkContractStmt(Lc,macroType(L),macroStmts(Els)).
-  examineStmt(A) where (Lc,Q,C,L,Els) ?= isCntrctStmt(A) =>
-    mkCntrctStmt(Lc,Q,C,macroType(L),macroStmts(Els)).
   examineStmt(A) where (Lc,Q,Cx,Tp,Exp) ?= isImplementationStmt(A) => 
     mkImplementationStmt(Lc,Q//macroType,Cx//macroType,macroType(Tp),macroTerm(Exp)).
-  examineStmt(A) where (Lc,_,Q,C,Tp,B) ?= isAlgebraicTypeStmt(A) =>
-    mkAlgebraicTypeStmt(Lc,Q//macroType,C//macroType,macroType(Tp),macroConstructor(B)).
-  examineStmt(A) where isConstructorStmt(A) => macroType(A).
+  examineStmt(A) where (Lc,Q,C,Tp,B) ?= isAlgebraicTypeStmt(A) =>
+    mkAlgebraicTypeStmt(Lc,Q//macroTypeVar,C//macroConstraint,macroType(Tp),macroAlgebraic(B)).
   examineStmt(A) where _ ?= isAnnotation(A) => A.
-  examineStmt(A) where (Lc,Q,Cx,Tp,Exp) ?= isAccessorStmt(A) =>
-    mkAccessorStmt(Lc,Q//macroType,[],Cx//macroType,macroType(Tp),macroTerm(Exp)).
-  examineStmt(A) where (Lc,Q,Cx,Tp,Exp) ?= isUpdaterStmt(A) => 
-    mkUpdaterStmt(Lc,Q//macroType,[],Cx//macroType,macroType(Tp),macroTerm(Exp)).
-  examineStmt(A) where (Lc,Els) ?= isBrTuple(A) =>
-    brTuple(Lc,macroStmts(Els)).
   examineStmt(A) => valof{
     reportError("cannot figure out statement\n$(A)",locOf(A));
     valis A
   }
 
-  macroConstructor(A) where (Lc,L,R)?=isBinary(A,"|") =>
-    binary(Lc,"|",macroConstructor(L),macroConstructor(R)).
-  macroConstructor(A) where _ ?= isEnumSymb(A) => A.
-  macroConstructor(A) where _ ?= isName(A) => A.
-  macroConstructor(A) where (Lc,O,Els) ?= isRoundTerm(A) =>
+  macroAlgebraic(A) => macroAst(A,.constructor,examineConstructor).
+
+  examineConstructor(A) where (Lc,L,R)?=isBinary(A,"|") =>
+    binary(Lc,"|",macroAlgebraic(L),macroAlgebraic(R)).
+  examineConstructor(A) where _ ?= isEnumSymb(A) => A.
+  examineConstructor(A) where (Lc,O,Els) ?= isRoundTerm(A) =>
     roundTerm(Lc,macroTerm(O),Els//macroType).
-  macroConstructor(A) where (Lc,O,Els) ?= isEnumCon(A) =>
+  examineConstructor(A) where (Lc,O,Els) ?= isEnumCon(A) =>
     mkEnumCon(Lc,macroTerm(O),Els//macroType).
-  macroConstructor(A) where (Lc,O,Q,C,Els) ?= isBraceCon(A) => 
-    reUQuant(Lc,Q//macroType,reConstrain(C//macroType,braceTerm(Lc,O,macroStmts(Els)))).
-  macroConstructor(A) where (Lc,I) ?= isPrivate(A) =>
-    unary(Lc,"private",macroConstructor(I)).
-  macroConstructor(A) where (Lc,Q,I) ?= isXQuantified(A) =>
-    reXQuant(Lc,Q//macroType,macroConstructor(I)).
+  examineConstructor(A) where (Lc,O,Q,C,Els) ?= isBraceCon(A) => 
+    reUQuant(Lc,Q//macroType,reConstrain(C//macroType,braceTerm(Lc,O,Els//macroTypeDef))).
+  examineConstructor(A) where (Lc,Q,I) ?= isXQuantified(A) =>
+    reXQuant(Lc,Q//macroType,macroAlgebraic(I)).
+  examineConstructor(A) => valof{
+    reportError("cannot figure out constructor $(A)",locOf(A));
+    valis A
+  }
+
+  macroTypeDef(A) where (Lc,L,R) ?= isTypeAnnotation(A) =>
+    mkTypeAnnotation(Lc,macroTerm(L),macroType(R)).
+  macroTypeDef(A) where (Lc,L,R) ?= isTypeExists(A) => 
+    mkTypeExists(Lc,macroType(L),macroType(R)).
+  macroTypeDef(A)  => valof{
+    reportError("cannot figure out type specification $(A)",locOf(A));
+    valis A
+  }
 
   macroAction:(ast) => ast.
   macroAction(A) => macroAst(A,.actn,examineAction).
@@ -125,8 +118,6 @@ star.compiler.macro{
     mkIfThen(Lc,macroCond(T),macroAction(L)).
   examineAction(A) where (Lc,B,Hs) ?= isTryCatch(A) =>
     mkTryCatch(Lc,macroAction(B),Hs//macroCaseAction).
-  examineAction(A) where (Lc,B,Hs) ?= isTryWith(A) =>
-    mkTryWith(Lc,macroAction(B),Hs//macroCaseAction).
   examineAction(A) where (Lc,C,B) ?= isWhileDo(A) =>
     mkWhileDo(Lc,macroCond(C),macroAction(B)).
   examineAction(A) where (Lc,El,C,B) ?= isForDo(A) => 
@@ -135,6 +126,16 @@ star.compiler.macro{
     mkValis(Lc,macroTerm(T)).
   examineAction(A) where (Lc,T) ?= isRaise(A) =>
     mkRaise(Lc,macroTerm(T)).
+  examineAction(A) where (Lc,L,R) ?= isSpawn(A) => 
+    mkSpawn(Lc,macroTerm(L),macroTerm(R)).
+  examineAction(A) where (Lc,T,F,E) ?= isPaused(A) => 
+    mkPaused(Lc,macroTerm(T),macroTerm(F),macroTerm(E)).
+  examineAction(A) where (Lc,F,E) ?= isSuspend(A) =>
+    mkSuspend(Lc,macroTerm(F),macroTerm(E)).
+  examineAction(A) where (Lc,F,E) ?= isResume(A) =>
+    mkResume(Lc,macroTerm(F),macroTerm(E)).
+  examineAction(A) where (Lc,F,E) ?= isRetire(A) =>
+    mkRetire(Lc,macroTerm(F),macroTerm(E)).
   examineAction(A) where (Lc,D,B) ?= isLetDef(A) => 
     mkLetDef(Lc,macroStmts(D),macroAction(B)).
   examineAction(A) where (Lc,D,B) ?= isLetRecDef(A) => 
@@ -143,8 +144,6 @@ star.compiler.macro{
     mkCaseExp(Lc,macroTerm(G),Cs//macroCaseAction).
   examineAction(A) where (Lc,O,Els) ?= isRoundTerm(A) => 
     roundTerm(Lc,macroTerm(O),Els//macroTerm).
-  examineAction(A) where (Lc,O,Els) ?= isInvoke(A) => 
-    mkInvoke(Lc,macroTerm(O),Els//macroTerm).
   examineAction(A) default => valof{
     reportError("cannot figure out action\n$(A)",locOf(A));
     valis A
@@ -224,23 +223,27 @@ star.compiler.macro{
     mkImplies(Lc,macroTerm(L),macroTerm(R)).
   examineTerm(A) where (Lc,D,L,C,R) ?= isLambda(A) => 
     mkLambda(Lc,D,macroPtn(L),macroOpt(C,macroCond),macroTerm(R)).
-  examineTerm(A) where (Lc,L,R) ?= isContinEqn(A) =>
-    mkContinEqn(Lc,macroPtn(L),macroTerm(R)).
   examineTerm(A) where (Lc,S) ?= isValof(A) && (VLc,[As])?=isBrTuple(S) =>
     mkValof(Lc,brTuple(VLc,[macroAction(As)])).
   examineTerm(A) where (Lc,B,Hs) ?= isTryCatch(A) =>
     mkTryCatch(Lc,macroTerm(B),Hs//macroLambda).
-  examineTerm(A) where (Lc,B,Hs) ?= isTryWith(A) =>
-    mkTryWith(Lc,macroTerm(B),Hs//macroLambda).
   examineTerm(A) where (Lc,T) ?= isRaise(A) =>
     mkRaise(Lc,macroTerm(T)).
-  examineTerm(A) where (Lc,O,Els) ?= isInvoke(A) => 
-    mkInvoke(Lc,macroTerm(O),Els//macroTerm).
   examineTerm(A) where (Lc,S) ?= isFiberTerm(A) => 
     mkFiberTerm(Lc,macroAction(S)).
+  examineTerm(A) where (Lc,L,R) ?= isSpawn(A) => 
+    mkSpawn(Lc,macroTerm(L),macroTerm(R)).
+  examineTerm(A) where (Lc,T,F,E) ?= isPaused(A) => 
+    mkPaused(Lc,macroTerm(T),macroTerm(F),macroTerm(E)).
+  examineTerm(A) where (Lc,L,R) ?= isSuspend(A) => 
+    mkSuspend(Lc,macroTerm(L),macroTerm(R)).
+  examineTerm(A) where (Lc,L,R) ?= isResume(A) => 
+    mkResume(Lc,macroTerm(L),macroTerm(R)).
+  examineTerm(A) where (Lc,L,R) ?= isRetire(A) => 
+    mkRetire(Lc,macroTerm(L),macroTerm(R)).
   examineTerm(A) where (Lc,Lb,S) ?= isLabeledTheta(A) => 
     mkQBrTerm(Lc,Lb,macroStmts(S)).
-  examineTerm(A) where (Lc,Lb,S) ?= isLabeledRecord(A) =>
+  examineTerm(A) where (Lc,Lb,S) ?= isBrTerm(A) =>
     mkBrTerm(Lc,Lb,macroStmts(S)).
   examineTerm(A) where (Lc,R,F,V) ?= isRecordUpdate(A) =>
     mkRecordUpdate(Lc,macroTerm(R),F,macroTerm(V)).
@@ -248,8 +251,6 @@ star.compiler.macro{
     mkEnumCon(Lc,macroTerm(O),Els//macroTerm).
   examineTerm(A) where (Lc,O,Els) ?= isRoundTerm(A) => 
     roundTerm(Lc,macroTerm(O),Els//macroTerm).
-  examineTerm(A) where (Lc,O,Els) ?= isInvoke(A) =>
-    mkInvoke(Lc,macroTerm(O),Els//macroTerm).
   examineTerm(A) where (Lc,L,R) ?= isIndexTerm(A) =>
     mkIndexTerm(Lc,macroTerm(L),macroTerm(R)).
   examineTerm(A) where (Lc,L,F,R) ?= isSlice(A) => 
@@ -288,7 +289,7 @@ star.compiler.macro{
   examinePtn(A) where _ ?= isEnumSymb(A) => A.
   examinePtn(A) where (Lc,L,R) ?= isTypeAnnotation(A) =>
     mkTypeAnnotation(Lc,macroPtn(L),macroType(R)).
-  examinePtn(A) where (Lc,Lb,S) ?= isLabeledRecord(A) => 
+  examinePtn(A) where (Lc,Lb,S) ?= isBrTerm(A) => 
     mkQBrTerm(Lc,Lb,macroStmts(S)).
   examinePtn(A) where (Lc,O,Els) ?= isRoundTerm(A) => 
     roundTerm(Lc,macroTerm(O),Els//macroPtn).
@@ -331,18 +332,16 @@ star.compiler.macro{
     mkRef(Lc,macroType(R)).
   examineType(A) where (Lc,L,R) ?= isTypeLambda(A) =>
     mkTypeLambda(Lc,macroType(L),macroType(R)).
-  examineType(A) where (Lc,L,R) ?= isTypeExists(A) =>
-    mkTypeExists(Lc,macroType(L),macroType(R)).
   examineType(A) where (Lc,Q,T) ?= isQuantified(A) =>
-    reUQuant(Lc,Q,macroType(T)).
+    reUQuant(Lc,Q//macroTypeVar,macroType(T)).
   examineType(A) where (Lc,Q,T) ?= isXQuantified(A) =>
-    reXQuant(Lc,Q,macroType(T)).
+    reXQuant(Lc,Q//macroTypeVar,macroType(T)).
   examineType(A) where (Lc,C,T) ?= isConstrained(A) =>
     reConstrain(C//macroConstraint,macroType(T)).
   examineType(A) where (Lc,Els) ?= isTuple(A) =>
     rndTuple(Lc,Els//macroType).
   examineType(A) where (Lc,Els) ?= isBrTuple(A) =>
-    brTuple(Lc,macroStmts(Els)).
+    brTuple(Lc,Els//macroTypeDef).
   examineType(A) where (Lc,R,F) ?= isFieldAcc(A) =>
     mkFieldAcc(Lc,macroTerm(R),F).
   examineType(A) default => valof{
@@ -350,10 +349,19 @@ star.compiler.macro{
     valis A
   }
 
+  macroTypeVar(A) => macroAst(A,.typeterm,examineTypeVar).
+
+  examineTypeVar(A) where _ ?= isName(A) => A.
+  examineTypeVar(A) where (Lc,L,R) ?= isBinary(A,"/") && _ ?= isName(L) && _ ?= isInt(R) => A.
+  examineTypeVar(A) default => valof{
+    reportError("cannot figure out type variable\n$(A)",locOf(A));
+    valis A
+  }
+  
   macroConstraint(A) => macroAst(A,.constraint,examineConstraint).
 
   examineConstraint(A) where (Lc,Op,Els) ?= isSquareTerm(A) =>
-    squareTerm(Lc,Op,Els//macroType).
+    squareTerm(Lc,Op,Els//macroContractArg).
   examineConstraint(A) where (Lc,L,R) ?= isTypeExists(A) =>
     mkTypeExists(Lc,macroType(L),macroType(R)).
   examineConstraint(A) where (Lc,Nm,T) ?= isImplicit(A) =>
@@ -364,6 +372,10 @@ star.compiler.macro{
     reportError("cannot figure out constraint $(A)",locOf(A));
     valis A
   }
+
+  macroContractArg(A) where (Lc,L,R) ?= isDepends(A) =>
+    mkDepends(Lc,L//macroType,R//macroType).
+  macroContractArg(A) => macroType(A).
 
   visibilityOf:(ast) => (ast,visibility).
   visibilityOf(A) => visib(A,.deFault).

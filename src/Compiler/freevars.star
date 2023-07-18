@@ -33,6 +33,7 @@ star.compiler.freevars{
     .strng(_,_) => Fv.
     .enm(_,_,_) => Fv.
     .dot(_,Rc,_,_) => freeVarsInExp(Rc,Q,Fv).
+    .tdot(_,Rc,_,_) => freeVarsInExp(Rc,Q,Fv).
     .mtd(_,_,_) => Fv.
     .over(_,V,_) => freeVarsInExp(V,Q,Fv).
     .csexp(_,G,Cs,_) =>
@@ -42,8 +43,6 @@ star.compiler.freevars{
       valis freeVarsInExp(L,Q1,freeVarsInExp(R,Q,freeVarsInCond(T,Q1,Fv)))
     }.
     .apply(_,O,A,_) =>
-      freeVarsInTuple(A,Q,freeVarsInExp(O,Q,Fv)).
-    .nvoke(_,O,A,_) =>
       freeVarsInTuple(A,Q,freeVarsInExp(O,Q,Fv)).
     .tple(_,Els) => freeVarsInTuple(Els,Q,Fv).
     .match(_,P,S) where Q1 .= dropVars(P,Q) =>
@@ -55,9 +54,13 @@ star.compiler.freevars{
       freeVarsInExp(T,Q1,freeVarsInExp(E,Q1,
 	  foldRight((Rl,F)=>freeVarsInRule(Rl,Q,F),Fv,H))).
     .rais(_,T,E,_) => freeVarsInExp(T,Q,freeVarsInExp(E,Q,Fv)).
+    .spwn(_,E,_) => freeVarsInExp(E,Q,Fv).
+    .paus(_,E,_) => freeVarsInExp(E,Q,Fv).
+    .susp(_,F,E,_) => freeVarsInExp(F,Q,freeVarsInExp(E,Q,Fv)).
+    .rsme(_,F,E,_) => freeVarsInExp(F,Q,freeVarsInExp(E,Q,Fv)).
+    .rtire(_,F,E) => freeVarsInExp(F,Q,freeVarsInExp(E,Q,Fv)).
     .lambda(_,_,Eqns,_) =>
       foldRight((Rl,F)=>freeVarsInRule(Rl,Q,F),Fv,Eqns).
-    .contion(_,_,Rl,_) => freeVarsInRule(Rl,Q,Fv).
     .letExp(_,D,_,E) => let{
       QD = dropDefs(D,Q).
     } in freeVarsInExp(E,QD,freeVarsInDefs(D,Q,Fv)).
@@ -83,6 +86,7 @@ star.compiler.freevars{
     .doBrk(_,_) => Fv.
     .doValis(_,E) => freeVarsInExp(E,Q,Fv).
     .doRaise(_,T,E) => freeVarsInExp(T,Q,freeVarsInExp(E,Q,Fv)).
+    .doRetire(_,T,E) => freeVarsInExp(T,Q,freeVarsInExp(E,Q,Fv)).
     .doDefn(_,P,E) where Q1 .= dropVars(P,Q) =>
       freeVarsInExp(E,Q1,freeVarsInExp(P,Q1,Fv)).
     .doMatch(_,P,E) where Q1 .= dropVars(P,Q) =>
@@ -193,7 +197,6 @@ star.compiler.freevars{
     .kar(_,_) => Q.
     .strng(_,_) => Q.
     .enm(_,_,_) => Q.
-    .dot(_,Rc,_,_) => ptnVars(Rc,Q,Fv).
     .mtd(_,_,_) => Q.
     .over(_,V,_) => ptnVars(V,Q,Fv).
     .cond(_,T,L,R) => ptnVars(L,ptnVars(T,Q,Fv),Fv)/\ ptnVars(R,Q,Fv).
