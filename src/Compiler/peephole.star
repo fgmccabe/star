@@ -27,7 +27,7 @@ star.compiler.peephole{
     if traceCodegen! then
       logMsg(makeDotGraph("psegs",PMap));
     PC = sequentialize([.al("")],PMap);
-    valis ^tail(PC)
+    valis _optval(tail(PC))
   }
 
   uncondJmp(Op) => case Op in {
@@ -82,7 +82,7 @@ star.compiler.peephole{
   splitSegment:(cons[assemOp],assemLbl,cons[assemOp],set[assemLbl],map[assemLbl,segment]) => map[assemLbl,segment].
   splitSegment([],Lb,SoFar,Exits,Map) => Map[Lb->.segment(Lb,.none,reverse(SoFar),Exits)].
   splitSegment([.iLbl(XLb),..Code],Lb,SoFar,Exits,Map) =>
-    splitSegment(Code,XLb,[],[],Map[Lb->.segment(Lb,?XLb,reverse(SoFar),Exits)]).
+    splitSegment(Code,XLb,[],[],Map[Lb->.segment(Lb,.some(XLb),reverse(SoFar),Exits)]).
   splitSegment([Op,..Code],Lb,SoFar,Exits,Map) => valof{
     Ex = (Tgt?=opTgt(Op) ?? Exits\+Tgt || Exits);
 
@@ -90,7 +90,7 @@ star.compiler.peephole{
       valis splitSegments(Rest,Map[Lb->.segment(Lb,.none,reverse(SoFar)++[Op,..Front],
 	    findExits(Front,Ex))])
     } else if .iJmp(Tgt).=Op && [.iLbl(Tgt),.._].=Code then{
-      valis splitSegments(Code,Map[Lb->.segment(Lb,?Tgt,reverse(SoFar),Ex)])
+      valis splitSegments(Code,Map[Lb->.segment(Lb,.some(Tgt),reverse(SoFar),Ex)])
     }
     else if uncondJmp(Op) then
       valis splitSegments(Code,Map[Lb->.segment(Lb,.none,reverse([Op,..SoFar]),Ex)])
@@ -101,16 +101,16 @@ star.compiler.peephole{
   findExits:(cons[assemOp],set[assemLbl]) => set[assemLbl].
   findExits(Code,Ex) => foldLeft((O,X) => (TT?=opTgt(O)??X\+TT||X),Ex,Code).
 
-  opTgt(.iJmp(Lb)) => ?Lb.
-  opTgt(.iCLbl(_,Lb)) => ?Lb.
-  opTgt(.iUnpack(_,Lb)) => ?Lb.
-  opTgt(.iICmp(Lb)) => ?Lb.
-  opTgt(.iCCmp(Lb)) => ?Lb.
-  opTgt(.iFCmp(Lb)) => ?Lb.
-  opTgt(.iCmp(Lb)) => ?Lb.
-  opTgt(.iIf(Lb)) => ?Lb.
-  opTgt(.iIfNot(Lb)) => ?Lb.
-  opTgt(.iTry(Lb)) => ?Lb.
+  opTgt(.iJmp(Lb)) => .some(Lb).
+  opTgt(.iCLbl(_,Lb)) => .some(Lb).
+  opTgt(.iUnpack(_,Lb)) => .some(Lb).
+  opTgt(.iICmp(Lb)) => .some(Lb).
+  opTgt(.iCCmp(Lb)) => .some(Lb).
+  opTgt(.iFCmp(Lb)) => .some(Lb).
+  opTgt(.iCmp(Lb)) => .some(Lb).
+  opTgt(.iIf(Lb)) => .some(Lb).
+  opTgt(.iIfNot(Lb)) => .some(Lb).
+  opTgt(.iTry(Lb)) => .some(Lb).
   opTgt(_) default => .none.
 
   reTgt(.iJmp(_),Lb) => .iJmp(Lb).
@@ -143,7 +143,7 @@ star.compiler.peephole{
     if Tg?=opTgt(O) then{
       if .segment(_,_,[.iJmp(Tgt),.._],_) ?= Map[Tg] then
 	valis pullTgt(reTgt(O,Tgt),Map)
-      else if .segment(_,?Flw,[],_) ?= Map[Tg] then
+      else if .segment(_,.some(Flw),[],_) ?= Map[Tg] then
 	valis pullTgt(reTgt(O,Flw),Map)
       else
       valis O

@@ -32,8 +32,8 @@ star.compiler{
 
   public _main:(cons[string])=>().
   _main(Args) => valof{
-    WI=^parseUri("file:"++_cwd());
-    RI=^parseUri("file:"++_repo());
+    WI=_optval(parseUri("file:"++_cwd()));
+    RI=_optval(parseUri("file:"++_repo()));
     try{
       valis handleCmds(processOptions(Args,[wdOption,
 	    stdinOption,
@@ -61,7 +61,7 @@ star.compiler{
 	valis ()
       }
     };
-  }.
+  }
 
   handleCmds:((compilerOptions,cons[string]))=>().
   handleCmds((Opts,Args)) => valof{
@@ -96,7 +96,7 @@ star.compiler{
   processPkg(P,Repo,Cat) => valof{
     logMsg("Compiling $(P)");
     if (SrcUri,CPkg) ?= resolveInCatalog(Cat,pkgName(P)) then{
-      Ast = ^parseSrc(SrcUri,CPkg);
+      Ast = _optval(parseSrc(SrcUri,CPkg));
       if traceAst! then{
 	logMsg("Ast of $(P) is $(Ast)")
       };
@@ -108,7 +108,8 @@ star.compiler{
       if errorFree() && ~ macroOnly! then{
 	(PkgSpec,Defs,IDecls,Decls) = checkPkg(Repo,CPkg,M);
 	if showCanon! then {
-	  logMsg("type checked #(displayDefs(Defs))")
+	  logMsg("$(PkgSpec)");
+	  logMsg("type checked definitions #(displayDefs(Defs))");
 	};
 
 	if errorFree() && ~ typeCheckOnly! then {

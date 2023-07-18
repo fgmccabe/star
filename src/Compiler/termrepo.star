@@ -40,7 +40,7 @@ star.compiler.term.repo{
   addToRepo(.repo(Root,Man),.pkg(Pk,Vr),Kind,Text) => valof{
     Ext = extensionMapping(Kind);
     Fn = "#(Pk).#(Vr::string)#(Ext)";
-    FU = ^resolveUri(Root,Fn::uri);
+    FU = _optval(resolveUri(Root,Fn::uri));
     putResource(FU,Text);
     valis flushRepo(.repo(Root,addToManifest(Man,.pkg(Pk,Vr),Kind,Fn)))
   }
