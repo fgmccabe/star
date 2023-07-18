@@ -41,10 +41,10 @@ star.compiler.impawt{
   pickupPkgSpec:(string,option[locn]) => option[pkgSpec].
   pickupPkgSpec(Txt,Lc) => valof{
     if (.term(_,[Pk,.term(_,Imps),.term(_,Ds)]),_).=decodeTerm(Txt::cons[char]) then{
-      Pkg = ^pickupPkg(Pk);
+      Pkg = _optval(pickupPkg(Pk));
       Imports = pickupImports(Imps,Lc);
       Decls = pickupDeclarations(Ds,Lc);
-      valis ? pkgSpec{pkg=Pkg. imports=Imports. exports=Decls}
+      valis .some(pkgSpec{pkg=Pkg. imports=Imports. exports=Decls})
     } else {
       reportError("could not decode package spec",Lc);
       valis .none
@@ -214,13 +214,6 @@ star.compiler.impawt{
     _coerce(.pkgImp(_,Vz,Pk)) => .some(.term("import",[Vz::data,Pk::data]))
   }
 
-  implementation coercion[canonDef,data] => {
-    _coerce(.cnsDef(_,Nm,FullNm,Tp)) =>
-      .some(.term("constructor",[.strg(Nm),.strg(FullNm),Tp::data])).
-    _coerce(.conDef(_,Nm,FullNm,Tp)) =>
-      .some(.term("contract",[.strg(Nm),.strg(FullNm),Tp::data])).
-  }
-  
   implementation all e ~~ coercion[e,data] |: coercion[cons[e],data] => {
     _coerce(L)=>.some(mkTpl(L//(e)=>e::data))
   }
@@ -257,7 +250,7 @@ star.compiler.impawt{
   importLowered(Pkg,R) => valof{
     if Txt ?= packageLowered(R,Pkg) then{
       if .term(_,Dta) ?= Txt:?data then{
-	valis ? (Dta//(D)=>thawDefn(D));
+	valis .some((Dta//(D)=>thawDefn(D)));
       }
     };
       
