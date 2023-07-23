@@ -92,11 +92,11 @@ star.compiler.dependencies{
       (Lc,_,_,L,R) ?= isTypeFunStmt(A) && Sp .= .tpSp(typeName(L)) =>
     (Stmts,[.defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
-      (Lc,_,Cx,L,R) ?= isAlgebraicTypeStmt(A) && (_,Id) ?= isName(L) =>
-    (Stmts,[.defnSpec(.tpSp(Id),Lc,[A]),..Defs],[(.tpSp(Id),Vz),..Pb],As,Opn).
-  collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
-      (Lc,_,Cx,L,R) ?= isAlgebraicTypeStmt(A) && (_,Id,_) ?= isSquareApply(L) =>
-    (Stmts,[.defnSpec(.tpSp(Id),Lc,[A]),..Defs],[(.tpSp(Id),Vz),..Pb],As,Opn).
+      (Lc,_,Cx,Hd,R) ?= isAlgebraicTypeStmt(A) => valof{
+	Id = surfaceName(Hd);
+	(Dfs,Pbs) = collectConstructors(R,Hd,Defs,Pb,Vz);
+	valis (Stmts,[.defnSpec(.tpSp(Id),Lc,[A]),..Dfs],[(.tpSp(Id),Vz),..Pbs],As,Opn)
+      }.
   collectDefinition(A,Ss,Defs,Pb,As,Opn,Vz) where
       (Lc,Nm,Rhs) ?= isDefn(A) && (_,Id) ?= isName(Nm) => valof{
 	Sp = .varSp(Id);
@@ -123,6 +123,25 @@ star.compiler.dependencies{
     reportError("Cannot understand definition $(A)",locOf(A));
     valis (Ss,Defs,Pb,As,Opn)
   }.
+
+  collectConstructors(T,H,Defs,Pb,Vz) where (_,L,R) ?= isBinary(T,"|") => valof{
+    (D1,Pb1) = collectConstructors(L,H,Defs,Pb,Vz);
+    valis collectConstructors(R,H,D1,Pb1,Vz)
+  }
+  collectConstructors(T,H,Defs,Pb,Vz) where
+      (Lc,Op,Els) ?= isBrTerm(T) && (_,Id) ?=isName(Op) => valof{
+	Sp = .cnsSp(Id);
+	valis ([.defnSpec(Sp,Lc,[mkConstructorType(Lc,brTuple(Lc,Els),H)]),..Defs],publishName(Sp,Vz,Pb))
+      }.
+  collectConstructors(T,H,Defs,Pb,Vz) where (Lc,Id) ?= isEnumSymb(T) => valof{
+    Sp = .cnsSp(Id);
+    valis ([.defnSpec(Sp,Lc,[H]),..Defs],publishName(Sp,Vz,Pb))
+  }
+  collectConstructors(T,H,Defs,Pb,Vz) where (Lc,Op,Els) ?= isEnumCon(T) && (_,Id) ?= isName(Op) => valof{
+    Sp = .cnsSp(Id);
+    valis ([.defnSpec(Sp,Lc,[mkConstructorType(Lc,rndTuple(Lc,Els),H)]),..Defs],publishName(Sp,Vz,Pb))
+  }
+  collectConstructors(T,_,Defs,Pb,_Vz) default => (Defs,Pb).
 
   isDefined:(defnSp,cons[defnSpec])=>option[locn].
   isDefined(_,[]) => .none.
@@ -391,6 +410,12 @@ star.compiler.dependencies{
   }
   collectDoRefs(A,All,Rf) where (_,[S]) ?= isBrTuple(A) =>
     collectDoRefs(S,All,Rf).
+  collectDoRefs(A,All,Rf) where (_,L,R) ?= isRetire(A) =>
+    collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
+  collectDoRefs(A,All,Rf) where (_,L,R) ?= isSuspend(A) =>
+    collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
+  collectDoRefs(A,All,Rf) where (_,L,R) ?= isResume(A) =>
+    collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
   collectDoRefs(A,All,Rf) => collectTermRefs(A,All,Rf).
 
   collectCasesRefs([],_,_,Rf) => Rf.
