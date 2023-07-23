@@ -633,6 +633,8 @@ inTerm(ltt(_,_,B,_E),Nm) :-
   inTerm(B,Nm).
 inTerm(ltt(_,_,_B,E),Nm) :-
   inTerm(E,Nm).
+inTerm(vlof(_,A),Nm) :-
+  inAction(A,Nm).
 
 inAction(nop(_),_) :- !,fail.
 inAction(seq(_,L,R),Nm) :-!,
