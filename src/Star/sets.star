@@ -59,4 +59,23 @@ star.sets{
   public implementation all e ~~ generate[set[e]->>e] => {
     _generate(S) => iterGenerator(S)
   }
+
+  public implementation all e ~~ equality[e] |: membership[cons[e] ->> e] => let{.
+    add_mem([],X) => [X].
+    add_mem([X,..Xs],X) => [X,..Xs].
+    add_mem([U,..Xs],X) => [U,..add_mem(Xs,X)].
+
+    del_mem([],_) => [].
+    del_mem([X,..Xs],X) => Xs.
+    del_mem([U,..Xs],X) => [U,..del_mem(Xs,X)].
+
+    is_mem(_,[]) => .false.
+    is_mem(X,[X,.._]) => .true.
+    is_mem(X,[_,..Xs]) => is_mem(X,Xs).
+  .} in {
+    S\+E => add_mem(S,E).
+    S\-E => del_mem(S,E).
+    E.<.S => is_mem(E,S).
+  }
+  
 }
