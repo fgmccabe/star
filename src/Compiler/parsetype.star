@@ -58,14 +58,14 @@ star.compiler.typeparse{
     (Op,Rl) = parseTypeName(Q,OLc,Nm,Env);
     if TpRl ?= Rl then{
       if (_,FrshRl) .= freshen(TpRl,Env) && (_,OOp) .= freshen(Op,Env) then{
-	valis applyTypeRule(Lc,FrshRl,doTypeFun(OOp,ArgTps,Env),Env)
+	valis applyTypeRule(Lc,FrshRl,doTypeFun(OOp,ArgTps),Env)
       } else{
 	reportError("Could not freshen type rule $(Rl)",Lc);
 	valis .voidType
       }
     } else {
       if (_,OOp) .= freshen(Op,Env) then {
-	valis doTypeFun(OOp,ArgTps,Env)
+	valis doTypeFun(OOp,ArgTps)
       }
       else{
 	reportError("Could not freshen $(Op)",Lc);
@@ -163,10 +163,10 @@ star.compiler.typeparse{
     }
   }
 
-  doTypeFun:(tipe,cons[tipe],dict) => tipe.
-  doTypeFun(Op,[A,..As],Env) =>
-    doTypeFun(.tpExp(Op,A),As,Env).
-  doTypeFun(Tp,[],_) => Tp.
+  doTypeFun:(tipe,cons[tipe]) => tipe.
+  doTypeFun(Op,[A,..As]) =>
+    doTypeFun(.tpExp(Op,A),As).
+  doTypeFun(Tp,[]) => Tp.
 
   parseTypeFields:(tipes,cons[ast],tipes,tipes,dict) => (tipes,tipes).
   parseTypeFields(Q,[],Flds,Tps,_) => (Flds,Tps).

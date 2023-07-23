@@ -181,12 +181,12 @@ star.compiler.normalize{
   }
   liftPtn(.apply(Lc,.vr(VLc,VNm,_),Els,Tp),Map,Q,Ex) => valof{
     (LArgs,Ex1) = liftPtns(Els,Map,Q,Ex);
-    valis trace liftPtnCallOp(Lc,VNm,LArgs,Tp,Map,Q,Ex1)
+    valis liftPtnCallOp(Lc,VNm,LArgs,Tp,Map,Q,Ex1)
   }
   liftPtn(.apply(Lc,.enm(VLc,Nm,ETp),Els,Tp),Map,Q,Ex) => valof{
     (LArgs,Ex1) = liftPtns(Els,Map,Q,Ex);
 
-    valis trace liftPtnCallOp(Lc,Nm,LArgs,Tp,Map,Q,Ex1)    
+    valis liftPtnCallOp(Lc,Nm,LArgs,Tp,Map,Q,Ex1)
   }
   liftPtn(Cn,_,_,Ex) => valof{
     Lc = locOf(Cn);
@@ -208,7 +208,7 @@ star.compiler.normalize{
     implementPtnCall(Lc,Entry,Args,Tp,Map,Q,Ex).
 
   implementPtnCall(Lc,.moduleCons(Nm,CTp),Args,Tp,_,_,Ex) =>
-    (trace .cTerm(Lc,Nm,Args,Tp),Ex).
+    (.cTerm(Lc,Nm,Args,Tp),Ex).
   implementPtnCall(Lc,.localCons(Nm,CTp,Vr),Args,Tp,_,_,Ex) =>
     (.cTerm(Lc,Nm,[.cVar(Lc,Vr),..Args],Tp),Ex).
   

@@ -348,7 +348,7 @@ star.compiler.macro.rules{
   {
     I .= _generate(C);
     lb:while .true do{
-       case _resume(I,._next) in {
+       case I resume ._next in {
         _yld(P) => B.
         _yld(_) default => {}.
         ._all => break lb
@@ -371,7 +371,7 @@ star.compiler.macro.rules{
     Deflt = mkEquation(Lc,.none,.true,mkEnumCon(Lc,.nme(Lc,"_yld"),[mkAnon(Lc)]),.none,brTuple(Lc,[]));
 
     /* build case I resume ._next in .. */
-    Resume = mkCaseExp(Lc,binary(Lc,"_resume",I,enum(Lc,"_next")),[Yld,Deflt,End]);
+    Resume = mkCaseExp(Lc,mkResume(Lc,I,enum(Lc,"_next")),[Yld,Deflt,End]);
 
     /* Build while .true loop */
     Loop = mkWhileDo(Lc,enum(Lc,"true"),brTuple(Lc,[Resume]));
@@ -406,9 +406,9 @@ star.compiler.macro.rules{
 
   /* yield E
   becomes
-  case _suspend(this,._yld(E)) in {
+  case this suspend ._yld(E) in {
     ._next => {}.
-  ._cancel => _retire(this,._all)
+  ._cancel => this retire ._all
   }
   */
   yieldMacro(A,.actn) where (Lc,E) ?= isUnary(A,"yield") => valof{
