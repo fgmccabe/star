@@ -146,7 +146,7 @@ star.compiler.wff{
   public mkContinType(Lc,A,B) => binary(Lc,"=>>",A,B).
 
   public mkContType:(option[locn],ast) => ast.
-  mkContType(Lc,Lhs) => squareTerm(Lc,.nme(Lc,"cont"),[Lhs]).
+  mkContType(Lc,Lhs) => mkContinType(Lc,Lhs,unit(Lc)).
 
   public isConstructorStmt(A) where (_,_,I) ?= isQuantified(A) =>
     isConstructorStmt(I).
@@ -547,7 +547,7 @@ star.compiler.wff{
   surfaceNames([T,..Ts],Sep) =>
     [Sep,surfaceName(T),..surfaceNames(Ts,Sep)].
 
-  surfaceName(T) where (_,Id) ?= isName(T) => Id.
+  public surfaceName(T) where (_,Id) ?= isName(T) => Id.
   surfaceName(T) where (_,Id,_) ?= isSquareApply(T) => Id.
   surfaceName(T) where (_,_,I) ?= isQuantified(T) => surfaceName(I).
   surfaceName(T) where (_,Els) ?= isTuple(T) => "()$(size(Els))".
