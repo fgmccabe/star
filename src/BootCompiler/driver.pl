@@ -137,8 +137,9 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
    (is_member(showTCCode,Opts) -> dispCanonProg(Canon);true),
    noErrors,
    (\+ is_member(typeCheckOnly,Opts) ->
-    transformProg(PkgDecls,Canon,Opts,Rules),!,
-    (is_member(showTrCode,Opts) -> dispProg(Rules),validLProg(PkgDecls,Rules);true),
+    transformProg(PkgDecls,Canon,Opts,Rules),
+    validLProg(PkgDecls,Rules),!,
+    (is_member(showTrCode,Opts) -> dispProg(Rules);true),
     noErrors,
     (\+ is_member(transformOnly,Opts) ->
      genCode(PkgDecls,Rules,Opts,Text),

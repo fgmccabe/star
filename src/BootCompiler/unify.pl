@@ -212,7 +212,6 @@ smpFldTps([(F,T)|Flds],Lc,Env,C,Cx,[(F,Tp)|Fs]) :-
   simplifyType(T,Lc,Env,C,C0,Tp),
   smpFldTps(Flds,Lc,Env,C0,Cx,Fs).
 
-
 wrapConstraints([],Tp,Tp).
 wrapConstraints([Con|C],Tp,WTp) :-
   wrapConstraints(C,constrained(Tp,Con),WTp).
