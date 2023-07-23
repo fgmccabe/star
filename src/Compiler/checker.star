@@ -189,12 +189,29 @@ star.compiler.checker{
   checkGroup:(cons[defnSpec],visMap,dict,dict,string) =>
     (cons[canonDef],cons[decl],cons[decl]).
   checkGroup(Specs,Vis,Env,Outer,Path) => let{.
-    checkDefs([],Dfs,XptDcs,Dcs) => (reverse(Dfs),XptDcs,Dcs).
-    checkDefs([D,..Ds],Defs,XDcs,Decls) => valof{
-      (Dfs,Xpts,Dcs) = checkDefn(D,Vis,Env,Outer,Path);
-      valis checkDefs(Ds,Dfs++Defs,XDcs++Xpts,Decls++Dcs)
+    checkDefs([],Dfs,XptDcs,Dcs,Ev) => (reverse(Dfs),XptDcs,Dcs).
+    checkDefs([D,..Ds],Defs,XDcs,Decls,Ev) => valof{
+      (Dfs,Xpts,Dcs) = checkDefn(D,Vis,Ev,Outer,Path);
+
+      valis checkDefs(Ds,Dfs++Defs,XDcs++Xpts,Decls++Dcs,declareDecls(Dcs,Ev))
+    }.
+
+    redoTypeLambdas = valof{
+      for S in Specs do{
+	if .defnSpec(.tpSp(_),_,[St]) .= S && _ ?= isTypeFunStmt(St) then{
+	  valis [|Specs|]>1
+	}
+      };
+      valis .false
     }
-  .} in checkDefs(Specs,[],[],[]).
+  .} in valof{
+    if redoTypeLambdas then{
+      (_,Xpts,Dcs) = checkDefs(Specs,[],[],[],Env);
+      valis checkDefs(Specs,[],[],[],declareDecls(Xpts,declareDecls(Dcs,Env)))
+    } else{
+      valis checkDefs(Specs,[],[],[],Env)
+    }
+  }
 
   checkDefn:(defnSpec,visMap,dict,dict,string) => (cons[canonDef],cons[decl],cons[decl]).
   checkDefn(Defn,Vis,Env,Outer,Path) => case Defn in {
@@ -210,6 +227,7 @@ star.compiler.checker{
       (Df,Dc) = parseTypeDef(TpNm,St,Env,Path);
       valis (Df,(isVisible(Vis,.priVate,.tpSp(TpNm))??Dc||[]),Dc)
     }.
+    .defnSpec(.cnsSp(_),_,_) => ([],[],[]).
     .defnSpec(.conSp(ConNm),Lc,[St]) => valof{
       (Defs,Decls) = parseContract(St,Env,Path);
       valis (Defs,(isVisible(Vis,.priVate,.conSp(ConNm))??Decls||[]),Decls)
