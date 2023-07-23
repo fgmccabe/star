@@ -12,7 +12,7 @@ test.ac4{
       XX = f(X-1);
       valis XX*X
     } else
-    raise "illegal arg"
+    raise "illegal arg of f"
   }
 
   main:()=>().
