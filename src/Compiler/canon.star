@@ -222,9 +222,9 @@ star.compiler.canon{
     .tple(_,Els) => showTuple(Els,Sp).
     .lambda(_,Nm,Rls,Tp) => "(#(showRls(Nm,Rls,showCanon,Sp++"  ")))".
     .letExp(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
-      "#(leftParen(OPr,Pr))let {\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))".
+      "#(leftParen(OPr,Pr))let {\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)#(showDecs(Dcs,Sp2))} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))".
     .letRec(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
-      "#(leftParen(OPr,Pr))let {.\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp).} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))".
+      "#(leftParen(OPr,Pr))let {.\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)#(showDecs(Dcs,Sp2)).} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))".
     .vlof(_,A,_) where (OPr,Rp) ?= isPrefixOp("valof") =>
       "#(leftParen(OPr,Pr))valof #(showAct(A,Rp,Sp))#(rgtParen(OPr,Pr))".
   }
@@ -309,6 +309,9 @@ star.compiler.canon{
     "#(Nm)#(showCanon(Ptn,Lp,Sp)) #(Arrw) #(Shw(Val,Rp,Sp))".
   showRl(Nm,Arrw,.rule(_,Ptn,.some(C),Val),Shw,Sp) where (Lp,OPr,Rp) ?= isInfixOp(Arrw) =>
     "#(Nm)#(showCanon(Ptn,Lp,Sp)) where #(showCanon(C,Lp,Sp)) #(Arrw) #(Shw(Val,Rp,Sp))".
+
+  showDecs:(cons[decl],string) => string.
+  showDecs(Dcs,Sp) => interleave(Dcs//disp,"\n"++Sp)*.
 
   shDeflt(.true) => "default ".
   shDeflt(.false) => "".

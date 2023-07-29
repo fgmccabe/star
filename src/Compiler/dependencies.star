@@ -141,6 +141,10 @@ star.compiler.dependencies{
     Sp = .cnsSp(Id);
     valis ([.defnSpec(Sp,Lc,[mkConstructorType(Lc,rndTuple(Lc,Els),H)]),..Defs],publishName(Sp,Vz,Pb))
   }
+  collectConstructors(T,H,Defs,Pb,Vz) where (_Lc,_Q,I) ?= isQuantified(T) =>
+    collectConstructors(I,H,Defs,Pb,Vz).
+  collectConstructors(T,H,Defs,Pb,Vz) where (_Lc,_Q,I) ?= isXQuantified(T) =>
+    collectConstructors(I,H,Defs,Pb,Vz).
   collectConstructors(T,_,Defs,Pb,_Vz) default => (Defs,Pb).
 
   isDefined:(defnSp,cons[defnSpec])=>option[locn].
@@ -471,6 +475,8 @@ star.compiler.dependencies{
     collectFaceTypes(Els,All,collectTermRefs(Op,All,SoFar)).
   collectTypeRefs(T,All,SoFar) where (_,Rc,_) ?= isFieldAcc(T) => 
     collectTermRefs(Rc,All,SoFar).
+  collectTypeRefs(T,All,SoFar) where (_,Rc,_) ?= isTupleAcc(T) => 
+    collectTermRefs(Rc,All,SoFar).
   collectTypeRefs(T,All,SoFar) where (_,Op,Els) ?= isRoundTerm(T) =>
     collectTypeList(Els,All,collectTypeRefs(Op,All,SoFar)).
   collectTypeRefs(T,_,Rf) default => valof{
@@ -512,6 +518,10 @@ star.compiler.dependencies{
   collectConstructorRefs(T,All,SoFar) where _ ?= isEnumSymb(T) => SoFar.
   collectConstructorRefs(T,All,SoFar) where (_,_,Els) ?= isEnumCon(T) =>
     collectTypeList(Els,All,SoFar).
+  collectConstructorRefs(T,All,SoFar) where (_Lc,_Q,I) ?= isQuantified(T) =>
+    collectConstructorRefs(I,All,SoFar).
+  collectConstructorRefs(T,All,SoFar) where (_Lc,_Q,I) ?= isXQuantified(T) =>
+    collectConstructorRefs(I,All,SoFar).
   collectConstructorRefs(T,_,SoFar) default => valof{
     reportError("cannot fathom constructor form $(T)",locOf(T));
     valis SoFar

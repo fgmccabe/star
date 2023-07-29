@@ -471,11 +471,11 @@ checkLetRec(Tp,Lc,Els,Ex,Env,letRec(Lc,Decls,Defs,Bound),Path):-
   mergeDecls(ThDecls,Decls),
   typeOfExp(Ex,Tp,OEnv,_,Bound,Path).
 
-checkLetExp(Tp,Lc,Els,Ex,Env,letExp(Lc,LDecls,XDefs,Bound),Path):-
+checkLetExp(Tp,Lc,Els,Ex,Env,letExp(Lc,LDecls,Defs,Bound),Path):-
   genNewName(Path,"Γ",ThPath),
   pushScope(Env,ThEnv),
   recordEnv(checker:letExport,ThPath,Lc,Els,faceType([],[]),ThEnv,OEnv,Defs,Decls),
-  computeLetExport(Defs,[],_Decls,XDefs),
+%  computeLetExport(Defs,[],_Decls,XDefs),
   typeOfExp(Ex,Tp,OEnv,_,Bound,Path),
   mergeDecls(Decls,LDecls).
 
@@ -1020,13 +1020,13 @@ checkAction(A,Tp,Env,Env,doWhile(Lc,Tst,Bdy),Path) :-
   isWhileDo(A,Lc,G,B),!,
   checkGoal(G,Env,E0,Tst,Path),
   checkAction(B,Tp,E0,_,Bdy,Path).
-checkAction(A,Tp,Env,Env,doLet(Lc,Decls,XDefs,Ac),Path) :-
+checkAction(A,Tp,Env,Env,doLet(Lc,Decls,Defs,Ac),Path) :-
   isLetDef(A,Lc,D,B),!,
   genNewName(Path,"Γ",ThPath),
   pushScope(Env,ThEnv),
   recordEnv(checker:letExport,ThPath,Lc,D,faceType([],[]),ThEnv,OEnv,Defs,ThDecls),
   mergeDecls(ThDecls,Decls),
-  computeLetExport(Defs,[],_Decls,XDefs),
+%  computeLetExport(Defs,[],_Decls,XDefs),
   checkAction(B,Tp,OEnv,_,Ac,ThPath).
 checkAction(A,Tp,Env,Env,doLetRec(Lc,Decls,Defs,Ac),Path) :-
   isLetRec(A,Lc,D,B),!,

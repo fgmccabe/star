@@ -25,7 +25,7 @@ star.compiler.meta{
     .priVate < .deFault => .true.
     .deFault < .pUblic => .true.
     .deFault < .transItive => .true.
-    .transItive < .pUblic => .true.
+    .pUblic < .transItive => .true.
     _ < _ default => .false.
 
     .priVate >= .priVate => .true.
@@ -135,6 +135,32 @@ star.compiler.meta{
     }
   }
 
+  public contract all e ~~ hasName[e] ::= {
+    lclName:(e) => option[string].
+    fullName:(e) => option[string].
+  }
+
+  public implementation hasName[decl] => {
+    lclName(D) => case D in {
+      .conDec(_,Nm,_,_) => .some(Nm).
+      .implDec(_,Nm,_,_) => .some(Nm).
+      .tpeDec(_,Nm,_,TpRl) => .some(Nm).
+      .varDec(_,Nm,FullNm,Tp) => .some(Nm).
+      .funDec(_,Nm,FullNm,Tp) => .some(Nm).
+      .cnsDec(_,Nm,FullNm,Tp) => .some(Nm).
+      _ default => .none
+    }.
+    fullName(D) => case D in {
+      .conDec(_,_,FullNm,_) => .some(FullNm).
+      .implDec(_,_,FullNm,_) => .some(FullNm).
+      .tpeDec(_,Nm,Tp,_) => .some(tpName(Tp)).
+      .varDec(_,Nm,FullNm,Tp) => .some(FullNm).
+      .funDec(_,Nm,FullNm,Tp) => .some(FullNm).
+      .cnsDec(_,Nm,FullNm,Tp) => .some(FullNm).
+      _ default => .none
+    }.
+  }
+  
   public optimizationLvl ::= .base | .inlining.
 
   public implementation equality[optimizationLvl] => {

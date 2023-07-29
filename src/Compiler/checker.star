@@ -34,8 +34,8 @@ star.compiler.checker{
 	(Imports,Stmts) = collectImports(Els,[],[]);
 	(AllImports,IDecls) = importAll(Imports,Repo,[],[]);
 
-	if traceCanon! then
-	  logMsg("Import declarations $(IDecls)");
+	-- if traceCanon! then
+	--   logMsg("Import declarations $(IDecls)");
 
 	PkgEnv = declareDecls(IDecls,Base);
 	PkgPth = packageName(Pkg);
@@ -45,19 +45,19 @@ star.compiler.checker{
 	if ~isEmpty(Opens) then
 	  reportError("open statements $(Opens) not currently supported",Lc);
     
-	(Defs,ExDecls,ThDecls,ThEnv) = checkGroups(Gps,Vis,.faceType([],[]),Annots,PkgEnv,PkgPth);
+	(Defs,ThDecls,ThEnv) = checkGroups(Gps,pkgExport(Vis),emptyFace,Annots,PkgEnv,PkgPth);
 
-	AllDecls = ThDecls*;
+	(AllX,All) = squashDecls(ThDecls);
 
 	RDefs = (errorFree() ??
-	  overloadProgram(Defs,declareDecls(AllDecls,PkgEnv))* || []);
+	  overloadProgram(Defs,declareDecls(All,PkgEnv))* || []);
 
 	if traceCanon! then{
-	  logMsg("all decls: $(AllDecls), exported declarations $(ExDecls)");
-	  logMsg("pkg definitions: $(Defs)");
+	  logMsg("pkg definitions: $(RDefs),\nexports: $(AllX)");
 	};
 
-	valis (pkgSpec{pkg=Pkge. imports=Imports. exports=ExDecls},RDefs,IDecls,AllDecls)
+	valis (pkgSpec{pkg=Pkge. imports=Imports. exports=AllX},
+	  RDefs,IDecls,All)
       }
       else
       reportError("package name $(Pkg) does not match expected $(Pkge)",locOf(P))
@@ -66,51 +66,75 @@ star.compiler.checker{
     valis (pkgSpec{pkg=Pkge. imports=[]. exports=[]},[],[],[])
   }
 
+  squashDecls:(cons[(cons[decl],cons[decl])])=>(cons[decl],cons[decl]).
+  squashDecls(Th) => foldLeft(((A,B),(C,D))=>(A++C,B++D),([],[]),Th).
+
+  publishFn ~> (defnSp,cons[decl])=>cons[decl].
+
+  pkgExport:(visMap) => publishFn.
+  pkgExport(Viz) => (Sp,Dcs) => (isVisible(Viz,.pUblic,Sp) ?? Dcs || []).
+
+  letExport:(visMap) => publishFn.
+  letExport(Viz) => (Sp,Dcs) => (isVisible(Viz,.deFault,Sp) ?? Dcs||[]).
+
   pickDefltVis(.deFault,V) => V.
   pickDefltVis(V,_) => V.
 
   isVisible:(visMap,visibility,defnSp)=>boolean.
-  isVisible([],_,_) => .false.
-  isVisible([(e,V),.._],D,e) => pickDefltVis(V,D)>=.transItive.
+  isVisible([],D,_) => D>=.deFault.
+  isVisible([(e,V),.._],D,e) => V>=D.
   isVisible([_,..l],D,e) => isVisible(l,D,e).
 
-  formRecordExp:(option[locn],canon,tipe,cons[canonDef],cons[decl],tipe) => canon.
-  formRecordExp(Lc,Lbl,.faceType(Flds,Tps),Defs,Decls,Tp) => valof{
+  formRecordExp:(option[locn],canon,tipe,cons[canonDef],cons[decl],cons[decl],tipe) => canon.
+  formRecordExp(Lc,Lbl,.faceType(Flds,Tps),Defs,XDcs,Decls,Tp) => valof{
     sortedFlds = sortFieldTypes(Flds);
+    Dcls = getFullNms([(XDcs,Decls)]);
+    
     valis .letExp(Lc,Defs,Decls,.apply(Lc,Lbl,
-	(sortedFlds//((FNm,FTp)) where FullNm ?=fullDeclName(FNm,Decls) =>.vr(.none,FullNm,FTp)),Tp))
+	(sortedFlds//((FNm,FTp)) where FullNm ?=Dcls[FNm] =>.vr(.none,FullNm,FTp)),Tp))
   }
 
-  fullDeclName:(string,cons[decl]) => option[string].
-  fullDeclName(Nm,Decls) => {! FullNm | .varDec(_,Nm,FullNm,_) in Decls || .funDec(_,Nm,FullNm,_) in Decls !}.
-
-  genLetRec:all e,g,d ~~ (cons[g],cons[d],(g,d,e)=>e,e) => e.
+  genLetRec:all e,g,d ~~ (cons[g],cons[(cons[d],cons[d])],(g,cons[d],e)=>e,e) => e.
   genLetRec([],[],_,E) => E.
-  genLetRec([G,..Gps],[D,..Ds],F,E) => F(G,D,genLetRec(Gps,Ds,F,E)).
+  genLetRec([G,..Gps],[(_,A),..Ds],F,E) => F(G,A,genLetRec(Gps,Ds,F,E)).
 
-  formTheta:(option[locn],canon,tipe,cons[cons[canonDef]],cons[cons[decl]],tipe) =>
+  formTheta:(option[locn],canon,tipe,cons[cons[canonDef]],cons[(cons[decl],cons[decl])],tipe) =>
     canon.
   formTheta(Lc,Lbl,.faceType(Flds,Tps),Defs,Decls,Tp) => valof{
     sortedFlds = sortFieldTypes(Flds);
-    Dcls = Decls*;
+    Dcls = getFullNms(Decls);
     
     valis genLetRec(Defs,Decls,(G,D,E) => .letRec(Lc,G,D,E),
-      .apply(Lc,Lbl,(sortedFlds//((FNm,FTp)) where FullNm ?=fullDeclName(FNm,Dcls) =>.vr(Lc,FullNm,FTp)),Tp))
+      .apply(Lc,Lbl,(sortedFlds//(((Nm,FTp)) where FullNm ?=Dcls[Nm] =>.vr(Lc,FullNm,FTp))),Tp))
   }
 
+  getFullNms:(cons[(cons[decl],cons[decl])]) => map[string,string].
+  getFullNms(Decs) => let{.
+    addDecs:(cons[decl],map[string,string])=>map[string,string].
+    addDecs(Dcs,M) => foldLeft(addDec,M,Dcs).
+
+    addDec(.varDec(_,Nm,FullNm,_),M) => M[Nm->FullNm].
+    addDec(.funDec(_,Nm,FullNm,_),M) => M[Nm->FullNm].
+    addDec(_,M) => M.
+  .} in foldLeft(((X,A),M)=>addDecs(A,M),[],Decs).
+
   thetaEnv:(option[locn],string,cons[ast],tipe,dict) =>
-    (cons[cons[canonDef]],cons[decl],cons[cons[decl]],dict).
+    (cons[cons[canonDef]],cons[(cons[decl],cons[decl])],dict).
   thetaEnv(Lc,Pth,Stmts,Face,Env) => valof{
     (Vis,Opens,Annots,Gps) = dependencies(Stmts);
 
     if ~isEmpty(Opens) then
       reportError("open statements $(Opens) not supported",Lc);
+
+    if traceCanon! then{
+      logMsg("visibility of $(Stmts) is $(Vis)")
+    };
     
-    valis checkGroups(Gps,Vis,Face,Annots,pushFace(Face,Lc,Env,Pth),Pth)
+    valis checkGroups(Gps,letExport(Vis),Face,Annots,pushFace(Face,Lc,Env,Pth),Pth)
   }
 
   recordEnv:(option[locn],string,cons[ast],tipe,dict,dict) =>
-    (cons[canonDef],cons[decl]).
+    (cons[canonDef],cons[decl],cons[decl]).
   recordEnv(Lc,Path,Stmts,Face,Env,Outer) => valof{
     -- We sort for dependencies to get types right
     (Vis,Opens,Annots,Gps) = dependencies(Stmts);
@@ -119,24 +143,26 @@ star.compiler.checker{
       reportError("open statements not implemented",Lc)
     };
 
+    if traceCanon! then{
+      logMsg("visibility of $(Stmts) is $(Vis)")
+    };
+    
     G = Gps*; -- Flatten the result
 
     TmpEnv = parseAnnotations(G,Face,Annots,Env,Path);
-    (Gp,_,Ds) = checkGroup(G,Vis,TmpEnv,Outer,Path);
-
-    valis (Gp,Ds)
+    valis checkGroup(G,letExport(Vis),TmpEnv,Outer,Path);
   }
 
-  checkGroups:(cons[cons[defnSpec]],visMap,tipe,map[string,ast],dict,string) =>
-    (cons[cons[canonDef]],cons[decl],cons[cons[decl]],dict).
-  checkGroups(AGps,Vis,Face,Annots,Env,Path) => let{.
-    checkGps([],Ev,Gps,ExDcs,Dcs) => (reverse(Gps),ExDcs,Dcs,Ev).
-    checkGps([G,..Gs],Ev,Gx,ExDcs,Dx) => valof{
+  checkGroups:(cons[cons[defnSpec]],publishFn,tipe,map[string,ast],dict,string) =>
+    (cons[cons[canonDef]],cons[(cons[decl],cons[decl])],dict).
+  checkGroups(AGps,Publish,Face,Annots,Env,Path) => let{.
+    checkGps([],Ev,Gps,Dcs) => (reverse(Gps),reverse(Dcs),Ev).
+    checkGps([G,..Gs],Ev,Gx,Dx) => valof{
       TmpEnv = parseAnnotations(G,Face,Annots,Ev,Path);
-      (Gp,Xps,Ds) = checkGroup(G,Vis,TmpEnv,TmpEnv,Path);
-      valis checkGps(Gs,declareDecls(Ds,Ev),[Gp,..Gx],Xps++ExDcs,[Ds,..Dx])
+      (Gp,XDs,Ds) = checkGroup(G,Publish,TmpEnv,TmpEnv,Path);
+      valis checkGps(Gs,declareDecls(Ds,Ev),[Gp,..Gx],[(XDs,Ds),..Dx])
     }
-  .} in checkGps(AGps,Env,[],[],[]).
+  .} in checkGps(AGps,Env,[],[]).
 
   parseAnnotations:(cons[defnSpec],tipe,map[string,ast],dict,string) => dict.
   parseAnnotations([],_,_,Env,_) => Env.
@@ -186,12 +212,12 @@ star.compiler.checker{
   allFunDefs:(cons[canonDef])=>boolean.
   allFunDefs(Dfs) => {? D in Dfs *> .varDef(_,_,.lambda(_,_,_,_),_,_).=D ?}.
 
-  checkGroup:(cons[defnSpec],visMap,dict,dict,string) =>
+  checkGroup:(cons[defnSpec],publishFn,dict,dict,string) =>
     (cons[canonDef],cons[decl],cons[decl]).
-  checkGroup(Specs,Vis,Env,Outer,Path) => let{.
+  checkGroup(Specs,Publish,Env,Outer,Path) => let{.
     checkDefs([],Dfs,XptDcs,Dcs,Ev) => (reverse(Dfs),XptDcs,Dcs).
     checkDefs([D,..Ds],Defs,XDcs,Decls,Ev) => valof{
-      (Dfs,Xpts,Dcs) = checkDefn(D,Vis,Ev,Outer,Path);
+      (Dfs,Xpts,Dcs) = checkDefn(D,Publish,Ev,Outer,Path);
 
       valis checkDefs(Ds,Dfs++Defs,XDcs++Xpts,Decls++Dcs,declareDecls(Dcs,Ev))
     }.
@@ -213,29 +239,31 @@ star.compiler.checker{
     }
   }
 
-  checkDefn:(defnSpec,visMap,dict,dict,string) => (cons[canonDef],cons[decl],cons[decl]).
-  checkDefn(Defn,Vis,Env,Outer,Path) => case Defn in {
+  checkDefn:(defnSpec,publishFn,dict,dict,string) => (cons[canonDef],cons[decl],cons[decl]).
+  checkDefn(Defn,Publish,Env,Outer,Path) => case Defn in {
     .defnSpec(.varSp(Nm),Lc,Stmts) where Tp ?= varType(Nm,Env) && areEquations(Stmts) => valof{
       (Defs,Decls) = checkFunction(Nm,Tp,Lc,Stmts,Env,Outer,Path);
-      valis (Defs,(isVisible(Vis,.priVate,.varSp(Nm))??Decls||[]),Decls)
+      valis (Defs,Publish(.varSp(Nm),Decls),Decls)
     }.
     .defnSpec(.varSp(Nm),Lc,[Stmt]) where Tp ?= varType(Nm,Env) => valof{
       (Defs,Decls) = checkVar(Nm,Tp,Lc,Stmt,Env,Outer,Path);
-      valis (Defs,(isVisible(Vis,.priVate,.varSp(Nm))??Decls||[]),Decls)
+      valis (Defs,Publish(.varSp(Nm),Decls),Decls)
     }.
-    .defnSpec(.tpSp(TpNm),Lc,[St]) => valof{
-      (Df,Dc) = parseTypeDef(TpNm,St,Env,Path);
-      valis (Df,(isVisible(Vis,.priVate,.tpSp(TpNm))??Dc||[]),Dc)
+    .defnSpec(.tpSp(Nm),Lc,[St]) => valof{
+      (Df,Dcs) = parseTypeDef(Nm,St,Env,Path);
+      if traceCanon! then
+	logMsg("declarations from $(St)\:$(Dcs)");
+      valis (Df,Publish(.tpSp(Nm),Dcs),Dcs)
     }.
     .defnSpec(.cnsSp(_),_,_) => ([],[],[]).
     .defnSpec(.conSp(ConNm),Lc,[St]) => valof{
       (Defs,Decls) = parseContract(St,Env,Path);
-      valis (Defs,(isVisible(Vis,.priVate,.conSp(ConNm))??Decls||[]),Decls)
+      valis (Defs,Publish(.conSp(ConNm),Decls),Decls)
     }.
     .defnSpec(.implSp(Nm),Lc,[St]) => valof {
       if (_,Q,C,H,B) ?= isImplementationStmt(St) then{
 	(Defs,Decls) = checkImplementation(Lc,Q,C,H,B,Env,Outer,Path);
-	valis (Defs,(isVisible(Vis,.priVate,.implSp(Nm))??Decls||[]),Decls)
+	valis (Defs,Publish(.implSp(Nm),Decls),Decls)
       }
       else{
 	reportError("not a valid implementation statement",Lc);
@@ -515,14 +543,8 @@ star.compiler.checker{
     valis (.tple(Lc,Ptns),Cond,Ev)
   }
   typeOfPtn(A,Tp,Env,Path) where (Lc,Op,Els) ?= isEnumCon(A) => valof{
-    if traceCanon! then
-      logMsg("enum con $(A), expected type $(Tp)");
-
     At = newTypeVar("A");
     Fun = typeOfExp(Op,consType(At,Tp),Env,Path);
-
-    if traceCanon! then
-      logMsg("con $(Fun)\:$(typeOf(Fun))");
 
     (Q,ETp) = evidence(deRef(At),Env);
     (Cx,ArgTp) = deConstrain(ETp);
@@ -742,8 +764,8 @@ star.compiler.checker{
     At = newTypeVar("_A");
     Rt = newTypeVar("_R");
 
-    if traceCanon! then
-      logMsg("check lambda $(A)\:$(Tp)");
+    -- if traceCanon! then
+    --   logMsg("check lambda $(A)\:$(Tp)");
 
     (Q,ETp) = evidence(Tp,Env);
     (Cx,ProgTp) = deConstrain(ETp);
@@ -753,8 +775,8 @@ star.compiler.checker{
     
     (As,ACnd,E0) = typeOfArgPtn(Ar,At,Es,Path);
 
-    if traceCanon! then
-      logMsg("lambda args $(As)\:$(typeOf(As))");
+    -- if traceCanon! then
+    --   logMsg("lambda args $(As)\:$(typeOf(As))");
 
     LName = genId(Path++"λ");
 
@@ -776,7 +798,7 @@ star.compiler.checker{
     (Cx,Face) = deConstrain(FaceTp);
     Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
     
-    (Defs,ExDecls,Decls,ThEnv) = thetaEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base);
+    (Defs,Decls,ThEnv) = thetaEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base);
 
     valis formTheta(Lc,Fun,Face,Defs,Decls,Tp)
   }
@@ -789,40 +811,40 @@ star.compiler.checker{
     (Cx,Face) = deConstrain(FaceTp);
     Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
     
-    (Defs,Decls) = recordEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,Env);
+    (Defs,XDecls,All) = recordEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,Env);
     
-    valis formRecordExp(Lc,Fun,Face,Defs,Decls,Tp)
+    valis formRecordExp(Lc,Fun,Face,Defs,XDecls,All,Tp)
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,Els,Bnd) ?= isLetRecDef(A) => valof{
-    (Defs,_,Decls,ThEnv)=thetaEnv(Lc,genNewName(Path,"Γ"),Els,.faceType([],[]),Env);
+    (Defs,Decls,ThEnv)=thetaEnv(Lc,genNewName(Path,"Γ"),Els,.faceType([],[]),Env);
+
+    if traceCanon! then
+      logMsg("theta decls: $(Decls)");
     
     El = typeOfExp(Bnd,Tp,ThEnv,Path);
 
     valis genLetRec(Defs,Decls,(G,D,E) => .letRec(Lc,G,D,E),El)
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,Els,Bnd) ?= isLetDef(A) => valof{
-    (Defs,Decls)=recordEnv(Lc,genNewName(Path,"Γ"),Els,.faceType([],[]),Env,Env);
+    (Defs,XDecls,Decls)=recordEnv(Lc,genNewName(Path,"Γ"),Els,.faceType([],[]),Env,Env);
 
-    El = typeOfExp(Bnd,Tp,declareDecls(Decls,Env),Path);
+    if traceCanon! then{
+      logMsg("record decls: $(Decls)");
+      logMsg("exported decls: $(XDecls)");
+    };
 
-    valis foldRight((Gp,I)=>.letExp(Lc,Gp,Decls,I),El,sortDefs(Defs))
+
+    El = typeOfExp(Bnd,Tp,declareDecls(XDecls,Env),Path);
+
+    valis foldRight((Gp,I)=>.letExp(Lc,Gp,XDecls++Decls,I),El,sortDefs(Defs))
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,Op,Args) ?= isEnumCon(A) => valof{
-    if traceCanon! then
-      logMsg("enum con exp $(A), expected type $(Tp)");
-
     At = newTypeVar("A");
     Fun = typeOfExp(Op,consType(At,Tp),Env,Path);
-
-    if traceCanon! then
-      logMsg("con $(Fun)\:$(typeOf(Fun))");
 
     (Q,ETp) = evidence(deRef(At),Env);
     (Cx,ArgTp) = deConstrain(ETp);
     Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
-
-    if traceCanon! then
-      logMsg("ArgTp = $(ArgTp)");
 
     if .tupleType(Tps) .= deRef(ArgTp) then{
       Args = typeOfExps(Args,Tps,[],Base,Path);
@@ -922,6 +944,7 @@ star.compiler.checker{
       valis .apply(Lc,Fun,Args,Tp)
     } else{
       reportError("type of $(Op)\:$(ExTp) not consistent with $(FnTp)",Lc);
+      logMsg(disp(Env));
       valis .vr(Lc,"_",Tp)
     }
   }
@@ -1023,15 +1046,20 @@ star.compiler.checker{
     valis (.doWhile(Lc,CC,BB),Env)
   }
   checkAction(A,Tp,Env,Path) where (Lc,Ds,B) ?= isLetDef(A) => valof{
-    (Defs,Decls)=recordEnv(Lc,genNewName(Path,"Γ"),Ds,.faceType([],[]),Env,Env);
+    (Defs,XDecls,Decls)=recordEnv(Lc,genNewName(Path,"Γ"),Ds,.faceType([],[]),Env,Env);
 
-    (Ac,_) = checkAction(B,Tp,declareDecls(Decls,Env),Path);
+    if traceCanon! then{
+      logMsg("record decls: $(Decls)");
+      logMsg("exported decls: $(XDecls)");
+    };
+
+    (Ac,_) = checkAction(B,Tp,declareDecls(XDecls,Env),Path);
     Sorted = sortDefs(Defs);
 
     valis (foldRight((Gp,I)=>.doLet(Lc,Gp,Decls,I),Ac,Sorted),Env)
   }
   checkAction(A,Tp,Env,Path) where (Lc,Ds,B) ?= isLetRecDef(A) => valof{
-    (Defs,_,Decls,ThEnv)=thetaEnv(Lc,genNewName(Path,"Γ"),Ds,.faceType([],[]),Env);
+    (Defs,Decls,ThEnv)=thetaEnv(Lc,genNewName(Path,"Γ"),Ds,.faceType([],[]),Env);
     (Ac,_) = checkAction(B,Tp,ThEnv,Path);
 
     valis (genLetRec(Defs,Decls,(G,D,E)=>.doLetRec(Lc,G,D,E),Ac),Env)
@@ -1095,9 +1123,6 @@ star.compiler.checker{
     (Q,EATp) = evidence(ATp,Env);
     (Cx,PtnTp) = deConstrain(EATp);
     Es = declareConstraints(Lc,Cx,declareTypeVars(Q,Env));
-
-    if traceCanon! then
-      logMsg("raw rule ptn $(Lhs)|~$(PtnTp)");
 
     (Arg,ACnd,E0) = typeOfPtn(Lhs,PtnTp,Es,Path);
 

@@ -240,12 +240,14 @@ star.compiler.resolve{
     valis (.lambda(Lc,Nm,RRls,Tp),St1)
   }
   overloadTerm(.letExp(Lc,Gp,Decls,Rhs),Dict,St) => valof{
-    (RDfs,_) = overloadGroup(Gp,Dict);
-    (RRhs,St1) = overloadTerm(Rhs,declareDecls(Decls,Dict),St);
+    TDict = declareDecls(Decls,Dict);
+    (RDfs,_) = overloadGroup(Gp,TDict);
+    (RRhs,St1) = overloadTerm(Rhs,TDict,St);
     valis (.letExp(Lc,RDfs,Decls,RRhs),St1)
   }
   overloadTerm(.letRec(Lc,Gp,Decs,Rhs),Dict,St) => valof{
-    (RDfs,RDct) = overloadGroup(Gp,declareDecls(Decs,Dict));
+    LDict = declareDecls(Decs,Dict);
+    (RDfs,RDct) = overloadGroup(Gp,LDict);
     (RRhs,St2) = overloadTerm(Rhs,RDct,St);
     valis (.letRec(Lc,RDfs,Decs,RRhs),St2)
   }
@@ -383,8 +385,9 @@ star.compiler.resolve{
     valis (.doWhile(Lc,TT,AA),St2)
   }
   overloadAction(.doLet(Lc,Gp,Decls,B),Dict,St) => valof{
-    (RDfs,_) = overloadGroup(Gp,Dict);
-    (BB,St1) = overloadAction(B,declareDecls(Decls,Dict),St);
+    TDict = declareDecls(Decls,Dict);
+    (RDfs,_) = overloadGroup(Gp,TDict);
+    (BB,St1) = overloadAction(B,TDict,St);
     valis (.doLet(Lc,RDfs,Decls,BB),St1)
   }
   overloadAction(.doLetRec(Lc,Gp,Decs,B),Dict,St) => valof{
@@ -446,8 +449,8 @@ star.compiler.resolve{
     
   resolveConstraint:(option[locn],constraint,dict,resolveState) => (canon,resolveState).
   resolveConstraint(Lc,.implicit(Id,Tp),Dict,St) => valof{
-    if traceCanon! then
-      logMsg("resolve implicit $(Id)\:$(Tp)");
+    -- if traceCanon! then
+    --   logMsg("resolve implicit $(Id)\:$(Tp)");
     if Var ?= findVar(Lc,Id,Dict) then{
 --      logMsg("implicit $(Var)\:$(typeOf(Var))");
       if sameType(snd(freshen(Tp,Dict)),typeOf(Var),Dict) then {
@@ -514,8 +517,8 @@ star.compiler.resolve{
 	FrFt = snd(freshen(Ft,Dict));
 	(Cx,FldT) = deConstrain(FrFt);
 
-	if traceCanon! then
-	  logMsg("check field type $(Ft)=$(FldT) against $(Tp)");
+	-- if traceCanon! then
+	--   logMsg("check field type $(Ft)=$(FldT) against $(Tp)");
 	if sameType(Tp,FldT,Dict) then{
 	  valis overloadTerm(.apply(Lc,AccFn,[Rc],FldT),Dict,markResolved(St))
 	} else {
@@ -527,12 +530,16 @@ star.compiler.resolve{
 	  .active(Lc,"accessor for field $(Rc).$(Fld)\:$(typeOf(AccFn)) for $(RcTp) not consistent with required type $(Tp)"))
       }
     } else{
+      if traceCanon! then
+	logMsg("cannot find accessor for $(Rc)\:$(typeOf(Rc)).#(Fld) in $(Dict)");
       valis (.dot(Lc,Rc,Fld,Tp),.active(Lc,"cannot find accessor for field $(Fld) for $(RcTp)"))
     }
   }
 
   resolveUpdate:(option[locn],canon,string,canon,dict,resolveState) => (canon,resolveState).
   resolveUpdate(Lc,Rc,Fld,Vl,Dict,St) => valof{
+    -- if traceCanon! then
+    --   logMsg("resolve $(Rc).#(Fld)<-$(Vl)");
     RcTp = typeOf(Rc);
     if AccFn ?= findUpdate(Lc,RcTp,Fld,Dict) then{
       Ft = newTypeVar("F");
@@ -556,8 +563,8 @@ star.compiler.resolve{
 
   resolveTDot:(option[locn],canon,integer,tipe,dict,resolveState) => (canon,resolveState).
   resolveTDot(Lc,Rc,Ix,Tp,Dict,St) => valof{
-    if traceCanon! then
-      logMsg("resolve $(Rc).$(Ix)\:$(Tp)");
+    -- if traceCanon! then
+    --   logMsg("resolve $(Rc).$(Ix)\:$(Tp)");
     
     if .tupleType(Els) .= deRef(typeOf(Rc)) then{
       if ElTp ?= Els[Ix] then{
