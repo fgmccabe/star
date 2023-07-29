@@ -551,6 +551,8 @@ star.compiler.wff{
   surfaceName(T) where (_,Id,_) ?= isSquareApply(T) => Id.
   surfaceName(T) where (_,_,I) ?= isQuantified(T) => surfaceName(I).
   surfaceName(T) where (_,Els) ?= isTuple(T) => "()$(size(Els))".
+  surfaceName(T) where _ ?= isFunctionType(T) => "=>".
+  surfaceName(T) where _ ?= isContinType(T) => "=>>".
 
   public mkImplementationStmt:(option[locn],cons[ast],cons[ast],ast,ast) => ast.
   mkImplementationStmt(Lc,Q,Cx,T,E) =>

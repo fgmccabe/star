@@ -108,7 +108,7 @@ logical validSig(char *sig, integer *start, integer end) {
     }
     case funSig:        /* Function signature */
     case conSig:        /* Constructor function */
-    case throwsSig:     // Throwing signature
+    case contSig:       // Continuation
     case xstSig:        /* Existential quantifier */
     case allSig:        /* Universal quantifier */
     case tpruleSig:
@@ -269,7 +269,7 @@ retCode skipSig(char *sig, integer *start, integer end) {
       }
       case funSig:        /* Function signature */
       case conSig:        /* Constructor function */
-      case throwsSig:     // Throws Function
+      case contSig:       // Continuation
       case xstSig:        /* Existential quantifier */
       case allSig:        /* Universal quantifier */
       case tpruleSig:
@@ -454,7 +454,7 @@ retCode skipSignature(ioPo in) {
       }
       case funSig:        /* Function signature */
       case conSig:        /* Constructor function */
-      case throwsSig:     // Throwing signature
+      case contSig:       // Continuation
       case xstSig:        /* Existential quantifier */
       case allSig:        /* Universal quantifier */
       case tpruleSig:
@@ -603,9 +603,9 @@ retCode showSignature(ioPo out, char *sig, integer *start, integer end) {
       tryRet(showSignature(out, sig, start, end));
       tryRet(outStr(out, " <=> "));
       return showSignature(out, sig, start, end);
-    case throwsSig:        /* Throws */
+    case contSig:        /* Continuation signature */
       tryRet(showSignature(out, sig, start, end));
-      tryRet(outStr(out, " throws "));
+      tryRet(outStr(out, "=>>"));
       return showSignature(out, sig, start, end);
     case xstSig:        /* Existential quantifier */
       tryRet(outStr(out, "exists "));

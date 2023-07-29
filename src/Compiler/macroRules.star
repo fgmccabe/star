@@ -389,7 +389,7 @@ star.compiler.macro.rules{
 
   /* generator{A}
   becomes
-  _new_fiber((this,_)=>valof{
+   this spawn _ =>> valof{
     A*;
     valis .all
     })
@@ -416,7 +416,7 @@ star.compiler.macro.rules{
     /* build ._next => {} */
     Nxt = mkLambda(Lc,.false,enum(Lc,"_next"),.none,brTuple(Lc,[]));
 
-    /* build ._cancel => _retire(this, ._all) */
+    /* build ._cancel => this retire ._all */
     Cancel = mkLambda(Lc,.false,enum(Lc,"_cancel"),.none,mkRetire(Lc,This,enum(Lc,"_all")));
 
     /* Build suspend */
@@ -445,9 +445,9 @@ star.compiler.macro.rules{
   /*
   try B catch H expression
   becomes
-  case _spawn((Try) => let{
+  case Try spawn (let{
       _raise(E) => valof{
-  _retire(Try,._except(E))
+        Try retire ._except(E)
       }
     } in
     ._ok(B) ) in {
@@ -464,20 +464,19 @@ star.compiler.macro.rules{
     XC = mkEnumCon(Lc,.nme(Lc,"_except"),[E]);
 
     Thrw = equation(Lc,unary(Lc,"_raise",E),
-      mkValof(Lc,brTuple(Lc,[binary(Lc,"_retire",T,XC)])));
+      mkValof(Lc,brTuple(Lc,[mkRetire(Lc,T,XC)])));
     Ltt = mkLetDef(Lc,[Thrw],mkEnumCon(Lc,.nme(Lc,"_ok"),[B]));
-    Lam = equation(Lc,rndTuple(Lc,[T]),Ltt);
     Cs1 = equation(Lc,mkEnumCon(Lc,.nme(Lc,"_ok"),[X]),X);
     Cs2 = equation(Lc,XC, mkCaseExp(Lc,E,H));
     
-    valis .active(mkCaseExp(Lc,unary(Lc,"_spawn",Lam),[Cs1,Cs2]));
+    valis .active(mkCaseExp(Lc,mkSpawn(Lc,T,Ltt),[Cs1,Cs2]));
   }.
   /*
   try B catch H action
   becomes
-  case _spawn((Try) => let{
+  case Try spawn(let{
     _raise(E) => valof{
-      _retire(Try,._except(E))
+      Try retire ._except(E)
     }
   } in {
   B; -- valis E => valis ._ok(E)		-- 
@@ -495,13 +494,12 @@ star.compiler.macro.rules{
     XC = mkEnumCon(Lc,.nme(Lc,"_except"),[E]);
 
     Thrw = equation(Lc,unary(Lc,"_raise",E),
-      mkValof(Lc,brTuple(Lc,[binary(Lc,"_retire",T,XC)])));
+    mkValof(Lc,brTuple(Lc,[mkRetire(Lc,T,XC)])));
     Ltt = mkLetDef(Lc,[Thrw],mkEnumCon(Lc,.nme(Lc,"_ok"),[mkValof(Lc,B)]));
-    Lam = equation(Lc,rndTuple(Lc,[T]),Ltt);
     Cs1 = equation(Lc,mkEnumCon(Lc,.nme(Lc,"_ok"),[mkAnon(Lc)]),brTuple(Lc,[]));
     Cs2 = equation(Lc,XC, mkCaseExp(Lc,E,H));
     
-    valis .active(mkCaseExp(Lc,unary(Lc,"_spawn",Lam),[Cs1,Cs2]));
+    valis .active(mkCaseExp(Lc,mkSpawn(Lc,T,Ltt),[Cs1,Cs2]));
   }
   tryMacro(_,_) default => .inactive.
 

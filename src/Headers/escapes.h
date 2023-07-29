@@ -13,7 +13,6 @@
 #define fileType "t'star.file*fileHandle'"
 #define udpType "t'star.io*udpHandle'"
 #define optionType(T) "Uz1'star.core*option'" T
-#define fiberType(R,S) "UUz2'star.core*fiber'" R S
 #define futureType(T) "Uz1'star.core*future'" T
 
 /* Define the standard escapes */
@@ -83,12 +82,7 @@ escape(_big2str, "F(b)s", "convert bigint to string")
 
 escape(_big_format, "F(bs)s", "format a big integer")
 
-escape(_fiber_eq,":k's':k'r'F("fiberType("k's'","k'r'")fiberType("k's'","k'r'")")l","compare two fiber identifiers")
-escape(_new_fiber,":k's':k'r'F(F("fiberType("k'r'","k's'")"k'r')k's')"fiberType("k'r'","k's'"),"create a new fiber")
-escape(_spawn,":k's':k'r'F(F("fiberType("k'r'","k's'")")k's')k's'","stack_split a new task")
-escape(_suspend,":k's':k'r'F("fiberType("k'r'","k's'")"k's')k'r'","suspend a fiber")
-escape(_retire,":k's':k'r'F("fiberType("k'r'","k's'")"k's')()","retire a fiber")
-escape(_resume,":k's':k'r'F("fiberType("k'r'","k's'")"k'r')k's'","resume a fiber")
+escape(_fiber_eq,":k's':k'r'F(x(k's')k'r'x(k's')k'r')l","compare two fiber identifiers")
 
 escape(sqrt, "F(f)f", "square root")
 escape(exp, "F(f)f", "exponential")
@@ -312,7 +306,6 @@ escape(_str_format, "F(ss)s", "apply formatting to a char sequence")
 escape(_getenv, "F(ss)s", "get an environment variable")
 escape(_setenv, "F(ss)()", "set an environment variable")
 escape(_envir, "F()L(ss)", "return entire environment")
-escape(_getlogin, "F()s", "return user's login")
 
 // Process manipulation
 escape(_fork, "F(F()"sysRet("s")")"threadType, "fork new process")

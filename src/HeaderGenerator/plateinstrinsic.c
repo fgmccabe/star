@@ -228,8 +228,8 @@ static char *dumpStarSig(char *sig, ioPo out) {
       sig = dumpStarSig(sig, out);
       outStr(out, ")");
       break;
-    case throwsSig:
-      outStr(out, ".throwsType(");
+    case contSig:
+      outStr(out, ".tpExp(.tpExp(.tpFun(\"=>>\",2),");
       sig = dumpStarSig(sig, out);
       outStr(out, "),");
       sig = dumpStarSig(sig, out);
@@ -401,9 +401,9 @@ static char *dumpPrologSig(char *sig, ioPo out) {
       sig = dumpPrologSig(sig, out);
       outStr(out, ")");
       return sig;
-    case throwsSig:
-      outStr(out, "throwsType(");
-      sig = dPrologTple(sig, out);
+    case contSig:
+      outStr(out, "continType(");
+      sig = dumpPrologSig(sig, out);
       outStr(out, ",");
       sig = dumpPrologSig(sig, out);
       outStr(out, ")");

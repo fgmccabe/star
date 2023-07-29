@@ -324,7 +324,7 @@ star.compiler.data{
       (R,T1) = decodeType(T0);
       valis (consType(A,R),T1)
     }
-    `ϰ` => valof{
+    `x` => valof{
       (A,T0) = decodeType(Ts);
       (R,T1) = decodeType(T0);
       valis (continType(A,R),T1)
@@ -423,7 +423,7 @@ star.compiler.data{
     .tpExp(.tpExp(.tpFun("<=>",2),A),R) =>
       encodeType(deRef(R),encodeType(deRef(A),[`C`,..Chs])).
     .tpExp(.tpExp(.tpFun("=>>",2),A),R) =>
-      encodeType(deRef(R),encodeType(deRef(A),[`ϰ`,..Chs])).
+      encodeType(deRef(R),encodeType(deRef(A),[`x`,..Chs])).
     .tpExp(Op,A) =>
       encodeType(deRef(A),encodeType(deRef(Op),[`U`,..Chs])).
     .tupleType(Els) => encodeTypes(Els,[`(`,..Chs]).
