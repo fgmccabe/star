@@ -251,11 +251,11 @@ star.compiler.normalize{
   }
   liftExp(.dot(Lc,Rc,Fld,Tp),Map,Q,Ex) => valof{
     reportError("unexpected dot expression $(.dot(Lc,Rc,Fld,Tp))",Lc);
-    valis (.cVoid(Lc,Tp),[])
+    valis (.cVoid(Lc,Tp),Ex)
   }
   liftExp(.tdot(Lc,Rc,Ix,Tp),Map,Q,Ex) => valof{
     (LRc,Ex1) = liftExp(Rc,Map,Q,Ex);
-    valis (.cNth(Lc,LRc,Ix,Tp),[])
+    valis (.cNth(Lc,LRc,Ix,Tp),Ex1)
   }
   liftExp(.conj(Lc,L,R),Map,Q,Ex) => valof{
     (LL,Ex1) = liftExp(L,Map,Q,Ex);

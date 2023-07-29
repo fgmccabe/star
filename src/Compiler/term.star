@@ -1136,9 +1136,9 @@ star.compiler.term{
     .cRaise(Lc,Th,X,Tp) => mkCons("rais",[Lc::data,frzeExp(Th),
 	frzeExp(X),.strg(encodeSignature(Tp))]).
     .cSpawn(Lc,L,Tp) => mkCons("spawn",[Lc::data,frzeExp(L),
-	strg(encodeSignature(Tp))]).
+	.strg(encodeSignature(Tp))]).
     .cPaus(Lc,L,Tp) => mkCons("pause",[Lc::data,frzeExp(L),
-	strg(encodeSignature(Tp))]).
+	.strg(encodeSignature(Tp))]).
     .cSusp(Lc,F,E,Tp) => mkCons("susp",[Lc::data,frzeExp(F),
 	frzeExp(E),.strg(encodeSignature(Tp))]).
     .cResume(Lc,F,E,Tp) => mkCons("rsume",[Lc::data,frzeExp(F),

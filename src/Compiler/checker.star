@@ -944,7 +944,6 @@ star.compiler.checker{
       valis .apply(Lc,Fun,Args,Tp)
     } else{
       reportError("type of $(Op)\:$(ExTp) not consistent with $(FnTp)",Lc);
-      logMsg(disp(Env));
       valis .vr(Lc,"_",Tp)
     }
   }

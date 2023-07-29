@@ -123,12 +123,12 @@ star.compiler{
 	      };
 	      valis simplifyDefs(N);
 	    } || N);
-	  validProg(Inlined,IDecls++Decls);
+	  validProg(Inlined,AllDecls);
 	  if showNormalize! then{
-	    logMsg("normalized code $(Inlined)");
+	    logMsg("normalized code #(dispCrProg(Inlined))");
 	  };
 	  if errorFree() && genCode! then{
-	    Segs = compProg(P,Inlined,IDecls++Decls);
+	    Segs = compProg(P,Inlined,AllDecls);
 
 	    if showCode! then{
 	      logMsg("Generated code:");
