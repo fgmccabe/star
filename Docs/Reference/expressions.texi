@@ -362,10 +362,10 @@ In addition, @var{BlockString}s can span multiple lines whereas
 @node Algebraic Constructor Expressions
 @section Algebraic Constructor Expressions
 
-The @refer{AlgebraicConstructor} expressions are those that refer to
+The @refer{Constructor} expressions are those that refer to
 constructors that are defined in @refer{AlgebraicTypeDefinition}s.
 
-There are three primary forms of @refer{AlgebraicConstructor}s:
+There are three primary forms of @refer{Constructor}s:
 @itemize
 @item
 @refer{EnumeratedSymbol}s
