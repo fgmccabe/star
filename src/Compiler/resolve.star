@@ -569,14 +569,14 @@ star.compiler.resolve{
     if .tupleType(Els) .= deRef(typeOf(Rc)) then{
       if ElTp ?= Els[Ix] then{
 	if sameType(ElTp,Tp,Dict) then{
-	  valis (tdot(Lc,Rc,Ix,Tp),St)
+	  valis (.tdot(Lc,Rc,Ix,Tp),St)
 	} else{
-	  valis (tdot(Lc,Rc,Ix,Tp),
+	  valis (.tdot(Lc,Rc,Ix,Tp),
 	    .active(Lc,"type of $(Rc).$(Ix)\:$(ElTp) not consistent with required type $(Tp)"))
 	}
       }
     } else{
-      valis (tdot(Lc,Rc,Ix,Tp),
+      valis (.tdot(Lc,Rc,Ix,Tp),
 	.active(Lc,"type of $(Rc)\:$(typeOf(Rc)) not known to be a tuple type of length > $(Ix)"))
     }
   }

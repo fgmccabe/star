@@ -670,7 +670,7 @@ star.compiler.typeparse{
       XX = .vr(Lc,"X",FldTp);
       ConArgs = projectArgTypes(Sorted,0,(FLc,_,ATp) => .anon(FLc,ATp),XX,Fld,Fields);
       
-      Eqn = rule(Lc,.tple(Lc,[
+      Eqn = .rule(Lc,.tple(Lc,[
 	    .apply(Lc,.enm(Lc,CnNm,consType(.tupleType(ConArgs//typeOf),RcTp)),ConArgs,RcTp)]),
 	.none,XX);
       valis [Eqn,..SoFar]
@@ -708,7 +708,7 @@ star.compiler.typeparse{
       RepArgs = projectArgTypes(Sorted,0,(FLc,Ix,FTp)=>.vr(FLc,"X$(Ix)",FTp),XX,Fld,Fields);
       ConsTp = consType(.tupleType(ConArgs//typeOf),RcTp);
       
-      Eqn = rule(Lc,.tple(Lc,[.apply(Lc,.enm(Lc,CnNm,ConsTp),ConArgs,RcTp),XX]),
+      Eqn = .rule(Lc,.tple(Lc,[.apply(Lc,.enm(Lc,CnNm,ConsTp),ConArgs,RcTp),XX]),
 	.none,.apply(Lc,.enm(Lc,CnNm,ConsTp),RepArgs,RcTp));
       valis [Eqn,..SoFar]
     }.
