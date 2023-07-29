@@ -810,7 +810,8 @@ mergeDuplicate([(P,H,E)|M],H,[(P,E)|Ds],Rs) :-!,
   mergeDuplicate(M,H,Ds,Rs).
 mergeDuplicate(M,_,[],M).
 
-compCases([],Mx,Mx,_Succ,_,_,_,_Brks,_Opts,Lx,Lx,D,D,Tc,Tc,C,C,_Stk).
+compCases([],Ix,Mx,_Succ,_,_,_,_Brks,_Opts,Lx,Lx,D,D,Tc,Tc,C,C,_Stk) :-
+  Ix>=Mx.
 compCases([],Ix,Mx,Succ,Fail,Dflt,Hndlr,Brks,Opts,L,Lx,D,Dx,
 	  [iJmp(Dflt)|Tc],Tx,C,Cx,Stk) :-
   Ix1 is Ix+1,
@@ -837,15 +838,17 @@ compCaseBranch([(P,E,Lc)|SC],Lbl,Succ,Fail,Hndlr,Brks,Opts,L,Lx,D,Dx,
 	       [iLbl(Lbl),iTL(Off),iLbl(VLb)|C],Cx,Stk,Stkx) :-
   genLbl(L,Fl,L1),
   genLbl(L1,VLb,L2),
-  genLbl(L2,End,L4),
+  genLbl(L2,Nxt,L3),
+  genLbl(L3,End,L4),
   defineLclVar("__",VLb,End,Opts,D,D1,Off,C,C0),
   genLine(Opts,Lc,C0,C1),
   dropStk(Stk,1,Stk0),
-  compPtn(P,Lc,compExp(E,Lc,Succ,End,Brks,Opts),resetCont(Stk0,contCont(Fl)),
-	  End,Brks,Opts,L4,L5,D1,D2,C1,[iLbl(End),iLbl(Fl)|C2],Stk,Stk1),
-  resetVars(D1,D2,D3),
-  compMoreCase(SC,Off,Succ,Fail,Hndlr,Brks,Opts,L5,Lx,D3,Dx,C2,Cx,Stk0,Stk2),
-  mergeStkLvl(Stk1,Stk2,Stkx,"case branch stack").
+  compPtn(P,Lc,contCont(Nxt),resetCont(Stk0,contCont(Fl)),
+	  End,Brks,Opts,L4,L5,D1,D2,C1,[iLbl(Nxt)|C2],Stk,Stk1),
+  call(Hndlr,E,Lc,Succ,End,Brks,Opts,L5,L6,D2,D3,C2,[iLbl(Fl),iLbl(End)|C3],Stk1,Stk2),
+  resetVars(D1,D3,D4),
+  compMoreCase(SC,Off,Succ,Fail,Hndlr,Brks,Opts,L6,Lx,D4,Dx,C3,Cx,Stk0,Stk3),
+  mergeStkLvl(Stk2,Stk3,Stkx,"case branch stack").
 
 compMoreCase([],_Vlb,_Succ,Fail,_Hndlr,_Brks,_Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   call(Fail,L,Lx,D,Dx,C,Cx,Stk,Stkx).

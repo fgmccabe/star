@@ -311,6 +311,10 @@ surfaceName(T,Nm) :-
   isTuple(T,_,A),
   length(A,Ar),
   swritef(Nm,"()%d",[Ar]).
+surfaceName(T,"=>>") :-
+  isContinType(T,_,_,_).
+surfaceName(T,"=>") :-
+  isFuncType(T,_,_,_).
 
 isDynamic(A,Lc,Nm,Tp) :-
   isBinary(A,Lc,"|=",L,Tp),!,

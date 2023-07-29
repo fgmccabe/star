@@ -453,6 +453,8 @@ tpNm(typeLambda(_,R),Nm) :-
 tpNm(tplType(Els),Nm) :-
   length(Els,Ar),
   swritef(Nm,"()%d",[Ar]).
+tpNm(funType(_,_),"=>").
+tpNm(continType(_,_),"=>>").
 tpNm(faceType(Flds,_),Nm) :-
   sort(Flds,types:cmpFld,SFlds),
   project0(SFlds,Fns),

@@ -153,11 +153,6 @@ ReturnStatus g__repo(heapPo h) {
   return (ReturnStatus) {.result = repo, .ret=Ok};
 }
 
-ReturnStatus g__getlogin(heapPo h) {
-  return (ReturnStatus) {.ret=Ok,
-    .result=(termPo) allocateCString(h, getlogin())};
-}
-
 ReturnStatus g__shell(heapPo h, termPo a1, termPo a2, termPo a3) {
   switchProcessState(currentProcess, wait_io);
 

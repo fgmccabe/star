@@ -185,14 +185,13 @@ char *dumpPrologSig(char *sig, strBufferPo out) {
       sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ")");
       return sig;
-    case throwsSig: {
-      outStr(O_IO(out), "throwsType(");
+    case contSig:
+      outStr(O_IO(out), "continType(");
       sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ",");
       sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ")");
       return sig;
-    }
     case faceSig: {
       outStr(O_IO(out), "faceType(");
       sig = dFields(sig, dumpPrologSig, out);
@@ -344,8 +343,8 @@ static char *dumpStarSig(char *sig, strBufferPo out) {
       outStr(O_IO(out), ")");
       return sig;
     }
-    case throwsSig: {
-      outStr(O_IO(out), ".throwsType(");
+    case contSig: {
+      outStr(O_IO(out), ".tpExp(.tpExp(.tpFun(\"=>>\",2),");
       sig = dumpStarSig(sig, out);
       outStr(O_IO(out), "),");
       sig = dumpStarSig(sig, out);
