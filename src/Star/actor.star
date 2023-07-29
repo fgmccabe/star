@@ -3,8 +3,8 @@ star.actor{
   import star.mbox.
 
   public contract all a,i ~~ sa[a->>i] ::= {
-    _query:all x ~~ (a,(i)=>x) => x raises exception.
-    _tell:(a,(i)=>()) => () raises exception.
+    _query:all x ~~ (a,(i)=>x) => x raises mboxException.
+    _tell:(a,(i)=>()) => () raises mboxException.
   }
 
   public actorProtocol[i] ::=

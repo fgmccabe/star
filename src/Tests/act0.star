@@ -13,6 +13,13 @@ test.act0{
     disp(.pong) => "pong".
   }
 
+  implementation equality[pingPong] => {
+    .ping == .ping => .true.
+    .pong == .pong => .true.
+    _ == _ default => .false.
+  }
+
+
   -- ping actor, replies with a pong for every ping, and vice versa
 
   pingBody::=pingBody{
@@ -36,6 +43,8 @@ test.act0{
       Rs = _query(png,(P:pingBody)=>P.ping());
     
       logMsg("$(Rs)");
+
+      assert Rs==.pong;
     } catch { _ => logMsg("huh?")
     };
     valis ()

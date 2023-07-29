@@ -75,6 +75,8 @@ star.compiler.macro{
     mkEnumCon(Lc,macroTerm(O),Els//macroType).
   examineConstructor(A) where (Lc,O,Q,C,Els) ?= isBraceCon(A) => 
     reUQuant(Lc,Q//macroType,reConstrain(C//macroType,braceTerm(Lc,O,Els//macroTypeDef))).
+  examineConstructor(A) where (Lc,Q,I) ?= isQuantified(A) =>
+    reUQuant(Lc,Q//macroType,macroAlgebraic(I)).
   examineConstructor(A) where (Lc,Q,I) ?= isXQuantified(A) =>
     reXQuant(Lc,Q//macroType,macroAlgebraic(I)).
   examineConstructor(A) => valof{
@@ -257,6 +259,8 @@ star.compiler.macro{
     ternary(Lc,"_slice",macroTerm(L),macroTerm(F),macroTerm(R)).
   examineTerm(A) where (Lc,R,F) ?= isFieldAcc(A) =>
     mkFieldAcc(Lc,macroTerm(R),F).
+  examineTerm(A) where (Lc,R,F) ?= isTupleAcc(A) =>
+    mkTupleAcc(Lc,macroTerm(R),F).
   examineTerm(A) where (Lc,E,Cs) ?= isCase(A) =>
     mkCaseExp(Lc,macroTerm(E),Cs//macroLambda).
   examineTerm(A) default => valof{

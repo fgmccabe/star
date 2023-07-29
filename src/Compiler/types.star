@@ -385,7 +385,7 @@ star.compiler.types{
   ar(Tp) where .tupleType(A).=Tp => size(A).
   ar(Tp) where .allType(_,I) .= Tp => arity(I).
   ar(Tp) where .existType(_,I) .= Tp => arity(I).
-  ar(Tp) where .constrainedType(T,_).=Tp => arity(T).
+  ar(Tp) where .constrainedType(T,_).=Tp => arity(T)+1.
   ar(_) default => 0.
   
   public funType(A,B) => fnType(.tupleType(A),B).
@@ -533,6 +533,8 @@ star.compiler.types{
 
   occIn(Id,.tVar(_,Nm)) => Id==Nm.
   occIn(Id,.tFun(_,_,Nm)) => Id==Nm.
+  occIn(Id,.nomnal(Nm)) => Id==Nm.
+  occIn(Id,.kFun(Nm,_)) => Id==Nm.
   occIn(Id,.tpExp(O,A)) => occIn(Id,deRef(O)) || occIn(Id,deRef(A)).
   occIn(Id,.tupleType(Els)) => {? El in Els && occIn(Id,deRef(El)) ?}.
   occIn(Id,.allType(_,B)) => occIn(Id,deRef(B)).
@@ -550,4 +552,6 @@ star.compiler.types{
 
   vrNm(.tVar(_,Nm)) => Nm.
   vrNm(.tFun(_,_,Nm)) => Nm.
+  vrNm(.kFun(Nm,_)) => Nm.
+  vrNm(.nomnal(Nm)) => Nm.
 }

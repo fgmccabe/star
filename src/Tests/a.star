@@ -18,6 +18,9 @@ test.a{
       assert 3~=2;
       show o;
       assert o==1;
+
+      logMsg("\e[33m#("yellow")\e[0m");
+      logMsg("\e[31mred\e[0m");
       
       valis ()
     } catch {

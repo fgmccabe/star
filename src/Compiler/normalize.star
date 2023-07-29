@@ -204,7 +204,7 @@ star.compiler.normalize{
 
   liftPtnCallOp:(option[locn],string,cons[cExp],tipe,nameMap,set[cId],cons[cDefn]) =>
     (cExp,cons[cDefn]).
-  liftPtnCallOp(Lc,Nm,Args,Tp,Map,Q,Ex) where Entry?= lookupVarName(Map,Nm) =>
+  liftPtnCallOp(Lc,Nm,Args,Tp,Map,Q,Ex) where Entry ?= lookupVarName(Map,Nm) =>
     implementPtnCall(Lc,Entry,Args,Tp,Map,Q,Ex).
 
   implementPtnCall(Lc,.moduleCons(Nm,CTp),Args,Tp,_,_,Ex) =>
@@ -252,6 +252,10 @@ star.compiler.normalize{
   liftExp(.dot(Lc,Rc,Fld,Tp),Map,Q,Ex) => valof{
     reportError("unexpected dot expression $(.dot(Lc,Rc,Fld,Tp))",Lc);
     valis (.cVoid(Lc,Tp),[])
+  }
+  liftExp(.tdot(Lc,Rc,Ix,Tp),Map,Q,Ex) => valof{
+    (LRc,Ex1) = liftExp(Rc,Map,Q,Ex);
+    valis (.cNth(Lc,LRc,Ix,Tp),[])
   }
   liftExp(.conj(Lc,L,R),Map,Q,Ex) => valof{
     (LL,Ex1) = liftExp(L,Map,Q,Ex);
@@ -452,7 +456,7 @@ star.compiler.normalize{
     allFree = freeVars++lVars;
 
     if [SFr] .= allFree && isEmpty(lVars) then {
-      MM = [.lyr(.some(SFr),foldRight((D,LL)=>collectMtd(D,.some(SFr),LL),[],GrpFns),CM),..Outer];
+      MM = [.lyr(.some(SFr),foldRight((D,LL)=>collectMtd(D,.some(SFr),LL),[],Decls),CM),..Outer];
       M = Outer;
       GrpQ = foldLeft(collectQ,Q\+SFr,Defs);
       Ex1 = transformGroup(GrpFns,Outer,Outer,GrpQ,.some(.cVar(Lc,SFr)),Ex);
@@ -465,7 +469,7 @@ star.compiler.normalize{
 
       L = collectLabelVars(allFree,ThV,0,[]);
 
-      MM = [.lyr(.some(ThV),foldRight((D,LL)=>collectMtd(D,.some(ThV),LL),L,GrpFns),CM),..Outer];
+      MM = [.lyr(.some(ThV),foldRight((D,LL)=>collectMtd(D,.some(ThV),LL),L,Decls),CM),..Outer];
 
       M = [.lyr(.some(ThV),L,CM),..Outer];
 
@@ -496,7 +500,7 @@ star.compiler.normalize{
   liftLetRec:all e,x ~~ transform[e->>x],letify[x] |:
     (option[locn],cons[canonDef],cons[decl],e,nameMap,set[cId],set[cId],
       cons[cDefn]) => crFlow[x].
-  liftLetRec(Lc,Grp,Decs,Bnd,Outer,Q,Free,Ex) => valof{
+  liftLetRec(Lc,Grp,Decls,Bnd,Outer,Q,Free,Ex) => valof{
     GrpFns = (Grp^/(D)=>~_?=isVarDef(D));
     GrpVars = (Grp^/(D)=>_?=isVarDef(D));
 
@@ -509,7 +513,7 @@ star.compiler.normalize{
     ThV = genVar("_ThVr",typeOf(freeVars++lVars));
     ThVr = .cVar(Lc,ThV);
 
-    CM = makeConsMap(Decs);
+    CM = makeConsMap(Decls);
 
     L = collectLabelVars(lVars,ThV,size(freeVars),collectLabelVars(freeVars,ThV,0,[]));
 
@@ -517,7 +521,7 @@ star.compiler.normalize{
       logMsg("L = $(L)")
     };
 
-    M = [.lyr(.some(ThV),foldRight((D,LL)=>collectMtd(D,.some(ThV),LL),L,GrpFns),CM),..Outer];
+    M = [.lyr(.some(ThV),foldRight((D,LL)=>collectMtd(D,.some(ThV),LL),L,Decls),CM),..Outer];
 
     freeArgs = (freeVars//(.cId(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer));
     GrpQ = foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q\+ThV,lVars),Grp);
@@ -747,21 +751,21 @@ star.compiler.normalize{
     freeParent(ThV,Map).
   freeParent(V,_) default => V.
 
-  collectMtd:(canonDef,option[cId],map[string,nameMapEntry])=>map[string,nameMapEntry].
+  collectMtd:(decl,option[cId],map[string,nameMapEntry])=>map[string,nameMapEntry].
 
-  collectMtd(.varDef(Lc,Nm,Val,_,Tp),.some(ThVr),LL) where isFunDef(Val) =>
-    LL[Nm->.localFun(Nm,closureNm(Nm),arity(Tp)+1,ThVr)].
-  collectMtd(.varDef(Lc,Nm,Val,_,Tp),.none,LL) where isFunDef(Val) =>
-    LL[Nm->.moduleFun(.cClos(Lc,closureNm(Nm),arity(Tp)+1,crTpl(Lc,[]),Tp),Nm)].
-  collectMtd(.varDef(Lc,Nm,Val,_,Tp),.none,LL) =>
-    LL[Nm->.globalVar(Nm,Tp)].
-  collectMtd(.varDef(Lc,Nm,Val,_,Tp),.some(ThVr),LL) => LL.
-  collectMtd(.varDef(Lc,Nm,Val,_,Tp),.some(ThVr),LL) =>
-    LL[Nm->.localVar(.cCall(Lc,varClosureNm(Nm),[.cVar(Lc,ThVr)],Tp))].
-  collectMtd(.implDef(Lc,_,FullNm,Val,Cx,Tp),ThVr,LL) =>
-    collectMtd(.varDef(Lc,FullNm,Val,Cx,Tp),ThVr,LL).
-  collectMtd(.typeDef(_,_,_,_),_,LL) => LL.
-  collectMts(.cnsDef(_,_,_,_),_,LL) => LL.
+  collectMtd(.funDec(Lc,Nm,FullNm,Tp),.some(ThVr),LL) => valof{
+    Entry = .localFun(FullNm,closureNm(FullNm),arity(Tp)+1,ThVr);
+    valis LL[Nm->Entry][FullNm->Entry]
+  }
+  collectMtd(.funDec(Lc,Nm,FullNm,Tp),.none,LL) => valof{
+    Entry = .moduleFun(.cClos(Lc,closureNm(FullNm),arity(Tp)+1,crTpl(Lc,[]),Tp),Nm);
+    valis LL[Nm->Entry][FullNm->Entry]
+  }
+  collectMtd(.varDec(Lc,Nm,Val,Tp),.none,LL) => LL[Nm->.globalVar(Nm,Tp)].
+  collectMtd(.varDec(Lc,Nm,Val,Tp),.some(ThVr),LL) => LL.
+  collectMtd(.cnsDec(Lc,Nm,FullNm,Tp),.none,LL) => LL[Nm->.moduleCons(FullNm,Tp)].
+  collectMtd(.cnsDec(Lc,Nm,FullNm,Tp),.some(ThVr),LL) => LL[Nm->.localCons(FullNm,Tp,ThVr)].
+  collectMtd(_,_,LL) default => LL.
 
   collectQ:(canonDef,set[cId]) => set[cId].
   collectQ(.varDef(Lc,Nm,Val,_,Tp),Q) => Q\+.cId(Nm,Tp).
