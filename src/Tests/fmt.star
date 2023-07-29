@@ -5,6 +5,8 @@ test.fmt{
   TstStr = "theBeginningTheMiddleTheEnd".
   Middle = "theMiddle".
 
+  List = (["alpha","beta","gamma"]:cons[string]).
+
   main:()=>().
   main()=>valof{
     bar = "bar";
@@ -22,6 +24,8 @@ test.fmt{
     assert "$(Middle):-5C15;" == "     iddle     ";
     assert "$(Middle):-5L15;" == "iddle          ";
     assert "$(Middle):-5R15;" == "          iddle";
+
+    assert "$(List):<[L10*,..##]>;" == "<alpha*****##beta******##gamma*****>";
     valis ()
   }
 }
