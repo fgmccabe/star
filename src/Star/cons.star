@@ -4,7 +4,7 @@ star.cons{
   import star.iterable.
   import star.monad.
   import star.coerce.
---  import star.fiber.
+  import star.strings.
 
   public implementation all x ~~ equality[x] |: equality[cons[x]] => let{.
     smList:all x ~~ equality[x] |: (cons[x],cons[x]) => boolean.
@@ -136,6 +136,38 @@ star.cons{
     consDisp(.cons(X,R),L) => .cons(disp(X), .cons(",", consDisp(R,L))).
  .} in {
     disp(L) => _str_multicat(.cons("[",consDisp(L,.cons("]",.nil))))
+  }
+
+  -- Format a list
+  -- syntax: $(L):pre[fmt,..sep]post;
+  -- pre is displayed before the list,
+  -- post is displayed after the list
+  -- sep is displayed between each element
+  -- fmt is used to format each element
+  public implementation all e ~~ format[e] |: format[cons[e]] => let{.
+    splitFormat(F) => valof{
+      if Ix ?= strFind(F,"[",0) && Iz ?= strFind(F,"]",Ix) && Iy ?= strFind(F,",..",Ix) then{
+	Pre = subString(F,0,Ix);
+	Sep = subString(F,Iy+3,Iz-Iy-3);
+	Post = subString(F,Iz+1,[|F|]);
+	ElFmt = subString(F,Ix+1,Iy-Ix-1);
+	valis .some((Pre,ElFmt,Sep,Post))
+      }
+      else{
+	valis .none
+      }
+    }
+    consFmt(.nil,_,_,L) => L.
+    consFmt(.cons(X,.nil),Fmt,_,L) => .cons(_format(X,Fmt), L).
+    consFmt(.cons(X,R),Fmt,Sep,L) => .cons(_format(X,Fmt), .cons(Sep, consFmt(R,Fmt,Sep,L))).
+  .} in {
+    _format(L,Fmt) => valof{
+      if (Pre,ElF,Sep,Post)?=splitFormat(Fmt) then
+	valis _str_multicat(.cons(Pre,consFmt(L,ElF,Sep,.cons(Post,.nil))))
+      else{
+	valis _str_multicat(.cons("[",consFmt(L,Fmt,", ",.cons("]",.nil))))
+      }
+    }
   }
 
   public implementation functor[cons] => let{.
