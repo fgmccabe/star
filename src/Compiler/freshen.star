@@ -140,4 +140,6 @@ star.compiler.freshen{
     .hasField(frshnD(V,Env),F,frshnD(T,Env)).
   frshnConstraint(.implicit(N,T),Env) =>
     .implicit(N,frshn(T,Env)).
+  frshnConstraint(.raisEs(T),Env) =>
+    .raisEs(frshn(T,Env)).
 }

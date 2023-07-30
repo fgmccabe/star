@@ -31,7 +31,7 @@ test.as2{
     check(_,_) default => reset().
   .} in check.
 
-  notMuch:()=>() raises ().
+  notMuch:raises () |: ()=>().
   notMuch()=>valof{
     logMsg("hello there");
     raise ()

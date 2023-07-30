@@ -52,7 +52,7 @@
 	      isValof/3,mkValof/3,isValis/3,mkValis/3,
 	      isTryCatch/4,mkTryCatch/4,
 	      isRaise/3,mkRaise/3,
-	      isRaises/4,mkRaises/4,
+	      isRaises/3,mkRaises/3,
 	      isDynamic/4,mkDynamic/4,
 	      isBreak/3,mkBreak/3,isLbldAction/4,mkLbldAction/4,
 	      isIfThenElse/5,isIfThen/4,mkIfThenElse/5,mkIfThen/4,
@@ -863,11 +863,11 @@ isRaise(A,Lc,E) :-
 mkRaise(Lc,A,E) :-
   unary(Lc,"raise",A,E).
 
-isRaises(A,Lc,E,T) :-
-  isBinary(A,Lc,"raises",E,T).
+isRaises(A,Lc,T) :-
+  isUnary(A,Lc,"raises",T).
 
-mkRaises(Lc,E,T,A) :-
-  binary(Lc,"raises",E,T,A).
+mkRaises(Lc,T,A) :-
+  unary(Lc,"raises",T,A).
 
 isInvoke(T,Lc,O,As) :-
   isBinary(T,Lc,".",O,R),

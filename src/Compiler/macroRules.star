@@ -64,10 +64,7 @@ star.compiler.macro.rules{
     "trace" -> [(.expression,traceMacro)],
     "generator" -> [(.expression,generatorMacro)],
     "yield" -> [(.actn,yieldMacro)],
-    "->" -> [(.expression,arrowMacro),(.pattern,arrowMacro)],
-    "raises" -> [(.typeterm,raisesMacro)]
---    "raise" -> [(.expression, raiseMacro),(.actn,raiseMacro)],
---    "try" -> [(.expression, tryMacro), (.actn,tryMacro)]
+    "->" -> [(.expression,arrowMacro),(.pattern,arrowMacro)]
   }.
 
   -- Convert assert C to assrt(C,"failed C",Loc)
@@ -422,86 +419,6 @@ star.compiler.macro.rules{
     /* Build suspend */
     valis .active(mkCaseExp(Lc,mkSuspend(Lc,This,mkEnumCon(Lc,.nme(Lc,"_yld"),[E])),[Nxt,Cancel]))
   }
-
-  /*
-  (A)=>R raises E
-  becomes
-  _raise|=all t ~~ cont[t] |: (A)=>R
-  */
-
-  raisesMacro(A,.typeterm) where (Lc,T,Th) ?= isRaises(A) =>
-    .active(reConstrain([mkImplicit(Lc,"_raise",mkContType(Lc,Th))],T)).
-  raisesMacro(_,_) default => .inactive.
-
-  /* raise E
-  becomes
-  _raise(E)
-  */
-
-  raiseMacro(A,Sc) where (Sc==.expression || Sc==.actn) && (Lc,E) ?= isRaise(A) =>
-    .active(unary(Lc,"_raise",E)).
-  raiseMacro(_,_) default => .inactive.
-
-  /*
-  try B catch H expression
-  becomes
-  case Try spawn (let{
-      _raise(E) => valof{
-        Try retire ._except(E)
-      }
-    } in
-    ._ok(B) ) in {
-    ._ok(X) => X
-    ._except(E) => case E in H
-  }
-  */
-
-  tryMacro(A,.expression) where (Lc,B,H) ?= isTryCatch(A) => valof{
-    -- Build _raise function
-    E = genName(Lc,"E");
-    T = genName(Lc,"Try");
-    X = genName(Lc,"X");
-    XC = mkEnumCon(Lc,.nme(Lc,"_except"),[E]);
-
-    Thrw = equation(Lc,unary(Lc,"_raise",E),
-      mkValof(Lc,brTuple(Lc,[mkRetire(Lc,T,XC)])));
-    Ltt = mkLetDef(Lc,[Thrw],mkEnumCon(Lc,.nme(Lc,"_ok"),[B]));
-    Cs1 = equation(Lc,mkEnumCon(Lc,.nme(Lc,"_ok"),[X]),X);
-    Cs2 = equation(Lc,XC, mkCaseExp(Lc,E,H));
-    
-    valis .active(mkCaseExp(Lc,mkSpawn(Lc,T,Ltt),[Cs1,Cs2]));
-  }.
-  /*
-  try B catch H action
-  becomes
-  case Try spawn(let{
-    _raise(E) => valof{
-      Try retire ._except(E)
-    }
-  } in {
-  B; -- valis E => valis ._ok(E)		-- 
-  }) in {
-  ._ok(_) => {}
-  ._except(E) => case E in H
-  }
-  */
-  
-  tryMacro(A,.actn) where (Lc,B,H) ?= isTryCatch(A) => valof{
-    -- Build _raise function
-    E = genName(Lc,"E");
-    T = genName(Lc,"Try");
-    X = genName(Lc,"X");
-    XC = mkEnumCon(Lc,.nme(Lc,"_except"),[E]);
-
-    Thrw = equation(Lc,unary(Lc,"_raise",E),
-    mkValof(Lc,brTuple(Lc,[mkRetire(Lc,T,XC)])));
-    Ltt = mkLetDef(Lc,[Thrw],mkEnumCon(Lc,.nme(Lc,"_ok"),[mkValof(Lc,B)]));
-    Cs1 = equation(Lc,mkEnumCon(Lc,.nme(Lc,"_ok"),[mkAnon(Lc)]),brTuple(Lc,[]));
-    Cs2 = equation(Lc,XC, mkCaseExp(Lc,E,H));
-    
-    valis .active(mkCaseExp(Lc,mkSpawn(Lc,T,Ltt),[Cs1,Cs2]));
-  }
-  tryMacro(_,_) default => .inactive.
 
   implementationMacro(A,.statement) where
       (Lc,Q,C,H,E) ?= isImplementationStmt(A) &&

@@ -155,15 +155,6 @@ examineType(T,Tx) :-
   macroType(I,Ix),
   reConstrain(Cx,Ix,Tx).
 examineType(T,Tx) :-
-  isDynamic(T,Lc,Nm,Tp),
-  macroType(Tp,TTp),
-  mkDynamic(Lc,Nm,TTp,Tx).
-examineType(T,Tx) :-
-  isRaises(T,Lc,V,E),
-  macroType(V,Vx),
-  macroType(E,Ex),
-  mkRaises(Lc,Vx,Ex,Tx).
-examineType(T,Tx) :-
   isTypeExists(T,Lc,L,R),!,
   macroType(L,Lx),
   macroType(R,Rx),
@@ -239,6 +230,10 @@ examineConstraint(T,Tx) :-
   isDynamic(T,Lc,Nm,Tp),
   macroType(Tp,TTp),
   mkDynamic(Lc,Nm,TTp,Tx).
+examineConstraint(T,Tx) :-
+  isRaises(T,Lc,E),
+  macroType(E,Ex),
+  mkRaises(Lc,Ex,Tx).
 examineConstraint(T,Tx) :-
   isTypeExists(T,Lc,L,R),!,
   macroType(L,Lx),

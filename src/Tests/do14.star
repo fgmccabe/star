@@ -3,7 +3,7 @@ test.do14{
   import star.
   import star.script.
 
-  isEven:(integer) => boolean raises string.
+  isEven: raises string |: (integer) => boolean.
   isEven(X) where X%2==0 => .true.
   isEven(X) default => raise "$(X) not even".
 

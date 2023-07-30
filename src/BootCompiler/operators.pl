@@ -65,8 +65,8 @@
   operator("contract", [prefixOp(1560, 1559)]).
   operator("\\/", [infixOp(720, 720, 719)]).
   operator("-", [prefixOp(300, 299), infixOp(720, 720, 719)]).
-  operator("raises", [infixOp(999, 1000, 999)]).
   operator(".", [prefixOp(10, 9), infixOp(100, 100, 99)]).
+  operator("raises", [prefixOp(999, 998)]).
   operator("spawn", [infixOp(929, 930, 929)]).
   operator("/", [infixOp(700, 700, 699)]).
   operator("try", [prefixOp(1200, 1199)]).
@@ -384,8 +384,8 @@
   keyword(",").
   keyword("contract").
   keyword("./").
-  keyword("raises").
   keyword(".").
+  keyword("raises").
   keyword("spawn").
   keyword("try").
   keyword("exists").

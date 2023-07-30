@@ -30,7 +30,7 @@ star.mbox{
     disp(.deadlock) => "deadlocked"
   }
 
-  public post:all e,d ~~ (this:task[e])|:(d,channel[d])=>() raises mboxException.
+  public post:all e,d ~~ (this:task[e]), raises mboxException |: (d,channel[d])=>().
   post(D,Ch where .channel(St).=Ch) => valof{
     case St! in {
       .hasData(_) => {
@@ -49,7 +49,7 @@ star.mbox{
     }
   }
 
-  public collect:all d,e ~~ (this:task[e])|:(channel[d]) => d raises mboxException.
+  public collect:all d,e ~~ (this:task[e]), raises mboxException |:(channel[d]) => d.
   collect(Ch where .channel(St).=Ch) => valof{
     case St! in {
       .hasData(D) => {
@@ -81,7 +81,7 @@ star.mbox{
     .identify(Tsk) => Tsk
     }.
 
-  public nursery:all e ~~ (cons[taskFun[e]]) => e raises mboxException.
+  public nursery:all e ~~ raises mboxException |: (cons[taskFun[e]]) => e.
   nursery(Ts) => valof{
     Q := (Ts//spawnTask)::qc[task[e]];
     BlockQ := ([]:cons[(()=>boolean,task[e])]);
@@ -134,7 +134,7 @@ star.mbox{
   testBlocked([(P,T),..Q],BQ,Ws) =>
     testBlocked(Q,[(P,T),..BQ],Ws).
 
-  public pause:all e ~~ this |= task[e] |: () => () raises mboxException.
+  public pause:all e ~~ this |= task[e], raises mboxException |: () => ().
   pause() => valof{
     case this suspend .yield_ in {
       .go_ahead => valis ()

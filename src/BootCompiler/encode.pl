@@ -135,6 +135,8 @@ encodeConstraint(implementsFace(V,Face),['a'|O],Ox) :-
 encodeConstraint(implicit(Nm,Tp),['d'|O],Ox) :-
   encodeText(Nm,O,O1),
   encodeType(Tp,O1,Ox).
+encodeConstraint(raises(Tp),['r'|O],Ox) :-
+  encodeType(Tp,O,Ox).
 
 encLtp(Tp,Sig) :-
   encodeLtipe(Tp,Chrs,[]),

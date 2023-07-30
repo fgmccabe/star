@@ -1064,18 +1064,16 @@ checkGuard(some(G),Env,Ev,some(Goal),Path) :-
   checkGoal(G,Env,Ev,Goal,Path).
 
 checkTryCatch(Lc,B,Hs,Tp,Env,Check,Body,Trw,Hndlr,Path) :-
-  newTypeVar("EE",ETp),
-  contType(ETp,CTp),
-  declareVr(Lc,"_raise",CTp,none,Env,Ev1),
-  Trw = v(Lc,"_raise",CTp),
+  newTypeVar("EE",ErTp),
+  declareVr(Lc,"$try",ErTp,none,Env,Ev1),
+  Trw = v(Lc,"$try",ErTp),
   call(Check,B,Tp,Ev1,_,Body,Path),
-  checkCases(Hs,ETp,Tp,Env,Hndlr,Eqx,Eqx,[],Check,Path),!.
+  checkCases(Hs,ErTp,Tp,Env,Hndlr,Eqx,Eqx,[],Check,Path),!.
 
 checkRaise(Lc,X,Env,Thrw,ErrExp,Path) :-
-  (getVar(Lc,"_raise",Env,Thrw,VTp) ->
+  (getVar(Lc,"$try",Env,Thrw,VTp) ->
    newTypeVar("E",ErTp),
-   contType(ErTp,CTp),
-   verifyType(Lc,ast(X),VTp,CTp,Env),
+   verifyType(Lc,ast(X),VTp,ErTp,Env),
    typeOfExp(X,ErTp,Env,_,ErrExp,Path);
    reportError("cannot raise exception %s here",[ast(X)],Lc),
    ErrExp=void,

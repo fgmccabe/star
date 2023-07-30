@@ -181,10 +181,10 @@ star.compiler.wff{
 
   public mkDepends(Lc,L,R) => binary(Lc,"->>",reComma(L),reComma(R)).
 
-  public isRaises:(ast) => option[(option[locn],ast,ast)].
-  isRaises(T) => isBinary(T,"raises").
+  public isRaises:(ast) => option[(option[locn],ast)].
+  isRaises(T) => isUnary(T,"raises").
 
-  public mkRaises(Lc,L,R) => binary(Lc,"raises",L,R).
+  public mkRaises(Lc,R) => unary(Lc,"raises",R).
 
   public isAnnotation:(ast) => option[(option[locn],ast,ast)].
   isAnnotation(A) where (Lc,L,R) ?= isBinary(A,"@") =>

@@ -2,7 +2,7 @@ test.do13{
   import star.
   import star.script.
 
-  maybeFail:(integer)=>integer raises integer.
+  maybeFail: raises integer |: (integer)=>integer.
   maybeFail(X) => valof{
     if X==10 then
       raise 10

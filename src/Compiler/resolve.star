@@ -138,6 +138,10 @@ star.compiler.resolve{
     valis defineCVars(Lc,Tps,[.vr(Lc,Nm,Tp),..Vrs],
       declareVar(Nm,Nm,Lc,Tp,.none,D))
   }
+  defineCVars(Lc,[.raisEs(Tp),..Tps],Vrs,D) => valof{
+    valis defineCVars(Lc,Tps,[.vr(Lc,"$try",Tp),..Vrs],
+      declareVar("$try","$try",Lc,Tp,.none,D))
+  }
 
   defineArgVars(Ptn,D) =>
     foldLeft(defineArg,D,ptnVars(Ptn,[],[])).
@@ -449,10 +453,7 @@ star.compiler.resolve{
     
   resolveConstraint:(option[locn],constraint,dict,resolveState) => (canon,resolveState).
   resolveConstraint(Lc,.implicit(Id,Tp),Dict,St) => valof{
-    -- if traceCanon! then
-    --   logMsg("resolve implicit $(Id)\:$(Tp)");
     if Var ?= findVar(Lc,Id,Dict) then{
---      logMsg("implicit $(Var)\:$(typeOf(Var))");
       if sameType(snd(freshen(Tp,Dict)),typeOf(Var),Dict) then {
 	valis (Var,markResolved(St))
       } else{
@@ -464,6 +465,22 @@ star.compiler.resolve{
       valis (.anon(Lc,Tp),.active(Lc,"cannot find an definition for implicit var #(Id)\:$(Tp)"))
     }
   }
+  resolveConstraint(Lc,.raisEs(Tp),Dict,St) => valof{
+    if traceCanon! then
+      logMsg("resolve raises $(Tp)");
+    if Var ?= findVar(Lc,"$try",Dict) then{
+      if sameType(snd(freshen(Tp,Dict)),typeOf(Var),Dict) then {
+	valis (Var,markResolved(St))
+      } else{
+	valis (.anon(Lc,Tp),
+	  .active(Lc,"raises $(typeOf(Var)) not consistent with expected type: $(Tp)"))
+      }
+    }
+    else{
+      valis (.anon(Lc,Tp),.active(Lc,"cannot find a exception context for $(Tp)"))
+    }
+  }
+  
   resolveConstraint(Lc,.hasField(RcTp,Fld,FldTp),Dict,St) => valof{
     if (AccessOp,St1) ?= resolveAccess(Lc,RcTp,Fld,FldTp,Dict,St) then{
       valis (AccessOp,St1)

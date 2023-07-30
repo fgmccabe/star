@@ -24,9 +24,11 @@ star.compiler.types{
     .typeLambda(tipe,tipe) |
     .allRule(tipe,typeRule).
 
-  public constraint ::= .conTract(string,cons[tipe],cons[tipe]) |
+  public constraint ::=
+    .conTract(string,cons[tipe],cons[tipe]) |
     .hasField(tipe,string,tipe) |
-    .implicit(string,tipe).
+    .implicit(string,tipe) |
+    .raisEs(tipe).
 
   tv ::= tv{
     binding : ref option[tipe].
@@ -165,6 +167,7 @@ star.compiler.types{
     eqType(T1,T2,Q) && eqType(R1,R2,Q).
   eqConstraint(.implicit(N1,T1),.implicit(N2,T2),Q) =>
     N1==N2 && eqType(T1,T2,Q).
+  eqConstraint(.raisEs(T1),.raisEs(T2),Q) => eqType(T1,T2,Q).
   eqConstraint(_,_,_) default => .false.
 
   identNmTypes(L1,L2,Q) => let{.
@@ -179,6 +182,7 @@ star.compiler.types{
     .conTract(N1,T1,D1) == .conTract(N2,T2,D2) => N1==N2 && T1==T2 && D1==D2.
     .hasField(V1,N1,T1) == .hasField(V2,N2,T2) => N1==N2 && V1==V2 && T1==T2.
     .implicit(N1,T1) == .implicit(N2,T2) => N1==N2 && T1==T2.
+    .raisEs(T1) == .raisEs(T2) => T1==T2.
     _ == _ default => .false.
   }
 
@@ -276,6 +280,7 @@ star.compiler.types{
   showConstraint(.conTract(Nm,T,D),Dp) => shContract(Nm,T,D,Dp).
   showConstraint(.hasField(Tp,Fld,Fc),Dp) => "#(showType(Tp,Dp)) <~ {#(Fld):#(showType(Fc,Dp))}".
   showConstraint(.implicit(Fld,Tp),Dp) => "#(Fld) : #(showType(Tp,Dp))".
+  showConstraint(.raisEs(Tp),Dp) => "raises #(showType(Tp,Dp))".
 
   showDeps([],_) => "".
   showDeps(Els,Dp) => "->>#(showTypes(Els,Dp)*)".
@@ -299,6 +304,7 @@ star.compiler.types{
 
     hshCon(.conTract(N,T,D)) => hshEls(hshEls(hash(N)*37,T),D).
     hshCon(.implicit(N,T)) => hash(N)*37+hash(T).
+    hshCon(.raisEs(T)) => hash(T).
     hshCon(.hasField(V,F,T)) =>
       ((hash("<~")*37+hash(F))*37+hsh(deRef(V)))*37+hsh(deRef(T)).
 
@@ -362,6 +368,7 @@ star.compiler.types{
     typeOf(.conTract(Nm,T,D)) => mkConType(Nm,T,D).
     typeOf(.hasField(Tp,_,FTp)) => funType([Tp],FTp).
     typeOf(.implicit(_,Tp)) => Tp.
+    typeOf(.raisEs(Tp)) => Tp.
   }
 
   public implementation all t ~~ hasType[t] |: hasType[cons[t]] => {
@@ -547,6 +554,7 @@ star.compiler.types{
   {? El in Dps && occIn(Id,deRef(El)) ?}.
   occInCon(Id,.hasField(T,_,F)) => occIn(Id,deRef(T)) || occIn(Id,deRef(F)).
   occInCon(Id,.implicit(_,T)) => occIn(Id,deRef(T)).
+  occInCon(Id,.raisEs(T)) => occIn(Id,deRef(T)).
 
   occInPrs(Id,Tps) => {? (_,El) in Tps && occIn(Id,deRef(El)) ?}.
 

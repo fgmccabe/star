@@ -202,10 +202,6 @@
 @tab left associative infix
 @tab 720
 @tab subtraction
-@item @code{raises}
-@tab non-associative infix
-@tab 1000
-@tab type of values that can raise exceptions
 @item @code{.}
 @tab non-associative prefix
 @tab 10
@@ -214,6 +210,10 @@
 @tab left associative infix
 @tab 100
 @tab object access
+@item @code{raises}
+@tab non-associative prefix
+@tab 999
+@tab can raise an exception
 @item @code{spawn}
 @tab non-associative infix
 @tab 930

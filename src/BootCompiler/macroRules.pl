@@ -36,7 +36,6 @@ macroRl(":=",expression,macroRules:spliceAssignMacro).
 macroRl(":=",expression,macroRules:indexAssignMacro).
 macroRl("=>",statement,macroRules:curryMacro).
 macroRl("=>",expression,macroRules:curryMacro).
-macroRl("raises",type,macroRules:raisesMacro).
 macroRl("do",action,macroRules:forLoopMacro).
 macroRl("->",expression,macroRules:arrowMacro).
 macroRl("->",pattern,macroRules:arrowMacro).
@@ -526,20 +525,6 @@ becomes
 arrowMacro(E,Md,Rp) :- (Md=expression;Md=pattern),
   isBinary(E,Lc,"->",K,V),!,
   mkConApply(Lc,name(Lc,"kv"),[K,V],Rp).
-
-/*
-  (A)=>R raises E
-becomes
-  (_raise:cont[E]) |: (A)=>R
-*/
-
-raisesMacro(T,type,Tx) :-
-  isRaises(T,Lc,I,E),!,
-  mkContType(Lc,E,TTp),
-  mkDynamic(Lc,"_raise",TTp,C),
-%  reportMsg("implicit %s",[ast(C)],Lc),
-  reConstrain([C],I,Tx).
-%  reportMsg("%s ==> %s",[ast(T),ast(Tx)],Lc).
 
 /*
  f(A)(K) => E

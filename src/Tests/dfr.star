@@ -2,7 +2,7 @@ test.dfr{
   import star.
   import star.script.
 
-  CX : (cons[integer],integer) => integer raises string.
+  CX : raises string |: (cons[integer],integer) => integer.
   CX(Is,Lm) => valof{
     Cx = ref 0;
 

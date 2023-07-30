@@ -70,6 +70,15 @@
     "keyword" : true
   },
   {
+    "prefixOp": "raises",
+    "priorities": [
+      999,
+      998
+    ],
+    "desc": "can raise an exception",
+    "keyword": true
+  },
+  {
     "infixOp": "~>",
     "priorities": [
       1230,
@@ -1122,16 +1131,6 @@
       829
     ],
     "desc": "retire a coroutine",
-    "keyword": true
-  },
-  {
-    "infixOp": "raises",
-    "priorities": [
-      999,
-      1000,
-      999
-    ],
-    "desc": "type of values that can raise exceptions",
     "keyword": true
   },
   {

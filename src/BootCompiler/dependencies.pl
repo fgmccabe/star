@@ -179,6 +179,9 @@ collConstraint(C,All,Refs,[con(Nm)|Refs]) :-
 collConstraint(C,All,Refs,Rfx) :-
   isDynamic(C,_,_,Tp),
   collectTypeRefs(Tp,All,Refs,Rfx).
+collConstraint(C,All,Refs,Rfx) :-
+  isRaises(C,_,Tp),
+  collectTypeRefs(Tp,All,Refs,Rfx).
 collConstraint(_,_,Refs,Refs).
 
 locallyDefined([],All,All).

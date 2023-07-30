@@ -82,8 +82,8 @@ star.compiler.operators{
     "contract" => [.prefixOp(1560,1559)].
     "\\/" => [.infixOp(720,720,719)].
     "-" => [.prefixOp(300,299), .infixOp(720,720,719)].
-    "raises" => [.infixOp(999,1000,999)].
     "." => [.prefixOp(10,9), .infixOp(100,100,99)].
+    "raises" => [.prefixOp(999,998)].
     "spawn" => [.infixOp(929,930,929)].
     "/" => [.infixOp(700,700,699)].
     "try" => [.prefixOp(1200,1199)].
@@ -446,8 +446,8 @@ star.compiler.operators{
     "," => .true.
     "contract" => .true.
     "./" => .true.
-    "raises" => .true.
     "." => .true.
+    "raises" => .true.
     "spawn" => .true.
     "try" => .true.
     "exists" => .true.

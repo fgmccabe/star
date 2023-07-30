@@ -11,8 +11,8 @@ star.compiler.wasm.instr{
   var ~> integer.
 
   public wasmDefn ::=
-    wasmGlobal(string,value_type) |
-    wasmFunction(string,block_type).
+    .wasmGlobal(string,value_type) |
+    .wasmFunction(string,block_type).
 
   public block_type ::=
       .VarBlockType(var) |

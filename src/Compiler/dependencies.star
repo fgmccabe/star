@@ -459,8 +459,6 @@ star.compiler.dependencies{
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
   collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isBinary(T,"<~") =>
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
-  collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isRaises(T) =>
-    collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
   collectTypeRefs(T,All,SoFar) where (_,Q,I) ?= isQuantified(T) =>
     collectTypeRefs(I,filterOut(All,Q),SoFar).
   collectTypeRefs(T,All,SoFar) where (_,Q,I) ?= isXQuantified(T) =>
@@ -497,6 +495,8 @@ star.compiler.dependencies{
   collectConstraintRef(T,All,Rf) where _ ?= isSquareTerm(T) => 
     collectContractRefs(T,All,Rf).
   collectConstraintRef(T,All,Rf) where (_,_,Tp) ?= isImplicit(T) =>
+    collectTypeRefs(Tp,All,Rf).
+  collectConstraintRef(T,All,Rf) where (_,Tp) ?= isRaises(T) =>
     collectTypeRefs(Tp,All,Rf).
   collectConstraintRef(T,All,Rf) => collectTypeRefs(T,All,Rf).
 
