@@ -398,6 +398,10 @@ star.compiler.data{
     (FT,T1) = decodeType(T0);
     valis (.implicit(Nm,FT),T1)
   }
+  decodeConstraint([`r`,..T]) => valof{
+    (FT,T1) = decodeType(T);
+    valis (.raisEs(FT),T1)
+  }
 
   public encodeSignature:(tipe) => string.
   encodeSignature(Tp) => reverse(encodeType(deRef(Tp),[]))::string.
@@ -459,6 +463,8 @@ star.compiler.data{
     encodeType(.faceType([(F,deRef(T))],[]),encodeType(deRef(V),[`a`,..Chs])).
   encodeConstraint(.implicit(Nm,T),Chs) =>
     encodeType(T,encodeText(Nm,[`d`,..Chs])).
+  encodeConstraint(.raisEs(T),Chs) =>
+    encodeType(T,[`r`,..Chs]).
 
   public encodeTypeRule:(typeRule,cons[char])=>cons[char].
   encodeTypeRule(.allRule(V,R),Chs) =>

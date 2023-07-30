@@ -72,7 +72,7 @@ test.dd{
     }
   }
 
-  TT : (integer)=>integer raises string.
+  TT : raises string |: (integer)=>integer.
   TT(U)=> valof{
     if U>0 then
       valis U

@@ -167,7 +167,6 @@ signals that the value is a function.
   | @refer{FunctionType}
   | @refer{ConstructorType}
   | @refer{ContinuationType}
-  | @refer{RaisesType}
   | @refer{QuantifiedType}
   | @refer{TypeConstraint} @code{|:} @refer{Type}
   | @code{(} @refer{Type} @code{)}
@@ -672,42 +671,6 @@ takes the form:
 (integer,string) => cons[string]
 @end example
 
-@node Raising Types
-@subsection Raising Types
-@cindex raises type
-@cindex type,raises
-
-@noindent
-The @code{raises} type is used to indicate a function type that may
-raise an exception.
-
-@float BNT,raisesTypeFig
-@caption{Raises Type}
-@display
-@anchored{RaisesType} ::= @refer{Type} @code{raises} @refer{Type}
-@end display
-@end float
-
-For example, an @code{integer} function may raise a @code{string}
-exception; this would be signaled using a type of the form:
-@example
-(integer) => integer raises string
-@end example
-
-Functions that raise exceptions may not be type inferred: their type must
-be explicitly declared; for example, the declaration:
-@example
-foo:(integer) => integer raises string
-@end example
-declares that @code{foo} is a function from @code{integer} to
-@code{integer}, and it may raise an exception -- in the form of a
-@code{string}.
-
-If such a function is used in an expression, then it must either be in
-the lexical context of a @refer{TryCatchAction}, @refer{TryCatchExpression}
-expression, or it must be within the definition of a function that is
-also declared to raise @code{string} exceptions.
-
 @node Constructor Type
 @subsubsection Constructor Type
 @cindex constructor type
@@ -1187,6 +1150,7 @@ implying a constraint on the possible binding of a @refer{TypeVariable}.
 @anchored{TypeConstraint} ::= @refer{Contract}
   | @refer{FieldConstraint}
   | @refer{ImplicitConstraint}
+  | @refer{RaisesConstraint}
   | @refer{TypeConstraint} ,@comma{}, @refer{TypeConstraint}
 @end display
 @end float
@@ -1298,7 +1262,6 @@ The @code{->>} clause identifies which type(s) are dependent on the
 type argument(s) of the @refer{Contract}. (See
 @refer{ContractFunctionalDependency}).
 
-
 @node Implicit Binding Constraints
 @subsection Implicit Binding Constraints
 @cindex type,constraints!implicit
@@ -1351,6 +1314,33 @@ let@{
   limit = 1000;
 @} in clamp(Z)
 @end example
+
+@node Raising Constraint
+@subsection Raising Constraint
+@cindex raises constraint
+@cindex type,constraints!raises
+
+@noindent
+The @code{raises} constraint is used to indicate a type that may
+raise an exception.
+
+@float BNT,raisesTypeFig
+@caption{Raises Constraint}
+@display
+@anchored{RaisesConstraint} ::= @code{raises} @refer{Type}
+@end display
+@end float
+
+For example, an @code{integer} function may raise a @code{string}
+exception; this would be signaled using a type of the form:
+@example
+raises string |: (integer) => integer
+@end example
+
+If such a function is used in an expression, then it must either be in
+the lexical context of a @refer{TryCatchAction}, @refer{TryCatchExpression}
+expression, or it must be within the definition of a function that is
+also declared to raise @code{string} exceptions.
 
 @node Field Constraints
 @subsection Field Constraints

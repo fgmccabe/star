@@ -241,6 +241,8 @@ star.compiler.dict.mgt{
 	declareImplementation(Lc,ConNm,ConNm,ConTp,Env))).
   declareConstraints(Lc,[.implicit(Nm,Tp),..Cx],Env) =>
     declareConstraints(Lc,Cx,declareVar(Nm,Nm,Lc,Tp,faceOfType(Tp,Env),Env)).
+  declareConstraints(Lc,[.raisEs(Tp),..Cx],Env) =>
+    declareConstraints(Lc,Cx,declareVar("$try","$try",Lc,Tp,faceOfType(Tp,Env),Env)).
   declareConstraints(Lc,[_,..Cx],Env) =>
     declareConstraints(Lc,Cx,Env).
 

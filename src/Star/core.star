@@ -113,4 +113,18 @@ star.core {
   public all x,e ~~ result[x,e] ::= ._ok(x) | ._except(e).
 
   public exception ::= .exception(string).
+
+  public errorCode ::= .eINTRUPT |
+  .eNOTDIR |
+  .eNOFILE |
+  .eNOTFND |
+  .eINVAL |
+  .eRANGE |
+  .eNOPERM |
+  .eFAIL |
+  .eIOERROR |
+  .eCONNECT |
+  .eDEAD.
+
+  public error ::= .error(string,errorCode).
 }

@@ -324,8 +324,6 @@ star.compiler.macro{
   examineType(A) where _ ?= isTypeFunVar(A) => A.
   examineType(A) where (Lc,L,R) ?= isDepends(A) =>
     mkDepends(Lc,L//macroType,R//macroType).
-  examineType(A) where (Lc,L,R) ?= isRaises(A) =>
-    mkRaises(Lc,macroType(L),macroType(R)).
   examineType(A) where (Lc,L,R) ?= isConstructorType(A) =>
     mkConstructorType(Lc,macroType(L),macroType(R)).
   examineType(A) where (Lc,L,R) ?= isFunctionType(A) =>
@@ -370,6 +368,8 @@ star.compiler.macro{
     mkTypeExists(Lc,macroType(L),macroType(R)).
   examineConstraint(A) where (Lc,Nm,T) ?= isImplicit(A) =>
     mkImplicit(Lc,Nm,macroType(T)).
+  examineConstraint(A) where (Lc,T) ?= isRaises(A) =>
+    mkRaises(Lc,macroType(T)).
   examineConstraint(A) where (_,[El]) ?= isTuple(A) =>
     examineConstraint(El).
   examineConstraint(A) default => valof{

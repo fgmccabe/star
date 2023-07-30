@@ -862,14 +862,14 @@ star.compiler.checker{
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,Body,Rls) ?= isTryCatch(A) => valof{
     NErTp = newTypeVar("_E");
-    Ev = declareVar("_raise","_raise",Lc,contType(NErTp),.none,Env);
+    Ev = declareVar("$try","$try",Lc,NErTp,.none,Env);
     NB = typeOfExp(Body,Tp,Ev,Path);
     HRls = checkRules(Rls,NErTp,Tp,Env,Path,typeOfExp,[],.none);
-    valis .trycatch(Lc,NB,.vr(Lc,"_raise",contType(NErTp)),HRls,Tp)
+    valis .trycatch(Lc,NB,.vr(Lc,"$try",NErTp),HRls,Tp)
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,E) ?= isRaise(A) => valof{
     ErTp = newTypeVar("_E");
-    Thrw = typeOfVar(Lc,"_raise",contType(ErTp),Env,Path);
+    Thrw = typeOfVar(Lc,"$try",ErTp,Env,Path);
     V = typeOfExp(E,ErTp,Env,Path);
     valis .rais(Lc,Thrw,V,Tp)
   }
@@ -972,7 +972,7 @@ star.compiler.checker{
   }
   checkAction(A,_Tp,Env,Path) where (Lc,E) ?= isRaise(A) => valof{
     ErTp = newTypeVar("_E");
-    Thrw = typeOfVar(Lc,"_raise",contType(ErTp),Env,Path);
+    Thrw = typeOfVar(Lc,"$try",ErTp,Env,Path);
     V = typeOfExp(E,ErTp,Env,Path);
     valis (.doRaise(Lc,Thrw,V),Env)
   }
@@ -1019,14 +1019,14 @@ star.compiler.checker{
     checkAssignment(Lc,Lhs,Rhs,Env,Path).
   checkAction(A,Tp,Env,Path) where (Lc,Body,Rls) ?= isTryCatch(A) => valof{
     NErTp = newTypeVar("_E");
-    Ev = declareVar("_raise","_raise",Lc,contType(NErTp),.none,Env);
+    Ev = declareVar("$try","$try",Lc,NErTp,.none,Env);
     (NB,_) = checkAction(Body,Tp,Ev,Path);
     Hs = checkRules(Rls,NErTp,Tp,Env,Path,
       (AA,_,Eva,_)=>valof{
 	(HA,_)=checkAction(AA,Tp,Eva,Path);
 	valis HA
       },[],.none);
-    valis (.doTryCatch(Lc,NB,.vr(Lc,"_raise",contType(NErTp)),Hs),Env)
+    valis (.doTryCatch(Lc,NB,.vr(Lc,"$try",NErTp),Hs),Env)
   }
   checkAction(A,Tp,Env,Path) where (Lc,C,T,E) ?= isIfThenElse(A) => valof{
     (CC,E0) = checkGoal(C,Env,Path);

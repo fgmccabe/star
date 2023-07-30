@@ -1,7 +1,7 @@
 test.ac7{
   import star.
 
-  f:(integer) => integer raises string.
+  f: raises string |: (integer) => integer.
   f(X) => valof{
     if X == 1 then{
       valis 1

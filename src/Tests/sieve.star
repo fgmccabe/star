@@ -17,7 +17,7 @@ test.sieve{
     }
   }
 
-  filter:(this : task[integer]) |: (integer,channel[integer],channel[integer]) => () raises mboxException.
+  filter:(this : task[integer]), raises mboxException |: (integer,channel[integer],channel[integer]) => ().
   filter(Prm,Chnl,Next) => valof{
     while Nxt .= collect(Chnl) do{
       if ~Nxt%Prm == 0 then

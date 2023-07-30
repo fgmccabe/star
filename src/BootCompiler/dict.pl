@@ -143,6 +143,8 @@ declareConstraint(Lc,C,E,Ev) :- C=conTract(_,_Args,_Deps),!,
   declareVr(Lc,ImpNm,CTp,none,E,Ev).
 declareConstraint(Lc,implicit(Nm,Tp),E,Ev) :-
   declareVr(Lc,Nm,Tp,none,E,Ev).
+declareConstraint(Lc,raises(Tp),E,Ev) :-
+  declareVr(Lc,"$try",Tp,none,E,Ev).
 declareConstraint(_,Con,[dict(Types,Nms,Cns,Impl,Accs,Ups,Cons)|Outer],
 		  [dict(Types,Nms,[Con|Cns],Impl,Accs,Ups,Cons)|Outer]).
 

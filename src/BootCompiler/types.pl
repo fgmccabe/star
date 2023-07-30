@@ -256,6 +256,8 @@ ssConstraint(ShCon,Dp,implementsFace(Tp,Face),sq([TT,ss("<~"),FF])) :-
   ssType(Face,ShCon,Dp,FF).
 ssConstraint(ShCon,Dp,implicit(Nm,Tp),sq([ss("("),ss(Nm),ss(" : "),TT,ss(")")])) :-
   ssType(Tp,ShCon,Dp,TT).
+ssConstraint(ShCon,Dp,raises(Tp),sq([ss("raises "),TT])) :-
+  ssType(Tp,ShCon,Dp,TT).
 
 ssVarConstraints(C,_,[]) :- var(C),!.
 ssVarConstraints([C1|Cx],Dp,[CC,ss(",")|Cs]) :-
@@ -471,6 +473,7 @@ contractType(conTract(Nm,A,D),Tp) :-
   length(Args,Ar),
   mkTypeExp(tpFun(Nm,Ar),Args,Tp).
 contractType(implicit(_,Tp),Tp).
+contractType(raises(Tp),Tp).
 contractType(allType(V,CT),allType(V,T)) :-
   contractType(CT,T).
 contractType(constrained(_,Cn),Tp) :-
@@ -583,4 +586,5 @@ occIn(V,conTract(_,_,D)) :- is_member(A,D), deRef(A,AA),occIn(V,AA).
 occIn(V,implementsFace(T,_)) :- deRef(T,TT),occIn(V,TT),!.
 occIn(V,implementsFace(_,F)) :- deRef(F,FF),occIn(V,FF),!.
 occIn(V,implicit(_,T)) :- deRef(T,TT),occIn(V,TT),!.
+occIn(V,raises(T)) :- deRef(T,TT),occIn(V,TT),!.
 

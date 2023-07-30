@@ -70,6 +70,9 @@ defineCVars(Lc,[implementsFace(X,faceType(Flds,_))|Cx],Dict,CVars,FDict) :-
 defineCVars(Lc,[implicit(Nm,Tp)|Cx],Dict,[v(Lc,Nm,Tp)|CVars],FDict) :-
   declareVr(Lc,Nm,Tp,none,Dict,DDict),
   defineCVars(Lc,Cx,DDict,CVars,FDict).
+defineCVars(Lc,[raises(Tp)|Cx],Dict,[v(Lc,"$try",Tp)|CVars],FDict) :-
+  declareVr(Lc,"$try",Tp,none,Dict,DDict),
+  defineCVars(Lc,Cx,DDict,CVars,FDict).
 defineCVars(Lc,[Con|Cx],Dict,[v(Lc,CVarNm,ConTp)|CVars],FDict) :-
   implementationName(Con,ImplNm),
   mangleName("_",value,ImplNm,CVarNm),
@@ -465,6 +468,15 @@ resolveContract(Lc,implicit(Nm,Tp),Dict,St,Stx,Over) :-
     genMsg("implicit %s:%s not consistent with %s",[Nm,tpe(ITp),tpe(Tp)],Msg),
     markActive(St,Lc,Msg,Stx)) ;
    genMsg("implicit %s:%s not defined",[Nm,tpe(Tp)],Msg),
+   markActive(St,Lc,Msg,Stx)).
+resolveContract(Lc,raises(Tp),Dict,St,Stx,Over) :-
+  (getVar(Lc,"$try",Dict,Vr,ITp),
+   (sameType(ITp,Tp,Lc,Dict),
+    markResolved(St,St1),
+    overloadTerm(Vr,Dict,St1,Stx,Over);
+    genMsg("raises %s not consistent with %s",[tpe(ITp),tpe(Tp)],Msg),
+    markActive(St,Lc,Msg,Stx)) ;
+   genMsg("exception context for %s not defined",[tpe(Tp)],Msg),
    markActive(St,Lc,Msg,Stx)).
 resolveContract(Lc,C,Dict,St,Stx,Over) :-
   implementationName(C,ImpNm),

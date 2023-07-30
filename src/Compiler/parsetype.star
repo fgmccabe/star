@@ -255,6 +255,10 @@ star.compiler.typeparse{
     Tp = parseType(Q,T,Env);
     valis .implicit(Id,Tp)
   }
+  parseConstraint(A,Q,Env) where (Lc,T) ?= isRaises(A) => valof{
+    Tp = parseType(Q,T,Env);
+    valis .raisEs(Tp)
+  }
   parseConstraint(A,Q,Env) => parseContractConstraint(Q,A,Env).
   
   public rebind:(tipes,tipe,dict)=>tipe.

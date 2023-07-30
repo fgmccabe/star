@@ -4,7 +4,7 @@ test.ac4{
 
   -- test action functions
 
-  f:(integer) => integer raises string.
+  f:raises string |: (integer) => integer.
   f(X) => valof{
     if X == 1 then{
       valis 1
