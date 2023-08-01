@@ -1,5 +1,6 @@
 star.compiler.wasm.instr{
   import star.
+  import star.multi.
 
   public int_type ::= .I32Type | .I64Type.
   public flt_type ::= .F32Type | .F64Type.
@@ -221,8 +222,8 @@ star.compiler.wasm.instr{
     | .WrapI64 => "i32.wrap_i64"
   }
 
-  disp_ins:(cons[wOp],string)=>string.
-  disp_ins(Ins,Off) => interleave(Ins//(I)=>d_instr(I,Off),"\n")*.
+  disp_ins:(multi[wOp],string)=>string.
+  disp_ins(Ins,Off) => interleave((Ins::cons[wOp])//(I)=>d_instr(I,Off),"\n")*.
 
   public implementation display[wasmLbl] => {
     disp(.lbl(Lb)) => Lb.
