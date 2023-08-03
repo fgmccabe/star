@@ -42,10 +42,6 @@ logical isNormalPo(termPo t) {
   return hasClass((termPo) classOf(t), labelClass);
 }
 
-logical hasLabel(normalPo n, char *name, integer arity) {
-  return isLabel(n->lbl, name, arity);
-}
-
 labelPo termLbl(normalPo t) {
   return t->lbl;
 }

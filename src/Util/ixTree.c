@@ -19,7 +19,7 @@
 // Implement the tree leaf class structure
 
 static void initLeafClass(classPo class, classPo request);
-static void inheritLeafClass(classPo class,classPo request,classPo orig);
+static void inheritLeafClass(classPo class, classPo request, classPo orig);
 static void eraseLeaf(objectPo o);
 static void eraseNode(objectPo o);
 static void leafInit(objectPo o, va_list *args);
@@ -28,10 +28,6 @@ static integer leafHash(objectPo o);
 static integer nodeHash(objectPo o);
 static logical leafEquality(objectPo o1, objectPo o2);
 static logical nodeEquality(objectPo o1, objectPo o2);
-
-static objectPo findInTree(treePo tree, objectPo key, integer hash);
-static objectPo findInLeaf(treePo tree, objectPo key, integer hash);
-static objectPo findInNode(treePo tree, objectPo key, integer hash);
 
 static treePo deleteFromTree(treePo tree, objectPo key, integer hash);
 static treePo deleteFromLeaf(treePo tree, objectPo key, integer hash);
@@ -72,7 +68,6 @@ IxTreeClassRec TreeLeafClass = {
     PTHREAD_MUTEX_INITIALIZER
   },
   {
-    findInLeaf,                             // Find elemements in leaf
     deleteFromLeaf,                         // Delete from leaf
     mergeWithLeaf,                          // Merge trees
     leafIsEmpty,                            // isEmpty test
@@ -93,13 +88,10 @@ static void initLeafTree(void) {
 static void initLeafClass(classPo class, classPo request) {
   pthread_once(&ioOnce, initLeafTree);
 }
-void inheritLeafClass(classPo class,classPo request,classPo orig){
+
+void inheritLeafClass(classPo class, classPo request, classPo orig) {
   IxTreeClassRec *req = (IxTreeClassRec *) request;
   IxTreeClassRec *template = (IxTreeClassRec *) class;
-
-  if (req->treePart.find == O_INHERIT_DEF) {
-    req->treePart.find = template->treePart.find;
-  }
 
   if (req->treePart.delete == O_INHERIT_DEF) {
     req->treePart.delete = template->treePart.delete;
@@ -318,7 +310,6 @@ IxTreeClassRec TreeNodeClass = {
     PTHREAD_MUTEX_INITIALIZER
   },
   {
-    findInNode,                             // Find elemements in node
     deleteFromNode,                         // Delete from node
     mergeNode,                              // Merge node
     nodeIsEmpty,                            // isEmpty test
@@ -370,36 +361,6 @@ static logical nodeEquality(objectPo o1, objectPo o2) {
                       equals(O_OBJECT(n1->node.r2), O_OBJECT(n2->node.r2)));
   } else
     return False;
-}
-
-static objectPo findInNode(treePo tree, objectPo key, integer hash) {
-  nodePo node = O_NODE(tree);
-  integer common = maskPrefix(hash, tree->tree.masklen);
-
-  if (common == tree->tree.mask) {
-    switch (nth4way(hash, tree->tree.masklen)) {
-      case 0:
-        return findInTree((treePo) (node->node.l1), key, hash);
-      case 1:
-        return findInTree((treePo) (node->node.l2), key, hash);
-      case 2:
-        return findInTree((treePo) (node->node.r1), key, hash);
-      case 3:
-        return findInTree((treePo) (node->node.r2), key, hash);
-      default:
-        syserr("bad case");
-    }
-  }
-  return NULL;
-}
-
-static objectPo findInTree(treePo tree, objectPo key, integer hash) {
-  IxTreeClassRec *treeClass = (IxTreeClassRec *) tree->object.class;
-  return treeClass->treePart.find(tree, key, hash);
-}
-
-objectPo ixFind(treePo tree, objectPo key) {
-  return findInTree(tree, key, hashCode(key));
 }
 
 static treePo deleteFromNode(treePo tree, objectPo key, integer hash) {
