@@ -29,7 +29,6 @@ typedef struct _ix_tree_node_object_ *nodePo;
 
 
 typedef struct {
-  objectPo (*find)(treePo tree, objectPo key, integer hash);
   treePo (*delete)(treePo tree, objectPo key, integer hash);
   treePo (*merge)(treePo t1, treePo t2);
   logical (*isEmpty)(treePo t);

@@ -37,8 +37,6 @@ logical isNormalPo(termPo t);
 
 labelPo termLbl(normalPo t);
 
-logical hasLabel(normalPo n, char *name, integer arity);
-
 integer termHash(termPo t);
 integer hashTerm(termPo t);
 

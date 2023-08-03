@@ -27,7 +27,6 @@
 typedef struct _ix_tree_ *treePo;
 extern classPo treeClass;
 
-extern objectPo ixFind(treePo tree, objectPo key);
 extern logical ixContains(treePo tree, objectPo key);
 extern logical ixIsEmpty(treePo tree);
 extern long ixSize(treePo tree);
