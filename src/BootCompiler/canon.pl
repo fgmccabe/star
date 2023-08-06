@@ -108,10 +108,10 @@ typeOfCanon(capply(_,_,_,Tp),Tp) :-!.
 typeOfCanon(invoke(_,_,_,Tp),Tp) :-!.
 typeOfCanon(tple(_,Els),tplType(Tps)) :-!,
   map(Els,canon:typeOfCanon,Tps).
-typeOfCanon(cell(_,Vl),refType(Tp)) :-
+typeOfCanon(cell(_,Vl),tpExp(tpFun("ref",1),Tp)) :-
   typeOfCanon(Vl,Tp).
 typeOfCanon(deref(_,Vl),Tp) :-
-  typeOfCanon(Vl,refType(Tp)).
+  typeOfCanon(Vl,tpExp(tpFun("ref",1),Tp)).
 typeOfCanon(lambda(_,_,_,Tp),Tp) :-!.
 typeOfCanon(over(_,T,_),Tp) :- typeOfCanon(T,Tp).
 typeOfCanon(overaccess(_,_,_,Tp),Tp) :- !.

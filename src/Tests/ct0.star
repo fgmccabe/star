@@ -40,12 +40,14 @@ test.ct0{
 	    .yield_ => {}
 	    };
 	};
-	logMsg("$(K) moving along, $(Count!) rounds left");
-      }
+	logMsg("moving along, $(Count!) rounds left ");
+      };
+      logMsg("end of try");
     } catch { .canceled => {
 	logMsg("$(K) shutting down");
       }
     };
+    logMsg("terminating");
     valis ()
   }.
   

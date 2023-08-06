@@ -360,7 +360,7 @@ static char *dumpPrologSig(char *sig, ioPo out) {
       return sig;
 
     case refSig: {
-      outMsg(out, "refType(");
+      outMsg(out, "tpExp(tpFun(\"ref\",1),");
       sig = dumpPrologSig(sig, out);
       outStr(out, ")");
       return sig;

@@ -64,7 +64,9 @@ star.compiler.macro{
     valis A
   }
 
-  macroAlgebraic(A) => macroAst(A,.constructor,examineConstructor).
+  macroAlgebraic(A) => macroAst(A,.constructor,examCons).
+
+  examCons(A) => examineConstructor(A).
 
   examineConstructor(A) where (Lc,L,R)?=isBinary(A,"|") =>
     binary(Lc,"|",macroAlgebraic(L),macroAlgebraic(R)).
@@ -73,8 +75,8 @@ star.compiler.macro{
     roundTerm(Lc,macroTerm(O),Els//macroType).
   examineConstructor(A) where (Lc,O,Els) ?= isEnumCon(A) =>
     mkEnumCon(Lc,macroTerm(O),Els//macroType).
-  examineConstructor(A) where (Lc,O,Q,C,Els) ?= isBraceCon(A) => 
-    reUQuant(Lc,Q//macroType,reConstrain(C//macroType,braceTerm(Lc,O,Els//macroTypeDef))).
+  examineConstructor(A) where (Lc,O,Els) ?= isBrTerm(A) => 
+    braceTerm(Lc,O,Els//macroTypeDef).
   examineConstructor(A) where (Lc,Q,I) ?= isQuantified(A) =>
     reUQuant(Lc,Q//macroType,macroAlgebraic(I)).
   examineConstructor(A) where (Lc,Q,I) ?= isXQuantified(A) =>
@@ -84,12 +86,19 @@ star.compiler.macro{
     valis A
   }
 
-  macroTypeDef(A) where (Lc,L,R) ?= isTypeAnnotation(A) =>
-    mkTypeAnnotation(Lc,macroTerm(L),macroType(R)).
-  macroTypeDef(A) where (Lc,L,R) ?= isTypeExists(A) => 
+  macroTypeDef:(ast) => ast.
+  macroTypeDef(A) => macroAst(A,.statement,examineTypeStmt).
+
+  examineTypeStmt:(ast) => ast.
+  examineTypeStmt(A) where (Lc,L,R) ?= isTypeAnnotation(A) => 
+    mkTypeAnnotation(Lc,L,macroType(R)).
+  examineTypeStmt(A) where (Lc,Q,C,L,R) ?= isTypeFunStmt(A) => 
+    mkTypeFunStmt(Lc,Q//macroType,C//macroType,macroType(L),macroType(R)).
+  examineTypeStmt(A) where (Lc,L,R) ?= isTypeExists(A) => 
     mkTypeExists(Lc,macroType(L),macroType(R)).
-  macroTypeDef(A)  => valof{
-    reportError("cannot figure out type specification $(A)",locOf(A));
+  examineTypeStmt(A) where _ ?= isAnnotation(A) => A.
+  examineTypeStmt(A) => valof{
+    reportError("cannot figure out declaration\n$(A)",locOf(A));
     valis A
   }
 

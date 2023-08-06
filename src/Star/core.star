@@ -40,6 +40,11 @@ star.core {
     isEmpty:(c) => boolean.
   }
 
+  public implementation all c ~~ sizeable[c] |: sizeable[ref c] => {
+    size(M) => size(M!).
+    isEmpty(M) => isEmpty(M!)
+  }
+
   public contract all a,b ~~ measured[a->>b] ::= {
     '[||]':(a)=>b.
   }

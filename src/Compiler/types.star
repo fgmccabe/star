@@ -16,7 +16,7 @@ star.compiler.types{
     .tupleType(cons[tipe]) |
     .allType(tipe,tipe) |
     .existType(tipe,tipe) |
-    .faceType(cons[(string,tipe)],cons[(string,tipe)]) |
+    .faceType(cons[(string,tipe)],cons[(string,typeRule)]) |
     .constrainedType(tipe,constraint).
 
   public typeRule ::= .typeExists(tipe,tipe) |
@@ -124,6 +124,10 @@ star.compiler.types{
   public implementation equality[tipe] => {
     T1==T2 => eqType(T1,T2,[]).
   }
+
+  public implementation equality[typeRule] => {
+    T1==T2 => identTypeRule(T1,T2,[]).
+  }
   
   eqType:(tipe,tipe,cons[(tipe,tipe)]) => boolean.
   eqType(T1,T2,L) => identType(deRef(T1),deRef(T2),L).
@@ -143,7 +147,7 @@ star.compiler.types{
   identType(.existType(V1,T1),.existType(V2,T2),Q) =>
     eqType(V1,V2,Q) && eqType(T1,T2,Q).
   identType(.faceType(V1,T1),.faceType(V2,T2),Q) =>
-    identNmTypes(V1,V2,Q) && identNmTypes(T1,T2,Q).
+    identNmTypes(V1,V2,Q) && identRules(T1,T2,Q).
   identType(.constrainedType(T1,C1),.constrainedType(T2,C2),Q) =>
     eqType(T1,T2,Q).
   identType(_,_,_) default => .false.
@@ -171,12 +175,18 @@ star.compiler.types{
   eqConstraint(_,_,_) default => .false.
 
   identNmTypes(L1,L2,Q) => let{.
-    sortByNm(LL) => sort(LL,(((N1,_),(N2,_)) => N1<N2)).
     identPrs([],[]) => .true.
     identPrs([(Nm,E1),..l1],[(Nm,E2),..l2]) =>
       eqType(E1,E2,Q) && identPrs(l1,l2).
     identPrs(_,_) => .false.
-  .} in identPrs(sortByNm(L1),sortByNm(L2)).
+  .} in identPrs(sortFields(L1),sortFields(L2)).
+
+  identRules(L1,L2,Q) => let{.
+    identRls([],[]) => .true.
+    identRls([(N,R1),..Rs1],[(N,R2),..Rs2]) =>
+      identTypeRule(R1,R2,Q) && identRls(Rs1,Rs2).
+    identRls(_,_) default => .false.
+  .} in identRls(sortFields(L1),sortFields(L2)).
 
   public implementation equality[constraint] => {
     .conTract(N1,T1,D1) == .conTract(N2,T2,D2) => N1==N2 && T1==T2 && D1==D2.
@@ -244,10 +254,10 @@ star.compiler.types{
   showEls([],_,_) => [].
   showEls([T,..Tps],Dp,Sep) => [Sep,showType(T,Dp),..showEls(Tps,Dp,", ")].
 
-  showTypeEls:(cons[(string,tipe)],cons[(string,tipe)],integer) => string.
+  showTypeEls:(cons[(string,tipe)],cons[(string,typeRule)],integer) => string.
   showTypeEls(Els,Tps,Dp) =>
     interleave({"#(Nm)\:#(showType(Tp,Dp))" | (Nm,Tp) in Els} ++
-      {"type #(Nm)\:#(showType(Tp,Dp))" | (Nm,Tp) in Tps},".\n")*.
+      { shTipeRule(Rl,Dp) | (Nm,Rl) in Tps},".\n")*.
 
   showTpExp:(tipe,cons[tipe],integer) => string.
   showTpExp(.tpFun("=>",2),[A,R],Dp) => "#(showType(A,Dp-1)) => #(showType(R,Dp-1))".
@@ -296,7 +306,7 @@ star.compiler.types{
       .tpExp(O,A) => hsh(deRef(O))*37+hsh(deRef(A)).
       .tupleType(Els) => hshEls((hash("()")*37+size(Els))*37,Els).
       .faceType(Els,Tps) =>
-	hshFields(hshFields(hash("{}")*37+size(Els)+size(Tps),Els),Tps).
+	hshRules(hshFields(hash("{}")*37+size(Els)+size(Tps),Els),Tps).
       .allType(V,T) => (hash("all")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
       .existType(V,T) => (hash("exist")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
       .constrainedType(T,C) => (hash("|:")*37+hsh(deRef(T)))*37+hshCon(C).
@@ -311,8 +321,24 @@ star.compiler.types{
     hshEls(H,Els) => foldLeft((El,Hx)=>Hx*37+hsh(deRef(El)),H,Els).
 
     hshFields(H,Els) => foldLeft(((Nm,Tp),Hx)=>(Hx*37+hash(Nm))*37+hsh(deRef(Tp)),H,Els).
+    hshRules(H,Rls) => foldLeft((Rl,Hx)=>hash(Rl),H,Rls).
   .} in {
     hash(Tp) => hsh(deRef(Tp)).
+  }
+
+  public implementation hashable[typeRule] => let{.
+    hashEls(Els) => foldLeft((El,Hx)=>Hx*37+hash(deRef(El)),0,Els).
+    
+    hshRl(Rle) => case Rle in {
+      .typeExists(L,R) => (hash("<~")*37+hash(deRef(L)))*37+hash(deRef(R)).
+      .contractExists(N,Ts,Ds,R) =>
+	(((hash("contract")*37+hash(N))*37+hashEls(Ts))*37+hashEls(Ds))*37+
+	hash(deRef(R)).
+      .typeLambda(L,R) => (hash("~>")*37+hash(deRef(L)))*37+hash(deRef(R)).
+      .allRule(V,Rl) => (hash("all")*37+hash(deRef(V)))*37+hshRl(Rl).
+    }.
+  .} in {
+    hash(Rl) => hshRl(Rl)
   }
 
   public contract all c ~~ hasType[c] ::= {
@@ -332,7 +358,7 @@ star.compiler.types{
     tName(.existType(_,T)) => tName(deRef(T)).
     tName(.constrainedType(T,_)) => tName(deRef(T)).
     tName(.tupleType(A)) => "!()$(size(A))".
-    tName(.faceType(Fs,Ts)) => "{}".
+    tName(.faceType(_,_)) => "{}".
   .} in tName(deRef(Tp)).
 
   public conTractName:(constraint)=>string.
@@ -357,7 +383,13 @@ star.compiler.types{
       "{}$(hash(interleave(sort(Flds,cmpFlds)//fst,"|")*))".
   .} in implName(Con).
 
-  cmpFlds:((string,tipe),(string,tipe))=>boolean.
+  public tpRuleName:(typeRule) => string.
+  tpRuleName(.typeExists(L,_)) => tpName(deRef(L)).
+  tpRuleName(.contractExists(Nm,_,_,_)) => Nm.
+  tpRuleName(.typeLambda(L,_)) => tpName(deRef(L)).
+  tpRuleName(.allRule(_,Rl)) => tpRuleName(Rl).
+
+  cmpFlds:all x ~~ ((string,x),(string,x))=>boolean.
   cmpFlds((N1,_),(N2,_))=>N1<N2.
 
   public implementation hasType[tipe] => {
@@ -376,14 +408,14 @@ star.compiler.types{
   }
 
   public fieldTypes:(tipe)=>option[cons[(string,tipe)]].
-  fieldTypes(Tp) where .faceType(Fs,_) .= deRef(Tp) => .some(sortFieldTypes(Fs)).
+  fieldTypes(Tp) where .faceType(Fs,_) .= deRef(Tp) => .some(sortFields(Fs)).
   fieldTypes(_) default => .none.
 
   public fieldInFace:(tipe,string)=>option[tipe].
   fieldInFace(Tp,Fld) where .faceType(Fs,_) .= deRef(Tp) => {! FTp | (Fld,FTp) in Fs !}.
 
-  public sortFieldTypes:(cons[(string,tipe)])=>cons[(string,tipe)].
-  sortFieldTypes(Tps) => sort(Tps,(((N1,_),(N2,_))=>N1<N2)).
+  public sortFields:all x ~~ (cons[(string,x)])=>cons[(string,x)].
+  sortFields(Tps) => sort(Tps,cmpFlds).
 
   public arity:(tipe)=>integer.
   arity(Tp) => ar(deRef(Tp)).
@@ -394,13 +426,15 @@ star.compiler.types{
   ar(Tp) where .existType(_,I) .= Tp => arity(I).
   ar(Tp) where .constrainedType(T,_).=Tp => arity(T)+1.
   ar(_) default => 0.
-  
+
+  public emptyFace = .faceType([],[]).
+
   public funType(A,B) => fnType(.tupleType(A),B).
   public fnType(A,B) => .tpExp(.tpExp(.tpFun("=>",2),A),B).
   public consType(A,B) => .tpExp(.tpExp(.tpFun("<=>",2),A),B).
   public enumType(A) => .tpExp(.tpExp(.tpFun("<=>",2),.tupleType([])),A).
   public lstType(Tp) => .tpExp(.tpFun("star.core*cons",1),Tp).
-  public refType(Tp) => .tpExp(.tpFun("star.core*ref",1),Tp).
+  public refType(Tp) => .tpExp(.tpFun("ref",1),Tp).
   public optType(Tp) => .tpExp(.tpFun("star.core*option",1),Tp).
   public continType(A,B) => .tpExp(.tpExp(.tpFun("=>>",2),A),B).
 
@@ -424,6 +458,7 @@ star.compiler.types{
       .tpExp(O2,A) .= deRef(O) &&
       .tpFun("<=>",2).=deRef(O2) => deRef(R).
   funTypeRes(.allType(_,Tp)) => funTypeRes(deRef(Tp)).
+  funTypeRes(.existType(_,Tp)) => funTypeRes(deRef(Tp)).
   funTypeRes(.constrainedType(T,_))=>funTypeRes(T).
 
   public isFunType:(tipe) => option[(tipe,tipe)].
@@ -477,7 +512,7 @@ star.compiler.types{
   public contType(T) => continType(T,unitTp).
 
   public isRefType(Tp) => .tpExp(Op,_) .= deRef(Tp) &&
-      .tpFun("star.core*ref",1).=deRef(Op).
+      .tpFun("ref",1).=deRef(Op).
 
   public isLambdaRule(.typeLambda(_,_)) => .true.
   isLambdaRule(.allRule(_,T)) => isLambdaRule(T).
@@ -498,6 +533,12 @@ star.compiler.types{
   public reQuant:(cons[tipe],tipe) => tipe.
   reQuant([],Tp) => Tp.
   reQuant([Q,..Qs],Tp) => .allType(Q,reQuant(Qs,Tp)).
+
+  public deQuantX:(tipe) => (cons[tipe],tipe).
+  deQuantX(T) => let{.
+    deQ(.existType(V,I),Qs) => deQ(I,[V,..Qs]).
+    deQ(Tp,Qs) => (reverse(Qs),Tp).
+  .} in deQ(T,[]).
 
   public reQuantX:(cons[tipe],tipe) => tipe.
   reQuantX([],Tp) => Tp.
@@ -525,6 +566,13 @@ star.compiler.types{
     T default => T.
   }
 
+  public ruleType:(typeRule) => tipe.
+  ruleType(.typeExists(L,_)) => L.
+  ruleType(.contractExists(Nm,Tps,Dps,_)) =>
+    mkTypeExp(.tpFun(Nm,size(Tps)+size(Dps)),Tps++Dps).
+  ruleType(.typeLambda(L,_)) => L.
+  ruleType(.allRule(V,Rl)) => .allType(V,ruleType(Rl)).
+
   public contractType:(typeRule) => tipe.
   contractType(.allRule(Q,R)) => .allType(Q,contractType(R)).
   contractType(.contractExists(Nm,Tps,Dps,_)) =>
@@ -543,10 +591,10 @@ star.compiler.types{
   occIn(Id,.nomnal(Nm)) => Id==Nm.
   occIn(Id,.kFun(Nm,_)) => Id==Nm.
   occIn(Id,.tpExp(O,A)) => occIn(Id,deRef(O)) || occIn(Id,deRef(A)).
-  occIn(Id,.tupleType(Els)) => {? El in Els && occIn(Id,deRef(El)) ?}.
+  occIn(Id,.tupleType(Els)) => occInTps(Id,Els).
   occIn(Id,.allType(_,B)) => occIn(Id,deRef(B)).
   occIn(Id,.existType(_,B)) => occIn(Id,deRef(B)).
-  occIn(Id,.faceType(Flds,Tps)) => occInPrs(Id,Flds) || occInPrs(Id,Tps).
+  occIn(Id,.faceType(Flds,Tps)) => occInPrs(Id,Flds) || occInRules(Id,Tps).
   occIn(Id,.constrainedType(T,C)) => occIn(Id,deRef(T)) || occInCon(Id,C).
   occIn(_,_) default => .false.
 
@@ -556,7 +604,17 @@ star.compiler.types{
   occInCon(Id,.implicit(_,T)) => occIn(Id,deRef(T)).
   occInCon(Id,.raisEs(T)) => occIn(Id,deRef(T)).
 
+  occInTps(Id,Tps) => {? El in Tps && occIn(Id,deRef(El)) ?}.
+
   occInPrs(Id,Tps) => {? (_,El) in Tps && occIn(Id,deRef(El)) ?}.
+
+  occInRules(Id,Rls) => {? (_,Rl) in Rls && occInRule(Id,Rl) ?}.
+
+  occInRule(Id,.typeExists(L,R)) => occIn(Id,deRef(L)) || occIn(Id,deRef(R)).
+  occInRule(Id,.contractExists(_,LTs,DTs,T)) =>
+    occInTps(Id,LTs) || occInTps(Id,DTs) || occIn(Id,deRef(T)).
+  occInRule(Id,.typeLambda(L,R)) => occIn(Id,deRef(L)) || occIn(Id,deRef(R)).
+  occInRule(Id,.allRule(_,Rl)) => occInRule(Id,Rl).
 
   vrNm(.tVar(_,Nm)) => Nm.
   vrNm(.tFun(_,_,Nm)) => Nm.

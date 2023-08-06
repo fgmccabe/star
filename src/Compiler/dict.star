@@ -150,8 +150,6 @@ star.compiler.dict{
   declareTypeVars([(Nm,Tp),..Q],Env) =>
     declareTypeVars(Q,declareType(Nm,.none,Tp,.typeExists(Tp,Tp),Env)).
 
-  public emptyFace = .faceType([],[]).
-
   emptyDict:dict.
   emptyDict = pushScope([]).
 

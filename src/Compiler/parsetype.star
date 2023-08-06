@@ -17,6 +17,7 @@ star.compiler.typeparse{
 
   -- Convenience type decl
   tipes ~> cons[(string,tipe)].
+  rules ~> cons[(string,typeRule)].
 
   public parseType:(tipes,ast,dict) => tipe.
 
@@ -106,16 +107,34 @@ star.compiler.typeparse{
     valis .faceType(Flds,Tps)
   }
   parseType(Q,T,Env) where (Lc,Lhs,Fld) ?= isFieldAcc(T) => valof{
+    if traceCanon! then
+      logMsg("field access: $(T)");
     if (_,Id) ?= isName(Lhs) then{
+      if traceCanon! then
+	logMsg("record id : $(Id)");
       if RcType ?= findVarFace(Id,Env) && .faceType(_,Tps).=deRef(RcType) then{
-	if Ftp ?= {! Ftp | (Fld,Ftp) in Tps !} then
-	  valis Ftp
-	else{
-	  reportError("Field $(Fld) not defined in type $(RcType)",Lc);
+	if traceCanon! then
+	  logMsg("record type: $(RcType)");
+	if Rl ?= {! Rl | (Fld,Rl) in Tps !} then{
+	  if traceCanon! then
+	    logMsg("record type rulw: $(Rl)");
+
+	  if (_,FrshRl) .= freshen(Rl,Env) then{
+	    if traceCanon! then
+	      logMsg("freshened rule: $(FrshRl)");
+
+	    valis applyTypeRule(Lc,FrshRl,.nomnal(Fld),Env)
+	  } else{
+	    reportError("Could not freshen type rule $(Rl)",Lc);
+	    valis .voidType
+	  }
+	} else {
+	  reportError("$(Id) not part of type $(RcType)",Lc);
 	  valis .voidType
 	}
-      } else{
-	reportError("variable $(Id) not defined",Lc);
+      }
+      else{
+	reportError("Field $(Fld) not defined in $(Id) type",Lc);
 	valis .voidType
       }
     } else{
@@ -168,7 +187,7 @@ star.compiler.typeparse{
     doTypeFun(.tpExp(Op,A),As).
   doTypeFun(Tp,[]) => Tp.
 
-  parseTypeFields:(tipes,cons[ast],tipes,tipes,dict) => (tipes,tipes).
+  parseTypeFields:(tipes,cons[ast],tipes,rules,dict) => (tipes,rules).
   parseTypeFields(Q,[],Flds,Tps,_) => (Flds,Tps).
   parseTypeFields(Q,[A,..L],Flds,Tps,Env) where _ ?= isAnnotation(A) =>
     parseTypeFields(Q,L,Flds,Tps,Env).
@@ -177,7 +196,7 @@ star.compiler.typeparse{
     valis parseTypeFields(Q,L,FF,TT,Env)
   }
 
-  parseTypeField:(tipes,ast,tipes,tipes,dict) => (tipes,tipes).
+  parseTypeField:(tipes,ast,tipes,rules,dict) => (tipes,rules).
   parseTypeField(Q,F,Flds,Tps,Env) where (_,Lhs,Rhs) ?= isTypeAnnotation(F) => valof{
     if (ILc,Nm) ?= isName(Lhs) then {
       FTp=parseType(Q,Rhs,Env);
@@ -187,20 +206,59 @@ star.compiler.typeparse{
       valis ([],[])
     }
   }
-  parseTypeField(Q,F,Flds,Tps,Env) where (Lc,Lhs,Rhs) ?= isTypeExists(F) => valof{
-    if (ILc,Nm) ?= isName(Lhs) then {
-      FTp=parseType(Q,Rhs,Env);
-      valis (Flds,[(Nm,FTp),..Tps])
-    } else{
-      reportError("invalid lhs -- $(Lhs) -- of type annotation",locOf(Lhs)); -- 
-      valis ([],[])
-    }
-  }.
+  parseTypeField(Q,F,Flds,Tps,Env) where Rl ?= parseTypeFun(F,Q,Env) =>
+    (Flds,[(tpRuleName(Rl),Rl),..Tps]).
   parseTypeField(Q,F,Flds,Tps,Env) => valof{
-    reportError("invalid type field -- $(F)",locOf(F));
+    reportError("invalid type declaration -- $(F)",locOf(F));
     valis ([],[])
   }.
-	  
+
+  parseTypeFun(St,Q,Env) where (Lc,H,B) ?= isTypeLambda(St) => valof{
+    if traceCanon! then{
+      logMsg("parse type fun $(St)")
+    };
+    
+    (Tp,_) = parseTypeHead(Q,H,Env,id);
+
+    if traceCanon! then{
+      logMsg("parse type $(B) in $(Q)")
+    };
+    
+    RTp = parseType(Q,B,Env);
+    
+    valis .some(.typeLambda(Tp,RTp))
+  }
+  parseTypeFun(St,Q,Env) where (Lc,V,C,H,B) ?= isTypeExistsStmt(St) => valof{
+    if traceCanon! then{
+      logMsg("parse type exists $(St)")
+    };
+
+    Q = parseBoundTpVars(V);
+    (Tp,_) = parseTypeHead(Q,H,Env,id);
+    Cx = parseConstraints(C,Q,Env);
+    Fce = parseType(Q,B,declareType(tpName(Tp),Lc,Tp,.typeExists(Tp,.faceType([],[])),Env));
+    TpRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeExists(reConstrainType(Cx,Tp),Fce),Q);
+    valis .some(TpRl)
+  }
+  parseTypeFun(St,Q,Env) where (Lc,V,B) ?= isQuantified(St) => valof{
+    if traceCanon! then{
+      logMsg("parse type fun $(St)")
+    };
+    
+    QQ = parseBoundTpVars(V);
+
+    if Tp ?= parseTypeFun(B,QQ++Q,Env) then{
+      TpRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),Tp,QQ);
+      valis .some(TpRl)
+    } else
+    valis .none
+  }
+  
+  parseTypeFun(St,_,_) default => valof{
+    logMsg("cant parse $(St)");
+    valis .none
+  }
+  
   parseTypeName(_,_,"_",_) => (newTypeVar("_"),.none).
   parseTypeName(Q,_,Nm,_) where Tp?={! T | (Nm,T) in Q !} => (Tp,.none).
   parseTypeName(Q,_,Nm,Env) where (_,T,TpRl,_) ?= findType(Env,Nm) => valof{
@@ -312,23 +370,6 @@ star.compiler.typeparse{
     }
   }
 
-  public parseAccessorContract:(tipes,ast,dict) => constraint.
-  parseAccessorContract(Q,A,Env) where
-      (Lc,O,As) ?= isSquareTerm(A) && (_,Nm) ?= isName(O) => valof{
-	if [AAs].=As && (_,L,R) ?= isBinary(AAs,"->>") then{
-	  Tps = parseTypes(Q,deComma(L),Env);
-	  Dps = parseTypes(Q,deComma(R),Env);
-	  valis .conTract(Nm,Tps,Dps)
-	} else{
-	  Tps = parseTypes(Q,As,Env);
-	  valis .conTract(Nm,Tps,[])
-	}
-      }.
-  parseAccessorContract(_,A,Env) => valof{
-    reportError("$(A) is not a valid accessor contract",locOf(A));
-    valis .conTract("void",[],[])
-  }.
-
   parseTypes:(tipes,cons[ast],dict) => cons[tipe].
   parseTypes(_,[],_) => [].
   parseTypes(Q,[T,..L],Env) => valof{
@@ -350,7 +391,7 @@ star.compiler.typeparse{
   parseTypeDef(Nm,St,Env,Path) where (Lc,V,C,H,B) ?= isTypeExistsStmt(St) => valof{
 --    logMsg("parse type exists $(St)");
     Q = parseBoundTpVars(V);
-    (Tp,_) = parseTypeHead(Q,H,Env,Path);
+    (Tp,_) = parseTypeHead(Q,H,Env,(Nme)=>qualifiedName(Path,.typeMark,Nme));
     Cx = parseConstraints(C,Q,Env);
     Tmplte = pickTypeTemplate(Tp);
     Fce = parseType(Q,B,declareType(Nm,Lc,Tmplte,.typeExists(Tp,.faceType([],[])),Env));
@@ -360,7 +401,7 @@ star.compiler.typeparse{
   parseTypeDef(Nm,St,Env,Path) where (Lc,V,C,H,B) ?= isTypeFunStmt(St) => valof{
 --    logMsg("parse type fun $(St)");
     Q = parseBoundTpVars(V);
-    (Tp,_) = parseTypeHead(Q,H,Env,Path);
+    (Tp,_) = parseTypeHead(Q,H,Env,(Nme)=>qualifiedName(Path,.typeMark,Nme));
     Cx = parseConstraints(C,Q,Env);
     RTp = parseType(Q,B,Env);
     
@@ -379,34 +420,34 @@ star.compiler.typeparse{
   public parseTypeCore:(ast,dict,string) => option[(tipe,typeRule)].
   parseTypeCore(St,Env,Path) where (Lc,V,C,H,B) ?= isTypeExistsStmt(St) => valof{
     Q = parseBoundTpVars(V);
-    (Tp,TArgs) = parseTypeHead(Q,H,Env,Path);
+    (Tp,TArgs) = parseTypeHead(Q,H,Env,(Nme)=>qualifiedName(Path,.typeMark,Nme));
     Cx = parseConstraints(C,Q,Env);
     Tmplte = pickTypeTemplate(Tp);
     valis .some((Tmplte,foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeExists(reConstrainType(Cx,Tp),.faceType([],[])),Q)))
   }
   parseTypeCore(St,Env,Path) where (Lc,V,C,H,B) ?= isTypeFunStmt(St) => valof{
     Q = parseBoundTpVars(V);
-    (Tp,TArgs) = parseTypeHead(Q,H,Env,Path);
+    (Tp,TArgs) = parseTypeHead(Q,H,Env,(Nme)=>qualifiedName(Path,.typeMark,Nme));
     Cx = parseConstraints(C,Q,Env);
     Tmplte = pickTypeTemplate(Tp);
     valis .some((Tmplte,foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeExists(reConstrainType(Cx,Tp),.faceType([],[])),Q)))
   }
   parseTypeCore(St,Env,Path) where (Lc,V,C,H,_) ?= isAlgebraicTypeStmt(St) => valof{
     Q = parseBoundTpVars(V);
-    (Tp,TArgs) = parseTypeHead(Q,H,Env,Path);
+    (Tp,TArgs) = parseTypeHead(Q,H,Env,(Nme)=>qualifiedName(Path,.typeMark,Nme));
     Cx = parseConstraints(C,Q,Env);
     Tmplte = pickTypeTemplate(Tp);
     valis .some((Tmplte,foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeExists(reConstrainType(Cx,Tp),.faceType([],[])),Q)))
   }
   parseTypeCore(St,Env,Path) default => .none.
 
-  parseTypeHead:(tipes,ast,dict,string) => (tipe,cons[tipe]).
-  parseTypeHead(Q,Tp,Env,Path) where (Lc,Nm) ?= isName(Tp) => 
-    (.nomnal(qualifiedName(Path,.typeMark,Nm)),[]).
-  parseTypeHead(Q,Tp,Env,Path) where
+  parseTypeHead:(tipes,ast,dict,(string)=>string) => (tipe,cons[tipe]).
+  parseTypeHead(Q,Tp,Env,GenId) where (Lc,Nm) ?= isName(Tp) => 
+    (.nomnal(GenId(Nm)),[]).
+  parseTypeHead(Q,Tp,Env,GenId) where
       (Lc,O,Args) ?= isSquareTerm(Tp) && (_,Nm) ?= isName(O) => valof{
 	ArgTps = parseHeadArgs(Q,Args,[],Env);
-	valis (mkTypeExp(.tpFun(qualifiedName(Path,.typeMark,Nm),size(ArgTps)),ArgTps),ArgTps)
+	valis (mkTypeExp(.tpFun(GenId(Nm),size(ArgTps)),ArgTps),ArgTps)
       }.
 
   parseHeadArgs:(tipes,cons[ast],cons[tipe],dict) => cons[tipe].
@@ -451,7 +492,7 @@ star.compiler.typeparse{
 	ArgTps = parseHeadArgs(Qv,As,[],Env);
 	DepTps = parseHeadArgs(Qv,Ds,[],Env);
 	(Flds,Tps) = parseTypeFields(Qv,Els,[],[],Env);
-	Face = .faceType(sort(Flds,cmpField),sort(Tps,cmpField));
+	Face = .faceType(sort(Flds,cmpField),Tps);
 	FullNm = qualifiedName(Path,.typeMark,Id);
 
 	ConRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.contractExists(FullNm,ArgTps,DepTps,Face),Qv);
@@ -492,13 +533,13 @@ star.compiler.typeparse{
   public parseAlgebraicType:(option[locn],string,cons[ast],cons[ast],ast,ast,dict,string) => (cons[canonDef],cons[decl]).
   parseAlgebraicType(Lc,Nm,V,C,H,B,Env,Path) => valof{
     Q = parseBoundTpVars(V);
-    (Tp,_) = parseTypeHead(Q,H,Env,Path);
+    (Tp,_) = parseTypeHead(Q,H,Env,(Nme)=>qualifiedName(Path,.typeMark,Nme));
     Cx = parseConstraints(C,Q,Env);
     Tmplte = pickTypeTemplate(Tp);
 
     (Fs,Ts,Cs) = parseAlgebraicFace(B,Q,Env,Path);
     if traceCanon! then
-      logMsg("Algebraic face $(Fs)");
+      logMsg("Algebraic face $(Fs) $(Ts)");
     
     TpRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeExists(reConstrainType(Cx,Tp),.faceType(Fs,Ts)),Q);
 
@@ -525,15 +566,15 @@ star.compiler.typeparse{
     valis ([],[])
   }
 
-  parseAlgebraicFace:(ast,tipes,dict,string) => (tipes,tipes,cons[(string,ast)]).
+  parseAlgebraicFace:(ast,tipes,dict,string)=>(tipes,rules,cons[(string,ast)]).
   parseAlgebraicFace(A,Qs,Env,Path) => 
     algebraicFace(A,Qs,[],[],Env,Path).
 
-  algebraicFace:(ast,tipes,tipes,tipes,dict,string) => (tipes,tipes,cons[(string,ast)]).
+  algebraicFace:(ast,tipes,tipes,rules,dict,string) => (tipes,rules,cons[(string,ast)]).
   algebraicFace(A,Qs,Fs,Ts,Env,Path) where (Lc,L,R) ?= isBinary(A,"|") => valof{
     (F1,T1,C1) = algebraicFace(L,Qs,Fs,Ts,Env,Path);
     (F2,T2,C2) = algebraicFace(R,Qs,Fs,Ts,Env,Path);
-    valis (combineTypes(F1,F2,Env,Lc),combineTypes(T1,T2,Env,Lc),C1++C2)
+    valis (combineTypes(F1,F2,Env,Lc),combineTypeRules(T1,T2,Env,Lc),C1++C2)
   }
   algebraicFace(A,_,Fs,Ts,Env,Path) where (Lc,Op,_) ?= isRoundTerm(A) && (_,Id)?=isName(Op) =>
     ([],[],[(Id,A)]).
@@ -555,6 +596,11 @@ star.compiler.typeparse{
   }
   algebraicFace(A,Qs,Fs,Ts,Env,Path) where (_,V,B) ?= isXQuantified(A) => valof{
     BV = parseBoundTpVars(V);
+
+    if traceCanon! then{
+      logMsg("existential quantifiers of $(A) is $(BV)")
+    };
+    
     (F,T,Cs) = algebraicFace(B,BV++Qs,Fs,Ts,Env,Path);
     if [(Id,_)].=Cs then
       valis (F//(((Fld,Ftp))=>(Fld,reQX(BV,Ftp))),T,[(Id,A)])
@@ -583,6 +629,25 @@ star.compiler.typeparse{
   }
   mergeField(Id,Tp,[F2,..As],Env,Lc) => [F2,..mergeField(Id,Tp,As,Env,Lc)].
 
+  combineTypeRules([],F2,_,_) => F2.
+  combineTypeRules(F1,[],_,_) => F1.
+  combineTypeRules([(Nm,Rl),..Fs],Gs,Env,Lc) =>
+    [(Nm,Rl),..combineTypeRules(Fs,mergeType(Nm,Rl,Gs,Env,Lc),Env,Lc)].
+
+  mergeType(_,_,[],_,_) => [].
+  mergeType(Id,Rl,[(RNm,Rl2),..As],Env,Lc) => valof{
+    if RNm == Id then{
+      if Rl==Rl2 then
+	valis As
+      else{
+	reportError("typerule $(Rl) not identical to $(Rl2)",Lc);
+	valis As
+      }
+    }
+    else
+    valis [(RNm,Rl2),..mergeType(Id,Rl,As,Env,Lc)]
+  }
+
   buildConstructors:(ast,map[string,integer],tipes,cons[constraint],tipe,dict,string)=> (cons[canonDef],cons[decl]).
 
   buildConstructors(A,Mp,Qs,Cx,Tp,Env,Path) where (Lc,L,R) ?= isBinary(A,"|") => valof{
@@ -602,7 +667,7 @@ star.compiler.typeparse{
 
 	ConTp = reQ(Qs,wrapConstraints(Cx,consType(.faceType(Flds,Tps),Tp)));
 	if traceCanon! then
-	  logMsg("constructor: $(A)\:$(ConTp)[$Ix]");
+	  logMsg("constructor: $(A)\:$(ConTp)");
 	if Ix?=Mp[Nm] then
 	  valis ([.cnsDef(Lc,ConNm,Ix,ConTp)],[.cnsDec(Lc,Nm,ConNm,ConTp)])
 	else{
@@ -650,12 +715,21 @@ star.compiler.typeparse{
 
   buildAccessors:(tipes,ast,tipes,cons[constraint],tipe,dict,string)=>(cons[canonDef],cons[decl]).
   buildAccessors(Fields,B,Q,Cx,RcTp,Env,Path) => let{.
+    -- TODO: make result optional
+    
     makeAccessor:(string,tipe,ast)=> (cons[canonDef],cons[decl]).
     makeAccessor(Fld,FldTp,B) => valof{
-      AccFnTp = reQ(Q,wrapConstraints(Cx,funType([RcTp],FldTp))); -- TODO: may result optional
+      (XQ,FTp) = deQuantX(FldTp); -- special rule for existentials
+      AccFnTp = reQ(Q,reQuant(XQ,wrapConstraints(Cx,funType([RcTp],FTp))));
       Lc = locOf(B);
 --      DefltEqn = .rule(Lc,.tple(Lc,[.anon(Lc,RcTp)]),.none,.enm(Lc,"none",optType(FldTp)));
-      AcEqs = accessorEqns(B,Fld,FldTp,[/*DefltEqn*/]);
+      AcEqs = accessorEqns(B,Fld,FTp,[/*DefltEqn*/]);
+
+      if traceCanon! then
+	logMsg("accessor equations $(AcEqs)");
+
+      if isEmpty(AcEqs) then
+	reportWarning("no accessor for $(Fld)",locOf(B));
 
       AccFnNm = qualifiedName(tpName(RcTp),.fldMark,Fld);
       
@@ -667,7 +741,7 @@ star.compiler.typeparse{
     makeAccessor(_,_,_) default => ([],[]).
 
     accessorEqns:(ast,string,tipe,cons[rule[canon]]) => cons[rule[canon]].
-    accessorEqns(TB,Fld,FldTp,SoFar) where (Lc,L,R)?=isBinary(TB,"|") =>
+    accessorEqns(TB,Fld,FldTp,SoFar) where (_,L,R)?=isBinary(TB,"|") =>
       accessorEqns(R,Fld,FldTp,accessorEqns(L,Fld,FldTp,SoFar)).
     accessorEqns(TB,Fld,FldTp,SoFar) where (Lc,CN,Els)?=isBrTerm(TB) && (_,CnNm)?=isName(CN) && isFieldOfFc(Els,Fld) => valof{
       Sorted = sort(Els,compEls);
@@ -679,8 +753,8 @@ star.compiler.typeparse{
 	.none,XX);
       valis [Eqn,..SoFar]
     }.
-    accessorEqns(TB,Fld,RcTp,Eqns) where (_,_,I) ?= isXQuantified(TB) =>
-      accessorEqns(I,Fld,RcTp,Eqns).
+    accessorEqns(TB,Fld,FldTp,Eqns) where (_,_,I) ?= isXQuantified(TB) =>
+      accessorEqns(I,Fld,FldTp,Eqns).
     accessorEqns(_,_,_,Eqns) default => Eqns.
   .} in collapsePairs(Fields//((Fld,FTp))=>makeAccessor(Fld,FTp,B)).
 
@@ -689,9 +763,13 @@ star.compiler.typeparse{
   buildUpdaters(Fields,B,Q,Cx,RcTp,Env,Path) => let{.
     makeUpdater:(string,tipe,ast)=> (cons[canonDef],cons[decl]).
     makeUpdater(Fld,FldTp,B) => valof{
-      UpdFnTp = reQ(Q,wrapConstraints(Cx,funType([RcTp,FldTp],RcTp)));
+      (XQ,ITp) = deQuantX(FldTp); -- special rule for existentials
+      UpdFnTp = reQ(Q, reQuant(XQ,wrapConstraints(Cx,funType([RcTp,ITp],RcTp))));
       Lc = locOf(B);
       AcEqs = updaterEqns(B,Fld,FldTp,[]);
+
+      if isEmpty(AcEqs) then
+	reportWarning("no updater for $(Fld)",locOf(B));
 
       UpdFnNm = qualifiedName(tpName(RcTp),.overMark,Fld);
 
@@ -716,8 +794,8 @@ star.compiler.typeparse{
 	.none,.apply(Lc,.enm(Lc,CnNm,ConsTp),RepArgs,RcTp));
       valis [Eqn,..SoFar]
     }.
-    updaterEqns(TB,Fld,RcTp,Eqns) where (_,_,I) ?= isXQuantified(TB) =>
-      updaterEqns(I,Fld,RcTp,Eqns).
+    updaterEqns(TB,Fld,FldTp,Eqns) where (_,_,I) ?= isXQuantified(TB) =>
+      updaterEqns(I,Fld,FldTp,Eqns).
     updaterEqns(_,_,_,Eqns) default => Eqns.
   .} in collapsePairs(Fields//((Fld,FTp))=>makeUpdater(Fld,FTp,B)).
 

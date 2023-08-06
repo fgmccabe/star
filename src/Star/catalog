@@ -35,6 +35,7 @@
     "star.option": "option.star",
     "star.parse": "parse.star",
     "star.pkg": "pkg.star",
+    "star.promise": "promise.star",
     "star.q": "q.star",
     "star.quickcheck": "quickcheck.star",
     "star.random": "random.star",

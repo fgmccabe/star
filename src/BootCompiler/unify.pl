@@ -20,7 +20,6 @@ sm(T1,V2,Lc,_Env) :- isUnbound(V2), !, varBinding(V2,T1,Lc).
 sm(type(Nm),type(Nm),_,_).
 sm(tpFun(Nm,Ar),tpFun(Nm,Ar),_,_).
 sm(tpExp(O1,A1),tpExp(O2,A2),Lc,Env) :- sameType(O1,O2,Lc,Env), sameType(A1,A2,Lc,Env).
-sm(refType(A1),refType(A2),Lc,Env) :- sameType(A1,A2,Lc,Env).
 sm(valType(A1),valType(A2),Lc,Env) :- sameType(A1,A2,Lc,Env).
 sm(tplType(A1),tplType(A2),Lc,Env) :- smList(A1,A2,Lc,Env).
 sm(funType(A1,R1),funType(A2,R2),Lc,Env) :- sameType(R1,R2,Lc,Env), sameType(A2,A1,Lc,Env).
@@ -124,7 +123,6 @@ getFace(existType(V,T),Lc,Env,existType(V,F)) :-
 getFace(allType(V,T),Lc,Env,allType(V,F)) :-
   faceOfType(T,Lc,Env,F).
 getFace(tplType(_),_,_,faceType([],[])).
-getFace(refType(_),_,_,faceType([],[])).
 getFace(valType(T),Lc,Env,Face) :- getFace(T,Lc,Env,Face).
 
 isKvar(V) :- deRef(V,kVar(_)).
@@ -170,8 +168,6 @@ smpTp(kVar(V),_,_,C,C,kVar(V)).
 smpTp(kFun(V,Ar),_,_,C,C,kFun(V,Ar)).
 smpTp(V,_,_,Cx,Cx,V) :- isUnbound(V),!.
 smpTp(tpFun(Id,Ar),_,_,Cx,Cx,tpFun(Id,Ar)).
-smpTp(refType(T),Lc,Env,C,Cx,refType(Tp)) :-
-  simplifyType(T,Lc,Env,C,Cx,Tp).
 smpTp(valType(T),Lc,Env,C,Cx,valType(Tp)) :-
   simplifyType(T,Lc,Env,C,Cx,Tp).
 smpTp(tplType(A),Lc,Env,C,Cx,tplType(As)) :-
@@ -252,7 +248,6 @@ occIn(Id,tFun(_,_,_,_,_,Id)) :-!.
 occIn(Id,tFun(Curr,_,_,_,_,_)) :- nonvar(Curr), !, occIn(Id,Curr).
 occIn(Id,tpExp(O,_)) :- occIn(Id,O),!.
 occIn(Id,tpExp(_,A)) :- occIn(Id,A),!.
-occIn(Id,refType(I)) :- occIn(Id,I).
 occIn(Id,valType(I)) :- occIn(Id,I).
 occIn(Id,tplType(L)) :- is_member(A,L), occIn(Id,A).
 occIn(Id,funType(A,_)) :- occIn(Id,A).

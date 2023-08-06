@@ -6,7 +6,7 @@
 	   progTypeArity/2,progArgTypes/2,funResType/2,
 	   isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
 	   isFunctionType/1,isFunctionType/2,isCnsType/3,
-	   isProgramType/1,
+	   isProgramType/1,isRefTp/2,mkRefTp/2,
 	   ssConstraint/4,ssType/4,dispType/1,dispConstraint/1,
 	   contractType/2,contractTypes/2,
 	   isUnbound/1,isBound/1,isUnboundFVar/2, isIdenticalVar/2,occursIn/2,
@@ -28,7 +28,6 @@ isType(tVar(_,_,_,_,_)).
 isType(tFun(_,_,_,_,_,_)).
 isType(type(_)).
 isType(tpExp(_,_)).
-isType(refType(_)).
 isType(tplType(_)).
 isType(funType(_,_)).
 isType(consType(_,_)).
@@ -181,7 +180,6 @@ ssType(consType(A,R),ShCon,Dp,sq([AA,ss("<=>"),RR])) :-
 ssType(continType(A,R),ShCon,Dp,sq([AA,ss("=>>"),RR])) :-
   ssType(A,ShCon,Dp,AA),
   ssType(R,ShCon,Dp,RR).
-ssType(refType(R),ShCon,Dp,sq([ss("ref "),RR])) :- ssType(R,ShCon,Dp,RR).
 ssType(valType(R),ShCon,Dp,sq([ss("val "),RR])) :- ssType(R,ShCon,Dp,RR).
 ssType(allType(V,T),ShCon,Dp,sq([ss("all "),iv(ss(","),[types:tvr(V)|VV]),ss("~"),TT])) :-
   deRef(T,T0),
@@ -296,8 +294,6 @@ tpArity(consType(A,_),Ar) :- !,
   tpArity(A,Ar).
 tpArity(continType(A,_),Ar) :- !,
   progTypeArity(A,Ar).
-tpArity(refType(A),Ar) :- !,
-  progTypeArity(A,Ar).
 tpArity(tplType(A),Ar) :- !,length(A,Ar).
 tpArity(faceType(A,_),Ar) :- !,length(A,Ar).
 tpArity(_,0).
@@ -337,6 +333,10 @@ isProgType(allType(_,Tp)) :- !, isProgType(Tp).
 isProgType(constrained(Tp,_)) :- isProgType(Tp).
 isProgType(Tp) :- isFunctionType(Tp),!.
 isProgType(Tp) :- isCnsType(Tp,_,_),!.
+
+isRefTp(T,A) :- deRef(T,tpExp(O,A)), deRef(O,tpFun("ref",1)).
+
+mkRefTp(A,tpExp(tpFun("ref",1),A)).
 
 isTypeLam(Tp) :- isTypeLam(Tp,_).
 
@@ -561,7 +561,6 @@ occursIn(V,Tp) :-
 occIn(V,VV) :- isIdenticalVar(V,VV),!.
 occIn(V,tpExp(O,_)) :- deRef(O,OO),occIn(V,OO),!.
 occIn(V,tpExp(_,A)) :- deRef(A,AA),occIn(V,AA),!.
-occIn(V,refType(I)) :- deRef(I,II),occIn(V,II).
 occIn(V,tplType(L)) :- is_member(A,L), deRef(A,AA),occIn(V,AA).
 occIn(V,funType(A,_)) :- deRef(A,AA),occIn(V,AA).
 occIn(V,funType(_,R)) :- deRef(R,RR),occIn(V,RR).

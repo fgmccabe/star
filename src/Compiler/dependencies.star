@@ -537,6 +537,10 @@ star.compiler.dependencies{
     collectFaceType(I,All,R).
   collectFaceType(P,All,R) where (_,L,T) ?= isTypeAnnotation(P) =>
     collectTypeRefs(T,All,R).
+  collectFaceType(P,All,R) where (_,L,T) ?= isTypeLambda(P) =>
+    collectTypeRefs(T,All,collectTypeRefs(L,All,R)).
+  collectFaceType(P,All,R) where (_,L,T) ?= isTypeExists(P) =>
+    collectTypeRefs(T,All,collectTypeRefs(L,All,R)).
   collectFaceType(_,All,R) => R.
 
   collectName:(defnSp,map[defnSp,defnSp],cons[defnSp])=>cons[defnSp].

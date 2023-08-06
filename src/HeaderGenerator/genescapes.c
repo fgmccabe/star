@@ -141,7 +141,7 @@ char *dumpPrologSig(char *sig, strBufferPo out) {
     }
 
     case refSig: {
-      outMsg(O_IO(out), "refType(");
+      outMsg(O_IO(out), "tpExp(tpFun(\"ref\",1),");
       sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ")");
       return sig;
@@ -297,7 +297,7 @@ static char *dumpStarSig(char *sig, strBufferPo out) {
     }
 
     case refSig: {
-      outStr(O_IO(out), ".tpExp(.tpFun(\"star.core*ref\",1),");
+      outStr(O_IO(out), ".tpExp(.tpFun(\"ref\",1),");
       sig = dumpStarSig(sig, out);
       outStr(O_IO(out), ")");
       return sig;

@@ -75,7 +75,6 @@ frshn(kFun(TV,Ar),E,B,Ex,Tp) :-
     ( is_member((TV,Tp),B),! ;
       isTypeVar(TV,E,Tp), Tp=kFun(_,Ar),!;
       Tp=kFun(TV,Ar)).
-frshn(refType(T),E,B,Ex,refType(FTp)) :- rewriteType(T,E,B,Ex,FTp).
 frshn(V,_,_,_,V) :- isUnbound(V),!.
 frshn(type(Nm),_,_,_,type(Nm)).
 frshn(tpFun(Nm,Ar),_,_,_,tpFun(Nm,Ar)).
