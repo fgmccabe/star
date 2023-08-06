@@ -26,7 +26,7 @@ test.sieve{
     valis ()
   }
 
-  sieve:(task[integer],integer,integer,channel[integer]) => ().
+  sieve:(task[integer],integer,integer,channel[integer]) => integer.
   sieve(this,Cnt,Mx,Chnnl) => valof{
     try{
       Nxt = collect(Chnnl);

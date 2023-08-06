@@ -87,7 +87,7 @@ star.compiler.checker{
 
   formRecordExp:(option[locn],canon,tipe,cons[canonDef],cons[decl],cons[decl],tipe) => canon.
   formRecordExp(Lc,Lbl,.faceType(Flds,Tps),Defs,XDcs,Decls,Tp) => valof{
-    sortedFlds = sortFieldTypes(Flds);
+    sortedFlds = sortFields(Flds);
     Dcls = getFullNms([(XDcs,Decls)]);
     
     valis .letExp(Lc,Defs,Decls,.apply(Lc,Lbl,
@@ -101,7 +101,7 @@ star.compiler.checker{
   formTheta:(option[locn],canon,tipe,cons[cons[canonDef]],cons[(cons[decl],cons[decl])],tipe) =>
     canon.
   formTheta(Lc,Lbl,.faceType(Flds,Tps),Defs,Decls,Tp) => valof{
-    sortedFlds = sortFieldTypes(Flds);
+    sortedFlds = sortFields(Flds);
     Dcls = getFullNms(Decls);
     
     valis genLetRec(Defs,Decls,(G,D,E) => .letRec(Lc,G,D,E),
@@ -250,6 +250,9 @@ star.compiler.checker{
       valis (Defs,Publish(.varSp(Nm),Decls),Decls)
     }.
     .defnSpec(.tpSp(Nm),Lc,[St]) => valof{
+      if traceCanon! then
+	logMsg("parse type defn $(St)");
+
       (Df,Dcs) = parseTypeDef(Nm,St,Env,Path);
       if traceCanon! then
 	logMsg("declarations from $(St)\:$(Dcs)");
@@ -400,86 +403,6 @@ star.compiler.checker{
     }
   }
 
-  checkAccessor:(option[locn],string,cons[ast],cons[ast],ast,ast,dict,dict,string) =>
-    (cons[canonDef],cons[decl]).
-  checkAccessor(Lc,Nm,Q,C,T,B,Env,Outer,Path) => valof{
-    if traceCanon! then
-      logMsg("check accessor $(Nm) Q=$(Q), C=$(C), B=$(B)");
-    QV = parseBoundTpVars(Q);
-    Cx = parseConstraints(C,QV,Env);
-    if (_,Fn,[TA]) ?= isSquareTerm(T) && (_,[L],[R]) ?= isDepends(TA) then{
-      (_,Fld) = _optval(isName(Fn)); -- TODO replace by final operator
-      RcTp = parseType(QV,L,Env);
-      FldTp = parseType(QV,R,Env);
-
-      AT = funType([RcTp],FldTp);
-      AccTp = rebind(QV,reConstrainType(Cx,AT),Env);
-
-      (Qs,ETp) = evidence(AccTp,Env);
-      (CCx,VarTp) = deConstrain(ETp);
-      Es = declareConstraints(Lc,CCx,declareTypeVars(Qs,Env));
-
-      AccFn = typeOfExp(B,VarTp,Es,Path);
-
-      AccVrNm = qualifiedName(Path,.valMark,qualifiedName(tpName(RcTp),.typeMark,"^"++Fld));
-      
-      Defn = .varDef(Lc,AccVrNm,AccFn,Cx,AccTp);
-      Decl = .accDec(Lc,rebind(QV,reConstrainType(Cx,RcTp),Env),Fld,AccVrNm,AccTp);
-      FDecl = .funDec(Lc,AccVrNm,AccVrNm,AccTp);
-    
-      if traceCanon! then
-	logMsg("accessor $(Decl)");
-      valis ([Defn],[Decl,FDecl])
-    } else {
-      reportError("bad accessor structure $(T)",Lc);
-      valis ([],[])
-    }
-  }
-
-  checkUpdater:(option[locn],string,cons[ast],cons[ast],ast,ast,dict,dict,string) => (cons[canonDef],cons[decl]).
-  checkUpdater(Lc,Nm,Q,C,T,B,Env,Outer,Path) => valof{
-    if traceCanon! then
-      logMsg("Check updater: $(Nm) $(C) ~~ Head:$(T), Body:$(B)");
-    QV = parseBoundTpVars(Q);
-    Cx = parseConstraints(C,QV,Env);
-    if (_,Fn,[TA]) ?= isSquareTerm(T) && (_,[L],[R]) ?= isDepends(TA) && (_,Fld) ?= isName(Fn) then{
-      RcTp = parseType(QV,L,Env);
-      FldTp = parseType(QV,R,Env);
-
-      AT = funType([RcTp,FldTp],RcTp);
---      AccTp = rebind(QV,AT,Env);
-      AccTp = rebind(QV,reConstrainType(Cx,AT),Env);
-
-      if traceCanon! then
-	logMsg("updater type $(AccTp)");
-      
-      (Qs,ETp) = evidence(AccTp,Env);
-
-      if traceCanon! then
-	logMsg("updater type $(ETp)");
-
-      (CCx,VarTp) = deConstrain(ETp);
-      Es = declareConstraints(Lc,CCx,declareTypeVars(Qs,Env));
-
-      if traceCanon! then
-	logMsg("check updater against $(VarTp)");
-
-      AccFn = typeOfExp(B,VarTp,Es,Path);
-
-      AccVrNm = qualifiedName(Path,.valMark,qualifiedName(tpName(RcTp),.typeMark,"!"++Fld));
-
-      Defn = .varDef(Lc,AccVrNm,AccFn,Cx,AccTp);
-      Decl = .updDec(Lc,rebind(QV,reConstrainType(Cx,RcTp),Env),Fld,AccVrNm,AccTp);
-      FDecl = .funDec(Lc,AccVrNm,AccVrNm,AccTp);
-      if traceCanon! then
-	logMsg("updater $(Defn)\:$(AccTp)");
-      valis ([Defn],[Decl,FDecl])
-    } else {
-      reportError("bad updater structure $(T)",Lc);
-      valis ([],[])
-    }
-  }
-    
   typeOfPtn:(ast,tipe,dict,string) => (canon,option[canon],dict).
   typeOfPtn(A,Tp,Env,_) where Lc?=isAnon(A) => (.anon(Lc,Tp),.none,Env).
   typeOfPtn(A,Tp,Env,Path) where (Lc,Id) ?= isName(A) && varDefined(Id,Env) => valof{

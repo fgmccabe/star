@@ -553,6 +553,7 @@ star.compiler.wff{
   surfaceName(T) where (_,Els) ?= isTuple(T) => "()$(size(Els))".
   surfaceName(T) where _ ?= isFunctionType(T) => "=>".
   surfaceName(T) where _ ?= isContinType(T) => "=>>".
+  surfaceName(T) where _ ?= isRef(T) => "ref".
 
   public mkImplementationStmt:(option[locn],cons[ast],cons[ast],ast,ast) => ast.
   mkImplementationStmt(Lc,Q,Cx,T,E) =>

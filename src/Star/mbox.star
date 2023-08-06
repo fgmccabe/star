@@ -1,9 +1,10 @@
 star.mbox{
   import star.
+  import star.promise.
 
   public all e ~~ task[e] ~> resumeProtocol=>>suspendProtocol[e].
 
-  public all e ~~ taskFun[e] ~> ((task[e])=>()).
+  public all e ~~ taskFun[e] ~> ((task[e])=>e).
 
   public all d ~~ channel[d] ::=
     .channel(ref channelState[d]).
@@ -18,6 +19,7 @@ star.mbox{
   .blocked(()=>boolean) |
   .result(e) |
   .fork(taskFun[e]) |
+  .requestIO((exists d ~~ ()=>promise[e])) |
   .identify(task[e]) |
   .retired_.
 
@@ -71,9 +73,7 @@ star.mbox{
   spawnTask:all e ~~ (taskFun[e]) => task[e].
   spawnTask(F) => case (Tsk spawn valof{
     case Tsk suspend .identify(Tsk) in {
-	.go_ahead => {
-	  F(Tsk);
-	}
+	.go_ahead => { Tsk suspend .result(F(Tsk))}
 	| .shut_down_ => {}
       };
       Tsk retire .retired_
@@ -97,7 +97,7 @@ star.mbox{
 	    | .result(Rslt) => {
 	      while [C,..Cs] .= Q! do{
 		Q := Cs;
-		_ = C resume .shut_down_;
+		C resume .shut_down_;
 	      };
 		
 	      valis Rslt
@@ -119,10 +119,6 @@ star.mbox{
 	BlockQ := BQ;
 	Q := Wts
       };
-
-      if isEmpty(Q!) then{
-	raise .deadlock
-      }
     }
   }
 

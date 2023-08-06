@@ -67,8 +67,8 @@ decodeType(kVar(Nm)) --> ['k'], decodeText(Nm).
 decodeType(kFun(Nm,Ar)) --> ['K'], typeLen(Ar), decodeText(Nm).
 decodeType(type(Nm)) --> ['t'], decodeText(Nm).
 decodeType(tpFun(Nm,Ar)) --> ['z'], typeLen(Ar), decodeText(Nm).
+decodeType(tpExp(tpFun("ref",1),ArgType)) --> ['r'],decodeType(ArgType).
 decodeType(tpExp(Op,ArgType)) --> ['U'], decodeType(Op), decodeType(ArgType).
-decodeType(refType(Tp)) --> ['r'], decodeType(Tp).
 decodeType(allType(TV,Tp)) --> [':'], decodeType(TV), decodeType(Tp).
 decodeType(existType(TV,Tp)) --> ['e'], decodeType(TV), decodeType(Tp).
 decodeType(constrained(Tp,Con)) --> ['|'], decodeType(Tp), decodeConstraint(Con).

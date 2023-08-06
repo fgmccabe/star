@@ -97,8 +97,8 @@ encodeT(kVar(Nm),['k'|O],Ox) :- encodeText(Nm,O,Ox).
 encodeT(kFun(Nm,Ar),['K'|O],Ox) :- encodeInt(Ar,O,O1),encodeText(Nm,O1,Ox).
 encodeT(type(Nm),['t'|O],Ox) :- encodeText(Nm,O,Ox).
 encodeT(tpFun(Nm,Ar),['z'|O],Ox) :- encodeInt(Ar,O,O1),encodeText(Nm,O1,Ox).
+encodeT(tpExp(tpFun("ref",1),Arg),['r'|O],Ox) :- !, encodeType(Arg,O,Ox).
 encodeT(tpExp(T,Arg),['U'|O],Ox) :- deRef(T,Tp),encodeType(Tp,O,O1), encodeType(Arg,O1,Ox).
-encodeT(refType(Tp),['r'|O],Ox) :- encodeType(Tp,O,Ox).
 encodeT(funType(AT,Tp),['F'|O],Ox) :- encodeType(AT,O,O1), encodeType(Tp,O1,Ox).
 encodeT(consType(Args,Tp),['C'|O],Ox) :- encodeType(Args,O,O1), encodeType(Tp,O1,Ox).
 encodeT(continType(Args,Tp),['x'|O],Ox) :- encodeType(Args,O,O1), encodeType(Tp,O1,Ox).

@@ -226,10 +226,10 @@ star.compiler.dict.mgt{
   pushFlds([(Nm,Tp),..Vrs],Lc,Mkr,Env)  =>
     pushFlds(Vrs,Lc,Mkr,Mkr(Nm,Tp,Env)).
 
-  pushTypes:(cons[(string,tipe)],option[locn],dict) => dict.
+  pushTypes:(cons[(string,typeRule)],option[locn],dict) => dict.
   pushTypes([],Lc,Env) => Env.
-  pushTypes([(Nm,Tp),..Tps],Lc,Env) =>
-    pushTypes(Tps,Lc,declareType(Nm,Lc,typeKey(Tp),.typeExists(Tp,.faceType([],[])),Env)).
+  pushTypes([(Nm,Rl),..Tps],Lc,Env) =>
+    pushTypes(Tps,Lc,declareType(Nm,Lc,ruleType(Rl),Rl,Env)).
 
   public declareConstraints:(option[locn],cons[constraint],dict) => dict.
   declareConstraints(_,[],E) => E.

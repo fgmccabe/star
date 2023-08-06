@@ -740,7 +740,7 @@ cellVars(Defs,CellVars) :-
   rfold(Defs,transform:pickCellVar,[],CellVars).
 
 pickCellVar(varDef(_,Nm,_,_,Tp,_),F,Fv) :-
-  deRef(Tp,refType(_)),!,
+  isRefTp(Tp,_),!,
   add_mem(idnt(Nm),F,Fv).
 pickCellVar(varDef(_,Nm,_,_,_,Val),F,Fv) :-
   \+isSimpleCanon(Val),!,

@@ -81,9 +81,9 @@ escapeType("_blsl",funType(tplType([type("star.core*integer"),type("star.core*in
 escapeType("_blsr",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer"))).
 escapeType("_basr",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer"))).
 escapeType("_bnot",funType(tplType([type("star.core*integer")]),type("star.core*integer"))).
-escapeType("_cell",allType(kVar("t"),funType(tplType([kVar("t")]),refType(kVar("t"))))).
-escapeType("_get",allType(kVar("t"),funType(tplType([refType(kVar("t"))]),kVar("t")))).
-escapeType("_assign",allType(kVar("t"),funType(tplType([refType(kVar("t")),kVar("t")]),tplType([])))).
+escapeType("_cell",allType(kVar("t"),funType(tplType([kVar("t")]),tpExp(tpFun("ref",1),kVar("t"))))).
+escapeType("_get",allType(kVar("t"),funType(tplType([tpExp(tpFun("ref",1),kVar("t"))]),kVar("t")))).
+escapeType("_assign",allType(kVar("t"),funType(tplType([tpExp(tpFun("ref",1),kVar("t")),kVar("t")]),tplType([])))).
 escapeType("_tuple_nth",allType(kVar("t"),allType(kVar("e"),funType(tplType([kVar("t"),type("star.core*integer")]),kVar("e"))))).
 escapeType("_tuple_set_nth",allType(kVar("t"),allType(kVar("e"),funType(tplType([kVar("t"),type("star.core*integer"),kVar("e")]),kVar("t"))))).
 escapeType("_cwd",funType(tplType([]),type("star.core*string"))).

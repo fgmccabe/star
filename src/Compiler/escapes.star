@@ -85,9 +85,9 @@ star.compiler.escapes{
     "_blsr" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*integer"),.nomnal("star.core*integer")])),.nomnal("star.core*integer"))).
     "_basr" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*integer"),.nomnal("star.core*integer")])),.nomnal("star.core*integer"))).
     "_bnot" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*integer")])),.nomnal("star.core*integer"))).
-    "_cell" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("t")])),.tpExp(.tpFun("star.core*ref",1),.nomnal("t"))))).
-    "_get" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("star.core*ref",1),.nomnal("t"))])),.nomnal("t")))).
-    "_assign" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("star.core*ref",1),.nomnal("t")),.nomnal("t")])),.tupleType([])))).
+    "_cell" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("t")])),.tpExp(.tpFun("ref",1),.nomnal("t"))))).
+    "_get" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("ref",1),.nomnal("t"))])),.nomnal("t")))).
+    "_assign" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("ref",1),.nomnal("t")),.nomnal("t")])),.tupleType([])))).
     "_tuple_nth" => .some(.allType(.nomnal("t"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("t"),.nomnal("star.core*integer")])),.nomnal("e"))))).
     "_tuple_set_nth" => .some(.allType(.nomnal("t"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("t"),.nomnal("star.core*integer"),.nomnal("e")])),.nomnal("t"))))).
     "_cwd" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.nomnal("star.core*string"))).

@@ -56,9 +56,10 @@ parseType(F,Env,Q,continType(AT,RT)) :-
   isContinType(F,_,L,R),
   parseArgType(L,Env,Q,AT),
   parseType(R,Env,Q,RT).
-parseType(F,Env,Q,refType(Tp)) :-
+parseType(F,Env,Q,Tp) :-
   isRef(F,_,L),
-  parseType(L,Env,Q,Tp).
+  parseType(L,Env,Q,A),
+  mkTypeExp(tpFun("ref",1),[A],Tp).
 parseType(T,Env,Q,tplType(AT)) :-
   isTuple(T,[A]),
   isTuple(A,Inner),!,

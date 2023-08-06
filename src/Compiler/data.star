@@ -311,7 +311,7 @@ star.compiler.data{
     }
     `I` => valof{
       (F1,T0) = decodeFields(Ts);
-      (F2,T1) = decodeFields(T0);
+      (F2,T1) = decodeTypeRules(T0);
       valis (.faceType(F1,F2),T1)
     }
     `F` => valof{
@@ -367,6 +367,18 @@ star.compiler.data{
     valis (.typeLambda(A,R),T1)
   }
 
+  decodeTypeRules:(cons[char])=>(cons[(string,typeRule)],cons[char]).
+  decodeTypeRules([`[`,..Ts]) => decodeRls(Ts,[]).
+
+  decodeRls:(cons[char],cons[(string,typeRule)])=>
+    (cons[(string,typeRule)],cons[char]).
+  decodeRls([`]`,..Ts],Rls) => (reverse(Rls),Ts).
+  decodeRls(Ts,Rls) => valof{
+    (Nm,T0) = decodeText(Ts);
+    (Rl,T1) = decodeTypeRule(T0);
+    valis decodeRls(T1,[(Nm,Rl),..Rls])
+  }
+
   decodeFields:(cons[char])=>(cons[(string,tipe)],cons[char]).
   decodeFields([`{`,..Ts]) => decodeFlds(Ts,[]).
 
@@ -420,7 +432,7 @@ star.compiler.data{
     .tpFun(Nm,Ar) => encodeText(Nm,encodeNat(Ar,[`z`,..Chs])).
     .tpExp(.tpFun("star.core*cons",1),El) =>
       encodeType(deRef(El),[`L`,..Chs]).
-    .tpExp(.tpFun("star.core*ref",1),El) =>
+    .tpExp(.tpFun("ref",1),El) =>
       encodeType(deRef(El),[`r`,..Chs]).
     .tpExp(.tpExp(.tpFun("=>",2),A),R) =>
       encodeType(deRef(R),encodeType(deRef(A),[`F`,..Chs])).
@@ -438,7 +450,7 @@ star.compiler.data{
     .constrainedType(T,C) =>
       encodeConstraint(C,encodeType(deRef(T),[`|`,..Chs])).
     .faceType(Flds,Tps) =>
-      encodeFldTypes(Tps,encodeFldTypes(Flds,[`I`,..Chs])).
+      encodeTypeRules(Tps,encodeFldTypes(Flds,[`I`,..Chs])).
   }.
 
   encodeTypes:(cons[tipe],cons[char])=>cons[char].
@@ -466,7 +478,7 @@ star.compiler.data{
   encodeConstraint(.raisEs(T),Chs) =>
     encodeType(T,[`r`,..Chs]).
 
-  public encodeTypeRule:(typeRule,cons[char])=>cons[char].
+  encodeTypeRule:(typeRule,cons[char])=>cons[char].
   encodeTypeRule(.allRule(V,R),Chs) =>
     encodeTypeRule(R,encodeType(deRef(V),[`:`,..Chs])).
   encodeTypeRule(.typeExists(H,I),Chs) =>
@@ -475,6 +487,12 @@ star.compiler.data{
     encodeType(deRef(I),encodeConstraint(.conTract(N,T,D),[`Z`,..Chs])).
   encodeTypeRule(.typeLambda(Hd,I),Chs) =>
     encodeType(deRef(I),encodeType(deRef(Hd),[`y`,..Chs])).
+
+  encodeTypeRules(Rls,Chs) => encodeRls(Rls,[`[`,..Chs]).
+
+  encodeRls([],Chs) => [`]`,..Chs].
+  encodeRls([(Id,Rl),..Rls],Chs) =>
+    encodeRls(Rls,encodeTypeRule(Rl,encodeText(Id,Chs))).
 
   public encodeTpRlSignature:(typeRule) => string.
   encodeTpRlSignature(Rl) => reverse(encodeTypeRule(Rl,[]))::string.

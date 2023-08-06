@@ -285,6 +285,8 @@ implementedContractName(Sq,INm) :-
   string_chars(INm,S0).
 implementedContractName(L,Nm) :-
   isIden(L,Nm),!.
+implementedContractName(L,"ref") :-
+  isRef(L,_,_),!.
   
 surfaceNames([],_,S,S).
 surfaceNames([T|_],Sep,S0,Sx) :-
@@ -315,6 +317,8 @@ surfaceName(T,"=>>") :-
   isContinType(T,_,_,_).
 surfaceName(T,"=>") :-
   isFuncType(T,_,_,_).
+surfaceName(T,"ref") :-
+  isRef(T,_,_),!.
 
 isDynamic(A,Lc,Nm,Tp) :-
   isBinary(A,Lc,"|=",L,Tp),!,

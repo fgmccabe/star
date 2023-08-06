@@ -766,11 +766,13 @@ typeOfExp(Term,Tp,Env,Ev,case(Lc,Bound,Eqns,Tp),Path) :-
 typeOfExp(Term,Tp,Env,Ev,cell(Lc,Exp),Path) :-
   isRef(Term,Lc,I),
   newTypeVar("r",RT),
-  verifyType(Lc,ast(Term),refType(RT),Tp,Env),
+  mkRefTp(RT,RTp),
+  verifyType(Lc,ast(Term),RTp,Tp,Env),
   typeOfExp(I,RT,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,deref(Lc,Exp),Path) :-
   isCellRef(Term,Lc,I),
-  typeOfExp(I,refType(Tp),Env,Ev,Exp,Path).
+  mkRefTp(Tp,RTp),
+  typeOfExp(I,RTp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Env,Val,Path) :-
   isQBraceTuple(Term,Lc,Els),
   reportError("anonymous brace expression %s not supported",[ast(Term)],Lc),
@@ -1052,11 +1054,13 @@ checkAssignment(Lc,P,E,Env,Ev,doDefn(Lc,Ptn,cell(Lc,Exp)),Path) :-
   isIden(P,Nm),
   \+  getVar(Lc,Nm,Env,_,_),!,
   newTypeVar("V",TV),
-  typeOfPtn(P,refType(TV),Env,Ev,Ptn,Path),
+  mkRefTp(TV,RTp),
+  typeOfPtn(P,RTp,Env,Ev,Ptn,Path),
   typeOfExp(E,TV,Env,_,Exp,Path).
 checkAssignment(Lc,P,E,Env,Ev,doAssign(Lc,Ptn,Exp),Path) :-
   newTypeVar("V",TV),
-  typeOfExp(P,refType(TV),Env,Ev,Ptn,Path),
+  mkRefTp(TV,RTp),
+  typeOfExp(P,RTp,Env,Ev,Ptn,Path),
   typeOfExp(E,TV,Env,_,Exp,Path).
 
 checkGuard(none,Env,Env,none,_) :-!.

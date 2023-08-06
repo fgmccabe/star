@@ -17,7 +17,8 @@ star.compiler.freshen{
     freshen(Tp,_) default => ([],Tp).
 
     refresh(Q,T,Env) => frshn(deRef(T),
-      foldLeft(((QNm,QTp),E)=>declareType(QNm,.none,QTp,.typeExists(QTp,.faceType([],[])),E),Env,Q)).
+      foldLeft(((QNm,QTp),E)=>declareType(QNm,.none,QTp,
+	  .typeExists(QTp,emptyFace),E),Env,Q)).
   }
 
   public implementation fresh[typeRule] => let{
@@ -31,44 +32,49 @@ star.compiler.freshen{
     freshen(Rl,Env) where (Q,R,E) .= genQuants(Rl,[],Env) => (Q,freshRule(R,E)).
     refresh(Q,Rl,Env) =>
       freshRule(Rl,
-	foldLeft(((Nm,Tp),E)=>declareType(Nm,.none,Tp,.typeExists(Tp,.faceType([],[])),E),
+	foldLeft(((Nm,Tp),E)=>declareType(Nm,.none,Tp,.typeExists(Tp,emptyFace),E),
 	  Env,Q)).
+  }
+
+  freshenRl(Rl,Env) => valof{
+    (_,RRl) = freshen(Rl,Env);
+    valis RRl
   }
   
   genQuants:(typeRule,cons[(string,tipe)],dict)=>(cons[(string,tipe)],typeRule,dict).
   genQuants(.allRule(.nomnal(V),R),Q,E) => valof{
     NV = newTypeVar(V);
-    valis genQuants(R,[(V,NV),..Q],declareType(V,.none,NV,.typeExists(NV,.faceType([],[])),E))
+    valis genQuants(R,[(V,NV),..Q],declareType(V,.none,NV,.typeExists(NV,emptyFace),E))
   }
   genQuants(.allRule(.kFun(V,Ar),R),Q,E) => valof{
     NV = newTypeFun(V,Ar);
-    valis genQuants(R,[(V,NV),..Q],declareType(V,.none,NV,.typeExists(NV,.faceType([],[])),E))
+    valis genQuants(R,[(V,NV),..Q],declareType(V,.none,NV,.typeExists(NV,emptyFace),E))
   }
   genQuants(R,Q,E) => (Q,R,E).
 
   freshQ:(tipe,dict) => (tipe,dict).
   freshQ(.nomnal(V),Env) where NV.=newTypeVar(V) =>
-    (NV,declareType(V,.none,NV,.typeExists(NV,.faceType([],[])),Env)).
+    (NV,declareType(V,.none,NV,.typeExists(NV,emptyFace),Env)).
   freshQ(.kFun(V,Ar),Env) where NV.=newTypeFun(V,Ar) =>
-    (NV,declareType(V,.none,NV,.typeExists(NV,.faceType([],[])),Env)).
+    (NV,declareType(V,.none,NV,.typeExists(NV,emptyFace),Env)).
 
   skolQ:(tipe,dict) => (tipe,dict).
   skolQ(.nomnal(V),Env) where NV.=skolemFun(V,0) =>
-    (NV,declareType(V,.none,NV,.typeExists(NV,.faceType([],[])),Env)).
+    (NV,declareType(V,.none,NV,.typeExists(NV,emptyFace),Env)).
   skolQ(.kFun(V,Ar),Env) where NV.=skolemFun(V,Ar) =>
-    (NV,declareType(V,.none,NV,.typeExists(NV,.faceType([],[])),Env)).
+    (NV,declareType(V,.none,NV,.typeExists(NV,emptyFace),Env)).
   skolQ(Tp,Env) => (Tp,Env).
 
   freshQuants:(tipe,cons[(string,tipe)],dict)=>(tipe,cons[(string,tipe)],dict).
   freshQuants(.allType(.nomnal(V),T),B,Env) where NV.=newTypeVar(V) =>
     freshQuants(deRef(T),[(V,NV),..B],declareType(V,.none,NV,
-	.typeExists(NV,.faceType([],[])),Env)).
+	.typeExists(NV,emptyFace),Env)).
   freshQuants(.allType(.kFun(V,Ar),T),B,Env) where NV.=newTypeFun(V,Ar) =>
     freshQuants(deRef(T),[(V,NV),..B],declareType(V,.none,NV,
-	.typeExists(NV,.faceType([],[])),Env)).
+	.typeExists(NV,emptyFace),Env)).
   freshQuants(.existType(.nomnal(V),T),B,Env) where NV.=genSkolemFun(V,B) =>
     freshQuants(deRef(T),[(V,NV),..B],declareType(V,.none,NV,
-	.typeExists(NV,.faceType([],[])),Env)).
+	.typeExists(NV,emptyFace),Env)).
   freshQuants(.existType(V,T),B,Env) =>
     freshQuants(deRef(T),B,Env).
   freshQuants(T,B,Env) default => (T,B,Env).
@@ -89,16 +95,16 @@ star.compiler.freshen{
     skolemQuants(deRef(T),[(V,.nomnal(V)),..B],Env).
   skolemQuants(.allType(.nomnal(V),T),B,Env) where NV.=skolemFun(V,0) =>
     skolemQuants(deRef(T),[(V,NV),..B],declareType(V,.none,NV,
-	.typeExists(NV,.faceType([],[])),Env)).
+	.typeExists(NV,emptyFace),Env)).
   skolemQuants(.allType(.kFun(V,Ar),T),B,Env)  where .none.=findType(Env,V) =>
     skolemQuants(deRef(T),[(V,.kFun(V,Ar)),..B],declareType(V,.none,.kFun(V,Ar),
-	.typeExists(.kFun(V,Ar),.faceType([],[])),Env)).
+	.typeExists(.kFun(V,Ar),emptyFace),Env)).
   skolemQuants(.allType(.kFun(V,Ar),T),B,Env)  where NV.=skolemFun(V,Ar)=>
     skolemQuants(deRef(T),[(V,NV),..B],declareType(V,.none,NV,
-	.typeExists(NV,.faceType([],[])),Env)).
+	.typeExists(NV,emptyFace),Env)).
   skolemQuants(.existType(.nomnal(V),T),B,Env) where NV.=genTypeFun(V,B) =>
     skolemQuants(deRef(T),[(V,NV),..B],declareType(V,.none,NV,
-	.typeExists(NV,.faceType([],[])),Env)).
+	.typeExists(NV,emptyFace),Env)).
   skolemQuants(T,B,Env) default => (T,B,Env).
 
   genTypeFun(Nm,[]) => newTypeVar(Nm).
@@ -118,7 +124,7 @@ star.compiler.freshen{
   frshn(.tupleType(Els),Env) => .tupleType(frshnList(Els,Env)).
   frshn(.faceType(Els,Tps),Env) =>
     .faceType(Els//(((Nm,E))=>(Nm,frshnD(E,Env))),
-      Tps//(((Nm,E))=>(Nm,frshnD(E,Env)))).
+      Tps//(((Nm,Rl))=>(Nm,freshenRl(Rl,Env)))).
   frshn(.allType(K,T),Env) => .allType(K,frshn(T,Env)).
   frshn(.existType(K,T),Env) => .existType(K,frshn(T,Env)).
   frshn(.constrainedType(T,C),Env) => .constrainedType(frshnD(T,Env),frshnConstraint(C,Env)).
@@ -132,7 +138,7 @@ star.compiler.freshen{
   refreshConstraint(Q,T,Env) =>
     frshnConstraint(T,
       foldLeft(((QNm,QTp),E)=>declareType(QNm,.none,QTp,
-	  .typeExists(QTp,.faceType([],[])),E),Env,Q)).
+	  .typeExists(QTp,emptyFace),E),Env,Q)).
 
   frshnConstraint(.conTract(N,T,D),Env) =>
     .conTract(N,frshnList(T,Env),frshnList(D,Env)).

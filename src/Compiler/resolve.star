@@ -534,8 +534,9 @@ star.compiler.resolve{
 	FrFt = snd(freshen(Ft,Dict));
 	(Cx,FldT) = deConstrain(FrFt);
 
-	-- if traceCanon! then
-	--   logMsg("check field type $(Ft)=$(FldT) against $(Tp)");
+	if traceCanon! then
+	  logMsg("check field type $(Ft)=$(FldT) against $(Tp)");
+
 	if sameType(Tp,FldT,Dict) then{
 	  valis overloadTerm(.apply(Lc,AccFn,[Rc],FldT),Dict,markResolved(St))
 	} else {
