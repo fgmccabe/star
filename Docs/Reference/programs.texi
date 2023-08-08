@@ -6,9 +6,11 @@ types and other computational forms. Definitions occur at the
 top-level of a @refer{Package}, but also within functions in
 @refer{Let Expressions} and @refer{LetAction}.
 
-
 @node Package Structure
 @section Package Structure
+
+Packages represent compilation units for the @Star{} compiler: a
+source file should contain exactly one package.
 
 A @refer{Package} consists of the package identifier and a set of
 @refer{Definition}s enclosed in braces. For example, the text:
@@ -28,13 +30,13 @@ hello.example@{
 @}
 @end example
 
-The body of a @refer{Package} may contain @refer{Definition}s which
+The body of a @refer{Package} may contain @refer{Definition}s and
 may also include @refer{ImportStatement}s.
 
 @float BNF,packageFig
 @caption{Package Structure}
 @display
-@anchored{Package} ::= @refer{PackageName} @refer{ThetaEnvironment}
+@anchored{Package} ::= @refer{PackageName} @  @code{@{} @refer{Definition}@refer{Terminator} @dots{} @refer{Terminator} @refer{Definition} @code{@}}
 
 @anchored{PackageName} ::= @refer{Identifier} @code{.} @dots{} @code{.} @refer{Identifier}
 @end display
@@ -53,19 +55,16 @@ are marked @code{public} will be exported.@footnote{An element in a
 package may be marked @code{private} -- which will also ensure that it
 is not visible outside the package.}
 
-@node Theta Environment
-@section Theta Environment
-@cindex theta environment
+@node Package Definitions
+@section Package Definitions
 @cindex program declaration
 
-A @refer{ThetaEnvironment} consists of a set of definitions of types,
+The contents of a @refer{Package} consists of a set of definitions of types,
 programs and variables.
 
 @float BNF,statementFig
 @caption{Definition}
 @display
-@anchored{ThetaEnvironment} ::= @code{@{} @refer{Definition} @refer{Terminator} @dots{} @refer{Terminator} @refer{Definition} @code{@}}
-
 @anchored{Definition} ::= @refer{TypeDefinition}
   | @refer{Annotation}
   | @refer{TypeAnnotation}
@@ -78,54 +77,14 @@ programs and variables.
 @end display
 @end float
 
-Many of the definitions in a @refer{ThetaEnvironment} define entities
-that may be recursive and mutually recursive.
-
-There are two variants of @refer{ThetaEnvironment}: recursive and
-non-recursive. Definitions within a recursive environment may
-reference each other as well as definitions from an outer
-scope. Conversely, definitions in a non-recursive environment may only
-access definitions from the outer scope.
-
-In most cases, a recursive environment is distinguished from a
-non-recursive environment by special @code{@{..@}} brackets. So, for example:
-@example
-let@{.
-  f(0)=>1.
-  f(N)=>N*f(N-1)
-.@} in f
-@end example
-defines a recursive function @code{f}. However, in:
-@example
-foo(N) => let@{
-  g(X) => X*N
-@} in g(N)
-@end example
-the definition of @code{g} is not permitted to be recursive. A fragment such as:
-@example
-foo(K) => let@{
-  f(0)=>1.
-  f(N)=>N*f(N-1)
-@} in f(K)
-@end example
-would result in an undefined variable error -- because the recursive
-reference to @code{f} would not be recognized.
-
-@quotation Note
-Although, as noted, most recursive environments are introduced using
-@code{@{..@}} brackets, the @refer{ThetaEnvironment} that makes up a
-package is recursive. This is partly because a non-recursive package
-environment is mostly meaningless.
-@end quotation
-
 @node Type Annotations
 @section Type Annotations
 @cindex type annotation
 In most cases it is not necessary to explicitly declare the type of a
 variable -- or any expression. However, it is good practice to declare
-explicitly the types of programs; especially within
-@var{ThetaEnvironment}s, and it is required if the type of the
-variable is intended to be generic.
+explicitly the types of programs; especially at the top level of a
+package, and it is required if the type of the variable is intended to
+be generic.
 
 @float BNF,typeAnnotationFig
 @caption{Type Annotation}
@@ -147,28 +106,29 @@ consLength:all t ~~ (cons[t])=>integer
 
 A @refer{VariableDefinition} is a @refer{Definition} or an
 @refer{Action} that explicitly denotes the declaration of a
-variable. @refer{VariableDefinition}s may appear in
-@refer{ThetaEnvironment}s and @refer{Action}s.
+variable. @refer{VariableDefinition}s may appear in packages, 
+@refer{LetExpression}s and @refer{Action}s.
 
 @float BNF,variableDeclararionFig
 @caption{Variable Definition}
 @display
 @anchored{VariableDefinition}::=@refer{Variable} @code{=} @refer{Expression}
+ | @code{(} @refer{Variable} @code{,} @dots{} @code{,} @refer{Variable} @code{)} @code{=} @refer{Expression}
  | @refer{Variable} @code{:=} @refer{Expression}
 @end display
 @end float
 
-@c The left-hand side of a single assignment declaration may be a
-@c @refer{Pattern}. This permits multiple variables to be declared in a
-@c single statement. This, in turn, facilitates the handling of functions
-@c that return more than one value.
+The left-hand side of a single assignment declaration may be a tuple
+of @refer{Variable}s. This permits multiple variables to be declared
+in a single statement. This, in turn, facilitates the handling of
+functions that return more than one value.
 
-@c For example, assuming that @code{split} partitions a @code{list} into a front half and a back half, returning both in a 2-tuple, the declaration:
-@c @example
-@c (L,R) = split(Lst)
-@c @end example
-@c will bind the variables @code{L} and @code{R} to the front and back
-@c halves respectively.
+For example, assuming that @code{split} partitions a @code{list} into a front half and a back half, returning both in a 2-tuple, the declaration:
+@example
+(L,R) = split(Lst)
+@end example
+will bind the variables @code{L} and @code{R} to the front and back
+halves respectively.
 
 A re-assignable variable is declared using the form:
 @example
@@ -193,8 +153,8 @@ value.
 
 In general, the scope of a variable extends to include the entire
 context in which it is declared. In the case of a variable declaration
-in a @refer{ThetaEnvironment}, the scope includes the entire
-@refer{ThetaEnvironment} and any associated bound element. In the case
+in a @refer{LetExpression}, the scope includes the entire
+@refer{LetExpression} and any associated bound element. In the case
 of an @refer{BlockAction} the scope extends from the action following
 the declaration through to the end of the enclosing
 @refer{BlockAction}.
@@ -227,17 +187,17 @@ Variables that are defined in a @refer{Condition} are bound by the
 scope of the @refer{Condition}.
 
 @item
-Variables that are declared in a @refer{ThetaEnvironment} extend to
-all the definitions in the @refer{ThetaEnvironment} and to any bound
+Variables that are declared in a @refer{Definition} extend to
+all the definitions in the @refer{Package} and to any bound
 expression or action.
 @quotation Note
-In particular, variables defined within a @refer{ThetaEnvironment} may
+In particular, variables defined within a @refer{Package} may
 be mutually recursive.
 @quotation Note
 Note that it is @emph{not} permissible for a non-program variable to
 be involved in a mutually recursive group of variables. I.e., if a
 group of mutually recursive of variables occurs in a
-@refer{ThetaEnvironment} then all the variables must be bound to
+@refer{Package} then all the variables must be bound to
 functions or other program elements.
 @end quotation
 @end quotation
@@ -252,6 +212,11 @@ are defined in. The scope of a variable does not include its
 
 It is not permitted for a variable to be declared more than once in a
 given action block.
+@item
+Variables may are declared in other contexts, for example as part of a
+@refer{MatchesCondition}. Their precise scope depends somewhat on the
+context; but essentially is the @emph{positive} scope of the
+associated expression.
 @end itemize
 
 @node Scope Hiding
@@ -262,7 +227,7 @@ given action block.
 It is not permitted to define a variable with the same name as another
 variable that is already in scope. This applies to variables declared
 in patterns as well as variables declared in
-@refer{ThetaEnvironment}s.
+@refer{LetExpression}s.
 
 For example, in the function:
 @example
@@ -327,7 +292,7 @@ they may be passed as arguments to other functions as well as being
 assigned as attributes of records.
 @end quotation
 
-Functions can be defined in a @refer{ThetaEnvironment} -- which case
+Functions can be defined in a @refer{LetExpression} -- which case
 they must be associated with an explicit or implicit
 @refer{TypeAnnotation} -- or they may be @emph{anonymous} -- i.e.,
 appear as a function literal in an expression.
@@ -348,14 +313,9 @@ corresponding actual arguments to the function application.
 @end quotation
 
 @cindex theta environment
-Functions are defined in the context of a @refer{ThetaEnvironment} --
+Functions are defined in the context of a scope --
 for example, in the body of a @code{let} expression (see
 @refer{LetExpression}), or at the top-level of a @code{package}.
-
-It is not necessary for the equations that define a function to be
-contiguous within a @refer{ThetaEnvironment}. However, all the
-equations for a function must be present in the @emph{same}
-@refer{ThetaEnvironment}.
 
 @subsubsection Type of Functions
 The type safety of a function is addressed in stages. In the first
@@ -542,7 +502,7 @@ type(s) in the contract head.
 @display
 @anchored{ContractDefinition} ::= @code{contract} @var{ContractSpec} @code{::=} @var{FaceType}
 
-@anchored{ContractSpec} ::= [@code{all} @refer{BoundType} @comma{}@dots{}@comma{}@refer{BoundType} @code{~~}] @refer{Identifier} @code{[} @refer{TypeArgSpec} [@code{->>} @refer{TypeArgSpec}] @code{]}
+@anchored{ContractSpec} ::= [@code{all} @refer{BoundTypes} @code{~~}] @refer{Identifier} @code{[} @refer{TypeArgSpec} [@code{->>} @refer{TypeArgSpec}] @code{]}
 
 @anchored{TypeArgSpec} ::= @refer{TypeVariable} @code{,} @dots{} @code{,} @refer{TypeVariable}
 @end display
@@ -847,7 +807,9 @@ In addition to the regular functions and types defined in the imported
 package, any contracts, and contract implementations that are defined
 in the imported package are also in scope.
 
-If the @refer{OpenStatement} is prefixed by a @code{public} keyword then, in addition to importing the definitions, they are also implicitly @emph{re-exported} by thhis package.
+If the @refer{OpenStatement} is prefixed by a @code{public} keyword
+then, in addition to importing the definitions, they are also
+implicitly @emph{re-exported} by thhis package.
 
 @quotation Note
 By using @code{public} package imports it is possible to construct the
@@ -863,8 +825,7 @@ but viewed as a single package externally.
 @cindex record,opening
 
 The @refer{OpenStatement} takes a @refer{Record}-valued expression and
-opens its contents in a @refer{ThetaEnvironment}. It is analogous to
-an @code{import} of the record.
+opens its contents in a package.
 
 @float BNF,openStatementFig
 @caption{Open Statement}
@@ -874,7 +835,7 @@ an @code{import} of the record.
 @end float
 
 Any fields and types that are declared within the @refer{Expression}'s
-type become defined within the enclosing @refer{ThetaEnvironment}.
+type become defined within the enclosing scope.
 
 @quotation Note
 The existing scope rules continue to apply; in particular, if there is

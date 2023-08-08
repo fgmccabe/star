@@ -16,6 +16,7 @@ fundamental mechanisms that can guide the course of a computation.
   | @refer{TuplePattern}
   | @refer{GuardedPattern}
   | @refer{SequencePattern}
+  | @refer{AnnotatedPattern}
 @end display
 @end float
 
@@ -99,7 +100,7 @@ a string pattern is @code{string}.
 
 @quotation Note
 The operators that are used to denoted string interpolation
-expressions (see @refer{stringInterpolation}) must @emph{not} be used
+expressions (see @refer{stringInterpolation}) are @emph{not} valid
 in string patterns. In particular, the dollar character
 @emph{must} be quoted in a string pattern.
 @end quotation
@@ -153,8 +154,7 @@ and separated by commas, denoting the arguments to the
 @quotation Note
 @refer{PositionalConstructorPattern}s are the only way that a
 constructor value may be inspected and elements of it extracted. There
-are no indexing operators over because it is not possible to give a
-consistent typing to such operators.
+are no indexing operators over positional constructors.
 @end quotation
 
 @node Enumerated Symbol Patterns
@@ -180,7 +180,7 @@ variable.
 The use of periods in front of enumerated symbols (and positional
 constructors) is somewhat verbose. However, mispelling an enumerated
 symbol is a reasonably common error; and without the period, such a
-mispelt enumerated symbol would be silently interpreted as a variable.
+mispelt enumerated symbol would be silently interpreted as a variable in a pattern.
 @end quotation
 
 @node Positional Constructor Patterns
@@ -202,7 +202,7 @@ followed by the argument patterns -- as introduced in the appropriate
 @quotation Note
 Positional constructors, like @refer{EnumeratedSymbol}s, are marked by
 a leading @code{.} character. This helps to distinguish such
-expressions from normal function calls.
+patterns from normal function calls.
 @end quotation
 
 @node Record Patterns
@@ -248,7 +248,7 @@ A tuple pattern consists of a tuple with patterns as the elements of the tuple.
 @float BNF,tuplePtnFig
 @caption{Tuple Pattern}
 @display
-@anchored{TuplePattern}::= @code{(} @refer{Pattern}@code{,} @dots{}@code{,} @refer{Pattern}@code{)}
+@anchored{TuplePattern}::= @code{(} @refer{Pattern} @code{,}@dots{}@code{,} @refer{Pattern}@code{)}
 @end display
 @end float  
 
@@ -271,48 +271,6 @@ $2(X,Y) in R
 @end example
 Noting, of course, that @code{$2} is not a legal @refer{Identifier}.
 @end quotation
-
-@c @node Anonymous Record Patterns
-@c @subsection Anonymous Record Patterns
-@c @cindex matching anonymous records
-@c @cindex pattern,anonymous record
-@c @cindex anonymous record pattern
-
-@c An anonymous record pattern is written in an analogous form to the
-@c regular record pattern, except that there is no label prefixed to it.
-
-@c @float BNF,anonRecordPtnFig
-@c @caption{Anonymous Record Pattern}
-@c @display
-@c @anchored{AnonymousRecordPattern} ::= @code{@{} @refer{AttributePattern}@code{.} @dots{} @code{.} @refer{AttributePattern}@code{@}}
-@c @end display
-@c @end float
-
-@c For example,
-@c @example
-@c @{name=N. address=A @} in R
-@c @end example
-@c uses an anonymous record pattern to match elements of the list @code{R}.
-
-@c @quotation Note
-@c Unlike with most other patterns, the type checker is generally
-@c @emph{not} able to reliably infer the type of an anonymous record
-@c pattern. As a result, it must @emph{always} be the case that the
-@c anonymous record pattern occurs in a context where the type may be
-@c inferred. In the above example, the type of the anonymous record
-@c pattern:
-
-@c @example
-@c @{name=N. address=A@}
-@c @end example
-@c can be inferred from the context it occurs in, and the type of
-@c @code{R}. However, if @code{R}'s type is not already known by other
-@c means, then a syntax error will result.
-
-@c The reason for this is that, like other record patterns, an anonymous
-@c record pattern need not contain an element for every attribute
-@c defined.
-@c @end quotation
 
 @node Guarded Pattern
 @section Guarded Pattern
@@ -354,7 +312,7 @@ contract (see @ref{streamContractProg}) to match sequences of values.
 @display
 @anchored{SequencePattern} ::= @code{[} @refer{PtnSequence} @code{]}
 
-@anchored{PtnSequence} ::= @refer{Pattern}@code{,} @dots{} @code{,} @refer{Pattern}[@code{,..}@refer{Pattern}
+@anchored{PtnSequence} ::= @refer{Pattern} @code{,}@dots{}@code{,} @refer{Pattern}[@code{,..}@refer{Pattern}
 @end display
 @end float
 
@@ -378,3 +336,45 @@ Str where (@var{Ptn@sub{1}},X1) ?= _hdtl(Str) &&
     _eof(Xn)
 @end example
 
+@node Annotated Patterns
+@section Annotated Patterns
+@cindex patterns,annotated
+
+An annotated pattern is a pattern with an explicit type annotation:
+
+@float BNF,annotatePtnFig
+@caption{Annotated Pattern}
+@display
+@anchored{AnnotatedPattern} ::= @refer{Pattern} @code{:} @refer{Type}
+@end display
+@end float
+
+Annotated patterns are used to explicitly mark a pattern to be of a specific type.
+
+For example, in:
+
+@example
+foo(.cons(X:string,_)) => X
+@end example
+
+the @code{X} variable is identified to be a @code{string} variable.
+
+@quotation Note
+Normally, annotated patterns are not needed very often. This is
+because the compiler is able to infer the types of most expressions
+and patterns.
+
+However, there is an occasional need to connect the type of a variable
+with a type that is declared in an outer scope. For example, in:
+
+@example
+outer:all t ~~ (cons[t]) => option[t].
+outer(L) => let@{
+  inner(.nil) => .none.
+  inner(.cons(U:t,_)) => .some(U).
+@} in inner(L)
+@end example
+
+we mark the @code{U} var in the @code{inner} function to be of the
+same type as that declared for the @code{outer} function.
+@end quotation

@@ -9,7 +9,7 @@ star.compiler.wasm.instr{
   public num_type ::= .IntTp(int_type) | .FltTp(flt_type).
   public value_type ::= .NumTp(num_type) | .RefTp(ref_type).
 
-  var ~> integer.
+  var ~> string.
 
   public wasmDefn ::=
     .wasmGlobal(string,value_type) |

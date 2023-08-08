@@ -1,7 +1,7 @@
 @node Conditions
 @chapter Conditions
 
-Conditions are used to express constraints. For example, a
+Conditions are used to express predicates. For example, a
 @code{where} pattern (@refer{GuardedPattern}) uses a condition to
 attach a semantic guard to a pattern. Conditions are also as guards on
 @refer{Equation}s and in other forms of rule.
@@ -121,7 +121,8 @@ the extending scope the conjunction itself is part of.
 @anchor{disjunction}
 @cindex disjunctive condition
 @findex @code{||} condition
-A disjunction -- using the @code{||} operator -- is satisfied if either the left or the right operands are satisfied.
+A disjunction -- using the @code{||} operator -- is satisfied if
+either the left or the right operands are satisfied.
 
 @float BNF,disjunctionConditionFig
 @caption{Disjunction Condition}
@@ -132,7 +133,7 @@ A disjunction -- using the @code{||} operator -- is satisfied if either the left
 
 @quotation Note
 @refer{DisjunctionCondition}s are @emph{short circuiting}: if the left
-arm is satisfiable then the right arm may not be attempted.
+arm is satisfiable then the right arm will not be attempted.
 @end quotation
 
 @quotation Note
@@ -227,7 +228,7 @@ Only variables that are present in all three of @emph{test},
 @emph{then} and @emph{else} parts of the @refer{ConditionalCondition}
 form part of its scope extension.
 
-However, the scope extension of the @emph{then} part of the
+However, the scope extension of the @emph{if} part of the
 @refer{ConditionalCondition} does extend to the @emph{then} part of the
 condition.
 @end quotation
@@ -246,44 +247,6 @@ variable @code{S} in both the `then' and `else' branch. Depending on
 the @code{isManager} test, the result of the query will either contain
 the value of a @code{manager_salary} or an @code{employee_salary}.
 
-@node Embedded where Conditions
-@section Embedded @code{where} Conditions
-@cindex embedded where conditions
-@cindex condition, embedded where
 
-Many conditions include within them some form of pattern
-matching. Conversely, all patterns are implicitly part of a
-@refer{Condition}. One particular form of pattern: the @refer{Guarded
-Pattern}, which uses a @code{where} clause to introduce a
-@refer{Condition} into the pattern, is worth an additional note.
-
-Any embedded @code{where} clauses in a pattern are equivalent to a
-conjunction in the innermost enclosing condition.
-
-For example, in:
-
-@example
-if (X where X>0,Y where Y<X).=Foo then @dots{}
-@end example
-there are two embedded @code{where} clauses, governing the matches for
-@code{X} and @code{Y} inside the tuple pair. This condition is
-equivalent to the conjunction:
-
-@example
-if (X,Y).=Foo && X>0 && Y<X then @dots{}
-@end example
-Note that the ordering of the conjunction reflects the textual order
-of the different @code{where} clauses.
-
-This can become complex when @code{where} clauses are nested. For example, in
-
-@example
-if (X where .mine(U where U>0).=X, Y where Y>U).=Foo then @dots{}
-@end example
-the inner @code{where} that tests @code{U} is inserted just after the
-condition that tests @code{X} and before the condition for @code{Y}:
-@example
-if (X,Y) .= Foo && .mine(U).=X && U>0 && Y>U then @dots{}
-@end example
 
 

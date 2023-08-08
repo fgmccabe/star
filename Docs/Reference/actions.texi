@@ -2,12 +2,8 @@
 @chapter Actions
 
 An action is performed for the sake of its effect. @Star{} has a
-normal complement of control flow instructions; although there are
+normal complement of control flow operators; although there are
 a few departures from some common patterns.
-
-Apart from achieving some effect, actions are associated with a
-value. This is the value of the action that is returned when action is
-completed.
 
 The @refer{ValofExpression} is used to denote that a value is to be
 computed by performing actions. Similarly, many actions involve the
@@ -76,7 +72,7 @@ An action block consists of a sequence of actions, enclosed in braces
 @float BNF,blockActionFig
 @caption{Block Action}
 @display
-@anchored{BlockAction} ::= @code{@{} @refer{Action} @code{;} @dots{} @code{;} @refer{Action} @code{@}}
+@anchored{BlockAction} ::= @code{@{} @refer{Action} @code{;}@dots{}@code{;} @refer{Action} @code{@}}
 @end display
 @end float
 
@@ -242,12 +238,13 @@ available to subsequent actions.
 @caption{Definition Action}
 @display
 @anchored{DefnAction} ::= @refer{Identifier} @code{=} @refer{Expression}
- | @code{(} @refer{Identifier} @code{,} @dots{} @code{,} @refer{Identifier} @code{)} @code{=} @refer{Expression}
+ | @refer{Identifier} @code{:=} @refer{Expression}
+ | @code{(} @refer{Identifier} @code{,}@dots{}@code{,} @refer{Identifier} @code{)} @code{=} @refer{Expression}
 @end display
 @end float
 
-There are two forms of definition action: defining the value of a
-single variable or defining the value of a tuple of
+There are three forms of definition action: defining the value of a
+single variable, defining a re-assignable variable or defining the value of a tuple of
 variables. Clearly, in the second case, the right hand side must also
 evaluate to a tuple of the same arity.
 
@@ -283,13 +280,10 @@ Reassignable variables are typically introduced with a
 @refer{DefnAction} of the form:
 
 @example
-@var{V} = ref @var{Initial}
+@var{V} := @var{Initial}
 @end example
 
-However, if the variable is not otherwise in scope -- i.e., no scope
-hiding -- then if the first occurrence of the variable is in an
-assignment statement then that is interpreted as the definition of the
-re-assignable variable.
+where @var{V} is a new variable not otherwise in scope.
 
 @node Conditional Action
 @subsection Conditional Action

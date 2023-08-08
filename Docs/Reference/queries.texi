@@ -19,23 +19,24 @@ compute a single value and test queries (see
 @anchored{QueryExpression} ::= @refer{Comprehension}
  | @refer{IotaQuery}
  | @refer{TestQuery}
+ | @refer{ReductionQuery}
 @end display
 @end float
 
 @node Query Condition
 @section Query Condition
 
-All of query expressions depend on the notion of a @emph{query
+All query expressions depend on the notion of a @emph{query
 condition}. A query condition is a predicate that may be
 @emph{satisfied} in zero or more ways.
 
-A predicate is satisfied if there is a binding for variable in the
+A predicate is satisfied if there is a binding for variables in the
 expression that make the expression evaluate to @code{.true}. This is
 a little different to normal evaluation because of the existence of
 these variables.
 
 There are many different kinds of query condition, including normal
-conditions, but the canonical query condition is the search condition
+conditions, but the foundational query condition is the search condition
 (see @refer{Search Condition}).
 
 @node Search Condition
@@ -43,19 +44,7 @@ conditions, but the canonical query condition is the search condition
 @cindex search
 @cindex query, search
 
-Search conditions are the foundational element of many query expressions.
-
-A search condition takes the form: @emph{Pattern} @code{in}
-@emph{Collection} where @emph{Pattern} may have new variables that
-have not been defined in an outer scope and @emph{Collection} is a
-collection of the appropriate type -- in particular, the type of the
-pattern must correspond to the type of an element of the collection.
-
-A search condition is said to be @emph{satisfied} when there is an
-element of the collection that matches the pattern. In many queries
-this results in the binding of variables which are referenced in other
-parts of the query condition and/or in the bound expression of the
-query expression.
+A search condition takes the form:
 
 @float BNF,searchConditionFig
 @caption{Search Condition}
@@ -64,13 +53,24 @@ query expression.
 @end display
 @end float
 
+where @emph{Pattern} may have new variables that have not been defined
+in an outer scope and @emph{Collection} is a collection of the
+appropriate type -- in particular, the type of the pattern must
+correspond to the type of an element of the collection.
+
+A search condition is said to be @emph{satisfied} when there is an
+element of the collection that matches the pattern. In many queries
+this results in the binding of variables which are referenced in other
+parts of the query condition and/or in the bound expression of the
+query expression.
+
 For example, the search condition:
 @example
 (X,"john") in parent
 @end example
 is satisfied (potentially multiple times) if there is a pair of the form:
 @example
-(@emph{Val},"john")
+(@emph{Value},"john")
 @end example
 in the collection identified as @code{parent}. If @code{parent} were
 defined as the list:
@@ -92,6 +92,10 @@ public contract all s,t ~~ iter[s->>t] ::= @{
 This implies that one can search any type of data structure so long as
 there is an implementation of the @code{iter} contract available for
 it.
+
+Beyond the implementations for standard types such as @code{cons} and
+@code{map}, it is definitely feasible for user-defined types to have
+an implementation of @code{iter} defined.
 
 @node Query Expressions
 @section Query Expressions
@@ -115,7 +119,7 @@ The general form of a comprehension is shown in
 @end display
 @end float
 
-For example, given a @code{list} bound to the variable @code{Tble}:
+For example, given a list bound to the variable @code{Tble}:
 @example
 Tble = [
   ("john",23),
@@ -127,7 +131,7 @@ then, the query
 @example
 @{ Who | (Who,A) in Tble && A>20 @}
 @end example
-is a @refer{Comprehension} over the @code{Tble} list defined above. Its value is the @code{list}:
+is a @refer{Comprehension} over the @code{Tble} list with value the list:
 @example
 [
   "john",
@@ -139,7 +143,10 @@ is a @refer{Comprehension} over the @code{Tble} list defined above. Its value is
 satisfy the condition that @code{A} is greater than 20.
 
 @quotation Note
-The type of the comprehension above is @emph{not} necessarily a @code{list}. The overall type of a comprehension is governed by the @code{sequence} contract. Thus the actual type will depend on the context of the comprehension expression.
+The type of the comprehension above is @emph{not} necessarily a
+@code{cons} list. The overall type of a comprehension is governed by
+the @code{sequence} contract. Thus the actual type will depend on the
+context of the comprehension expression.
 
 In order to force the result to be a @code{cons} list, use a type annotation:
 @example
@@ -184,9 +191,7 @@ condition. This is most useful when a condition requires some form of
 search in order to be satisfied.
 
 Test queries have a truth value -- allowing them to be used as normal
-conditions -- and they may also bind variables. In this regard, a test
-query is analogous to a pattern match condition (see @refer{Matches
-Condition}) that also allows variables to be bound.
+conditions.
 
 @float BNF,testQueryFig
 @caption{Test Query}
@@ -197,35 +202,44 @@ Condition}) that also allows variables to be bound.
 
 If the condition has no answers then the test query is @code{.false}.
 
-@c @node Reduction Query
-@c @subsection Reduction Query
+@node Reduction Query
+@subsection Reduction Query
 
-@c @cindex accumulating over a query
-@c @cindex applying a function to the results of a query
+@cindex accumulating over a query
+@cindex applying a function to the results of a query
 
-@c A @refer{ReductionQuery} differs from other forms of query in that the
-@c results of satisfying the @refer{Condition} are `fed' to a function
-@c rather than being returned as some form of collection.
+A @refer{ReductionQuery} differs from other forms of query in that the
+results of satisfying the @refer{Condition} are fed to a function
+rather than being returned as some form of collection.
 
-@c @float BNF,reductionQueryFig
-@c @caption{Reduction Query}
-@c @display
-@c @anchored{ReductionQuery} ::= @code{@{?} @refer{Reducer} : @refer{Expression} | @refer{Condition} @code{?@}}
-@c @anchored{Reducer} ::= @refer{Expression}
-@c @end display
-@c @end float
+@float BNF,reductionQueryFig
+@caption{Reduction Query}
+@display
+@anchored{ReductionQuery} ::= @code{@{} @refer{Reducer} @code{<*} @refer{Expression} @code{<*} @refer{Expression} | @refer{Condition} @code{@}}
+@anchored{Reducer} ::= @refer{Expression}
+@end display
+@end float
 
-@c The reduction function should have the type:
-@c @example
-@c (t@sub{E},t@sub{E})=>t@sub{E}
-@c @end example
+The three expressions to the left of the guard are the reduction function, element
+expression and the zero expression respectively. The reduction function is applied to
+successive elements corresponding to each solution of the query condition. The zero
+expression is the initial seed of the computation.
 
-@c were @code{t@sub{E}} is the type of the bound expression in the @refer{ReductionQuery}.
+The reduction function should have the type:
+@example
+(t@sub{E},t@sub{Z})=>t@sub{Z}
+@end example
 
-@c For example, to add up all the salaries in a department, one could use
-@c a query of the form:
+were @code{t@sub{E}} is the type of the bound expression in the @refer{ReductionQuery}
+and @code{t@sub{Z}} is the type of the zero expression -- and also the type of the
+overall query.
 
-@c @example
-@c @{? (+) : E.salary | E in employees ?@}
-@c @end example
+For example, to add up all the salaries in a department, one could use
+a query of the form:
+
+@example
+@{ (+) <* E.salary <* zero | E in employees @}
+@end example
+
+
 
