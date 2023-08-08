@@ -492,7 +492,7 @@ constrains the types of the expressions associated with the fields.
 @anchored{Record} ::= @refer{Identifier}@code{@{} @refer{RecordElement} @refer{Terminator} @dots{} @refer{Terminator} @refer{RecordElement} @code{@}}
 @anchored{RecordElement} ::= @refer{Identifier} @code{=} @refer{Expression}
 | @refer{Identifier} @code{:=} @refer{Expression}
-| @code{type} @refer{Identifier} @code{=} @refer{Type}
+| @refer{TypeAliasStmt}
 @end display
 @end float
 
@@ -636,7 +636,7 @@ is still accessible.
 @cindex theta record
 
 A @refer{RecRecord} is a record whose contents is specified by means
-of a @refer{ThetaEnvironment}.
+of a sequence of @refer{Definition}s.
 
 @float BNF,thetaRecordFig
 @caption{Theta Record}
@@ -651,7 +651,7 @@ differently using @refer{Definition}s. @refer{Definition}s include
 @refer{RecordElement} but may also include @refer{TypeDefinition}s and
 other forms of definition.
 
-Furthermore, @emph{within} a @refer{RecRecord}, definitions may be
+Importantly, @emph{within} a @refer{RecRecord}, definitions may be
 @emph{mutually recursive}.
 
 @refer{RecRecord}s are especially convenient when the fields of the
@@ -919,9 +919,11 @@ The value of this overall expression is @code{20}.
 
 When a @code{raise} expression is evaluated, its expression is
 evaluated and that value is raised as an exception. There must either
-be a @refer{TryCatchExpression} form, a @refer{TryCatchAction} form in the
-enclosing lexical scope, or the function in which it occurs must have
-been declared as raiseing a value of the appropriate type.
+be a @refer{TryCatchExpression} form, a @refer{TryCatchAction} form in
+the enclosing lexical scope, or the function in which it occurs must
+have been declared as raising a value of the appropriate type -- i.e.,
+it must have been declared as having been constrained with a
+@code{raises} constraint.
 
 @quotation Note
 The type of a @code{RaiseExpression} is unconstrained -- because its value is
@@ -938,7 +940,6 @@ execution of the program to stop.
 There is no automatic search for an handling form: every @code{raise}
 must be lexically accounted for.
 @end quotation
-
 
 @node Conditional Expression
 @subsection Conditional Expressions
@@ -1132,8 +1133,7 @@ The @refer{TypeAnnotationExpression} should not be confused with type
 casting as is found in some languages. The
 @refer{TypeAnnotationExpression} is a way for the programmer to
 communicate exactly what the expected type of an expression is;
-analogously to the @refer{TypeAnnotation}s found in
-@refer{ThetaEnvironment}s.
+analogously to the @refer{TypeAnnotation}s found in @refer{LetExpression}s.
 @end quotation
 
 @node Type Coercion

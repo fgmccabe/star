@@ -539,8 +539,8 @@ On those occasions where it is important to have an identifier that is
 a keyword it is possible to achieve this by enclosing the keyword in
 single quotes.
 
-For example, while @code{type} is a keyword in the language; enclosing
-the word in parentheses: @code{type} has the effect of suppressing
+For example, while @code{contract} is a keyword in the language; enclosing
+the word in parentheses: @code{contract} has the effect of suppressing
 the keyword interpretation -- even though the printed representations
 are the same.
 

@@ -80,7 +80,7 @@ star.compiler.wasm.gen{
     E where isGround(E) => wasmConstant(Exp::data,Stk,Ctx)
     | .cVar(Lc,.cId(Vr,Tp)) => valof{
       if Loc?=locateVar(Vr,Ctx) then {
-	valis compVar(Lc,Vr,Loc,Ctx,Stk)
+	valis compVar(Lc,Loc,Ctx,Stk)
       } else {
 	reportError("cannot locate variable $(Vr)\:$(Tp)",Lc);
 	valis wasmConstant(voidSymbol,Stk,Ctx)
@@ -88,7 +88,8 @@ star.compiler.wasm.gen{
     }
     | .cVoid(Lc,Tp) => wasmConstant(voidSymbol,Stk,Ctx)
     | .cTerm(_,Nm,Args,Tp) => valof{
-      valis compExps(Args,allocCont(.tLbl(Nm,size(Args)),pushStack(Tp,Stk),Cont),Ctx,Stk)
+      (_Sa,AC) = compExps(Args,Ctx,Stk);
+      valis (pushStack(Tp,Stk),AC++allocateWasmTerm(Nm,Tp,Ctx))
     }
     | .cECall(Lc,Op,Args,Tp) where (_,Ins,Frm,Tail)?=intrinsic(Op) =>
       compExps(Args,intrinsicCont(Ins,Frm,Tail,pushStack(Tp,Stk),Cont),Ctx,Stk)
@@ -145,17 +146,18 @@ star.compiler.wasm.gen{
     }
   }
     
-  -- Expressions are evaluated in reverse order
-  compExps:(cons[cExp],Cont,codeCtx,stack) => (stack,multi[wOp]).
-  compExps([],Cont,Ctx,Stk)=>Cont.C(Ctx,Stk,[]).
-  compExps([Exp,..Es],Cont,Ctx,Stk)=>
-    compExps(Es,ctxCont(Ctx,expCont(Exp,.notLast,Cont)),Ctx,Stk).
+  compExps:(cons[cExp],codeCtx,stack) => (stack,multi[wOp]).
+  compExps([],_Ctx,Stk)=> (Stk,[]).
+  compExps([Exp,..Es],Ctx,Stk)=> valof{
+    (S1,C1) = compExp(Exp,.notLast,Ctx,Stk);
+    (S2,C2) = compExps(Es,Ctx,S1);
+    valis (S2,C1++C2)
+  }
 
-  compVar:(option[locn],string,srcLoc,Cont,codeCtx,stack) => (stack,multi[wOp]).
-  compVar(Lc,_Nm,Loc,Cont,Ctx,Stk) => case Loc in {
-    .lclVar(Off,Tp) => Cont.C(Ctx,pushStack(Tp,Stk),[.iLdL(Off)]).
-    .glbVar(Nm,Tp) => Cont.C(Ctx,pushStack(Tp,Stk),[.iLdG(Nm)]).
-    .glbFun(Nm,Tp) => Cont.C(Ctx,pushStack(Tp,Stk),[.iLdC(.symb(Nm))]).
+  compVar:(option[locn],srcLoc,codeCtx,stack) => (stack,multi[wOp]).
+  compVar(Lc,Loc,Ctx,Stk) => case Loc in {
+    .lclVar(Nm,Tp) => (pushStack(Tp,Stk),[.LocalGet(Nm)]).
+    .glbVar(Nm,Tp) => (pushStack(Tp,Stk),[.GlobalGet(Nm)]).
   }
     
   compCond:(cExp,tailMode,Cont,Cont,codeCtx,stack) => (stack,multi[wOp]).
@@ -821,7 +823,7 @@ star.compiler.wasm.gen{
   dropStack(.none) => .none.
   dropStack(.some([_,..Stk])) => .some(Stk).
 
-  srcLoc ::= .lclVar(integer,tipe) |
+  srcLoc ::= .lclVar(string,tipe) |
     .glbVar(string,tipe) |
     .glbFun(termLbl,tipe).
 

@@ -104,7 +104,7 @@ being specific about the type itself; for this purpose we use
 
 A type variable a type identifier that is distinguished by being
 introduced using an explicit quantifier -- either @code{all} or
-@code{exist}.  The type expression:
+@code{exists}.  The type expression:
 @example
 all t ~~ cons[t]
 @end example
@@ -181,8 +181,7 @@ signals that the value is a function.
 @section Type Definitions
 @cindex type definition
 
-There are two ways that a type may be defined in a scope --
-i.e., in a @refer{ThetaEnvironment}.
+There are two ways that a type may be defined in a scope.
 
 @float BNF,typeDefinitionFig
 @caption{Type Definition}
@@ -308,7 +307,7 @@ it to an existing type expression.
 @float BNF,typeAliasFig
 @caption{Type Alias Statement}
 @display
-@anchored{TypeAliasStmt} ::= [@code{all} @refer{BoundType} @comma{}@dots{}@comma{}@refer{BoundType} @code{~~}] @refer{Type} @code{~>} @refer{Type}
+@anchored{TypeAliasStmt} ::= [@code{all} @refer{BoundTypes} @code{~~}] @refer{Type} @code{~>} @refer{Type}
 @end display
 @end float
 
@@ -347,6 +346,23 @@ of an @refer{ExistentialType} requirement.
 @end quotation
 
 
+@quotation NOTE
+Type aliases may be parameterized -- in the sense that the type
+being defined may be parameterized and that the definiens may also be
+parameterized.
+
+For example, the statement:
+
+@example
+all x,y ~~ pair[x,y] ~> (x,y)
+@end example
+
+defines the @code{pair} type -- which has two type arguments -- as an alias of a tuple type.
+
+Note that the any type variables on the right hand side of a
+@var{TypeAlias} statement must also have been mentioned on the left
+hand side.
+@end quotation
 
 
 @node Nominal Types
@@ -608,9 +624,9 @@ sequence of type annotations enclosed in braces.
 @anchored{FaceType} ::= @code{@{}@refer{Annotation} @dots{} @refer{Annotation} @code{@}}
 
 @anchored{Annotation} ::= @refer{TypeAnnotation}
-  | @refer{TypeEquality}
+  | @refer{TypeRule}
 
-@anchored{TypeEquality} ::= @code{type} @refer{Identifier} @code{=} @refer{Type}
+@anchored{TypeRule} ::= @refer{TypeAliasStmt}.
 @end display
 @end float
 @quotation NOTE
@@ -805,7 +821,9 @@ substitutions of a type variable.
 @float BNF,universalTypeFig
 @caption{Universal Type Expression}
 @display
-@anchored{UniversalType} ::= @code{all} @refer{BoundType} @comma{}@dots{}@comma{}@refer{BoundType} @code{~~} @refer{Type}
+@anchored{UniversalType} ::= @code{all} @refer{BoundTypes}  @code{~~} @refer{Type}
+
+@anchored{BoundTypes} ::= @refer{BoundType} @comma{}@dots{}@comma{}@refer{BoundType}
 
 @anchored{BoundType} ::= @refer{Identifier} | @refer{Identifier} @code{/} @refer{Decimal}
 @end display
@@ -822,7 +840,7 @@ There are two forms of @refer{BoundType}, a simple type variable and a
 second form that includes an arity.
 
 The first form of @refer{BoundType} introduces a regular type variable
--- i.e., a variable which may be bound to any @code{type}. The second
+-- i.e., a variable which may be bound to any type. The second
 form is used to introduce a higher-kinded type variable.
 
 For example, the quantification:
@@ -850,7 +868,8 @@ all x,y ~~ (x,y)=>tp
 
 @quotation TIP
 Higher kinded type variables are most commonly used in the context of
-@refer{ContractDefinition}s.
+@refer{ContractDefinition}s. In particular, there are no values
+directly associated with higher kinded types.
 @end quotation
 
 The compiler will infer the type of expressions; but does @emph{not}
@@ -887,15 +906,15 @@ denotes a specific -- but unknown -- type.
 @quotation NOTE
 The terms universally quantified and existentially quantified types
 reflect the similar concepts in first order predicate logic. However,
-the domain is different: in logic, universal quantifiers apply to
-formulae that have a truth value; whereas in type language,
-quantifiers apply to type expressions.
+the domain is different: in logic, universal quantifiers refer to
+terms (values) and apply to formulae that have a truth value; whereas
+in type language, quantifiers apply to type expressions.
 @end quotation
 
 @float BNF,existentialTypeFig
 @caption{Existential Type Expression}
 @display
-@anchored{ExistentialType} ::= @code{exists} @refer{BoundType} @comma{}@dots{}@comma{}@refer{BoundType} @code{~~} @refer{Type}
+@anchored{ExistentialType} ::= @code{exists} @refer{BoundTypes} @code{~~} @refer{Type}
 @end display
 @end float
 
@@ -1029,7 +1048,7 @@ sub-record:
 R.f1.f2.t
 @end example
 
-The actual @emph{type} identified with an encapsulated type expression
+The actual type identified with an encapsulated type expression
 is strictly opaque: it is assumed to be different to all other
 types. Which means that effectively @emph{only} the other fields of
 the record variable @code{R} contain functions and values that can be
@@ -1315,8 +1334,8 @@ let@{
 @} in clamp(Z)
 @end example
 
-@node Raising Constraint
-@subsection Raising Constraint
+@node Raises Constraint
+@subsection Raises Constraint
 @cindex raises constraint
 @cindex type,constraints!raises
 
@@ -1430,9 +1449,9 @@ A type binding consists of a type annotation:
 @var{var} : @var{type}
 @end example
 @item
-A type equality consists of an equality between a type variable and a type:
+A type alias consists of a rule that maps a type expression to another type:
 @example
-@var{type} = @var{type}
+@var{type} @code{~>} @var{type}
 @end example
 @item
 A type constraint consists of an instance of a @ref{TypeConstraint}s:
@@ -1806,3 +1825,126 @@ because of the different quantifiers, and
 all a~~(a)=>integer @noteq{} (@var{t})=>integer
 @end example
 for any type @var{t} because the latter type is not quantified.
+
+@node Resolving Constraints
+@subsection Resolving Constraints
+
+Expressions involving constrained types must be @emph{resolved} in
+order to be type valid. Different constraints have different
+algorithms associated with their resolution.
+
+@node Resolving Contract Constraints
+@subsubsection Resolving Contract Constraints
+
+Contract constraints are resolved by looking for implementations in
+scope.  For example, in the expression:
+
+@example
+X+34
+@end example
+
+the arithmetic @code{+} operator comes from the @code{arith} contract:
+
+@example
+public contract all x ~~ arith[x] ::= @{
+  (+): (x,x)=>x.
+  ...
+@}
+@end example
+
+which means that the type of @code{+} takes the form:
+
+@example
+all x ~~ arith[x] |: (x,x) => x
+@end example
+
+In the @code{X+34} the @code{arith} constraint associated with the
+occurrence of @code{+} must be resolved for it to be valid.
+
+Arithmetic is implemented for a wide variety of types, including
+potentially user defined types. Resolving the @code{arith} contract
+constraint amounts to identifying the correct implementation that is
+defined in the scope that the expression occurs in.
+
+Type inference allows us to determine that the actual contract constraint is
+
+@example
+arith[integer]
+@end example
+
+and so the resolution process requires that an implementation of
+@code{arith[integer]} is in scope.
+
+Implementations can be viewed as functions whose value is a record of
+all the elements of the defined contract. For example, the
+implementation function of @code{arith} over @code{integer} has a
+definition that is similar to:
+@example
+arith#integer() => arith@{ X+Y => _int_plus(X,Y) ...  @}
+@end example
+
+Resolving the expression @code{X+43} is achieved by replacing the
+abstract function @code{(+)} with an actual function:
+@example
+arith#integer().'+'(X,43)
+@end example
+
+There are several special considerations when identifying
+implementations of contracts: when an implementation refers to a
+generic type; when a contract has one or more @emph{dependent} types;
+and when a contract constraint appears in a generic function.
+
+When a contract is implemented for a generic type, only the generic
+type name itself is used to identify potential implementations. Thus,
+it would not be possible, for example, to have two or more
+implementations of @code{arith} for @code{cons[integer]} and
+@code{cons[float]} in scope.
+
+Where a contract has dependent type arguments, as in the @code{stream} contract for example:
+
+@example
+public contract all S,E ~~ stream[S->>E] ::= @{
+ _eof:(S) => boolean.
+ ...
+@end example
+
+only the type name for the non-dependent type arguments are used to
+identify the implementation of the contract.
+
+Finally, for contract constraints appearing in generic functions, the
+generic function must itself be appropriately constrained. For example, in
+
+@example
+addSq : all t ~~ arith[t] |: (t,t)=>t.
+addSq(X,Y)=>X+X*Y
+@end example
+
+we have explicitly annotated the type of @code{addSq} to be
+constrained by the @code{arith} contract. This allows the contract
+constraints associated with @code{X+X*Y} to be resolved by the
+function constraints rather than looking for an explicit
+implementation of @code{arith}.
+
+Note that annotating a function to be constrained in this way results
+in new requirements for any uses of the function -- whenever
+@code{addSq} is used the @code{arith} constraint must be resolved in that context.
+ 
+@quotation NOTE
+It is an error for the top-level of a program -- i.e., package-level
+-- to contain unresolved references to contracts.
+
+The formal rules for satisfying (and hence resolving) contract
+constraints are shown in @var{overloading}.
+@end quotation
+
+@node Resolving Implicit Constraints
+@subsubsection Resolving Implicit Constraints
+
+Implicit constraints are resolved by looking for an associated
+variable to be in scope.  For example, in the expression:
+
+@node Resolving @code{raises} Constraints
+@subsubsection Resolving @code{raises} Constraints
+
+@node Resolving Field Constraints
+@subsubsection Resolving Field Constraints

@@ -497,20 +497,6 @@ star.compiler.checker{
 
     valis (.apply(Lc,Fun,Args,Tp),Cond,Ev)
   }
-  typeOfPtn(A,Tp,Env,Path) where (Lc,Op,Ss) ?= isLabeledTheta(A) && (OLc,Nm)?=isName(Op) => valof{
-    if traceCanon! then
-      logMsg("labeled theta ptn: $(A)");
-    At = newTypeVar("A");
-    Fun = typeOfExp(Op,consType(At,Tp),Env,Path);
-    
-    (Q,ETp) = evidence(deRef(At),Env);
-    FaceTp = _optval(faceOfType(ETp,Env));
-    (Cx,Face) = deConstrain(FaceTp);
-    Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
-    (Els,Cond,Ev) = typeOfElementPtns(Ss,Face,Base,Path,.none,[]);
-    Args = fillinElementPtns(Lc,Els,Face);
-    valis (.apply(Lc,Fun,Args,Tp),Cond,Ev)
-  }
   typeOfPtn(A,Tp,Env,_) => valof{
     Lc = locOf(A);
     reportError("illegal pattern: $(A), expecting a $(Tp)",Lc);

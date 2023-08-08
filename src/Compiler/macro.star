@@ -303,7 +303,7 @@ star.compiler.macro{
   examinePtn(A) where (Lc,L,R) ?= isTypeAnnotation(A) =>
     mkTypeAnnotation(Lc,macroPtn(L),macroType(R)).
   examinePtn(A) where (Lc,Lb,S) ?= isBrTerm(A) => 
-    mkQBrTerm(Lc,Lb,macroStmts(S)).
+    mkBrTerm(Lc,Lb,macroStmts(S)).
   examinePtn(A) where (Lc,O,Els) ?= isRoundTerm(A) => 
     roundTerm(Lc,macroTerm(O),Els//macroPtn).
   examinePtn(A) where (Lc,O,Els) ?= isEnumCon(A) => 
