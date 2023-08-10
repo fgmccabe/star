@@ -24,6 +24,7 @@
 #include "editline.h"
 #include "starP.h"
 #include "futureP.h"
+#include "thunkP.h"
 
 #include "stringBufferP.h"
 #include "continuationP.h"
@@ -56,6 +57,7 @@ int main(int argc, char **argv) {
   initChars();
   initStrings();
   initLbls();
+  initThunk();
   initGlobals();
   initCons();
   initIdeal();
