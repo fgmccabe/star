@@ -46,18 +46,23 @@ star.compiler.checker{
 	  reportError("open statements $(Opens) not currently supported",Lc);
     
 	(Defs,ThDecls,ThEnv) = checkGroups(Gps,pkgExport(Vis),emptyFace,Annots,PkgEnv,PkgPth);
+	
+	(BrDfs,BrDcs) = pullBrDefs(ThEnv);
 
+	if traceCanon! then{
+	  logMsg("br decls $(BrDcs)");
+	};
 	(AllX,All) = squashDecls(ThDecls);
 
 	RDefs = (errorFree() ??
-	  overloadProgram(Defs,declareDecls(All,PkgEnv))* || []);
+	  overloadProgram([BrDfs,..Defs],declareDecls(All++BrDcs,PkgEnv))* || []);
 
 	if traceCanon! then{
 	  logMsg("pkg definitions: $(RDefs),\nexports: $(AllX)");
 	};
 
 	valis (pkgSpec{pkg=Pkge. imports=Imports. exports=AllX},
-	  RDefs,IDecls,All)
+	  RDefs,IDecls,All++BrDcs)
       }
       else
       reportError("package name $(Pkg) does not match expected $(Pkge)",locOf(P))
@@ -185,7 +190,7 @@ star.compiler.checker{
       valis Env
     }
   }
-    
+
   parseAnnotation:(string,option[locn],cons[ast],tipe,map[string,ast],dict) => tipe.
   parseAnnotation(Nm,_,_,_,Annots,Env) where T ?= Annots[Nm] => 
     parseType([],T,Env).
@@ -299,7 +304,7 @@ star.compiler.checker{
   checkVar(Nm,Tp,Lc,Stmt,Env,Outer,Path) => valof{
     if traceCanon! then
       logMsg("check definition $(Stmt)\:$(Tp)@$(Lc)");
-      
+
     (Q,ETp) = evidence(Tp,Env);
     (Cx,VarTp) = deConstrain(ETp);
     Es = declareConstraints(Lc,Cx,declareTypeVars(Q,Outer));
@@ -349,7 +354,7 @@ star.compiler.checker{
     if Wh?=Cnd then{
       (Cond,E1) = checkCond(Wh,E0,Path);
       Rep = typeOfExp(R,RTp,E1,Path);
-	  
+
       valis (.rule(Lc,Args,mergeGoal(Lc,ACnd,.some(Cond)),Rep),IsDeflt)
     } else{
       valis (.rule(Lc,Args,ACnd,typeOfExp(R,RTp,E0,Path)),IsDeflt)
@@ -502,7 +507,7 @@ star.compiler.checker{
     reportError("illegal pattern: $(A), expecting a $(Tp)",Lc);
     valis (.anon(Lc,Tp),.none,Env)    
   }
-    
+
   typeOfArgPtn:(ast,tipe,dict,string) => (canon,option[canon],dict).
   typeOfArgPtn(A,Tp,Env,Path) where (Lc,Els) ?= isTuple(A) => valof{
     Tvs = genTpVars(Els);
@@ -723,6 +728,78 @@ star.compiler.checker{
     (Defs,XDecls,All) = recordEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,Env);
     
     valis formRecordExp(Lc,Fun,Face,Defs,XDecls,All,Tp)
+  }
+  typeOfExp(A,Tp,Env,Path) where (Lc,Els) ?= isBrTuple(A) => valof{
+
+    (Defs,XDecls,Decls)=recordEnv(Lc,genNewName(Path,"Γ"),Els,Tp,Env,Env);
+
+    sortedFlds = let{
+      RcDcl(.varDec(_,Nm,FlNm,FTp),Flds) => [(Nm,(FlNm,FTp)),..Flds].
+      RcDcl(.funDec(_,Nm,FlNm,FTp),Flds) => [(Nm,(FlNm,FTp)),..Flds].
+      RcDcl(_,Flds) default => Flds.
+    } in sortFields(foldLeft(RcDcl,[],XDecls));
+
+    face = .faceType(sortedFlds//((Nm,(_,FTp)))=>(Nm,FTp),[]);
+
+    if traceCanon! then{
+      logMsg("anon record type: $(face)");
+    };
+
+    if sameType(face,Tp,Env) then{
+      brTplNm = "{#(interleave(sortedFlds//fst,".")*)}";
+
+      Tps = sortedFlds//((Nm,_))=>(Nm,.nomnal(Nm));
+
+      if traceCanon! then
+	logMsg("types $(Tps)");
+
+      Tmplte = .tpFun(brTplNm,size(Tps));
+      AnTp = mkTypeExp(Tmplte,Tps//snd);
+      ArTp = .faceType(Tps,[]);
+      AnRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeExists(AnTp,ArTp),Tps);
+
+      if traceCanon! then
+	logMsg("generated rule $(AnRl)");
+
+      CnsTp = reQ(Tps,consType(ArTp,AnTp));
+      CnsDf = .cnsDef(Lc,brTplNm,0,CnsTp);
+      CnsDc = .cnsDec(Lc,brTplNm,brTplNm,CnsTp);
+
+      AnTpDef = .typeDef(Lc,brTplNm,Tmplte,AnRl);
+      AnTpDec = .tpeDec(Lc,brTplNm,Tmplte,AnRl);
+
+      if traceCanon! then
+	logMsg("generated type $(AnTpDef), constructor $(CnsDf)");
+
+      Accessors = foldLeft( ((Fld,(VNm,FTp)),(Ix,ADfs,ADcs)) => valof{
+	  AccNm = qualifiedName(brTplNm,.fldMark,Fld);
+	  Rc = .vr(Lc,"XX",Tp);
+	  AccTp = funType([Tp],FTp);
+	  Acc = .varDef(Lc,AccNm,.lambda(Lc,lambdaLbl(Lc),
+	      [.rule(Lc,.tple(Lc,[Rc]),.none,.tdot(Lc,Rc,Ix,FTp))],AccTp),
+	    [],AccTp);
+	  Dec = .funDec(Lc,AccNm,AccNm,AccTp);
+	  ADec = .accDec(Lc,Tp,Fld,AccNm,AccTp);
+	  valis (Ix+1,[Acc,..ADfs],[Dec,ADec,..ADcs])},
+	(0,.nil,.nil),
+	sortedFlds);
+
+      if traceCanon! then
+	logMsg("Generated accessors $(Accessors)");
+
+      declareBrType(brTplNm,[AnTpDef,CnsDf,..Accessors.1],[AnTpDec,CnsDc,..Accessors.2],Env);
+
+      if traceCanon! then
+	logMsg("generated type $(AnTp), actual type $(Tp)");
+
+      BrArgs = (sortedFlds//((_,(FNm,FTp))) =>.vr(.none,FNm,FTp));
+      BrArgTps = (sortedFlds//((_,(FNm,FTp))) =>FTp);
+      valis .letExp(Lc,Defs,Decls,
+	.apply(Lc,.enm(Lc,brTplNm,consType(.tupleType(BrArgTps),Tp)),BrArgs,Tp))
+    } else{
+      reportError("expecting $(Tp), not record type $(face)",Lc);
+      valis .anon(locOf(A),Tp)
+    }
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,Els,Bnd) ?= isLetRecDef(A) => valof{
     (Defs,Decls,ThEnv)=thetaEnv(Lc,genNewName(Path,"Γ"),Els,.faceType([],[]),Env);

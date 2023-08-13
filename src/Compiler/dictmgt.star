@@ -21,27 +21,29 @@ star.compiler.dict.mgt{
     valis dictVar(Nm,Env)
   }
 
-  dictVar(Nm,[]) => .none.
-  dictVar(Nm,[Sc,.._]) where Entry?=Sc.vars[Nm] => .some(Entry).
-  dictVar(Nm,[_,..Env]) => dictVar(Nm,Env).
+  dictVar:(string,dict) => option[vrEntry].
+  dictVar(Nm,.dict(Scs,_)) => let{.
+    dictV([]) => .none.
+    dictV([Sc,.._]) where Entry?=Sc.vars[Nm] => .some(Entry).
+    dictV([_,..Env]) => dictV(Env).
+  .} in dictV(Scs).
 	  
   public showVar:(string,dict) => string.
   showVar(Nm,Dict) where .vrEntry(_,_,Tp,_)?=isVar(Nm,Dict) => "$(Nm)\:$(Tp)".
   showVar(Nm,_) => "$(Nm) not defined".
-
-  public showAllVars:(dict) => string.
-  showAllVars(Dict) => interleave(Dict//((scope{vars=Vrs})=>disp(Vrs)),"\n--\n")*.
 
   public findVar:(option[locn],string,dict) => option[canon].
   findVar(Lc,Nm,Dict) where .vrEntry(_,Mk,_,_) ?= isVar(Nm,Dict) => .some(Mk(Lc,Dict)).
   findVar(_,_,_) default => .none.
 
   public findImplementation:(dict,string) => option[canon].
-  findImplementation(Dict,Nm) => findImpl(Dict,Dict,Nm).
+  findImplementation(.dict(Scs,Br),Nm) => let{.
+    findImpl([Sc,.._]) where .implEntry(Lc,Vr,Tp) ?= Sc.impls[Nm] =>
+      .some(refreshVar(Lc,Vr,Tp,.dict(Scs,Br))).
+    findImpl([_,..Rest]) => findImpl(Rest).
+    findImpl([]) => .none.
+  .} in findImpl(Scs).
   
-  findImpl([Sc,.._],Env,INm) where .implEntry(Lc,Vr,Tp) ?= Sc.impls[INm] => .some(refreshVar(Lc,Vr,Tp,Env)).
-  findImpl([_,..Rest],Env,INm) => findImpl(Rest,Env,INm).
-  findImpl([],_,_) => .none.
 
   public findAccess:(option[locn],tipe,string,dict) => option[canon].
   findAccess(Lc,Tp,Fld,Env) => valof{
@@ -92,11 +94,13 @@ star.compiler.dict.mgt{
     declareVr(Nm,Lc,Tp,(L,E) => refreshVr(L,Tp,E,(LLc,T)=>.dot(LLc,Rc,Nm,T)),.none,Env).
 
   public undeclareVar:(string,dict) => dict.
-  undeclareVar(_,[]) => [].
-  undeclareVar(Nm,[Sc,..Ev]) =>
-    (_ ?= Sc.vars[Nm] ??
+  undeclareVar(Nm,.dict(Scs,Br)) => let{.
+    undeclareV([]) => [].
+    undeclareV([Sc,..Ev]) =>
+      (_ ?= Sc.vars[Nm] ??
 	[Sc.vars=Sc.vars[~Nm],..Ev] ||
-	[Sc,..undeclareVar(Nm,Ev)]).
+	[Sc,..undeclareV(Ev)])
+  .} in .dict(undeclareV(Scs),Br).
 
   public declareConstructor:(string,string,option[locn],tipe,dict) => dict.
   declareConstructor(Nm,FullNm,Lc,Tp,Env) => valof{
@@ -105,20 +109,15 @@ star.compiler.dict.mgt{
       declareVr(Nm,Lc,Tp,(L,E)=>pickupEnum(L,Nm,Tp,Env),.none,Env)).
   }
 
-  declareCns(CLc,Nm,Tp,TpNm,Dict) => valof{
-    if [Level,..Rest] .= Dict then {
-      if .tpDefn(Lc,TNm,TTp,TpRl,Cons)?=Level.types[TpNm] then{
-	valis [Level.types=Level.types[TpNm->.tpDefn(Lc,TNm,TTp,TpRl,Cons[Nm->Tp])],..Rest]
-      } else{
---	logMsg("Type #(TpNm)=$(Tp) not in $(Level)");
-	valis [Level,..declareCns(CLc,Nm,Tp,TpNm,Rest)]
-      }
-    }
-    else{
+  declareCns(CLc,Nm,Tp,TpNm,.dict(Scs,Br)) => let{.
+    declCns([Level,..Rest]) where .tpDefn(Lc,TNm,TTp,TpRl,Cons)?=Level.types[TpNm] =>
+      [Level.types=Level.types[TpNm->.tpDefn(Lc,TNm,TTp,TpRl,Cons[Nm->Tp])],..Rest].
+    declCns([Level,..Rest]) => [Level,..declCns(Rest)].
+    declCns([]) => valof{
       reportError("cannot declare constructor #(Nm)\:$(Tp), could not find type $(TpNm)",CLc);
-      valis Dict
+      valis Scs
     }
-  }
+  .} in .dict(declCns(Scs),Br).
 
   public findConstructors:(tipe,dict)=>option[map[string,tipe]].
   findConstructors(Tp,Dict) where (_,_,_,Mp) ?=
@@ -135,14 +134,14 @@ star.compiler.dict.mgt{
     declareVr(Nm,Lc,Tp,(L,E)=>pickupEnum(L,FullNm,Tp,E),.none,Env).
 
   public declareVr:(string,option[locn],tipe,(option[locn],dict)=>canon,option[tipe],dict) => dict.
-  declareVr(Nm,Lc,Tp,MkVr,Fc,[Sc,..Ev]) => valof{
-    valis [Sc.vars=Sc.vars[Nm->.vrEntry(Lc,MkVr,Tp,Fc)],..Ev]
+  declareVr(Nm,Lc,Tp,MkVr,Fc,.dict([Sc,..Ev],Br)) => valof{
+    valis .dict([Sc.vars=Sc.vars[Nm->.vrEntry(Lc,MkVr,Tp,Fc)],..Ev],Br)
   }.
 
   public declareContract:(option[locn],string,typeRule,dict) => dict.
-  declareContract(Lc,Nm,Con,[Sc,..Rest]) => valof{
+  declareContract(Lc,Nm,Con,.dict([Sc,..Rest],Br)) => valof{
     NCts = Sc.contracts[Nm->Con];
-    valis declareMethods(Lc,Con,[Sc.contracts=NCts,..Rest]).
+    valis declareMethods(Lc,Con,.dict([Sc.contracts=NCts,..Rest],Br)).
   }
 
   declareMethods:(option[locn],typeRule,dict) => dict.
@@ -156,13 +155,13 @@ star.compiler.dict.mgt{
   }
 
   formMethods:(cons[(string,tipe)],option[locn],cons[tipe],constraint,dict) => dict.
-  formMethods([],_,_,_,Dict) => Dict.
-  formMethods([(Nm,Tp),..Mtds],Lc,Q,Con,Dict) => valof{
+  formMethods([],_,_,_,Dct) => Dct.
+  formMethods([(Nm,Tp),..Mtds],Lc,Q,Con,Dct) => valof{
     (MQ,MI) = deQuant(Tp);
     (MC,MT) = deConstrain(MI);
     valis formMethods(Mtds,Lc,Q,Con,
       declareMethod(Nm,Lc,reQuant(Q++MQ,
-	  reConstrainType([Con,..MC],MT)),Dict))
+	  reConstrainType([Con,..MC],MT)),Dct))
   }
 
   declareMethod:(string,option[locn],tipe,dict) => dict.
@@ -175,16 +174,15 @@ star.compiler.dict.mgt{
   }
 
   public mergeDict:(dict,dict,dict) => dict.
-  mergeDict(D1,D2,Env) => let{.
-    mergeScopes([Sc1,..Rst]) =>
-      [Sc1.vars=mergeVDefs(Sc1.vars),..Rst].
+  mergeDict(.dict(D1,Br),D2,Env) => let{.
+    mergeScopes([Sc1,..Rst]) => [Sc1.vars=mergeVDefs(Sc1.vars),..Rst].
 
     mergeVDefs:(map[string,vrEntry])=>map[string,vrEntry].
     mergeVDefs(V1) => {Nm->E1|Nm->E1 in V1 && E2 ?= dictVar(Nm,D2) && sameDesc(E1,E2)}.
 
     sameDesc(.vrEntry(_,_,T1,_),.vrEntry(_,_,T2,_)) => sameType(T1,T2,Env)
 
-  .} in mergeScopes(D1).
+  .} in .dict(mergeScopes(D1),Br).
 
   public declareDecls:(cons[decl],dict)=>dict.
   declareDecls([],Dict) => Dict.
@@ -210,16 +208,16 @@ star.compiler.dict.mgt{
       declareConstructor(Nm,FullNm,Lc,Tp,Dict).
   }
 
-  public pushSig:(tipe,option[locn],(string,tipe,dict)=>dict,dict) => dict.
-  pushSig(.faceType(Vrs,Tps),Lc,Mkr,Env) =>
-    pushTypes(Tps,Lc,pushFlds(Vrs,Lc,Mkr,Env)).
-  
   public pushFace:(tipe,option[locn],dict,string) => dict.
   pushFace(Tp,Lc,Env,Path) =>
     pushSig(Tp,Lc,(Id,T,E) where (_,DQ).=deQuant(T) => (_ ?= isConsType(DQ) ??
 	declareConstructor(Id,qualifiedName(Path,.valMark,Id),Lc,T,E) ||
 	declareVar(Id,qualifiedName(Path,.valMark,Id),Lc,T,.none,E)),
       Env).
+
+  pushSig:(tipe,option[locn],(string,tipe,dict)=>dict,dict) => dict.
+  pushSig(.faceType(Vrs,Tps),Lc,Mkr,Env) =>
+    pushTypes(Tps,Lc,pushFlds(Vrs,Lc,Mkr,Env)).
   
   pushFlds:(cons[(string,tipe)],option[locn],(string,tipe,dict)=>dict,dict) => dict.
   pushFlds([],Lc,_,Env) => Env.
@@ -253,4 +251,30 @@ star.compiler.dict.mgt{
 
   applyConstraint:(option[locn],constraint,canon) => canon.
   applyConstraint(Lc,Con,Trm) => .over(Lc,Trm,Con).
+
+  public declareBrType:(string,cons[canonDef],cons[decl],dict) => ().
+  declareBrType(Nm,Dfs,Dcs,.dict(Scs,Br)) => valof{
+    Br[Nm] := (Dfs,Dcs);
+    valis ()
+  }
+
+  public declareBrTypes:(dict)=>dict.
+  declareBrTypes(.dict(Scs,Br)) => valof{
+    D := .dict(Scs,ref []);
+    for Nm->(_,Dcs) in Br! do{
+      D := declareDecls(Dcs,D!)
+    };
+    valis D!
+  }
+
+  public pullBrDefs:(dict) => (cons[canonDef],cons[decl]).
+  pullBrDefs(.dict(_,Br)) => valof{
+    D := [];
+    Dc := [];
+    for Nm->(Dfs,Dcs) in Br! do{
+      D := Dfs++D!;
+      Dc := Dcs++Dc!;
+    };
+    valis (D!,Dc!)
+  }
 }

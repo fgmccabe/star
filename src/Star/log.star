@@ -3,7 +3,7 @@ star.log{
 
   public traceCall:all x ~~ display[x] |: (string,x) => x.
   traceCall(M,X) => valof{
-    _show("#(M) - $(X)");
+    _show("\e[34m#(M)\e[0m - $(X)");
     valis X
   }
 

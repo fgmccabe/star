@@ -69,13 +69,5 @@ test.act0{
   -- 	pong() => .ping
   -- 	  })),Chnnl)
   -- }
-
-  -- main:()=>().
-  -- main() => valof{
-  --   AChnnl = newChannel();
-  --   N = nursery([]);
-  --   logMsg("final result $(N)");
-  --   valis ()
-  -- }
 }
 

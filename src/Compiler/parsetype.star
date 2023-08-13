@@ -330,7 +330,7 @@ star.compiler.typeparse{
   public wrapConstraints([],Tp)=>Tp.
   wrapConstraints([Cx,..Cs],Tp) => wrapConstraints(Cs,.constrainedType(Tp,Cx)).
     
-  reQ:(tipes,tipe) => tipe.
+  public reQ:(tipes,tipe) => tipe.
   reQ([],Tp) => Tp.
   reQ([(_,KV),..T],Tp) where occursIn(deRef(KV),Tp) => reQ(T,.allType(KV,Tp)).
   reQ([(_,KV),..T],Tp) => reQ(T,Tp).

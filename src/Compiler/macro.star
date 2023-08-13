@@ -208,6 +208,8 @@ star.compiler.macro{
     rndTuple(Lc,Els//macroTerm).
   examineTerm(A) where (Lc,Els) ?= isSqTuple(A) => 
     sqTuple(Lc,Els//macroTerm).
+  examineTerm(A) where (Lc,Els) ?= isBrTuple(A) => 
+    brTuple(Lc,macroStmts(Els)).
   examineTerm(A) where (Lc,L,R) ?= isCons(A) => 
     mkCons(Lc,macroTerm(L),macroTerm(R)).
   examineTerm(A) where (Lc,L,R) ?= isComma(A) =>
@@ -318,6 +320,8 @@ star.compiler.macro{
     mkComma(Lc,macroPtn(L),macroPtn(R)).
   examinePtn(A) where (Lc,L,R) ?= isPair(A) =>
     mkPair(Lc,macroPtn(L),macroPtn(R)).
+  examinePtn(A) where (Lc,Els) ?= isBrTuple(A) => 
+    brTuple(Lc,macroStmts(Els)).
   examinePtn(A) where (Lc,L,R) ?= isWhere(A) =>
     mkWhere(Lc,macroPtn(L),macroTerm(R)).
   examinePtn(A) default => valof{

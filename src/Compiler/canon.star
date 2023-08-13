@@ -219,10 +219,10 @@ star.compiler.canon{
     .cond(_,T,L,R) where (Lp,OPr,Rp) ?= isInfixOp("??") =>
       "(#(showCanon(T,Lp,Sp)) ?? #(showCanon(L,Rp,Sp)) || #(showCanon(R,Rp,Sp)))".
     .apply(_,L,R,_) => showApply(L,R,Pr,Sp).
-    .tple(_,Els) => showTuple(Els,Sp).
-    .lambda(_,Nm,Rls,Tp) => "(#(showRls(Nm,Rls,showCanon,Sp++"  ")))".
+    .tple(_,Els) => "(#(showTuple(Els,Sp)))".
+    .lambda(_,Nm,Rls,_) => "(#(showRls(Nm,Rls,showCanon,Sp++"  ")))".
     .letExp(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
-      "#(leftParen(OPr,Pr))let {\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)#(showDecs(Dcs,Sp2))} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))".
+      "#(leftParen(OPr,Pr))let {\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))".
     .letRec(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
       "#(leftParen(OPr,Pr))let {.\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)#(showDecs(Dcs,Sp2)).} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))".
     .vlof(_,A,_) where (OPr,Rp) ?= isPrefixOp("valof") =>
@@ -296,8 +296,8 @@ star.compiler.canon{
     .varDef(_,Nm,.lambda(_,_LamNm,Rls,_),_,Tp) =>
       "Fun: #(Nm) = #(showRls(Nm,Rls,showCanon,Sp))".
     .varDef(_,Nm,V,_,Tp) => "Var: #(Nm) = #(showCanon(V,0,Sp))".
-    .typeDef(_,Nm,T,_) => "Type: #(Nm)~>$(T)".
-    .cnsDef(_,Nm,Ix,Tp) => "Constructor: #(Nm)[$Ix]\:$(Tp)".
+    .typeDef(_,Nm,_,Rl) => "Type: $(Rl)".
+    .cnsDef(_,Nm,Ix,Tp) => "Constructor: #(Nm)[$(Ix)]\:$(Tp)".
     .implDef(_,_,Nm,Exp,Cx,Tp) => "Implementation: #(Nm)\:$(Tp) = $(Cx) |: $(Exp)".
   }
 

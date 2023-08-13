@@ -10,9 +10,6 @@ the @code{task} and the @code{nursery}. A @code{task} is a form of
 performed.
 
 
-
-
-
 @node Tasks
 @section Tasks
 The foundation for concurrency is the @refer{TaskExpression}. A

@@ -170,7 +170,7 @@ star.compiler.macro.rules{
   genCons(Lc,H,T) => binary(Lc,"_cons",H,T).
 
   mapLiteralMacro(A,.expression) where
-      (Lc,Els) ?= isMapLiteral(A) => .active(macroListEntries(Lc,Els,genEmpty,genPut)).
+      (Lc,Els) ?= isMapLiteral(A) => .active(mkTypeAnnotation(Lc,macroListEntries(Lc,Els,genEmpty,genPut),squareApply(Lc,"map",[mkAnon(Lc),mkAnon(Lc)]))).
   mapLiteralMacro(_,_) default => .inactive.
 
   genEmpty(Lc) => .nme(Lc,"_empty").
