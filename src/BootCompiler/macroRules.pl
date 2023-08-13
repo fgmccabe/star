@@ -143,7 +143,10 @@ indexMacro(T,expression,Rp) :-
 
 mapLiteralMacro(A,expression,Trm) :-
   isMapLiteral(A,Lc,Prs),!,
-  macroListEntries(Lc,Prs,Trm,emptyGen,putGen).
+  macroListEntries(Lc,Prs,T,emptyGen,putGen),
+  mkAnon(Lc,Anon),
+  squareTerm(Lc,name(Lc,"map"),[Anon,Anon],MapTp),
+  typeAnnotation(Lc,T,MapTp,Trm).
 
 comprehensionMacro(T,expression,Rp) :-
   isComprehension(T,Lc,Bnd,Body),!,

@@ -6,7 +6,7 @@ test.rc3{
 
   public main:()=>().
   main() => valof{
-    AA = {A=10. ii=[1->.false, 2->.true]. private b="hi". c=.nil};
+    AA = {A=10. ii={1->.false, 2->.true}. private b="hi". c=.nil};
 
     show AA.A;
     show AA.ii;

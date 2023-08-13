@@ -59,7 +59,7 @@ F.G. McCabe).
 * Conditions::
 * Queries::
 * Actions::
-* Fibers::
+* Concurrent Execution::
 * Standard Contracts::
 
 * Numbers::
@@ -93,7 +93,9 @@ F.G. McCabe).
 
 @include actions.texi
 
-@include fibers.texi
+@include concurrent.texi
+
+@c @include fibers.texi
 
 @include standard.texi
 
@@ -104,8 +106,6 @@ F.G. McCabe).
 @include date.texi
 
 @include collections.texi
-
-@c @include concurrent.texi
 
 @c @include io.texi
 

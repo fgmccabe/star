@@ -466,8 +466,8 @@ star.compiler.resolve{
     }
   }
   resolveConstraint(Lc,.raisEs(Tp),Dict,St) => valof{
-    if traceCanon! then
-      logMsg("resolve raises $(Tp)");
+    -- if traceCanon! then
+    --   logMsg("resolve raises $(Tp)");
     if Var ?= findVar(Lc,"$try",Dict) then{
       if sameType(snd(freshen(Tp,Dict)),typeOf(Var),Dict) then {
 	valis (Var,markResolved(St))
@@ -523,7 +523,7 @@ star.compiler.resolve{
   resolveDot:(option[locn],canon,string,tipe,dict,resolveState) => (canon,resolveState).
   resolveDot(Lc,Rc,Fld,Tp,Dict,St) => valof{
     if traceCanon! then
-      logMsg("resolve $(Rc).#(Fld)\:$(Tp)");
+      logMsg("resolve $(Rc).#(Fld)\:$(Tp) @ $(Lc)");
     RcTp = typeOf(Rc);
     if AccFn ?= findAccess(Lc,RcTp,Fld,Dict) then{
       if traceCanon! then
@@ -556,8 +556,6 @@ star.compiler.resolve{
 
   resolveUpdate:(option[locn],canon,string,canon,dict,resolveState) => (canon,resolveState).
   resolveUpdate(Lc,Rc,Fld,Vl,Dict,St) => valof{
-    -- if traceCanon! then
-    --   logMsg("resolve $(Rc).#(Fld)<-$(Vl)");
     RcTp = typeOf(Rc);
     if AccFn ?= findUpdate(Lc,RcTp,Fld,Dict) then{
       Ft = newTypeVar("F");
@@ -581,9 +579,6 @@ star.compiler.resolve{
 
   resolveTDot:(option[locn],canon,integer,tipe,dict,resolveState) => (canon,resolveState).
   resolveTDot(Lc,Rc,Ix,Tp,Dict,St) => valof{
-    -- if traceCanon! then
-    --   logMsg("resolve $(Rc).$(Ix)\:$(Tp)");
-    
     if .tupleType(Els) .= deRef(typeOf(Rc)) then{
       if ElTp ?= Els[Ix] then{
 	if sameType(ElTp,Tp,Dict) then{
@@ -593,7 +588,17 @@ star.compiler.resolve{
 	    .active(Lc,"type of $(Rc).$(Ix)\:$(ElTp) not consistent with required type $(Tp)"))
 	}
       }
-    } else{
+    } else if .faceType(Els,_) .= deRef(typeOf(Rc)) then{
+      if (_,ElTp) ?= Els[Ix] then{
+	if sameType(ElTp,Tp,Dict) then{
+	  valis (.tdot(Lc,Rc,Ix,Tp),St)
+	} else{
+	  valis (.tdot(Lc,Rc,Ix,Tp),
+	    .active(Lc,"type of $(Rc).$(Ix)\:$(ElTp) not consistent with required type $(Tp)"))
+	}
+      }
+    }
+    else{
       valis (.tdot(Lc,Rc,Ix,Tp),
 	.active(Lc,"type of $(Rc)\:$(typeOf(Rc)) not known to be a tuple type of length > $(Ix)"))
     }

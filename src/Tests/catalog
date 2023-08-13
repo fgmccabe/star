@@ -119,6 +119,7 @@
     "test.rb0" : "rb0.star",
     "test.rc" : "rc.star",
     "test.rc2" : "rc2.star",
+    "test.rc3": "rc3.star",
     "test.rl" : "rl.star",
     "test.rn" : "rn.star",
     "test.rrb" : "rrb1.star",

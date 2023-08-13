@@ -6,6 +6,7 @@ star.compiler.dict{
   import star.compiler.intrinsics.
   import star.compiler.errors.
   import star.compiler.location.
+  import star.compiler.meta.
   import star.compiler.misc.
   import star.compiler.types.
 
@@ -24,9 +25,9 @@ star.compiler.dict{
     impls:map[string,implEntry].
     accessors:map[string,map[string,accEntry]].
     updaters:map[string,map[string,accEntry]].
-    labels:map[string,(option[locn],string)]}.
+    }.
 
-  public dict ~> cons[scope].
+  public dict::=.dict(cons[scope],ref map[string,(cons[canonDef],cons[decl])]).
 
   public implementation display[scope] => {
     disp(scope{types=Tps.
@@ -35,9 +36,19 @@ star.compiler.dict{
 	impls=Imps.
 	accessors=Accs.
 	updaters=Ups.
-	labels=Lbls}) =>
-      "Types:$(Tps),\nVars:$(Vrs),\nContracts:$(Cnts),\nImplementations: $(Imps),\nAccessors: $(Accs)\nUpdaters: $(Ups)\nLabels: $(Lbls)".
+	}) =>
+      "Types:$(Tps),\nVars:$(Vrs),\nContracts:$(Cnts),\nImplementations: $(Imps),\nAccessors: $(Accs)\nUpdaters: $(Ups)".
   }
+
+  public implementation display[dict] => {
+    disp(D) => showDict(D,3)
+  }
+
+  public showDict:(dict,integer)=>string.
+  showDict(.dict(Scs,Br),Dp) => let{
+    shLvls() where (F,_) ?= front(Scs,Dp) => interleave(F//disp,"\n")*.
+    shLvls() default => "".
+  } in "dict: #(shLvls())\n$(Br!)".
 
   public implementation display[vrEntry] => {
     disp(.vrEntry(Lc,Mk,Tp,_)) => "|=$(Tp)".
@@ -61,89 +72,87 @@ star.compiler.dict{
   public vrFace(.vrEntry(_,_,_,Fc))=>Fc.
   
   public declareType:(string,option[locn],tipe,typeRule,dict) => dict.
-  declareType(Nm,Lc,Tp,TpRl,[Level,..Rest]) =>
-    [Level.types=Level.types[Nm->.tpDefn(Lc,Nm,Tp,TpRl,[])],..Rest].
+  declareType(Nm,Lc,Tp,TpRl,.dict([Level,..Rest],Br)) =>
+    .dict([Level.types=Level.types[Nm->.tpDefn(Lc,Nm,Tp,TpRl,[])],..Rest],Br).
 
   public findType:(dict,string) => option[(option[locn],tipe,typeRule,map[string,tipe])].
-  findType([],Nm) => .none.
-  findType([Lvl,.._],Ky) where .tpDefn(Lc,_,Tp,Rl,Cns)?=Lvl.types[Ky] =>
-    .some((Lc,Tp,Rl,Cns)).
-  findType([_,..Rest],Ky) => findType(Rest,Ky).
+  findType(.dict(Scs,_),Nm) => let{.
+    findTp([]) => .none.
+    findTp([Lvl,.._]) where .tpDefn(Lc,_,Tp,Rl,Cns)?=Lvl.types[Nm] =>
+      .some((Lc,Tp,Rl,Cns)).
+    findTp([_,..Rest]) => findTp(Rest).
+  .} in findTp(Scs).
 
   public findContract:(dict,string) => option[typeRule].
-  findContract([],Nm) => .none.
-  findContract([scope{contracts=Cns},.._],Ky) where Con?=Cns[Ky] => .some(Con).
-  findContract([_,..Rest],Ky) => findContract(Rest,Ky).
+  findContract(.dict(Scs,_),Nm) => let{.
+    findC([]) => .none.
+    findC([scope{contracts=Cns},.._]) where Con?=Cns[Nm] => .some(Con).
+    findC([_,..Rest]) => findC(Rest).
+  .} in findC(Scs).
 
   public declareImplementation:(option[locn],string,string,tipe,dict) => dict.
-  declareImplementation(Lc,ImplNm,ImplVr,Tp,[Scope,..Env]) =>
-    [Scope.impls=Scope.impls[ImplNm->.implEntry(Lc,ImplVr,Tp)],..Env].
+  declareImplementation(Lc,ImplNm,ImplVr,Tp,.dict([Scope,..Env],Br)) =>
+    .dict([Scope.impls=Scope.impls[ImplNm->.implEntry(Lc,ImplVr,Tp)],..Env],Br).
 
   public undeclareImplementation:(string,dict) => dict.
-  undeclareImplementation(Nm,[Scope,..Env]) =>
-    [Scope.impls=Scope.impls[~Nm],..Env].
+  undeclareImplementation(Nm,.dict([Scope,..Env],Br)) =>
+    .dict([Scope.impls=Scope.impls[~Nm],..Env],Br).
 
   public declareAccessor:(option[locn],tipe,string,string,tipe,dict) => dict.
-  declareAccessor(Lc,Tp,Fld,AccFn,AccTp,[Scope,..Env]) => valof{
+  declareAccessor(Lc,Tp,Fld,AccFn,AccTp,.dict([Scope,..Env],Br)) => valof{
     Key = tpName(Tp);
     Entry = .accEntry(Lc,AccFn,AccTp);
     Accs = Scope.accessors;
 
     if AccOrs ?= Accs[Key] then{
-      valis [Scope.accessors=Accs[Key->AccOrs[Fld->Entry]],..Env]
+      valis .dict([Scope.accessors=Accs[Key->AccOrs[Fld->Entry]],..Env],Br)
     } else{
-      valis [Scope.accessors=Accs[Key->{Fld->Entry}],..Env]
+      valis .dict([Scope.accessors=Accs[Key->{Fld->Entry}],..Env],Br)
     }
   }
 
   public getFieldAccess:(tipe,string,dict)=>option[accEntry].
-  getFieldAccess(Tp,Fld,Env) => getField(tpName(Tp),Fld,Env).
+  getFieldAccess(Tp,Fld,.dict(Scs,_)) => let{.
+    Ky = tpName(Tp).
+    getField([]) => .none.
+    getField([Scope,.._]) where
+	AccOrs ?= Scope.accessors[Ky] &&
+	    Acc ?= AccOrs[Fld] => .some(Acc).
+    getField([_,..Env]) => getField(Env).
+  .} in getField(Scs).
 
-  getField(_,_,[]) => .none.
-  getField(Key,Fld,[Scope,.._]) where
-      AccOrs ?= Scope.accessors[Key] &&
-      Acc ?= AccOrs[Fld] => .some(Acc).
-  getField(Key,Fld,[_,..Env]) => getField(Key,Fld,Env).
 
   public declareUpdater:(option[locn],tipe,string,string,tipe,dict) => dict.
-  declareUpdater(Lc,Tp,Fld,UpdFn,UpdTp,[Scope,..Env]) => valof{
+  declareUpdater(Lc,Tp,Fld,UpdFn,UpdTp,.dict([Scope,..Env],Br)) => valof{
     Key = tpName(Tp);
     Entry = .accEntry(Lc,UpdFn,UpdTp);
     Ups = Scope.updaters;
     
     if AccOrs ?= Ups[Key] then{
-      valis [Scope.updaters=Ups[Key->AccOrs[Fld->Entry]],..Env]
+      valis .dict([Scope.updaters=Ups[Key->AccOrs[Fld->Entry]],..Env],Br)
     } else{
-      valis [Scope.updaters=Ups[Key->{Fld->Entry}],..Env]
+      valis .dict([Scope.updaters=Ups[Key->{Fld->Entry}],..Env],Br)
     }
   }
 
   public getFieldUpdate:(tipe,string,dict)=>option[accEntry].
-  getFieldUpdate(Tp,Fld,Env) => getUpdate(tpName(Tp),Fld,Env).
-
-  getUpdate(_,_,[]) => .none.
-  getUpdate(Key,Fld,[Scope,.._]) where
-      AccOrs ?= Scope.updaters[Key] &&
-      Acc ?= AccOrs[Fld] => .some(Acc).
-  getUpdate(Key,Fld,[_,..Env]) => getUpdate(Key,Fld,Env).
-
-  public declareLabel:(option[locn],string,dict) => dict.
-  declareLabel(Lc,Lb,[Scope,..Env]) => [Scope.labels=Scope.labels[Lb->(Lc,Lb)],..Env].
-
-  public isLabel:(string,dict) => option[(option[locn],string)].
-  isLabel(Lb,[Sc,.._]) where Tgt?=Sc.labels[Lb] => .some(Tgt).
-  isLabel(Lb,[_,..Env]) => isLabel(Lb,Env).
-  isLabel(_,_) default => .none.
+  getFieldUpdate(Tp,Fld,.dict(Scs,_)) => let{.
+    getUpdate(_,[]) => .none.
+    getUpdate(Key,[Scope,.._]) where
+	AccOrs ?= Scope.updaters[Key] &&
+	    Acc ?= AccOrs[Fld] => .some(Acc).
+    getUpdate(Key,[_,..Env]) => getUpdate(Key,Env).
+  .} in getUpdate(tpName(Tp),Scs).
 
   public pushScope:(dict)=>dict.
-  pushScope(Env) => [scope{
-      types=[].
-      vars=[].
-      contracts=[].
-      impls=[].
-      accessors=[].
-      updaters=[].
-      labels=[]},..Env].
+  pushScope(.dict(Scs,Br)) => .dict([scope{
+	types=[].
+	vars=[].
+	contracts=[].
+	impls=[].
+	accessors=[].
+	updaters=[].
+      },..Scs],Br).
 
   public declareTypeVars:(cons[(string,tipe)],dict) => dict.
   declareTypeVars([],Env) => Env.
@@ -151,7 +160,15 @@ star.compiler.dict{
     declareTypeVars(Q,declareType(Nm,.none,Tp,.typeExists(Tp,Tp),Env)).
 
   emptyDict:dict.
-  emptyDict = pushScope([]).
+  emptyDict = .dict([scope{
+	types=[].
+	vars=[].
+	contracts=[].
+	impls=[].
+	accessors=[].
+	updaters=[].
+      }],ref []).
+
 
 -- Standard types are predefined by the language
   public stdDict:dict.
