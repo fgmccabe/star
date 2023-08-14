@@ -41,12 +41,10 @@ futurePo C_FUTURE(termPo t) {
 
 static integer futureHash = 0;
 
-futurePo makeFuture(heapPo H, futureSetProc fut, void *cl) {
+futurePo makeFuture(heapPo H, futureSetProc fut) {
   futurePo ft = (futurePo) allocateObject(H, futureClass, FutureCellCount);
-  ft->cont = Null;
   ft->val = noneEnum;
   ft->set = fut;
-  ft->cl = cl;
   ft->hash = hash61(futureHash++);
   return ft;
 }
@@ -65,7 +63,6 @@ termPo futCopy(specialClassPo cl, termPo dst, termPo src) {
 termPo futScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   futurePo ft = C_FUTURE(o);
 
-  helper((ptrPo) &ft->cont, c);
   helper(&ft->val, c);
   return (termPo) (o + FutureCellCount);
 }
@@ -73,7 +70,6 @@ termPo futScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 termPo futFinalizer(specialClassPo class, termPo o) {
   futurePo ft = C_FUTURE(o);
 
-  ft->cont = Null;
   ft->val = voidEnum;
 
   return (termPo) (o + FutureCellCount);
@@ -101,8 +97,12 @@ retCode setFuture(heapPo H, futurePo ft, termPo val) {
   int root = gcAddRoot(H, &val);
   ft->val = (termPo) wrapSome(H, val);
 
-  gcReleaseRoot(H,root);
+  gcReleaseRoot(H, root);
   return Ok;
+}
+
+termPo getFuture(futurePo f) {
+  return f->val;
 }
 
 

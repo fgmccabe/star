@@ -731,7 +731,6 @@ retCode run(processPo P) {
           termPo vr = thunkVal(thVr);
 
           check(vr != Null, "undefined thunk value");
-          check(SP > (ptrPo) (FP + 1), "not enough room");
 
           push(vr);     /* load a global variable */
         } else {
@@ -740,7 +739,7 @@ retCode run(processPo P) {
           labelPo lb = closureLabel(thLambda);
 
           if (lb == Null) {
-            logMsg(logFile, "label %s/%d not defined", labelName(lb), 2);
+            logMsg(logFile, "label %T not defined", thLambda);
             bail();
           } else if (labelArity(lb) != 2) {
             logMsg(logFile, "closure %T does not have correct arity %d", thLambda, 2);
