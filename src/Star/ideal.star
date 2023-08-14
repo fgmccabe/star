@@ -149,7 +149,7 @@ star.ideal{
     dispEls(.nil,SS)=>SS.
     dispEls(.cons(P,T),SS) => dispEls(T,[disp(P),..SS]).
   .} in {
-    disp(Tr) => "[#(interleave(dispTree(Tr,[]),", ")*)]".
+    disp(Tr) => "{#(interleave(dispTree(Tr,[]),", ")*)}".
   }
 
   public implementation all k,v ~~ equality[k],hashable[k] |: indexed[map[k,v]->>k,v] => {
