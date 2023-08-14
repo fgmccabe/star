@@ -19,4 +19,6 @@ retCode checkReslt(int64 test, int64 verify, char *msg);
 
 #define negRet(Exp) STMT_WRAP({ retCode ret=(Exp); if(ret==Ok)return Fail; })
 
+#define boolRet(Exp) ((Exp)?Ok:Fail)
+
 #endif //STAR_UNITTESTS_H

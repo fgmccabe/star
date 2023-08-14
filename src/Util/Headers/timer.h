@@ -11,7 +11,7 @@
   License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
   KIND, either express or implied. See the License for the specific language governing
   permissions and limitations under the License.
-*/ 
+*/
 
 #ifndef _OOIO_TIMER_H_
 #define _OOIO_TIMER_H_
@@ -20,18 +20,11 @@
 
 typedef void (*timeFun)(void *cl);
 
-retCode setAlarm(double time,timeFun onWakeup,void *cl);
-void cancelAlarm(void);
+retCode setAlarm(double time, timeFun onWakeup, void *cl);
+retCode setTimer(double time, timeFun onWakeup, void *cl);
 
-#ifdef _WIN32			/* Windows'95 specific stuff */
-#include <winsock.h>
-struct  itimerval {		/* duplicate Unix declaration */
-  struct  timeval it_interval;	/* timer interval */
-  struct  timeval it_value;	/* current value */
-};
-void gettimeofday(struct timeval *t, void *ignored);
-#else				/* UNIX only */
-#include <sys/time.h>
+#ifndef MICROS
+#define MICROS (1000000)
 #endif
 
 #endif
