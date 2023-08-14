@@ -14,10 +14,8 @@ void initFuture();
 typedef struct future_record_ {
   clssPo clss;                  // == futureClass
   integer hash;
-  stackPo cont;
   termPo val;
   futureSetProc set;
-  void *cl;
 } FutureRecord;
 
 #define FutureCellCount CellCount(sizeof(FutureRecord))

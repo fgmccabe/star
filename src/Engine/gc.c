@@ -11,7 +11,7 @@
 #include <memory.h>
 #include <globalsP.h>
 #include <debug.h>
-#include "timers.h"
+#include "timerTests.h"
 
 #ifdef TRACEMEM
 long gcCount = 0;                       /* Number of times GC is invoked */

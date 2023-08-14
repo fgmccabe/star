@@ -63,7 +63,7 @@ ReturnStatus g__enqueue_read(heapPo h, termPo a1, termPo a2) {
   ioChnnlPo chnl = C_IO(a1);
   integer count = integerVal(a2);
 
-  futurePo ft = makeFuture(h, Null, nilEnum);
+  futurePo ft = makeFuture(h, Null);
 
   retCode ret = enqueueRead(ioChannel(chnl), count, fillFuture, ft);
   return (ReturnStatus) {.ret=ret, .result=(termPo) ft};

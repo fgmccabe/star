@@ -18,7 +18,7 @@
 #include "buddyP.h"
 #include "labelsP.h"
 #include "continuationP.h"
-#include "timers.h"
+#include "timerTests.h"
 #include "engineP.h"
 
 char CWD[MAXFILELEN] = "";
