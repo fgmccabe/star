@@ -10,5 +10,6 @@ retCode all_tests() {
   tryRet(run_test(multiTests));
   tryRet(run_test(miscTests));
   tryRet(run_test(matchTests));
+  tryRet(run_test(timerTests));
   return Ok;
 }

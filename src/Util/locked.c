@@ -67,34 +67,6 @@ void lock(lockedPo l) {
   pthread_mutex_lock(&l->lock.mutex);
 }
 
-// We return Ok if we have the lock,
-// Fail if we timed out
-// Error for other cases
-//
-retCode timedLock(lockedPo l,double tmout)
-{
-  if(fabs(tmout)<0.001){
-    if(pthread_mutex_trylock(&l->lock.mutex)!=0)
-      return Fail;
-    else
-      return Ok;
-  }
-  else{
-    setAlarm(tmout,NULL,NULL);
-    switch(pthread_mutex_lock(&l->lock.mutex)){
-    case 0:
-      cancelAlarm();
-      return Ok;
-    case ETIMEDOUT:
-      cancelAlarm();
-      return Fail;
-    default:
-      cancelAlarm();
-      return Error;
-    }
-  }
-}
-
 void unlock(lockedPo l) {
   pthread_mutex_unlock(&l->lock.mutex);
 }

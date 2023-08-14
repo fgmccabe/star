@@ -1,113 +1,154 @@
 /*
   Interval timer management
-  Copyright (c) 2016, 2017. Francis G. McCabe
-
-  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
-  except in compliance with the License. You may obtain a copy of the License at
-
-  http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software distributed under the
-  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-  KIND, either express or implied. See the License for the specific language governing
-  permissions and limitations under the License.
+  Copyright (c) 2016, 2017 and beyond Francis G. McCabe
  */
 
-#include "config.h"		/* pick up standard configuration header */
+#include "config.h"    /* pick up standard configuration header */
 #include <signal.h>
-#include <time.h>
+#include <sys/time.h>
 #include <math.h>
 #include <pthread.h>
-#include <stdlib.h>
-#include "retcode.h"
+#include "utils.h"
 #include "timer.h"
+#include "pool.h"
 
-static pthread_once_t once = PTHREAD_ONCE_INIT;
-static pthread_key_t timerKey;
+static poolPo timerPool = Null;
 
-static void initAlarms(void) {
-  pthread_key_create(&timerKey, NULL);  /* create the timerKey */
-}
+typedef struct timer_struct *timePo;
 
-typedef struct {
+typedef struct timer_struct {
+  struct timeval when;
   timeFun onWakeup;
   void *cl;
+  timePo next;
 } TimerStruct;
 
-static void timerWakeUp(int sig) {
-  TimerStruct *ts = (TimerStruct *) pthread_getspecific(timerKey);
+static pthread_once_t once = PTHREAD_ONCE_INIT;
+static timePo timeQ = Null;
+static void timerWakeUp(int sig);
 
-  pthread_setspecific(timerKey, NULL);
-
-  if (ts != NULL) {
-    if (ts->onWakeup != NULL)
-      ts->onWakeup(ts->cl);
-    free(ts);
+static void initAlarms(void) {
+  if (timerPool == Null) {
+    timerPool = newPool(sizeof(TimerStruct), 16);
+    timeQ = Null;
   }
 }
 
-retCode setAlarm(double time, timeFun onWakeup, void *cl) {
-  struct timeval now, when;
-
-  pthread_once(&once, initAlarms);
-
-  gettimeofday(&now, NULL);
-  when.tv_sec = (time_t)floor(time);
-  when.tv_usec = (int32)((time - floor(time)) * 1000000);
-
-  if (when.tv_sec < now.tv_sec ||
-      (when.tv_sec == now.tv_sec && when.tv_usec < now.tv_usec)) /* already gone */
-    return Fail;      /* timeout already fired */
-  else {
-    struct itimerval period;
-    struct sigaction act;
-
-    period.it_value.tv_sec = when.tv_sec - now.tv_sec;
-    period.it_value.tv_usec = when.tv_usec - now.tv_usec;
-
-    if (period.it_value.tv_usec < 0) {  /* -ve microseconds */
-      period.it_value.tv_usec += 1000000;
-      period.it_value.tv_sec--;
-    }
-
-    period.it_interval.tv_sec = period.it_interval.tv_usec = 0;
-
-    if (onWakeup != NULL) {
-      TimerStruct *ts = (TimerStruct *) malloc(sizeof(TimerStruct));
-      pthread_setspecific(timerKey, ts);
-
-      ts->onWakeup = onWakeup;
-      ts->cl = cl;
-    }
-
-    act.sa_handler = timerWakeUp;
-    act.sa_flags = 0;
-
-    sigemptyset(&act.sa_mask);
-
-    sigaction(SIGALRM, &act, NULL);
-    setitimer(ITIMER_REAL, &period, NULL);
-    return Ok;
-  }
+static logical cmpTime(struct timeval *a, struct timeval *b) {
+  if (a->tv_sec == b->tv_sec) {
+    return a->tv_usec >= b->tv_usec;
+  } else
+    return a->tv_sec >= b->tv_sec;
 }
 
-void cancelAlarm(void) {
+static void setupTimerInterrupt(struct timeval *when, struct timeval *now) {
   struct itimerval period;
-  struct sigaction act;
 
-  TimerStruct *ts = (TimerStruct *) pthread_getspecific(timerKey);
+  period.it_value.tv_sec = when->tv_sec - now->tv_sec;
+  period.it_value.tv_usec = when->tv_usec - now->tv_usec;
 
-  if (ts != NULL) {
-    free(ts);
-    pthread_setspecific(timerKey, NULL);
+  if (period.it_value.tv_usec < 0) {  /* -ve microseconds */
+    period.it_value.tv_usec += MICROS;
+    period.it_value.tv_sec--;
   }
+  period.it_interval.tv_usec = 0;     // Single shot timer
+  period.it_interval.tv_sec = 0;
 
-  period.it_value.tv_sec = period.it_value.tv_usec = 0;
-  period.it_interval.tv_sec = period.it_interval.tv_usec = 0;
-  setitimer(ITIMER_REAL, &period, NULL);  /* Cancel the timer (if set) */
-
-  act.sa_handler = SIG_IGN;
+  setitimer(ITIMER_REAL, &period, Null);
+  // Set up the signal handler
+  struct sigaction act;
+  act.sa_handler = timerWakeUp;
   act.sa_flags = 0;
 
-  sigaction(SIGALRM, &act, NULL);
+  sigemptyset(&act.sa_mask);
+
+  sigaction(SIGALRM, &act, Null);
+}
+
+static void clearTimerInterrupt() {
+  struct itimerval zero = {.it_value={.tv_usec=0, .tv_sec=0}, .it_interval={.tv_sec=0, .tv_usec=0}};
+  setitimer(ITIMER_REAL, &zero, Null);
+}
+
+static timePo processQ(timePo q, struct timeval *now) {
+  if (q != Null) {
+    if (cmpTime(now, &q->when)) {
+      if (q->onWakeup != Null) {
+        q->onWakeup(q->cl);
+      }
+      timePo next = q->next;
+      freePool(timerPool, q);
+      return processQ(next, now);
+    } else {
+      setupTimerInterrupt(&q->when, now);
+
+      return q;
+    }
+  } else {
+    clearTimerInterrupt();
+    return Null;
+  }
+}
+
+static void timerWakeUp(int sig) {
+  struct timeval now;
+  gettimeofday(&now, Null);
+  timeQ = processQ(timeQ, &now);
+}
+
+retCode setupAlarm(struct timeval when, timeFun onWakeup, void *cl);
+
+retCode setAlarm(double time, timeFun onWakeup, void *cl) {
+  struct timeval when;
+
+  when.tv_sec = (time_t) floor(time);
+  when.tv_usec = (int32) ((time - floor(time)) * MICROS);
+
+  return setupAlarm(when, onWakeup, cl);
+}
+
+static timePo insertTimer(struct timeval *when, timePo entry, timePo q) {
+  if (q == Null) {
+    entry->next = Null;
+    return entry;
+  } else if (cmpTime(&q->when, when)) { // new one is younger
+    entry->next = q;
+    return entry;
+  } else {
+    q->next = insertTimer(when, entry, q->next);
+    return q;
+  }
+}
+
+retCode setupAlarm(struct timeval when, timeFun onWakeup, void *cl) {
+  pthread_once(&once, initAlarms);
+
+  timePo entry = (timePo) allocPool(timerPool);
+
+  entry->when = when;
+  entry->onWakeup = onWakeup;
+  entry->cl = cl;
+  entry->next = Null;
+
+  timeQ = insertTimer(&when, entry, timeQ);
+  struct timeval now;
+  gettimeofday(&now, Null);
+  timeQ = processQ(timeQ, &now);
+  return Ok;
+}
+
+retCode setTimer(double time, timeFun onWakeup, void *cl) {
+  struct timeval when;
+  gettimeofday(&when, Null);
+
+  integer micros = (integer) ((time - floor(time)) * MICROS);
+  if (((integer) when.tv_usec) + micros > MICROS) {
+    when.tv_usec = (int) ((when.tv_usec + micros) - MICROS);
+    when.tv_sec += (int) floor(time) + 1;
+  } else {
+    when.tv_usec += (int) micros;
+    when.tv_sec += (int) floor(time);
+  }
+
+  return setupAlarm(when, onWakeup, cl);
 }

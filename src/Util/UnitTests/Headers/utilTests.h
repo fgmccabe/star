@@ -11,5 +11,6 @@
 #include "multiTests.h"
 #include "miscTest.h"
 #include "matchTests.h"
+#include "timertests.h"
 
 #endif //STAR_UTILTESTS_H

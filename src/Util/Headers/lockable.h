@@ -21,7 +21,6 @@
 typedef struct _lock_record_ *lockedPo;
 
 void lock(lockedPo o);
-retCode timedLock(lockedPo l, double tmout);
 void unlock(lockedPo o);
 
 extern classPo lockedClass;
