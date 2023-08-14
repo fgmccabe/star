@@ -14,4 +14,3 @@ test.rc3{
     assert isEmpty(AA.c);
   }
 }
-    
