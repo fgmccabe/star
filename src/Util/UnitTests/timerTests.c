@@ -76,8 +76,8 @@ retCode ascendingTimerTest() {
   gettimeofday(&start, Null);
   next = start;
 
-  for (int ix = 0; ix < 100; ix++) {
-    setTimer(ix * 0.001, (timeFun) ascendChk, ix);
+  for (integer ix = 0; ix < 100; ix++) {
+    setTimer((double)ix * 0.001, (timeFun) ascendChk, (void*)ix);
   }
 
   logical done = False;
