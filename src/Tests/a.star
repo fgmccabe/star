@@ -24,7 +24,7 @@ test.a{
       
       valis ()
     } catch {
-      _ => { valis () }
+      _:exception => { valis () }
     };
   }
 }
