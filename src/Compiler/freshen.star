@@ -3,6 +3,7 @@ star.compiler.freshen{
   import star.iterable.
 
   import star.compiler.dict.
+  import star.compiler.location.
   import star.compiler.misc.
   import star.compiler.types.
 
@@ -13,12 +14,10 @@ star.compiler.freshen{
 
   public implementation fresh[tipe] => {
     freshen(Tp,Env) where (T,Q,Ev) .= freshQuants(deRef(Tp),[],Env) =>
-      (Q,frshn(deRef(T),Ev)).
+      (Q,frshn(deRef(T),declareTypeVars(Q,Ev))).
     freshen(Tp,_) default => ([],Tp).
 
-    refresh(Q,T,Env) => frshn(deRef(T),
-      foldLeft(((QNm,QTp),E)=>declareType(QNm,.none,QTp,
-	  .typeExists(QTp,emptyFace),E),Env,Q)).
+    refresh(Q,T,Env) => frshn(deRef(T),declareTypeVars(Q,Env)).
   }
 
   public implementation fresh[typeRule] => let{
@@ -31,9 +30,7 @@ star.compiler.freshen{
   } in {
     freshen(Rl,Env) where (Q,R,E) .= genQuants(Rl,[],Env) => (Q,freshRule(R,E)).
     refresh(Q,Rl,Env) =>
-      freshRule(Rl,
-	foldLeft(((Nm,Tp),E)=>declareType(Nm,.none,Tp,.typeExists(Tp,emptyFace),E),
-	  Env,Q)).
+      freshRule(Rl,declareTypeVars(Q,Env)).
   }
 
   freshenRl(Rl,Env) => valof{
@@ -125,8 +122,16 @@ star.compiler.freshen{
   frshn(.faceType(Els,Tps),Env) =>
     .faceType(Els//(((Nm,E))=>(Nm,frshnD(E,Env))),
       Tps//(((Nm,Rl))=>(Nm,freshenRl(Rl,Env)))).
-  frshn(.allType(K,T),Env) => .allType(K,frshn(T,Env)).
-  frshn(.existType(K,T),Env) => .existType(K,frshn(T,Env)).
+  frshn(.allType(K,T),Env) => valof{
+    (Inn,Q,Ev) = skolemQuants(.allType(K,T),[],Env);
+    FrTp = frshn(T,declareTypeVars(Q,Ev));
+    valis foldLeft(((_,VT),Tp)=>.allType(VT,Tp),FrTp,Q)
+  }
+  frshn(.existType(K,T),Env) => valof{
+    (Inn,Q,Ev) = skolemQuants(.allType(K,T),[],Env);
+    FrTp = frshn(T,declareTypeVars(Q,Ev));
+    valis foldLeft(((_,VT),Tp)=>.existType(VT,Tp),FrTp,Q)
+  }
   frshn(.constrainedType(T,C),Env) => .constrainedType(frshnD(T,Env),frshnConstraint(C,Env)).
 
   frshnList:(cons[tipe],dict) => cons[tipe].

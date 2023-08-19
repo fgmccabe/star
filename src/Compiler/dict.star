@@ -47,7 +47,7 @@ star.compiler.dict{
   public showDict:(dict,integer)=>string.
   showDict(.dict(Scs,Br),Dp) => let{
     shLvls() where (F,_) ?= front(Scs,Dp) => interleave(F//disp,"\n")*.
-    shLvls() default => "".
+    shLvls() default => interleave(Scs//disp,"\n")*.
   } in "dict: #(shLvls())\n$(Br!)".
 
   public implementation display[vrEntry] => {

@@ -33,7 +33,8 @@ star.compiler.dict.mgt{
   showVar(Nm,_) => "$(Nm) not defined".
 
   public findVar:(option[locn],string,dict) => option[canon].
-  findVar(Lc,Nm,Dict) where .vrEntry(_,Mk,_,_) ?= isVar(Nm,Dict) => .some(Mk(Lc,Dict)).
+  findVar(Lc,Nm,Dict) where .vrEntry(_,Mk,_,_) ?= isVar(Nm,Dict) =>
+    .some(Mk(Lc,Dict)).
   findVar(_,_,_) default => .none.
 
   public findImplementation:(dict,string) => option[canon].
@@ -106,7 +107,7 @@ star.compiler.dict.mgt{
   declareConstructor(Nm,FullNm,Lc,Tp,Env) => valof{
     AbtTpNm = localName(tpName(funTypeRes(Tp)),.typeMark);
     valis declareCns(Lc,FullNm,Tp,AbtTpNm,
-      declareVr(Nm,Lc,Tp,(L,E)=>pickupEnum(L,Nm,Tp,Env),.none,Env)).
+      declareVr(Nm,Lc,Tp,(L,E)=>pickupEnum(L,Nm,Tp,E),.none,Env)).
   }
 
   declareCns(CLc,Nm,Tp,TpNm,.dict(Scs,Br)) => let{.
