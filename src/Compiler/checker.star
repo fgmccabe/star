@@ -28,7 +28,6 @@ star.compiler.checker{
   public checkPkg:all r ~~ repo[r],display[r]|:(r,pkg,ast) =>
     (pkgSpec,cons[canonDef],cons[decl],cons[decl]).
   checkPkg(Repo,Pkge,P) => valof{
-    Base = stdDict;
     if (Lc,Pk,Els) ?= isQBrTerm(P) && Pkg .= pkgeName(Pk) then{
       if compatiblePkg(Pkg,Pkge) then{
 	(Imports,Stmts) = collectImports(Els,[],[]);
@@ -37,7 +36,7 @@ star.compiler.checker{
 	-- if traceCanon! then
 	--   logMsg("Import declarations $(IDecls)");
 
-	PkgEnv = declareDecls(IDecls,Base);
+	PkgEnv = declareDecls(IDecls,stdDict);
 	PkgPth = packageName(Pkg);
 
 	(Vis,Opens,Annots,Gps) = dependencies(Stmts);
@@ -364,28 +363,21 @@ star.compiler.checker{
   checkImplementation:(option[locn],cons[ast],cons[ast],ast,ast,dict,dict,string) =>
     (cons[canonDef],cons[decl]).
   checkImplementation(Lc,Q,C,H,B,Env,Outer,Path) => valof{
-    if traceCanon! then
+    if traceCanon! then{
       logMsg("checking implementation for $(H) = $(B) at $(Lc)");
+    };
     
     BV = parseBoundTpVars(Q);
     Cx = parseConstraints(C,BV,Env);
     Cn = parseContractConstraint(BV,H,Env);
     ConName = localName(conTractName(Cn),.typeMark);
-    if traceCanon! then{
-      logMsg("Contract name $(ConName)");
-      logMsg("Local implementation name $(implementedContractName(H))");
-    };
     
     if Con ?= findContract(Env,ConName) && (_,CTp,_,_) ?= findType(Env,ConName)then{
       (_,.contractExists(CnNm,CnTps,CnDps,ConFaceTp)) = freshen(Con,Env);
       ConTp = mkConType(CnNm,CnTps,CnDps);
-      if traceCanon! then
-	logMsg("contract exists: $(ConTp) ~ $(Cn)");
       if sameType(ConTp,typeOf(Cn),Env) then {
 	Es = declareConstraints(Lc,Cx,declareTypeVars(BV,Outer));
 	Impl = typeOfExp(B,ConTp,Es,Path);
---	if traceCanon! then
---	  logMsg("implementation expression $(Impl)");
 	ImplNm = implementationName(.conTract(CnNm,CnTps,CnDps));
 	ImplVrNm = qualifiedName(Path,.valMark,ImplNm);
 	ImplTp = rebind(BV,reConstrainType(Cx,ConTp),Es);
@@ -719,6 +711,7 @@ star.compiler.checker{
   typeOfExp(A,Tp,Env,Pth) where (Lc,Op,Els) ?= isBrTerm(A) && (_,Nm)?=isName(Op) => valof{
     FceTp = newTypeVar("_");
     ConTp = consType(FceTp,Tp);
+
     Fun = typeOfExp(Op,ConTp,Env,Pth);
     (Q,ETp) = evidence(FceTp,Env);
     FaceTp = _optval(faceOfType(ETp,Env));

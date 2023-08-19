@@ -188,7 +188,7 @@ overloadTerm(invoke(Lc,Op,Args,Tp),Dict,St,Stx,invoke(Lc,ROp,RArgs,Tp)) :-
   overloadTerm(Op,Dict,St,St0,ROp),
   overloadTerm(Args,Dict,St0,Stx,RArgs).
 overloadTerm(over(Lc,T,Cx),Dict,St,Stx,Over) :-
-  ( resolveContracts(Lc,Cx,Dict,St,St0,DTerms) ->
+  ( resolveConstraints(Lc,Cx,Dict,St,St0,DTerms) ->
     resolveRef(T,DTerms,[],OverOp,Dict,St0,St1,NArgs),
     typeOfCanon(T,TTp),
     overApply(Lc,OverOp,NArgs,TTp,Over),
@@ -300,7 +300,7 @@ overloadAction(A,_,St,St,A) :-
   reportError("cannot resolve action %s",[cnact(A)],Lc).
 
 overloadMethod(ALc,Lc,T,Cx,Args,Tp,Dict,St,Stx,apply(ALc,OverOp,tple(LcA,NArgs),Tp)) :-
-  resolveContracts(Lc,Cx,Dict,St,St0,DTerms),
+  resolveConstraints(Lc,Cx,Dict,St,St0,DTerms),
   markResolved(St0,St1),
   overloadTerm(Args,Dict,St1,St2,tple(LcA,RArgs)),
   resolveRef(T,DTerms,RArgs,OverOp,Dict,St2,Stx,NArgs).
@@ -362,7 +362,7 @@ resolveDot(Lc,Rc,Fld,Tp,Dict,St,Stx,Reslvd) :-
    sameType(FTp,Tp,Lc,Dict),
    V = v(Lc,FunNm,funType(tplType([RcTp]),FTp)),
    Acc = apply(Lc,V,tple(Lc,[Rc]),Tp),
-   resolveContracts(Lc,Cx,Dict,St,St0,DTerms),
+   resolveConstraints(Lc,Cx,Dict,St,St0,DTerms),
    resolveRef(Acc,DTerms,[],OverOp,Dict,St0,St1,NArgs),
    overApply(Lc,OverOp,NArgs,Tp,Reslvd),
    markResolved(St1,Stx);
@@ -417,50 +417,31 @@ resolveUpdate(Lc,Rc,Fld,Vl,Dict,St,Stx,Reslvd) :-
   freshen(AccTp,Dict,_,FAccTp),
   newTypeVar("FF",VTp),
   (sameType(funType(tplType([RcTp,VTp]),RcTp),FAccTp,Lc,Dict),
-%   reportMsg("updater defined %s:%s",[Fld,tpe(FAccTp)],Lc),
-   /* freshen value type again */
    freshen(VTp,Dict,_,CVTp),
-
    getConstraints(CVTp,Cx,FTp),
-%   reportMsg("updater type %s",[tpe(FTp)],Lc),
-%   reportMsg("expected type %s",[tpe(VlTp)],Lc),
    sameType(FTp,VlTp,Lc,Dict),
    V = v(Lc,FunNm,funType(tplType([RcTp,VlTp]),RcTp)),
    Acc = apply(Lc,V,tple(Lc,[Rc,Vl]),RcTp),
-
-%   reportMsg("base update expression %s",[can(Acc)],Lc),
-
-   resolveContracts(Lc,Cx,Dict,St,St0,DTerms),
-
-%   reportMsg("resolved contracts %s",[can(tple(Lc,DTerms))],Lc),
-   
+   resolveConstraints(Lc,Cx,Dict,St,St0,DTerms),
    resolveRef(Acc,DTerms,[],OverOp,Dict,St0,St1,NArgs),
    overApply(Lc,OverOp,NArgs,RcTp,Reslvd),
-   
-%   reportMsg("access expression %s",[can(Reslvd)],Lc),
    markResolved(St1,Stx);
-
-%   reportMsg("updater defined for %s:%s",[Fld,tpe(FAccTp)],Lc),
-%   reportMsg("not consistent with %s",[tpe(RcTp)],Lc),
-   
    genMsg("updater defined for %s:%s in %s\nnot consistent with\n%s",
 	  [Fld,tpe(FAccTp),can(update(Lc,Rc,Fld,Vl)),tpe(RcTp)],Msg),
    markActive(St,Lc,Msg,Stx),
    Reslvd = update(Lc,Rc,Fld,Vl)).
 resolveUpdate(Lc,Rc,Fld,Vl,_Dict,St,Stx,update(Lc,Rc,Fld,Vl)) :-
   typeOfCanon(Rc,RcTp),
-%  reportMsg("no updater defined for %s for type %s in %s",
-%	 [Fld,tpe(RcTp),can(update(Lc,Rc,Fld,Vl))],Lc),
   genMsg("no updater defined for %s for type %s in %s",
 	 [Fld,tpe(RcTp),can(upate(Lc,Rc,Fld,Vl))],Msg),
   markActive(St,Lc,Msg,Stx).
 
-resolveContracts(_,[],_,St,St,[]).
-resolveContracts(Lc,[Con|C],Dict,St,Stx,[CV|Vs]) :-
-  resolveContract(Lc,Con,Dict,St,St0,CV),!,
-  resolveContracts(Lc,C,Dict,St0,Stx,Vs).
+resolveConstraints(_,[],_,St,St,[]).
+resolveConstraints(Lc,[Con|C],Dict,St,Stx,[CV|Vs]) :-
+  resolveConstraint(Lc,Con,Dict,St,St0,CV),!,
+  resolveConstraints(Lc,C,Dict,St0,Stx,Vs).
 
-resolveContract(Lc,implicit(Nm,Tp),Dict,St,Stx,Over) :-
+resolveConstraint(Lc,implicit(Nm,Tp),Dict,St,Stx,Over) :-
   (getVar(Lc,Nm,Dict,Vr,ITp),
    (sameType(ITp,Tp,Lc,Dict),
     markResolved(St,St1),
@@ -469,7 +450,7 @@ resolveContract(Lc,implicit(Nm,Tp),Dict,St,Stx,Over) :-
     markActive(St,Lc,Msg,Stx)) ;
    genMsg("implicit %s:%s not defined",[Nm,tpe(Tp)],Msg),
    markActive(St,Lc,Msg,Stx)).
-resolveContract(Lc,raises(Tp),Dict,St,Stx,Over) :-
+resolveConstraint(Lc,raises(Tp),Dict,St,Stx,Over) :-
   (getVar(Lc,"$try",Dict,Vr,ITp),
    (sameType(ITp,Tp,Lc,Dict),
     markResolved(St,St1),
@@ -478,7 +459,7 @@ resolveContract(Lc,raises(Tp),Dict,St,Stx,Over) :-
     markActive(St,Lc,Msg,Stx)) ;
    genMsg("exception context for %s not defined",[tpe(Tp)],Msg),
    markActive(St,Lc,Msg,Stx)).
-resolveContract(Lc,C,Dict,St,Stx,Over) :-
+resolveConstraint(Lc,C,Dict,St,Stx,Over) :-
   implementationName(C,ImpNm),
   getImplementation(Dict,ImpNm,ImplVrNm,_ImplTp),
   getVar(Lc,ImplVrNm,Dict,Impl,ITp),
@@ -504,7 +485,7 @@ resolveImpl(T,C,_,Lc,_,St,Stx,T) :-
 
 resolveDependents([],_,_,St,St,Args,Args).
 resolveDependents([C|L],Lc,Dict,St,Stx,[A|As],Args) :-
-  resolveContract(Lc,C,Dict,St,St0,A),
+  resolveConstraint(Lc,C,Dict,St,St0,A),
   resolveDependents(L,Lc,Dict,St0,Stx,As,Args).
 
 formOver(V,[],_,_,V).

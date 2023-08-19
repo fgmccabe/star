@@ -592,7 +592,9 @@ star.compiler.types{
   occIn(Id,.kFun(Nm,_)) => Id==Nm.
   occIn(Id,.tpExp(O,A)) => occIn(Id,deRef(O)) || occIn(Id,deRef(A)).
   occIn(Id,.tupleType(Els)) => occInTps(Id,Els).
+  occIn(Id,.allType(.nomnal(Id),_)) => .false.
   occIn(Id,.allType(_,B)) => occIn(Id,deRef(B)).
+  occIn(Id,.existType(.nomnal(Id),_)) => .false.
   occIn(Id,.existType(_,B)) => occIn(Id,deRef(B)).
   occIn(Id,.faceType(Flds,Tps)) => occInPrs(Id,Flds) || occInRules(Id,Tps).
   occIn(Id,.constrainedType(T,C)) => occIn(Id,deRef(T)) || occInCon(Id,C).

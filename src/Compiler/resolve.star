@@ -99,7 +99,6 @@ star.compiler.resolve{
   overloadImplDef:(dict,option[locn],string,string,canon,cons[constraint],tipe) =>
     (canonDef,dict).
   overloadImplDef(Dict,Lc,Nm,FullNm,Val,_,Tp) => valof{
-    
     (Qx,Qt) = deQuant(Tp);
     (Cx,ITp) = deConstrain(Qt);
 
@@ -117,6 +116,7 @@ star.compiler.resolve{
   }
 
   genContractType(.conTract(Nm,Tps,Dps)) => mkConType(Nm,Tps,Dps).
+  genContractType(.implicit(Nm,Tp)) => Tp.
 
   defineCVars:(option[locn],cons[constraint],cons[canon],dict) => (cons[canon],dict).
   defineCVars(_,[],Vrs,D) => (reverse(Vrs),D).
@@ -466,8 +466,6 @@ star.compiler.resolve{
     }
   }
   resolveConstraint(Lc,.raisEs(Tp),Dict,St) => valof{
-    -- if traceCanon! then
-    --   logMsg("resolve raises $(Tp)");
     if Var ?= findVar(Lc,"$try",Dict) then{
       if sameType(snd(freshen(Tp,Dict)),typeOf(Var),Dict) then {
 	valis (Var,markResolved(St))

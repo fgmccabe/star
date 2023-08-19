@@ -294,8 +294,8 @@ star.compiler.canon{
   showDef:(canonDef,string)=>string.
   showDef(Df,Sp) => case Df in {
     .varDef(_,Nm,.lambda(_,_LamNm,Rls,_),_,Tp) =>
-      "Fun: #(Nm) = #(showRls(Nm,Rls,showCanon,Sp))".
-    .varDef(_,Nm,V,_,Tp) => "Var: #(Nm) = #(showCanon(V,0,Sp))".
+      "Fun: #(Nm)\:$(Tp) = #(showRls(Nm,Rls,showCanon,Sp))".
+    .varDef(_,Nm,V,_,Tp) => "Var: #(Nm)\:$(Tp) = #(showCanon(V,0,Sp))".
     .typeDef(_,Nm,_,Rl) => "Type: $(Rl)".
     .cnsDef(_,Nm,Ix,Tp) => "Constructor: #(Nm)[$(Ix)]\:$(Tp)".
     .implDef(_,_,Nm,Exp,Cx,Tp) => "Implementation: #(Nm)\:$(Tp) = $(Cx) |: $(Exp)".
