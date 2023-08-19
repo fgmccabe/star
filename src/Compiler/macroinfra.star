@@ -17,11 +17,13 @@ star.compiler.macro.infra{
   | .typeterm
   | .typevar
   | .constructor
-  | .constraint.
+  | .constraint
+  | .rule.
 
   public implementation equality[macroContext] => {
     .package == .package => .true.
     .statement == .statement => .true.
+    .rule == .rule => .true.
     .expression == .expression => .true.
     .actn == .actn => .true.
     .pattern == .pattern => .true.
@@ -35,6 +37,7 @@ star.compiler.macro.infra{
   public implementation display[macroContext] => {
     disp(.package) => "package".
     disp(.statement) => "statement".
+    disp(.rule) => "rule".
     disp(.expression) => "expression".
     disp(.actn) => "action".
     disp(.pattern) => "pattern".
