@@ -684,7 +684,7 @@ examineAction(A,Ax) :-
 examineAction(A,Ax) :-
   isTryCatch(A,Lc,B,C),!,
   macroAction(B,Bx),
-  map(C,macros:examineActionCase,Cs),
+  map(C,macros:actionCase,Cs),
   mkTryCatch(Lc,Bx,Cs,Ax).
 examineAction(A,Ax) :-
   isWhileDo(A,Lc,T,B),!,
@@ -738,7 +738,7 @@ examineAction(A,Ax) :-
 examineAction(T,Tx) :-
   isCaseExp(T,Lc,E,C),!,
   macroTerm(E,Ex),
-  map(C,macros:examineActionCase,Cx),
+  map(C,macros:actionCase,Cx),
   caseExp(Lc,Ex,Cx,Tx).
 examineAction(A,Ax) :-
   isRoundTerm(A,_,_,_),!,
@@ -746,6 +746,9 @@ examineAction(A,Ax) :-
 examineAction(T,T) :-
   locOfAst(T,Lc),
   reportError("cannot figure out action %s",[ast(T)],Lc).
+
+actionCase(A,Ax) :-
+  macroAst(A,actionRule,macros:examineActionCase,Ax).
 
 examineActionCase(A,Ax) :-
   isEquation(A,Lc,P,G,V),!,

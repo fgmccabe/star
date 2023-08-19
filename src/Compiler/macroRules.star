@@ -45,6 +45,7 @@ star.compiler.macro.rules{
     "::" -> [(.expression,coercionMacro)],
     ":?" -> [(.expression,coercionMacro)],
     "*" -> [(.expression,multicatMacro)],
+    ":" -> [(.rule,caseRuleMacro)],
     "{}" -> [(.expression,comprehensionMacro),
       (.expression,totalizerMacro),
       (.expression,mapLiteralMacro)],
@@ -442,4 +443,10 @@ star.compiler.macro.rules{
   arrowMacro(E,_) where (Lc,Lhs,Rhs) ?= isBinary(E,"->") =>
     .active(mkEnumCon(Lc,.nme(Lc,"kv"),[Lhs,Rhs])).
   arrowMacro(_,_) default => .inactive.
+
+  caseRuleMacro(A,_) where
+      (Lc,P,R) ?= isBinary(A,":") && (LLc,T,E) ?= isBinary(R,"=>") =>
+    .active(binary(Lc,"=>",binary(Lc,":",P,T),E)).
+  caseRuleMacro(A,_) default => .inactive.
+
 }

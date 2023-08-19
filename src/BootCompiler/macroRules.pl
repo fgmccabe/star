@@ -30,6 +30,8 @@ macroRl("?=",expression,macroRules:optionMatchMacro).
 %macroRl("^",expression,macroRules:unwrapExpMacro).
 %macroRl("^",expression,macroRules:optvalMacro).
 macroRl("!",expression,macroRules:binRefMacro).
+macroRl(":",rule,macroRules:caseRuleMacro).
+macroRl(":",actionRule,macroRules:caseRuleMacro).
 macroRl(":=",action,macroRules:spliceAssignMacro).
 macroRl(":=",action,macroRules:indexAssignMacro).
 macroRl(":=",expression,macroRules:spliceAssignMacro).
@@ -544,6 +546,17 @@ curryMacro(T,Mode,Tx) :-
   mkEquation(Lc,LmLhs,Cond,Rhs,CRle),
   roundTerm(OOLc,F,FArgs,RLhs),
   mkEquation(Lc,RLhs,none,CRle,Tx).
+
+/* { .. Ptn:Type => Exp}
+   in case rule becomes
+   { .. (Ptn:Type) => Exp }
+*/
+
+caseRuleMacro(T,_,Tx) :-
+  isBinary(T,Lc,":",L,R),
+  isBinary(R,LLc,"=>",A,B),!,
+  binary(Lc,":",L,A,Ptn),
+  binary(LLc,"=>",Ptn,B,Tx).
 
 
   

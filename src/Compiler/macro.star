@@ -55,7 +55,7 @@ star.compiler.macro{
   examineStmt(A) where (Lc,L,Els) ?= isContractStmt(A) => 
     mkContractStmt(Lc,macroType(L),macroStmts(Els)).
   examineStmt(A) where (Lc,Q,Cx,Tp,Exp) ?= isImplementationStmt(A) => 
-    mkImplementationStmt(Lc,Q//macroType,Cx//macroType,macroType(Tp),macroTerm(Exp)).
+    mkImplementationStmt(Lc,Q//macroType,Cx//macroConstraint,macroType(Tp),macroTerm(Exp)).
   examineStmt(A) where (Lc,Q,C,Tp,B) ?= isAlgebraicTypeStmt(A) =>
     mkAlgebraicTypeStmt(Lc,Q//macroTypeVar,C//macroConstraint,macroType(Tp),macroAlgebraic(B)).
   examineStmt(A) where _ ?= isAnnotation(A) => A.
@@ -161,7 +161,7 @@ star.compiler.macro{
   }
 
   macroCaseAction:(ast) => ast.
-  macroCaseAction(A) => macroAst(A,.actn,examineCaseAction).
+  macroCaseAction(A) => macroAst(A,.rule,examineCaseAction).
 
   examineCaseAction(A) where (Lc,Dflt,L,C,R) ?= isLambda(A) =>
     mkLambda(Lc,Dflt,macroPtn(L),macroOpt(C,macroCond),macroAction(R)).
@@ -286,9 +286,11 @@ star.compiler.macro{
   macroOpt(.none,_) => .none.
   macroOpt(.some(A),E) => .some(E(A)).
 
-  macroLambda(A) where (Lc,D,L,C,R) ?= isLambda(A) =>
+  macroLambda(A) => macroAst(A,.rule,examineLambda).
+
+  examineLambda(A) where (Lc,D,L,C,R) ?= isLambda(A) =>
     mkLambda(Lc,D,macroPtn(L),macroOpt(C,macroTerm),macroTerm(R)).
-  macroLambda(A) default => valof{
+  examineLambda(A) default => valof{
     reportError("cannot figure out case rule $(A)",locOf(A));
     valis A
   }
