@@ -22,12 +22,20 @@ star.coerce{
     _coerce(Sx) => _str2int(Sx).
   }
 
+  public implementation coercion[integer,integer] => {
+    _coerce(X) => .some(X)
+  }
+
   public implementation coercion[integer,float] => {
     _coerce(Ix) => .some(_int2flt(Ix)).
   }
 
   public implementation coercion[float,integer] => {
     _coerce(Dx) => .some(_flt2int(Dx)).
+  }
+
+  public implementation coercion[float,float] => {
+    _coerce(X) => .some(X)
   }
 
   public implementation coercion[bigint,string] => {

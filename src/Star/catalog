@@ -19,6 +19,7 @@
     "star.fiber": "fiber.star",
     "star.file": "file.star",
     "star.finger": "finger.star",
+    "star.heap": "heap.star",
     "star.ideal": "ideal.star",
     "star.index": "index.star",
     "star.io": "io.star",
@@ -54,6 +55,7 @@
     "star.sets": "sets.star",
     "star.skew" : "skew.star",
     "star.sort": "sort.star",
+    "star.statistics": "statistics.star",
     "star.strings": "strings.star",
     "star.thread": "threads.star",
     "star.topsort": "topsort.star",
@@ -62,7 +64,8 @@
     "star.trie": "trie.star",
     "star.tuples": "tuples.star",
     "star.unit": "unit.star",
-    "star.uri": "uri.star"
+    "star.uri": "uri.star",
+    "star.windowed": "windowed.star"
   },
   "version": "1.0.0"
 }

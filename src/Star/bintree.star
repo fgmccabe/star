@@ -6,7 +6,7 @@ star.bintree{
   import star.index.
   import star.iterable.
 
-  public bin[k,v] ::= private .e | private n(bin[k,v],k,v,integer,bin[k,v]).
+  public bin[k,v] ::= .e | .n(bin[k,v],k,v,integer,bin[k,v]).
 
   findInTree:all k,v ~~ equality[k], comp[k] |: (bin[k,v],k)=>option[v].
   findInTree(T,Ky) => case T in {

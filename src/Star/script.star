@@ -5,10 +5,10 @@ star.script{
   public assrt:(boolean,string,string) => ().
   assrt(Tst,Msg,Lc) => valof{
     if Tst then{
-      logMsg("assert #(Msg) at #(Lc)")
+      showMsg("assert #(Msg) at #(Lc)")
     }
     else{
-      logMsg("failed assert #(Msg) at #(Lc)");
+      showMsg("failed assert #(Msg) at #(Lc)");
       _exit(1)
     };
     valis ()
