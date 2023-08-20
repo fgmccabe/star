@@ -131,7 +131,7 @@ star.windowed{
       elt = peek(rh) ? m substitute {resHeap=pop(rh)} | m substitute {removalHeap=pushMin(elt,list of {})}.
     removeElement(elt, statisticsMin{resHeap=list of {elt}})=>emptymin.
     removeElement(elt, emptymin)=>emptymin.
-    
+
   }
 
 

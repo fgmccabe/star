@@ -615,4 +615,3 @@ star.compiler.resolve{
     disp(.active(Lc,Msg)) => "active $(Lc)\:#(Msg)".
   }
 }
-  
