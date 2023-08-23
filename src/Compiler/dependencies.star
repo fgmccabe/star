@@ -295,8 +295,6 @@ star.compiler.dependencies{
     collectTermListRefs(Args,All,collectTermRefs(Op,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,Args) ?= isTuple(T) => 
     collectTermListRefs(Args,All,Rf).
-  collectTermRefs(T,All,Rf) where (_,Args) ?= isBrTuple(T) => 
-    collectStmtsRefs(Args,All,[],Rf).
   collectTermRefs(T,All,Rf) where (_,L,R) ?= isCons(T) =>
     collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,Args) ?= isSqTuple(T) => 
