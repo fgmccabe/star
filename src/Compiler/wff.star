@@ -565,24 +565,6 @@ star.compiler.wff{
 
   public mkImplicit(Lc,N,T) => binary(Lc,":",.nme(Lc,N),T).
 
-  public isAccessorStmt:(ast) => option[(option[locn],cons[ast],cons[ast],ast,ast)].
-  isAccessorStmt(A) where
-      (Lc,I) ?= isUnary(A,".access") => isImplSpec(Lc,[],[],I).
-  isAccessorStmt(_) default => .none.
-
-  public mkAccessorStmt:(option[locn],cons[ast],cons[ast],cons[ast],ast,ast) => ast.
-  mkAccessorStmt(Lc,Q,XQ,Cx,T,E) =>
-    unary(Lc,".access",reUQuant(Lc,Q++XQ,reConstrain(Cx,binary(Lc,"=>",T,E)))).
-
-  public isUpdaterStmt:(ast) => option[(option[locn],cons[ast],cons[ast],ast,ast)].
-  isUpdaterStmt(A) where
-      (Lc,I) ?= isUnary(A,".update") => isImplSpec(Lc,[],[],I).
-  isUpdaterStmt(_) default => .none.
-
-  public mkUpdaterStmt:(option[locn],cons[ast],cons[ast],cons[ast],ast,ast) => ast.
-  mkUpdaterStmt(Lc,Q,XQ,Cx,T,E) =>
-    unary(Lc,".update",reUQuant(Lc,Q++XQ,reConstrain(Cx,binary(Lc,"=>",T,E)))).
-
   public typeName:(ast)=>string.
   typeName(Tp) where (_,Id) ?= isName(Tp) => Id.
   typeName(Tp) where (_,Id,_) ?= isSquareApply(Tp) => Id.

@@ -365,23 +365,23 @@ star.compiler.types{
   conTractName(.conTract(Nm,_,_)) => Nm.
 
   public implementationName:(constraint) => string.
-  implementationName(Con) => let{.
-    implName(.conTract(Nm,Tps,_)) => interleave([Nm,..(Tps//(T)=>surfaceNm(deRef(T)))],"!")*.
+  implementationName(.conTract(Nm,Tps,_)) =>
+    interleave([Nm,..(Tps//(T)=>typeSurfaceNm(deRef(T)))],"!")*.
 
-    surfaceNm(.voidType) => "void".
-    surfaceNm(.nomnal(Nm)) => Nm.
-    surfaceNm(.tpExp(O,A)) => surfaceNm(deRef(O)).
-    surfaceNm(.kFun(Nm,_)) => Nm.
-    surfaceNm(.tpFun(Nm,_)) => Nm.
-    surfaceNm(.tVar(_,_)) => "_".
-    surfaceNm(.tFun(_,_,_)) => "_".
-    surfaceNm(.allType(_,T)) => surfaceNm(deRef(T)).
-    surfaceNm(.existType(_,T)) => surfaceNm(deRef(T)).
-    surfaceNm(.constrainedType(T,_)) => surfaceNm(deRef(T)).
-    surfaceNm(.tupleType(A)) => "()$(size(A))".
-    surfaceNm(.faceType(Flds,_)) =>
-      "{}$(hash(interleave(sort(Flds,cmpFlds)//fst,"|")*))".
-  .} in implName(Con).
+  public typeSurfaceNm:(tipe)=>string.
+  typeSurfaceNm(.voidType) => "void".
+  typeSurfaceNm(.nomnal(Nm)) => Nm.
+  typeSurfaceNm(.tpExp(O,A)) => typeSurfaceNm(deRef(O)).
+  typeSurfaceNm(.kFun(Nm,_)) => Nm.
+  typeSurfaceNm(.tpFun(Nm,_)) => Nm.
+  typeSurfaceNm(.tVar(_,_)) => "_".
+  typeSurfaceNm(.tFun(_,_,_)) => "_".
+  typeSurfaceNm(.allType(_,T)) => typeSurfaceNm(deRef(T)).
+  typeSurfaceNm(.existType(_,T)) => typeSurfaceNm(deRef(T)).
+  typeSurfaceNm(.constrainedType(T,_)) => typeSurfaceNm(deRef(T)).
+  typeSurfaceNm(.tupleType(A)) => "()$(size(A))".
+  typeSurfaceNm(.faceType(Flds,_)) =>
+    "{}$(hash(interleave(sort(Flds,cmpFlds)//fst,"|")*))".
 
   public tpRuleName:(typeRule) => string.
   tpRuleName(.typeExists(L,_)) => tpName(deRef(L)).

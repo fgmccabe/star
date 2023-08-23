@@ -2,9 +2,6 @@ star.compiler.dict{
   import star.
 
   import star.compiler.canon.
-  import star.compiler.escapes.
-  import star.compiler.intrinsics.
-  import star.compiler.errors.
   import star.compiler.location.
   import star.compiler.meta.
   import star.compiler.misc.
@@ -25,6 +22,7 @@ star.compiler.dict{
     impls:map[string,implEntry].
     accessors:map[string,map[string,accEntry]].
     updaters:map[string,map[string,accEntry]].
+    trys:map[string,decl].
     }.
 
   public dict::=.dict(cons[scope],ref map[string,(cons[canonDef],cons[decl])]).
@@ -36,8 +34,9 @@ star.compiler.dict{
 	impls=Imps.
 	accessors=Accs.
 	updaters=Ups.
+	trys=Trys.
 	}) =>
-      "Types:$(Tps),\nVars:$(Vrs),\nContracts:$(Cnts),\nImplementations: $(Imps),\nAccessors: $(Accs)\nUpdaters: $(Ups)".
+      "Types:$(Tps),\nVars:$(Vrs),\nContracts:$(Cnts),\nImplementations: $(Imps),\nAccessors: $(Accs)\nUpdaters: $(Ups)\nTryBlocks: $(Trys)".
   }
 
   public implementation display[dict] => {
@@ -98,6 +97,19 @@ star.compiler.dict{
   undeclareImplementation(Nm,.dict([Scope,..Env],Br)) =>
     .dict([Scope.impls=Scope.impls[~Nm],..Env],Br).
 
+  public findTryScope:(dict,string) => option[decl].
+  findTryScope(.dict(Scs,_),Nm) => let{.
+    findC([]) => .none.
+    findC([scope{trys=Trs},.._]) where Blk?=Trs[Nm] => .some(Blk).
+    findC([_,..Rest]) => findC(Rest).
+  .} in findC(Scs).
+
+  public declareTryBlock:(option[locn],tipe,dict) => dict.
+  declareTryBlock(Lc,Tp,.dict([Scope,..Env],Br)) => valof{
+    BlkNm = typeSurfaceNm(Tp);
+    valis .dict([Scope.trys=Scope.trys[BlkNm->.varDec(Lc,BlkNm,BlkNm,Tp)],..Env],Br)
+  }
+
   public declareAccessor:(option[locn],tipe,string,string,tipe,dict) => dict.
   declareAccessor(Lc,Tp,Fld,AccFn,AccTp,.dict([Scope,..Env],Br)) => valof{
     Key = tpName(Tp);
@@ -152,6 +164,7 @@ star.compiler.dict{
 	impls=[].
 	accessors=[].
 	updaters=[].
+	trys=[].
       },..Scs],Br).
 
   public declareTypeVars:(cons[(string,tipe)],dict) => dict.
@@ -167,6 +180,7 @@ star.compiler.dict{
 	impls=[].
 	accessors=[].
 	updaters=[].
+	trys=[].
       }],ref []).
 
 
