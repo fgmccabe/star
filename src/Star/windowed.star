@@ -30,7 +30,7 @@ star.windowed{
     c : integer.
   }
 
-  implementation all t ~~ arith[t] |: WindowState[countState[t] ->> t, integer]=>{
+  implementation all t ~~ arith[t] |: WindowState[countState[t]->>t,integer]=>{
     getResult(cnt{c=c})=> c>0 ?? .some(c) || .none.
     validResult(_)=> .true
     addElement(elt, cnt{c=c})=>cnt{c=c + 1}.
@@ -41,7 +41,7 @@ star.windowed{
     res : t.
   }
 
-  implementation all t ~ arith[t] |: WindowState[sumState[t] ->>t,t] =>{
+  implementation all t ~ arith[t] |: WindowState[sumState[t]->>t,t] =>{
     getResult(S)=> .some(S.res).
     validResult(_)=>.true.
     addElement(elt, sum{res=r})=>sum{res=r + elt}.
@@ -65,19 +65,18 @@ star.windowed{
       removeElement = removeElt.
     }.
 
-  type all t ~~ maxState[t] ::= statisticsMax {
+  type all t ~~ maxState[t] ::= maxState {
     resHeap : heap[t].
     removalHeap : heap[t].
   }
 
   implementation all t ~~ arith[t], comp[t],equality[t] |: WindowState[maxState[t]->>t,t] => {.
-    getResult(.emptymax)=>zero.
-    getResult(statisticsMax{resHeap=rh})=>peek(rh).
-    validResult(.emptymax)=>.false.
-    validResult(statisticsMax{resHeap=rh})=>size(rh) > zero.
-    addElement(elt, emptymax)=>statisticsMax{resHeap = push(elt, list of {})}.
-    addElement(elt, statisticsMax{resHeap=rh.removalHeap=remh})=>statisticsMax{resHeap = push(elt, rh).removalHeap=remh}.
-    removeElement(elt, statisticsMax{resHeap=rh.removalHeap=remh})=>valof {
+    getResult(maxState{resHeap=rh})=>head(rh).
+    validResult(maxState{resHeap=rh})=>~isEmpty(rh).
+
+    addElement(elt, S) => S.resHeap=[elt,..S.resHeap].
+    
+    removeElement(elt, maxState{resHeap=rh.removalHeap=remh})=>valof {
       var newRes := rh.
       var newRemoval := remh.
       if elt = peek(newRes) then {
@@ -89,11 +88,11 @@ star.windowed{
       } else {
 	newRemoval := push(elt, newRemoval).
       }
-      valis statisticsMax{resHeap=newRes.removalHeap=newRemoval}.
+      valis maxState{resHeap=newRes.removalHeap=newRemoval}.
     }.
-    removeElement(elt, m matching statisticsMax{resHeap=rh.removalHeap = list of {}})=>
+    removeElement(elt, m matching maxState{resHeap=rh.removalHeap = list of {}})=>
       elt = peek(rh) ? m substitute {resHeap=pop(rh)} | m substitute {removalHeap=push(elt,list of {})}.
-    removeElement(elt, statisticsMax{resHeap=list of {elt}})=>emptymax.
+    removeElement(elt, maxState{resHeap=list of {elt}})=>emptymax.
     removeElement(elt, emptymax)=>emptymax.
   }
 
