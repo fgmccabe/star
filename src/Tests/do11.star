@@ -14,9 +14,7 @@ test.do11{
 
   main:()=>().
   main()=>valof{
-    try{
-      assert multiWhr(.foo(23,""))==23;
-    } catch { _ => logMsg("bad happening")};
+    assert multiWhr(.foo(23,""))==23;
       
     valis ()
   }

@@ -13,7 +13,7 @@ test.ts{
   testl3 = valof{
     try{
       assert fact(3)==5
-    } catch {
+    } catch () in {
       _ => logMsg("fact(3)!=5")
     };
     valis ()
@@ -30,7 +30,7 @@ test.ts{
       show fact(5);
       assert ~fact(2)==fact(4);
       valis ()
-    } catch {
+    } catch () in {
       _ => logMsg("something went wrong")
     }
   }
@@ -41,7 +41,7 @@ test.ts{
       assert fact(3)==6;
       show fact(5);
       assert fact(2)~=fact(4)
-    } catch {
+    } catch () in {
       _ => logMsg("something went wrong")
     };
     valis ()

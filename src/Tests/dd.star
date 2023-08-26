@@ -36,7 +36,7 @@ test.dd{
       A = ff(6);
       B = ff(7);
       raise ()
-    } catch {
+    } catch () in {
       _ => valis 10
     }
   }
@@ -58,13 +58,13 @@ test.dd{
       
       try {
         raise "fred"
-      } catch {
+      } catch string in {
 	(F) => {
 	  logMsg("we got an exception $(F)");
 	  raise ()
 	}
       }
-    } catch {
+    } catch () in {
       (E) => {
 	logMsg("we got exception $(E), returning $(R)");
 	valis R
@@ -97,7 +97,7 @@ test.dd{
 
       assert TT(1)==1;
       show TT(-1)			-- never finish this
-    } catch {
+    } catch string in {
       M => logMsg("Huh: #(M)")
     };
     valis ()

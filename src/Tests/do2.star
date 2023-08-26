@@ -51,14 +51,10 @@ test.do2{
 
   main:()=>().
   main() => valof{
-    try{
-      doFirst();
-      assert doIf(4);
-      assert doIf2(4);
-      assert doIf3(4)
-    } catch {
-      _ => {}
-    };
+    doFirst();
+    assert doIf(4);
+    assert doIf2(4);
+    assert doIf3(4);
     valis ()
   }
 }

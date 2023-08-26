@@ -23,7 +23,7 @@ test.ac5{
       _logmsg(disp(F10));
       F = f(-10);
       _logmsg(disp(F))
-    } catch {
+    } catch string in {
       E => {
 	_logmsg(E)
       }

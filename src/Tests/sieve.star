@@ -11,7 +11,7 @@ test.sieve{
 	Ix := Ix!+2;
 	post(Ix!,Chnnl)
       }
-    } catch { .canceled => {
+    } catch mboxException in { .canceled => {
 	this retire .retired_
     }
     }
@@ -36,14 +36,14 @@ test.sieve{
 	try{
 	  this suspend .fork((T)=>sieve(T,Cnt+1,Mx,NChnl));
 	  filter(Nxt,Chnnl,NChnl)
-	} catch { .canceled => {
+	} catch mboxException in { .canceled => {
 	    this retire .retired_ }
 	}
       } else{
 	logMsg("collected $(Mx) primes");
 	this retire .result(Nxt)
       }
-    } catch { .canceled => {}};
+    } catch mboxException in { .canceled => {}};
     this retire .retired_
   }
 
@@ -63,7 +63,7 @@ test.sieve{
     try{
       Eras = nursery([Gn,Sv]);
       logMsg("final result $(Eras)");
-    } catch {
+    } catch mboxException in {
       .deadlock => logMsg("Sieve got deadlocked")
     };
     valis ()

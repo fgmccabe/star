@@ -485,7 +485,7 @@ star.compiler.term{
       .cCall(Lc,Op,Args,Tp) => .cCall(Lc,Op,Args//(A)=>rwTerm(A,Tst),Tp).
       .cOCall(Lc,Op,Args,Tp) => .cOCall(Lc,rwTerm(Op,Tst),Args//(A)=>rwTerm(A,Tst),Tp).
       .cECall(Lc,Op,Args,Tp) => .cECall(Lc,Op,Args//(A)=>rwTerm(A,Tst),Tp).
-      .cRaise(Lc,Th,E,Tp) =>.cRaise(Lc,trace rwTerm(Th,Tst),trace rwTerm(E,Tst),Tp).
+      .cRaise(Lc,Th,E,Tp) =>.cRaise(Lc,rwTerm(Th,Tst),rwTerm(E,Tst),Tp).
       .cSpawn(Lc,L,Tp) => .cSpawn(Lc,rwTerm(L,Tst),Tp).
       .cPaus(Lc,L,Tp) => .cPaus(Lc,rwTerm(L,Tst),Tp).
       .cSusp(Lc,F,E,Tp) => .cSusp(Lc,rwTerm(F,Tst),rwTerm(E,Tst),Tp).

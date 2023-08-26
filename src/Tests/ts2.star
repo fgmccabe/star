@@ -37,7 +37,7 @@ test.ts2{
 	if X>6 then
 	  raise ()
       }
-    } catch {
+    } catch () in {
       _ => {
 	_logmsg("caught")
       }

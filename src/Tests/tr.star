@@ -10,7 +10,7 @@ test.tr{
   checkMe:(integer) => boolean.
   checkMe(X) => (try
     isOdd(X)
-    catch {
+    catch string in {
       _ => .false
     }).
 

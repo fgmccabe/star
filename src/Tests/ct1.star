@@ -16,7 +16,7 @@ test.ct1{
 	post(Count!>0,Chnnl);
 	Count := Count!-1
       }
-    } catch { _ => logMsg("something went wrong") };
+    } catch mboxException in { _ => logMsg("something went wrong") };
     this retire .retired_
   }
 
@@ -29,7 +29,7 @@ test.ct1{
 	logMsg("received ping");
 	Count := Count!+1
       }
-    } catch { _ => logMsg("something went wrong") };
+    } catch mboxException in { _ => logMsg("something went wrong") };
 
     logMsg("received $(Count!) pings");
     valis ()
@@ -44,7 +44,7 @@ test.ct1{
     try{
       Rs = nursery([T1,T2]);
       logMsg("final result $(Rs)");
-    } catch {
+    } catch mboxException in {
       E => logMsg(disp(E))
     };
     valis ()

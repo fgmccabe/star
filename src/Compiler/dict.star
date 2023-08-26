@@ -97,8 +97,10 @@ star.compiler.dict{
   undeclareImplementation(Nm,.dict([Scope,..Env],Br)) =>
     .dict([Scope.impls=Scope.impls[~Nm],..Env],Br).
 
-  public findTryScope:(string,dict) => option[decl].
-  findTryScope(Nm,.dict(Scs,_)) => let{.
+  public findTryScope:(tipe,dict) => option[decl].
+  findTryScope(Tp,.dict(Scs,_)) => let{.
+    Nm = typeSurfaceNm(Tp).
+
     findC([]) => .none.
     findC([scope{trys=Trs},.._]) where Blk?=Trs[Nm] => .some(Blk).
     findC([_,..Rest]) => findC(Rest).

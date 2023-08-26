@@ -12,7 +12,7 @@ test.ac3{
 	raise 10
       else
       valis 3*X
-    } catch {
+    } catch integer in {
       (I) => {
 	_logmsg(disp(I))
       }

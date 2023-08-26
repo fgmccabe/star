@@ -16,12 +16,8 @@ test.do4{
 
   main:()=>().
   main() => valof{
-    try{
-      show doFact(4);
-      assert doFact(4) == 24;
-    } catch {
-      _ => logMsg("huh?")
-    };
+    show doFact(4);
+    assert doFact(4) == 24;
     valis ()
   }
 }

@@ -18,11 +18,7 @@ test.do3{
 
   main:()=> ().
   main() => valof{
-    try{
-      assert doDupl(3,"ab") == "ababab"
-    } catch {
-      _ => logMsg("huh?")
-    };
+    assert doDupl(3,"ab") == "ababab";
     valis ()
   }
 }
