@@ -34,7 +34,7 @@ star.compiler.normalize{
   all e ~~ crFlow[e] ~> (e,cons[cDefn]).
 
   transformDef:(canonDef,nameMap,nameMap,set[cId],option[cExp],cons[cDefn]) =>cons[cDefn].
-  transformDef(.varDef(Lc,FullNm,.lambda(_,LNm,Eqns,Tp),_,_),Map,Outer,Q,Extra,Ex) =>
+  transformDef(.varDef(Lc,FullNm,.lambda(_,LNm,Eqns,_,Tp),_,_),Map,Outer,Q,Extra,Ex) =>
     transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex).
   transformDef(.varDef(Lc,FullNm,Val,Cx,Tp),Map,Outer,Q,.none,Ex) => valof{
     (Vl,Defs) = liftExp(Val,Outer,Q,Ex);
@@ -49,7 +49,7 @@ star.compiler.normalize{
 
   transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex) => valof{
     if traceNormalize! then{
-      logMsg("transform function $(.lambda(Lc,FullNm,Eqns,Tp)) Q=$(Q) Extra = $(Extra) @ $(Lc)");
+      logMsg("transform function $(.lambda(Lc,FullNm,Eqns,[],Tp)) Q=$(Q) Extra = $(Extra) @ $(Lc)");
     };
     ATp = extendFunTp(deRef(Tp),Extra);
     if traceNormalize! then
@@ -295,10 +295,14 @@ star.compiler.normalize{
       logMsg("lift let exp $(.letRec(Lc,Grp,Decs,Bnd))");
     valis liftLetRec(Lc,Grp,Decs,Bnd,Map,Q,Free,Ex).
   }
-  liftExp(.lambda(Lc,FullNm,Eqns,Tp),Map,Q,Ex) => 
-    liftExp(.letExp(Lc,[.varDef(Lc,FullNm,.lambda(Lc,FullNm,Eqns,Tp),[],Tp)],
+  liftExp(.lambda(Lc,FullNm,Eqns,Cx,Tp),Map,Q,Ex) => valof{
+    if traceNormalize! then
+      logMsg("lift lambda $(.lambda(Lc,FullNm,Eqns,Cx,Tp))\:$(Tp)");
+
+    valis liftExp(.letExp(Lc,[.varDef(Lc,FullNm,.lambda(Lc,FullNm,Eqns,Cx,Tp),[],Tp)],
 	[.funDec(Lc,FullNm,FullNm,Tp)],
-	.vr(Lc,FullNm,Tp)),Map,Q,Ex).
+	.vr(Lc,FullNm,Tp)),Map,Q,Ex)
+  }
   liftExp(.csexp(Lc,Gov,Cses,Tp),Map,Q,Ex) => valof{
     (LGov,Ex1) = liftExp(Gov,Map,Q,Ex);
     (Cs,Ex2) = transformRules(Cses,Map,Map,Q,.none,Ex1);
@@ -574,7 +578,7 @@ star.compiler.normalize{
   }
 
   transformLetDef:(canonDef,nameMap,nameMap,set[cId],option[cExp],cons[fixUp],cons[cDefn]) => (cons[fixUp],cons[cDefn]).
-  transformLetDef(.varDef(Lc,FullNm,.lambda(_,_,Eqns,Tp),_,_),Map,Outer,Q,Extra,Fx,Ex) => valof{
+  transformLetDef(.varDef(Lc,FullNm,.lambda(_,_,Eqns,_,Tp),_,_),Map,Outer,Q,Extra,Fx,Ex) => valof{
     Ex1 = transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex);
     valis (Fx,Ex1)
   }
@@ -621,11 +625,6 @@ star.compiler.normalize{
   liftAction(.doValis(Lc,E),Map,Q,Ex) => valof{
     (EE,Ex1) = liftExp(E,Map,Q,Ex);
     valis (.aValis(Lc,EE),Ex1)
-  }
-  liftAction(.doRaise(Lc,T,E),Map,Q,Ex) => valof{
-    (TT,Ex1) = liftExp(T,Map,Q,Ex);
-    (EE,Ex2) = liftExp(E,Map,Q,Ex1);
-    valis (.aRaise(Lc,TT,EE),Ex1)
   }
   liftAction(.doRetire(Lc,T,E),Map,Q,Ex) => valof{
     (TT,Ex1) = liftExp(T,Map,Q,Ex);
@@ -683,7 +682,7 @@ star.compiler.normalize{
     
     valis (.aTry(Lc,BB,TT,ErrVr,Hndlr),Ex3)
   }
-  liftAction(.doCall(Lc,E),Map,Q,Ex) => valof{
+  liftAction(.doExp(Lc,E),Map,Q,Ex) => valof{
     (EE,Ex1) = liftExp(E,Map,Q,Ex);
     valis (.aPerf(Lc,EE),Ex1)
   }
@@ -742,7 +741,6 @@ star.compiler.normalize{
   freeParent(V,_) default => V.
 
   collectMtd:(decl,option[cId],map[string,nameMapEntry])=>map[string,nameMapEntry].
-
   collectMtd(.funDec(Lc,Nm,FullNm,Tp),.some(ThVr),LL) => valof{
     Entry = .localFun(FullNm,closureNm(FullNm),arity(Tp)+1,ThVr);
     valis LL[Nm->Entry][FullNm->Entry]

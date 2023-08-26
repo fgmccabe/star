@@ -568,8 +568,7 @@ typeOfPtn(V,Tp,Env,Ev,Term,Path) :-
   typeOfPtn(TT,Tp,Env,Ev,Term,Path).
 typeOfPtn(V,Tp,Ev,Env,v(Lc,N,Tp),_Path) :-
   isIden(V,Lc,N),
-  getConstraints(Tp,_,UTp),
-  declareVr(Lc,N,UTp,none,Ev,Env).
+  declareVr(Lc,N,Tp,none,Ev,Env).
 typeOfPtn(Trm,Tp,Env,Ev,Term,Path) :-
   isEnum(Trm,_,N),isIden(N,_,_),!,
   typeOfExp(Trm,Tp,Env,Ev,Term,Path).
@@ -825,11 +824,12 @@ typeOfExp(Term,Tp,Env,Ev,valof(Lc,Act,Tp),Path) :-
   isBraceTuple(A,_,[Ac]),!,
   checkAction(Ac,Tp,Env,Ev,Act,Path).
 typeOfExp(A,Tp,Env,Env,tryCatch(Lc,Body,Trw,Hndlr),Path) :-
-  isTryCatch(A,Lc,B,H),!,
-  checkTryCatch(Lc,B,H,Tp,Env,checker:typeOfExp,Body,Trw,Hndlr,Path).
-typeOfExp(A,Tp,Env,Env,raise(Lc,Thrw,ErExp,Tp),Path) :-
+  isTryCatch(A,Lc,B,E,H),!,
+  checkTryCatch(Lc,B,E,H,Tp,Env,checker:typeOfExp,Body,Trw,Hndlr,Path).
+typeOfExp(A,Tp,Env,Env,over(Lc,raise(Lc,void,ErExp,Tp),[raises(ErTp)]),Path) :-
   isRaise(A,Lc,E),!,
-  checkRaise(Lc,E,Env,Thrw,ErExp,Path).
+  newTypeVar("E",ErTp),
+  typeOfExp(E,ErTp,Env,_,ErExp,Path).
 typeOfExp(A,Tp,Env,Env,spawn(Lc,Lam,Tp),Path) :-
   isSpawn(A,Lc,L,R),!,
   newTypeVar("_C",CTp),
@@ -920,7 +920,7 @@ typeOfRoundTerm(Lc,F,A,Tp,Env,Call,Path) :-
    reportError("type of %s:\n%s\nnot consistent with:\n%s=>%s",[Fun,FnTp,At,Tp],Lc),
    Call=void).
 
-typeOfLambda(Term,Tp,Env,lambda(Lc,Lbl,rule(Lc,Args,Guard,Exp),Tp),Path) :-
+typeOfLambda(Term,Tp,Env,lambda(Lc,Lbl,Cx,rule(Lc,Args,Guard,Exp),Tp),Path) :-
 %  reportMsg("expected type of lambda %s = %s",[Term,Tp]),
 
   getConstraints(Tp,Cx,LambdaTp),
@@ -955,9 +955,10 @@ checkAction(A,_,Env,Env,doBrk(Lc,Lb),_Path) :-
 checkAction(A,Tp,Env,Env,doValis(Lc,ValExp),Path) :-
   isValis(A,Lc,E),!,
   typeOfExp(E,Tp,Env,_,ValExp,Path).
-checkAction(A,_Tp,Env,Env,doRaise(Lc,Thrw,ErrExp),Path) :-
-  isRaise(A,Lc,E),!,
-  checkRaise(Lc,E,Env,Thrw,ErrExp,Path).
+checkAction(A,_Tp,Env,Ev,doCall(Lc,Thrw),Path) :-
+  isRaise(A,Lc,_E),!,
+  newTypeVar("E",ErTp),
+  typeOfExp(A,ErTp,Env,Ev,Thrw,Path).
 checkAction(A,_Tp,Env,Env,doCall(Lc,spawn(Lc,Lam,CTp)),Path) :-
   isSpawn(A,Lc,L,R),!,
   newTypeVar("_C",CTp),
@@ -1006,8 +1007,8 @@ checkAction(A,_Tp,Env,Ev,Act,Path) :-
   isAssignment(A,Lc,P,E),!,
   checkAssignment(Lc,P,E,Env,Ev,Act,Path).
 checkAction(A,Tp,Env,Env,doTryCatch(Lc,Body,Trw,Hndlr),Path) :-
-  isTryCatch(A,Lc,B,H),!,
-  checkTryCatch(Lc,B,H,Tp,Env,checker:checkAction,Body,Trw,Hndlr,Path).
+  isTryCatch(A,Lc,B,E,H),!,
+  checkTryCatch(Lc,B,E,H,Tp,Env,checker:checkAction,Body,Trw,Hndlr,Path).
 checkAction(A,Tp,Env,Ev,doIfThenElse(Lc,Tst,Thn,Els),Path) :-
   isIfThenElse(A,Lc,G,T,E),!,
   checkGoal(G,Env,E0,Tst,Path),
@@ -1067,21 +1068,16 @@ checkGuard(none,Env,Env,none,_) :-!.
 checkGuard(some(G),Env,Ev,some(Goal),Path) :-
   checkGoal(G,Env,Ev,Goal,Path).
 
-checkTryCatch(Lc,B,Hs,Tp,Env,Check,Body,Trw,Hndlr,Path) :-
-  newTypeVar("EE",ErTp),
-  declareVr(Lc,"$try",ErTp,none,Env,Ev1),
-  Trw = v(Lc,"$try",ErTp),
-  call(Check,B,Tp,Ev1,_,Body,Path),
+checkTryCatch(Lc,B,E,Hs,Tp,Env,Check,Body,v(Lc,ErNm,ErTp),Hndlr,Path) :-
+  parseType(E,Env,ErTp),
+  tryBlockName(Path,ErTp,ErNm),
+  declareTryScope(Lc,ErTp,ErNm,Env,Ev2),
+  call(Check,B,Tp,Ev2,_,Body,Path),
   checkCases(Hs,ErTp,Tp,Env,Hndlr,Eqx,Eqx,[],Check,Path),!.
 
-checkRaise(Lc,X,Env,Thrw,ErrExp,Path) :-
-  (getVar(Lc,"$try",Env,Thrw,VTp) ->
-   newTypeVar("E",ErTp),
-   verifyType(Lc,ast(X),VTp,ErTp,Env),
-   typeOfExp(X,ErTp,Env,_,ErrExp,Path);
-   reportError("cannot raise exception %s here",[ast(X)],Lc),
-   ErrExp=void,
-   Thrw=void).
+tryBlockName(Path,Tp,TrBlkNm) :-
+  tpName(Tp,TpNm),
+  mangleName(Path,conTract,TpNm,TrBlkNm).
 
 checkGoal(Term,Env,Ex,conj(Lc,Lhs,Rhs),Path) :-
   isConjunct(Term,Lc,L,R),!,
@@ -1204,13 +1200,13 @@ genDecl(typeDef(_,Nm,Tp,TpRule),Def,Public,
   call(Public,tpe(Nm)),!.
 genDecl(typeDef(_,Nm,Tp,TpRule),Def,_,Ex,Ex,
 	[typeDec(Nm,Tp,TpRule)|Lx],Lx,[Def|Dfx],Dfx).
-genDecl(varDef(Lc,Nm,FullNm,[],Tp,lambda(_,_,Eqn,_)),_,Public,
+genDecl(varDef(Lc,Nm,FullNm,[],Tp,lambda(_,_,Cx,Eqn,_)),_,Public,
 	 [funDec(Nm,FullNm,Tp)|Ex],Ex,Lx,Lx,
-	 [funDef(Lc,Nm,FullNm,hard,Tp,[],[Eqn])|Dfx],Dfx) :-
+	 [funDef(Lc,Nm,FullNm,hard,Tp,Cx,[Eqn])|Dfx],Dfx) :-
   call(Public,var(Nm)),!.
-genDecl(varDef(Lc,Nm,FullNm,[],Tp,lambda(_,_,Eqn,OTp)),_,Public,
+genDecl(varDef(Lc,Nm,FullNm,[],Tp,lambda(_,_,Cx,Eqn,OTp)),_,Public,
 	Ex,Ex,[funDec(Nm,FullNm,Tp)|Lx],Lx,
-	[funDef(Lc,Nm,FullNm,hard,OTp,[],[Eqn])|Dfx],Dfx) :-
+	[funDef(Lc,Nm,FullNm,hard,OTp,Cx,[Eqn])|Dfx],Dfx) :-
   call(Public,var(Nm)),!.
 genDecl(varDef(_,Nm,FullNm,_,Tp,_),Def,Public,
 	[varDec(Nm,FullNm,Tp)|Ex],Ex,Lx,Lx,[Def|Dfx],Dfx) :-

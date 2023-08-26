@@ -35,7 +35,7 @@ freeVars(cond(_,C,T,E,_),Ex,Q,F,FV) :- ptnGoalVars(C,Ex,E1),
   freeVars(T,E1,Q,F,F0),
   freeVars(C,E1,Q,F0,F1),
   freeVars(E,Ex,Q,F1,FV).
-freeVars(lambda(_,_,Eqn,_),Ex,Q,F,FV) :- freeVarsInRule(Ex,Q,freevars:freeVars,Eqn,F,FV).
+freeVars(lambda(_,_,_,Eqn,_),Ex,Q,F,FV) :- freeVarsInRule(Ex,Q,freevars:freeVars,Eqn,F,FV).
 freeVars(conj(Lc,L,R),Ex,Q,F,FV) :- ptnGoalVars(conj(Lc,L,R),Ex,E1),
   freeVars(L,E1,Q,F,F0),freeVars(R,E1,Q,F0,FV).
 freeVars(disj(_,L,R),Ex,Q,F,FV) :- freeVars(L,Ex,Q,F,F0),freeVars(R,Ex,Q,F0,FV).

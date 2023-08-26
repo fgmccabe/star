@@ -50,7 +50,7 @@
 	      isPaused/5, mkPaused/5,isInvoke/4,mkInvoke/4,
 	      isDoTerm/3,mkDoTerm/3,isDo/3,mkDo/3,
 	      isValof/3,mkValof/3,isValis/3,mkValis/3,
-	      isTryCatch/4,mkTryCatch/4,
+	      isTryCatch/5,mkTryCatch/5,
 	      isRaise/3,mkRaise/3,
 	      isRaises/3,mkRaises/3,
 	      isDynamic/4,mkDynamic/4,
@@ -881,14 +881,16 @@ mkInvoke(Lc,O,As,T) :-
   roundTuple(Lc,As,R),
   binary(Lc,".",O,R,T).
 
-isTryCatch(A,Lc,B,Hs) :-
+isTryCatch(A,Lc,B,E,Hs) :-
   isUnary(A,Lc,"try",I),
-  isBinary(I,_,"catch",B,H),
+  isBinary(I,_,"catch",B,R),
+  isBinary(R,_,"in",E,H),
   isBraceTuple(H,_,Hs).
 
-mkTryCatch(Lc,B,H,A) :-
+mkTryCatch(Lc,B,E,H,A) :-
   braceTuple(Lc,H,Hs),
-  binary(Lc,"catch",B,Hs,A0),
+  binary(Lc,"in",E,Hs,R),
+  binary(Lc,"catch",B,R,A0),
   unary(Lc,"try",A0,A).
 
 isBreak(A,Lc,L) :-

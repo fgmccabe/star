@@ -58,9 +58,20 @@ star.compiler.term.repo{
         newerRsrc(CodeFile,SrcFile).
   packageCodeOk(_,_) default => .false.
 
-  public pkgOk:(termRepo,pkg)=>boolean.
-  pkgOk(Repo,Pkg) => (SrcUri,CodeUri) ?= packageCode(Repo,Pkg) ??
-  newerRsrc(CodeUri,SrcUri) || .false.
+  public pkgOkInRepo:(termRepo,pkg,cons[pkg])=>boolean.
+  pkgOkInRepo(Repo,Pkg,Deps) => valof{
+    if (SrcUri,CodeUri) ?= packageCode(Repo,Pkg)&&newerRsrc(CodeUri,SrcUri) then{
+      for P in Deps do{
+	if (_,PCode) ?= packageCode(Repo,P) then{
+	  if newerRsrc(PCode,CodeUri) then
+	    valis .false
+	}
+      };
+      valis .true
+    }
+    else
+    valis .false
+  }
 
   public packageCode:(termRepo,pkg) => option[(uri,uri)].
   packageCode(.repo(Root,Man),Pkg) where

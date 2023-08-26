@@ -54,7 +54,6 @@ star.compiler.term{
     | .aLbld(option[locn],string,aAction)
     | .aBreak(option[locn],string)
     | .aValis(option[locn],cExp)
-    | .aRaise(option[locn],cExp,cExp)
     | .aRetire(option[locn],cExp,cExp)
     | .aPerf(option[locn],cExp)
     | .aSetNth(option[locn],cExp,integer,cExp)
@@ -98,7 +97,7 @@ star.compiler.term{
   dspExp(Exp,Off) => case Exp in {
     .cVoid(_,_) => "void".
     .cAnon(_,_) => "_".
-    .cVar(_,.cId(V,VTp)) => "%#(V)/$(arity(VTp))".
+    .cVar(_,.cId(V,VTp)) => "%#(V)".
     .cInt(_,Ix) => disp(Ix).
     .cChar(_,Ix) => disp(Ix).
     .cBig(_,Ix) => disp(Ix).
@@ -156,7 +155,6 @@ star.compiler.term{
     .aLbld(_,Lb,A) => "#(Lb) : #(dspAct(A,Off))".
     .aBreak(_,Lb) => "break #(Lb)".
     .aValis(_,E) => "valis #(dspExp(E,Off))".
-    .aRaise(_,T,E) => "#(dspExp(T,Off)) raise #(dspExp(E,Off))".
     .aRetire(_,T,E) => "#(dspExp(T,Off)) retire #(dspExp(E,Off))".
     .aPerf(_,E) => "perform #(dspExp(E,Off))".
     .aSetNth(_,T,Ix,V) => "update #(dspExp(T,Off))[$(Ix)] <- #(dspExp(V,Off))".
@@ -290,7 +288,6 @@ star.compiler.term{
     .aLbld(_,L1,Ac1) => .aLbld(_,L2,Ac2).=A2 && L1==L2 && eqAct(Ac1,Ac2).
     .aBreak(_,L1) => .aBreak(_,L2).=A2 && L1==L2.
     .aValis(_,E1) => .aValis(_,E2).=A2 && eqTerm(E1,E2).
-    .aRaise(_,T1,E1) => .aRaise(_,T2,E2).=A2 && eqTerm(T1,T2) && eqTerm(E1,E2).
     .aRetire(_,T1,E1) => .aRetire(_,T2,E2).=A2 && eqTerm(T1,T2) && eqTerm(E1,E2).
     .aPerf(_,E1) => .aPerf(_,E2).=A2 && eqTerm(E1,E2).
     .aSetNth(_,V1,Ix1,T1) => .aSetNth(_,V2,Ix2,T2).=A2 && eqTerm(V1,V2) && Ix1==Ix2 && eqTerm(T1,T2).
@@ -422,7 +419,6 @@ star.compiler.term{
       .aLbld(Lc,_,_) => Lc.
       .aBreak(Lc,_) => Lc.
       .aValis(Lc,_) => Lc.
-      .aRaise(Lc,_,_) => Lc.
       .aRetire(Lc,_,_) => Lc.
       .aPerf(Lc,_) => Lc.
       .aSetNth(Lc,_,_,_) => Lc.
@@ -489,7 +485,7 @@ star.compiler.term{
       .cCall(Lc,Op,Args,Tp) => .cCall(Lc,Op,Args//(A)=>rwTerm(A,Tst),Tp).
       .cOCall(Lc,Op,Args,Tp) => .cOCall(Lc,rwTerm(Op,Tst),Args//(A)=>rwTerm(A,Tst),Tp).
       .cECall(Lc,Op,Args,Tp) => .cECall(Lc,Op,Args//(A)=>rwTerm(A,Tst),Tp).
-      .cRaise(Lc,Th,E,Tp) =>.cRaise(Lc,rwTerm(Th,Tst),rwTerm(E,Tst),Tp).
+      .cRaise(Lc,Th,E,Tp) =>.cRaise(Lc,trace rwTerm(Th,Tst),trace rwTerm(E,Tst),Tp).
       .cSpawn(Lc,L,Tp) => .cSpawn(Lc,rwTerm(L,Tst),Tp).
       .cPaus(Lc,L,Tp) => .cPaus(Lc,rwTerm(L,Tst),Tp).
       .cSusp(Lc,F,E,Tp) => .cSusp(Lc,rwTerm(F,Tst),rwTerm(E,Tst),Tp).
@@ -518,7 +514,6 @@ star.compiler.term{
     .aLbld(Lc,L,A) => .aLbld(Lc,L,rwAct(A,Tst)).
     .aBreak(Lc,L) => .aBreak(Lc,L).
     .aValis(Lc,E) => .aValis(Lc,rwTerm(E,Tst)).
-    .aRaise(Lc,T,E) => .aRaise(Lc,rwTerm(T,Tst),rwTerm(E,Tst)).
     .aRetire(Lc,T,E) => .aRetire(Lc,rwTerm(T,Tst),rwTerm(E,Tst)).
     .aPerf(Lc,E) => .aPerf(Lc,rwTerm(E,Tst)).
     .aSetNth(Lc,V,Ix,E) => .aSetNth(Lc,rwTerm(V,Tst),Ix,rwTerm(E,Tst)).
@@ -653,7 +648,6 @@ star.compiler.term{
     | .aLbld(Lc,L,A) => .aLbld(Lc,L,frshnA(A,Sc))
     | .aBreak(Lc,L) => .aBreak(Lc,L)
     | .aValis(Lc,E) => .aValis(Lc,frshnE(E,Sc))
-    | .aRaise(Lc,T,E) => .aRaise(Lc,frshnE(T,Sc),frshnE(E,Sc))
     | .aRetire(Lc,T,E) => .aRetire(Lc,frshnE(T,Sc),frshnE(E,Sc))
     | .aPerf(Lc,E) => .aPerf(Lc,frshnE(E,Sc))
     | .aSetNth(Lc,V,Ix,E) => .aSetNth(Lc,frshnE(V,Sc),Ix,frshnE(E,Sc))
@@ -932,7 +926,6 @@ star.compiler.term{
     .aLbld(_,_,A) => validA(A,Vrs).
     .aBreak(_,L) => .true.
     .aValis(_,E) => validE(E,Vrs).
-    .aRaise(_,T,E) => validE(T,Vrs) && validE(E,Vrs).
     .aRetire(_,T,E) => validE(T,Vrs) && validE(E,Vrs).
     .aPerf(_,E) => validE(E,Vrs).
     .aSetNth(_,V,_,E) => validE(V,Vrs) && validE(E,Vrs).
@@ -1023,7 +1016,6 @@ star.compiler.term{
     .aLbld(_,_,A) => presentInA(A,C,T).
     .aBreak(_,L) => .false.
     .aValis(_,E) => presentInE(E,C,T).
-    .aRaise(_,Th,E) => presentInE(Th,C,T) || presentInE(E,C,T).
     .aRetire(_,Th,E) => presentInE(Th,C,T) || presentInE(E,C,T).
     .aPerf(_,E) => presentInE(E,C,T).
     .aSetNth(_,V,_,E) => presentInE(V,C,T) || presentInE(E,C,T).
@@ -1175,7 +1167,6 @@ star.compiler.term{
     .aLbld(Lc,L,I) => mkCons("lbld",[Lc::data,.strg(L),frzeAct(I)]).
     .aBreak(Lc,L) => mkCons("brek",[Lc::data,.strg(L)]).
     .aValis(Lc,V) => mkCons("vls",[Lc::data,frzeExp(V)]).
-    .aRaise(Lc,T,V) => mkCons("rais",[Lc::data,frzeExp(T),frzeExp(V)]).
     .aRetire(Lc,T,V) => mkCons("retire",[Lc::data,frzeExp(T),frzeExp(V)]).
     .aPerf(Lc,V) => mkCons("perf",[Lc::data,frzeExp(V)]).
     .aSetNth(Lc,V,Ix,E) => mkCons("setix",[Lc::data,frzeExp(V),.intgr(Ix),frzeExp(E)]).
@@ -1288,7 +1279,6 @@ star.compiler.term{
     .term("lbld",[Lc,.strg(L),I]) => .aLbld(thawLoc(Lc),L,thawAct(I)).
     .term("brek",[Lc,.strg(L)]) => .aBreak(thawLoc(Lc),L).
     .term("vls",[Lc,V]) => .aValis(thawLoc(Lc),thawTerm(V)).
-    .term("rais",[Lc,T,V]) => .aRaise(thawLoc(Lc),thawTerm(T),thawTerm(V)).
     .term("retire",[Lc,T,V]) => .aRetire(thawLoc(Lc),thawTerm(T),thawTerm(V)).
     .term("perf",[Lc,V]) => .aPerf(thawLoc(Lc),thawTerm(V)).
     .term("setix",[Lc,V,.intgr(Ix),E]) => .aSetNth(thawLoc(Lc),thawTerm(V),Ix,thawTerm(E)).

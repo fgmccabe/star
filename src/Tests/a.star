@@ -22,9 +22,9 @@ test.a{
       logMsg("\e[33m#("yellow")\e[0m");
       logMsg("\e[31mred\e[0m");
       
-      valis ()
-    } catch {
-      _:exception => { valis () }
+      raise .exception("bong");
+    } catch exception in {
+      .exception(Msg) => { logMsg("out with a #(Msg)"); valis () }
     };
   }
 }
