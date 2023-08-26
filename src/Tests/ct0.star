@@ -30,7 +30,7 @@ test.ct0{
 	      };
 	      logMsg("After 2 pauses $(Cnt)");
 	      Tsk retire .blocked(()=>.false)
-	    } catch {
+	    } catch mboxException in {
 	      _ => {
 		logMsg("we were canceled");
 		Tsk retire .retired_
@@ -43,7 +43,7 @@ test.ct0{
 	logMsg("moving along, $(Count!) rounds left ");
       };
       logMsg("end of try");
-    } catch { .canceled => {
+    } catch mboxException in { .canceled => {
 	logMsg("$(K) shutting down");
       }
     };
@@ -56,7 +56,7 @@ test.ct0{
     try{
       Rs = nursery([tt(10),tt(20)]);
       logMsg("final result $(Rs)");
-    } catch {
+    } catch mboxException in {
       E => logMsg(disp(E))
     };
     valis ()

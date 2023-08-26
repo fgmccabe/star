@@ -12,7 +12,7 @@ test.do14{
       try{
 	assert isEven(2);
 	assert ~ isEven(3);
-      } catch {
+      } catch string in {
 	M => logMsg("We got #(M)")
       };
     valis ()

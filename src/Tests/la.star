@@ -19,10 +19,8 @@ test.la{
 
   main:()=>().
   main()=>valof{
-    try{
-      FF = fooBar(6);
-      assert FF == 5;
-    } catch { _ => logMsg("bad happening")};
+    FF = fooBar(6);
+    assert FF == 5;
     valis ()
   }
 }

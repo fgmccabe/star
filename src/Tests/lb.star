@@ -19,15 +19,13 @@ test.lb{
     ii(N) where N>=0 => valof{
       try{
 	inc();
-      } catch {
+      } catch () in {
 	_ => {}
       };
       valis .true
     }
     ii(N) where N<0 => valof{
-      try{
-	reset();
-      } catch { _ => logMsg("bad happening")};
+      reset();
       valis .false
     }
   .} in ii(A).

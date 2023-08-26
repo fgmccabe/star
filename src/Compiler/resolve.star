@@ -57,7 +57,7 @@ star.compiler.resolve{
     (canonDef,dict).
   overloadFunction(Dict,Lc,Nm,Eqns,Cx,Tp) => valof{
     if traceCanon! then
-      logMsg("overload function $(Nm) = $(Eqns)");
+      logMsg("overload function $(Nm) = $(Eqns), Cx=$(Cx)");
     (Extra,CDict) = defineCVars(Lc,Cx,[],Dict);
       
     REqns = Eqns//(Eq)=>resolveEqn(Eq,Extra,CDict);
@@ -140,6 +140,8 @@ star.compiler.resolve{
   }
   defineCVars(Lc,[.raisEs(Tp),..Tps],Vrs,D) => valof{
     QNm = qualifiedName("$R",.tractMark,tpName(deRef(Tp)));
+    if traceCanon! then
+      logMsg("defining try scope for $(Tp) with #(QNm)");
     valis defineCVars(Lc,Tps,[.vr(Lc,QNm,Tp),..Vrs],
       declareTryScope(Lc,Tp,QNm,D))
   }
@@ -474,7 +476,7 @@ star.compiler.resolve{
     }
   }
   resolveConstraint(Lc,.raisEs(Tp),Dict,St) => valof{
-    if .varDec(_,_,TrNm,ETp) ?= findTryScope(tpName(Tp),Dict) then{
+    if .varDec(_,_,TrNm,ETp) ?= findTryScope(Tp,Dict) then{
       if sameType(snd(freshen(ETp,Dict)),Tp,Dict) then {
 	valis (.vr(Lc,TrNm,Tp),markResolved(St))
       } else{

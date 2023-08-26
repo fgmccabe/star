@@ -367,21 +367,25 @@ star.compiler.types{
   public implementationName:(constraint) => string.
   implementationName(.conTract(Nm,Tps,_)) =>
     interleave([Nm,..(Tps//(T)=>typeSurfaceNm(deRef(T)))],"!")*.
+  implementationName(.raisEs(Tp)) =>
+    typeSurfaceNm(deRef(Tp)).
 
   public typeSurfaceNm:(tipe)=>string.
-  typeSurfaceNm(.voidType) => "void".
-  typeSurfaceNm(.nomnal(Nm)) => Nm.
-  typeSurfaceNm(.tpExp(O,A)) => typeSurfaceNm(deRef(O)).
-  typeSurfaceNm(.kFun(Nm,_)) => Nm.
-  typeSurfaceNm(.tpFun(Nm,_)) => Nm.
-  typeSurfaceNm(.tVar(_,_)) => "_".
-  typeSurfaceNm(.tFun(_,_,_)) => "_".
-  typeSurfaceNm(.allType(_,T)) => typeSurfaceNm(deRef(T)).
-  typeSurfaceNm(.existType(_,T)) => typeSurfaceNm(deRef(T)).
-  typeSurfaceNm(.constrainedType(T,_)) => typeSurfaceNm(deRef(T)).
-  typeSurfaceNm(.tupleType(A)) => "()$(size(A))".
-  typeSurfaceNm(.faceType(Flds,_)) =>
-    "{}$(hash(interleave(sort(Flds,cmpFlds)//fst,"|")*))".
+  typeSurfaceNm(Tp) => let{.
+    tpSfNm(.voidType) => "void".
+    tpSfNm(.nomnal(Nm)) => Nm.
+    tpSfNm(.tpExp(O,A)) => tpSfNm(deRef(O)).
+    tpSfNm(.kFun(Nm,_)) => Nm.
+    tpSfNm(.tpFun(Nm,_)) => Nm.
+    tpSfNm(.tVar(_,_)) => "_".
+    tpSfNm(.tFun(_,_,_)) => "_".
+    tpSfNm(.allType(_,T)) => tpSfNm(deRef(T)).
+    tpSfNm(.existType(_,T)) => tpSfNm(deRef(T)).
+    tpSfNm(.constrainedType(T,_)) => tpSfNm(deRef(T)).
+    tpSfNm(.tupleType(A)) => "()$(size(A))".
+    tpSfNm(.faceType(Flds,_)) =>
+      "{}$(hash(interleave(sort(Flds,cmpFlds)//fst,"|")*))".
+  .} in tpSfNm(deRef(Tp)).
 
   public tpRuleName:(typeRule) => string.
   tpRuleName(.typeExists(L,_)) => tpName(deRef(L)).
@@ -450,7 +454,8 @@ star.compiler.types{
   funTypeArg(.constrainedType(T,_))=>funTypeArg(deRef(T)).
 
   public funTypeRes(Tp) => funRes(deRef(Tp)).
-  funRes(tpExp(O,R)) where .tpExp(O2,_) .= deRef(O) &&
+
+  funRes(.tpExp(O,R)) where .tpExp(O2,_) .= deRef(O) &&
       .tpFun("=>",2).=deRef(O2) => deRef(R).
   funRes(.tpExp(O,R)) where .tpExp(O2,A) .= deRef(O) &&
       .tpFun("<=>",2).=deRef(O2) => deRef(R).

@@ -13,7 +13,7 @@ test.dfr{
 	  Cx := Cx!+Ix
       };
       valis Cx!
-    } catch{
+    } catch string in {
       (E) => {
 	logMsg(E);
 	raise E
@@ -27,7 +27,7 @@ test.dfr{
   main()=>valof{
     try{
       show CX(IS,2);
-    } catch {
+    } catch string in {
       _ => logMsg("something went bad")
     };
     valis ()

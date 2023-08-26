@@ -17,7 +17,7 @@ test.ac7{
     try{
       F10 = f(10);
       _logmsg(disp(F10));
-    } catch {
+    } catch string in {
       E => {
 	_logmsg(E)
       }

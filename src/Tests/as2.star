@@ -24,7 +24,7 @@ test.as2{
       ( try D==E ??
 	  mark(D) && check(Es,Ds) ||
 	  reset()
-	catch {
+	catch () in {
 	  _ => .false
 	}
       ).
@@ -43,7 +43,7 @@ test.as2{
       assert checkLists()([1,2],[1,2]);
       assert ~checkLists()([],[1]);
       show notMuch();
-    } catch {
+    } catch  () in {
       _ => logMsg("as expected")
     };
     valis ()

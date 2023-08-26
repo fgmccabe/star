@@ -21,7 +21,7 @@ test.do13{
       assert BB == 6;
       XX = maybeFail(10);
       assert .false  -- never get here
-    } catch {
+    } catch integer in {
       (Ix) => {
 	assert Ix==10
       }

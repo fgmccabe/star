@@ -75,7 +75,7 @@ string\n
 
     try{
       assert o == 1;		-- End comment
-    } catch {
+    } catch () in {
       _ => {
 	logMsg("valof raised exception")
       }

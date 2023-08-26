@@ -18,7 +18,7 @@ test.do1{
   main() => valof{
     try{
       doFirst();
-    } catch{
+    } catch () in {
       _ => {}
     };
     valis ();

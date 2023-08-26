@@ -45,7 +45,7 @@ test.act0{
       logMsg("$(Rs)");
 
       assert Rs==.pong;
-    } catch { _ => logMsg("huh?")
+    } catch mboxException in { _ => logMsg("huh?")
     };
     valis ()
   }
