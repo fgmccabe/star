@@ -39,9 +39,8 @@ star.compiler.inline{
   }
 
   -- ptnMatch tries to match an actual value with a pattern
-  ptnMatch:(cExp,cExp,map[termLbl,cDefn]) => match[map[termLbl,cDefn]].
-  ptnMatch(.cVar(Lc1,.cId(V1,T1)),E,Map) =>
-    .matching(Map[.tLbl(V1,arity(T1))->.vrDef(Lc1,V1,T1,E)]).
+  ptnMatch:(cExp,cExp,map[string,cExp]) => match[map[string,cExp]].
+  ptnMatch(.cVar(Lc1,.cId(V1,T1)),E,Map) => .matching(Map[V1->E]).
   ptnMatch(.cInt(_,Ix),.cInt(_,Ix),Map) => .matching(Map).
   ptnMatch(.cBig(_,Bx),.cBig(_,Bx),Map) => .matching(Map).
   ptnMatch(.cFloat(_,Dx),.cFloat(_,Dx),Map) => .matching(Map).
@@ -241,17 +240,15 @@ star.compiler.inline{
 
   candidate:all e ~~ rewrite[e] |: (cExp,cCase[e]) => match[e].
   candidate(E,(_,Ptn,Rep)) => case ptnMatch(Ptn,E,[]) in {
-    .matching(Theta) => .matching(rewrite(Rep,Theta)).
+    .matching(Theta) => .matching(rewrite(Rep,rwVar(Theta))).
     .noMatch => .noMatch.
     .insufficient => .insufficient
   }
 
   inlineLtt:all e ~~ simplify[e],reform[e],present[e],rewrite[e] |:
     (option[locn],cId,cExp,e,map[termLbl,cDefn],integer) => e.
-  inlineLtt(Lc,.cId(Vr,Tp),Bnd,Exp,Map,Depth) where isGround(Bnd) => valof{
-    LttM = { .tLbl(Vr,arity(Tp))->.vrDef(Lc,Vr,Tp,Bnd)};
-    valis simplify(rewrite(Exp,LttM),Map,Depth)
-  }
+  inlineLtt(Lc,.cId(Vr,Tp),Bnd,Exp,Map,Depth) where isGround(Bnd) =>
+    simplify(rewrite(Exp,rwVar({Vr->Bnd})),Map,Depth).
   inlineLtt(Lc,Vr,Bnd,Exp,Map,Depth) =>
     mkLtt(Lc,Vr,Bnd,simplify(Exp,Map,Depth)).
 

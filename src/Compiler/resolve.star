@@ -324,8 +324,7 @@ star.compiler.resolve{
     (OverOp,St1) = resolveDot(Lc,DT,Nm,Tp,Dict,St);
     valis (OverOp,Args,St1)
   }
-  resolveRef(C,DArg,Args,_,St) default =>
-    (C,[DArg,..Args],St).
+  resolveRef(C,DArg,Args,_,St) default => (C,[DArg,..Args],St).
 
   overApply(_,OverOp,[],_) => OverOp.
   overApply(Lc,OverOp,Args,Tp) where ~ _ ?= isFunType(Tp) =>

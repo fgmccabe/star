@@ -83,14 +83,14 @@ star.compiler.term{
 
   dspDef:(cDefn,string) => string.
   dspDef(Df,Off) => case Df in {
-    .fnDef(Lc,Nm,Tp,Args,Rep) =>
-      "fun: $(Lc) #(Nm)(#(interleave(Args//disp,",")*)) => #(dspExp(Rep,Off))".
-    .vrDef(Lc,Nm,Tp,Rep) =>
-      "var: $(Lc) #(Nm)=#(dspExp(Rep,Off))".
-    .tpDef(Lc,Tp,TpRl,Map) =>
-      "tpe: $(Lc) $(TpRl) with $(Map)".
-    .lblDef(Lc,Lbl,Tp,Ix) =>
-      "lbl: $(Lc) $(Lbl)\:$(Tp)@$(Ix)".
+    .fnDef(_Lc,Nm,Tp,Args,Rep) =>
+      "fun: #(Nm)(#(interleave(Args//disp,",")*)) => #(dspExp(Rep,Off))".
+    .vrDef(_Lc,Nm,Tp,Rep) =>
+      "var: #(Nm)=#(dspExp(Rep,Off))".
+    .tpDef(_Lc,Tp,TpRl,Map) =>
+      "tpe: $(TpRl) with $(Map)".
+    .lblDef(_Lc,Lbl,Tp,Ix) =>
+      "lbl: $(Lbl)\:$(Tp)@$(Ix)".
   }
 
   dspExp:(cExp,string) => string.
@@ -141,7 +141,7 @@ star.compiler.term{
     .cVarNmes(_,V,E) => "<vars #(dspVrs(V)) in #(dspExp(E,Off))>".
     .cAbort(_,M,_) => "abort #(M)".
     .cTry(_,B,T,E,H,_)=> 
-      "(try #(dspExp(T,Off)) in #(dspExp(B,Off)) catch $(E) in #(dspExp(H,Off)))".
+      "(try #(dspExp(B,Off)) catch #(dspExp(T,Off)) in $(E) in #(dspExp(H,Off)))".
     .cValof(_,A,_) => "valof #(dspAct(A,Off))".
   }
 
@@ -210,8 +210,14 @@ star.compiler.term{
   } in .cTerm(Lc,tplLbl(Ar), Args, TpTp).
 
   public contract all e ~~ rewrite[e] ::= {
-    rewrite:(e,map[termLbl,cDefn])=>e
+    rewrite:(e,(cExp)=>option[cExp])=>e
   }
+
+  public rwVar:(map[string,cExp])=>(cExp)=>option[cExp].
+  rwVar(M) => let{
+    test(.cVar(_,.cId(Nm,_))) => M[Nm].
+    test(_) => .none.
+  } in test.
 
   public implementation equality[cId] => {
     .cId(N1,T1) == .cId(N2,T2) => N1==N2.
@@ -467,9 +473,9 @@ star.compiler.term{
 	    .cInt(OLc,Line),.cInt(OLc,Col),.cInt(OLc,Off),.cInt(OLc,Len)]))
   }
 
-  rwTerm:(cExp,(cExp)=>option[cDefn])=>cExp.
+  rwTerm:(cExp,(cExp)=>option[cExp])=>cExp.
   rwTerm(Trm,Tst) =>
-    .vrDef(_,_,_,Vl) ?= Tst(Trm) ?? Vl || case Trm in {
+    Vl ?= Tst(Trm) ?? Vl || case Trm in {
       .cVoid(Lc,Tp) => .cVoid(Lc,Tp).
       .cAnon(Lc,Tp) => .cAnon(Lc,Tp).
       .cVar(Lc,V) => .cVar(Lc,V).
@@ -507,7 +513,7 @@ star.compiler.term{
       .cAbort(Lc,Ms,Tp) => .cAbort(Lc,Ms,Tp).
     }.
 
-  rwAct:(aAction,(cExp)=>option[cDefn])=>aAction.
+  rwAct:(aAction,(cExp)=>option[cExp])=>aAction.
   rwAct(Ac,Tst) => case Ac in {
     .aNop(Lc) => .aNop(Lc).
     .aSeq(Lc,L,R) => .aSeq(Lc,rwAct(L,Tst),rwAct(R,Tst)).
@@ -530,36 +536,31 @@ star.compiler.term{
     .aAbort(Lc,Ms) => .aAbort(Lc,Ms).
   }
 
-  dropVar:(string,(cExp)=>option[cDefn])=>(cExp)=>option[cDefn].
+  dropVar:(string,(cExp)=>option[cExp])=>(cExp)=>option[cExp].
   dropVar(Nm,Tst) => let{
     test(.cVar(_,.cId(Nm,_))) => .none.
     test(T) default => Tst(T)
   } in test.
   
-  rwTerms:(cons[cExp],(cExp)=>option[cDefn])=>cons[cExp].
+  rwTerms:(cons[cExp],(cExp)=>option[cExp])=>cons[cExp].
   rwTerms(Els,Tst) => (Els//(E)=>rwTerm(E,Tst)).
 
-  rwCase:all e ~~ (cCase[e],(cExp)=>option[cDefn],(e,(cExp)=>option[cDefn])=>e) => cCase[e].
+  rwCase:all e ~~ (cCase[e],(cExp)=>option[cExp],(e,(cExp)=>option[cExp])=>e) => cCase[e].
   rwCase((Lc,Ptn,Rep),T,F) => (Lc,rwTerm(Ptn,T),F(Rep,T)).
 
   public implementation rewrite[cExp] => {
-    rewrite(E,M) => rwTerm(E,rwVar(M)).
+    rewrite(E,F) => rwTerm(E,F).
   }
 
   public implementation rewrite[aAction] => {
-    rewrite(E,M) => rwAct(E,rwVar(M)).
+    rewrite(E,F) => rwAct(E,F).
   }
 
-  public rewriteTerm:(cExp,map[termLbl,cDefn])=>cExp.
-  rewriteTerm(T,Map) => rwTerm(T,rwVar(Map)).
+  public rewriteTerm:(cExp,(cExp)=>option[cExp])=>cExp.
+  rewriteTerm(T,F) => rwTerm(T,F).
 
-  public rewriteTerms:all e ~~ rewrite[e] |: (cons[e],map[termLbl,cDefn])=>cons[e].
-  rewriteTerms(Els,Map) => (Els//(E)=>rewrite(E,Map)).
-
-  rwVar(M) => let{
-    test(.cVar(Lc,.cId(Nm,Tp))) => M[.tLbl(Nm,arity(Tp))].
-    test(_) => .none.
-  } in test.
+  public rewriteTerms:all e ~~ rewrite[e] |: (cons[e],(cExp)=>option[cExp])=>cons[e].
+  rewriteTerms(Els,F) => (Els//(E)=>rewrite(E,F)).
 
   public freshenE:(cExp,map[termLbl,cExp])=>cExp.
   freshenE(E,Mp) => frshnE(E,[Mp]).
@@ -882,7 +883,7 @@ star.compiler.term{
     .cAbort(_,_,_) => .true.
     .cTry(_,B,T,E,H,_) => valof{
       V1 = ptnVrs(T,Vrs);
-      V2 = ptnVrs(E,Vrs);
+      V2 = ptnVrs(E,V1);
       valis validE(B,V1) && validE(T,V1) && validE(E,V2) && validE(H,V2)
     }.
     .cValof(_,A,_) => validA(A,Vrs).

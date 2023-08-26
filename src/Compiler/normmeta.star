@@ -142,19 +142,6 @@ star.compiler.normalize.meta{
   declMdlGlobal(.conDec(_,_,_,_),Map) => Map.
   declMdlGlobal(.implDec(_,_,_,_),Map) => Map.
 
-  public extendFunTp:all x ~~ hasType[x] |: (tipe,option[x])=>tipe.
-  extendFunTp(Tp,.none) => Tp.
-  extendFunTp(Tp,Vs) where (A,B)?=isFunType(Tp) &&
-      .tupleType(Es).=deRef(A) =>
-    funType(extendTplType(Es,Vs),B).
-  extendFunTp(.allType(V,B),Vs) => .allType(V,extendFunTp(B,Vs)).
-  extendFunTp(.existType(V,B),Vs) => .existType(V,extendFunTp(B,Vs)).
-  extendFunTp(.constrainedType(T,C),Vs) => .constrainedType(extendFunTp(T,Vs),C).
-
-  extendTplType:all x ~~ hasType[x] |: (cons[tipe],option[x])=>cons[tipe].
-  extendTplType(Es,.none) => Es.
-  extendTplType(Es,.some(E)) => [typeOf(E),..Es].
-
   public crTpl:(option[locn],cons[cExp]) => cExp.
   crTpl(Lc,Args) => let{
     Tp = typeOf(Args).
