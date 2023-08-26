@@ -97,17 +97,17 @@ star.compiler.dict{
   undeclareImplementation(Nm,.dict([Scope,..Env],Br)) =>
     .dict([Scope.impls=Scope.impls[~Nm],..Env],Br).
 
-  public findTryScope:(dict,string) => option[decl].
-  findTryScope(.dict(Scs,_),Nm) => let{.
+  public findTryScope:(string,dict) => option[decl].
+  findTryScope(Nm,.dict(Scs,_)) => let{.
     findC([]) => .none.
     findC([scope{trys=Trs},.._]) where Blk?=Trs[Nm] => .some(Blk).
     findC([_,..Rest]) => findC(Rest).
   .} in findC(Scs).
 
-  public declareTryBlock:(option[locn],tipe,dict) => dict.
-  declareTryBlock(Lc,Tp,.dict([Scope,..Env],Br)) => valof{
+  public declareTryScope:(option[locn],tipe,string,dict) => dict.
+  declareTryScope(Lc,Tp,VrNm,.dict([Scope,..Env],Br)) => valof{
     BlkNm = typeSurfaceNm(Tp);
-    valis .dict([Scope.trys=Scope.trys[BlkNm->.varDec(Lc,BlkNm,BlkNm,Tp)],..Env],Br)
+    valis .dict([Scope.trys=Scope.trys[BlkNm->.varDec(Lc,VrNm,VrNm,Tp)],..Env],Br)
   }
 
   public declareAccessor:(option[locn],tipe,string,string,tipe,dict) => dict.

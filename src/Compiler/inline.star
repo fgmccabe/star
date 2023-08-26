@@ -147,7 +147,6 @@ star.compiler.inline{
   }
   simAct(.aBreak(Lc,Lb),_,_) => .aBreak(Lc,Lb).
   simAct(.aValis(Lc,E),Map,Depth) => getValis(Lc,simplifyExp(E,Map,Depth)).
-  simAct(.aRaise(Lc,T,E),Map,Depth) => .aRaise(Lc,simplifyExp(T,Map,Depth),simplifyExp(E,Map,Depth)).
   simAct(.aPerf(Lc,E),Map,Depth) => .aPerf(Lc,simplifyExp(E,Map,Depth)).
   simAct(.aDefn(Lc,V,E),Map,Depth) =>
     .aDefn(Lc,simplifyExp(V,Map,Depth),simplifyExp(E,Map,Depth)).

@@ -91,101 +91,35 @@ star.compiler.impawt{
       pickupDeclarations(Ts,Lc)).
 	
   pickupDeclaration:(data,option[locn])=>option[decl].
-  pickupDeclaration(.term("imp",[.strg(Nm),.strg(FNm),Sig]),Lc) => valof{
-    try{
-      valis .some(.implDec(Lc,Nm,FNm,decodeSig(Sig)))
-    } catch{
-      _ => {
-	reportError("invalid implementation type signature",Lc);
-	valis .none
-      }
-    }
-  }
+  pickupDeclaration(.term("imp",[.strg(Nm),.strg(FNm),Sig]),Lc) => 
+    .some(.implDec(Lc,Nm,FNm,decodeSig(Sig))).
   pickupDeclaration(.term("acc",
       [Sig,.strg(Fld),.strg(FNm),AccSig]),Lc) => valof{
-    try{
-      Tp = decodeSig(Sig);
-      AccTp = decodeSig(AccSig);
-      valis .some(.accDec(Lc,Tp,Fld,FNm,AccTp))
-    } catch{
-      _ => {
-	reportError("invalid accessor signature",Lc);
-	valis .none
-      }
-    }
+    Tp = decodeSig(Sig);
+    AccTp = decodeSig(AccSig);
+    valis .some(.accDec(Lc,Tp,Fld,FNm,AccTp))
   }
   pickupDeclaration(.term("upd",
       [.strg(Sig),.strg(Fld),.strg(FNm),.strg(AccSig)]),Lc) => valof{
-    try{
-      Tp = decodeSignature(Sig);
-      AccTp = decodeSignature(AccSig);
-      valis .some(.updDec(Lc,Tp,Fld,FNm,AccTp))
-    } catch{
-      _ => {
-	reportError("invalid updater signature",Lc);
-	valis .none
-      }
-    }
-  }
-  pickupDeclaration(.term("con",
-      [.strg(Nm),.strg(CnNm),.strg(Sig)]),Lc) => valof{
-    try{
-      valis .some(.conDec(Lc,Nm,CnNm,decodeTypeRuleSignature(Sig)))
-    } catch{
-      _ => {
-	reportError("invalid contract signature",Lc);
-	valis .none
-      }
-    }
-  }
-  pickupDeclaration(.term("tpe",
-      [.strg(Nm),.strg(TSig),.strg(RSig)]),Lc) => valof{
-    try{
-      Tp = decodeSignature(TSig);
-      RlTp = decodeTypeRuleSignature(RSig);
-      valis .some(.tpeDec(Lc,Nm,Tp,RlTp))
-    } catch{
-      _ => {
-	reportError("invalid type signature",Lc);
-	valis .none
-      }
-    }
-  }
-  pickupDeclaration(.term("var",
-      [.strg(Nm),.strg(FlNm),.strg(Sig)]),Lc) => valof{
-    try{
-      valis .some(.varDec(Lc,Nm,FlNm,decodeSignature(Sig)))
-    } catch{
-      _ => {
-	reportError("invalid var signature",Lc);
-	valis .none
-      }
-    }
-  }
+    Tp = decodeSignature(Sig);
+    AccTp = decodeSignature(AccSig);
+    valis .some(.updDec(Lc,Tp,Fld,FNm,AccTp))
+  }.
 
-  pickupDeclaration(.term("fun",
-      [.strg(Nm),.strg(FlNm),.strg(Sig)]),Lc) => valof{
-    try{
-      valis .some(.funDec(Lc,Nm,FlNm,decodeSignature(Sig)))
-    } catch{
-      _ => {
-	reportError("invalid function signature",Lc);
-	valis .none
-      }
-    }
+  pickupDeclaration(.term("con",[.strg(Nm),.strg(CnNm),.strg(Sig)]),Lc) =>
+    .some(.conDec(Lc,Nm,CnNm,decodeTypeRuleSignature(Sig))).
+  pickupDeclaration(.term("tpe",[.strg(Nm),.strg(TSig),.strg(RSig)]),Lc) => valof{
+    Tp = decodeSignature(TSig);
+    RlTp = decodeTypeRuleSignature(RSig);
+    valis .some(.tpeDec(Lc,Nm,Tp,RlTp))
   }
+  pickupDeclaration(.term("var",[.strg(Nm),.strg(FlNm),.strg(Sig)]),Lc) =>
+    .some(.varDec(Lc,Nm,FlNm,decodeSignature(Sig))).
 
-  pickupDeclaration(.term("cns",
-      [.strg(Nm),.strg(FlNm),.strg(Sig)]),Lc) => valof{
-    try{
-      valis .some(.cnsDec(Lc,Nm,FlNm,decodeSignature(Sig)))
-    } catch{
-      _ => {
-	reportError("invalid constructor signature",Lc);
-	valis .none
-      }
-    }
-  }
+  pickupDeclaration(.term("fun",[.strg(Nm),.strg(FlNm),.strg(Sig)]),Lc) =>
+    .some(.funDec(Lc,Nm,FlNm,decodeSignature(Sig))).
+  pickupDeclaration(.term("cns",[.strg(Nm),.strg(FlNm),.strg(Sig)]),Lc) =>
+    .some(.cnsDec(Lc,Nm,FlNm,decodeSignature(Sig))).
   pickupDeclaration(T,Lc) => valof{
     reportError("invalid declaration",Lc);
     valis .none
@@ -207,7 +141,7 @@ star.compiler.impawt{
   }
 
   implementation coercion[typeRule,data] => {
-    _coerce(Rl) => .some(.strg(encodeTpRlSignature(Rl))).
+    _coerce(Rl) => .some(.strg(encodeTpRlSignature(Rl)))
   }
   
   implementation coercion[importSpec,data] => {

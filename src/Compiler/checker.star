@@ -47,10 +47,6 @@ star.compiler.checker{
 	(Defs,ThDecls,ThEnv) = checkGroups(Gps,pkgExport(Vis),emptyFace,Annots,PkgEnv,PkgPth);
 	
 	(BrDfs,BrDcs) = pullBrDefs(ThEnv);
-
-	if traceCanon! then{
-	  logMsg("br decls $(BrDcs)");
-	};
 	(AllX,All) = squashDecls(ThDecls);
 
 	RDefs = (errorFree() ??
@@ -214,7 +210,7 @@ star.compiler.checker{
   }
 
   allFunDefs:(cons[canonDef])=>boolean.
-  allFunDefs(Dfs) => {? D in Dfs *> .varDef(_,_,.lambda(_,_,_,_),_,_).=D ?}.
+  allFunDefs(Dfs) => {? D in Dfs *> .varDef(_,_,.lambda(_,_,_,_,_),_,_).=D ?}.
 
   checkGroup:(cons[defnSpec],publishFn,dict,dict,string) =>
     (cons[canonDef],cons[decl],cons[decl]).
@@ -293,9 +289,9 @@ star.compiler.checker{
     FullNm = qualifiedName(Path,.valMark,Nm);
 
     if traceCanon! then
-      logMsg("function $(.varDef(Lc,FullNm,.lambda(Lc,lambdaLbl(Lc),Rls,Tp),Cx,Tp))");
+      logMsg("function $(.varDef(Lc,FullNm,.lambda(Lc,lambdaLbl(Lc),Rls,[],Tp),Cx,Tp))");
     
-    valis ([.varDef(Lc,FullNm,.lambda(Lc,lambdaLbl(Lc),Rls,Tp),Cx,Tp)],
+    valis ([.varDef(Lc,FullNm,.lambda(Lc,lambdaLbl(Lc),Rls,[],Tp),Cx,Tp)],
       [.funDec(Lc,Nm,FullNm,Tp)])
   }
 
@@ -313,7 +309,7 @@ star.compiler.checker{
       if traceCanon! then
 	logMsg("definition $(.varDef(Lc,FullNm,Val,Cx,Tp))");
 
-      if ~isEmpty(Cx) || .lambda(_,_,_,_).=Val then
+      if ~isEmpty(Cx) || .lambda(_,_,_,_,_).=Val then
 	valis ([.varDef(Lc,FullNm,Val,Cx,Tp)],[.funDec(Lc,Nm,FullNm,Tp)])
       else
       valis ([.varDef(Lc,FullNm,Val,Cx,Tp)],[.varDec(Lc,Nm,FullNm,Tp)])
@@ -409,7 +405,8 @@ star.compiler.checker{
     valis (Ptn,mergeGoal(Lc,PCond,.some(Cond)),Ev1)
   }.
   typeOfPtn(A,Tp,Env,Path) where (Lc,Id) ?= isName(A) => valof{
-    Ev = declareVar(Id,Id,Lc,snd(deConstrain(Tp)),faceOfType(Tp,Env),Env);
+    Ev = declareVar(Id,Id,Lc,Tp,faceOfType(Tp,Env),Env);
+
     valis (.vr(Lc,Id,Tp),.none,Ev)
   }
   typeOfPtn(A,Tp,Env,Path) where _ ?= isEnumSymb(A) => valof{
@@ -670,8 +667,8 @@ star.compiler.checker{
     At = newTypeVar("_A");
     Rt = newTypeVar("_R");
 
-    -- if traceCanon! then
-    --   logMsg("check lambda $(A)\:$(Tp)");
+    if traceCanon! then
+      logMsg("check lambda $(A)\:$(Tp)");
 
     (Q,ETp) = evidence(Tp,Env);
     (Cx,ProgTp) = deConstrain(ETp);
@@ -681,18 +678,18 @@ star.compiler.checker{
     
     (As,ACnd,E0) = typeOfArgPtn(Ar,At,Es,Path);
 
-    -- if traceCanon! then
-    --   logMsg("lambda args $(As)\:$(typeOf(As))");
+    if traceCanon! then
+      logMsg("lambda args $(As)\:$(typeOf(As))");
 
     LName = genId(Path++"λ");
 
     if Cnd ?= C then {
       (Cond,E1) = checkCond(Cnd,E0,Path);
       Rep = typeOfExp(R,Rt,E1,Path);
-      valis .lambda(Lc,LName,[.rule(Lc,As,mergeGoal(Lc,ACnd,.some(Cond)),Rep)],Tp)
+      valis .lambda(Lc,LName,[.rule(Lc,As,mergeGoal(Lc,ACnd,.some(Cond)),Rep)],Cx,Tp)
     } else{
       Rep = typeOfExp(R,Rt,E0,Path);
-      valis .lambda(Lc,LName,[.rule(Lc,As,ACnd,Rep)],Tp)
+      valis .lambda(Lc,LName,[.rule(Lc,As,ACnd,Rep)],Cx,Tp)
     }
   }
   typeOfExp(A,Tp,Env,Pth) where (Lc,Op,Els) ?= isLabeledTheta(A) && (_,Nm)?=isName(Op) => valof{
@@ -769,7 +766,7 @@ star.compiler.checker{
 	  Rc = .vr(Lc,"XX",Tp);
 	  AccTp = funType([Tp],FTp);
 	  Acc = .varDef(Lc,AccNm,.lambda(Lc,lambdaLbl(Lc),
-	      [.rule(Lc,.tple(Lc,[Rc]),.none,.tdot(Lc,Rc,Ix,FTp))],AccTp),
+	      [.rule(Lc,.tple(Lc,[Rc]),.none,.tdot(Lc,Rc,Ix,FTp))],[],AccTp),
 	    [],AccTp);
 	  Dec = .funDec(Lc,AccNm,AccNm,AccTp);
 	  ADec = .accDec(Lc,Tp,Fld,AccNm,AccTp);
@@ -839,18 +836,18 @@ star.compiler.checker{
     (Act,_) = checkAction(Ac,Tp,Env,Path);
     valis .vlof(Lc,Act,Tp)
   }
-  typeOfExp(A,Tp,Env,Path) where (Lc,Body,Rls) ?= isTryCatch(A) => valof{
-    NErTp = newTypeVar("_E");
-    Ev = declareVar("$try","$try",Lc,NErTp,.none,Env);
-    NB = typeOfExp(Body,Tp,Ev,Path);
-    HRls = checkRules(Rls,NErTp,Tp,Env,Path,typeOfExp,[],.none);
-    valis .trycatch(Lc,NB,.vr(Lc,"$try",NErTp),HRls,Tp)
+  typeOfExp(A,Tp,Env,Path) where (Lc,Body,E,Rls) ?= isTryCatch(A) => valof{
+    ErTp = parseType([],E,Env);
+    ErNm = qualifiedName(Path,.tractMark,tpName(deRef(ErTp)));
+    Ev0 = declareTryScope(Lc,ErTp,ErNm,Env);
+    NB = typeOfExp(Body,Tp,Ev0,Path);
+    HRls = checkRules(Rls,ErTp,Tp,Env,Path,typeOfExp,[],.none);
+    valis .trycatch(Lc,NB,.vr(Lc,ErNm,ErTp),HRls,Tp)
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,E) ?= isRaise(A) => valof{
     ErTp = newTypeVar("_E");
-    Thrw = typeOfVar(Lc,"$try",ErTp,Env,Path);
     V = typeOfExp(E,ErTp,Env,Path);
-    valis .rais(Lc,Thrw,V,Tp)
+    valis .over(Lc,.rais(Lc,.anon(Lc,ErTp),V,Tp),.raisEs(ErTp))
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,L,R) ?= isSpawn(A) => valof{
     CTp = newTypeVar("_C");
@@ -900,7 +897,7 @@ star.compiler.checker{
       }
     }
     else{
-      reportError("variable $(Id) not defined. Expecting a $(Tp)",Lc);
+      reportError("variable $(Id) not defined.#(isUnbound(Tp)??""||" Expecting a $(Tp)")",Lc);
       valis .anon(Lc,Tp)
     }
   }
@@ -949,18 +946,16 @@ star.compiler.checker{
     V = typeOfExp(E,Tp,Env,Path);
     valis (.doValis(Lc,V),Env)
   }
-  checkAction(A,_Tp,Env,Path) where (Lc,E) ?= isRaise(A) => valof{
-    ErTp = newTypeVar("_E");
-    Thrw = typeOfVar(Lc,"$try",ErTp,Env,Path);
-    V = typeOfExp(E,ErTp,Env,Path);
-    valis (.doRaise(Lc,Thrw,V),Env)
+  checkAction(A,Tp,Env,Path) where (Lc,E) ?= isRaise(A) => valof{
+    Thrw = typeOfExp(A,newTypeVar("E"),Env,Path);
+    valis (.doExp(Lc,Thrw),Env)
   }
   checkAction(A,_Tp,Env,Path) where (Lc,L,R) ?= isSpawn(A) => valof{
     CTp = newTypeVar("_C");
     RTp = newTypeVar("R");
     Tp = funType([continType(CTp,RTp)],RTp);
     F = typeOfExp(equation(Lc,rndTuple(Lc,[L]),R),Tp,Env,Path);
-    valis (.doCall(Lc,.spwn(Lc,F,RTp)),Env)
+    valis (.doExp(Lc,.spwn(Lc,F,RTp)),Env)
   }
   checkAction(A,_Tp,Env,Path) where (Lc,F,E) ?= isRetire(A) => valof{
     CTp = newTypeVar("_C");
@@ -970,11 +965,11 @@ star.compiler.checker{
   }
   checkAction(A,_Tp,Env,Path) where (Lc,F,E) ?= isSuspend(A) => valof{
     SS = typeOfExp(A,newTypeVar("_"),Env,Path);
-    valis (.doCall(Lc,SS),Env)
+    valis (.doExp(Lc,SS),Env)
   }
   checkAction(A,_Tp,Env,Path) where (Lc,F,E) ?= isResume(A) => valof{
     SS = typeOfExp(A,newTypeVar("_"),Env,Path);
-    valis (.doCall(Lc,SS),Env)
+    valis (.doExp(Lc,SS),Env)
   }
   checkAction(A,_,Env,Path) where (Lc,Lhs,Rhs) ?= isDefn(A) => valof{
     if (ILc,Id) ?= isName(Lhs) then{
@@ -996,16 +991,17 @@ star.compiler.checker{
   }
   checkAction(A,_,Env,Path) where (Lc,Lhs,Rhs) ?= isAssignment(A) =>
     checkAssignment(Lc,Lhs,Rhs,Env,Path).
-  checkAction(A,Tp,Env,Path) where (Lc,Body,Rls) ?= isTryCatch(A) => valof{
-    NErTp = newTypeVar("_E");
-    Ev = declareVar("$try","$try",Lc,NErTp,.none,Env);
-    (NB,_) = checkAction(Body,Tp,Ev,Path);
-    Hs = checkRules(Rls,NErTp,Tp,Env,Path,
+  checkAction(A,Tp,Env,Path) where (Lc,Body,E,Rls) ?= isTryCatch(A) => valof{
+    ErTp = parseType([],E,Env);
+    ErNm = qualifiedName(Path,.tractMark,tpName(deRef(ErTp)));
+    Ev0 = declareTryScope(Lc,ErTp,ErNm,Env);
+    (NB,_) = checkAction(Body,Tp,Ev0,Path);
+    Hs = checkRules(Rls,ErTp,Tp,Env,Path,
       (AA,_,Eva,_)=>valof{
 	(HA,_)=checkAction(AA,Tp,Eva,Path);
 	valis HA
       },[],.none);
-    valis (.doTryCatch(Lc,NB,.vr(Lc,"$try",NErTp),Hs),Env)
+    valis (.doTryCatch(Lc,NB,.vr(Lc,ErNm,ErTp),Hs),Env)
   }
   checkAction(A,Tp,Env,Path) where (Lc,C,T,E) ?= isIfThenElse(A) => valof{
     (CC,E0) = checkGoal(C,Env,Path);
@@ -1055,7 +1051,7 @@ star.compiler.checker{
   }
   checkAction(A,Tp,Env,Path) where (Lc,Op,Args) ?= isRoundTerm(A) => valof{
     Call = typeOfRoundTerm(Lc,Op,Args,newTypeVar("_r"),Env,Path);
-    valis (.doCall(Lc,Call),Env)
+    valis (.doExp(Lc,Call),Env)
   }
   checkAction(A,_Tp,Env,_Path) default => valof{
     Lc = locOf(A);

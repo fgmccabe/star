@@ -50,7 +50,7 @@ overloadRule(Over,rule(Lc,Args,G,Exp),Dict,St,Stx,rule(Lc,RArgs,RG,RExp)) :-
 overloadDefn(Lc,Nm,ExtNm,[],Tp,Exp,Dict,varDef(Lc,Nm,ExtNm,[],Tp,RExp)) :-
   resolveTerm(Exp,Dict,RExp).
 overloadDefn(Lc,Nm,ExtNm,Cx,Tp,Exp,Dict,varDef(Lc,Nm,ExtNm,[],Tp,
-					       lambda(Lc,Lbl,rule(Lc,tple(Lc,CVars),none,RExp),OTp))) :-
+					       lambda(Lc,Lbl,[],rule(Lc,tple(Lc,CVars),none,RExp),OTp))) :-
   defineCVars(Lc,Cx,Dict,CVars,FDict),
   contractTypes(Cx,Tps),
   makeContractFunType(Tp,Tps,OTp),
@@ -70,9 +70,11 @@ defineCVars(Lc,[implementsFace(X,faceType(Flds,_))|Cx],Dict,CVars,FDict) :-
 defineCVars(Lc,[implicit(Nm,Tp)|Cx],Dict,[v(Lc,Nm,Tp)|CVars],FDict) :-
   declareVr(Lc,Nm,Tp,none,Dict,DDict),
   defineCVars(Lc,Cx,DDict,CVars,FDict).
-defineCVars(Lc,[raises(Tp)|Cx],Dict,[v(Lc,"$try",Tp)|CVars],FDict) :-
-  declareVr(Lc,"$try",Tp,none,Dict,DDict),
-  defineCVars(Lc,Cx,DDict,CVars,FDict).
+defineCVars(Lc,[raises(Tp)|Cx],Dict,[v(Lc,TpBlkNm,Tp)|CVars],FDict) :-
+  tpName(Tp,TpNm),
+  mangleName("$R",conTract,TpNm,TpBlkNm),
+  declareTryScope(Lc,Tp,TpBlkNm,Dict,Dict1),
+  defineCVars(Lc,Cx,Dict1,CVars,FDict).
 defineCVars(Lc,[Con|Cx],Dict,[v(Lc,CVarNm,ConTp)|CVars],FDict) :-
   implementationName(Con,ImplNm),
   mangleName("_",value,ImplNm,CVarNm),
@@ -187,6 +189,14 @@ overloadTerm(capply(Lc,Op,Args,Tp),Dict,St,Stx,capply(Lc,ROp,RArgs,Tp)) :-
 overloadTerm(invoke(Lc,Op,Args,Tp),Dict,St,Stx,invoke(Lc,ROp,RArgs,Tp)) :-
   overloadTerm(Op,Dict,St,St0,ROp),
   overloadTerm(Args,Dict,St0,Stx,RArgs).
+overloadTerm(over(Lc,raise(RLc,void,ErExp,ETp),[Cx]),Dict,St,Stx,Over) :-
+  ( resolveConstraint(Lc,Cx,Dict,St,St0,Trw) ->
+    overloadTerm(Trw,Dict,St0,St1,RTrw),
+    overloadTerm(ErExp,Dict,St1,Stx,RExp),
+    Over = raise(RLc,RTrw,RExp,ETp);
+    genMsg("cannot find exception scope for %s",[Cx],Msg),
+    markActive(St,Lc,Msg,Stx),
+    Over = over(Lc,raise(RLc,void,ErExp,ETp),[Cx])).
 overloadTerm(over(Lc,T,Cx),Dict,St,Stx,Over) :-
   ( resolveConstraints(Lc,Cx,Dict,St,St0,DTerms) ->
     resolveRef(T,DTerms,[],OverOp,Dict,St0,St1,NArgs),
@@ -207,16 +217,14 @@ overloadTerm(overaccess(Lc,T,RcTp,Fld,FTp),Dict,St,Stx,Over) :-
 overloadTerm(mtd(Lc,Nm,Tp),_,St,Stx,mtd(Lc,Nm,Tp)) :-
   genMsg("cannot find implementation for %s",[Nm],Msg),
   markActive(St,Lc,Msg,Stx).
-overloadTerm(lambda(Lc,Lbl,Eqn,Tp),Dict,St,Stx,Lam) :-!,
-  overloadLambda(Lc,Lbl,Eqn,Tp,Dict,St,Stx,Lam).
+overloadTerm(lambda(Lc,Lbl,Cx,Eqn,Tp),Dict,St,Stx,Lam) :-!,
+  overloadLambda(Lc,Lbl,Cx,Eqn,Tp,Dict,St,Stx,Lam).
 overloadTerm(valof(Lc,A,Tp),Dict,St,Stx,valof(Lc,AA,Tp)) :-!,
   overloadAction(A,Dict,St,Stx,AA).
 overloadTerm(fiber(Lc,A,Tp),Dict,St,Stx,fiber(Lc,AA,Tp)) :-!,
   overloadTerm(A,Dict,St,Stx,AA).
-overloadTerm(tryCatch(Lc,E,v(TLc,Nm,Tp),H),Dict,St,Stx,tryCatch(Lc,EE,v(TLc,Nm,Tp),HH)) :-
-  declareVr(Lc,Nm,Tp,none,Dict,DDict),
-  overloadTerm(E,DDict,St,St0,EE),
-  overloadCases(H,resolve:overloadTerm,Dict,St0,Stx,HH).
+overloadTerm(tryCatch(Lc,E,V,H),Dict,St,Stx,tryCatch(Lc,EE,V,HH)) :-
+  overloadTryCatch(E,V,H,EE,HH,Dict,St,Stx,resolve:overloadTerm).
 overloadTerm(raise(Lc,T,E,Tp),Dict,St,Stx,raise(Lc,TT,EE,Tp)) :-
   overloadTerm(T,Dict,St,St0,TT),
   overloadTerm(E,Dict,St0,Stx,EE).
@@ -241,8 +249,16 @@ overloadGuard(none,_,Stx,Stx,none) :-!.
 overloadGuard(some(G),Dict,St,Stx,some(RG)) :-
   overloadTerm(G,Dict,St,Stx,RG).
 
-overloadLambda(Lc,Lbl,Eqn,Tp,Dict,St,Stx,lambda(Lc,Lbl,OEqn,Tp)) :-!,
-  overloadRule(resolve:overloadTerm,Eqn,Dict,St,Stx,OEqn).
+overloadTryCatch(E,v(Lc,ErNm,ErTp),H,EE,HH,Dict,St,Stx,Over) :-
+  declareTryScope(Lc,ErTp,ErNm,Dict,Dict2),
+  call(Over,E,Dict2,St,St0,EE),
+  overloadCases(H,Over,Dict,St0,Stx,HH).
+
+overloadLambda(Lc,Lbl,[],Eqn,Tp,Dict,Stx,Stx,lambda(Lc,Lbl,[],OEqn,Tp)) :-!,
+  overloadEquation([],Eqn,Dict,OEqn).
+overloadLambda(Lc,Lbl,Cx,Eqn,Tp,Dict,Stx,Stx,lambda(Lc,Lbl,[],OEqn,Tp)) :-
+  defineCVars(Lc,Cx,Dict,CVars,FDict),
+  overloadEquation(CVars,Eqn,FDict,OEqn).
 					      
 overloadLet(Lc,Decls,Defs,Bound,RR,Dict,St,Stx,RDefs,RBound) :-
   declareAllDecls(Decls,Lc,Dict,RDict),
@@ -269,10 +285,8 @@ overloadAction(doMatch(Lc,P,A),Dict,St,Stx,doMatch(Lc,PP,AA)) :-
 overloadAction(doAssign(Lc,P,A),Dict,St,Stx,doAssign(Lc,PP,AA)) :-
   overloadTerm(P,Dict,St,St1,PP),
   overloadTerm(A,Dict,St1,Stx,AA).
-overloadAction(doTryCatch(Lc,A,v(TLc,Nm,Tp),H),Dict,St,Stx,doTryCatch(Lc,AA,v(TLc,Nm,Tp),HH)) :-
-  declareVr(Lc,Nm,Tp,none,Dict,DDict),
-  overloadAction(A,DDict,St,St1,AA),
-  overloadCases(H,resolve:overloadAction,Dict,St1,Stx,HH).
+overloadAction(doTryCatch(Lc,A,V,H),Dict,St,Stx,doTryCatch(Lc,AA,V,HH)) :-
+  overloadTryCatch(A,V,H,AA,HH,Dict,St,Stx,resolve:overloadAction).
 overloadAction(doIfThenElse(Lc,T,A,B),Dict,St,Stx,doIfThenElse(Lc,TT,AA,BB)) :-
   overloadTerm(T,Dict,St,St1,TT),
   overloadAction(A,Dict,St1,St2,AA),
@@ -320,7 +334,7 @@ overApply(Lc,OverOp,Args,Tp,Lam) :-
   curryOver(Lc,OverOp,Args,Tp,Lam).
 
 curryOver(Lc,OverOp,Cx,Tp,
-    lambda(Lc,Lbl,rule(Lc,tple(Lc,Args),none,
+    lambda(Lc,Lbl,[],rule(Lc,tple(Lc,Args),none,
           apply(Lc,OverOp,tple(Lc,NArgs),Tp)),funType(tplType(ArTps),Tp))) :-
   progArgTypes(Tp,ArTps),
   genVrs(ArTps,Lc,Args),
@@ -451,11 +465,12 @@ resolveConstraint(Lc,implicit(Nm,Tp),Dict,St,Stx,Over) :-
    genMsg("implicit %s:%s not defined",[Nm,tpe(Tp)],Msg),
    markActive(St,Lc,Msg,Stx)).
 resolveConstraint(Lc,raises(Tp),Dict,St,Stx,Over) :-
-  (getVar(Lc,"$try",Dict,Vr,ITp),
-   (sameType(ITp,Tp,Lc,Dict),
+  tpName(Tp,TpNm),
+  (getTryScope(TpNm,Dict,TLc,VrNm,ErTp),
+   (sameType(ErTp,Tp,Lc,Dict),!,
     markResolved(St,St1),
-    overloadTerm(Vr,Dict,St1,Stx,Over);
-    genMsg("raises %s not consistent with %s",[tpe(ITp),tpe(Tp)],Msg),
+    overloadTerm(v(TLc,VrNm,ErTp),Dict,St1,Stx,Over);
+    genMsg("raises %s not consistent with %s",[tpe(ErTp),tpe(Tp)],Msg),
     markActive(St,Lc,Msg,Stx)) ;
    genMsg("exception context for %s not defined",[tpe(Tp)],Msg),
    markActive(St,Lc,Msg,Stx)).

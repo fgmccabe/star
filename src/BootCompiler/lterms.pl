@@ -189,10 +189,9 @@ ssTrm(tsk(_,A),Dp,sq([ss("fiber "),AA])) :-
   ssTrm(A,Dp,AA).
 ssTrm(vlof(_,A),Dp,sq([ss("valof "),AA])) :-
   ssAct(A,Dp,AA).
-ssTrm(try(_,B,T,E,H),Dp,sq([ss("try "),TT,ss(" in "),BB,ss(" catch "),EE,ss(" in "),HH])) :-
+ssTrm(try(_,B,T,_E,H),Dp,sq([ss("try "),BB,ss(" catch "),TT,ss(" in "),HH])) :-
   Dp2 is Dp+2,
   ssTrm(T,Dp,TT),
-  ssTrm(E,Dp,EE),
   ssTrm(B,Dp2,BB),
   ssTrm(H,Dp,HH).
 

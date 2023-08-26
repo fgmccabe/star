@@ -447,19 +447,16 @@ star.compiler.types{
       .tpExp(O2,A) .= deRef(O) &&
       .tpFun("<=>",2).=deRef(O2) => deRef(A).
   funTypeArg(.allType(_,Tp)) => funTypeArg(deRef(Tp)).
-  funTypeArg(.constrainedType(T,_))=>funTypeArg(T).
+  funTypeArg(.constrainedType(T,_))=>funTypeArg(deRef(T)).
 
-  public funTypeRes(Tp) where
-      .tpExp(O,R) .= deRef(Tp) &&
-      .tpExp(O2,_) .= deRef(O) &&
+  public funTypeRes(Tp) => funRes(deRef(Tp)).
+  funRes(tpExp(O,R)) where .tpExp(O2,_) .= deRef(O) &&
       .tpFun("=>",2).=deRef(O2) => deRef(R).
-  funTypeRes(Tp) where
-      .tpExp(O,R) .= deRef(Tp) &&
-      .tpExp(O2,A) .= deRef(O) &&
+  funRes(.tpExp(O,R)) where .tpExp(O2,A) .= deRef(O) &&
       .tpFun("<=>",2).=deRef(O2) => deRef(R).
-  funTypeRes(.allType(_,Tp)) => funTypeRes(deRef(Tp)).
-  funTypeRes(.existType(_,Tp)) => funTypeRes(deRef(Tp)).
-  funTypeRes(.constrainedType(T,_))=>funTypeRes(T).
+  funRes(.allType(_,Tp)) => funTypeRes(Tp).
+  funRes(.existType(_,Tp)) => funTypeRes(Tp).
+  funRes(.constrainedType(T,_))=>funTypeRes(T).
 
   public isFunType:(tipe) => option[(tipe,tipe)].
   isFunType(Tp) where

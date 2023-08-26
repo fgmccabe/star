@@ -180,12 +180,12 @@ transformConsDef(Lc,Nm,Tp,Map,[lblDef(Lc,lbl(Nm,Ar),Tp,Ix)|Dx],Dx) :-
   is_member((lbl(Nm,_),Ix),IxMap).
 
 transformFunction(Lc,Nm,LclName,H,Tp,Extra,Eqns,Map,Opts,[Fun|Ex],Exx) :-
-  (is_member(showTrCode,Opts) -> dispFunction(LclName,Tp,Eqns);true),
+%  (is_member(showTrCode,Opts) -> dispFunction(LclName,Tp,Eqns);true),
   progTypeArity(Tp,Arity),
   extraArity(Arity,Extra,Ar),
   extendFunTp(Tp,Extra,ATp),
   transformEquations(Map,Extra,Opts,Eqns,Rules,[],Ex,Ex0),
-  (is_member(showTrCode,Opts) -> dispEquations(Rules);true),
+%  (is_member(showTrCode,Opts) -> dispEquations(Rules);true),
   closureEntry(Map,Lc,Nm,Tp,Arity,Extra,Ex0,Exx),
   functionMatcher(Lc,Ar,lbl(LclName,Ar),H,ATp,Rules,Map,Fun),!.
 %  (is_member(showTrCode,Opts) -> dispRuleSet(Fun);true).
@@ -416,8 +416,8 @@ liftExp(letExp(Lc,Decls,Defs,Bnd),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftLetExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(letRec(Lc,Decls,Defs,Bnd),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftLetRecExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(lambda(Lc,Lbl,Rle,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-!,
-  liftLambda(lambda(Lc,Lbl,Rle,Tp),Rslt,Q,Map,Opts,Ex,Exx).
+liftExp(lambda(Lc,Lbl,[],Rle,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-!,
+  liftLambda(lambda(Lc,Lbl,[],Rle,Tp),Rslt,Q,Map,Opts,Ex,Exx).
 liftExp(valof(Lc,A,_),vlof(Lc,Rslt),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftAction(A,Rslt,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(fiber(Lc,A,_),tsk(Lc,F),Q,Qx,Map,Opts,Ex,Exx) :-
@@ -459,21 +459,21 @@ liftAction(doWhile(Lc,G,B),whle(Lc,GG,BB),Q,Q,Map,Opts,Ex,Exx) :-!,
   liftGoal(G,GG,Q,Q0,Map,Opts,Ex,Ex0),
   liftAction(B,BB,Q0,_,Map,Opts,Ex0,Exx).
 liftAction(doLet(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
-  (is_member(showTrCode,Opts) -> dispAction(doLet(Lc,Decls,Defs,B));true),
+%  (is_member(showTrCode,Opts) -> dispAction(doLet(Lc,Decls,Defs,B));true),
   genVar("_ThR",ThVr),
   letActionMap(Lc,Decls,Defs,B,ThVr,Q,Map,Opts,ThMap,RMap,FreeTerm),
   transformLetDefs(ThMap,RMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
   liftAction(B,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
-  mkFreeActionLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
-  (is_member(showTrCode,Opts) -> dispAct(Exp);true).
+  mkFreeActionLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp).
+%  (is_member(showTrCode,Opts) -> dispAct(Exp);true).
 liftAction(doLetRec(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
-  (is_member(showTrCode,Opts) -> dispAction(doLetRec(Lc,Decls,Defs,B));true),
+%  (is_member(showTrCode,Opts) -> dispAction(doLetRec(Lc,Decls,Defs,B));true),
   genVar("_ThR",ThVr),
   letRecActionMap(Lc,Decls,Defs,B,ThVr,Q,Map,Opts,ThMap,FreeTerm),
   transformLetDefs(ThMap,ThMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
   liftAction(B,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
-  mkFreeActionLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
-  (is_member(showTrCode,Opts) -> dispAct(Exp);true).
+  mkFreeActionLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp).
+%  (is_member(showTrCode,Opts) -> dispAct(Exp);true).
 liftAction(doCase(Lc,B,Cs,_),Reslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(B,BB,Q,Q0,Map,Opts,Ex,Ex0),
   liftCases(Cs,Cases,Q0,Qx,Map,Opts,transform:liftAction,Ex0,Exx),
@@ -604,11 +604,11 @@ liftCase(rule(Lc,P,G,Value),(Lc,[Ptn],Test,Rep),Q,Qx,Map,Opts,Lifter,Ex,Exx) :-
   liftGuard(G,Test,Q0,Q1,Map,Opts,Ex0,Ex1), % condition goals
   call(Lifter,Value,Rep,Q1,Qx,Map,Opts,Ex1,Exx). % replacement expression
 
-liftLambda(lambda(Lc,LamLbl,Eqn,Tp),clos(LamLbl,Ar,FreeTerm),Q,Map,Opts,[LamFun|Ex],Exx) :-
+liftLambda(lambda(Lc,LamLbl,_,Eqn,Tp),clos(LamLbl,Ar,FreeTerm),Q,Map,Opts,[LamFun|Ex],Exx) :-
   progTypeArity(Tp,Ar0),
   Ar is Ar0+1,
-  (is_member(showTrCode,Opts) -> dispCanon(lambda(Lc,LamLbl,Eqn,Tp));true),
-  lambdaMap(lambda(Lc,LamLbl,Eqn,Tp),ThVr,Q,Map,Opts,FreeTerm,LMap),
+%  (is_member(showTrCode,Opts) -> dispCanon(lambda(Lc,LamLbl,[],Eqn,Tp));true),
+  lambdaMap(lambda(Lc,LamLbl,[],Eqn,Tp),ThVr,Q,Map,Opts,FreeTerm,LMap),
   transformEqn(Eqn,LMap,[ThVr],Opts,Rls,[],Ex,Exx),
 %  is_member((_,Args,_,_),Rls),!,
 %  length(Args,Ar),

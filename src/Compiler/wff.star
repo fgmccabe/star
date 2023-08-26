@@ -775,15 +775,16 @@ star.compiler.wff{
 
   public mkPerform(Lc,A) => unary(Lc,"perform",A).
 
-  public isTryCatch:(ast) => option[(option[locn],ast,cons[ast])].
+  public isTryCatch:(ast) => option[(option[locn],ast,ast,cons[ast])].
   isTryCatch(A) where (Lc,I) ?= isUnary(A,"try") &&
-      (_,B,H) ?= isBinary(I,"catch") &&
-	  (_,Hs) ?= isBrTuple(H) =>
-    ([El].=Hs ?? .some((Lc,B,deBar(El))) || .some((Lc,B,Hs))).
+      (_,B,R) ?= isBinary(I,"catch") &&
+	  (_,E,H) ?= isBinary(R,"in") &&
+	      (_,Hs) ?= isBrTuple(H) =>
+    ([El].=Hs ?? .some((Lc,B,E,deBar(El))) || .some((Lc,B,E,Hs))).
   isTryCatch(_) default => .none.
 
-  public mkTryCatch(Lc,B,Hs) =>
-    unary(Lc,"try",binary(Lc,"catch",B,brTuple(Lc,[reBar(Hs)]))).
+  public mkTryCatch(Lc,B,E,Hs) =>
+    unary(Lc,"try",binary(Lc,"catch",B,binary(Lc,"in",E,brTuple(Lc,[reBar(Hs)])))).
 
   public isIfThenElse:(ast) => option[(option[locn],ast,ast,ast)].
   isIfThenElse(A) where

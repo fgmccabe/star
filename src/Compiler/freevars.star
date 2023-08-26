@@ -59,7 +59,7 @@ star.compiler.freevars{
     .susp(_,F,E,_) => freeVarsInExp(F,Q,freeVarsInExp(E,Q,Fv)).
     .rsme(_,F,E,_) => freeVarsInExp(F,Q,freeVarsInExp(E,Q,Fv)).
     .rtire(_,F,E) => freeVarsInExp(F,Q,freeVarsInExp(E,Q,Fv)).
-    .lambda(_,_,Eqns,_) =>
+    .lambda(_,_,Eqns,_,_) =>
       foldRight((Rl,F)=>freeVarsInRule(Rl,Q,F),Fv,Eqns).
     .letExp(_,D,_,E) => let{
       QD = dropDefs(D,Q).
@@ -85,7 +85,6 @@ star.compiler.freevars{
     .doLbld(_,_,A) => freeVarsInAct(A,Q,Fv).
     .doBrk(_,_) => Fv.
     .doValis(_,E) => freeVarsInExp(E,Q,Fv).
-    .doRaise(_,T,E) => freeVarsInExp(T,Q,freeVarsInExp(E,Q,Fv)).
     .doRetire(_,T,E) => freeVarsInExp(T,Q,freeVarsInExp(E,Q,Fv)).
     .doDefn(_,P,E) where Q1 .= dropVars(P,Q) =>
       freeVarsInExp(E,Q1,freeVarsInExp(P,Q1,Fv)).
@@ -110,7 +109,7 @@ star.compiler.freevars{
       QD = dropDefs(Dfs,Q);
       valis freeVarsInAct(A,QD,freeVarsInDefs(Dfs,QD,Fv))
     }.
-    .doCall(_,C) => freeVarsInExp(C,Q,Fv).
+    .doExp(_,C) => freeVarsInExp(C,Q,Fv).
     _ default => valof{
       reportError("cant find free vars in $(Ac)",locOf(Ac));
       valis Fv
@@ -206,7 +205,7 @@ star.compiler.freevars{
     .conj(Lc,L,R) => ptnVars(R,ptnVars(L,Q,Fv),Fv).
     .disj(Lc,L,R) => ptnVars(L,Q,Fv)/\ptnVars(R,Q,Fv).
     .neg(Lc,R) => Q.
-    .lambda(_,_,_,_) => Q.
+    .lambda(_,_,_,_,_) => Q.
     .letExp(_,B,_,E) => Q.
     .letRec(_,B,_,E) => Q.
   }

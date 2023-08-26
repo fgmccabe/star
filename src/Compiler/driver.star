@@ -56,7 +56,7 @@ star.compiler{
 	    traceInlineOption],
 	  defltOptions(WI,RI)
 	))
-    } catch {
+    } catch string in {
       Msg => { logMsg(Msg);
 	valis ()
       }
@@ -123,10 +123,10 @@ star.compiler{
 	      };
 	      valis simplifyDefs(N);
 	    } || N);
-	  validProg(Inlined,AllDecls);
 	  if showNormalize! then{
 	    logMsg("normalized code #(dispCrProg(Inlined))");
 	  };
+	  validProg(Inlined,AllDecls);
 	  if errorFree() && genCode! then{
 	    Segs = compProg(P,Inlined,AllDecls);
 
@@ -182,8 +182,9 @@ star.compiler{
     Repp = ref Repo;
 
     pkgLoop: for (P,Imps) in Pks do{
---      logMsg("is $(P) ok? $(pkgOk(Repo,P))");
-      if ~ {? (pkgOk(Repo,P) && I in Imps *> pkgOk(Repo,I)) ?} then{
+      if traceDependencies! then
+	logMsg("$(P) #(pkgOkInRepo(Repo,P,Imps) ?? "does not" || "needs") recompiling");
+      if ~pkgOkInRepo(Repo,P,Imps) then{
 	Repp := processPkg(P,Repp!,Cat);
 	if ~errorFree() then{
 	  break pkgLoop

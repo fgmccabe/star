@@ -287,9 +287,10 @@ collectTermRefs(T,A,R0,Rx) :-
   isValof(T,_,E),!,
   collectDoRefs(E,A,R0,Rx).
 collectTermRefs(T,All,Rf,Rfx) :-
-  isTryCatch(T,_,L,C),!,
+  isTryCatch(T,_,L,E,C),!,
   collectTermRefs(L,All,Rf,Rf1),
-  collectCaseRefs(C,collectTermRefs,All,Rf1,Rfx).
+  collectTypeRefs(E,All,Rf1,Rf2),
+  collectCaseRefs(C,collectTermRefs,All,Rf2,Rfx).
 collectTermRefs(T,All,Rf,Rfx) :-
   isRaise(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
@@ -436,9 +437,10 @@ collectDoRefs(T,All,Rf,Rfx) :-
   collectTermRefs(Tt,All,Rf,Rf0),
   collectDoRefs(B,All,Rf0,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
-  isTryCatch(T,_,L,C),!,
+  isTryCatch(T,_,L,E,C),!,
   collectDoRefs(L,All,Rf,Rf1),
-  collectCaseRefs(C,collectDoRefs,All,Rf1,Rfx).
+  collectTypeRefs(E,All,Rf1,Rf2),
+  collectCaseRefs(C,collectDoRefs,All,Rf2,Rfx).
 collectDoRefs(T,A,R,Rx) :-
   isLetDef(T,_,S,B),!,
   collectStmtRefs(S,A,[],R,R0),

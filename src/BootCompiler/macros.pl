@@ -500,10 +500,11 @@ examineTerm(T,Tx) :-
   macroTerm(O,Ox),
   qbraceTerm(Lc,Ox,Dx,Tx).
 examineTerm(A,Ax) :-
-  isTryCatch(A,Lc,B,C),!,
+  isTryCatch(A,Lc,B,E,C),!,
   macroTerm(B,Bx),
+  macroType(E,Ex),
   map(C,macros:macroLambda,Cs),
-  mkTryCatch(Lc,Bx,Cs,Ax).
+  mkTryCatch(Lc,Bx,Ex,Cs,Ax).
 examineTerm(A,Ax) :-
   isRaise(A,Lc,V),!,
   macroTerm(V,Vx),
@@ -682,10 +683,11 @@ examineAction(A,Ax) :-
   macroAction(L,Lx),
   mkIfThen(Lc,Tx,Lx,Ax).
 examineAction(A,Ax) :-
-  isTryCatch(A,Lc,B,C),!,
+  isTryCatch(A,Lc,B,E,C),!,
   macroAction(B,Bx),
+  macroType(E,Ex),
   map(C,macros:actionCase,Cs),
-  mkTryCatch(Lc,Bx,Cs,Ax).
+  mkTryCatch(Lc,Bx,Ex,Cs,Ax).
 examineAction(A,Ax) :-
   isWhileDo(A,Lc,T,B),!,
   macroTerm(T,Tx),

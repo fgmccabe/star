@@ -62,6 +62,11 @@ sameConstraint(C1,C2,Lc,Env) :-
   sameContract(C1,C2,Lc,Env),!.
 sameConstraint(C1,C2,Lc,Env) :-
   sameImplements(C1,C2,Lc,Env).
+sameConstraint(raises(T1),raises(T2),Lc,Env) :-
+  sameType(T1,T2,Lc,Env).
+sameConstraint(implicit(Nm,T1),implicit(Nm,T2),Lc,Env) :-
+  sameType(T1,T2,Lc,Env).
+
 
 sameContract(conTract(Nm,A1,D1),conTract(Nm,A2,D2),Lc,Env) :-
   smpTps(A1,Lc,Env,[],_,AA1),

@@ -142,7 +142,8 @@
     "test.ts1": "ts1.star",
     "test.ts2": "ts2.star",
     "test.tsort": "tsort.star",
-    "test.u": "u.star"
+    "test.u": "u.star",
+    "test.y": "y.star"
   },
   "version": "1.0.0",
   "default": "../Star/catalog",
