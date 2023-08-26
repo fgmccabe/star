@@ -19,6 +19,10 @@ star.compiler.matcher{
   functionMatcher(Lc,Nm,Tp,Map,Eqns) => valof{
     NVrs = genVars(Lc,funTypeArg(Tp));
     Trpls = makeTriples(Eqns);
+
+    if traceNormalize! then
+      logMsg("generate matcher for #(Nm), new args = $(NVrs), initial triples $(Trpls)");
+
     Error = genRaise(Lc,Nm,funTypeRes(Tp));
     Reslt = matchTriples(Lc,NVrs,Trpls,Error,0,Map);
     valis .fnDef(Lc,Nm,Tp,NVrs//(.cVar(_,V))=>V,Reslt)
@@ -154,7 +158,8 @@ star.compiler.matcher{
   mkMatchCond([.cVar(VLc,.cId(Vr,VTp)),..Args],[V,..Vars],Test,Lc,Val) => valof{
     if traceNormalize! then
       logMsg("match $(Vr) with $(V)");
-    Mp = { .tLbl(Vr,arity(VTp))->.vrDef(VLc,Vr,VTp,V)};
+
+    Mp = rwVar({Vr->V});
     NArgs = rewriteTerms(Args,Mp);
     if traceNormalize! then
       logMsg("rewritten args $(NArgs)");
@@ -222,20 +227,32 @@ star.compiler.matcher{
   
   matchVars:all e ~~ reform[e],rewrite[e],display[e] |:
     (cons[triple[e]],cons[cExp],option[locn],e,integer,nameMap)=>e.
-  matchVars(Triples,[V,..Vrs],Lc,Deflt,Depth,Map) =>
-    matchTriples(Lc,Vrs,applyVar(V,Triples),Deflt,Depth,Map).
+  matchVars(Triples,[V,..Vrs],Lc,Deflt,Depth,Map) => valof{
+    if traceNormalize! then
+      logMsg("var match, subsititute for $(V) in $(Triples)");
 
-  applyVar:all e ~~ rewrite[e] |: (cExp,cons[triple[e]]) => cons[triple[e]].
+    valis matchTriples(Lc,Vrs,applyVar(V,Triples),Deflt,Depth,Map)
+  }
+
+  applyVar:all e ~~ rewrite[e], display[e] |: (cExp,cons[triple[e]]) => cons[triple[e]].
   applyVar(V,Triples) => let{
     applyToTriple:(triple[e])=>triple[e].
     applyToTriple(([.cAnon(VLc,VTp),..Args],(CLc,B,Gl,Exp),Ix)) => valof{
       valis (Args, (CLc,B,Gl,Exp),Ix)
     }
     applyToTriple(([.cVar(VLc,.cId(Vr,VTp)),..Args],(CLc,B,Gl,Exp),Ix)) => valof{
-      Mp = { .tLbl(Vr,arity(VTp))->.vrDef(VLc,Vr,VTp,V)};
+      Mp = rwVar({Vr->V});
+
+      if traceNormalize! then
+	logMsg("replace #(Vr)\:$(VTp) with $(V)");
+
       NArgs = rewriteTerms(Args,Mp);
       NGl = fmap((T)=>rewrite(T,Mp),Gl);
       NExp = rewrite(Exp,Mp);
+
+      if traceNormalize! then
+	logMsg("result $(NExp)");
+
       valis (NArgs, (CLc,B,NGl,NExp),Ix)
     }
   } in (Triples//applyToTriple).

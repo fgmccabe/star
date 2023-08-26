@@ -11,7 +11,6 @@ star.redblack{
   import star.option.
   import star.strings.
   import star.tuples.
-  import star.fiber.
 
   -- red/black trees
 

@@ -451,7 +451,29 @@ star.compiler.types{
       .tpExp(O2,A) .= deRef(O) &&
       .tpFun("<=>",2).=deRef(O2) => deRef(A).
   funTypeArg(.allType(_,Tp)) => funTypeArg(deRef(Tp)).
-  funTypeArg(.constrainedType(T,_))=>funTypeArg(deRef(T)).
+  funTypeArg(.constrainedType(T,C))=>extendArgType(funTypeArg(deRef(T)),.some(C)).
+
+  public extendFunTp:all x ~~ hasType[x] |: (tipe,option[x])=>tipe.
+  extendFunTp(Tp,.none) => Tp.
+  extendFunTp(Tp,Vs) where (A,B)?=isFunType(Tp) &&
+      .tupleType(Es).=deRef(A) =>
+    funType(extendTplType(Es,Vs),B).
+  extendFunTp(.allType(V,B),Vs) => .allType(V,extendFunTp(B,Vs)).
+  extendFunTp(.existType(V,B),Vs) => .existType(V,extendFunTp(B,Vs)).
+  extendFunTp(.constrainedType(T,C),Vs) => .constrainedType(extendFunTp(T,Vs),C).
+
+  extendArgType:all x ~~ hasType[x] |: (tipe,option[x])=>tipe.
+  extendArgType(Tp,.none) => Tp.
+  extendArgType(Tp,.some(C)) => case deRef(Tp) in {
+    .tupleType(Els) => .tupleType([typeOf(C),..Els]).
+  }.
+
+  public extendTplType:all x ~~ hasType[x] |:
+    (cons[tipe],option[x])=>cons[tipe].
+  extendTplType(Es,.none) => Es.
+  extendTplType(Es,.some(E)) => [typeOf(E),..Es].
+
+
 
   public funTypeRes(Tp) => funRes(deRef(Tp)).
 
