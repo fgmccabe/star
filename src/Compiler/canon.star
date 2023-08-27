@@ -30,7 +30,7 @@ star.compiler.canon{
   .cond(option[locn],canon,canon,canon) |
   .apply(option[locn],canon,cons[canon],tipe) |
   .tple(option[locn],cons[canon]) |
-  .lambda(option[locn],string,cons[rule[canon]],cons[constraint],tipe) |
+  .lambda(option[locn],string,rule[canon],cons[constraint],tipe) |
   .spwn(option[locn],canon,tipe) |
   .paus(option[locn],canon,tipe) |
   .susp(option[locn],canon,canon,tipe) |
@@ -220,7 +220,7 @@ star.compiler.canon{
       "(#(showCanon(T,Lp,Sp)) ?? #(showCanon(L,Rp,Sp)) || #(showCanon(R,Rp,Sp)))".
     .apply(_,L,R,_) => showApply(L,R,Pr,Sp).
     .tple(_,Els) => "(#(showTuple(Els,Sp)))".
-    .lambda(_,Nm,Rls,_,_) => "(#(showRls(Nm,Rls,showCanon,Sp++"  ")))".
+    .lambda(_,Nm,Rl,_,_) => "(#(showRl(Nm,"=>",Rl,showCanon,Sp++"  ")))".
     .letExp(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
       "#(leftParen(OPr,Pr))let {\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))".
     .letRec(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
