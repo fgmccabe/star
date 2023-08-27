@@ -209,9 +209,6 @@ star.compiler.checker{
     }
   }
 
-  allFunDefs:(cons[canonDef])=>boolean.
-  allFunDefs(Dfs) => {? D in Dfs *> .varDef(_,_,.lambda(_,_,_,_,_),_,_).=D ?}.
-
   checkGroup:(cons[defnSpec],publishFn,dict,dict,string) =>
     (cons[canonDef],cons[decl],cons[decl]).
   checkGroup(Specs,Publish,Env,Outer,Path) => let{.
@@ -289,10 +286,9 @@ star.compiler.checker{
     FullNm = qualifiedName(Path,.valMark,Nm);
 
     if traceCanon! then
-      logMsg("function $(.varDef(Lc,FullNm,.lambda(Lc,lambdaLbl(Lc),Rls,[],Tp),Cx,Tp))");
+      logMsg("function $(.funDef(Lc,FullNm,Rls,Cx,Tp))");
     
-    valis ([.varDef(Lc,FullNm,.lambda(Lc,lambdaLbl(Lc),Rls,[],Tp),Cx,Tp)],
-      [.funDec(Lc,Nm,FullNm,Tp)])
+    valis ([.funDef(Lc,FullNm,Rls,Cx,Tp)],[.funDec(Lc,Nm,FullNm,Tp)])
   }
 
   checkVar:(string,tipe,option[locn],ast,dict,dict,string) => (cons[canonDef],cons[decl]).

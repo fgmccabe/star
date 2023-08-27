@@ -733,7 +733,7 @@ star.compiler.typeparse{
 
       AccFnNm = qualifiedName(tpName(RcTp),.fldMark,Fld);
       
-      Acc = .varDef(Lc,AccFnNm,.lambda(Lc,AccFnNm,AcEqs,[],AccFnTp),Cx,AccFnTp);
+      Acc = .funDef(Lc,AccFnNm,AcEqs,Cx,AccFnTp);
       AccDec = .accDec(Lc,RcTp,Fld,AccFnNm,AccFnTp);
       AccFnDec = .funDec(Lc,AccFnNm,AccFnNm,AccFnTp);
       valis ([Acc],[AccDec,AccFnDec])
@@ -773,7 +773,7 @@ star.compiler.typeparse{
 
       UpdFnNm = qualifiedName(tpName(RcTp),.overMark,Fld);
 
-      Upd = .varDef(Lc,UpdFnNm,.lambda(Lc,UpdFnNm,AcEqs,[],UpdFnTp),Cx,UpdFnTp);
+      Upd = .funDef(Lc,UpdFnNm,AcEqs,Cx,UpdFnTp);
       UpdDec = .updDec(Lc,RcTp,Fld,UpdFnNm,UpdFnTp);
       UpdFnDec = .funDec(Lc,UpdFnNm,UpdFnNm,UpdFnTp);
       valis ([Upd],[UpdDec,UpdFnDec])

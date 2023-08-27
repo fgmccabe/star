@@ -15,17 +15,23 @@ star.compiler.matcher{
   all e ~~ triple[e] ~>
     (cons[cExp],(option[locn],cons[(string,cId)],option[cExp],e),integer).
 
-  public functionMatcher:(option[locn],string,tipe,nameMap,cons[(option[locn],cons[cExp],option[cExp],cExp)]) => cDefn.
+  public functionMatcher:(option[locn],string,tipe,nameMap,cons[(option[locn],cons[cExp],option[cExp],cExp)]) => option[cDefn].
   functionMatcher(Lc,Nm,Tp,Map,Eqns) => valof{
-    NVrs = genVars(Lc,funTypeArg(Tp));
-    Trpls = makeTriples(Eqns);
+    if FTp ?= funTypeArg(Tp) then{
+      NVrs = genVars(Lc,FTp);
+      Trpls = makeTriples(Eqns);
 
-    if traceNormalize! then
-      logMsg("generate matcher for #(Nm), new args = $(NVrs), initial triples $(Trpls)");
+      if traceNormalize! then
+	logMsg("generate matcher for #(Nm), new args = $(NVrs), initial triples $(Trpls)");
 
-    Error = genRaise(Lc,Nm,funTypeRes(Tp));
-    Reslt = matchTriples(Lc,NVrs,Trpls,Error,0,Map);
-    valis .fnDef(Lc,Nm,Tp,NVrs//(.cVar(_,V))=>V,Reslt)
+      Error = genRaise(Lc,Nm,funTypeRes(Tp));
+      Reslt = matchTriples(Lc,NVrs,Trpls,Error,0,Map);
+      valis .some(.fnDef(Lc,Nm,Tp,NVrs//(.cVar(_,V))=>V,Reslt))
+    }
+    else{
+      reportError("Cant create a match for non function type $(Tp)",Lc);
+      valis .none
+    }
   }
 
   public caseMatcher:all e ~~ reform[e],rewrite[e],display[e] |: (option[locn],nameMap,cExp,e,

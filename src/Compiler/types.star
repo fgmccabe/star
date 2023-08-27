@@ -442,16 +442,17 @@ star.compiler.types{
   public optType(Tp) => .tpExp(.tpFun("star.core*option",1),Tp).
   public continType(A,B) => .tpExp(.tpExp(.tpFun("=>>",2),A),B).
 
-  public funTypeArg(Tp) where
-      .tpExp(O,_) .= deRef(Tp) &&
-      .tpExp(O2,A) .= deRef(O) &&
-      .tpFun("=>",2).=deRef(O2) => deRef(A).
-  funTypeArg(Tp) where
-      .tpExp(O,_) .= deRef(Tp) &&
-      .tpExp(O2,A) .= deRef(O) &&
-      .tpFun("<=>",2).=deRef(O2) => deRef(A).
-  funTypeArg(.allType(_,Tp)) => funTypeArg(deRef(Tp)).
-  funTypeArg(.constrainedType(T,C))=>extendArgType(funTypeArg(deRef(T)),.some(C)).
+  public funTypeArg:(tipe) => option[tipe].
+  funTypeArg(Tp) => let{.
+    funTpArg(.tpExp(O,_)) where .tpExp(O2,A) .= deRef(O) &&
+	.tpFun("=>",2).=deRef(O2) => .some(deRef(A)).
+    funTpArg(.tpExp(O,_)) where .tpExp(O2,A) .= deRef(O) &&
+	.tpFun("<=>",2).=deRef(O2) => .some(deRef(A)).
+    funTpArg(.allType(_,T)) => funTpArg(deRef(T)).
+    funTpArg(.constrainedType(T,C)) where FTp ?= funTpArg(deRef(T)) =>
+      .some(extendArgType(FTp,.some(C))).
+    funTpArg(_) default => .none
+  .} in funTpArg(deRef(Tp)).
 
   public extendFunTp:all x ~~ hasType[x] |: (tipe,option[x])=>tipe.
   extendFunTp(Tp,.none) => Tp.

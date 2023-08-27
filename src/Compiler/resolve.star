@@ -40,6 +40,23 @@ star.compiler.resolve{
   }
 
   overloadDef:(canonDef,dict)=>(canonDef,dict).
+  overloadDef(.funDef(Lc,Nm,Eqs,Cx,Tp),Dict) => valof{
+    (Extra,CDict) = defineCVars(Lc,Cx,[],Dict);
+    REqns = Eqs//(Eq)=>resolveEqn(Eq,Extra,CDict);
+
+    (Qx,Qt) = deQuant(Tp);
+    (_,ITp) = deConstrain(Qt);
+    if .tupleType(AITp)?=funTypeArg(ITp) && RITp .= funTypeRes(ITp) then {
+      CTp = reQuant(Qx,funType((Cx//typeOf)++AITp,RITp));
+      if traceCanon! then
+	logMsg("overloaded fun $(.varDef(Lc,Nm,.lambda(Lc,Nm,REqns,[],CTp),[],CTp))");
+      valis (.funDef(Lc,Nm,REqns,[],CTp),Dict)
+    }
+    else{
+      reportError("function does not have a function type: $(Tp)",Lc);
+      valis (.funDef(Lc,Nm,Eqs,Cx,Tp),Dict)
+    }
+  }
   overloadDef(.varDef(Lc,Nm,.lambda(_,_,Eqns,_,_),Cx,Tp),Dict) =>
     overloadFunction(Dict,Lc,Nm,Eqns,Cx,Tp).
   overloadDef(.varDef(Lc,Nm,Val,Cx,Tp),Dict) =>
@@ -63,7 +80,7 @@ star.compiler.resolve{
     REqns = Eqns//(Eq)=>resolveEqn(Eq,Extra,CDict);
     (Qx,Qt) = deQuant(Tp);
     (_,ITp) = deConstrain(Qt);
-    if .tupleType(AITp).=funTypeArg(ITp) && RITp .= funTypeRes(ITp) then {
+    if .tupleType(AITp)?=funTypeArg(ITp) && RITp .= funTypeRes(ITp) then {
       CTp = reQuant(Qx,funType((Cx//typeOf)++AITp,RITp));
       if traceCanon! then
 	logMsg("overloaded fun $(.varDef(Lc,Nm,.lambda(Lc,Nm,REqns,[],CTp),[],CTp))");
@@ -332,7 +349,7 @@ star.compiler.resolve{
   overApply(Lc,OverOp,Args,Tp) =>
     curryOver(Lc,OverOp,Args,Tp).
 
-  curryOver(Lc,OverOp,Args,Tp) where .tupleType(ArgTps) .= funTypeArg(Tp) => valof{
+  curryOver(Lc,OverOp,Args,Tp) where .tupleType(ArgTps) ?= funTypeArg(Tp) => valof{
     Vrs = { .vr(Lc,genSym("A"),ArgTp) | ArgTp in ArgTps};
     NArgs = Args++Vrs;
     valis .lambda(Lc,lambdaLbl(Lc),
