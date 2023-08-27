@@ -49,7 +49,7 @@ star.compiler.resolve{
     if .tupleType(AITp)?=funTypeArg(ITp) && RITp .= funTypeRes(ITp) then {
       CTp = reQuant(Qx,funType((Cx//typeOf)++AITp,RITp));
       if traceCanon! then
-	logMsg("overloaded fun $(.varDef(Lc,Nm,.lambda(Lc,Nm,REqns,[],CTp),[],CTp))");
+	logMsg("overloaded fun $(.funDef(Lc,Nm,REqns,[],CTp))");
       valis (.funDef(Lc,Nm,REqns,[],CTp),Dict)
     }
     else{
@@ -57,8 +57,8 @@ star.compiler.resolve{
       valis (.funDef(Lc,Nm,Eqs,Cx,Tp),Dict)
     }
   }
-  overloadDef(.varDef(Lc,Nm,.lambda(_,_,Eqns,_,_),Cx,Tp),Dict) =>
-    overloadFunction(Dict,Lc,Nm,Eqns,Cx,Tp).
+  overloadDef(.varDef(Lc,Nm,.lambda(_,_,Eqn,_,_),Cx,Tp),Dict) =>
+    overloadFunction(Dict,Lc,Nm,[Eqn],Cx,Tp).
   overloadDef(.varDef(Lc,Nm,Val,Cx,Tp),Dict) =>
     overloadVarDef(Dict,Lc,Nm,Val,Cx,Tp).
   overloadDef(.implDef(Lc,Nm,FullNm,Val,Cx,Tp),Dict) =>
@@ -83,11 +83,11 @@ star.compiler.resolve{
     if .tupleType(AITp)?=funTypeArg(ITp) && RITp .= funTypeRes(ITp) then {
       CTp = reQuant(Qx,funType((Cx//typeOf)++AITp,RITp));
       if traceCanon! then
-	logMsg("overloaded fun $(.varDef(Lc,Nm,.lambda(Lc,Nm,REqns,[],CTp),[],CTp))");
-      valis (.varDef(Lc,Nm,.lambda(Lc,Nm,REqns,[],CTp),[],CTp),Dict)
+	logMsg("overloaded fun $(.funDef(Lc,Nm,REqns,[],CTp))");
+      valis (.funDef(Lc,Nm,REqns,[],CTp),Dict)
     } else{
       reportError("type of $(Nm) not a function type",Lc);
-      valis (.varDef(Lc,Nm,.lambda(Lc,Nm,REqns,[],Tp),[],Tp),Dict)
+      valis (.funDef(Lc,Nm,REqns,[],Tp),Dict)
     }
   }
 
@@ -110,7 +110,7 @@ star.compiler.resolve{
     (Qx,Qt) = deQuant(Tp);
     (_,ITp) = deConstrain(Qt);
     CTp = reQuant(Qx,funType(Cx//typeOf,ITp));
-    valis (.varDef(Lc,Nm,.lambda(Lc,lambdaLbl(Lc),[.rule(Lc,.tple(Lc,Cvrs),.none,RVal)],[],CTp),[],Tp),Dict)
+    valis (.varDef(Lc,Nm,.lambda(Lc,lambdaLbl(Lc),.rule(Lc,.tple(Lc,Cvrs),.none,RVal),[],CTp),[],Tp),Dict)
   }
 
   overloadImplDef:(dict,option[locn],string,string,canon,cons[constraint],tipe) =>
@@ -128,7 +128,7 @@ star.compiler.resolve{
       valis (.implDef(Lc,Nm,FullNm,RVal,[],Tp),Dict)
     } else {
       CTp = reQuant(Qx,funType(Cx//genContractType,ITp));
-      valis (.implDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),[.rule(Lc,.tple(Lc,Cvrs),.none,RVal)],[],CTp),[],Tp),Dict)
+      valis (.implDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),.rule(Lc,.tple(Lc,Cvrs),.none,RVal),[],CTp),[],Tp),Dict)
     }
   }
 
@@ -264,17 +264,17 @@ star.compiler.resolve{
     (RRhs,St3) = overloadTerm(Rhs,Dict,St2);
     valis (.cond(Lc,RTst,RLhs,RRhs),St3)
   }
-  overloadTerm(.lambda(Lc,Nm,Rls,Cx,Tp),Dict,St) => valof{
+  overloadTerm(.lambda(Lc,Nm,Rl,Cx,Tp),Dict,St) => valof{
     if traceCanon! then
-      logMsg("overload lambda $(.lambda(Lc,Nm,Rls,Cx,Tp))");
+      logMsg("overload lambda $(.lambda(Lc,Nm,Rl,Cx,Tp))");
     
     (Extra,CDict) = defineCVars(Lc,Cx,[],Dict);
-    (RRls,St1) = overloadRules(Extra,Rls,CDict,St);
+    (RRl,St1) = overloadRule(Extra,Rl,CDict,St);
 
     if traceCanon! then
-      logMsg("overloaded lambda $(.lambda(Lc,Nm,RRls,[],Tp))\:$(Tp)");
+      logMsg("overloaded lambda $(.lambda(Lc,Nm,RRl,[],Tp))\:$(Tp)");
     
-    valis (.lambda(Lc,Nm,RRls,[],Tp),St1)
+    valis (.lambda(Lc,Nm,RRl,[],Tp),St1)
   }
   overloadTerm(.letExp(Lc,Gp,Decls,Rhs),Dict,St) => valof{
     TDict = declareDecls(Decls,Dict);
@@ -353,7 +353,7 @@ star.compiler.resolve{
     Vrs = { .vr(Lc,genSym("A"),ArgTp) | ArgTp in ArgTps};
     NArgs = Args++Vrs;
     valis .lambda(Lc,lambdaLbl(Lc),
-      [.rule(Lc,.tple(Lc,Vrs),.none,.apply(Lc,OverOp,NArgs,Tp))],
+      .rule(Lc,.tple(Lc,Vrs),.none,.apply(Lc,OverOp,NArgs,Tp)),
       [],
       funType(ArgTps,Tp))
   }

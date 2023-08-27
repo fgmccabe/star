@@ -59,8 +59,7 @@ star.compiler.freevars{
     .susp(_,F,E,_) => freeVarsInExp(F,Q,freeVarsInExp(E,Q,Fv)).
     .rsme(_,F,E,_) => freeVarsInExp(F,Q,freeVarsInExp(E,Q,Fv)).
     .rtire(_,F,E) => freeVarsInExp(F,Q,freeVarsInExp(E,Q,Fv)).
-    .lambda(_,_,Eqns,_,_) =>
-      foldRight((Rl,F)=>freeVarsInRule(Rl,Q,F),Fv,Eqns).
+    .lambda(_,_,Rl,_,_) => freeVarsInRule(Rl,Q,Fv).
     .letExp(_,D,_,E) => let{
       QD = dropDefs(D,Q).
     } in freeVarsInExp(E,QD,freeVarsInDefs(D,Q,Fv)).

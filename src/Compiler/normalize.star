@@ -36,8 +36,8 @@ star.compiler.normalize{
   transformDef:(canonDef,nameMap,nameMap,set[cId],option[cExp],cons[cDefn]) =>cons[cDefn].
   transformDef(.funDef(Lc,FullNm,Eqns,_,Tp),Map,Outer,Q,Extra,Ex) =>
     transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex).
-  transformDef(.varDef(Lc,FullNm,.lambda(_,LNm,Eqns,_,Tp),_,_),Map,Outer,Q,Extra,Ex) =>
-    transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex).
+  transformDef(.varDef(Lc,FullNm,.lambda(_,LNm,Eqn,_,Tp),_,_),Map,Outer,Q,Extra,Ex) =>
+    transformFunction(Lc,FullNm,[Eqn],Tp,Map,Outer,Q,Extra,Ex).
   transformDef(.varDef(Lc,FullNm,Val,Cx,Tp),Map,Outer,Q,.none,Ex) => valof{
     (Vl,Defs) = liftExp(Val,Outer,Q,Ex);
     valis [.vrDef(Lc,FullNm,Tp,Vl),..Defs]
@@ -51,7 +51,7 @@ star.compiler.normalize{
 
   transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex) => valof{
     if traceNormalize! then{
-      logMsg("transform function $(.lambda(Lc,FullNm,Eqns,[],Tp)) Q=$(Q) Extra = $(Extra) @ $(Lc)");
+      logMsg("transform function $(.funDef(Lc,FullNm,Eqns,[],Tp)) Q=$(Q) Extra = $(Extra) @ $(Lc)");
     };
     ATp = extendFunTp(deRef(Tp),Extra);
     if traceNormalize! then
@@ -297,11 +297,11 @@ star.compiler.normalize{
       logMsg("lift let exp $(.letRec(Lc,Grp,Decs,Bnd))");
     valis liftLetRec(Lc,Grp,Decs,Bnd,Map,Q,Free,Ex).
   }
-  liftExp(.lambda(Lc,FullNm,Eqns,Cx,Tp),Map,Q,Ex) => valof{
+  liftExp(.lambda(Lc,FullNm,Eqn,Cx,Tp),Map,Q,Ex) => valof{
     if traceNormalize! then
-      logMsg("lift lambda $(.lambda(Lc,FullNm,Eqns,Cx,Tp))\:$(Tp)");
+      logMsg("lift lambda $(.lambda(Lc,FullNm,Eqn,Cx,Tp))\:$(Tp)");
 
-    valis liftExp(.letExp(Lc,[.varDef(Lc,FullNm,.lambda(Lc,FullNm,Eqns,Cx,Tp),[],Tp)],
+    valis liftExp(.letExp(Lc,[.funDef(Lc,FullNm,[Eqn],Cx,Tp)],
 	[.funDec(Lc,FullNm,FullNm,Tp)],
 	.vr(Lc,FullNm,Tp)),Map,Q,Ex)
   }
@@ -584,8 +584,8 @@ star.compiler.normalize{
     Ex1 = transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex);
     valis (Fx,Ex1)
   }
-  transformLetDef(.varDef(Lc,FullNm,.lambda(_,_,Eqns,_,Tp),_,_),Map,Outer,Q,Extra,Fx,Ex) => valof{
-    Ex1 = transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex);
+  transformLetDef(.varDef(Lc,FullNm,.lambda(_,_,Eqn,_,Tp),_,_),Map,Outer,Q,Extra,Fx,Ex) => valof{
+    Ex1 = transformFunction(Lc,FullNm,[Eqn],Tp,Map,Outer,Q,Extra,Ex);
     valis (Fx,Ex1)
   }
   transformLetDef(.varDef(Lc,FullNm,Val,Cx,Tp),Map,Outer,Q,.none,Fx,Ex) => valof{
