@@ -34,6 +34,8 @@ star.compiler.normalize{
   all e ~~ crFlow[e] ~> (e,cons[cDefn]).
 
   transformDef:(canonDef,nameMap,nameMap,set[cId],option[cExp],cons[cDefn]) =>cons[cDefn].
+  transformDef(.funDef(Lc,FullNm,Eqns,_,Tp),Map,Outer,Q,Extra,Ex) =>
+    transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex).
   transformDef(.varDef(Lc,FullNm,.lambda(_,LNm,Eqns,_,Tp),_,_),Map,Outer,Q,Extra,Ex) =>
     transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex).
   transformDef(.varDef(Lc,FullNm,Val,Cx,Tp),Map,Outer,Q,.none,Ex) => valof{
@@ -58,7 +60,7 @@ star.compiler.normalize{
     (Eqs,Ex1) = transformRules(Eqns,Map,Outer,Q,Extra,Ex);
     if traceNormalize! then
       logMsg("transformed equations: $(Eqs)");
-    Func = functionMatcher(Lc,FullNm,ATp,Map,Eqs);
+    Func = _optval(functionMatcher(Lc,FullNm,ATp,Map,Eqs));
     if traceNormalize! then
       logMsg("transformed function $(Func)");
 
@@ -578,6 +580,10 @@ star.compiler.normalize{
   }
 
   transformLetDef:(canonDef,nameMap,nameMap,set[cId],option[cExp],cons[fixUp],cons[cDefn]) => (cons[fixUp],cons[cDefn]).
+  transformLetDef(.funDef(Lc,FullNm,Eqns,_,Tp),Map,Outer,Q,Extra,Fx,Ex) => valof{
+    Ex1 = transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex);
+    valis (Fx,Ex1)
+  }
   transformLetDef(.varDef(Lc,FullNm,.lambda(_,_,Eqns,_,Tp),_,_),Map,Outer,Q,Extra,Fx,Ex) => valof{
     Ex1 = transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex);
     valis (Fx,Ex1)
@@ -756,8 +762,9 @@ star.compiler.normalize{
   collectMtd(_,_,LL) default => LL.
 
   collectQ:(canonDef,set[cId]) => set[cId].
-  collectQ(.varDef(Lc,Nm,Val,_,Tp),Q) => Q\+.cId(Nm,Tp).
-  collectQ(.implDef(Lc,_,FullNm,Val,_,Tp),Q) => Q\+.cId(FullNm,Tp).
+  collectQ(.funDef(_,Nm,_,_,Tp),Q) => Q\+.cId(Nm,Tp).
+  collectQ(.varDef(_,Nm,Val,_,Tp),Q) => Q\+.cId(Nm,Tp).
+  collectQ(.implDef(_,_,FullNm,Val,_,Tp),Q) => Q\+.cId(FullNm,Tp).
   collectQ(.typeDef(_,_,_,_),Q) => Q.
   collectQ(.cnsDef(_,_,_,_),Q) => Q.
 
@@ -785,7 +792,7 @@ star.compiler.normalize{
   }
 
   makeFunVars:(tipe)=>cons[cId].
-  makeFunVars(Tp) where .tupleType(Es).=funTypeArg(deRef(Tp)) => (Es//(E)=>genVar("_",E)).
+  makeFunVars(Tp) where .tupleType(Es)?=funTypeArg(deRef(Tp)) => (Es//(E)=>genVar("_",E)).
 
   genVar:(string,tipe)=>cId.
   genVar(Pr,Tp) => .cId(genId(Pr),Tp).

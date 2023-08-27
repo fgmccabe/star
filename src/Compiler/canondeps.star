@@ -38,6 +38,7 @@ star.compiler.canondeps{
   pickVar(_,Q) => Q.
     
   definedName:(canonDef)=>defnSp.
+  definedName(.funDef(_,Nm,_,_,Tp))=>.varSp(Nm,Tp).
   definedName(.varDef(_,Nm,_,_,Tp))=>.varSp(Nm,Tp).
   definedName(.typeDef(_,Nm,_,_))=>.tpSp(.nomnal(Nm)).
   definedName(.cnsDef(_,Nm,_,Tp))=>.varSp(Nm,Tp).
@@ -56,6 +57,10 @@ star.compiler.canondeps{
   
   findRefs:(canonDef,canonDef,set[cId],set[defnSp])=>defSpec.
   findRefs(Df,D,Q,All) => case Df in {
+    .funDef(_,Nm,Rls,_,Tp) => valof{
+      Free = foldRight((Rl,F)=>freeVarsInRule(Rl,Q,F),[],Rls);
+      valis .defSpec(.varSp(Nm,Tp),{ .varSp(V,T) | .cId(V,T) in Free},D)
+    }.
     .varDef(_,Nm,Val,_,Tp) => .defSpec(.varSp(Nm,Tp),freeRefs(Val,Q,All),D).
     .cnsDef(_,Nm,_,Tp) => .defSpec(.varSp(Nm,Tp),[],D).
     .implDef(_,_,Nm,Val,_,Tp) => .defSpec(.varSp(Nm,Tp),freeRefs(Val,Q,All),D).
