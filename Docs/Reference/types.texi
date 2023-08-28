@@ -1361,6 +1361,31 @@ the lexical context of a @refer{TryCatchAction}, @refer{TryCatchExpression}
 expression, or it must be within the definition of a function that is
 also declared to raise @code{string} exceptions.
 
+It is possible that a function may raise more than one type of
+exception. In which case, the type of the function must reflect all
+the different @code{raises} constraints.
+
+Functions that do not have explicit type annotations have their types
+inferred. Automatically inferred types never include type
+constraints. Once consequence of this is that such functions should
+either not raise exceptions or be defined in a lexical scope which has
+an appropriate exception handler.
+
+An example of this can be seen in:
+
+@example
+innerRaise:(integer) => string.
+innerRaise(X) => (try
+  let@{
+    inner(U) where U<0 => raise "$(U) is less than zero".
+    inner(U) => disp(U*U)
+  @} in inner(X)
+  catch string in @{
+    Msg => Msg
+  @}).
+@end example
+    
+
 @node Field Constraints
 @subsection Field Constraints
 @cindex type,field

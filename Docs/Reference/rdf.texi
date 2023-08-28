@@ -1,0 +1,95 @@
+@node Concepts and Ontologies
+@chapter Concepts and Ontologies
+@cindex ontology
+
+@Star{} offers a standard suite of features that permit applications
+to parse @emph{ontology} files using a variant of the N3 standard for
+describing triple-based ontologies.
+
+@section RDF and N3
+RDF is a W3C standard for specifying simple ontologies using a very
+simple language: an RDF graph is a set of @emph{triples}; each triple
+consists of a subject, a predicate and an object -- all of which are
+@emph{concepts}. In the standard notation, RDF triples are written
+using an XML-based notation; however, there is a more convenient
+notation often used called @code{N3}.
+
+@float BNF,tripleFig
+@caption{N3 Triples}
+@display
+@anchored{Triple} ::= @refer{Subject} @refer{Predicate} @refer{Object}
+
+@anchored{Subject} ::= @refer{IdentifiedConcept}
+@anchored{Predicate} ::= @refer{IdentifiedConcept}
+@anchored{Object} ::= @refer{Concept}
+@end display
+@end float
+
+where @emph{Subject}, @emph{Predicate} and @emph{Object} are all
+concepts. Such a statement is called a @emph{Triple}. N3 supports
+several shortened forms of triples; for example, a statement such as:
+
+@example
+person:john family:parent-of person:jim, person:jane.
+@end example
+
+is equivalent to two triples:
+@example
+person:john family:parent-of person:jim.
+person:john family:parent-of person:jim.
+@end example
+
+and:
+@example
+person:john family:parent-of person:jim;
+            dc:has-name "john".
+@end example
+            
+is equivalent to:
+@example
+person:john family:parent-of person:jim.
+person:john dc:has-name "john".
+@end example
+
+The comma allows the same subject and predicate to refer to multiple
+objects and the semi-colon allows the same subject to have multiple
+predicate/objects associated with it.
+
+@section Interpretation Layers
+
+There are four interpretation layers of concepts appearing in an
+ontology: concepts, triples, classes and application.
+
+@subsection RDF Concepts
+
+Concepts in RDF are identifiers that signify a concept of interest to
+the ontology modeler. There are two main kinds of concept:
+@refer{IdentifiedConcept}s and literals. An @refer{IdentifiedConcept}
+gains its meaning solely from the sentences in which it occurs;
+typically that means its role as subject, predicate or object in one
+more sentences.
+
+Generally, @refer{IdentifiedConcept}s have no intrinsic meaning outside the graph.
+
+Literals, on the other hand, do not generally particate as a linking
+element across sentences: their meaning depends on external
+interpretations. As such, literal concepts may only be objects of
+sentences: never subjects nor predicates.
+
+@quotation Note
+The one exception to this is string text. String text may reference
+concepts using a special interpolation notation (see below).
+@end quotation
+
+
+@float BNF,conceptFig
+@caption{N3 Concepts}
+@display
+@anchored{Concept} ::= @refer{IdentifiedConcept} | @refer{Uri} | @refer{Text} | @refer{Decimal}
+@anchored{IdentifiedConcept} ::= @refer{Identifier} | @refer{Identifier} @code{:} @refer{Identifier}
+@anchored{Text} ::= @refer{StringLiteral}
+
+@anchored{Uri} ::= @code{<}@emph{uri}@code{>}
+
+@end display
+@end float

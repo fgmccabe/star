@@ -884,7 +884,7 @@ need to respond to exception situations.
 @float BNF,tryCatchFig
 @caption{Try Catch}
 @display
-@anchored{TryCatchExpression} ::= @code{try} @refer{Expression} @code{catch} @refer{CaseHandler}
+@anchored{TryCatchExpression} ::= @code{try} @refer{Expression} @code{catch} @refer{Type} in @refer{CaseHandler}
 @end display
 @end float
 
@@ -894,7 +894,7 @@ example, in:
 @example
 try@{
   raise 10
-@} catch @{
+@} catch integer in @{
   (E) => @{
     E+10
   @}
@@ -905,6 +905,11 @@ the type of @code{E} is @code{integer}; which is consistent with the expression
 raise 10
 @end example
 The value of this overall expression is @code{20}.
+
+Exception handler expressions may be nested within one another; and
+their exception types may be different. However, when an exception is
+raised, only a single exception handler will be applied: there is no
+automatic cascading of exceptions from one handler to another.
 
 @node Raise
 @subsection Raise
