@@ -1,6 +1,12 @@
 {
   "content": {
-    "rdf.graph" : "graph.star"
+    "rdf.driver" : "driver.star",
+    "rdf.errors" : "errors.star",
+    "rdf.graph" : "graph.star",
+    "rdf.lexer" : "lexer.star",
+    "rdf.meta" : "meta.star",
+    "rdf.token" : "token.star",
+    "rdf.triple" : "triple.star"
     },
   "version": "1.0.0",
   "default": "../Star/catalog"

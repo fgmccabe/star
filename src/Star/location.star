@@ -4,6 +4,10 @@ star.location{
 
   public locn ::= .locn(string,integer,integer,integer,integer).
 
+  public contract all t ~~ hasLoc[t] ::= {
+    locOf:(t)=>option[locn].
+  }
+
   public implementation display[locn] => {
     disp(.locn(P,Line,Col,_,Ln)) => "#(P)\:$(Line)\:$(Col)($(Ln))".
   }
