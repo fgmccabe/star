@@ -208,6 +208,40 @@ star.uri{
   sameQuery(.noQ,.noQ) => .true.
   sameQuery(_,_) => .false.
 
+
+  public implementation hashable[uri] => {
+    hash(.absUri(S1,R1,Q1)) => (hash(S1)*37+hash(R1))*37+hash(Q1).
+    hash(.relUri(R1,Q1)) => hash(R1)*37+hash(Q1).
+  }
+
+  implementation hashable[rsrcName] => {
+    hash(.netRsrc(A,R)) => hash(A)*37+hash(R).
+    hash(.localRsrc(P)) => hash(P)
+  }
+
+  implementation hashable[resourcePath] => {
+    hash(.absPath(Els)) => (hash(Els)*37+hash("abs")).
+    hash(.relPath(Els)) => (hash(Els)*37+hash("rel")).
+  }
+
+  implementation hashable[authority] => {
+    hash(.server(S,H)) => hash(S)*37+hash(H)
+  }
+
+  implementation hashable[userInfo] => {
+    hash(.user(Txt)) => hash(Txt)
+  }
+
+  implementation hashable[host] => {
+    hash(.hostPort(H,P)) => hash(H)*37+hash(P).
+    hash(.host(H)) => hash(H)
+  }
+
+  implementation hashable[query] => {
+    hash(.qry(Txt)) => hash(Txt).
+    hash(.noQ) => 0.
+  }
+
   -- Resolve a url against a base. The base must be an absolute URI, either net or local.
   public resolveUri:(uri,uri) => option[uri].
   resolveUri(_,U) where .absUri(_,_,_).=U => .some(U).
