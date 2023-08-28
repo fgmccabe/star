@@ -96,74 +96,79 @@ star.compiler{
   processPkg(P,Repo,Cat) => valof{
     logMsg("Compiling $(P)");
     if (SrcUri,CPkg) ?= resolveInCatalog(Cat,pkgName(P)) then{
-      Ast = _optval(parseSrc(SrcUri,CPkg));
-      if traceAst! then{
-	logMsg("Ast of $(P) is $(Ast)")
-      };
-      M = macroPkg(Ast);
-      if showMacrod! then{
-	logMsg("Macroed package $(M)")
-      };
-
-      if errorFree() && ~ macroOnly! then{
-	(PkgSpec,Defs,IDecls,Decls) = checkPkg(Repo,CPkg,M);
-	if showCanon! then {
-	  logMsg("$(PkgSpec)");
-	  logMsg("type checked definitions #(displayDefs(Defs))");
+      if Ast ?=parseSrc(SrcUri,CPkg) then{
+	if traceAst! then{
+	  logMsg("Ast of $(P) is $(Ast)")
 	};
-
-	if errorFree() && ~ typeCheckOnly! then {
-	  AllDecls = IDecls++Decls;
-	  N = normalize(PkgSpec,Defs,AllDecls);
-	  validProg(N,AllDecls);
-
-	  Inlined = ( optimization! ==.inlining ?? valof{
-	      if traceNormalize! then{
-		logMsg("pre-inlined code $(N)");
-	      };
-	      valis simplifyDefs(N);
-	    } || N);
-	  if showNormalize! then{
-	    logMsg("normalized code #(dispCrProg(Inlined))");
+	M = macroPkg(Ast);
+	if showMacrod! then{
+	  logMsg("Macroed package $(M)")
+	};
+	
+	if errorFree() && ~ macroOnly! then{
+	  (PkgSpec,Defs,IDecls,Decls) = checkPkg(Repo,CPkg,M);
+	  if showCanon! then {
+	    logMsg("$(PkgSpec)");
+	    logMsg("type checked definitions #(displayDefs(Defs))");
 	  };
-	  validProg(Inlined,AllDecls);
-	  if errorFree() && genCode! then{
-	    Segs = compProg(P,Inlined,AllDecls);
-
-	    if showCode! then{
-	      logMsg("Generated code:");
-	      for Sg in Segs do{
-	        showMsg("$(Sg)");
-	      }
+	  
+	  if errorFree() && ~ typeCheckOnly! then {
+	    AllDecls = IDecls++Decls;
+	    N = normalize(PkgSpec,Defs,AllDecls);
+	    validProg(N,AllDecls);
+	    
+	    Inlined = ( optimization! ==.inlining ?? valof{
+		if traceNormalize! then{
+		  logMsg("pre-inlined code $(N)");
+		};
+		valis simplifyDefs(N);
+	      } || N);
+	    if showNormalize! then{
+	      logMsg("normalized code #(dispCrProg(Inlined))");
 	    };
-	    PkgSig = mkTpl([pkgTerm(CPkg),
-		mkTpl(PkgSpec.imports//(.pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
-		mkTpl(PkgSpec.exports//((D)=>D::data))])::string;
-
-	    Code = mkTpl([pkgTerm(CPkg),
-		mkTpl(PkgSpec.imports//(.pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
-		mkTpl([]),		
-		mkTpl([]),
-		mkTpl(Segs//assem)]);
-	    Bytes = (.strg(Code::string)::string);
-
-	    InlineBytes = (mkTpl(Inlined//((I)=>freezeDefn(I))))::string;
-
-	    if errorFree() then{
-	      valis addSpec(PkgSpec,
-		addSource(addLoweredSource(
-		    addPackage(Repo,CPkg,Bytes),CPkg,InlineBytes),CPkg,SrcUri::string))
-	    }
-	  } else
-	  logMsg("no code generated");
-	}
-      };
-      if ~errorFree() then{
-	logMsg("$(countErrors()+countTraps()) errors found");
-      };
-      if ~warningFree() then
-	logMsg("$(countWarnings()) warnings found");
-      valis Repo
+	    validProg(Inlined,AllDecls);
+	    if errorFree() && genCode! then{
+	      Segs = compProg(P,Inlined,AllDecls);
+	      
+	      if showCode! then{
+		logMsg("Generated code:");
+		for Sg in Segs do{
+		  showMsg("$(Sg)");
+		}
+	      };
+	      PkgSig = mkTpl([pkgTerm(CPkg),
+		  mkTpl(PkgSpec.imports//(.pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
+		  mkTpl(PkgSpec.exports//((D)=>D::data))])::string;
+	      
+	      Code = mkTpl([pkgTerm(CPkg),
+		  mkTpl(PkgSpec.imports//(.pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
+		  mkTpl([]),		
+		  mkTpl([]),
+		  mkTpl(Segs//assem)]);
+	      Bytes = (.strg(Code::string)::string);
+	      
+	      InlineBytes = (mkTpl(Inlined//((I)=>freezeDefn(I))))::string;
+	      
+	      if errorFree() then{
+		valis addSpec(PkgSpec,
+		  addSource(addLoweredSource(
+		      addPackage(Repo,CPkg,Bytes),CPkg,InlineBytes),CPkg,SrcUri::string))
+	      }
+	    } else
+	    logMsg("no code generated");
+	  }
+	};
+	if ~errorFree() then{
+	  logMsg("$(countErrors()+countTraps()) errors found");
+	};
+	if ~warningFree() then
+	  logMsg("$(countWarnings()) warnings found");
+	valis Repo
+      }
+      else{
+	reportError("could not parse source $(SrcUri)",.none);
+	valis Repo
+      }
     }
     else{
       reportError("cannot locate source of $(P)",.some(pkgLoc(P)));

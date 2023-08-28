@@ -50,9 +50,13 @@ star.compiler.grapher{
   scanCat(Pkg,Pkgs,Repo,Cat,SoFar) => valof{
     if (SrcUri,CPkg) ?= resolveInCatalog(Cat,pkgName(Pkg)) then{
       if compatiblePkg(CPkg,Pkg) then{
-	Ast = _optval(parseSrc(SrcUri,CPkg));
-	SubImps = scanForImports(Ast);
-	valis scanPkgs(Pkgs++SubImps,Repo,Cat,[(CPkg,SubImps),..SoFar])
+	if Ast ?=parseSrc(SrcUri,CPkg) then{
+	  SubImps = scanForImports(Ast);
+	  valis scanPkgs(Pkgs++SubImps,Repo,Cat,[(CPkg,SubImps),..SoFar])
+	} else{
+	  reportError("cannot parse source $(SrcUri)",.none);
+	  valis []
+	}	  
       } else{
 	reportError("package in catalog $(CPkg) not compatible with requested package $(Pkg)",.none);
 	valis []

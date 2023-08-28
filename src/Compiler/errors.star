@@ -46,10 +46,13 @@ star.compiler.errors{
 
   public reportError:(string,option[locn]) => ().
   reportError(Msg,Lc) => valof{
-    logMsg("\e[31merror $(countErrors()+1)\e[0m - #(Msg) at $(Lc)");
+    logMsg("\e[31merror $(countErrors()+1)\e[0m - #(Msg) #(showLc(Lc))");
     reports := [.errorMsg(Lc,Msg),..reports!];
     valis ()
   }
+
+  showLc(.none) => "".
+  showLc(.some(Lc)) => "at $(Lc)".
 
   public reportWarning:(string,option[locn]) => ().
   reportWarning(Msg,Lc) => valof{

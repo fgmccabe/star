@@ -4,10 +4,6 @@ star.compiler.location{
   public import star.location.
   import star.compiler.misc.
 
-  public contract all t ~~ hasLoc[t] ::= {
-    locOf:(t)=>option[locn].
-  }
-
   public mergeLoc:(option[locn],option[locn]) => option[locn].
   mergeLoc(.none,L) => L.
   mergeLoc(L,.none) => L.
