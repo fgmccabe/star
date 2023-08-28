@@ -5,22 +5,40 @@ rdf.triple{
 
   public concept ::= .name(string)
   | .uri(uri)
-  | .text(string)
-  | .int(integer).
+  | .text(cons[markup])
+  | .int(integer)
+  | .flt(float).
 
-  public implementation equality[concept] => {
-    .name(S1) == .name(S2) => S1==S2.
-    .uri(U1) == .uri(U2) => U1==U2.
-    .text(S1) == .text(S2) => S1==S2.
-    .int(I1) == .int(I2) => I1==I2.
-    _ == _ default => .false
+  public markup ::= .str(string) | .link(concept).
+  
+
+  public implementation equality[concept] => let{.
+    eqConcept(.name(S1),.name(S2)) => S1==S2.
+    eqConcept(.uri(U1),.uri(U2)) => U1==U2.
+    eqConcept(.text(S1),.text(S2)) => eqConcepts(S1,S2).
+    eqConcept(.int(I1),.int(I2)) => I1==I2.
+    eqConcept(.flt(I1),.flt(I2)) => I1==I2.
+    eqConcept(_,_) default => .false.
+
+    eqConcepts([],[]) => .true.
+    eqConcepts([.str(S1),..Ss1],[.str(S2),..Ss2]) =>
+      S1==S2 && eqConcepts(Ss1,Ss2).
+    eqConcepts(_,_) default => .false.
+  .} in {
+    X==Y => eqConcept(X,Y)
   }
 
   public implementation display[concept] => {
     disp(.name(S)) => S.
     disp(.uri(U)) => "<$(U)>".
-    disp(.text(S)) => disp(S).
-    disp(.int(I)) => disp(I).
+    disp(.text(S)) => interleave(S//disp,";")*.
+    disp(.int(N)) => disp(N).
+    disp(.flt(N)) => disp(N).
+  }
+
+  public implementation display[markup] => {
+    disp(.str(S)) => S.
+    disp(.link(C)) => disp(C).
   }
 
   public implementation hashable[concept] => {
@@ -28,6 +46,7 @@ rdf.triple{
     hash(.uri(U)) => hash(U)*37+hash("U").
     hash(.text(S)) => hash(S)*37+hash("S").
     hash(.int(I)) => hash(I).
+    hash(.flt(I)) => hash(I).
   }
 
   public triple ::= .tr(concept,concept,concept).

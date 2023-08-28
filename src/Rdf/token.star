@@ -7,8 +7,6 @@ rdf.token{
 
   public tk ::= .idQTok(string)
   | .idTok(string)
-  | .lftTok(string)
-  | .rgtTok(string)
   | .intTok(integer)
   | .fltTok(float)
   | .chrTok(char)
@@ -30,8 +28,6 @@ rdf.token{
       .pncTok(S) => "%$(S)".
       .uriTok(U) => "<$(U)>".
       .strTok(S) => "\"#(dispSegments(S)*)\"".
-      .lftTok(Id) where .bkt(LId,_,_,_) ?= isBracket(Id) => "<#(LId)".
-      .rgtTok(Id) where .bkt(_,_,RId,_) ?= isBracket(Id) => "<#(RId)".
     }
   }
 
@@ -63,8 +59,6 @@ rdf.token{
       .chrTok(C1) => .chrTok(C2).=Tk2 && C1==C2.
       .pncTok(C1) => .pncTok(C2).=Tk2 && C1==C2.
       .strTok(S1) => .strTok(S2).=Tk2 && S1==S2.
-      .lftTok(S1) => .lftTok(S2).=Tk2 && S1==S2.
-      .rgtTok(S1) => .rgtTok(S2).=Tk2 && S1==S2.
     }
   }
 
