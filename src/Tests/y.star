@@ -48,6 +48,15 @@ test.y{
     }
   }
 
+  fooInner:(integer) => string.
+  fooInner(X) => (try
+    let{
+	inner(U) where U<0 => raise "$(U) is less than zero".
+	inner(U) => disp(U*U)
+      } in inner(X)
+    catch string in {
+      Msg => Msg
+    }).
 
   -- A function that throws one of two kinds of exception
   fooX:raises string, raises exception |: (integer) => ().
@@ -78,7 +87,7 @@ test.y{
     };
 
     show fooC(()=>"world");
-   show fooC((()=>(.false ?? "world"||(raise .exception("bad world")))):
+    show fooC((()=>(.false ?? "world"||(raise .exception("bad world")))):
      raises exception |: ()=>string);
 --   show fooC(fooE:raises exception |: ()=>string);
 
@@ -112,7 +121,9 @@ test.y{
       S => { logMsg("we got string #(S)");
       }
     };
-    
+
+    assert fooInner(2) == "4";
+    assert fooInner(-2) == "-2 is less than zero";
 
     valis ()
   }
