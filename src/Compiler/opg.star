@@ -151,6 +151,7 @@ star.compiler.opg{
 
   terms:(cons[token],tk,cons[ast]) => (cons[ast],cons[token]).
   terms([.tok(Lc,Tk),..Toks],Tk,SoFar) => (reverse(SoFar),[.tok(Lc,Tk),..Toks]).
+  terms([],_,SoFar) => (reverse(SoFar),[]).
   terms(Toks,Term,SoFar) where
     (El,Toks1) .= astParse(Toks) =>
     terms(Toks1,Term,[El,..SoFar]).
@@ -190,6 +191,10 @@ star.compiler.opg{
   checkToken(Tk,[.endTok(Lc),..Toks]) => valof{
     reportError("missing $(Tk) - end of input",.some(Lc));    
     valis (.some(Lc),[.endTok(Lc),..Toks])
+  }.
+  checkToken(Tk,[]) => valof{
+    reportError("missing $(Tk) - end of input",.none);    
+    valis (.none,[])
   }.
 
   checkTerminator:(cons[token],needsTerm) => cons[token].

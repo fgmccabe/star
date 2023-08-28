@@ -130,10 +130,10 @@ star.compiler.lexer{
   interpolation:(tokenState) => (tokenState,option[stringSegment]).
   interpolation(St) where
       (St1,.some(Chr)) .= nextChr(St) &&
-    (St2,.some(Inter)) .= bracketCount(St,St1,Chr,[],[]) &&
-    (St3,.some(Format)) .= readFormat(St2) &&
-    (St4,IToks) .= allTks(interSt(St2,Inter)) =>
-   (St3,.some(.interpolate(makeLoc(St,St3),IToks,Format))).
+	  (St2,.some(Inter)) .= bracketCount(St,St1,Chr,[],[]) &&
+	      (St3,.some(Format)) .= readFormat(St2) &&
+		  (St4,IToks) .= allTks(interSt(St2,Inter)) =>
+    (St3,.some(.interpolate(makeLoc(St,St3),IToks,Format))).
 
   evaluation:(tokenState) => (tokenState,option[stringSegment]).
   evaluation(St) where
@@ -161,8 +161,12 @@ star.compiler.lexer{
 
   readUntil:(tokenState,char,cons[char]) => (tokenState,option[string]).
   readUntil(St,Qt,Chrs) where (Nx,.some(Qt)) .= nextChr(St) => (Nx,.some(reverse(Chrs)::string)).
-  readUntil(St,Qt,Chrs) where (Nx,.some(Ch)) .= charRef(St) => readUntil(Nx,Qt,[Ch,..Chrs]).
-  readUntil(St,_,_) => (St,.none).
+  readUntil(St,Qt,Chrs) where (Nx,.some(Ch)) .= charRef(St) =>
+    ((Ch==`\"` || Ch==`\n`) ?? valof{
+	reportError("invalid char in format: $(Ch)",.some(makeLoc(Nx,Nx)));
+	valis (St,.some(""))
+      } || readUntil(Nx,Qt,[Ch,..Chrs])).
+  readUntil(St,_,_) => (St,.some("")).
 
   stringBlob:(tokenState,tokenState,cons[char]) => (tokenState,option[token]).
   stringBlob(St,St0,Sf) where St1 ?= lookingAt(St,[`\"`,`\"`,`\"`]) &&

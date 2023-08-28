@@ -454,7 +454,7 @@ star.compiler.checker{
   typeOfPtn(A,Tp,Env,Path) where (Lc,Els) ?= isTuple(A) => valof{
     Tvs = genTpVars(Els);
     checkType(A,.tupleType(Tvs),Tp,Env);
-    (Ptns,Cond,Ev) = typeOfPtns(Els,Tvs,.none,[],Env,Path);
+    (Ptns,Cond,Ev) = typeOfPtns(Els,Tvs,Lc,.none,[],Env,Path);
     valis (.tple(Lc,Ptns),Cond,Ev)
   }
   typeOfPtn(A,Tp,Env,Path) where (Lc,Op,Els) ?= isEnumCon(A) => valof{
@@ -466,7 +466,7 @@ star.compiler.checker{
     Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
 
     if .tupleType(Tps) .= deRef(ArgTp) then{
-      (Args,Cond,Ev) = typeOfArgsPtn(Els,Tps,Base,Path);
+      (Args,Cond,Ev) = typeOfArgsPtn(Els,Tps,Lc,Base,Path);
 
       valis (.apply(Lc,Fun,Args,Tp),Cond,Ev)
     } else{
@@ -499,13 +499,14 @@ star.compiler.checker{
   typeOfArgPtn(A,Tp,Env,Path) where (Lc,Els) ?= isTuple(A) => valof{
     Tvs = genTpVars(Els);
     checkType(A,.tupleType(Tvs),Tp,Env);
-    (Ptns,Cond,Ev) = typeOfPtns(Els,Tvs,.none,[],Env,Path);
+    (Ptns,Cond,Ev) = typeOfPtns(Els,Tvs,Lc,.none,[],Env,Path);
     valis (.tple(Lc,Ptns),Cond,Ev)
   }
   typeOfArgPtn(A,Tp,Env,Path) => typeOfPtn(A,Tp,Env,Path).
 
-  typeOfArgsPtn:(cons[ast],cons[tipe],dict,string) => (cons[canon],option[canon],dict).
-  typeOfArgsPtn(Els,Tps,Env,Path) => typeOfPtns(Els,Tps,.none,[],Env,Path).
+  typeOfArgsPtn:(cons[ast],cons[tipe],option[locn],dict,string) =>
+    (cons[canon],option[canon],dict).
+  typeOfArgsPtn(Els,Tps,Lc,Env,Path) => typeOfPtns(Els,Tps,Lc,.none,[],Env,Path).
 
   typeOfElementPtns:(cons[ast],tipe,dict,string,option[canon],cons[(string,canon)]) =>
     (cons[(string,canon)],option[canon],dict).
@@ -535,12 +536,20 @@ star.compiler.checker{
 
   project1(L) => (L//snd).
 
-  typeOfPtns:(cons[ast],cons[tipe],option[canon],cons[canon],dict,string) =>
+  typeOfPtns:(cons[ast],cons[tipe],option[locn],option[canon],cons[canon],dict,string) =>
     (cons[canon],option[canon],dict).
-  typeOfPtns([],[],Cond,Els,Env,_) => (reverse(Els),Cond,Env).
-  typeOfPtns([P,..Ps],[T,..Ts],Cnd,Els,Env,Path) => valof{
+  typeOfPtns([],[],_,Cond,Els,Env,_) => (reverse(Els),Cond,Env).
+  typeOfPtns([P,..Ps],[T,..Ts],_,Cnd,Els,Env,Path) => valof{
     (Pt,C,E0) = typeOfPtn(P,T,Env,Path);
-    valis typeOfPtns(Ps,Ts,mergeGoal(locOf(P),Cnd,C),[Pt,..Els],E0,Path)
+    valis typeOfPtns(Ps,Ts,locOf(P),mergeGoal(locOf(P),Cnd,C),[Pt,..Els],E0,Path)
+  }
+  typeOfPtns([],[T,.._],Lc,Cnd,Els,Env,_) => valof{
+    reportError("insufficient arguments, expecting a $(T)",Lc);
+    valis (reverse(Els),Cnd,Env)
+  }
+  typeOfPtns([P,.._],[],_,Cnd,Els,Env,_) => valof{
+    reportError("too many arguments: $(P)",locOf(P));
+    valis (reverse(Els),Cnd,Env)
   }
   
   typeOfExp:(ast,tipe,dict,string) => canon.
@@ -709,16 +718,19 @@ star.compiler.checker{
 
     Fun = typeOfExp(Op,ConTp,Env,Pth);
     (Q,ETp) = evidence(FceTp,Env);
-    FaceTp = _optval(faceOfType(ETp,Env));
-    (Cx,Face) = deConstrain(FaceTp);
-    Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
-    
-    (Defs,XDecls,All) = recordEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,Env);
-    
-    valis formRecordExp(Lc,Fun,Face,Defs,XDecls,All,Tp)
+    if FaceTp ?= faceOfType(ETp,Env) then{
+      (Cx,Face) = deConstrain(FaceTp);
+      Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
+      
+      (Defs,XDecls,All) = recordEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base,Env);
+      
+      valis formRecordExp(Lc,Fun,Face,Defs,XDecls,All,Tp)
+    } else {
+      reportError("can't compute face of $(FceTp)",Lc);
+      valis .anon(Lc,Tp)
+    }      
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,Els) ?= isBrTuple(A) => valof{
-
     (Defs,XDecls,Decls)=recordEnv(Lc,genNewName(Path,"Γ"),Els,Tp,Env,Env);
 
     sortedFlds = let{
