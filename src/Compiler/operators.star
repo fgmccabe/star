@@ -91,6 +91,7 @@ star.compiler.operators{
     "if" => [.prefixOp(1175,1174)].
     ":" => [.infixOp(1249,1250,1249)].
     ";" => [.postfixOp(1250,1251), .infixOp(1250,1251,1251)].
+    "-->" => [.infixOp(1259,1260,1259)].
     "<" => [.infixOp(899,900,899)].
     ".=" => [.infixOp(899,900,899)].
     "=>>" => [.infixOp(949,950,950)].
@@ -236,7 +237,9 @@ star.compiler.operators{
     ("++",`+`) => .some("+++").
     (",",`.`) => .some(",.").
     (",.",`.`) => .some(",..").
+    ("-",`-`) => .some("--").
     ("-",`>`) => .some("->").
+    ("--",`>`) => .some("-->").
     ("->",`>`) => .some("->>").
     (".",`#`) => .some(".#").
     (".",`&`) => .some(".&").
@@ -327,6 +330,7 @@ star.compiler.operators{
     "," => .true.  /* tupling operator */
     ",.." => .true.  /* list cons */
     "-" => .true.  /* arithmetic negation */
+    "-->" => .true.  /* grammar rule arrow */
     "->" => .true.  /* map entry */
     "->>" => .true.  /* dependent type marker */
     "." => .true.  /* identify enumerator */
@@ -454,6 +458,7 @@ star.compiler.operators{
     "if" => .true.
     ":" => .true.
     ";" => .true.
+    "-->" => .true.
     ".=" => .true.
     "=>>" => .true.
     "=" => .true.

@@ -21,6 +21,7 @@
     "star.compiler.freshen": "freshen.star",
     "star.compiler.escapes": "escapes.star",
     "star.compiler.gencode": "gencode.star",
+    "star.compiler.grammar": "grammar.star",
     "star.compiler.wasm.gen": "genwasm.star",
     "star.compiler.grapher": "grapher.star",
     "star.compiler.impawt": "impawt.star",

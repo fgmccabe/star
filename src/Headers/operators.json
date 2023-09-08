@@ -89,6 +89,16 @@
     "keyword": true
   },
   {
+    "infixOp": "-->",
+    "priorities": [
+      1259,
+      1260,
+      1259
+    ],
+    "desc": "grammar rule arrow",
+    "keyword": true
+  },
+  {
     "infixOp": "<-",
     "priorities": [
       904,

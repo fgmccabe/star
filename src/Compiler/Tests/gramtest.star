@@ -13,7 +13,7 @@ test.comp.gram{
 
   main:()=>action[(),()].
   main()=>action{
-    lc.=pkgLoc(pkg("test",.defltVersion));
+    lc=startLoc("test");
 
     show parseText(lc,"X. ",reports([]));
 

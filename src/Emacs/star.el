@@ -27,7 +27,7 @@
        (modify-syntax-entry ?\n ">" table)
        ;; - is an operator, -- is a comment starter
        (modify-syntax-entry ?` "\"" table)
-       (modify-syntax-entry ?- ". 12" table)
+;;       (modify-syntax-entry ?- ". 12" table)
        (modify-syntax-entry ?/ ". 14" table)
        (modify-syntax-entry ?* ". 23b" table)
        (modify-syntax-entry ?\( "()" table)
@@ -98,9 +98,9 @@
 
 (defvar star-symbol-regexp
   (star-one-of '(
-		 "=>" "->" "<=>" ".." ":=" ".="
-		 "?=" "<-" "=" "<~" "*>" "::=" "::" ":" "&&" "|" "||"
-		 "~~" "@@" "@" "#" "^" "^^" "\\+" "\\=" ",.." "."
+		 "=>" "->" "<=>" ".." ":=" ".=" "=>>" "-->" ">>"
+		 "?=" "<-" "=" "~>" "<~" "*>" "::=" "::" ":" "&&" "|" "||" 
+		 "~~" "@@" "@" "#" "^" "^^" "\\+" "\\=" ",.." "." "?" "|=" "|:"
 		 ))
   "Regular expression matching the symbols to highlight in Star mode."
   )

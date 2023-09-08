@@ -34,6 +34,20 @@ star.compiler.ast{
     X == Y => eq(X,Y)
   }
 
+  public implementation hashable[ast] => let{.
+    hsh(.nme(_,N)) => hash(N).
+    hsh(.qnm(_,N)) => hash(N).
+    hsh(.int(_,I)) => I.
+    hsh(.big(_,B)) => hash(B).
+    hsh(.num(_,D)) => hash(D).
+    hsh(.chr(_,C)) => hash(C).
+    hsh(.str(_,S)) => hash(S).
+    hsh(.tpl(_,L,E)) => foldLeft((A,H)=>H*37+hsh(A),hash(L),E).
+    hsh(.app(_,O,A)) => hsh(O)*37+hsh(A)
+  .} in {
+    hash(A) => hsh(A)
+  }
+
   public implementation hasLoc[ast] => {
     locOf(A) => case A in {
       .nme(Lc,_) => Lc.
@@ -95,11 +109,11 @@ star.compiler.ast{
   dispId(S) where isOperator(S) => "(#(S))".
   dispId(S) => S. -- temporary until we can fix better
 
-  leftPar:(integer,integer) => string.
+  public leftPar:(integer,integer) => string.
   leftPar(P,Pr) where P>Pr => "(".
   leftPar(_,_) default => "".
 
-  rightPar:(integer,integer) => string.
+  public rightPar:(integer,integer) => string.
   rightPar(P,Pr) where P>Pr => ")".
   rightPar(_,_) default => "".
 

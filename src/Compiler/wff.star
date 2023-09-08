@@ -289,6 +289,7 @@ star.compiler.wff{
   public isMapLiteral:(ast)=>option[(option[locn],cons[ast])].
   isMapLiteral(A) where (Lc,[I]) ?= isBrTuple(A) &&
       {? Pr in deComma(I) *> _ ?= isPair(Pr) ?} => .some((Lc,deComma(I))).
+  isMapLiteral(A) where (Lc,[]) ?= isBrTuple(A) => .some((Lc,[])).
   isMapLiteral(_) default => .none.
 
   public mkMapLiteral(Lc,Els) => brTuple(Lc,[reComma(Els)]).
@@ -366,11 +367,7 @@ star.compiler.wff{
 
   public isOptionMatch(A) => isBinary(A,"?=").
 
-  public mkOptionMatch(Lc,L,R) => mkMatch(Lc,unary(Lc,"some",L),R).
-
-  public isOptionPropagate(A) => isBinary(A,"^?").
-
-  public mkOptionPropagate(Lc,L,R) => binary(Lc,"^?",unary(Lc,"some",L),R).
+  public mkOptionMatch(Lc,L,R) => mkMatch(Lc,mkOption(Lc,L),R).
 
   public isEnumSymb(A) where (Lc,.nme(_,N))?=isUnary(A,".") => .some((Lc,N)).
   isEnumSymb(_) default => .none.

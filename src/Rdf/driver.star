@@ -12,6 +12,8 @@ rdf.driver{
   import rdf.meta.
   import rdf.lexer.
   import rdf.token.
+  import rdf.parser.
+  import rdf.triple.
 
   public _main:(cons[string])=>().
   _main(Args) => valof{
@@ -21,7 +23,9 @@ rdf.driver{
       valis handleCmds(processOptions(Args,[wdOption,
 	    stdinOption,
 	    traceLexOption,
-	    showLexOption],
+	    showLexOption,
+	    traceParseOption,
+	    showParseOption],
 	  defltOptions(WI,RI)
 	))
     } catch string in {
@@ -38,10 +42,15 @@ rdf.driver{
 
       if OUri ?= parseUri(O) && SrcUri ?= resolveUri(Opts.cwd,OUri) then{
 	if Txt ?= getResource(SrcUri) then{
-	  (Toks) = allTokens(pkgLoc(.pkg(O,.defltVersion)),Txt::cons[char]);
+	  (Toks) = allTokens(startLoc(O),Txt::cons[char]);
 
 	  if showLex! then
 	    logMsg("tokens from $(O)\: $(Toks)");
+
+	  Concepts = allConcepts(Toks,({}:map[string,string]));
+
+	  if showParse! then
+	    logMsg("concepts: $(Concepts)");
 	} else
 	logMsg("cant find ontology source text at $(SrcUri)");
       } else

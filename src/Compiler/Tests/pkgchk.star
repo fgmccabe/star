@@ -17,8 +17,7 @@ test.comp.pkgchk{
   import star.compiler.terms.
 
   R0 = reports([]).
-  Pk = pkg("test",defltVersion).
-  lc = pkgLoc(Pk).
+  lc = startLoc("test").
 
   getAst((some(A),_)) => A.
 

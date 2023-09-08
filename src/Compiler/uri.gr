@@ -1,0 +1,36 @@
+uri.grammar{
+  uri >> U --> absUri >> U | relUri >> U.
+
+  absUri >> .absUri(S,H,Q) --> scheme >> S , hierPart >> H , query >> Q.
+
+  scheme >> S --> alpha >> S, [":"].
+
+  hierPart >> H --> netPath>>H | absoluteRsrc >> H.
+
+  netPath >> .netRsrc(A,P) --> ["/","/"], authority>>A, (absolutePath>>P | relativePath >> P).
+
+  authority >> .server(.some(U),H) --> userInfo>>U, ["@"], hostNamePort >> H.
+  authority >> .server(.none,H) --> hostNamePort >> H.
+
+  userInfo >> .user(U::string) --> userStar* >> U.
+
+  absolutePath >> .absPath(S) --> ["/"], segment * ["/"] >> S.
+
+  relativePath >> .relPath(S) --> segment * ["/"] >> S.
+
+  segment >> Chrs::string --> segChr* >> Chrs.
+
+  segChr >> Ch --> [Ch], {isSegChr(Ch)}.
+
+  isSegChr:(char)=>boolean.
+  isSegChr(Ch) => case Ch in {
+    `:` => .true.
+    `@` => .true.
+    `&` => .true.
+    `=` => .true.
+    `+` => .true.
+    `$` => .true.
+    `<` => .true.
+    `;` => .true. -- This is a hack to merge parameters with the segment
+    _ default => isUnreserved(Ch).
+  }
