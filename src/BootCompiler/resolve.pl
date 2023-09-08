@@ -102,11 +102,11 @@ resolveTerm(Term,Dict,Resolved) :-
 %  locOfCanon(Term,Lc),
 %  reportMsg("resolving %s",[Term],Lc),
   overloadTerm(Term,Dict,inactive,St,RTerm),!,
-%  reportMsg("%s resolved %s",[Term,St]),
   resolveAgain(inactive,St,Term,RTerm,Dict,Resolved).
 
 % Somewhat complex logic to allow multiple iterations unless it will not help
 resolveAgain(_,resolved,Term,T,Dict,R) :- !,
+%  reportMsg("resolving again %s",[can(T)]),
   overloadTerm(T,Dict,inactive,St,T0),
   resolveAgain(inactive,St,Term,T0,Dict,R).
 resolveAgain(_,inactive,_,T,_,T) :- !.
@@ -251,7 +251,9 @@ overloadGuard(some(G),Dict,St,Stx,some(RG)) :-
 
 overloadTryCatch(E,v(Lc,ErNm,ErTp),H,EE,HH,Dict,St,Stx,Over) :-
   declareTryScope(Lc,ErTp,ErNm,Dict,Dict2),
+%  reportMsg("resolving try %s",[can(E)]),
   call(Over,E,Dict2,St,St0,EE),
+%  reportMsg("try %s resolved to %s",[can(E),can(EE)]),
   overloadCases(H,Over,Dict,St0,Stx,HH).
 
 overloadLambda(Lc,Lbl,[],Eqn,Tp,Dict,Stx,Stx,lambda(Lc,Lbl,[],OEqn,Tp)) :-!,
@@ -372,14 +374,13 @@ resolveDot(Lc,Rc,Fld,Tp,Dict,St,Stx,Reslvd) :-
   newTypeVar("FF",RTp),
   (sameType(funType(tplType([RcTp]),RTp),FAccTp,Lc,Dict),
    freshen(RTp,Dict,_,CFTp),
-   getConstraints(CFTp,Cx,FTp),
+   getConstraints(CFTp,Cx,FTp), % constraints here are dropped!
    sameType(FTp,Tp,Lc,Dict),
    V = v(Lc,FunNm,funType(tplType([RcTp]),FTp)),
-   Acc = apply(Lc,V,tple(Lc,[Rc]),Tp),
-   resolveConstraints(Lc,Cx,Dict,St,St0,DTerms),
-   resolveRef(Acc,DTerms,[],OverOp,Dict,St0,St1,NArgs),
-   overApply(Lc,OverOp,NArgs,Tp,Reslvd),
-   markResolved(St1,Stx);
+%   Reslvd = apply(Lc,V,tple(Lc,[Rc]),Tp),
+   manageConstraints(Cx,Lc,apply(Lc,V,tple(Lc,[Rc]),Tp),Reslvd),
+%   reportMsg("dot resolved %s",[can(Reslvd)]),
+   markResolved(St,Stx);
    genMsg("accessor defined for %s:%s in %s\nnot consistent with\n%s",
 	  [Fld,tpe(FAccTp),can(dot(Lc,Rc,Fld,Tp)),tpe(Tp)],Msg),
    markActive(St,Lc,Msg,Stx),
@@ -456,24 +457,27 @@ resolveConstraints(Lc,[Con|C],Dict,St,Stx,[CV|Vs]) :-
   resolveConstraints(Lc,C,Dict,St0,Stx,Vs).
 
 resolveConstraint(Lc,implicit(Nm,Tp),Dict,St,Stx,Over) :-
-  (getVar(Lc,Nm,Dict,Vr,ITp),
+  (getVar(Lc,Nm,Dict,Over,ITp),
    (sameType(ITp,Tp,Lc,Dict),
-    markResolved(St,St1),
-    overloadTerm(Vr,Dict,St1,Stx,Over);
+    markResolved(St,Stx);
     genMsg("implicit %s:%s not consistent with %s",[Nm,tpe(ITp),tpe(Tp)],Msg),
-    markActive(St,Lc,Msg,Stx)) ;
+    markActive(St,Lc,Msg,Stx),
+    Over=void) ;
    genMsg("implicit %s:%s not defined",[Nm,tpe(Tp)],Msg),
-   markActive(St,Lc,Msg,Stx)).
+   markActive(St,Lc,Msg,Stx),
+   Over=void).
 resolveConstraint(Lc,raises(Tp),Dict,St,Stx,Over) :-
   tpName(Tp,TpNm),
   (getTryScope(TpNm,Dict,TLc,VrNm,ErTp),
    (sameType(ErTp,Tp,Lc,Dict),!,
-    markResolved(St,St1),
-    overloadTerm(v(TLc,VrNm,ErTp),Dict,St1,Stx,Over);
+    markResolved(St,Stx),
+    Over=v(TLc,VrNm,ErTp);
     genMsg("raises %s not consistent with %s",[tpe(ErTp),tpe(Tp)],Msg),
-    markActive(St,Lc,Msg,Stx)) ;
+    markActive(St,Lc,Msg,Stx),
+    Over=void) ;
    genMsg("exception context for %s not defined",[tpe(Tp)],Msg),
-   markActive(St,Lc,Msg,Stx)).
+   markActive(St,Lc,Msg,Stx),
+   Over=void).
 resolveConstraint(Lc,C,Dict,St,Stx,Over) :-
   implementationName(C,ImpNm),
   getImplementation(Dict,ImpNm,ImplVrNm,_ImplTp),

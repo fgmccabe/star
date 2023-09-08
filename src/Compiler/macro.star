@@ -470,7 +470,7 @@ star.compiler.macro{
 
   mkConsPtn:(option[locn],cons[ast]) => ast.
   mkConsPtn(Lc,[]) => enum(Lc,"nil").
-  mkConsPtn(Lc,[E,..Es]) => binary(Lc,"cons",E,mkConsPtn(Lc,Es)).
+  mkConsPtn(Lc,[E,..Es]) => mkEnumCon(Lc,.nme(Lc,"cons"),[E,mkConsPtn(Lc,Es)]).
 
   synthesizeCoercions:(cons[ast],option[locn])=> (ast,cons[ast]).
   synthesizeCoercions([],Lc) => (enum(Lc,"nil"),.nil).

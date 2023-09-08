@@ -105,17 +105,29 @@ star.compiler.resolve{
   overloadVarDef(Dict,Lc,Nm,Val,[],Tp) => 
     (.varDef(Lc,Nm,overload(Val,Dict),[],Tp),Dict).
   overloadVarDef(Dict,Lc,Nm,Val,Cx,Tp) => valof{
+    if traceCanon! then
+      logMsg("overload definition $(Nm) = $(Val), Cx=$(Cx)");
+
     (Cvrs,CDict) = defineCVars(Lc,Cx,[],Dict);
     RVal = overload(Val,CDict);
     (Qx,Qt) = deQuant(Tp);
     (_,ITp) = deConstrain(Qt);
     CTp = reQuant(Qx,funType(Cx//typeOf,ITp));
-    valis (.varDef(Lc,Nm,.lambda(Lc,lambdaLbl(Lc),.rule(Lc,.tple(Lc,Cvrs),.none,RVal),[],CTp),[],Tp),Dict)
+
+    ODefn = .varDef(Lc,Nm,.lambda(Lc,lambdaLbl(Lc),.rule(Lc,.tple(Lc,Cvrs),.none,RVal),[],CTp),[],Tp);
+
+    if traceCanon! then
+      logMsg("overloaded definition $(ODefn)");
+
+    valis (ODefn,Dict)
   }
 
   overloadImplDef:(dict,option[locn],string,string,canon,cons[constraint],tipe) =>
     (canonDef,dict).
   overloadImplDef(Dict,Lc,Nm,FullNm,Val,_,Tp) => valof{
+    if traceCanon! then
+      logMsg("overload implementation definition $(Nm) = $(Val)");
+
     (Qx,Qt) = deQuant(Tp);
     (Cx,ITp) = deConstrain(Qt);
 
@@ -562,7 +574,7 @@ star.compiler.resolve{
 	  logMsg("check field type $(Ft)=$(FldT) against $(Tp)");
 
 	if sameType(Tp,FldT,Dict) then{
-	  valis overloadTerm(.apply(Lc,AccFn,[Rc],FldT),Dict,markResolved(St))
+	  valis (manageConstraints(FrFt,Lc,(TT)=>.apply(Lc,AccFn,[Rc],FldT)),markResolved(St))
 	} else {
 	  valis (.dot(Lc,Rc,Fld,Tp),
 	    .active(Lc,"field $(Rc).$(Fld)\:$(Ft) not consistent with required type $(Tp)")).

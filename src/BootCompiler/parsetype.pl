@@ -217,11 +217,11 @@ parseContractConstraint(Quants,Cons,Sq,Env,N,Op,ConSpec) :-
       ( sameType(tplType(ATs),tplType(ArgTps),Lc,Env),
         simplifyType(tplType(ATs),Lc,Env,C0,C1,tplType(As)),
         sameType(tplType(Dps),tplType(Deps),Lc,Env) ->
-          simplifyType(tplType(Dps),Lc,Env,C1,Cx,tplType(Ds)),
-          putConstraints(Cx,contractExists(conTract(Op,As,Ds),IFace),CC),
-          reUQnt(Q,CC,ConSpec);
-          reportError("implementation does not match contract %s",[id(Op)],Lc),
-          fail);
+	simplifyType(tplType(Dps),Lc,Env,C1,Cx,tplType(Ds)),
+	putConstraints(Cx,contractExists(conTract(Op,As,Ds),IFace),CC),
+	reUQnt(Q,CC,ConSpec);
+	reportError("implementation does not match contract %s",[id(Op)],Lc),
+	fail);
     reportError("contract %s not declared",[id(N)],Lc), fail).
 parseContractConstraint(Quants,Cons,Sq,Env,N,Op,ConSpec) :-
   isIden(Sq,Lc,N),

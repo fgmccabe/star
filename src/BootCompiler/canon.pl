@@ -262,7 +262,7 @@ ssTerm(lambda(_,Lbl,_,Rle,_),Dp,sq([lp,Rl,rp])) :-
 ssTerm(tple(_,Els),Dp,sq([lp,iv(ss(", "),SEls),rp])) :-
   ssTerms(Els,Dp,SEls).
 ssTerm(mtd(_,Nm,_),_,sq([ss("°"),id(Nm)])).
-ssTerm(over(_,V,Cx),Dp,sq([iv(ss(","),CCs),ss("|:"),VV])) :-
+ssTerm(over(_,V,Cx),Dp,sq([ss("<"),iv(ss(","),CCs),ss("|:"),VV,ss(">")])) :-
   map(Cx,types:ssConstraint(false,Dp),CCs),
   ssTerm(V,Dp,VV).
 ssTerm(overaccess(_,R,Fld,F),Dp,sq([RR,ss("<~{"),ss(Fld),ss(":"),FF,ss("}")])) :-

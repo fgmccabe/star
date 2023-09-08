@@ -521,9 +521,14 @@ star.compiler.data{
   encodeQuoted([C,..Cs],D,Chrs) => encodeQuoted(Cs,D,[C,..Chrs]).
 
   encodeNat:(integer,cons[char]) => cons[char].
-  encodeNat(Dx,Chs) where Dx>=0 && Dx=<9 =>
-    [digitChar(Dx),..Chs].
-  encodeNat(Dx,Chs) => [digitChar(Dx%10),..encodeNat(Dx/10,Chs)].
+  encodeNat(D,Cs) => (try
+    let{.
+      encNat(Dx,Chs) where Dx>=0 && Dx=<9 =>
+	[digitChar(Dx),..Chs].
+      encNat(Dx,Chs) => [digitChar(Dx%10),..encNat(Dx/10,Chs)]
+    .} in encNat(D,Cs)
+    catch exception in { _ => Cs}
+  ).
 
   encodeInt:(integer,cons[char])=>cons[char].
   encodeInt(Ix,Chs) where Ix<0 => encodeNat(-Ix,[`-`,..Chs]).
