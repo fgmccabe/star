@@ -89,6 +89,10 @@ star.strings{
   public implementation coercion[char,integer] => {
     _coerce(S) => .some(_codePoint(S)).
   }
+
+  public implementation coercion[char,string] => {
+    _coerce(C) => .some(_implode(.cons(C,.nil))).
+  }
   
   public stringQuote:(string)=>string.
   stringQuote(S) => _str_quote(S).

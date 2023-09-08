@@ -4,10 +4,10 @@ test.do11{
 
   foo ::= .foo(integer,string).
 
-  locOf(.foo(L,_)) => L.
+  lcOf(.foo(L,_)) => L.
 
   multiWhr:(foo)=>integer.
-  multiWhr(X where .foo(_,_).=X) where V .= locOf(X) => valof{
+  multiWhr(X where .foo(_,_).=X) where V .= lcOf(X) => valof{
     logMsg("$(V)");
     valis V
   }

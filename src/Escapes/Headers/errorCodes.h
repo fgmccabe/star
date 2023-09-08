@@ -18,5 +18,6 @@ extern termPo eFAIL;
 extern termPo eIOERROR;
 extern termPo eCONNECT;
 extern termPo eDEAD;
+extern termPo divZero;
 
 #endif //STAR_ERRORCODES_H

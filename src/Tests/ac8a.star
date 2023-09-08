@@ -54,8 +54,8 @@ test.ac8a{
 
   main:()=>().
   main() => valof{
-    _logmsg(disp(f(1)));
-    _logmsg(disp(f(10)));
+    logMsg(disp(f(1)));
+    logMsg(disp(f(10)));
     valis ()
   }
 }

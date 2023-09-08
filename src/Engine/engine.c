@@ -111,21 +111,6 @@ void ps_kill(processPo p) {
 long stkGrow = 0;
 #endif
 
-ReturnStatus liberror(heapPo h, char *name, termPo code) {
-  int root = gcAddRoot(h, &code);
-  termPo msg = allocateCString(h, name);
-  gcAddRoot(h, (ptrPo) &msg);
-
-  normalPo err = allocateStruct(h, errorLbl);
-  setArg(err, 0, (termPo) msg);
-  setArg(err, 1, code);
-
-  gcReleaseRoot(h, root);
-
-  ReturnStatus rt = {.ret=Error, .result=(termPo) err};
-  return rt;
-}
-
 heapPo processHeap(processPo P) {
   return P->heap;
 }

@@ -14,11 +14,11 @@ star.date{
   ticks() => _ticks().
 
   public implementation display[time] => {
-    disp(.time(Tm)) => _formattime(Tm,"www dd/mmm/yyyy hh:MM:SS aa").
+    disp(.time(Tm)) => (try _formattime(Tm,"www dd/mmm/yyyy hh:MM:SS aa") catch errorCode in {_ => ""}).
   }
 
   public implementation format[time] => {
-    _format(.time(Tm),F) => _formattime(Tm,F).
+    _format(.time(Tm),F) => (try _formattime(Tm,F) catch errorCode in {_ => "invalid format"}).
   }
 
   public implementation equality[time] => {

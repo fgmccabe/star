@@ -82,7 +82,7 @@ ReturnStatus g__install_pkg(heapPo h, termPo a1) {
   if (ret == Ok) {
     return (ReturnStatus) {.ret=ret, .result= (termPo) imports};
   } else
-    return liberror(h, "_install_pkg", eFAIL);
+    return (ReturnStatus) {.ret=Fail, .result=eFAIL};
 }
 
 ReturnStatus g__in_manifest(heapPo h, termPo a1, termPo a2, termPo a3) {
@@ -111,7 +111,7 @@ ReturnStatus g__in_manifest(heapPo h, termPo a1, termPo a2, termPo a3) {
   }
 }
 
-ReturnStatus g__locate_in_manifest(heapPo h, termPo a1, termPo a2, termPo a3) {
+ReturnStatus g__locate_in_manifest(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
   char pkg[MAX_SYMB_LEN];
   char version[MAX_SYMB_LEN];
   char kind[MAX_SYMB_LEN];
@@ -128,12 +128,12 @@ ReturnStatus g__locate_in_manifest(heapPo h, termPo a1, termPo a2, termPo a3) {
     ret = manifestCompatibleResource(pkg, version, kind, rsrc, NumberOf(rsrc));
 
     if (ret != Ok) {
-      return (ReturnStatus) {.ret=Error, .result= voidEnum};
+      return (ReturnStatus) {.ret=Error, .result= eNOTFND};
     } else {
       return (ReturnStatus) {.ret=Ok,
         .result=(termPo) allocateString(h, rsrc, uniStrLen(rsrc))};
     }
   } else {
-    return (ReturnStatus) {.ret=ret, .result= voidEnum};
+    return (ReturnStatus) {.ret=ret, .result= eNOTFND};
   }
 }

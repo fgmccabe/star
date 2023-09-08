@@ -6,20 +6,14 @@
 #include <math.h>
 #include <strings.h>
 #include <tpl.h>
-#include <stdlib.h>
 #include <errno.h>
-#include <globals.h>
-#include "ooio.h"
-#include "engine.h"
 #include "char.h"
 #include "arithP.h"
-#include "bignumP.h"
 #include "errorCodes.h"
-#include "arithmetic.h"
-#include "consP.h"
 
-ReturnStatus g__flt_eq(heapPo h, termPo a1, termPo a2, termPo a3) {
-  termPo Rs = (nearlyEqual(floatVal(a1), floatVal(a2), floatVal(a3)) ? trueEnum : falseEnum);
+ReturnStatus g__flt_eq(heapPo h, termPo a1, termPo a2) {
+  double fuzz = floatVal(a2) / 1.0e20;
+  termPo Rs = (nearlyEqual(floatVal(a1), floatVal(a2), fuzz) ? trueEnum : falseEnum);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
@@ -54,16 +48,28 @@ ReturnStatus g__flt_times(heapPo h, termPo a1, termPo a2) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__flt_div(heapPo h, termPo a1, termPo a2) {
-  termPo Rs = makeFloat(floatVal(a1) / floatVal(a2));
+ReturnStatus g__flt_div(heapPo h, termPo xc, termPo a1, termPo a2) {
+  double denom = floatVal(a2);
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  if (denom == 0.0) {
+    return (ReturnStatus) {.ret=Error, .result=divZero};
+  } else {
+    termPo Rs = makeFloat(floatVal(a1) / denom);
+
+    return (ReturnStatus) {.ret=Ok, .result=Rs};
+  }
 }
 
-ReturnStatus g__flt_mod(heapPo h, termPo a1, termPo a2) {
-  termPo Rs = makeFloat(fmod(floatVal(a1), floatVal(a2)));
+ReturnStatus g__flt_mod(heapPo h, termPo xc, termPo a1, termPo a2) {
+  double denom = floatVal(a2);
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  if (denom == 0.0) {
+    return (ReturnStatus) {.ret=Error, .result=divZero};
+  } else {
+    termPo Rs = makeFloat(fmod(floatVal(a1), floatVal(a2)));
+
+    return (ReturnStatus) {.ret=Ok, .result=Rs};
+  }
 }
 
 ReturnStatus g__flt_pwr(heapPo h, termPo a1, termPo a2) {
@@ -79,7 +85,7 @@ ReturnStatus g__flt_abs(heapPo h, termPo arg1) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g_exp(heapPo h, termPo arg1) {
+ReturnStatus g_exp(heapPo h, termPo xc, termPo arg1) {
   double x = floatVal(arg1);
 
   errno = 0;    /* clear errno prior to computation */
@@ -87,12 +93,11 @@ ReturnStatus g_exp(heapPo h, termPo arg1) {
 
   if (errno != 0) {
     if (errno == EDOM || errno == ERANGE)
-      return liberror(h, "_exp", eRANGE);
+      return (ReturnStatus) {.ret=Error, .result=eRANGE};
     else
-      return liberror(h, "_exp", eINVAL);
+      return (ReturnStatus) {.ret=Error, .result=eINVAL};
   } else {
-    return (ReturnStatus) {.ret=Ok,
-      .result=makeFloat(ans)};
+    return (ReturnStatus) {.ret=Ok, .result=makeFloat(ans)};
   }
 }
 
@@ -171,12 +176,10 @@ ReturnStatus g__flt2str(heapPo h, termPo arg1, termPo p, termPo m, termPo s) {
   FloatDisplayMode mode = (mdc == 'f' ? fractional : mdc == 's' ? scientific : general);
   char buff[64];
 
-  retCode ret = formatDouble(buff, NumberOf(buff), Arg, mode, precision, s == trueEnum ? True : False);
-  if (ret == Ok) {
-    return (ReturnStatus) {.ret=Ok,
-      .result = (termPo) allocateString(h, buff, uniStrLen(buff))};
-  } else
-    return liberror(h, "_fltstr", eINVAL);
+  formatDouble(buff, NumberOf(buff), Arg, mode, precision, s == trueEnum ? True : False);
+
+  return (ReturnStatus) {.ret=Ok,
+    .result = (termPo) allocateString(h, buff, uniStrLen(buff))};
 }
 
 ReturnStatus g__flt_format(heapPo h, termPo a1, termPo a2) {
@@ -185,12 +188,9 @@ ReturnStatus g__flt_format(heapPo h, termPo a1, termPo a2) {
   char buff[64];
   integer pos = 0;
 
-  retCode ret = formattedFloat(floatVal(a1), buff, &pos, NumberOf(buff), fmt, length);
+  formattedFloat(floatVal(a1), buff, &pos, NumberOf(buff), fmt, length);
 
-  if (ret == Ok) {
-    return (ReturnStatus) {.result = (termPo) allocateString(h, buff, uniStrLen(buff)), .ret=Ok};
-  } else
-    return liberror(h, "_flt_format", eINVAL);
+  return (ReturnStatus) {.result = (termPo) allocateString(h, buff, uniStrLen(buff)), .ret=Ok};
 }
 
 ReturnStatus g__flt_hash(heapPo h, termPo arg1) {
@@ -277,11 +277,14 @@ ReturnStatus g_log10(heapPo h, termPo arg1) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g_sqrt(heapPo h, termPo arg1) {
+ReturnStatus g_sqrt(heapPo h, termPo xc, termPo arg1) {
   double Arg = floatVal(arg1);
-  termPo Rs = makeFloat(sqrt(Arg));
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  if (Arg < 0.0)
+    return (ReturnStatus) {.ret=Error, .result=eRANGE};
+  else {
+    return (ReturnStatus) {.ret=Ok, .result=makeFloat(sqrt(Arg))};
+  }
 }
 
 ReturnStatus g_pi(heapPo h) {

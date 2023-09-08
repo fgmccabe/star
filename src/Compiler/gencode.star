@@ -204,7 +204,7 @@ star.compiler.gencode{
     }
     | .aBreak(Lc,Lb) => valof{
       if XCont?=Ctx.brks[Lb] then{
-	(_,Cde) = XCont.C(Ctx,Stk,[]); -- Special handling for breaks, we can't relate their stack
+	(_,Cde) = XCont.C(Ctx,Stk,[]); -- Special handling for breaks, we cannot relate their stack
 	valis (.none,Cde)
       }
       else{
@@ -378,7 +378,8 @@ star.compiler.gencode{
     (sortCases(caseHashes(Cases,Mx)),Mx).
 
   caseHashes:all e ~~ (cons[cCase[e]],integer)=>cons[(option[locn],cExp,integer,e)].
-  caseHashes(Cases,Mx) => (Cases//((Lc,Pt,Ex))=>(Lc,Pt,caseHash(Pt)%Mx,Ex)).
+  caseHashes(Cases,Mx) => (Cases//((Lc,Pt,Ex))=>(Lc,Pt,
+      (try caseHash(Pt)%Mx catch exception in {_ => 0}),Ex)).
 
   caseHash:(cExp)=>integer.
   caseHash(E) => case E in {

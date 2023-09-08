@@ -50,7 +50,6 @@ heapPo processHeap(processPo p);
 char *processWd(processPo p);
 retCode setProcessWd(processPo p, char *wd, integer len);
 
-ReturnStatus liberror(heapPo h, char *name, termPo code);
 termPo commandLine(heapPo H);
 
 extern __thread processPo currentProcess;

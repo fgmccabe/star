@@ -24,6 +24,8 @@ test.ts2{
       LL := T
     }
   }
+
+  isEven(X) => X.&.1==0.
     
   iota:(integer,integer)=>cons[integer].
   iota(F,F) => .nil.
@@ -32,14 +34,14 @@ test.ts2{
   odds:(cons[integer]) => ().
   odds(L) => valof{
     try{
-      for (X where X%2==1) in L do{
-	_logmsg(disp(X));
+      for (X where ~isEven(X)) in L do{
+	logMsg(disp(X));
 	if X>6 then
 	  raise ()
       }
     } catch () in {
       _ => {
-	_logmsg("caught")
+	logMsg("caught")
       }
     };
     valis ()
@@ -48,7 +50,7 @@ test.ts2{
   main:() => ().
   main() => valof{
     LL = iota(1,12);
-    _logmsg(disp(LL));
-    valis _logmsg(disp(odds(LL)));
+    logMsg(disp(LL));
+    valis logMsg(disp(odds(LL)));
   }
 }

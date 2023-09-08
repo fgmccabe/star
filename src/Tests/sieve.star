@@ -17,10 +17,12 @@ test.sieve{
     }
   }
 
+  divides(X,Y) => (try X%Y==0 catch exception in {_ => .false}).
+
   filter:(this : task[integer]), raises mboxException |: (integer,channel[integer],channel[integer]) => ().
   filter(Prm,Chnl,Next) => valof{
     while Nxt .= collect(Chnl) do{
-      if ~Nxt%Prm == 0 then
+      if ~divides(Nxt,Prm) then
 	post(Nxt,Next)
     };
     valis ()

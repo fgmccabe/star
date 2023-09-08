@@ -13,7 +13,7 @@ test.ct0{
       while Count!>0 do{
 	pause();
 	Count := Count! -1;
-	if Count! % 3 == 0 then{
+	if dividesBy(Count!,3) then{
 	  Cnt = Count!;
 	  logMsg("spawning sub-task");
 	  case (Tsk spawn valof{
@@ -50,6 +50,8 @@ test.ct0{
     logMsg("terminating");
     valis ()
   }.
+
+  dividesBy(X,Y) => (try X%Y==0 catch exception in { _ => .false}).
   
   main:()=>().
   main() => valof{

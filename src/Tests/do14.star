@@ -4,7 +4,7 @@ test.do14{
   import star.script.
 
   isEven: raises string |: (integer) => boolean.
-  isEven(X) where X%2==0 => .true.
+  isEven(X) where (try X%2==0 catch exception in {_ => .false}) => .true.
   isEven(X) default => raise "$(X) not even".
 
   main:()=>().

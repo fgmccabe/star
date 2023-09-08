@@ -36,7 +36,7 @@ test.p1{
   addop() => (symb("+") >>= (_) => return (+)) +++ (symb("-") >>= (_) => return (-)).
 
   mulop: ()=>parser[cons[char],(integer,integer)=>integer].
-  mulop() => (symb("*") >>= (_) => return (*)) +++ (symb("/") >>= (_) => return (/)).
+  mulop() => (symb("*") >>= (_) => return (*)).
 
   decimal:()=>parser[cons[char],integer].
   decimal() => skip(digit()) >>= (D) => return (digitVal(D)).

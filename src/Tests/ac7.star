@@ -16,10 +16,10 @@ test.ac7{
   main() => valof{
     try{
       F10 = f(10);
-      _logmsg(disp(F10));
+      logMsg(disp(F10));
     } catch string in {
       E => {
-	_logmsg(E)
+	logMsg(E)
       }
     };
     valis ()

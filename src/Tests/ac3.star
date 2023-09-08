@@ -7,14 +7,14 @@ test.ac3{
   f:(integer) => integer.
   f(X) => valof{
     try{
-      _logmsg("p1");
+      logM("p1");
       if X>5 then
 	raise 10
       else
       valis 3*X
     } catch integer in {
       (I) => {
-	_logmsg(disp(I))
+	logM(disp(I))
       }
     };
     valis 5*X
@@ -22,8 +22,16 @@ test.ac3{
 
   main:()=>().
   main() => valof{
-    _logmsg(disp(f(1)));
-    _logmsg(disp(f(10)));
+    logM(disp(f(1)));
+    logM(disp(f(10)));
+    valis ()
+  }
+
+  logM:(string)=>().
+  logM(M) => valof{
+    try{
+      _logmsg(M)
+    } catch errorCode in {_ => {}};
     valis ()
   }
 }

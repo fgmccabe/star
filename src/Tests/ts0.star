@@ -43,6 +43,15 @@ test.ts0{
 
   main:() => ().
   main() => valof{
-    valis _logmsg(disp(adder(0,10)));
+    valis logM(disp(adder(0,10)));
   }
+
+  logM:(string)=>().
+  logM(M) => valof{
+    try{
+      _logmsg(M)
+    } catch errorCode in {_ => {}};
+    valis ()
+  }
+  
 }

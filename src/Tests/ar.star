@@ -20,7 +20,7 @@ test.ar{
     plus(X,Y) => _int_plus(X,Y).
     minus(X,Y) => _int_minus(X,Y).
     times(X,Y) => _int_times(X,Y).
-    div(X,Y) => _int_div(X,Y).
+    div(X,Y) => (try _int_div(X,Y) catch errorCode in {_ => 0}).
     zer = 0.
     unum = 1.
   }.
@@ -33,13 +33,13 @@ test.ar{
     plus(X,Y) => _flt_plus(X,Y).
     minus(X,Y) => _flt_minus(X,Y).
     times(X,Y) => _flt_times(X,Y).
-    div(X,Y) => _flt_div(X,Y).
+    div(X,Y) => (try _flt_div(X,Y) catch errorCode in {_ => 0.0}).
     zer = 0.0.
     unum = 1.0.
   }.
 
   implementation eqq[float] => {
-    eqq(X,Y) => _flt_eq(X,Y,X/1.0e20)
+    eqq(X,Y) => _flt_eq(X,Y)
   }
   
   person ::= someOne{

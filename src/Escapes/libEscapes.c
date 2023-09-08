@@ -62,32 +62,6 @@ escapePo getEscape(uint32 escNo) {
   return &escapes[escNo];
 }
 
-ReturnStatus rtnStatus(heapPo h, retCode ret, char *msg) {
-  ReturnStatus rtn = {.ret = ret};
-
-  switch (ret) {
-    case Ok:
-      rtn.result = okEnum;
-      return rtn;
-    case Fail:
-      rtn.result = failEnum;
-      return rtn;
-    case Eof:
-      rtn.result = eofEnum;
-      return rtn;
-    case Error: {
-      normalPo err = allocateStruct(h, (labelPo) errorLbl);
-      int root = gcAddRoot(h, (ptrPo) (&err));
-      setArg(err, 0, (termPo) allocateString(h, msg, uniStrLen(msg)));
-      gcReleaseRoot(h, root);
-      rtn.result = (termPo) err;
-      return rtn;
-    }
-    default:
-      return rtnStatus(h, Error, "cannot handle return");
-  }
-}
-
 #ifdef TRACESTATS
 
 void recordEscape(integer escNo) {

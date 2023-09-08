@@ -88,6 +88,8 @@ static char *dTple(char *sig, sigDump dump, strBufferPo out);
 
 static char *dFields(char *sig, sigDump dump, strBufferPo out);
 
+static char *dumpPrologConstraint(char *sig, strBufferPo out);
+
 char *dumpPrologSig(char *sig, strBufferPo out) {
   assert(sig != NULL && *sig != '\0');
 
@@ -230,7 +232,7 @@ char *dumpPrologSig(char *sig, strBufferPo out) {
       outStr(O_IO(out), "constrained(");
       sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ",");
-      sig = dumpPrologSig(sig, out);
+      sig = dumpPrologConstraint(sig, out);
       outStr(O_IO(out), ")");
       return sig;
     }
@@ -242,6 +244,50 @@ char *dumpPrologSig(char *sig, strBufferPo out) {
 
   return sig;
 }
+
+char *dumpPrologConstraint(char *sig, strBufferPo out) {
+  assert(sig != NULL && *sig != '\0');
+
+  switch (*sig++) {
+    case contractCon: {
+      outStr(O_IO(out), "conTract(");
+      sig = dName(sig, out);
+      outStr(O_IO(out), ",[");
+      sig = dSequence(sig, dumpPrologSig, out);
+      outStr(O_IO(out), "],[");
+      sig = dSequence(sig, dumpPrologSig, out);
+      outStr(O_IO(out), "])");
+      return sig;
+    }
+    case hasFieldCon: {
+      outStr(O_IO(out), "implementsFace(");
+      sig = dumpPrologSig(sig, out);
+      outStr(O_IO(out), ", ");
+      sig = dumpPrologSig(sig, out);
+      outStr(O_IO(out), ")");
+      return sig;
+    }
+    case implicitCon: {
+      outStr(O_IO(out), "implicit(");
+      sig = dName(sig, out);
+      outStr(O_IO(out), ",");
+      sig = dumpPrologSig(sig, out);
+      outStr(O_IO(out), ")");
+      return sig;
+    }
+    case raisesCon: {
+      outStr(O_IO(out), "raises(");
+      sig = dumpPrologSig(sig, out);
+      outStr(O_IO(out), ")");
+      return sig;
+    }
+    default:
+      fprintf(stderr, "illegal constraint signature %s\n", sig);
+      exit(99);
+  }
+}
+
+static char *dumpStarConstraint(char *sig, strBufferPo out);
 
 static char *dumpStarSig(char *sig, strBufferPo out) {
   assert(sig != NULL && *sig != '\0');
@@ -386,10 +432,10 @@ static char *dumpStarSig(char *sig, strBufferPo out) {
     }
 
     case constrainedSig: {
-      outStr(O_IO(out), ".constrained(");
+      outStr(O_IO(out), ".constrainedType(");
       sig = dumpStarSig(sig, out);
       outStr(O_IO(out), ",");
-      sig = dumpStarSig(sig, out);
+      sig = dumpStarConstraint(sig, out);
       outStr(O_IO(out), ")");
       return sig;
     }
@@ -400,6 +446,55 @@ static char *dumpStarSig(char *sig, strBufferPo out) {
   }
 
   return sig;
+}
+
+char *dumpStarConstraint(char *sig, strBufferPo out) {
+  assert(sig != NULL && *sig != '\0');
+
+  switch (*sig++) {
+    case contractCon: {
+      outStr(O_IO(out), ".conTract(");
+      sig = dName(sig, out);
+      outStr(O_IO(out), ",[");
+      sig = dSequence(sig, dumpStarSig, out);
+      outStr(O_IO(out), "],[");
+      sig = dSequence(sig, dumpStarSig, out);
+      outStr(O_IO(out), "])");
+      return sig;
+    }
+    case hasFieldCon: {
+      outStr(O_IO(out), ".hasField(");
+      sig = dumpStarSig(sig, out);
+      outStr(O_IO(out), ", ");
+      int ln;
+      sig = dInt(sig, &ln);
+      assert(ln == 1);
+      sig = dName(sig, out);
+      outStr(O_IO(out), ",");
+      sig = dumpStarSig(sig, out);
+      sig = dInt(sig, &ln);
+      assert(ln == 0);
+      outStr(O_IO(out), ")");
+      return sig;
+    }
+    case implicitCon: {
+      outStr(O_IO(out), ".implicit(");
+      sig = dName(sig, out);
+      outStr(O_IO(out), ",");
+      sig = dumpStarSig(sig, out);
+      outStr(O_IO(out), ")");
+      return sig;
+    }
+    case raisesCon: {
+      outStr(O_IO(out), ".raisEs(");
+      sig = dumpStarSig(sig, out);
+      outStr(O_IO(out), ")");
+      return sig;
+    }
+    default:
+      fprintf(stderr, "illegal constraint signature %s\n", sig);
+      exit(99);
+  }
 }
 
 static void dumpStdType(char *name, strBufferPo out) {

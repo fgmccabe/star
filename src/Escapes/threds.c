@@ -49,16 +49,16 @@ ReturnStatus g__fork(heapPo h, termPo a1) {
   return (ReturnStatus) {.ret=Ok, .result=(termPo) thread};
 }
 
-ReturnStatus g__kill(heapPo h, termPo a1) {
+ReturnStatus g__kill(heapPo h, termPo xc, termPo a1) {
   threadPo th = C_THREAD(a1);
 
   processPo tgt = getThreadProcess(th);
 
   if (tgt != NULL && tgt != currentProcess) {
     ps_kill(tgt);
-    return (ReturnStatus) {.ret=Ok, .result=voidEnum};
+    return (ReturnStatus) {.ret=Ok, .result=unitEnum};
   } else
-    return liberror(h, "kill", eINVAL);
+    return (ReturnStatus) {.ret=Error, .result=eINVAL};
 }
 
 ReturnStatus g__thread(heapPo h) {
@@ -81,13 +81,12 @@ ReturnStatus g__thread_state(heapPo h, termPo a1) {
   return (ReturnStatus) {.ret=Ok, .result=st};
 }
 
-ReturnStatus g__waitfor(heapPo h, termPo a1) {
+ReturnStatus g__waitfor(heapPo h, termPo xc, termPo a1) {
   threadPo th = C_THREAD(a1);
   processPo tgt = getThreadProcess(th);
 
   if (tgt == NULL) {
-    ReturnStatus rt = {.ret=Ok, .result=(termPo) voidEnum};
-    return rt;
+    return (ReturnStatus) {.ret=Ok, .result=(termPo) unitEnum};
   } else if (tgt != currentProcess) {
     pthread_t thread = tgt->threadID;
     void *result;      /* This is ignored */
@@ -95,23 +94,23 @@ ReturnStatus g__waitfor(heapPo h, termPo a1) {
     switchProcessState(currentProcess, wait_term);
     if (pthread_join(thread, &result) == 0) {
       setProcessRunnable(currentProcess);
-      return (ReturnStatus) {.ret=Ok, .result=(termPo) voidEnum};
+      return (ReturnStatus) {.ret=Ok, .result=(termPo) unitEnum};
     } else {
       setProcessRunnable(currentProcess);
       switch (errno) {
         case EINVAL:
-          return liberror(h, "_waitfor", eINVAL);
+          return (ReturnStatus) {.ret=Error, .result=eINVAL};
         case ESRCH:
-          return liberror(h, "_waitfor", eNOTFND);
+          return (ReturnStatus) {.ret=Error, .result=eNOTFND};
         case EDEADLK:
-          return liberror(h, "_waitfor", eDEAD);
+          return (ReturnStatus) {.ret=Error, .result=eDEAD};
         default: {
           return (ReturnStatus) {.ret=Ok, .result=(termPo) voidEnum};
         }
       }
     }
   } else
-    return liberror(h, "_waitfor", eDEAD);
+    return (ReturnStatus) {.ret=Error, .result=eDEAD};
 }
 
 ReturnStatus g__abort(heapPo h, termPo lc, termPo msg) {
@@ -119,7 +118,7 @@ ReturnStatus g__abort(heapPo h, termPo lc, termPo msg) {
   verifyProc(currentProcess, h);
   stackTrace(currentProcess, logFile, currentProcess->stk, displayDepth, showPrognames);
 
-  return (ReturnStatus) {.ret=Error, .result=(termPo) voidEnum};
+  return (ReturnStatus) {.ret=Fail, .result=(termPo) eINTRUPT};
 }
 
 ReturnStatus g__stackTrace(heapPo h) {

@@ -128,7 +128,7 @@ ReturnStatus g__getenv(heapPo h, termPo a1, termPo a2) {
   }
 }
 
-ReturnStatus g__setenv(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__setenv(heapPo h, termPo xc, termPo a1, termPo a2) {
   char key[MAX_SYMB_LEN];
   char val[MAX_SYMB_LEN];
 
@@ -138,7 +138,7 @@ ReturnStatus g__setenv(heapPo h, termPo a1, termPo a2) {
   if (setenv((char *) key, val, 1) == 0) {
     return (ReturnStatus) {.ret=Ok, .result=voidEnum};
   } else
-    return liberror(h, "_setenv", eFAIL);
+    return (ReturnStatus) {.ret=Error, .result=eFAIL};
 }
 
 ReturnStatus g__repo(heapPo h) {
@@ -149,7 +149,7 @@ ReturnStatus g__repo(heapPo h) {
   return (ReturnStatus) {.result = repo, .ret=Ok};
 }
 
-ReturnStatus g__shell(heapPo h, termPo a1, termPo a2, termPo a3) {
+ReturnStatus g__shell(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
   switchProcessState(currentProcess, wait_io);
 
   char cmd[MAXFILELEN];
@@ -164,10 +164,10 @@ ReturnStatus g__shell(heapPo h, termPo a1, termPo a2, termPo a3) {
 
   if (access((char *) cmd, F_OK | R_OK | X_OK) != 0) {
     setProcessRunnable(currentProcess);
-    return liberror(h, "__shell", eNOTFND);
+    return (ReturnStatus) {.ret=Error,.result=eNOTFND};
   } else if (!isExecutableFile(cmd)) {
     setProcessRunnable(currentProcess);
-    return liberror(h, "__shell", eNOPERM);
+    return (ReturnStatus) {.ret=Error,.result=eNOPERM};
   } else {
     char **argv = (char **) calloc((size_t) (argCnt + 2), sizeof(char *));
     char **envp = (char **) calloc((size_t) (envCnt + 1), sizeof(char *));
@@ -230,9 +230,9 @@ ReturnStatus g__shell(heapPo h, termPo a1, termPo a2, termPo a3) {
         if (res < 0) {
           switch (errno) {
             case ECHILD:
-              return liberror(h, "__shell", eNOTFND);
+              return (ReturnStatus) {.ret=Error,.result=eNOTFND};
             case EFAULT:
-              return liberror(h, "__shell", eINVAL);
+              return (ReturnStatus) {.ret=Error,.result=eINVAL};
             case EINTR:
             default:
               continue;
@@ -241,13 +241,13 @@ ReturnStatus g__shell(heapPo h, termPo a1, termPo a2, termPo a3) {
           return (ReturnStatus) {.ret=Ok,
             .result = makeInteger(WEXITSTATUS(childStatus))};
         } else if (WIFSIGNALED(childStatus))
-          return liberror(h, "__shell", eINTRUPT);
+          return (ReturnStatus) {.ret=Error,.result=eINTRUPT};
       } while (True);
     }
   }
 }
 
-ReturnStatus g__popen(heapPo h, termPo a1, termPo a2, termPo a3) {
+ReturnStatus g__popen(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
   switchProcessState(currentProcess, wait_io);
 
   char cmd[MAXFILELEN];
@@ -260,10 +260,10 @@ ReturnStatus g__popen(heapPo h, termPo a1, termPo a2, termPo a3) {
 
   if (access((char *) cmd, ((unsigned) F_OK) | ((unsigned) R_OK) | ((unsigned) X_OK)) != 0) {
     setProcessRunnable(currentProcess);
-    return liberror(h, "__shell", eNOTFND);
+    return (ReturnStatus) {.ret=Error, .result=eNOTFND};
   } else if (!isExecutableFile(cmd)) {
     setProcessRunnable(currentProcess);
-    return liberror(h, "__shell", eNOPERM);
+    return (ReturnStatus) {.ret=Error, .result=eNOPERM};
   } else {
     char **argv = (char **) calloc((size_t) (argCnt + 2), sizeof(char *));
     char **envp = (char **) calloc((size_t) (envCnt + 1), sizeof(char *));
@@ -331,7 +331,7 @@ ReturnStatus g__popen(heapPo h, termPo a1, termPo a2, termPo a3) {
           free(envp[ix]);    /* release the strings we allocated */
 
         setProcessRunnable(currentProcess);
-        return liberror(h, "__popen", eIOERROR);
+        return (ReturnStatus) {.ret=Error, .result=eIOERROR};
       }
     }
   }

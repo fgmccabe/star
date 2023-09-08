@@ -15,7 +15,9 @@ test.ac1{
 
   main:()=>().
   main() => valof{
-    _logmsg(disp(f1(10)));
+    try{
+      _logmsg(disp(f1(10)))
+    } catch errorCode in {_ => {}};
     valis ()
   }
 }

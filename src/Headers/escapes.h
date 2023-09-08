@@ -6,7 +6,6 @@
 
 /* Declare standard types used in escapes */
 
-#define sysRet(E) "Uz2'star.core*result'" E "()"
 #define processState "t'star.thread*threadState'"
 #define threadType "t'star.thread*thread'"
 #define lockType "t'star.thread*lock'"
@@ -14,6 +13,7 @@
 #define udpType "t'star.io*udpHandle'"
 #define optionType(T) "Uz1'star.core*option'" T
 #define futureType(T) "Uz1'star.core*future'" T
+#define ERRCODE "t'star.core*errorCode"
 
 /* Define the standard escapes */
 escape(_exit, "F(i)()", "terminate engine")
@@ -25,16 +25,16 @@ escape(_callLbl, "F(siLLs)()", "invoke defined name")
 escape(_int_plus, "F(ii)i", "add two integers")
 escape(_int_minus, "F(ii)i", "subtract two integers")
 escape(_int_times, "F(ii)i", "multiply two integers")
-escape(_int_div, "F(ii)i", "divide two integers")
-escape(_int_mod, "F(ii)i", "modulo remainder")
+escape(_int_div, "|F(ii)ir"ERRCODE, "divide two integers")
+escape(_int_mod, "|F(ii)ir"ERRCODE, "modulo remainder")
 escape(_int_hash, "F(i)i", "compute hash of integer")
-escape(_int_gcd, "F(ii)i", "gcd of two integers")
+escape(_int_gcd, "|F(ii)ir"ERRCODE, "gcd of two integers")
 
 escape(_flt_plus, "F(ff)f", "add two floats")
 escape(_flt_minus, "F(ff)f", "subtract two floats")
 escape(_flt_times, "F(ff)f", "multiply two floats")
-escape(_flt_div, "F(ff)f", "divide two floats")
-escape(_flt_mod, "F(ff)f", "modulo remainder")
+escape(_flt_div, "|F(ff)fr"ERRCODE, "divide two floats")
+escape(_flt_mod, "|F(ff)fr"ERRCODE, "modulo remainder")
 
 escape(_int_abs, "F(i)i", "integer absolute value")
 escape(_flt_abs, "F(f)f", "float absolute value")
@@ -43,7 +43,7 @@ escape(_int_eq, "F(ii)l", "integer equality")
 escape(_int_lt, "F(ii)l", "integer less than")
 escape(_int_ge, "F(ii)l", "integer greater or equal")
 
-escape(_flt_eq, "F(fff)l", "float equality")
+escape(_flt_eq, "F(ff)l", "float equality")
 escape(_flt_lt, "F(ff)l", "float less than")
 escape(_flt_ge, "F(ff)l", "float greater or equal")
 
@@ -59,13 +59,13 @@ escape(_flt_pwr, "F(ff)f", "raise X to the power Y")
 escape(_big_plus, "F(bb)b", "add two bigints")
 escape(_big_minus, "F(bb)b", "subtract two bigints")
 escape(_big_times, "F(bb)b", "multiply two bigints")
-escape(_big_div, "F(bb)(bb)", "divide two bigints, return quotient & remainder")
+escape(_big_div, "|F(bb)(bb)r"ERRCODE, "divide two bigints, return quotient & remainder")
 escape(_big_bitand, "F(bb)b", "bitwise and of two bigints")
 escape(_big_bitor, "F(bb)b", "bitwise or of two bigints")
 escape(_big_bitxor, "F(bb)b", "bitwise exclusive or of two bigints")
 escape(_big_bitnot, "F(b)b", "bitwise negation of a bigint")
 
-escape(_big_gcd, "F(bb)b", "gcd of two bigints")
+escape(_big_gcd, "|F(bb)br"ERRCODE, "gcd of two bigints")
 escape(_big_hash, "F(b)i", "compute hash of bigint")
 
 escape(_big_eq, "F(bb)l", "bigint equality")
@@ -80,12 +80,12 @@ escape(_big2ints, "F(b)Li", "convert bigint to list of integers")
 escape(_str2big, "F(s)" optionType("b"), "convert string to bigint")
 escape(_big2str, "F(b)s", "convert bigint to string")
 
-escape(_big_format, "F(bs)s", "format a big integer")
+escape(_big_format, "|F(bs)sr"ERRCODE, "format a big integer")
 
 escape(_fiber_eq,":k's':k'r'F(x(k's')k'r'x(k's')k'r')l","compare two fiber identifiers")
 
-escape(sqrt, "F(f)f", "square root")
-escape(exp, "F(f)f", "exponential")
+escape(sqrt, "|F(f)fr"ERRCODE, "square root")
+escape(exp, "|F(f)fr"ERRCODE, "exponential")
 escape(log, "F(f)f", "logarithm")
 escape(log10, "F(f)f", "10-based logarithm")
 escape(pi, "F()f", "return PI")
@@ -125,31 +125,31 @@ escape(_tuple_nth, ":k't':k'e'F(k't'i)k'e'", "Access tuple element")
 escape(_tuple_set_nth, ":k't':k'e'F(k't'ik'e')k't'", "Update tuple element")
 
 escape(_cwd, "F()s", "return url of current working directory")
-escape(_cd, "F(s)"sysRet("s"), "change current working directory")
-escape(_rm, "F(s)"sysRet("s"), "remove file")
-escape(_mv, "F(ss)"sysRet("s"), "rename file")
-escape(_mkdir, "F(si)"sysRet("s"), "create directory")
-escape(_rmdir, "F(s)"sysRet("s"), "delete directory")
+escape(_cd, "|F(s)()r"ERRCODE, "change current working directory")
+escape(_rm, "|F(s)()r"ERRCODE, "remove file")
+escape(_mv, "|F(ss)()r"ERRCODE, "rename file")
+escape(_mkdir, "|F(si)()r"ERRCODE, "create directory")
+escape(_rmdir, "|F(s)()r"ERRCODE, "delete directory")
 escape(_isdir, "F(s)l", "is directory present")
-escape(_file_chmod, "F(si)"sysRet("s"), "change mode of a file or directory")
-escape(_ls, "F(s)Ls", "return a array of files in a directory")
+escape(_file_chmod, "|F(si)()r"ERRCODE, "change mode of a file or directory")
+escape(_ls, "|F(s)Lsr"ERRCODE, "return a array of files in a directory")
 escape(_repo, "F()s", "return the standard repo directory name")
 
-escape(_file_mode, "F(s)i", "report modes of a file")
+escape(_file_mode, "|F(s)ir"ERRCODE, "report modes of a file")
 escape(_file_present, "F(s)l", "check presence of a file")
-escape(_file_type, "F(s)i", "report on the type of a file")
-escape(_file_size, "F(s)i", "report on the size of a file")
-escape(_file_modified, "F(s)i", "report on when a file was last modified")
-escape(_file_date, "F(s)(iii)", "report on file access time and modification times")
+escape(_file_type, "|F(s)ir"ERRCODE, "report on the type of a file")
+escape(_file_size, "|F(s)ir"ERRCODE, "report on the size of a file")
+escape(_file_modified, "|F(s)ir"ERRCODE, "report on when a file was last modified")
+escape(_file_date, "|F(s)(iii)r"ERRCODE, "report on file access time and modification times")
 
-escape(_openInFile, "F(si)"fileType, "open input file")
-escape(_openOutFile, "F(si)"fileType, "open output file")
-escape(_openAppendFile, "F(si)"fileType, "open output file")
-escape(_openAppendIOFile, "F(si)"fileType, "open output file")
+escape(_openInFile, "|F(si)"fileType"r"ERRCODE, "open input file")
+escape(_openOutFile, "|F(si)"fileType"r"ERRCODE, "open output file")
+escape(_openAppendFile, "|F(si)"fileType"r"ERRCODE, "open output file")
+escape(_openAppendIOFile, "|F(si)"fileType"r"ERRCODE, "open output file")
 
-escape(_popen, "F(sLsL(ss))("fileType fileType fileType")", "open a pipe")
+escape(_popen, "|F(sLsL(ss))("fileType fileType fileType")r"ERRCODE, "open a pipe")
 
-escape(_close, "F("fileType")"sysRet("s"), "close file")
+escape(_close, "|F("fileType")()r"ERRCODE, "close file")
 escape(_end_of_file, "F("fileType")l", "end of file test")
 escape(_ready_to_read, "F("fileType")l", "file ready test")
 escape(_ready_to_write, "F("fileType")l", "file ready test")
@@ -161,46 +161,39 @@ escape(_inbyte, "F("fileType")i", "read single byte")
 escape(_inline, "F("fileType")s", "read a line")
 escape(_inline_async, "F("fileType")"futureType("s"), "async read of a line")
 escape(_intext, "F("fileType"s)s", "read until matching character")
-escape(_outchar, "F("fileType"i)"sysRet("s"), "write a single character")
-escape(_outbyte, "F("fileType"i)"sysRet("s"), "write a single byte")
-escape(_outbytes, "F("fileType"Li)"sysRet("s"), "write a list of bytes")
-escape(_outtext, "F("fileType"s)"sysRet("s"), "write a string as a block")
+escape(_outchar, "|F("fileType"i)()r"ERRCODE, "write a single character")
+escape(_outbyte, "|F("fileType"i)()r"ERRCODE, "write a single byte")
+escape(_outbytes, "|F("fileType"Li)()r"ERRCODE, "write a list of bytes")
+escape(_outtext, "|F("fileType"s)()r"ERRCODE, "write a string as a block")
 escape(_stdfile, "F(i)"fileType, "standard file descriptor")
 escape(_fposition, "F("fileType")i", "report current file position")
-escape(_fseek, "F("fileType"i)"sysRet("s"), "seek to new file position")
-escape(_flush, "F("fileType")"sysRet("s"), "flush the I/O buffer")
+escape(_fseek, "|F("fileType"i)()r"ERRCODE, "seek to new file position")
+escape(_flush, "|F("fileType")()r"ERRCODE, "flush the I/O buffer")
 escape(_flushall, "F()()", "flush all files")
-escape(_setfileencoding, "F("fileType"i)"sysRet("s"), "set file encoding on file")
-escape(_get_file, "F(s)s", "file into a char sequence")
+escape(_setfileencoding, "F("fileType"i)()", "set file encoding on file")
+escape(_get_file, "|F(s)sr"ERRCODE, "file into a char sequence")
 escape(_put_file, "F(ss)()", "write string into file")
 escape(_show, "F(s)()", "show something on console")
 
 escape(_install_pkg, "F(s)L(ss)", "define package from string contents")
 escape(_pkg_is_present, "F(ss)l", "True if an identified package is available")
 escape(_in_manifest, "F(sss)l", "True if pkg/version/kind is present in manifest")
-escape(_locate_in_manifest, "F(sss)s", "Access manifest resource")
+escape(_locate_in_manifest, "|F(sss)sr"ERRCODE, "Access manifest resource")
 
-escape(_logmsg, "F(s)()", "log a message in logfile or console")
+escape(_logmsg, "|F(s)()r"ERRCODE, "log a message in logfile or console")
 escape(_display_depth,"F()i", "Current standard display depth")
 
 // Socket handling functions
-escape(_connect, "F(sii)("fileType fileType")", "connect to remote host")
-escape(_listen, "F(i)"fileType, "listen on a port")
-escape(_accept, "F("fileType")("fileType fileType "sis)", "accept connection")
-
-/*
-escape(_udpPort,"F(i"udpType")"sysRet,"estabish a UDP port")
-escape(_udpGet,"F("udpType")(ssi)","read a UDP datagram")
-escape(_udpSend,"F("udpType"ssi)"sysRet,"send a UDP datagram")
-escape(_udpClose,"F("udpType")"sysRet,"close the UDP socket")
-*/
+escape(_connect, "|F(sii)("fileType fileType")r"ERRCODE, "connect to remote host")
+escape(_listen, "|F(i)"fileType"r"ERRCODE, "listen on a port")
+escape(_accept, "|F("fileType")("fileType fileType "sis)r"ERRCODE, "accept connection")
 
 escape(_hosttoip, "F(s)Ls", "IP address of host")
-escape(_iptohost, "F(s)s", "host name from IP")
+escape(_iptohost, "|F(s)sr"ERRCODE, "host name from IP")
 
 // Timing and delaying
-escape(_delay, "F(f)()", "delay for period of time")
-escape(_sleep, "F(f)()", "sleep until a definite time")
+escape(_delay, "|F(f)()r"ERRCODE, "delay for period of time")
+escape(_sleep, "|F(f)()r"ERRCODE, "sleep until a definite time")
 escape(_now, "F()f", "current time")
 escape(_today, "F()f", "time at midnight")
 escape(_ticks, "F()i", "used CPU time")
@@ -208,7 +201,7 @@ escape(_time2date, "F(f)(iiiiiifi)", "convert a time to a date")
 escape(_time2utc, "F(f)(iiiiiifi)", "convert a time to UTC date")
 escape(_date2time, "F(iiiiifi)f", "convert a date to a time")
 escape(_utc2time, "F(iiiiifi)f", "convert a UTC date to a time")
-escape(_formattime,"F(fs)s","format a time value")
+escape(_formattime,"|F(fs)sr"ERRCODE,"format a time value")
 escape(_parsetime,"F(ss)" optionType("f"),"parse a date expression guided by format string")
 
 // Character class escapes
@@ -257,7 +250,7 @@ escape(_isIDContinue, "F(c)l", "is continue char of identifier")
 // String handling escapes
 escape(_int2str, "F(iiii)s", "format an integer as a string")
 escape(_flt2str, "F(ficl)s", "format a floating as a string")
-escape(_int_format, "F(is)s", "format an integer using picture format")
+escape(_int_format, "|F(is)sr"ERRCODE, "format an integer using picture format")
 escape(_flt_format, "F(fs)s", "format a floating point using picture format")
 
 escape(_str2flt, "F(s)" optionType("f"), "parse a string as a float")
@@ -304,25 +297,25 @@ escape(_str_quote, "F(s)s", "construct a quoted version of a string")
 escape(_str_format, "F(ss)s", "apply formatting to a char sequence")
 
 escape(_getenv, "F(ss)s", "get an environment variable")
-escape(_setenv, "F(ss)()", "set an environment variable")
+escape(_setenv, "|F(ss)()r"ERRCODE, "set an environment variable")
 escape(_envir, "F()L(ss)", "return entire environment")
 
 // Process manipulation
-escape(_fork, "F(F()"sysRet("s")")"threadType, "fork new process")
+escape(_fork, "F(F()())"threadType, "fork new process")
 escape(_thread, "F()"threadType"", "report thread of current process")
-escape(_kill, "F("threadType")"sysRet("s"), "kill off a process")
+escape(_kill, "|F("threadType")()r"ERRCODE, "kill off a process")
 escape(_thread_state, "F("threadType ")" processState, "state of process")
-escape(_waitfor, "F("threadType")"sysRet("s"), "wait for other thread to terminate")
+escape(_waitfor, "|F("threadType")()r"ERRCODE, "wait for other thread to terminate")
 
-escape(_shell, "F(sLsL(ss))i", "Run a shell cmd")
+escape(_shell, "|F(sLsL(ss))ir"ERRCODE, "Run a shell cmd")
 
 
 
 // Lock management
 escape(_newLock, "F()"lockType, "create a new lock")
-escape(_acquireLock, "F("lockType"f)"sysRet("s"), "acquire lock")
-escape(_waitLock, "F("lockType"f)"sysRet("s"), "release and wait on a lock")
-escape(_releaseLock, "F("lockType")"sysRet("s"), "release a lock")
+escape(_acquireLock, "|F("lockType"f)()r"ERRCODE, "acquire lock")
+escape(_waitLock, "|F("lockType"f)()r"ERRCODE, "release and wait on a lock")
+escape(_releaseLock, "|F("lockType")()r"ERRCODE, "release a lock")
 
 escape(_ins_debug, "F()()", "set instruction-level")
 escape(_stackTrace, "F()s", "Print a stack trace")
@@ -332,4 +325,3 @@ escape(_stackTrace, "F()s", "Print a stack trace")
 #undef fileType
 #undef lockType
 #undef udpType
-#undef sysRet

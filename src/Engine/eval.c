@@ -18,6 +18,7 @@
 #include "continuationP.h"
 #include "closureP.h"
 #include "thunkP.h"
+#include "errorCodes.h"
 
 #ifdef TRACEEXEC
 logical collectStats = False;
@@ -251,14 +252,25 @@ retCode run(processPo P) {
             if (ret.result != Null)
               push(ret.result);
             continue;
-          case Error:
-            SP += esc->arity;
-            if (ret.result != Null)
-              push(ret.result);
-            else
-              push(unitEnum);
-            //PC = exit; Fix me, pass in a continuation to escapes that can fail
+          case Error: {
+            continuationPo cont = C_CONTINUATION(pop()); // Exception handler is first argument
+            assert(continIsValid(cont));
+            assert(ret.result != Null);
+
+            stackPo stk = contStack(cont);
+
+            assert(isAttachedStack(STK, stk) && validFP(stk, contFP(cont)));
+
+            saveRegisters();
+            STK = P->stk = dropUntil(STK, stk);
+            STK->fp = contFP(cont);
+            STK->fp->pc = contPC(cont);
+            STK->sp = contSP(cont);
+            invalidateCont(cont);
+            restoreRegisters();
+            push(ret.result);
             continue;
+          }
           case Fail:
             bail();
           case Switch:
@@ -538,23 +550,26 @@ retCode run(processPo P) {
         continue;
       }
       case Throw: {
-        continuationPo cont = C_CONTINUATION(pop());
-        termPo val = pop();
-        assert(continIsValid(cont));
+        Exception:
+        {
+          continuationPo cont = C_CONTINUATION(pop());
+          termPo val = pop();
+          assert(continIsValid(cont));
 
-        stackPo stk = contStack(cont);
+          stackPo stk = contStack(cont);
 
-        assert(isAttachedStack(STK, stk) && validFP(stk, contFP(cont)));
+          assert(isAttachedStack(STK, stk) && validFP(stk, contFP(cont)));
 
-        saveRegisters();
-        STK = P->stk = dropUntil(STK, stk);
-        STK->fp = contFP(cont);
-        STK->fp->pc = contPC(cont);
-        STK->sp = contSP(cont);
-        invalidateCont(cont);
-        restoreRegisters();
-        push(val);
-        continue;
+          saveRegisters();
+          STK = P->stk = dropUntil(STK, stk);
+          STK->fp = contFP(cont);
+          STK->fp->pc = contPC(cont);
+          STK->sp = contSP(cont);
+          invalidateCont(cont);
+          restoreRegisters();
+          push(val);
+          continue;
+        }
       }
 
       case TEq: {
@@ -848,22 +863,38 @@ retCode run(processPo P) {
         continue;
       }
       case IDiv: {
+        continuationPo cont = C_CONTINUATION(pop());
+
         integer Lhs = integerVal(pop());
         integer Rhs = integerVal(pop());
-        termPo Rs = makeInteger(Lhs / Rhs);
-        push(Rs);
-        continue;
+        if (Rhs == 0) {
+          push(divZero);
+          push(cont);
+          goto Exception;
+        } else {
+          termPo Rs = makeInteger(Lhs / Rhs);
+          push(Rs);
+          continue;
+        }
       }
       case IMod: {
+        continuationPo cont = C_CONTINUATION(pop());
+
         integer denom = integerVal(pop());
         integer numerator = integerVal(pop());
 
-        integer reslt = denom % numerator;
+        if (numerator == 0) {
+          push(divZero);
+          push(cont);
+          goto Exception;
+        } else {
+          integer reslt = denom % numerator;
 
-        termPo Rs = (termPo) makeInteger(reslt);
+          termPo Rs = (termPo) makeInteger(reslt);
 
-        push(Rs);
-        continue;
+          push(Rs);
+          continue;
+        }
       }
       case IAbs: {
         termPo Trm = pop();
@@ -1021,20 +1052,35 @@ retCode run(processPo P) {
         continue;
       }
       case FDiv: {
+        continuationPo cont = C_CONTINUATION(pop());
+
         double Lhs = floatVal(pop());
         double Rhs = floatVal(pop());
 
-        termPo Rs = makeFloat(Lhs / Rhs);
-        push(Rs);
-        continue;
+        if (Rhs == 0.0) {
+          push(divZero);
+          push(cont);
+          goto Exception;
+        } else {
+          termPo Rs = makeFloat(Lhs / Rhs);
+          push(Rs);
+          continue;
+        }
       }
       case FMod: {
+        continuationPo cont = C_CONTINUATION(pop());
+
         double Lhs = floatVal(pop());
         double Rhs = floatVal(pop());
-
-        termPo Rs = makeFloat(fmod(Lhs, Rhs));
-        push(Rs);
-        continue;
+        if (Rhs == 0.0) {
+          push(divZero);
+          push(cont);
+          goto Exception;
+        } else {
+          termPo Rs = makeFloat(fmod(Lhs, Rhs));
+          push(Rs);
+          continue;
+        }
       }
       case FAbs: {
         double Lhs = floatVal(pop());
@@ -1046,9 +1092,8 @@ retCode run(processPo P) {
       case FEq: {
         termPo Lhs = pop();
         termPo Rhs = pop();
-        termPo Eps = pop();
 
-        termPo Rs = (nearlyEqual(floatVal(Lhs), floatVal(Rhs), floatVal(Eps)) ? trueEnum : falseEnum);
+        termPo Rs = (nearlyEqual(floatVal(Lhs), floatVal(Rhs), floatVal(Rhs) / 1.0e20) ? trueEnum : falseEnum);
         push(Rs);
         continue;
       }

@@ -15,7 +15,7 @@
 #include <consP.h>
 #include "netfile.h"
 
-ReturnStatus g__listen(heapPo h, termPo a1) {
+ReturnStatus g__listen(heapPo h, termPo xc, termPo a1) {
   integer port = integerVal(a1);
   char nBuff[MAXFILELEN];
   ioPo listen;
@@ -26,14 +26,14 @@ ReturnStatus g__listen(heapPo h, termPo a1) {
   setProcessRunnable(currentProcess);
 
   if (listen == NULL)
-    return liberror(h, "_listen", eNOPERM);
+    return (ReturnStatus) {.ret=Error, .result=eNOPERM};
   else {
     return (ReturnStatus) {.ret=Ok,
       .result =(termPo) allocateIOChnnl(h, listen)};
   }
 }
 
-ReturnStatus g__accept(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__accept(heapPo h, termPo xc, termPo a1, termPo a2) {
   ioPo listen = ioChannel(C_IO(a1));
   ioEncoding enc = pickEncoding(integerVal(a2));
 
@@ -47,7 +47,7 @@ ReturnStatus g__accept(heapPo h, termPo a1, termPo a2) {
   setProcessRunnable(currentProcess);
 
   if (listen == NULL)
-    return liberror(h, "_accept", eNOPERM);
+    return (ReturnStatus) {.ret=Error, .result=eNOPERM};
   else {
 
     switch (ret) {
@@ -60,7 +60,7 @@ ReturnStatus g__accept(heapPo h, termPo a1, termPo a2) {
         if (peerN == NULL || peerI == NULL) {
           closeFile(inC);
           closeFile(outC);
-          return liberror(h, "_accept", eNOTFND);
+          return (ReturnStatus) {.ret=Error, .result=eNOTFND};
         }
 
         termPo inChnl = (termPo) allocateIOChnnl(h, inC);
@@ -91,12 +91,12 @@ ReturnStatus g__accept(heapPo h, termPo a1, termPo a2) {
         return (ReturnStatus) {.ret=Ok, .result =(termPo) reslt};
       }
       default:
-        return liberror(h, "_accept", eIOERROR);
+        return (ReturnStatus) {.ret=Error, .result=eIOERROR};
     }
   }
 }
 
-ReturnStatus g__connect(heapPo h, termPo a1, termPo a2, termPo a3) {
+ReturnStatus g__connect(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
   integer port = integerVal(a2);
 
   integer hLen;
@@ -128,7 +128,7 @@ ReturnStatus g__connect(heapPo h, termPo a1, termPo a2, termPo a3) {
     }
     default:
       logMsg(logFile, "Failed to establish connection: %S", host, hLen);
-      return liberror(h, "_connect", eCONNECT);
+      return (ReturnStatus) {.ret=Error, .result=eCONNECT};
   }
 }
 
@@ -155,7 +155,7 @@ ReturnStatus g__hosttoip(heapPo h, termPo a1) {
 }
 
 /* Access host name from IP address */
-ReturnStatus g__iptohost(heapPo h, termPo a1) {
+ReturnStatus g__iptohost(heapPo h, termPo xc, termPo a1) {
   char ip[MAX_SYMB_LEN];
 
   copyChars2Buff(C_STR(a1), ip, NumberOf(ip));
@@ -166,7 +166,7 @@ ReturnStatus g__iptohost(heapPo h, termPo a1) {
     termPo Host = allocateCString(h, host);
     return (ReturnStatus) {.ret=Ok, .result =Host};
   } else
-    return liberror(h, "_iptohost", eNOTFND);
+    return (ReturnStatus) {.ret=Error, .result=eNOTFND};
 }
 
 

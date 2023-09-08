@@ -53,6 +53,8 @@ test.ts1{
     this retire .end
   }
 
+  isEven(X) => X.&.1==0.
+
   evens:(cons[integer]) => integer.
   evens(L) => valof{
     TT = iterGen(L);
@@ -60,7 +62,7 @@ test.ts1{
 
     while .true do {
       case TT resume .next in {
-	.yild(X) where X%2==0 => {
+	.yild(X) where isEven(X) => {
 	  Tl := Tl! + X;
 	}.
 	.yild(X) default => {
@@ -78,7 +80,7 @@ test.ts1{
 
     while .true do {
       case TT resume .next in {
-	.yild(X) where X%2==1 => {
+	.yild(X) where ~isEven(X) => {
 	  Tl := Tl! + X;
 	}.
 	.yild(X) default => {
