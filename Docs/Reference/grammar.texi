@@ -1,146 +1,40 @@
-@node Grammar
-@chapter Grammar
-@cindex grammar
-@cindex ast
+@node Grammar Rules
+@chapter Grammar Rules
+@cindex grammar rules
 
-The grammar of @Star{} is based on an @emph{operator precedence
-grammar}. Commonly, operator precedence grammars are restricted to the
-arithmetic expression subset of a language; we use it for the whole of
-@Star{}. This allows us to address the full grammar and semantics of
-@Star{} in a layered approach. The grammar layer is focused on the
-@emph{well formed formedness} of @Star{} programs -- which expressions
-are syntactically valid even though they may not be type correct.
+There are many occasions when it is necessary to parse text. For
+example, the @Star{} run-time has parses for URIs, json files as well
+as for some internal formats.
 
-In effect, the grammar layer represents the second layer (above the
-lexical layer) in the 'tower of semantics' that represents the full
-semantics of @Star{} programs.
+The grammar rule notation is intended to make it straightforward to
+develop parsers using a high level notation.
 
-@menu
-* Operator Precedence Grammar::
-* Standard Operators::
-@end menu
+@node Grammar rule notation
+@section Grammar rule notation
 
-
-@quotation TIP
-This choice gives us two key benefits: it is simple to understand and
-it is simple to extend. The latter is particularly important in
-@Star{} as a significant part of its functionality is derived from
-@emph{profiles} which are similar to macros.
-@end quotation
-
-However, it also makes certain other aspects more challenging. In
-particular, an operator precedence grammar knows less about the
-program as it is parsed. This means that syntax error messages are
-liable to less informative.
-
-@node Operator Precedence Grammar
-@section Operator Precedence Grammar
-@cindex operator precedence grammar
-
-@noindent
-An operator precedence grammar (OPG) allows us to write expressions like:
-@example
-X * Y + X / Y
-@end example
-
-and to know that this means the equivalent of:
-@example
-(X * Y) + (X / Y)
-@end example
-
-or more specifically:
-@example
-+(*(X, Y), /(X, Y))
-@end example
-
-Operator precedence grammars are often used to capture
-arithmetic-style expressions. In @Star{} we extend the concept to
-cover the entire language.
-
-For example, an equation such as:
-@example
-double(X) => X*X
-@end example
-
-can be interpreted -- by treating @code{=>} as an operator -- as:
-@example
-'=>'(double(X),'*'(X,X))
-@end example
-
-Of course, this is merely a @emph{parse} of the equation. The real
-task of the compiler is to interpret this abstract syntax as an
-equation rather than as an attempt to apply the @code{=>}
-function.@footnote{The entire operator precedence grammar (not
-including tokenization) is very succinct, as can be seen in
-@xref{srOpPrecGrammar}.}
-
-@float BNF,srOpPrecGrammar
-@caption{Operator Precedence Grammar}
+@float BNF,grammarRuleFig
+@caption{Grammar Rule Notation}
 @display
-@var{Term}(Priority) ::= @var{Prefix}(Priority)
-  | @var{Infix}(Priority)
-  | @var{Postfix}(Priority)
-  | @var{Term0}
+@anchored{Grammar Rule} ::= @refer{GrammarRuleHead} @code{-->} @refer{RuleBody}
 
-@var{Prefix}(Priority) ::= @var{Identifier} @var{Term}(R) where prefix($1,P,R) and P<=Priority
+@anchored{GrammarRuleHead} ::= @refer{NonTerminal} @code{>>} @refer{Expression}
 
-@var{Infix}(Priority) ::= @var{Term}(L) @var{Identifier} @var{Term}(R) where infix($2,L,P,R) && P<=Priority
+@anchored{Terminal} ::= @code{[} @refer{Pattern} @code{,}@dots{}@code{,} @refer{Pattern} @code{]}
 
-@var{Postfix}(Priority) ::= @var{Term}(L) @var{Identifier} where postfix($2,L,P) && P<=Priority
+@anchored{NonTerminal} ::= @refer{Identifier} | @refer{RuleHead}
 
-@var{Term0} ::= 
+@anchored{RuleBody} ::= @refer{NonTerminal} |
+  @refer{Terminal} |
+  @refer{RuleBody} @code{,} @refer{RuleBody} |
+  @refer{RuleBody} @code{|} @refer{RuleBody} |
+  @refer{RuleBody} @code{*} |
+  @refer{RuleBody} @code{*} @refer{RuleBody} |
+  @code{~} @refer{RuleBody} |
+  @refer{RuleBody} @code{>>} @refer{Pattern} |
+  @code{@{} @refer{Condition} @code{@}}
+
 
 @end display
 @end float
-
-Some notes about @ref{srOpPrecGrammar}:
-@itemize
-@item
-We are somewhat liberal with traditional BNF notation; terms such as
-@display
-where infix($2,L,P,R) && P<=Priority
-@end display
-amount to @emph{constraints} on the production: this condition must be satisfied in addition to the normal sequences of terminals and non-terminals
-@item
-A non-terminal of the form:
-@display
-@var{Term}(Priority)
-@end display
-amounts to a parameterized non-terminal. Or, equivalently, it stands
-for all possible expansions of the non-terminal.
-@item
-This grammar is the basis of the actual grammar for @Star{};
-although the actual implementation is somewhat more efficient than the
-ambiguous grammar would suggest.
-@item
-There is an additional constraint not implied by this set of rules: a
-given identifier may be an operator of more than one form - prefix,
-infix and postfix.
-@end itemize
-
-@node Standard Operators
-@section Standard Operators
-
-A key input to the grammar is the table of operators. There are a
-large number of standard operators; some of which are symbolic and
-others are alphanumeric in form.
-
-The standard operators are listed in @ref{standardOperatorsTbl}. Operators in
-this table are listed in order of priority. Together with a priority,
-operators can also be considered to @code{prefix}, @code{infix},
-@code{postfix}, or some combination of the three.
-
-The priority of an operator is the indication of the `importance' of
-the operator: the higher the priority the nearer the top of the
-abstract syntax tree the corresponding structure will be.
-
-Priorities are numbers in the range 1..2000; by convention, priorities
-in the range 1..899 refer to entities that normally take the role of
-expressions, priorities in the range 900..1000 refer to predicates and
-predicate-level connectives and priorities in the range 1001..2000
-refer to entries that have a statement or program level
-interpretation.
-
-@include operators.texi
 
 

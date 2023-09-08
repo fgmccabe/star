@@ -159,10 +159,9 @@ star.compiler.dict.mgt{
   formMethods([],_,_,_,Dct) => Dct.
   formMethods([(Nm,Tp),..Mtds],Lc,Q,Con,Dct) => valof{
     (MQ,MI) = deQuant(Tp);
-    (MC,MT) = deConstrain(MI);
+    (_MC,MT) = deConstrain(MI);   -- We drop the constraint here
     valis formMethods(Mtds,Lc,Q,Con,
-      declareMethod(Nm,Lc,reQuant(Q++MQ,
-	  reConstrainType([Con,..MC],MT)),Dct))
+      declareMethod(Nm,Lc,reQuant(Q++MQ,.constrainedType(MT,Con)),Dct))
   }
 
   declareMethod:(string,option[locn],tipe,dict) => dict.

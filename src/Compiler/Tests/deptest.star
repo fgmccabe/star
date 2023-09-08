@@ -11,7 +11,7 @@ test.comp.depends{
   import star.pkg.
 
   R0 = reports([]).
-  lc = pkgLoc(pkg("test",defltVersion)).
+  lc = startLoc("test").
 
   getAst((some(A),_)) => A.
 

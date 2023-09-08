@@ -8,7 +8,7 @@ test.comp.lx{
   import star.compiler.location.
   import star.pkg.
 
-  lc=pkgLoc(pkg("test",.defltVersion)).
+  lc=startLoc("test").
 
   st:tokenState.
   st = initSt(lc,"  /* comment */\n-- comment\n `9` "::cons[char],reports([])).

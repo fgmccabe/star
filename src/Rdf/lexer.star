@@ -60,8 +60,6 @@ rdf.lexer{
   nxxTok(`7`,_,St0) => readNumber(St0).
   nxxTok(`8`,_,St0) => readNumber(St0).
   nxxTok(`9`,_,St0) => readNumber(St0).
-  nxxTok(`'`,St,St0) where (Nxt,.some(Id)) .= readQuoted(St,`'`,[]) =>
-    (Nxt,.some(.tok(makeLoc(St0,Nxt),.idQTok(Id)))).
   nxxTok(`\"`,St,St0) where Nx ?= lookingAt(St,[`\"`,`\"`]) => stringBlob(Nx,St0,[]).
   nxxTok(`\"`,St,St0) where (Nxt,.some(Str)) .= readString(St,[]) =>
     (Nxt,.some(.tok(makeLoc(St0,Nxt),.strTok(Str)))).
@@ -76,11 +74,7 @@ rdf.lexer{
   nxxTok(Chr,St,St0) where Pnc ?= punc(Chr) =>
     (St,.some(.tok(makeLoc(St0,St),.pncTok(Pnc)))).
   nxxTok(`<`,St,St0) where (Nxt,.some(Txt)) .= readQuoted(St,`>`,[]) =>
-    (U ?= parseUri(Txt) ?? (Nxt,.some(.tok(makeLoc(St,Nxt),.uriTok(U)))) ||
-      valof{
-	reportError("could not parse uri $(Txt)",.some(makeLoc(St,Nxt)));
-	valis nextToken(Nxt)
-      }).
+    (Nxt,.some(.tok(makeLoc(St,Nxt),.uriTok(Txt)))).
   nxxTok(Chr,St,St0) where isIdentifierStart(Chr) => readIden(St,St0,[Chr]).
   nxxTok(Chr,St,St0) default => valof{
     reportError("illegal char in token: '$(Chr):c;'",.some(makeLoc(St,St0)));
@@ -107,10 +101,6 @@ rdf.lexer{
     (Nx,.some(`$`)) .= nextChr(St) &&
     (_,.some(`(`)) .= nextChr(Nx) &&
     (St1,.some(Inter)) .= interpolation(Nx) => readString(St1,[Inter,..SoFar]).
-  readString(St,SoFar) where
-    (Nx,.some(`#`)) .= nextChr(St) &&
-    (_,.some(`\(`)) .= nextChr(Nx) &&
-	  (St1,.some(Inter)) .= evaluation(Nx) => readString(St1,[Inter,..SoFar]).
   readString(St,SoFar) where (St1,.some(Seg)) .= readStr(St,[]) =>
     readString(St1,[.segment(makeLoc(St,St1),Seg),..SoFar]).
 
@@ -128,13 +118,6 @@ rdf.lexer{
     (St3,.some(Format)) .= readFormat(St2) &&
     (St4,IToks) .= allTks(interSt(St2,Inter)) =>
    (St3,.some(.interpolate(makeLoc(St,St3),IToks,Format))).
-
-  evaluation:(tokenState) => (tokenState,option[stringSegment]).
-  evaluation(St) where
-    (St1,.some(Chr)) .= nextChr(St) &&
-    (St2,.some(Inter)) .= bracketCount(St,St1,Chr,[],[]) &&
-    (St3,IToks) .= allTks(interSt(St2,Inter)) =>
-  (St2,.some(.evaluate(makeLoc(St,St2),IToks))).
 
   bracketCount:(tokenState,tokenState,char,cons[char],cons[char]) => (tokenState,option[string]).
   bracketCount(_,St1,Cl,[Cl],Chrs) => (St1,.some(reverse([Cl,..Chrs])::string)).

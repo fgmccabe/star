@@ -19,8 +19,7 @@ test.comp.eqqchk{
   -- deeper check of resolver
 
   R0 = reports([]).
-  Pk = pkg("test",defltVersion).
-  lc = pkgLoc(Pk).
+  lc = startLoc("test").
 
   getAst((some(A),_)) => A.
 

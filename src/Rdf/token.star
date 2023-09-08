@@ -5,22 +5,19 @@ rdf.token{
 
   public token ::= .tok(locn,tk) | .endTok(locn).
 
-  public tk ::= .idQTok(string)
-  | .idTok(string)
+  public tk ::= .idTok(string)
   | .intTok(integer)
   | .fltTok(float)
   | .chrTok(char)
   | .pncTok(string)
-  | .uriTok(uri)
+  | .uriTok(string)
   | .strTok(cons[stringSegment]).
 
   public stringSegment ::= .segment(locn,string)
-    | .interpolate(locn,cons[token],string)
-  | .evaluate(locn,cons[token]).
+    | .interpolate(locn,cons[token],string).
 
   public implementation display[tk] => {
     disp(Tk) => case Tk in {
-      .idQTok(Id) => "''#(Id)''".
       .idTok(Id) => "'#(Id)'".
       .intTok(Ix) => disp(Ix).
       .fltTok(Dx) => disp(Dx).
@@ -39,26 +36,24 @@ rdf.token{
       .segment(_,S) => S.
       .interpolate(_,S,"") => "\$($(S))".
       .interpolate(_,S,F) => "\$($(S)):#(F);".
-      .evaluate(_,S) => "\#($(S))".
     }
   }
 
   implementation equality[stringSegment] => {
     .segment(_,S1) == .segment(_,S2) => S1==S2.
     .interpolate(_,S1,F1) == .interpolate(_,S2,F2) => S1==S2 && F1==F2.
-    .evaluate(_,S1) == .evaluate(_,S2) => S1==S2.
     _ == _ default => .false.
   }
 
   public implementation equality[tk] => {
     Tk1 == Tk2 => case Tk1 in {
-      .idQTok(Id1) => .idQTok(Id2).=Tk2 && Id1==Id2.
       .idTok(Id1) => .idTok(Id2).=Tk2 && Id1==Id2.
       .intTok(Ix1) => .intTok(Ix2).=Tk2 && Ix1==Ix2.
       .fltTok(Dx1) => .fltTok(Dx2).=Tk2 && Dx1==Dx2.
       .chrTok(C1) => .chrTok(C2).=Tk2 && C1==C2.
       .pncTok(C1) => .pncTok(C2).=Tk2 && C1==C2.
       .strTok(S1) => .strTok(S2).=Tk2 && S1==S2.
+      .uriTok(S1) => .uriTok(S2).=Tk2 && S1==S2.
     }
   }
 

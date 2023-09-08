@@ -3,17 +3,16 @@ rdf.triple{
   import star.uri.
   import star.location.
 
-  public concept ::= .name(string)
-  | .uri(uri)
+  public concept ::= .named(string,string)
+  | .uri(string)
   | .text(cons[markup])
   | .int(integer)
   | .flt(float).
 
-  public markup ::= .str(string) | .link(concept).
-  
+  public markup ::= .str(string) | .link(concept,string).
 
   public implementation equality[concept] => let{.
-    eqConcept(.name(S1),.name(S2)) => S1==S2.
+    eqConcept(.named(P1,S1),.named(P2,S2)) => P1==P2 && S1==S2.
     eqConcept(.uri(U1),.uri(U2)) => U1==U2.
     eqConcept(.text(S1),.text(S2)) => eqConcepts(S1,S2).
     eqConcept(.int(I1),.int(I2)) => I1==I2.
@@ -29,7 +28,8 @@ rdf.triple{
   }
 
   public implementation display[concept] => {
-    disp(.name(S)) => S.
+    disp(.named("",S)) => S.
+    disp(.named(P,S)) => "#(P)\:#(S)".
     disp(.uri(U)) => "<$(U)>".
     disp(.text(S)) => interleave(S//disp,";")*.
     disp(.int(N)) => disp(N).
@@ -38,15 +38,21 @@ rdf.triple{
 
   public implementation display[markup] => {
     disp(.str(S)) => S.
-    disp(.link(C)) => disp(C).
+    disp(.link(C,"")) => "\$($(C))".
+    disp(.link(C,Fmt)) => "\$($(C)):#(Fmt);".
   }
 
   public implementation hashable[concept] => {
-    hash(.name(S)) => hash(S)*37+hash("name").
+    hash(.named(P,S)) => ((hash(P)*37)+hash(S)*37)+hash("name").
     hash(.uri(U)) => hash(U)*37+hash("U").
     hash(.text(S)) => hash(S)*37+hash("S").
     hash(.int(I)) => hash(I).
     hash(.flt(I)) => hash(I).
+  }
+
+  implementation hashable[markup] => {
+    hash(.str(S)) => hash(S).
+    hash(.link(L,F)) => hash(L)*37+hash(F)
   }
 
   public triple ::= .tr(concept,concept,concept).
@@ -58,5 +64,7 @@ rdf.triple{
   public implementation display[triple] => {
     disp(.tr(S,P,O)) => "$(S) $(P) $(O)"
   }
+
+  public stmt ::= .macro(string,string) | .sent(triple).
 }
   

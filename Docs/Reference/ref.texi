@@ -78,7 +78,7 @@ F.G. McCabe).
 
 @include lexical.texi
 
-@include grammar.texi
+@include opg.texi
 
 @include programs.texi
 
@@ -93,6 +93,8 @@ F.G. McCabe).
 @include queries.texi
 
 @include actions.texi
+
+@include grammar.texi
 
 @include concurrent.texi
 

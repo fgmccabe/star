@@ -5,6 +5,7 @@
     "rdf.graph" : "graph.star",
     "rdf.lexer" : "lexer.star",
     "rdf.meta" : "meta.star",
+    "rdf.parser" : "parser.star",
     "rdf.token" : "token.star",
     "rdf.triple" : "triple.star"
     },
