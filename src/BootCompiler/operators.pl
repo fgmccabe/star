@@ -74,6 +74,7 @@
   operator("if", [prefixOp(1175, 1174)]).
   operator(":", [infixOp(1249, 1250, 1249)]).
   operator(";", [postfixOp(1250, 1251), infixOp(1250, 1251, 1251)]).
+  operator("-->", [infixOp(1259, 1260, 1259)]).
   operator("<", [infixOp(899, 900, 899)]).
   operator(".=", [infixOp(899, 900, 899)]).
   operator("=>>", [infixOp(949, 950, 950)]).
@@ -182,7 +183,9 @@
   follows('++','+','+++').
   follows(',','.',',.').
   follows(',.','.',',..').
+  follows('-','-','--').
   follows('-','>','->').
+  follows('--','>','-->').
   follows('->','>','->>').
   follows('.','#','.#').
   follows('.','&','.&').
@@ -269,6 +272,7 @@
   final(',',",").	 /* tupling operator */
   final(',..',",..").	 /* list cons */
   final('-',"-").	 /* arithmetic negation */
+  final('-->',"-->").	 /* grammar rule arrow */
   final('->',"->").	 /* map entry */
   final('->>',"->>").	 /* dependent type marker */
   final('.',".").	 /* identify enumerator */
@@ -392,6 +396,7 @@
   keyword("if").
   keyword(":").
   keyword(";").
+  keyword("-->").
   keyword(".=").
   keyword("=>>").
   keyword("=").

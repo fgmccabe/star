@@ -667,7 +667,7 @@ star.compiler.checker{
   typeOfExp(A,Tp,Env,Path) where (Lc,Els) ?= isTuple(A) => valof{
     Tvs = genTpVars(Els);
     checkType(A,.tupleType(Tvs),Tp,Env);
-    Ptns = typeOfExps(Els,Tvs,[],Env,Path);
+    Ptns = typeOfExps(Els,Tvs,Lc,[],Env,Path);
     valis .tple(Lc,Ptns)
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,_,Ar,C,R) ?= isLambda(A) => valof{
@@ -833,7 +833,7 @@ star.compiler.checker{
     Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
 
     if .tupleType(Tps) .= deRef(ArgTp) then{
-      Args = typeOfExps(Args,Tps,[],Base,Path);
+      Args = typeOfExps(Args,Tps,Lc,[],Base,Path);
       valis .apply(Lc,Fun,Args,Tp)
     } else{
       reportError("expecting argument type $(At) to be a tuple type",Lc);
@@ -912,10 +912,19 @@ star.compiler.checker{
     }
   }
 
-  typeOfExps:(cons[ast],cons[tipe],cons[canon],dict,string) => cons[canon].
-  typeOfExps([],[],Els,Env,_) =>reverse(Els).
-  typeOfExps([P,..Ps],[T,..Ts],Els,Env,Path) =>
-    typeOfExps(Ps,Ts,[typeOfExp(P,T,Env,Path),..Els],Env,Path).
+  typeOfExps:(cons[ast],cons[tipe],option[locn],cons[canon],dict,string) =>
+    cons[canon].
+  typeOfExps([],[],_,Els,Env,_) =>reverse(Els).
+  typeOfExps([P,..Ps],[T,..Ts],_,Els,Env,Path) =>
+    typeOfExps(Ps,Ts,locOf(P),[typeOfExp(P,T,Env,Path),..Els],Env,Path).
+  typeOfExps([],[T,.._],Lc,Els,Env,_) => valof{
+    reportError("insufficient arguments, expecting a $(T)",Lc);
+    valis reverse(Els)
+  }
+  typeOfExps([P,.._],[],_,Els,Env,_) => valof{
+    reportError("too many arguments: $(P)",locOf(P));
+    valis reverse(Els)
+  }
 
   typeOfRoundTerm:(option[locn],ast,cons[ast],tipe,dict,string) => canon.
   typeOfRoundTerm(Lc,Op,As,Tp,Env,Path) => valof{
@@ -926,7 +935,7 @@ star.compiler.checker{
     FnTp = fnType(At,Tp);
 
     if sameType(ExTp,FnTp,Env) then{
-      Args = typeOfExps(As,Vrs,[],Env,Path);      
+      Args = typeOfExps(As,Vrs,Lc,[],Env,Path);      
       valis .apply(Lc,Fun,Args,Tp)
     } else{
       reportError("type of $(Op)\:$(ExTp) not consistent with $(FnTp)",Lc);

@@ -100,7 +100,7 @@ isTypeFun(tpFun(Nm,_),[],_Lc,Env,Tp) :-
   freshen(Rule,Env,_,Tp).
 
 faceOfType(T,Lc,Env,Face) :-
-  simplifyType(T,Lc,Env,_,[],Tp),
+  deRef(T,Tp),
   getFace(Tp,Lc,Env,Face).
 
 getFace(type(Nm),Lc,Env,Face) :- 
@@ -223,6 +223,10 @@ smpCon(conTract(Nm,L,R),Lc,Env,C,Cx,conTract(Nm,Ls,Rs)) :-
 smpCon(implementsFace(L,R),Lc,Env,C,Cx,implementsFace(Ls,Rs)) :-
   simplifyType(L,Lc,Env,C,C0,Ls),
   simplifyType(R,Lc,Env,C0,Cx,Rs).
+smpCon(implicit(Nm,T),Lc,Env,C,Cx,implicit(Nm,Ts)) :-
+  simplifyType(T,Lc,Env,C,Cx,Ts).
+smpCon(raises(T),Lc,Env,C,Cx,raises(Ts)) :-
+  simplifyType(T,Lc,Env,C,Cx,Ts).
 
 bind(tVar(Curr,Con,VLc,Nm,Id),Tp,Lc) :- !,
   \+varIsIn(tVar(Curr,Con,_,Nm,Id),Tp),

@@ -62,7 +62,8 @@ declareMethods(conDef(_,_,ConEx),Lc,Env,Ev) :-
 
 formMethods([],_,_,_,_,Env,Env).
 formMethods([(Nm,Tp)|M],Lc,Q,Cx,Con,Env,Ev) :-
-  moveQuants(Tp,FQ,QTp),
+  moveQuants(Tp,FQ,CMTp),
+  getConstraints(CMTp,_,QTp),
   merge(FQ,Q,MQ),
   putConstraints(Cx,constrained(QTp,Con),CC),
   moveQuants(MTp,MQ,CC),
